@@ -1,0 +1,2580 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: >-
+  Rapid Cortex API. IAM: SAM built-in DynamoDB/S3 policies scope to named tables/buckets; explicit Statement blocks
+  use least-privilege actions, ARNs for Bedrock foundation models (AiBedrockFoundationModelId + QaBedrockModelId),
+  stack Secrets prefix rapidcortex/<stage>/*, and regional Conditions where AWS control-plane APIs require Resource=*.
+  Verify with npm run validate:iam and sam validate --lint.
+
+Metadata:
+  cfn-lint:
+    config:
+      ignore_checks:
+        - W1028
+        - W2001
+        - W7001
+        - W8001
+
+Parameters:
+  DeploymentStage:
+    Type: String
+    Default: dev
+    AllowedValues: [dev, staging, prod, pilot]
+  RootDomainName:
+    Type: String
+    Default: rapidcortex.us
+  ApiSubdomainPrefix:
+    Type: String
+    Default: api
+  ApiDomainCertificateArn:
+    Type: String
+    Default: ""
+    Description: >-
+      ACM certificate ARN in the same region as this stack (API Gateway regional custom domain).
+      Leave empty and set Route53HostedZoneId to have the stack request and validate a cert in ACM via DNS.
+  Route53HostedZoneId:
+    Type: String
+    Default: ""
+    Description: >-
+      Public Route 53 hosted zone ID for RootDomainName (e.g. Z123...). When set and ApiDomainCertificateArn is empty,
+      the stack creates an ACM certificate for api.<root-domain> and writes DNS validation records automatically.
+  AppCnameTarget:
+    Type: String
+    Default: ""
+    Description: Optional CNAME target for app.<root-domain> (e.g. CloudFront domain).
+  AdminCnameTarget:
+    Type: String
+    Default: ""
+    Description: Optional CNAME target for admin.<root-domain>.
+  WwwCnameTarget:
+    Type: String
+    Default: ""
+    Description: Optional CNAME target for www.<root-domain>.
+  OpenAiApiKeySecretArn:
+    Type: String
+    Default: ""
+    Description: Optional Secrets Manager secret ARN for OpenAI (plain string or JSON with apiKey).
+  AnthropicApiKeySecretArn:
+    Type: String
+    Default: ""
+    Description: Optional Secrets Manager secret ARN for Anthropic (plain string or JSON with apiKey).
+  AzureSpeechKeySecretArn:
+    Type: String
+    Default: ""
+    Description: Optional Secrets Manager ARN for Azure Speech key (plain string or JSON with AZURE_SPEECH_KEY).
+  AzureTranslationKeySecretArn:
+    Type: String
+    Default: ""
+    Description: Optional Secrets Manager ARN for Azure Translator key (defaults to speech secret when empty).
+  GoogleApplicationCredentialsSecretArn:
+    Type: String
+    Default: ""
+    Description: Optional Secrets Manager ARN holding Google service account JSON for STT/Translate.
+  ExternalApiJwtSecretArn:
+    Type: String
+    Default: ""
+    Description: >-
+      Optional Secrets Manager ARN for Agency API (`/api/v1`) JWT signing key (plain UTF-8 string, min 32 chars).
+      When empty, lambdas must receive EXTERNAL_API_JWT_SECRET through a secure deployment path (not plaintext in template).
+  ExternalApiEncryptionKeyArn:
+    Type: String
+    Default: ""
+    Description: >-
+      Optional Secrets Manager ARN for webhook signing-secret encryption passphrase (plain UTF-8 string, min 16 chars).
+  MultilingualSecretProvisioning:
+    Type: String
+    Default: external
+    AllowedValues: [external, managed]
+    Description: >-
+      managed: create stack-owned Secrets Manager secrets (placeholder values) under rapidcortex/<DeploymentStage>/multilingual/* and wire Lambdas to them.
+      external: use the Azure/Google secret ARN parameters only (leave managed secrets unused).
+  MultilingualSecretsPolicyMode:
+    Type: String
+    Default: scoped
+    AllowedValues: [scoped, broad]
+    Description: >-
+      scoped: GetSecretValue limited to rapidcortex/<DeploymentStage>/multilingual* plus any explicitly passed external ARNs (when non-empty).
+      broad: GetSecretValue allowed for all secrets in this account/region (legacy compatibility).
+  SelfSignupDefaultAgencyId:
+    Type: String
+    Default: self-signup-pending
+    Description: >-
+      custom:agencyId written by the PostConfirmation trigger for self-registered users (after email
+      verification). Create a matching agency row in DynamoDB or override this to an existing agency id.
+  SelfSignupDefaultRole:
+    Type: String
+    Default: dispatcher
+    AllowedValues: [dispatcher, commsupervisor, agencyadmin, agencyit, analyst, auditor, rcsuperadmin, rcadmin, rcitadmin]
+    Description: custom:role written by PostConfirmation when the user has no role yet.
+  QaBedrockModelId:
+    Type: String
+    Default: anthropic.claude-3-5-haiku-20241022-v1:0
+    Description: >-
+      Bedrock foundation model id for automated QA structured JSON scoring (InvokeModel / Converse).
+  AiBedrockFoundationModelId:
+    Type: String
+    Default: anthropic.claude-3-5-haiku-20241022-v1:0
+    Description: >-
+      Bedrock foundation model id for analysis / language paths that call Bedrock (InvokeModel / Converse).
+      IAM and Globals BEDROCK_MODEL_* must match runtime configuration (CJIS: no foundation-model/* wildcard).
+  IncidentMediaTwilioSecretArn:
+    Type: String
+    Default: ""
+    Description: >-
+      Optional Secrets Manager ARN for Twilio JSON: preferred shape accountSid + apiKeySid + apiKeySecret +
+      messagingServiceSid; legacy accountSid + authToken + fromE164 (optional messagingServiceSid).
+      Leave empty when using AWS-only SMS_PROVIDER or mock/simulator paths.
+  HttpApiCorsAllowedOrigins:
+    Type: String
+    Default: "*"
+    Description: >-
+      Comma-separated browser origins for the HttpApi CORS AllowOrigins list. Use * for local/dev.
+      For staging/production set explicitly, e.g. https://www.rapidcortex.us,https://www.example.org
+  GoogleCloudProjectId:
+    Type: String
+    Default: ""
+    Description: >-
+      Google Cloud project id for server-side Translation / Text-to-Speech (text workflows). Required when
+      LANGUAGE_PROVIDER=google or for auto with Google credentials.
+  LanguageProvider:
+    Type: String
+    Default: auto
+    AllowedValues: [aws, google, auto]
+    Description: Text translation + optional TTS for silent text (complements per-tier voice STT/translate env).
+  GoogleTtsOutputBucket:
+    Type: String
+    Default: ""
+    Description: Optional S3 bucket for Google TTS objects; when empty, ASSETS_BUCKET is used.
+  # --- Deploy-time naming & optional integrations (see scripts/deploy-from-env.sh) ---
+  AppName:
+    Type: String
+    Default: rapid-cortex
+    Description: Short prefix for S3, SNS, Cognito names, and default Dynamo table prefix slug.
+  DynamoTableNamePrefix:
+    Type: String
+    Default: ""
+    Description: >-
+      When set, all DynamoDB tables use TableName: <prefix>-<table>-<DeploymentStage> (uniquely names tables per env).
+      When empty, CloudFormation generates table names (legacy behavior).
+  DynamoPointInTimeRecovery:
+    Type: String
+    Default: auto
+    AllowedValues: [auto, "true", "false"]
+    Description: PITR on DynamoDB. auto = on for staging/prod/pilot, off for dev (matches previous template).
+  DynamoBillingMode:
+    Type: String
+    Default: PAY_PER_REQUEST
+    AllowedValues: [PAY_PER_REQUEST]
+    Description: Reserved for future provisioned mode; use PAY_PER_REQUEST.
+  CognitoUserPoolName:
+    Type: String
+    Default: ""
+    Description: When empty, defaults to {AppName}-users-{DeploymentStage}.
+  CognitoAppClientName:
+    Type: String
+    Default: ""
+    Description: When empty, defaults to {AppName}-web-{DeploymentStage}.
+  CognitoDomainPrefix:
+    Type: String
+    Default: ""
+    Description: >-
+      Hosted UI domain prefix (per account+region). When empty, uses legacy default rapidcortex-{DeploymentStage}-{AccountId} (keeps prior stack behavior); set explicitly to match AppName or a custom prefix.
+  CognitoCallbackUrls:
+    Type: String
+    Default: ""
+    Description: Comma-separated OAuth callback URLs for the app client (optional; for hosted UI).
+  CognitoLogoutUrls:
+    Type: String
+    Default: ""
+    Description: Comma-separated sign-out URLs (optional; for hosted UI).
+  CognitoNativeCallbackUrls:
+    Type: String
+    Default: >-
+      rapidcortex://oauth/callback,rapidcortex-desktop://oauth/callback,rapidcortex-ios://oauth/callback,rapidcortex-windows://oauth/callback
+    Description: >-
+      Comma-separated OAuth callback URLs for the **native** app client (PKCE, no secret). Append your HTTPS
+      `https://{web-host}/auth/return-to-app` URL here when using the browser return-to-app handoff.
+  CognitoNativeLogoutUrls:
+    Type: String
+    Default: >-
+      rapidcortex://logout/callback,rapidcortex-desktop://logout/callback,rapidcortex-ios://logout/callback,rapidcortex-windows://logout/callback
+    Description: Comma-separated sign-out URLs for the native app client (must match logout_uri used by native apps).
+  CognitoGenerateSecret:
+    Type: String
+    Default: "false"
+    AllowedValues: ["true", "false"]
+    Description: Set true for confidential server-side clients; web SPAs use false.
+  SnsEmailSubscription:
+    Type: String
+    Default: ""
+    Description: Optional email for AWS::SNS::Subscription on the ops topic.
+  SnsSmsSubscription:
+    Type: String
+    Default: ""
+    Description: Optional E.164 phone for AWS::SNS::Subscription (SMS) on the ops topic; region/account must allow SMS.
+  SesIdentityType:
+    Type: String
+    Default: ""
+    AllowedValues: ["", email, domain]
+    Description: When SesIdentityValue is set, type of Amazon SES identity to register. Leave all SES params empty to skip.
+  SesIdentityValue:
+    Type: String
+    Default: ""
+    Description: Email address (sesIdentityType=email) or domain (sesIdentityType=domain) for AWS::SES::EmailIdentity.
+  SesConfigurationSetName:
+    Type: String
+    Default: ""
+    Description: Optional SES configuration set to associate with the identity.
+  BillingSesSenderEmail:
+    Type: String
+    Default: support@appsondemand.net
+    Description: Sender email to verify for billing notifications.
+  BillingSesDomain:
+    Type: String
+    Default: rapidcortex.us
+    Description: Domain to verify in SES for billing email (DKIM/SPF/DMARC).
+  EnableLiveVideoResources:
+    Type: String
+    Default: "false"
+    AllowedValues: ["true", "false"]
+    Description: Set true to deploy live-video KVS functions/routes. Default false keeps core API leaner.
+  EnableApiWaf:
+    Type: String
+    Default: "false"
+    AllowedValues: ["true", "false"]
+    Description: >-
+      When true, deploys a regional AWS WAF web ACL (managed rules + per-IP rate limit) and associates it
+      with the API Gateway HTTP API $default stage. Enable for pilot/production edge protection (additional cost).
+  WafRateLimitPer5Min:
+    Type: Number
+    Default: 2000
+    MinValue: 10
+    MaxValue: 20000000
+    Description: >-
+      WAF rate-based rule: max requests per 5-minute evaluation window per source IP. Tune with agency traffic; API Gateway
+      throttling (DefaultRouteSettings) also applies.
+  TranscriptRetentionPolicyDays:
+    Type: String
+    Default: ""
+    Description: >-
+      Optional agency SOP: target data lifecycle in days for transcript-style incident data (ops documentation).
+      Exposed to all API Lambdas as TRANSCRIPT_RETENTION_POLICY_DAYS. The stack does not auto-delete rows by this value;
+      use export and deletion workflows. Leave empty to omit.
+  # --- CJIS / audit: platform-wide management API logging (infrastructure) ---
+  EnableCloudTrail:
+    Type: String
+    Default: "true"
+    AllowedValues: ["true", "false"]
+    Description: >-
+      When true, provisions multi-account-style audit logging: multi-Region trail, S3 (versioning, SSE, Object Lock, lifecycle
+      to Glacier / Deep Archive), optional CloudWatch delivery, and SNS notifications. Set false in low-risk dev to reduce
+      cost (not recommended for pilot/prod or CJIS-bound tenants).
+  CloudTrailKmsKeyArn:
+    Type: String
+    Default: ""
+    Description: >-
+      Optional KMS key ARN (or id) to encrypt CloudTrail log files in S3. Leave empty to use SSE-S3 on the log bucket. Use a
+      customer-managed key when the security plan requires key rotation and stricter key policy.
+  EnableCloudTrailS3DataEvents:
+    Type: String
+    Default: "false"
+    AllowedValues: ["true", "false"]
+    Description: >-
+      When true, logs S3 data-plane events for this stack's ASSETS bucket (higher cost and volume; enable when object access
+      to assets must be provable in CloudTrail, e.g. investigations).
+  EnableCloudTrailLambdaDataEvents:
+    Type: String
+    Default: "false"
+    AllowedValues: ["true", "false"]
+    Description: >-
+      When true, logs data-plane (Invoke) events for all Lambda functions in the stack region. Higher cost; use sparingly
+      and prefer management events (default) unless Lambda invocation forensics is required.
+
+# --- CJIS: fail fast when pilot/stage/prod use permissive CORS or secret IAM patterns ---
+Rules:
+  PilotProdNoCorsWildcard:
+    RuleCondition: !Or
+      - !Equals [!Ref DeploymentStage, prod]
+      - !Equals [!Ref DeploymentStage, pilot]
+      - !Equals [!Ref DeploymentStage, staging]
+    Assertions:
+      - Assert: !Not [!Equals [!Ref HttpApiCorsAllowedOrigins, "*"]]
+        AssertDescription: >-
+          For CJIS, HttpApiCorsAllowedOrigins must list explicit browser origins in staging/pilot/prod
+          (wildcard CORS is dev-only).
+  PilotProdNoBroadSecrets:
+    RuleCondition: !Or
+      - !Equals [!Ref DeploymentStage, prod]
+      - !Equals [!Ref DeploymentStage, pilot]
+      - !Equals [!Ref DeploymentStage, staging]
+    Assertions:
+      - Assert: !Not [!Equals [!Ref MultilingualSecretsPolicyMode, broad]]
+        AssertDescription: >-
+          MultilingualSecretsPolicyMode `broad` is not allowed outside dev (CJIS least-privilege for Secrets Manager).
+
+Conditions:
+  HasImportedApiCert: !Not [!Equals [!Ref ApiDomainCertificateArn, ""]]
+  HasManagedApiCert:
+    Fn::And:
+      - !Equals [!Ref ApiDomainCertificateArn, ""]
+      - !Not [!Equals [!Ref Route53HostedZoneId, ""]]
+  HasApiCustomDomainCert: !Or [!Condition HasImportedApiCert, !Condition HasManagedApiCert]
+  HasAppCnameTarget: !Not [!Equals [!Ref AppCnameTarget, ""]]
+  HasAdminCnameTarget: !Not [!Equals [!Ref AdminCnameTarget, ""]]
+  HasWwwCnameTarget: !Not [!Equals [!Ref WwwCnameTarget, ""]]
+  UseManagedMultilingualSecrets: !Equals [!Ref MultilingualSecretProvisioning, "managed"]
+  MultilingualSecretsBroadPolicy: !Equals [!Ref MultilingualSecretsPolicyMode, "broad"]
+  EnablePilotGradeBackups:
+    Fn::Or:
+      - Fn::Equals:
+          - !Ref DeploymentStage
+          - staging
+      - Fn::Equals:
+          - !Ref DeploymentStage
+          - prod
+      - Fn::Equals:
+          - !Ref DeploymentStage
+          - pilot
+  HasIncidentMediaTwilioSecretArn: !Not [!Equals [!Ref IncidentMediaTwilioSecretArn, ""]]
+  HasExternalApiJwtSecretArn: !Not [!Equals [!Ref ExternalApiJwtSecretArn, ""]]
+  HasExternalApiEncryptionKeyArn: !Not [!Equals [!Ref ExternalApiEncryptionKeyArn, ""]]
+  HasDynamoTablePrefix: !Not [!Equals [!Ref DynamoTableNamePrefix, ""]]
+  DynamoPitrOn:
+    Fn::Or:
+      - Fn::And:
+          - !Equals [!Ref DynamoPointInTimeRecovery, "auto"]
+          - !Condition EnablePilotGradeBackups
+      - !Equals [!Ref DynamoPointInTimeRecovery, "true"]
+  HasCognitoUserPoolNameParam: !Not [!Equals [!Ref CognitoUserPoolName, ""]]
+  HasCognitoAppClientNameParam: !Not [!Equals [!Ref CognitoAppClientName, ""]]
+  HasCognitoDomainPrefixParam: !Not [!Equals [!Ref CognitoDomainPrefix, ""]]
+  HasCognitoCallbackUrls: !Not [!Equals [!Ref CognitoCallbackUrls, ""]]
+  HasCognitoLogoutUrls: !Not [!Equals [!Ref CognitoLogoutUrls, ""]]
+  CognitoClientUsesSecret: !Equals [!Ref CognitoGenerateSecret, "true"]
+  HasSnsEmailSubscription: !Not [!Equals [!Ref SnsEmailSubscription, ""]]
+  HasSnsSmsSubscription: !Not [!Equals [!Ref SnsSmsSubscription, ""]]
+  CreateSesIdentity:
+    Fn::And:
+      - !Not [!Equals [!Ref SesIdentityValue, ""]]
+      - !Not [!Equals [!Ref SesIdentityType, ""]]
+  HasSesConfigurationSet: !Not [!Equals [!Ref SesConfigurationSetName, ""]]
+  HasRoute53HostedZone: !Not [!Equals [!Ref Route53HostedZoneId, ""]]
+  CreateLiveVideoResources: !Equals [!Ref EnableLiveVideoResources, "true"]
+  HasApiWaf: !Equals [!Ref EnableApiWaf, "true"]
+  CloudTrailEnabled: !Equals [!Ref EnableCloudTrail, "true"]
+  CloudTrailS3DataEvents: !And
+    - !Condition CloudTrailEnabled
+    - !Equals [!Ref EnableCloudTrailS3DataEvents, "true"]
+  CloudTrailLambdaDataEvents: !And
+    - !Condition CloudTrailEnabled
+    - !Equals [!Ref EnableCloudTrailLambdaDataEvents, "true"]
+  CloudTrailS3AndLambdaDataEvents: !And
+    - !Condition CloudTrailS3DataEvents
+    - !Condition CloudTrailLambdaDataEvents
+  CloudTrailS3DataOnly: !And
+    - !Condition CloudTrailS3DataEvents
+    - !Not [!Condition CloudTrailLambdaDataEvents]
+  CloudTrailLambdaDataOnly: !And
+    - !Condition CloudTrailLambdaDataEvents
+    - !Not [!Condition CloudTrailS3DataEvents]
+  HasCloudTrailKms: !Not [!Equals [!Ref CloudTrailKmsKeyArn, ""]]
+  HasOpenAiApiKeySecretArn: !Not [!Equals [!Ref OpenAiApiKeySecretArn, ""]]
+  HasAnthropicApiKeySecretArn: !Not [!Equals [!Ref AnthropicApiKeySecretArn, ""]]
+
+Mappings:
+  MultilingualStageDefaults:
+    dev:
+      StrictValidation: "false"
+    staging:
+      StrictValidation: "true"
+    prod:
+      StrictValidation: "true"
+    pilot:
+      StrictValidation: "true"
+  ApiLambdaDefaults:
+    dev:
+      PrimaryAi: mock
+      SecondaryAi: mock
+      TertiaryAi: off
+      AiFallback: mock
+      AiSecondaryFallback: mock
+      Lid1: mock
+      Lid2: mock
+      Lid3: off
+      Stt1: mock
+      Stt2: mock
+      Stt3: off
+      Tr1: mock
+      Tr2: mock
+      Tr3: off
+    staging:
+      PrimaryAi: bedrock
+      SecondaryAi: off
+      TertiaryAi: off
+      AiFallback: off
+      AiSecondaryFallback: off
+      Lid1: aws
+      Lid2: mock
+      Lid3: off
+      Stt1: azure
+      Stt2: google
+      Stt3: aws
+      Tr1: aws
+      Tr2: mock
+      Tr3: off
+    prod:
+      PrimaryAi: bedrock
+      SecondaryAi: off
+      TertiaryAi: off
+      AiFallback: off
+      AiSecondaryFallback: off
+      Lid1: aws
+      Lid2: mock
+      Lid3: off
+      Stt1: azure
+      Stt2: google
+      Stt3: aws
+      Tr1: aws
+      Tr2: mock
+      Tr3: off
+    pilot:
+      PrimaryAi: bedrock
+      SecondaryAi: off
+      TertiaryAi: off
+      AiFallback: off
+      AiSecondaryFallback: off
+      Lid1: aws
+      Lid2: mock
+      Lid3: off
+      Stt1: azure
+      Stt2: google
+      Stt3: aws
+      Tr1: aws
+      Tr2: mock
+      Tr3: off
+  SmsEnvironmentDefaults:
+    dev:
+      SmsProvider: mock
+      SmsPrimaryProvider: twilio
+      MockSmsProvider: "true"
+      AwsSmsUseSimulator: "true"
+    staging:
+      SmsProvider: auto
+      SmsPrimaryProvider: twilio
+      MockSmsProvider: "false"
+      AwsSmsUseSimulator: "false"
+    prod:
+      SmsProvider: auto
+      SmsPrimaryProvider: twilio
+      MockSmsProvider: "false"
+      AwsSmsUseSimulator: "false"
+    pilot:
+      SmsProvider: auto
+      SmsPrimaryProvider: twilio
+      MockSmsProvider: "false"
+      AwsSmsUseSimulator: "false"
+
+Resources:
+  MultilingualAzureApiKeysSecret:
+    Type: AWS::SecretsManager::Secret
+    Condition: UseManagedMultilingualSecrets
+    Properties:
+      Name: !Sub rapidcortex/${DeploymentStage}/multilingual/azure-api
+      Description: >-
+        Azure Speech + Translator keys as JSON (keys AZURE_SPEECH_KEY, AZURE_TRANSLATION_KEY).
+        Replace placeholder values after first deploy (aws secretsmanager put-secret-value).
+      SecretString: '{"AZURE_SPEECH_KEY":"REPLACE_ME","AZURE_TRANSLATION_KEY":"REPLACE_ME"}'
+
+  MultilingualGoogleServiceAccountSecret:
+    Type: AWS::SecretsManager::Secret
+    Condition: UseManagedMultilingualSecrets
+    Properties:
+      Name: !Sub rapidcortex/${DeploymentStage}/multilingual/google-service-account
+      Description: >-
+        Full Google Cloud service account JSON for Speech + Translate. Replace entire SecretString after deploy
+        (GCP console → IAM → Service accounts → Keys → JSON).
+      SecretString: '{"type":"service_account","project_id":"REPLACE_ME","private_key_id":"REPLACE","private_key":"-----BEGIN PRIVATE KEY-----\\nREPLACE\\n-----END PRIVATE KEY-----\\n","client_email":"replace-me@project.iam.gserviceaccount.com"}'
+
+  BillingPaymentInstructionsSecret:
+    Type: AWS::SecretsManager::Secret
+    Properties:
+      Name: rapid-cortex/billing/payment-instructions
+      Description: >-
+        Billing payment instructions for ACH/wire/check workflows. Replace placeholders post-deploy.
+      SecretString: >-
+        {"achRoutingNumber":"REPLACE_ME","achAccountNumber":"REPLACE_ME","wireInstructions":"REPLACE_ME","checkMailingAddress":"REPLACE_ME","bankName":"REPLACE_ME","bankContact":"REPLACE_ME"}
+
+  BillingSesCredentialsSecret:
+    Type: AWS::SecretsManager::Secret
+    Properties:
+      Name: rapid-cortex/billing/ses-credentials
+      Description: >-
+        SES SMTP credentials (when used) plus billing notification recipients. Replace placeholders post-deploy.
+      SecretString: >-
+        {"smtpUsername":"REPLACE_ME","smtpPassword":"REPLACE_ME","billingNotificationEmails":["billing@rapidcortex.us","finance@rapidcortex.us"]}
+
+  AgenciesTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      BillingMode: !Ref DynamoBillingMode
+      TableName: !If
+        - HasDynamoTablePrefix
+        - !Sub "${DynamoTableNamePrefix}-agencies-${DeploymentStage}"
+        - !Ref AWS::NoValue
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: !If [DynamoPitrOn, true, false]
+      AttributeDefinitions:
+        - AttributeName: agencyId
+          AttributeType: S
+        - AttributeName: status
+          AttributeType: S
+        - AttributeName: createdAt
+          AttributeType: S
+      KeySchema:
+        - AttributeName: agencyId
+          KeyType: HASH
+      GlobalSecondaryIndexes:
+        - IndexName: status-createdAt-index
+          KeySchema:
+            - AttributeName: status
+              KeyType: HASH
+            - AttributeName: createdAt
+              KeyType: RANGE
+          Projection:
+            ProjectionType: ALL
+
+  PendingProvisionsTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      BillingMode: !Ref DynamoBillingMode
+      TableName: !If
+        - HasDynamoTablePrefix
+        - !Sub "${DynamoTableNamePrefix}-pending-provisions-${DeploymentStage}"
+        - !Ref AWS::NoValue
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: !If [DynamoPitrOn, true, false]
+      TimeToLiveSpecification:
+        AttributeName: ttl
+        Enabled: true
+      AttributeDefinitions:
+        - AttributeName: agreementId
+          AttributeType: S
+      KeySchema:
+        - AttributeName: agreementId
+          KeyType: HASH
+
+  InvitesTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      BillingMode: !Ref DynamoBillingMode
+      TableName: !If
+        - HasDynamoTablePrefix
+        - !Sub "${DynamoTableNamePrefix}-invites-${DeploymentStage}"
+        - !Ref AWS::NoValue
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: !If [DynamoPitrOn, true, false]
+      AttributeDefinitions:
+        - AttributeName: inviteId
+          AttributeType: S
+        - AttributeName: agencyId
+          AttributeType: S
+        - AttributeName: createdAt
+          AttributeType: S
+      KeySchema:
+        - AttributeName: inviteId
+          KeyType: HASH
+      GlobalSecondaryIndexes:
+        - IndexName: agencyId-createdAt-index
+          KeySchema:
+            - AttributeName: agencyId
+              KeyType: HASH
+            - AttributeName: createdAt
+              KeyType: RANGE
+          Projection:
+            ProjectionType: ALL
+
+  ActiveCallsTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      BillingMode: !Ref DynamoBillingMode
+      TableName: !If
+        - HasDynamoTablePrefix
+        - !Sub "${DynamoTableNamePrefix}-active-calls-${DeploymentStage}"
+        - !Ref AWS::NoValue
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: !If [DynamoPitrOn, true, false]
+      TimeToLiveSpecification:
+        AttributeName: ttl
+        Enabled: true
+      AttributeDefinitions:
+        - AttributeName: callId
+          AttributeType: S
+        - AttributeName: agencyId
+          AttributeType: S
+        - AttributeName: updatedAt
+          AttributeType: S
+        - AttributeName: currentHandlerUserId
+          AttributeType: S
+      KeySchema:
+        - AttributeName: callId
+          KeyType: HASH
+      GlobalSecondaryIndexes:
+        - IndexName: agencyId-updatedAt-index
+          KeySchema:
+            - AttributeName: agencyId
+              KeyType: HASH
+            - AttributeName: updatedAt
+              KeyType: RANGE
+          Projection:
+            ProjectionType: ALL
+        - IndexName: agencyId-handlerUserId-index
+          KeySchema:
+            - AttributeName: agencyId
+              KeyType: HASH
+            - AttributeName: currentHandlerUserId
+              KeyType: RANGE
+          Projection:
+            ProjectionType: ALL
+
+  CallTransfersTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      BillingMode: !Ref DynamoBillingMode
+      TableName: !If
+        - HasDynamoTablePrefix
+        - !Sub "${DynamoTableNamePrefix}-call-transfers-${DeploymentStage}"
+        - !Ref AWS::NoValue
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: !If [DynamoPitrOn, true, false]
+      TimeToLiveSpecification:
+        AttributeName: ttl
+        Enabled: true
+      AttributeDefinitions:
+        - AttributeName: transferId
+          AttributeType: S
+        - AttributeName: agencyId
+          AttributeType: S
+        - AttributeName: callId
+          AttributeType: S
+        - AttributeName: initiatedAt
+          AttributeType: S
+      KeySchema:
+        - AttributeName: transferId
+          KeyType: HASH
+      GlobalSecondaryIndexes:
+        - IndexName: agencyId-initiatedAt-index
+          KeySchema:
+            - AttributeName: agencyId
+              KeyType: HASH
+            - AttributeName: initiatedAt
+              KeyType: RANGE
+          Projection:
+            ProjectionType: ALL
+        - IndexName: callId-initiatedAt-index
+          KeySchema:
+            - AttributeName: callId
+              KeyType: HASH
+            - AttributeName: initiatedAt
+              KeyType: RANGE
+          Projection:
+            ProjectionType: ALL
+
+  WebSocketConnectionsTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      BillingMode: !Ref DynamoBillingMode
+      TableName: !If
+        - HasDynamoTablePrefix
+        - !Sub "${DynamoTableNamePrefix}-websocket-connections-${DeploymentStage}"
+        - !Ref AWS::NoValue
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: !If [DynamoPitrOn, true, false]
+      TimeToLiveSpecification:
+        AttributeName: ttl
+        Enabled: true
+      AttributeDefinitions:
+        - AttributeName: PK
+          AttributeType: S
+        - AttributeName: SK
+          AttributeType: S
+        - AttributeName: GSI1PK
+          AttributeType: S
+        - AttributeName: GSI1SK
+          AttributeType: S
+        - AttributeName: GSI2PK
+          AttributeType: S
+        - AttributeName: GSI2SK
+          AttributeType: S
+      KeySchema:
+        - AttributeName: PK
+          KeyType: HASH
+        - AttributeName: SK
+          KeyType: RANGE
+      GlobalSecondaryIndexes:
+        - IndexName: GSI1
+          KeySchema:
+            - AttributeName: GSI1PK
+              KeyType: HASH
+            - AttributeName: GSI1SK
+              KeyType: RANGE
+          Projection:
+            ProjectionType: ALL
+        - IndexName: GSI2
+          KeySchema:
+            - AttributeName: GSI2PK
+              KeyType: HASH
+            - AttributeName: GSI2SK
+              KeyType: RANGE
+          Projection:
+            ProjectionType: ALL
+
+  AccessOverridesTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      BillingMode: !Ref DynamoBillingMode
+      TableName: !If
+        - HasDynamoTablePrefix
+        - !Sub "${DynamoTableNamePrefix}-access-overrides-${DeploymentStage}"
+        - !Ref AWS::NoValue
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: !If [DynamoPitrOn, true, false]
+      AttributeDefinitions:
+        - AttributeName: overrideId
+          AttributeType: S
+        - AttributeName: agencyId
+          AttributeType: S
+        - AttributeName: createdAt
+          AttributeType: S
+        - AttributeName: targetUserKey
+          AttributeType: S
+      KeySchema:
+        - AttributeName: overrideId
+          KeyType: HASH
+      GlobalSecondaryIndexes:
+        - IndexName: agencyId-createdAt-index
+          KeySchema:
+            - AttributeName: agencyId
+              KeyType: HASH
+            - AttributeName: createdAt
+              KeyType: RANGE
+          Projection:
+            ProjectionType: ALL
+        - IndexName: agencyId-targetUserKey-index
+          KeySchema:
+            - AttributeName: agencyId
+              KeyType: HASH
+            - AttributeName: targetUserKey
+              KeyType: RANGE
+          Projection:
+            ProjectionType: ALL
+
+  NetworkEmergencyOverridesTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      BillingMode: !Ref DynamoBillingMode
+      TableName: !If
+        - HasDynamoTablePrefix
+        - !Sub "${DynamoTableNamePrefix}-network-emergency-overrides-${DeploymentStage}"
+        - !Ref AWS::NoValue
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: !If [DynamoPitrOn, true, false]
+      AttributeDefinitions:
+        - AttributeName: userId
+          AttributeType: S
+        - AttributeName: sortKey
+          AttributeType: S
+        - AttributeName: agencyId
+          AttributeType: S
+        - AttributeName: createdAt
+          AttributeType: S
+      KeySchema:
+        - AttributeName: userId
+          KeyType: HASH
+        - AttributeName: sortKey
+          KeyType: RANGE
+      GlobalSecondaryIndexes:
+        - IndexName: agencyId-createdAt-index
+          KeySchema:
+            - AttributeName: agencyId
+              KeyType: HASH
+            - AttributeName: createdAt
+              KeyType: RANGE
+          Projection:
+            ProjectionType: ALL
+      TimeToLiveSpecification:
+        AttributeName: ttl
+        Enabled: true
+
+  ApiClientsTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      BillingMode: !Ref DynamoBillingMode
+      TableName: !If
+        - HasDynamoTablePrefix
+        - !Sub "${DynamoTableNamePrefix}-api-clients-${DeploymentStage}"
+        - !Ref AWS::NoValue
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: !If [DynamoPitrOn, true, false]
+      AttributeDefinitions:
+        - AttributeName: clientId
+          AttributeType: S
+        - AttributeName: agencyId
+          AttributeType: S
+        - AttributeName: createdAt
+          AttributeType: S
+      KeySchema:
+        - AttributeName: clientId
+          KeyType: HASH
+      GlobalSecondaryIndexes:
+        - IndexName: agencyId-createdAt-index
+          KeySchema:
+            - AttributeName: agencyId
+              KeyType: HASH
+            - AttributeName: createdAt
+              KeyType: RANGE
+          Projection:
+            ProjectionType: ALL
+
+  WebhooksTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      BillingMode: !Ref DynamoBillingMode
+      TableName: !If
+        - HasDynamoTablePrefix
+        - !Sub "${DynamoTableNamePrefix}-webhooks-${DeploymentStage}"
+        - !Ref AWS::NoValue
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: !If [DynamoPitrOn, true, false]
+      AttributeDefinitions:
+        - AttributeName: webhookId
+          AttributeType: S
+        - AttributeName: agencyId
+          AttributeType: S
+        - AttributeName: createdAt
+          AttributeType: S
+      KeySchema:
+        - AttributeName: webhookId
+          KeyType: HASH
+      GlobalSecondaryIndexes:
+        - IndexName: agencyId-createdAt-index
+          KeySchema:
+            - AttributeName: agencyId
+              KeyType: HASH
+            - AttributeName: createdAt
+              KeyType: RANGE
+          Projection:
+            ProjectionType: ALL
+
+  ExternalApiRateLimitsTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      BillingMode: !Ref DynamoBillingMode
+      TableName: !If
+        - HasDynamoTablePrefix
+        - !Sub "${DynamoTableNamePrefix}-external-api-rate-${DeploymentStage}"
+        - !Ref AWS::NoValue
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: !If [DynamoPitrOn, true, false]
+      AttributeDefinitions:
+        - AttributeName: pk
+          AttributeType: S
+      KeySchema:
+        - AttributeName: pk
+          KeyType: HASH
+      TimeToLiveSpecification:
+        AttributeName: expiresAt
+        Enabled: true
+
+  RcLiteApiKeysTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      BillingMode: !Ref DynamoBillingMode
+      TableName: !If
+        - HasDynamoTablePrefix
+        - !Sub "${DynamoTableNamePrefix}-rc-lite-api-keys-${DeploymentStage}"
+        - !Ref AWS::NoValue
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: !If [DynamoPitrOn, true, false]
+      AttributeDefinitions:
+        - AttributeName: keyId
+          AttributeType: S
+        - AttributeName: agencyId
+          AttributeType: S
+        - AttributeName: keyHash
+          AttributeType: S
+      KeySchema:
+        - AttributeName: keyId
+          KeyType: HASH
+      GlobalSecondaryIndexes:
+        - IndexName: agencyId-index
+          KeySchema:
+            - AttributeName: agencyId
+              KeyType: HASH
+          Projection:
+            ProjectionType: ALL
+        - IndexName: keyHash-index
+          KeySchema:
+            - AttributeName: keyHash
+              KeyType: HASH
+          Projection:
+            ProjectionType: ALL
+
+  RcLiteRateLimitTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      BillingMode: !Ref DynamoBillingMode
+      TableName: !If
+        - HasDynamoTablePrefix
+        - !Sub "${DynamoTableNamePrefix}-rc-lite-rate-limit-${DeploymentStage}"
+        - !Ref AWS::NoValue
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: !If [DynamoPitrOn, true, false]
+      AttributeDefinitions:
+        - AttributeName: bucketKey
+          AttributeType: S
+      KeySchema:
+        - AttributeName: bucketKey
+          KeyType: HASH
+
+  RcLiteUsageTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      BillingMode: !Ref DynamoBillingMode
+      TableName: !If
+        - HasDynamoTablePrefix
+        - !Sub "${DynamoTableNamePrefix}-rc-lite-usage-${DeploymentStage}"
+        - !Ref AWS::NoValue
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: !If [DynamoPitrOn, true, false]
+      AttributeDefinitions:
+        - AttributeName: usageKey
+          AttributeType: S
+        - AttributeName: customerId
+          AttributeType: S
+        - AttributeName: yearMonth
+          AttributeType: S
+      KeySchema:
+        - AttributeName: usageKey
+          KeyType: HASH
+      GlobalSecondaryIndexes:
+        - IndexName: customerId-yearMonth-index
+          KeySchema:
+            - AttributeName: customerId
+              KeyType: HASH
+            - AttributeName: yearMonth
+              KeyType: RANGE
+          Projection:
+            ProjectionType: ALL
+
+  BillingProfilesTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      BillingMode: !Ref DynamoBillingMode
+      TableName: !If
+        - HasDynamoTablePrefix
+        - !Sub "${DynamoTableNamePrefix}-billing-profiles-${DeploymentStage}"
+        - !Ref AWS::NoValue
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: !If [DynamoPitrOn, true, false]
+      AttributeDefinitions:
+        - AttributeName: agencyId
+          AttributeType: S
+      KeySchema:
+        - AttributeName: agencyId
+          KeyType: HASH
+
+  BillingWebhookEventsTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      BillingMode: !Ref DynamoBillingMode
+      TableName: !If
+        - HasDynamoTablePrefix
+        - !Sub "${DynamoTableNamePrefix}-billing-webhook-events-${DeploymentStage}"
+        - !Ref AWS::NoValue
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: !If [DynamoPitrOn, true, false]
+      AttributeDefinitions:
+        - AttributeName: eventId
+          AttributeType: S
+      KeySchema:
+        - AttributeName: eventId
+          KeyType: HASH
+
+  MonetizationPlansTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      BillingMode: !Ref DynamoBillingMode
+      TableName: !If
+        - HasDynamoTablePrefix
+        - !Sub "${DynamoTableNamePrefix}-monetization-plans-${DeploymentStage}"
+        - !Ref AWS::NoValue
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: !If [DynamoPitrOn, true, false]
+      AttributeDefinitions:
+        - AttributeName: planId
+          AttributeType: S
+      KeySchema:
+        - AttributeName: planId
+          KeyType: HASH
+
+  MonetizationAddOnsTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      BillingMode: !Ref DynamoBillingMode
+      TableName: !If
+        - HasDynamoTablePrefix
+        - !Sub "${DynamoTableNamePrefix}-monetization-addons-${DeploymentStage}"
+        - !Ref AWS::NoValue
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: !If [DynamoPitrOn, true, false]
+      AttributeDefinitions:
+        - AttributeName: addOnId
+          AttributeType: S
+      KeySchema:
+        - AttributeName: addOnId
+          KeyType: HASH
+
+  AgencySubscriptionsTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      BillingMode: !Ref DynamoBillingMode
+      TableName: !If
+        - HasDynamoTablePrefix
+        - !Sub "${DynamoTableNamePrefix}-agency-subscriptions-${DeploymentStage}"
+        - !Ref AWS::NoValue
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: !If [DynamoPitrOn, true, false]
+      AttributeDefinitions:
+        - AttributeName: subscriptionId
+          AttributeType: S
+        - AttributeName: agencyId
+          AttributeType: S
+        - AttributeName: createdAt
+          AttributeType: S
+      KeySchema:
+        - AttributeName: subscriptionId
+          KeyType: HASH
+      GlobalSecondaryIndexes:
+        - IndexName: agencyId-createdAt-index
+          KeySchema:
+            - AttributeName: agencyId
+              KeyType: HASH
+            - AttributeName: createdAt
+              KeyType: RANGE
+          Projection:
+            ProjectionType: ALL
+
+  UsageMetersTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      BillingMode: !Ref DynamoBillingMode
+      TableName: !If
+        - HasDynamoTablePrefix
+        - !Sub "${DynamoTableNamePrefix}-usage-meters-${DeploymentStage}"
+        - !Ref AWS::NoValue
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: !If [DynamoPitrOn, true, false]
+      AttributeDefinitions:
+        - AttributeName: usageMeterId
+          AttributeType: S
+        - AttributeName: agencyId
+          AttributeType: S
+        - AttributeName: billingPeriod
+          AttributeType: S
+      KeySchema:
+        - AttributeName: usageMeterId
+          KeyType: HASH
+      GlobalSecondaryIndexes:
+        - IndexName: agencyId-billingPeriod-index
+          KeySchema:
+            - AttributeName: agencyId
+              KeyType: HASH
+            - AttributeName: billingPeriod
+              KeyType: RANGE
+          Projection:
+            ProjectionType: ALL
+
+  MonetizationInvoicesTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      BillingMode: !Ref DynamoBillingMode
+      TableName: !If
+        - HasDynamoTablePrefix
+        - !Sub "${DynamoTableNamePrefix}-monetization-invoices-${DeploymentStage}"
+        - !Ref AWS::NoValue
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: !If [DynamoPitrOn, true, false]
+      AttributeDefinitions:
+        - AttributeName: invoiceId
+          AttributeType: S
+        - AttributeName: agencyId
+          AttributeType: S
+        - AttributeName: createdAt
+          AttributeType: S
+      KeySchema:
+        - AttributeName: invoiceId
+          KeyType: HASH
+      GlobalSecondaryIndexes:
+        - IndexName: agencyId-createdAt-index
+          KeySchema:
+            - AttributeName: agencyId
+              KeyType: HASH
+            - AttributeName: createdAt
+              KeyType: RANGE
+          Projection:
+            ProjectionType: ALL
+
+  BillingAuditEventsTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      BillingMode: !Ref DynamoBillingMode
+      TableName: !If
+        - HasDynamoTablePrefix
+        - !Sub "${DynamoTableNamePrefix}-billing-audit-events-${DeploymentStage}"
+        - !Ref AWS::NoValue
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: !If [DynamoPitrOn, true, false]
+      AttributeDefinitions:
+        - AttributeName: billingAuditEventId
+          AttributeType: S
+        - AttributeName: agencyId
+          AttributeType: S
+        - AttributeName: timestamp
+          AttributeType: S
+      KeySchema:
+        - AttributeName: billingAuditEventId
+          KeyType: HASH
+      GlobalSecondaryIndexes:
+        - IndexName: agencyId-timestamp-index
+          KeySchema:
+            - AttributeName: agencyId
+              KeyType: HASH
+            - AttributeName: timestamp
+              KeyType: RANGE
+          Projection:
+            ProjectionType: ALL
+
+  SalesLeadsTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      BillingMode: !Ref DynamoBillingMode
+      TableName: !If
+        - HasDynamoTablePrefix
+        - !Sub "${DynamoTableNamePrefix}-sales-leads-${DeploymentStage}"
+        - !Ref AWS::NoValue
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: !If [DynamoPitrOn, true, false]
+      AttributeDefinitions:
+        - AttributeName: leadId
+          AttributeType: S
+      KeySchema:
+        - AttributeName: leadId
+          KeyType: HASH
+
+  SeoIntelligenceTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      BillingMode: !Ref DynamoBillingMode
+      TableName: !If
+        - HasDynamoTablePrefix
+        - !Sub "${DynamoTableNamePrefix}-seo-intelligence-${DeploymentStage}"
+        - !Ref AWS::NoValue
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: !If [DynamoPitrOn, true, false]
+      AttributeDefinitions:
+        - AttributeName: agencyId
+          AttributeType: S
+        - AttributeName: sk
+          AttributeType: S
+      KeySchema:
+        - AttributeName: agencyId
+          KeyType: HASH
+        - AttributeName: sk
+          KeyType: RANGE
+
+  DeceptionEventsTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      BillingMode: !Ref DynamoBillingMode
+      TableName: !If
+        - HasDynamoTablePrefix
+        - !Sub "${DynamoTableNamePrefix}-deception-events-${DeploymentStage}"
+        - !Ref AWS::NoValue
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: !If [DynamoPitrOn, true, false]
+      AttributeDefinitions:
+        - AttributeName: id
+          AttributeType: S
+        - AttributeName: sourceIp
+          AttributeType: S
+        - AttributeName: createdAt
+          AttributeType: S
+        - AttributeName: correlationId
+          AttributeType: S
+      KeySchema:
+        - AttributeName: id
+          KeyType: HASH
+      GlobalSecondaryIndexes:
+        - IndexName: sourceIp-createdAt-index
+          KeySchema:
+            - AttributeName: sourceIp
+              KeyType: HASH
+            - AttributeName: createdAt
+              KeyType: RANGE
+          Projection:
+            ProjectionType: ALL
+        - IndexName: correlationId-index
+          KeySchema:
+            - AttributeName: correlationId
+              KeyType: HASH
+            - AttributeName: createdAt
+              KeyType: RANGE
+          Projection:
+            ProjectionType: ALL
+      TimeToLiveSpecification:
+        AttributeName: ttl
+        Enabled: true
+
+  CustomersTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      BillingMode: !Ref DynamoBillingMode
+      TableName: !If
+        - HasDynamoTablePrefix
+        - !Sub "${DynamoTableNamePrefix}-customers-${DeploymentStage}"
+        - !Ref AWS::NoValue
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: !If [DynamoPitrOn, true, false]
+      AttributeDefinitions:
+        - AttributeName: customerId
+          AttributeType: S
+      KeySchema:
+        - AttributeName: customerId
+          KeyType: HASH
+
+  ServiceCatalogTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      BillingMode: !Ref DynamoBillingMode
+      TableName: !If
+        - HasDynamoTablePrefix
+        - !Sub "${DynamoTableNamePrefix}-service-catalog-${DeploymentStage}"
+        - !Ref AWS::NoValue
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: !If [DynamoPitrOn, true, false]
+      AttributeDefinitions:
+        - AttributeName: serviceId
+          AttributeType: S
+      KeySchema:
+        - AttributeName: serviceId
+          KeyType: HASH
+
+  InvoicesTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      BillingMode: !Ref DynamoBillingMode
+      TableName: !If
+        - HasDynamoTablePrefix
+        - !Sub "${DynamoTableNamePrefix}-invoices-${DeploymentStage}"
+        - !Ref AWS::NoValue
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: !If [DynamoPitrOn, true, false]
+      AttributeDefinitions:
+        - AttributeName: invoiceId
+          AttributeType: S
+        - AttributeName: customerId
+          AttributeType: S
+        - AttributeName: createdAt
+          AttributeType: S
+        - AttributeName: status
+          AttributeType: S
+        - AttributeName: dueDate
+          AttributeType: S
+      KeySchema:
+        - AttributeName: invoiceId
+          KeyType: HASH
+      GlobalSecondaryIndexes:
+        - IndexName: customerId-createdAt-index
+          KeySchema:
+            - AttributeName: customerId
+              KeyType: HASH
+            - AttributeName: createdAt
+              KeyType: RANGE
+          Projection:
+            ProjectionType: ALL
+        - IndexName: status-dueDate-index
+          KeySchema:
+            - AttributeName: status
+              KeyType: HASH
+            - AttributeName: dueDate
+              KeyType: RANGE
+          Projection:
+            ProjectionType: ALL
+
+  InvoiceItemsTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      BillingMode: !Ref DynamoBillingMode
+      TableName: !If
+        - HasDynamoTablePrefix
+        - !Sub "${DynamoTableNamePrefix}-invoice-items-${DeploymentStage}"
+        - !Ref AWS::NoValue
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: !If [DynamoPitrOn, true, false]
+      AttributeDefinitions:
+        - AttributeName: invoiceItemId
+          AttributeType: S
+        - AttributeName: invoiceId
+          AttributeType: S
+      KeySchema:
+        - AttributeName: invoiceItemId
+          KeyType: HASH
+      GlobalSecondaryIndexes:
+        - IndexName: invoiceId-index
+          KeySchema:
+            - AttributeName: invoiceId
+              KeyType: HASH
+          Projection:
+            ProjectionType: ALL
+
+  BillingSchedulesTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      BillingMode: !Ref DynamoBillingMode
+      TableName: !If
+        - HasDynamoTablePrefix
+        - !Sub "${DynamoTableNamePrefix}-billing-schedules-${DeploymentStage}"
+        - !Ref AWS::NoValue
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: !If [DynamoPitrOn, true, false]
+      AttributeDefinitions:
+        - AttributeName: scheduleId
+          AttributeType: S
+        - AttributeName: customerId
+          AttributeType: S
+        - AttributeName: enabled
+          AttributeType: S
+        - AttributeName: nextRunDate
+          AttributeType: S
+      KeySchema:
+        - AttributeName: scheduleId
+          KeyType: HASH
+      GlobalSecondaryIndexes:
+        - IndexName: customerId-index
+          KeySchema:
+            - AttributeName: customerId
+              KeyType: HASH
+          Projection:
+            ProjectionType: ALL
+        - IndexName: enabled-nextRunDate-index
+          KeySchema:
+            - AttributeName: enabled
+              KeyType: HASH
+            - AttributeName: nextRunDate
+              KeyType: RANGE
+          Projection:
+            ProjectionType: ALL
+
+  PaymentRecordsTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      BillingMode: !Ref DynamoBillingMode
+      TableName: !If
+        - HasDynamoTablePrefix
+        - !Sub "${DynamoTableNamePrefix}-payment-records-${DeploymentStage}"
+        - !Ref AWS::NoValue
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: !If [DynamoPitrOn, true, false]
+      AttributeDefinitions:
+        - AttributeName: paymentId
+          AttributeType: S
+        - AttributeName: invoiceId
+          AttributeType: S
+      KeySchema:
+        - AttributeName: paymentId
+          KeyType: HASH
+      GlobalSecondaryIndexes:
+        - IndexName: invoiceId-index
+          KeySchema:
+            - AttributeName: invoiceId
+              KeyType: HASH
+          Projection:
+            ProjectionType: ALL
+
+  BillingAuditLogTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      BillingMode: !Ref DynamoBillingMode
+      TableName: !If
+        - HasDynamoTablePrefix
+        - !Sub "${DynamoTableNamePrefix}-billing-audit-log-${DeploymentStage}"
+        - !Ref AWS::NoValue
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: !If [DynamoPitrOn, true, false]
+      AttributeDefinitions:
+        - AttributeName: logId
+          AttributeType: S
+        - AttributeName: customerId
+          AttributeType: S
+        - AttributeName: invoiceId
+          AttributeType: S
+        - AttributeName: timestamp
+          AttributeType: S
+      KeySchema:
+        - AttributeName: logId
+          KeyType: HASH
+      GlobalSecondaryIndexes:
+        - IndexName: customerId-timestamp-index
+          KeySchema:
+            - AttributeName: customerId
+              KeyType: HASH
+            - AttributeName: timestamp
+              KeyType: RANGE
+          Projection:
+            ProjectionType: ALL
+        - IndexName: invoiceId-timestamp-index
+          KeySchema:
+            - AttributeName: invoiceId
+              KeyType: HASH
+            - AttributeName: timestamp
+              KeyType: RANGE
+          Projection:
+            ProjectionType: ALL
+
+  IncidentsTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      BillingMode: !Ref DynamoBillingMode
+      TableName: !If
+        - HasDynamoTablePrefix
+        - !Sub "${DynamoTableNamePrefix}-incidents-${DeploymentStage}"
+        - !Ref AWS::NoValue
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: !If [DynamoPitrOn, true, false]
+      AttributeDefinitions:
+        - AttributeName: incidentId
+          AttributeType: S
+        - AttributeName: agencyId
+          AttributeType: S
+        - AttributeName: createdAt
+          AttributeType: S
+        - AttributeName: callerAddressNormalized
+          AttributeType: S
+        - AttributeName: cadDedupeKey
+          AttributeType: S
+        - AttributeName: retGsiPk
+          AttributeType: S
+        - AttributeName: retGsiSk
+          AttributeType: S
+      KeySchema:
+        - AttributeName: incidentId
+          KeyType: HASH
+      GlobalSecondaryIndexes:
+        - IndexName: cadDedupeKey-index
+          KeySchema:
+            - AttributeName: cadDedupeKey
+              KeyType: HASH
+          Projection:
+            ProjectionType: ALL
+        - IndexName: agencyId-createdAt-index
+          KeySchema:
+            - AttributeName: agencyId
+              KeyType: HASH
+            - AttributeName: createdAt
+              KeyType: RANGE
+          Projection:
+            ProjectionType: ALL
+        - IndexName: agencyId-callerAddressNormalized-index
+          KeySchema:
+            - AttributeName: agencyId
+              KeyType: HASH
+            - AttributeName: callerAddressNormalized
+              KeyType: RANGE
+          Projection:
+            ProjectionType: ALL
+        - IndexName: retention-due-index
+          KeySchema:
+            - AttributeName: retGsiPk
+              KeyType: HASH
+            - AttributeName: retGsiSk
+              KeyType: RANGE
+          Projection:
+            ProjectionType: ALL
+
+  TranscriptsTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      BillingMode: !Ref DynamoBillingMode
+      TableName: !If
+        - HasDynamoTablePrefix
+        - !Sub "${DynamoTableNamePrefix}-transcripts-${DeploymentStage}"
+        - !Ref AWS::NoValue
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: !If [DynamoPitrOn, true, false]
+      AttributeDefinitions:
+        - AttributeName: incidentId
+          AttributeType: S
+        - AttributeName: timestamp
+          AttributeType: S
+        - AttributeName: retGsiPk
+          AttributeType: S
+        - AttributeName: retGsiSk
+          AttributeType: S
+      KeySchema:
+        - AttributeName: incidentId
+          KeyType: HASH
+        - AttributeName: timestamp
+          KeyType: RANGE
+      GlobalSecondaryIndexes:
+        - IndexName: retention-due-index
+          KeySchema:
+            - AttributeName: retGsiPk
+              KeyType: HASH
+            - AttributeName: retGsiSk
+              KeyType: RANGE
+          Projection:
+            ProjectionType: ALL
+
+  LanguageSessionsTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      BillingMode: !Ref DynamoBillingMode
+      TableName: !If
+        - HasDynamoTablePrefix
+        - !Sub "${DynamoTableNamePrefix}-language-sessions-${DeploymentStage}"
+        - !Ref AWS::NoValue
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: !If [DynamoPitrOn, true, false]
+      AttributeDefinitions:
+        - AttributeName: sessionId
+          AttributeType: S
+        - AttributeName: incidentId
+          AttributeType: S
+        - AttributeName: createdAt
+          AttributeType: S
+      KeySchema:
+        - AttributeName: sessionId
+          KeyType: HASH
+      GlobalSecondaryIndexes:
+        - IndexName: incidentId-createdAt-index
+          KeySchema:
+            - AttributeName: incidentId
+              KeyType: HASH
+            - AttributeName: createdAt
+              KeyType: RANGE
+          Projection:
+            ProjectionType: ALL
+
+  VideoAssistSessionsTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      BillingMode: !Ref DynamoBillingMode
+      TableName: !If
+        - HasDynamoTablePrefix
+        - !Sub "${DynamoTableNamePrefix}-video-assist-sessions-${DeploymentStage}"
+        - !Ref AWS::NoValue
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: !If [DynamoPitrOn, true, false]
+      AttributeDefinitions:
+        - AttributeName: sessionId
+          AttributeType: S
+        - AttributeName: tokenHash
+          AttributeType: S
+        - AttributeName: incidentId
+          AttributeType: S
+        - AttributeName: createdAt
+          AttributeType: S
+      KeySchema:
+        - AttributeName: sessionId
+          KeyType: HASH
+      GlobalSecondaryIndexes:
+        - IndexName: tokenHash-sessionId-index
+          KeySchema:
+            - AttributeName: tokenHash
+              KeyType: HASH
+            - AttributeName: sessionId
+              KeyType: RANGE
+          Projection:
+            ProjectionType: ALL
+        - IndexName: incidentId-createdAt-index
+          KeySchema:
+            - AttributeName: incidentId
+              KeyType: HASH
+            - AttributeName: createdAt
+              KeyType: RANGE
+          Projection:
+            ProjectionType: ALL
+
+  LiveVideoSessionsTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      BillingMode: !Ref DynamoBillingMode
+      TableName: !If
+        - HasDynamoTablePrefix
+        - !Sub "${DynamoTableNamePrefix}-live-video-sessions-${DeploymentStage}"
+        - !Ref AWS::NoValue
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: !If [DynamoPitrOn, true, false]
+      AttributeDefinitions:
+        - AttributeName: sessionId
+          AttributeType: S
+        - AttributeName: incidentId
+          AttributeType: S
+        - AttributeName: agencyId
+          AttributeType: S
+        - AttributeName: createdAt
+          AttributeType: S
+        - AttributeName: callerTokenHash
+          AttributeType: S
+      KeySchema:
+        - AttributeName: sessionId
+          KeyType: HASH
+      GlobalSecondaryIndexes:
+        - IndexName: incidentId-index
+          KeySchema:
+            - AttributeName: incidentId
+              KeyType: HASH
+            - AttributeName: createdAt
+              KeyType: RANGE
+          Projection:
+            ProjectionType: ALL
+        - IndexName: agencyId-createdAt-index
+          KeySchema:
+            - AttributeName: agencyId
+              KeyType: HASH
+            - AttributeName: createdAt
+              KeyType: RANGE
+          Projection:
+            ProjectionType: ALL
+        - IndexName: callerTokenHash-index
+          KeySchema:
+            - AttributeName: callerTokenHash
+              KeyType: HASH
+          Projection:
+            ProjectionType: ALL
+      TimeToLiveSpecification:
+        AttributeName: ttlEpoch
+        Enabled: true
+
+  SilentTextSessionsTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      BillingMode: !Ref DynamoBillingMode
+      TableName: !If
+        - HasDynamoTablePrefix
+        - !Sub "${DynamoTableNamePrefix}-silent-text-sessions-${DeploymentStage}"
+        - !Ref AWS::NoValue
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: !If [DynamoPitrOn, true, false]
+      AttributeDefinitions:
+        - AttributeName: sessionId
+          AttributeType: S
+        - AttributeName: tokenHash
+          AttributeType: S
+        - AttributeName: incidentId
+          AttributeType: S
+        - AttributeName: createdAt
+          AttributeType: S
+      KeySchema:
+        - AttributeName: sessionId
+          KeyType: HASH
+      GlobalSecondaryIndexes:
+        - IndexName: tokenHash-sessionId-index
+          KeySchema:
+            - AttributeName: tokenHash
+              KeyType: HASH
+            - AttributeName: sessionId
+              KeyType: RANGE
+          Projection:
+            ProjectionType: ALL
+        - IndexName: incidentId-createdAt-index
+          KeySchema:
+            - AttributeName: incidentId
+              KeyType: HASH
+            - AttributeName: createdAt
+              KeyType: RANGE
+          Projection:
+            ProjectionType: ALL
+
+  PinpointLinksTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      BillingMode: !Ref DynamoBillingMode
+      TableName: !If
+        - HasDynamoTablePrefix
+        - !Sub "${DynamoTableNamePrefix}-pinpoint-links-${DeploymentStage}"
+        - !Ref AWS::NoValue
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: !If [DynamoPitrOn, true, false]
+      TimeToLiveSpecification:
+        AttributeName: ttl
+        Enabled: true
+      AttributeDefinitions:
+        - AttributeName: linkId
+          AttributeType: S
+        - AttributeName: tokenHash
+          AttributeType: S
+        - AttributeName: incidentId
+          AttributeType: S
+        - AttributeName: createdAt
+          AttributeType: S
+      KeySchema:
+        - AttributeName: linkId
+          KeyType: HASH
+      GlobalSecondaryIndexes:
+        - IndexName: tokenHash-linkId-index
+          KeySchema:
+            - AttributeName: tokenHash
+              KeyType: HASH
+            - AttributeName: linkId
+              KeyType: RANGE
+          Projection:
+            ProjectionType: ALL
+        - IndexName: incidentId-createdAt-index
+          KeySchema:
+            - AttributeName: incidentId
+              KeyType: HASH
+            - AttributeName: createdAt
+              KeyType: RANGE
+          Projection:
+            ProjectionType: ALL
+
+  SurgeClustersTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      BillingMode: !Ref DynamoBillingMode
+      TableName: !If
+        - HasDynamoTablePrefix
+        - !Sub "${DynamoTableNamePrefix}-surge-clusters-${DeploymentStage}"
+        - !Ref AWS::NoValue
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: !If [DynamoPitrOn, true, false]
+      TimeToLiveSpecification:
+        AttributeName: ttl
+        Enabled: true
+      AttributeDefinitions:
+        - AttributeName: pk
+          AttributeType: S
+        - AttributeName: sk
+          AttributeType: S
+      KeySchema:
+        - AttributeName: pk
+          KeyType: HASH
+        - AttributeName: sk
+          KeyType: RANGE
+
+  AnalysesTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      BillingMode: !Ref DynamoBillingMode
+      TableName: !If
+        - HasDynamoTablePrefix
+        - !Sub "${DynamoTableNamePrefix}-analyses-${DeploymentStage}"
+        - !Ref AWS::NoValue
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: !If [DynamoPitrOn, true, false]
+      AttributeDefinitions:
+        - AttributeName: incidentId
+          AttributeType: S
+        - AttributeName: createdAt
+          AttributeType: S
+        - AttributeName: retGsiPk
+          AttributeType: S
+        - AttributeName: retGsiSk
+          AttributeType: S
+      KeySchema:
+        - AttributeName: incidentId
+          KeyType: HASH
+        - AttributeName: createdAt
+          KeyType: RANGE
+      GlobalSecondaryIndexes:
+        - IndexName: retention-due-index
+          KeySchema:
+            - AttributeName: retGsiPk
+              KeyType: HASH
+            - AttributeName: retGsiSk
+              KeyType: RANGE
+          Projection:
+            ProjectionType: ALL
+
+  TraumaFlagsTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      BillingMode: !Ref DynamoBillingMode
+      TableName: !If
+        - HasDynamoTablePrefix
+        - !Sub "${DynamoTableNamePrefix}-trauma-flags-${DeploymentStage}"
+        - !Ref AWS::NoValue
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: !If [DynamoPitrOn, true, false]
+      AttributeDefinitions:
+        - AttributeName: flagId
+          AttributeType: S
+        - AttributeName: agencyId
+          AttributeType: S
+        - AttributeName: createdAt
+          AttributeType: S
+        - AttributeName: incidentId
+          AttributeType: S
+        - AttributeName: agencyCallerAddressKey
+          AttributeType: S
+      KeySchema:
+        - AttributeName: flagId
+          KeyType: HASH
+      GlobalSecondaryIndexes:
+        - IndexName: agencyId-createdAt-index
+          KeySchema:
+            - AttributeName: agencyId
+              KeyType: HASH
+            - AttributeName: createdAt
+              KeyType: RANGE
+          Projection:
+            ProjectionType: ALL
+        - IndexName: incidentId-createdAt-index
+          KeySchema:
+            - AttributeName: incidentId
+              KeyType: HASH
+            - AttributeName: createdAt
+              KeyType: RANGE
+          Projection:
+            ProjectionType: ALL
+        - IndexName: agencyCallerAddressKey-createdAt-index
+          KeySchema:
+            - AttributeName: agencyCallerAddressKey
+              KeyType: HASH
+            - AttributeName: createdAt
+              KeyType: RANGE
+          Projection:
+            ProjectionType: ALL
+
+  PremiseNotesTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      BillingMode: !Ref DynamoBillingMode
+      TableName: !If
+        - HasDynamoTablePrefix
+        - !Sub "${DynamoTableNamePrefix}-premise-notes-${DeploymentStage}"
+        - !Ref AWS::NoValue
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: !If [DynamoPitrOn, true, false]
+      AttributeDefinitions:
+        - AttributeName: premiseScopeKey
+          AttributeType: S
+        - AttributeName: noteId
+          AttributeType: S
+      KeySchema:
+        - AttributeName: premiseScopeKey
+          KeyType: HASH
+        - AttributeName: noteId
+          KeyType: RANGE
+
+  DispatcherCoachingNotesTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      BillingMode: !Ref DynamoBillingMode
+      TableName: !If
+        - HasDynamoTablePrefix
+        - !Sub "${DynamoTableNamePrefix}-dispatcher-coaching-notes-${DeploymentStage}"
+        - !Ref AWS::NoValue
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: !If [DynamoPitrOn, true, false]
+      AttributeDefinitions:
+        - AttributeName: noteId
+          AttributeType: S
+        - AttributeName: agencyDispatcherKey
+          AttributeType: S
+        - AttributeName: createdAt
+          AttributeType: S
+      KeySchema:
+        - AttributeName: noteId
+          KeyType: HASH
+      GlobalSecondaryIndexes:
+        - IndexName: agencyDispatcherKey-createdAt-index
+          KeySchema:
+            - AttributeName: agencyDispatcherKey
+              KeyType: HASH
+            - AttributeName: createdAt
+              KeyType: RANGE
+          Projection:
+            ProjectionType: ALL
+
+  AgencySharePartnersTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      BillingMode: !Ref DynamoBillingMode
+      TableName: !If
+        - HasDynamoTablePrefix
+        - !Sub "${DynamoTableNamePrefix}-agency-share-partners-${DeploymentStage}"
+        - !Ref AWS::NoValue
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: !If [DynamoPitrOn, true, false]
+      AttributeDefinitions:
+        - AttributeName: ownerAgencyId
+          AttributeType: S
+        - AttributeName: partnerAgencyId
+          AttributeType: S
+      KeySchema:
+        - AttributeName: ownerAgencyId
+          KeyType: HASH
+        - AttributeName: partnerAgencyId
+          KeyType: RANGE
+
+  IncidentSharesTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      BillingMode: !Ref DynamoBillingMode
+      TableName: !If
+        - HasDynamoTablePrefix
+        - !Sub "${DynamoTableNamePrefix}-incident-shares-${DeploymentStage}"
+        - !Ref AWS::NoValue
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: !If [DynamoPitrOn, true, false]
+      AttributeDefinitions:
+        - AttributeName: shareId
+          AttributeType: S
+        - AttributeName: incidentId
+          AttributeType: S
+        - AttributeName: recipientAgencyId
+          AttributeType: S
+        - AttributeName: createdAt
+          AttributeType: S
+      KeySchema:
+        - AttributeName: shareId
+          KeyType: HASH
+      GlobalSecondaryIndexes:
+        - IndexName: incidentId-recipientAgencyId-index
+          KeySchema:
+            - AttributeName: incidentId
+              KeyType: HASH
+            - AttributeName: recipientAgencyId
+              KeyType: RANGE
+          Projection:
+            ProjectionType: ALL
+        - IndexName: incidentId-createdAt-index
+          KeySchema:
+            - AttributeName: incidentId
+              KeyType: HASH
+            - AttributeName: createdAt
+              KeyType: RANGE
+          Projection:
+            ProjectionType: ALL
+        - IndexName: recipientAgencyId-createdAt-index
+          KeySchema:
+            - AttributeName: recipientAgencyId
+              KeyType: HASH
+            - AttributeName: createdAt
+              KeyType: RANGE
+          Projection:
+            ProjectionType: ALL
+      TimeToLiveSpecification:
+        AttributeName: ttlEpoch
+        Enabled: true
+
+  AuditTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      BillingMode: !Ref DynamoBillingMode
+      TableName: !If
+        - HasDynamoTablePrefix
+        - !Sub "${DynamoTableNamePrefix}-audit-${DeploymentStage}"
+        - !Ref AWS::NoValue
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: !If [DynamoPitrOn, true, false]
+      AttributeDefinitions:
+        - AttributeName: eventId
+          AttributeType: S
+        - AttributeName: agencyId
+          AttributeType: S
+        - AttributeName: createdAt
+          AttributeType: S
+      KeySchema:
+        - AttributeName: eventId
+          KeyType: HASH
+      GlobalSecondaryIndexes:
+        - IndexName: agencyId-createdAt-index
+          KeySchema:
+            - AttributeName: agencyId
+              KeyType: HASH
+            - AttributeName: createdAt
+              KeyType: RANGE
+          Projection:
+            ProjectionType: ALL
+
+  DataDeletionAuditTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      BillingMode: !Ref DynamoBillingMode
+      TableName: !If
+        - HasDynamoTablePrefix
+        - !Sub "${DynamoTableNamePrefix}-data-deletion-audit-${DeploymentStage}"
+        - !Ref AWS::NoValue
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: !If [DynamoPitrOn, true, false]
+      AttributeDefinitions:
+        - AttributeName: eventId
+          AttributeType: S
+        - AttributeName: agencyId
+          AttributeType: S
+        - AttributeName: deletedAt
+          AttributeType: S
+      KeySchema:
+        - AttributeName: eventId
+          KeyType: HASH
+      GlobalSecondaryIndexes:
+        - IndexName: agencyId-deletedAt-index
+          KeySchema:
+            - AttributeName: agencyId
+              KeyType: HASH
+            - AttributeName: deletedAt
+              KeyType: RANGE
+          Projection:
+            ProjectionType: ALL
+
+  QASessionsTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      BillingMode: !Ref DynamoBillingMode
+      TableName: !If
+        - HasDynamoTablePrefix
+        - !Sub "${DynamoTableNamePrefix}-qa-sessions-${DeploymentStage}"
+        - !Ref AWS::NoValue
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: !If [DynamoPitrOn, true, false]
+      AttributeDefinitions:
+        - AttributeName: agencyId
+          AttributeType: S
+        - AttributeName: sessionId
+          AttributeType: S
+      KeySchema:
+        - AttributeName: agencyId
+          KeyType: HASH
+        - AttributeName: sessionId
+          KeyType: RANGE
+
+  QATemplatesTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      BillingMode: !Ref DynamoBillingMode
+      TableName: !If
+        - HasDynamoTablePrefix
+        - !Sub "${DynamoTableNamePrefix}-qa-templates-${DeploymentStage}"
+        - !Ref AWS::NoValue
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: !If [DynamoPitrOn, true, false]
+      AttributeDefinitions:
+        - AttributeName: agencyId
+          AttributeType: S
+        - AttributeName: templateId
+          AttributeType: S
+      KeySchema:
+        - AttributeName: agencyId
+          KeyType: HASH
+        - AttributeName: templateId
+          KeyType: RANGE
+
+  IncidentMediaTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      BillingMode: !Ref DynamoBillingMode
+      TableName: !If
+        - HasDynamoTablePrefix
+        - !Sub "${DynamoTableNamePrefix}-incident-media-${DeploymentStage}"
+        - !Ref AWS::NoValue
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: !If [DynamoPitrOn, true, false]
+      AttributeDefinitions:
+        - AttributeName: agencyId
+          AttributeType: S
+        - AttributeName: mediaId
+          AttributeType: S
+        - AttributeName: tokenHash
+          AttributeType: S
+        - AttributeName: incidentId
+          AttributeType: S
+        - AttributeName: createdAt
+          AttributeType: S
+        - AttributeName: retGsiPk
+          AttributeType: S
+        - AttributeName: retGsiSk
+          AttributeType: S
+      KeySchema:
+        - AttributeName: agencyId
+          KeyType: HASH
+        - AttributeName: mediaId
+          KeyType: RANGE
+      GlobalSecondaryIndexes:
+        - IndexName: tokenHash-index
+          KeySchema:
+            - AttributeName: tokenHash
+              KeyType: HASH
+          Projection:
+            ProjectionType: ALL
+        - IndexName: incidentId-createdAt-index
+          KeySchema:
+            - AttributeName: incidentId
+              KeyType: HASH
+            - AttributeName: createdAt
+              KeyType: RANGE
+          Projection:
+            ProjectionType: ALL
+        - IndexName: retention-due-index
+          KeySchema:
+            - AttributeName: retGsiPk
+              KeyType: HASH
+            - AttributeName: retGsiSk
+              KeyType: RANGE
+          Projection:
+            ProjectionType: ALL
+      TimeToLiveSpecification:
+        AttributeName: ttl
+        Enabled: true
+
+  CadIntegrationsTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      BillingMode: !Ref DynamoBillingMode
+      TableName: !If
+        - HasDynamoTablePrefix
+        - !Sub "${DynamoTableNamePrefix}-cad-integrations-${DeploymentStage}"
+        - !Ref AWS::NoValue
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: !If [DynamoPitrOn, true, false]
+      AttributeDefinitions:
+        - AttributeName: id
+          AttributeType: S
+        - AttributeName: agencyId
+          AttributeType: S
+        - AttributeName: createdAt
+          AttributeType: S
+      KeySchema:
+        - AttributeName: id
+          KeyType: HASH
+      GlobalSecondaryIndexes:
+        - IndexName: agencyId-createdAt-index
+          KeySchema:
+            - AttributeName: agencyId
+              KeyType: HASH
+            - AttributeName: createdAt
+              KeyType: RANGE
+          Projection:
+            ProjectionType: ALL
+
+  CadIncidentsTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      BillingMode: !Ref DynamoBillingMode
+      TableName: !If
+        - HasDynamoTablePrefix
+        - !Sub "${DynamoTableNamePrefix}-cad-incidents-${DeploymentStage}"
+        - !Ref AWS::NoValue
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: !If [DynamoPitrOn, true, false]
+      AttributeDefinitions:
+        - AttributeName: id
+          AttributeType: S
+        - AttributeName: agencyId
+          AttributeType: S
+        - AttributeName: receivedAt
+          AttributeType: S
+      KeySchema:
+        - AttributeName: id
+          KeyType: HASH
+      GlobalSecondaryIndexes:
+        - IndexName: agencyId-receivedAt-index
+          KeySchema:
+            - AttributeName: agencyId
+              KeyType: HASH
+            - AttributeName: receivedAt
+              KeyType: RANGE
+          Projection:
+            ProjectionType: ALL
+      TimeToLiveSpecification:
+        AttributeName: ttl
+        Enabled: true
+
+  CadIncidentsRawTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      BillingMode: !Ref DynamoBillingMode
+      TableName: !If
+        - HasDynamoTablePrefix
+        - !Sub "${DynamoTableNamePrefix}-cad-incidents-raw-${DeploymentStage}"
+        - !Ref AWS::NoValue
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: !If [DynamoPitrOn, true, false]
+      AttributeDefinitions:
+        - AttributeName: id
+          AttributeType: S
+        - AttributeName: agencyId
+          AttributeType: S
+        - AttributeName: integrationId
+          AttributeType: S
+        - AttributeName: receivedAt
+          AttributeType: S
+      KeySchema:
+        - AttributeName: id
+          KeyType: HASH
+      GlobalSecondaryIndexes:
+        - IndexName: agencyId-receivedAt-index
+          KeySchema:
+            - AttributeName: agencyId
+              KeyType: HASH
+            - AttributeName: receivedAt
+              KeyType: RANGE
+          Projection:
+            ProjectionType: ALL
+        - IndexName: integrationId-receivedAt-index
+          KeySchema:
+            - AttributeName: integrationId
+              KeyType: HASH
+            - AttributeName: receivedAt
+              KeyType: RANGE
+          Projection:
+            ProjectionType: ALL
+      TimeToLiveSpecification:
+        AttributeName: ttl
+        Enabled: true
+
+  CadWebhookRateLimitsTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      BillingMode: !Ref DynamoBillingMode
+      TableName: !If
+        - HasDynamoTablePrefix
+        - !Sub "${DynamoTableNamePrefix}-cad-webhook-rate-${DeploymentStage}"
+        - !Ref AWS::NoValue
+      AttributeDefinitions:
+        - AttributeName: rateKey
+          AttributeType: S
+      KeySchema:
+        - AttributeName: rateKey
+          KeyType: HASH
+      TimeToLiveSpecification:
+        AttributeName: ttl
+        Enabled: true
+
+  CadWritebackAuditTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      BillingMode: !Ref DynamoBillingMode
+      TableName: !If
+        - HasDynamoTablePrefix
+        - !Sub "${DynamoTableNamePrefix}-cad-writeback-audit-${DeploymentStage}"
+        - !Ref AWS::NoValue
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: !If [DynamoPitrOn, true, false]
+      AttributeDefinitions:
+        - AttributeName: id
+          AttributeType: S
+        - AttributeName: agencyId
+          AttributeType: S
+        - AttributeName: createdAt
+          AttributeType: S
+        - AttributeName: incidentId
+          AttributeType: S
+      KeySchema:
+        - AttributeName: id
+          KeyType: HASH
+      GlobalSecondaryIndexes:
+        - IndexName: agencyId-createdAt-index
+          KeySchema:
+            - AttributeName: agencyId
+              KeyType: HASH
+            - AttributeName: createdAt
+              KeyType: RANGE
+          Projection:
+            ProjectionType: ALL
+        - IndexName: incidentId-createdAt-index
+          KeySchema:
+            - AttributeName: incidentId
+              KeyType: HASH
+            - AttributeName: createdAt
+              KeyType: RANGE
+          Projection:
+            ProjectionType: ALL
+      TimeToLiveSpecification:
+        AttributeName: ttl
+        Enabled: true
+
+  AssetsBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      # Globally unique; ties assets to account + deployment stage.
+      BucketName: !Sub "${AppName}-assets-${DeploymentStage}-${AWS::AccountId}"
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: AES256
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+      CorsConfiguration:
+        CorsRules:
+          - AllowedMethods:
+              - GET
+              - PUT
+              - HEAD
+            AllowedHeaders:
+              - "*"
+            AllowedOrigins: !Split [",", !Ref HttpApiCorsAllowedOrigins]
+            ExposedHeaders:
+              - ETag
+
+  BillingInvoicesBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      # Keep requested name prefix while remaining globally unique across AWS accounts.
+      BucketName: !Sub "rapid-cortex-billing-invoices-${DeploymentStage}-${AWS::AccountId}"
+      VersioningConfiguration:
+        Status: Enabled
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: AES256
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+      LifecycleConfiguration:
+        Rules:
+          - Id: invoice-archive-lifecycle
+            Status: Enabled
+            Transitions:
+              - TransitionInDays: 90
+                StorageClass: GLACIER
+      CorsConfiguration:
+        CorsRules:
+          - AllowedMethods:
+              - GET
+              - PUT
+              - HEAD
+            AllowedHeaders:
+              - "*"
+            AllowedOrigins: !Split [",", !Ref HttpApiCorsAllowedOrigins]
+            ExposedHeaders:
+              - ETag
+
+  BillingPosBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      # Keep requested name prefix while remaining globally unique across AWS accounts.
+      BucketName: !Sub "rapid-cortex-billing-pos-${DeploymentStage}-${AWS::AccountId}"
+      VersioningConfiguration:
+        Status: Enabled
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: AES256
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+
+  BillingPosBucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket: !Ref BillingPosBucket
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Sid: DenyNonPdfUploads
+            Effect: Deny
+            Principal: "*"
+            Action:
+              - s3:PutObject
+            NotResource: !Sub "${BillingPosBucket.Arn}/*.pdf"
+
+
+Outputs:
+  AgenciesTable:
+    Description: Physical table name for AgenciesTable
+    Value: !Ref AgenciesTable
+  PendingProvisionsTable:
+    Description: Adobe Sign / RC Admin async provisioning ledger (agreementId)
+    Value: !Ref PendingProvisionsTable
+  InvitesTable:
+    Description: Physical table name for InvitesTable
+    Value: !Ref InvitesTable
+  ActiveCallsTable:
+    Description: Physical table name for ActiveCallsTable
+    Value: !Ref ActiveCallsTable
+  CallTransfersTable:
+    Description: Physical table name for CallTransfersTable
+    Value: !Ref CallTransfersTable
+  WebSocketConnectionsTable:
+    Description: Physical table name for WebSocketConnectionsTable
+    Value: !Ref WebSocketConnectionsTable
+  AccessOverridesTable:
+    Description: Physical table name for AccessOverridesTable
+    Value: !Ref AccessOverridesTable
+  NetworkEmergencyOverridesTable:
+    Description: Emergency network override tokens (per userId + sortKey)
+    Value: !Ref NetworkEmergencyOverridesTable
+  ApiClientsTable:
+    Description: Physical table name for ApiClientsTable
+    Value: !Ref ApiClientsTable
+  WebhooksTable:
+    Description: Physical table name for WebhooksTable
+    Value: !Ref WebhooksTable
+  ExternalApiRateLimitsTable:
+    Description: Physical table name for ExternalApiRateLimitsTable
+    Value: !Ref ExternalApiRateLimitsTable
+  RcLiteApiKeysTable:
+    Description: Physical table name for RcLiteApiKeysTable
+    Value: !Ref RcLiteApiKeysTable
+  RcLiteRateLimitTable:
+    Description: Physical table name for RcLiteRateLimitTable
+    Value: !Ref RcLiteRateLimitTable
+  RcLiteUsageTable:
+    Description: Physical table name for RcLiteUsageTable
+    Value: !Ref RcLiteUsageTable
+  BillingProfilesTable:
+    Description: Physical table name for BillingProfilesTable
+    Value: !Ref BillingProfilesTable
+  BillingWebhookEventsTable:
+    Description: Physical table name for BillingWebhookEventsTable
+    Value: !Ref BillingWebhookEventsTable
+  MonetizationPlansTable:
+    Description: Physical table name for MonetizationPlansTable
+    Value: !Ref MonetizationPlansTable
+  MonetizationAddOnsTable:
+    Description: Physical table name for MonetizationAddOnsTable
+    Value: !Ref MonetizationAddOnsTable
+  AgencySubscriptionsTable:
+    Description: Physical table name for AgencySubscriptionsTable
+    Value: !Ref AgencySubscriptionsTable
+  UsageMetersTable:
+    Description: Physical table name for UsageMetersTable
+    Value: !Ref UsageMetersTable
+  MonetizationInvoicesTable:
+    Description: Physical table name for MonetizationInvoicesTable
+    Value: !Ref MonetizationInvoicesTable
+  BillingAuditEventsTable:
+    Description: Physical table name for BillingAuditEventsTable
+    Value: !Ref BillingAuditEventsTable
+  SalesLeadsTable:
+    Description: Physical table name for SalesLeadsTable
+    Value: !Ref SalesLeadsTable
+  SeoIntelligenceTable:
+    Description: Physical table name for SeoIntelligenceTable (scans + issues; PK agencyId, SK entity key)
+    Value: !Ref SeoIntelligenceTable
+  DeceptionEventsTable:
+    Description: Physical table name for DeceptionEventsTable (Deception Shield; PK id; TTL ttl)
+    Value: !Ref DeceptionEventsTable
+  CustomersTable:
+    Description: Physical table name for CustomersTable
+    Value: !Ref CustomersTable
+  ServiceCatalogTable:
+    Description: Physical table name for ServiceCatalogTable
+    Value: !Ref ServiceCatalogTable
+  InvoicesTable:
+    Description: Physical table name for InvoicesTable
+    Value: !Ref InvoicesTable
+  InvoiceItemsTable:
+    Description: Physical table name for InvoiceItemsTable
+    Value: !Ref InvoiceItemsTable
+  BillingSchedulesTable:
+    Description: Physical table name for BillingSchedulesTable
+    Value: !Ref BillingSchedulesTable
+  PaymentRecordsTable:
+    Description: Physical table name for PaymentRecordsTable
+    Value: !Ref PaymentRecordsTable
+  BillingAuditLogTable:
+    Description: Physical table name for BillingAuditLogTable
+    Value: !Ref BillingAuditLogTable
+  CadIncidentsTable:
+    Description: Physical table name for CAD-sourced incidents (TTL 90d on ttl)
+    Value: !Ref CadIncidentsTable
+  CadIncidentsRawTable:
+    Description: Physical table name for immutable CAD webhook receipts (TTL 90d)
+    Value: !Ref CadIncidentsRawTable
+  CadWebhookRateLimitsTable:
+    Description: Physical table name for per-integration CAD webhook rate counters
+    Value: !Ref CadWebhookRateLimitsTable
+  CadIntegrationsTable:
+    Description: Physical table name for agency CAD integration configs
+    Value: !Ref CadIntegrationsTable
+  CadWritebackAuditTable:
+    Description: Physical table name for CAD write-back audit rows (TTL 90d)
+    Value: !Ref CadWritebackAuditTable
+  IncidentsTable:
+    Description: Physical table name for IncidentsTable
+    Value: !Ref IncidentsTable
+  TranscriptsTable:
+    Description: Physical table name for TranscriptsTable
+    Value: !Ref TranscriptsTable
+  LanguageSessionsTable:
+    Description: Physical table name for LanguageSessionsTable
+    Value: !Ref LanguageSessionsTable
+  VideoAssistSessionsTable:
+    Description: Physical table name for VideoAssistSessionsTable
+    Value: !Ref VideoAssistSessionsTable
+  LiveVideoSessionsTable:
+    Description: Physical table name for LiveVideoSessionsTable
+    Value: !Ref LiveVideoSessionsTable
+  SilentTextSessionsTable:
+    Description: Physical table name for SilentTextSessionsTable
+    Value: !Ref SilentTextSessionsTable
+  PinpointLinksTable:
+    Description: Physical table name for PinpointLinksTable
+    Value: !Ref PinpointLinksTable
+  SurgeClustersTable:
+    Description: Physical table name for SurgeClustersTable
+    Value: !Ref SurgeClustersTable
+  AnalysesTable:
+    Description: Physical table name for AnalysesTable
+    Value: !Ref AnalysesTable
+  TraumaFlagsTable:
+    Description: Physical table name for TraumaFlagsTable
+    Value: !Ref TraumaFlagsTable
+  PremiseNotesTable:
+    Description: Physical table name for PremiseNotesTable
+    Value: !Ref PremiseNotesTable
+  DispatcherCoachingNotesTable:
+    Description: Physical table name for DispatcherCoachingNotesTable
+    Value: !Ref DispatcherCoachingNotesTable
+  AgencySharePartnersTable:
+    Description: Physical table name for AgencySharePartnersTable
+    Value: !Ref AgencySharePartnersTable
+  IncidentSharesTable:
+    Description: Physical table name for IncidentSharesTable
+    Value: !Ref IncidentSharesTable
+  AuditTable:
+    Description: Physical table name for AuditTable
+    Value: !Ref AuditTable
+  DataDeletionAuditTable:
+    Description: Physical table name for DataDeletionAuditTable
+    Value: !Ref DataDeletionAuditTable
+  QASessionsTable:
+    Description: Physical table name for QASessionsTable
+    Value: !Ref QASessionsTable
+  QATemplatesTable:
+    Description: Physical table name for QATemplatesTable
+    Value: !Ref QATemplatesTable
+  IncidentMediaTable:
+    Description: Physical table name for IncidentMediaTable
+    Value: !Ref IncidentMediaTable
+  AssetsBucket:
+    Description: Physical bucket name for AssetsBucket
+    Value: !Ref AssetsBucket
+  BillingInvoicesBucket:
+    Description: Physical bucket name for BillingInvoicesBucket
+    Value: !Ref BillingInvoicesBucket
+  BillingPosBucket:
+    Description: Physical bucket name for BillingPosBucket
+    Value: !Ref BillingPosBucket
+  MultilingualAzureApiKeysSecretArn:
+    Description: Managed Azure keys secret ARN (empty when not provisioned)
+    Value: !If [UseManagedMultilingualSecrets, !Ref MultilingualAzureApiKeysSecret, ""]
+  MultilingualGoogleServiceAccountSecretArn:
+    Description: Managed Google SA secret ARN (empty when not provisioned)
+    Value: !If [UseManagedMultilingualSecrets, !Ref MultilingualGoogleServiceAccountSecret, ""]
+  BillingPaymentInstructionsSecretArn:
+    Description: Billing payment instructions secret ARN
+    Value: !Ref BillingPaymentInstructionsSecret
+  BillingSesCredentialsSecretArn:
+    Description: Billing SES credentials secret ARN
+    Value: !Ref BillingSesCredentialsSecret
