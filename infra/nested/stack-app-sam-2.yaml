@@ -1,0 +1,3833 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Transform: AWS::Serverless-2016-10-31
+
+Metadata:
+  cfn-lint:
+    config:
+      ignore_checks:
+        - W1028
+        - W8001
+        - W7001
+  Sam2HeavyLambdasGlobalsSlimYamlAnchorHolder: &SAM2_HEAVY_LAMBDAS_GLOBALS_SLIM_OVERRIDES
+    WEBHOOKS_TABLE: ""
+    API_CLIENTS_TABLE: ""
+    EXTERNAL_API_RATE_LIMITS_TABLE: ""
+    ACCESS_OVERRIDES_TABLE: ""
+    DATA_DELETION_AUDIT_TABLE: ""
+    TRANSCRIPT_RETENTION_POLICY_DAYS: ""
+    INTEGRATION_TRANSCRIPT_CONNECTOR_MODE: ""
+    INTEGRATION_TRANSCRIPT_AGENCY_ALLOWLIST: ""
+    DECEPTION_EVENTS_TABLE: ""
+    DECEPTION_SHIELD_ENABLED: ""
+    DECEPTION_AUTO_BLOCK_ENABLED: ""
+    DECEPTION_ALERTS_ENABLED: "false"
+    OPS_ALERTS_TOPIC_ARN: ""
+    DECEPTION_SLACK_WEBHOOK_URL: ""
+    PASSWORD_MAX_AGE_DAYS: ""
+    PASSWORD_EXPIRY_GRACE_DAYS: ""
+    PASSWORD_CHANGE_REQUIRED_ON_FIRST_LOGIN: ""
+    LANGUAGE_SESSIONS_TABLE: ""
+    AI_ENABLE_FALLBACKS: ""
+    AI_STORE_PROVIDER_METADATA: ""
+    AI_PROMPT_VERSION: ""
+    AI_REQUEST_TIMEOUT_MS: ""
+    AI_MAX_RETRIES_PER_PROVIDER: ""
+    AI_ANALYSIS_DEBOUNCE_SECONDS: ""
+    AI_MAX_ANALYZE_REQUESTS_PER_INCIDENT_PER_HOUR: ""
+    AI_SKIP_IF_TRANSCRIPT_UNCHANGED: ""
+    AI_ANALYSIS_IN_FLIGHT_LEASE_SECONDS: ""
+    OPENAI_API_KEY_SECRET_ARN: ""
+    ANTHROPIC_API_KEY_SECRET_ARN: ""
+    AUTO_ANALYZE_EVERY_N_SEGMENTS: ""
+    ALLOW_UNAUTHENTICATED_API: ""
+    APPROVED_CORS_ORIGINS: ""
+    ENABLE_INCIDENT_MEDIA: ""
+    INCIDENT_MEDIA_TABLE: ""
+    INCIDENT_MEDIA_PUBLIC_BASE_URL: ""
+    INCIDENT_MEDIA_TOKEN_TTL_MINUTES: ""
+    INCIDENT_MEDIA_UPLOAD_URL_TTL_SECONDS: ""
+    INCIDENT_MEDIA_MAX_UPLOAD_BYTES: ""
+    MEDIA_UPLOAD_TOKEN_TTL_SECONDS: ""
+    ENABLE_NON_EMERGENCY_TRIAGE: ""
+    TRAUMA_FLAGS_TABLE: ""
+    PREMISE_NOTES_TABLE: ""
+    DISPATCHER_COACHING_NOTES_TABLE: ""
+    INCIDENT_SHARES_TABLE: ""
+    AGENCY_SHARE_PARTNERS_TABLE: ""
+    CAD_INTEGRATIONS_TABLE: ""
+    CAD_WRITEBACK_AUDIT_TABLE: ""
+    CAD_WRITEBACK_ENABLED: ""
+    CAD_WRITEBACK_REQUIRES_APPROVAL: ""
+    DEFAULT_RETENTION_POLICY_ID: ""
+    QA_SCORECARDS_TABLE: ""
+    COACHING_NOTES_TABLE: ""
+    INCIDENT_TIMELINE_TABLE: ""
+    SLA_BACKLOG_SNAPSHOTS_TABLE: ""
+    WAR_ROOMS_TABLE: ""
+    WAR_ROOM_MESSAGES_TABLE: ""
+    STAKEHOLDER_PAGES_TABLE: ""
+    POST_INCIDENT_REVIEWS_TABLE: ""
+    AGENCY_REPORTS_TABLE: ""
+
+Parameters:
+  DeploymentStage:
+    Type: String
+    Default: dev
+    AllowedValues: [dev, staging, prod, pilot]
+  # Existing dev tables (created outside this nested stack); reference by name only.
+  AgencyReportsTable:
+    Type: String
+    Default: rapid-cortex-agency-reports-dev
+  CoachingNotesTable:
+    Type: String
+    Default: rapid-cortex-coaching-notes-dev
+  IncidentTimelineTable:
+    Type: String
+    Default: rapid-cortex-incident-timeline-dev
+  PostIncidentReviewsTable:
+    Type: String
+    Default: rapid-cortex-post-incident-reviews-dev
+  QaScorecardsTable:
+    Type: String
+    Default: rapid-cortex-qa-scorecards-dev
+  SlaBacklogSnapshotsTable:
+    Type: String
+    Default: rapid-cortex-sla-backlog-snapshots-dev
+  StakeholderPagesTable:
+    Type: String
+    Default: rapid-cortex-stakeholder-pages-dev
+  WarRoomMessagesTable:
+    Type: String
+    Default: rapid-cortex-war-room-messages-dev
+  WarRoomsTable:
+    Type: String
+    Default: rapid-cortex-war-rooms-dev
+
+  RootDomainName:
+    Type: String
+    Default: rapidcortex.us
+  ApiSubdomainPrefix:
+    Type: String
+    Default: api
+  CreateApiCustomDomain:
+    Type: String
+    Default: "false"
+    AllowedValues: ["true", "false"]
+  ApiDomainCertificateArn:
+    Type: String
+    Default: ""
+  Route53HostedZoneId:
+    Type: String
+    Default: ""
+  AppCnameTarget:
+    Type: String
+    Default: ""
+  AdminCnameTarget:
+    Type: String
+    Default: ""
+  WwwCnameTarget:
+    Type: String
+    Default: ""
+  OpenAiApiKeySecretArn:
+    Type: String
+    Default: ""
+  AnthropicApiKeySecretArn:
+    Type: String
+    Default: ""
+  AzureSpeechKeySecretArn:
+    Type: String
+    Default: ""
+  AzureTranslationKeySecretArn:
+    Type: String
+    Default: ""
+  GoogleApplicationCredentialsSecretArn:
+    Type: String
+    Default: ""
+  ExternalApiJwtSecretArn:
+    Type: String
+    Default: ""
+  ExternalApiEncryptionKeyArn:
+    Type: String
+    Default: ""
+  MultilingualSecretProvisioning:
+    Type: String
+    Default: external
+    AllowedValues: [external, managed]
+  MultilingualSecretsPolicyMode:
+    Type: String
+    Default: scoped
+    AllowedValues: [scoped, broad]
+  SelfSignupDefaultAgencyId:
+    Type: String
+    Default: self-signup-pending
+  SelfSignupDefaultRole:
+    Type: String
+    Default: dispatcher
+    AllowedValues: [dispatcher, commsupervisor, agencyadmin, agencyit, analyst, auditor, rcsuperadmin, rcadmin, rcitadmin]
+  QaBedrockModelId:
+    Type: String
+    Default: anthropic.claude-3-5-haiku-20241022-v1:0
+  AiBedrockFoundationModelId:
+    Type: String
+    Default: anthropic.claude-3-5-haiku-20241022-v1:0
+  IncidentMediaTwilioSecretArn:
+    Type: String
+    Default: ""
+  HttpApiCorsAllowedOrigins:
+    Type: String
+    Default: "*"
+  GoogleCloudProjectId:
+    Type: String
+    Default: ""
+  LanguageProvider:
+    Type: String
+    Default: auto
+    AllowedValues: [aws, google, auto]
+  GoogleTtsOutputBucket:
+    Type: String
+    Default: ""
+  AppName:
+    Type: String
+    Default: rapid-cortex
+  Sam2ManagedPolicyNamePrefix:
+    Type: String
+    Default: rapid-cortex
+  DynamoTableNamePrefix:
+    Type: String
+    Default: ""
+  DynamoPointInTimeRecovery:
+    Type: String
+    Default: auto
+    AllowedValues: [auto, "true", "false"]
+  DynamoBillingMode:
+    Type: String
+    Default: PAY_PER_REQUEST
+    AllowedValues: [PAY_PER_REQUEST]
+  CognitoUserPoolName:
+    Type: String
+    Default: ""
+  CognitoAppClientName:
+    Type: String
+    Default: ""
+  CognitoDomainPrefix:
+    Type: String
+    Default: ""
+  CognitoCallbackUrls:
+    Type: String
+    Default: ""
+  CognitoLogoutUrls:
+    Type: String
+    Default: ""
+  CognitoNativeCallbackUrls:
+    Type: String
+    Default: >-
+      rapidcortex://oauth/callback,rapidcortex-desktop://oauth/callback,rapidcortex-ios://oauth/callback,rapidcortex-windows://oauth/callback
+  CognitoNativeLogoutUrls:
+    Type: String
+    Default: >-
+      rapidcortex://logout/callback,rapidcortex-desktop://logout/callback,rapidcortex-ios://logout/callback,rapidcortex-windows://logout/callback
+  CognitoGenerateSecret:
+    Type: String
+    Default: "false"
+    AllowedValues: ["true", "false"]
+  ImportedCognitoUserPoolId:
+    Type: String
+  ImportedCognitoWebClientId:
+    Type: String
+  ImportedCognitoNativeClientId:
+    Type: String
+    Default: ""
+  ImportedCognitoIssuer:
+    Type: String
+
+  SnsEmailSubscription:
+    Type: String
+    Default: ""
+  SnsSmsSubscription:
+    Type: String
+    Default: ""
+  SesIdentityType:
+    Type: String
+    Default: ""
+    AllowedValues: ["", email, domain]
+  SesIdentityValue:
+    Type: String
+    Default: ""
+  SesConfigurationSetName:
+    Type: String
+    Default: ""
+  BillingSesSenderEmail:
+    Type: String
+    Default: support@appsondemand.net
+  BillingSesDomain:
+    Type: String
+    Default: rapidcortex.us
+  EnableLiveVideoResources:
+    Type: String
+    Default: "false"
+    AllowedValues: ["true", "false"]
+  EnableApiWaf:
+    Type: String
+    Default: "false"
+    AllowedValues: ["true", "false"]
+  WafRateLimitPer5Min:
+    Type: Number
+    Default: 2000
+    MinValue: 10
+    MaxValue: 20000000
+  TranscriptRetentionPolicyDays:
+    Type: String
+    Default: ""
+  EnableCloudTrail:
+    Type: String
+    Default: "true"
+    AllowedValues: ["true", "false"]
+  CloudTrailKmsKeyArn:
+    Type: String
+    Default: ""
+  EnableCloudTrailS3DataEvents:
+    Type: String
+    Default: "false"
+    AllowedValues: ["true", "false"]
+  EnableCloudTrailLambdaDataEvents:
+    Type: String
+    Default: "false"
+    AllowedValues: ["true", "false"]
+
+  AgenciesTable:
+    Type: String
+  InvitesTable:
+    Type: String
+  AccessOverridesTable:
+    Type: String
+  NetworkEmergencyOverridesTable:
+    Type: String
+  ApiClientsTable:
+    Type: String
+  WebhooksTable:
+    Type: String
+  ExternalApiRateLimitsTable:
+    Type: String
+  BillingProfilesTable:
+    Type: String
+  BillingWebhookEventsTable:
+    Type: String
+  MonetizationPlansTable:
+    Type: String
+  MonetizationAddOnsTable:
+    Type: String
+  AgencySubscriptionsTable:
+    Type: String
+  UsageMetersTable:
+    Type: String
+  MonetizationInvoicesTable:
+    Type: String
+  BillingAuditEventsTable:
+    Type: String
+  DeceptionEventsTable:
+    Type: String
+  SalesLeadsTable:
+    Type: String
+  CustomersTable:
+    Type: String
+  ServiceCatalogTable:
+    Type: String
+  InvoicesTable:
+    Type: String
+  InvoiceItemsTable:
+    Type: String
+  BillingSchedulesTable:
+    Type: String
+  PaymentRecordsTable:
+    Type: String
+  BillingAuditLogTable:
+    Type: String
+  IncidentsTable:
+    Type: String
+  CadIntegrationsTable:
+    Type: String
+  CadWritebackAuditTable:
+    Type: String
+    Default: ""
+  CadWritebackEnabled:
+    Type: String
+    Default: "false"
+    AllowedValues: ["true", "false"]
+  CadWritebackRequiresApproval:
+    Type: String
+    Default: "true"
+    AllowedValues: ["true", "false"]
+  TranscriptsTable:
+    Type: String
+  LanguageSessionsTable:
+    Type: String
+  VideoAssistSessionsTable:
+    Type: String
+  LiveVideoSessionsTable:
+    Type: String
+  SilentTextSessionsTable:
+    Type: String
+  PinpointLinksTable:
+    Type: String
+  SurgeClustersTable:
+    Type: String
+  AnalysesTable:
+    Type: String
+  TraumaFlagsTable:
+    Type: String
+  PremiseNotesTable:
+    Type: String
+  DispatcherCoachingNotesTable:
+    Type: String
+  AgencySharePartnersTable:
+    Type: String
+  IncidentSharesTable:
+    Type: String
+  AuditTable:
+    Type: String
+  DataDeletionAuditTable:
+    Type: String
+  QASessionsTable:
+    Type: String
+  QATemplatesTable:
+    Type: String
+  IncidentMediaTable:
+    Type: String
+  AssetsBucket:
+    Type: String
+  BillingInvoicesBucket:
+    Type: String
+  BillingPosBucket:
+    Type: String
+  NestedMultilingualAzureApiKeysSecretArn:
+    Type: String
+    Default: ""
+  NestedMultilingualGoogleServiceAccountSecretArn:
+    Type: String
+    Default: ""
+  BillingPaymentInstructionsSecretArn:
+    Type: String
+  BillingSesCredentialsSecretArn:
+    Type: String
+  RcLiteApiKeysTable:
+    Type: String
+  RcLiteRateLimitTable:
+    Type: String
+  RcLiteUsageTable:
+    Type: String
+  PendingProvisionsTable:
+    Type: String
+    Default: ""
+  AdobeSignCredentialsSecretArn:
+    Type: String
+    Default: ""
+  AdobeSignWebhookEnabled:
+    Type: String
+    Default: "true"
+    AllowedValues: ["true", "false"]
+  AdobeSignMock:
+    Type: String
+    Default: "false"
+    AllowedValues: ["true", "false"]
+  ImportedOpsAlertsTopicArn:
+    Type: String
+    Default: ""
+
+Rules:
+  PilotProdNoCorsWildcard:
+    RuleCondition: !Or
+      - !Equals [!Ref DeploymentStage, prod]
+      - !Equals [!Ref DeploymentStage, pilot]
+      - !Equals [!Ref DeploymentStage, staging]
+    Assertions:
+      - Assert: !Not [!Equals [!Ref HttpApiCorsAllowedOrigins, "*"]]
+  PilotProdNoBroadSecrets:
+    RuleCondition: !Or
+      - !Equals [!Ref DeploymentStage, prod]
+      - !Equals [!Ref DeploymentStage, pilot]
+      - !Equals [!Ref DeploymentStage, staging]
+    Assertions:
+      - Assert: !Not [!Equals [!Ref MultilingualSecretsPolicyMode, broad]]
+
+Conditions:
+  ShouldCreateApiCustomDomain: !Equals [!Ref CreateApiCustomDomain, "true"]
+  HasImportedApiCert: !Not [!Equals [!Ref ApiDomainCertificateArn, ""]]
+  HasManagedApiCert:
+    Fn::And:
+      - !Equals [!Ref ApiDomainCertificateArn, ""]
+      - !Not [!Equals [!Ref Route53HostedZoneId, ""]]
+  HasApiCustomDomainCert: !Or [!Condition HasImportedApiCert, !Condition HasManagedApiCert]
+  UseApiCustomDomain:
+    Fn::And:
+      - !Condition ShouldCreateApiCustomDomain
+      - !Condition HasApiCustomDomainCert
+  UseApiManagedCertificate:
+    Fn::And:
+      - !Condition ShouldCreateApiCustomDomain
+      - !Condition HasManagedApiCert
+  HasAppCnameTarget: !Not [!Equals [!Ref AppCnameTarget, ""]]
+  HasAdminCnameTarget: !Not [!Equals [!Ref AdminCnameTarget, ""]]
+  HasWwwCnameTarget: !Not [!Equals [!Ref WwwCnameTarget, ""]]
+  UseManagedMultilingualSecrets: !Equals [!Ref MultilingualSecretProvisioning, "managed"]
+  MultilingualSecretsBroadPolicy: !Equals [!Ref MultilingualSecretsPolicyMode, "broad"]
+  EnablePilotGradeBackups:
+    Fn::Or:
+      - Fn::Equals:
+          - !Ref DeploymentStage
+          - staging
+      - Fn::Equals:
+          - !Ref DeploymentStage
+          - prod
+      - Fn::Equals:
+          - !Ref DeploymentStage
+          - pilot
+  HasIncidentMediaTwilioSecretArn: !Not [!Equals [!Ref IncidentMediaTwilioSecretArn, ""]]
+  HasExternalApiJwtSecretArn: !Not [!Equals [!Ref ExternalApiJwtSecretArn, ""]]
+  HasExternalApiEncryptionKeyArn: !Not [!Equals [!Ref ExternalApiEncryptionKeyArn, ""]]
+  HasDynamoTablePrefix: !Not [!Equals [!Ref DynamoTableNamePrefix, ""]]
+  DynamoPitrOn:
+    Fn::Or:
+      - Fn::And:
+          - !Equals [!Ref DynamoPointInTimeRecovery, "auto"]
+          - !Condition EnablePilotGradeBackups
+      - !Equals [!Ref DynamoPointInTimeRecovery, "true"]
+  HasCognitoUserPoolNameParam: !Not [!Equals [!Ref CognitoUserPoolName, ""]]
+  HasCognitoAppClientNameParam: !Not [!Equals [!Ref CognitoAppClientName, ""]]
+  HasCognitoDomainPrefixParam: !Not [!Equals [!Ref CognitoDomainPrefix, ""]]
+  HasCognitoCallbackUrls: !Not [!Equals [!Ref CognitoCallbackUrls, ""]]
+  HasCognitoLogoutUrls: !Not [!Equals [!Ref CognitoLogoutUrls, ""]]
+  CognitoClientUsesSecret: !Equals [!Ref CognitoGenerateSecret, "true"]
+  HasSnsEmailSubscription: !Not [!Equals [!Ref SnsEmailSubscription, ""]]
+  HasSnsSmsSubscription: !Not [!Equals [!Ref SnsSmsSubscription, ""]]
+  HasImportedOpsAlertsTopicArn: !Not [!Equals [!Ref ImportedOpsAlertsTopicArn, ""]]
+  CreateSesIdentity:
+    Fn::And:
+      - !Not [!Equals [!Ref SesIdentityValue, ""]]
+      - !Not [!Equals [!Ref SesIdentityType, ""]]
+  HasSesConfigurationSet: !Not [!Equals [!Ref SesConfigurationSetName, ""]]
+  HasRoute53HostedZone: !Not [!Equals [!Ref Route53HostedZoneId, ""]]
+  CreateLiveVideoResources: !Equals [!Ref EnableLiveVideoResources, "true"]
+  HasApiWaf: !Equals [!Ref EnableApiWaf, "true"]
+  CloudTrailEnabled: !Equals [!Ref EnableCloudTrail, "true"]
+  CloudTrailS3DataEvents: !And
+    - !Condition CloudTrailEnabled
+    - !Equals [!Ref EnableCloudTrailS3DataEvents, "true"]
+  CloudTrailLambdaDataEvents: !And
+    - !Condition CloudTrailEnabled
+    - !Equals [!Ref EnableCloudTrailLambdaDataEvents, "true"]
+  CloudTrailS3AndLambdaDataEvents: !And
+    - !Condition CloudTrailS3DataEvents
+    - !Condition CloudTrailLambdaDataEvents
+  CloudTrailS3DataOnly: !And
+    - !Condition CloudTrailS3DataEvents
+    - !Not [!Condition CloudTrailLambdaDataEvents]
+  CloudTrailLambdaDataOnly: !And
+    - !Condition CloudTrailLambdaDataEvents
+    - !Not [!Condition CloudTrailS3DataEvents]
+  HasCloudTrailKms: !Not [!Equals [!Ref CloudTrailKmsKeyArn, ""]]
+  HasOpenAiApiKeySecretArn: !Not [!Equals [!Ref OpenAiApiKeySecretArn, ""]]
+  HasAnthropicApiKeySecretArn: !Not [!Equals [!Ref AnthropicApiKeySecretArn, ""]]
+
+Mappings:
+  MultilingualStageDefaults:
+    dev:
+      StrictValidation: "false"
+    staging:
+      StrictValidation: "true"
+    prod:
+      StrictValidation: "true"
+    pilot:
+      StrictValidation: "true"
+  ApiLambdaDefaults:
+    dev:
+      PrimaryAi: mock
+      SecondaryAi: mock
+      TertiaryAi: off
+      AiFallback: mock
+      AiSecondaryFallback: mock
+      Lid1: mock
+      Lid2: mock
+      Lid3: off
+      Stt1: mock
+      Stt2: mock
+      Stt3: off
+      Tr1: mock
+      Tr2: mock
+      Tr3: off
+    staging:
+      PrimaryAi: bedrock
+      SecondaryAi: off
+      TertiaryAi: off
+      AiFallback: off
+      AiSecondaryFallback: off
+      Lid1: aws
+      Lid2: mock
+      Lid3: off
+      Stt1: azure
+      Stt2: google
+      Stt3: aws
+      Tr1: aws
+      Tr2: mock
+      Tr3: off
+    prod:
+      PrimaryAi: bedrock
+      SecondaryAi: off
+      TertiaryAi: off
+      AiFallback: off
+      AiSecondaryFallback: off
+      Lid1: aws
+      Lid2: mock
+      Lid3: off
+      Stt1: azure
+      Stt2: google
+      Stt3: aws
+      Tr1: aws
+      Tr2: mock
+      Tr3: off
+    pilot:
+      PrimaryAi: bedrock
+      SecondaryAi: off
+      TertiaryAi: off
+      AiFallback: off
+      AiSecondaryFallback: off
+      Lid1: aws
+      Lid2: mock
+      Lid3: off
+      Stt1: azure
+      Stt2: google
+      Stt3: aws
+      Tr1: aws
+      Tr2: mock
+      Tr3: off
+  SmsEnvironmentDefaults:
+    dev:
+      SmsProvider: mock
+      SmsPrimaryProvider: twilio
+      MockSmsProvider: "true"
+      AwsSmsUseSimulator: "true"
+    staging:
+      SmsProvider: auto
+      SmsPrimaryProvider: twilio
+      MockSmsProvider: "false"
+      AwsSmsUseSimulator: "false"
+    prod:
+      SmsProvider: auto
+      SmsPrimaryProvider: twilio
+      MockSmsProvider: "false"
+      AwsSmsUseSimulator: "false"
+    pilot:
+      SmsProvider: auto
+      SmsPrimaryProvider: twilio
+      MockSmsProvider: "false"
+      AwsSmsUseSimulator: "false"
+
+Globals:
+  Function:
+    Runtime: nodejs20.x
+    Timeout: 10
+    MemorySize: 512
+    Environment:
+      Variables:
+        DEPLOYMENT_STAGE: !Ref DeploymentStage
+        INTEGRATION_TRANSCRIPT_CONNECTOR_MODE: "off"
+        INTEGRATION_TRANSCRIPT_AGENCY_ALLOWLIST: ""
+        TRANSCRIPT_RETENTION_POLICY_DAYS: !Ref TranscriptRetentionPolicyDays
+        INCIDENTS_TABLE: !Ref IncidentsTable
+        TRANSCRIPTS_TABLE: !Ref TranscriptsTable
+        ANALYSES_TABLE: !Ref AnalysesTable
+        AUDIT_TABLE: !Ref AuditTable
+        DATA_DELETION_AUDIT_TABLE: !Ref DataDeletionAuditTable
+        DEFAULT_RETENTION_POLICY_ID: cjis-default-v1
+        AGENCIES_TABLE: !Ref AgenciesTable
+        INVITES_TABLE: !Ref InvitesTable
+        ACCESS_OVERRIDES_TABLE: !Ref AccessOverridesTable
+        NETWORK_EMERGENCY_OVERRIDES_TABLE: !Ref NetworkEmergencyOverridesTable
+        AGENCY_NETWORK_POLICY_SNS_TOPIC_ARN: ""
+        NETWORK_ACCESS_ENFORCEMENT: "false"
+        WAF_WEB_ACL_ARN: ""
+        WAF_SCOPE: REGIONAL
+        API_CLIENTS_TABLE: !Ref ApiClientsTable
+        WEBHOOKS_TABLE: !Ref WebhooksTable
+        EXTERNAL_API_RATE_LIMITS_TABLE: !Ref ExternalApiRateLimitsTable
+        DECEPTION_EVENTS_TABLE: !Ref DeceptionEventsTable
+        DECEPTION_SHIELD_ENABLED: "false"
+        DECEPTION_AUTO_BLOCK_ENABLED: "false"
+        DECEPTION_ALERTS_ENABLED: "true"
+        OPS_ALERTS_TOPIC_ARN: !Ref OpsAlertsTopic
+        DECEPTION_SLACK_WEBHOOK_URL: ""
+        PASSWORD_MAX_AGE_DAYS: "60"
+        PASSWORD_EXPIRY_GRACE_DAYS: "0"
+        PASSWORD_CHANGE_REQUIRED_ON_FIRST_LOGIN: "true"
+        ASSETS_BUCKET: !Ref AssetsBucket
+        LANGUAGE_SESSIONS_TABLE: !Ref LanguageSessionsTable
+        AI_ENABLE_FALLBACKS: "true"
+        AI_STORE_PROVIDER_METADATA: "true"
+        AI_PROMPT_VERSION: dispatch-triage-v1
+        AI_REQUEST_TIMEOUT_MS: "55000"
+        AI_MAX_RETRIES_PER_PROVIDER: "1"
+        AI_ANALYSIS_DEBOUNCE_SECONDS: "0"
+        AI_MAX_ANALYZE_REQUESTS_PER_INCIDENT_PER_HOUR: "120"
+        AI_SKIP_IF_TRANSCRIPT_UNCHANGED: "true"
+        AI_ANALYSIS_IN_FLIGHT_LEASE_SECONDS: "90"
+        OPENAI_API_KEY_SECRET_ARN: !Ref OpenAiApiKeySecretArn
+        ANTHROPIC_API_KEY_SECRET_ARN: !Ref AnthropicApiKeySecretArn
+        AUTO_ANALYZE_EVERY_N_SEGMENTS: "0"
+        ALLOW_UNAUTHENTICATED_API: "false"
+        APPROVED_CORS_ORIGINS: !Ref HttpApiCorsAllowedOrigins
+        BEDROCK_REGION: !Ref AWS::Region
+        ENABLE_INCIDENT_MEDIA: "false"
+        INCIDENT_MEDIA_TABLE: !Ref IncidentMediaTable
+        INCIDENT_MEDIA_PUBLIC_BASE_URL: ""
+        INCIDENT_MEDIA_TOKEN_TTL_MINUTES: "120"
+        INCIDENT_MEDIA_UPLOAD_URL_TTL_SECONDS: "900"
+        INCIDENT_MEDIA_MAX_UPLOAD_BYTES: "52428800"
+        MEDIA_UPLOAD_TOKEN_TTL_SECONDS: ""
+        ENABLE_NON_EMERGENCY_TRIAGE: "false"
+        TRAUMA_FLAGS_TABLE: !Ref TraumaFlagsTable
+        PREMISE_NOTES_TABLE: !Ref PremiseNotesTable
+        DISPATCHER_COACHING_NOTES_TABLE: !Ref DispatcherCoachingNotesTable
+        INCIDENT_SHARES_TABLE: !Ref IncidentSharesTable
+        AGENCY_SHARE_PARTNERS_TABLE: !Ref AgencySharePartnersTable
+        CAD_INTEGRATIONS_TABLE: !Ref CadIntegrationsTable
+        CAD_WRITEBACK_AUDIT_TABLE: !Ref CadWritebackAuditTable
+        CAD_WRITEBACK_ENABLED: !Ref CadWritebackEnabled
+        CAD_WRITEBACK_REQUIRES_APPROVAL: !Ref CadWritebackRequiresApproval
+        COGNITO_USER_POOL_ID: !Ref ImportedCognitoUserPoolId
+        COGNITO_CLIENT_ID: !Ref ImportedCognitoWebClientId
+        COGNITO_REGION: !Ref AWS::Region
+
+Resources:
+
+
+  AppManagedPolicyDynamoLambdaCrudShardA:
+    Type: AWS::IAM::ManagedPolicy
+    Properties:
+      ManagedPolicyName: !Sub "${Sam2ManagedPolicyNamePrefix}-sam2-lambda-ddb-crud-${DeploymentStage}-a"
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Sid: DynamoApplicationShardA
+            Effect: Allow
+            Action:
+              - dynamodb:GetItem
+              - dynamodb:BatchGetItem
+              - dynamodb:BatchWriteItem
+              - dynamodb:PutItem
+              - dynamodb:DeleteItem
+              - dynamodb:UpdateItem
+              - dynamodb:Query
+              - dynamodb:Scan
+              - dynamodb:DescribeTable
+              - dynamodb:ConditionCheckItem
+            Resource:
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${AccessOverridesTable}
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${AccessOverridesTable}/index/*
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${NetworkEmergencyOverridesTable}
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${NetworkEmergencyOverridesTable}/index/*
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${AgenciesTable}
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${AgenciesTable}/index/*
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${AgencySharePartnersTable}
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${AgencySharePartnersTable}/index/*
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${AgencySubscriptionsTable}
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${AgencySubscriptionsTable}/index/*
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${AnalysesTable}
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${AnalysesTable}/index/*
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${ApiClientsTable}
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${ApiClientsTable}/index/*
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${AuditTable}
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${AuditTable}/index/*
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${BillingAuditEventsTable}
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${BillingAuditEventsTable}/index/*
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${BillingAuditLogTable}
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${BillingAuditLogTable}/index/*
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${BillingProfilesTable}
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${BillingProfilesTable}/index/*
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${BillingSchedulesTable}
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${BillingSchedulesTable}/index/*
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${BillingWebhookEventsTable}
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${BillingWebhookEventsTable}/index/*
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${CustomersTable}
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${CustomersTable}/index/*
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${DataDeletionAuditTable}
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${DataDeletionAuditTable}/index/*
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${DeceptionEventsTable}
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${DeceptionEventsTable}/index/*
+
+  AppManagedPolicyDynamoLambdaCrudShardB:
+    Type: AWS::IAM::ManagedPolicy
+    Properties:
+      ManagedPolicyName: !Sub "${Sam2ManagedPolicyNamePrefix}-sam2-lambda-ddb-crud-${DeploymentStage}-b"
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Sid: DynamoApplicationShardB
+            Effect: Allow
+            Action:
+              - dynamodb:GetItem
+              - dynamodb:BatchGetItem
+              - dynamodb:BatchWriteItem
+              - dynamodb:PutItem
+              - dynamodb:DeleteItem
+              - dynamodb:UpdateItem
+              - dynamodb:Query
+              - dynamodb:Scan
+              - dynamodb:DescribeTable
+              - dynamodb:ConditionCheckItem
+            Resource:
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${DispatcherCoachingNotesTable}
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${DispatcherCoachingNotesTable}/index/*
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${QaScorecardsTable}
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${QaScorecardsTable}/index/*
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${CoachingNotesTable}
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${CoachingNotesTable}/index/*
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${IncidentTimelineTable}
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${IncidentTimelineTable}/index/*
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${SlaBacklogSnapshotsTable}
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${SlaBacklogSnapshotsTable}/index/*
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${WarRoomsTable}
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${WarRoomsTable}/index/*
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${WarRoomMessagesTable}
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${WarRoomMessagesTable}/index/*
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${StakeholderPagesTable}
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${StakeholderPagesTable}/index/*
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${PostIncidentReviewsTable}
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${PostIncidentReviewsTable}/index/*
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${AgencyReportsTable}
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${AgencyReportsTable}/index/*
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${ExternalApiRateLimitsTable}
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${ExternalApiRateLimitsTable}/index/*
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${IncidentMediaTable}
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${IncidentMediaTable}/index/*
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${IncidentSharesTable}
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${IncidentSharesTable}/index/*
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${IncidentsTable}
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${IncidentsTable}/index/*
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${InvoiceItemsTable}
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${InvoiceItemsTable}/index/*
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${InvoicesTable}
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${InvoicesTable}/index/*
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${InvitesTable}
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${InvitesTable}/index/*
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${NetworkEmergencyOverridesTable}
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${NetworkEmergencyOverridesTable}/index/*
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${LanguageSessionsTable}
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${LanguageSessionsTable}/index/*
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${LiveVideoSessionsTable}
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${LiveVideoSessionsTable}/index/*
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${MonetizationAddOnsTable}
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${MonetizationAddOnsTable}/index/*
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${MonetizationInvoicesTable}
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${MonetizationInvoicesTable}/index/*
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${MonetizationPlansTable}
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${MonetizationPlansTable}/index/*
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${PaymentRecordsTable}
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${PaymentRecordsTable}/index/*
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${DeceptionEventsTable}
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${DeceptionEventsTable}/index/*
+
+  AppManagedPolicyDynamoLambdaCrudShardC:
+    Type: AWS::IAM::ManagedPolicy
+    Properties:
+      ManagedPolicyName: !Sub "${Sam2ManagedPolicyNamePrefix}-sam2-lambda-ddb-crud-${DeploymentStage}-c"
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Sid: DynamoApplicationShardC
+            Effect: Allow
+            Action:
+              - dynamodb:GetItem
+              - dynamodb:BatchGetItem
+              - dynamodb:BatchWriteItem
+              - dynamodb:PutItem
+              - dynamodb:DeleteItem
+              - dynamodb:UpdateItem
+              - dynamodb:Query
+              - dynamodb:Scan
+              - dynamodb:DescribeTable
+              - dynamodb:ConditionCheckItem
+            Resource:
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${PremiseNotesTable}
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${PremiseNotesTable}/index/*
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${QASessionsTable}
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${QASessionsTable}/index/*
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${QATemplatesTable}
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${QATemplatesTable}/index/*
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${RcLiteApiKeysTable}
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${RcLiteApiKeysTable}/index/*
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${RcLiteRateLimitTable}
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${RcLiteRateLimitTable}/index/*
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${RcLiteUsageTable}
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${RcLiteUsageTable}/index/*
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${SalesLeadsTable}
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${SalesLeadsTable}/index/*
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${DeceptionEventsTable}
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${DeceptionEventsTable}/index/*
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${ServiceCatalogTable}
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${ServiceCatalogTable}/index/*
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${SilentTextSessionsTable}
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${SilentTextSessionsTable}/index/*
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${PinpointLinksTable}
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${PinpointLinksTable}/index/*
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${SurgeClustersTable}
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${SurgeClustersTable}/index/*
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${TraumaFlagsTable}
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${TraumaFlagsTable}/index/*
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${TranscriptsTable}
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${TranscriptsTable}/index/*
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${UsageMetersTable}
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${UsageMetersTable}/index/*
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${VideoAssistSessionsTable}
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${VideoAssistSessionsTable}/index/*
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${WebhooksTable}
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${WebhooksTable}/index/*
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${NetworkEmergencyOverridesTable}
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${NetworkEmergencyOverridesTable}/index/*
+
+  AppManagedPolicyS3ApplicationBucketsCrud:
+    Type: AWS::IAM::ManagedPolicy
+    Properties:
+      ManagedPolicyName: !Sub "${Sam2ManagedPolicyNamePrefix}-sam2-lambda-s3-app-${DeploymentStage}"
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Sid: ListBuckets
+            Effect: Allow
+            Action:
+              - s3:ListBucket
+              - s3:GetBucketLocation
+            Resource:
+              - !Sub arn:aws:s3:::${AssetsBucket}
+              - !Sub arn:aws:s3:::${BillingInvoicesBucket}
+              - !Sub arn:aws:s3:::${BillingPosBucket}
+          - Sid: Objects
+            Effect: Allow
+            Action:
+              - s3:GetObject
+              - s3:GetObjectAcl
+              - s3:GetObjectVersion
+              - s3:PutObject
+              - s3:PutObjectAcl
+              - s3:DeleteObject
+              - s3:AbortMultipartUpload
+              - s3:ListMultipartUploadParts
+            Resource:
+              - !Sub arn:aws:s3:::${AssetsBucket}/*
+              - !Sub arn:aws:s3:::${BillingInvoicesBucket}/*
+              - !Sub arn:aws:s3:::${BillingPosBucket}/*
+
+  AppManagedPolicyBedrockAiAndQaFoundationModels:
+    Type: AWS::IAM::ManagedPolicy
+    Properties:
+      ManagedPolicyName: !Sub "${Sam2ManagedPolicyNamePrefix}-sam2-lambda-bedrock-ai-qa-${DeploymentStage}"
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Sid: BedrockAiAndQaFoundationModels
+            Effect: Allow
+            Action:
+              - bedrock:InvokeModel
+              - bedrock:Converse
+            Resource:
+              - !Sub arn:aws:bedrock:${AWS::Region}::foundation-model/${AiBedrockFoundationModelId}
+              - !Sub arn:aws:bedrock:${AWS::Region}::foundation-model/${QaBedrockModelId}
+
+  AppManagedPolicyBedrockQaFoundationModelOnly:
+    Type: AWS::IAM::ManagedPolicy
+    Properties:
+      ManagedPolicyName: !Sub "${Sam2ManagedPolicyNamePrefix}-sam2-lambda-bedrock-qa-${DeploymentStage}"
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Sid: BedrockQaFoundationModelOnly
+            Effect: Allow
+            Action:
+              - bedrock:InvokeModel
+              - bedrock:Converse
+            Resource:
+              - !Sub arn:aws:bedrock:${AWS::Region}::foundation-model/${QaBedrockModelId}
+
+  AppManagedPolicySecretsMultilingualScopedRead:
+    Type: AWS::IAM::ManagedPolicy
+    Properties:
+      ManagedPolicyName: !Sub "${Sam2ManagedPolicyNamePrefix}-sam2-lambda-secrets-mlling-${DeploymentStage}"
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Sid: MultilingualSecretsScopedOrBroadDev
+            Effect: Allow
+            Action:
+              - secretsmanager:GetSecretValue
+            Resource: !If
+              - MultilingualSecretsBroadPolicy
+              - !Sub arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:*
+              - !Sub arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:rapidcortex/${DeploymentStage}/*
+
+  AppManagedPolicySecretsAnalyzeProvidersRead:
+    Type: AWS::IAM::ManagedPolicy
+    Properties:
+      ManagedPolicyName: !Sub "${Sam2ManagedPolicyNamePrefix}-sam2-lambda-secrets-anlz-${DeploymentStage}"
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Sid: StackPrefixAndOptionalModelProviderSecrets
+            Effect: Allow
+            Action:
+              - secretsmanager:GetSecretValue
+            Resource:
+              - !Sub arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:rapidcortex/${DeploymentStage}/*
+              - !If
+                - HasOpenAiApiKeySecretArn
+                - !Ref OpenAiApiKeySecretArn
+                - !Ref AWS::NoValue
+              - !If
+                - HasAnthropicApiKeySecretArn
+                - !Ref AnthropicApiKeySecretArn
+                - !Ref AWS::NoValue
+
+  AppManagedPolicyComprehendTranslateRegionalDetect:
+    Type: AWS::IAM::ManagedPolicy
+    Properties:
+      ManagedPolicyName: !Sub "${Sam2ManagedPolicyNamePrefix}-sam2-lambda-cph-tr-${DeploymentStage}"
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Sid: ComprehendDominantLanguageRegional
+            Effect: Allow
+            Action:
+              - comprehend:DetectDominantLanguage
+            Resource: "*"
+            Condition:
+              StringEquals:
+                aws:RequestedRegion: !Ref AWS::Region
+          - Sid: TranslateTextRegional
+            Effect: Allow
+            Action:
+              - translate:TranslateText
+            Resource: "*"
+            Condition:
+              StringEquals:
+                aws:RequestedRegion: !Ref AWS::Region
+
+  AppManagedPolicyOpsAlertsSnsPublishOnly:
+    Type: AWS::IAM::ManagedPolicy
+    Properties:
+      ManagedPolicyName: !Sub "${Sam2ManagedPolicyNamePrefix}-sam2-lambda-sns-ops-${DeploymentStage}"
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Sid: PublishOpsAlertsTopicOnly
+            Effect: Allow
+            Action:
+              - sns:Publish
+            Resource: !GetAtt OpsAlertsTopic.TopicArn
+
+  AppManagedPolicySesBillingSenderIdentityEmails:
+    Type: AWS::IAM::ManagedPolicy
+    Properties:
+      ManagedPolicyName: !Sub "${Sam2ManagedPolicyNamePrefix}-sam2-lambda-ses-billing-${DeploymentStage}"
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Sid: SesSendFromBillingVerifiedIdentity
+            Effect: Allow
+            Action:
+              - ses:SendEmail
+              - ses:SendTemplatedEmail
+            Resource:
+              - !Sub arn:${AWS::Partition}:ses:${AWS::Region}:${AWS::AccountId}:identity/${BillingSesSenderEmail}
+
+  AppManagedPolicyTranscribeIncidentAudioJobsReadWrite:
+    Type: AWS::IAM::ManagedPolicy
+    Properties:
+      ManagedPolicyName: !Sub "${Sam2ManagedPolicyNamePrefix}-sam2-lambda-trscribe-${DeploymentStage}"
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Sid: TranscribeRegionalJobsScoped
+            Effect: Allow
+            Action:
+              - transcribe:StartTranscriptionJob
+              - transcribe:GetTranscriptionJob
+              - transcribe:DeleteTranscriptionJob
+            Resource: !Sub arn:${AWS::Partition}:transcribe:${AWS::Region}:${AWS::AccountId}:transcription-job/*
+
+  OpsAlertsTopic:
+    Type: AWS::SNS::Topic
+    Properties:
+      DisplayName: !Sub "${AppName} ops (${DeploymentStage})"
+
+  OpsAlertsEmailSubscription:
+    Type: AWS::SNS::Subscription
+    Condition: HasSnsEmailSubscription
+    Properties:
+      TopicArn: !Ref OpsAlertsTopic
+      Protocol: email
+      Endpoint: !Ref SnsEmailSubscription
+
+  OpsAlertsSmsSubscription:
+    Type: AWS::SNS::Subscription
+    Condition: HasSnsSmsSubscription
+    Properties:
+      TopicArn: !Ref OpsAlertsTopic
+      Protocol: sms
+      Endpoint: !Ref SnsSmsSubscription
+
+  Api:
+    Type: AWS::Serverless::HttpApi
+    Properties:
+      DefaultRouteSettings:
+        ThrottlingBurstLimit: 200
+        ThrottlingRateLimit: 100
+      CorsConfiguration:
+        AllowOrigins: !Split [",", !Ref HttpApiCorsAllowedOrigins]
+        AllowHeaders:
+          - authorization
+          - content-type
+        AllowMethods:
+          - GET
+          - POST
+          - PATCH
+          - PUT
+          - DELETE
+          - OPTIONS
+      Auth:
+        DefaultAuthorizer: CognitoJwtAuthorizer
+        Authorizers:
+          CognitoJwtAuthorizer:
+            IdentitySource: "$request.header.Authorization"
+            JwtConfiguration:
+              issuer: !Ref ImportedCognitoIssuer
+              audience:
+                - !Ref ImportedCognitoWebClientId
+                - !Ref ImportedCognitoNativeClientId
+
+  ApiWebAcl:
+    Type: AWS::WAFv2::WebACL
+    Condition: HasApiWaf
+    Properties:
+      Name: !Sub "${AppName}-httpapi2-waf-${DeploymentStage}"
+      Scope: REGIONAL
+      DefaultAction:
+        Allow: {}
+      VisibilityConfig:
+        CloudWatchMetricsEnabled: true
+        MetricName: !Sub "${AppName}ApiWaf"
+        SampledRequestsEnabled: true
+      Rules:
+        - Name: AWSManagedCommon
+          Priority: 0
+          OverrideAction:
+            None: {}
+          Statement:
+            ManagedRuleGroupStatement:
+              VendorName: AWS
+              Name: AWSManagedRulesCommonRuleSet
+          VisibilityConfig:
+            CloudWatchMetricsEnabled: true
+            MetricName: !Sub "${AppName}WafCommon"
+            SampledRequestsEnabled: true
+        - Name: AWSManagedBadInputs
+          Priority: 1
+          OverrideAction:
+            None: {}
+          Statement:
+            ManagedRuleGroupStatement:
+              VendorName: AWS
+              Name: AWSManagedRulesKnownBadInputsRuleSet
+          VisibilityConfig:
+            CloudWatchMetricsEnabled: true
+            MetricName: !Sub "${AppName}WafBadInputs"
+            SampledRequestsEnabled: true
+        - Name: AWSManagedIpReputation
+          Priority: 2
+          OverrideAction:
+            None: {}
+          Statement:
+            ManagedRuleGroupStatement:
+              VendorName: AWS
+              Name: AWSManagedRulesAmazonIpReputationList
+          VisibilityConfig:
+            CloudWatchMetricsEnabled: true
+            MetricName: !Sub "${AppName}WafIpRep"
+            SampledRequestsEnabled: true
+        - Name: PerIpRateLimit
+          Priority: 3
+          Action:
+            Block: {}
+          Statement:
+            RateBasedStatement:
+              Limit: !Ref WafRateLimitPer5Min
+              AggregateKeyType: IP
+          VisibilityConfig:
+            CloudWatchMetricsEnabled: true
+            MetricName: !Sub "${AppName}WafIpRate"
+            SampledRequestsEnabled: true
+
+  ApiWebAclAssociation:
+    Type: AWS::WAFv2::WebACLAssociation
+    Condition: HasApiWaf
+    Properties:
+      WebACLArn: !GetAtt ApiWebAcl.Arn
+      ResourceArn: !Sub
+        - "arn:${AWS::Partition}:apigateway:${AWS::Region}::/apis/${ApiId}/stages/${StageName}"
+        - ApiId: !Ref Api
+          StageName: "$default"
+
+  ApiManagedCertificate:
+    Type: AWS::CertificateManager::Certificate
+    Condition: UseApiManagedCertificate
+    Properties:
+      DomainName: !Sub "${ApiSubdomainPrefix}.${RootDomainName}"
+      ValidationMethod: DNS
+      DomainValidationOptions:
+        - DomainName: !Sub "${ApiSubdomainPrefix}.${RootDomainName}"
+          HostedZoneId: !Ref Route53HostedZoneId
+
+  ApiCustomDomain:
+    Type: AWS::ApiGatewayV2::DomainName
+    Condition: UseApiCustomDomain
+    Properties:
+      DomainName: !Sub "${ApiSubdomainPrefix}.${RootDomainName}"
+      DomainNameConfigurations:
+        - CertificateArn: !If [HasImportedApiCert, !Ref ApiDomainCertificateArn, !Ref ApiManagedCertificate]
+          EndpointType: REGIONAL
+          SecurityPolicy: TLS_1_2
+
+  ApiCustomDomainMapping:
+    Type: AWS::ApiGatewayV2::ApiMapping
+    Condition: UseApiCustomDomain
+    Properties:
+      ApiId: !Ref Api
+      DomainName: !Sub "${ApiSubdomainPrefix}.${RootDomainName}"
+      Stage: "$default"
+
+  ApiDomainDnsRecordA:
+    Type: AWS::Route53::RecordSet
+    Condition: UseApiCustomDomain
+    Properties:
+      HostedZoneName: !Sub "${RootDomainName}."
+      Name: !Sub "${ApiSubdomainPrefix}.${RootDomainName}."
+      Type: A
+      AliasTarget:
+        DNSName: !GetAtt ApiCustomDomain.RegionalDomainName
+        HostedZoneId: !GetAtt ApiCustomDomain.RegionalHostedZoneId
+
+  ApiDomainDnsRecordAAAA:
+    Type: AWS::Route53::RecordSet
+    Condition: UseApiCustomDomain
+    Properties:
+      HostedZoneName: !Sub "${RootDomainName}."
+      Name: !Sub "${ApiSubdomainPrefix}.${RootDomainName}."
+      Type: AAAA
+      AliasTarget:
+        DNSName: !GetAtt ApiCustomDomain.RegionalDomainName
+        HostedZoneId: !GetAtt ApiCustomDomain.RegionalHostedZoneId
+
+  AppManagedPolicyCognitoAgencyAdminUserPoolReads:
+    Type: AWS::IAM::ManagedPolicy
+    Properties:
+      ManagedPolicyName: !Sub "${Sam2ManagedPolicyNamePrefix}-sam2-lambda-cognito-agadm-${DeploymentStage}"
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Sid: UserPoolIdentityStoreAgencyAdmin
+            Effect: Allow
+            Action:
+              - cognito-idp:ListUsers
+              - cognito-idp:AdminGetUser
+              - cognito-idp:AdminUpdateUserAttributes
+            Resource: !Sub "arn:aws:cognito-idp:${AWS::Region}:${AWS::AccountId}:userpool/${ImportedCognitoUserPoolId}"
+
+  ExternalV1HttpFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/handlers/external/externalV1Http.handler
+      Environment:
+        Variables:
+          EXTERNAL_API_JWT_SECRET_ARN: !Ref ExternalApiJwtSecretArn
+          EXTERNAL_API_ENCRYPTION_KEY_ARN: !Ref ExternalApiEncryptionKeyArn
+      Policies:
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardA
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardB
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardC
+        - !Ref AppManagedPolicyS3ApplicationBucketsCrud
+        - Fn::If:
+            - HasExternalApiJwtSecretArn
+            - Statement:
+                - Effect: Allow
+                  Action: secretsmanager:GetSecretValue
+                  Resource: !Ref ExternalApiJwtSecretArn
+            - !Ref AWS::NoValue
+        - Fn::If:
+            - HasExternalApiEncryptionKeyArn
+            - Statement:
+                - Effect: Allow
+                  Action: secretsmanager:GetSecretValue
+                  Resource: !Ref ExternalApiEncryptionKeyArn
+            - !Ref AWS::NoValue
+
+      Events:
+        ExternalV1OAuth:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/v1/oauth/token
+            Method: POST
+            Auth:
+              Authorizer: NONE
+        ExternalV1ProxyGet:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/v1/{proxy+}
+            Method: GET
+            Auth:
+              Authorizer: NONE
+        ExternalV1ProxyPost:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/v1/{proxy+}
+            Method: POST
+            Auth:
+              Authorizer: NONE
+        ExternalV1ProxyPatch:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/v1/{proxy+}
+            Method: PATCH
+            Auth:
+              Authorizer: NONE
+
+  RcLiteV1HttpFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/handlers/external/rcLiteV1Http.handler
+      Environment:
+        Variables:
+          RC_LITE_ENABLED: "true"
+          RC_LITE_API_KEYS_TABLE: !Ref RcLiteApiKeysTable
+          RC_LITE_RATE_LIMIT_TABLE: !Ref RcLiteRateLimitTable
+          RC_LITE_USAGE_TABLE: !Ref RcLiteUsageTable
+          EXTERNAL_API_ENCRYPTION_KEY_ARN: !Ref ExternalApiEncryptionKeyArn
+      Policies:
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardA
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardB
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardC
+        - !Ref AppManagedPolicyS3ApplicationBucketsCrud
+        - Fn::If:
+            - HasExternalApiEncryptionKeyArn
+            - Statement:
+                - Effect: Allow
+                  Action: secretsmanager:GetSecretValue
+                  Resource: !Ref ExternalApiEncryptionKeyArn
+            - !Ref AWS::NoValue
+      Events:
+        RcLiteV1OAuth:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /v1/oauth/token
+            Method: POST
+            Auth:
+              Authorizer: NONE
+        RcLiteV1ProxyGet:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /v1/{proxy+}
+            Method: GET
+            Auth:
+              Authorizer: NONE
+        RcLiteV1ProxyPost:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /v1/{proxy+}
+            Method: POST
+            Auth:
+              Authorizer: NONE
+        RcLiteV1ProxyPatch:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /v1/{proxy+}
+            Method: PATCH
+            Auth:
+              Authorizer: NONE
+
+  StartLanguageSessionFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/handlers/startLanguageSession.handler
+      Timeout: 30
+      Environment:
+        Variables:
+          SUPPORTED_CALL_LANGUAGES: "en,es,zh,tl,vi,ar,fr,ko,ru,pt"
+          PRIMARY_PROVIDER: !FindInMap [ApiLambdaDefaults, !Ref DeploymentStage, PrimaryAi]
+          SECONDARY_PROVIDER: !FindInMap [ApiLambdaDefaults, !Ref DeploymentStage, SecondaryAi]
+          TERTIARY_PROVIDER: !FindInMap [ApiLambdaDefaults, !Ref DeploymentStage, TertiaryAi]
+          FALLBACK_PROVIDER: !FindInMap [ApiLambdaDefaults, !Ref DeploymentStage, AiFallback]
+          SECONDARY_FALLBACK_PROVIDER: !FindInMap [ApiLambdaDefaults, !Ref DeploymentStage, AiSecondaryFallback]
+          PRIMARY_LANGUAGE_DETECTOR: !FindInMap [ApiLambdaDefaults, !Ref DeploymentStage, Lid1]
+          SECONDARY_LANGUAGE_DETECTOR: !FindInMap [ApiLambdaDefaults, !Ref DeploymentStage, Lid2]
+          TERTIARY_LANGUAGE_DETECTOR: !FindInMap [ApiLambdaDefaults, !Ref DeploymentStage, Lid3]
+          PRIMARY_STT_PROVIDER: !FindInMap [ApiLambdaDefaults, !Ref DeploymentStage, Stt1]
+          SECONDARY_STT_PROVIDER: !FindInMap [ApiLambdaDefaults, !Ref DeploymentStage, Stt2]
+          TERTIARY_STT_PROVIDER: !FindInMap [ApiLambdaDefaults, !Ref DeploymentStage, Stt3]
+          PRIMARY_TRANSLATION_PROVIDER: !FindInMap [ApiLambdaDefaults, !Ref DeploymentStage, Tr1]
+          SECONDARY_TRANSLATION_PROVIDER: !FindInMap [ApiLambdaDefaults, !Ref DeploymentStage, Tr2]
+          TERTIARY_TRANSLATION_PROVIDER: !FindInMap [ApiLambdaDefaults, !Ref DeploymentStage, Tr3]
+          MULTILINGUAL_STRICT_VALIDATION: !FindInMap [MultilingualStageDefaults, !Ref DeploymentStage, StrictValidation]
+          AWS_TRANSCRIBE_LANGUAGE_IDENTIFICATION: "true"
+          AWS_TRANSCRIBE_PREFERRED_LANGUAGE_OPTIONS: ""
+          AWS_TRANSCRIBE_TIMEOUT_MS: "0"
+          AWS_TRANSCRIBE_ENABLE_PARTIAL_RESULTS: "false"
+          AWS_TRANSCRIBE_LANGUAGE_OPTIONS: "en-US,es-US,zh-CN,tl-PH,vi-VN,ar-SA,fr-FR,ko-KR,ru-RU,pt-BR"
+          BEDROCK_MODEL_PRIMARY: !Ref AiBedrockFoundationModelId
+          BEDROCK_MODEL_SECONDARY: !Ref AiBedrockFoundationModelId
+          BEDROCK_MODEL_TERTIARY: !Ref AiBedrockFoundationModelId
+          GOOGLE_CLOUD_PROJECT_ID: !Ref GoogleCloudProjectId
+          LANGUAGE_PROVIDER: !Ref LanguageProvider
+          GOOGLE_TRANSLATE_LOCATION: "global"
+          GOOGLE_TTS_LOCATION: "global"
+          GOOGLE_TTS_OUTPUT_BUCKET: !Ref GoogleTtsOutputBucket
+          GOOGLE_APPLICATION_CREDENTIALS_SECRET_ARN: !If
+            - UseManagedMultilingualSecrets
+            - !Ref NestedMultilingualGoogleServiceAccountSecretArn
+            - !Ref GoogleApplicationCredentialsSecretArn
+          SILENT_TEXT_TRANSLATION_ENABLED: "true"
+          SILENT_TEXT_TTS_ENABLED: "false"
+          DECEPTION_EVENTS_TABLE: ""
+          DECEPTION_SHIELD_ENABLED: ""
+          DECEPTION_AUTO_BLOCK_ENABLED: ""
+          DECEPTION_ALERTS_ENABLED: ""
+          DECEPTION_SLACK_WEBHOOK_URL: ""
+          CAD_INTEGRATIONS_TABLE: ""
+          CAD_WRITEBACK_AUDIT_TABLE: ""
+          CAD_WRITEBACK_ENABLED: ""
+          CAD_WRITEBACK_REQUIRES_APPROVAL: ""
+          DATA_DELETION_AUDIT_TABLE: ""
+          ACCESS_OVERRIDES_TABLE: ""
+          API_CLIENTS_TABLE: ""
+          WEBHOOKS_TABLE: ""
+          EXTERNAL_API_RATE_LIMITS_TABLE: ""
+          OPS_ALERTS_TOPIC_ARN: ""
+          ENABLE_INCIDENT_MEDIA: ""
+          INCIDENT_MEDIA_TABLE: ""
+          INCIDENT_MEDIA_PUBLIC_BASE_URL: ""
+          INCIDENT_MEDIA_TOKEN_TTL_MINUTES: ""
+          INCIDENT_MEDIA_UPLOAD_URL_TTL_SECONDS: ""
+          INCIDENT_MEDIA_MAX_UPLOAD_BYTES: ""
+          MEDIA_UPLOAD_TOKEN_TTL_SECONDS: ""
+          ENABLE_NON_EMERGENCY_TRIAGE: ""
+          TRAUMA_FLAGS_TABLE: ""
+          PREMISE_NOTES_TABLE: ""
+          DISPATCHER_COACHING_NOTES_TABLE: ""
+          INCIDENT_SHARES_TABLE: ""
+          AGENCY_SHARE_PARTNERS_TABLE: ""
+          AI_ENABLE_FALLBACKS: ""
+          AI_STORE_PROVIDER_METADATA: ""
+          AI_PROMPT_VERSION: ""
+          AI_REQUEST_TIMEOUT_MS: ""
+          AI_MAX_RETRIES_PER_PROVIDER: ""
+          AI_ANALYSIS_DEBOUNCE_SECONDS: ""
+          AI_MAX_ANALYZE_REQUESTS_PER_INCIDENT_PER_HOUR: ""
+          AI_SKIP_IF_TRANSCRIPT_UNCHANGED: ""
+          AI_ANALYSIS_IN_FLIGHT_LEASE_SECONDS: ""
+          OPENAI_API_KEY_SECRET_ARN: ""
+          ANTHROPIC_API_KEY_SECRET_ARN: ""
+          AUTO_ANALYZE_EVERY_N_SEGMENTS: ""
+          INTEGRATION_TRANSCRIPT_CONNECTOR_MODE: ""
+          INTEGRATION_TRANSCRIPT_AGENCY_ALLOWLIST: ""
+      Policies:
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardA
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardB
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardC
+        - !Ref AppManagedPolicyS3ApplicationBucketsCrud
+
+      Events:
+        Route:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/incidents/{id}/language-session/start
+            Method: POST
+
+  FinalizeLanguageSessionFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/handlers/finalizeLanguageSession.handler
+      Timeout: 15
+      Environment:
+        Variables:
+          SUPPORTED_CALL_LANGUAGES: "en,es,zh,tl,vi,ar,fr,ko,ru,pt"
+          PRIMARY_PROVIDER: !FindInMap [ApiLambdaDefaults, !Ref DeploymentStage, PrimaryAi]
+          SECONDARY_PROVIDER: !FindInMap [ApiLambdaDefaults, !Ref DeploymentStage, SecondaryAi]
+          TERTIARY_PROVIDER: !FindInMap [ApiLambdaDefaults, !Ref DeploymentStage, TertiaryAi]
+          FALLBACK_PROVIDER: !FindInMap [ApiLambdaDefaults, !Ref DeploymentStage, AiFallback]
+          SECONDARY_FALLBACK_PROVIDER: !FindInMap [ApiLambdaDefaults, !Ref DeploymentStage, AiSecondaryFallback]
+          PRIMARY_LANGUAGE_DETECTOR: !FindInMap [ApiLambdaDefaults, !Ref DeploymentStage, Lid1]
+          SECONDARY_LANGUAGE_DETECTOR: !FindInMap [ApiLambdaDefaults, !Ref DeploymentStage, Lid2]
+          TERTIARY_LANGUAGE_DETECTOR: !FindInMap [ApiLambdaDefaults, !Ref DeploymentStage, Lid3]
+          PRIMARY_STT_PROVIDER: !FindInMap [ApiLambdaDefaults, !Ref DeploymentStage, Stt1]
+          SECONDARY_STT_PROVIDER: !FindInMap [ApiLambdaDefaults, !Ref DeploymentStage, Stt2]
+          TERTIARY_STT_PROVIDER: !FindInMap [ApiLambdaDefaults, !Ref DeploymentStage, Stt3]
+          PRIMARY_TRANSLATION_PROVIDER: !FindInMap [ApiLambdaDefaults, !Ref DeploymentStage, Tr1]
+          SECONDARY_TRANSLATION_PROVIDER: !FindInMap [ApiLambdaDefaults, !Ref DeploymentStage, Tr2]
+          TERTIARY_TRANSLATION_PROVIDER: !FindInMap [ApiLambdaDefaults, !Ref DeploymentStage, Tr3]
+          MULTILINGUAL_STRICT_VALIDATION: !FindInMap [MultilingualStageDefaults, !Ref DeploymentStage, StrictValidation]
+          AWS_TRANSCRIBE_LANGUAGE_IDENTIFICATION: "true"
+          AWS_TRANSCRIBE_PREFERRED_LANGUAGE_OPTIONS: ""
+          AWS_TRANSCRIBE_TIMEOUT_MS: "0"
+          AWS_TRANSCRIBE_ENABLE_PARTIAL_RESULTS: "false"
+          AWS_TRANSCRIBE_LANGUAGE_OPTIONS: "en-US,es-US,zh-CN,tl-PH,vi-VN,ar-SA,fr-FR,ko-KR,ru-RU,pt-BR"
+          BEDROCK_MODEL_PRIMARY: !Ref AiBedrockFoundationModelId
+          BEDROCK_MODEL_SECONDARY: !Ref AiBedrockFoundationModelId
+          BEDROCK_MODEL_TERTIARY: !Ref AiBedrockFoundationModelId
+          GOOGLE_CLOUD_PROJECT_ID: !Ref GoogleCloudProjectId
+          LANGUAGE_PROVIDER: !Ref LanguageProvider
+          GOOGLE_TRANSLATE_LOCATION: "global"
+          GOOGLE_TTS_LOCATION: "global"
+          GOOGLE_TTS_OUTPUT_BUCKET: !Ref GoogleTtsOutputBucket
+          GOOGLE_APPLICATION_CREDENTIALS_SECRET_ARN: !If
+            - UseManagedMultilingualSecrets
+            - !Ref NestedMultilingualGoogleServiceAccountSecretArn
+            - !Ref GoogleApplicationCredentialsSecretArn
+          SILENT_TEXT_TRANSLATION_ENABLED: "true"
+          SILENT_TEXT_TTS_ENABLED: "false"
+          DECEPTION_EVENTS_TABLE: ""
+          DECEPTION_SHIELD_ENABLED: ""
+          DECEPTION_AUTO_BLOCK_ENABLED: ""
+          DECEPTION_ALERTS_ENABLED: ""
+          DECEPTION_SLACK_WEBHOOK_URL: ""
+          CAD_INTEGRATIONS_TABLE: ""
+          CAD_WRITEBACK_AUDIT_TABLE: ""
+          CAD_WRITEBACK_ENABLED: ""
+          CAD_WRITEBACK_REQUIRES_APPROVAL: ""
+          DATA_DELETION_AUDIT_TABLE: ""
+          ACCESS_OVERRIDES_TABLE: ""
+          API_CLIENTS_TABLE: ""
+          WEBHOOKS_TABLE: ""
+          EXTERNAL_API_RATE_LIMITS_TABLE: ""
+          OPS_ALERTS_TOPIC_ARN: ""
+          ENABLE_INCIDENT_MEDIA: ""
+          INCIDENT_MEDIA_TABLE: ""
+          INCIDENT_MEDIA_PUBLIC_BASE_URL: ""
+          INCIDENT_MEDIA_TOKEN_TTL_MINUTES: ""
+          INCIDENT_MEDIA_UPLOAD_URL_TTL_SECONDS: ""
+          INCIDENT_MEDIA_MAX_UPLOAD_BYTES: ""
+          MEDIA_UPLOAD_TOKEN_TTL_SECONDS: ""
+          ENABLE_NON_EMERGENCY_TRIAGE: ""
+          TRAUMA_FLAGS_TABLE: ""
+          PREMISE_NOTES_TABLE: ""
+          DISPATCHER_COACHING_NOTES_TABLE: ""
+          INCIDENT_SHARES_TABLE: ""
+          AGENCY_SHARE_PARTNERS_TABLE: ""
+          AI_ENABLE_FALLBACKS: ""
+          AI_STORE_PROVIDER_METADATA: ""
+          AI_PROMPT_VERSION: ""
+          AI_REQUEST_TIMEOUT_MS: ""
+          AI_MAX_RETRIES_PER_PROVIDER: ""
+          AI_ANALYSIS_DEBOUNCE_SECONDS: ""
+          AI_MAX_ANALYZE_REQUESTS_PER_INCIDENT_PER_HOUR: ""
+          AI_SKIP_IF_TRANSCRIPT_UNCHANGED: ""
+          AI_ANALYSIS_IN_FLIGHT_LEASE_SECONDS: ""
+          OPENAI_API_KEY_SECRET_ARN: ""
+          ANTHROPIC_API_KEY_SECRET_ARN: ""
+          AUTO_ANALYZE_EVERY_N_SEGMENTS: ""
+          INTEGRATION_TRANSCRIPT_CONNECTOR_MODE: ""
+          INTEGRATION_TRANSCRIPT_AGENCY_ALLOWLIST: ""
+      Policies:
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardA
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardB
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardC
+        - !Ref AppManagedPolicyS3ApplicationBucketsCrud
+
+      Events:
+        Route:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/incidents/{id}/language-session/finalize
+            Method: POST
+
+  GetLanguageSessionStatusFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/handlers/getLanguageSessionStatus.handler
+      Environment:
+        Variables:
+          SUPPORTED_CALL_LANGUAGES: "en,es,zh,tl,vi,ar,fr,ko,ru,pt"
+          PRIMARY_PROVIDER: !FindInMap [ApiLambdaDefaults, !Ref DeploymentStage, PrimaryAi]
+          SECONDARY_PROVIDER: !FindInMap [ApiLambdaDefaults, !Ref DeploymentStage, SecondaryAi]
+          TERTIARY_PROVIDER: !FindInMap [ApiLambdaDefaults, !Ref DeploymentStage, TertiaryAi]
+          FALLBACK_PROVIDER: !FindInMap [ApiLambdaDefaults, !Ref DeploymentStage, AiFallback]
+          SECONDARY_FALLBACK_PROVIDER: !FindInMap [ApiLambdaDefaults, !Ref DeploymentStage, AiSecondaryFallback]
+          PRIMARY_LANGUAGE_DETECTOR: !FindInMap [ApiLambdaDefaults, !Ref DeploymentStage, Lid1]
+          SECONDARY_LANGUAGE_DETECTOR: !FindInMap [ApiLambdaDefaults, !Ref DeploymentStage, Lid2]
+          TERTIARY_LANGUAGE_DETECTOR: !FindInMap [ApiLambdaDefaults, !Ref DeploymentStage, Lid3]
+          PRIMARY_STT_PROVIDER: !FindInMap [ApiLambdaDefaults, !Ref DeploymentStage, Stt1]
+          SECONDARY_STT_PROVIDER: !FindInMap [ApiLambdaDefaults, !Ref DeploymentStage, Stt2]
+          TERTIARY_STT_PROVIDER: !FindInMap [ApiLambdaDefaults, !Ref DeploymentStage, Stt3]
+          PRIMARY_TRANSLATION_PROVIDER: !FindInMap [ApiLambdaDefaults, !Ref DeploymentStage, Tr1]
+          SECONDARY_TRANSLATION_PROVIDER: !FindInMap [ApiLambdaDefaults, !Ref DeploymentStage, Tr2]
+          TERTIARY_TRANSLATION_PROVIDER: !FindInMap [ApiLambdaDefaults, !Ref DeploymentStage, Tr3]
+          MULTILINGUAL_STRICT_VALIDATION: !FindInMap [MultilingualStageDefaults, !Ref DeploymentStage, StrictValidation]
+          AWS_TRANSCRIBE_LANGUAGE_IDENTIFICATION: "true"
+          AWS_TRANSCRIBE_PREFERRED_LANGUAGE_OPTIONS: ""
+          AWS_TRANSCRIBE_TIMEOUT_MS: "0"
+          AWS_TRANSCRIBE_ENABLE_PARTIAL_RESULTS: "false"
+          AWS_TRANSCRIBE_LANGUAGE_OPTIONS: "en-US,es-US,zh-CN,tl-PH,vi-VN,ar-SA,fr-FR,ko-KR,ru-RU,pt-BR"
+          BEDROCK_MODEL_PRIMARY: !Ref AiBedrockFoundationModelId
+          BEDROCK_MODEL_SECONDARY: !Ref AiBedrockFoundationModelId
+          BEDROCK_MODEL_TERTIARY: !Ref AiBedrockFoundationModelId
+          GOOGLE_CLOUD_PROJECT_ID: !Ref GoogleCloudProjectId
+          LANGUAGE_PROVIDER: !Ref LanguageProvider
+          GOOGLE_TRANSLATE_LOCATION: "global"
+          GOOGLE_TTS_LOCATION: "global"
+          GOOGLE_TTS_OUTPUT_BUCKET: !Ref GoogleTtsOutputBucket
+          GOOGLE_APPLICATION_CREDENTIALS_SECRET_ARN: !If
+            - UseManagedMultilingualSecrets
+            - !Ref NestedMultilingualGoogleServiceAccountSecretArn
+            - !Ref GoogleApplicationCredentialsSecretArn
+          SILENT_TEXT_TRANSLATION_ENABLED: "true"
+          SILENT_TEXT_TTS_ENABLED: "false"
+          DECEPTION_EVENTS_TABLE: ""
+          DECEPTION_SHIELD_ENABLED: ""
+          DECEPTION_AUTO_BLOCK_ENABLED: ""
+          DECEPTION_ALERTS_ENABLED: ""
+          DECEPTION_SLACK_WEBHOOK_URL: ""
+          CAD_INTEGRATIONS_TABLE: ""
+          CAD_WRITEBACK_AUDIT_TABLE: ""
+          CAD_WRITEBACK_ENABLED: ""
+          CAD_WRITEBACK_REQUIRES_APPROVAL: ""
+          DATA_DELETION_AUDIT_TABLE: ""
+          ACCESS_OVERRIDES_TABLE: ""
+          API_CLIENTS_TABLE: ""
+          WEBHOOKS_TABLE: ""
+          EXTERNAL_API_RATE_LIMITS_TABLE: ""
+          OPS_ALERTS_TOPIC_ARN: ""
+          ENABLE_INCIDENT_MEDIA: ""
+          INCIDENT_MEDIA_TABLE: ""
+          INCIDENT_MEDIA_PUBLIC_BASE_URL: ""
+          INCIDENT_MEDIA_TOKEN_TTL_MINUTES: ""
+          INCIDENT_MEDIA_UPLOAD_URL_TTL_SECONDS: ""
+          INCIDENT_MEDIA_MAX_UPLOAD_BYTES: ""
+          MEDIA_UPLOAD_TOKEN_TTL_SECONDS: ""
+          ENABLE_NON_EMERGENCY_TRIAGE: ""
+          TRAUMA_FLAGS_TABLE: ""
+          PREMISE_NOTES_TABLE: ""
+          DISPATCHER_COACHING_NOTES_TABLE: ""
+          INCIDENT_SHARES_TABLE: ""
+          AGENCY_SHARE_PARTNERS_TABLE: ""
+          AI_ENABLE_FALLBACKS: ""
+          AI_STORE_PROVIDER_METADATA: ""
+          AI_PROMPT_VERSION: ""
+          AI_REQUEST_TIMEOUT_MS: ""
+          AI_MAX_RETRIES_PER_PROVIDER: ""
+          AI_ANALYSIS_DEBOUNCE_SECONDS: ""
+          AI_MAX_ANALYZE_REQUESTS_PER_INCIDENT_PER_HOUR: ""
+          AI_SKIP_IF_TRANSCRIPT_UNCHANGED: ""
+          AI_ANALYSIS_IN_FLIGHT_LEASE_SECONDS: ""
+          OPENAI_API_KEY_SECRET_ARN: ""
+          ANTHROPIC_API_KEY_SECRET_ARN: ""
+          AUTO_ANALYZE_EVERY_N_SEGMENTS: ""
+          INTEGRATION_TRANSCRIPT_CONNECTOR_MODE: ""
+          INTEGRATION_TRANSCRIPT_AGENCY_ALLOWLIST: ""
+      Policies:
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardA
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardB
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardC
+        - !Ref AppManagedPolicyS3ApplicationBucketsCrud
+
+      Events:
+        Route:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/incidents/{id}/language-session/status
+            Method: GET
+
+  ListWellnessFlagsFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/handlers/wellness/listTraumaFlags.handler
+      Policies:
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardA
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardB
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardC
+        - !Ref AppManagedPolicyS3ApplicationBucketsCrud
+
+      Events:
+        Route:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/wellness/trauma-flags
+            Method: GET
+
+  AcknowledgeTraumaFlagFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/handlers/wellness/acknowledgeTraumaFlag.handler
+      Policies:
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardA
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardB
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardC
+        - !Ref AppManagedPolicyS3ApplicationBucketsCrud
+
+      Events:
+        Route:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/wellness/trauma-flags/{flagId}/ack
+            Method: POST
+
+  GetCallerCardFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/handlers/incidents/getCallerCard.handler
+      Policies:
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardA
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardB
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardC
+        - !Ref AppManagedPolicyS3ApplicationBucketsCrud
+
+      Events:
+        Route:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/incidents/{id}/caller-card
+            Method: GET
+
+  CreatePremiseNoteFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/handlers/incidents/createPremiseNote.handler
+      Policies:
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardA
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardB
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardC
+        - !Ref AppManagedPolicyS3ApplicationBucketsCrud
+
+      Events:
+        Route:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/incidents/{id}/premise-notes
+            Method: POST
+
+  PatchPremiseNoteFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/handlers/incidents/patchPremiseNote.handler
+      Policies:
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardA
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardB
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardC
+        - !Ref AppManagedPolicyS3ApplicationBucketsCrud
+
+      Events:
+        Route:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/incidents/{id}/premise-notes/{noteId}
+            Method: PATCH
+
+  GetSupervisorPerformanceMetricsFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/handlers/supervisor/getSupervisorPerformanceMetrics.handler
+      Policies:
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardA
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardB
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardC
+        - !Ref AppManagedPolicyS3ApplicationBucketsCrud
+
+      Events:
+        Route:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/supervisor/performance/metrics
+            Method: GET
+
+  GetDispatcherPerformanceDetailFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/handlers/supervisor/getDispatcherPerformanceDetail.handler
+      Policies:
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardA
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardB
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardC
+        - !Ref AppManagedPolicyS3ApplicationBucketsCrud
+
+      Events:
+        Route:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/supervisor/performance/dispatchers/{dispatcherUserId}
+            Method: GET
+
+  PostDispatcherCoachingNoteFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/handlers/supervisor/postDispatcherCoachingNote.handler
+      Policies:
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardA
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardB
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardC
+        - !Ref AppManagedPolicyS3ApplicationBucketsCrud
+
+      Events:
+        Route:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/supervisor/performance/coaching-notes
+            Method: POST
+
+  QaScorecardHttpFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/handlers/qa/qa-scorecard-handler.handler
+      Environment:
+        Variables:
+          QA_SCORECARDS_TABLE: !Ref QaScorecardsTable
+      Policies:
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardA
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardB
+      Events:
+        PostScorecard:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/qa/scorecards
+            Method: POST
+        ListScorecards:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/qa/scorecards
+            Method: GET
+        GetScorecard:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/qa/scorecards/{scorecardId}
+            Method: GET
+        PatchScorecard:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/qa/scorecards/{scorecardId}
+            Method: PATCH
+        AckScorecard:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/qa/scorecards/{scorecardId}/acknowledge
+            Method: POST
+
+  CoachingNotesHttpFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/handlers/qa/coaching-notes-handler.handler
+      Environment:
+        Variables:
+          COACHING_NOTES_TABLE: !Ref CoachingNotesTable
+      Policies:
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardA
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardB
+      Events:
+        PostNote:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/qa/coaching-notes
+            Method: POST
+        ListNotes:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/qa/coaching-notes
+            Method: GET
+        PatchNote:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/qa/coaching-notes/{noteId}
+            Method: PATCH
+        DeleteNote:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/qa/coaching-notes/{noteId}
+            Method: DELETE
+
+  CallQualityTrendsHttpFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/handlers/qa/call-quality-trends-handler.handler
+      Environment:
+        Variables:
+          QA_SCORECARDS_TABLE: !Ref QaScorecardsTable
+      Policies:
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardB
+      Events:
+        Route:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/qa/trends
+            Method: GET
+
+  IncidentTimelineHttpFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/handlers/incident-timeline-handler.handler
+      Environment:
+        Variables:
+          INCIDENT_TIMELINE_TABLE: !Ref IncidentTimelineTable
+      Policies:
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardA
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardB
+      Events:
+        GetTimeline:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/incidents/{incidentId}/timeline
+            Method: GET
+        PostTimelineNote:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/incidents/{incidentId}/timeline
+            Method: POST
+        ExportTimeline:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/incidents/{incidentId}/timeline/export
+            Method: GET
+
+  CallerMediaHttpFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/handlers/caller-media-handler.handler
+      Policies:
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardB
+        - !Ref AppManagedPolicyS3ApplicationBucketsCrud
+        - !Ref AppManagedPolicyOpsAlertsSnsPublishOnly
+      Events:
+        SendLink:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/incidents/{incidentId}/media/send-link
+            Method: POST
+        UploadUrl:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/incidents/{incidentId}/media/upload-url
+            Method: POST
+        ListMedia:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/incidents/{incidentId}/media
+            Method: GET
+        DeleteMedia:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/incidents/{incidentId}/media/{mediaId}
+            Method: DELETE
+
+  SlaHttpFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/handlers/sla-handler.handler
+      Environment:
+        Variables:
+          SLA_BACKLOG_SNAPSHOTS_TABLE: !Ref SlaBacklogSnapshotsTable
+      Policies:
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardA
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardB
+      Events:
+        GetSlaStatus:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/sla/status
+            Method: GET
+        GetSlaThresholds:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/sla/thresholds
+            Method: GET
+        PutSlaThresholds:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/sla/thresholds
+            Method: PUT
+        GetSlaBacklog:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/sla/backlog
+            Method: GET
+        GetSlaHistory:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/sla/history
+            Method: GET
+
+  WarRoomHttpFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/handlers/war-room-handler.handler
+      Environment:
+        Variables:
+          WAR_ROOMS_TABLE: !Ref WarRoomsTable
+          WAR_ROOM_MESSAGES_TABLE: !Ref WarRoomMessagesTable
+      Policies:
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardA
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardB
+      Events:
+        PostWarRoom:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/war-rooms
+            Method: POST
+        ListWarRooms:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/war-rooms
+            Method: GET
+        GetWarRoom:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/war-rooms/{roomId}
+            Method: GET
+        JoinWarRoom:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/war-rooms/{roomId}/join
+            Method: POST
+        LeaveWarRoom:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/war-rooms/{roomId}/leave
+            Method: POST
+        PostWarRoomMessage:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/war-rooms/{roomId}/messages
+            Method: POST
+        ListWarRoomMessages:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/war-rooms/{roomId}/messages
+            Method: GET
+        PinWarRoomMessage:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/war-rooms/{roomId}/messages/{messageId}/pin
+            Method: PATCH
+        CloseWarRoom:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/war-rooms/{roomId}/close
+            Method: POST
+
+  StakeholderHttpFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/handlers/stakeholder-handler.handler
+      Environment:
+        Variables:
+          STAKEHOLDER_PAGES_TABLE: !Ref StakeholderPagesTable
+      Policies:
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardA
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardB
+      Events:
+        PostStakeholderPage:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/stakeholder-pages
+            Method: POST
+        ListStakeholderPages:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/stakeholder-pages
+            Method: GET
+        GetStakeholderPage:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/stakeholder-pages/{pageId}
+            Method: GET
+        PatchStakeholderPage:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/stakeholder-pages/{pageId}
+            Method: PATCH
+        DeleteStakeholderPage:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/stakeholder-pages/{pageId}
+            Method: DELETE
+        PublicStakeholderStatus:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/public/status/{slug}
+            Method: GET
+
+  PostIncidentReviewHttpFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/handlers/post-incident-review-handler.handler
+      Environment:
+        Variables:
+          POST_INCIDENT_REVIEWS_TABLE: !Ref PostIncidentReviewsTable
+      Policies:
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardA
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardB
+      Events:
+        PostReview:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/reviews
+            Method: POST
+        ListReviews:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/reviews
+            Method: GET
+        GetReview:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/reviews/{reviewId}
+            Method: GET
+        PatchReview:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/reviews/{reviewId}
+            Method: PATCH
+        ExportReview:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/reviews/{reviewId}/export
+            Method: GET
+
+  ReportsHttpFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/handlers/reports-handler.handler
+      Environment:
+        Variables:
+          AGENCY_REPORTS_TABLE: !Ref AgencyReportsTable
+      Policies:
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardA
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardB
+      Events:
+        GenerateReport:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/reports
+            Method: POST
+        ListReports:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/reports
+            Method: GET
+        GetReport:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/reports/{reportId}
+            Method: GET
+        ExportReport:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/reports/{reportId}/export
+            Method: GET
+
+  GetAdminAnalyticsFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/handlers/admin/getAdminAnalytics.handler
+      Environment:
+        Variables:
+          <<: *SAM2_HEAVY_LAMBDAS_GLOBALS_SLIM_OVERRIDES
+      Policies:
+        - !Ref AppManagedPolicyS3ApplicationBucketsCrud
+
+      Events:
+        Route:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/admin/analytics/summary
+            Method: GET
+
+  PostAdminAnalyticsRefreshFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/handlers/admin/postAdminAnalyticsRefresh.handler
+      Timeout: 60
+      Policies:
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardA
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardB
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardC
+        - !Ref AppManagedPolicyS3ApplicationBucketsCrud
+
+      Events:
+        Route:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/admin/analytics/refresh
+            Method: POST
+
+  GetAdminAnalyticsCsvFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/handlers/admin/getAdminAnalyticsCsv.handler
+      Environment:
+        Variables:
+          <<: *SAM2_HEAVY_LAMBDAS_GLOBALS_SLIM_OVERRIDES
+      Policies:
+        - !Ref AppManagedPolicyS3ApplicationBucketsCrud
+
+      Events:
+        Route:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/admin/analytics/export.csv
+            Method: GET
+
+  AggregateAnalyticsFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/handlers/analytics/aggregateAnalytics.handler
+      Timeout: 120
+      MemorySize: 1024
+      Policies:
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardA
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardB
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardC
+        - !Ref AppManagedPolicyS3ApplicationBucketsCrud
+
+      Events:
+        Nightly:
+          Type: Schedule
+          Properties:
+            Schedule: rate(1 day)
+            Enabled: true
+
+  PostAgencySharePartnerFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/handlers/admin/postAgencySharePartner.handler
+      Policies:
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardA
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardB
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardC
+        - !Ref AppManagedPolicyS3ApplicationBucketsCrud
+
+      Events:
+        Route:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/agencies/{id}/share-partners
+            Method: POST
+
+  DemoScenariosFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/handlers/demoScenarios.handler
+      Environment:
+        Variables:
+          <<: *SAM2_HEAVY_LAMBDAS_GLOBALS_SLIM_OVERRIDES
+      Policies:
+        - !Ref AppManagedPolicyS3ApplicationBucketsCrud
+
+      Events:
+        Route:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/demo/scenarios
+            Method: GET
+
+  IntegrationStatusFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/handlers/integrationStatus.handler
+      Environment:
+        Variables:
+          <<: *SAM2_HEAVY_LAMBDAS_GLOBALS_SLIM_OVERRIDES
+          PRIMARY_PROVIDER: !FindInMap [ApiLambdaDefaults, !Ref DeploymentStage, PrimaryAi]
+          SECONDARY_PROVIDER: !FindInMap [ApiLambdaDefaults, !Ref DeploymentStage, SecondaryAi]
+          TERTIARY_PROVIDER: !FindInMap [ApiLambdaDefaults, !Ref DeploymentStage, TertiaryAi]
+          FALLBACK_PROVIDER: !FindInMap [ApiLambdaDefaults, !Ref DeploymentStage, AiFallback]
+          SECONDARY_FALLBACK_PROVIDER: !FindInMap [ApiLambdaDefaults, !Ref DeploymentStage, AiSecondaryFallback]
+          PRIMARY_LANGUAGE_DETECTOR: !FindInMap [ApiLambdaDefaults, !Ref DeploymentStage, Lid1]
+          SECONDARY_LANGUAGE_DETECTOR: !FindInMap [ApiLambdaDefaults, !Ref DeploymentStage, Lid2]
+          TERTIARY_LANGUAGE_DETECTOR: !FindInMap [ApiLambdaDefaults, !Ref DeploymentStage, Lid3]
+          PRIMARY_STT_PROVIDER: !FindInMap [ApiLambdaDefaults, !Ref DeploymentStage, Stt1]
+          SECONDARY_STT_PROVIDER: !FindInMap [ApiLambdaDefaults, !Ref DeploymentStage, Stt2]
+          TERTIARY_STT_PROVIDER: !FindInMap [ApiLambdaDefaults, !Ref DeploymentStage, Stt3]
+          PRIMARY_TRANSLATION_PROVIDER: !FindInMap [ApiLambdaDefaults, !Ref DeploymentStage, Tr1]
+          SECONDARY_TRANSLATION_PROVIDER: !FindInMap [ApiLambdaDefaults, !Ref DeploymentStage, Tr2]
+          TERTIARY_TRANSLATION_PROVIDER: !FindInMap [ApiLambdaDefaults, !Ref DeploymentStage, Tr3]
+          MULTILINGUAL_STRICT_VALIDATION: !FindInMap [MultilingualStageDefaults, !Ref DeploymentStage, StrictValidation]
+          AWS_TRANSCRIBE_LANGUAGE_IDENTIFICATION: "true"
+          AWS_TRANSCRIBE_PREFERRED_LANGUAGE_OPTIONS: ""
+          AWS_TRANSCRIBE_TIMEOUT_MS: "0"
+          AWS_TRANSCRIBE_ENABLE_PARTIAL_RESULTS: "false"
+          AWS_TRANSCRIBE_LANGUAGE_OPTIONS: "en-US,es-US,zh-CN,tl-PH,vi-VN,ar-SA,fr-FR,ko-KR,ru-RU,pt-BR"
+          BEDROCK_MODEL_PRIMARY: !Ref AiBedrockFoundationModelId
+          BEDROCK_MODEL_SECONDARY: !Ref AiBedrockFoundationModelId
+          BEDROCK_MODEL_TERTIARY: !Ref AiBedrockFoundationModelId
+          INCIDENT_MEDIA_SNS_DIRECT: "0"
+          INCIDENT_MEDIA_TWILIO_SECRET_ARN: !Ref IncidentMediaTwilioSecretArn
+          INCIDENT_MEDIA_SMS_MOCK: "false"
+          SMS_PROVIDER: !FindInMap [SmsEnvironmentDefaults, !Ref DeploymentStage, SmsProvider]
+          SMS_PRIMARY_PROVIDER: !FindInMap [SmsEnvironmentDefaults, !Ref DeploymentStage, SmsPrimaryProvider]
+          MOCK_SMS_PROVIDER: !FindInMap [SmsEnvironmentDefaults, !Ref DeploymentStage, MockSmsProvider]
+          AWS_SMS_REGION: ""
+          AWS_SMS_USE_SIMULATOR: !FindInMap [SmsEnvironmentDefaults, !Ref DeploymentStage, AwsSmsUseSimulator]
+          AWS_SMS_CONFIGURATION_SET_NAME: ""
+          AWS_SMS_POOL_ID: ""
+          GOOGLE_CLOUD_PROJECT_ID: !Ref GoogleCloudProjectId
+          LANGUAGE_PROVIDER: !Ref LanguageProvider
+          GOOGLE_TRANSLATE_LOCATION: "global"
+          GOOGLE_TTS_LOCATION: "global"
+          GOOGLE_TTS_OUTPUT_BUCKET: !Ref GoogleTtsOutputBucket
+          GOOGLE_APPLICATION_CREDENTIALS_SECRET_ARN: !If
+            - UseManagedMultilingualSecrets
+            - !Ref NestedMultilingualGoogleServiceAccountSecretArn
+            - !Ref GoogleApplicationCredentialsSecretArn
+      Policies:
+        - !Ref AppManagedPolicyS3ApplicationBucketsCrud
+
+      Events:
+        Route:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/integration/status
+            Method: GET
+
+  CallIntelligenceLanguagesFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/handlers/callIntelligenceLanguagesHttp.handler
+      Environment:
+        Variables:
+          <<: *SAM2_HEAVY_LAMBDAS_GLOBALS_SLIM_OVERRIDES
+          SUPPORTED_CALL_LANGUAGES: "en,es,zh,tl,vi,ar,fr,ko,ru,pt"
+          PRIMARY_PROVIDER: !FindInMap [ApiLambdaDefaults, !Ref DeploymentStage, PrimaryAi]
+          SECONDARY_PROVIDER: !FindInMap [ApiLambdaDefaults, !Ref DeploymentStage, SecondaryAi]
+          TERTIARY_PROVIDER: !FindInMap [ApiLambdaDefaults, !Ref DeploymentStage, TertiaryAi]
+          FALLBACK_PROVIDER: !FindInMap [ApiLambdaDefaults, !Ref DeploymentStage, AiFallback]
+          SECONDARY_FALLBACK_PROVIDER: !FindInMap [ApiLambdaDefaults, !Ref DeploymentStage, AiSecondaryFallback]
+          PRIMARY_LANGUAGE_DETECTOR: !FindInMap [ApiLambdaDefaults, !Ref DeploymentStage, Lid1]
+          SECONDARY_LANGUAGE_DETECTOR: !FindInMap [ApiLambdaDefaults, !Ref DeploymentStage, Lid2]
+          TERTIARY_LANGUAGE_DETECTOR: !FindInMap [ApiLambdaDefaults, !Ref DeploymentStage, Lid3]
+          PRIMARY_STT_PROVIDER: !FindInMap [ApiLambdaDefaults, !Ref DeploymentStage, Stt1]
+          SECONDARY_STT_PROVIDER: !FindInMap [ApiLambdaDefaults, !Ref DeploymentStage, Stt2]
+          TERTIARY_STT_PROVIDER: !FindInMap [ApiLambdaDefaults, !Ref DeploymentStage, Stt3]
+          PRIMARY_TRANSLATION_PROVIDER: !FindInMap [ApiLambdaDefaults, !Ref DeploymentStage, Tr1]
+          SECONDARY_TRANSLATION_PROVIDER: !FindInMap [ApiLambdaDefaults, !Ref DeploymentStage, Tr2]
+          TERTIARY_TRANSLATION_PROVIDER: !FindInMap [ApiLambdaDefaults, !Ref DeploymentStage, Tr3]
+          MULTILINGUAL_STRICT_VALIDATION: !FindInMap [MultilingualStageDefaults, !Ref DeploymentStage, StrictValidation]
+          AWS_TRANSCRIBE_LANGUAGE_IDENTIFICATION: "true"
+          AWS_TRANSCRIBE_PREFERRED_LANGUAGE_OPTIONS: ""
+          AWS_TRANSCRIBE_TIMEOUT_MS: "0"
+          AWS_TRANSCRIBE_ENABLE_PARTIAL_RESULTS: "false"
+          AWS_TRANSCRIBE_LANGUAGE_OPTIONS: "en-US,es-US,zh-CN,tl-PH,vi-VN,ar-SA,fr-FR,ko-KR,ru-RU,pt-BR"
+          BEDROCK_MODEL_PRIMARY: !Ref AiBedrockFoundationModelId
+          BEDROCK_MODEL_SECONDARY: !Ref AiBedrockFoundationModelId
+          BEDROCK_MODEL_TERTIARY: !Ref AiBedrockFoundationModelId
+          GOOGLE_CLOUD_PROJECT_ID: !Ref GoogleCloudProjectId
+          LANGUAGE_PROVIDER: !Ref LanguageProvider
+          GOOGLE_TRANSLATE_LOCATION: "global"
+          GOOGLE_TTS_LOCATION: "global"
+          GOOGLE_TTS_OUTPUT_BUCKET: !Ref GoogleTtsOutputBucket
+          GOOGLE_APPLICATION_CREDENTIALS_SECRET_ARN: !If
+            - UseManagedMultilingualSecrets
+            - !Ref NestedMultilingualGoogleServiceAccountSecretArn
+            - !Ref GoogleApplicationCredentialsSecretArn
+          SILENT_TEXT_TRANSLATION_ENABLED: "true"
+          SILENT_TEXT_TTS_ENABLED: "false"
+      Policies:
+        - !Ref AppManagedPolicyS3ApplicationBucketsCrud
+        - !Ref AppManagedPolicySecretsMultilingualScopedRead
+      Events:
+        Route:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/call-intelligence/languages
+            Method: GET
+
+  StartDemoScenarioFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/handlers/startDemoScenario.handler
+      Environment:
+        Variables:
+          <<: *SAM2_HEAVY_LAMBDAS_GLOBALS_SLIM_OVERRIDES
+      Policies:
+        - !Ref AppManagedPolicyS3ApplicationBucketsCrud
+
+      Events:
+        Route:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/demo/start
+            Method: POST
+
+  ListAuditEventsFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/handlers/listAuditEvents.handler
+      Policies:
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardA
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardB
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardC
+        - !Ref AppManagedPolicyS3ApplicationBucketsCrud
+
+      Events:
+        Route:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/audit/events
+            Method: GET
+
+  LiveVideoSmsRoutingFailedMetricFilter:
+    Type: AWS::Logs::MetricFilter
+    Condition: CreateLiveVideoResources
+    DependsOn: LiveVideoIncidentsHttpLogGroup
+    Properties:
+      LogGroupName: !Sub /aws/lambda/${LiveVideoIncidentsHttpFunction}
+      FilterPattern: '"routing_complete" "failed" "outbound.sms"'
+      MetricTransformations:
+        - MetricName: OutboundSmsRoutingFailures
+          MetricNamespace: RapidCortex/Sms
+          MetricValue: "1"
+          DefaultValue: 0
+
+  KvsWebRtcBrowserTokenRole:
+    Type: AWS::IAM::Role
+    Condition: CreateLiveVideoResources
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Action: sts:AssumeRole
+            Principal:
+              AWS: !Sub "arn:aws:iam::${AWS::AccountId}:root"
+            Condition:
+              StringEquals:
+                aws:SourceAccount: !Ref AWS::AccountId
+              StringLike:
+                aws:PrincipalArn:
+                  - !Sub "arn:aws:iam::${AWS::AccountId}:role/*LiveVideo*HttpFunctionRole*"
+      Policies:
+        - PolicyName: KvsWebrtcDataPlane
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Sid: KvsDataPlane
+                Effect: Allow
+                Action:
+                  - kinesisvideo:ConnectAsMaster
+                  - kinesisvideo:ConnectAsViewer
+                  - kinesisvideo:JoinStorageSession
+                  - kinesisvideo:JoinStorageSessionAsViewer
+                  - kinesisvideo:DescribeSignalingChannel
+                  - kinesisvideo:GetSignalingChannelEndpoint
+                  - kinesisvideo:GetIceServerConfig
+                Resource: !Sub "arn:${AWS::Partition}:kinesisvideo:${AWS::Region}:${AWS::AccountId}:channel/*/*"
+              - Sid: KvsMappedStreamRead
+                Effect: Allow
+                Action:
+                  - kinesisvideo:DescribeMappedResourceConfiguration
+                Resource: !Sub "arn:${AWS::Partition}:kinesisvideo:${AWS::Region}:${AWS::AccountId}:stream/*/*"
+
+  LiveVideoIncidentsHttpLogGroup:
+    Type: AWS::Logs::LogGroup
+    Condition: CreateLiveVideoResources
+    Properties:
+      LogGroupName: !Sub /aws/lambda/${LiveVideoIncidentsHttpFunction}
+      RetentionInDays: 30
+
+  LiveVideoIncidentsHttpFunction:
+    Type: AWS::Serverless::Function
+    Condition: CreateLiveVideoResources
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/handlers/media/liveVideoIncidentHttp.handler
+      Environment:
+        Variables:
+          ENABLE_LIVE_VIDEO: "true"
+          LIVE_VIDEO_SESSIONS_TABLE: !Ref LiveVideoSessionsTable
+          LIVE_VIDEO_SESSION_TTL_SECONDS: "1800"
+          LIVE_VIDEO_MAX_DURATION_SECONDS: "900"
+          LIVE_VIDEO_HEARTBEAT_TIMEOUT_SECONDS: "45"
+          LIVE_VIDEO_PUBLIC_BASE_URL: "https://www.rapidcortex.us"
+          LIVE_VIDEO_KVS_TOKEN_ROLE_ARN: !GetAtt KvsWebRtcBrowserTokenRole.Arn
+          LIVE_VIDEO_STORAGE_MODE: kvs
+          WEBRTC_TURN_SECRET_ARN: ""
+          LIVE_VIDEO_KVS_DATA_RETENTION_HOURS: "24"
+          LIVE_VIDEO_KVS_STORAGE_ATTACH_TO_CHANNEL: "false"
+          KVS_WEBRTC_TAG_APP: !Ref AppName
+          KVS_WEBRTC_TAG_ENV: !Ref DeploymentStage
+      Policies:
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardA
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardB
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardC
+        - Statement:
+            Effect: Allow
+            Action: sts:AssumeRole
+            Resource: !GetAtt KvsWebRtcBrowserTokenRole.Arn
+        - Statement:
+            Effect: Allow
+            Action:
+              - kinesisvideo:CreateSignalingChannel
+            Resource: "*"
+            Condition:
+              StringEquals:
+                aws:RequestedRegion: !Ref AWS::Region
+        - Statement:
+            Effect: Allow
+            Action:
+              - kinesisvideo:DeleteSignalingChannel
+              - kinesisvideo:DescribeSignalingChannel
+              - kinesisvideo:GetSignalingChannelEndpoint
+              - kinesisvideo:JoinStorageSession
+              - kinesisvideo:JoinStorageSessionAsViewer
+            Resource: !Sub "arn:${AWS::Partition}:kinesisvideo:${AWS::Region}:${AWS::AccountId}:channel/*/*"
+        - Statement:
+            Effect: Allow
+            Action:
+              - kinesisvideo:GetIceServerConfig
+            Resource: !Sub "arn:${AWS::Partition}:kinesisvideo:${AWS::Region}:${AWS::AccountId}:channel/*/*"
+        - Statement:
+            Effect: Allow
+            Action:
+              - kinesisvideo:DescribeMappedResourceConfiguration
+            Resource: !Sub "arn:${AWS::Partition}:kinesisvideo:${AWS::Region}:${AWS::AccountId}:stream/*/*"
+        - Statement:
+            Effect: Allow
+            Action:
+              - kinesisvideo:CreateStream
+            Resource: "*"
+            Condition:
+              StringEquals:
+                aws:RequestedRegion: !Ref AWS::Region
+        - Statement:
+            Effect: Allow
+            Action:
+              - kinesisvideo:DeleteStream
+              - kinesisvideo:DescribeStream
+              - kinesisvideo:GetDataEndpoint
+            Resource: !Sub "arn:${AWS::Partition}:kinesisvideo:${AWS::Region}:${AWS::AccountId}:stream/*/*"
+        - Statement:
+            Effect: Allow
+            Action:
+              - kinesisvideo:GetHLSStreamingSessionURL
+            Resource: !Sub "arn:${AWS::Partition}:kinesisvideo:${AWS::Region}:${AWS::AccountId}:stream/*/*"
+        - Statement:
+            Effect: Allow
+            Action:
+              - kinesisvideo:UpdateMediaStorageConfiguration
+              - kinesisvideo:DescribeMediaStorageConfiguration
+            Resource: !Sub "arn:${AWS::Partition}:kinesisvideo:${AWS::Region}:${AWS::AccountId}:channel/*/*"
+        - !Ref AppManagedPolicyOpsAlertsSnsPublishOnly
+        - Statement:
+            Effect: Allow
+            Action:
+              - sms-voice:DescribeAccountAttributes
+              - sms-voice:DescribePools
+              - sms-voice:DescribeConfigurationSets
+            Resource: "*"
+            Condition:
+              StringEquals:
+                aws:RequestedRegion: !Ref AWS::Region
+        - Fn::If:
+            - HasIncidentMediaTwilioSecretArn
+            - Statement:
+                Effect: Allow
+                Action:
+                  - secretsmanager:GetSecretValue
+                Resource: !Ref IncidentMediaTwilioSecretArn
+            - !Ref AWS::NoValue
+      Events:
+        RequestLiveVideo:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/incidents/{id}/live-video/request
+            Method: POST
+        GetLiveVideo:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/incidents/{id}/live-video
+            Method: GET
+        JoinLiveVideoIncident:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/incidents/{id}/live-video/join
+            Method: POST
+        GetLiveVideoPlayback:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/incidents/{id}/live-video/playback
+            Method: GET
+        EndLiveVideo:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/incidents/{id}/live-video/end
+            Method: POST
+        DispatcherHeartbeatLiveVideo:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/incidents/{id}/live-video/heartbeat
+            Method: POST
+
+  LiveVideoPublicHttpFunction:
+    Type: AWS::Serverless::Function
+    Condition: CreateLiveVideoResources
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/handlers/media/liveVideoPublicHttp.handler
+      Environment:
+        Variables:
+          ENABLE_LIVE_VIDEO: "true"
+          LIVE_VIDEO_SESSIONS_TABLE: !Ref LiveVideoSessionsTable
+          LIVE_VIDEO_SESSION_TTL_SECONDS: "1800"
+          LIVE_VIDEO_MAX_DURATION_SECONDS: "900"
+          LIVE_VIDEO_HEARTBEAT_TIMEOUT_SECONDS: "45"
+          LIVE_VIDEO_PUBLIC_BASE_URL: "https://www.rapidcortex.us"
+          LIVE_VIDEO_KVS_TOKEN_ROLE_ARN: !GetAtt KvsWebRtcBrowserTokenRole.Arn
+          LIVE_VIDEO_STORAGE_MODE: kvs
+          WEBRTC_TURN_SECRET_ARN: ""
+      Policies:
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardA
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardB
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardC
+        - Statement:
+            Effect: Allow
+            Action: sts:AssumeRole
+            Resource: !GetAtt KvsWebRtcBrowserTokenRole.Arn
+        - Statement:
+            Effect: Allow
+            Action:
+              - kinesisvideo:DeleteSignalingChannel
+              - kinesisvideo:DescribeSignalingChannel
+              - kinesisvideo:GetSignalingChannelEndpoint
+            Resource: !Sub "arn:${AWS::Partition}:kinesisvideo:${AWS::Region}:${AWS::AccountId}:channel/*/*"
+        - Statement:
+            Effect: Allow
+            Action:
+              - kinesisvideo:GetIceServerConfig
+            Resource: !Sub "arn:${AWS::Partition}:kinesisvideo:${AWS::Region}:${AWS::AccountId}:channel/*/*"
+      Events:
+        JoinLiveVideo:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/media/live/{token}/join
+            Method: POST
+            Auth:
+              Authorizer: NONE
+        CallerHeartbeatLiveVideo:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/media/live/{token}/heartbeat
+            Method: POST
+            Auth:
+              Authorizer: NONE
+
+  LiveVideoIncidentsHttpErrorsAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Condition: CreateLiveVideoResources
+    Properties:
+      AlarmActions:
+        - !Ref OpsAlertsTopic
+      AlarmDescription: Live video authenticated routes errors.
+      Namespace: AWS/Lambda
+      MetricName: Errors
+      Dimensions:
+        - Name: FunctionName
+          Value: !Ref LiveVideoIncidentsHttpFunction
+      Statistic: Sum
+      Period: 300
+      EvaluationPeriods: 1
+      Threshold: 5
+      ComparisonOperator: GreaterThanThreshold
+      TreatMissingData: notBreaching
+
+  LiveVideoPublicHttpErrorsAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Condition: CreateLiveVideoResources
+    Properties:
+      AlarmActions:
+        - !Ref OpsAlertsTopic
+      AlarmDescription: Live video public token route errors.
+      Namespace: AWS/Lambda
+      MetricName: Errors
+      Dimensions:
+        - Name: FunctionName
+          Value: !Ref LiveVideoPublicHttpFunction
+      Statistic: Sum
+      Period: 300
+      EvaluationPeriods: 1
+      Threshold: 5
+      ComparisonOperator: GreaterThanThreshold
+      TreatMissingData: notBreaching
+
+  CadWritebackHttpFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Timeout: 30
+      MemorySize: 512
+      Environment:
+        Variables:
+          <<: *SAM2_HEAVY_LAMBDAS_GLOBALS_SLIM_OVERRIDES
+          CAD_INTEGRATIONS_TABLE: !Ref CadIntegrationsTable
+          CAD_WRITEBACK_AUDIT_TABLE: !Ref CadWritebackAuditTable
+          CAD_WRITEBACK_ENABLED: !Ref CadWritebackEnabled
+          CAD_WRITEBACK_REQUIRES_APPROVAL: !Ref CadWritebackRequiresApproval
+          OPS_ALERTS_TOPIC_ARN: !Ref OpsAlertsTopic
+      CodeUri: ../../apps/api/
+      Handler: dist/handlers/cad/cadWritebackHttp.handler
+      Policies:
+        - Statement:
+            - Sid: CadWritebackIncidentRead
+              Effect: Allow
+              Action:
+                - dynamodb:GetItem
+              Resource: !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${IncidentsTable}
+            - Sid: CadWritebackIntegrationsRead
+              Effect: Allow
+              Action:
+                - dynamodb:GetItem
+                - dynamodb:Query
+              Resource:
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${CadIntegrationsTable}
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${CadIntegrationsTable}/index/*
+            - Sid: CadWritebackAuditRw
+              Effect: Allow
+              Action:
+                - dynamodb:GetItem
+                - dynamodb:PutItem
+                - dynamodb:Query
+              Resource:
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${CadWritebackAuditTable}
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${CadWritebackAuditTable}/index/*
+            - Sid: CadWritebackAuditAppend
+              Effect: Allow
+              Action:
+                - dynamodb:PutItem
+              Resource: !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${AuditTable}
+            - Sid: CadWritebackOpsSns
+              Effect: Allow
+              Action:
+                - sns:Publish
+              Resource: !GetAtt OpsAlertsTopic.TopicArn
+      Events:
+        PostCadWriteback:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/cad/writeback/{incidentId}
+            Method: POST
+        GetCadWritebackApprovals:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/admin/cad-writeback-approvals
+            Method: GET
+        PostCadWritebackApprove:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/admin/cad-writeback-approvals/{id}/approve
+            Method: POST
+        PostCadWritebackReject:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/admin/cad-writeback-approvals/{id}/reject
+            Method: POST
+
+  AgencyAdminListAccessOverridesFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/handlers/agencyAdmin/listAgencyAdminAccessOverrides.handler
+      Policies:
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardA
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardB
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardC
+        - !Ref AppManagedPolicyS3ApplicationBucketsCrud
+        - !Ref AppManagedPolicyCognitoAgencyAdminUserPoolReads
+
+      Events:
+        Route:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/agency-admin/overrides
+            Method: GET
+
+  AgencyAdminPostAccessOverridesFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/handlers/agencyAdmin/postAgencyAdminAccessOverrides.handler
+      Policies:
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardA
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardB
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardC
+        - !Ref AppManagedPolicyS3ApplicationBucketsCrud
+        - !Ref AppManagedPolicyCognitoAgencyAdminUserPoolReads
+
+      Events:
+        Route:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/agency-admin/overrides
+            Method: POST
+
+  AgencyAdminGetAccessOverrideFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/handlers/agencyAdmin/getAgencyAdminAccessOverride.handler
+      Policies:
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardA
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardB
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardC
+        - !Ref AppManagedPolicyS3ApplicationBucketsCrud
+        - !Ref AppManagedPolicyCognitoAgencyAdminUserPoolReads
+
+      Events:
+        Route:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/agency-admin/overrides/{overrideId}
+            Method: GET
+
+  AgencyAdminPatchAccessOverrideRevokeFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/handlers/agencyAdmin/patchAgencyAdminAccessOverrideRevoke.handler
+      Policies:
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardA
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardB
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardC
+        - !Ref AppManagedPolicyS3ApplicationBucketsCrud
+        - !Ref AppManagedPolicyCognitoAgencyAdminUserPoolReads
+
+      Events:
+        Route:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/agency-admin/overrides/{overrideId}/revoke
+            Method: PATCH
+
+  AgencyAdminListUserAccessOverridesFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/handlers/agencyAdmin/listAgencyAdminUserAccessOverrides.handler
+      Policies:
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardA
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardB
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardC
+        - !Ref AppManagedPolicyS3ApplicationBucketsCrud
+        - !Ref AppManagedPolicyCognitoAgencyAdminUserPoolReads
+
+      Events:
+        Route:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/agency-admin/users/{userId}/overrides
+            Method: GET
+
+  AgencyAdminListApiClientsFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/handlers/agencyAdmin/listAgencyAdminApiClients.handler
+      Policies:
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardA
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardB
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardC
+
+      Events:
+        Route:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/agency-admin/api-clients
+            Method: GET
+
+  AgencyAdminPostApiClientsFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/handlers/agencyAdmin/postAgencyAdminApiClients.handler
+      Policies:
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardA
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardB
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardC
+
+      Events:
+        Route:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/agency-admin/api-clients
+            Method: POST
+
+  AgencyAdminPatchApiClientFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/handlers/agencyAdmin/patchAgencyAdminApiClientStatus.handler
+      Policies:
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardA
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardB
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardC
+
+      Events:
+        Route:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/agency-admin/api-clients/{clientId}
+            Method: PATCH
+
+  AgencyAdminRotateApiClientFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/handlers/agencyAdmin/postAgencyAdminApiClientRotate.handler
+      Policies:
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardA
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardB
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardC
+
+      Events:
+        Route:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/agency-admin/api-clients/{clientId}/rotate
+            Method: POST
+
+  AgencyAdminListWebhooksFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/handlers/agencyAdmin/listAgencyAdminWebhooks.handler
+      Policies:
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardA
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardB
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardC
+
+      Events:
+        Route:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/agency-admin/webhooks
+            Method: GET
+
+  AgencyAdminPostWebhooksFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/handlers/agencyAdmin/postAgencyAdminWebhooks.handler
+      Environment:
+        Variables:
+          EXTERNAL_API_ENCRYPTION_KEY_ARN: !Ref ExternalApiEncryptionKeyArn
+      Policies:
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardA
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardB
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardC
+        - Fn::If:
+            - HasExternalApiEncryptionKeyArn
+            - Statement:
+                - Effect: Allow
+                  Action: secretsmanager:GetSecretValue
+                  Resource: !Ref ExternalApiEncryptionKeyArn
+            - !Ref AWS::NoValue
+
+      Events:
+        Route:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/agency-admin/webhooks
+            Method: POST
+
+  RcAdminListApiClientsFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/handlers/rc-admin/listRcAdminApiClients.handler
+      Policies:
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardA
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardB
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardC
+
+      Events:
+        RcAdminApiClientsRoute:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/rc-admin/api-clients
+            Method: GET
+        LegacySuperadminApiClientsRoute:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/superadmin/api-clients
+            Method: GET
+
+  RcAdminGetUsageFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/handlers/rc-admin/getRcAdminUsage.handler
+      Environment:
+        Variables:
+          RC_LITE_USAGE_TABLE: !Ref RcLiteUsageTable
+          RC_LITE_API_KEYS_TABLE: !Ref RcLiteApiKeysTable
+      Policies:
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardA
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardB
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardC
+
+      Events:
+        RcAdminUsageGet:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/rc-admin/usage
+            Method: GET
+
+  RcAdminExportUsageFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/handlers/rc-admin/exportRcAdminUsage.handler
+      Environment:
+        Variables:
+          RC_LITE_USAGE_TABLE: !Ref RcLiteUsageTable
+          RC_LITE_API_KEYS_TABLE: !Ref RcLiteApiKeysTable
+      Policies:
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardA
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardB
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardC
+
+      Events:
+        RcAdminUsageExportGet:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/rc-admin/usage/export
+            Method: GET
+
+  GetDesktopReleasesOverviewFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/handlers/admin/getDesktopReleasesOverview.handler
+      Environment:
+        Variables:
+          <<: *SAM2_HEAVY_LAMBDAS_GLOBALS_SLIM_OVERRIDES
+      Policies:
+        - !Ref AppManagedPolicyS3ApplicationBucketsCrud
+
+      Events:
+        Route:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/admin/desktop-releases
+            Method: GET
+
+  PostDesktopReleaseSignedUrlFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/handlers/admin/postDesktopReleaseSignedUrl.handler
+      Policies:
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardA
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardB
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardC
+        - !Ref AppManagedPolicyS3ApplicationBucketsCrud
+
+      Events:
+        Route:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/admin/desktop-releases/signed-url
+            Method: POST
+
+  GetPlatformSummaryFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/handlers/getPlatformSummary.handler
+      Environment:
+        Variables:
+          <<: *SAM2_HEAVY_LAMBDAS_GLOBALS_SLIM_OVERRIDES
+          INTEGRATION_TRANSCRIPT_CONNECTOR_MODE: "off"
+          INTEGRATION_TRANSCRIPT_AGENCY_ALLOWLIST: ""
+      Policies:
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardA
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardB
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardC
+        - !Ref AppManagedPolicyS3ApplicationBucketsCrud
+        - Statement:
+            Effect: Allow
+            Action:
+              - cognito-idp:ListUsers
+            Resource: !Sub "arn:aws:cognito-idp:${AWS::Region}:${AWS::AccountId}:userpool/${ImportedCognitoUserPoolId}"
+
+      Events:
+        Route:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/platform/summary
+            Method: GET
+
+  GetPlatformAuditEventsFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/handlers/getPlatformAuditEvents.handler
+      Policies:
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardA
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardB
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardC
+        - !Ref AppManagedPolicyS3ApplicationBucketsCrud
+
+      Events:
+        Route:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/platform/audit-events
+            Method: GET
+
+  PostContactSalesLeadFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/handlers/postContactSalesLead.handler
+      Environment:
+        Variables:
+          SALES_LEADS_TABLE: !Ref SalesLeadsTable
+          CONTACT_FROM_EMAIL: support@rapidcortex.us
+          OPS_ALERTS_TOPIC_ARN:
+            Fn::If:
+              - HasImportedOpsAlertsTopicArn
+              - !Ref ImportedOpsAlertsTopicArn
+              - !Ref OpsAlertsTopic
+      Policies:
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardA
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardB
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardC
+        - !Ref AppManagedPolicyS3ApplicationBucketsCrud
+        - Fn::If:
+            - HasImportedOpsAlertsTopicArn
+            - Statement:
+                Sid: SnsPublishImportedOpsAlertsTopic
+                Effect: Allow
+                Action:
+                  - sns:Publish
+                Resource: !Ref ImportedOpsAlertsTopicArn
+            - Statement:
+                Sid: SnsPublishLocalOpsAlertsTopic
+                Effect: Allow
+                Action:
+                  - sns:Publish
+                Resource: !GetAtt OpsAlertsTopic.TopicArn
+        - Statement:
+            Sid: SesContactSalesFromSupportIdentity
+            Effect: Allow
+            Action:
+              - ses:SendEmail
+            Resource:
+              - !Sub arn:${AWS::Partition}:ses:${AWS::Region}:${AWS::AccountId}:identity/support@rapidcortex.us
+
+      Events:
+        ContactSales:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/contact-sales
+            Method: ANY
+            Auth:
+              Authorizer: NONE
+
+  VideoAssistIncidentsHttpFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/handlers/videoAssistIncidentsHttp.handler
+      Environment:
+        Variables:
+          VIDEO_ASSIST_TABLE: !Ref VideoAssistSessionsTable
+      Policies:
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardA
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardB
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardC
+        - !Ref AppManagedPolicyOpsAlertsSnsPublishOnly
+      Events:
+        PostSession:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/incidents/{id}/video-assist/sessions
+            Method: POST
+        ListSessions:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/incidents/{id}/video-assist/sessions
+            Method: GET
+        GetSession:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/incidents/{id}/video-assist/sessions/{sessionId}
+            Method: GET
+        GetEvents:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/incidents/{id}/video-assist/sessions/{sessionId}/events
+            Method: GET
+        Resend:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/incidents/{id}/video-assist/sessions/{sessionId}/resend
+            Method: POST
+        Cancel:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/incidents/{id}/video-assist/sessions/{sessionId}/cancel
+            Method: POST
+        DispatcherSignal:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/incidents/{id}/video-assist/sessions/{sessionId}/signal
+            Method: POST
+        MarkLive:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/incidents/{id}/video-assist/sessions/{sessionId}/live
+            Method: POST
+
+  VideoAssistPublicHttpFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/handlers/videoAssistPublicHttp.handler
+      Environment:
+        Variables:
+          VIDEO_ASSIST_TABLE: !Ref VideoAssistSessionsTable
+      Policies:
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardA
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardB
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardC
+
+      Events:
+        GetPublic:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/video-assist/t/{token}
+            Method: GET
+            Auth:
+              Authorizer: NONE
+        GetIce:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/video-assist/t/{token}/ice-config
+            Method: GET
+            Auth:
+              Authorizer: NONE
+        PostOpened:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/video-assist/t/{token}/opened
+            Method: POST
+            Auth:
+              Authorizer: NONE
+        PostConsent:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/video-assist/t/{token}/consent
+            Method: POST
+            Auth:
+              Authorizer: NONE
+        PostSignal:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/video-assist/t/{token}/signal
+            Method: POST
+            Auth:
+              Authorizer: NONE
+        PostEnd:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/video-assist/t/{token}/end
+            Method: POST
+            Auth:
+              Authorizer: NONE
+
+  SilentTextIncidentsHttpFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/handlers/silentTextIncidentsHttp.handler
+      Timeout: 30
+      Environment:
+        Variables:
+          <<: *SAM2_HEAVY_LAMBDAS_GLOBALS_SLIM_OVERRIDES
+          SILENT_TEXT_TABLE: !Ref SilentTextSessionsTable
+          SUPPORTED_CALL_LANGUAGES: "en,es,zh,tl,vi,ar,fr,ko,ru,pt"
+          PRIMARY_PROVIDER: !FindInMap [ApiLambdaDefaults, !Ref DeploymentStage, PrimaryAi]
+          SECONDARY_PROVIDER: !FindInMap [ApiLambdaDefaults, !Ref DeploymentStage, SecondaryAi]
+          TERTIARY_PROVIDER: !FindInMap [ApiLambdaDefaults, !Ref DeploymentStage, TertiaryAi]
+          FALLBACK_PROVIDER: !FindInMap [ApiLambdaDefaults, !Ref DeploymentStage, AiFallback]
+          SECONDARY_FALLBACK_PROVIDER: !FindInMap [ApiLambdaDefaults, !Ref DeploymentStage, AiSecondaryFallback]
+          PRIMARY_LANGUAGE_DETECTOR: !FindInMap [ApiLambdaDefaults, !Ref DeploymentStage, Lid1]
+          SECONDARY_LANGUAGE_DETECTOR: !FindInMap [ApiLambdaDefaults, !Ref DeploymentStage, Lid2]
+          TERTIARY_LANGUAGE_DETECTOR: !FindInMap [ApiLambdaDefaults, !Ref DeploymentStage, Lid3]
+          PRIMARY_STT_PROVIDER: !FindInMap [ApiLambdaDefaults, !Ref DeploymentStage, Stt1]
+          SECONDARY_STT_PROVIDER: !FindInMap [ApiLambdaDefaults, !Ref DeploymentStage, Stt2]
+          TERTIARY_STT_PROVIDER: !FindInMap [ApiLambdaDefaults, !Ref DeploymentStage, Stt3]
+          PRIMARY_TRANSLATION_PROVIDER: !FindInMap [ApiLambdaDefaults, !Ref DeploymentStage, Tr1]
+          SECONDARY_TRANSLATION_PROVIDER: !FindInMap [ApiLambdaDefaults, !Ref DeploymentStage, Tr2]
+          TERTIARY_TRANSLATION_PROVIDER: !FindInMap [ApiLambdaDefaults, !Ref DeploymentStage, Tr3]
+          MULTILINGUAL_STRICT_VALIDATION: !FindInMap [MultilingualStageDefaults, !Ref DeploymentStage, StrictValidation]
+          AWS_TRANSCRIBE_LANGUAGE_IDENTIFICATION: "true"
+          AWS_TRANSCRIBE_PREFERRED_LANGUAGE_OPTIONS: ""
+          AWS_TRANSCRIBE_TIMEOUT_MS: "0"
+          AWS_TRANSCRIBE_ENABLE_PARTIAL_RESULTS: "false"
+          AWS_TRANSCRIBE_LANGUAGE_OPTIONS: "en-US,es-US,zh-CN,tl-PH,vi-VN,ar-SA,fr-FR,ko-KR,ru-RU,pt-BR"
+          BEDROCK_MODEL_PRIMARY: !Ref AiBedrockFoundationModelId
+          BEDROCK_MODEL_SECONDARY: !Ref AiBedrockFoundationModelId
+          BEDROCK_MODEL_TERTIARY: !Ref AiBedrockFoundationModelId
+          GOOGLE_CLOUD_PROJECT_ID: !Ref GoogleCloudProjectId
+          LANGUAGE_PROVIDER: !Ref LanguageProvider
+          GOOGLE_TRANSLATE_LOCATION: "global"
+          GOOGLE_TTS_LOCATION: "global"
+          GOOGLE_TTS_OUTPUT_BUCKET: !Ref GoogleTtsOutputBucket
+          GOOGLE_APPLICATION_CREDENTIALS_SECRET_ARN: !If
+            - UseManagedMultilingualSecrets
+            - !Ref NestedMultilingualGoogleServiceAccountSecretArn
+            - !Ref GoogleApplicationCredentialsSecretArn
+          SILENT_TEXT_TRANSLATION_ENABLED: "true"
+          SILENT_TEXT_TTS_ENABLED: "false"
+      Policies:
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardA
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardB
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardC
+        - !Ref AppManagedPolicyS3ApplicationBucketsCrud
+        - !Ref AppManagedPolicyComprehendTranslateRegionalDetect
+        - !Ref AppManagedPolicySecretsMultilingualScopedRead
+        - !Ref AppManagedPolicyOpsAlertsSnsPublishOnly
+      Events:
+        PostSession:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/incidents/{id}/silent-text/sessions
+            Method: POST
+        ListSessions:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/incidents/{id}/silent-text/sessions
+            Method: GET
+        GetSession:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/incidents/{id}/silent-text/sessions/{sessionId}
+            Method: GET
+        GetEvents:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/incidents/{id}/silent-text/sessions/{sessionId}/events
+            Method: GET
+        GetMessages:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/incidents/{id}/silent-text/sessions/{sessionId}/messages
+            Method: GET
+        Resend:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/incidents/{id}/silent-text/sessions/{sessionId}/resend
+            Method: POST
+        Cancel:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/incidents/{id}/silent-text/sessions/{sessionId}/cancel
+            Method: POST
+        Close:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/incidents/{id}/silent-text/sessions/{sessionId}/close
+            Method: POST
+        DispatcherMessage:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/incidents/{id}/silent-text/sessions/{sessionId}/message
+            Method: POST
+        HighRisk:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/incidents/{id}/silent-text/sessions/{sessionId}/high-risk
+            Method: POST
+
+  SilentTextPublicHttpFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/handlers/silentTextPublicHttp.handler
+      Timeout: 30
+      Environment:
+        Variables:
+          <<: *SAM2_HEAVY_LAMBDAS_GLOBALS_SLIM_OVERRIDES
+          SILENT_TEXT_TABLE: !Ref SilentTextSessionsTable
+          SUPPORTED_CALL_LANGUAGES: "en,es,zh,tl,vi,ar,fr,ko,ru,pt"
+          PRIMARY_PROVIDER: !FindInMap [ApiLambdaDefaults, !Ref DeploymentStage, PrimaryAi]
+          SECONDARY_PROVIDER: !FindInMap [ApiLambdaDefaults, !Ref DeploymentStage, SecondaryAi]
+          TERTIARY_PROVIDER: !FindInMap [ApiLambdaDefaults, !Ref DeploymentStage, TertiaryAi]
+          FALLBACK_PROVIDER: !FindInMap [ApiLambdaDefaults, !Ref DeploymentStage, AiFallback]
+          SECONDARY_FALLBACK_PROVIDER: !FindInMap [ApiLambdaDefaults, !Ref DeploymentStage, AiSecondaryFallback]
+          PRIMARY_LANGUAGE_DETECTOR: !FindInMap [ApiLambdaDefaults, !Ref DeploymentStage, Lid1]
+          SECONDARY_LANGUAGE_DETECTOR: !FindInMap [ApiLambdaDefaults, !Ref DeploymentStage, Lid2]
+          TERTIARY_LANGUAGE_DETECTOR: !FindInMap [ApiLambdaDefaults, !Ref DeploymentStage, Lid3]
+          PRIMARY_STT_PROVIDER: !FindInMap [ApiLambdaDefaults, !Ref DeploymentStage, Stt1]
+          SECONDARY_STT_PROVIDER: !FindInMap [ApiLambdaDefaults, !Ref DeploymentStage, Stt2]
+          TERTIARY_STT_PROVIDER: !FindInMap [ApiLambdaDefaults, !Ref DeploymentStage, Stt3]
+          PRIMARY_TRANSLATION_PROVIDER: !FindInMap [ApiLambdaDefaults, !Ref DeploymentStage, Tr1]
+          SECONDARY_TRANSLATION_PROVIDER: !FindInMap [ApiLambdaDefaults, !Ref DeploymentStage, Tr2]
+          TERTIARY_TRANSLATION_PROVIDER: !FindInMap [ApiLambdaDefaults, !Ref DeploymentStage, Tr3]
+          MULTILINGUAL_STRICT_VALIDATION: !FindInMap [MultilingualStageDefaults, !Ref DeploymentStage, StrictValidation]
+          AWS_TRANSCRIBE_LANGUAGE_IDENTIFICATION: "true"
+          AWS_TRANSCRIBE_PREFERRED_LANGUAGE_OPTIONS: ""
+          AWS_TRANSCRIBE_TIMEOUT_MS: "0"
+          AWS_TRANSCRIBE_ENABLE_PARTIAL_RESULTS: "false"
+          AWS_TRANSCRIBE_LANGUAGE_OPTIONS: "en-US,es-US,zh-CN,tl-PH,vi-VN,ar-SA,fr-FR,ko-KR,ru-RU,pt-BR"
+          BEDROCK_MODEL_PRIMARY: !Ref AiBedrockFoundationModelId
+          BEDROCK_MODEL_SECONDARY: !Ref AiBedrockFoundationModelId
+          BEDROCK_MODEL_TERTIARY: !Ref AiBedrockFoundationModelId
+          GOOGLE_CLOUD_PROJECT_ID: !Ref GoogleCloudProjectId
+          LANGUAGE_PROVIDER: !Ref LanguageProvider
+          GOOGLE_TRANSLATE_LOCATION: "global"
+          GOOGLE_TTS_LOCATION: "global"
+          GOOGLE_TTS_OUTPUT_BUCKET: !Ref GoogleTtsOutputBucket
+          GOOGLE_APPLICATION_CREDENTIALS_SECRET_ARN: !If
+            - UseManagedMultilingualSecrets
+            - !Ref NestedMultilingualGoogleServiceAccountSecretArn
+            - !Ref GoogleApplicationCredentialsSecretArn
+          SILENT_TEXT_TRANSLATION_ENABLED: "true"
+          SILENT_TEXT_TTS_ENABLED: "false"
+      Policies:
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardA
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardB
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardC
+        - !Ref AppManagedPolicyS3ApplicationBucketsCrud
+        - !Ref AppManagedPolicyComprehendTranslateRegionalDetect
+        - !Ref AppManagedPolicySecretsMultilingualScopedRead
+      Events:
+        GetPublic:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/silent-text/t/{token}
+            Method: GET
+            Auth:
+              Authorizer: NONE
+        GetMessages:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/silent-text/t/{token}/messages
+            Method: GET
+            Auth:
+              Authorizer: NONE
+        PostOpened:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/silent-text/t/{token}/opened
+            Method: POST
+            Auth:
+              Authorizer: NONE
+        PostPresence:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/silent-text/t/{token}/presence
+            Method: POST
+            Auth:
+              Authorizer: NONE
+        PostMessage:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/silent-text/t/{token}/message
+            Method: POST
+            Auth:
+              Authorizer: NONE
+        PostEnd:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/silent-text/t/{token}/end
+            Method: POST
+            Auth:
+              Authorizer: NONE
+
+  PinpointPublicHttpFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/handlers/pinpointPublicHttp.handler
+      Timeout: 30
+      Environment:
+        Variables:
+          <<: *SAM2_HEAVY_LAMBDAS_GLOBALS_SLIM_OVERRIDES
+          PINPOINT_LINKS_TABLE: !Ref PinpointLinksTable
+          ENABLE_PINPOINT: "false"
+      Policies:
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardA
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardB
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardC
+      Events:
+        GetPublic:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/pinpoint/t/{token}
+            Method: GET
+            Auth:
+              Authorizer: NONE
+        PostLocation:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/pinpoint/t/{token}/location
+            Method: POST
+            Auth:
+              Authorizer: NONE
+
+  PinpointSurgeIncidentsHttpFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/handlers/pinpointSurgeIncidentsHttp.handler
+      Timeout: 30
+      Environment:
+        Variables:
+          <<: *SAM2_HEAVY_LAMBDAS_GLOBALS_SLIM_OVERRIDES
+          PINPOINT_LINKS_TABLE: !Ref PinpointLinksTable
+          SURGE_CLUSTERS_TABLE: !Ref SurgeClustersTable
+          ENABLE_PINPOINT: "false"
+          ENABLE_SURGE: "false"
+          PINPOINT_PUBLIC_BASE_URL: ""
+          PINPOINT_SMS_MOCK: "false"
+          INCIDENT_MEDIA_SNS_DIRECT: "0"
+          INCIDENT_MEDIA_TWILIO_SECRET_ARN: !Ref IncidentMediaTwilioSecretArn
+          INCIDENT_MEDIA_SMS_MOCK: "false"
+          SMS_PROVIDER: !FindInMap [SmsEnvironmentDefaults, !Ref DeploymentStage, SmsProvider]
+          SMS_PRIMARY_PROVIDER: !FindInMap [SmsEnvironmentDefaults, !Ref DeploymentStage, SmsPrimaryProvider]
+          MOCK_SMS_PROVIDER: !FindInMap [SmsEnvironmentDefaults, !Ref DeploymentStage, MockSmsProvider]
+          AWS_SMS_REGION: ""
+          AWS_SMS_USE_SIMULATOR: !FindInMap [SmsEnvironmentDefaults, !Ref DeploymentStage, AwsSmsUseSimulator]
+          AWS_SMS_CONFIGURATION_SET_NAME: ""
+          AWS_SMS_POOL_ID: ""
+      Policies:
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardA
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardB
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardC
+        - !Ref AppManagedPolicyOpsAlertsSnsPublishOnly
+        - Fn::If:
+            - HasIncidentMediaTwilioSecretArn
+            - Statement:
+                Effect: Allow
+                Action:
+                  - secretsmanager:GetSecretValue
+                Resource: !Ref IncidentMediaTwilioSecretArn
+            - !Ref AWS::NoValue
+      Events:
+        PostPinpointLink:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/incidents/{id}/pinpoint/links
+            Method: POST
+        ListPinpointLinks:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/incidents/{id}/pinpoint/links
+            Method: GET
+        GetPinpointLink:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/incidents/{id}/pinpoint/links/{linkId}
+            Method: GET
+        RevokePinpointLink:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/incidents/{id}/pinpoint/links/{linkId}/revoke
+            Method: POST
+        PostSurgeAnalyze:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/incidents/{id}/surge/analyze
+            Method: POST
+        ListSurgeClusters:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/incidents/{id}/surge/clusters
+            Method: GET
+        GetSurgeCluster:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/incidents/{id}/surge/clusters/{clusterId}
+            Method: GET
+        ConfirmSurgeCluster:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/incidents/{id}/surge/clusters/{clusterId}/confirm
+            Method: POST
+        DismissSurgeCluster:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/incidents/{id}/surge/clusters/{clusterId}/dismiss
+            Method: POST
+        SplitSurgeCluster:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/incidents/{id}/surge/clusters/{clusterId}/split
+            Method: POST
+
+  RetentionExecutorFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/lambdas/retentionExecutor.handler
+      Timeout: 900
+      MemorySize: 1024
+      Policies:
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardA
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardB
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardC
+        - !Ref AppManagedPolicyS3ApplicationBucketsCrud
+      Environment:
+        Variables:
+          RETENTION_INCIDENT_DAYS_DEFAULT: "2555"
+          RETENTION_TRANSCRIPT_DAYS_DEFAULT: "1095"
+          RETENTION_MEDIA_DAYS_DEFAULT: "365"
+          RETENTION_ANALYSIS_DAYS_DEFAULT: "1095"
+          RETENTION_PURGE_PAGE_SIZE: "25"
+
+  RetentionSchedulerInvokeRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: scheduler.amazonaws.com
+            Action: sts:AssumeRole
+      Policies:
+        - PolicyName: invoke-retention-executor
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action: lambda:InvokeFunction
+                Resource: !GetAtt RetentionExecutorFunction.Arn
+
+  RetentionExecutorSchedule:
+    Type: AWS::Scheduler::Schedule
+    Properties:
+      Name: !Sub "${Sam2ManagedPolicyNamePrefix}-ret-daily-${DeploymentStage}"
+      ScheduleExpression: cron(15 6 * * ? *)
+      ScheduleExpressionTimezone: UTC
+      FlexibleTimeWindow:
+        Mode: "OFF"
+      State: ENABLED
+      Target:
+        Arn: !GetAtt RetentionExecutorFunction.Arn
+        RoleArn: !GetAtt RetentionSchedulerInvokeRole.Arn
+        RetryPolicy:
+          MaximumEventAgeInSeconds: 3600
+          MaximumRetryAttempts: 2
+
+  RetentionExecutorInvokePermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      FunctionName: !Ref RetentionExecutorFunction
+      Action: lambda:InvokeFunction
+      Principal: scheduler.amazonaws.com
+      SourceArn: !GetAtt RetentionExecutorSchedule.Arn
+
+Outputs:
+  OpsAlertsTopicArn:
+    Value: !Ref OpsAlertsTopic
+  HttpApiUrl:
+    Value: !GetAtt Api.ApiEndpoint
+  HttpApiId:
+    Value: !Ref Api
+  ApiWebAclArn:
+    Value: !If [HasApiWaf, !GetAtt ApiWebAcl.Arn, ""]
+  ApiCustomDomainUrl:
+    Value: !If [UseApiCustomDomain, !Sub "https://${ApiSubdomainPrefix}.${RootDomainName}", ""]
+  ApiTlsCertificateArn:
+    Value: !If [UseApiCustomDomain, !If [HasImportedApiCert, !Ref ApiDomainCertificateArn, !Ref ApiManagedCertificate], ""]
+  ListWellnessFlagsFunctionName:
+    Value: !Ref ListWellnessFlagsFunction
+  AcknowledgeTraumaFlagFunctionName:
+    Value: !Ref AcknowledgeTraumaFlagFunction
+  GetCallerCardFunctionName:
+    Value: !Ref GetCallerCardFunction
+  CreatePremiseNoteFunctionName:
+    Value: !Ref CreatePremiseNoteFunction
+  PatchPremiseNoteFunctionName:
+    Value: !Ref PatchPremiseNoteFunction
