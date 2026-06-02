@@ -1,11 +1,11 @@
 import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import Script from "next/script";
 import { SITE_DESCRIPTION, SITE_NAME, SITE_PUBLIC_ICON_PATHS } from "@/lib/site";
 import { absoluteUrl, getSiteUrl, SEO_IMAGE_PATH } from "@/lib/seo";
 import { getWorkspaceBuildProbe } from "@/lib/phase1-workspace";
 import { Providers } from "@/app/providers";
 import { FontPreferenceProvider } from "@/components/providers/font-preference-provider";
-import { GoogleAnalytics } from "@/components/analytics/GoogleAnalytics";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -20,6 +20,7 @@ const geistMono = Geist_Mono({
 
 const siteUrl = getSiteUrl();
 const defaultOgImage = absoluteUrl(SEO_IMAGE_PATH);
+const GA_MEASUREMENT_ID = process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID ?? "G-S83NHMBHRD";
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
@@ -106,8 +107,21 @@ export default function RootLayout({
       lang="en"
       className={`dark ${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
+      <head>
+        <Script
+          src={`https://www.googletagmanager.com/gtag/js?id=${GA_MEASUREMENT_ID}`}
+          strategy="beforeInteractive"
+        />
+        <Script id="google-analytics" strategy="beforeInteractive">
+          {`
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+            gtag('config', '${GA_MEASUREMENT_ID}');
+          `}
+        </Script>
+      </head>
       <body className="min-h-full min-h-dvh text-slate-100">
-        <GoogleAnalytics />
         <Providers>
           <FontPreferenceProvider>{children}</FontPreferenceProvider>
         </Providers>
