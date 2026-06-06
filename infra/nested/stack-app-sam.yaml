@@ -474,6 +474,158 @@ Parameters:
     Default: "true"
     AllowedValues: ["true", "false"]
     Description: When true, dispatcher write-backs queue for supervisor/admin approval before vendor HTTP.
+  EnableSilentText:
+    Type: String
+    Default: "false"
+    AllowedValues: ["true", "false"]
+    Description: >-
+      When true, Silent Text dispatcher + public token routes are active. Must also have a working
+      SMS provider (Twilio secret ARN or AWS SNS/EUM) — without that, session creates audit
+      SILENT_TEXT_SMS_FAILED and return ok=false.
+  EnablePinpoint:
+    Type: String
+    Default: "false"
+    AllowedValues: ["true", "false"]
+    Description: >-
+      When true, Pinpoint (LiveLocation) dispatcher + public token routes are active. Requires the
+      same SMS provider configuration as Silent Text + incident media (`INCIDENT_MEDIA_TWILIO_SECRET_ARN`).
+  EnableConnectRing:
+    Type: String
+    Default: "true"
+    AllowedValues: ["true", "false"]
+    Description: When true, Ring Connect OAuth and device linking routes are active.
+  RingPartnershipEnabled:
+    Type: String
+    Default: "true"
+    AllowedValues: ["true", "false"]
+    Description: When true, Ring partnership credentials and Connect integration are active.
+  RingClientId:
+    Type: String
+    Default: ""
+    Description: Deprecated — Ring OAuth client id is loaded from RingCredentialsSecretArn at runtime.
+  RingClientSecret:
+    Type: String
+    Default: ""
+    NoEcho: true
+    Description: Deprecated — Ring OAuth client secret is loaded from RingCredentialsSecretArn at runtime.
+  RingCredentialsSecretArn:
+    Type: String
+    Default: "arn:aws:secretsmanager:us-east-1:158961537080:secret:rapid-cortex/connect/ring-credentials-D3f1sN"
+    Description: Ring API credentials secret ARN (clientId, clientSecret, hmacKey JSON).
+  RingRedirectUri:
+    Type: String
+    Default: "https://api.rapidcortex.us/api/integrations/ring/callback"
+  RingAccountLinkUrl:
+    Type: String
+    Default: "https://www.rapidcortex.us/connect/ring/link"
+  RingSecretsPrefix:
+    Type: String
+    Default: "rapid-cortex/connect/ring"
+  RingAccountsTable:
+    Type: String
+    Default: ""
+    Description: Physical DynamoDB table for linked Ring accounts (RapidCortexRingAccounts-{stage}).
+  RingDevicesTable:
+    Type: String
+    Default: ""
+    Description: Physical DynamoDB table for Ring devices (RapidCortexRingDevices-{stage}).
+  RingRequestsTable:
+    Type: String
+    Default: ""
+    Description: Physical DynamoDB table for Ring emergency camera requests.
+  RingSessionsTable:
+    Type: String
+    Default: ""
+    Description: Physical DynamoDB table for Ring emergency camera sessions.
+  EnableConnectRingAvailableCameras:
+    Type: String
+    Default: "false"
+    AllowedValues: ["true", "false"]
+    Description: When true, Ring available-cameras metadata route is active (requires EnableConnectRing).
+  EnableConnectRingEmergencyRequests:
+    Type: String
+    Default: "false"
+    AllowedValues: ["true", "false"]
+    Description: When true, Ring emergency camera request/consent/revoke routes are active.
+  RingPublicApiBaseUrl:
+    Type: String
+    Default: "https://api.rapidcortex.us"
+    Description: Public API base URL for Ring owner consent links (no trailing slash).
+  ConnectAccessSessionsTable:
+    Type: String
+    Default: ""
+    Description: Physical DynamoDB table for Connect access sessions.
+  VenueFacilitiesTable:
+    Type: String
+    Default: ""
+    Description: Physical DynamoDB table for venue facility profiles, floor plans, plans, and cameras.
+  VenueAssetsTable:
+    Type: String
+    Default: ""
+    Description: Physical DynamoDB table for venue facility assets (AED, exits, staging, etc.).
+  VenueIncidentOverlaysTable:
+    Type: String
+    Default: ""
+    Description: Physical DynamoDB table for venue incident overlays and responder check-ins.
+  VenueCameraAccessLogTable:
+    Type: String
+    Default: ""
+    Description: Immutable venue camera access log (no TTL).
+  VenueConfigTable:
+    Type: String
+    Default: ""
+    Description: Venue config DynamoDB table (event schedules, SMS incidents).
+  CampusIncidentsTable:
+    Type: String
+    Default: ""
+    Description: Physical DynamoDB table for campus incidents.
+  CampusConfigTable:
+    Type: String
+    Default: ""
+    Description: Physical DynamoDB table for campus config, buildings, zones, and anon tokens.
+  QRLocationsTable:
+    Type: String
+    Default: ""
+    Description: Physical DynamoDB table for QR location registry (RCLI).
+  ConnectBridgeClusterArn:
+    Type: String
+    Default: ""
+    Description: ECS cluster ARN for Connect media bridge tasks.
+  VenueBridgeClusterArn:
+    Type: String
+    Default: ""
+    Description: ECS cluster ARN for Venue media bridge tasks.
+  ConnectBridgeTaskDefinition:
+    Type: String
+    Default: ""
+    Description: ECS task definition ARN for Connect media bridge container.
+  VenueBridgeTaskDefinition:
+    Type: String
+    Default: ""
+    Description: ECS task definition ARN for Venue media bridge container.
+  BridgeSubnetIds:
+    Type: String
+    Default: ""
+    Description: Comma-separated private subnet IDs for bridge Fargate tasks.
+  BridgeSecurityGroupIds:
+    Type: String
+    Default: ""
+    Description: Comma-separated security group IDs for bridge Fargate tasks.
+  RingApiBaseUrl:
+    Type: String
+    Default: ""
+    Description: Ring partner API base URL (empty when partnership inactive).
+  InternalServiceKey:
+    Type: String
+    Default: ""
+    NoEcho: true
+    Description: Shared secret for internal Ring refresh-token route (X-Internal-Service-Key).
+  AppPublicBaseUrl:
+    Type: String
+    Default: "https://www.rapidcortex.us"
+    Description: >-
+      Public origin where token pages are served (Silent Text safety links and LiveLocation
+      capture pages). Used to mint absolute URLs in SMS bodies — both features share the same value.
   CadPublicApiBaseUrl:
     Type: String
     Default: ""
@@ -502,6 +654,9 @@ Parameters:
   SilentTextSessionsTable:
     Type: String
     Description: Physical DynamoDB table name from data layer (SilentTextSessionsTable).
+  PinpointLinksTable:
+    Type: String
+    Description: Physical DynamoDB table name from data layer (PinpointLinksTable).
   AnalysesTable:
     Type: String
     Description: Physical DynamoDB table name from data layer (AnalysesTable).
@@ -582,6 +737,13 @@ Parameters:
     Default: "true"
     AllowedValues: ["true", "false"]
     Description: When true, SEO Intelligence Suggestions may call Bedrock (requires IAM); otherwise rule-based fallbacks only.
+  PilotTestFeaturesEnabled:
+    Type: String
+    Default: auto
+    AllowedValues: [auto, "true", "false"]
+    Description: >-
+      When auto, enables pilot-test API feature flags for DeploymentStage=dev (QA scoring, Surge, SOP AI,
+      Ring emergency cameras, incident media, etc.). Pass from root stack or set true/false explicitly.
 
 Rules:
   PilotProdNoCorsWildcard:
@@ -628,6 +790,18 @@ Conditions:
           - !Ref DeploymentStage
           - pilot
   HasIncidentMediaTwilioSecretArn: !Not [!Equals [!Ref IncidentMediaTwilioSecretArn, ""]]
+  HasRingAccountsTable: !Not [!Equals [!Ref RingAccountsTable, ""]]
+  HasRingDevicesTable: !Not [!Equals [!Ref RingDevicesTable, ""]]
+  HasRingRequestsTable: !Not [!Equals [!Ref RingRequestsTable, ""]]
+  HasRingSessionsTable: !Not [!Equals [!Ref RingSessionsTable, ""]]
+  HasVenueFacilitiesTable: !Not [!Equals [!Ref VenueFacilitiesTable, ""]]
+  HasVenueCameraAccessLogTable: !Not [!Equals [!Ref VenueCameraAccessLogTable, ""]]
+  HasVenueConfigTable: !Not [!Equals [!Ref VenueConfigTable, ""]]
+  HasCampusIncidentsTable: !Not [!Equals [!Ref CampusIncidentsTable, ""]]
+  HasCampusConfigTable: !Not [!Equals [!Ref CampusConfigTable, ""]]
+  HasQRLocationsTable: !Not [!Equals [!Ref QRLocationsTable, ""]]
+  HasVenueBridgeCluster: !Not [!Equals [!Ref VenueBridgeClusterArn, ""]]
+  HasRingCredentialsSecretArn: !Not [!Equals [!Ref RingCredentialsSecretArn, ""]]
   HasExternalApiJwtSecretArn: !Not [!Equals [!Ref ExternalApiJwtSecretArn, ""]]
   HasExternalApiEncryptionKeyArn: !Not [!Equals [!Ref ExternalApiEncryptionKeyArn, ""]]
   HasDynamoTablePrefix: !Not [!Equals [!Ref DynamoTableNamePrefix, ""]]
@@ -682,6 +856,12 @@ Conditions:
     - !Equals [!Ref DeploymentStage, prod]
     - !Equals [!Ref DeploymentStage, pilot]
     - !Equals [!Ref DeploymentStage, staging]
+  PilotTestFeaturesOn:
+    Fn::Or:
+      - !Equals [!Ref PilotTestFeaturesEnabled, "true"]
+      - Fn::And:
+          - !Equals [!Ref PilotTestFeaturesEnabled, "auto"]
+          - !Equals [!Ref DeploymentStage, "dev"]
 
 Mappings:
   MultilingualStageDefaults:
@@ -697,63 +877,74 @@ Mappings:
     dev:
       PrimaryAi: mock
       SecondaryAi: mock
-      TertiaryAi: off
+      TertiaryAi: "off"
       AiFallback: mock
       AiSecondaryFallback: mock
       Lid1: mock
       Lid2: mock
-      Lid3: off
-      Stt1: mock
-      Stt2: mock
-      Stt3: off
-      Tr1: mock
-      Tr2: mock
-      Tr3: off
+      Lid3: "off"
+      # STT chain enabled on dev 2026-05-26 (per Jeff) to verify OpenAI Whisper
+      # end-to-end. Azure Speech (primary) and OpenAI Whisper (secondary) cost
+      # real $ on every audio chunk. AWS Transcribe is tertiary fallback.
+      # multilingualConfig normalizeVendorKind accepts: azure, openai, aws, mock, off
+      # (azure-speech / openai-whisper / aws-transcribe are NOT valid short forms).
+      Stt1: "azure"
+      Stt2: "openai"
+      Stt3: "aws"
+      # Translation chain still on mock for dev (Deploy #6 = STT verification
+      # only). Deploy #7 will flip to Tr1=azure / Tr2=google / Tr3=aws across
+      # all stages. multilingualConfig normalizeVendorKind accepts: azure,
+      # google, aws, mock, off (NOT azure-translator / google-translate / aws-
+      # translate). NOTE: bare YAML "off" is parsed as boolean false, so quote
+      # it as "off" — otherwise CFN deploys TERTIARY_TRANSLATION_PROVIDER="false".
+      Tr1: "mock"
+      Tr2: "mock"
+      Tr3: "off"
     staging:
       PrimaryAi: bedrock
-      SecondaryAi: off
-      TertiaryAi: off
-      AiFallback: off
-      AiSecondaryFallback: off
+      SecondaryAi: "off"
+      TertiaryAi: "off"
+      AiFallback: "off"
+      AiSecondaryFallback: "off"
       Lid1: aws
       Lid2: mock
-      Lid3: off
+      Lid3: "off"
       Stt1: azure
-      Stt2: google
+      Stt2: openai
       Stt3: aws
-      Tr1: aws
-      Tr2: mock
-      Tr3: off
+      Tr1: "aws"
+      Tr2: "mock"
+      Tr3: "off"
     prod:
       PrimaryAi: bedrock
-      SecondaryAi: off
-      TertiaryAi: off
-      AiFallback: off
-      AiSecondaryFallback: off
+      SecondaryAi: "off"
+      TertiaryAi: "off"
+      AiFallback: "off"
+      AiSecondaryFallback: "off"
       Lid1: aws
       Lid2: mock
-      Lid3: off
+      Lid3: "off"
       Stt1: azure
-      Stt2: google
+      Stt2: openai
       Stt3: aws
-      Tr1: aws
-      Tr2: mock
-      Tr3: off
+      Tr1: "aws"
+      Tr2: "mock"
+      Tr3: "off"
     pilot:
       PrimaryAi: bedrock
-      SecondaryAi: off
-      TertiaryAi: off
-      AiFallback: off
-      AiSecondaryFallback: off
+      SecondaryAi: "off"
+      TertiaryAi: "off"
+      AiFallback: "off"
+      AiSecondaryFallback: "off"
       Lid1: aws
       Lid2: mock
-      Lid3: off
+      Lid3: "off"
       Stt1: azure
-      Stt2: google
+      Stt2: openai
       Stt3: aws
-      Tr1: aws
-      Tr2: mock
-      Tr3: off
+      Tr1: "aws"
+      Tr2: "mock"
+      Tr3: "off"
   SmsEnvironmentDefaults:
     dev:
       SmsProvider: mock
@@ -784,7 +975,7 @@ Globals:
     Environment:
       Variables:
         RC_RUNTIME_CONFIG_JSON: !Sub
-          - '{"ds":"${DeploymentStage}","trp":"${TranscriptRetentionPolicyDays}","it":"${IncidentsTable}","tt":"${TranscriptsTable}","at":"${AnalysesTable}","aud":"${AuditTable}","dda":"${DataDeletionAuditTable}","drp":"cjis-default-v1","ag":"${AgenciesTable}","iv":"${InvitesTable}","ao":"${AccessOverridesTable}","neo":"${NetworkEmergencyOverridesTable}","ans":"${AgencyNetworkPolicySyncTopic}","nae":"false","waf":"${WafArn}","wsc":"REGIONAL","ac":"${ApiClientsTable}","wh":"${WebhooksTable}","erl":"${ExternalApiRateLimitsTable}","rle":"true","rak":"${RcLiteApiKeysTable}","rrl":"${RcLiteRateLimitTable}","rlu":"${RcLiteUsageTable}","sit":"${SeoIntelligenceTable}","ste":"${SeoToolEnabled}","sae":"${SeoAutoScanEnabled}","sai":"${SeoAiSuggestionsEnabled}","det":"${DeceptionEventsTable}","dse":"false","dae":"false","dal":"true","ops":"${OpsAlertsTopic}","ej":"${ExternalApiJwtSecretArn}","ek":"${ExternalApiEncryptionKeyArn}","pma":"60","peg":"0","pcf":"true","ab":"${AssetsBucket}","ls":"${LanguageSessionsTable}","aef":"true","asm":"true","apv":"dispatch-triage-v1","art":"55000","amr":"1","adb":"0","amh":"120","asu":"true","ail":"90","oa":"${OpenAiApiKeySecretArn}","aa":"${AnthropicApiKeySecretArn}","aas":"0","aua":"false","aco":"${HttpApiCorsAllowedOrigins}","eqs":"false","eqa":"false","qss":"${QASessionsTable}","qts":"${QATemplatesTable}","qsm":"false","qbm":"${QaBedrockModelId}","br":"${AWSRegion}","eim":"false","imt":"${IncidentMediaTable}","imp":"","imn":"120","imu":"900","imx":"52428800","ent":"false","tft":"${TraumaFlagsTable}","pn":"${PremiseNotesTable}","dcn":"${DispatcherCoachingNotesTable}","itl":"${IncidentTimelineTable}","ish":"${IncidentSharesTable}","asp":"${AgencySharePartnersTable}","lp":"${LanguageProvider}","cr":"${AWSRegion}","cwe":"${CadWritebackEnabled}","cwr":"${CadWritebackRequiresApproval}","cwa":"${CadWritebackAuditTable}","bp":"${BillingProfilesTable}","inv":"${InvoicesTable}","ii":"${InvoiceItemsTable}","bae":"${BillingAuditEventsTable}","mao":"${MonetizationAddOnsTable}","minv":"${MonetizationInvoicesTable}","slt":"${SalesLeadsTable}","cfe":"support@rapidcortex.us"}'
+          - '{"ds":"${DeploymentStage}","trp":"${TranscriptRetentionPolicyDays}","it":"${IncidentsTable}","tt":"${TranscriptsTable}","at":"${AnalysesTable}","aud":"${AuditTable}","dda":"${DataDeletionAuditTable}","drp":"cjis-default-v1","ag":"${AgenciesTable}","iv":"${InvitesTable}","ao":"${AccessOverridesTable}","neo":"${NetworkEmergencyOverridesTable}","ans":"${AgencyNetworkPolicySyncTopic}","nae":"false","waf":"${WafArn}","wsc":"REGIONAL","ac":"${ApiClientsTable}","wh":"${WebhooksTable}","erl":"${ExternalApiRateLimitsTable}","rle":"true","rak":"${RcLiteApiKeysTable}","rrl":"${RcLiteRateLimitTable}","rlu":"${RcLiteUsageTable}","sit":"${SeoIntelligenceTable}","ste":"${SeoToolEnabled}","sae":"${SeoAutoScanEnabled}","sai":"${SeoAiSuggestionsEnabled}","det":"${DeceptionEventsTable}","dse":"${PilotDeceptionShield}","dae":"false","dal":"true","ops":"${OpsAlertsTopic}","ej":"${ExternalApiJwtSecretArn}","ek":"${ExternalApiEncryptionKeyArn}","pma":"60","peg":"0","pcf":"true","ab":"${AssetsBucket}","ls":"${LanguageSessionsTable}","aef":"true","asm":"true","apv":"dispatch-triage-v1","art":"55000","amr":"1","adb":"0","amh":"120","asu":"true","ail":"90","oa":"${OpenAiApiKeySecretArn}","aa":"${AnthropicApiKeySecretArn}","aas":"0","aua":"false","aco":"${HttpApiCorsAllowedOrigins}","eqs":"${PilotEnableQaScoring}","eqa":"${PilotEnableQaAfterAnalysis}","qss":"${QASessionsTable}","qts":"${QATemplatesTable}","qsm":"${PilotQaScoringMock}","qbm":"${QaBedrockModelId}","br":"${AWSRegion}","eim":"${PilotEnableIncidentMedia}","imt":"${IncidentMediaTable}","imp":"","imn":"120","imu":"900","imx":"52428800","ent":"${PilotEnableNonEmergencyTriage}","tft":"${TraumaFlagsTable}","pn":"${PremiseNotesTable}","dcn":"${DispatcherCoachingNotesTable}","itl":"${IncidentTimelineTable}","ish":"${IncidentSharesTable}","asp":"${AgencySharePartnersTable}","lp":"${LanguageProvider}","cr":"${AWSRegion}","cwe":"${CadWritebackEnabled}","cwr":"${CadWritebackRequiresApproval}","cwa":"${CadWritebackAuditTable}","bp":"${BillingProfilesTable}","inv":"${InvoicesTable}","ii":"${InvoiceItemsTable}","bae":"${BillingAuditEventsTable}","mao":"${MonetizationAddOnsTable}","minv":"${MonetizationInvoicesTable}","slt":"${SalesLeadsTable}","cfe":"support@rapidcortex.us"}'
           -
             AWSRegion: !Ref AWS::Region
             AccessOverridesTable: !Ref AccessOverridesTable
@@ -835,14 +1026,199 @@ Globals:
             SeoAutoScanEnabled: !Ref SeoAutoScanEnabled
             SeoIntelligenceTable: !Ref SeoIntelligenceTable
             SeoToolEnabled: !Ref SeoToolEnabled
+            PilotEnableQaScoring: !If [PilotTestFeaturesOn, "true", "false"]
+            PilotEnableQaAfterAnalysis: !If [PilotTestFeaturesOn, "true", "false"]
+            PilotQaScoringMock: !If [PilotTestFeaturesOn, "true", "false"]
+            PilotEnableIncidentMedia: !If [PilotTestFeaturesOn, "true", "false"]
+            PilotEnableNonEmergencyTriage: !If [PilotTestFeaturesOn, "true", "false"]
+            PilotDeceptionShield: !If [PilotTestFeaturesOn, "true", "false"]
             TranscriptRetentionPolicyDays: !Ref TranscriptRetentionPolicyDays
             TranscriptsTable: !Ref TranscriptsTable
             TraumaFlagsTable: !Ref TraumaFlagsTable
             WafArn: !If [HasApiWaf, !GetAtt ApiWebAcl.Arn, ""]
             WebhooksTable: !Ref WebhooksTable
+        RING_CREDENTIALS_SECRET_ARN: !Ref RingCredentialsSecretArn
+        RING_PARTNER_TOKEN_SECRET_ARN: !Ref RingCredentialsSecretArn
+        RING_PARTNERSHIP_ENABLED: !Ref RingPartnershipEnabled
+        RING_API_BASE_URL: !Ref RingApiBaseUrl
+        ENABLE_CONNECT_RING: !Ref EnableConnectRing
+        ENABLE_CONNECT_RING_AVAILABLE_CAMERAS: !If [PilotTestFeaturesOn, "true", !Ref EnableConnectRingAvailableCameras]
+        ENABLE_CONNECT_RING_EMERGENCY_REQUESTS: !If [PilotTestFeaturesOn, "true", !Ref EnableConnectRingEmergencyRequests]
+        CONNECT_SESSIONS_TABLE: !Ref ConnectAccessSessionsTable
+        VENUE_CAMERA_SESSIONS_TABLE: !Ref ConnectAccessSessionsTable
+        VENUE_FACILITIES_TABLE: !Ref VenueFacilitiesTable
+        VENUE_ASSETS_TABLE: !Ref VenueAssetsTable
+        VENUE_OVERLAYS_TABLE: !Ref VenueIncidentOverlaysTable
+        VENUE_CAMERA_ACCESS_LOG_TABLE: !If
+          - HasVenueCameraAccessLogTable
+          - !Ref VenueCameraAccessLogTable
+          - ""
+        VENUE_CONFIG_TABLE: !If
+          - HasVenueConfigTable
+          - !Ref VenueConfigTable
+          - ""
+        VENUE_CODES: !Sub "${AppName}-venue-codes"
+        CAMPUS_INCIDENTS_TABLE: !If
+          - HasCampusIncidentsTable
+          - !Ref CampusIncidentsTable
+          - ""
+        CAMPUS_CONFIG_TABLE: !If
+          - HasCampusConfigTable
+          - !Ref CampusConfigTable
+          - ""
+        QR_LOCATIONS_TABLE: !If
+          - HasQRLocationsTable
+          - !Ref QRLocationsTable
+          - ""
+        CAMPUS_CODES: !Sub "${AppName}-campus-codes"
+        CONNECT_BRIDGE_CLUSTER_ARN: !Ref ConnectBridgeClusterArn
+        VENUE_BRIDGE_CLUSTER_ARN: !If
+          - HasVenueBridgeCluster
+          - !Ref VenueBridgeClusterArn
+          - ""
+        CONNECT_BRIDGE_TASK_DEFINITION: !Ref ConnectBridgeTaskDefinitionResource
+        VENUE_BRIDGE_TASK_DEFINITION: !If
+          - HasVenueBridgeCluster
+          - !Ref VenueBridgeTaskDefinitionResource
+          - ""
+        BRIDGE_SUBNET_IDS: !Ref BridgeSubnetIds
+        BRIDGE_SECURITY_GROUP_IDS: !Ref BridgeSecurityGroupIds
 
 
 Resources:
+  ConnectBridgeEcrRepository:
+    Type: AWS::ECR::Repository
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      RepositoryName: !Sub "${AppName}-connect-bridge-${DeploymentStage}"
+      ImageScanningConfiguration:
+        ScanOnPush: true
+      LifecyclePolicy:
+        LifecyclePolicyText: |
+          {"rules":[{"rulePriority":1,"description":"Keep last 5 images","selection":{"tagStatus":"any","countType":"imageCountMoreThan","countNumber":5},"action":{"type":"expire"}}]}
+
+  VenueBridgeEcrRepository:
+    Type: AWS::ECR::Repository
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      RepositoryName: !Sub "${AppName}-venue-bridge-${DeploymentStage}"
+      ImageScanningConfiguration:
+        ScanOnPush: true
+      LifecyclePolicy:
+        LifecyclePolicyText: |
+          {"rules":[{"rulePriority":1,"description":"Keep last 5 images","selection":{"tagStatus":"any","countType":"imageCountMoreThan","countNumber":5},"action":{"type":"expire"}}]}
+
+  BridgeTaskExecutionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: ecs-tasks.amazonaws.com
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy
+
+  BridgeTaskRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: ecs-tasks.amazonaws.com
+            Action: sts:AssumeRole
+      Policies:
+        - PolicyName: BridgePermissions
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - kinesisvideo:PutMedia
+                  - kinesisvideo:TagStream
+                  - kinesisvideo:GetDataEndpoint
+                  - kinesisvideo:CreateStream
+                  - kinesisvideo:DescribeStream
+                Resource:
+                  - !Sub arn:${AWS::Partition}:kinesisvideo:${AWS::Region}:${AWS::AccountId}:channel/rc-connect-*/*
+                  - !Sub arn:${AWS::Partition}:kinesisvideo:${AWS::Region}:${AWS::AccountId}:channel/rc-venue-*/*
+              - Effect: Allow
+                Action:
+                  - secretsmanager:GetSecretValue
+                Resource: !Sub arn:${AWS::Partition}:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:${AppName}/camera-credentials/*
+              - Effect: Allow
+                Action:
+                  - dynamodb:UpdateItem
+                Resource: !Sub arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${ConnectAccessSessionsTable}
+
+  ConnectBridgeLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub "/ecs/${AppName}/connect-bridge/${DeploymentStage}"
+      RetentionInDays: 30
+
+  VenueBridgeLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub "/ecs/${AppName}/venue-bridge/${DeploymentStage}"
+      RetentionInDays: 30
+
+  ConnectBridgeTaskDefinitionResource:
+    Type: AWS::ECS::TaskDefinition
+    Properties:
+      Family: !Sub "${AppName}-connect-bridge-${DeploymentStage}"
+      Cpu: "512"
+      Memory: "1024"
+      NetworkMode: awsvpc
+      RequiresCompatibilities:
+        - FARGATE
+      RuntimePlatform:
+        OperatingSystemFamily: LINUX
+        CpuArchitecture: X86_64
+      ExecutionRoleArn: !GetAtt BridgeTaskExecutionRole.Arn
+      TaskRoleArn: !GetAtt BridgeTaskRole.Arn
+      ContainerDefinitions:
+        - Name: rc-connect-bridge
+          Image: !Sub "${ConnectBridgeEcrRepository.RepositoryUri}:latest"
+          Essential: true
+          LogConfiguration:
+            LogDriver: awslogs
+            Options:
+              awslogs-group: !Ref ConnectBridgeLogGroup
+              awslogs-region: !Ref AWS::Region
+              awslogs-stream-prefix: bridge
+
+  VenueBridgeTaskDefinitionResource:
+    Type: AWS::ECS::TaskDefinition
+    Properties:
+      Family: !Sub "${AppName}-venue-bridge-${DeploymentStage}"
+      Cpu: "512"
+      Memory: "1024"
+      NetworkMode: awsvpc
+      RequiresCompatibilities:
+        - FARGATE
+      RuntimePlatform:
+        OperatingSystemFamily: LINUX
+        CpuArchitecture: X86_64
+      ExecutionRoleArn: !GetAtt BridgeTaskExecutionRole.Arn
+      TaskRoleArn: !GetAtt BridgeTaskRole.Arn
+      ContainerDefinitions:
+        - Name: rc-venue-bridge
+          Image: !Sub "${VenueBridgeEcrRepository.RepositoryUri}:latest"
+          Essential: true
+          LogConfiguration:
+            LogDriver: awslogs
+            Options:
+              awslogs-group: !Ref VenueBridgeLogGroup
+              awslogs-region: !Ref AWS::Region
+              awslogs-stream-prefix: bridge
+
   AppManagedPolicyDynamoLambdaCrudShardA:
     Type: AWS::IAM::ManagedPolicy
     Properties:
@@ -986,6 +1362,38 @@ Resources:
             Resource:
                 - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${PremiseNotesTable}
                 - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${PremiseNotesTable}/index/*
+                - !If
+                  - HasRingAccountsTable
+                  - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${RingAccountsTable}
+                  - !Ref AWS::NoValue
+                - !If
+                  - HasRingAccountsTable
+                  - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${RingAccountsTable}/index/*
+                  - !Ref AWS::NoValue
+                - !If
+                  - HasRingDevicesTable
+                  - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${RingDevicesTable}
+                  - !Ref AWS::NoValue
+                - !If
+                  - HasRingDevicesTable
+                  - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${RingDevicesTable}/index/*
+                  - !Ref AWS::NoValue
+                - !If
+                  - HasRingRequestsTable
+                  - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${RingRequestsTable}
+                  - !Ref AWS::NoValue
+                - !If
+                  - HasRingRequestsTable
+                  - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${RingRequestsTable}/index/*
+                  - !Ref AWS::NoValue
+                - !If
+                  - HasRingSessionsTable
+                  - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${RingSessionsTable}
+                  - !Ref AWS::NoValue
+                - !If
+                  - HasRingSessionsTable
+                  - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${RingSessionsTable}/index/*
+                  - !Ref AWS::NoValue
                 - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${QASessionsTable}
                 - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${QASessionsTable}/index/*
                 - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${QATemplatesTable}
@@ -1006,6 +1414,8 @@ Resources:
                 - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${ServiceCatalogTable}/index/*
                 - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${SilentTextSessionsTable}
                 - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${SilentTextSessionsTable}/index/*
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${PinpointLinksTable}
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${PinpointLinksTable}/index/*
                 - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${TraumaFlagsTable}
                 - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${TraumaFlagsTable}/index/*
                 - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${TranscriptsTable}
@@ -1023,6 +1433,70 @@ Resources:
                 - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${WebhooksTable}/index/*
                 - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${NetworkEmergencyOverridesTable}
                 - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${NetworkEmergencyOverridesTable}/index/*
+                - !If
+                  - HasVenueFacilitiesTable
+                  - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${VenueFacilitiesTable}
+                  - !Ref AWS::NoValue
+                - !If
+                  - HasVenueFacilitiesTable
+                  - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${VenueFacilitiesTable}/index/*
+                  - !Ref AWS::NoValue
+                - !If
+                  - HasVenueFacilitiesTable
+                  - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${VenueAssetsTable}
+                  - !Ref AWS::NoValue
+                - !If
+                  - HasVenueFacilitiesTable
+                  - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${VenueAssetsTable}/index/*
+                  - !Ref AWS::NoValue
+                - !If
+                  - HasVenueFacilitiesTable
+                  - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${VenueIncidentOverlaysTable}
+                  - !Ref AWS::NoValue
+                - !If
+                  - HasVenueFacilitiesTable
+                  - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${VenueIncidentOverlaysTable}/index/*
+                  - !Ref AWS::NoValue
+                - !If
+                  - HasVenueFacilitiesTable
+                  - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${VenueCameraAccessLogTable}
+                  - !Ref AWS::NoValue
+                - !If
+                  - HasVenueFacilitiesTable
+                  - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${VenueCameraAccessLogTable}/index/*
+                  - !Ref AWS::NoValue
+                - !If
+                  - HasVenueConfigTable
+                  - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${VenueConfigTable}
+                  - !Ref AWS::NoValue
+                - !If
+                  - HasVenueConfigTable
+                  - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${VenueConfigTable}/index/*
+                  - !Ref AWS::NoValue
+                - !If
+                  - HasCampusIncidentsTable
+                  - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${CampusIncidentsTable}
+                  - !Ref AWS::NoValue
+                - !If
+                  - HasCampusIncidentsTable
+                  - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${CampusIncidentsTable}/index/*
+                  - !Ref AWS::NoValue
+                - !If
+                  - HasCampusConfigTable
+                  - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${CampusConfigTable}
+                  - !Ref AWS::NoValue
+                - !If
+                  - HasCampusConfigTable
+                  - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${CampusConfigTable}/index/*
+                  - !Ref AWS::NoValue
+                - !If
+                  - HasQRLocationsTable
+                  - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${QRLocationsTable}
+                  - !Ref AWS::NoValue
+                - !If
+                  - HasQRLocationsTable
+                  - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${QRLocationsTable}/index/*
+                  - !Ref AWS::NoValue
 
   AppManagedPolicyS3ApplicationBucketsCrud:
     Type: AWS::IAM::ManagedPolicy
@@ -1149,6 +1623,36 @@ Resources:
               StringEquals:
                 aws:RequestedRegion: !Ref AWS::Region
 
+  AppManagedPolicyRingConnectSecrets:
+    Type: AWS::IAM::ManagedPolicy
+    Properties:
+      ManagedPolicyName: !Sub "${AppName}-lambda-ring-secrets-${DeploymentStage}"
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Sid: RingConnectTokenSecrets
+            Effect: Allow
+            Action:
+              - secretsmanager:CreateSecret
+              - secretsmanager:GetSecretValue
+              - secretsmanager:PutSecretValue
+              - secretsmanager:UpdateSecret
+              - secretsmanager:DeleteSecret
+              - secretsmanager:DescribeSecret
+              - secretsmanager:TagResource
+            Resource: !Sub arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:${RingSecretsPrefix}/*
+          - Sid: RingCredentialsRead
+            Effect: Allow
+            Action:
+              - secretsmanager:GetSecretValue
+            Resource:
+              - !Sub arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:rapid-cortex/connect/ring-credentials-*
+              - !Sub arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:rapid-cortex/connect/ring-credentials-D3f1sN
+              - !If
+                - HasRingCredentialsSecretArn
+                - !Ref RingCredentialsSecretArn
+                - !Ref AWS::NoValue
+
   AppManagedPolicyOpsAlertsSnsPublishOnly:
     Type: AWS::IAM::ManagedPolicy
     Properties:
@@ -1215,6 +1719,9 @@ Resources:
 
   CognitoPostConfirmationFunction:
     Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
     # Ignore Globals.Function.Environment — exceeds Lambda's 4KB limit; Cognito handler only reads signup defaults below.
     IgnoreGlobals: "*"
     Properties:
@@ -1624,6 +2131,9 @@ Resources:
 
   HealthFunction:
     Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
     Properties:
       Environment:
         Variables:
@@ -1646,6 +2156,9 @@ Resources:
 
   PostContactSalesLeadFunction:
     Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
     Properties:
       Environment:
         Variables:
@@ -1680,8 +2193,919 @@ Resources:
             Auth:
               Authorizer: NONE
 
+  RingConnectLoginFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/integrations/ring/login.handler
+      Timeout: 30
+      Environment:
+        Variables:
+          COGNITO_USER_POOL_ID: !Ref CognitoUserPool
+          COGNITO_CLIENT_ID: !Ref CognitoUserPoolClient
+          ENABLE_CONNECT_RING: !Ref EnableConnectRing
+          RING_REDIRECT_URI: !Ref RingRedirectUri
+          RING_ACCOUNT_LINK_URL: !Ref RingAccountLinkUrl
+          RING_SECRETS_PREFIX: !Ref RingSecretsPrefix
+          RING_TABLE_ACCOUNTS: !If
+            - HasRingAccountsTable
+            - !Ref RingAccountsTable
+            - !Sub "RapidCortexRingAccounts-${DeploymentStage}"
+          RING_TABLE_DEVICES: !If
+            - HasRingDevicesTable
+            - !Ref RingDevicesTable
+            - !Sub "RapidCortexRingDevices-${DeploymentStage}"
+      Policies:
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardA
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardC
+        - !Ref AppManagedPolicyRingConnectSecrets
+      Events:
+        Route:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/integrations/ring/login
+            Method: GET
+
+  RingConnectCallbackFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/integrations/ring/callback.handler
+      Timeout: 60
+      Environment:
+        Variables:
+          ENABLE_CONNECT_RING: !Ref EnableConnectRing
+          RING_REDIRECT_URI: !Ref RingRedirectUri
+          RING_ACCOUNT_LINK_URL: !Ref RingAccountLinkUrl
+          RING_SECRETS_PREFIX: !Ref RingSecretsPrefix
+          RING_TABLE_ACCOUNTS: !If
+            - HasRingAccountsTable
+            - !Ref RingAccountsTable
+            - !Sub "RapidCortexRingAccounts-${DeploymentStage}"
+          RING_TABLE_DEVICES: !If
+            - HasRingDevicesTable
+            - !Ref RingDevicesTable
+            - !Sub "RapidCortexRingDevices-${DeploymentStage}"
+      Policies:
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardA
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardC
+        - !Ref AppManagedPolicyRingConnectSecrets
+      Events:
+        Route:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/integrations/ring/callback
+            Method: GET
+            Auth:
+              Authorizer: NONE
+
+  RingConnectDevicesFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/integrations/ring/devices.handler
+      Timeout: 30
+      Environment:
+        Variables:
+          COGNITO_USER_POOL_ID: !Ref CognitoUserPool
+          COGNITO_CLIENT_ID: !Ref CognitoUserPoolClient
+          ENABLE_CONNECT_RING: !Ref EnableConnectRing
+          RING_TABLE_DEVICES: !If
+            - HasRingDevicesTable
+            - !Ref RingDevicesTable
+            - !Sub "RapidCortexRingDevices-${DeploymentStage}"
+      Policies:
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardA
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardC
+      Events:
+        Route:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/integrations/ring/devices
+            Method: GET
+
+  RingConnectRefreshTokenFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/integrations/ring/refresh-token.handler
+      Timeout: 30
+      Environment:
+        Variables:
+          ENABLE_CONNECT_RING: !Ref EnableConnectRing
+          RING_SECRETS_PREFIX: !Ref RingSecretsPrefix
+          RING_TABLE_ACCOUNTS: !If
+            - HasRingAccountsTable
+            - !Ref RingAccountsTable
+            - !Sub "RapidCortexRingAccounts-${DeploymentStage}"
+          INTERNAL_SERVICE_KEY: !Ref InternalServiceKey
+      Policies:
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardA
+        - !Ref AppManagedPolicyRingConnectSecrets
+      Events:
+        Route:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/integrations/ring/refresh-token
+            Method: POST
+            Auth:
+              Authorizer: NONE
+
+  RingConnectAvailableCamerasFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/integrations/ring/available-cameras.handler
+      Timeout: 30
+      Environment:
+        Variables:
+          COGNITO_USER_POOL_ID: !Ref CognitoUserPool
+          COGNITO_CLIENT_ID: !Ref CognitoUserPoolClient
+          ENABLE_CONNECT_RING: !Ref EnableConnectRing
+          ENABLE_CONNECT_RING_AVAILABLE_CAMERAS: !Ref EnableConnectRingAvailableCameras
+          RING_TABLE_DEVICES: !If
+            - HasRingDevicesTable
+            - !Ref RingDevicesTable
+            - !Sub "RapidCortexRingDevices-${DeploymentStage}"
+          RING_TABLE_REQUESTS: !If
+            - HasRingRequestsTable
+            - !Ref RingRequestsTable
+            - !Sub "RingEmergencyCameraRequests-${DeploymentStage}"
+      Policies:
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardA
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardC
+      Events:
+        Route:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/integrations/ring/available-cameras
+            Method: GET
+
+  RingConnectRequestCameraAccessFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/integrations/ring/request-camera-access.handler
+      Timeout: 60
+      Environment:
+        Variables:
+          COGNITO_USER_POOL_ID: !Ref CognitoUserPool
+          COGNITO_CLIENT_ID: !Ref CognitoUserPoolClient
+          ENABLE_CONNECT_RING: !Ref EnableConnectRing
+          ENABLE_CONNECT_RING_EMERGENCY_REQUESTS: !Ref EnableConnectRingEmergencyRequests
+          RING_PUBLIC_API_BASE_URL: !Ref RingPublicApiBaseUrl
+          RING_TABLE_DEVICES: !If
+            - HasRingDevicesTable
+            - !Ref RingDevicesTable
+            - !Sub "RapidCortexRingDevices-${DeploymentStage}"
+          RING_TABLE_REQUESTS: !If
+            - HasRingRequestsTable
+            - !Ref RingRequestsTable
+            - !Sub "RingEmergencyCameraRequests-${DeploymentStage}"
+          INCIDENT_MEDIA_TWILIO_SECRET_ARN: !Ref IncidentMediaTwilioSecretArn
+          SMS_PROVIDER: !FindInMap [SmsEnvironmentDefaults, !Ref DeploymentStage, SmsProvider]
+          SMS_PRIMARY_PROVIDER: !FindInMap [SmsEnvironmentDefaults, !Ref DeploymentStage, SmsPrimaryProvider]
+          MOCK_SMS_PROVIDER: !FindInMap [SmsEnvironmentDefaults, !Ref DeploymentStage, MockSmsProvider]
+          AWS_SMS_USE_SIMULATOR: !FindInMap [SmsEnvironmentDefaults, !Ref DeploymentStage, AwsSmsUseSimulator]
+      Policies:
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardA
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardC
+        - Statement:
+            Sid: RingOwnerCognitoLookup
+            Effect: Allow
+            Action:
+              - cognito-idp:AdminGetUser
+              - cognito-idp:ListUsers
+            Resource: !GetAtt CognitoUserPool.Arn
+        - Statement:
+            Sid: SnsPublishToPhoneNumbersRingOwnerNotify
+            Effect: Allow
+            Action: sns:Publish
+            Resource: "*"
+            Condition:
+              StringEquals:
+                "sns:Type": "Transactional"
+        - !If
+          - HasIncidentMediaTwilioSecretArn
+          - Statement:
+              Sid: ReadTwilioSecretRingOwnerNotify
+              Effect: Allow
+              Action:
+                - secretsmanager:GetSecretValue
+              Resource: !Ref IncidentMediaTwilioSecretArn
+          - !Ref AWS::NoValue
+        - Statement:
+            Sid: SesRingOwnerNotifyFromSupportIdentity
+            Effect: Allow
+            Action:
+              - ses:SendEmail
+            Resource:
+              - !Sub arn:${AWS::Partition}:ses:${AWS::Region}:${AWS::AccountId}:identity/support@rapidcortex.us
+      Events:
+        Route:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/integrations/ring/request-camera-access
+            Method: POST
+
+  RingConnectCameraConsentApproveFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/integrations/ring/camera-consent.approveHandler
+      Timeout: 30
+      Environment:
+        Variables:
+          ENABLE_CONNECT_RING: !Ref EnableConnectRing
+          ENABLE_CONNECT_RING_EMERGENCY_REQUESTS: !Ref EnableConnectRingEmergencyRequests
+          RING_TABLE_REQUESTS: !If
+            - HasRingRequestsTable
+            - !Ref RingRequestsTable
+            - !Sub "RingEmergencyCameraRequests-${DeploymentStage}"
+          RING_TABLE_SESSIONS: !If
+            - HasRingSessionsTable
+            - !Ref RingSessionsTable
+            - !Sub "RingEmergencyCameraSessions-${DeploymentStage}"
+      Policies:
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardC
+      Events:
+        Route:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/integrations/ring/consent/{requestToken}/approve
+            Method: POST
+            Auth:
+              Authorizer: NONE
+
+  RingConnectCameraConsentDeclineFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/integrations/ring/camera-consent.declineHandler
+      Timeout: 30
+      Environment:
+        Variables:
+          ENABLE_CONNECT_RING: !Ref EnableConnectRing
+          ENABLE_CONNECT_RING_EMERGENCY_REQUESTS: !Ref EnableConnectRingEmergencyRequests
+          RING_TABLE_REQUESTS: !If
+            - HasRingRequestsTable
+            - !Ref RingRequestsTable
+            - !Sub "RingEmergencyCameraRequests-${DeploymentStage}"
+      Policies:
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardC
+      Events:
+        Route:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/integrations/ring/consent/{requestToken}/decline
+            Method: POST
+            Auth:
+              Authorizer: NONE
+
+  RingConnectRevokeCameraAccessFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/integrations/ring/revoke-camera-access.handler
+      Timeout: 30
+      Environment:
+        Variables:
+          COGNITO_USER_POOL_ID: !Ref CognitoUserPool
+          COGNITO_CLIENT_ID: !Ref CognitoUserPoolClient
+          ENABLE_CONNECT_RING: !Ref EnableConnectRing
+          ENABLE_CONNECT_RING_EMERGENCY_REQUESTS: !Ref EnableConnectRingEmergencyRequests
+          RING_TABLE_REQUESTS: !If
+            - HasRingRequestsTable
+            - !Ref RingRequestsTable
+            - !Sub "RingEmergencyCameraRequests-${DeploymentStage}"
+          RING_TABLE_SESSIONS: !If
+            - HasRingSessionsTable
+            - !Ref RingSessionsTable
+            - !Sub "RingEmergencyCameraSessions-${DeploymentStage}"
+      Policies:
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardC
+      Events:
+        Route:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/integrations/ring/sessions/{sessionId}/revoke
+            Method: POST
+            Auth:
+              Authorizer: NONE
+
+  StreamViewerTokenFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/shared/handlers/stream-viewer-token.handler
+      Timeout: 30
+      Environment:
+        Variables:
+          KVS_BROWSER_TOKEN_ROLE_ARN: !If
+            - CreateLiveVideoResources
+            - !GetAtt KvsWebRtcBrowserTokenRole.Arn
+            - ""
+      Policies:
+        - Statement:
+            Sid: StreamViewerTokenSessionsReadWrite
+            Effect: Allow
+            Action:
+              - dynamodb:GetItem
+              - dynamodb:UpdateItem
+            Resource:
+              - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${ConnectAccessSessionsTable}
+        - !If
+          - CreateLiveVideoResources
+          - Statement:
+              Sid: StreamViewerTokenAssumeBrowserRole
+              Effect: Allow
+              Action: sts:AssumeRole
+              Resource: !GetAtt KvsWebRtcBrowserTokenRole.Arn
+          - !Ref AWS::NoValue
+        - Statement:
+            Sid: StreamViewerTokenKvsRead
+            Effect: Allow
+            Action:
+              - kinesisvideo:DescribeSignalingChannel
+              - kinesisvideo:GetSignalingChannelEndpoint
+              - kinesisvideo:GetIceServerConfig
+            Resource:
+              - !Sub arn:${AWS::Partition}:kinesisvideo:${AWS::Region}:${AWS::AccountId}:channel/rc-connect-*/*
+              - !Sub arn:${AWS::Partition}:kinesisvideo:${AWS::Region}:${AWS::AccountId}:channel/rc-venue-*/*
+      Events:
+        Route:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/stream/viewer-token
+            Method: POST
+
+  StreamSessionStatusFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/shared/handlers/stream-session-status.handler
+      Timeout: 15
+      Policies:
+        - Statement:
+            Sid: StreamSessionStatusRead
+            Effect: Allow
+            Action:
+              - dynamodb:GetItem
+            Resource:
+              - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${ConnectAccessSessionsTable}
+      Events:
+        Route:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/stream/session-status/{sessionId}
+            Method: GET
+
+  BridgeHealthMonitorFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/shared/handlers/bridge-health-monitor.handler
+      Timeout: 60
+      Policies:
+        - Statement:
+            Sid: BridgeHealthMonitorSessions
+            Effect: Allow
+            Action:
+              - dynamodb:Scan
+              - dynamodb:UpdateItem
+            Resource:
+              - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${ConnectAccessSessionsTable}
+        - Statement:
+            Sid: BridgeHealthMonitorDescribeTasks
+            Effect: Allow
+            Action:
+              - ecs:DescribeTasks
+            Resource: "*"
+        - Statement:
+            Sid: BridgeHealthMonitorKvsCleanup
+            Effect: Allow
+            Action:
+              - kinesisvideo:DescribeSignalingChannel
+              - kinesisvideo:DeleteSignalingChannel
+            Resource:
+              - !Sub arn:${AWS::Partition}:kinesisvideo:${AWS::Region}:${AWS::AccountId}:channel/rc-connect-*/*
+              - !Sub arn:${AWS::Partition}:kinesisvideo:${AWS::Region}:${AWS::AccountId}:channel/rc-venue-*/*
+      Events:
+        Schedule:
+          Type: Schedule
+          Properties:
+            Schedule: rate(1 minute)
+            Enabled: true
+
+  GetIncidentVenueIntelligenceFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/venue/handlers/get-incident-venue-intelligence.handler
+      Timeout: 30
+      Policies:
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardB
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardC
+      Events:
+        Route:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/incidents/{id}/venue-intelligence
+            Method: GET
+
+  GetVenueIntelligenceFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/venue/handlers/get-venue-intelligence.handler
+      Timeout: 30
+      Policies:
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardC
+      Events:
+        Route:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/venue/intelligence
+            Method: GET
+
+  VenueCameraRequestFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/venue/handlers/post-venue-camera-request.handler
+      Timeout: 60
+      Policies:
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardB
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardC
+        - Statement:
+            Sid: VenueCameraRequestSessions
+            Effect: Allow
+            Action:
+              - dynamodb:GetItem
+              - dynamodb:PutItem
+              - dynamodb:UpdateItem
+              - dynamodb:Query
+            Resource:
+              - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${ConnectAccessSessionsTable}
+              - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${ConnectAccessSessionsTable}/index/*
+        - Statement:
+            - Effect: Allow
+              Action:
+                - ecs:RunTask
+                - ecs:DescribeTasks
+              Resource: !If
+                - HasVenueBridgeCluster
+                - !Ref VenueBridgeTaskDefinitionResource
+                - !Sub "arn:aws:ecs:${AWS::Region}:${AWS::AccountId}:task-definition/placeholder"
+              Condition:
+                ArnEquals:
+                  "ecs:cluster": !If
+                    - HasVenueBridgeCluster
+                    - !Ref VenueBridgeClusterArn
+                    - !Sub "arn:aws:ecs:${AWS::Region}:${AWS::AccountId}:cluster/placeholder"
+        - Statement:
+            - Effect: Allow
+              Action:
+                - iam:PassRole
+              Resource:
+                - !GetAtt BridgeTaskExecutionRole.Arn
+                - !GetAtt BridgeTaskRole.Arn
+              Condition:
+                StringEquals:
+                  "iam:PassedToService": ecs-tasks.amazonaws.com
+        - Statement:
+            Sid: VenueCameraRequestKvsChannels
+            Effect: Allow
+            Action:
+              - kinesisvideo:CreateSignalingChannel
+              - kinesisvideo:DescribeSignalingChannel
+              - kinesisvideo:TagResource
+            Resource:
+              - !Sub arn:${AWS::Partition}:kinesisvideo:${AWS::Region}:${AWS::AccountId}:channel/rc-venue-*/*
+        - Statement:
+            Sid: VenueCameraRequestCameraCredentials
+            Effect: Allow
+            Action:
+              - secretsmanager:GetSecretValue
+            Resource:
+              - !Sub arn:${AWS::Partition}:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:${AppName}/camera-credentials/*
+              - !Sub arn:${AWS::Partition}:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:rapid-cortex/connect/*
+      Events:
+        Route:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/venue/cameras/request
+            Method: POST
+
+  VenueSmsInboundFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/venue/handlers/post-venue-sms-inbound.handler
+      Description: "Twilio inbound SMS handler for venue + campus routing"
+      MemorySize: 256
+      Timeout: 15
+      Policies:
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardC
+      Events:
+        ApiEvent:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/venue/sms/inbound
+            Method: POST
+
+  GetCampusIncidentsFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/campus/handlers/get-campus-incidents.handler
+      Timeout: 30
+      Policies:
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardC
+      Events:
+        Route:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/campus/incidents
+            Method: GET
+
+  GetVenueIncidentsFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/venue/handlers/get-venue-incidents.handler
+      Timeout: 30
+      Policies:
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardC
+      Events:
+        Route:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/venue/incidents
+            Method: GET
+
+  PostCampusIncidentFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/campus/handlers/post-campus-incident.handler
+      Timeout: 30
+      Policies:
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardC
+      Events:
+        Route:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/campus/incidents
+            Method: POST
+
+  GetCampusIncidentFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/campus/handlers/get-campus-incident.handler
+      Timeout: 30
+      Policies:
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardC
+      Events:
+        Route:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/campus/incidents/{incidentId}
+            Method: GET
+
+  PatchCampusIncidentFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/campus/handlers/patch-campus-incident.handler
+      Timeout: 30
+      Policies:
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardC
+      Events:
+        Route:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/campus/incidents/{incidentId}
+            Method: PATCH
+
+  PostCampusIncidentNoteFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/campus/handlers/post-campus-incident-note.handler
+      Timeout: 30
+      Policies:
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardC
+      Events:
+        Route:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/campus/incidents/{incidentId}/notes
+            Method: POST
+
+  PostCampusIncidentEscalateFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/campus/handlers/post-campus-incident-escalate.handler
+      Timeout: 30
+      Policies:
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardC
+      Events:
+        Route:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/campus/incidents/{incidentId}/escalate
+            Method: POST
+
+  GetCampusBuildingsFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/campus/handlers/get-campus-buildings.handler
+      Timeout: 30
+      Policies:
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardC
+      Events:
+        Route:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/campus/buildings
+            Method: GET
+
+  GetCampusAnalyticsFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/campus/handlers/get-campus-analytics.handler
+      Timeout: 30
+      Policies:
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardC
+      Events:
+        Route:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/campus/analytics
+            Method: GET
+
+  PostCampusPublicReportFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/campus/handlers/post-campus-public-report.handler
+      Timeout: 30
+      Policies:
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardC
+        - !Ref AppManagedPolicyS3ApplicationBucketsCrud
+      Events:
+        Route:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/public/campus/report
+            Method: POST
+            Auth:
+              Authorizer: NONE
+
+  LocationResolveFunction:
+    Type: AWS::Serverless::Function
+    Condition: HasQRLocationsTable
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/handlers/locations/locationResolveHttp.handler
+      Timeout: 15
+      Policies:
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardC
+      Events:
+        GetRoute:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/r/{rcli}
+            Method: GET
+            Auth:
+              Authorizer: NONE
+
+  LocationIntakeFunction:
+    Type: AWS::Serverless::Function
+    Condition: HasQRLocationsTable
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/handlers/locations/locationIntakeHttp.handler
+      Timeout: 30
+      Policies:
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardC
+        - !Ref AppManagedPolicyS3ApplicationBucketsCrud
+      Events:
+        PostRoute:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/r/{rcli}
+            Method: POST
+            Auth:
+              Authorizer: NONE
+
+  LocationMediaUploadFunction:
+    Type: AWS::Serverless::Function
+    Condition: HasQRLocationsTable
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/handlers/locations/locationMediaUploadHttp.handler
+      Timeout: 15
+      Policies:
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardC
+        - !Ref AppManagedPolicyS3ApplicationBucketsCrud
+      Events:
+        MediaRoute:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/r/{rcli}/media-upload-url
+            Method: GET
+            Auth:
+              Authorizer: NONE
+
+  LocationsAdminFunction:
+    Type: AWS::Serverless::Function
+    Condition: HasQRLocationsTable
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/handlers/locations/locationsAdminHttp.handler
+      Timeout: 30
+      Policies:
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardC
+      Events:
+        ListRoute:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/admin/tenants/{agencyId}/locations
+            Method: GET
+        CreateRoute:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/admin/tenants/{agencyId}/locations
+            Method: POST
+        UpdateRoute:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/admin/tenants/{agencyId}/locations/{rcli}
+            Method: PUT
+        DeleteRoute:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/admin/tenants/{agencyId}/locations/{rcli}
+            Method: DELETE
+        BulkRoute:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/admin/tenants/{agencyId}/locations/bulk
+            Method: POST
+
+  LocationQrFunction:
+    Type: AWS::Serverless::Function
+    Condition: HasQRLocationsTable
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/handlers/locations/locationQrHttp.handler
+      Timeout: 30
+      Policies:
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardC
+      Events:
+        QrRoute:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/admin/tenants/{agencyId}/locations/{rcli}/qr
+            Method: GET
+
   CreateIncidentFunction:
     Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
     Properties:
       Environment:
         Variables:
@@ -1705,6 +3129,9 @@ Resources:
 
   ListIncidentsFunction:
     Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
     Properties:
       Environment:
         Variables:
@@ -1728,6 +3155,9 @@ Resources:
 
   GetIncidentFunction:
     Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
     Properties:
       Environment:
         Variables:
@@ -1751,6 +3181,9 @@ Resources:
 
   PatchIncidentFunction:
     Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
     Properties:
       Environment:
         Variables:
@@ -1774,6 +3207,9 @@ Resources:
 
   PatchIncidentLegalHoldFunction:
     Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
     Properties:
       Environment:
         Variables:
@@ -1797,6 +3233,9 @@ Resources:
 
   AddTranscriptChunkFunction:
     Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
     Properties:
       CodeUri: ../../apps/api/
       Handler: dist/handlers/addTranscriptChunk.handler
@@ -1842,6 +3281,9 @@ Resources:
 
   ListTranscriptFunction:
     Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
     Properties:
       Environment:
         Variables:
@@ -1865,6 +3307,9 @@ Resources:
 
   PostIncidentAudioChunkFunction:
     Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
     Properties:
       CodeUri: ../../apps/api/
       Handler: dist/handlers/postIncidentAudioChunk.handler
@@ -1872,26 +3317,48 @@ Resources:
       MemorySize: 768
       Environment:
         Variables:
+          # 4KB Lambda env-var limit recovery (CFN UPDATE_FAILED 2026-05-26).
+          # Globals inject RC_RUNTIME_CONFIG_JSON (~2.2 KB) which hydrates INCIDENTS_TABLE,
+          # TRANSCRIPTS_TABLE, AUDIT_TABLE, LANGUAGE_SESSIONS_TABLE, ASSETS_BUCKET,
+          # COGNITO_REGION (cr), OPENAI secret ARN (oa), etc. at cold start via
+          # apps/api/src/lib/hydrateLambdaEnv.ts. Only vars *not* in that hydrated set
+          # live here. Removed from this Lambda (copy-paste bloat):
+          #   - AWS_TRANSCRIBE_* (5 vars): aws/transcribeLanguageMapping.ts provides
+          #     DEFAULT_AWS_TRANSCRIBE_LANGUAGE_OPTIONS_CSV; other knobs default in
+          #     multilingualConfig.ts.
+          #   - BEDROCK_MODEL_*: analysis runs in AnalyzeIncidentFunction; aas=0 disables
+          #     inline analysis here.
+          #   - GOOGLE_TTS_*: TTS only in silent-text TTS batch handler.
+          #   - GOOGLE_CLOUD_PROJECT_ID / GOOGLE_APPLICATION_CREDENTIALS_SECRET_ARN /
+          #     AZURE_TRANSLATION_KEY_SECRET_ARN: not in any current Tr1/Tr2/Tr3 chain
+          #     (Deploy #6: dev=mock/mock/off, staging/prod/pilot=aws/mock/off).
+          #     Re-add in Deploy #7 when Tr flips to azure/google/aws — the audio chunk
+          #     pipeline then calls TranscriptService.add → buildTranslationProviderChain
+          #     and GoogleTranslationProvider.translate() needs Google creds.
+          #     AZURE_TRANSLATION_KEY_SECRET_ARN is also unneeded today: the Azure
+          #     Translator path falls back to AZURE_SPEECH_KEY_SECRET_ARN at runtime
+          #     (see runtimeSecrets.ts preferredField=azureTranslationKey on the shared
+          #     rapid-cortex/multilingual/azure-keys secret).
+          #   - SILENT_TEXT_* / PINPOINT_* / ENABLE_*: belong to dedicated handlers.
+          #   - OPENAI_API_KEY_SECRET_ARN / OPENAI_WHISPER_MODEL: hydrated from
+          #     RC_RUNTIME_CONFIG_JSON.oa + multilingualConfig default ("whisper-1").
+          # KEPT: Cognito ID/client are required by apps/api/src/lib/auth.ts
+          # verifyBearerToken() to validate JWT (issuer + audience). Without them every
+          # request returns 401.
           COGNITO_USER_POOL_ID: !Ref CognitoUserPool
           COGNITO_CLIENT_ID: !Ref CognitoUserPoolClient
           MULTILINGUAL_STRICT_VALIDATION: !FindInMap [MultilingualStageDefaults, !Ref DeploymentStage, StrictValidation]
-          AWS_TRANSCRIBE_LANGUAGE_IDENTIFICATION: "true"
-          AWS_TRANSCRIBE_PREFERRED_LANGUAGE_OPTIONS: ""
-          AWS_TRANSCRIBE_TIMEOUT_MS: "0"
-          AWS_TRANSCRIBE_ENABLE_PARTIAL_RESULTS: "false"
-          AWS_TRANSCRIBE_LANGUAGE_OPTIONS: "en-US,es-US,zh-CN,tl-PH,vi-VN,ar-SA,fr-FR,ko-KR,ru-RU,pt-BR"
-          BEDROCK_MODEL_PRIMARY: !Ref AiBedrockFoundationModelId
-          BEDROCK_MODEL_SECONDARY: !Ref AiBedrockFoundationModelId
-          BEDROCK_MODEL_TERTIARY: !Ref AiBedrockFoundationModelId
-          GOOGLE_CLOUD_PROJECT_ID: !Ref GoogleCloudProjectId
+          PRIMARY_STT_PROVIDER: !FindInMap [ApiLambdaDefaults, !Ref DeploymentStage, Stt1]
+          SECONDARY_STT_PROVIDER: !FindInMap [ApiLambdaDefaults, !Ref DeploymentStage, Stt2]
+          TERTIARY_STT_PROVIDER: !FindInMap [ApiLambdaDefaults, !Ref DeploymentStage, Stt3]
+          PRIMARY_LANGUAGE_DETECTOR: !FindInMap [ApiLambdaDefaults, !Ref DeploymentStage, Lid1]
+          SECONDARY_LANGUAGE_DETECTOR: !FindInMap [ApiLambdaDefaults, !Ref DeploymentStage, Lid2]
+          TERTIARY_LANGUAGE_DETECTOR: !FindInMap [ApiLambdaDefaults, !Ref DeploymentStage, Lid3]
+          PRIMARY_TRANSLATION_PROVIDER: !FindInMap [ApiLambdaDefaults, !Ref DeploymentStage, Tr1]
+          SECONDARY_TRANSLATION_PROVIDER: !FindInMap [ApiLambdaDefaults, !Ref DeploymentStage, Tr2]
+          TERTIARY_TRANSLATION_PROVIDER: !FindInMap [ApiLambdaDefaults, !Ref DeploymentStage, Tr3]
           GOOGLE_TRANSLATE_LOCATION: "global"
-          GOOGLE_TTS_LOCATION: "global"
-          GOOGLE_TTS_OUTPUT_BUCKET: !Ref GoogleTtsOutputBucket
-          SILENT_TEXT_TRANSLATION_ENABLED: "true"
-          SILENT_TEXT_TTS_ENABLED: "false"
           AZURE_SPEECH_KEY_SECRET_ARN: !If [UseManagedMultilingualSecrets, !Ref NestedMultilingualAzureApiKeysSecretArn, !Ref AzureSpeechKeySecretArn]
-          AZURE_TRANSLATION_KEY_SECRET_ARN: !If [UseManagedMultilingualSecrets, !Ref NestedMultilingualAzureApiKeysSecretArn, !Ref AzureTranslationKeySecretArn]
-          GOOGLE_APPLICATION_CREDENTIALS_SECRET_ARN: !If [UseManagedMultilingualSecrets, !Ref NestedMultilingualGoogleServiceAccountSecretArn, !Ref GoogleApplicationCredentialsSecretArn]
       Policies:
         - !Ref AppManagedPolicyDynamoLambdaCrudShardA
         - !Ref AppManagedPolicyDynamoLambdaCrudShardB
@@ -1899,6 +3366,7 @@ Resources:
         - !Ref AppManagedPolicyS3ApplicationBucketsCrud
         - !Ref AppManagedPolicyComprehendTranslateRegionalDetect
         - !Ref AppManagedPolicySecretsMultilingualScopedRead
+        - !Ref AppManagedPolicySecretsAnalyzeProvidersRead
         - !Ref AppManagedPolicyBedrockAiAndQaFoundationModels
         - !Ref AppManagedPolicyTranscribeIncidentAudioJobsReadWrite
       Events:
@@ -1911,6 +3379,9 @@ Resources:
 
   AnalyzeIncidentFunction:
     Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
     Properties:
       Environment:
         Variables:
@@ -1919,7 +3390,7 @@ Resources:
           BEDROCK_MODEL_PRIMARY: !Ref AiBedrockFoundationModelId
           BEDROCK_MODEL_SECONDARY: !Ref AiBedrockFoundationModelId
           BEDROCK_MODEL_TERTIARY: !Ref AiBedrockFoundationModelId
-          ENABLE_SOP_PROTOCOL_AI: "false"
+          ENABLE_SOP_PROTOCOL_AI: !If [PilotTestFeaturesOn, "true", "false"]
           SOP_DETECT_EVERY_N_SEGMENTS: "0"
           SOP_DETECTION_MOCK: "false"
           TRIAGE_DETECT_EVERY_N_SEGMENTS: "0"
@@ -1945,6 +3416,9 @@ Resources:
 
   GetIncidentAnalysisFunction:
     Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
     Properties:
       Environment:
         Variables:
@@ -1953,7 +3427,7 @@ Resources:
           BEDROCK_MODEL_PRIMARY: !Ref AiBedrockFoundationModelId
           BEDROCK_MODEL_SECONDARY: !Ref AiBedrockFoundationModelId
           BEDROCK_MODEL_TERTIARY: !Ref AiBedrockFoundationModelId
-          ENABLE_SOP_PROTOCOL_AI: "false"
+          ENABLE_SOP_PROTOCOL_AI: !If [PilotTestFeaturesOn, "true", "false"]
           SOP_DETECT_EVERY_N_SEGMENTS: "0"
           SOP_DETECTION_MOCK: "false"
       CodeUri: ../../apps/api/
@@ -1974,12 +3448,15 @@ Resources:
 
   DetectIncidentTypeFunction:
     Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
     Properties:
       Environment:
         Variables:
           COGNITO_USER_POOL_ID: !Ref CognitoUserPool
           COGNITO_CLIENT_ID: !Ref CognitoUserPoolClient
-          ENABLE_SOP_PROTOCOL_AI: "false"
+          ENABLE_SOP_PROTOCOL_AI: !If [PilotTestFeaturesOn, "true", "false"]
           SOP_UPLOAD_URL_TTL_SECONDS: "900"
       CodeUri: ../../apps/api/
       Handler: dist/handlers/protocols/detectIncidentType.handler
@@ -1999,6 +3476,9 @@ Resources:
 
   PostAgencySopUploadUrlFunction:
     Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
     Properties:
       Environment:
         Variables:
@@ -2010,7 +3490,7 @@ Resources:
           TRIAGE_DETECT_EVERY_N_SEGMENTS: "0"
           TRIAGE_MOCK: "false"
           ENABLE_DISPATCHER_WELLNESS: "false"
-          ENABLE_CALLER_CARD: "false"
+          ENABLE_CALLER_CARD: !If [PilotTestFeaturesOn, "true", "false"]
       CodeUri: ../../apps/api/
       Handler: dist/handlers/agencies/postAgencySopUploadUrl.handler
       Policies:
@@ -2029,6 +3509,9 @@ Resources:
 
   GetTriageResultFunction:
     Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
     Properties:
       Environment:
         Variables:
@@ -2040,7 +3523,7 @@ Resources:
           TRIAGE_DETECT_EVERY_N_SEGMENTS: "0"
           TRIAGE_MOCK: "false"
           ENABLE_DISPATCHER_WELLNESS: "false"
-          ENABLE_CALLER_CARD: "false"
+          ENABLE_CALLER_CARD: !If [PilotTestFeaturesOn, "true", "false"]
       CodeUri: ../../apps/api/
       Handler: dist/handlers/triage/getTriageResult.handler
       Policies:
@@ -2059,12 +3542,15 @@ Resources:
 
   OverrideTriageFunction:
     Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
     Properties:
       Environment:
         Variables:
           COGNITO_USER_POOL_ID: !Ref CognitoUserPool
           COGNITO_CLIENT_ID: !Ref CognitoUserPoolClient
-          ENABLE_CROSS_JURISDICTION_SHARES: "false"
+          ENABLE_CROSS_JURISDICTION_SHARES: !If [PilotTestFeaturesOn, "true", "false"]
       CodeUri: ../../apps/api/
       Handler: dist/handlers/triage/overrideTriage.handler
       Policies:
@@ -2083,12 +3569,15 @@ Resources:
 
   PostCadWritebackBlockedFunction:
     Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
     Properties:
       Environment:
         Variables:
           COGNITO_USER_POOL_ID: !Ref CognitoUserPool
           COGNITO_CLIENT_ID: !Ref CognitoUserPoolClient
-          ENABLE_CROSS_JURISDICTION_SHARES: "false"
+          ENABLE_CROSS_JURISDICTION_SHARES: !If [PilotTestFeaturesOn, "true", "false"]
       CodeUri: ../../apps/api/
       Handler: dist/handlers/postCadWritebackBlocked.handler
       Policies:
@@ -2106,12 +3595,15 @@ Resources:
 
   PostIncidentShareFunction:
     Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
     Properties:
       Environment:
         Variables:
           COGNITO_USER_POOL_ID: !Ref CognitoUserPool
           COGNITO_CLIENT_ID: !Ref CognitoUserPoolClient
-          ENABLE_CROSS_JURISDICTION_SHARES: "false"
+          ENABLE_CROSS_JURISDICTION_SHARES: !If [PilotTestFeaturesOn, "true", "false"]
       CodeUri: ../../apps/api/
       Handler: dist/handlers/shares/postIncidentShare.handler
       Policies:
@@ -2130,12 +3622,15 @@ Resources:
 
   ListIncidentSharesFunction:
     Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
     Properties:
       Environment:
         Variables:
           COGNITO_USER_POOL_ID: !Ref CognitoUserPool
           COGNITO_CLIENT_ID: !Ref CognitoUserPoolClient
-          ENABLE_CROSS_JURISDICTION_SHARES: "false"
+          ENABLE_CROSS_JURISDICTION_SHARES: !If [PilotTestFeaturesOn, "true", "false"]
       CodeUri: ../../apps/api/
       Handler: dist/handlers/shares/listIncidentShares.handler
       Policies:
@@ -2154,6 +3649,9 @@ Resources:
 
   RevokeIncidentShareFunction:
     Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
     Properties:
       Environment:
         Variables:
@@ -2180,6 +3678,9 @@ Resources:
 
   ListIncomingIncidentSharesFunction:
     Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
     Properties:
       Environment:
         Variables:
@@ -2203,6 +3704,9 @@ Resources:
 
   QaHttpFunction:
     Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
     Properties:
       Environment:
         Variables:
@@ -2268,6 +3772,9 @@ Resources:
 
   SeoIntelligenceHttpFunction:
     Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
     Properties:
       Environment:
         Variables:
@@ -2300,6 +3807,9 @@ Resources:
 
   CadAdminHttpFunction:
     Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
     Properties:
       Timeout: 30
       MemorySize: 512
@@ -2371,6 +3881,9 @@ Resources:
 
   CadWritebackHttpFunction:
     Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
     Properties:
       Timeout: 30
       MemorySize: 512
@@ -2446,6 +3959,9 @@ Resources:
 
   CadWebhookHttpFunction:
     Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
     Properties:
       Timeout: 5
       MemorySize: 512
@@ -2485,6 +4001,9 @@ Resources:
 
   CadWebhookWorkerFunction:
     Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
     Properties:
       Timeout: 60
       MemorySize: 1024
@@ -2545,6 +4064,9 @@ Resources:
 
   CadApiPollerFunction:
     Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
     Properties:
       Timeout: 120
       MemorySize: 512
@@ -2578,6 +4100,9 @@ Resources:
 
   DeceptionDecoyHttpFunction:
     Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
     Properties:
       Environment:
         Variables:
@@ -2699,6 +4224,9 @@ Resources:
 
   DeceptionEventsAdminHttpFunction:
     Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
     Properties:
       Environment:
         Variables:
@@ -2733,6 +4261,9 @@ Resources:
 
   QaScoringFunction:
     Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
     Properties:
       Environment:
         Variables:
@@ -2758,6 +4289,9 @@ Resources:
 
   IncidentMediaHttpFunction:
     Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
     Properties:
       CodeUri: ../../apps/api/
       Handler: dist/handlers/media/incidentMediaHttp.handler
@@ -2830,6 +4364,9 @@ Resources:
 
   PublicIncidentMediaHttpFunction:
     Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
     Properties:
       CodeUri: ../../apps/api/
       Handler: dist/handlers/media/publicIncidentMediaHttp.handler
@@ -2946,6 +4483,25 @@ Resources:
                   - kinesisvideo:DescribeMappedResourceConfiguration
                 Resource: !Sub "arn:${AWS::Partition}:kinesisvideo:${AWS::Region}:${AWS::AccountId}:stream/*/*"
 
+  ConnectViewerChannelPolicy:
+    Type: AWS::IAM::Policy
+    Condition: CreateLiveVideoResources
+    Properties:
+      PolicyName: !Sub "${AppName}-connect-viewer-channels-${DeploymentStage}"
+      Roles:
+        - !Ref KvsWebRtcBrowserTokenRole
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Action:
+              - kinesisvideo:GetSignalingChannelEndpoint
+              - kinesisvideo:ConnectAsViewer
+              - kinesisvideo:DescribeSignalingChannel
+            Resource:
+              - !Sub arn:${AWS::Partition}:kinesisvideo:${AWS::Region}:${AWS::AccountId}:channel/rc-connect-*/*
+              - !Sub arn:${AWS::Partition}:kinesisvideo:${AWS::Region}:${AWS::AccountId}:channel/rc-venue-*/*
+
   LiveVideoIncidentsHttpLogGroup:
     Type: AWS::Logs::LogGroup
     Condition: CreateLiveVideoResources
@@ -2955,6 +4511,9 @@ Resources:
 
   LiveVideoIncidentsHttpFunction:
     Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
     Condition: CreateLiveVideoResources
     Properties:
       CodeUri: ../../apps/api/
@@ -3096,6 +4655,9 @@ Resources:
 
   LiveVideoPublicHttpFunction:
     Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
     Condition: CreateLiveVideoResources
     Properties:
       CodeUri: ../../apps/api/
@@ -3149,6 +4711,362 @@ Resources:
             Auth:
               Authorizer: NONE
 
+  # ---------------------------------------------------------------------------------------------
+  # Silent Text + Pinpoint (LiveLocation)
+  #
+  # Both features were originally in stack-app-sam-2.yaml, but that stack's HttpApi is not
+  # mapped to the `api.rapidcortex.us` custom domain — only this stack is. SDK clients and
+  # `apps/web` BFF callers expect both surfaces on the custom domain, so the Lambdas + their
+  # HttpApi events live here (Option 1 from the 2026-05-25 routing audit).
+  #
+  # The SMS-sending paths (dispatcher functions only) reuse `IncidentMediaTwilioSecretArn` so
+  # there is exactly one Twilio secret per stage rather than a parallel `rapid-cortex/silent-text`
+  # entry. AWS SNS publish to E.164 numbers is allowed only with the `sns:Type=Transactional`
+  # condition — see workspace rule `rapid-cortex-global-features.mdc` (no wildcard IAM).
+  # ---------------------------------------------------------------------------------------------
+  SilentTextIncidentsHttpFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/handlers/silentTextIncidentsHttp.handler
+      Timeout: 30
+      Environment:
+        Variables:
+          COGNITO_USER_POOL_ID: !Ref CognitoUserPool
+          COGNITO_CLIENT_ID: !Ref CognitoUserPoolClient
+          SILENT_TEXT_TABLE: !Ref SilentTextSessionsTable
+          SILENT_TEXT_PUBLIC_BASE_URL: !Ref AppPublicBaseUrl
+          ENABLE_SILENT_TEXT: !Ref EnableSilentText
+          SILENT_TEXT_TRANSLATION_ENABLED: "true"
+          SILENT_TEXT_TTS_ENABLED: "false"
+          SUPPORTED_CALL_LANGUAGES: "en,es,zh,tl,vi,ar,fr,ko,ru,pt"
+          LANGUAGE_PROVIDER: !Ref LanguageProvider
+          GOOGLE_CLOUD_PROJECT_ID: !Ref GoogleCloudProjectId
+          GOOGLE_TRANSLATE_LOCATION: "global"
+          GOOGLE_TTS_LOCATION: "global"
+          GOOGLE_TTS_OUTPUT_BUCKET: !Ref GoogleTtsOutputBucket
+          GOOGLE_APPLICATION_CREDENTIALS_SECRET_ARN: !If
+            - UseManagedMultilingualSecrets
+            - !Ref NestedMultilingualGoogleServiceAccountSecretArn
+            - !Ref GoogleApplicationCredentialsSecretArn
+          INCIDENT_MEDIA_TWILIO_SECRET_ARN: !Ref IncidentMediaTwilioSecretArn
+          SMS_PROVIDER: !FindInMap [SmsEnvironmentDefaults, !Ref DeploymentStage, SmsProvider]
+          SMS_PRIMARY_PROVIDER: !FindInMap [SmsEnvironmentDefaults, !Ref DeploymentStage, SmsPrimaryProvider]
+          MOCK_SMS_PROVIDER: !FindInMap [SmsEnvironmentDefaults, !Ref DeploymentStage, MockSmsProvider]
+          AWS_SMS_USE_SIMULATOR: !FindInMap [SmsEnvironmentDefaults, !Ref DeploymentStage, AwsSmsUseSimulator]
+          AWS_SMS_REGION: ""
+      Policies:
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardA
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardB
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardC
+        - !Ref AppManagedPolicyS3ApplicationBucketsCrud
+        - !Ref AppManagedPolicyComprehendTranslateRegionalDetect
+        - !Ref AppManagedPolicySecretsMultilingualScopedRead
+        - !Ref AppManagedPolicyOpsAlertsSnsPublishOnly
+        # Transactional SMS to E.164 phone numbers — SNS does not support resource-level scoping
+        # for `Publish` to a `PhoneNumber`, so AWS's recommended pattern is `Resource: "*"` with a
+        # `sns:Type=Transactional` condition (blocks promotional SMS abuse from this role).
+        - Statement:
+            Sid: SnsPublishToPhoneNumbers
+            Effect: Allow
+            Action: sns:Publish
+            Resource: "*"
+            Condition:
+              StringEquals:
+                "sns:Type": "Transactional"
+        - Statement:
+            Sid: AwsEndUserMessagingReadOnly
+            Effect: Allow
+            Action:
+              - sms-voice:DescribeAccountAttributes
+              - sms-voice:DescribePools
+              - sms-voice:DescribeConfigurationSets
+            Resource: "*"
+            Condition:
+              StringEquals:
+                aws:RequestedRegion: !Ref AWS::Region
+        - Fn::If:
+            - HasIncidentMediaTwilioSecretArn
+            - Statement:
+                Sid: ReadTwilioSecret
+                Effect: Allow
+                Action:
+                  - secretsmanager:GetSecretValue
+                Resource: !Ref IncidentMediaTwilioSecretArn
+            - !Ref AWS::NoValue
+      Events:
+        PostSession:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/incidents/{id}/silent-text/sessions
+            Method: POST
+        ListSessions:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/incidents/{id}/silent-text/sessions
+            Method: GET
+        GetSession:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/incidents/{id}/silent-text/sessions/{sessionId}
+            Method: GET
+        GetEvents:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/incidents/{id}/silent-text/sessions/{sessionId}/events
+            Method: GET
+        GetMessages:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/incidents/{id}/silent-text/sessions/{sessionId}/messages
+            Method: GET
+        Resend:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/incidents/{id}/silent-text/sessions/{sessionId}/resend
+            Method: POST
+        Cancel:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/incidents/{id}/silent-text/sessions/{sessionId}/cancel
+            Method: POST
+        Close:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/incidents/{id}/silent-text/sessions/{sessionId}/close
+            Method: POST
+        DispatcherMessage:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/incidents/{id}/silent-text/sessions/{sessionId}/message
+            Method: POST
+        HighRisk:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/incidents/{id}/silent-text/sessions/{sessionId}/high-risk
+            Method: POST
+
+  SilentTextPublicHttpFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/handlers/silentTextPublicHttp.handler
+      Timeout: 30
+      Environment:
+        Variables:
+          SILENT_TEXT_TABLE: !Ref SilentTextSessionsTable
+          SILENT_TEXT_PUBLIC_BASE_URL: !Ref AppPublicBaseUrl
+          ENABLE_SILENT_TEXT: !Ref EnableSilentText
+          SILENT_TEXT_TRANSLATION_ENABLED: "true"
+          SILENT_TEXT_TTS_ENABLED: "false"
+          SUPPORTED_CALL_LANGUAGES: "en,es,zh,tl,vi,ar,fr,ko,ru,pt"
+          LANGUAGE_PROVIDER: !Ref LanguageProvider
+          GOOGLE_CLOUD_PROJECT_ID: !Ref GoogleCloudProjectId
+          GOOGLE_TRANSLATE_LOCATION: "global"
+          GOOGLE_TTS_LOCATION: "global"
+          GOOGLE_TTS_OUTPUT_BUCKET: !Ref GoogleTtsOutputBucket
+          GOOGLE_APPLICATION_CREDENTIALS_SECRET_ARN: !If
+            - UseManagedMultilingualSecrets
+            - !Ref NestedMultilingualGoogleServiceAccountSecretArn
+            - !Ref GoogleApplicationCredentialsSecretArn
+      Policies:
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardA
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardB
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardC
+        - !Ref AppManagedPolicyS3ApplicationBucketsCrud
+        - !Ref AppManagedPolicyComprehendTranslateRegionalDetect
+        - !Ref AppManagedPolicySecretsMultilingualScopedRead
+      Events:
+        GetPublic:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/silent-text/t/{token}
+            Method: GET
+            Auth:
+              Authorizer: NONE
+        GetMessages:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/silent-text/t/{token}/messages
+            Method: GET
+            Auth:
+              Authorizer: NONE
+        PostOpened:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/silent-text/t/{token}/opened
+            Method: POST
+            Auth:
+              Authorizer: NONE
+        PostPresence:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/silent-text/t/{token}/presence
+            Method: POST
+            Auth:
+              Authorizer: NONE
+        PostMessage:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/silent-text/t/{token}/message
+            Method: POST
+            Auth:
+              Authorizer: NONE
+        PostEnd:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/silent-text/t/{token}/end
+            Method: POST
+            Auth:
+              Authorizer: NONE
+
+  PinpointIncidentsHttpFunction:
+    # Same handler as the legacy `PinpointSurgeIncidentsHttpFunction` in stack-app-sam-2.yaml,
+    # but only the `/pinpoint/links/*` routes are attached here. The Surge `/surge/*` routes
+    # stay in stack-2 until Surge gets its own dedicated handler (out of scope for this fix).
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/handlers/pinpointSurgeIncidentsHttp.handler
+      Timeout: 30
+      Environment:
+        Variables:
+          COGNITO_USER_POOL_ID: !Ref CognitoUserPool
+          COGNITO_CLIENT_ID: !Ref CognitoUserPoolClient
+          PINPOINT_LINKS_TABLE: !Ref PinpointLinksTable
+          ENABLE_PINPOINT: !Ref EnablePinpoint
+          PINPOINT_PUBLIC_BASE_URL: !Ref AppPublicBaseUrl
+          SILENT_TEXT_PUBLIC_BASE_URL: !Ref AppPublicBaseUrl
+          PINPOINT_SMS_MOCK: "false"
+          INCIDENT_MEDIA_TWILIO_SECRET_ARN: !Ref IncidentMediaTwilioSecretArn
+          SMS_PROVIDER: !FindInMap [SmsEnvironmentDefaults, !Ref DeploymentStage, SmsProvider]
+          SMS_PRIMARY_PROVIDER: !FindInMap [SmsEnvironmentDefaults, !Ref DeploymentStage, SmsPrimaryProvider]
+          MOCK_SMS_PROVIDER: !FindInMap [SmsEnvironmentDefaults, !Ref DeploymentStage, MockSmsProvider]
+          AWS_SMS_USE_SIMULATOR: !FindInMap [SmsEnvironmentDefaults, !Ref DeploymentStage, AwsSmsUseSimulator]
+          AWS_SMS_REGION: ""
+          # The handler also gates on SURGE_*; blank them here so the file-loaded `env.ts` resolves
+          # ENABLE_SURGE=false and Surge routes 503 even if they were ever bound to this function.
+          SURGE_CLUSTERS_TABLE: ""
+          ENABLE_SURGE: !If [PilotTestFeaturesOn, "true", "false"]
+      Policies:
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardA
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardB
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardC
+        - !Ref AppManagedPolicyOpsAlertsSnsPublishOnly
+        - Statement:
+            Sid: SnsPublishToPhoneNumbers
+            Effect: Allow
+            Action: sns:Publish
+            Resource: "*"
+            Condition:
+              StringEquals:
+                "sns:Type": "Transactional"
+        - Statement:
+            Sid: AwsEndUserMessagingReadOnly
+            Effect: Allow
+            Action:
+              - sms-voice:DescribeAccountAttributes
+              - sms-voice:DescribePools
+              - sms-voice:DescribeConfigurationSets
+            Resource: "*"
+            Condition:
+              StringEquals:
+                aws:RequestedRegion: !Ref AWS::Region
+        - Fn::If:
+            - HasIncidentMediaTwilioSecretArn
+            - Statement:
+                Sid: ReadTwilioSecret
+                Effect: Allow
+                Action:
+                  - secretsmanager:GetSecretValue
+                Resource: !Ref IncidentMediaTwilioSecretArn
+            - !Ref AWS::NoValue
+      Events:
+        PostPinpointLink:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/incidents/{id}/pinpoint/links
+            Method: POST
+        ListPinpointLinks:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/incidents/{id}/pinpoint/links
+            Method: GET
+        GetPinpointLink:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/incidents/{id}/pinpoint/links/{linkId}
+            Method: GET
+        RevokePinpointLink:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/incidents/{id}/pinpoint/links/{linkId}/revoke
+            Method: POST
+
+  PinpointPublicHttpFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/handlers/pinpointPublicHttp.handler
+      Timeout: 30
+      Environment:
+        Variables:
+          PINPOINT_LINKS_TABLE: !Ref PinpointLinksTable
+          ENABLE_PINPOINT: !Ref EnablePinpoint
+      Policies:
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardA
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardB
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardC
+      Events:
+        GetPublic:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/pinpoint/t/{token}
+            Method: GET
+            Auth:
+              Authorizer: NONE
+        PostLocation:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/pinpoint/t/{token}/location
+            Method: POST
+            Auth:
+              Authorizer: NONE
+
   LiveVideoIncidentsHttpErrorsAlarm:
     Type: AWS::CloudWatch::Alarm
     Condition: CreateLiveVideoResources
@@ -3189,6 +5107,9 @@ Resources:
 
   AdminListUsersFunction:
     Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
     Properties:
       Environment:
         Variables:
@@ -3214,6 +5135,9 @@ Resources:
 
   AdminCreateUserFunction:
     Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
     Properties:
       Environment:
         Variables:
@@ -3223,6 +5147,8 @@ Resources:
       Handler: dist/handlers/adminCreateUser.handler
       Policies:
         - !Ref AppManagedPolicyS3ApplicationBucketsCrud
+        # Required for ADMIN_USER_CREATE audit writes (writeUserManagementAudit -> AuditTable).
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardA
         - Statement:
             Effect: Allow
             Action:
@@ -3239,6 +5165,9 @@ Resources:
 
   AdminUpdateUserFunction:
     Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
     Properties:
       Environment:
         Variables:
@@ -3248,9 +5177,12 @@ Resources:
       Handler: dist/handlers/adminUpdateUser.handler
       Policies:
         - !Ref AppManagedPolicyS3ApplicationBucketsCrud
+        # Required for ADMIN_USER_UPDATE audit writes (writeUserManagementAudit -> AuditTable).
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardA
         - Statement:
             Effect: Allow
             Action:
+              - cognito-idp:AdminGetUser
               - cognito-idp:AdminUpdateUserAttributes
             Resource: !GetAtt CognitoUserPool.Arn
 
@@ -3264,6 +5196,9 @@ Resources:
 
   AdminDeactivateUserFunction:
     Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
     Properties:
       Environment:
         Variables:
@@ -3273,9 +5208,12 @@ Resources:
       Handler: dist/handlers/adminDeactivateUser.handler
       Policies:
         - !Ref AppManagedPolicyS3ApplicationBucketsCrud
+        # Required for ADMIN_USER_DEACTIVATE audit writes (writeUserManagementAudit -> AuditTable).
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardA
         - Statement:
             Effect: Allow
             Action:
+              - cognito-idp:AdminGetUser
               - cognito-idp:AdminDisableUser
             Resource: !GetAtt CognitoUserPool.Arn
 
@@ -3289,6 +5227,9 @@ Resources:
 
   AdminActivateUserFunction:
     Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
     Properties:
       Environment:
         Variables:
@@ -3298,9 +5239,12 @@ Resources:
       Handler: dist/handlers/adminActivateUser.handler
       Policies:
         - !Ref AppManagedPolicyS3ApplicationBucketsCrud
+        # Required for audit writes on activation events (writeUserManagementAudit -> AuditTable).
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardA
         - Statement:
             Effect: Allow
             Action:
+              - cognito-idp:AdminGetUser
               - cognito-idp:AdminEnableUser
             Resource: !GetAtt CognitoUserPool.Arn
 
@@ -3314,6 +5258,9 @@ Resources:
 
   AuthPasswordRenewalSyncFunction:
     Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
     Properties:
       Environment:
         Variables:
@@ -3340,6 +5287,9 @@ Resources:
 
   GetMeFunction:
     Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
     Properties:
       Environment:
         Variables:
@@ -3360,6 +5310,9 @@ Resources:
 
   IntegrationStatusFunction:
     Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
     Properties:
       Environment:
         Variables:
@@ -3379,6 +5332,9 @@ Resources:
 
   ListAgenciesFunction:
     Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
     Properties:
       Environment:
         Variables:
@@ -3402,6 +5358,9 @@ Resources:
 
   CreateAgencyFunction:
     Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
     Properties:
       Environment:
         Variables:
@@ -3425,6 +5384,9 @@ Resources:
 
   GetAgencyFunction:
     Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
     Properties:
       Environment:
         Variables:
@@ -3448,6 +5410,9 @@ Resources:
 
   PatchAgencyFunction:
     Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
     Properties:
       Environment:
         Variables:
@@ -3471,6 +5436,9 @@ Resources:
 
   ListAgencyInvitesFunction:
     Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
     Properties:
       Environment:
         Variables:
@@ -3494,6 +5462,9 @@ Resources:
 
   PostAgencyInviteFunction:
     Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
     Properties:
       Environment:
         Variables:
@@ -3517,6 +5488,9 @@ Resources:
 
   ListBillingPlansFunction:
     Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
     Properties:
       Environment:
         Variables:
@@ -3537,6 +5511,9 @@ Resources:
 
   GetAgencyBillingProfileFunction:
     Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
     Properties:
       Environment:
         Variables:
@@ -3560,6 +5537,9 @@ Resources:
 
   PatchAgencyBillingProfileFunction:
     Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
     Properties:
       Environment:
         Variables:
@@ -3583,6 +5563,9 @@ Resources:
 
   PostBillingSubscriptionChangeFunction:
     Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
     Properties:
       Environment:
         Variables:
@@ -3606,6 +5589,9 @@ Resources:
 
   PostBillingSubscriptionCancelFunction:
     Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
     Properties:
       Environment:
         Variables:
@@ -3629,6 +5615,9 @@ Resources:
 
   ListAgencyBillingInvoicesFunction:
     Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
     Properties:
       Environment:
         Variables:
@@ -3652,6 +5641,9 @@ Resources:
 
   PostAgencyBillingInvoiceFunction:
     Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
     Properties:
       Environment:
         Variables:
@@ -3675,6 +5667,9 @@ Resources:
 
   ListAgencyBillingPaymentMethodsFunction:
     Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
     Properties:
       Environment:
         Variables:
@@ -3698,6 +5693,9 @@ Resources:
 
   PostAgencyBillingPaymentMethodFunction:
     Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
     Properties:
       Environment:
         Variables:
@@ -3721,6 +5719,9 @@ Resources:
 
   PostAgencyBillingPaymentMethodDefaultFunction:
     Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
     Properties:
       Environment:
         Variables:
@@ -3744,6 +5745,9 @@ Resources:
 
   BillingTenantHttpFunction:
     Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
     Properties:
       Environment:
         Variables:
@@ -3785,6 +5789,9 @@ Resources:
 
   BillingCustomersHttpFunction:
     Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
     Properties:
       Environment:
         Variables:
@@ -3814,6 +5821,9 @@ Resources:
 
   BillingServicesHttpFunction:
     Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
     Properties:
       Environment:
         Variables:
@@ -3843,6 +5853,9 @@ Resources:
 
   BillingInvoicesHttpFunction:
     Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
     Properties:
       Environment:
         Variables:
@@ -3872,6 +5885,9 @@ Resources:
 
   BillingSchedulesHttpFunction:
     Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
     Properties:
       Environment:
         Variables:
@@ -3901,6 +5917,9 @@ Resources:
 
   BillingPaymentsHttpFunction:
     Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
     Properties:
       Environment:
         Variables:
@@ -3931,6 +5950,9 @@ Resources:
 
   TenantAddonsHttpFunction:
     Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
     Properties:
       Environment:
         Variables:
@@ -3983,6 +6005,9 @@ Resources:
 
   AgencyNetworkPolicyHttpFunction:
     Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
     Properties:
       Environment:
         Variables:
@@ -4054,6 +6079,9 @@ Resources:
 
   WafNetworkPolicySyncFunction:
     Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
     Properties:
       Environment:
         Variables:
@@ -4087,6 +6115,9 @@ Resources:
 
   BillingSchedulerFunction:
     Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
     Properties:
       Environment:
         Variables:
@@ -4114,6 +6145,9 @@ Resources:
 
   BillingPaymentsDisabledCatchAllFunction:
     Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
     Properties:
       Environment:
         Variables:

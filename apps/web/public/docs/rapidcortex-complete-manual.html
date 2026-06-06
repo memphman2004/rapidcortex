@@ -1,0 +1,2046 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Rapid Cortex — Complete Operations Manual</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,400&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+<style>
+:root {
+  --navy:#0a1628; --navy-mid:#142244; --navy-light:#1b2e5e;
+  --red:#c8102e; --red-dim:#a50d25; --red-pale:#fdeaed;
+  --blue:#1d4fa8; --blue-pale:#e6edfa;
+  --white:#ffffff; --off-white:#f4f6fa;
+  --text-main:#0f1c2e; --text-muted:#4a5568; --text-light:#8896aa;
+  --border:#dce1ec; --radius:10px; --radius-lg:16px;
+  --font:'DM Sans',system-ui,sans-serif; --mono:'DM Mono',monospace;
+  --shadow-sm:0 1px 4px rgba(10,22,40,0.07);
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:var(--font);background:var(--off-white);color:var(--text-main);font-size:15px;line-height:1.7}
+a{color:var(--blue);text-decoration:none}
+a:hover{text-decoration:underline}
+.layout{display:flex;min-height:100vh}
+
+/* SIDEBAR */
+.sidebar{width:272px;flex-shrink:0;background:var(--navy);position:sticky;top:0;height:100vh;overflow-y:auto;display:flex;flex-direction:column;scrollbar-width:thin;scrollbar-color:rgba(255,255,255,0.1) transparent}
+.sb-brand{padding:24px 22px 16px;border-bottom:1px solid rgba(255,255,255,0.08)}
+.sb-logo{display:flex;flex-direction:column;align-items:flex-start;gap:6px;margin-bottom:8px}
+.sb-apps-wordmark{font-size:10px;font-weight:700;letter-spacing:0.18em;text-transform:uppercase;color:#7a9ab8;text-decoration:none}
+.sb-apps-wordmark:hover{color:#aabdd4}
+.sb-name{font-size:15px;font-weight:600;color:#fff;letter-spacing:-0.2px}
+.sb-doc-title{font-size:11px;font-weight:500;color:#6a8cb0;line-height:1.4}
+.sb-url{margin-top:10px;background:rgba(200,16,46,0.15);border:1px solid rgba(200,16,46,0.28);border-radius:7px;padding:7px 11px}
+.sb-url-label{font-size:9.5px;font-weight:700;letter-spacing:0.8px;text-transform:uppercase;color:#e06070}
+.sb-url-value{font-size:12px;font-weight:500;color:#fff;font-family:var(--mono)}
+.sb-nav{padding:12px 0 18px;flex:1}
+.sb-section-label{font-size:9px;font-weight:700;letter-spacing:1.4px;text-transform:uppercase;color:#2e4a64;padding:13px 22px 4px}
+.sb-item{display:flex;align-items:center;gap:8px;padding:6px 22px;font-size:12.5px;color:#7a9ab8;border-left:2.5px solid transparent;cursor:pointer;text-decoration:none;transition:color 0.13s,background 0.13s}
+.sb-item:hover{color:#c8d8e8;background:rgba(255,255,255,0.04)}
+.sb-item.active{color:#fff;border-left-color:var(--red);background:rgba(200,16,46,0.10)}
+.sb-num{width:17px;height:17px;border-radius:50%;background:rgba(255,255,255,0.07);font-size:9.5px;font-weight:600;color:#3d5a78;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.sb-item.active .sb-num{background:var(--red);color:#fff}
+.sb-footer{padding:12px 22px 16px;border-top:1px solid rgba(255,255,255,0.07);font-size:10.5px;color:#2e4a64;line-height:1.6}
+.sb-footer strong{color:#5a7a96}
+
+/* MAIN */
+.main{flex:1;min-width:0}
+.topbar{background:#fff;border-bottom:1px solid var(--border);padding:12px 44px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:20}
+.topbar-left{display:flex;align-items:center;gap:9px}
+.tbadge{display:inline-flex;align-items:center;font-size:11px;font-weight:600;padding:3px 10px;border-radius:20px}
+.tb-red{background:var(--red-pale);color:var(--red-dim)}
+.tb-blue{background:var(--blue-pale);color:var(--blue)}
+.tb-gray{background:#eef1f7;color:#4a5568;cursor:pointer}
+.topbar-title{font-size:13px;font-weight:500;color:var(--text-muted)}
+
+/* COVER */
+.cover{background:var(--navy);padding:56px 48px 48px;position:relative;overflow:hidden}
+.cover::before{content:'';position:absolute;top:0;right:0;width:480px;height:480px;background:radial-gradient(ellipse at top right,rgba(200,16,46,0.13) 0%,transparent 65%);pointer-events:none}
+.cover::after{content:'';position:absolute;bottom:0;left:0;width:280px;height:180px;background:radial-gradient(ellipse at bottom left,rgba(29,79,168,0.11) 0%,transparent 70%);pointer-events:none}
+.cover-eyebrow{display:inline-flex;align-items:center;gap:8px;font-size:10.5px;font-weight:700;letter-spacing:1.7px;text-transform:uppercase;color:var(--red);margin-bottom:14px}
+.cover-eyebrow::before{content:'';display:inline-block;width:26px;height:2px;background:var(--red)}
+.cover h1{font-size:32px;font-weight:600;letter-spacing:-0.5px;color:#fff;line-height:1.18;margin-bottom:8px}
+.cover h1 em{color:var(--red);font-style:normal}
+.cover-sub{font-size:15px;color:#6a8cb0;margin-bottom:26px;max-width:520px}
+.cover-meta{display:flex;gap:22px;flex-wrap:wrap;padding-top:22px;border-top:1px solid rgba(255,255,255,0.08)}
+.cm-item{display:flex;flex-direction:column;gap:2px}
+.cm-label{font-size:9.5px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#2e4a64}
+.cm-value{font-size:12.5px;color:#c8d8e8;font-weight:500}
+.cm-value code{font-family:var(--mono);font-size:11.5px;color:#f0a0aa}
+
+/* QUICK NAV */
+.quick-nav{background:#fff;border-bottom:1px solid var(--border);padding:18px 48px;display:grid;grid-template-columns:repeat(6,1fr);gap:8px}
+.qn{display:flex;flex-direction:column;align-items:center;text-align:center;gap:5px;padding:12px 6px;border:1px solid var(--border);border-radius:var(--radius);text-decoration:none;transition:border-color 0.14s,background 0.14s}
+.qn:hover{border-color:var(--red);background:var(--red-pale)}
+.qn-ico{font-size:20px}
+.qn-t{font-size:11px;font-weight:600;color:var(--text-main);line-height:1.3}
+.qn-s{font-size:10px;color:var(--text-muted)}
+
+/* CONTENT */
+.content{padding:38px 48px 80px;max-width:940px}
+
+/* CHAPTER */
+.chapter{margin-bottom:54px;scroll-margin-top:68px}
+.ch-header{display:flex;align-items:flex-start;gap:15px;margin-bottom:20px;padding-bottom:14px;border-bottom:2px solid var(--border)}
+.ch-num{width:40px;height:40px;border-radius:10px;background:var(--navy);color:#fff;font-size:15px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:2px;font-family:var(--mono)}
+.ch-num.r{background:var(--red)}
+.ch-num.b{background:var(--blue)}
+.ch-title{font-size:21px;font-weight:600;letter-spacing:-0.3px;line-height:1.2}
+.ch-desc{font-size:13px;color:var(--text-muted);margin-top:3px}
+
+/* SUBSECTION */
+.sub{margin-bottom:26px}
+.sub-title{font-size:14.5px;font-weight:600;color:var(--text-main);margin-bottom:10px;display:flex;align-items:center;gap:8px}
+.sub-title::before{content:'';display:inline-block;width:3px;height:15px;background:var(--red);border-radius:2px;flex-shrink:0}
+
+/* PROSE */
+.prose p{margin-bottom:12px;font-size:14px}
+.prose strong{font-weight:600}
+.prose code{font-family:var(--mono);font-size:12px;background:#eef1f7;color:#1a3060;padding:1px 5px;border-radius:4px}
+.prose ul{padding-left:20px;margin-bottom:12px}
+.prose ul li{margin-bottom:4px;font-size:14px}
+
+/* CALLOUTS */
+.callout{display:flex;gap:12px;padding:13px 15px;border-radius:var(--radius);margin-bottom:15px;font-size:13.5px;line-height:1.6}
+.callout-ico{font-size:15px;flex-shrink:0;margin-top:1px}
+.c-info{background:var(--blue-pale);border-left:3px solid var(--blue);color:#0c2f6e}
+.c-warn{background:#fff4e0;border-left:3px solid #d97706;color:#6b3900}
+.c-danger{background:var(--red-pale);border-left:3px solid var(--red);color:#6b0f1f}
+.c-success{background:#e8f5e9;border-left:3px solid #2e7d32;color:#1b4d1e}
+.c-stop{background:#fff0f0;border:2px solid var(--red);border-radius:var(--radius);color:var(--red-dim)}
+
+/* STEPS */
+.steps{display:flex;flex-direction:column}
+.step{display:flex;gap:15px;padding-bottom:20px;position:relative}
+.step:not(:last-child)::before{content:'';position:absolute;left:16px;top:36px;width:1px;height:calc(100% - 20px);background:var(--border)}
+.step-num{width:34px;height:34px;border-radius:50%;background:var(--navy);color:#fff;font-size:13px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-family:var(--mono)}
+.step-num.r{background:var(--red)}
+.step-num.b{background:var(--blue)}
+.step-body{padding-top:5px;flex:1}
+.step-title{font-size:14px;font-weight:600;margin-bottom:4px}
+.step-text{font-size:13px;color:var(--text-muted);line-height:1.6}
+.step-text code{font-family:var(--mono);font-size:11.5px;background:#eef1f7;color:#1a3060;padding:1px 5px;border-radius:4px}
+
+/* CODE BLOCK */
+.code-block{background:var(--navy);border-radius:var(--radius);padding:15px 18px;font-family:var(--mono);font-size:12px;color:#a8c4e0;line-height:1.7;overflow-x:auto;margin-bottom:15px}
+.cc-red{color:#f0a0aa}.cc-blue{color:#88aaee}.cc-green{color:#88cc99}.cc-muted{color:#3e5e80}
+
+/* TABLES */
+.dt{width:100%;border-collapse:collapse;font-size:13px;margin-bottom:15px}
+.dt th{text-align:left;padding:8px 13px;font-size:10.5px;font-weight:700;letter-spacing:0.7px;text-transform:uppercase;color:var(--text-muted);background:var(--off-white);border-bottom:2px solid var(--border)}
+.dt td{padding:9px 13px;border-bottom:1px solid var(--border);vertical-align:top}
+.dt tr:last-child td{border-bottom:none}
+.dt tr:hover td{background:#f8fafc}
+.dt .key{font-family:var(--mono);font-size:11.5px;color:#1a3060;font-weight:500}
+.dt .desc{color:var(--text-muted)}
+
+/* CARDS */
+.cg{display:grid;gap:13px;margin-bottom:15px}
+.cg2{grid-template-columns:1fr 1fr}
+.cg3{grid-template-columns:1fr 1fr 1fr}
+.card{background:#fff;border:1px solid var(--border);border-radius:var(--radius-lg);padding:17px 19px;box-shadow:var(--shadow-sm)}
+.card-h{font-size:13px;font-weight:600;margin-bottom:6px;display:flex;align-items:center;gap:6px}
+.card-b{font-size:12.5px;color:var(--text-muted);line-height:1.55}
+.card-b code{font-family:var(--mono);font-size:11px;background:#eef1f7;color:#1a3060;padding:1px 4px;border-radius:3px}
+
+/* CHECKLIST */
+.cl{list-style:none;display:flex;flex-direction:column;gap:6px;margin-bottom:15px}
+.cl li{display:flex;gap:9px;align-items:flex-start;background:#fff;border:1px solid var(--border);border-radius:var(--radius);padding:9px 13px;font-size:13px}
+.cl li::before{content:'☐';font-size:14px;color:#b0bec8;flex-shrink:0;line-height:1.55}
+.cl li strong{font-weight:600}
+
+/* ROLES */
+.role{display:inline-block;padding:2px 8px;border-radius:20px;font-size:10.5px;font-weight:600;font-family:var(--mono)}
+.rd{background:var(--blue-pale);color:var(--blue)}
+.rs{background:#fff4e0;color:#7a3900}
+.ra{background:var(--red-pale);color:var(--red-dim)}
+.rr{background:#eef1f7;color:#4a5568}
+
+/* SYMPTOMS */
+.syms{display:flex;flex-direction:column;gap:11px;margin-bottom:15px}
+.sym{background:#fff;border:1px solid var(--border);border-radius:var(--radius-lg);overflow:hidden}
+.sym-hdr{display:flex;align-items:center;gap:9px;padding:12px 17px;background:#fafbfc;border-bottom:1px solid var(--border)}
+.sym-tag{font-size:9.5px;font-weight:700;letter-spacing:0.6px;text-transform:uppercase;padding:2px 8px;border-radius:20px;flex-shrink:0}
+.t-red{background:var(--red-pale);color:var(--red-dim)}
+.t-amber{background:#fff4e0;color:#7a3900}
+.t-blue{background:var(--blue-pale);color:var(--blue)}
+.t-gray{background:#eef1f7;color:#4a5568}
+.t-green{background:#e8f5e9;color:#2e7d32}
+.sym-desc{font-size:13px;font-weight:600}
+.sym-body{padding:13px 17px}
+.sym-body p{font-size:13px;color:var(--text-muted);margin-bottom:7px}
+.sym-body ul{padding-left:17px}
+.sym-body li{font-size:13px;color:var(--text-muted);margin-bottom:4px}
+.sym-body li code{font-family:var(--mono);font-size:11px;background:#eef1f7;color:#1a3060;padding:1px 4px;border-radius:3px}
+.fix-lbl{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.7px;color:var(--text-light);margin-bottom:3px;margin-top:8px}
+
+/* TIERS */
+.tier-row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:15px}
+.tier{background:#fff;border:1px solid var(--border);border-radius:var(--radius-lg);overflow:hidden}
+.tier-hdr{padding:13px 16px;display:flex;align-items:center;gap:10px;border-bottom:1px solid var(--border)}
+.tier-badge{font-size:10px;font-weight:700;letter-spacing:0.5px;text-transform:uppercase;padding:3px 9px;border-radius:20px}
+.tb1{background:#eef1f7;color:#4a5568}
+.tb2{background:var(--blue-pale);color:var(--blue)}
+.tb3{background:var(--red-pale);color:var(--red-dim)}
+.tier-name{font-size:13px;font-weight:600}
+.tier-who{font-size:11.5px;color:var(--text-muted);padding:8px 16px 0;font-style:italic}
+.tier-body{padding:8px 16px 14px}
+.tier-body ul{padding-left:16px}
+.tier-body li{font-size:12.5px;color:var(--text-muted);margin-bottom:3px}
+
+/* PHASE STRIP */
+.phase-strip{display:flex;border-radius:var(--radius-lg);overflow:hidden;border:1px solid var(--border);margin-bottom:18px}
+.pc{flex:1;padding:12px 14px;background:#fff;border-right:1px solid var(--border);text-align:center}
+.pc:last-child{border-right:none}
+.pc-num{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.7px;color:var(--text-light);margin-bottom:3px}
+.pc-name{font-size:12.5px;font-weight:600;color:var(--text-main)}
+.pc-status{font-size:10.5px;margin-top:2px}
+.pc-active{background:var(--navy)}
+.pc-active .pc-num{color:#4a6880}
+.pc-active .pc-name{color:#fff}
+.pc-active .pc-status{color:var(--red)}
+
+/* MAINT GRID */
+.maint-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:15px}
+.maint-card{background:#fff;border:1px solid var(--border);border-radius:var(--radius-lg);overflow:hidden}
+.maint-hdr{padding:10px 16px;font-size:11px;font-weight:700;letter-spacing:0.7px;text-transform:uppercase;border-bottom:1px solid var(--border)}
+.maint-hdr.daily{background:#fff4e0;color:#7a3900}
+.maint-hdr.weekly{background:var(--blue-pale);color:var(--blue)}
+.maint-hdr.monthly{background:var(--red-pale);color:var(--red-dim)}
+.maint-hdr.quarterly{background:#e8f5e9;color:#2e7d32}
+.maint-body{padding:10px 16px}
+.maint-body ul{padding-left:16px}
+.maint-body li{font-size:12.5px;color:var(--text-muted);margin-bottom:4px}
+
+/* APPENDIX */
+.appendix{background:#fff;border:1px solid var(--border);border-radius:var(--radius-lg);padding:20px 24px;margin-bottom:14px}
+.app-title{font-size:13px;font-weight:700;color:var(--navy);margin-bottom:4px;display:flex;align-items:center;gap:8px}
+.app-label{font-size:10px;font-weight:700;letter-spacing:0.8px;text-transform:uppercase;background:var(--navy);color:#fff;padding:2px 7px;border-radius:4px;font-family:var(--mono)}
+.app-desc{font-size:12.5px;color:var(--text-muted);margin-bottom:14px}
+.fill-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.fill-item{display:flex;flex-direction:column;gap:3px}
+.fill-label{font-size:10.5px;font-weight:600;color:var(--text-muted);letter-spacing:0.3px}
+.fill-line{border:none;border-bottom:1.5px solid var(--border);padding:4px 2px;font-size:13px;font-family:var(--font);color:var(--text-main);background:transparent;width:100%;outline:none}
+.fill-line:focus{border-bottom-color:var(--blue)}
+
+/* WALL CARD */
+.wall-card{background:var(--navy);border-radius:var(--radius-lg);padding:24px 28px;margin-bottom:15px;position:relative;overflow:hidden}
+.wall-card::before{content:'';position:absolute;top:0;right:0;width:200px;height:200px;background:radial-gradient(circle,rgba(200,16,46,0.12) 0%,transparent 70%);pointer-events:none}
+.wc-title{font-size:11px;font-weight:700;letter-spacing:1.4px;text-transform:uppercase;color:var(--red);margin-bottom:16px;display:flex;align-items:center;gap:8px}
+.wc-title::before{content:'';display:inline-block;width:20px;height:2px;background:var(--red)}
+.wc-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.wc-section{background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.08);border-radius:9px;padding:14px 16px}
+.wc-section-title{font-size:11px;font-weight:600;color:#e06070;margin-bottom:9px;letter-spacing:0.3px}
+.wc-section ul{padding-left:0;list-style:none}
+.wc-section li{font-size:12.5px;color:#8fa8c0;margin-bottom:5px;display:flex;align-items:flex-start;gap:7px}
+.wc-section li::before{content:'→';color:var(--red);font-size:11px;flex-shrink:0;margin-top:2px}
+
+/* KNOWN LIMITS */
+.kl-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:15px}
+.kl-item{background:#fff;border:1px solid var(--border);border-radius:var(--radius);padding:12px 14px}
+.kl-label{font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:0.6px;color:var(--text-light);margin-bottom:6px}
+.kl-options{display:flex;gap:6px;flex-wrap:wrap}
+.kl-opt{font-size:11.5px;padding:2px 9px;border-radius:20px;border:1px solid var(--border);color:var(--text-muted);font-weight:500}
+.kl-opt.active{background:var(--navy);border-color:var(--navy);color:#fff}
+
+/* DIVIDER */
+.divider{border:none;border-top:1px solid var(--border);margin:26px 0}
+
+/* PRINT */
+@media print{
+  .sidebar,.topbar,.quick-nav{display:none}
+  .main{width:100%}
+  .content{padding:20px 28px;max-width:100%}
+  .cover{padding:32px 28px}
+  .chapter{page-break-inside:avoid}
+  body{background:#fff}
+  .sym,.card,.appendix{page-break-inside:avoid}
+  .wall-card{background:#0a1628!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+}
+@media(max-width:960px){
+  .sidebar{display:none}
+  .quick-nav{grid-template-columns:repeat(3,1fr);padding:14px 18px}
+  .cg2,.cg3,.tier-row,.maint-grid,.fill-grid,.wc-grid,.kl-grid{grid-template-columns:1fr}
+  .content,.cover{padding-left:18px;padding-right:18px}
+  .topbar{padding:11px 18px}
+}
+
+.sb-internal{margin-top:9px;background:rgba(200,16,46,0.16);border:1px solid rgba(200,16,46,0.3);border-radius:6px;padding:6px 10px;font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#e06070}
+
+.tb-internal{background:#0a1628;color:#fff}
+
+.c-internal{background:#0a1628;border-left:3px solid var(--red);color:#a8c4e0}
+
+
+/* ── SEV CARDS ── */
+.sev-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px}
+
+.sev-card{border-radius:var(--radius-lg);overflow:hidden;border:1px solid var(--border)}
+
+.sev-hdr{padding:12px 16px;display:flex;align-items:center;gap:10px}
+
+.sev-num{width:28px;height:28px;border-radius:50%;font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-family:var(--mono);color:#fff}
+
+.sev1{background:var(--red)}
+.sev2{background:#d97706}
+.sev3{background:var(--blue)}
+.sev4{background:#6b7280}
+
+.sev-body{padding:10px 16px 14px;font-size:12.5px;color:var(--text-muted);line-height:1.55}
+
+.sev-body strong{font-weight:600;color:var(--text-main)}
+
+.sev-body ul{padding-left:16px}
+
+.sev-body li{margin-bottom:3px}
+
+.sev-expect{font-size:11px;font-weight:700;letter-spacing:0.6px;text-transform:uppercase;color:var(--text-light);margin-top:8px;margin-bottom:4px}
+
+.sev1-card{border-color:#f5c6cb}
+
+.sev2-card{border-color:#fde8c0}
+
+.sev3-card{border-color:#c0d4f7}
+
+.sev4-card{border-color:#d1d5db}
+
+
+/* ── ISSUE CARDS ── */
+.issue-list{display:flex;flex-direction:column;gap:11px;margin-bottom:14px}
+
+.issue{background:#fff;border:1px solid var(--border);border-radius:var(--radius-lg);overflow:hidden}
+
+.issue-hdr{display:flex;align-items:center;gap:9px;padding:11px 16px;background:#fafbfc;border-bottom:1px solid var(--border)}
+
+.issue-cat{font-size:9.5px;font-weight:700;letter-spacing:0.6px;text-transform:uppercase;padding:2px 8px;border-radius:20px;flex-shrink:0}
+
+.ic-red{background:var(--red-pale);color:var(--red-dim)}
+
+.ic-amber{background:var(--amber-pale);color:var(--amber)}
+
+.ic-blue{background:var(--blue-pale);color:var(--blue)}
+
+.ic-gray{background:#eef1f7;color:#4a5568}
+
+.ic-green{background:var(--green-pale);color:var(--green)}
+
+.ic-purple{background:var(--purple-pale);color:var(--purple)}
+
+.issue-title{font-size:13px;font-weight:600}
+
+.issue-body{padding:12px 16px}
+
+.issue-body ul{padding-left:16px}
+
+.issue-body li{font-size:12.5px;color:var(--text-muted);margin-bottom:3px}
+
+.issue-body li code{font-family:var(--mono);font-size:11px;background:#eef1f7;color:#1a3060;padding:1px 4px;border-radius:3px}
+
+.issue-body p{font-size:12.5px;color:var(--text-muted);margin-bottom:6px}
+
+.issue-cols{display:grid;grid-template-columns:1fr 1fr 1fr;gap:0;border-top:1px solid var(--border);margin-top:4px}
+
+.issue-col{padding:12px 16px;border-right:1px solid var(--border)}
+
+.issue-col:last-child{border-right:none}
+
+.issue-col-label{font-size:9.5px;font-weight:700;text-transform:uppercase;letter-spacing:0.7px;margin-bottom:5px}
+
+.lbl-check{color:var(--blue)}
+
+.lbl-try{color:var(--green)}
+
+.lbl-esc{color:var(--red-dim)}
+
+.issue-col ul{padding-left:14px}
+
+.issue-col li{font-size:12px;color:var(--text-muted);margin-bottom:3px}
+
+
+/* ── ROLES ── */
+.role-grid{display:grid;grid-template-columns:1fr 1fr;gap:11px;margin-bottom:14px}
+
+.role-card{background:#fff;border:1px solid var(--border);border-radius:var(--radius-lg);padding:15px 17px}
+
+.role-hdr{display:flex;align-items:center;gap:8px;margin-bottom:7px}
+
+.role-badge{font-size:10px;font-weight:700;padding:2px 8px;border-radius:20px;font-family:var(--mono)}
+
+.rb-red{background:var(--red-pale);color:var(--red-dim)}
+
+.rb-blue{background:var(--blue-pale);color:var(--blue)}
+
+.rb-amber{background:var(--amber-pale);color:var(--amber)}
+
+.rb-purple{background:var(--purple-pale);color:var(--purple)}
+
+.rb-green{background:var(--green-pale);color:var(--green)}
+
+.role-name{font-size:13px;font-weight:600}
+
+.role-body{font-size:12.5px;color:var(--text-muted);line-height:1.55}
+
+.role-body ul{padding-left:15px;margin-top:4px}
+
+.role-body li{margin-bottom:3px}
+
+
+/* ── SCRIPTS ── */
+.script-block{background:#fff;border:1px solid var(--border);border-radius:var(--radius-lg);margin-bottom:11px;overflow:hidden}
+
+.script-hdr{padding:10px 16px;background:#fafbfc;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px}
+
+.script-tag{font-size:10px;font-weight:700;letter-spacing:0.6px;text-transform:uppercase;padding:2px 8px;border-radius:20px;background:var(--navy);color:#fff;font-family:var(--mono)}
+
+.script-title{font-size:13px;font-weight:600}
+
+.script-body{padding:12px 16px;font-size:13px;color:#1a3060;font-style:italic;line-height:1.65;border-left:3px solid var(--border)}
+
+
+/* ── TICKET EXAMPLE ── */
+.ticket-bad{background:#fff8f8;border:1px solid #f5c6cb;border-radius:var(--radius);padding:12px 15px;margin-bottom:8px;font-size:13px;color:var(--red-dim)}
+
+.ticket-good{background:#f0faf4;border:1px solid #a8d5b8;border-radius:var(--radius);padding:12px 15px;margin-bottom:14px;font-size:13px;color:#1a4a2a;line-height:1.65}
+
+.ticket-label{font-size:10px;font-weight:700;letter-spacing:0.7px;text-transform:uppercase;margin-bottom:5px}
+
+.ticket-label.bad{color:var(--red-dim)}
+
+.ticket-label.good{color:var(--green)}
+
+
+/* ── PLAYBOOK ── */
+.playbook-list{display:flex;flex-direction:column;gap:11px;margin-bottom:14px}
+
+.playbook{background:#fff;border:1px solid var(--border);border-radius:var(--radius-lg);overflow:hidden}
+
+.playbook-hdr{display:flex;align-items:center;gap:9px;padding:11px 16px;background:#fafbfc;border-bottom:1px solid var(--border)}
+
+.pb-tag{font-size:10px;font-weight:700;letter-spacing:0.5px;text-transform:uppercase;padding:3px 9px;border-radius:20px;font-family:var(--mono);background:var(--navy);color:#fff;flex-shrink:0}
+
+.pb-title{font-size:13px;font-weight:600}
+
+.playbook-body{padding:12px 16px}
+
+.playbook-body ol{padding-left:17px}
+
+.playbook-body li{font-size:13px;color:var(--text-muted);margin-bottom:4px}
+
+
+/* ── GOLDEN RULES ── */
+.golden-list{list-style:none;display:flex;flex-direction:column;gap:7px;margin-bottom:14px}
+
+.golden-list li{display:flex;gap:9px;align-items:flex-start;background:#fff;border:1px solid var(--border);border-radius:var(--radius);padding:10px 14px;font-size:13.5px}
+
+.golden-list li .g-icon{font-size:14px;flex-shrink:0;margin-top:1px}
+
+
+/* ── DAILY OPS ── */
+.ops-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:14px}
+
+.ops-card{background:#fff;border:1px solid var(--border);border-radius:var(--radius-lg);overflow:hidden}
+
+.ops-hdr{padding:9px 14px;font-size:10.5px;font-weight:700;letter-spacing:0.6px;text-transform:uppercase;border-bottom:1px solid var(--border)}
+
+.ops-hdr.start{background:#e6edfa;color:var(--blue)}
+
+.ops-hdr.during{background:var(--amber-pale);color:var(--amber)}
+
+.ops-hdr.end{background:var(--green-pale);color:var(--green)}
+
+.ops-body{padding:10px 14px}
+
+.ops-body ul{padding-left:15px}
+
+.ops-body li{font-size:12.5px;color:var(--text-muted);margin-bottom:4px}
+
+
+/* ── ROOT CAUSE GRID ── */
+.rc-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:14px}
+
+.rc-item{background:#fff;border:1px solid var(--border);border-radius:var(--radius);padding:9px 12px;font-size:12.5px;color:var(--text-muted);display:flex;align-items:center;gap:7px}
+
+.rc-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;background:var(--navy)}
+
+
+/* ── TOOLS ── */
+.tools-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px}
+
+.tool-item{background:#fff;border:1px solid var(--border);border-radius:var(--radius);padding:10px 13px;font-size:13px;color:var(--text-main);display:flex;align-items:center;gap:8px}
+
+.tool-ico{font-size:15px;flex-shrink:0}
+
+  .issue,.playbook,.sev-card{page-break-inside:avoid}
+
+  .cg2,.cg3,.cg4,.sev-grid,.role-grid,.ops-grid,.rc-grid,.tools-grid{grid-template-columns:1fr}
+
+  .issue-cols{grid-template-columns:1fr}
+
+  .issue-col{border-right:none;border-bottom:1px solid var(--border)}
+
+  .issue-col:last-child{border-bottom:none}
+
+/* ══ PRINT / PDF ══ */
+@media print {
+  .sidebar,.topbar,.quick-nav,.no-print{display:none!important}
+  .layout{display:block}
+  .main{width:100%}
+  @page{margin:18mm 16mm;size:letter}
+  body{background:#fff!important;font-size:11pt;line-height:1.5}
+  .book-section-header{page-break-before:always;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .cover{page-break-after:always;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .chapter{page-break-inside:avoid}
+  .card,.sym,.issue,.playbook,.sev-card,.appendix,.script-block,.symptom{page-break-inside:avoid}
+  .callout,.c-info,.c-warn,.c-danger,.c-success,.c-internal,.c-stop{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .dt th,.tier-hdr,.phase-strip,.pc-active,.sev-hdr,.ops-hdr,.maint-hdr,.issue-hdr,.sym-hdr,.playbook-hdr,.script-hdr,.wc-section,.wall-card{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .content{padding:0!important;max-width:100%!important}
+  .card,.symptom,.sym{box-shadow:none!important}
+  .cg4{grid-template-columns:1fr 1fr!important}
+}
+
+/* ══ BOOK STRUCTURE ══ */
+.book-section-header{background:var(--navy);padding:52px 48px 44px;position:relative;overflow:hidden}
+.book-section-header::before{content:'';position:absolute;top:0;right:0;width:400px;height:400px;background:radial-gradient(ellipse at top right,rgba(200,16,46,0.13) 0%,transparent 65%);pointer-events:none}
+.bsh-part{font-size:10px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--red);margin-bottom:12px;display:flex;align-items:center;gap:8px}
+.bsh-part::before{content:'';display:inline-block;width:24px;height:2px;background:var(--red)}
+.bsh-title{font-size:30px;font-weight:600;color:#fff;letter-spacing:-0.4px;line-height:1.2;margin-bottom:8px}
+.bsh-title em{color:var(--red);font-style:normal}
+.bsh-sub{font-size:14px;color:#6a8cb0;max-width:500px;margin-bottom:20px}
+.bsh-meta{display:flex;gap:20px;padding-top:18px;border-top:1px solid rgba(255,255,255,0.08);flex-wrap:wrap}
+.bsh-meta-item{display:flex;flex-direction:column;gap:2px}
+.bsh-meta-label{font-size:9px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#2e4a64}
+.bsh-meta-value{font-size:12.5px;color:#c8d8e8;font-weight:500}
+
+/* ══ TOC ══ */
+.toc{background:#fff;padding:28px 48px 24px;border-bottom:1px solid var(--border)}
+.toc-title{font-size:13px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.8px;margin-bottom:16px}
+.toc-grid{display:grid;grid-template-columns:1fr 1fr;gap:0}
+.toc-part{padding:0 16px 0 0}
+.toc-part:last-child{padding:0 0 0 16px;border-left:1px solid var(--border)}
+.toc-part-label{font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--red);margin-bottom:8px;padding-bottom:6px;border-bottom:1px solid var(--border)}
+.toc-item{display:flex;align-items:baseline;gap:8px;padding:4px 0;font-size:13px;color:var(--text-muted);text-decoration:none}
+.toc-item:hover{color:var(--text-main)}
+.toc-num{font-family:var(--mono);font-size:10.5px;font-weight:600;color:var(--text-light);min-width:22px;flex-shrink:0}
+.toc-dots{flex:1;border-bottom:1px dotted var(--border);margin-bottom:2px}
+
+/* ══ INTERNAL BANNER ══ */
+.internal-banner{background:var(--navy);color:#8fa8c0;text-align:center;padding:8px;font-size:11px;font-weight:600;letter-spacing:0.8px;text-transform:uppercase}
+.internal-banner span{color:var(--red)}
+
+/* ══ SIDEBAR PART LABELS ══ */
+.sb-part-label{font-size:9px;font-weight:800;letter-spacing:1.6px;text-transform:uppercase;padding:14px 20px 6px;display:flex;align-items:center;gap:7px}
+.sb-part-label::before{content:'';display:inline-block;width:16px;height:2px;border-radius:1px;background:currentColor}
+.sb-part1{color:var(--blue)}
+.sb-part2{color:var(--red);border-top:1px solid rgba(255,255,255,0.06);margin-top:6px;padding-top:16px}
+
+/* ══ EXTRA ADMIN TOKENS ══ */
+:root{
+  --green:#1a6b3c;--green-pale:#e6f4ec;
+  --amber:#b45309;--amber-pale:#fff4e0;
+  --purple:#5b21b6;--purple-pale:#ede9fe;
+}
+
+</style>
+</head>
+<body>
+
+<div class="internal-banner no-print">
+  Part 1: Jurisdiction Guide &nbsp;·&nbsp; <span>Part 2: Admin Troubleshooting Guide</span> &nbsp;·&nbsp; Complete Operations Manual
+</div>
+
+<div class="layout">
+
+<aside class="sidebar">
+  <div class="sb-brand">
+    <div class="sb-logo">
+      <a href="https://www.appsondemand.net" target="_blank" rel="noopener noreferrer" class="sb-apps-wordmark">Apps on Demand</a>
+      <span class="sb-name">Rapid Cortex</span>
+    </div>
+    <div class="sb-doc-title">Complete Operations Manual</div>
+    <div class="sb-url">
+      <div class="sb-url-label">Your URL</div>
+      <div class="sb-url-value">rapidcortex.us/<span style="color:#f0a0aa">[jurisdiction]</span></div>
+    </div>
+  </div>
+  <nav class="sb-nav">
+    <div class="sb-part-label sb-part1">Part 1 — Jurisdiction Guide</div>
+    <div class="sb-section-label">Introduction</div>
+    <a class="sb-item active" href="#p1-intro"><span class="sb-num">—</span>Purpose &amp; Overview</a>
+    <a class="sb-item" href="#p1-resp"><span class="sb-num">—</span>Agency Responsibilities</a>
+    <div class="sb-section-label">Setup</div>
+    <a class="sb-item" href="#ch-1"><span class="sb-num">1</span>Workstation Requirements</a>
+    <a class="sb-item" href="#ch-2"><span class="sb-num">2</span>Network &amp; Security</a>
+    <a class="sb-item" href="#ch-3"><span class="sb-num">3</span>Initial Setup</a>
+    <a class="sb-item" href="#ch-4"><span class="sb-num">4</span>Users &amp; Roles</a>
+    <a class="sb-item" href="#ch-5"><span class="sb-num">5</span>Admin Configuration</a>
+    <div class="sb-section-label">Operations</div>
+    <a class="sb-item" href="#ch-6"><span class="sb-num">6</span>Go-Live Checklist</a>
+    <a class="sb-item" href="#ch-7"><span class="sb-num">7</span>Daily Startup</a>
+    <a class="sb-item" href="#ch-8"><span class="sb-num">8</span>Maintenance</a>
+    <a class="sb-item" href="#ch-9"><span class="sb-num">9</span>Patching &amp; Updates</a>
+    <a class="sb-item" href="#ch-10"><span class="sb-num">10</span>CAD &amp; Motorola</a>
+    <div class="sb-section-label">Troubleshooting</div>
+    <a class="sb-item" href="#ch-11"><span class="sb-num">11</span>Common Issues</a>
+    <a class="sb-item" href="#ch-12"><span class="sb-num">12</span>Low Confidence</a>
+    <a class="sb-item" href="#ch-13"><span class="sb-num">13</span>Escalation</a>
+    <a class="sb-item" href="#ch-14"><span class="sb-num">A–D</span>Appendices</a>
+    <a class="sb-item" href="#wallcard"><span class="sb-num">★</span>Wall Card</a>
+
+    <div class="sb-part-label sb-part2">Part 2 — Admin Guide</div>
+    <div class="sb-section-label">Foundations</div>
+    <a class="sb-item" href="#p2-intro"><span class="sb-num">—</span>Core Principles</a>
+    <a class="sb-item" href="#p2-roles"><span class="sb-num">—</span>Team Roles</a>
+    <a class="sb-item" href="#p2-severity"><span class="sb-num">S</span>Severity Levels</a>
+    <div class="sb-section-label">Process</div>
+    <a class="sb-item" href="#p2-intake"><span class="sb-num">4</span>Intake Checklist</a>
+    <a class="sb-item" href="#p2-workflow"><span class="sb-num">5</span>Std Workflow</a>
+    <a class="sb-item" href="#p2-major"><span class="sb-num">7</span>Major Incident</a>
+    <a class="sb-item" href="#p2-escalation"><span class="sb-num">8</span>Escalation Matrix</a>
+    <div class="sb-section-label">Issue Categories</div>
+    <a class="sb-item" href="#p2-cat-login"><span class="sb-num">6A</span>Login</a>
+    <a class="sb-item" href="#p2-cat-desktop"><span class="sb-num">6B</span>Desktop App</a>
+    <a class="sb-item" href="#p2-cat-web"><span class="sb-num">6C</span>Web App</a>
+    <a class="sb-item" href="#p2-cat-audio"><span class="sb-num">6D</span>Audio</a>
+    <a class="sb-item" href="#p2-cat-transcript"><span class="sb-num">6E</span>Transcription</a>
+    <a class="sb-item" href="#p2-cat-ai"><span class="sb-num">6F</span>AI Guidance</a>
+    <a class="sb-item" href="#p2-cat-routing"><span class="sb-num">6G</span>Routing</a>
+    <a class="sb-item" href="#p2-cat-sync"><span class="sb-num">6H</span>Data Sync</a>
+    <a class="sb-item" href="#p2-cat-integration"><span class="sb-num">6I</span>Integrations</a>
+    <a class="sb-item" href="#p2-cat-perf"><span class="sb-num">6J</span>Performance</a>
+    <a class="sb-item" href="#p2-cat-perms"><span class="sb-num">6K</span>Permissions</a>
+    <a class="sb-item" href="#p2-cat-network"><span class="sb-num">6L</span>Network</a>
+    <div class="sb-section-label">Docs &amp; Ops</div>
+    <a class="sb-item" href="#p2-docs"><span class="sb-num">9</span>Documentation</a>
+    <a class="sb-item" href="#p2-scripts"><span class="sb-num">10</span>Call Scripts</a>
+    <a class="sb-item" href="#p2-playbooks"><span class="sb-num">12</span>Playbooks</a>
+    <a class="sb-item" href="#p2-daily"><span class="sb-num">15</span>Daily Checklist</a>
+    <a class="sb-item" href="#p2-rootcause"><span class="sb-num">13</span>Root Cause</a>
+    <a class="sb-item" href="#p2-tools"><span class="sb-num">16</span>Tools</a>
+  </nav>
+  <div class="sb-footer"><strong>Rapid Cortex</strong> · v1.0<br/><span style="color:#5a7a96;line-height:1.8"><a href="/" style="color:#8eb4d4">Home</a> · <a href="/signup" style="color:#8eb4d4">Sign up</a> · <a href="/pricing" style="color:#8eb4d4">Pricing</a> · <a href="/example-city/login" style="color:#8eb4d4">Sign in</a> · <a href="https://www.rapidcortex.us" target="_blank" rel="noopener noreferrer" style="color:#5a7a96">Production</a></span><br/><span style="display:block;margin-top:10px;font-size:10px;color:#3d5a78;line-height:1.55">© 2026 Rapid Cortex. Decision support for emergency communications — not a replacement for CAD, telephony, or medical direction.<br/>Site built and managed by <a href="https://www.appsondemand.net" target="_blank" rel="noopener noreferrer" style="color:#5a7a96">Apps on Demand</a> · <a href="https://www.appsondemand.net" target="_blank" rel="noopener noreferrer" style="color:#5a7a96">www.appsondemand.net</a></span></div>
+</aside>
+
+<main class="main">
+
+  <div class="topbar no-print">
+    <div class="topbar-left">
+      <span class="tbadge tb-red">Complete Operations Manual</span>
+      <span class="topbar-title">Part 1: Jurisdiction Guide &nbsp;·&nbsp; Part 2: Admin Troubleshooting Guide</span>
+    </div>
+    <div style="display:flex;gap:7px">
+      <span class="tbadge tb-blue">v1.0 · 2 Parts</span>
+      <span class="tbadge tb-gray" onclick="window.print()" style="cursor:pointer">🖨 Print / Save PDF</span>
+    </div>
+  </div>
+
+  <!-- ══ PART 1 ══ -->
+  <div id="p1-intro">
+    <div class="cover" id="intro">
+    <div class="cover-eyebrow">Rapid Cortex</div>
+    <h1>Agency IT &amp; <em>Operations Manual</em></h1>
+    <p class="cover-sub">The complete reference for county, city, and municipal IT teams, dispatch supervisors, and system administrators — from first workstation through daily operations and support.</p>
+    <div class="cover-meta">
+      <div class="cm-item"><span class="cm-label">Your platform URL</span><span class="cm-value"><code>www.rapidcortex.us/[jurisdiction]</code></span></div>
+      <div class="cm-item"><span class="cm-label">Audience</span><span class="cm-value">IT admins · Comms supervisors · Agency admins</span></div>
+      <div class="cm-item"><span class="cm-label">Included in</span><span class="cm-value">Download package</span></div>
+      <div class="cm-item"><span class="cm-label">Important</span><span class="cm-value">Assistive platform — not a replacement for personnel</span></div>
+    </div>
+  </div>
+  </div>
+
+  <div class="quick-nav">
+    <a class="qn" href="#ch-1"><span class="qn-ico">💻</span><span class="qn-t">Workstations</span><span class="qn-s">Ch 1</span></a>
+    <a class="qn" href="#ch-3"><span class="qn-ico">⚙️</span><span class="qn-t">Initial Setup</span><span class="qn-s">Ch 3</span></a>
+    <a class="qn" href="#ch-4"><span class="qn-ico">👥</span><span class="qn-t">Users &amp; Roles</span><span class="qn-s">Ch 4</span></a>
+    <a class="qn" href="#ch-6"><span class="qn-ico">✅</span><span class="qn-t">Go-Live</span><span class="qn-s">Ch 6</span></a>
+    <a class="qn" href="#ch-11"><span class="qn-ico">🔧</span><span class="qn-t">Troubleshoot</span><span class="qn-s">Ch 11</span></a>
+    <a class="qn" href="#wallcard"><span class="qn-ico">📌</span><span class="qn-t">Wall Card</span><span class="qn-s">Print</span></a>
+  </div>
+
+  <div class="toc no-print">
+    <div class="toc-title">Table of Contents</div>
+    <div class="toc-grid">
+      <div class="toc-part">
+        <div class="toc-part-label">Part 1 — Jurisdiction Guide</div>
+        <a class="toc-item" href="#ch-1"><span class="toc-num">1</span><span>Workstation Requirements</span><span class="toc-dots"></span></a>
+        <a class="toc-item" href="#ch-2"><span class="toc-num">2</span><span>Network &amp; Security</span><span class="toc-dots"></span></a>
+        <a class="toc-item" href="#ch-3"><span class="toc-num">3</span><span>Initial Setup Process</span><span class="toc-dots"></span></a>
+        <a class="toc-item" href="#ch-4"><span class="toc-num">4</span><span>User Accounts &amp; Roles</span><span class="toc-dots"></span></a>
+        <a class="toc-item" href="#ch-5"><span class="toc-num">5</span><span>Admin Configuration</span><span class="toc-dots"></span></a>
+        <a class="toc-item" href="#ch-6"><span class="toc-num">6</span><span>Go-Live Checklist</span><span class="toc-dots"></span></a>
+        <a class="toc-item" href="#ch-7"><span class="toc-num">7</span><span>Daily Startup Check</span><span class="toc-dots"></span></a>
+        <a class="toc-item" href="#ch-8"><span class="toc-num">8</span><span>Routine Maintenance</span><span class="toc-dots"></span></a>
+        <a class="toc-item" href="#ch-9"><span class="toc-num">9</span><span>Patching &amp; Updates</span><span class="toc-dots"></span></a>
+        <a class="toc-item" href="#ch-10"><span class="toc-num">10</span><span>CAD &amp; Motorola Integration</span><span class="toc-dots"></span></a>
+        <a class="toc-item" href="#ch-11"><span class="toc-num">11</span><span>Common Issues &amp; Fixes</span><span class="toc-dots"></span></a>
+        <a class="toc-item" href="#ch-12"><span class="toc-num">12</span><span>Low Confidence Handling</span><span class="toc-dots"></span></a>
+        <a class="toc-item" href="#ch-13"><span class="toc-num">13</span><span>Support &amp; Escalation</span><span class="toc-dots"></span></a>
+        <a class="toc-item" href="#ch-14"><span class="toc-num">A–D</span><span>Appendices (URLs, Contacts, Roles, Limits)</span><span class="toc-dots"></span></a>
+        <a class="toc-item" href="#wallcard"><span class="toc-num">★</span><span>Console Wall Card</span><span class="toc-dots"></span></a>
+      </div>
+      <div class="toc-part">
+        <div class="toc-part-label">Part 2 — Admin Troubleshooting Guide (Internal)</div>
+        <a class="toc-item" href="#p2-intro"><span class="toc-num">—</span><span>Core Principles &amp; Golden Rules</span><span class="toc-dots"></span></a>
+        <a class="toc-item" href="#p2-roles"><span class="toc-num">—</span><span>Support Team Roles</span><span class="toc-dots"></span></a>
+        <a class="toc-item" href="#p2-severity"><span class="toc-num">S</span><span>Severity Levels S1–S4</span><span class="toc-dots"></span></a>
+        <a class="toc-item" href="#p2-intake"><span class="toc-num">4</span><span>Intake Checklist</span><span class="toc-dots"></span></a>
+        <a class="toc-item" href="#p2-workflow"><span class="toc-num">5</span><span>Standard Troubleshooting Workflow</span><span class="toc-dots"></span></a>
+        <a class="toc-item" href="#p2-cat-login"><span class="toc-num">6A–L</span><span>Issue Categories (12 types)</span><span class="toc-dots"></span></a>
+        <a class="toc-item" href="#p2-major"><span class="toc-num">7</span><span>Major Incident Process</span><span class="toc-dots"></span></a>
+        <a class="toc-item" href="#p2-escalation"><span class="toc-num">8</span><span>Escalation Matrix</span><span class="toc-dots"></span></a>
+        <a class="toc-item" href="#p2-docs"><span class="toc-num">9</span><span>Documentation Standards + Ticket Example</span><span class="toc-dots"></span></a>
+        <a class="toc-item" href="#p2-scripts"><span class="toc-num">10</span><span>Call Scripts (6 stages)</span><span class="toc-dots"></span></a>
+        <a class="toc-item" href="#p2-playbooks"><span class="toc-num">12</span><span>Scenario Playbooks (5 scenarios)</span><span class="toc-dots"></span></a>
+        <a class="toc-item" href="#p2-daily"><span class="toc-num">15</span><span>Daily Ops Checklist</span><span class="toc-dots"></span></a>
+        <a class="toc-item" href="#p2-rootcause"><span class="toc-num">13</span><span>Root Cause Categories</span><span class="toc-dots"></span></a>
+        <a class="toc-item" href="#p2-tools"><span class="toc-num">16</span><span>Tools &amp; Data Access</span><span class="toc-dots"></span></a>
+      </div>
+    </div>
+  </div>
+
+  <div class="content" id="p1-resp">
+    <!-- PURPOSE -->
+    <div class="chapter" id="intro-detail">
+      <div class="sub-title" style="font-size:16px;margin-bottom:12px">Purpose of this Guide</div>
+      <div class="callout c-info"><span class="callout-ico">ℹ️</span><div><strong>Rapid Cortex is an assistive operational platform.</strong> It is intended to support dispatch and response workflows — it does not replace trained personnel, agency policy, or required human judgment. All final decisions remain with your staff.</div></div>
+      <div class="prose"><p>This guide is for county or city IT administrators, municipal public safety technology teams, 911 center technology support staff, dispatch center supervisors, agency Rapid Cortex administrators, and approved implementation partners.</p><p>It explains how to prepare agency workstations, install and configure access, set up users and roles, verify system readiness, maintain the system, respond to common issues, and escalate support when needed.</p></div>
+    </div>
+
+    <!-- RESPONSIBILITIES -->
+    <div class="chapter" id="responsibilities">
+      <div class="ch-header">
+        <div class="ch-num b">📋</div>
+        <div><div class="ch-title">Agency Responsibilities</div><div class="ch-desc">Designate these three roles before go-live — each owns a distinct area</div></div>
+      </div>
+      <div class="cg cg3">
+        <div class="card">
+          <div class="card-h">🔧 Agency Technical Lead</div>
+          <div class="card-b">Responsible for workstation readiness, browser and device support, network and firewall rules, user account coordination, and first-line troubleshooting.</div>
+        </div>
+        <div class="card">
+          <div class="card-h">📻 Agency Operations Lead</div>
+          <div class="card-b">Responsible for dispatch workflow alignment, supervisor escalation procedures, training coordination, and policy and protocol alignment.</div>
+        </div>
+        <div class="card">
+          <div class="card-h">🔑 Agency Rapid Cortex Admin</div>
+          <div class="card-b">Responsible for user provisioning, role assignment, access review, audit review, and local issue reporting.</div>
+        </div>
+      </div>
+      <div class="callout c-warn"><span class="callout-ico">⚠️</span><span>Each designation should be documented by name and contact info. Keep this current — especially after staff changes. See <strong>Appendix B</strong> for the contact sheet.</span></div>
+    </div>
+
+    <!-- CH 1: WORKSTATION REQUIREMENTS -->
+    <div class="chapter" id="ch-1">
+      <div class="ch-header">
+        <div class="ch-num">1</div>
+        <div><div class="ch-title">Workstation Requirements</div><div class="ch-desc">Hardware, OS, browser, and display minimums for every dispatch position</div></div>
+      </div>
+      <div class="callout c-info"><span class="callout-ico">ℹ️</span><span>Rapid Cortex may run as a <strong>secure web application</strong>, a <strong>managed desktop application</strong>, or a <strong>hybrid configuration</strong> depending on your agency rollout model. Use only the production or pilot URL/build assigned to your agency.</span></div>
+      <div class="sub">
+        <div class="sub-title">Hardware</div>
+        <div style="background:#fff;border:1px solid var(--border);border-radius:var(--radius-lg);overflow:hidden">
+          <table class="dt">
+            <thead><tr><th>Component</th><th>Minimum</th><th>Recommended</th></tr></thead>
+            <tbody>
+              <tr><td>Computer</td><td class="desc">Modern desktop or laptop</td><td class="desc">Desktop workstation preferred for dispatch positions</td></tr>
+              <tr><td>RAM</td><td class="desc">8 GB</td><td class="desc">16 GB for positions running CAD side-by-side</td></tr>
+              <tr><td>Displays</td><td class="desc">Single monitor, 1920×1080</td><td class="desc">Dual monitors strongly recommended</td></tr>
+              <tr><td>Audio device</td><td class="desc">Headset if transcript/audio features enabled</td><td class="desc">Agency-approved audio input device</td></tr>
+              <tr><td>Network</td><td class="desc">Stable broadband</td><td class="desc">Wired Ethernet strongly preferred for dispatch positions</td></tr>
+              <tr><td>Display zoom</td><td class="desc">125% or less</td><td class="desc">100% for operational consoles with side-by-side layout</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div class="sub">
+        <div class="sub-title">Operating System</div>
+        <div class="cg cg3">
+          <div class="card"><div class="card-h">🪟 Windows 11</div><div class="card-b">Preferred for all dispatch and admin positions.</div></div>
+          <div class="card"><div class="card-h">🪟 Windows 10</div><div class="card-b">Supported. Ensure it is fully updated.</div></div>
+          <div class="card"><div class="card-h">🍎 macOS</div><div class="card-b">Approved macOS version acceptable for supervisory and admin roles if part of the rollout plan.</div></div>
+        </div>
+      </div>
+      <div class="sub">
+        <div class="sub-title">Browser Support (web version)</div>
+        <div style="background:#fff;border:1px solid var(--border);border-radius:var(--radius-lg);overflow:hidden">
+          <table class="dt">
+            <thead><tr><th>Browser</th><th>Support</th><th>Notes</th></tr></thead>
+            <tbody>
+              <tr><td>Google Chrome (latest)</td><td class="desc" style="color:#2e7d32;font-weight:600">✓ Recommended</td><td class="desc">Primary supported browser</td></tr>
+              <tr><td>Microsoft Edge (latest)</td><td class="desc" style="color:#2e7d32;font-weight:600">✓ Recommended</td><td class="desc">Fully supported</td></tr>
+              <tr><td>Firefox (115+)</td><td class="desc" style="color:#1d4fa8;font-weight:600">✓ Supported</td><td class="desc">Supported; Chrome/Edge preferred</td></tr>
+              <tr><td>Safari</td><td class="desc" style="color:#7a3900;font-weight:600">⚠ Conditional</td><td class="desc">Only if explicitly approved in rollout plan</td></tr>
+              <tr><td>Any outdated browser</td><td class="desc" style="color:var(--red-dim);font-weight:600">✗ Not supported</td><td class="desc">Do not use — will cause unpredictable behavior</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- CH 2: NETWORK & SECURITY -->
+    <div class="chapter" id="ch-2">
+      <div class="ch-header">
+        <div class="ch-num b">2</div>
+        <div><div class="ch-title">Network &amp; Security Prerequisites</div><div class="ch-desc">Verify these before any user attempts to sign in</div></div>
+      </div>
+      <div class="callout c-danger"><span class="callout-ico">🚨</span><span>Agencies using <strong>allowlisting</strong> or <strong>SSL inspection</strong> must resolve these items before go-live. Failure to do so is the most common cause of blank dashboards and auth failures.</span></div>
+      <ul class="cl">
+        <li><strong>Outbound HTTPS (port 443)</strong> — Allow from dispatch workstations to <code>rapidcortex.us</code> and <code>*.amazonaws.com</code>.</li>
+        <li><strong>Authentication endpoints</strong> — Allow outbound access to Cognito authentication domains (provided by your Rapid Cortex rep at setup).</li>
+        <li><strong>WebSocket traffic</strong> — If firewall rules inspect or block WebSocket (WSS) connections, whitelist Rapid Cortex API domains. Required if transcript streaming is enabled.</li>
+        <li><strong>SSL inspection / TLS intercept</strong> — If your agency performs TLS inspection, add Rapid Cortex and AWS domains to the bypass list. Inspection can break authentication token handling and cause silent login failures.</li>
+        <li><strong>Endpoint protection</strong> — Confirm your EDR or antivirus solution does not quarantine browser sessions or flag Rapid Cortex domains. Add to trusted sites if required.</li>
+        <li><strong>Cookies and local storage</strong> — Ensure browser policy does not block cookies or local storage for <code>rapidcortex.us</code>. These are required for the login session.</li>
+        <li><strong>Pop-up blockers</strong> — Allow pop-ups from <code>rapidcortex.us</code>. Some auth flows (password reset) require them.</li>
+        <li><strong>Workstation clock sync</strong> — Ensure workstation time and date are correct. Authentication tokens are time-sensitive — clock drift of more than a few minutes causes silent auth failures.</li>
+      </ul>
+    </div>
+
+    <!-- CH 3: INITIAL SETUP -->
+    <div class="chapter" id="ch-3">
+      <div class="ch-header">
+        <div class="ch-num r">3</div>
+        <div><div class="ch-title">Initial Local Setup Process</div><div class="ch-desc">Five steps to verify every new workstation before staff use</div></div>
+      </div>
+      <div class="callout c-success"><span class="callout-ico">✓</span><span>The Rapid Cortex implementation team handles all cloud, server, and authentication infrastructure. Your IT team's job here is to <strong>verify access from each workstation</strong> and confirm the system is operational before staff use it.</span></div>
+      <div class="steps">
+        <div class="step">
+          <div class="step-num b">1</div>
+          <div class="step-body">
+            <div class="step-title">Confirm workstation readiness</div>
+            <div class="step-text">Verify: browser or desktop app is installed and updated · workstation date/time is correct · audio devices connected if required · network access is stable · user has approved credentials ready.</div>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-num b">2</div>
+          <div class="step-body">
+            <div class="step-title">Launch Rapid Cortex</div>
+            <div class="step-text">Open the approved agency URL in Chrome or Edge: <code>https://www.rapidcortex.us/[your-slug]/login</code> — or launch the approved desktop build from the workstation. The login page should load without errors or security warnings.</div>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-num b">3</div>
+          <div class="step-body">
+            <div class="step-title">Sign in</div>
+            <div class="step-text">Enter assigned credentials. Complete MFA if enabled for your agency. After login, verify the correct agency name and environment are shown in the interface — not a different agency's tenant.</div>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-num b">4</div>
+          <div class="step-body">
+            <div class="step-title">Confirm role-based access</div>
+            <div class="step-text">Verify the user sees the correct views for their role: dispatchers should see the live dashboard · supervisors should see the review queue · admins should see admin controls · auditors should see only approved read-only views.</div>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-num b">5</div>
+          <div class="step-body">
+            <div class="step-title">Verify the system is operational</div>
+            <div class="step-text">Confirm: dashboard loads without blank screens · incident data loads · transcript and AI panels load if enabled · <strong>no red banners or "API offline" errors appear.</strong> If any check fails, do not proceed — consult Chapter 11.</div>
+          </div>
+        </div>
+      </div>
+      <div class="sub">
+        <div class="sub-title">Your agency URL structure</div>
+        <div class="code-block">
+<span class="cc-muted"># Sign-in</span>
+https://www.rapidcortex.us/<span class="cc-red">[your-slug]</span>/login
+
+<span class="cc-muted"># Live dispatcher dashboard</span>
+https://www.rapidcortex.us/<span class="cc-red">[your-slug]</span>/dashboard
+
+<span class="cc-muted"># Supervisor review queue</span>
+https://www.rapidcortex.us/<span class="cc-red">[your-slug]</span>/review
+
+<span class="cc-muted"># Admin area (admin role required)</span>
+https://www.rapidcortex.us/<span class="cc-red">[your-slug]</span>/admin
+
+<span class="cc-muted"># Training / demo mode ONLY — never use on live calls</span>
+https://www.rapidcortex.us/<span class="cc-red">[your-slug]</span>/demo
+        </div>
+        <div class="callout c-warn"><span class="callout-ico">⚠️</span><span>Replace <code>[your-slug]</code> with your actual jurisdiction slug (e.g. <code>columbus</code>, <code>franklin-county</code>). Bookmark the correct URLs on every workstation before go-live. <strong>Never use <code>/demo</code> on live operational calls.</strong></span></div>
+      </div>
+    </div>
+
+    <!-- CH 4: USERS & ROLES -->
+    <div class="chapter" id="ch-4">
+      <div class="ch-header">
+        <div class="ch-num r">4</div>
+        <div><div class="ch-title">User Accounts &amp; Roles</div><div class="ch-desc">Who gets what access — and how to manage it</div></div>
+      </div>
+      <div class="sub">
+        <div class="sub-title">The five roles</div>
+        <div style="background:#fff;border:1px solid var(--border);border-radius:var(--radius-lg);overflow:hidden;margin-bottom:14px">
+          <table class="dt">
+            <thead><tr><th>Role</th><th>Who it's for</th><th>What they can access</th></tr></thead>
+            <tbody>
+              <tr><td><span class="role rd">dispatcher</span></td><td class="desc">Call-takers, operators on shift</td><td class="desc">Live incident queue, transcript, AI panel, protocol hints. Cannot manage users or settings.</td></tr>
+              <tr><td><span class="role rs">supervisor</span></td><td class="desc">Shift supervisors, QA leads</td><td class="desc">All dispatcher access plus Supervisor Review queue for flagged incidents. Cannot manage users.</td></tr>
+              <tr><td><span class="role ra">admin</span></td><td class="desc">IT lead, comms center manager</td><td class="desc">User management, agency settings, audit log, integration status. Scoped to your agency only.</td></tr>
+              <tr><td><span class="role rr">read-only / auditor</span></td><td class="desc">Compliance reviewers where approved</td><td class="desc">Limited review access only. Cannot take operational actions. Requires explicit approval in your rollout.</td></tr>
+              <tr><td><span class="role" style="background:#0a1628;color:#fff">superadmin</span></td><td class="desc">Rapid Cortex support staff only</td><td class="desc">Reserved for authorized Rapid Cortex platform staff. <strong>Agencies must not assign this role.</strong></td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="callout c-danger"><span class="callout-ico">🚫</span><span>Do not assign elevated roles (admin, superadmin) casually or as a workaround for access issues. Use the minimum role required. Superadmin is exclusively for Rapid Cortex staff.</span></div>
+      </div>
+      <div class="sub">
+        <div class="sub-title">Creating a new user (admin steps)</div>
+        <div class="steps">
+          <div class="step"><div class="step-num">1</div><div class="step-body"><div class="step-title">Sign in as admin</div><div class="step-text">Navigate to <code>/[slug]/admin/users</code> using your admin account.</div></div></div>
+          <div class="step"><div class="step-num">2</div><div class="step-body"><div class="step-title">Invite the user</div><div class="step-text">Enter the staff member's work email address, select their role, and submit. The system logs the invite in the audit trail automatically.</div></div></div>
+          <div class="step"><div class="step-num">3</div><div class="step-body"><div class="step-title">Deliver credentials securely</div><div class="step-text">Credentials are delivered out-of-band during the pilot phase. Follow your agency's policy for secure credential distribution — do not send passwords over unencrypted email.</div></div></div>
+          <div class="step"><div class="step-num">4</div><div class="step-body"><div class="step-title">First login — password set</div><div class="step-text">On first login, Cognito prompts the staff member to set a new password. This is automatic. Ensure they complete this before their first operational shift.</div></div></div>
+          <div class="step"><div class="step-num">5</div><div class="step-body"><div class="step-title">Verify role and dashboard</div><div class="step-text">Confirm the user lands on the correct dashboard with no errors. If they see wrong-agency content or a blank screen, contact your Rapid Cortex rep — a claim may need correction.</div></div></div>
+        </div>
+      </div>
+      <div class="sub">
+        <div class="sub-title">Account changes</div>
+        <div class="cg cg3">
+          <div class="card"><div class="card-h">✚ New hire</div><div class="card-b">Create the account in Admin → Users before their first shift. Deliver credentials per your agency's policy.</div></div>
+          <div class="card"><div class="card-h">↔ Role change</div><div class="card-b">Update the role in Admin → Users. Changes take effect at next login — ask the user to sign out and back in.</div></div>
+          <div class="card"><div class="card-h">✕ Departure</div><div class="card-b">Deactivate the account on their last day. Do not delete — deactivated records preserve the audit trail for that user's activity.</div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- CH 5: ADMIN CONFIGURATION -->
+    <div class="chapter" id="ch-5">
+      <div class="ch-header">
+        <div class="ch-num b">5</div>
+        <div><div class="ch-title">Admin Configuration Review</div><div class="ch-desc">Tasks the agency admin should complete during rollout and verify regularly</div></div>
+      </div>
+      <div class="sub">
+        <div class="sub-title">User provisioning checklist</div>
+        <ul class="cl">
+          <li>All authorized users created or invited with correct work email addresses.</li>
+          <li>Each user assigned the correct role — confirm with their supervisor if unsure.</li>
+          <li>Every user has signed in at least once and confirmed they reach their correct dashboard.</li>
+          <li>Unused or duplicate accounts disabled before go-live.</li>
+        </ul>
+      </div>
+      <div class="sub">
+        <div class="sub-title">Role verification checklist</div>
+        <ul class="cl">
+          <li>Dispatchers do <strong>not</strong> have admin functions visible unless explicitly approved.</li>
+          <li>Supervisors can access the review queue and required oversight views.</li>
+          <li>Only approved staff have the admin role — review the list with your operations lead.</li>
+        </ul>
+      </div>
+      <div class="sub">
+        <div class="sub-title">Local configuration review</div>
+        <ul class="cl">
+          <li>Agency name and tenant ID match what your Rapid Cortex rep confirmed during setup.</li>
+          <li>Language and transcript options are configured correctly for your pilot scope.</li>
+          <li>Only approved features are enabled — if something appears that was not expected, contact your rep.</li>
+          <li>Support contacts are documented locally and accessible to all staff (see Appendix B).</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- CH 6: GO-LIVE CHECKLIST -->
+    <div class="chapter" id="ch-6">
+      <div class="ch-header">
+        <div class="ch-num r">6</div>
+        <div><div class="ch-title">Go-Live Checklist</div><div class="ch-desc">Every item must be confirmed before the agency is considered live — tick with a partner and keep a copy</div></div>
+      </div>
+      <div class="callout c-stop"><span class="callout-ico">🚨</span><div><strong>Do not go live until every item on this list is checked.</strong> If any item cannot be confirmed, stop and contact your Rapid Cortex implementation rep before dispatchers handle real calls on the platform.</div></div>
+      <div class="sub">
+        <div class="sub-title">Infrastructure &amp; access</div>
+        <ul class="cl">
+          <li><strong>Approved workstations ready</strong> — hardware, OS, and browser meet requirements in Chapter 1.</li>
+          <li><strong>Network access verified</strong> — firewall and allowlist rules confirmed per Chapter 2.</li>
+          <li><strong>SSL inspection bypass</strong> confirmed if applicable.</li>
+        </ul>
+      </div>
+      <div class="sub">
+        <div class="sub-title">Users &amp; roles</div>
+        <ul class="cl">
+          <li><strong>All pilot users provisioned</strong> with correct roles and agency assignment.</li>
+          <li><strong>Admin can sign in</strong> and reach Admin → Users without errors.</li>
+          <li><strong>At least one dispatcher can sign in</strong> and sees the live dashboard.</li>
+          <li><strong>At least one supervisor can sign in</strong> and sees the review queue.</li>
+        </ul>
+      </div>
+      <div class="sub">
+        <div class="sub-title">System functionality</div>
+        <ul class="cl">
+          <li><strong>Incidents load correctly</strong> — incident list is not blank after login.</li>
+          <li><strong>Transcript features work</strong> if enabled for your agency.</li>
+          <li><strong>Translation to English works</strong> if multilingual is in scope.</li>
+          <li><strong>AI analysis works</strong> if enabled — at least one test analysis completed.</li>
+          <li><strong>No red banners or "API offline" errors</strong> visible on any test workstation.</li>
+          <li><strong>Demo mode is not visible</strong> on live-use workstations.</li>
+        </ul>
+      </div>
+      <div class="sub">
+        <div class="sub-title">Operations readiness</div>
+        <ul class="cl">
+          <li><strong>Support contact list posted</strong> at every dispatch console (see Appendix B and Wall Card).</li>
+          <li><strong>Escalation path understood</strong> by all staff — who to call for what type of issue.</li>
+          <li><strong>Known Limitations reviewed</strong> — all staff understand what is and is not active for this agency.</li>
+          <li><strong>Training completed</strong> — all operators have completed required Rapid Cortex training.</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- CH 7: DAILY STARTUP -->
+    <div class="chapter" id="ch-7">
+      <div class="ch-header">
+        <div class="ch-num">7</div>
+        <div><div class="ch-title">Daily Operational Startup Check</div><div class="ch-desc">Run by the designated supervisor or IT lead at the start of each shift</div></div>
+      </div>
+      <div class="callout c-info"><span class="callout-ico">ℹ️</span><span>This check takes under 5 minutes. If any item fails, consult Chapter 11 before dispatchers use the platform on live calls.</span></div>
+      <ul class="cl">
+        <li>Rapid Cortex launches successfully on a test workstation.</li>
+        <li>At least one user can sign in without errors.</li>
+        <li>Dashboard loads current incident data — list is not blank.</li>
+        <li>At least one incident can be opened and viewed.</li>
+        <li>Transcript and AI panels are visible if part of the deployment.</li>
+        <li>No active outage notice is displayed in the interface.</li>
+        <li>Audio devices are functioning if transcript/voice features are enabled.</li>
+        <li>API health indicator in the top bar shows <strong>green / Live</strong> — not "offline" or error.</li>
+      </ul>
+    </div>
+
+    <!-- CH 8: ROUTINE MAINTENANCE -->
+    <div class="chapter" id="ch-8">
+      <div class="ch-header">
+        <div class="ch-num b">8</div>
+        <div><div class="ch-title">Routine Maintenance</div><div class="ch-desc">Daily through quarterly responsibilities for IT admin and supervisors</div></div>
+      </div>
+      <div class="callout c-success"><span class="callout-ico">✓</span><span>Rapid Cortex is cloud-hosted — no server patching, no database backups, no software installs on workstations. Your maintenance is primarily <strong>user management</strong> and <strong>access hygiene</strong>.</span></div>
+      <div class="maint-grid">
+        <div class="maint-card">
+          <div class="maint-hdr daily">Daily</div>
+          <div class="maint-body"><ul>
+            <li>Verify users can access the system (daily startup check)</li>
+            <li>Review any visible error banners reported by dispatchers</li>
+            <li>Confirm no failed login spikes or role issues reported at shift handoff</li>
+          </ul></div>
+        </div>
+        <div class="maint-card">
+          <div class="maint-hdr weekly">Weekly</div>
+          <div class="maint-body"><ul>
+            <li>Review inactive accounts — deactivate if staff have changed</li>
+            <li>Verify current staff still have correct roles</li>
+            <li>Review any known issues or release notices from Rapid Cortex</li>
+            <li>Confirm browser/workstation updates have not broken access</li>
+          </ul></div>
+        </div>
+        <div class="maint-card">
+          <div class="maint-hdr monthly">Monthly</div>
+          <div class="maint-body"><ul>
+            <li>Full audit of user list — disable accounts for departed or transferred personnel</li>
+            <li>Review system health dashboard if available</li>
+            <li>Verify support contacts and escalation roster are current</li>
+            <li>Review agency-specific settings for correctness</li>
+            <li>Review privileged roles — confirm no unnecessary admin assignments</li>
+          </ul></div>
+        </div>
+        <div class="maint-card">
+          <div class="maint-hdr quarterly">Quarterly</div>
+          <div class="maint-body"><ul>
+            <li>Formal access review — each user's role and need confirmed</li>
+            <li>Confirm policy alignment — any SOP changes need to be reflected in training</li>
+            <li>Review training refresh needs for staff</li>
+            <li>Validate backup and support contacts are current</li>
+          </ul></div>
+        </div>
+      </div>
+      <div class="sub">
+        <div class="sub-title">Account maintenance rules</div>
+        <ul class="cl">
+          <li>Remove or disable separated employees <strong>promptly on their last day</strong> — do not wait for the monthly audit.</li>
+          <li><strong>No shared accounts</strong> — every user must have unique credentials unless explicitly approved in writing.</li>
+          <li>Document who the current agency admins are and keep this list updated.</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- CH 9: PATCHING -->
+    <div class="chapter" id="ch-9">
+      <div class="ch-header">
+        <div class="ch-num">9</div>
+        <div><div class="ch-title">Maintenance &amp; Patching</div><div class="ch-desc">How updates work — browser-based, desktop, and backend</div></div>
+      </div>
+      <div class="cg cg3">
+        <div class="card">
+          <div class="card-h">🌐 Browser-based</div>
+          <div class="card-b">Keep approved browsers updated. Validate changes on a test workstation before widespread rollout. Clear cached application data if instructed during support. Hard refresh (<code>Ctrl+Shift+R</code>) resolves most post-update display issues.</div>
+        </div>
+        <div class="card">
+          <div class="card-h">🖥️ Desktop app</div>
+          <div class="card-b">Install only approved signed versions. Remove obsolete builds. Apply updates during approved maintenance windows. Validate startup and sign-in after every update before releasing to dispatch staff.</div>
+        </div>
+        <div class="card">
+          <div class="card-h">☁️ Backend / service</div>
+          <div class="card-b">Handled by the Rapid Cortex platform team. Your role: review maintenance notifications, coordinate approved testing windows, and verify system access after any release.</div>
+        </div>
+      </div>
+      <div class="callout c-info"><span class="callout-ico">ℹ️</span><span>Platform updates deploy automatically. Rapid Cortex will notify you in advance of significant changes. If dispatchers report that the interface looks different after an update, a hard refresh resolves most cases.</span></div>
+    </div>
+
+    <!-- CH 10: CAD & MOTOROLA -->
+    <div class="chapter" id="ch-10">
+      <div class="ch-header">
+        <div class="ch-num b">10</div>
+        <div><div class="ch-title">CAD &amp; Motorola Integration</div><div class="ch-desc">Current status, integration phases, and what to prepare</div></div>
+      </div>
+      <div class="callout c-warn"><span class="callout-ico">⚠️</span><div>As of this release, <strong>live CAD integration is not yet active</strong>. Rapid Cortex runs alongside your CAD — dispatchers use both screens independently. A CAD feed is a planned future phase requiring scoped work with your vendor.</div></div>
+      <div class="phase-strip">
+        <div class="pc pc-active"><div class="pc-num">Now</div><div class="pc-name">Side-by-side</div><div class="pc-status">✓ Active</div></div>
+        <div class="pc"><div class="pc-num">Phase A</div><div class="pc-name">Discovery</div><div class="pc-status" style="color:var(--text-light)">Scheduled</div></div>
+        <div class="pc"><div class="pc-num">Phase B</div><div class="pc-name">Read-only feed</div><div class="pc-status" style="color:var(--text-light)">Future</div></div>
+        <div class="pc"><div class="pc-num">Phase C</div><div class="pc-name">Live enabled</div><div class="pc-status" style="color:var(--text-light)">Future</div></div>
+        <div class="pc"><div class="pc-num">Phase D</div><div class="pc-name">Write-back</div><div class="pc-status" style="color:var(--text-light)">Governance req'd</div></div>
+      </div>
+      <div class="sub">
+        <div class="sub-title">What to prepare when you're ready for CAD integration</div>
+        <ul class="cl">
+          <li>Contact your <strong>Motorola Solutions account manager</strong> — ask for the integration catalog for your specific product version and deployment.</li>
+          <li>Identify your <strong>CAD product name and version</strong> — what Rapid Cortex can connect to depends entirely on this.</li>
+          <li>Define <strong>data scope</strong>: which fields to share (incident ID, type, location, units, timestamps) and which must never leave CAD per policy.</li>
+          <li>Determine <strong>network path</strong>: public internet with TLS, or private/VPN connection — confirm with your CJIS compliance officer.</li>
+          <li>Get <strong>legal and CJIS sign-off</strong> before any data-sharing arrangement is finalized.</li>
+          <li>Share the above with your Rapid Cortex rep to begin formal integration scoping.</li>
+        </ul>
+      </div>
+      <div class="callout c-danger"><span class="callout-ico">🚫</span><div><strong>Write-back to CAD is off-limits without explicit governance.</strong> Rapid Cortex will never automatically update CAD records without legal review, dual-authorization controls, and vendor approval. This is a hard boundary.</div></div>
+    </div>
+
+    <!-- CH 11: TROUBLESHOOTING -->
+    <div class="chapter" id="ch-11">
+      <div class="ch-header">
+        <div class="ch-num r">11</div>
+        <div><div class="ch-title">Common Issues &amp; Fixes</div><div class="ch-desc">Check → Try → Escalate for each problem type</div></div>
+      </div>
+      <div class="callout c-info"><span class="callout-ico">💡</span><span>For every issue you escalate: collect <strong>UTC time</strong>, <strong>incident ID</strong>, <strong>request ID</strong> (from any error box), browser version, and whether one or multiple workstations are affected. See Chapter 13 for the full collection checklist.</span></div>
+
+      <div class="syms">
+        <div class="sym">
+          <div class="sym-hdr"><span class="sym-tag t-red">Login</span><span class="sym-desc">User cannot log in</span></div>
+          <div class="sym-body">
+            <div class="fix-lbl">Check</div>
+            <ul><li>Username/password correctness — check CAPS LOCK</li><li>MFA prompt — is the user completing the second factor?</li><li>Correct environment URL — <code>www.rapidcortex.us/[slug]/login</code></li><li>Browser cache or stale session</li><li>Account disabled or role removed by admin</li><li>Identity provider outage (affects all users simultaneously)</li></ul>
+            <div class="fix-lbl">Try</div>
+            <ul><li>Sign out fully and relaunch the browser</li><li>Open a private/incognito window</li><li>Clear browser cache and cookies for the site</li><li>Test with another approved browser</li><li>Use "Forgot password" link — reset email arrives within a few minutes (check spam)</li><li>Admin triggers manual reset from Admin → Users</li></ul>
+            <div class="fix-lbl">Escalate if</div>
+            <ul><li>Multiple users cannot log in simultaneously</li><li>Auth callback fails repeatedly even after cache clear</li><li>Agency admin cannot reset or verify account state</li></ul>
+          </div>
+        </div>
+
+        <div class="sym">
+          <div class="sym-hdr"><span class="sym-tag t-red">Connection</span><span class="sym-desc">Dashboard is blank after login / "API offline"</span></div>
+          <div class="sym-body">
+            <div class="fix-lbl">Check</div>
+            <ul><li>Network connectivity — can the workstation reach other internet sites?</li><li>API health indicator in the top bar — is it showing red/error?</li><li>Expired session — try signing out and back in</li><li>Firewall or content filter blocking API traffic</li><li>Environment mismatch — is the user on the right agency URL?</li></ul>
+            <div class="fix-lbl">Try</div>
+            <ul><li>Hard refresh: <code>Ctrl+Shift+R</code> (Windows) / <code>Cmd+Shift+R</code> (Mac)</li><li>Sign out and back in</li><li>Test on a different workstation — if it works there, the issue is local</li><li>Verify no content filter or firewall rule was recently updated</li></ul>
+            <div class="fix-lbl">Escalate if</div>
+            <ul><li>Blank dashboard affects multiple users across the agency</li><li>API requests fail consistently even after reconnecting</li></ul>
+          </div>
+        </div>
+
+        <div class="sym">
+          <div class="sym-hdr"><span class="sym-tag t-amber">Transcript</span><span class="sym-desc">Transcript is not appearing</span></div>
+          <div class="sym-body">
+            <div class="fix-lbl">Check</div>
+            <ul><li>Transcript feature is enabled for your agency (check Admin → Configuration)</li><li>Audio input source is available and recognized by the browser/app</li><li>Session is attached to the correct incident or call</li><li>Microphone permissions are granted for the site</li></ul>
+            <div class="fix-lbl">Try</div>
+            <ul><li>Refresh the incident/session view</li><li>Open a different known-good incident</li><li>Verify microphone permissions in browser settings</li><li>Confirm there is active source audio or an inbound transcript feed</li></ul>
+            <div class="fix-lbl">Escalate if</div>
+            <ul><li>All transcript sessions fail across the agency</li><li>Only partial segments appear repeatedly</li><li>Transcript ingest is delayed well beyond expected thresholds</li></ul>
+          </div>
+        </div>
+
+        <div class="sym">
+          <div class="sym-hdr"><span class="sym-tag t-amber">Translation</span><span class="sym-desc">Translation to English is not appearing</span></div>
+          <div class="sym-body">
+            <div class="fix-lbl">Check</div>
+            <ul><li>Multilingual feature is enabled for your agency</li><li>Source language is in the supported language list</li><li>System is actually receiving source transcript text (original must appear first)</li><li>Session has not been marked "low confidence" for language detection</li></ul>
+            <div class="fix-lbl">Try</div>
+            <ul><li>Confirm original transcript text appears in the panel</li><li>Refresh the incident/session panel</li><li>Test with a supported language sample if in a training environment</li></ul>
+            <div class="fix-lbl">Escalate if</div>
+            <ul><li>Original transcript appears but English translation never populates</li><li>Translation failure affects multiple calls or users</li></ul>
+          </div>
+        </div>
+
+        <div class="sym">
+          <div class="sym-hdr"><span class="sym-tag t-amber">AI Panel</span><span class="sym-desc">AI analysis is missing or delayed</span></div>
+          <div class="sym-body">
+            <div class="fix-lbl">Check</div>
+            <ul><li>Incident contains transcript content — analysis requires source text</li><li>AI analysis feature is enabled for your agency</li><li>No active outage banner or backlog indicator visible</li><li>Session has enough transcript data to trigger analysis</li></ul>
+            <div class="fix-lbl">Try</div>
+            <ul><li>Refresh the incident detail page</li><li>Verify transcript segments exist before requesting analysis</li><li>Click "Refresh AI" once — do not click repeatedly</li><li>Confirm the user has permission to view analysis results for their role</li></ul>
+            <div class="fix-lbl">Escalate if</div>
+            <ul><li>Analysis fails across multiple incidents consistently</li><li>Summaries never populate even with transcript present</li><li>AI error indicators persist after refresh</li></ul>
+          </div>
+        </div>
+
+        <div class="sym">
+          <div class="sym-hdr"><span class="sym-tag t-blue">Access</span><span class="sym-desc">User sees "access denied" or missing features</span></div>
+          <div class="sym-body">
+            <div class="fix-lbl">Check</div>
+            <ul><li>Assigned role in Admin → Users</li><li>Tenant/agency mapping — is the account in the right agency?</li><li>Whether the feature is restricted to supervisors or admins only</li><li>Whether the user is on the correct environment URL</li></ul>
+            <div class="fix-lbl">Try</div>
+            <ul><li>Admin reviews the user account in Admin → Users</li><li>User signs out and back in after any role change — claims update at login</li><li>Verify the account belongs to the correct agency, not a test agency</li></ul>
+            <div class="fix-lbl">Escalate if</div>
+            <ul><li>Role assignments appear correct but access is still blocked</li><li>Multiple users are mapped to the wrong tenant</li></ul>
+          </div>
+        </div>
+
+        <div class="sym">
+          <div class="sym-hdr"><span class="sym-tag t-blue">Performance</span><span class="sym-desc">System is slow or unresponsive</span></div>
+          <div class="sym-body">
+            <div class="fix-lbl">Check</div>
+            <ul><li>Local workstation performance — CPU and memory usage in Task Manager</li><li>Browser resource usage — too many tabs or extensions consuming memory</li><li>Network latency — run a speed test from the workstation</li><li>Background downloads or patching running on the workstation</li></ul>
+            <div class="fix-lbl">Try</div>
+            <ul><li>Close unnecessary tabs and background apps</li><li>Relaunch the browser or desktop app</li><li>Test on another workstation — if faster, the issue is local hardware/network</li><li>Verify local internet and WAN performance</li></ul>
+            <div class="fix-lbl">Escalate if</div>
+            <ul><li>Performance degradation affects multiple users across multiple workstations</li><li>API or transcript latency is consistently high across the agency</li></ul>
+          </div>
+        </div>
+
+        <div class="sym">
+          <div class="sym-hdr"><span class="sym-tag t-gray">Browser</span><span class="sym-desc">Page looks broken or buttons don't work</span></div>
+          <div class="sym-body">
+            <div class="fix-lbl">Try first</div>
+            <ul><li>Hard refresh: <code>Ctrl+Shift+R</code> / <code>Cmd+Shift+R</code></li><li>Clear browser cache: Chrome → Settings → Privacy → Clear cached images/files</li><li>Open a private/incognito window — if it works there, the issue is a cached file</li><li>Confirm browser is Chrome 110+ or Edge 110+ — older browsers are not supported</li><li>Disable browser extensions for <code>rapidcortex.us</code> — ad blockers and script blockers can break UI components</li></ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- CH 12: LOW CONFIDENCE -->
+    <div class="chapter" id="ch-12">
+      <div class="ch-header">
+        <div class="ch-num">12</div>
+        <div><div class="ch-title">Low-Confidence &amp; Interpreter-Review Handling</div><div class="ch-desc">What to do when the system flags uncertain output</div></div>
+      </div>
+      <div class="callout c-danger"><span class="callout-ico">🚨</span><div><strong>Rapid Cortex flags are operational aids — not final authority.</strong> When the system marks a transcript, translation, or language detection result as low confidence, treat it as a signal to apply human judgment, not a confirmed result to act on.</div></div>
+      <div class="sub">
+        <div class="sub-title">When you see a low-confidence or interpreter-review flag</div>
+        <div class="steps">
+          <div class="step"><div class="step-num r">1</div><div class="step-body"><div class="step-title">Do not assume the output is fully reliable</div><div class="step-text">Low-confidence flags mean the system's certainty is below threshold. The output may still be useful but should not be acted upon without verification.</div></div></div>
+          <div class="step"><div class="step-num r">2</div><div class="step-body"><div class="step-title">Follow agency SOP for interpreter or human verification</div><div class="step-text">Your agency's standard operating procedure for interpreter engagement or supervisor review takes precedence. Rapid Cortex does not override those procedures.</div></div></div>
+          <div class="step"><div class="step-num r">3</div><div class="step-body"><div class="step-title">Notify the supervisor if required by policy</div><div class="step-text">Some agencies require supervisor notification when translation confidence is low. Follow your local policy.</div></div></div>
+          <div class="step"><div class="step-num r">4</div><div class="step-body"><div class="step-title">Continue operations using human judgment</div><div class="step-text">Never pause or delay emergency response waiting for AI output to improve. Use approved procedures and human staff as the primary source of truth.</div></div></div>
+          <div class="step"><div class="step-num r">5</div><div class="step-body"><div class="step-title">Document repeated low-confidence issues</div><div class="step-text">If a specific language, scenario, or call type consistently generates low-confidence results, log it for technical review and include it in your next Rapid Cortex support check-in.</div></div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- CH 13: SUPPORT & ESCALATION -->
+    <div class="chapter" id="ch-13">
+      <div class="ch-header">
+        <div class="ch-num b">13</div>
+        <div><div class="ch-title">Support &amp; Escalation</div><div class="ch-desc">Three-tier model — who handles what, and what to collect before you call</div></div>
+      </div>
+      <div class="tier-row">
+        <div class="tier">
+          <div class="tier-hdr"><span class="tier-badge tb1">Tier 1</span><span class="tier-name">Agency Local</span></div>
+          <div class="tier-who">Supervisor · Agency IT technician · Agency admin</div>
+          <div class="tier-body"><ul>
+            <li>Login and password issues</li>
+            <li>Browser and workstation issues</li>
+            <li>Local network connectivity</li>
+            <li>Role and access verification</li>
+            <li>Basic "is it working?" checks</li>
+          </ul></div>
+        </div>
+        <div class="tier">
+          <div class="tier-hdr"><span class="tier-badge tb2">Tier 2</span><span class="tier-name">Agency Technical Lead</span></div>
+          <div class="tier-who">Agency Technical Lead or designated IT admin</div>
+          <div class="tier-body"><ul>
+            <li>Repeated access failures across users</li>
+            <li>Tenant or agency mapping issues</li>
+            <li>Feature configuration questions</li>
+            <li>User provisioning problems</li>
+            <li>Local network/firewall policy problems</li>
+          </ul></div>
+        </div>
+        <div class="tier">
+          <div class="tier-hdr"><span class="tier-badge tb3">Tier 3</span><span class="tier-name">Rapid Cortex Platform</span></div>
+          <div class="tier-who">Rapid Cortex support team (per contract)</div>
+          <div class="tier-body"><ul>
+            <li>Platform or provider outage</li>
+            <li>Transcript/translation failure across users</li>
+            <li>Backend errors or configuration defects</li>
+            <li>Deployment issues</li>
+            <li>Audit or data integrity concerns</li>
+          </ul></div>
+        </div>
+      </div>
+      <div class="sub">
+        <div class="sub-title">Information to collect before opening a support ticket</div>
+        <div class="callout c-info"><span class="callout-ico">💡</span><span>Providing this information upfront cuts resolution time significantly. Collect it <em>before</em> calling or emailing support.</span></div>
+        <ul class="cl">
+          <li><strong>Agency name</strong> and environment name (pilot / staging / production).</li>
+          <li><strong>Affected user name and role</strong> — or "all users" if agency-wide.</li>
+          <li><strong>Affected incident or session ID</strong> — visible in the URL or incident list.</li>
+          <li><strong>UTC time</strong> of the issue — not local time.</li>
+          <li><strong>Exact error message</strong> — copy it verbatim, including the Request ID if shown.</li>
+          <li><strong>Screenshot</strong> of the error if your policy allows capturing operational screens.</li>
+          <li><strong>One user or many?</strong> — whether the issue is isolated or agency-wide changes the diagnosis entirely.</li>
+          <li><strong>Browser name and version</strong> (Chrome → Help → About Google Chrome).</li>
+          <li><strong>Workstation name or ID</strong>.</li>
+          <li><strong>Steps already attempted</strong> — what you tried from Chapter 11.</li>
+        </ul>
+      </div>
+      <div class="sub">
+        <div class="sub-title">Support routing quick reference</div>
+        <div style="background:#fff;border:1px solid var(--border);border-radius:var(--radius-lg);overflow:hidden">
+          <table class="dt">
+            <thead><tr><th>Issue type</th><th>Contact first</th></tr></thead>
+            <tbody>
+              <tr><td class="desc">Login, password reset, account access</td><td class="desc"><strong>Tier 1</strong> — agency IT or admin; escalate to Rapid Cortex if unresolved</td></tr>
+              <tr><td class="desc">API offline, incidents not loading, platform errors</td><td class="desc"><strong>Tier 3</strong> — Rapid Cortex support (per contract)</td></tr>
+              <tr><td class="desc">Wrong role or agency on an account</td><td class="desc"><strong>Tier 1</strong> — agency admin via Admin → Users; escalate if claims don't update</td></tr>
+              <tr><td class="desc">AI panel errors or poor quality output</td><td class="desc"><strong>Tier 3</strong> — include request ID, UTC time, incident ID</td></tr>
+              <tr><td class="desc">CAD, radio, or 911 phone problems</td><td class="desc"><strong>Your CAD/radio vendor</strong> — Rapid Cortex does not control those systems</td></tr>
+              <tr><td class="desc">CAD integration scoping</td><td class="desc"><strong>Rapid Cortex account team</strong> + your Motorola Solutions account manager simultaneously</td></tr>
+              <tr><td class="desc">Billing or contract questions</td><td class="desc"><strong>Finance team</strong> + Rapid Cortex account manager</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- CH 14: APPENDICES -->
+    <div class="chapter" id="ch-14">
+      <div class="ch-header">
+        <div class="ch-num b">A–D</div>
+        <div><div class="ch-title">Appendices</div><div class="ch-desc">Fill in one copy of this section per agency — this is what makes the manual yours</div></div>
+      </div>
+      <div class="callout c-warn"><span class="callout-ico">⚠️</span><span>Each agency should maintain a <strong>completed copy</strong> of these appendices. The manual is only fully useful when the fillable fields below contain your actual URLs, contacts, and feature status.</span></div>
+
+      <!-- APPENDIX A -->
+      <div class="appendix">
+        <div class="app-title"><span class="app-label">Appendix A</span>Approved URLs &amp; Environments</div>
+        <div class="app-desc">Fill in the URLs assigned to your agency by your Rapid Cortex implementation rep.</div>
+        <div class="fill-grid">
+          <div class="fill-item"><span class="fill-label">Jurisdiction slug</span><input class="fill-line" placeholder="e.g. columbus or franklin-county" /></div>
+          <div class="fill-item"><span class="fill-label">Production login URL</span><input class="fill-line" placeholder="www.rapidcortex.us/[slug]/login" /></div>
+          <div class="fill-item"><span class="fill-label">Pilot / staging URL (if separate)</span><input class="fill-line" placeholder="www.rapidcortex.us/[slug]-staging/login" /></div>
+          <div class="fill-item"><span class="fill-label">Support portal URL</span><input class="fill-line" placeholder="Per your pilot agreement" /></div>
+          <div class="fill-item"><span class="fill-label">Health / status page</span><input class="fill-line" placeholder="Provided by Rapid Cortex if available" /></div>
+          <div class="fill-item"><span class="fill-label">Environment name</span><input class="fill-line" placeholder="e.g. pilot, staging, production" /></div>
+        </div>
+      </div>
+
+      <!-- APPENDIX B -->
+      <div class="appendix">
+        <div class="app-title"><span class="app-label">Appendix B</span>Agency Support Contacts</div>
+        <div class="app-desc">Post a printed copy of this at every dispatch console and in the server/IT room.</div>
+        <div class="fill-grid">
+          <div class="fill-item"><span class="fill-label">Agency Technical Lead — name</span><input class="fill-line" placeholder="" /></div>
+          <div class="fill-item"><span class="fill-label">Agency Technical Lead — phone</span><input class="fill-line" placeholder="" /></div>
+          <div class="fill-item"><span class="fill-label">Agency Operations Lead — name</span><input class="fill-line" placeholder="" /></div>
+          <div class="fill-item"><span class="fill-label">Agency Operations Lead — phone</span><input class="fill-line" placeholder="" /></div>
+          <div class="fill-item"><span class="fill-label">Agency Rapid Cortex Admin — name</span><input class="fill-line" placeholder="" /></div>
+          <div class="fill-item"><span class="fill-label">Agency Rapid Cortex Admin — email</span><input class="fill-line" placeholder="" /></div>
+          <div class="fill-item"><span class="fill-label">Rapid Cortex Support — phone</span><input class="fill-line" placeholder="Per your pilot agreement" /></div>
+          <div class="fill-item"><span class="fill-label">Rapid Cortex Support — email</span><input class="fill-line" placeholder="Per your pilot agreement" /></div>
+          <div class="fill-item"><span class="fill-label">Support hours</span><input class="fill-line" placeholder="e.g. Mon–Fri 8am–6pm ET" /></div>
+          <div class="fill-item"><span class="fill-label">After-hours escalation</span><input class="fill-line" placeholder="" /></div>
+        </div>
+      </div>
+
+      <!-- APPENDIX C -->
+      <div class="appendix">
+        <div class="app-title"><span class="app-label">Appendix C</span>Role Matrix — What Each Role Can Do</div>
+        <div class="app-desc">Reference for admins and supervisors during provisioning.</div>
+        <div style="overflow:hidden;border-radius:var(--radius);border:1px solid var(--border)">
+          <table class="dt">
+            <thead><tr><th>Capability</th><th>Dispatcher</th><th>Supervisor</th><th>Admin</th><th>Read-Only</th></tr></thead>
+            <tbody>
+              <tr><td class="desc">Live incident queue</td><td style="color:#2e7d32;font-weight:600">✓</td><td style="color:#2e7d32;font-weight:600">✓</td><td style="color:#2e7d32;font-weight:600">✓</td><td style="color:#7a3900">View only</td></tr>
+              <tr><td class="desc">Transcript panel</td><td style="color:#2e7d32;font-weight:600">✓</td><td style="color:#2e7d32;font-weight:600">✓</td><td style="color:#2e7d32;font-weight:600">✓</td><td style="color:#7a3900">View only</td></tr>
+              <tr><td class="desc">AI analysis panel</td><td style="color:#2e7d32;font-weight:600">✓</td><td style="color:#2e7d32;font-weight:600">✓</td><td style="color:#2e7d32;font-weight:600">✓</td><td style="color:#7a3900">View only</td></tr>
+              <tr><td class="desc">Supervisor review queue</td><td style="color:var(--text-light)">—</td><td style="color:#2e7d32;font-weight:600">✓</td><td style="color:#2e7d32;font-weight:600">✓</td><td style="color:var(--text-light)">—</td></tr>
+              <tr><td class="desc">User management</td><td style="color:var(--text-light)">—</td><td style="color:var(--text-light)">—</td><td style="color:#2e7d32;font-weight:600">✓</td><td style="color:var(--text-light)">—</td></tr>
+              <tr><td class="desc">Agency settings</td><td style="color:var(--text-light)">—</td><td style="color:var(--text-light)">—</td><td style="color:#2e7d32;font-weight:600">✓</td><td style="color:var(--text-light)">—</td></tr>
+              <tr><td class="desc">Audit log</td><td style="color:var(--text-light)">—</td><td style="color:var(--text-light)">—</td><td style="color:#2e7d32;font-weight:600">✓</td><td style="color:#7a3900">View only</td></tr>
+              <tr><td class="desc">Integration status</td><td style="color:var(--text-light)">—</td><td style="color:var(--text-light)">—</td><td style="color:#2e7d32;font-weight:600">✓</td><td style="color:var(--text-light)">—</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- APPENDIX D: KNOWN LIMITATIONS -->
+      <div class="appendix">
+        <div class="app-title"><span class="app-label">Appendix D</span>Known Limitations — This Agency's Configuration</div>
+        <div class="app-desc">Fill in accurately. Distribute to all staff before go-live. This prevents misuse and confusion about what is and is not active for your deployment.</div>
+        <div class="kl-grid">
+          <div class="kl-item"><div class="kl-label">AI Analysis</div><div class="kl-options"><span class="kl-opt">Enabled</span><span class="kl-opt">Not enabled</span><span class="kl-opt">Advisory only</span></div></div>
+          <div class="kl-item"><div class="kl-label">Live Transcription</div><div class="kl-options"><span class="kl-opt">Enabled</span><span class="kl-opt">Not enabled</span><span class="kl-opt">Demo/training only</span></div></div>
+          <div class="kl-item"><div class="kl-label">Multilingual / Translation</div><div class="kl-options"><span class="kl-opt">Enabled</span><span class="kl-opt">Not enabled</span><span class="kl-opt">Partial</span></div></div>
+          <div class="kl-item"><div class="kl-label">Interpreter Workflow</div><div class="kl-options"><span class="kl-opt">AI-assisted</span><span class="kl-opt">Manual SOP</span><span class="kl-opt">Not configured</span></div></div>
+          <div class="kl-item"><div class="kl-label">CAD Integration</div><div class="kl-options"><span class="kl-opt">Live</span><span class="kl-opt">Partial</span><span class="kl-opt">Not included</span></div></div>
+          <div class="kl-item"><div class="kl-label">Radio Integration</div><div class="kl-options"><span class="kl-opt">Live</span><span class="kl-opt">Partial</span><span class="kl-opt">Not included</span></div></div>
+          <div class="kl-item"><div class="kl-label">Protocol Packs</div><div class="kl-options"><span class="kl-opt">Active</span><span class="kl-opt">Not configured</span></div></div>
+          <div class="kl-item"><div class="kl-label">Deployment Type</div><div class="kl-options"><span class="kl-opt">Web app</span><span class="kl-opt">Desktop app</span><span class="kl-opt">Hybrid</span></div></div>
+        </div>
+        <div style="margin-top:14px">
+          <div class="fill-item" style="margin-bottom:10px"><span class="fill-label">Additional notes on limitations or scope for this agency</span><input class="fill-line" placeholder="e.g. Audio features deferred to Phase 2; Spanish translation only in pilot period" /></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- WALL CARD -->
+    <div class="chapter" id="wallcard">
+      <div class="ch-header">
+        <div class="ch-num r">★</div>
+        <div><div class="ch-title">Console Wall Card</div><div class="ch-desc">Print and post at every dispatch workstation — use Print / Save PDF above</div></div>
+      </div>
+      <div class="callout c-info"><span class="callout-ico">📌</span><span>This card summarizes the most critical actions for dispatch staff. Print one per console. Update the contact fields with your agency's actual numbers before posting.</span></div>
+
+      <div class="wall-card">
+        <div class="wc-title">Rapid Cortex — Quick Reference</div>
+        <div class="wc-grid">
+          <div class="wc-section">
+            <div class="wc-section-title">🔴 System does not load</div>
+            <ul>
+              <li>Refresh the page</li>
+              <li>Sign out and sign back in</li>
+              <li>Try a different approved browser</li>
+              <li>Notify your supervisor</li>
+              <li>Contact agency IT if persists</li>
+            </ul>
+          </div>
+          <div class="wc-section">
+            <div class="wc-section-title">🔑 Login fails</div>
+            <ul>
+              <li>Check CAPS LOCK and credentials</li>
+              <li>Confirm you're on the correct URL</li>
+              <li>Use "Forgot password" if needed</li>
+              <li>Contact agency admin if still locked</li>
+            </ul>
+          </div>
+          <div class="wc-section">
+            <div class="wc-section-title">⚠️ Transcript / translation seems wrong</div>
+            <ul>
+              <li>Treat output as assistive only</li>
+              <li>Follow your agency SOP</li>
+              <li>Escalate low-confidence flags to supervisor</li>
+              <li>Use interpreter workflow if required</li>
+              <li>Never delay response waiting for AI</li>
+            </ul>
+          </div>
+          <div class="wc-section">
+            <div class="wc-section-title">🚨 Outage affects multiple users</div>
+            <ul>
+              <li>Notify supervisor immediately</li>
+              <li>Follow local continuity procedures</li>
+              <li>Contact Rapid Cortex support</li>
+              <li>Collect: UTC time · incident ID · error message</li>
+            </ul>
+          </div>
+        </div>
+        <div style="margin-top:16px;display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px">
+          <div style="background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.08);border-radius:8px;padding:12px">
+            <div style="font-size:9.5px;font-weight:700;letter-spacing:0.8px;text-transform:uppercase;color:#3d5a78;margin-bottom:6px">Rapid Cortex Support</div>
+            <div style="font-size:12px;color:#8fa8c0">Phone: ___________________</div>
+            <div style="font-size:12px;color:#8fa8c0">Email: ____________________</div>
+          </div>
+          <div style="background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.08);border-radius:8px;padding:12px">
+            <div style="font-size:9.5px;font-weight:700;letter-spacing:0.8px;text-transform:uppercase;color:#3d5a78;margin-bottom:6px">Agency IT Lead</div>
+            <div style="font-size:12px;color:#8fa8c0">Name: ____________________</div>
+            <div style="font-size:12px;color:#8fa8c0">Phone: ___________________</div>
+          </div>
+          <div style="background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.08);border-radius:8px;padding:12px">
+            <div style="font-size:9.5px;font-weight:700;letter-spacing:0.8px;text-transform:uppercase;color:#3d5a78;margin-bottom:6px">Your Agency URL</div>
+            <div style="font-size:11px;color:#8fa8c0;font-family:var(--mono)">rapidcortex.us/</div>
+            <div style="font-size:13px;color:#fff;font-family:var(--mono);margin-top:2px">___________________</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div><!-- /content -->
+
+  <!-- ══ PART 2 SECTION BREAK ══ -->
+  <div class="book-section-header" id="p2-intro">
+    <div class="bsh-part">Part 2 — Internal Use Only</div>
+    <div class="bsh-title">Admin Team<br/><em>Troubleshooting Guide</em></div>
+    <div class="bsh-sub">The operational playbook for Rapid Cortex admin staff, support managers, implementation teams, and technical leads — diagnosing, documenting, resolving, and escalating customer issues.</div>
+    <div class="bsh-meta">
+      <div class="bsh-meta-item"><span class="bsh-meta-label">Audience</span><span class="bsh-meta-value">Admin staff · Support leads · Technical specialists</span></div>
+      <div class="bsh-meta-item"><span class="bsh-meta-label">Classification</span><span class="bsh-meta-value">Internal — do not distribute to customers</span></div>
+      <div class="bsh-meta-item"><span class="bsh-meta-label">Context</span><span class="bsh-meta-value">Mission-critical public-safety environment</span></div>
+    </div>
+  </div>
+
+  <div class="quick-nav">
+    <a class="qn" href="#p2-severity"><span class="qn-ico">🚨</span><span class="qn-t">Severity</span><span class="qn-s">Levels</span></a>
+    <a class="qn" href="#p2-intake"><span class="qn-ico">📋</span><span class="qn-t">Intake</span><span class="qn-s">Checklist</span></a>
+    <a class="qn" href="#p2-cat-login"><span class="qn-ico">🔐</span><span class="qn-t">Login</span><span class="qn-s">Issues</span></a>
+    <a class="qn" href="#p2-cat-audio"><span class="qn-ico">🎙️</span><span class="qn-t">Audio</span><span class="qn-s">Issues</span></a>
+    <a class="qn" href="#p2-playbooks"><span class="qn-ico">📖</span><span class="qn-t">Playbooks</span><span class="qn-s">Scenarios</span></a>
+    <a class="qn" href="#p2-scripts"><span class="qn-ico">💬</span><span class="qn-t">Scripts</span><span class="qn-s">Call support</span></a>
+  </div>
+
+  <div class="content">
+    <!-- CORE PRINCIPLES -->
+    <div class="chapter" id="p2-intro-detail">
+      <div class="callout c-internal"><span class="callout-ico">⚡</span><div><strong>Mission-critical mindset required.</strong> Rapid Cortex supports public-safety agencies. Delayed action, misconfiguration, audio failure, or incorrect routing may affect emergency operations. Every issue must be treated with urgency, clarity, consistency, and complete documentation.</div></div>
+      <div class="sub">
+        <div class="sub-title">First five questions on every contact</div>
+        <div class="cg cg2">
+          <div class="card"><div class="card-h">⏱️ Is it happening now?</div><div class="card-b">Determine whether this is an active, ongoing issue or a past event. This sets triage priority immediately.</div></div>
+          <div class="card"><div class="card-h">🚨 Is live emergency workflow impacted?</div><div class="card-b">If yes — escalate before completing intake. Do not delay triage to gather paperwork.</div></div>
+          <div class="card"><div class="card-h">📍 What is the scope?</div><div class="card-b">One user? One workstation? One site? Entire agency? Scope determines severity and escalation path.</div></div>
+          <div class="card"><div class="card-h">🔄 Is there a workaround?</div><div class="card-b">Can the user switch from desktop to web, or to another workstation? A workaround buys diagnosis time.</div></div>
+        </div>
+      </div>
+      <div class="sub">
+        <div class="sub-title">Golden rules — non-negotiable</div>
+        <ul class="golden-list">
+          <li><span class="g-icon">🔍</span><span><strong>Never guess when a fact can be verified.</strong> Check logs, timestamps, and account status before forming a conclusion.</span></li>
+          <li><span class="g-icon">✅</span><span><strong>Never tell a customer an issue is resolved until testing confirms it.</strong> Verify the exact failed action works before closing.</span></li>
+          <li><span class="g-icon">📝</span><span><strong>Never alter production settings without recording what changed.</strong> Every change must be logged with timestamp and reason.</span></li>
+          <li><span class="g-icon">🗂️</span><span><strong>Never close a ticket without root cause, corrective action, and prevention step.</strong> Incomplete closures repeat as future incidents.</span></li>
+          <li><span class="g-icon">🤝</span><span><strong>Never blame the customer.</strong> The system exists to serve them. If they misuse it, that's a training gap — not their fault.</span></li>
+          <li><span class="g-icon">📸</span><span><strong>Always preserve evidence.</strong> Logs, timestamps, screenshots, user details, device details, and reproduction steps before making any change.</span></li>
+          <li><span class="g-icon">📣</span><span><strong>Always assume the customer needs status updates.</strong> Silence feels like abandonment to an agency mid-incident.</span></li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- TEAM ROLES -->
+    <div class="chapter" id="p2-roles">
+      <div class="ch-header"><div class="ch-num b">👥</div><div><div class="ch-title">Support Team Roles</div><div class="ch-desc">Who owns what — and when to hand off</div></div></div>
+      <div class="role-grid">
+        <div class="role-card"><div class="role-hdr"><span class="role-badge rb-blue">First Line</span><span class="role-name">Admin Support Representative</span></div><div class="role-body">Receives the issue, verifies severity, captures facts, performs standard troubleshooting, applies approved fixes, escalates when needed, keeps the customer informed.</div></div>
+        <div class="role-card"><div class="role-hdr"><span class="role-badge rb-amber">Lead</span><span class="role-name">Support Lead / Operations Manager</span></div><div class="role-body">Prioritizes major incidents, coordinates internal response, approves emergency workarounds, ensures communication cadence is maintained, reviews root-cause documentation.</div></div>
+        <div class="role-card"><div class="role-hdr"><span class="role-badge rb-purple">Specialist</span><span class="role-name">Technical / Implementation Specialist</span></div><div class="role-body">Handles desktop deployment issues, configuration problems, agency environment mismatches, network, VPN, firewall, microphone, headset, and workstation mapping issues, integration troubleshooting.</div></div>
+        <div class="role-card"><div class="role-hdr"><span class="role-badge rb-red">Engineering</span><span class="role-name">Engineering / DevOps / Infrastructure</span></div><div class="role-body">Platform bugs, API failures, AI pipeline failures, sync issues across web and desktop, authentication defects, database problems, websocket or streaming issues, system-wide incidents.</div></div>
+        <div class="role-card"><div class="role-hdr"><span class="role-badge rb-green">Success</span><span class="role-name">Training / Customer Success</span></div><div class="role-body">Usage confusion, workflow coaching, SOP alignment, implementation best practices, retraining when issues are caused by process gaps rather than system defects.</div></div>
+      </div>
+    </div>
+
+    <!-- SEVERITY -->
+    <div class="chapter" id="p2-severity">
+      <div class="ch-header"><div class="ch-num r">S</div><div><div class="ch-title">Incident Severity Levels</div><div class="ch-desc">Classify every issue before troubleshooting begins</div></div></div>
+      <div class="sev-grid">
+        <div class="sev-card sev1-card">
+          <div class="sev-hdr"><div class="sev-num sev1">S1</div><div><div class="sev-label" style="color:var(--red)">Critical</div></div></div>
+          <div class="sev-body"><ul>
+            <li>Agency cannot use Rapid Cortex for live operations</li>
+            <li>Core calls cannot be processed</li>
+            <li>Audio/transcription completely unavailable during active use</li>
+            <li>Multiple users or entire center down</li>
+            <li>Both desktop and web fail for same agency</li>
+            <li>Routing, dispatch guidance, or core AI nonfunctional</li>
+            <li>Suspected data loss in operational area</li>
+          </ul>
+          <div class="sev-expect">Response</div>
+          <strong>Immediate acknowledgment. Escalate to support lead and technical team now. Begin incident log. Do not wait for full intake before starting triage.</strong></div>
+        </div>
+        <div class="sev-card sev2-card">
+          <div class="sev-hdr"><div class="sev-num sev2">S2</div><div><div class="sev-label" style="color:#d97706">High</div></div></div>
+          <div class="sev-body"><ul>
+            <li>Major feature unavailable but workaround exists</li>
+            <li>Several users impacted</li>
+            <li>AI outputs degraded or unreliable</li>
+            <li>Login failures affecting a team or location</li>
+            <li>Sync delays affect reporting or operational review</li>
+            <li>Audio is intermittent</li>
+          </ul></div>
+        </div>
+        <div class="sev-card sev3-card">
+          <div class="sev-hdr"><div class="sev-num sev3">S3</div><div><div class="sev-label" style="color:var(--blue)">Medium</div></div></div>
+          <div class="sev-body"><ul>
+            <li>One user or one workstation affected</li>
+            <li>Non-critical module malfunctioning</li>
+            <li>Issue is repeatable but not blocking operations</li>
+            <li>Configuration mismatch preventing a role from doing all tasks</li>
+          </ul></div>
+        </div>
+        <div class="sev-card sev4-card">
+          <div class="sev-hdr"><div class="sev-num sev4">S4</div><div><div class="sev-label" style="color:#6b7280">Low</div></div></div>
+          <div class="sev-body"><ul>
+            <li>Informational request</li>
+            <li>Cosmetic issue</li>
+            <li>Customer needs guidance or retraining</li>
+            <li>Minor annoyance without operational impact</li>
+          </ul></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- INTAKE -->
+    <div class="chapter" id="p2-intake">
+      <div class="ch-header"><div class="ch-num">4</div><div><div class="ch-title">Intake Checklist</div><div class="ch-desc">Gather all of this before troubleshooting — every field matters</div></div></div>
+      <div class="cg cg2">
+        <div class="card">
+          <div class="card-h">🏛️ Customer Identity</div>
+          <div class="card-b">Agency name · Site or center name · Department/unit · Primary contact name · Callback number · Email · Time zone</div>
+        </div>
+        <div class="card">
+          <div class="card-h">💻 User &amp; Device Details</div>
+          <div class="card-b">Affected user name(s) · Role(s) · Desktop or web app · Windows or macOS · Device hostname · Browser type and version (web) · App version (desktop) · Headset or audio device type</div>
+        </div>
+        <div class="card">
+          <div class="card-h">🔎 Issue Details</div>
+          <div class="card-b">Exact problem description · When it started · Ongoing or intermittent · Exact error message · What the user was doing before it happened · One person or many · Happens every time? · Started after update/change/hardware replacement?</div>
+        </div>
+        <div class="card">
+          <div class="card-h">🗂️ Evidence to Request</div>
+          <div class="card-b">Screenshot or screen recording · Error text copied exactly · Timestamp of the failure · Affected call/session ID · Audio sample or transcript example · Log export if available</div>
+        </div>
+      </div>
+      <div class="sub">
+        <div class="sub-title">Immediate classification questions</div>
+        <ul class="cl">
+          <li>Is live service impacted <strong>right now</strong>?</li>
+          <li>Can the user continue on another workstation?</li>
+          <li>Can the user switch from desktop to web (or vice versa)?</li>
+          <li>Is this isolated to a headset, station, room, or the entire agency?</li>
+          <li>Did the issue begin after a new install, update, or network change?</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- WORKFLOW -->
+    <div class="chapter" id="p2-workflow">
+      <div class="ch-header"><div class="ch-num b">5</div><div><div class="ch-title">Standard Troubleshooting Workflow</div><div class="ch-desc">Follow this sequence for every issue — don't skip steps</div></div></div>
+      <div class="steps">
+        <div class="step"><div class="step-num b">1</div><div class="step-body"><div class="step-title">Confirm scope</div><div class="step-text">Determine whether the issue is user-specific, workstation-specific, network-specific, site-specific, role-specific, environment-specific, or system-wide. Scope determines severity and escalation path.</div></div></div>
+        <div class="step"><div class="step-num b">2</div><div class="step-body"><div class="step-title">Confirm reproducibility</div><div class="step-text">Can they show the exact steps? Does it happen every time? Does it happen on another device? Does another user on the same machine see the same thing?</div></div></div>
+        <div class="step"><div class="step-num b">3</div><div class="step-body"><div class="step-title">Check known conditions</div><div class="step-text">Review: current incidents · planned maintenance · recent releases · recent config changes · known bugs · expired credentials or certificates · local network changes.</div></div></div>
+        <div class="step"><div class="step-num b">4</div><div class="step-body"><div class="step-title">Run category-specific troubleshooting</div><div class="step-text">Use the relevant issue category in Section 6 of this guide. Do not free-form troubleshoot — the category steps exist to be systematic.</div></div></div>
+        <div class="step"><div class="step-num b">5</div><div class="step-body"><div class="step-title">Test after each change</div><div class="step-text">After any fix or change, verify: the user can perform the failed action · logs no longer show the same error · audio, sync, or routing works · other connected functions remain intact.</div></div></div>
+        <div class="step"><div class="step-num b">6</div><div class="step-body"><div class="step-title">Document everything</div><div class="step-text">Symptoms · scope · exact steps taken · outcome of each step · final fix or escalation · follow-up actions. See Section 9 for documentation standards.</div></div></div>
+      </div>
+    </div>
+
+    <!-- ISSUE CATEGORIES -->
+    <div class="chapter" id="p2-cat-login">
+      <div class="ch-header"><div class="ch-num r">6A</div><div><div class="ch-title">Login &amp; Access Issues</div><div class="ch-desc">Can't sign in, wrong permissions, MFA failures, stale sessions</div></div></div>
+      <div class="issue-list">
+        <div class="issue">
+          <div class="issue-hdr"><span class="issue-cat ic-red">Symptoms</span><span class="issue-title">Cannot sign in · invalid credentials · wrong dashboard · MFA fails · password reset not received</span></div>
+          <div class="issue-cols">
+            <div class="issue-col"><div class="issue-col-label lbl-check">Check</div><ul>
+              <li>Correct email/username entered</li><li>Account status (active, pending, suspended)</li><li>Assigned role matches expected access</li><li>MFA delivery functioning</li><li>Device date/time is correct</li><li>Recent password change, domain migration, or auth update</li>
+            </ul></div>
+            <div class="issue-col"><div class="issue-col-label lbl-try">Try</div><ul>
+              <li>Full sign out and re-login</li><li>Private/incognito window (web)</li><li>Clear browser cache/cookies for app domain</li><li>Fully close and relaunch desktop app</li><li>Test same account on another device</li><li>Confirm MFA delivery if enabled</li>
+            </ul></div>
+            <div class="issue-col"><div class="issue-col-label lbl-esc">Escalate if</div><ul>
+              <li>Authentication service is down</li><li>Multiple users locked out without explanation</li><li>Role or token logic is broken</li><li>Permission mismatch persists after re-login</li>
+            </ul></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="chapter" id="p2-cat-desktop">
+      <div class="ch-header"><div class="ch-num">6B</div><div><div class="ch-title">Desktop App — Won't Open or Crashes</div><div class="ch-desc">App fails to launch, freezes, crashes on Windows or macOS</div></div></div>
+      <div class="issue-list">
+        <div class="issue">
+          <div class="issue-hdr"><span class="issue-cat ic-amber">Symptoms</span><span class="issue-title">Won't launch · crashes immediately · freezes on login · permission errors on macOS · hangs after Windows update</span></div>
+          <div class="issue-cols">
+            <div class="issue-col"><div class="issue-col-label lbl-check">Check</div><ul>
+              <li>OS version and exact app version</li><li>Update or install just before the failure</li><li>Workstation meets minimum requirements</li><li>Installed from correct official package</li><li>Endpoint protection blocking the executable</li><li>User has local permissions to run the app</li>
+            </ul></div>
+            <div class="issue-col"><div class="issue-col-label lbl-try">Try</div><ul>
+              <li>Fully quit and retry; then reboot</li><li>Test another user account on same machine</li><li>Test same user on another machine</li><li>Clear local cache/config if approved operation</li><li>Review local crash logs</li><li>Reinstall from latest approved build if all else fails</li>
+            </ul></div>
+            <div class="issue-col"><div class="issue-col-label lbl-esc">Escalate if</div><ul>
+              <li>Multiple workstations fail after same release</li><li>Crash logs indicate application defect</li><li>Reinstall does not resolve</li><li>Issue correlates with new build or env change</li>
+            </ul></div>
+          </div>
+        </div>
+      </div>
+      <div class="cg cg2">
+        <div class="card"><div class="card-h">🍎 macOS-specific checks</div><div class="card-b">Security settings allow the app to run · Microphone permissions granted · App not quarantined by Gatekeeper · Accessibility or input permissions approved if required</div></div>
+        <div class="card"><div class="card-h">🪟 Windows-specific checks</div><div class="card-b">Antivirus/EDR not sandboxing the app · Install path and user permissions correct · Microphone enabled in Windows Privacy settings · No new GPO restrictions introduced</div></div>
+      </div>
+    </div>
+
+    <div class="chapter" id="p2-cat-web">
+      <div class="ch-header"><div class="ch-num b">6C</div><div><div class="ch-title">Web App — Not Loading or Broken</div><div class="ch-desc">Blank screen, partial load, buttons unresponsive, stale data</div></div></div>
+      <div class="issue-list">
+        <div class="issue">
+          <div class="issue-hdr"><span class="issue-cat ic-blue">Symptoms</span><span class="issue-title">Blank screen · spinner never completes · partial dashboard · buttons do nothing · websocket/live updates fail · stale data</span></div>
+          <div class="issue-cols">
+            <div class="issue-col"><div class="issue-col-label lbl-check">Check</div><ul>
+              <li>Browser and version (Chrome 110+, Edge 110+)</li><li>VPN or restrictive proxy active</li><li>Backend API and websocket service status</li><li>Auth session not expired</li><li>Whether issue affects all users or one</li>
+            </ul></div>
+            <div class="issue-col"><div class="issue-col-label lbl-try">Try</div><ul>
+              <li>Test in another supported browser</li><li>Test in private/incognito window</li><li>Disable browser extensions</li><li>Sign out and back in</li><li>Test from another network if feasible</li><li>Capture console errors if technical staff available</li>
+            </ul></div>
+            <div class="issue-col"><div class="issue-col-label lbl-esc">Escalate if</div><ul>
+              <li>Multiple agencies report same page failure</li><li>Dashboard actions fail despite successful login</li><li>Live update channels are down</li><li>API endpoints show widespread failure</li>
+            </ul></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="chapter" id="p2-cat-audio">
+      <div class="ch-header"><div class="ch-num r">6D</div><div><div class="ch-title">Audio / Microphone / Headset Issues</div><div class="ch-desc">No audio input, wrong device, distortion, intermittent drops</div></div></div>
+      <div class="callout c-info"><span class="callout-ico">💡</span><span><strong>Quick isolation logic:</strong> Mic fails in all apps → device or OS issue. Mic works in OS but not Rapid Cortex → app permission or device selection. Audio present but transcription fails → AI/audio pipeline issue.</span></div>
+      <div class="issue-list">
+        <div class="issue">
+          <div class="issue-hdr"><span class="issue-cat ic-red">Symptoms</span><span class="issue-title">No audio input · meter flat · transcription blank or incomplete · distorted/intermittent audio · wrong device selected · audio drops mid-session</span></div>
+          <div class="issue-cols">
+            <div class="issue-col"><div class="issue-col-label lbl-check">Check</div><ul>
+              <li>Which headset/mic should be active</li><li>Correct device selected in app and OS</li><li>OS microphone permissions</li><li>Microphone muted or gain too low</li><li>Competing software locking the device</li><li>Bandwidth stability if audio is streamed live</li>
+            </ul></div>
+            <div class="issue-col"><div class="issue-col-label lbl-try">Try</div><ul>
+              <li>Select the correct device in app</li><li>Test device in another application</li><li>Try another approved headset</li><li>Disconnect and reconnect the device</li><li>Reboot the workstation</li><li>Compare behavior on web vs desktop</li>
+            </ul></div>
+            <div class="issue-col"><div class="issue-col-label lbl-esc">Escalate if</div><ul>
+              <li>Multiple users lose audio after an update</li><li>Audio stream reaches system but transcription doesn't begin</li><li>Audio devices randomly switch during active workflows</li><li>Agency-wide audio degradation reported</li>
+            </ul></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="chapter" id="p2-cat-transcript">
+      <div class="ch-header"><div class="ch-num">6E</div><div><div class="ch-title">Transcription Issues</div><div class="ch-desc">No transcript, late start, omissions, wrong language, lag</div></div></div>
+      <div class="issue-list">
+        <div class="issue">
+          <div class="issue-hdr"><span class="issue-cat ic-amber">Symptoms</span><span class="issue-title">No transcript · late start · phrases omitted · wrong language · significant lag · inconsistent quality</span></div>
+          <div class="issue-cols">
+            <div class="issue-col"><div class="issue-col-label lbl-check">Check</div><ul>
+              <li>Audio input is actually present</li><li>All calls or specific calls only</li><li>Detected language is correct</li><li>Expected language configuration is enabled</li><li>Network stability during the session</li><li>Speech-to-text provider health</li>
+            </ul></div>
+            <div class="issue-col"><div class="issue-col-label lbl-try">Try</div><ul>
+              <li>Confirm latency vs. accuracy vs. absence</li><li>Compare performance on another workstation</li><li>Compare on another call</li><li>Capture sample audio and output for engineering if quality is poor</li>
+            </ul></div>
+            <div class="issue-col"><div class="issue-col-label lbl-esc">Escalate if</div><ul>
+              <li>Transcript service entirely unavailable</li><li>Latency exceeds operational threshold across many users</li><li>Language detection consistently fails after a release</li><li>Missing segments appear across multiple sessions</li>
+            </ul></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="chapter" id="p2-cat-ai">
+      <div class="ch-header"><div class="ch-num b">6F</div><div><div class="ch-title">AI Guidance &amp; Response Quality</div><div class="ch-desc">No guidance, delays, irrelevant output, incomplete summaries</div></div></div>
+      <div class="callout c-warn"><span class="callout-ico">⚠️</span><span>Do not tell a customer an AI quality issue is "just user error." Distinguish clearly between: <strong>system not responding</strong> · <strong>system responding slowly</strong> · <strong>system responding inaccurately.</strong> These have different root causes and different escalation paths.</span></div>
+      <div class="issue-list">
+        <div class="issue">
+          <div class="issue-hdr"><span class="issue-cat ic-purple">Symptoms</span><span class="issue-title">No guidance · delayed output · irrelevant or low-quality response · incomplete summaries · inconsistent confidence</span></div>
+          <div class="issue-cols">
+            <div class="issue-col"><div class="issue-col-label lbl-check">Check</div><ul>
+              <li>Transcription completed correctly first</li><li>Recent changes to AI workflows or prompts</li><li>Issue isolated to one model path or all model paths</li><li>Fallback model behavior occurred</li><li>One call or many affected</li>
+            </ul></div>
+            <div class="issue-col"><div class="issue-col-label lbl-try">Try</div><ul>
+              <li>Capture exact timestamp and example output</li><li>Compare same workflow on another session</li><li>Route examples with full context to engineering</li>
+            </ul></div>
+            <div class="issue-col"><div class="issue-col-label lbl-esc">Escalate if</div><ul>
+              <li>AI guidance disappears across agencies or sites</li><li>Output becomes clearly unreliable in core workflow</li><li>Output contradicts platform rules or policy</li><li>Issue began immediately after AI workflow changes</li>
+            </ul></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="chapter" id="p2-cat-routing">
+      <div class="ch-header"><div class="ch-num">6G</div><div><div class="ch-title">Call Routing / Workflow / Session Handling</div><div class="ch-desc">Session won't start, routing mismatch, events out of order, status not updating</div></div></div>
+      <div class="issue-list">
+        <div class="issue">
+          <div class="issue-hdr"><span class="issue-cat ic-red">Symptoms</span><span class="issue-title">Session doesn't start · screen freezes · events out of order · wrong routing destination · data attaches to wrong record · live status doesn't update</span></div>
+          <div class="issue-cols">
+            <div class="issue-col"><div class="issue-col-label lbl-check">Check</div><ul>
+              <li>Record exact session or event ID</li><li>Whether routing rules were recently modified</li><li>Whether user was on correct workflow screen</li><li>Event timestamps and sequencing</li>
+            </ul></div>
+            <div class="issue-col"><div class="issue-col-label lbl-try">Try</div><ul>
+              <li>Document expected vs. actual workflow precisely</li><li>Confirm reproducibility on another station or role</li><li>Determine if UI display issue or backend routing</li>
+            </ul></div>
+            <div class="issue-col"><div class="issue-col-label lbl-esc">Escalate if</div><ul>
+              <li>Affects active operations immediately</li><li>Routing logic is producing wrong outcomes</li><li>Partial save failures confirmed</li>
+            </ul></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="chapter" id="p2-cat-sync">
+      <div class="ch-header"><div class="ch-num b">6H</div><div><div class="ch-title">Data Sync — Web vs. Desktop Mismatch</div><div class="ch-desc">Actions on one platform don't appear on the other</div></div></div>
+      <div class="issue-list">
+        <div class="issue">
+          <div class="issue-hdr"><span class="issue-cat ic-blue">Symptoms</span><span class="issue-title">Desktop and web show different status · notes missing in one interface · stale session data · completed actions appear unprocessed</span></div>
+          <div class="issue-cols">
+            <div class="issue-col"><div class="issue-col-label lbl-check">Check</div><ul>
+              <li>Which platform shows the correct state</li><li>Timestamps on both views</li><li>Whether the action actually saved server-side</li><li>Whether issue is display-only or true persistence failure</li>
+            </ul></div>
+            <div class="issue-col"><div class="issue-col-label lbl-try">Try</div><ul>
+              <li>Refresh both platforms</li><li>Sign out/in on affected platform if safe</li><li>Verify network connectivity</li><li>Compare another user's view of same data</li>
+            </ul></div>
+            <div class="issue-col"><div class="issue-col-label lbl-esc">Escalate if</div><ul>
+              <li>Mismatch persists after refresh and re-login</li><li>Action writes are missing in backend records</li><li>Multiple users report inconsistent shared state</li>
+            </ul></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="chapter" id="p2-cat-integration">
+      <div class="ch-header"><div class="ch-num">6I</div><div><div class="ch-title">Integration Issues</div><div class="ch-desc">CAD, mapping, reporting, GPS, third-party systems</div></div></div>
+      <div class="issue-list">
+        <div class="issue">
+          <div class="issue-hdr"><span class="issue-cat ic-amber">Symptoms</span><span class="issue-title">Imported data missing · export fails · map not updating · external record not received · integration disconnected after credential change</span></div>
+          <div class="issue-cols">
+            <div class="issue-col"><div class="issue-col-label lbl-check">Check</div><ul>
+              <li>Started after credential, password, cert, or network change?</li><li>Last known successful run</li><li>Failure inbound, outbound, or both</li><li>Integration error logs</li><li>Allowlists and firewall rules still valid</li>
+            </ul></div>
+            <div class="issue-col"><div class="issue-col-label lbl-try">Try</div><ul>
+              <li>Confirm test payloads succeed</li><li>Confirm endpoint accessibility</li><li>Engage implementation specialist if customer-side config involved</li>
+            </ul></div>
+            <div class="issue-col"><div class="issue-col-label lbl-esc">Escalate if</div><ul>
+              <li>Production integration stops completely</li><li>Credentials valid but communication fails</li><li>Data mapping broken after release</li><li>Multiple agencies using same integration type affected</li>
+            </ul></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="chapter" id="p2-cat-perf">
+      <div class="ch-header"><div class="ch-num b">6J</div><div><div class="ch-title">Performance / Slowness</div><div class="ch-desc">Slow login, delayed dashboard, frozen UI, transcript lag</div></div></div>
+      <div class="issue-list">
+        <div class="issue">
+          <div class="issue-hdr"><span class="issue-cat ic-gray">Symptoms</span><span class="issue-title">Slow login · delayed dashboard load · lag in transcript or AI · delayed saves · frozen UI during heavy use</span></div>
+          <div class="issue-cols">
+            <div class="issue-col"><div class="issue-col-label lbl-check">Check</div><ul>
+              <li>Which step is slow and by how much</li><li>Worse at certain times of day</li><li>CPU/memory on workstation unusually high</li><li>Current service health and recent deployment history</li><li>Slowness tied to specific calls, pages, or workflows</li>
+            </ul></div>
+            <div class="issue-col"><div class="issue-col-label lbl-try">Try</div><ul>
+              <li>Test on another machine or browser</li><li>Confirm local vs. broad issue</li><li>Review workstation resource usage</li>
+            </ul></div>
+            <div class="issue-col"><div class="issue-col-label lbl-esc">Escalate if</div><ul>
+              <li>Core workflow response exceeds operational threshold</li><li>Affects many users or sites</li><li>Slowdown correlates to backend or provider incident</li>
+            </ul></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="chapter" id="p2-cat-perms">
+      <div class="ch-header"><div class="ch-num">6K</div><div><div class="ch-title">Permissions / Role / Admin Console Issues</div><div class="ch-desc">Wrong workspace, can't manage users, role not taking effect</div></div></div>
+      <div class="issue-list">
+        <div class="issue">
+          <div class="issue-hdr"><span class="issue-cat ic-purple">Symptoms</span><span class="issue-title">Admin can't see controls · dispatcher sees wrong workspace · user accessing unauthorized area · new role not taking effect</span></div>
+          <div class="issue-cols">
+            <div class="issue-col"><div class="issue-col-label lbl-check">Check</div><ul>
+              <li>Expected role vs. current assigned role</li><li>Whether re-login refreshes permissions</li><li>Tenant/agency scope correct</li><li>Recent permission model changes</li>
+            </ul></div>
+            <div class="issue-col"><div class="issue-col-label lbl-try">Try</div><ul>
+              <li>Compare another user with same role</li><li>Determine if UI hiding or backend denial</li><li>Confirm tenant/agency assignment</li>
+            </ul></div>
+            <div class="issue-col"><div class="issue-col-label lbl-esc">Escalate if</div><ul>
+              <li>User sees unauthorized access — treat as security event</li><li>Correct role doesn't produce correct access after re-auth</li><li>Cross-agency data is visible</li>
+            </ul></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="chapter" id="p2-cat-network">
+      <div class="ch-header"><div class="ch-num b">6L</div><div><div class="ch-title">Offline / Connectivity / Network Issues</div><div class="ch-desc">Intermittent disconnects, session drops, reconnect loops</div></div></div>
+      <div class="issue-list">
+        <div class="issue">
+          <div class="issue-hdr"><span class="issue-cat ic-blue">Symptoms</span><span class="issue-title">Intermittent disconnects · live session drops · desktop goes offline · reconnect loops · actions fail during network transitions</span></div>
+          <div class="issue-cols">
+            <div class="issue-col"><div class="issue-col-label lbl-check">Check</div><ul>
+              <li>Wired or wireless connection</li><li>Other systems on same network affected</li><li>Issue at one site only or multiple</li><li>VPN status</li><li>Firewall or proxy changes</li><li>API traffic working while live updates fail</li>
+            </ul></div>
+            <div class="issue-col"><div class="issue-col-label lbl-try">Try</div><ul>
+              <li>Test another network if feasible</li><li>Check DNS resolution</li><li>Confirm websocket not blocked by proxy</li>
+            </ul></div>
+            <div class="issue-col"><div class="issue-col-label lbl-esc">Escalate if</div><ul>
+              <li>Issue is site-wide</li><li>Reconnect logic malfunctioning despite stable network</li><li>Live channels fail broadly after a release</li>
+            </ul></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- MAJOR INCIDENT -->
+    <div class="chapter" id="p2-major">
+      <div class="ch-header"><div class="ch-num r">7</div><div><div class="ch-title">Major Incident Process</div><div class="ch-desc">Invoke when S1 is declared or multiple customers are affected</div></div></div>
+      <div class="callout c-danger"><span class="callout-ico">🚨</span><span>Invoke this process for: S1 declaration · multiple customers affected · core operations impaired · production release causing widespread failure · suspected data loss, security exposure, or routing failure.</span></div>
+      <div class="steps">
+        <div class="step"><div class="step-num r">1</div><div class="step-body"><div class="step-title">Open incident record immediately</div><div class="step-text">Capture first report time. Do not wait to gather all facts before opening.</div></div></div>
+        <div class="step"><div class="step-num r">2</div><div class="step-body"><div class="step-title">Identify impacted scope</div><div class="step-text">Which customers, modules, and environments are affected. Stop duplicate troubleshooting from fragmenting information — one owner, one thread.</div></div></div>
+        <div class="step"><div class="step-num r">3</div><div class="step-body"><div class="step-title">Notify support lead and technical incident owner</div><div class="step-text">Immediate notification regardless of time. The support lead coordinates response; they do not troubleshoot.</div></div></div>
+        <div class="step"><div class="step-num r">4</div><div class="step-body"><div class="step-title">Send customer-facing update (use template below)</div><div class="step-text">What happened · What is affected · What is not affected · What is being done now · Current workaround · Next update time.</div></div></div>
+        <div class="step"><div class="step-num r">5</div><div class="step-body"><div class="step-title">Record every change, finding, and time</div><div class="step-text">The incident log is the authoritative record. Every action logged in sequence with timestamps.</div></div></div>
+        <div class="step"><div class="step-num r">6</div><div class="step-body"><div class="step-title">Confirm resolution with testing before closure</div><div class="step-text">Do not close until the exact failed workflow is confirmed working. Complete post-incident review — see Section 14.</div></div></div>
+      </div>
+    </div>
+
+    <!-- ESCALATION MATRIX -->
+    <div class="chapter" id="p2-escalation">
+      <div class="ch-header"><div class="ch-num">8</div><div><div class="ch-title">Escalation Matrix</div><div class="ch-desc">Who gets the issue and when</div></div></div>
+      <div style="background:#fff;border:1px solid var(--border);border-radius:var(--radius-lg);overflow:hidden;margin-bottom:14px">
+        <table class="dt">
+          <thead><tr><th>Escalate to</th><th>When</th></tr></thead>
+          <tbody>
+            <tr><td style="font-weight:600;color:var(--amber)">Support Lead</td><td class="desc">Severity unclear but impact may be high · Customer highly escalated or executive-facing · Multiple tickets indicate a pattern · Workaround affects policy or operations</td></tr>
+            <tr><td style="font-weight:600;color:var(--purple)">Technical Specialist</td><td class="desc">Desktop install or environment issue · Customer-side network, permissions, or hardware needs technical validation · Integration setup appears broken</td></tr>
+            <tr><td style="font-weight:600;color:var(--red)">Engineering</td><td class="desc">Issue reproducible in product logic · API/service defect suspected · Release regression likely · Auth, sync, AI, routing, or persistence is broken</td></tr>
+            <tr><td style="font-weight:600" style="color:#7c3aed">Security/Compliance</td><td class="desc">Unauthorized access suspected · Cross-agency data visible · Credential misuse suspected · Audit concerns arise — treat as urgent</td></tr>
+            <tr><td style="font-weight:600;color:var(--green)">Training / Customer Success</td><td class="desc">System works but workflow is misunderstood · Repeated operator confusion indicates adoption gaps · Agency needs refresher training or SOP alignment</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- DOCUMENTATION STANDARDS -->
+    <div class="chapter" id="p2-docs">
+      <div class="ch-header"><div class="ch-num b">9</div><div><div class="ch-title">Documentation Standards</div><div class="ch-desc">What every ticket must contain — no exceptions</div></div></div>
+      <div class="cg cg3">
+        <div class="card"><div class="card-h">🎫 Ticket fields</div><div class="card-b">Ticket number · Date/time opened · Customer/agency · Contact person · Severity · Affected users/locations · Description</div></div>
+        <div class="card"><div class="card-h">🔬 Diagnostic fields</div><div class="card-b">Exact symptoms · Reproduction steps · Business/operational impact · Screenshots/attachments · Logs/timestamps</div></div>
+        <div class="card"><div class="card-h">✅ Resolution fields</div><div class="card-b">Actions taken · Current status · Resolution or escalation path · Root cause · Preventive action · Date/time closed</div></div>
+      </div>
+      <div class="sub">
+        <div class="sub-title">Good vs. bad ticket example</div>
+        <div class="ticket-label bad">✗ Do not write this</div>
+        <div class="ticket-bad">"User says app broken."</div>
+        <div class="ticket-label good">✓ Write this instead</div>
+        <div class="ticket-good">"Dispatcher at Muscogee County site reported on April 20, 2026 at 9:12 AM CT that desktop app version X on Windows 11 launched successfully but failed to start live transcription. Microphone input meter remained flat despite headset functioning in another application. Issue reproduced on one workstation only. Re-login, device reselection, and Windows microphone privacy checks failed to resolve. Escalated to technical specialist for local audio device policy review."</div>
+      </div>
+    </div>
+
+    <!-- CALL SCRIPTS -->
+    <div class="chapter" id="p2-scripts">
+      <div class="ch-header"><div class="ch-num">10</div><div><div class="ch-title">Call Scripts for Admin Staff</div><div class="ch-desc">Use these verbatim or as a starting point for each stage of a support contact</div></div></div>
+      <div class="script-block"><div class="script-hdr"><span class="script-tag">Opening</span><span class="script-title">First contact</span></div><div class="script-body">"Thank you for contacting Rapid Cortex support. I'm going to document the issue and work through this with you. First, I need to confirm whether this is affecting live operations right now, how many users are impacted, and what exact error or behavior you are seeing."</div></div>
+      <div class="script-block"><div class="script-hdr"><span class="script-tag">Clarification</span><span class="script-title">Getting precise details</span></div><div class="script-body">"To make sure we troubleshoot the right issue, can you walk me through the exact steps you took right before the problem happened and tell me the exact time it occurred?"</div></div>
+      <div class="script-block"><div class="script-hdr"><span class="script-tag">Scope</span><span class="script-title">Determining impact</span></div><div class="script-body">"Is this happening to just you, this workstation, multiple users in your center, or everyone at your site?"</div></div>
+      <div class="script-block"><div class="script-hdr"><span class="script-tag">Testing</span><span class="script-title">Walking through changes</span></div><div class="script-body">"I'd like to test one change at a time so we can identify the exact cause. After each step, please try the same action again and tell me whether the behavior changes."</div></div>
+      <div class="script-block"><div class="script-hdr"><span class="script-tag">Escalation</span><span class="script-title">Handing off</span></div><div class="script-body">"I've completed the first-line troubleshooting steps and I'm escalating this to our technical team with the details we captured. I'm documenting the exact symptoms, timestamps, and environment so they can move faster."</div></div>
+      <div class="script-block"><div class="script-hdr"><span class="script-tag">Resolution</span><span class="script-title">Closing the case</span></div><div class="script-body">"We've confirmed the issue is resolved. Before we close this, I want to verify the exact workflow now works as expected on your side and document the root cause and fix for future prevention."</div></div>
+    </div>
+
+    <!-- PLAYBOOKS -->
+    <div class="chapter" id="p2-playbooks">
+      <div class="ch-header"><div class="ch-num b">12</div><div><div class="ch-title">Scenario Playbooks</div><div class="ch-desc">Step-by-step for the most common inbound scenarios</div></div></div>
+      <div class="playbook-list">
+        <div class="playbook">
+          <div class="playbook-hdr"><span class="pb-tag">A</span><span class="pb-title">One user cannot log in</span></div>
+          <div class="playbook-body"><ol><li>Confirm email/username is correct</li><li>Verify account status in admin controls</li><li>Confirm correct role assigned</li><li>Have user retry in web and desktop if available</li><li>Clear session or try private window</li><li>Reset password or unlock if needed</li><li>Escalate if correct account status still fails</li></ol></div>
+        </div>
+        <div class="playbook">
+          <div class="playbook-hdr"><span class="pb-tag">B</span><span class="pb-title">Desktop app opens but no transcription starts</span></div>
+          <div class="playbook-body"><ol><li>Confirm microphone is selected in the app</li><li>Verify OS microphone permissions</li><li>Test headset in another application</li><li>Reconnect device; relaunch app</li><li>Compare on another workstation</li><li>Escalate if audio is present but transcript never begins</li></ol></div>
+        </div>
+        <div class="playbook">
+          <div class="playbook-hdr"><span class="pb-tag">C</span><span class="pb-title">Entire center reports slow system</span></div>
+          <div class="playbook-body"><ol><li>Confirm whether issue affects web, desktop, or both</li><li>Confirm exact timeframe and whether all users are impacted</li><li>Check current incidents and recent releases</li><li>Test network conditions — are other systems slow?</li><li>Escalate as high-severity performance incident immediately</li></ol></div>
+        </div>
+        <div class="playbook">
+          <div class="playbook-hdr"><span class="pb-tag">D</span><span class="pb-title">User sees wrong permissions or access</span></div>
+          <div class="playbook-body"><ol><li>Verify expected role and actual assigned role</li><li>Have user sign out and back in</li><li>Confirm tenant/agency mapping is correct</li><li>Compare another user with the same role</li><li>Escalate if role mapping is correct but permissions remain wrong</li></ol></div>
+        </div>
+        <div class="playbook">
+          <div class="playbook-hdr"><span class="pb-tag">E</span><span class="pb-title">Web and desktop data do not match</span></div>
+          <div class="playbook-body"><ol><li>Confirm which action was performed and on which platform</li><li>Refresh both clients</li><li>Re-login if it is safe to do so</li><li>Compare backend record if available</li><li>Escalate if persistence or live sync is confirmed failing</li></ol></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- DAILY OPS -->
+    <div class="chapter" id="p2-daily">
+      <div class="ch-header"><div class="ch-num g">15</div><div><div class="ch-title">Admin Team Daily Operating Checklist</div><div class="ch-desc">What to do at the start, during, and end of each day</div></div></div>
+      <div class="ops-grid">
+        <div class="ops-card"><div class="ops-hdr start">Start of Day</div><div class="ops-body"><ul>
+          <li>Review open critical tickets</li><li>Review unresolved high-priority tickets</li><li>Check overnight incidents</li><li>Note recent releases or maintenance</li><li>Check pending escalations</li><li>Review known provider or infrastructure issues</li><li>List customer follow-ups due today</li>
+        </ul></div></div>
+        <div class="ops-card"><div class="ops-hdr during">During the Day</div><div class="ops-body"><ul>
+          <li>Classify all new tickets on receipt</li><li>Ensure all critical issues have assigned owners</li><li>Send customer updates on time</li><li>Escalations include full evidence before handoff</li><li>Link duplicate tickets immediately</li>
+        </ul></div></div>
+        <div class="ops-card"><div class="ops-hdr end">End of Day</div><div class="ops-body"><ul>
+          <li>Hand off all unresolved critical items with full notes</li><li>Update all open incident records</li><li>Correct tickets missing root-cause fields</li><li>Flag recurring issue trends for weekly review</li>
+        </ul></div></div>
+      </div>
+    </div>
+
+    <!-- ROOT CAUSE -->
+    <div class="chapter" id="p2-rootcause">
+      <div class="ch-header"><div class="ch-num">13</div><div><div class="ch-title">Root Cause Categories</div><div class="ch-desc">Select one when closing every ticket</div></div></div>
+      <div class="rc-grid">
+        <div class="rc-item"><span class="rc-dot"></span>User error / training gap</div>
+        <div class="rc-item"><span class="rc-dot"></span>Local device configuration</div>
+        <div class="rc-item"><span class="rc-dot"></span>Headset or hardware failure</div>
+        <div class="rc-item"><span class="rc-dot"></span>OS permission issue</div>
+        <div class="rc-item"><span class="rc-dot"></span>Browser / session issue</div>
+        <div class="rc-item"><span class="rc-dot"></span>Local network issue</div>
+        <div class="rc-item"><span class="rc-dot"></span>Customer environment policy restriction</div>
+        <div class="rc-item"><span class="rc-dot"></span>Authentication service issue</div>
+        <div class="rc-item"><span class="rc-dot"></span>Application defect</div>
+        <div class="rc-item"><span class="rc-dot"></span>Release regression</div>
+        <div class="rc-item"><span class="rc-dot"></span>Integration credential / config failure</div>
+        <div class="rc-item"><span class="rc-dot"></span>Third-party service degradation</div>
+        <div class="rc-item"><span class="rc-dot" style="background:var(--text-light)"></span>Unknown — pending engineering analysis</div>
+      </div>
+    </div>
+
+    <!-- TOOLS -->
+    <div class="chapter" id="p2-tools">
+      <div class="ch-header"><div class="ch-num b">16</div><div><div class="ch-title">Tools &amp; Data Access</div><div class="ch-desc">What the admin team must be able to access or request</div></div></div>
+      <div class="tools-grid">
+        <div class="tool-item"><span class="tool-ico">👤</span>App version inventory</div>
+        <div class="tool-item"><span class="tool-ico">🔑</span>User / account status view</div>
+        <div class="tool-item"><span class="tool-ico">🔒</span>Role / permission viewer</div>
+        <div class="tool-item"><span class="tool-ico">📊</span>Environment status dashboard</div>
+        <div class="tool-item"><span class="tool-ico">🔐</span>Authentication health dashboard</div>
+        <div class="tool-item"><span class="tool-ico">⚡</span>API error dashboard</div>
+        <div class="tool-item"><span class="tool-ico">🌐</span>WebSocket / live session dashboard</div>
+        <div class="tool-item"><span class="tool-ico">🤖</span>AI / transcription provider health status</div>
+        <div class="tool-item"><span class="tool-ico">🎫</span>Ticketing system with severity tracking</div>
+        <div class="tool-item"><span class="tool-ico">🏛️</span>Customer environment registry</div>
+        <div class="tool-item"><span class="tool-ico">🚀</span>Deployment / release history</div>
+        <div class="tool-item"><span class="tool-ico">📋</span>Known issue register</div>
+      </div>
+      <div class="sub">
+        <div class="sub-title">What not to do — enforced standards</div>
+        <ul class="golden-list">
+          <li><span class="g-icon">✗</span><span><strong>Do not promise a fix before diagnosis.</strong></span></li>
+          <li><span class="g-icon">✗</span><span><strong>Do not say "it must be your internet"</strong> without evidence.</span></li>
+          <li><span class="g-icon">✗</span><span><strong>Do not change permissions or production settings</strong> without recording what changed and why.</span></li>
+          <li><span class="g-icon">✗</span><span><strong>Do not skip timestamps.</strong> Every log entry needs one.</span></li>
+          <li><span class="g-icon">✗</span><span><strong>Do not close a ticket because the user stopped replying</strong> unless closure policy is explicitly met.</span></li>
+          <li><span class="g-icon">✗</span><span><strong>Do not tell a customer an AI quality issue is subjective</strong> without reviewing examples with engineering.</span></li>
+          <li><span class="g-icon">✗</span><span><strong>Do not reinstall software</strong> before capturing enough information to preserve the diagnostic trail.</span></li>
+        </ul>
+      </div>
+    </div>
+  </div><!-- /content -->
+
+</main>
+</div>
+
+<script>
+const items=document.querySelectorAll('.sb-item');
+const secs=document.querySelectorAll('[id]');
+const obs=new IntersectionObserver(e=>{
+  e.forEach(en=>{
+    if(en.isIntersecting){
+      const id=en.target.id;
+      items.forEach(it=>{it.classList.remove('active');if(it.getAttribute('href')==='#'+id)it.classList.add('active')});
+    }
+  });
+},{rootMargin:'-15% 0px -70% 0px'});
+secs.forEach(s=>obs.observe(s));
+items.forEach(it=>{
+  it.addEventListener('click',e=>{
+    e.preventDefault();
+    const t=document.querySelector(it.getAttribute('href'));
+    if(t)t.scrollIntoView({behavior:'smooth',block:'start'});
+  });
+});
+</script>
+</body>
+</html>

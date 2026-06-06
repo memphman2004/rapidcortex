@@ -1,0 +1,787 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: >-
+  Rapid Cortex SSR web infrastructure (ECR + ECS cluster + task definition + ALB + CloudFront + WAF + Route53).
+  ECS service is created/updated by scripts/deploy-web-no-docker.sh after the stack completes (avoids CloudFormation
+  stabilization wait on AWS::ECS::Service). Migrating an existing stack from the legacy template that owned WebService:
+  expect CloudFormation to delete the old ECS service resource on update — run deploy-web-no-docker.sh right after
+  deploy-web-ssr.sh (or accept brief downtime) so the service is recreated from stack outputs.
+
+Parameters:
+  AppName:
+    Type: String
+    Default: rapid-cortex
+  DeploymentStage:
+    Type: String
+    Default: prod
+    AllowedValues: [staging, prod, pilot]
+  VpcId:
+    Type: AWS::EC2::VPC::Id
+  PrivateSubnetIds:
+    Type: List<AWS::EC2::Subnet::Id>
+  PublicSubnetIds:
+    Type: List<AWS::EC2::Subnet::Id>
+  RootDomainName:
+    Type: String
+    Default: rapidcortex.us
+  AttachCloudFrontAliases:
+    Type: String
+    Default: "true"
+    AllowedValues: ["true", "false"]
+    Description: >-
+      When true, CloudFront aliases apex + www (RootDomainName). See AttachAppSubdomainAlias for app subdomain.
+      Either flag true requires ViewerCertificateArn (ACM in us-east-1). When both false, default CloudFront certificate.
+  AttachAppSubdomainAlias:
+    Type: String
+    Default: "true"
+    AllowedValues: ["true", "false"]
+    Description: >-
+      When true, CloudFront alias app subdomain (e.g. app.rapidcortex.us for SSR while marketing owns apex/www).
+  AttachReportSubdomainAlias:
+    Type: String
+    Default: "false"
+    AllowedValues: ["true", "false"]
+    Description: >-
+      When true, CloudFront alias report subdomain (e.g. report.rapidcortex.us for public QR intake /r/*).
+  CreateRoute53AliasRecords:
+    Type: String
+    Default: "true"
+    AllowedValues: ["true", "false"]
+    Description: >-
+      When AttachCloudFrontAliases is true: create apex + www A/AAAA alias records in Route53HostedZoneId. Set false
+      when those record names already exist (e.g. marketing static stack owns them).
+  CreateRoute53AppSubdomainRecords:
+    Type: String
+    Default: "true"
+    AllowedValues: ["true", "false"]
+    Description: >-
+      When AttachAppSubdomainAlias is true: create app subdomain A/AAAA alias records in Route53HostedZoneId.
+  CreateRoute53ReportSubdomainRecords:
+    Type: String
+    Default: "false"
+    AllowedValues: ["true", "false"]
+    Description: >-
+      When AttachReportSubdomainAlias is true: create report subdomain A/AAAA alias records in Route53HostedZoneId.
+  ReportSiteUrl:
+    Type: String
+    Default: https://report.rapidcortex.us
+    Description: Public QR intake origin (NEXT_PUBLIC_REPORT_ORIGIN on ECS).
+  Route53HostedZoneId:
+    Type: String
+  ViewerCertificateArn:
+    Type: String
+    Description: ACM cert ARN in us-east-1 for CloudFront (required when AttachCloudFrontAliases is true).
+  OriginAlbCertificateArn:
+    Type: String
+    Description: ACM cert ARN in ALB region for HTTPS listener.
+  DesiredCount:
+    Type: Number
+    Default: 2
+  TaskCpu:
+    Type: Number
+    Default: 1024
+  TaskMemory:
+    Type: Number
+    Default: 2048
+  FargateCpuArchitecture:
+    Type: String
+    Default: X86_64
+    AllowedValues: [ARM64, X86_64]
+    Description: >-
+      Task CPU architecture — must match the container image platform. CodeBuild on x86 (default) produces
+      linux/amd64 images → use X86_64. Use ARM64 only if you build/push linux/arm64 (e.g. docker buildx
+      --platform linux/arm64 on CI, or build on arm64 hosts).
+  AlbDeletionProtectionEnabled:
+    Type: String
+    Default: "false"
+    AllowedValues: ["true", "false"]
+    Description: When true, ALB cannot be deleted until disabled — can block CloudFormation rollback. Prefer false until the stack is stable.
+  WafRateLimitPer5Min:
+    Type: Number
+    Default: 2000
+  ApiBaseUrl:
+    Type: String
+    Description: API base URL for Next SSR proxy (e.g. https://api.rapidcortex.us)
+  ApiBaseUrl2:
+    Type: String
+    Default: ""
+    Description: >-
+      Optional second API Gateway base (stack 2) for comms, call-intelligence, and contact-sales leads.
+      Leave empty when only one API stack is deployed.
+  CognitoUserPoolId:
+    Type: String
+  CognitoClientId:
+    Type: String
+  CognitoRegion:
+    Type: String
+  CognitoHostedUiDomain:
+    Type: String
+    Default: ""
+    Description: >-
+      Cognito Hosted UI domain (e.g. rapidcortex-prod-123.auth.us-east-1.amazoncognito.com). Sets COGNITO_DOMAIN on ECS for native/desktop OAuth.
+  AllowedOrigins:
+    Type: String
+    Default: https://rapidcortex.us,https://www.rapidcortex.us,https://app.rapidcortex.us,https://report.rapidcortex.us
+  PublicSiteUrl:
+    Type: String
+    Default: https://app.rapidcortex.us
+    Description: >-
+      Sets NEXT_PUBLIC_SITE_URL on ECS tasks for server-side CSP connect-src / canonical site URL
+      (must match the public CloudFront hostname users load, e.g. https://app.rapidcortex.us when marketing owns apex/www).
+  MarketingSiteUrl:
+    Type: String
+    Default: https://www.rapidcortex.us
+    Description: Marketing static site origin for app-host redirects (NEXT_PUBLIC_MARKETING_SITE_URL on ECS).
+  EcsAssignPublicIp:
+    Type: String
+    Default: ENABLED
+    AllowedValues: [ENABLED, DISABLED]
+    Description: >-
+      Use ENABLED for default-VPC / public-subnet-only accounts (no NAT). Use DISABLED with private subnets + NAT.
+  EcsHealthCheckGracePeriodSeconds:
+    Type: Number
+    Default: 600
+    MinValue: 0
+    MaxValue: 1800
+    Description: >-
+      Seconds after a task starts before the ALB treats failed target health checks as unhealthy (Next SSR cold start).
+      Used when creating the ECS service via deploy-web-no-docker.sh. Default 600 for slow Next standalone boot.
+  EcrRepositoryOverride:
+    Type: String
+    Default: ""
+    Description: >-
+      If empty, create and use repository {AppName}-web-{DeploymentStage}. If set (e.g. rapid-cortex-web-ssr), use that
+      existing repository and skip creating a new one (push an image before deploy).
+  CloudFrontOriginFacingPrefixListIdOverride:
+    Type: String
+    Default: ""
+    Description: >-
+      Optional. Managed prefix list ID (pl-…) for com.amazonaws.global.cloudfront.origin-facing. Leave empty to use
+      the template mapping for this region. Required if you deploy in a region not listed under Mappings.
+
+Conditions:
+  CreateEcrRepository: !Equals [!Ref EcrRepositoryOverride, ""]
+  UseCloudFrontPrefixListOverride: !Not [!Equals [!Ref CloudFrontOriginFacingPrefixListIdOverride, ""]]
+  AttachApexWwwAliases: !Equals [!Ref AttachCloudFrontAliases, "true"]
+  AttachAppSubdomain: !Equals [!Ref AttachAppSubdomainAlias, "true"]
+  AttachReportSubdomain: !Equals [!Ref AttachReportSubdomainAlias, "true"]
+  UseCloudFrontCustomDomain:
+    Fn::Or:
+      - !Condition AttachApexWwwAliases
+      - !Condition AttachAppSubdomain
+      - !Condition AttachReportSubdomain
+  UseAppOnlyWithReport:
+    Fn::And:
+      - !Condition UseAppOnly
+      - !Condition AttachReportSubdomain
+  UseApexWwwAndAppAliases:
+    Fn::And:
+      - !Condition AttachApexWwwAliases
+      - !Condition AttachAppSubdomain
+  UseApexWwwOnly:
+    Fn::And:
+      - !Condition AttachApexWwwAliases
+      - !Not [!Condition AttachAppSubdomain]
+  UseAppOnly:
+    Fn::And:
+      - !Not [!Condition AttachApexWwwAliases]
+      - !Condition AttachAppSubdomain
+  HasCognitoHostedUiDomain: !Not [!Equals [!Ref CognitoHostedUiDomain, ""]]
+  HasApiBaseUrl2: !Not [!Equals [!Ref ApiBaseUrl2, ""]]
+  ManageRoute53AliasRecords:
+    Fn::And:
+      - !Condition AttachApexWwwAliases
+      - !Equals [!Ref CreateRoute53AliasRecords, "true"]
+  ManageRoute53AppSubdomainRecords:
+    Fn::And:
+      - !Condition AttachAppSubdomain
+      - !Equals [!Ref CreateRoute53AppSubdomainRecords, "true"]
+  ManageRoute53ReportSubdomainRecords:
+    Fn::And:
+      - !Condition AttachReportSubdomain
+      - !Equals [!Ref CreateRoute53ReportSubdomainRecords, "true"]
+
+Mappings:
+  # com.amazonaws.global.cloudfront.origin-facing — restrict ALB:80 to CloudFront edges only.
+  # Refresh: aws ec2 describe-managed-prefix-lists --region $R --filters Name=prefix-list-name,Values=com.amazonaws.global.cloudfront.origin-facing
+  CloudFrontOriginFacingPrefixListId:
+    ap-northeast-1:
+      PrefixListId: pl-58a04531
+    ap-northeast-2:
+      PrefixListId: pl-22a6434b
+    ap-northeast-3:
+      PrefixListId: pl-31a14458
+    ap-south-1:
+      PrefixListId: pl-9aa247f3
+    ap-southeast-1:
+      PrefixListId: pl-31a34658
+    ap-southeast-2:
+      PrefixListId: pl-b8a742d1
+    ca-central-1:
+      PrefixListId: pl-38a64351
+    eu-central-1:
+      PrefixListId: pl-a3a144ca
+    eu-north-1:
+      PrefixListId: pl-fab65393
+    eu-west-1:
+      PrefixListId: pl-4fa04526
+    eu-west-2:
+      PrefixListId: pl-93a247fa
+    eu-west-3:
+      PrefixListId: pl-75b1541c
+    sa-east-1:
+      PrefixListId: pl-5da64334
+    us-east-1:
+      PrefixListId: pl-3b927c52
+    us-east-2:
+      PrefixListId: pl-b6a144df
+    us-west-1:
+      PrefixListId: pl-4ea04527
+    us-west-2:
+      PrefixListId: pl-82a045eb
+
+Resources:
+  WebLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub /ecs/${AppName}-web-${DeploymentStage}
+      RetentionInDays: 90
+
+  WebEcrRepository:
+    Type: AWS::ECR::Repository
+    Condition: CreateEcrRepository
+    Properties:
+      RepositoryName: !Sub ${AppName}-web-${DeploymentStage}
+      ImageScanningConfiguration:
+        ScanOnPush: true
+      EncryptionConfiguration:
+        EncryptionType: AES256
+      LifecyclePolicy:
+        LifecyclePolicyText: |
+          {
+            "rules": [{
+              "rulePriority": 1,
+              "description": "Keep last 30 images",
+              "selection": {"tagStatus": "any", "countType": "imageCountMoreThan", "countNumber": 30},
+              "action": {"type": "expire"}
+            }]
+          }
+
+  EcsCluster:
+    Type: AWS::ECS::Cluster
+    Properties:
+      ClusterName: !Sub ${AppName}-web-${DeploymentStage}
+      ClusterSettings:
+        - Name: containerInsights
+          Value: enabled
+
+  AlbSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: !Sub ${AppName} web ALB SG
+      VpcId: !Ref VpcId
+      SecurityGroupIngress:
+        # 443: optional direct HTTPS to ALB (e.g. debugging). 80: CloudFront → origin only (managed prefix list).
+        - IpProtocol: tcp
+          FromPort: 443
+          ToPort: 443
+          CidrIp: 0.0.0.0/0
+        - IpProtocol: tcp
+          FromPort: 80
+          ToPort: 80
+          SourcePrefixListId: !If
+            - UseCloudFrontPrefixListOverride
+            - !Ref CloudFrontOriginFacingPrefixListIdOverride
+            - !FindInMap [CloudFrontOriginFacingPrefixListId, !Ref "AWS::Region", PrefixListId]
+      SecurityGroupEgress:
+        - IpProtocol: -1
+          CidrIp: 0.0.0.0/0
+
+  ServiceSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: !Sub ${AppName} web service SG
+      VpcId: !Ref VpcId
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 3000
+          ToPort: 3000
+          SourceSecurityGroupId: !Ref AlbSecurityGroup
+      SecurityGroupEgress:
+        - IpProtocol: -1
+          CidrIp: 0.0.0.0/0
+
+  WebAlb:
+    Type: AWS::ElasticLoadBalancingV2::LoadBalancer
+    Properties:
+      Name: !Sub ${AppName}-web-${DeploymentStage}
+      Scheme: internet-facing
+      SecurityGroups: [!Ref AlbSecurityGroup]
+      Subnets: !Ref PublicSubnetIds
+      Type: application
+      LoadBalancerAttributes:
+        - Key: routing.http.drop_invalid_header_fields.enabled
+          Value: "true"
+        - Key: deletion_protection.enabled
+          Value: !Ref AlbDeletionProtectionEnabled
+
+  WebTargetGroup:
+    Type: AWS::ElasticLoadBalancingV2::TargetGroup
+    Properties:
+      Name: !Sub ${AppName}-web-${DeploymentStage}
+      Port: 3000
+      Protocol: HTTP
+      VpcId: !Ref VpcId
+      TargetType: ip
+      HealthCheckEnabled: true
+      HealthCheckPath: /api/health/web
+      HealthCheckProtocol: HTTP
+      Matcher:
+        HttpCode: 200-499
+
+  WebAlbHttpsListener:
+    Type: AWS::ElasticLoadBalancingV2::Listener
+    Properties:
+      LoadBalancerArn: !Ref WebAlb
+      Port: 443
+      Protocol: HTTPS
+      Certificates:
+        - CertificateArn: !Ref OriginAlbCertificateArn
+      DefaultActions:
+        - Type: forward
+          TargetGroupArn: !Ref WebTargetGroup
+
+  WebAlbHttpListener:
+    Type: AWS::ElasticLoadBalancingV2::Listener
+    Properties:
+      LoadBalancerArn: !Ref WebAlb
+      Port: 80
+      Protocol: HTTP
+      DefaultActions:
+        - Type: forward
+          TargetGroupArn: !Ref WebTargetGroup
+
+  EcsTaskExecutionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal: { Service: ecs-tasks.amazonaws.com }
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy
+
+  EcsTaskRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal: { Service: ecs-tasks.amazonaws.com }
+            Action: sts:AssumeRole
+      Policies:
+        - PolicyName: WebTaskRuntimeAccess
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Sid: CloudWatchWrite
+                Effect: Allow
+                Action:
+                  - logs:CreateLogStream
+                  - logs:PutLogEvents
+                Resource: !Sub arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/ecs/${AppName}-web-${DeploymentStage}:*
+
+  WebTaskDefinition:
+    Type: AWS::ECS::TaskDefinition
+    Properties:
+      Family: !Sub ${AppName}-web-${DeploymentStage}
+      Cpu: !Ref TaskCpu
+      Memory: !Ref TaskMemory
+      RuntimePlatform:
+        CpuArchitecture: !Ref FargateCpuArchitecture
+        OperatingSystemFamily: LINUX
+      NetworkMode: awsvpc
+      RequiresCompatibilities: [FARGATE]
+      ExecutionRoleArn: !GetAtt EcsTaskExecutionRole.Arn
+      TaskRoleArn: !GetAtt EcsTaskRole.Arn
+      ContainerDefinitions:
+        - Name: nextjs-web
+          Image: !If
+            - CreateEcrRepository
+            - !Sub ${AWS::AccountId}.dkr.ecr.${AWS::Region}.amazonaws.com/${AppName}-web-${DeploymentStage}:latest
+            - !Sub ${AWS::AccountId}.dkr.ecr.${AWS::Region}.amazonaws.com/${EcrRepositoryOverride}:latest
+          Essential: true
+          PortMappings:
+            - ContainerPort: 3000
+              Protocol: tcp
+          LogConfiguration:
+            LogDriver: awslogs
+            Options:
+              awslogs-group: !Ref WebLogGroup
+              awslogs-region: !Ref AWS::Region
+              awslogs-stream-prefix: ecs
+          Environment:
+            - Name: NODE_ENV
+              Value: production
+            - Name: PORT
+              Value: "3000"
+            - Name: API_UPSTREAM_BASE
+              Value: !Ref ApiBaseUrl
+            - !If
+              - HasApiBaseUrl2
+              - Name: API_UPSTREAM_BASE_2
+                Value: !Ref ApiBaseUrl2
+              - !Ref AWS::NoValue
+            - !If
+              - HasApiBaseUrl2
+              - Name: NEXT_PUBLIC_API_BASE_2
+                Value: !Ref ApiBaseUrl2
+              - !Ref AWS::NoValue
+            - Name: NEXT_PUBLIC_API_BASE
+              Value: !Ref ApiBaseUrl
+            - Name: NEXT_PUBLIC_SITE_URL
+              Value:
+                Fn::If:
+                  - UseCloudFrontCustomDomain
+                  - !Ref PublicSiteUrl
+                  - !Sub https://${WebCdnDistribution.DomainName}
+            - Name: NEXT_PUBLIC_APP_ORIGIN
+              Value: !Ref PublicSiteUrl
+            - Name: NEXT_PUBLIC_MARKETING_SITE_URL
+              Value: !Ref MarketingSiteUrl
+            - Name: NEXT_PUBLIC_REPORT_ORIGIN
+              Value: !Ref ReportSiteUrl
+            - Name: APP_ALLOWED_ORIGINS
+              Value:
+                Fn::If:
+                  - UseCloudFrontCustomDomain
+                  - !Ref AllowedOrigins
+                  - !Sub https://${WebCdnDistribution.DomainName}
+            - Name: COGNITO_USER_POOL_ID
+              Value: !Ref CognitoUserPoolId
+            - Name: COGNITO_CLIENT_ID
+              Value: !Ref CognitoClientId
+            - Name: COGNITO_REGION
+              Value: !Ref CognitoRegion
+            - Name: COGNITO_DOMAIN
+              Value: !If [HasCognitoHostedUiDomain, !Ref CognitoHostedUiDomain, !Ref AWS::NoValue]
+            - Name: NEXT_PUBLIC_AUTH_PROXY
+              Value: "1"
+          HealthCheck:
+            Command:
+              ["CMD-SHELL", "wget -qO- http://localhost:3000/api/health/web || exit 1"]
+            Interval: 30
+            Retries: 3
+            StartPeriod: 60
+            Timeout: 5
+
+  CdnResponseHeadersPolicy:
+    Type: AWS::CloudFront::ResponseHeadersPolicy
+    Properties:
+      ResponseHeadersPolicyConfig:
+        Name: !Sub ${AppName}-web-security-${DeploymentStage}
+        SecurityHeadersConfig:
+          ContentSecurityPolicy:
+            # Keep aligned with `apps/web/next.config.mjs` `buildCspHeader` (embeds: YouTube, Tally, HubSpot, Typeform, Calendly).
+            ContentSecurityPolicy: "default-src 'self'; base-uri 'self'; frame-ancestors 'none'; form-action 'self'; img-src 'self' data: https: blob:; font-src 'self' data:; media-src 'self' https://www.youtube-nocookie.com https://youtube-nocookie.com https://www.youtube.com blob:; connect-src 'self' blob: https: https://www.youtube-nocookie.com https://youtube-nocookie.com https://www.youtube.com https://youtube.com https://i.ytimg.com https://img.youtube.com https://tally.so https://*.tally.so https://*.hubspot.com https://*.hsforms.com https://*.hs-scripts.com https://*.typeform.com https://*.calendly.com https://assets.calendly.com; script-src 'self' 'wasm-unsafe-eval' 'unsafe-inline' https://tally.so https://*.tally.so https://*.hubspot.com https://*.hsforms.com https://*.hs-scripts.com https://*.typeform.com https://*.calendly.com https://assets.calendly.com; style-src 'self' 'unsafe-inline'; object-src 'none'; worker-src 'self' blob:; frame-src 'self' https://www.youtube.com https://youtube.com https://www.youtube-nocookie.com https://youtube-nocookie.com https://tally.so https://*.tally.so https://*.hubspot.com https://*.hsforms.com https://*.typeform.com https://embed.typeform.com https://*.calendly.com https://assets.calendly.com"
+            Override: true
+          ContentTypeOptions:
+            Override: true
+          FrameOptions:
+            FrameOption: DENY
+            Override: true
+          ReferrerPolicy:
+            ReferrerPolicy: strict-origin-when-cross-origin
+            Override: true
+          StrictTransportSecurity:
+            AccessControlMaxAgeSec: 31536000
+            IncludeSubdomains: true
+            Preload: true
+            Override: true
+          XSSProtection:
+            Protection: true
+            ModeBlock: true
+            Override: true
+
+  CdnWebAcl:
+    Type: AWS::WAFv2::WebACL
+    Properties:
+      Name: !Sub ${AppName}-web-cdn-${DeploymentStage}
+      Scope: CLOUDFRONT
+      DefaultAction:
+        Allow: {}
+      VisibilityConfig:
+        CloudWatchMetricsEnabled: true
+        MetricName: !Sub ${AppName}-web-cdn-${DeploymentStage}
+        SampledRequestsEnabled: true
+      Rules:
+        - Name: AWSManagedRulesCommonRuleSet
+          Priority: 1
+          Statement:
+            ManagedRuleGroupStatement:
+              VendorName: AWS
+              Name: AWSManagedRulesCommonRuleSet
+          OverrideAction: { None: {} }
+          VisibilityConfig:
+            CloudWatchMetricsEnabled: true
+            MetricName: common-rules
+            SampledRequestsEnabled: true
+        - Name: AWSManagedRulesKnownBadInputsRuleSet
+          Priority: 2
+          Statement:
+            ManagedRuleGroupStatement:
+              VendorName: AWS
+              Name: AWSManagedRulesKnownBadInputsRuleSet
+          OverrideAction: { None: {} }
+          VisibilityConfig:
+            CloudWatchMetricsEnabled: true
+            MetricName: known-bad-inputs
+            SampledRequestsEnabled: true
+        - Name: AWSManagedRulesAmazonIpReputationList
+          Priority: 3
+          Statement:
+            ManagedRuleGroupStatement:
+              VendorName: AWS
+              Name: AWSManagedRulesAmazonIpReputationList
+          OverrideAction: { None: {} }
+          VisibilityConfig:
+            CloudWatchMetricsEnabled: true
+            MetricName: ip-reputation
+            SampledRequestsEnabled: true
+        - Name: PerIpRateLimit
+          Priority: 4
+          Action: { Block: {} }
+          Statement:
+            RateBasedStatement:
+              AggregateKeyType: IP
+              Limit: !Ref WafRateLimitPer5Min
+          VisibilityConfig:
+            CloudWatchMetricsEnabled: true
+            MetricName: rate-limit
+            SampledRequestsEnabled: true
+
+  WebCdnDistribution:
+    Type: AWS::CloudFront::Distribution
+    Properties:
+      DistributionConfig:
+        Enabled: true
+        HttpVersion: http2and3
+        Aliases:
+          Fn::If:
+            - UseApexWwwAndAppAliases
+            - - !Ref RootDomainName
+              - !Sub www.${RootDomainName}
+              - !Sub app.${RootDomainName}
+            - Fn::If:
+              - UseApexWwwOnly
+              - - !Ref RootDomainName
+                - !Sub www.${RootDomainName}
+              - Fn::If:
+                - UseAppOnlyWithReport
+                - - !Sub app.${RootDomainName}
+                  - !Sub report.${RootDomainName}
+                - Fn::If:
+                  - UseAppOnly
+                  - - !Sub app.${RootDomainName}
+                  - Fn::If:
+                    - AttachReportSubdomain
+                    - - !Sub report.${RootDomainName}
+                    - []
+        WebACLId: !GetAtt CdnWebAcl.Arn
+        Origins:
+          - Id: AlbOrigin
+            DomainName: !GetAtt WebAlb.DNSName
+            CustomOriginConfig:
+              HTTPPort: 80
+              OriginProtocolPolicy: http-only
+              OriginReadTimeout: 60
+              OriginKeepaliveTimeout: 5
+        # Prefer not to cache authenticated/sensitive `/api/*` at the CDN (avoid stale 404/JSON).
+        CacheBehaviors:
+          - PathPattern: "/api/*"
+            TargetOriginId: AlbOrigin
+            ViewerProtocolPolicy: redirect-to-https
+            AllowedMethods: [GET, HEAD, OPTIONS, PUT, POST, PATCH, DELETE]
+            CachedMethods: [GET, HEAD]
+            Compress: true
+            CachePolicyId: 4135ea2d-6df8-44a3-9df3-4b5a84be39ad
+            OriginRequestPolicyId: 216adef6-5c7f-47e4-b989-5492eafa07d3
+            ResponseHeadersPolicyId: !Ref CdnResponseHeadersPolicy
+        DefaultCacheBehavior:
+          TargetOriginId: AlbOrigin
+          ViewerProtocolPolicy: redirect-to-https
+          AllowedMethods: [GET, HEAD, OPTIONS, PUT, POST, PATCH, DELETE]
+          CachedMethods: [GET, HEAD]
+          Compress: true
+          # Forward viewer Host (app.rapidcortex.us) — legacy ForwardedValues sends ALB DNS and breaks app-host middleware.
+          CachePolicyId: 4135ea2d-6df8-44a3-9df3-4b5a84be39ad
+          OriginRequestPolicyId: 216adef6-5c7f-47e4-b989-5492eafa07d3
+          ResponseHeadersPolicyId: !Ref CdnResponseHeadersPolicy
+        ViewerCertificate:
+          Fn::If:
+            - UseCloudFrontCustomDomain
+            - AcmCertificateArn: !Ref ViewerCertificateArn
+              SslSupportMethod: sni-only
+              MinimumProtocolVersion: TLSv1.2_2021
+            - CloudFrontDefaultCertificate: true
+
+  ApexA:
+    Condition: ManageRoute53AliasRecords
+    Type: AWS::Route53::RecordSet
+    Properties:
+      HostedZoneId: !Ref Route53HostedZoneId
+      Name: !Sub ${RootDomainName}.
+      Type: A
+      AliasTarget:
+        DNSName: !GetAtt WebCdnDistribution.DomainName
+        HostedZoneId: Z2FDTNDATAQYW2
+        EvaluateTargetHealth: false
+
+  ApexAAAA:
+    Condition: ManageRoute53AliasRecords
+    Type: AWS::Route53::RecordSet
+    Properties:
+      HostedZoneId: !Ref Route53HostedZoneId
+      Name: !Sub ${RootDomainName}.
+      Type: AAAA
+      AliasTarget:
+        DNSName: !GetAtt WebCdnDistribution.DomainName
+        HostedZoneId: Z2FDTNDATAQYW2
+        EvaluateTargetHealth: false
+
+  WwwA:
+    Condition: ManageRoute53AliasRecords
+    Type: AWS::Route53::RecordSet
+    Properties:
+      HostedZoneId: !Ref Route53HostedZoneId
+      Name: !Sub www.${RootDomainName}.
+      Type: A
+      AliasTarget:
+        DNSName: !GetAtt WebCdnDistribution.DomainName
+        HostedZoneId: Z2FDTNDATAQYW2
+        EvaluateTargetHealth: false
+
+  WwwAAAA:
+    Condition: ManageRoute53AliasRecords
+    Type: AWS::Route53::RecordSet
+    Properties:
+      HostedZoneId: !Ref Route53HostedZoneId
+      Name: !Sub www.${RootDomainName}.
+      Type: AAAA
+      AliasTarget:
+        DNSName: !GetAtt WebCdnDistribution.DomainName
+        HostedZoneId: Z2FDTNDATAQYW2
+        EvaluateTargetHealth: false
+
+  AppA:
+    Condition: ManageRoute53AppSubdomainRecords
+    Type: AWS::Route53::RecordSet
+    Properties:
+      HostedZoneId: !Ref Route53HostedZoneId
+      Name: !Sub app.${RootDomainName}.
+      Type: A
+      AliasTarget:
+        DNSName: !GetAtt WebCdnDistribution.DomainName
+        HostedZoneId: Z2FDTNDATAQYW2
+        EvaluateTargetHealth: false
+
+  AppAAAA:
+    Condition: ManageRoute53AppSubdomainRecords
+    Type: AWS::Route53::RecordSet
+    Properties:
+      HostedZoneId: !Ref Route53HostedZoneId
+      Name: !Sub app.${RootDomainName}.
+      Type: AAAA
+      AliasTarget:
+        DNSName: !GetAtt WebCdnDistribution.DomainName
+        HostedZoneId: Z2FDTNDATAQYW2
+        EvaluateTargetHealth: false
+
+  ReportA:
+    Condition: ManageRoute53ReportSubdomainRecords
+    Type: AWS::Route53::RecordSet
+    Properties:
+      HostedZoneId: !Ref Route53HostedZoneId
+      Name: !Sub report.${RootDomainName}.
+      Type: A
+      AliasTarget:
+        DNSName: !GetAtt WebCdnDistribution.DomainName
+        HostedZoneId: Z2FDTNDATAQYW2
+        EvaluateTargetHealth: false
+
+  ReportAAAA:
+    Condition: ManageRoute53ReportSubdomainRecords
+    Type: AWS::Route53::RecordSet
+    Properties:
+      HostedZoneId: !Ref Route53HostedZoneId
+      Name: !Sub report.${RootDomainName}.
+      Type: AAAA
+      AliasTarget:
+        DNSName: !GetAtt WebCdnDistribution.DomainName
+        HostedZoneId: Z2FDTNDATAQYW2
+        EvaluateTargetHealth: false
+
+  AlarmAlb5xx:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: !Sub ${AppName}-alb-5xx-${DeploymentStage}
+      Namespace: AWS/ApplicationELB
+      MetricName: HTTPCode_Target_5XX_Count
+      Statistic: Sum
+      Period: 60
+      EvaluationPeriods: 5
+      Threshold: 20
+      ComparisonOperator: GreaterThanThreshold
+      Dimensions:
+        - Name: LoadBalancer
+          Value: !GetAtt WebAlb.LoadBalancerFullName
+
+  AlarmUnhealthyTargets:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: !Sub ${AppName}-alb-unhealthy-${DeploymentStage}
+      Namespace: AWS/ApplicationELB
+      MetricName: UnHealthyHostCount
+      Statistic: Average
+      Period: 60
+      EvaluationPeriods: 3
+      Threshold: 1
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      Dimensions:
+        - Name: TargetGroup
+          Value: !GetAtt WebTargetGroup.TargetGroupFullName
+        - Name: LoadBalancer
+          Value: !GetAtt WebAlb.LoadBalancerFullName
+
+Outputs:
+  WebEcrRepositoryUri:
+    Value: !If
+      - CreateEcrRepository
+      - !GetAtt WebEcrRepository.RepositoryUri
+      - !Sub ${AWS::AccountId}.dkr.ecr.${AWS::Region}.amazonaws.com/${EcrRepositoryOverride}
+  EcsClusterName:
+    Value: !Ref EcsCluster
+  EcsServiceName:
+    Value: !Sub ${AppName}-web-${DeploymentStage}
+  TaskDefinitionFamily:
+    Value: !Sub ${AppName}-web-${DeploymentStage}
+  AlbDnsName:
+    Value: !GetAtt WebAlb.DNSName
+  AlbTargetGroupArn:
+    Value: !Ref WebTargetGroup
+  EcsSecurityGroupId:
+    Value: !Ref ServiceSecurityGroup
+  PrivateSubnetIdsCsv:
+    Value: !Join [",", !Ref PrivateSubnetIds]
+  EcsAssignPublicIpValue:
+    Value: !Ref EcsAssignPublicIp
+  EcsDesiredCount:
+    Value: !Ref DesiredCount
+  EcsHealthCheckGracePeriodSecondsValue:
+    Value: !Ref EcsHealthCheckGracePeriodSeconds
+  CloudFrontDistributionId:
+    Value: !Ref WebCdnDistribution
+  CloudFrontDomainName:
+    Value: !GetAtt WebCdnDistribution.DomainName

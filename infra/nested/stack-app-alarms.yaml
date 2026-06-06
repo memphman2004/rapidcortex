@@ -1,0 +1,402 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: >-
+  Rapid Cortex CloudWatch alarms for the SAM app stack. Deploy together with AppSamStack (references
+  its outputs only). Lambda error alarms that target conditionally-deployed functions (live video)
+  remain in stack-app-sam.yaml where Ref/CreationPolicy stays valid.
+
+Parameters:
+  DeploymentStage:
+    Type: String
+  OpsAlertsTopicArn:
+    Type: String
+    Description: SNS topic ARN for alarm notifications (from app stack Outputs.OpsAlertsTopicArn).
+  HttpApiId:
+    Type: String
+    Description: API Gateway HTTP API ID (from app stack Outputs.HttpApiId).
+  IncidentsTable:
+    Type: String
+  TranscriptsTable:
+    Type: String
+  DetectIncidentTypeFunctionName:
+    Type: String
+  PostAgencySopUploadUrlFunctionName:
+    Type: String
+  GetTriageResultFunctionName:
+    Type: String
+  OverrideTriageFunctionName:
+    Type: String
+  QaHttpFunctionName:
+    Type: String
+  QaScoringFunctionName:
+    Type: String
+  IncidentMediaHttpFunctionName:
+    Type: String
+  PublicIncidentMediaHttpFunctionName:
+    Type: String
+  AnalyzeIncidentFunctionName:
+    Type: String
+  PostIncidentAudioChunkFunctionName:
+    Type: String
+
+Resources:
+  DetectIncidentTypeErrorsAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmActions:
+        - !Ref OpsAlertsTopicArn
+      AlarmDescription: F4 SOP manual / persisted protocol detection Lambda errors.
+      Namespace: AWS/Lambda
+      MetricName: Errors
+      Dimensions:
+        - Name: FunctionName
+          Value: !Ref DetectIncidentTypeFunctionName
+      Statistic: Sum
+      Period: 300
+      EvaluationPeriods: 1
+      Threshold: 5
+      ComparisonOperator: GreaterThanThreshold
+      TreatMissingData: notBreaching
+
+  PostAgencySopUploadUrlErrorsAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmActions:
+        - !Ref OpsAlertsTopicArn
+      AlarmDescription: F4 agency SOP presigned upload-url Lambda errors.
+      Namespace: AWS/Lambda
+      MetricName: Errors
+      Dimensions:
+        - Name: FunctionName
+          Value: !Ref PostAgencySopUploadUrlFunctionName
+      Statistic: Sum
+      Period: 300
+      EvaluationPeriods: 1
+      Threshold: 5
+      ComparisonOperator: GreaterThanThreshold
+      TreatMissingData: notBreaching
+
+  GetTriageResultErrorsAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmActions:
+        - !Ref OpsAlertsTopicArn
+      AlarmDescription: F3 non-emergency triage read Lambda errors.
+      Namespace: AWS/Lambda
+      MetricName: Errors
+      Dimensions:
+        - Name: FunctionName
+          Value: !Ref GetTriageResultFunctionName
+      Statistic: Sum
+      Period: 300
+      EvaluationPeriods: 1
+      Threshold: 5
+      ComparisonOperator: GreaterThanThreshold
+      TreatMissingData: notBreaching
+
+  OverrideTriageErrorsAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmActions:
+        - !Ref OpsAlertsTopicArn
+      AlarmDescription: F3 triage override Lambda errors.
+      Namespace: AWS/Lambda
+      MetricName: Errors
+      Dimensions:
+        - Name: FunctionName
+          Value: !Ref OverrideTriageFunctionName
+      Statistic: Sum
+      Period: 300
+      EvaluationPeriods: 1
+      Threshold: 5
+      ComparisonOperator: GreaterThanThreshold
+      TreatMissingData: notBreaching
+
+  QaHttpErrorsAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmActions:
+        - !Ref OpsAlertsTopicArn
+      AlarmDescription: QA HTTP Lambda errors (sessions/templates routes).
+      Namespace: AWS/Lambda
+      MetricName: Errors
+      Dimensions:
+        - Name: FunctionName
+          Value: !Ref QaHttpFunctionName
+      Statistic: Sum
+      Period: 300
+      EvaluationPeriods: 1
+      Threshold: 5
+      ComparisonOperator: GreaterThanThreshold
+      TreatMissingData: notBreaching
+
+  QaScoringErrorsAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmActions:
+        - !Ref OpsAlertsTopicArn
+      AlarmDescription: QA scoring Lambda errors (Bedrock / transcript assembly).
+      Namespace: AWS/Lambda
+      MetricName: Errors
+      Dimensions:
+        - Name: FunctionName
+          Value: !Ref QaScoringFunctionName
+      Statistic: Sum
+      Period: 300
+      EvaluationPeriods: 1
+      Threshold: 5
+      ComparisonOperator: GreaterThanThreshold
+      TreatMissingData: notBreaching
+
+  IncidentMediaHttpErrorsAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmActions:
+        - !Ref OpsAlertsTopicArn
+      AlarmDescription: Incident media authenticated routes errors.
+      Namespace: AWS/Lambda
+      MetricName: Errors
+      Dimensions:
+        - Name: FunctionName
+          Value: !Ref IncidentMediaHttpFunctionName
+      Statistic: Sum
+      Period: 300
+      EvaluationPeriods: 1
+      Threshold: 5
+      ComparisonOperator: GreaterThanThreshold
+      TreatMissingData: notBreaching
+
+  OutboundSmsRoutingFailuresAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmActions:
+        - !Ref OpsAlertsTopicArn
+      AlarmDescription: >-
+        Count of structured outbound SMS routing_complete logs with finalStatus failed
+        (incident media or live video Lambdas). See CloudWatch logs for details.
+      Namespace: RapidCortex/Sms
+      MetricName: OutboundSmsRoutingFailures
+      Statistic: Sum
+      Period: 300
+      EvaluationPeriods: 1
+      Threshold: 3
+      ComparisonOperator: GreaterThanThreshold
+      TreatMissingData: notBreaching
+
+  PublicIncidentMediaHttpErrorsAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmActions:
+        - !Ref OpsAlertsTopicArn
+      AlarmDescription: Incident media public upload routes errors.
+      Namespace: AWS/Lambda
+      MetricName: Errors
+      Dimensions:
+        - Name: FunctionName
+          Value: !Ref PublicIncidentMediaHttpFunctionName
+      Statistic: Sum
+      Period: 300
+      EvaluationPeriods: 1
+      Threshold: 5
+      ComparisonOperator: GreaterThanThreshold
+      TreatMissingData: notBreaching
+
+  AnalyzeIncidentErrorsAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmActions:
+        - !Ref OpsAlertsTopicArn
+      AlarmDescription: Elevated Lambda errors on POST /analyze (auth, guardrails, or AI pipeline).
+      Namespace: AWS/Lambda
+      MetricName: Errors
+      Dimensions:
+        - Name: FunctionName
+          Value: !Ref AnalyzeIncidentFunctionName
+      Statistic: Sum
+      Period: 300
+      EvaluationPeriods: 1
+      Threshold: 10
+      ComparisonOperator: GreaterThanThreshold
+      TreatMissingData: notBreaching
+
+  AnalyzeIncidentDurationP95Alarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmActions:
+        - !Ref OpsAlertsTopicArn
+      AlarmDescription: p95 duration high — investigate provider latency or raise Lambda timeout.
+      Namespace: AWS/Lambda
+      MetricName: Duration
+      Dimensions:
+        - Name: FunctionName
+          Value: !Ref AnalyzeIncidentFunctionName
+      ExtendedStatistic: p95
+      Period: 300
+      EvaluationPeriods: 2
+      Threshold: 90000
+      ComparisonOperator: GreaterThanThreshold
+      TreatMissingData: notBreaching
+
+  PostIncidentAudioChunkErrorsAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmActions:
+        - !Ref OpsAlertsTopicArn
+      AlarmDescription: Multilingual audio chunk Lambda errors (STT/translation/provider failures).
+      Namespace: AWS/Lambda
+      MetricName: Errors
+      Dimensions:
+        - Name: FunctionName
+          Value: !Ref PostIncidentAudioChunkFunctionName
+      Statistic: Sum
+      Period: 300
+      EvaluationPeriods: 1
+      Threshold: 8
+      ComparisonOperator: GreaterThanThreshold
+      TreatMissingData: notBreaching
+
+  PostIncidentAudioChunkDurationP95Alarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmActions:
+        - !Ref OpsAlertsTopicArn
+      AlarmDescription: p95 duration high on multilingual audio chunks (Transcribe batch latency, etc.).
+      Namespace: AWS/Lambda
+      MetricName: Duration
+      Dimensions:
+        - Name: FunctionName
+          Value: !Ref PostIncidentAudioChunkFunctionName
+      ExtendedStatistic: p95
+      Period: 300
+      EvaluationPeriods: 2
+      Threshold: 100000
+      ComparisonOperator: GreaterThanThreshold
+      TreatMissingData: notBreaching
+
+  HttpApi5xxAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmActions:
+        - !Ref OpsAlertsTopicArn
+      AlarmDescription: HTTP API sustained 5xx — check Lambda logs, authorizer, and downstream dependencies.
+      Namespace: AWS/ApiGateway
+      MetricName: 5xx
+      Dimensions:
+        - Name: ApiId
+          Value: !Ref HttpApiId
+        - Name: Stage
+          Value: "$default"
+      Statistic: Sum
+      Period: 300
+      EvaluationPeriods: 1
+      Threshold: 5
+      ComparisonOperator: GreaterThanThreshold
+      TreatMissingData: notBreaching
+
+  HttpApiIntegrationLatencyP95Alarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmActions:
+        - !Ref OpsAlertsTopicArn
+      AlarmDescription: HTTP API integration latency p95 high — Lambda cold starts, STT/AI latency, or network.
+      Namespace: AWS/ApiGateway
+      MetricName: IntegrationLatency
+      Dimensions:
+        - Name: ApiId
+          Value: !Ref HttpApiId
+        - Name: Stage
+          Value: "$default"
+      ExtendedStatistic: p95
+      Period: 300
+      EvaluationPeriods: 2
+      Threshold: 25000
+      ComparisonOperator: GreaterThanThreshold
+      TreatMissingData: notBreaching
+
+  AnalyzeIncidentThrottlesAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmActions:
+        - !Ref OpsAlertsTopicArn
+      AlarmDescription: Analyze Lambda throttled — raise reserved concurrency or reduce burst traffic.
+      Namespace: AWS/Lambda
+      MetricName: Throttles
+      Dimensions:
+        - Name: FunctionName
+          Value: !Ref AnalyzeIncidentFunctionName
+      Statistic: Sum
+      Period: 300
+      EvaluationPeriods: 1
+      Threshold: 1
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      TreatMissingData: notBreaching
+
+  PostIncidentAudioChunkThrottlesAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmActions:
+        - !Ref OpsAlertsTopicArn
+      AlarmDescription: Audio chunk Lambda throttled — raise concurrency or shed load on multilingual path.
+      Namespace: AWS/Lambda
+      MetricName: Throttles
+      Dimensions:
+        - Name: FunctionName
+          Value: !Ref PostIncidentAudioChunkFunctionName
+      Statistic: Sum
+      Period: 300
+      EvaluationPeriods: 1
+      Threshold: 1
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      TreatMissingData: notBreaching
+
+  VoicePipelineHardFailuresAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmActions:
+        - !Ref OpsAlertsTopicArn
+      AlarmDescription: >-
+        Voice/STT/translation/language-detect hard failures (log-derived). Investigate provider keys,
+        quotas, and multilingual env validation.
+      Namespace: !Sub "RapidCortex/${DeploymentStage}/Voice"
+      MetricName: PipelineHardFailures
+      Statistic: Sum
+      Period: 300
+      EvaluationPeriods: 1
+      Threshold: 15
+      ComparisonOperator: GreaterThanThreshold
+      TreatMissingData: notBreaching
+
+  IncidentsTableUserErrorsAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmActions:
+        - !Ref OpsAlertsTopicArn
+      AlarmDescription: DynamoDB user errors on incidents table (IAM, validation, conditional failures).
+      Namespace: AWS/DynamoDB
+      MetricName: UserErrors
+      Dimensions:
+        - Name: TableName
+          Value: !Ref IncidentsTable
+      Statistic: Sum
+      Period: 300
+      EvaluationPeriods: 1
+      Threshold: 1
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      TreatMissingData: notBreaching
+
+  TranscriptsTableUserErrorsAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmActions:
+        - !Ref OpsAlertsTopicArn
+      AlarmDescription: DynamoDB user errors on transcripts table.
+      Namespace: AWS/DynamoDB
+      MetricName: UserErrors
+      Dimensions:
+        - Name: TableName
+          Value: !Ref TranscriptsTable
+      Statistic: Sum
+      Period: 300
+      EvaluationPeriods: 1
+      Threshold: 1
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      TreatMissingData: notBreaching

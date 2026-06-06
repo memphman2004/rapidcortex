@@ -1,0 +1,8 @@
+import { getDashboardSessionUser } from "@/lib/dashboards/get-dashboard-session";
+import { HospitalCapacityWorkspace } from "@/components/hospital-routing/hospital-capacity-workspace";
+
+export default async function HospitalStaffCapacityPage() {
+  const user = await getDashboardSessionUser();
+  if (!user) return null;
+  return <HospitalCapacityWorkspace user={user} />;
+}

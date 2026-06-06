@@ -38,8 +38,11 @@ set -euo pipefail
 #   must keep alarms enabled (Rules in template.yaml). Omit or set true after AppSamStack is healthy; default true.
 # - SAM_BUILD_USE_CACHE=0 force full rebuild (--no-cached). Default: 1 (cached incremental).
 # - SAM_PARALLEL=0 disables sam build --parallel (default 1).
-# - SAM_BUILD_DIR explicit sam build output directory (mkdir -p before build). If unset, defaults to
-#   repo-root .rapid-cortex-sam-build (not $TMPDIR) so errno 28 on /var/folders is avoided when the boot volume is full.
+# - SAM_BUILD_IN_SOURCE=1 builds in source (reuses prepared node_modules); default 1.
+# - NODE_OPTIONS defaults to --max-old-space-size=8192 for SAM/npm memory headroom (override per-run if needed).
+# - SAM_BUILD_DIR explicit sam build output directory (mkdir -p before build). If unset, defaults to a
+#   per-run repo-root path under .rapid-cortex-sam-build/ (not $TMPDIR) so we avoid fragile recursive cleanup
+#   on external/APFS volumes and avoid errno 28 on /var/folders when the boot volume is low.
 # - BUILD_WEB_BEFORE_SAM=1 run `npm run build -w rapid-cortex-web` before sam build (off by default: SAM bundles
 #   Lambda code from apps/api only; Next.js belongs to ECS/CodeBuild/S3 pipelines, not this script)
 # - SKIP_CFN_DIAG_ON_DEPLOY_FAIL=1 skip AWS CLI stack-event diagnostics after a failed sam deploy (default: run them).
@@ -148,6 +151,14 @@ WWW_CNAME_TARGET="${WWW_CNAME_TARGET:-}"
 HTTP_API_CORS_ORIGINS="${HTTP_API_CORS_ORIGINS:-}"
 APP_NAME="${APP_NAME:-rapid-cortex}"
 STACK_NAME="${STACK_NAME:-${APP_NAME}-${STAGE}}"
+# SAM build defaults are intentionally conservative due observed hangs on large parallel cached builds.
+# You can opt back into faster behavior per-run:
+#   SAM_BUILD_USE_CACHE=1 SAM_PARALLEL=1 SAM_BUILD_IN_SOURCE=0 bash scripts/deploy.sh dev
+SAM_BUILD_USE_CACHE="${SAM_BUILD_USE_CACHE:-1}"
+SAM_PARALLEL="${SAM_PARALLEL:-0}"
+SAM_BUILD_IN_SOURCE="${SAM_BUILD_IN_SOURCE:-1}"
+NODE_OPTIONS="${NODE_OPTIONS:---max-old-space-size=8192}"
+export NODE_OPTIONS
 
 echo "═══════════════════════════════════════════════════════"
 echo " Rapid Cortex SAM backend deployment"
@@ -155,8 +166,10 @@ echo "════════════════════════�
 echo " Stage:                ${STAGE}"
 echo " Stack:                ${STACK_NAME}"
 echo " BUILD_WEB_BEFORE_SAM: ${BUILD_WEB_BEFORE_SAM:-0}"
-echo " SAM_BUILD_USE_CACHE:  ${SAM_BUILD_USE_CACHE:-1}"
-echo " SAM_PARALLEL:          ${SAM_PARALLEL:-1}"
+echo " SAM_BUILD_USE_CACHE:  ${SAM_BUILD_USE_CACHE}"
+echo " SAM_PARALLEL:          ${SAM_PARALLEL}"
+echo " SAM_BUILD_IN_SOURCE:   ${SAM_BUILD_IN_SOURCE}"
+echo " NODE_OPTIONS:          ${NODE_OPTIONS}"
 echo " SAM_BUILD_DIR:         ${SAM_BUILD_DIR:-${ROOT}/.rapid-cortex-sam-build}"
 echo "═══════════════════════════════════════════════════════"
 
@@ -247,7 +260,7 @@ cd "$ROOT/infra/cognito-post-confirmation" && npm install --no-workspaces && cd 
 if [[ -n "${SAM_BUILD_DIR:-}" ]]; then
   mkdir -p "${SAM_BUILD_DIR}"
 else
-  SAM_BUILD_DIR="${ROOT}/.rapid-cortex-sam-build"
+  SAM_BUILD_DIR="${ROOT}/.rapid-cortex-sam-build/${STAGE}-$(date +%Y%m%d-%H%M%S)"
   mkdir -p "${SAM_BUILD_DIR}"
 fi
 echo "SAM build directory: ${SAM_BUILD_DIR}"
@@ -263,17 +276,38 @@ if [[ -d "${SAM_BUILD_DIR}" ]] && avail_k="$(df -Pk "${SAM_BUILD_DIR}" 2>/dev/nu
 fi
 sam_build_failed=0
 SAM_BUILD_CLI=(sam build --template-file infra/template.yaml --build-dir "${SAM_BUILD_DIR}")
-if [[ "${SAM_BUILD_USE_CACHE:-1}" == "1" ]]; then
+if [[ "${SAM_BUILD_USE_CACHE}" == "1" ]]; then
   SAM_BUILD_CLI+=(--cached)
 else
   SAM_BUILD_CLI+=(--no-cached)
 fi
-if [[ "${SAM_PARALLEL:-1}" == "1" ]]; then
+if [[ "${SAM_PARALLEL}" == "1" ]]; then
   SAM_BUILD_CLI+=(--parallel)
+fi
+if [[ "${SAM_BUILD_IN_SOURCE}" == "1" ]]; then
+  SAM_BUILD_CLI+=(--build-in-source)
 fi
 "${SAM_BUILD_CLI[@]}" || sam_build_failed=$?
 if [[ "$REVERT_API_PKG" -eq 1 ]]; then
-  mv "${ROOT}/apps/api/package.json.pre-sam" "${ROOT}/apps/api/package.json"
+  # The .pre-sam backup can disappear on long builds running on external/USB volumes
+  # (observed 2026-05-26: 75-min build on Mac Mini USB-attached APFS volume — backup
+  # vanished between line 193 cp and the build completing). Don't abort the deploy
+  # over a missing backup: package.json may already be in the right shape (e.g. the
+  # vendor-pack rewrite is committed to git HEAD), so check git first.
+  if [[ -f "${ROOT}/apps/api/package.json.pre-sam" ]]; then
+    mv "${ROOT}/apps/api/package.json.pre-sam" "${ROOT}/apps/api/package.json"
+  else
+    echo "WARN: apps/api/package.json.pre-sam disappeared during build." >&2
+    if git -C "${ROOT}" diff --quiet -- apps/api/package.json 2>/dev/null; then
+      echo "      Current apps/api/package.json matches git HEAD — proceeding without restore." >&2
+    else
+      echo "      Restoring apps/api/package.json from git HEAD." >&2
+      git -C "${ROOT}" checkout HEAD -- apps/api/package.json || {
+        echo "ERROR: git checkout HEAD -- apps/api/package.json failed; aborting." >&2
+        exit 1
+      }
+    fi
+  fi
 fi
 if [[ "$sam_build_failed" -ne 0 ]]; then
   exit "$sam_build_failed"
@@ -349,6 +383,41 @@ fi
 if [[ -n "${ENABLE_LIVE_VIDEO_RESOURCES:-}" ]]; then
   PARAMS="${PARAMS} EnableLiveVideoResources=${ENABLE_LIVE_VIDEO_RESOURCES}"
 fi
+if [[ -n "${ENABLE_SILENT_TEXT:-}" ]]; then
+  PARAMS="${PARAMS} EnableSilentText=${ENABLE_SILENT_TEXT}"
+fi
+if [[ -n "${ENABLE_PINPOINT:-}" ]]; then
+  PARAMS="${PARAMS} EnablePinpoint=${ENABLE_PINPOINT}"
+fi
+if [[ -n "${APP_PUBLIC_BASE_URL:-}" ]]; then
+  PARAMS="${PARAMS} AppPublicBaseUrl=${APP_PUBLIC_BASE_URL}"
+fi
+if [[ -n "${INCIDENT_MEDIA_TWILIO_SECRET_ARN:-}" ]]; then
+  PARAMS="${PARAMS} IncidentMediaTwilioSecretArn=${INCIDENT_MEDIA_TWILIO_SECRET_ARN}"
+fi
+# Optional Secrets Manager ARNs — pinned in scripts/env-api-dev.sh, forwarded only when set.
+# Unset values leave the SAM defaults (""), which keep the related feature in mock/disabled mode.
+if [[ -n "${OPENAI_API_KEY_SECRET_ARN:-}" ]]; then
+  PARAMS="${PARAMS} OpenAiApiKeySecretArn=${OPENAI_API_KEY_SECRET_ARN}"
+fi
+if [[ -n "${ANTHROPIC_API_KEY_SECRET_ARN:-}" ]]; then
+  PARAMS="${PARAMS} AnthropicApiKeySecretArn=${ANTHROPIC_API_KEY_SECRET_ARN}"
+fi
+if [[ -n "${GOOGLE_APPLICATION_CREDENTIALS_SECRET_ARN:-}" ]]; then
+  PARAMS="${PARAMS} GoogleApplicationCredentialsSecretArn=${GOOGLE_APPLICATION_CREDENTIALS_SECRET_ARN}"
+fi
+if [[ -n "${AZURE_SPEECH_KEY_SECRET_ARN:-}" ]]; then
+  PARAMS="${PARAMS} AzureSpeechKeySecretArn=${AZURE_SPEECH_KEY_SECRET_ARN}"
+fi
+if [[ -n "${AZURE_TRANSLATION_KEY_SECRET_ARN:-}" ]]; then
+  PARAMS="${PARAMS} AzureTranslationKeySecretArn=${AZURE_TRANSLATION_KEY_SECRET_ARN}"
+fi
+if [[ -n "${EXTERNAL_API_JWT_SECRET_ARN:-}" ]]; then
+  PARAMS="${PARAMS} ExternalApiJwtSecretArn=${EXTERNAL_API_JWT_SECRET_ARN}"
+fi
+if [[ -n "${EXTERNAL_API_ENCRYPTION_KEY_ARN:-}" ]]; then
+  PARAMS="${PARAMS} ExternalApiEncryptionKeyArn=${EXTERNAL_API_ENCRYPTION_KEY_ARN}"
+fi
 if [[ -n "${WAF_RATE_LIMIT_5M:-}" ]]; then
   PARAMS="${PARAMS} WafRateLimitPer5Min=${WAF_RATE_LIMIT_5M}"
 fi
@@ -378,6 +447,15 @@ else
 fi
 if [[ "${INCLUDE_APP_SAM_ALARMS_NESTED_STACK:-true}" == "false" ]]; then
   PARAMS="${PARAMS} IncludeAppSamAlarmsNestedStack=false"
+fi
+if [[ -n "${RING_CREDENTIALS_SECRET_ARN_OVERRIDE:-}" ]]; then
+  PARAMS="${PARAMS} RingCredentialsSecretArnOverride=${RING_CREDENTIALS_SECRET_ARN_OVERRIDE}"
+fi
+if [[ -n "${ENABLE_CONNECT_RING:-}" ]]; then
+  PARAMS="${PARAMS} EnableConnectRing=${ENABLE_CONNECT_RING}"
+fi
+if [[ -n "${RING_PARTNERSHIP_ENABLED:-}" ]]; then
+  PARAMS="${PARAMS} RingPartnershipEnabled=${RING_PARTNERSHIP_ENABLED}"
 fi
 
 DEPLOY_CHANGESET_SUFFIX=()

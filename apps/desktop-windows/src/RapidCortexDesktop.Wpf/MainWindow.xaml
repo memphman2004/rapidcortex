@@ -1,0 +1,81 @@
+<Window x:Class="RapidCortex.Desktop.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Rapid Cortex"
+        Height="640"
+        Width="960"
+        MinHeight="600"
+        MinWidth="900"
+        WindowStartupLocation="CenterScreen">
+  <DockPanel LastChildFill="True">
+    <StatusBar DockPanel.Dock="Bottom">
+      <StatusBarItem>
+        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+          <Ellipse x:Name="ConnectivityDot" Width="8" Height="8" Margin="0,0,6,0" Fill="Gray" />
+          <TextBlock x:Name="ConnectivityText" Text="Network: …" />
+        </StackPanel>
+      </StatusBarItem>
+      <Separator />
+      <StatusBarItem>
+        <TextBlock x:Name="EnvironmentText" Text="Environment: …" />
+      </StatusBarItem>
+    </StatusBar>
+
+    <TabControl x:Name="RootTabs" Margin="12">
+      <TabItem Header="Dashboard">
+        <DockPanel Margin="16">
+          <Border x:Name="DashboardAuthHint"
+                  DockPanel.Dock="Top"
+                  Background="#ecfdf5"
+                  BorderBrush="#bbf7d0"
+                  BorderThickness="1"
+                  Padding="10,8"
+                  Margin="0,0,0,12"
+                  Visibility="Collapsed"
+                  CornerRadius="4">
+            <TextBlock TextWrapping="Wrap"
+                       Foreground="#166534"
+                       Text="Signed in — session restored from this device." />
+          </Border>
+          <TextBlock DockPanel.Dock="Top" TextWrapping="Wrap" Foreground="#666" Margin="0,0,0,12"
+                     Text="Unauthenticated health check. When signed in, authorized calls are available from the Incidents tab." />
+          <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Margin="0,0,0,12">
+            <Button Content="Ping GET /api/health" Width="180" Click="OnPingHealth" />
+          </StackPanel>
+          <TextBox x:Name="HealthOutput" AcceptsReturn="True" VerticalScrollBarVisibility="Auto" TextWrapping="Wrap" FontFamily="Consolas" />
+        </DockPanel>
+      </TabItem>
+
+      <TabItem Header="Incidents (placeholder)">
+        <DockPanel Margin="16">
+          <TextBlock DockPanel.Dock="Top" TextWrapping="Wrap" Foreground="#666" Margin="0,0,0,12"
+                     Text="Placeholder — JSON mapping is Phase 2. This calls GET /api/incidents with Authorization: Bearer id_token when a token is stored." />
+          <Button DockPanel.Dock="Top" Content="Fetch preview (authorized)" HorizontalAlignment="Left" Width="220" Margin="0,0,0,12" Click="OnFetchIncidents" />
+          <TextBox x:Name="IncidentsOutput" AcceptsReturn="True" VerticalScrollBarVisibility="Auto" TextWrapping="Wrap" FontFamily="Consolas" />
+        </DockPanel>
+      </TabItem>
+
+      <TabItem Header="About">
+        <ScrollViewer VerticalScrollBarVisibility="Auto">
+          <StackPanel Margin="16" MaxWidth="720" HorizontalAlignment="Left">
+            <TextBlock Text="About" FontSize="20" FontWeight="SemiBold" />
+            <TextBlock x:Name="AboutEnvironmentLine" TextWrapping="Wrap" Foreground="#666" Margin="0,8,0,0" />
+            <TextBlock Text="Configuration (administrators &amp; support)" FontWeight="SemiBold" Margin="0,20,0,0" />
+            <TextBlock x:Name="AboutConfigSummary" TextWrapping="Wrap" FontFamily="Consolas" FontSize="12" Margin="0,8,0,0" />
+            <TextBlock TextWrapping="Wrap" Foreground="#666" FontSize="12" Margin="0,8,0,0"
+                       Text="Windows native sign-in uses the desktop callback scheme; ensure Cognito and the web app are configured for this build." />
+            <Button Content="Reload configuration" HorizontalAlignment="Left" Width="200" Margin="0,12,0,0" Click="OnReloadConfiguration" />
+            <GroupBox Header="Development smoke test (optional)" Margin="0,24,0,0" x:Name="SmokeTestGroup">
+              <StackPanel Margin="8">
+                <TextBlock TextWrapping="Wrap" Foreground="#666" FontSize="12"
+                           Text="Paste a Cognito id_token to exercise authorized calls before completing Hosted UI sign-in." />
+                <PasswordBox x:Name="SmokeTestTokenBox" Margin="0,8,0,8" />
+                <Button Content="Store id_token (DPAPI)" HorizontalAlignment="Left" Width="200" Click="OnSaveSmokeTestToken" />
+              </StackPanel>
+            </GroupBox>
+          </StackPanel>
+        </ScrollViewer>
+      </TabItem>
+    </TabControl>
+  </DockPanel>
+</Window>

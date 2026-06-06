@@ -144,6 +144,12 @@ Parameters:
     Type: String
     Default: ""
     Description: Optional S3 bucket for Google TTS objects; when empty, ASSETS_BUCKET is used.
+  ExistingRingCredentialsSecretArn:
+    Type: String
+    Default: ""
+    Description: >-
+      When set, skip creating RingCredentialsSecret (secret already exists outside this stack) and
+      emit this ARN from RingCredentialsSecretArn output.
   # --- Deploy-time naming & optional integrations (see scripts/deploy-from-env.sh) ---
   AppName:
     Type: String
@@ -334,6 +340,8 @@ Conditions:
       - Fn::Equals:
           - !Ref DeploymentStage
           - pilot
+  HasExistingRingCredentialsSecretArn: !Not [!Equals [!Ref ExistingRingCredentialsSecretArn, ""]]
+  CreateRingCredentialsSecret: !Equals [!Ref ExistingRingCredentialsSecretArn, ""]
   HasIncidentMediaTwilioSecretArn: !Not [!Equals [!Ref IncidentMediaTwilioSecretArn, ""]]
   HasExternalApiJwtSecretArn: !Not [!Equals [!Ref ExternalApiJwtSecretArn, ""]]
   HasExternalApiEncryptionKeyArn: !Not [!Equals [!Ref ExternalApiEncryptionKeyArn, ""]]
@@ -490,9 +498,9 @@ Resources:
     Properties:
       Name: !Sub rapidcortex/${DeploymentStage}/multilingual/google-service-account
       Description: >-
-        Full Google Cloud service account JSON for Speech + Translate. Replace entire SecretString after deploy
-        (GCP console → IAM → Service accounts → Keys → JSON).
-      SecretString: '{"type":"service_account","project_id":"REPLACE_ME","private_key_id":"REPLACE","private_key":"-----BEGIN PRIVATE KEY-----\\nREPLACE\\n-----END PRIVATE KEY-----\\n","client_email":"replace-me@project.iam.gserviceaccount.com"}'
+        Full Google Cloud service account JSON for Speech + Translate. Populate via CLI after deploy
+        (GCP console → IAM → Service accounts → Keys → JSON). No SecretString in IaC.
+      # NO SecretString here — upload full JSON via aws secretsmanager put-secret-value
 
   BillingPaymentInstructionsSecret:
     Type: AWS::SecretsManager::Secret
@@ -502,6 +510,21 @@ Resources:
         Billing payment instructions for ACH/wire/check workflows. Replace placeholders post-deploy.
       SecretString: >-
         {"achRoutingNumber":"REPLACE_ME","achAccountNumber":"REPLACE_ME","wireInstructions":"REPLACE_ME","checkMailingAddress":"REPLACE_ME","bankName":"REPLACE_ME","bankContact":"REPLACE_ME"}
+
+  RingCredentialsSecret:
+    Type: AWS::SecretsManager::Secret
+    Condition: CreateRingCredentialsSecret
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      Name: "rapid-cortex/connect/ring-credentials"
+      Description: "Ring API partner credentials for Rapid Cortex Connect"
+      Tags:
+        - Key: app
+          Value: !Ref AppName
+        - Key: component
+          Value: connect
+      # NO SecretString here — credentials are managed via CLI only
 
   BillingSesCredentialsSecret:
     Type: AWS::SecretsManager::Secret
@@ -527,6 +550,8 @@ Resources:
           AttributeType: S
         - AttributeName: status
           AttributeType: S
+        - AttributeName: vertical
+          AttributeType: S
         - AttributeName: createdAt
           AttributeType: S
       KeySchema:
@@ -536,6 +561,14 @@ Resources:
         - IndexName: status-createdAt-index
           KeySchema:
             - AttributeName: status
+              KeyType: HASH
+            - AttributeName: createdAt
+              KeyType: RANGE
+          Projection:
+            ProjectionType: ALL
+        - IndexName: vertical-index
+          KeySchema:
+            - AttributeName: vertical
               KeyType: HASH
             - AttributeName: createdAt
               KeyType: RANGE
@@ -2295,6 +2328,610 @@ Resources:
         AttributeName: ttl
         Enabled: true
 
+  ConnectRegistryTable:
+    Type: AWS::DynamoDB::Table
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      TableName: !Sub "rapid-cortex-connect-registry-${DeploymentStage}"
+      BillingMode: PAY_PER_REQUEST
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: true
+      SSESpecification:
+        SSEEnabled: true
+      AttributeDefinitions:
+        - AttributeName: pk
+          AttributeType: S
+        - AttributeName: sk
+          AttributeType: S
+        - AttributeName: agencyId
+          AttributeType: S
+        - AttributeName: addressHash
+          AttributeType: S
+      KeySchema:
+        - AttributeName: pk
+          KeyType: HASH
+        - AttributeName: sk
+          KeyType: RANGE
+      GlobalSecondaryIndexes:
+        - IndexName: agencyId-sk-index
+          KeySchema:
+            - AttributeName: agencyId
+              KeyType: HASH
+            - AttributeName: sk
+              KeyType: RANGE
+          Projection:
+            ProjectionType: ALL
+        - IndexName: addressHash-sk-index
+          KeySchema:
+            - AttributeName: addressHash
+              KeyType: HASH
+            - AttributeName: sk
+              KeyType: RANGE
+          Projection:
+            ProjectionType: ALL
+      Tags:
+        - Key: app
+          Value: !Ref AppName
+        - Key: stage
+          Value: !Ref DeploymentStage
+
+  ConnectAccessLogTable:
+    Type: AWS::DynamoDB::Table
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      TableName: !Sub "rapid-cortex-connect-access-log-${DeploymentStage}"
+      BillingMode: PAY_PER_REQUEST
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: true
+      SSESpecification:
+        SSEEnabled: true
+      AttributeDefinitions:
+        - AttributeName: pk
+          AttributeType: S
+        - AttributeName: sk
+          AttributeType: S
+        - AttributeName: agencyId
+          AttributeType: S
+        - AttributeName: incidentId
+          AttributeType: S
+      KeySchema:
+        - AttributeName: pk
+          KeyType: HASH
+        - AttributeName: sk
+          KeyType: RANGE
+      GlobalSecondaryIndexes:
+        - IndexName: agencyId-sk-index
+          KeySchema:
+            - AttributeName: agencyId
+              KeyType: HASH
+            - AttributeName: sk
+              KeyType: RANGE
+          Projection:
+            ProjectionType: ALL
+        - IndexName: incidentId-sk-index
+          KeySchema:
+            - AttributeName: incidentId
+              KeyType: HASH
+            - AttributeName: sk
+              KeyType: RANGE
+          Projection:
+            ProjectionType: ALL
+      Tags:
+        - Key: app
+          Value: !Ref AppName
+        - Key: stage
+          Value: !Ref DeploymentStage
+
+  ConnectAccessSessionsTable:
+    Type: AWS::DynamoDB::Table
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      TableName: !Sub "rapid-cortex-connect-sessions-${DeploymentStage}"
+      BillingMode: PAY_PER_REQUEST
+      SSESpecification:
+        SSEEnabled: true
+      AttributeDefinitions:
+        - AttributeName: pk
+          AttributeType: S
+        - AttributeName: sk
+          AttributeType: S
+        - AttributeName: incidentId
+          AttributeType: S
+      KeySchema:
+        - AttributeName: pk
+          KeyType: HASH
+        - AttributeName: sk
+          KeyType: RANGE
+      GlobalSecondaryIndexes:
+        - IndexName: incidentId-sk-index
+          KeySchema:
+            - AttributeName: incidentId
+              KeyType: HASH
+            - AttributeName: sk
+              KeyType: RANGE
+          Projection:
+            ProjectionType: ALL
+      TimeToLiveSpecification:
+        AttributeName: ttl
+        Enabled: true
+      Tags:
+        - Key: app
+          Value: !Ref AppName
+        - Key: stage
+          Value: !Ref DeploymentStage
+
+  ConnectEvidenceTable:
+    Type: AWS::DynamoDB::Table
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      TableName: !Sub "rapid-cortex-connect-evidence-${DeploymentStage}"
+      BillingMode: PAY_PER_REQUEST
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: true
+      SSESpecification:
+        SSEEnabled: true
+      AttributeDefinitions:
+        - AttributeName: pk
+          AttributeType: S
+        - AttributeName: sk
+          AttributeType: S
+        - AttributeName: incidentId
+          AttributeType: S
+      KeySchema:
+        - AttributeName: pk
+          KeyType: HASH
+        - AttributeName: sk
+          KeyType: RANGE
+      GlobalSecondaryIndexes:
+        - IndexName: incidentId-sk-index
+          KeySchema:
+            - AttributeName: incidentId
+              KeyType: HASH
+            - AttributeName: sk
+              KeyType: RANGE
+          Projection:
+            ProjectionType: ALL
+      Tags:
+        - Key: app
+          Value: !Ref AppName
+        - Key: stage
+          Value: !Ref DeploymentStage
+
+  VenueFacilitiesTable:
+    Type: AWS::DynamoDB::Table
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      TableName: !Sub "rapid-cortex-venue-facilities-${DeploymentStage}"
+      BillingMode: PAY_PER_REQUEST
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: true
+      SSESpecification:
+        SSEEnabled: true
+      AttributeDefinitions:
+        - AttributeName: pk
+          AttributeType: S
+        - AttributeName: sk
+          AttributeType: S
+        - AttributeName: agencyId
+          AttributeType: S
+        - AttributeName: addressHash
+          AttributeType: S
+      KeySchema:
+        - AttributeName: pk
+          KeyType: HASH
+        - AttributeName: sk
+          KeyType: RANGE
+      GlobalSecondaryIndexes:
+        - IndexName: agencyId-sk-index
+          KeySchema:
+            - AttributeName: agencyId
+              KeyType: HASH
+            - AttributeName: sk
+              KeyType: RANGE
+          Projection:
+            ProjectionType: ALL
+        - IndexName: addressHash-sk-index
+          KeySchema:
+            - AttributeName: addressHash
+              KeyType: HASH
+            - AttributeName: sk
+              KeyType: RANGE
+          Projection:
+            ProjectionType: ALL
+      Tags:
+        - Key: app
+          Value: !Ref AppName
+        - Key: stage
+          Value: !Ref DeploymentStage
+
+  VenueAssetsTable:
+    Type: AWS::DynamoDB::Table
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      TableName: !Sub "rapid-cortex-venue-assets-${DeploymentStage}"
+      BillingMode: PAY_PER_REQUEST
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: true
+      SSESpecification:
+        SSEEnabled: true
+      AttributeDefinitions:
+        - AttributeName: pk
+          AttributeType: S
+        - AttributeName: sk
+          AttributeType: S
+        - AttributeName: facilityId
+          AttributeType: S
+        - AttributeName: assetType
+          AttributeType: S
+      KeySchema:
+        - AttributeName: pk
+          KeyType: HASH
+        - AttributeName: sk
+          KeyType: RANGE
+      GlobalSecondaryIndexes:
+        - IndexName: facilityId-assetType-index
+          KeySchema:
+            - AttributeName: facilityId
+              KeyType: HASH
+            - AttributeName: assetType
+              KeyType: RANGE
+          Projection:
+            ProjectionType: ALL
+      Tags:
+        - Key: app
+          Value: !Ref AppName
+        - Key: stage
+          Value: !Ref DeploymentStage
+
+  VenueIncidentOverlaysTable:
+    Type: AWS::DynamoDB::Table
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      TableName: !Sub "rapid-cortex-venue-incident-overlays-${DeploymentStage}"
+      BillingMode: PAY_PER_REQUEST
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: true
+      SSESpecification:
+        SSEEnabled: true
+      AttributeDefinitions:
+        - AttributeName: pk
+          AttributeType: S
+        - AttributeName: sk
+          AttributeType: S
+        - AttributeName: incidentId
+          AttributeType: S
+      KeySchema:
+        - AttributeName: pk
+          KeyType: HASH
+        - AttributeName: sk
+          KeyType: RANGE
+      GlobalSecondaryIndexes:
+        - IndexName: incidentId-sk-index
+          KeySchema:
+            - AttributeName: incidentId
+              KeyType: HASH
+            - AttributeName: sk
+              KeyType: RANGE
+          Projection:
+            ProjectionType: ALL
+      TimeToLiveSpecification:
+        AttributeName: ttl
+        Enabled: true
+      Tags:
+        - Key: app
+          Value: !Ref AppName
+        - Key: stage
+          Value: !Ref DeploymentStage
+
+  VenueCameraAccessLogTable:
+    Type: AWS::DynamoDB::Table
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      TableName: !Sub "rapid-cortex-venue-camera-access-log-${DeploymentStage}"
+      BillingMode: PAY_PER_REQUEST
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: true
+      SSESpecification:
+        SSEEnabled: true
+      AttributeDefinitions:
+        - AttributeName: pk
+          AttributeType: S
+        - AttributeName: sk
+          AttributeType: S
+        - AttributeName: facilityId
+          AttributeType: S
+        - AttributeName: incidentId
+          AttributeType: S
+      KeySchema:
+        - AttributeName: pk
+          KeyType: HASH
+        - AttributeName: sk
+          KeyType: RANGE
+      GlobalSecondaryIndexes:
+        - IndexName: facilityId-sk-index
+          KeySchema:
+            - AttributeName: facilityId
+              KeyType: HASH
+            - AttributeName: sk
+              KeyType: RANGE
+          Projection:
+            ProjectionType: ALL
+        - IndexName: incidentId-sk-index
+          KeySchema:
+            - AttributeName: incidentId
+              KeyType: HASH
+            - AttributeName: sk
+              KeyType: RANGE
+          Projection:
+            ProjectionType: ALL
+      Tags:
+        - Key: app
+          Value: !Ref AppName
+        - Key: stage
+          Value: !Ref DeploymentStage
+
+  VenueConfigTable:
+    Type: AWS::DynamoDB::Table
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      TableName: !Sub "rapid-cortex-venue-config-${DeploymentStage}"
+      BillingMode: PAY_PER_REQUEST
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: true
+      SSESpecification:
+        SSEEnabled: true
+      AttributeDefinitions:
+        - AttributeName: pk
+          AttributeType: S
+        - AttributeName: sk
+          AttributeType: S
+      KeySchema:
+        - AttributeName: pk
+          KeyType: HASH
+        - AttributeName: sk
+          KeyType: RANGE
+      TimeToLiveSpecification:
+        AttributeName: ttl
+        Enabled: true
+      Tags:
+        - Key: app
+          Value: !Ref AppName
+        - Key: stage
+          Value: !Ref DeploymentStage
+
+  CampusIncidentsTable:
+    Type: AWS::DynamoDB::Table
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      TableName: !Sub "rapid-cortex-campus-incidents-${DeploymentStage}"
+      BillingMode: PAY_PER_REQUEST
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: true
+      SSESpecification:
+        SSEEnabled: true
+      AttributeDefinitions:
+        - AttributeName: pk
+          AttributeType: S
+        - AttributeName: sk
+          AttributeType: S
+        - AttributeName: status
+          AttributeType: S
+        - AttributeName: createdAt
+          AttributeType: S
+        - AttributeName: campusCode
+          AttributeType: S
+        - AttributeName: type
+          AttributeType: S
+      KeySchema:
+        - AttributeName: pk
+          KeyType: HASH
+        - AttributeName: sk
+          KeyType: RANGE
+      GlobalSecondaryIndexes:
+        - IndexName: status-createdAt-index
+          KeySchema:
+            - AttributeName: status
+              KeyType: HASH
+            - AttributeName: createdAt
+              KeyType: RANGE
+          Projection:
+            ProjectionType: ALL
+        - IndexName: campusCode-type-index
+          KeySchema:
+            - AttributeName: campusCode
+              KeyType: HASH
+            - AttributeName: type
+              KeyType: RANGE
+          Projection:
+            ProjectionType: ALL
+      Tags:
+        - Key: app
+          Value: !Ref AppName
+        - Key: stage
+          Value: !Ref DeploymentStage
+
+  CampusConfigTable:
+    Type: AWS::DynamoDB::Table
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      TableName: !Sub "rapid-cortex-campus-config-${DeploymentStage}"
+      BillingMode: PAY_PER_REQUEST
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: true
+      SSESpecification:
+        SSEEnabled: true
+      AttributeDefinitions:
+        - AttributeName: pk
+          AttributeType: S
+        - AttributeName: sk
+          AttributeType: S
+      KeySchema:
+        - AttributeName: pk
+          KeyType: HASH
+        - AttributeName: sk
+          KeyType: RANGE
+      TimeToLiveSpecification:
+        AttributeName: ttl
+        Enabled: true
+      Tags:
+        - Key: app
+          Value: !Ref AppName
+        - Key: stage
+          Value: !Ref DeploymentStage
+
+  PlatformNoticesTable:
+    Type: AWS::DynamoDB::Table
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      TableName: !Sub "${AppName}-platform-notices-${DeploymentStage}"
+      BillingMode: PAY_PER_REQUEST
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: true
+      SSESpecification:
+        SSEEnabled: true
+      AttributeDefinitions:
+        - AttributeName: noticeId
+          AttributeType: S
+        - AttributeName: targetType
+          AttributeType: S
+        - AttributeName: createdAt
+          AttributeType: S
+      KeySchema:
+        - AttributeName: noticeId
+          KeyType: HASH
+      GlobalSecondaryIndexes:
+        - IndexName: targetType-createdAt-index
+          KeySchema:
+            - AttributeName: targetType
+              KeyType: HASH
+            - AttributeName: createdAt
+              KeyType: RANGE
+          Projection:
+            ProjectionType: ALL
+      TimeToLiveSpecification:
+        AttributeName: expiresAt
+        Enabled: true
+      Tags:
+        - Key: app
+          Value: !Ref AppName
+        - Key: stage
+          Value: !Ref DeploymentStage
+
+  PlatformNoticeAcksTable:
+    Type: AWS::DynamoDB::Table
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      TableName: !Sub "${AppName}-platform-notice-acks-${DeploymentStage}"
+      BillingMode: PAY_PER_REQUEST
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: true
+      SSESpecification:
+        SSEEnabled: true
+      AttributeDefinitions:
+        - AttributeName: noticeId
+          AttributeType: S
+        - AttributeName: userId
+          AttributeType: S
+      KeySchema:
+        - AttributeName: noticeId
+          KeyType: HASH
+        - AttributeName: userId
+          KeyType: RANGE
+      Tags:
+        - Key: app
+          Value: !Ref AppName
+        - Key: stage
+          Value: !Ref DeploymentStage
+
+  QRLocationsTable:
+    Type: AWS::DynamoDB::Table
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      TableName: !Sub "${AppName}-qr-locations-${DeploymentStage}"
+      BillingMode: PAY_PER_REQUEST
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: true
+      SSESpecification:
+        SSEEnabled: true
+      AttributeDefinitions:
+        - AttributeName: rcli
+          AttributeType: S
+        - AttributeName: agencyId
+          AttributeType: S
+        - AttributeName: vertical
+          AttributeType: S
+        - AttributeName: createdAt
+          AttributeType: S
+      KeySchema:
+        - AttributeName: rcli
+          KeyType: HASH
+      GlobalSecondaryIndexes:
+        - IndexName: agencyId-createdAt-index
+          KeySchema:
+            - AttributeName: agencyId
+              KeyType: HASH
+            - AttributeName: createdAt
+              KeyType: RANGE
+          Projection:
+            ProjectionType: ALL
+        - IndexName: vertical-createdAt-index
+          KeySchema:
+            - AttributeName: vertical
+              KeyType: HASH
+            - AttributeName: createdAt
+              KeyType: RANGE
+          Projection:
+            ProjectionType: ALL
+      Tags:
+        - Key: app
+          Value: !Ref AppName
+        - Key: stage
+          Value: !Ref DeploymentStage
+
+  VenueAssetsBucket:
+    Type: AWS::S3::Bucket
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      BucketName: !Sub "${AppName}-venue-assets-${DeploymentStage}-${AWS::AccountId}"
+      VersioningConfiguration:
+        Status: Enabled
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: AES256
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+      LifecycleConfiguration:
+        Rules:
+          - Id: PurgeOldFloorPlanVersions
+            Status: Enabled
+            NoncurrentVersionExpirationInDays: 365
+      Tags:
+        - Key: app
+          Value: !Ref AppName
+        - Key: stage
+          Value: !Ref DeploymentStage
+        - Key: dataClass
+          Value: operational
+
   AssetsBucket:
     Type: AWS::S3::Bucket
     Properties:
@@ -2395,6 +3032,51 @@ Outputs:
   PendingProvisionsTable:
     Description: Adobe Sign / RC Admin async provisioning ledger (agreementId)
     Value: !Ref PendingProvisionsTable
+  ConnectRegistryTable:
+    Description: Physical table name for ConnectRegistryTable
+    Value: !Ref ConnectRegistryTable
+  ConnectAccessLogTable:
+    Description: Physical table name for ConnectAccessLogTable
+    Value: !Ref ConnectAccessLogTable
+  ConnectAccessSessionsTable:
+    Description: Physical table name for ConnectAccessSessionsTable
+    Value: !Ref ConnectAccessSessionsTable
+  ConnectEvidenceTable:
+    Description: Physical table name for ConnectEvidenceTable
+    Value: !Ref ConnectEvidenceTable
+  VenueFacilitiesTable:
+    Description: Physical table name for VenueFacilitiesTable
+    Value: !Ref VenueFacilitiesTable
+  VenueAssetsTable:
+    Description: Physical table name for VenueAssetsTable
+    Value: !Ref VenueAssetsTable
+  VenueIncidentOverlaysTable:
+    Description: Physical table name for VenueIncidentOverlaysTable
+    Value: !Ref VenueIncidentOverlaysTable
+  VenueCameraAccessLogTable:
+    Description: Physical table name for VenueCameraAccessLogTable
+    Value: !Ref VenueCameraAccessLogTable
+  VenueConfigTable:
+    Description: Physical table name for VenueConfigTable
+    Value: !Ref VenueConfigTable
+  CampusIncidentsTable:
+    Description: Physical table name for CampusIncidentsTable
+    Value: !Ref CampusIncidentsTable
+  CampusConfigTable:
+    Description: Physical table name for CampusConfigTable
+    Value: !Ref CampusConfigTable
+  PlatformNoticesTable:
+    Description: Physical table name for PlatformNoticesTable
+    Value: !Ref PlatformNoticesTable
+  PlatformNoticeAcksTable:
+    Description: Physical table name for PlatformNoticeAcksTable
+    Value: !Ref PlatformNoticeAcksTable
+  QRLocationsTable:
+    Description: Physical table name for QRLocationsTable
+    Value: !Ref QRLocationsTable
+  VenueAssetsBucket:
+    Description: Venue assets bucket name
+    Value: !Ref VenueAssetsBucket
   InvitesTable:
     Description: Physical table name for InvitesTable
     Value: !Ref InvitesTable
@@ -2575,6 +3257,12 @@ Outputs:
   BillingPaymentInstructionsSecretArn:
     Description: Billing payment instructions secret ARN
     Value: !Ref BillingPaymentInstructionsSecret
+  RingCredentialsSecretArn:
+    Description: Ring API credentials secret ARN for Connect
+    Value: !If
+      - HasExistingRingCredentialsSecretArn
+      - !Ref ExistingRingCredentialsSecretArn
+      - !Ref RingCredentialsSecret
   BillingSesCredentialsSecretArn:
     Description: Billing SES credentials secret ARN
     Value: !Ref BillingSesCredentialsSecret

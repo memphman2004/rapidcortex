@@ -1,0 +1,57 @@
+{
+  "cognitoIdTokenClaimsExample": {
+    "sub": "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee",
+    "email": "dispatcher@city.example.gov",
+    "custom:agencyId": "city-columbus-oh",
+    "custom:role": "dispatcher",
+    "token_use": "id"
+  },
+  "cognitoPlatformSuperadminClaimsExample": {
+    "sub": "ffffffff-ffff-ffff-ffff-ffffffffffff",
+    "email": "platform@rapidcortex.internal",
+    "custom:agencyId": "__platform__",
+    "custom:role": "platform_superadmin",
+    "token_use": "id"
+  },
+  "agencyTenantExample": {
+    "agencyId": "city-columbus-oh",
+    "name": "City of Columbus / ECC Pilot",
+    "type": "city",
+    "status": "pilot",
+    "state": "OH",
+    "region": "Midwest",
+    "primaryContactName": "Jamie Rivera",
+    "primaryContactEmail": "jrivera@city.example.gov",
+    "deploymentMode": "side_by_side",
+    "protocolPackId": "default",
+    "retentionPolicyId": "default-retention-v1",
+    "integrationMode": "mock_adapters",
+    "createdAt": "2026-04-16T12:00:00.000Z",
+    "updatedAt": "2026-04-16T12:00:00.000Z",
+    "createdByUserId": "ffffffff-ffff-ffff-ffff-ffffffffffff",
+    "config": {
+      "agencyId": "city-columbus-oh",
+      "protocolPackId": "default",
+      "aiProviderProfileId": "default",
+      "retentionPolicyId": "default-retention-v1",
+      "integrationMode": "mock_adapters",
+      "transcriptRedactionEnabled": true,
+      "auditExportEnabled": false,
+      "environmentFlags": { "incrementalAnalyze": true },
+      "supervisorEscalationRules": {},
+      "createdAt": "2026-04-16T12:00:00.000Z",
+      "updatedAt": "2026-04-16T12:00:00.000Z"
+    }
+  },
+  "inviteRecordExample": {
+    "inviteId": "inv_01HZXAMPLE",
+    "agencyId": "city-columbus-oh",
+    "email": "newadmin@city.example.gov",
+    "role": "admin",
+    "invitedByUserId": "ffffffff-ffff-ffff-ffff-ffffffffffff",
+    "status": "pending",
+    "expiresAt": "2026-04-30T12:00:00.000Z",
+    "createdAt": "2026-04-16T12:00:00.000Z",
+    "updatedAt": "2026-04-16T12:00:00.000Z"
+  }
+}

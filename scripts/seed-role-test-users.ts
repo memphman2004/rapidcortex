@@ -238,9 +238,17 @@ async function main() {
           DesiredDeliveryMediums: [],
         })
       );
+      await client.send(
+        new AdminSetUserPasswordCommand({
+          UserPoolId: pool,
+          Username: username,
+          Password: password,
+          Permanent: true,
+        })
+      );
       // eslint-disable-next-line no-console
       console.log(
-        `[seed-role-test-users] Created ${row.email} (${row.customRole}) — temp password from env, not logged.`
+        `[seed-role-test-users] Created ${row.email} (${row.customRole}) — permanent password from env, not logged.`
       );
     } else {
       if (needsAttrUpdate(existing, row)) {
@@ -267,12 +275,12 @@ async function main() {
             UserPoolId: pool,
             Username: username,
             Password: password,
-            Permanent: false,
+            Permanent: true,
           })
         );
         // eslint-disable-next-line no-console
         console.log(
-          `[seed-role-test-users] RESET: temporary password set for ${row.email} (value not logged).`
+          `[seed-role-test-users] RESET: permanent password set for ${row.email} (value not logged).`
         );
       } else {
         // eslint-disable-next-line no-console

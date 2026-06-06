@@ -1,0 +1,14 @@
+{
+  "scenarioId": "demo-house-fire",
+  "title": "Residential House Fire",
+  "category": "fire",
+  "urgency": "critical",
+  "description": "Caller reports smoke and flames in a two-story home.",
+  "chunks": [
+    { "offsetMs": 0, "speaker": "caller", "text": "There's smoke everywhere in our house." },
+    { "offsetMs": 3500, "speaker": "dispatcher", "text": "Do you see visible flames?" },
+    { "offsetMs": 7000, "speaker": "caller", "text": "Yes, flames are coming from the kitchen." },
+    { "offsetMs": 11000, "speaker": "dispatcher", "text": "Is everyone out of the house?" },
+    { "offsetMs": 15000, "speaker": "caller", "text": "My daughter is still upstairs!" }
+  ]
+}

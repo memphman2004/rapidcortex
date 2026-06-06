@@ -1,0 +1,767 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Metadata:
+  cfn-lint:
+    config:
+      ignore_checks:
+        - W3002
+Parameters:
+  DeploymentStage:
+    Type: String
+    Default: dev
+    AllowedValues: [dev, staging, prod, pilot]
+  RootDomainName:
+    Type: String
+    Default: rapidcortex.us
+  ApiSubdomainPrefix:
+    Type: String
+    Default: api
+  ApiDomainCertificateArn:
+    Type: String
+    Default: ""
+  Route53HostedZoneId:
+    Type: String
+    Default: ""
+  AppCnameTarget:
+    Type: String
+    Default: ""
+  AdminCnameTarget:
+    Type: String
+    Default: ""
+  WwwCnameTarget:
+    Type: String
+    Default: ""
+  OpenAiApiKeySecretArn:
+    Type: String
+    Default: ""
+  AnthropicApiKeySecretArn:
+    Type: String
+    Default: ""
+  AzureSpeechKeySecretArn:
+    Type: String
+    Default: ""
+  AzureTranslationKeySecretArn:
+    Type: String
+    Default: ""
+  GoogleApplicationCredentialsSecretArn:
+    Type: String
+    Default: ""
+  ExternalApiJwtSecretArn:
+    Type: String
+    Default: ""
+  ExternalApiEncryptionKeyArn:
+    Type: String
+    Default: ""
+  MultilingualSecretProvisioning:
+    Type: String
+    Default: external
+    AllowedValues: [external, managed]
+  MultilingualSecretsPolicyMode:
+    Type: String
+    Default: scoped
+    AllowedValues: [scoped, broad]
+  SelfSignupDefaultAgencyId:
+    Type: String
+    Default: self-signup-pending
+  SelfSignupDefaultRole:
+    Type: String
+    Default: dispatcher
+    AllowedValues: [dispatcher, commsupervisor, agencyadmin, agencyit, analyst, auditor, rcsuperadmin, rcadmin, rcitadmin]
+  QaBedrockModelId:
+    Type: String
+    Default: anthropic.claude-3-5-haiku-20241022-v1:0
+  AiBedrockFoundationModelId:
+    Type: String
+    Default: anthropic.claude-3-5-haiku-20241022-v1:0
+  IncidentMediaTwilioSecretArn:
+    Type: String
+    Default: ""
+  HttpApiCorsAllowedOrigins:
+    Type: String
+    Default: "*"
+  GoogleCloudProjectId:
+    Type: String
+    Default: ""
+  LanguageProvider:
+    Type: String
+    Default: auto
+    AllowedValues: [aws, google, auto]
+  GoogleTtsOutputBucket:
+    Type: String
+    Default: ""
+  AppName:
+    Type: String
+    Default: rapid-cortex
+  DynamoTableNamePrefix:
+    Type: String
+    Default: rapid-cortex
+  DynamoPointInTimeRecovery:
+    Type: String
+    Default: auto
+    AllowedValues: [auto, "true", "false"]
+  DynamoBillingMode:
+    Type: String
+    Default: PAY_PER_REQUEST
+    AllowedValues: [PAY_PER_REQUEST]
+  CognitoUserPoolName:
+    Type: String
+    Default: ""
+  CognitoAppClientName:
+    Type: String
+    Default: ""
+  CognitoDomainPrefix:
+    Type: String
+    Default: ""
+  CognitoCallbackUrls:
+    Type: String
+    Default: ""
+  CognitoLogoutUrls:
+    Type: String
+    Default: ""
+  CognitoNativeCallbackUrls:
+    Type: String
+    Default: >-
+      rapidcortex://oauth/callback,rapidcortex-desktop://oauth/callback,rapidcortex-ios://oauth/callback,rapidcortex-windows://oauth/callback
+  CognitoNativeLogoutUrls:
+    Type: String
+    Default: >-
+      rapidcortex://logout/callback,rapidcortex-desktop://logout/callback,rapidcortex-ios://logout/callback,rapidcortex-windows://logout/callback
+  CognitoGenerateSecret:
+    Type: String
+    Default: "false"
+    AllowedValues: ["true", "false"]
+  SnsEmailSubscription:
+    Type: String
+    Default: ""
+  SnsSmsSubscription:
+    Type: String
+    Default: ""
+  SesIdentityType:
+    Type: String
+    Default: ""
+    AllowedValues: ["", email, domain]
+  SesIdentityValue:
+    Type: String
+    Default: ""
+  SesConfigurationSetName:
+    Type: String
+    Default: ""
+  BillingSesSenderEmail:
+    Type: String
+    Default: ""
+  BillingSesDomain:
+    Type: String
+    Default: ""
+  EnableLiveVideoResources:
+    Type: String
+    Default: "false"
+    AllowedValues: ["true", "false"]
+  EnableApiWaf:
+    Type: String
+    Default: "false"
+    AllowedValues: ["true", "false"]
+  WafRateLimitPer5Min:
+    Type: Number
+    Default: 2000
+    MinValue: 10
+    MaxValue: 20000000
+  TranscriptRetentionPolicyDays:
+    Type: String
+    Default: ""
+  CadWritebackEnabled:
+    Type: String
+    Default: "false"
+    AllowedValues: ["true", "false"]
+  CadWritebackRequiresApproval:
+    Type: String
+    Default: "true"
+    AllowedValues: ["true", "false"]
+  EnableCloudTrail:
+    Type: String
+    Default: "true"
+    AllowedValues: ["true", "false"]
+  CloudTrailKmsKeyArn:
+    Type: String
+    Default: ""
+  EnableCloudTrailS3DataEvents:
+    Type: String
+    Default: "false"
+    AllowedValues: ["true", "false"]
+  EnableCloudTrailLambdaDataEvents:
+    Type: String
+    Default: "false"
+    AllowedValues: ["true", "false"]
+  IncludeDataLayerNestedStack:
+    Type: String
+    Default: "true"
+    AllowedValues: ["true", "false"]
+  FlatDataLayerBillingPaymentInstructionsSecretArn:
+    Type: String
+    Default: ""
+  FlatDataLayerBillingSesCredentialsSecretArn:
+    Type: String
+    Default: ""
+  ImportedCognitoUserPoolId:
+    Type: String
+  ImportedCognitoWebClientId:
+    Type: String
+  ImportedCognitoNativeClientId:
+    Type: String
+    Default: ""
+  ImportedCognitoIssuer:
+    Type: String
+  ImportedCognitoHostedUiBase:
+    Type: String
+    Default: ""
+  ImportedOpsAlertsTopicArn:
+    Type: String
+    Default: ""
+
+Conditions:
+  HasDataLayerNestedStack: !Equals [!Ref IncludeDataLayerNestedStack, "true"]
+  HasImportedOpsAlertsTopicArn: !Not [!Equals [!Ref ImportedOpsAlertsTopicArn, ""]]
+
+Rules:
+  PilotProdNoCorsWildcard:
+    RuleCondition: !Or
+      - !Equals [!Ref DeploymentStage, prod]
+      - !Equals [!Ref DeploymentStage, pilot]
+      - !Equals [!Ref DeploymentStage, staging]
+    Assertions:
+      - Assert: !Not [!Equals [!Ref HttpApiCorsAllowedOrigins, "*"]]
+  PilotProdNoBroadSecrets:
+    RuleCondition: !Or
+      - !Equals [!Ref DeploymentStage, prod]
+      - !Equals [!Ref DeploymentStage, pilot]
+      - !Equals [!Ref DeploymentStage, staging]
+    Assertions:
+      - Assert: !Not [!Equals [!Ref MultilingualSecretsPolicyMode, broad]]
+  NonDevRequiresNestedDataLayer:
+    RuleCondition: !Or
+      - !Equals [!Ref DeploymentStage, prod]
+      - !Equals [!Ref DeploymentStage, pilot]
+      - !Equals [!Ref DeploymentStage, staging]
+    Assertions:
+      - Assert: !Equals [!Ref IncludeDataLayerNestedStack, "true"]
+  DevFlatDataLayerRequiresBillingSecretArns:
+    RuleCondition: !And
+      - !Equals [!Ref DeploymentStage, dev]
+      - !Equals [!Ref IncludeDataLayerNestedStack, "false"]
+    Assertions:
+      - Assert: !Not [!Equals [!Ref FlatDataLayerBillingPaymentInstructionsSecretArn, ""]]
+      - Assert: !Not [!Equals [!Ref FlatDataLayerBillingSesCredentialsSecretArn, ""]]
+
+Resources:
+  DataLayerStack:
+    Type: AWS::CloudFormation::Stack
+    Condition: HasDataLayerNestedStack
+    Properties:
+      TimeoutInMinutes: 120
+      TemplateURL: nested/stack-data-layer.yaml
+      Parameters:
+        AdminCnameTarget: !Ref AdminCnameTarget
+        AnthropicApiKeySecretArn: !Ref AnthropicApiKeySecretArn
+        ApiDomainCertificateArn: !Ref ApiDomainCertificateArn
+        AppCnameTarget: !Ref AppCnameTarget
+        CloudTrailKmsKeyArn: !Ref CloudTrailKmsKeyArn
+        CognitoAppClientName: !Ref CognitoAppClientName
+        CognitoCallbackUrls: !Ref CognitoCallbackUrls
+        CognitoDomainPrefix: !Ref CognitoDomainPrefix
+        CognitoGenerateSecret: !Ref CognitoGenerateSecret
+        CognitoLogoutUrls: !Ref CognitoLogoutUrls
+        CognitoUserPoolName: !Ref CognitoUserPoolName
+        DeploymentStage: !Ref DeploymentStage
+        DynamoBillingMode: !Ref DynamoBillingMode
+        DynamoPointInTimeRecovery: !Ref DynamoPointInTimeRecovery
+        DynamoTableNamePrefix: !Ref DynamoTableNamePrefix
+        EnableApiWaf: !Ref EnableApiWaf
+        EnableCloudTrail: !Ref EnableCloudTrail
+        EnableCloudTrailLambdaDataEvents: !Ref EnableCloudTrailLambdaDataEvents
+        EnableCloudTrailS3DataEvents: !Ref EnableCloudTrailS3DataEvents
+        EnableLiveVideoResources: !Ref EnableLiveVideoResources
+        ExternalApiEncryptionKeyArn: !Ref ExternalApiEncryptionKeyArn
+        ExternalApiJwtSecretArn: !Ref ExternalApiJwtSecretArn
+        HttpApiCorsAllowedOrigins: !Ref HttpApiCorsAllowedOrigins
+        IncidentMediaTwilioSecretArn: !Ref IncidentMediaTwilioSecretArn
+        MultilingualSecretProvisioning: !Ref MultilingualSecretProvisioning
+        MultilingualSecretsPolicyMode: !Ref MultilingualSecretsPolicyMode
+        OpenAiApiKeySecretArn: !Ref OpenAiApiKeySecretArn
+        Route53HostedZoneId: !Ref Route53HostedZoneId
+        SesConfigurationSetName: !Ref SesConfigurationSetName
+        SesIdentityType: !Ref SesIdentityType
+        SesIdentityValue: !Ref SesIdentityValue
+        SnsEmailSubscription: !Ref SnsEmailSubscription
+        SnsSmsSubscription: !Ref SnsSmsSubscription
+        WwwCnameTarget: !Ref WwwCnameTarget
+  AppSamStack2:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TimeoutInMinutes: 180
+      TemplateURL: nested/stack-app-sam-2.yaml
+      Parameters:
+        AccessOverridesTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.AccessOverridesTable
+            - !Sub "${DynamoTableNamePrefix}-access-overrides-${DeploymentStage}"
+        AdminCnameTarget: !Ref AdminCnameTarget
+        AgenciesTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.AgenciesTable
+            - !Sub "${DynamoTableNamePrefix}-agencies-${DeploymentStage}"
+        AgencySharePartnersTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.AgencySharePartnersTable
+            - !Sub "${DynamoTableNamePrefix}-agency-share-partners-${DeploymentStage}"
+        AgencySubscriptionsTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.AgencySubscriptionsTable
+            - !Sub "${DynamoTableNamePrefix}-agency-subscriptions-${DeploymentStage}"
+        AiBedrockFoundationModelId: !Ref AiBedrockFoundationModelId
+        AnalysesTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.AnalysesTable
+            - !Sub "${DynamoTableNamePrefix}-analyses-${DeploymentStage}"
+        AnthropicApiKeySecretArn: !Ref AnthropicApiKeySecretArn
+        ApiClientsTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.ApiClientsTable
+            - !Sub "${DynamoTableNamePrefix}-api-clients-${DeploymentStage}"
+        ApiDomainCertificateArn: !Ref ApiDomainCertificateArn
+        ApiSubdomainPrefix: !Ref ApiSubdomainPrefix
+        AppCnameTarget: !Ref AppCnameTarget
+        AppName: !Ref AppName
+        Sam2ManagedPolicyNamePrefix: !Ref AWS::StackName
+        AssetsBucket:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.AssetsBucket
+            - !Sub "${AppName}-assets-${DeploymentStage}-${AWS::AccountId}"
+        AuditTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.AuditTable
+            - !Sub "${DynamoTableNamePrefix}-audit-${DeploymentStage}"
+        AzureSpeechKeySecretArn: !Ref AzureSpeechKeySecretArn
+        AzureTranslationKeySecretArn: !Ref AzureTranslationKeySecretArn
+        BillingAuditEventsTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.BillingAuditEventsTable
+            - !Sub "${DynamoTableNamePrefix}-billing-audit-events-${DeploymentStage}"
+        BillingAuditLogTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.BillingAuditLogTable
+            - !Sub "${DynamoTableNamePrefix}-billing-audit-log-${DeploymentStage}"
+        BillingInvoicesBucket:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.BillingInvoicesBucket
+            - !Sub "rapid-cortex-billing-invoices-${DeploymentStage}-${AWS::AccountId}"
+        BillingPaymentInstructionsSecretArn:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.BillingPaymentInstructionsSecretArn
+            - !Ref FlatDataLayerBillingPaymentInstructionsSecretArn
+        BillingPosBucket:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.BillingPosBucket
+            - !Sub "rapid-cortex-billing-pos-${DeploymentStage}-${AWS::AccountId}"
+        BillingProfilesTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.BillingProfilesTable
+            - !Sub "${DynamoTableNamePrefix}-billing-profiles-${DeploymentStage}"
+        BillingSchedulesTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.BillingSchedulesTable
+            - !Sub "${DynamoTableNamePrefix}-billing-schedules-${DeploymentStage}"
+        BillingSesCredentialsSecretArn:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.BillingSesCredentialsSecretArn
+            - !Ref FlatDataLayerBillingSesCredentialsSecretArn
+        BillingSesDomain: !Ref BillingSesDomain
+        BillingSesSenderEmail: !Ref BillingSesSenderEmail
+        BillingWebhookEventsTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.BillingWebhookEventsTable
+            - !Sub "${DynamoTableNamePrefix}-billing-webhook-events-${DeploymentStage}"
+        CadIntegrationsTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.CadIntegrationsTable
+            - !Sub "${DynamoTableNamePrefix}-cad-integrations-${DeploymentStage}"
+        CadWritebackAuditTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.CadWritebackAuditTable
+            - !Sub "${DynamoTableNamePrefix}-cad-writeback-audit-${DeploymentStage}"
+        CadWritebackEnabled: !Ref CadWritebackEnabled
+        CadWritebackRequiresApproval: !Ref CadWritebackRequiresApproval
+        CloudTrailKmsKeyArn: !Ref CloudTrailKmsKeyArn
+        CognitoAppClientName: !Ref CognitoAppClientName
+        CognitoCallbackUrls: !Ref CognitoCallbackUrls
+        CognitoDomainPrefix: !Ref CognitoDomainPrefix
+        CognitoGenerateSecret: !Ref CognitoGenerateSecret
+        CognitoLogoutUrls: !Ref CognitoLogoutUrls
+        CognitoNativeCallbackUrls: !Ref CognitoNativeCallbackUrls
+        CognitoNativeLogoutUrls: !Ref CognitoNativeLogoutUrls
+        CustomersTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.CustomersTable
+            - !Sub "${DynamoTableNamePrefix}-customers-${DeploymentStage}"
+        DataDeletionAuditTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.DataDeletionAuditTable
+            - !Sub "${DynamoTableNamePrefix}-data-deletion-audit-${DeploymentStage}"
+        DeceptionEventsTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.DeceptionEventsTable
+            - !Sub "${DynamoTableNamePrefix}-deception-events-${DeploymentStage}"
+        DeploymentStage: !Ref DeploymentStage
+        DispatcherCoachingNotesTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.DispatcherCoachingNotesTable
+            - !Sub "${DynamoTableNamePrefix}-dispatcher-coaching-notes-${DeploymentStage}"
+        DynamoBillingMode: !Ref DynamoBillingMode
+        DynamoPointInTimeRecovery: !Ref DynamoPointInTimeRecovery
+        DynamoTableNamePrefix: !Ref DynamoTableNamePrefix
+        EnableApiWaf: !Ref EnableApiWaf
+        EnableCloudTrail: !Ref EnableCloudTrail
+        EnableCloudTrailLambdaDataEvents: !Ref EnableCloudTrailLambdaDataEvents
+        EnableCloudTrailS3DataEvents: !Ref EnableCloudTrailS3DataEvents
+        EnableLiveVideoResources: !Ref EnableLiveVideoResources
+        ExternalApiEncryptionKeyArn: !Ref ExternalApiEncryptionKeyArn
+        ExternalApiJwtSecretArn: !Ref ExternalApiJwtSecretArn
+        ExternalApiRateLimitsTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.ExternalApiRateLimitsTable
+            - !Sub "${DynamoTableNamePrefix}-external-api-rate-${DeploymentStage}"
+        RcLiteApiKeysTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.RcLiteApiKeysTable
+            - !Sub "${DynamoTableNamePrefix}-rc-lite-api-keys-${DeploymentStage}"
+        RcLiteRateLimitTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.RcLiteRateLimitTable
+            - !Sub "${DynamoTableNamePrefix}-rc-lite-rate-limit-${DeploymentStage}"
+        RcLiteUsageTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.RcLiteUsageTable
+            - !Sub "${DynamoTableNamePrefix}-rc-lite-usage-${DeploymentStage}"
+        GoogleApplicationCredentialsSecretArn: !Ref GoogleApplicationCredentialsSecretArn
+        GoogleCloudProjectId: !Ref GoogleCloudProjectId
+        GoogleTtsOutputBucket: !Ref GoogleTtsOutputBucket
+        HttpApiCorsAllowedOrigins: !Ref HttpApiCorsAllowedOrigins
+        IncidentMediaTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.IncidentMediaTable
+            - !Sub "${DynamoTableNamePrefix}-incident-media-${DeploymentStage}"
+        IncidentMediaTwilioSecretArn: !Ref IncidentMediaTwilioSecretArn
+        IncidentSharesTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.IncidentSharesTable
+            - !Sub "${DynamoTableNamePrefix}-incident-shares-${DeploymentStage}"
+        IncidentsTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.IncidentsTable
+            - !Sub "${DynamoTableNamePrefix}-incidents-${DeploymentStage}"
+        InvitesTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.InvitesTable
+            - !Sub "${DynamoTableNamePrefix}-invites-${DeploymentStage}"
+        InvoiceItemsTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.InvoiceItemsTable
+            - !Sub "${DynamoTableNamePrefix}-invoice-items-${DeploymentStage}"
+        InvoicesTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.InvoicesTable
+            - !Sub "${DynamoTableNamePrefix}-invoices-${DeploymentStage}"
+        LanguageProvider: !Ref LanguageProvider
+        LanguageSessionsTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.LanguageSessionsTable
+            - !Sub "${DynamoTableNamePrefix}-language-sessions-${DeploymentStage}"
+        LiveVideoSessionsTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.LiveVideoSessionsTable
+            - !Sub "${DynamoTableNamePrefix}-live-video-sessions-${DeploymentStage}"
+        MonetizationAddOnsTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.MonetizationAddOnsTable
+            - !Sub "${DynamoTableNamePrefix}-monetization-addons-${DeploymentStage}"
+        MonetizationInvoicesTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.MonetizationInvoicesTable
+            - !Sub "${DynamoTableNamePrefix}-monetization-invoices-${DeploymentStage}"
+        MonetizationPlansTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.MonetizationPlansTable
+            - !Sub "${DynamoTableNamePrefix}-monetization-plans-${DeploymentStage}"
+        NetworkEmergencyOverridesTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.NetworkEmergencyOverridesTable
+            - !Sub "${DynamoTableNamePrefix}-network-emergency-overrides-${DeploymentStage}"
+        MultilingualSecretProvisioning: !Ref MultilingualSecretProvisioning
+        MultilingualSecretsPolicyMode: !Ref MultilingualSecretsPolicyMode
+        NestedMultilingualAzureApiKeysSecretArn:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.MultilingualAzureApiKeysSecretArn
+            - ""
+        NestedMultilingualGoogleServiceAccountSecretArn:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.MultilingualGoogleServiceAccountSecretArn
+            - ""
+        OpenAiApiKeySecretArn: !Ref OpenAiApiKeySecretArn
+        PaymentRecordsTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.PaymentRecordsTable
+            - !Sub "${DynamoTableNamePrefix}-payment-records-${DeploymentStage}"
+        PremiseNotesTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.PremiseNotesTable
+            - !Sub "${DynamoTableNamePrefix}-premise-notes-${DeploymentStage}"
+        PinpointLinksTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.PinpointLinksTable
+            - !Sub "${DynamoTableNamePrefix}-pinpoint-links-${DeploymentStage}"
+        QASessionsTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.QASessionsTable
+            - !Sub "${DynamoTableNamePrefix}-qa-sessions-${DeploymentStage}"
+        QATemplatesTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.QATemplatesTable
+            - !Sub "${DynamoTableNamePrefix}-qa-templates-${DeploymentStage}"
+        QaBedrockModelId: !Ref QaBedrockModelId
+        RootDomainName: !Ref RootDomainName
+        Route53HostedZoneId: !Ref Route53HostedZoneId
+        SalesLeadsTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.SalesLeadsTable
+            - !Sub "${DynamoTableNamePrefix}-sales-leads-${DeploymentStage}"
+        SelfSignupDefaultAgencyId: !Ref SelfSignupDefaultAgencyId
+        SelfSignupDefaultRole: !Ref SelfSignupDefaultRole
+        ServiceCatalogTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.ServiceCatalogTable
+            - !Sub "${DynamoTableNamePrefix}-service-catalog-${DeploymentStage}"
+        SesConfigurationSetName: !Ref SesConfigurationSetName
+        SesIdentityType: !Ref SesIdentityType
+        SesIdentityValue: !Ref SesIdentityValue
+        SilentTextSessionsTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.SilentTextSessionsTable
+            - !Sub "${DynamoTableNamePrefix}-silent-text-sessions-${DeploymentStage}"
+        SurgeClustersTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.SurgeClustersTable
+            - !Sub "${DynamoTableNamePrefix}-surge-clusters-${DeploymentStage}"
+        SnsEmailSubscription: !Ref SnsEmailSubscription
+        SnsSmsSubscription: !Ref SnsSmsSubscription
+        TranscriptRetentionPolicyDays: !Ref TranscriptRetentionPolicyDays
+        TranscriptsTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.TranscriptsTable
+            - !Sub "${DynamoTableNamePrefix}-transcripts-${DeploymentStage}"
+        TraumaFlagsTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.TraumaFlagsTable
+            - !Sub "${DynamoTableNamePrefix}-trauma-flags-${DeploymentStage}"
+        UsageMetersTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.UsageMetersTable
+            - !Sub "${DynamoTableNamePrefix}-usage-meters-${DeploymentStage}"
+        VideoAssistSessionsTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.VideoAssistSessionsTable
+            - !Sub "${DynamoTableNamePrefix}-video-assist-sessions-${DeploymentStage}"
+        WafRateLimitPer5Min: !Ref WafRateLimitPer5Min
+        WebhooksTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.WebhooksTable
+            - !Sub "${DynamoTableNamePrefix}-webhooks-${DeploymentStage}"
+        WwwCnameTarget: !Ref WwwCnameTarget
+        ImportedCognitoUserPoolId: !Ref ImportedCognitoUserPoolId
+        ImportedCognitoWebClientId: !Ref ImportedCognitoWebClientId
+        ImportedCognitoNativeClientId: !Ref ImportedCognitoNativeClientId
+        ImportedCognitoIssuer: !Ref ImportedCognitoIssuer
+        ImportedOpsAlertsTopicArn: !Ref ImportedOpsAlertsTopicArn
+
+  AppSamHospitalStack2:
+    Type: AWS::CloudFormation::Stack
+    DependsOn: AppSamStack2
+    Properties:
+      TimeoutInMinutes: 60
+      TemplateURL: nested/stack-app-sam-2-hospital.yaml
+      Parameters:
+        DeploymentStage: !Ref DeploymentStage
+        HttpApiId: !GetAtt AppSamStack2.Outputs.HttpApiId
+        ImportedCognitoUserPoolId: !Ref ImportedCognitoUserPoolId
+        ImportedCognitoWebClientId: !Ref ImportedCognitoWebClientId
+        ImportedCognitoIssuer: !Ref ImportedCognitoIssuer
+        AuditTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.AuditTable
+            - !Sub "${DynamoTableNamePrefix}-audit-${DeploymentStage}"
+        AgenciesTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.AgenciesTable
+            - !Sub "${DynamoTableNamePrefix}-agencies-${DeploymentStage}"
+        IncidentTimelineTable: !Sub "rapid-cortex-incident-timeline-${DeploymentStage}"
+        ManagedPolicyNamePrefix: !Ref AWS::StackName
+
+  AppSamDeceptionStack2:
+    Type: AWS::CloudFormation::Stack
+    DependsOn: AppSamStack2
+    Properties:
+      TimeoutInMinutes: 60
+      TemplateURL: nested/stack-app-sam-2-deception.yaml
+      Parameters:
+        DeploymentStage: !Ref DeploymentStage
+        HttpApiId: !GetAtt AppSamStack2.Outputs.HttpApiId
+        DeceptionEventsTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.DeceptionEventsTable
+            - !Sub "${DynamoTableNamePrefix}-deception-events-${DeploymentStage}"
+        OpsAlertsTopicArn:
+          Fn::If:
+            - HasImportedOpsAlertsTopicArn
+            - !Ref ImportedOpsAlertsTopicArn
+            - !GetAtt AppSamStack2.Outputs.OpsAlertsTopicArn
+        ManagedPolicyNamePrefix: !Ref AWS::StackName
+
+  AppSamRealtimeStack2:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TimeoutInMinutes: 60
+      TemplateURL: nested/stack-app-sam-2-realtime.yaml
+      Parameters:
+        DeploymentStage: !Ref DeploymentStage
+        HttpApiId: !GetAtt AppSamStack2.Outputs.HttpApiId
+        ImportedCognitoUserPoolId: !Ref ImportedCognitoUserPoolId
+        ImportedCognitoWebClientId: !Ref ImportedCognitoWebClientId
+        ImportedCognitoIssuer: !Ref ImportedCognitoIssuer
+        ActiveCallsTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.ActiveCallsTable
+            - !Sub "${DynamoTableNamePrefix}-active-calls-${DeploymentStage}"
+        CallTransfersTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.CallTransfersTable
+            - !Sub "${DynamoTableNamePrefix}-call-transfers-${DeploymentStage}"
+        WebSocketConnectionsTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.WebSocketConnectionsTable
+            - !Sub "${DynamoTableNamePrefix}-websocket-connections-${DeploymentStage}"
+        AuditTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.AuditTable
+            - !Sub "${DynamoTableNamePrefix}-audit-${DeploymentStage}"
+        AgenciesTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.AgenciesTable
+            - !Sub "${DynamoTableNamePrefix}-agencies-${DeploymentStage}"
+        ManagedPolicyNamePrefix: !Ref AWS::StackName
+
+  AppSamAlarmsStack2:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: nested/stack-app-alarms-2.yaml
+      Parameters:
+        OpsAlertsTopicArn: !GetAtt AppSamStack2.Outputs.OpsAlertsTopicArn
+        HttpApiId: !GetAtt AppSamStack2.Outputs.HttpApiId
+        ListWellnessFlagsFunctionName: !GetAtt AppSamStack2.Outputs.ListWellnessFlagsFunctionName
+        AcknowledgeTraumaFlagFunctionName: !GetAtt AppSamStack2.Outputs.AcknowledgeTraumaFlagFunctionName
+        GetCallerCardFunctionName: !GetAtt AppSamStack2.Outputs.GetCallerCardFunctionName
+        CreatePremiseNoteFunctionName: !GetAtt AppSamStack2.Outputs.CreatePremiseNoteFunctionName
+        PatchPremiseNoteFunctionName: !GetAtt AppSamStack2.Outputs.PatchPremiseNoteFunctionName
+
+Outputs:
+  HttpApiUrl:
+    Value: !GetAtt AppSamStack2.Outputs.HttpApiUrl
+  UserPoolId:
+    Value: !Ref ImportedCognitoUserPoolId
+  UserPoolClientId:
+    Value: !Ref ImportedCognitoWebClientId
+  NativeUserPoolClientId:
+    Value: !Ref ImportedCognitoNativeClientId
+  AssetsBucketName:
+    Value:
+      Fn::If:
+        - HasDataLayerNestedStack
+        - !GetAtt DataLayerStack.Outputs.AssetsBucket
+        - !Sub "${AppName}-assets-${DeploymentStage}-${AWS::AccountId}"
+  ApiCustomDomainUrl:
+    Value: !GetAtt AppSamStack2.Outputs.ApiCustomDomainUrl
+  CognitoIssuer:
+    Value: !Ref ImportedCognitoIssuer
+  CognitoHostedUiBase:
+    Value: !Ref ImportedCognitoHostedUiBase
+  ApiWebAclArn:
+    Value: !GetAtt AppSamStack2.Outputs.ApiWebAclArn
+  HospitalCapacityTableName:
+    Value: !GetAtt AppSamHospitalStack2.Outputs.HospitalCapacityTableName
+  HospitalProfilesTableName:
+    Value: !GetAtt AppSamHospitalStack2.Outputs.HospitalProfilesTableName
+  DeploymentStage:
+    Value: !Ref DeploymentStage
+  WebSocketApiUrl:
+    Description: WebSocket URL for real-time call control (wss)
+    Value: !GetAtt AppSamRealtimeStack2.Outputs.WebSocketApiUrl
+  WebSocketApiId:
+    Value: !GetAtt AppSamRealtimeStack2.Outputs.WebSocketApiId

@@ -1,0 +1,24 @@
+@import "../../web/app/globals.css";
+
+/* Tailwind v4: scan shared web components (marketing app imports via `@/` alias). */
+@source "../../web/components/**/*.{js,ts,jsx,tsx}";
+@source "../../web/app/**/*.{js,ts,jsx,tsx}";
+
+/* Marketing site typography — Inter (product-adjacent), not dispatcher Courier stack */
+@theme inline {
+  --font-sans: var(--font-inter), Inter, ui-sans-serif, system-ui, sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+}
+
+/* Solid dark canvas — not the dispatcher patriotic gradient under translucent shells */
+html {
+  background-image: none;
+  background-color: #020617;
+  background-attachment: scroll;
+}
+
+body {
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}

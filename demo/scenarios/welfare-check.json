@@ -1,0 +1,14 @@
+{
+  "scenarioId": "demo-welfare-check",
+  "title": "Welfare Check",
+  "category": "welfare_check",
+  "urgency": "moderate",
+  "description": "Caller cannot reach elderly parent and found door open.",
+  "chunks": [
+    { "offsetMs": 0, "speaker": "caller", "text": "My mother isn't answering and her front door is open." },
+    { "offsetMs": 3000, "speaker": "dispatcher", "text": "When was the last time you spoke with her?" },
+    { "offsetMs": 7500, "speaker": "caller", "text": "Yesterday evening. She always answers by morning." },
+    { "offsetMs": 11500, "speaker": "dispatcher", "text": "Do you see signs of injury or forced entry?" },
+    { "offsetMs": 15000, "speaker": "caller", "text": "I can't tell from outside, I'm afraid to go in." }
+  ]
+}

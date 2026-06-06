@@ -1,0 +1,186 @@
+openapi: 3.0.3
+info:
+  title: Rapid Cortex RC Lite API
+  version: "1.1.0"
+  description: |
+    Secure public-safety intelligence APIs for CAD vendors, dispatch platforms,
+    emergency systems, and OEM cohorts integrating Rapid Cortex without the full dashboards.
+    Sandbox keys cannot promote production CAD export until contract uplift.
+servers:
+  - url: https://{host}/api/v1
+    variables:
+      host:
+        default: localhost:3000
+security:
+  - RcApiKey: []
+tags:
+  - name: IncidentIntelligence
+  - name: CadExport
+  - name: Transcription
+  - name: Translation
+  - name: CallerMedia
+  - name: QA
+  - name: Webhooks
+
+components:
+  securitySchemes:
+    RcApiKey:
+      type: apiKey
+      in: header
+      name: X-RC-API-Key
+  parameters:
+    IdempotencyKey:
+      name: Idempotency-Key
+      in: header
+      required: true
+      schema:
+        type: string
+        description: Stable UUID/token for Stripe-style safe retries across billable/async routes.
+    RequestId:
+      name: X-Request-Id
+      in: header
+      required: false
+      schema:
+        type: string
+
+  schemas:
+    RcLiteErrorEnvelope:
+      type: object
+      properties:
+        error:
+          type: object
+          required: [code, message, requestId, retryable]
+          properties:
+            code: { type: string }
+            message: { type: string }
+            requestId: { type: string }
+            retryable: { type: boolean }
+            docsUrl: { type: string }
+            details: {}
+
+paths:
+  /intelligence/analyze-incident:
+    post:
+      tags: [IncidentIntelligence]
+      summary: Analyze incident transcripts + metadata with explainability payloads
+      parameters: [{ $ref: "#/components/parameters/IdempotencyKey" }]
+      responses:
+        "501": { description: Stub until upstream model stack is pinned }
+        "400":
+          description: Missing Idempotency-Key header
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/RcLiteErrorEnvelope" }
+
+  /intelligence/classify-call:
+    post:
+      tags: [IncidentIntelligence]
+      parameters: [{ $ref: "#/components/parameters/IdempotencyKey" }]
+
+  /intelligence/risk-score:
+    post:
+      tags: [IncidentIntelligence]
+      parameters: [{ $ref: "#/components/parameters/IdempotencyKey" }]
+
+  /intelligence/recommended-actions:
+    post:
+      tags: [IncidentIntelligence]
+      parameters: [{ $ref: "#/components/parameters/IdempotencyKey" }]
+
+  /cad/export:
+    post:
+      tags: [CadExport]
+      summary: Produce CAD-ready export payload / batch request
+      parameters: [{ $ref: "#/components/parameters/IdempotencyKey" }]
+
+  /cad/events:
+    post:
+      tags: [CadExport]
+      parameters: [{ $ref: "#/components/parameters/IdempotencyKey" }]
+
+  /cad/manual-review:
+    post:
+      tags: [CadExport]
+      parameters: [{ $ref: "#/components/parameters/IdempotencyKey" }]
+
+  /cad/export/{exportId}/status:
+    get:
+      tags: [CadExport]
+
+  /transcription/jobs:
+    post:
+      tags: [Transcription]
+      parameters: [{ $ref: "#/components/parameters/IdempotencyKey" }]
+
+  /transcription/jobs/{jobId}:
+    get:
+      tags: [Transcription]
+
+  /transcription/realtime-token:
+    post:
+      tags: [Transcription]
+      parameters: [{ $ref: "#/components/parameters/IdempotencyKey" }]
+
+  /translation/text:
+    post:
+      tags: [Translation]
+      parameters: [{ $ref: "#/components/parameters/IdempotencyKey" }]
+
+  /translation/audio:
+    post:
+      tags: [Translation]
+      parameters: [{ $ref: "#/components/parameters/IdempotencyKey" }]
+
+  /translation/realtime-token:
+    post:
+      tags: [Translation]
+      parameters: [{ $ref: "#/components/parameters/IdempotencyKey" }]
+
+  /caller-links:
+    post:
+      tags: [CallerMedia]
+      parameters: [{ $ref: "#/components/parameters/IdempotencyKey" }]
+
+  /caller-links/{linkId}:
+    get:
+      tags: [CallerMedia]
+
+  /media/upload-url:
+    post:
+      tags: [CallerMedia]
+      parameters: [{ $ref: "#/components/parameters/IdempotencyKey" }]
+
+  /media/session:
+    post:
+      tags: [CallerMedia]
+      parameters: [{ $ref: "#/components/parameters/IdempotencyKey" }]
+
+  /media/session/{sessionId}:
+    get:
+      tags: [CallerMedia]
+
+  /qa/analyze-call:
+    post:
+      tags: [QA]
+      parameters: [{ $ref: "#/components/parameters/IdempotencyKey" }]
+
+  /qa/policy-flags:
+    post:
+      tags: [QA]
+      parameters: [{ $ref: "#/components/parameters/IdempotencyKey" }]
+
+  /qa/training-summary:
+    post:
+      tags: [QA]
+      parameters: [{ $ref: "#/components/parameters/IdempotencyKey" }]
+
+  /webhooks/endpoints:
+    get:
+      tags: [Webhooks]
+    post:
+      tags: [Webhooks]
+      parameters: [{ $ref: "#/components/parameters/IdempotencyKey" }]
+
+  /webhooks/endpoints/{endpointId}:
+    delete:
+      tags: [Webhooks]

@@ -1,0 +1,34 @@
+{
+  "name": "rapid-cortex-marketing",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev -p 3002 --webpack",
+    "build": "next build --webpack",
+    "export": "next build --webpack",
+    "start": "npx serve@14 out -p 3002",
+    "lint": "echo \"(marketing lint via root prettier)\""
+  },
+  "dependencies": {
+    "@tanstack/react-query": "^5.90.16",
+    "framer-motion": "^12.38.0",
+    "lucide-react": "^1.8.0",
+    "next": "16.2.4",
+    "rapid-cortex-integrations": "1.0.0",
+    "rapid-cortex-maps": "1.0.0",
+    "rapid-cortex-protocols": "1.0.0",
+    "rapid-cortex-security": "1.0.0",
+    "rapid-cortex-shared": "1.0.0",
+    "react": "19.2.4",
+    "react-dom": "19.2.4",
+    "recharts": "^3.8.1"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4",
+    "@types/node": "^22.10.1",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "tailwindcss": "^4",
+    "typescript": "^5.7.2"
+  }
+}

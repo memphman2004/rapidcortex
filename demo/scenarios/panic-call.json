@@ -1,0 +1,14 @@
+{
+  "scenarioId": "demo-panic-call",
+  "title": "Open-Line Panic Call",
+  "category": "unknown",
+  "urgency": "high",
+  "description": "Open line with fragmented audio and background distress.",
+  "chunks": [
+    { "offsetMs": 0, "speaker": "system", "text": "[Open line, heavy breathing]" },
+    { "offsetMs": 3000, "speaker": "dispatcher", "text": "911, what is your emergency?" },
+    { "offsetMs": 7000, "speaker": "caller", "text": "Please... he's here... I can't..." },
+    { "offsetMs": 11000, "speaker": "system", "text": "[Loud crash, muffled shouting]" },
+    { "offsetMs": 15500, "speaker": "dispatcher", "text": "If you can hear me, make any sound if you need immediate help." }
+  ]
+}

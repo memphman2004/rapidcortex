@@ -1,0 +1,41 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: Rapid Cortex — ECR repository for ECS web app container images.
+
+Parameters:
+  Environment:
+    Type: String
+    AllowedValues: [dev, staging, prod]
+    Default: dev
+  RepositoryNameSuffix:
+    Type: String
+    Default: rapid-cortex-web
+    Description: Repository name suffix; full name ${RepositoryNameSuffix}-${Environment}.
+
+Resources:
+  WebAppRepository:
+    Type: AWS::ECR::Repository
+    Properties:
+      RepositoryName: !Sub ${RepositoryNameSuffix}-${Environment}
+      ImageScanningConfiguration:
+        ScanOnPush: true
+      LifecyclePolicy:
+        LifecyclePolicyText: |
+          {
+            "rules": [{
+              "rulePriority": 1,
+              "description": "Keep last 25 images",
+              "selection": {
+                "tagStatus": "any",
+                "countType": "imageCountMoreThan",
+                "countNumber": 25
+              },
+              "action": {"type": "expire"}
+            }]
+          }
+
+Outputs:
+  RepositoryUri:
+    Description: ECR URI without tag (pass to CodeBuild env ECR_REGISTRY)
+    Value: !Sub ${AWS::AccountId}.dkr.ecr.${AWS::Region}.amazonaws.com/${WebAppRepository}
+  RepositoryArn:
+    Value: !GetAtt WebAppRepository.Arn

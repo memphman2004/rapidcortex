@@ -1,0 +1,206 @@
+# Deploy this stack in us-east-1 (CloudFront + ACM for viewer cert).
+# Creates: S3 bucket, CloudFront (OAC), optional ACM cert + DNS validation,
+# Route 53 A/AAAA alias records for apex and www.
+AWSTemplateFormatVersion: "2010-09-09"
+Description: Rapid Cortex static web - S3 + CloudFront + Route 53 (us-east-1)
+
+Parameters:
+  DeploymentStage:
+    Type: String
+    Default: prod
+    Description: Label for resource names (e.g. prod, staging).
+  AppName:
+    Type: String
+    Default: rapid-cortex
+    Description: Short slug for bucket and resource names.
+  RootDomainName:
+    Type: String
+    Default: rapidcortex.us
+  Route53HostedZoneId:
+    Type: String
+    Description: Public hosted zone ID for RootDomainName (e.g. Z1234567890ABC).
+  WebCertificateArn:
+    Type: String
+    Default: ""
+    Description: >-
+      Optional. ACM certificate ARN in us-east-1 for apex + www. If empty, a new cert is
+      requested and DNS-validated in the hosted zone.
+
+Conditions:
+  CreateManagedCertificate: !Equals [!Ref WebCertificateArn, ""]
+
+Resources:
+  # --- ACM (viewer cert; must be in us-east-1 for CloudFront) ---
+  WebSiteCertificate:
+    Type: AWS::CertificateManager::Certificate
+    Condition: CreateManagedCertificate
+    Properties:
+      DomainName: !Ref RootDomainName
+      SubjectAlternativeNames:
+        - !Sub "www.${RootDomainName}"
+      ValidationMethod: DNS
+      DomainValidationOptions:
+        - DomainName: !Ref RootDomainName
+          HostedZoneId: !Ref Route53HostedZoneId
+        - DomainName: !Sub "www.${RootDomainName}"
+          HostedZoneId: !Ref Route53HostedZoneId
+
+  # --- S3 ---
+  WebSiteBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Sub "${AppName}-web-static-${DeploymentStage}-${AWS::AccountId}"
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: AES256
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+      VersioningConfiguration:
+        Status: Enabled
+
+  WebOriginAccessControl:
+    Type: AWS::CloudFront::OriginAccessControl
+    Properties:
+      OriginAccessControlConfig:
+        Name: !Sub "${AppName}-web-oac-${DeploymentStage}"
+        Description: OAC for static web bucket
+        OriginAccessControlOriginType: s3
+        SigningBehavior: always
+        SigningProtocol: sigv4
+
+  WebDistribution:
+    Type: AWS::CloudFront::Distribution
+    Properties:
+      DistributionConfig:
+        Enabled: true
+        Comment: !Sub "Rapid Cortex web ${DeploymentStage}"
+        HttpVersion: http2and3
+        PriceClass: PriceClass_100
+        DefaultRootObject: index.html
+        Aliases:
+          - !Ref RootDomainName
+          - !Sub "www.${RootDomainName}"
+        Origins:
+          - Id: S3Web
+            DomainName: !GetAtt WebSiteBucket.RegionalDomainName
+            OriginAccessControlId: !GetAtt WebOriginAccessControl.Id
+            S3OriginConfig: {}
+        DefaultCacheBehavior:
+          TargetOriginId: S3Web
+          ViewerProtocolPolicy: redirect-to-https
+          AllowedMethods:
+            - GET
+            - HEAD
+            - OPTIONS
+          CachedMethods:
+            - GET
+            - HEAD
+          Compress: true
+          ForwardedValues:
+            QueryString: false
+        ViewerCertificate:
+          AcmCertificateArn: !If
+            - CreateManagedCertificate
+            - !Ref WebSiteCertificate
+            - !Ref WebCertificateArn
+          SslSupportMethod: sni-only
+          MinimumProtocolVersion: TLSv1.2_2021
+        # Client-side routing: S3 "no key" often returns 403/404; map to index.html. Remove
+        # if you serve only flat static files and want real 404s from S3/CloudFront.
+        CustomErrorResponses:
+          - ErrorCode: 403
+            ResponseCode: 200
+            ResponsePagePath: /index.html
+          - ErrorCode: 404
+            ResponseCode: 200
+            ResponsePagePath: /index.html
+
+  WebBucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    DependsOn: WebDistribution
+    Properties:
+      Bucket: !Ref WebSiteBucket
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Sid: AllowCloudFrontReadViaOAC
+            Effect: Allow
+            Principal:
+              Service: cloudfront.amazonaws.com
+            Action: s3:GetObject
+            Resource: !Sub
+              - "arn:aws:s3:::${Bucket}/*"
+              - Bucket: !Ref WebSiteBucket
+            Condition:
+              StringEquals:
+                AWS:SourceArn: !Sub "arn:aws:cloudfront::${AWS::AccountId}:distribution/${WebDistribution}"
+
+  # CloudFront default hosted zone id for alias records (global).
+  # --- Route 53: apex + www (A and AAAA alias to same distribution) ---
+  DnsApexA:
+    Type: AWS::Route53::RecordSet
+    Properties:
+      HostedZoneId: !Ref Route53HostedZoneId
+      Name: !Sub "${RootDomainName}."
+      Type: A
+      AliasTarget:
+        DNSName: !GetAtt WebDistribution.DomainName
+        HostedZoneId: Z2FDTNDATAQYW2
+        EvaluateTargetHealth: false
+
+  DnsApexAAAA:
+    Type: AWS::Route53::RecordSet
+    Properties:
+      HostedZoneId: !Ref Route53HostedZoneId
+      Name: !Sub "${RootDomainName}."
+      Type: AAAA
+      AliasTarget:
+        DNSName: !GetAtt WebDistribution.DomainName
+        HostedZoneId: Z2FDTNDATAQYW2
+        EvaluateTargetHealth: false
+
+  DnsWwwA:
+    Type: AWS::Route53::RecordSet
+    Properties:
+      HostedZoneId: !Ref Route53HostedZoneId
+      Name: !Sub "www.${RootDomainName}."
+      Type: A
+      AliasTarget:
+        DNSName: !GetAtt WebDistribution.DomainName
+        HostedZoneId: Z2FDTNDATAQYW2
+        EvaluateTargetHealth: false
+
+  DnsWwwAAAA:
+    Type: AWS::Route53::RecordSet
+    Properties:
+      HostedZoneId: !Ref Route53HostedZoneId
+      Name: !Sub "www.${RootDomainName}."
+      Type: AAAA
+      AliasTarget:
+        DNSName: !GetAtt WebDistribution.DomainName
+        HostedZoneId: Z2FDTNDATAQYW2
+        EvaluateTargetHealth: false
+
+Outputs:
+  WebBucketName:
+    Description: S3 bucket for static site assets (sync `next export` or static build output here)
+    Value: !Ref WebSiteBucket
+  CloudFrontDistributionId:
+    Description: Distribution id for cache invalidation after deploys
+    Value: !Ref WebDistribution
+  CloudFrontDomainName:
+    Description: CloudFront domain (*.cloudfront.net) — for debugging
+    Value: !GetAtt WebDistribution.DomainName
+  WebCertificateArnOut:
+    Description: ACM certificate used by CloudFront (us-east-1)
+    Value: !If
+      - CreateManagedCertificate
+      - !Ref WebSiteCertificate
+      - !Ref WebCertificateArn
+  SiteUrls:
+    Description: Public site URLs
+    Value: !Sub "https://${RootDomainName} and https://www.${RootDomainName}"

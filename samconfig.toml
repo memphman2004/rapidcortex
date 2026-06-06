@@ -1,0 +1,39 @@
+version = 0.1
+
+[default]
+[default.global.parameters]
+stack_name = "rapid-cortex-dev"
+region = "us-east-1"
+capabilities = "CAPABILITY_IAM CAPABILITY_NAMED_IAM CAPABILITY_AUTO_EXPAND"
+confirm_changeset = false
+s3_prefix = "rapid-cortex-dev"
+
+[dev]
+[dev.deploy.parameters]
+stack_name = "rapid-cortex-dev"
+resolve_s3 = true
+parameter_overrides = "DeploymentStage=dev RootDomainName=rapidcortex.us ApiSubdomainPrefix=api CognitoGenerateSecret=false CognitoCallbackUrls=rapidcortex://oauth/callback,rapidcortex-desktop://oauth/callback,rapidcortex-ios://oauth/callback,rapidcortex-windows://oauth/callback CognitoLogoutUrls=rapidcortex://logout/callback,rapidcortex-desktop://logout/callback,rapidcortex-ios://logout/callback,rapidcortex-windows://logout/callback"
+
+[staging]
+[staging.deploy.parameters]
+stack_name = "rapid-cortex-staging"
+resolve_s3 = true
+# Append HttpApiCorsAllowedOrigins=https://www.example.org,https://app.example.org (comma, no spaces) for real browsers.
+parameter_overrides = "DeploymentStage=staging RootDomainName=rapidcortex.us ApiSubdomainPrefix=api CognitoGenerateSecret=false CognitoCallbackUrls=rapidcortex://oauth/callback,rapidcortex-desktop://oauth/callback,rapidcortex-ios://oauth/callback,rapidcortex-windows://oauth/callback CognitoLogoutUrls=rapidcortex://logout/callback,rapidcortex-desktop://logout/callback,rapidcortex-ios://logout/callback,rapidcortex-windows://logout/callback"
+
+[prod]
+[prod.deploy.parameters]
+stack_name = "rapid-cortex-prod"
+resolve_s3 = true
+# Production: set explicit HTTPS origins via deploy script env, e.g.
+# HTTP_API_CORS_ORIGINS=https://www.rapidcortex.us ./scripts/deploy.sh prod
+# (Wildcard * and http:// localhost-style origins are rejected by scripts/deploy.sh for prod.)
+parameter_overrides = "DeploymentStage=prod RootDomainName=rapidcortex.us ApiSubdomainPrefix=api CognitoGenerateSecret=false CognitoCallbackUrls=rapidcortex://oauth/callback,rapidcortex-desktop://oauth/callback,rapidcortex-ios://oauth/callback,rapidcortex-windows://oauth/callback CognitoLogoutUrls=rapidcortex://logout/callback,rapidcortex-desktop://logout/callback,rapidcortex-ios://logout/callback,rapidcortex-windows://logout/callback"
+
+[pilot]
+[pilot.deploy.parameters]
+stack_name = "rapid-cortex-pilot"
+resolve_s3 = true
+# Pilot stack uses DeploymentStage=pilot (same AI/multilingual defaults as prod in template Mappings).
+parameter_overrides = "DeploymentStage=pilot RootDomainName=rapidcortex.us ApiSubdomainPrefix=api CognitoGenerateSecret=false CognitoCallbackUrls=rapidcortex://oauth/callback,rapidcortex-desktop://oauth/callback,rapidcortex-ios://oauth/callback,rapidcortex-windows://oauth/callback CognitoLogoutUrls=rapidcortex://logout/callback,rapidcortex-desktop://logout/callback,rapidcortex-ios://logout/callback,rapidcortex-windows://logout/callback"
+

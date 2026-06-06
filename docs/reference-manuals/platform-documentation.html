@@ -1,0 +1,1402 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Rapid Cortex — Documentation</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    /* Deep US blue — sidebar, code, hero */
+    --navy: #0b1c33;
+    --navy-mid: #132544;
+    --navy-light: #1a3354;
+    /* Primary accent: US red (mapped to legacy --teal-* names used in markup) */
+    --accent: #bf0a30;
+    --accent-dim: #8b0822;
+    --accent-pale: #fde8ec;
+    /* Secondary accent: US blue */
+    --blue-accent: #1e40af;
+    --blue-accent-bright: #2563eb;
+    --blue-pale: #e8eefc;
+    --blue-code: #93c5fd;
+    --link-on-navy: #a8c7ff;
+    --teal: var(--accent);
+    --teal-dim: var(--accent-dim);
+    --teal-pale: var(--accent-pale);
+    --amber: #b45309;
+    --red-soft: #dc2626;
+    --white: #ffffff;
+    --off-white: #f7f8fb;
+    --text-main: #0f172a;
+    --text-muted: #475569;
+    --text-light: #64748b;
+    --border: #d4dce8;
+    --border-dark: #b8c4d4;
+    --radius: 10px;
+    --radius-lg: 16px;
+    --radius-sm: 6px;
+    --font: 'DM Sans', system-ui, sans-serif;
+    --mono: 'DM Mono', monospace;
+    --shadow-sm: 0 1px 4px rgba(11,28,51,0.07);
+    --shadow: 0 4px 18px rgba(11,28,51,0.1);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: var(--font);
+    background: var(--off-white);
+    color: var(--text-main);
+    line-height: 1.65;
+    font-size: 15px;
+  }
+
+  /* ── LAYOUT ── */
+  .layout { display: flex; min-height: 100vh; }
+
+  /* ── SIDEBAR ── */
+  .sidebar {
+    width: 260px;
+    flex-shrink: 0;
+    background: var(--navy);
+    color: #c8d8e8;
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+  }
+  .sidebar-brand {
+    padding: 28px 24px 20px;
+    border-bottom: 1px solid rgba(255,255,255,0.07);
+  }
+  .brand-logo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 6px;
+  }
+  .brand-icon {
+    width: 34px; height: 34px;
+    background: var(--teal);
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .brand-icon svg { width: 18px; height: 18px; fill: var(--white); }
+  .brand-name {
+    font-size: 16px;
+    font-weight: 600;
+    color: #fff;
+    letter-spacing: -0.2px;
+  }
+  .brand-version {
+    font-size: 11px;
+    color: #8fa8c0;
+    font-family: var(--mono);
+  }
+  .sidebar-nav { padding: 16px 0; flex: 1; }
+  .nav-section-label {
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 1.1px;
+    text-transform: uppercase;
+    color: #5a7a96;
+    padding: 12px 24px 6px;
+  }
+  .nav-item {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    padding: 8px 24px;
+    font-size: 13.5px;
+    color: #9db8cc;
+    text-decoration: none;
+    border-left: 2px solid transparent;
+    transition: all 0.15s;
+    cursor: pointer;
+  }
+  .nav-item:hover { color: #fff; background: rgba(255,255,255,0.05); }
+  .nav-item.active {
+    color: #fecdd3;
+    border-left-color: var(--accent);
+    background: rgba(191,10,48,0.18);
+  }
+  .nav-dot {
+    width: 6px; height: 6px; border-radius: 50%;
+    background: currentColor; opacity: 0.5; flex-shrink: 0;
+  }
+  .sidebar-footer {
+    padding: 16px 24px;
+    border-top: 1px solid rgba(255,255,255,0.07);
+    font-size: 11px;
+    color: #4a6880;
+  }
+  .sidebar-footer a { color: var(--link-on-navy); text-decoration: none; }
+
+  /* ── MAIN ── */
+  .main { flex: 1; min-width: 0; }
+
+  /* ── TOP BAR ── */
+  .topbar {
+    background: #fff;
+    border-bottom: 1px solid var(--border);
+    padding: 14px 40px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+  }
+  .breadcrumb {
+    font-size: 13px;
+    color: var(--text-muted);
+    display: flex; align-items: center; gap: 6px;
+  }
+  .breadcrumb span { color: var(--text-main); font-weight: 500; }
+  .breadcrumb-sep { color: var(--text-light); }
+  .topbar-right { display: flex; gap: 8px; }
+  .tag {
+    display: inline-flex; align-items: center;
+    padding: 3px 10px; border-radius: 20px;
+    font-size: 11px; font-weight: 500;
+    background: var(--blue-pale); color: var(--blue-accent);
+    border: 1px solid rgba(30,64,175,0.15);
+  }
+
+  /* ── HERO ── */
+  .hero {
+    background: var(--navy);
+    padding: 56px 40px 48px;
+    color: #fff;
+    position: relative;
+    overflow: hidden;
+  }
+  .hero::before {
+    content: '';
+    position: absolute;
+    top: -40px; right: -60px;
+    width: 360px; height: 360px;
+    border-radius: 50%;
+    background:
+      radial-gradient(circle, rgba(191,10,48,0.16) 0%, transparent 55%),
+      radial-gradient(circle at 70% 30%, rgba(37,99,235,0.14) 0%, transparent 58%);
+    pointer-events: none;
+  }
+  .hero-eyebrow {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 1.4px;
+    text-transform: uppercase;
+    color: #fecdd3;
+    margin-bottom: 10px;
+  }
+  .hero h1 {
+    font-size: 30px;
+    font-weight: 600;
+    letter-spacing: -0.5px;
+    margin-bottom: 12px;
+    line-height: 1.2;
+  }
+  .hero p {
+    font-size: 15px;
+    color: #b8c9dc;
+    max-width: 580px;
+    margin-bottom: 24px;
+  }
+  .hero-cards {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+    margin-top: 8px;
+  }
+  .hero-card {
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.09);
+    border-radius: var(--radius);
+    padding: 16px;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-decoration: none;
+  }
+  .hero-card:hover {
+    background: rgba(191,10,48,0.14);
+    border-color: rgba(255,255,255,0.35);
+  }
+  .hero-card-icon {
+    font-size: 20px;
+    margin-bottom: 8px;
+  }
+  .hero-card-title {
+    font-size: 13px;
+    font-weight: 500;
+    color: #fff;
+    margin-bottom: 2px;
+  }
+  .hero-card-desc {
+    font-size: 11.5px;
+    color: #94a3b8;
+  }
+
+  /* ── CONTENT ── */
+  .content { padding: 36px 40px 60px; max-width: 900px; }
+
+  /* ── SECTION ── */
+  .section { margin-bottom: 52px; }
+  .section-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 20px;
+    padding-bottom: 14px;
+    border-bottom: 1.5px solid var(--border);
+  }
+  .section-icon {
+    width: 36px; height: 36px;
+    border-radius: 9px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 16px;
+    flex-shrink: 0;
+  }
+  .section-icon.teal { background: var(--accent-pale); }
+  .section-icon.amber { background: var(--blue-pale); }
+  .section-icon.blue { background: #dbeafe; }
+  .section-icon.red { background: var(--accent-pale); }
+  .section-icon.purple { background: #e0e7ff; }
+  .section-icon.green { background: var(--blue-pale); }
+  .section-title { font-size: 19px; font-weight: 600; letter-spacing: -0.3px; }
+  .section-subtitle { font-size: 13px; color: var(--text-muted); margin-top: 1px; }
+
+  /* ── PROSE ── */
+  .prose { color: var(--text-main); }
+  .prose p { margin-bottom: 14px; }
+  .prose h3 {
+    font-size: 14.5px;
+    font-weight: 600;
+    color: var(--text-main);
+    margin: 20px 0 8px;
+  }
+  .prose strong { font-weight: 600; }
+  .prose code {
+    font-family: var(--mono);
+    font-size: 12.5px;
+    background: #eef2f6;
+    color: #1a3650;
+    padding: 1px 5px;
+    border-radius: 4px;
+  }
+
+  /* ── CARDS ── */
+  .card-grid { display: grid; gap: 14px; }
+  .card-grid-2 { grid-template-columns: 1fr 1fr; }
+  .card-grid-3 { grid-template-columns: 1fr 1fr 1fr; }
+  .card {
+    background: #fff;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 20px;
+    box-shadow: var(--shadow-sm);
+  }
+  .card-title {
+    font-size: 13.5px; font-weight: 600;
+    margin-bottom: 6px;
+  }
+  .card-body { font-size: 13px; color: var(--text-muted); line-height: 1.55; }
+
+  /* ── ROLE TABLE ── */
+  .role-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  .role-table th {
+    text-align: left; padding: 9px 14px;
+    font-size: 11px; font-weight: 600;
+    letter-spacing: 0.6px; text-transform: uppercase;
+    color: var(--text-muted);
+    border-bottom: 1.5px solid var(--border);
+    background: var(--off-white);
+  }
+  .role-table td {
+    padding: 11px 14px;
+    border-bottom: 1px solid var(--border);
+    vertical-align: top;
+  }
+  .role-table tr:last-child td { border-bottom: none; }
+  .role-table tr:hover td { background: #f9fbfd; }
+  .role-badge {
+    display: inline-block;
+    padding: 2px 9px;
+    border-radius: 20px;
+    font-size: 11px; font-weight: 600;
+    font-family: var(--mono);
+  }
+  .role-badge.dispatcher { background: var(--blue-pale); color: var(--blue-accent); }
+  .role-badge.supervisor { background: var(--accent-pale); color: var(--accent-dim); }
+  .role-badge.admin { background: var(--white); color: var(--accent-dim); box-shadow: inset 0 0 0 1px rgba(191,10,48,0.35); }
+  .role-badge.superadmin { background: var(--navy-light); color: var(--white); }
+
+  /* ── STEPS ── */
+  .steps { display: flex; flex-direction: column; gap: 0; }
+  .step {
+    display: flex;
+    gap: 16px;
+    padding-bottom: 20px;
+    position: relative;
+  }
+  .step:not(:last-child)::before {
+    content: '';
+    position: absolute;
+    left: 15px; top: 34px;
+    width: 1px; height: calc(100% - 20px);
+    background: var(--border);
+  }
+  .step-num {
+    width: 32px; height: 32px;
+    border-radius: 50%;
+    background: var(--navy);
+    color: #fff;
+    font-size: 13px; font-weight: 600;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+  .step-content { padding-top: 4px; }
+  .step-title { font-size: 14px; font-weight: 600; margin-bottom: 4px; }
+  .step-body { font-size: 13px; color: var(--text-muted); }
+
+  /* ── CALLOUT ── */
+  .callout {
+    display: flex; gap: 12px;
+    padding: 14px 16px;
+    border-radius: var(--radius);
+    margin-bottom: 16px;
+    font-size: 13.5px;
+  }
+  .callout.info { background: var(--blue-pale); border-left: 3px solid var(--blue-accent-bright); color: #1e3a5f; }
+  .callout.warning { background: var(--accent-pale); border-left: 3px solid var(--accent); color: var(--accent-dim); }
+  .callout.danger { background: #fdeaea; border-left: 3px solid #e24b4a; color: #6b1414; }
+  .callout.success { background: var(--blue-pale); border-left: 3px solid var(--blue-accent-bright); color: #1e3a5f; }
+  .callout-icon { font-size: 15px; flex-shrink: 0; margin-top: 1px; }
+
+  /* ── ENV TABLE ── */
+  .env-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  .env-table th {
+    text-align: left; padding: 8px 12px;
+    font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.6px;
+    color: var(--text-muted); background: var(--off-white);
+    border-bottom: 1.5px solid var(--border);
+  }
+  .env-table td { padding: 10px 12px; border-bottom: 1px solid var(--border); vertical-align: top; }
+  .env-table tr:last-child td { border-bottom: none; }
+  .env-key { font-family: var(--mono); font-size: 12px; color: #1a3650; font-weight: 500; }
+  .env-desc { color: var(--text-muted); }
+
+  /* ── CODE BLOCK ── */
+  .code-block {
+    background: var(--navy);
+    border-radius: var(--radius);
+    padding: 18px 20px;
+    font-family: var(--mono);
+    font-size: 12.5px;
+    color: #a8c8e0;
+    line-height: 1.65;
+    overflow-x: auto;
+    margin-bottom: 16px;
+  }
+  .code-block .cmd { color: #fecaca; }
+  .code-block .comment { color: #64748b; }
+  .code-block .str { color: var(--blue-code); }
+
+  /* ── PHASE LIST ── */
+  .phase-list { display: flex; flex-direction: column; gap: 12px; }
+  .phase {
+    background: #fff;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+  }
+  .phase-header {
+    display: flex; align-items: center; gap: 12px;
+    padding: 14px 18px;
+    border-bottom: 1px solid var(--border);
+    background: #fafbfc;
+  }
+  .phase-badge {
+    font-size: 11px; font-weight: 700; font-family: var(--mono);
+    padding: 3px 9px; border-radius: 20px;
+    background: var(--navy); color: #fff;
+    letter-spacing: 0.5px;
+  }
+  .phase-name { font-size: 14px; font-weight: 600; }
+  .phase-tag { margin-left: auto; font-size: 11px; font-weight: 500; padding: 2px 9px; border-radius: 20px; }
+  .phase-tag.weeks { background: var(--blue-pale); color: var(--blue-accent); }
+  .phase-tag.milestone { background: var(--accent-pale); color: var(--accent-dim); }
+  .phase-tag.stable { background: #dbeafe; color: #1e3a5f; }
+  .phase-tag.governance { background: var(--accent-pale); color: var(--accent-dim); }
+  .phase-body { padding: 14px 18px; font-size: 13px; color: var(--text-muted); line-height: 1.6; }
+  .phase-body ul { padding-left: 18px; }
+  .phase-body li { margin-bottom: 4px; }
+
+  /* ── CHECKLIST ── */
+  .checklist { list-style: none; display: flex; flex-direction: column; gap: 8px; }
+  .checklist li {
+    display: flex; align-items: flex-start; gap: 9px;
+    font-size: 13.5px; color: var(--text-main);
+    background: #fff;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 10px 14px;
+  }
+  .checklist li::before {
+    content: '☐';
+    font-size: 14px; color: var(--text-light);
+    flex-shrink: 0; margin-top: 1px;
+  }
+
+  /* ── HELP TABLE ── */
+  .help-grid { display: grid; gap: 10px; }
+  .help-item {
+    display: flex; align-items: flex-start; gap: 12px;
+    background: #fff;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 14px;
+  }
+  .help-q { font-weight: 600; font-size: 13.5px; margin-bottom: 3px; }
+  .help-a { font-size: 13px; color: var(--text-muted); }
+  .help-icon { font-size: 18px; flex-shrink: 0; }
+
+  /* ── ARCH GRID ── */
+  .arch-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .arch-card {
+    background: #fff;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 18px;
+  }
+  .arch-card-label {
+    font-size: 11px; font-weight: 700; letter-spacing: 0.8px; text-transform: uppercase;
+    color: var(--text-light); margin-bottom: 6px;
+    font-family: var(--mono);
+  }
+  .arch-card-name { font-size: 15px; font-weight: 600; margin-bottom: 6px; }
+  .arch-card-desc { font-size: 13px; color: var(--text-muted); line-height: 1.5; }
+  .arch-card-tag {
+    display: inline-block; margin-top: 8px;
+    font-size: 11px; font-weight: 500; font-family: var(--mono);
+    padding: 2px 8px; border-radius: 4px;
+    background: #eef2f6; color: #546578;
+  }
+
+  /* ── URL BADGE ── */
+  .url-display {
+    display: inline-flex; align-items: center; gap: 0;
+    background: var(--navy);
+    border-radius: var(--radius);
+    overflow: hidden;
+    font-family: var(--mono);
+    font-size: 13px;
+    margin-bottom: 20px;
+  }
+  .url-base { padding: 8px 12px; color: #8fa8c0; }
+  .url-bracket { padding: 8px 0; color: #4a6880; }
+  .url-param { padding: 8px 12px; background: rgba(191,10,48,0.28); color: #fecaca; }
+  .url-path { padding: 8px 12px; color: #c8d8e8; }
+
+  /* ── STATUS BADGES ── */
+  .status-badge {
+    display: inline-flex; align-items: center; gap: 5px;
+    font-size: 11.5px; font-weight: 500;
+    padding: 3px 9px; border-radius: 20px;
+  }
+  .status-badge::before { content: '●'; font-size: 8px; }
+  .status-badge.live { background: var(--accent-pale); color: var(--accent-dim); }
+  .status-badge.planned { background: var(--blue-pale); color: var(--blue-accent); }
+  .status-badge.off { background: #f1efe8; color: #5f5e5a; }
+
+  /* ── TOP NAV ANCHORS ── */
+  .section-anchor { scroll-margin-top: 70px; }
+
+  @media (max-width: 900px) {
+    .sidebar { display: none; }
+    .hero-cards { grid-template-columns: 1fr 1fr; }
+    .card-grid-2, .card-grid-3, .arch-grid { grid-template-columns: 1fr; }
+    .content { padding: 24px 20px 48px; }
+    .hero { padding: 36px 20px 32px; }
+    .topbar { padding: 12px 20px; }
+  }
+</style>
+</head>
+<body>
+<div class="layout">
+
+<!-- SIDEBAR -->
+<aside class="sidebar">
+  <div class="sidebar-brand">
+    <div class="brand-logo">
+      <div class="brand-icon">
+        <svg viewBox="0 0 24 24"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+      </div>
+      <span class="brand-name">Rapid Cortex</span>
+    </div>
+    <div class="brand-version">Platform Documentation</div>
+  </div>
+
+  <nav class="sidebar-nav">
+    <div class="nav-section-label">Getting Started</div>
+    <a class="nav-item active" href="#overview">
+      <span class="nav-dot"></span>What is Rapid Cortex?
+    </a>
+    <a class="nav-item" href="#signin">
+      <span class="nav-dot"></span>Signing In
+    </a>
+    <a class="nav-item" href="#roles">
+      <span class="nav-dot"></span>Roles &amp; Permissions
+    </a>
+
+    <div class="nav-section-label">Using the Platform</div>
+    <a class="nav-item" href="#dispatcher">
+      <span class="nav-dot"></span>Dispatcher Workspace
+    </a>
+    <a class="nav-item" href="#supervisor">
+      <span class="nav-dot"></span>Supervisor Review
+    </a>
+    <a class="nav-item" href="#admin">
+      <span class="nav-dot"></span>Admin Hub
+    </a>
+    <a class="nav-item" href="#demo">
+      <span class="nav-dot"></span>Demo &amp; Training
+    </a>
+
+    <div class="nav-section-label">Operations &amp; Setup</div>
+    <a class="nav-item" href="#installation">
+      <span class="nav-dot"></span>Installation
+    </a>
+    <a class="nav-item" href="#runbook">
+      <span class="nav-dot"></span>Runbook
+    </a>
+    <a class="nav-item" href="#integrations">
+      <span class="nav-dot"></span>CAD &amp; Motorola
+    </a>
+
+    <div class="nav-section-label">Reference</div>
+    <a class="nav-item" href="#tenancy">
+      <span class="nav-dot"></span>Multi-Tenant &amp; RBAC
+    </a>
+    <a class="nav-item" href="#architecture">
+      <span class="nav-dot"></span>Architecture
+    </a>
+    <a class="nav-item" href="#help">
+      <span class="nav-dot"></span>Get Help
+    </a>
+  </nav>
+
+  <div class="sidebar-footer">
+    Platform Docs · v1.0<br/>
+    <a href="https://www.rapidcortex.us">www.rapidcortex.us</a>
+  </div>
+</aside>
+
+<!-- MAIN -->
+<main class="main">
+
+  <!-- TOP BAR -->
+  <div class="topbar">
+    <div class="breadcrumb">
+      Rapid Cortex <span class="breadcrumb-sep">›</span>
+      <span>Platform Documentation</span>
+    </div>
+    <div class="topbar-right">
+      <span class="tag">CJIS-aligned</span>
+      <span class="tag">Multi-tenant</span>
+    </div>
+  </div>
+
+  <!-- HERO -->
+  <div class="hero" id="overview">
+    <div class="hero-eyebrow">Emergency Communications Platform</div>
+    <h1>Rapid Cortex Documentation</h1>
+    <p>A browser-based co-pilot for emergency communications — built to sit alongside your CAD, telephony, and radio systems. Everything your team needs to operate, configure, and integrate.</p>
+
+    <div class="url-display">
+      <span class="url-base">www.rapidcortex.us</span>
+      <span class="url-bracket">/</span>
+      <span class="url-param">[jurisdiction]</span>
+      <span class="url-path">/dashboard</span>
+    </div>
+
+    <div class="hero-cards">
+      <a class="hero-card" href="#dispatcher">
+        <div class="hero-card-icon">🖥️</div>
+        <div class="hero-card-title">Dispatchers</div>
+        <div class="hero-card-desc">Live workspace &amp; AI panel</div>
+      </a>
+      <a class="hero-card" href="#supervisor">
+        <div class="hero-card-icon">🔍</div>
+        <div class="hero-card-title">Supervisors</div>
+        <div class="hero-card-desc">Review &amp; escalation queues</div>
+      </a>
+      <a class="hero-card" href="#admin">
+        <div class="hero-card-icon">⚙️</div>
+        <div class="hero-card-title">Administrators</div>
+        <div class="hero-card-desc">Users, settings &amp; audit</div>
+      </a>
+      <a class="hero-card" href="#installation">
+        <div class="hero-card-icon">🔧</div>
+        <div class="hero-card-title">Operators</div>
+        <div class="hero-card-desc">Deploy &amp; infrastructure</div>
+      </a>
+    </div>
+  </div>
+
+  <!-- CONTENT -->
+  <div class="content">
+
+    <!-- WHAT IT DOES -->
+    <section class="section section-anchor" id="overview-detail">
+      <div class="section-header">
+        <div class="section-icon teal">⚡</div>
+        <div>
+          <div class="section-title">What Rapid Cortex Does</div>
+          <div class="section-subtitle">Platform overview and design philosophy</div>
+        </div>
+      </div>
+      <div class="callout info">
+        <span class="callout-icon">ℹ️</span>
+        <span>Rapid Cortex is <strong>decision support</strong> — not a replacement for your CAD, telephony, or radio systems. AI suggestions are advisory; your agency's SOPs, medical control, and supervisor direction always take precedence.</span>
+      </div>
+      <div class="card-grid card-grid-3" style="margin-top: 16px;">
+        <div class="card">
+          <div class="card-title">📋 Incident Management</div>
+          <div class="card-body">Open incidents for your agency appear in the queue. Selecting one launches the live workspace with transcript and AI recommendations.</div>
+        </div>
+        <div class="card">
+          <div class="card-title">🤖 AI-Assisted Analysis</div>
+          <div class="card-body">The AI panel provides suggestions, protocol hints, and analysis within schema constraints. Outputs are bounded and auditable.</div>
+        </div>
+        <div class="card">
+          <div class="card-title">📡 Live Transcripts</div>
+          <div class="card-body">Segments arrive from simulation, demo scenarios, or integrated external feeds. Treat transcript text as sensitive operational data.</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SIGN IN -->
+    <section class="section section-anchor" id="signin">
+      <div class="section-header">
+        <div class="section-icon blue">🔐</div>
+        <div>
+          <div class="section-title">Signing In</div>
+          <div class="section-subtitle">Authentication and access</div>
+        </div>
+      </div>
+      <div class="steps">
+        <div class="step">
+          <div class="step-num">1</div>
+          <div class="step-content">
+            <div class="step-title">Open your organization's URL</div>
+            <div class="step-body">Navigate to your jurisdiction's address: <code>www.rapidcortex.us/[city-or-county]</code>. Some organizations have separate <strong>training</strong> and <strong>production</strong> URLs — confirm you're on the correct one.</div>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-num">2</div>
+          <div class="step-content">
+            <div class="step-title">Enter your credentials</div>
+            <div class="step-body">Use the email and password issued by your administrator. Authentication is powered by Amazon Cognito. If you've never logged in before, you may be prompted to set a new password.</div>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-num">3</div>
+          <div class="step-content">
+            <div class="step-title">Your role determines your view</div>
+            <div class="step-body">Roles are assigned by your agency administrator. If your role or agency appears incorrect after signing in, contact your agency admin or platform operator.</div>
+          </div>
+        </div>
+      </div>
+      <div class="callout warning">
+        <span class="callout-icon">⚠️</span>
+        <span>Can't sign in? Contact your <strong>agency IT</strong> or Rapid Cortex support per your contract. Do not share login credentials with colleagues.</span>
+      </div>
+    </section>
+
+    <!-- ROLES -->
+    <section class="section section-anchor" id="roles">
+      <div class="section-header">
+        <div class="section-icon amber">👥</div>
+        <div>
+          <div class="section-title">Roles &amp; Permissions</div>
+          <div class="section-subtitle">What each role can access</div>
+        </div>
+      </div>
+      <div class="prose" style="margin-bottom: 16px;">
+        <p>Roles are stored in Cognito as <code>custom:role</code> claims and enforced server-side on every request. The UI mirrors RBAC for experience only — the backend is authoritative.</p>
+      </div>
+      <div style="background:#fff; border:1px solid var(--border); border-radius: var(--radius-lg); overflow:hidden;">
+        <table class="role-table">
+          <thead>
+            <tr>
+              <th>Role</th>
+              <th>Access</th>
+              <th>Typical Use</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><span class="role-badge dispatcher">dispatcher</span></td>
+              <td>Live workspace: incident queue, transcript, AI panel, protocol hints</td>
+              <td>911 call-takers and dispatch staff on active shifts</td>
+            </tr>
+            <tr>
+              <td><span class="role-badge supervisor">supervisor</span></td>
+              <td>All dispatcher access + flagged incident review queue</td>
+              <td>Shift supervisors validating AI output and escalations</td>
+            </tr>
+            <tr>
+              <td><span class="role-badge admin">admin</span></td>
+              <td>User management, agency settings, audit logs (own agency only)</td>
+              <td>Agency IT leads and communications center managers</td>
+            </tr>
+            <tr>
+              <td><span class="role-badge superadmin">platform_superadmin</span></td>
+              <td>Cross-agency operations: create/suspend agencies, list all agencies, invite to any agency</td>
+              <td>Rapid Cortex internal platform operators only</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- DISPATCHER WORKSPACE -->
+    <section class="section section-anchor" id="dispatcher">
+      <div class="section-header">
+        <div class="section-icon teal">🖥️</div>
+        <div>
+          <div class="section-title">Dispatcher Workspace</div>
+          <div class="section-subtitle">The live operations view at <code>/dashboard</code></div>
+        </div>
+      </div>
+      <div class="card-grid card-grid-2">
+        <div class="card">
+          <div class="card-title">Incident List</div>
+          <div class="card-body">Open incidents for your agency appear here when the API is configured. Selecting an incident opens the full live workspace. If no incidents appear, see the <a href="#runbook">Runbook</a>.</div>
+        </div>
+        <div class="card">
+          <div class="card-title">Transcript Panel</div>
+          <div class="card-body">Segments arrive from simulation, demo scenarios, or (when integrated) external feeds. Treat all transcript content as <strong>sensitive operational data</strong> subject to your agency's data policy.</div>
+        </div>
+        <div class="card">
+          <div class="card-title">AI Panel</div>
+          <div class="card-body">Suggestions are <strong>decision support</strong>, not orders. Always follow your agency's SOPs, medical control direction, and supervisor guidance — the AI augments, never overrides.</div>
+        </div>
+        <div class="card">
+          <div class="card-title">Protocol Guidance</div>
+          <div class="card-body">When enabled, the protocol engine surfaces approved phrases and next-step guidance. These are derived from versioned protocol packs aligned to your agency's configuration.</div>
+        </div>
+      </div>
+      <div class="callout success" style="margin-top:16px;">
+        <span class="callout-icon">✓</span>
+        <span>The protocol engine and LLM operate independently. The engine selects steps and approved phrases; the LLM classifies and narrates within a bounded schema. Facts cannot be added in post-processing.</span>
+      </div>
+    </section>
+
+    <!-- HISTORY -->
+    <section class="section section-anchor" id="history">
+      <div class="section-header">
+        <div class="section-icon blue">📂</div>
+        <div>
+          <div class="section-title">History &amp; After-Action Review</div>
+          <div class="section-subtitle">Completed incident archive at <code>/history</code></div>
+        </div>
+      </div>
+      <div class="prose">
+        <p>Browse completed or archived incidents for review and after-action discussion. Filters help narrow the list by date, type, or status. Availability of rows depends on API connectivity and your agency's data-retention configuration.</p>
+        <p>History access follows your role — dispatchers can view their own incidents; supervisors can view agency-wide history; admins have full read access within their agency.</p>
+      </div>
+    </section>
+
+    <!-- SUPERVISOR REVIEW -->
+    <section class="section section-anchor" id="supervisor">
+      <div class="section-header">
+        <div class="section-icon amber">🔍</div>
+        <div>
+          <div class="section-title">Supervisor Review</div>
+          <div class="section-subtitle">Flagged incident inspection at <code>/review</code></div>
+        </div>
+      </div>
+      <div class="prose">
+        <p>Supervisors use the Review area to inspect incidents that require a second look — for example, AI-flagged escalations, protocol deviations, or calls queued by dispatchers for supervisor input.</p>
+        <p>The platform provides queues and views. Workflow specifics — who must review what and within what timeframe — follow your agency's standard operating procedures.</p>
+      </div>
+      <div class="callout info">
+        <span class="callout-icon">ℹ️</span>
+        <span>Rapid Cortex surfaces what needs review; <strong>your SOP defines the policy</strong>. The software does not automate disposition decisions.</span>
+      </div>
+    </section>
+
+    <!-- ADMIN HUB -->
+    <section class="section section-anchor" id="admin">
+      <div class="section-header">
+        <div class="section-icon purple">⚙️</div>
+        <div>
+          <div class="section-title">Admin Hub</div>
+          <div class="section-subtitle">Agency management at <code>/admin</code></div>
+        </div>
+      </div>
+      <div class="card-grid card-grid-2" style="margin-bottom:16px;">
+        <div class="card">
+          <div class="card-title">Users</div>
+          <div class="card-body">List and manage Cognito-backed users within your agency: create accounts, update role and agency attributes, deactivate departing staff. Agency admins are scoped to their own agency only.</div>
+        </div>
+        <div class="card">
+          <div class="card-title">Audit Log</div>
+          <div class="card-body">Read agency-scoped audit events when enabled. Audit covers security- and workflow-sensitive actions including user provisioning, invite lifecycle, and cross-tenant access attempts.</div>
+        </div>
+        <div class="card">
+          <div class="card-title">Settings &amp; Integrations</div>
+          <div class="card-body">Integration status panel shows active connectors. Many connectors are <strong>planned</strong> until your organization completes vendor integration work. See <a href="#integrations">CAD &amp; Motorola</a>.</div>
+        </div>
+        <div class="card">
+          <div class="card-title">Billing</div>
+          <div class="card-body">Billing screens are environment-dependent (Square-oriented in pilot deployments). Treat financial actions as production-sensitive and follow your finance team's approval process.</div>
+        </div>
+      </div>
+
+      <!-- Invite Flow -->
+      <div class="prose"><h3>Inviting a New User</h3></div>
+      <div class="steps">
+        <div class="step">
+          <div class="step-num">1</div>
+          <div class="step-content">
+            <div class="step-title">Navigate to Admin → Users</div>
+            <div class="step-body">Only agency admins and platform superadmins can send invites. Admins are limited to their own agency.</div>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-num">2</div>
+          <div class="step-content">
+            <div class="step-title">Create invite</div>
+            <div class="step-body">Enter the invitee's email, select their role (<code>dispatcher</code>, <code>supervisor</code>, or <code>admin</code>), and optionally set an expiry window. The invite is logged in the audit table.</div>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-num">3</div>
+          <div class="step-content">
+            <div class="step-title">Credentials delivered</div>
+            <div class="step-body">In pilot deployments, credentials are shared out-of-band. On first login, Cognito prompts a required password change. The user's account then carries the correct <code>agencyId</code> and role claims.</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- DEMO & TRAINING -->
+    <section class="section section-anchor" id="demo">
+      <div class="section-header">
+        <div class="section-icon green">🎓</div>
+        <div>
+          <div class="section-title">Demo &amp; Training Mode</div>
+          <div class="section-subtitle">Scripted scenarios at <code>/demo</code></div>
+        </div>
+      </div>
+      <div class="callout danger">
+        <span class="callout-icon">🚨</span>
+        <span>The demo banner is always visible when you are <strong>not on live data</strong>. Never use demo mode for real operational decisions.</span>
+      </div>
+      <div class="prose">
+        <p>The demo experience is for <strong>training and sales walkthroughs</strong> using scripted scenarios — for example cardiac arrest or structure fire. Use <strong>Start</strong>, <strong>Pause/Resume</strong>, and <strong>Reset</strong> controls as directed by your trainer. All data paths are identical to production; only the data source differs.</p>
+      </div>
+    </section>
+
+    <!-- INSTALLATION -->
+    <section class="section section-anchor" id="installation">
+      <div class="section-header">
+        <div class="section-icon blue">🔧</div>
+        <div>
+          <div class="section-title">Installation &amp; Deployment</div>
+          <div class="section-subtitle">For DevOps and platform operators</div>
+        </div>
+      </div>
+
+      <div class="prose"><h3>Prerequisites</h3></div>
+      <div style="background:#fff; border:1px solid var(--border); border-radius: var(--radius-lg); overflow:hidden; margin-bottom:16px;">
+        <table class="env-table">
+          <thead><tr><th>Tool</th><th>Version</th><th>Notes</th></tr></thead>
+          <tbody>
+            <tr><td class="env-key">Node.js</td><td>22+ LTS</td><td class="env-desc">Recommended for all workspaces</td></tr>
+            <tr><td class="env-key">npm</td><td>10+</td><td class="env-desc">Workspace-aware package management</td></tr>
+            <tr><td class="env-key">AWS CLI</td><td>Latest</td><td class="env-desc">Configured profile with SAM deploy rights</td></tr>
+            <tr><td class="env-key">AWS SAM CLI</td><td>Latest</td><td class="env-desc">For <code>sam build</code> / <code>sam deploy</code></td></tr>
+            <tr><td class="env-key">Docker</td><td>Any</td><td class="env-desc">Required for <code>sam local start-api</code> only</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="prose"><h3>Deploy Steps</h3></div>
+      <div class="steps">
+        <div class="step">
+          <div class="step-num">1</div>
+          <div class="step-content">
+            <div class="step-title">Clone &amp; install</div>
+            <div class="step-body"><code>git clone &lt;repo-url&gt; &amp;&amp; npm install</code></div>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-num">2</div>
+          <div class="step-content">
+            <div class="step-title">Configure environment</div>
+            <div class="step-body">Copy <code>.env.example</code> to <code>apps/web/.env.local</code> and set <code>NEXT_PUBLIC_API_BASE</code> (direct mode) or <code>NEXT_PUBLIC_AUTH_PROXY=1</code> + <code>API_UPSTREAM_BASE</code> (BFF proxy mode). Align Cognito variables with stack outputs.</div>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-num">3</div>
+          <div class="step-content">
+            <div class="step-title">Build</div>
+            <div class="step-body"><code>npm run build</code> — builds workspaces in dependency order: shared → protocols → integrations → security → api → web.</div>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-num">4</div>
+          <div class="step-content">
+            <div class="step-title">Deploy API</div>
+            <div class="step-body"><code>./scripts/deploy.sh dev</code> (or <code>staging</code> / <code>prod</code>). Optional env vars for domain wiring: <code>API_DOMAIN_CERT_ARN</code>, <code>ROUTE53_HOSTED_ZONE_ID</code>, CNAME targets.</div>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-num">5</div>
+          <div class="step-content">
+            <div class="step-title">Smoke test</div>
+            <div class="step-body"><code>./scripts/post-deploy-smoke.sh dev us-east-1</code> — validates health endpoint, auth gate, and custom domain if configured.</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="prose"><h3>Key Environment Variables</h3></div>
+      <div style="background:#fff; border:1px solid var(--border); border-radius: var(--radius-lg); overflow:hidden; margin-bottom:16px;">
+        <table class="env-table">
+          <thead><tr><th>Variable</th><th>Purpose</th></tr></thead>
+          <tbody>
+            <tr><td class="env-key">NEXT_PUBLIC_API_BASE</td><td class="env-desc">Full API URL when browser calls the API directly with bearer tokens</td></tr>
+            <tr><td class="env-key">NEXT_PUBLIC_AUTH_PROXY</td><td class="env-desc">Set to <code>1</code> to use the Next.js BFF proxy (cookies instead of exposed tokens)</td></tr>
+            <tr><td class="env-key">API_UPSTREAM_BASE</td><td class="env-desc">Server-only: SAM API base URL when using auth proxy</td></tr>
+            <tr><td class="env-key">COGNITO_USER_POOL_ID</td><td class="env-desc">Must match the pool used by the API JWT authorizer</td></tr>
+            <tr><td class="env-key">INTEGRATION_TRANSCRIPT_CONNECTOR_MODE</td><td class="env-desc"><code>off</code> | <code>shadow</code> | <code>on</code> — controls transcript connector rollout</td></tr>
+            <tr><td class="env-key">PRIMARY_PROVIDER</td><td class="env-desc">AI provider selection; set alongside API keys</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="prose"><h3>First-Time Agency Onboarding</h3></div>
+      <ul class="checklist">
+        <li>Create or select a Cognito User Pool for the target environment</li>
+        <li>Deploy the SAM stack for the target stage (<code>dev</code> / <code>staging</code> / <code>prod</code>)</li>
+        <li>Create the agency row via the admin API or seed script</li>
+        <li>Invite the initial agency admin with correct <code>agencyId</code> and <code>admin</code> role</li>
+        <li>Agency admin invites dispatchers and supervisors via the Admin Hub</li>
+        <li>Smoke-test: health endpoint, sign-in, incident list, audit log</li>
+      </ul>
+    </section>
+
+    <!-- RUNBOOK -->
+    <section class="section section-anchor" id="runbook">
+      <div class="section-header">
+        <div class="section-icon red">🚨</div>
+        <div>
+          <div class="section-title">Operations Runbook</div>
+          <div class="section-subtitle">For on-call engineers and DevOps responding to incidents</div>
+        </div>
+      </div>
+
+      <div class="prose"><h3>Health Checks</h3></div>
+      <div style="background:#fff; border:1px solid var(--border); border-radius: var(--radius-lg); overflow:hidden; margin-bottom:20px;">
+        <table class="env-table">
+          <thead><tr><th>Check</th><th>Endpoint</th><th>Expected</th></tr></thead>
+          <tbody>
+            <tr>
+              <td class="env-desc">API liveness</td>
+              <td class="env-key">GET /api/health</td>
+              <td class="env-desc"><strong>200</strong> — JSON with <code>"status":"ok"</code></td>
+            </tr>
+            <tr>
+              <td class="env-desc">Auth gate</td>
+              <td class="env-key">GET /api/me</td>
+              <td class="env-desc"><strong>401</strong> without Authorization header</td>
+            </tr>
+            <tr>
+              <td class="env-desc">Custom domain</td>
+              <td class="env-key">Same paths on ApiCustomDomainUrl</td>
+              <td class="env-desc">Same as above when configured</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="prose"><h3>Common Issues</h3></div>
+      <div class="phase-list">
+        <div class="phase">
+          <div class="phase-header">
+            <span class="phase-badge">SYM 1</span>
+            <span class="phase-name">"API not configured" or empty incident list</span>
+          </div>
+          <div class="phase-body">
+            <ul>
+              <li>Check: browser network calls return <strong>401 / 403 / 502</strong></li>
+              <li>Verify: <code>NEXT_PUBLIC_API_BASE</code> or proxy + <code>API_UPSTREAM_BASE</code> match stack outputs</li>
+              <li>Verify: user JWT contains <code>custom:agencyId</code> and <code>custom:role</code></li>
+            </ul>
+          </div>
+        </div>
+        <div class="phase">
+          <div class="phase-header">
+            <span class="phase-badge">SYM 2</span>
+            <span class="phase-name">All API requests return 401</span>
+          </div>
+          <div class="phase-body">
+            <ul>
+              <li>Check: <code>Authorization: Bearer &lt;id token&gt;</code> present (direct mode) or cookie flow (proxy mode)</li>
+              <li>Verify: Cognito app client ID and issuer match the pool used by the API authorizer</li>
+            </ul>
+          </div>
+        </div>
+        <div class="phase">
+          <div class="phase-header">
+            <span class="phase-badge">SYM 3</span>
+            <span class="phase-name">Elevated 5xx from API Gateway</span>
+          </div>
+          <div class="phase-body">
+            <ul>
+              <li>Check: CloudWatch Logs for the Lambda behind the failing route</li>
+              <li>Check: DynamoDB throttling; IAM <code>AccessDenied</code> on table or S3</li>
+              <li>Mitigate: roll back recent template change; throttle on <code>HttpApi DefaultRouteSettings</code> already set</li>
+            </ul>
+          </div>
+        </div>
+        <div class="phase">
+          <div class="phase-header">
+            <span class="phase-badge">SYM 4</span>
+            <span class="phase-name">Integration status always "off" / no external transcript</span>
+          </div>
+          <div class="phase-body">
+            Expected unless <code>INTEGRATION_TRANSCRIPT_CONNECTOR_MODE</code> is <code>shadow</code> or <code>on</code> and adapters are implemented. See <a href="#integrations">CAD &amp; Motorola Integration</a>.
+          </div>
+        </div>
+      </div>
+
+      <div class="prose" style="margin-top:20px;"><h3>Escalation Path</h3></div>
+      <div class="steps">
+        <div class="step">
+          <div class="step-num">L1</div>
+          <div class="step-content">
+            <div class="step-title">First response</div>
+            <div class="step-body">Confirm health endpoints, review recent deploys, check for environment variable drift.</div>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-num">L2</div>
+          <div class="step-content">
+            <div class="step-title">Platform deep dive</div>
+            <div class="step-body">CloudWatch investigation, IAM policy changes, Cognito pool issues.</div>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-num">L3</div>
+          <div class="step-content">
+            <div class="step-title">Engineering &amp; AWS</div>
+            <div class="step-body">Application bug triage, vendor (AWS) support cases.</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- INTEGRATIONS -->
+    <section class="section section-anchor" id="integrations">
+      <div class="section-header">
+        <div class="section-icon amber">📡</div>
+        <div>
+          <div class="section-title">CAD &amp; Motorola Integration</div>
+          <div class="section-subtitle">How Rapid Cortex connects to dispatch systems</div>
+        </div>
+      </div>
+      <div class="callout warning">
+        <span class="callout-icon">⚠️</span>
+        <span>The live CAD connector is <strong>not turnkey</strong> in this release. The admin UI shows CAD as <span class="status-badge planned">planned</span>. Integration requires a scoped engagement with your vendor and Rapid Cortex engineering.</span>
+      </div>
+
+      <div class="prose" style="margin-bottom:16px;">
+        <p>"Motorola CAD" is not one universal API. Integration depends on your specific product generation, contract scope, hosting topology, and CJIS networking requirements. Treat it as a discovery and design exercise.</p>
+      </div>
+
+      <div class="phase-list">
+        <div class="phase">
+          <div class="phase-header">
+            <span class="phase-badge">Phase A</span>
+            <span class="phase-name">Discovery</span>
+            <span class="phase-tag weeks">Weeks — involve vendor TAM/PS</span>
+          </div>
+          <div class="phase-body">
+            <ul>
+              <li>Inventory systems: CAD product name/version, RMS, logging recorder, 911 CPE, any middleware</li>
+              <li>List integration options the vendor supports for your deployment (APIs, message buses, XML/JSON feeds, webhooks)</li>
+              <li>Define data scope: which fields Rapid Cortex needs and what must never leave CAD</li>
+              <li>Agree on security path: CJIS alignment, TLS 1.2+, authentication method, audit requirements</li>
+            </ul>
+          </div>
+        </div>
+        <div class="phase">
+          <div class="phase-header">
+            <span class="phase-badge">Phase B</span>
+            <span class="phase-name">Read-only Shadow Mode</span>
+            <span class="phase-tag milestone">First technical milestone</span>
+          </div>
+          <div class="phase-body">
+            Ingest incident updates or transcript-adjacent events into Rapid Cortex <strong>without</strong> controlling dispatch. Use <code>INTEGRATION_TRANSCRIPT_CONNECTOR_MODE=shadow</code> to compare external feed behavior to mock/live paths before full reliance.
+          </div>
+        </div>
+        <div class="phase">
+          <div class="phase-header">
+            <span class="phase-badge">Phase C</span>
+            <span class="phase-name">Live — Operator Enabled</span>
+            <span class="phase-tag stable">After validation</span>
+          </div>
+          <div class="phase-body">
+            Enable <code>on</code> for allow-listed agencies after shadow validation. Maintain human-in-the-loop for any suggestion that could influence dispatch or medical decisions.
+          </div>
+        </div>
+        <div class="phase">
+          <div class="phase-header">
+            <span class="phase-badge">Phase D</span>
+            <span class="phase-name">Write-back</span>
+            <span class="phase-tag governance">Requires explicit governance</span>
+          </div>
+          <div class="phase-body">
+            Automatic CAD updates are a <strong>non-goal for MVP</strong>. Any write-back requires dual authorization, idempotency, replay protection, and audit events. Reopening requires legal and vendor review.
+          </div>
+        </div>
+      </div>
+
+      <div class="prose" style="margin-top:20px;"><h3>Motorola Engagement Checklist</h3></div>
+      <ul class="checklist">
+        <li>Confirm product names, versions, and hosting model with your Motorola Solutions account team</li>
+        <li>Request the integration catalog for your SKU: protocols, rate limits, test environments</li>
+        <li>Request a non-production endpoint for Rapid Cortex development and testing</li>
+        <li>Agree on network path (public internet vs private connectivity) and IP allow-lists</li>
+        <li>Agree on data elements available in each message and retention constraints</li>
+        <li>Plan fallback: if the feed stalls, dispatch continues in CAD per your SOP</li>
+      </ul>
+    </section>
+
+    <!-- MULTI-TENANT -->
+    <section class="section section-anchor" id="tenancy">
+      <div class="section-header">
+        <div class="section-icon purple">🏢</div>
+        <div>
+          <div class="section-title">Multi-Tenant &amp; RBAC</div>
+          <div class="section-subtitle">How agencies are isolated and authorized</div>
+        </div>
+      </div>
+      <div class="callout info">
+        <span class="callout-icon">ℹ️</span>
+        <span>This specification is <strong>CJIS-aligned</strong> by design — but alignment is not a certification claim. Follow your agency's CJIS policy for compliance obligations.</span>
+      </div>
+      <div class="card-grid card-grid-2" style="margin-bottom:16px;">
+        <div class="card">
+          <div class="card-title">Tenant = Agency</div>
+          <div class="card-body">Every customer organization is an Agency (tenant). All operational and configuration data is scoped by <code>agencyId</code>. No email-domain tenancy — domain may be a UX hint only, never a security boundary.</div>
+        </div>
+        <div class="card">
+          <div class="card-title">JWT Claims</div>
+          <div class="card-body">Cognito ID tokens supply <code>sub</code>, <code>email</code>, <code>custom:agencyId</code>, and <code>custom:role</code>. The backend is authoritative for authorization on every request.</div>
+        </div>
+        <div class="card">
+          <div class="card-title">Platform Superadmin</div>
+          <div class="card-body">Uses a sentinel tenant ID (<code>__platform__</code>) and can bypass read tenant boundaries only on explicitly allow-listed operations. Cannot dispatch on behalf of agencies.</div>
+        </div>
+        <div class="card">
+          <div class="card-title">Audit Trail</div>
+          <div class="card-body">Sensitive actions write to the Audit table with actor (<code>sub</code>), target agency, event type, and timestamp. Event types include agency lifecycle, invite lifecycle, and user admin actions.</div>
+        </div>
+      </div>
+
+      <div class="prose"><h3>Agency Onboarding Flow (Platform Superadmin)</h3></div>
+      <div class="steps">
+        <div class="step">
+          <div class="step-num">1</div>
+          <div class="step-content">
+            <div class="step-title">Create agency</div>
+            <div class="step-body"><code>POST /api/agencies</code> — creates agency row + default config. Emits <code>agency.created</code> audit event.</div>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-num">2</div>
+          <div class="step-content">
+            <div class="step-title">Invite initial admin</div>
+            <div class="step-body"><code>POST /api/agencies/:id/invites</code> with role <code>admin</code>. Invite enters <em>pending</em> state; emits <code>invite.created</code>.</div>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-num">3</div>
+          <div class="step-content">
+            <div class="step-title">First login</div>
+            <div class="step-body">Invitee receives credentials out-of-band (pilot) or via future email link. Cognito <code>FORCE_CHANGE_PASSWORD</code> completes on first login; claims carry <code>agencyId</code> and role.</div>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-num">4</div>
+          <div class="step-content">
+            <div class="step-title">Agency admin provisions staff</div>
+            <div class="step-body">Agency admin invites dispatchers and supervisors via Admin Hub. All invite activity is audited.</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ARCHITECTURE -->
+    <section class="section section-anchor" id="architecture">
+      <div class="section-header">
+        <div class="section-icon teal">🏗️</div>
+        <div>
+          <div class="section-title">Architecture Overview</div>
+          <div class="section-subtitle">Monorepo structure and AWS-native principles</div>
+        </div>
+      </div>
+
+      <div class="arch-grid" style="margin-bottom: 20px;">
+        <div class="arch-card">
+          <div class="arch-card-label">apps/web</div>
+          <div class="arch-card-name">Next.js UI</div>
+          <div class="arch-card-desc">Browser app, BFF routes, Cognito session bridging. Deployable to Vercel, ECS, Amplify, or any container host.</div>
+          <span class="arch-card-tag">Next.js · React</span>
+        </div>
+        <div class="arch-card">
+          <div class="arch-card-label">apps/api</div>
+          <div class="arch-card-name">Serverless API</div>
+          <div class="arch-card-desc">AWS Lambda + API Gateway handlers, services, and repositories. JWT authorizer (Cognito) on all routes except documented public paths.</div>
+          <span class="arch-card-tag">Lambda · API Gateway · SAM</span>
+        </div>
+        <div class="arch-card">
+          <div class="arch-card-label">packages/shared</div>
+          <div class="arch-card-name">Shared Types</div>
+          <div class="arch-card-desc">TypeScript types and Zod schemas shared across API and web to prevent UI/API drift.</div>
+          <span class="arch-card-tag">TypeScript · Zod</span>
+        </div>
+        <div class="arch-card">
+          <div class="arch-card-label">packages/security</div>
+          <div class="arch-card-name">RBAC &amp; Audit</div>
+          <div class="arch-card-desc">RBAC helpers, audit/redaction utilities, policy types, and the audit event vocabulary used by all handlers.</div>
+          <span class="arch-card-tag">Security · Policy</span>
+        </div>
+        <div class="arch-card">
+          <div class="arch-card-label">packages/integrations</div>
+          <div class="arch-card-name">Vendor Adapters</div>
+          <div class="arch-card-desc">Vendor-agnostic adapter interfaces for audio, CAD, and event feeds. Includes mock implementations for development and testing.</div>
+          <span class="arch-card-tag">CadAdapter · MockCadAdapter</span>
+        </div>
+        <div class="arch-card">
+          <div class="arch-card-label">infra/</div>
+          <div class="arch-card-name">Infrastructure</div>
+          <div class="arch-card-desc">SAM template defining all AWS resources: API Gateway, Lambda, DynamoDB, S3, Cognito, CloudWatch, Route53. Env matrices and GovCloud migration notes.</div>
+          <span class="arch-card-tag">SAM · CloudFormation</span>
+        </div>
+      </div>
+
+      <div class="prose"><h3>Domain Topology</h3></div>
+      <div style="background:#fff; border:1px solid var(--border); border-radius: var(--radius-lg); overflow:hidden;">
+        <table class="env-table">
+          <thead><tr><th>Host</th><th>Purpose</th></tr></thead>
+          <tbody>
+            <tr><td class="env-key">www.rapidcortex.us/[jurisdiction]</td><td class="env-desc">Primary web app — dispatcher, supervisor, and admin routes</td></tr>
+            <tr><td class="env-key">api.rapidcortex.us</td><td class="env-desc">Backend API custom domain (API Gateway regional endpoint)</td></tr>
+            <tr><td class="env-key">app.rapidcortex.us</td><td class="env-desc">Optional alternate app host (split from marketing)</td></tr>
+            <tr><td class="env-key">admin.rapidcortex.us</td><td class="env-desc">Optional dedicated admin host</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- GET HELP -->
+    <section class="section section-anchor" id="help">
+      <div class="section-header">
+        <div class="section-icon green">💬</div>
+        <div>
+          <div class="section-title">Get Help</div>
+          <div class="section-subtitle">Who to contact for different issues</div>
+        </div>
+      </div>
+      <div class="help-grid">
+        <div class="help-item">
+          <span class="help-icon">🔑</span>
+          <div>
+            <div class="help-q">Login, password, or MFA issues</div>
+            <div class="help-a">Contact your <strong>agency IT</strong> or Rapid Cortex support per your contract.</div>
+          </div>
+        </div>
+        <div class="help-item">
+          <span class="help-icon">📭</span>
+          <div>
+            <div class="help-q">Missing incidents or "API offline" errors</div>
+            <div class="help-a">Contact <strong>platform operations</strong>. Reference the Runbook symptom guide above for diagnosis steps.</div>
+          </div>
+        </div>
+        <div class="help-item">
+          <span class="help-icon">👤</span>
+          <div>
+            <div class="help-q">Wrong role or agency on your account</div>
+            <div class="help-a">Contact your <strong>agency admin</strong> or platform operator to update Cognito attributes.</div>
+          </div>
+        </div>
+        <div class="help-item">
+          <span class="help-icon">📻</span>
+          <div>
+            <div class="help-q">CAD, radio, or 911 vendor problems</div>
+            <div class="help-a">Contact <strong>that vendor's support</strong> directly. Rapid Cortex does not replace or control those systems.</div>
+          </div>
+        </div>
+        <div class="help-item">
+          <span class="help-icon">🔗</span>
+          <div>
+            <div class="help-q">CAD or Motorola integration questions</div>
+            <div class="help-a">Engage your <strong>Motorola Solutions account team</strong> and Rapid Cortex engineering simultaneously. See the Integrations section above.</div>
+          </div>
+        </div>
+        <div class="help-item">
+          <span class="help-icon">💳</span>
+          <div>
+            <div class="help-q">Billing or financial actions</div>
+            <div class="help-a">Follow your <strong>finance team's approval process</strong>. Treat all billing actions as production-sensitive.</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </div><!-- /content -->
+</main>
+</div><!-- /layout -->
+
+<script>
+  const navItems = document.querySelectorAll('.nav-item');
+  const sections = document.querySelectorAll('.section-anchor, #overview, #overview-detail');
+
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        const id = entry.target.id;
+        navItems.forEach(item => {
+          item.classList.remove('active');
+          if (item.getAttribute('href') === '#' + id) {
+            item.classList.add('active');
+          }
+        });
+      }
+    });
+  }, { rootMargin: '-20% 0px -70% 0px' });
+
+  sections.forEach(s => observer.observe(s));
+
+  navItems.forEach(item => {
+    item.addEventListener('click', (e) => {
+      e.preventDefault();
+      const target = document.querySelector(item.getAttribute('href'));
+      if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+  });
+</script>
+</body>
+</html>

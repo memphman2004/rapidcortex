@@ -1,0 +1,226 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Transform: AWS::Serverless-2016-10-31
+Description: Rapid Cortex — Deception Shield (routes attach to stack 2 HttpApi via ApiGatewayV2)
+
+Parameters:
+  DeploymentStage:
+    Type: String
+    AllowedValues: [dev, staging, prod, pilot]
+  HttpApiId:
+    Type: String
+  DeceptionEventsTable:
+    Type: String
+  OpsAlertsTopicArn:
+    Type: String
+  ManagedPolicyNamePrefix:
+    Type: String
+    Default: rapid-cortex
+
+Globals:
+  Function:
+    Runtime: nodejs20.x
+    Timeout: 30
+    MemorySize: 512
+    Environment:
+      Variables:
+        DEPLOYMENT_STAGE: !Ref DeploymentStage
+        ALLOW_UNAUTHENTICATED_API: "false"
+
+Resources:
+  AppManagedPolicyDeceptionOpsAlertsSnsPublish:
+    Type: AWS::IAM::ManagedPolicy
+    Properties:
+      ManagedPolicyName: !Sub "${ManagedPolicyNamePrefix}-sam2-deception-sns-${DeploymentStage}"
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Sid: PublishOpsAlertsTopicOnly
+            Effect: Allow
+            Action:
+              - sns:Publish
+            Resource: !Ref OpsAlertsTopicArn
+
+  DeceptionDecoyHttpFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/handlers/deception/deceptionDecoyHttp.handler
+      Timeout: 10
+      MemorySize: 256
+      Environment:
+        Variables:
+          DECEPTION_EVENTS_TABLE: !Ref DeceptionEventsTable
+          DECEPTION_ALERTS_ENABLED: "true"
+          OPS_ALERTS_TOPIC_ARN: !Ref OpsAlertsTopicArn
+      Policies:
+        - Statement:
+            Sid: DeceptionEventsDecoyOnly
+            Effect: Allow
+            Action:
+              - dynamodb:PutItem
+              - dynamodb:Query
+            Resource:
+              - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${DeceptionEventsTable}
+              - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${DeceptionEventsTable}/index/*
+        - !Ref AppManagedPolicyDeceptionOpsAlertsSnsPublish
+
+  DeceptionEventsAdminHttpFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/handlers/admin/deceptionEventsHttp.handler
+      Environment:
+        Variables:
+          DECEPTION_EVENTS_TABLE: !Ref DeceptionEventsTable
+      Policies:
+        - Statement:
+            Sid: DeceptionEventsReadOnly
+            Effect: Allow
+            Action:
+              - dynamodb:Scan
+              - dynamodb:Query
+            Resource:
+              - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${DeceptionEventsTable}
+              - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${DeceptionEventsTable}/index/*
+
+  DeceptionDecoyHttpIntegration:
+    Type: AWS::ApiGatewayV2::Integration
+    Properties:
+      ApiId: !Ref HttpApiId
+      IntegrationType: AWS_PROXY
+      IntegrationUri: !Sub arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${DeceptionDecoyHttpFunction.Arn}/invocations
+      PayloadFormatVersion: "2.0"
+
+  DeceptionEventsAdminHttpIntegration:
+    Type: AWS::ApiGatewayV2::Integration
+    Properties:
+      ApiId: !Ref HttpApiId
+      IntegrationType: AWS_PROXY
+      IntegrationUri: !Sub arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${DeceptionEventsAdminHttpFunction.Arn}/invocations
+      PayloadFormatVersion: "2.0"
+
+  DeceptionDecoyHttpInvokePermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !Ref DeceptionDecoyHttpFunction
+      Principal: apigateway.amazonaws.com
+      SourceArn: !Sub arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${HttpApiId}/*
+
+  DeceptionEventsAdminHttpInvokePermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !Ref DeceptionEventsAdminHttpFunction
+      Principal: apigateway.amazonaws.com
+      SourceArn: !Sub arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${HttpApiId}/*
+
+  RouteDecoyCadSyncGet:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref HttpApiId
+      RouteKey: "GET /api/internal/cad-sync"
+      AuthorizationType: NONE
+      Target: !Sub "integrations/${DeceptionDecoyHttpIntegration}"
+  RouteDecoyCadSyncPost:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref HttpApiId
+      RouteKey: "POST /api/internal/cad-sync"
+      AuthorizationType: NONE
+      Target: !Sub "integrations/${DeceptionDecoyHttpIntegration}"
+  RouteDecoyCadWritebackGet:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref HttpApiId
+      RouteKey: "GET /api/internal/cad-writeback"
+      AuthorizationType: NONE
+      Target: !Sub "integrations/${DeceptionDecoyHttpIntegration}"
+  RouteDecoyCadWritebackPost:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref HttpApiId
+      RouteKey: "POST /api/internal/cad-writeback"
+      AuthorizationType: NONE
+      Target: !Sub "integrations/${DeceptionDecoyHttpIntegration}"
+  RouteDecoyNcicGet:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref HttpApiId
+      RouteKey: "GET /api/internal/ncic-gateway"
+      AuthorizationType: NONE
+      Target: !Sub "integrations/${DeceptionDecoyHttpIntegration}"
+  RouteDecoyNcicPost:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref HttpApiId
+      RouteKey: "POST /api/internal/ncic-gateway"
+      AuthorizationType: NONE
+      Target: !Sub "integrations/${DeceptionDecoyHttpIntegration}"
+  RouteDecoyAgencyRoot:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref HttpApiId
+      RouteKey: "GET /api/internal/agency-root"
+      AuthorizationType: NONE
+      Target: !Sub "integrations/${DeceptionDecoyHttpIntegration}"
+  RouteDecoyAdminBackup:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref HttpApiId
+      RouteKey: "GET /api/admin-backup"
+      AuthorizationType: NONE
+      Target: !Sub "integrations/${DeceptionDecoyHttpIntegration}"
+  RouteDecoyRcLiteRoot:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref HttpApiId
+      RouteKey: "GET /api/rc-lite/root"
+      AuthorizationType: NONE
+      Target: !Sub "integrations/${DeceptionDecoyHttpIntegration}"
+  RouteDecoySystemSecrets:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref HttpApiId
+      RouteKey: "GET /api/system/secrets"
+      AuthorizationType: NONE
+      Target: !Sub "integrations/${DeceptionDecoyHttpIntegration}"
+  RouteDecoyDebugEnv:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref HttpApiId
+      RouteKey: "GET /api/debug/env"
+      AuthorizationType: NONE
+      Target: !Sub "integrations/${DeceptionDecoyHttpIntegration}"
+  RouteDecoyV1CadExportTest:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref HttpApiId
+      RouteKey: "GET /api/v1/cad/export-test"
+      AuthorizationType: NONE
+      Target: !Sub "integrations/${DeceptionDecoyHttpIntegration}"
+
+  RouteDeceptionEventsList:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref HttpApiId
+      RouteKey: "GET /api/admin/security/deception-events"
+      Target: !Sub "integrations/${DeceptionEventsAdminHttpIntegration}"
+  RouteDeceptionEventsOptions:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref HttpApiId
+      RouteKey: "OPTIONS /api/admin/security/deception-events"
+      Target: !Sub "integrations/${DeceptionEventsAdminHttpIntegration}"
+
+Outputs:
+  DeceptionDecoyHttpFunctionName:
+    Value: !Ref DeceptionDecoyHttpFunction
+  DeceptionEventsAdminHttpFunctionName:
+    Value: !Ref DeceptionEventsAdminHttpFunction

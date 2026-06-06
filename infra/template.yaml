@@ -232,6 +232,34 @@ Parameters:
     Default: "false"
     AllowedValues: ["true", "false"]
     Description: Set true to deploy live-video KVS functions/routes. Default false keeps core API leaner.
+  EnableSilentText:
+    Type: String
+    Default: "false"
+    AllowedValues: ["true", "false"]
+    Description: >-
+      Server-side feature flag for Silent Text (SMS link -> web text chat). The route Lambdas are
+      always created on the custom domain, but with `false` they return 503 SERVICE_UNAVAILABLE
+      from the handler instead of attempting an SMS send.
+  EnablePinpoint:
+    Type: String
+    Default: "false"
+    AllowedValues: ["true", "false"]
+    Description: >-
+      Server-side feature flag for Pinpoint (caller GPS link). Mirrors `EnableSilentText` —
+      routes exist but handlers gate on this flag at runtime.
+  PilotTestFeaturesEnabled:
+    Type: String
+    Default: auto
+    AllowedValues: [auto, "true", "false"]
+    Description: >-
+      When auto, turns on pilot-test API feature flags for DeploymentStage=dev (Silent Text, Pinpoint,
+      Ring emergency cameras, QA scoring, Surge, SOP AI, etc.). Set false to force off; true to force on in any stage.
+  AppPublicBaseUrl:
+    Type: String
+    Default: "https://www.rapidcortex.us"
+    Description: >-
+      Public origin (no trailing slash) for caller-facing token pages — used to mint absolute
+      Silent Text and Pinpoint links in SMS bodies. Override for non-prod / preview deploys.
   EnableApiWaf:
     Type: String
     Default: "false"
@@ -328,6 +356,18 @@ Parameters:
     Description: >-
       When IncludeDataLayerNestedStack is false (dev legacy): ARN of the existing billing ses-credentials secret. Ignored
       when the nested data layer is enabled. Required in dev when IncludeDataLayerNestedStack is false.
+  FlatDataLayerRingCredentialsSecretArn:
+    Type: String
+    Default: ""
+    Description: >-
+      When IncludeDataLayerNestedStack is false (dev legacy): full ARN of the existing Ring credentials secret
+      (rapid-cortex/connect/ring-credentials-*). Ignored when the nested data layer is enabled.
+  RingCredentialsSecretArnOverride:
+    Type: String
+    Default: "arn:aws:secretsmanager:us-east-1:158961537080:secret:rapid-cortex/connect/ring-credentials-D3f1sN"
+    Description: >-
+      When set, passes this ARN to AppSamStackV2 instead of the data-layer RingCredentialsSecret output
+      (use for manually created rapid-cortex/connect/ring-credentials secrets).
   IncludeAppSamAlarmsNestedStack:
     Type: String
     Default: "true"
@@ -341,6 +381,13 @@ Parameters:
 Conditions:
   HasDataLayerNestedStack: !Equals [!Ref IncludeDataLayerNestedStack, "true"]
   HasAppSamAlarmsNestedStack: !Equals [!Ref IncludeAppSamAlarmsNestedStack, "true"]
+  HasRingCredentialsSecretArnOverride: !Not [!Equals [!Ref RingCredentialsSecretArnOverride, ""]]
+  PilotTestFeaturesOn:
+    Fn::Or:
+      - !Equals [!Ref PilotTestFeaturesEnabled, "true"]
+      - Fn::And:
+          - !Equals [!Ref PilotTestFeaturesEnabled, "auto"]
+          - !Equals [!Ref DeploymentStage, "dev"]
 
 # --- CJIS: fail fast when pilot/stage/prod use permissive CORS or secret IAM patterns ---
 Rules:
@@ -423,6 +470,7 @@ Resources:
         EnableCloudTrailLambdaDataEvents: !Ref EnableCloudTrailLambdaDataEvents
         EnableCloudTrailS3DataEvents: !Ref EnableCloudTrailS3DataEvents
         EnableLiveVideoResources: !Ref EnableLiveVideoResources
+        ExistingRingCredentialsSecretArn: !Ref RingCredentialsSecretArnOverride
         ExternalApiEncryptionKeyArn: !Ref ExternalApiEncryptionKeyArn
         ExternalApiJwtSecretArn: !Ref ExternalApiJwtSecretArn
         HttpApiCorsAllowedOrigins: !Ref HttpApiCorsAllowedOrigins
@@ -540,6 +588,67 @@ Resources:
             - HasDataLayerNestedStack
             - !GetAtt DataLayerStack.Outputs.BillingWebhookEventsTable
             - !Sub "${DynamoTableNamePrefix}-billing-webhook-events-${DeploymentStage}"
+        RingCredentialsSecretArn:
+          Fn::If:
+            - HasRingCredentialsSecretArnOverride
+            - !Ref RingCredentialsSecretArnOverride
+            - Fn::If:
+                - HasDataLayerNestedStack
+                - !GetAtt DataLayerStack.Outputs.RingCredentialsSecretArn
+                - !Ref FlatDataLayerRingCredentialsSecretArn
+        ConnectAccessSessionsTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.ConnectAccessSessionsTable
+            - ""
+        VenueFacilitiesTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.VenueFacilitiesTable
+            - !Sub "rapid-cortex-venue-facilities-${DeploymentStage}"
+        VenueAssetsTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.VenueAssetsTable
+            - !Sub "rapid-cortex-venue-assets-${DeploymentStage}"
+        VenueIncidentOverlaysTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.VenueIncidentOverlaysTable
+            - !Sub "rapid-cortex-venue-incident-overlays-${DeploymentStage}"
+        VenueCameraAccessLogTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.VenueCameraAccessLogTable
+            - !Sub "rapid-cortex-venue-camera-access-log-${DeploymentStage}"
+        VenueConfigTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.VenueConfigTable
+            - !Sub "rapid-cortex-venue-config-${DeploymentStage}"
+        CampusIncidentsTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.CampusIncidentsTable
+            - !Sub "rapid-cortex-campus-incidents-${DeploymentStage}"
+        CampusConfigTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.CampusConfigTable
+            - !Sub "rapid-cortex-campus-config-${DeploymentStage}"
+        QRLocationsTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.QRLocationsTable
+            - !Sub "rapid-cortex-qr-locations-${DeploymentStage}"
+        ConnectBridgeClusterArn: ""
+        VenueBridgeClusterArn: "arn:aws:ecs:us-east-1:158961537080:cluster/rapid-cortex-venue-bridge-dev"
+        ConnectBridgeTaskDefinition: ""
+        VenueBridgeTaskDefinition: "arn:aws:ecs:us-east-1:158961537080:task-definition/rapid-cortex-venue-bridge-dev:1"
+        BridgeSubnetIds: ""
+        BridgeSecurityGroupIds: ""
+        RingApiBaseUrl: ""
+        PilotTestFeaturesEnabled: !Ref PilotTestFeaturesEnabled
         CadIncidentsRawTable:
           Fn::If:
             - HasDataLayerNestedStack
@@ -595,7 +704,7 @@ Resources:
         EnableCloudTrail: !Ref EnableCloudTrail
         EnableCloudTrailLambdaDataEvents: !Ref EnableCloudTrailLambdaDataEvents
         EnableCloudTrailS3DataEvents: !Ref EnableCloudTrailS3DataEvents
-        EnableLiveVideoResources: !Ref EnableLiveVideoResources
+        EnableLiveVideoResources: !If [PilotTestFeaturesOn, "true", !Ref EnableLiveVideoResources]
         ExternalApiEncryptionKeyArn: !Ref ExternalApiEncryptionKeyArn
         ExternalApiJwtSecretArn: !Ref ExternalApiJwtSecretArn
         ExternalApiRateLimitsTable:
@@ -750,6 +859,14 @@ Resources:
             - HasDataLayerNestedStack
             - !GetAtt DataLayerStack.Outputs.SilentTextSessionsTable
             - !Sub "${DynamoTableNamePrefix}-silent-text-sessions-${DeploymentStage}"
+        PinpointLinksTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.PinpointLinksTable
+            - !Sub "${DynamoTableNamePrefix}-pinpoint-links-${DeploymentStage}"
+        EnableSilentText: !If [PilotTestFeaturesOn, "true", !Ref EnableSilentText]
+        EnablePinpoint: !If [PilotTestFeaturesOn, "true", !Ref EnablePinpoint]
+        AppPublicBaseUrl: !Ref AppPublicBaseUrl
         SnsEmailSubscription: !Ref SnsEmailSubscription
         SnsSmsSubscription: !Ref SnsSmsSubscription
         TranscriptRetentionPolicyDays: !Ref TranscriptRetentionPolicyDays
@@ -1036,6 +1153,16 @@ Resources:
             - HasDataLayerNestedStack
             - !GetAtt DataLayerStack.Outputs.PremiseNotesTable
             - !Sub "${DynamoTableNamePrefix}-premise-notes-${DeploymentStage}"
+        PlatformNoticesTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.PlatformNoticesTable
+            - !Sub "${DynamoTableNamePrefix}-platform-notices-${DeploymentStage}"
+        PlatformNoticeAcksTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.PlatformNoticeAcksTable
+            - !Sub "${DynamoTableNamePrefix}-platform-notice-acks-${DeploymentStage}"
         QASessionsTable:
           Fn::If:
             - HasDataLayerNestedStack
@@ -1128,6 +1255,16 @@ Resources:
 
   AppSamHospital2Stack:
     Type: AWS::CloudFormation::Stack
+    # cfn-lint W3005 is overzealous here: the !GetAtt below DOES create the
+    # dependency on AppSam2Stack, but we keep the explicit DependsOn for clarity
+    # (the resource also has parameters from AppSamStackV2 via GetAtt, so the
+    # ordering review-on-sight without DependsOn is misleading). Pre-existing
+    # since commit 19fa348 ("full platform recovery").
+    Metadata:
+      cfn-lint:
+        config:
+          ignore_checks:
+            - W3005
     DependsOn: AppSam2Stack
     Properties:
       TimeoutInMinutes: 60

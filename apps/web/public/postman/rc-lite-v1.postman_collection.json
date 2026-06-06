@@ -1,0 +1,82 @@
+{
+  "info": {
+    "_postman_id": "b4c4c4c8-73d3-4586-9325-rapid-cortex-lite",
+    "name": "Rapid Cortex RC Lite",
+    "description": "API-only SKU for Rapid Cortex intelligence primitives (see /developers).\nSandbox keys default to rk_test_* in local development.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Incident Intelligence ▸ analyze incident",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "X-RC-API-Key", "value": "{{rcApiKey}}", "type": "text" },
+          { "key": "Content-Type", "value": "application/json", "type": "text" },
+          {
+            "key": "Idempotency-Key",
+            "value": "{{idempotencyKey}}",
+            "type": "text"
+          },
+          { "key": "X-Request-Id", "value": "{{requestId}}", "type": "text" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"agencyCode\": \"DEMO\",\n  \"scenario\": \"domestic_disturbance\",\n  \"callerTextSnippet\": \"Screaming in the background\",\n  \"language\": \"en-US\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/intelligence/analyze-incident",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "v1", "intelligence", "analyze-incident"]
+        },
+        "description": "Incident intelligence explainability payloads (confidence, riskFactors, reviewer routing)."
+      }
+    },
+    {
+      "name": "Webhook endpoints ▸ manage",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "X-RC-API-Key", "value": "{{rcApiKey}}", "type": "text" },
+          {
+            "key": "Content-Type",
+            "value": "application/json",
+            "type": "text"
+          },
+          {
+            "key": "Idempotency-Key",
+            "value": "{{idempotencyKey}}",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"url\": \"https://partner.example/internal/rc-lite/webhooks\",\n  \"eventTypes\": [\"incident.analyzed\",\"cad_export.ready\",\"translation.completed\"]\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/webhooks/endpoints",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "v1", "webhooks", "endpoints"]
+        }
+      }
+    }
+  ],
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:3000", "type": "string" },
+    {
+      "key": "rcApiKey",
+      "value": "rk_test_postman_demo",
+      "type": "string"
+    },
+    {
+      "key": "idempotencyKey",
+      "value": "postman-{{$guid}}",
+      "type": "string"
+    },
+    {
+      "key": "requestId",
+      "value": "req-{{$guid}}",
+      "type": "string"
+    }
+  ]
+}

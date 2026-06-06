@@ -1,0 +1,146 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: Rapid Cortex — HL7 MLLP listener (ECS Fargate) for hospital capacity feeds
+
+Parameters:
+  DeploymentStage:
+    Type: String
+    Default: dev
+    AllowedValues: [dev, staging, prod]
+  VpcId:
+    Type: AWS::EC2::VPC::Id
+  SubnetIds:
+    Type: List<AWS::EC2::Subnet::Id>
+    Description: Public subnets for Fargate tasks with AssignPublicIp
+  HospitalCapacityTableName:
+    Type: String
+    Description: DynamoDB table name (rapid-cortex-hospital-capacity-*)
+  Hl7ListenerImageUri:
+    Type: String
+    Description: ECR image URI for hl7-listener container
+  Hl7FacilityMapJson:
+    Type: String
+    Default: "{}"
+    Description: JSON map of sending facility code to agencyId/hospitalId/bedTotals
+  AllowedHospitalCidr:
+    Type: String
+    Default: "10.0.0.0/8"
+    Description: CIDR allowed to connect on MLLP port 2575 (tighten in prod)
+
+Resources:
+  Hl7Cluster:
+    Type: AWS::ECS::Cluster
+    Properties:
+      ClusterName: !Sub rapid-cortex-hl7-${DeploymentStage}
+
+  Hl7LogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub /ecs/rapid-cortex-hl7-${DeploymentStage}
+      RetentionInDays: 30
+
+  Hl7SecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: !Sub HL7 MLLP listener ${DeploymentStage}
+      VpcId: !Ref VpcId
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 2575
+          ToPort: 2575
+          CidrIp: !Ref AllowedHospitalCidr
+
+  Hl7TaskExecutionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: ecs-tasks.amazonaws.com
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy
+
+  Hl7TaskRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: ecs-tasks.amazonaws.com
+            Action: sts:AssumeRole
+      Policies:
+        - PolicyName: HospitalCapacityWrite
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - dynamodb:PutItem
+                  - dynamodb:GetItem
+                  - dynamodb:Query
+                Resource:
+                  - !Sub
+                    - arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${TableName}
+                    - TableName: !Ref HospitalCapacityTableName
+
+  Hl7TaskDefinition:
+    Type: AWS::ECS::TaskDefinition
+    Properties:
+      Family: !Sub rapid-cortex-hl7-${DeploymentStage}
+      NetworkMode: awsvpc
+      RequiresCompatibilities:
+        - FARGATE
+      Cpu: "256"
+      Memory: "512"
+      ExecutionRoleArn: !GetAtt Hl7TaskExecutionRole.Arn
+      TaskRoleArn: !GetAtt Hl7TaskRole.Arn
+      ContainerDefinitions:
+        - Name: hl7-listener
+          Image: !Ref Hl7ListenerImageUri
+          PortMappings:
+            - ContainerPort: 2575
+              Protocol: tcp
+          LogConfiguration:
+            LogDriver: awslogs
+            Options:
+              awslogs-group: !Ref Hl7LogGroup
+              awslogs-region: !Ref AWS::Region
+              awslogs-stream-prefix: hl7
+          Environment:
+            - Name: HOSPITAL_CAPACITY_TABLE
+              Value: !Ref HospitalCapacityTableName
+            - Name: HL7_PORT
+              Value: "2575"
+            - Name: HL7_PUSH_DEBOUNCE_MS
+              Value: "5000"
+            - Name: HL7_FACILITY_MAP_JSON
+              Value: !Ref Hl7FacilityMapJson
+
+  Hl7Service:
+    Type: AWS::ECS::Service
+    Properties:
+      ServiceName: !Sub rapid-cortex-hl7-${DeploymentStage}
+      Cluster: !Ref Hl7Cluster
+      TaskDefinition: !Ref Hl7TaskDefinition
+      DesiredCount: 1
+      LaunchType: FARGATE
+      NetworkConfiguration:
+        AwsvpcConfiguration:
+          AssignPublicIp: ENABLED
+          Subnets: !Ref SubnetIds
+          SecurityGroups:
+            - !Ref Hl7SecurityGroup
+
+Outputs:
+  Hl7ClusterName:
+    Value: !Ref Hl7Cluster
+  Hl7ServiceName:
+    Value: !GetAtt Hl7Service.Name
+  Hl7SecurityGroupId:
+    Value: !Ref Hl7SecurityGroup
+  Hl7MllpPort:
+    Value: "2575"

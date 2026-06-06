@@ -1,0 +1,153 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: >-
+  CloudWatch alarms for the Rapid Cortex SAM comms/platform stack (stack-app-sam-2).
+  Lambda error alarms for resources moved out of stack-app-alarms.yaml; HTTP API 5xx/latency for stack 2 HttpApi.
+
+Parameters:
+  OpsAlertsTopicArn:
+    Type: String
+    Description: SNS topic ARN from AppSamStack2 Outputs.OpsAlertsTopicArn.
+  HttpApiId:
+    Type: String
+    Description: HTTP API ID from AppSamStack2 Outputs.HttpApiId.
+  ListWellnessFlagsFunctionName:
+    Type: String
+  AcknowledgeTraumaFlagFunctionName:
+    Type: String
+  GetCallerCardFunctionName:
+    Type: String
+  CreatePremiseNoteFunctionName:
+    Type: String
+  PatchPremiseNoteFunctionName:
+    Type: String
+
+Resources:
+  ListWellnessFlagsErrorsAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmActions:
+        - !Ref OpsAlertsTopicArn
+      AlarmDescription: F5 supervisor trauma-flags list Lambda errors (stack 2).
+      Namespace: AWS/Lambda
+      MetricName: Errors
+      Dimensions:
+        - Name: FunctionName
+          Value: !Ref ListWellnessFlagsFunctionName
+      Statistic: Sum
+      Period: 300
+      EvaluationPeriods: 1
+      Threshold: 5
+      ComparisonOperator: GreaterThanThreshold
+      TreatMissingData: notBreaching
+
+  AcknowledgeTraumaFlagErrorsAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmActions:
+        - !Ref OpsAlertsTopicArn
+      AlarmDescription: F5 trauma-flag acknowledge Lambda errors (stack 2).
+      Namespace: AWS/Lambda
+      MetricName: Errors
+      Dimensions:
+        - Name: FunctionName
+          Value: !Ref AcknowledgeTraumaFlagFunctionName
+      Statistic: Sum
+      Period: 300
+      EvaluationPeriods: 1
+      Threshold: 5
+      ComparisonOperator: GreaterThanThreshold
+      TreatMissingData: notBreaching
+
+  GetCallerCardErrorsAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmActions:
+        - !Ref OpsAlertsTopicArn
+      AlarmDescription: F7 GET caller card Lambda errors (stack 2).
+      Namespace: AWS/Lambda
+      MetricName: Errors
+      Dimensions:
+        - Name: FunctionName
+          Value: !Ref GetCallerCardFunctionName
+      Statistic: Sum
+      Period: 300
+      EvaluationPeriods: 1
+      Threshold: 5
+      ComparisonOperator: GreaterThanThreshold
+      TreatMissingData: notBreaching
+
+  CreatePremiseNoteErrorsAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmActions:
+        - !Ref OpsAlertsTopicArn
+      AlarmDescription: F7 POST premise notes Lambda errors (stack 2).
+      Namespace: AWS/Lambda
+      MetricName: Errors
+      Dimensions:
+        - Name: FunctionName
+          Value: !Ref CreatePremiseNoteFunctionName
+      Statistic: Sum
+      Period: 300
+      EvaluationPeriods: 1
+      Threshold: 5
+      ComparisonOperator: GreaterThanThreshold
+      TreatMissingData: notBreaching
+
+  PatchPremiseNoteErrorsAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmActions:
+        - !Ref OpsAlertsTopicArn
+      AlarmDescription: F7 PATCH premise notes Lambda errors (stack 2).
+      Namespace: AWS/Lambda
+      MetricName: Errors
+      Dimensions:
+        - Name: FunctionName
+          Value: !Ref PatchPremiseNoteFunctionName
+      Statistic: Sum
+      Period: 300
+      EvaluationPeriods: 1
+      Threshold: 5
+      ComparisonOperator: GreaterThanThreshold
+      TreatMissingData: notBreaching
+
+  HttpApi5xxAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmActions:
+        - !Ref OpsAlertsTopicArn
+      AlarmDescription: HTTP API (stack 2) sustained 5xx.
+      Namespace: AWS/ApiGateway
+      MetricName: 5xx
+      Dimensions:
+        - Name: ApiId
+          Value: !Ref HttpApiId
+        - Name: Stage
+          Value: "$default"
+      Statistic: Sum
+      Period: 300
+      EvaluationPeriods: 1
+      Threshold: 5
+      ComparisonOperator: GreaterThanThreshold
+      TreatMissingData: notBreaching
+
+  HttpApiIntegrationLatencyP95Alarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmActions:
+        - !Ref OpsAlertsTopicArn
+      AlarmDescription: HTTP API (stack 2) integration latency p95 high.
+      Namespace: AWS/ApiGateway
+      MetricName: IntegrationLatency
+      Dimensions:
+        - Name: ApiId
+          Value: !Ref HttpApiId
+        - Name: Stage
+          Value: "$default"
+      ExtendedStatistic: p95
+      Period: 300
+      EvaluationPeriods: 2
+      Threshold: 25000
+      ComparisonOperator: GreaterThanThreshold
+      TreatMissingData: notBreaching

@@ -1,0 +1,14 @@
+{
+  "scenarioId": "demo-domestic-disturbance",
+  "title": "Domestic Disturbance",
+  "category": "domestic_disturbance",
+  "urgency": "high",
+  "description": "Neighbor reports a loud argument escalating.",
+  "chunks": [
+    { "offsetMs": 0, "speaker": "caller", "text": "I hear screaming and things breaking next door." },
+    { "offsetMs": 3500, "speaker": "dispatcher", "text": "Do you hear threats or mention of weapons?" },
+    { "offsetMs": 8500, "speaker": "caller", "text": "I heard someone yell 'put the knife down'." },
+    { "offsetMs": 13000, "speaker": "dispatcher", "text": "Can you safely stay inside and away from windows?" },
+    { "offsetMs": 17000, "speaker": "caller", "text": "Yes, but I can still hear screaming." }
+  ]
+}

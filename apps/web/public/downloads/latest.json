@@ -1,0 +1,19 @@
+{
+  "mac": {
+    "version": "1.0.0",
+    "url": "https://downloads.rapidcortex.us/mac/latest/RapidCortex.dmg",
+    "releaseDate": "2026-05-01T00:00:00Z",
+    "releaseNotes": "https://rapidcortex.us/releases/mac/1.0.0",
+    "minOSVersion": "11.0",
+    "sha256": "REPLACE_WITH_SHA256_OF_PUBLISHED_ARTIFACT"
+  },
+  "windows": {
+    "version": "1.0.0",
+    "url": "https://downloads.rapidcortex.us/windows/latest/RapidCortexSetup.exe",
+    "releaseDate": "2026-05-01T00:00:00Z",
+    "releaseNotes": "https://rapidcortex.us/releases/windows/1.0.0",
+    "minOSVersion": "10.0",
+    "sha256": "REPLACE_WITH_SHA256_OF_PUBLISHED_ARTIFACT"
+  },
+  "updatedAt": "2026-05-01T00:00:00Z"
+}

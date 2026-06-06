@@ -1,0 +1,284 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Transform: AWS::Serverless-2016-10-31
+Description: Rapid Cortex — hospital routing, portal, emergency connect (routes attach to stack 2 HttpApi via ApiGatewayV2)
+
+Parameters:
+  DeploymentStage:
+    Type: String
+    AllowedValues: [dev, staging, prod, pilot]
+  HttpApiId:
+    Type: String
+  ImportedCognitoUserPoolId:
+    Type: String
+  ImportedCognitoWebClientId:
+    Type: String
+  ImportedCognitoIssuer:
+    Type: String
+  AuditTable:
+    Type: String
+  AgenciesTable:
+    Type: String
+  IncidentTimelineTable:
+    Type: String
+  # Existing dev tables (owned by rapid-cortex-2-dev); reference by name only.
+  HospitalPreAlertsTable:
+    Type: String
+    Default: rapid-cortex-hospital-prealerts-dev
+  HospitalCapacityTable:
+    Type: String
+    Default: rapid-cortex-hospital-capacity-dev
+  HospitalProfilesTable:
+    Type: String
+    Default: rapid-cortex-hospital-profiles-dev
+  ManagedPolicyNamePrefix:
+    Type: String
+    Default: rapid-cortex
+
+Globals:
+  Function:
+    Runtime: nodejs20.x
+    Timeout: 30
+    MemorySize: 512
+    Environment:
+      Variables:
+        DEPLOYMENT_STAGE: !Ref DeploymentStage
+        AUDIT_TABLE: !Ref AuditTable
+        AGENCIES_TABLE: !Ref AgenciesTable
+        COGNITO_USER_POOL_ID: !Ref ImportedCognitoUserPoolId
+        COGNITO_CLIENT_ID: !Ref ImportedCognitoWebClientId
+        COGNITO_REGION: !Ref AWS::Region
+        ALLOW_UNAUTHENTICATED_API: "false"
+
+Resources:
+  AppManagedPolicyHospitalDynamo:
+    Type: AWS::IAM::ManagedPolicy
+    Properties:
+      ManagedPolicyName: !Sub "${ManagedPolicyNamePrefix}-sam2-hospital-ddb-${DeploymentStage}"
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Sid: HospitalAndSharedTables
+            Effect: Allow
+            Action:
+              - dynamodb:GetItem
+              - dynamodb:BatchGetItem
+              - dynamodb:BatchWriteItem
+              - dynamodb:PutItem
+              - dynamodb:DeleteItem
+              - dynamodb:UpdateItem
+              - dynamodb:Query
+              - dynamodb:Scan
+              - dynamodb:DescribeTable
+              - dynamodb:ConditionCheckItem
+            Resource:
+              - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${HospitalPreAlertsTable}
+              - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${HospitalPreAlertsTable}/index/*
+              - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${HospitalProfilesTable}
+              - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${HospitalProfilesTable}/index/*
+              - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${HospitalCapacityTable}
+              - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${HospitalCapacityTable}/index/*
+              - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${IncidentTimelineTable}
+              - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${IncidentTimelineTable}/index/*
+              - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${AuditTable}
+              - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${AuditTable}/index/*
+              - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${AgenciesTable}
+              - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${AgenciesTable}/index/*
+
+  EmergencyConnectHttpFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/handlers/emergencyConnectHttp.handler
+      Environment:
+        Variables:
+          ENABLE_EMERGENCY_CONNECT: "true"
+          HOSPITAL_PREALERTS_TABLE: !Ref HospitalPreAlertsTable
+          HOSPITAL_PROFILES_TABLE: !Ref HospitalProfilesTable
+          INCIDENT_TIMELINE_TABLE: !Ref IncidentTimelineTable
+          EMERGENCY_CONNECT_MOCK: "false"
+          EMERGENCY_CONNECT_SEED_DEMO: "true"
+      Policies:
+        - !Ref AppManagedPolicyHospitalDynamo
+
+  HospitalRoutingHttpFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/handlers/hospitalRoutingHttp.handler
+      Environment:
+        Variables:
+          ENABLE_HOSPITAL_ROUTING: "true"
+          HOSPITAL_CAPACITY_TABLE: !Ref HospitalCapacityTable
+          HOSPITAL_PROFILES_TABLE: !Ref HospitalProfilesTable
+          HOSPITAL_ROUTING_MOCK: "false"
+          HOSPITAL_ROUTING_SEED_DEMO: "true"
+      Policies:
+        - !Ref AppManagedPolicyHospitalDynamo
+
+  HospitalPortalHttpFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/handlers/hospitalPortalHttp.handler
+      Environment:
+        Variables:
+          ENABLE_HOSPITAL_ROUTING: "true"
+          HOSPITAL_CAPACITY_TABLE: !Ref HospitalCapacityTable
+          HOSPITAL_PROFILES_TABLE: !Ref HospitalProfilesTable
+          HOSPITAL_ROUTING_MOCK: "false"
+      Policies:
+        - !Ref AppManagedPolicyHospitalDynamo
+        - Statement:
+            - Effect: Allow
+              Action:
+                - cognito-idp:AdminCreateUser
+              Resource: !Sub "arn:aws:cognito-idp:${AWS::Region}:${AWS::AccountId}:userpool/${ImportedCognitoUserPoolId}"
+
+  EmergencyConnectHttpIntegration:
+    Type: AWS::ApiGatewayV2::Integration
+    Properties:
+      ApiId: !Ref HttpApiId
+      IntegrationType: AWS_PROXY
+      IntegrationUri: !Sub arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${EmergencyConnectHttpFunction.Arn}/invocations
+      PayloadFormatVersion: "2.0"
+
+  HospitalRoutingHttpIntegration:
+    Type: AWS::ApiGatewayV2::Integration
+    Properties:
+      ApiId: !Ref HttpApiId
+      IntegrationType: AWS_PROXY
+      IntegrationUri: !Sub arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${HospitalRoutingHttpFunction.Arn}/invocations
+      PayloadFormatVersion: "2.0"
+
+  HospitalPortalHttpIntegration:
+    Type: AWS::ApiGatewayV2::Integration
+    Properties:
+      ApiId: !Ref HttpApiId
+      IntegrationType: AWS_PROXY
+      IntegrationUri: !Sub arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${HospitalPortalHttpFunction.Arn}/invocations
+      PayloadFormatVersion: "2.0"
+
+  EmergencyConnectHttpInvokePermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !Ref EmergencyConnectHttpFunction
+      Principal: apigateway.amazonaws.com
+      SourceArn: !Sub arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${HttpApiId}/*
+
+  HospitalRoutingHttpInvokePermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !Ref HospitalRoutingHttpFunction
+      Principal: apigateway.amazonaws.com
+      SourceArn: !Sub arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${HttpApiId}/*
+
+  HospitalPortalHttpInvokePermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !Ref HospitalPortalHttpFunction
+      Principal: apigateway.amazonaws.com
+      SourceArn: !Sub arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${HttpApiId}/*
+
+  # Emergency connect + hospital CRUD routes
+  RouteEcGetPrealerts:
+    Type: AWS::ApiGatewayV2::Route
+    Properties: { ApiId: !Ref HttpApiId, RouteKey: "GET /api/hospitals/prealerts", Target: !Sub "integrations/${EmergencyConnectHttpIntegration}" }
+  RouteEcPostPrealerts:
+    Type: AWS::ApiGatewayV2::Route
+    Properties: { ApiId: !Ref HttpApiId, RouteKey: "POST /api/hospitals/prealerts", Target: !Sub "integrations/${EmergencyConnectHttpIntegration}" }
+  RouteEcGetPrealertId:
+    Type: AWS::ApiGatewayV2::Route
+    Properties: { ApiId: !Ref HttpApiId, RouteKey: "GET /api/hospitals/prealerts/{alertId}", Target: !Sub "integrations/${EmergencyConnectHttpIntegration}" }
+  RouteEcPatchPrealertId:
+    Type: AWS::ApiGatewayV2::Route
+    Properties: { ApiId: !Ref HttpApiId, RouteKey: "PATCH /api/hospitals/prealerts/{alertId}", Target: !Sub "integrations/${EmergencyConnectHttpIntegration}" }
+  RouteEcPostPrealertSend:
+    Type: AWS::ApiGatewayV2::Route
+    Properties: { ApiId: !Ref HttpApiId, RouteKey: "POST /api/hospitals/prealerts/{alertId}/send", Target: !Sub "integrations/${EmergencyConnectHttpIntegration}" }
+  RouteEcPostPrealertAck:
+    Type: AWS::ApiGatewayV2::Route
+    Properties: { ApiId: !Ref HttpApiId, RouteKey: "POST /api/hospitals/prealerts/{alertId}/acknowledge", Target: !Sub "integrations/${EmergencyConnectHttpIntegration}" }
+  RouteEcPostPrealertCancel:
+    Type: AWS::ApiGatewayV2::Route
+    Properties: { ApiId: !Ref HttpApiId, RouteKey: "POST /api/hospitals/prealerts/{alertId}/cancel", Target: !Sub "integrations/${EmergencyConnectHttpIntegration}" }
+  RouteEcGetHospitals:
+    Type: AWS::ApiGatewayV2::Route
+    Properties: { ApiId: !Ref HttpApiId, RouteKey: "GET /api/hospitals", Target: !Sub "integrations/${EmergencyConnectHttpIntegration}" }
+  RouteEcPostHospitals:
+    Type: AWS::ApiGatewayV2::Route
+    Properties: { ApiId: !Ref HttpApiId, RouteKey: "POST /api/hospitals", Target: !Sub "integrations/${EmergencyConnectHttpIntegration}" }
+  RouteEcGetHospitalId:
+    Type: AWS::ApiGatewayV2::Route
+    Properties: { ApiId: !Ref HttpApiId, RouteKey: "GET /api/hospitals/{hospitalId}", Target: !Sub "integrations/${EmergencyConnectHttpIntegration}" }
+  RouteEcPatchHospitalId:
+    Type: AWS::ApiGatewayV2::Route
+    Properties: { ApiId: !Ref HttpApiId, RouteKey: "PATCH /api/hospitals/{hospitalId}", Target: !Sub "integrations/${EmergencyConnectHttpIntegration}" }
+
+  # Hospital routing routes
+  RouteHrGetCapacity:
+    Type: AWS::ApiGatewayV2::Route
+    Properties: { ApiId: !Ref HttpApiId, RouteKey: "GET /api/hospitals/capacity", Target: !Sub "integrations/${HospitalRoutingHttpIntegration}" }
+  RouteHrGetHospitalCapacity:
+    Type: AWS::ApiGatewayV2::Route
+    Properties: { ApiId: !Ref HttpApiId, RouteKey: "GET /api/hospitals/{hospitalId}/capacity", Target: !Sub "integrations/${HospitalRoutingHttpIntegration}" }
+  RouteHrPutHospitalCapacity:
+    Type: AWS::ApiGatewayV2::Route
+    Properties: { ApiId: !Ref HttpApiId, RouteKey: "PUT /api/hospitals/{hospitalId}/capacity", Target: !Sub "integrations/${HospitalRoutingHttpIntegration}" }
+  RouteHrPostRecommendations:
+    Type: AWS::ApiGatewayV2::Route
+    Properties: { ApiId: !Ref HttpApiId, RouteKey: "POST /api/hospitals/recommendations", Target: !Sub "integrations/${HospitalRoutingHttpIntegration}" }
+  RouteHrPostMciDistribution:
+    Type: AWS::ApiGatewayV2::Route
+    Properties: { ApiId: !Ref HttpApiId, RouteKey: "POST /api/hospitals/mci/distribution", Target: !Sub "integrations/${HospitalRoutingHttpIntegration}" }
+  RouteHrGetMciIncident:
+    Type: AWS::ApiGatewayV2::Route
+    Properties: { ApiId: !Ref HttpApiId, RouteKey: "GET /api/hospitals/mci/{incidentId}", Target: !Sub "integrations/${HospitalRoutingHttpIntegration}" }
+  RouteHrPostMciActivate:
+    Type: AWS::ApiGatewayV2::Route
+    Properties: { ApiId: !Ref HttpApiId, RouteKey: "POST /api/hospitals/mci/{incidentId}/activate", Target: !Sub "integrations/${HospitalRoutingHttpIntegration}" }
+  RouteHrGetMciStatus:
+    Type: AWS::ApiGatewayV2::Route
+    Properties: { ApiId: !Ref HttpApiId, RouteKey: "GET /api/hospitals/mci/{incidentId}/status", Target: !Sub "integrations/${HospitalRoutingHttpIntegration}" }
+  RouteHrGetAnalytics:
+    Type: AWS::ApiGatewayV2::Route
+    Properties: { ApiId: !Ref HttpApiId, RouteKey: "GET /api/hospitals/{hospitalId}/analytics", Target: !Sub "integrations/${HospitalRoutingHttpIntegration}" }
+  RouteHrGetAnalyticsPerf:
+    Type: AWS::ApiGatewayV2::Route
+    Properties: { ApiId: !Ref HttpApiId, RouteKey: "GET /api/hospitals/{hospitalId}/analytics/performance", Target: !Sub "integrations/${HospitalRoutingHttpIntegration}" }
+  RouteHrGetLeaderboard:
+    Type: AWS::ApiGatewayV2::Route
+    Properties: { ApiId: !Ref HttpApiId, RouteKey: "GET /api/hospitals/analytics/leaderboard", Target: !Sub "integrations/${HospitalRoutingHttpIntegration}" }
+
+  # Hospital portal routes
+  RouteHpGetContext:
+    Type: AWS::ApiGatewayV2::Route
+    Properties: { ApiId: !Ref HttpApiId, RouteKey: "GET /api/hospital-portal/context", Target: !Sub "integrations/${HospitalPortalHttpIntegration}" }
+  RouteHpPostCapacity:
+    Type: AWS::ApiGatewayV2::Route
+    Properties: { ApiId: !Ref HttpApiId, RouteKey: "POST /api/hospital-portal/capacity", Target: !Sub "integrations/${HospitalPortalHttpIntegration}" }
+  RouteHpGetCapacityHistory:
+    Type: AWS::ApiGatewayV2::Route
+    Properties: { ApiId: !Ref HttpApiId, RouteKey: "GET /api/hospital-portal/capacity/history", Target: !Sub "integrations/${HospitalPortalHttpIntegration}" }
+  RouteHpPostUsers:
+    Type: AWS::ApiGatewayV2::Route
+    Properties: { ApiId: !Ref HttpApiId, RouteKey: "POST /api/hospital-portal/users", Target: !Sub "integrations/${HospitalPortalHttpIntegration}" }
+
+Outputs:
+  HospitalCapacityTableName:
+    Value: !Ref HospitalCapacityTable
+  HospitalProfilesTableName:
+    Value: !Ref HospitalProfilesTable
+  HospitalPreAlertsTableName:
+    Value: !Ref HospitalPreAlertsTable

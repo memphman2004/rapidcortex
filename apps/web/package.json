@@ -1,0 +1,51 @@
+{
+  "name": "rapid-cortex-web",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "dev:webpack": "next dev --webpack",
+    "build": "next build --webpack",
+    "start": "next start",
+    "lint": "eslint .",
+    "test": "vitest run -c ../../vitest.config.ts"
+  },
+  "dependencies": {
+    "@aws-sdk/client-cognito-identity-provider": "^3.699.0",
+    "@aws-sdk/client-dynamodb": "^3.699.0",
+    "@aws-sdk/lib-dynamodb": "^3.699.0",
+    "@tanstack/react-query": "^5.90.16",
+    "amazon-kinesis-video-streams-webrtc": "^2.6.1",
+    "framer-motion": "^12.38.0",
+    "jose": "^6.0.10",
+    "lucide-react": "^1.8.0",
+    "mapbox-gl": "^3.9.4",
+    "next": "16.2.4",
+    "qrcode": "^1.5.4",
+    "rapid-cortex-integrations": "1.0.0",
+    "rapid-cortex-maps": "1.0.0",
+    "rapid-cortex-protocols": "1.0.0",
+    "rapid-cortex-security": "1.0.0",
+    "rapid-cortex-shared": "1.0.0",
+    "react": "19.2.4",
+    "react-dom": "19.2.4",
+    "recharts": "^3.8.1",
+    "server-only": "^0.0.1"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4",
+    "@testing-library/dom": "^10.4.0",
+    "@testing-library/react": "^16.2.0",
+    "@types/mapbox-gl": "^3.4.1",
+    "@types/node": "^22.10.1",
+    "@types/qrcode": "^1.5.5",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "eslint": "^9",
+    "eslint-config-next": "16.2.4",
+    "jsdom": "^26.1.0",
+    "tailwindcss": "^4",
+    "typescript": "^5.7.2",
+    "vitest": "^3.2.4"
+  }
+}

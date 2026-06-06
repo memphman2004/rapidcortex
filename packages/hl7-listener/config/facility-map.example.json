@@ -1,0 +1,12 @@
+{
+  "SARASOTA_MEM": {
+    "agencyId": "your-agency-id",
+    "hospitalId": "your-hospital-id",
+    "bedTotals": { "er": 25, "icu": 12, "trauma": 4 }
+  },
+  "ST_JOSEPH": {
+    "agencyId": "your-agency-id",
+    "hospitalId": "another-hospital-id",
+    "bedTotals": { "er": 20, "icu": 8, "trauma": 2 }
+  }
+}

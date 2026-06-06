@@ -1,0 +1,31 @@
+{
+  "name": "rapid-cortex-integrations",
+  "version": "1.0.0",
+  "private": true,
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.js"
+    },
+    "./ring": {
+      "types": "./dist/ring/index.d.ts",
+      "import": "./dist/ring/index.js",
+      "require": "./dist/ring/index.js"
+    }
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json && tsc -p ring/tsconfig.json"
+  },
+  "dependencies": {
+    "@aws-sdk/client-dynamodb": "^3.699.0",
+    "@aws-sdk/client-secrets-manager": "^3.699.0",
+    "@aws-sdk/lib-dynamodb": "^3.699.0",
+    "rapid-cortex-shared": "1.0.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.7.2"
+  }
+}

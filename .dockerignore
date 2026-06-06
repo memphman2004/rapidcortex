@@ -1,0 +1,24 @@
+**/node_modules
+**/.next
+**/coverage
+.git
+.gitignore
+.env
+.env.*
+!.env.example
+*.log
+**/dist
+.sam
+.aws-sam
+**/.turbo
+**/.cache
+.vercel
+**/*.dmg
+**/*.exe
+**/*.msi
+# Keep apps/api/vendor-packs/*.tgz — root npm ci resolves file: deps from lockfile.
+# Subfolder dist/ is covered by **/dist above.
+infra/cfn-publish
+infra/**/packaged.yaml
+**/agent-transcripts
+**/.cursor

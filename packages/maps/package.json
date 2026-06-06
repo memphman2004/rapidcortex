@@ -1,0 +1,40 @@
+{
+  "name": "rapid-cortex-maps",
+  "version": "1.0.0",
+  "private": true,
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./src/index.ts",
+      "require": "./dist/index.js"
+    },
+    "./components/RapidCortexMap": {
+      "types": "./dist/components/RapidCortexMap.d.ts",
+      "import": "./src/components/RapidCortexMap.tsx",
+      "require": "./dist/components/RapidCortexMap.js"
+    },
+    "./components/LocationMarker": {
+      "types": "./dist/components/LocationMarker.d.ts",
+      "import": "./src/components/LocationMarker.tsx",
+      "require": "./dist/components/LocationMarker.js"
+    }
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json"
+  },
+  "dependencies": {
+    "mapbox-gl": "^3.9.4"
+  },
+  "peerDependencies": {
+    "react": ">=18.0.0",
+    "react-dom": ">=18.0.0"
+  },
+  "devDependencies": {
+    "@types/mapbox-gl": "^3.4.1",
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "typescript": "^5.7.2"
+  }
+}

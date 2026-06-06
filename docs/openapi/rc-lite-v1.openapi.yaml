@@ -1,0 +1,3 @@
+# Canonical OpenAPI artifact (public download + codegen) lives under the web bundle:
+#
+# ../../apps/web/public/openapi/rc-lite-v1.openapi.yaml

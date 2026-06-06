@@ -1,0 +1,193 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: Rapid Cortex — CodeBuild uploads source zip via S3, builds Dockerfile.web with privileged Docker (ECR push only).
+
+Parameters:
+  Environment:
+    Type: String
+    AllowedValues: [dev, staging, prod]
+    Default: dev
+  RepositoryNameSuffix:
+    Type: String
+    Default: rapid-cortex-web
+    Description: Must match infra/web-ecr.yaml RepositoryNameSuffix.
+  NextPublicApiBaseUrl:
+    Type: String
+    Default: ""
+    Description: Optional NEXT_PUBLIC/API base echoed into Next.js build-args (often https://api.rapidcortex.us).
+  NextPublicCognitoRegion:
+    Type: String
+    Default: ""
+  NextPublicCognitoUserPoolId:
+    Type: String
+    Default: ""
+  NextPublicCognitoClientId:
+    Type: String
+    Default: ""
+  NextPublicCognitoDomain:
+    Type: String
+    Default: ""
+    Description: Hosted UI prefix URL (https://...) or Cognito domain as used by NEXT_PUBLIC_COGNITO_DOMAIN.
+  NextPublicSiteUrl:
+    Type: String
+    Default: https://www.rapidcortex.us
+    Description: NEXT_PUBLIC_SITE_URL for marketing links/CSP anchors.
+  NextPublicMacDownloadUrl:
+    Type: String
+    Default: https://downloads.rapidcortex.us/mac/latest/RapidCortex.dmg
+  NextPublicWindowsDownloadUrl:
+    Type: String
+    Default: https://downloads.rapidcortex.us/windows/latest/RapidCortexSetup.exe
+  NextPublicRcLiteDocsUrl:
+    Type: String
+    Default: https://docs.rapidcortex.us/rc-lite
+    Description: Optional deep link — may also use same-origin /developers/api.
+  NextPublicRcLiteApiUrl:
+    Type: String
+    Default: https://api.rapidcortex.us/api/v1
+  NextPublicEnableDownloads:
+    Type: String
+    Default: "true"
+  NextPublicEnableRcLite:
+    Type: String
+    Default: "true"
+  NextPublicEnableLiveVideo:
+    Type: String
+    Default: "false"
+  NextPublicEnableConnectRing:
+    Type: String
+    Default: "false"
+  NextPublicEnableConnectRingAvailableCameras:
+    Type: String
+    Default: "false"
+  NextPublicEnableConnectRingEmergencyRequests:
+    Type: String
+    Default: "false"
+  NextPublicEnableSilentText:
+    Type: String
+    Default: "false"
+  NextPublicExternalStatusPageUrl:
+    Type: String
+    Default: ""
+    Description: If set (https://status.…), marketing footer prefers this over /status.
+  AppVersion:
+    Type: String
+    Default: "1.0.0"
+
+Resources:
+  SourceBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: AES256
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        IgnorePublicAcls: true
+        BlockPublicPolicy: true
+        RestrictPublicBuckets: true
+      VersioningConfiguration:
+        Status: Enabled
+
+  BuildRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: codebuild.amazonaws.com
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryPowerUser
+      Policies:
+        - PolicyName: CodeBuildLogsAndSource
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Sid: Logs
+                Effect: Allow
+                Action:
+                  - logs:CreateLogGroup
+                  - logs:CreateLogStream
+                  - logs:PutLogEvents
+                Resource: "*"
+              - Sid: SourceZip
+                Effect: Allow
+                Action:
+                  - s3:GetObject
+                  - s3:GetObjectVersion
+                  - s3:ListBucket
+                Resource:
+                  - !Sub ${SourceBucket.Arn}
+                  - !Sub ${SourceBucket.Arn}/*
+
+  BuildProject:
+    Type: AWS::CodeBuild::Project
+    Properties:
+      Name: !Sub rapid-cortex-web-build-${Environment}
+      ServiceRole: !GetAtt BuildRole.Arn
+      Artifacts:
+        Type: NO_ARTIFACTS
+      Environment:
+        Type: LINUX_CONTAINER
+        ComputeType: BUILD_GENERAL1_LARGE
+        Image: aws/codebuild/standard:7.0
+        PrivilegedMode: true
+        EnvironmentVariables:
+          - Name: ECR_REGISTRY
+            Value: !Sub ${AWS::AccountId}.dkr.ecr.${AWS::Region}.amazonaws.com/${RepositoryNameSuffix}-${Environment}
+          - Name: CONTAINER_NAME
+            Value: rapid-cortex-web
+          - Name: APP_ENV
+            Value: !Ref Environment
+          - Name: APP_VERSION
+            Value: !Ref AppVersion
+          - Name: NEXT_PUBLIC_API_BASE_URL
+            Value: !Ref NextPublicApiBaseUrl
+          - Name: NEXT_PUBLIC_COGNITO_REGION
+            Value: !Ref NextPublicCognitoRegion
+          - Name: NEXT_PUBLIC_COGNITO_USER_POOL_ID
+            Value: !Ref NextPublicCognitoUserPoolId
+          - Name: NEXT_PUBLIC_COGNITO_CLIENT_ID
+            Value: !Ref NextPublicCognitoClientId
+          - Name: NEXT_PUBLIC_COGNITO_DOMAIN
+            Value: !Ref NextPublicCognitoDomain
+          - Name: NEXT_PUBLIC_SITE_URL
+            Value: !Ref NextPublicSiteUrl
+          - Name: NEXT_PUBLIC_MAC_DOWNLOAD_URL
+            Value: !Ref NextPublicMacDownloadUrl
+          - Name: NEXT_PUBLIC_WINDOWS_DOWNLOAD_URL
+            Value: !Ref NextPublicWindowsDownloadUrl
+          - Name: NEXT_PUBLIC_RC_LITE_DOCS_URL
+            Value: !Ref NextPublicRcLiteDocsUrl
+          - Name: NEXT_PUBLIC_RC_LITE_API_URL
+            Value: !Ref NextPublicRcLiteApiUrl
+          - Name: NEXT_PUBLIC_ENABLE_DOWNLOADS
+            Value: !Ref NextPublicEnableDownloads
+          - Name: NEXT_PUBLIC_ENABLE_RC_LITE
+            Value: !Ref NextPublicEnableRcLite
+          - Name: NEXT_PUBLIC_ENABLE_LIVE_VIDEO
+            Value: !Ref NextPublicEnableLiveVideo
+          - Name: NEXT_PUBLIC_ENABLE_CONNECT_RING
+            Value: !Ref NextPublicEnableConnectRing
+          - Name: NEXT_PUBLIC_ENABLE_CONNECT_RING_AVAILABLE_CAMERAS
+            Value: !Ref NextPublicEnableConnectRingAvailableCameras
+          - Name: NEXT_PUBLIC_ENABLE_CONNECT_RING_EMERGENCY_REQUESTS
+            Value: !Ref NextPublicEnableConnectRingEmergencyRequests
+          - Name: NEXT_PUBLIC_ENABLE_SILENT_TEXT
+            Value: !Ref NextPublicEnableSilentText
+          - Name: NEXT_PUBLIC_EXTERNAL_STATUS_PAGE_URL
+            Value: !Ref NextPublicExternalStatusPageUrl
+          - Name: NEXT_PUBLIC_GA_MEASUREMENT_ID
+            Value: G-S83NHMBHRD
+      Source:
+        Type: S3
+        Location: !Sub ${SourceBucket}/web-source.zip
+        BuildSpec: buildspec.web.yml
+
+Outputs:
+  SourceBucketName:
+    Description: Upload web-source-{env}.zip as s3://{bucket}/web-source.zip before start-build.
+    Value: !Ref SourceBucket

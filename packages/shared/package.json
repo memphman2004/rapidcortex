@@ -1,0 +1,103 @@
+{
+  "name": "rapid-cortex-shared",
+  "version": "1.0.0",
+  "private": true,
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.js"
+    },
+    "./types": {
+      "types": "./dist/types.d.ts",
+      "import": "./dist/types.js",
+      "require": "./dist/types.js"
+    },
+    "./auth/session-product": {
+      "types": "./dist/auth/session-product.d.ts",
+      "import": "./dist/auth/session-product.js",
+      "require": "./dist/auth/session-product.js"
+    },
+    "./auth/role-display": {
+      "types": "./dist/auth/role-display.d.ts",
+      "import": "./dist/auth/role-display.js",
+      "require": "./dist/auth/role-display.js"
+    },
+    "./auth/password-policy": {
+      "types": "./dist/auth/password-policy.d.ts",
+      "import": "./dist/auth/password-policy.js",
+      "require": "./dist/auth/password-policy.js"
+    },
+    "./auth/rapid-cortex-roles": {
+      "types": "./dist/auth/rapid-cortex-roles.d.ts",
+      "import": "./dist/auth/rapid-cortex-roles.js",
+      "require": "./dist/auth/rapid-cortex-roles.js"
+    },
+    "./tenancy/principal": {
+      "types": "./dist/tenancy/principal.d.ts",
+      "import": "./dist/tenancy/principal.js",
+      "require": "./dist/tenancy/principal.js"
+    },
+    "./tenancy/constants": {
+      "types": "./dist/tenancy/constants.d.ts",
+      "import": "./dist/tenancy/constants.js",
+      "require": "./dist/tenancy/constants.js"
+    },
+    "./geo/distance": {
+      "types": "./dist/geo/distance.d.ts",
+      "import": "./dist/geo/distance.js",
+      "require": "./dist/geo/distance.js"
+    },
+    "./pinpoint-surge": {
+      "types": "./dist/pinpoint-surge/index.d.ts",
+      "import": "./dist/pinpoint-surge/index.js",
+      "require": "./dist/pinpoint-surge/index.js"
+    },
+    "./protocol": {
+      "types": "./dist/protocol/index.d.ts",
+      "import": "./dist/protocol/index.js",
+      "require": "./dist/protocol/index.js"
+    },
+    "./triage/triage": {
+      "types": "./dist/triage/triage.d.ts",
+      "import": "./dist/triage/triage.js",
+      "require": "./dist/triage/triage.js"
+    },
+    "./silent-text/templates": {
+      "types": "./dist/silent-text/templates.d.ts",
+      "import": "./dist/silent-text/templates.js",
+      "require": "./dist/silent-text/templates.js"
+    },
+    "./silent-text/schemas": {
+      "types": "./dist/silent-text/schemas.d.ts",
+      "import": "./dist/silent-text/schemas.js",
+      "require": "./dist/silent-text/schemas.js"
+    },
+    "./sla-types": {
+      "types": "./dist/sla-types.d.ts",
+      "import": "./dist/sla-types.js",
+      "require": "./dist/sla-types.js"
+    },
+    "./rc-lite/webhook-signing": {
+      "types": "./dist/rc-lite/webhook-signing.d.ts",
+      "import": "./dist/rc-lite/webhook-signing.js",
+      "require": "./dist/rc-lite/webhook-signing.js"
+    },
+    "./audit-schema": {
+      "types": "./dist/audit-schema.d.ts",
+      "import": "./dist/audit-schema.js",
+      "require": "./dist/audit-schema.js"
+    }
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json"
+  },
+  "dependencies": {
+    "zod": "^3.24.1"
+  },
+  "devDependencies": {
+    "typescript": "^5.7.2"
+  }
+}

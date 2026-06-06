@@ -1,0 +1,127 @@
+# DynamoDB tables for packages/api Phase 4 lab stacks (Pinpoint + Surge).
+# Production tables also exist in infra/nested/stack-data-layer.yaml — deploy one path per environment.
+
+AWSTemplateFormatVersion: "2010-09-09"
+Description: DynamoDB tables for Rapid Cortex Pinpoint and Surge (standalone lab stacks).
+
+Parameters:
+  Environment:
+    Type: String
+    Default: dev
+    AllowedValues:
+      - dev
+      - staging
+      - prod
+    Description: Environment name
+
+Resources:
+  PinpointTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: !Sub "rapid-cortex-pinpoint-${Environment}"
+      BillingMode: PAY_PER_REQUEST
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: true
+      SSESpecification:
+        SSEEnabled: true
+      TimeToLiveSpecification:
+        Enabled: true
+        AttributeName: ttl
+      AttributeDefinitions:
+        - AttributeName: PK
+          AttributeType: S
+        - AttributeName: SK
+          AttributeType: S
+        - AttributeName: GSI1PK
+          AttributeType: S
+        - AttributeName: GSI1SK
+          AttributeType: S
+      KeySchema:
+        - AttributeName: PK
+          KeyType: HASH
+        - AttributeName: SK
+          KeyType: RANGE
+      GlobalSecondaryIndexes:
+        - IndexName: GSI1
+          KeySchema:
+            - AttributeName: GSI1PK
+              KeyType: HASH
+            - AttributeName: GSI1SK
+              KeyType: RANGE
+          Projection:
+            ProjectionType: ALL
+      Tags:
+        - Key: Environment
+          Value: !Ref Environment
+        - Key: Application
+          Value: RapidCortex
+        - Key: Feature
+          Value: Pinpoint
+
+  SurgeTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: !Sub "rapid-cortex-surge-${Environment}"
+      BillingMode: PAY_PER_REQUEST
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: true
+      SSESpecification:
+        SSEEnabled: true
+      TimeToLiveSpecification:
+        Enabled: true
+        AttributeName: ttl
+      AttributeDefinitions:
+        - AttributeName: PK
+          AttributeType: S
+        - AttributeName: SK
+          AttributeType: S
+        - AttributeName: GSI1PK
+          AttributeType: S
+        - AttributeName: GSI1SK
+          AttributeType: S
+      KeySchema:
+        - AttributeName: PK
+          KeyType: HASH
+        - AttributeName: SK
+          KeyType: RANGE
+      GlobalSecondaryIndexes:
+        - IndexName: GSI1
+          KeySchema:
+            - AttributeName: GSI1PK
+              KeyType: HASH
+            - AttributeName: GSI1SK
+              KeyType: RANGE
+          Projection:
+            ProjectionType: ALL
+      Tags:
+        - Key: Environment
+          Value: !Ref Environment
+        - Key: Application
+          Value: RapidCortex
+        - Key: Feature
+          Value: Surge
+
+Outputs:
+  PinpointTableName:
+    Description: Pinpoint DynamoDB table name
+    Value: !Ref PinpointTable
+    Export:
+      Name: !Sub "${AWS::StackName}-PinpointTable"
+
+  PinpointTableArn:
+    Description: Pinpoint DynamoDB table ARN
+    Value: !GetAtt PinpointTable.Arn
+    Export:
+      Name: !Sub "${AWS::StackName}-PinpointTableArn"
+
+  SurgeTableName:
+    Description: Surge DynamoDB table name
+    Value: !Ref SurgeTable
+    Export:
+      Name: !Sub "${AWS::StackName}-SurgeTable"
+
+  SurgeTableArn:
+    Description: Surge DynamoDB table ARN
+    Value: !GetAtt SurgeTable.Arn
+    Export:
+      Name: !Sub "${AWS::StackName}-SurgeTableArn"

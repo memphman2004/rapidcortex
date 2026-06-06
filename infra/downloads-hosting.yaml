@@ -1,0 +1,95 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: Rapid Cortex desktop installers via private S3 + CloudFront OAC.
+
+Parameters:
+  Environment:
+    Type: String
+    AllowedValues: [dev, staging, prod]
+    Default: prod
+
+Resources:
+  DownloadsBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Sub rapid-cortex-downloads-${AWS::AccountId}-${Environment}
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: AES256
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+      VersioningConfiguration:
+        Status: Enabled
+
+  OAC:
+    Type: AWS::CloudFront::OriginAccessControl
+    Properties:
+      OriginAccessControlConfig:
+        Name: !Sub rapid-cortex-downloads-oac-${Environment}
+        OriginAccessControlOriginType: s3
+        SigningBehavior: always
+        SigningProtocol: sigv4
+
+  DownloadsDistribution:
+    Type: AWS::CloudFront::Distribution
+    Properties:
+      DistributionConfig:
+        Enabled: true
+        Comment: !Sub Rapid Cortex downloads (${Environment})
+        DefaultRootObject: index.html
+        Origins:
+          - Id: S3Downloads
+            DomainName: !GetAtt DownloadsBucket.RegionalDomainName
+            OriginAccessControlId: !Ref OAC
+            S3OriginConfig:
+              OriginAccessIdentity: ""
+        DefaultCacheBehavior:
+          TargetOriginId: S3Downloads
+          ViewerProtocolPolicy: redirect-to-https
+          AllowedMethods:
+            - GET
+            - HEAD
+            - OPTIONS
+          CachedMethods:
+            - GET
+            - HEAD
+          Compress: true
+          ForwardedValues:
+            QueryString: false
+        HttpVersion: http2and3
+        PriceClass: PriceClass_100
+
+  DownloadsBucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    DependsOn:
+      - DownloadsDistribution
+      - DownloadsBucket
+    Properties:
+      Bucket: !Ref DownloadsBucket
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Sid: AllowCloudFrontRead
+            Effect: Allow
+            Principal:
+              Service: cloudfront.amazonaws.com
+            Action: s3:GetObject
+            Resource: !Sub ${DownloadsBucket.Arn}/*
+            Condition:
+              StringEquals:
+                AWS:SourceArn: !Sub arn:aws:cloudfront::${AWS::AccountId}:distribution/${DownloadsDistribution}
+
+Outputs:
+  DownloadsBucketName:
+    Value: !Ref DownloadsBucket
+  DistributionDomainName:
+    Description: Alias downloads.example.com → this (*.cloudfront.net) in Route 53 after ACM (us-east-1).
+    Value: !GetAtt DownloadsDistribution.DomainName
+  DistributionId:
+    Value: !Ref DownloadsDistribution
+  CloudFrontDistributionId:
+    Description: Same as DistributionId — stable name for CI/scripts (invalidations).
+    Value: !Ref DownloadsDistribution

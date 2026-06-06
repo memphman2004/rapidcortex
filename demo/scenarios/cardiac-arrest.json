@@ -1,0 +1,14 @@
+{
+  "scenarioId": "demo-cardiac-arrest",
+  "title": "Possible Cardiac Arrest",
+  "category": "medical",
+  "urgency": "critical",
+  "description": "Caller reports chest pain followed by collapse.",
+  "chunks": [
+    { "offsetMs": 0, "speaker": "caller", "text": "My husband has severe chest pain and is sweating." },
+    { "offsetMs": 3000, "speaker": "dispatcher", "text": "Is he conscious right now?" },
+    { "offsetMs": 7000, "speaker": "caller", "text": "He just collapsed and is not responding!" },
+    { "offsetMs": 12000, "speaker": "dispatcher", "text": "Is he breathing normally?" },
+    { "offsetMs": 16000, "speaker": "caller", "text": "No, I don't think so." }
+  ]
+}

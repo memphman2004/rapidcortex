@@ -1,4 +1,3 @@
-import { Providers } from "@/app/providers";
 import { MarketingFooter } from "@/components/marketing/marketing-footer";
 import { MarketingHeader } from "@/components/marketing/marketing-header";
 import { buildOrganizationJsonLd, buildWebsiteJsonLd } from "@/lib/seo";
@@ -11,8 +10,7 @@ export default function SmsConsentLayout({ children }: Readonly<{ children: Reac
   const orgJsonLd = buildOrganizationJsonLd();
   const websiteJsonLd = buildWebsiteJsonLd();
   return (
-    <Providers>
-      <div className="flex min-h-full min-h-dvh flex-col bg-slate-950/78 backdrop-blur-md">
+    <div className="flex min-h-full min-h-dvh flex-col bg-slate-950/78 backdrop-blur-md">
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(orgJsonLd) }}
@@ -24,7 +22,6 @@ export default function SmsConsentLayout({ children }: Readonly<{ children: Reac
       <MarketingHeader />
       <main className="flex-1">{children}</main>
       <MarketingFooter />
-      </div>
-    </Providers>
+    </div>
   );
 }

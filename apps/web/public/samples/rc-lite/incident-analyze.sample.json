@@ -1,0 +1,10 @@
+{
+  "agencyCode": "DEMO911",
+  "scenario": "vehicle_crash",
+  "callerTextSnippet": "Airbags deployed along the median, fluids on the roadway, unknown occupants.",
+  "languages": ["en-US"],
+  "metadata": {
+    "cadAdapter": "motorola-demo",
+    "simulationOnly": true
+  }
+}

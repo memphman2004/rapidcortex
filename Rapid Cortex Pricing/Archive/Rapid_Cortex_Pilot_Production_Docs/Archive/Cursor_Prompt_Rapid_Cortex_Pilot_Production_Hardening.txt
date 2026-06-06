@@ -1,0 +1,217 @@
+# Cursor Prompt: Tighten Rapid Cortex for Pilot Readiness and Production Hardening
+
+You are working in the Rapid Cortex monorepo. Your job is to harden the platform for controlled agency pilots and production readiness without expanding risky functionality.
+
+## Primary Goal
+Prepare Rapid Cortex for safe pilots by locking down RBAC, tenant isolation, pilot feature flags, secure media handling, deployment health, audit logs, and agency-facing operational controls.
+
+## Important Product Positioning
+Rapid Cortex is decision support for emergency communications. It is not a CAD replacement, telephony replacement, medical direction system, law enforcement command system, or NCIC/CJIS database access tool. Do not add features that imply automated dispatch decisions, CAD write-back, NCIC access, or replacement of dispatcher judgment.
+
+## Current Role Model
+Replace/remove any public or active use of `platform_superadmin` or `superadmin` language unless needed for legacy migration only.
+
+Use these roles going forward:
+- dispatcher
+- supervisor
+- admin
+- it_admin
+- staff
+- analyst
+- readonly_auditor
+
+Every authenticated user must be scoped to an agency using `agencyId` or `custom:agencyId`.
+
+## Phase 1 - Audit the Codebase
+Search the repo for:
+- `platform_superadmin`
+- `superadmin`
+- `stripe`
+- `square`
+- public S3 URLs
+- hardcoded secrets
+- test/demo bypasses
+- unauthenticated admin routes
+- routes missing agency scoping
+- CAD write-back routes or labels
+- NCIC references
+- backend docs linked from public marketing nav
+
+Create a concise report at:
+`docs/pilot-hardening/AUDIT_FINDINGS.md`
+
+Each finding should include:
+- file path
+- issue
+- severity: P0/P1/P2
+- recommended fix
+- whether fixed in this pass
+
+## Phase 2 - RBAC and Tenant Isolation
+Implement or verify a central authorization helper used by all protected routes.
+
+Requirements:
+- Require valid session/token for all app/API routes except public marketing/status pages.
+- Extract `agencyId` from trusted auth claims only, not request body.
+- Enforce role permissions through a central permission map.
+- Prevent users from querying, updating, exporting, or viewing data outside their agency.
+- Add tests for cross-agency denial.
+- Add tests for each role and dashboard route.
+
+Acceptance Criteria:
+- Dispatcher cannot access admin settings.
+- Supervisor can view assigned/agency incidents but cannot change billing/system config.
+- Admin can invite/manage agency users but cannot access other agencies.
+- readonly_auditor can view audit reports only.
+- Staff/internal roles are separated from agency roles.
+- Cross-tenant API attempts return 403 and are audit logged.
+
+## Phase 3 - Agency Pilot Mode
+Add an `AgencyPilotMode` configuration model/table or config object with feature flags:
+- callerTextLinkEnabled
+- photoUploadEnabled
+- liveVideoEnabled
+- mediaRecordingEnabled default false
+- transcriptionEnabled
+- translationEnabled
+- cadReadOnlyEnabled
+- cadWriteBackEnabled hard default false
+- rcLiteApiDemoEnabled
+- dataRetentionDays
+- maxPilotUsers
+- maxMonthlyMediaSessions
+- maxMonthlyApiCalls
+
+Build admin UI controls for eligible admin/it_admin/staff users only.
+
+Acceptance Criteria:
+- Feature flags are enforced server-side, not only hidden in the UI.
+- CAD write-back remains disabled unless explicitly configured and separately authorized.
+- Pilot features can be toggled per agency without redeploying code.
+
+## Phase 4 - Secure Media Links
+Review the caller SMS/photo/video flow.
+
+Requirements:
+- Links must be short-lived and single-session scoped.
+- Links must map to agencyId + incidentId + sessionId.
+- No public S3 bucket or public object URL exposure.
+- Uploaded media must be encrypted at rest.
+- Viewing media must be role-checked and audit logged.
+- Optional recording must be disabled by default.
+- Add retention cleanup logic based on agency pilot config.
+
+Acceptance Criteria:
+- Expired links fail safely.
+- Reused or tampered links fail safely.
+- Media access creates audit record.
+- Media cannot be accessed across agencies.
+
+## Phase 5 - Audit Logging
+Create or harden an audit logging service.
+
+Log at minimum:
+- login/logout
+- failed login if available
+- user invite/update/deactivate
+- incident view
+- media request
+- media view
+- transcript/translation view
+- CAD lookup
+- export/download
+- feature flag changes
+- admin settings changes
+- cross-tenant denial attempts
+
+Each audit event should include:
+- eventId
+- timestamp
+- actorUserId
+- actorRole
+- agencyId
+- incidentId if applicable
+- action
+- resourceType
+- resourceId
+- result success/denied/error
+- sourceIp/userAgent if available
+
+Acceptance Criteria:
+- Critical actions are audit logged.
+- Failed/denied sensitive actions are audit logged.
+- Agency admin/auditor can export agency-scoped audit logs.
+
+## Phase 6 - Deployment and Health
+Stabilize deployment and production operations.
+
+Requirements:
+- Keep dev and prod separated.
+- Add health endpoints for web/API/auth/database/media/SMS/translation/transcription.
+- Add CloudWatch alarms or equivalent for error rates, latency, failed SMS, failed media sessions, auth failures, and API 5xx.
+- Add status page support with current UTC timestamp and service status.
+- Add rollback notes to `docs/runbooks/DEPLOYMENT_ROLLBACK.md`.
+
+Acceptance Criteria:
+- Health page returns clear status without exposing secrets.
+- Status page updates operational time every 3 minutes if already designed that way.
+- Rollback instructions are documented and testable.
+
+## Phase 7 - Public Website Cleanup
+Review public marketing pages.
+
+Requirements:
+- Remove backend/internal docs links from public navigation.
+- Keep public status page link in footer.
+- Keep decision-support disclaimer in footer.
+- Add Rapid Cortex logo/favicon to tab, email templates, mobile text link previews, and web links where applicable.
+- Add page or section for Desktop App and RC Lite downloads/API information without exposing private infrastructure URLs.
+- Remove Stripe/Square/payment processor mentions from Rapid Cortex core if still present.
+
+Acceptance Criteria:
+- No backend doc links are visible to public users.
+- No Stripe/Square references remain in Rapid Cortex unless isolated in unrelated legacy docs.
+- Site language says decision support, not replacement.
+
+## Phase 8 - Tests and Evidence
+Add/update tests:
+- RBAC route tests
+- tenant isolation tests
+- pilot feature flag enforcement tests
+- secure media link expiration tests
+- audit log tests
+- dashboard routing tests
+- no public media URL tests
+
+Create evidence folder:
+`docs/pilot-evidence/`
+
+Add:
+- SECURITY_OVERVIEW.md
+- DATA_FLOW.md
+- ACCESS_CONTROL_MATRIX.md
+- AUDIT_LOGGING_POLICY.md
+- DATA_RETENTION_POLICY.md
+- INCIDENT_RESPONSE_PLAN.md
+- BACKUP_RESTORE_PLAN.md
+- PILOT_READINESS_CHECKLIST.md
+- PRODUCTION_GO_NO_GO_CHECKLIST.md
+- KNOWN_LIMITATIONS.md
+
+## Do Not Do
+- Do not add NCIC access.
+- Do not enable CAD write-back by default.
+- Do not expose public media URLs.
+- Do not add new payment processors.
+- Do not claim CJIS certification or SOC 2 certification.
+- Do not weaken auth for demo convenience.
+
+## Final Output Required
+When complete, produce a summary with:
+1. Files changed
+2. Tests added/updated
+3. Security issues fixed
+4. Remaining P0/P1/P2 gaps
+5. Commands to run locally
+6. Deployment notes
+7. Pilot readiness status: GREEN/YELLOW/RED

@@ -1,0 +1,9 @@
+node_modules
+.next
+dist
+coverage
+package-lock.json
+.turbo
+*.min.js
+apps/api/dist
+packages/*/dist

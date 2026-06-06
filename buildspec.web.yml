@@ -1,0 +1,106 @@
+version: 0.2
+
+env:
+  variables:
+    NODE_VERSION: "22"
+    CONTAINER_NAME: rapid-cortex-web
+
+phases:
+  install:
+    runtime-versions:
+      nodejs: 22
+    commands:
+      - echo "Source artifact unpacked; invoking Docker."
+
+  pre_build:
+    commands:
+      - set -eu
+      - echo "ECR repo URI $ECR_REGISTRY"
+      - >-
+        aws ecr get-login-password --region "$AWS_DEFAULT_REGION"
+        | docker login --username AWS --password-stdin "${ECR_REGISTRY%%/*}"
+
+  build:
+    commands:
+      - set -eu
+      - export DOCKER_BUILDKIT=1
+      - IMAGE_TAG="$(echo "${CODEBUILD_RESOLVED_SOURCE_VERSION:-manual}" | cut -c1-7)"
+      # Must match ECS task runtimePlatform: use rapid-cortex-web-prod task definition with X86_64 + this amd64 image.
+      - >-
+        docker build --platform linux/amd64 -f Dockerfile.web -t "${ECR_REGISTRY}:${IMAGE_TAG}"
+        --build-arg "NEXT_PUBLIC_API_BASE_URL=${NEXT_PUBLIC_API_BASE_URL:-}"
+        --build-arg "NEXT_PUBLIC_API_BASE=${NEXT_PUBLIC_API_BASE:-}"
+        --build-arg "NEXT_PUBLIC_API_BASE_2=${NEXT_PUBLIC_API_BASE_2:-}"
+        --build-arg "NEXT_PUBLIC_COGNITO_REGION=${NEXT_PUBLIC_COGNITO_REGION:-}"
+        --build-arg "NEXT_PUBLIC_COGNITO_USER_POOL_ID=${NEXT_PUBLIC_COGNITO_USER_POOL_ID:-}"
+        --build-arg "NEXT_PUBLIC_COGNITO_CLIENT_ID=${NEXT_PUBLIC_COGNITO_CLIENT_ID:-}"
+        --build-arg "NEXT_PUBLIC_COGNITO_DOMAIN=${NEXT_PUBLIC_COGNITO_DOMAIN:-}"
+        --build-arg "NEXT_PUBLIC_SITE_URL=${NEXT_PUBLIC_SITE_URL:-}"
+        --build-arg "NEXT_PUBLIC_APP_ORIGIN=${NEXT_PUBLIC_APP_ORIGIN:-}"
+        --build-arg "NEXT_PUBLIC_MARKETING_SITE_URL=${NEXT_PUBLIC_MARKETING_SITE_URL:-}"
+        --build-arg "NEXT_PUBLIC_MAC_DOWNLOAD_URL=${NEXT_PUBLIC_MAC_DOWNLOAD_URL:-}"
+        --build-arg "NEXT_PUBLIC_WINDOWS_DOWNLOAD_URL=${NEXT_PUBLIC_WINDOWS_DOWNLOAD_URL:-}"
+        --build-arg "NEXT_PUBLIC_RC_LITE_DOCS_URL=${NEXT_PUBLIC_RC_LITE_DOCS_URL:-}"
+        --build-arg "NEXT_PUBLIC_RC_LITE_API_URL=${NEXT_PUBLIC_RC_LITE_API_URL:-}"
+        --build-arg "NEXT_PUBLIC_ENABLE_DOWNLOADS=${NEXT_PUBLIC_ENABLE_DOWNLOADS:-}"
+        --build-arg "NEXT_PUBLIC_ENABLE_RC_LITE=${NEXT_PUBLIC_ENABLE_RC_LITE:-}"
+        --build-arg "NEXT_PUBLIC_ENABLE_LIVE_VIDEO=${NEXT_PUBLIC_ENABLE_LIVE_VIDEO:-}"
+        --build-arg "NEXT_PUBLIC_ENABLE_CONNECT_RING=${NEXT_PUBLIC_ENABLE_CONNECT_RING:-}"
+        --build-arg "NEXT_PUBLIC_ENABLE_CONNECT_RING_AVAILABLE_CAMERAS=${NEXT_PUBLIC_ENABLE_CONNECT_RING_AVAILABLE_CAMERAS:-}"
+        --build-arg "NEXT_PUBLIC_ENABLE_CONNECT_RING_EMERGENCY_REQUESTS=${NEXT_PUBLIC_ENABLE_CONNECT_RING_EMERGENCY_REQUESTS:-}"
+        --build-arg "NEXT_PUBLIC_ENABLE_SILENT_TEXT=${NEXT_PUBLIC_ENABLE_SILENT_TEXT:-}"
+        --build-arg "NEXT_PUBLIC_EXTERNAL_STATUS_PAGE_URL=${NEXT_PUBLIC_EXTERNAL_STATUS_PAGE_URL:-}"
+        --build-arg "NEXT_PUBLIC_ENABLE_HOSPITAL_ROUTING=${NEXT_PUBLIC_ENABLE_HOSPITAL_ROUTING:-}"
+        --build-arg "NEXT_PUBLIC_ENABLE_HOSPITAL_PORTAL=${NEXT_PUBLIC_ENABLE_HOSPITAL_PORTAL:-}"
+        --build-arg "NEXT_PUBLIC_ENABLE_EMERGENCY_CONNECT=${NEXT_PUBLIC_ENABLE_EMERGENCY_CONNECT:-}"
+        --build-arg "NEXT_PUBLIC_GA_MEASUREMENT_ID=${NEXT_PUBLIC_GA_MEASUREMENT_ID:-}"
+        --build-arg "APP_ENV=${APP_ENV:-production}"
+        --build-arg "APP_VERSION=${APP_VERSION:-unknown}"
+        .
+      - docker tag "${ECR_REGISTRY}:${IMAGE_TAG}" "${ECR_REGISTRY}:latest"
+
+  post_build:
+    commands:
+      - |
+        set -eu
+        IMAGE_TAG="$(echo "${CODEBUILD_RESOLVED_SOURCE_VERSION:-manual}" | cut -c1-7)"
+        echo "POST_BUILD smoke — image ${ECR_REGISTRY}:${IMAGE_TAG}"
+        CONTAINER_ID="$(docker run -d -p 127.0.0.1:3000:3000 "${ECR_REGISTRY}:${IMAGE_TAG}")"
+        cleanup() { docker rm -f "${CONTAINER_ID}" >/dev/null 2>&1 || true; }
+        trap cleanup EXIT
+        sleep 5
+        if ! docker inspect -f '{{.State.Running}}' "${CONTAINER_ID}" 2>/dev/null | grep -q true; then
+          echo "ERROR: container exited immediately after start"
+          docker logs "${CONTAINER_ID}" 2>&1 | tail -120 || true
+          exit 1
+        fi
+        READY=0
+        for i in $(seq 1 90); do
+          if curl -sf -m 5 http://127.0.0.1:3000/api/health/web >/dev/null 2>&1; then
+            READY=1
+            echo "Container healthy after ${i} attempt(s)"
+            break
+          fi
+          if ! docker inspect -f '{{.State.Running}}' "${CONTAINER_ID}" 2>/dev/null | grep -q true; then
+            echo "ERROR: container exited during health wait (attempt ${i})"
+            docker logs "${CONTAINER_ID}" 2>&1 | tail -120 || true
+            exit 1
+          fi
+          sleep 2
+        done
+        if [ "${READY}" != "1" ]; then
+          echo "ERROR: container did not respond on :3000 within 180s"
+          docker logs "${CONTAINER_ID}" 2>&1 | tail -120 || true
+          exit 1
+        fi
+        if [ "${SKIP_CODEBUILD_HOST_ROUTING_VERIFY:-0}" != "1" ]; then
+          chmod +x scripts/verify-host-routing.sh
+          APP_HOST=app.rapidcortex.us ./scripts/verify-host-routing.sh --local http://127.0.0.1:3000
+        else
+          echo "SKIP_CODEBUILD_HOST_ROUTING_VERIFY=1 — skipping in-container host routing checks"
+        fi
+      - |
+        set -eu
+        IMAGE_TAG="$(echo "${CODEBUILD_RESOLVED_SOURCE_VERSION:-manual}" | cut -c1-7)"
+        docker push "${ECR_REGISTRY}:${IMAGE_TAG}"
+        docker push "${ECR_REGISTRY}:latest"

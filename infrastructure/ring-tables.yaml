@@ -1,0 +1,238 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: >-
+  Rapid Cortex Connect — Ring integration DynamoDB tables.
+  Nest via AWS::CloudFormation::Stack or merge Resources into stack-data-layer.yaml.
+
+Parameters:
+  DeploymentStage:
+    Type: String
+    Default: dev
+    AllowedValues: [dev, staging, prod, pilot]
+  DynamoBillingMode:
+    Type: String
+    Default: PAY_PER_REQUEST
+    AllowedValues: [PAY_PER_REQUEST]
+  DynamoPointInTimeRecovery:
+    Type: String
+    Default: auto
+    AllowedValues: [auto, "true", "false"]
+  RingAccountsTableName:
+    Type: String
+    Default: RapidCortexRingAccounts
+  RingDevicesTableName:
+    Type: String
+    Default: RapidCortexRingDevices
+  RingEmergencyCameraRequestsTableName:
+    Type: String
+    Default: RingEmergencyCameraRequests
+  RingEmergencyCameraSessionsTableName:
+    Type: String
+    Default: RingEmergencyCameraSessions
+  RingTableCustomerManagedKmsKeyArn:
+    Type: String
+    Default: ""
+    Description: Optional CMK ARN for SSE-KMS on all Ring tables. Leave empty for AWS-owned keys.
+
+Conditions:
+  EnablePilotGradeBackups:
+    Fn::Or:
+      - Fn::Equals:
+          - !Ref DeploymentStage
+          - staging
+      - Fn::Equals:
+          - !Ref DeploymentStage
+          - prod
+      - Fn::Equals:
+          - !Ref DeploymentStage
+          - pilot
+  DynamoPitrOn:
+    Fn::Or:
+      - Fn::And:
+          - Fn::Equals:
+              - !Ref DynamoPointInTimeRecovery
+              - auto
+          - !Condition EnablePilotGradeBackups
+      - Fn::Equals:
+          - !Ref DynamoPointInTimeRecovery
+          - "true"
+  UseRingTableCmk: !Not [!Equals [!Ref RingTableCustomerManagedKmsKeyArn, ""]]
+
+Resources:
+  RapidCortexRingAccountsTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      BillingMode: !Ref DynamoBillingMode
+      TableName: !Sub "${RingAccountsTableName}-${DeploymentStage}"
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: !If [DynamoPitrOn, true, false]
+      TimeToLiveSpecification:
+        AttributeName: ttl
+        Enabled: true
+      SSESpecification:
+        Fn::If:
+          - UseRingTableCmk
+          - SSEEnabled: true
+            SSEType: KMS
+            KMSMasterKeyId: !Ref RingTableCustomerManagedKmsKeyArn
+          - SSEEnabled: true
+            SSEType: KMS
+      AttributeDefinitions:
+        - AttributeName: agencyId
+          AttributeType: S
+        - AttributeName: userId
+          AttributeType: S
+        - AttributeName: ringAccountId
+          AttributeType: S
+      KeySchema:
+        - AttributeName: agencyId
+          KeyType: HASH
+        - AttributeName: userId
+          KeyType: RANGE
+      GlobalSecondaryIndexes:
+        - IndexName: ringAccountId-index
+          KeySchema:
+            - AttributeName: ringAccountId
+              KeyType: HASH
+          Projection:
+            ProjectionType: ALL
+
+  RapidCortexRingDevicesTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      BillingMode: !Ref DynamoBillingMode
+      TableName: !Sub "${RingDevicesTableName}-${DeploymentStage}"
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: !If [DynamoPitrOn, true, false]
+      SSESpecification:
+        Fn::If:
+          - UseRingTableCmk
+          - SSEEnabled: true
+            SSEType: KMS
+            KMSMasterKeyId: !Ref RingTableCustomerManagedKmsKeyArn
+          - SSEEnabled: true
+            SSEType: KMS
+      AttributeDefinitions:
+        - AttributeName: agencyUserKey
+          AttributeType: S
+        - AttributeName: deviceId
+          AttributeType: S
+        - AttributeName: agencyId
+          AttributeType: S
+      KeySchema:
+        - AttributeName: agencyUserKey
+          KeyType: HASH
+        - AttributeName: deviceId
+          KeyType: RANGE
+      GlobalSecondaryIndexes:
+        - IndexName: agencyId-index
+          KeySchema:
+            - AttributeName: agencyId
+              KeyType: HASH
+            - AttributeName: deviceId
+              KeyType: RANGE
+          Projection:
+            ProjectionType: ALL
+
+  RingEmergencyCameraRequestsTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      BillingMode: !Ref DynamoBillingMode
+      TableName: !Sub "${RingEmergencyCameraRequestsTableName}-${DeploymentStage}"
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: !If [DynamoPitrOn, true, false]
+      TimeToLiveSpecification:
+        AttributeName: expiresAt
+        Enabled: true
+      SSESpecification:
+        Fn::If:
+          - UseRingTableCmk
+          - SSEEnabled: true
+            SSEType: KMS
+            KMSMasterKeyId: !Ref RingTableCustomerManagedKmsKeyArn
+          - SSEEnabled: true
+            SSEType: KMS
+      AttributeDefinitions:
+        - AttributeName: agencyIncidentKey
+          AttributeType: S
+        - AttributeName: requestId
+          AttributeType: S
+        - AttributeName: deviceId
+          AttributeType: S
+        - AttributeName: createdAt
+          AttributeType: S
+        - AttributeName: requestStatus
+          AttributeType: S
+      KeySchema:
+        - AttributeName: agencyIncidentKey
+          KeyType: HASH
+        - AttributeName: requestId
+          KeyType: RANGE
+      GlobalSecondaryIndexes:
+        - IndexName: deviceId-index
+          KeySchema:
+            - AttributeName: deviceId
+              KeyType: HASH
+            - AttributeName: createdAt
+              KeyType: RANGE
+          Projection:
+            ProjectionType: ALL
+        - IndexName: requestStatus-index
+          KeySchema:
+            - AttributeName: requestStatus
+              KeyType: HASH
+            - AttributeName: createdAt
+              KeyType: RANGE
+          Projection:
+            ProjectionType: ALL
+
+  RingEmergencyCameraSessionsTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      BillingMode: !Ref DynamoBillingMode
+      TableName: !Sub "${RingEmergencyCameraSessionsTableName}-${DeploymentStage}"
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: !If [DynamoPitrOn, true, false]
+      TimeToLiveSpecification:
+        AttributeName: expiresAt
+        Enabled: true
+      SSESpecification:
+        Fn::If:
+          - UseRingTableCmk
+          - SSEEnabled: true
+            SSEType: KMS
+            KMSMasterKeyId: !Ref RingTableCustomerManagedKmsKeyArn
+          - SSEEnabled: true
+            SSEType: KMS
+      AttributeDefinitions:
+        - AttributeName: sessionId
+          AttributeType: S
+        - AttributeName: createdAt
+          AttributeType: S
+        - AttributeName: incidentId
+          AttributeType: S
+        - AttributeName: startedAt
+          AttributeType: S
+      KeySchema:
+        - AttributeName: sessionId
+          KeyType: HASH
+        - AttributeName: createdAt
+          KeyType: RANGE
+      GlobalSecondaryIndexes:
+        - IndexName: incidentId-index
+          KeySchema:
+            - AttributeName: incidentId
+              KeyType: HASH
+            - AttributeName: startedAt
+              KeyType: RANGE
+          Projection:
+            ProjectionType: ALL
+
+Outputs:
+  RingAccountsTableName:
+    Value: !Ref RapidCortexRingAccountsTable
+  RingDevicesTableName:
+    Value: !Ref RapidCortexRingDevicesTable
+  RingEmergencyCameraRequestsTableName:
+    Value: !Ref RingEmergencyCameraRequestsTable
+  RingEmergencyCameraSessionsTableName:
+    Value: !Ref RingEmergencyCameraSessionsTable

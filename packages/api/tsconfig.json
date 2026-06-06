@@ -1,0 +1,18 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "CommonJS",
+    "lib": ["ES2022"],
+    "rootDir": "src",
+    "outDir": "dist",
+    "declaration": true,
+    "resolveJsonModule": true,
+    "moduleResolution": "Node",
+    "forceConsistentCasingInFileNames": true,
+    "noEmit": false,
+    "types": ["node", "aws-lambda"]
+  },
+  "include": ["src/**/*.ts"],
+  "exclude": ["node_modules", "dist", "**/*.test.ts"]
+}

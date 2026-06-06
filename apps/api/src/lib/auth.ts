@@ -19,6 +19,22 @@ const BLOCKED_ACCOUNT_STATUS = new Set(["inactive", "disabled", "suspended", "ar
 export const CJIS_UNAUTH_BYPASS_ERROR =
   "CJIS VIOLATION: Unauthenticated API mode not allowed in production";
 const jwksByIssuer = new Map<string, ReturnType<typeof createRemoteJWKSet>>();
+const KNOWN_CAMPUS_ROLE_CLAIMS = new Set([
+  "CAMPUS_ADMIN",
+  "CAMPUS_SUPERVISOR",
+  "CAMPUS_SECURITY",
+  "CAMPUS_DISPATCH",
+  "CAMPUS_COUNSELOR",
+  "CAMPUS_FACULTY",
+]);
+
+function isKnownRoleClaim(raw: unknown): boolean {
+  const value = String(raw ?? "").trim();
+  if (!value) return false;
+  if (KNOWN_CAMPUS_ROLE_CLAIMS.has(value)) return true;
+  const migrated = migrateLegacyRapidCortexRoleTokenValue(value) ?? value;
+  return isRapidCortexRole(migrated);
+}
 
 function getJwks(issuer: string) {
   let jwks = jwksByIssuer.get(issuer);
@@ -35,18 +51,17 @@ function getJwks(issuer: string) {
  */
 function resolveRoleFromJwtPayload(payload: JWTPayload): string {
   const rawCustom = payload["custom:role"];
-  if (rawCustom != null && String(rawCustom).trim()) return String(rawCustom).trim();
+  if (isKnownRoleClaim(rawCustom)) return String(rawCustom).trim();
 
   const preferred = payload["preferred_role"];
-  if (typeof preferred === "string" && preferred.trim()) return preferred.trim();
+  if (isKnownRoleClaim(preferred)) return String(preferred).trim();
 
   const groupsRaw = payload["cognito:groups"];
   const groups = Array.isArray(groupsRaw) ? groupsRaw : [];
   for (const g of groups) {
     const segment = String(g).trim();
     if (!segment) continue;
-    const migrated = migrateLegacyRapidCortexRoleTokenValue(segment) ?? segment;
-    if (isRapidCortexRole(migrated)) return migrated;
+    if (isKnownRoleClaim(segment)) return segment;
   }
   return "";
 }
@@ -95,6 +110,12 @@ function mapPasswordChangeRequiredClaim(raw: unknown): boolean | string | undefi
 }
 
 async function verifyBearerToken(token: string): Promise<UserContext | null> {
+  const payload = await verifyBearerTokenClaims(token);
+  if (!payload) return null;
+  return mapPayload(payload);
+}
+
+async function verifyBearerTokenClaims(token: string): Promise<JWTPayload | null> {
   const poolId = process.env.COGNITO_USER_POOL_ID;
   const region = process.env.COGNITO_REGION;
   const clientId = process.env.COGNITO_CLIENT_ID;
@@ -109,10 +130,31 @@ async function verifyBearerToken(token: string): Promise<UserContext | null> {
       audience: clientId,
     });
     if (payload.token_use != null && payload.token_use !== "id") return null;
-    return mapPayload(payload);
+    return payload;
   } catch {
     return null;
   }
+}
+
+/**
+ * Returns verified JWT claims for middleware that needs custom attributes
+ * (e.g. custom:addons family checks), without duplicating trust in raw headers.
+ */
+export async function getVerifiedJwtClaims(
+  event: Pick<APIGatewayProxyEventV2, "headers" | "requestContext">,
+): Promise<JWTPayload | null> {
+  const fromAuthorizer = (
+    event.requestContext as { authorizer?: { jwt?: { claims?: JWTPayload } } }
+  ).authorizer?.jwt?.claims;
+  if (fromAuthorizer?.sub) return fromAuthorizer;
+
+  const hdr =
+    event.headers?.authorization ??
+    event.headers?.Authorization ??
+    event.headers?.["authorization"];
+  const match = hdr?.match(/^Bearer\s+(.+)$/i);
+  if (!match?.[1]) return null;
+  return verifyBearerTokenClaims(match[1].trim());
 }
 
 function demoUser(): UserContext {

@@ -1,0 +1,329 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "CloudFormationRapidCortexStacks",
+      "Effect": "Allow",
+      "Action": [
+        "cloudformation:CreateChangeSet",
+        "cloudformation:CreateStack",
+        "cloudformation:DeleteChangeSet",
+        "cloudformation:DeleteStack",
+        "cloudformation:DescribeChangeSet",
+        "cloudformation:DescribeStackEvents",
+        "cloudformation:DescribeStackResource",
+        "cloudformation:DescribeStackResources",
+        "cloudformation:DescribeStacks",
+        "cloudformation:ExecuteChangeSet",
+        "cloudformation:GetTemplate",
+        "cloudformation:GetTemplateSummary",
+        "cloudformation:ListChangeSets",
+        "cloudformation:ListStackResources",
+        "cloudformation:UpdateStack",
+        "cloudformation:ValidateTemplate"
+      ],
+      "Resource": [
+        "arn:aws:cloudformation:REPLACE_REGION:REPLACE_ACCOUNT_ID:stack/rapid-cortex-*/*",
+        "arn:aws:cloudformation:us-east-1:REPLACE_ACCOUNT_ID:stack/rapid-cortex-web-hosting-*/*",
+        "arn:aws:cloudformation:REPLACE_REGION:aws:transform/Serverless-2016-10-31"
+      ]
+    },
+    {
+      "Sid": "CloudFormationDiscovery",
+      "Effect": "Allow",
+      "Action": ["cloudformation:DescribeStacks", "cloudformation:ListStacks"],
+      "Resource": "*"
+    },
+    {
+      "Sid": "SamArtifactBuckets",
+      "Effect": "Allow",
+      "Action": [
+        "s3:CreateBucket",
+        "s3:GetBucketLocation",
+        "s3:GetObject",
+        "s3:PutObject",
+        "s3:DeleteObject",
+        "s3:ListBucket",
+        "s3:PutBucketPolicy",
+        "s3:PutBucketVersioning",
+        "s3:PutEncryptionConfiguration",
+        "s3:PutLifecycleConfiguration"
+      ],
+      "Resource": [
+        "arn:aws:s3:::aws-sam-cli-managed-default-samclisourcebucket-*",
+        "arn:aws:s3:::aws-sam-cli-managed-default-samclisourcebucket-*/*",
+        "arn:aws:s3:::rapid-cortex-sam-artifacts-*",
+        "arn:aws:s3:::rapid-cortex-sam-artifacts-*/*"
+      ]
+    },
+    {
+      "Sid": "LambdaSamDeploy",
+      "Effect": "Allow",
+      "Action": [
+        "lambda:CreateFunction",
+        "lambda:DeleteFunction",
+        "lambda:GetFunction",
+        "lambda:GetFunctionConfiguration",
+        "lambda:ListTags",
+        "lambda:ListVersionsByFunction",
+        "lambda:PublishVersion",
+        "lambda:UpdateFunctionCode",
+        "lambda:UpdateFunctionConfiguration",
+        "lambda:TagResource",
+        "lambda:UntagResource",
+        "lambda:AddPermission",
+        "lambda:RemovePermission",
+        "lambda:GetPolicy",
+        "lambda:CreateEventSourceMapping",
+        "lambda:UpdateEventSourceMapping",
+        "lambda:DeleteEventSourceMapping",
+        "lambda:GetEventSourceMapping",
+        "lambda:ListEventSourceMappings"
+      ],
+      "Resource": "arn:aws:lambda:REPLACE_REGION:REPLACE_ACCOUNT_ID:function:*"
+    },
+    {
+      "Sid": "ApiGatewayV2HttpApi",
+      "Effect": "Allow",
+      "Action": [
+        "apigateway:GET",
+        "apigateway:POST",
+        "apigateway:PUT",
+        "apigateway:PATCH",
+        "apigateway:DELETE"
+      ],
+      "Resource": [
+        "arn:aws:apigateway:REPLACE_REGION::/apis",
+        "arn:aws:apigateway:REPLACE_REGION::/apis/*"
+      ]
+    },
+    {
+      "Sid": "DynamoDBTablesRapidCortex",
+      "Effect": "Allow",
+      "Action": [
+        "dynamodb:CreateTable",
+        "dynamodb:UpdateTable",
+        "dynamodb:DeleteTable",
+        "dynamodb:DescribeTable",
+        "dynamodb:ListTagsOfResource",
+        "dynamodb:TagResource",
+        "dynamodb:UntagResource",
+        "dynamodb:UpdateContinuousBackup",
+        "dynamodb:DescribeContinuousBackup",
+        "dynamodb:DescribeTimeToLive",
+        "dynamodb:UpdateTimeToLive",
+        "dynamodb:EnableContributorInsights",
+        "dynamodb:UpdateContributorInsights"
+      ],
+      "Resource": "arn:aws:dynamodb:REPLACE_REGION:REPLACE_ACCOUNT_ID:table/*"
+    },
+    {
+      "Sid": "CognitoIdpUserPools",
+      "Effect": "Allow",
+      "Action": [
+        "cognito-idp:CreateUserPool",
+        "cognito-idp:UpdateUserPool",
+        "cognito-idp:DeleteUserPool",
+        "cognito-idp:DescribeUserPool",
+        "cognito-idp:CreateUserPoolClient",
+        "cognito-idp:UpdateUserPoolClient",
+        "cognito-idp:DeleteUserPoolClient",
+        "cognito-idp:DescribeUserPoolClient",
+        "cognito-idp:CreateUserPoolDomain",
+        "cognito-idp:DeleteUserPoolDomain",
+        "cognito-idp:DescribeUserPoolDomain",
+        "cognito-idp:TagResource",
+        "cognito-idp:UntagResource",
+        "cognito-idp:ListTagsForResource"
+      ],
+      "Resource": "arn:aws:cognito-idp:REPLACE_REGION:REPLACE_ACCOUNT_ID:userpool/*"
+    },
+    {
+      "Sid": "SnsTopicsRapidCortex",
+      "Effect": "Allow",
+      "Action": [
+        "sns:CreateTopic",
+        "sns:DeleteTopic",
+        "sns:GetTopicAttributes",
+        "sns:SetTopicAttributes",
+        "sns:Subscribe",
+        "sns:Unsubscribe",
+        "sns:ListSubscriptionsByTopic",
+        "sns:TagResource",
+        "sns:UntagResource"
+      ],
+      "Resource": "arn:aws:sns:REPLACE_REGION:REPLACE_ACCOUNT_ID:*"
+    },
+    {
+      "Sid": "SesEmailIdentities",
+      "Effect": "Allow",
+      "Action": [
+        "ses:CreateEmailIdentity",
+        "ses:DeleteEmailIdentity",
+        "ses:GetEmailIdentity",
+        "ses:PutConfigurationSet*",
+        "ses:GetConfigurationSet*",
+        "ses:ListConfigurationSets"
+      ],
+      "Resource": "*"
+    },
+    {
+      "Sid": "CloudWatchLogsSam",
+      "Effect": "Allow",
+      "Action": [
+        "logs:CreateLogGroup",
+        "logs:DeleteLogGroup",
+        "logs:DescribeLogGroups",
+        "logs:PutRetentionPolicy",
+        "logs:TagLogGroup",
+        "logs:TagResource"
+      ],
+      "Resource": [
+        "arn:aws:logs:REPLACE_REGION:REPLACE_ACCOUNT_ID:log-group:*",
+        "arn:aws:logs:REPLACE_REGION:REPLACE_ACCOUNT_ID:log-group:*:*"
+      ]
+    },
+    {
+      "Sid": "EventBridgeAndScheduler",
+      "Effect": "Allow",
+      "Action": [
+        "events:PutRule",
+        "events:DeleteRule",
+        "events:DescribeRule",
+        "events:PutTargets",
+        "events:RemoveTargets",
+        "events:ListRules",
+        "events:ListRuleNamesByTarget",
+        "events:ListTargetsByRule",
+        "events:TagResource",
+        "events:UntagResource",
+        "scheduler:CreateSchedule",
+        "scheduler:UpdateSchedule",
+        "scheduler:DeleteSchedule",
+        "scheduler:GetSchedule",
+        "scheduler:ListSchedules"
+      ],
+      "Resource": [
+        "arn:aws:events:REPLACE_REGION:REPLACE_ACCOUNT_ID:rule/*",
+        "arn:aws:scheduler:REPLACE_REGION:REPLACE_ACCOUNT_ID:schedule/*/*"
+      ]
+    },
+    {
+      "Sid": "ApplicationAutoScalingDynamo",
+      "Effect": "Allow",
+      "Action": [
+        "application-autoscaling:RegisterScalableTarget",
+        "application-autoscaling:DeregisterScalableTarget",
+        "application-autoscaling:PutScalingPolicy",
+        "application-autoscaling:DeleteScalingPolicy",
+        "application-autoscaling:DescribeScalableTargets",
+        "application-autoscaling:DescribeScalingPolicies",
+        "application-autoscaling:DescribeScheduledActions"
+      ],
+      "Resource": "*"
+    },
+    {
+      "Sid": "CloudWatchAlarmsAndMetrics",
+      "Effect": "Allow",
+      "Action": [
+        "cloudwatch:PutMetricAlarm",
+        "cloudwatch:DeleteAlarms",
+        "cloudwatch:DescribeAlarms",
+        "cloudwatch:TagResource",
+        "cloudwatch:UntagResource"
+      ],
+      "Resource": "arn:aws:cloudwatch:REPLACE_REGION:REPLACE_ACCOUNT_ID:alarm:*"
+    },
+    {
+      "Sid": "CloudFrontWebHosting",
+      "Effect": "Allow",
+      "Action": [
+        "cloudfront:GetDistribution",
+        "cloudfront:GetDistributionConfig",
+        "cloudfront:CreateDistribution",
+        "cloudfront:UpdateDistribution",
+        "cloudfront:DeleteDistribution",
+        "cloudfront:TagResource",
+        "cloudfront:UntagResource",
+        "cloudfront:ListDistributions"
+      ],
+      "Resource": "*"
+    },
+    {
+      "Sid": "AcmRequestCertificate",
+      "Effect": "Allow",
+      "Action": ["acm:RequestCertificate", "acm:ListCertificates"],
+      "Resource": "*"
+    },
+    {
+      "Sid": "AcmManageIssuedCertificates",
+      "Effect": "Allow",
+      "Action": [
+        "acm:DescribeCertificate",
+        "acm:ListTagsForCertificate",
+        "acm:AddTagsToCertificate",
+        "acm:DeleteCertificate",
+        "acm:RemoveTagsFromCertificate"
+      ],
+      "Resource": "arn:aws:acm:REPLACE_REGION:REPLACE_ACCOUNT_ID:certificate/*"
+    },
+    {
+      "Sid": "Route53RecordsInHostedZone",
+      "Effect": "Allow",
+      "Action": ["route53:ChangeResourceRecordSets", "route53:ListResourceRecordSets"],
+      "Resource": "arn:aws:route53:::hostedzone/REPLACE_HOSTED_ZONE_ID"
+    },
+    {
+      "Sid": "Route53GlobalReads",
+      "Effect": "Allow",
+      "Action": [
+        "route53:GetChange",
+        "route53:ListHostedZones",
+        "route53:GetHostedZone",
+        "route53:ListHostedZonesByName"
+      ],
+      "Resource": "*"
+    },
+    {
+      "Sid": "IamRolesForSamLambda",
+      "Effect": "Allow",
+      "Action": [
+        "iam:CreateRole",
+        "iam:DeleteRole",
+        "iam:GetRole",
+        "iam:PassRole",
+        "iam:AttachRolePolicy",
+        "iam:DetachRolePolicy",
+        "iam:PutRolePolicy",
+        "iam:DeleteRolePolicy",
+        "iam:GetRolePolicy",
+        "iam:TagRole",
+        "iam:UntagRole",
+        "iam:ListRolePolicies",
+        "iam:ListAttachedRolePolicies"
+      ],
+      "Resource": ["arn:aws:iam::REPLACE_ACCOUNT_ID:role/rapid-cortex-*"]
+    },
+    {
+      "Sid": "S3AssetsBucketRapidCortex",
+      "Effect": "Allow",
+      "Action": [
+        "s3:GetObject",
+        "s3:PutObject",
+        "s3:DeleteObject",
+        "s3:ListBucket",
+        "s3:GetBucketLocation",
+        "s3:GetBucketVersioning",
+        "s3:PutBucketVersioning",
+        "s3:PutBucketCors",
+        "s3:PutBucketPolicy",
+        "s3:GetBucketPolicy",
+        "s3:DeleteBucketPolicy"
+      ],
+      "Resource": [
+        "arn:aws:s3:::rapid-cortex-*",
+        "arn:aws:s3:::rapid-cortex-*/*"
+      ]
+    }
+  ]
+}

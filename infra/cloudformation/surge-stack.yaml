@@ -1,0 +1,124 @@
+# REST API + Lambdas from packages/api (Surge handlers).
+# Pre-build: npm run build -w @rapid-cortex/api (dist/ must exist for handlers).
+
+AWSTemplateFormatVersion: "2010-09-09"
+Transform: AWS::Serverless-2016-10-31
+Description: Rapid Cortex Surge API (standalone SAM stack).
+
+Parameters:
+  Environment:
+    Type: String
+    Default: dev
+    AllowedValues:
+      - dev
+      - staging
+      - prod
+
+  SurgeTableName:
+    Type: String
+    Description: DynamoDB table name for Surge
+
+  CognitoUserPoolArn:
+    Type: String
+    Description: Full ARN for the Cognito User Pool used by API Gateway (no wildcards).
+
+Globals:
+  Function:
+    Runtime: nodejs20.x
+    MemorySize: 1024
+    Timeout: 30
+    Environment:
+      Variables:
+        SURGE_TABLE_NAME: !Ref SurgeTableName
+        NODE_ENV: !Ref Environment
+
+Resources:
+  SurgeApi:
+    Type: AWS::Serverless::Api
+    Properties:
+      Name: !Sub "rapid-cortex-surge-${Environment}"
+      StageName: !Ref Environment
+      Cors:
+        AllowOrigin: "'*'"
+        AllowHeaders: "'Content-Type,X-Amz-Date,Authorization,X-Api-Key'"
+        AllowMethods: "'GET,POST,PUT,DELETE,OPTIONS'"
+      Auth:
+        DefaultAuthorizer: CognitoAuthorizer
+        Authorizers:
+          CognitoAuthorizer:
+            UserPoolArn: !Ref CognitoUserPoolArn
+
+  AnalyzeCallFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub "surge-analyze-call-${Environment}"
+      CodeUri: ../../packages/api
+      Handler: dist/handlers/surge/analyze-call.handler
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref SurgeTableName
+      Events:
+        AnalyzeCall:
+          Type: Api
+          Properties:
+            RestApiId: !Ref SurgeApi
+            Path: /surge/analyze
+            Method: POST
+
+  GetClustersFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub "surge-get-clusters-${Environment}"
+      CodeUri: ../../packages/api
+      Handler: dist/handlers/surge/get-clusters.handler
+      Policies:
+        - DynamoDBReadPolicy:
+            TableName: !Ref SurgeTableName
+      Events:
+        GetClusters:
+          Type: Api
+          Properties:
+            RestApiId: !Ref SurgeApi
+            Path: /surge/clusters
+            Method: GET
+
+  GetClusterDetailFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub "surge-get-cluster-detail-${Environment}"
+      CodeUri: ../../packages/api
+      Handler: dist/handlers/surge/get-cluster-detail.handler
+      Policies:
+        - DynamoDBReadPolicy:
+            TableName: !Ref SurgeTableName
+      Events:
+        GetClusterDetail:
+          Type: Api
+          Properties:
+            RestApiId: !Ref SurgeApi
+            Path: /surge/cluster/{clusterId}
+            Method: GET
+
+  ManageClusterFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub "surge-manage-cluster-${Environment}"
+      CodeUri: ../../packages/api
+      Handler: dist/handlers/surge/manage-cluster.handler
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref SurgeTableName
+      Events:
+        ManageCluster:
+          Type: Api
+          Properties:
+            RestApiId: !Ref SurgeApi
+            Path: /surge/cluster/{clusterId}/manage
+            Method: POST
+
+Outputs:
+  ApiEndpoint:
+    Description: API Gateway endpoint URL for this stage
+    Value: !Sub "https://${SurgeApi}.execute-api.${AWS::Region}.${AWS::URLSuffix}/${Environment}"
+    Export:
+      Name: !Sub "${AWS::StackName}-ApiEndpoint"
