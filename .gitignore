@@ -113,3 +113,16 @@ artifacts/
 # random/temp
 ziKUSoeO
 
+
+# Office temp files
+~$*
+
+# compiled/published desktop output
+apps/desktop-windows/src/RapidCortexDesktop.Wpf/publish/
+
+# production/staging local config files
+apps/desktop-windows/src/RapidCortexDesktop.Wpf/appsettings.Production.json
+apps/desktop-windows/src/RapidCortexDesktop.Wpf/appsettings.Staging.json
+apps/desktop-windows/src/RapidCortexDesktop.Wpf/appsettings.Development.json
+apps/desktop-windows/src/RapidCortexDesktop.Wpf/appsettings.json
+
