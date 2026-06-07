@@ -66,9 +66,12 @@ export default function CampusDispatcherPage({
 
   return (
     <div className="space-y-5">
-      <header>
-        <h1 className="text-2xl font-semibold text-white">Campus Safety — {campusCode}</h1>
-        <p className="mt-1 text-sm text-slate-400">Incoming QR and SMS reports for campus dispatch.</p>
+      <header className="rounded-lg border border-emerald-900/30 bg-emerald-950/15 px-4 py-3">
+        <h1 className="text-xl font-semibold text-emerald-50">Campus Safety — {campusCode}</h1>
+        <p className="mt-1 max-w-2xl text-sm text-emerald-100/70">
+          School and university incident intake from QR and SMS reports. This is not a 911 dispatch
+          workstation — escalate to your public safety agency when required.
+        </p>
       </header>
 
       <div className="flex flex-wrap items-center gap-3">

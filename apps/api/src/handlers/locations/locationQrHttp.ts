@@ -3,15 +3,13 @@
  * GET /api/admin/tenants/{agencyId}/locations/{rcli}/qr?format=png|svg|pdf&size=400
  */
 import type { APIGatewayProxyHandlerV2 } from "aws-lambda";
-import { isRcsuperadmin } from "rapid-cortex-shared";
-import { AuthorizationService } from "rapid-cortex-security";
+import { canViewQrLocations } from "rapid-cortex-security";
 import { ACCOUNT_INACTIVE_MESSAGE, getUserContext, isUserAccountActive } from "../../lib/auth.js";
 import { withCorrelationHeaders } from "../../lib/correlation.js";
 import { renderQrPdf, renderQrPng, renderQrSvg } from "../../locations/qr-asset-service.js";
 import { badRequest, forbidden, notFound, serverError, unauthorized } from "../../lib/response.js";
 import { QRLocationsRepository } from "../../repositories/qrLocationsRepository.js";
 
-const authz = new AuthorizationService();
 const repo = new QRLocationsRepository();
 
 export const handler: APIGatewayProxyHandlerV2 = async (event) => {
@@ -26,9 +24,7 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
     const rcli = event.pathParameters?.rcli?.trim().toUpperCase() ?? "";
     if (!agencyId || !rcli) return withCorrelationHeaders(event, badRequest("agencyId and rcli required"));
 
-    const canManage =
-      authz.canAccessAdminRoutes(user) && (isRcsuperadmin(user) || user.agencyId === agencyId);
-    if (!canManage) return withCorrelationHeaders(event, forbidden());
+    if (!canViewQrLocations(user, agencyId)) return withCorrelationHeaders(event, forbidden());
 
     const location = await repo.getByRcli(rcli);
     if (!location || location.agencyId !== agencyId) {

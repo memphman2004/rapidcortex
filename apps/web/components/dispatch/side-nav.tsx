@@ -12,6 +12,7 @@ import {
   Radio,
   UserCheck,
 } from "lucide-react";
+import { migrateLegacyRapidCortexRoleTokenValue } from "rapid-cortex-shared/auth/rapid-cortex-roles";
 import { useSession } from "@/components/auth/session-context";
 import { isAuthConfigured, isAdminRole } from "@/lib/auth/roles";
 import { fetchCadWritebackApprovals } from "@/lib/api";
@@ -143,32 +144,70 @@ export function SideNav() {
   ];
 
   const rcPlatformOnly = Boolean(auth && !isLoading && user && isRcInternalOperator(user.role));
+  const effectiveRole = migrateLegacyRapidCortexRoleTokenValue(user?.role ?? "") ?? user?.role ?? "";
+  const isLiveOpsRole = effectiveRole === "dispatcher" || effectiveRole === "supervisor";
   const isSupervisorNavRole = Boolean(
     user &&
-      (user.role === "supervisor" ||
+      (effectiveRole === "supervisor" ||
         user.role === "rcsuperadmin" ||
         user.role === "rcadmin" ||
         user.role === "rcitadmin"),
   );
+  const isQaNavRole = effectiveRole === "analyst";
+  const isAuditNavRole = effectiveRole === "auditor";
+  const isAgencyItNavRole = effectiveRole === "agencyit";
 
   const mediaEnabled = isLiveVideoEnabled() || isRingEnabled();
   const showSupervisorTools = Boolean(auth && !isLoading && isSupervisorNavRole && !rcPlatformOnly);
 
+  const qaNavLinks: DispatchNavItem[] = [
+    { path: "/qa", label: "QA review", icon: ClipboardCheck },
+    { path: "/history", label: "Transcripts", icon: FileText },
+    { path: "/reports", label: "Reports", icon: FileText },
+  ];
+
+  const auditNavLinks: DispatchNavItem[] = [
+    { path: "/audit", label: "Audit overview", icon: Eye },
+    { path: "/history", label: "Incident history", icon: FileText },
+    { path: "/reports", label: "Reports", icon: FileText },
+  ];
+
+  const agencyItNavLinks: DispatchNavItem[] = [
+    { path: "/admin/security", label: "Security", icon: Eye },
+    { path: "/admin/cad", label: "CAD health", icon: Radio },
+    { path: "/admin/audit-logs", label: "Access logs", icon: FileText },
+    { path: "/admin/integrations", label: "Integrations", icon: Radio },
+  ];
+
   const operationsMain: DispatchNavItem[] = rcPlatformOnly
     ? []
-    : [
-        ...dispatcherOperationsBeforeHistory.filter((item) => {
-          if (item.path === "/dispatcher") return featureEnabled("dispatcher_console");
-          if (item.path === "/intake") return featureEnabled("ai_assisted_intake");
-          if (item.path === "/triage") return featureEnabled("call_triage_workflows");
-          if (item.path === "/transcription") return featureEnabled("live_transcription");
-          if (item.path === "/incidents") return featureEnabled("active_incident_view");
-          return true;
-        }),
-        ...(showSupervisorTools ? supervisorInlineOperations : []),
-        { path: "/history", label: "History" },
-        ...(mediaEnabled ? dispatcherOperationsAfterHistory : []),
-      ];
+    : isQaNavRole
+      ? qaNavLinks
+      : isAuditNavRole
+        ? auditNavLinks
+        : isAgencyItNavRole
+          ? agencyItNavLinks
+          : isLiveOpsRole
+            ? [
+                ...dispatcherOperationsBeforeHistory.filter((item) => {
+                  if (item.path === "/dispatcher") return featureEnabled("dispatcher_console");
+                  if (item.path === "/intake") return featureEnabled("ai_assisted_intake");
+                  if (item.path === "/triage") return featureEnabled("call_triage_workflows");
+                  if (item.path === "/transcription") return featureEnabled("live_transcription");
+                  if (item.path === "/incidents") return featureEnabled("active_incident_view");
+                  return true;
+                }),
+                ...(showSupervisorTools ? supervisorInlineOperations : []),
+                { path: "/history", label: "History" },
+                ...(mediaEnabled ? dispatcherOperationsAfterHistory : []),
+              ]
+            : isAdminRole(user?.role ?? "")
+              ? [
+                  { path: "/admin", label: "Agency overview" },
+                  { path: "/history", label: "Incident history" },
+                  { path: "/reports", label: "Reports" },
+                ]
+              : [];
 
   return (
     <nav
@@ -271,7 +310,7 @@ export function SideNav() {
         </>
       ) : null}
 
-      {auth && !isLoading && user && isAdminRole(user.role) && !rcPlatformOnly ? (
+      {auth && !isLoading && user && isAdminRole(user.role) && !rcPlatformOnly && !isAgencyItNavRole ? (
         <>
           <div className="mt-6 px-3 pb-2 text-xs font-semibold uppercase tracking-wider text-slate-500">
             Administration

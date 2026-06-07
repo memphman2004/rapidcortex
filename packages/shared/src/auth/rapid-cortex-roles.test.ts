@@ -4,7 +4,11 @@ import {
   AGENCY_ASSIGNABLE_ROLES,
   HOSPITAL_ASSIGNABLE_ROLES,
   RAPID_CORTEX_ROLES,
+  isHospitalAdminPortalRole,
+  isHospitalStaffPortalRole,
   migrateLegacyRapidCortexRoleTokenValue,
+  normalizeSessionRole,
+  resolveHospitalPortalDashboardHref,
   ROLE_DISPLAY_LABELS,
   isHospitalPortalRole,
   isRapidCortexRole,
@@ -54,11 +58,28 @@ describe("rapid-cortex-roles", () => {
     expect(migrateLegacyRapidCortexRoleTokenValue(undefined)).toBeUndefined();
   });
 
+  it("normalizeSessionRole preserves product vertical tokens before PSAP migration", () => {
+    expect(normalizeSessionRole("VENUE_ADMIN")).toBe("VENUE_ADMIN");
+    expect(normalizeSessionRole("CAMPUS_ADMIN")).toBe("CAMPUS_ADMIN");
+    expect(normalizeSessionRole("HOSPITAL_STAFF")).toBe("HOSPITAL_STAFF");
+    expect(normalizeSessionRole("CAMPUS_ADMIN")).not.toBe("agencyadmin");
+  });
+
   it("isHospitalPortalRole accepts canonical and legacy hospital roles", () => {
     expect(isHospitalPortalRole("hospitaladmin")).toBe(true);
     expect(isHospitalPortalRole("hospitalstaff")).toBe(true);
     expect(isHospitalPortalRole("hospital_admin")).toBe(true);
     expect(isHospitalPortalRole("dispatcher")).toBe(false);
+  });
+
+  it("hospital portal helpers accept product tokens and canonical roles", () => {
+    expect(isHospitalAdminPortalRole("hospitaladmin")).toBe(true);
+    expect(isHospitalAdminPortalRole("HOSPITAL_ADMIN")).toBe(true);
+    expect(isHospitalStaffPortalRole("hospitalstaff")).toBe(true);
+    expect(isHospitalStaffPortalRole("HOSPITAL_STAFF")).toBe(true);
+    expect(resolveHospitalPortalDashboardHref("HOSPITAL_ADMIN")).toBe("/hospital-admin/dashboard");
+    expect(resolveHospitalPortalDashboardHref("HOSPITAL_STAFF")).toBe("/hospital-staff/dashboard");
+    expect(resolveHospitalPortalDashboardHref("hospitaladmin")).toBe("/hospital-admin/dashboard");
   });
 
   it("isRapidCortexRole accepts canonical and migrated legacy literals", () => {

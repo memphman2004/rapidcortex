@@ -1,11 +1,13 @@
 <Window x:Class="RapidCortex.Desktop.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:wv2="clr-namespace:Microsoft.Web.WebView2.Wpf;assembly=Microsoft.Web.WebView2.Wpf"
         Title="Rapid Cortex"
         Height="640"
         Width="960"
         MinHeight="600"
         MinWidth="900"
+        Loaded="OnLoaded"
         WindowStartupLocation="CenterScreen">
   <DockPanel LastChildFill="True">
     <StatusBar DockPanel.Dock="Bottom">
@@ -19,9 +21,13 @@
       <StatusBarItem>
         <TextBlock x:Name="EnvironmentText" Text="Environment: …" />
       </StatusBarItem>
+      <Separator />
+      <StatusBarItem>
+        <TextBlock x:Name="SessionRoleText" Text="" Foreground="#666" />
+      </StatusBarItem>
     </StatusBar>
 
-    <TabControl x:Name="RootTabs" Margin="12">
+    <TabControl x:Name="LegacyTabs" Margin="12">
       <TabItem Header="Dashboard">
         <DockPanel Margin="16">
           <Border x:Name="DashboardAuthHint"
@@ -77,5 +83,15 @@
         </ScrollViewer>
       </TabItem>
     </TabControl>
+
+    <DockPanel x:Name="WebWorkspace" Visibility="Collapsed" Margin="0">
+      <ToolBar DockPanel.Dock="Top" Padding="8,4">
+        <Button x:Name="WebReloadButton" Content="Reload" Click="OnWebReload" />
+        <Button x:Name="WebSignOutButton" Content="Sign out" Click="OnWebSignOut" Margin="8,0,0,0" />
+      </ToolBar>
+      <Border BorderBrush="#ddd" BorderThickness="0,1,0,0">
+        <wv2:WebView2 x:Name="WorkspaceWebView" />
+      </Border>
+    </DockPanel>
   </DockPanel>
 </Window>

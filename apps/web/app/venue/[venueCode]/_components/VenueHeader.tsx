@@ -21,7 +21,13 @@ export function VenueHeader({ venueCode, role = "VENUE_SUPERVISOR" }: { venueCod
             </span>
           </div>
         </div>
-        <p className="text-sm text-slate-400">Game Day Operations Console</p>
+        <p className="text-sm text-slate-400">
+          {role === "VENUE_GUEST_SERVICES"
+            ? "Guest services console"
+            : role === "VENUE_OPERATOR"
+              ? "Venue operator console"
+              : "Game day operations console"}
+        </p>
       </div>
     </header>
   );

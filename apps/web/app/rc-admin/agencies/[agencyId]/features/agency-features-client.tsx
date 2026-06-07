@@ -269,7 +269,20 @@ export function AgencyFeaturesClient({
       );
       if (!ok) return;
     }
-    await applyPatch({ addonKey: def.key, enabled }, def.name);
+    if (!enabled && def.billingType === "monthly") {
+      const ok = window.confirm(
+        `Disable ${def.name}? This will remove the add-on from billing immediately.`,
+      );
+      if (!ok) return;
+    }
+    await applyPatch(
+      {
+        addonKey: def.key,
+        enabled,
+        ...(enabled ? {} : { forceImmediateDisable: true }),
+      },
+      def.name,
+    );
   }
 
   async function onTierChange(variants: AddonDefinition[], newKey: AddonKey) {

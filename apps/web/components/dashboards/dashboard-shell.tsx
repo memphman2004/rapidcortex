@@ -1,12 +1,11 @@
 "use client";
 
 import { useEffect, useMemo, useState, type CSSProperties } from "react";
-import { isRcItAdmin, isRcSuperAdmin } from "rapid-cortex-security";
-import { migrateLegacyRapidCortexRoleTokenValue } from "rapid-cortex-shared/auth/rapid-cortex-roles";
+import { isRcSuperAdmin } from "rapid-cortex-security";
 import type { UserContext } from "rapid-cortex-shared/types";
 import { useSearchParams } from "next/navigation";
 import type { DashboardPrefix } from "@/lib/dashboards/dashboard-access";
-import { ROLE_DASHBOARD_NAV } from "@/lib/dashboards/role-dashboard-config";
+import { getRoleDashboardNavTabs } from "@/lib/dashboards/role-dashboard-nav";
 import {
   getRoleDashboardIdentity,
   roleDashboardShellVars,
@@ -40,18 +39,7 @@ export function DashboardShell({
   const [mobileNav, setMobileNav] = useState(false);
   const [impersonation, setImpersonation] = useState<ImpersonationContext | null>(null);
   const searchParams = useSearchParams();
-  const tabs = useMemo(() => {
-    const nav = ROLE_DASHBOARD_NAV[prefix];
-    if (prefix !== "rc-admin") return nav;
-    return nav.filter((tab) => {
-      if (tab.id === "operations") return isRcSuperAdmin(user.role);
-      if (tab.id === "infrastructure") {
-        const r = migrateLegacyRapidCortexRoleTokenValue(user.role) ?? user.role;
-        return isRcSuperAdmin(r) || isRcItAdmin(r);
-      }
-      return true;
-    });
-  }, [prefix, user.role]);
+  const tabs = useMemo(() => getRoleDashboardNavTabs(prefix, user), [prefix, user]);
   const identity = getRoleDashboardIdentity(prefix, user.role);
   const isSuperAdmin = isRcSuperAdmin(user.role);
 

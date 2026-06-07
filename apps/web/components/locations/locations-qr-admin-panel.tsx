@@ -24,9 +24,12 @@ const VERTICALS: QRLocationVertical[] = ["campus", "venue", "core"];
 export function LocationsQrAdminPanel({
   defaultVertical = "campus",
   defaultOrgCode = "",
+  canManage = true,
 }: {
   defaultVertical?: QRLocationVertical;
   defaultOrgCode?: string;
+  /** When false, list/download only — no create, bulk import, or deactivate. */
+  canManage?: boolean;
 }) {
   const queryClient = useQueryClient();
   const { user } = useSession();
@@ -110,7 +113,7 @@ export function LocationsQrAdminPanel({
   });
 
   if (!agencyId) {
-    return <p className="text-sm text-slate-400">Sign in as an agency admin to manage QR locations.</p>;
+    return <p className="text-sm text-slate-400">Sign in to manage QR locations for your organization.</p>;
   }
 
   return (
@@ -158,7 +161,8 @@ export function LocationsQrAdminPanel({
             setForm((f) => ({ ...f, orgCode, vertical }));
             setShowAdd(true);
           }}
-          className="inline-flex items-center gap-2 rounded-md bg-sky-700 px-3 py-2 text-sm font-medium text-white hover:bg-sky-600"
+          disabled={!canManage}
+          className="inline-flex items-center gap-2 rounded-md bg-sky-700 px-3 py-2 text-sm font-medium text-white hover:bg-sky-600 disabled:cursor-not-allowed disabled:opacity-50"
         >
           <Plus className="h-4 w-4" />
           Add location
@@ -166,7 +170,8 @@ export function LocationsQrAdminPanel({
         <button
           type="button"
           onClick={() => setShowBulk(true)}
-          className="inline-flex items-center gap-2 rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-slate-100 hover:bg-slate-800"
+          disabled={!canManage}
+          className="inline-flex items-center gap-2 rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-slate-100 hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-50"
         >
           <Upload className="h-4 w-4" />
           Bulk import
@@ -208,6 +213,7 @@ export function LocationsQrAdminPanel({
                   key={row.rcli}
                   row={row}
                   agencyId={agencyId}
+                  canManage={canManage}
                   onDeactivate={() => deactivateMut.mutate(row.rcli)}
                 />
               ))
@@ -297,10 +303,12 @@ export function LocationsQrAdminPanel({
 function LocationRow({
   row,
   agencyId,
+  canManage,
   onDeactivate,
 }: {
   row: QRLocation;
   agencyId: string;
+  canManage: boolean;
   onDeactivate: () => void;
 }) {
   const reportUrl = qrReportUrl(row.rcli);
@@ -353,7 +361,7 @@ function LocationRow({
             <Download className="h-3 w-3" />
             PDF
           </a>
-          {row.active ? (
+          {row.active && canManage ? (
             <button
               type="button"
               onClick={onDeactivate}

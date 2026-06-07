@@ -1,5 +1,7 @@
 import { VenueHeader } from "./_components/VenueHeader";
 import { VenueNav } from "./_components/VenueNav";
+import { getDashboardSessionUser } from "@/lib/dashboards/get-dashboard-session";
+import { normalizeVenueRole } from "@/lib/venue/venue-dashboard-sections";
 
 export default async function VenueLayout({
   children,
@@ -9,8 +11,8 @@ export default async function VenueLayout({
   params: Promise<{ venueCode: string }>;
 }) {
   const { venueCode } = await params;
-  // TODO: read from session/auth context
-  const role = "VENUE_SUPERVISOR";
+  const user = await getDashboardSessionUser();
+  const role = normalizeVenueRole(user?.role);
 
   return (
     <div className="min-h-screen bg-slate-950">

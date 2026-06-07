@@ -21,6 +21,7 @@
 		A1000000000000000000002C /* CognitoWebAuthCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000000000000000000000C /* CognitoWebAuthCoordinator.swift */; };
 		A1000000000000000000002D /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = A1000000000000000000000D /* Assets.xcassets */; };
 		A1000000000000000000002E /* WorkspaceWebShell.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000014 /* WorkspaceWebShell.swift */; };
+		A1000000000000000000003E /* DesktopRoleRouting.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000000000000000000001C /* DesktopRoleRouting.swift */; };
 		A10000000000000000000037 /* HospitalRoutingModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000015 /* HospitalRoutingModels.swift */; };
 		A10000000000000000000038 /* HospitalRoutingViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000016 /* HospitalRoutingViewModel.swift */; };
 		A10000000000000000000039 /* NativeHospitalMapView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000017 /* NativeHospitalMapView.swift */; };
@@ -56,6 +57,7 @@
 		A10000000000000000000019 /* CommandMapModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CommandMapModels.swift; sourceTree = "<group>"; };
 		A1000000000000000000001A /* CommandMapViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CommandMapViewModel.swift; sourceTree = "<group>"; };
 		A1000000000000000000001B /* RapidCortexMapView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RapidCortexMapView.swift; sourceTree = "<group>"; };
+		A1000000000000000000001C /* DesktopRoleRouting.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DesktopRoleRouting.swift; sourceTree = "<group>"; };
 		F994571E2F9DC4B7001A5B67 /* Secrets.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; name = Secrets.plist; path = Config/Secrets.plist; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -97,6 +99,7 @@
 				A1000000000000000000000B /* NetworkPathMonitor.swift */,
 				A1000000000000000000000C /* CognitoWebAuthCoordinator.swift */,
 				A10000000000000000000014 /* WorkspaceWebShell.swift */,
+				A1000000000000000000001C /* DesktopRoleRouting.swift */,
 				A1000000000000000000000D /* Assets.xcassets */,
 				A1000000000000000000000F /* RapidCortexDesktop.entitlements */,
 				A10000000000000000000010 /* Info.plist */,
@@ -208,6 +211,7 @@
 				A1000000000000000000002B /* NetworkPathMonitor.swift in Sources */,
 				A1000000000000000000002C /* CognitoWebAuthCoordinator.swift in Sources */,
 				A1000000000000000000002E /* WorkspaceWebShell.swift in Sources */,
+				A1000000000000000000003E /* DesktopRoleRouting.swift in Sources */,
 				A10000000000000000000037 /* HospitalRoutingModels.swift in Sources */,
 				A10000000000000000000038 /* HospitalRoutingViewModel.swift in Sources */,
 				A10000000000000000000039 /* NativeHospitalMapView.swift in Sources */,

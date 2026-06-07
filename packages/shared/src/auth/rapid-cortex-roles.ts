@@ -107,6 +107,63 @@ export function isHospitalPortalRole(role: string): role is HospitalAssignableRo
   return e === "hospitaladmin" || e === "hospitalstaff";
 }
 
+/** Canonical or product-token hospital admin (facility configuration). */
+export function isHospitalAdminPortalRole(role: string | undefined | null): boolean {
+  const raw = (role ?? "").trim();
+  if (!raw) return false;
+  const upper = raw.toUpperCase();
+  if (raw === "hospitaladmin") return true;
+  if (upper === "HOSPITAL_ADMIN") return true;
+  if (upper.startsWith("HOSPITAL_") && !upper.includes("STAFF")) return true;
+  return (migrateLegacyRapidCortexRoleTokenValue(raw) ?? raw) === "hospitaladmin";
+}
+
+/** Canonical or product-token hospital staff (capacity updates). */
+export function isHospitalStaffPortalRole(role: string | undefined | null): boolean {
+  const raw = (role ?? "").trim();
+  if (!raw) return false;
+  const upper = raw.toUpperCase();
+  if (raw === "hospitalstaff") return true;
+  if (upper === "HOSPITAL_STAFF") return true;
+  if (upper.startsWith("HOSPITAL_") && upper.includes("STAFF")) return true;
+  return (migrateLegacyRapidCortexRoleTokenValue(raw) ?? raw) === "hospitalstaff";
+}
+
+/** Any hospital portal operator — not a PSAP dispatcher/supervisor role. */
+export function isHospitalOperatorRole(role: string | undefined | null): boolean {
+  return isHospitalAdminPortalRole(role) || isHospitalStaffPortalRole(role);
+}
+
+/** Role-aware hospital portal home (`/hospital-admin/dashboard` or staff equivalent). */
+export function resolveHospitalPortalDashboardHref(role: string | undefined | null): string | null {
+  if (isHospitalStaffPortalRole(role)) return "/hospital-staff/dashboard";
+  if (isHospitalAdminPortalRole(role)) return "/hospital-admin/dashboard";
+  return null;
+}
+
+/** Product vertical roles (venue, campus, hospital portal, transit) — not PSAP dispatcher RBAC. */
+export function isProductVerticalRoleToken(raw: string | undefined | null): boolean {
+  const upper = (raw ?? "").trim().toUpperCase();
+  return (
+    upper.startsWith("VENUE_") ||
+    upper.startsWith("CAMPUS_") ||
+    upper.startsWith("HOSPITAL_") ||
+    upper.startsWith("TRANSIT_")
+  );
+}
+
+/**
+ * Session role for JWT → {@link UserContext}. Preserves product vertical tokens before legacy
+ * PSAP migration so post-login routing can send venue/campus users to the correct dashboard.
+ */
+export function normalizeSessionRole(value: string | undefined): RapidCortexRole | string {
+  const raw = value?.trim() ?? "";
+  if (isProductVerticalRoleToken(raw)) return raw;
+  const migrated = migrateLegacyRapidCortexRoleTokenValue(raw) ?? "";
+  if (migrated && isRapidCortexRole(migrated)) return migrated;
+  return "dispatcher";
+}
+
 /**
  * JWT / Cognito may still emit legacy role strings until user pools are fully migrated.
  * Normalize at token parse boundaries only — do **not** write new assigns with legacy values.

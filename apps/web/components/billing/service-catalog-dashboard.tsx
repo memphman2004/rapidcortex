@@ -1,6 +1,7 @@
 "use client";
 
 import { type ChangeEvent, useEffect, useMemo, useRef, useState } from "react";
+import { fetchBillingServices, type BillingServiceCatalogRow } from "@/lib/api";
 
 type ServiceCategory =
   | "CORE"
@@ -12,15 +13,9 @@ type ServiceCategory =
 
 type BillingType = "ONE_TIME" | "MONTHLY" | "ANNUAL" | "USAGE";
 
-type ServiceRow = {
-  serviceId: string;
-  name: string;
-  description?: string;
+type ServiceRow = BillingServiceCatalogRow & {
   category: ServiceCategory;
-  defaultPrice: number;
   billingType: BillingType;
-  active: boolean;
-  displayOrder?: number;
 };
 
 type SelectedLineItem = {
@@ -58,18 +53,6 @@ function billingPeriod(type: BillingType): string {
   return "";
 }
 
-function resolveApiBase(): string {
-  const direct =
-    process.env.NEXT_PUBLIC_API_BASE?.replace(/\/$/, "") ??
-    process.env.NEXT_PUBLIC_API_BASE_URL?.replace(/\/$/, "") ??
-    "";
-  const useProxy = process.env.NEXT_PUBLIC_AUTH_PROXY === "1";
-  if (useProxy) return "/api/backend";
-  // In production we commonly rely on same-origin BFF even when NEXT_PUBLIC_* vars
-  // are not baked into the client bundle.
-  return direct || "/api/backend";
-}
-
 export function ServiceCatalogDashboard() {
   const seedInputRef = useRef<HTMLInputElement | null>(null);
   const [services, setServices] = useState<ServiceRow[]>([]);
@@ -86,14 +69,10 @@ export function ServiceCatalogDashboard() {
     async function loadServices() {
       try {
         setIsLoading(true);
-        const apiBase = resolveApiBase();
-        if (!apiBase) throw new Error("API base URL not configured");
-        const res = await fetch(`${apiBase}/api/billing/services?active=true`, {
-          credentials: "include",
-        });
-        if (!res.ok) throw new Error(`Failed to load services (${res.status})`);
-        const data = (await res.json()) as { items?: ServiceRow[] };
-        setServices((data.items ?? []).filter((x) => x.active));
+        const data = await fetchBillingServices({ active: true });
+        setServices(
+          (data.items ?? []).filter((x) => x.active) as ServiceRow[],
+        );
       } catch (err) {
         setError(err instanceof Error ? err.message : "Failed to load services");
       } finally {

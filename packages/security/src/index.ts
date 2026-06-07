@@ -170,10 +170,16 @@ export {
 export {
   CAMPUS_ROLES,
   CAMPUS_ROLE_PERMISSIONS,
+  VENUE_ROLES,
+  VENUE_ROLE_PERMISSIONS,
   ROLE_ACCESS_MATRIX_V2,
   RCSUPERADMIN_ONLY_PERMISSIONS,
   canCampusRolePerform,
+  canVenueRolePerform,
   isCampusRole,
+  isVenueRole,
   type CampusRole,
+  type VenueRole,
   type MatrixRole,
 } from "./role-access-matrix-v2.js";
+export { canManageQrLocations, canViewQrLocations } from "./qr-locations-access.js";

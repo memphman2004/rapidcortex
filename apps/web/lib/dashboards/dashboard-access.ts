@@ -1,5 +1,9 @@
 import type { UserContext, UserRole } from "rapid-cortex-shared/types";
-import { migrateLegacyRapidCortexRoleTokenValue } from "rapid-cortex-shared/auth/rapid-cortex-roles";
+import {
+  isHospitalAdminPortalRole,
+  isHospitalStaffPortalRole,
+  migrateLegacyRapidCortexRoleTokenValue,
+} from "rapid-cortex-shared/auth/rapid-cortex-roles";
 import { isRcsuperadmin } from "rapid-cortex-shared/tenancy/principal";
 import { jurisdictionRoleHomeHref } from "@/lib/auth/role-home";
 import { getAdditionalDashboardPrefixes } from "./access-overrides";
@@ -69,6 +73,8 @@ export function userMayAccessDashboardPrefix(
   prefix: DashboardPrefix,
 ): boolean {
   if (isRcsuperadmin(user)) return true;
+  if (prefix === "hospital-admin" && isHospitalAdminPortalRole(user.role)) return true;
+  if (prefix === "hospital-staff" && isHospitalStaffPortalRole(user.role)) return true;
   const effectiveRole = migrateLegacyRapidCortexRoleTokenValue(user.role) ?? user.role;
   const base = (ROLES_BY_DASHBOARD_PREFIX[prefix] as readonly string[]).includes(effectiveRole);
   if (base) return true;

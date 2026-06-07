@@ -158,7 +158,7 @@ export function HospitalHomeDashboard({
         </div>
       </section>
 
-      {routingEnabled ? (
+      {routingEnabled && variant === "hospital-admin" ? (
         <section className="space-y-3">
           <div>
             <h2 className="text-sm font-semibold uppercase tracking-[0.12em] text-slate-400">

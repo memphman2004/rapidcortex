@@ -9,6 +9,8 @@ public partial class MainWindow : Window
 {
     private readonly ConnectivityService _connectivity = new();
     private DesktopConfiguration _configuration;
+    private Uri? _webAppBaseUri;
+    private bool _webViewInitialized;
 
     public MainWindow(bool sessionRestoredFromDisk = false)
     {
@@ -19,7 +21,7 @@ public partial class MainWindow : Window
 
         if (ProtectedTokenStore.TryReadIdToken() is not null)
         {
-            RootTabs.SelectedIndex = 0;
+            LegacyTabs.SelectedIndex = 0;
             if (sessionRestoredFromDisk)
             {
                 DashboardAuthHint.Visibility = Visibility.Visible;
@@ -36,6 +38,94 @@ public partial class MainWindow : Window
         };
 
         SetConnectivity(_connectivity.IsOnline);
+        ApplyWorkspaceMode();
+        UpdateSessionRoleLabel();
+    }
+
+    private void ApplyWorkspaceMode()
+    {
+        if (!_configuration.HasWebWorkspace)
+        {
+            LegacyTabs.Visibility = Visibility.Visible;
+            WebWorkspace.Visibility = Visibility.Collapsed;
+            return;
+        }
+
+        LegacyTabs.Visibility = Visibility.Collapsed;
+        WebWorkspace.Visibility = Visibility.Visible;
+    }
+
+    private async void OnLoaded(object sender, RoutedEventArgs e)
+    {
+        if (!_configuration.HasWebWorkspace)
+        {
+            return;
+        }
+
+        await InitializeWebWorkspaceAsync(forceReload: false).ConfigureAwait(true);
+    }
+
+    private async Task InitializeWebWorkspaceAsync(bool forceReload)
+    {
+        if (ProtectedTokenStore.TryReadIdToken() is not { Length: > 0 } idToken)
+        {
+            MessageBox.Show(
+                this,
+                "No session token found. Please sign in again.",
+                "Rapid Cortex",
+                MessageBoxButton.OK,
+                MessageBoxImage.Information);
+            await SignOutAndPromptLoginAsync().ConfigureAwait(true);
+            return;
+        }
+
+        _webAppBaseUri = new Uri(DesktopConfiguration.NormalizeWebBase(_configuration.WebAppBaseUrl) + "/");
+
+        try
+        {
+            if (!_webViewInitialized)
+            {
+                await WorkspaceWebView.EnsureCoreWebView2Async().ConfigureAwait(true);
+                WorkspaceWebView.CoreWebView2.Settings.UserAgent =
+                    "RapidCortexDesktop/1.0 (Windows; WebView2) RapidCortexWebShell";
+                _webViewInitialized = true;
+            }
+
+            if (forceReload || WorkspaceWebView.Source is null)
+            {
+                await WorkspaceWebShellHost
+                    .NavigateRoleHomeAsync(
+                        WorkspaceWebView.CoreWebView2,
+                        _webAppBaseUri,
+                        _configuration.DefaultJurisdictionSlug,
+                        idToken,
+                        ProtectedTokenStore.TryReadRefreshToken())
+                    .ConfigureAwait(true);
+            }
+
+            UpdateSessionRoleLabel();
+        }
+        catch (Exception ex)
+        {
+            MessageBox.Show(
+                this,
+                $"Unable to open the web workspace.\n\n{ex.Message}",
+                "Rapid Cortex",
+                MessageBoxButton.OK,
+                MessageBoxImage.Error);
+        }
+    }
+
+    private void UpdateSessionRoleLabel()
+    {
+        if (ProtectedTokenStore.TryReadIdToken() is not { Length: > 0 } idToken)
+        {
+            SessionRoleText.Text = "";
+            return;
+        }
+
+        var role = DesktopPostLoginRouting.SessionRoleFromIdToken(idToken);
+        SessionRoleText.Text = $"Role: {role}";
     }
 
     protected override void OnClosed(EventArgs e)
@@ -57,6 +147,7 @@ public partial class MainWindow : Window
             $"API base: {_configuration.ApiBaseUrl}\n"
             + $"API base (secondary): {(string.IsNullOrWhiteSpace(_configuration.ApiBaseUrl2) ? "—" : _configuration.ApiBaseUrl2)}\n"
             + $"Web app base: {(string.IsNullOrWhiteSpace(_configuration.WebAppBaseUrl) ? "—" : _configuration.WebAppBaseUrl)}\n"
+            + $"Default jurisdiction: {(string.IsNullOrWhiteSpace(_configuration.DefaultJurisdictionSlug) ? "—" : _configuration.DefaultJurisdictionSlug)}\n"
             + $"Cognito domain: {(string.IsNullOrWhiteSpace(_configuration.CognitoDomain) ? "—" : _configuration.CognitoDomain)}\n"
             + $"Configured: {(_configuration.IsConfigured ? "yes" : "no")}";
     }
@@ -66,6 +157,7 @@ public partial class MainWindow : Window
         _configuration = DesktopConfigurationLoader.Load();
         RenderAboutConfiguration();
         EnvironmentText.Text = $"Environment: {_configuration.EnvironmentName}";
+        ApplyWorkspaceMode();
     }
 
     private void OnSaveSmokeTestToken(object sender, RoutedEventArgs e)
@@ -82,11 +174,54 @@ public partial class MainWindow : Window
             ProtectedTokenStore.SaveIdToken(token);
             SmokeTestTokenBox.Clear();
             MessageBox.Show(this, "Stored id_token.", "Rapid Cortex", MessageBoxButton.OK, MessageBoxImage.Information);
+            UpdateSessionRoleLabel();
         }
         catch (Exception ex)
         {
             MessageBox.Show(this, ex.Message, "Rapid Cortex", MessageBoxButton.OK, MessageBoxImage.Error);
         }
+    }
+
+    private async void OnWebReload(object sender, RoutedEventArgs e)
+    {
+        await InitializeWebWorkspaceAsync(forceReload: true).ConfigureAwait(true);
+    }
+
+    private async void OnWebSignOut(object sender, RoutedEventArgs e)
+    {
+        await SignOutAndPromptLoginAsync().ConfigureAwait(true);
+    }
+
+    private async Task SignOutAndPromptLoginAsync()
+    {
+        if (_webViewInitialized && WorkspaceWebView.CoreWebView2 is not null && _webAppBaseUri is not null)
+        {
+            try
+            {
+                await WorkspaceWebShellHost.ClearAuthCookiesAsync(WorkspaceWebView.CoreWebView2, _webAppBaseUri)
+                    .ConfigureAwait(true);
+            }
+            catch
+            {
+                // Best-effort cookie cleanup before clearing local session.
+            }
+        }
+
+        ProtectedTokenStore.Clear();
+
+        var login = new LoginWindow();
+        Hide();
+        var signedIn = login.ShowDialog() == true;
+        if (!signedIn)
+        {
+            Close();
+            Application.Current.Shutdown();
+            return;
+        }
+
+        Show();
+        ApplyWorkspaceMode();
+        await InitializeWebWorkspaceAsync(forceReload: true).ConfigureAwait(true);
     }
 
     private async void OnPingHealth(object sender, RoutedEventArgs e)

@@ -49,6 +49,7 @@ function HeatmapPlaceholder() {
   );
 }
 
+/** Extra home chrome for live-ops roles only. Admin/QA/executive content lives in DashboardPageContent. */
 export function RoleDashboardHomeLayout({
   prefix,
   children,
@@ -110,28 +111,6 @@ export function RoleDashboardHomeLayout({
     );
   }
 
-  if (prefix === "agency-admin") {
-    return (
-      <div className="grid gap-4 lg:grid-cols-3">
-        <div className="space-y-3 lg:col-span-2">{children}</div>
-        <aside className="space-y-3 rounded-lg border border-slate-800 bg-slate-950/60 p-4">
-          <h3 className="text-xs font-semibold uppercase tracking-wide text-slate-400">Quick actions</h3>
-          <ul className="space-y-2 text-xs text-slate-300">
-            <li className="rounded border border-slate-800 px-2 py-2 hover:bg-slate-900">Invite user</li>
-            <li className="rounded border border-slate-800 px-2 py-2 hover:bg-slate-900">Run readiness check</li>
-            <li className="rounded border border-slate-800 px-2 py-2 hover:bg-slate-900">Open audit export</li>
-          </ul>
-          <div className="border-t border-slate-800 pt-3">
-            <h3 className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-400">Recent activity</h3>
-            <p className="text-[11px] leading-relaxed text-slate-500">
-              Policy change · CAD mapping · billing sync — feed placeholder until wired to audit API.
-            </p>
-          </div>
-        </aside>
-      </div>
-    );
-  }
-
   if (prefix === "rc-admin") {
     return (
       <div className="space-y-4">
@@ -141,42 +120,5 @@ export function RoleDashboardHomeLayout({
     );
   }
 
-  if (prefix === "qa") {
-    return (
-      <div className="space-y-4">
-        <div className="grid gap-3 md:grid-cols-2">
-          <div className="h-36 rounded-lg border border-dashed border-slate-700 bg-gradient-to-br from-slate-900 to-slate-950 p-4">
-            <p className="text-xs font-semibold text-slate-400">Charts / graphs</p>
-            <p className="mt-2 text-[11px] text-slate-500">Placeholder for intelligence visualizations.</p>
-          </div>
-          <div className="rounded-lg border border-slate-800 bg-slate-950/60 p-4">
-            <p className="text-xs font-semibold text-slate-400">Report queue</p>
-            <p className="mt-2 text-[11px] text-slate-500">Exports and scoring batches — placeholder.</p>
-          </div>
-        </div>
-        <div className="rounded-lg border border-slate-800 bg-slate-950/50 p-4">
-          <p className="text-xs font-semibold text-slate-400">Data export tools</p>
-          <p className="mt-2 text-[11px] text-slate-500">CSV / Parquet / secure share — placeholder controls.</p>
-        </div>
-        <div>{children}</div>
-      </div>
-    );
-  }
-
-  /* it-security, executive — calmer chrome */
-  return (
-    <div className="space-y-4">
-      <div
-        className="rounded-lg border border-slate-800 bg-slate-950/50 p-4"
-        style={{ borderLeftWidth: 4, borderLeftColor: id.accent }}
-      >
-        <p className="text-xs text-slate-400">
-          {prefix === "executive"
-            ? "Executive metrics and trends — overview placeholder above your workspace."
-            : "Security posture summary — controls and evidence placeholders above operational views."}
-        </p>
-      </div>
-      <div>{children}</div>
-    </div>
-  );
+  return <div className="min-h-0 flex-1">{children}</div>;
 }

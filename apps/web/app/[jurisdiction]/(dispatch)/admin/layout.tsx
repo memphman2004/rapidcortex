@@ -13,7 +13,6 @@ import {
   isDispatcherWellnessUiEnabled,
   isNonEmergencyTriageEnabled,
   isQaScoringEnabled,
-  isLocationsQrAdminEnabled,
   isSeoIntelligenceUiEnabled,
   isSopProtocolEnabled,
 } from "@/lib/runtime-flags";
@@ -31,7 +30,6 @@ const tabs = [
   { path: "/admin/triage/config", label: "Triage", feature: "triage" as const },
   { path: "/admin/wellness", label: "Wellness", feature: "wellness" as const },
   { path: "/admin/integrations", label: "Integrations" },
-  { path: "/admin/locations", label: "Locations & QR", feature: "locationsQr" as const },
   { path: "/admin/settings", label: "Environment" },
   { path: "/admin/settings/downloads", label: "Downloads" },
   { path: "/admin/seo", label: "SEO Intel", feature: "seoIntel" as const },
@@ -60,7 +58,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     if (t.feature === "triage") return isNonEmergencyTriageEnabled();
     if (t.feature === "wellness") return isDispatcherWellnessUiEnabled();
     if (t.feature === "seoIntel") return isSeoIntelligenceUiEnabled();
-    if (t.feature === "locationsQr") return isLocationsQrAdminEnabled();
+    if (t.feature === "deceptionShield") return isDeceptionShieldUiEnabled();
     return true;
   });
 

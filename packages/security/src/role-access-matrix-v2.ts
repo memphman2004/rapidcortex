@@ -58,8 +58,8 @@ export const CAMPUS_ROLE_PERMISSIONS: Record<CampusRole, string[]> = {
     "campus.analytics.view",
     "campus.buildings.view",
     "campus.buildings.manage",
-    "campus.qrcodes.view",
-    "campus.qrcodes.manage",
+    "locations.qrcodes.view",
+    "locations.qrcodes.manage",
     "campus.cameras.view",
     "campus.settings.view",
     "campus.settings.manage",
@@ -82,7 +82,7 @@ export const CAMPUS_ROLE_PERMISSIONS: Record<CampusRole, string[]> = {
     "campus.wellness.create",
     "campus.analytics.view",
     "campus.buildings.view",
-    "campus.qrcodes.view",
+    "locations.qrcodes.view",
     "campus.cameras.view",
     "campus.settings.view",
     "campus.clery.view",
@@ -96,7 +96,7 @@ export const CAMPUS_ROLE_PERMISSIONS: Record<CampusRole, string[]> = {
     "campus.incidents.resolve",
     "campus.reports.view",
     "campus.buildings.view",
-    "campus.qrcodes.view",
+    "locations.qrcodes.view",
     "campus.cameras.view",
   ],
   CAMPUS_DISPATCH: [
@@ -118,6 +118,33 @@ export const CAMPUS_ROLE_PERMISSIONS: Record<CampusRole, string[]> = {
 
 export function canCampusRolePerform(role: CampusRole, permission: string): boolean {
   return CAMPUS_ROLE_PERMISSIONS[role]?.includes(permission) ?? false;
+}
+
+// ── VENUE ROLES ───────────────────────────────────────────────────────────
+export const VENUE_ROLES = [
+  "VENUE_ADMIN",
+  "VENUE_SUPERVISOR",
+  "VENUE_SECURITY",
+  "VENUE_OPERATOR",
+  "VENUE_GUEST_SERVICES",
+] as const;
+
+export type VenueRole = (typeof VENUE_ROLES)[number];
+
+export function isVenueRole(role: string): role is VenueRole {
+  return (VENUE_ROLES as readonly string[]).includes(role);
+}
+
+export const VENUE_ROLE_PERMISSIONS: Record<VenueRole, string[]> = {
+  VENUE_ADMIN: ["locations.qrcodes.manage", "locations.qrcodes.view"],
+  VENUE_SUPERVISOR: ["locations.qrcodes.view"],
+  VENUE_SECURITY: [],
+  VENUE_OPERATOR: [],
+  VENUE_GUEST_SERVICES: [],
+};
+
+export function canVenueRolePerform(role: VenueRole, permission: string): boolean {
+  return VENUE_ROLE_PERMISSIONS[role]?.includes(permission) ?? false;
 }
 
 /** Hospital + emergency-connect grants (product modules outside the PDF matrix). */

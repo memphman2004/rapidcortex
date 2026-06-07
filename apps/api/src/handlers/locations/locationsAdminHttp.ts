@@ -21,8 +21,7 @@ import {
   listLocations,
   updateLocation,
 } from "../../locations/qr-location-service.js";
-import { isRcsuperadmin } from "rapid-cortex-shared";
-import { AUDIT_EVENT_TYPES, AuthorizationService } from "rapid-cortex-security";
+import { AUDIT_EVENT_TYPES, canManageQrLocations, canViewQrLocations } from "rapid-cortex-security";
 import { makeId } from "../../lib/ids.js";
 import { AuditRepository } from "../../repositories/auditRepository.js";
 
@@ -52,15 +51,15 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
     const agencyId = agencyIdFromEvent(event);
     if (!agencyId) return withCorrelationHeaders(event, badRequest("agencyId required"));
 
-    const authz = new AuthorizationService();
-    const canManage =
-      authz.canAccessAdminRoutes(user) &&
-      (isRcsuperadmin(user) || user.agencyId === agencyId);
-    if (!canManage) return withCorrelationHeaders(event, forbidden());
-
     const method = httpMethod(event);
     const rcli = rcliFromEvent(event);
     const isBulk = (event.rawPath ?? "").endsWith("/bulk");
+    const isMutating =
+      method === "POST" || method === "PUT" || method === "DELETE";
+    const allowed = isMutating
+      ? canManageQrLocations(user, agencyId)
+      : canViewQrLocations(user, agencyId);
+    if (!allowed) return withCorrelationHeaders(event, forbidden());
 
     if (method === "GET" && !rcli) {
       const vertical = event.queryStringParameters?.vertical as "campus" | "venue" | "core" | undefined;

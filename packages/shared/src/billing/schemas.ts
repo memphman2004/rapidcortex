@@ -259,6 +259,27 @@ export const createPaymentRecordBodySchema = z
   })
   .strict();
 
+export const adminInvoicesListQuerySchema = z.object({
+  limit: z.coerce.number().int().min(1).max(100).optional().default(50),
+  status: z
+    .enum(["all", "draft", "sent", "paid", "overdue", "void", "canceled"])
+    .optional()
+    .default("all"),
+  agencyId: z.string().min(1).max(120).optional(),
+  vertical: z.enum(["all", "core", "campus", "venue", "hospital"]).optional().default("all"),
+  search: z.string().max(120).optional(),
+  from: z.string().max(40).optional(),
+  to: z.string().max(40).optional(),
+});
+
+export const patchAdminMonetizationInvoiceBodySchema = z
+  .object({
+    status: z.enum(["draft", "sent", "paid", "overdue", "void", "canceled"]).optional(),
+    purchaseOrderNumber: z.string().max(120).optional(),
+    dueDate: z.string().max(40).optional(),
+  })
+  .strict();
+
 export type PatchAgencyBillingProfileInput = z.infer<typeof patchAgencyBillingProfileSchema>;
 export type ChangeSubscriptionPlanInput = z.infer<typeof changeSubscriptionPlanBodySchema>;
 export type CancelSubscriptionInput = z.infer<typeof cancelSubscriptionBodySchema>;
@@ -283,3 +304,5 @@ export type CreateBillingScheduleInput = z.infer<typeof createBillingScheduleBod
 export type PatchBillingScheduleInput = z.infer<typeof patchBillingScheduleBodySchema>;
 export type BillingPaymentMethod = z.infer<typeof billingPaymentMethodSchema>;
 export type CreatePaymentRecordInput = z.infer<typeof createPaymentRecordBodySchema>;
+export type AdminInvoicesListQuery = z.infer<typeof adminInvoicesListQuerySchema>;
+export type PatchAdminMonetizationInvoiceBody = z.infer<typeof patchAdminMonetizationInvoiceBodySchema>;

@@ -66,6 +66,8 @@ export function TenantAddonPanel({ agencyId, agencyName, vertical, featureFlags 
   );
   const rows = useMemo(() => buildAddonGridRows(ADDON_CATALOG), []);
 
+  const [mutationError, setMutationError] = useState<string | null>(null);
+
   const mutation = useMutation({
     mutationFn: async (payload: { addonKey: string; enable: boolean }) => {
       if (payload.enable) return postAdminTenantAddon(agencyId, payload.addonKey);
@@ -80,8 +82,12 @@ export function TenantAddonPanel({ agencyId, agencyName, vertical, featureFlags 
       qc.setQueryData(["tenant-addons", agencyId], { agencyId, addons: Array.from(next) });
       return { prev };
     },
-    onError: (_e, _payload, ctx) => {
+    onError: (err, _payload, ctx) => {
       if (ctx?.prev) qc.setQueryData(["tenant-addons", agencyId], ctx.prev);
+      setMutationError(err instanceof Error ? err.message : "Failed to update add-on");
+    },
+    onSuccess: () => {
+      setMutationError(null);
     },
     onSettled: async () => {
       await Promise.all([
@@ -117,6 +123,7 @@ export function TenantAddonPanel({ agencyId, agencyName, vertical, featureFlags 
       {addonsQuery.isError ? (
         <p className="text-sm text-rose-300">Failed to load add-ons.</p>
       ) : null}
+      {mutationError ? <p className="text-sm text-rose-300">{mutationError}</p> : null}
 
       {!addonsQuery.isLoading && !addonsQuery.isError ? (
         <section className="grid grid-cols-1 gap-3 lg:grid-cols-2">
@@ -207,10 +214,15 @@ export function TenantAddonPanel({ agencyId, agencyName, vertical, featureFlags 
               </button>
               <button
                 type="button"
-                className="rounded bg-rose-700 px-3 py-1.5 text-sm text-white"
+                className="rounded bg-rose-700 px-3 py-1.5 text-sm text-white disabled:opacity-50"
+                disabled={isBusy}
                 onClick={() => {
-                  void mutation.mutateAsync({ addonKey: disablePrompt.addonKey, enable: false });
-                  setDisablePrompt(null);
+                  void mutation
+                    .mutateAsync({ addonKey: disablePrompt.addonKey, enable: false })
+                    .then(() => setDisablePrompt(null))
+                    .catch(() => {
+                      /* error surfaced via mutationError */
+                    });
                 }}
               >
                 Disable

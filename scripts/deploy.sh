@@ -138,6 +138,7 @@ echo "SAM validate (nested stacks use --lint; root is nested-stack parent only).
 sam validate --template-file "${ROOT}/infra/template.yaml"
 sam validate --lint --template-file "${ROOT}/infra/nested/stack-data-layer.yaml"
 sam validate --lint --template-file "${ROOT}/infra/nested/stack-app-sam.yaml"
+sam validate --lint --template-file "${ROOT}/infra/nested/stack-app-sam-qr.yaml"
 sam validate --lint --template-file "${ROOT}/infra/nested/stack-app-sam-2.yaml"
 sam validate --lint --template-file "${ROOT}/infra/nested/stack-app-alarms-2.yaml"
 

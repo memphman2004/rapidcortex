@@ -1,6 +1,10 @@
 import type { UserContext } from "rapid-cortex-shared/types";
 import type { DashboardPrefix } from "@/lib/dashboards/dashboard-access";
 import { getRoleDashboardIdentity } from "@/lib/dashboards/role-dashboard-design";
+import {
+  getRoleDashboardOverviewDescription,
+  getRoleDashboardSections,
+} from "@/lib/dashboards/role-dashboard-sections";
 import { getDashboardSummaryForUser } from "@/lib/dashboards/get-dashboard-summary";
 import { DashboardLiveDataHint } from "./dashboard-live-data-hint";
 import { DashboardIntegrationHealth } from "./dashboard-integration-health";
@@ -18,6 +22,12 @@ import { UsageChartPlaceholder } from "./usage-chart-placeholder";
 import { PlatformNoticeTargetPanel } from "./platform-notice-target-panel";
 import { ActivityFeed } from "./activity-feed";
 import { IncidentTable } from "@/components/dispatch/incident-table";
+import {
+  AgencyAdminSummaryPanel,
+  ExecutiveTrendsPanel,
+  ItSecurityPosturePanel,
+  QaReviewQueuePanel,
+} from "./role-overview-panels";
 
 export async function DashboardPageContent({
   prefix,
@@ -28,36 +38,29 @@ export async function DashboardPageContent({
 }) {
   const data = getDashboardSummaryForUser(prefix, user);
   const identity = getRoleDashboardIdentity(prefix, user.role);
+  const sections = getRoleDashboardSections(prefix);
   const isRcAdminHome = prefix === "rc-admin";
 
   return (
     <div className="space-y-8">
       <section id="overview" className="scroll-mt-24 space-y-2">
         <h1 className="text-xl font-semibold text-white">{identity.identityTitle}</h1>
-        <p className="max-w-3xl text-sm text-slate-400">
-          {isRcAdminHome ? (
-            <>
-              Live platform metrics from DynamoDB, Cognito, and deployment integration checks. Agency
-              identifier:{" "}
-              <span className="font-mono text-slate-300">{data.agencyId ?? "all tenants"}</span>
-            </>
-          ) : (
-            <>
-              Preview metrics scoped to your role. Agency identifier on payload:{" "}
-              <span className="font-mono text-slate-300">{data.agencyId ?? "all tenants"}</span>
-            </>
-          )}
+        <p className="max-w-3xl text-sm text-slate-400">{identity.identitySubtitle}</p>
+        <p className="max-w-3xl text-sm text-slate-500">
+          {getRoleDashboardOverviewDescription(prefix, data.agencyId)}
         </p>
-        <ul className="list-inside list-disc text-xs text-slate-500">
-          {data.complianceNotes.map((line) => (
-            <li key={line}>{line}</li>
-          ))}
-        </ul>
-        <DashboardLiveDataHint feature={prefix === "supervisor" ? "sla" : undefined} />
-        <DashboardIntegrationHealth prefix={prefix} user={user} />
+        {sections.integrationHealth || data.complianceNotes.length > 0 ? (
+          <ul className="list-inside list-disc text-xs text-slate-500">
+            {data.complianceNotes.map((line) => (
+              <li key={line}>{line}</li>
+            ))}
+          </ul>
+        ) : null}
+        {sections.supervisorSla ? <DashboardLiveDataHint feature="sla" /> : null}
+        {sections.integrationHealth ? <DashboardIntegrationHealth prefix={prefix} user={user} /> : null}
       </section>
 
-      {prefix === "executive" ? (
+      {sections.executiveGrants ? (
         <>
           <section id="grants" className="scroll-mt-24 rounded-lg border border-slate-800 bg-slate-950/40 p-4">
             <h2 className="text-sm font-semibold text-white">Grant reporting</h2>
@@ -74,29 +77,42 @@ export async function DashboardPageContent({
         </>
       ) : null}
 
-      <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-        {isRcAdminHome ? (
-          <RcAdminDashboardMetrics />
-        ) : (
-          data.stats.map((s) => (
-            <StatCard key={s.id} label={s.label} value={s.value} hint={s.hint} />
-          ))
-        )}
-      </section>
+      {sections.stats ? (
+        <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+          {isRcAdminHome ? (
+            <RcAdminDashboardMetrics />
+          ) : (
+            data.stats.map((s) => (
+              <StatCard key={s.id} label={s.label} value={s.value} hint={s.hint} />
+            ))
+          )}
+        </section>
+      ) : null}
 
       {isRcAdminHome ? <RcAdminDashboardAlerts /> : null}
 
+      {sections.qaReviewQueue ? <QaReviewQueuePanel data={data} /> : null}
+      {sections.agencyAdminQuickActions ? <AgencyAdminSummaryPanel /> : null}
+      {sections.itSecurityPosture ? <ItSecurityPosturePanel /> : null}
+      {sections.executiveTrends ? <ExecutiveTrendsPanel /> : null}
+
       <section className="grid gap-4 lg:grid-cols-3">
-        <div className="lg:col-span-2 space-y-4">
-          {prefix === "supervisor" ? <SlaSupervisorPanel /> : null}
-          {prefix === "supervisor" ? <ActiveCallsSupervisorPanel /> : null}
-          {!isRcAdminHome ? <IncidentTable rows={data.incidents} /> : null}
-          {isRcAdminHome ? <RcAdminDashboardActivity /> : <ActivityFeed items={data.activities} />}
-          {prefix === "rc-admin" ? <PlatformNoticeTargetPanel /> : null}
+        <div className="space-y-4 lg:col-span-2">
+          {sections.supervisorSla ? <SlaSupervisorPanel /> : null}
+          {sections.supervisorActiveCalls ? <ActiveCallsSupervisorPanel /> : null}
+          {sections.liveOperationsIncidents ? (
+            <IncidentTable rows={data.incidents} emptyHint="No active incidents in your queue." />
+          ) : null}
+          {isRcAdminHome ? (
+            <RcAdminDashboardActivity />
+          ) : sections.activityFeed ? (
+            <ActivityFeed items={data.activities} />
+          ) : null}
+          {sections.platformNotices ? <PlatformNoticeTargetPanel /> : null}
         </div>
         <div className="space-y-4">
-          {!isRcAdminHome ? <UsageChartPlaceholder title="Usage & load" /> : null}
-          {!isRcAdminHome && data.securityAlerts.length > 0 ? (
+          {sections.usageChart ? <UsageChartPlaceholder title="Usage & load" /> : null}
+          {sections.securityAlerts && data.securityAlerts.length > 0 ? (
             <div className="space-y-3">
               <h2 className="text-sm font-semibold text-white">Security & risk</h2>
               {data.securityAlerts.map((a) => (
@@ -104,7 +120,7 @@ export async function DashboardPageContent({
               ))}
             </div>
           ) : null}
-          {!isRcAdminHome && data.reports.length > 0 ? (
+          {sections.reports && data.reports.length > 0 ? (
             <div className="space-y-3">
               <h2 className="text-sm font-semibold text-white">Reports</h2>
               {data.reports.map((r) => (

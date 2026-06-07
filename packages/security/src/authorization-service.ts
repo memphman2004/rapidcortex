@@ -11,7 +11,7 @@ import {
   isRcitadminCrossTenantPermission,
   type Permission,
 } from "./permissions.js";
-import { CAMPUS_ROLE_BASE_MAP, canCampusRolePerform, isCampusRole } from "./role-access-matrix-v2.js";
+import { CAMPUS_ROLE_BASE_MAP, canCampusRolePerform, canVenueRolePerform, isCampusRole, isVenueRole } from "./role-access-matrix-v2.js";
 
 function resolveRoleAlias(role: UserRole | string): UserRole {
   const raw = String(role ?? "").trim();
@@ -118,8 +118,11 @@ export class AuthorizationService {
     if (isRcsuperadmin(user)) return true;
     const permissionKey = String(permission);
     const rawRole = String(user.role ?? "").trim();
-    if (isCampusRole(rawRole) && permissionKey.startsWith("campus.")) {
+    if (isCampusRole(rawRole) && (permissionKey.startsWith("campus.") || permissionKey.startsWith("locations."))) {
       return canCampusRolePerform(rawRole, permissionKey);
+    }
+    if (isVenueRole(rawRole) && permissionKey.startsWith("locations.")) {
+      return canVenueRolePerform(rawRole, permissionKey);
     }
     if (!(ALL_PERMISSIONS as readonly string[]).includes(permissionKey)) return false;
     const typedPermission = permissionKey as Permission;

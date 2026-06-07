@@ -1718,3 +1718,88 @@ export async function deleteAdminTenantAddon(
     method: "DELETE",
   });
 }
+
+export type AdminInvoiceListItem = {
+  invoiceId: string;
+  agencyId: string;
+  agencyName: string;
+  vertical: string;
+  invoiceNumber?: string;
+  status: string;
+  displayStatus: string;
+  subtotal: number | null;
+  total: number | null;
+  dueDate?: string;
+  paidAt?: string;
+  purchaseOrderNumber?: string;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type AdminInvoicesListResponse = {
+  items: AdminInvoiceListItem[];
+  stats: {
+    totalInvoices: number;
+    outstandingCents: number;
+    overdueCents: number;
+    paidThisMonthCents: number;
+  };
+  note?: string;
+};
+
+export async function fetchAdminInvoices(params?: {
+  limit?: number;
+  status?: string;
+  agencyId?: string;
+  vertical?: string;
+  search?: string;
+  from?: string;
+  to?: string;
+}): Promise<AdminInvoicesListResponse> {
+  const q = new URLSearchParams();
+  if (params?.limit) q.set("limit", String(params.limit));
+  if (params?.status) q.set("status", params.status);
+  if (params?.agencyId) q.set("agencyId", params.agencyId);
+  if (params?.vertical) q.set("vertical", params.vertical);
+  if (params?.search) q.set("search", params.search);
+  if (params?.from) q.set("from", params.from);
+  if (params?.to) q.set("to", params.to);
+  const suffix = q.toString();
+  return request<AdminInvoicesListResponse>(`/api/admin/invoices${suffix ? `?${suffix}` : ""}`);
+}
+
+export async function fetchAdminInvoice(invoiceId: string): Promise<{ invoice: AdminInvoiceListItem & { lineItems: unknown[] } }> {
+  return request(`/api/admin/invoices/${encodeURIComponent(invoiceId)}`);
+}
+
+export async function patchAdminInvoice(
+  invoiceId: string,
+  body: { status?: string; purchaseOrderNumber?: string; dueDate?: string },
+): Promise<{ invoice: AdminInvoiceListItem }> {
+  return request(`/api/admin/invoices/${encodeURIComponent(invoiceId)}`, {
+    method: "PATCH",
+    body: JSON.stringify(body),
+  });
+}
+
+export type BillingServiceCatalogRow = {
+  serviceId: string;
+  name: string;
+  description?: string;
+  category: string;
+  defaultPrice: number;
+  billingType: string;
+  active: boolean;
+  displayOrder?: number;
+};
+
+export async function fetchBillingServices(opts?: {
+  active?: boolean;
+  agencyId?: string;
+}): Promise<{ items: BillingServiceCatalogRow[] }> {
+  const q = new URLSearchParams();
+  if (opts?.active !== false) q.set("active", "true");
+  if (opts?.agencyId) q.set("agencyId", opts.agencyId);
+  const suffix = q.toString();
+  return request(`/api/billing/services${suffix ? `?${suffix}` : ""}`);
+}

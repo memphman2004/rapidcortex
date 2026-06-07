@@ -1,7 +1,7 @@
 import { getUserRoleDisplayLabel } from "rapid-cortex-shared/auth/role-display";
 import {
-  isRapidCortexRole,
   migrateLegacyRapidCortexRoleTokenValue,
+  normalizeSessionRole,
 } from "rapid-cortex-shared/auth/rapid-cortex-roles";
 import type { UserRole } from "rapid-cortex-shared/types";
 import { isRcInternalOperator } from "rapid-cortex-shared/tenancy/principal";
@@ -40,9 +40,7 @@ export function isDispatcherRole(role: UserRole | string): boolean {
 }
 
 export function normalizeRole(value: string | undefined): UserRole {
-  const migrated = migrateLegacyRapidCortexRoleTokenValue(value?.trim()) ?? "";
-  if (migrated && isRapidCortexRole(migrated)) return migrated;
-  return "dispatcher";
+  return normalizeSessionRole(value) as UserRole;
 }
 
 export function formatUserRoleLabel(role: UserRole | undefined): string {

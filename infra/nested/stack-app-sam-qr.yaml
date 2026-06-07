@@ -1,0 +1,407 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Transform: AWS::Serverless-2016-10-31
+Description: Rapid Cortex — QR location + venue incidents HTTP routes (attach to stack 1 HttpApi via ApiGatewayV2)
+
+Parameters:
+  AppName:
+    Type: String
+    Default: rapid-cortex
+  DeploymentStage:
+    Type: String
+    AllowedValues: [dev, staging, prod, pilot]
+  HttpApiId:
+    Type: String
+  QRLocationsTable:
+    Type: String
+    Default: ""
+  VenueConfigTable:
+    Type: String
+    Default: ""
+  CampusIncidentsTable:
+    Type: String
+    Default: ""
+  CampusConfigTable:
+    Type: String
+    Default: ""
+  AuditTable:
+    Type: String
+  AssetsBucket:
+    Type: String
+  ImportedCognitoUserPoolId:
+    Type: String
+  ImportedCognitoWebClientId:
+    Type: String
+  ImportedCognitoIssuer:
+    Type: String
+  ManagedPolicyNamePrefix:
+    Type: String
+    Default: rapid-cortex
+
+Conditions:
+  HasQRLocationsTable: !Not [!Equals [!Ref QRLocationsTable, ""]]
+  HasVenueConfigTable: !Not [!Equals [!Ref VenueConfigTable, ""]]
+  HasCampusIncidentsTable: !Not [!Equals [!Ref CampusIncidentsTable, ""]]
+  HasCampusConfigTable: !Not [!Equals [!Ref CampusConfigTable, ""]]
+
+Globals:
+  Function:
+    Runtime: nodejs20.x
+    Timeout: 30
+    MemorySize: 512
+    Environment:
+      Variables:
+        DEPLOYMENT_STAGE: !Ref DeploymentStage
+        QR_LOCATIONS_TABLE: !Ref QRLocationsTable
+        VENUE_CONFIG_TABLE: !Ref VenueConfigTable
+        CAMPUS_INCIDENTS_TABLE: !Ref CampusIncidentsTable
+        CAMPUS_CONFIG_TABLE: !Ref CampusConfigTable
+        CAMPUS_CODES: !Sub "${AppName}-campus-codes"
+        AUDIT_TABLE: !Ref AuditTable
+        ASSETS_BUCKET: !Ref AssetsBucket
+        COGNITO_USER_POOL_ID: !Ref ImportedCognitoUserPoolId
+        COGNITO_CLIENT_ID: !Ref ImportedCognitoWebClientId
+        COGNITO_REGION: !Ref AWS::Region
+
+Resources:
+  AppManagedPolicyQrLocationDynamo:
+    Type: AWS::IAM::ManagedPolicy
+    Properties:
+      ManagedPolicyName: !Sub "${ManagedPolicyNamePrefix}-sam1-qr-ddb-${DeploymentStage}"
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Sid: QrVenueCampusCrud
+            Effect: Allow
+            Action:
+              - dynamodb:GetItem
+              - dynamodb:PutItem
+              - dynamodb:UpdateItem
+              - dynamodb:DeleteItem
+              - dynamodb:Query
+              - dynamodb:Scan
+              - dynamodb:BatchGetItem
+              - dynamodb:BatchWriteItem
+              - dynamodb:DescribeTable
+              - dynamodb:ConditionCheckItem
+            Resource:
+              - !If
+                - HasQRLocationsTable
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${QRLocationsTable}
+                - !Ref AWS::NoValue
+              - !If
+                - HasQRLocationsTable
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${QRLocationsTable}/index/*
+                - !Ref AWS::NoValue
+              - !If
+                - HasVenueConfigTable
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${VenueConfigTable}
+                - !Ref AWS::NoValue
+              - !If
+                - HasVenueConfigTable
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${VenueConfigTable}/index/*
+                - !Ref AWS::NoValue
+              - !If
+                - HasCampusIncidentsTable
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${CampusIncidentsTable}
+                - !Ref AWS::NoValue
+              - !If
+                - HasCampusIncidentsTable
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${CampusIncidentsTable}/index/*
+                - !Ref AWS::NoValue
+              - !If
+                - HasCampusConfigTable
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${CampusConfigTable}
+                - !Ref AWS::NoValue
+              - !If
+                - HasCampusConfigTable
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${CampusConfigTable}/index/*
+                - !Ref AWS::NoValue
+              - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${AuditTable}
+              - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${AuditTable}/index/*
+
+  AppManagedPolicyQrLocationS3:
+    Type: AWS::IAM::ManagedPolicy
+    Properties:
+      ManagedPolicyName: !Sub "${ManagedPolicyNamePrefix}-sam1-qr-s3-${DeploymentStage}"
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Sid: AssetsBucketObjects
+            Effect: Allow
+            Action:
+              - s3:GetObject
+              - s3:PutObject
+              - s3:PutObjectAcl
+            Resource:
+              - !Sub arn:aws:s3:::${AssetsBucket}/*
+
+  LocationResolveFunction:
+    Type: AWS::Serverless::Function
+    Condition: HasQRLocationsTable
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/handlers/locations/locationResolveHttp.handler
+      Timeout: 15
+      Policies:
+        - !Ref AppManagedPolicyQrLocationDynamo
+
+  LocationIntakeFunction:
+    Type: AWS::Serverless::Function
+    Condition: HasQRLocationsTable
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/handlers/locations/locationIntakeHttp.handler
+      Timeout: 30
+      Policies:
+        - !Ref AppManagedPolicyQrLocationDynamo
+        - !Ref AppManagedPolicyQrLocationS3
+
+  LocationMediaUploadFunction:
+    Type: AWS::Serverless::Function
+    Condition: HasQRLocationsTable
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/handlers/locations/locationMediaUploadHttp.handler
+      Timeout: 15
+      Policies:
+        - !Ref AppManagedPolicyQrLocationDynamo
+        - !Ref AppManagedPolicyQrLocationS3
+
+  LocationsAdminFunction:
+    Type: AWS::Serverless::Function
+    Condition: HasQRLocationsTable
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/handlers/locations/locationsAdminHttp.handler
+      Timeout: 30
+      Policies:
+        - !Ref AppManagedPolicyQrLocationDynamo
+
+  LocationQrFunction:
+    Type: AWS::Serverless::Function
+    Condition: HasQRLocationsTable
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/handlers/locations/locationQrHttp.handler
+      Timeout: 30
+      Policies:
+        - !Ref AppManagedPolicyQrLocationDynamo
+
+  GetVenueIncidentsFunction:
+    Type: AWS::Serverless::Function
+    Condition: HasVenueConfigTable
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/venue/handlers/get-venue-incidents.handler
+      Timeout: 30
+      Policies:
+        - !Ref AppManagedPolicyQrLocationDynamo
+
+  LocationResolveHttpIntegration:
+    Type: AWS::ApiGatewayV2::Integration
+    Condition: HasQRLocationsTable
+    Properties:
+      ApiId: !Ref HttpApiId
+      IntegrationType: AWS_PROXY
+      IntegrationUri: !Sub arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${LocationResolveFunction.Arn}/invocations
+      PayloadFormatVersion: "2.0"
+
+  LocationIntakeHttpIntegration:
+    Type: AWS::ApiGatewayV2::Integration
+    Condition: HasQRLocationsTable
+    Properties:
+      ApiId: !Ref HttpApiId
+      IntegrationType: AWS_PROXY
+      IntegrationUri: !Sub arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${LocationIntakeFunction.Arn}/invocations
+      PayloadFormatVersion: "2.0"
+
+  LocationMediaUploadHttpIntegration:
+    Type: AWS::ApiGatewayV2::Integration
+    Condition: HasQRLocationsTable
+    Properties:
+      ApiId: !Ref HttpApiId
+      IntegrationType: AWS_PROXY
+      IntegrationUri: !Sub arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${LocationMediaUploadFunction.Arn}/invocations
+      PayloadFormatVersion: "2.0"
+
+  LocationsAdminHttpIntegration:
+    Type: AWS::ApiGatewayV2::Integration
+    Condition: HasQRLocationsTable
+    Properties:
+      ApiId: !Ref HttpApiId
+      IntegrationType: AWS_PROXY
+      IntegrationUri: !Sub arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${LocationsAdminFunction.Arn}/invocations
+      PayloadFormatVersion: "2.0"
+
+  LocationQrHttpIntegration:
+    Type: AWS::ApiGatewayV2::Integration
+    Condition: HasQRLocationsTable
+    Properties:
+      ApiId: !Ref HttpApiId
+      IntegrationType: AWS_PROXY
+      IntegrationUri: !Sub arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${LocationQrFunction.Arn}/invocations
+      PayloadFormatVersion: "2.0"
+
+  GetVenueIncidentsHttpIntegration:
+    Type: AWS::ApiGatewayV2::Integration
+    Condition: HasVenueConfigTable
+    Properties:
+      ApiId: !Ref HttpApiId
+      IntegrationType: AWS_PROXY
+      IntegrationUri: !Sub arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${GetVenueIncidentsFunction.Arn}/invocations
+      PayloadFormatVersion: "2.0"
+
+  LocationResolveHttpInvokePermission:
+    Type: AWS::Lambda::Permission
+    Condition: HasQRLocationsTable
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !Ref LocationResolveFunction
+      Principal: apigateway.amazonaws.com
+      SourceArn: !Sub arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${HttpApiId}/*
+
+  LocationIntakeHttpInvokePermission:
+    Type: AWS::Lambda::Permission
+    Condition: HasQRLocationsTable
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !Ref LocationIntakeFunction
+      Principal: apigateway.amazonaws.com
+      SourceArn: !Sub arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${HttpApiId}/*
+
+  LocationMediaUploadHttpInvokePermission:
+    Type: AWS::Lambda::Permission
+    Condition: HasQRLocationsTable
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !Ref LocationMediaUploadFunction
+      Principal: apigateway.amazonaws.com
+      SourceArn: !Sub arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${HttpApiId}/*
+
+  LocationsAdminHttpInvokePermission:
+    Type: AWS::Lambda::Permission
+    Condition: HasQRLocationsTable
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !Ref LocationsAdminFunction
+      Principal: apigateway.amazonaws.com
+      SourceArn: !Sub arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${HttpApiId}/*
+
+  LocationQrHttpInvokePermission:
+    Type: AWS::Lambda::Permission
+    Condition: HasQRLocationsTable
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !Ref LocationQrFunction
+      Principal: apigateway.amazonaws.com
+      SourceArn: !Sub arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${HttpApiId}/*
+
+  GetVenueIncidentsHttpInvokePermission:
+    Type: AWS::Lambda::Permission
+    Condition: HasVenueConfigTable
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !Ref GetVenueIncidentsFunction
+      Principal: apigateway.amazonaws.com
+      SourceArn: !Sub arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${HttpApiId}/*
+
+  RouteQrResolveGet:
+    Type: AWS::ApiGatewayV2::Route
+    Condition: HasQRLocationsTable
+    Properties:
+      ApiId: !Ref HttpApiId
+      RouteKey: "GET /api/r/{rcli}"
+      AuthorizationType: NONE
+      Target: !Sub "integrations/${LocationResolveHttpIntegration}"
+
+  RouteQrIntakePost:
+    Type: AWS::ApiGatewayV2::Route
+    Condition: HasQRLocationsTable
+    Properties:
+      ApiId: !Ref HttpApiId
+      RouteKey: "POST /api/r/{rcli}"
+      AuthorizationType: NONE
+      Target: !Sub "integrations/${LocationIntakeHttpIntegration}"
+
+  RouteQrMediaUploadGet:
+    Type: AWS::ApiGatewayV2::Route
+    Condition: HasQRLocationsTable
+    Properties:
+      ApiId: !Ref HttpApiId
+      RouteKey: "GET /api/r/{rcli}/media-upload-url"
+      AuthorizationType: NONE
+      Target: !Sub "integrations/${LocationMediaUploadHttpIntegration}"
+
+  RouteLocationsAdminList:
+    Type: AWS::ApiGatewayV2::Route
+    Condition: HasQRLocationsTable
+    Properties:
+      ApiId: !Ref HttpApiId
+      RouteKey: "GET /api/admin/tenants/{agencyId}/locations"
+      Target: !Sub "integrations/${LocationsAdminHttpIntegration}"
+
+  RouteLocationsAdminCreate:
+    Type: AWS::ApiGatewayV2::Route
+    Condition: HasQRLocationsTable
+    Properties:
+      ApiId: !Ref HttpApiId
+      RouteKey: "POST /api/admin/tenants/{agencyId}/locations"
+      Target: !Sub "integrations/${LocationsAdminHttpIntegration}"
+
+  RouteLocationsAdminUpdate:
+    Type: AWS::ApiGatewayV2::Route
+    Condition: HasQRLocationsTable
+    Properties:
+      ApiId: !Ref HttpApiId
+      RouteKey: "PUT /api/admin/tenants/{agencyId}/locations/{rcli}"
+      Target: !Sub "integrations/${LocationsAdminHttpIntegration}"
+
+  RouteLocationsAdminDelete:
+    Type: AWS::ApiGatewayV2::Route
+    Condition: HasQRLocationsTable
+    Properties:
+      ApiId: !Ref HttpApiId
+      RouteKey: "DELETE /api/admin/tenants/{agencyId}/locations/{rcli}"
+      Target: !Sub "integrations/${LocationsAdminHttpIntegration}"
+
+  RouteLocationsAdminBulk:
+    Type: AWS::ApiGatewayV2::Route
+    Condition: HasQRLocationsTable
+    Properties:
+      ApiId: !Ref HttpApiId
+      RouteKey: "POST /api/admin/tenants/{agencyId}/locations/bulk"
+      Target: !Sub "integrations/${LocationsAdminHttpIntegration}"
+
+  RouteLocationQrGet:
+    Type: AWS::ApiGatewayV2::Route
+    Condition: HasQRLocationsTable
+    Properties:
+      ApiId: !Ref HttpApiId
+      RouteKey: "GET /api/admin/tenants/{agencyId}/locations/{rcli}/qr"
+      Target: !Sub "integrations/${LocationQrHttpIntegration}"
+
+  RouteVenueIncidentsGet:
+    Type: AWS::ApiGatewayV2::Route
+    Condition: HasVenueConfigTable
+    Properties:
+      ApiId: !Ref HttpApiId
+      RouteKey: "GET /api/venue/incidents"
+      Target: !Sub "integrations/${GetVenueIncidentsHttpIntegration}"

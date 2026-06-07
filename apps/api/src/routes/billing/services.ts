@@ -1,8 +1,10 @@
-import { GetCommand, PutCommand, ScanCommand, UpdateCommand } from "@aws-sdk/lib-dynamodb";
+import { GetCommand, PutCommand, QueryCommand, ScanCommand, UpdateCommand } from "@aws-sdk/lib-dynamodb";
 import {
   createBillingServiceBodySchema,
+  canAccessRcFinancePortal,
   isRcsuperadmin,
   patchBillingServiceBodySchema,
+  PLATFORM_AGENCY_ID,
   type UserContext,
 } from "rapid-cortex-shared";
 import { AUDIT_EVENT_TYPES } from "rapid-cortex-security";
@@ -39,8 +41,11 @@ function billingTail(rawPath: string): string[] {
 }
 
 function getAgencyScope(user: UserContext, queryAgencyId?: string): string | null {
-  if (isRcsuperadmin(user)) return (queryAgencyId ?? user.agencyId ?? "").trim() || null;
-  return user.agencyId;
+  const q = (queryAgencyId ?? "").trim();
+  if (q) return q;
+  if (user.agencyId?.trim()) return user.agencyId.trim();
+  if (isRcsuperadmin(user) || canAccessRcFinancePortal(user.role)) return PLATFORM_AGENCY_ID;
+  return null;
 }
 
 async function createAudit(

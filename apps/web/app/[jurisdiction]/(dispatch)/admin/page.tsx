@@ -4,7 +4,7 @@ import Link from "next/link";
 import { PilotReadinessBanner } from "@/components/admin/pilot-readiness-banner";
 import { RoleDashboardSmokePanel } from "@/components/dispatch/role-dashboard-smoke-panel";
 import { useJurisdictionLink } from "@/lib/jurisdiction-context";
-import { isLocationsQrAdminEnabled, isQaScoringEnabled } from "@/lib/runtime-flags";
+import { isQaScoringEnabled } from "@/lib/runtime-flags";
 import { AdminQaTemplatesWidget } from "@/components/dispatch/qa/admin-qa-templates-widget";
 
 const cards = [
@@ -48,12 +48,6 @@ const cards = [
     path: "/admin/integrations",
   },
   {
-    title: "Locations & QR Codes",
-    description: "Register scan points, manage zone codes, and download print-ready QR assets.",
-    path: "/admin/locations",
-    featureFlag: "locationsQr" as const,
-  },
-  {
     title: "Environment",
     description: "Read-only operator map of deploy-time variables and compliance references (no secrets).",
     path: "/admin/settings",
@@ -64,7 +58,6 @@ export default function AdminOverviewPage() {
   const to = useJurisdictionLink();
   const visibleCards = cards.filter((c) => {
     if ("featureFlag" in c && c.featureFlag === "qa") return isQaScoringEnabled();
-    if ("featureFlag" in c && c.featureFlag === "locationsQr") return isLocationsQrAdminEnabled();
     return true;
   });
 

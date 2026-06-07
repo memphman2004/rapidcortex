@@ -85,6 +85,30 @@ public static class DesktopConfigurationLoader
                     Environment.GetEnvironmentVariable("RapidCortex__Cognito__RedirectUri"),
                     cognito.RedirectUri,
                     "http://127.0.0.1:8765/callback"),
+            DefaultJurisdictionSlug =
+                FirstNonEmpty(
+                    Environment.GetEnvironmentVariable("RapidCortex__DefaultJurisdictionSlug"),
+                    rc.DefaultJurisdictionSlug),
+            EnableNativeMapKit = ParseBool(
+                FirstNonEmpty(
+                    Environment.GetEnvironmentVariable("RapidCortex__EnableNativeMapKit"),
+                    rc.EnableNativeMapKit?.ToString()),
+                defaultValue: true),
+        };
+    }
+
+    private static bool ParseBool(string? value, bool defaultValue)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+        {
+            return defaultValue;
+        }
+
+        return value.Trim() switch
+        {
+            "1" or "true" or "True" or "TRUE" or "yes" or "Yes" => true,
+            "0" or "false" or "False" or "FALSE" or "no" or "No" => false,
+            _ => defaultValue,
         };
     }
 
@@ -113,6 +137,8 @@ public static class DesktopConfigurationLoader
                 ApiBaseUrl = Pick(right.ApiBaseUrl, left.ApiBaseUrl),
                 ApiBaseUrl2 = Pick(right.ApiBaseUrl2, left.ApiBaseUrl2),
                 WebAppBaseUrl = Pick(right.WebAppBaseUrl, left.WebAppBaseUrl),
+                DefaultJurisdictionSlug = Pick(right.DefaultJurisdictionSlug, left.DefaultJurisdictionSlug),
+                EnableNativeMapKit = right.EnableNativeMapKit ?? left.EnableNativeMapKit,
                 Cognito = new CognitoDto
                 {
                     Region = Pick(rc.Region, lc.Region),
@@ -146,6 +172,10 @@ public static class DesktopConfigurationLoader
         public string? ApiBaseUrl2 { get; set; }
 
         public string? WebAppBaseUrl { get; set; }
+
+        public string? DefaultJurisdictionSlug { get; set; }
+
+        public bool? EnableNativeMapKit { get; set; }
 
         public CognitoDto? Cognito { get; set; }
     }

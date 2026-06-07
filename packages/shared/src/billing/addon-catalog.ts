@@ -21,7 +21,7 @@ export const ADDON_CATALOG: AddonDefinition[] = [
       "Scoped workshop to map CAD vendor, API availability, field mapping, and integration path.",
     billingType: "one_time",
     monthlyPrice: 0,
-    oneTimePrice: 10000,
+    oneTimePrice: 5500,
     planAvailability: professionalPlus,
   }),
   withLegacyIncludedInPlans({
@@ -32,7 +32,7 @@ export const ADDON_CATALOG: AddonDefinition[] = [
       "Rapid Cortex-led coordination with agency CAD vendor for API access and sandbox setup.",
     billingType: "one_time",
     monthlyPrice: 0,
-    oneTimePrice: 17500,
+    oneTimePrice: 10000,
     planAvailability: professionalPlus,
   }),
   withLegacyIncludedInPlans({
@@ -43,7 +43,7 @@ export const ADDON_CATALOG: AddonDefinition[] = [
       "One-way read integration from agency CAD into Rapid Cortex context panel. No write-back.",
     billingType: "one_time",
     monthlyPrice: 0,
-    oneTimePrice: 67500,
+    oneTimePrice: 22000,
     planAvailability: professionalPlus,
   }),
   withLegacyIncludedInPlans({
@@ -54,7 +54,7 @@ export const ADDON_CATALOG: AddonDefinition[] = [
       "One-click transfer to CAD with dispatcher review and approval before submit.",
     billingType: "one_time",
     monthlyPrice: 0,
-    oneTimePrice: 162500,
+    oneTimePrice: 15000,
     planAvailability: commandPlus,
     featureFlag: "cad_writeback",
   }),
@@ -66,7 +66,7 @@ export const ADDON_CATALOG: AddonDefinition[] = [
       "Full bidirectional sync between Rapid Cortex and CAD with automated field mapping.",
     billingType: "one_time",
     monthlyPrice: 0,
-    oneTimePrice: 325000,
+    oneTimePrice: 62000,
     planAvailability: enterpriseOnly,
     featureFlag: "cad_writeback",
   }),
@@ -78,7 +78,7 @@ export const ADDON_CATALOG: AddonDefinition[] = [
       "Isolated test environment with CAD vendor for integration validation before go-live.",
     billingType: "one_time",
     monthlyPrice: 0,
-    oneTimePrice: 32500,
+    oneTimePrice: 12000,
     planAvailability: professionalPlus,
   }),
   withLegacyIncludedInPlans({
@@ -89,7 +89,7 @@ export const ADDON_CATALOG: AddonDefinition[] = [
       "Formal field mapping specification between Rapid Cortex and agency CAD data model.",
     billingType: "one_time",
     monthlyPrice: 0,
-    oneTimePrice: 13750,
+    oneTimePrice: 5500,
     planAvailability: professionalPlus,
   }),
   withLegacyIncludedInPlans({
@@ -100,7 +100,7 @@ export const ADDON_CATALOG: AddonDefinition[] = [
       "Enhanced audit trail for all CAD read/write events, approvals, and rejections.",
     billingType: "one_time",
     monthlyPrice: 0,
-    oneTimePrice: 22500,
+    oneTimePrice: 8000,
     planAvailability: professionalPlus,
   }),
   withLegacyIncludedInPlans({
@@ -111,7 +111,7 @@ export const ADDON_CATALOG: AddonDefinition[] = [
       "Documented rollback procedures and failover testing for CAD integration resilience.",
     billingType: "one_time",
     monthlyPrice: 0,
-    oneTimePrice: 20000,
+    oneTimePrice: 10000,
     planAvailability: commandPlus,
   }),
   withLegacyIncludedInPlans({
@@ -122,7 +122,7 @@ export const ADDON_CATALOG: AddonDefinition[] = [
       "Custom connector for a second or additional CAD vendor not included in base integration.",
     billingType: "one_time",
     monthlyPrice: 0,
-    oneTimePrice: 187500,
+    oneTimePrice: 15000,
     planAvailability: enterpriseOnly,
   }),
 
@@ -166,7 +166,7 @@ export const ADDON_CATALOG: AddonDefinition[] = [
     description:
       "Second AI model validates primary triage output for higher-confidence decisions.",
     billingType: "monthly",
-    monthlyPrice: 4000,
+    monthlyPrice: 2000,
     oneTimePrice: 0,
     planAvailability: commandPlus,
   }),
@@ -177,7 +177,7 @@ export const ADDON_CATALOG: AddonDefinition[] = [
     description:
       "Third-model fallback path for when primary and secondary models diverge.",
     billingType: "monthly",
-    monthlyPrice: 4000,
+    monthlyPrice: 2000,
     oneTimePrice: 0,
     planAvailability: enterpriseOnly,
   }),
@@ -241,7 +241,7 @@ export const ADDON_CATALOG: AddonDefinition[] = [
       "Agency-specific custom prompts, playbooks, and emergency-type workflow tuning.",
     billingType: "one_time",
     monthlyPrice: 0,
-    oneTimePrice: 30000,
+    oneTimePrice: 10000,
     planAvailability: commandPlus,
   }),
   withLegacyIncludedInPlans({
@@ -251,7 +251,7 @@ export const ADDON_CATALOG: AddonDefinition[] = [
     description:
       "AI-assisted post-incident review with trend surfacing and supervisor summary.",
     billingType: "monthly",
-    monthlyPrice: 6250,
+    monthlyPrice: 2500,
     oneTimePrice: 0,
     planAvailability: commandPlus,
   }),
@@ -262,7 +262,7 @@ export const ADDON_CATALOG: AddonDefinition[] = [
     description:
       "AI-assisted quality scoring applied to dispatcher call reviews and QA workflows.",
     billingType: "monthly",
-    monthlyPrice: 6250,
+    monthlyPrice: 2500,
     oneTimePrice: 0,
     planAvailability: commandPlus,
   }),
@@ -378,7 +378,7 @@ export const ADDON_CATALOG: AddonDefinition[] = [
     description:
       "Convert translated text back to voice for caller confirmation and dispatcher playback.",
     billingType: "monthly",
-    monthlyPrice: 3250,
+    monthlyPrice: 1500,
     oneTimePrice: 0,
     planAvailability: professionalPlus,
   }),
@@ -387,9 +387,9 @@ export const ADDON_CATALOG: AddonDefinition[] = [
     name: "Custom Language Package",
     category: "Transcription & Translation",
     description:
-      "Support for rare, regional, or custom languages beyond the standard 40+ language set.",
+      "Support for rare, regional, or custom languages beyond the standard 40+ language set. Priced per language.",
     billingType: "monthly",
-    monthlyPrice: 2500,
+    monthlyPrice: 1000,
     oneTimePrice: 0,
     planAvailability: commandPlus,
   }),
@@ -400,7 +400,7 @@ export const ADDON_CATALOG: AddonDefinition[] = [
     description:
       "Immutable log of all translation events with source text, output, confidence, and timestamp.",
     billingType: "monthly",
-    monthlyPrice: 2500,
+    monthlyPrice: 1000,
     oneTimePrice: 0,
     planAvailability: professionalPlus,
   }),
@@ -413,7 +413,7 @@ export const ADDON_CATALOG: AddonDefinition[] = [
     description:
       "Send callers a secure, expiring SMS link to submit photos or start media sessions.",
     billingType: "monthly",
-    monthlyPrice: 3250,
+    monthlyPrice: 1500,
     oneTimePrice: 0,
     planAvailability: professionalPlus,
   }),
@@ -424,7 +424,7 @@ export const ADDON_CATALOG: AddonDefinition[] = [
     description:
       "Secure text chat channel for callers who cannot speak safely. 300-1K conversations/month.",
     billingType: "monthly",
-    monthlyPrice: 5000,
+    monthlyPrice: 2000,
     oneTimePrice: 0,
     planAvailability: professionalPlus,
   }),
@@ -495,7 +495,7 @@ export const ADDON_CATALOG: AddonDefinition[] = [
     description:
       "Up to 100 concurrent streams at 720p via Kinesis Video Streams.",
     billingType: "monthly",
-    monthlyPrice: 5000,
+    monthlyPrice: 3000,
     oneTimePrice: 0,
     planAvailability: professionalPlus,
     featureFlag: "live_video",
@@ -541,7 +541,7 @@ export const ADDON_CATALOG: AddonDefinition[] = [
     description:
       "Append-only log of all media access, download, and expiration events.",
     billingType: "monthly",
-    monthlyPrice: 3250,
+    monthlyPrice: 1500,
     oneTimePrice: 0,
     planAvailability: professionalPlus,
   }),
@@ -552,7 +552,7 @@ export const ADDON_CATALOG: AddonDefinition[] = [
     description:
       "Extended configurable retention policies for evidentiary media with legal hold support.",
     billingType: "monthly",
-    monthlyPrice: 6250,
+    monthlyPrice: 2500,
     oneTimePrice: 0,
     planAvailability: commandPlus,
   }),
@@ -563,7 +563,7 @@ export const ADDON_CATALOG: AddonDefinition[] = [
     description:
       "Dispatcher and supervisor tools to redact faces, plates, and PII from stored media before export.",
     billingType: "monthly",
-    monthlyPrice: 12500,
+    monthlyPrice: 5000,
     oneTimePrice: 0,
     planAvailability: commandPlus,
   }),
@@ -638,7 +638,7 @@ export const ADDON_CATALOG: AddonDefinition[] = [
     description:
       "Structured supervisor coaching notes linked to call records and dispatcher profiles.",
     billingType: "monthly",
-    monthlyPrice: 2500,
+    monthlyPrice: 1000,
     oneTimePrice: 0,
     planAvailability: professionalPlus,
   }),
@@ -680,7 +680,7 @@ export const ADDON_CATALOG: AddonDefinition[] = [
     description:
       "Longitudinal call quality trend charts with anomaly flagging and drill-down.",
     billingType: "monthly",
-    monthlyPrice: 4750,
+    monthlyPrice: 2000,
     oneTimePrice: 0,
     planAvailability: commandPlus,
   }),
@@ -692,7 +692,7 @@ export const ADDON_CATALOG: AddonDefinition[] = [
       "Bespoke QA rubric built to agency protocols with weighted scoring dimensions.",
     billingType: "one_time",
     monthlyPrice: 0,
-    oneTimePrice: 16250,
+    oneTimePrice: 4500,
     planAvailability: commandPlus,
   }),
   withLegacyIncludedInPlans({
@@ -702,7 +702,7 @@ export const ADDON_CATALOG: AddonDefinition[] = [
     description:
       "Automated monthly QA summary delivered to supervisors and agency admins.",
     billingType: "monthly",
-    monthlyPrice: 5000,
+    monthlyPrice: 2500,
     oneTimePrice: 0,
     planAvailability: commandPlus,
   }),
@@ -715,7 +715,7 @@ export const ADDON_CATALOG: AddonDefinition[] = [
     description:
       "Structured major incident workflows with role assignments, status boards, and escalation paths.",
     billingType: "monthly",
-    monthlyPrice: 12500,
+    monthlyPrice: 5000,
     oneTimePrice: 0,
     planAvailability: commandPlus,
   }),
@@ -726,7 +726,7 @@ export const ADDON_CATALOG: AddonDefinition[] = [
     description:
       "Real-time command situational awareness dashboard for supervisors and command staff.",
     billingType: "monthly",
-    monthlyPrice: 12500,
+    monthlyPrice: 1000,
     oneTimePrice: 0,
     planAvailability: commandPlus,
   }),
@@ -737,7 +737,7 @@ export const ADDON_CATALOG: AddonDefinition[] = [
     description:
       "Collaborative virtual incident rooms with shared timeline, notes, and attendee management.",
     billingType: "monthly",
-    monthlyPrice: 9250,
+    monthlyPrice: 2500,
     oneTimePrice: 0,
     planAvailability: commandPlus,
   }),
@@ -748,7 +748,7 @@ export const ADDON_CATALOG: AddonDefinition[] = [
     description:
       "Agency-configured runbooks and playbooks surfaced during active incidents.",
     billingType: "monthly",
-    monthlyPrice: 7500,
+    monthlyPrice: 2500,
     oneTimePrice: 0,
     planAvailability: commandPlus,
   }),
@@ -759,7 +759,7 @@ export const ADDON_CATALOG: AddonDefinition[] = [
     description:
       "Full chronological incident timeline with all events, media, and decisions.",
     billingType: "monthly",
-    monthlyPrice: 6250,
+    monthlyPrice: 2500,
     oneTimePrice: 0,
     planAvailability: professionalPlus,
   }),
@@ -770,7 +770,7 @@ export const ADDON_CATALOG: AddonDefinition[] = [
     description:
       "Structured post-incident review workflow with findings, action items, and sign-off.",
     billingType: "monthly",
-    monthlyPrice: 6250,
+    monthlyPrice: 1500,
     oneTimePrice: 0,
     planAvailability: professionalPlus,
   }),
@@ -781,7 +781,7 @@ export const ADDON_CATALOG: AddonDefinition[] = [
     description:
       "Configurable status pages for real-time incident updates to internal stakeholders and PIO.",
     billingType: "monthly",
-    monthlyPrice: 9250,
+    monthlyPrice: 1500,
     oneTimePrice: 0,
     planAvailability: commandPlus,
   }),
@@ -792,7 +792,7 @@ export const ADDON_CATALOG: AddonDefinition[] = [
     description:
       "Auto-generated executive briefing packages with summary, timeline, and action items.",
     billingType: "monthly",
-    monthlyPrice: 9250,
+    monthlyPrice: 1500,
     oneTimePrice: 0,
     planAvailability: commandPlus,
   }),
@@ -805,7 +805,7 @@ export const ADDON_CATALOG: AddonDefinition[] = [
     description:
       "Connect Rapid Cortex operational health to PagerDuty, OpsGenie, Datadog, or custom endpoints.",
     billingType: "monthly",
-    monthlyPrice: 6250,
+    monthlyPrice: 2500,
     oneTimePrice: 0,
     planAvailability: commandPlus,
   }),
@@ -816,7 +816,7 @@ export const ADDON_CATALOG: AddonDefinition[] = [
     description:
       "Correlate platform alerts to reduce noise and surface root-cause signals.",
     billingType: "monthly",
-    monthlyPrice: 6250,
+    monthlyPrice: 2500,
     oneTimePrice: 0,
     planAvailability: commandPlus,
   }),
@@ -827,7 +827,7 @@ export const ADDON_CATALOG: AddonDefinition[] = [
     description:
       "Configurable escalation rules with time-based promotion and on-call routing.",
     billingType: "monthly",
-    monthlyPrice: 6250,
+    monthlyPrice: 2500,
     oneTimePrice: 0,
     planAvailability: commandPlus,
   }),
@@ -838,7 +838,7 @@ export const ADDON_CATALOG: AddonDefinition[] = [
     description:
       "Structured on-call schedules and routing integrated with escalation engine.",
     billingType: "monthly",
-    monthlyPrice: 6250,
+    monthlyPrice: 2500,
     oneTimePrice: 0,
     planAvailability: commandPlus,
   }),
@@ -849,7 +849,7 @@ export const ADDON_CATALOG: AddonDefinition[] = [
     description:
       "Agency-facing SLO tracking dashboards with error budget burn rate visualization.",
     billingType: "monthly",
-    monthlyPrice: 4750,
+    monthlyPrice: 2000,
     oneTimePrice: 0,
     planAvailability: commandPlus,
   }),
@@ -860,7 +860,7 @@ export const ADDON_CATALOG: AddonDefinition[] = [
     description:
       "Monthly reliability reports with uptime, incident count, and MTTR.",
     billingType: "monthly",
-    monthlyPrice: 4750,
+    monthlyPrice: 2000,
     oneTimePrice: 0,
     planAvailability: commandPlus,
   }),
@@ -872,7 +872,7 @@ export const ADDON_CATALOG: AddonDefinition[] = [
       "Pre-built CloudWatch dashboards scoped to agency tenant metrics and alarms.",
     billingType: "one_time",
     monthlyPrice: 0,
-    oneTimePrice: 12500,
+    oneTimePrice: 3000,
     planAvailability: commandPlus,
   }),
   withLegacyIncludedInPlans({
@@ -883,7 +883,7 @@ export const ADDON_CATALOG: AddonDefinition[] = [
       "Custom connector to agency's existing monitoring stack (SIEM, NOC, etc.).",
     billingType: "one_time",
     monthlyPrice: 0,
-    oneTimePrice: 30000,
+    oneTimePrice: 10000,
     planAvailability: enterpriseOnly,
   }),
   withLegacyIncludedInPlans({
@@ -893,7 +893,7 @@ export const ADDON_CATALOG: AddonDefinition[] = [
     description:
       "Upgrade to 24/7 incident response SLA with dedicated on-call RC engineer.",
     billingType: "monthly",
-    monthlyPrice: 16250,
+    monthlyPrice: 7500,
     oneTimePrice: 0,
     planAvailability: commandPlus,
   }),
@@ -906,7 +906,7 @@ export const ADDON_CATALOG: AddonDefinition[] = [
     description:
       "Hospital divert status, ED routing, trauma bay availability, and staff safety portal.",
     billingType: "monthly",
-    monthlyPrice: 5000,
+    monthlyPrice: 4000,
     oneTimePrice: 0,
     planAvailability: professionalPlus,
     verticalRequired: "hospital",
@@ -919,7 +919,7 @@ export const ADDON_CATALOG: AddonDefinition[] = [
     description:
       "Mass casualty incident routing, triage coordination, and multi-agency patient tracking.",
     billingType: "monthly",
-    monthlyPrice: 8500,
+    monthlyPrice: 6500,
     oneTimePrice: 0,
     planAvailability: commandPlus,
     verticalRequired: "hospital",
@@ -932,7 +932,7 @@ export const ADDON_CATALOG: AddonDefinition[] = [
     description:
       "Dedicated staff duress and safety call tracking with escalation and response logging.",
     billingType: "monthly",
-    monthlyPrice: 3500,
+    monthlyPrice: 2500,
     oneTimePrice: 0,
     planAvailability: professionalPlus,
     verticalRequired: "hospital",
@@ -944,7 +944,7 @@ export const ADDON_CATALOG: AddonDefinition[] = [
     description:
       "Real-time patient location and status tracking integrated with hospital systems.",
     billingType: "monthly",
-    monthlyPrice: 6500,
+    monthlyPrice: 4500,
     oneTimePrice: 0,
     planAvailability: commandPlus,
     verticalRequired: "hospital",

@@ -87,17 +87,38 @@ STACK_STATUS="$(aws cloudformation describe-stacks \
 echo "Using nested stack: $NESTED_STACK_NAME"
 echo "StackStatus:              $STACK_STATUS"
 
+# CloudFormation IMPORT change sets reject Output changes and modifications to existing Resources.
+# Merge only the Resources being imported into the currently deployed nested template.
+UPLOAD_TEMPLATE="$TEMPLATE_FILE"
+DEPLOYED_TEMPLATE="$(mktemp "${TMPDIR:-/tmp}/datalayer-deployed-XXXXXX")"
+IMPORT_TEMPLATE="$(mktemp "${TMPDIR:-/tmp}/datalayer-import-XXXXXX")"
+
+if aws cloudformation get-template \
+  --stack-name "$NESTED_STACK_NAME" \
+  --region "$REGION" \
+  --query 'TemplateBody' \
+  --output text >"$DEPLOYED_TEMPLATE" 2>/dev/null; then
+  python3 "$ROOT/scripts/prepare-datalayer-import-template.py" \
+    "$DEPLOYED_TEMPLATE" \
+    "$TEMPLATE_FILE" \
+    "$RESOURCES_JSON" \
+    "$IMPORT_TEMPLATE" || die "prepare-datalayer-import-template.py failed"
+  UPLOAD_TEMPLATE="$IMPORT_TEMPLATE"
+else
+  echo "(warn) could not fetch deployed nested template — uploading repo template as-is" >&2
+fi
+
 S3_KEY="rapid-cortex/import-data-layer/${CHANGE_SET_NAME_IMPORT}/stack-data-layer.yaml"
 TEMPLATE_URL="https://${CFN_TEMPLATE_BUCKET}.s3.${REGION}.amazonaws.com/${S3_KEY}"
 
 echo "Uploading nested template → s3://${CFN_TEMPLATE_BUCKET}/${S3_KEY}"
-aws s3 cp "$TEMPLATE_FILE" "s3://${CFN_TEMPLATE_BUCKET}/${S3_KEY}" \
+aws s3 cp "$UPLOAD_TEMPLATE" "s3://${CFN_TEMPLATE_BUCKET}/${S3_KEY}" \
   --region "$REGION"
 
 # Omit Parameters unless PARAMETERS_JSON_FILE is set → CloudFormation keeps existing nested-stack values.
 
-CLI_BODY_FILE="$(mktemp "${TMPDIR:-/tmp}/import-cs-body.XXXXXX.json")"
-trap 'rm -f "$CLI_BODY_FILE"' EXIT
+CLI_BODY_FILE="$(mktemp "${TMPDIR:-/tmp}/import-cs-body-XXXXXX")"
+trap 'rm -f "$CLI_BODY_FILE" "$DEPLOYED_TEMPLATE" "$IMPORT_TEMPLATE"' EXIT
 
 CLI_BODY_BASE="$(jq -n \
   --arg StackName "$NESTED_STACK_NAME" \

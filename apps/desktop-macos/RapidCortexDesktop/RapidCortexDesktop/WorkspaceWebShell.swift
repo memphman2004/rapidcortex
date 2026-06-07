@@ -2,96 +2,6 @@ import Foundation
 import SwiftUI
 import WebKit
 
-// MARK: - JWT → role home (aligned with apps/web/lib/auth/role-home.ts + rapid-cortex-shared tenancy)
-
-private func base64UrlDecode(_ segment: String) -> Data? {
-    var s = segment.replacingOccurrences(of: "-", with: "+").replacingOccurrences(of: "_", with: "/")
-    let pad = 4 - (s.count % 4)
-    if pad < 4 { s += String(repeating: "=", count: pad) }
-    return Data(base64Encoded: s)
-}
-
-private func jwtPayloadDictionary(_ idToken: String) -> [String: Any]? {
-    let parts = idToken.split(separator: ".")
-    guard parts.count >= 2 else { return nil }
-    guard let data = base64UrlDecode(String(parts[1])) else { return nil }
-    return (try? JSONSerialization.jsonObject(with: data)) as? [String: Any]
-}
-
-/// Canonical roles after migration (matches `RAPID_CORTEX_ROLES` in shared).
-private let rapidCortexRoles: Set<String> = [
-    "dispatcher", "commsupervisor", "agencyadmin", "agencyit", "analyst", "auditor",
-    "rcsuperadmin", "rcadmin", "rcitadmin",
-]
-
-/// Mirrors `migrateLegacyRapidCortexRoleTokenValue` in `packages/shared/src/auth/rapid-cortex-roles.ts`.
-private func migrateLegacyRole(_ raw: String) -> String {
-    let t = raw.trimmingCharacters(in: .whitespacesAndNewlines)
-    if t == "platform_superadmin" || t == "superadmin" || t == "rc_admin" { return "rcsuperadmin" }
-    if t == "admin" { return "agencyadmin" }
-    if t == "it_admin" { return "agencyit" }
-    if t == "supervisor" { return "commsupervisor" }
-    if t == "readonly_auditor" { return "auditor" }
-    if t == "staff" { return "auditor" }
-    return t
-}
-
-private func resolveRole(from payload: [String: Any]) -> String {
-    if let custom = payload["custom:role"] as? String, !custom.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-        return migrateLegacyRole(custom)
-    }
-    if let preferred = payload["preferred_role"] as? String, !preferred.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-        return migrateLegacyRole(preferred)
-    }
-    if let groups = payload["cognito:groups"] as? [Any] {
-        for g in groups {
-            let segment = String(describing: g).trimmingCharacters(in: .whitespacesAndNewlines)
-            guard !segment.isEmpty else { continue }
-            let migrated = migrateLegacyRole(segment)
-            if rapidCortexRoles.contains(migrated) { return migrated }
-        }
-    }
-    return "dispatcher"
-}
-
-/// Path for the signed-in user's operational home (same rules as `jurisdictionRoleHomeHrefForUser` on web).
-func desktopPostLoginWebPath(idToken: String, jurisdictionSlug: String) -> String {
-    guard let payload = jwtPayloadDictionary(idToken) else {
-        let j = jurisdictionSlug.trimmingCharacters(in: .whitespacesAndNewlines).nonEmptyOrNil ?? "example-city"
-        return "/\(j)/dashboard"
-    }
-    let role = migrateLegacyRole(resolveRole(from: payload))
-    let agencyId = (payload["custom:agencyId"] as? String)?
-        .trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
-
-    // Align with `jurisdictionRoleHomeHref` in apps/web/lib/auth/role-home.ts
-    if role == "rcsuperadmin" {
-        return "/rc-admin/dashboard"
-    }
-
-    let slug = jurisdictionSlug.trimmingCharacters(in: .whitespacesAndNewlines)
-    let j = slug.isEmpty ? "example-city" : slug
-
-    switch role {
-    case "dispatcher":
-        return "/\(j)/dashboard"
-    case "commsupervisor":
-        return "/\(j)/supervisor"
-    case "agencyadmin":
-        return "/\(j)/admin"
-    case "agencyit":
-        return "/\(j)/admin/it"
-    case "analyst":
-        return "/\(j)/analytics"
-    case "auditor":
-        return "/\(j)/audit"
-    case "rcadmin", "rcitadmin":
-        return "/rc-admin/dashboard"
-    default:
-        return "/\(j)/dashboard"
-    }
-}
-
 // MARK: - Session cookies (names match apps/web/lib/auth/cookies.ts)
 
 private let cookieIdToken = "rc_id_token"
@@ -149,14 +59,6 @@ func clearDesktopWebAuthCookies(completion: (() -> Void)? = nil) {
             store.delete(c) { group.leave() }
         }
         group.notify(queue: .main) { completion?() }
-    }
-}
-
-private extension String {
-    /// Trimmed string, or `nil` if trimming yields empty.
-    var nonEmptyOrNil: String? {
-        let t = trimmingCharacters(in: .whitespacesAndNewlines)
-        return t.isEmpty ? nil : t
     }
 }
 
@@ -227,7 +129,10 @@ struct WorkspaceWebShellView: NSViewRepresentable {
                 return
             }
 
-            let path = desktopPostLoginWebPath(idToken: idToken, jurisdictionSlug: jurisdictionSlug)
+            let path = DesktopRoleRouting.desktopPostLoginWebPath(
+                idToken: idToken,
+                jurisdictionSlug: jurisdictionSlug
+            )
             guard let target = URL(string: path, relativeTo: webBase)?.absoluteURL else { return }
 
             let access = KeychainTokenStore.accessToken() ?? ""

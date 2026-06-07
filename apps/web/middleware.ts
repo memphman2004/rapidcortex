@@ -23,6 +23,7 @@ import {
   hasRapidCortexDashboardAccess,
   hasRcLitePortalAccess,
 } from "rapid-cortex-shared/auth/session-product";
+import { isHospitalOperatorRole } from "rapid-cortex-shared/auth/rapid-cortex-roles";
 import { isRcInternalOperator, isRcsuperadmin } from "rapid-cortex-shared/tenancy/principal";
 import {
   dashboardPrefixFromPathname,
@@ -179,7 +180,12 @@ function isCampusDashboardPath(pathname: string): boolean {
 }
 
 function isVenueDashboardPath(pathname: string): boolean {
-  return pathname === "/app/venue" || pathname.startsWith("/app/venue/");
+  return (
+    pathname === "/app/venue" ||
+    pathname.startsWith("/app/venue/") ||
+    pathname === "/venue" ||
+    pathname.startsWith("/venue/")
+  );
 }
 
 function isHospitalDashboardPath(pathname: string): boolean {
@@ -199,7 +205,7 @@ function isCampusRole(role: string | undefined): boolean {
 }
 
 function isHospitalRole(role: string | undefined): boolean {
-  return normalizedRoleUpper(role).startsWith("HOSPITAL_");
+  return isHospitalOperatorRole(role);
 }
 
 function isTransitRole(role: string | undefined): boolean {
@@ -629,6 +635,13 @@ async function guardHospitalDashboard(request: NextRequest): Promise<NextRespons
 
   if (!isHospitalRole(user.role) && !isRcInternalOperator(user.role)) {
     return redirectToRoleAwareHome(request, user, defaultJurisdictionSlug());
+  }
+
+  if (pathname === "/app/hospital" || pathname === "/app/hospital/") {
+    const home = resolveProductDashboardFromRoleAndAgency(user.role, user.agencyId);
+    if (home) {
+      return NextResponse.redirect(new URL(home, request.url));
+    }
   }
 
   const hospitalNetwork = await maybeBlockNetworkAccess(request, user);

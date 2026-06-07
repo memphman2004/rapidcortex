@@ -1,15 +1,12 @@
 import type { Incident, UserContext, UserRole } from "rapid-cortex-shared";
 import {
-  isRapidCortexRole,
   isRcsuperadmin,
-  migrateLegacyRapidCortexRoleTokenValue,
+  normalizeSessionRole,
 } from "rapid-cortex-shared";
 import { TenantAccessGuard } from "rapid-cortex-security";
 
 export function normalizeRole(value: string | undefined): UserRole {
-  const migrated = migrateLegacyRapidCortexRoleTokenValue(value?.trim());
-  if (migrated && isRapidCortexRole(migrated)) return migrated;
-  return "dispatcher";
+  return normalizeSessionRole(value) as UserRole;
 }
 
 export function requireRole(user: UserContext, allowed: UserRole[]): boolean {

@@ -898,6 +898,51 @@ Resources:
             - !Sub "${DynamoTableNamePrefix}-webhooks-${DeploymentStage}"
         WwwCnameTarget: !Ref WwwCnameTarget
 
+  AppSamQrStack:
+    Type: AWS::CloudFormation::Stack
+    DependsOn: AppSamStackV2
+    Properties:
+      TimeoutInMinutes: 60
+      TemplateURL: nested/stack-app-sam-qr.yaml
+      Parameters:
+        AppName: !Ref AppName
+        DeploymentStage: !Ref DeploymentStage
+        HttpApiId: !GetAtt AppSamStackV2.Outputs.HttpApiId
+        QRLocationsTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.QRLocationsTable
+            - !Sub "rapid-cortex-qr-locations-${DeploymentStage}"
+        VenueConfigTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.VenueConfigTable
+            - !Sub "${DynamoTableNamePrefix}-venue-config-${DeploymentStage}"
+        CampusIncidentsTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.CampusIncidentsTable
+            - !Sub "rapid-cortex-campus-incidents-${DeploymentStage}"
+        CampusConfigTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.CampusConfigTable
+            - !Sub "rapid-cortex-campus-config-${DeploymentStage}"
+        AuditTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.AuditTable
+            - !Sub "${DynamoTableNamePrefix}-audit-${DeploymentStage}"
+        AssetsBucket:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.AssetsBucket
+            - !Sub "${AppName}-assets-${DeploymentStage}-${AWS::AccountId}"
+        ImportedCognitoUserPoolId: !GetAtt AppSamStackV2.Outputs.UserPoolId
+        ImportedCognitoWebClientId: !GetAtt AppSamStackV2.Outputs.UserPoolClientId
+        ImportedCognitoIssuer: !GetAtt AppSamStackV2.Outputs.CognitoIssuer
+        ManagedPolicyNamePrefix: !Ref AWS::StackName
+
   AppSam2Stack:
     Type: AWS::CloudFormation::Stack
     Properties:

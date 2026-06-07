@@ -1,0 +1,18 @@
+[
+  {"ResourceType":"AWS::DynamoDB::Table","LogicalResourceId":"QRLocationsTable","ResourceIdentifier":{"TableName":"rapid-cortex-qr-locations-dev"}},
+  {"ResourceType":"AWS::DynamoDB::Table","LogicalResourceId":"CampusConfigTable","ResourceIdentifier":{"TableName":"rapid-cortex-campus-config-dev"}},
+  {"ResourceType":"AWS::DynamoDB::Table","LogicalResourceId":"CampusIncidentsTable","ResourceIdentifier":{"TableName":"rapid-cortex-campus-incidents-dev"}},
+  {"ResourceType":"AWS::DynamoDB::Table","LogicalResourceId":"VenueConfigTable","ResourceIdentifier":{"TableName":"rapid-cortex-venue-config-dev"}},
+  {"ResourceType":"AWS::DynamoDB::Table","LogicalResourceId":"VenueAssetsTable","ResourceIdentifier":{"TableName":"rapid-cortex-venue-assets-dev"}},
+  {"ResourceType":"AWS::DynamoDB::Table","LogicalResourceId":"VenueFacilitiesTable","ResourceIdentifier":{"TableName":"rapid-cortex-venue-facilities-dev"}},
+  {"ResourceType":"AWS::DynamoDB::Table","LogicalResourceId":"ConnectRegistryTable","ResourceIdentifier":{"TableName":"rapid-cortex-connect-registry-dev"}},
+  {"ResourceType":"AWS::DynamoDB::Table","LogicalResourceId":"ConnectEvidenceTable","ResourceIdentifier":{"TableName":"rapid-cortex-connect-evidence-dev"}},
+  {"ResourceType":"AWS::DynamoDB::Table","LogicalResourceId":"ConnectAccessSessionsTable","ResourceIdentifier":{"TableName":"rapid-cortex-connect-sessions-dev"}},
+  {"ResourceType":"AWS::DynamoDB::Table","LogicalResourceId":"ConnectAccessLogTable","ResourceIdentifier":{"TableName":"rapid-cortex-connect-access-log-dev"}},
+  {"ResourceType":"AWS::DynamoDB::Table","LogicalResourceId":"PlatformNoticesTable","ResourceIdentifier":{"TableName":"rapid-cortex-platform-notices-dev"}},
+  {"ResourceType":"AWS::DynamoDB::Table","LogicalResourceId":"PlatformNoticeAcksTable","ResourceIdentifier":{"TableName":"rapid-cortex-platform-notice-acks-dev"}},
+  {"ResourceType":"AWS::DynamoDB::Table","LogicalResourceId":"VenueCameraAccessLogTable","ResourceIdentifier":{"TableName":"rapid-cortex-venue-camera-access-log-dev"}},
+  {"ResourceType":"AWS::DynamoDB::Table","LogicalResourceId":"VenueIncidentOverlaysTable","ResourceIdentifier":{"TableName":"rapid-cortex-venue-incident-overlays-dev"}},
+  {"ResourceType":"AWS::S3::Bucket","LogicalResourceId":"VenueAssetsBucket","ResourceIdentifier":{"BucketName":"rapid-cortex-venue-assets-dev-158961537080"}},
+  {"ResourceType":"AWS::SecretsManager::Secret","LogicalResourceId":"RingCredentialsSecret","ResourceIdentifier":{"Id":"rapid-cortex/connect/ring-credentials"}}
+]

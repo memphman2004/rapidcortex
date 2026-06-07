@@ -230,6 +230,9 @@ const nextConfig = {
     return [
       // Flat alias for aggregated readiness (same handler as `/api/health/chain`); avoids rare CDN/proxy confusion on nested paths.
       { source: "/api/health-chain", destination: "/api/health/chain" },
+      // Product vertical routes — auth/middleware use `/app/venue/*`; pages live under `/venue/*`.
+      { source: "/app/venue", destination: "/venue" },
+      { source: "/app/venue/:path*", destination: "/venue/:path*" },
     ];
   },
   env: {

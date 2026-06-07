@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 import { VenueDashboardClient } from "./dashboard-client";
+import { getDashboardSessionUser } from "@/lib/dashboards/get-dashboard-session";
+import { normalizeVenueRole } from "@/lib/venue/venue-dashboard-sections";
 
 type VenueDashboardParams = { venueCode: string };
 
@@ -20,5 +22,7 @@ export default async function VenueDashboardPage({
   params: Promise<VenueDashboardParams>;
 }) {
   const { venueCode } = await params;
-  return <VenueDashboardClient venueCode={venueCode} />;
+  const user = await getDashboardSessionUser();
+  const role = normalizeVenueRole(user?.role);
+  return <VenueDashboardClient venueCode={venueCode} role={role} />;
 }

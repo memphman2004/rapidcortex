@@ -35,6 +35,27 @@ struct MainShellView: View {
     @State private var showNativeHospitalMap = false
     @State private var showCommandMap = false
 
+    private var nativeToolbarAccess: DesktopRoleRouting.NativeToolbarAccess {
+        guard let idToken = KeychainTokenStore.idToken() else {
+            return DesktopRoleRouting.NativeToolbarAccess(showCommandMap: false, showHospitalRouting: false)
+        }
+        return DesktopRoleRouting.nativeToolbarAccess(fromIdToken: idToken)
+    }
+
+    private var visibleLegacyTabs: [MainTab] {
+        let access = nativeToolbarAccess
+        return MainTab.allCases.filter { item in
+            switch item {
+            case .commandMap:
+                return access.showCommandMap
+            case .maps:
+                return access.showHospitalRouting && session.configuration.enableNativeMapKit
+            default:
+                return true
+            }
+        }
+    }
+
     var body: some View {
         Group {
             if let webBase = session.configuration.webAppBaseURL {
@@ -43,23 +64,40 @@ struct MainShellView: View {
                 legacyNativeChrome
             }
         }
+        .onAppear {
+            ensureLegacyTabSelectionValid()
+        }
+        .onChange(of: session.isSignedIn) { _, _ in
+            ensureLegacyTabSelectionValid()
+        }
+    }
+
+    private func ensureLegacyTabSelectionValid() {
+        let visible = visibleLegacyTabs
+        guard !visible.isEmpty else { return }
+        if !visible.contains(tab) {
+            tab = visible[0]
+        }
     }
 
     @ViewBuilder
     private func webWorkspaceChrome(webBase: URL) -> some View {
+        let access = nativeToolbarAccess
         VStack(spacing: 0) {
             HStack(spacing: 12) {
                 Text("Rapid Cortex")
                     .font(.headline)
                 Spacer()
-                Button {
-                    showCommandMap = true
-                } label: {
-                    Label("Command Map", systemImage: "map")
+                if access.showCommandMap {
+                    Button {
+                        showCommandMap = true
+                    } label: {
+                        Label("Command Map", systemImage: "map")
+                    }
+                    .help("Open native command map (incident, caller, hospital, responder)")
                 }
-                .help("Open native command map (incident, caller, hospital, responder)")
 
-                if session.configuration.enableNativeMapKit {
+                if access.showHospitalRouting && session.configuration.enableNativeMapKit {
                     Button {
                         showNativeHospitalMap = true
                     } label: {
@@ -91,6 +129,13 @@ struct MainShellView: View {
             NativeHospitalMapView(viewModel: makeHospitalRoutingViewModel())
                 .frame(minWidth: 900, minHeight: 560)
         }
+        .sheet(isPresented: $showCommandMap) {
+            NavigationStack {
+                RapidCortexMapView(viewModel: CommandMapViewModel())
+                    .navigationTitle("Command Map")
+            }
+            .frame(minWidth: 900, minHeight: 560)
+        }
     }
 
     private func makeHospitalRoutingViewModel() -> HospitalRoutingViewModel {
@@ -103,7 +148,7 @@ struct MainShellView: View {
     @ViewBuilder
     private var legacyNativeChrome: some View {
         NavigationSplitView {
-            List(MainTab.allCases, selection: $tab) { t in
+            List(visibleLegacyTabs, selection: $tab) { t in
                 Label(t.title, systemImage: t.systemImage).tag(t)
             }
             .navigationTitle("Rapid Cortex")
