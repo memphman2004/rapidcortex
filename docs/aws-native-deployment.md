@@ -8,7 +8,7 @@ Rapid Cortex intentionally separates **slow Next.js builds** from **SAM API pack
 |------|-----------|-----|
 | Backend + data + Cognito + RC Lite (`/api/v1`) | SAM nested stack | `./scripts/deploy.sh <dev\|staging\|prod\|pilot>` |
 | Next.js web (ECS) | CodeBuild builds `Dockerfile.web` in AWS — no Docker Desktop | `./scripts/deploy-web-ecs.sh <dev\|staging\|prod>` after pipeline stacks exist |
-| Static marketing (optional split) | S3 + CloudFront | `./scripts/deploy-marketing.sh <stage>` (wraps `deploy-web-hosting.sh`) |
+| Static marketing (optional split) | S3 + CloudFront | `npm run deploy:marketing` (build → verify → S3 sync → post-verify). Infra stack only: `./scripts/deploy-marketing.sh --hosting` |
 | Desktop installers | S3 + CloudFront (`infra/downloads-hosting.yaml`) | `./scripts/upload-desktop-downloads.sh …` — publishes **`https://downloads.rapidcortex.us/latest.json`** plus `mac/latest/…`, `windows/latest/…` (see `docs/desktop-downloads.md`) |
 | Web smoke | **ALB HTTPS** derived from ECS stack **`Outputs.LoadBalancerDns`** | `./scripts/smoke-web.sh` (needs `SMOKE_WEB_STACK_NAME` if not `rapid-cortex-web-ecs-<prod>`) or `./scripts/smoke-web.sh https://www.…` |
 

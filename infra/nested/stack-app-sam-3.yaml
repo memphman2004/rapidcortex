@@ -129,7 +129,7 @@ Parameters:
   AppName:
     Type: String
     Default: rapid-cortex
-  Sam2ManagedPolicyNamePrefix:
+  Sam3ManagedPolicyNamePrefix:
     Type: String
     Default: rapid-cortex
   DynamoTableNamePrefix:
@@ -609,7 +609,7 @@ Resources:
   AppManagedPolicyDynamoLambdaCrudShardA:
     Type: AWS::IAM::ManagedPolicy
     Properties:
-      ManagedPolicyName: !Sub "${Sam2ManagedPolicyNamePrefix}-sam2-lambda-ddb-crud-${DeploymentStage}-a"
+      ManagedPolicyName: !Sub "${Sam3ManagedPolicyNamePrefix}-sam3-lambda-ddb-crud-${DeploymentStage}-a"
       PolicyDocument:
         Version: "2012-10-17"
         Statement:
@@ -679,7 +679,7 @@ Resources:
   AppManagedPolicyDynamoLambdaCrudShardB:
     Type: AWS::IAM::ManagedPolicy
     Properties:
-      ManagedPolicyName: !Sub "${Sam2ManagedPolicyNamePrefix}-sam2-lambda-ddb-crud-${DeploymentStage}-b"
+      ManagedPolicyName: !Sub "${Sam3ManagedPolicyNamePrefix}-sam3-lambda-ddb-crud-${DeploymentStage}-b"
       PolicyDocument:
         Version: "2012-10-17"
         Statement:
@@ -751,7 +751,7 @@ Resources:
   AppManagedPolicyDynamoLambdaCrudShardC:
     Type: AWS::IAM::ManagedPolicy
     Properties:
-      ManagedPolicyName: !Sub "${Sam2ManagedPolicyNamePrefix}-sam2-lambda-ddb-crud-${DeploymentStage}-c"
+      ManagedPolicyName: !Sub "${Sam3ManagedPolicyNamePrefix}-sam3-lambda-ddb-crud-${DeploymentStage}-c"
       PolicyDocument:
         Version: "2012-10-17"
         Statement:
@@ -809,7 +809,7 @@ Resources:
   AppManagedPolicyS3ApplicationBucketsCrud:
     Type: AWS::IAM::ManagedPolicy
     Properties:
-      ManagedPolicyName: !Sub "${Sam2ManagedPolicyNamePrefix}-sam2-lambda-s3-app-${DeploymentStage}"
+      ManagedPolicyName: !Sub "${Sam3ManagedPolicyNamePrefix}-sam3-lambda-s3-app-${DeploymentStage}"
       PolicyDocument:
         Version: "2012-10-17"
         Statement:
@@ -841,7 +841,7 @@ Resources:
   AppManagedPolicyBedrockAiAndQaFoundationModels:
     Type: AWS::IAM::ManagedPolicy
     Properties:
-      ManagedPolicyName: !Sub "${Sam2ManagedPolicyNamePrefix}-sam2-lambda-bedrock-ai-qa-${DeploymentStage}"
+      ManagedPolicyName: !Sub "${Sam3ManagedPolicyNamePrefix}-sam3-lambda-bedrock-ai-qa-${DeploymentStage}"
       PolicyDocument:
         Version: "2012-10-17"
         Statement:
@@ -857,7 +857,7 @@ Resources:
   AppManagedPolicyBedrockQaFoundationModelOnly:
     Type: AWS::IAM::ManagedPolicy
     Properties:
-      ManagedPolicyName: !Sub "${Sam2ManagedPolicyNamePrefix}-sam2-lambda-bedrock-qa-${DeploymentStage}"
+      ManagedPolicyName: !Sub "${Sam3ManagedPolicyNamePrefix}-sam3-lambda-bedrock-qa-${DeploymentStage}"
       PolicyDocument:
         Version: "2012-10-17"
         Statement:
@@ -872,7 +872,7 @@ Resources:
   AppManagedPolicySecretsMultilingualScopedRead:
     Type: AWS::IAM::ManagedPolicy
     Properties:
-      ManagedPolicyName: !Sub "${Sam2ManagedPolicyNamePrefix}-sam2-lambda-secrets-mlling-${DeploymentStage}"
+      ManagedPolicyName: !Sub "${Sam3ManagedPolicyNamePrefix}-sam3-lambda-secrets-mlling-${DeploymentStage}"
       PolicyDocument:
         Version: "2012-10-17"
         Statement:
@@ -888,7 +888,7 @@ Resources:
   AppManagedPolicySecretsAnalyzeProvidersRead:
     Type: AWS::IAM::ManagedPolicy
     Properties:
-      ManagedPolicyName: !Sub "${Sam2ManagedPolicyNamePrefix}-sam2-lambda-secrets-anlz-${DeploymentStage}"
+      ManagedPolicyName: !Sub "${Sam3ManagedPolicyNamePrefix}-sam3-lambda-secrets-anlz-${DeploymentStage}"
       PolicyDocument:
         Version: "2012-10-17"
         Statement:
@@ -910,7 +910,7 @@ Resources:
   AppManagedPolicyComprehendTranslateRegionalDetect:
     Type: AWS::IAM::ManagedPolicy
     Properties:
-      ManagedPolicyName: !Sub "${Sam2ManagedPolicyNamePrefix}-sam2-lambda-cph-tr-${DeploymentStage}"
+      ManagedPolicyName: !Sub "${Sam3ManagedPolicyNamePrefix}-sam3-lambda-cph-tr-${DeploymentStage}"
       PolicyDocument:
         Version: "2012-10-17"
         Statement:
@@ -934,7 +934,7 @@ Resources:
   AppManagedPolicyOpsAlertsSnsPublishOnly:
     Type: AWS::IAM::ManagedPolicy
     Properties:
-      ManagedPolicyName: !Sub "${Sam2ManagedPolicyNamePrefix}-sam2-lambda-sns-ops-${DeploymentStage}"
+      ManagedPolicyName: !Sub "${Sam3ManagedPolicyNamePrefix}-sam3-lambda-sns-ops-${DeploymentStage}"
       PolicyDocument:
         Version: "2012-10-17"
         Statement:
@@ -947,7 +947,7 @@ Resources:
   AppManagedPolicySesBillingSenderIdentityEmails:
     Type: AWS::IAM::ManagedPolicy
     Properties:
-      ManagedPolicyName: !Sub "${Sam2ManagedPolicyNamePrefix}-sam2-lambda-ses-billing-${DeploymentStage}"
+      ManagedPolicyName: !Sub "${Sam3ManagedPolicyNamePrefix}-sam3-lambda-ses-billing-${DeploymentStage}"
       PolicyDocument:
         Version: "2012-10-17"
         Statement:
@@ -962,7 +962,7 @@ Resources:
   AppManagedPolicyTranscribeIncidentAudioJobsReadWrite:
     Type: AWS::IAM::ManagedPolicy
     Properties:
-      ManagedPolicyName: !Sub "${Sam2ManagedPolicyNamePrefix}-sam2-lambda-trscribe-${DeploymentStage}"
+      ManagedPolicyName: !Sub "${Sam3ManagedPolicyNamePrefix}-sam3-lambda-trscribe-${DeploymentStage}"
       PolicyDocument:
         Version: "2012-10-17"
         Statement:
@@ -1028,7 +1028,7 @@ Resources:
     Type: AWS::WAFv2::WebACL
     Condition: HasApiWaf
     Properties:
-      Name: !Sub "${AppName}-httpapi2-waf-${DeploymentStage}"
+      Name: !Sub "${AppName}-httpapi3-waf-${DeploymentStage}"
       Scope: REGIONAL
       DefaultAction:
         Allow: {}
@@ -1146,1598 +1146,924 @@ Resources:
         DNSName: !GetAtt ApiCustomDomain.RegionalDomainName
         HostedZoneId: !GetAtt ApiCustomDomain.RegionalHostedZoneId
 
-  ExternalV1HttpFunction:
-    Type: AWS::Serverless::Function
-    Metadata:
-      BuildMethod: makefile
-      BuildTarget: build-function
+  AppManagedPolicyCognitoAgencyAdminUserPoolReads:
+    Type: AWS::IAM::ManagedPolicy
     Properties:
-      CodeUri: ../../apps/api/
-      Handler: dist/handlers/external/externalV1Http.handler
-      Environment:
-        Variables:
-          EXTERNAL_API_JWT_SECRET_ARN: !Ref ExternalApiJwtSecretArn
-          EXTERNAL_API_ENCRYPTION_KEY_ARN: !Ref ExternalApiEncryptionKeyArn
-      Policies:
-        - !Ref AppManagedPolicyDynamoLambdaCrudShardA
-        - !Ref AppManagedPolicyDynamoLambdaCrudShardB
-        - !Ref AppManagedPolicyDynamoLambdaCrudShardC
-        - !Ref AppManagedPolicyS3ApplicationBucketsCrud
-        - Fn::If:
-            - HasExternalApiJwtSecretArn
-            - Statement:
-                - Effect: Allow
-                  Action: secretsmanager:GetSecretValue
-                  Resource: !Ref ExternalApiJwtSecretArn
-            - !Ref AWS::NoValue
-        - Fn::If:
-            - HasExternalApiEncryptionKeyArn
-            - Statement:
-                - Effect: Allow
-                  Action: secretsmanager:GetSecretValue
-                  Resource: !Ref ExternalApiEncryptionKeyArn
-            - !Ref AWS::NoValue
-
-      Events:
-        ExternalV1OAuth:
-          Type: HttpApi
-          Properties:
-            ApiId: !Ref Api
-            Path: /api/v1/oauth/token
-            Method: POST
-            Auth:
-              Authorizer: NONE
-        ExternalV1ProxyGet:
-          Type: HttpApi
-          Properties:
-            ApiId: !Ref Api
-            Path: /api/v1/{proxy+}
-            Method: GET
-            Auth:
-              Authorizer: NONE
-        ExternalV1ProxyPost:
-          Type: HttpApi
-          Properties:
-            ApiId: !Ref Api
-            Path: /api/v1/{proxy+}
-            Method: POST
-            Auth:
-              Authorizer: NONE
-        ExternalV1ProxyPatch:
-          Type: HttpApi
-          Properties:
-            ApiId: !Ref Api
-            Path: /api/v1/{proxy+}
-            Method: PATCH
-            Auth:
-              Authorizer: NONE
-
-  RcLiteV1HttpFunction:
-    Type: AWS::Serverless::Function
-    Metadata:
-      BuildMethod: makefile
-      BuildTarget: build-function
-    Properties:
-      CodeUri: ../../apps/api/
-      Handler: dist/handlers/external/rcLiteV1Http.handler
-      Environment:
-        Variables:
-          RC_LITE_ENABLED: "true"
-          RC_LITE_API_KEYS_TABLE: !Ref RcLiteApiKeysTable
-          RC_LITE_RATE_LIMIT_TABLE: !Ref RcLiteRateLimitTable
-          RC_LITE_USAGE_TABLE: !Ref RcLiteUsageTable
-          EXTERNAL_API_ENCRYPTION_KEY_ARN: !Ref ExternalApiEncryptionKeyArn
-      Policies:
-        - !Ref AppManagedPolicyDynamoLambdaCrudShardA
-        - !Ref AppManagedPolicyDynamoLambdaCrudShardB
-        - !Ref AppManagedPolicyDynamoLambdaCrudShardC
-        - !Ref AppManagedPolicyS3ApplicationBucketsCrud
-        - Fn::If:
-            - HasExternalApiEncryptionKeyArn
-            - Statement:
-                - Effect: Allow
-                  Action: secretsmanager:GetSecretValue
-                  Resource: !Ref ExternalApiEncryptionKeyArn
-            - !Ref AWS::NoValue
-      Events:
-        RcLiteV1OAuth:
-          Type: HttpApi
-          Properties:
-            ApiId: !Ref Api
-            Path: /v1/oauth/token
-            Method: POST
-            Auth:
-              Authorizer: NONE
-        RcLiteV1ProxyGet:
-          Type: HttpApi
-          Properties:
-            ApiId: !Ref Api
-            Path: /v1/{proxy+}
-            Method: GET
-            Auth:
-              Authorizer: NONE
-        RcLiteV1ProxyPost:
-          Type: HttpApi
-          Properties:
-            ApiId: !Ref Api
-            Path: /v1/{proxy+}
-            Method: POST
-            Auth:
-              Authorizer: NONE
-        RcLiteV1ProxyPatch:
-          Type: HttpApi
-          Properties:
-            ApiId: !Ref Api
-            Path: /v1/{proxy+}
-            Method: PATCH
-            Auth:
-              Authorizer: NONE
-
-  StartLanguageSessionFunction:
-    Type: AWS::Serverless::Function
-    Metadata:
-      BuildMethod: makefile
-      BuildTarget: build-function
-    Properties:
-      CodeUri: ../../apps/api/
-      Handler: dist/handlers/startLanguageSession.handler
-      Timeout: 30
-      Environment:
-        Variables:
-          SUPPORTED_CALL_LANGUAGES: "en,es,zh,tl,vi,ar,fr,ko,ru,pt"
-          PRIMARY_PROVIDER: !FindInMap [ApiLambdaDefaults, !Ref DeploymentStage, PrimaryAi]
-          SECONDARY_PROVIDER: !FindInMap [ApiLambdaDefaults, !Ref DeploymentStage, SecondaryAi]
-          TERTIARY_PROVIDER: !FindInMap [ApiLambdaDefaults, !Ref DeploymentStage, TertiaryAi]
-          FALLBACK_PROVIDER: !FindInMap [ApiLambdaDefaults, !Ref DeploymentStage, AiFallback]
-          SECONDARY_FALLBACK_PROVIDER: !FindInMap [ApiLambdaDefaults, !Ref DeploymentStage, AiSecondaryFallback]
-          PRIMARY_LANGUAGE_DETECTOR: !FindInMap [ApiLambdaDefaults, !Ref DeploymentStage, Lid1]
-          SECONDARY_LANGUAGE_DETECTOR: !FindInMap [ApiLambdaDefaults, !Ref DeploymentStage, Lid2]
-          TERTIARY_LANGUAGE_DETECTOR: !FindInMap [ApiLambdaDefaults, !Ref DeploymentStage, Lid3]
-          PRIMARY_STT_PROVIDER: !FindInMap [ApiLambdaDefaults, !Ref DeploymentStage, Stt1]
-          SECONDARY_STT_PROVIDER: !FindInMap [ApiLambdaDefaults, !Ref DeploymentStage, Stt2]
-          TERTIARY_STT_PROVIDER: !FindInMap [ApiLambdaDefaults, !Ref DeploymentStage, Stt3]
-          PRIMARY_TRANSLATION_PROVIDER: !FindInMap [ApiLambdaDefaults, !Ref DeploymentStage, Tr1]
-          SECONDARY_TRANSLATION_PROVIDER: !FindInMap [ApiLambdaDefaults, !Ref DeploymentStage, Tr2]
-          TERTIARY_TRANSLATION_PROVIDER: !FindInMap [ApiLambdaDefaults, !Ref DeploymentStage, Tr3]
-          MULTILINGUAL_STRICT_VALIDATION: !FindInMap [MultilingualStageDefaults, !Ref DeploymentStage, StrictValidation]
-          # 4KB Lambda env-var limit recovery (CFN UPDATE_FAILED 2026-05-26).
-          # Language-session Lambdas (start/finalize/get-status/translate/call-intelligence-
-          # languages) don't run STT or AI analysis. Removed copy-paste bloat:
-          #   - AWS_TRANSCRIBE_*: handlers don't call AWS Transcribe; provider has internal
-          #     defaults (DEFAULT_AWS_TRANSCRIBE_LANGUAGE_OPTIONS_CSV).
-          #   - BEDROCK_MODEL_*: AI analysis runs in AnalyzeIncidentFunction (separate).
-          #   - GOOGLE_TTS_*: TTS only runs in silent-text TTS batch handler.
-          #   - GOOGLE_CLOUD_PROJECT_ID / GOOGLE_APPLICATION_CREDENTIALS_SECRET_ARN /
-          #     AZURE_TRANSLATION_KEY_SECRET_ARN: not in any current Tr1/Tr2/Tr3 chain
-          #     (dev=mock/mock/off, staging/prod=aws/mock/off). Re-add if/when Azure
-          #     or Google enters the translation chain.
-          # Kept: LANGUAGE_PROVIDER, GOOGLE_TRANSLATE_LOCATION (small constants used by
-          # provider factories), AZURE_SPEECH_KEY_SECRET_ARN (validateMultilingual-
-          # DeploymentConfig requires it when MULTILINGUAL_STRICT_VALIDATION=true in
-          # staging/prod and Stt1=azure).
-          LANGUAGE_PROVIDER: !Ref LanguageProvider
-          GOOGLE_TRANSLATE_LOCATION: "global"
-          AZURE_SPEECH_KEY_SECRET_ARN: !If
-            - UseManagedMultilingualSecrets
-            - !Ref NestedMultilingualAzureApiKeysSecretArn
-            - !Ref AzureSpeechKeySecretArn
-      Policies:
-        - !Ref AppManagedPolicyDynamoLambdaCrudShardA
-        - !Ref AppManagedPolicyDynamoLambdaCrudShardB
-        - !Ref AppManagedPolicyDynamoLambdaCrudShardC
-        - !Ref AppManagedPolicyS3ApplicationBucketsCrud
-        - !Ref AppManagedPolicySecretsMultilingualScopedRead
-        - !Ref AppManagedPolicySecretsAnalyzeProvidersRead
-
-      Events:
-        Route:
-          Type: HttpApi
-          Properties:
-            ApiId: !Ref Api
-            Path: /api/incidents/{id}/language-session/start
-            Method: POST
-
-  FinalizeLanguageSessionFunction:
-    Type: AWS::Serverless::Function
-    Metadata:
-      BuildMethod: makefile
-      BuildTarget: build-function
-    Properties:
-      CodeUri: ../../apps/api/
-      Handler: dist/handlers/finalizeLanguageSession.handler
-      Timeout: 15
-      Environment:
-        Variables:
-          SUPPORTED_CALL_LANGUAGES: "en,es,zh,tl,vi,ar,fr,ko,ru,pt"
-          PRIMARY_PROVIDER: !FindInMap [ApiLambdaDefaults, !Ref DeploymentStage, PrimaryAi]
-          SECONDARY_PROVIDER: !FindInMap [ApiLambdaDefaults, !Ref DeploymentStage, SecondaryAi]
-          TERTIARY_PROVIDER: !FindInMap [ApiLambdaDefaults, !Ref DeploymentStage, TertiaryAi]
-          FALLBACK_PROVIDER: !FindInMap [ApiLambdaDefaults, !Ref DeploymentStage, AiFallback]
-          SECONDARY_FALLBACK_PROVIDER: !FindInMap [ApiLambdaDefaults, !Ref DeploymentStage, AiSecondaryFallback]
-          PRIMARY_LANGUAGE_DETECTOR: !FindInMap [ApiLambdaDefaults, !Ref DeploymentStage, Lid1]
-          SECONDARY_LANGUAGE_DETECTOR: !FindInMap [ApiLambdaDefaults, !Ref DeploymentStage, Lid2]
-          TERTIARY_LANGUAGE_DETECTOR: !FindInMap [ApiLambdaDefaults, !Ref DeploymentStage, Lid3]
-          PRIMARY_STT_PROVIDER: !FindInMap [ApiLambdaDefaults, !Ref DeploymentStage, Stt1]
-          SECONDARY_STT_PROVIDER: !FindInMap [ApiLambdaDefaults, !Ref DeploymentStage, Stt2]
-          TERTIARY_STT_PROVIDER: !FindInMap [ApiLambdaDefaults, !Ref DeploymentStage, Stt3]
-          PRIMARY_TRANSLATION_PROVIDER: !FindInMap [ApiLambdaDefaults, !Ref DeploymentStage, Tr1]
-          SECONDARY_TRANSLATION_PROVIDER: !FindInMap [ApiLambdaDefaults, !Ref DeploymentStage, Tr2]
-          TERTIARY_TRANSLATION_PROVIDER: !FindInMap [ApiLambdaDefaults, !Ref DeploymentStage, Tr3]
-          MULTILINGUAL_STRICT_VALIDATION: !FindInMap [MultilingualStageDefaults, !Ref DeploymentStage, StrictValidation]
-          # 4KB Lambda env-var limit recovery (CFN UPDATE_FAILED 2026-05-26).
-          # Language-session Lambdas (start/finalize/get-status/translate/call-intelligence-
-          # languages) don't run STT or AI analysis. Removed copy-paste bloat:
-          #   - AWS_TRANSCRIBE_*: handlers don't call AWS Transcribe; provider has internal
-          #     defaults (DEFAULT_AWS_TRANSCRIBE_LANGUAGE_OPTIONS_CSV).
-          #   - BEDROCK_MODEL_*: AI analysis runs in AnalyzeIncidentFunction (separate).
-          #   - GOOGLE_TTS_*: TTS only runs in silent-text TTS batch handler.
-          #   - GOOGLE_CLOUD_PROJECT_ID / GOOGLE_APPLICATION_CREDENTIALS_SECRET_ARN /
-          #     AZURE_TRANSLATION_KEY_SECRET_ARN: not in any current Tr1/Tr2/Tr3 chain
-          #     (dev=mock/mock/off, staging/prod=aws/mock/off). Re-add if/when Azure
-          #     or Google enters the translation chain.
-          # Kept: LANGUAGE_PROVIDER, GOOGLE_TRANSLATE_LOCATION (small constants used by
-          # provider factories), AZURE_SPEECH_KEY_SECRET_ARN (validateMultilingual-
-          # DeploymentConfig requires it when MULTILINGUAL_STRICT_VALIDATION=true in
-          # staging/prod and Stt1=azure).
-          LANGUAGE_PROVIDER: !Ref LanguageProvider
-          GOOGLE_TRANSLATE_LOCATION: "global"
-          AZURE_SPEECH_KEY_SECRET_ARN: !If
-            - UseManagedMultilingualSecrets
-            - !Ref NestedMultilingualAzureApiKeysSecretArn
-            - !Ref AzureSpeechKeySecretArn
-      Policies:
-        - !Ref AppManagedPolicyDynamoLambdaCrudShardA
-        - !Ref AppManagedPolicyDynamoLambdaCrudShardB
-        - !Ref AppManagedPolicyDynamoLambdaCrudShardC
-        - !Ref AppManagedPolicyS3ApplicationBucketsCrud
-        - !Ref AppManagedPolicySecretsMultilingualScopedRead
-        - !Ref AppManagedPolicySecretsAnalyzeProvidersRead
-
-      Events:
-        Route:
-          Type: HttpApi
-          Properties:
-            ApiId: !Ref Api
-            Path: /api/incidents/{id}/language-session/finalize
-            Method: POST
-
-  TranslateLanguageSessionFunction:
-    Type: AWS::Serverless::Function
-    Metadata:
-      BuildMethod: makefile
-      BuildTarget: build-function
-    Properties:
-      CodeUri: ../../apps/api/
-      Handler: dist/handlers/translateLanguageSession.handler
-      Environment:
-        Variables:
-          SUPPORTED_CALL_LANGUAGES: "en,es,zh,tl,vi,ar,fr,ko,ru,pt"
-          PRIMARY_TRANSLATION_PROVIDER: !FindInMap [ApiLambdaDefaults, !Ref DeploymentStage, Tr1]
-          SECONDARY_TRANSLATION_PROVIDER: !FindInMap [ApiLambdaDefaults, !Ref DeploymentStage, Tr2]
-          TERTIARY_TRANSLATION_PROVIDER: !FindInMap [ApiLambdaDefaults, !Ref DeploymentStage, Tr3]
-          LANGUAGE_PROVIDER: !Ref LanguageProvider
-          GOOGLE_CLOUD_PROJECT_ID: !Ref GoogleCloudProjectId
-          GOOGLE_TRANSLATE_LOCATION: "global"
-          AZURE_SPEECH_KEY_SECRET_ARN: !If
-            - UseManagedMultilingualSecrets
-            - !Ref NestedMultilingualAzureApiKeysSecretArn
-            - !Ref AzureSpeechKeySecretArn
-          AZURE_TRANSLATION_KEY_SECRET_ARN: !If
-            - UseManagedMultilingualSecrets
-            - !Ref NestedMultilingualAzureApiKeysSecretArn
-            - !Ref AzureTranslationKeySecretArn
-          GOOGLE_APPLICATION_CREDENTIALS_SECRET_ARN: !If
-            - UseManagedMultilingualSecrets
-            - !Ref NestedMultilingualGoogleServiceAccountSecretArn
-            - !Ref GoogleApplicationCredentialsSecretArn
-      Policies:
-        - !Ref AppManagedPolicyDynamoLambdaCrudShardA
-        - !Ref AppManagedPolicyDynamoLambdaCrudShardB
-        - !Ref AppManagedPolicyDynamoLambdaCrudShardC
-        - !Ref AppManagedPolicySecretsMultilingualScopedRead
-      Events:
-        Route:
-          Type: HttpApi
-          Properties:
-            ApiId: !Ref Api
-            Path: /api/incidents/{id}/language-session/translate
-            Method: POST
-
-  GetLanguageSessionStatusFunction:
-    Type: AWS::Serverless::Function
-    Metadata:
-      BuildMethod: makefile
-      BuildTarget: build-function
-    Properties:
-      CodeUri: ../../apps/api/
-      Handler: dist/handlers/getLanguageSessionStatus.handler
-      Environment:
-        Variables:
-          SUPPORTED_CALL_LANGUAGES: "en,es,zh,tl,vi,ar,fr,ko,ru,pt"
-          PRIMARY_PROVIDER: !FindInMap [ApiLambdaDefaults, !Ref DeploymentStage, PrimaryAi]
-          SECONDARY_PROVIDER: !FindInMap [ApiLambdaDefaults, !Ref DeploymentStage, SecondaryAi]
-          TERTIARY_PROVIDER: !FindInMap [ApiLambdaDefaults, !Ref DeploymentStage, TertiaryAi]
-          FALLBACK_PROVIDER: !FindInMap [ApiLambdaDefaults, !Ref DeploymentStage, AiFallback]
-          SECONDARY_FALLBACK_PROVIDER: !FindInMap [ApiLambdaDefaults, !Ref DeploymentStage, AiSecondaryFallback]
-          PRIMARY_LANGUAGE_DETECTOR: !FindInMap [ApiLambdaDefaults, !Ref DeploymentStage, Lid1]
-          SECONDARY_LANGUAGE_DETECTOR: !FindInMap [ApiLambdaDefaults, !Ref DeploymentStage, Lid2]
-          TERTIARY_LANGUAGE_DETECTOR: !FindInMap [ApiLambdaDefaults, !Ref DeploymentStage, Lid3]
-          PRIMARY_STT_PROVIDER: !FindInMap [ApiLambdaDefaults, !Ref DeploymentStage, Stt1]
-          SECONDARY_STT_PROVIDER: !FindInMap [ApiLambdaDefaults, !Ref DeploymentStage, Stt2]
-          TERTIARY_STT_PROVIDER: !FindInMap [ApiLambdaDefaults, !Ref DeploymentStage, Stt3]
-          PRIMARY_TRANSLATION_PROVIDER: !FindInMap [ApiLambdaDefaults, !Ref DeploymentStage, Tr1]
-          SECONDARY_TRANSLATION_PROVIDER: !FindInMap [ApiLambdaDefaults, !Ref DeploymentStage, Tr2]
-          TERTIARY_TRANSLATION_PROVIDER: !FindInMap [ApiLambdaDefaults, !Ref DeploymentStage, Tr3]
-          MULTILINGUAL_STRICT_VALIDATION: !FindInMap [MultilingualStageDefaults, !Ref DeploymentStage, StrictValidation]
-          # 4KB Lambda env-var limit recovery (CFN UPDATE_FAILED 2026-05-26).
-          # Language-session Lambdas (start/finalize/get-status/translate/call-intelligence-
-          # languages) don't run STT or AI analysis. Removed copy-paste bloat:
-          #   - AWS_TRANSCRIBE_*: handlers don't call AWS Transcribe; provider has internal
-          #     defaults (DEFAULT_AWS_TRANSCRIBE_LANGUAGE_OPTIONS_CSV).
-          #   - BEDROCK_MODEL_*: AI analysis runs in AnalyzeIncidentFunction (separate).
-          #   - GOOGLE_TTS_*: TTS only runs in silent-text TTS batch handler.
-          #   - GOOGLE_CLOUD_PROJECT_ID / GOOGLE_APPLICATION_CREDENTIALS_SECRET_ARN /
-          #     AZURE_TRANSLATION_KEY_SECRET_ARN: not in any current Tr1/Tr2/Tr3 chain
-          #     (dev=mock/mock/off, staging/prod=aws/mock/off). Re-add if/when Azure
-          #     or Google enters the translation chain.
-          # Kept: LANGUAGE_PROVIDER, GOOGLE_TRANSLATE_LOCATION (small constants used by
-          # provider factories), AZURE_SPEECH_KEY_SECRET_ARN (validateMultilingual-
-          # DeploymentConfig requires it when MULTILINGUAL_STRICT_VALIDATION=true in
-          # staging/prod and Stt1=azure).
-          LANGUAGE_PROVIDER: !Ref LanguageProvider
-          GOOGLE_TRANSLATE_LOCATION: "global"
-          AZURE_SPEECH_KEY_SECRET_ARN: !If
-            - UseManagedMultilingualSecrets
-            - !Ref NestedMultilingualAzureApiKeysSecretArn
-            - !Ref AzureSpeechKeySecretArn
-      Policies:
-        - !Ref AppManagedPolicyDynamoLambdaCrudShardA
-        - !Ref AppManagedPolicyDynamoLambdaCrudShardB
-        - !Ref AppManagedPolicyDynamoLambdaCrudShardC
-        - !Ref AppManagedPolicyS3ApplicationBucketsCrud
-        - !Ref AppManagedPolicySecretsMultilingualScopedRead
-        - !Ref AppManagedPolicySecretsAnalyzeProvidersRead
-
-      Events:
-        Route:
-          Type: HttpApi
-          Properties:
-            ApiId: !Ref Api
-            Path: /api/incidents/{id}/language-session/status
-            Method: GET
-
-  ListWellnessFlagsFunction:
-    Type: AWS::Serverless::Function
-    Metadata:
-      BuildMethod: makefile
-      BuildTarget: build-function
-    Properties:
-      CodeUri: ../../apps/api/
-      Handler: dist/handlers/wellness/listTraumaFlags.handler
-      Environment:
-        Variables:
-          TRAUMA_FLAGS_TABLE: !Ref TraumaFlagsTable
-      Policies:
-        - !Ref AppManagedPolicyDynamoLambdaCrudShardA
-        - !Ref AppManagedPolicyDynamoLambdaCrudShardB
-        - !Ref AppManagedPolicyDynamoLambdaCrudShardC
-        - !Ref AppManagedPolicyS3ApplicationBucketsCrud
-
-      Events:
-        Route:
-          Type: HttpApi
-          Properties:
-            ApiId: !Ref Api
-            Path: /api/wellness/trauma-flags
-            Method: GET
-
-  AcknowledgeTraumaFlagFunction:
-    Type: AWS::Serverless::Function
-    Metadata:
-      BuildMethod: makefile
-      BuildTarget: build-function
-    Properties:
-      CodeUri: ../../apps/api/
-      Handler: dist/handlers/wellness/acknowledgeTraumaFlag.handler
-      Environment:
-        Variables:
-          TRAUMA_FLAGS_TABLE: !Ref TraumaFlagsTable
-      Policies:
-        - !Ref AppManagedPolicyDynamoLambdaCrudShardA
-        - !Ref AppManagedPolicyDynamoLambdaCrudShardB
-        - !Ref AppManagedPolicyDynamoLambdaCrudShardC
-        - !Ref AppManagedPolicyS3ApplicationBucketsCrud
-
-      Events:
-        Route:
-          Type: HttpApi
-          Properties:
-            ApiId: !Ref Api
-            Path: /api/wellness/trauma-flags/{flagId}/ack
-            Method: POST
-
-  GetCallerCardFunction:
-    Type: AWS::Serverless::Function
-    Metadata:
-      BuildMethod: makefile
-      BuildTarget: build-function
-    Properties:
-      CodeUri: ../../apps/api/
-      Handler: dist/handlers/incidents/getCallerCard.handler
-      Policies:
-        - !Ref AppManagedPolicyDynamoLambdaCrudShardA
-        - !Ref AppManagedPolicyDynamoLambdaCrudShardB
-        - !Ref AppManagedPolicyDynamoLambdaCrudShardC
-        - !Ref AppManagedPolicyS3ApplicationBucketsCrud
-
-      Events:
-        Route:
-          Type: HttpApi
-          Properties:
-            ApiId: !Ref Api
-            Path: /api/incidents/{id}/caller-card
-            Method: GET
-
-  CreatePremiseNoteFunction:
-    Type: AWS::Serverless::Function
-    Metadata:
-      BuildMethod: makefile
-      BuildTarget: build-function
-    Properties:
-      CodeUri: ../../apps/api/
-      Handler: dist/handlers/incidents/createPremiseNote.handler
-      Environment:
-        Variables:
-          PREMISE_NOTES_TABLE: !Ref PremiseNotesTable
-      Policies:
-        - !Ref AppManagedPolicyDynamoLambdaCrudShardA
-        - !Ref AppManagedPolicyDynamoLambdaCrudShardB
-        - !Ref AppManagedPolicyDynamoLambdaCrudShardC
-        - !Ref AppManagedPolicyS3ApplicationBucketsCrud
-
-      Events:
-        Route:
-          Type: HttpApi
-          Properties:
-            ApiId: !Ref Api
-            Path: /api/incidents/{id}/premise-notes
-            Method: POST
-
-  PatchPremiseNoteFunction:
-    Type: AWS::Serverless::Function
-    Metadata:
-      BuildMethod: makefile
-      BuildTarget: build-function
-    Properties:
-      CodeUri: ../../apps/api/
-      Handler: dist/handlers/incidents/patchPremiseNote.handler
-      Environment:
-        Variables:
-          PREMISE_NOTES_TABLE: !Ref PremiseNotesTable
-      Policies:
-        - !Ref AppManagedPolicyDynamoLambdaCrudShardA
-        - !Ref AppManagedPolicyDynamoLambdaCrudShardB
-        - !Ref AppManagedPolicyDynamoLambdaCrudShardC
-        - !Ref AppManagedPolicyS3ApplicationBucketsCrud
-
-      Events:
-        Route:
-          Type: HttpApi
-          Properties:
-            ApiId: !Ref Api
-            Path: /api/incidents/{id}/premise-notes/{noteId}
-            Method: PATCH
-
-  GetSupervisorPerformanceMetricsFunction:
-    Type: AWS::Serverless::Function
-    Metadata:
-      BuildMethod: makefile
-      BuildTarget: build-function
-    Properties:
-      CodeUri: ../../apps/api/
-      Handler: dist/handlers/supervisor/getSupervisorPerformanceMetrics.handler
-      Policies:
-        - !Ref AppManagedPolicyDynamoLambdaCrudShardA
-        - !Ref AppManagedPolicyDynamoLambdaCrudShardB
-        - !Ref AppManagedPolicyDynamoLambdaCrudShardC
-        - !Ref AppManagedPolicyS3ApplicationBucketsCrud
-
-      Events:
-        Route:
-          Type: HttpApi
-          Properties:
-            ApiId: !Ref Api
-            Path: /api/supervisor/performance/metrics
-            Method: GET
-
-  GetDispatcherPerformanceDetailFunction:
-    Type: AWS::Serverless::Function
-    Metadata:
-      BuildMethod: makefile
-      BuildTarget: build-function
-    Properties:
-      CodeUri: ../../apps/api/
-      Handler: dist/handlers/supervisor/getDispatcherPerformanceDetail.handler
-      Policies:
-        - !Ref AppManagedPolicyDynamoLambdaCrudShardA
-        - !Ref AppManagedPolicyDynamoLambdaCrudShardB
-        - !Ref AppManagedPolicyDynamoLambdaCrudShardC
-        - !Ref AppManagedPolicyS3ApplicationBucketsCrud
-
-      Events:
-        Route:
-          Type: HttpApi
-          Properties:
-            ApiId: !Ref Api
-            Path: /api/supervisor/performance/dispatchers/{dispatcherUserId}
-            Method: GET
-
-  PostDispatcherCoachingNoteFunction:
-    Type: AWS::Serverless::Function
-    Metadata:
-      BuildMethod: makefile
-      BuildTarget: build-function
-    Properties:
-      CodeUri: ../../apps/api/
-      Handler: dist/handlers/supervisor/postDispatcherCoachingNote.handler
-      Policies:
-        - !Ref AppManagedPolicyDynamoLambdaCrudShardA
-        - !Ref AppManagedPolicyDynamoLambdaCrudShardB
-        - !Ref AppManagedPolicyDynamoLambdaCrudShardC
-        - !Ref AppManagedPolicyS3ApplicationBucketsCrud
-
-      Events:
-        Route:
-          Type: HttpApi
-          Properties:
-            ApiId: !Ref Api
-            Path: /api/supervisor/performance/coaching-notes
-            Method: POST
-
-  QaScorecardHttpFunction:
-    Type: AWS::Serverless::Function
-    Metadata:
-      BuildMethod: makefile
-      BuildTarget: build-function
-    Properties:
-      CodeUri: ../../apps/api/
-      Handler: dist/handlers/qa/qa-scorecard-handler.handler
-      Environment:
-        Variables:
-          QA_SCORECARDS_TABLE: !Ref QaScorecardsTable
-      Policies:
-        - !Ref AppManagedPolicyDynamoLambdaCrudShardA
-        - !Ref AppManagedPolicyDynamoLambdaCrudShardB
-      Events:
-        PostScorecard:
-          Type: HttpApi
-          Properties:
-            ApiId: !Ref Api
-            Path: /api/qa/scorecards
-            Method: POST
-        ListScorecards:
-          Type: HttpApi
-          Properties:
-            ApiId: !Ref Api
-            Path: /api/qa/scorecards
-            Method: GET
-        GetScorecard:
-          Type: HttpApi
-          Properties:
-            ApiId: !Ref Api
-            Path: /api/qa/scorecards/{scorecardId}
-            Method: GET
-        PatchScorecard:
-          Type: HttpApi
-          Properties:
-            ApiId: !Ref Api
-            Path: /api/qa/scorecards/{scorecardId}
-            Method: PATCH
-        AckScorecard:
-          Type: HttpApi
-          Properties:
-            ApiId: !Ref Api
-            Path: /api/qa/scorecards/{scorecardId}/acknowledge
-            Method: POST
-
-  CoachingNotesHttpFunction:
-    Type: AWS::Serverless::Function
-    Metadata:
-      BuildMethod: makefile
-      BuildTarget: build-function
-    Properties:
-      CodeUri: ../../apps/api/
-      Handler: dist/handlers/qa/coaching-notes-handler.handler
-      Environment:
-        Variables:
-          COACHING_NOTES_TABLE: !Ref CoachingNotesTable
-      Policies:
-        - !Ref AppManagedPolicyDynamoLambdaCrudShardA
-        - !Ref AppManagedPolicyDynamoLambdaCrudShardB
-      Events:
-        PostNote:
-          Type: HttpApi
-          Properties:
-            ApiId: !Ref Api
-            Path: /api/qa/coaching-notes
-            Method: POST
-        ListNotes:
-          Type: HttpApi
-          Properties:
-            ApiId: !Ref Api
-            Path: /api/qa/coaching-notes
-            Method: GET
-        PatchNote:
-          Type: HttpApi
-          Properties:
-            ApiId: !Ref Api
-            Path: /api/qa/coaching-notes/{noteId}
-            Method: PATCH
-        DeleteNote:
-          Type: HttpApi
-          Properties:
-            ApiId: !Ref Api
-            Path: /api/qa/coaching-notes/{noteId}
-            Method: DELETE
-
-  CallQualityTrendsHttpFunction:
-    Type: AWS::Serverless::Function
-    Metadata:
-      BuildMethod: makefile
-      BuildTarget: build-function
-    Properties:
-      CodeUri: ../../apps/api/
-      Handler: dist/handlers/qa/call-quality-trends-handler.handler
-      Environment:
-        Variables:
-          QA_SCORECARDS_TABLE: !Ref QaScorecardsTable
-      Policies:
-        - !Ref AppManagedPolicyDynamoLambdaCrudShardB
-      Events:
-        Route:
-          Type: HttpApi
-          Properties:
-            ApiId: !Ref Api
-            Path: /api/qa/trends
-            Method: GET
-
-  IncidentTimelineHttpFunction:
-    Type: AWS::Serverless::Function
-    Metadata:
-      BuildMethod: makefile
-      BuildTarget: build-function
-    Properties:
-      CodeUri: ../../apps/api/
-      Handler: dist/handlers/incident-timeline-handler.handler
-      Environment:
-        Variables:
-          INCIDENT_TIMELINE_TABLE: !Ref IncidentTimelineTable
-      Policies:
-        - !Ref AppManagedPolicyDynamoLambdaCrudShardA
-        - !Ref AppManagedPolicyDynamoLambdaCrudShardB
-      Events:
-        GetTimeline:
-          Type: HttpApi
-          Properties:
-            ApiId: !Ref Api
-            Path: /api/incidents/{incidentId}/timeline
-            Method: GET
-        PostTimelineNote:
-          Type: HttpApi
-          Properties:
-            ApiId: !Ref Api
-            Path: /api/incidents/{incidentId}/timeline
-            Method: POST
-        ExportTimeline:
-          Type: HttpApi
-          Properties:
-            ApiId: !Ref Api
-            Path: /api/incidents/{incidentId}/timeline/export
-            Method: GET
-
-  CallerMediaHttpFunction:
-    Type: AWS::Serverless::Function
-    Metadata:
-      BuildMethod: makefile
-      BuildTarget: build-function
-    Properties:
-      CodeUri: ../../apps/api/
-      Handler: dist/handlers/caller-media-handler.handler
-      Policies:
-        - !Ref AppManagedPolicyDynamoLambdaCrudShardB
-        - !Ref AppManagedPolicyS3ApplicationBucketsCrud
-        - !Ref AppManagedPolicyOpsAlertsSnsPublishOnly
-      Events:
-        SendLink:
-          Type: HttpApi
-          Properties:
-            ApiId: !Ref Api
-            Path: /api/incidents/{incidentId}/media/send-link
-            Method: POST
-        UploadUrl:
-          Type: HttpApi
-          Properties:
-            ApiId: !Ref Api
-            Path: /api/incidents/{incidentId}/media/upload-url
-            Method: POST
-        ListMedia:
-          Type: HttpApi
-          Properties:
-            ApiId: !Ref Api
-            Path: /api/incidents/{incidentId}/media
-            Method: GET
-        DeleteMedia:
-          Type: HttpApi
-          Properties:
-            ApiId: !Ref Api
-            Path: /api/incidents/{incidentId}/media/{mediaId}
-            Method: DELETE
-
-  SlaHttpFunction:
-    Type: AWS::Serverless::Function
-    Metadata:
-      BuildMethod: makefile
-      BuildTarget: build-function
-    Properties:
-      CodeUri: ../../apps/api/
-      Handler: dist/handlers/sla-handler.handler
-      Environment:
-        Variables:
-          SLA_BACKLOG_SNAPSHOTS_TABLE: !Ref SlaBacklogSnapshotsTable
-      Policies:
-        - !Ref AppManagedPolicyDynamoLambdaCrudShardA
-        - !Ref AppManagedPolicyDynamoLambdaCrudShardB
-      Events:
-        GetSlaStatus:
-          Type: HttpApi
-          Properties:
-            ApiId: !Ref Api
-            Path: /api/sla/status
-            Method: GET
-        GetSlaThresholds:
-          Type: HttpApi
-          Properties:
-            ApiId: !Ref Api
-            Path: /api/sla/thresholds
-            Method: GET
-        PutSlaThresholds:
-          Type: HttpApi
-          Properties:
-            ApiId: !Ref Api
-            Path: /api/sla/thresholds
-            Method: PUT
-        GetSlaBacklog:
-          Type: HttpApi
-          Properties:
-            ApiId: !Ref Api
-            Path: /api/sla/backlog
-            Method: GET
-        GetSlaHistory:
-          Type: HttpApi
-          Properties:
-            ApiId: !Ref Api
-            Path: /api/sla/history
-            Method: GET
-
-  WarRoomHttpFunction:
-    Type: AWS::Serverless::Function
-    Metadata:
-      BuildMethod: makefile
-      BuildTarget: build-function
-    Properties:
-      CodeUri: ../../apps/api/
-      Handler: dist/handlers/war-room-handler.handler
-      Environment:
-        Variables:
-          WAR_ROOMS_TABLE: !Ref WarRoomsTable
-          WAR_ROOM_MESSAGES_TABLE: !Ref WarRoomMessagesTable
-      Policies:
-        - !Ref AppManagedPolicyDynamoLambdaCrudShardA
-        - !Ref AppManagedPolicyDynamoLambdaCrudShardB
-      Events:
-        PostWarRoom:
-          Type: HttpApi
-          Properties:
-            ApiId: !Ref Api
-            Path: /api/war-rooms
-            Method: POST
-        ListWarRooms:
-          Type: HttpApi
-          Properties:
-            ApiId: !Ref Api
-            Path: /api/war-rooms
-            Method: GET
-        GetWarRoom:
-          Type: HttpApi
-          Properties:
-            ApiId: !Ref Api
-            Path: /api/war-rooms/{roomId}
-            Method: GET
-        JoinWarRoom:
-          Type: HttpApi
-          Properties:
-            ApiId: !Ref Api
-            Path: /api/war-rooms/{roomId}/join
-            Method: POST
-        LeaveWarRoom:
-          Type: HttpApi
-          Properties:
-            ApiId: !Ref Api
-            Path: /api/war-rooms/{roomId}/leave
-            Method: POST
-        PostWarRoomMessage:
-          Type: HttpApi
-          Properties:
-            ApiId: !Ref Api
-            Path: /api/war-rooms/{roomId}/messages
-            Method: POST
-        ListWarRoomMessages:
-          Type: HttpApi
-          Properties:
-            ApiId: !Ref Api
-            Path: /api/war-rooms/{roomId}/messages
-            Method: GET
-        PinWarRoomMessage:
-          Type: HttpApi
-          Properties:
-            ApiId: !Ref Api
-            Path: /api/war-rooms/{roomId}/messages/{messageId}/pin
-            Method: PATCH
-        CloseWarRoom:
-          Type: HttpApi
-          Properties:
-            ApiId: !Ref Api
-            Path: /api/war-rooms/{roomId}/close
-            Method: POST
-
-  StakeholderHttpFunction:
-    Type: AWS::Serverless::Function
-    Metadata:
-      BuildMethod: makefile
-      BuildTarget: build-function
-    Properties:
-      CodeUri: ../../apps/api/
-      Handler: dist/handlers/stakeholder-handler.handler
-      Environment:
-        Variables:
-          STAKEHOLDER_PAGES_TABLE: !Ref StakeholderPagesTable
-      Policies:
-        - !Ref AppManagedPolicyDynamoLambdaCrudShardA
-        - !Ref AppManagedPolicyDynamoLambdaCrudShardB
-      Events:
-        PostStakeholderPage:
-          Type: HttpApi
-          Properties:
-            ApiId: !Ref Api
-            Path: /api/stakeholder-pages
-            Method: POST
-        ListStakeholderPages:
-          Type: HttpApi
-          Properties:
-            ApiId: !Ref Api
-            Path: /api/stakeholder-pages
-            Method: GET
-        GetStakeholderPage:
-          Type: HttpApi
-          Properties:
-            ApiId: !Ref Api
-            Path: /api/stakeholder-pages/{pageId}
-            Method: GET
-        PatchStakeholderPage:
-          Type: HttpApi
-          Properties:
-            ApiId: !Ref Api
-            Path: /api/stakeholder-pages/{pageId}
-            Method: PATCH
-        DeleteStakeholderPage:
-          Type: HttpApi
-          Properties:
-            ApiId: !Ref Api
-            Path: /api/stakeholder-pages/{pageId}
-            Method: DELETE
-        PublicStakeholderStatus:
-          Type: HttpApi
-          Properties:
-            ApiId: !Ref Api
-            Path: /api/public/status/{slug}
-            Method: GET
-
-  PostIncidentReviewHttpFunction:
-    Type: AWS::Serverless::Function
-    Metadata:
-      BuildMethod: makefile
-      BuildTarget: build-function
-    Properties:
-      CodeUri: ../../apps/api/
-      Handler: dist/handlers/post-incident-review-handler.handler
-      Environment:
-        Variables:
-          POST_INCIDENT_REVIEWS_TABLE: !Ref PostIncidentReviewsTable
-      Policies:
-        - !Ref AppManagedPolicyDynamoLambdaCrudShardA
-        - !Ref AppManagedPolicyDynamoLambdaCrudShardB
-      Events:
-        PostReview:
-          Type: HttpApi
-          Properties:
-            ApiId: !Ref Api
-            Path: /api/reviews
-            Method: POST
-        ListReviews:
-          Type: HttpApi
-          Properties:
-            ApiId: !Ref Api
-            Path: /api/reviews
-            Method: GET
-        GetReview:
-          Type: HttpApi
-          Properties:
-            ApiId: !Ref Api
-            Path: /api/reviews/{reviewId}
-            Method: GET
-        PatchReview:
-          Type: HttpApi
-          Properties:
-            ApiId: !Ref Api
-            Path: /api/reviews/{reviewId}
-            Method: PATCH
-        ExportReview:
-          Type: HttpApi
-          Properties:
-            ApiId: !Ref Api
-            Path: /api/reviews/{reviewId}/export
-            Method: GET
-
-  ReportsHttpFunction:
-    Type: AWS::Serverless::Function
-    Metadata:
-      BuildMethod: makefile
-      BuildTarget: build-function
-    Properties:
-      CodeUri: ../../apps/api/
-      Handler: dist/handlers/reports-handler.handler
-      Environment:
-        Variables:
-          AGENCY_REPORTS_TABLE: !Ref AgencyReportsTable
-      Policies:
-        - !Ref AppManagedPolicyDynamoLambdaCrudShardA
-        - !Ref AppManagedPolicyDynamoLambdaCrudShardB
-      Events:
-        GenerateReport:
-          Type: HttpApi
-          Properties:
-            ApiId: !Ref Api
-            Path: /api/reports
-            Method: POST
-        ListReports:
-          Type: HttpApi
-          Properties:
-            ApiId: !Ref Api
-            Path: /api/reports
-            Method: GET
-        GetReport:
-          Type: HttpApi
-          Properties:
-            ApiId: !Ref Api
-            Path: /api/reports/{reportId}
-            Method: GET
-        ExportReport:
-          Type: HttpApi
-          Properties:
-            ApiId: !Ref Api
-            Path: /api/reports/{reportId}/export
-            Method: GET
-
-  GetAdminAnalyticsFunction:
-    Type: AWS::Serverless::Function
-    Metadata:
-      BuildMethod: makefile
-      BuildTarget: build-function
-    Properties:
-      CodeUri: ../../apps/api/
-      Handler: dist/handlers/admin/getAdminAnalytics.handler
-      Policies:
-        - !Ref AppManagedPolicyS3ApplicationBucketsCrud
-
-      Events:
-        Route:
-          Type: HttpApi
-          Properties:
-            ApiId: !Ref Api
-            Path: /api/admin/analytics/summary
-            Method: GET
-
-  PlatformNoticesAdminFunction:
-    Type: AWS::Serverless::Function
-    Condition: HasPlatformNoticesTable
-    Metadata:
-      BuildMethod: makefile
-      BuildTarget: build-function
-    Properties:
-      CodeUri: ../../apps/api/
-      Handler: dist/handlers/notices/platformNoticesHttp.handler
-      Timeout: 30
-      Environment:
-        Variables:
-          PLATFORM_NOTICES_TABLE: !Ref PlatformNoticesTable
-          PLATFORM_NOTICE_ACKS_TABLE: !Ref PlatformNoticeAcksTable
-      Policies:
-        - !Ref AppManagedPolicyDynamoLambdaCrudShardA
-      Events:
-        PostNotice:
-          Type: HttpApi
-          Properties:
-            ApiId: !Ref Api
-            Path: /api/admin/notices
-            Method: POST
-        GetNotices:
-          Type: HttpApi
-          Properties:
-            ApiId: !Ref Api
-            Path: /api/admin/notices
-            Method: GET
-        DeleteNotice:
-          Type: HttpApi
-          Properties:
-            ApiId: !Ref Api
-            Path: /api/admin/notices/{noticeId}
-            Method: DELETE
-
-  PlatformNoticesActiveFunction:
-    Type: AWS::Serverless::Function
-    Condition: HasPlatformNoticesTable
-    Metadata:
-      BuildMethod: makefile
-      BuildTarget: build-function
-    Properties:
-      CodeUri: ../../apps/api/
-      Handler: dist/handlers/notices/platformNoticesHttp.handler
-      Timeout: 30
-      Environment:
-        Variables:
-          PLATFORM_NOTICES_TABLE: !Ref PlatformNoticesTable
-          PLATFORM_NOTICE_ACKS_TABLE: !Ref PlatformNoticeAcksTable
-      Policies:
-        - !Ref AppManagedPolicyDynamoLambdaCrudShardA
-      Events:
-        GetActive:
-          Type: HttpApi
-          Properties:
-            ApiId: !Ref Api
-            Path: /api/notices/active
-            Method: GET
-        AckNotice:
-          Type: HttpApi
-          Properties:
-            ApiId: !Ref Api
-            Path: /api/notices/{noticeId}/ack
-            Method: POST
-
-  PostAdminAnalyticsRefreshFunction:
-    Type: AWS::Serverless::Function
-    Metadata:
-      BuildMethod: makefile
-      BuildTarget: build-function
-    Properties:
-      CodeUri: ../../apps/api/
-      Handler: dist/handlers/admin/postAdminAnalyticsRefresh.handler
-      Timeout: 60
-      Policies:
-        - !Ref AppManagedPolicyDynamoLambdaCrudShardA
-        - !Ref AppManagedPolicyDynamoLambdaCrudShardB
-        - !Ref AppManagedPolicyDynamoLambdaCrudShardC
-        - !Ref AppManagedPolicyS3ApplicationBucketsCrud
-
-      Events:
-        Route:
-          Type: HttpApi
-          Properties:
-            ApiId: !Ref Api
-            Path: /api/admin/analytics/refresh
-            Method: POST
-
-  GetAdminAnalyticsCsvFunction:
-    Type: AWS::Serverless::Function
-    Metadata:
-      BuildMethod: makefile
-      BuildTarget: build-function
-    Properties:
-      CodeUri: ../../apps/api/
-      Handler: dist/handlers/admin/getAdminAnalyticsCsv.handler
-      Policies:
-        - !Ref AppManagedPolicyS3ApplicationBucketsCrud
-
-      Events:
-        Route:
-          Type: HttpApi
-          Properties:
-            ApiId: !Ref Api
-            Path: /api/admin/analytics/export.csv
-            Method: GET
-
-  AggregateAnalyticsFunction:
-    Type: AWS::Serverless::Function
-    Metadata:
-      BuildMethod: makefile
-      BuildTarget: build-function
-    Properties:
-      CodeUri: ../../apps/api/
-      Handler: dist/handlers/analytics/aggregateAnalytics.handler
-      Timeout: 120
-      MemorySize: 1024
-      Policies:
-        - !Ref AppManagedPolicyDynamoLambdaCrudShardA
-        - !Ref AppManagedPolicyDynamoLambdaCrudShardB
-        - !Ref AppManagedPolicyDynamoLambdaCrudShardC
-        - !Ref AppManagedPolicyS3ApplicationBucketsCrud
-
-      Events:
-        Nightly:
-          Type: Schedule
-          Properties:
-            Schedule: rate(1 day)
-            Enabled: true
-
-  DemoScenariosFunction:
-    Type: AWS::Serverless::Function
-    Metadata:
-      BuildMethod: makefile
-      BuildTarget: build-function
-    Properties:
-      CodeUri: ../../apps/api/
-      Handler: dist/handlers/demoScenarios.handler
-      Policies:
-        - !Ref AppManagedPolicyS3ApplicationBucketsCrud
-
-      Events:
-        Route:
-          Type: HttpApi
-          Properties:
-            ApiId: !Ref Api
-            Path: /api/demo/scenarios
-            Method: GET
-
-  # Health-check handler — only reads DEPLOYMENT_STAGE + INTEGRATION_TRANSCRIPT_*.
-  IntegrationStatusFunction:
-    Type: AWS::Serverless::Function
-    Metadata:
-      BuildMethod: makefile
-      BuildTarget: build-function
-    Properties:
-      CodeUri: ../../apps/api/
-      Handler: dist/handlers/integrationStatus.handler
-      Environment:
-        Variables:
-          INTEGRATION_TRANSCRIPT_CONNECTOR_MODE: "off"
-          INTEGRATION_TRANSCRIPT_AGENCY_ALLOWLIST: ""
-      Policies:
-        - !Ref AppManagedPolicyS3ApplicationBucketsCrud
-
-      Events:
-        Route:
-          Type: HttpApi
-          Properties:
-            ApiId: !Ref Api
-            Path: /api/integration/status
-            Method: GET
-
-  CallIntelligenceLanguagesFunction:
-    Type: AWS::Serverless::Function
-    Metadata:
-      BuildMethod: makefile
-      BuildTarget: build-function
-    Properties:
-      CodeUri: ../../apps/api/
-      Handler: dist/handlers/callIntelligenceLanguagesHttp.handler
-      Environment:
-        Variables:
-          SUPPORTED_CALL_LANGUAGES: "en,es,zh,tl,vi,ar,fr,ko,ru,pt"
-          PRIMARY_PROVIDER: !FindInMap [ApiLambdaDefaults, !Ref DeploymentStage, PrimaryAi]
-          SECONDARY_PROVIDER: !FindInMap [ApiLambdaDefaults, !Ref DeploymentStage, SecondaryAi]
-          TERTIARY_PROVIDER: !FindInMap [ApiLambdaDefaults, !Ref DeploymentStage, TertiaryAi]
-          FALLBACK_PROVIDER: !FindInMap [ApiLambdaDefaults, !Ref DeploymentStage, AiFallback]
-          SECONDARY_FALLBACK_PROVIDER: !FindInMap [ApiLambdaDefaults, !Ref DeploymentStage, AiSecondaryFallback]
-          PRIMARY_LANGUAGE_DETECTOR: !FindInMap [ApiLambdaDefaults, !Ref DeploymentStage, Lid1]
-          SECONDARY_LANGUAGE_DETECTOR: !FindInMap [ApiLambdaDefaults, !Ref DeploymentStage, Lid2]
-          TERTIARY_LANGUAGE_DETECTOR: !FindInMap [ApiLambdaDefaults, !Ref DeploymentStage, Lid3]
-          PRIMARY_STT_PROVIDER: !FindInMap [ApiLambdaDefaults, !Ref DeploymentStage, Stt1]
-          SECONDARY_STT_PROVIDER: !FindInMap [ApiLambdaDefaults, !Ref DeploymentStage, Stt2]
-          TERTIARY_STT_PROVIDER: !FindInMap [ApiLambdaDefaults, !Ref DeploymentStage, Stt3]
-          PRIMARY_TRANSLATION_PROVIDER: !FindInMap [ApiLambdaDefaults, !Ref DeploymentStage, Tr1]
-          SECONDARY_TRANSLATION_PROVIDER: !FindInMap [ApiLambdaDefaults, !Ref DeploymentStage, Tr2]
-          TERTIARY_TRANSLATION_PROVIDER: !FindInMap [ApiLambdaDefaults, !Ref DeploymentStage, Tr3]
-          MULTILINGUAL_STRICT_VALIDATION: !FindInMap [MultilingualStageDefaults, !Ref DeploymentStage, StrictValidation]
-          # 4KB Lambda env-var limit recovery (CFN UPDATE_FAILED 2026-05-26).
-          # Language-session Lambdas (start/finalize/get-status/translate/call-intelligence-
-          # languages) don't run STT or AI analysis. Removed copy-paste bloat:
-          #   - AWS_TRANSCRIBE_*: handlers don't call AWS Transcribe; provider has internal
-          #     defaults (DEFAULT_AWS_TRANSCRIBE_LANGUAGE_OPTIONS_CSV).
-          #   - BEDROCK_MODEL_*: AI analysis runs in AnalyzeIncidentFunction (separate).
-          #   - GOOGLE_TTS_*: TTS only runs in silent-text TTS batch handler.
-          #   - GOOGLE_CLOUD_PROJECT_ID / GOOGLE_APPLICATION_CREDENTIALS_SECRET_ARN /
-          #     AZURE_TRANSLATION_KEY_SECRET_ARN: not in any current Tr1/Tr2/Tr3 chain
-          #     (dev=mock/mock/off, staging/prod=aws/mock/off). Re-add if/when Azure
-          #     or Google enters the translation chain.
-          # Kept: LANGUAGE_PROVIDER, GOOGLE_TRANSLATE_LOCATION (small constants used by
-          # provider factories), AZURE_SPEECH_KEY_SECRET_ARN (validateMultilingual-
-          # DeploymentConfig requires it when MULTILINGUAL_STRICT_VALIDATION=true in
-          # staging/prod and Stt1=azure).
-          LANGUAGE_PROVIDER: !Ref LanguageProvider
-          GOOGLE_TRANSLATE_LOCATION: "global"
-          AZURE_SPEECH_KEY_SECRET_ARN: !If
-            - UseManagedMultilingualSecrets
-            - !Ref NestedMultilingualAzureApiKeysSecretArn
-            - !Ref AzureSpeechKeySecretArn
-          OPENAI_API_KEY_SECRET_ARN: !Ref OpenAiApiKeySecretArn
-      Policies:
-        - !Ref AppManagedPolicyS3ApplicationBucketsCrud
-        - !Ref AppManagedPolicySecretsMultilingualScopedRead
-        - !Ref AppManagedPolicySecretsAnalyzeProvidersRead
-      Events:
-        Route:
-          Type: HttpApi
-          Properties:
-            ApiId: !Ref Api
-            Path: /api/call-intelligence/languages
-            Method: GET
-
-  StartDemoScenarioFunction:
-    Type: AWS::Serverless::Function
-    Metadata:
-      BuildMethod: makefile
-      BuildTarget: build-function
-    Properties:
-      CodeUri: ../../apps/api/
-      Handler: dist/handlers/startDemoScenario.handler
-      Policies:
-        - !Ref AppManagedPolicyS3ApplicationBucketsCrud
-
-      Events:
-        Route:
-          Type: HttpApi
-          Properties:
-            ApiId: !Ref Api
-            Path: /api/demo/start
-            Method: POST
-
-  ListAuditEventsFunction:
-    Type: AWS::Serverless::Function
-    Metadata:
-      BuildMethod: makefile
-      BuildTarget: build-function
-    Properties:
-      CodeUri: ../../apps/api/
-      Handler: dist/handlers/listAuditEvents.handler
-      Policies:
-        - !Ref AppManagedPolicyDynamoLambdaCrudShardA
-        - !Ref AppManagedPolicyDynamoLambdaCrudShardB
-        - !Ref AppManagedPolicyDynamoLambdaCrudShardC
-        - !Ref AppManagedPolicyS3ApplicationBucketsCrud
-
-      Events:
-        Route:
-          Type: HttpApi
-          Properties:
-            ApiId: !Ref Api
-            Path: /api/audit/events
-            Method: GET
-
-  CadWritebackHttpFunction:
-    Type: AWS::Serverless::Function
-    Metadata:
-      BuildMethod: makefile
-      BuildTarget: build-function
-    Properties:
-      Timeout: 30
-      MemorySize: 512
-      Environment:
-        Variables:
-          CAD_INTEGRATIONS_TABLE: !Ref CadIntegrationsTable
-          CAD_WRITEBACK_AUDIT_TABLE: !Ref CadWritebackAuditTable
-          CAD_WRITEBACK_ENABLED: !Ref CadWritebackEnabled
-          CAD_WRITEBACK_REQUIRES_APPROVAL: !Ref CadWritebackRequiresApproval
-          OPS_ALERTS_TOPIC_ARN: !Ref OpsAlertsTopic
-      CodeUri: ../../apps/api/
-      Handler: dist/handlers/cad/cadWritebackHttp.handler
-      Policies:
-        - Statement:
-            - Sid: CadWritebackIncidentRead
-              Effect: Allow
-              Action:
-                - dynamodb:GetItem
-              Resource: !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${IncidentsTable}
-            - Sid: CadWritebackIntegrationsRead
-              Effect: Allow
-              Action:
-                - dynamodb:GetItem
-                - dynamodb:Query
-              Resource:
-                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${CadIntegrationsTable}
-                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${CadIntegrationsTable}/index/*
-            - Sid: CadWritebackAuditRw
-              Effect: Allow
-              Action:
-                - dynamodb:GetItem
-                - dynamodb:PutItem
-                - dynamodb:Query
-              Resource:
-                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${CadWritebackAuditTable}
-                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${CadWritebackAuditTable}/index/*
-            - Sid: CadWritebackAuditAppend
-              Effect: Allow
-              Action:
-                - dynamodb:PutItem
-              Resource: !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${AuditTable}
-            - Sid: CadWritebackOpsSns
-              Effect: Allow
-              Action:
-                - sns:Publish
-              Resource: !GetAtt OpsAlertsTopic.TopicArn
-      Events:
-        PostCadWriteback:
-          Type: HttpApi
-          Properties:
-            ApiId: !Ref Api
-            Path: /api/cad/writeback/{incidentId}
-            Method: POST
-        GetCadWritebackApprovals:
-          Type: HttpApi
-          Properties:
-            ApiId: !Ref Api
-            Path: /api/admin/cad-writeback-approvals
-            Method: GET
-        PostCadWritebackApprove:
-          Type: HttpApi
-          Properties:
-            ApiId: !Ref Api
-            Path: /api/admin/cad-writeback-approvals/{id}/approve
-            Method: POST
-        PostCadWritebackReject:
-          Type: HttpApi
-          Properties:
-            ApiId: !Ref Api
-            Path: /api/admin/cad-writeback-approvals/{id}/reject
-            Method: POST
-
-  RcAdminGetUsageFunction:
-    Type: AWS::Serverless::Function
-    Metadata:
-      BuildMethod: makefile
-      BuildTarget: build-function
-    Properties:
-      CodeUri: ../../apps/api/
-      Handler: dist/handlers/rc-admin/getRcAdminUsage.handler
-      Environment:
-        Variables:
-          RC_LITE_USAGE_TABLE: !Ref RcLiteUsageTable
-          RC_LITE_API_KEYS_TABLE: !Ref RcLiteApiKeysTable
-      Policies:
-        - !Ref AppManagedPolicyDynamoLambdaCrudShardA
-        - !Ref AppManagedPolicyDynamoLambdaCrudShardB
-        - !Ref AppManagedPolicyDynamoLambdaCrudShardC
-
-      Events:
-        RcAdminUsageGet:
-          Type: HttpApi
-          Properties:
-            ApiId: !Ref Api
-            Path: /api/rc-admin/usage
-            Method: GET
-
-  RcAdminExportUsageFunction:
-    Type: AWS::Serverless::Function
-    Metadata:
-      BuildMethod: makefile
-      BuildTarget: build-function
-    Properties:
-      CodeUri: ../../apps/api/
-      Handler: dist/handlers/rc-admin/exportRcAdminUsage.handler
-      Environment:
-        Variables:
-          RC_LITE_USAGE_TABLE: !Ref RcLiteUsageTable
-          RC_LITE_API_KEYS_TABLE: !Ref RcLiteApiKeysTable
-      Policies:
-        - !Ref AppManagedPolicyDynamoLambdaCrudShardA
-        - !Ref AppManagedPolicyDynamoLambdaCrudShardB
-        - !Ref AppManagedPolicyDynamoLambdaCrudShardC
-
-      Events:
-        RcAdminUsageExportGet:
-          Type: HttpApi
-          Properties:
-            ApiId: !Ref Api
-            Path: /api/rc-admin/usage/export
-            Method: GET
-
-  ManageAddonsFunction:
-    Type: AWS::Serverless::Function
-    Metadata:
-      BuildMethod: makefile
-      BuildTarget: build-function
-    Properties:
-      CodeUri: ../../apps/api/
-      Handler: dist/functions/addons/manageAddons.handler
-      Timeout: 15
-      MemorySize: 256
-      Policies:
-        - DynamoDBCrudPolicy:
-            TableName: !Ref AgenciesTable
-        - DynamoDBCrudPolicy:
-            TableName: !Ref AuditTable
-        - Statement:
+      ManagedPolicyName: !Sub "${Sam3ManagedPolicyNamePrefix}-sam3-lambda-cognito-agadm-${DeploymentStage}"
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Sid: UserPoolIdentityStoreAgencyAdmin
             Effect: Allow
             Action:
-              - cognito-idp:AdminUpdateUserAttributes
               - cognito-idp:ListUsers
+              - cognito-idp:AdminGetUser
+              - cognito-idp:AdminUpdateUserAttributes
             Resource: !Sub "arn:aws:cognito-idp:${AWS::Region}:${AWS::AccountId}:userpool/${ImportedCognitoUserPoolId}"
-      Events:
-        GetAddons:
-          Type: HttpApi
-          Properties:
-            Path: /api/admin/tenants/{agencyId}/addons
-            Method: GET
-            ApiId: !Ref Api
-        PutAddons:
-          Type: HttpApi
-          Properties:
-            Path: /api/admin/tenants/{agencyId}/addons
-            Method: PUT
-            ApiId: !Ref Api
-        PostAddon:
-          Type: HttpApi
-          Properties:
-            Path: /api/admin/tenants/{agencyId}/addons/{addonKey}
-            Method: POST
-            ApiId: !Ref Api
-        DeleteAddon:
-          Type: HttpApi
-          Properties:
-            Path: /api/admin/tenants/{agencyId}/addons/{addonKey}
-            Method: DELETE
-            ApiId: !Ref Api
 
-  SurgeIncidentsHttpFunction:
+  PostAgencySharePartnerFunction:
     Type: AWS::Serverless::Function
     Metadata:
       BuildMethod: makefile
       BuildTarget: build-function
     Properties:
       CodeUri: ../../apps/api/
-      Handler: dist/handlers/pinpointSurgeIncidentsHttp.handler
-      Timeout: 30
-      Environment:
-        Variables:
-          SURGE_CLUSTERS_TABLE: !Ref SurgeClustersTable
-          ENABLE_SURGE: "false"
-      Policies:
-        - !Ref AppManagedPolicyDynamoLambdaCrudShardA
-        - !Ref AppManagedPolicyDynamoLambdaCrudShardB
-        - !Ref AppManagedPolicyDynamoLambdaCrudShardC
-        - !Ref AppManagedPolicyOpsAlertsSnsPublishOnly
-      Events:
-        PostSurgeAnalyze:
-          Type: HttpApi
-          Properties:
-            ApiId: !Ref Api
-            Path: /api/incidents/{id}/surge/analyze
-            Method: POST
-        ListSurgeClusters:
-          Type: HttpApi
-          Properties:
-            ApiId: !Ref Api
-            Path: /api/incidents/{id}/surge/clusters
-            Method: GET
-        GetSurgeCluster:
-          Type: HttpApi
-          Properties:
-            ApiId: !Ref Api
-            Path: /api/incidents/{id}/surge/clusters/{clusterId}
-            Method: GET
-        ConfirmSurgeCluster:
-          Type: HttpApi
-          Properties:
-            ApiId: !Ref Api
-            Path: /api/incidents/{id}/surge/clusters/{clusterId}/confirm
-            Method: POST
-        DismissSurgeCluster:
-          Type: HttpApi
-          Properties:
-            ApiId: !Ref Api
-            Path: /api/incidents/{id}/surge/clusters/{clusterId}/dismiss
-            Method: POST
-        SplitSurgeCluster:
-          Type: HttpApi
-          Properties:
-            ApiId: !Ref Api
-            Path: /api/incidents/{id}/surge/clusters/{clusterId}/split
-            Method: POST
-
-  RetentionExecutorFunction:
-    Type: AWS::Serverless::Function
-    Metadata:
-      BuildMethod: makefile
-      BuildTarget: build-function
-    Properties:
-      CodeUri: ../../apps/api/
-      Handler: dist/lambdas/retentionExecutor.handler
-      Timeout: 900
-      MemorySize: 1024
+      Handler: dist/handlers/admin/postAgencySharePartner.handler
       Policies:
         - !Ref AppManagedPolicyDynamoLambdaCrudShardA
         - !Ref AppManagedPolicyDynamoLambdaCrudShardB
         - !Ref AppManagedPolicyDynamoLambdaCrudShardC
         - !Ref AppManagedPolicyS3ApplicationBucketsCrud
-      Environment:
-        Variables:
-          RETENTION_INCIDENT_DAYS_DEFAULT: "2555"
-          RETENTION_TRANSCRIPT_DAYS_DEFAULT: "1095"
-          RETENTION_MEDIA_DAYS_DEFAULT: "365"
-          RETENTION_ANALYSIS_DAYS_DEFAULT: "1095"
-          RETENTION_PURGE_PAGE_SIZE: "25"
 
-  RetentionSchedulerInvokeRole:
+      Events:
+        Route:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/agencies/{id}/share-partners
+            Method: POST
+
+  LiveVideoSmsRoutingFailedMetricFilter:
+    Type: AWS::Logs::MetricFilter
+    Condition: CreateLiveVideoResources
+    DependsOn: LiveVideoIncidentsHttpLogGroup
+    Properties:
+      LogGroupName: !Sub /aws/lambda/${LiveVideoIncidentsHttpFunction}
+      FilterPattern: '"routing_complete" "failed" "outbound.sms"'
+      MetricTransformations:
+        - MetricName: OutboundSmsRoutingFailures
+          MetricNamespace: RapidCortex/Sms
+          MetricValue: "1"
+          DefaultValue: 0
+
+  KvsWebRtcBrowserTokenRole:
     Type: AWS::IAM::Role
+    Condition: CreateLiveVideoResources
     Properties:
       AssumeRolePolicyDocument:
         Version: "2012-10-17"
         Statement:
           - Effect: Allow
-            Principal:
-              Service: scheduler.amazonaws.com
             Action: sts:AssumeRole
+            Principal:
+              AWS: !Sub "arn:aws:iam::${AWS::AccountId}:root"
+            Condition:
+              StringEquals:
+                aws:SourceAccount: !Ref AWS::AccountId
+              StringLike:
+                aws:PrincipalArn:
+                  - !Sub "arn:aws:iam::${AWS::AccountId}:role/*LiveVideo*HttpFunctionRole*"
       Policies:
-        - PolicyName: invoke-retention-executor
+        - PolicyName: KvsWebrtcDataPlane
           PolicyDocument:
             Version: "2012-10-17"
             Statement:
-              - Effect: Allow
-                Action: lambda:InvokeFunction
-                Resource: !GetAtt RetentionExecutorFunction.Arn
+              - Sid: KvsDataPlane
+                Effect: Allow
+                Action:
+                  - kinesisvideo:ConnectAsMaster
+                  - kinesisvideo:ConnectAsViewer
+                  - kinesisvideo:JoinStorageSession
+                  - kinesisvideo:JoinStorageSessionAsViewer
+                  - kinesisvideo:DescribeSignalingChannel
+                  - kinesisvideo:GetSignalingChannelEndpoint
+                  - kinesisvideo:GetIceServerConfig
+                Resource: !Sub "arn:${AWS::Partition}:kinesisvideo:${AWS::Region}:${AWS::AccountId}:channel/*/*"
+              - Sid: KvsMappedStreamRead
+                Effect: Allow
+                Action:
+                  - kinesisvideo:DescribeMappedResourceConfiguration
+                Resource: !Sub "arn:${AWS::Partition}:kinesisvideo:${AWS::Region}:${AWS::AccountId}:stream/*/*"
 
-  RetentionExecutorSchedule:
-    Type: AWS::Scheduler::Schedule
+  LiveVideoIncidentsHttpLogGroup:
+    Type: AWS::Logs::LogGroup
+    Condition: CreateLiveVideoResources
     Properties:
-      Name: !Sub "${Sam2ManagedPolicyNamePrefix}-ret-daily-${DeploymentStage}"
-      ScheduleExpression: cron(15 6 * * ? *)
-      ScheduleExpressionTimezone: UTC
-      FlexibleTimeWindow:
-        Mode: "OFF"
-      State: ENABLED
-      Target:
-        Arn: !GetAtt RetentionExecutorFunction.Arn
-        RoleArn: !GetAtt RetentionSchedulerInvokeRole.Arn
-        RetryPolicy:
-          MaximumEventAgeInSeconds: 3600
-          MaximumRetryAttempts: 2
+      LogGroupName: !Sub /aws/lambda/${LiveVideoIncidentsHttpFunction}
+      RetentionInDays: 30
 
-  RetentionExecutorInvokePermission:
-    Type: AWS::Lambda::Permission
+  LiveVideoIncidentsHttpFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Condition: CreateLiveVideoResources
     Properties:
-      FunctionName: !Ref RetentionExecutorFunction
-      Action: lambda:InvokeFunction
-      Principal: scheduler.amazonaws.com
-      SourceArn: !GetAtt RetentionExecutorSchedule.Arn
+      CodeUri: ../../apps/api/
+      Handler: dist/handlers/media/liveVideoIncidentHttp.handler
+      Environment:
+        Variables:
+          ENABLE_LIVE_VIDEO: "true"
+          LIVE_VIDEO_SESSIONS_TABLE: !Ref LiveVideoSessionsTable
+          LIVE_VIDEO_SESSION_TTL_SECONDS: "1800"
+          LIVE_VIDEO_MAX_DURATION_SECONDS: "900"
+          LIVE_VIDEO_HEARTBEAT_TIMEOUT_SECONDS: "45"
+          LIVE_VIDEO_PUBLIC_BASE_URL: "https://www.rapidcortex.us"
+          LIVE_VIDEO_KVS_TOKEN_ROLE_ARN: !GetAtt KvsWebRtcBrowserTokenRole.Arn
+          LIVE_VIDEO_STORAGE_MODE: kvs
+          WEBRTC_TURN_SECRET_ARN: ""
+          LIVE_VIDEO_KVS_DATA_RETENTION_HOURS: "24"
+          LIVE_VIDEO_KVS_STORAGE_ATTACH_TO_CHANNEL: "false"
+          KVS_WEBRTC_TAG_APP: !Ref AppName
+          KVS_WEBRTC_TAG_ENV: !Ref DeploymentStage
+      Policies:
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardA
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardB
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardC
+        - Statement:
+            Effect: Allow
+            Action: sts:AssumeRole
+            Resource: !GetAtt KvsWebRtcBrowserTokenRole.Arn
+        - Statement:
+            Effect: Allow
+            Action:
+              - kinesisvideo:CreateSignalingChannel
+            Resource: "*"
+            Condition:
+              StringEquals:
+                aws:RequestedRegion: !Ref AWS::Region
+        - Statement:
+            Effect: Allow
+            Action:
+              - kinesisvideo:DeleteSignalingChannel
+              - kinesisvideo:DescribeSignalingChannel
+              - kinesisvideo:GetSignalingChannelEndpoint
+              - kinesisvideo:JoinStorageSession
+              - kinesisvideo:JoinStorageSessionAsViewer
+            Resource: !Sub "arn:${AWS::Partition}:kinesisvideo:${AWS::Region}:${AWS::AccountId}:channel/*/*"
+        - Statement:
+            Effect: Allow
+            Action:
+              - kinesisvideo:GetIceServerConfig
+            Resource: !Sub "arn:${AWS::Partition}:kinesisvideo:${AWS::Region}:${AWS::AccountId}:channel/*/*"
+        - Statement:
+            Effect: Allow
+            Action:
+              - kinesisvideo:DescribeMappedResourceConfiguration
+            Resource: !Sub "arn:${AWS::Partition}:kinesisvideo:${AWS::Region}:${AWS::AccountId}:stream/*/*"
+        - Statement:
+            Effect: Allow
+            Action:
+              - kinesisvideo:CreateStream
+            Resource: "*"
+            Condition:
+              StringEquals:
+                aws:RequestedRegion: !Ref AWS::Region
+        - Statement:
+            Effect: Allow
+            Action:
+              - kinesisvideo:DeleteStream
+              - kinesisvideo:DescribeStream
+              - kinesisvideo:GetDataEndpoint
+            Resource: !Sub "arn:${AWS::Partition}:kinesisvideo:${AWS::Region}:${AWS::AccountId}:stream/*/*"
+        - Statement:
+            Effect: Allow
+            Action:
+              - kinesisvideo:GetHLSStreamingSessionURL
+            Resource: !Sub "arn:${AWS::Partition}:kinesisvideo:${AWS::Region}:${AWS::AccountId}:stream/*/*"
+        - Statement:
+            Effect: Allow
+            Action:
+              - kinesisvideo:UpdateMediaStorageConfiguration
+              - kinesisvideo:DescribeMediaStorageConfiguration
+            Resource: !Sub "arn:${AWS::Partition}:kinesisvideo:${AWS::Region}:${AWS::AccountId}:channel/*/*"
+        - !Ref AppManagedPolicyOpsAlertsSnsPublishOnly
+        - Statement:
+            Effect: Allow
+            Action:
+              - sms-voice:DescribeAccountAttributes
+              - sms-voice:DescribePools
+              - sms-voice:DescribeConfigurationSets
+            Resource: "*"
+            Condition:
+              StringEquals:
+                aws:RequestedRegion: !Ref AWS::Region
+        - Fn::If:
+            - HasIncidentMediaTwilioSecretArn
+            - Statement:
+                Effect: Allow
+                Action:
+                  - secretsmanager:GetSecretValue
+                Resource: !Ref IncidentMediaTwilioSecretArn
+            - !Ref AWS::NoValue
+      Events:
+        RequestLiveVideo:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/incidents/{id}/live-video/request
+            Method: POST
+        GetLiveVideo:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/incidents/{id}/live-video
+            Method: GET
+        JoinLiveVideoIncident:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/incidents/{id}/live-video/join
+            Method: POST
+        GetLiveVideoPlayback:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/incidents/{id}/live-video/playback
+            Method: GET
+        EndLiveVideo:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/incidents/{id}/live-video/end
+            Method: POST
+        DispatcherHeartbeatLiveVideo:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/incidents/{id}/live-video/heartbeat
+            Method: POST
+
+  LiveVideoPublicHttpFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Condition: CreateLiveVideoResources
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/handlers/media/liveVideoPublicHttp.handler
+      Environment:
+        Variables:
+          ENABLE_LIVE_VIDEO: "true"
+          LIVE_VIDEO_SESSIONS_TABLE: !Ref LiveVideoSessionsTable
+          LIVE_VIDEO_SESSION_TTL_SECONDS: "1800"
+          LIVE_VIDEO_MAX_DURATION_SECONDS: "900"
+          LIVE_VIDEO_HEARTBEAT_TIMEOUT_SECONDS: "45"
+          LIVE_VIDEO_PUBLIC_BASE_URL: "https://www.rapidcortex.us"
+          LIVE_VIDEO_KVS_TOKEN_ROLE_ARN: !GetAtt KvsWebRtcBrowserTokenRole.Arn
+          LIVE_VIDEO_STORAGE_MODE: kvs
+          WEBRTC_TURN_SECRET_ARN: ""
+      Policies:
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardA
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardB
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardC
+        - Statement:
+            Effect: Allow
+            Action: sts:AssumeRole
+            Resource: !GetAtt KvsWebRtcBrowserTokenRole.Arn
+        - Statement:
+            Effect: Allow
+            Action:
+              - kinesisvideo:DeleteSignalingChannel
+              - kinesisvideo:DescribeSignalingChannel
+              - kinesisvideo:GetSignalingChannelEndpoint
+            Resource: !Sub "arn:${AWS::Partition}:kinesisvideo:${AWS::Region}:${AWS::AccountId}:channel/*/*"
+        - Statement:
+            Effect: Allow
+            Action:
+              - kinesisvideo:GetIceServerConfig
+            Resource: !Sub "arn:${AWS::Partition}:kinesisvideo:${AWS::Region}:${AWS::AccountId}:channel/*/*"
+      Events:
+        JoinLiveVideo:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/media/live/{token}/join
+            Method: POST
+            Auth:
+              Authorizer: NONE
+        CallerHeartbeatLiveVideo:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/media/live/{token}/heartbeat
+            Method: POST
+            Auth:
+              Authorizer: NONE
+
+  LiveVideoIncidentsHttpErrorsAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Condition: CreateLiveVideoResources
+    Properties:
+      AlarmActions:
+        - !Ref OpsAlertsTopic
+      AlarmDescription: Live video authenticated routes errors.
+      Namespace: AWS/Lambda
+      MetricName: Errors
+      Dimensions:
+        - Name: FunctionName
+          Value: !Ref LiveVideoIncidentsHttpFunction
+      Statistic: Sum
+      Period: 300
+      EvaluationPeriods: 1
+      Threshold: 5
+      ComparisonOperator: GreaterThanThreshold
+      TreatMissingData: notBreaching
+
+  LiveVideoPublicHttpErrorsAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Condition: CreateLiveVideoResources
+    Properties:
+      AlarmActions:
+        - !Ref OpsAlertsTopic
+      AlarmDescription: Live video public token route errors.
+      Namespace: AWS/Lambda
+      MetricName: Errors
+      Dimensions:
+        - Name: FunctionName
+          Value: !Ref LiveVideoPublicHttpFunction
+      Statistic: Sum
+      Period: 300
+      EvaluationPeriods: 1
+      Threshold: 5
+      ComparisonOperator: GreaterThanThreshold
+      TreatMissingData: notBreaching
+
+  AgencyAdminListAccessOverridesFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/handlers/agencyAdmin/listAgencyAdminAccessOverrides.handler
+      Policies:
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardA
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardB
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardC
+        - !Ref AppManagedPolicyS3ApplicationBucketsCrud
+        - !Ref AppManagedPolicyCognitoAgencyAdminUserPoolReads
+
+      Events:
+        Route:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/agency-admin/overrides
+            Method: GET
+
+  AgencyAdminPostAccessOverridesFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/handlers/agencyAdmin/postAgencyAdminAccessOverrides.handler
+      Policies:
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardA
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardB
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardC
+        - !Ref AppManagedPolicyS3ApplicationBucketsCrud
+        - !Ref AppManagedPolicyCognitoAgencyAdminUserPoolReads
+
+      Events:
+        Route:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/agency-admin/overrides
+            Method: POST
+
+  AgencyAdminGetAccessOverrideFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/handlers/agencyAdmin/getAgencyAdminAccessOverride.handler
+      Policies:
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardA
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardB
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardC
+        - !Ref AppManagedPolicyS3ApplicationBucketsCrud
+        - !Ref AppManagedPolicyCognitoAgencyAdminUserPoolReads
+
+      Events:
+        Route:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/agency-admin/overrides/{overrideId}
+            Method: GET
+
+  AgencyAdminPatchAccessOverrideRevokeFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/handlers/agencyAdmin/patchAgencyAdminAccessOverrideRevoke.handler
+      Policies:
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardA
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardB
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardC
+        - !Ref AppManagedPolicyS3ApplicationBucketsCrud
+        - !Ref AppManagedPolicyCognitoAgencyAdminUserPoolReads
+
+      Events:
+        Route:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/agency-admin/overrides/{overrideId}/revoke
+            Method: PATCH
+
+  AgencyAdminListUserAccessOverridesFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/handlers/agencyAdmin/listAgencyAdminUserAccessOverrides.handler
+      Policies:
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardA
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardB
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardC
+        - !Ref AppManagedPolicyS3ApplicationBucketsCrud
+        - !Ref AppManagedPolicyCognitoAgencyAdminUserPoolReads
+
+      Events:
+        Route:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/agency-admin/users/{userId}/overrides
+            Method: GET
+
+  AgencyAdminListApiClientsFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/handlers/agencyAdmin/listAgencyAdminApiClients.handler
+      Policies:
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardA
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardB
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardC
+
+      Events:
+        Route:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/agency-admin/api-clients
+            Method: GET
+
+  AgencyAdminPostApiClientsFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/handlers/agencyAdmin/postAgencyAdminApiClients.handler
+      Policies:
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardA
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardB
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardC
+
+      Events:
+        Route:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/agency-admin/api-clients
+            Method: POST
+
+  AgencyAdminPatchApiClientFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/handlers/agencyAdmin/patchAgencyAdminApiClientStatus.handler
+      Policies:
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardA
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardB
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardC
+
+      Events:
+        Route:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/agency-admin/api-clients/{clientId}
+            Method: PATCH
+
+  AgencyAdminRotateApiClientFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/handlers/agencyAdmin/postAgencyAdminApiClientRotate.handler
+      Policies:
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardA
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardB
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardC
+
+      Events:
+        Route:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/agency-admin/api-clients/{clientId}/rotate
+            Method: POST
+
+  AgencyAdminListWebhooksFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/handlers/agencyAdmin/listAgencyAdminWebhooks.handler
+      Policies:
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardA
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardB
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardC
+
+      Events:
+        Route:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/agency-admin/webhooks
+            Method: GET
+
+  AgencyAdminPostWebhooksFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/handlers/agencyAdmin/postAgencyAdminWebhooks.handler
+      Environment:
+        Variables:
+          EXTERNAL_API_ENCRYPTION_KEY_ARN: !Ref ExternalApiEncryptionKeyArn
+      Policies:
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardA
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardB
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardC
+        - Fn::If:
+            - HasExternalApiEncryptionKeyArn
+            - Statement:
+                - Effect: Allow
+                  Action: secretsmanager:GetSecretValue
+                  Resource: !Ref ExternalApiEncryptionKeyArn
+            - !Ref AWS::NoValue
+
+      Events:
+        Route:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/agency-admin/webhooks
+            Method: POST
+
+  RcAdminListApiClientsFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/handlers/rc-admin/listRcAdminApiClients.handler
+      Policies:
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardA
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardB
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardC
+
+      Events:
+        RcAdminApiClientsRoute:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/rc-admin/api-clients
+            Method: GET
+        LegacySuperadminApiClientsRoute:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/superadmin/api-clients
+            Method: GET
+
+  GetDesktopReleasesOverviewFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/handlers/admin/getDesktopReleasesOverview.handler
+      Policies:
+        - !Ref AppManagedPolicyS3ApplicationBucketsCrud
+
+      Events:
+        Route:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/admin/desktop-releases
+            Method: GET
+
+  PostDesktopReleaseSignedUrlFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/handlers/admin/postDesktopReleaseSignedUrl.handler
+      Policies:
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardA
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardB
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardC
+        - !Ref AppManagedPolicyS3ApplicationBucketsCrud
+
+      Events:
+        Route:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/admin/desktop-releases/signed-url
+            Method: POST
+
+  GetPlatformSummaryFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/handlers/getPlatformSummary.handler
+      Environment:
+        Variables:
+          INTEGRATION_TRANSCRIPT_CONNECTOR_MODE: "off"
+          INTEGRATION_TRANSCRIPT_AGENCY_ALLOWLIST: ""
+      Policies:
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardA
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardB
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardC
+        - !Ref AppManagedPolicyS3ApplicationBucketsCrud
+        - Statement:
+            Effect: Allow
+            Action:
+              - cognito-idp:ListUsers
+            Resource: !Sub "arn:aws:cognito-idp:${AWS::Region}:${AWS::AccountId}:userpool/${ImportedCognitoUserPoolId}"
+
+      Events:
+        Route:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/platform/summary
+            Method: GET
+
+  GetPlatformAuditEventsFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/handlers/getPlatformAuditEvents.handler
+      Policies:
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardA
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardB
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardC
+        - !Ref AppManagedPolicyS3ApplicationBucketsCrud
+
+      Events:
+        Route:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/platform/audit-events
+            Method: GET
+
+  PostContactSalesLeadFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/handlers/postContactSalesLead.handler
+      Environment:
+        Variables:
+          SALES_LEADS_TABLE: !Ref SalesLeadsTable
+          CONTACT_FROM_EMAIL: support@rapidcortex.us
+          OPS_ALERTS_TOPIC_ARN:
+            Fn::If:
+              - HasImportedOpsAlertsTopicArn
+              - !Ref ImportedOpsAlertsTopicArn
+              - !Ref OpsAlertsTopic
+      Policies:
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardA
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardB
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardC
+        - !Ref AppManagedPolicyS3ApplicationBucketsCrud
+        - Fn::If:
+            - HasImportedOpsAlertsTopicArn
+            - Statement:
+                Sid: SnsPublishImportedOpsAlertsTopic
+                Effect: Allow
+                Action:
+                  - sns:Publish
+                Resource: !Ref ImportedOpsAlertsTopicArn
+            - Statement:
+                Sid: SnsPublishLocalOpsAlertsTopic
+                Effect: Allow
+                Action:
+                  - sns:Publish
+                Resource: !GetAtt OpsAlertsTopic.TopicArn
+        - Statement:
+            Sid: SesContactSalesFromSupportIdentity
+            Effect: Allow
+            Action:
+              - ses:SendEmail
+            Resource:
+              - !Sub arn:${AWS::Partition}:ses:${AWS::Region}:${AWS::AccountId}:identity/support@rapidcortex.us
+
+      Events:
+        ContactSales:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/contact-sales
+            Method: ANY
+            Auth:
+              Authorizer: NONE
+
+  VideoAssistIncidentsHttpFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/handlers/videoAssistIncidentsHttp.handler
+      Environment:
+        Variables:
+          VIDEO_ASSIST_TABLE: !Ref VideoAssistSessionsTable
+      Policies:
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardA
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardB
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardC
+        - !Ref AppManagedPolicyOpsAlertsSnsPublishOnly
+      Events:
+        PostSession:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/incidents/{id}/video-assist/sessions
+            Method: POST
+        ListSessions:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/incidents/{id}/video-assist/sessions
+            Method: GET
+        GetSession:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/incidents/{id}/video-assist/sessions/{sessionId}
+            Method: GET
+        GetEvents:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/incidents/{id}/video-assist/sessions/{sessionId}/events
+            Method: GET
+        Resend:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/incidents/{id}/video-assist/sessions/{sessionId}/resend
+            Method: POST
+        Cancel:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/incidents/{id}/video-assist/sessions/{sessionId}/cancel
+            Method: POST
+        DispatcherSignal:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/incidents/{id}/video-assist/sessions/{sessionId}/signal
+            Method: POST
+        MarkLive:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/incidents/{id}/video-assist/sessions/{sessionId}/live
+            Method: POST
+
+  VideoAssistPublicHttpFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/handlers/videoAssistPublicHttp.handler
+      Environment:
+        Variables:
+          VIDEO_ASSIST_TABLE: !Ref VideoAssistSessionsTable
+      Policies:
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardA
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardB
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardC
+
+      Events:
+        GetPublic:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/video-assist/t/{token}
+            Method: GET
+            Auth:
+              Authorizer: NONE
+        GetIce:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/video-assist/t/{token}/ice-config
+            Method: GET
+            Auth:
+              Authorizer: NONE
+        PostOpened:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/video-assist/t/{token}/opened
+            Method: POST
+            Auth:
+              Authorizer: NONE
+        PostConsent:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/video-assist/t/{token}/consent
+            Method: POST
+            Auth:
+              Authorizer: NONE
+        PostSignal:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/video-assist/t/{token}/signal
+            Method: POST
+            Auth:
+              Authorizer: NONE
+        PostEnd:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/video-assist/t/{token}/end
+            Method: POST
+            Auth:
+              Authorizer: NONE
+
+  # ---------------------------------------------------------------------------------------------
+  # Silent Text + Pinpoint Lambdas moved to `stack-app-sam.yaml` (Stack 1) on 2026-05-25 so they
+  # serve traffic through the `api.rapidcortex.us` custom domain. Stack 2's raw `execute-api`
+  # endpoint no longer exposes `/api/silent-text/*` or `/api/pinpoint/*`. See the
+  # Silent-Text-and-Pinpoint comment block in stack-app-sam.yaml for the new definitions.
+  # ---------------------------------------------------------------------------------------------
+
+  # Renamed 2026-05-25 (was `PinpointSurgeIncidentsHttpFunction`) — pinpoint events moved to
+  # Stack 1's `PinpointIncidentsHttpFunction`; this Lambda now only handles `/api/incidents/{id}/surge/*`.
 
 Outputs:
   OpsAlertsTopicArn:
+    Description: SNS topic ARN for CloudWatch alarm notifications (stack 3 ops).
     Value: !Ref OpsAlertsTopic
   HttpApiUrl:
+    Description: HTTP API base URL (stack 3)
     Value: !GetAtt Api.ApiEndpoint
   HttpApiId:
+    Description: HTTP API ID (stack 3)
     Value: !Ref Api
   ApiWebAclArn:
+    Description: Regional WAF web ACL attached to stack 3 HTTP API.
     Value: !If [HasApiWaf, !GetAtt ApiWebAcl.Arn, ""]
   ApiCustomDomainUrl:
+    Description: Stack 3 API custom domain URL.
     Value: !If [UseApiCustomDomain, !Sub "https://${ApiSubdomainPrefix}.${RootDomainName}", ""]
   ApiTlsCertificateArn:
+    Description: ACM certificate ARN for stack 3 API custom domain.
     Value: !If [UseApiCustomDomain, !If [HasImportedApiCert, !Ref ApiDomainCertificateArn, !Ref ApiManagedCertificate], ""]
-  ListWellnessFlagsFunctionName:
-    Value: !Ref ListWellnessFlagsFunction
-  AcknowledgeTraumaFlagFunctionName:
-    Value: !Ref AcknowledgeTraumaFlagFunction
-  GetCallerCardFunctionName:
-    Value: !Ref GetCallerCardFunction
-  CreatePremiseNoteFunctionName:
-    Value: !Ref CreatePremiseNoteFunction
-  PatchPremiseNoteFunctionName:
-    Value: !Ref PatchPremiseNoteFunction

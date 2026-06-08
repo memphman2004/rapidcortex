@@ -26,7 +26,7 @@ import {
 } from "@/lib/api";
 import { countOnboardingProgress, needsOnboardingAttention } from "@/lib/platform-onboarding-helpers";
 import { useJurisdictionLink } from "@/lib/jurisdiction-context";
-import { deriveVerticalFromAgencyId, normalizeVertical } from "@/components/ui/VerticalBadge";
+import { formatAgencyType, resolveAgencyVerticalFromTenant } from "@/lib/vertical";
 
 function healthFromPilotReadiness(r: {
   multilingualIssueCount: number;
@@ -301,9 +301,9 @@ export default function PlatformDashboardPage() {
                   agencyId={a.agencyId}
                   status={a.status}
                   href={to(`/admin/platform/agencies/${encodeURIComponent(a.agencyId)}`)}
-                  sublabel={`Onboarding ${prog.complete}/${prog.total} · ${a.integrationMode}`}
+                  sublabel={`${formatAgencyType(a.type)} · Onboarding ${prog.complete}/${prog.total} · ${a.integrationMode}`}
                   attention
-                  vertical={normalizeVertical((a as { vertical?: string }).vertical ?? deriveVerticalFromAgencyId(a.agencyId))}
+                  vertical={resolveAgencyVerticalFromTenant(a)}
                 />
               );
             })}

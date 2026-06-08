@@ -19,7 +19,9 @@ type AgencyCreateInput = {
     | "municipality"
     | "regional_center"
     | "pilot"
-    | "state_agency";
+    | "state_agency"
+    | "venue"
+    | "campus";
   region: string;
   primaryContactName: string;
   primaryContactEmail: string;

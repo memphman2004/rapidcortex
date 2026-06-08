@@ -8,7 +8,7 @@ export default function MarketingLayout({
   const orgJsonLd = buildOrganizationJsonLd();
   const websiteJsonLd = buildWebsiteJsonLd();
   return (
-    <div className="marketing-site foldable-safe flex min-h-dvh flex-col bg-slate-950">
+    <div className="marketing-site foldable-safe flex min-h-dvh flex-col overflow-x-hidden bg-slate-950">
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(orgJsonLd) }}

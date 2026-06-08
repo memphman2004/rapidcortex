@@ -2,12 +2,11 @@
 
 import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
-import { buildAgencySlug } from "rapid-cortex-shared";
+import { AGENCY_TYPE_VALUES, buildAgencySlug, type CreateAgencyInput } from "rapid-cortex-shared";
 import { RcAdminCreateAgencyRunbook } from "@/components/platform/rc-admin-create-agency-runbook";
 import { postAgency } from "@/lib/api";
 import { useJurisdictionLink } from "@/lib/jurisdiction-context";
 import { AGENCY_REGION_OPTIONS, US_STATE_OPTIONS } from "@/lib/platform/location-options";
-import type { CreateAgencyInput } from "rapid-cortex-shared";
 
 const defaults: CreateAgencyInput = {
   city: "",
@@ -147,7 +146,7 @@ export default function NewAgencyPage() {
             }
             className="mt-1 w-full rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-slate-100"
           >
-            {(["city", "county", "municipality", "regional_center", "pilot", "state_agency"] as const).map(
+            {AGENCY_TYPE_VALUES.map((t) => (
               (t) => (
                 <option key={t} value={t}>
                   {t}

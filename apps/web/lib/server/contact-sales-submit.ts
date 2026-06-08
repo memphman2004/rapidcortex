@@ -10,10 +10,11 @@ const CORS_HEADERS = {
 function upstreamBases(): string[] {
   const b1 = process.env.API_UPSTREAM_BASE?.replace(/\/$/, "") ?? "";
   const b2 = process.env.API_UPSTREAM_BASE_2?.replace(/\/$/, "") ?? "";
+  const b3 = process.env.API_UPSTREAM_BASE_3?.replace(/\/$/, "") ?? "";
   const out: string[] = [];
-  // Stack 2 hosts contact-sales today; try it before primary when both are configured.
-  if (b2) out.push(b2);
-  if (b1 && b1 !== b2) out.push(b1);
+  if (b3) out.push(b3);
+  if (b2 && b2 !== b3) out.push(b2);
+  if (b1 && b1 !== b2 && b1 !== b3) out.push(b1);
   return out;
 }
 
@@ -40,7 +41,7 @@ export async function submitContactSalesLeadUpstream(
     return Response.json(
       {
         error:
-          "API upstream is not configured (set API_UPSTREAM_BASE and/or API_UPSTREAM_BASE_2 on the web container).",
+          "API upstream is not configured (set API_UPSTREAM_BASE_3, API_UPSTREAM_BASE_2, and/or API_UPSTREAM_BASE on the web container).",
       },
       { status: 503, headers: CORS_HEADERS },
     );

@@ -16,7 +16,7 @@ import {
   countOnboardingProgress,
   needsOnboardingAttention,
 } from "@/lib/platform-onboarding-helpers";
-import { deriveVerticalFromAgencyId, normalizeVertical } from "@/lib/vertical";
+import { formatAgencyType, resolveAgencyVerticalFromTenant } from "@/lib/vertical";
 import { VerticalBadge } from "@/components/ui/VerticalBadge";
 import { ActivityFeed } from "./activity-feed";
 import { SecurityAlertCard } from "./security-alert-card";
@@ -275,6 +275,7 @@ export function RcAdminHomePanels() {
             <thead className="bg-slate-900/80 text-slate-500">
               <tr>
                 <th className="px-4 py-2 font-medium">Agency</th>
+                <th className="px-4 py-2 font-medium">Type</th>
                 <th className="px-4 py-2 font-medium">Vertical</th>
                 <th className="px-4 py-2 font-medium">Plan</th>
                 <th className="px-4 py-2 font-medium">Status</th>
@@ -284,10 +285,7 @@ export function RcAdminHomePanels() {
             </thead>
             <tbody className="divide-y divide-slate-800 text-slate-300">
               {preview.map((agency) => {
-                const vertical = normalizeVertical(
-                  (agency as AgencyTenant & { vertical?: string }).vertical ??
-                    deriveVerticalFromAgencyId(agency.agencyId),
-                );
+                const vertical = resolveAgencyVerticalFromTenant(agency);
                 const health = agencyHealthLabel(agency);
                 return (
                   <tr key={agency.agencyId} className="hover:bg-slate-900/40">
@@ -295,6 +293,7 @@ export function RcAdminHomePanels() {
                       <div className="font-medium text-slate-100">{agency.name}</div>
                       <div className="font-mono text-[10px] text-slate-500">{agency.agencyId}</div>
                     </td>
+                    <td className="px-4 py-2 text-slate-300">{formatAgencyType(agency.type)}</td>
                     <td className="px-4 py-2">
                       <VerticalBadge vertical={vertical} size="xs" />
                     </td>

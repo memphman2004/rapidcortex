@@ -1,5 +1,5 @@
 import type { TranscriptConnectorResolution } from "rapid-cortex-integrations";
-import { isCommsPlatformApiPath } from "@/lib/comms-api-path";
+import { isSam3ApiPath, isSam4ApiPath, isStack2ApiPath } from "@/lib/comms-api-path";
 import type {
   ActiveCallRecord,
   ActiveCallsListResponse,
@@ -83,6 +83,16 @@ const DIRECT_API_BASE_2 =
     ? normalizeApiOrigin(process.env.NEXT_PUBLIC_API_BASE_2)
     : "";
 
+const DIRECT_API_BASE_3 =
+  typeof process !== "undefined"
+    ? normalizeApiOrigin(process.env.NEXT_PUBLIC_API_BASE_3)
+    : "";
+
+const DIRECT_API_BASE_4 =
+  typeof process !== "undefined"
+    ? normalizeApiOrigin(process.env.NEXT_PUBLIC_API_BASE_4)
+    : "";
+
 const USE_AUTH_PROXY =
   typeof process !== "undefined" && process.env.NEXT_PUBLIC_AUTH_PROXY === "1";
 
@@ -98,8 +108,15 @@ function firstNonEmpty(...candidates: Array<string | undefined>): string {
 function shouldUseSameOriginBff(): boolean {
   if (USE_AUTH_PROXY) return true;
   if (typeof window !== "undefined") return true;
-  if (DIRECT_API_BASE.length === 0 && DIRECT_API_BASE_2.length === 0) {
-    return Boolean(firstNonEmpty(process.env.API_UPSTREAM_BASE, process.env.API_UPSTREAM_BASE_2));
+  if (DIRECT_API_BASE.length === 0 && DIRECT_API_BASE_2.length === 0 && DIRECT_API_BASE_3.length === 0 && DIRECT_API_BASE_4.length === 0) {
+    return Boolean(
+      firstNonEmpty(
+        process.env.API_UPSTREAM_BASE,
+        process.env.API_UPSTREAM_BASE_2,
+        process.env.API_UPSTREAM_BASE_3,
+        process.env.API_UPSTREAM_BASE_4,
+      ),
+    );
   }
   return false;
 }
@@ -127,13 +144,24 @@ function resolveApiBaseForPath(apiPath: string): string {
     if (typeof window !== "undefined") {
       return resolveApiBase();
     }
-    if (isCommsPlatformApiPath(apiPath)) {
-      const stack2 = firstNonEmpty(process.env.API_UPSTREAM_BASE_2, DIRECT_API_BASE_2);
-      return stack2;
+    if (isSam4ApiPath(apiPath)) {
+      return firstNonEmpty(process.env.API_UPSTREAM_BASE_4, DIRECT_API_BASE_4);
+    }
+    if (isSam3ApiPath(apiPath)) {
+      return firstNonEmpty(process.env.API_UPSTREAM_BASE_3, DIRECT_API_BASE_3);
+    }
+    if (isStack2ApiPath(apiPath)) {
+      return firstNonEmpty(process.env.API_UPSTREAM_BASE_2, DIRECT_API_BASE_2);
     }
     return resolveApiBase();
   }
-  if (DIRECT_API_BASE_2 && isCommsPlatformApiPath(apiPath)) {
+  if (DIRECT_API_BASE_4 && isSam4ApiPath(apiPath)) {
+    return DIRECT_API_BASE_4;
+  }
+  if (DIRECT_API_BASE_3 && isSam3ApiPath(apiPath)) {
+    return DIRECT_API_BASE_3;
+  }
+  if (DIRECT_API_BASE_2 && isStack2ApiPath(apiPath)) {
     return DIRECT_API_BASE_2;
   }
   return DIRECT_API_BASE;
@@ -148,9 +176,16 @@ const jsonHeaders: HeadersInit = {
  */
 export function isApiConfigured(): boolean {
   if (USE_AUTH_PROXY) return true;
-  if (DIRECT_API_BASE.length > 0 || DIRECT_API_BASE_2.length > 0) return true;
+  if (DIRECT_API_BASE.length > 0 || DIRECT_API_BASE_2.length > 0 || DIRECT_API_BASE_3.length > 0 || DIRECT_API_BASE_4.length > 0) return true;
   if (typeof window !== "undefined") return true;
-  return Boolean(firstNonEmpty(process.env.API_UPSTREAM_BASE, process.env.API_UPSTREAM_BASE_2));
+  return Boolean(
+    firstNonEmpty(
+      process.env.API_UPSTREAM_BASE,
+      process.env.API_UPSTREAM_BASE_2,
+      process.env.API_UPSTREAM_BASE_3,
+      process.env.API_UPSTREAM_BASE_4,
+    ),
+  );
 }
 
 function formatJsonErrorMessage(body: unknown, status: number): string {

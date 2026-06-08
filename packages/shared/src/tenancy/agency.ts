@@ -7,7 +7,37 @@ export type AgencyType =
   | "municipality"
   | "regional_center"
   | "pilot"
-  | "state_agency";
+  | "state_agency"
+  | "venue"
+  | "campus";
+
+/** Product agency-type values (PSAP governance / billing segmentation). */
+export const AGENCY_TYPE_VALUES = [
+  "city",
+  "county",
+  "municipality",
+  "regional_center",
+  "pilot",
+  "state_agency",
+  "venue",
+  "campus",
+] as const satisfies readonly AgencyType[];
+
+export const AGENCY_TYPE_LABELS: Record<AgencyType, string> = {
+  city: "City",
+  county: "County",
+  municipality: "Municipality",
+  regional_center: "Regional Center",
+  pilot: "Pilot",
+  state_agency: "State Agency",
+  venue: "Venue",
+  campus: "Campus",
+};
+
+export function formatAgencyType(type: AgencyType | string): string {
+  const token = type as AgencyType;
+  return AGENCY_TYPE_LABELS[token] ?? type.replace(/_/g, " ");
+}
 
 export type AgencyLifecycleStatus = "draft" | "pilot" | "active" | "suspended" | "archived";
 
@@ -86,4 +116,21 @@ export interface AgencyTenant {
   monetizationFeatureOverridesJson?: string;
   /** Per-agency IP allowlist + shift-hour access control (opt-in). */
   networkPolicy?: AgencyNetworkPolicy;
+}
+
+export function resolveAgencyVerticalFromTenant(
+  agency: Pick<AgencyTenant, "agencyId" | "type"> & { vertical?: AgencyVertical | string },
+): AgencyVertical {
+  if (agency.vertical) {
+    const token = String(agency.vertical).trim().toLowerCase();
+    if (token === "campus" || token === "venue" || token === "hospital") return token;
+    return "core";
+  }
+  if (agency.type === "venue") return "venue";
+  if (agency.type === "campus") return "campus";
+  const token = agency.agencyId.trim().toLowerCase();
+  if (token.includes("campus-")) return "campus";
+  if (token.includes("venue-")) return "venue";
+  if (token.includes("hospital")) return "hospital";
+  return "core";
 }

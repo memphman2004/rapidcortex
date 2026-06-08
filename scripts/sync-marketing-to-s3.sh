@@ -2,45 +2,30 @@
 set -euo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$ROOT"
+# shellcheck source=scripts/lib/static-s3-hosting.sh
+source "${ROOT}/scripts/lib/static-s3-hosting.sh"
 
 BUCKET="${MARKETING_S3_BUCKET:-rapid-cortex-v2-web-static-prod-158961537080}"
 DIST_ID="${MARKETING_CF_DIST_ID:-EWZ286WS69KX1}"
 REGION="${AWS_REGION:-us-east-1}"
 STATIC_DIR="${ROOT}/apps/marketing/out"
+REQUIRED_ROUTES=(enter demo pricing)
 
 if [[ ! -d "${STATIC_DIR}" ]] || [[ ! -f "${STATIC_DIR}/index.html" ]]; then
   echo "ERROR: apps/marketing/out/ not found. Run scripts/build-marketing.sh first." >&2
   exit 1
 fi
 
-echo "Preparing trailing-slash routes in ${STATIC_DIR} ..."
-for html_file in "${STATIC_DIR}"/*.html; do
-  [[ -f "${html_file}" ]] || continue
-  route_name="$(basename "${html_file}" .html)"
-  if [[ "${route_name}" == "index" || "${route_name}" == "404" ]]; then
-    continue
-  fi
-  mkdir -p "${STATIC_DIR}/${route_name}"
-  cp "${html_file}" "${STATIC_DIR}/${route_name}/index.html"
-done
+static_s3_verify_local_css_refs "${STATIC_DIR}"
+static_s3_verify_local_extensionless_routes "${STATIC_DIR}" "${REQUIRED_ROUTES[@]}"
+static_s3_prepare_root_html_dirs "${STATIC_DIR}"
 
-echo "Syncing marketing build to s3://${BUCKET}/"
-aws s3 sync "${STATIC_DIR}/" "s3://${BUCKET}/" \
-  --delete \
-  --region "${REGION}" \
-  --cache-control "public, max-age=31536000, immutable" \
-  --exclude "*.html"
+static_s3_sync_two_pass "${STATIC_DIR}" "${BUCKET}" "${REGION}"
+static_s3_upload_extensionless_keys "${STATIC_DIR}" "${BUCKET}" "${REGION}"
+static_s3_write_build_manifest "${STATIC_DIR}" "${BUCKET}" "${REGION}"
 
-aws s3 sync "${STATIC_DIR}/" "s3://${BUCKET}/" \
-  --region "${REGION}" \
-  --cache-control "public, max-age=300, must-revalidate" \
-  --include "*.html" \
-  --exclude "*"
+static_s3_verify_remote_deploy "${STATIC_DIR}" "${BUCKET}" "${REGION}" "${REQUIRED_ROUTES[@]}"
 
-echo "Invalidating CloudFront distribution ${DIST_ID}..."
-aws cloudfront create-invalidation \
-  --distribution-id "${DIST_ID}" \
-  --paths "/*" \
-  --region us-east-1
+static_s3_invalidate_cloudfront "${DIST_ID}" "${REGION}"
 
-echo "Marketing site synced and CloudFront invalidated."
+echo "Marketing site synced, verified, and CloudFront invalidated."

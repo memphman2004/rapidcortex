@@ -1,13 +1,4 @@
-import type { CreateAgencyInput } from "rapid-cortex-shared";
-
-const AGENCY_TYPES = [
-  "city",
-  "county",
-  "municipality",
-  "regional_center",
-  "pilot",
-  "state_agency",
-] as const satisfies readonly CreateAgencyInput["type"][];
+import { AGENCY_TYPE_VALUES, type CreateAgencyInput } from "rapid-cortex-shared";
 
 const AGENCY_TYPE_GUIDE: Record<CreateAgencyInput["type"], string> = {
   city: "City / municipal corporation (often PD or combined city ops).",
@@ -16,6 +7,8 @@ const AGENCY_TYPE_GUIDE: Record<CreateAgencyInput["type"], string> = {
   regional_center: "Multi-agency hub, regional ECC, or shared PSAP.",
   pilot: "Trial or evaluation tenant before full rollout.",
   state_agency: "State-level department or statewide program.",
+  venue: "Stadium, arena, or large event venue security / operations tenant.",
+  campus: "College, university, or K–12 campus safety tenant.",
 };
 
 /**
@@ -50,7 +43,7 @@ export function RcAdminCreateAgencyRunbook() {
             </tr>
           </thead>
           <tbody>
-            {AGENCY_TYPES.map((t) => (
+            {AGENCY_TYPE_VALUES.map((t) => (
               <tr key={t} className="border-b border-slate-800/80 last:border-0">
                 <td className="px-3 py-2 font-mono text-slate-200">{t}</td>
                 <td className="px-3 py-2">{AGENCY_TYPE_GUIDE[t]}</td>

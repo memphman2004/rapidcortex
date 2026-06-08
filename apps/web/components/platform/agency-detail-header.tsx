@@ -1,6 +1,7 @@
 "use client";
 
 import type { AgencyLifecycleStatus, AgencyType } from "rapid-cortex-shared";
+import { formatAgencyType } from "rapid-cortex-shared";
 import { VerticalBadge, type Vertical } from "@/components/ui/VerticalBadge";
 
 const statusStyle: Record<AgencyLifecycleStatus, string> = {
@@ -36,7 +37,7 @@ export function AgencyDetailHeader({
         </span>
         <VerticalBadge vertical={vertical} size="xs" />
         <span className="text-slate-500">·</span>
-        <span className="text-slate-300">{type}</span>
+        <span className="text-slate-300">{formatAgencyType(type)}</span>
         {planTier ? (
           <>
             <span className="text-slate-500">·</span>

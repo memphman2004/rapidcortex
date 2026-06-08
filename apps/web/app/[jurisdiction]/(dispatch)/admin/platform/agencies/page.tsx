@@ -11,7 +11,8 @@ import { RC_PLATFORM_COMMAND_PATHS } from "@/lib/platform-command-nav";
 import { RcAdminCreateAgencyRunbook } from "@/components/platform/rc-admin-create-agency-runbook";
 import { countOnboardingProgress, needsOnboardingAttention } from "@/lib/platform-onboarding-helpers";
 import type { AgencyLifecycleStatus, AgencyTenant } from "rapid-cortex-shared";
-import { VerticalBadge, deriveVerticalFromAgencyId, normalizeVertical, type Vertical } from "@/components/ui/VerticalBadge";
+import { formatAgencyType } from "rapid-cortex-shared";
+import { VerticalBadge, resolveAgencyVerticalFromTenant, type Vertical } from "@/components/ui/VerticalBadge";
 
 const statusBadge: Record<AgencyLifecycleStatus, string> = {
   draft: "bg-slate-800 text-slate-200 ring-slate-600",
@@ -24,9 +25,7 @@ const statusBadge: Record<AgencyLifecycleStatus, string> = {
 type SortKey = "vertical" | "name" | "status" | "updatedAt" | "type";
 
 function resolveAgencyVertical(agency: AgencyTenant): Vertical {
-  const maybe = (agency as AgencyTenant & { vertical?: string }).vertical;
-  if (maybe) return normalizeVertical(maybe);
-  return deriveVerticalFromAgencyId(agency.agencyId);
+  return resolveAgencyVerticalFromTenant(agency);
 }
 
 export default function PlatformAgenciesPage() {
@@ -214,7 +213,7 @@ function AgencyRow({
         <div className="font-medium text-slate-100">{a.name}</div>
         <div className="font-mono text-[10px] text-slate-500">{a.agencyId}</div>
         <div className="text-[10px] text-slate-500">
-          {a.type} · {a.state}
+          {formatAgencyType(a.type)} · {a.state}
         </div>
       </td>
       <td className="px-2 py-2 align-top">

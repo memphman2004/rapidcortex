@@ -7,7 +7,8 @@ Metadata:
 Description: >-
   Rapid Cortex nested root stack. Delegates DynamoDB/S3/multilingual billing secrets to stack-data-layer,
   primary SAM runtime to stack-app-sam, and secondary HttpApi (comms / RC Lite / language / live routes) to
-  stack-app-sam-2 (same Cognito as stack 1; execute-api URL exposed as HttpApi2Url).
+  stack-app-sam-2 (same Cognito as stack 1; execute-api URL exposed as HttpApi2Url),
+  and media/admin/platform routes to stack-app-sam-3 (HttpApi3Url).
   Regenerate core SAM wiring via scripts/generate-two-stack-infra.rb where applicable.
 Parameters:
   DeploymentStage:
@@ -1298,6 +1299,716 @@ Resources:
         ImportedCognitoIssuer: !GetAtt AppSamStackV2.Outputs.CognitoIssuer
         ImportedOpsAlertsTopicArn: !GetAtt AppSamStackV2.Outputs.OpsAlertsTopicArn
 
+  AppSam3Stack:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TimeoutInMinutes: 180
+      TemplateURL: nested/stack-app-sam-3.yaml
+      Parameters:
+        AccessOverridesTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.AccessOverridesTable
+            - !Sub "${DynamoTableNamePrefix}-access-overrides-${DeploymentStage}"
+        AdminCnameTarget: !Ref AdminCnameTarget
+        AgenciesTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.AgenciesTable
+            - !Sub "${DynamoTableNamePrefix}-agencies-${DeploymentStage}"
+        AgencySharePartnersTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.AgencySharePartnersTable
+            - !Sub "${DynamoTableNamePrefix}-agency-share-partners-${DeploymentStage}"
+        AgencySubscriptionsTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.AgencySubscriptionsTable
+            - !Sub "${DynamoTableNamePrefix}-agency-subscriptions-${DeploymentStage}"
+        AiBedrockFoundationModelId: !Ref AiBedrockFoundationModelId
+        AnalysesTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.AnalysesTable
+            - !Sub "${DynamoTableNamePrefix}-analyses-${DeploymentStage}"
+        AnthropicApiKeySecretArn: !Ref AnthropicApiKeySecretArn
+        ApiClientsTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.ApiClientsTable
+            - !Sub "${DynamoTableNamePrefix}-api-clients-${DeploymentStage}"
+        ApiDomainCertificateArn: ""
+        ApiSubdomainPrefix: !Ref ApiSubdomainPrefix
+        AppCnameTarget: !Ref AppCnameTarget
+        AppName: !Ref AppName
+        Sam3ManagedPolicyNamePrefix: !Ref AWS::StackName
+        AssetsBucket:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.AssetsBucket
+            - !Sub "${AppName}-assets-${DeploymentStage}-${AWS::AccountId}"
+        AuditTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.AuditTable
+            - !Sub "${DynamoTableNamePrefix}-audit-${DeploymentStage}"
+        AzureSpeechKeySecretArn: !Ref AzureSpeechKeySecretArn
+        AzureTranslationKeySecretArn: !Ref AzureTranslationKeySecretArn
+        BillingAuditEventsTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.BillingAuditEventsTable
+            - !Sub "${DynamoTableNamePrefix}-billing-audit-events-${DeploymentStage}"
+        BillingAuditLogTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.BillingAuditLogTable
+            - !Sub "${DynamoTableNamePrefix}-billing-audit-log-${DeploymentStage}"
+        BillingInvoicesBucket:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.BillingInvoicesBucket
+            - !Sub "rapid-cortex-billing-invoices-${DeploymentStage}-${AWS::AccountId}"
+        BillingPaymentInstructionsSecretArn:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.BillingPaymentInstructionsSecretArn
+            - !Ref FlatDataLayerBillingPaymentInstructionsSecretArn
+        BillingPosBucket:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.BillingPosBucket
+            - !Sub "rapid-cortex-billing-pos-${DeploymentStage}-${AWS::AccountId}"
+        BillingProfilesTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.BillingProfilesTable
+            - !Sub "${DynamoTableNamePrefix}-billing-profiles-${DeploymentStage}"
+        BillingSchedulesTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.BillingSchedulesTable
+            - !Sub "${DynamoTableNamePrefix}-billing-schedules-${DeploymentStage}"
+        BillingSesCredentialsSecretArn:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.BillingSesCredentialsSecretArn
+            - !Ref FlatDataLayerBillingSesCredentialsSecretArn
+        BillingSesDomain: !Ref BillingSesDomain
+        BillingSesSenderEmail: !Ref BillingSesSenderEmail
+        BillingWebhookEventsTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.BillingWebhookEventsTable
+            - !Sub "${DynamoTableNamePrefix}-billing-webhook-events-${DeploymentStage}"
+        CadIntegrationsTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.CadIntegrationsTable
+            - !Sub "${DynamoTableNamePrefix}-cad-integrations-${DeploymentStage}"
+        CadWritebackAuditTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.CadWritebackAuditTable
+            - !Sub "${DynamoTableNamePrefix}-cad-writeback-audit-${DeploymentStage}"
+        CadWritebackEnabled: !Ref CadWritebackEnabled
+        CadWritebackRequiresApproval: !Ref CadWritebackRequiresApproval
+        CustomersTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.CustomersTable
+            - !Sub "${DynamoTableNamePrefix}-customers-${DeploymentStage}"
+        DataDeletionAuditTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.DataDeletionAuditTable
+            - !Sub "${DynamoTableNamePrefix}-data-deletion-audit-${DeploymentStage}"
+        DeceptionEventsTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.DeceptionEventsTable
+            - !Sub "${DynamoTableNamePrefix}-deception-events-${DeploymentStage}"
+        DeploymentStage: !Ref DeploymentStage
+        DispatcherCoachingNotesTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.DispatcherCoachingNotesTable
+            - !Sub "${DynamoTableNamePrefix}-dispatcher-coaching-notes-${DeploymentStage}"
+        DynamoBillingMode: !Ref DynamoBillingMode
+        DynamoPointInTimeRecovery: !Ref DynamoPointInTimeRecovery
+        DynamoTableNamePrefix: !Ref DynamoTableNamePrefix
+        EnableApiWaf: !Ref EnableApiWaf
+        EnableCloudTrail: !Ref EnableCloudTrail
+        EnableCloudTrailLambdaDataEvents: !Ref EnableCloudTrailLambdaDataEvents
+        EnableCloudTrailS3DataEvents: !Ref EnableCloudTrailS3DataEvents
+        EnableLiveVideoResources: !Ref EnableLiveVideoResources
+        ExternalApiEncryptionKeyArn: !Ref ExternalApiEncryptionKeyArn
+        ExternalApiJwtSecretArn: !Ref ExternalApiJwtSecretArn
+        ExternalApiRateLimitsTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.ExternalApiRateLimitsTable
+            - !Sub "${DynamoTableNamePrefix}-external-api-rate-${DeploymentStage}"
+        RcLiteApiKeysTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.RcLiteApiKeysTable
+            - !Sub "${DynamoTableNamePrefix}-rc-lite-api-keys-${DeploymentStage}"
+        RcLiteRateLimitTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.RcLiteRateLimitTable
+            - !Sub "${DynamoTableNamePrefix}-rc-lite-rate-limit-${DeploymentStage}"
+        RcLiteUsageTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.RcLiteUsageTable
+            - !Sub "${DynamoTableNamePrefix}-rc-lite-usage-${DeploymentStage}"
+        GoogleApplicationCredentialsSecretArn: !Ref GoogleApplicationCredentialsSecretArn
+        GoogleCloudProjectId: !Ref GoogleCloudProjectId
+        GoogleTtsOutputBucket: !Ref GoogleTtsOutputBucket
+        HttpApiCorsAllowedOrigins: !Ref HttpApiCorsAllowedOrigins
+        IncidentMediaTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.IncidentMediaTable
+            - !Sub "${DynamoTableNamePrefix}-incident-media-${DeploymentStage}"
+        IncidentMediaTwilioSecretArn: !Ref IncidentMediaTwilioSecretArn
+        IncidentSharesTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.IncidentSharesTable
+            - !Sub "${DynamoTableNamePrefix}-incident-shares-${DeploymentStage}"
+        IncidentsTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.IncidentsTable
+            - !Sub "${DynamoTableNamePrefix}-incidents-${DeploymentStage}"
+        InvitesTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.InvitesTable
+            - !Sub "${DynamoTableNamePrefix}-invites-${DeploymentStage}"
+        InvoiceItemsTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.InvoiceItemsTable
+            - !Sub "${DynamoTableNamePrefix}-invoice-items-${DeploymentStage}"
+        InvoicesTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.InvoicesTable
+            - !Sub "${DynamoTableNamePrefix}-invoices-${DeploymentStage}"
+        LanguageProvider: !Ref LanguageProvider
+        LanguageSessionsTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.LanguageSessionsTable
+            - !Sub "${DynamoTableNamePrefix}-language-sessions-${DeploymentStage}"
+        LiveVideoSessionsTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.LiveVideoSessionsTable
+            - !Sub "${DynamoTableNamePrefix}-live-video-sessions-${DeploymentStage}"
+        MonetizationAddOnsTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.MonetizationAddOnsTable
+            - !Sub "${DynamoTableNamePrefix}-monetization-addons-${DeploymentStage}"
+        MonetizationInvoicesTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.MonetizationInvoicesTable
+            - !Sub "${DynamoTableNamePrefix}-monetization-invoices-${DeploymentStage}"
+        MonetizationPlansTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.MonetizationPlansTable
+            - !Sub "${DynamoTableNamePrefix}-monetization-plans-${DeploymentStage}"
+        NetworkEmergencyOverridesTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.NetworkEmergencyOverridesTable
+            - !Sub "${DynamoTableNamePrefix}-network-emergency-overrides-${DeploymentStage}"
+        MultilingualSecretProvisioning: !Ref MultilingualSecretProvisioning
+        MultilingualSecretsPolicyMode: !Ref MultilingualSecretsPolicyMode
+        NestedMultilingualAzureApiKeysSecretArn:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.MultilingualAzureApiKeysSecretArn
+            - ""
+        NestedMultilingualGoogleServiceAccountSecretArn:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.MultilingualGoogleServiceAccountSecretArn
+            - ""
+        OpenAiApiKeySecretArn: !Ref OpenAiApiKeySecretArn
+        PaymentRecordsTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.PaymentRecordsTable
+            - !Sub "${DynamoTableNamePrefix}-payment-records-${DeploymentStage}"
+        PremiseNotesTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.PremiseNotesTable
+            - !Sub "${DynamoTableNamePrefix}-premise-notes-${DeploymentStage}"
+        PlatformNoticesTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.PlatformNoticesTable
+            - !Sub "${DynamoTableNamePrefix}-platform-notices-${DeploymentStage}"
+        PlatformNoticeAcksTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.PlatformNoticeAcksTable
+            - !Sub "${DynamoTableNamePrefix}-platform-notice-acks-${DeploymentStage}"
+        QASessionsTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.QASessionsTable
+            - !Sub "${DynamoTableNamePrefix}-qa-sessions-${DeploymentStage}"
+        QATemplatesTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.QATemplatesTable
+            - !Sub "${DynamoTableNamePrefix}-qa-templates-${DeploymentStage}"
+        QaBedrockModelId: !Ref QaBedrockModelId
+        RootDomainName: !Ref RootDomainName
+        Route53HostedZoneId: ""
+        SalesLeadsTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.SalesLeadsTable
+            - !Sub "${DynamoTableNamePrefix}-sales-leads-${DeploymentStage}"
+        SelfSignupDefaultAgencyId: !Ref SelfSignupDefaultAgencyId
+        SelfSignupDefaultRole: !Ref SelfSignupDefaultRole
+        ServiceCatalogTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.ServiceCatalogTable
+            - !Sub "${DynamoTableNamePrefix}-service-catalog-${DeploymentStage}"
+        SesConfigurationSetName: !Ref SesConfigurationSetName
+        SesIdentityType: !Ref SesIdentityType
+        SesIdentityValue: !Ref SesIdentityValue
+        SilentTextSessionsTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.SilentTextSessionsTable
+            - !Sub "${DynamoTableNamePrefix}-silent-text-sessions-${DeploymentStage}"
+        PinpointLinksTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.PinpointLinksTable
+            - !Sub "${DynamoTableNamePrefix}-pinpoint-links-${DeploymentStage}"
+        SurgeClustersTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.SurgeClustersTable
+            - !Sub "${DynamoTableNamePrefix}-surge-clusters-${DeploymentStage}"
+        SnsEmailSubscription: !Ref SnsEmailSubscription
+        SnsSmsSubscription: !Ref SnsSmsSubscription
+        TranscriptRetentionPolicyDays: !Ref TranscriptRetentionPolicyDays
+        TranscriptsTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.TranscriptsTable
+            - !Sub "${DynamoTableNamePrefix}-transcripts-${DeploymentStage}"
+        TraumaFlagsTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.TraumaFlagsTable
+            - !Sub "${DynamoTableNamePrefix}-trauma-flags-${DeploymentStage}"
+        UsageMetersTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.UsageMetersTable
+            - !Sub "${DynamoTableNamePrefix}-usage-meters-${DeploymentStage}"
+        VideoAssistSessionsTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.VideoAssistSessionsTable
+            - !Sub "${DynamoTableNamePrefix}-video-assist-sessions-${DeploymentStage}"
+        WafRateLimitPer5Min: !Ref WafRateLimitPer5Min
+        WebhooksTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.WebhooksTable
+            - !Sub "${DynamoTableNamePrefix}-webhooks-${DeploymentStage}"
+        # Comms/platform tables owned by rapid-cortex-2-dev (or legacy); reference by name only — do not create in AppSam2Stack.
+        AgencyReportsTable: !Sub "rapid-cortex-agency-reports-${DeploymentStage}"
+        CoachingNotesTable: !Sub "rapid-cortex-coaching-notes-${DeploymentStage}"
+        IncidentTimelineTable: !Sub "rapid-cortex-incident-timeline-${DeploymentStage}"
+        PostIncidentReviewsTable: !Sub "rapid-cortex-post-incident-reviews-${DeploymentStage}"
+        QaScorecardsTable: !Sub "rapid-cortex-qa-scorecards-${DeploymentStage}"
+        SlaBacklogSnapshotsTable: !Sub "rapid-cortex-sla-backlog-snapshots-${DeploymentStage}"
+        StakeholderPagesTable: !Sub "rapid-cortex-stakeholder-pages-${DeploymentStage}"
+        WarRoomMessagesTable: !Sub "rapid-cortex-war-room-messages-${DeploymentStage}"
+        WarRoomsTable: !Sub "rapid-cortex-war-rooms-${DeploymentStage}"
+        CreateApiCustomDomain: "false"
+        WwwCnameTarget: !Ref WwwCnameTarget
+        ImportedCognitoUserPoolId: !GetAtt AppSamStackV2.Outputs.UserPoolId
+        ImportedCognitoWebClientId: !GetAtt AppSamStackV2.Outputs.UserPoolClientId
+        ImportedCognitoNativeClientId: !GetAtt AppSamStackV2.Outputs.NativeUserPoolClientId
+        ImportedCognitoIssuer: !GetAtt AppSamStackV2.Outputs.CognitoIssuer
+        ImportedOpsAlertsTopicArn: !GetAtt AppSamStackV2.Outputs.OpsAlertsTopicArn
+
+  AppSam4Stack:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TimeoutInMinutes: 180
+      TemplateURL: nested/stack-app-sam-4.yaml
+      Parameters:
+        AccessOverridesTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.AccessOverridesTable
+            - !Sub "${DynamoTableNamePrefix}-access-overrides-${DeploymentStage}"
+        AdminCnameTarget: !Ref AdminCnameTarget
+        AgenciesTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.AgenciesTable
+            - !Sub "${DynamoTableNamePrefix}-agencies-${DeploymentStage}"
+        AgencySharePartnersTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.AgencySharePartnersTable
+            - !Sub "${DynamoTableNamePrefix}-agency-share-partners-${DeploymentStage}"
+        AgencySubscriptionsTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.AgencySubscriptionsTable
+            - !Sub "${DynamoTableNamePrefix}-agency-subscriptions-${DeploymentStage}"
+        AiBedrockFoundationModelId: !Ref AiBedrockFoundationModelId
+        AnalysesTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.AnalysesTable
+            - !Sub "${DynamoTableNamePrefix}-analyses-${DeploymentStage}"
+        AnthropicApiKeySecretArn: !Ref AnthropicApiKeySecretArn
+        ApiClientsTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.ApiClientsTable
+            - !Sub "${DynamoTableNamePrefix}-api-clients-${DeploymentStage}"
+        ApiDomainCertificateArn: ""
+        ApiSubdomainPrefix: api4
+        AppCnameTarget: !Ref AppCnameTarget
+        AppName: !Ref AppName
+        Sam4ManagedPolicyNamePrefix: !Ref AWS::StackName
+        AssetsBucket:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.AssetsBucket
+            - !Sub "${AppName}-assets-${DeploymentStage}-${AWS::AccountId}"
+        AuditTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.AuditTable
+            - !Sub "${DynamoTableNamePrefix}-audit-${DeploymentStage}"
+        AzureSpeechKeySecretArn: !Ref AzureSpeechKeySecretArn
+        AzureTranslationKeySecretArn: !Ref AzureTranslationKeySecretArn
+        BillingAuditEventsTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.BillingAuditEventsTable
+            - !Sub "${DynamoTableNamePrefix}-billing-audit-events-${DeploymentStage}"
+        BillingAuditLogTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.BillingAuditLogTable
+            - !Sub "${DynamoTableNamePrefix}-billing-audit-log-${DeploymentStage}"
+        BillingInvoicesBucket:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.BillingInvoicesBucket
+            - !Sub "rapid-cortex-billing-invoices-${DeploymentStage}-${AWS::AccountId}"
+        BillingPaymentInstructionsSecretArn:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.BillingPaymentInstructionsSecretArn
+            - !Ref FlatDataLayerBillingPaymentInstructionsSecretArn
+        BillingPosBucket:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.BillingPosBucket
+            - !Sub "rapid-cortex-billing-pos-${DeploymentStage}-${AWS::AccountId}"
+        BillingProfilesTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.BillingProfilesTable
+            - !Sub "${DynamoTableNamePrefix}-billing-profiles-${DeploymentStage}"
+        BillingSchedulesTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.BillingSchedulesTable
+            - !Sub "${DynamoTableNamePrefix}-billing-schedules-${DeploymentStage}"
+        BillingSesCredentialsSecretArn:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.BillingSesCredentialsSecretArn
+            - !Ref FlatDataLayerBillingSesCredentialsSecretArn
+        BillingSesDomain: !Ref BillingSesDomain
+        BillingSesSenderEmail: !Ref BillingSesSenderEmail
+        BillingWebhookEventsTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.BillingWebhookEventsTable
+            - !Sub "${DynamoTableNamePrefix}-billing-webhook-events-${DeploymentStage}"
+        CadIntegrationsTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.CadIntegrationsTable
+            - !Sub "${DynamoTableNamePrefix}-cad-integrations-${DeploymentStage}"
+        CadWritebackAuditTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.CadWritebackAuditTable
+            - !Sub "${DynamoTableNamePrefix}-cad-writeback-audit-${DeploymentStage}"
+        CadWritebackEnabled: !Ref CadWritebackEnabled
+        CadWritebackRequiresApproval: !Ref CadWritebackRequiresApproval
+        CustomersTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.CustomersTable
+            - !Sub "${DynamoTableNamePrefix}-customers-${DeploymentStage}"
+        DataDeletionAuditTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.DataDeletionAuditTable
+            - !Sub "${DynamoTableNamePrefix}-data-deletion-audit-${DeploymentStage}"
+        DeceptionEventsTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.DeceptionEventsTable
+            - !Sub "${DynamoTableNamePrefix}-deception-events-${DeploymentStage}"
+        DeploymentStage: !Ref DeploymentStage
+        DispatcherCoachingNotesTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.DispatcherCoachingNotesTable
+            - !Sub "${DynamoTableNamePrefix}-dispatcher-coaching-notes-${DeploymentStage}"
+        DynamoBillingMode: !Ref DynamoBillingMode
+        DynamoPointInTimeRecovery: !Ref DynamoPointInTimeRecovery
+        DynamoTableNamePrefix: !Ref DynamoTableNamePrefix
+        EnableApiWaf: !Ref EnableApiWaf
+        EnableCloudTrail: !Ref EnableCloudTrail
+        EnableCloudTrailLambdaDataEvents: !Ref EnableCloudTrailLambdaDataEvents
+        EnableCloudTrailS3DataEvents: !Ref EnableCloudTrailS3DataEvents
+        EnableLiveVideoResources: !Ref EnableLiveVideoResources
+        ExternalApiEncryptionKeyArn: !Ref ExternalApiEncryptionKeyArn
+        ExternalApiJwtSecretArn: !Ref ExternalApiJwtSecretArn
+        ExternalApiRateLimitsTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.ExternalApiRateLimitsTable
+            - !Sub "${DynamoTableNamePrefix}-external-api-rate-${DeploymentStage}"
+        RcLiteApiKeysTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.RcLiteApiKeysTable
+            - !Sub "${DynamoTableNamePrefix}-rc-lite-api-keys-${DeploymentStage}"
+        RcLiteRateLimitTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.RcLiteRateLimitTable
+            - !Sub "${DynamoTableNamePrefix}-rc-lite-rate-limit-${DeploymentStage}"
+        RcLiteUsageTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.RcLiteUsageTable
+            - !Sub "${DynamoTableNamePrefix}-rc-lite-usage-${DeploymentStage}"
+        GoogleApplicationCredentialsSecretArn: !Ref GoogleApplicationCredentialsSecretArn
+        GoogleCloudProjectId: !Ref GoogleCloudProjectId
+        GoogleTtsOutputBucket: !Ref GoogleTtsOutputBucket
+        HttpApiCorsAllowedOrigins: !Ref HttpApiCorsAllowedOrigins
+        IncidentMediaTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.IncidentMediaTable
+            - !Sub "${DynamoTableNamePrefix}-incident-media-${DeploymentStage}"
+        IncidentMediaTwilioSecretArn: !Ref IncidentMediaTwilioSecretArn
+        IncidentSharesTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.IncidentSharesTable
+            - !Sub "${DynamoTableNamePrefix}-incident-shares-${DeploymentStage}"
+        IncidentsTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.IncidentsTable
+            - !Sub "${DynamoTableNamePrefix}-incidents-${DeploymentStage}"
+        InvitesTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.InvitesTable
+            - !Sub "${DynamoTableNamePrefix}-invites-${DeploymentStage}"
+        InvoiceItemsTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.InvoiceItemsTable
+            - !Sub "${DynamoTableNamePrefix}-invoice-items-${DeploymentStage}"
+        InvoicesTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.InvoicesTable
+            - !Sub "${DynamoTableNamePrefix}-invoices-${DeploymentStage}"
+        LanguageProvider: !Ref LanguageProvider
+        LanguageSessionsTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.LanguageSessionsTable
+            - !Sub "${DynamoTableNamePrefix}-language-sessions-${DeploymentStage}"
+        LiveVideoSessionsTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.LiveVideoSessionsTable
+            - !Sub "${DynamoTableNamePrefix}-live-video-sessions-${DeploymentStage}"
+        MonetizationAddOnsTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.MonetizationAddOnsTable
+            - !Sub "${DynamoTableNamePrefix}-monetization-addons-${DeploymentStage}"
+        MonetizationInvoicesTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.MonetizationInvoicesTable
+            - !Sub "${DynamoTableNamePrefix}-monetization-invoices-${DeploymentStage}"
+        MonetizationPlansTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.MonetizationPlansTable
+            - !Sub "${DynamoTableNamePrefix}-monetization-plans-${DeploymentStage}"
+        NetworkEmergencyOverridesTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.NetworkEmergencyOverridesTable
+            - !Sub "${DynamoTableNamePrefix}-network-emergency-overrides-${DeploymentStage}"
+        MultilingualSecretProvisioning: !Ref MultilingualSecretProvisioning
+        MultilingualSecretsPolicyMode: !Ref MultilingualSecretsPolicyMode
+        NestedMultilingualAzureApiKeysSecretArn:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.MultilingualAzureApiKeysSecretArn
+            - ""
+        NestedMultilingualGoogleServiceAccountSecretArn:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.MultilingualGoogleServiceAccountSecretArn
+            - ""
+        OpenAiApiKeySecretArn: !Ref OpenAiApiKeySecretArn
+        PaymentRecordsTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.PaymentRecordsTable
+            - !Sub "${DynamoTableNamePrefix}-payment-records-${DeploymentStage}"
+        PremiseNotesTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.PremiseNotesTable
+            - !Sub "${DynamoTableNamePrefix}-premise-notes-${DeploymentStage}"
+        PlatformNoticesTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.PlatformNoticesTable
+            - !Sub "${DynamoTableNamePrefix}-platform-notices-${DeploymentStage}"
+        PlatformNoticeAcksTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.PlatformNoticeAcksTable
+            - !Sub "${DynamoTableNamePrefix}-platform-notice-acks-${DeploymentStage}"
+        QASessionsTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.QASessionsTable
+            - !Sub "${DynamoTableNamePrefix}-qa-sessions-${DeploymentStage}"
+        QATemplatesTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.QATemplatesTable
+            - !Sub "${DynamoTableNamePrefix}-qa-templates-${DeploymentStage}"
+        QaBedrockModelId: !Ref QaBedrockModelId
+        RootDomainName: !Ref RootDomainName
+        Route53HostedZoneId: ""
+        SalesLeadsTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.SalesLeadsTable
+            - !Sub "${DynamoTableNamePrefix}-sales-leads-${DeploymentStage}"
+        SelfSignupDefaultAgencyId: !Ref SelfSignupDefaultAgencyId
+        SelfSignupDefaultRole: !Ref SelfSignupDefaultRole
+        ServiceCatalogTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.ServiceCatalogTable
+            - !Sub "${DynamoTableNamePrefix}-service-catalog-${DeploymentStage}"
+        SesConfigurationSetName: !Ref SesConfigurationSetName
+        SesIdentityType: !Ref SesIdentityType
+        SesIdentityValue: !Ref SesIdentityValue
+        SilentTextSessionsTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.SilentTextSessionsTable
+            - !Sub "${DynamoTableNamePrefix}-silent-text-sessions-${DeploymentStage}"
+        PinpointLinksTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.PinpointLinksTable
+            - !Sub "${DynamoTableNamePrefix}-pinpoint-links-${DeploymentStage}"
+        SurgeClustersTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.SurgeClustersTable
+            - !Sub "${DynamoTableNamePrefix}-surge-clusters-${DeploymentStage}"
+        SnsEmailSubscription: !Ref SnsEmailSubscription
+        SnsSmsSubscription: !Ref SnsSmsSubscription
+        TranscriptRetentionPolicyDays: !Ref TranscriptRetentionPolicyDays
+        TranscriptsTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.TranscriptsTable
+            - !Sub "${DynamoTableNamePrefix}-transcripts-${DeploymentStage}"
+        TraumaFlagsTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.TraumaFlagsTable
+            - !Sub "${DynamoTableNamePrefix}-trauma-flags-${DeploymentStage}"
+        UsageMetersTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.UsageMetersTable
+            - !Sub "${DynamoTableNamePrefix}-usage-meters-${DeploymentStage}"
+        VideoAssistSessionsTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.VideoAssistSessionsTable
+            - !Sub "${DynamoTableNamePrefix}-video-assist-sessions-${DeploymentStage}"
+        WafRateLimitPer5Min: !Ref WafRateLimitPer5Min
+        WebhooksTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.WebhooksTable
+            - !Sub "${DynamoTableNamePrefix}-webhooks-${DeploymentStage}"
+        # Comms/platform tables owned by rapid-cortex-2-dev (or legacy); reference by name only — do not create in AppSam2Stack.
+        AgencyReportsTable: !Sub "rapid-cortex-agency-reports-${DeploymentStage}"
+        CoachingNotesTable: !Sub "rapid-cortex-coaching-notes-${DeploymentStage}"
+        IncidentTimelineTable: !Sub "rapid-cortex-incident-timeline-${DeploymentStage}"
+        PostIncidentReviewsTable: !Sub "rapid-cortex-post-incident-reviews-${DeploymentStage}"
+        QaScorecardsTable: !Sub "rapid-cortex-qa-scorecards-${DeploymentStage}"
+        SlaBacklogSnapshotsTable: !Sub "rapid-cortex-sla-backlog-snapshots-${DeploymentStage}"
+        StakeholderPagesTable: !Sub "rapid-cortex-stakeholder-pages-${DeploymentStage}"
+        WarRoomMessagesTable: !Sub "rapid-cortex-war-room-messages-${DeploymentStage}"
+        WarRoomsTable: !Sub "rapid-cortex-war-rooms-${DeploymentStage}"
+        CreateApiCustomDomain: "false"
+        WwwCnameTarget: !Ref WwwCnameTarget
+        ImportedCognitoUserPoolId: !GetAtt AppSamStackV2.Outputs.UserPoolId
+        ImportedCognitoWebClientId: !GetAtt AppSamStackV2.Outputs.UserPoolClientId
+        ImportedCognitoNativeClientId: !GetAtt AppSamStackV2.Outputs.NativeUserPoolClientId
+        ImportedCognitoIssuer: !GetAtt AppSamStackV2.Outputs.CognitoIssuer
+        ImportedOpsAlertsTopicArn: !GetAtt AppSamStackV2.Outputs.OpsAlertsTopicArn
+
   AppSamHospital2Stack:
     Type: AWS::CloudFormation::Stack
     # cfn-lint W3005 is overzealous here: the !GetAtt below DOES create the
@@ -1414,6 +2125,18 @@ Outputs:
   HttpApi2Id:
     Description: Secondary HTTP API ID (stack-app-sam-2)
     Value: !GetAtt AppSam2Stack.Outputs.HttpApiId
+  HttpApi3Url:
+    Description: Tertiary HTTP API base URL (stack-app-sam-3 media/admin/platform routes)
+    Value: !GetAtt AppSam3Stack.Outputs.HttpApiUrl
+  HttpApi3Id:
+    Description: Tertiary HTTP API ID (stack-app-sam-3)
+    Value: !GetAtt AppSam3Stack.Outputs.HttpApiId
+  HttpApi4Url:
+    Description: Quaternary HTTP API base URL (stack-app-sam-4 billing/ring routes)
+    Value: !GetAtt AppSam4Stack.Outputs.HttpApiUrl
+  HttpApi4Id:
+    Description: Quaternary HTTP API ID (stack-app-sam-4)
+    Value: !GetAtt AppSam4Stack.Outputs.HttpApiId
   WebSocketApiUrl:
     Description: WebSocket URL for real-time call control (wss)
     Value: !GetAtt AppSamRealtime2Stack.Outputs.WebSocketApiUrl

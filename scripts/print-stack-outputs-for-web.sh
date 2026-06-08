@@ -24,6 +24,8 @@ get_output() {
 
 HTTP_API_URL="$(get_output HttpApiUrl)"
 HTTP_API_URL_2="$(get_output HttpApi2Url)"
+HTTP_API_URL_3="$(get_output HttpApi3Url)"
+HTTP_API_URL_4="$(get_output HttpApi4Url)"
 API_CUSTOM_DOMAIN_URL="$(get_output ApiCustomDomainUrl)"
 USER_POOL_ID="$(get_output UserPoolId)"
 USER_POOL_CLIENT_ID="$(get_output UserPoolClientId)"
@@ -137,6 +139,14 @@ echo "API_UPSTREAM_BASE=${API_BASE}"
 if [[ -n "${HTTP_API_URL_2:-}" && "$HTTP_API_URL_2" != "None" ]]; then
   echo "API_UPSTREAM_BASE_2=${HTTP_API_URL_2}"
   echo "NEXT_PUBLIC_API_BASE_2=${HTTP_API_URL_2}"
+fi
+if [[ -n "${HTTP_API_URL_3:-}" && "$HTTP_API_URL_3" != "None" ]]; then
+  echo "API_UPSTREAM_BASE_3=${HTTP_API_URL_3}"
+  echo "NEXT_PUBLIC_API_BASE_3=${HTTP_API_URL_3}"
+fi
+if [[ -n "${HTTP_API_URL_4:-}" && "$HTTP_API_URL_4" != "None" ]]; then
+  echo "API_UPSTREAM_BASE_4=${HTTP_API_URL_4}"
+  echo "NEXT_PUBLIC_API_BASE_4=${HTTP_API_URL_4}"
 fi
 echo ""
 echo "# --- Environment badge (matches stack DeploymentStage) ---"

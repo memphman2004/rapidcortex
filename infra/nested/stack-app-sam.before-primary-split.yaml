@@ -975,11 +975,12 @@ Globals:
     Environment:
       Variables:
         RC_RUNTIME_CONFIG_JSON: !Sub
-          - '{"ds":"${DeploymentStage}","trp":"${TranscriptRetentionPolicyDays}","it":"${IncidentsTable}","tt":"${TranscriptsTable}","at":"${AnalysesTable}","aud":"${AuditTable}","dda":"${DataDeletionAuditTable}","drp":"cjis-default-v1","ag":"${AgenciesTable}","iv":"${InvitesTable}","ao":"${AccessOverridesTable}","neo":"${NetworkEmergencyOverridesTable}","ans":"","nae":"false","waf":"${WafArn}","wsc":"REGIONAL","ac":"${ApiClientsTable}","wh":"${WebhooksTable}","erl":"${ExternalApiRateLimitsTable}","rle":"true","rak":"${RcLiteApiKeysTable}","rrl":"${RcLiteRateLimitTable}","rlu":"${RcLiteUsageTable}","sit":"${SeoIntelligenceTable}","ste":"${SeoToolEnabled}","sae":"${SeoAutoScanEnabled}","sai":"${SeoAiSuggestionsEnabled}","det":"${DeceptionEventsTable}","dse":"${PilotDeceptionShield}","dae":"false","dal":"true","ops":"${OpsAlertsTopic}","ej":"${ExternalApiJwtSecretArn}","ek":"${ExternalApiEncryptionKeyArn}","pma":"60","peg":"0","pcf":"true","ab":"${AssetsBucket}","ls":"${LanguageSessionsTable}","aef":"true","asm":"true","apv":"dispatch-triage-v1","art":"55000","amr":"1","adb":"0","amh":"120","asu":"true","ail":"90","oa":"${OpenAiApiKeySecretArn}","aa":"${AnthropicApiKeySecretArn}","aas":"0","aua":"false","aco":"${HttpApiCorsAllowedOrigins}","eqs":"${PilotEnableQaScoring}","eqa":"${PilotEnableQaAfterAnalysis}","qss":"${QASessionsTable}","qts":"${QATemplatesTable}","qsm":"${PilotQaScoringMock}","qbm":"${QaBedrockModelId}","br":"${AWSRegion}","eim":"${PilotEnableIncidentMedia}","imt":"${IncidentMediaTable}","imp":"","imn":"120","imu":"900","imx":"52428800","ent":"${PilotEnableNonEmergencyTriage}","tft":"${TraumaFlagsTable}","pn":"${PremiseNotesTable}","dcn":"${DispatcherCoachingNotesTable}","itl":"${IncidentTimelineTable}","ish":"${IncidentSharesTable}","asp":"${AgencySharePartnersTable}","lp":"${LanguageProvider}","cr":"${AWSRegion}","cwe":"${CadWritebackEnabled}","cwr":"${CadWritebackRequiresApproval}","cwa":"${CadWritebackAuditTable}","bp":"${BillingProfilesTable}","inv":"${InvoicesTable}","ii":"${InvoiceItemsTable}","bae":"${BillingAuditEventsTable}","mao":"${MonetizationAddOnsTable}","minv":"${MonetizationInvoicesTable}","slt":"${SalesLeadsTable}","cfe":"support@rapidcortex.us"}'
+          - '{"ds":"${DeploymentStage}","trp":"${TranscriptRetentionPolicyDays}","it":"${IncidentsTable}","tt":"${TranscriptsTable}","at":"${AnalysesTable}","aud":"${AuditTable}","dda":"${DataDeletionAuditTable}","drp":"cjis-default-v1","ag":"${AgenciesTable}","iv":"${InvitesTable}","ao":"${AccessOverridesTable}","neo":"${NetworkEmergencyOverridesTable}","ans":"${AgencyNetworkPolicySyncTopic}","nae":"false","waf":"${WafArn}","wsc":"REGIONAL","ac":"${ApiClientsTable}","wh":"${WebhooksTable}","erl":"${ExternalApiRateLimitsTable}","rle":"true","rak":"${RcLiteApiKeysTable}","rrl":"${RcLiteRateLimitTable}","rlu":"${RcLiteUsageTable}","sit":"${SeoIntelligenceTable}","ste":"${SeoToolEnabled}","sae":"${SeoAutoScanEnabled}","sai":"${SeoAiSuggestionsEnabled}","det":"${DeceptionEventsTable}","dse":"${PilotDeceptionShield}","dae":"false","dal":"true","ops":"${OpsAlertsTopic}","ej":"${ExternalApiJwtSecretArn}","ek":"${ExternalApiEncryptionKeyArn}","pma":"60","peg":"0","pcf":"true","ab":"${AssetsBucket}","ls":"${LanguageSessionsTable}","aef":"true","asm":"true","apv":"dispatch-triage-v1","art":"55000","amr":"1","adb":"0","amh":"120","asu":"true","ail":"90","oa":"${OpenAiApiKeySecretArn}","aa":"${AnthropicApiKeySecretArn}","aas":"0","aua":"false","aco":"${HttpApiCorsAllowedOrigins}","eqs":"${PilotEnableQaScoring}","eqa":"${PilotEnableQaAfterAnalysis}","qss":"${QASessionsTable}","qts":"${QATemplatesTable}","qsm":"${PilotQaScoringMock}","qbm":"${QaBedrockModelId}","br":"${AWSRegion}","eim":"${PilotEnableIncidentMedia}","imt":"${IncidentMediaTable}","imp":"","imn":"120","imu":"900","imx":"52428800","ent":"${PilotEnableNonEmergencyTriage}","tft":"${TraumaFlagsTable}","pn":"${PremiseNotesTable}","dcn":"${DispatcherCoachingNotesTable}","itl":"${IncidentTimelineTable}","ish":"${IncidentSharesTable}","asp":"${AgencySharePartnersTable}","lp":"${LanguageProvider}","cr":"${AWSRegion}","cwe":"${CadWritebackEnabled}","cwr":"${CadWritebackRequiresApproval}","cwa":"${CadWritebackAuditTable}","bp":"${BillingProfilesTable}","inv":"${InvoicesTable}","ii":"${InvoiceItemsTable}","bae":"${BillingAuditEventsTable}","mao":"${MonetizationAddOnsTable}","minv":"${MonetizationInvoicesTable}","slt":"${SalesLeadsTable}","cfe":"support@rapidcortex.us"}'
           -
             AWSRegion: !Ref AWS::Region
             AccessOverridesTable: !Ref AccessOverridesTable
             AgenciesTable: !Ref AgenciesTable
+            AgencyNetworkPolicySyncTopic: !Ref AgencyNetworkPolicySyncTopic
             AgencySharePartnersTable: !Ref AgencySharePartnersTable
             AnalysesTable: !Ref AnalysesTable
             AnthropicApiKeySecretArn: !Ref AnthropicApiKeySecretArn
@@ -1622,6 +1623,36 @@ Resources:
               StringEquals:
                 aws:RequestedRegion: !Ref AWS::Region
 
+  AppManagedPolicyRingConnectSecrets:
+    Type: AWS::IAM::ManagedPolicy
+    Properties:
+      ManagedPolicyName: !Sub "${AppName}-lambda-ring-secrets-${DeploymentStage}"
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Sid: RingConnectTokenSecrets
+            Effect: Allow
+            Action:
+              - secretsmanager:CreateSecret
+              - secretsmanager:GetSecretValue
+              - secretsmanager:PutSecretValue
+              - secretsmanager:UpdateSecret
+              - secretsmanager:DeleteSecret
+              - secretsmanager:DescribeSecret
+              - secretsmanager:TagResource
+            Resource: !Sub arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:${RingSecretsPrefix}/*
+          - Sid: RingCredentialsRead
+            Effect: Allow
+            Action:
+              - secretsmanager:GetSecretValue
+            Resource:
+              - !Sub arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:rapid-cortex/connect/ring-credentials-*
+              - !Sub arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:rapid-cortex/connect/ring-credentials-D3f1sN
+              - !If
+                - HasRingCredentialsSecretArn
+                - !Ref RingCredentialsSecretArn
+                - !Ref AWS::NoValue
+
   AppManagedPolicyOpsAlertsSnsPublishOnly:
     Type: AWS::IAM::ManagedPolicy
     Properties:
@@ -2159,6 +2190,342 @@ Resources:
             ApiId: !Ref Api
             Path: /api/contact-sales
             Method: ANY
+            Auth:
+              Authorizer: NONE
+
+  RingConnectLoginFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/integrations/ring/login.handler
+      Timeout: 30
+      Environment:
+        Variables:
+          COGNITO_USER_POOL_ID: !Ref CognitoUserPool
+          COGNITO_CLIENT_ID: !Ref CognitoUserPoolClient
+          ENABLE_CONNECT_RING: !Ref EnableConnectRing
+          RING_REDIRECT_URI: !Ref RingRedirectUri
+          RING_ACCOUNT_LINK_URL: !Ref RingAccountLinkUrl
+          RING_SECRETS_PREFIX: !Ref RingSecretsPrefix
+          RING_TABLE_ACCOUNTS: !If
+            - HasRingAccountsTable
+            - !Ref RingAccountsTable
+            - !Sub "RapidCortexRingAccounts-${DeploymentStage}"
+          RING_TABLE_DEVICES: !If
+            - HasRingDevicesTable
+            - !Ref RingDevicesTable
+            - !Sub "RapidCortexRingDevices-${DeploymentStage}"
+      Policies:
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardA
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardC
+        - !Ref AppManagedPolicyRingConnectSecrets
+      Events:
+        Route:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/integrations/ring/login
+            Method: GET
+
+  RingConnectCallbackFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/integrations/ring/callback.handler
+      Timeout: 60
+      Environment:
+        Variables:
+          ENABLE_CONNECT_RING: !Ref EnableConnectRing
+          RING_REDIRECT_URI: !Ref RingRedirectUri
+          RING_ACCOUNT_LINK_URL: !Ref RingAccountLinkUrl
+          RING_SECRETS_PREFIX: !Ref RingSecretsPrefix
+          RING_TABLE_ACCOUNTS: !If
+            - HasRingAccountsTable
+            - !Ref RingAccountsTable
+            - !Sub "RapidCortexRingAccounts-${DeploymentStage}"
+          RING_TABLE_DEVICES: !If
+            - HasRingDevicesTable
+            - !Ref RingDevicesTable
+            - !Sub "RapidCortexRingDevices-${DeploymentStage}"
+      Policies:
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardA
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardC
+        - !Ref AppManagedPolicyRingConnectSecrets
+      Events:
+        Route:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/integrations/ring/callback
+            Method: GET
+            Auth:
+              Authorizer: NONE
+
+  RingConnectDevicesFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/integrations/ring/devices.handler
+      Timeout: 30
+      Environment:
+        Variables:
+          COGNITO_USER_POOL_ID: !Ref CognitoUserPool
+          COGNITO_CLIENT_ID: !Ref CognitoUserPoolClient
+          ENABLE_CONNECT_RING: !Ref EnableConnectRing
+          RING_TABLE_DEVICES: !If
+            - HasRingDevicesTable
+            - !Ref RingDevicesTable
+            - !Sub "RapidCortexRingDevices-${DeploymentStage}"
+      Policies:
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardA
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardC
+      Events:
+        Route:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/integrations/ring/devices
+            Method: GET
+
+  RingConnectRefreshTokenFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/integrations/ring/refresh-token.handler
+      Timeout: 30
+      Environment:
+        Variables:
+          ENABLE_CONNECT_RING: !Ref EnableConnectRing
+          RING_SECRETS_PREFIX: !Ref RingSecretsPrefix
+          RING_TABLE_ACCOUNTS: !If
+            - HasRingAccountsTable
+            - !Ref RingAccountsTable
+            - !Sub "RapidCortexRingAccounts-${DeploymentStage}"
+          INTERNAL_SERVICE_KEY: !Ref InternalServiceKey
+      Policies:
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardA
+        - !Ref AppManagedPolicyRingConnectSecrets
+      Events:
+        Route:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/integrations/ring/refresh-token
+            Method: POST
+            Auth:
+              Authorizer: NONE
+
+  RingConnectAvailableCamerasFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/integrations/ring/available-cameras.handler
+      Timeout: 30
+      Environment:
+        Variables:
+          COGNITO_USER_POOL_ID: !Ref CognitoUserPool
+          COGNITO_CLIENT_ID: !Ref CognitoUserPoolClient
+          ENABLE_CONNECT_RING: !Ref EnableConnectRing
+          ENABLE_CONNECT_RING_AVAILABLE_CAMERAS: !Ref EnableConnectRingAvailableCameras
+          RING_TABLE_DEVICES: !If
+            - HasRingDevicesTable
+            - !Ref RingDevicesTable
+            - !Sub "RapidCortexRingDevices-${DeploymentStage}"
+          RING_TABLE_REQUESTS: !If
+            - HasRingRequestsTable
+            - !Ref RingRequestsTable
+            - !Sub "RingEmergencyCameraRequests-${DeploymentStage}"
+      Policies:
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardA
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardC
+      Events:
+        Route:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/integrations/ring/available-cameras
+            Method: GET
+
+  RingConnectRequestCameraAccessFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/integrations/ring/request-camera-access.handler
+      Timeout: 60
+      Environment:
+        Variables:
+          COGNITO_USER_POOL_ID: !Ref CognitoUserPool
+          COGNITO_CLIENT_ID: !Ref CognitoUserPoolClient
+          ENABLE_CONNECT_RING: !Ref EnableConnectRing
+          ENABLE_CONNECT_RING_EMERGENCY_REQUESTS: !Ref EnableConnectRingEmergencyRequests
+          RING_PUBLIC_API_BASE_URL: !Ref RingPublicApiBaseUrl
+          RING_TABLE_DEVICES: !If
+            - HasRingDevicesTable
+            - !Ref RingDevicesTable
+            - !Sub "RapidCortexRingDevices-${DeploymentStage}"
+          RING_TABLE_REQUESTS: !If
+            - HasRingRequestsTable
+            - !Ref RingRequestsTable
+            - !Sub "RingEmergencyCameraRequests-${DeploymentStage}"
+          INCIDENT_MEDIA_TWILIO_SECRET_ARN: !Ref IncidentMediaTwilioSecretArn
+          SMS_PROVIDER: !FindInMap [SmsEnvironmentDefaults, !Ref DeploymentStage, SmsProvider]
+          SMS_PRIMARY_PROVIDER: !FindInMap [SmsEnvironmentDefaults, !Ref DeploymentStage, SmsPrimaryProvider]
+          MOCK_SMS_PROVIDER: !FindInMap [SmsEnvironmentDefaults, !Ref DeploymentStage, MockSmsProvider]
+          AWS_SMS_USE_SIMULATOR: !FindInMap [SmsEnvironmentDefaults, !Ref DeploymentStage, AwsSmsUseSimulator]
+      Policies:
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardA
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardC
+        - Statement:
+            Sid: RingOwnerCognitoLookup
+            Effect: Allow
+            Action:
+              - cognito-idp:AdminGetUser
+              - cognito-idp:ListUsers
+            Resource: !GetAtt CognitoUserPool.Arn
+        - Statement:
+            Sid: SnsPublishToPhoneNumbersRingOwnerNotify
+            Effect: Allow
+            Action: sns:Publish
+            Resource: "*"
+            Condition:
+              StringEquals:
+                "sns:Type": "Transactional"
+        - !If
+          - HasIncidentMediaTwilioSecretArn
+          - Statement:
+              Sid: ReadTwilioSecretRingOwnerNotify
+              Effect: Allow
+              Action:
+                - secretsmanager:GetSecretValue
+              Resource: !Ref IncidentMediaTwilioSecretArn
+          - !Ref AWS::NoValue
+        - Statement:
+            Sid: SesRingOwnerNotifyFromSupportIdentity
+            Effect: Allow
+            Action:
+              - ses:SendEmail
+            Resource:
+              - !Sub arn:${AWS::Partition}:ses:${AWS::Region}:${AWS::AccountId}:identity/support@rapidcortex.us
+      Events:
+        Route:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/integrations/ring/request-camera-access
+            Method: POST
+
+  RingConnectCameraConsentApproveFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/integrations/ring/camera-consent.approveHandler
+      Timeout: 30
+      Environment:
+        Variables:
+          ENABLE_CONNECT_RING: !Ref EnableConnectRing
+          ENABLE_CONNECT_RING_EMERGENCY_REQUESTS: !Ref EnableConnectRingEmergencyRequests
+          RING_TABLE_REQUESTS: !If
+            - HasRingRequestsTable
+            - !Ref RingRequestsTable
+            - !Sub "RingEmergencyCameraRequests-${DeploymentStage}"
+          RING_TABLE_SESSIONS: !If
+            - HasRingSessionsTable
+            - !Ref RingSessionsTable
+            - !Sub "RingEmergencyCameraSessions-${DeploymentStage}"
+      Policies:
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardC
+      Events:
+        Route:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/integrations/ring/consent/{requestToken}/approve
+            Method: POST
+            Auth:
+              Authorizer: NONE
+
+  RingConnectCameraConsentDeclineFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/integrations/ring/camera-consent.declineHandler
+      Timeout: 30
+      Environment:
+        Variables:
+          ENABLE_CONNECT_RING: !Ref EnableConnectRing
+          ENABLE_CONNECT_RING_EMERGENCY_REQUESTS: !Ref EnableConnectRingEmergencyRequests
+          RING_TABLE_REQUESTS: !If
+            - HasRingRequestsTable
+            - !Ref RingRequestsTable
+            - !Sub "RingEmergencyCameraRequests-${DeploymentStage}"
+      Policies:
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardC
+      Events:
+        Route:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/integrations/ring/consent/{requestToken}/decline
+            Method: POST
+            Auth:
+              Authorizer: NONE
+
+  RingConnectRevokeCameraAccessFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/integrations/ring/revoke-camera-access.handler
+      Timeout: 30
+      Environment:
+        Variables:
+          COGNITO_USER_POOL_ID: !Ref CognitoUserPool
+          COGNITO_CLIENT_ID: !Ref CognitoUserPoolClient
+          ENABLE_CONNECT_RING: !Ref EnableConnectRing
+          ENABLE_CONNECT_RING_EMERGENCY_REQUESTS: !Ref EnableConnectRingEmergencyRequests
+          RING_TABLE_REQUESTS: !If
+            - HasRingRequestsTable
+            - !Ref RingRequestsTable
+            - !Sub "RingEmergencyCameraRequests-${DeploymentStage}"
+          RING_TABLE_SESSIONS: !If
+            - HasRingSessionsTable
+            - !Ref RingSessionsTable
+            - !Sub "RingEmergencyCameraSessions-${DeploymentStage}"
+      Policies:
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardC
+      Events:
+        Route:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/integrations/ring/sessions/{sessionId}/revoke
+            Method: POST
             Auth:
               Authorizer: NONE
 
@@ -4967,6 +5334,721 @@ Resources:
             ApiId: !Ref Api
             Path: /api/agencies/{id}/invites
             Method: POST
+
+  ListBillingPlansFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      Environment:
+        Variables:
+          COGNITO_USER_POOL_ID: !Ref CognitoUserPool
+          COGNITO_CLIENT_ID: !Ref CognitoUserPoolClient
+      CodeUri: ../../apps/api/
+      Handler: dist/handlers/listBillingPlans.handler
+      Policies:
+        - !Ref AppManagedPolicyS3ApplicationBucketsCrud
+
+      Events:
+        Route:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/billing/plans
+            Method: GET
+
+  GetAgencyBillingProfileFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      Environment:
+        Variables:
+          COGNITO_USER_POOL_ID: !Ref CognitoUserPool
+          COGNITO_CLIENT_ID: !Ref CognitoUserPoolClient
+      CodeUri: ../../apps/api/
+      Handler: dist/handlers/getAgencyBillingProfile.handler
+      Policies:
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardA
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardB
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardC
+        - !Ref AppManagedPolicyS3ApplicationBucketsCrud
+
+      Events:
+        Route:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/agencies/{id}/billing-profile
+            Method: GET
+
+  PatchAgencyBillingProfileFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      Environment:
+        Variables:
+          COGNITO_USER_POOL_ID: !Ref CognitoUserPool
+          COGNITO_CLIENT_ID: !Ref CognitoUserPoolClient
+      CodeUri: ../../apps/api/
+      Handler: dist/handlers/patchAgencyBillingProfile.handler
+      Policies:
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardA
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardB
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardC
+        - !Ref AppManagedPolicyS3ApplicationBucketsCrud
+
+      Events:
+        Route:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/agencies/{id}/billing-profile
+            Method: PATCH
+
+  PostBillingSubscriptionChangeFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      Environment:
+        Variables:
+          COGNITO_USER_POOL_ID: !Ref CognitoUserPool
+          COGNITO_CLIENT_ID: !Ref CognitoUserPoolClient
+      CodeUri: ../../apps/api/
+      Handler: dist/handlers/postBillingSubscriptionChange.handler
+      Policies:
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardA
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardB
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardC
+        - !Ref AppManagedPolicyS3ApplicationBucketsCrud
+
+      Events:
+        Route:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/agencies/{id}/billing/subscription/change
+            Method: POST
+
+  PostBillingSubscriptionCancelFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      Environment:
+        Variables:
+          COGNITO_USER_POOL_ID: !Ref CognitoUserPool
+          COGNITO_CLIENT_ID: !Ref CognitoUserPoolClient
+      CodeUri: ../../apps/api/
+      Handler: dist/handlers/postBillingSubscriptionCancel.handler
+      Policies:
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardA
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardB
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardC
+        - !Ref AppManagedPolicyS3ApplicationBucketsCrud
+
+      Events:
+        Route:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/agencies/{id}/billing/subscription/cancel
+            Method: POST
+
+  ListAgencyBillingInvoicesFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      Environment:
+        Variables:
+          COGNITO_USER_POOL_ID: !Ref CognitoUserPool
+          COGNITO_CLIENT_ID: !Ref CognitoUserPoolClient
+      CodeUri: ../../apps/api/
+      Handler: dist/handlers/listAgencyBillingInvoices.handler
+      Policies:
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardA
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardB
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardC
+        - !Ref AppManagedPolicyS3ApplicationBucketsCrud
+
+      Events:
+        Route:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/agencies/{id}/billing/invoices
+            Method: GET
+
+  PostAgencyBillingInvoiceFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      Environment:
+        Variables:
+          COGNITO_USER_POOL_ID: !Ref CognitoUserPool
+          COGNITO_CLIENT_ID: !Ref CognitoUserPoolClient
+      CodeUri: ../../apps/api/
+      Handler: dist/handlers/postAgencyBillingInvoice.handler
+      Policies:
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardA
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardB
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardC
+        - !Ref AppManagedPolicyS3ApplicationBucketsCrud
+
+      Events:
+        Route:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/agencies/{id}/billing/invoices
+            Method: POST
+
+  ListAgencyBillingPaymentMethodsFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      Environment:
+        Variables:
+          COGNITO_USER_POOL_ID: !Ref CognitoUserPool
+          COGNITO_CLIENT_ID: !Ref CognitoUserPoolClient
+      CodeUri: ../../apps/api/
+      Handler: dist/handlers/listAgencyBillingPaymentMethods.handler
+      Policies:
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardA
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardB
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardC
+        - !Ref AppManagedPolicyS3ApplicationBucketsCrud
+
+      Events:
+        Route:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/agencies/{id}/billing/payment-methods
+            Method: GET
+
+  PostAgencyBillingPaymentMethodFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      Environment:
+        Variables:
+          COGNITO_USER_POOL_ID: !Ref CognitoUserPool
+          COGNITO_CLIENT_ID: !Ref CognitoUserPoolClient
+      CodeUri: ../../apps/api/
+      Handler: dist/handlers/postAgencyBillingPaymentMethod.handler
+      Policies:
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardA
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardB
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardC
+        - !Ref AppManagedPolicyS3ApplicationBucketsCrud
+
+      Events:
+        Route:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/agencies/{id}/billing/payment-methods
+            Method: POST
+
+  PostAgencyBillingPaymentMethodDefaultFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      Environment:
+        Variables:
+          COGNITO_USER_POOL_ID: !Ref CognitoUserPool
+          COGNITO_CLIENT_ID: !Ref CognitoUserPoolClient
+      CodeUri: ../../apps/api/
+      Handler: dist/handlers/postAgencyBillingPaymentMethodDefault.handler
+      Policies:
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardA
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardB
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardC
+        - !Ref AppManagedPolicyS3ApplicationBucketsCrud
+
+      Events:
+        Route:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/agencies/{id}/billing/payment-methods/default
+            Method: POST
+
+  BillingTenantHttpFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      Environment:
+        Variables:
+          COGNITO_USER_POOL_ID: !Ref CognitoUserPool
+          COGNITO_CLIENT_ID: !Ref CognitoUserPoolClient
+      CodeUri: ../../apps/api/
+      Handler: dist/handlers/billingTenantHttp.handler
+      Policies:
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardA
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardB
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardC
+        - !Ref AppManagedPolicyS3ApplicationBucketsCrud
+
+      Events:
+        CurrentSub:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/billing/current-subscription
+            Method: GET
+        Invoices:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/billing/invoices
+            Method: GET
+        Usage:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/billing/usage
+            Method: GET
+        ReportUsage:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/billing/report-usage
+            Method: POST
+
+  AdminInvoicesHttpFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      Environment:
+        Variables:
+          COGNITO_USER_POOL_ID: !Ref CognitoUserPool
+          COGNITO_CLIENT_ID: !Ref CognitoUserPoolClient
+      CodeUri: ../../apps/api/
+      Handler: dist/handlers/adminInvoicesHttp.handler
+      Policies:
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardA
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardB
+      Events:
+        AdminInvoicesList:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/admin/invoices
+            Method: GET
+        AdminInvoiceById:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/admin/invoices/{invoiceId}
+            Method: GET
+        AdminInvoicePatch:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/admin/invoices/{invoiceId}
+            Method: PATCH
+
+  BillingCustomersHttpFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      Environment:
+        Variables:
+          COGNITO_USER_POOL_ID: !Ref CognitoUserPool
+          COGNITO_CLIENT_ID: !Ref CognitoUserPoolClient
+      CodeUri: ../../apps/api/
+      Handler: dist/handlers/billingCustomersHttp.handler
+      Policies:
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardA
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardB
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardC
+        - !Ref AppManagedPolicyS3ApplicationBucketsCrud
+
+      Events:
+        CustomersRoot:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/billing/customers
+            Method: ANY
+        CustomersProxy:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/billing/customers/{proxy+}
+            Method: ANY
+
+  BillingServicesHttpFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      Environment:
+        Variables:
+          COGNITO_USER_POOL_ID: !Ref CognitoUserPool
+          COGNITO_CLIENT_ID: !Ref CognitoUserPoolClient
+      CodeUri: ../../apps/api/
+      Handler: dist/handlers/billingServicesHttp.handler
+      Policies:
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardA
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardB
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardC
+        - !Ref AppManagedPolicyS3ApplicationBucketsCrud
+
+      Events:
+        ServicesRoot:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/billing/services
+            Method: ANY
+        ServicesProxy:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/billing/services/{proxy+}
+            Method: ANY
+
+  BillingInvoicesHttpFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      Environment:
+        Variables:
+          COGNITO_USER_POOL_ID: !Ref CognitoUserPool
+          COGNITO_CLIENT_ID: !Ref CognitoUserPoolClient
+      CodeUri: ../../apps/api/
+      Handler: dist/handlers/billingInvoicesHttp.handler
+      Policies:
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardA
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardB
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardC
+        - !Ref AppManagedPolicyS3ApplicationBucketsCrud
+
+      Events:
+        InvoicesRoot:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/billing/invoices
+            Method: ANY
+        InvoicesProxy:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/billing/invoices/{proxy+}
+            Method: ANY
+
+  BillingSchedulesHttpFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      Environment:
+        Variables:
+          COGNITO_USER_POOL_ID: !Ref CognitoUserPool
+          COGNITO_CLIENT_ID: !Ref CognitoUserPoolClient
+      CodeUri: ../../apps/api/
+      Handler: dist/handlers/billingSchedulesHttp.handler
+      Policies:
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardA
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardB
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardC
+        - !Ref AppManagedPolicyS3ApplicationBucketsCrud
+
+      Events:
+        SchedulesRoot:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/billing/schedules
+            Method: ANY
+        SchedulesProxy:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/billing/schedules/{proxy+}
+            Method: ANY
+
+  BillingPaymentsHttpFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      Environment:
+        Variables:
+          COGNITO_USER_POOL_ID: !Ref CognitoUserPool
+          COGNITO_CLIENT_ID: !Ref CognitoUserPoolClient
+      CodeUri: ../../apps/api/
+      Handler: dist/handlers/billingPaymentsHttp.handler
+      Policies:
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardA
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardB
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardC
+        - !Ref AppManagedPolicyS3ApplicationBucketsCrud
+        - !Ref AppManagedPolicySesBillingSenderIdentityEmails
+
+      Events:
+        PaymentsRoot:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/billing/payments
+            Method: ANY
+        PaymentsProxy:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/billing/payments/{proxy+}
+            Method: ANY
+
+  TenantAddonsHttpFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      Environment:
+        Variables:
+          COGNITO_USER_POOL_ID: !Ref CognitoUserPool
+          COGNITO_CLIENT_ID: !Ref CognitoUserPoolClient
+      CodeUri: ../../apps/api/
+      Handler: dist/handlers/admin/tenantAddonsHttp.handler
+      Timeout: 30
+      Policies:
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardA
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardB
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardC
+
+      Events:
+        AgencyEntitlements:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/agency/entitlements
+            Method: GET
+        TenantAddonsEntitlements:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/admin/tenants/{tenantId}/entitlements
+            Method: GET
+        TenantAddonsPatch:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/admin/tenants/{tenantId}/entitlements
+            Method: PATCH
+        TenantAddonsAudit:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/admin/tenants/{tenantId}/entitlements/audit
+            Method: GET
+        TenantAddonsInvoice:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/admin/tenants/{tenantId}/invoice/current
+            Method: GET
+
+  AgencyNetworkPolicySyncTopic:
+    Type: AWS::SNS::Topic
+    Properties:
+      DisplayName: !Sub "${AppName} agency network policy sync (${DeploymentStage})"
+
+  AgencyNetworkPolicyHttpFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      Environment:
+        Variables:
+          COGNITO_USER_POOL_ID: !Ref CognitoUserPool
+          COGNITO_CLIENT_ID: !Ref CognitoUserPoolClient
+      CodeUri: ../../apps/api/
+      Handler: dist/handlers/admin/agencyNetworkPolicyHttp.handler
+      Timeout: 30
+      Policies:
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardA
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardB
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardC
+        - !Ref AppManagedPolicySesBillingSenderIdentityEmails
+        - Statement:
+            Effect: Allow
+            Action:
+              - sns:Publish
+            Resource: !Ref AgencyNetworkPolicySyncTopic
+
+      Events:
+        AgencyNetworkPolicyCheck:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/agency/network-policy-check
+            Method: GET
+        AgencyEmergencyOverrideRequest:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/agency/emergency-override-request
+            Method: POST
+        AdminNetworkPolicyGet:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/admin/agencies/{agencyId}/network-policy
+            Method: GET
+        AdminNetworkPolicyPatch:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/admin/agencies/{agencyId}/network-policy
+            Method: PATCH
+        AdminNetworkPolicyCidrPost:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/admin/agencies/{agencyId}/network-policy/cidrs
+            Method: POST
+        AdminNetworkPolicyCidrDelete:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/admin/agencies/{agencyId}/network-policy/cidrs
+            Method: DELETE
+        AdminNetworkPolicyEmergency:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/admin/agencies/{agencyId}/network-policy/emergency-override
+            Method: POST
+        AdminNetworkPolicyAudit:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/admin/agencies/{agencyId}/network-policy/audit
+            Method: GET
+
+  WafNetworkPolicySyncFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      Environment:
+        Variables:
+          COGNITO_USER_POOL_ID: !Ref CognitoUserPool
+          COGNITO_CLIENT_ID: !Ref CognitoUserPoolClient
+      CodeUri: ../../apps/api/
+      Handler: dist/workers/waf-network-policy-sync.handler
+      Timeout: 60
+      Policies:
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardA
+        - !If
+          - HasApiWaf
+          - Statement:
+              Effect: Allow
+              Action:
+                - wafv2:CreateIPSet
+                - wafv2:UpdateIPSet
+                - wafv2:GetIPSet
+                - wafv2:GetWebACL
+                - wafv2:UpdateWebACL
+                - wafv2:ListIPSets
+              Resource:
+                - !Sub "arn:${AWS::Partition}:wafv2:${AWS::Region}:${AWS::AccountId}:regional/ipset/*"
+                - !GetAtt ApiWebAcl.Arn
+          - !Ref AWS::NoValue
+      Events:
+        NetworkPolicySync:
+          Type: SNS
+          Properties:
+            Topic: !Ref AgencyNetworkPolicySyncTopic
+
+  BillingSchedulerFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      Environment:
+        Variables:
+          COGNITO_USER_POOL_ID: !Ref CognitoUserPool
+          COGNITO_CLIENT_ID: !Ref CognitoUserPoolClient
+      CodeUri: ../../apps/api/
+      Handler: dist/handlers/billingScheduler.handler
+      Timeout: 300
+      MemorySize: 512
+      Policies:
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardA
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardB
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardC
+        - !Ref AppManagedPolicyS3ApplicationBucketsCrud
+        - !Ref AppManagedPolicySesBillingSenderIdentityEmails
+
+      Events:
+        DailyBillingScheduler:
+          Type: Schedule
+          Properties:
+            Name: daily-billing-scheduler
+            Schedule: cron(0 8 * * ? *)
+            Description: "Runs billing schedules, reminders, and overdue updates daily at 08:00 UTC."
+            Enabled: true
+
+  BillingPaymentsDisabledCatchAllFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      Environment:
+        Variables:
+          COGNITO_USER_POOL_ID: !Ref CognitoUserPool
+          COGNITO_CLIENT_ID: !Ref CognitoUserPoolClient
+      CodeUri: ../../apps/api/
+      Handler: dist/handlers/billingPaymentsDisabledGateway.handler
+      Policies:
+        - !Ref AppManagedPolicyS3ApplicationBucketsCrud
+
+      Events:
+        LegacyPaymentsHooks:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/billing/legacy-webhooks/{proxy+}
+            Method: ANY
 
   OpsAlertsTopic:
     Type: AWS::SNS::Topic

@@ -6,10 +6,18 @@ import {
   type Vertical,
   normalizeVertical,
   deriveVerticalFromAgencyId,
+  resolveAgencyVerticalFromTenant,
+  formatAgencyType,
 } from "@/lib/vertical";
 
 export type { Vertical };
-export { VERTICAL_CONFIG, normalizeVertical, deriveVerticalFromAgencyId };
+export {
+  VERTICAL_CONFIG,
+  normalizeVertical,
+  deriveVerticalFromAgencyId,
+  resolveAgencyVerticalFromTenant,
+  formatAgencyType,
+};
 
 export function VerticalBadge({
   vertical,

@@ -462,5 +462,5 @@ fi
 echo ""
 echo "✅ SAM deploy finished (stack: ${STACK_NAME}). Script: ./scripts/deploy2.sh"
 echo "   Web app (ECS):   ./scripts/deploy-web-ecs.sh ${STAGE}"
-echo "   Marketing (S3): ./scripts/deploy-marketing.sh ${STAGE}"
+echo "   Marketing (S3): npm run deploy:marketing  (or ./scripts/deploy-marketing.sh)"
 echo "   Desktop uploads: ./scripts/upload-desktop-downloads.sh ${STAGE} …"

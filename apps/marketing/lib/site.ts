@@ -17,11 +17,11 @@ export const SITE_MISSION =
 export const SITE_DESCRIPTION = `${SITE_SLOGAN} — Real-time decision support for public safety: dispatch, supervision, and emergency response. Does not replace CAD, telephony, or your agency's systems of record.`;
 /**
  * Primary Rapid Cortex web mark used on marketing/header surfaces.
- * File: `public/rapid-cortex-logo-2.png`.
+ * File: `public/rapid-cortex-logo-2.png` (1041×276 wordmark + tagline).
  */
 export const SITE_BRAND_MARK_PATH = "/rapid-cortex-logo-2.png";
-export const SITE_BRAND_MARK_WIDTH = 1024;
-export const SITE_BRAND_MARK_HEIGHT = 1024;
+export const SITE_BRAND_MARK_WIDTH = 1041;
+export const SITE_BRAND_MARK_HEIGHT = 276;
 
 /** Primary web mark (same as brand mark). */
 export const SITE_LOGO_PATH = SITE_BRAND_MARK_PATH;

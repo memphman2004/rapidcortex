@@ -1,6 +1,12 @@
 /** Agency / tenant vertical — shared by server and client surfaces. */
 export type Vertical = "core" | "campus" | "venue" | "hospital";
 
+export {
+  formatAgencyType,
+  resolveAgencyVerticalFromTenant,
+  type AgencyVertical,
+} from "rapid-cortex-shared";
+
 export const VERTICAL_CONFIG: Record<
   Vertical,
   { label: string; color: string; bg: string }
@@ -19,6 +25,7 @@ export function normalizeVertical(value: string | null | undefined): Vertical {
   return "core";
 }
 
+/** @deprecated Prefer resolveAgencyVerticalFromTenant for tenant rows. */
 export function deriveVerticalFromAgencyId(agencyId: string): Vertical {
   const token = agencyId.trim().toLowerCase();
   if (token.includes("campus-")) return "campus";

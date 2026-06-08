@@ -105,7 +105,7 @@ describe("MarketingHeader", () => {
     const book = within(dialog).getByRole("link", { name: /^Request a demo$/ });
     expect(book.getAttribute("href")).toBe("/contact-sales?interest=demo");
     expect(within(dialog).queryByRole("link", { name: /^Sign in$/ })).toBeNull();
-    expect(within(dialog).queryByRole("link", { name: /^Open app$/ })).toBeNull();
+    expect(within(dialog).getByRole("link", { name: /^Open app$/ }).getAttribute("href")).toBe("/login");
 
     expect(within(dialog).getByRole("link", { name: /^Home$/ }).getAttribute("href")).toBe("/");
     expect(within(dialog).getByRole("link", { name: /^Features$/ }).getAttribute("href")).toBe("/solutions/agencies");

@@ -1,0 +1,2833 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Transform: AWS::Serverless-2016-10-31
+Description: >-
+  Rapid Cortex API. IAM: SAM built-in DynamoDB/S3 policies scope to named tables/buckets; explicit Statement blocks
+  use least-privilege actions, ARNs for Bedrock foundation models (AiBedrockFoundationModelId + QaBedrockModelId),
+  stack Secrets prefix rapidcortex/<stage>/*, and regional Conditions where AWS control-plane APIs require Resource=*.
+  Verify with npm run validate:iam and sam validate --lint.
+
+Metadata:
+  cfn-lint:
+    config:
+      ignore_checks:
+        - W1028
+        - W8001
+        - W7001
+  # Overrides **only** keys that exist in Globals (see Globals.Function.Environment.Variables) — no extra key names
+  # (adding unused keys inflates the UpdateFunctionConfiguration request and can hit the 5KB API limit).
+  TranscriptChunkLambdasGlobalsSlimYamlAnchorHolder: &TRANSCRIPT_CHUNK_GLOBALS_SLIM_OVERRIDES
+    WEBHOOKS_TABLE: ""
+    API_CLIENTS_TABLE: ""
+    EXTERNAL_API_RATE_LIMITS_TABLE: ""
+    RC_LITE_ENABLED: ""
+    RC_LITE_API_KEYS_TABLE: ""
+    RC_LITE_RATE_LIMIT_TABLE: ""
+    RC_LITE_USAGE_TABLE: ""
+    SEO_INTELLIGENCE_TABLE: ""
+    SEO_TOOL_ENABLED: "false"
+    SEO_AUTO_SCAN_ENABLED: ""
+    SEO_AI_SUGGESTIONS_ENABLED: "false"
+    DECEPTION_EVENTS_TABLE: ""
+    DECEPTION_SHIELD_ENABLED: ""
+    DECEPTION_AUTO_BLOCK_ENABLED: ""
+    DECEPTION_ALERTS_ENABLED: "false"
+    CAD_WRITEBACK_ENABLED: ""
+    CAD_WRITEBACK_REQUIRES_APPROVAL: ""
+    CAD_WRITEBACK_AUDIT_TABLE: ""
+    OPS_ALERTS_TOPIC_ARN: ""
+    DECEPTION_SLACK_WEBHOOK_URL: ""
+    EXTERNAL_API_JWT_SECRET_ARN: ""
+    EXTERNAL_API_ENCRYPTION_KEY_ARN: ""
+    PASSWORD_MAX_AGE_DAYS: ""
+    PASSWORD_EXPIRY_GRACE_DAYS: ""
+    PASSWORD_CHANGE_REQUIRED_ON_FIRST_LOGIN: ""
+    OPENAI_API_KEY_SECRET_ARN: ""
+    ANTHROPIC_API_KEY_SECRET_ARN: ""
+    AUTO_ANALYZE_EVERY_N_SEGMENTS: ""
+    ALLOW_UNAUTHENTICATED_API: ""
+    APPROVED_CORS_ORIGINS: ""
+    ENABLE_QA_SCORING: ""
+    ENABLE_QA_SCORE_AFTER_ANALYSIS: ""
+    QA_SESSIONS_TABLE: ""
+    QA_TEMPLATES_TABLE: ""
+    QA_SCORING_MOCK: ""
+    QA_BEDROCK_MODEL_ID: ""
+    ENABLE_INCIDENT_MEDIA: ""
+    INCIDENT_MEDIA_TABLE: ""
+    INCIDENT_MEDIA_PUBLIC_BASE_URL: ""
+    INCIDENT_MEDIA_TOKEN_TTL_MINUTES: ""
+    INCIDENT_MEDIA_UPLOAD_URL_TTL_SECONDS: ""
+    INCIDENT_MEDIA_MAX_UPLOAD_BYTES: ""
+    MEDIA_UPLOAD_TOKEN_TTL_SECONDS: ""
+    ENABLE_NON_EMERGENCY_TRIAGE: ""
+    AI_ENABLE_FALLBACKS: ""
+    AI_STORE_PROVIDER_METADATA: ""
+    AI_PROMPT_VERSION: ""
+    AI_REQUEST_TIMEOUT_MS: ""
+    AI_MAX_RETRIES_PER_PROVIDER: ""
+    AI_ANALYSIS_DEBOUNCE_SECONDS: ""
+    AI_MAX_ANALYZE_REQUESTS_PER_INCIDENT_PER_HOUR: ""
+    AI_SKIP_IF_TRANSCRIPT_UNCHANGED: ""
+    AI_ANALYSIS_IN_FLIGHT_LEASE_SECONDS: ""
+
+  # SQS workers / minimal CAD ingress: inherit Globals but blank unused keys (4KB Lambda env limit).
+  AppSam1HeavyLambdasGlobalsSlimYamlAnchorHolder: &APP_SAM1_HEAVY_LAMBDAS_GLOBALS_SLIM_OVERRIDES
+    <<: *TRANSCRIPT_CHUNK_GLOBALS_SLIM_OVERRIDES
+    ACCESS_OVERRIDES_TABLE: ""
+    AGENCY_SHARE_PARTNERS_TABLE: ""
+    BEDROCK_REGION: ""
+    COGNITO_CLIENT_ID: ""
+    COGNITO_REGION: ""
+    COGNITO_USER_POOL_ID: ""
+    DATA_DELETION_AUDIT_TABLE: ""
+    DISPATCHER_COACHING_NOTES_TABLE: ""
+    INCIDENT_SHARES_TABLE: ""
+    INCIDENT_TIMELINE_TABLE: ""
+    INTEGRATION_TRANSCRIPT_AGENCY_ALLOWLIST: ""
+    INTEGRATION_TRANSCRIPT_CONNECTOR_MODE: ""
+    LANGUAGE_PROVIDER: ""
+    LANGUAGE_SESSIONS_TABLE: ""
+    PREMISE_NOTES_TABLE: ""
+    TRANSCRIPT_RETENTION_POLICY_DAYS: ""
+    TRAUMA_FLAGS_TABLE: ""
+
+Parameters:
+  DeploymentStage:
+    Type: String
+    Default: dev
+    AllowedValues: [dev, staging, prod, pilot]
+  RootDomainName:
+    Type: String
+    Default: rapidcortex.us
+  ApiSubdomainPrefix:
+    Type: String
+    Default: api
+  ApiDomainCertificateArn:
+    Type: String
+    Default: ""
+    Description: >-
+      ACM certificate ARN in the same region as this stack (API Gateway regional custom domain).
+      Leave empty and set Route53HostedZoneId to have the stack request and validate a cert in ACM via DNS.
+  Route53HostedZoneId:
+    Type: String
+    Default: ""
+    Description: >-
+      Public Route 53 hosted zone ID for RootDomainName (e.g. Z123...). When set and ApiDomainCertificateArn is empty,
+      the stack creates an ACM certificate for api.<root-domain> and writes DNS validation records automatically.
+  AppCnameTarget:
+    Type: String
+    Default: ""
+    Description: Optional CNAME target for app.<root-domain> (e.g. CloudFront domain).
+  AdminCnameTarget:
+    Type: String
+    Default: ""
+    Description: Optional CNAME target for admin.<root-domain>.
+  WwwCnameTarget:
+    Type: String
+    Default: ""
+    Description: Optional CNAME target for www.<root-domain>.
+  OpenAiApiKeySecretArn:
+    Type: String
+    Default: ""
+    Description: Optional Secrets Manager secret ARN for OpenAI (plain string or JSON with apiKey).
+  AnthropicApiKeySecretArn:
+    Type: String
+    Default: ""
+    Description: Optional Secrets Manager secret ARN for Anthropic (plain string or JSON with apiKey).
+  AzureSpeechKeySecretArn:
+    Type: String
+    Default: ""
+    Description: Optional Secrets Manager ARN for Azure Speech key (plain string or JSON with AZURE_SPEECH_KEY).
+  AzureTranslationKeySecretArn:
+    Type: String
+    Default: ""
+    Description: Optional Secrets Manager ARN for Azure Translator key (defaults to speech secret when empty).
+  GoogleApplicationCredentialsSecretArn:
+    Type: String
+    Default: ""
+    Description: Optional Secrets Manager ARN holding Google service account JSON for STT/Translate.
+  ExternalApiJwtSecretArn:
+    Type: String
+    Default: ""
+    Description: >-
+      Optional Secrets Manager ARN for Agency API (`/api/v1`) JWT signing key (plain UTF-8 string, min 32 chars).
+      When empty, lambdas must receive EXTERNAL_API_JWT_SECRET through a secure deployment path (not plaintext in template).
+  ExternalApiEncryptionKeyArn:
+    Type: String
+    Default: ""
+    Description: >-
+      Optional Secrets Manager ARN for webhook signing-secret encryption passphrase (plain UTF-8 string, min 16 chars).
+  MultilingualSecretProvisioning:
+    Type: String
+    Default: external
+    AllowedValues: [external, managed]
+    Description: >-
+      managed: create stack-owned Secrets Manager secrets (placeholder values) under rapidcortex/<DeploymentStage>/multilingual/* and wire Lambdas to them.
+      external: use the Azure/Google secret ARN parameters only (leave managed secrets unused).
+  MultilingualSecretsPolicyMode:
+    Type: String
+    Default: scoped
+    AllowedValues: [scoped, broad]
+    Description: >-
+      scoped: GetSecretValue limited to rapidcortex/<DeploymentStage>/multilingual* plus any explicitly passed external ARNs (when non-empty).
+      broad: GetSecretValue allowed for all secrets in this account/region (legacy compatibility).
+  SelfSignupDefaultAgencyId:
+    Type: String
+    Default: self-signup-pending
+    Description: >-
+      custom:agencyId written by the PostConfirmation trigger for self-registered users (after email
+      verification). Create a matching agency row in DynamoDB or override this to an existing agency id.
+  SelfSignupDefaultRole:
+    Type: String
+    Default: dispatcher
+    AllowedValues: [dispatcher, commsupervisor, agencyadmin, agencyit, analyst, auditor, rcsuperadmin, rcadmin, rcitadmin]
+    Description: custom:role written by PostConfirmation when the user has no role yet.
+  QaBedrockModelId:
+    Type: String
+    Default: anthropic.claude-3-5-haiku-20241022-v1:0
+    Description: >-
+      Bedrock foundation model id for automated QA structured JSON scoring (InvokeModel / Converse).
+  AiBedrockFoundationModelId:
+    Type: String
+    Default: anthropic.claude-3-5-haiku-20241022-v1:0
+    Description: >-
+      Bedrock foundation model id for analysis / language paths that call Bedrock (InvokeModel / Converse).
+      IAM and Globals BEDROCK_MODEL_* must match runtime configuration (CJIS: no foundation-model/* wildcard).
+  IncidentMediaTwilioSecretArn:
+    Type: String
+    Default: ""
+    Description: >-
+      Optional Secrets Manager ARN for Twilio JSON: preferred shape accountSid + apiKeySid + apiKeySecret +
+      messagingServiceSid; legacy accountSid + authToken + fromE164 (optional messagingServiceSid).
+      Leave empty when using AWS-only SMS_PROVIDER or mock/simulator paths.
+  HttpApiCorsAllowedOrigins:
+    Type: String
+    Default: "*"
+    Description: >-
+      Comma-separated browser origins for the HttpApi CORS AllowOrigins list. Use * for local/dev.
+      For staging/production set explicitly, e.g. https://www.rapidcortex.us,https://www.example.org
+  GoogleCloudProjectId:
+    Type: String
+    Default: ""
+    Description: >-
+      Google Cloud project id for server-side Translation / Text-to-Speech (text workflows). Required when
+      LANGUAGE_PROVIDER=google or for auto with Google credentials.
+  LanguageProvider:
+    Type: String
+    Default: auto
+    AllowedValues: [aws, google, auto]
+    Description: Text translation + optional TTS for silent text (complements per-tier voice STT/translate env).
+  GoogleTtsOutputBucket:
+    Type: String
+    Default: ""
+    Description: Optional S3 bucket for Google TTS objects; when empty, ASSETS_BUCKET is used.
+  # --- Deploy-time naming & optional integrations (see scripts/deploy-from-env.sh) ---
+  AppName:
+    Type: String
+    Default: rapid-cortex
+    Description: Short prefix for S3, SNS, Cognito names, and default Dynamo table prefix slug.
+  Sam4ManagedPolicyNamePrefix:
+    Type: String
+    Default: ""
+    Description: Parent stack name prefix for IAM managed policies (stack 4).
+
+  DynamoTableNamePrefix:
+    Type: String
+    Default: ""
+    Description: >-
+      When set, all DynamoDB tables use TableName: <prefix>-<table>-<DeploymentStage> (uniquely names tables per env).
+      When empty, CloudFormation generates table names (legacy behavior).
+  DynamoPointInTimeRecovery:
+    Type: String
+    Default: auto
+    AllowedValues: [auto, "true", "false"]
+    Description: PITR on DynamoDB. auto = on for staging/prod/pilot, off for dev (matches previous template).
+  DynamoBillingMode:
+    Type: String
+    Default: PAY_PER_REQUEST
+    AllowedValues: [PAY_PER_REQUEST]
+    Description: Reserved for future provisioned mode; use PAY_PER_REQUEST.
+  CognitoAppClientName:
+    Type: String
+    Default: ""
+    Description: When empty, defaults to {AppName}-web-{DeploymentStage}.
+  CognitoDomainPrefix:
+    Type: String
+    Default: ""
+    Description: >-
+      Hosted UI domain prefix (per account+region). When empty, uses legacy default rapidcortex-{DeploymentStage}-{AccountId} (keeps prior stack behavior); set explicitly to match AppName or a custom prefix.
+  CognitoCallbackUrls:
+    Type: String
+    Default: ""
+    Description: Comma-separated OAuth callback URLs for the app client (optional; for hosted UI).
+  CognitoLogoutUrls:
+    Type: String
+    Default: ""
+    Description: Comma-separated sign-out URLs (optional; for hosted UI).
+  CognitoNativeCallbackUrls:
+    Type: String
+    Default: >-
+      rapidcortex://oauth/callback,rapidcortex-desktop://oauth/callback,rapidcortex-ios://oauth/callback,rapidcortex-windows://oauth/callback
+    Description: >-
+      Comma-separated OAuth callback URLs for the **native** app client (PKCE, no secret). Append your HTTPS
+      `https://{web-host}/auth/return-to-app` URL here when using the browser return-to-app handoff.
+  CognitoNativeLogoutUrls:
+    Type: String
+    Default: >-
+      rapidcortex://logout/callback,rapidcortex-desktop://logout/callback,rapidcortex-ios://logout/callback,rapidcortex-windows://logout/callback
+    Description: Comma-separated sign-out URLs for the native app client (must match logout_uri used by native apps).
+  CognitoGenerateSecret:
+    Type: String
+    Default: "false"
+    AllowedValues: ["true", "false"]
+    Description: Set true for confidential server-side clients; web SPAs use false.
+  # Globals cannot use !Ref CognitoUserPool / CognitoUserPoolClient (those create a cycle with
+  # CognitoPostConfirmationFunction, which the pool references). Real IDs come from stack outputs for the web app.
+  CognitoUserPoolIdPlaceholder:
+    Type: String
+    Default: "unused-placeholder"
+    Description: >-
+      Passed to Globals only; avoids circular dependency with CognitoUserPool. Lambda functions that need pool ID use
+      !Ref CognitoUserPool where valid, or callers use stack Outputs.
+  CognitoClientIdPlaceholder:
+    Type: String
+    Default: "unused-placeholder"
+    Description: >-
+      Passed to Globals only; avoids circular dependency with CognitoUserPoolClient. Real client id is exported as an output.
+  # --- Imported from primary SAM stack (AppSamStackV2); deploy stack 1 first ---
+  ImportedCognitoUserPoolId:
+    Type: String
+    Description: Cognito User Pool ID from AppSamStackV2.
+  ImportedCognitoWebClientId:
+    Type: String
+    Description: Cognito web app client ID from AppSamStackV2.
+  ImportedCognitoNativeClientId:
+    Type: String
+    Default: ""
+    Description: Cognito native client ID (PKCE); optional.
+  ImportedCognitoIssuer:
+    Type: String
+    Description: JWT issuer URL for HttpApi authorizer.
+
+  SnsEmailSubscription:
+    Type: String
+    Default: ""
+    Description: Optional email for AWS::SNS::Subscription on the ops topic.
+  SnsSmsSubscription:
+    Type: String
+    Default: ""
+    Description: Optional E.164 phone for AWS::SNS::Subscription (SMS) on the ops topic; region/account must allow SMS.
+  SesIdentityType:
+    Type: String
+    Default: ""
+    AllowedValues: ["", email, domain]
+    Description: When SesIdentityValue is set, type of Amazon SES identity to register. Leave all SES params empty to skip.
+  SesIdentityValue:
+    Type: String
+    Default: ""
+    Description: Email address (sesIdentityType=email) or domain (sesIdentityType=domain) for AWS::SES::EmailIdentity.
+  SesConfigurationSetName:
+    Type: String
+    Default: ""
+    Description: Optional SES configuration set to associate with the identity.
+  BillingSesSenderEmail:
+    Type: String
+    Default: ""
+    Description: Sender email to verify for billing notifications. Leave blank with BillingSesDomain to skip billing SES identities.
+  BillingSesDomain:
+    Type: String
+    Default: ""
+    Description: Domain to verify in SES for billing email (DKIM/SPF/DMARC). Leave blank with BillingSesSenderEmail to skip billing SES identities.
+  EnableLiveVideoResources:
+    Type: String
+    Default: "false"
+    AllowedValues: ["true", "false"]
+    Description: Set true to deploy live-video KVS functions/routes. Default false keeps core API leaner.
+  EnableApiWaf:
+    Type: String
+    Default: "false"
+    AllowedValues: ["true", "false"]
+    Description: >-
+      When true, deploys a regional AWS WAF web ACL (managed rules + per-IP rate limit) and associates it
+      with the API Gateway HTTP API $default stage. Enable for pilot/production edge protection (additional cost).
+  WafRateLimitPer5Min:
+    Type: Number
+    Default: 2000
+    MinValue: 10
+    MaxValue: 20000000
+    Description: >-
+      WAF rate-based rule: max requests per 5-minute evaluation window per source IP. Tune with agency traffic; API Gateway
+      throttling (DefaultRouteSettings) also applies.
+  TranscriptRetentionPolicyDays:
+    Type: String
+    Default: ""
+    Description: >-
+      Optional agency SOP: target data lifecycle in days for transcript-style incident data (ops documentation).
+      Exposed to all API Lambdas as TRANSCRIPT_RETENTION_POLICY_DAYS. The stack does not auto-delete rows by this value;
+      use export and deletion workflows. Leave empty to omit.
+  # --- CJIS / audit: platform-wide management API logging (infrastructure) ---
+  EnableCloudTrail:
+    Type: String
+    Default: "true"
+    AllowedValues: ["true", "false"]
+    Description: >-
+      When true, provisions multi-account-style audit logging: multi-Region trail, S3 (versioning, SSE, Object Lock, lifecycle
+      to Glacier / Deep Archive), optional CloudWatch delivery, and SNS notifications. Set false in low-risk dev to reduce
+      cost (not recommended for pilot/prod or CJIS-bound tenants).
+  CloudTrailKmsKeyArn:
+    Type: String
+    Default: ""
+    Description: >-
+      Optional KMS key ARN (or id) to encrypt CloudTrail log files in S3. Leave empty to use SSE-S3 on the log bucket. Use a
+      customer-managed key when the security plan requires key rotation and stricter key policy.
+  EnableCloudTrailS3DataEvents:
+    Type: String
+    Default: "false"
+    AllowedValues: ["true", "false"]
+    Description: >-
+      When true, logs S3 data-plane events for this stack's ASSETS bucket (higher cost and volume; enable when object access
+      to assets must be provable in CloudTrail, e.g. investigations).
+  EnableCloudTrailLambdaDataEvents:
+    Type: String
+    Default: "false"
+    AllowedValues: ["true", "false"]
+    Description: >-
+      When true, logs data-plane (Invoke) events for all Lambda functions in the stack region. Higher cost; use sparingly
+      and prefer management events (default) unless Lambda invocation forensics is required.
+
+# --- CJIS: fail fast when pilot/stage/prod use permissive CORS or secret IAM patterns ---
+  AgenciesTable:
+    Type: String
+    Description: Physical DynamoDB table name from data layer (AgenciesTable).
+  InvitesTable:
+    Type: String
+    Description: Physical DynamoDB table name from data layer (InvitesTable).
+  AccessOverridesTable:
+    Type: String
+    Description: Physical DynamoDB table name from data layer (AccessOverridesTable).
+  NetworkEmergencyOverridesTable:
+    Type: String
+    Description: Physical DynamoDB table name from data layer (network emergency overrides).
+  ApiClientsTable:
+    Type: String
+    Description: Physical DynamoDB table name from data layer (ApiClientsTable).
+  WebhooksTable:
+    Type: String
+    Description: Physical DynamoDB table name from data layer (WebhooksTable).
+  ExternalApiRateLimitsTable:
+    Type: String
+    Description: Physical DynamoDB table name from data layer (ExternalApiRateLimitsTable).
+  BillingProfilesTable:
+    Type: String
+    Description: Physical DynamoDB table name from data layer (BillingProfilesTable).
+  BillingWebhookEventsTable:
+    Type: String
+    Description: Physical DynamoDB table name from data layer (BillingWebhookEventsTable).
+  MonetizationPlansTable:
+    Type: String
+    Description: Physical DynamoDB table name from data layer (MonetizationPlansTable).
+  MonetizationAddOnsTable:
+    Type: String
+    Description: Physical DynamoDB table name from data layer (MonetizationAddOnsTable).
+  AgencySubscriptionsTable:
+    Type: String
+    Description: Physical DynamoDB table name from data layer (AgencySubscriptionsTable).
+  UsageMetersTable:
+    Type: String
+    Description: Physical DynamoDB table name from data layer (UsageMetersTable).
+  MonetizationInvoicesTable:
+    Type: String
+    Description: Physical DynamoDB table name from data layer (MonetizationInvoicesTable).
+  BillingAuditEventsTable:
+    Type: String
+    Description: Physical DynamoDB table name from data layer (BillingAuditEventsTable).
+  SalesLeadsTable:
+    Type: String
+    Description: Physical DynamoDB table name from data layer (SalesLeadsTable).
+  SeoIntelligenceTable:
+    Type: String
+    Description: Physical DynamoDB table name for Cortex SEO Intelligence (scans + issues).
+  DeceptionEventsTable:
+    Type: String
+    Description: Physical DynamoDB table name for Deception Shield (honeypot + honeytoken events only).
+  CustomersTable:
+    Type: String
+    Description: Physical DynamoDB table name from data layer (CustomersTable).
+  ServiceCatalogTable:
+    Type: String
+    Description: Physical DynamoDB table name from data layer (ServiceCatalogTable).
+  InvoicesTable:
+    Type: String
+    Description: Physical DynamoDB table name from data layer (InvoicesTable).
+  InvoiceItemsTable:
+    Type: String
+    Description: Physical DynamoDB table name from data layer (InvoiceItemsTable).
+  BillingSchedulesTable:
+    Type: String
+    Description: Physical DynamoDB table name from data layer (BillingSchedulesTable).
+  PaymentRecordsTable:
+    Type: String
+    Description: Physical DynamoDB table name from data layer (PaymentRecordsTable).
+  BillingAuditLogTable:
+    Type: String
+    Description: Physical DynamoDB table name from data layer (BillingAuditLogTable).
+  CadIncidentsRawTable:
+    Type: String
+    Description: Physical DynamoDB table name for immutable CAD webhook receipts (TTL).
+  CadWebhookRateLimitsTable:
+    Type: String
+    Description: Physical DynamoDB table name for per-integration CAD webhook rate counters.
+  CadIntegrationsTable:
+    Type: String
+    Description: Physical DynamoDB table name for agency CAD integration configs.
+  CadWritebackAuditTable:
+    Type: String
+    Default: ""
+    Description: Physical DynamoDB table name for CAD write-back audit rows (optional until write-back is enabled).
+  CadWritebackEnabled:
+    Type: String
+    Default: "false"
+    AllowedValues: ["true", "false"]
+    Description: When true, CAD write-back API routes accept submissions (subject to per-request validation).
+  CadWritebackRequiresApproval:
+    Type: String
+    Default: "true"
+    AllowedValues: ["true", "false"]
+    Description: When true, dispatcher write-backs queue for supervisor/admin approval before vendor HTTP.
+  EnableSilentText:
+    Type: String
+    Default: "false"
+    AllowedValues: ["true", "false"]
+    Description: >-
+      When true, Silent Text dispatcher + public token routes are active. Must also have a working
+      SMS provider (Twilio secret ARN or AWS SNS/EUM) — without that, session creates audit
+      SILENT_TEXT_SMS_FAILED and return ok=false.
+  EnablePinpoint:
+    Type: String
+    Default: "false"
+    AllowedValues: ["true", "false"]
+    Description: >-
+      When true, Pinpoint (LiveLocation) dispatcher + public token routes are active. Requires the
+      same SMS provider configuration as Silent Text + incident media (`INCIDENT_MEDIA_TWILIO_SECRET_ARN`).
+  EnableConnectRing:
+    Type: String
+    Default: "true"
+    AllowedValues: ["true", "false"]
+    Description: When true, Ring Connect OAuth and device linking routes are active.
+  RingPartnershipEnabled:
+    Type: String
+    Default: "true"
+    AllowedValues: ["true", "false"]
+    Description: When true, Ring partnership credentials and Connect integration are active.
+  RingClientId:
+    Type: String
+    Default: ""
+    Description: Deprecated — Ring OAuth client id is loaded from RingCredentialsSecretArn at runtime.
+  RingClientSecret:
+    Type: String
+    Default: ""
+    NoEcho: true
+    Description: Deprecated — Ring OAuth client secret is loaded from RingCredentialsSecretArn at runtime.
+  RingCredentialsSecretArn:
+    Type: String
+    Default: "arn:aws:secretsmanager:us-east-1:158961537080:secret:rapid-cortex/connect/ring-credentials-D3f1sN"
+    Description: Ring API credentials secret ARN (clientId, clientSecret, hmacKey JSON).
+  RingRedirectUri:
+    Type: String
+    Default: "https://api.rapidcortex.us/api/integrations/ring/callback"
+  RingAccountLinkUrl:
+    Type: String
+    Default: "https://www.rapidcortex.us/connect/ring/link"
+  RingSecretsPrefix:
+    Type: String
+    Default: "rapid-cortex/connect/ring"
+  RingAccountsTable:
+    Type: String
+    Default: ""
+    Description: Physical DynamoDB table for linked Ring accounts (RapidCortexRingAccounts-{stage}).
+  RingDevicesTable:
+    Type: String
+    Default: ""
+    Description: Physical DynamoDB table for Ring devices (RapidCortexRingDevices-{stage}).
+  RingRequestsTable:
+    Type: String
+    Default: ""
+    Description: Physical DynamoDB table for Ring emergency camera requests.
+  RingSessionsTable:
+    Type: String
+    Default: ""
+    Description: Physical DynamoDB table for Ring emergency camera sessions.
+  EnableConnectRingAvailableCameras:
+    Type: String
+    Default: "false"
+    AllowedValues: ["true", "false"]
+    Description: When true, Ring available-cameras metadata route is active (requires EnableConnectRing).
+  EnableConnectRingEmergencyRequests:
+    Type: String
+    Default: "false"
+    AllowedValues: ["true", "false"]
+    Description: When true, Ring emergency camera request/consent/revoke routes are active.
+  RingPublicApiBaseUrl:
+    Type: String
+    Default: "https://api.rapidcortex.us"
+    Description: Public API base URL for Ring owner consent links (no trailing slash).
+  ConnectAccessSessionsTable:
+    Type: String
+    Default: ""
+    Description: Physical DynamoDB table for Connect access sessions.
+  VenueFacilitiesTable:
+    Type: String
+    Default: ""
+    Description: Physical DynamoDB table for venue facility profiles, floor plans, plans, and cameras.
+  VenueAssetsTable:
+    Type: String
+    Default: ""
+    Description: Physical DynamoDB table for venue facility assets (AED, exits, staging, etc.).
+  VenueIncidentOverlaysTable:
+    Type: String
+    Default: ""
+    Description: Physical DynamoDB table for venue incident overlays and responder check-ins.
+  VenueCameraAccessLogTable:
+    Type: String
+    Default: ""
+    Description: Immutable venue camera access log (no TTL).
+  VenueConfigTable:
+    Type: String
+    Default: ""
+    Description: Venue config DynamoDB table (event schedules, SMS incidents).
+  CampusIncidentsTable:
+    Type: String
+    Default: ""
+    Description: Physical DynamoDB table for campus incidents.
+  CampusConfigTable:
+    Type: String
+    Default: ""
+    Description: Physical DynamoDB table for campus config, buildings, zones, and anon tokens.
+  QRLocationsTable:
+    Type: String
+    Default: ""
+    Description: Physical DynamoDB table for QR location registry (RCLI).
+  ConnectBridgeClusterArn:
+    Type: String
+    Default: ""
+    Description: ECS cluster ARN for Connect media bridge tasks.
+  VenueBridgeClusterArn:
+    Type: String
+    Default: ""
+    Description: ECS cluster ARN for Venue media bridge tasks.
+  ConnectBridgeTaskDefinition:
+    Type: String
+    Default: ""
+    Description: ECS task definition ARN for Connect media bridge container.
+  VenueBridgeTaskDefinition:
+    Type: String
+    Default: ""
+    Description: ECS task definition ARN for Venue media bridge container.
+  BridgeSubnetIds:
+    Type: String
+    Default: ""
+    Description: Comma-separated private subnet IDs for bridge Fargate tasks.
+  BridgeSecurityGroupIds:
+    Type: String
+    Default: ""
+    Description: Comma-separated security group IDs for bridge Fargate tasks.
+  RingApiBaseUrl:
+    Type: String
+    Default: ""
+    Description: Ring partner API base URL (empty when partnership inactive).
+  InternalServiceKey:
+    Type: String
+    Default: ""
+    NoEcho: true
+    Description: Shared secret for internal Ring refresh-token route (X-Internal-Service-Key).
+  AppPublicBaseUrl:
+    Type: String
+    Default: "https://www.rapidcortex.us"
+    Description: >-
+      Public origin where token pages are served (Silent Text safety links and LiveLocation
+      capture pages). Used to mint absolute URLs in SMS bodies — both features share the same value.
+  CadPublicApiBaseUrl:
+    Type: String
+    Default: ""
+    Description: >-
+      Public HTTPS API base URL (no trailing slash) for CAD webhook setup text. Leave empty when a regional API custom
+      domain is configured (stack injects https://<ApiSubdomainPrefix>.<RootDomainName> automatically).
+  CadWebhookSecretSalt:
+    Type: String
+    NoEcho: true
+    Description: Salt for CAD inbound webhook signing secret verification.
+  IncidentsTable:
+    Type: String
+    Description: Physical DynamoDB table name from data layer (IncidentsTable).
+  TranscriptsTable:
+    Type: String
+    Description: Physical DynamoDB table name from data layer (TranscriptsTable).
+  LanguageSessionsTable:
+    Type: String
+    Description: Physical DynamoDB table name from data layer (LanguageSessionsTable).
+  VideoAssistSessionsTable:
+    Type: String
+    Description: Physical DynamoDB table name from data layer (VideoAssistSessionsTable).
+  LiveVideoSessionsTable:
+    Type: String
+    Description: Physical DynamoDB table name from data layer (LiveVideoSessionsTable).
+  SilentTextSessionsTable:
+    Type: String
+    Description: Physical DynamoDB table name from data layer (SilentTextSessionsTable).
+  PinpointLinksTable:
+    Type: String
+    Description: Physical DynamoDB table name from data layer (PinpointLinksTable).
+  AnalysesTable:
+    Type: String
+    Description: Physical DynamoDB table name from data layer (AnalysesTable).
+  TraumaFlagsTable:
+    Type: String
+    Description: Physical DynamoDB table name from data layer (TraumaFlagsTable).
+  PremiseNotesTable:
+    Type: String
+    Description: Physical DynamoDB table name from data layer (PremiseNotesTable).
+  DispatcherCoachingNotesTable:
+    Type: String
+    Description: Physical DynamoDB table name from data layer (DispatcherCoachingNotesTable).
+  AgencySharePartnersTable:
+    Type: String
+    Description: Physical DynamoDB table name from data layer (AgencySharePartnersTable).
+  IncidentSharesTable:
+    Type: String
+    Description: Physical DynamoDB table name from data layer (IncidentSharesTable).
+  AuditTable:
+    Type: String
+    Description: Physical DynamoDB table name from data layer (AuditTable).
+  DataDeletionAuditTable:
+    Type: String
+    Description: Physical DynamoDB table name from data layer (DataDeletionAuditTable).
+  QASessionsTable:
+    Type: String
+    Description: Physical DynamoDB table name from data layer (QASessionsTable).
+  QATemplatesTable:
+    Type: String
+    Description: Physical DynamoDB table name from data layer (QATemplatesTable).
+  IncidentMediaTable:
+    Type: String
+    Description: Physical DynamoDB table name from data layer (IncidentMediaTable).
+  AssetsBucket:
+    Type: String
+    Description: Assets bucket name from data layer.
+  BillingInvoicesBucket:
+    Type: String
+    Description: Billing invoices bucket name from data layer.
+  BillingPosBucket:
+    Type: String
+    Description: Billing POS bucket name from data layer.
+  NestedMultilingualAzureApiKeysSecretArn:
+    Type: String
+    Default: ""
+    Description: Managed multilingual Azure secret ARN from data layer (may be empty).
+  NestedMultilingualGoogleServiceAccountSecretArn:
+    Type: String
+    Default: ""
+    Description: Managed multilingual Google secret ARN from data layer (may be empty).
+  BillingPaymentInstructionsSecretArn:
+    Type: String
+    Description: Billing payment instructions secret ARN from data layer.
+  BillingSesCredentialsSecretArn:
+    Type: String
+    Description: Billing SES credentials secret ARN from data layer.
+  RcLiteApiKeysTable:
+    Type: String
+    Description: Physical DynamoDB table name from data layer (RC Lite hashed API keys).
+  RcLiteRateLimitTable:
+    Type: String
+    Description: Physical DynamoDB table name from data layer (RC Lite rate limiting).
+  RcLiteUsageTable:
+    Type: String
+    Description: Physical DynamoDB table name from data layer (RC Lite usage meters).
+  SeoToolEnabled:
+    Type: String
+    Default: "true"
+    AllowedValues: ["true", "false"]
+    Description: When true, SEO Intelligence HTTP routes are active (handler still returns 403 if caller lacks admin access).
+  SeoAutoScanEnabled:
+    Type: String
+    Default: "false"
+    AllowedValues: ["true", "false"]
+    Description: Reserved for scheduled re-scans (EventBridge); manual scans always available when SeoToolEnabled is true.
+  SeoAiSuggestionsEnabled:
+    Type: String
+    Default: "true"
+    AllowedValues: ["true", "false"]
+    Description: When true, SEO Intelligence Suggestions may call Bedrock (requires IAM); otherwise rule-based fallbacks only.
+  PilotTestFeaturesEnabled:
+    Type: String
+    Default: auto
+    AllowedValues: [auto, "true", "false"]
+    Description: >-
+      When auto, enables pilot-test API feature flags for DeploymentStage=dev (QA scoring, Surge, SOP AI,
+      Ring emergency cameras, incident media, etc.). Pass from root stack or set true/false explicitly.
+
+Rules:
+  PilotProdNoCorsWildcard:
+    RuleCondition: !Or
+      - !Equals [!Ref DeploymentStage, prod]
+      - !Equals [!Ref DeploymentStage, pilot]
+      - !Equals [!Ref DeploymentStage, staging]
+    Assertions:
+      - Assert: !Not [!Equals [!Ref HttpApiCorsAllowedOrigins, "*"]]
+        AssertDescription: >-
+          For CJIS, HttpApiCorsAllowedOrigins must list explicit browser origins in staging/pilot/prod
+          (wildcard CORS is dev-only).
+  PilotProdNoBroadSecrets:
+    RuleCondition: !Or
+      - !Equals [!Ref DeploymentStage, prod]
+      - !Equals [!Ref DeploymentStage, pilot]
+      - !Equals [!Ref DeploymentStage, staging]
+    Assertions:
+      - Assert: !Not [!Equals [!Ref MultilingualSecretsPolicyMode, broad]]
+        AssertDescription: >-
+          MultilingualSecretsPolicyMode `broad` is not allowed outside dev (CJIS least-privilege for Secrets Manager).
+
+Conditions:
+  HasImportedApiCert: !Not [!Equals [!Ref ApiDomainCertificateArn, ""]]
+  HasManagedApiCert:
+    Fn::And:
+      - !Equals [!Ref ApiDomainCertificateArn, ""]
+      - !Not [!Equals [!Ref Route53HostedZoneId, ""]]
+  HasApiCustomDomainCert: !Or [!Condition HasImportedApiCert, !Condition HasManagedApiCert]
+  HasAppCnameTarget: !Not [!Equals [!Ref AppCnameTarget, ""]]
+  HasAdminCnameTarget: !Not [!Equals [!Ref AdminCnameTarget, ""]]
+  HasWwwCnameTarget: !Not [!Equals [!Ref WwwCnameTarget, ""]]
+  UseManagedMultilingualSecrets: !Equals [!Ref MultilingualSecretProvisioning, "managed"]
+  MultilingualSecretsBroadPolicy: !Equals [!Ref MultilingualSecretsPolicyMode, "broad"]
+  EnablePilotGradeBackups:
+    Fn::Or:
+      - Fn::Equals:
+          - !Ref DeploymentStage
+          - staging
+      - Fn::Equals:
+          - !Ref DeploymentStage
+          - prod
+      - Fn::Equals:
+          - !Ref DeploymentStage
+          - pilot
+  HasIncidentMediaTwilioSecretArn: !Not [!Equals [!Ref IncidentMediaTwilioSecretArn, ""]]
+  HasRingAccountsTable: !Not [!Equals [!Ref RingAccountsTable, ""]]
+  HasRingDevicesTable: !Not [!Equals [!Ref RingDevicesTable, ""]]
+  HasRingRequestsTable: !Not [!Equals [!Ref RingRequestsTable, ""]]
+  HasRingSessionsTable: !Not [!Equals [!Ref RingSessionsTable, ""]]
+  HasVenueFacilitiesTable: !Not [!Equals [!Ref VenueFacilitiesTable, ""]]
+  HasVenueCameraAccessLogTable: !Not [!Equals [!Ref VenueCameraAccessLogTable, ""]]
+  HasVenueConfigTable: !Not [!Equals [!Ref VenueConfigTable, ""]]
+  HasCampusIncidentsTable: !Not [!Equals [!Ref CampusIncidentsTable, ""]]
+  HasCampusConfigTable: !Not [!Equals [!Ref CampusConfigTable, ""]]
+  HasQRLocationsTable: !Not [!Equals [!Ref QRLocationsTable, ""]]
+  HasVenueBridgeCluster: !Not [!Equals [!Ref VenueBridgeClusterArn, ""]]
+  HasRingCredentialsSecretArn: !Not [!Equals [!Ref RingCredentialsSecretArn, ""]]
+  HasExternalApiJwtSecretArn: !Not [!Equals [!Ref ExternalApiJwtSecretArn, ""]]
+  HasExternalApiEncryptionKeyArn: !Not [!Equals [!Ref ExternalApiEncryptionKeyArn, ""]]
+  HasDynamoTablePrefix: !Not [!Equals [!Ref DynamoTableNamePrefix, ""]]
+  DynamoPitrOn:
+    Fn::Or:
+      - Fn::And:
+          - !Equals [!Ref DynamoPointInTimeRecovery, "auto"]
+          - !Condition EnablePilotGradeBackups
+      - !Equals [!Ref DynamoPointInTimeRecovery, "true"]
+  HasCognitoAppClientNameParam: !Not [!Equals [!Ref CognitoAppClientName, ""]]
+  HasCognitoDomainPrefixParam: !Not [!Equals [!Ref CognitoDomainPrefix, ""]]
+  HasCognitoCallbackUrls: !Not [!Equals [!Ref CognitoCallbackUrls, ""]]
+  HasCognitoLogoutUrls: !Not [!Equals [!Ref CognitoLogoutUrls, ""]]
+  CognitoClientUsesSecret: !Equals [!Ref CognitoGenerateSecret, "true"]
+  HasSnsEmailSubscription: !Not [!Equals [!Ref SnsEmailSubscription, ""]]
+  HasSnsSmsSubscription: !Not [!Equals [!Ref SnsSmsSubscription, ""]]
+  CreateSesIdentity:
+    Fn::And:
+      - !Not [!Equals [!Ref SesIdentityValue, ""]]
+      - !Not [!Equals [!Ref SesIdentityType, ""]]
+  CreateBillingSesIdentities: !And
+    - !Not [!Equals [!Ref BillingSesSenderEmail, ""]]
+    - !Not [!Equals [!Ref BillingSesDomain, ""]]
+    - !Equals [!Ref SesIdentityType, ""]
+  BillingRoute53Records: !And
+    - !Condition HasRoute53HostedZone
+    - !Condition CreateBillingSesIdentities
+  HasSesConfigurationSet: !Not [!Equals [!Ref SesConfigurationSetName, ""]]
+  HasRoute53HostedZone: !Not [!Equals [!Ref Route53HostedZoneId, ""]]
+  CreateLiveVideoResources: !Equals [!Ref EnableLiveVideoResources, "true"]
+  HasApiWaf: !Equals [!Ref EnableApiWaf, "true"]
+  CloudTrailEnabled: !Equals [!Ref EnableCloudTrail, "true"]
+  CloudTrailS3DataEvents: !And
+    - !Condition CloudTrailEnabled
+    - !Equals [!Ref EnableCloudTrailS3DataEvents, "true"]
+  CloudTrailLambdaDataEvents: !And
+    - !Condition CloudTrailEnabled
+    - !Equals [!Ref EnableCloudTrailLambdaDataEvents, "true"]
+  CloudTrailS3AndLambdaDataEvents: !And
+    - !Condition CloudTrailS3DataEvents
+    - !Condition CloudTrailLambdaDataEvents
+  CloudTrailS3DataOnly: !And
+    - !Condition CloudTrailS3DataEvents
+    - !Not [!Condition CloudTrailLambdaDataEvents]
+  CloudTrailLambdaDataOnly: !And
+    - !Condition CloudTrailLambdaDataEvents
+    - !Not [!Condition CloudTrailS3DataEvents]
+  HasCloudTrailKms: !Not [!Equals [!Ref CloudTrailKmsKeyArn, ""]]
+  HasOpenAiApiKeySecretArn: !Not [!Equals [!Ref OpenAiApiKeySecretArn, ""]]
+  HasAnthropicApiKeySecretArn: !Not [!Equals [!Ref AnthropicApiKeySecretArn, ""]]
+  IsProdOrPilot: !Or
+    - !Equals [!Ref DeploymentStage, prod]
+    - !Equals [!Ref DeploymentStage, pilot]
+    - !Equals [!Ref DeploymentStage, staging]
+  PilotTestFeaturesOn:
+    Fn::Or:
+      - !Equals [!Ref PilotTestFeaturesEnabled, "true"]
+      - Fn::And:
+          - !Equals [!Ref PilotTestFeaturesEnabled, "auto"]
+          - !Equals [!Ref DeploymentStage, "dev"]
+
+Mappings:
+  MultilingualStageDefaults:
+    dev:
+      StrictValidation: "false"
+    staging:
+      StrictValidation: "true"
+    prod:
+      StrictValidation: "true"
+    pilot:
+      StrictValidation: "true"
+  ApiLambdaDefaults:
+    dev:
+      PrimaryAi: mock
+      SecondaryAi: mock
+      TertiaryAi: "off"
+      AiFallback: mock
+      AiSecondaryFallback: mock
+      Lid1: mock
+      Lid2: mock
+      Lid3: "off"
+      # STT chain enabled on dev 2026-05-26 (per Jeff) to verify OpenAI Whisper
+      # end-to-end. Azure Speech (primary) and OpenAI Whisper (secondary) cost
+      # real $ on every audio chunk. AWS Transcribe is tertiary fallback.
+      # multilingualConfig normalizeVendorKind accepts: azure, openai, aws, mock, off
+      # (azure-speech / openai-whisper / aws-transcribe are NOT valid short forms).
+      Stt1: "azure"
+      Stt2: "openai"
+      Stt3: "aws"
+      # Translation chain still on mock for dev (Deploy #6 = STT verification
+      # only). Deploy #7 will flip to Tr1=azure / Tr2=google / Tr3=aws across
+      # all stages. multilingualConfig normalizeVendorKind accepts: azure,
+      # google, aws, mock, off (NOT azure-translator / google-translate / aws-
+      # translate). NOTE: bare YAML "off" is parsed as boolean false, so quote
+      # it as "off" — otherwise CFN deploys TERTIARY_TRANSLATION_PROVIDER="false".
+      Tr1: "mock"
+      Tr2: "mock"
+      Tr3: "off"
+    staging:
+      PrimaryAi: bedrock
+      SecondaryAi: "off"
+      TertiaryAi: "off"
+      AiFallback: "off"
+      AiSecondaryFallback: "off"
+      Lid1: aws
+      Lid2: mock
+      Lid3: "off"
+      Stt1: azure
+      Stt2: openai
+      Stt3: aws
+      Tr1: "aws"
+      Tr2: "mock"
+      Tr3: "off"
+    prod:
+      PrimaryAi: bedrock
+      SecondaryAi: "off"
+      TertiaryAi: "off"
+      AiFallback: "off"
+      AiSecondaryFallback: "off"
+      Lid1: aws
+      Lid2: mock
+      Lid3: "off"
+      Stt1: azure
+      Stt2: openai
+      Stt3: aws
+      Tr1: "aws"
+      Tr2: "mock"
+      Tr3: "off"
+    pilot:
+      PrimaryAi: bedrock
+      SecondaryAi: "off"
+      TertiaryAi: "off"
+      AiFallback: "off"
+      AiSecondaryFallback: "off"
+      Lid1: aws
+      Lid2: mock
+      Lid3: "off"
+      Stt1: azure
+      Stt2: openai
+      Stt3: aws
+      Tr1: "aws"
+      Tr2: "mock"
+      Tr3: "off"
+  SmsEnvironmentDefaults:
+    dev:
+      SmsProvider: mock
+      SmsPrimaryProvider: twilio
+      MockSmsProvider: "true"
+      AwsSmsUseSimulator: "true"
+    staging:
+      SmsProvider: auto
+      SmsPrimaryProvider: twilio
+      MockSmsProvider: "false"
+      AwsSmsUseSimulator: "false"
+    prod:
+      SmsProvider: auto
+      SmsPrimaryProvider: twilio
+      MockSmsProvider: "false"
+      AwsSmsUseSimulator: "false"
+    pilot:
+      SmsProvider: auto
+      SmsPrimaryProvider: twilio
+      MockSmsProvider: "false"
+      AwsSmsUseSimulator: "false"
+
+Globals:
+  Function:
+    Runtime: nodejs20.x
+    Timeout: 10
+    MemorySize: 512
+    Environment:
+      Variables:
+        RC_RUNTIME_CONFIG_JSON: !Sub
+          - '{"ds":"${DeploymentStage}","trp":"${TranscriptRetentionPolicyDays}","it":"${IncidentsTable}","tt":"${TranscriptsTable}","at":"${AnalysesTable}","aud":"${AuditTable}","dda":"${DataDeletionAuditTable}","drp":"cjis-default-v1","ag":"${AgenciesTable}","iv":"${InvitesTable}","ao":"${AccessOverridesTable}","neo":"${NetworkEmergencyOverridesTable}","ans":"${AgencyNetworkPolicySyncTopic}","nae":"false","waf":"${WafArn}","wsc":"REGIONAL","ac":"${ApiClientsTable}","wh":"${WebhooksTable}","erl":"${ExternalApiRateLimitsTable}","rle":"true","rak":"${RcLiteApiKeysTable}","rrl":"${RcLiteRateLimitTable}","rlu":"${RcLiteUsageTable}","sit":"${SeoIntelligenceTable}","ste":"${SeoToolEnabled}","sae":"${SeoAutoScanEnabled}","sai":"${SeoAiSuggestionsEnabled}","det":"${DeceptionEventsTable}","dse":"${PilotDeceptionShield}","dae":"false","dal":"true","ops":"${OpsAlertsTopic}","ej":"${ExternalApiJwtSecretArn}","ek":"${ExternalApiEncryptionKeyArn}","pma":"60","peg":"0","pcf":"true","ab":"${AssetsBucket}","ls":"${LanguageSessionsTable}","aef":"true","asm":"true","apv":"dispatch-triage-v1","art":"55000","amr":"1","adb":"0","amh":"120","asu":"true","ail":"90","oa":"${OpenAiApiKeySecretArn}","aa":"${AnthropicApiKeySecretArn}","aas":"0","aua":"false","aco":"${HttpApiCorsAllowedOrigins}","eqs":"${PilotEnableQaScoring}","eqa":"${PilotEnableQaAfterAnalysis}","qss":"${QASessionsTable}","qts":"${QATemplatesTable}","qsm":"${PilotQaScoringMock}","qbm":"${QaBedrockModelId}","br":"${AWSRegion}","eim":"${PilotEnableIncidentMedia}","imt":"${IncidentMediaTable}","imp":"","imn":"120","imu":"900","imx":"52428800","ent":"${PilotEnableNonEmergencyTriage}","tft":"${TraumaFlagsTable}","pn":"${PremiseNotesTable}","dcn":"${DispatcherCoachingNotesTable}","itl":"${IncidentTimelineTable}","ish":"${IncidentSharesTable}","asp":"${AgencySharePartnersTable}","lp":"${LanguageProvider}","cr":"${AWSRegion}","cwe":"${CadWritebackEnabled}","cwr":"${CadWritebackRequiresApproval}","cwa":"${CadWritebackAuditTable}","bp":"${BillingProfilesTable}","inv":"${InvoicesTable}","ii":"${InvoiceItemsTable}","bae":"${BillingAuditEventsTable}","mao":"${MonetizationAddOnsTable}","minv":"${MonetizationInvoicesTable}","slt":"${SalesLeadsTable}","cfe":"support@rapidcortex.us"}'
+          -
+            AWSRegion: !Ref AWS::Region
+            AccessOverridesTable: !Ref AccessOverridesTable
+            AgenciesTable: !Ref AgenciesTable
+            AgencyNetworkPolicySyncTopic: !Ref AgencyNetworkPolicySyncTopic
+            AgencySharePartnersTable: !Ref AgencySharePartnersTable
+            AnalysesTable: !Ref AnalysesTable
+            AnthropicApiKeySecretArn: !Ref AnthropicApiKeySecretArn
+            ApiClientsTable: !Ref ApiClientsTable
+            AssetsBucket: !Ref AssetsBucket
+            AuditTable: !Ref AuditTable
+            BillingAuditEventsTable: !Ref BillingAuditEventsTable
+            BillingProfilesTable: !Ref BillingProfilesTable
+            CadWritebackAuditTable: !Ref CadWritebackAuditTable
+            CadWritebackEnabled: !Ref CadWritebackEnabled
+            CadWritebackRequiresApproval: !Ref CadWritebackRequiresApproval
+            DataDeletionAuditTable: !Ref DataDeletionAuditTable
+            DeceptionEventsTable: !Ref DeceptionEventsTable
+            DeploymentStage: !Ref DeploymentStage
+            DispatcherCoachingNotesTable: !Ref DispatcherCoachingNotesTable
+            ExternalApiEncryptionKeyArn: !Ref ExternalApiEncryptionKeyArn
+            ExternalApiJwtSecretArn: !Ref ExternalApiJwtSecretArn
+            ExternalApiRateLimitsTable: !Ref ExternalApiRateLimitsTable
+            HttpApiCorsAllowedOrigins: !Ref HttpApiCorsAllowedOrigins
+            IncidentMediaTable: !Ref IncidentMediaTable
+            IncidentSharesTable: !Ref IncidentSharesTable
+            IncidentTimelineTable: !Sub "rapid-cortex-incident-timeline-${DeploymentStage}"
+            IncidentsTable: !Ref IncidentsTable
+            InvitesTable: !Ref InvitesTable
+            InvoiceItemsTable: !Ref InvoiceItemsTable
+            InvoicesTable: !Ref InvoicesTable
+            LanguageProvider: !Ref LanguageProvider
+            LanguageSessionsTable: !Ref LanguageSessionsTable
+            MonetizationAddOnsTable: !Ref MonetizationAddOnsTable
+            MonetizationInvoicesTable: !Ref MonetizationInvoicesTable
+            NetworkEmergencyOverridesTable: !Ref NetworkEmergencyOverridesTable
+            OpenAiApiKeySecretArn: !Ref OpenAiApiKeySecretArn
+            OpsAlertsTopic: !Ref OpsAlertsTopic
+            PremiseNotesTable: !Ref PremiseNotesTable
+            QASessionsTable: !Ref QASessionsTable
+            QATemplatesTable: !Ref QATemplatesTable
+            QaBedrockModelId: !Ref QaBedrockModelId
+            RcLiteApiKeysTable: !Ref RcLiteApiKeysTable
+            RcLiteRateLimitTable: !Ref RcLiteRateLimitTable
+            RcLiteUsageTable: !Ref RcLiteUsageTable
+            SalesLeadsTable: !Ref SalesLeadsTable
+            SeoAiSuggestionsEnabled: !Ref SeoAiSuggestionsEnabled
+            SeoAutoScanEnabled: !Ref SeoAutoScanEnabled
+            SeoIntelligenceTable: !Ref SeoIntelligenceTable
+            SeoToolEnabled: !Ref SeoToolEnabled
+            PilotEnableQaScoring: !If [PilotTestFeaturesOn, "true", "false"]
+            PilotEnableQaAfterAnalysis: !If [PilotTestFeaturesOn, "true", "false"]
+            PilotQaScoringMock: !If [PilotTestFeaturesOn, "true", "false"]
+            PilotEnableIncidentMedia: !If [PilotTestFeaturesOn, "true", "false"]
+            PilotEnableNonEmergencyTriage: !If [PilotTestFeaturesOn, "true", "false"]
+            PilotDeceptionShield: !If [PilotTestFeaturesOn, "true", "false"]
+            TranscriptRetentionPolicyDays: !Ref TranscriptRetentionPolicyDays
+            TranscriptsTable: !Ref TranscriptsTable
+            TraumaFlagsTable: !Ref TraumaFlagsTable
+            WafArn: !If [HasApiWaf, !GetAtt ApiWebAcl.Arn, ""]
+            WebhooksTable: !Ref WebhooksTable
+        RING_CREDENTIALS_SECRET_ARN: !Ref RingCredentialsSecretArn
+        RING_PARTNER_TOKEN_SECRET_ARN: !Ref RingCredentialsSecretArn
+        RING_PARTNERSHIP_ENABLED: !Ref RingPartnershipEnabled
+        RING_API_BASE_URL: !Ref RingApiBaseUrl
+        ENABLE_CONNECT_RING: !Ref EnableConnectRing
+        ENABLE_CONNECT_RING_AVAILABLE_CAMERAS: !If [PilotTestFeaturesOn, "true", !Ref EnableConnectRingAvailableCameras]
+        ENABLE_CONNECT_RING_EMERGENCY_REQUESTS: !If [PilotTestFeaturesOn, "true", !Ref EnableConnectRingEmergencyRequests]
+        CONNECT_SESSIONS_TABLE: !Ref ConnectAccessSessionsTable
+        VENUE_CAMERA_SESSIONS_TABLE: !Ref ConnectAccessSessionsTable
+        VENUE_FACILITIES_TABLE: !Ref VenueFacilitiesTable
+        VENUE_ASSETS_TABLE: !Ref VenueAssetsTable
+        VENUE_OVERLAYS_TABLE: !Ref VenueIncidentOverlaysTable
+        VENUE_CAMERA_ACCESS_LOG_TABLE: !If
+          - HasVenueCameraAccessLogTable
+          - !Ref VenueCameraAccessLogTable
+          - ""
+        VENUE_CONFIG_TABLE: !If
+          - HasVenueConfigTable
+          - !Ref VenueConfigTable
+          - ""
+        VENUE_CODES: !Sub "${AppName}-venue-codes"
+        CAMPUS_INCIDENTS_TABLE: !If
+          - HasCampusIncidentsTable
+          - !Ref CampusIncidentsTable
+          - ""
+        CAMPUS_CONFIG_TABLE: !If
+          - HasCampusConfigTable
+          - !Ref CampusConfigTable
+          - ""
+        QR_LOCATIONS_TABLE: !If
+          - HasQRLocationsTable
+          - !Ref QRLocationsTable
+          - ""
+        CAMPUS_CODES: !Sub "${AppName}-campus-codes"
+        CONNECT_BRIDGE_CLUSTER_ARN: ""
+        VENUE_BRIDGE_CLUSTER_ARN: ""
+        CONNECT_BRIDGE_TASK_DEFINITION: ""
+        VENUE_BRIDGE_TASK_DEFINITION: ""
+        BRIDGE_SUBNET_IDS: !Ref BridgeSubnetIds
+        BRIDGE_SECURITY_GROUP_IDS: !Ref BridgeSecurityGroupIds
+
+
+Resources:
+  AppManagedPolicyDynamoLambdaCrudShardA:
+    Type: AWS::IAM::ManagedPolicy
+    Properties:
+      ManagedPolicyName: !Sub "${Sam4ManagedPolicyNamePrefix}-sam4-lambda-ddb-crud-${DeploymentStage}-a"
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Sid: DynamoApplicationShardA
+            Effect: Allow
+            Action:
+              - dynamodb:GetItem
+              - dynamodb:BatchGetItem
+              - dynamodb:BatchWriteItem
+              - dynamodb:PutItem
+              - dynamodb:DeleteItem
+              - dynamodb:UpdateItem
+              - dynamodb:Query
+              - dynamodb:Scan
+              - dynamodb:DescribeTable
+              - dynamodb:ConditionCheckItem
+            Resource:
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${AccessOverridesTable}
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${AccessOverridesTable}/index/*
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${NetworkEmergencyOverridesTable}
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${NetworkEmergencyOverridesTable}/index/*
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${AgenciesTable}
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${AgenciesTable}/index/*
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${AgencySharePartnersTable}
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${AgencySharePartnersTable}/index/*
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${AgencySubscriptionsTable}
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${AgencySubscriptionsTable}/index/*
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${AnalysesTable}
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${AnalysesTable}/index/*
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${ApiClientsTable}
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${ApiClientsTable}/index/*
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${AuditTable}
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${AuditTable}/index/*
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${BillingAuditEventsTable}
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${BillingAuditEventsTable}/index/*
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${BillingAuditLogTable}
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${BillingAuditLogTable}/index/*
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${BillingProfilesTable}
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${BillingProfilesTable}/index/*
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${BillingSchedulesTable}
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${BillingSchedulesTable}/index/*
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${BillingWebhookEventsTable}
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${BillingWebhookEventsTable}/index/*
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${CadIncidentsRawTable}
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${CadIncidentsRawTable}/index/*
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${CadWebhookRateLimitsTable}
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${CadIntegrationsTable}
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${CadIntegrationsTable}/index/*
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${CustomersTable}
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${CustomersTable}/index/*
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${DataDeletionAuditTable}
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${DataDeletionAuditTable}/index/*
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${DeceptionEventsTable}
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${DeceptionEventsTable}/index/*
+
+  AppManagedPolicyDynamoLambdaCrudShardB:
+    Type: AWS::IAM::ManagedPolicy
+    Properties:
+      ManagedPolicyName: !Sub "${Sam4ManagedPolicyNamePrefix}-sam4-lambda-ddb-crud-${DeploymentStage}-b"
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Sid: DynamoApplicationShardB
+            Effect: Allow
+            Action:
+              - dynamodb:GetItem
+              - dynamodb:BatchGetItem
+              - dynamodb:BatchWriteItem
+              - dynamodb:PutItem
+              - dynamodb:DeleteItem
+              - dynamodb:UpdateItem
+              - dynamodb:Query
+              - dynamodb:Scan
+              - dynamodb:DescribeTable
+              - dynamodb:ConditionCheckItem
+            Resource:
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${DispatcherCoachingNotesTable}
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${DispatcherCoachingNotesTable}/index/*
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/rapid-cortex-incident-timeline-${DeploymentStage}
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/rapid-cortex-incident-timeline-${DeploymentStage}/index/*
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${ExternalApiRateLimitsTable}
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${ExternalApiRateLimitsTable}/index/*
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${IncidentMediaTable}
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${IncidentMediaTable}/index/*
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${IncidentSharesTable}
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${IncidentSharesTable}/index/*
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${CadIncidentsRawTable}
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${CadIncidentsRawTable}/index/*
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${CadWebhookRateLimitsTable}
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${CadIntegrationsTable}
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${CadIntegrationsTable}/index/*
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${IncidentsTable}
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${IncidentsTable}/index/*
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${InvoiceItemsTable}
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${InvoiceItemsTable}/index/*
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${InvoicesTable}
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${InvoicesTable}/index/*
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${InvitesTable}
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${InvitesTable}/index/*
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${NetworkEmergencyOverridesTable}
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${NetworkEmergencyOverridesTable}/index/*
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${LanguageSessionsTable}
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${LanguageSessionsTable}/index/*
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${LiveVideoSessionsTable}
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${LiveVideoSessionsTable}/index/*
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${MonetizationAddOnsTable}
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${MonetizationAddOnsTable}/index/*
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${MonetizationInvoicesTable}
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${MonetizationInvoicesTable}/index/*
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${MonetizationPlansTable}
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${MonetizationPlansTable}/index/*
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${PaymentRecordsTable}
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${PaymentRecordsTable}/index/*
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${DeceptionEventsTable}
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${DeceptionEventsTable}/index/*
+
+  AppManagedPolicyDynamoLambdaCrudShardC:
+    Type: AWS::IAM::ManagedPolicy
+    Properties:
+      ManagedPolicyName: !Sub "${Sam4ManagedPolicyNamePrefix}-sam4-lambda-ddb-crud-${DeploymentStage}-c"
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Sid: DynamoApplicationShardC
+            Effect: Allow
+            Action:
+              - dynamodb:GetItem
+              - dynamodb:BatchGetItem
+              - dynamodb:BatchWriteItem
+              - dynamodb:PutItem
+              - dynamodb:DeleteItem
+              - dynamodb:UpdateItem
+              - dynamodb:Query
+              - dynamodb:Scan
+              - dynamodb:DescribeTable
+              - dynamodb:ConditionCheckItem
+            Resource:
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${PremiseNotesTable}
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${PremiseNotesTable}/index/*
+                - !If
+                  - HasRingAccountsTable
+                  - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${RingAccountsTable}
+                  - !Ref AWS::NoValue
+                - !If
+                  - HasRingAccountsTable
+                  - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${RingAccountsTable}/index/*
+                  - !Ref AWS::NoValue
+                - !If
+                  - HasRingDevicesTable
+                  - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${RingDevicesTable}
+                  - !Ref AWS::NoValue
+                - !If
+                  - HasRingDevicesTable
+                  - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${RingDevicesTable}/index/*
+                  - !Ref AWS::NoValue
+                - !If
+                  - HasRingRequestsTable
+                  - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${RingRequestsTable}
+                  - !Ref AWS::NoValue
+                - !If
+                  - HasRingRequestsTable
+                  - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${RingRequestsTable}/index/*
+                  - !Ref AWS::NoValue
+                - !If
+                  - HasRingSessionsTable
+                  - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${RingSessionsTable}
+                  - !Ref AWS::NoValue
+                - !If
+                  - HasRingSessionsTable
+                  - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${RingSessionsTable}/index/*
+                  - !Ref AWS::NoValue
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${QASessionsTable}
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${QASessionsTable}/index/*
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${QATemplatesTable}
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${QATemplatesTable}/index/*
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${RcLiteApiKeysTable}
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${RcLiteApiKeysTable}/index/*
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${RcLiteRateLimitTable}
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${RcLiteRateLimitTable}/index/*
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${RcLiteUsageTable}
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${RcLiteUsageTable}/index/*
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${SalesLeadsTable}
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${SalesLeadsTable}/index/*
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${SeoIntelligenceTable}
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${SeoIntelligenceTable}/index/*
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${DeceptionEventsTable}
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${DeceptionEventsTable}/index/*
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${ServiceCatalogTable}
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${ServiceCatalogTable}/index/*
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${SilentTextSessionsTable}
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${SilentTextSessionsTable}/index/*
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${PinpointLinksTable}
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${PinpointLinksTable}/index/*
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${TraumaFlagsTable}
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${TraumaFlagsTable}/index/*
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${TranscriptsTable}
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${TranscriptsTable}/index/*
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${UsageMetersTable}
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${UsageMetersTable}/index/*
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${VideoAssistSessionsTable}
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${VideoAssistSessionsTable}/index/*
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${CadIncidentsRawTable}
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${CadIncidentsRawTable}/index/*
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${CadWebhookRateLimitsTable}
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${CadIntegrationsTable}
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${CadIntegrationsTable}/index/*
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${WebhooksTable}
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${WebhooksTable}/index/*
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${NetworkEmergencyOverridesTable}
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${NetworkEmergencyOverridesTable}/index/*
+                - !If
+                  - HasVenueFacilitiesTable
+                  - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${VenueFacilitiesTable}
+                  - !Ref AWS::NoValue
+                - !If
+                  - HasVenueFacilitiesTable
+                  - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${VenueFacilitiesTable}/index/*
+                  - !Ref AWS::NoValue
+                - !If
+                  - HasVenueFacilitiesTable
+                  - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${VenueAssetsTable}
+                  - !Ref AWS::NoValue
+                - !If
+                  - HasVenueFacilitiesTable
+                  - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${VenueAssetsTable}/index/*
+                  - !Ref AWS::NoValue
+                - !If
+                  - HasVenueFacilitiesTable
+                  - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${VenueIncidentOverlaysTable}
+                  - !Ref AWS::NoValue
+                - !If
+                  - HasVenueFacilitiesTable
+                  - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${VenueIncidentOverlaysTable}/index/*
+                  - !Ref AWS::NoValue
+                - !If
+                  - HasVenueFacilitiesTable
+                  - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${VenueCameraAccessLogTable}
+                  - !Ref AWS::NoValue
+                - !If
+                  - HasVenueFacilitiesTable
+                  - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${VenueCameraAccessLogTable}/index/*
+                  - !Ref AWS::NoValue
+                - !If
+                  - HasVenueConfigTable
+                  - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${VenueConfigTable}
+                  - !Ref AWS::NoValue
+                - !If
+                  - HasVenueConfigTable
+                  - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${VenueConfigTable}/index/*
+                  - !Ref AWS::NoValue
+                - !If
+                  - HasCampusIncidentsTable
+                  - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${CampusIncidentsTable}
+                  - !Ref AWS::NoValue
+                - !If
+                  - HasCampusIncidentsTable
+                  - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${CampusIncidentsTable}/index/*
+                  - !Ref AWS::NoValue
+                - !If
+                  - HasCampusConfigTable
+                  - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${CampusConfigTable}
+                  - !Ref AWS::NoValue
+                - !If
+                  - HasCampusConfigTable
+                  - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${CampusConfigTable}/index/*
+                  - !Ref AWS::NoValue
+                - !If
+                  - HasQRLocationsTable
+                  - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${QRLocationsTable}
+                  - !Ref AWS::NoValue
+                - !If
+                  - HasQRLocationsTable
+                  - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${QRLocationsTable}/index/*
+                  - !Ref AWS::NoValue
+
+  AppManagedPolicyS3ApplicationBucketsCrud:
+    Type: AWS::IAM::ManagedPolicy
+    Properties:
+      ManagedPolicyName: !Sub "${Sam4ManagedPolicyNamePrefix}-sam4-lambda-s3-app-${DeploymentStage}"
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Sid: ListBuckets
+            Effect: Allow
+            Action:
+              - s3:ListBucket
+              - s3:GetBucketLocation
+            Resource:
+              - !Sub arn:aws:s3:::${AssetsBucket}
+              - !Sub arn:aws:s3:::${BillingInvoicesBucket}
+              - !Sub arn:aws:s3:::${BillingPosBucket}
+          - Sid: Objects
+            Effect: Allow
+            Action:
+              - s3:GetObject
+              - s3:GetObjectAcl
+              - s3:GetObjectVersion
+              - s3:PutObject
+              - s3:PutObjectAcl
+              - s3:DeleteObject
+              - s3:AbortMultipartUpload
+              - s3:ListMultipartUploadParts
+            Resource:
+              - !Sub arn:aws:s3:::${AssetsBucket}/*
+              - !Sub arn:aws:s3:::${BillingInvoicesBucket}/*
+              - !Sub arn:aws:s3:::${BillingPosBucket}/*
+
+  AppManagedPolicyBedrockAiAndQaFoundationModels:
+    Type: AWS::IAM::ManagedPolicy
+    Properties:
+      ManagedPolicyName: !Sub "${AppName}-lambda-bedrock-ai-qa-${DeploymentStage}"
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Sid: BedrockAiAndQaFoundationModels
+            Effect: Allow
+            Action:
+              - bedrock:InvokeModel
+              - bedrock:Converse
+            Resource:
+              - !Sub arn:aws:bedrock:${AWS::Region}::foundation-model/${AiBedrockFoundationModelId}
+              - !Sub arn:aws:bedrock:${AWS::Region}::foundation-model/${QaBedrockModelId}
+
+  AppManagedPolicyBedrockQaFoundationModelOnly:
+    Type: AWS::IAM::ManagedPolicy
+    Properties:
+      ManagedPolicyName: !Sub "${AppName}-lambda-bedrock-qa-${DeploymentStage}"
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Sid: BedrockQaFoundationModelOnly
+            Effect: Allow
+            Action:
+              - bedrock:InvokeModel
+              - bedrock:Converse
+            Resource:
+              - !Sub arn:aws:bedrock:${AWS::Region}::foundation-model/${QaBedrockModelId}
+
+  AppManagedPolicySecretsMultilingualScopedRead:
+    Type: AWS::IAM::ManagedPolicy
+    Properties:
+      ManagedPolicyName: !Sub "${AppName}-lambda-secrets-mlling-${DeploymentStage}"
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Sid: MultilingualSecretsScopedOrBroadDev
+            Effect: Allow
+            Action:
+              - secretsmanager:GetSecretValue
+            Resource: !If
+              - MultilingualSecretsBroadPolicy
+              - !Sub arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:*
+              - !Sub arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:rapidcortex/${DeploymentStage}/*
+
+  AppManagedPolicySecretsAnalyzeProvidersRead:
+    Type: AWS::IAM::ManagedPolicy
+    Properties:
+      ManagedPolicyName: !Sub "${AppName}-lambda-secrets-anlz-${DeploymentStage}"
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Sid: StackPrefixAndOptionalModelProviderSecrets
+            Effect: Allow
+            Action:
+              - secretsmanager:GetSecretValue
+            Resource:
+              - !Sub arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:rapidcortex/${DeploymentStage}/*
+              - !If
+                - HasOpenAiApiKeySecretArn
+                - !Ref OpenAiApiKeySecretArn
+                - !Ref AWS::NoValue
+              - !If
+                - HasAnthropicApiKeySecretArn
+                - !Ref AnthropicApiKeySecretArn
+                - !Ref AWS::NoValue
+
+  AppManagedPolicyComprehendTranslateRegionalDetect:
+    Type: AWS::IAM::ManagedPolicy
+    Properties:
+      ManagedPolicyName: !Sub "${AppName}-lambda-cph-tr-${DeploymentStage}"
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Sid: ComprehendDominantLanguageRegional
+            Effect: Allow
+            Action:
+              - comprehend:DetectDominantLanguage
+            Resource: "*"
+            Condition:
+              StringEquals:
+                aws:RequestedRegion: !Ref AWS::Region
+          - Sid: TranslateTextRegional
+            Effect: Allow
+            Action:
+              - translate:TranslateText
+            Resource: "*"
+            Condition:
+              StringEquals:
+                aws:RequestedRegion: !Ref AWS::Region
+
+  AppManagedPolicyOpsAlertsSnsPublishOnly:
+    Type: AWS::IAM::ManagedPolicy
+    Properties:
+      ManagedPolicyName: !Sub "${Sam4ManagedPolicyNamePrefix}-sam4-lambda-sns-ops-${DeploymentStage}"
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Sid: PublishOpsAlertsTopicOnly
+            Effect: Allow
+            Action:
+              - sns:Publish
+            Resource: !GetAtt OpsAlertsTopic.TopicArn
+
+  AppManagedPolicySesBillingSenderIdentityEmails:
+    Type: AWS::IAM::ManagedPolicy
+    Properties:
+      ManagedPolicyName: !Sub "${Sam4ManagedPolicyNamePrefix}-sam4-lambda-ses-billing-${DeploymentStage}"
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - !If
+            - CreateBillingSesIdentities
+            - Sid: SesSendFromBillingVerifiedIdentity
+              Effect: Allow
+              Action:
+                - ses:SendEmail
+                - ses:SendTemplatedEmail
+              Resource:
+                - !Sub arn:${AWS::Partition}:ses:${AWS::Region}:${AWS::AccountId}:identity/${BillingSesSenderEmail}
+            - Sid: SesBillingIdentitiesSkippedPlaceholder
+              Effect: Allow
+              Action: sts:GetCallerIdentity
+              Resource: "*"
+
+  AppManagedPolicyTranscribeIncidentAudioJobsReadWrite:
+    Type: AWS::IAM::ManagedPolicy
+    Properties:
+      ManagedPolicyName: !Sub "${AppName}-lambda-trscribe-${DeploymentStage}"
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Sid: TranscribeRegionalJobsScoped
+            Effect: Allow
+            Action:
+              - transcribe:StartTranscriptionJob
+              - transcribe:GetTranscriptionJob
+              - transcribe:DeleteTranscriptionJob
+            Resource: !Sub arn:${AWS::Partition}:transcribe:${AWS::Region}:${AWS::AccountId}:transcription-job/*
+
+  OpsAlertsTopic:
+    Type: AWS::SNS::Topic
+    Properties:
+      DisplayName: !Sub "${AppName} ops (${DeploymentStage})"
+
+  OpsAlertsEmailSubscription:
+    Type: AWS::SNS::Subscription
+    Condition: HasSnsEmailSubscription
+    Properties:
+      TopicArn: !Ref OpsAlertsTopic
+      Protocol: email
+      Endpoint: !Ref SnsEmailSubscription
+
+  OpsAlertsSmsSubscription:
+    Type: AWS::SNS::Subscription
+    Condition: HasSnsSmsSubscription
+    Properties:
+      TopicArn: !Ref OpsAlertsTopic
+      Protocol: sms
+      Endpoint: !Ref SnsSmsSubscription
+
+  Api:
+    Type: AWS::Serverless::HttpApi
+    Properties:
+      DefaultRouteSettings:
+        ThrottlingBurstLimit: 200
+        ThrottlingRateLimit: 100
+      CorsConfiguration:
+        AllowOrigins: !Split [",", !Ref HttpApiCorsAllowedOrigins]
+        AllowHeaders:
+          - authorization
+          - content-type
+        AllowMethods:
+          - GET
+          - POST
+          - PATCH
+          - PUT
+          - DELETE
+          - OPTIONS
+      Auth:
+        DefaultAuthorizer: CognitoJwtAuthorizer
+        Authorizers:
+          CognitoJwtAuthorizer:
+            IdentitySource: "$request.header.Authorization"
+            JwtConfiguration:
+              issuer: !Ref ImportedCognitoIssuer
+              audience:
+                - !Ref ImportedCognitoWebClientId
+                - !Ref ImportedCognitoNativeClientId
+
+  # Regional WAF in front of the HTTP API (API Gateway stage association). Complements stage throttling; does not replace it.
+  ApiWebAcl:
+    Type: AWS::WAFv2::WebACL
+    Condition: HasApiWaf
+    Properties:
+      Name: !Sub "${AppName}-httpapi4-waf-${DeploymentStage}"
+      Description: Managed rules + per-IP rate limit for Rapid Cortex API Gateway
+      Scope: REGIONAL
+      DefaultAction:
+        Allow: {}
+      VisibilityConfig:
+        CloudWatchMetricsEnabled: true
+        MetricName: !Sub "${AppName}ApiWaf"
+        SampledRequestsEnabled: true
+      Rules:
+        - Name: AWSManagedCommon
+          Priority: 0
+          OverrideAction:
+            None: {}
+          Statement:
+            ManagedRuleGroupStatement:
+              VendorName: AWS
+              Name: AWSManagedRulesCommonRuleSet
+          VisibilityConfig:
+            CloudWatchMetricsEnabled: true
+            MetricName: !Sub "${AppName}WafCommon"
+            SampledRequestsEnabled: true
+        - Name: AWSManagedBadInputs
+          Priority: 1
+          OverrideAction:
+            None: {}
+          Statement:
+            ManagedRuleGroupStatement:
+              VendorName: AWS
+              Name: AWSManagedRulesKnownBadInputsRuleSet
+          VisibilityConfig:
+            CloudWatchMetricsEnabled: true
+            MetricName: !Sub "${AppName}WafBadInputs"
+            SampledRequestsEnabled: true
+        - Name: AWSManagedIpReputation
+          Priority: 2
+          OverrideAction:
+            None: {}
+          Statement:
+            ManagedRuleGroupStatement:
+              VendorName: AWS
+              Name: AWSManagedRulesAmazonIpReputationList
+          VisibilityConfig:
+            CloudWatchMetricsEnabled: true
+            MetricName: !Sub "${AppName}WafIpRep"
+            SampledRequestsEnabled: true
+        - Name: PerIpRateLimit
+          Priority: 3
+          Action:
+            Block: {}
+          Statement:
+            RateBasedStatement:
+              Limit: !Ref WafRateLimitPer5Min
+              AggregateKeyType: IP
+          VisibilityConfig:
+            CloudWatchMetricsEnabled: true
+            MetricName: !Sub "${AppName}WafIpRate"
+            SampledRequestsEnabled: true
+
+  ApiWebAclAssociation:
+    Type: AWS::WAFv2::WebACLAssociation
+    Condition: HasApiWaf
+    Properties:
+      WebACLArn: !GetAtt ApiWebAcl.Arn
+      ResourceArn: !Sub
+        - "arn:${AWS::Partition}:apigateway:${AWS::Region}::/apis/${ApiId}/stages/${StageName}"
+        - ApiId: !Ref Api
+          StageName: "$default"
+
+  ApiManagedCertificate:
+    Type: AWS::CertificateManager::Certificate
+    Condition: HasManagedApiCert
+    Properties:
+      DomainName: !Sub "${ApiSubdomainPrefix}.${RootDomainName}"
+      ValidationMethod: DNS
+      DomainValidationOptions:
+        - DomainName: !Sub "${ApiSubdomainPrefix}.${RootDomainName}"
+          HostedZoneId: !Ref Route53HostedZoneId
+
+  ApiCustomDomain:
+    Type: AWS::ApiGatewayV2::DomainName
+    Condition: HasApiCustomDomainCert
+    Properties:
+      DomainName: !Sub "${ApiSubdomainPrefix}.${RootDomainName}"
+      DomainNameConfigurations:
+        - CertificateArn: !If [HasImportedApiCert, !Ref ApiDomainCertificateArn, !Ref ApiManagedCertificate]
+          EndpointType: REGIONAL
+          SecurityPolicy: TLS_1_2
+
+  ApiCustomDomainMapping:
+    Type: AWS::ApiGatewayV2::ApiMapping
+    Condition: HasApiCustomDomainCert
+    Properties:
+      ApiId: !Ref Api
+      DomainName: !Ref ApiCustomDomain
+      Stage: !Ref ApiApiGatewayDefaultStage
+
+  ApiDomainDnsRecordA:
+    Type: AWS::Route53::RecordSet
+    Condition: HasApiCustomDomainCert
+    Properties:
+      HostedZoneName: !Sub "${RootDomainName}."
+      Name: !Sub "${ApiSubdomainPrefix}.${RootDomainName}."
+      Type: A
+      AliasTarget:
+        DNSName: !GetAtt ApiCustomDomain.RegionalDomainName
+        HostedZoneId: !GetAtt ApiCustomDomain.RegionalHostedZoneId
+
+  ApiDomainDnsRecordAAAA:
+    Type: AWS::Route53::RecordSet
+    Condition: HasApiCustomDomainCert
+    Properties:
+      HostedZoneName: !Sub "${RootDomainName}."
+      Name: !Sub "${ApiSubdomainPrefix}.${RootDomainName}."
+      Type: AAAA
+      AliasTarget:
+        DNSName: !GetAtt ApiCustomDomain.RegionalDomainName
+        HostedZoneId: !GetAtt ApiCustomDomain.RegionalHostedZoneId
+
+  AppManagedPolicyRingConnectSecrets:
+    Type: AWS::IAM::ManagedPolicy
+    Properties:
+      ManagedPolicyName: !Sub "${Sam4ManagedPolicyNamePrefix}-sam4-lambda-ring-secrets-${DeploymentStage}"
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Sid: RingConnectTokenSecrets
+            Effect: Allow
+            Action:
+              - secretsmanager:CreateSecret
+              - secretsmanager:GetSecretValue
+              - secretsmanager:PutSecretValue
+              - secretsmanager:UpdateSecret
+              - secretsmanager:DeleteSecret
+              - secretsmanager:DescribeSecret
+              - secretsmanager:TagResource
+            Resource: !Sub arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:${RingSecretsPrefix}/*
+          - Sid: RingCredentialsRead
+            Effect: Allow
+            Action:
+              - secretsmanager:GetSecretValue
+            Resource:
+              - !Sub arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:rapid-cortex/connect/ring-credentials-*
+              - !Sub arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:rapid-cortex/connect/ring-credentials-D3f1sN
+              - !If
+                - HasRingCredentialsSecretArn
+                - !Ref RingCredentialsSecretArn
+                - !Ref AWS::NoValue
+
+  RingConnectLoginFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/integrations/ring/login.handler
+      Timeout: 30
+      Environment:
+        Variables:
+          COGNITO_USER_POOL_ID: !Ref ImportedCognitoUserPoolId
+          COGNITO_CLIENT_ID: !Ref ImportedCognitoWebClientId
+          ENABLE_CONNECT_RING: !Ref EnableConnectRing
+          RING_REDIRECT_URI: !Ref RingRedirectUri
+          RING_ACCOUNT_LINK_URL: !Ref RingAccountLinkUrl
+          RING_SECRETS_PREFIX: !Ref RingSecretsPrefix
+          RING_TABLE_ACCOUNTS: !If
+            - HasRingAccountsTable
+            - !Ref RingAccountsTable
+            - !Sub "RapidCortexRingAccounts-${DeploymentStage}"
+          RING_TABLE_DEVICES: !If
+            - HasRingDevicesTable
+            - !Ref RingDevicesTable
+            - !Sub "RapidCortexRingDevices-${DeploymentStage}"
+      Policies:
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardA
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardC
+        - !Ref AppManagedPolicyRingConnectSecrets
+      Events:
+        Route:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/integrations/ring/login
+            Method: GET
+
+  RingConnectCallbackFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/integrations/ring/callback.handler
+      Timeout: 60
+      Environment:
+        Variables:
+          ENABLE_CONNECT_RING: !Ref EnableConnectRing
+          RING_REDIRECT_URI: !Ref RingRedirectUri
+          RING_ACCOUNT_LINK_URL: !Ref RingAccountLinkUrl
+          RING_SECRETS_PREFIX: !Ref RingSecretsPrefix
+          RING_TABLE_ACCOUNTS: !If
+            - HasRingAccountsTable
+            - !Ref RingAccountsTable
+            - !Sub "RapidCortexRingAccounts-${DeploymentStage}"
+          RING_TABLE_DEVICES: !If
+            - HasRingDevicesTable
+            - !Ref RingDevicesTable
+            - !Sub "RapidCortexRingDevices-${DeploymentStage}"
+      Policies:
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardA
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardC
+        - !Ref AppManagedPolicyRingConnectSecrets
+      Events:
+        Route:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/integrations/ring/callback
+            Method: GET
+            Auth:
+              Authorizer: NONE
+
+  RingConnectDevicesFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/integrations/ring/devices.handler
+      Timeout: 30
+      Environment:
+        Variables:
+          COGNITO_USER_POOL_ID: !Ref ImportedCognitoUserPoolId
+          COGNITO_CLIENT_ID: !Ref ImportedCognitoWebClientId
+          ENABLE_CONNECT_RING: !Ref EnableConnectRing
+          RING_TABLE_DEVICES: !If
+            - HasRingDevicesTable
+            - !Ref RingDevicesTable
+            - !Sub "RapidCortexRingDevices-${DeploymentStage}"
+      Policies:
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardA
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardC
+      Events:
+        Route:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/integrations/ring/devices
+            Method: GET
+
+  RingConnectRefreshTokenFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/integrations/ring/refresh-token.handler
+      Timeout: 30
+      Environment:
+        Variables:
+          ENABLE_CONNECT_RING: !Ref EnableConnectRing
+          RING_SECRETS_PREFIX: !Ref RingSecretsPrefix
+          RING_TABLE_ACCOUNTS: !If
+            - HasRingAccountsTable
+            - !Ref RingAccountsTable
+            - !Sub "RapidCortexRingAccounts-${DeploymentStage}"
+          INTERNAL_SERVICE_KEY: !Ref InternalServiceKey
+      Policies:
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardA
+        - !Ref AppManagedPolicyRingConnectSecrets
+      Events:
+        Route:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/integrations/ring/refresh-token
+            Method: POST
+            Auth:
+              Authorizer: NONE
+
+  RingConnectAvailableCamerasFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/integrations/ring/available-cameras.handler
+      Timeout: 30
+      Environment:
+        Variables:
+          COGNITO_USER_POOL_ID: !Ref ImportedCognitoUserPoolId
+          COGNITO_CLIENT_ID: !Ref ImportedCognitoWebClientId
+          ENABLE_CONNECT_RING: !Ref EnableConnectRing
+          ENABLE_CONNECT_RING_AVAILABLE_CAMERAS: !Ref EnableConnectRingAvailableCameras
+          RING_TABLE_DEVICES: !If
+            - HasRingDevicesTable
+            - !Ref RingDevicesTable
+            - !Sub "RapidCortexRingDevices-${DeploymentStage}"
+          RING_TABLE_REQUESTS: !If
+            - HasRingRequestsTable
+            - !Ref RingRequestsTable
+            - !Sub "RingEmergencyCameraRequests-${DeploymentStage}"
+      Policies:
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardA
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardC
+      Events:
+        Route:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/integrations/ring/available-cameras
+            Method: GET
+
+  RingConnectRequestCameraAccessFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/integrations/ring/request-camera-access.handler
+      Timeout: 60
+      Environment:
+        Variables:
+          COGNITO_USER_POOL_ID: !Ref ImportedCognitoUserPoolId
+          COGNITO_CLIENT_ID: !Ref ImportedCognitoWebClientId
+          ENABLE_CONNECT_RING: !Ref EnableConnectRing
+          ENABLE_CONNECT_RING_EMERGENCY_REQUESTS: !Ref EnableConnectRingEmergencyRequests
+          RING_PUBLIC_API_BASE_URL: !Ref RingPublicApiBaseUrl
+          RING_TABLE_DEVICES: !If
+            - HasRingDevicesTable
+            - !Ref RingDevicesTable
+            - !Sub "RapidCortexRingDevices-${DeploymentStage}"
+          RING_TABLE_REQUESTS: !If
+            - HasRingRequestsTable
+            - !Ref RingRequestsTable
+            - !Sub "RingEmergencyCameraRequests-${DeploymentStage}"
+          INCIDENT_MEDIA_TWILIO_SECRET_ARN: !Ref IncidentMediaTwilioSecretArn
+          SMS_PROVIDER: !FindInMap [SmsEnvironmentDefaults, !Ref DeploymentStage, SmsProvider]
+          SMS_PRIMARY_PROVIDER: !FindInMap [SmsEnvironmentDefaults, !Ref DeploymentStage, SmsPrimaryProvider]
+          MOCK_SMS_PROVIDER: !FindInMap [SmsEnvironmentDefaults, !Ref DeploymentStage, MockSmsProvider]
+          AWS_SMS_USE_SIMULATOR: !FindInMap [SmsEnvironmentDefaults, !Ref DeploymentStage, AwsSmsUseSimulator]
+      Policies:
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardA
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardC
+        - Statement:
+            Sid: RingOwnerCognitoLookup
+            Effect: Allow
+            Action:
+              - cognito-idp:AdminGetUser
+              - cognito-idp:ListUsers
+            Resource: !Sub "arn:aws:cognito-idp:${AWS::Region}:${AWS::AccountId}:userpool/${ImportedCognitoUserPoolId}"
+        - Statement:
+            Sid: SnsPublishToPhoneNumbersRingOwnerNotify
+            Effect: Allow
+            Action: sns:Publish
+            Resource: "*"
+            Condition:
+              StringEquals:
+                "sns:Type": "Transactional"
+        - !If
+          - HasIncidentMediaTwilioSecretArn
+          - Statement:
+              Sid: ReadTwilioSecretRingOwnerNotify
+              Effect: Allow
+              Action:
+                - secretsmanager:GetSecretValue
+              Resource: !Ref IncidentMediaTwilioSecretArn
+          - !Ref AWS::NoValue
+        - Statement:
+            Sid: SesRingOwnerNotifyFromSupportIdentity
+            Effect: Allow
+            Action:
+              - ses:SendEmail
+            Resource:
+              - !Sub arn:${AWS::Partition}:ses:${AWS::Region}:${AWS::AccountId}:identity/support@rapidcortex.us
+      Events:
+        Route:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/integrations/ring/request-camera-access
+            Method: POST
+
+  RingConnectCameraConsentApproveFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/integrations/ring/camera-consent.approveHandler
+      Timeout: 30
+      Environment:
+        Variables:
+          ENABLE_CONNECT_RING: !Ref EnableConnectRing
+          ENABLE_CONNECT_RING_EMERGENCY_REQUESTS: !Ref EnableConnectRingEmergencyRequests
+          RING_TABLE_REQUESTS: !If
+            - HasRingRequestsTable
+            - !Ref RingRequestsTable
+            - !Sub "RingEmergencyCameraRequests-${DeploymentStage}"
+          RING_TABLE_SESSIONS: !If
+            - HasRingSessionsTable
+            - !Ref RingSessionsTable
+            - !Sub "RingEmergencyCameraSessions-${DeploymentStage}"
+      Policies:
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardC
+      Events:
+        Route:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/integrations/ring/consent/{requestToken}/approve
+            Method: POST
+            Auth:
+              Authorizer: NONE
+
+  RingConnectCameraConsentDeclineFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/integrations/ring/camera-consent.declineHandler
+      Timeout: 30
+      Environment:
+        Variables:
+          ENABLE_CONNECT_RING: !Ref EnableConnectRing
+          ENABLE_CONNECT_RING_EMERGENCY_REQUESTS: !Ref EnableConnectRingEmergencyRequests
+          RING_TABLE_REQUESTS: !If
+            - HasRingRequestsTable
+            - !Ref RingRequestsTable
+            - !Sub "RingEmergencyCameraRequests-${DeploymentStage}"
+      Policies:
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardC
+      Events:
+        Route:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/integrations/ring/consent/{requestToken}/decline
+            Method: POST
+            Auth:
+              Authorizer: NONE
+
+  RingConnectRevokeCameraAccessFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/integrations/ring/revoke-camera-access.handler
+      Timeout: 30
+      Environment:
+        Variables:
+          COGNITO_USER_POOL_ID: !Ref ImportedCognitoUserPoolId
+          COGNITO_CLIENT_ID: !Ref ImportedCognitoWebClientId
+          ENABLE_CONNECT_RING: !Ref EnableConnectRing
+          ENABLE_CONNECT_RING_EMERGENCY_REQUESTS: !Ref EnableConnectRingEmergencyRequests
+          RING_TABLE_REQUESTS: !If
+            - HasRingRequestsTable
+            - !Ref RingRequestsTable
+            - !Sub "RingEmergencyCameraRequests-${DeploymentStage}"
+          RING_TABLE_SESSIONS: !If
+            - HasRingSessionsTable
+            - !Ref RingSessionsTable
+            - !Sub "RingEmergencyCameraSessions-${DeploymentStage}"
+      Policies:
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardC
+      Events:
+        Route:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/integrations/ring/sessions/{sessionId}/revoke
+            Method: POST
+            Auth:
+              Authorizer: NONE
+
+  ListBillingPlansFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      Environment:
+        Variables:
+          COGNITO_USER_POOL_ID: !Ref ImportedCognitoUserPoolId
+          COGNITO_CLIENT_ID: !Ref ImportedCognitoWebClientId
+      CodeUri: ../../apps/api/
+      Handler: dist/handlers/listBillingPlans.handler
+      Policies:
+        - !Ref AppManagedPolicyS3ApplicationBucketsCrud
+
+      Events:
+        Route:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/billing/plans
+            Method: GET
+
+  GetAgencyBillingProfileFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      Environment:
+        Variables:
+          COGNITO_USER_POOL_ID: !Ref ImportedCognitoUserPoolId
+          COGNITO_CLIENT_ID: !Ref ImportedCognitoWebClientId
+      CodeUri: ../../apps/api/
+      Handler: dist/handlers/getAgencyBillingProfile.handler
+      Policies:
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardA
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardB
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardC
+        - !Ref AppManagedPolicyS3ApplicationBucketsCrud
+
+      Events:
+        Route:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/agencies/{id}/billing-profile
+            Method: GET
+
+  PatchAgencyBillingProfileFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      Environment:
+        Variables:
+          COGNITO_USER_POOL_ID: !Ref ImportedCognitoUserPoolId
+          COGNITO_CLIENT_ID: !Ref ImportedCognitoWebClientId
+      CodeUri: ../../apps/api/
+      Handler: dist/handlers/patchAgencyBillingProfile.handler
+      Policies:
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardA
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardB
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardC
+        - !Ref AppManagedPolicyS3ApplicationBucketsCrud
+
+      Events:
+        Route:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/agencies/{id}/billing-profile
+            Method: PATCH
+
+  PostBillingSubscriptionChangeFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      Environment:
+        Variables:
+          COGNITO_USER_POOL_ID: !Ref ImportedCognitoUserPoolId
+          COGNITO_CLIENT_ID: !Ref ImportedCognitoWebClientId
+      CodeUri: ../../apps/api/
+      Handler: dist/handlers/postBillingSubscriptionChange.handler
+      Policies:
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardA
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardB
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardC
+        - !Ref AppManagedPolicyS3ApplicationBucketsCrud
+
+      Events:
+        Route:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/agencies/{id}/billing/subscription/change
+            Method: POST
+
+  PostBillingSubscriptionCancelFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      Environment:
+        Variables:
+          COGNITO_USER_POOL_ID: !Ref ImportedCognitoUserPoolId
+          COGNITO_CLIENT_ID: !Ref ImportedCognitoWebClientId
+      CodeUri: ../../apps/api/
+      Handler: dist/handlers/postBillingSubscriptionCancel.handler
+      Policies:
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardA
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardB
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardC
+        - !Ref AppManagedPolicyS3ApplicationBucketsCrud
+
+      Events:
+        Route:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/agencies/{id}/billing/subscription/cancel
+            Method: POST
+
+  ListAgencyBillingInvoicesFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      Environment:
+        Variables:
+          COGNITO_USER_POOL_ID: !Ref ImportedCognitoUserPoolId
+          COGNITO_CLIENT_ID: !Ref ImportedCognitoWebClientId
+      CodeUri: ../../apps/api/
+      Handler: dist/handlers/listAgencyBillingInvoices.handler
+      Policies:
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardA
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardB
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardC
+        - !Ref AppManagedPolicyS3ApplicationBucketsCrud
+
+      Events:
+        Route:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/agencies/{id}/billing/invoices
+            Method: GET
+
+  PostAgencyBillingInvoiceFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      Environment:
+        Variables:
+          COGNITO_USER_POOL_ID: !Ref ImportedCognitoUserPoolId
+          COGNITO_CLIENT_ID: !Ref ImportedCognitoWebClientId
+      CodeUri: ../../apps/api/
+      Handler: dist/handlers/postAgencyBillingInvoice.handler
+      Policies:
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardA
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardB
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardC
+        - !Ref AppManagedPolicyS3ApplicationBucketsCrud
+
+      Events:
+        Route:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/agencies/{id}/billing/invoices
+            Method: POST
+
+  ListAgencyBillingPaymentMethodsFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      Environment:
+        Variables:
+          COGNITO_USER_POOL_ID: !Ref ImportedCognitoUserPoolId
+          COGNITO_CLIENT_ID: !Ref ImportedCognitoWebClientId
+      CodeUri: ../../apps/api/
+      Handler: dist/handlers/listAgencyBillingPaymentMethods.handler
+      Policies:
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardA
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardB
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardC
+        - !Ref AppManagedPolicyS3ApplicationBucketsCrud
+
+      Events:
+        Route:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/agencies/{id}/billing/payment-methods
+            Method: GET
+
+  PostAgencyBillingPaymentMethodFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      Environment:
+        Variables:
+          COGNITO_USER_POOL_ID: !Ref ImportedCognitoUserPoolId
+          COGNITO_CLIENT_ID: !Ref ImportedCognitoWebClientId
+      CodeUri: ../../apps/api/
+      Handler: dist/handlers/postAgencyBillingPaymentMethod.handler
+      Policies:
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardA
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardB
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardC
+        - !Ref AppManagedPolicyS3ApplicationBucketsCrud
+
+      Events:
+        Route:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/agencies/{id}/billing/payment-methods
+            Method: POST
+
+  PostAgencyBillingPaymentMethodDefaultFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      Environment:
+        Variables:
+          COGNITO_USER_POOL_ID: !Ref ImportedCognitoUserPoolId
+          COGNITO_CLIENT_ID: !Ref ImportedCognitoWebClientId
+      CodeUri: ../../apps/api/
+      Handler: dist/handlers/postAgencyBillingPaymentMethodDefault.handler
+      Policies:
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardA
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardB
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardC
+        - !Ref AppManagedPolicyS3ApplicationBucketsCrud
+
+      Events:
+        Route:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/agencies/{id}/billing/payment-methods/default
+            Method: POST
+
+  BillingTenantHttpFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      Environment:
+        Variables:
+          COGNITO_USER_POOL_ID: !Ref ImportedCognitoUserPoolId
+          COGNITO_CLIENT_ID: !Ref ImportedCognitoWebClientId
+      CodeUri: ../../apps/api/
+      Handler: dist/handlers/billingTenantHttp.handler
+      Policies:
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardA
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardB
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardC
+        - !Ref AppManagedPolicyS3ApplicationBucketsCrud
+
+      Events:
+        CurrentSub:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/billing/current-subscription
+            Method: GET
+        Invoices:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/billing/invoices
+            Method: GET
+        Usage:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/billing/usage
+            Method: GET
+        ReportUsage:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/billing/report-usage
+            Method: POST
+
+  AdminInvoicesHttpFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      Environment:
+        Variables:
+          COGNITO_USER_POOL_ID: !Ref ImportedCognitoUserPoolId
+          COGNITO_CLIENT_ID: !Ref ImportedCognitoWebClientId
+      CodeUri: ../../apps/api/
+      Handler: dist/handlers/adminInvoicesHttp.handler
+      Policies:
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardA
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardB
+      Events:
+        AdminInvoicesList:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/admin/invoices
+            Method: GET
+        AdminInvoiceById:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/admin/invoices/{invoiceId}
+            Method: GET
+        AdminInvoicePatch:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/admin/invoices/{invoiceId}
+            Method: PATCH
+
+  BillingCustomersHttpFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      Environment:
+        Variables:
+          COGNITO_USER_POOL_ID: !Ref ImportedCognitoUserPoolId
+          COGNITO_CLIENT_ID: !Ref ImportedCognitoWebClientId
+      CodeUri: ../../apps/api/
+      Handler: dist/handlers/billingCustomersHttp.handler
+      Policies:
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardA
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardB
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardC
+        - !Ref AppManagedPolicyS3ApplicationBucketsCrud
+
+      Events:
+        CustomersRoot:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/billing/customers
+            Method: ANY
+        CustomersProxy:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/billing/customers/{proxy+}
+            Method: ANY
+
+  BillingServicesHttpFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      Environment:
+        Variables:
+          COGNITO_USER_POOL_ID: !Ref ImportedCognitoUserPoolId
+          COGNITO_CLIENT_ID: !Ref ImportedCognitoWebClientId
+      CodeUri: ../../apps/api/
+      Handler: dist/handlers/billingServicesHttp.handler
+      Policies:
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardA
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardB
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardC
+        - !Ref AppManagedPolicyS3ApplicationBucketsCrud
+
+      Events:
+        ServicesRoot:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/billing/services
+            Method: ANY
+        ServicesProxy:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/billing/services/{proxy+}
+            Method: ANY
+
+  BillingInvoicesHttpFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      Environment:
+        Variables:
+          COGNITO_USER_POOL_ID: !Ref ImportedCognitoUserPoolId
+          COGNITO_CLIENT_ID: !Ref ImportedCognitoWebClientId
+      CodeUri: ../../apps/api/
+      Handler: dist/handlers/billingInvoicesHttp.handler
+      Policies:
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardA
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardB
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardC
+        - !Ref AppManagedPolicyS3ApplicationBucketsCrud
+
+      Events:
+        InvoicesRoot:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/billing/invoices
+            Method: ANY
+        InvoicesProxy:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/billing/invoices/{proxy+}
+            Method: ANY
+
+  BillingSchedulesHttpFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      Environment:
+        Variables:
+          COGNITO_USER_POOL_ID: !Ref ImportedCognitoUserPoolId
+          COGNITO_CLIENT_ID: !Ref ImportedCognitoWebClientId
+      CodeUri: ../../apps/api/
+      Handler: dist/handlers/billingSchedulesHttp.handler
+      Policies:
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardA
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardB
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardC
+        - !Ref AppManagedPolicyS3ApplicationBucketsCrud
+
+      Events:
+        SchedulesRoot:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/billing/schedules
+            Method: ANY
+        SchedulesProxy:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/billing/schedules/{proxy+}
+            Method: ANY
+
+  BillingPaymentsHttpFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      Environment:
+        Variables:
+          COGNITO_USER_POOL_ID: !Ref ImportedCognitoUserPoolId
+          COGNITO_CLIENT_ID: !Ref ImportedCognitoWebClientId
+      CodeUri: ../../apps/api/
+      Handler: dist/handlers/billingPaymentsHttp.handler
+      Policies:
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardA
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardB
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardC
+        - !Ref AppManagedPolicyS3ApplicationBucketsCrud
+        - !Ref AppManagedPolicySesBillingSenderIdentityEmails
+
+      Events:
+        PaymentsRoot:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/billing/payments
+            Method: ANY
+        PaymentsProxy:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/billing/payments/{proxy+}
+            Method: ANY
+
+  TenantAddonsHttpFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      Environment:
+        Variables:
+          COGNITO_USER_POOL_ID: !Ref ImportedCognitoUserPoolId
+          COGNITO_CLIENT_ID: !Ref ImportedCognitoWebClientId
+      CodeUri: ../../apps/api/
+      Handler: dist/handlers/admin/tenantAddonsHttp.handler
+      Timeout: 30
+      Policies:
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardA
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardB
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardC
+
+      Events:
+        AgencyEntitlements:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/agency/entitlements
+            Method: GET
+        TenantAddonsEntitlements:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/admin/tenants/{tenantId}/entitlements
+            Method: GET
+        TenantAddonsPatch:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/admin/tenants/{tenantId}/entitlements
+            Method: PATCH
+        TenantAddonsAudit:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/admin/tenants/{tenantId}/entitlements/audit
+            Method: GET
+        TenantAddonsInvoice:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/admin/tenants/{tenantId}/invoice/current
+            Method: GET
+
+  AgencyNetworkPolicySyncTopic:
+    Type: AWS::SNS::Topic
+    Properties:
+      DisplayName: !Sub "${AppName} agency network policy sync (${DeploymentStage})"
+
+  AgencyNetworkPolicyHttpFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      Environment:
+        Variables:
+          COGNITO_USER_POOL_ID: !Ref ImportedCognitoUserPoolId
+          COGNITO_CLIENT_ID: !Ref ImportedCognitoWebClientId
+      CodeUri: ../../apps/api/
+      Handler: dist/handlers/admin/agencyNetworkPolicyHttp.handler
+      Timeout: 30
+      Policies:
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardA
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardB
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardC
+        - !Ref AppManagedPolicySesBillingSenderIdentityEmails
+        - Statement:
+            Effect: Allow
+            Action:
+              - sns:Publish
+            Resource: !Ref AgencyNetworkPolicySyncTopic
+
+      Events:
+        AgencyNetworkPolicyCheck:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/agency/network-policy-check
+            Method: GET
+        AgencyEmergencyOverrideRequest:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/agency/emergency-override-request
+            Method: POST
+        AdminNetworkPolicyGet:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/admin/agencies/{agencyId}/network-policy
+            Method: GET
+        AdminNetworkPolicyPatch:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/admin/agencies/{agencyId}/network-policy
+            Method: PATCH
+        AdminNetworkPolicyCidrPost:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/admin/agencies/{agencyId}/network-policy/cidrs
+            Method: POST
+        AdminNetworkPolicyCidrDelete:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/admin/agencies/{agencyId}/network-policy/cidrs
+            Method: DELETE
+        AdminNetworkPolicyEmergency:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/admin/agencies/{agencyId}/network-policy/emergency-override
+            Method: POST
+        AdminNetworkPolicyAudit:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/admin/agencies/{agencyId}/network-policy/audit
+            Method: GET
+
+  WafNetworkPolicySyncFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      Environment:
+        Variables:
+          COGNITO_USER_POOL_ID: !Ref ImportedCognitoUserPoolId
+          COGNITO_CLIENT_ID: !Ref ImportedCognitoWebClientId
+      CodeUri: ../../apps/api/
+      Handler: dist/workers/waf-network-policy-sync.handler
+      Timeout: 60
+      Policies:
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardA
+        - !If
+          - HasApiWaf
+          - Statement:
+              Effect: Allow
+              Action:
+                - wafv2:CreateIPSet
+                - wafv2:UpdateIPSet
+                - wafv2:GetIPSet
+                - wafv2:GetWebACL
+                - wafv2:UpdateWebACL
+                - wafv2:ListIPSets
+              Resource:
+                - !Sub "arn:${AWS::Partition}:wafv2:${AWS::Region}:${AWS::AccountId}:regional/ipset/*"
+                - !GetAtt ApiWebAcl.Arn
+          - !Ref AWS::NoValue
+      Events:
+        NetworkPolicySync:
+          Type: SNS
+          Properties:
+            Topic: !Ref AgencyNetworkPolicySyncTopic
+
+  BillingSchedulerFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      Environment:
+        Variables:
+          COGNITO_USER_POOL_ID: !Ref ImportedCognitoUserPoolId
+          COGNITO_CLIENT_ID: !Ref ImportedCognitoWebClientId
+      CodeUri: ../../apps/api/
+      Handler: dist/handlers/billingScheduler.handler
+      Timeout: 300
+      MemorySize: 512
+      Policies:
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardA
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardB
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardC
+        - !Ref AppManagedPolicyS3ApplicationBucketsCrud
+        - !Ref AppManagedPolicySesBillingSenderIdentityEmails
+
+      Events:
+        DailyBillingScheduler:
+          Type: Schedule
+          Properties:
+            Name: daily-billing-scheduler
+            Schedule: cron(0 8 * * ? *)
+            Description: "Runs billing schedules, reminders, and overdue updates daily at 08:00 UTC."
+            Enabled: true
+
+  BillingPaymentsDisabledCatchAllFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      Environment:
+        Variables:
+          COGNITO_USER_POOL_ID: !Ref ImportedCognitoUserPoolId
+          COGNITO_CLIENT_ID: !Ref ImportedCognitoWebClientId
+      CodeUri: ../../apps/api/
+      Handler: dist/handlers/billingPaymentsDisabledGateway.handler
+      Policies:
+        - !Ref AppManagedPolicyS3ApplicationBucketsCrud
+
+      Events:
+        LegacyPaymentsHooks:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/billing/legacy-webhooks/{proxy+}
+            Method: ANY
+
+
+Outputs:
+  OpsAlertsTopicArn:
+    Description: SNS topic ARN for CloudWatch alarm notifications (stack 4 billing/ring).
+    Value: !Ref OpsAlertsTopic
+  HttpApiUrl:
+    Description: HTTP API base URL (stack 4)
+    Value: !GetAtt Api.ApiEndpoint
+  HttpApiId:
+    Description: HTTP API ID (stack 4)
+    Value: !Ref Api
+  ApiWebAclArn:
+    Condition: HasApiWaf
+    Description: Regional WAF web ACL attached to stack 4 HTTP API.
+    Value: !GetAtt ApiWebAcl.Arn
+  ApiCustomDomainUrl:
+    Condition: HasApiCustomDomainCert
+    Description: Stack 4 API custom domain URL.
+    Value: !Sub "https://${ApiSubdomainPrefix}.${RootDomainName}"
+  ApiTlsCertificateArn:
+    Condition: HasApiCustomDomainCert
+    Description: ACM certificate ARN for stack 4 API custom domain.
+    Value: !If [HasImportedApiCert, !Ref ApiDomainCertificateArn, !Ref ApiManagedCertificate]

@@ -1,6 +1,7 @@
 import { z } from "zod";
-import type { AgencyRole } from "../types.js";
 import { AGENCY_ROLE_SCHEMA } from "../types.js";
+import type { AgencyRole } from "../types.js";
+import { AGENCY_TYPE_VALUES } from "./agency.js";
 import { triageAgencyConfigSchema } from "../triage/triage.js";
 import { wellnessAgencyConfigSchema } from "../wellness/trauma-flag.js";
 import {
@@ -55,14 +56,7 @@ export const createAgencyBodySchema = z.object({
   /** US state full name or 2-letter abbreviation — resolved server-side for slug + storage. */
   state: z.string().min(2).max(50),
   name: z.string().min(2).max(200),
-  type: z.enum([
-    "city",
-    "county",
-    "municipality",
-    "regional_center",
-    "pilot",
-    "state_agency",
-  ]),
+  type: z.enum(AGENCY_TYPE_VALUES),
   region: z.string().min(1).max(120),
   primaryContactName: z.string().min(1).max(200),
   primaryContactEmail: z.string().email(),

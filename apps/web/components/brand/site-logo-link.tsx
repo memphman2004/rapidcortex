@@ -27,7 +27,13 @@ export function SiteLogoMark({
       width={SITE_LOGO_WIDTH}
       height={SITE_LOGO_HEIGHT}
       priority={priority}
-      className={["inline-block w-auto shrink-0", heightClass, className].filter(Boolean).join(" ")}
+      className={[
+        "inline-block w-auto max-w-full shrink-0 object-contain object-left",
+        heightClass,
+        className,
+      ]
+        .filter(Boolean)
+        .join(" ")}
     />
   );
 }

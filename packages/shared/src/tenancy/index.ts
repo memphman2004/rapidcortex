@@ -17,6 +17,7 @@ export type {
   AgencyVertical,
   AgencyPlanTier,
 } from "./agency.js";
+export { AGENCY_TYPE_VALUES, AGENCY_TYPE_LABELS, formatAgencyType, resolveAgencyVerticalFromTenant } from "./agency.js";
 export type {
   AgencyIntegrationMode,
   AgencyConfig,

@@ -191,32 +191,22 @@ export function MarketingHeader() {
     <>
     <header className="sticky top-0 z-50 border-b border-white/10 bg-slate-950/70 pt-[env(safe-area-inset-top)] backdrop-blur-xl supports-[backdrop-filter]:bg-slate-950/55">
       <div className="mx-auto max-w-7xl px-4 py-2 sm:px-6 lg:px-8">
-        <div className="flex items-stretch gap-3 md:min-h-[84px] md:gap-4">
+        <div className="flex min-w-0 items-stretch gap-2 sm:gap-3 md:min-h-[84px] md:gap-4">
           <Link
             href={home}
-            className="relative z-10 flex w-[168px] shrink-0 items-center sm:w-[188px] md:w-[212px] [-webkit-tap-highlight-color:transparent]"
+            className="relative z-10 inline-flex max-w-[9.5rem] shrink-0 items-center sm:max-w-[10rem] md:max-w-[11.5rem] lg:max-w-[12.5rem] [-webkit-tap-highlight-color:transparent]"
             onClick={() => mobileOpen && closeMobileMenu()}
           >
-            <SiteLogoMark
-              heightClass="h-11 sm:h-12 md:h-14"
-              className="h-auto w-full max-w-full object-contain object-left"
-              priority
-            />
+            <SiteLogoMark heightClass="h-9 sm:h-10 md:h-11 lg:h-12" priority />
           </Link>
 
-          <div className="flex min-h-[72px] min-w-0 flex-1 items-center rounded-2xl border border-slate-700/60 bg-gradient-to-r from-slate-950/90 via-slate-900/75 to-slate-950/85 px-2 shadow-[0_10px_30px_-20px_rgba(56,189,248,0.45)] sm:px-3 md:min-h-[84px] md:px-2 lg:px-3">
-            <div className="flex min-w-0 flex-1 items-center justify-end gap-2 md:gap-3">
-            <div className="flex shrink-0 items-center gap-2 md:hidden">
-              <Link
-                href={login}
-                className="inline-flex rounded-lg border border-slate-600/80 px-2.5 py-1.5 text-xs font-medium text-slate-100 transition-colors hover:border-slate-500 hover:bg-slate-800/80 sm:px-3 sm:py-2 sm:text-sm"
-              >
-                Sign in
-              </Link>
+          <div className="flex min-h-[56px] min-w-0 flex-1 items-center rounded-2xl border border-slate-700/60 bg-gradient-to-r from-slate-950/90 via-slate-900/75 to-slate-950/85 px-1.5 shadow-[0_10px_30px_-20px_rgba(56,189,248,0.45)] sm:min-h-[64px] sm:px-2 md:min-h-[84px] md:px-2 lg:px-3">
+            <div className="flex min-w-0 flex-1 items-center justify-end gap-1 sm:gap-2 md:gap-3">
+            <div className="flex min-w-0 shrink items-center gap-1 sm:gap-2 md:hidden">
               <Link
                 href={openAppHref}
                 prefetch={false}
-                className="inline-flex rounded-lg bg-gradient-to-r from-sky-500 to-cyan-400 px-2.5 py-1.5 text-xs font-semibold text-slate-950 shadow-[0_0_20px_rgba(14,165,233,0.25)] transition hover:from-sky-400 hover:to-cyan-300 sm:px-3 sm:py-2 sm:text-sm"
+                className="inline-flex shrink-0 rounded-lg bg-gradient-to-r from-sky-500 to-cyan-400 px-2.5 py-1.5 text-xs font-semibold text-slate-950 shadow-[0_0_20px_rgba(14,165,233,0.25)] transition hover:from-sky-400 hover:to-cyan-300 sm:px-3 sm:py-2 sm:text-sm"
               >
                 Open app
               </Link>
@@ -403,6 +393,14 @@ export function MarketingHeader() {
                     onClick={closeMobileMenu}
                   >
                     Request a demo
+                  </Link>
+                  <Link
+                    href={openAppHref}
+                    prefetch={false}
+                    className="-mx-3 mt-4 flex min-h-12 items-center justify-center rounded-xl bg-gradient-to-r from-sky-500 to-cyan-400 px-4 py-3 text-base font-semibold text-slate-950 shadow-[0_0_20px_rgba(14,165,233,0.25)] transition hover:from-sky-400 hover:to-cyan-300 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-sky-500"
+                    onClick={closeMobileMenu}
+                  >
+                    Open app
                   </Link>
                 </nav>
 

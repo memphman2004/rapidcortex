@@ -48,6 +48,7 @@ html {
   min-height: 100%;
   background-color: #0f172a;
   background-image: var(--rc-page-gradient);
+  overflow-x: clip;
 }
 
 @media (min-width: 768px) {
@@ -63,6 +64,7 @@ body {
   color: var(--foreground);
   font-family: var(--rc-dashboard-font-family), ui-monospace, system-ui, sans-serif;
   -webkit-tap-highlight-color: transparent;
+  overflow-x: clip;
 }
 
 /* Safe area insets for notch / Dynamic Island / home indicator */
@@ -79,11 +81,11 @@ body {
   padding-right: env(safe-area-inset-right);
 }
 
-/* Foldable device support */
+/* Foldable / dual-screen: respect hinge insets when the browser exposes them. */
 @supports (width: env(fold-left)) {
   .foldable-safe {
-    padding-left: env(fold-left);
-    padding-right: calc(100vw - env(fold-right));
+    padding-left: max(env(safe-area-inset-left, 0px), env(fold-left, 0px));
+    padding-right: max(env(safe-area-inset-right, 0px), env(fold-right, 0px));
   }
 }
 
@@ -132,6 +134,13 @@ input[type="range"] {
   min-width: 44px;
 }
 
+@media (pointer: fine) {
+  button:not([class*="min-h-"]):not([class*="size-"]):not([class*="min-w-"]) {
+    min-height: unset;
+    min-width: unset;
+  }
+}
+
 input,
 select,
 textarea {
@@ -152,6 +161,8 @@ textarea {
   font-family: var(--font-inter), Inter, ui-sans-serif, system-ui, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  overflow-x: clip;
+  max-width: 100%;
 }
 
 /* Flowing patriotic gradient on marketing page titles */
@@ -191,5 +202,17 @@ textarea {
     animation: none;
     background-size: 100% auto;
     background-position: center;
+  }
+}
+
+/* iOS Safari: background-clip text can render invisible headings on some mobile builds */
+@media (max-width: 767px) {
+  .marketing-site main h1:not(.rc-page-title-plain) {
+    animation: none;
+    background: none;
+    background-clip: border-box;
+    -webkit-background-clip: border-box;
+    color: #f8fafc;
+    -webkit-text-fill-color: #f8fafc;
   }
 }

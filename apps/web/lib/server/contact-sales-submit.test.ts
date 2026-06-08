@@ -30,7 +30,26 @@ describe("submitContactSalesLeadUpstream", () => {
     expect(j.error).toMatch(/API upstream is not configured/);
   });
 
-  it("tries stack 2 before primary when both are set", async () => {
+  it("tries stack 3 before stack 2 and primary when all are set", async () => {
+    process.env.API_UPSTREAM_BASE = "https://stack1.example.com";
+    process.env.API_UPSTREAM_BASE_2 = "https://stack2.example.com";
+    process.env.API_UPSTREAM_BASE_3 = "https://stack3.example.com";
+
+    const fetchMock = vi.fn(async (url: string) => {
+      if (url.startsWith("https://stack3.example.com")) {
+        return new Response(JSON.stringify({ ok: true, leadId: "lead-1" }), { status: 202 });
+      }
+      return new Response(JSON.stringify({ message: "Not Found" }), { status: 404 });
+    });
+    vi.stubGlobal("fetch", fetchMock);
+
+    const res = await submitContactSalesLeadUpstream(validBody, "application/json");
+    expect(res.status).toBe(202);
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    expect(fetchMock.mock.calls[0]?.[0]).toBe("https://stack3.example.com/api/contact-sales");
+  });
+
+  it("tries stack 2 before primary when stack 3 is unset", async () => {
     process.env.API_UPSTREAM_BASE = "https://stack1.example.com";
     process.env.API_UPSTREAM_BASE_2 = "https://stack2.example.com";
 

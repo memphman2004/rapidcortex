@@ -12,6 +12,8 @@
 set -euo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$ROOT"
+# shellcheck source=scripts/lib/static-s3-hosting.sh
+source "${ROOT}/scripts/lib/static-s3-hosting.sh"
 
 export AWS_REGION="${AWS_REGION:-us-east-1}"
 export AWS_DEFAULT_REGION="${AWS_REGION}"
@@ -43,34 +45,12 @@ if [[ ! -f "${STATIC_DIR}/index.html" ]]; then
   exit 1
 fi
 
-# S3 + CloudFront serve object keys literally (/enter → key "enter", not enter.html).
-# Next static export emits enter.html (+ enter/ metadata dir). Without an extensionless key,
-# /enter 404s and CustomErrorResponse serves index.html (homepage).
-echo "Preparing trailing-slash static routes in ${STATIC_DIR} ..."
-declare -a EXTENSIONLESS_ROUTE_HTML=()
-for html_file in "${STATIC_DIR}"/*.html; do
-  [[ -f "${html_file}" ]] || continue
-  route_name="$(basename "${html_file}" .html)"
-  if [[ "${route_name}" == "index" || "${route_name}" == "404" ]]; then
-    continue
-  fi
-  mkdir -p "${STATIC_DIR}/${route_name}"
-  cp "${html_file}" "${STATIC_DIR}/${route_name}/index.html"
-  EXTENSIONLESS_ROUTE_HTML+=("${html_file}")
-done
+static_s3_verify_local_css_refs "${STATIC_DIR}"
+static_s3_prepare_root_html_dirs "${STATIC_DIR}"
 
-echo "Syncing ${STATIC_DIR} to s3://${BUCKET} ..."
-aws s3 sync "${STATIC_DIR}" "s3://${BUCKET}/" --delete
-
-if [[ ${#EXTENSIONLESS_ROUTE_HTML[@]} -gt 0 ]]; then
-  echo "Uploading extensionless S3 keys for clean URLs (/enter, /pricing, …) ..."
-  for html_file in "${EXTENSIONLESS_ROUTE_HTML[@]}"; do
-    route_name="$(basename "${html_file}" .html)"
-    aws s3 cp "${html_file}" "s3://${BUCKET}/${route_name}" \
-      --content-type "text/html; charset=utf-8" \
-      --cache-control "public, max-age=0, must-revalidate"
-  done
-fi
+static_s3_sync_two_pass "${STATIC_DIR}" "${BUCKET}" "${AWS_REGION}"
+static_s3_upload_extensionless_keys "${STATIC_DIR}" "${BUCKET}" "${AWS_REGION}"
+static_s3_verify_remote_deploy "${STATIC_DIR}" "${BUCKET}" "${AWS_REGION}" enter demo pricing
 
 DIST_ID="${CLOUDFRONT_DISTRIBUTION_ID:-$(
   aws cloudformation describe-stacks \
@@ -81,11 +61,7 @@ DIST_ID="${CLOUDFRONT_DISTRIBUTION_ID:-$(
 )}"
 
 if [[ -n "${DIST_ID}" && "${DIST_ID}" != "None" ]]; then
-  echo "Invalidating CloudFront ${DIST_ID} ..."
-  aws cloudfront create-invalidation \
-    --region "${AWS_REGION}" \
-    --distribution-id "${DIST_ID}" \
-    --paths "/*"
+  static_s3_invalidate_cloudfront "${DIST_ID}" "${AWS_REGION}"
 else
   echo "No CloudFront distribution id; skip invalidation."
 fi

@@ -8,8 +8,8 @@ import type { AgencyTenant } from "rapid-cortex-shared";
 import { fetchAdminUsers, fetchAgencies } from "@/lib/api";
 import {
   VerticalBadge,
-  deriveVerticalFromAgencyId,
-  normalizeVertical,
+  formatAgencyType,
+  resolveAgencyVerticalFromTenant,
   type TenantVertical,
 } from "@/components/dashboards/vertical-badge";
 import { isVerticalEnabled } from "@/lib/features";
@@ -23,9 +23,7 @@ const VERTICAL_TABS: Array<{ id: "all" | TenantVertical; label: string }> = [
 ];
 
 function resolveAgencyVertical(agency: AgencyTenant): TenantVertical {
-  const maybe = (agency as AgencyTenant & { vertical?: string }).vertical;
-  if (maybe) return normalizeVertical(maybe);
-  return deriveVerticalFromAgencyId(agency.agencyId);
+  return resolveAgencyVerticalFromTenant(agency);
 }
 
 export function RcAdminAgenciesPageClient() {
@@ -138,6 +136,7 @@ export function RcAdminAgenciesPageClient() {
             <thead className="border-b border-slate-800 bg-slate-900/90 text-[10px] uppercase tracking-wide text-slate-500">
               <tr>
                 <th className="px-3 py-2">Agency</th>
+                <th className="px-3 py-2">Type</th>
                 <th className="px-3 py-2">Vertical</th>
                 <th className="px-3 py-2">Plan tier</th>
                 <th className="px-3 py-2">Active users</th>
@@ -164,6 +163,7 @@ export function RcAdminAgenciesPageClient() {
                       <div className="font-medium text-slate-100">{agency.name}</div>
                       <div className="font-mono text-[10px] text-slate-500">{agency.agencyId}</div>
                     </td>
+                    <td className="px-3 py-2 align-top text-slate-300">{formatAgencyType(agency.type)}</td>
                     <td className="px-3 py-2 align-top">
                       <VerticalBadge vertical={vertical} />
                     </td>
@@ -197,7 +197,7 @@ export function RcAdminAgenciesPageClient() {
               })}
               {filtered.length === 0 ? (
                 <tr>
-                  <td colSpan={8} className="px-3 py-6 text-center text-sm text-slate-500">
+                  <td colSpan={9} className="px-3 py-6 text-center text-sm text-slate-500">
                     No agencies match this vertical.
                   </td>
                 </tr>

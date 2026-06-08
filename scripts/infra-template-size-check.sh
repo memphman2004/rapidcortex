@@ -4,6 +4,7 @@
 #
 # Env:
 #   SKIP_SAM_BUILD_FOR_SIZE=1 — only measure raw infra/*.yaml sizes (no transformed fragment).
+#   SKIP_APP_SAM_SIZE_PROXY=1 — warn instead of fail when built AppSam* nested YAML exceeds the /5 proxy (try deploy; CFN is arbiter).
 #   RC_SAM_BUILD_DIR=/path/to/sam/build — reuse an existing sam build dir (skips redundant sam build when set).
 #   RC_ROOT_TEMPLATE_FILE=infra/template2.yaml — SAM build root (default infra/template.yaml).
 set -euo pipefail
@@ -130,10 +131,13 @@ if [[ -n "${sam_build}" && -f "${sam_build}/template.yaml" ]]; then
     echo "      top-level Resources: ${ny}"
     if [[ "$nb" -ge "$FAIL_BYTES" ]]; then
       FAIL_REASONS+=("Built artifact ${rel} (${nb} B) exceeds fail threshold ${FAIL_BYTES} B.")
-    elif [[ "${rel}" == "AppSamStack/template.yaml" || "${rel}" == "AppSamStack2/template.yaml" || "${rel}" == "AppSamHospitalStack2/template.yaml" || "${rel}" == "AppSamDeceptionStack2/template.yaml" || "${rel}" == "AppSamRealtimeStack2/template.yaml" ]] && [[ "$nb" -ge "${SAM_BUILT_APP_STACK_PROXY_LIMIT}" ]]; then
-      FAIL_REASONS+=(
-        "Built ${rel} is ${nb} B (>= ${SAM_BUILT_APP_STACK_PROXY_LIMIT} B, ~${SAM_TRANSFORM_FRAGMENT_BYTES}/5 proxy for CFN SAM transform ${SAM_TRANSFORM_FRAGMENT_BYTES} B fragment). Deploy can FAIL even when this YAML is <1MiB. Split stack-app-sam (e.g. second nested stack with HttpApiId) or shrink Serverless/IAM expansion."
-      )
+    elif [[ "${rel}" == "AppSamStack/template.yaml" || "${rel}" == "AppSamStackV2/template.yaml" || "${rel}" == "AppSamStack2/template.yaml" || "${rel}" == "AppSamStack4/template.yaml" || "${rel}" == "AppSamHospitalStack2/template.yaml" || "${rel}" == "AppSamDeceptionStack2/template.yaml" || "${rel}" == "AppSamRealtimeStack2/template.yaml" ]] && [[ "$nb" -ge "${SAM_BUILT_APP_STACK_PROXY_LIMIT}" ]]; then
+      proxy_msg="Built ${rel} is ${nb} B (>= ${SAM_BUILT_APP_STACK_PROXY_LIMIT} B, ~${SAM_TRANSFORM_FRAGMENT_BYTES}/5 proxy for CFN SAM transform ${SAM_TRANSFORM_FRAGMENT_BYTES} B fragment). Deploy can FAIL even when this YAML is <1MiB. Split stack-app-sam (e.g. second nested stack with HttpApiId) or shrink Serverless/IAM expansion."
+      if [[ -n "${SKIP_APP_SAM_SIZE_PROXY:-}" ]]; then
+        WARN_REASONS+=("${proxy_msg} SKIP_APP_SAM_SIZE_PROXY set — proceeding to deploy; CFN SAM transform is the arbiter.")
+      else
+        FAIL_REASONS+=("${proxy_msg}")
+      fi
     elif [[ "$nb" -ge "$WARN_BYTES" ]]; then
       WARN_REASONS+=("Built artifact ${rel} is ${nb} B (warn >= ${WARN_BYTES} B).")
     fi
