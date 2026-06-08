@@ -1,4 +1,5 @@
 import type { SlaThreshold } from "../sla-types.js";
+import type { CampusAgencyConfig } from "./campus-config.js";
 
 export type AgencyIntegrationMode =
   | "none"
@@ -85,6 +86,8 @@ export interface AgencyConfig {
   sop?: SopAgencyConfig;
   triage?: TriageAgencyConfig;
   wellness?: WellnessAgencyConfig;
+  /** Campus vertical — display, notifications, escalation, and public QR report form. */
+  campus?: CampusAgencyConfig;
   /** Platform (Rapid Cortex) onboarding tracker — not used by agency admins in product UI. */
   platformOnboarding?: PlatformOnboardingState;
   /** CJIS-style retention: days per category; merged with stack defaults. */

@@ -43,6 +43,24 @@ describe("QR locations access (locations.qrcodes.*)", () => {
     expect(canManageQrLocations(sec, "agency-venue-1")).toBe(false);
   });
 
+  it("denies VENUE_OPERATOR QR access", () => {
+    const op = makeUser("VENUE_OPERATOR", "agency-venue-1");
+    expect(canManageQrLocations(op, "agency-venue-1")).toBe(false);
+    expect(canViewQrLocations(op, "agency-venue-1")).toBe(false);
+  });
+
+  it("grants rcadmin cross-tenant QR manage", () => {
+    const admin = makeUser("rcadmin", "platform");
+    expect(canManageQrLocations(admin, "agency-venue-1")).toBe(true);
+    expect(canViewQrLocations(admin, "agency-venue-1")).toBe(true);
+  });
+
+  it("grants rcitadmin cross-tenant QR manage", () => {
+    const itAdmin = makeUser("rcitadmin", "platform");
+    expect(canManageQrLocations(itAdmin, "agency-venue-1")).toBe(true);
+    expect(canViewQrLocations(itAdmin, "agency-venue-1")).toBe(true);
+  });
+
   it("denies PSAP agencyadmin QR manage (campus/venue product only)", () => {
     const psapAdmin = makeUser("agencyadmin", "agency-psap-1");
     expect(auth.canPerform(psapAdmin, "locations.qrcodes.manage")).toBe(false);

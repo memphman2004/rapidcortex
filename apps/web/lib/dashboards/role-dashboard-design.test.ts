@@ -17,11 +17,11 @@ const SPEC_PRIMARY: Record<string, string> = {
   agencyadmin: "#10B981",
   agencyit: "#14B8A6",
   supervisor: "#F59E0B",
-  dispatcher: "#3B82F6",
-  analyst: "#A78BFA",
+  dispatcher: "#0284C7",
+  analyst: "#2DD4BF",
   auditor: "#F87171",
-  hospitaladmin: "#F9A8D4",
-  hospitalstaff: "#F9A8D4",
+  hospitaladmin: "#0D9488",
+  hospitalstaff: "#0D9488",
   venue: "#FB923C",
   campus: "#34D399",
 };
@@ -34,10 +34,10 @@ describe("ROLE_DASHBOARD_IDENTITY accents", () => {
   });
 
   it("uses role-specific palettes for each dashboard prefix default", () => {
-    expect(getRoleDashboardIdentity("dispatcher").accent).toBe("#3B82F6");
+    expect(getRoleDashboardIdentity("dispatcher").accent).toBe("#0284C7");
     expect(getRoleDashboardIdentity("supervisor").accent).toBe("#F59E0B");
     expect(getRoleDashboardIdentity("agency-admin").accent).toBe("#10B981");
-    expect(getRoleDashboardIdentity("qa").accent).toBe("#A78BFA");
+    expect(getRoleDashboardIdentity("qa").accent).toBe("#2DD4BF");
     expect(getRoleDashboardIdentity("it-security").accent).toBe("#14B8A6");
     expect(getRoleDashboardIdentity("executive").accent).toBe("#F87171");
   });

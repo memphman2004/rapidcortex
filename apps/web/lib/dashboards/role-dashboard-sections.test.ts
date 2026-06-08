@@ -26,6 +26,15 @@ describe("getRoleDashboardSections", () => {
   });
 
   it("shows executive trends without ops widgets", () => {
+    const rcBiz = getRoleDashboardSections("rc-admin", "rcadmin");
+    expect(rcBiz.reports).toBe(true);
+    expect(rcBiz.integrationHealth).toBe(false);
+    expect(rcBiz.platformNotices).toBe(true);
+
+    const rcIt = getRoleDashboardSections("rc-admin", "rcitadmin");
+    expect(rcIt.stats).toBe(false);
+    expect(rcIt.platformNotices).toBe(false);
+
     const exec = getRoleDashboardSections("executive");
     expect(exec.executiveTrends).toBe(true);
     expect(exec.integrationHealth).toBe(false);

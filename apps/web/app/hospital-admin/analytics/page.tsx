@@ -1,17 +1,20 @@
+import { redirect } from "next/navigation";
 import { getDashboardSessionUser } from "@/lib/dashboards/get-dashboard-session";
+import {
+  canAccessHospitalAdminPortal,
+  canExportHospitalAnalytics,
+} from "@/lib/hospital/hospital-access";
+import { HospitalAnalyticsClient } from "./_components/HospitalAnalyticsClient";
 
-export default async function HospitalAdminAnalyticsPage() {
+export default async function HospitalAnalyticsPage() {
   const user = await getDashboardSessionUser();
-  if (!user) return null;
+  if (!user) redirect("/login");
+  if (!canAccessHospitalAdminPortal(user)) redirect("/auth/signout");
 
   return (
-    <div className="space-y-4 rounded-lg border border-slate-800 bg-slate-950/40 p-6">
-      <h1 className="text-lg font-semibold text-white">Performance analytics</h1>
-      <p className="max-w-2xl text-sm text-slate-400">
-        Facility-level routing performance and diversion trends will appear here once your agency
-        enables hospital analytics. Use the capacity workspace to keep live bed status current for
-        dispatch recommendations.
-      </p>
-    </div>
+    <HospitalAnalyticsClient
+      agencyId={user.agencyId}
+      canExport={canExportHospitalAnalytics(user)}
+    />
   );
 }

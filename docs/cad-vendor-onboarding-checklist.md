@@ -61,3 +61,52 @@ Use this checklist before enabling any real (non-mock) CAD adapter for an agency
 - [ ] Rollback path documented and rehearsed.
 - [ ] Monitoring and alerting verified.
 - [ ] Final approvals captured from agency + engineering + security.
+
+## 8) Agency feature config PATCH (required — no UI toggle yet)
+
+The entitlement layer (`writeBackEnabled`, `agencyApprovedCadWriteBack`, `cadIntegrationMode`, `auditLoggingEnabled`) is **not** exposed in the admin UI. RC ops must apply it **once per pilot agency** during onboarding, **before** flipping `CAD_WRITEBACK_ENABLED` / `NEXT_PUBLIC_ENABLE_CAD_WRITEBACK`.
+
+**Endpoint:** `PATCH {WEB_ORIGIN}/api/agency/config` (web BFF). The JWT `custom:agencyId` selects the tenant — there is no `/api/agencies/{agencyId}/config` Lambda route. Run as that agency's `agencyadmin` bearer (or RC ops holding that tenant's admin token).
+
+```bash
+export PILOT_WEB_BASE="https://app.rapidcortex.us"
+export PILOT_AGENCY_ADMIN_BEARER="<agencyadmin_id_token>"
+
+curl -X PATCH "${PILOT_WEB_BASE}/api/agency/config" \
+  -H "Authorization: Bearer ${PILOT_AGENCY_ADMIN_BEARER}" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "cadIntegrationMode": "assisted_writeback",
+    "writeBackEnabled": true,
+    "agencyApprovedCadWriteBack": true,
+    "auditLoggingEnabled": true
+  }'
+```
+
+Then enable deploy env (API + web):
+
+```bash
+CAD_WRITEBACK_ENABLED=true
+NEXT_PUBLIC_ENABLE_CAD_WRITEBACK=1
+```
+
+## 9) Automated smoke (supervisor approval queue)
+
+After env flip, validate the full write-back path with `scripts/pilot-smoke-test.ts` (not manual curl):
+
+```bash
+export PILOT_API_BASE="https://<api-gateway-url>"
+export PILOT_CAD_WRITEBACK_E2E=1
+export PILOT_DISPATCHER_BEARER_TOKEN="<dispatcher_jwt>"
+export PILOT_SUPERVISOR_BEARER_TOKEN="<supervisor_jwt>"
+export PILOT_WRITEBACK_INCIDENT_ID="<incident-with-cadIncidentId>"
+
+npx tsx scripts/pilot-smoke-test.ts
+```
+
+**Preflight (automated in smoke):**
+
+- `PILOT_WRITEBACK_INCIDENT_ID` must resolve to an incident with `cadIncidentId` populated (CAD read-only adapter polled and matched). Otherwise the test fails with **incident has no CAD counterpart** before submit.
+- `PILOT_DISPATCHER_BEARER_TOKEN` and `PILOT_SUPERVISOR_BEARER_TOKEN` must decode to **different** JWT `sub` values. Same user fails immediately — supervisor cannot approve own submission.
+
+Expected sequence: dispatcher submit → `pending_approval` (202) → supervisor lists queue → supervisor approves → audit row leaves pending (approved or failed if vendor mock rejects — both prove the queue wiring).

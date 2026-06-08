@@ -9,9 +9,12 @@ const RING_FLAG_VALUES = {
 };
 
 function ringFlag(name: string): boolean {
+  const raw = (RING_FLAG_VALUES as Record<string, string | undefined>)[name];
+  const value = raw?.trim().toLowerCase();
+  if (value === "0" || value === "false") return false;
+  if (value === "1" || value === "true") return true;
   if (isPilotTestModeEnabled()) return true;
-  const value = (RING_FLAG_VALUES as Record<string, string | undefined>)[name]?.trim().toLowerCase();
-  return value === "1" || value === "true";
+  return true;
 }
 
 export function isRingEnabled(): boolean {

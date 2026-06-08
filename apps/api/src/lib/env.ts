@@ -4,6 +4,14 @@ import { hydrateLambdaEnvFromJson } from "./hydrateLambdaEnv";
 
 hydrateLambdaEnvFromJson();
 
+/** Feature flags default on when unset; pass `defaultWhenUnset: false` to opt out (e.g. CAD write-back). */
+function featureEnabled(name: string, defaultWhenUnset = true): boolean {
+  const v = process.env[name]?.trim().toLowerCase();
+  if (v === "true" || v === "1") return true;
+  if (v === "false" || v === "0") return false;
+  return defaultWhenUnset;
+}
+
 function required(name: string): string {
   const value = process.env[name];
   if (!value) throw new Error(`Missing required env var: ${name}`);
@@ -132,7 +140,7 @@ export const env = {
   videoAssistTable: process.env.VIDEO_ASSIST_TABLE?.trim() ?? "",
   videoAssistPublicBaseUrl: process.env.VIDEO_ASSIST_PUBLIC_BASE_URL?.trim() ?? "",
   /** Live video V2 (tokenized caller link + dispatcher viewer). */
-  enableLiveVideo: process.env.ENABLE_LIVE_VIDEO === "true",
+  enableLiveVideo: featureEnabled("ENABLE_LIVE_VIDEO"),
   liveVideoSessionsTable: process.env.LIVE_VIDEO_SESSIONS_TABLE?.trim() ?? "",
   liveVideoPublicBaseUrl: process.env.LIVE_VIDEO_PUBLIC_BASE_URL?.trim() ?? "",
   liveVideoSessionTtlSeconds: Math.max(
@@ -183,12 +191,12 @@ export const env = {
   pinpointLinksTable: process.env.PINPOINT_LINKS_TABLE?.trim() ?? "",
   pinpointPublicBaseUrl: process.env.PINPOINT_PUBLIC_BASE_URL?.trim() ?? "",
   pinpointSmsMock: process.env.PINPOINT_SMS_MOCK === "true",
-  enablePinpoint: process.env.ENABLE_PINPOINT === "true",
+  enablePinpoint: featureEnabled("ENABLE_PINPOINT"),
   /** Surge — duplicate-call clusters; empty table disables handlers. */
   surgeClustersTable: process.env.SURGE_CLUSTERS_TABLE?.trim() ?? "",
-  enableSurge: process.env.ENABLE_SURGE === "true",
+  enableSurge: featureEnabled("ENABLE_SURGE"),
   /** Rapid Cortex Connect — Ring integration (empty table names disable Ring HTTP handlers). */
-  enableConnectRing: process.env.ENABLE_CONNECT_RING === "true",
+  enableConnectRing: featureEnabled("ENABLE_CONNECT_RING"),
   ringAccountsTable: process.env.RING_TABLE_ACCOUNTS?.trim() ?? "",
   ringDevicesTable: process.env.RING_TABLE_DEVICES?.trim() ?? "",
   ringRequestsTable: process.env.RING_TABLE_REQUESTS?.trim() ?? "",
@@ -207,13 +215,13 @@ export const env = {
   coachingNotesTable: process.env.COACHING_NOTES_TABLE?.trim() ?? "",
   incidentTimelineTable: process.env.INCIDENT_TIMELINE_TABLE?.trim() ?? "",
   /** Emergency Connect — hospital pre-arrival alerts (optional tables). */
-  enableEmergencyConnect: process.env.ENABLE_EMERGENCY_CONNECT === "true",
+  enableEmergencyConnect: featureEnabled("ENABLE_EMERGENCY_CONNECT"),
   hospitalPreAlertsTable: process.env.HOSPITAL_PREALERTS_TABLE?.trim() ?? "",
   hospitalProfilesTable: process.env.HOSPITAL_PROFILES_TABLE?.trim() ?? "",
   emergencyConnectMock: process.env.EMERGENCY_CONNECT_MOCK === "true",
   emergencyConnectSeedDemo: process.env.EMERGENCY_CONNECT_SEED_DEMO === "true",
   /** Hospital routing — live capacity, diversion status, transport recommendations. */
-  enableHospitalRouting: process.env.ENABLE_HOSPITAL_ROUTING === "true",
+  enableHospitalRouting: featureEnabled("ENABLE_HOSPITAL_ROUTING"),
   hospitalCapacityTable: process.env.HOSPITAL_CAPACITY_TABLE?.trim() ?? "",
   hospitalRoutingMock: process.env.HOSPITAL_ROUTING_MOCK === "true",
   hospitalRoutingSeedDemo: process.env.HOSPITAL_ROUTING_SEED_DEMO === "true",
@@ -223,15 +231,15 @@ export const env = {
   stakeholderPagesTable: process.env.STAKEHOLDER_PAGES_TABLE?.trim() ?? "",
   postIncidentReviewsTable: process.env.POST_INCIDENT_REVIEWS_TABLE?.trim() ?? "",
   agencyReportsTable: process.env.AGENCY_REPORTS_TABLE?.trim() ?? "",
-  enableQaScoring: process.env.ENABLE_QA_SCORING === "true",
+  enableQaScoring: featureEnabled("ENABLE_QA_SCORING"),
   /** When true with ENABLE_QA_SCORING, successful incident analysis triggers QA scoring for draft/failed sessions on that incident. */
-  enableQaScoreAfterAnalysis: process.env.ENABLE_QA_SCORE_AFTER_ANALYSIS === "true",
+  enableQaScoreAfterAnalysis: featureEnabled("ENABLE_QA_SCORE_AFTER_ANALYSIS"),
   qaScoringMock: process.env.QA_SCORING_MOCK === "true",
   /** Bedrock foundation model id for structured QA JSON (e.g. anthropic.claude-3-5-haiku-20241022-v1:0). */
   qaBedrockModelId: process.env.QA_BEDROCK_MODEL_ID?.trim() ?? "",
   /** F2 caller media — empty table disables incident media HTTP handlers. */
   incidentMediaTable: process.env.INCIDENT_MEDIA_TABLE?.trim() ?? "",
-  enableIncidentMedia: process.env.ENABLE_INCIDENT_MEDIA === "true",
+  enableIncidentMedia: featureEnabled("ENABLE_INCIDENT_MEDIA"),
   incidentMediaPublicBaseUrl: process.env.INCIDENT_MEDIA_PUBLIC_BASE_URL?.trim() ?? "",
   incidentMediaTokenTtlMinutes: Math.max(
     15,
@@ -265,7 +273,7 @@ export const env = {
     Number.parseInt(process.env.MEDIA_UPLOAD_TOKEN_TTL_SECONDS ?? "0", 10) || 0,
   ),
   /** F4 — SOP-aware protocol surfacing (also controls upload-url handler). */
-  enableSopProtocolAi: process.env.ENABLE_SOP_PROTOCOL_AI === "true",
+  enableSopProtocolAi: featureEnabled("ENABLE_SOP_PROTOCOL_AI"),
   sopDetectEveryNSegments: Math.max(
     0,
     Number.parseInt(process.env.SOP_DETECT_EVERY_N_SEGMENTS ?? "0", 10) || 0,
@@ -276,21 +284,21 @@ export const env = {
     Number.parseInt(process.env.SOP_UPLOAD_URL_TTL_SECONDS ?? "900", 10) || 900,
   ),
   /** F3 — non-emergency triage rows in analyses table. */
-  enableNonEmergencyTriage: process.env.ENABLE_NON_EMERGENCY_TRIAGE === "true",
+  enableNonEmergencyTriage: featureEnabled("ENABLE_NON_EMERGENCY_TRIAGE"),
   triageDetectEveryNSegments: Math.max(
     0,
     Number.parseInt(process.env.TRIAGE_DETECT_EVERY_N_SEGMENTS ?? "0", 10) || 0,
   ),
   triageMock: process.env.TRIAGE_MOCK === "true",
   /** F5 — supervisor-only trauma keyword flags. */
-  enableDispatcherWellness: process.env.ENABLE_DISPATCHER_WELLNESS === "true",
+  enableDispatcherWellness: featureEnabled("ENABLE_DISPATCHER_WELLNESS"),
   traumaFlagsTable: process.env.TRAUMA_FLAGS_TABLE?.trim() ?? "",
-  enableCallerCard: process.env.ENABLE_CALLER_CARD === "true",
+  enableCallerCard: featureEnabled("ENABLE_CALLER_CARD"),
   premiseNotesTable: process.env.PREMISE_NOTES_TABLE?.trim() ?? "",
   dispatcherCoachingNotesTable: process.env.DISPATCHER_COACHING_NOTES_TABLE?.trim() ?? "",
   incidentSharesTable: process.env.INCIDENT_SHARES_TABLE?.trim() ?? "",
   agencySharePartnersTable: process.env.AGENCY_SHARE_PARTNERS_TABLE?.trim() ?? "",
-  enableCrossJurisdictionShares: process.env.ENABLE_CROSS_JURISDICTION_SHARES === "true",
+  enableCrossJurisdictionShares: featureEnabled("ENABLE_CROSS_JURISDICTION_SHARES"),
   analyticsCachePrefix: process.env.ANALYTICS_CACHE_PREFIX?.trim() || "analytics/v1",
   /**
    * Option 1 desktop (macOS) — object key inside `ASSETS_BUCKET` for the signed/notarized DMG.
@@ -412,7 +420,7 @@ export const env = {
   /** Public API base URL (no trailing slash) for CAD webhook instructions. */
   cadPublicApiBaseUrl: process.env.CAD_PUBLIC_API_BASE_URL?.trim() ?? "",
   /** When true, CAD write-back HTTP routes accept submissions (otherwise 400). */
-  cadWritebackEnabled: process.env.CAD_WRITEBACK_ENABLED === "true",
+  cadWritebackEnabled: featureEnabled("CAD_WRITEBACK_ENABLED", false),
   /**
    * When true (default), write-backs require supervisor/admin approval before vendor HTTP.
    * Set CAD_WRITEBACK_REQUIRES_APPROVAL=false for direct submit.

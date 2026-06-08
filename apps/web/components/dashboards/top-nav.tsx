@@ -5,6 +5,7 @@ import type { UserContext } from "rapid-cortex-shared";
 import type { RoleDashboardIdentity } from "@/lib/dashboards/role-dashboard-design";
 import { FontPicker } from "@/components/ui/font-picker";
 import { UserIdentityBar } from "@/components/ui/user-identity-bar";
+import { getRoleHeaderBadgeLabel } from "@/lib/dashboards/role-header-badge";
 
 export function TopNav({
   identity,
@@ -15,6 +16,8 @@ export function TopNav({
   user: UserContext;
   onMenuClick?: () => void;
 }) {
+  const roleBadge = getRoleHeaderBadgeLabel(user.role);
+
   return (
     <header
       className="sticky top-0 z-30 flex min-h-14 flex-wrap items-center justify-between gap-3 border-b border-slate-800/90 bg-slate-950/95 px-4 py-2 backdrop-blur md:px-6"
@@ -33,20 +36,22 @@ export function TopNav({
           <p className="truncate text-sm font-semibold text-white">{identity.identityTitle}</p>
           <p className="truncate text-xs text-slate-500">{identity.identitySubtitle}</p>
         </div>
-        <span
-          className="hidden max-w-[240px] items-center gap-1.5 rounded border px-2 py-1 text-[10px] font-medium uppercase tracking-wide sm:inline-flex"
-          style={{
-            borderColor: "color-mix(in srgb, var(--role-accent) 45%, transparent)",
-            backgroundColor: "color-mix(in srgb, var(--role-badge-bg) 35%, rgb(2 6 23))",
-            color: "var(--role-text-accent)",
-          }}
-        >
+        {roleBadge ? (
           <span
-            className="h-1.5 w-1.5 shrink-0 rounded-full"
-            style={{ backgroundColor: "var(--role-accent)" }}
-          />
-          Operational
-        </span>
+            className="hidden max-w-[240px] items-center gap-1.5 rounded border px-2 py-1 text-[10px] font-medium uppercase tracking-wide sm:inline-flex"
+            style={{
+              borderColor: "color-mix(in srgb, var(--role-accent) 45%, transparent)",
+              backgroundColor: "color-mix(in srgb, var(--role-badge-bg) 35%, rgb(2 6 23))",
+              color: "var(--role-text-accent)",
+            }}
+          >
+            <span
+              className="h-1.5 w-1.5 shrink-0 rounded-full"
+              style={{ backgroundColor: "var(--role-accent)" }}
+            />
+            {roleBadge}
+          </span>
+        ) : null}
       </div>
       <div className="flex shrink-0 flex-wrap items-center justify-end gap-2">
         <FontPicker />

@@ -1,10 +1,20 @@
+import { isPilotTestModeEnabled } from "./pilot-test-mode";
+
+function productFlag(name: string): boolean {
+  const raw = process.env[name]?.trim().toLowerCase();
+  if (raw === "0" || raw === "false") return false;
+  if (raw === "1" || raw === "true") return true;
+  if (isPilotTestModeEnabled()) return true;
+  return true;
+}
+
 export const features = {
-  verticalCampus: process.env.NEXT_PUBLIC_ENABLE_VERTICAL_CAMPUS === "1",
-  verticalVenue: process.env.NEXT_PUBLIC_ENABLE_VERTICAL_VENUE === "1",
-  hospitalRouting: process.env.NEXT_PUBLIC_ENABLE_HOSPITAL_ROUTING === "1",
-  hospitalPortal: process.env.NEXT_PUBLIC_ENABLE_HOSPITAL_PORTAL === "1",
-  addonManagement: process.env.NEXT_PUBLIC_ENABLE_ADDON_MANAGEMENT === "1",
-  verticalBadge: process.env.NEXT_PUBLIC_ENABLE_VERTICAL_BADGE === "1",
+  verticalCampus: productFlag("NEXT_PUBLIC_ENABLE_VERTICAL_CAMPUS"),
+  verticalVenue: productFlag("NEXT_PUBLIC_ENABLE_VERTICAL_VENUE"),
+  hospitalRouting: productFlag("NEXT_PUBLIC_ENABLE_HOSPITAL_ROUTING"),
+  hospitalPortal: productFlag("NEXT_PUBLIC_ENABLE_HOSPITAL_PORTAL"),
+  addonManagement: productFlag("NEXT_PUBLIC_ENABLE_ADDON_MANAGEMENT"),
+  verticalBadge: productFlag("NEXT_PUBLIC_ENABLE_VERTICAL_BADGE"),
 } as const;
 
 export type FeatureVertical = "core" | "campus" | "venue" | "hospital";
@@ -15,4 +25,3 @@ export function isVerticalEnabled(vertical: FeatureVertical): boolean {
   if (vertical === "venue") return features.verticalVenue;
   return features.hospitalRouting || features.hospitalPortal;
 }
-

@@ -1,9 +1,9 @@
 "use client";
 
+import type { ReactNode } from "react";
 import { usePathname } from "next/navigation";
 import type { DashboardPrefix } from "@/lib/dashboards/dashboard-access";
 import { getRoleDashboardIdentity } from "@/lib/dashboards/role-dashboard-design";
-import { RcAdminHomePanels } from "./rc-admin-live-dashboard";
 
 function isRoleDashboardHome(pathname: string, prefix: DashboardPrefix): boolean {
   const base = `/${prefix}/dashboard`;
@@ -32,30 +32,13 @@ function QueuePlaceholder({ accent }: { accent: string }) {
   );
 }
 
-function HeatmapPlaceholder() {
-  return (
-    <div className="rounded-lg border border-dashed border-slate-700 bg-slate-950/50 p-4">
-      <p className="text-xs font-medium text-slate-400">Incident heatmap</p>
-      <div className="mt-3 grid grid-cols-6 gap-1">
-        {Array.from({ length: 24 }).map((_, i) => (
-          <div
-            key={i}
-            className="aspect-square rounded-sm bg-slate-800"
-            style={{ opacity: 0.25 + (i % 5) * 0.12 }}
-          />
-        ))}
-      </div>
-    </div>
-  );
-}
-
 /** Extra home chrome for live-ops roles only. Admin/QA/executive content lives in DashboardPageContent. */
 export function RoleDashboardHomeLayout({
   prefix,
   children,
 }: {
   prefix: DashboardPrefix;
-  children: React.ReactNode;
+  children: ReactNode;
 }) {
   const pathname = usePathname();
   const id = getRoleDashboardIdentity(prefix);
@@ -86,36 +69,6 @@ export function RoleDashboardHomeLayout({
         <div className="w-full shrink-0 lg:w-72">
           <QueuePlaceholder accent={id.accent} />
         </div>
-      </div>
-    );
-  }
-
-  if (prefix === "supervisor") {
-    return (
-      <div className="space-y-4">
-        <div className="grid gap-3 sm:grid-cols-3">
-          {["Team Alpha", "Team Bravo", "Team Charlie"].map((t) => (
-            <div
-              key={t}
-              className="rounded-lg border border-slate-800 bg-slate-950/50 p-3"
-              style={{ borderTopColor: id.accent, borderTopWidth: 3 }}
-            >
-              <p className="text-xs font-semibold text-white">{t}</p>
-              <p className="mt-1 text-[11px] text-slate-500">Status cards · placeholder</p>
-            </div>
-          ))}
-        </div>
-        <HeatmapPlaceholder />
-        <div>{children}</div>
-      </div>
-    );
-  }
-
-  if (prefix === "rc-admin") {
-    return (
-      <div className="space-y-4">
-        <RcAdminHomePanels />
-        <div>{children}</div>
       </div>
     );
   }

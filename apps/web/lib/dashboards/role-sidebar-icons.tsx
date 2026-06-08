@@ -35,6 +35,16 @@ const FALLBACK: LucideIcon = LayoutDashboard;
 
 const TAB_ICONS: Record<string, LucideIcon> = {
   overview: LayoutDashboard,
+  infrastructure: Activity,
+  "system-health": Activity,
+  integrations: Globe,
+  "service-catalog": ListChecks,
+  "feature-flags": Shield,
+  "system-settings": Settings,
+  "cad-admin": Radio,
+  security: Shield,
+  "location-qr": Map,
+  support: Megaphone,
   operations: Megaphone,
   billing: CreditCard,
   plans: ListChecks,

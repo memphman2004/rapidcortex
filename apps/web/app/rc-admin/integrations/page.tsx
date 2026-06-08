@@ -7,6 +7,6 @@ export const metadata = {
 };
 
 export default async function RcAdminIntegrationsPage() {
-  await requireRole(["rcsuperadmin", "rcadmin", "rcitadmin"]);
+  await requireRole(["rcsuperadmin", "rcitadmin"]);
   return <PlatformIntegrationsPage />;
 }

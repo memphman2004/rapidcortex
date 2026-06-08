@@ -4,6 +4,7 @@ import { useState } from "react";
 import { isRapidCortexRole, migrateLegacyRapidCortexRoleTokenValue, ROLE_LABELS } from "rapid-cortex-shared/auth/rapid-cortex-roles";
 import { signOutFromClient } from "@/lib/auth/sign-out-client";
 import { getRoleDashboardIdentity } from "@/lib/dashboards/role-dashboard-design";
+import { getRoleHeaderBadgeLabel } from "@/lib/dashboards/role-header-badge";
 
 export interface UserIdentityBarProps {
   email: string;
@@ -26,6 +27,7 @@ export function UserIdentityBar({ email, role, roleLabel }: UserIdentityBarProps
     (isRapidCortexRole(effective) ? ROLE_LABELS[effective] : ROLE_LABELS[effective] ?? effective);
   const displayName = email.split("@")[0] ?? email;
   const palette = getRoleDashboardIdentity("rc-admin", effective);
+  const headerBadge = getRoleHeaderBadgeLabel(effective);
 
   return (
     <div className="flex items-center gap-3">
@@ -43,7 +45,7 @@ export function UserIdentityBar({ email, role, roleLabel }: UserIdentityBarProps
         <span className="max-w-[160px] truncate text-[11px] font-semibold text-slate-200">{email}</span>
         <div className="flex flex-wrap items-center gap-1.5">
           <span className="text-[10px] uppercase tracking-wide text-slate-500">{displayRole}</span>
-          {isRapidCortexRole(effective) ? (
+          {headerBadge ? (
             <span
               className="rounded border px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-widest"
               style={{
@@ -52,13 +54,7 @@ export function UserIdentityBar({ email, role, roleLabel }: UserIdentityBarProps
                 color: palette.textColor,
               }}
             >
-              {effective === "rcsuperadmin"
-                ? "Platform Owner"
-                : effective === "rcadmin"
-                  ? "RC Operations"
-                  : effective === "rcitadmin"
-                    ? "RC IT Admin"
-                    : "RC Staff"}
+              {headerBadge}
             </span>
           ) : null}
         </div>

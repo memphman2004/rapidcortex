@@ -4,6 +4,7 @@ import type { AgencyRole } from "../types.js";
 import { AGENCY_TYPE_VALUES } from "./agency.js";
 import { triageAgencyConfigSchema } from "../triage/triage.js";
 import { wellnessAgencyConfigSchema } from "../wellness/trauma-flag.js";
+import { campusAgencyConfigPatchSchema } from "./campus-config.js";
 import {
   PLATFORM_ONBOARDING_STEP_IDS,
   type PlatformOnboardingStepId,
@@ -104,6 +105,7 @@ export const patchAgencyBodySchema = z
     sop: sopAgencyConfigPatchSchema.optional(),
     triage: triageAgencyConfigSchema.optional(),
     wellness: wellnessAgencyConfigSchema.optional(),
+    campus: campusAgencyConfigPatchSchema.optional(),
     platformOnboarding: platformOnboardingPatchSchema.optional(),
     retentionOverrideDays: retentionOverrideDaysSchema.optional(),
     vertical: z.enum(["core", "campus", "venue", "hospital"]).optional(),

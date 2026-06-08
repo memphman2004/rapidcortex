@@ -1,6 +1,10 @@
 import type { UserContext } from "rapid-cortex-shared/types";
 import { requiresOperationalPasswordRenewal } from "rapid-cortex-shared/auth/password-policy";
 import { resolveHospitalPortalDashboardHref } from "rapid-cortex-shared/auth/rapid-cortex-roles";
+import {
+  hospitalPostAuthRedirect,
+  isAnyHospitalRole,
+} from "@/lib/hospital/hospital-access";
 import { hasRapidCortexDashboardAccess, hasRcLitePortalAccess } from "rapid-cortex-shared/auth/session-product";
 import { isRcsuperadmin } from "rapid-cortex-shared/tenancy/principal";
 import {
@@ -45,6 +49,10 @@ export function resolveProductDashboardFromRoleAndAgency(
   }
   if (roleUpper.startsWith("CAMPUS_")) {
     return `/app/campus/${extractCampusCode(agency)}`;
+  }
+  if (isAnyHospitalRole(roleToken)) {
+    const hospitalHome = hospitalPostAuthRedirect(roleToken);
+    if (hospitalHome !== "/auth/signout") return hospitalHome;
   }
   const hospitalHome = resolveHospitalPortalDashboardHref(roleToken);
   if (hospitalHome) return hospitalHome;

@@ -1,3 +1,5 @@
+import { isRcItAdmin, isRcSuperAdmin } from "rapid-cortex-security";
+import { migrateLegacyRapidCortexRoleTokenValue } from "rapid-cortex-shared/auth/rapid-cortex-roles";
 import type { DashboardPrefix } from "./dashboard-access";
 
 /** Which widgets appear on each role dashboard home (least-privilege UX). */
@@ -61,11 +63,11 @@ const SECTIONS_BY_PREFIX: Record<DashboardPrefix, RoleDashboardSections> = {
     stats: true,
     integrationHealth: true,
     liveOperationsIncidents: true,
-    supervisorSla: true,
+    supervisorSla: false,
     supervisorActiveCalls: false,
     activityFeed: true,
     usageChart: false,
-    securityAlerts: true,
+    securityAlerts: false,
     reports: false,
     platformNotices: false,
     executiveGrants: false,
@@ -136,7 +138,7 @@ const SECTIONS_BY_PREFIX: Record<DashboardPrefix, RoleDashboardSections> = {
     securityAlerts: false,
     reports: true,
     platformNotices: false,
-    executiveGrants: true,
+    executiveGrants: false,
     qaReviewQueue: false,
     agencyAdminQuickActions: false,
     itSecurityPosture: false,
@@ -178,7 +180,56 @@ const SECTIONS_BY_PREFIX: Record<DashboardPrefix, RoleDashboardSections> = {
   },
 };
 
-export function getRoleDashboardSections(prefix: DashboardPrefix): RoleDashboardSections {
+function getRcAdminSections(role: string): RoleDashboardSections {
+  const r = migrateLegacyRapidCortexRoleTokenValue(role) ?? role;
+  if (r === "rcadmin") {
+    return {
+      stats: true,
+      integrationHealth: false,
+      liveOperationsIncidents: false,
+      supervisorSla: false,
+      supervisorActiveCalls: false,
+      activityFeed: true,
+      usageChart: true,
+      securityAlerts: false,
+      reports: true,
+      platformNotices: true,
+      executiveGrants: false,
+      qaReviewQueue: false,
+      agencyAdminQuickActions: false,
+      itSecurityPosture: false,
+      executiveTrends: false,
+    };
+  }
+  if (isRcItAdmin(r) && !isRcSuperAdmin(r)) {
+    return {
+      stats: false,
+      integrationHealth: false,
+      liveOperationsIncidents: false,
+      supervisorSla: false,
+      supervisorActiveCalls: false,
+      activityFeed: false,
+      usageChart: false,
+      securityAlerts: false,
+      reports: false,
+      platformNotices: false,
+      executiveGrants: false,
+      qaReviewQueue: false,
+      agencyAdminQuickActions: false,
+      itSecurityPosture: false,
+      executiveTrends: false,
+    };
+  }
+  return SECTIONS_BY_PREFIX["rc-admin"];
+}
+
+export function getRoleDashboardSections(
+  prefix: DashboardPrefix,
+  role?: string,
+): RoleDashboardSections {
+  if (prefix === "rc-admin" && role) {
+    return getRcAdminSections(role);
+  }
   return SECTIONS_BY_PREFIX[prefix];
 }
 

@@ -48,7 +48,10 @@ export default function GuestReportsPage({
     <div className="space-y-6 p-6">
       <div>
         <h1 className="text-2xl font-bold text-white">Guest Reports</h1>
-        <p className="mt-1 text-sm text-slate-400">Reports submitted by guests via QR code or SMS.</p>
+        <p className="mt-1 text-sm text-slate-400">
+          Reports submitted by guests via QR code or SMS. Route to security or mark resolved — this is
+          not a 911 emergency dispatch system.
+        </p>
       </div>
 
       <section className="grid gap-4 md:grid-cols-3">

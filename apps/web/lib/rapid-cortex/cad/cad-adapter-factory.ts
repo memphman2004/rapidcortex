@@ -6,6 +6,7 @@ import { MockCadAdapter } from "@/lib/rapid-cortex/cad/adapters/mock-cad-adapter
 import { MotorolaCadAdapter } from "@/lib/rapid-cortex/cad/adapters/motorola-adapter";
 import { NotConfiguredCadAdapter } from "@/lib/rapid-cortex/cad/adapters/not-configured-adapter";
 import { TylerCadAdapter } from "@/lib/rapid-cortex/cad/adapters/tyler-adapter";
+import { isCadWritebackEnvEnabled } from "@/lib/rapid-cortex/cad/cad-writeback-gate";
 import type { CadConnectionConfig, CadVendor } from "@/lib/rapid-cortex/cad/types";
 
 function asNumber(raw: string | undefined, fallback: number): number {
@@ -55,7 +56,7 @@ export function readCadConnectionConfig(agencyId: string): CadConnectionConfig {
     clientSecret: process.env.CAD_CLIENT_SECRET?.trim() || undefined,
     apiKey: process.env.CAD_API_KEY?.trim() || undefined,
     timeoutMs: asNumber(process.env.CAD_TIMEOUT_MS, 10000),
-    writebackEnabled: asBool(process.env.CAD_WRITEBACK_ENABLED, false),
+    writebackEnabled: isCadWritebackEnvEnabled(),
     mockFailureRate: Math.max(0, Math.min(1, asNumber(process.env.CAD_MOCK_FAILURE_RATE, 0))),
   };
 }

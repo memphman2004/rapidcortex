@@ -1,6 +1,6 @@
 "use client";
 
-import { RoleDashboardSmokePanel } from "@/components/dispatch/role-dashboard-smoke-panel";
+import { DashboardHomeRenderer } from "@/components/dashboards/DashboardHomeRenderer";
 import { useSession } from "@/components/auth/session-context";
 import { isSupervisorOrStaffRole, SupervisorAccessRestricted } from "./_components/supervisor-access";
 
@@ -11,16 +11,15 @@ export default function SupervisorHomePage() {
     return <SupervisorAccessRestricted />;
   }
 
+  if (!user) return null;
+
+  const displayName = user.email?.split("@")[0]?.replace(/[.+_-]/g, " ") ?? "there";
+
   return (
-    <div className="p-6">
-      <RoleDashboardSmokePanel
-        title="Supervisor"
-        pathLabel="/[jurisdiction]/supervisor"
-      />
-      <p className="text-sm text-slate-400">
-        Deeper tools live under <span className="font-mono">/supervisor/qa</span>,{" "}
-        <span className="font-mono">/supervisor/performance</span>, etc.
-      </p>
-    </div>
+    <DashboardHomeRenderer
+      role={user.role}
+      agencyId={user.agencyId}
+      displayName={displayName}
+    />
   );
 }

@@ -1,9 +1,8 @@
 import { NextResponse } from "next/server";
 import { withFeatureContract } from "@/lib/rapid-cortex/contract-response";
-import { recordCadWritebackBlockedAudit } from "@/lib/rapid-cortex/cad/record-cad-writeback-blocked-audit";
 import { resolveCadAdapter, resolveCadReadProvider } from "@/lib/rapid-cortex/cad";
+import { cadWritebackEnvBlockedResponse } from "@/lib/rapid-cortex/cad/cad-writeback-gate";
 import { serviceNotConfiguredPilotResponse } from "@/lib/rapid-cortex/pilot-service-disabled-response";
-import { isCadWriteBackExplicitlyEnabled } from "@/lib/rapid-cortex/cad/cad-writeback-gate";
 
 type Ctx = { params: Promise<{ segments?: string[] }> };
 
@@ -19,12 +18,9 @@ function resolveFeatureId(segments: string[]): string {
   return "cad_discovery_workshop";
 }
 
-function inferCadWriteAction(segments: string[]): string {
+function isCadWritebackPostRoute(segments: string[]): boolean {
   const head = segments[0]?.trim().toLowerCase() ?? "";
-  if (head === "draft-update") return "cad_draft_update";
-  if (head === "submit-approved-update") return "cad_submit_approved_update";
-  if (head === "rollback-test") return "cad_rollback_test";
-  return `cad:${segments.join("/").trim()}` || "cad_write_unknown";
+  return head === "draft-update" || head === "submit-approved-update" || head === "rollback-test";
 }
 
 export async function GET(_request: Request, ctx: Ctx) {
@@ -95,41 +91,15 @@ export async function GET(_request: Request, ctx: Ctx) {
 
 export async function POST(request: Request, ctx: Ctx) {
   const { segments = [] } = await ctx.params;
-  const featureId = resolveFeatureId(segments);
 
-  let body: Record<string, unknown> = {};
-  try {
-    const text = await request.text();
-    if (text.trim().length > 0) {
-      body = JSON.parse(text) as Record<string, unknown>;
-    }
-  } catch {
-    body = {};
+  if (isCadWritebackPostRoute(segments)) {
+    const envBlocked = cadWritebackEnvBlockedResponse();
+    if (envBlocked) return envBlocked;
   }
 
-  const incidentIdGuess =
-    typeof body.incidentId === "string"
-      ? body.incidentId
-      : typeof (body.incident_id as unknown) === "string"
-        ? String(body.incident_id)
-        : undefined;
+  const featureId = resolveFeatureId(segments);
 
   return withFeatureContract(featureId, async () => {
-    if (!isCadWriteBackExplicitlyEnabled()) {
-      await recordCadWritebackBlockedAudit({
-        action: inferCadWriteAction(segments),
-        ...(incidentIdGuess ? { incidentId: incidentIdGuess } : {}),
-      });
-
-      return NextResponse.json(
-        {
-          ok: false,
-          message: "CAD write-back is disabled for pilot safety.",
-        },
-        { status: 403 },
-      );
-    }
-
     return NextResponse.json(
       {
         ok: false,

@@ -1,6 +1,6 @@
 /**
- * When enabled, all `NEXT_PUBLIC_ENABLE_*` gates in `runtime-flags.ts` and Ring flags
- * read as on so agency admins and rcsuperadmin can exercise the full product surface in dev/pilot.
+ * When enabled, unset `NEXT_PUBLIC_ENABLE_*` gates read as on (see `runtime-flags.ts`).
+ * **Exception:** `NEXT_PUBLIC_ENABLE_CAD_WRITEBACK` stays off unless explicitly set to `1`/`true`.
  *
  * Set `NEXT_PUBLIC_ENABLE_PILOT_TEST_MODE=1` in `.env.local` or `.env.development`.
  * Set to `0` to force individual flags off even in development.

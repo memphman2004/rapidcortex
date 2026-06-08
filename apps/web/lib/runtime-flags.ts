@@ -38,17 +38,35 @@ const NEXT_PUBLIC_FLAG_VALUES: Record<string, string | undefined> = {
   NEXT_PUBLIC_WEBSOCKET_URL: process.env.NEXT_PUBLIC_WEBSOCKET_URL,
 };
 
+const CAD_WRITEBACK_FLAG = "NEXT_PUBLIC_ENABLE_CAD_WRITEBACK";
+
 function isEnabledValue(value: string | undefined): boolean {
   if (!value) return false;
   const normalized = value.trim().toLowerCase();
   return normalized === "1" || normalized === "true";
 }
 
+function isDisabledValue(value: string | undefined): boolean {
+  if (!value) return false;
+  const normalized = value.trim().toLowerCase();
+  return normalized === "0" || normalized === "false";
+}
+
+/**
+ * Operational feature gates default **on** when unset (live product surface).
+ * CAD write-back defaults **off** unless explicitly enabled.
+ */
 function envFlag(name: string): boolean {
   if (typeof process === "undefined") return false;
-  if (isPilotTestModeEnabled()) return true;
   const value = NEXT_PUBLIC_FLAG_VALUES[name] ?? process.env[name];
-  return isEnabledValue(value);
+  if (name === CAD_WRITEBACK_FLAG) {
+    if (isEnabledValue(value)) return true;
+    return false;
+  }
+  if (isDisabledValue(value)) return false;
+  if (isEnabledValue(value)) return true;
+  if (isPilotTestModeEnabled()) return true;
+  return true;
 }
 
 /**
@@ -200,11 +218,12 @@ export function isHospitalRoutingEnabled(): boolean {
 /** Hospital staff portal — manual capacity updates without HL7. */
 export function isHospitalPortalEnabled(): boolean {
   if (typeof process === "undefined") return false;
+  const portal = NEXT_PUBLIC_FLAG_VALUES.NEXT_PUBLIC_ENABLE_HOSPITAL_PORTAL;
+  const routing = NEXT_PUBLIC_FLAG_VALUES.NEXT_PUBLIC_ENABLE_HOSPITAL_ROUTING;
+  if (isDisabledValue(portal) && isDisabledValue(routing)) return false;
+  if (isEnabledValue(portal) || isEnabledValue(routing)) return true;
   if (isPilotTestModeEnabled()) return true;
-  return (
-    process.env.NEXT_PUBLIC_ENABLE_HOSPITAL_PORTAL === "1" ||
-    process.env.NEXT_PUBLIC_ENABLE_HOSPITAL_ROUTING === "1"
-  );
+  return true;
 }
 
 /** Supervisor/dispatcher call transfer coordination (notification-only MVP). */

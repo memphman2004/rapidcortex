@@ -239,6 +239,8 @@ for _pkg_dir in apps/api/node_modules/rapid-cortex-shared apps/api/node_modules/
 done
 # Root npm install after rewriting to vendor tarballs can crash npm 10/11 arborist (workspace REPLACE / null target).
 # Install from apps/api with --no-workspaces so npm does not merge the monorepo workspace graph.
+# Fresh npm pack changes tarball integrity; stale package-lock EINTEGRITY will block install.
+rm -f apps/api/package-lock.json
 cd apps/api && npm install --no-workspaces && cd "$ROOT"
 # npm may re-use a bad extracted tarball; sync built dist/ from workspaces so API tsc always matches
 # packages/* (SAM still packages the tgzs produced above, which include up-to-date dist/ from npm pack).

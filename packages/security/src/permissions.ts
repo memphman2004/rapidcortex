@@ -230,6 +230,8 @@ export const RCITADMIN_CROSS_TENANT_PERMISSIONS: readonly Permission[] = [
   "audit.view",
   "audit.export",
   "transcripts.redact",
+  "locations.qrcodes.view",
+  "locations.qrcodes.manage",
 ] as const;
 
 export function isRcitadminCrossTenantPermission(permission: Permission): boolean {

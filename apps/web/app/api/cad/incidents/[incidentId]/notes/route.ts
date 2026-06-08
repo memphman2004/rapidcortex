@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { ensureAgencyAccess, requireCadApiUser } from "@/lib/rapid-cortex/cad/cad-api-auth";
+import { cadWritebackEnvBlockedResponse } from "@/lib/rapid-cortex/cad/cad-writeback-gate";
 import { CadWritebackService } from "@/lib/rapid-cortex/cad/writeback/cad-writeback-service";
 
 const writeback = new CadWritebackService();
@@ -7,6 +8,9 @@ const writeback = new CadWritebackService();
 type Ctx = { params: Promise<{ incidentId: string }> };
 
 export async function POST(request: Request, ctx: Ctx) {
+  const envBlocked = cadWritebackEnvBlockedResponse();
+  if (envBlocked) return envBlocked;
+
   const auth = await requireCadApiUser();
   if (!auth.ok) return auth.response;
 

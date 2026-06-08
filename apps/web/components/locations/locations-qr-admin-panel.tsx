@@ -25,15 +25,18 @@ export function LocationsQrAdminPanel({
   defaultVertical = "campus",
   defaultOrgCode = "",
   canManage = true,
+  scopedAgencyId,
 }: {
   defaultVertical?: QRLocationVertical;
   defaultOrgCode?: string;
   /** When false, list/download only — no create, bulk import, or deactivate. */
   canManage?: boolean;
+  /** RC Admin cross-tenant scope — overrides session `agencyId`. */
+  scopedAgencyId?: string;
 }) {
   const queryClient = useQueryClient();
   const { user } = useSession();
-  const agencyId = user?.agencyId?.trim() ?? "";
+  const agencyId = (scopedAgencyId ?? user?.agencyId)?.trim() ?? "";
   const [vertical, setVertical] = useState<QRLocationVertical>(defaultVertical);
   const [orgCode, setOrgCode] = useState(defaultOrgCode);
   const [search, setSearch] = useState("");

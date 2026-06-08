@@ -1,0 +1,382 @@
+# Rapid Cortex — Cursor Rules
+# Real-Time AI Intelligence for Emergency Response
+# Senior Full-Stack Engineer, AWS Architect, and UI/UX Design standards
+
+## PROJECT OVERVIEW
+
+Rapid Cortex is a production public safety intelligence platform for:
+- 911 dispatch centers / PSAPs
+- Emergency communications centers
+- Law enforcement, fire, EMS
+- Emergency management agencies
+- Product verticals: Campus Safety, Venue Operations, Hospital Routing
+
+It enhances operations but does NOT replace CAD, telephony, dispatchers, or medical direction.
+
+**Role dashboard UI/UX (navigation, widgets, visual themes, "cannot" lists):** see `docs/role-dashboard-spec.md` — canonical spec for all 21 active roles. Implement absent UI for forbidden actions; never gray out permanent RBAC denials.
+
+**Sidebar navigation (all 21 roles):** single source of truth in `apps/web/lib/navigation/role-nav.ts`. Resolve with `getRoleNav(role, buildNavContext(user, jurisdictionSlug))`, filter features via `filterRoleNavByFeatures`, render with `RoleNavSidebar` / `RoleNavSections`. VIEW ONLY label badges stay visible; feature-gated items omit when flag is off.
+
+---
+
+## MONOREPO STRUCTURE
+
+```
+/
+├── apps/
+│   ├── api/              # AWS Lambda backend (TypeScript, SAM)
+│   ├── web/              # Next.js 14 App Router (TypeScript, Tailwind)
+│   ├── marketing/        # Next.js static marketing site
+│   ├── desktop-macos/    # Swift WKWebView wrapper
+│   └── desktop-windows/  # WPF WebView2 wrapper (C#)
+├── packages/
+│   ├── shared/           # Canonical types, roles, auth helpers
+│   ├── security/         # AuthorizationService, RBAC, audit logger
+│   ├── integrations/     # CAD, Ring, external adapters
+│   └── protocols/        # Emergency protocol packs
+├── infra/
+│   ├── template.yaml     # Root CloudFormation stack
+│   └── nested/
+│       ├── stack-data-layer.yaml   # DynamoDB, S3, Secrets
+│       ├── stack-app-sam.yaml      # Primary Lambda stack (~70 functions)
+│       ├── stack-app-sam-2.yaml    # Stack 2: language, analytics, retention
+│       ├── stack-app-sam-3.yaml    # Stack 3: media/video, agency admin, RC admin
+│       ├── stack-app-sam-4.yaml    # Stack 4: billing/payments, Ring Connect
+│       └── stack-app-sam-qr.yaml  # Stack QR: QR location management
+└── scripts/              # Deploy, migration, and operational scripts
+```
+
+---
+
+## TECH STACK
+
+**Backend:** TypeScript, AWS Lambda, API Gateway v2 (HTTP API), DynamoDB, S3, Cognito, SAM/CloudFormation, SES, SNS, Bedrock, Transcribe, Translate, KVS WebRTC, Pinpoint
+
+**Frontend:** Next.js 14 (App Router), TypeScript, Tailwind CSS, React Query, WebSockets, WebRTC
+
+**Infrastructure:** AWS CloudFormation nested stacks, SAM transform, ECS/Fargate (web SSR), CloudFront, Route53, ACM, WAF, EventBridge
+
+**Auth:** AWS Cognito, JWT, custom:role + custom:agencyId attributes, Cognito Groups
+
+---
+
+## CANONICAL ROLE SYSTEM
+
+Roles are stored as `custom:role` in Cognito JWT tokens. Always use the canonical role strings from `packages/shared/src/auth/rapid-cortex-roles.ts`.
+
+### Active roles (DO NOT add new roles without updating the role matrix):
+
+**RC Internal:** `rcsuperadmin` | `rcadmin` | `rcitadmin`
+
+**PSAP/Dispatch:** `dispatcher` | `supervisor` | `agencyadmin` | `agencyit` | `analyst` | `auditor`
+- NOTE: `commsupervisor` is a deprecated alias for `supervisor`. Never use it in new code.
+
+**Campus:** `CAMPUS_ADMIN` | `CAMPUS_SUPERVISOR` | `CAMPUS_SECURITY` | `CAMPUS_DISPATCH`
+
+**Hospital:** `HOSPITAL_ADMIN` | `HOSPITAL_STAFF` | `HOSPITAL_COORDINATOR`
+
+**Venue:** `VENUE_ADMIN` | `VENUE_SUPERVISOR` | `VENUE_SECURITY` | `VENUE_OPERATOR` | `VENUE_GUEST_SERVICES`
+
+**Transit:** `TRANSIT_ADMIN` | `TRANSIT_SUPERVISOR` | `TRANSIT_SECURITY` | `TRANSIT_OPERATOR`
+- NOTE: Transit vertical has no UI pages yet. Define role constants but do not route users to product pages.
+
+### Role routing (post-login destinations):
+```
+dispatcher         → /{jurisdiction}/dashboard
+supervisor         → /{jurisdiction}/supervisor
+agencyadmin        → /{jurisdiction}/admin
+agencyit           → /{jurisdiction}/admin/it
+analyst            → /{jurisdiction}/analytics
+auditor            → /{jurisdiction}/audit
+rcsuperadmin/rcadmin → /rc-admin/dashboard
+rcitadmin          → /rc-admin/infrastructure
+VENUE_*            → /app/venue/{code}
+CAMPUS_*           → /app/campus/{code}
+HOSPITAL_ADMIN     → /hospital-admin/dashboard
+HOSPITAL_STAFF     → /hospital-staff/dashboard
+```
+
+### Authorization rules:
+- Always check permissions via `AuthorizationService.canPerform()` from `packages/security`
+- Always scope resource access by `agencyId` — never allow cross-tenant data access
+- `rcsuperadmin` is the only role exempt from agencyId scoping
+- QR code management: `CAMPUS_ADMIN` and `VENUE_ADMIN` only (PSAP roles excluded)
+- Use `normalizeSessionRole()` from `packages/shared` to parse JWT roles — product vertical tokens (VENUE_*, CAMPUS_*) must be preserved before PSAP migration runs
+
+---
+
+## CODE STANDARDS
+
+### TypeScript
+- Strict mode always on
+- Strong typing — no `any` unless absolutely unavoidable and commented
+- Zod schemas for all API request/response validation
+- Export types from `packages/shared` — never duplicate type definitions across packages
+- Use `unknown` over `any` for error types
+
+### API Lambda handlers
+```typescript
+// Standard Lambda handler pattern
+export const handler: APIGatewayProxyHandlerV2 = async (event) => {
+  const user = extractCallerFromToken(event);           // always first
+  if (!user) return unauthorized();
+  
+  const agencyId = event.pathParameters?.agencyId;
+  if (!canManage(user, agencyId)) return forbidden();   // always second
+  
+  // ... business logic
+  
+  return withCorrelationHeaders(event, ok(result));     // always include correlation headers
+};
+```
+
+### DynamoDB
+- Physical table names follow: `rapid-cortex-{table-name}-{stage}`
+- Always use the table name from environment variable, never hardcoded
+- Use single-table design with pk/sk where appropriate
+- DeletionPolicy: Retain on all tables
+
+### API routes
+- All routes prefixed with `/api/`
+- Use HTTP API Gateway v2 (not REST API)
+- JWT authorizer on all protected routes
+- CORS configured centrally in SAM Globals
+
+---
+
+## INFRASTRUCTURE RULES
+
+### SAM template size limits
+- Each nested SAM stack must stay under 200 KB on disk (proxy for 1 MB SAM transform limit)
+- Stack split scripts: `scripts/split-stack-app-sam-primary.rb`, `scripts/split-stack-app-sam-v2.rb`
+- Run `bash scripts/infra-template-size-check.sh` after template changes
+- New Lambda functions go into the appropriate domain stack — do not bloat stack-app-sam.yaml
+- Built artifact check must include `AppSamStackV2/template.yaml` (not only legacy `AppSamStack`)
+- Use `SKIP_APP_SAM_SIZE_PROXY=1` only when intentionally letting CloudFormation be the arbiter on borderline stacks
+
+### Naming conventions
+```
+DynamoDB tables:     rapid-cortex-{table-name}-{stage}
+S3 buckets:          rapid-cortex-{name}-{stage}-{accountId}
+Secrets Manager:     rapid-cortex/{domain}/{name}
+IAM policies:        ${AppName}-{stack}-lambda-{scope}-{stage}
+SNS topics:          ${AppName}-ops{n}-${stage}-${accountId}
+WAF ACLs:            ${AppName}-httpapi{n}-waf-{stage}
+CloudWatch log groups: /aws/lambda/{functionName}
+ECS log groups:      /ecs/rapid-cortex/{service}/{stage}
+```
+
+### CloudFormation import pattern
+When adding resources that already exist in AWS (pre-provisioned), use the parameter workaround:
+1. Add `ExistingXxxTableName` parameter with physical name as default
+2. Remove the resource definition from the template
+3. Update all `!Ref` and `!GetAtt .Arn` references to use the parameter
+4. Run `python3 scripts/patch-datalayer-template-workaround.py {stage}`
+
+Orphan bridge/ECR/log-group `AlreadyExists` failures on AppSamStackV2 update require import or delete of the pre-existing physical resources before redeploy.
+
+### Deploying
+```bash
+source scripts/env-api-dev.sh && bash scripts/deploy.sh dev
+```
+Never commit `.env` files with real credentials. Never hardcode ARNs (use CloudFormation parameters).
+
+---
+
+## FRONTEND STANDARDS
+
+### Next.js App Router
+- Server components by default — only use `"use client"` when needed
+- Page auth via `getServerSideProps` or server component session check
+- Route guards must use `isAuthorizedForXxx(role)` helpers — never raw string comparisons
+- `useSession()` hook for client-side session access
+
+### Tailwind / Design System
+- Dark theme: background `#0f1117` or similar deep navy/charcoal
+- Primary accent: `sky-600` / `sky-700` (dispatcher blue)
+- Venue branding: orange accents
+- Campus branding: neutral/slate
+- Hospital branding: teal/green
+- RC Admin: purple accents
+- Status colors: green (available), yellow (en route), orange (on scene), red (busy/critical)
+- Always use `object-contain` for logos — never `w-full h-auto` which overrides height constraints
+- Logo intrinsic dimensions must match actual PNG dimensions
+
+### Component conventions
+```tsx
+// Role-gated UI
+{hasLocationsAdminAccess(role) && <NavItem href="/admin/locations" label="Locations" />}
+
+// Dashboard sections — always check role before rendering
+const sections = getRoleDashboardSections(role);
+{sections.liveOperationsIncidents && <IncidentQueue />}
+
+// agencyId always from verified session — NEVER from URL params
+<QrAdminPanel agencyId={session.agencyId} />
+```
+
+### Dashboard isolation rules (STRICT)
+Full per-role layout: `docs/role-dashboard-spec.md`. Priority implementations: (1) VENUE_GUEST_SERVICES "NOT A 911 EMERGENCY DISPATCH SYSTEM" on every page, (2) agencyadmin must never land on live dispatcher workspace, (3) rcsuperadmin Grants is roadmap-only.
+
+Each role must only see tools relevant to their function:
+- Dispatcher: live workspace, CAD tools, transcription — NO supervisor panels
+- Supervisor: ops + monitoring — NO dispatcher-specific tools
+- Venue roles: orange-branded venue console — NO PSAP incident table, NO CAD
+- Campus roles: campus console — NO PSAP transcription, NO CAD
+- Hospital roles: capacity portal — NO dispatch workspace
+- RC Admin: platform metrics — NO PSAP incident widgets
+- QA/Analyst: review queue, scorecards — NO live ops, NO CAD queue
+
+---
+
+## VERTICAL PRODUCT ROUTING
+
+### Middleware enforcement
+- `/app/venue/*` and `/venue/*` → VENUE_* roles + rcsuperadmin only
+- `/app/campus/*` → CAMPUS_* roles + rcsuperadmin only
+- `/app/hospital/*`, `/hospital-admin/*`, `/hospital-staff/*` → HOSPITAL_* roles + rcsuperadmin only
+- PSAP jurisdiction routes (`/{jurisdiction}/*`) → PSAP roles only, redirect product-vertical users to their home
+
+### Session normalization (CRITICAL)
+Always call `normalizeSessionRole()` before `migrateLegacyRapidCortexRoleTokenValue()`. Product vertical tokens must be preserved before PSAP migration runs, otherwise VENUE_ADMIN collapses to dispatcher.
+
+```typescript
+// CORRECT
+const role = normalizeSessionRole(raw);       // preserves VENUE_*, CAMPUS_*, HOSPITAL_*
+
+// WRONG — collapses product roles to PSAP dispatcher
+const role = normalizeRole(raw);              // deprecated, do not use
+```
+
+---
+
+## SECURITY & COMPLIANCE
+
+- CJIS-aware design: audit every access to incident data, transcripts, CAD submissions
+- All admin actions must emit an audit event via `AuditLogger`
+- Supervisor monitoring of dispatcher sessions must be logged with `SUPERVISOR_WATCHING` indicator
+- No CAD writeback without dispatcher review and approval
+- QR code creation: campus/venue admins only — PSAP roles explicitly excluded
+- Never log JWT tokens, PII, or CAD data in CloudWatch
+- CORS: only approved origins, never `*` in production
+
+---
+
+## FEATURE FLAGS
+
+Default policy: ALL operational flags are ON when the env var is unset.
+Only exception: CAD write-back is OFF by default at every layer.
+
+Web:  Unset `NEXT_PUBLIC_ENABLE_*` → enabled
+      `NEXT_PUBLIC_ENABLE_CAD_WRITEBACK` → disabled unless explicitly set to `1`/`true`
+
+API:  Unset `ENABLE_*` → enabled (`featureEnabled()` in `apps/api/src/lib/env.ts` returns true)
+      `CAD_WRITEBACK_ENABLED` → disabled unless `"true"` or `"1"` via `env.cadWritebackEnabled` — never read `process.env.CAD_WRITEBACK_ENABLED` inline in handlers
+
+Infra: `CadWritebackEnabled` CloudFormation default = `"false"`
+
+To enable CAD writeback for testing only:
+```bash
+export NEXT_PUBLIC_ENABLE_CAD_WRITEBACK=1
+export CAD_WRITEBACK_ENABLED=true
+```
+
+Never enable `CAD_WRITEBACK_ENABLED` in prod/staging until go/no-go criteria are met
+and the pilot agency has signed the CAD writeback addendum. `deploy.sh` blocks it on prod.
+
+When adding a new feature flag:
+1. Default it ON in `featureEnabled()` / `runtime-flags.ts` (`envFlag`) — no env var = enabled
+2. Add `NEXT_PUBLIC_ENABLE_YOURFLAG=1` to `.env.example` and `scripts/env-api-dev.sh`
+3. Add a test to `runtime-flags` tests confirming default-on behavior
+4. Only use explicit disable if the feature is pilot-gated or carries legal/ops risk
+
+Web server CAD gate: use `isCadWritebackEnvEnabled()` from `apps/web/lib/rapid-cortex/cad/cad-writeback-gate.ts` (mirrors API `featureEnabled` semantics). UI gate: `isCadWritebackUiEnabled()` from `runtime-flags.ts`.
+
+---
+
+## AGENCY TYPE SYSTEM
+
+```typescript
+type AgencyType =
+  | "city" | "county" | "municipality" | "regional_center"
+  | "pilot" | "state_agency"
+  | "venue"    // Venue product vertical
+  | "campus";  // Campus product vertical
+```
+Agency type drives vertical routing and product feature access. Always keep in sync across: `packages/shared`, API Zod schemas, and the Create Agency form UI.
+
+---
+
+## COMMON PITFALLS — NEVER DO THESE
+
+1. **Never use `commsupervisor`** — deprecated alias for `supervisor`. Will cause auth failures.
+2. **Never trust URL params for agencyId** — always use the verified session value
+3. **Never skip `normalizeSessionRole()`** — product vertical roles collapse to dispatcher without it
+4. **Never add resources to stack-app-sam.yaml without checking size** — it already split 4 times
+5. **Never use `h-auto w-full` on header logos** — overrides height constraints and blows up layout
+6. **Never declare wrong `width`/`height` on `<Image>` with `unoptimized: true`** — browser uses declared dimensions literally
+7. **Never use `images: { unoptimized: true }` and skip actual PNG dimension verification**
+8. **Never create DynamoDB tables in a CloudFormation update if they already exist** — use the parameter workaround or resource import
+9. **Never bypass `AuthorizationService.canPerform()`** — inline role string comparisons miss agencyId scoping
+10. **Never add TRANSIT_* role pages** — transit vertical is not yet built
+11. **Never default new feature flags to off** — operational flags default ON when unset; only CAD write-back is fail-closed. Do not gate live product surfaces behind unset env vars.
+
+---
+
+## DEPLOYMENT PIPELINE
+
+```
+Marketing site:  bash scripts/deploy-marketing.sh {stage}
+API backend:     source scripts/env-api-dev.sh && bash scripts/deploy.sh {stage}
+Web (ECS):       bash scripts/deploy-web-ecs.sh {stage}
+Web env vars:    bash scripts/print-stack-outputs-for-web.sh {stage}
+Size preflight:  bash scripts/infra-template-size-check.sh
+```
+
+Stack deploy order (automatic via CloudFormation dependencies):
+1. DataLayerStack (DynamoDB, S3, Secrets)
+2. AppSamStackV2 (primary Lambdas — incidents, CAD, QA, campus, venue, stream)
+3. AppSam2Stack (language, analytics, retention, comms)
+4. AppSam3Stack (video/media, agency admin, RC admin/desktop)
+5. AppSam4Stack (billing/payments, Ring Connect)
+6. AppSamQrStack (QR location management)
+
+---
+
+## TESTING
+
+- Unit tests: Vitest
+- Role/auth tests: always test that wrong roles get 403, not just that correct roles get 200
+- Dashboard section tests: verify each role sees ONLY its intended widgets
+- Route routing tests: verify product vertical roles do NOT reach PSAP jurisdiction routes
+- Run: `npm run test` from monorepo root
+
+---
+
+## KEY OUTPUT VARIABLES (after deploy)
+
+```bash
+# API endpoints
+API_UPSTREAM_BASE          # Stack 1 API (incidents, CAD, QA, campus, venue)
+API_UPSTREAM_BASE_2        # Stack 2 API (language, analytics)
+API_UPSTREAM_BASE_3        # Stack 3 API (media/video, agency admin)
+API_UPSTREAM_BASE_4        # Stack 4 API (billing, Ring Connect)
+
+# Web BFF routing prefix mapping
+/api/billing/*             → API_UPSTREAM_BASE_4
+/api/integrations/ring/*   → API_UPSTREAM_BASE_4
+/api/languages/*           → API_UPSTREAM_BASE_2
+/api/video-assist/*        → API_UPSTREAM_BASE_3
+/api/admin/users/*         → API_UPSTREAM_BASE (stack 1)
+/api/incidents/*           → API_UPSTREAM_BASE (stack 1)
+```
+
+---
+
+## MAINTENANCE — update this file when shipping
+
+- **Transit vertical:** Remove "not yet built" notes for `TRANSIT_*`; add routing entry when `/app/transit` exists.
+- **HOSPITAL_COORDINATOR:** Add permission set to the Hospital role description when defined in `packages/security`.
+- **Stack 4 (`API_UPSTREAM_BASE_4`):** After deploy lands, confirm the BFF routing prefix table above matches `scripts/print-stack-outputs-for-web.sh` output.
+- **OG images:** Add verified `og:image` dimension guidance once logo/OG asset dimensions are confirmed in production builds (open item from logo fix).
+- **QR RBAC:** If `locations.qrcodes.manage` grants change, sync Authorization rules, SECURITY section, and `packages/security/src/qr-locations-access.ts`.

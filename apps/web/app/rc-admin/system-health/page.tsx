@@ -7,6 +7,6 @@ export const metadata = {
 };
 
 export default async function RcAdminSystemHealthPage() {
-  await requireRole(["rcsuperadmin", "rcadmin", "rcitadmin"]);
+  await requireRole(["rcsuperadmin", "rcitadmin"]);
   return <PlatformSystemHealthPage />;
 }

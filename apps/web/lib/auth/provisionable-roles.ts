@@ -1,5 +1,6 @@
 import {
   AGENCY_ASSIGNABLE_ROLES,
+  CAMPUS_ASSIGNABLE_ROLES,
   HOSPITAL_ASSIGNABLE_ROLES,
   RAPID_CORTEX_ROLES,
   type RapidCortexRole,
@@ -23,6 +24,9 @@ export function provisionableRolesForActor(actorRole: UserRole | string): RapidC
   }
   if (actor === "agencyadmin") {
     return [...AGENCY_ASSIGNABLE_ROLES, ...HOSPITAL_ASSIGNABLE_ROLES];
+  }
+  if (actor === "CAMPUS_ADMIN") {
+    return [...CAMPUS_ASSIGNABLE_ROLES];
   }
   return [...AGENCY_ASSIGNABLE_ROLES];
 }

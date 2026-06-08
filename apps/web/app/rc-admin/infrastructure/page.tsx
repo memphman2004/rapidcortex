@@ -1,8 +1,9 @@
 import Link from "next/link";
 import { requireRole } from "@/lib/auth/require-role";
+import { RcItAdminInfrastructureHome } from "@/components/dashboards/rc-it-admin-infrastructure-home";
 
 export const metadata = {
-  title: "Infrastructure & platform health",
+  title: "Infrastructure overview",
   robots: { index: false, follow: false },
 };
 
@@ -27,53 +28,72 @@ function DashboardCard({
 }
 
 export default async function RcInfrastructurePage() {
-  await requireRole(["rcitadmin", "rcsuperadmin"]);
+  const user = await requireRole(["rcitadmin", "rcsuperadmin"]);
+  const isItHome = user.role === "rcitadmin";
 
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-xl font-semibold text-white">Infrastructure & platform health</h1>
+        <h1 className="text-xl font-semibold text-white">
+          {isItHome ? "Infrastructure overview" : "Infrastructure & platform health"}
+        </h1>
         <p className="mt-1 text-sm text-slate-400">
-          RC Internal IT — platform diagnostics, integration monitoring, and technical operations.
+          {isItHome
+            ? "RC Internal IT — system health, integrations, CAD adapters, and cross-tenant technical support."
+            : "Platform diagnostics, integration monitoring, and stack health across all tenants."}
         </p>
       </div>
 
+      {isItHome ? <RcItAdminInfrastructureHome /> : null}
+
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
         <DashboardCard
-          title="Platform health"
-          description="Lambda, DynamoDB, and API health across all tenants."
+          title="System health"
+          description="Lambda, DynamoDB, ECS, and API health across all stacks."
           href="/rc-admin/system-health"
         />
         <DashboardCard
-          title="Integration status"
-          description="CAD integration connections across all agencies."
-          href="/rc-admin/api-clients"
+          title="Integrations"
+          description="CAD, Ring, Bedrock, and third-party connections per tenant."
+          href="/rc-admin/integrations"
+        />
+        <DashboardCard
+          title="CAD administration"
+          description="Adapter config, webhooks, pollers, and writeback audit."
+          href="/rc-admin/integrations"
         />
         <DashboardCard
           title="Tenant provisioning"
-          description="Agency provisioning and deprovisioning management."
-          href="/rc-admin/agencies"
+          description="Agency onboarding status and blocked-step remediation."
+          href="/rc-admin/onboarding"
         />
         <DashboardCard
-          title="Per-user feature access"
-          description="Grant feature flags, permissions, and dashboard access to individual users."
-          href="/rc-admin/access"
-        />
-        <DashboardCard
-          title="API usage"
-          description="RC Lite call meters and quota monitoring (no revenue totals)."
-          href="/rc-admin/usage"
+          title="Users"
+          description="Cross-tenant technical user support — password, MFA, unlock."
+          href="/rc-admin/users"
         />
         <DashboardCard
           title="Audit log"
-          description="Cross-tenant audit trail for compliance support."
-          href="/rc-admin/dashboard"
+          description="Cross-tenant configuration and security events."
+          href="/rc-admin/audit"
         />
         <DashboardCard
-          title="Operations hub"
-          description="Platform owner operations (rcsuperadmin only)."
-          href="/rc-admin/operations"
+          title="Security"
+          description="Auth failures, MFA policy, and perimeter posture."
+          href="/rc-admin/security"
         />
+        <DashboardCard
+          title="Location QR Codes"
+          description="Venue and campus QR setup during agency onboarding."
+          href="/rc-admin/location-qr-codes"
+        />
+        {user.role === "rcsuperadmin" ? (
+          <DashboardCard
+            title="Platform settings"
+            description="Immutable platform configuration (superadmin only)."
+            href="/rc-admin/operations"
+          />
+        ) : null}
       </div>
     </div>
   );

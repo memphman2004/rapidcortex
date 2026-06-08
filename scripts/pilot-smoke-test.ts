@@ -6,6 +6,11 @@
  * API checks (`PILOT_API_BASE`) rely on Lambda HTTP URLs (not the Next `/api/*` façade).
  *
  * Provide `PILOT_BEARER_TOKEN` (+ optional cookie via direct API calls only) where authenticated probes are exercised.
+ *
+ * CAD write-back E2E (optional): set `PILOT_CAD_WRITEBACK_E2E=1` plus dispatcher/supervisor bearer tokens
+ * and a seeded `PILOT_WRITEBACK_INCIDENT_ID` (incident must have `cadIncidentId` + active CAD integration).
+ * `PILOT_DISPATCHER_BEARER_TOKEN` and `PILOT_SUPERVISOR_BEARER_TOKEN` must decode to different `sub` values.
+ * Requires `CAD_WRITEBACK_ENABLED=true` on the API stack under test.
  */
 
 type Check = { id: string; pass: boolean; detail?: string };
@@ -19,6 +24,10 @@ const WWW_ORIGIN = process.env.PILOT_WWW_ORIGIN?.trim().replace(/\/$/, "");
 const PILOT_COOKIE = process.env.PILOT_ID_TOKEN_COOKIE?.trim();
 /** Raw JWT bearer for API Lambda routes (preferred over legacy cookie probes). */
 const BEARER = process.env.PILOT_BEARER_TOKEN?.trim();
+const CAD_WRITEBACK_E2E = process.env.PILOT_CAD_WRITEBACK_E2E === "1";
+const DISPATCHER_BEARER = process.env.PILOT_DISPATCHER_BEARER_TOKEN?.trim();
+const SUPERVISOR_BEARER = process.env.PILOT_SUPERVISOR_BEARER_TOKEN?.trim();
+const WRITEBACK_INCIDENT_ID = process.env.PILOT_WRITEBACK_INCIDENT_ID?.trim();
 
 function printBanner() {
   console.log("Pilot smoke checks");
@@ -62,6 +71,28 @@ function pass(id: string, detail?: string): Check {
 function fail(id: string, detail?: string): Check {
   console.log(`FAIL — ${id}${detail ? `: ${detail}` : ""}`);
   return { id, pass: false, detail };
+}
+
+/** Decode Cognito/JWT `sub` without verification (smoke preflight only). */
+function decodeJwtSub(token: string): string | null {
+  const parts = token.split(".");
+  if (parts.length < 2) return null;
+  try {
+    const payload = JSON.parse(
+      Buffer.from(parts[1].replace(/-/g, "+").replace(/_/g, "/"), "base64").toString("utf8"),
+    ) as { sub?: unknown };
+    return typeof payload.sub === "string" && payload.sub.trim() ? payload.sub.trim() : null;
+  } catch {
+    return null;
+  }
+}
+
+function apiErrorMessage(json: unknown, text: string): string {
+  if (typeof json === "object" && json !== null) {
+    const err = (json as Record<string, unknown>).error;
+    if (typeof err === "string" && err.trim()) return err.trim();
+  }
+  return text.slice(0, 200);
 }
 
 async function checkHostRedirect(
@@ -191,10 +222,246 @@ async function main() {
       });
     } else {
       const blocked =
-        r.status === 403 &&
+        r.status === 400 &&
         typeof r.json === "object" &&
-        (r.json as Record<string, unknown>).message === "CAD write-back is disabled for pilot safety.";
-      results.push(blocked ? pass("cad_writeback_blocked_shell") : fail("cad_writeback_blocked_shell", `${r.status}`));
+        (r.json as Record<string, unknown>).error ===
+          "CAD write-back is not enabled for this environment";
+      results.push(
+        blocked ? pass("cad_writeback_blocked_shell") : fail("cad_writeback_blocked_shell", `${r.status}`),
+      );
+    }
+  }
+
+  // 5b — CAD write-back E2E: dispatcher submit → supervisor queue → approve → audit row
+  if (!CAD_WRITEBACK_E2E) {
+    console.log(
+      "SKIP — cad_writeback_e2e: set PILOT_CAD_WRITEBACK_E2E=1 to exercise supervisor approval queue.",
+    );
+    results.push({ id: "cad_writeback_e2e", pass: true, detail: "SKIP_DISABLED" });
+  } else if (!API_BASE || !DISPATCHER_BEARER || !SUPERVISOR_BEARER || !WRITEBACK_INCIDENT_ID) {
+    results.push(
+      fail(
+        "cad_writeback_e2e",
+        "requires PILOT_API_BASE, PILOT_DISPATCHER_BEARER_TOKEN, PILOT_SUPERVISOR_BEARER_TOKEN, PILOT_WRITEBACK_INCIDENT_ID",
+      ),
+    );
+  } else {
+    const dispatcherSub = decodeJwtSub(DISPATCHER_BEARER);
+    const supervisorSub = decodeJwtSub(SUPERVISOR_BEARER);
+
+    if (!dispatcherSub || !supervisorSub) {
+      results.push(
+        fail(
+          "cad_writeback_e2e_prereq",
+          "could not decode sub from PILOT_DISPATCHER_BEARER_TOKEN / PILOT_SUPERVISOR_BEARER_TOKEN",
+        ),
+      );
+      results.push(fail("cad_writeback_e2e", "invalid bearer tokens"));
+    } else if (dispatcherSub === supervisorSub) {
+      results.push(
+        fail(
+          "cad_writeback_e2e_prereq",
+          `PILOT_DISPATCHER_BEARER_TOKEN and PILOT_SUPERVISOR_BEARER_TOKEN decode to the same sub (${dispatcherSub}) — supervisor cannot approve own submission`,
+        ),
+      );
+      results.push(fail("cad_writeback_e2e", "dispatcher and supervisor must be distinct users"));
+    } else {
+      results.push(
+        pass(
+          "cad_writeback_e2e_prereq",
+          `distinct subs — dispatcher=${dispatcherSub} supervisor=${supervisorSub}`,
+        ),
+      );
+
+      const incidentPreflight = await jsonFetch(
+        `${API_BASE}/api/incidents/${encodeURIComponent(WRITEBACK_INCIDENT_ID)}`,
+        { headers: { authorization: `Bearer ${DISPATCHER_BEARER}` } },
+      );
+
+      if (incidentPreflight.connectionError) {
+        results.push(fail("cad_writeback_e2e_prereq", incidentPreflight.connectionError));
+        results.push(fail("cad_writeback_e2e", "incident preflight failed"));
+      } else if (incidentPreflight.status !== 200) {
+        results.push(
+          fail(
+            "cad_writeback_e2e_prereq",
+            `cannot load PILOT_WRITEBACK_INCIDENT_ID (${WRITEBACK_INCIDENT_ID}): HTTP ${incidentPreflight.status}`,
+          ),
+        );
+        results.push(fail("cad_writeback_e2e", "incident preflight failed"));
+      } else {
+        const incidentBody =
+          typeof incidentPreflight.json === "object" && incidentPreflight.json !== null
+            ? (incidentPreflight.json as Record<string, unknown>)
+            : null;
+        const cadIncidentId =
+          typeof incidentBody?.cadIncidentId === "string" ? incidentBody.cadIncidentId.trim() : "";
+
+        if (!cadIncidentId) {
+          results.push(
+            fail(
+              "cad_writeback_e2e_prereq",
+              "incident has no CAD counterpart (cadIncidentId is null — CAD read-only adapter must poll and match the incident before writeback E2E)",
+            ),
+          );
+          results.push(fail("cad_writeback_e2e", "incident has no CAD counterpart"));
+        } else {
+          results.push(pass("cad_writeback_e2e_prereq", `cadIncidentId=${cadIncidentId}`));
+
+          const narrative = `pilot smoke writeback ${new Date().toISOString()}`;
+          const submit = await jsonFetch(
+            `${API_BASE}/api/cad/writeback/${encodeURIComponent(WRITEBACK_INCIDENT_ID)}`,
+            {
+              method: "POST",
+              headers: {
+                "content-type": "application/json",
+                authorization: `Bearer ${DISPATCHER_BEARER}`,
+              },
+              body: JSON.stringify({ narrative }),
+            },
+          );
+
+          if (submit.connectionError) {
+            results.push(fail("cad_writeback_e2e", submit.connectionError));
+          } else if (submit.status !== 202) {
+            const errMsg = apiErrorMessage(submit.json, submit.text);
+            const noCadCounterpart =
+              errMsg.includes("CAD incident ID") || errMsg.includes("CAD counterpart");
+            results.push(
+              fail(
+                "cad_writeback_e2e_submit",
+                noCadCounterpart
+                  ? "incident has no CAD counterpart (cadIncidentId missing at submit time)"
+                  : `${submit.status} ${errMsg} (check CAD_WRITEBACK_ENABLED, agency config PATCH, cadIncidentId, integration)`,
+              ),
+            );
+            results.push(
+              fail(
+                "cad_writeback_e2e",
+                noCadCounterpart ? "incident has no CAD counterpart" : "submit did not return pending_approval",
+              ),
+            );
+          } else {
+            const submitBody =
+              typeof submit.json === "object" && submit.json !== null
+                ? (submit.json as Record<string, unknown>)
+                : null;
+            const approvalId =
+              typeof submitBody?.approvalId === "string" ? submitBody.approvalId : null;
+            const pending =
+              submitBody?.ok === true &&
+              submitBody?.status === "pending_approval" &&
+              Boolean(approvalId);
+
+            if (!pending || !approvalId) {
+              results.push(
+                fail("cad_writeback_e2e_submit", `unexpected body ${submit.text.slice(0, 160)}`),
+              );
+              results.push(fail("cad_writeback_e2e", "missing approvalId"));
+            } else {
+              results.push(pass("cad_writeback_e2e_submit", approvalId));
+
+              const queue = await jsonFetch(
+                `${API_BASE}/api/admin/cad-writeback-approvals?status=pending_approval`,
+                { headers: { authorization: `Bearer ${SUPERVISOR_BEARER}` } },
+              );
+
+              if (queue.connectionError) {
+                results.push(fail("cad_writeback_e2e_queue", queue.connectionError));
+                results.push(fail("cad_writeback_e2e", "queue fetch failed"));
+              } else if (queue.status !== 200) {
+                results.push(fail("cad_writeback_e2e_queue", `${queue.status}`));
+                results.push(fail("cad_writeback_e2e", "supervisor cannot list pending approvals"));
+              } else {
+                const items =
+                  typeof queue.json === "object" && queue.json !== null
+                    ? ((queue.json as Record<string, unknown>).items as unknown[])
+                    : [];
+                const found =
+                  Array.isArray(items) &&
+                  items.some((row) => {
+                    if (!row || typeof row !== "object") return false;
+                    return (row as Record<string, unknown>).id === approvalId;
+                  });
+
+                if (!found) {
+                  results.push(
+                    fail("cad_writeback_e2e_queue", `approvalId ${approvalId} not in pending list`),
+                  );
+                  results.push(fail("cad_writeback_e2e", "supervisor queue missing submission"));
+                } else {
+                  results.push(pass("cad_writeback_e2e_queue"));
+
+                  const approve = await jsonFetch(
+                    `${API_BASE}/api/admin/cad-writeback-approvals/${encodeURIComponent(approvalId)}/approve`,
+                    {
+                      method: "POST",
+                      headers: {
+                        "content-type": "application/json",
+                        authorization: `Bearer ${SUPERVISOR_BEARER}`,
+                      },
+                      body: JSON.stringify({ notes: "pilot smoke approve" }),
+                    },
+                  );
+
+                  if (approve.connectionError) {
+                    results.push(fail("cad_writeback_e2e_approve", approve.connectionError));
+                    results.push(fail("cad_writeback_e2e", "approve request failed"));
+                  } else {
+                    const approveBody =
+                      typeof approve.json === "object" && approve.json !== null
+                        ? (approve.json as Record<string, unknown>)
+                        : null;
+                    const approveOk = approve.status === 200 && approveBody?.ok === true;
+                    const vendorRejected =
+                      approve.status === 502 && typeof approveBody?.error === "string";
+
+                    if (approveOk) {
+                      results.push(pass("cad_writeback_e2e_approve", "vendor submit succeeded"));
+                      results.push(pass("cad_writeback_e2e"));
+                    } else if (vendorRejected) {
+                      results.push(
+                        pass(
+                          "cad_writeback_e2e_approve",
+                          "vendor rejected (queue + audit update still exercised)",
+                        ),
+                      );
+                      results.push(pass("cad_writeback_e2e"));
+                    } else if (approve.status === 403 && approve.text.includes("own")) {
+                      results.push(
+                        fail(
+                          "cad_writeback_e2e_approve",
+                          "supervisor cannot approve own submission — PILOT_DISPATCHER_BEARER_TOKEN and PILOT_SUPERVISOR_BEARER_TOKEN must decode to different sub values",
+                        ),
+                      );
+                      results.push(fail("cad_writeback_e2e", "approve forbidden"));
+                    } else {
+                      const approveErr = apiErrorMessage(approve.json, approve.text);
+                      const noCadAtApprove =
+                        approveErr.includes("CAD incident ID") ||
+                        approveErr.includes("no longer has a CAD");
+                      results.push(
+                        fail(
+                          "cad_writeback_e2e_approve",
+                          noCadAtApprove
+                            ? "incident has no CAD counterpart (cadIncidentId cleared before approve)"
+                            : `${approve.status} ${approveErr}`,
+                        ),
+                      );
+                      results.push(
+                        fail(
+                          "cad_writeback_e2e",
+                          noCadAtApprove ? "incident has no CAD counterpart" : "approve did not complete",
+                        ),
+                      );
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
     }
   }
 

@@ -11,7 +11,12 @@ import {
   isRcsuperadmin,
   resolveUniqueAgencySlug,
 } from "rapid-cortex-shared";
-import { AUDIT_EVENT_TYPES, AuthorizationService, AgencyScopeResolver } from "rapid-cortex-security";
+import {
+  AUDIT_EVENT_TYPES,
+  AuthorizationService,
+  AgencyScopeResolver,
+} from "rapid-cortex-security";
+import { isRcInternalOperator } from "rapid-cortex-shared";
 import { makeId } from "../lib/ids.js";
 import { AgencyRepository } from "../repositories/agencyRepository.js";
 import { AuditRepository } from "../repositories/auditRepository.js";
@@ -129,6 +134,17 @@ export class AgencyService {
       throw new Error("FORBIDDEN");
     }
 
+    if (patch.campus !== undefined) {
+      AgencyScopeResolver.assertCanManageCampusSettings(user, agencyId);
+      if (
+        !isRcsuperadmin(user) &&
+        !isRcInternalOperator(user.role) &&
+        (user.role as string) !== "CAMPUS_ADMIN"
+      ) {
+        throw new Error("FORBIDDEN");
+      }
+    }
+
     const now = new Date().toISOString();
     const prevOnboarding = row.config.platformOnboarding;
     const nextOnboarding =
@@ -171,6 +187,30 @@ export class AgencyService {
           patch.retentionOverrideDays !== undefined
             ? { ...row.config.retentionOverrideDays, ...patch.retentionOverrideDays }
             : row.config.retentionOverrideDays,
+        campus:
+          patch.campus !== undefined
+            ? {
+                ...row.config.campus,
+                ...patch.campus,
+                notificationPreferences: {
+                  ...row.config.campus?.notificationPreferences,
+                  ...patch.campus.notificationPreferences,
+                },
+                notificationRecipients: {
+                  ...row.config.campus?.notificationRecipients,
+                  ...patch.campus.notificationRecipients,
+                },
+                escalation: {
+                  ...row.config.campus?.escalation,
+                  ...patch.campus.escalation,
+                  contacts: patch.campus.escalation?.contacts ?? row.config.campus?.escalation?.contacts,
+                },
+                publicReportForm: {
+                  ...row.config.campus?.publicReportForm,
+                  ...patch.campus.publicReportForm,
+                },
+              }
+            : row.config.campus,
         updatedAt: now,
       },
     };

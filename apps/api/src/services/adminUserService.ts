@@ -10,6 +10,7 @@ import {
 } from "@aws-sdk/client-cognito-identity-provider";
 import {
   AGENCY_ASSIGNABLE_ROLES,
+  CAMPUS_ASSIGNABLE_ROLES,
   canAdminForcePasswordReset,
   isRcInternalOperator,
   isRcsuperadmin,
@@ -33,6 +34,10 @@ function attr(attrs: AttributeType[] | undefined, name: string): string {
   return String(a?.Value ?? "");
 }
 
+function isCampusAdminActor(role: UserRole): boolean {
+  return (role as string) === "CAMPUS_ADMIN";
+}
+
 export type AdminUserRow = {
   username: string;
   email: string;
@@ -53,6 +58,7 @@ export class AdminUserService {
     const allowed =
       user.role === "agencyadmin" ||
       user.role === "agencyit" ||
+      isCampusAdminActor(user.role) ||
       isRcInternalOperator(user.role);
     if (!allowed) {
       throw new Error("FORBIDDEN");
@@ -81,7 +87,7 @@ export class AdminUserService {
   }
 
   private assertAgencyAdminTargetsOwnAgency(user: UserContext, targetAgencyId: string | null) {
-    if (isRcsuperadmin(user) || user.role === "rcitadmin") return;
+    if (isRcsuperadmin(user) || isRcInternalOperator(user.role)) return;
     if (!targetAgencyId || targetAgencyId !== user.agencyId) {
       throw new Error("FORBIDDEN");
     }
@@ -89,6 +95,12 @@ export class AdminUserService {
 
   private assertAssignableRoleByActor(user: UserContext, role: UserRole) {
     if (assignableAgencyRoles.includes(role as AgencyRole)) return;
+    if (
+      (CAMPUS_ASSIGNABLE_ROLES as readonly string[]).includes(role) &&
+      (isCampusAdminActor(user.role) || isRcInternalOperator(user.role))
+    ) {
+      return;
+    }
     if (RC_INTERNAL_ASSIGNABLE_ROLES.includes(role) && isRcsuperadmin(user)) return;
     throw new Error("INVALID_ROLE");
   }
@@ -113,7 +125,7 @@ export class AdminUserService {
         status: u.UserStatus ?? "UNKNOWN",
       });
     }
-    if (isRcsuperadmin(user) || user.role === "rcitadmin") return rows;
+    if (isRcsuperadmin(user) || isRcInternalOperator(user.role)) return rows;
     return rows.filter((r) => r.agencyId === user.agencyId);
   }
 
@@ -123,7 +135,10 @@ export class AdminUserService {
   ): Promise<AdminUserRow> {
     this.assertUserManagement(user);
     this.assertAssignableRoleByActor(user, input.role);
-    if ((user.role === "agencyadmin" || user.role === "agencyit") && input.agencyId !== user.agencyId) {
+    if (
+      (user.role === "agencyadmin" || user.role === "agencyit" || isCampusAdminActor(user.role)) &&
+      input.agencyId !== user.agencyId
+    ) {
       throw new Error("FORBIDDEN");
     }
 
@@ -177,7 +192,10 @@ export class AdminUserService {
 
     const attrs: AttributeType[] = [];
     if (input.agencyId != null) {
-      if ((user.role === "agencyadmin" || user.role === "agencyit") && input.agencyId !== user.agencyId) {
+      if (
+        (user.role === "agencyadmin" || user.role === "agencyit" || isCampusAdminActor(user.role)) &&
+        input.agencyId !== user.agencyId
+      ) {
         throw new Error("FORBIDDEN");
       }
       attrs.push({ Name: "custom:agencyId", Value: input.agencyId });

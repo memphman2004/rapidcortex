@@ -9,21 +9,23 @@ const baseUser = {
 } as const;
 
 describe("getRoleDashboardNavTabs", () => {
-  it("QA nav excludes supervisor coaching/scorecards crossover", () => {
+  it("QA nav matches analyst spec", () => {
     const tabs = getRoleDashboardNavTabs("qa", { ...baseUser, role: "analyst" });
     const ids = tabs.map((t) => t.id);
-    expect(ids).not.toContain("scorecards");
-    expect(ids).not.toContain("coaching");
-    expect(ids).not.toContain("training");
-    expect(ids).toEqual(["overview", "transcripts", "summaries", "reports"]);
+    expect(ids).toEqual(["overview", "queue", "scorecards", "transcripts", "reports"]);
   });
 
-  it("executive nav excludes supervisor QA and admin analytics crossover", () => {
+  it("executive nav matches auditor read-only spec", () => {
     const tabs = getRoleDashboardNavTabs("executive", { ...baseUser, role: "auditor" });
     const ids = tabs.map((t) => t.id);
-    expect(ids).not.toContain("qa");
-    expect(ids).not.toContain("usage");
-    expect(ids).toEqual(["overview", "reports", "grants", "export"]);
+    expect(ids).toEqual([
+      "overview",
+      "audit-log",
+      "writeback",
+      "reports",
+      "history",
+      "reviews",
+    ]);
   });
 
   it("hospital staff nav hides admin-only tools", () => {

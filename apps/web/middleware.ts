@@ -30,6 +30,15 @@ import {
   type DashboardPrefix,
   userMayAccessDashboardPrefix,
 } from "@/lib/dashboards/dashboard-access";
+import {
+  isDispatchLiveWorkspaceSubpath,
+  roleMayAccessDispatchLiveWorkspace,
+} from "@/lib/dashboards/dispatch-workspace-access";
+import {
+  ANALYST_SUPERVISOR_PATHS,
+  AUDITOR_READ_ADMIN_PATHS,
+  resolvePsapRole,
+} from "@/lib/dashboards/psap-role-nav";
 import { isDemoScriptedContentEnabled } from "@/lib/deployment-environment";
 import { defaultJurisdictionSlug, marketingLoginPath } from "@/lib/marketing-links";
 import { mapJurisdictionPlatformPathToRcAdmin } from "@/lib/platform-command-nav";
@@ -826,7 +835,13 @@ export async function middleware(request: NextRequest) {
   }
 
   if (subpath.startsWith("/admin") && !isAdminRole(user.role)) {
-    return redirectToRoleAwareHome(request, user, jurisdiction);
+    const effective = resolvePsapRole(user.role);
+    const auditorReadAllowed =
+      effective === "auditor" &&
+      AUDITOR_READ_ADMIN_PATHS.some((p) => subpath === p || subpath.startsWith(`${p}/`));
+    if (!auditorReadAllowed) {
+      return redirectToRoleAwareHome(request, user, jurisdiction);
+    }
   }
   if (
     subpath === "/admin/security/deception-shield" ||
@@ -877,7 +892,12 @@ export async function middleware(request: NextRequest) {
     return redirectToRoleAwareHome(request, user, jurisdiction);
   }
   if (subpath.startsWith("/supervisor") && !isSupervisorOrAdmin(user.role)) {
-    return redirectToRoleAwareHome(request, user, jurisdiction);
+    const analystScorecards =
+      resolvePsapRole(user.role) === "analyst" &&
+      ANALYST_SUPERVISOR_PATHS.some((p) => subpath === p || subpath.startsWith(`${p}/`));
+    if (!analystScorecards) {
+      return redirectToRoleAwareHome(request, user, jurisdiction);
+    }
   }
   if (subpath === "/rc-admin" || subpath.startsWith("/rc-admin/")) {
     if (!isRcInternalOperator(user.role)) {
@@ -891,6 +911,8 @@ export async function middleware(request: NextRequest) {
     if (user.role !== "dispatcher") {
       return redirectToRoleAwareHome(request, user, jurisdiction);
     }
+  } else if (isDispatchLiveWorkspaceSubpath(subpath) && !roleMayAccessDispatchLiveWorkspace(user.role)) {
+    return redirectToRoleAwareHome(request, user, jurisdiction);
   } else if (subpath === "/analytics" || subpath.startsWith("/analytics/")) {
     if (user.role !== "analyst" && !isAdminRole(user.role)) {
       return redirectToRoleAwareHome(request, user, jurisdiction);

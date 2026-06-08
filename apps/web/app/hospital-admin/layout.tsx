@@ -1,9 +1,16 @@
-import { RoleDashboardLayout } from "@/components/dashboards/role-dashboard-layout";
+import { redirect } from "next/navigation";
+import { getDashboardSessionUser } from "@/lib/dashboards/get-dashboard-session";
+import { canAccessHospitalAdminPortal } from "@/lib/hospital/hospital-access";
+import { HospitalAdminLayout } from "./_components/HospitalAdminLayout";
 
-export default function HospitalAdminLayout({
+export default async function HospitalAdminRootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  return <RoleDashboardLayout prefix="hospital-admin">{children}</RoleDashboardLayout>;
+  const user = await getDashboardSessionUser();
+  if (!user) redirect("/login");
+  if (!canAccessHospitalAdminPortal(user)) redirect("/auth/signout");
+
+  return <HospitalAdminLayout role={user.role}>{children}</HospitalAdminLayout>;
 }

@@ -28,6 +28,12 @@ export type {
   PlatformOnboardingStepStatus,
 } from "./agency-config.js";
 export { PLATFORM_ONBOARDING_STEP_IDS } from "./agency-config.js";
+export {
+  campusAgencyConfigSchema,
+  campusAgencyConfigPatchSchema,
+  campusEscalationContactSchema,
+  type CampusAgencyConfig,
+} from "./campus-config.js";
 export type { InviteRecord, InviteStatus } from "./invite.js";
 export type { UserProfile, UserAccountStatus } from "./user-profile.js";
 export type { CognitoIdTokenClaims, ResolvedPrincipal } from "./cognito-claims.js";

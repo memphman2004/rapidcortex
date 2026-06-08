@@ -5,8 +5,8 @@ export function userCanViewQrLocations(
   user: Pick<UserContext, "role" | "agencyId"> | null | undefined,
   agencyId?: string,
 ): boolean {
-  if (!user?.agencyId?.trim()) return false;
-  const target = (agencyId ?? user.agencyId).trim();
+  if (!user?.role) return false;
+  const target = (agencyId ?? user.agencyId)?.trim();
   if (!target) return false;
   return canViewQrLocations(user as UserContext, target);
 }
@@ -15,13 +15,17 @@ export function userCanManageQrLocations(
   user: Pick<UserContext, "role" | "agencyId"> | null | undefined,
   agencyId?: string,
 ): boolean {
-  if (!user?.agencyId?.trim()) return false;
-  const target = (agencyId ?? user.agencyId).trim();
+  if (!user?.role) return false;
+  const target = (agencyId ?? user.agencyId)?.trim();
   if (!target) return false;
   return canManageQrLocations(user as UserContext, target);
 }
 
 export function roleMayAccessQrNav(role: string | undefined | null): boolean {
+  const normalized = (role ?? "").trim().toLowerCase();
+  if (normalized === "rcsuperadmin" || normalized === "rcadmin" || normalized === "rcitadmin") {
+    return true;
+  }
   const upper = (role ?? "").trim().toUpperCase();
   if (upper === "CAMPUS_ADMIN" || upper === "CAMPUS_SUPERVISOR" || upper === "CAMPUS_SECURITY") {
     return true;

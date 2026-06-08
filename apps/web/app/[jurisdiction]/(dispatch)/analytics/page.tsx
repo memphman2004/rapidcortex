@@ -7,10 +7,10 @@ export default async function AnalystDashboardPage() {
   return (
     <div className="mx-auto w-full max-w-[var(--rc-content-max)] space-y-6 px-4 py-4 lg:px-6 lg:py-5 2xl:px-8">
       <section className="space-y-1">
-        <h1 className="text-xl font-semibold text-white">Analytics</h1>
+        <h1 className="text-xl font-semibold text-white">QA Dashboard</h1>
         <p className="text-sm text-slate-400">
-          Read-only access to incident data, call volumes, response times, and quality metrics for
-          your agency.
+          Quality review queue, scorecards, and trends for your agency. This is not a live dispatch
+          console — operational call-taking is handled by dispatchers and supervisors.
         </p>
       </section>
 

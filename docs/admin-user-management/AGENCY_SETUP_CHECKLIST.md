@@ -22,6 +22,7 @@ Use alongside [AGENCY_ONBOARDING_RUNBOOK.md](./AGENCY_ONBOARDING_RUNBOOK.md). Ch
 
 ## C. Technical baseline (R, validated by A/IT)
 
+- [ ] **CAD write-back pilots only:** agency feature config PATCH applied (`writeBackEnabled`, `agencyApprovedCadWriteBack`, etc.) — see [cad-vendor-onboarding-checklist.md](../cad-vendor-onboarding-checklist.md) §8 and `scripts/env-api-dev.sh` comment block (R).
 - [ ] Stack deployed; web env matches [ENVIRONMENT_MATRIX.md](./ENVIRONMENT_MATRIX.md) (R).
 - [ ] Cognito pool + app client; MFA policy communicated (R / A).
 - [ ] `NEXT_PUBLIC_OFFLINE_DEMO_MODE` **not** set on pilot web host unless sandbox-only (R).

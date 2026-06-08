@@ -11,6 +11,8 @@ import { hasSubscriberManualAccess } from "@/lib/auth/subscriber-access";
 import { EnvironmentBadge } from "@/components/dispatch/environment-badge";
 import { FontPicker } from "@/components/ui/font-picker";
 import { UserIdentityBar } from "@/components/ui/user-identity-bar";
+import { getRoleHeaderBadgeLabel } from "@/lib/dashboards/role-header-badge";
+import { resolvePsapRole } from "@/lib/dashboards/psap-role-nav";
 import { useJurisdictionLink } from "@/lib/jurisdiction-context";
 import { marketingCompleteManualPath } from "@/lib/marketing-links";
 
@@ -24,6 +26,8 @@ export function TopBar({ user: serverUser }: { user?: UserContext | null }) {
 
   const agencyLabel =
     user?.agencyId ?? (authOn && isLoading ? "…" : authOn ? "—" : "Configure auth");
+  const roleBadge = user ? getRoleHeaderBadgeLabel(user.role) : null;
+  const psapRole = user ? resolvePsapRole(user.role) : "";
 
   return (
     <header className="rc-sticky-toolbar flex h-36 shrink-0 items-center justify-between border-b-0 bg-slate-950 px-3 sm:h-40 sm:px-4 lg:px-6 2xl:px-8">
@@ -40,6 +44,17 @@ export function TopBar({ user: serverUser }: { user?: UserContext | null }) {
         </div>
         <div className="hidden items-center gap-2 md:flex">
           <EnvironmentBadge />
+          {roleBadge ? (
+            <span
+              className={`rounded-full px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wide ${
+                psapRole === "dispatcher"
+                  ? "bg-sky-950 text-sky-300 ring-1 ring-sky-800"
+                  : "bg-slate-900 text-slate-300 ring-1 ring-slate-700"
+              }`}
+            >
+              {roleBadge}
+            </span>
+          ) : null}
         </div>
       </div>
       <div className="flex shrink-0 flex-wrap items-center justify-end gap-2 sm:gap-3 lg:gap-4">

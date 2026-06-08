@@ -5,12 +5,11 @@ import { isRcSuperAdmin } from "rapid-cortex-security";
 import type { UserContext } from "rapid-cortex-shared/types";
 import { useSearchParams } from "next/navigation";
 import type { DashboardPrefix } from "@/lib/dashboards/dashboard-access";
-import { getRoleDashboardNavTabs } from "@/lib/dashboards/role-dashboard-nav";
 import {
   getRoleDashboardIdentity,
   roleDashboardShellVars,
 } from "@/lib/dashboards/role-dashboard-design";
-import { RoleSidebar } from "./role-sidebar";
+import { RoleNavSidebar } from "@/components/navigation/role-nav-sidebar";
 import { TopNav } from "./top-nav";
 import { RoleDashboardHeaderStrip } from "./role-dashboard-header-strip";
 import { RoleDashboardHomeLayout } from "./role-dashboard-home-layout";
@@ -39,7 +38,6 @@ export function DashboardShell({
   const [mobileNav, setMobileNav] = useState(false);
   const [impersonation, setImpersonation] = useState<ImpersonationContext | null>(null);
   const searchParams = useSearchParams();
-  const tabs = useMemo(() => getRoleDashboardNavTabs(prefix, user), [prefix, user]);
   const identity = getRoleDashboardIdentity(prefix, user.role);
   const isSuperAdmin = isRcSuperAdmin(user.role);
 
@@ -99,12 +97,10 @@ export function DashboardShell({
         />
       ) : null}
       <div className="flex min-h-screen">
-        <RoleSidebar
-          prefix={prefix}
-          tabs={tabs}
+        <RoleNavSidebar
+          user={user}
           mobileOpen={mobileNav}
           onNavigate={() => setMobileNav(false)}
-          user={user}
         />
         <div className="flex min-w-0 flex-1 flex-col md:pl-0">
           <TopNav identity={identity} user={user} onMenuClick={() => setMobileNav(true)} />

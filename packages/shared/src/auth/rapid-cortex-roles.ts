@@ -37,6 +37,16 @@ export const AGENCY_ASSIGNABLE_ROLES = [
 /** Hospital portal roles assignable by agency or hospital administrators. */
 export const HOSPITAL_ASSIGNABLE_ROLES = ["hospitaladmin", "hospitalstaff"] as const;
 
+/** Campus safety roles assignable by CAMPUS_ADMIN (and RC internal operators). */
+export const CAMPUS_ASSIGNABLE_ROLES = [
+  "CAMPUS_ADMIN",
+  "CAMPUS_SUPERVISOR",
+  "CAMPUS_SECURITY",
+  "CAMPUS_DISPATCH",
+] as const;
+
+export type CampusAssignableRole = (typeof CAMPUS_ASSIGNABLE_ROLES)[number];
+
 export type HospitalAssignableRole = (typeof HOSPITAL_ASSIGNABLE_ROLES)[number];
 
 export type AgencyAssignableRole = (typeof AGENCY_ASSIGNABLE_ROLES)[number];

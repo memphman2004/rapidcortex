@@ -7,10 +7,10 @@ export default async function AuditorDashboardPage() {
   return (
     <div className="mx-auto w-full max-w-[var(--rc-content-max)] space-y-6 px-4 py-4 lg:px-6 lg:py-5 2xl:px-8">
       <section className="space-y-1">
-        <h1 className="text-xl font-semibold text-white">Audit & Compliance</h1>
+        <h1 className="text-xl font-semibold text-white">Audit Overview</h1>
         <p className="text-sm text-slate-400">
-          Read-only access to audit logs, incident records, and compliance reports. All access is
-          logged per CJIS policy.
+          Read-only compliance surface — view and export audit records, CAD writeback history, and
+          operational reports. No write actions are available for this role.
         </p>
       </section>
 

@@ -61,15 +61,13 @@ export SAM_BUILD_DIR="$HOME/.rapid-cortex-sam-build"
 # Silent Text + Pinpoint (LiveLocation) — both Lambdas live in stack-app-sam.yaml (Stack 1) as of
 # 2026-05-25 so they ride the api.rapidcortex.us custom domain.
 #
-# DEV / test-agency rollout (2026-05-25):
-#  - Silent Text: ON in dev so QA can exercise the dispatcher flow end-to-end.
-#  - Pinpoint:    OFF until Silent Text smoke tests pass (sequenced rollout per pilot plan).
+# DEV / test-agency rollout: Silent Text + Pinpoint ON in dev (Twilio secret must be rotated off PLACEHOLDER).
 # IMPORTANT: until the Twilio secret below is rotated off PLACEHOLDER values, every Silent Text
 # `createSession` will return `lastError = CONFIG_ERROR` from the SMS provider factory and audit
 # `silent_text.sms.failed`. Verify with:
 #   aws secretsmanager get-secret-value --secret-id rapid-cortex/incident-media/twilio --region us-east-1
 export ENABLE_SILENT_TEXT=true
-export ENABLE_PINPOINT=false
+export ENABLE_PINPOINT=true
 export APP_PUBLIC_BASE_URL="https://www.rapidcortex.us"
 
 # Shared Twilio secret (used by Incident Media + Silent Text + Pinpoint SMS paths). The runtime
@@ -119,7 +117,50 @@ export AZURE_TRANSLATION_KEY_SECRET_ARN="arn:aws:secretsmanager:us-east-1:158961
 # into apps/web at build time and protected via Mapbox URL-referrer allowlist. Set it in the
 # web ECS task env (scripts/env-web-*.sh) when needed.
 
-# --- Web feature flags (NEXT_PUBLIC_*) — readable by apps/web build invoked alongside API deploys ---
-# SLA Threshold / Call Backlog dashboards on dispatcher + supervisor views. Off by default in dev;
-# enable per pilot when SLA targets and ingestion are wired (apps/web/lib/runtime-flags.ts::isSlaBacklogEnabled).
-# export NEXT_PUBLIC_ENABLE_SLA_BACKLOG=1
+# --- API feature flags (Lambda env) — default ON in dev except CAD write-back ---
+export ENABLE_QA_SCORING=true
+export ENABLE_QA_SCORE_AFTER_ANALYSIS=true
+export ENABLE_INCIDENT_MEDIA=true
+export ENABLE_SOP_PROTOCOL_AI=true
+export ENABLE_NON_EMERGENCY_TRIAGE=true
+export ENABLE_DISPATCHER_WELLNESS=true
+export ENABLE_CALLER_CARD=true
+export ENABLE_CROSS_JURISDICTION_SHARES=true
+export ENABLE_LIVE_VIDEO=true
+export ENABLE_EMERGENCY_CONNECT=true
+export ENABLE_HOSPITAL_ROUTING=true
+export ENABLE_SURGE=true
+export ENABLE_PINPOINT=true
+export CAD_WRITEBACK_ENABLED=false
+
+# --- CAD write-back pilot onboarding (per agency) ---
+# UI does NOT expose writeBackEnabled / agencyApprovedCadWriteBack toggles yet.
+# RC ops MUST run this PATCH once per pilot agency before enabling CAD_WRITEBACK_ENABLED.
+#
+# Endpoint: web BFF (session/JWT scoped to custom:agencyId — not a per-agencyId Lambda path).
+# Run as that tenant's agencyadmin bearer, or RC ops with that agency's admin JWT.
+#
+# Prerequisites: signed CAD writeback addendum; read-only CAD integration validated.
+# Deploy env (when ready): CAD_WRITEBACK_ENABLED=true + NEXT_PUBLIC_ENABLE_CAD_WRITEBACK=1 on web.
+#
+#   export PILOT_WEB_BASE="https://app.rapidcortex.us"   # or local http://127.0.0.1:3000
+#   export PILOT_AGENCY_ADMIN_BEARER="<agencyadmin_id_token>"
+#   curl -X PATCH "${PILOT_WEB_BASE}/api/agency/config" \
+#     -H "Authorization: Bearer ${PILOT_AGENCY_ADMIN_BEARER}" \
+#     -H "Content-Type: application/json" \
+#     -d '{
+#       "cadIntegrationMode": "assisted_writeback",
+#       "writeBackEnabled": true,
+#       "agencyApprovedCadWriteBack": true,
+#       "auditLoggingEnabled": true
+#     }'
+#
+# Smoke (after env flip + seeded incident with cadIncidentId + active CAD integration):
+#   PILOT_CAD_WRITEBACK_E2E=1 \
+#   PILOT_DISPATCHER_BEARER_TOKEN=... \
+#   PILOT_SUPERVISOR_BEARER_TOKEN=... \
+#   PILOT_WRITEBACK_INCIDENT_ID=... \
+#   npx tsx scripts/pilot-smoke-test.ts
+
+# --- Web feature flags (NEXT_PUBLIC_*) — source scripts/env-web-pilot-test.sh for full UI surface ---
+# Or rely on runtime-flags.ts defaults (features on when unset; CAD write-back off).
