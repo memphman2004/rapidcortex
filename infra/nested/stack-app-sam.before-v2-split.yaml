@@ -1075,16 +1075,149 @@ Globals:
           - HasVenueBridgeCluster
           - !Ref VenueBridgeClusterArn
           - ""
-        CONNECT_BRIDGE_TASK_DEFINITION: !Ref ConnectBridgeTaskDefinition
+        CONNECT_BRIDGE_TASK_DEFINITION: !Ref ConnectBridgeTaskDefinitionResource
         VENUE_BRIDGE_TASK_DEFINITION: !If
           - HasVenueBridgeCluster
-          - !Ref VenueBridgeTaskDefinition
+          - !Ref VenueBridgeTaskDefinitionResource
           - ""
         BRIDGE_SUBNET_IDS: !Ref BridgeSubnetIds
         BRIDGE_SECURITY_GROUP_IDS: !Ref BridgeSecurityGroupIds
 
 
 Resources:
+  ConnectBridgeEcrRepository:
+    Type: AWS::ECR::Repository
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      RepositoryName: !Sub "${AppName}-connect-bridge-${DeploymentStage}"
+      ImageScanningConfiguration:
+        ScanOnPush: true
+      LifecyclePolicy:
+        LifecyclePolicyText: |
+          {"rules":[{"rulePriority":1,"description":"Keep last 5 images","selection":{"tagStatus":"any","countType":"imageCountMoreThan","countNumber":5},"action":{"type":"expire"}}]}
+
+  VenueBridgeEcrRepository:
+    Type: AWS::ECR::Repository
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      RepositoryName: !Sub "${AppName}-venue-bridge-${DeploymentStage}"
+      ImageScanningConfiguration:
+        ScanOnPush: true
+      LifecyclePolicy:
+        LifecyclePolicyText: |
+          {"rules":[{"rulePriority":1,"description":"Keep last 5 images","selection":{"tagStatus":"any","countType":"imageCountMoreThan","countNumber":5},"action":{"type":"expire"}}]}
+
+  BridgeTaskExecutionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: ecs-tasks.amazonaws.com
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy
+
+  BridgeTaskRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: ecs-tasks.amazonaws.com
+            Action: sts:AssumeRole
+      Policies:
+        - PolicyName: BridgePermissions
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - kinesisvideo:PutMedia
+                  - kinesisvideo:TagStream
+                  - kinesisvideo:GetDataEndpoint
+                  - kinesisvideo:CreateStream
+                  - kinesisvideo:DescribeStream
+                Resource:
+                  - !Sub arn:${AWS::Partition}:kinesisvideo:${AWS::Region}:${AWS::AccountId}:channel/rc-connect-*/*
+                  - !Sub arn:${AWS::Partition}:kinesisvideo:${AWS::Region}:${AWS::AccountId}:channel/rc-venue-*/*
+              - Effect: Allow
+                Action:
+                  - secretsmanager:GetSecretValue
+                Resource: !Sub arn:${AWS::Partition}:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:${AppName}/camera-credentials/*
+              - Effect: Allow
+                Action:
+                  - dynamodb:UpdateItem
+                Resource: !Sub arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${ConnectAccessSessionsTable}
+
+  ConnectBridgeLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub "/ecs/${AppName}/connect-bridge/${DeploymentStage}"
+      RetentionInDays: 30
+
+  VenueBridgeLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub "/ecs/${AppName}/venue-bridge/${DeploymentStage}"
+      RetentionInDays: 30
+
+  ConnectBridgeTaskDefinitionResource:
+    Type: AWS::ECS::TaskDefinition
+    Properties:
+      Family: !Sub "${AppName}-connect-bridge-${DeploymentStage}"
+      Cpu: "512"
+      Memory: "1024"
+      NetworkMode: awsvpc
+      RequiresCompatibilities:
+        - FARGATE
+      RuntimePlatform:
+        OperatingSystemFamily: LINUX
+        CpuArchitecture: X86_64
+      ExecutionRoleArn: !GetAtt BridgeTaskExecutionRole.Arn
+      TaskRoleArn: !GetAtt BridgeTaskRole.Arn
+      ContainerDefinitions:
+        - Name: rc-connect-bridge
+          Image: !Sub "${ConnectBridgeEcrRepository.RepositoryUri}:latest"
+          Essential: true
+          LogConfiguration:
+            LogDriver: awslogs
+            Options:
+              awslogs-group: !Ref ConnectBridgeLogGroup
+              awslogs-region: !Ref AWS::Region
+              awslogs-stream-prefix: bridge
+
+  VenueBridgeTaskDefinitionResource:
+    Type: AWS::ECS::TaskDefinition
+    Properties:
+      Family: !Sub "${AppName}-venue-bridge-${DeploymentStage}"
+      Cpu: "512"
+      Memory: "1024"
+      NetworkMode: awsvpc
+      RequiresCompatibilities:
+        - FARGATE
+      RuntimePlatform:
+        OperatingSystemFamily: LINUX
+        CpuArchitecture: X86_64
+      ExecutionRoleArn: !GetAtt BridgeTaskExecutionRole.Arn
+      TaskRoleArn: !GetAtt BridgeTaskRole.Arn
+      ContainerDefinitions:
+        - Name: rc-venue-bridge
+          Image: !Sub "${VenueBridgeEcrRepository.RepositoryUri}:latest"
+          Essential: true
+          LogConfiguration:
+            LogDriver: awslogs
+            Options:
+              awslogs-group: !Ref VenueBridgeLogGroup
+              awslogs-region: !Ref AWS::Region
+              awslogs-stream-prefix: bridge
+
   AppManagedPolicyDynamoLambdaCrudShardA:
     Type: AWS::IAM::ManagedPolicy
     Properties:
@@ -2026,6 +2159,427 @@ Resources:
             ApiId: !Ref Api
             Path: /api/contact-sales
             Method: ANY
+            Auth:
+              Authorizer: NONE
+
+  StreamViewerTokenFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/shared/handlers/stream-viewer-token.handler
+      Timeout: 30
+      Environment:
+        Variables:
+          KVS_BROWSER_TOKEN_ROLE_ARN: !If
+            - CreateLiveVideoResources
+            - !GetAtt KvsWebRtcBrowserTokenRole.Arn
+            - ""
+      Policies:
+        - Statement:
+            Sid: StreamViewerTokenSessionsReadWrite
+            Effect: Allow
+            Action:
+              - dynamodb:GetItem
+              - dynamodb:UpdateItem
+            Resource:
+              - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${ConnectAccessSessionsTable}
+        - !If
+          - CreateLiveVideoResources
+          - Statement:
+              Sid: StreamViewerTokenAssumeBrowserRole
+              Effect: Allow
+              Action: sts:AssumeRole
+              Resource: !GetAtt KvsWebRtcBrowserTokenRole.Arn
+          - !Ref AWS::NoValue
+        - Statement:
+            Sid: StreamViewerTokenKvsRead
+            Effect: Allow
+            Action:
+              - kinesisvideo:DescribeSignalingChannel
+              - kinesisvideo:GetSignalingChannelEndpoint
+              - kinesisvideo:GetIceServerConfig
+            Resource:
+              - !Sub arn:${AWS::Partition}:kinesisvideo:${AWS::Region}:${AWS::AccountId}:channel/rc-connect-*/*
+              - !Sub arn:${AWS::Partition}:kinesisvideo:${AWS::Region}:${AWS::AccountId}:channel/rc-venue-*/*
+      Events:
+        Route:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/stream/viewer-token
+            Method: POST
+
+  StreamSessionStatusFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/shared/handlers/stream-session-status.handler
+      Timeout: 15
+      Policies:
+        - Statement:
+            Sid: StreamSessionStatusRead
+            Effect: Allow
+            Action:
+              - dynamodb:GetItem
+            Resource:
+              - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${ConnectAccessSessionsTable}
+      Events:
+        Route:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/stream/session-status/{sessionId}
+            Method: GET
+
+  BridgeHealthMonitorFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/shared/handlers/bridge-health-monitor.handler
+      Timeout: 60
+      Policies:
+        - Statement:
+            Sid: BridgeHealthMonitorSessions
+            Effect: Allow
+            Action:
+              - dynamodb:Scan
+              - dynamodb:UpdateItem
+            Resource:
+              - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${ConnectAccessSessionsTable}
+        - Statement:
+            Sid: BridgeHealthMonitorDescribeTasks
+            Effect: Allow
+            Action:
+              - ecs:DescribeTasks
+            Resource: "*"
+        - Statement:
+            Sid: BridgeHealthMonitorKvsCleanup
+            Effect: Allow
+            Action:
+              - kinesisvideo:DescribeSignalingChannel
+              - kinesisvideo:DeleteSignalingChannel
+            Resource:
+              - !Sub arn:${AWS::Partition}:kinesisvideo:${AWS::Region}:${AWS::AccountId}:channel/rc-connect-*/*
+              - !Sub arn:${AWS::Partition}:kinesisvideo:${AWS::Region}:${AWS::AccountId}:channel/rc-venue-*/*
+      Events:
+        Schedule:
+          Type: Schedule
+          Properties:
+            Schedule: rate(1 minute)
+            Enabled: true
+
+  GetIncidentVenueIntelligenceFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/venue/handlers/get-incident-venue-intelligence.handler
+      Timeout: 30
+      Policies:
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardB
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardC
+      Events:
+        Route:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/incidents/{id}/venue-intelligence
+            Method: GET
+
+  GetVenueIntelligenceFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/venue/handlers/get-venue-intelligence.handler
+      Timeout: 30
+      Policies:
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardC
+      Events:
+        Route:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/venue/intelligence
+            Method: GET
+
+  VenueCameraRequestFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/venue/handlers/post-venue-camera-request.handler
+      Timeout: 60
+      Policies:
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardB
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardC
+        - Statement:
+            Sid: VenueCameraRequestSessions
+            Effect: Allow
+            Action:
+              - dynamodb:GetItem
+              - dynamodb:PutItem
+              - dynamodb:UpdateItem
+              - dynamodb:Query
+            Resource:
+              - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${ConnectAccessSessionsTable}
+              - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${ConnectAccessSessionsTable}/index/*
+        - Statement:
+            - Effect: Allow
+              Action:
+                - ecs:RunTask
+                - ecs:DescribeTasks
+              Resource: !If
+                - HasVenueBridgeCluster
+                - !Ref VenueBridgeTaskDefinitionResource
+                - !Sub "arn:aws:ecs:${AWS::Region}:${AWS::AccountId}:task-definition/placeholder"
+              Condition:
+                ArnEquals:
+                  "ecs:cluster": !If
+                    - HasVenueBridgeCluster
+                    - !Ref VenueBridgeClusterArn
+                    - !Sub "arn:aws:ecs:${AWS::Region}:${AWS::AccountId}:cluster/placeholder"
+        - Statement:
+            - Effect: Allow
+              Action:
+                - iam:PassRole
+              Resource:
+                - !GetAtt BridgeTaskExecutionRole.Arn
+                - !GetAtt BridgeTaskRole.Arn
+              Condition:
+                StringEquals:
+                  "iam:PassedToService": ecs-tasks.amazonaws.com
+        - Statement:
+            Sid: VenueCameraRequestKvsChannels
+            Effect: Allow
+            Action:
+              - kinesisvideo:CreateSignalingChannel
+              - kinesisvideo:DescribeSignalingChannel
+              - kinesisvideo:TagResource
+            Resource:
+              - !Sub arn:${AWS::Partition}:kinesisvideo:${AWS::Region}:${AWS::AccountId}:channel/rc-venue-*/*
+        - Statement:
+            Sid: VenueCameraRequestCameraCredentials
+            Effect: Allow
+            Action:
+              - secretsmanager:GetSecretValue
+            Resource:
+              - !Sub arn:${AWS::Partition}:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:${AppName}/camera-credentials/*
+              - !Sub arn:${AWS::Partition}:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:rapid-cortex/connect/*
+      Events:
+        Route:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/venue/cameras/request
+            Method: POST
+
+  VenueSmsInboundFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/venue/handlers/post-venue-sms-inbound.handler
+      Description: "Twilio inbound SMS handler for venue + campus routing"
+      MemorySize: 256
+      Timeout: 15
+      Policies:
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardC
+      Events:
+        ApiEvent:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/venue/sms/inbound
+            Method: POST
+
+  GetCampusIncidentsFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/campus/handlers/get-campus-incidents.handler
+      Timeout: 30
+      Policies:
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardC
+      Events:
+        Route:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/campus/incidents
+            Method: GET
+
+  PostCampusIncidentFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/campus/handlers/post-campus-incident.handler
+      Timeout: 30
+      Policies:
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardC
+      Events:
+        Route:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/campus/incidents
+            Method: POST
+
+  GetCampusIncidentFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/campus/handlers/get-campus-incident.handler
+      Timeout: 30
+      Policies:
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardC
+      Events:
+        Route:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/campus/incidents/{incidentId}
+            Method: GET
+
+  PatchCampusIncidentFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/campus/handlers/patch-campus-incident.handler
+      Timeout: 30
+      Policies:
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardC
+      Events:
+        Route:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/campus/incidents/{incidentId}
+            Method: PATCH
+
+  PostCampusIncidentNoteFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/campus/handlers/post-campus-incident-note.handler
+      Timeout: 30
+      Policies:
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardC
+      Events:
+        Route:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/campus/incidents/{incidentId}/notes
+            Method: POST
+
+  PostCampusIncidentEscalateFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/campus/handlers/post-campus-incident-escalate.handler
+      Timeout: 30
+      Policies:
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardC
+      Events:
+        Route:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/campus/incidents/{incidentId}/escalate
+            Method: POST
+
+  GetCampusBuildingsFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/campus/handlers/get-campus-buildings.handler
+      Timeout: 30
+      Policies:
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardC
+      Events:
+        Route:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/campus/buildings
+            Method: GET
+
+  GetCampusAnalyticsFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/campus/handlers/get-campus-analytics.handler
+      Timeout: 30
+      Policies:
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardC
+      Events:
+        Route:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/campus/analytics
+            Method: GET
+
+  PostCampusPublicReportFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/campus/handlers/post-campus-public-report.handler
+      Timeout: 30
+      Policies:
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardC
+        - !Ref AppManagedPolicyS3ApplicationBucketsCrud
+      Events:
+        Route:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/public/campus/report
+            Method: POST
             Auth:
               Authorizer: NONE
 
@@ -3215,6 +3769,824 @@ Resources:
             Path: /api/qa/sessions/{id}/score
             Method: POST
 
+  IncidentMediaHttpFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/handlers/media/incidentMediaHttp.handler
+      Environment:
+        Variables:
+          COGNITO_USER_POOL_ID: !Ref CognitoUserPool
+          COGNITO_CLIENT_ID: !Ref CognitoUserPoolClient
+          INCIDENT_MEDIA_TABLE: !Ref IncidentMediaTable
+      Policies:
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardA
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardB
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardC
+        - Statement:
+            Effect: Allow
+            Action:
+              - s3:PutObject
+              - s3:GetObject
+              - s3:HeadObject
+            Resource: !Sub arn:aws:s3:::${AssetsBucket}/incident-media/*
+        - !Ref AppManagedPolicyOpsAlertsSnsPublishOnly
+        - Statement:
+            Effect: Allow
+            Action:
+              - sms-voice:DescribeAccountAttributes
+              - sms-voice:DescribePools
+              - sms-voice:DescribeConfigurationSets
+            Resource: "*"
+            Condition:
+              StringEquals:
+                aws:RequestedRegion: !Ref AWS::Region
+        - Fn::If:
+            - HasIncidentMediaTwilioSecretArn
+            - Statement:
+                Effect: Allow
+                Action:
+                  - secretsmanager:GetSecretValue
+                Resource: !Ref IncidentMediaTwilioSecretArn
+            - !Ref AWS::NoValue
+      Events:
+        PostIncidentMediaRequest:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/incidents/{id}/media/request
+            Method: POST
+        ListIncidentMedia:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/incidents/{id}/media
+            Method: GET
+        PostCallerMediaSendLink:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/incidents/{incidentId}/media/send-link
+            Method: POST
+        PostCallerMediaUploadUrl:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/incidents/{incidentId}/media/upload-url
+            Method: POST
+        DeleteCallerMedia:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/incidents/{incidentId}/media/{mediaId}
+            Method: DELETE
+
+  PublicIncidentMediaHttpFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/handlers/media/publicIncidentMediaHttp.handler
+      Environment:
+        Variables:
+          COGNITO_USER_POOL_ID: !Ref CognitoUserPool
+          COGNITO_CLIENT_ID: !Ref CognitoUserPoolClient
+          INCIDENT_MEDIA_TABLE: !Ref IncidentMediaTable
+      Policies:
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardA
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardB
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardC
+        - Statement:
+            Effect: Allow
+            Action:
+              - s3:PutObject
+              - s3:GetObject
+              - s3:HeadObject
+            Resource: !Sub arn:aws:s3:::${AssetsBucket}/incident-media/*
+      Events:
+        GetIncidentMediaPublicMeta:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/public/incident-media/t/{token}
+            Method: GET
+            Auth:
+              Authorizer: NONE
+        PostIncidentMediaUploadUrl:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/public/incident-media/t/{token}/upload-url
+            Method: POST
+            Auth:
+              Authorizer: NONE
+        PostIncidentMediaConfirm:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/public/incident-media/t/{token}/confirm
+            Method: POST
+            Auth:
+              Authorizer: NONE
+
+  IncidentMediaHttpLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub /aws/lambda/${IncidentMediaHttpFunction}
+      RetentionInDays: 30
+
+  IncidentMediaSmsRoutingFailedMetricFilter:
+    Type: AWS::Logs::MetricFilter
+    DependsOn: IncidentMediaHttpLogGroup
+    Properties:
+      LogGroupName: !Sub /aws/lambda/${IncidentMediaHttpFunction}
+      FilterPattern: '"routing_complete" "failed" "outbound.sms"'
+      MetricTransformations:
+        - MetricName: OutboundSmsRoutingFailures
+          MetricNamespace: RapidCortex/Sms
+          MetricValue: "1"
+          DefaultValue: 0
+
+
+  LiveVideoSmsRoutingFailedMetricFilter:
+    Type: AWS::Logs::MetricFilter
+    Condition: CreateLiveVideoResources
+    DependsOn: LiveVideoIncidentsHttpLogGroup
+    Properties:
+      LogGroupName: !Sub /aws/lambda/${LiveVideoIncidentsHttpFunction}
+      FilterPattern: '"routing_complete" "failed" "outbound.sms"'
+      MetricTransformations:
+        - MetricName: OutboundSmsRoutingFailures
+          MetricNamespace: RapidCortex/Sms
+          MetricValue: "1"
+          DefaultValue: 0
+
+  KvsWebRtcBrowserTokenRole:
+    Type: AWS::IAM::Role
+    Condition: CreateLiveVideoResources
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Action: sts:AssumeRole
+            Principal:
+              AWS: !Sub "arn:aws:iam::${AWS::AccountId}:root"
+            Condition:
+              StringEquals:
+                aws:SourceAccount: !Ref AWS::AccountId
+              StringLike:
+                aws:PrincipalArn:
+                  - !Sub "arn:aws:iam::${AWS::AccountId}:role/*LiveVideo*HttpFunctionRole*"
+      Policies:
+        - PolicyName: KvsWebrtcDataPlane
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Sid: KvsDataPlane
+                Effect: Allow
+                Action:
+                  - kinesisvideo:ConnectAsMaster
+                  - kinesisvideo:ConnectAsViewer
+                  - kinesisvideo:JoinStorageSession
+                  - kinesisvideo:JoinStorageSessionAsViewer
+                  - kinesisvideo:DescribeSignalingChannel
+                  - kinesisvideo:GetSignalingChannelEndpoint
+                  - kinesisvideo:GetIceServerConfig
+                Resource: !Sub "arn:${AWS::Partition}:kinesisvideo:${AWS::Region}:${AWS::AccountId}:channel/*/*"
+              - Sid: KvsMappedStreamRead
+                Effect: Allow
+                Action:
+                  - kinesisvideo:DescribeMappedResourceConfiguration
+                Resource: !Sub "arn:${AWS::Partition}:kinesisvideo:${AWS::Region}:${AWS::AccountId}:stream/*/*"
+
+  ConnectViewerChannelPolicy:
+    Type: AWS::IAM::Policy
+    Condition: CreateLiveVideoResources
+    Properties:
+      PolicyName: !Sub "${AppName}-connect-viewer-channels-${DeploymentStage}"
+      Roles:
+        - !Ref KvsWebRtcBrowserTokenRole
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Action:
+              - kinesisvideo:GetSignalingChannelEndpoint
+              - kinesisvideo:ConnectAsViewer
+              - kinesisvideo:DescribeSignalingChannel
+            Resource:
+              - !Sub arn:${AWS::Partition}:kinesisvideo:${AWS::Region}:${AWS::AccountId}:channel/rc-connect-*/*
+              - !Sub arn:${AWS::Partition}:kinesisvideo:${AWS::Region}:${AWS::AccountId}:channel/rc-venue-*/*
+
+  LiveVideoIncidentsHttpLogGroup:
+    Type: AWS::Logs::LogGroup
+    Condition: CreateLiveVideoResources
+    Properties:
+      LogGroupName: !Sub /aws/lambda/${LiveVideoIncidentsHttpFunction}
+      RetentionInDays: 30
+
+  LiveVideoIncidentsHttpFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Condition: CreateLiveVideoResources
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/handlers/media/liveVideoIncidentHttp.handler
+      Environment:
+        Variables:
+          COGNITO_USER_POOL_ID: !Ref CognitoUserPool
+          COGNITO_CLIENT_ID: !Ref CognitoUserPoolClient
+          ENABLE_LIVE_VIDEO: "true"
+          LIVE_VIDEO_SESSIONS_TABLE: !Ref LiveVideoSessionsTable
+          LIVE_VIDEO_SESSION_TTL_SECONDS: "1800"
+          LIVE_VIDEO_MAX_DURATION_SECONDS: "900"
+          LIVE_VIDEO_HEARTBEAT_TIMEOUT_SECONDS: "45"
+          LIVE_VIDEO_PUBLIC_BASE_URL: !Sub "https://www.${RootDomainName}"
+          LIVE_VIDEO_KVS_TOKEN_ROLE_ARN: !GetAtt KvsWebRtcBrowserTokenRole.Arn
+          LIVE_VIDEO_STORAGE_MODE: kvs
+          WEBRTC_TURN_SECRET_ARN: ""
+          LIVE_VIDEO_KVS_DATA_RETENTION_HOURS: "24"
+          LIVE_VIDEO_KVS_STORAGE_ATTACH_TO_CHANNEL: "false"
+          KVS_WEBRTC_TAG_APP: !Ref AppName
+          KVS_WEBRTC_TAG_ENV: !Ref DeploymentStage
+      Policies:
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardA
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardB
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardC
+        - Statement:
+            Effect: Allow
+            Action: sts:AssumeRole
+            Resource: !GetAtt KvsWebRtcBrowserTokenRole.Arn
+        - Statement:
+            Effect: Allow
+            Action:
+              - kinesisvideo:CreateSignalingChannel
+            Resource: "*"
+            Condition:
+              StringEquals:
+                aws:RequestedRegion: !Ref AWS::Region
+        - Statement:
+            Effect: Allow
+            Action:
+              - kinesisvideo:DeleteSignalingChannel
+              - kinesisvideo:DescribeSignalingChannel
+              - kinesisvideo:GetSignalingChannelEndpoint
+              - kinesisvideo:JoinStorageSession
+              - kinesisvideo:JoinStorageSessionAsViewer
+            Resource: !Sub "arn:${AWS::Partition}:kinesisvideo:${AWS::Region}:${AWS::AccountId}:channel/*/*"
+        - Statement:
+            Effect: Allow
+            Action:
+              - kinesisvideo:GetIceServerConfig
+            Resource: !Sub "arn:${AWS::Partition}:kinesisvideo:${AWS::Region}:${AWS::AccountId}:channel/*/*"
+        - Statement:
+            Effect: Allow
+            Action:
+              - kinesisvideo:DescribeMappedResourceConfiguration
+            Resource: !Sub "arn:${AWS::Partition}:kinesisvideo:${AWS::Region}:${AWS::AccountId}:stream/*/*"
+        - Statement:
+            Effect: Allow
+            Action:
+              - kinesisvideo:CreateStream
+            Resource: "*"
+            Condition:
+              StringEquals:
+                aws:RequestedRegion: !Ref AWS::Region
+        - Statement:
+            Effect: Allow
+            Action:
+              - kinesisvideo:DeleteStream
+              - kinesisvideo:DescribeStream
+              - kinesisvideo:GetDataEndpoint
+            Resource: !Sub "arn:${AWS::Partition}:kinesisvideo:${AWS::Region}:${AWS::AccountId}:stream/*/*"
+        - Statement:
+            Effect: Allow
+            Action:
+              - kinesisvideo:GetHLSStreamingSessionURL
+            Resource: !Sub "arn:${AWS::Partition}:kinesisvideo:${AWS::Region}:${AWS::AccountId}:stream/*/*"
+        - Statement:
+            Effect: Allow
+            Action:
+              - kinesisvideo:UpdateMediaStorageConfiguration
+              - kinesisvideo:DescribeMediaStorageConfiguration
+            Resource: !Sub "arn:${AWS::Partition}:kinesisvideo:${AWS::Region}:${AWS::AccountId}:channel/*/*"
+        - !Ref AppManagedPolicyOpsAlertsSnsPublishOnly
+        - Statement:
+            Effect: Allow
+            Action:
+              - sms-voice:DescribeAccountAttributes
+              - sms-voice:DescribePools
+              - sms-voice:DescribeConfigurationSets
+            Resource: "*"
+            Condition:
+              StringEquals:
+                aws:RequestedRegion: !Ref AWS::Region
+        - Fn::If:
+            - HasIncidentMediaTwilioSecretArn
+            - Statement:
+                Effect: Allow
+                Action:
+                  - secretsmanager:GetSecretValue
+                Resource: !Ref IncidentMediaTwilioSecretArn
+            - !Ref AWS::NoValue
+      Events:
+        RequestLiveVideo:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/incidents/{id}/live-video/request
+            Method: POST
+        GetLiveVideo:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/incidents/{id}/live-video
+            Method: GET
+        JoinLiveVideoIncident:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/incidents/{id}/live-video/join
+            Method: POST
+        GetLiveVideoPlayback:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/incidents/{id}/live-video/playback
+            Method: GET
+        EndLiveVideo:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/incidents/{id}/live-video/end
+            Method: POST
+        DispatcherHeartbeatLiveVideo:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/incidents/{id}/live-video/heartbeat
+            Method: POST
+
+  LiveVideoPublicHttpFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Condition: CreateLiveVideoResources
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/handlers/media/liveVideoPublicHttp.handler
+      Environment:
+        Variables:
+          ENABLE_LIVE_VIDEO: "true"
+          LIVE_VIDEO_SESSIONS_TABLE: !Ref LiveVideoSessionsTable
+          LIVE_VIDEO_SESSION_TTL_SECONDS: "1800"
+          LIVE_VIDEO_MAX_DURATION_SECONDS: "900"
+          LIVE_VIDEO_HEARTBEAT_TIMEOUT_SECONDS: "45"
+          LIVE_VIDEO_PUBLIC_BASE_URL: !Sub "https://www.${RootDomainName}"
+          LIVE_VIDEO_KVS_TOKEN_ROLE_ARN: !GetAtt KvsWebRtcBrowserTokenRole.Arn
+          LIVE_VIDEO_STORAGE_MODE: kvs
+          WEBRTC_TURN_SECRET_ARN: ""
+      Policies:
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardA
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardB
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardC
+        - Statement:
+            Effect: Allow
+            Action: sts:AssumeRole
+            Resource: !GetAtt KvsWebRtcBrowserTokenRole.Arn
+        - Statement:
+            Effect: Allow
+            Action:
+              - kinesisvideo:DeleteSignalingChannel
+              - kinesisvideo:DescribeSignalingChannel
+              - kinesisvideo:GetSignalingChannelEndpoint
+            Resource: !Sub "arn:${AWS::Partition}:kinesisvideo:${AWS::Region}:${AWS::AccountId}:channel/*/*"
+        - Statement:
+            Effect: Allow
+            Action:
+              - kinesisvideo:GetIceServerConfig
+            Resource: !Sub "arn:${AWS::Partition}:kinesisvideo:${AWS::Region}:${AWS::AccountId}:channel/*/*"
+      Events:
+        JoinLiveVideo:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/media/live/{token}/join
+            Method: POST
+            Auth:
+              Authorizer: NONE
+        CallerHeartbeatLiveVideo:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/media/live/{token}/heartbeat
+            Method: POST
+            Auth:
+              Authorizer: NONE
+
+  # ---------------------------------------------------------------------------------------------
+  # Silent Text + Pinpoint (LiveLocation)
+  #
+  # Both features were originally in stack-app-sam-2.yaml, but that stack's HttpApi is not
+  # mapped to the `api.rapidcortex.us` custom domain — only this stack is. SDK clients and
+  # `apps/web` BFF callers expect both surfaces on the custom domain, so the Lambdas + their
+  # HttpApi events live here (Option 1 from the 2026-05-25 routing audit).
+  #
+  # The SMS-sending paths (dispatcher functions only) reuse `IncidentMediaTwilioSecretArn` so
+  # there is exactly one Twilio secret per stage rather than a parallel `rapid-cortex/silent-text`
+  # entry. AWS SNS publish to E.164 numbers is allowed only with the `sns:Type=Transactional`
+  # condition — see workspace rule `rapid-cortex-global-features.mdc` (no wildcard IAM).
+  # ---------------------------------------------------------------------------------------------
+  SilentTextIncidentsHttpFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/handlers/silentTextIncidentsHttp.handler
+      Timeout: 30
+      Environment:
+        Variables:
+          COGNITO_USER_POOL_ID: !Ref CognitoUserPool
+          COGNITO_CLIENT_ID: !Ref CognitoUserPoolClient
+          SILENT_TEXT_TABLE: !Ref SilentTextSessionsTable
+          SILENT_TEXT_PUBLIC_BASE_URL: !Ref AppPublicBaseUrl
+          ENABLE_SILENT_TEXT: !Ref EnableSilentText
+          SILENT_TEXT_TRANSLATION_ENABLED: "true"
+          SILENT_TEXT_TTS_ENABLED: "false"
+          SUPPORTED_CALL_LANGUAGES: "en,es,zh,tl,vi,ar,fr,ko,ru,pt"
+          LANGUAGE_PROVIDER: !Ref LanguageProvider
+          GOOGLE_CLOUD_PROJECT_ID: !Ref GoogleCloudProjectId
+          GOOGLE_TRANSLATE_LOCATION: "global"
+          GOOGLE_TTS_LOCATION: "global"
+          GOOGLE_TTS_OUTPUT_BUCKET: !Ref GoogleTtsOutputBucket
+          GOOGLE_APPLICATION_CREDENTIALS_SECRET_ARN: !If
+            - UseManagedMultilingualSecrets
+            - !Ref NestedMultilingualGoogleServiceAccountSecretArn
+            - !Ref GoogleApplicationCredentialsSecretArn
+          INCIDENT_MEDIA_TWILIO_SECRET_ARN: !Ref IncidentMediaTwilioSecretArn
+          SMS_PROVIDER: !FindInMap [SmsEnvironmentDefaults, !Ref DeploymentStage, SmsProvider]
+          SMS_PRIMARY_PROVIDER: !FindInMap [SmsEnvironmentDefaults, !Ref DeploymentStage, SmsPrimaryProvider]
+          MOCK_SMS_PROVIDER: !FindInMap [SmsEnvironmentDefaults, !Ref DeploymentStage, MockSmsProvider]
+          AWS_SMS_USE_SIMULATOR: !FindInMap [SmsEnvironmentDefaults, !Ref DeploymentStage, AwsSmsUseSimulator]
+          AWS_SMS_REGION: ""
+      Policies:
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardA
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardB
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardC
+        - !Ref AppManagedPolicyS3ApplicationBucketsCrud
+        - !Ref AppManagedPolicyComprehendTranslateRegionalDetect
+        - !Ref AppManagedPolicySecretsMultilingualScopedRead
+        - !Ref AppManagedPolicyOpsAlertsSnsPublishOnly
+        # Transactional SMS to E.164 phone numbers — SNS does not support resource-level scoping
+        # for `Publish` to a `PhoneNumber`, so AWS's recommended pattern is `Resource: "*"` with a
+        # `sns:Type=Transactional` condition (blocks promotional SMS abuse from this role).
+        - Statement:
+            Sid: SnsPublishToPhoneNumbers
+            Effect: Allow
+            Action: sns:Publish
+            Resource: "*"
+            Condition:
+              StringEquals:
+                "sns:Type": "Transactional"
+        - Statement:
+            Sid: AwsEndUserMessagingReadOnly
+            Effect: Allow
+            Action:
+              - sms-voice:DescribeAccountAttributes
+              - sms-voice:DescribePools
+              - sms-voice:DescribeConfigurationSets
+            Resource: "*"
+            Condition:
+              StringEquals:
+                aws:RequestedRegion: !Ref AWS::Region
+        - Fn::If:
+            - HasIncidentMediaTwilioSecretArn
+            - Statement:
+                Sid: ReadTwilioSecret
+                Effect: Allow
+                Action:
+                  - secretsmanager:GetSecretValue
+                Resource: !Ref IncidentMediaTwilioSecretArn
+            - !Ref AWS::NoValue
+      Events:
+        PostSession:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/incidents/{id}/silent-text/sessions
+            Method: POST
+        ListSessions:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/incidents/{id}/silent-text/sessions
+            Method: GET
+        GetSession:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/incidents/{id}/silent-text/sessions/{sessionId}
+            Method: GET
+        GetEvents:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/incidents/{id}/silent-text/sessions/{sessionId}/events
+            Method: GET
+        GetMessages:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/incidents/{id}/silent-text/sessions/{sessionId}/messages
+            Method: GET
+        Resend:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/incidents/{id}/silent-text/sessions/{sessionId}/resend
+            Method: POST
+        Cancel:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/incidents/{id}/silent-text/sessions/{sessionId}/cancel
+            Method: POST
+        Close:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/incidents/{id}/silent-text/sessions/{sessionId}/close
+            Method: POST
+        DispatcherMessage:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/incidents/{id}/silent-text/sessions/{sessionId}/message
+            Method: POST
+        HighRisk:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/incidents/{id}/silent-text/sessions/{sessionId}/high-risk
+            Method: POST
+
+  SilentTextPublicHttpFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/handlers/silentTextPublicHttp.handler
+      Timeout: 30
+      Environment:
+        Variables:
+          SILENT_TEXT_TABLE: !Ref SilentTextSessionsTable
+          SILENT_TEXT_PUBLIC_BASE_URL: !Ref AppPublicBaseUrl
+          ENABLE_SILENT_TEXT: !Ref EnableSilentText
+          SILENT_TEXT_TRANSLATION_ENABLED: "true"
+          SILENT_TEXT_TTS_ENABLED: "false"
+          SUPPORTED_CALL_LANGUAGES: "en,es,zh,tl,vi,ar,fr,ko,ru,pt"
+          LANGUAGE_PROVIDER: !Ref LanguageProvider
+          GOOGLE_CLOUD_PROJECT_ID: !Ref GoogleCloudProjectId
+          GOOGLE_TRANSLATE_LOCATION: "global"
+          GOOGLE_TTS_LOCATION: "global"
+          GOOGLE_TTS_OUTPUT_BUCKET: !Ref GoogleTtsOutputBucket
+          GOOGLE_APPLICATION_CREDENTIALS_SECRET_ARN: !If
+            - UseManagedMultilingualSecrets
+            - !Ref NestedMultilingualGoogleServiceAccountSecretArn
+            - !Ref GoogleApplicationCredentialsSecretArn
+      Policies:
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardA
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardB
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardC
+        - !Ref AppManagedPolicyS3ApplicationBucketsCrud
+        - !Ref AppManagedPolicyComprehendTranslateRegionalDetect
+        - !Ref AppManagedPolicySecretsMultilingualScopedRead
+      Events:
+        GetPublic:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/silent-text/t/{token}
+            Method: GET
+            Auth:
+              Authorizer: NONE
+        GetMessages:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/silent-text/t/{token}/messages
+            Method: GET
+            Auth:
+              Authorizer: NONE
+        PostOpened:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/silent-text/t/{token}/opened
+            Method: POST
+            Auth:
+              Authorizer: NONE
+        PostPresence:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/silent-text/t/{token}/presence
+            Method: POST
+            Auth:
+              Authorizer: NONE
+        PostMessage:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/silent-text/t/{token}/message
+            Method: POST
+            Auth:
+              Authorizer: NONE
+        PostEnd:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/silent-text/t/{token}/end
+            Method: POST
+            Auth:
+              Authorizer: NONE
+
+  PinpointIncidentsHttpFunction:
+    # Same handler as the legacy `PinpointSurgeIncidentsHttpFunction` in stack-app-sam-2.yaml,
+    # but only the `/pinpoint/links/*` routes are attached here. The Surge `/surge/*` routes
+    # stay in stack-2 until Surge gets its own dedicated handler (out of scope for this fix).
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/handlers/pinpointSurgeIncidentsHttp.handler
+      Timeout: 30
+      Environment:
+        Variables:
+          COGNITO_USER_POOL_ID: !Ref CognitoUserPool
+          COGNITO_CLIENT_ID: !Ref CognitoUserPoolClient
+          PINPOINT_LINKS_TABLE: !Ref PinpointLinksTable
+          ENABLE_PINPOINT: !Ref EnablePinpoint
+          PINPOINT_PUBLIC_BASE_URL: !Ref AppPublicBaseUrl
+          SILENT_TEXT_PUBLIC_BASE_URL: !Ref AppPublicBaseUrl
+          PINPOINT_SMS_MOCK: "false"
+          INCIDENT_MEDIA_TWILIO_SECRET_ARN: !Ref IncidentMediaTwilioSecretArn
+          SMS_PROVIDER: !FindInMap [SmsEnvironmentDefaults, !Ref DeploymentStage, SmsProvider]
+          SMS_PRIMARY_PROVIDER: !FindInMap [SmsEnvironmentDefaults, !Ref DeploymentStage, SmsPrimaryProvider]
+          MOCK_SMS_PROVIDER: !FindInMap [SmsEnvironmentDefaults, !Ref DeploymentStage, MockSmsProvider]
+          AWS_SMS_USE_SIMULATOR: !FindInMap [SmsEnvironmentDefaults, !Ref DeploymentStage, AwsSmsUseSimulator]
+          AWS_SMS_REGION: ""
+          # The handler also gates on SURGE_*; blank them here so the file-loaded `env.ts` resolves
+          # ENABLE_SURGE=false and Surge routes 503 even if they were ever bound to this function.
+          SURGE_CLUSTERS_TABLE: ""
+          ENABLE_SURGE: !If [PilotTestFeaturesOn, "true", "false"]
+      Policies:
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardA
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardB
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardC
+        - !Ref AppManagedPolicyOpsAlertsSnsPublishOnly
+        - Statement:
+            Sid: SnsPublishToPhoneNumbers
+            Effect: Allow
+            Action: sns:Publish
+            Resource: "*"
+            Condition:
+              StringEquals:
+                "sns:Type": "Transactional"
+        - Statement:
+            Sid: AwsEndUserMessagingReadOnly
+            Effect: Allow
+            Action:
+              - sms-voice:DescribeAccountAttributes
+              - sms-voice:DescribePools
+              - sms-voice:DescribeConfigurationSets
+            Resource: "*"
+            Condition:
+              StringEquals:
+                aws:RequestedRegion: !Ref AWS::Region
+        - Fn::If:
+            - HasIncidentMediaTwilioSecretArn
+            - Statement:
+                Sid: ReadTwilioSecret
+                Effect: Allow
+                Action:
+                  - secretsmanager:GetSecretValue
+                Resource: !Ref IncidentMediaTwilioSecretArn
+            - !Ref AWS::NoValue
+      Events:
+        PostPinpointLink:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/incidents/{id}/pinpoint/links
+            Method: POST
+        ListPinpointLinks:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/incidents/{id}/pinpoint/links
+            Method: GET
+        GetPinpointLink:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/incidents/{id}/pinpoint/links/{linkId}
+            Method: GET
+        RevokePinpointLink:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/incidents/{id}/pinpoint/links/{linkId}/revoke
+            Method: POST
+
+  PinpointPublicHttpFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/handlers/pinpointPublicHttp.handler
+      Timeout: 30
+      Environment:
+        Variables:
+          PINPOINT_LINKS_TABLE: !Ref PinpointLinksTable
+          ENABLE_PINPOINT: !Ref EnablePinpoint
+      Policies:
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardA
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardB
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardC
+      Events:
+        GetPublic:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/pinpoint/t/{token}
+            Method: GET
+            Auth:
+              Authorizer: NONE
+        PostLocation:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/pinpoint/t/{token}/location
+            Method: POST
+            Auth:
+              Authorizer: NONE
+
+  LiveVideoIncidentsHttpErrorsAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Condition: CreateLiveVideoResources
+    Properties:
+      AlarmActions:
+        - !Ref OpsAlertsTopic
+      AlarmDescription: Live video authenticated routes errors.
+      Namespace: AWS/Lambda
+      MetricName: Errors
+      Dimensions:
+        - Name: FunctionName
+          Value: !Ref LiveVideoIncidentsHttpFunction
+      Statistic: Sum
+      Period: 300
+      EvaluationPeriods: 1
+      Threshold: 5
+      ComparisonOperator: GreaterThanThreshold
+      TreatMissingData: notBreaching
+
+  LiveVideoPublicHttpErrorsAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Condition: CreateLiveVideoResources
+    Properties:
+      AlarmActions:
+        - !Ref OpsAlertsTopic
+      AlarmDescription: Live video public token route errors.
+      Namespace: AWS/Lambda
+      MetricName: Errors
+      Dimensions:
+        - Name: FunctionName
+          Value: !Ref LiveVideoPublicHttpFunction
+      Statistic: Sum
+      Period: 300
+      EvaluationPeriods: 1
+      Threshold: 5
+      ComparisonOperator: GreaterThanThreshold
+      TreatMissingData: notBreaching
+
   AdminListUsersFunction:
     Type: AWS::Serverless::Function
     Metadata:
@@ -4225,6 +5597,10 @@ Outputs:
     Value: !Ref QaHttpFunction
   QaScoringFunctionName:
     Value: !Ref QaScoringFunction
+  IncidentMediaHttpFunctionName:
+    Value: !Ref IncidentMediaHttpFunction
+  PublicIncidentMediaHttpFunctionName:
+    Value: !Ref PublicIncidentMediaHttpFunction
   AnalyzeIncidentFunctionName:
     Value: !Ref AnalyzeIncidentFunction
   PostIncidentAudioChunkFunctionName:

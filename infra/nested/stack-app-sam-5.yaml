@@ -289,6 +289,21 @@ Parameters:
     Default: "unused-placeholder"
     Description: >-
       Passed to Globals only; avoids circular dependency with CognitoUserPoolClient. Real client id is exported as an output.
+# --- Imported from primary SAM stack (AppSamStackV2); deploy stack 1 first ---
+ImportedCognitoUserPoolId:
+  Type: String
+  Description: Cognito User Pool ID from AppSamStackV2.
+ImportedCognitoWebClientId:
+  Type: String
+  Description: Cognito web app client ID from AppSamStackV2.
+ImportedCognitoNativeClientId:
+  Type: String
+  Default: ""
+  Description: Cognito native client ID (PKCE); optional.
+ImportedCognitoIssuer:
+  Type: String
+  Description: JWT issuer URL for HttpApi authorizer.
+
   SnsEmailSubscription:
     Type: String
     Default: ""
@@ -1075,10 +1090,10 @@ Globals:
           - HasVenueBridgeCluster
           - !Ref VenueBridgeClusterArn
           - ""
-        CONNECT_BRIDGE_TASK_DEFINITION: !Ref ConnectBridgeTaskDefinition
+        CONNECT_BRIDGE_TASK_DEFINITION: !Ref ConnectBridgeTaskDefinitionResource
         VENUE_BRIDGE_TASK_DEFINITION: !If
           - HasVenueBridgeCluster
-          - !Ref VenueBridgeTaskDefinition
+          - !Ref VenueBridgeTaskDefinitionResource
           - ""
         BRIDGE_SUBNET_IDS: !Ref BridgeSubnetIds
         BRIDGE_SECURITY_GROUP_IDS: !Ref BridgeSecurityGroupIds
@@ -1088,7 +1103,7 @@ Resources:
   AppManagedPolicyDynamoLambdaCrudShardA:
     Type: AWS::IAM::ManagedPolicy
     Properties:
-      ManagedPolicyName: !Sub "${AppName}-lambda-ddb-crud-${DeploymentStage}-a"
+      ManagedPolicyName: !Sub "${AppName}-sam5-lambda-ddb-crud-${DeploymentStage}-a"
       PolicyDocument:
         Version: "2012-10-17"
         Statement:
@@ -1147,7 +1162,7 @@ Resources:
   AppManagedPolicyDynamoLambdaCrudShardB:
     Type: AWS::IAM::ManagedPolicy
     Properties:
-      ManagedPolicyName: !Sub "${AppName}-lambda-ddb-crud-${DeploymentStage}-b"
+      ManagedPolicyName: !Sub "${AppName}-sam5-lambda-ddb-crud-${DeploymentStage}-b"
       PolicyDocument:
         Version: "2012-10-17"
         Statement:
@@ -1208,7 +1223,7 @@ Resources:
   AppManagedPolicyDynamoLambdaCrudShardC:
     Type: AWS::IAM::ManagedPolicy
     Properties:
-      ManagedPolicyName: !Sub "${AppName}-lambda-ddb-crud-${DeploymentStage}-c"
+      ManagedPolicyName: !Sub "${AppName}-sam5-lambda-ddb-crud-${DeploymentStage}-c"
       PolicyDocument:
         Version: "2012-10-17"
         Statement:
@@ -1367,7 +1382,7 @@ Resources:
   AppManagedPolicyS3ApplicationBucketsCrud:
     Type: AWS::IAM::ManagedPolicy
     Properties:
-      ManagedPolicyName: !Sub "${AppName}-lambda-s3-app-${DeploymentStage}"
+      ManagedPolicyName: !Sub "${AppName}-sam5-lambda-s3-app-${DeploymentStage}"
       PolicyDocument:
         Version: "2012-10-17"
         Statement:
@@ -1502,25 +1517,10 @@ Resources:
               - sns:Publish
             Resource: !GetAtt OpsAlertsTopic.TopicArn
 
-  AppManagedPolicyCadWebhookSnsPublishOnly:
-    Type: AWS::IAM::ManagedPolicy
-    Properties:
-      ManagedPolicyName: !Sub "${AppName}-lambda-sns-cad-webhook-${DeploymentStage}"
-      PolicyDocument:
-        Version: "2012-10-17"
-        Statement:
-          - Sid: PublishCadWebhookSnsTopicsOnly
-            Effect: Allow
-            Action:
-              - sns:Publish
-            Resource:
-              - !Ref CadWebhookProcessingTopic
-              - !Ref CadWebhookIngressTopic
-
   AppManagedPolicySesBillingSenderIdentityEmails:
     Type: AWS::IAM::ManagedPolicy
     Properties:
-      ManagedPolicyName: !Sub "${AppName}-lambda-ses-billing-${DeploymentStage}"
+      ManagedPolicyName: !Sub "${AppName}-sam5-lambda-ses-billing-${DeploymentStage}"
       PolicyDocument:
         Version: "2012-10-17"
         Statement:
@@ -1553,231 +1553,26 @@ Resources:
               - transcribe:DeleteTranscriptionJob
             Resource: !Sub arn:${AWS::Partition}:transcribe:${AWS::Region}:${AWS::AccountId}:transcription-job/*
 
-  CognitoPostConfirmationFunction:
-    Type: AWS::Serverless::Function
-    Metadata:
-      BuildMethod: makefile
-      BuildTarget: build-function
-    # Ignore Globals.Function.Environment — exceeds Lambda's 4KB limit; Cognito handler only reads signup defaults below.
-    IgnoreGlobals: "*"
+  OpsAlertsTopic:
+    Type: AWS::SNS::Topic
     Properties:
-      Description: >-
-        Cognito PostConfirmation: seeds custom:agencyId and custom:role for self-service sign-ups
-        so ID tokens satisfy the API until an admin updates the user.
-      Handler: handler.handler
-      Runtime: nodejs20.x
-      CodeUri: ../cognito-post-confirmation/
-      Timeout: 30
-      MemorySize: 256
-      Environment:
-        Variables:
-          SELF_SIGNUP_DEFAULT_AGENCY_ID: !Ref SelfSignupDefaultAgencyId
-          SELF_SIGNUP_DEFAULT_ROLE: !Ref SelfSignupDefaultRole
-      Policies:
-        - Statement:
-            Effect: Allow
-            Action:
-              - cognito-idp:AdminUpdateUserAttributes
-            Resource: !Sub "arn:aws:cognito-idp:${AWS::Region}:${AWS::AccountId}:userpool/*"
+      DisplayName: !Sub "${AppName} ops (${DeploymentStage})"
 
-  CognitoUserPool:
-    Type: AWS::Cognito::UserPool
-    DeletionPolicy: Retain
-    UpdateReplacePolicy: Retain
+  OpsAlertsEmailSubscription:
+    Type: AWS::SNS::Subscription
+    Condition: HasSnsEmailSubscription
     Properties:
-      AdminCreateUserConfig:
-        AllowAdminCreateUserOnly: true
-      UsernameAttributes:
-        - email
-      AutoVerifiedAttributes:
-        - email
-      # Schema is intentionally omitted after initial pool creation — Cognito does not allow
-      # modifying/deleting custom attributes via CloudFormation updates (see UPDATE_ROLLBACK_FAILED).
-      # Pool custom attrs: agencyId, role, status, planId, subStatus,
-      # pwdChangedAt, pwdChangeReq, hospitalId. Add new attributes via AWS Console/CLI only.
-      Policies:
-        PasswordPolicy:
-          MinimumLength: 12
-          RequireLowercase: true
-          RequireUppercase: true
-          RequireNumbers: true
-          RequireSymbols: true
-      # TOTP MFA: required in staging/prod/pilot (CJIS); optional in dev so test users can sign in without an authenticator app.
-      MfaConfiguration: !If [IsProdOrPilot, "ON", "OPTIONAL"]
-      EnabledMfas:
-        - SOFTWARE_TOKEN_MFA
-      LambdaConfig:
-        PostConfirmation: !GetAtt CognitoPostConfirmationFunction.Arn
+      TopicArn: !Ref OpsAlertsTopic
+      Protocol: email
+      Endpoint: !Ref SnsEmailSubscription
 
-  CognitoPostConfirmationInvokePermission:
-    Type: AWS::Lambda::Permission
+  OpsAlertsSmsSubscription:
+    Type: AWS::SNS::Subscription
+    Condition: HasSnsSmsSubscription
     Properties:
-      Action: lambda:InvokeFunction
-      FunctionName: !Ref CognitoPostConfirmationFunction
-      Principal: cognito-idp.amazonaws.com
-      SourceArn: !GetAtt CognitoUserPool.Arn
-
-  CognitoUserPoolClient:
-    Type: AWS::Cognito::UserPoolClient
-    DeletionPolicy: Retain
-    UpdateReplacePolicy: Retain
-    Properties:
-      ClientName: !If
-        - HasCognitoAppClientNameParam
-        - !Ref CognitoAppClientName
-        - !Sub "${AppName}-web-${DeploymentStage}"
-      UserPoolId: !Ref CognitoUserPool
-      GenerateSecret: !If [CognitoClientUsesSecret, true, false]
-      CallbackURLs: !If
-        - HasCognitoCallbackUrls
-        - !Split [",", !Ref CognitoCallbackUrls]
-        - !Ref AWS::NoValue
-      LogoutURLs: !If
-        - HasCognitoLogoutUrls
-        - !Split [",", !Ref CognitoLogoutUrls]
-        - !Ref AWS::NoValue
-      AllowedOAuthFlowsUserPoolClient: !If [HasCognitoCallbackUrls, true, !Ref AWS::NoValue]
-      AllowedOAuthFlows: !If
-        - HasCognitoCallbackUrls
-        - [code]
-        - !Ref AWS::NoValue
-      AllowedOAuthScopes: !If
-        - HasCognitoCallbackUrls
-        - [openid, email, profile]
-        - !Ref AWS::NoValue
-      ExplicitAuthFlows:
-        - ALLOW_USER_PASSWORD_AUTH
-        - ALLOW_REFRESH_TOKEN_AUTH
-      PreventUserExistenceErrors: ENABLED
-      SupportedIdentityProviders:
-        - COGNITO
-
-  CognitoNativeUserPoolClient:
-    Type: AWS::Cognito::UserPoolClient
-    DeletionPolicy: Retain
-    UpdateReplacePolicy: Retain
-    Properties:
-      ClientName: !Sub "${AppName}-native-${DeploymentStage}"
-      UserPoolId: !Ref CognitoUserPool
-      GenerateSecret: false
-      CallbackURLs: !Split [",", !Ref CognitoNativeCallbackUrls]
-      LogoutURLs: !Split [",", !Ref CognitoNativeLogoutUrls]
-      AllowedOAuthFlowsUserPoolClient: true
-      AllowedOAuthFlows:
-        - code
-      AllowedOAuthScopes:
-        - openid
-        - email
-        - profile
-      ExplicitAuthFlows:
-        - ALLOW_REFRESH_TOKEN_AUTH
-      PreventUserExistenceErrors: ENABLED
-      SupportedIdentityProviders:
-        - COGNITO
-
-  CognitoUserPoolDomain:
-    Type: AWS::Cognito::UserPoolDomain
-    DeletionPolicy: Retain
-    UpdateReplacePolicy: Retain
-    Properties:
-      # Prefix must be unique per account/region; include stage so dev/staging/prod/pilot stacks do not collide.
-      Domain: !If
-        - HasCognitoDomainPrefixParam
-        - !Ref CognitoDomainPrefix
-        - !Sub "rapidcortex-${DeploymentStage}-${AWS::AccountId}"
-      UserPoolId: !Ref CognitoUserPool
-
-  # Logical id retained for stable stack upgrades; pool group name is `rcsuperadmin`.
-  CognitoGroupPlatformSuperadmin:
-    Type: AWS::Cognito::UserPoolGroup
-    DeletionPolicy: Retain
-    UpdateReplacePolicy: Retain
-    Properties:
-      GroupName: rcsuperadmin
-      Description: Rapid Cortex platform super-administrator (full tenant access).
-      UserPoolId: !Ref CognitoUserPool
-
-  CognitoGroupRcBusinessAdmin:
-    Type: AWS::Cognito::UserPoolGroup
-    DeletionPolicy: Retain
-    UpdateReplacePolicy: Retain
-    Properties:
-      GroupName: rcadmin
-      Description: Rapid Cortex business operations (billing, onboarding, notices).
-      UserPoolId: !Ref CognitoUserPool
-
-  CognitoGroupRcItAdmin:
-    Type: AWS::Cognito::UserPoolGroup
-    DeletionPolicy: Retain
-    UpdateReplacePolicy: Retain
-    Properties:
-      GroupName: rcitadmin
-      Description: Rapid Cortex technical support (users, integrations, diagnostics).
-      UserPoolId: !Ref CognitoUserPool
-
-  CognitoGroupAgencyAdmin:
-    Type: AWS::Cognito::UserPoolGroup
-    DeletionPolicy: Retain
-    UpdateReplacePolicy: Retain
-    Properties:
-      GroupName: agencyadmin
-      Description: Agency-scoped administrators.
-      UserPoolId: !Ref CognitoUserPool
-
-  CognitoGroupAgencyIt:
-    Type: AWS::Cognito::UserPoolGroup
-    Properties:
-      GroupName: agencyit
-      Description: Agency IT administrators.
-      UserPoolId: !Ref CognitoUserPool
-
-  CognitoGroupSupervisor:
-    Type: AWS::Cognito::UserPoolGroup
-    DeletionPolicy: Retain
-    UpdateReplacePolicy: Retain
-    Properties:
-      GroupName: commsupervisor
-      Description: Agency communications supervisors.
-      UserPoolId: !Ref CognitoUserPool
-
-  CognitoGroupDispatcher:
-    Type: AWS::Cognito::UserPoolGroup
-    Properties:
-      GroupName: dispatcher
-      Description: Agency-scoped dispatch operators.
-      UserPoolId: !Ref CognitoUserPool
-
-  CognitoGroupAnalyst:
-    Type: AWS::Cognito::UserPoolGroup
-    Properties:
-      GroupName: analyst
-      Description: Analyst role.
-      UserPoolId: !Ref CognitoUserPool
-
-  CognitoGroupAuditor:
-    Type: AWS::Cognito::UserPoolGroup
-    DeletionPolicy: Retain
-    UpdateReplacePolicy: Retain
-    Properties:
-      GroupName: auditor
-      Description: Read-only auditor.
-      UserPoolId: !Ref CognitoUserPool
-
-  CognitoGroupHospitalAdmin:
-    Type: AWS::Cognito::UserPoolGroup
-    Properties:
-      GroupName: hospitaladmin
-      Description: Hospital facility administrator (capacity, analytics, staff invites).
-      UserPoolId: !Ref CognitoUserPool
-
-  CognitoGroupHospitalStaff:
-    Type: AWS::Cognito::UserPoolGroup
-    DeletionPolicy: Retain
-    UpdateReplacePolicy: Retain
-    Properties:
-      GroupName: hospitalstaff
-      Description: Hospital staff (live capacity and diversion updates).
-      UserPoolId: !Ref CognitoUserPool
+      TopicArn: !Ref OpsAlertsTopic
+      Protocol: sms
+      Endpoint: !Ref SnsSmsSubscription
 
   Api:
     Type: AWS::Serverless::HttpApi
@@ -1803,17 +1598,17 @@ Resources:
           CognitoJwtAuthorizer:
             IdentitySource: "$request.header.Authorization"
             JwtConfiguration:
-              issuer: !Sub https://cognito-idp.${AWS::Region}.amazonaws.com/${CognitoUserPool}
+              issuer: !Ref ImportedCognitoIssuer
               audience:
-                - !Ref CognitoUserPoolClient
-                - !Ref CognitoNativeUserPoolClient
+                - !Ref ImportedCognitoWebClientId
+                - !Ref ImportedCognitoNativeClientId
 
   # Regional WAF in front of the HTTP API (API Gateway stage association). Complements stage throttling; does not replace it.
   ApiWebAcl:
     Type: AWS::WAFv2::WebACL
     Condition: HasApiWaf
     Properties:
-      Name: !Sub "${AppName}-httpapi-waf-${DeploymentStage}"
+      Name: !Sub "${AppName}-httpapi5-waf-${DeploymentStage}"
       Description: Managed rules + per-IP rate limit for Rapid Cortex API Gateway
       Scope: REGIONAL
       DefaultAction:
@@ -1932,2300 +1727,1398 @@ Resources:
         DNSName: !GetAtt ApiCustomDomain.RegionalDomainName
         HostedZoneId: !GetAtt ApiCustomDomain.RegionalHostedZoneId
 
-  AppCnameRecord:
-    Type: AWS::Route53::RecordSet
-    Condition: HasAppCnameTarget
-    Properties:
-      HostedZoneName: !Sub "${RootDomainName}."
-      Name: !Sub "app.${RootDomainName}."
-      Type: CNAME
-      TTL: "300"
-      ResourceRecords:
-        - !Ref AppCnameTarget
-
-  AdminCnameRecord:
-    Type: AWS::Route53::RecordSet
-    Condition: HasAdminCnameTarget
-    Properties:
-      HostedZoneName: !Sub "${RootDomainName}."
-      Name: !Sub "admin.${RootDomainName}."
-      Type: CNAME
-      TTL: "300"
-      ResourceRecords:
-        - !Ref AdminCnameTarget
-
-  WwwCnameRecord:
-    Type: AWS::Route53::RecordSet
-    Condition: HasWwwCnameTarget
-    Properties:
-      HostedZoneName: !Sub "${RootDomainName}."
-      Name: !Sub "www.${RootDomainName}."
-      Type: CNAME
-      TTL: "300"
-      ResourceRecords:
-        - !Ref WwwCnameTarget
-
-  HealthFunction:
-    Type: AWS::Serverless::Function
-    Metadata:
-      BuildMethod: makefile
-      BuildTarget: build-function
-    Properties:
-      Environment:
-        Variables:
-          COGNITO_USER_POOL_ID: !Ref CognitoUserPool
-          COGNITO_CLIENT_ID: !Ref CognitoUserPoolClient
-      CodeUri: ../../apps/api/
-      Handler: dist/handlers/health.handler
-      Policies:
-        - !Ref AppManagedPolicyS3ApplicationBucketsCrud
-
-      Events:
-        HealthRoute:
-          Type: HttpApi
-          Properties:
-            ApiId: !Ref Api
-            Path: /api/health
-            Method: GET
-            Auth:
-              Authorizer: NONE
-
-  PostContactSalesLeadFunction:
-    Type: AWS::Serverless::Function
-    Metadata:
-      BuildMethod: makefile
-      BuildTarget: build-function
-    Properties:
-      Environment:
-        Variables:
-          COGNITO_USER_POOL_ID: !Ref CognitoUserPool
-          COGNITO_CLIENT_ID: !Ref CognitoUserPoolClient
-      CodeUri: ../../apps/api/
-      Handler: dist/handlers/postContactSalesLead.handler
-      Policies:
-        - !Ref AppManagedPolicyDynamoLambdaCrudShardA
-        - !Ref AppManagedPolicyDynamoLambdaCrudShardB
-        - !Ref AppManagedPolicyDynamoLambdaCrudShardC
-        - Statement:
-            Sid: SnsPublishOpsAlertsTopic
-            Effect: Allow
-            Action:
-              - sns:Publish
-            Resource: !GetAtt OpsAlertsTopic.TopicArn
-        - Statement:
-            Sid: SesContactSalesFromSupportIdentity
-            Effect: Allow
-            Action:
-              - ses:SendEmail
-            Resource:
-              - !Sub arn:${AWS::Partition}:ses:${AWS::Region}:${AWS::AccountId}:identity/support@rapidcortex.us
-      Events:
-        ContactSales:
-          Type: HttpApi
-          Properties:
-            ApiId: !Ref Api
-            Path: /api/contact-sales
-            Method: ANY
-            Auth:
-              Authorizer: NONE
-
-  CreateIncidentFunction:
-    Type: AWS::Serverless::Function
-    Metadata:
-      BuildMethod: makefile
-      BuildTarget: build-function
-    Properties:
-      Environment:
-        Variables:
-          COGNITO_USER_POOL_ID: !Ref CognitoUserPool
-          COGNITO_CLIENT_ID: !Ref CognitoUserPoolClient
-      CodeUri: ../../apps/api/
-      Handler: dist/handlers/createIncident.handler
-      Policies:
-        - !Ref AppManagedPolicyDynamoLambdaCrudShardA
-        - !Ref AppManagedPolicyDynamoLambdaCrudShardB
-        - !Ref AppManagedPolicyDynamoLambdaCrudShardC
-        - !Ref AppManagedPolicyS3ApplicationBucketsCrud
-
-      Events:
-        Route:
-          Type: HttpApi
-          Properties:
-            ApiId: !Ref Api
-            Path: /api/incidents
-            Method: POST
-
-  ListIncidentsFunction:
-    Type: AWS::Serverless::Function
-    Metadata:
-      BuildMethod: makefile
-      BuildTarget: build-function
-    Properties:
-      Environment:
-        Variables:
-          COGNITO_USER_POOL_ID: !Ref CognitoUserPool
-          COGNITO_CLIENT_ID: !Ref CognitoUserPoolClient
-      CodeUri: ../../apps/api/
-      Handler: dist/handlers/listIncidents.handler
-      Policies:
-        - !Ref AppManagedPolicyDynamoLambdaCrudShardA
-        - !Ref AppManagedPolicyDynamoLambdaCrudShardB
-        - !Ref AppManagedPolicyDynamoLambdaCrudShardC
-        - !Ref AppManagedPolicyS3ApplicationBucketsCrud
-
-      Events:
-        Route:
-          Type: HttpApi
-          Properties:
-            ApiId: !Ref Api
-            Path: /api/incidents
-            Method: GET
-
-  GetIncidentFunction:
-    Type: AWS::Serverless::Function
-    Metadata:
-      BuildMethod: makefile
-      BuildTarget: build-function
-    Properties:
-      Environment:
-        Variables:
-          COGNITO_USER_POOL_ID: !Ref CognitoUserPool
-          COGNITO_CLIENT_ID: !Ref CognitoUserPoolClient
-      CodeUri: ../../apps/api/
-      Handler: dist/handlers/getIncident.handler
-      Policies:
-        - !Ref AppManagedPolicyDynamoLambdaCrudShardA
-        - !Ref AppManagedPolicyDynamoLambdaCrudShardB
-        - !Ref AppManagedPolicyDynamoLambdaCrudShardC
-        - !Ref AppManagedPolicyS3ApplicationBucketsCrud
-
-      Events:
-        Route:
-          Type: HttpApi
-          Properties:
-            ApiId: !Ref Api
-            Path: /api/incidents/{id}
-            Method: GET
-
-  PatchIncidentFunction:
-    Type: AWS::Serverless::Function
-    Metadata:
-      BuildMethod: makefile
-      BuildTarget: build-function
-    Properties:
-      Environment:
-        Variables:
-          COGNITO_USER_POOL_ID: !Ref CognitoUserPool
-          COGNITO_CLIENT_ID: !Ref CognitoUserPoolClient
-      CodeUri: ../../apps/api/
-      Handler: dist/handlers/patchIncident.handler
-      Policies:
-        - !Ref AppManagedPolicyDynamoLambdaCrudShardA
-        - !Ref AppManagedPolicyDynamoLambdaCrudShardB
-        - !Ref AppManagedPolicyDynamoLambdaCrudShardC
-        - !Ref AppManagedPolicyS3ApplicationBucketsCrud
-
-      Events:
-        Route:
-          Type: HttpApi
-          Properties:
-            ApiId: !Ref Api
-            Path: /api/incidents/{id}
-            Method: PATCH
-
-  PatchIncidentLegalHoldFunction:
-    Type: AWS::Serverless::Function
-    Metadata:
-      BuildMethod: makefile
-      BuildTarget: build-function
-    Properties:
-      Environment:
-        Variables:
-          COGNITO_USER_POOL_ID: !Ref CognitoUserPool
-          COGNITO_CLIENT_ID: !Ref CognitoUserPoolClient
-      CodeUri: ../../apps/api/
-      Handler: dist/handlers/patchIncidentLegalHold.handler
-      Policies:
-        - !Ref AppManagedPolicyDynamoLambdaCrudShardA
-        - !Ref AppManagedPolicyDynamoLambdaCrudShardB
-        - !Ref AppManagedPolicyDynamoLambdaCrudShardC
-        - !Ref AppManagedPolicyS3ApplicationBucketsCrud
-
-      Events:
-        Route:
-          Type: HttpApi
-          Properties:
-            ApiId: !Ref Api
-            Path: /api/incidents/{id}/legal-hold
-            Method: PATCH
-
-  AddTranscriptChunkFunction:
-    Type: AWS::Serverless::Function
-    Metadata:
-      BuildMethod: makefile
-      BuildTarget: build-function
-    Properties:
-      CodeUri: ../../apps/api/
-      Handler: dist/handlers/addTranscriptChunk.handler
-      Timeout: 120
-      MemorySize: 768
-      Environment:
-        Variables:
-          COGNITO_USER_POOL_ID: !Ref CognitoUserPool
-          COGNITO_CLIENT_ID: !Ref CognitoUserPoolClient
-          MULTILINGUAL_STRICT_VALIDATION: !FindInMap [MultilingualStageDefaults, !Ref DeploymentStage, StrictValidation]
-          AWS_TRANSCRIBE_LANGUAGE_IDENTIFICATION: "true"
-          AWS_TRANSCRIBE_PREFERRED_LANGUAGE_OPTIONS: ""
-          AWS_TRANSCRIBE_TIMEOUT_MS: "0"
-          AWS_TRANSCRIBE_ENABLE_PARTIAL_RESULTS: "false"
-          AWS_TRANSCRIBE_LANGUAGE_OPTIONS: "en-US,es-US,zh-CN,tl-PH,vi-VN,ar-SA,fr-FR,ko-KR,ru-RU,pt-BR"
-          BEDROCK_MODEL_PRIMARY: !Ref AiBedrockFoundationModelId
-          BEDROCK_MODEL_SECONDARY: !Ref AiBedrockFoundationModelId
-          BEDROCK_MODEL_TERTIARY: !Ref AiBedrockFoundationModelId
-          GOOGLE_CLOUD_PROJECT_ID: !Ref GoogleCloudProjectId
-          GOOGLE_TRANSLATE_LOCATION: "global"
-          GOOGLE_TTS_LOCATION: "global"
-          GOOGLE_TTS_OUTPUT_BUCKET: !Ref GoogleTtsOutputBucket
-          SILENT_TEXT_TRANSLATION_ENABLED: "true"
-          SILENT_TEXT_TTS_ENABLED: "false"
-          AZURE_SPEECH_KEY_SECRET_ARN: !If [UseManagedMultilingualSecrets, !Ref NestedMultilingualAzureApiKeysSecretArn, !Ref AzureSpeechKeySecretArn]
-          AZURE_TRANSLATION_KEY_SECRET_ARN: !If [UseManagedMultilingualSecrets, !Ref NestedMultilingualAzureApiKeysSecretArn, !Ref AzureTranslationKeySecretArn]
-          GOOGLE_APPLICATION_CREDENTIALS_SECRET_ARN: !If [UseManagedMultilingualSecrets, !Ref NestedMultilingualGoogleServiceAccountSecretArn, !Ref GoogleApplicationCredentialsSecretArn]
-      Policies:
-        - !Ref AppManagedPolicyDynamoLambdaCrudShardA
-        - !Ref AppManagedPolicyDynamoLambdaCrudShardB
-        - !Ref AppManagedPolicyDynamoLambdaCrudShardC
-        - !Ref AppManagedPolicyS3ApplicationBucketsCrud
-        - !Ref AppManagedPolicySecretsMultilingualScopedRead
-        - !Ref AppManagedPolicyBedrockAiAndQaFoundationModels
-        - !Ref AppManagedPolicyComprehendTranslateRegionalDetect
-      Events:
-        Route:
-          Type: HttpApi
-          Properties:
-            ApiId: !Ref Api
-            Path: /api/incidents/{id}/transcript
-            Method: POST
-
-  ListTranscriptFunction:
-    Type: AWS::Serverless::Function
-    Metadata:
-      BuildMethod: makefile
-      BuildTarget: build-function
-    Properties:
-      Environment:
-        Variables:
-          COGNITO_USER_POOL_ID: !Ref CognitoUserPool
-          COGNITO_CLIENT_ID: !Ref CognitoUserPoolClient
-      CodeUri: ../../apps/api/
-      Handler: dist/handlers/listTranscript.handler
-      Policies:
-        - !Ref AppManagedPolicyDynamoLambdaCrudShardA
-        - !Ref AppManagedPolicyDynamoLambdaCrudShardB
-        - !Ref AppManagedPolicyDynamoLambdaCrudShardC
-        - !Ref AppManagedPolicyS3ApplicationBucketsCrud
-
-      Events:
-        Route:
-          Type: HttpApi
-          Properties:
-            ApiId: !Ref Api
-            Path: /api/incidents/{id}/transcript
-            Method: GET
-
-  PostIncidentAudioChunkFunction:
-    Type: AWS::Serverless::Function
-    Metadata:
-      BuildMethod: makefile
-      BuildTarget: build-function
-    Properties:
-      CodeUri: ../../apps/api/
-      Handler: dist/handlers/postIncidentAudioChunk.handler
-      Timeout: 120
-      MemorySize: 768
-      Environment:
-        Variables:
-          # 4KB Lambda env-var limit recovery (CFN UPDATE_FAILED 2026-05-26).
-          # Globals inject RC_RUNTIME_CONFIG_JSON (~2.2 KB) which hydrates INCIDENTS_TABLE,
-          # TRANSCRIPTS_TABLE, AUDIT_TABLE, LANGUAGE_SESSIONS_TABLE, ASSETS_BUCKET,
-          # COGNITO_REGION (cr), OPENAI secret ARN (oa), etc. at cold start via
-          # apps/api/src/lib/hydrateLambdaEnv.ts. Only vars *not* in that hydrated set
-          # live here. Removed from this Lambda (copy-paste bloat):
-          #   - AWS_TRANSCRIBE_* (5 vars): aws/transcribeLanguageMapping.ts provides
-          #     DEFAULT_AWS_TRANSCRIBE_LANGUAGE_OPTIONS_CSV; other knobs default in
-          #     multilingualConfig.ts.
-          #   - BEDROCK_MODEL_*: analysis runs in AnalyzeIncidentFunction; aas=0 disables
-          #     inline analysis here.
-          #   - GOOGLE_TTS_*: TTS only in silent-text TTS batch handler.
-          #   - GOOGLE_CLOUD_PROJECT_ID / GOOGLE_APPLICATION_CREDENTIALS_SECRET_ARN /
-          #     AZURE_TRANSLATION_KEY_SECRET_ARN: not in any current Tr1/Tr2/Tr3 chain
-          #     (Deploy #6: dev=mock/mock/off, staging/prod/pilot=aws/mock/off).
-          #     Re-add in Deploy #7 when Tr flips to azure/google/aws — the audio chunk
-          #     pipeline then calls TranscriptService.add → buildTranslationProviderChain
-          #     and GoogleTranslationProvider.translate() needs Google creds.
-          #     AZURE_TRANSLATION_KEY_SECRET_ARN is also unneeded today: the Azure
-          #     Translator path falls back to AZURE_SPEECH_KEY_SECRET_ARN at runtime
-          #     (see runtimeSecrets.ts preferredField=azureTranslationKey on the shared
-          #     rapid-cortex/multilingual/azure-keys secret).
-          #   - SILENT_TEXT_* / PINPOINT_* / ENABLE_*: belong to dedicated handlers.
-          #   - OPENAI_API_KEY_SECRET_ARN / OPENAI_WHISPER_MODEL: hydrated from
-          #     RC_RUNTIME_CONFIG_JSON.oa + multilingualConfig default ("whisper-1").
-          # KEPT: Cognito ID/client are required by apps/api/src/lib/auth.ts
-          # verifyBearerToken() to validate JWT (issuer + audience). Without them every
-          # request returns 401.
-          COGNITO_USER_POOL_ID: !Ref CognitoUserPool
-          COGNITO_CLIENT_ID: !Ref CognitoUserPoolClient
-          MULTILINGUAL_STRICT_VALIDATION: !FindInMap [MultilingualStageDefaults, !Ref DeploymentStage, StrictValidation]
-          PRIMARY_STT_PROVIDER: !FindInMap [ApiLambdaDefaults, !Ref DeploymentStage, Stt1]
-          SECONDARY_STT_PROVIDER: !FindInMap [ApiLambdaDefaults, !Ref DeploymentStage, Stt2]
-          TERTIARY_STT_PROVIDER: !FindInMap [ApiLambdaDefaults, !Ref DeploymentStage, Stt3]
-          PRIMARY_LANGUAGE_DETECTOR: !FindInMap [ApiLambdaDefaults, !Ref DeploymentStage, Lid1]
-          SECONDARY_LANGUAGE_DETECTOR: !FindInMap [ApiLambdaDefaults, !Ref DeploymentStage, Lid2]
-          TERTIARY_LANGUAGE_DETECTOR: !FindInMap [ApiLambdaDefaults, !Ref DeploymentStage, Lid3]
-          PRIMARY_TRANSLATION_PROVIDER: !FindInMap [ApiLambdaDefaults, !Ref DeploymentStage, Tr1]
-          SECONDARY_TRANSLATION_PROVIDER: !FindInMap [ApiLambdaDefaults, !Ref DeploymentStage, Tr2]
-          TERTIARY_TRANSLATION_PROVIDER: !FindInMap [ApiLambdaDefaults, !Ref DeploymentStage, Tr3]
-          GOOGLE_TRANSLATE_LOCATION: "global"
-          AZURE_SPEECH_KEY_SECRET_ARN: !If [UseManagedMultilingualSecrets, !Ref NestedMultilingualAzureApiKeysSecretArn, !Ref AzureSpeechKeySecretArn]
-      Policies:
-        - !Ref AppManagedPolicyDynamoLambdaCrudShardA
-        - !Ref AppManagedPolicyDynamoLambdaCrudShardB
-        - !Ref AppManagedPolicyDynamoLambdaCrudShardC
-        - !Ref AppManagedPolicyS3ApplicationBucketsCrud
-        - !Ref AppManagedPolicyComprehendTranslateRegionalDetect
-        - !Ref AppManagedPolicySecretsMultilingualScopedRead
-        - !Ref AppManagedPolicySecretsAnalyzeProvidersRead
-        - !Ref AppManagedPolicyBedrockAiAndQaFoundationModels
-        - !Ref AppManagedPolicyTranscribeIncidentAudioJobsReadWrite
-      Events:
-        Route:
-          Type: HttpApi
-          Properties:
-            ApiId: !Ref Api
-            Path: /api/incidents/{id}/audio-chunks
-            Method: POST
-
-  AnalyzeIncidentFunction:
-    Type: AWS::Serverless::Function
-    Metadata:
-      BuildMethod: makefile
-      BuildTarget: build-function
-    Properties:
-      Environment:
-        Variables:
-          COGNITO_USER_POOL_ID: !Ref CognitoUserPool
-          COGNITO_CLIENT_ID: !Ref CognitoUserPoolClient
-          BEDROCK_MODEL_PRIMARY: !Ref AiBedrockFoundationModelId
-          BEDROCK_MODEL_SECONDARY: !Ref AiBedrockFoundationModelId
-          BEDROCK_MODEL_TERTIARY: !Ref AiBedrockFoundationModelId
-          ENABLE_SOP_PROTOCOL_AI: !If [PilotTestFeaturesOn, "true", "false"]
-          SOP_DETECT_EVERY_N_SEGMENTS: "0"
-          SOP_DETECTION_MOCK: "false"
-          TRIAGE_DETECT_EVERY_N_SEGMENTS: "0"
-          TRIAGE_MOCK: "false"
-      CodeUri: ../../apps/api/
-      Handler: dist/handlers/analyzeIncident.handler
-      Timeout: 120
-      MemorySize: 768
-      Policies:
-        - !Ref AppManagedPolicyDynamoLambdaCrudShardA
-        - !Ref AppManagedPolicyDynamoLambdaCrudShardB
-        - !Ref AppManagedPolicyDynamoLambdaCrudShardC
-        - !Ref AppManagedPolicyS3ApplicationBucketsCrud
-        - !Ref AppManagedPolicySecretsAnalyzeProvidersRead
-        - !Ref AppManagedPolicyBedrockAiAndQaFoundationModels
-      Events:
-        Route:
-          Type: HttpApi
-          Properties:
-            ApiId: !Ref Api
-            Path: /api/incidents/{id}/analyze
-            Method: POST
-
-  GetIncidentAnalysisFunction:
-    Type: AWS::Serverless::Function
-    Metadata:
-      BuildMethod: makefile
-      BuildTarget: build-function
-    Properties:
-      Environment:
-        Variables:
-          COGNITO_USER_POOL_ID: !Ref CognitoUserPool
-          COGNITO_CLIENT_ID: !Ref CognitoUserPoolClient
-          BEDROCK_MODEL_PRIMARY: !Ref AiBedrockFoundationModelId
-          BEDROCK_MODEL_SECONDARY: !Ref AiBedrockFoundationModelId
-          BEDROCK_MODEL_TERTIARY: !Ref AiBedrockFoundationModelId
-          ENABLE_SOP_PROTOCOL_AI: !If [PilotTestFeaturesOn, "true", "false"]
-          SOP_DETECT_EVERY_N_SEGMENTS: "0"
-          SOP_DETECTION_MOCK: "false"
-      CodeUri: ../../apps/api/
-      Handler: dist/handlers/getIncidentAnalysis.handler
-      Policies:
-        - !Ref AppManagedPolicyDynamoLambdaCrudShardA
-        - !Ref AppManagedPolicyDynamoLambdaCrudShardB
-        - !Ref AppManagedPolicyDynamoLambdaCrudShardC
-        - !Ref AppManagedPolicyS3ApplicationBucketsCrud
-
-      Events:
-        Route:
-          Type: HttpApi
-          Properties:
-            ApiId: !Ref Api
-            Path: /api/incidents/{id}/analysis
-            Method: GET
-
-  DetectIncidentTypeFunction:
-    Type: AWS::Serverless::Function
-    Metadata:
-      BuildMethod: makefile
-      BuildTarget: build-function
-    Properties:
-      Environment:
-        Variables:
-          COGNITO_USER_POOL_ID: !Ref CognitoUserPool
-          COGNITO_CLIENT_ID: !Ref CognitoUserPoolClient
-          ENABLE_SOP_PROTOCOL_AI: !If [PilotTestFeaturesOn, "true", "false"]
-          SOP_UPLOAD_URL_TTL_SECONDS: "900"
-      CodeUri: ../../apps/api/
-      Handler: dist/handlers/protocols/detectIncidentType.handler
-      Policies:
-        - !Ref AppManagedPolicyDynamoLambdaCrudShardA
-        - !Ref AppManagedPolicyDynamoLambdaCrudShardB
-        - !Ref AppManagedPolicyDynamoLambdaCrudShardC
-        - !Ref AppManagedPolicyS3ApplicationBucketsCrud
-
-      Events:
-        Route:
-          Type: HttpApi
-          Properties:
-            ApiId: !Ref Api
-            Path: /api/incidents/{id}/protocols/sop/detect
-            Method: POST
-
-  PostAgencySopUploadUrlFunction:
-    Type: AWS::Serverless::Function
-    Metadata:
-      BuildMethod: makefile
-      BuildTarget: build-function
-    Properties:
-      Environment:
-        Variables:
-          COGNITO_USER_POOL_ID: !Ref CognitoUserPool
-          COGNITO_CLIENT_ID: !Ref CognitoUserPoolClient
-          BEDROCK_MODEL_PRIMARY: !Ref AiBedrockFoundationModelId
-          BEDROCK_MODEL_SECONDARY: !Ref AiBedrockFoundationModelId
-          BEDROCK_MODEL_TERTIARY: !Ref AiBedrockFoundationModelId
-          TRIAGE_DETECT_EVERY_N_SEGMENTS: "0"
-          TRIAGE_MOCK: "false"
-          ENABLE_DISPATCHER_WELLNESS: "false"
-          ENABLE_CALLER_CARD: !If [PilotTestFeaturesOn, "true", "false"]
-      CodeUri: ../../apps/api/
-      Handler: dist/handlers/agencies/postAgencySopUploadUrl.handler
-      Policies:
-        - !Ref AppManagedPolicyDynamoLambdaCrudShardA
-        - !Ref AppManagedPolicyDynamoLambdaCrudShardB
-        - !Ref AppManagedPolicyDynamoLambdaCrudShardC
-        - !Ref AppManagedPolicyS3ApplicationBucketsCrud
-
-      Events:
-        Route:
-          Type: HttpApi
-          Properties:
-            ApiId: !Ref Api
-            Path: /api/agencies/{id}/sop/upload-url
-            Method: POST
-
-  GetTriageResultFunction:
-    Type: AWS::Serverless::Function
-    Metadata:
-      BuildMethod: makefile
-      BuildTarget: build-function
-    Properties:
-      Environment:
-        Variables:
-          COGNITO_USER_POOL_ID: !Ref CognitoUserPool
-          COGNITO_CLIENT_ID: !Ref CognitoUserPoolClient
-          BEDROCK_MODEL_PRIMARY: !Ref AiBedrockFoundationModelId
-          BEDROCK_MODEL_SECONDARY: !Ref AiBedrockFoundationModelId
-          BEDROCK_MODEL_TERTIARY: !Ref AiBedrockFoundationModelId
-          TRIAGE_DETECT_EVERY_N_SEGMENTS: "0"
-          TRIAGE_MOCK: "false"
-          ENABLE_DISPATCHER_WELLNESS: "false"
-          ENABLE_CALLER_CARD: !If [PilotTestFeaturesOn, "true", "false"]
-      CodeUri: ../../apps/api/
-      Handler: dist/handlers/triage/getTriageResult.handler
-      Policies:
-        - !Ref AppManagedPolicyDynamoLambdaCrudShardA
-        - !Ref AppManagedPolicyDynamoLambdaCrudShardB
-        - !Ref AppManagedPolicyDynamoLambdaCrudShardC
-        - !Ref AppManagedPolicyS3ApplicationBucketsCrud
-
-      Events:
-        Route:
-          Type: HttpApi
-          Properties:
-            ApiId: !Ref Api
-            Path: /api/incidents/{id}/triage
-            Method: GET
-
-  OverrideTriageFunction:
-    Type: AWS::Serverless::Function
-    Metadata:
-      BuildMethod: makefile
-      BuildTarget: build-function
-    Properties:
-      Environment:
-        Variables:
-          COGNITO_USER_POOL_ID: !Ref CognitoUserPool
-          COGNITO_CLIENT_ID: !Ref CognitoUserPoolClient
-          ENABLE_CROSS_JURISDICTION_SHARES: !If [PilotTestFeaturesOn, "true", "false"]
-      CodeUri: ../../apps/api/
-      Handler: dist/handlers/triage/overrideTriage.handler
-      Policies:
-        - !Ref AppManagedPolicyDynamoLambdaCrudShardA
-        - !Ref AppManagedPolicyDynamoLambdaCrudShardB
-        - !Ref AppManagedPolicyDynamoLambdaCrudShardC
-        - !Ref AppManagedPolicyS3ApplicationBucketsCrud
-
-      Events:
-        Route:
-          Type: HttpApi
-          Properties:
-            ApiId: !Ref Api
-            Path: /api/incidents/{id}/triage/override
-            Method: POST
-
-  PostCadWritebackBlockedFunction:
-    Type: AWS::Serverless::Function
-    Metadata:
-      BuildMethod: makefile
-      BuildTarget: build-function
-    Properties:
-      Environment:
-        Variables:
-          COGNITO_USER_POOL_ID: !Ref CognitoUserPool
-          COGNITO_CLIENT_ID: !Ref CognitoUserPoolClient
-          ENABLE_CROSS_JURISDICTION_SHARES: !If [PilotTestFeaturesOn, "true", "false"]
-      CodeUri: ../../apps/api/
-      Handler: dist/handlers/postCadWritebackBlocked.handler
-      Policies:
-        - !Ref AppManagedPolicyDynamoLambdaCrudShardA
-        - !Ref AppManagedPolicyDynamoLambdaCrudShardB
-        - !Ref AppManagedPolicyDynamoLambdaCrudShardC
-
-      Events:
-        Route:
-          Type: HttpApi
-          Properties:
-            ApiId: !Ref Api
-            Path: /api/security/cad-writeback-blocked
-            Method: POST
-
-  PostIncidentShareFunction:
-    Type: AWS::Serverless::Function
-    Metadata:
-      BuildMethod: makefile
-      BuildTarget: build-function
-    Properties:
-      Environment:
-        Variables:
-          COGNITO_USER_POOL_ID: !Ref CognitoUserPool
-          COGNITO_CLIENT_ID: !Ref CognitoUserPoolClient
-          ENABLE_CROSS_JURISDICTION_SHARES: !If [PilotTestFeaturesOn, "true", "false"]
-      CodeUri: ../../apps/api/
-      Handler: dist/handlers/shares/postIncidentShare.handler
-      Policies:
-        - !Ref AppManagedPolicyDynamoLambdaCrudShardA
-        - !Ref AppManagedPolicyDynamoLambdaCrudShardB
-        - !Ref AppManagedPolicyDynamoLambdaCrudShardC
-        - !Ref AppManagedPolicyS3ApplicationBucketsCrud
-
-      Events:
-        Route:
-          Type: HttpApi
-          Properties:
-            ApiId: !Ref Api
-            Path: /api/incidents/{id}/shares
-            Method: POST
-
-  ListIncidentSharesFunction:
-    Type: AWS::Serverless::Function
-    Metadata:
-      BuildMethod: makefile
-      BuildTarget: build-function
-    Properties:
-      Environment:
-        Variables:
-          COGNITO_USER_POOL_ID: !Ref CognitoUserPool
-          COGNITO_CLIENT_ID: !Ref CognitoUserPoolClient
-          ENABLE_CROSS_JURISDICTION_SHARES: !If [PilotTestFeaturesOn, "true", "false"]
-      CodeUri: ../../apps/api/
-      Handler: dist/handlers/shares/listIncidentShares.handler
-      Policies:
-        - !Ref AppManagedPolicyDynamoLambdaCrudShardA
-        - !Ref AppManagedPolicyDynamoLambdaCrudShardB
-        - !Ref AppManagedPolicyDynamoLambdaCrudShardC
-        - !Ref AppManagedPolicyS3ApplicationBucketsCrud
-
-      Events:
-        Route:
-          Type: HttpApi
-          Properties:
-            ApiId: !Ref Api
-            Path: /api/incidents/{id}/shares
-            Method: GET
-
-  RevokeIncidentShareFunction:
-    Type: AWS::Serverless::Function
-    Metadata:
-      BuildMethod: makefile
-      BuildTarget: build-function
-    Properties:
-      Environment:
-        Variables:
-          COGNITO_USER_POOL_ID: !Ref CognitoUserPool
-          COGNITO_CLIENT_ID: !Ref CognitoUserPoolClient
-          BEDROCK_MODEL_PRIMARY: !Ref AiBedrockFoundationModelId
-          BEDROCK_MODEL_SECONDARY: !Ref AiBedrockFoundationModelId
-          BEDROCK_MODEL_TERTIARY: !Ref AiBedrockFoundationModelId
-      CodeUri: ../../apps/api/
-      Handler: dist/handlers/shares/revokeIncidentShare.handler
-      Policies:
-        - !Ref AppManagedPolicyDynamoLambdaCrudShardA
-        - !Ref AppManagedPolicyDynamoLambdaCrudShardB
-        - !Ref AppManagedPolicyDynamoLambdaCrudShardC
-        - !Ref AppManagedPolicyS3ApplicationBucketsCrud
-
-      Events:
-        Route:
-          Type: HttpApi
-          Properties:
-            ApiId: !Ref Api
-            Path: /api/incidents/{id}/shares/{shareId}
-            Method: DELETE
-
-  ListIncomingIncidentSharesFunction:
-    Type: AWS::Serverless::Function
-    Metadata:
-      BuildMethod: makefile
-      BuildTarget: build-function
-    Properties:
-      Environment:
-        Variables:
-          COGNITO_USER_POOL_ID: !Ref CognitoUserPool
-          COGNITO_CLIENT_ID: !Ref CognitoUserPoolClient
-      CodeUri: ../../apps/api/
-      Handler: dist/handlers/shares/listIncomingIncidentShares.handler
-      Policies:
-        - !Ref AppManagedPolicyDynamoLambdaCrudShardA
-        - !Ref AppManagedPolicyDynamoLambdaCrudShardB
-        - !Ref AppManagedPolicyDynamoLambdaCrudShardC
-        - !Ref AppManagedPolicyS3ApplicationBucketsCrud
-
-      Events:
-        Route:
-          Type: HttpApi
-          Properties:
-            ApiId: !Ref Api
-            Path: /api/incidents/shared-incoming
-            Method: GET
-
-  QaHttpFunction:
-    Type: AWS::Serverless::Function
-    Metadata:
-      BuildMethod: makefile
-      BuildTarget: build-function
-    Properties:
-      Environment:
-        Variables:
-          COGNITO_USER_POOL_ID: !Ref CognitoUserPool
-          COGNITO_CLIENT_ID: !Ref CognitoUserPoolClient
-      CodeUri: ../../apps/api/
-      Handler: dist/handlers/qa/qaHttp.handler
-      Policies:
-        - !Ref AppManagedPolicyDynamoLambdaCrudShardA
-        - !Ref AppManagedPolicyDynamoLambdaCrudShardB
-        - !Ref AppManagedPolicyDynamoLambdaCrudShardC
-        - !Ref AppManagedPolicyS3ApplicationBucketsCrud
-
-      Events:
-        PostQaSessions:
-          Type: HttpApi
-          Properties:
-            ApiId: !Ref Api
-            Path: /api/qa/sessions
-            Method: POST
-        GetQaSessions:
-          Type: HttpApi
-          Properties:
-            ApiId: !Ref Api
-            Path: /api/qa/sessions
-            Method: GET
-        GetQaSession:
-          Type: HttpApi
-          Properties:
-            ApiId: !Ref Api
-            Path: /api/qa/sessions/{id}
-            Method: GET
-        PatchQaSession:
-          Type: HttpApi
-          Properties:
-            ApiId: !Ref Api
-            Path: /api/qa/sessions/{id}
-            Method: PATCH
-        GetQaTemplates:
-          Type: HttpApi
-          Properties:
-            ApiId: !Ref Api
-            Path: /api/qa/templates
-            Method: GET
-        PostQaTemplates:
-          Type: HttpApi
-          Properties:
-            ApiId: !Ref Api
-            Path: /api/qa/templates
-            Method: POST
-        PatchQaTemplate:
-          Type: HttpApi
-          Properties:
-            ApiId: !Ref Api
-            Path: /api/qa/templates/{id}
-            Method: PATCH
-        DeleteQaTemplate:
-          Type: HttpApi
-          Properties:
-            ApiId: !Ref Api
-            Path: /api/qa/templates/{id}
-            Method: DELETE
-
-  SeoIntelligenceHttpFunction:
-    Type: AWS::Serverless::Function
-    Metadata:
-      BuildMethod: makefile
-      BuildTarget: build-function
-    Properties:
-      Environment:
-        Variables:
-          COGNITO_USER_POOL_ID: !Ref CognitoUserPool
-          COGNITO_CLIENT_ID: !Ref CognitoUserPoolClient
-      Timeout: 60
-      MemorySize: 1024
-      CodeUri: ../../apps/api/
-      Handler: dist/handlers/admin/seoIntelligenceHttp.handler
-      Policies:
-        - !Ref AppManagedPolicyDynamoLambdaCrudShardA
-        - !Ref AppManagedPolicyDynamoLambdaCrudShardB
-        - !Ref AppManagedPolicyDynamoLambdaCrudShardC
-        - !Ref AppManagedPolicyS3ApplicationBucketsCrud
-        - !Ref AppManagedPolicyBedrockQaFoundationModelOnly
-
-      Events:
-        SeoAdminRoot:
-          Type: HttpApi
-          Properties:
-            ApiId: !Ref Api
-            Path: /api/admin/seo
-            Method: ANY
-        SeoAdminProxy:
-          Type: HttpApi
-          Properties:
-            ApiId: !Ref Api
-            Path: /api/admin/seo/{proxy+}
-            Method: ANY
-
-  CadAdminHttpFunction:
-    Type: AWS::Serverless::Function
-    Metadata:
-      BuildMethod: makefile
-      BuildTarget: build-function
-    Properties:
-      Timeout: 30
-      MemorySize: 512
-      Environment:
-        Variables:
-          COGNITO_USER_POOL_ID: !Ref CognitoUserPool
-          COGNITO_CLIENT_ID: !Ref CognitoUserPoolClient
-          CAD_INTEGRATIONS_TABLE: !Ref CadIntegrationsTable
-          CAD_INCIDENTS_RAW_TABLE: !Ref CadIncidentsRawTable
-          CAD_WEBHOOK_SNS_TOPIC_ARN: !Ref CadWebhookProcessingTopic
-          CAD_WEBHOOK_SECRET_SALT: !Ref CadWebhookSecretSalt
-          CAD_PUBLIC_API_BASE_URL:
-            Fn::If:
-              - HasApiCustomDomainCert
-              - !Sub "https://${ApiSubdomainPrefix}.${RootDomainName}"
-              - !Ref CadPublicApiBaseUrl
-          CAD_WEBHOOK_INGRESS_TOPIC_ARN: !Ref CadWebhookIngressTopic
-      CodeUri: ../../apps/api/
-      Handler: dist/handlers/cad/cadAdminRouter.handler
-      Policies:
-        - !Ref AppManagedPolicyDynamoLambdaCrudShardA
-        - !Ref AppManagedPolicyDynamoLambdaCrudShardB
-        - !Ref AppManagedPolicyDynamoLambdaCrudShardC
-        - !Ref AppManagedPolicyCadWebhookSnsPublishOnly
-
-      Events:
-        CadIntegrationsGet:
-          Type: HttpApi
-          Properties:
-            ApiId: !Ref Api
-            Path: /api/admin/cad-integrations
-            Method: GET
-        CadIntegrationsPost:
-          Type: HttpApi
-          Properties:
-            ApiId: !Ref Api
-            Path: /api/admin/cad-integrations
-            Method: POST
-        CadIntegrationByIdGet:
-          Type: HttpApi
-          Properties:
-            ApiId: !Ref Api
-            Path: /api/admin/cad-integrations/{id}
-            Method: GET
-        CadIntegrationByIdPatch:
-          Type: HttpApi
-          Properties:
-            ApiId: !Ref Api
-            Path: /api/admin/cad-integrations/{id}
-            Method: PATCH
-        CadIntegrationByIdDelete:
-          Type: HttpApi
-          Properties:
-            ApiId: !Ref Api
-            Path: /api/admin/cad-integrations/{id}
-            Method: DELETE
-        CadIntegrationByIdTestPost:
-          Type: HttpApi
-          Properties:
-            ApiId: !Ref Api
-            Path: /api/admin/cad-integrations/{id}/test
-            Method: POST
-        CadIncidentsGet:
-          Type: HttpApi
-          Properties:
-            ApiId: !Ref Api
-            Path: /api/admin/cad-incidents
-            Method: GET
-
-  CadWritebackHttpFunction:
-    Type: AWS::Serverless::Function
-    Metadata:
-      BuildMethod: makefile
-      BuildTarget: build-function
-    Properties:
-      Timeout: 30
-      MemorySize: 512
-      Environment:
-        Variables:
-          COGNITO_USER_POOL_ID: !Ref CognitoUserPool
-          COGNITO_CLIENT_ID: !Ref CognitoUserPoolClient
-          CAD_INTEGRATIONS_TABLE: !Ref CadIntegrationsTable
-          CAD_WRITEBACK_AUDIT_TABLE: !Ref CadWritebackAuditTable
-          CAD_WRITEBACK_ENABLED: !Ref CadWritebackEnabled
-          CAD_WRITEBACK_REQUIRES_APPROVAL: !Ref CadWritebackRequiresApproval
-      CodeUri: ../../apps/api/
-      Handler: dist/handlers/cad/cadWritebackHttp.handler
-      Policies:
-        - Statement:
-            - Sid: CadWritebackIncidentRead
-              Effect: Allow
-              Action:
-                - dynamodb:GetItem
-              Resource: !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${IncidentsTable}
-            - Sid: CadWritebackIntegrationsRead
-              Effect: Allow
-              Action:
-                - dynamodb:GetItem
-                - dynamodb:Query
-              Resource:
-                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${CadIntegrationsTable}
-                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${CadIntegrationsTable}/index/*
-            - Sid: CadWritebackAuditRw
-              Effect: Allow
-              Action:
-                - dynamodb:GetItem
-                - dynamodb:PutItem
-                - dynamodb:Query
-              Resource:
-                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${CadWritebackAuditTable}
-                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${CadWritebackAuditTable}/index/*
-            - Sid: CadWritebackAuditAppend
-              Effect: Allow
-              Action:
-                - dynamodb:PutItem
-              Resource: !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${AuditTable}
-            - Sid: CadWritebackOpsSns
-              Effect: Allow
-              Action:
-                - sns:Publish
-              Resource: !GetAtt OpsAlertsTopic.TopicArn
-      Events:
-        PostCadWriteback:
-          Type: HttpApi
-          Properties:
-            ApiId: !Ref Api
-            Path: /api/cad/writeback/{incidentId}
-            Method: POST
-        GetCadWritebackApprovals:
-          Type: HttpApi
-          Properties:
-            ApiId: !Ref Api
-            Path: /api/admin/cad-writeback-approvals
-            Method: GET
-        PostCadWritebackApprove:
-          Type: HttpApi
-          Properties:
-            ApiId: !Ref Api
-            Path: /api/admin/cad-writeback-approvals/{id}/approve
-            Method: POST
-        PostCadWritebackReject:
-          Type: HttpApi
-          Properties:
-            ApiId: !Ref Api
-            Path: /api/admin/cad-writeback-approvals/{id}/reject
-            Method: POST
-
-  CadWebhookHttpFunction:
-    Type: AWS::Serverless::Function
-    Metadata:
-      BuildMethod: makefile
-      BuildTarget: build-function
-    Properties:
-      Timeout: 5
-      MemorySize: 512
-      Environment:
-        Variables:
-          COGNITO_USER_POOL_ID: !Ref CognitoUserPool
-          COGNITO_CLIENT_ID: !Ref CognitoUserPoolClient
-          CAD_INTEGRATIONS_TABLE: !Ref CadIntegrationsTable
-          CAD_WEBHOOK_SECRET_SALT: !Ref CadWebhookSecretSalt
-          CAD_WEBHOOK_INGRESS_TOPIC_ARN: !Ref CadWebhookIngressTopic
-      CodeUri: ../../apps/api/
-      Handler: dist/handlers/cad/postCadWebhook.handler
-      Policies:
-        - Statement:
-            - Sid: CadWebhookIngestIntegrationRead
-              Effect: Allow
-              Action:
-                - dynamodb:GetItem
-              Resource:
-                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${CadIntegrationsTable}
-                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${CadIntegrationsTable}/index/*
-            - Sid: CadWebhookIngressPublish
-              Effect: Allow
-              Action:
-                - sns:Publish
-              Resource: !Ref CadWebhookIngressTopic
-
-      Events:
-        CadWebhookPost:
-          Type: HttpApi
-          Properties:
-            ApiId: !Ref Api
-            Path: /api/cad/webhook/{agencyId}/{integrationId}
-            Method: POST
-            Auth:
-              Authorizer: NONE
-
-  CadWebhookWorkerFunction:
-    Type: AWS::Serverless::Function
-    Metadata:
-      BuildMethod: makefile
-      BuildTarget: build-function
-    Properties:
-      Timeout: 60
-      MemorySize: 1024
-      Environment:
-        Variables:
-          COGNITO_USER_POOL_ID: !Ref CognitoUserPool
-          COGNITO_CLIENT_ID: !Ref CognitoUserPoolClient
-          CAD_INTEGRATIONS_TABLE: !Ref CadIntegrationsTable
-          CAD_INCIDENTS_RAW_TABLE: !Ref CadIncidentsRawTable
-          CAD_WEBHOOK_SECRET_SALT: !Ref CadWebhookSecretSalt
-          CAD_WEBHOOK_SNS_TOPIC_ARN: !Ref CadWebhookProcessingTopic
-          CAD_WEBHOOK_RATE_LIMITS_TABLE: !Ref CadWebhookRateLimitsTable
-          CAD_WEBHOOK_IDEMPOTENCY_TABLE: !Ref CadWebhookIdempotencyTable
-      CodeUri: ../../apps/api/
-      Handler: dist/handlers/cad/cadWebhookWorker.handler
-      Policies:
-        - Statement:
-            - Sid: CadWorkerDynamo
-              Effect: Allow
-              Action:
-                - dynamodb:GetItem
-                - dynamodb:PutItem
-                - dynamodb:UpdateItem
-                - dynamodb:Query
-              Resource:
-                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${CadIntegrationsTable}
-                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${CadIntegrationsTable}/index/*
-                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${CadIncidentsRawTable}
-                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${CadIncidentsRawTable}/index/*
-                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${IncidentsTable}
-                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${IncidentsTable}/index/*
-                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${AgenciesTable}
-                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${AgenciesTable}/index/*
-                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${AuditTable}
-                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${AuditTable}/index/*
-                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${CadWebhookRateLimitsTable}
-                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${CadWebhookIdempotencyTable}
-            - Sid: CadWorkerSns
-              Effect: Allow
-              Action:
-                - sns:Publish
-              Resource: !Ref CadWebhookProcessingTopic
-            - Sid: CadWorkerSqs
-              Effect: Allow
-              Action:
-                - sqs:ReceiveMessage
-                - sqs:DeleteMessage
-                - sqs:GetQueueAttributes
-              Resource: !GetAtt CadWebhookIngestQueue.Arn
-
-      Events:
-        CadWebhookQueue:
-          Type: SQS
-          Properties:
-            Queue: !GetAtt CadWebhookIngestQueue.Arn
-            BatchSize: 5
-            MaximumBatchingWindowInSeconds: 2
-
-  CadApiPollerFunction:
-    Type: AWS::Serverless::Function
-    Metadata:
-      BuildMethod: makefile
-      BuildTarget: build-function
-    Properties:
-      Timeout: 120
-      MemorySize: 512
-      Environment:
-        Variables:
-          COGNITO_USER_POOL_ID: !Ref CognitoUserPool
-          COGNITO_CLIENT_ID: !Ref CognitoUserPoolClient
-          CAD_INTEGRATIONS_TABLE: !Ref CadIntegrationsTable
-          CAD_WEBHOOK_INGRESS_TOPIC_ARN: !Ref CadWebhookIngressTopic
-          CAD_POLLER_MOCK: "0"
-      CodeUri: ../../apps/api/
-      Handler: dist/handlers/cad/cadApiPoller.handler
-      Policies:
-        - Statement:
-            - Sid: CadPollerScanIntegrations
-              Effect: Allow
-              Action:
-                - dynamodb:Scan
-              Resource: !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${CadIntegrationsTable}
-            - Sid: CadPollerIngressPublish
-              Effect: Allow
-              Action:
-                - sns:Publish
-              Resource: !Ref CadWebhookIngressTopic
-      Events:
-        CadApiPollSchedule:
-          Type: Schedule
-          Properties:
-            Schedule: rate(30 minutes)
-            Enabled: true
-
-  DeceptionDecoyHttpFunction:
-    Type: AWS::Serverless::Function
-    Metadata:
-      BuildMethod: makefile
-      BuildTarget: build-function
-    Properties:
-      Environment:
-        Variables:
-          COGNITO_USER_POOL_ID: !Ref CognitoUserPool
-          COGNITO_CLIENT_ID: !Ref CognitoUserPoolClient
-      Timeout: 10
-      MemorySize: 256
-      CodeUri: ../../apps/api/
-      Handler: dist/handlers/deception/deceptionDecoyHttp.handler
-      Policies:
-        - Statement:
-            Sid: DeceptionEventsDecoyOnly
-            Effect: Allow
-            Action:
-              - dynamodb:PutItem
-              - dynamodb:Query
-            Resource:
-              - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${DeceptionEventsTable}
-              - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${DeceptionEventsTable}/index/*
-        - !Ref AppManagedPolicyOpsAlertsSnsPublishOnly
-
-      Events:
-        DecoyCadSyncGet:
-          Type: HttpApi
-          Properties:
-            ApiId: !Ref Api
-            Path: /api/internal/cad-sync
-            Method: GET
-            Auth:
-              Authorizer: NONE
-        DecoyCadSyncPost:
-          Type: HttpApi
-          Properties:
-            ApiId: !Ref Api
-            Path: /api/internal/cad-sync
-            Method: POST
-            Auth:
-              Authorizer: NONE
-        DecoyCadWritebackGet:
-          Type: HttpApi
-          Properties:
-            ApiId: !Ref Api
-            Path: /api/internal/cad-writeback
-            Method: GET
-            Auth:
-              Authorizer: NONE
-        DecoyCadWritebackPost:
-          Type: HttpApi
-          Properties:
-            ApiId: !Ref Api
-            Path: /api/internal/cad-writeback
-            Method: POST
-            Auth:
-              Authorizer: NONE
-        DecoyNcicGateway:
-          Type: HttpApi
-          Properties:
-            ApiId: !Ref Api
-            Path: /api/internal/ncic-gateway
-            Method: GET
-            Auth:
-              Authorizer: NONE
-        DecoyNcicGatewayPost:
-          Type: HttpApi
-          Properties:
-            ApiId: !Ref Api
-            Path: /api/internal/ncic-gateway
-            Method: POST
-            Auth:
-              Authorizer: NONE
-        DecoyAgencyRoot:
-          Type: HttpApi
-          Properties:
-            ApiId: !Ref Api
-            Path: /api/internal/agency-root
-            Method: GET
-            Auth:
-              Authorizer: NONE
-        DecoyAdminBackup:
-          Type: HttpApi
-          Properties:
-            ApiId: !Ref Api
-            Path: /api/admin-backup
-            Method: GET
-            Auth:
-              Authorizer: NONE
-        DecoyRcLiteRoot:
-          Type: HttpApi
-          Properties:
-            ApiId: !Ref Api
-            Path: /api/rc-lite/root
-            Method: GET
-            Auth:
-              Authorizer: NONE
-        DecoySystemSecrets:
-          Type: HttpApi
-          Properties:
-            ApiId: !Ref Api
-            Path: /api/system/secrets
-            Method: GET
-            Auth:
-              Authorizer: NONE
-        DecoyDebugEnv:
-          Type: HttpApi
-          Properties:
-            ApiId: !Ref Api
-            Path: /api/debug/env
-            Method: GET
-            Auth:
-              Authorizer: NONE
-        DecoyV1CadExportTest:
-          Type: HttpApi
-          Properties:
-            ApiId: !Ref Api
-            Path: /api/v1/cad/export-test
-            Method: GET
-            Auth:
-              Authorizer: NONE
-
-  DeceptionEventsAdminHttpFunction:
-    Type: AWS::Serverless::Function
-    Metadata:
-      BuildMethod: makefile
-      BuildTarget: build-function
-    Properties:
-      Environment:
-        Variables:
-          COGNITO_USER_POOL_ID: !Ref CognitoUserPool
-          COGNITO_CLIENT_ID: !Ref CognitoUserPoolClient
-      CodeUri: ../../apps/api/
-      Handler: dist/handlers/admin/deceptionEventsHttp.handler
-      Policies:
-        - Statement:
-            Sid: DeceptionEventsReadOnly
-            Effect: Allow
-            Action:
-              - dynamodb:Scan
-              - dynamodb:Query
-            Resource:
-              - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${DeceptionEventsTable}
-              - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${DeceptionEventsTable}/index/*
-
-      Events:
-        DeceptionEventsList:
-          Type: HttpApi
-          Properties:
-            ApiId: !Ref Api
-            Path: /api/admin/security/deception-events
-            Method: GET
-        DeceptionEventsOptions:
-          Type: HttpApi
-          Properties:
-            ApiId: !Ref Api
-            Path: /api/admin/security/deception-events
-            Method: OPTIONS
-
-  QaScoringFunction:
-    Type: AWS::Serverless::Function
-    Metadata:
-      BuildMethod: makefile
-      BuildTarget: build-function
-    Properties:
-      Environment:
-        Variables:
-          COGNITO_USER_POOL_ID: !Ref CognitoUserPool
-          COGNITO_CLIENT_ID: !Ref CognitoUserPoolClient
-      CodeUri: ../../apps/api/
-      Handler: dist/handlers/qa/triggerQAScoring.handler
-      Timeout: 60
-      MemorySize: 768
-      Policies:
-        - !Ref AppManagedPolicyDynamoLambdaCrudShardA
-        - !Ref AppManagedPolicyDynamoLambdaCrudShardB
-        - !Ref AppManagedPolicyDynamoLambdaCrudShardC
-        - !Ref AppManagedPolicyS3ApplicationBucketsCrud
-        - !Ref AppManagedPolicyBedrockQaFoundationModelOnly
-      Events:
-        PostQaScore:
-          Type: HttpApi
-          Properties:
-            ApiId: !Ref Api
-            Path: /api/qa/sessions/{id}/score
-            Method: POST
-
-  AdminListUsersFunction:
-    Type: AWS::Serverless::Function
-    Metadata:
-      BuildMethod: makefile
-      BuildTarget: build-function
-    Properties:
-      Environment:
-        Variables:
-          COGNITO_USER_POOL_ID: !Ref CognitoUserPool
-          COGNITO_CLIENT_ID: !Ref CognitoUserPoolClient
-      CodeUri: ../../apps/api/
-      Handler: dist/handlers/adminListUsers.handler
-      Policies:
-        - !Ref AppManagedPolicyS3ApplicationBucketsCrud
-        - Statement:
-            Effect: Allow
-            Action:
-              - cognito-idp:ListUsers
-            Resource: !GetAtt CognitoUserPool.Arn
-
-      Events:
-        Route:
-          Type: HttpApi
-          Properties:
-            ApiId: !Ref Api
-            Path: /api/admin/users
-            Method: GET
-
-  AdminCreateUserFunction:
-    Type: AWS::Serverless::Function
-    Metadata:
-      BuildMethod: makefile
-      BuildTarget: build-function
-    Properties:
-      Environment:
-        Variables:
-          COGNITO_USER_POOL_ID: !Ref CognitoUserPool
-          COGNITO_CLIENT_ID: !Ref CognitoUserPoolClient
-      CodeUri: ../../apps/api/
-      Handler: dist/handlers/adminCreateUser.handler
-      Policies:
-        - !Ref AppManagedPolicyS3ApplicationBucketsCrud
-        # Required for ADMIN_USER_CREATE audit writes (writeUserManagementAudit -> AuditTable).
-        - !Ref AppManagedPolicyDynamoLambdaCrudShardA
-        - Statement:
-            Effect: Allow
-            Action:
-              - cognito-idp:AdminCreateUser
-            Resource: !GetAtt CognitoUserPool.Arn
-
-      Events:
-        Route:
-          Type: HttpApi
-          Properties:
-            ApiId: !Ref Api
-            Path: /api/admin/users
-            Method: POST
-
-  AdminUpdateUserFunction:
-    Type: AWS::Serverless::Function
-    Metadata:
-      BuildMethod: makefile
-      BuildTarget: build-function
-    Properties:
-      Environment:
-        Variables:
-          COGNITO_USER_POOL_ID: !Ref CognitoUserPool
-          COGNITO_CLIENT_ID: !Ref CognitoUserPoolClient
-      CodeUri: ../../apps/api/
-      Handler: dist/handlers/adminUpdateUser.handler
-      Policies:
-        - !Ref AppManagedPolicyS3ApplicationBucketsCrud
-        # Required for ADMIN_USER_UPDATE audit writes (writeUserManagementAudit -> AuditTable).
-        - !Ref AppManagedPolicyDynamoLambdaCrudShardA
-        - Statement:
-            Effect: Allow
-            Action:
-              - cognito-idp:AdminGetUser
-              - cognito-idp:AdminUpdateUserAttributes
-            Resource: !GetAtt CognitoUserPool.Arn
-
-      Events:
-        Route:
-          Type: HttpApi
-          Properties:
-            ApiId: !Ref Api
-            Path: /api/admin/users
-            Method: PATCH
-
-  AdminDeactivateUserFunction:
-    Type: AWS::Serverless::Function
-    Metadata:
-      BuildMethod: makefile
-      BuildTarget: build-function
-    Properties:
-      Environment:
-        Variables:
-          COGNITO_USER_POOL_ID: !Ref CognitoUserPool
-          COGNITO_CLIENT_ID: !Ref CognitoUserPoolClient
-      CodeUri: ../../apps/api/
-      Handler: dist/handlers/adminDeactivateUser.handler
-      Policies:
-        - !Ref AppManagedPolicyS3ApplicationBucketsCrud
-        # Required for ADMIN_USER_DEACTIVATE audit writes (writeUserManagementAudit -> AuditTable).
-        - !Ref AppManagedPolicyDynamoLambdaCrudShardA
-        - Statement:
-            Effect: Allow
-            Action:
-              - cognito-idp:AdminGetUser
-              - cognito-idp:AdminDisableUser
-            Resource: !GetAtt CognitoUserPool.Arn
-
-      Events:
-        Route:
-          Type: HttpApi
-          Properties:
-            ApiId: !Ref Api
-            Path: /api/admin/users/deactivate
-            Method: POST
-
-  AdminActivateUserFunction:
-    Type: AWS::Serverless::Function
-    Metadata:
-      BuildMethod: makefile
-      BuildTarget: build-function
-    Properties:
-      Environment:
-        Variables:
-          COGNITO_USER_POOL_ID: !Ref CognitoUserPool
-          COGNITO_CLIENT_ID: !Ref CognitoUserPoolClient
-      CodeUri: ../../apps/api/
-      Handler: dist/handlers/adminActivateUser.handler
-      Policies:
-        - !Ref AppManagedPolicyS3ApplicationBucketsCrud
-        # Required for audit writes on activation events (writeUserManagementAudit -> AuditTable).
-        - !Ref AppManagedPolicyDynamoLambdaCrudShardA
-        - Statement:
-            Effect: Allow
-            Action:
-              - cognito-idp:AdminGetUser
-              - cognito-idp:AdminEnableUser
-            Resource: !GetAtt CognitoUserPool.Arn
-
-      Events:
-        Route:
-          Type: HttpApi
-          Properties:
-            ApiId: !Ref Api
-            Path: /api/admin/users/activate
-            Method: POST
-
-  AuthPasswordRenewalSyncFunction:
-    Type: AWS::Serverless::Function
-    Metadata:
-      BuildMethod: makefile
-      BuildTarget: build-function
-    Properties:
-      Environment:
-        Variables:
-          COGNITO_USER_POOL_ID: !Ref CognitoUserPool
-          COGNITO_CLIENT_ID: !Ref CognitoUserPoolClient
-      CodeUri: ../../apps/api/
-      Handler: dist/handlers/authPasswordRenewalSync.handler
-      Policies:
-        - !Ref AppManagedPolicyS3ApplicationBucketsCrud
-        - Statement:
-            Effect: Allow
-            Action:
-              - cognito-idp:AdminGetUser
-              - cognito-idp:AdminUpdateUserAttributes
-            Resource: !GetAtt CognitoUserPool.Arn
-
-      Events:
-        Route:
-          Type: HttpApi
-          Properties:
-            ApiId: !Ref Api
-            Path: /api/auth/password-renewal-sync
-            Method: POST
-
-  GetMeFunction:
-    Type: AWS::Serverless::Function
-    Metadata:
-      BuildMethod: makefile
-      BuildTarget: build-function
-    Properties:
-      Environment:
-        Variables:
-          COGNITO_USER_POOL_ID: !Ref CognitoUserPool
-          COGNITO_CLIENT_ID: !Ref CognitoUserPoolClient
-      CodeUri: ../../apps/api/
-      Handler: dist/handlers/getMe.handler
-      Policies:
-        - !Ref AppManagedPolicyS3ApplicationBucketsCrud
-
-      Events:
-        Route:
-          Type: HttpApi
-          Properties:
-            ApiId: !Ref Api
-            Path: /api/me
-            Method: GET
-
-  IntegrationStatusFunction:
-    Type: AWS::Serverless::Function
-    Metadata:
-      BuildMethod: makefile
-      BuildTarget: build-function
-    Properties:
-      Environment:
-        Variables:
-          COGNITO_USER_POOL_ID: !Ref CognitoUserPool
-          COGNITO_CLIENT_ID: !Ref CognitoUserPoolClient
-      CodeUri: ../../apps/api/
-      Handler: dist/handlers/integrationStatus.handler
-      Policies:
-        - !Ref AppManagedPolicyS3ApplicationBucketsCrud
-      Events:
-        Route:
-          Type: HttpApi
-          Properties:
-            ApiId: !Ref Api
-            Path: /api/integration/status
-            Method: GET
-
-  ListAgenciesFunction:
-    Type: AWS::Serverless::Function
-    Metadata:
-      BuildMethod: makefile
-      BuildTarget: build-function
-    Properties:
-      Environment:
-        Variables:
-          COGNITO_USER_POOL_ID: !Ref CognitoUserPool
-          COGNITO_CLIENT_ID: !Ref CognitoUserPoolClient
-      CodeUri: ../../apps/api/
-      Handler: dist/handlers/listAgencies.handler
-      Policies:
-        - !Ref AppManagedPolicyDynamoLambdaCrudShardA
-        - !Ref AppManagedPolicyDynamoLambdaCrudShardB
-        - !Ref AppManagedPolicyDynamoLambdaCrudShardC
-        - !Ref AppManagedPolicyS3ApplicationBucketsCrud
-
-      Events:
-        Route:
-          Type: HttpApi
-          Properties:
-            ApiId: !Ref Api
-            Path: /api/agencies
-            Method: GET
-
-  CreateAgencyFunction:
-    Type: AWS::Serverless::Function
-    Metadata:
-      BuildMethod: makefile
-      BuildTarget: build-function
-    Properties:
-      Environment:
-        Variables:
-          COGNITO_USER_POOL_ID: !Ref CognitoUserPool
-          COGNITO_CLIENT_ID: !Ref CognitoUserPoolClient
-      CodeUri: ../../apps/api/
-      Handler: dist/handlers/createAgency.handler
-      Policies:
-        - !Ref AppManagedPolicyDynamoLambdaCrudShardA
-        - !Ref AppManagedPolicyDynamoLambdaCrudShardB
-        - !Ref AppManagedPolicyDynamoLambdaCrudShardC
-        - !Ref AppManagedPolicyS3ApplicationBucketsCrud
-
-      Events:
-        Route:
-          Type: HttpApi
-          Properties:
-            ApiId: !Ref Api
-            Path: /api/agencies
-            Method: POST
-
-  GetAgencyFunction:
-    Type: AWS::Serverless::Function
-    Metadata:
-      BuildMethod: makefile
-      BuildTarget: build-function
-    Properties:
-      Environment:
-        Variables:
-          COGNITO_USER_POOL_ID: !Ref CognitoUserPool
-          COGNITO_CLIENT_ID: !Ref CognitoUserPoolClient
-      CodeUri: ../../apps/api/
-      Handler: dist/handlers/getAgency.handler
-      Policies:
-        - !Ref AppManagedPolicyDynamoLambdaCrudShardA
-        - !Ref AppManagedPolicyDynamoLambdaCrudShardB
-        - !Ref AppManagedPolicyDynamoLambdaCrudShardC
-        - !Ref AppManagedPolicyS3ApplicationBucketsCrud
-
-      Events:
-        Route:
-          Type: HttpApi
-          Properties:
-            ApiId: !Ref Api
-            Path: /api/agencies/{id}
-            Method: GET
-
-  PatchAgencyFunction:
-    Type: AWS::Serverless::Function
-    Metadata:
-      BuildMethod: makefile
-      BuildTarget: build-function
-    Properties:
-      Environment:
-        Variables:
-          COGNITO_USER_POOL_ID: !Ref CognitoUserPool
-          COGNITO_CLIENT_ID: !Ref CognitoUserPoolClient
-      CodeUri: ../../apps/api/
-      Handler: dist/handlers/patchAgency.handler
-      Policies:
-        - !Ref AppManagedPolicyDynamoLambdaCrudShardA
-        - !Ref AppManagedPolicyDynamoLambdaCrudShardB
-        - !Ref AppManagedPolicyDynamoLambdaCrudShardC
-        - !Ref AppManagedPolicyS3ApplicationBucketsCrud
-
-      Events:
-        Route:
-          Type: HttpApi
-          Properties:
-            ApiId: !Ref Api
-            Path: /api/agencies/{id}
-            Method: PATCH
-
-  ListAgencyInvitesFunction:
-    Type: AWS::Serverless::Function
-    Metadata:
-      BuildMethod: makefile
-      BuildTarget: build-function
-    Properties:
-      Environment:
-        Variables:
-          COGNITO_USER_POOL_ID: !Ref CognitoUserPool
-          COGNITO_CLIENT_ID: !Ref CognitoUserPoolClient
-      CodeUri: ../../apps/api/
-      Handler: dist/handlers/listAgencyInvites.handler
-      Policies:
-        - !Ref AppManagedPolicyDynamoLambdaCrudShardA
-        - !Ref AppManagedPolicyDynamoLambdaCrudShardB
-        - !Ref AppManagedPolicyDynamoLambdaCrudShardC
-        - !Ref AppManagedPolicyS3ApplicationBucketsCrud
-
-      Events:
-        Route:
-          Type: HttpApi
-          Properties:
-            ApiId: !Ref Api
-            Path: /api/agencies/{id}/invites
-            Method: GET
-
-  PostAgencyInviteFunction:
-    Type: AWS::Serverless::Function
-    Metadata:
-      BuildMethod: makefile
-      BuildTarget: build-function
-    Properties:
-      Environment:
-        Variables:
-          COGNITO_USER_POOL_ID: !Ref CognitoUserPool
-          COGNITO_CLIENT_ID: !Ref CognitoUserPoolClient
-      CodeUri: ../../apps/api/
-      Handler: dist/handlers/postAgencyInvite.handler
-      Policies:
-        - !Ref AppManagedPolicyDynamoLambdaCrudShardA
-        - !Ref AppManagedPolicyDynamoLambdaCrudShardB
-        - !Ref AppManagedPolicyDynamoLambdaCrudShardC
-        - !Ref AppManagedPolicyS3ApplicationBucketsCrud
-
-      Events:
-        Route:
-          Type: HttpApi
-          Properties:
-            ApiId: !Ref Api
-            Path: /api/agencies/{id}/invites
-            Method: POST
-
-  OpsAlertsTopic:
-    Type: AWS::SNS::Topic
-    Properties:
-      DisplayName: !Sub "${AppName} ops (${DeploymentStage})"
-
-  CadWebhookIngressTopic:
-    Type: AWS::SNS::Topic
-    Properties:
-      DisplayName: !Sub "${AppName} cad-webhook-ingress (${DeploymentStage})"
-
-  CadWebhookIdempotencyTable:
-    Type: AWS::DynamoDB::Table
-    Properties:
-      BillingMode: PAY_PER_REQUEST
-      AttributeDefinitions:
-        - AttributeName: dedupeKey
-          AttributeType: S
-      KeySchema:
-        - AttributeName: dedupeKey
-          KeyType: HASH
-      TimeToLiveSpecification:
-        AttributeName: ttl
-        Enabled: true
-
-  CadWebhookIngressToIngestQueuePolicy:
-    Type: AWS::SQS::QueuePolicy
-    Properties:
-      Queues:
-        - !Ref CadWebhookIngestQueue
-      PolicyDocument:
-        Statement:
-          - Sid: AllowSnsIngressToIngestQueue
-            Effect: Allow
-            Principal:
-              Service: sns.amazonaws.com
-            Action: sqs:SendMessage
-            Resource: !GetAtt CadWebhookIngestQueue.Arn
-            Condition:
-              ArnEquals:
-                aws:SourceArn: !Ref CadWebhookIngressTopic
-
-  CadWebhookIngressSubscription:
-    Type: AWS::SNS::Subscription
-    DependsOn:
-      - CadWebhookIngressToIngestQueuePolicy
-    Properties:
-      Protocol: sqs
-      TopicArn: !Ref CadWebhookIngressTopic
-      Endpoint: !GetAtt CadWebhookIngestQueue.Arn
-      RawMessageDelivery: true
-
-  CadWebhookIngestDlqDepthAlarm:
-    Type: AWS::CloudWatch::Alarm
-    Properties:
-      AlarmName: !Sub "${AppName}-cad-webhook-ingest-dlq-${DeploymentStage}"
-      AlarmDescription: CAD webhook ingest worker messages landed on DLQ — investigate replay / poison payloads.
-      Namespace: AWS/SQS
-      MetricName: ApproximateNumberOfMessagesVisible
-      Dimensions:
-        - Name: QueueName
-          Value: !GetAtt CadWebhookIngestDLQ.QueueName
-      Statistic: Sum
-      Period: 300
-      EvaluationPeriods: 1
-      Threshold: 0
-      ComparisonOperator: GreaterThanThreshold
-      TreatMissingData: notBreaching
-      AlarmActions:
-        - !Ref OpsAlertsTopic
-
-  CadWebhookProcessingTopic:
-    Type: AWS::SNS::Topic
-    Properties:
-      DisplayName: !Sub "${AppName} cad-webhook (${DeploymentStage})"
-
-  CadWebhookIngestDLQ:
-    Type: AWS::SQS::Queue
-    Properties:
-      MessageRetentionPeriod: 1209600
-
-  CadWebhookIngestQueue:
-    Type: AWS::SQS::Queue
-    Properties:
-      VisibilityTimeout: 180
-      RedrivePolicy:
-        deadLetterTargetArn: !GetAtt CadWebhookIngestDLQ.Arn
-        maxReceiveCount: 5
-
-  OpsAlertsEmailSubscription:
-    Type: AWS::SNS::Subscription
-    Condition: HasSnsEmailSubscription
-    Properties:
-      TopicArn: !Ref OpsAlertsTopic
-      Protocol: email
-      Endpoint: !Ref SnsEmailSubscription
-
-  OpsAlertsSmsSubscription:
-    Type: AWS::SNS::Subscription
-    Condition: HasSnsSmsSubscription
-    Properties:
-      TopicArn: !Ref OpsAlertsTopic
-      Protocol: sms
-      Endpoint: !Ref SnsSmsSubscription
-
-  SesEmailIdentity:
-    Type: AWS::SES::EmailIdentity
-    Condition: CreateSesIdentity
-    Properties:
-      EmailIdentity: !Ref SesIdentityValue
-      ConfigurationSetAttributes: !If
-        - HasSesConfigurationSet
-        - ConfigurationSetName: !Ref SesConfigurationSetName
-        - !Ref AWS::NoValue
-
-  BillingSenderEmailIdentity:
-    Type: AWS::SES::EmailIdentity
-    Condition: CreateBillingSesIdentities
-    Properties:
-      EmailIdentity: !Ref BillingSesSenderEmail
-
-  BillingDomainEmailIdentity:
-    Type: AWS::SES::EmailIdentity
-    Condition: CreateBillingSesIdentities
-    Properties:
-      EmailIdentity: !Ref BillingSesDomain
-
-  BillingDomainDkimRecord1:
-    Type: AWS::Route53::RecordSet
-    Condition: BillingRoute53Records
-    Properties:
-      HostedZoneId: !Ref Route53HostedZoneId
-      Name: !GetAtt BillingDomainEmailIdentity.DkimDNSTokenName1
-      Type: CNAME
-      TTL: "300"
-      ResourceRecords:
-        - !GetAtt BillingDomainEmailIdentity.DkimDNSTokenValue1
-
-  BillingDomainDkimRecord2:
-    Type: AWS::Route53::RecordSet
-    Condition: BillingRoute53Records
-    Properties:
-      HostedZoneId: !Ref Route53HostedZoneId
-      Name: !GetAtt BillingDomainEmailIdentity.DkimDNSTokenName2
-      Type: CNAME
-      TTL: "300"
-      ResourceRecords:
-        - !GetAtt BillingDomainEmailIdentity.DkimDNSTokenValue2
-
-  BillingDomainDkimRecord3:
-    Type: AWS::Route53::RecordSet
-    Condition: BillingRoute53Records
-    Properties:
-      HostedZoneId: !Ref Route53HostedZoneId
-      Name: !GetAtt BillingDomainEmailIdentity.DkimDNSTokenName3
-      Type: CNAME
-      TTL: "300"
-      ResourceRecords:
-        - !GetAtt BillingDomainEmailIdentity.DkimDNSTokenValue3
-
-  BillingDomainSpfRecord:
-    Type: AWS::Route53::RecordSet
-    Condition: BillingRoute53Records
-    Properties:
-      HostedZoneId: !Ref Route53HostedZoneId
-      Name: !Sub "${BillingSesDomain}."
-      Type: TXT
-      TTL: "300"
-      ResourceRecords:
-        - '"v=spf1 include:amazonses.com ~all"'
-
-  BillingDomainDmarcRecord:
-    Type: AWS::Route53::RecordSet
-    Condition: BillingRoute53Records
-    Properties:
-      HostedZoneId: !Ref Route53HostedZoneId
-      Name: !Sub "_dmarc.${BillingSesDomain}."
-      Type: TXT
-      TTL: "300"
-      ResourceRecords:
-        - '"v=DMARC1; p=quarantine; adkim=s; aspf=s; pct=100; rua=mailto:support@appsondemand.net"'
-
-  SesTemplateInvoiceSent:
-    Type: AWS::SES::Template
-    Properties:
-      Template:
-        TemplateName: invoice-sent
-        SubjectPart: "Rapid Cortex invoice {{invoiceNumber}} is ready"
-        HtmlPart: "<p>Hello {{customerName}},</p><p>Your invoice <strong>{{invoiceNumber}}</strong> is ready.</p><p>Total: {{currency}} {{total}}</p><p>Due date: {{dueDate}}</p><p><a href='{{invoiceUrl}}'>View invoice</a></p>"
-        TextPart: "Hello {{customerName}}, your invoice {{invoiceNumber}} is ready. Total: {{currency}} {{total}}. Due: {{dueDate}}. View: {{invoiceUrl}}"
-
-  SesTemplateInvoiceReminder3DaysBefore:
-    Type: AWS::SES::Template
-    Properties:
-      Template:
-        TemplateName: invoice-reminder-3-days-before
-        SubjectPart: "Reminder: invoice {{invoiceNumber}} is due in 3 days"
-        HtmlPart: "<p>Hello {{customerName}},</p><p>This is a reminder that invoice <strong>{{invoiceNumber}}</strong> is due in 3 days on {{dueDate}}.</p><p>Balance due: {{currency}} {{balanceDue}}</p><p><a href='{{invoiceUrl}}'>View invoice</a></p>"
-        TextPart: "Reminder: invoice {{invoiceNumber}} is due in 3 days on {{dueDate}}. Balance due: {{currency}} {{balanceDue}}. View: {{invoiceUrl}}"
-
-  SesTemplateInvoiceReminderDueToday:
-    Type: AWS::SES::Template
-    Properties:
-      Template:
-        TemplateName: invoice-reminder-due-today
-        SubjectPart: "Invoice {{invoiceNumber}} is due today"
-        HtmlPart: "<p>Hello {{customerName}},</p><p>Invoice <strong>{{invoiceNumber}}</strong> is due today ({{dueDate}}).</p><p>Balance due: {{currency}} {{balanceDue}}</p><p><a href='{{invoiceUrl}}'>Pay now</a></p>"
-        TextPart: "Invoice {{invoiceNumber}} is due today ({{dueDate}}). Balance due: {{currency}} {{balanceDue}}. Pay now: {{invoiceUrl}}"
-
-  SesTemplateInvoiceReminder7DaysOverdue:
-    Type: AWS::SES::Template
-    Properties:
-      Template:
-        TemplateName: invoice-reminder-7-days-overdue
-        SubjectPart: "Past due: invoice {{invoiceNumber}} is 7 days overdue"
-        HtmlPart: "<p>Hello {{customerName}},</p><p>Invoice <strong>{{invoiceNumber}}</strong> is now 7 days overdue.</p><p>Balance due: {{currency}} {{balanceDue}}</p><p><a href='{{invoiceUrl}}'>View invoice</a></p>"
-        TextPart: "Invoice {{invoiceNumber}} is now 7 days overdue. Balance due: {{currency}} {{balanceDue}}. View: {{invoiceUrl}}"
-
-  SesTemplateInvoiceReminder15DaysOverdue:
-    Type: AWS::SES::Template
-    Properties:
-      Template:
-        TemplateName: invoice-reminder-15-days-overdue
-        SubjectPart: "Past due: invoice {{invoiceNumber}} is 15 days overdue"
-        HtmlPart: "<p>Hello {{customerName}},</p><p>Invoice <strong>{{invoiceNumber}}</strong> is 15 days overdue.</p><p>Balance due: {{currency}} {{balanceDue}}</p><p>Please contact billing if you need assistance.</p>"
-        TextPart: "Invoice {{invoiceNumber}} is 15 days overdue. Balance due: {{currency}} {{balanceDue}}. Please contact billing for assistance."
-
-  SesTemplateInvoiceReminder30DaysOverdue:
-    Type: AWS::SES::Template
-    Properties:
-      Template:
-        TemplateName: invoice-reminder-30-days-overdue
-        SubjectPart: "Final notice: invoice {{invoiceNumber}} is 30 days overdue"
-        HtmlPart: "<p>Hello {{customerName}},</p><p>Invoice <strong>{{invoiceNumber}}</strong> is 30 days overdue.</p><p>Balance due: {{currency}} {{balanceDue}}</p><p>Immediate attention is required.</p>"
-        TextPart: "Final notice: invoice {{invoiceNumber}} is 30 days overdue. Balance due: {{currency}} {{balanceDue}}. Immediate attention is required."
-
-  SesTemplatePaymentReceivedConfirmation:
-    Type: AWS::SES::Template
-    Properties:
-      Template:
-        TemplateName: payment-received-confirmation
-        SubjectPart: "Payment received for invoice {{invoiceNumber}}"
-        HtmlPart: "<p>Hello {{customerName}},</p><p>We received your payment for invoice <strong>{{invoiceNumber}}</strong>.</p><p>Amount received: {{currency}} {{amountPaid}}</p><p>Payment date: {{paymentDate}}</p><p>Thank you.</p>"
-        TextPart: "Payment received for invoice {{invoiceNumber}}. Amount received: {{currency}} {{amountPaid}}. Payment date: {{paymentDate}}. Thank you."
-
-  PostIncidentAudioChunkLogGroup:
-    Type: AWS::Logs::LogGroup
-    Properties:
-      LogGroupName: !Sub "/aws/lambda/${PostIncidentAudioChunkFunction}"
-      RetentionInDays: 30
-
-  PostIncidentAudioChunkVoiceFailuresMetricFilter:
-    Type: AWS::Logs::MetricFilter
-    DependsOn: PostIncidentAudioChunkLogGroup
-    Properties:
-      LogGroupName: !Sub "/aws/lambda/${PostIncidentAudioChunkFunction}"
-      FilterPattern: "?stt_failure ?translation_failure ?language_detect_failure"
-      MetricTransformations:
-        - MetricValue: "1"
-          MetricNamespace: !Sub "RapidCortex/${DeploymentStage}/Voice"
-          MetricName: PipelineHardFailures
-
-  PilotOperationsDashboard:
-    Type: AWS::CloudWatch::Dashboard
-    Properties:
-      DashboardName: !Sub "${AppName}-${DeploymentStage}-ops"
-      DashboardBody: !Sub
-        - |
-          {
-            "widgets": [
-              {
-                "type": "metric",
-                "x": 0,
-                "y": 0,
-                "width": 12,
-                "height": 6,
-                "properties": {
-                  "metrics": [
-                    [ "AWS/ApiGateway", "5xx", "ApiId", "${ApiIdVal}", "Stage", "${StageVal}" ],
-                    [ ".", "4xx", ".", ".", ".", "." ]
-                  ],
-                  "view": "timeSeries",
-                  "stacked": false,
-                  "region": "${AwsRegion}",
-                  "title": "HTTP API 4xx / 5xx",
-                  "period": 300,
-                  "stat": "Sum"
-                }
-              },
-              {
-                "type": "metric",
-                "x": 12,
-                "y": 0,
-                "width": 12,
-                "height": 6,
-                "properties": {
-                  "metrics": [
-                    [ "AWS/Lambda", "Errors", "FunctionName", "${AnalyzeFn}" ],
-                    [ ".", ".", ".", "${AudioFn}" ],
-                    [ ".", "Throttles", ".", "${AnalyzeFn}" ],
-                    [ ".", ".", ".", "${AudioFn}" ]
-                  ],
-                  "view": "timeSeries",
-                  "stacked": false,
-                  "region": "${AwsRegion}",
-                  "title": "Analyze + audio chunk errors / throttles",
-                  "period": 300,
-                  "stat": "Sum"
-                }
-              },
-              {
-                "type": "metric",
-                "x": 0,
-                "y": 6,
-                "width": 12,
-                "height": 6,
-                "properties": {
-                  "metrics": [
-                    [ "AWS/Lambda", "Duration", "FunctionName", "${AnalyzeFn}", { "stat": "p95" } ],
-                    [ ".", ".", ".", "${AudioFn}", { "stat": "p95" } ]
-                  ],
-                  "view": "timeSeries",
-                  "stacked": false,
-                  "region": "${AwsRegion}",
-                  "title": "Lambda duration p95 (ms)",
-                  "period": 300
-                }
-              },
-              {
-                "type": "metric",
-                "x": 12,
-                "y": 6,
-                "width": 12,
-                "height": 6,
-                "properties": {
-                  "metrics": [
-                    [ "AWS/DynamoDB", "ConsumedReadCapacityUnits", "TableName", "${IncidentsTableName}" ],
-                    [ ".", "ConsumedWriteCapacityUnits", ".", "." ],
-                    [ ".", "UserErrors", ".", "." ],
-                    [ ".", "SystemErrors", ".", "." ]
-                  ],
-                  "view": "timeSeries",
-                  "stacked": false,
-                  "region": "${AwsRegion}",
-                  "title": "Incidents table capacity + errors",
-                  "period": 300,
-                  "stat": "Sum"
-                }
-              },
-              {
-                "type": "metric",
-                "x": 0,
-                "y": 12,
-                "width": 12,
-                "height": 6,
-                "properties": {
-                  "metrics": [
-                    [ "${VoiceNs}", "PipelineHardFailures" ]
-                  ],
-                  "view": "timeSeries",
-                  "stacked": false,
-                  "region": "${AwsRegion}",
-                  "title": "Voice pipeline hard failures (log metric)",
-                  "period": 300,
-                  "stat": "Sum"
-                }
-              }
-            ]
-          }
-        - ApiIdVal: !Ref Api
-          StageVal: "$default"
-          AwsRegion: !Ref AWS::Region
-          AnalyzeFn: !Ref AnalyzeIncidentFunction
-          AudioFn: !Ref PostIncidentAudioChunkFunction
-          IncidentsTableName: !Ref IncidentsTable
-          VoiceNs: !Sub "RapidCortex/${DeploymentStage}/Voice"
-
-  CloudTrailLogGroup:
-    Type: AWS::Logs::LogGroup
-    Condition: CloudTrailEnabled
-    Properties:
-      # CloudWatch: hot, low-latency filter path; S3 is the durable CJIS copy.
-      LogGroupName: !Sub /aws/cloudtrail/${AppName}/${DeploymentStage}
-      RetentionInDays: 90
-
-  CloudTrailToCloudWatchRole:
+  ConnectBridgeEcrRepository:
+    Type: AWS::ECR::Repository
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      RepositoryName: !Sub "${AppName}-connect-bridge-${DeploymentStage}"
+      ImageScanningConfiguration:
+        ScanOnPush: true
+      LifecyclePolicy:
+        LifecyclePolicyText: |
+          {"rules":[{"rulePriority":1,"description":"Keep last 5 images","selection":{"tagStatus":"any","countType":"imageCountMoreThan","countNumber":5},"action":{"type":"expire"}}]}
+
+  VenueBridgeEcrRepository:
+    Type: AWS::ECR::Repository
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      RepositoryName: !Sub "${AppName}-venue-bridge-${DeploymentStage}"
+      ImageScanningConfiguration:
+        ScanOnPush: true
+      LifecyclePolicy:
+        LifecyclePolicyText: |
+          {"rules":[{"rulePriority":1,"description":"Keep last 5 images","selection":{"tagStatus":"any","countType":"imageCountMoreThan","countNumber":5},"action":{"type":"expire"}}]}
+
+  BridgeTaskExecutionRole:
     Type: AWS::IAM::Role
-    Condition: CloudTrailEnabled
     Properties:
-      RoleName: !If
-        - HasDynamoTablePrefix
-        - !Sub "${DynamoTableNamePrefix}-ct-cwlogs-${DeploymentStage}"
-        - !Sub "${AppName}-cloudtrail-cwlogs-${DeploymentStage}"
       AssumeRolePolicyDocument:
         Version: "2012-10-17"
         Statement:
           - Effect: Allow
             Principal:
-              Service: cloudtrail.amazonaws.com
+              Service: ecs-tasks.amazonaws.com
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy
+
+  BridgeTaskRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: ecs-tasks.amazonaws.com
             Action: sts:AssumeRole
       Policies:
-        - PolicyName: CloudTrailToCloudWatchLogs
+        - PolicyName: BridgePermissions
           PolicyDocument:
             Version: "2012-10-17"
             Statement:
               - Effect: Allow
                 Action:
-                  - logs:CreateLogStream
-                  - logs:PutLogEvents
-                Resource: !Sub "${CloudTrailLogGroup.Arn}:*"
+                  - kinesisvideo:PutMedia
+                  - kinesisvideo:TagStream
+                  - kinesisvideo:GetDataEndpoint
+                  - kinesisvideo:CreateStream
+                  - kinesisvideo:DescribeStream
+                Resource:
+                  - !Sub arn:${AWS::Partition}:kinesisvideo:${AWS::Region}:${AWS::AccountId}:channel/rc-connect-*/*
+                  - !Sub arn:${AWS::Partition}:kinesisvideo:${AWS::Region}:${AWS::AccountId}:channel/rc-venue-*/*
+              - Effect: Allow
+                Action:
+                  - secretsmanager:GetSecretValue
+                Resource: !Sub arn:${AWS::Partition}:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:${AppName}/camera-credentials/*
+              - Effect: Allow
+                Action:
+                  - dynamodb:UpdateItem
+                Resource: !Sub arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${ConnectAccessSessionsTable}
 
-  CloudTrailNotificationTopic:
-    Type: AWS::SNS::Topic
-    Condition: CloudTrailEnabled
+  ConnectBridgeLogGroup:
+    Type: AWS::Logs::LogGroup
     Properties:
-      DisplayName: !Sub "${AppName} CloudTrail (${DeploymentStage})"
+      LogGroupName: !Sub "/ecs/${AppName}/connect-bridge/${DeploymentStage}"
+      RetentionInDays: 30
 
-  CloudTrailNotificationTopicPolicy:
-    Type: AWS::SNS::TopicPolicy
-    Condition: CloudTrailEnabled
+  VenueBridgeLogGroup:
+    Type: AWS::Logs::LogGroup
     Properties:
+      LogGroupName: !Sub "/ecs/${AppName}/venue-bridge/${DeploymentStage}"
+      RetentionInDays: 30
+
+  ConnectBridgeTaskDefinitionResource:
+    Type: AWS::ECS::TaskDefinition
+    Properties:
+      Family: !Sub "${AppName}-connect-bridge-${DeploymentStage}"
+      Cpu: "512"
+      Memory: "1024"
+      NetworkMode: awsvpc
+      RequiresCompatibilities:
+        - FARGATE
+      RuntimePlatform:
+        OperatingSystemFamily: LINUX
+        CpuArchitecture: X86_64
+      ExecutionRoleArn: !GetAtt BridgeTaskExecutionRole.Arn
+      TaskRoleArn: !GetAtt BridgeTaskRole.Arn
+      ContainerDefinitions:
+        - Name: rc-connect-bridge
+          Image: !Sub "${ConnectBridgeEcrRepository.RepositoryUri}:latest"
+          Essential: true
+          LogConfiguration:
+            LogDriver: awslogs
+            Options:
+              awslogs-group: !Ref ConnectBridgeLogGroup
+              awslogs-region: !Ref AWS::Region
+              awslogs-stream-prefix: bridge
+
+  VenueBridgeTaskDefinitionResource:
+    Type: AWS::ECS::TaskDefinition
+    Properties:
+      Family: !Sub "${AppName}-venue-bridge-${DeploymentStage}"
+      Cpu: "512"
+      Memory: "1024"
+      NetworkMode: awsvpc
+      RequiresCompatibilities:
+        - FARGATE
+      RuntimePlatform:
+        OperatingSystemFamily: LINUX
+        CpuArchitecture: X86_64
+      ExecutionRoleArn: !GetAtt BridgeTaskExecutionRole.Arn
+      TaskRoleArn: !GetAtt BridgeTaskRole.Arn
+      ContainerDefinitions:
+        - Name: rc-venue-bridge
+          Image: !Sub "${VenueBridgeEcrRepository.RepositoryUri}:latest"
+          Essential: true
+          LogConfiguration:
+            LogDriver: awslogs
+            Options:
+              awslogs-group: !Ref VenueBridgeLogGroup
+              awslogs-region: !Ref AWS::Region
+              awslogs-stream-prefix: bridge
+
+  StreamViewerTokenFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/shared/handlers/stream-viewer-token.handler
+      Timeout: 30
+      Environment:
+        Variables:
+          KVS_BROWSER_TOKEN_ROLE_ARN: !If
+            - CreateLiveVideoResources
+            - !GetAtt KvsWebRtcBrowserTokenRole.Arn
+            - ""
+      Policies:
+        - Statement:
+            Sid: StreamViewerTokenSessionsReadWrite
+            Effect: Allow
+            Action:
+              - dynamodb:GetItem
+              - dynamodb:UpdateItem
+            Resource:
+              - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${ConnectAccessSessionsTable}
+        - !If
+          - CreateLiveVideoResources
+          - Statement:
+              Sid: StreamViewerTokenAssumeBrowserRole
+              Effect: Allow
+              Action: sts:AssumeRole
+              Resource: !GetAtt KvsWebRtcBrowserTokenRole.Arn
+          - !Ref AWS::NoValue
+        - Statement:
+            Sid: StreamViewerTokenKvsRead
+            Effect: Allow
+            Action:
+              - kinesisvideo:DescribeSignalingChannel
+              - kinesisvideo:GetSignalingChannelEndpoint
+              - kinesisvideo:GetIceServerConfig
+            Resource:
+              - !Sub arn:${AWS::Partition}:kinesisvideo:${AWS::Region}:${AWS::AccountId}:channel/rc-connect-*/*
+              - !Sub arn:${AWS::Partition}:kinesisvideo:${AWS::Region}:${AWS::AccountId}:channel/rc-venue-*/*
+      Events:
+        Route:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/stream/viewer-token
+            Method: POST
+
+  StreamSessionStatusFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/shared/handlers/stream-session-status.handler
+      Timeout: 15
+      Policies:
+        - Statement:
+            Sid: StreamSessionStatusRead
+            Effect: Allow
+            Action:
+              - dynamodb:GetItem
+            Resource:
+              - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${ConnectAccessSessionsTable}
+      Events:
+        Route:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/stream/session-status/{sessionId}
+            Method: GET
+
+  BridgeHealthMonitorFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/shared/handlers/bridge-health-monitor.handler
+      Timeout: 60
+      Policies:
+        - Statement:
+            Sid: BridgeHealthMonitorSessions
+            Effect: Allow
+            Action:
+              - dynamodb:Scan
+              - dynamodb:UpdateItem
+            Resource:
+              - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${ConnectAccessSessionsTable}
+        - Statement:
+            Sid: BridgeHealthMonitorDescribeTasks
+            Effect: Allow
+            Action:
+              - ecs:DescribeTasks
+            Resource: "*"
+        - Statement:
+            Sid: BridgeHealthMonitorKvsCleanup
+            Effect: Allow
+            Action:
+              - kinesisvideo:DescribeSignalingChannel
+              - kinesisvideo:DeleteSignalingChannel
+            Resource:
+              - !Sub arn:${AWS::Partition}:kinesisvideo:${AWS::Region}:${AWS::AccountId}:channel/rc-connect-*/*
+              - !Sub arn:${AWS::Partition}:kinesisvideo:${AWS::Region}:${AWS::AccountId}:channel/rc-venue-*/*
+      Events:
+        Schedule:
+          Type: Schedule
+          Properties:
+            Schedule: rate(1 minute)
+            Enabled: true
+
+  GetIncidentVenueIntelligenceFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/venue/handlers/get-incident-venue-intelligence.handler
+      Timeout: 30
+      Policies:
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardB
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardC
+      Events:
+        Route:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/incidents/{id}/venue-intelligence
+            Method: GET
+
+  GetVenueIntelligenceFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/venue/handlers/get-venue-intelligence.handler
+      Timeout: 30
+      Policies:
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardC
+      Events:
+        Route:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/venue/intelligence
+            Method: GET
+
+  VenueCameraRequestFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/venue/handlers/post-venue-camera-request.handler
+      Timeout: 60
+      Policies:
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardB
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardC
+        - Statement:
+            Sid: VenueCameraRequestSessions
+            Effect: Allow
+            Action:
+              - dynamodb:GetItem
+              - dynamodb:PutItem
+              - dynamodb:UpdateItem
+              - dynamodb:Query
+            Resource:
+              - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${ConnectAccessSessionsTable}
+              - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${ConnectAccessSessionsTable}/index/*
+        - Statement:
+            - Effect: Allow
+              Action:
+                - ecs:RunTask
+                - ecs:DescribeTasks
+              Resource: !If
+                - HasVenueBridgeCluster
+                - !Ref VenueBridgeTaskDefinitionResource
+                - !Sub "arn:aws:ecs:${AWS::Region}:${AWS::AccountId}:task-definition/placeholder"
+              Condition:
+                ArnEquals:
+                  "ecs:cluster": !If
+                    - HasVenueBridgeCluster
+                    - !Ref VenueBridgeClusterArn
+                    - !Sub "arn:aws:ecs:${AWS::Region}:${AWS::AccountId}:cluster/placeholder"
+        - Statement:
+            - Effect: Allow
+              Action:
+                - iam:PassRole
+              Resource:
+                - !GetAtt BridgeTaskExecutionRole.Arn
+                - !GetAtt BridgeTaskRole.Arn
+              Condition:
+                StringEquals:
+                  "iam:PassedToService": ecs-tasks.amazonaws.com
+        - Statement:
+            Sid: VenueCameraRequestKvsChannels
+            Effect: Allow
+            Action:
+              - kinesisvideo:CreateSignalingChannel
+              - kinesisvideo:DescribeSignalingChannel
+              - kinesisvideo:TagResource
+            Resource:
+              - !Sub arn:${AWS::Partition}:kinesisvideo:${AWS::Region}:${AWS::AccountId}:channel/rc-venue-*/*
+        - Statement:
+            Sid: VenueCameraRequestCameraCredentials
+            Effect: Allow
+            Action:
+              - secretsmanager:GetSecretValue
+            Resource:
+              - !Sub arn:${AWS::Partition}:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:${AppName}/camera-credentials/*
+              - !Sub arn:${AWS::Partition}:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:rapid-cortex/connect/*
+      Events:
+        Route:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/venue/cameras/request
+            Method: POST
+
+  VenueSmsInboundFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/venue/handlers/post-venue-sms-inbound.handler
+      Description: "Twilio inbound SMS handler for venue + campus routing"
+      MemorySize: 256
+      Timeout: 15
+      Policies:
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardC
+      Events:
+        ApiEvent:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/venue/sms/inbound
+            Method: POST
+
+  GetCampusIncidentsFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/campus/handlers/get-campus-incidents.handler
+      Timeout: 30
+      Policies:
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardC
+      Events:
+        Route:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/campus/incidents
+            Method: GET
+
+  PostCampusIncidentFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/campus/handlers/post-campus-incident.handler
+      Timeout: 30
+      Policies:
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardC
+      Events:
+        Route:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/campus/incidents
+            Method: POST
+
+  GetCampusIncidentFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/campus/handlers/get-campus-incident.handler
+      Timeout: 30
+      Policies:
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardC
+      Events:
+        Route:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/campus/incidents/{incidentId}
+            Method: GET
+
+  PatchCampusIncidentFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/campus/handlers/patch-campus-incident.handler
+      Timeout: 30
+      Policies:
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardC
+      Events:
+        Route:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/campus/incidents/{incidentId}
+            Method: PATCH
+
+  PostCampusIncidentNoteFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/campus/handlers/post-campus-incident-note.handler
+      Timeout: 30
+      Policies:
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardC
+      Events:
+        Route:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/campus/incidents/{incidentId}/notes
+            Method: POST
+
+  PostCampusIncidentEscalateFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/campus/handlers/post-campus-incident-escalate.handler
+      Timeout: 30
+      Policies:
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardC
+      Events:
+        Route:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/campus/incidents/{incidentId}/escalate
+            Method: POST
+
+  GetCampusBuildingsFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/campus/handlers/get-campus-buildings.handler
+      Timeout: 30
+      Policies:
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardC
+      Events:
+        Route:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/campus/buildings
+            Method: GET
+
+  GetCampusAnalyticsFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/campus/handlers/get-campus-analytics.handler
+      Timeout: 30
+      Policies:
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardC
+      Events:
+        Route:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/campus/analytics
+            Method: GET
+
+  PostCampusPublicReportFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/campus/handlers/post-campus-public-report.handler
+      Timeout: 30
+      Policies:
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardC
+        - !Ref AppManagedPolicyS3ApplicationBucketsCrud
+      Events:
+        Route:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/public/campus/report
+            Method: POST
+            Auth:
+              Authorizer: NONE
+
+  IncidentMediaHttpFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/handlers/media/incidentMediaHttp.handler
+      Environment:
+        Variables:
+          COGNITO_USER_POOL_ID: !Ref ImportedCognitoUserPoolId
+          COGNITO_CLIENT_ID: !Ref ImportedCognitoWebClientId
+          INCIDENT_MEDIA_TABLE: !Ref IncidentMediaTable
+      Policies:
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardA
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardB
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardC
+        - Statement:
+            Effect: Allow
+            Action:
+              - s3:PutObject
+              - s3:GetObject
+              - s3:HeadObject
+            Resource: !Sub arn:aws:s3:::${AssetsBucket}/incident-media/*
+        - !Ref AppManagedPolicyOpsAlertsSnsPublishOnly
+        - Statement:
+            Effect: Allow
+            Action:
+              - sms-voice:DescribeAccountAttributes
+              - sms-voice:DescribePools
+              - sms-voice:DescribeConfigurationSets
+            Resource: "*"
+            Condition:
+              StringEquals:
+                aws:RequestedRegion: !Ref AWS::Region
+        - Fn::If:
+            - HasIncidentMediaTwilioSecretArn
+            - Statement:
+                Effect: Allow
+                Action:
+                  - secretsmanager:GetSecretValue
+                Resource: !Ref IncidentMediaTwilioSecretArn
+            - !Ref AWS::NoValue
+      Events:
+        PostIncidentMediaRequest:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/incidents/{id}/media/request
+            Method: POST
+        ListIncidentMedia:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/incidents/{id}/media
+            Method: GET
+        PostCallerMediaSendLink:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/incidents/{incidentId}/media/send-link
+            Method: POST
+        PostCallerMediaUploadUrl:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/incidents/{incidentId}/media/upload-url
+            Method: POST
+        DeleteCallerMedia:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/incidents/{incidentId}/media/{mediaId}
+            Method: DELETE
+
+  PublicIncidentMediaHttpFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/handlers/media/publicIncidentMediaHttp.handler
+      Environment:
+        Variables:
+          COGNITO_USER_POOL_ID: !Ref ImportedCognitoUserPoolId
+          COGNITO_CLIENT_ID: !Ref ImportedCognitoWebClientId
+          INCIDENT_MEDIA_TABLE: !Ref IncidentMediaTable
+      Policies:
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardA
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardB
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardC
+        - Statement:
+            Effect: Allow
+            Action:
+              - s3:PutObject
+              - s3:GetObject
+              - s3:HeadObject
+            Resource: !Sub arn:aws:s3:::${AssetsBucket}/incident-media/*
+      Events:
+        GetIncidentMediaPublicMeta:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/public/incident-media/t/{token}
+            Method: GET
+            Auth:
+              Authorizer: NONE
+        PostIncidentMediaUploadUrl:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/public/incident-media/t/{token}/upload-url
+            Method: POST
+            Auth:
+              Authorizer: NONE
+        PostIncidentMediaConfirm:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/public/incident-media/t/{token}/confirm
+            Method: POST
+            Auth:
+              Authorizer: NONE
+
+  IncidentMediaHttpLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub /aws/lambda/${IncidentMediaHttpFunction}
+      RetentionInDays: 30
+
+  IncidentMediaSmsRoutingFailedMetricFilter:
+    Type: AWS::Logs::MetricFilter
+    DependsOn: IncidentMediaHttpLogGroup
+    Properties:
+      LogGroupName: !Sub /aws/lambda/${IncidentMediaHttpFunction}
+      FilterPattern: '"routing_complete" "failed" "outbound.sms"'
+      MetricTransformations:
+        - MetricName: OutboundSmsRoutingFailures
+          MetricNamespace: RapidCortex/Sms
+          MetricValue: "1"
+          DefaultValue: 0
+
+
+  LiveVideoSmsRoutingFailedMetricFilter:
+    Type: AWS::Logs::MetricFilter
+    Condition: CreateLiveVideoResources
+    DependsOn: LiveVideoIncidentsHttpLogGroup
+    Properties:
+      LogGroupName: !Sub /aws/lambda/${LiveVideoIncidentsHttpFunction}
+      FilterPattern: '"routing_complete" "failed" "outbound.sms"'
+      MetricTransformations:
+        - MetricName: OutboundSmsRoutingFailures
+          MetricNamespace: RapidCortex/Sms
+          MetricValue: "1"
+          DefaultValue: 0
+
+  KvsWebRtcBrowserTokenRole:
+    Type: AWS::IAM::Role
+    Condition: CreateLiveVideoResources
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Action: sts:AssumeRole
+            Principal:
+              AWS: !Sub "arn:aws:iam::${AWS::AccountId}:root"
+            Condition:
+              StringEquals:
+                aws:SourceAccount: !Ref AWS::AccountId
+              StringLike:
+                aws:PrincipalArn:
+                  - !Sub "arn:aws:iam::${AWS::AccountId}:role/*LiveVideo*HttpFunctionRole*"
+      Policies:
+        - PolicyName: KvsWebrtcDataPlane
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Sid: KvsDataPlane
+                Effect: Allow
+                Action:
+                  - kinesisvideo:ConnectAsMaster
+                  - kinesisvideo:ConnectAsViewer
+                  - kinesisvideo:JoinStorageSession
+                  - kinesisvideo:JoinStorageSessionAsViewer
+                  - kinesisvideo:DescribeSignalingChannel
+                  - kinesisvideo:GetSignalingChannelEndpoint
+                  - kinesisvideo:GetIceServerConfig
+                Resource: !Sub "arn:${AWS::Partition}:kinesisvideo:${AWS::Region}:${AWS::AccountId}:channel/*/*"
+              - Sid: KvsMappedStreamRead
+                Effect: Allow
+                Action:
+                  - kinesisvideo:DescribeMappedResourceConfiguration
+                Resource: !Sub "arn:${AWS::Partition}:kinesisvideo:${AWS::Region}:${AWS::AccountId}:stream/*/*"
+
+  ConnectViewerChannelPolicy:
+    Type: AWS::IAM::Policy
+    Condition: CreateLiveVideoResources
+    Properties:
+      PolicyName: !Sub "${AppName}-connect-viewer-channels-${DeploymentStage}"
+      Roles:
+        - !Ref KvsWebRtcBrowserTokenRole
       PolicyDocument:
         Version: "2012-10-17"
         Statement:
           - Effect: Allow
-            Principal:
-              Service: cloudtrail.amazonaws.com
-            Action: sns:Publish
-            Resource: !Ref CloudTrailNotificationTopic
-            Condition:
-              StringEquals:
-                "AWS:SourceAccount": !Ref "AWS::AccountId"
-      Topics:
-        - !Ref CloudTrailNotificationTopic
+            Action:
+              - kinesisvideo:GetSignalingChannelEndpoint
+              - kinesisvideo:ConnectAsViewer
+              - kinesisvideo:DescribeSignalingChannel
+            Resource:
+              - !Sub arn:${AWS::Partition}:kinesisvideo:${AWS::Region}:${AWS::AccountId}:channel/rc-connect-*/*
+              - !Sub arn:${AWS::Partition}:kinesisvideo:${AWS::Region}:${AWS::AccountId}:channel/rc-venue-*/*
 
-  CloudTrailLogsBucket:
-    Type: AWS::S3::Bucket
-    Condition: CloudTrailEnabled
-    DeletionPolicy: Retain
-    UpdateReplacePolicy: Retain
+  LiveVideoIncidentsHttpLogGroup:
+    Type: AWS::Logs::LogGroup
+    Condition: CreateLiveVideoResources
+    Properties:
+      LogGroupName: !Sub /aws/lambda/${LiveVideoIncidentsHttpFunction}
+      RetentionInDays: 30
+
+  LiveVideoIncidentsHttpFunction:
+    Type: AWS::Serverless::Function
     Metadata:
-      cfn-lint:
-        config:
-          # cfn-lint resource spec can lag; ObjectLockEnabledForBucket is required with ObjectLockConfiguration for new lock buckets.
-          ignore_checks:
-            - E3002
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Condition: CreateLiveVideoResources
     Properties:
-      # Globally unique; versioned, encrypted, and Object Lock (must be on at create).
-      BucketName: !Sub "${AppName}-cloudtrail-logs-${DeploymentStage}-${AWS::AccountId}"
-      VersioningConfiguration:
-        Status: Enabled
-      # Required by S3 when creating a bucket with Object Lock + default retention.
-      ObjectLockEnabledForBucket: true
-      ObjectLockConfiguration:
-        # COMPLIANCE: nobody (including the root account) can reduce retention or
-        # delete/overwrite protected until retention expires; supports audit proof.
-        ObjectLockEnabled: Enabled
-        Rule:
-          DefaultRetention:
-            Mode: COMPLIANCE
-            # ~7y — aligns with common CJIS record retention; adjust only via a new
-            # versioned policy review (and never shorten without legal review).
-            Days: 2555
-      BucketEncryption:
-        ServerSideEncryptionConfiguration:
-          - ServerSideEncryptionByDefault:
-              SSEAlgorithm: AES256
-      PublicAccessBlockConfiguration:
-        BlockPublicAcls: true
-        BlockPublicPolicy: true
-        IgnorePublicAcls: true
-        RestrictPublicBuckets: true
-      LifecycleConfiguration:
-        Rules:
-          - Id: cloudtrail-cjis-lifecycle
-            Status: Enabled
-            # No Expiration: Object Lock + CJIS: never hard-delete in bucket policy here;
-            # use transitions only. Standard ~90d, then Glacier, then Deep Archive 7y+.
-            Transitions:
-              - TransitionInDays: 90
-                StorageClass: GLACIER
-              - TransitionInDays: 2555
-                StorageClass: DEEP_ARCHIVE
-
-  CloudTrailS3Policy:
-    Type: AWS::S3::BucketPolicy
-    Condition: CloudTrailEnabled
-    Properties:
-      Bucket: !Ref CloudTrailLogsBucket
-      PolicyDocument:
-        Version: "2012-10-17"
-        Statement:
-          - Sid: AWSCloudTrailAclCheck
+      CodeUri: ../../apps/api/
+      Handler: dist/handlers/media/liveVideoIncidentHttp.handler
+      Environment:
+        Variables:
+          COGNITO_USER_POOL_ID: !Ref ImportedCognitoUserPoolId
+          COGNITO_CLIENT_ID: !Ref ImportedCognitoWebClientId
+          ENABLE_LIVE_VIDEO: "true"
+          LIVE_VIDEO_SESSIONS_TABLE: !Ref LiveVideoSessionsTable
+          LIVE_VIDEO_SESSION_TTL_SECONDS: "1800"
+          LIVE_VIDEO_MAX_DURATION_SECONDS: "900"
+          LIVE_VIDEO_HEARTBEAT_TIMEOUT_SECONDS: "45"
+          LIVE_VIDEO_PUBLIC_BASE_URL: !Sub "https://www.${RootDomainName}"
+          LIVE_VIDEO_KVS_TOKEN_ROLE_ARN: !GetAtt KvsWebRtcBrowserTokenRole.Arn
+          LIVE_VIDEO_STORAGE_MODE: kvs
+          WEBRTC_TURN_SECRET_ARN: ""
+          LIVE_VIDEO_KVS_DATA_RETENTION_HOURS: "24"
+          LIVE_VIDEO_KVS_STORAGE_ATTACH_TO_CHANNEL: "false"
+          KVS_WEBRTC_TAG_APP: !Ref AppName
+          KVS_WEBRTC_TAG_ENV: !Ref DeploymentStage
+      Policies:
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardA
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardB
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardC
+        - Statement:
             Effect: Allow
-            Principal:
-              Service: cloudtrail.amazonaws.com
-            Action: s3:GetBucketAcl
-            Resource: !GetAtt CloudTrailLogsBucket.Arn
-          - Sid: AWSCloudTrailWrite
+            Action: sts:AssumeRole
+            Resource: !GetAtt KvsWebRtcBrowserTokenRole.Arn
+        - Statement:
             Effect: Allow
-            Principal:
-              Service: cloudtrail.amazonaws.com
-            Action: s3:PutObject
-            Resource: !Sub "${CloudTrailLogsBucket.Arn}/*"
+            Action:
+              - kinesisvideo:CreateSignalingChannel
+            Resource: "*"
             Condition:
               StringEquals:
-                "s3:x-amz-acl": bucket-owner-full-control
-                "aws:SourceAccount": !Ref "AWS::AccountId"
-              StringLike:
-                "aws:SourceArn": !Sub "arn:${AWS::Partition}:cloudtrail:${AWS::Region}:${AWS::AccountId}:trail/${AppName}-audit-${DeploymentStage}"
+                aws:RequestedRegion: !Ref AWS::Region
+        - Statement:
+            Effect: Allow
+            Action:
+              - kinesisvideo:DeleteSignalingChannel
+              - kinesisvideo:DescribeSignalingChannel
+              - kinesisvideo:GetSignalingChannelEndpoint
+              - kinesisvideo:JoinStorageSession
+              - kinesisvideo:JoinStorageSessionAsViewer
+            Resource: !Sub "arn:${AWS::Partition}:kinesisvideo:${AWS::Region}:${AWS::AccountId}:channel/*/*"
+        - Statement:
+            Effect: Allow
+            Action:
+              - kinesisvideo:GetIceServerConfig
+            Resource: !Sub "arn:${AWS::Partition}:kinesisvideo:${AWS::Region}:${AWS::AccountId}:channel/*/*"
+        - Statement:
+            Effect: Allow
+            Action:
+              - kinesisvideo:DescribeMappedResourceConfiguration
+            Resource: !Sub "arn:${AWS::Partition}:kinesisvideo:${AWS::Region}:${AWS::AccountId}:stream/*/*"
+        - Statement:
+            Effect: Allow
+            Action:
+              - kinesisvideo:CreateStream
+            Resource: "*"
+            Condition:
+              StringEquals:
+                aws:RequestedRegion: !Ref AWS::Region
+        - Statement:
+            Effect: Allow
+            Action:
+              - kinesisvideo:DeleteStream
+              - kinesisvideo:DescribeStream
+              - kinesisvideo:GetDataEndpoint
+            Resource: !Sub "arn:${AWS::Partition}:kinesisvideo:${AWS::Region}:${AWS::AccountId}:stream/*/*"
+        - Statement:
+            Effect: Allow
+            Action:
+              - kinesisvideo:GetHLSStreamingSessionURL
+            Resource: !Sub "arn:${AWS::Partition}:kinesisvideo:${AWS::Region}:${AWS::AccountId}:stream/*/*"
+        - Statement:
+            Effect: Allow
+            Action:
+              - kinesisvideo:UpdateMediaStorageConfiguration
+              - kinesisvideo:DescribeMediaStorageConfiguration
+            Resource: !Sub "arn:${AWS::Partition}:kinesisvideo:${AWS::Region}:${AWS::AccountId}:channel/*/*"
+        - !Ref AppManagedPolicyOpsAlertsSnsPublishOnly
+        - Statement:
+            Effect: Allow
+            Action:
+              - sms-voice:DescribeAccountAttributes
+              - sms-voice:DescribePools
+              - sms-voice:DescribeConfigurationSets
+            Resource: "*"
+            Condition:
+              StringEquals:
+                aws:RequestedRegion: !Ref AWS::Region
+        - Fn::If:
+            - HasIncidentMediaTwilioSecretArn
+            - Statement:
+                Effect: Allow
+                Action:
+                  - secretsmanager:GetSecretValue
+                Resource: !Ref IncidentMediaTwilioSecretArn
+            - !Ref AWS::NoValue
+      Events:
+        RequestLiveVideo:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/incidents/{id}/live-video/request
+            Method: POST
+        GetLiveVideo:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/incidents/{id}/live-video
+            Method: GET
+        JoinLiveVideoIncident:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/incidents/{id}/live-video/join
+            Method: POST
+        GetLiveVideoPlayback:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/incidents/{id}/live-video/playback
+            Method: GET
+        EndLiveVideo:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/incidents/{id}/live-video/end
+            Method: POST
+        DispatcherHeartbeatLiveVideo:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/incidents/{id}/live-video/heartbeat
+            Method: POST
 
-  CloudTrailAuditingTrail:
-    Type: AWS::CloudTrail::Trail
-    Condition: CloudTrailEnabled
-    DependsOn:
-      - CloudTrailS3Policy
-      - CloudTrailNotificationTopicPolicy
+  LiveVideoPublicHttpFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Condition: CreateLiveVideoResources
     Properties:
-      TrailName: !Sub "${AppName}-audit-${DeploymentStage}"
-      S3BucketName: !Ref CloudTrailLogsBucket
-      S3KeyPrefix: !Sub "cloudtrail/${AppName}"
-      SnsTopicArn: !Ref CloudTrailNotificationTopic
-      IsLogging: true
-      IsMultiRegionTrail: true
-      EnableLogFileValidation: true
-      IncludeGlobalServiceEvents: true
-      # Trail requires the log group ARN in `log-group:Name:*` form for delivery.
-      CloudWatchLogsLogGroupArn: !Sub "${CloudTrailLogGroup.Arn}:*"
-      CloudWatchLogsRoleArn: !GetAtt CloudTrailToCloudWatchRole.Arn
-      KMSKeyId: !If
-        - HasCloudTrailKms
-        - !Ref CloudTrailKmsKeyArn
-        - !Ref "AWS::NoValue"
-      # If you set CloudTrailKmsKeyArn, the key policy must allow
-      # cloudtrail.amazonaws.com to use the key for log encryption. No grant is
-      # created in this template for imported keys.
-      EventSelectors: !If
-        - CloudTrailS3AndLambdaDataEvents
-        - - IncludeManagementEvents: true
-            ReadWriteType: All
-          - IncludeManagementEvents: false
-            ReadWriteType: All
-            DataResources:
-              - Type: "AWS::S3::Object"
-                Values:
-                  - !Sub "arn:aws:s3:::${AssetsBucket}/"
-          - IncludeManagementEvents: false
-            ReadWriteType: All
-            DataResources:
-              - Type: "AWS::Lambda::Function"
-                Values:
-                  - !Sub "arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:*"
-        - !If
-          - CloudTrailS3DataOnly
-          - - IncludeManagementEvents: true
-              ReadWriteType: All
-            - IncludeManagementEvents: false
-              ReadWriteType: All
-              DataResources:
-                - Type: "AWS::S3::Object"
-                  Values:
-                    - !Sub "arn:aws:s3:::${AssetsBucket}/"
-          - !If
-            - CloudTrailLambdaDataOnly
-            - - IncludeManagementEvents: true
-                ReadWriteType: All
-              - IncludeManagementEvents: false
-                ReadWriteType: All
-                DataResources:
-                  - Type: "AWS::Lambda::Function"
-                    Values:
-                      - !Sub "arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:*"
-            - - IncludeManagementEvents: true
-                ReadWriteType: All
+      CodeUri: ../../apps/api/
+      Handler: dist/handlers/media/liveVideoPublicHttp.handler
+      Environment:
+        Variables:
+          ENABLE_LIVE_VIDEO: "true"
+          LIVE_VIDEO_SESSIONS_TABLE: !Ref LiveVideoSessionsTable
+          LIVE_VIDEO_SESSION_TTL_SECONDS: "1800"
+          LIVE_VIDEO_MAX_DURATION_SECONDS: "900"
+          LIVE_VIDEO_HEARTBEAT_TIMEOUT_SECONDS: "45"
+          LIVE_VIDEO_PUBLIC_BASE_URL: !Sub "https://www.${RootDomainName}"
+          LIVE_VIDEO_KVS_TOKEN_ROLE_ARN: !GetAtt KvsWebRtcBrowserTokenRole.Arn
+          LIVE_VIDEO_STORAGE_MODE: kvs
+          WEBRTC_TURN_SECRET_ARN: ""
+      Policies:
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardA
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardB
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardC
+        - Statement:
+            Effect: Allow
+            Action: sts:AssumeRole
+            Resource: !GetAtt KvsWebRtcBrowserTokenRole.Arn
+        - Statement:
+            Effect: Allow
+            Action:
+              - kinesisvideo:DeleteSignalingChannel
+              - kinesisvideo:DescribeSignalingChannel
+              - kinesisvideo:GetSignalingChannelEndpoint
+            Resource: !Sub "arn:${AWS::Partition}:kinesisvideo:${AWS::Region}:${AWS::AccountId}:channel/*/*"
+        - Statement:
+            Effect: Allow
+            Action:
+              - kinesisvideo:GetIceServerConfig
+            Resource: !Sub "arn:${AWS::Partition}:kinesisvideo:${AWS::Region}:${AWS::AccountId}:channel/*/*"
+      Events:
+        JoinLiveVideo:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/media/live/{token}/join
+            Method: POST
+            Auth:
+              Authorizer: NONE
+        CallerHeartbeatLiveVideo:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/media/live/{token}/heartbeat
+            Method: POST
+            Auth:
+              Authorizer: NONE
+
+  # ---------------------------------------------------------------------------------------------
+  # Silent Text + Pinpoint (LiveLocation)
+  #
+  # Both features were originally in stack-app-sam-2.yaml, but that stack's HttpApi is not
+  # mapped to the `api.rapidcortex.us` custom domain — only this stack is. SDK clients and
+  # `apps/web` BFF callers expect both surfaces on the custom domain, so the Lambdas + their
+  # HttpApi events live here (Option 1 from the 2026-05-25 routing audit).
+  #
+  # The SMS-sending paths (dispatcher functions only) reuse `IncidentMediaTwilioSecretArn` so
+  # there is exactly one Twilio secret per stage rather than a parallel `rapid-cortex/silent-text`
+  # entry. AWS SNS publish to E.164 numbers is allowed only with the `sns:Type=Transactional`
+  # condition — see workspace rule `rapid-cortex-global-features.mdc` (no wildcard IAM).
+  # ---------------------------------------------------------------------------------------------
+  SilentTextIncidentsHttpFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/handlers/silentTextIncidentsHttp.handler
+      Timeout: 30
+      Environment:
+        Variables:
+          COGNITO_USER_POOL_ID: !Ref ImportedCognitoUserPoolId
+          COGNITO_CLIENT_ID: !Ref ImportedCognitoWebClientId
+          SILENT_TEXT_TABLE: !Ref SilentTextSessionsTable
+          SILENT_TEXT_PUBLIC_BASE_URL: !Ref AppPublicBaseUrl
+          ENABLE_SILENT_TEXT: !Ref EnableSilentText
+          SILENT_TEXT_TRANSLATION_ENABLED: "true"
+          SILENT_TEXT_TTS_ENABLED: "false"
+          SUPPORTED_CALL_LANGUAGES: "en,es,zh,tl,vi,ar,fr,ko,ru,pt"
+          LANGUAGE_PROVIDER: !Ref LanguageProvider
+          GOOGLE_CLOUD_PROJECT_ID: !Ref GoogleCloudProjectId
+          GOOGLE_TRANSLATE_LOCATION: "global"
+          GOOGLE_TTS_LOCATION: "global"
+          GOOGLE_TTS_OUTPUT_BUCKET: !Ref GoogleTtsOutputBucket
+          GOOGLE_APPLICATION_CREDENTIALS_SECRET_ARN: !If
+            - UseManagedMultilingualSecrets
+            - !Ref NestedMultilingualGoogleServiceAccountSecretArn
+            - !Ref GoogleApplicationCredentialsSecretArn
+          INCIDENT_MEDIA_TWILIO_SECRET_ARN: !Ref IncidentMediaTwilioSecretArn
+          SMS_PROVIDER: !FindInMap [SmsEnvironmentDefaults, !Ref DeploymentStage, SmsProvider]
+          SMS_PRIMARY_PROVIDER: !FindInMap [SmsEnvironmentDefaults, !Ref DeploymentStage, SmsPrimaryProvider]
+          MOCK_SMS_PROVIDER: !FindInMap [SmsEnvironmentDefaults, !Ref DeploymentStage, MockSmsProvider]
+          AWS_SMS_USE_SIMULATOR: !FindInMap [SmsEnvironmentDefaults, !Ref DeploymentStage, AwsSmsUseSimulator]
+          AWS_SMS_REGION: ""
+      Policies:
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardA
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardB
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardC
+        - !Ref AppManagedPolicyS3ApplicationBucketsCrud
+        - !Ref AppManagedPolicyComprehendTranslateRegionalDetect
+        - !Ref AppManagedPolicySecretsMultilingualScopedRead
+        - !Ref AppManagedPolicyOpsAlertsSnsPublishOnly
+        # Transactional SMS to E.164 phone numbers — SNS does not support resource-level scoping
+        # for `Publish` to a `PhoneNumber`, so AWS's recommended pattern is `Resource: "*"` with a
+        # `sns:Type=Transactional` condition (blocks promotional SMS abuse from this role).
+        - Statement:
+            Sid: SnsPublishToPhoneNumbers
+            Effect: Allow
+            Action: sns:Publish
+            Resource: "*"
+            Condition:
+              StringEquals:
+                "sns:Type": "Transactional"
+        - Statement:
+            Sid: AwsEndUserMessagingReadOnly
+            Effect: Allow
+            Action:
+              - sms-voice:DescribeAccountAttributes
+              - sms-voice:DescribePools
+              - sms-voice:DescribeConfigurationSets
+            Resource: "*"
+            Condition:
+              StringEquals:
+                aws:RequestedRegion: !Ref AWS::Region
+        - Fn::If:
+            - HasIncidentMediaTwilioSecretArn
+            - Statement:
+                Sid: ReadTwilioSecret
+                Effect: Allow
+                Action:
+                  - secretsmanager:GetSecretValue
+                Resource: !Ref IncidentMediaTwilioSecretArn
+            - !Ref AWS::NoValue
+      Events:
+        PostSession:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/incidents/{id}/silent-text/sessions
+            Method: POST
+        ListSessions:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/incidents/{id}/silent-text/sessions
+            Method: GET
+        GetSession:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/incidents/{id}/silent-text/sessions/{sessionId}
+            Method: GET
+        GetEvents:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/incidents/{id}/silent-text/sessions/{sessionId}/events
+            Method: GET
+        GetMessages:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/incidents/{id}/silent-text/sessions/{sessionId}/messages
+            Method: GET
+        Resend:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/incidents/{id}/silent-text/sessions/{sessionId}/resend
+            Method: POST
+        Cancel:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/incidents/{id}/silent-text/sessions/{sessionId}/cancel
+            Method: POST
+        Close:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/incidents/{id}/silent-text/sessions/{sessionId}/close
+            Method: POST
+        DispatcherMessage:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/incidents/{id}/silent-text/sessions/{sessionId}/message
+            Method: POST
+        HighRisk:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/incidents/{id}/silent-text/sessions/{sessionId}/high-risk
+            Method: POST
+
+  SilentTextPublicHttpFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/handlers/silentTextPublicHttp.handler
+      Timeout: 30
+      Environment:
+        Variables:
+          SILENT_TEXT_TABLE: !Ref SilentTextSessionsTable
+          SILENT_TEXT_PUBLIC_BASE_URL: !Ref AppPublicBaseUrl
+          ENABLE_SILENT_TEXT: !Ref EnableSilentText
+          SILENT_TEXT_TRANSLATION_ENABLED: "true"
+          SILENT_TEXT_TTS_ENABLED: "false"
+          SUPPORTED_CALL_LANGUAGES: "en,es,zh,tl,vi,ar,fr,ko,ru,pt"
+          LANGUAGE_PROVIDER: !Ref LanguageProvider
+          GOOGLE_CLOUD_PROJECT_ID: !Ref GoogleCloudProjectId
+          GOOGLE_TRANSLATE_LOCATION: "global"
+          GOOGLE_TTS_LOCATION: "global"
+          GOOGLE_TTS_OUTPUT_BUCKET: !Ref GoogleTtsOutputBucket
+          GOOGLE_APPLICATION_CREDENTIALS_SECRET_ARN: !If
+            - UseManagedMultilingualSecrets
+            - !Ref NestedMultilingualGoogleServiceAccountSecretArn
+            - !Ref GoogleApplicationCredentialsSecretArn
+      Policies:
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardA
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardB
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardC
+        - !Ref AppManagedPolicyS3ApplicationBucketsCrud
+        - !Ref AppManagedPolicyComprehendTranslateRegionalDetect
+        - !Ref AppManagedPolicySecretsMultilingualScopedRead
+      Events:
+        GetPublic:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/silent-text/t/{token}
+            Method: GET
+            Auth:
+              Authorizer: NONE
+        GetMessages:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/silent-text/t/{token}/messages
+            Method: GET
+            Auth:
+              Authorizer: NONE
+        PostOpened:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/silent-text/t/{token}/opened
+            Method: POST
+            Auth:
+              Authorizer: NONE
+        PostPresence:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/silent-text/t/{token}/presence
+            Method: POST
+            Auth:
+              Authorizer: NONE
+        PostMessage:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/silent-text/t/{token}/message
+            Method: POST
+            Auth:
+              Authorizer: NONE
+        PostEnd:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/silent-text/t/{token}/end
+            Method: POST
+            Auth:
+              Authorizer: NONE
+
+  PinpointIncidentsHttpFunction:
+    # Same handler as the legacy `PinpointSurgeIncidentsHttpFunction` in stack-app-sam-2.yaml,
+    # but only the `/pinpoint/links/*` routes are attached here. The Surge `/surge/*` routes
+    # stay in stack-2 until Surge gets its own dedicated handler (out of scope for this fix).
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/handlers/pinpointSurgeIncidentsHttp.handler
+      Timeout: 30
+      Environment:
+        Variables:
+          COGNITO_USER_POOL_ID: !Ref ImportedCognitoUserPoolId
+          COGNITO_CLIENT_ID: !Ref ImportedCognitoWebClientId
+          PINPOINT_LINKS_TABLE: !Ref PinpointLinksTable
+          ENABLE_PINPOINT: !Ref EnablePinpoint
+          PINPOINT_PUBLIC_BASE_URL: !Ref AppPublicBaseUrl
+          SILENT_TEXT_PUBLIC_BASE_URL: !Ref AppPublicBaseUrl
+          PINPOINT_SMS_MOCK: "false"
+          INCIDENT_MEDIA_TWILIO_SECRET_ARN: !Ref IncidentMediaTwilioSecretArn
+          SMS_PROVIDER: !FindInMap [SmsEnvironmentDefaults, !Ref DeploymentStage, SmsProvider]
+          SMS_PRIMARY_PROVIDER: !FindInMap [SmsEnvironmentDefaults, !Ref DeploymentStage, SmsPrimaryProvider]
+          MOCK_SMS_PROVIDER: !FindInMap [SmsEnvironmentDefaults, !Ref DeploymentStage, MockSmsProvider]
+          AWS_SMS_USE_SIMULATOR: !FindInMap [SmsEnvironmentDefaults, !Ref DeploymentStage, AwsSmsUseSimulator]
+          AWS_SMS_REGION: ""
+          # The handler also gates on SURGE_*; blank them here so the file-loaded `env.ts` resolves
+          # ENABLE_SURGE=false and Surge routes 503 even if they were ever bound to this function.
+          SURGE_CLUSTERS_TABLE: ""
+          ENABLE_SURGE: !If [PilotTestFeaturesOn, "true", "false"]
+      Policies:
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardA
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardB
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardC
+        - !Ref AppManagedPolicyOpsAlertsSnsPublishOnly
+        - Statement:
+            Sid: SnsPublishToPhoneNumbers
+            Effect: Allow
+            Action: sns:Publish
+            Resource: "*"
+            Condition:
+              StringEquals:
+                "sns:Type": "Transactional"
+        - Statement:
+            Sid: AwsEndUserMessagingReadOnly
+            Effect: Allow
+            Action:
+              - sms-voice:DescribeAccountAttributes
+              - sms-voice:DescribePools
+              - sms-voice:DescribeConfigurationSets
+            Resource: "*"
+            Condition:
+              StringEquals:
+                aws:RequestedRegion: !Ref AWS::Region
+        - Fn::If:
+            - HasIncidentMediaTwilioSecretArn
+            - Statement:
+                Sid: ReadTwilioSecret
+                Effect: Allow
+                Action:
+                  - secretsmanager:GetSecretValue
+                Resource: !Ref IncidentMediaTwilioSecretArn
+            - !Ref AWS::NoValue
+      Events:
+        PostPinpointLink:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/incidents/{id}/pinpoint/links
+            Method: POST
+        ListPinpointLinks:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/incidents/{id}/pinpoint/links
+            Method: GET
+        GetPinpointLink:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/incidents/{id}/pinpoint/links/{linkId}
+            Method: GET
+        RevokePinpointLink:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/incidents/{id}/pinpoint/links/{linkId}/revoke
+            Method: POST
+
+  PinpointPublicHttpFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/handlers/pinpointPublicHttp.handler
+      Timeout: 30
+      Environment:
+        Variables:
+          PINPOINT_LINKS_TABLE: !Ref PinpointLinksTable
+          ENABLE_PINPOINT: !Ref EnablePinpoint
+      Policies:
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardA
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardB
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardC
+      Events:
+        GetPublic:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/pinpoint/t/{token}
+            Method: GET
+            Auth:
+              Authorizer: NONE
+        PostLocation:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/pinpoint/t/{token}/location
+            Method: POST
+            Auth:
+              Authorizer: NONE
+
+  LiveVideoIncidentsHttpErrorsAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Condition: CreateLiveVideoResources
+    Properties:
+      AlarmActions:
+        - !Ref OpsAlertsTopic
+      AlarmDescription: Live video authenticated routes errors.
+      Namespace: AWS/Lambda
+      MetricName: Errors
+      Dimensions:
+        - Name: FunctionName
+          Value: !Ref LiveVideoIncidentsHttpFunction
+      Statistic: Sum
+      Period: 300
+      EvaluationPeriods: 1
+      Threshold: 5
+      ComparisonOperator: GreaterThanThreshold
+      TreatMissingData: notBreaching
+
+  LiveVideoPublicHttpErrorsAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Condition: CreateLiveVideoResources
+    Properties:
+      AlarmActions:
+        - !Ref OpsAlertsTopic
+      AlarmDescription: Live video public token route errors.
+      Namespace: AWS/Lambda
+      MetricName: Errors
+      Dimensions:
+        - Name: FunctionName
+          Value: !Ref LiveVideoPublicHttpFunction
+      Statistic: Sum
+      Period: 300
+      EvaluationPeriods: 1
+      Threshold: 5
+      ComparisonOperator: GreaterThanThreshold
+      TreatMissingData: notBreaching
+
 
 Outputs:
-  CadWebhookTopicArn:
-    Description: SNS topic ARN for CAD webhook ingest fan-out (subscribers process async).
-    Value: !Ref CadWebhookProcessingTopic
   OpsAlertsTopicArn:
-    Description: SNS topic ARN for CloudWatch alarm notifications (subscribe for email/SMS/Opsgenie).
+    Description: SNS topic ARN (stack 5 campus/venue/media).
     Value: !Ref OpsAlertsTopic
-  PilotOperationsDashboardName:
-    Description: CloudWatch dashboard name (open in console under Dashboards / custom).
-    Value: !Ref PilotOperationsDashboard
-  DeploymentStage:
-    Description: Logical environment (dev / staging / prod)
-    Value: !Ref DeploymentStage
-  RootDomainName:
-    Description: Primary public-facing domain for Rapid Cortex.
-    Value: !Ref RootDomainName
-  ApiWebAclArn:
-    Description: Regional WAF web ACL ARN when WAF is enabled; otherwise empty (parent stack always reads this output).
-    Value: !If [HasApiWaf, !GetAtt ApiWebAcl.Arn, ""]
   HttpApiUrl:
-    Description: HTTP API base URL
+    Description: HTTP API base URL (stack 5)
     Value: !GetAtt Api.ApiEndpoint
   HttpApiId:
-    Description: HTTP API ID (CloudWatch metrics ApiId dimension).
+    Description: HTTP API ID (stack 5)
     Value: !Ref Api
-  UserPoolId:
-    Description: Cognito User Pool ID
-    Value: !Ref CognitoUserPool
-  UserPoolClientId:
-    Description: Cognito web app client ID
-    Value: !Ref CognitoUserPoolClient
-  NativeUserPoolClientId:
-    Description: Cognito native app client ID (PKCE, no secret).
-    Value: !Ref CognitoNativeUserPoolClient
-  CognitoIssuer:
-    Description: JWT issuer for this pool
-    Value: !Sub https://cognito-idp.${AWS::Region}.amazonaws.com/${CognitoUserPool}
-  CognitoHostedUiBase:
-    Description: Hosted UI / OAuth2 base (domain prefix includes stage)
-    Value: !Sub "https://${CognitoUserPoolDomain}.auth.${AWS::Region}.amazoncognito.com"
+  ApiWebAclArn:
+    Condition: HasApiWaf
+    Description: WAF web ACL ARN (stack 5).
+    Value: !GetAtt ApiWebAcl.Arn
   ApiCustomDomainUrl:
-    Description: Production API custom domain URL when ACM + custom domain are configured; otherwise empty.
-    Value: !If [HasApiCustomDomainCert, !Sub "https://${ApiSubdomainPrefix}.${RootDomainName}", ""]
-  DetectIncidentTypeFunctionName:
-    Value: !Ref DetectIncidentTypeFunction
-  PostAgencySopUploadUrlFunctionName:
-    Value: !Ref PostAgencySopUploadUrlFunction
-  GetTriageResultFunctionName:
-    Value: !Ref GetTriageResultFunction
-  OverrideTriageFunctionName:
-    Value: !Ref OverrideTriageFunction
-  QaHttpFunctionName:
-    Value: !Ref QaHttpFunction
-  QaScoringFunctionName:
-    Value: !Ref QaScoringFunction
-  AnalyzeIncidentFunctionName:
-    Value: !Ref AnalyzeIncidentFunction
-  PostIncidentAudioChunkFunctionName:
-    Value: !Ref PostIncidentAudioChunkFunction
+    Condition: HasApiCustomDomainCert
+    Description: Stack 5 API custom domain URL.
+    Value: !Sub "https://${ApiSubdomainPrefix}.${RootDomainName}"
+  ApiTlsCertificateArn:
+    Condition: HasApiCustomDomainCert
+    Description: ACM certificate ARN (stack 5).
+    Value: !If [HasImportedApiCert, !Ref ApiDomainCertificateArn, !Ref ApiManagedCertificate]
