@@ -6,7 +6,7 @@ import {
   Clock, CreditCard, FileText, Globe, Key, Package, Radio, Receipt,
   Shield, ShieldAlert, Siren, TrendingUp, Users, Wifi, Zap,
 } from "lucide-react";
-import type { CadWritebackAuditRecord } from "rapid-cortex-shared";
+import type { CadWritebackAuditRecord, PlatformNotice } from "rapid-cortex-shared";
 import {
   fetchAgencies,
   fetchAgencyAdminWebhooks,
@@ -316,6 +316,10 @@ export function AgencyPipelineWidget({ agencyId }: WidgetProps) {
   );
 }
 
+function noticeStatus(notice: PlatformNotice): "active" | "expired" {
+  return notice.expiresAt > Math.floor(Date.now() / 1000) ? "active" : "expired";
+}
+
 export function BillingHealthWidget({ agencyId }: WidgetProps) {
   const q = useQuery({
     queryKey: ["billing-health", agencyId],
@@ -323,8 +327,10 @@ export function BillingHealthWidget({ agencyId }: WidgetProps) {
       const agencies = await fetchAgencies();
       const results = await Promise.all(
         agencies.slice(0, 20).map(async (a) => {
-          const invoices = await fetchAgencyBillingInvoices(a.agencyId).catch(() => []);
-          const overdue = invoices.filter((i) => i.status === "past_due").length;
+          const invoices = await fetchAgencyBillingInvoices(a.agencyId).catch(
+            (): Awaited<ReturnType<typeof fetchAgencyBillingInvoices>> => [],
+          );
+          const overdue = invoices.filter((i) => i.state === "overdue").length;
           return { agency: a, overdue };
         }),
       );
@@ -367,7 +373,7 @@ export function PlatformNoticesSentWidget({ agencyId }: WidgetProps) {
           notices.slice(0, 10).map((n) => (
             <div key={n.noticeId} className="px-4 py-2.5">
               <p className="text-xs font-medium text-white">{n.title}</p>
-              <p className="text-[10px] text-slate-600">{n.severity} · {n.status}</p>
+              <p className="text-[10px] text-slate-600">{n.severity} · {noticeStatus(n)}</p>
             </div>
           ))
         )}

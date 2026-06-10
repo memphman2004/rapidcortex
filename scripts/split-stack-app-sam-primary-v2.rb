@@ -194,23 +194,23 @@ stack5_resources = +"Resources:\n#{dup_bodies.join}#{stack5_bodies.join}"
 
 stack5_prefix = prefix.dup
 
-stack5_imported_cognito = <<~YAML
-  # --- Imported from primary SAM stack (AppSamStackV2); deploy stack 1 first ---
-  ImportedCognitoUserPoolId:
-    Type: String
-    Description: Cognito User Pool ID from AppSamStackV2.
-  ImportedCognitoWebClientId:
-    Type: String
-    Description: Cognito web app client ID from AppSamStackV2.
-  ImportedCognitoNativeClientId:
-    Type: String
-    Default: ""
-    Description: Cognito native client ID (PKCE); optional.
-  ImportedCognitoIssuer:
-    Type: String
-    Description: JWT issuer URL for HttpApi authorizer.
-
-YAML
+stack5_imported_cognito = [
+  "  # --- Imported from primary SAM stack (AppSamStackV2); deploy stack 1 first ---",
+  "  ImportedCognitoUserPoolId:",
+  "    Type: String",
+  "    Description: Cognito User Pool ID from AppSamStackV2.",
+  "  ImportedCognitoWebClientId:",
+  "    Type: String",
+  "    Description: Cognito web app client ID from AppSamStackV2.",
+  "  ImportedCognitoNativeClientId:",
+  "    Type: String",
+  "    Default: \"\"",
+  "    Description: Cognito native client ID (PKCE); optional.",
+  "  ImportedCognitoIssuer:",
+  "    Type: String",
+  "    Description: JWT issuer URL for HttpApi authorizer.",
+  "",
+].join("\n")
 stack5_prefix.sub!("  SnsEmailSubscription:", "#{stack5_imported_cognito}  SnsEmailSubscription:")
 
 # Disambiguate physical names for Stack 5
@@ -280,13 +280,34 @@ YAML
 
 # Stack 1 keeps bridge env as string parameters (bridge ECS lives in Stack 5).
 stack1_prefix = prefix.dup
+
+# Stack 1 no longer hosts campus/venue/stream/media Lambdas — drop heavy globals to stay under Lambda's 4KB env limit.
 stack1_prefix.gsub!(
-  "CONNECT_BRIDGE_TASK_DEFINITION: !Ref ConnectBridgeTaskDefinitionResource",
-  "CONNECT_BRIDGE_TASK_DEFINITION: !Ref ConnectBridgeTaskDefinition",
+  /        RING_CREDENTIALS_SECRET_ARN: !Ref RingCredentialsSecretArn\n        RING_PARTNER_TOKEN_SECRET_ARN: !Ref RingCredentialsSecretArn\n        RING_PARTNERSHIP_ENABLED: !Ref RingPartnershipEnabled\n        RING_API_BASE_URL: !Ref RingApiBaseUrl\n        ENABLE_CONNECT_RING: !Ref EnableConnectRing\n        ENABLE_CONNECT_RING_AVAILABLE_CAMERAS: !If \[PilotTestFeaturesOn, "true", !Ref EnableConnectRingAvailableCameras\]\n        ENABLE_CONNECT_RING_EMERGENCY_REQUESTS: !If \[PilotTestFeaturesOn, "true", !Ref EnableConnectRingEmergencyRequests\]\n        CONNECT_SESSIONS_TABLE: !Ref ConnectAccessSessionsTable\n        VENUE_CAMERA_SESSIONS_TABLE: !Ref ConnectAccessSessionsTable\n        VENUE_FACILITIES_TABLE: !Ref VenueFacilitiesTable\n        VENUE_ASSETS_TABLE: !Ref VenueAssetsTable\n        VENUE_OVERLAYS_TABLE: !Ref VenueIncidentOverlaysTable\n        VENUE_CAMERA_ACCESS_LOG_TABLE: !If\n          - HasVenueCameraAccessLogTable\n          - !Ref VenueCameraAccessLogTable\n          - ""\n        VENUE_CONFIG_TABLE: !If\n          - HasVenueConfigTable\n          - !Ref VenueConfigTable\n          - ""\n        VENUE_CODES: !Sub "\$\{AppName\}-venue-codes"\n        CAMPUS_INCIDENTS_TABLE: !If\n          - HasCampusIncidentsTable\n          - !Ref CampusIncidentsTable\n          - ""\n        CAMPUS_CONFIG_TABLE: !If\n          - HasCampusConfigTable\n          - !Ref CampusConfigTable\n          - ""\n        QR_LOCATIONS_TABLE: !If\n          - HasQRLocationsTable\n          - !Ref QRLocationsTable\n          - ""\n        CAMPUS_CODES: !Sub "\$\{AppName\}-campus-codes"\n        CONNECT_BRIDGE_CLUSTER_ARN: !Ref ConnectBridgeClusterArn\n        VENUE_BRIDGE_CLUSTER_ARN: !If\n          - HasVenueBridgeCluster\n          - !Ref VenueBridgeClusterArn\n          - ""\n        CONNECT_BRIDGE_TASK_DEFINITION: !Ref ConnectBridgeTaskDefinitionResource\n        VENUE_BRIDGE_TASK_DEFINITION: !If\n          - HasVenueBridgeCluster\n          - !Ref VenueBridgeTaskDefinitionResource\n          - ""\n        BRIDGE_SUBNET_IDS: !Ref BridgeSubnetIds\n        BRIDGE_SECURITY_GROUP_IDS: !Ref BridgeSecurityGroupIds\n/m,
+  "",
 )
-stack1_prefix.gsub!(
-  "VENUE_BRIDGE_TASK_DEFINITION: !If\n          - HasVenueBridgeCluster\n          - !Ref VenueBridgeTaskDefinitionResource",
-  "VENUE_BRIDGE_TASK_DEFINITION: !If\n          - HasVenueBridgeCluster\n          - !Ref VenueBridgeTaskDefinition",
+
+stack1_body = stack1_prefix + stack1_resources
+stack1_body.gsub!(
+  "          COGNITO_USER_POOL_ID: !Ref CognitoUserPool\n          COGNITO_CLIENT_ID: !Ref CognitoUserPoolClient\n          CAD_INTEGRATIONS_TABLE:",
+  "          CAD_INTEGRATIONS_TABLE:",
+)
+stack1_body.gsub!(
+  "          COGNITO_USER_POOL_ID: !Ref CognitoUserPool\n          COGNITO_CLIENT_ID: !Ref CognitoUserPoolClient\n          CAD_INTEGRATIONS_TABLE: !Ref CadIntegrationsTable\n          CAD_WEBHOOK_INGRESS_TOPIC_ARN:",
+  "          CAD_INTEGRATIONS_TABLE: !Ref CadIntegrationsTable\n          CAD_WEBHOOK_INGRESS_TOPIC_ARN:",
+)
+stack1_body.gsub!(
+  "          COGNITO_USER_POOL_ID: !Ref CognitoUserPool\n          COGNITO_CLIENT_ID: !Ref CognitoUserPoolClient\n      CodeUri: ../../apps/api/\n      Handler: dist/handlers/integrationStatus.handler",
+  [
+    "          COGNITO_USER_POOL_ID: !Ref CognitoUserPool",
+    "          COGNITO_CLIENT_ID: !Ref CognitoUserPoolClient",
+    "          RING_CREDENTIALS_SECRET_ARN: !Ref RingCredentialsSecretArn",
+    "          RING_PARTNERSHIP_ENABLED: !Ref RingPartnershipEnabled",
+    "          ENABLE_CONNECT_RING: !Ref EnableConnectRing",
+    "          CONNECT_SESSIONS_TABLE: !Ref ConnectAccessSessionsTable",
+    "      CodeUri: ../../apps/api/",
+    "      Handler: dist/handlers/integrationStatus.handler",
+  ].join("\n"),
 )
 
 # Remove stack1 outputs that reference functions moved to Stack 5
@@ -314,7 +335,7 @@ stack5_body.gsub!("COGNITO_CLIENT_ID: !Ref CognitoUserPoolClient", "COGNITO_CLIE
 
 FileUtils.cp(SRC, BACKUP) unless File.file?(BACKUP)
 
-File.write(OUT1, stack1_prefix + stack1_resources + stack1_outputs, encoding: "UTF-8")
+File.write(OUT1, stack1_body + stack1_outputs, encoding: "UTF-8")
 File.write(OUT5, stack5_body + stack5_outputs, encoding: "UTF-8")
 
 s1_bytes = File.size(OUT1)

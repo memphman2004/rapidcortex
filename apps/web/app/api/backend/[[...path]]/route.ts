@@ -1,31 +1,36 @@
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 import { COOKIE_ID_TOKEN } from "@/lib/auth/cookies";
-import { isSam3ApiPath, isSam4ApiPath, isStack2ApiPath, resolveUpstreamApiBase } from "@/lib/comms-api-path";
+import { isSam3ApiPath, isSam4ApiPath, isSam5ApiPath, isStack2ApiPath, resolveUpstreamApiBase } from "@/lib/comms-api-path";
 
 async function proxy(request: NextRequest, pathSegments: string[]) {
   const path = `/${pathSegments.join("/")}`;
   const base = resolveUpstreamApiBase(path);
   if (!base) {
     const needsStack4 = isSam4ApiPath(path);
+    const needsStack5 = isSam5ApiPath(path);
     const needsStack3 = isSam3ApiPath(path);
     const needsStack2 = isStack2ApiPath(path);
     return NextResponse.json(
       {
         error: needsStack4
           ? "API_UPSTREAM_BASE_4 is not configured for billing/ring routes"
-          : needsStack3
-            ? "API_UPSTREAM_BASE_3 is not configured for media/admin/platform routes"
-            : needsStack2
-              ? "API_UPSTREAM_BASE_2 is not configured for comms / call-intelligence routes"
-              : "API_UPSTREAM_BASE is not configured",
+          : needsStack5
+            ? "API_UPSTREAM_BASE_5 is not configured for campus/venue/media/stream routes"
+            : needsStack3
+              ? "API_UPSTREAM_BASE_3 is not configured for media/admin/platform routes"
+              : needsStack2
+                ? "API_UPSTREAM_BASE_2 is not configured for comms / call-intelligence routes"
+                : "API_UPSTREAM_BASE is not configured",
         hint: needsStack4
           ? "Set API_UPSTREAM_BASE_4 to the stack-4 API Gateway URL (see scripts/print-stack-outputs-for-web.sh)."
-          : needsStack3
-            ? "Set API_UPSTREAM_BASE_3 to the stack-3 API Gateway URL (see scripts/print-stack-outputs-for-web.sh)."
-            : needsStack2
-              ? "Set API_UPSTREAM_BASE_2 to the stack-2 API Gateway URL (see scripts/print-stack-outputs-for-web.sh)."
-              : "Set API_UPSTREAM_BASE on the web container.",
+          : needsStack5
+            ? "Set API_UPSTREAM_BASE_5 to the stack-5 API Gateway URL (see scripts/print-stack-outputs-for-web.sh)."
+            : needsStack3
+              ? "Set API_UPSTREAM_BASE_3 to the stack-3 API Gateway URL (see scripts/print-stack-outputs-for-web.sh)."
+              : needsStack2
+                ? "Set API_UPSTREAM_BASE_2 to the stack-2 API Gateway URL (see scripts/print-stack-outputs-for-web.sh)."
+                : "Set API_UPSTREAM_BASE on the web container.",
       },
       { status: 503 },
     );

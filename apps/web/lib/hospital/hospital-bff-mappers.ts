@@ -119,7 +119,7 @@ export function routingEventsFromHistory(
           occurredAt: cur.timestamp,
           unitId: null,
         });
-      } else if (prevStatus === "DIVERSION" && curStatus !== "DIVERSION") {
+      } else if (prevStatus === "DIVERSION") {
         events.push({
           eventId: `div-end-${cur.timestamp}`,
           type: "DIVERSION_ENDED",

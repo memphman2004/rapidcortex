@@ -1,5 +1,5 @@
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
-import { DynamoDBDocumentClient, PutCommand, QueryCommand } from "@aws-sdk/lib-dynamodb";
+import { DynamoDBDocumentClient, GetCommand, PutCommand, QueryCommand } from "@aws-sdk/lib-dynamodb";
 import { AUDIT_EVENT_TYPES } from "rapid-cortex-security";
 import { makeId } from "../lib/ids.js";
 import { AuditRepository } from "../repositories/auditRepository.js";
@@ -127,6 +127,8 @@ export type VenueIncidentListItem = {
   assignedTo: string | null;
   cameraRefs: string[];
   hasMedia: boolean;
+  latitude: number | null;
+  longitude: number | null;
   createdAt: string;
   updatedAt: string;
   resolvedAt: string | null;
@@ -138,7 +140,21 @@ function incidentConfidence(source: VenueIncidentSource): "high" | "medium" | "l
   return "low";
 }
 
-function toListItem(record: VenueIncidentRecord): VenueIncidentListItem {
+function readGps(
+  record: VenueIncidentRecord & { gpsLat?: number | null; gpsLng?: number | null },
+): { latitude: number | null; longitude: number | null } {
+  const lat = record.gpsLat;
+  const lng = record.gpsLng;
+  return {
+    latitude: typeof lat === "number" ? lat : null,
+    longitude: typeof lng === "number" ? lng : null,
+  };
+}
+
+function toListItem(
+  record: VenueIncidentRecord & { gpsLat?: number | null; gpsLng?: number | null },
+): VenueIncidentListItem {
+  const gps = readGps(record);
   return {
     id: record.incidentId,
     venueCode: record.venueCode,
@@ -154,10 +170,35 @@ function toListItem(record: VenueIncidentRecord): VenueIncidentListItem {
     assignedTo: record.assignedTo,
     cameraRefs: record.cameraRefs,
     hasMedia: record.hasMedia,
+    latitude: gps.latitude,
+    longitude: gps.longitude,
     createdAt: record.createdAt,
     updatedAt: record.updatedAt,
     resolvedAt: record.status === "resolved" ? record.updatedAt : null,
   };
+}
+
+export async function getVenueIncident(opts: {
+  venueCode: string;
+  agencyId: string;
+  incidentId: string;
+}): Promise<VenueIncidentListItem | null> {
+  const venueCode = opts.venueCode.toUpperCase();
+  const result = await ddb.send(
+    new GetCommand({
+      TableName: venueConfigTable(),
+      Key: {
+        pk: `VENUE#${venueCode}`,
+        sk: `INCIDENT#${opts.incidentId}`,
+      },
+    }),
+  );
+  const item = result.Item as
+    | (VenueIncidentRecord & { agencyId?: string; gpsLat?: number | null; gpsLng?: number | null })
+    | undefined;
+  if (!item) return null;
+  if (item.agencyId && item.agencyId !== opts.agencyId) return null;
+  return toListItem(item);
 }
 
 export async function listVenueIncidents(opts: {

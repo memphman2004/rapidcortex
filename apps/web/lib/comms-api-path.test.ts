@@ -3,6 +3,7 @@ import {
   isCommsPlatformApiPath,
   isSam3ApiPath,
   isSam4ApiPath,
+  isSam5ApiPath,
   isStack2ApiPath,
   resolveUpstreamApiBase,
 } from "./comms-api-path";
@@ -19,7 +20,14 @@ describe("resolveUpstreamApiBase", () => {
     process.env.API_UPSTREAM_BASE_2 = "https://stack2.example.com";
     process.env.API_UPSTREAM_BASE_3 = "https://stack3.example.com";
     process.env.API_UPSTREAM_BASE_4 = "https://stack4.example.com";
+    process.env.API_UPSTREAM_BASE_5 = "https://stack5.example.com";
     expect(resolveUpstreamApiBase("/api/billing/plans")).toBe("https://stack4.example.com");
+  });
+
+  it("routes campus to stack 5 only", () => {
+    process.env.API_UPSTREAM_BASE = "https://stack1.example.com";
+    process.env.API_UPSTREAM_BASE_5 = "https://stack5.example.com";
+    expect(resolveUpstreamApiBase("/api/campus/incidents")).toBe("https://stack5.example.com");
   });
 
   it("routes call-intelligence to stack 2 only", () => {
@@ -57,6 +65,11 @@ describe("isCommsPlatformApiPath", () => {
   it("matches billing prefix (stack 4)", () => {
     expect(isSam4ApiPath("/api/billing/plans")).toBe(true);
     expect(isStack2ApiPath("/api/billing/plans")).toBe(false);
+  });
+
+  it("matches campus prefix (stack 5)", () => {
+    expect(isSam5ApiPath("/api/campus/analytics")).toBe(true);
+    expect(isSam3ApiPath("/api/campus/analytics")).toBe(false);
   });
 
   it("matches call-intelligence prefix", () => {

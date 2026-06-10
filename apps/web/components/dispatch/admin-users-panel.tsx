@@ -153,7 +153,7 @@ export function AdminUsersPanel() {
             >
               {roleOptions.map((r) => (
                 <option key={r} value={r}>
-                  {r} — {ROLE_DISPLAY_LABELS[r] ?? r}
+                  {r} — {ROLE_DISPLAY_LABELS[r as UserRole] ?? r}
                 </option>
               ))}
             </select>
@@ -248,7 +248,7 @@ function UserRow({
   roleOptions,
 }: {
   user: AdminUserRow;
-  roleOptions: UserRole[];
+  roleOptions: string[];
 }) {
   const { user: sessionUser } = useSession();
   const canRequirePasswordChange =

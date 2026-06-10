@@ -20,6 +20,9 @@ WORKDIR /app
 ARG NEXT_PUBLIC_API_BASE_URL
 ARG NEXT_PUBLIC_API_BASE
 ARG NEXT_PUBLIC_API_BASE_2
+ARG NEXT_PUBLIC_API_BASE_3
+ARG NEXT_PUBLIC_API_BASE_4
+ARG NEXT_PUBLIC_API_BASE_5
 ARG NEXT_PUBLIC_COGNITO_REGION
 ARG NEXT_PUBLIC_COGNITO_USER_POOL_ID
 ARG NEXT_PUBLIC_COGNITO_CLIENT_ID
@@ -50,6 +53,9 @@ ENV NEXT_TELEMETRY_DISABLED=1
 ENV NEXT_PUBLIC_API_BASE_URL=${NEXT_PUBLIC_API_BASE_URL}
 ENV NEXT_PUBLIC_API_BASE=${NEXT_PUBLIC_API_BASE}
 ENV NEXT_PUBLIC_API_BASE_2=${NEXT_PUBLIC_API_BASE_2}
+ENV NEXT_PUBLIC_API_BASE_3=${NEXT_PUBLIC_API_BASE_3}
+ENV NEXT_PUBLIC_API_BASE_4=${NEXT_PUBLIC_API_BASE_4}
+ENV NEXT_PUBLIC_API_BASE_5=${NEXT_PUBLIC_API_BASE_5}
 ENV NEXT_PUBLIC_COGNITO_REGION=${NEXT_PUBLIC_COGNITO_REGION}
 ENV NEXT_PUBLIC_COGNITO_USER_POOL_ID=${NEXT_PUBLIC_COGNITO_USER_POOL_ID}
 ENV NEXT_PUBLIC_COGNITO_CLIENT_ID=${NEXT_PUBLIC_COGNITO_CLIENT_ID}
@@ -107,8 +113,8 @@ COPY --from=builder /app/apps/web/public ./apps/web/public
 EXPOSE 3000
 
 # Aligns with `GET /api/health/web` (apps/web/app/api/health/web/route.ts) and ALB `HealthCheckPath` in web-ssr-fargate.
-# start-period must cover Next standalone cold start; ALB/ECS have separate checks.
-HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
-  CMD curl -f http://localhost:3000/api/health/web || exit 1
+# Use node (always in image) — prod images may not ship curl/wget in the slim runner.
+HEALTHCHECK --interval=30s --timeout=10s --start-period=90s --retries=3 \
+  CMD node -e "fetch('http://127.0.0.1:3000/api/health/web').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"
 
 CMD ["node", "apps/web/server.js"]

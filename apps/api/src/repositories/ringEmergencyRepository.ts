@@ -200,6 +200,33 @@ export class RingEmergencyRepository {
     );
   }
 
+  async listSessionsForIncident(
+    agencyId: string,
+    incidentId: string,
+  ): Promise<RingEmergencyCameraSession[]> {
+    const out = await ddb.send(
+      new QueryCommand({
+        TableName: sessionsTable(),
+        IndexName: "incidentId-index",
+        KeyConditionExpression: "incidentId = :incidentId",
+        FilterExpression: "agencyId = :agencyId",
+        ExpressionAttributeValues: {
+          ":incidentId": incidentId,
+          ":agencyId": agencyId,
+        },
+      }),
+    );
+    return (out.Items ?? []).map((item) => {
+      const expiresAtRaw = item.expiresAt;
+      const expiresAt =
+        typeof expiresAtRaw === "number"
+          ? new Date(expiresAtRaw * 1000).toISOString()
+          : String(item.expiresAtIso ?? expiresAtRaw ?? "");
+      const { expiresAtIso: _e, ...rest } = item;
+      return { ...rest, expiresAt } as RingEmergencyCameraSession;
+    });
+  }
+
   async getSessionById(sessionId: string): Promise<RingEmergencyCameraSession | null> {
     const out = await ddb.send(
       new QueryCommand({

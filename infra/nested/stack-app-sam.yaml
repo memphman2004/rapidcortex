@@ -1036,52 +1036,6 @@ Globals:
             TraumaFlagsTable: !Ref TraumaFlagsTable
             WafArn: !If [HasApiWaf, !GetAtt ApiWebAcl.Arn, ""]
             WebhooksTable: !Ref WebhooksTable
-        RING_CREDENTIALS_SECRET_ARN: !Ref RingCredentialsSecretArn
-        RING_PARTNER_TOKEN_SECRET_ARN: !Ref RingCredentialsSecretArn
-        RING_PARTNERSHIP_ENABLED: !Ref RingPartnershipEnabled
-        RING_API_BASE_URL: !Ref RingApiBaseUrl
-        ENABLE_CONNECT_RING: !Ref EnableConnectRing
-        ENABLE_CONNECT_RING_AVAILABLE_CAMERAS: !If [PilotTestFeaturesOn, "true", !Ref EnableConnectRingAvailableCameras]
-        ENABLE_CONNECT_RING_EMERGENCY_REQUESTS: !If [PilotTestFeaturesOn, "true", !Ref EnableConnectRingEmergencyRequests]
-        CONNECT_SESSIONS_TABLE: !Ref ConnectAccessSessionsTable
-        VENUE_CAMERA_SESSIONS_TABLE: !Ref ConnectAccessSessionsTable
-        VENUE_FACILITIES_TABLE: !Ref VenueFacilitiesTable
-        VENUE_ASSETS_TABLE: !Ref VenueAssetsTable
-        VENUE_OVERLAYS_TABLE: !Ref VenueIncidentOverlaysTable
-        VENUE_CAMERA_ACCESS_LOG_TABLE: !If
-          - HasVenueCameraAccessLogTable
-          - !Ref VenueCameraAccessLogTable
-          - ""
-        VENUE_CONFIG_TABLE: !If
-          - HasVenueConfigTable
-          - !Ref VenueConfigTable
-          - ""
-        VENUE_CODES: !Sub "${AppName}-venue-codes"
-        CAMPUS_INCIDENTS_TABLE: !If
-          - HasCampusIncidentsTable
-          - !Ref CampusIncidentsTable
-          - ""
-        CAMPUS_CONFIG_TABLE: !If
-          - HasCampusConfigTable
-          - !Ref CampusConfigTable
-          - ""
-        QR_LOCATIONS_TABLE: !If
-          - HasQRLocationsTable
-          - !Ref QRLocationsTable
-          - ""
-        CAMPUS_CODES: !Sub "${AppName}-campus-codes"
-        CONNECT_BRIDGE_CLUSTER_ARN: !Ref ConnectBridgeClusterArn
-        VENUE_BRIDGE_CLUSTER_ARN: !If
-          - HasVenueBridgeCluster
-          - !Ref VenueBridgeClusterArn
-          - ""
-        CONNECT_BRIDGE_TASK_DEFINITION: !Ref ConnectBridgeTaskDefinition
-        VENUE_BRIDGE_TASK_DEFINITION: !If
-          - HasVenueBridgeCluster
-          - !Ref VenueBridgeTaskDefinition
-          - ""
-        BRIDGE_SUBNET_IDS: !Ref BridgeSubnetIds
-        BRIDGE_SECURITY_GROUP_IDS: !Ref BridgeSecurityGroupIds
 
 
 Resources:
@@ -2743,8 +2697,6 @@ Resources:
       MemorySize: 512
       Environment:
         Variables:
-          COGNITO_USER_POOL_ID: !Ref CognitoUserPool
-          COGNITO_CLIENT_ID: !Ref CognitoUserPoolClient
           CAD_INTEGRATIONS_TABLE: !Ref CadIntegrationsTable
           CAD_INCIDENTS_RAW_TABLE: !Ref CadIncidentsRawTable
           CAD_WEBHOOK_SNS_TOPIC_ARN: !Ref CadWebhookProcessingTopic
@@ -2817,8 +2769,6 @@ Resources:
       MemorySize: 512
       Environment:
         Variables:
-          COGNITO_USER_POOL_ID: !Ref CognitoUserPool
-          COGNITO_CLIENT_ID: !Ref CognitoUserPoolClient
           CAD_INTEGRATIONS_TABLE: !Ref CadIntegrationsTable
           CAD_WRITEBACK_AUDIT_TABLE: !Ref CadWritebackAuditTable
           CAD_WRITEBACK_ENABLED: !Ref CadWritebackEnabled
@@ -2895,8 +2845,6 @@ Resources:
       MemorySize: 512
       Environment:
         Variables:
-          COGNITO_USER_POOL_ID: !Ref CognitoUserPool
-          COGNITO_CLIENT_ID: !Ref CognitoUserPoolClient
           CAD_INTEGRATIONS_TABLE: !Ref CadIntegrationsTable
           CAD_WEBHOOK_SECRET_SALT: !Ref CadWebhookSecretSalt
           CAD_WEBHOOK_INGRESS_TOPIC_ARN: !Ref CadWebhookIngressTopic
@@ -2937,8 +2885,6 @@ Resources:
       MemorySize: 1024
       Environment:
         Variables:
-          COGNITO_USER_POOL_ID: !Ref CognitoUserPool
-          COGNITO_CLIENT_ID: !Ref CognitoUserPoolClient
           CAD_INTEGRATIONS_TABLE: !Ref CadIntegrationsTable
           CAD_INCIDENTS_RAW_TABLE: !Ref CadIncidentsRawTable
           CAD_WEBHOOK_SECRET_SALT: !Ref CadWebhookSecretSalt
@@ -3000,8 +2946,6 @@ Resources:
       MemorySize: 512
       Environment:
         Variables:
-          COGNITO_USER_POOL_ID: !Ref CognitoUserPool
-          COGNITO_CLIENT_ID: !Ref CognitoUserPoolClient
           CAD_INTEGRATIONS_TABLE: !Ref CadIntegrationsTable
           CAD_WEBHOOK_INGRESS_TOPIC_ARN: !Ref CadWebhookIngressTopic
           CAD_POLLER_MOCK: "0"
@@ -3428,6 +3372,10 @@ Resources:
         Variables:
           COGNITO_USER_POOL_ID: !Ref CognitoUserPool
           COGNITO_CLIENT_ID: !Ref CognitoUserPoolClient
+          RING_CREDENTIALS_SECRET_ARN: !Ref RingCredentialsSecretArn
+          RING_PARTNERSHIP_ENABLED: !Ref RingPartnershipEnabled
+          ENABLE_CONNECT_RING: !Ref EnableConnectRing
+          CONNECT_SESSIONS_TABLE: !Ref ConnectAccessSessionsTable
       CodeUri: ../../apps/api/
       Handler: dist/handlers/integrationStatus.handler
       Policies:

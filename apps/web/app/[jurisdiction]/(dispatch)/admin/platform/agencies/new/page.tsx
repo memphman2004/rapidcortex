@@ -147,12 +147,10 @@ export default function NewAgencyPage() {
             className="mt-1 w-full rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-slate-100"
           >
             {AGENCY_TYPE_VALUES.map((t) => (
-              (t) => (
-                <option key={t} value={t}>
-                  {t}
-                </option>
-              ),
-            )}
+              <option key={t} value={t}>
+                {t}
+              </option>
+            ))}
           </select>
         </label>
         <label className="block text-sm">

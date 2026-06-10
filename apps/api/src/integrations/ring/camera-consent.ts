@@ -3,6 +3,7 @@ import { randomBytes, randomUUID } from "node:crypto";
 import bcrypt from "bcryptjs";
 import type { RingEmergencyCameraRequest } from "../../lib/ring-integration.js";
 import { RingEmergencyRepository } from "../../repositories/ringEmergencyRepository.js";
+import { provisionRingEmergencyKvsChannel } from "./ring-kvs.js";
 import { consumeRingConsentRateSlot } from "./ring-consent-rate-limit.js";
 import { auditRingEvent, AUDIT_EVENT_TYPES } from "./ring-audit.js";
 import { ringHtml, ringJson } from "./ring-api-response.js";
@@ -90,6 +91,27 @@ export const approveHandler: APIGatewayProxyHandlerV2 = async (event) => {
       usedAt: nowIso,
     });
 
+    let streamProvider: string | null = null;
+    let streamReference: string | null = null;
+    let streamStatus: "PENDING" | "ACTIVE" = "PENDING";
+
+    try {
+      const kvs = await provisionRingEmergencyKvsChannel(sessionId);
+      streamProvider = "kvs";
+      streamReference = kvs.channelName;
+      streamStatus = "ACTIVE";
+    } catch (kvsErr) {
+      console.error(
+        JSON.stringify({
+          msg: "ring_kvs_provision_failed",
+          sessionId,
+          agencyId: record.agencyId,
+          incidentId: record.incidentId,
+          error: kvsErr instanceof Error ? kvsErr.message : String(kvsErr),
+        }),
+      );
+    }
+
     await emergencyRepo.putSession({
       sessionId,
       requestId: record.requestId,
@@ -97,13 +119,13 @@ export const approveHandler: APIGatewayProxyHandlerV2 = async (event) => {
       jurisdictionId: record.jurisdictionId,
       incidentId: record.incidentId,
       deviceId: record.deviceId,
-      streamStatus: "PENDING",
+      streamStatus,
       startedAt: nowIso,
       expiresAt,
       stoppedAt: null,
       stoppedBy: null,
-      streamProvider: null,
-      streamReference: null,
+      streamProvider,
+      streamReference,
       revokeTokenHash,
       createdAt: nowIso,
       updatedAt: nowIso,

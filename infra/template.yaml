@@ -645,7 +645,7 @@ Resources:
         ConnectBridgeClusterArn: ""
         VenueBridgeClusterArn: "arn:aws:ecs:us-east-1:158961537080:cluster/rapid-cortex-venue-bridge-dev"
         ConnectBridgeTaskDefinition: ""
-        VenueBridgeTaskDefinition: "arn:aws:ecs:us-east-1:158961537080:task-definition/rapid-cortex-venue-bridge-dev:1"
+        VenueBridgeTaskDefinition: ""
         BridgeSubnetIds: ""
         BridgeSecurityGroupIds: ""
         RingApiBaseUrl: ""
@@ -1757,6 +1757,16 @@ Resources:
             - HasDataLayerNestedStack
             - !GetAtt DataLayerStack.Outputs.BillingWebhookEventsTable
             - !Sub "${DynamoTableNamePrefix}-billing-webhook-events-${DeploymentStage}"
+        CadIncidentsRawTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.CadIncidentsRawTable
+            - !Sub "${DynamoTableNamePrefix}-cad-incidents-raw-${DeploymentStage}"
+        CadWebhookRateLimitsTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.CadWebhookRateLimitsTable
+            - !Sub "${DynamoTableNamePrefix}-cad-webhook-rate-${DeploymentStage}"
         CadIntegrationsTable:
           Fn::If:
             - HasDataLayerNestedStack
@@ -1769,6 +1779,7 @@ Resources:
             - !Sub "${DynamoTableNamePrefix}-cad-writeback-audit-${DeploymentStage}"
         CadWritebackEnabled: !Ref CadWritebackEnabled
         CadWritebackRequiresApproval: !Ref CadWritebackRequiresApproval
+        CadWebhookSecretSalt: !Ref CadWebhookSecretSalt
         CustomersTable:
           Fn::If:
             - HasDataLayerNestedStack
@@ -1909,16 +1920,6 @@ Resources:
             - HasDataLayerNestedStack
             - !GetAtt DataLayerStack.Outputs.PremiseNotesTable
             - !Sub "${DynamoTableNamePrefix}-premise-notes-${DeploymentStage}"
-        PlatformNoticesTable:
-          Fn::If:
-            - HasDataLayerNestedStack
-            - !GetAtt DataLayerStack.Outputs.PlatformNoticesTable
-            - !Sub "${DynamoTableNamePrefix}-platform-notices-${DeploymentStage}"
-        PlatformNoticeAcksTable:
-          Fn::If:
-            - HasDataLayerNestedStack
-            - !GetAtt DataLayerStack.Outputs.PlatformNoticeAcksTable
-            - !Sub "${DynamoTableNamePrefix}-platform-notice-acks-${DeploymentStage}"
         QASessionsTable:
           Fn::If:
             - HasDataLayerNestedStack
@@ -1937,6 +1938,11 @@ Resources:
             - HasDataLayerNestedStack
             - !GetAtt DataLayerStack.Outputs.SalesLeadsTable
             - !Sub "${DynamoTableNamePrefix}-sales-leads-${DeploymentStage}"
+        SeoIntelligenceTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.SeoIntelligenceTable
+            - !Sub "${DynamoTableNamePrefix}-seo-intelligence-${DeploymentStage}"
         SelfSignupDefaultAgencyId: !Ref SelfSignupDefaultAgencyId
         SelfSignupDefaultRole: !Ref SelfSignupDefaultRole
         ServiceCatalogTable:
@@ -1957,11 +1963,6 @@ Resources:
             - HasDataLayerNestedStack
             - !GetAtt DataLayerStack.Outputs.PinpointLinksTable
             - !Sub "${DynamoTableNamePrefix}-pinpoint-links-${DeploymentStage}"
-        SurgeClustersTable:
-          Fn::If:
-            - HasDataLayerNestedStack
-            - !GetAtt DataLayerStack.Outputs.SurgeClustersTable
-            - !Sub "${DynamoTableNamePrefix}-surge-clusters-${DeploymentStage}"
         SnsEmailSubscription: !Ref SnsEmailSubscription
         SnsSmsSubscription: !Ref SnsSmsSubscription
         TranscriptRetentionPolicyDays: !Ref TranscriptRetentionPolicyDays
@@ -1991,23 +1992,11 @@ Resources:
             - HasDataLayerNestedStack
             - !GetAtt DataLayerStack.Outputs.WebhooksTable
             - !Sub "${DynamoTableNamePrefix}-webhooks-${DeploymentStage}"
-        # Comms/platform tables owned by rapid-cortex-2-dev (or legacy); reference by name only — do not create in AppSam2Stack.
-        AgencyReportsTable: !Sub "rapid-cortex-agency-reports-${DeploymentStage}"
-        CoachingNotesTable: !Sub "rapid-cortex-coaching-notes-${DeploymentStage}"
-        IncidentTimelineTable: !Sub "rapid-cortex-incident-timeline-${DeploymentStage}"
-        PostIncidentReviewsTable: !Sub "rapid-cortex-post-incident-reviews-${DeploymentStage}"
-        QaScorecardsTable: !Sub "rapid-cortex-qa-scorecards-${DeploymentStage}"
-        SlaBacklogSnapshotsTable: !Sub "rapid-cortex-sla-backlog-snapshots-${DeploymentStage}"
-        StakeholderPagesTable: !Sub "rapid-cortex-stakeholder-pages-${DeploymentStage}"
-        WarRoomMessagesTable: !Sub "rapid-cortex-war-room-messages-${DeploymentStage}"
-        WarRoomsTable: !Sub "rapid-cortex-war-rooms-${DeploymentStage}"
-        CreateApiCustomDomain: "false"
         WwwCnameTarget: !Ref WwwCnameTarget
         ImportedCognitoUserPoolId: !GetAtt AppSamStackV2.Outputs.UserPoolId
         ImportedCognitoWebClientId: !GetAtt AppSamStackV2.Outputs.UserPoolClientId
         ImportedCognitoNativeClientId: !GetAtt AppSamStackV2.Outputs.NativeUserPoolClientId
         ImportedCognitoIssuer: !GetAtt AppSamStackV2.Outputs.CognitoIssuer
-        ImportedOpsAlertsTopicArn: !GetAtt AppSamStackV2.Outputs.OpsAlertsTopicArn
 
   AppSam5Stack:
     Type: AWS::CloudFormation::Stack
@@ -2172,6 +2161,16 @@ Resources:
         BridgeSecurityGroupIds: ""
         RingApiBaseUrl: ""
         PilotTestFeaturesEnabled: !Ref PilotTestFeaturesEnabled
+        CadIncidentsRawTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.CadIncidentsRawTable
+            - !Sub "${DynamoTableNamePrefix}-cad-incidents-raw-${DeploymentStage}"
+        CadWebhookRateLimitsTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.CadWebhookRateLimitsTable
+            - !Sub "${DynamoTableNamePrefix}-cad-webhook-rate-${DeploymentStage}"
         CadIntegrationsTable:
           Fn::If:
             - HasDataLayerNestedStack
@@ -2184,6 +2183,7 @@ Resources:
             - !Sub "${DynamoTableNamePrefix}-cad-writeback-audit-${DeploymentStage}"
         CadWritebackEnabled: !Ref CadWritebackEnabled
         CadWritebackRequiresApproval: !Ref CadWritebackRequiresApproval
+        CadWebhookSecretSalt: !Ref CadWebhookSecretSalt
         CustomersTable:
           Fn::If:
             - HasDataLayerNestedStack
@@ -2324,16 +2324,6 @@ Resources:
             - HasDataLayerNestedStack
             - !GetAtt DataLayerStack.Outputs.PremiseNotesTable
             - !Sub "${DynamoTableNamePrefix}-premise-notes-${DeploymentStage}"
-        PlatformNoticesTable:
-          Fn::If:
-            - HasDataLayerNestedStack
-            - !GetAtt DataLayerStack.Outputs.PlatformNoticesTable
-            - !Sub "${DynamoTableNamePrefix}-platform-notices-${DeploymentStage}"
-        PlatformNoticeAcksTable:
-          Fn::If:
-            - HasDataLayerNestedStack
-            - !GetAtt DataLayerStack.Outputs.PlatformNoticeAcksTable
-            - !Sub "${DynamoTableNamePrefix}-platform-notice-acks-${DeploymentStage}"
         QASessionsTable:
           Fn::If:
             - HasDataLayerNestedStack
@@ -2352,6 +2342,11 @@ Resources:
             - HasDataLayerNestedStack
             - !GetAtt DataLayerStack.Outputs.SalesLeadsTable
             - !Sub "${DynamoTableNamePrefix}-sales-leads-${DeploymentStage}"
+        SeoIntelligenceTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.SeoIntelligenceTable
+            - !Sub "${DynamoTableNamePrefix}-seo-intelligence-${DeploymentStage}"
         SelfSignupDefaultAgencyId: !Ref SelfSignupDefaultAgencyId
         SelfSignupDefaultRole: !Ref SelfSignupDefaultRole
         ServiceCatalogTable:
@@ -2372,11 +2367,6 @@ Resources:
             - HasDataLayerNestedStack
             - !GetAtt DataLayerStack.Outputs.PinpointLinksTable
             - !Sub "${DynamoTableNamePrefix}-pinpoint-links-${DeploymentStage}"
-        SurgeClustersTable:
-          Fn::If:
-            - HasDataLayerNestedStack
-            - !GetAtt DataLayerStack.Outputs.SurgeClustersTable
-            - !Sub "${DynamoTableNamePrefix}-surge-clusters-${DeploymentStage}"
         SnsEmailSubscription: !Ref SnsEmailSubscription
         SnsSmsSubscription: !Ref SnsSmsSubscription
         TranscriptRetentionPolicyDays: !Ref TranscriptRetentionPolicyDays
@@ -2406,23 +2396,11 @@ Resources:
             - HasDataLayerNestedStack
             - !GetAtt DataLayerStack.Outputs.WebhooksTable
             - !Sub "${DynamoTableNamePrefix}-webhooks-${DeploymentStage}"
-        # Comms/platform tables owned by rapid-cortex-2-dev (or legacy); reference by name only — do not create in AppSam2Stack.
-        AgencyReportsTable: !Sub "rapid-cortex-agency-reports-${DeploymentStage}"
-        CoachingNotesTable: !Sub "rapid-cortex-coaching-notes-${DeploymentStage}"
-        IncidentTimelineTable: !Sub "rapid-cortex-incident-timeline-${DeploymentStage}"
-        PostIncidentReviewsTable: !Sub "rapid-cortex-post-incident-reviews-${DeploymentStage}"
-        QaScorecardsTable: !Sub "rapid-cortex-qa-scorecards-${DeploymentStage}"
-        SlaBacklogSnapshotsTable: !Sub "rapid-cortex-sla-backlog-snapshots-${DeploymentStage}"
-        StakeholderPagesTable: !Sub "rapid-cortex-stakeholder-pages-${DeploymentStage}"
-        WarRoomMessagesTable: !Sub "rapid-cortex-war-room-messages-${DeploymentStage}"
-        WarRoomsTable: !Sub "rapid-cortex-war-rooms-${DeploymentStage}"
-        CreateApiCustomDomain: "false"
         WwwCnameTarget: !Ref WwwCnameTarget
         ImportedCognitoUserPoolId: !GetAtt AppSamStackV2.Outputs.UserPoolId
         ImportedCognitoWebClientId: !GetAtt AppSamStackV2.Outputs.UserPoolClientId
         ImportedCognitoNativeClientId: !GetAtt AppSamStackV2.Outputs.NativeUserPoolClientId
         ImportedCognitoIssuer: !GetAtt AppSamStackV2.Outputs.CognitoIssuer
-        ImportedOpsAlertsTopicArn: !GetAtt AppSamStackV2.Outputs.OpsAlertsTopicArn
 
   AppSamHospital2Stack:
     Type: AWS::CloudFormation::Stack
@@ -2552,6 +2530,12 @@ Outputs:
   HttpApi4Id:
     Description: Quaternary HTTP API ID (stack-app-sam-4)
     Value: !GetAtt AppSam4Stack.Outputs.HttpApiId
+  HttpApi5Url:
+    Description: HTTP API base URL — stack 5 (campus/venue/media/stream)
+    Value: !GetAtt AppSam5Stack.Outputs.HttpApiUrl
+  HttpApi5Id:
+    Description: HTTP API ID — stack 5
+    Value: !GetAtt AppSam5Stack.Outputs.HttpApiId
   WebSocketApiUrl:
     Description: WebSocket URL for real-time call control (wss)
     Value: !GetAtt AppSamRealtime2Stack.Outputs.WebSocketApiUrl

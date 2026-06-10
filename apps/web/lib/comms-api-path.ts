@@ -22,7 +22,6 @@ const STACK2_PATH_TESTS: RegExp[] = [
   /^\/api\/incidents\/[^/]+\/premise-notes/,
   /^\/api\/incidents\/[^/]+\/pinpoint\//,
   /^\/api\/incidents\/[^/]+\/surge\//,
-  /^\/api\/pinpoint\/t\//,
 ];
 
 /** Billing, payments, Ring Connect, network policy — stack-app-sam-4 (AppSam4Stack). */
@@ -39,17 +38,32 @@ const STACK4_PATH_TESTS: RegExp[] = [
   /^\/api\/admin\/agencies\/[^/]+\/network-policy/,
 ];
 
+/** Campus, venue, media, stream, live video — stack-app-sam-5 (AppSam5Stack). */
+const STACK5_PATH_TESTS: RegExp[] = [
+  /^\/api\/campus\//,
+  /^\/api\/venue\//,
+  /^\/api\/incidents\/[^/]+\/media/,
+  /^\/api\/incidents\/[^/]+\/live-video/,
+  /^\/api\/incidents\/[^/]+\/silent-text/,
+  /^\/api\/incidents\/[^/]+\/pinpoint\//,
+  /^\/api\/incidents\/[^/]+\/venue-intelligence/,
+  /^\/api\/media\//,
+  /^\/api\/silent-text\//,
+  /^\/api\/pinpoint\//,
+  /^\/api\/stream\//,
+  /^\/api\/public\/incident-media\//,
+  /^\/api\/public\/campus\//,
+];
+
 /** Media, agency-admin, RC-admin, platform — stack-app-sam-3 (AppSam3Stack). */
 const STACK3_PATH_TESTS: RegExp[] = [
   /^\/api\/contact-sales(\/|$)/,
-  /^\/api\/media\/live\//,
   /^\/api\/agency-admin\//,
   /^\/api\/rc-admin\//,
   /^\/api\/superadmin\//,
   /^\/api\/admin\/desktop-releases/,
   /^\/api\/platform\//,
-  /^\/api\/video-assist\/t\//,
-  /^\/api\/incidents\/[^/]+\/live-video/,
+  /^\/api\/video-assist\//,
   /^\/api\/incidents\/[^/]+\/video-assist/,
   /^\/api\/agencies\/[^/]+\/share-partners/,
 ];
@@ -57,6 +71,11 @@ const STACK3_PATH_TESTS: RegExp[] = [
 export function isSam4ApiPath(path: string): boolean {
   const p = path.startsWith("/") ? path : `/${path}`;
   return STACK4_PATH_TESTS.some((re) => re.test(p));
+}
+
+export function isSam5ApiPath(path: string): boolean {
+  const p = path.startsWith("/") ? path : `/${path}`;
+  return STACK5_PATH_TESTS.some((re) => re.test(p));
 }
 
 export function isSam3ApiPath(path: string): boolean {
@@ -71,7 +90,7 @@ export function isStack2ApiPath(path: string): boolean {
 
 /** True when the path is not served by the primary SAM stack (stack 1). */
 export function isCommsPlatformApiPath(path: string): boolean {
-  return isSam4ApiPath(path) || isSam3ApiPath(path) || isStack2ApiPath(path);
+  return isSam4ApiPath(path) || isSam5ApiPath(path) || isSam3ApiPath(path) || isStack2ApiPath(path);
 }
 
 /** Server-side BFF / Route Handlers: pick the correct upstream base. */
@@ -80,8 +99,12 @@ export function resolveUpstreamApiBase(path: string): string {
   const b2 = process.env.API_UPSTREAM_BASE_2?.replace(/\/$/, "") ?? "";
   const b3 = process.env.API_UPSTREAM_BASE_3?.replace(/\/$/, "") ?? "";
   const b4 = process.env.API_UPSTREAM_BASE_4?.replace(/\/$/, "") ?? "";
+  const b5 = process.env.API_UPSTREAM_BASE_5?.replace(/\/$/, "") ?? "";
   if (isSam4ApiPath(path)) {
     return b4;
+  }
+  if (isSam5ApiPath(path)) {
+    return b5;
   }
   if (isSam3ApiPath(path)) {
     return b3;

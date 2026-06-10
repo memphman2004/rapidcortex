@@ -14,6 +14,8 @@ const RING_AUTHORIZED_ROLE_TOKENS = new Set([
   "rcadmin",
   "rcsuperadmin",
   "rcitadmin",
+  "VENUE_SUPERVISOR",
+  "VENUE_ADMIN",
 ]);
 
 export function isRingAuthorizedRole(user: UserContext): boolean {

@@ -25,6 +25,8 @@ export interface VenueIncident {
   assignedTo: string | null;
   cameraRefs: string[];
   hasMedia: boolean;
+  latitude?: number | null;
+  longitude?: number | null;
   createdAt: string;
   updatedAt: string;
   resolvedAt: string | null;

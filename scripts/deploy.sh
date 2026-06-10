@@ -141,6 +141,8 @@ sam validate --lint --template-file "${ROOT}/infra/nested/stack-app-sam.yaml"
 sam validate --lint --template-file "${ROOT}/infra/nested/stack-app-sam-qr.yaml"
 sam validate --lint --template-file "${ROOT}/infra/nested/stack-app-sam-2.yaml"
 sam validate --lint --template-file "${ROOT}/infra/nested/stack-app-sam-3.yaml"
+sam validate --lint --template-file "${ROOT}/infra/nested/stack-app-sam-4.yaml"
+sam validate --lint --template-file "${ROOT}/infra/nested/stack-app-sam-5.yaml"
 sam validate --lint --template-file "${ROOT}/infra/nested/stack-app-alarms-2.yaml"
 
 ROOT_DOMAIN="${ROOT_DOMAIN:-rapidcortex.us}"

@@ -534,10 +534,10 @@ Parameters:
     Description: Ring API credentials secret ARN (clientId, clientSecret, hmacKey JSON).
   RingRedirectUri:
     Type: String
-    Default: "https://api.rapidcortex.us/api/integrations/ring/callback"
+    Default: "https://7c70vqd1p5.execute-api.us-east-1.amazonaws.com/api/integrations/ring/callback"
   RingAccountLinkUrl:
     Type: String
-    Default: "https://www.rapidcortex.us/connect/ring/link"
+    Default: "https://app.rapidcortex.us/app/venue/MBS/cameras"
   RingSecretsPrefix:
     Type: String
     Default: "rapid-cortex/connect/ring"
@@ -559,17 +559,17 @@ Parameters:
     Description: Physical DynamoDB table for Ring emergency camera sessions.
   EnableConnectRingAvailableCameras:
     Type: String
-    Default: "false"
+    Default: "true"
     AllowedValues: ["true", "false"]
     Description: When true, Ring available-cameras metadata route is active (requires EnableConnectRing).
   EnableConnectRingEmergencyRequests:
     Type: String
-    Default: "false"
+    Default: "true"
     AllowedValues: ["true", "false"]
     Description: When true, Ring emergency camera request/consent/revoke routes are active.
   RingPublicApiBaseUrl:
     Type: String
-    Default: "https://api.rapidcortex.us"
+    Default: "https://7c70vqd1p5.execute-api.us-east-1.amazonaws.com"
     Description: Public API base URL for Ring owner consent links (no trailing slash).
   ConnectAccessSessionsTable:
     Type: String
@@ -1057,47 +1057,6 @@ Globals:
             TraumaFlagsTable: !Ref TraumaFlagsTable
             WafArn: !If [HasApiWaf, !GetAtt ApiWebAcl.Arn, ""]
             WebhooksTable: !Ref WebhooksTable
-        RING_CREDENTIALS_SECRET_ARN: !Ref RingCredentialsSecretArn
-        RING_PARTNER_TOKEN_SECRET_ARN: !Ref RingCredentialsSecretArn
-        RING_PARTNERSHIP_ENABLED: !Ref RingPartnershipEnabled
-        RING_API_BASE_URL: !Ref RingApiBaseUrl
-        ENABLE_CONNECT_RING: !Ref EnableConnectRing
-        ENABLE_CONNECT_RING_AVAILABLE_CAMERAS: !If [PilotTestFeaturesOn, "true", !Ref EnableConnectRingAvailableCameras]
-        ENABLE_CONNECT_RING_EMERGENCY_REQUESTS: !If [PilotTestFeaturesOn, "true", !Ref EnableConnectRingEmergencyRequests]
-        CONNECT_SESSIONS_TABLE: !Ref ConnectAccessSessionsTable
-        VENUE_CAMERA_SESSIONS_TABLE: !Ref ConnectAccessSessionsTable
-        VENUE_FACILITIES_TABLE: !Ref VenueFacilitiesTable
-        VENUE_ASSETS_TABLE: !Ref VenueAssetsTable
-        VENUE_OVERLAYS_TABLE: !Ref VenueIncidentOverlaysTable
-        VENUE_CAMERA_ACCESS_LOG_TABLE: !If
-          - HasVenueCameraAccessLogTable
-          - !Ref VenueCameraAccessLogTable
-          - ""
-        VENUE_CONFIG_TABLE: !If
-          - HasVenueConfigTable
-          - !Ref VenueConfigTable
-          - ""
-        VENUE_CODES: !Sub "${AppName}-venue-codes"
-        CAMPUS_INCIDENTS_TABLE: !If
-          - HasCampusIncidentsTable
-          - !Ref CampusIncidentsTable
-          - ""
-        CAMPUS_CONFIG_TABLE: !If
-          - HasCampusConfigTable
-          - !Ref CampusConfigTable
-          - ""
-        QR_LOCATIONS_TABLE: !If
-          - HasQRLocationsTable
-          - !Ref QRLocationsTable
-          - ""
-        CAMPUS_CODES: !Sub "${AppName}-campus-codes"
-        CONNECT_BRIDGE_CLUSTER_ARN: ""
-        VENUE_BRIDGE_CLUSTER_ARN: ""
-        CONNECT_BRIDGE_TASK_DEFINITION: ""
-        VENUE_BRIDGE_TASK_DEFINITION: ""
-        BRIDGE_SUBNET_IDS: !Ref BridgeSubnetIds
-        BRIDGE_SECURITY_GROUP_IDS: !Ref BridgeSecurityGroupIds
-
 
 Resources:
   AppManagedPolicyDynamoLambdaCrudShardA:
@@ -1414,7 +1373,7 @@ Resources:
   AppManagedPolicyBedrockAiAndQaFoundationModels:
     Type: AWS::IAM::ManagedPolicy
     Properties:
-      ManagedPolicyName: !Sub "${AppName}-lambda-bedrock-ai-qa-${DeploymentStage}"
+      ManagedPolicyName: !Sub "${Sam4ManagedPolicyNamePrefix}-sam4-lambda-bedrock-ai-qa-${DeploymentStage}"
       PolicyDocument:
         Version: "2012-10-17"
         Statement:
@@ -1430,7 +1389,7 @@ Resources:
   AppManagedPolicyBedrockQaFoundationModelOnly:
     Type: AWS::IAM::ManagedPolicy
     Properties:
-      ManagedPolicyName: !Sub "${AppName}-lambda-bedrock-qa-${DeploymentStage}"
+      ManagedPolicyName: !Sub "${Sam4ManagedPolicyNamePrefix}-sam4-lambda-bedrock-qa-${DeploymentStage}"
       PolicyDocument:
         Version: "2012-10-17"
         Statement:
@@ -1445,7 +1404,7 @@ Resources:
   AppManagedPolicySecretsMultilingualScopedRead:
     Type: AWS::IAM::ManagedPolicy
     Properties:
-      ManagedPolicyName: !Sub "${AppName}-lambda-secrets-mlling-${DeploymentStage}"
+      ManagedPolicyName: !Sub "${Sam4ManagedPolicyNamePrefix}-sam4-lambda-secrets-mlling-${DeploymentStage}"
       PolicyDocument:
         Version: "2012-10-17"
         Statement:
@@ -1461,7 +1420,7 @@ Resources:
   AppManagedPolicySecretsAnalyzeProvidersRead:
     Type: AWS::IAM::ManagedPolicy
     Properties:
-      ManagedPolicyName: !Sub "${AppName}-lambda-secrets-anlz-${DeploymentStage}"
+      ManagedPolicyName: !Sub "${Sam4ManagedPolicyNamePrefix}-sam4-lambda-secrets-anlz-${DeploymentStage}"
       PolicyDocument:
         Version: "2012-10-17"
         Statement:
@@ -1483,7 +1442,7 @@ Resources:
   AppManagedPolicyComprehendTranslateRegionalDetect:
     Type: AWS::IAM::ManagedPolicy
     Properties:
-      ManagedPolicyName: !Sub "${AppName}-lambda-cph-tr-${DeploymentStage}"
+      ManagedPolicyName: !Sub "${Sam4ManagedPolicyNamePrefix}-sam4-lambda-cph-tr-${DeploymentStage}"
       PolicyDocument:
         Version: "2012-10-17"
         Statement:
@@ -1541,7 +1500,7 @@ Resources:
   AppManagedPolicyTranscribeIncidentAudioJobsReadWrite:
     Type: AWS::IAM::ManagedPolicy
     Properties:
-      ManagedPolicyName: !Sub "${AppName}-lambda-trscribe-${DeploymentStage}"
+      ManagedPolicyName: !Sub "${Sam4ManagedPolicyNamePrefix}-sam4-lambda-trscribe-${DeploymentStage}"
       PolicyDocument:
         Version: "2012-10-17"
         Statement:
@@ -1768,6 +1727,9 @@ Resources:
       Timeout: 30
       Environment:
         Variables:
+          RC_RUNTIME_CONFIG_JSON: ""
+          RING_CREDENTIALS_SECRET_ARN: !Ref RingCredentialsSecretArn
+          RING_PARTNERSHIP_ENABLED: !Ref RingPartnershipEnabled
           COGNITO_USER_POOL_ID: !Ref ImportedCognitoUserPoolId
           COGNITO_CLIENT_ID: !Ref ImportedCognitoWebClientId
           ENABLE_CONNECT_RING: !Ref EnableConnectRing
@@ -1805,6 +1767,9 @@ Resources:
       Timeout: 60
       Environment:
         Variables:
+          RC_RUNTIME_CONFIG_JSON: ""
+          RING_CREDENTIALS_SECRET_ARN: !Ref RingCredentialsSecretArn
+          RING_PARTNERSHIP_ENABLED: !Ref RingPartnershipEnabled
           ENABLE_CONNECT_RING: !Ref EnableConnectRing
           RING_REDIRECT_URI: !Ref RingRedirectUri
           RING_ACCOUNT_LINK_URL: !Ref RingAccountLinkUrl
@@ -1842,6 +1807,9 @@ Resources:
       Timeout: 30
       Environment:
         Variables:
+          RC_RUNTIME_CONFIG_JSON: ""
+          RING_CREDENTIALS_SECRET_ARN: !Ref RingCredentialsSecretArn
+          RING_PARTNERSHIP_ENABLED: !Ref RingPartnershipEnabled
           COGNITO_USER_POOL_ID: !Ref ImportedCognitoUserPoolId
           COGNITO_CLIENT_ID: !Ref ImportedCognitoWebClientId
           ENABLE_CONNECT_RING: !Ref EnableConnectRing
@@ -1871,6 +1839,9 @@ Resources:
       Timeout: 30
       Environment:
         Variables:
+          RC_RUNTIME_CONFIG_JSON: ""
+          RING_CREDENTIALS_SECRET_ARN: !Ref RingCredentialsSecretArn
+          RING_PARTNERSHIP_ENABLED: !Ref RingPartnershipEnabled
           ENABLE_CONNECT_RING: !Ref EnableConnectRing
           RING_SECRETS_PREFIX: !Ref RingSecretsPrefix
           RING_TABLE_ACCOUNTS: !If
@@ -1902,6 +1873,9 @@ Resources:
       Timeout: 30
       Environment:
         Variables:
+          RC_RUNTIME_CONFIG_JSON: ""
+          RING_CREDENTIALS_SECRET_ARN: !Ref RingCredentialsSecretArn
+          RING_PARTNERSHIP_ENABLED: !Ref RingPartnershipEnabled
           COGNITO_USER_POOL_ID: !Ref ImportedCognitoUserPoolId
           COGNITO_CLIENT_ID: !Ref ImportedCognitoWebClientId
           ENABLE_CONNECT_RING: !Ref EnableConnectRing
@@ -1914,6 +1888,14 @@ Resources:
             - HasRingRequestsTable
             - !Ref RingRequestsTable
             - !Sub "RingEmergencyCameraRequests-${DeploymentStage}"
+          RING_TABLE_SESSIONS: !If
+            - HasRingSessionsTable
+            - !Ref RingSessionsTable
+            - !Sub "RingEmergencyCameraSessions-${DeploymentStage}"
+          VENUE_CONFIG_TABLE: !If
+            - HasVenueConfigTable
+            - !Ref VenueConfigTable
+            - !Ref AWS::NoValue
       Policies:
         - !Ref AppManagedPolicyDynamoLambdaCrudShardA
         - !Ref AppManagedPolicyDynamoLambdaCrudShardC
@@ -1936,6 +1918,9 @@ Resources:
       Timeout: 60
       Environment:
         Variables:
+          RC_RUNTIME_CONFIG_JSON: ""
+          RING_CREDENTIALS_SECRET_ARN: !Ref RingCredentialsSecretArn
+          RING_PARTNERSHIP_ENABLED: !Ref RingPartnershipEnabled
           COGNITO_USER_POOL_ID: !Ref ImportedCognitoUserPoolId
           COGNITO_CLIENT_ID: !Ref ImportedCognitoWebClientId
           ENABLE_CONNECT_RING: !Ref EnableConnectRing
@@ -1949,6 +1934,10 @@ Resources:
             - HasRingRequestsTable
             - !Ref RingRequestsTable
             - !Sub "RingEmergencyCameraRequests-${DeploymentStage}"
+          VENUE_CONFIG_TABLE: !If
+            - HasVenueConfigTable
+            - !Ref VenueConfigTable
+            - !Ref AWS::NoValue
           INCIDENT_MEDIA_TWILIO_SECRET_ARN: !Ref IncidentMediaTwilioSecretArn
           SMS_PROVIDER: !FindInMap [SmsEnvironmentDefaults, !Ref DeploymentStage, SmsProvider]
           SMS_PRIMARY_PROVIDER: !FindInMap [SmsEnvironmentDefaults, !Ref DeploymentStage, SmsPrimaryProvider]
@@ -1996,6 +1985,38 @@ Resources:
             Path: /api/integrations/ring/request-camera-access
             Method: POST
 
+  Sam4RingKvsBrowserTokenRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Action: sts:AssumeRole
+            Principal:
+              AWS: !Sub "arn:aws:iam::${AWS::AccountId}:root"
+            Condition:
+              StringEquals:
+                aws:SourceAccount: !Ref AWS::AccountId
+              StringLike:
+                aws:PrincipalArn:
+                  - !Sub "arn:aws:iam::${AWS::AccountId}:role/*RingConnect*"
+                  - !Sub "arn:aws:iam::${AWS::AccountId}:role/*sam4*Ring*"
+      Policies:
+        - PolicyName: Sam4RingKvsDataPlane
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Sid: KvsDataPlane
+                Effect: Allow
+                Action:
+                  - kinesisvideo:ConnectAsMaster
+                  - kinesisvideo:ConnectAsViewer
+                  - kinesisvideo:DescribeSignalingChannel
+                  - kinesisvideo:GetSignalingChannelEndpoint
+                  - kinesisvideo:GetIceServerConfig
+                Resource: !Sub "arn:${AWS::Partition}:kinesisvideo:${AWS::Region}:${AWS::AccountId}:channel/*/*"
+
   RingConnectCameraConsentApproveFunction:
     Type: AWS::Serverless::Function
     Metadata:
@@ -2007,8 +2028,12 @@ Resources:
       Timeout: 30
       Environment:
         Variables:
+          RC_RUNTIME_CONFIG_JSON: ""
+          RING_CREDENTIALS_SECRET_ARN: !Ref RingCredentialsSecretArn
+          RING_PARTNERSHIP_ENABLED: !Ref RingPartnershipEnabled
           ENABLE_CONNECT_RING: !Ref EnableConnectRing
           ENABLE_CONNECT_RING_EMERGENCY_REQUESTS: !Ref EnableConnectRingEmergencyRequests
+          KVS_BROWSER_TOKEN_ROLE_ARN: !GetAtt Sam4RingKvsBrowserTokenRole.Arn
           RING_TABLE_REQUESTS: !If
             - HasRingRequestsTable
             - !Ref RingRequestsTable
@@ -2019,6 +2044,14 @@ Resources:
             - !Sub "RingEmergencyCameraSessions-${DeploymentStage}"
       Policies:
         - !Ref AppManagedPolicyDynamoLambdaCrudShardC
+        - Statement:
+            Sid: RingConsentApproveKvsCreate
+            Effect: Allow
+            Action:
+              - kinesisvideo:CreateSignalingChannel
+              - kinesisvideo:DescribeSignalingChannel
+              - kinesisvideo:TagResource
+            Resource: !Sub "arn:${AWS::Partition}:kinesisvideo:${AWS::Region}:${AWS::AccountId}:channel/rc-connect-*/*"
       Events:
         Route:
           Type: HttpApi
@@ -2040,6 +2073,9 @@ Resources:
       Timeout: 30
       Environment:
         Variables:
+          RC_RUNTIME_CONFIG_JSON: ""
+          RING_CREDENTIALS_SECRET_ARN: !Ref RingCredentialsSecretArn
+          RING_PARTNERSHIP_ENABLED: !Ref RingPartnershipEnabled
           ENABLE_CONNECT_RING: !Ref EnableConnectRing
           ENABLE_CONNECT_RING_EMERGENCY_REQUESTS: !Ref EnableConnectRingEmergencyRequests
           RING_TABLE_REQUESTS: !If
@@ -2069,6 +2105,9 @@ Resources:
       Timeout: 30
       Environment:
         Variables:
+          RC_RUNTIME_CONFIG_JSON: ""
+          RING_CREDENTIALS_SECRET_ARN: !Ref RingCredentialsSecretArn
+          RING_PARTNERSHIP_ENABLED: !Ref RingPartnershipEnabled
           COGNITO_USER_POOL_ID: !Ref ImportedCognitoUserPoolId
           COGNITO_CLIENT_ID: !Ref ImportedCognitoWebClientId
           ENABLE_CONNECT_RING: !Ref EnableConnectRing
@@ -2092,6 +2131,51 @@ Resources:
             Method: POST
             Auth:
               Authorizer: NONE
+
+  RingStreamViewerTokenFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/integrations/ring/ring-stream-viewer-token.handler
+      Timeout: 30
+      Environment:
+        Variables:
+          RC_RUNTIME_CONFIG_JSON: ""
+          RING_PARTNERSHIP_ENABLED: !Ref RingPartnershipEnabled
+          ENABLE_CONNECT_RING: !Ref EnableConnectRing
+          COGNITO_USER_POOL_ID: !Ref ImportedCognitoUserPoolId
+          COGNITO_CLIENT_ID: !Ref ImportedCognitoWebClientId
+          KVS_BROWSER_TOKEN_ROLE_ARN: !GetAtt Sam4RingKvsBrowserTokenRole.Arn
+          RING_TABLE_SESSIONS: !If
+            - HasRingSessionsTable
+            - !Ref RingSessionsTable
+            - !Sub "RingEmergencyCameraSessions-${DeploymentStage}"
+      Policies:
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardC
+        - Statement:
+            Sid: RingStreamViewerAssumeKvsRole
+            Effect: Allow
+            Action: sts:AssumeRole
+            Resource: !GetAtt Sam4RingKvsBrowserTokenRole.Arn
+        - Statement:
+            Sid: RingStreamViewerKvsRead
+            Effect: Allow
+            Action:
+              - kinesisvideo:DescribeSignalingChannel
+              - kinesisvideo:GetSignalingChannelEndpoint
+              - kinesisvideo:GetIceServerConfig
+            Resource:
+              - !Sub "arn:${AWS::Partition}:kinesisvideo:${AWS::Region}:${AWS::AccountId}:channel/rc-connect-*/*"
+      Events:
+        Route:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/integrations/ring/stream/viewer-token
+            Method: GET
 
   ListBillingPlansFunction:
     Type: AWS::Serverless::Function
@@ -2780,7 +2864,7 @@ Resources:
         DailyBillingScheduler:
           Type: Schedule
           Properties:
-            Name: daily-billing-scheduler
+            Name: !Sub "sam4-daily-billing-scheduler-${DeploymentStage}"
             Schedule: cron(0 8 * * ? *)
             Description: "Runs billing schedules, reminders, and overdue updates daily at 08:00 UTC."
             Enabled: true

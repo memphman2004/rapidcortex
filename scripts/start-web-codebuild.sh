@@ -5,12 +5,26 @@ AWS_REGION="${AWS_REGION:-${AWS_DEFAULT_REGION:-us-east-1}}"
 PROJECT_NAME="${WEB_CODEBUILD_PROJECT_NAME:-rapid-cortex-web-build-${ENVIRONMENT}}"
 
 echo "Starting CodeBuild project ${PROJECT_NAME}…"
+
+# Optional: pass stack API bases into the Docker build (NEXT_PUBLIC_API_BASE_*).
+CB_ENV_OVERRIDES=()
+for key in NEXT_PUBLIC_API_BASE_3 NEXT_PUBLIC_API_BASE_4 NEXT_PUBLIC_API_BASE_5; do
+  val="${!key:-}"
+  if [[ -n "${val}" ]]; then
+    CB_ENV_OVERRIDES+=( "name=${key},value=${val},type=PLAINTEXT" )
+  fi
+done
+
+START_BUILD_ARGS=( --project-name "${PROJECT_NAME}" --region "${AWS_REGION}" )
+if ((${#CB_ENV_OVERRIDES[@]} > 0)); then
+  START_BUILD_ARGS+=( --environment-variables-override "${CB_ENV_OVERRIDES[@]}" )
+fi
+
 BUILD_ID="$(
   aws codebuild start-build \
-    --project-name "${PROJECT_NAME}" \
+    "${START_BUILD_ARGS[@]}" \
     --query 'build.id' \
-    --output text \
-    --region "${AWS_REGION}"
+    --output text
 )"
 
 echo "✓ Build id: ${BUILD_ID}"

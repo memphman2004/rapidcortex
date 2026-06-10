@@ -1,10 +1,11 @@
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
+import { resolveUpstreamApiBase } from "@/lib/comms-api-path";
 
 async function proxyUpstream(path: string, init?: RequestInit) {
-  const base = process.env.API_UPSTREAM_BASE?.replace(/\/$/, "");
+  const base = resolveUpstreamApiBase(path);
   if (!base) {
-    return NextResponse.json({ error: "API_UPSTREAM_BASE is not configured" }, { status: 500 });
+    return NextResponse.json({ error: "API_UPSTREAM_BASE_5 is not configured" }, { status: 500 });
   }
   const headers = new Headers();
   const ct = init?.headers && init.headers instanceof Headers ? init.headers.get("content-type") : null;

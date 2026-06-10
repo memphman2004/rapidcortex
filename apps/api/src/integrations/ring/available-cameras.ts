@@ -69,15 +69,33 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
       if (!prev || row.createdAt > prev.createdAt) latestByDevice.set(row.deviceId, row);
     }
 
+    const sessions = await requests.listSessionsForIncident(user.agencyId, incidentId);
+    const sessionByRequestId = new Map(
+      sessions.map((session) => [session.requestId, session] as const),
+    );
+
     const cameras: RingCameraListItem[] = nearby.map((device) => {
       const latest = latestByDevice.get(device.deviceId);
-      const ownerStatus = latest?.requestStatus ?? "AVAILABLE";
-      return {
+      const ownerStatus: RingCameraListItem["ownerStatus"] =
+        latest?.requestStatus ?? "AVAILABLE";
+      const base = {
         deviceId: device.deviceId,
         deviceName: device.deviceName,
         deviceType: device.deviceType,
         distanceMeters: roundDistanceMeters(device.distanceMeters),
         ownerStatus,
+      };
+      if (ownerStatus !== "APPROVED" || !latest?.requestId) {
+        return base;
+      }
+      const session = sessionByRequestId.get(latest.requestId);
+      if (!session?.streamReference) {
+        return base;
+      }
+      return {
+        ...base,
+        streamSessionId: session.sessionId,
+        streamReference: session.streamReference,
       };
     });
 

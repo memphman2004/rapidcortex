@@ -1,7 +1,7 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import { Activity, Bed, Camera, Globe, Map, QrCode, Users } from "lucide-react";
+import { Activity, Bed, Camera, Globe, Map as MapIcon, QrCode, Users } from "lucide-react";
 import { campusOrgCodeFromAgencyId } from "@/lib/campus/campus-access";
 import { fetchCampusIncidents } from "@/lib/campus/campus-incidents-api";
 import { extractVenueCode } from "@/lib/auth/post-login-redirect";
@@ -162,7 +162,7 @@ export function RegionalCapacityMapWidget({ agencyId }: WidgetProps) {
   if (q.isLoading) return <WidgetSkeleton />;
   const facilities = q.data ?? [];
   return (
-    <WidgetShell title="Regional Capacity" icon={Map}>
+    <WidgetShell title="Regional Capacity" icon={MapIcon}>
       {facilities.length === 0 ? (
         <EmptyState message="No regional capacity data" />
       ) : (
@@ -249,9 +249,9 @@ export function MyCapacityHistoryWidget({ agencyId }: WidgetProps) {
           </thead>
           <tbody className="divide-y divide-slate-800/40">
             {rows.map((row, idx) => (
-              <tr key={`${row.lastUpdatedAt}-${idx}`}>
+              <tr key={`${row.timestamp}-${idx}`}>
                 <td className="px-4 py-2 text-xs text-slate-400">
-                  {row.lastUpdatedAt ? new Date(row.lastUpdatedAt).toLocaleString() : "—"}
+                  {row.timestamp ? new Date(row.timestamp).toLocaleString() : "—"}
                 </td>
                 <td className="px-4 py-2 text-white">{row.availability?.erBeds?.available ?? "—"}</td>
                 <td className="px-4 py-2 text-xs text-slate-500">
@@ -370,7 +370,7 @@ export function VenueHeatmapWidget({ agencyId }: WidgetProps) {
   const zones = q.data ?? [];
   const max = Math.max(...zones.map(([, c]) => c), 1);
   return (
-    <WidgetShell title="Incident Heatmap" icon={Map}>
+    <WidgetShell title="Incident Heatmap" icon={MapIcon}>
       {zones.length === 0 ? (
         <EmptyState message="No zone activity" />
       ) : (

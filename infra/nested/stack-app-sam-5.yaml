@@ -289,21 +289,20 @@ Parameters:
     Default: "unused-placeholder"
     Description: >-
       Passed to Globals only; avoids circular dependency with CognitoUserPoolClient. Real client id is exported as an output.
-# --- Imported from primary SAM stack (AppSamStackV2); deploy stack 1 first ---
-ImportedCognitoUserPoolId:
-  Type: String
-  Description: Cognito User Pool ID from AppSamStackV2.
-ImportedCognitoWebClientId:
-  Type: String
-  Description: Cognito web app client ID from AppSamStackV2.
-ImportedCognitoNativeClientId:
-  Type: String
-  Default: ""
-  Description: Cognito native client ID (PKCE); optional.
-ImportedCognitoIssuer:
-  Type: String
-  Description: JWT issuer URL for HttpApi authorizer.
-
+  # --- Imported from primary SAM stack (AppSamStackV2); deploy stack 1 first ---
+  ImportedCognitoUserPoolId:
+    Type: String
+    Description: Cognito User Pool ID from AppSamStackV2.
+  ImportedCognitoWebClientId:
+    Type: String
+    Description: Cognito web app client ID from AppSamStackV2.
+  ImportedCognitoNativeClientId:
+    Type: String
+    Default: ""
+    Description: Cognito native client ID (PKCE); optional.
+  ImportedCognitoIssuer:
+    Type: String
+    Description: JWT issuer URL for HttpApi authorizer.
   SnsEmailSubscription:
     Type: String
     Default: ""
@@ -989,68 +988,6 @@ Globals:
     MemorySize: 512
     Environment:
       Variables:
-        RC_RUNTIME_CONFIG_JSON: !Sub
-          - '{"ds":"${DeploymentStage}","trp":"${TranscriptRetentionPolicyDays}","it":"${IncidentsTable}","tt":"${TranscriptsTable}","at":"${AnalysesTable}","aud":"${AuditTable}","dda":"${DataDeletionAuditTable}","drp":"cjis-default-v1","ag":"${AgenciesTable}","iv":"${InvitesTable}","ao":"${AccessOverridesTable}","neo":"${NetworkEmergencyOverridesTable}","ans":"","nae":"false","waf":"${WafArn}","wsc":"REGIONAL","ac":"${ApiClientsTable}","wh":"${WebhooksTable}","erl":"${ExternalApiRateLimitsTable}","rle":"true","rak":"${RcLiteApiKeysTable}","rrl":"${RcLiteRateLimitTable}","rlu":"${RcLiteUsageTable}","sit":"${SeoIntelligenceTable}","ste":"${SeoToolEnabled}","sae":"${SeoAutoScanEnabled}","sai":"${SeoAiSuggestionsEnabled}","det":"${DeceptionEventsTable}","dse":"${PilotDeceptionShield}","dae":"false","dal":"true","ops":"${OpsAlertsTopic}","ej":"${ExternalApiJwtSecretArn}","ek":"${ExternalApiEncryptionKeyArn}","pma":"60","peg":"0","pcf":"true","ab":"${AssetsBucket}","ls":"${LanguageSessionsTable}","aef":"true","asm":"true","apv":"dispatch-triage-v1","art":"55000","amr":"1","adb":"0","amh":"120","asu":"true","ail":"90","oa":"${OpenAiApiKeySecretArn}","aa":"${AnthropicApiKeySecretArn}","aas":"0","aua":"false","aco":"${HttpApiCorsAllowedOrigins}","eqs":"${PilotEnableQaScoring}","eqa":"${PilotEnableQaAfterAnalysis}","qss":"${QASessionsTable}","qts":"${QATemplatesTable}","qsm":"${PilotQaScoringMock}","qbm":"${QaBedrockModelId}","br":"${AWSRegion}","eim":"${PilotEnableIncidentMedia}","imt":"${IncidentMediaTable}","imp":"","imn":"120","imu":"900","imx":"52428800","ent":"${PilotEnableNonEmergencyTriage}","tft":"${TraumaFlagsTable}","pn":"${PremiseNotesTable}","dcn":"${DispatcherCoachingNotesTable}","itl":"${IncidentTimelineTable}","ish":"${IncidentSharesTable}","asp":"${AgencySharePartnersTable}","lp":"${LanguageProvider}","cr":"${AWSRegion}","cwe":"${CadWritebackEnabled}","cwr":"${CadWritebackRequiresApproval}","cwa":"${CadWritebackAuditTable}","bp":"${BillingProfilesTable}","inv":"${InvoicesTable}","ii":"${InvoiceItemsTable}","bae":"${BillingAuditEventsTable}","mao":"${MonetizationAddOnsTable}","minv":"${MonetizationInvoicesTable}","slt":"${SalesLeadsTable}","cfe":"support@rapidcortex.us"}'
-          -
-            AWSRegion: !Ref AWS::Region
-            AccessOverridesTable: !Ref AccessOverridesTable
-            AgenciesTable: !Ref AgenciesTable
-            AgencySharePartnersTable: !Ref AgencySharePartnersTable
-            AnalysesTable: !Ref AnalysesTable
-            AnthropicApiKeySecretArn: !Ref AnthropicApiKeySecretArn
-            ApiClientsTable: !Ref ApiClientsTable
-            AssetsBucket: !Ref AssetsBucket
-            AuditTable: !Ref AuditTable
-            BillingAuditEventsTable: !Ref BillingAuditEventsTable
-            BillingProfilesTable: !Ref BillingProfilesTable
-            CadWritebackAuditTable: !Ref CadWritebackAuditTable
-            CadWritebackEnabled: !Ref CadWritebackEnabled
-            CadWritebackRequiresApproval: !Ref CadWritebackRequiresApproval
-            DataDeletionAuditTable: !Ref DataDeletionAuditTable
-            DeceptionEventsTable: !Ref DeceptionEventsTable
-            DeploymentStage: !Ref DeploymentStage
-            DispatcherCoachingNotesTable: !Ref DispatcherCoachingNotesTable
-            ExternalApiEncryptionKeyArn: !Ref ExternalApiEncryptionKeyArn
-            ExternalApiJwtSecretArn: !Ref ExternalApiJwtSecretArn
-            ExternalApiRateLimitsTable: !Ref ExternalApiRateLimitsTable
-            HttpApiCorsAllowedOrigins: !Ref HttpApiCorsAllowedOrigins
-            IncidentMediaTable: !Ref IncidentMediaTable
-            IncidentSharesTable: !Ref IncidentSharesTable
-            IncidentTimelineTable: !Sub "rapid-cortex-incident-timeline-${DeploymentStage}"
-            IncidentsTable: !Ref IncidentsTable
-            InvitesTable: !Ref InvitesTable
-            InvoiceItemsTable: !Ref InvoiceItemsTable
-            InvoicesTable: !Ref InvoicesTable
-            LanguageProvider: !Ref LanguageProvider
-            LanguageSessionsTable: !Ref LanguageSessionsTable
-            MonetizationAddOnsTable: !Ref MonetizationAddOnsTable
-            MonetizationInvoicesTable: !Ref MonetizationInvoicesTable
-            NetworkEmergencyOverridesTable: !Ref NetworkEmergencyOverridesTable
-            OpenAiApiKeySecretArn: !Ref OpenAiApiKeySecretArn
-            OpsAlertsTopic: !Ref OpsAlertsTopic
-            PremiseNotesTable: !Ref PremiseNotesTable
-            QASessionsTable: !Ref QASessionsTable
-            QATemplatesTable: !Ref QATemplatesTable
-            QaBedrockModelId: !Ref QaBedrockModelId
-            RcLiteApiKeysTable: !Ref RcLiteApiKeysTable
-            RcLiteRateLimitTable: !Ref RcLiteRateLimitTable
-            RcLiteUsageTable: !Ref RcLiteUsageTable
-            SalesLeadsTable: !Ref SalesLeadsTable
-            SeoAiSuggestionsEnabled: !Ref SeoAiSuggestionsEnabled
-            SeoAutoScanEnabled: !Ref SeoAutoScanEnabled
-            SeoIntelligenceTable: !Ref SeoIntelligenceTable
-            SeoToolEnabled: !Ref SeoToolEnabled
-            PilotEnableQaScoring: !If [PilotTestFeaturesOn, "true", "false"]
-            PilotEnableQaAfterAnalysis: !If [PilotTestFeaturesOn, "true", "false"]
-            PilotQaScoringMock: !If [PilotTestFeaturesOn, "true", "false"]
-            PilotEnableIncidentMedia: !If [PilotTestFeaturesOn, "true", "false"]
-            PilotEnableNonEmergencyTriage: !If [PilotTestFeaturesOn, "true", "false"]
-            PilotDeceptionShield: !If [PilotTestFeaturesOn, "true", "false"]
-            TranscriptRetentionPolicyDays: !Ref TranscriptRetentionPolicyDays
-            TranscriptsTable: !Ref TranscriptsTable
-            TraumaFlagsTable: !Ref TraumaFlagsTable
-            WafArn: !If [HasApiWaf, !GetAtt ApiWebAcl.Arn, ""]
-            WebhooksTable: !Ref WebhooksTable
         RING_CREDENTIALS_SECRET_ARN: !Ref RingCredentialsSecretArn
         RING_PARTNER_TOKEN_SECRET_ARN: !Ref RingCredentialsSecretArn
         RING_PARTNERSHIP_ENABLED: !Ref RingPartnershipEnabled
@@ -1414,7 +1351,7 @@ Resources:
   AppManagedPolicyBedrockAiAndQaFoundationModels:
     Type: AWS::IAM::ManagedPolicy
     Properties:
-      ManagedPolicyName: !Sub "${AppName}-lambda-bedrock-ai-qa-${DeploymentStage}"
+      ManagedPolicyName: !Sub "${AppName}-sam5-lambda-bedrock-ai-qa-${DeploymentStage}"
       PolicyDocument:
         Version: "2012-10-17"
         Statement:
@@ -1430,7 +1367,7 @@ Resources:
   AppManagedPolicyBedrockQaFoundationModelOnly:
     Type: AWS::IAM::ManagedPolicy
     Properties:
-      ManagedPolicyName: !Sub "${AppName}-lambda-bedrock-qa-${DeploymentStage}"
+      ManagedPolicyName: !Sub "${AppName}-sam5-lambda-bedrock-qa-${DeploymentStage}"
       PolicyDocument:
         Version: "2012-10-17"
         Statement:
@@ -1445,7 +1382,7 @@ Resources:
   AppManagedPolicySecretsMultilingualScopedRead:
     Type: AWS::IAM::ManagedPolicy
     Properties:
-      ManagedPolicyName: !Sub "${AppName}-lambda-secrets-mlling-${DeploymentStage}"
+      ManagedPolicyName: !Sub "${AppName}-sam5-lambda-secrets-mlling-${DeploymentStage}"
       PolicyDocument:
         Version: "2012-10-17"
         Statement:
@@ -1461,7 +1398,7 @@ Resources:
   AppManagedPolicySecretsAnalyzeProvidersRead:
     Type: AWS::IAM::ManagedPolicy
     Properties:
-      ManagedPolicyName: !Sub "${AppName}-lambda-secrets-anlz-${DeploymentStage}"
+      ManagedPolicyName: !Sub "${AppName}-sam5-lambda-secrets-anlz-${DeploymentStage}"
       PolicyDocument:
         Version: "2012-10-17"
         Statement:
@@ -1483,7 +1420,7 @@ Resources:
   AppManagedPolicyComprehendTranslateRegionalDetect:
     Type: AWS::IAM::ManagedPolicy
     Properties:
-      ManagedPolicyName: !Sub "${AppName}-lambda-cph-tr-${DeploymentStage}"
+      ManagedPolicyName: !Sub "${AppName}-sam5-lambda-cph-tr-${DeploymentStage}"
       PolicyDocument:
         Version: "2012-10-17"
         Statement:
@@ -1507,7 +1444,7 @@ Resources:
   AppManagedPolicyOpsAlertsSnsPublishOnly:
     Type: AWS::IAM::ManagedPolicy
     Properties:
-      ManagedPolicyName: !Sub "${AppName}-lambda-sns-ops-${DeploymentStage}"
+      ManagedPolicyName: !Sub "${AppName}-sam5-lambda-sns-ops-${DeploymentStage}"
       PolicyDocument:
         Version: "2012-10-17"
         Statement:
@@ -1541,7 +1478,7 @@ Resources:
   AppManagedPolicyTranscribeIncidentAudioJobsReadWrite:
     Type: AWS::IAM::ManagedPolicy
     Properties:
-      ManagedPolicyName: !Sub "${AppName}-lambda-trscribe-${DeploymentStage}"
+      ManagedPolicyName: !Sub "${AppName}-sam5-lambda-trscribe-${DeploymentStage}"
       PolicyDocument:
         Version: "2012-10-17"
         Statement:
@@ -1732,7 +1669,7 @@ Resources:
     DeletionPolicy: Retain
     UpdateReplacePolicy: Retain
     Properties:
-      RepositoryName: !Sub "${AppName}-connect-bridge-${DeploymentStage}"
+      RepositoryName: !Sub "${AppName}-sam5-r2-connect-bridge-${DeploymentStage}"
       ImageScanningConfiguration:
         ScanOnPush: true
       LifecyclePolicy:
@@ -1744,7 +1681,7 @@ Resources:
     DeletionPolicy: Retain
     UpdateReplacePolicy: Retain
     Properties:
-      RepositoryName: !Sub "${AppName}-venue-bridge-${DeploymentStage}"
+      RepositoryName: !Sub "${AppName}-sam5-r2-venue-bridge-${DeploymentStage}"
       ImageScanningConfiguration:
         ScanOnPush: true
       LifecyclePolicy:
@@ -2012,6 +1949,46 @@ Resources:
           Properties:
             ApiId: !Ref Api
             Path: /api/venue/intelligence
+            Method: GET
+
+  GetVenueIncidentsFunction:
+    Type: AWS::Serverless::Function
+    Condition: HasVenueConfigTable
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/venue/handlers/get-venue-incidents.handler
+      Timeout: 30
+      Policies:
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardC
+      Events:
+        Route:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/venue/incidents
+            Method: GET
+
+  GetVenueIncidentFunction:
+    Type: AWS::Serverless::Function
+    Condition: HasVenueConfigTable
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/venue/handlers/get-venue-incident.handler
+      Timeout: 30
+      Policies:
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardC
+      Events:
+        Route:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/venue/incidents/{incidentId}
             Method: GET
 
   VenueCameraRequestFunction:

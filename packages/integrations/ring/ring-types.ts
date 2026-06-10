@@ -106,4 +106,7 @@ export interface RingCameraListItem {
   deviceType: RingDeviceType;
   distanceMeters: number;
   ownerStatus: RingRequestStatus | "AVAILABLE";
+  /** Present when ownerStatus is APPROVED and a KVS session exists. */
+  streamSessionId?: string;
+  streamReference?: string | null;
 }

@@ -102,8 +102,12 @@ export function StatMrrWidget({ agencyId }: WidgetProps) {
 
 export function StatOpenInvoicesWidget({ agencyId }: WidgetProps) {
   const q = useStatQuery("billing-summary", agencyId, async () => {
-    const invoices = await fetchAgencyBillingInvoices(agencyId).catch(() => []);
-    return invoices.filter((i) => i.status === "open" || i.status === "past_due").length;
+    const invoices = await fetchAgencyBillingInvoices(agencyId).catch(
+      (): Awaited<ReturnType<typeof fetchAgencyBillingInvoices>> => [],
+    );
+    return invoices.filter(
+      (i) => i.state === "sent" || i.state === "partially_paid" || i.state === "overdue",
+    ).length;
   });
   if (q.isLoading) return <WidgetSkeleton />;
   return <StatCard label="Open invoices" value={q.data ?? 0} icon={CreditCard} />;

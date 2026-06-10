@@ -108,7 +108,7 @@ export function RingLinkedDevicesPanel({
             type="button"
             className="underline"
             onClick={() => {
-              window.location.href = "/api/backend/api/integrations/ring/login";
+              window.location.href = "/api/integrations/ring/login";
             }}
           >
             Reconnect →

@@ -23,4 +23,11 @@ export type RingAvailableCamerasResponse = {
   error?: string;
 };
 
-export type RingRole = RapidCortexRole | "command" | "admin" | "emergency_manager" | "rc_admin";
+export type RingRole =
+  | RapidCortexRole
+  | "command"
+  | "admin"
+  | "emergency_manager"
+  | "rc_admin"
+  | "VENUE_SUPERVISOR"
+  | "VENUE_ADMIN";

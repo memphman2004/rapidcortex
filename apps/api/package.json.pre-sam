@@ -1,0 +1,52 @@
+{
+  "name": "rapid-cortex-api",
+  "version": "1.0.0",
+  "private": true,
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "dev": "tsc -w -p tsconfig.json"
+  },
+  "dependencies": {
+    "@aws-sdk/client-apigatewaymanagementapi": "^3.1049.0",
+    "@aws-sdk/client-bedrock-runtime": "^3.699.0",
+    "@aws-sdk/client-cognito-identity-provider": "^3.699.0",
+    "@aws-sdk/client-comprehend": "^3.699.0",
+    "@aws-sdk/client-dynamodb": "^3.699.0",
+    "@aws-sdk/client-ecs": "^3.1058.0",
+    "@aws-sdk/client-kinesis-video": "^3.699.0",
+    "@aws-sdk/client-kinesis-video-archived-media": "^3.699.0",
+    "@aws-sdk/client-kinesis-video-signaling": "^3.699.0",
+    "@aws-sdk/client-lambda": "^3.699.0",
+    "@aws-sdk/client-s3": "^3.699.0",
+    "@aws-sdk/client-secrets-manager": "^3.699.0",
+    "@aws-sdk/client-ses": "^3.1039.0",
+    "@aws-sdk/client-sns": "^3.699.0",
+    "@aws-sdk/client-sqs": "^3.1045.0",
+    "@aws-sdk/client-sts": "^3.699.0",
+    "@aws-sdk/client-transcribe": "^3.699.0",
+    "@aws-sdk/client-translate": "^3.699.0",
+    "@aws-sdk/client-wafv2": "^3.699.0",
+    "@aws-sdk/lib-dynamodb": "^3.699.0",
+    "@aws-sdk/s3-request-presigner": "^3.699.0",
+    "bcryptjs": "^3.0.3",
+    "cheerio": "^1.0.0",
+    "fast-xml-parser": "^5.7.0",
+    "google-auth-library": "^9.15.1",
+    "jose": "^4.15.9",
+    "pdfkit": "^0.18.0",
+    "qrcode": "^1.5.4",
+    "rapid-cortex-integrations": "file:vendor-packs/rapid-cortex-integrations-1.0.0.tgz",
+    "rapid-cortex-security": "file:vendor-packs/rapid-cortex-security-1.0.0.tgz",
+    "rapid-cortex-shared": "file:vendor-packs/rapid-cortex-shared-1.0.0.tgz",
+    "ulid": "^2.3.0",
+    "zod": "^3.24.1"
+  },
+  "devDependencies": {
+    "@types/aws-lambda": "^8.10.145",
+    "@types/node": "^22.10.1",
+    "@types/pdfkit": "^0.17.6",
+    "@types/qrcode": "^1.5.5",
+    "typescript": "^5.7.2"
+  }
+}

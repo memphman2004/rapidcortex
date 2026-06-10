@@ -13,6 +13,8 @@ const AUTHORIZED_ROLES: RingRole[] = [
   "admin",
   "emergency_manager",
   "rc_admin",
+  "VENUE_SUPERVISOR",
+  "VENUE_ADMIN",
 ];
 
 export function ViewAvailableRingCamerasButton({

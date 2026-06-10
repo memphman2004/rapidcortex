@@ -58,7 +58,6 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     if (t.feature === "triage") return isNonEmergencyTriageEnabled();
     if (t.feature === "wellness") return isDispatcherWellnessUiEnabled();
     if (t.feature === "seoIntel") return isSeoIntelligenceUiEnabled();
-    if (t.feature === "deceptionShield") return isDeceptionShieldUiEnabled();
     return true;
   });
 

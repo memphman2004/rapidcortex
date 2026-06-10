@@ -3,6 +3,7 @@
 import { Bell, Camera } from "lucide-react";
 import { useState } from "react";
 import type { RingCameraListItem } from "rapid-cortex-integrations/ring";
+import { KvsRingStreamViewer } from "@/components/ring/KvsRingStreamViewer";
 import { RingCameraRequestStatusBadge } from "./RingCameraRequestStatusBadge";
 
 const DURATIONS = [10, 30, 60, 120] as const;
@@ -20,6 +21,8 @@ export function RingCameraRequestCard({
   const [duration, setDuration] = useState<(typeof DURATIONS)[number]>(30);
   const [busy, setBusy] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
+  const [showStream, setShowStream] = useState(false);
+  const streamSessionId = camera.streamSessionId;
 
   const sendRequest = async () => {
     const ok = window.confirm(
@@ -105,15 +108,28 @@ export function RingCameraRequestCard({
         <p className="mt-3 text-sm text-amber-300">Waiting for owner response...</p>
       )}
       {status === "APPROVED" && (
-        <div className="mt-3">
-          <button
-            type="button"
-            disabled
-            title="Live stream viewer available in next update."
-            className="cursor-not-allowed rounded border border-slate-600 px-3 py-1.5 text-sm text-slate-400"
-          >
-            View Stream
-          </button>
+        <div className="mt-3 space-y-3">
+          {streamSessionId ? (
+            <>
+              {!showStream ? (
+                <button
+                  type="button"
+                  onClick={() => setShowStream(true)}
+                  className="rounded bg-sky-600 px-3 py-1.5 text-sm text-white hover:bg-sky-500"
+                >
+                  View Live Stream
+                </button>
+              ) : (
+                <KvsRingStreamViewer
+                  sessionId={streamSessionId}
+                  deviceName={camera.deviceName}
+                  onClose={() => setShowStream(false)}
+                />
+              )}
+            </>
+          ) : (
+            <p className="text-sm text-amber-300">Approved — preparing live stream…</p>
+          )}
         </div>
       )}
       {status === "DECLINED" && <p className="mt-3 text-sm text-rose-300">Owner Declined</p>}

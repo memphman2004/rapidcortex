@@ -27,7 +27,9 @@ export function RingConnectButton({
     if (!isRingEnabled()) return;
     const qp = new URLSearchParams(window.location.search);
     const status = qp.get("status");
-    if (status === "success") setToast({ tone: "ok", text: "Ring account connected." });
+    if (status === "success" || status === "connected") {
+      setToast({ tone: "ok", text: "Ring account connected." });
+    }
     if (status === "error") setToast({ tone: "err", text: "Ring account connection failed." });
     if (status) {
       qp.delete("status");

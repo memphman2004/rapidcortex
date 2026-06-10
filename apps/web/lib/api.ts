@@ -1,5 +1,5 @@
 import type { TranscriptConnectorResolution } from "rapid-cortex-integrations";
-import { isSam3ApiPath, isSam4ApiPath, isStack2ApiPath } from "@/lib/comms-api-path";
+import { isSam3ApiPath, isSam4ApiPath, isSam5ApiPath, isStack2ApiPath } from "@/lib/comms-api-path";
 import type {
   ActiveCallRecord,
   ActiveCallsListResponse,
@@ -93,6 +93,11 @@ const DIRECT_API_BASE_4 =
     ? normalizeApiOrigin(process.env.NEXT_PUBLIC_API_BASE_4)
     : "";
 
+const DIRECT_API_BASE_5 =
+  typeof process !== "undefined"
+    ? normalizeApiOrigin(process.env.NEXT_PUBLIC_API_BASE_5)
+    : "";
+
 const USE_AUTH_PROXY =
   typeof process !== "undefined" && process.env.NEXT_PUBLIC_AUTH_PROXY === "1";
 
@@ -108,13 +113,20 @@ function firstNonEmpty(...candidates: Array<string | undefined>): string {
 function shouldUseSameOriginBff(): boolean {
   if (USE_AUTH_PROXY) return true;
   if (typeof window !== "undefined") return true;
-  if (DIRECT_API_BASE.length === 0 && DIRECT_API_BASE_2.length === 0 && DIRECT_API_BASE_3.length === 0 && DIRECT_API_BASE_4.length === 0) {
+  if (
+    DIRECT_API_BASE.length === 0 &&
+    DIRECT_API_BASE_2.length === 0 &&
+    DIRECT_API_BASE_3.length === 0 &&
+    DIRECT_API_BASE_4.length === 0 &&
+    DIRECT_API_BASE_5.length === 0
+  ) {
     return Boolean(
       firstNonEmpty(
         process.env.API_UPSTREAM_BASE,
         process.env.API_UPSTREAM_BASE_2,
         process.env.API_UPSTREAM_BASE_3,
         process.env.API_UPSTREAM_BASE_4,
+        process.env.API_UPSTREAM_BASE_5,
       ),
     );
   }
@@ -147,6 +159,9 @@ function resolveApiBaseForPath(apiPath: string): string {
     if (isSam4ApiPath(apiPath)) {
       return firstNonEmpty(process.env.API_UPSTREAM_BASE_4, DIRECT_API_BASE_4);
     }
+    if (isSam5ApiPath(apiPath)) {
+      return firstNonEmpty(process.env.API_UPSTREAM_BASE_5, DIRECT_API_BASE_5);
+    }
     if (isSam3ApiPath(apiPath)) {
       return firstNonEmpty(process.env.API_UPSTREAM_BASE_3, DIRECT_API_BASE_3);
     }
@@ -157,6 +172,9 @@ function resolveApiBaseForPath(apiPath: string): string {
   }
   if (DIRECT_API_BASE_4 && isSam4ApiPath(apiPath)) {
     return DIRECT_API_BASE_4;
+  }
+  if (DIRECT_API_BASE_5 && isSam5ApiPath(apiPath)) {
+    return DIRECT_API_BASE_5;
   }
   if (DIRECT_API_BASE_3 && isSam3ApiPath(apiPath)) {
     return DIRECT_API_BASE_3;
@@ -176,7 +194,15 @@ const jsonHeaders: HeadersInit = {
  */
 export function isApiConfigured(): boolean {
   if (USE_AUTH_PROXY) return true;
-  if (DIRECT_API_BASE.length > 0 || DIRECT_API_BASE_2.length > 0 || DIRECT_API_BASE_3.length > 0 || DIRECT_API_BASE_4.length > 0) return true;
+  if (
+    DIRECT_API_BASE.length > 0 ||
+    DIRECT_API_BASE_2.length > 0 ||
+    DIRECT_API_BASE_3.length > 0 ||
+    DIRECT_API_BASE_4.length > 0 ||
+    DIRECT_API_BASE_5.length > 0
+  ) {
+    return true;
+  }
   if (typeof window !== "undefined") return true;
   return Boolean(
     firstNonEmpty(
@@ -184,6 +210,7 @@ export function isApiConfigured(): boolean {
       process.env.API_UPSTREAM_BASE_2,
       process.env.API_UPSTREAM_BASE_3,
       process.env.API_UPSTREAM_BASE_4,
+      process.env.API_UPSTREAM_BASE_5,
     ),
   );
 }

@@ -36,9 +36,9 @@
     "jose": "^4.15.9",
     "pdfkit": "^0.18.0",
     "qrcode": "^1.5.4",
-    "rapid-cortex-integrations": "file:../../packages/integrations",
-    "rapid-cortex-security": "file:../../packages/security",
-    "rapid-cortex-shared": "file:../../packages/shared",
+    "rapid-cortex-integrations": "file:vendor-packs/rapid-cortex-integrations-1.0.0.tgz",
+    "rapid-cortex-security": "file:vendor-packs/rapid-cortex-security-1.0.0.tgz",
+    "rapid-cortex-shared": "file:vendor-packs/rapid-cortex-shared-1.0.0.tgz",
     "ulid": "^2.3.0",
     "zod": "^3.24.1"
   },
