@@ -901,7 +901,6 @@ Resources:
 
   AppSamQrStack:
     Type: AWS::CloudFormation::Stack
-    DependsOn: AppSamStackV2
     Properties:
       TimeoutInMinutes: 60
       TemplateURL: nested/stack-app-sam-qr.yaml
@@ -943,6 +942,16 @@ Resources:
         ImportedCognitoWebClientId: !GetAtt AppSamStackV2.Outputs.UserPoolClientId
         ImportedCognitoIssuer: !GetAtt AppSamStackV2.Outputs.CognitoIssuer
         ManagedPolicyNamePrefix: !Ref AWS::StackName
+        IncidentsTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.IncidentsTable
+            - !Sub "${DynamoTableNamePrefix}-incidents-${DeploymentStage}"
+        AgenciesTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.AgenciesTable
+            - !Sub "${DynamoTableNamePrefix}-agencies-${DeploymentStage}"
 
   AppSam2Stack:
     Type: AWS::CloudFormation::Stack
@@ -2367,6 +2376,16 @@ Resources:
             - HasDataLayerNestedStack
             - !GetAtt DataLayerStack.Outputs.PinpointLinksTable
             - !Sub "${DynamoTableNamePrefix}-pinpoint-links-${DeploymentStage}"
+        LocationTokensTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.LocationTokensTable
+            - !Sub "${DynamoTableNamePrefix}-location-tokens-${DeploymentStage}"
+        SmsRoutingTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.SmsRoutingTable
+            - !Sub "${DynamoTableNamePrefix}-sms-routing-${DeploymentStage}"
         SnsEmailSubscription: !Ref SnsEmailSubscription
         SnsSmsSubscription: !Ref SnsSmsSubscription
         TranscriptRetentionPolicyDays: !Ref TranscriptRetentionPolicyDays

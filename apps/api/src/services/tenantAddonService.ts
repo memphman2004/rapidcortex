@@ -77,7 +77,7 @@ export class TenantAddonService {
     catalog: typeof ADDON_CATALOG;
   }> {
     assertRead(actor);
-    const entitlements = await entitlementsRepo.getOrSeed(tenantId, actor.email ?? actor.userId);
+    const entitlements = await entitlementsRepo.resolveForRead(tenantId, actor.email ?? actor.userId);
     return { entitlements, catalog: ADDON_CATALOG };
   }
 
@@ -90,7 +90,7 @@ export class TenantAddonService {
       (err as Error & { statusCode?: number }).statusCode = 403;
       throw err;
     }
-    const entitlements = await entitlementsRepo.getOrSeed(actor.agencyId, actor.email ?? actor.userId);
+    const entitlements = await entitlementsRepo.resolveForRead(actor.agencyId, actor.email ?? actor.userId);
     return { entitlements, catalog: ADDON_CATALOG };
   }
 

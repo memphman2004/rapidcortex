@@ -49,7 +49,7 @@ export function IncidentJurisdictionSharePanel({
   if (!canManage) {
     return (
       <aside className="hidden w-64 shrink-0 flex-col border-l border-slate-800 bg-slate-950/40 xl:flex">
-        <div className="p-2 text-[10px] text-slate-600">Cross-jurisdiction sharing is supervisor-managed.</div>
+        <div className="p-2 text-[10px] text-slate-600">Agency Share is supervisor-managed.</div>
       </aside>
     );
   }
@@ -57,7 +57,7 @@ export function IncidentJurisdictionSharePanel({
   return (
     <aside className="flex w-72 shrink-0 flex-col border-l border-slate-800 bg-slate-950/40">
       <div className="border-b border-slate-800 px-2 py-2">
-        <h2 className="text-[11px] font-semibold uppercase tracking-wide text-slate-400">Jurisdiction share</h2>
+        <h2 className="text-[11px] font-semibold uppercase tracking-wide text-slate-400">Agency Share</h2>
         <p className="mt-1 text-[10px] text-slate-500">Owner agency: {ownerAgencyId}</p>
       </div>
       <div className="flex flex-col gap-2 p-2">
@@ -76,7 +76,7 @@ export function IncidentJurisdictionSharePanel({
           onClick={() => createMut.mutate()}
           className="rounded bg-sky-900/50 px-2 py-1 text-xs font-medium text-sky-100 hover:bg-sky-800/60 disabled:opacity-40"
         >
-          {createMut.isPending ? "Sharing…" : "Share (trusted partner)"}
+          {createMut.isPending ? "Sharing…" : "Share with partner agency"}
         </button>
         {createMut.isError ? (
           <p className="text-[10px] text-rose-300">{(createMut.error as Error).message}</p>

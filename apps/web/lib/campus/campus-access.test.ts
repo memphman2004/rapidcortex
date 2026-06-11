@@ -26,13 +26,13 @@ describe("campus access", () => {
   it("allows CAMPUS_ADMIN only for matching campus code", () => {
     expect(
       canAccessCampusUsersOrSettings(
-        { role: "CAMPUS_ADMIN", agencyId: "test-campus-lincoln-high" },
+        { role: "campus_admin", agencyId: "test-campus-lincoln-high" },
         "LINCOLNHIGH",
       ),
     ).toBe(true);
     expect(
       canAccessCampusUsersOrSettings(
-        { role: "CAMPUS_ADMIN", agencyId: "test-campus-lincoln-high" },
+        { role: "campus_admin", agencyId: "test-campus-lincoln-high" },
         "OTHER",
       ),
     ).toBe(false);
@@ -41,7 +41,7 @@ describe("campus access", () => {
   it("denies non-admin campus roles", () => {
     expect(
       canAccessCampusUsersOrSettings(
-        { role: "CAMPUS_SUPERVISOR", agencyId: "test-campus-lincoln-high" },
+        { role: "campus_supervisor", agencyId: "test-campus-lincoln-high" },
         "LINCOLNHIGH",
       ),
     ).toBe(false);

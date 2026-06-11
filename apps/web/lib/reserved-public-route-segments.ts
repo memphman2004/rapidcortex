@@ -36,6 +36,12 @@ export const RESERVED_PUBLIC_ROUTE_FIRST_SEGMENTS: readonly string[] = [
   "status",
   /** CDN-backed public media entrypoints at site root (not `{jurisdiction}/media`). */
   "media",
+  /** Public QR/NFC citizen intake — no auth (`/report/{qrId}`). */
+  "report",
+  /** Public SMS GPS location share — no auth (`/locate/{token}`). */
+  "locate",
+  /** Legacy RCLI intake (`/r/{rcli}`). */
+  "r",
 ];
 
 export function isReservedPublicJurisdictionSlug(slug: string): boolean {

@@ -19,6 +19,27 @@ export type CampusIncidentType =
 
 export type CampusIncidentSource = "qr" | "sms" | "manual" | "phone";
 
+export type CampusLocationSource = "GPS" | "CELL_TOWER" | "MANUAL";
+
+export interface CampusIncidentLocationEntry {
+  source: CampusLocationSource;
+  accuracyMeters?: number;
+  receivedAt: string;
+  locationText?: string;
+  coordinates?: {
+    latitude: number;
+    longitude: number;
+    accuracy: number;
+    altitude?: number;
+  };
+}
+
+export interface CampusSmsChatMessage {
+  messageId: string;
+  body: string;
+  receivedAt: string;
+}
+
 export type CampusHelpType =
   | "medical"
   | "security"
@@ -58,6 +79,12 @@ export interface CampusIncident {
   updatedAt: string;
   resolvedAt: string | null;
   cleryCategory: string | null;
+  /** SHA-256 hash of reporter phone — never plain text. */
+  phoneHash?: string;
+  reporterLast4?: string;
+  locationData?: CampusIncidentLocationEntry[];
+  locationLinkSent?: boolean;
+  smsChatMessages?: CampusSmsChatMessage[];
 }
 
 export interface CampusIncidentNote {

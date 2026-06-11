@@ -183,8 +183,8 @@ const HOSPITAL_ROUTING_VIEW_ANALYTICS: readonly Permission[] = [
   "hospital_routing.analytics_view",
 ] as const;
 
-/** Permissions explicitly granted per role in the v2.0 matrix (excluding hospital). */
-export const ROLE_ACCESS_MATRIX_V2: Record<MatrixRole, readonly Permission[]> = {
+/** Core PSAP matrix roles from the v2.0 PDF (vertical product roles inherit below). */
+const CORE_ROLE_ACCESS_MATRIX_V2 = {
   rcadmin: [
     "system.tenant_mgmt",
     "system.platform_health",
@@ -409,7 +409,49 @@ export const ROLE_ACCESS_MATRIX_V2: Record<MatrixRole, readonly Permission[]> = 
     "audit.access_reports",
     ...HOSPITAL_ROUTING_VIEW_ANALYTICS,
   ],
+} as const satisfies Record<
+  "rcadmin" | "rcitadmin" | "agencyadmin" | "agencyit" | "supervisor" | "dispatcher" | "analyst" | "auditor",
+  readonly Permission[]
+>;
+
+type CoreMatrixRole = keyof typeof CORE_ROLE_ACCESS_MATRIX_V2;
+
+/** Vertical product roles inherit grants from the closest core matrix role. */
+const VERTICAL_ROLE_MATRIX_BASE: Record<Exclude<MatrixRole, CoreMatrixRole>, CoreMatrixRole> = {
+  campus_admin: "agencyadmin",
+  campus_supervisor: "supervisor",
+  campus_security: "dispatcher",
+  campus_counselor: "analyst",
+  campus_faculty: "auditor",
+  venue_admin: "agencyadmin",
+  venue_supervisor: "supervisor",
+  venue_security: "dispatcher",
+  venue_operator: "dispatcher",
+  venue_guest: "auditor",
+  hospital_admin: "agencyadmin",
+  hospital_supervisor: "supervisor",
+  hospital_staff: "auditor",
+  hospital_coord: "analyst",
+  transit_admin: "agencyadmin",
+  transit_supervisor: "supervisor",
+  transit_security: "dispatcher",
+  transit_operator: "dispatcher",
 };
+
+function inheritVerticalMatrix(
+  core: typeof CORE_ROLE_ACCESS_MATRIX_V2,
+  bases: typeof VERTICAL_ROLE_MATRIX_BASE,
+): Record<MatrixRole, readonly Permission[]> {
+  const vertical = {} as Record<Exclude<MatrixRole, CoreMatrixRole>, readonly Permission[]>;
+  for (const role of Object.keys(bases) as Exclude<MatrixRole, CoreMatrixRole>[]) {
+    vertical[role] = core[bases[role]];
+  }
+  return { ...core, ...vertical };
+}
+
+/** Permissions explicitly granted per role in the v2.0 matrix (excluding hospital portal roles). */
+export const ROLE_ACCESS_MATRIX_V2: Record<MatrixRole, readonly Permission[]> =
+  inheritVerticalMatrix(CORE_ROLE_ACCESS_MATRIX_V2, VERTICAL_ROLE_MATRIX_BASE);
 
 /** rcsuperadmin-only immutable permissions (matrix `o` column). */
 export const RCSUPERADMIN_ONLY_PERMISSIONS: readonly Permission[] = [

@@ -73,7 +73,7 @@ export function ChangePasswordForm({ showFullPageCopy = true }: Props) {
       setNewPassword("");
       setConfirmPassword("");
       window.setTimeout(() => {
-        postAuthRedirect(router, null);
+        postAuthRedirect(router, homeHref);
       }, 1500);
     } finally {
       setSubmitting(false);

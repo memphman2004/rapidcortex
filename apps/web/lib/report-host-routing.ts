@@ -33,7 +33,11 @@ function isReportHostAllowedPath(pathname: string): boolean {
   return (
     pathname === "/r" ||
     pathname.startsWith("/r/") ||
+    pathname === "/report" ||
+    pathname.startsWith("/report/") ||
     pathname.startsWith("/api/r/") ||
+    pathname.startsWith("/api/public/") ||
+    pathname.startsWith("/api/qr-nfc/") ||
     pathname.startsWith("/api/health") ||
     pathname.startsWith("/_next/") ||
     pathname === "/favicon.ico" ||

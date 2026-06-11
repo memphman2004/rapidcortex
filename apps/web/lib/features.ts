@@ -9,6 +9,7 @@ function productFlag(name: string): boolean {
 }
 
 export const features = {
+  qrNfc: productFlag("NEXT_PUBLIC_ENABLE_QR_NFC"),
   verticalCampus: productFlag("NEXT_PUBLIC_ENABLE_VERTICAL_CAMPUS"),
   verticalVenue: productFlag("NEXT_PUBLIC_ENABLE_VERTICAL_VENUE"),
   hospitalRouting: productFlag("NEXT_PUBLIC_ENABLE_HOSPITAL_ROUTING"),
@@ -17,11 +18,12 @@ export const features = {
   verticalBadge: productFlag("NEXT_PUBLIC_ENABLE_VERTICAL_BADGE"),
 } as const;
 
-export type FeatureVertical = "core" | "campus" | "venue" | "hospital";
+export type FeatureVertical = "core" | "campus" | "venue" | "hospital" | "transit";
 
 export function isVerticalEnabled(vertical: FeatureVertical): boolean {
   if (vertical === "core") return true;
   if (vertical === "campus") return features.verticalCampus;
   if (vertical === "venue") return features.verticalVenue;
+  if (vertical === "transit") return true;
   return features.hospitalRouting || features.hospitalPortal;
 }

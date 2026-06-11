@@ -146,6 +146,19 @@ export function canViewSensitiveData(role: UserRole | string): boolean {
 
 export { AUDIT_EVENT_TYPES, type AuditEventTypeName } from "./audit-schema.js";
 export { AuthorizationService } from "./authorization-service.js";
+export {
+  canCreateQrNfcCodes,
+  canManageQrNfcCodes,
+  canViewQrNfcCodes,
+  canDeactivateQrNfcCodes,
+  canDownloadQrNfcCodes,
+  isQrNfcPlatformRole,
+  resolveQrNfcAgencyId,
+} from "./qr-nfc-access.js";
+export {
+  canManageSmsRouting,
+  canViewSmsRouting,
+} from "./sms-routing-access.js";
 export { TenantAccessGuard } from "./tenant-access-guard.js";
 export { AuditLogger, type SecurityAuditEvent } from "./audit-logger.js";
 export { RetentionPolicyService, type RetentionPolicy } from "./retention-policy-service.js";

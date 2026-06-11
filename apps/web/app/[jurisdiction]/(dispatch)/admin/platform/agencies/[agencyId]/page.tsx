@@ -259,10 +259,10 @@ export default function AgencyDetailPage() {
 
           <section className="rounded-lg border border-slate-800 bg-slate-900/40 p-4">
             <h2 className="text-xs font-semibold uppercase tracking-wider text-slate-500">
-              Share partner
+              Agency Share partner
             </h2>
             <p className="mt-1 text-xs text-slate-500">
-              Link a partner agency for shared incident workflows (API-backed).
+              Link a trusted partner agency for Agency Share — consent-based, time-limited incident access.
             </p>
             <div className="mt-3 flex flex-col gap-2 sm:flex-row sm:items-end">
               <label className="text-sm">

@@ -671,6 +671,12 @@ Parameters:
   PinpointLinksTable:
     Type: String
     Description: Physical DynamoDB table name from data layer (PinpointLinksTable).
+  LocationTokensTable:
+    Type: String
+    Description: Physical DynamoDB table name from data layer (LocationTokensTable).
+  SmsRoutingTable:
+    Type: String
+    Description: Physical DynamoDB table name from data layer (SmsRoutingTable).
   AnalysesTable:
     Type: String
     Description: Physical DynamoDB table name from data layer (AnalysesTable).
@@ -1234,6 +1240,10 @@ Resources:
                 - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${SilentTextSessionsTable}/index/*
                 - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${PinpointLinksTable}
                 - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${PinpointLinksTable}/index/*
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${LocationTokensTable}
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${LocationTokensTable}/index/*
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${SmsRoutingTable}
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${SmsRoutingTable}/index/*
                 - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${TraumaFlagsTable}
                 - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${TraumaFlagsTable}/index/*
                 - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${TranscriptsTable}
@@ -2064,6 +2074,12 @@ Resources:
             Path: /api/venue/cameras/request
             Method: POST
 
+  UnroutedSmsDlq:
+    Type: AWS::SQS::Queue
+    Properties:
+      QueueName: !Sub "${AppName}-unrouted-sms-${DeploymentStage}"
+      MessageRetentionPeriod: 1209600
+
   VenueSmsInboundFunction:
     Type: AWS::Serverless::Function
     Metadata:
@@ -2074,8 +2090,30 @@ Resources:
       Description: "Twilio inbound SMS handler for venue + campus routing"
       MemorySize: 256
       Timeout: 15
+      Environment:
+        Variables:
+          LOCATION_TOKENS_TABLE: !Ref LocationTokensTable
+          SMS_ROUTING_TABLE: !Ref SmsRoutingTable
+          AUDIT_TABLE: !Ref AuditTable
+          LOCATE_PUBLIC_BASE_URL: !Ref AppPublicBaseUrl
+          APP_PUBLIC_BASE_URL: !Ref AppPublicBaseUrl
+          INCIDENT_TIMELINE_TABLE: !Sub "rapid-cortex-incident-timeline-${DeploymentStage}"
+          ENABLE_SMS_LOCATION: "true"
+          CARRIER_LOCATION_MOCK: !If [PilotTestFeaturesOn, "true", "false"]
+          LOCATE_SMS_MOCK: !FindInMap [SmsEnvironmentDefaults, !Ref DeploymentStage, MockSmsProvider]
+          SMS_PROVIDER: !FindInMap [SmsEnvironmentDefaults, !Ref DeploymentStage, SmsProvider]
+          SMS_PRIMARY_PROVIDER: !FindInMap [SmsEnvironmentDefaults, !Ref DeploymentStage, SmsPrimaryProvider]
+          MOCK_SMS_PROVIDER: !FindInMap [SmsEnvironmentDefaults, !Ref DeploymentStage, MockSmsProvider]
+          AWS_SMS_USE_SIMULATOR: !FindInMap [SmsEnvironmentDefaults, !Ref DeploymentStage, AwsSmsUseSimulator]
+          INCIDENT_MEDIA_TWILIO_SECRET_ARN: !Ref IncidentMediaTwilioSecretArn
+          UNROUTED_SMS_DLQ_URL: !Ref UnroutedSmsDlq
       Policies:
         - !Ref AppManagedPolicyDynamoLambdaCrudShardC
+        - Statement:
+            - Effect: Allow
+              Action:
+                - sqs:SendMessage
+              Resource: !GetAtt UnroutedSmsDlq.Arn
       Events:
         ApiEvent:
           Type: HttpApi
@@ -3038,6 +3076,83 @@ Resources:
             Auth:
               Authorizer: NONE
 
+  LocatePublicHttpFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/handlers/locatePublicHttp.handler
+      Timeout: 30
+      Environment:
+        Variables:
+          LOCATION_TOKENS_TABLE: !Ref LocationTokensTable
+          LOCATE_PUBLIC_BASE_URL: !Ref AppPublicBaseUrl
+          APP_PUBLIC_BASE_URL: !Ref AppPublicBaseUrl
+          INCIDENT_TIMELINE_TABLE: !Sub "rapid-cortex-incident-timeline-${DeploymentStage}"
+          ENABLE_SMS_LOCATION: "true"
+      Policies:
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardC
+      Events:
+        GetLocateToken:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/public/locate/{token}
+            Method: GET
+            Auth:
+              Authorizer: NONE
+        PostLocateToken:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/public/locate/{token}
+            Method: POST
+            Auth:
+              Authorizer: NONE
+
+  SmsRoutingHttpFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/handlers/smsRoutingHttp.handler
+      Timeout: 30
+      Environment:
+        Variables:
+          SMS_ROUTING_TABLE: !Ref SmsRoutingTable
+          AUDIT_TABLE: !Ref AuditTable
+      Policies:
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardC
+      Events:
+        ListRouting:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/sms-routing
+            Method: GET
+        CreateRouting:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/sms-routing
+            Method: POST
+        PatchRouting:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/sms-routing/{phoneNumber}
+            Method: PATCH
+        DeleteRouting:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/sms-routing/{phoneNumber}
+            Method: DELETE
+
   LiveVideoIncidentsHttpErrorsAlarm:
     Type: AWS::CloudWatch::Alarm
     Condition: CreateLiveVideoResources
@@ -3099,3 +3214,9 @@ Outputs:
     Condition: HasApiCustomDomainCert
     Description: ACM certificate ARN (stack 5).
     Value: !If [HasImportedApiCert, !Ref ApiDomainCertificateArn, !Ref ApiManagedCertificate]
+  UnroutedSmsDlqUrl:
+    Description: SQS DLQ for inbound SMS that could not be routed to an agency.
+    Value: !Ref UnroutedSmsDlq
+  UnroutedSmsDlqArn:
+    Description: SQS DLQ ARN for unrouted inbound SMS.
+    Value: !GetAtt UnroutedSmsDlq.Arn

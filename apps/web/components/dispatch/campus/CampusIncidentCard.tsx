@@ -3,6 +3,8 @@
 import { ImageIcon, MapPin, Radio } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { QrIncidentLocation } from "@/components/incidents/qr-incident-location";
+import { SmsLocationPanel } from "@/components/dispatch/campus/sms-location-panel";
+import { isSmsLocationEnabled } from "@/lib/runtime-flags";
 import type { CampusIncident, CampusIncidentStatus } from "@/lib/campus/types";
 
 function elapsedLabel(iso: string): string {
@@ -123,6 +125,15 @@ export function CampusIncidentCard({
           rcli={incident.qrRcli}
         />
       </div>
+
+      {incident.source === "sms" && isSmsLocationEnabled() ? (
+        <SmsLocationPanel
+          incidentId={incident.id}
+          initialLocations={incident.locationData}
+          locationLinkSent={incident.locationLinkSent}
+          reporterLast4={incident.reporterLast4}
+        />
+      ) : null}
 
       <div className="mt-3 flex flex-wrap items-center gap-2 text-sm text-slate-200">
         <span className="font-medium">{typeLabel(incident.type)}</span>

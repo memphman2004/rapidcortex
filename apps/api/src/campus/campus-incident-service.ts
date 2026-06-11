@@ -286,3 +286,144 @@ export async function escalateCampusIncident(
 
   return { escalatedIncidentId: incidentId };
 }
+
+const OPEN_STATUSES: CampusIncidentStatus[] = ["open", "assigned", "responding"];
+
+export async function findOpenCampusIncidentByPhoneHash(
+  campusCode: string,
+  phoneHash: string,
+  withinMinutes = 30,
+): Promise<CampusIncident | null> {
+  const cutoff = new Date(Date.now() - withinMinutes * 60 * 1000).toISOString();
+  const { incidents } = await listCampusIncidents({ campusCode, limit: 40 });
+  const match = incidents.find(
+    (i) =>
+      i.phoneHash === phoneHash &&
+      OPEN_STATUSES.includes(i.status) &&
+      i.createdAt >= cutoff,
+  );
+  return match ?? null;
+}
+
+export async function createCampusSmsIncident(params: {
+  campusCode: string;
+  type: CampusIncidentType;
+  description: string;
+  buildingHint: string;
+  roomHint: string;
+  phoneHash: string;
+  reporterLast4: string;
+}): Promise<CampusIncident> {
+  return createCampusIncident(
+    {
+      campusCode: params.campusCode,
+      buildingCode: params.buildingHint || "UNKNOWN",
+      roomCode: params.roomHint || "",
+      type: params.type,
+      source: "sms",
+      description: params.description,
+      isAnonymous: true,
+    },
+    params.campusCode,
+    "sms-inbound",
+  ).then(async (incident) => {
+    const now = new Date().toISOString();
+    await ddb.send(
+      new UpdateCommand({
+        TableName: campusIncidentsTable(),
+        Key: {
+          pk: CAMPUS_KEYS.incidentPk(params.campusCode),
+          sk: CAMPUS_KEYS.incidentSk(incident.id),
+        },
+        UpdateExpression:
+          "SET phoneHash = :ph, reporterLast4 = :rl4, locationLinkSent = :lls, locationData = :ld, updatedAt = :now",
+        ExpressionAttributeValues: {
+          ":ph": params.phoneHash,
+          ":rl4": params.reporterLast4,
+          ":lls": false,
+          ":ld": [],
+          ":now": now,
+        },
+      }),
+    );
+    return {
+      ...incident,
+      phoneHash: params.phoneHash,
+      reporterLast4: params.reporterLast4,
+      locationLinkSent: false,
+      locationData: [],
+    };
+  });
+}
+
+export async function markCampusLocationLinkSent(
+  campusCode: string,
+  incidentId: string,
+): Promise<void> {
+  await ddb.send(
+    new UpdateCommand({
+      TableName: campusIncidentsTable(),
+      Key: {
+        pk: CAMPUS_KEYS.incidentPk(campusCode),
+        sk: CAMPUS_KEYS.incidentSk(incidentId),
+      },
+      UpdateExpression: "SET locationLinkSent = :t, updatedAt = :now",
+      ExpressionAttributeValues: {
+        ":t": true,
+        ":now": new Date().toISOString(),
+      },
+    }),
+  );
+}
+
+export async function appendCampusIncidentLocation(
+  campusCode: string,
+  incidentId: string,
+  entry: import("./campus-types.js").CampusIncidentLocationEntry,
+): Promise<void> {
+  await ddb.send(
+    new UpdateCommand({
+      TableName: campusIncidentsTable(),
+      Key: {
+        pk: CAMPUS_KEYS.incidentPk(campusCode),
+        sk: CAMPUS_KEYS.incidentSk(incidentId),
+      },
+      UpdateExpression:
+        "SET locationData = list_append(if_not_exists(locationData, :empty), :entry), updatedAt = :now",
+      ExpressionAttributeValues: {
+        ":empty": [],
+        ":entry": [entry],
+        ":now": new Date().toISOString(),
+      },
+    }),
+  );
+}
+
+export async function appendCampusSmsChatMessage(
+  campusCode: string,
+  incidentId: string,
+  body: string,
+): Promise<void> {
+  const message = {
+    messageId: makeId("sms"),
+    body,
+    receivedAt: new Date().toISOString(),
+  };
+  await ddb.send(
+    new UpdateCommand({
+      TableName: campusIncidentsTable(),
+      Key: {
+        pk: CAMPUS_KEYS.incidentPk(campusCode),
+        sk: CAMPUS_KEYS.incidentSk(incidentId),
+      },
+      UpdateExpression:
+        "SET smsChatMessages = list_append(if_not_exists(smsChatMessages, :empty), :msg), description = :desc, updatedAt = :now",
+      ExpressionAttributeValues: {
+        ":empty": [],
+        ":msg": [message],
+        ":desc": body,
+        ":now": new Date().toISOString(),
+      },
+    }),
+  );
+}

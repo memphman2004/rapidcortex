@@ -17,13 +17,20 @@ import { TenantAddonService } from "../../services/tenantAddonService.js";
 
 const service = new TenantAddonService();
 
-function pathTenantId(rawPath: string): { tenantId: string; tail: string[] } | null {
+export function pathTenantId(
+  rawPath: string,
+  pathParameters?: Record<string, string | undefined>,
+): { tenantId: string; tail: string[] } | null {
   const parts = (rawPath.split("?")[0] ?? "").split("/").filter(Boolean);
   const idx = parts.findIndex((p, i) => p === "admin" && parts[i + 1] === "tenants");
-  if (idx < 0) return null;
-  const tenantId = parts[idx + 2];
+  const tenantIdFromPath = idx >= 0 ? parts[idx + 2] : undefined;
+  const tenantId =
+    pathParameters?.tenantId?.trim() ||
+    pathParameters?.agencyId?.trim() ||
+    tenantIdFromPath?.trim();
   if (!tenantId) return null;
-  return { tenantId, tail: parts.slice(idx + 3) };
+  const tail = idx >= 0 ? parts.slice(idx + 3) : [];
+  return { tenantId, tail };
 }
 
 function clientMeta(event: {
@@ -40,6 +47,7 @@ export async function handleTenantAddonsAdminRoute(
     rawPath?: string;
     body?: string | null;
     queryStringParameters?: Record<string, string | undefined>;
+    pathParameters?: Record<string, string | undefined>;
     requestContext: { http: { method: string; sourceIp?: string } };
     headers?: Record<string, string | undefined>;
     isBase64Encoded?: boolean;
@@ -50,7 +58,7 @@ export async function handleTenantAddonsAdminRoute(
   let requestTail: string[] = [];
   let requestMethod = event.requestContext.http.method;
   try {
-    const parsed = pathTenantId(event.rawPath ?? "");
+    const parsed = pathTenantId(event.rawPath ?? "", event.pathParameters);
     if (!parsed) return badRequest("Invalid path");
     const { tenantId, tail } = parsed;
     const method = event.requestContext.http.method;
@@ -58,12 +66,20 @@ export async function handleTenantAddonsAdminRoute(
     requestTail = tail;
     requestMethod = method;
 
-    if (tail.length === 1 && tail[0] === "entitlements" && method === "GET") {
+    const rawPath = event.rawPath ?? "";
+    const isEntitlementsGet =
+      method === "GET" &&
+      (tail[0] === "entitlements" || rawPath.endsWith("/entitlements") || rawPath.endsWith("/entitlements/"));
+
+    if (isEntitlementsGet) {
       const data = await service.getEntitlementsAdmin(tenantId, user);
       return ok({ data });
     }
 
-    if (tail.length === 2 && tail[0] === "entitlements" && tail[1] === "audit" && method === "GET") {
+    if (
+      method === "GET" &&
+      ((tail[0] === "entitlements" && tail[1] === "audit") || rawPath.includes("/entitlements/audit"))
+    ) {
       const limit = event.queryStringParameters?.limit
         ? Number.parseInt(event.queryStringParameters.limit, 10)
         : 50;

@@ -15,7 +15,10 @@ import {
   marketingSignupPath,
 } from "@/lib/marketing-links";
 import { postAuthRedirect } from "@/lib/auth/postAuthRedirect";
-import { resolvePostLoginNavigationHref } from "@/lib/auth/post-login-redirect";
+import {
+  resolvePostLoginNavigationHref,
+  resolvePostLoginNavigationHrefAfterPasswordChange,
+} from "@/lib/auth/post-login-redirect";
 import {
   buildNativeDesktopCognitoAuthorizeUrl,
   persistNativeDesktopOAuthPkce,
@@ -93,9 +96,15 @@ export function LoginForm({
   });
 
   const homePathFor = useCallback(
-    (sessionUser: UserContext | null): string | null => {
+    (sessionUser: UserContext | null, afterPasswordChange = false): string | null => {
       if (!sessionUser) return null;
-      return resolvePostLoginNavigationHref(sessionUser, loginQuery.from, jurisdictionSlug);
+      return afterPasswordChange
+        ? resolvePostLoginNavigationHrefAfterPasswordChange(
+            sessionUser,
+            loginQuery.from,
+            jurisdictionSlug,
+          )
+        : resolvePostLoginNavigationHref(sessionUser, loginQuery.from, jurisdictionSlug);
     },
     [loginQuery.from, jurisdictionSlug],
   );
@@ -130,9 +139,13 @@ export function LoginForm({
     router.replace(`/${jurisdictionSlug}/login`);
   }, [jurisdictionSlug, loginQuery.passwordReset, router]);
 
-  function navigatePostAuth(sessionUser: UserContext | null, ctx: string) {
+  function navigatePostAuth(
+    sessionUser: UserContext | null,
+    ctx: string,
+    opts?: { afterPasswordChange?: boolean },
+  ) {
     if (tryRedirectNativeDesktopOAuth(sessionUser)) return;
-    const path = homePathFor(sessionUser);
+    const path = homePathFor(sessionUser, opts?.afterPasswordChange);
     const isProd = process.env.NODE_ENV === "production";
     if (!isProd) {
       console.info("[login]", {
@@ -282,10 +295,12 @@ export function LoginForm({
         const refreshedUser = await refreshSessionAfterSignIn(refresh);
         const destinationUser = refreshedUser ?? body?.user ?? null;
         if (!destinationUser) {
-          postAuthRedirect(router, loginQuery.from);
+          setError(
+            "Password saved, but your session could not be loaded. Sign in again with your new password.",
+          );
           return;
         }
-        navigatePostAuth(destinationUser, "complete_new_password");
+        navigatePostAuth(destinationUser, "complete_new_password", { afterPasswordChange: true });
         return;
       }
 

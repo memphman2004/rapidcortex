@@ -16,6 +16,7 @@ export const smsMessageTypeSchema = z.enum([
   "live_video",
   "pinpoint_location",
   "silent_text",
+  "sms_location",
 ]);
 export type SmsMessageType = z.infer<typeof smsMessageTypeSchema>;
 

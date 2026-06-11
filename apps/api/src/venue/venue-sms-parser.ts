@@ -130,15 +130,22 @@ export function parseVenueSms(body: string): ParsedVenueSms | null {
   if (!codes.has(first)) return null;
 
   const rest = parts.slice(1).join(" ");
-  const detectedType = detectVenueHelpType(rest);
-  const zoneHint = extractZoneHint(rest);
+  return parseVenueSmsForCode(first, rest, trimmed);
+}
 
+export function parseVenueSmsForCode(
+  venueCode: string,
+  description: string,
+  rawMessage?: string,
+): ParsedVenueSms {
+  const detectedType = detectVenueHelpType(description);
+  const zoneHint = extractZoneHint(description);
   return {
-    venueCode: first,
-    rawMessage: trimmed,
+    venueCode,
+    rawMessage: rawMessage ?? description,
     detectedType,
     zoneHint,
-    cleanDescription: rest,
+    cleanDescription: description,
     hasCode: true,
   };
 }

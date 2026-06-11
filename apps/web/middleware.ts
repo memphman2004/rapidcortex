@@ -18,6 +18,11 @@ import {
   resolvePostAuthenticationHomeHref,
   resolveProductDashboardFromRoleAndAgency,
 } from "@/lib/auth/post-login-redirect";
+import {
+  dashboardRouteFromRole,
+  pathMatchesRoleDashboard,
+  verticalFromRole,
+} from "rapid-cortex-shared";
 import type { UserContext } from "rapid-cortex-shared/types";
 import {
   hasRapidCortexDashboardAccess,
@@ -201,38 +206,80 @@ function isHospitalDashboardPath(pathname: string): boolean {
   return pathname === "/app/hospital" || pathname.startsWith("/app/hospital/");
 }
 
-function normalizedRoleUpper(role: string | undefined): string {
-  return (role ?? "").trim().toUpperCase();
+function isTransitDashboardPath(pathname: string): boolean {
+  return pathname === "/app/transit" || pathname.startsWith("/app/transit/");
+}
+
+function isAppVerticalDashboardPath(pathname: string): boolean {
+  return (
+    isCampusDashboardPath(pathname) ||
+    isVenueDashboardPath(pathname) ||
+    isHospitalDashboardPath(pathname) ||
+    isTransitDashboardPath(pathname) ||
+    pathname === "/app/dashboard" ||
+    pathname.startsWith("/app/dashboard/")
+  );
 }
 
 function isVenueRole(role: string | undefined): boolean {
-  return normalizedRoleUpper(role).startsWith("VENUE_");
+  return verticalFromRole(role ?? "dispatcher") === "venue";
 }
 
 function isCampusRole(role: string | undefined): boolean {
-  return normalizedRoleUpper(role).startsWith("CAMPUS_");
+  return verticalFromRole(role ?? "dispatcher") === "campus";
 }
 
 function isHospitalRole(role: string | undefined): boolean {
-  return isHospitalOperatorRole(role);
+  const vertical = verticalFromRole(role ?? "dispatcher");
+  return vertical === "hospital" || isHospitalOperatorRole(role);
 }
 
 function isTransitRole(role: string | undefined): boolean {
-  return normalizedRoleUpper(role).startsWith("TRANSIT_");
+  return verticalFromRole(role ?? "dispatcher") === "transit";
 }
 
 function isProductRole(role: string | undefined): boolean {
-  return (
-    isVenueRole(role) ||
-    isCampusRole(role) ||
-    isHospitalRole(role) ||
-    isTransitRole(role)
-  );
+  const vertical = verticalFromRole(role ?? "dispatcher");
+  return vertical === "campus" || vertical === "venue" || vertical === "hospital" || vertical === "transit";
 }
 
 function redirectToRoleAwareHome(request: NextRequest, user: UserContext, jurisdictionSlug: string) {
   const path = resolvePostAuthenticationHomeHref(user, jurisdictionSlug);
   return NextResponse.redirect(new URL(path, request.url));
+}
+
+function redirectToRoleDashboard(request: NextRequest, user: UserContext): NextResponse {
+  const home = dashboardRouteFromRole(user.role, user.agencyId);
+  return NextResponse.redirect(new URL(home, request.url));
+}
+
+function ensureRoleDashboardPath(
+  request: NextRequest,
+  user: UserContext,
+): NextResponse | null {
+  if (isRcInternalOperator(user.role)) return null;
+  const pathname = request.nextUrl.pathname;
+  const vertical = verticalFromRole(user.role);
+
+  if (vertical === "platform") {
+    if (isAppVerticalDashboardPath(pathname)) {
+      return redirectToRoleDashboard(request, user);
+    }
+    return null;
+  }
+
+  if (vertical !== "911") {
+    if (!pathMatchesRoleDashboard(pathname, user.role, user.agencyId)) {
+      return redirectToRoleDashboard(request, user);
+    }
+    return null;
+  }
+
+  if (isAppVerticalDashboardPath(pathname)) {
+    return redirectToRoleDashboard(request, user);
+  }
+
+  return null;
 }
 
 /** Jurisdiction-path segments that imply the Rapid Cortex web dashboards (subscriber + entitlement gated). */
@@ -262,6 +309,7 @@ const RESERVED_FIRST_SEGMENTS = new Set<string>([
   "sitemap.xml",
   "video-assist",
   "silent-text",
+  "locate",
   "developers",
   /** Canonical sign-in lives at `/login`, not `/{jurisdiction}/login`. */
   "login",
@@ -562,6 +610,9 @@ async function guardCampusDashboard(request: NextRequest): Promise<NextResponse>
     return redirectToRoleAwareHome(request, user, defaultJurisdictionSlug());
   }
 
+  const campusRoute = ensureRoleDashboardPath(request, user);
+  if (campusRoute) return campusRoute;
+
   const campusNetwork = await maybeBlockNetworkAccess(request, user);
   if (campusNetwork) return campusNetwork;
 
@@ -603,6 +654,9 @@ async function guardVenueDashboard(request: NextRequest): Promise<NextResponse> 
   if (!isVenueRole(user.role) && !isRcInternalOperator(user.role)) {
     return redirectToRoleAwareHome(request, user, defaultJurisdictionSlug());
   }
+
+  const venueRoute = ensureRoleDashboardPath(request, user);
+  if (venueRoute) return venueRoute;
 
   const venueNetwork = await maybeBlockNetworkAccess(request, user);
   if (venueNetwork) return venueNetwork;
@@ -647,14 +701,63 @@ async function guardHospitalDashboard(request: NextRequest): Promise<NextRespons
   }
 
   if (pathname === "/app/hospital" || pathname === "/app/hospital/") {
-    const home = resolveProductDashboardFromRoleAndAgency(user.role, user.agencyId);
-    if (home) {
-      return NextResponse.redirect(new URL(home, request.url));
-    }
+    return redirectToRoleDashboard(request, user);
   }
+
+  const hospitalRoute = ensureRoleDashboardPath(request, user);
+  if (hospitalRoute) return hospitalRoute;
 
   const hospitalNetwork = await maybeBlockNetworkAccess(request, user);
   if (hospitalNetwork) return hospitalNetwork;
+
+  return NextResponse.next();
+}
+
+async function guardTransitDashboard(request: NextRequest): Promise<NextResponse> {
+  if (!isAuthConfigured()) {
+    return NextResponse.next();
+  }
+  const pathname = request.nextUrl.pathname;
+  const loginUrl = new URL(marketingLoginPath(), request.url);
+  loginUrl.searchParams.set("from", `${pathname}${request.nextUrl.search}`);
+
+  const token = request.cookies.get(COOKIE_ID_TOKEN)?.value;
+  const refresh = request.cookies.get(COOKIE_REFRESH_TOKEN)?.value;
+  if (!token && !refresh) {
+    return NextResponse.redirect(loginUrl);
+  }
+
+  const user = token ? await verifyCognitoIdToken(token) : null;
+  if (!user && refresh) {
+    const bounce = new URL("/api/auth/refresh-cookies", request.url);
+    bounce.searchParams.set("redirect_to", `${pathname}${request.nextUrl.search}`);
+    return NextResponse.redirect(bounce);
+  }
+
+  if (!user) {
+    return NextResponse.redirect(loginUrl);
+  }
+
+  const transitRenewal = handleOperationalPasswordRenewalGate(
+    request,
+    user,
+    new URL("/change-password", request.url),
+  );
+  if (transitRenewal) return transitRenewal;
+
+  if (!isTransitRole(user.role) && !isRcInternalOperator(user.role)) {
+    return redirectToRoleAwareHome(request, user, defaultJurisdictionSlug());
+  }
+
+  if (pathname === "/app/transit" || pathname === "/app/transit/") {
+    return redirectToRoleDashboard(request, user);
+  }
+
+  const transitRoute = ensureRoleDashboardPath(request, user);
+  if (transitRoute) return transitRoute;
+
+  const transitNetwork = await maybeBlockNetworkAccess(request, user);
+  if (transitNetwork) return transitNetwork;
 
   return NextResponse.next();
 }
@@ -724,6 +827,9 @@ export async function middleware(request: NextRequest) {
   }
   if (isHospitalDashboardPath(pathname)) {
     return guardHospitalDashboard(request);
+  }
+  if (isTransitDashboardPath(pathname)) {
+    return guardTransitDashboard(request);
   }
   if (pathname.startsWith("/api/auth/")) {
     return ensureCsrfOnAuthApiRequest(request);
@@ -796,13 +902,24 @@ export async function middleware(request: NextRequest) {
     return redirectToLogin();
   }
 
+  const roleVertical = verticalFromRole(user.role);
+
+  // Platform roles must not enter vertical product shells.
+  if (roleVertical === "platform" && isAppVerticalDashboardPath(pathname)) {
+    return redirectToRoleDashboard(request, user);
+  }
+
   // Product-role users should never land in jurisdiction/core dispatcher routes.
   if (isProductRole(user.role)) {
-    const productDashboard = resolveProductDashboardFromRoleAndAgency(user.role, user.agencyId);
-    if (productDashboard && !pathname.startsWith(productDashboard)) {
-      return NextResponse.redirect(new URL(productDashboard, request.url));
+    if (!pathMatchesRoleDashboard(pathname, user.role, user.agencyId)) {
+      return redirectToRoleDashboard(request, user);
     }
     return NextResponse.next();
+  }
+
+  // 911 roles must not enter vertical product shells.
+  if (roleVertical === "911" && isAppVerticalDashboardPath(pathname)) {
+    return redirectToRoleDashboard(request, user);
   }
 
   const passwordStale = requiresOperationalPasswordRenewal(user);

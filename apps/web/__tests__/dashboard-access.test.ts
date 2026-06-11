@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { existsSync } from "node:fs";
 import { join } from "node:path";
-import { RAPID_CORTEX_ROLES } from "rapid-cortex-shared/auth/rapid-cortex-roles";
+import { RAPID_CORTEX_ROLES } from "rapid-cortex-shared";
 import type { UserRole } from "rapid-cortex-shared/types";
 import {
   defaultDashboardHrefForRole,
@@ -12,7 +12,7 @@ import {
 const WEB_APP_ROOT = join(__dirname, "..");
 const JURISDICTION = "demo-agency";
 
-const JURISDICTION_HOME_PAGE: Record<UserRole, string> = {
+const JURISDICTION_HOME_PAGE: Partial<Record<UserRole, string>> = {
   dispatcher: "[jurisdiction]/(dispatch)/dashboard/page.tsx",
   supervisor: "[jurisdiction]/(dispatch)/supervisor/page.tsx",
   agencyadmin: "[jurisdiction]/(dispatch)/admin/page.tsx",
@@ -27,10 +27,16 @@ const JURISDICTION_HOME_PAGE: Record<UserRole, string> = {
 };
 
 const DASHBOARD_ROLES = RAPID_CORTEX_ROLES.filter(
-  (role) => role !== "hospitaladmin" && role !== "hospitalstaff",
+  (role) =>
+    role !== "hospitaladmin" &&
+    role !== "hospitalstaff" &&
+    !role.startsWith("campus_") &&
+    !role.startsWith("venue_") &&
+    !role.startsWith("hospital_") &&
+    !role.startsWith("transit_"),
 );
 
-const PREFIX_BY_ROLE: Record<UserRole, DashboardPrefix> = {
+const PREFIX_BY_ROLE: Partial<Record<UserRole, DashboardPrefix>> = {
   rcsuperadmin: "rc-admin",
   rcadmin: "rc-admin",
   rcitadmin: "rc-admin",
@@ -53,7 +59,7 @@ describe("dashboard access", () => {
 
   it.each(DASHBOARD_ROLES)("maps %s to jurisdiction home and RBAC prefix gate", (role) => {
     const href = defaultDashboardHrefForRole(role, JURISDICTION);
-    const rel = JURISDICTION_HOME_PAGE[role];
+    const rel = JURISDICTION_HOME_PAGE[role]!;
     expect(existsSync(join(WEB_APP_ROOT, "app", rel))).toBe(true);
     if (role === "rcsuperadmin" || role === "rcadmin") {
       expect(href).toBe("/rc-admin/dashboard");
@@ -70,7 +76,7 @@ describe("dashboard access", () => {
           role,
           email: `${role}@example.com`,
         },
-        PREFIX_BY_ROLE[role],
+        PREFIX_BY_ROLE[role]!,
       ),
     ).toBe("ok");
   });
@@ -133,7 +139,7 @@ describe("dashboard access", () => {
     expect(href).toBe(
       role === "hospitaladmin" ? "/hospital-admin/dashboard" : "/hospital-staff/dashboard",
     );
-    expect(existsSync(join(WEB_APP_ROOT, "app", JURISDICTION_HOME_PAGE[role]))).toBe(true);
+    expect(existsSync(join(WEB_APP_ROOT, "app", JURISDICTION_HOME_PAGE[role]!))).toBe(true);
     expect(
       evaluateDashboardGate(
         {
@@ -142,7 +148,7 @@ describe("dashboard access", () => {
           role,
           email: `${role}@example.com`,
         },
-        PREFIX_BY_ROLE[role],
+        PREFIX_BY_ROLE[role]!,
       ),
     ).toBe("ok");
   });

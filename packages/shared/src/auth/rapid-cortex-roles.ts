@@ -17,6 +17,24 @@ export const RAPID_CORTEX_ROLES = [
   "auditor",
   "hospitaladmin",
   "hospitalstaff",
+  "campus_admin",
+  "campus_supervisor",
+  "campus_security",
+  "campus_counselor",
+  "campus_faculty",
+  "venue_admin",
+  "venue_supervisor",
+  "venue_security",
+  "venue_operator",
+  "venue_guest",
+  "hospital_admin",
+  "hospital_supervisor",
+  "hospital_staff",
+  "hospital_coord",
+  "transit_admin",
+  "transit_supervisor",
+  "transit_security",
+  "transit_operator",
 ] as const;
 
 export type RapidCortexRole = (typeof RAPID_CORTEX_ROLES)[number];
@@ -64,6 +82,24 @@ export const ROLE_LABELS: Record<string, string> = {
   auditor: "Auditor",
   hospitaladmin: "Hospital Admin",
   hospitalstaff: "Hospital Staff",
+  campus_admin: "Campus Admin",
+  campus_supervisor: "Campus Supervisor",
+  campus_security: "Campus Security",
+  campus_counselor: "Campus Counselor",
+  campus_faculty: "Campus Faculty",
+  venue_admin: "Venue Admin",
+  venue_supervisor: "Venue Supervisor",
+  venue_security: "Venue Security",
+  venue_operator: "Venue Operator",
+  venue_guest: "Venue Guest",
+  hospital_admin: "Hospital Admin",
+  hospital_supervisor: "Hospital Supervisor",
+  hospital_staff: "Hospital Staff",
+  hospital_coord: "Hospital Coordinator",
+  transit_admin: "Transit Admin",
+  transit_supervisor: "Transit Supervisor",
+  transit_security: "Transit Security",
+  transit_operator: "Transit Operator",
   platform_superadmin: "Platform Owner",
   rc_admin: "RC Operations",
   admin: "Agency Admin",
@@ -96,6 +132,42 @@ export const ROLE_DESCRIPTIONS: Record<string, string> = {
     "Hospital administrator. Updates live ER capacity for their facility and may invite hospital staff.",
   hospitalstaff:
     "Hospital staff. Updates live ER capacity and diversion status for their assigned facility.",
+  campus_admin:
+    "Campus administrator. User management, Clery documentation, zone configuration, and reporting.",
+  campus_supervisor:
+    "Campus supervisor. Live incident map, active reports, camera feeds, and escalations.",
+  campus_security:
+    "Campus security officer. QR/SMS reports, two-way chat, evidence intake, and dispatch.",
+  campus_counselor:
+    "Campus counselor. Welfare check queue, anonymous tip inbox, and chat-only workflows.",
+  campus_faculty:
+    "Campus faculty. Submit-only portal for reports and status on their own submissions.",
+  venue_admin:
+    "Venue administrator. Zone setup, staff management, event configuration, and reporting.",
+  venue_supervisor:
+    "Venue supervisor. Live event dashboard, all zones, camera overview, and escalations.",
+  venue_security:
+    "Venue security. Fan reports, section/gate view, two-way chat, and camera feeds.",
+  venue_operator:
+    "Venue operator. Read-only ops view — incident status and unit locations without dispatch.",
+  venue_guest:
+    "Venue guest. Read-only view of their own submitted report status.",
+  hospital_admin:
+    "Hospital administrator. Staff management, capacity configuration, and MCI planning.",
+  hospital_supervisor:
+    "Hospital supervisor. Capacity board, pre-alert queue, and MCI coordination.",
+  hospital_staff:
+    "Hospital staff. Incoming pre-alerts, patient tracking, and EMS coordination.",
+  hospital_coord:
+    "Hospital coordinator. EMS liaison — outbound alerts, hospital capacity, and routing.",
+  transit_admin:
+    "Transit administrator. Route/zone setup, staff management, and reporting.",
+  transit_supervisor:
+    "Transit supervisor. Live route map, incident overlay, and escalations.",
+  transit_security:
+    "Transit security. Passenger reports, vehicle/station incidents, and two-way chat.",
+  transit_operator:
+    "Transit operator. Read-only vehicle status and active incidents on their route.",
 };
 
 export const ROLE_DISPLAY_LABELS: Record<RapidCortexRole, string> = {
@@ -110,6 +182,24 @@ export const ROLE_DISPLAY_LABELS: Record<RapidCortexRole, string> = {
   rcsuperadmin: ROLE_LABELS.rcsuperadmin,
   rcadmin: ROLE_LABELS.rcadmin,
   rcitadmin: ROLE_LABELS.rcitadmin,
+  campus_admin: ROLE_LABELS.campus_admin,
+  campus_supervisor: ROLE_LABELS.campus_supervisor,
+  campus_security: ROLE_LABELS.campus_security,
+  campus_counselor: ROLE_LABELS.campus_counselor,
+  campus_faculty: ROLE_LABELS.campus_faculty,
+  venue_admin: ROLE_LABELS.venue_admin,
+  venue_supervisor: ROLE_LABELS.venue_supervisor,
+  venue_security: ROLE_LABELS.venue_security,
+  venue_operator: ROLE_LABELS.venue_operator,
+  venue_guest: ROLE_LABELS.venue_guest,
+  hospital_admin: ROLE_LABELS.hospital_admin,
+  hospital_supervisor: ROLE_LABELS.hospital_supervisor,
+  hospital_staff: ROLE_LABELS.hospital_staff,
+  hospital_coord: ROLE_LABELS.hospital_coord,
+  transit_admin: ROLE_LABELS.transit_admin,
+  transit_supervisor: ROLE_LABELS.transit_supervisor,
+  transit_security: ROLE_LABELS.transit_security,
+  transit_operator: ROLE_LABELS.transit_operator,
 };
 
 export function isHospitalPortalRole(role: string): role is HospitalAssignableRole {
@@ -141,6 +231,15 @@ export function isHospitalStaffPortalRole(role: string | undefined | null): bool
 
 /** Any hospital portal operator — not a PSAP dispatcher/supervisor role. */
 export function isHospitalOperatorRole(role: string | undefined | null): boolean {
+  const raw = (role ?? "").trim().toLowerCase();
+  if (
+    raw === "hospital_admin" ||
+    raw === "hospital_supervisor" ||
+    raw === "hospital_staff" ||
+    raw === "hospital_coord"
+  ) {
+    return true;
+  }
   return isHospitalAdminPortalRole(role) || isHospitalStaffPortalRole(role);
 }
 
@@ -153,8 +252,15 @@ export function resolveHospitalPortalDashboardHref(role: string | undefined | nu
 
 /** Product vertical roles (venue, campus, hospital portal, transit) — not PSAP dispatcher RBAC. */
 export function isProductVerticalRoleToken(raw: string | undefined | null): boolean {
-  const upper = (raw ?? "").trim().toUpperCase();
+  const token = (raw ?? "").trim();
+  if (!token) return false;
+  const lower = token.toLowerCase();
+  const upper = token.toUpperCase();
   return (
+    lower.startsWith("venue_") ||
+    lower.startsWith("campus_") ||
+    lower.startsWith("hospital_") ||
+    lower.startsWith("transit_") ||
     upper.startsWith("VENUE_") ||
     upper.startsWith("CAMPUS_") ||
     upper.startsWith("HOSPITAL_") ||
@@ -168,9 +274,10 @@ export function isProductVerticalRoleToken(raw: string | undefined | null): bool
  */
 export function normalizeSessionRole(value: string | undefined): RapidCortexRole | string {
   const raw = value?.trim() ?? "";
-  if (isProductVerticalRoleToken(raw)) return raw;
   const migrated = migrateLegacyRapidCortexRoleTokenValue(raw) ?? "";
   if (migrated && isRapidCortexRole(migrated)) return migrated;
+  if (isProductVerticalRoleToken(migrated)) return migrated;
+  if (isProductVerticalRoleToken(raw)) return migrateLegacyRapidCortexRoleTokenValue(raw) ?? raw.toLowerCase();
   return "dispatcher";
 }
 
@@ -181,14 +288,25 @@ export function normalizeSessionRole(value: string | undefined): RapidCortexRole
 export function migrateLegacyRapidCortexRoleTokenValue(raw: string | undefined): string | undefined {
   if (raw === undefined || raw === null) return undefined;
   const t = raw.trim();
-  // Campus role-family bridge: Cognito groups currently emit CAMPUS_* identifiers.
-  // Map these to canonical product roles until native campus role literals are introduced.
-  if (t === "CAMPUS_ADMIN") return "agencyadmin";
-  if (t === "CAMPUS_SUPERVISOR") return "supervisor";
-  if (t === "CAMPUS_SECURITY") return "dispatcher";
-  if (t === "CAMPUS_DISPATCH") return "dispatcher";
-  if (t === "CAMPUS_COUNSELOR") return "analyst";
-  if (t === "CAMPUS_FACULTY") return "auditor";
+  // Campus / venue / hospital / transit product roles (Cognito may emit SCREAMING_SNAKE).
+  if (t === "CAMPUS_ADMIN") return "campus_admin";
+  if (t === "CAMPUS_SUPERVISOR") return "campus_supervisor";
+  if (t === "CAMPUS_SECURITY" || t === "CAMPUS_DISPATCH") return "campus_security";
+  if (t === "CAMPUS_COUNSELOR") return "campus_counselor";
+  if (t === "CAMPUS_FACULTY") return "campus_faculty";
+  if (t === "VENUE_ADMIN") return "venue_admin";
+  if (t === "VENUE_SUPERVISOR") return "venue_supervisor";
+  if (t === "VENUE_SECURITY") return "venue_security";
+  if (t === "VENUE_OPERATOR") return "venue_operator";
+  if (t === "VENUE_GUEST") return "venue_guest";
+  if (t === "HOSPITAL_ADMIN") return "hospital_admin";
+  if (t === "HOSPITAL_SUPERVISOR") return "hospital_supervisor";
+  if (t === "HOSPITAL_STAFF") return "hospital_staff";
+  if (t === "HOSPITAL_COORD") return "hospital_coord";
+  if (t === "TRANSIT_ADMIN") return "transit_admin";
+  if (t === "TRANSIT_SUPERVISOR") return "transit_supervisor";
+  if (t === "TRANSIT_SECURITY") return "transit_security";
+  if (t === "TRANSIT_OPERATOR") return "transit_operator";
   if (
     t === "platform_superadmin" ||
     t === "superadmin" ||

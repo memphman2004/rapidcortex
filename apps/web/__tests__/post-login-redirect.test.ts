@@ -3,6 +3,7 @@ import type { UserContext } from "rapid-cortex-shared";
 import {
   resolvePostAuthenticationHomeHref,
   resolvePostLoginNavigationHref,
+  resolvePostLoginNavigationHrefAfterPasswordChange,
   resolveProductDashboardFromRoleAndAgency,
 } from "../lib/auth/post-login-redirect";
 
@@ -55,6 +56,26 @@ describe("resolveProductDashboardFromRoleAndAgency", () => {
     );
     expect(resolveProductDashboardFromRoleAndAgency("rcitadmin", "__platform__")).toBe(
       "/rc-admin/infrastructure",
+    );
+  });
+});
+
+describe("resolvePostLoginNavigationHrefAfterPasswordChange", () => {
+  const slug = "columbus";
+
+  it("skips renewal gate and routes to role home when pwdChangeReq is still true", () => {
+    const user: UserContext = {
+      userId: "u-disp",
+      agencyId: "a1",
+      role: "dispatcher",
+      email: "disp@example.gov",
+      passwordChangeRequired: true,
+      isSubscriber: true,
+      planId: "enterprise_statewide",
+    };
+    expect(resolvePostLoginNavigationHref(user, null, slug)).toBe("/change-password");
+    expect(resolvePostLoginNavigationHrefAfterPasswordChange(user, null, slug)).toBe(
+      `/${slug}/dashboard`,
     );
   });
 });

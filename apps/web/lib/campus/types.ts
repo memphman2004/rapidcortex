@@ -19,6 +19,21 @@ export type CampusIncidentType =
   | "active_threat"
   | "other";
 
+export type CampusLocationSource = "GPS" | "CELL_TOWER" | "MANUAL";
+
+export interface CampusIncidentLocationEntry {
+  source: CampusLocationSource;
+  accuracyMeters?: number;
+  receivedAt: string;
+  locationText?: string;
+  coordinates?: {
+    latitude: number;
+    longitude: number;
+    accuracy: number;
+    altitude?: number;
+  };
+}
+
 export interface CampusIncident {
   id: string;
   campusCode: string;
@@ -43,4 +58,7 @@ export interface CampusIncident {
   createdAt: string;
   updatedAt: string;
   resolvedAt: string | null;
+  reporterLast4?: string;
+  locationData?: CampusIncidentLocationEntry[];
+  locationLinkSent?: boolean;
 }

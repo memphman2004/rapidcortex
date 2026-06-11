@@ -5,7 +5,10 @@ import {
 } from "@aws-sdk/client-cognito-identity-provider";
 import { NextResponse } from "next/server";
 import { enforceCsrfProtection } from "@/lib/csrf";
-import { applyCognitoAuthCookies } from "@/lib/auth/apply-auth-cookies";
+import {
+  applyCognitoAuthCookies,
+  applyPasswordRotationNavBypassCookie,
+} from "@/lib/auth/apply-auth-cookies";
 import {
   cognitoPasswordPolicyError,
   isValidCognitoPassword,
@@ -41,6 +44,7 @@ async function applyAuthOrChallenges(out: RespondToAuthChallengeCommandOutput, u
       RefreshToken: rotated?.refreshToken ?? auth.RefreshToken,
       ExpiresIn: auth.ExpiresIn,
     });
+    applyPasswordRotationNavBypassCookie(res);
     return res;
   }
 

@@ -2,6 +2,10 @@ import type { UserContext } from "rapid-cortex-shared/types";
 import { requiresOperationalPasswordRenewal } from "rapid-cortex-shared/auth/password-policy";
 import { resolveHospitalPortalDashboardHref } from "rapid-cortex-shared/auth/rapid-cortex-roles";
 import {
+  dashboardRouteFromRole,
+  verticalFromRole,
+} from "rapid-cortex-shared";
+import {
   hospitalPostAuthRedirect,
   isAnyHospitalRole,
 } from "@/lib/hospital/hospital-access";
@@ -41,30 +45,20 @@ export function resolveProductDashboardFromRoleAndAgency(
   agencyId: string | null | undefined,
 ): string {
   const roleToken = normalizeRole(role);
-  const roleUpper = roleToken.toUpperCase();
   const agency = (agencyId ?? "").trim();
+  const vertical = verticalFromRole(roleToken);
 
-  if (roleUpper.startsWith("VENUE_")) {
-    return `/app/venue/${extractVenueCode(agency)}`;
+  if (vertical !== "911") {
+    const route = dashboardRouteFromRole(roleToken, agency);
+    if (route !== "/app/dashboard") return route;
   }
-  if (roleUpper.startsWith("CAMPUS_")) {
-    return `/app/campus/${extractCampusCode(agency)}`;
-  }
+
   if (isAnyHospitalRole(roleToken)) {
     const hospitalHome = hospitalPostAuthRedirect(roleToken);
     if (hospitalHome !== "/auth/signout") return hospitalHome;
   }
   const hospitalHome = resolveHospitalPortalDashboardHref(roleToken);
   if (hospitalHome) return hospitalHome;
-  if (roleUpper.startsWith("TRANSIT_")) {
-    return "/app/transit";
-  }
-  if (roleToken === "rcsuperadmin" || roleToken === "rcadmin") {
-    return "/rc-admin/dashboard";
-  }
-  if (roleToken === "rcitadmin") {
-    return "/rc-admin/infrastructure";
-  }
 
   return "";
 }
@@ -104,15 +98,12 @@ export function resolvePostAuthenticationHomeHref(
  * Applies the `from` query safely: legacy `/{slug}/dashboard` hub is replaced with the role home;
  * role-dashboard URLs are kept only when the user may access that prefix.
  */
-export function resolvePostLoginNavigationHref(
+function resolveTrustedPostLoginFromParam(
   user: UserContext,
   fromParam: string | null | undefined,
   jurisdictionSlug: string,
+  canonical: string,
 ): string {
-  if (requiresOperationalPasswordRenewal(user)) {
-    return "/change-password";
-  }
-  const canonical = resolvePostAuthenticationHomeHref(user, jurisdictionSlug);
   const raw = typeof fromParam === "string" ? fromParam.trim() : "";
   if (!raw.startsWith("/")) return canonical;
 
@@ -131,4 +122,38 @@ export function resolvePostLoginNavigationHref(
   }
 
   return raw;
+}
+
+export function resolvePostLoginNavigationHref(
+  user: UserContext,
+  fromParam: string | null | undefined,
+  jurisdictionSlug: string,
+): string {
+  if (requiresOperationalPasswordRenewal(user)) {
+    return "/change-password";
+  }
+  return resolveTrustedPostLoginFromParam(
+    user,
+    fromParam,
+    jurisdictionSlug,
+    resolvePostAuthenticationHomeHref(user, jurisdictionSlug),
+  );
+}
+
+/**
+ * Post-login navigation immediately after a successful password rotation (NEW_PASSWORD_REQUIRED
+ * challenge or in-app change). Skips the operational renewal gate because JWT `custom:pwdChangedAt`
+ * / `custom:pwdChangeReq` may lag until upstream sync and token rotation propagate.
+ */
+export function resolvePostLoginNavigationHrefAfterPasswordChange(
+  user: UserContext,
+  fromParam: string | null | undefined,
+  jurisdictionSlug: string,
+): string {
+  return resolveTrustedPostLoginFromParam(
+    user,
+    fromParam,
+    jurisdictionSlug,
+    resolvePostAuthenticationHomeHrefAfterPasswordChange(user, jurisdictionSlug),
+  );
 }

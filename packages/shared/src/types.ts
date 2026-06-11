@@ -353,6 +353,8 @@ export type AuditResourceType =
   | "venue_facility"
   | "venue_camera_session"
   | "platform_notice"
+  | "sms_routing"
+  | "sms_inbound"
   | "unknown";
 
 /**

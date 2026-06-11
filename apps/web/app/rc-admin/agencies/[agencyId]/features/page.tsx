@@ -58,13 +58,22 @@ export default async function RcAdminAgencyFeaturesPage({ params }: Props) {
         Toggle paid add-ons and sync changes to the agency&apos;s open invoice. Plan-included features cannot be
         disabled.
       </p>
-      <Link
-        href={`/rc-admin/agencies/${encodeURIComponent(agencyId)}/billing`}
-        className="text-sm hover:opacity-90"
-        style={{ color: "var(--role-accent)" }}
-      >
-        ← Agency billing
-      </Link>
+      <div className="flex flex-wrap gap-4 text-sm">
+        <Link
+          href={`/rc-admin/agencies/${encodeURIComponent(agencyId)}/billing`}
+          className="hover:opacity-90"
+          style={{ color: "var(--role-accent)" }}
+        >
+          ← Agency billing
+        </Link>
+        <Link
+          href={`/rc-admin/agencies/${encodeURIComponent(agencyId)}/qr-codes`}
+          className="hover:opacity-90"
+          style={{ color: "var(--role-accent)" }}
+        >
+          QR Codes →
+        </Link>
+      </div>
       <AgencyFeaturesClient
         tenantId={agencyId}
         agencyName={agencyName}

@@ -1,5 +1,5 @@
 /** Agency / tenant vertical — shared by server and client surfaces. */
-export type Vertical = "core" | "campus" | "venue" | "hospital";
+export type Vertical = "core" | "campus" | "venue" | "hospital" | "transit";
 
 export {
   formatAgencyType,
@@ -15,6 +15,7 @@ export const VERTICAL_CONFIG: Record<
   campus: { label: "RC Campus", color: "#34D399", bg: "rgba(52,211,153,0.15)" },
   venue: { label: "RC Venue", color: "#FB923C", bg: "rgba(251,146,60,0.15)" },
   hospital: { label: "RC Hospital", color: "#F9A8D4", bg: "rgba(249,168,212,0.15)" },
+  transit: { label: "RC Transit", color: "#6366F1", bg: "rgba(99,102,241,0.15)" },
 };
 
 export function normalizeVertical(value: string | null | undefined): Vertical {
@@ -22,6 +23,7 @@ export function normalizeVertical(value: string | null | undefined): Vertical {
   if (token === "campus") return "campus";
   if (token === "venue") return "venue";
   if (token === "hospital") return "hospital";
+  if (token === "transit") return "transit";
   return "core";
 }
 
@@ -31,5 +33,6 @@ export function deriveVerticalFromAgencyId(agencyId: string): Vertical {
   if (token.includes("campus-")) return "campus";
   if (token.includes("venue-")) return "venue";
   if (token.includes("hospital")) return "hospital";
+  if (token.includes("transit-")) return "transit";
   return "core";
 }

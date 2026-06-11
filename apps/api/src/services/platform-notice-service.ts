@@ -21,6 +21,7 @@ export function deriveVerticalFromAgencyId(agencyId: string): NoticeVertical {
   if (token.includes("campus-")) return "campus";
   if (token.includes("venue-")) return "venue";
   if (token.includes("hospital")) return "hospital";
+  if (token.includes("transit-")) return "transit";
   return "core";
 }
 

@@ -18,7 +18,12 @@ export type TimelineEventKind =
   | "hospital_prealert_failed"
   | "hospital_prealert_cancelled"
   | "call_ended"
-  | "incident_closed";
+  | "incident_closed"
+  | "sms_received"
+  | "report_submitted"
+  | "auto_reply_sent"
+  | "location_received"
+  | "chat_message_received";
 
 export type TimelineEventSource = "system" | "dispatcher" | "supervisor" | "cad" | "ai";
 

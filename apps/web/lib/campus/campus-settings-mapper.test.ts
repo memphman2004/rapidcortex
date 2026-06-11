@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import type { AgencyTenant } from "rapid-cortex-shared";
 import { campusPatchFromSettingsView, campusSettingsFromAgency } from "./campus-settings-mapper";
 
 describe("campus settings mapper", () => {
@@ -29,7 +30,11 @@ describe("campus settings mapper", () => {
 
   it("maps settings view patch back to agency campus config", () => {
     const patch = campusPatchFromSettingsView({
-      general: { displayName: "Updated Campus Name" },
+      general: {
+        displayName: "Updated Campus Name",
+        campusType: "university",
+        timezone: "America/New_York",
+      },
       escalation: {
         enabled: true,
         thresholdMinutes: 20,
@@ -66,7 +71,7 @@ describe("campus settings mapper", () => {
           },
         },
       },
-    } as never;
+    } as AgencyTenant;
 
     const view = campusSettingsFromAgency(sourceAgency);
     const patch = campusPatchFromSettingsView(view);

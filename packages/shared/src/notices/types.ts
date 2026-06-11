@@ -1,5 +1,5 @@
 export type NoticeTargetType = "all" | "vertical" | "agency";
-export type NoticeVertical = "core" | "campus" | "venue" | "hospital";
+export type NoticeVertical = "core" | "campus" | "venue" | "hospital" | "transit";
 export type NoticeSeverity = "info" | "warning" | "critical";
 export type NoticeStatus = "active" | "expired" | "dismissed";
 

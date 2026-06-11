@@ -14,10 +14,10 @@ export default function SharedIncomingIncidentsPage() {
 
   return (
     <div className="flex min-h-0 flex-1 flex-col gap-4 overflow-auto p-6 text-slate-100">
-      <h1 className="text-lg font-semibold text-white">Shared with your agency</h1>
+      <h1 className="text-lg font-semibold text-white">Agency Share</h1>
       <p className="max-w-2xl text-sm text-slate-400">
-        Read-only view of incidents another jurisdiction shared with you. Open the live workspace to review
-        transcript and analysis.
+        Read-only view of incidents a partner agency shared with you via Agency Share. Open the live workspace
+        to review transcript and analysis.
       </p>
       {q.isError ? <p className="text-sm text-rose-300">{(q.error as Error).message}</p> : null}
       <ul className="space-y-2">

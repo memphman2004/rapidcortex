@@ -15,12 +15,27 @@ function nowIso(): string {
   return new Date().toISOString();
 }
 
-function seedAddonStates(): Record<AddonKey, TenantAddonState> {
+export function seedAddonStates(): Record<AddonKey, TenantAddonState> {
   const addons = {} as Record<AddonKey, TenantAddonState>;
   for (const key of ADDON_KEYS) {
     addons[key] = { key, enabled: false };
   }
   return addons;
+}
+
+export function buildDefaultEntitlements(
+  tenantId: string,
+  plan: string,
+  actorEmail: string,
+): TenantEntitlements {
+  return {
+    tenantId,
+    plan,
+    addons: seedAddonStates(),
+    lastModifiedAt: nowIso(),
+    lastModifiedBy: actorEmail,
+    schemaVersion: 1,
+  };
 }
 
 function mergeAddonStates(existing?: Record<AddonKey, TenantAddonState>): Record<AddonKey, TenantAddonState> {
@@ -58,19 +73,26 @@ function defaultProfileShell(agencyId: string, plan: string): AgencyBillingProfi
 }
 
 export class TenantEntitlementsRepository {
+  async resolveForRead(tenantId: string, actorEmail: string): Promise<TenantEntitlements> {
+    try {
+      return await this.getOrSeed(tenantId, actorEmail);
+    } catch (error) {
+      console.warn("tenant entitlements read seed failed; returning empty defaults", {
+        tenantId,
+        error: error instanceof Error ? error.message : String(error),
+      });
+      const agency = await agencies.get(tenantId).catch(() => null);
+      const plan = agency?.monetizationPlanId ?? agency?.planId ?? "command";
+      return buildDefaultEntitlements(tenantId, plan, actorEmail);
+    }
+  }
+
   async getOrSeed(tenantId: string, actorEmail: string): Promise<TenantEntitlements> {
     const agency = await agencies.get(tenantId);
-    const plan = agency?.monetizationPlanId ?? agency?.planId ?? "essential";
+    const plan = agency?.monetizationPlanId ?? agency?.planId ?? "command";
     let profile = await billingProfiles.get(tenantId);
     if (!profile?.tenantEntitlements) {
-      const entitlements: TenantEntitlements = {
-        tenantId,
-        plan,
-        addons: seedAddonStates(),
-        lastModifiedAt: nowIso(),
-        lastModifiedBy: actorEmail,
-        schemaVersion: 1,
-      };
+      const entitlements = buildDefaultEntitlements(tenantId, plan, actorEmail);
       const base = profile ?? defaultProfileShell(tenantId, plan);
       await billingProfiles.put({
         ...base,

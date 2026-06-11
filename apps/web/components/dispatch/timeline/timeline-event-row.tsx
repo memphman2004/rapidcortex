@@ -22,6 +22,11 @@ const KIND_LABELS: Record<TimelineEventKind, string> = {
   hospital_prealert_cancelled: "Hospital pre-alert cancelled",
   call_ended: "Call ended",
   incident_closed: "Incident closed",
+  sms_received: "SMS received",
+  report_submitted: "Report submitted",
+  auto_reply_sent: "Location link sent",
+  location_received: "Location received",
+  chat_message_received: "Follow-up message",
 };
 
 const SOURCE_COLORS: Record<TimelineEventSource, string> = {

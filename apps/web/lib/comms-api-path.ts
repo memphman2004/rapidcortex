@@ -22,6 +22,9 @@ const STACK2_PATH_TESTS: RegExp[] = [
   /^\/api\/incidents\/[^/]+\/premise-notes/,
   /^\/api\/incidents\/[^/]+\/pinpoint\//,
   /^\/api\/incidents\/[^/]+\/surge\//,
+  /^\/api\/qr-nfc(\/|$)/,
+  /^\/api\/qr-codes(\/|$)/,
+  /^\/api\/public\/report$/,
 ];
 
 /** Billing, payments, Ring Connect, network policy — stack-app-sam-4 (AppSam4Stack). */
@@ -53,6 +56,8 @@ const STACK5_PATH_TESTS: RegExp[] = [
   /^\/api\/stream\//,
   /^\/api\/public\/incident-media\//,
   /^\/api\/public\/campus\//,
+  /^\/api\/public\/locate\//,
+  /^\/api\/sms-routing/,
 ];
 
 /** Media, agency-admin, RC-admin, platform — stack-app-sam-3 (AppSam3Stack). */

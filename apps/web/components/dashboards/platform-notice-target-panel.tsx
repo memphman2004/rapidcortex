@@ -54,6 +54,7 @@ export function PlatformNoticeTargetPanel() {
       campus: agencies.filter((a) => agencyVertical(a.agencyId, (a as { vertical?: string }).vertical) === "campus"),
       venue: agencies.filter((a) => agencyVertical(a.agencyId, (a as { vertical?: string }).vertical) === "venue"),
       hospital: agencies.filter((a) => agencyVertical(a.agencyId, (a as { vertical?: string }).vertical) === "hospital"),
+      transit: agencies.filter((a) => agencyVertical(a.agencyId, (a as { vertical?: string }).vertical) === "transit"),
     } as const;
   }, [agencies]);
 

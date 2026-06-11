@@ -23,6 +23,7 @@ const NEXT_PUBLIC_FLAG_VALUES: Record<string, string | undefined> = {
   NEXT_PUBLIC_ENABLE_STAKEHOLDER_PAGES: process.env.NEXT_PUBLIC_ENABLE_STAKEHOLDER_PAGES,
   NEXT_PUBLIC_ENABLE_POST_INCIDENT_REVIEWS: process.env.NEXT_PUBLIC_ENABLE_POST_INCIDENT_REVIEWS,
   NEXT_PUBLIC_ENABLE_PINPOINT: process.env.NEXT_PUBLIC_ENABLE_PINPOINT,
+  NEXT_PUBLIC_ENABLE_SMS_LOCATION: process.env.NEXT_PUBLIC_ENABLE_SMS_LOCATION,
   NEXT_PUBLIC_ENABLE_SILENT_TEXT: process.env.NEXT_PUBLIC_ENABLE_SILENT_TEXT,
   NEXT_PUBLIC_ENABLE_SURGE: process.env.NEXT_PUBLIC_ENABLE_SURGE,
   NEXT_PUBLIC_ENABLE_REPORTS: process.env.NEXT_PUBLIC_ENABLE_REPORTS,
@@ -136,7 +137,7 @@ export function isAdminAnalyticsUiEnabled(): boolean {
   return envFlag("NEXT_PUBLIC_ENABLE_ADMIN_ANALYTICS");
 }
 
-/** F6 cross-jurisdiction sharing UI (must match API ENABLE_CROSS_JURISDICTION_SHARES). */
+/** Agency Share — cross-agency incident sharing UI (must match API ENABLE_CROSS_JURISDICTION_SHARES). */
 export function isCrossJurisdictionSharesUiEnabled(): boolean {
   return envFlag("NEXT_PUBLIC_ENABLE_CROSS_JURISDICTION_SHARES");
 }
@@ -184,6 +185,11 @@ export function isPostIncidentReviewsEnabled(): boolean {
 /** LiveLocation (SMS GPS link) — API ENABLE_PINPOINT. */
 export function isPinpointEnabled(): boolean {
   return envFlag("NEXT_PUBLIC_ENABLE_PINPOINT");
+}
+
+/** Campus/venue SMS auto-reply location links — API ENABLE_SMS_LOCATION. */
+export function isSmsLocationEnabled(): boolean {
+  return envFlag("NEXT_PUBLIC_ENABLE_SMS_LOCATION");
 }
 
 /**

@@ -1,4 +1,8 @@
 import { migrateLegacyRapidCortexRoleTokenValue } from "rapid-cortex-shared/auth/rapid-cortex-roles";
+import {
+  dashboardRouteFromRole,
+  verticalFromRole,
+} from "rapid-cortex-shared";
 import type { UserContext, UserRole } from "rapid-cortex-shared/types";
 import {
   isRcInternalOperator,
@@ -12,10 +16,16 @@ import {
 export function jurisdictionRoleHomeHref(
   role: UserRole | string,
   jurisdictionSlug: string,
+  agencyId?: string,
 ): string {
   const effective = (migrateLegacyRapidCortexRoleTokenValue(
     typeof role === "string" ? role : role,
   ) ?? role) as string;
+
+  const vertical = verticalFromRole(effective);
+  if (vertical !== "911") {
+    return dashboardRouteFromRole(effective, agencyId ?? jurisdictionSlug);
+  }
 
   if (effective === "rcsuperadmin") {
     return "/rc-admin/dashboard";
@@ -27,26 +37,7 @@ export function jurisdictionRoleHomeHref(
     return "/rc-admin/dashboard";
   }
 
-  switch (effective) {
-    case "dispatcher":
-      return `/${jurisdictionSlug}/dashboard`;
-    case "supervisor":
-      return `/${jurisdictionSlug}/supervisor`;
-    case "agencyadmin":
-      return `/${jurisdictionSlug}/admin`;
-    case "agencyit":
-      return `/${jurisdictionSlug}/admin/it`;
-    case "analyst":
-      return `/${jurisdictionSlug}/analytics`;
-    case "auditor":
-      return `/${jurisdictionSlug}/audit`;
-    case "hospitaladmin":
-      return "/hospital-admin/dashboard";
-    case "hospitalstaff":
-      return "/hospital-staff/dashboard";
-    default:
-      return `/${jurisdictionSlug}/dashboard`;
-  }
+  return dashboardRouteFromRole(effective, agencyId ?? jurisdictionSlug);
 }
 
 export function jurisdictionRoleHomeHrefForUser(
@@ -57,5 +48,5 @@ export function jurisdictionRoleHomeHrefForUser(
   const effective = migrateLegacyRapidCortexRoleTokenValue(user.role) ?? user.role;
   if (effective === "rcitadmin") return "/rc-admin/infrastructure";
   if (effective === "rcadmin") return "/rc-admin/dashboard";
-  return jurisdictionRoleHomeHref(user.role, jurisdictionSlug);
+  return jurisdictionRoleHomeHref(user.role, jurisdictionSlug, user.agencyId);
 }

@@ -3851,6 +3851,158 @@
         ]
       }
     },
+    "LocationTokensTable": {
+      "Type": "AWS::DynamoDB::Table",
+      "Properties": {
+        "BillingMode": {
+          "Ref": "DynamoBillingMode"
+        },
+        "TableName": {
+          "Fn::If": [
+            "HasDynamoTablePrefix",
+            {
+              "Fn::Sub": "${DynamoTableNamePrefix}-location-tokens-${DeploymentStage}"
+            },
+            {
+              "Ref": "AWS::NoValue"
+            }
+          ]
+        },
+        "PointInTimeRecoverySpecification": {
+          "PointInTimeRecoveryEnabled": {
+            "Fn::If": [
+              "DynamoPitrOn",
+              true,
+              false
+            ]
+          }
+        },
+        "TimeToLiveSpecification": {
+          "AttributeName": "ttl",
+          "Enabled": true
+        },
+        "AttributeDefinitions": [
+          {
+            "AttributeName": "token",
+            "AttributeType": "S"
+          },
+          {
+            "AttributeName": "incidentId",
+            "AttributeType": "S"
+          },
+          {
+            "AttributeName": "phoneHash",
+            "AttributeType": "S"
+          },
+          {
+            "AttributeName": "createdAt",
+            "AttributeType": "S"
+          }
+        ],
+        "KeySchema": [
+          {
+            "AttributeName": "token",
+            "KeyType": "HASH"
+          }
+        ],
+        "GlobalSecondaryIndexes": [
+          {
+            "IndexName": "incidentId-index",
+            "KeySchema": [
+              {
+                "AttributeName": "incidentId",
+                "KeyType": "HASH"
+              },
+              {
+                "AttributeName": "createdAt",
+                "KeyType": "RANGE"
+              }
+            ],
+            "Projection": {
+              "ProjectionType": "ALL"
+            }
+          },
+          {
+            "IndexName": "phoneHash-createdAt-index",
+            "KeySchema": [
+              {
+                "AttributeName": "phoneHash",
+                "KeyType": "HASH"
+              },
+              {
+                "AttributeName": "createdAt",
+                "KeyType": "RANGE"
+              }
+            ],
+            "Projection": {
+              "ProjectionType": "ALL"
+            }
+          }
+        ]
+      }
+    },
+    "SmsRoutingTable": {
+      "Type": "AWS::DynamoDB::Table",
+      "Properties": {
+        "BillingMode": {
+          "Ref": "DynamoBillingMode"
+        },
+        "TableName": {
+          "Fn::If": [
+            "HasDynamoTablePrefix",
+            {
+              "Fn::Sub": "${DynamoTableNamePrefix}-sms-routing-${DeploymentStage}"
+            },
+            {
+              "Ref": "AWS::NoValue"
+            }
+          ]
+        },
+        "PointInTimeRecoverySpecification": {
+          "PointInTimeRecoveryEnabled": {
+            "Fn::If": [
+              "DynamoPitrOn",
+              true,
+              false
+            ]
+          }
+        },
+        "AttributeDefinitions": [
+          {
+            "AttributeName": "phoneNumber",
+            "AttributeType": "S"
+          },
+          {
+            "AttributeName": "agencyId",
+            "AttributeType": "S"
+          }
+        ],
+        "KeySchema": [
+          {
+            "AttributeName": "phoneNumber",
+            "KeyType": "HASH"
+          }
+        ],
+        "GlobalSecondaryIndexes": [
+          {
+            "IndexName": "agencyId-phoneNumber-index",
+            "KeySchema": [
+              {
+                "AttributeName": "agencyId",
+                "KeyType": "HASH"
+              },
+              {
+                "AttributeName": "phoneNumber",
+                "KeyType": "RANGE"
+              }
+            ],
+            "Projection": {
+              "ProjectionType": "ALL"
+            }
+          }
+        ]
+      }
+    },
     "SurgeClustersTable": {
       "Type": "AWS::DynamoDB::Table",
       "Properties": {
@@ -5565,6 +5717,18 @@
       "Description": "Physical table name for PinpointLinksTable",
       "Value": {
         "Ref": "PinpointLinksTable"
+      }
+    },
+    "LocationTokensTable": {
+      "Description": "Physical table name for LocationTokensTable",
+      "Value": {
+        "Ref": "LocationTokensTable"
+      }
+    },
+    "SmsRoutingTable": {
+      "Description": "Physical table name for SmsRoutingTable",
+      "Value": {
+        "Ref": "SmsRoutingTable"
       }
     },
     "SurgeClustersTable": {

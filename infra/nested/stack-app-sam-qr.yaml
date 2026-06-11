@@ -36,9 +36,17 @@ Parameters:
   ManagedPolicyNamePrefix:
     Type: String
     Default: rapid-cortex
+  IncidentsTable:
+    Type: String
+    Default: ""
+  AgenciesTable:
+    Type: String
+    Default: ""
 
 Conditions:
   HasQRLocationsTable: !Not [!Equals [!Ref QRLocationsTable, ""]]
+  HasIncidentsTable: !Not [!Equals [!Ref IncidentsTable, ""]]
+  HasAgenciesTable: !Not [!Equals [!Ref AgenciesTable, ""]]
   HasVenueConfigTable: !Not [!Equals [!Ref VenueConfigTable, ""]]
   HasCampusIncidentsTable: !Not [!Equals [!Ref CampusIncidentsTable, ""]]
   HasCampusConfigTable: !Not [!Equals [!Ref CampusConfigTable, ""]]
@@ -61,8 +69,94 @@ Globals:
         COGNITO_USER_POOL_ID: !Ref ImportedCognitoUserPoolId
         COGNITO_CLIENT_ID: !Ref ImportedCognitoWebClientId
         COGNITO_REGION: !Ref AWS::Region
+        QR_NFC_CODES_TABLE: !Ref QRNFCCodesTable
+        INCIDENTS_TABLE: !Ref IncidentsTable
+        AGENCIES_TABLE: !Ref AgenciesTable
+        APP_BASE_URL: !Sub "https://app.rapidcortex.us"
 
 Resources:
+  QRNFCCodesTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: !Sub "${AppName}-qr-nfc-codes-${DeploymentStage}"
+      BillingMode: PAY_PER_REQUEST
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: true
+      SSESpecification:
+        SSEEnabled: true
+      AttributeDefinitions:
+        - AttributeName: agencyId
+          AttributeType: S
+        - AttributeName: qrId
+          AttributeType: S
+        - AttributeName: vertical
+          AttributeType: S
+      KeySchema:
+        - AttributeName: agencyId
+          KeyType: HASH
+        - AttributeName: qrId
+          KeyType: RANGE
+      GlobalSecondaryIndexes:
+        - IndexName: qrId-index
+          KeySchema:
+            - AttributeName: qrId
+              KeyType: HASH
+          Projection:
+            ProjectionType: ALL
+        - IndexName: agencyId-vertical-index
+          KeySchema:
+            - AttributeName: agencyId
+              KeyType: HASH
+            - AttributeName: vertical
+              KeyType: RANGE
+          Projection:
+            ProjectionType: ALL
+      TimeToLiveSpecification:
+        AttributeName: ttl
+        Enabled: true
+
+  AppManagedPolicyQrNfcDynamo:
+    Type: AWS::IAM::ManagedPolicy
+    Properties:
+      ManagedPolicyName: !Sub "${ManagedPolicyNamePrefix}-sam1-qr-nfc-ddb-${DeploymentStage}"
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Sid: QrNfcCrud
+            Effect: Allow
+            Action:
+              - dynamodb:GetItem
+              - dynamodb:PutItem
+              - dynamodb:UpdateItem
+              - dynamodb:DeleteItem
+              - dynamodb:Query
+              - dynamodb:Scan
+              - dynamodb:BatchGetItem
+              - dynamodb:BatchWriteItem
+              - dynamodb:DescribeTable
+              - dynamodb:ConditionCheckItem
+            Resource:
+              - !GetAtt QRNFCCodesTable.Arn
+              - !Sub "${QRNFCCodesTable.Arn}/index/*"
+              - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${AuditTable}
+              - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${AuditTable}/index/*
+              - !If
+                - HasIncidentsTable
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${IncidentsTable}
+                - !Ref AWS::NoValue
+              - !If
+                - HasAgenciesTable
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${AgenciesTable}
+                - !Ref AWS::NoValue
+              - !If
+                - HasCampusIncidentsTable
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${CampusIncidentsTable}
+                - !Ref AWS::NoValue
+              - !If
+                - HasVenueConfigTable
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${VenueConfigTable}
+                - !Ref AWS::NoValue
+
   AppManagedPolicyQrLocationDynamo:
     Type: AWS::IAM::ManagedPolicy
     Properties:
@@ -405,3 +499,146 @@ Resources:
       ApiId: !Ref HttpApiId
       RouteKey: "GET /api/venue/incidents"
       Target: !Sub "integrations/${GetVenueIncidentsHttpIntegration}"
+
+  QrNfcHttpFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/handlers/qr-nfc/qrNfcHttp.handler
+      Timeout: 30
+      Policies:
+        - !Ref AppManagedPolicyQrNfcDynamo
+
+  QrNfcEngageFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/handlers/qr-nfc/qrNfcEngageHttp.handler
+      Timeout: 15
+      Policies:
+        - !Ref AppManagedPolicyQrNfcDynamo
+
+  PublicReportSubmitFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/handlers/qr-nfc/publicReportSubmitHttp.handler
+      Timeout: 30
+      Policies:
+        - !Ref AppManagedPolicyQrNfcDynamo
+        - !Ref AppManagedPolicyQrLocationDynamo
+
+  QrNfcHttpIntegration:
+    Type: AWS::ApiGatewayV2::Integration
+    Properties:
+      ApiId: !Ref HttpApiId
+      IntegrationType: AWS_PROXY
+      IntegrationUri: !Sub arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${QrNfcHttpFunction.Arn}/invocations
+      PayloadFormatVersion: "2.0"
+
+  QrNfcEngageHttpIntegration:
+    Type: AWS::ApiGatewayV2::Integration
+    Properties:
+      ApiId: !Ref HttpApiId
+      IntegrationType: AWS_PROXY
+      IntegrationUri: !Sub arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${QrNfcEngageFunction.Arn}/invocations
+      PayloadFormatVersion: "2.0"
+
+  PublicReportSubmitHttpIntegration:
+    Type: AWS::ApiGatewayV2::Integration
+    Properties:
+      ApiId: !Ref HttpApiId
+      IntegrationType: AWS_PROXY
+      IntegrationUri: !Sub arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${PublicReportSubmitFunction.Arn}/invocations
+      PayloadFormatVersion: "2.0"
+
+  QrNfcHttpInvokePermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !Ref QrNfcHttpFunction
+      Principal: apigateway.amazonaws.com
+      SourceArn: !Sub arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${HttpApiId}/*
+
+  QrNfcEngageHttpInvokePermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !Ref QrNfcEngageFunction
+      Principal: apigateway.amazonaws.com
+      SourceArn: !Sub arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${HttpApiId}/*
+
+  PublicReportSubmitHttpInvokePermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !Ref PublicReportSubmitFunction
+      Principal: apigateway.amazonaws.com
+      SourceArn: !Sub arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${HttpApiId}/*
+
+  RouteQrNfcList:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref HttpApiId
+      RouteKey: "GET /api/qr-nfc"
+      Target: !Sub "integrations/${QrNfcHttpIntegration}"
+
+  RouteQrNfcGlobalList:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref HttpApiId
+      RouteKey: "GET /api/qr-nfc/global"
+      Target: !Sub "integrations/${QrNfcHttpIntegration}"
+
+  RouteQrNfcCreate:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref HttpApiId
+      RouteKey: "POST /api/qr-nfc"
+      Target: !Sub "integrations/${QrNfcHttpIntegration}"
+
+  RouteQrNfcGet:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref HttpApiId
+      RouteKey: "GET /api/qr-nfc/{qrId}"
+      Target: !Sub "integrations/${QrNfcHttpIntegration}"
+
+  RouteQrNfcPatch:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref HttpApiId
+      RouteKey: "PATCH /api/qr-nfc/{qrId}"
+      Target: !Sub "integrations/${QrNfcHttpIntegration}"
+
+  RouteQrNfcDelete:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref HttpApiId
+      RouteKey: "DELETE /api/qr-nfc/{qrId}"
+      Target: !Sub "integrations/${QrNfcHttpIntegration}"
+
+  RouteQrNfcEngagePost:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref HttpApiId
+      RouteKey: "POST /api/qr-nfc/{qrId}/engage"
+      AuthorizationType: NONE
+      Target: !Sub "integrations/${QrNfcEngageHttpIntegration}"
+
+  RoutePublicReportPost:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref HttpApiId
+      RouteKey: "POST /api/public/report"
+      AuthorizationType: NONE
+      Target: !Sub "integrations/${PublicReportSubmitHttpIntegration}"

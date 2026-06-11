@@ -98,7 +98,7 @@ describe("CSRF double-submit protection", () => {
 
   it("allows any loopback origin in development (alternate ports / default port)", () => {
     const prevNodeEnv = process.env.NODE_ENV;
-    process.env.NODE_ENV = "development";
+    (process.env as { NODE_ENV?: string }).NODE_ENV = "development";
     process.env.APP_ALLOWED_ORIGINS = "https://www.rapidcortex.us";
     try {
       for (const origin of [
@@ -115,7 +115,7 @@ describe("CSRF double-submit protection", () => {
         expect(validateCsrfForRequest(req)).toEqual({ ok: true });
       }
     } finally {
-      process.env.NODE_ENV = prevNodeEnv;
+      (process.env as { NODE_ENV?: string }).NODE_ENV = prevNodeEnv;
     }
   });
 });

@@ -25,7 +25,7 @@ describe("rapidCortexFeatureIdsFromTenantEntitlements", () => {
     const entitlements = seedEntitlements({
       addons: {
         "translation.live.tier1": { key: "translation.live.tier1", enabled: true },
-      },
+      } as TenantEntitlements["addons"],
     });
     expect(rapidCortexFeatureIdsFromTenantEntitlements(entitlements)).toContain("live_translation");
   });
@@ -34,7 +34,7 @@ describe("rapidCortexFeatureIdsFromTenantEntitlements", () => {
     const entitlements = seedEntitlements({
       addons: {
         "translation.live.tier1": { key: "translation.live.tier1", enabled: false },
-      },
+      } as TenantEntitlements["addons"],
     });
     expect(rapidCortexFeatureIdsFromTenantEntitlements(entitlements)).not.toContain("live_translation");
   });
@@ -44,7 +44,7 @@ describe("rapidCortexFeatureIdsFromTenantEntitlements", () => {
       plan: "professional",
       addons: {
         "translation.live.tier1": { key: "translation.live.tier1", enabled: false },
-      },
+      } as TenantEntitlements["addons"],
     });
     expect(rapidCortexFeatureIdsFromTenantEntitlements(entitlements)).toContain("live_translation");
   });

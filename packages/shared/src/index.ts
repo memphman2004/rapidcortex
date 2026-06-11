@@ -1,4 +1,9 @@
 export * from "./constants.js";
+export * from "./sms-location/types.js";
+export * from "./sms-location/schemas.js";
+export * from "./sms-routing/types.js";
+export * from "./sms-routing/schemas.js";
+export * from "./constants/signal-colors.js";
 export * from "./call-languages.js";
 export * from "./http.js";
 export * from "./schemas.js";
@@ -15,6 +20,7 @@ export {
 } from "./demo-scenario-catalog.js";
 export * from "./tenancy/index.js";
 export * from "./auth/rapid-cortex-roles.js";
+export * from "./auth/vertical-routing.js";
 export * from "./auth/password-policy.js";
 export * from "./qa/index.js";
 export * from "./qa-types.js";
@@ -56,4 +62,6 @@ export * from "./call-control/index.js";
 export * from "./ring/index.js";
 export * from "./venue/index.js";
 export * from "./locations/index.js";
+export * from "./qr-nfc/types.js";
+export * from "./qr-nfc/schemas.js";
 export * from "./notices/index.js";

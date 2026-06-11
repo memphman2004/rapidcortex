@@ -1,6 +1,7 @@
 import type { UserRole } from "rapid-cortex-shared/types";
 import { migrateLegacyRapidCortexRoleTokenValue } from "rapid-cortex-shared/auth/rapid-cortex-roles";
 import type { DashboardPrefix } from "@/lib/dashboards/dashboard-access";
+import { roleBandColor } from "@/lib/signal-colors";
 
 /** Enterprise identity + accent palette for role dashboards. */
 export type RoleDashboardIdentity = {
@@ -35,6 +36,22 @@ function withAccents(seed: PaletteSeed): RoleDashboardIdentity {
     accentMuted: `color-mix(in srgb, ${seed.accent} 35%, transparent)`,
     accentGlow: `color-mix(in srgb, ${seed.accent} 55%, transparent)`,
   };
+}
+
+function verticalRolePalette(
+  role: UserRole,
+  title: string,
+  subtitle: string,
+  accent: string,
+): RoleDashboardIdentity {
+  return withAccents({
+    identityTitle: title,
+    identitySubtitle: subtitle,
+    accent,
+    dim: `color-mix(in srgb, ${accent} 28%, rgb(2 6 23))`,
+    badgeBg: `color-mix(in srgb, ${accent} 72%, rgb(15 23 42))`,
+    textColor: `color-mix(in srgb, ${accent} 18%, white)`,
+  });
 }
 
 /** Canonical palettes aligned to Rapid Cortex role dashboard color spec. */
@@ -114,19 +131,112 @@ export const ROLE_DASHBOARD_PALETTE_BY_ROLE: Record<UserRole, RoleDashboardIdent
   hospitaladmin: withAccents({
     identityTitle: "Hospital Safety & Operations",
     identitySubtitle: "MCI routing",
-    accent: "#0D9488",
-    dim: "#134E4A",
-    badgeBg: "#0F766E",
-    textColor: "#CCFBF1",
+    accent: "#EF4444",
+    dim: "#7F1D1D",
+    badgeBg: "#B91C1C",
+    textColor: "#FEE2E2",
   }),
   hospitalstaff: withAccents({
     identityTitle: "Hospital Capacity",
     identitySubtitle: "Live bed status · diversion updates",
-    accent: "#0D9488",
-    dim: "#134E4A",
-    badgeBg: "#0F766E",
-    textColor: "#CCFBF1",
+    accent: "#EF4444",
+    dim: "#7F1D1D",
+    badgeBg: "#B91C1C",
+    textColor: "#FEE2E2",
   }),
+  campus_admin: verticalRolePalette("campus_admin", "Campus Admin", "Users & Clery", roleBandColor("campus_admin")),
+  campus_supervisor: verticalRolePalette(
+    "campus_supervisor",
+    "Campus Supervisor",
+    "Live map & escalations",
+    roleBandColor("campus_supervisor"),
+  ),
+  campus_security: verticalRolePalette(
+    "campus_security",
+    "Campus Security Console",
+    "QR/SMS intake & chat",
+    roleBandColor("campus_security"),
+  ),
+  campus_counselor: verticalRolePalette(
+    "campus_counselor",
+    "Campus Counselor",
+    "Welfare & tips",
+    roleBandColor("campus_counselor"),
+  ),
+  campus_faculty: verticalRolePalette(
+    "campus_faculty",
+    "Campus Faculty",
+    "Submit-only portal",
+    roleBandColor("campus_faculty"),
+  ),
+  venue_admin: verticalRolePalette("venue_admin", "Venue Admin", "Zones & events", roleBandColor("venue_admin")),
+  venue_supervisor: verticalRolePalette(
+    "venue_supervisor",
+    "Venue Supervisor",
+    "Live event dashboard",
+    roleBandColor("venue_supervisor"),
+  ),
+  venue_security: verticalRolePalette(
+    "venue_security",
+    "Venue Security Console",
+    "Fan reports & cameras",
+    roleBandColor("venue_security"),
+  ),
+  venue_operator: verticalRolePalette(
+    "venue_operator",
+    "Venue Operator",
+    "Read-only ops view",
+    roleBandColor("venue_operator"),
+  ),
+  venue_guest: verticalRolePalette("venue_guest", "Venue Guest", "Report status", roleBandColor("venue_guest")),
+  hospital_admin: verticalRolePalette(
+    "hospital_admin",
+    "Hospital Admin",
+    "Capacity & MCI planning",
+    roleBandColor("hospital_admin"),
+  ),
+  hospital_supervisor: verticalRolePalette(
+    "hospital_supervisor",
+    "Hospital Supervisor",
+    "Pre-alert queue",
+    roleBandColor("hospital_supervisor"),
+  ),
+  hospital_staff: verticalRolePalette(
+    "hospital_staff",
+    "Hospital Console",
+    "EMS coordination",
+    roleBandColor("hospital_staff"),
+  ),
+  hospital_coord: verticalRolePalette(
+    "hospital_coord",
+    "Hospital Coordinator",
+    "EMS liaison",
+    roleBandColor("hospital_coord"),
+  ),
+  transit_admin: verticalRolePalette(
+    "transit_admin",
+    "Transit Admin",
+    "Routes & staff",
+    roleBandColor("transit_admin"),
+  ),
+  transit_supervisor: verticalRolePalette(
+    "transit_supervisor",
+    "Transit Supervisor",
+    "Live route map",
+    roleBandColor("transit_supervisor"),
+  ),
+  transit_security: verticalRolePalette(
+    "transit_security",
+    "Transit Console",
+    "Passenger reports",
+    roleBandColor("transit_security"),
+  ),
+  transit_operator: verticalRolePalette(
+    "transit_operator",
+    "Transit Operator",
+    "Read-only route view",
+    roleBandColor("transit_operator"),
+  ),
 };
 
 /** Vertical product palettes (venue / campus) when surfaced in agency contexts. */

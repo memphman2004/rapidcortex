@@ -80,4 +80,68 @@ export class WebSocketNotificationService {
       },
     });
   }
+
+  async broadcastIncidentCreated(params: {
+    agencyId: string;
+    incidentId: string;
+    source: string;
+    campusCode?: string;
+  }): Promise<void> {
+    await broadcastToAgency({
+      agencyId: params.agencyId,
+      message: {
+        type: "INCIDENT_CREATED",
+        data: {
+          incidentId: params.incidentId,
+          source: params.source,
+          campusCode: params.campusCode,
+          timestamp: new Date().toISOString(),
+        },
+      },
+    });
+  }
+
+  async broadcastLocationReceived(params: {
+    agencyId: string;
+    incidentId: string;
+    source: "GPS" | "CELL_TOWER" | "MANUAL";
+    coordinates?: { latitude: number; longitude: number; accuracy: number };
+    accuracyMeters?: number;
+    locationText?: string;
+    receivedAt: string;
+  }): Promise<void> {
+    await broadcastToAgency({
+      agencyId: params.agencyId,
+      message: {
+        type: "LOCATION_RECEIVED",
+        data: {
+          incidentId: params.incidentId,
+          source: params.source,
+          coordinates: params.coordinates,
+          accuracyMeters: params.accuracyMeters,
+          locationText: params.locationText,
+          receivedAt: params.receivedAt,
+          timestamp: new Date().toISOString(),
+        },
+      },
+    });
+  }
+
+  async broadcastChatMessage(params: {
+    agencyId: string;
+    incidentId: string;
+    messageBody: string;
+  }): Promise<void> {
+    await broadcastToAgency({
+      agencyId: params.agencyId,
+      message: {
+        type: "CHAT_MESSAGE_RECEIVED",
+        data: {
+          incidentId: params.incidentId,
+          messageBody: params.messageBody,
+          timestamp: new Date().toISOString(),
+        },
+      },
+    });
+  }
 }

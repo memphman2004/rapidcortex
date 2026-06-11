@@ -56,6 +56,7 @@ export function RcAdminAgenciesPageClient() {
       campus: 0,
       venue: 0,
       hospital: 0,
+      transit: 0,
     };
     for (const agency of sortedAgencies) {
       counts[resolveAgencyVertical(agency)] += 1;

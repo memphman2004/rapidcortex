@@ -32,7 +32,17 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
   }
 
   if (path.includes("/api/admin/tenants/")) {
-    return handleTenantAddonsAdminRoute(event, user);
+    return handleTenantAddonsAdminRoute(
+      {
+        rawPath: event.rawPath,
+        body: event.body,
+        queryStringParameters: event.queryStringParameters,
+        pathParameters: event.pathParameters,
+        requestContext: event.requestContext,
+        isBase64Encoded: event.isBase64Encoded,
+      },
+      user,
+    );
   }
 
   return forbidden();

@@ -192,6 +192,15 @@ export const env = {
   pinpointPublicBaseUrl: process.env.PINPOINT_PUBLIC_BASE_URL?.trim() ?? "",
   pinpointSmsMock: process.env.PINPOINT_SMS_MOCK === "true",
   enablePinpoint: featureEnabled("ENABLE_PINPOINT"),
+  /** SMS location tokens for campus/venue citizen GPS links. */
+  locationTokensTable: process.env.LOCATION_TOKENS_TABLE?.trim() ?? "",
+  smsRoutingTable: process.env.SMS_ROUTING_TABLE?.trim() ?? "",
+  unroutedSmsDlqUrl: process.env.UNROUTED_SMS_DLQ_URL?.trim() ?? "",
+  locatePublicBaseUrl: process.env.LOCATE_PUBLIC_BASE_URL?.trim() ?? "",
+  locateSmsMock: process.env.LOCATE_SMS_MOCK === "true",
+  carrierLocationMock: process.env.CARRIER_LOCATION_MOCK === "true",
+  appPublicBaseUrl: process.env.APP_PUBLIC_BASE_URL?.trim() ?? "",
+  enableSmsLocation: featureEnabled("ENABLE_SMS_LOCATION"),
   /** Surge — duplicate-call clusters; empty table disables handlers. */
   surgeClustersTable: process.env.SURGE_CLUSTERS_TABLE?.trim() ?? "",
   enableSurge: featureEnabled("ENABLE_SURGE"),
@@ -444,4 +453,6 @@ export const env = {
     process.env.RC_ADMIN_NOTIFICATION_EMAIL?.trim() || "rcadmin@appsondemand.net",
   /** QR location registry (`QRLocationsTable`). Empty disables location handlers at runtime. */
   qrLocationsTable: process.env.QR_LOCATIONS_TABLE?.trim() ?? "",
+  qrNfcCodesTable: process.env.QR_NFC_CODES_TABLE?.trim() ?? "",
+  appBaseUrl: process.env.APP_BASE_URL?.trim() || "https://app.rapidcortex.us",
 };

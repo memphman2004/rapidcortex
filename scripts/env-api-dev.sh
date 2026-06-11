@@ -133,6 +133,10 @@ export ENABLE_SURGE=true
 export ENABLE_PINPOINT=true
 export CAD_WRITEBACK_ENABLED=false
 
+# QR/NFC citizen reporting — QRNFCCodesTable in stack-app-sam-qr.yaml
+export APP_BASE_URL="https://app.rapidcortex.us"
+export QR_NFC_CODES_TABLE="rapid-cortex-qr-nfc-codes-dev"
+
 # --- CAD write-back pilot onboarding (per agency) ---
 # UI does NOT expose writeBackEnabled / agencyApprovedCadWriteBack toggles yet.
 # RC ops MUST run this PATCH once per pilot agency before enabling CAD_WRITEBACK_ENABLED.

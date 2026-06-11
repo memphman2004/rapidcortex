@@ -80,7 +80,7 @@ import {
 import type { UserContext } from "rapid-cortex-shared/types";
 
 function makeUser(role: string, agencyId = "hospital-001"): UserContext {
-  return { userId: "u1", email: `${role}@hospital.org`, role: role as UserContext["role"], agencyId, displayName: null };
+  return { userId: "u1", email: `${role}@hospital.org`, role: role as UserContext["role"], agencyId };
 }
 
 // ─── Role predicates ──────────────────────────────────────────────────────────

@@ -97,7 +97,8 @@ export const RC_SUPERADMIN_NAV: RoleNav = {
       id: "locations",
       label: "LOCATIONS",
       items: [
-        { id: "qr",        label: "QR Codes",          href: "/rc-admin/location-qr-codes", icon: "QrCode" },
+        { id: "qr",        label: "QR Codes",          href: "/rc-admin/qr-nfc", icon: "QrCode" },
+        { id: "qr-legacy", label: "Location QR (RCLI)", href: "/rc-admin/location-qr-codes", icon: "MapPin" },
       ],
     },
     {
@@ -149,7 +150,8 @@ export const RC_ADMIN_NAV: RoleNav = {
       id: "locations",
       label: "LOCATIONS",
       items: [
-        { id: "qr",        label: "QR Codes",          href: "/rc-admin/location-qr-codes", icon: "QrCode" },
+        { id: "qr",        label: "QR Codes",          href: "/rc-admin/qr-nfc", icon: "QrCode" },
+        { id: "qr-legacy", label: "Location QR (RCLI)", href: "/rc-admin/location-qr-codes", icon: "MapPin" },
       ],
     },
     {
@@ -195,7 +197,8 @@ export const RC_IT_ADMIN_NAV: RoleNav = {
       id: "locations",
       label: "LOCATIONS",
       items: [
-        { id: "qr",        label: "QR Codes",          href: "/rc-admin/location-qr-codes", icon: "QrCode" },
+        { id: "qr",        label: "QR Codes",          href: "/rc-admin/qr-nfc", icon: "QrCode" },
+        { id: "qr-legacy", label: "Location QR (RCLI)", href: "/rc-admin/location-qr-codes", icon: "MapPin" },
       ],
     },
     {
@@ -300,6 +303,7 @@ export function getAgencyAdminNav(jurisdiction: string): RoleNav {
           { id: "overview",      label: "Overview",        href: `${j}/admin`,              icon: "LayoutDashboard", exact: true },
           { id: "users",         label: "Users",           href: `${j}/admin/users`,        icon: "Users" },
           { id: "roles",         label: "Roles",           href: `${j}/admin/roles`,        icon: "ShieldCheck" },
+          { id: "qr-codes",      label: "QR Codes",        href: `${j}/admin/qr-codes`,     icon: "QrCode" },
         ],
       },
       {
