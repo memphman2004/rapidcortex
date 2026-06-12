@@ -35,6 +35,11 @@
       "import": "./dist/auth/rapid-cortex-roles.js",
       "require": "./dist/auth/rapid-cortex-roles.js"
     },
+    "./auth/vertical-routing": {
+      "types": "./dist/auth/vertical-routing.d.ts",
+      "import": "./dist/auth/vertical-routing.js",
+      "require": "./dist/auth/vertical-routing.js"
+    },
     "./tenancy/principal": {
       "types": "./dist/tenancy/principal.d.ts",
       "import": "./dist/tenancy/principal.js",

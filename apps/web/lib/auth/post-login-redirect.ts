@@ -1,16 +1,12 @@
 import type { UserContext } from "rapid-cortex-shared/types";
 import { requiresOperationalPasswordRenewal } from "rapid-cortex-shared/auth/password-policy";
-import { resolveHospitalPortalDashboardHref } from "rapid-cortex-shared/auth/rapid-cortex-roles";
+import { migrateLegacyRapidCortexRoleTokenValue } from "rapid-cortex-shared/auth/rapid-cortex-roles";
 import {
   dashboardRouteFromRole,
   verticalFromRole,
 } from "rapid-cortex-shared";
-import {
-  hospitalPostAuthRedirect,
-  isAnyHospitalRole,
-} from "@/lib/hospital/hospital-access";
 import { hasRapidCortexDashboardAccess, hasRcLitePortalAccess } from "rapid-cortex-shared/auth/session-product";
-import { isRcsuperadmin } from "rapid-cortex-shared/tenancy/principal";
+import { isRcInternalOperator, isRcsuperadmin } from "rapid-cortex-shared/tenancy/principal";
 import {
   dashboardPrefixFromPathname,
   defaultDashboardHrefForRole,
@@ -48,17 +44,10 @@ export function resolveProductDashboardFromRoleAndAgency(
   const agency = (agencyId ?? "").trim();
   const vertical = verticalFromRole(roleToken);
 
-  if (vertical !== "911") {
-    const route = dashboardRouteFromRole(roleToken, agency);
-    if (route !== "/app/dashboard") return route;
-  }
+  if (vertical === "platform") return "";
 
-  if (isAnyHospitalRole(roleToken)) {
-    const hospitalHome = hospitalPostAuthRedirect(roleToken);
-    if (hospitalHome !== "/auth/signout") return hospitalHome;
-  }
-  const hospitalHome = resolveHospitalPortalDashboardHref(roleToken);
-  if (hospitalHome) return hospitalHome;
+  const route = dashboardRouteFromRole(roleToken, agency);
+  if (route !== "/not-authorized") return route;
 
   return "";
 }
@@ -76,9 +65,15 @@ export function resolvePostAuthenticationHomeHrefAfterPasswordChange(
   jurisdictionSlug = defaultJurisdictionSlug(),
 ): string {
   const u = user as CommercialUser;
+  const effective =
+    migrateLegacyRapidCortexRoleTokenValue(user.role) ?? user.role;
+  if (effective === "rcitadmin") return "/rc-admin/infrastructure";
+  if (effective === "rcsuperadmin" || isRcsuperadmin(user)) return "/rc-admin/dashboard";
+  if (effective === "rcadmin" || isRcInternalOperator(user.role)) {
+    return "/rc-admin/dashboard";
+  }
   const productHome = resolveProductDashboardFromRoleAndAgency(user.role, user.agencyId);
   if (productHome) return productHome;
-  if (isRcsuperadmin(user)) return "/rc-admin/dashboard";
   if (hasRapidCortexDashboardAccess(u)) return defaultDashboardHrefForRole(user.role, jurisdictionSlug);
   if (hasRcLitePortalAccess(u)) return "/rc-lite/portal";
   return `/${jurisdictionSlug}/no-access`;

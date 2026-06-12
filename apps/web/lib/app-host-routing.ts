@@ -1,6 +1,7 @@
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 import { dashboardPrefixFromPathname } from "@/lib/dashboards/dashboard-access";
+import { publicAbsoluteUrl } from "@/lib/request-origin";
 import { RESERVED_PUBLIC_ROUTE_FIRST_SEGMENTS } from "@/lib/reserved-public-route-segments";
 
 /** Production app hostname when marketing is hosted separately (static www). */
@@ -109,6 +110,9 @@ export function isMarketingPublicPath(pathname: string): boolean {
 
   if (APP_OPERATIONAL_ROOT_SEGMENTS.has(first)) return false;
 
+  // Public intake routes (also in RESERVED_PUBLIC_ROUTE_FIRST_SEGMENTS for jurisdiction slug guards).
+  if (first === "report" || first === "locate" || first === "r") return false;
+
   if (MARKETING_ROOT_SEGMENTS.has(first)) return true;
 
   // `/{jurisdiction}/…` workspace routes stay on the app host.
@@ -128,7 +132,7 @@ export function maybeRedirectAppHostAwayFromMarketing(
   if (!isMarketingPublicPath(pathname)) return null;
 
   if (pathname === "/") {
-    const login = new URL("/login", request.url);
+    const login = publicAbsoluteUrl("/login", request);
     login.search = request.nextUrl.search;
     return NextResponse.redirect(login);
   }

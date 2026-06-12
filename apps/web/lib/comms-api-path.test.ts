@@ -59,6 +59,14 @@ describe("resolveUpstreamApiBase", () => {
     delete process.env.API_UPSTREAM_BASE_2;
     expect(resolveUpstreamApiBase("/api/incidents")).toBe("https://stack1.example.com");
   });
+
+  it("routes qr-nfc to stack 1 (AppSamQrStack on primary HttpApi)", () => {
+    process.env.API_UPSTREAM_BASE = "https://stack1.example.com";
+    process.env.API_UPSTREAM_BASE_2 = "https://stack2.example.com";
+    expect(resolveUpstreamApiBase("/api/qr-nfc")).toBe("https://stack1.example.com");
+    expect(resolveUpstreamApiBase("/api/public/report")).toBe("https://stack1.example.com");
+    expect(isStack2ApiPath("/api/qr-nfc")).toBe(false);
+  });
 });
 
 describe("isCommsPlatformApiPath", () => {

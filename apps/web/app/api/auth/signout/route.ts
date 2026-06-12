@@ -3,6 +3,7 @@ import { blockMobileAuthRequest } from "@/lib/auth/guards/blockMobileAuth";
 import { enforceCsrfProtection } from "@/lib/csrf";
 import { clearAuthCookiesOnResponse } from "@/lib/auth/apply-auth-cookies";
 import { marketingLoginPath } from "@/lib/marketing-links";
+import { resolveRedirectUrl } from "@/lib/request-origin";
 
 export async function POST(request: Request) {
   const mobileBlock = blockMobileAuthRequest(request);
@@ -19,7 +20,7 @@ export async function GET(request: Request) {
   const mobileBlock = blockMobileAuthRequest(request);
   if (mobileBlock) return mobileBlock;
 
-  const login = new URL(marketingLoginPath(), request.url);
+  const login = resolveRedirectUrl(marketingLoginPath());
   const res = NextResponse.redirect(login);
   clearAuthCookiesOnResponse(res);
   return res;

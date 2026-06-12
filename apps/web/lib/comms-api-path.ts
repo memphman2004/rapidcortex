@@ -22,9 +22,6 @@ const STACK2_PATH_TESTS: RegExp[] = [
   /^\/api\/incidents\/[^/]+\/premise-notes/,
   /^\/api\/incidents\/[^/]+\/pinpoint\//,
   /^\/api\/incidents\/[^/]+\/surge\//,
-  /^\/api\/qr-nfc(\/|$)/,
-  /^\/api\/qr-codes(\/|$)/,
-  /^\/api\/public\/report$/,
 ];
 
 /** Billing, payments, Ring Connect, network policy — stack-app-sam-4 (AppSam4Stack). */

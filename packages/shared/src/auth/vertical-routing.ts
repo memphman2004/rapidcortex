@@ -3,8 +3,32 @@ import { migrateLegacyRapidCortexRoleTokenValue } from "./rapid-cortex-roles.js"
 
 export type RCVertical = "platform" | "911" | "campus" | "venue" | "hospital" | "transit";
 
+const LEGACY_ROLE_MAP: Record<string, UserRole> = {
+  admin: "agencyadmin",
+  it_admin: "agencyit",
+  platform_superadmin: "rcsuperadmin",
+  readonly_auditor: "auditor",
+};
+
+/** Normalize legacy Cognito role tokens to canonical dashboard roles. */
+export function normalizeRole(role: string): UserRole {
+  const raw = String(role).trim().toLowerCase();
+  if (raw === "staff") return "staff" as UserRole;
+  const mapped = LEGACY_ROLE_MAP[raw];
+  if (mapped) return mapped;
+  const migrated = migrateLegacyRapidCortexRoleTokenValue(String(role).trim());
+  return (migrated ?? raw) as UserRole;
+}
+
+/** Jurisdiction slug for 911 routes — first two agencyId segments when present. */
+export function jurisdictionFromAgencyId(agencyId: string): string {
+  const parts = agencyId.split("-").filter(Boolean);
+  if (parts.length >= 2) return `${parts[0]}-${parts[1]}`;
+  return parts[0] ?? "rc";
+}
+
 function effectiveRole(role: UserRole | string): string {
-  return (migrateLegacyRapidCortexRoleTokenValue(String(role).trim()) ?? String(role).trim()).toLowerCase();
+  return normalizeRole(String(role)).toLowerCase();
 }
 
 export function verticalFromRole(role: UserRole | string): RCVertical {
@@ -18,10 +42,15 @@ export function verticalFromRole(role: UserRole | string): RCVertical {
 }
 
 export function dashboardRouteFromRole(role: UserRole | string, agencyId: string): string {
+  const raw = String(role).trim().toLowerCase();
+  if (raw === "staff") return "/not-authorized";
+
   const r = effectiveRole(role);
-  const jurisdiction = agencyId.split("-")[0]?.trim() || "rc";
+  const jurisdiction = jurisdictionFromAgencyId(agencyId);
 
   switch (r) {
+    case "staff":
+      return "/not-authorized";
     case "rcsuperadmin":
     case "rcadmin":
     case "rcitadmin":
@@ -77,8 +106,22 @@ export function dashboardRouteFromRole(role: UserRole | string, agencyId: string
     case "transit_operator":
       return "/app/transit/operator";
     default:
-      return "/app/dashboard";
+      return "/not-authorized";
   }
+}
+
+/** Route prefixes a role may access — used to detect wrong-vertical navigation. */
+export function allowedRoutePrefixesForRole(rawRole: string): string[] {
+  const role = effectiveRole(rawRole);
+  if (["rcsuperadmin", "rcadmin", "rcitadmin"].includes(role)) return ["/rc-admin"];
+  if (role === "staff") return ["/not-authorized"];
+  if (role.startsWith("campus_")) return ["/app/campus"];
+  if (role.startsWith("venue_")) return ["/app/venue", "/venue"];
+  if (role.startsWith("hospital_") || role === "hospitaladmin" || role === "hospitalstaff") {
+    return ["/app/hospital", "/hospital-admin", "/hospital-staff"];
+  }
+  if (role.startsWith("transit_")) return ["/app/transit"];
+  return ["/"];
 }
 
 /** True when `pathname` is within the role's allowed dashboard shell (no cross-vertical bleed). */
@@ -96,7 +139,7 @@ export function pathMatchesRoleDashboard(
   }
 
   if (vertical === "911") {
-    const jurisdiction = agencyId.split("-")[0]?.trim() || "rc";
+    const jurisdiction = jurisdictionFromAgencyId(agencyId);
     const jurPrefix = `/${jurisdiction}/`;
     if (!path.startsWith(jurPrefix)) return false;
     return path === home || path.startsWith(`${home}/`);

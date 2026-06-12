@@ -51,6 +51,7 @@ import { RESERVED_PUBLIC_ROUTE_FIRST_SEGMENTS } from "@/lib/reserved-public-rout
 import { getMobileOperationalAuthMiddlewareResponse } from "@/lib/device/middleware-mobile-auth";
 import { isAppHostRequest, maybeRedirectAppHostAwayFromMarketing } from "@/lib/app-host-routing";
 import { maybeRedirectReportHost } from "@/lib/report-host-routing";
+import { publicAbsoluteUrl, resolveRedirectUrl } from "@/lib/request-origin";
 import { requiresOperationalPasswordRenewal } from "rapid-cortex-shared/auth/password-policy";
 import { isHospitalPortalEnabled, isNetworkAccessGateEnabled } from "@/lib/runtime-flags";
 
@@ -89,7 +90,7 @@ function maybeRedirectToSplash(request: NextRequest): NextResponse | null {
     (host?.startsWith("localhost") ?? false);
   if (!isMarketingHost) return null;
 
-  return NextResponse.redirect(new URL("/enter", request.url));
+  return NextResponse.redirect(resolveRedirectUrl("/enter", request));
 }
 
 /** Next.js RSC / router prefetch must not receive HTML redirects (breaks client navigation). */
@@ -134,7 +135,7 @@ async function maybeBlockNetworkAccess(
   }
 
   try {
-    const check = new URL("/api/backend/api/agency/network-policy-check", request.url);
+    const check = resolveRedirectUrl("/api/backend/api/agency/network-policy-check", request);
     const cookie = request.headers.get("cookie") ?? "";
     const res = await fetch(check, {
       headers: { cookie },
@@ -149,7 +150,7 @@ async function maybeBlockNetworkAccess(
       };
     };
     if (json?.data?.allowed !== false) return null;
-    const dest = new URL("/access-restricted", request.url);
+    const dest = resolveRedirectUrl("/access-restricted", request);
     dest.searchParams.set("reason", json.data.blockedBy ?? "ip_allowlist");
     if (json.data.retryAfter) dest.searchParams.set("retryAfter", json.data.retryAfter);
     return NextResponse.redirect(dest);
@@ -243,14 +244,24 @@ function isProductRole(role: string | undefined): boolean {
   return vertical === "campus" || vertical === "venue" || vertical === "hospital" || vertical === "transit";
 }
 
+function redirectPublic(request: NextRequest, path: string): NextResponse {
+  return NextResponse.redirect(publicAbsoluteUrl(path, request));
+}
+
+function redirectPublicPreserveQuery(request: NextRequest, path: string, search = ""): NextResponse {
+  const dest = publicAbsoluteUrl(path, request);
+  if (search) dest.search = search;
+  return NextResponse.redirect(dest);
+}
+
 function redirectToRoleAwareHome(request: NextRequest, user: UserContext, jurisdictionSlug: string) {
   const path = resolvePostAuthenticationHomeHref(user, jurisdictionSlug);
-  return NextResponse.redirect(new URL(path, request.url));
+  return redirectPublic(request, path);
 }
 
 function redirectToRoleDashboard(request: NextRequest, user: UserContext): NextResponse {
   const home = dashboardRouteFromRole(user.role, user.agencyId);
-  return NextResponse.redirect(new URL(home, request.url));
+  return redirectPublic(request, home);
 }
 
 function ensureRoleDashboardPath(
@@ -319,6 +330,10 @@ const RESERVED_FIRST_SEGMENTS = new Set<string>([
   "change-password",
   /** Session load failure / incomplete profile fallback (avoid `[jurisdiction]` collision). */
   "unauthorized",
+  /** Disabled legacy role landing — not a jurisdiction slug. */
+  "not-authorized",
+  /** Vertical product shells (`/app/campus`, `/app/venue`, …). */
+  "app",
   /** Native OAuth bridge + return-to-app (Hosted UI handoff). */
   "auth",
   /** Public SMS consent proof (toll-free verification). */
@@ -368,7 +383,7 @@ async function guardAuthenticatedDocs(request: NextRequest): Promise<NextRespons
   }
   const loginPath = marketingLoginPath();
   const redirectToLogin = () => {
-    const login = new URL(loginPath, request.url);
+    const login = resolveRedirectUrl(loginPath, request);
     login.searchParams.set("from", `${pathname}${request.nextUrl.search}`);
     return NextResponse.redirect(login);
   };
@@ -381,7 +396,7 @@ async function guardAuthenticatedDocs(request: NextRequest): Promise<NextRespons
 
   const user = token ? await verifyCognitoIdToken(token) : null;
   if (!user && refresh) {
-    const bounce = new URL("/api/auth/refresh-cookies", request.url);
+    const bounce = resolveRedirectUrl("/api/auth/refresh-cookies", request);
     bounce.searchParams.set(
       "redirect_to",
       `${pathname}${request.nextUrl.search}`,
@@ -395,16 +410,16 @@ async function guardAuthenticatedDocs(request: NextRequest): Promise<NextRespons
   const docsRenewal = handleOperationalPasswordRenewalGate(
     request,
     user,
-    new URL("/change-password", request.url),
+    resolveRedirectUrl("/change-password", request),
   );
   if (docsRenewal) return docsRenewal;
   if (!hasRapidCortexDashboardAccess(user)) {
     if (hasRcLitePortalAccess(user)) {
-      const portal = new URL("/rc-lite/portal", request.url);
+      const portal = resolveRedirectUrl("/rc-lite/portal", request);
       portal.searchParams.set("from", `${pathname}${request.nextUrl.search}`);
       return NextResponse.redirect(portal);
     }
-    const denied = new URL(`/${defaultJurisdictionSlug()}/no-access`, request.url);
+    const denied = resolveRedirectUrl(`/${defaultJurisdictionSlug()}/no-access`, request);
     denied.searchParams.set("reason", "dashboard_subscription_required");
     return NextResponse.redirect(denied);
   }
@@ -422,7 +437,7 @@ async function guardStandaloneChangePasswordPage(request: NextRequest): Promise<
   const pathname = request.nextUrl.pathname;
   const loginPath = marketingLoginPath();
   const redirectToLogin = () => {
-    const login = new URL(loginPath, request.url);
+    const login = resolveRedirectUrl(loginPath, request);
     login.searchParams.set("from", `${pathname}${request.nextUrl.search}`);
     return NextResponse.redirect(login);
   };
@@ -433,7 +448,7 @@ async function guardStandaloneChangePasswordPage(request: NextRequest): Promise<
   }
   const user = token ? await verifyCognitoIdToken(token) : null;
   if (!user && refresh) {
-    const bounce = new URL("/api/auth/refresh-cookies", request.url);
+    const bounce = resolveRedirectUrl("/api/auth/refresh-cookies", request);
     bounce.searchParams.set("redirect_to", `${pathname}${request.nextUrl.search}`);
     return NextResponse.redirect(bounce);
   }
@@ -456,13 +471,13 @@ async function guardRoleDashboard(
   const pathname = request.nextUrl.pathname;
 
   const redirectToLogin = () => {
-    const login = new URL(loginPath, request.url);
+    const login = resolveRedirectUrl(loginPath, request);
     login.searchParams.set("from", `${pathname}${request.nextUrl.search}`);
     return NextResponse.redirect(login);
   };
 
   if (subpath === "/" || subpath === "") {
-    return NextResponse.redirect(new URL(`/${prefix}/dashboard`, request.url));
+    return NextResponse.redirect(resolveRedirectUrl(`/${prefix}/dashboard`, request));
   }
 
   /** All role-dashboard routes under `/{prefix}/…` require a session (not only `/dashboard`). */
@@ -476,7 +491,7 @@ async function guardRoleDashboard(
 
   const user = token ? await verifyCognitoIdToken(token) : null;
   if (!user && refresh) {
-    const bounce = new URL("/api/auth/refresh-cookies", request.url);
+    const bounce = resolveRedirectUrl("/api/auth/refresh-cookies", request);
     bounce.searchParams.set(
       "redirect_to",
       `${pathname}${request.nextUrl.search}`,
@@ -490,7 +505,7 @@ async function guardRoleDashboard(
   const roleDashRenewal = handleOperationalPasswordRenewalGate(
     request,
     user,
-    new URL("/change-password", request.url),
+    resolveRedirectUrl("/change-password", request),
   );
   if (roleDashRenewal) return roleDashRenewal;
 
@@ -508,11 +523,11 @@ async function guardRoleDashboard(
 
   if (!hasRapidCortexDashboardAccess(user)) {
     if (hasRcLitePortalAccess(user)) {
-      const portal = new URL("/rc-lite/portal", request.url);
+      const portal = resolveRedirectUrl("/rc-lite/portal", request);
       portal.searchParams.set("from", `${pathname}${request.nextUrl.search}`);
       return NextResponse.redirect(portal);
     }
-    const denied = new URL(`/${defaultJurisdictionSlug()}/no-access`, request.url);
+    const denied = resolveRedirectUrl(`/${defaultJurisdictionSlug()}/no-access`, request);
     denied.searchParams.set("reason", "dashboard_subscription_required");
     return NextResponse.redirect(denied);
   }
@@ -532,7 +547,7 @@ async function guardRcLitePortal(request: NextRequest): Promise<NextResponse> {
     return NextResponse.next();
   }
   const pathname = request.nextUrl.pathname;
-  const loginUrl = new URL(marketingLoginPath(), request.url);
+  const loginUrl = resolveRedirectUrl(marketingLoginPath(), request);
   loginUrl.searchParams.set("from", `${pathname}${request.nextUrl.search}`);
 
   const token = request.cookies.get(COOKIE_ID_TOKEN)?.value;
@@ -543,7 +558,7 @@ async function guardRcLitePortal(request: NextRequest): Promise<NextResponse> {
 
   const user = token ? await verifyCognitoIdToken(token) : null;
   if (!user && refresh) {
-    const bounce = new URL("/api/auth/refresh-cookies", request.url);
+    const bounce = resolveRedirectUrl("/api/auth/refresh-cookies", request);
     bounce.searchParams.set("redirect_to", `${pathname}${request.nextUrl.search}`);
     return NextResponse.redirect(bounce);
   }
@@ -555,15 +570,15 @@ async function guardRcLitePortal(request: NextRequest): Promise<NextResponse> {
   const portalRenewal = handleOperationalPasswordRenewalGate(
     request,
     user,
-    new URL("/change-password", request.url),
+    resolveRedirectUrl("/change-password", request),
   );
   if (portalRenewal) return portalRenewal;
 
   if (!hasRcLitePortalAccess(user)) {
     if (hasRapidCortexDashboardAccess(user)) {
-      return NextResponse.redirect(new URL("/agency-admin/api-access", request.url));
+      return NextResponse.redirect(resolveRedirectUrl("/agency-admin/api-access", request));
     }
-    const marketing = new URL("/rc-lite", request.url);
+    const marketing = resolveRedirectUrl("/rc-lite", request);
     marketing.searchParams.set("reason", "api_subscription_required");
     return NextResponse.redirect(marketing);
   }
@@ -579,7 +594,7 @@ async function guardCampusDashboard(request: NextRequest): Promise<NextResponse>
     return NextResponse.next();
   }
   const pathname = request.nextUrl.pathname;
-  const loginUrl = new URL(marketingLoginPath(), request.url);
+  const loginUrl = resolveRedirectUrl(marketingLoginPath(), request);
   loginUrl.searchParams.set("from", `${pathname}${request.nextUrl.search}`);
 
   const token = request.cookies.get(COOKIE_ID_TOKEN)?.value;
@@ -590,7 +605,7 @@ async function guardCampusDashboard(request: NextRequest): Promise<NextResponse>
 
   const user = token ? await verifyCognitoIdToken(token) : null;
   if (!user && refresh) {
-    const bounce = new URL("/api/auth/refresh-cookies", request.url);
+    const bounce = resolveRedirectUrl("/api/auth/refresh-cookies", request);
     bounce.searchParams.set("redirect_to", `${pathname}${request.nextUrl.search}`);
     return NextResponse.redirect(bounce);
   }
@@ -602,7 +617,7 @@ async function guardCampusDashboard(request: NextRequest): Promise<NextResponse>
   const campusRenewal = handleOperationalPasswordRenewalGate(
     request,
     user,
-    new URL("/change-password", request.url),
+    resolveRedirectUrl("/change-password", request),
   );
   if (campusRenewal) return campusRenewal;
 
@@ -624,7 +639,7 @@ async function guardVenueDashboard(request: NextRequest): Promise<NextResponse> 
     return NextResponse.next();
   }
   const pathname = request.nextUrl.pathname;
-  const loginUrl = new URL(marketingLoginPath(), request.url);
+  const loginUrl = resolveRedirectUrl(marketingLoginPath(), request);
   loginUrl.searchParams.set("from", `${pathname}${request.nextUrl.search}`);
 
   const token = request.cookies.get(COOKIE_ID_TOKEN)?.value;
@@ -635,7 +650,7 @@ async function guardVenueDashboard(request: NextRequest): Promise<NextResponse> 
 
   const user = token ? await verifyCognitoIdToken(token) : null;
   if (!user && refresh) {
-    const bounce = new URL("/api/auth/refresh-cookies", request.url);
+    const bounce = resolveRedirectUrl("/api/auth/refresh-cookies", request);
     bounce.searchParams.set("redirect_to", `${pathname}${request.nextUrl.search}`);
     return NextResponse.redirect(bounce);
   }
@@ -647,7 +662,7 @@ async function guardVenueDashboard(request: NextRequest): Promise<NextResponse> 
   const venueRenewal = handleOperationalPasswordRenewalGate(
     request,
     user,
-    new URL("/change-password", request.url),
+    resolveRedirectUrl("/change-password", request),
   );
   if (venueRenewal) return venueRenewal;
 
@@ -669,7 +684,7 @@ async function guardHospitalDashboard(request: NextRequest): Promise<NextRespons
     return NextResponse.next();
   }
   const pathname = request.nextUrl.pathname;
-  const loginUrl = new URL(marketingLoginPath(), request.url);
+  const loginUrl = resolveRedirectUrl(marketingLoginPath(), request);
   loginUrl.searchParams.set("from", `${pathname}${request.nextUrl.search}`);
 
   const token = request.cookies.get(COOKIE_ID_TOKEN)?.value;
@@ -680,7 +695,7 @@ async function guardHospitalDashboard(request: NextRequest): Promise<NextRespons
 
   const user = token ? await verifyCognitoIdToken(token) : null;
   if (!user && refresh) {
-    const bounce = new URL("/api/auth/refresh-cookies", request.url);
+    const bounce = resolveRedirectUrl("/api/auth/refresh-cookies", request);
     bounce.searchParams.set("redirect_to", `${pathname}${request.nextUrl.search}`);
     return NextResponse.redirect(bounce);
   }
@@ -692,7 +707,7 @@ async function guardHospitalDashboard(request: NextRequest): Promise<NextRespons
   const hospitalRenewal = handleOperationalPasswordRenewalGate(
     request,
     user,
-    new URL("/change-password", request.url),
+    resolveRedirectUrl("/change-password", request),
   );
   if (hospitalRenewal) return hospitalRenewal;
 
@@ -718,7 +733,7 @@ async function guardTransitDashboard(request: NextRequest): Promise<NextResponse
     return NextResponse.next();
   }
   const pathname = request.nextUrl.pathname;
-  const loginUrl = new URL(marketingLoginPath(), request.url);
+  const loginUrl = resolveRedirectUrl(marketingLoginPath(), request);
   loginUrl.searchParams.set("from", `${pathname}${request.nextUrl.search}`);
 
   const token = request.cookies.get(COOKIE_ID_TOKEN)?.value;
@@ -729,7 +744,7 @@ async function guardTransitDashboard(request: NextRequest): Promise<NextResponse
 
   const user = token ? await verifyCognitoIdToken(token) : null;
   if (!user && refresh) {
-    const bounce = new URL("/api/auth/refresh-cookies", request.url);
+    const bounce = resolveRedirectUrl("/api/auth/refresh-cookies", request);
     bounce.searchParams.set("redirect_to", `${pathname}${request.nextUrl.search}`);
     return NextResponse.redirect(bounce);
   }
@@ -741,7 +756,7 @@ async function guardTransitDashboard(request: NextRequest): Promise<NextResponse
   const transitRenewal = handleOperationalPasswordRenewalGate(
     request,
     user,
-    new URL("/change-password", request.url),
+    resolveRedirectUrl("/change-password", request),
   );
   if (transitRenewal) return transitRenewal;
 
@@ -795,7 +810,7 @@ export async function middleware(request: NextRequest) {
       if (token || refresh) {
         const user = token ? await verifyCognitoIdToken(token) : null;
         if (!user && refresh) {
-          const bounce = new URL("/api/auth/refresh-cookies", request.url);
+          const bounce = resolveRedirectUrl("/api/auth/refresh-cookies", request);
           bounce.searchParams.set("redirect_to", `${pathname}${request.nextUrl.search}`);
           return NextResponse.redirect(bounce);
         }
@@ -803,7 +818,7 @@ export async function middleware(request: NextRequest) {
           const loginRenewal = handleOperationalPasswordRenewalGate(
             request,
             user,
-            new URL("/change-password", request.url),
+            resolveRedirectUrl("/change-password", request),
           );
           if (loginRenewal) return loginRenewal;
           const slug =
@@ -830,6 +845,25 @@ export async function middleware(request: NextRequest) {
   }
   if (isTransitDashboardPath(pathname)) {
     return guardTransitDashboard(request);
+  }
+  if (pathname === "/not-authorized" || pathname.startsWith("/not-authorized/")) {
+    return NextResponse.next();
+  }
+  if (pathname === "/app/dashboard" || pathname.startsWith("/app/dashboard/")) {
+    if (!isAuthConfigured()) return NextResponse.next();
+    const token = request.cookies.get(COOKIE_ID_TOKEN)?.value;
+    const refresh = request.cookies.get(COOKIE_REFRESH_TOKEN)?.value;
+    if (!token && !refresh) return NextResponse.next();
+    const user = token ? await verifyCognitoIdToken(token) : null;
+    if (user) {
+      const renewal = handleOperationalPasswordRenewalGate(
+        request,
+        user,
+        publicAbsoluteUrl("/change-password", request),
+      );
+      if (renewal) return renewal;
+      return redirectToRoleDashboard(request, user);
+    }
   }
   if (pathname.startsWith("/api/auth/")) {
     return ensureCsrfOnAuthApiRequest(request);
@@ -879,7 +913,7 @@ export async function middleware(request: NextRequest) {
   const refresh = request.cookies.get(COOKIE_REFRESH_TOKEN)?.value;
 
   const redirectToLogin = () => {
-    const login = new URL(loginPath, request.url);
+    const login = resolveRedirectUrl(loginPath, request);
     login.searchParams.set("from", `${pathname}${request.nextUrl.search}`);
     return NextResponse.redirect(login);
   };
@@ -890,7 +924,7 @@ export async function middleware(request: NextRequest) {
 
   const user = token ? await verifyCognitoIdToken(token) : null;
   if (!user && refresh) {
-    const bounce = new URL("/api/auth/refresh-cookies", request.url);
+    const bounce = resolveRedirectUrl("/api/auth/refresh-cookies", request);
     bounce.searchParams.set(
       "redirect_to",
       `${pathname}${request.nextUrl.search}`,
@@ -931,7 +965,7 @@ export async function middleware(request: NextRequest) {
     const jurRenewal = handleOperationalPasswordRenewalGate(
       request,
       user,
-      new URL("/change-password", request.url),
+      resolveRedirectUrl("/change-password", request),
     );
     if (jurRenewal) return jurRenewal;
   }
@@ -942,11 +976,11 @@ export async function middleware(request: NextRequest) {
     !hasRapidCortexDashboardAccess(user)
   ) {
     if (hasRcLitePortalAccess(user)) {
-      const portal = new URL("/rc-lite/portal", request.url);
+      const portal = resolveRedirectUrl("/rc-lite/portal", request);
       portal.searchParams.set("from", `${pathname}${request.nextUrl.search}`);
       return NextResponse.redirect(portal);
     }
-    const denied = new URL(`/${defaultJurisdictionSlug()}/no-access`, request.url);
+    const denied = resolveRedirectUrl(`/${defaultJurisdictionSlug()}/no-access`, request);
     denied.searchParams.set("reason", "dashboard_subscription_required");
     return NextResponse.redirect(denied);
   }
@@ -965,7 +999,7 @@ export async function middleware(request: NextRequest) {
     subpath.startsWith("/admin/security/deception-shield/")
   ) {
     if (!isRcsuperadmin(user) && user.role !== "agencyit" && user.role !== "rcitadmin") {
-      const denied = new URL(`/${jurisdiction}/dashboard`, request.url);
+      const denied = resolveRedirectUrl(`/${jurisdiction}/dashboard`, request);
       denied.searchParams.set("toast", "access_denied");
       return NextResponse.redirect(denied);
     }
@@ -974,7 +1008,7 @@ export async function middleware(request: NextRequest) {
     if (subpath.startsWith("/admin/platform")) {
       const target = mapJurisdictionPlatformPathToRcAdmin(`/${jurisdiction}${subpath}`);
       if (target) {
-        return NextResponse.redirect(new URL(target, request.url));
+        return NextResponse.redirect(resolveRedirectUrl(target, request));
       }
     }
     const dispatchWorkstationPrefixes = [

@@ -9,6 +9,7 @@ import {
   isMobilePublicApiPath,
   pathnameIsMobileOperationalBlockedPage,
 } from "@/lib/device/operations-mobile-blocklist";
+import { publicAbsoluteUrl } from "@/lib/request-origin";
 
 /** Used by middleware and tests — returns a ready response when the request must be blocked. */
 export function getMobileOperationalAuthMiddlewareResponse(request: NextRequest): NextResponse | null {
@@ -35,6 +36,6 @@ export function getMobileOperationalAuthMiddlewareResponse(request: NextRequest)
 
   logMobileAuthBlocked(pathname, request.headers as unknown as Headers, ua);
 
-  const to = new URL("/mobile-access-restricted", request.url);
+  const to = publicAbsoluteUrl("/mobile-access-restricted", request);
   return NextResponse.redirect(to);
 }

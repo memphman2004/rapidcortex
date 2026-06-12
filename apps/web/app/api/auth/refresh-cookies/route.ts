@@ -9,6 +9,7 @@ import { COOKIE_ID_TOKEN, COOKIE_REFRESH_TOKEN } from "@/lib/auth/cookies";
 import { exchangeRefreshToken } from "@/lib/auth/cognito-refresh";
 import { verifyCognitoIdToken } from "@/lib/auth/verify-cognito";
 import { blockMobileAuthRequest } from "@/lib/auth/guards/blockMobileAuth";
+import { resolveRedirectUrl } from "@/lib/request-origin";
 import { maybeBootstrapPasswordMetadataAndRotate } from "@/lib/server/refresh-session-with-password-bootstrap";
 
 function isSafeRelativeRedirect(path: string): boolean {
@@ -41,7 +42,7 @@ export async function GET(request: NextRequest) {
       if (refreshToken) {
         const bootstrapped = await maybeBootstrapPasswordMetadataAndRotate(idToken, refreshToken);
         if (bootstrapped) {
-          const res = NextResponse.redirect(new URL(redirectTo, request.url));
+          const res = NextResponse.redirect(resolveRedirectUrl(redirectTo, request));
           applyCognitoAuthCookies(res, {
             IdToken: bootstrapped.idToken,
             AccessToken: bootstrapped.accessToken,
@@ -51,19 +52,19 @@ export async function GET(request: NextRequest) {
           return res;
         }
       }
-      return NextResponse.redirect(new URL(redirectTo, request.url));
+      return NextResponse.redirect(resolveRedirectUrl(redirectTo, request));
     }
   }
 
   if (!refreshToken) {
-    const cleared = NextResponse.redirect(new URL(redirectTo, request.url));
+    const cleared = NextResponse.redirect(resolveRedirectUrl(redirectTo, request));
     clearAuthCookiesOnResponse(cleared);
     return cleared;
   }
 
   const rotated = await exchangeRefreshToken(refreshToken, idToken ?? undefined);
   if (!rotated) {
-    const cleared = NextResponse.redirect(new URL(redirectTo, request.url));
+    const cleared = NextResponse.redirect(resolveRedirectUrl(redirectTo, request));
     clearAuthCookiesOnResponse(cleared);
     return cleared;
   }
@@ -75,12 +76,12 @@ export async function GET(request: NextRequest) {
 
   const user = bootstrapped?.user ?? (await verifyCognitoIdToken(rotated.idToken));
   if (!user) {
-    const cleared = NextResponse.redirect(new URL(redirectTo, request.url));
+    const cleared = NextResponse.redirect(resolveRedirectUrl(redirectTo, request));
     clearAuthCookiesOnResponse(cleared);
     return cleared;
   }
 
-  const res = NextResponse.redirect(new URL(redirectTo, request.url));
+  const res = NextResponse.redirect(resolveRedirectUrl(redirectTo, request));
   applyCognitoAuthCookies(res, {
     IdToken: bootstrapped?.idToken ?? rotated.idToken,
     AccessToken: bootstrapped?.accessToken ?? rotated.accessToken,

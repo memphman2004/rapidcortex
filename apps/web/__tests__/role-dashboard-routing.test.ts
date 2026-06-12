@@ -28,15 +28,15 @@ function user(role: string, agencyId: string): UserContext {
 describe("role → dashboard routing", () => {
   describe("PSAP roles (jurisdiction workspace)", () => {
     it.each([
-      ["dispatcher", `/${slug}/dashboard`],
-      ["supervisor", `/${slug}/supervisor`],
-      ["agencyadmin", `/${slug}/admin`],
-      ["agencyit", `/${slug}/admin/it`],
-      ["analyst", `/${slug}/analytics`],
-      ["auditor", `/${slug}/audit`],
-    ] as const)("maps %s to %s", (role, expected) => {
-      expect(jurisdictionRoleHomeHref(role, slug)).toBe(expected);
-      expect(resolvePostAuthenticationHomeHref(user(role, "agency-demo-001"), slug)).toBe(expected);
+      ["dispatcher", "/ga-columbus/dispatcher", "ga-columbus-demo"],
+      ["supervisor", "/ga-columbus/supervisor", "ga-columbus-demo"],
+      ["agencyadmin", "/ga-columbus/admin", "ga-columbus-demo"],
+      ["agencyit", "/ga-columbus/it", "ga-columbus-demo"],
+      ["analyst", "/ga-columbus/analytics", "ga-columbus-demo"],
+      ["auditor", "/ga-columbus/audit", "ga-columbus-demo"],
+    ] as const)("maps %s to %s", (role, expected, agencyId) => {
+      expect(jurisdictionRoleHomeHref(role, slug, agencyId)).toBe(expected);
+      expect(resolvePostAuthenticationHomeHref(user(role, agencyId), slug)).toBe(expected);
     });
   });
 
@@ -46,55 +46,53 @@ describe("role → dashboard routing", () => {
       ["rcadmin", "/rc-admin/dashboard"],
       ["rcitadmin", "/rc-admin/infrastructure"],
     ] as const)("maps %s to %s", (role, expected) => {
-      expect(resolveProductDashboardFromRoleAndAgency(role, "__platform__")).toBe(expected);
+      expect(resolveProductDashboardFromRoleAndAgency(role, "__platform__")).toBe("");
       expect(resolvePostAuthenticationHomeHref(user(role, "__platform__"), slug)).toBe(expected);
     });
   });
 
   describe("Hospital roles (facility portal)", () => {
     it.each([
-      ["hospitaladmin", "/hospital-admin/dashboard"],
-      ["hospitalstaff", "/hospital-staff/dashboard"],
-      ["HOSPITAL_ADMIN", "/hospital-admin/dashboard"],
-      ["HOSPITAL_STAFF", "/hospital-staff/dashboard"],
+      ["hospital_admin", "/app/hospital/admin"],
+      ["hospital_staff", "/app/hospital/staff"],
+      ["HOSPITAL_ADMIN", "/app/hospital/admin"],
+      ["HOSPITAL_STAFF", "/app/hospital/staff"],
     ] as const)("maps %s to %s", (role, expected) => {
-      if (role === "hospitaladmin" || role === "hospitalstaff") {
-        expect(jurisdictionRoleHomeHref(role, slug)).toBe(expected);
-      }
-      expect(resolveProductDashboardFromRoleAndAgency(role, "agency-hospital-001")).toBe(expected);
-      expect(resolvePostAuthenticationHomeHref(user(role, "agency-hospital-001"), slug)).toBe(expected);
+      expect(jurisdictionRoleHomeHref(role, slug, "test-hospital")).toBe(expected);
+      expect(resolveProductDashboardFromRoleAndAgency(role, "test-hospital")).toBe(expected);
+      expect(resolvePostAuthenticationHomeHref(user(role, "test-hospital"), slug)).toBe(expected);
     });
   });
 
   describe("Venue product roles", () => {
-    it("preserves VENUE_* tokens in session (not dispatcher fallback)", () => {
-      expect(normalizeSessionRole("VENUE_SUPERVISOR")).toBe("VENUE_SUPERVISOR");
-      expect(normalizeRole("VENUE_ADMIN")).toBe("VENUE_ADMIN");
+    it("normalizes VENUE_* tokens to canonical venue roles", () => {
+      expect(normalizeSessionRole("VENUE_SUPERVISOR")).toBe("venue_supervisor");
+      expect(normalizeRole("VENUE_ADMIN")).toBe("venue_admin");
     });
 
-    it("routes venue roles to /app/venue/{code}", () => {
+    it("routes venue roles to role dashboards", () => {
       expect(
         resolveProductDashboardFromRoleAndAgency("VENUE_SUPERVISOR", "test-venue-mbs"),
-      ).toBe("/app/venue/MBS");
+      ).toBe("/app/venue/supervisor");
       expect(
         resolvePostAuthenticationHomeHref(user("VENUE_OPERATOR", "venue-truist"), slug),
-      ).toBe("/app/venue/TRUIST");
+      ).toBe("/app/venue/operator");
     });
   });
 
   describe("Campus product roles", () => {
-    it("preserves CAMPUS_* tokens in session (not PSAP migration)", () => {
-      expect(normalizeSessionRole("CAMPUS_ADMIN")).toBe("CAMPUS_ADMIN");
-      expect(normalizeRole("CAMPUS_SECURITY")).toBe("CAMPUS_SECURITY");
+    it("normalizes CAMPUS_* tokens to canonical campus roles", () => {
+      expect(normalizeSessionRole("CAMPUS_ADMIN")).toBe("campus_admin");
+      expect(normalizeRole("CAMPUS_SECURITY")).toBe("campus_security");
     });
 
-    it("routes campus roles to /app/campus/{code}", () => {
+    it("routes campus roles to role dashboards", () => {
       expect(
         resolveProductDashboardFromRoleAndAgency("CAMPUS_SUPERVISOR", "test-campus-lincoln"),
-      ).toBe("/app/campus/LINCOLN");
+      ).toBe("/app/campus/supervisor");
       expect(
         resolvePostAuthenticationHomeHref(user("CAMPUS_DISPATCH", "campus-westview"), slug),
-      ).toBe("/app/campus/WESTVIEW");
+      ).toBe("/app/campus/security");
     });
   });
 

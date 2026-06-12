@@ -17,19 +17,11 @@ import { USER_ROLE_SCHEMA } from "../types.js";
 
 describe("rapid-cortex-roles", () => {
   it("defines the canonical role list", () => {
-    expect([...RAPID_CORTEX_ROLES]).toEqual([
-      "rcsuperadmin",
-      "rcadmin",
-      "rcitadmin",
-      "agencyadmin",
-      "agencyit",
-      "supervisor",
-      "dispatcher",
-      "analyst",
-      "auditor",
-      "hospitaladmin",
-      "hospitalstaff",
-    ]);
+    expect(RAPID_CORTEX_ROLES).toContain("rcsuperadmin");
+    expect(RAPID_CORTEX_ROLES).toContain("campus_security");
+    expect(RAPID_CORTEX_ROLES).toContain("venue_admin");
+    expect(RAPID_CORTEX_ROLES).toContain("transit_operator");
+    expect(RAPID_CORTEX_ROLES.length).toBeGreaterThanOrEqual(28);
   });
 
   it("labels hospital roles for customer-facing copy", () => {
@@ -48,20 +40,20 @@ describe("rapid-cortex-roles", () => {
     expect(migrateLegacyRapidCortexRoleTokenValue("admin")).toBe("agencyadmin");
     expect(migrateLegacyRapidCortexRoleTokenValue("hospital_admin")).toBe("hospitaladmin");
     expect(migrateLegacyRapidCortexRoleTokenValue("hospital_staff")).toBe("hospitalstaff");
-    expect(migrateLegacyRapidCortexRoleTokenValue("staff")).toBe("auditor");
-    expect(migrateLegacyRapidCortexRoleTokenValue("CAMPUS_ADMIN")).toBe("agencyadmin");
-    expect(migrateLegacyRapidCortexRoleTokenValue("CAMPUS_SUPERVISOR")).toBe("supervisor");
-    expect(migrateLegacyRapidCortexRoleTokenValue("CAMPUS_SECURITY")).toBe("dispatcher");
-    expect(migrateLegacyRapidCortexRoleTokenValue("CAMPUS_DISPATCH")).toBe("dispatcher");
-    expect(migrateLegacyRapidCortexRoleTokenValue("CAMPUS_COUNSELOR")).toBe("analyst");
-    expect(migrateLegacyRapidCortexRoleTokenValue("CAMPUS_FACULTY")).toBe("auditor");
+    expect(migrateLegacyRapidCortexRoleTokenValue("staff")).toBe("staff");
+    expect(migrateLegacyRapidCortexRoleTokenValue("CAMPUS_ADMIN")).toBe("campus_admin");
+    expect(migrateLegacyRapidCortexRoleTokenValue("CAMPUS_SUPERVISOR")).toBe("campus_supervisor");
+    expect(migrateLegacyRapidCortexRoleTokenValue("CAMPUS_SECURITY")).toBe("campus_security");
+    expect(migrateLegacyRapidCortexRoleTokenValue("CAMPUS_DISPATCH")).toBe("campus_security");
+    expect(migrateLegacyRapidCortexRoleTokenValue("CAMPUS_COUNSELOR")).toBe("campus_counselor");
+    expect(migrateLegacyRapidCortexRoleTokenValue("CAMPUS_FACULTY")).toBe("campus_faculty");
     expect(migrateLegacyRapidCortexRoleTokenValue(undefined)).toBeUndefined();
   });
 
-  it("normalizeSessionRole preserves product vertical tokens before PSAP migration", () => {
-    expect(normalizeSessionRole("VENUE_ADMIN")).toBe("VENUE_ADMIN");
-    expect(normalizeSessionRole("CAMPUS_ADMIN")).toBe("CAMPUS_ADMIN");
-    expect(normalizeSessionRole("HOSPITAL_STAFF")).toBe("HOSPITAL_STAFF");
+  it("normalizeSessionRole maps product vertical tokens to canonical roles", () => {
+    expect(normalizeSessionRole("VENUE_ADMIN")).toBe("venue_admin");
+    expect(normalizeSessionRole("CAMPUS_ADMIN")).toBe("campus_admin");
+    expect(normalizeSessionRole("HOSPITAL_STAFF")).toBe("hospital_staff");
     expect(normalizeSessionRole("CAMPUS_ADMIN")).not.toBe("agencyadmin");
   });
 

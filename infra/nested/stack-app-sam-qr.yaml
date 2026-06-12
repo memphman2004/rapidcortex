@@ -42,6 +42,15 @@ Parameters:
   AgenciesTable:
     Type: String
     Default: ""
+  TranscriptsTable:
+    Type: String
+    Default: ""
+  AnalysesTable:
+    Type: String
+    Default: ""
+  InvitesTable:
+    Type: String
+    Default: ""
 
 Conditions:
   HasQRLocationsTable: !Not [!Equals [!Ref QRLocationsTable, ""]]
@@ -72,6 +81,9 @@ Globals:
         QR_NFC_CODES_TABLE: !Ref QRNFCCodesTable
         INCIDENTS_TABLE: !Ref IncidentsTable
         AGENCIES_TABLE: !Ref AgenciesTable
+        TRANSCRIPTS_TABLE: !Ref TranscriptsTable
+        ANALYSES_TABLE: !Ref AnalysesTable
+        INVITES_TABLE: !Ref InvitesTable
         APP_BASE_URL: !Sub "https://app.rapidcortex.us"
 
 Resources:

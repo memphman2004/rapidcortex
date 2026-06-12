@@ -274,6 +274,7 @@ export function isProductVerticalRoleToken(raw: string | undefined | null): bool
  */
 export function normalizeSessionRole(value: string | undefined): RapidCortexRole | string {
   const raw = value?.trim() ?? "";
+  if (raw.toLowerCase() === "staff") return "staff";
   const migrated = migrateLegacyRapidCortexRoleTokenValue(raw) ?? "";
   if (migrated && isRapidCortexRole(migrated)) return migrated;
   if (isProductVerticalRoleToken(migrated)) return migrated;
@@ -318,7 +319,7 @@ export function migrateLegacyRapidCortexRoleTokenValue(raw: string | undefined):
   if (t === "it_admin") return "agencyit";
   if (t === "commsupervisor") return "supervisor";
   if (t === "readonly_auditor") return "auditor";
-  if (t === "staff") return "auditor";
+  if (t === "staff") return "staff";
   if (t === "hospital_admin") return "hospitaladmin";
   if (t === "hospital_staff") return "hospitalstaff";
   return t;
