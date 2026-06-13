@@ -4,6 +4,11 @@ export const reportVerticalSchema = z.enum(["911", "campus", "venue", "hospital"
 export const qrNfcReportTypeSchema = z.enum(["anonymous", "identified", "both"]);
 export const reportMediumSchema = z.enum(["qr", "nfc", "sms", "direct", "url"]);
 
+const e164PhoneSchema = z
+  .string()
+  .trim()
+  .regex(/^\+[1-9]\d{6,14}$/, "Phone must be E.164 format (e.g. +17065551234)");
+
 export const createQRNFCSchema = z.object({
   agencyId: z.string().min(1).max(128).optional(),
   name: z.string().min(1).max(200),
@@ -15,6 +20,7 @@ export const createQRNFCSchema = z.object({
   nfcEnabled: z.boolean().default(true),
   nfcTagId: z.string().max(128).optional(),
   expiresAt: z.string().datetime().optional(),
+  callNumber: e164PhoneSchema.optional(),
 });
 
 export const updateQRNFCSchema = z.object({
@@ -25,6 +31,7 @@ export const updateQRNFCSchema = z.object({
   nfcEnabled: z.boolean().optional(),
   nfcTagId: z.string().max(128).optional(),
   active: z.boolean().optional(),
+  callNumber: e164PhoneSchema.optional(),
 });
 
 export const trackEngagementSchema = z.object({

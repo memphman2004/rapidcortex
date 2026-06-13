@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import type { CreateQRNFCInput, QRNFCRecord, ReportVertical } from "rapid-cortex-shared";
+import { formatPhoneDisplay } from "rapid-cortex-shared";
 import { features } from "@/lib/features";
 import { NFCInstructions } from "./nfc-instructions";
 import { SmsRoutingManager } from "@/components/sms-routing/sms-routing-manager";
@@ -39,13 +40,14 @@ export function QRNFCManager({
   const [filterVertical, setFilterVertical] = useState<string>("all");
   const [filterActive, setFilterActive] = useState<string>("all");
 
-  const [form, setForm] = useState<CreateQRNFCInput>({
+  const [form, setForm] = useState<CreateQRNFCInput & { callNumber?: string }>({
     name: "",
     description: "",
     zoneName: "",
     vertical,
     reportType: "anonymous",
     nfcEnabled: true,
+    callNumber: "",
   });
 
   const load = useCallback(async () => {
@@ -83,7 +85,11 @@ export function QRNFCManager({
       method: "POST",
       credentials: "include",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ ...form, agencyId: globalView ? agencyId : undefined }),
+      body: JSON.stringify({
+        ...form,
+        agencyId: globalView ? agencyId : undefined,
+        callNumber: form.callNumber?.trim() || undefined,
+      }),
     });
     const body = (await res.json()) as { record?: QRNFCRecord; error?: string };
     if (!res.ok) {
@@ -145,7 +151,14 @@ export function QRNFCManager({
       <div className="rounded-lg border border-slate-800 bg-slate-950/50 p-4">
         <h3 className="text-xs font-semibold uppercase tracking-wide text-slate-500">Print on your sign</h3>
         <p className="mt-1 text-xs text-slate-500">
-          Include your agency&apos;s dedicated SMS number alongside each QR code:
+          Signs only need the QR code and NFC tag. When someone scans, they can tap to call or submit a report.
+        </p>
+        <ul className="mt-2 list-inside list-disc text-xs text-slate-500">
+          <li>Scan the QR code</li>
+          <li>Tap this sign (NFC)</li>
+        </ul>
+        <p className="mt-2 text-xs text-slate-500">
+          Register an agency SMS number below to enable the tap-to-call button on intake pages.
         </p>
         <div className="mt-2">
           <SmsRoutingManager
@@ -218,6 +231,15 @@ export function QRNFCManager({
                   {row.vertical} · {row.reportType}
                   {globalView ? ` · ${row.agencyId}` : ""}
                 </p>
+                {row.callNumber ? (
+                  <p className="mt-1 text-xs text-emerald-400">
+                    📞 {formatPhoneDisplay(row.callNumber)} · tap-to-call enabled
+                  </p>
+                ) : (
+                  <p className="mt-1 text-xs text-slate-500">
+                    No call button — add an SMS routing number or set a call number on this code
+                  </p>
+                )}
               </div>
               {canDeactivate ? (
                 <label className="flex items-center gap-1.5 text-xs text-slate-400">
@@ -311,6 +333,19 @@ export function QRNFCManager({
                 onChange={(e) => setForm((f) => ({ ...f, zoneName: e.target.value }))}
                 className="mt-1 w-full rounded border border-slate-600 bg-slate-950 px-2 py-1.5"
               />
+            </label>
+            <label className="mt-3 block text-sm text-slate-300">
+              Call number (optional)
+              <input
+                value={form.callNumber ?? ""}
+                onChange={(e) => setForm((f) => ({ ...f, callNumber: e.target.value }))}
+                placeholder="+17065551234"
+                className="mt-1 w-full rounded border border-slate-600 bg-slate-950 px-2 py-1.5"
+              />
+              <span className="mt-1 block text-xs text-slate-500">
+                Leave blank to use the agency&apos;s default SMS number. Shown as a tap-to-call button when the QR
+                code is scanned.
+              </span>
             </label>
             <label className="mt-3 block text-sm text-slate-300">
               Report type *

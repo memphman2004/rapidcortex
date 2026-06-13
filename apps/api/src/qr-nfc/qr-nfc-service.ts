@@ -18,6 +18,8 @@ import { makeId } from "../lib/ids.js";
 import { AuditRepository } from "../repositories/auditRepository.js";
 import { AgencyRepository } from "../repositories/agencyRepository.js";
 import { QrNfcRepository } from "../repositories/qrNfcRepository.js";
+import { resolveAgencyCallNumber } from "./resolve-call-number.js";
+import { formatPhoneDisplay } from "rapid-cortex-shared";
 
 const repo = new QrNfcRepository();
 const auditRepo = new AuditRepository();
@@ -71,6 +73,8 @@ export class QrNfcService {
       ? Math.floor(new Date(parsed.data.expiresAt).getTime() / 1000)
       : undefined;
 
+    const callNumber = await resolveAgencyCallNumber(agencyId, parsed.data.callNumber);
+
     const record: QRNFCRecord = {
       agencyId,
       agencyName: agency?.name ?? agencyId,
@@ -93,6 +97,7 @@ export class QrNfcService {
       createdByRole: migrateLegacyRapidCortexRoleTokenValue(user.role) ?? user.role,
       createdAt: now,
       updatedAt: now,
+      ...(callNumber ? { callNumber } : {}),
       ...(ttl ? { ttl } : {}),
     };
 
@@ -226,6 +231,8 @@ export class QrNfcService {
     }
     await repo.incrementEngagement(record.agencyId, qrId, medium);
     const agency = await agencies.get(record.agencyId);
+    const callNumber =
+      record.callNumber ?? (await resolveAgencyCallNumber(record.agencyId));
     return {
       active: true,
       qrId: record.qrId,
@@ -235,6 +242,12 @@ export class QrNfcService {
       vertical: record.vertical,
       reportType: record.reportType,
       medium,
+      ...(callNumber
+        ? {
+            callNumber,
+            callNumberDisplay: formatPhoneDisplay(callNumber),
+          }
+        : {}),
     };
   }
 }

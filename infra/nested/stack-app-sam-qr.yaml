@@ -51,6 +51,9 @@ Parameters:
   InvitesTable:
     Type: String
     Default: ""
+  SmsRoutingTable:
+    Type: String
+    Default: ""
 
 Conditions:
   HasQRLocationsTable: !Not [!Equals [!Ref QRLocationsTable, ""]]
@@ -59,6 +62,7 @@ Conditions:
   HasVenueConfigTable: !Not [!Equals [!Ref VenueConfigTable, ""]]
   HasCampusIncidentsTable: !Not [!Equals [!Ref CampusIncidentsTable, ""]]
   HasCampusConfigTable: !Not [!Equals [!Ref CampusConfigTable, ""]]
+  HasSmsRoutingTable: !Not [!Equals [!Ref SmsRoutingTable, ""]]
 
 Globals:
   Function:
@@ -85,6 +89,7 @@ Globals:
         ANALYSES_TABLE: !Ref AnalysesTable
         INVITES_TABLE: !Ref InvitesTable
         APP_BASE_URL: !Sub "https://app.rapidcortex.us"
+        SMS_ROUTING_TABLE: !Ref SmsRoutingTable
 
 Resources:
   QRNFCCodesTable:
@@ -168,6 +173,24 @@ Resources:
                 - HasVenueConfigTable
                 - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${VenueConfigTable}
                 - !Ref AWS::NoValue
+
+  AppManagedPolicyQrNfcSmsRoutingRead:
+    Type: AWS::IAM::ManagedPolicy
+    Condition: HasSmsRoutingTable
+    Properties:
+      ManagedPolicyName: !Sub "${ManagedPolicyNamePrefix}-sam1-qr-sms-routing-read-${DeploymentStage}"
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Sid: SmsRoutingReadForCallNumber
+            Effect: Allow
+            Action:
+              - dynamodb:GetItem
+              - dynamodb:Query
+              - dynamodb:DescribeTable
+            Resource:
+              - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${SmsRoutingTable}
+              - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${SmsRoutingTable}/index/*
 
   AppManagedPolicyQrLocationDynamo:
     Type: AWS::IAM::ManagedPolicy
@@ -523,6 +546,10 @@ Resources:
       Timeout: 30
       Policies:
         - !Ref AppManagedPolicyQrNfcDynamo
+        - !If
+          - HasSmsRoutingTable
+          - !Ref AppManagedPolicyQrNfcSmsRoutingRead
+          - !Ref AWS::NoValue
 
   QrNfcEngageFunction:
     Type: AWS::Serverless::Function
@@ -535,6 +562,10 @@ Resources:
       Timeout: 15
       Policies:
         - !Ref AppManagedPolicyQrNfcDynamo
+        - !If
+          - HasSmsRoutingTable
+          - !Ref AppManagedPolicyQrNfcSmsRoutingRead
+          - !Ref AWS::NoValue
 
   PublicReportSubmitFunction:
     Type: AWS::Serverless::Function

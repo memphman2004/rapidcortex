@@ -1727,7 +1727,6 @@ Resources:
       Timeout: 30
       Environment:
         Variables:
-          RC_RUNTIME_CONFIG_JSON: ""
           RING_CREDENTIALS_SECRET_ARN: !Ref RingCredentialsSecretArn
           RING_PARTNERSHIP_ENABLED: !Ref RingPartnershipEnabled
           COGNITO_USER_POOL_ID: !Ref ImportedCognitoUserPoolId
@@ -1767,7 +1766,6 @@ Resources:
       Timeout: 60
       Environment:
         Variables:
-          RC_RUNTIME_CONFIG_JSON: ""
           RING_CREDENTIALS_SECRET_ARN: !Ref RingCredentialsSecretArn
           RING_PARTNERSHIP_ENABLED: !Ref RingPartnershipEnabled
           ENABLE_CONNECT_RING: !Ref EnableConnectRing
@@ -1807,7 +1805,6 @@ Resources:
       Timeout: 30
       Environment:
         Variables:
-          RC_RUNTIME_CONFIG_JSON: ""
           RING_CREDENTIALS_SECRET_ARN: !Ref RingCredentialsSecretArn
           RING_PARTNERSHIP_ENABLED: !Ref RingPartnershipEnabled
           COGNITO_USER_POOL_ID: !Ref ImportedCognitoUserPoolId
@@ -1839,7 +1836,6 @@ Resources:
       Timeout: 30
       Environment:
         Variables:
-          RC_RUNTIME_CONFIG_JSON: ""
           RING_CREDENTIALS_SECRET_ARN: !Ref RingCredentialsSecretArn
           RING_PARTNERSHIP_ENABLED: !Ref RingPartnershipEnabled
           ENABLE_CONNECT_RING: !Ref EnableConnectRing
@@ -1873,7 +1869,6 @@ Resources:
       Timeout: 30
       Environment:
         Variables:
-          RC_RUNTIME_CONFIG_JSON: ""
           RING_CREDENTIALS_SECRET_ARN: !Ref RingCredentialsSecretArn
           RING_PARTNERSHIP_ENABLED: !Ref RingPartnershipEnabled
           COGNITO_USER_POOL_ID: !Ref ImportedCognitoUserPoolId
@@ -1918,7 +1913,6 @@ Resources:
       Timeout: 60
       Environment:
         Variables:
-          RC_RUNTIME_CONFIG_JSON: ""
           RING_CREDENTIALS_SECRET_ARN: !Ref RingCredentialsSecretArn
           RING_PARTNERSHIP_ENABLED: !Ref RingPartnershipEnabled
           COGNITO_USER_POOL_ID: !Ref ImportedCognitoUserPoolId
@@ -2028,7 +2022,6 @@ Resources:
       Timeout: 30
       Environment:
         Variables:
-          RC_RUNTIME_CONFIG_JSON: ""
           RING_CREDENTIALS_SECRET_ARN: !Ref RingCredentialsSecretArn
           RING_PARTNERSHIP_ENABLED: !Ref RingPartnershipEnabled
           ENABLE_CONNECT_RING: !Ref EnableConnectRing
@@ -2073,7 +2066,6 @@ Resources:
       Timeout: 30
       Environment:
         Variables:
-          RC_RUNTIME_CONFIG_JSON: ""
           RING_CREDENTIALS_SECRET_ARN: !Ref RingCredentialsSecretArn
           RING_PARTNERSHIP_ENABLED: !Ref RingPartnershipEnabled
           ENABLE_CONNECT_RING: !Ref EnableConnectRing
@@ -2105,7 +2097,6 @@ Resources:
       Timeout: 30
       Environment:
         Variables:
-          RC_RUNTIME_CONFIG_JSON: ""
           RING_CREDENTIALS_SECRET_ARN: !Ref RingCredentialsSecretArn
           RING_PARTNERSHIP_ENABLED: !Ref RingPartnershipEnabled
           COGNITO_USER_POOL_ID: !Ref ImportedCognitoUserPoolId
@@ -2143,7 +2134,6 @@ Resources:
       Timeout: 30
       Environment:
         Variables:
-          RC_RUNTIME_CONFIG_JSON: ""
           RING_PARTNERSHIP_ENABLED: !Ref RingPartnershipEnabled
           ENABLE_CONNECT_RING: !Ref EnableConnectRing
           COGNITO_USER_POOL_ID: !Ref ImportedCognitoUserPoolId

@@ -967,6 +967,11 @@ Resources:
             - HasDataLayerNestedStack
             - !GetAtt DataLayerStack.Outputs.InvitesTable
             - !Sub "${DynamoTableNamePrefix}-invites-${DeploymentStage}"
+        SmsRoutingTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.SmsRoutingTable
+            - !Sub "${DynamoTableNamePrefix}-sms-routing-${DeploymentStage}"
 
   AppSam2Stack:
     Type: AWS::CloudFormation::Stack

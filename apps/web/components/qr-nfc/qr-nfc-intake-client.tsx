@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import type { QRNFCPublicRecord, ReportMedium } from "rapid-cortex-shared";
+import { qrNfcCallButtonLabel } from "rapid-cortex-shared";
 
 const VERTICAL_COPY: Record<
   string,
@@ -106,12 +107,41 @@ export function QRNfcIntakeClient({ record, medium }: Props) {
       style={{ backgroundColor: copy.bg }}
     >
       <form onSubmit={(e) => void onSubmit(e)} className="mx-auto max-w-lg rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
-        <h1 className="text-2xl font-semibold" style={{ color: copy.accent }}>
+        <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+          {record.agencyName}
+        </p>
+        {record.zoneName ? (
+          <p className="mt-1 text-sm font-medium text-slate-700">{record.zoneName}</p>
+        ) : null}
+        <h1 className="mt-3 text-2xl font-semibold" style={{ color: copy.accent }}>
           {copy.header}
         </h1>
         <p className="mt-2 text-sm text-slate-600">{copy.subhead}</p>
 
-        <label className="mt-6 block text-sm font-medium text-slate-700">
+        {record.callNumber ? (
+          <a
+            href={`tel:${record.callNumber}`}
+            className="mt-6 block w-full rounded-lg px-4 py-4 text-center text-white no-underline shadow-sm"
+            style={{ backgroundColor: copy.accent }}
+          >
+            <span className="text-lg font-bold tracking-wide">
+              📞 {qrNfcCallButtonLabel(record.vertical)}
+            </span>
+            {record.callNumberDisplay ? (
+              <span className="mt-1 block text-sm font-normal opacity-90">
+                {record.callNumberDisplay}
+              </span>
+            ) : null}
+          </a>
+        ) : null}
+
+        {record.callNumber ? (
+          <p className="my-6 text-center text-xs font-medium uppercase tracking-wide text-slate-400">
+            — or submit a report —
+          </p>
+        ) : null}
+
+        <label className={`block text-sm font-medium text-slate-700 ${record.callNumber ? "" : "mt-6"}`}>
           What is happening? *
           <textarea
             required

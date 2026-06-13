@@ -23,6 +23,8 @@ export interface QRNFCRecord {
   nfcTapCount: number;
   totalEngagements: number;
   lastEngagementAt?: string;
+  /** E.164 tap-to-call number shown on public intake (from SMS routing or admin override). */
+  callNumber?: string;
   createdBy: string;
   createdByRole: string;
   createdAt: string;
@@ -41,6 +43,7 @@ export interface CreateQRNFCInput {
   nfcEnabled?: boolean;
   nfcTagId?: string;
   expiresAt?: string;
+  callNumber?: string;
 }
 
 export interface UpdateQRNFCInput {
@@ -51,6 +54,7 @@ export interface UpdateQRNFCInput {
   nfcEnabled?: boolean;
   nfcTagId?: string;
   active?: boolean;
+  callNumber?: string;
 }
 
 /** Public-safe fields for `/report/{qrId}` intake. */
@@ -63,6 +67,8 @@ export interface QRNFCPublicRecord {
   reportType: QrNfcReportType;
   active: boolean;
   medium?: ReportMedium;
+  callNumber?: string;
+  callNumberDisplay?: string;
 }
 
 export interface PublicReportSubmitInput {

@@ -26,7 +26,9 @@ const inter = Inter({
 
 const siteUrl = getSiteUrl();
 const defaultOgImage = absoluteUrl(SEO_IMAGE_PATH);
-const GA_MEASUREMENT_ID = process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID ?? "G-S83NHMBHRD";
+const defaultGaId = "G-S83NHMBHRD";
+const GA_MEASUREMENT_ID = process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID?.trim() || defaultGaId;
+const gaEnabled = GA_MEASUREMENT_ID.length > 0;
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
@@ -114,18 +116,22 @@ export default function RootLayout({
       className={`dark ${geistSans.variable} ${geistMono.variable} ${inter.variable} h-full antialiased`}
     >
       <head>
-        <Script
-          src={`https://www.googletagmanager.com/gtag/js?id=${GA_MEASUREMENT_ID}`}
-          strategy="beforeInteractive"
-        />
-        <Script id="google-analytics" strategy="beforeInteractive">
-          {`
+        {gaEnabled ? (
+          <>
+            <Script
+              src={`https://www.googletagmanager.com/gtag/js?id=${GA_MEASUREMENT_ID}`}
+              strategy="beforeInteractive"
+            />
+            <Script id="google-analytics" strategy="beforeInteractive">
+              {`
             window.dataLayer = window.dataLayer || [];
             function gtag(){dataLayer.push(arguments);}
             gtag('js', new Date());
             gtag('config', '${GA_MEASUREMENT_ID}');
           `}
-        </Script>
+            </Script>
+          </>
+        ) : null}
       </head>
       <body className="min-h-full min-h-dvh text-slate-100">
         <Providers>
