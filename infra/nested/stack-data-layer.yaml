@@ -4283,6 +4283,76 @@
         ]
       }
     },
+    "NonEmergencyQueueTable": {
+      "Type": "AWS::DynamoDB::Table",
+      "Properties": {
+        "BillingMode": {
+          "Ref": "DynamoBillingMode"
+        },
+        "TableName": {
+          "Fn::If": [
+            "HasDynamoTablePrefix",
+            {
+              "Fn::Sub": "${DynamoTableNamePrefix}-non-emergency-queue-${DeploymentStage}"
+            },
+            {
+              "Ref": "AWS::NoValue"
+            }
+          ]
+        },
+        "PointInTimeRecoverySpecification": {
+          "PointInTimeRecoveryEnabled": {
+            "Fn::If": [
+              "DynamoPitrOn",
+              true,
+              false
+            ]
+          }
+        },
+        "AttributeDefinitions": [
+          {
+            "AttributeName": "agencyId",
+            "AttributeType": "S"
+          },
+          {
+            "AttributeName": "sk",
+            "AttributeType": "S"
+          },
+          {
+            "AttributeName": "status",
+            "AttributeType": "S"
+          }
+        ],
+        "KeySchema": [
+          {
+            "AttributeName": "agencyId",
+            "KeyType": "HASH"
+          },
+          {
+            "AttributeName": "sk",
+            "KeyType": "RANGE"
+          }
+        ],
+        "GlobalSecondaryIndexes": [
+          {
+            "IndexName": "StatusIndex",
+            "KeySchema": [
+              {
+                "AttributeName": "agencyId",
+                "KeyType": "HASH"
+              },
+              {
+                "AttributeName": "status",
+                "KeyType": "RANGE"
+              }
+            ],
+            "Projection": {
+              "ProjectionType": "ALL"
+            }
+          }
+        ]
+      }
+    },
     "DispatcherCoachingNotesTable": {
       "Type": "AWS::DynamoDB::Table",
       "Properties": {
@@ -5753,6 +5823,12 @@
       "Description": "Physical table name for PremiseNotesTable",
       "Value": {
         "Ref": "PremiseNotesTable"
+      }
+    },
+    "NonEmergencyQueueTable": {
+      "Description": "Physical table name for NonEmergencyQueueTable",
+      "Value": {
+        "Ref": "NonEmergencyQueueTable"
       }
     },
     "DispatcherCoachingNotesTable": {

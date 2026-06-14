@@ -666,6 +666,9 @@ Parameters:
   PremiseNotesTable:
     Type: String
     Description: Physical DynamoDB table name from data layer (PremiseNotesTable).
+  NonEmergencyQueueTable:
+    Type: String
+    Description: Physical DynamoDB table name from data layer (NonEmergencyQueueTable).
   DispatcherCoachingNotesTable:
     Type: String
     Description: Physical DynamoDB table name from data layer (DispatcherCoachingNotesTable).
@@ -975,7 +978,7 @@ Globals:
     Environment:
       Variables:
         RC_RUNTIME_CONFIG_JSON: !Sub
-          - '{"ds":"${DeploymentStage}","trp":"${TranscriptRetentionPolicyDays}","it":"${IncidentsTable}","tt":"${TranscriptsTable}","at":"${AnalysesTable}","aud":"${AuditTable}","dda":"${DataDeletionAuditTable}","drp":"cjis-default-v1","ag":"${AgenciesTable}","iv":"${InvitesTable}","ao":"${AccessOverridesTable}","neo":"${NetworkEmergencyOverridesTable}","ans":"","nae":"false","waf":"${WafArn}","wsc":"REGIONAL","ac":"${ApiClientsTable}","wh":"${WebhooksTable}","erl":"${ExternalApiRateLimitsTable}","rle":"true","rak":"${RcLiteApiKeysTable}","rrl":"${RcLiteRateLimitTable}","rlu":"${RcLiteUsageTable}","sit":"${SeoIntelligenceTable}","ste":"${SeoToolEnabled}","sae":"${SeoAutoScanEnabled}","sai":"${SeoAiSuggestionsEnabled}","det":"${DeceptionEventsTable}","dse":"${PilotDeceptionShield}","dae":"false","dal":"true","ops":"${OpsAlertsTopic}","ej":"${ExternalApiJwtSecretArn}","ek":"${ExternalApiEncryptionKeyArn}","pma":"60","peg":"0","pcf":"true","ab":"${AssetsBucket}","ls":"${LanguageSessionsTable}","aef":"true","asm":"true","apv":"dispatch-triage-v1","art":"55000","amr":"1","adb":"0","amh":"120","asu":"true","ail":"90","oa":"${OpenAiApiKeySecretArn}","aa":"${AnthropicApiKeySecretArn}","aas":"0","aua":"false","aco":"${HttpApiCorsAllowedOrigins}","eqs":"${PilotEnableQaScoring}","eqa":"${PilotEnableQaAfterAnalysis}","qss":"${QASessionsTable}","qts":"${QATemplatesTable}","qsm":"${PilotQaScoringMock}","qbm":"${QaBedrockModelId}","br":"${AWSRegion}","eim":"${PilotEnableIncidentMedia}","imt":"${IncidentMediaTable}","imp":"","imn":"120","imu":"900","imx":"52428800","ent":"${PilotEnableNonEmergencyTriage}","tft":"${TraumaFlagsTable}","pn":"${PremiseNotesTable}","dcn":"${DispatcherCoachingNotesTable}","itl":"${IncidentTimelineTable}","ish":"${IncidentSharesTable}","asp":"${AgencySharePartnersTable}","lp":"${LanguageProvider}","cr":"${AWSRegion}","cwe":"${CadWritebackEnabled}","cwr":"${CadWritebackRequiresApproval}","cwa":"${CadWritebackAuditTable}","bp":"${BillingProfilesTable}","inv":"${InvoicesTable}","ii":"${InvoiceItemsTable}","bae":"${BillingAuditEventsTable}","mao":"${MonetizationAddOnsTable}","minv":"${MonetizationInvoicesTable}","slt":"${SalesLeadsTable}","cfe":"support@rapidcortex.us"}'
+          - '{"ds":"${DeploymentStage}","trp":"${TranscriptRetentionPolicyDays}","it":"${IncidentsTable}","tt":"${TranscriptsTable}","at":"${AnalysesTable}","aud":"${AuditTable}","dda":"${DataDeletionAuditTable}","drp":"cjis-default-v1","ag":"${AgenciesTable}","iv":"${InvitesTable}","ao":"${AccessOverridesTable}","neo":"${NetworkEmergencyOverridesTable}","ans":"","nae":"false","waf":"${WafArn}","wsc":"REGIONAL","ac":"${ApiClientsTable}","wh":"${WebhooksTable}","erl":"${ExternalApiRateLimitsTable}","rle":"true","rak":"${RcLiteApiKeysTable}","rrl":"${RcLiteRateLimitTable}","rlu":"${RcLiteUsageTable}","sit":"${SeoIntelligenceTable}","ste":"${SeoToolEnabled}","sae":"${SeoAutoScanEnabled}","sai":"${SeoAiSuggestionsEnabled}","det":"${DeceptionEventsTable}","dse":"${PilotDeceptionShield}","dae":"false","dal":"true","ops":"${OpsAlertsTopic}","ej":"${ExternalApiJwtSecretArn}","ek":"${ExternalApiEncryptionKeyArn}","pma":"60","peg":"0","pcf":"true","ab":"${AssetsBucket}","ls":"${LanguageSessionsTable}","aef":"true","asm":"true","apv":"dispatch-triage-v1","art":"55000","amr":"1","adb":"0","amh":"120","asu":"true","ail":"90","oa":"${OpenAiApiKeySecretArn}","aa":"${AnthropicApiKeySecretArn}","aas":"0","aua":"false","aco":"${HttpApiCorsAllowedOrigins}","eqs":"${PilotEnableQaScoring}","eqa":"${PilotEnableQaAfterAnalysis}","qss":"${QASessionsTable}","qts":"${QATemplatesTable}","qsm":"${PilotQaScoringMock}","qbm":"${QaBedrockModelId}","br":"${AWSRegion}","eim":"${PilotEnableIncidentMedia}","imt":"${IncidentMediaTable}","imp":"","imn":"120","imu":"900","imx":"52428800","ent":"${PilotEnableNonEmergencyTriage}","tdn":"${PilotTriageDetectEveryNSegments}","tmk":"${PilotTriageMock}","neq":"${NonEmergencyQueueTable}","efc":"${PilotEnableFieldConfidence}","csn":"${PilotConfidenceScoreEveryNSegments}","csm":"${PilotConfidenceScoringMock}","tft":"${TraumaFlagsTable}","pn":"${PremiseNotesTable}","dcn":"${DispatcherCoachingNotesTable}","itl":"${IncidentTimelineTable}","ish":"${IncidentSharesTable}","asp":"${AgencySharePartnersTable}","lp":"${LanguageProvider}","cr":"${AWSRegion}","cwe":"${CadWritebackEnabled}","cwr":"${CadWritebackRequiresApproval}","cwa":"${CadWritebackAuditTable}","bp":"${BillingProfilesTable}","inv":"${InvoicesTable}","ii":"${InvoiceItemsTable}","bae":"${BillingAuditEventsTable}","mao":"${MonetizationAddOnsTable}","minv":"${MonetizationInvoicesTable}","slt":"${SalesLeadsTable}","cfe":"support@rapidcortex.us"}'
           -
             AWSRegion: !Ref AWS::Region
             AccessOverridesTable: !Ref AccessOverridesTable
@@ -1014,6 +1017,7 @@ Globals:
             OpenAiApiKeySecretArn: !Ref OpenAiApiKeySecretArn
             OpsAlertsTopic: !Ref OpsAlertsTopic
             PremiseNotesTable: !Ref PremiseNotesTable
+            NonEmergencyQueueTable: !Ref NonEmergencyQueueTable
             QASessionsTable: !Ref QASessionsTable
             QATemplatesTable: !Ref QATemplatesTable
             QaBedrockModelId: !Ref QaBedrockModelId
@@ -1030,6 +1034,11 @@ Globals:
             PilotQaScoringMock: !If [PilotTestFeaturesOn, "true", "false"]
             PilotEnableIncidentMedia: !If [PilotTestFeaturesOn, "true", "false"]
             PilotEnableNonEmergencyTriage: !If [PilotTestFeaturesOn, "true", "false"]
+            PilotTriageDetectEveryNSegments: !If [PilotTestFeaturesOn, "5", "0"]
+            PilotTriageMock: !If [PilotTestFeaturesOn, "true", "false"]
+            PilotEnableFieldConfidence: !If [PilotTestFeaturesOn, "true", "false"]
+            PilotConfidenceScoreEveryNSegments: !If [PilotTestFeaturesOn, "5", "0"]
+            PilotConfidenceScoringMock: !If [PilotTestFeaturesOn, "true", "false"]
             PilotDeceptionShield: !If [PilotTestFeaturesOn, "true", "false"]
             TranscriptRetentionPolicyDays: !Ref TranscriptRetentionPolicyDays
             TranscriptsTable: !Ref TranscriptsTable
@@ -1182,6 +1191,8 @@ Resources:
             Resource:
                 - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${PremiseNotesTable}
                 - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${PremiseNotesTable}/index/*
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${NonEmergencyQueueTable}
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${NonEmergencyQueueTable}/index/*
                 - !If
                   - HasRingAccountsTable
                   - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${RingAccountsTable}
@@ -2447,6 +2458,60 @@ Resources:
           Properties:
             ApiId: !Ref Api
             Path: /api/incidents/{id}/triage/override
+            Method: POST
+
+  TriageQueueFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      Environment:
+        Variables:
+          COGNITO_USER_POOL_ID: !Ref CognitoUserPool
+          COGNITO_CLIENT_ID: !Ref CognitoUserPoolClient
+      CodeUri: ../../apps/api/
+      Handler: dist/handlers/triage/triageQueueHttp.handler
+      Policies:
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardA
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardB
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardC
+      Events:
+        GetQueue:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/triage/queue
+            Method: GET
+        PatchQueue:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/triage/queue/{incidentId}
+            Method: PATCH
+
+  TriageOverrideQueueFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      Environment:
+        Variables:
+          COGNITO_USER_POOL_ID: !Ref CognitoUserPool
+          COGNITO_CLIENT_ID: !Ref CognitoUserPoolClient
+      CodeUri: ../../apps/api/
+      Handler: dist/handlers/triage/triageOverrideQueueHttp.handler
+      Policies:
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardA
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardB
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardC
+      Events:
+        Route:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/triage/override
             Method: POST
 
   PostCadWritebackBlockedFunction:

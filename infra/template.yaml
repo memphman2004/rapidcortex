@@ -817,6 +817,11 @@ Resources:
             - HasDataLayerNestedStack
             - !GetAtt DataLayerStack.Outputs.PremiseNotesTable
             - !Sub "${DynamoTableNamePrefix}-premise-notes-${DeploymentStage}"
+        NonEmergencyQueueTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.NonEmergencyQueueTable
+            - !Sub "${DynamoTableNamePrefix}-non-emergency-queue-${DeploymentStage}"
         QASessionsTable:
           Fn::If:
             - HasDataLayerNestedStack

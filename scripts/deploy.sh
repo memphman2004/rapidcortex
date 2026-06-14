@@ -463,6 +463,9 @@ fi
 if [[ -n "${RING_PARTNERSHIP_ENABLED:-}" ]]; then
   PARAMS="${PARAMS} RingPartnershipEnabled=${RING_PARTNERSHIP_ENABLED}"
 fi
+if [[ -n "${PilotTestFeaturesEnabled:-}" ]]; then
+  PARAMS="${PARAMS} PilotTestFeaturesEnabled=${PilotTestFeaturesEnabled}"
+fi
 
 DEPLOY_CHANGESET_SUFFIX=()
 if [[ "${CHANGESET_ONLY}" -eq 1 ]]; then

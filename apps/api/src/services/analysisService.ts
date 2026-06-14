@@ -18,12 +18,14 @@ import { logAiMetric } from "../lib/aiMetrics.js";
 import { logAiProviderChainResult } from "../lib/aiLog.js";
 import { normalizeConfidence } from "../ai/confidence.js";
 import { QAService } from "./qaService.js";
+import { FieldConfidenceService } from "./fieldConfidenceService.js";
 import { env } from "../lib/env.js";
 import { buildAnalysisDedupe, buildRetentionFields } from "../lib/retentionPolicy.js";
 import { incidentTimelineLogger } from "../lib/incidentTimelineLogger.js";
 
 const transcriptService = new TranscriptService();
 const qaService = new QAService();
+const fieldConfidenceService = new FieldConfidenceService();
 const analysisRepo = new AnalysisRepository();
 const agencyRepo = new AgencyRepository();
 const incidentRepo = new IncidentRepository();
@@ -320,6 +322,20 @@ export class AnalysisService {
       });
 
       await qaService.runPendingScoringAfterAnalysis(user, user.agencyId, incidentId);
+
+      if (env.enableFieldConfidence) {
+        try {
+          await fieldConfidenceService.scoreAndPersist(incidentId, user, transcript, segmentCount);
+        } catch (err) {
+          console.error(
+            JSON.stringify({
+              type: "analysis.field_confidence_failed",
+              incidentId,
+              message: err instanceof Error ? err.message : String(err),
+            }),
+          );
+        }
+      }
 
       return analysis;
     } finally {

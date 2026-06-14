@@ -1,6 +1,6 @@
 "use client";
 
-import type { Incident } from "rapid-cortex-shared";
+import type { AggregateConfidence, Incident } from "rapid-cortex-shared";
 import { IncidentCard } from "@/components/dispatch/incident-card";
 import { isApiConfigured } from "@/lib/api";
 import { TRAINING_MODE_LABEL } from "@/lib/training-mode";
@@ -14,6 +14,7 @@ export function IncidentQueue({
   emptyHint,
   sectionTitle = "Active incidents",
   outerClassName,
+  selectedFieldConfidenceAggregate = null,
 }: {
   incidents: Incident[];
   selectedId: string | null;
@@ -23,10 +24,12 @@ export function IncidentQueue({
   compact?: boolean;
   /** Shown when the filtered list is empty (e.g. non-emergency tab). */
   emptyHint?: string;
-  /** Override queue section header (e.g. CAD workbench “My queue”). */
+  /** Override queue section header (e.g. CAD workbench "My queue"). */
   sectionTitle?: string;
   /** Optional outer wrapper classes (CAD layout passes panel chrome). */
   outerClassName?: string;
+  /** Per-field confidence aggregate for the selected incident (queue mini bar). */
+  selectedFieldConfidenceAggregate?: AggregateConfidence | null;
 }) {
   return (
     <aside
@@ -68,6 +71,9 @@ export function IncidentQueue({
                   incident={inc}
                   selected={inc.incidentId === selectedId}
                   onSelect={() => onSelect(inc.incidentId)}
+                  fieldConfidenceAggregate={
+                    inc.incidentId === selectedId ? selectedFieldConfidenceAggregate : null
+                  }
                 />
               </li>
             ))}

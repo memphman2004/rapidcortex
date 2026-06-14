@@ -299,6 +299,14 @@ export const env = {
     Number.parseInt(process.env.TRIAGE_DETECT_EVERY_N_SEGMENTS ?? "0", 10) || 0,
   ),
   triageMock: process.env.TRIAGE_MOCK === "true",
+  nonEmergencyQueueTable: process.env.NON_EMERGENCY_QUEUE_TABLE?.trim() ?? "",
+  /** Per-field incident picture confidence (F-confidence). */
+  enableFieldConfidence: featureEnabled("ENABLE_FIELD_CONFIDENCE"),
+  confidenceScoreEveryNSegments: Math.max(
+    0,
+    Number.parseInt(process.env.CONFIDENCE_SCORE_EVERY_N_SEGMENTS ?? "0", 10) || 0,
+  ),
+  confidenceScoringMock: process.env.CONFIDENCE_SCORING_MOCK === "true",
   /** F5 — supervisor-only trauma keyword flags. */
   enableDispatcherWellness: featureEnabled("ENABLE_DISPATCHER_WELLNESS"),
   traumaFlagsTable: process.env.TRAUMA_FLAGS_TABLE?.trim() ?? "",

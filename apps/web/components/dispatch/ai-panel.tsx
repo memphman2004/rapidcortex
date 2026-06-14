@@ -1,9 +1,10 @@
 "use client";
 
-import type { AIAnalysis, Incident, ProtocolGuidance } from "rapid-cortex-shared";
+import type { AIAnalysis, ConfidenceAnalysis, Incident, ProtocolGuidance } from "rapid-cortex-shared";
 import { AiRecommendationCard } from "@/components/dispatch/ai-recommendation-card";
 import { CategoryBadge, UrgencyBadge } from "@/components/dispatch/badges";
 import { ConfidenceMeter } from "@/components/dispatch/confidence-meter";
+import { ConfidencePanel } from "@/components/confidence/confidence-panel";
 import { DispatchActionPanel } from "@/components/dispatch/dispatch-action-panel";
 import { SummaryCard } from "@/components/dispatch/summary-card";
 import { SilentTextPanel } from "@/components/dispatch/silent-text-panel";
@@ -15,12 +16,14 @@ import { DashboardQaPanel } from "@/components/dispatch/qa/dashboard-qa-panel";
 import { IncidentMediaPanel } from "@/components/dispatch/incident-media-panel";
 import { SopProtocolSurface } from "@/components/dispatch/sop-protocol-surface";
 import { NonEmergencyTriageStrip } from "@/components/dispatch/non-emergency-triage-strip";
-import { isLiveVideoEnabled, isPinpointEnabled, isSilentTextEnabled } from "@/lib/runtime-flags";
+import { isFieldConfidenceEnabled, isLiveVideoEnabled, isPinpointEnabled, isSilentTextEnabled } from "@/lib/runtime-flags";
 
 export function AiRecommendationPanel({
   incidentId,
   incident,
   analysis,
+  fieldConfidence = null,
+  fieldConfidenceLoading = false,
   analysisLoading = false,
   analysisError = null,
   onRefresh,
@@ -32,6 +35,9 @@ export function AiRecommendationPanel({
   incidentId: string | null;
   incident: Incident | null;
   analysis: AIAnalysis | null;
+  /** Latest per-field confidence analysis (when ENABLE_FIELD_CONFIDENCE is on). */
+  fieldConfidence?: ConfidenceAnalysis | null;
+  fieldConfidenceLoading?: boolean;
   /** True while fetching analysis for the current `incidentId` (or cache not yet aligned). */
   analysisLoading?: boolean;
   /** Shown when the last analyze call failed (pilot: surfaces API error codes). */
@@ -47,6 +53,9 @@ export function AiRecommendationPanel({
   const liveVideoEnabled = isLiveVideoEnabled();
   const silentTextEnabled = isSilentTextEnabled();
   const pinpointEnabled = isPinpointEnabled();
+  const fieldConfidenceEnabled = isFieldConfidenceEnabled();
+  const showFieldConfidence =
+    fieldConfidenceEnabled && (fieldConfidence != null || fieldConfidenceLoading);
   return (
     <aside className={`flex w-80 shrink-0 flex-col bg-slate-900/30 ${className ?? ""}`.trim()}>
       <div className="flex items-center justify-between border-b border-slate-800 px-3 py-2">
@@ -95,16 +104,25 @@ export function AiRecommendationPanel({
             <NonEmergencyTriageStrip incidentId={incidentId} />
           </div>
         ) : null}
+        {showFieldConfidence && incidentId ? (
+          <div className="mb-4">
+            <ConfidencePanel
+              analysis={fieldConfidence}
+              isAnalyzing={fieldConfidenceLoading && !fieldConfidence}
+              compact
+            />
+          </div>
+        ) : null}
         {analysisLoading ? (
           <p className="text-sm text-slate-400">Loading intelligence for this incident…</p>
         ) : !incidentId ? (
           <p className="text-sm text-slate-500">Select an incident in the queue.</p>
-        ) : !analysis ? (
+        ) : !analysis && !showFieldConfidence ? (
           <p className="text-sm text-slate-500">
             No analysis yet for this incident. Use <span className="font-medium text-slate-400">Refresh AI</span> when
             the API is available.
           </p>
-        ) : (
+        ) : !analysis ? null : (
           <div className="flex flex-col gap-4">
             {analysis.protocolGuidance ? (
               <ProtocolCoachBlock guidance={analysis.protocolGuidance} />
@@ -123,8 +141,10 @@ export function AiRecommendationPanel({
                 </span>
               ) : null}
             </div>
-            <ConfidenceMeter value01={analysis.confidence} />
-            <AiRecommendationCard text={analysis.nextQuestion} />
+            {!showFieldConfidence ? <ConfidenceMeter value01={analysis.confidence} /> : null}
+            {!showFieldConfidence || !fieldConfidence?.aggregate.topSuggestedQuestion ? (
+              <AiRecommendationCard text={analysis.nextQuestion} />
+            ) : null}
             <Block label="Recommended action" value={analysis.recommendedAction} />
             <SummaryCard summary={analysis.summary} />
             <Block label="Rationale" value={analysis.rationale} muted />

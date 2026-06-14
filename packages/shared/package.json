@@ -73,6 +73,16 @@
       "import": "./dist/triage/triage.js",
       "require": "./dist/triage/triage.js"
     },
+    "./triage": {
+      "types": "./dist/triage/index.d.ts",
+      "import": "./dist/triage/index.js",
+      "require": "./dist/triage/index.js"
+    },
+    "./confidence": {
+      "types": "./dist/confidence/index.d.ts",
+      "import": "./dist/confidence/index.js",
+      "require": "./dist/confidence/index.js"
+    },
     "./silent-text/templates": {
       "types": "./dist/silent-text/templates.d.ts",
       "import": "./dist/silent-text/templates.js",

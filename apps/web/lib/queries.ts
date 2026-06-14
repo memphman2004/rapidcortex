@@ -23,6 +23,7 @@ import type {
   AIAnalysis,
   AuditEvent,
   CallerCardResponse,
+  ConfidenceAnalysis,
   Incident,
   TranscriptSegment,
 } from "rapid-cortex-shared";
@@ -69,6 +70,17 @@ export async function loadLatestAnalysis(
     return primary ?? null;
   }
   if (isOfflineDemoDataEnabled()) return mockGetLatestAnalysis(incidentId);
+  return null;
+}
+
+export async function loadLatestFieldConfidence(
+  incidentId: string,
+): Promise<ConfidenceAnalysis | null> {
+  if (isApiConfigured()) {
+    const list = await fetchAnalyses(incidentId);
+    const row = list.find((a) => a.analysisRecordKind === "field_confidence");
+    return row?.fieldConfidenceAnalysis ?? null;
+  }
   return null;
 }
 

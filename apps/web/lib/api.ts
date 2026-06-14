@@ -1199,6 +1199,27 @@ export async function postTriageOverride(
   return data.triage;
 }
 
+export async function postTriageEscalation(body: {
+  incidentId: string;
+  reason?: string;
+}): Promise<{ ok: boolean; note?: string }> {
+  return request("/api/triage/override", { method: "POST", body: JSON.stringify(body) });
+}
+
+export async function patchTriageQueueItem(
+  incidentId: string,
+  body: { status: "PENDING" | "IN_PROGRESS" | "CLOSED"; assignedTo?: string | null; closureNotes?: string },
+): Promise<{ ok: boolean }> {
+  return request(`/api/triage/queue/${encodeURIComponent(incidentId)}`, {
+    method: "PATCH",
+    body: JSON.stringify(body),
+  });
+}
+
+export async function fetchTriageQueue(): Promise<{ items: import("rapid-cortex-shared/triage").TriageQueueItem[]; count: number }> {
+  return request("/api/triage/queue");
+}
+
 export async function fetchWellnessTraumaFlags(): Promise<TraumaFlagRecord[]> {
   const data = await request<{ items: TraumaFlagRecord[] }>("/api/wellness/trauma-flags");
   return data.items;

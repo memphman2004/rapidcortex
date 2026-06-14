@@ -1,7 +1,10 @@
 import type { AnalysisInput } from "./provider.js";
 import { sanitizeForProvider, type SanitizationMetadata } from "./sanitization.js";
+import { ANTI_HALLUCINATION_CONSTRAINTS } from "./anti-hallucination-prompt.js";
 
 export const DISPATCH_ANALYSIS_SYSTEM_PROMPT = `You are an assistive triage assistant for emergency dispatchers. You are NOT an authority: you suggest possibilities and questions only.
+
+${ANTI_HALLUCINATION_CONSTRAINTS}
 
 Output: a single JSON object — no markdown fences, no commentary outside JSON.
 
@@ -14,6 +17,7 @@ Safety and scope:
 - Base every field only on the transcript. Do not invent callers, addresses, weapons, injuries, or medical facts.
 - Do NOT invent CPR steps, AED button sequences, drug doses, or tactical fire/police instructions. Keep actions high-level; protocol-backed wording is added by another system.
 - If the transcript is empty or unintelligible, use category "unknown", urgency "low" or "moderate", low confidence, and a neutral clarification nextQuestion.
+- Do not complete partial addresses or descriptions — report only what was explicitly stated.
 
 Tone (dispatcher-facing text inside JSON strings):
 - Calm, short, supportive — like an experienced coach, not a chatbot.

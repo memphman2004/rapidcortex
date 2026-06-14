@@ -1,4 +1,12 @@
-import type { AIAnalysis, TriageResult, TranscriptSegment, UserContext } from "rapid-cortex-shared";
+import type {
+  AIAnalysis,
+  TriageAiClassification,
+  TriageAnalyzeEvent,
+  TriageClassification,
+  TriageResult,
+  TranscriptSegment,
+  UserContext,
+} from "rapid-cortex-shared";
 import { triageResultSchema } from "rapid-cortex-shared";
 import { AnalysisRepository } from "../repositories/analysisRepository.js";
 import { AgencyRepository } from "../repositories/agencyRepository.js";
@@ -9,6 +17,8 @@ import { makeId } from "../lib/ids.js";
 import { AUDIT_EVENT_TYPES } from "rapid-cortex-security";
 import { env } from "../lib/env.js";
 import { buildAnalysisDedupe, buildRetentionFields } from "../lib/retentionPolicy.js";
+import { classifyTranscript } from "../lib/triage/classifier.js";
+import { enqueueQueueItem } from "../lib/triage/queue-store.js";
 
 const analysisRepo = new AnalysisRepository();
 const agencyRepo = new AgencyRepository();
@@ -64,6 +74,38 @@ function inferTriage(segments: TranscriptSegment[]): TriageResult {
     headline: "General information triage",
     reasoning: "No strong non-emergency or emergency pattern matched; treat as informational until more context arrives.",
     tags: ["default"],
+  });
+}
+
+function mapClassificationToBucket(classification: TriageClassification): TriageResult["bucket"] {
+  switch (classification) {
+    case "NON_EMERGENCY":
+      return "routine_service";
+    case "UNCERTAIN":
+    case "EMERGENCY":
+    default:
+      return "escalate_voice";
+  }
+}
+
+function mapAiToTriageResult(ai: TriageAiClassification): TriageResult {
+  const bucket = mapClassificationToBucket(ai.classification);
+  const headline =
+    ai.classification === "NON_EMERGENCY"
+      ? `Non-emergency — ${ai.suggestedCategory}`
+      : ai.classification === "UNCERTAIN"
+        ? "Uncertain — treat as emergency"
+        : "Emergency classification";
+
+  return triageResultSchema.parse({
+    bucket,
+    confidence: ai.confidence / 100,
+    headline,
+    reasoning: ai.reasoning,
+    tags: [ai.classification.toLowerCase(), ai.suggestedPriority.toLowerCase()],
+    classification: ai.classification,
+    suggestedCategory: ai.suggestedCategory,
+    suggestedPriority: ai.suggestedPriority,
   });
 }
 
@@ -135,6 +177,29 @@ function mapBucketToAnalysisFields(bucket: TriageResult["bucket"]): Pick<
   }
 }
 
+function segmentsToAnalyzeEvent(
+  agencyId: string,
+  incidentId: string,
+  agencyName: string,
+  segments: TranscriptSegment[],
+  triageConfig: { enabled: boolean; nonEmergencyQueueEnabled?: boolean },
+): TriageAnalyzeEvent {
+  return {
+    agencyId,
+    incidentId,
+    agencyName,
+    segments: segments.map((s, i) => ({
+      speaker: s.speaker ?? "unknown",
+      text: s.text,
+      startMs: (s.segmentIndex ?? i) * 1000,
+    })),
+    agencyTriageConfig: {
+      enabled: triageConfig.enabled,
+      nonEmergencyQueueEnabled: triageConfig.nonEmergencyQueueEnabled ?? false,
+    },
+  };
+}
+
 export class TriageService {
   async getLatest(incidentId: string, user: UserContext): Promise<TriageResult | null> {
     const incident = await incidentRepo.get(incidentId);
@@ -157,10 +222,81 @@ export class TriageService {
     const tenant = await agencyRepo.get(user.agencyId);
     if (!tenant?.config.triage?.enabled) return;
 
-    await this.persist(incidentId, user, inferTriage(await transcriptRepo.listByIncident(incidentId)));
+    const segments = await transcriptRepo.listByIncident(incidentId);
+    let triage: TriageResult;
+    let aiMeta: TriageAiClassification | null = null;
+
+    try {
+      const event = segmentsToAnalyzeEvent(
+        user.agencyId,
+        incidentId,
+        tenant.name ?? user.agencyId,
+        segments,
+        tenant.config.triage,
+      );
+      aiMeta = await classifyTranscript(event);
+      triage = mapAiToTriageResult(aiMeta);
+    } catch (err) {
+      console.error(
+        JSON.stringify({
+          type: "triage.classifier_failed",
+          incidentId,
+          message: err instanceof Error ? err.message : String(err),
+        }),
+      );
+      triage = inferTriage(segments);
+    }
+
+    await this.persist(incidentId, user, triage, aiMeta);
+
+    if (
+      aiMeta?.classification === "NON_EMERGENCY" &&
+      tenant.config.triage?.nonEmergencyQueueEnabled &&
+      env.nonEmergencyQueueTable
+    ) {
+      try {
+        const now = aiMeta.processedAt;
+        const transcriptSummary = segments
+          .map((s) => s.text)
+          .join(" ")
+          .slice(0, 300);
+        const retentionDays = Number.parseInt(env.transcriptRetentionPolicyDays || "0", 10) || 0;
+        const ttl =
+          retentionDays > 0
+            ? Math.floor(Date.now() / 1000) + retentionDays * 86_400
+            : undefined;
+
+        await enqueueQueueItem({
+          agencyId: user.agencyId,
+          sk: `${now}#${incidentId}`,
+          incidentId,
+          classification: aiMeta.classification,
+          confidence: aiMeta.confidence,
+          reasoning: aiMeta.reasoning,
+          suggestedCategory: aiMeta.suggestedCategory,
+          suggestedPriority: aiMeta.suggestedPriority,
+          transcriptSummary,
+          queuedAt: now,
+          ttl,
+        });
+      } catch (enqueueErr) {
+        console.error(
+          JSON.stringify({
+            type: "triage.enqueue_failed",
+            incidentId,
+            message: enqueueErr instanceof Error ? enqueueErr.message : String(enqueueErr),
+          }),
+        );
+      }
+    }
   }
 
-  async persist(incidentId: string, user: UserContext, triage: TriageResult): Promise<AIAnalysis> {
+  async persist(
+    incidentId: string,
+    user: UserContext,
+    triage: TriageResult,
+    aiMeta?: TriageAiClassification | null,
+  ): Promise<AIAnalysis> {
     const incident = await incidentRepo.get(incidentId);
     if (!incident || incident.agencyId !== user.agencyId) {
       throw new Error("FORBIDDEN");
@@ -189,7 +325,7 @@ export class TriageService {
       summary: triage.headline,
       rationale: triage.reasoning,
       escalationFlag: mapped.escalationFlag,
-      provider: "triage-heuristic-v1",
+      provider: aiMeta?.mock ? "triage-mock-v1" : aiMeta ? "triage-bedrock-v1" : "triage-heuristic-v1",
       createdAt: now,
       triggerType: "auto",
       triggeredByUserId: user.userId,
@@ -202,8 +338,15 @@ export class TriageService {
       agencyId: user.agencyId,
       incidentId,
       actorId: user.userId,
-      type: AUDIT_EVENT_TYPES.TRIAGE_RECORDED,
-      details: { analysisId: row.analysisId, bucket: triage.bucket },
+      type: aiMeta ? AUDIT_EVENT_TYPES.TRIAGE_CLASSIFIED : AUDIT_EVENT_TYPES.TRIAGE_RECORDED,
+      details: {
+        analysisId: row.analysisId,
+        bucket: triage.bucket,
+        classification: triage.classification ?? null,
+        confidence: aiMeta?.confidence ?? Math.round(triage.confidence * 100),
+        mock: aiMeta?.mock ?? false,
+        segmentCount: aiMeta?.segmentCount ?? null,
+      },
       createdAt: now,
       resourceType: "analysis",
       resourceId: row.analysisId,

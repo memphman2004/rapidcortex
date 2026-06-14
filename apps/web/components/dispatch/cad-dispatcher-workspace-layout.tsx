@@ -2,8 +2,10 @@
 
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState, type ReactNode } from "react";
-import type { AIAnalysis, Incident, TranscriptSegment } from "rapid-cortex-shared";
+import { useQuery } from "@tanstack/react-query";
+import type { AIAnalysis, AggregateConfidence, ConfidenceAnalysis, Incident, TranscriptSegment } from "rapid-cortex-shared";
 import { AiRecommendationPanel } from "@/components/dispatch/ai-panel";
+import { ConfidenceMiniBar } from "@/components/confidence/confidence-mini-bar";
 import { CallerCardPanel } from "@/components/dispatch/caller-card-panel";
 import { IncidentJurisdictionSharePanel } from "@/components/dispatch/incident-jurisdiction-share-panel";
 import { IncidentQueue } from "@/components/dispatch/incident-queue";
@@ -14,9 +16,11 @@ import { DispatchActionPanel } from "@/components/dispatch/dispatch-action-panel
 import { ManualModeButton } from "@/components/dashboards/dispatcher-workspace-panels";
 import { SupervisorAssistPanel } from "@/components/dashboards/dispatcher-workspace-panels";
 import { CadReadyPanel } from "@/components/dashboards/dispatcher-workspace-panels";
-import { isApiConfigured } from "@/lib/api";
+import { isApiConfigured, fetchTriage } from "@/lib/api";
 import { formatRelativeOpened } from "@/lib/format";
 import { useJurisdictionLink } from "@/lib/jurisdiction-context";
+import { TriageBadge } from "@/components/triage/triage-badge";
+import { isFieldConfidenceEnabled, isNonEmergencyTriageEnabled } from "@/lib/runtime-flags";
 
 const CAD = {
   bg: "#0a0f1a",
@@ -152,10 +156,20 @@ function CadActionBarButton({
 function CadActiveIncidentCard({
   incident,
   analysis,
+  fieldConfidenceAggregate,
 }: {
   incident: Incident | null;
   analysis: AIAnalysis | null;
+  fieldConfidenceAggregate?: AggregateConfidence | null;
 }) {
+  const triageEnabled = Boolean(incident) && isNonEmergencyTriageEnabled() && isApiConfigured();
+  const triageQuery = useQuery({
+    queryKey: ["triage", incident?.incidentId ?? "none"],
+    queryFn: () => fetchTriage(incident!.incidentId),
+    enabled: triageEnabled,
+    refetchInterval: 10_000,
+  });
+
   if (!incident) {
     return (
       <div
@@ -169,6 +183,7 @@ function CadActiveIncidentCard({
     );
   }
   const pr = priorityFromUrgency(analysis?.urgency ?? incident.urgency);
+
   return (
     <div
       className="shrink-0 border-b px-3 py-3"
@@ -186,6 +201,14 @@ function CadActiveIncidentCard({
             >
               {pr.label}
             </span>
+            {triageEnabled ? (
+              <TriageBadge
+                incidentId={incident.incidentId}
+                result={triageQuery.data ?? null}
+                isAnalyzing={triageQuery.isLoading}
+                onOverrideSuccess={() => void triageQuery.refetch()}
+              />
+            ) : null}
           </div>
           <p className="text-sm font-medium leading-snug" style={{ color: CAD.text }}>
             {incident.title}
@@ -193,6 +216,11 @@ function CadActiveIncidentCard({
           <p className="font-mono text-xs" style={{ color: CAD.muted }}>
             {incident.category.replace(/_/g, " ")} · {incident.callerAddressLine?.trim() || "Location pending"}
           </p>
+          {isFieldConfidenceEnabled() && fieldConfidenceAggregate ? (
+            <div className="pt-1">
+              <ConfidenceMiniBar aggregate={fieldConfidenceAggregate} />
+            </div>
+          ) : null}
         </div>
         <dl className="shrink-0 space-y-1 text-right font-mono text-[11px]" style={{ color: CAD.muted }}>
           <div>
@@ -387,6 +415,9 @@ export function CadDispatcherWorkspaceLayout({
   loadErrorBanner,
   incidentForUi,
   analysisForUi,
+  fieldConfidenceForUi = null,
+  fieldConfidenceLoading = false,
+  fieldConfidenceAggregate = null,
   transcriptSegments,
   transcriptToolbar,
   transcriptAutoScroll,
@@ -417,6 +448,9 @@ export function CadDispatcherWorkspaceLayout({
   loadErrorBanner: ReactNode;
   incidentForUi: Incident | null;
   analysisForUi: AIAnalysis | null;
+  fieldConfidenceForUi?: ConfidenceAnalysis | null;
+  fieldConfidenceLoading?: boolean;
+  fieldConfidenceAggregate?: AggregateConfidence | null;
   transcriptSegments: TranscriptSegment[];
   transcriptToolbar: ReactNode;
   transcriptAutoScroll: boolean;
@@ -603,6 +637,9 @@ export function CadDispatcherWorkspaceLayout({
             emptyHint={queueEmptyHint}
             sectionTitle="My queue"
             outerClassName="flex min-h-0 min-h-0 flex-1 flex-col bg-transparent"
+            selectedFieldConfidenceAggregate={
+              isFieldConfidenceEnabled() ? fieldConfidenceAggregate : null
+            }
           />
         </div>
 
@@ -612,7 +649,11 @@ export function CadDispatcherWorkspaceLayout({
           className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden border-b lg:min-w-0 lg:max-w-none lg:flex-1 lg:border-b-0 lg:border-r"
           style={{ borderColor: CAD.border, background: CAD.bg }}
         >
-          <CadActiveIncidentCard incident={incidentForUi} analysis={analysisForUi} />
+          <CadActiveIncidentCard
+            incident={incidentForUi}
+            analysis={analysisForUi}
+            fieldConfidenceAggregate={fieldConfidenceAggregate}
+          />
           <div className="shrink-0 [&>div]:border-[#1f2937] [&>div]:bg-[#111827]">
             <IncidentTimelineStrip incident={incidentForUi ?? undefined} segments={transcriptSegments} analysis={analysisForUi ?? undefined} />
           </div>
@@ -644,6 +685,8 @@ export function CadDispatcherWorkspaceLayout({
               incidentId={selectedIdForPanels}
               incident={incidentForUi}
               analysis={analysisForUi}
+              fieldConfidence={fieldConfidenceForUi}
+              fieldConfidenceLoading={fieldConfidenceLoading}
               analysisError={analysisError}
               analysisLoading={analysisLoading}
               onRefresh={onRefreshAi}

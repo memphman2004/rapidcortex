@@ -1,5 +1,6 @@
 import { z } from "zod";
 import type { ProtocolGuidance } from "./protocol/types.js";
+import type { ConfidenceAnalysis } from "./confidence/types.js";
 import type { TriageResult } from "./triage/triage.js";
 import {
   AGENCY_ASSIGNABLE_ROLES,
@@ -274,7 +275,7 @@ export type AiAnalysisStatus = "success" | "partial" | "failed";
 export type AiAnalysisTriggerType = "manual" | "auto";
 
 /** Distinguishes auxiliary analysis-table rows from primary dispatch AI runs. */
-export type AnalysisRecordKind = "dispatch" | "triage";
+export type AnalysisRecordKind = "dispatch" | "triage" | "field_confidence";
 
 /**
  * Persisted triage / decision-support snapshot from an AI provider run.
@@ -288,6 +289,8 @@ export interface AIAnalysis {
   analysisRecordKind?: AnalysisRecordKind;
   /** F3 — structured non-emergency triage payload (present when `analysisRecordKind` is `triage`). */
   nonEmergencyTriage?: TriageResult;
+  /** Per-field incident picture confidence (present when `analysisRecordKind` is `field_confidence` or on dispatch rows). */
+  fieldConfidenceAnalysis?: ConfidenceAnalysis;
   category: IncidentCategory;
   urgency: UrgencyLevel;
   confidence: number;

@@ -1,17 +1,20 @@
 "use client";
 
-import type { Incident } from "rapid-cortex-shared";
+import type { AggregateConfidence, Incident } from "rapid-cortex-shared";
 import { CategoryBadge, StatusBadge, UrgencyBadge } from "@/components/dispatch/badges";
+import { ConfidenceMiniBar } from "@/components/confidence/confidence-mini-bar";
 import { formatRelativeOpened } from "@/lib/format";
 
 export function IncidentCard({
   incident,
   selected,
   onSelect,
+  fieldConfidenceAggregate = null,
 }: {
   incident: Incident;
   selected: boolean;
   onSelect: () => void;
+  fieldConfidenceAggregate?: AggregateConfidence | null;
 }) {
   return (
     <button
@@ -33,6 +36,11 @@ export function IncidentCard({
         <StatusBadge value={incident.status} />
         <span className="text-[11px] text-slate-500">{formatRelativeOpened(incident.createdAt)}</span>
       </div>
+      {fieldConfidenceAggregate ? (
+        <div className="mt-2">
+          <ConfidenceMiniBar aggregate={fieldConfidenceAggregate} />
+        </div>
+      ) : null}
     </button>
   );
 }

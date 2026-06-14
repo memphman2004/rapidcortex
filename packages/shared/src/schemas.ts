@@ -2,6 +2,7 @@ import { z } from "zod";
 import { cadPrioritySchema } from "./cad.js";
 import { protocolGuidanceSchema } from "./protocol/guidance-schema.js";
 import { triageResultSchema } from "./triage/triage.js";
+import { confidenceAnalysisSchema } from "./confidence/types.js";
 
 // --- Incident (HTTP) ----------------------------------------------------------
 
@@ -262,7 +263,7 @@ export const aiProviderAttemptRecordSchema = z.object({
 /**
  * Persisted `AIAnalysis` document shape (includes metadata not produced directly by LLM JSON).
  */
-export const analysisRecordKindSchema = z.enum(["dispatch", "triage"]);
+export const analysisRecordKindSchema = z.enum(["dispatch", "triage", "field_confidence"]);
 
 export const aiAnalysisRecordSchema = z.object({
   analysisId: z.string().min(1),
@@ -270,6 +271,7 @@ export const aiAnalysisRecordSchema = z.object({
   agencyId: z.string().min(1),
   analysisRecordKind: analysisRecordKindSchema.optional(),
   nonEmergencyTriage: triageResultSchema.optional(),
+  fieldConfidenceAnalysis: confidenceAnalysisSchema.optional(),
   category: incidentCategorySchema,
   urgency: urgencyLevelSchema,
   confidence: z.number().min(0).max(1),

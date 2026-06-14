@@ -10,6 +10,7 @@ import { CallLanguageSelectorBar } from "@/components/dispatch/call-language-sel
 import {
   isCallerCardEnabled,
   isCrossJurisdictionSharesUiEnabled,
+  isFieldConfidenceEnabled,
   isNonEmergencyTriageEnabled,
   isTrainingTranscriptToolbarEnabled,
 } from "@/lib/runtime-flags";
@@ -18,6 +19,7 @@ import {
   loadIncident,
   loadIncidents,
   loadLatestAnalysis,
+  loadLatestFieldConfidence,
   loadTranscript,
   runAnalysis,
 } from "@/lib/queries";
@@ -112,6 +114,17 @@ export function DashboardWorkspace() {
     gcTime: 5 * 60 * 1000,
   });
 
+  const fieldConfidenceEnabled = isFieldConfidenceEnabled();
+
+  const fieldConfidenceQuery = useQuery({
+    queryKey: ["field-confidence", selectedId],
+    queryFn: () => (selectedId ? loadLatestFieldConfidence(selectedId) : Promise.resolve(null)),
+    enabled: Boolean(selectedId) && fieldConfidenceEnabled,
+    staleTime: 2_500,
+    refetchInterval: fieldConfidenceEnabled ? 10_000 : false,
+    gcTime: 5 * 60 * 1000,
+  });
+
   const incidentForUi = useMemo(() => {
     const row = incidentQuery.data;
     if (!row || !selectedId || row.incidentId !== selectedId) return null;
@@ -123,6 +136,12 @@ export function DashboardWorkspace() {
     if (!row || !selectedId || row.incidentId !== selectedId) return null;
     return row;
   }, [analysisQuery.data, selectedId]);
+
+  const fieldConfidenceForUi = useMemo(() => {
+    const row = fieldConfidenceQuery.data;
+    if (!row || !selectedId || row.incidentId !== selectedId) return null;
+    return row;
+  }, [fieldConfidenceQuery.data, selectedId]);
 
   useEffect(() => {
     setIsRefreshingAi(false);
@@ -137,6 +156,9 @@ export function DashboardWorkspace() {
       const next = await runAnalysis(selectedId);
       queryClient.setQueryData(["analysis", selectedId], next);
       await queryClient.invalidateQueries({ queryKey: ["incident", selectedId] });
+      if (fieldConfidenceEnabled) {
+        await queryClient.invalidateQueries({ queryKey: ["field-confidence", selectedId] });
+      }
     } catch (e) {
       if (e instanceof AnalyzeIncidentError) {
         const code = e.body.errorCode ? `${e.body.errorCode}: ` : "";
@@ -206,6 +228,9 @@ export function DashboardWorkspace() {
       const next = await runAnalysis(selectedId);
       queryClient.setQueryData(["analysis", selectedId], next);
       await queryClient.invalidateQueries({ queryKey: ["incident", selectedId] });
+      if (fieldConfidenceEnabled) {
+        await queryClient.invalidateQueries({ queryKey: ["field-confidence", selectedId] });
+      }
     } catch (e) {
       if (e instanceof AnalyzeIncidentError) {
         const code = e.body.errorCode ? `${e.body.errorCode}: ` : "";
@@ -214,11 +239,14 @@ export function DashboardWorkspace() {
         setAnalysisError(e.message);
       }
     }
-  }, [selectedId, queryClient]);
+  }, [selectedId, queryClient, fieldConfidenceEnabled]);
 
   const detailLoading =
     Boolean(selectedId) &&
-    (incidentQuery.isLoading || transcriptQuery.isLoading || analysisQuery.isLoading);
+    (incidentQuery.isLoading ||
+      transcriptQuery.isLoading ||
+      analysisQuery.isLoading ||
+      (fieldConfidenceEnabled && fieldConfidenceQuery.isLoading));
 
   const loadError =
     incidentsQuery.isError || incidentQuery.isError || transcriptQuery.isError || analysisQuery.isError;
@@ -296,6 +324,15 @@ export function DashboardWorkspace() {
       }
       incidentForUi={incidentForUi}
       analysisForUi={analysisForUi}
+      fieldConfidenceForUi={fieldConfidenceForUi}
+      fieldConfidenceLoading={
+        fieldConfidenceEnabled &&
+        Boolean(selectedId) &&
+        (fieldConfidenceQuery.isPending ||
+          fieldConfidenceQuery.isFetching ||
+          Boolean(fieldConfidenceQuery.data && fieldConfidenceQuery.data.incidentId !== selectedId))
+      }
+      fieldConfidenceAggregate={fieldConfidenceForUi?.aggregate ?? null}
       transcriptSegments={transcriptQuery.data ?? []}
       transcriptToolbar={transcriptToolbar}
       transcriptAutoScroll={autoScroll}

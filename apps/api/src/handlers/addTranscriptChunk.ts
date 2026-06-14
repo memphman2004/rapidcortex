@@ -16,6 +16,7 @@ import { TranscriptRepository } from "../repositories/transcriptRepository.js";
 import { AnalysisService } from "../services/analysisService.js";
 import { SopService } from "../services/sopService.js";
 import { TriageService } from "../services/triageService.js";
+import { FieldConfidenceService } from "../services/fieldConfidenceService.js";
 import { WellnessService } from "../services/wellnessService.js";
 import { TranscriptService } from "../services/transcriptService.js";
 
@@ -24,6 +25,7 @@ const transcriptRepo = new TranscriptRepository();
 const analysisService = new AnalysisService();
 const sopService = new SopService();
 const triageService = new TriageService();
+const fieldConfidenceService = new FieldConfidenceService();
 const wellnessService = new WellnessService();
 
 export const handler: APIGatewayProxyHandlerV2 = async (event) => {
@@ -81,6 +83,15 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
     } catch (err) {
       const message = err instanceof Error ? err.message : String(err);
       console.error(JSON.stringify({ type: "transcript.triage_failed", incidentId, message }));
+    }
+
+    try {
+      await fieldConfidenceService.runAutoIfNeeded(incidentId, user, segmentCount);
+    } catch (err) {
+      const message = err instanceof Error ? err.message : String(err);
+      console.error(
+        JSON.stringify({ type: "transcript.field_confidence_failed", incidentId, message }),
+      );
     }
 
     const n = env.autoAnalyzeEveryNSegments;
