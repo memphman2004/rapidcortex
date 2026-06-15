@@ -109,4 +109,8 @@ phases:
         set -eu
         IMAGE_TAG="$(echo "${CODEBUILD_RESOLVED_SOURCE_VERSION:-manual}" | cut -c1-7)"
         docker push "${ECR_REGISTRY}:${IMAGE_TAG}"
-        docker push "${ECR_REGISTRY}:latest"
+        if docker image inspect "${ECR_REGISTRY}:latest" >/dev/null 2>&1; then
+          docker push "${ECR_REGISTRY}:latest"
+        else
+          echo "WARN: ${ECR_REGISTRY}:latest not present locally — skipping latest push (BUILD may have failed before docker tag)"
+        fi

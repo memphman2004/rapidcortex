@@ -68,7 +68,7 @@ const PRODUCTION_CONNECT_FALLBACK_APIS = [
 
 /** Third‑party embeds used on `/contact-sales` and similar pages (iframes + loader scripts). */
 const FORM_EMBED_SCRIPT_HOSTS =
-  "https://tally.so https://*.tally.so https://*.hubspot.com https://*.hsforms.com https://*.hs-scripts.com https://*.typeform.com https://*.calendly.com https://assets.calendly.com";
+  "https://tally.so https://*.tally.so https://*.hubspot.com https://*.hsforms.com https://*.hs-scripts.com https://*.typeform.com https://*.calendly.com https://assets.calendly.com https://www.googletagmanager.com";
 
 const YOUTUBE_EMBED_FRAME_SRC = [
   "https://www.youtube.com",

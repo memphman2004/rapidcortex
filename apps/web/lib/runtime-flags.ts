@@ -10,6 +10,7 @@ const NEXT_PUBLIC_FLAG_VALUES: Record<string, string | undefined> = {
   NEXT_PUBLIC_ENABLE_SOP_PROTOCOL_AI: process.env.NEXT_PUBLIC_ENABLE_SOP_PROTOCOL_AI,
   NEXT_PUBLIC_ENABLE_NON_EMERGENCY_TRIAGE: process.env.NEXT_PUBLIC_ENABLE_NON_EMERGENCY_TRIAGE,
   NEXT_PUBLIC_ENABLE_FIELD_CONFIDENCE: process.env.NEXT_PUBLIC_ENABLE_FIELD_CONFIDENCE,
+  NEXT_PUBLIC_ENABLE_PREDICTIVE_STAFFING: process.env.NEXT_PUBLIC_ENABLE_PREDICTIVE_STAFFING,
   NEXT_PUBLIC_ENABLE_DISPATCHER_WELLNESS: process.env.NEXT_PUBLIC_ENABLE_DISPATCHER_WELLNESS,
   NEXT_PUBLIC_ENABLE_CALLER_CARD: process.env.NEXT_PUBLIC_ENABLE_CALLER_CARD,
   NEXT_PUBLIC_ENABLE_SUPERVISOR_PERFORMANCE: process.env.NEXT_PUBLIC_ENABLE_SUPERVISOR_PERFORMANCE,
@@ -116,6 +117,11 @@ export function isSopProtocolEnabled(): boolean {
 /** F3 non-emergency triage (must match API ENABLE_NON_EMERGENCY_TRIAGE). */
 export function isNonEmergencyTriageEnabled(): boolean {
   return envFlag("NEXT_PUBLIC_ENABLE_NON_EMERGENCY_TRIAGE");
+}
+
+/** F6 predictive staffing intelligence (must match API ENABLE_PREDICTIVE_STAFFING). */
+export function isPredictiveStaffingEnabled(): boolean {
+  return envFlag("NEXT_PUBLIC_ENABLE_PREDICTIVE_STAFFING");
 }
 
 /** Per-field incident picture confidence (must match API ENABLE_FIELD_CONFIDENCE). */

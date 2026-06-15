@@ -81,6 +81,35 @@ export class IncidentRepository {
     return (result.Items as Incident[]) ?? [];
   }
 
+  async listByAgencySincePaginated(
+    agencyId: string,
+    sinceIso: string,
+    limit: number,
+    exclusiveStartKey?: string,
+  ): Promise<{ items: Incident[]; nextCursor?: string }> {
+    const result = await ddb.send(
+      new QueryCommand({
+        TableName: env.incidentsTable,
+        IndexName: "agencyId-createdAt-index",
+        KeyConditionExpression: "agencyId = :a AND createdAt >= :s",
+        ExpressionAttributeValues: {
+          ":a": agencyId,
+          ":s": sinceIso,
+        },
+        ScanIndexForward: false,
+        Limit: limit,
+        ExclusiveStartKey: exclusiveStartKey
+          ? (JSON.parse(exclusiveStartKey) as Record<string, unknown>)
+          : undefined,
+      }),
+    );
+    const items = (result.Items as Incident[]) ?? [];
+    const nextCursor = result.LastEvaluatedKey
+      ? JSON.stringify(result.LastEvaluatedKey)
+      : undefined;
+    return { items, nextCursor };
+  }
+
   async patchDispatchFields(
     incidentId: string,
     fields: {

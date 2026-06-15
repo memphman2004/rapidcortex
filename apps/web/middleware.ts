@@ -334,6 +334,9 @@ const RESERVED_FIRST_SEGMENTS = new Set<string>([
   "not-authorized",
   /** Vertical product shells (`/app/campus`, `/app/venue`, …). */
   "app",
+  /** Role hub + `(app)` dashboards — not a jurisdiction slug. */
+  "dashboard",
+  "dashboards",
   /** Native OAuth bridge + return-to-app (Hosted UI handoff). */
   "auth",
   /** Public SMS consent proof (toll-free verification). */
@@ -376,6 +379,44 @@ function parsePath(pathname: string) {
 }
 
 /** HTML manuals under `public/docs/` — same session as app routes. */
+async function guardDashboardHub(request: NextRequest): Promise<NextResponse> {
+  if (!isAuthConfigured()) {
+    return NextResponse.next();
+  }
+  const pathname = request.nextUrl.pathname;
+  const loginPath = marketingLoginPath();
+  const redirectToLogin = () => {
+    const login = resolveRedirectUrl(loginPath, request);
+    login.searchParams.set("from", `${pathname}${request.nextUrl.search}`);
+    return NextResponse.redirect(login);
+  };
+
+  const token = request.cookies.get(COOKIE_ID_TOKEN)?.value;
+  const refresh = request.cookies.get(COOKIE_REFRESH_TOKEN)?.value;
+  if (!token && !refresh) {
+    return redirectToLogin();
+  }
+
+  const user = token ? await verifyCognitoIdToken(token) : null;
+  if (!user && refresh) {
+    const bounce = resolveRedirectUrl("/api/auth/refresh-cookies", request);
+    bounce.searchParams.set("redirect_to", `${pathname}${request.nextUrl.search}`);
+    return NextResponse.redirect(bounce);
+  }
+  if (!user) {
+    return redirectToLogin();
+  }
+
+  const renewal = handleOperationalPasswordRenewalGate(
+    request,
+    user,
+    resolveRedirectUrl("/change-password", request),
+  );
+  if (renewal) return renewal;
+
+  return NextResponse.next();
+}
+
 async function guardAuthenticatedDocs(request: NextRequest): Promise<NextResponse> {
   const pathname = request.nextUrl.pathname;
   if (!isAuthConfigured()) {
@@ -870,6 +911,9 @@ export async function middleware(request: NextRequest) {
   }
   if (pathname === "/change-password" || pathname.startsWith("/change-password/")) {
     return guardStandaloneChangePasswordPage(request);
+  }
+  if (pathname === "/dashboard" || pathname.startsWith("/dashboard/")) {
+    return guardDashboardHub(request);
   }
   if (pathname === "/docs" || pathname.startsWith("/docs/")) {
     return guardAuthenticatedDocs(request);

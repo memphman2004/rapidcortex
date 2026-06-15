@@ -8,6 +8,7 @@ import { initiateUserPasswordAuth } from "@/lib/auth/cognito-user-password-auth"
 import { bootstrapPwdChangedAtIfClaimMissing } from "@/lib/server/cognito-password-metadata-sync";
 import { enforceCsrfProtection } from "@/lib/csrf";
 import { blockMobileAuthRequest } from "@/lib/auth/guards/blockMobileAuth";
+import { decodeJwtClaims, getPostAuthRedirect } from "@/lib/post-auth-redirect";
 
 export async function POST(request: Request) {
   const mobileBlock = blockMobileAuthRequest(request);
@@ -78,7 +79,19 @@ export async function POST(request: Request) {
       }
     }
 
-    const res = NextResponse.json({ ok: true });
+    const claims = decodeJwtClaims(idToken);
+    const { searchParams } = new URL(request.url);
+    const destination = getPostAuthRedirect(
+      {
+        role: claims["custom:role"] ?? "",
+        vertical: claims["custom:vertical"] ?? "",
+        agencyId: claims["custom:agencyId"] ?? "",
+        email: claims.email ?? email,
+      },
+      searchParams.get("next"),
+    );
+
+    const res = NextResponse.json({ ok: true, redirectTo: destination });
     applyCognitoAuthCookies(res, {
       IdToken: idToken,
       AccessToken: accessToken,

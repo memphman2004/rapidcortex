@@ -13,6 +13,8 @@ import {
   userMayAccessDashboardPrefix,
 } from "@/lib/dashboards/dashboard-access";
 import { defaultJurisdictionSlug } from "@/lib/marketing-links";
+import { getPostAuthRedirect } from "@/lib/post-auth-redirect";
+import { normalizeVerticalRoleToken } from "@/lib/role-routing";
 
 type CommercialUser = UserContext & {
   isSubscriber?: boolean;
@@ -39,12 +41,21 @@ export function extractCampusCode(agencyId: string): string {
 export function resolveProductDashboardFromRoleAndAgency(
   role: string | null | undefined,
   agencyId: string | null | undefined,
+  verticalClaim?: string | null,
 ): string {
-  const roleToken = normalizeRole(role);
+  const roleToken = normalizeVerticalRoleToken(normalizeRole(role));
   const agency = (agencyId ?? "").trim();
-  const vertical = verticalFromRole(roleToken);
+  const vertical = verticalClaim?.trim() || verticalFromRole(roleToken);
 
   if (vertical === "platform") return "";
+
+  if (vertical !== "911") {
+    return getPostAuthRedirect({
+      role: roleToken,
+      agencyId: agency,
+      vertical,
+    });
+  }
 
   const route = dashboardRouteFromRole(roleToken, agency);
   if (route !== "/not-authorized") return route;
@@ -72,7 +83,11 @@ export function resolvePostAuthenticationHomeHrefAfterPasswordChange(
   if (effective === "rcadmin" || isRcInternalOperator(user.role)) {
     return "/rc-admin/dashboard";
   }
-  const productHome = resolveProductDashboardFromRoleAndAgency(user.role, user.agencyId);
+  const productHome = resolveProductDashboardFromRoleAndAgency(
+    user.role,
+    user.agencyId,
+    user.vertical,
+  );
   if (productHome) return productHome;
   if (hasRapidCortexDashboardAccess(u)) return defaultDashboardHrefForRole(user.role, jurisdictionSlug);
   if (hasRcLitePortalAccess(u)) return "/rc-lite/portal";

@@ -36,6 +36,18 @@ export type WellnessAgencyConfig = {
   keywords: string[];
 };
 
+/** F6 — predictive staffing intelligence. */
+export type StaffingAgencyConfig = {
+  enabled: boolean;
+  forecastDays?: number;
+  shiftLengthHours?: number;
+  scheduledEvents?: Array<{
+    label: string;
+    date: string;
+    expectedVolumeMultiplier?: number;
+  }>;
+};
+
 /** Rapid Cortex staff onboarding checklist (stored per agency, platform-managed). */
 export const PLATFORM_ONBOARDING_STEP_IDS = [
   "tenant_created",
@@ -85,6 +97,7 @@ export interface AgencyConfig {
   branding?: BrandingConfig;
   sop?: SopAgencyConfig;
   triage?: TriageAgencyConfig;
+  staffing?: StaffingAgencyConfig;
   wellness?: WellnessAgencyConfig;
   /** Campus vertical — display, notifications, escalation, and public QR report form. */
   campus?: CampusAgencyConfig;

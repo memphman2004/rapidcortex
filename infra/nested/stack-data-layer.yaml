@@ -4353,6 +4353,61 @@
         ]
       }
     },
+    "StaffingForecastTable": {
+      "Type": "AWS::DynamoDB::Table",
+      "Properties": {
+        "BillingMode": {
+          "Ref": "DynamoBillingMode"
+        },
+        "TableName": {
+          "Fn::If": [
+            "HasDynamoTablePrefix",
+            {
+              "Fn::Sub": "${DynamoTableNamePrefix}-staffing-forecast-${DeploymentStage}"
+            },
+            {
+              "Ref": "AWS::NoValue"
+            }
+          ]
+        },
+        "PointInTimeRecoverySpecification": {
+          "PointInTimeRecoveryEnabled": {
+            "Fn::If": [
+              "DynamoPitrOn",
+              true,
+              false
+            ]
+          }
+        },
+        "SSESpecification": {
+          "SSEEnabled": true
+        },
+        "AttributeDefinitions": [
+          {
+            "AttributeName": "agencyId",
+            "AttributeType": "S"
+          },
+          {
+            "AttributeName": "forecastDate",
+            "AttributeType": "S"
+          }
+        ],
+        "KeySchema": [
+          {
+            "AttributeName": "agencyId",
+            "KeyType": "HASH"
+          },
+          {
+            "AttributeName": "forecastDate",
+            "KeyType": "RANGE"
+          }
+        ],
+        "TimeToLiveSpecification": {
+          "AttributeName": "ttl",
+          "Enabled": true
+        }
+      }
+    },
     "DispatcherCoachingNotesTable": {
       "Type": "AWS::DynamoDB::Table",
       "Properties": {
@@ -5829,6 +5884,12 @@
       "Description": "Physical table name for NonEmergencyQueueTable",
       "Value": {
         "Ref": "NonEmergencyQueueTable"
+      }
+    },
+    "StaffingForecastTable": {
+      "Description": "Physical table name for StaffingForecastTable",
+      "Value": {
+        "Ref": "StaffingForecastTable"
       }
     },
     "DispatcherCoachingNotesTable": {

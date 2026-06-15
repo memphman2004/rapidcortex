@@ -1,4 +1,4 @@
-import { GetCommand, PutCommand, UpdateCommand } from "@aws-sdk/lib-dynamodb";
+import { GetCommand, PutCommand, ScanCommand, UpdateCommand } from "@aws-sdk/lib-dynamodb";
 import type { AdobeSignAgreementType, PendingProvisionStatus } from "rapid-cortex-shared";
 import { ddb } from "./baseRepository.js";
 import { env } from "../lib/env.js";
@@ -68,5 +68,16 @@ export class PendingProvisionRepository {
         },
       }),
     );
+  }
+
+  async listRecent(limit = 200): Promise<PendingProvisionRecord[]> {
+    const out = await ddb.send(
+      new ScanCommand({
+        TableName: this.table(),
+        Limit: Math.min(Math.max(limit, 1), 500),
+      }),
+    );
+    const items = (out.Items as PendingProvisionRecord[] | undefined) ?? [];
+    return items.sort((a, b) => b.updatedAt.localeCompare(a.updatedAt));
   }
 }

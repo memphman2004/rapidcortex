@@ -3,6 +3,7 @@
 import { Fragment, useEffect, useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { canAccessRcRevenuePortal } from "rapid-cortex-shared/tenancy/principal";
+import { GenerateDraftInvoicesButton } from "@/components/billing/GenerateDraftInvoicesButton";
 import { fetchAgencies } from "@/lib/api";
 import { VERTICAL_CONFIG, deriveVerticalFromAgencyId, normalizeVertical, type Vertical } from "@/components/ui/VerticalBadge";
 import { isVerticalEnabled } from "@/lib/features";
@@ -171,20 +172,7 @@ export function RcAdminUsageTab({ userRole }: { userRole: string }) {
           >
             Export CSV
           </button>
-          {isSuperAdmin ? (
-            <button
-              type="button"
-              onClick={() =>
-                window.open(
-                  `/api/rc-admin/usage/export?yearMonth=${yearMonth}&format=billing`,
-                  "_blank",
-                )
-              }
-              className="rounded border border-emerald-700/50 bg-emerald-900/30 px-3 py-1.5 text-[11px] font-semibold text-emerald-200 hover:bg-emerald-900/50"
-            >
-              Export for Bill.com
-            </button>
-          ) : null}
+          {isSuperAdmin ? <GenerateDraftInvoicesButton yearMonth={yearMonth} /> : null}
         </div>
       </div>
 
@@ -438,9 +426,9 @@ export function RcAdminUsageTab({ userRole }: { userRole: string }) {
           Monthly billing workflow
         </p>
         <ol className="list-inside list-decimal space-y-1 text-xs text-slate-400">
-          <li>On the 1st of each month — export CSV for prior month</li>
-          <li>Review overage calls — add to invoice total</li>
-          <li>Create invoice in QuickBooks / Bill.com using the totals</li>
+          <li>On the 1st of each month — review prior month usage on this tab</li>
+          <li>Generate draft invoices from usage totals (base fee + overage per API key)</li>
+          <li>Review drafts at /rc-admin/invoices — adjust line items if needed</li>
           <li>Send to agency procurement contact — net 30 terms</li>
           <li>Upload signed PO to Billing POs section when received</li>
         </ol>

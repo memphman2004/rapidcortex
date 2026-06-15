@@ -107,6 +107,11 @@
       "types": "./dist/audit-schema.d.ts",
       "import": "./dist/audit-schema.js",
       "require": "./dist/audit-schema.js"
+    },
+    "./staffing": {
+      "types": "./dist/staffing/index.d.ts",
+      "import": "./dist/staffing/index.js",
+      "require": "./dist/staffing/index.js"
     }
   },
   "scripts": {

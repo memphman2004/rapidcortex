@@ -68,6 +68,8 @@ export interface UserContext {
   hospitalId?: string;
   /** Display name from `custom:firstName` / `custom:lastName` when present. */
   displayName?: string;
+  /** Cognito `custom:vertical` — campus, venue, hospital, transit product routing. */
+  vertical?: string;
 }
 
 export interface Incident {
@@ -358,6 +360,7 @@ export type AuditResourceType =
   | "platform_notice"
   | "sms_routing"
   | "sms_inbound"
+  | "staffing_forecast"
   | "unknown";
 
 /**

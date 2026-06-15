@@ -822,6 +822,11 @@ Resources:
             - HasDataLayerNestedStack
             - !GetAtt DataLayerStack.Outputs.NonEmergencyQueueTable
             - !Sub "${DynamoTableNamePrefix}-non-emergency-queue-${DeploymentStage}"
+        StaffingForecastTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.StaffingForecastTable
+            - !Sub "${DynamoTableNamePrefix}-staffing-forecast-${DeploymentStage}"
         QASessionsTable:
           Fn::If:
             - HasDataLayerNestedStack
@@ -1243,6 +1248,11 @@ Resources:
             - HasDataLayerNestedStack
             - !GetAtt DataLayerStack.Outputs.PlatformNoticeAcksTable
             - !Sub "${DynamoTableNamePrefix}-platform-notice-acks-${DeploymentStage}"
+        PendingProvisionsTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.PendingProvisionsTable
+            - !Sub "${DynamoTableNamePrefix}-pending-provisions-${DeploymentStage}"
         QASessionsTable:
           Fn::If:
             - HasDataLayerNestedStack
@@ -1598,6 +1608,11 @@ Resources:
             - HasDataLayerNestedStack
             - !GetAtt DataLayerStack.Outputs.PlatformNoticeAcksTable
             - !Sub "${DynamoTableNamePrefix}-platform-notice-acks-${DeploymentStage}"
+        PendingProvisionsTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.PendingProvisionsTable
+            - !Sub "${DynamoTableNamePrefix}-pending-provisions-${DeploymentStage}"
         QASessionsTable:
           Fn::If:
             - HasDataLayerNestedStack

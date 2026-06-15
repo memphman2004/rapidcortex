@@ -669,6 +669,9 @@ Parameters:
   NonEmergencyQueueTable:
     Type: String
     Description: Physical DynamoDB table name from data layer (NonEmergencyQueueTable).
+  StaffingForecastTable:
+    Type: String
+    Description: Physical DynamoDB table name from data layer (StaffingForecastTable).
   DispatcherCoachingNotesTable:
     Type: String
     Description: Physical DynamoDB table name from data layer (DispatcherCoachingNotesTable).
@@ -978,7 +981,7 @@ Globals:
     Environment:
       Variables:
         RC_RUNTIME_CONFIG_JSON: !Sub
-          - '{"ds":"${DeploymentStage}","trp":"${TranscriptRetentionPolicyDays}","it":"${IncidentsTable}","tt":"${TranscriptsTable}","at":"${AnalysesTable}","aud":"${AuditTable}","dda":"${DataDeletionAuditTable}","drp":"cjis-default-v1","ag":"${AgenciesTable}","iv":"${InvitesTable}","ao":"${AccessOverridesTable}","neo":"${NetworkEmergencyOverridesTable}","ans":"","nae":"false","waf":"${WafArn}","wsc":"REGIONAL","ac":"${ApiClientsTable}","wh":"${WebhooksTable}","erl":"${ExternalApiRateLimitsTable}","rle":"true","rak":"${RcLiteApiKeysTable}","rrl":"${RcLiteRateLimitTable}","rlu":"${RcLiteUsageTable}","sit":"${SeoIntelligenceTable}","ste":"${SeoToolEnabled}","sae":"${SeoAutoScanEnabled}","sai":"${SeoAiSuggestionsEnabled}","det":"${DeceptionEventsTable}","dse":"${PilotDeceptionShield}","dae":"false","dal":"true","ops":"${OpsAlertsTopic}","ej":"${ExternalApiJwtSecretArn}","ek":"${ExternalApiEncryptionKeyArn}","pma":"60","peg":"0","pcf":"true","ab":"${AssetsBucket}","ls":"${LanguageSessionsTable}","aef":"true","asm":"true","apv":"dispatch-triage-v1","art":"55000","amr":"1","adb":"0","amh":"120","asu":"true","ail":"90","oa":"${OpenAiApiKeySecretArn}","aa":"${AnthropicApiKeySecretArn}","aas":"0","aua":"false","aco":"${HttpApiCorsAllowedOrigins}","eqs":"${PilotEnableQaScoring}","eqa":"${PilotEnableQaAfterAnalysis}","qss":"${QASessionsTable}","qts":"${QATemplatesTable}","qsm":"${PilotQaScoringMock}","qbm":"${QaBedrockModelId}","br":"${AWSRegion}","eim":"${PilotEnableIncidentMedia}","imt":"${IncidentMediaTable}","imp":"","imn":"120","imu":"900","imx":"52428800","ent":"${PilotEnableNonEmergencyTriage}","tdn":"${PilotTriageDetectEveryNSegments}","tmk":"${PilotTriageMock}","neq":"${NonEmergencyQueueTable}","efc":"${PilotEnableFieldConfidence}","csn":"${PilotConfidenceScoreEveryNSegments}","csm":"${PilotConfidenceScoringMock}","tft":"${TraumaFlagsTable}","pn":"${PremiseNotesTable}","dcn":"${DispatcherCoachingNotesTable}","itl":"${IncidentTimelineTable}","ish":"${IncidentSharesTable}","asp":"${AgencySharePartnersTable}","lp":"${LanguageProvider}","cr":"${AWSRegion}","cwe":"${CadWritebackEnabled}","cwr":"${CadWritebackRequiresApproval}","cwa":"${CadWritebackAuditTable}","bp":"${BillingProfilesTable}","inv":"${InvoicesTable}","ii":"${InvoiceItemsTable}","bae":"${BillingAuditEventsTable}","mao":"${MonetizationAddOnsTable}","minv":"${MonetizationInvoicesTable}","slt":"${SalesLeadsTable}","cfe":"support@rapidcortex.us"}'
+          - '{"ds":"${DeploymentStage}","trp":"${TranscriptRetentionPolicyDays}","it":"${IncidentsTable}","tt":"${TranscriptsTable}","at":"${AnalysesTable}","aud":"${AuditTable}","dda":"${DataDeletionAuditTable}","drp":"cjis-default-v1","ag":"${AgenciesTable}","iv":"${InvitesTable}","ao":"${AccessOverridesTable}","neo":"${NetworkEmergencyOverridesTable}","ans":"","nae":"false","waf":"${WafArn}","wsc":"REGIONAL","ac":"${ApiClientsTable}","wh":"${WebhooksTable}","erl":"${ExternalApiRateLimitsTable}","rle":"true","rak":"${RcLiteApiKeysTable}","rrl":"${RcLiteRateLimitTable}","rlu":"${RcLiteUsageTable}","sit":"${SeoIntelligenceTable}","ste":"${SeoToolEnabled}","sae":"${SeoAutoScanEnabled}","sai":"${SeoAiSuggestionsEnabled}","det":"${DeceptionEventsTable}","dse":"${PilotDeceptionShield}","dae":"false","dal":"true","ops":"${OpsAlertsTopic}","ej":"${ExternalApiJwtSecretArn}","ek":"${ExternalApiEncryptionKeyArn}","pma":"60","peg":"0","pcf":"true","ab":"${AssetsBucket}","ls":"${LanguageSessionsTable}","aef":"true","asm":"true","apv":"dispatch-triage-v1","art":"55000","amr":"1","adb":"0","amh":"120","asu":"true","ail":"90","oa":"${OpenAiApiKeySecretArn}","aa":"${AnthropicApiKeySecretArn}","aas":"0","aua":"false","aco":"${HttpApiCorsAllowedOrigins}","eqs":"${PilotEnableQaScoring}","eqa":"${PilotEnableQaAfterAnalysis}","qss":"${QASessionsTable}","qts":"${QATemplatesTable}","qsm":"${PilotQaScoringMock}","qbm":"${QaBedrockModelId}","br":"${AWSRegion}","eim":"${PilotEnableIncidentMedia}","imt":"${IncidentMediaTable}","imp":"","imn":"120","imu":"900","imx":"52428800","ent":"${PilotEnableNonEmergencyTriage}","tdn":"${PilotTriageDetectEveryNSegments}","tmk":"${PilotTriageMock}","neq":"${NonEmergencyQueueTable}","efc":"${PilotEnableFieldConfidence}","csn":"${PilotConfidenceScoreEveryNSegments}","csm":"${PilotConfidenceScoringMock}","eps":"${PilotEnablePredictiveStaffing}","psm":"${PilotPredictiveStaffingMock}","sft":"${StaffingForecastTable}","tft":"${TraumaFlagsTable}","pn":"${PremiseNotesTable}","dcn":"${DispatcherCoachingNotesTable}","itl":"${IncidentTimelineTable}","ish":"${IncidentSharesTable}","asp":"${AgencySharePartnersTable}","lp":"${LanguageProvider}","cr":"${AWSRegion}","cwe":"${CadWritebackEnabled}","cwr":"${CadWritebackRequiresApproval}","cwa":"${CadWritebackAuditTable}","bp":"${BillingProfilesTable}","inv":"${InvoicesTable}","ii":"${InvoiceItemsTable}","bae":"${BillingAuditEventsTable}","mao":"${MonetizationAddOnsTable}","minv":"${MonetizationInvoicesTable}","slt":"${SalesLeadsTable}","cfe":"support@rapidcortex.us"}'
           -
             AWSRegion: !Ref AWS::Region
             AccessOverridesTable: !Ref AccessOverridesTable
@@ -1018,6 +1021,7 @@ Globals:
             OpsAlertsTopic: !Ref OpsAlertsTopic
             PremiseNotesTable: !Ref PremiseNotesTable
             NonEmergencyQueueTable: !Ref NonEmergencyQueueTable
+            StaffingForecastTable: !Ref StaffingForecastTable
             QASessionsTable: !Ref QASessionsTable
             QATemplatesTable: !Ref QATemplatesTable
             QaBedrockModelId: !Ref QaBedrockModelId
@@ -1039,6 +1043,8 @@ Globals:
             PilotEnableFieldConfidence: !If [PilotTestFeaturesOn, "true", "false"]
             PilotConfidenceScoreEveryNSegments: !If [PilotTestFeaturesOn, "5", "0"]
             PilotConfidenceScoringMock: !If [PilotTestFeaturesOn, "true", "false"]
+            PilotEnablePredictiveStaffing: !If [PilotTestFeaturesOn, "true", "false"]
+            PilotPredictiveStaffingMock: !If [PilotTestFeaturesOn, "true", "false"]
             PilotDeceptionShield: !If [PilotTestFeaturesOn, "true", "false"]
             TranscriptRetentionPolicyDays: !Ref TranscriptRetentionPolicyDays
             TranscriptsTable: !Ref TranscriptsTable
@@ -1193,6 +1199,8 @@ Resources:
                 - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${PremiseNotesTable}/index/*
                 - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${NonEmergencyQueueTable}
                 - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${NonEmergencyQueueTable}/index/*
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${StaffingForecastTable}
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${StaffingForecastTable}/index/*
                 - !If
                   - HasRingAccountsTable
                   - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${RingAccountsTable}
@@ -2136,34 +2144,31 @@ Resources:
       MemorySize: 768
       Environment:
         Variables:
+          # 4KB Lambda env limit — same slim set as PostIncidentAudioChunkFunction; table/AI
+          # config hydrates from RC_RUNTIME_CONFIG_JSON via hydrateLambdaEnv.ts.
           COGNITO_USER_POOL_ID: !Ref CognitoUserPool
           COGNITO_CLIENT_ID: !Ref CognitoUserPoolClient
           MULTILINGUAL_STRICT_VALIDATION: !FindInMap [MultilingualStageDefaults, !Ref DeploymentStage, StrictValidation]
-          AWS_TRANSCRIBE_LANGUAGE_IDENTIFICATION: "true"
-          AWS_TRANSCRIBE_PREFERRED_LANGUAGE_OPTIONS: ""
-          AWS_TRANSCRIBE_TIMEOUT_MS: "0"
-          AWS_TRANSCRIBE_ENABLE_PARTIAL_RESULTS: "false"
-          AWS_TRANSCRIBE_LANGUAGE_OPTIONS: "en-US,es-US,zh-CN,tl-PH,vi-VN,ar-SA,fr-FR,ko-KR,ru-RU,pt-BR"
-          BEDROCK_MODEL_PRIMARY: !Ref AiBedrockFoundationModelId
-          BEDROCK_MODEL_SECONDARY: !Ref AiBedrockFoundationModelId
-          BEDROCK_MODEL_TERTIARY: !Ref AiBedrockFoundationModelId
-          GOOGLE_CLOUD_PROJECT_ID: !Ref GoogleCloudProjectId
+          PRIMARY_STT_PROVIDER: !FindInMap [ApiLambdaDefaults, !Ref DeploymentStage, Stt1]
+          SECONDARY_STT_PROVIDER: !FindInMap [ApiLambdaDefaults, !Ref DeploymentStage, Stt2]
+          TERTIARY_STT_PROVIDER: !FindInMap [ApiLambdaDefaults, !Ref DeploymentStage, Stt3]
+          PRIMARY_LANGUAGE_DETECTOR: !FindInMap [ApiLambdaDefaults, !Ref DeploymentStage, Lid1]
+          SECONDARY_LANGUAGE_DETECTOR: !FindInMap [ApiLambdaDefaults, !Ref DeploymentStage, Lid2]
+          TERTIARY_LANGUAGE_DETECTOR: !FindInMap [ApiLambdaDefaults, !Ref DeploymentStage, Lid3]
+          PRIMARY_TRANSLATION_PROVIDER: !FindInMap [ApiLambdaDefaults, !Ref DeploymentStage, Tr1]
+          SECONDARY_TRANSLATION_PROVIDER: !FindInMap [ApiLambdaDefaults, !Ref DeploymentStage, Tr2]
+          TERTIARY_TRANSLATION_PROVIDER: !FindInMap [ApiLambdaDefaults, !Ref DeploymentStage, Tr3]
           GOOGLE_TRANSLATE_LOCATION: "global"
-          GOOGLE_TTS_LOCATION: "global"
-          GOOGLE_TTS_OUTPUT_BUCKET: !Ref GoogleTtsOutputBucket
-          SILENT_TEXT_TRANSLATION_ENABLED: "true"
-          SILENT_TEXT_TTS_ENABLED: "false"
           AZURE_SPEECH_KEY_SECRET_ARN: !If [UseManagedMultilingualSecrets, !Ref NestedMultilingualAzureApiKeysSecretArn, !Ref AzureSpeechKeySecretArn]
-          AZURE_TRANSLATION_KEY_SECRET_ARN: !If [UseManagedMultilingualSecrets, !Ref NestedMultilingualAzureApiKeysSecretArn, !Ref AzureTranslationKeySecretArn]
-          GOOGLE_APPLICATION_CREDENTIALS_SECRET_ARN: !If [UseManagedMultilingualSecrets, !Ref NestedMultilingualGoogleServiceAccountSecretArn, !Ref GoogleApplicationCredentialsSecretArn]
       Policies:
         - !Ref AppManagedPolicyDynamoLambdaCrudShardA
         - !Ref AppManagedPolicyDynamoLambdaCrudShardB
         - !Ref AppManagedPolicyDynamoLambdaCrudShardC
         - !Ref AppManagedPolicyS3ApplicationBucketsCrud
-        - !Ref AppManagedPolicySecretsMultilingualScopedRead
-        - !Ref AppManagedPolicyBedrockAiAndQaFoundationModels
         - !Ref AppManagedPolicyComprehendTranslateRegionalDetect
+        - !Ref AppManagedPolicySecretsMultilingualScopedRead
+        - !Ref AppManagedPolicySecretsAnalyzeProvidersRead
+        - !Ref AppManagedPolicyBedrockAiAndQaFoundationModels
       Events:
         Route:
           Type: HttpApi
@@ -2513,6 +2518,44 @@ Resources:
             ApiId: !Ref Api
             Path: /api/triage/override
             Method: POST
+
+  StaffingForecastFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      Handler: dist/handlers/staffing/forecastHttp.handler
+      Timeout: 120
+      MemorySize: 512
+      Environment:
+        Variables:
+          COGNITO_USER_POOL_ID: !Ref CognitoUserPool
+          COGNITO_CLIENT_ID: !Ref CognitoUserPoolClient
+      CodeUri: ../../apps/api/
+      Policies:
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardA
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardB
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardC
+        - !Ref AppManagedPolicyBedrockAiAndQaFoundationModels
+      Events:
+        GetForecast:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/staffing/forecast
+            Method: GET
+        PostGenerateForecast:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/staffing/forecast/generate
+            Method: POST
+        WeeklyStaffingGenerate:
+          Type: Schedule
+          Properties:
+            Schedule: cron(0 2 ? * SUN *)
+            Input: '{"source":"aws.events","action":"generate"}'
 
   PostCadWritebackBlockedFunction:
     Type: AWS::Serverless::Function

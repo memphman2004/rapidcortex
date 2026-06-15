@@ -306,3 +306,30 @@ export type BillingPaymentMethod = z.infer<typeof billingPaymentMethodSchema>;
 export type CreatePaymentRecordInput = z.infer<typeof createPaymentRecordBodySchema>;
 export type AdminInvoicesListQuery = z.infer<typeof adminInvoicesListQuerySchema>;
 export type PatchAdminMonetizationInvoiceBody = z.infer<typeof patchAdminMonetizationInvoiceBodySchema>;
+
+export const bulkDraftInvoicesBodySchema = z
+  .object({
+    yearMonth: z.string().regex(/^\d{4}-\d{2}$/, "yearMonth must be YYYY-MM"),
+    dryRun: z.boolean().optional().default(false),
+  })
+  .strict();
+
+export const bulkDraftInvoicePreviewSchema = z.object({
+  invoiceId: z.string(),
+  agencyId: z.string(),
+  agencyName: z.string(),
+  total: z.number(),
+  lineItemCount: z.number(),
+});
+
+export const bulkDraftInvoicesResultSchema = z.object({
+  yearMonth: z.string(),
+  dryRun: z.boolean(),
+  created: z.number(),
+  skipped: z.number(),
+  errors: z.array(z.string()),
+  invoices: z.array(bulkDraftInvoicePreviewSchema),
+});
+
+export type BulkDraftInvoicesInput = z.infer<typeof bulkDraftInvoicesBodySchema>;
+export type BulkDraftInvoicesResult = z.infer<typeof bulkDraftInvoicesResultSchema>;

@@ -995,7 +995,7 @@ Globals:
     Environment:
       Variables:
         RC_RUNTIME_CONFIG_JSON: !Sub
-          - '{"ds":"${DeploymentStage}","trp":"${TranscriptRetentionPolicyDays}","it":"${IncidentsTable}","tt":"${TranscriptsTable}","at":"${AnalysesTable}","aud":"${AuditTable}","dda":"${DataDeletionAuditTable}","drp":"cjis-default-v1","ag":"${AgenciesTable}","iv":"${InvitesTable}","ao":"${AccessOverridesTable}","neo":"${NetworkEmergencyOverridesTable}","ans":"${AgencyNetworkPolicySyncTopic}","nae":"false","waf":"${WafArn}","wsc":"REGIONAL","ac":"${ApiClientsTable}","wh":"${WebhooksTable}","erl":"${ExternalApiRateLimitsTable}","rle":"true","rak":"${RcLiteApiKeysTable}","rrl":"${RcLiteRateLimitTable}","rlu":"${RcLiteUsageTable}","sit":"${SeoIntelligenceTable}","ste":"${SeoToolEnabled}","sae":"${SeoAutoScanEnabled}","sai":"${SeoAiSuggestionsEnabled}","det":"${DeceptionEventsTable}","dse":"${PilotDeceptionShield}","dae":"false","dal":"true","ops":"${OpsAlertsTopic}","ej":"${ExternalApiJwtSecretArn}","ek":"${ExternalApiEncryptionKeyArn}","pma":"60","peg":"0","pcf":"true","ab":"${AssetsBucket}","ls":"${LanguageSessionsTable}","aef":"true","asm":"true","apv":"dispatch-triage-v1","art":"55000","amr":"1","adb":"0","amh":"120","asu":"true","ail":"90","oa":"${OpenAiApiKeySecretArn}","aa":"${AnthropicApiKeySecretArn}","aas":"0","aua":"false","aco":"${HttpApiCorsAllowedOrigins}","eqs":"${PilotEnableQaScoring}","eqa":"${PilotEnableQaAfterAnalysis}","qss":"${QASessionsTable}","qts":"${QATemplatesTable}","qsm":"${PilotQaScoringMock}","qbm":"${QaBedrockModelId}","br":"${AWSRegion}","eim":"${PilotEnableIncidentMedia}","imt":"${IncidentMediaTable}","imp":"","imn":"120","imu":"900","imx":"52428800","ent":"${PilotEnableNonEmergencyTriage}","tft":"${TraumaFlagsTable}","pn":"${PremiseNotesTable}","dcn":"${DispatcherCoachingNotesTable}","itl":"${IncidentTimelineTable}","ish":"${IncidentSharesTable}","asp":"${AgencySharePartnersTable}","lp":"${LanguageProvider}","cr":"${AWSRegion}","cwe":"${CadWritebackEnabled}","cwr":"${CadWritebackRequiresApproval}","cwa":"${CadWritebackAuditTable}","bp":"${BillingProfilesTable}","inv":"${InvoicesTable}","ii":"${InvoiceItemsTable}","bae":"${BillingAuditEventsTable}","mao":"${MonetizationAddOnsTable}","minv":"${MonetizationInvoicesTable}","slt":"${SalesLeadsTable}","cfe":"support@rapidcortex.us"}'
+          - '{"ds":"${DeploymentStage}","trp":"${TranscriptRetentionPolicyDays}","it":"${IncidentsTable}","tt":"${TranscriptsTable}","at":"${AnalysesTable}","aud":"${AuditTable}","dda":"${DataDeletionAuditTable}","drp":"cjis-default-v1","ag":"${AgenciesTable}","iv":"${InvitesTable}","ao":"${AccessOverridesTable}","neo":"${NetworkEmergencyOverridesTable}","ans":"${AgencyNetworkPolicySyncTopic}","nae":"false","waf":"${WafArn}","wsc":"REGIONAL","ac":"${ApiClientsTable}","wh":"${WebhooksTable}","erl":"${ExternalApiRateLimitsTable}","rle":"true","rak":"${RcLiteApiKeysTable}","rrl":"${RcLiteRateLimitTable}","rlu":"${RcLiteUsageTable}","sit":"${SeoIntelligenceTable}","ste":"${SeoToolEnabled}","sae":"${SeoAutoScanEnabled}","sai":"${SeoAiSuggestionsEnabled}","det":"${DeceptionEventsTable}","dse":"${PilotDeceptionShield}","dae":"false","dal":"true","ops":"${OpsAlertsTopic}","ej":"${ExternalApiJwtSecretArn}","ek":"${ExternalApiEncryptionKeyArn}","pma":"60","peg":"0","pcf":"true","ab":"${AssetsBucket}","ls":"${LanguageSessionsTable}","aef":"true","asm":"true","apv":"dispatch-triage-v1","art":"55000","amr":"1","adb":"0","amh":"120","asu":"true","ail":"90","oa":"${OpenAiApiKeySecretArn}","aa":"${AnthropicApiKeySecretArn}","aas":"0","aua":"false","aco":"${HttpApiCorsAllowedOrigins}","eqs":"${PilotEnableQaScoring}","eqa":"${PilotEnableQaAfterAnalysis}","qss":"${QASessionsTable}","qts":"${QATemplatesTable}","qsm":"${PilotQaScoringMock}","qbm":"${QaBedrockModelId}","br":"${AWSRegion}","eim":"${PilotEnableIncidentMedia}","imt":"${IncidentMediaTable}","imp":"","imn":"120","imu":"900","imx":"52428800","ent":"${PilotEnableNonEmergencyTriage}","tft":"${TraumaFlagsTable}","pn":"${PremiseNotesTable}","dcn":"${DispatcherCoachingNotesTable}","itl":"${IncidentTimelineTable}","ish":"${IncidentSharesTable}","asp":"${AgencySharePartnersTable}","lp":"${LanguageProvider}","cr":"${AWSRegion}","cwe":"${CadWritebackEnabled}","cwr":"${CadWritebackRequiresApproval}","cwa":"${CadWritebackAuditTable}","bp":"${BillingProfilesTable}","inv":"${InvoicesTable}","ii":"${InvoiceItemsTable}","bae":"${BillingAuditEventsTable}","mao":"${MonetizationAddOnsTable}","minv":"${MonetizationInvoicesTable}","slt":"${SalesLeadsTable}","sct":"${ServiceCatalogTable}","cfe":"support@rapidcortex.us"}'
           -
             AWSRegion: !Ref AWS::Region
             AccessOverridesTable: !Ref AccessOverridesTable
@@ -1042,6 +1042,7 @@ Globals:
             RcLiteRateLimitTable: !Ref RcLiteRateLimitTable
             RcLiteUsageTable: !Ref RcLiteUsageTable
             SalesLeadsTable: !Ref SalesLeadsTable
+            ServiceCatalogTable: !Ref ServiceCatalogTable
             SeoAiSuggestionsEnabled: !Ref SeoAiSuggestionsEnabled
             SeoAutoScanEnabled: !Ref SeoAutoScanEnabled
             SeoIntelligenceTable: !Ref SeoIntelligenceTable
@@ -2598,6 +2599,31 @@ Resources:
             ApiId: !Ref Api
             Path: /api/billing/invoices/{proxy+}
             Method: ANY
+
+  BulkDraftInvoicesHttpFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      Environment:
+        Variables:
+          COGNITO_USER_POOL_ID: !Ref ImportedCognitoUserPoolId
+          COGNITO_CLIENT_ID: !Ref ImportedCognitoWebClientId
+      CodeUri: ../../apps/api/
+      Handler: dist/handlers/billing/bulkDraftInvoices.handler
+      Timeout: 30
+      Policies:
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardA
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardB
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardC
+      Events:
+        BulkDraftInvoicesPost:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/rc-admin/invoices/bulk-draft
+            Method: POST
 
   BillingSchedulesHttpFunction:
     Type: AWS::Serverless::Function

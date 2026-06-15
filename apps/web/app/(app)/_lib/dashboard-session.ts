@@ -4,6 +4,8 @@ import { decodeJwt } from "jose";
 import { cookies } from "next/headers";
 import { forbidden, redirect } from "next/navigation";
 import type { UserContext } from "rapid-cortex-shared/types";
+import { PLATFORM_AGENCY_ID } from "rapid-cortex-shared/tenancy/constants";
+import { isRcInternalOperator, isRcsuperadmin } from "rapid-cortex-shared/tenancy/principal";
 import {
   deriveVerticalFromAgencyId,
   normalizeVertical,
@@ -77,6 +79,24 @@ export function dashboardPathForRoute(route: DashboardRouteKey): string {
   return `/dashboards/${route}`;
 }
 
+function safeDecodeJwt(token: string): Record<string, unknown> {
+  try {
+    return decodeJwt(token) as Record<string, unknown>;
+  } catch {
+    return {};
+  }
+}
+
+function resolveAgencyIdForSession(user: UserContext, payload: Record<string, unknown>): string {
+  const fromClaim = asString(payload["custom:agencyId"]);
+  const merged = fromClaim || user.agencyId?.trim() || "";
+  if (merged) return merged;
+  if (isRcsuperadmin(user) || isRcInternalOperator(user.role)) {
+    return PLATFORM_AGENCY_ID;
+  }
+  return "";
+}
+
 export async function getAppDashboardSession(): Promise<AppDashboardSession> {
   const user = await getDashboardSessionUser();
   if (!user) {
@@ -85,11 +105,14 @@ export async function getAppDashboardSession(): Promise<AppDashboardSession> {
 
   const jar = await cookies();
   const idToken = jar.get(COOKIE_ID_TOKEN)?.value;
-  const payload = idToken ? decodeJwt(idToken) : {};
+  const payload = idToken ? safeDecodeJwt(idToken) : {};
 
   const claimRole = asString(payload["custom:role"]);
   const role = claimRole || user.role;
-  const agencyId = asString(payload["custom:agencyId"]) || user.agencyId;
+  const agencyId = resolveAgencyIdForSession(user, payload);
+  if (!agencyId) {
+    redirect("/unauthorized?reason=missing_agency");
+  }
   const claimVertical = asString(payload["custom:vertical"]);
   const vertical = claimVertical
     ? normalizeVertical(claimVertical)

@@ -58,6 +58,15 @@ downloads_html_has_marketing_markers() {
   grep -qi 'Download for Mac' <<<"${html}" && grep -qi 'Download for Windows' <<<"${html}" && return 0
   grep -qiE 'downloads\.rapidcortex\.us/(mac|windows)' <<<"${html}" && return 0
   grep -qi 'Desktop installers' <<<"${html}" && grep -qiE 'rc.?lite|RC[[:space:]]*Lite' <<<"${html}" && return 0
+  # SSR app (app.rapidcortex.us) redirects marketing routes to static www host
+  grep -qiE 'www\.rapidcortex\.us/downloads' <<<"${html}" && return 0
+  return 1
+}
+
+marketing_html_has_rc_lite_markers() {
+  local html="$1"
+  grep -qiE 'RC[[:space:]]*Lite|rc-lite' <<<"${html}" && return 0
+  grep -qiE 'www\.rapidcortex\.us/rc-lite' <<<"${html}" && return 0
   return 1
 }
 
@@ -174,6 +183,8 @@ TESTS_PASSED=0
 TESTS_FAILED=0
 
 curl_base=(curl -sS -m "${TIMEOUT}" --retry "${MAX_RETRIES}" --retry-connrefused)
+# Follow redirects for marketing pages (SSR app → www.rapidcortex.us static host).
+curl_marketing=(curl -sS -m "${TIMEOUT}" --retry "${MAX_RETRIES}" --retry-connrefused -L)
 
 test_endpoint() {
   local endpoint="$1"
@@ -241,7 +252,7 @@ test_endpoint "/" "" "Home page" 1
 echo -n "Testing Downloads marketing page … "
 DOWNLOADS_HTML=""
 set +e
-DOWNLOADS_HTML="$("${curl_base[@]}" -f "${BASE_URL}/downloads" 2>&1)"
+DOWNLOADS_HTML="$("${curl_marketing[@]}" "${BASE_URL}/downloads" 2>&1)"
 _dl_rc=$?
 set -e
 if [[ ${_dl_rc} -ne 0 ]]; then
@@ -257,7 +268,23 @@ else
   TESTS_FAILED=$((TESTS_FAILED + 1))
 fi
 
-test_endpoint "/rc-lite" "RC Lite" "RC Lite page" 1
+echo -n "Testing RC Lite page … "
+RC_LITE_HTML=""
+set +e
+RC_LITE_HTML="$("${curl_marketing[@]}" "${BASE_URL}/rc-lite" 2>&1)"
+_rl_rc=$?
+set -e
+if [[ ${_rl_rc} -ne 0 ]]; then
+  log_error "fetch failed /rc-lite (exit ${_rl_rc})"
+  TESTS_FAILED=$((TESTS_FAILED + 1))
+elif marketing_html_has_rc_lite_markers "${RC_LITE_HTML}"; then
+  log_info "RC Lite page"
+  TESTS_PASSED=$((TESTS_PASSED + 1))
+else
+  log_error "/rc-lite body missing RC Lite markers (redirect or static marketing content)"
+  TESTS_FAILED=$((TESTS_FAILED + 1))
+fi
+
 test_endpoint "/developers/api" "API documentation" "API docs page" 1
 
 echo -n "Checking Mac download link on /downloads … "

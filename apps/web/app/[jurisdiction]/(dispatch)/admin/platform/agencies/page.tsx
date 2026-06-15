@@ -187,7 +187,7 @@ function agencyFeaturesHref(agencyId: string, pathname: string, to: (p: string) 
 
 function agencyBillingHref(agencyId: string, pathname: string, to: (p: string) => string): string {
   if (pathname.startsWith("/rc-admin")) {
-    return `${RC_PLATFORM_COMMAND_PATHS.agencies}/${encodeURIComponent(agencyId)}/billing`;
+    return `${RC_PLATFORM_COMMAND_PATHS.agencies}/${encodeURIComponent(agencyId)}/billing?firstInvoice=1`;
   }
   return to(`/admin/billing/agency/${encodeURIComponent(agencyId)}`);
 }
@@ -248,9 +248,9 @@ function AgencyRow({
           </Link>
           <Link
             href={agencyBillingHref(a.agencyId, pathname, to)}
-            className="text-[10px] text-slate-500 hover:text-slate-300"
+            className="text-[10px] font-medium text-emerald-400/90 hover:text-emerald-300"
           >
-            Billing
+            Invoice →
           </Link>
         </div>
       </td>

@@ -133,6 +133,7 @@ export const AUDIT_EVENT_TYPES = {
   TRIAGE_CLASSIFIED: "triage.classified",
   TRIAGE_QUEUE_UPDATED: "triage.queue_updated",
   TRIAGE_ESCALATED: "triage.escalated",
+  STAFFING_FORECAST_GENERATED: "staffing.forecast_generated",
   FIELD_CONFIDENCE_SCORED: "field_confidence.scored",
   AI_GROUNDING_DOWNGRADE: "ai.grounding_downgrade",
   WELLNESS_TRAUMA_FLAG_CREATED: "wellness.trauma_flag.created",

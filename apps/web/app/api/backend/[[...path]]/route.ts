@@ -1,7 +1,7 @@
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
-import { COOKIE_ID_TOKEN } from "@/lib/auth/cookies";
 import { isSam3ApiPath, isSam4ApiPath, isSam5ApiPath, isStack2ApiPath, resolveUpstreamApiBase } from "@/lib/comms-api-path";
+import { applyRotatedAuthCookies, resolveBffBearerToken } from "@/lib/server/bff-auth-token";
 
 async function proxy(request: NextRequest, pathSegments: string[]) {
   const path = `/${pathSegments.join("/")}`;
@@ -36,8 +36,8 @@ async function proxy(request: NextRequest, pathSegments: string[]) {
     );
   }
 
-  const token = request.cookies.get(COOKIE_ID_TOKEN)?.value;
-  if (!token) {
+  const auth = await resolveBffBearerToken(request);
+  if (!auth.token) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
@@ -47,7 +47,7 @@ async function proxy(request: NextRequest, pathSegments: string[]) {
   const headers = new Headers();
   const incomingCt = request.headers.get("content-type");
   if (incomingCt) headers.set("content-type", incomingCt);
-  headers.set("authorization", `Bearer ${token}`);
+  headers.set("authorization", `Bearer ${auth.token}`);
 
   const method = request.method;
   const body =
@@ -59,7 +59,11 @@ async function proxy(request: NextRequest, pathSegments: string[]) {
   const ct = upstream.headers.get("content-type");
   if (ct) resHeaders.set("content-type", ct);
 
-  return new NextResponse(upstream.body, { status: upstream.status, headers: resHeaders });
+  const response = new NextResponse(upstream.body, { status: upstream.status, headers: resHeaders });
+  if (auth.token && "rotated" in auth && auth.rotated) {
+    applyRotatedAuthCookies(response, auth.rotated);
+  }
+  return response;
 }
 
 type Ctx = { params: Promise<{ path?: string[] }> };

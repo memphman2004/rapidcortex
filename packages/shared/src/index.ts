@@ -43,6 +43,7 @@ export * from "./media/index.js";
 export * from "./triage/triage.js";
 export * from "./triage/f3-queue.js";
 export * from "./confidence/index.js";
+export * from "./staffing/index.js";
 export * from "./wellness/trauma-flag.js";
 export * from "./geo/distance.js";
 export * from "./address/normalize-address.js";

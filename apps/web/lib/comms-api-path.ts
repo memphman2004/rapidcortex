@@ -22,12 +22,20 @@ const STACK2_PATH_TESTS: RegExp[] = [
   /^\/api\/incidents\/[^/]+\/premise-notes/,
   /^\/api\/incidents\/[^/]+\/pinpoint\//,
   /^\/api\/incidents\/[^/]+\/surge\//,
+  /^\/api\/rc-admin\/usage(\/|$)/,
+  /^\/api\/reports(\/|$)/,
+  /^\/api\/sla\//,
+  /^\/api\/triage\//,
+  /^\/api\/qa\/trends(\/|$)/,
+  /^\/api\/qa\/scorecards(\/|$)/,
+  /^\/api\/qa\/coaching-notes(\/|$)/,
 ];
 
 /** Billing, payments, Ring Connect, network policy — stack-app-sam-4 (AppSam4Stack). */
 const STACK4_PATH_TESTS: RegExp[] = [
   /^\/api\/billing\//,
   /^\/api\/agencies\/[^/]+\/billing/,
+  /^\/api\/rc-admin\/invoices\/bulk-draft$/,
   /^\/api\/integrations\/ring\//,
   /^\/api\/admin\/invoices/,
   /^\/api\/agency\/entitlements/,
@@ -61,8 +69,9 @@ const STACK5_PATH_TESTS: RegExp[] = [
 const STACK3_PATH_TESTS: RegExp[] = [
   /^\/api\/contact-sales(\/|$)/,
   /^\/api\/agency-admin\//,
-  /^\/api\/rc-admin\//,
-  /^\/api\/superadmin\//,
+  /^\/api\/rc-admin\/api-clients(\/|$)/,
+  /^\/api\/rc-admin\/agreements(\/|$)/,
+  /^\/api\/superadmin\/api-clients(\/|$)/,
   /^\/api\/admin\/desktop-releases/,
   /^\/api\/platform\//,
   /^\/api\/video-assist\//,

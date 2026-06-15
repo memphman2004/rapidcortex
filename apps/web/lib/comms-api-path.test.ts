@@ -67,6 +67,16 @@ describe("resolveUpstreamApiBase", () => {
     expect(resolveUpstreamApiBase("/api/public/report")).toBe("https://stack1.example.com");
     expect(isStack2ApiPath("/api/qr-nfc")).toBe(false);
   });
+
+  it("routes rc-admin usage to stack 2 (not stack 3)", () => {
+    process.env.API_UPSTREAM_BASE = "https://stack1.example.com";
+    process.env.API_UPSTREAM_BASE_2 = "https://stack2.example.com";
+    process.env.API_UPSTREAM_BASE_3 = "https://stack3.example.com";
+    expect(resolveUpstreamApiBase("/api/rc-admin/usage")).toBe("https://stack2.example.com");
+    expect(resolveUpstreamApiBase("/api/rc-admin/usage/export")).toBe("https://stack2.example.com");
+    expect(resolveUpstreamApiBase("/api/rc-admin/api-clients")).toBe("https://stack3.example.com");
+    expect(resolveUpstreamApiBase("/api/rc-admin/agreements")).toBe("https://stack3.example.com");
+  });
 });
 
 describe("isCommsPlatformApiPath", () => {

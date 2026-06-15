@@ -7,7 +7,9 @@ import {
   AlertCircle, AlertTriangle, BarChart3, Bed, Camera, CheckCircle2, Circle,
   Clock, Globe, MessageSquare, PhoneCall, Shield, Users, Wifi, WifiOff, Zap,
 } from "lucide-react";
+import type { BacklogSnapshot, Incident } from "rapid-cortex-shared";
 import {
+  backendGet,
   StatCard,
   StatusDot,
   WidgetError,
@@ -16,26 +18,27 @@ import {
   type WidgetProps,
 } from "./widget-primitives";
 
+type IncidentListResponse = { items?: Incident[] };
+type AuditEventsResponse = { items?: Array<{ eventId: string; type: string; actor: string; timestamp: string; summary: string }> };
+type QaSessionsResponse = { items?: Array<{ sessionId: string; incidentId: string; dispatcherName?: string; createdAt: string }> };
+
 // ─── SLA Bar ─────────────────────────────────────────────────────────────────
 
 export function SLABarWidget({ agencyId }: WidgetProps) {
   const { data, isLoading } = useQuery({
     queryKey: ["shift-sla", agencyId],
-    queryFn: async () => {
-      const r = await fetch(`/api/backend/api/agencies/${agencyId}/sla/current`, { credentials: "include" });
-      return r.ok ? r.json() : null;
-    },
+    queryFn: () => backendGet<BacklogSnapshot>("/api/sla/backlog"),
     refetchInterval: 30_000,
   });
 
   if (isLoading) return <WidgetSkeleton />;
 
   const metrics = [
-    { label: "Avg answer time", value: data?.avgAnswerTimeSeconds ? `${data.avgAnswerTimeSeconds}s` : "—", ok: (data?.avgAnswerTimeSeconds ?? 999) < 15 },
-    { label: "Abandonment rate", value: data?.abandonmentRate != null ? `${(data.abandonmentRate * 100).toFixed(1)}%` : "—", ok: (data?.abandonmentRate ?? 1) < 0.05 },
-    { label: "Avg handle time", value: data?.avgHandleTimeSeconds ? `${Math.round(data.avgHandleTimeSeconds / 60)}m` : "—", ok: true },
-    { label: "Calls this shift", value: data?.callsThisShift ?? "—", ok: true },
-    { label: "Active dispatchers", value: data?.activeDispatchers ?? "—", ok: true },
+    { label: "Queue depth", value: data?.queueDepth ?? "—", ok: (data?.queueDepth ?? 0) <= 8 },
+    { label: "Avg wait", value: data?.avgWaitSeconds != null ? `${data.avgWaitSeconds}s` : "—", ok: (data?.avgWaitSeconds ?? 999) < 60 },
+    { label: "P1 waiting", value: data?.p1Count ?? "—", ok: (data?.p1Count ?? 0) === 0 },
+    { label: "SLA breaches", value: data?.slaBreachCount ?? "—", ok: (data?.slaBreachCount ?? 0) === 0 },
+    { label: "SLA warnings", value: data?.slaWarningCount ?? "—", ok: (data?.slaWarningCount ?? 0) === 0 },
   ];
 
   return (

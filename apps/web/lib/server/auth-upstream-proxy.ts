@@ -1,7 +1,7 @@
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
-import { COOKIE_ID_TOKEN } from "@/lib/auth/cookies";
 import { isSam3ApiPath, isSam4ApiPath, isSam5ApiPath, isStack2ApiPath, resolveUpstreamApiBase } from "@/lib/comms-api-path";
+import { applyRotatedAuthCookies, resolveBffBearerToken } from "@/lib/server/bff-auth-token";
 
 type ProxyOptions = {
   allowAnonymous?: boolean;
@@ -43,8 +43,8 @@ export async function proxyToAuthUpstream(
     );
   }
 
-  const token = request.cookies.get(COOKIE_ID_TOKEN)?.value;
-  if (!options.allowAnonymous && !token) {
+  const auth = await resolveBffBearerToken(request);
+  if (!options.allowAnonymous && !auth.token) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
@@ -54,7 +54,7 @@ export async function proxyToAuthUpstream(
   const headers = new Headers();
   const incomingCt = request.headers.get("content-type");
   if (incomingCt) headers.set("content-type", incomingCt);
-  if (token) headers.set("authorization", `Bearer ${token}`);
+  if (auth.token) headers.set("authorization", `Bearer ${auth.token}`);
 
   const method = request.method;
   const body =
@@ -71,8 +71,12 @@ export async function proxyToAuthUpstream(
   const contentType = upstream.headers.get("content-type");
   if (contentType) responseHeaders.set("content-type", contentType);
 
-  return new NextResponse(upstream.body, {
+  const response = new NextResponse(upstream.body, {
     status: upstream.status,
     headers: responseHeaders,
   });
+  if (auth.token && "rotated" in auth && auth.rotated) {
+    applyRotatedAuthCookies(response, auth.rotated);
+  }
+  return response;
 }

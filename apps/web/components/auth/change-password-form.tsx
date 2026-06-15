@@ -4,8 +4,8 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
 import { COGNITO_PASSWORD_REQUIREMENTS, cognitoPasswordPolicyError, isValidCognitoPassword } from "@/lib/auth/cognito-password-policy";
-import { postAuthRedirect } from "@/lib/auth/postAuthRedirect";
-import { resolvePostAuthenticationHomeHrefAfterPasswordChange } from "@/lib/auth/post-login-redirect";
+import { resolvePostLoginNavigationHrefAfterPasswordChange } from "@/lib/auth/post-login-redirect";
+import { resolveDashboardHubRedirectHref } from "@/lib/auth/dashboard-hub-redirect";
 import { useSession } from "@/components/auth/session-context";
 import { ensureCsrfCookie, jsonHeadersWithCsrf } from "@/lib/csrf-client";
 import { defaultJurisdictionSlug } from "@/lib/marketing-links";
@@ -14,11 +14,13 @@ import { Eye, EyeOff } from "lucide-react";
 type Props = {
   /** When false, shows a compact card (e.g. settings page). */
   showFullPageCopy?: boolean;
+  /** Optional post-update destination from query (`from` / `next`). */
+  redirectFrom?: string | null;
 };
 
-export function ChangePasswordForm({ showFullPageCopy = true }: Props) {
+export function ChangePasswordForm({ showFullPageCopy = true, redirectFrom = null }: Props) {
   const router = useRouter();
-  const { user } = useSession();
+  const { user, refresh } = useSession();
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -29,9 +31,13 @@ export function ChangePasswordForm({ showFullPageCopy = true }: Props) {
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const homeHref = useMemo(() => {
-    if (!user) return "/";
-    return resolvePostAuthenticationHomeHrefAfterPasswordChange(user, defaultJurisdictionSlug());
-  }, [user]);
+    if (!user) return null;
+    return resolveDashboardHubRedirectHref(user, {
+      passwordRotationBypass: true,
+      jurisdictionSlug: defaultJurisdictionSlug(),
+      fromParam: redirectFrom,
+    });
+  }, [user, redirectFrom]);
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -72,9 +78,23 @@ export function ChangePasswordForm({ showFullPageCopy = true }: Props) {
       setCurrentPassword("");
       setNewPassword("");
       setConfirmPassword("");
+
+      const refreshed = await refresh();
+      const actor = refreshed ?? user;
+      const slug = defaultJurisdictionSlug();
+      const destination = actor
+        ? redirectFrom?.trim().startsWith("/")
+          ? resolvePostLoginNavigationHrefAfterPasswordChange(actor, redirectFrom.trim(), slug)
+          : resolveDashboardHubRedirectHref(actor, {
+              passwordRotationBypass: true,
+              jurisdictionSlug: slug,
+              fromParam: redirectFrom,
+            })
+        : "/rc-admin/dashboard";
+
       window.setTimeout(() => {
-        postAuthRedirect(router, homeHref);
-      }, 1500);
+        router.replace(destination);
+      }, 1800);
     } finally {
       setSubmitting(false);
     }
@@ -88,7 +108,7 @@ export function ChangePasswordForm({ showFullPageCopy = true }: Props) {
         <div className="mb-6">
           <div className="flex items-center justify-between gap-3">
             <h1 className="text-xl font-semibold text-white">Password Update Required</h1>
-            <Link href={homeHref} className="text-sm text-sky-400 hover:text-sky-300">
+            <Link href={homeHref ?? "/login"} className="text-sm text-sky-400 hover:text-sky-300">
               Home
             </Link>
           </div>

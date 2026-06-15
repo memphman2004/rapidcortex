@@ -53,6 +53,17 @@ if [[ "${ENVIRONMENT}" == "prod" && "${NEXT_PUBLIC_ENABLE_CAD_WRITEBACK:-}" == "
   exit 1
 fi
 
+if [[ "${ENVIRONMENT}" == "prod" ]]; then
+  _mapbox="${NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN:-}"
+  if [[ -z "${_mapbox}" || "${_mapbox}" == "pk.REPLACE_WITH_REAL_TOKEN" ]]; then
+    echo "ERROR: NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN must be set to a real Mapbox public token before prod deploy." >&2
+    echo "       source scripts/env-web-ssr-prod.sh after: export NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN=\"pk....\"" >&2
+    echo "       Or: sed -i '' 's|pk.REPLACE_WITH_REAL_TOKEN|pk.YOUR_TOKEN|' scripts/env-web-ssr-prod.sh" >&2
+    exit 1
+  fi
+  unset _mapbox
+fi
+
 AWS_REGION="${AWS_REGION:-${AWS_DEFAULT_REGION:-us-east-1}}"
 PIPELINE_STACK="${WEB_PIPELINE_STACK_NAME:-rapid-cortex-web-pipeline-${ENVIRONMENT}}"
 CODEBUILD_PROJECT="${WEB_CODEBUILD_PROJECT_NAME:-rapid-cortex-web-build-${ENVIRONMENT}}"
@@ -135,6 +146,10 @@ for _var_name in \
   NEXT_PUBLIC_API_BASE_URL \
   NEXT_PUBLIC_API_BASE \
   NEXT_PUBLIC_API_BASE_2 \
+  NEXT_PUBLIC_API_BASE_3 \
+  NEXT_PUBLIC_API_BASE_4 \
+  NEXT_PUBLIC_API_BASE_5 \
+  NEXT_PUBLIC_AUTH_PROXY \
   NEXT_PUBLIC_COGNITO_REGION \
   NEXT_PUBLIC_COGNITO_USER_POOL_ID \
   NEXT_PUBLIC_COGNITO_CLIENT_ID \
@@ -157,7 +172,13 @@ for _var_name in \
   NEXT_PUBLIC_ENABLE_FIELD_CONFIDENCE \
   NEXT_PUBLIC_ENABLE_SOP_PROTOCOL_AI \
   NEXT_PUBLIC_ENABLE_LIVE_VIDEO \
-  NEXT_PUBLIC_ENABLE_SILENT_TEXT
+  NEXT_PUBLIC_ENABLE_SILENT_TEXT \
+  NEXT_PUBLIC_ENABLE_PINPOINT \
+  NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN \
+  NEXT_PUBLIC_ENABLE_QR_NFC \
+  NEXT_PUBLIC_ENABLE_CALLER_CARD \
+  NEXT_PUBLIC_ENABLE_BILLING \
+  NEXT_PUBLIC_DEFAULT_PLAN
 do
   if [[ -n "${!_var_name:-}" ]]; then
     _CB_ENV_OVERRIDES+=(--environment-variables-override "name=${_var_name},value=${!_var_name},type=PLAINTEXT")

@@ -148,6 +148,10 @@ export function mapJwtToUser(payload: JWTPayload): UserContext | null {
   if (displayName) {
     user.displayName = displayName;
   }
+  const vertical = String(payload["custom:vertical"] ?? "").trim();
+  if (vertical) {
+    user.vertical = vertical;
+  }
   return user;
 }
 

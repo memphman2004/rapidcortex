@@ -142,10 +142,13 @@ export function LoginForm({
   function navigatePostAuth(
     sessionUser: UserContext | null,
     ctx: string,
-    opts?: { afterPasswordChange?: boolean },
+    opts?: { afterPasswordChange?: boolean; preferredPath?: string | null },
   ) {
     if (tryRedirectNativeDesktopOAuth(sessionUser)) return;
-    const path = homePathFor(sessionUser, opts?.afterPasswordChange);
+    const path =
+      opts?.preferredPath?.startsWith("/")
+        ? opts.preferredPath
+        : homePathFor(sessionUser, opts?.afterPasswordChange);
     const isProd = process.env.NODE_ENV === "production";
     if (!isProd) {
       console.info("[login]", {
@@ -484,6 +487,7 @@ export function LoginForm({
         }
         return;
       }
+      const signInBody = (await res.json().catch(() => ({}))) as { redirectTo?: string };
       resetChallenges();
       const u4 = await refreshSessionAfterSignIn(refresh);
       if (!u4) {
@@ -492,7 +496,7 @@ export function LoginForm({
         );
         return;
       }
-      navigatePostAuth(u4, "password_signin");
+      navigatePostAuth(u4, "password_signin", { preferredPath: signInBody.redirectTo });
     } catch (err) {
       console.error(err);
       setError(

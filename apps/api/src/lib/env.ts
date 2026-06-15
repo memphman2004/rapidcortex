@@ -307,6 +307,10 @@ export const env = {
     Number.parseInt(process.env.CONFIDENCE_SCORE_EVERY_N_SEGMENTS ?? "0", 10) || 0,
   ),
   confidenceScoringMock: process.env.CONFIDENCE_SCORING_MOCK === "true",
+  /** F6 — predictive staffing intelligence. */
+  enablePredictiveStaffing: featureEnabled("ENABLE_PREDICTIVE_STAFFING", false),
+  predictiveStaffingMock: process.env.PREDICTIVE_STAFFING_MOCK === "true",
+  staffingForecastTable: process.env.STAFFING_FORECAST_TABLE?.trim() ?? "",
   /** F5 — supervisor-only trauma keyword flags. */
   enableDispatcherWellness: featureEnabled("ENABLE_DISPATCHER_WELLNESS"),
   traumaFlagsTable: process.env.TRAUMA_FLAGS_TABLE?.trim() ?? "",
