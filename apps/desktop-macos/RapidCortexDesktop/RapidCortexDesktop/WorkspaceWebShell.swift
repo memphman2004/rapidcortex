@@ -68,6 +68,9 @@ struct WorkspaceWebShellView: NSViewRepresentable {
     var webAppBaseURL: URL
     var jurisdictionSlug: String
     var reloadNonce: Int
+    /// Increment <c>navigationNonce</c> and set <c>navigationPath</c> to load a route inside the web app.
+    var navigationPath: String?
+    var navigationNonce: Int
     var onNeedsReauth: () -> Void
 
     func makeCoordinator() -> Coordinator {
@@ -82,7 +85,9 @@ struct WorkspaceWebShellView: NSViewRepresentable {
         context.coordinator.apply(
             webAppBaseURL: webAppBaseURL,
             jurisdictionSlug: jurisdictionSlug,
-            reloadNonce: reloadNonce
+            reloadNonce: reloadNonce,
+            navigationPath: navigationPath,
+            navigationNonce: navigationNonce
         )
         return wv
     }
@@ -92,7 +97,9 @@ struct WorkspaceWebShellView: NSViewRepresentable {
         context.coordinator.apply(
             webAppBaseURL: webAppBaseURL,
             jurisdictionSlug: jurisdictionSlug,
-            reloadNonce: reloadNonce
+            reloadNonce: reloadNonce,
+            navigationPath: navigationPath,
+            navigationNonce: navigationNonce
         )
     }
 
@@ -104,6 +111,7 @@ struct WorkspaceWebShellView: NSViewRepresentable {
         private var webAppBaseURL: URL?
         private var jurisdictionSlug: String = ""
         private var lastReloadNonce: Int = -1
+        private var lastNavigationNonce: Int = -1
         private var lastFingerprint: String = ""
 
         init(onNeedsReauth: @escaping () -> Void) {
@@ -112,14 +120,69 @@ struct WorkspaceWebShellView: NSViewRepresentable {
             configuration.websiteDataStore = .default()
         }
 
-        func apply(webAppBaseURL: URL, jurisdictionSlug: String, reloadNonce: Int) {
+        func apply(
+            webAppBaseURL: URL,
+            jurisdictionSlug: String,
+            reloadNonce: Int,
+            navigationPath: String?,
+            navigationNonce: Int
+        ) {
             self.webAppBaseURL = webAppBaseURL
             self.jurisdictionSlug = jurisdictionSlug
             if reloadNonce != lastReloadNonce {
                 lastReloadNonce = reloadNonce
                 lastFingerprint = ""
             }
+            if navigationNonce != lastNavigationNonce,
+               let path = navigationPath?.trimmingCharacters(in: .whitespacesAndNewlines),
+               !path.isEmpty {
+                lastNavigationNonce = navigationNonce
+                navigateToWebPath(path)
+                return
+            }
             reloadFromKeychain()
+        }
+
+        private func navigateToWebPath(_ path: String) {
+            guard let wv = webView, let webBase = webAppBaseURL else { return }
+            guard let idToken = KeychainTokenStore.idToken(), !idToken.isEmpty else {
+                onNeedsReauth()
+                return
+            }
+            let normalized = path.hasPrefix("/") ? path : "/\(path)"
+            guard let target = URL(string: normalized, relativeTo: webBase)?.absoluteURL else { return }
+            injectAuthCookies(host: webBase.host ?? "", isSecure: webBase.scheme?.lowercased() == "https") { [weak wv] in
+                wv?.load(URLRequest(url: target))
+            }
+        }
+
+        private func injectAuthCookies(host: String, isSecure: Bool, completion: @escaping () -> Void) {
+            guard let wv = webView else {
+                completion()
+                return
+            }
+            guard let idToken = KeychainTokenStore.idToken(), !idToken.isEmpty else {
+                onNeedsReauth()
+                return
+            }
+            let access = KeychainTokenStore.accessToken() ?? ""
+            let refresh = KeychainTokenStore.refreshToken()
+            let accessExpiry = KeychainTokenStore.accessTokenExpiry()
+            let cookies = buildAuthCookies(
+                host: host,
+                isSecure: isSecure,
+                idToken: idToken,
+                accessToken: access,
+                refreshToken: refresh,
+                accessExpiry: accessExpiry
+            )
+            let store = wv.configuration.websiteDataStore.httpCookieStore
+            let group = DispatchGroup()
+            for c in cookies {
+                group.enter()
+                store.setCookie(c) { group.leave() }
+            }
+            group.notify(queue: .main, execute: completion)
         }
 
         func reloadFromKeychain() {
@@ -144,23 +207,8 @@ struct WorkspaceWebShellView: NSViewRepresentable {
             guard fp != lastFingerprint else { return }
             lastFingerprint = fp
 
-            let cookies = buildAuthCookies(
-                host: host,
-                isSecure: isSecure,
-                idToken: idToken,
-                accessToken: access,
-                refreshToken: refresh,
-                accessExpiry: accessExpiry
-            )
-            let store = wv.configuration.websiteDataStore.httpCookieStore
-
-            let group = DispatchGroup()
-            for c in cookies {
-                group.enter()
-                store.setCookie(c) { group.leave() }
-            }
-            group.notify(queue: .main) {
-                wv.load(URLRequest(url: target))
+            injectAuthCookies(host: host, isSecure: isSecure) { [weak wv] in
+                wv?.load(URLRequest(url: target))
             }
         }
 

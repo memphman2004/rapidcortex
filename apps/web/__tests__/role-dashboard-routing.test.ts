@@ -78,6 +78,17 @@ describe("role → dashboard routing", () => {
         resolvePostAuthenticationHomeHref(user("VENUE_OPERATOR", "venue-truist"), slug),
       ).toBe("/app/venue/operator");
     });
+
+    it("ignores mismatched JWT vertical when role is PSAP (prevents /app/venue redirect loop)", () => {
+      const dispatcher = user("dispatcher", "test-agency");
+      expect(
+        resolveProductDashboardFromRoleAndAgency(
+          dispatcher.role,
+          dispatcher.agencyId,
+          "venue",
+        ),
+      ).toBe("/test-agency/dispatcher");
+    });
   });
 
   describe("Campus product roles", () => {
@@ -93,6 +104,18 @@ describe("role → dashboard routing", () => {
       expect(
         resolvePostAuthenticationHomeHref(user("CAMPUS_DISPATCH", "campus-westview"), slug),
       ).toBe("/app/campus/security");
+    });
+
+    it("ignores mismatched JWT vertical when role is PSAP (prevents /app/campus redirect loop)", () => {
+      const dispatcher = user("dispatcher", "test-agency");
+      expect(
+        resolveProductDashboardFromRoleAndAgency(
+          dispatcher.role,
+          dispatcher.agencyId,
+          "campus",
+        ),
+      ).toBe("/test-agency/dispatcher");
+      expect(resolvePostAuthenticationHomeHref(dispatcher, slug)).toBe("/test-agency/dispatcher");
     });
   });
 

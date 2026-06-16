@@ -138,6 +138,31 @@ export default function NewAgencyPage() {
           />
         </label>
         <label className="block text-sm">
+          <span className="text-slate-400">Product vertical</span>
+          <select
+            value={form.vertical}
+            onChange={(e) => {
+              const vertical = e.target.value as CreateAgencyInput["vertical"];
+              setForm((f) => ({
+                ...f,
+                vertical,
+                type:
+                  vertical === "campus"
+                    ? "campus"
+                    : vertical === "venue"
+                      ? "venue"
+                      : f.type,
+              }));
+            }}
+            className="mt-1 w-full rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-slate-100"
+          >
+            <option value="core">PSAP / RC Core</option>
+            <option value="campus">Campus</option>
+            <option value="venue">Venue</option>
+            <option value="hospital">Hospital</option>
+          </select>
+        </label>
+        <label className="block text-sm">
           <span className="text-slate-400">Type</span>
           <select
             value={form.type}

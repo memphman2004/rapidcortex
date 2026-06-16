@@ -32,6 +32,26 @@ No screenshots — steps reference **labels exactly as shown** in the product to
 1. Open **`/<slug>/history`**.
 2. Open a row to see transcript + analysis for that incident.
 
+### Ring Connect — link account and enable devices
+
+1. Open **`/<slug>/media`**.
+2. Under **Live Camera**, select the **Ring** tab.
+3. Click **Connect Ring Account** and complete Ring OAuth.
+4. Open **Linked Ring Devices** → **Refresh devices**.
+5. Turn **Enable for Connect** **on** for each doorbell or camera that may be requested during incidents.
+6. Confirm each enabled device has a location (devices without GPS will not appear near incidents).
+
+### Ring Connect — request doorbell / camera video (per device)
+
+1. On **`/<slug>/media`**, select an **active incident** in **Incident Context**.
+2. Select the **Ring** tab → **View Available Ring Cameras**.
+3. Pick a device card (status **Available**).
+4. Choose duration (**10 / 30 / 60 / 120** minutes) → **Send Emergency Video Request** → confirm.
+5. Wait for owner **Approve** or **Decline** (status **Sent** → **Approved** or **Declined**).
+6. When **Approved**, click **View Live Stream** on that card.
+
+See [RING_CONNECT_CAMERA_ACCESS.md](../product-architecture/RING_CONNECT_CAMERA_ACCESS.md) for limits, owner consent, and troubleshooting.
+
 ## Supervisor tasks
 
 ### Second-line review

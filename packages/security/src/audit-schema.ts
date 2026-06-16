@@ -90,6 +90,10 @@ export const AUDIT_EVENT_TYPES = {
   // ── Venue ──────────────────────────────────────────────────────────────────
   VENUE_INTELLIGENCE_VIEWED: "venue.intelligence.viewed",
   VENUE_CAMERA_SESSION_STARTED: "venue.camera.session_started",
+  VENUE_SECTION_UPDATED: "venue.section.updated",
+  VENUE_SECTION_STATUS_CHANGED: "venue.section.status_changed",
+  VENUE_SECTION_DELETED: "venue.section.deleted",
+  VENUE_PROFILE_UPDATED: "venue.profile.updated",
   // ── Silent text ────────────────────────────────────────────────────────────
   SILENT_TEXT_SESSION_CREATED: "silent_text.session.created",
   SILENT_TEXT_SMS_SENT: "silent_text.sms.sent",

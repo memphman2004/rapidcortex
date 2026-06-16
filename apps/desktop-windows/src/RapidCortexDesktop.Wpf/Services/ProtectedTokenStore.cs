@@ -6,7 +6,7 @@ using System.Text.Json.Serialization;
 namespace RapidCortex.Desktop.Services;
 
 /// <summary>
-/// Persists Cognito <c>id_token</c> (and optional <c>refresh_token</c>) with DPAPI (current user).
+/// Persists Cognito tokens with DPAPI (current user). Mirrors macOS Keychain session fields used by the web shell.
 /// </summary>
 public static class ProtectedTokenStore
 {
@@ -26,10 +26,10 @@ public static class ProtectedTokenStore
 
     public static void SaveIdToken(string idToken)
     {
-        SaveSession(idToken, null);
+        SaveSession(idToken, null, null);
     }
 
-    public static void SaveSession(string idToken, string? refreshToken)
+    public static void SaveSession(string idToken, string? refreshToken, string? accessToken = null)
     {
         Directory.CreateDirectory(Path.GetDirectoryName(TokenFilePath)!);
         var payload = new SessionV2
@@ -37,6 +37,10 @@ public static class ProtectedTokenStore
             V = 2,
             IdToken = idToken,
             RefreshToken = refreshToken,
+            AccessToken = accessToken,
+            AccessTokenExpiresAtUnix = string.IsNullOrWhiteSpace(accessToken)
+                ? null
+                : DateTimeOffset.UtcNow.AddHours(1).ToUnixTimeSeconds(),
         };
         var json = JsonSerializer.Serialize(payload, JsonOptions);
         var bytes = Encoding.UTF8.GetBytes(json);
@@ -54,6 +58,19 @@ public static class ProtectedTokenStore
     public static string? TryReadIdToken() => TryReadSession()?.IdToken;
 
     public static string? TryReadRefreshToken() => TryReadSession()?.RefreshToken;
+
+    public static string? TryReadAccessToken() => TryReadSession()?.AccessToken;
+
+    public static DateTimeOffset? TryReadAccessTokenExpiry()
+    {
+        var session = TryReadSession();
+        if (session?.AccessTokenExpiresAtUnix is null or <= 0)
+        {
+            return null;
+        }
+
+        return DateTimeOffset.FromUnixTimeSeconds(session.AccessTokenExpiresAtUnix.Value);
+    }
 
     private static SessionV2? TryReadSession()
     {
@@ -108,5 +125,11 @@ public static class ProtectedTokenStore
 
         [JsonPropertyName("refresh_token")]
         public string? RefreshToken { get; set; }
+
+        [JsonPropertyName("access_token")]
+        public string? AccessToken { get; set; }
+
+        [JsonPropertyName("access_token_expires_at")]
+        public long? AccessTokenExpiresAtUnix { get; set; }
     }
 }

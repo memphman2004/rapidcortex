@@ -662,8 +662,12 @@ async function guardCampusDashboard(request: NextRequest): Promise<NextResponse>
   );
   if (campusRenewal) return campusRenewal;
 
+  if (pathname === "/app/campus" || pathname === "/app/campus/") {
+    return redirectToRoleDashboard(request, user);
+  }
+
   if (!isCampusRole(user.role) && !isRcInternalOperator(user.role)) {
-    return redirectToRoleAwareHome(request, user, defaultJurisdictionSlug());
+    return redirectToRoleDashboard(request, user);
   }
 
   const campusRoute = ensureRoleDashboardPath(request, user);
@@ -707,8 +711,12 @@ async function guardVenueDashboard(request: NextRequest): Promise<NextResponse> 
   );
   if (venueRenewal) return venueRenewal;
 
+  if (pathname === "/app/venue" || pathname === "/app/venue/") {
+    return redirectToRoleDashboard(request, user);
+  }
+
   if (!isVenueRole(user.role) && !isRcInternalOperator(user.role)) {
-    return redirectToRoleAwareHome(request, user, defaultJurisdictionSlug());
+    return redirectToRoleDashboard(request, user);
   }
 
   const venueRoute = ensureRoleDashboardPath(request, user);

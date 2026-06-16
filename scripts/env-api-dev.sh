@@ -11,6 +11,8 @@ export FLAT_DATA_LAYER_BILLING_PAYMENT_INSTRUCTIONS_SECRET_ARN="arn:aws:secretsm
 export FLAT_DATA_LAYER_BILLING_SES_CREDENTIALS_SECRET_ARN="arn:aws:secretsmanager:us-east-1:158961537080:secret:rapid-cortex/billing/ses-credentials-kWOL2Y"
 export ENABLE_CLOUD_TRAIL=false
 export SAM_BUILD_DIR="$HOME/.rapid-cortex-sam-build"
+# deploy.sh defaults SAM_PARALLEL=0; enable parallel sam build (big win with SAM_BUILD_USE_CACHE=1).
+export SAM_PARALLEL=1
 # Recovery (optional): SAM_BUILD_USE_CACHE=0 SAM_DISABLE_ROLLBACK=1 for first deploy after Cognito/AppSamStackV2 recovery.
 
 # Active Cognito pool (AppSamStackV2) — auto-fetched from rapid-cortex-dev outputs
@@ -56,7 +58,6 @@ export CAD_POLLER_MOCK=1
 
 # Hospital module: HospitalRoutingHttpFunction + HospitalPortalHttpFunction in stack-app-sam-2.yaml.
 # Redeploy stack 2 after hospital API/SAM changes: ./scripts/deploy2.sh dev
-export SAM_BUILD_DIR="$HOME/.rapid-cortex-sam-build"
 
 # Silent Text + Pinpoint (LiveLocation) — both Lambdas live in stack-app-sam.yaml (Stack 1) as of
 # 2026-05-25 so they ride the api.rapidcortex.us custom domain.
@@ -82,6 +83,8 @@ export INCIDENT_MEDIA_TWILIO_SECRET_ARN="arn:aws:secretsmanager:us-east-1:158961
 export RING_CREDENTIALS_SECRET_ARN_OVERRIDE="arn:aws:secretsmanager:us-east-1:158961537080:secret:rapid-cortex/connect/ring-credentials-D3f1sN"
 export ENABLE_CONNECT_RING=true
 export RING_PARTNERSHIP_ENABLED=true
+export RING_REDIRECT_URI="https://7c70vqd1p5.execute-api.us-east-1.amazonaws.com/api/integrations/ring/callback"
+export RING_ACCOUNT_LINK_URL="https://www.rapidcortex.us/connect/ring/link"
 
 # ---------------------------------------------------------------------------------------------
 # Optional secret ARNs — created 2026-05-25 with PLACEHOLDER values, pinned here so the SAM
@@ -135,6 +138,10 @@ export ENABLE_HOSPITAL_ROUTING=true
 export ENABLE_SURGE=true
 export ENABLE_PINPOINT=true
 export CAD_WRITEBACK_ENABLED=false
+
+# Ring Connect — OAuth callback (stack 4 execute-api) + post-link marketing page (CFN-owned Lambda env)
+export RING_REDIRECT_URI="https://7c70vqd1p5.execute-api.us-east-1.amazonaws.com/api/integrations/ring/callback"
+export RING_ACCOUNT_LINK_URL="https://www.rapidcortex.us/connect/ring/link"
 
 # QR/NFC citizen reporting — QRNFCCodesTable in stack-app-sam-qr.yaml
 export APP_BASE_URL="https://app.rapidcortex.us"

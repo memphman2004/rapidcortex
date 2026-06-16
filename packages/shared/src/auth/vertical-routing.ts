@@ -73,6 +73,8 @@ export function dashboardRouteFromRole(role: UserRole | string, agencyId: string
       return "/app/campus/supervisor";
     case "campus_security":
       return "/app/campus/security";
+    case "campus_dispatch":
+      return "/app/campus/dispatch";
     case "campus_counselor":
       return "/app/campus/counselor";
     case "campus_faculty":
@@ -146,15 +148,17 @@ export function pathMatchesRoleDashboard(
   }
 
   if (vertical === "campus") {
+    if (path === "/app/campus" || path === "/app/campus/") return false;
     if (!path.startsWith("/app/campus/")) return false;
     const segment = path.split("/")[3] ?? "";
-    const roleSegments = new Set(["admin", "supervisor", "security", "counselor", "faculty"]);
+    const roleSegments = new Set(["admin", "supervisor", "security", "counselor", "faculty", "dispatch"]);
     if (roleSegments.has(segment)) {
       return path === home || path.startsWith(`${home}/`);
     }
     return true;
   }
   if (vertical === "venue") {
+    if (path === "/app/venue" || path === "/app/venue/") return false;
     if (path.startsWith("/venue/")) return true;
     if (!path.startsWith("/app/venue/")) return false;
     const segment = path.split("/")[3] ?? "";

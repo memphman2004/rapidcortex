@@ -2001,6 +2001,126 @@ Resources:
             Path: /api/venue/incidents/{incidentId}
             Method: GET
 
+  GetVenueSectionsFunction:
+    Type: AWS::Serverless::Function
+    Condition: HasVenueConfigTable
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/venue/handlers/get-venue-sections.handler
+      Timeout: 30
+      Policies:
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardC
+      Events:
+        Route:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/venue/{venueCode}/sections
+            Method: GET
+
+  PutVenueSectionFunction:
+    Type: AWS::Serverless::Function
+    Condition: HasVenueConfigTable
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/venue/handlers/put-venue-section.handler
+      Timeout: 30
+      Policies:
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardC
+      Events:
+        Route:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/venue/{venueCode}/sections/{sectionId}
+            Method: PUT
+
+  DeleteVenueSectionFunction:
+    Type: AWS::Serverless::Function
+    Condition: HasVenueConfigTable
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/venue/handlers/delete-venue-section.handler
+      Timeout: 30
+      Policies:
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardC
+      Events:
+        Route:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/venue/{venueCode}/sections/{sectionId}
+            Method: DELETE
+
+  PatchVenueSectionStatusFunction:
+    Type: AWS::Serverless::Function
+    Condition: HasVenueConfigTable
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/venue/handlers/patch-venue-section-status.handler
+      Timeout: 30
+      Policies:
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardC
+      Events:
+        Route:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/venue/{venueCode}/sections/{sectionId}/status
+            Method: PATCH
+
+  GetVenueProfileFunction:
+    Type: AWS::Serverless::Function
+    Condition: HasVenueConfigTable
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/venue/handlers/get-venue-profile.handler
+      Timeout: 30
+      Policies:
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardC
+      Events:
+        Route:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/venue/{venueCode}/profile
+            Method: GET
+
+  PatchVenueProfileFunction:
+    Type: AWS::Serverless::Function
+    Condition: HasVenueConfigTable
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/venue/handlers/patch-venue-profile.handler
+      Timeout: 30
+      Policies:
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardC
+      Events:
+        Route:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/venue/{venueCode}/profile
+            Method: PATCH
+
   VenueCameraRequestFunction:
     Type: AWS::Serverless::Function
     Metadata:

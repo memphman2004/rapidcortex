@@ -45,7 +45,11 @@ export function resolveProductDashboardFromRoleAndAgency(
 ): string {
   const roleToken = normalizeVerticalRoleToken(normalizeRole(role));
   const agency = (agencyId ?? "").trim();
-  const vertical = verticalClaim?.trim() || verticalFromRole(roleToken);
+  const roleVertical = verticalFromRole(roleToken);
+  const claim = verticalClaim?.trim();
+  // Ignore JWT `custom:vertical` when it disagrees with the role — e.g. dispatcher + campus
+  // claim used to resolve `/app/campus` and loop with campus middleware guards.
+  const vertical = claim && claim === roleVertical ? claim : roleVertical;
 
   if (vertical === "platform") return "";
 

@@ -327,15 +327,51 @@ export interface VenueIncidentRecord {
   ttl?: number;
 }
 
+export type VenueSectionLevel = "lower" | "club" | "upper" | "suite";
+export type VenueSectionStatus = "clear" | "elevated" | "incident" | "closed";
+
+export type VenueFacilityType =
+  | "stadium"
+  | "arena"
+  | "theater"
+  | "convention_center"
+  | "amphitheater";
+
 export interface VenueConfigRecord {
   pk: string; // VENUE_CONFIG#MBS
   sk: string; // CONFIG
+  agencyId: string;
   venueCode: string;
   venueName: string;
+  venueType?: VenueFacilityType;
+  capacity?: number;
+  levels?: VenueSectionLevel[];
+  gateCount?: number;
+  city?: string;
+  state?: string;
+  timezone?: string;
   active: boolean;
   smsEnabled: boolean;
   qrEnabled: boolean;
   createdAt: string;
+  updatedAt: string;
+}
+
+export interface VenueSectionRecord {
+  pk: string; // VENUE_CONFIG#MBS
+  sk: string; // SECTION#{sectionId}
+  agencyId: string;
+  venueCode: string;
+  sectionId: string;
+  label: string;
+  level: VenueSectionLevel;
+  capacity: number;
+  zone: string;
+  svgX: number;
+  svgY: number;
+  status: VenueSectionStatus;
+  notes?: string;
+  assignedOfficer?: string;
   updatedAt: string;
 }
 
@@ -367,6 +403,15 @@ export interface VenueEventScheduleRecord {
   createdAt: string;
   updatedAt: string;
 }
+
+export const VENUE_KEYS = {
+  configPk: (venueCode: string) => `VENUE_CONFIG#${venueCode}`,
+  settingsSk: () => "CONFIG",
+  sectionSk: (sectionId: string) => `SECTION#${sectionId}`,
+  zoneSk: (zoneCode: string) => `ZONE#${zoneCode}`,
+  incidentPk: (venueCode: string) => `VENUE#${venueCode}`,
+  incidentSk: (incidentId: string) => `INCIDENT#${incidentId}`,
+} as const;
 
 export interface SmsDisambiguationSession {
   pk: string; // SMS_SESSION#+14045551234

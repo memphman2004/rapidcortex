@@ -5,6 +5,7 @@ import { useEffect } from "react";
 import { Camera, Link2 } from "lucide-react";
 import { useSession } from "@/components/auth/session-context";
 import { RingConnectButton, isRingEnabled } from "@/src/features/connect/ring";
+import { CameraProviderSetup } from "@/components/cameras/CameraProviderSetup";
 import type { RingDevicesResponse } from "@/src/features/connect/ring/ring-types";
 
 async function fetchRingDevices(): Promise<RingDevicesResponse> {
@@ -67,6 +68,8 @@ export function VenueCamerasClient({ venueCode }: { venueCode: string }) {
         userId={user.userId}
         onLinked={() => void queryClient.invalidateQueries({ queryKey: ["ring-devices", venueCode] })}
       />
+
+      <CameraProviderSetup />
 
       {linked ? (
         <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">

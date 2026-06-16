@@ -11,6 +11,6 @@ struct RootView: View {
                 LoginView()
             }
         }
-        .frame(minWidth: 720, minHeight: 480)
+        .frame(minWidth: 1100, minHeight: 720)
     }
 }

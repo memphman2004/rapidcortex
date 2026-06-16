@@ -9,7 +9,9 @@ import {
   buildAgencySlug,
   defaultAgencyNetworkPolicy,
   isRcsuperadmin,
+  resolveAgencyVerticalFromTenant,
   resolveUniqueAgencySlug,
+  type AgencyProfileResponse,
 } from "rapid-cortex-shared";
 import {
   AUDIT_EVENT_TYPES,
@@ -88,16 +90,22 @@ export class AgencyService {
       config: defaultConfig(agencyId, input),
       networkPolicy: defaultAgencyNetworkPolicy(user.email ?? user.userId),
     };
+    const vertical = input.vertical ?? "core";
+    if (vertical === "campus") {
+      row.type = "campus";
+    } else if (vertical === "venue") {
+      row.type = "venue";
+    }
     const rowWithTenantFields = row as AgencyTenant & {
       vertical?: "core" | "campus" | "venue" | "hospital";
       addons?: string[];
       planTier?: "starter" | "professional" | "command" | "enterprise";
       pilotMode?: boolean;
     };
-    rowWithTenantFields.vertical = "core";
-    rowWithTenantFields.addons = [];
-    rowWithTenantFields.planTier = "starter";
-    rowWithTenantFields.pilotMode = false;
+    rowWithTenantFields.vertical = vertical;
+    rowWithTenantFields.addons = input.addons ?? [];
+    rowWithTenantFields.planTier = input.planTier ?? "starter";
+    rowWithTenantFields.pilotMode = input.pilotMode ?? false;
     await agencyRepo.put(row);
     await auditRepo.create({
       eventId: makeId("audit"),
@@ -115,6 +123,23 @@ export class AgencyService {
   async get(user: UserContext, agencyId: string): Promise<AgencyTenant | null> {
     AgencyScopeResolver.assertCanReadAgencyProfile(user, agencyId);
     return agencyRepo.get(agencyId);
+  }
+
+  async getProfile(user: UserContext, agencyId: string): Promise<AgencyProfileResponse | null> {
+    const agency = await this.get(user, agencyId);
+    if (!agency) return null;
+
+    const vertical = resolveAgencyVerticalFromTenant(agency);
+    const agencyType: AgencyProfileResponse["agencyType"] =
+      vertical === "core" ? "psap" : vertical;
+
+    return {
+      id: agency.agencyId,
+      name: agency.name,
+      agencyType,
+      type: agency.type,
+      vertical: agency.vertical ?? vertical,
+    };
   }
 
   async patch(user: UserContext, agencyId: string, patch: PatchAgencyInput): Promise<AgencyTenant> {

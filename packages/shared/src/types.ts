@@ -357,6 +357,8 @@ export type AuditResourceType =
   | "network_emergency_override_request"
   | "venue_facility"
   | "venue_camera_session"
+  | "venue_section"
+  | "venue_profile"
   | "platform_notice"
   | "sms_routing"
   | "sms_inbound"

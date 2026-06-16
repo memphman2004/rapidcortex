@@ -11,7 +11,9 @@ import {
   AdminSetUserPasswordCommand,
   AdminUpdateUserAttributesCommand,
   CognitoIdentityProviderClient,
+  CreateGroupCommand,
   DescribeUserPoolCommand,
+  GetGroupCommand,
   type UserType,
 } from "@aws-sdk/client-cognito-identity-provider";
 
@@ -85,6 +87,48 @@ const ACCOUNTS: TestRow[] = [
     agencyId: TEST_AGENCY,
     cognitoGroup: "agencyit",
   },
+  {
+    email: "ring-reviewer@rapidcortex.us",
+    customRole: "dispatcher",
+    agencyId: TEST_AGENCY,
+    cognitoGroup: "dispatcher",
+  },
+  {
+    email: "campus-admin@appsondemand.net",
+    customRole: "campus_admin",
+    agencyId: "test-campus-uga",
+    cognitoGroup: "campus_admin",
+  },
+  {
+    email: "campus-security@appsondemand.net",
+    customRole: "campus_security",
+    agencyId: "test-campus-uga",
+    cognitoGroup: "campus_security",
+  },
+  {
+    email: "campus-dispatch@appsondemand.net",
+    customRole: "campus_dispatch",
+    agencyId: "test-campus-uga",
+    cognitoGroup: "campus_dispatch",
+  },
+  {
+    email: "venue-admin@appsondemand.net",
+    customRole: "venue_admin",
+    agencyId: "test-venue-mbs",
+    cognitoGroup: "venue_admin",
+  },
+  {
+    email: "venue-security@appsondemand.net",
+    customRole: "venue_security",
+    agencyId: "test-venue-mbs",
+    cognitoGroup: "venue_security",
+  },
+  {
+    email: "venue-operator@appsondemand.net",
+    customRole: "venue_operator",
+    agencyId: "test-venue-mbs",
+    cognitoGroup: "venue_operator",
+  },
 ];
 
 function requireEnv(name: string): string {
@@ -105,7 +149,7 @@ function isTempPasswordValidForPoolPolicy(password: string): boolean {
 }
 
 /** Plan + subscription claims gate `hasRapidCortexDashboardAccess` for non-platform users. */
-const DEV_DASHBOARD_PLAN_ID = "essential";
+const DEV_DASHBOARD_PLAN_ID = "command";
 const DEV_SUBSCRIPTION_STATUS = "active";
 
 function desiredAttributes(row: TestRow) {
@@ -169,6 +213,41 @@ const POOL_CUSTOM_ATTRS: { addName: string; poolName: string }[] = [
   { addName: "subStatus", poolName: "custom:subStatus" },
 ];
 
+const VERTICAL_COGNITO_GROUPS: { name: string; description: string }[] = [
+  { name: "campus_admin", description: "Campus safety administrator" },
+  { name: "campus_security", description: "Campus security officer" },
+  { name: "campus_dispatch", description: "Campus dispatch / comms" },
+  { name: "venue_admin", description: "Venue safety administrator" },
+  { name: "venue_security", description: "Venue security officer" },
+  { name: "venue_operator", description: "Venue operator" },
+];
+
+async function ensureVerticalGroups(
+  client: CognitoIdentityProviderClient,
+  userPoolId: string
+): Promise<void> {
+  for (const group of VERTICAL_COGNITO_GROUPS) {
+    let exists = false;
+    try {
+      await client.send(new GetGroupCommand({ UserPoolId: userPoolId, GroupName: group.name }));
+      exists = true;
+    } catch (e) {
+      if ((e as { name?: string }).name !== "ResourceNotFoundException") throw e;
+    }
+    if (!exists) {
+      await client.send(
+        new CreateGroupCommand({
+          UserPoolId: userPoolId,
+          GroupName: group.name,
+          Description: group.description,
+        })
+      );
+      // eslint-disable-next-line no-console
+      console.log(`[seed-role-test-users] Created Cognito group: ${group.name}`);
+    }
+  }
+}
+
 async function ensureRapidCortexCustomAttributes(
   client: CognitoIdentityProviderClient,
   userPoolId: string
@@ -214,6 +293,7 @@ async function main() {
   }
 
   await ensureRapidCortexCustomAttributes(client, pool);
+  await ensureVerticalGroups(client, pool);
 
   for (const row of ACCOUNTS) {
     const username = row.email;

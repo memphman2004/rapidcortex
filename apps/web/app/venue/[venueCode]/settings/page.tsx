@@ -1,6 +1,8 @@
 "use client";
 
 import { use, useState } from "react";
+import Link from "next/link";
+import { VenueCapacityField } from "@/components/venue/venue-capacity-field";
 import { FIXTURE_STAFF } from "../_lib/venue-fixtures";
 
 export default function VenueSettingsPage({
@@ -9,6 +11,7 @@ export default function VenueSettingsPage({
   params: Promise<{ venueCode: string }>;
 }) {
   const { venueCode } = use(params);
+  const normalizedVenueCode = venueCode.toUpperCase().replace(/-/g, "");
   const [qrReporting, setQrReporting] = useState(true);
   const [smsReporting, setSmsReporting] = useState(true);
   const [photoUploads, setPhotoUploads] = useState(true);
@@ -38,11 +41,24 @@ export default function VenueSettingsPage({
         <div className="mt-3 grid gap-3 md:grid-cols-2">
           <div className="rounded-md border border-slate-700 bg-slate-900/60 p-3">
             <p className="text-xs uppercase tracking-wide text-slate-500">Venue Code</p>
-            <p className="mt-1 text-sm text-slate-100">{venueCode}</p>
+            <p className="mt-1 text-sm text-slate-100">{normalizedVenueCode}</p>
           </div>
           <div className="rounded-md border border-slate-700 bg-slate-900/60 p-3">
             <p className="text-xs uppercase tracking-wide text-slate-500">Venue Name</p>
             <p className="mt-1 text-sm text-slate-100">Mercedes-Benz Stadium</p>
+          </div>
+          <VenueCapacityField venueCode={normalizedVenueCode} initialCapacity={71000} />
+          <div className="rounded-md border border-slate-700 bg-slate-900/60 p-3">
+            <p className="text-xs uppercase tracking-wide text-slate-500">Section layout</p>
+            <p className="mt-1 text-sm text-slate-300">
+              Configure bowl sections, levels, and SVG positions.
+            </p>
+            <Link
+              href={`/venue/${normalizedVenueCode}/sections`}
+              className="mt-2 inline-flex rounded-md border border-violet-500/40 bg-violet-500/10 px-3 py-1.5 text-xs font-semibold text-violet-200 hover:bg-violet-500/20"
+            >
+              Open section configuration
+            </Link>
           </div>
           <div className="rounded-md border border-slate-700 bg-slate-900/60 p-3">
             <p className="text-xs uppercase tracking-wide text-slate-500">SMS Number</p>

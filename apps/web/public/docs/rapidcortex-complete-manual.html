@@ -28,9 +28,9 @@ a:hover{text-decoration:underline}
 /* SIDEBAR */
 .sidebar{width:272px;flex-shrink:0;background:var(--navy);position:sticky;top:0;height:100vh;overflow-y:auto;display:flex;flex-direction:column;scrollbar-width:thin;scrollbar-color:rgba(255,255,255,0.1) transparent}
 .sb-brand{padding:24px 22px 16px;border-bottom:1px solid rgba(255,255,255,0.08)}
-.sb-logo{display:flex;flex-direction:column;align-items:flex-start;gap:6px;margin-bottom:8px}
-.sb-apps-wordmark{font-size:10px;font-weight:700;letter-spacing:0.18em;text-transform:uppercase;color:#7a9ab8;text-decoration:none}
-.sb-apps-wordmark:hover{color:#aabdd4}
+.sb-logo{display:flex;align-items:center;gap:10px;margin-bottom:8px}
+.sb-icon{width:34px;height:34px;background:var(--red);border-radius:9px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.sb-icon svg{width:18px;height:18px;fill:#fff}
 .sb-name{font-size:15px;font-weight:600;color:#fff;letter-spacing:-0.2px}
 .sb-doc-title{font-size:11px;font-weight:500;color:#6a8cb0;line-height:1.4}
 .sb-url{margin-top:10px;background:rgba(200,16,46,0.15);border:1px solid rgba(200,16,46,0.28);border-radius:7px;padding:7px 11px}
@@ -556,7 +556,7 @@ a:hover{text-decoration:underline}
 <aside class="sidebar">
   <div class="sb-brand">
     <div class="sb-logo">
-      <a href="https://www.appsondemand.net" target="_blank" rel="noopener noreferrer" class="sb-apps-wordmark">Apps on Demand</a>
+      <div class="sb-icon"><svg viewBox="0 0 24 24"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg></div>
       <span class="sb-name">Rapid Cortex</span>
     </div>
     <div class="sb-doc-title">Complete Operations Manual</div>
@@ -582,6 +582,7 @@ a:hover{text-decoration:underline}
     <a class="sb-item" href="#ch-8"><span class="sb-num">8</span>Maintenance</a>
     <a class="sb-item" href="#ch-9"><span class="sb-num">9</span>Patching &amp; Updates</a>
     <a class="sb-item" href="#ch-10"><span class="sb-num">10</span>CAD &amp; Motorola</a>
+    <a class="sb-item" href="#ch-10-ring"><span class="sb-num">10B</span>Ring Connect</a>
     <div class="sb-section-label">Troubleshooting</div>
     <a class="sb-item" href="#ch-11"><span class="sb-num">11</span>Common Issues</a>
     <a class="sb-item" href="#ch-12"><span class="sb-num">12</span>Low Confidence</a>
@@ -620,7 +621,7 @@ a:hover{text-decoration:underline}
     <a class="sb-item" href="#p2-rootcause"><span class="sb-num">13</span>Root Cause</a>
     <a class="sb-item" href="#p2-tools"><span class="sb-num">16</span>Tools</a>
   </nav>
-  <div class="sb-footer"><strong>Rapid Cortex</strong> · v1.0<br/><span style="color:#5a7a96;line-height:1.8"><a href="/" style="color:#8eb4d4">Home</a> · <a href="/signup" style="color:#8eb4d4">Sign up</a> · <a href="/pricing" style="color:#8eb4d4">Pricing</a> · <a href="/example-city/login" style="color:#8eb4d4">Sign in</a> · <a href="https://www.rapidcortex.us" target="_blank" rel="noopener noreferrer" style="color:#5a7a96">Production</a></span><br/><span style="display:block;margin-top:10px;font-size:10px;color:#3d5a78;line-height:1.55">© 2026 Rapid Cortex. Decision support for emergency communications — not a replacement for CAD, telephony, or medical direction.<br/>Site built and managed by <a href="https://www.appsondemand.net" target="_blank" rel="noopener noreferrer" style="color:#5a7a96">Apps on Demand</a> · <a href="https://www.appsondemand.net" target="_blank" rel="noopener noreferrer" style="color:#5a7a96">www.appsondemand.net</a></span></div>
+  <div class="sb-footer"><strong>Rapid Cortex</strong> · v1.0<br/><a href="https://www.rapidcortex.us" style="color:#5a7a96">www.rapidcortex.us</a></div>
 </aside>
 
 <main class="main">
@@ -675,6 +676,7 @@ a:hover{text-decoration:underline}
         <a class="toc-item" href="#ch-8"><span class="toc-num">8</span><span>Routine Maintenance</span><span class="toc-dots"></span></a>
         <a class="toc-item" href="#ch-9"><span class="toc-num">9</span><span>Patching &amp; Updates</span><span class="toc-dots"></span></a>
         <a class="toc-item" href="#ch-10"><span class="toc-num">10</span><span>CAD &amp; Motorola Integration</span><span class="toc-dots"></span></a>
+        <a class="toc-item" href="#ch-10-ring"><span class="toc-num">10B</span><span>Rapid Cortex Connect — Ring Cameras &amp; Doorbells</span><span class="toc-dots"></span></a>
         <a class="toc-item" href="#ch-11"><span class="toc-num">11</span><span>Common Issues &amp; Fixes</span><span class="toc-dots"></span></a>
         <a class="toc-item" href="#ch-12"><span class="toc-num">12</span><span>Low Confidence Handling</span><span class="toc-dots"></span></a>
         <a class="toc-item" href="#ch-13"><span class="toc-num">13</span><span>Support &amp; Escalation</span><span class="toc-dots"></span></a>
@@ -1112,6 +1114,77 @@ https://www.rapidcortex.us/<span class="cc-red">[your-slug]</span>/demo
       <div class="callout c-danger"><span class="callout-ico">🚫</span><div><strong>Write-back to CAD is off-limits without explicit governance.</strong> Rapid Cortex will never automatically update CAD records without legal review, dual-authorization controls, and vendor approval. This is a hard boundary.</div></div>
     </div>
 
+    <!-- CH 10B: RING CONNECT -->
+    <div class="chapter" id="ch-10-ring">
+      <div class="ch-header">
+        <div class="ch-num b">10B</div>
+        <div><div class="ch-title">Rapid Cortex Connect — Ring Cameras &amp; Doorbells</div><div class="ch-desc">Owner-consented emergency video from Ring doorbells and cameras near an active incident</div></div>
+      </div>
+      <div class="callout c-info"><span class="callout-ico">ℹ️</span><div><strong>Voluntary, time-limited sharing.</strong> Dispatch can request live video from Ring devices near an incident. The <strong>device owner must approve every request</strong> via SMS or email. Rapid Cortex does not access Ring cameras silently. Doorbells and stick-up cameras use the same workflow.</div></div>
+      <div class="callout c-warn"><span class="callout-ico">⚠️</span><div>If the <strong>Ring</strong> tab does not appear under <strong>Media</strong> (<code>/[jurisdiction]/media</code>), Ring Connect is not enabled for your agency build — contact your Rapid Cortex pilot lead. Do not treat this as a local misconfiguration.</div></div>
+
+      <div class="sub">
+        <div class="sub-title">Who can use it</div>
+        <div class="tbl-wrap"><table class="tbl">
+          <thead><tr><th>Role</th><th>Typical access</th></tr></thead>
+          <tbody>
+            <tr><td><strong>Dispatcher</strong></td><td>View nearby cameras, send emergency video requests, view approved streams</td></tr>
+            <tr><td><strong>Supervisor</strong></td><td>Same as dispatcher</td></tr>
+            <tr><td><strong>Agency admin</strong></td><td>Integration health and user provisioning — cannot bypass owner consent</td></tr>
+          </tbody>
+        </table></div>
+      </div>
+
+      <div class="sub">
+        <div class="sub-title">Prerequisites — before any camera request</div>
+        <div class="steps">
+          <div class="step"><div class="step-num b">1</div><div class="step-body"><div class="step-title">Feature enabled for your agency</div><div class="step-text">The <strong>Ring</strong> tab must appear under <strong>Live Camera</strong> on the Media page. If missing, escalate to Rapid Cortex — not agency IT alone.</div></div></div>
+          <div class="step"><div class="step-num b">2</div><div class="step-body"><div class="step-title">Ring account linked (device owners)</div><div class="step-text">Open <code>/[jurisdiction]/media</code> → <strong>Ring</strong> tab → <strong>Connect Ring Account</strong> → complete Ring OAuth. Residents or staff who own doorbells link the same way. After OAuth, return to the app via <strong>Sign in to Rapid Cortex</strong> on the confirmation page.</div></div></div>
+          <div class="step"><div class="step-num b">3</div><div class="step-body"><div class="step-title">Devices synced and opted in</div><div class="step-text"><strong>Linked Ring Devices</strong> → <strong>Refresh devices</strong>. For each doorbell or camera to make available: turn <strong>Enable for Connect</strong> <strong>on</strong> and confirm the device has <strong>GPS coordinates</strong>. Devices without location do not appear in incident search.</div></div></div>
+          <div class="step"><div class="step-num b">4</div><div class="step-body"><div class="step-title">Active incident with location</div><div class="step-text">Select an <strong>active incident</strong> in <strong>Incident Context</strong> on the Media page before opening available cameras. Incident must have caller/incident coordinates.</div></div></div>
+        </div>
+      </div>
+
+      <div class="sub">
+        <div class="sub-title">Per doorbell / camera — emergency access (each device is separate)</div>
+        <div class="steps">
+          <div class="step"><div class="step-num">1</div><div class="step-body"><div class="step-title">Discover nearby devices</div><div class="step-text"><code>/[jurisdiction]/media</code> → <strong>Ring</strong> → select incident → <strong>View Available Ring Cameras</strong>. List shows devices within search radius (default 500 m, max 2000 m), sorted by distance. Cards show type <strong>DOORBELL</strong> or <strong>CAMERA</strong>.</div></div></div>
+          <div class="step"><div class="step-num">2</div><div class="step-body"><div class="step-title">Send emergency video request</div><div class="step-text">Choose duration <strong>10 / 30 / 60 / 120</strong> minutes → <strong>Send Emergency Video Request</strong> → confirm. Status becomes <strong>Sent</strong> when the owner is notified.</div></div></div>
+          <div class="step"><div class="step-num">3</div><div class="step-body"><div class="step-title">Owner consent</div><div class="step-text">Owner receives SMS (preferred) or email with <strong>Allow Temporary Access</strong> and <strong>Decline</strong>. No Rapid Cortex login required. <strong>Decline</strong> → no video. <strong>Approve</strong> → time-limited live stream is prepared.</div></div></div>
+          <div class="step"><div class="step-num">4</div><div class="step-body"><div class="step-title">View live stream</div><div class="step-text">When status is <strong>Approved</strong>, click <strong>View Live Stream</strong> on that device card. Video is available only for the approved duration.</div></div></div>
+          <div class="step"><div class="step-num">5</div><div class="step-body"><div class="step-title">End of access</div><div class="step-text">Sharing ends when duration expires, owner revokes, or dispatch revokes. After <strong>Expired</strong> or <strong>Revoked</strong>, a new request may be sent if the incident is still active and limits allow.</div></div></div>
+        </div>
+      </div>
+
+      <div class="sub">
+        <div class="sub-title">System limits (per incident)</div>
+        <div class="tbl-wrap"><table class="tbl">
+          <thead><tr><th>Rule</th><th>Limit</th></tr></thead>
+          <tbody>
+            <tr><td>Active request per device</td><td><strong>One</strong> at a time per incident + device</td></tr>
+            <tr><td>Requests per hour</td><td><strong>Five</strong> per incident</td></tr>
+            <tr><td>Owner consent</td><td><strong>Required</strong> for every request</td></tr>
+          </tbody>
+        </table></div>
+      </div>
+
+      <div class="sub">
+        <div class="sub-title">Status reference for dispatch</div>
+        <div class="tbl-wrap"><table class="tbl">
+          <thead><tr><th>Status</th><th>Meaning</th></tr></thead>
+          <tbody>
+            <tr><td><strong>Available</strong></td><td>Device in range; no active request</td></tr>
+            <tr><td><strong>Sent</strong></td><td>Owner notified; awaiting response</td></tr>
+            <tr><td><strong>Approved</strong></td><td>Owner allowed sharing; stream may be ready</td></tr>
+            <tr><td><strong>Declined</strong></td><td>Owner declined — do not re-request without cause</td></tr>
+            <tr><td><strong>Expired</strong> / <strong>Revoked</strong></td><td>Session ended</td></tr>
+          </tbody>
+        </table></div>
+      </div>
+
+      <div class="callout c-danger"><span class="callout-ico">🔒</span><div><strong>Policy reminder:</strong> Document agency SOP for when community camera requests are appropriate. Train owners that approval shares <strong>live</strong> video for a <strong>fixed window</strong> only. This is decision support — not a substitute for CAD, warrants, or retention policy.</div></div>
+    </div>
+
     <!-- CH 11: TROUBLESHOOTING -->
     <div class="chapter" id="ch-11">
       <div class="ch-header">
@@ -1202,6 +1275,18 @@ https://www.rapidcortex.us/<span class="cc-red">[your-slug]</span>/demo
             <ul><li>Close unnecessary tabs and background apps</li><li>Relaunch the browser or desktop app</li><li>Test on another workstation — if faster, the issue is local hardware/network</li><li>Verify local internet and WAN performance</li></ul>
             <div class="fix-lbl">Escalate if</div>
             <ul><li>Performance degradation affects multiple users across multiple workstations</li><li>API or transcript latency is consistently high across the agency</li></ul>
+          </div>
+        </div>
+
+        <div class="sym">
+          <div class="sym-hdr"><span class="sym-tag t-blue">Ring Connect</span><span class="sym-desc">Ring tab missing, request stuck, or no live stream</span></div>
+          <div class="sym-body">
+            <div class="fix-lbl">Check</div>
+            <ul><li><strong>Ring</strong> tab under Media — if absent, feature not enabled for your agency build</li><li>Active incident selected in <strong>Incident Context</strong></li><li>Device has <strong>Enable for Connect</strong> on and valid GPS</li><li>Device within search radius on the available-cameras list</li><li>Request status — <strong>Sent</strong> (waiting), <strong>Approved</strong> (stream), <strong>Declined</strong></li><li>Hourly limit — max <strong>5 requests per incident per hour</strong></li></ul>
+            <div class="fix-lbl">Try</div>
+            <ul><li><strong>Connect Ring Account</strong> again if OAuth failed</li><li><strong>Refresh devices</strong> in Linked Ring Devices</li><li>Re-open <strong>View Available Ring Cameras</strong> after owner approves</li><li>Confirm owner received SMS/email (check phone on account)</li><li>If <strong>Approved</strong> but no video, wait briefly and refresh the device card</li></ul>
+            <div class="fix-lbl">Escalate if</div>
+            <ul><li>Approved requests never produce a stream after refresh</li><li>OAuth or Connect fails for all users</li><li>Collect UTC time, incident ID, device ID, and request ID — see Chapter 13</li></ul>
           </div>
         </div>
 
@@ -1381,6 +1466,7 @@ https://www.rapidcortex.us/<span class="cc-red">[your-slug]</span>/demo
           <div class="kl-item"><div class="kl-label">Multilingual / Translation</div><div class="kl-options"><span class="kl-opt">Enabled</span><span class="kl-opt">Not enabled</span><span class="kl-opt">Partial</span></div></div>
           <div class="kl-item"><div class="kl-label">Interpreter Workflow</div><div class="kl-options"><span class="kl-opt">AI-assisted</span><span class="kl-opt">Manual SOP</span><span class="kl-opt">Not configured</span></div></div>
           <div class="kl-item"><div class="kl-label">CAD Integration</div><div class="kl-options"><span class="kl-opt">Live</span><span class="kl-opt">Partial</span><span class="kl-opt">Not included</span></div></div>
+          <div class="kl-item"><div class="kl-label">Ring Connect (doorbells / cameras)</div><div class="kl-options"><span class="kl-opt">Enabled</span><span class="kl-opt">Not enabled</span><span class="kl-opt">Pilot only</span></div></div>
           <div class="kl-item"><div class="kl-label">Radio Integration</div><div class="kl-options"><span class="kl-opt">Live</span><span class="kl-opt">Partial</span><span class="kl-opt">Not included</span></div></div>
           <div class="kl-item"><div class="kl-label">Protocol Packs</div><div class="kl-options"><span class="kl-opt">Active</span><span class="kl-opt">Not configured</span></div></div>
           <div class="kl-item"><div class="kl-label">Deployment Type</div><div class="kl-options"><span class="kl-opt">Web app</span><span class="kl-opt">Desktop app</span><span class="kl-opt">Hybrid</span></div></div>

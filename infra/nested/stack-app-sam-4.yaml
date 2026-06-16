@@ -537,7 +537,7 @@ Parameters:
     Default: "https://7c70vqd1p5.execute-api.us-east-1.amazonaws.com/api/integrations/ring/callback"
   RingAccountLinkUrl:
     Type: String
-    Default: "https://app.rapidcortex.us/app/venue/MBS/cameras"
+    Default: "https://www.rapidcortex.us/connect/ring/link"
   RingSecretsPrefix:
     Type: String
     Default: "rapid-cortex/connect/ring"
@@ -575,6 +575,14 @@ Parameters:
     Type: String
     Default: ""
     Description: Physical DynamoDB table for Connect access sessions.
+  NestRedirectUri:
+    Type: String
+    Default: "https://api.rapidcortex.us/api/cameras/providers/nest/callback"
+    Description: Google OAuth redirect URI for Nest SDM integration.
+  NestAccountLinkUrl:
+    Type: String
+    Default: "https://app.rapidcortex.us/app/venue/MBS/cameras"
+    Description: Post-OAuth redirect target in the web app (venue cameras page).
   VenueFacilitiesTable:
     Type: String
     Default: ""
@@ -1206,35 +1214,35 @@ Resources:
                 - !If
                   - HasRingAccountsTable
                   - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${RingAccountsTable}
-                  - !Ref AWS::NoValue
+                  - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/RapidCortexRingAccounts-${DeploymentStage}
                 - !If
                   - HasRingAccountsTable
                   - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${RingAccountsTable}/index/*
-                  - !Ref AWS::NoValue
+                  - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/RapidCortexRingAccounts-${DeploymentStage}/index/*
                 - !If
                   - HasRingDevicesTable
                   - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${RingDevicesTable}
-                  - !Ref AWS::NoValue
+                  - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/RapidCortexRingDevices-${DeploymentStage}
                 - !If
                   - HasRingDevicesTable
                   - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${RingDevicesTable}/index/*
-                  - !Ref AWS::NoValue
+                  - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/RapidCortexRingDevices-${DeploymentStage}/index/*
                 - !If
                   - HasRingRequestsTable
                   - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${RingRequestsTable}
-                  - !Ref AWS::NoValue
+                  - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/RingEmergencyCameraRequests-${DeploymentStage}
                 - !If
                   - HasRingRequestsTable
                   - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${RingRequestsTable}/index/*
-                  - !Ref AWS::NoValue
+                  - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/RingEmergencyCameraRequests-${DeploymentStage}/index/*
                 - !If
                   - HasRingSessionsTable
                   - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${RingSessionsTable}
-                  - !Ref AWS::NoValue
+                  - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/RingEmergencyCameraSessions-${DeploymentStage}
                 - !If
                   - HasRingSessionsTable
                   - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${RingSessionsTable}/index/*
-                  - !Ref AWS::NoValue
+                  - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/RingEmergencyCameraSessions-${DeploymentStage}/index/*
                 - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${QASessionsTable}
                 - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${QASessionsTable}/index/*
                 - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${QATemplatesTable}
@@ -1716,6 +1724,71 @@ Resources:
                 - HasRingCredentialsSecretArn
                 - !Ref RingCredentialsSecretArn
                 - !Ref AWS::NoValue
+
+  AppManagedPolicyNestCameraSecrets:
+    Type: AWS::IAM::ManagedPolicy
+    Properties:
+      ManagedPolicyName: !Sub "${Sam4ManagedPolicyNamePrefix}-sam4-lambda-nest-camera-secrets-${DeploymentStage}"
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Sid: NestOAuthSecretRead
+            Effect: Allow
+            Action:
+              - secretsmanager:GetSecretValue
+            Resource: !Sub arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:rc/cameras/nest/oauth*
+
+  CameraProviderOAuthStatesTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      BillingMode: PAY_PER_REQUEST
+      TableName: !Sub "${AppName}-camera-oauth-states-${DeploymentStage}"
+      AttributeDefinitions:
+        - AttributeName: state
+          AttributeType: S
+      KeySchema:
+        - AttributeName: state
+          KeyType: HASH
+      TimeToLiveSpecification:
+        AttributeName: ttl
+        Enabled: true
+      SSESpecification:
+        SSEEnabled: true
+        SSEType: KMS
+
+  CameraProviderTokensTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      BillingMode: PAY_PER_REQUEST
+      TableName: !Sub "${AppName}-camera-provider-tokens-${DeploymentStage}"
+      AttributeDefinitions:
+        - AttributeName: pk
+          AttributeType: S
+      KeySchema:
+        - AttributeName: pk
+          KeyType: HASH
+      SSESpecification:
+        SSEEnabled: true
+        SSEType: KMS
+
+  CamerasRegistryTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      BillingMode: PAY_PER_REQUEST
+      TableName: !Sub "${AppName}-cameras-${DeploymentStage}"
+      AttributeDefinitions:
+        - AttributeName: agencyId
+          AttributeType: S
+        - AttributeName: cameraId
+          AttributeType: S
+      KeySchema:
+        - AttributeName: agencyId
+          KeyType: HASH
+        - AttributeName: cameraId
+          KeyType: RANGE
+      SSESpecification:
+        SSEEnabled: true
+        SSEType: KMS
 
   RingConnectLoginFunction:
     Type: AWS::Serverless::Function
@@ -2624,6 +2697,51 @@ Resources:
             ApiId: !Ref Api
             Path: /api/rc-admin/invoices/bulk-draft
             Method: POST
+
+  NestCamerasProvidersHttpFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/handlers/cameras-providers-handler.handler
+      Timeout: 30
+      MemorySize: 256
+      Environment:
+        Variables:
+          COGNITO_USER_POOL_ID: !Ref ImportedCognitoUserPoolId
+          COGNITO_CLIENT_ID: !Ref ImportedCognitoWebClientId
+          DYNAMODB_TABLE_OAUTH: !Ref CameraProviderOAuthStatesTable
+          DYNAMODB_TABLE_TOKENS: !Ref CameraProviderTokensTable
+          CAMERAS_TABLE: !Ref CamerasRegistryTable
+          NEST_REDIRECT_URI: !Ref NestRedirectUri
+          NEST_ACCOUNT_LINK_URL: !Ref NestAccountLinkUrl
+      Policies:
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardA
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardB
+        - !Ref AppManagedPolicyNestCameraSecrets
+      Events:
+        NestCallback:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/cameras/providers/nest/callback
+            Method: GET
+            Auth:
+              Authorizer: NONE
+        ProvidersRoot:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/cameras/providers
+            Method: ANY
+        ProvidersProxy:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/cameras/providers/{proxy+}
+            Method: ANY
 
   BillingSchedulesHttpFunction:
     Type: AWS::Serverless::Function

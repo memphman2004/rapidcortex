@@ -52,6 +52,18 @@ Each line shows:
 
 - Browse past incidents for your agency; open a row to see the same transcript + analysis pattern as the dashboard.
 
+## 5. Media — Ring doorbells & cameras (`/<slug>/media`)
+
+When **Ring Connect** is enabled for your agency:
+
+1. **Ring** tab appears under **Live Camera** (next to **Facility**).
+2. **Connect Ring Account** — one-time OAuth for users who own Ring devices (optional for dispatchers who only send requests to community cameras).
+3. **View Available Ring Cameras** — lists doorbells/cameras near the selected incident (requires active incident + GPS on devices).
+4. **Send Emergency Video Request** — per device; owner must **approve** via SMS/email link before any live video.
+5. Durations: **10 / 30 / 60 / 120** minutes; max **5 requests per incident per hour**.
+
+Train floor staff: approval is **voluntary** and **time-limited**. Full procedure: [RING_CONNECT_CAMERA_ACCESS.md](../product-architecture/RING_CONNECT_CAMERA_ACCESS.md).
+
 ## Related
 
 - [TRAINING_QUICKSTART.md](./TRAINING_QUICKSTART.md) (trainer-led 20-minute version)

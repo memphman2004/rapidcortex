@@ -1,6 +1,6 @@
 {
   "id": "rapid-cortex-customer-program-documentation",
-  "version": "1.2.0",
+  "version": "1.3.0",
   "title": "Rapid Cortex — customer program documentation",
   "description": "Repository-relative paths included in the standard customer/agency program documentation ZIP. Internal-only sales docs (e.g. FAQ_INTERNAL) are intentionally omitted.",
   "coverFile": "docs/admin-user-management/JURISDICTION_OPERATIONS_GUIDE.md",
@@ -29,6 +29,7 @@
     "docs/operations-runbooks/TRAINING_QUICKSTART.md",
     "docs/operations-runbooks/FIRST_DAY_CHECKLIST.md",
     "docs/operations-runbooks/COMMON_TASKS.md",
+    "docs/product-architecture/RING_CONNECT_CAMERA_ACCESS.md",
     "docs/operations-runbooks/AGENCY_ONBOARDING_RUNBOOK.md",
     "docs/admin-user-management/AGENCY_SETUP_CHECKLIST.md",
     "docs/go-to-market-sales/PILOT_VALIDATION_CHECKLIST.md",

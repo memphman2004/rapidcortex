@@ -1,5 +1,5 @@
-import { VerticalRoleStub } from "@/components/dashboards/vertical-role-stub";
+import { VenueOperationsDashboardPage } from "@/components/venue/venue-operations-dashboard-page";
 
 export default function VenueSecurityPage() {
-  return <VerticalRoleStub consoleTitle="Venue Security Console" vertical="venue" />;
+  return <VenueOperationsDashboardPage />;
 }

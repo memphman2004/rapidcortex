@@ -22,12 +22,12 @@ export class PlatformCommandService {
     const onboardingAttention = agencies.filter((a) => {
       const st = a.status;
       if (st === "draft") return true;
-      const steps = a.config.platformOnboarding?.steps;
+      const steps = a.config?.platformOnboarding?.steps;
       if (!steps) return st !== "active";
       return Object.values(steps).some((v) => v === "pending" || v === "blocked");
     }).length;
     const agenciesWithBlockers = agencies.filter((a) => {
-      const s = a.config.platformOnboarding?.steps;
+      const s = a.config?.platformOnboarding?.steps;
       return s && Object.values(s).some((v) => v === "blocked");
     }).length;
 

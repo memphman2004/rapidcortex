@@ -2297,30 +2297,6 @@ Resources:
             Path: /api/demo/scenarios
             Method: GET
 
-  # Health-check handler — only reads DEPLOYMENT_STAGE + INTEGRATION_TRANSCRIPT_*.
-  IntegrationStatusFunction:
-    Type: AWS::Serverless::Function
-    Metadata:
-      BuildMethod: makefile
-      BuildTarget: build-function
-    Properties:
-      CodeUri: ../../apps/api/
-      Handler: dist/handlers/integrationStatus.handler
-      Environment:
-        Variables:
-          INTEGRATION_TRANSCRIPT_CONNECTOR_MODE: "off"
-          INTEGRATION_TRANSCRIPT_AGENCY_ALLOWLIST: ""
-      Policies:
-        - !Ref AppManagedPolicyS3ApplicationBucketsCrud
-
-      Events:
-        Route:
-          Type: HttpApi
-          Properties:
-            ApiId: !Ref Api
-            Path: /api/integration/status
-            Method: GET
-
   CallIntelligenceLanguagesFunction:
     Type: AWS::Serverless::Function
     Metadata:

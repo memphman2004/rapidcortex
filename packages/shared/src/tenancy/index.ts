@@ -41,7 +41,9 @@ export {
   createAgencyBodySchema,
   patchAgencyBodySchema,
   createInviteBodySchema,
+  agencyProfileResponseSchema,
   type CreateAgencyInput,
   type PatchAgencyInput,
   type CreateInviteInput,
+  type AgencyProfileResponse,
 } from "./schemas.js";

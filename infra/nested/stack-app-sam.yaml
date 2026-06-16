@@ -1963,45 +1963,6 @@ Resources:
             Auth:
               Authorizer: NONE
 
-  PostContactSalesLeadFunction:
-    Type: AWS::Serverless::Function
-    Metadata:
-      BuildMethod: makefile
-      BuildTarget: build-function
-    Properties:
-      Environment:
-        Variables:
-          COGNITO_USER_POOL_ID: !Ref CognitoUserPool
-          COGNITO_CLIENT_ID: !Ref CognitoUserPoolClient
-      CodeUri: ../../apps/api/
-      Handler: dist/handlers/postContactSalesLead.handler
-      Policies:
-        - !Ref AppManagedPolicyDynamoLambdaCrudShardA
-        - !Ref AppManagedPolicyDynamoLambdaCrudShardB
-        - !Ref AppManagedPolicyDynamoLambdaCrudShardC
-        - Statement:
-            Sid: SnsPublishOpsAlertsTopic
-            Effect: Allow
-            Action:
-              - sns:Publish
-            Resource: !GetAtt OpsAlertsTopic.TopicArn
-        - Statement:
-            Sid: SesContactSalesFromSupportIdentity
-            Effect: Allow
-            Action:
-              - ses:SendEmail
-            Resource:
-              - !Sub arn:${AWS::Partition}:ses:${AWS::Region}:${AWS::AccountId}:identity/support@rapidcortex.us
-      Events:
-        ContactSales:
-          Type: HttpApi
-          Properties:
-            ApiId: !Ref Api
-            Path: /api/contact-sales
-            Method: ANY
-            Auth:
-              Authorizer: NONE
-
   CreateIncidentFunction:
     Type: AWS::Serverless::Function
     Metadata:
@@ -2867,82 +2828,6 @@ Resources:
             Path: /api/admin/cad-incidents
             Method: GET
 
-  CadWritebackHttpFunction:
-    Type: AWS::Serverless::Function
-    Metadata:
-      BuildMethod: makefile
-      BuildTarget: build-function
-    Properties:
-      Timeout: 30
-      MemorySize: 512
-      Environment:
-        Variables:
-          CAD_INTEGRATIONS_TABLE: !Ref CadIntegrationsTable
-          CAD_WRITEBACK_AUDIT_TABLE: !Ref CadWritebackAuditTable
-          CAD_WRITEBACK_ENABLED: !Ref CadWritebackEnabled
-          CAD_WRITEBACK_REQUIRES_APPROVAL: !Ref CadWritebackRequiresApproval
-      CodeUri: ../../apps/api/
-      Handler: dist/handlers/cad/cadWritebackHttp.handler
-      Policies:
-        - Statement:
-            - Sid: CadWritebackIncidentRead
-              Effect: Allow
-              Action:
-                - dynamodb:GetItem
-              Resource: !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${IncidentsTable}
-            - Sid: CadWritebackIntegrationsRead
-              Effect: Allow
-              Action:
-                - dynamodb:GetItem
-                - dynamodb:Query
-              Resource:
-                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${CadIntegrationsTable}
-                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${CadIntegrationsTable}/index/*
-            - Sid: CadWritebackAuditRw
-              Effect: Allow
-              Action:
-                - dynamodb:GetItem
-                - dynamodb:PutItem
-                - dynamodb:Query
-              Resource:
-                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${CadWritebackAuditTable}
-                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${CadWritebackAuditTable}/index/*
-            - Sid: CadWritebackAuditAppend
-              Effect: Allow
-              Action:
-                - dynamodb:PutItem
-              Resource: !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${AuditTable}
-            - Sid: CadWritebackOpsSns
-              Effect: Allow
-              Action:
-                - sns:Publish
-              Resource: !GetAtt OpsAlertsTopic.TopicArn
-      Events:
-        PostCadWriteback:
-          Type: HttpApi
-          Properties:
-            ApiId: !Ref Api
-            Path: /api/cad/writeback/{incidentId}
-            Method: POST
-        GetCadWritebackApprovals:
-          Type: HttpApi
-          Properties:
-            ApiId: !Ref Api
-            Path: /api/admin/cad-writeback-approvals
-            Method: GET
-        PostCadWritebackApprove:
-          Type: HttpApi
-          Properties:
-            ApiId: !Ref Api
-            Path: /api/admin/cad-writeback-approvals/{id}/approve
-            Method: POST
-        PostCadWritebackReject:
-          Type: HttpApi
-          Properties:
-            ApiId: !Ref Api
-            Path: /api/admin/cad-writeback-approvals/{id}/reject
-            Method: POST
-
   CadWebhookHttpFunction:
     Type: AWS::Serverless::Function
     Metadata:
@@ -3572,6 +3457,32 @@ Resources:
           Properties:
             ApiId: !Ref Api
             Path: /api/agencies/{id}
+            Method: GET
+
+  GetAgencyProfileFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      Environment:
+        Variables:
+          COGNITO_USER_POOL_ID: !Ref CognitoUserPool
+          COGNITO_CLIENT_ID: !Ref CognitoUserPoolClient
+      CodeUri: ../../apps/api/
+      Handler: dist/handlers/getAgencyProfile.handler
+      Policies:
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardA
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardB
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardC
+        - !Ref AppManagedPolicyS3ApplicationBucketsCrud
+
+      Events:
+        Route:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/agencies/{id}/profile
             Method: GET
 
   PatchAgencyFunction:

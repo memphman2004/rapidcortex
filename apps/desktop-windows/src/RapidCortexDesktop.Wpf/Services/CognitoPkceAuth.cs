@@ -95,7 +95,10 @@ public static class CognitoPkceAuth
                 throw new InvalidOperationException("Token response did not include id_token.");
             }
 
-            ProtectedTokenStore.SaveSession(idToken: token.IdToken, refreshToken: token.RefreshToken);
+            ProtectedTokenStore.SaveSession(
+                idToken: token.IdToken,
+                refreshToken: token.RefreshToken,
+                accessToken: token.AccessToken);
             progress?.Report("Signed in. Tokens stored securely.");
         }
         finally

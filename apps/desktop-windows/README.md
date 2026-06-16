@@ -2,6 +2,8 @@
 
 WPF on **.NET 8**: Cognito **Hosted UI** (PKCE), **`/oauth2/token`** exchange via **loopback** redirect, DPAPI-backed session store, API client with `Authorization: Bearer <id_token>`, environment-based config, dashboard health ping, and incidents preview. **Release** builds hide manual token paste; use sign-in or Debug smoke tests.
 
+When **`WebAppBaseUrl`** is set (recommended), the app embeds the **same web workspace** as the browser (WebView2): dispatcher/supervisor navigation shortcuts, **Media / Ring Connect**, and the **Operations Manual** from the toolbar **Manual** menu.
+
 ## Run locally
 
 **Requires Windows** to run the WPF UI (`dotnet run`). On macOS/Linux you can still **`dotnet build`** the solution for CI compile checks (`EnableWindowsTargeting=true` in the `.csproj`).

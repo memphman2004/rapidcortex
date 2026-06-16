@@ -2,6 +2,7 @@
 
 import { useQuery } from "@tanstack/react-query";
 import { useEffect, useMemo, useState } from "react";
+import { IncidentContextMap } from "@/components/dispatch/incident-context-map";
 import { LiveVideoPanel } from "@/components/dispatch/live-video-panel";
 import { SilentTextPanel } from "@/components/dispatch/silent-text-panel";
 import { VideoAssistPanel } from "@/components/dispatch/video-assist-panel";
@@ -85,6 +86,22 @@ export default function MediaPage() {
           </select>
         </label>
       </div>
+
+      {selectedIncident?.callerLocationLat != null && selectedIncident?.callerLocationLng != null ? (
+        <div className="rounded-lg border border-slate-800 bg-slate-900/60 px-3 py-2">
+          <p className="text-[10px] font-semibold uppercase tracking-widest text-slate-300">Incident location</p>
+          <div className="mt-2">
+            <IncidentContextMap
+              latitude={selectedIncident.callerLocationLat}
+              longitude={selectedIncident.callerLocationLng}
+            />
+          </div>
+        </div>
+      ) : (
+        <div className="rounded-lg border border-slate-800 bg-slate-900/50 px-3 py-2 text-xs text-slate-400">
+          Select an incident with a known location to show the map and enable nearby Ring camera search.
+        </div>
+      )}
 
       <div className="grid min-h-0 flex-1 grid-cols-1 gap-4 xl:grid-cols-2">
         <div className="flex min-h-0 flex-col overflow-hidden rounded-lg border border-slate-700 bg-slate-900">

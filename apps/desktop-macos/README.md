@@ -2,7 +2,9 @@
 
 SwiftUI app with **Cognito Hosted UI** (PKCE), **`/oauth2/token` exchange**, **Keychain** storage for `id_token` / `refresh_token`, and API calls with `Authorization: Bearer <id_token>`.
 
-**Release builds** hide the debug “paste id_token” panel. **Phase 2+:** refresh-token rotation, typed models, signed distribution (see `docs/DESKTOP_DISTRIBUTION_OPTION_1.md`).
+**Release builds** hide the debug “paste id_token” panel. With **`WEB_APP_BASE_URL`** set, the app loads the **full Rapid Cortex web workspace** (same UI as the browser) in an embedded WebView, including **Media / Ring Connect**, side navigation, and the **Operations Manual** via the toolbar **Manual** menu.
+
+**Phase 2+:** refresh-token rotation, typed models, signed distribution (see `docs/DESKTOP_DISTRIBUTION_OPTION_1.md`).
 
 ## Open in Xcode
 

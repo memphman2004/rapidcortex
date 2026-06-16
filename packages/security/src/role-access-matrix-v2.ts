@@ -136,11 +136,40 @@ export function isVenueRole(role: string): role is VenueRole {
 }
 
 export const VENUE_ROLE_PERMISSIONS: Record<VenueRole, string[]> = {
-  VENUE_ADMIN: ["locations.qrcodes.manage", "locations.qrcodes.view"],
-  VENUE_SUPERVISOR: ["locations.qrcodes.view"],
-  VENUE_SECURITY: [],
-  VENUE_OPERATOR: [],
-  VENUE_GUEST_SERVICES: [],
+  VENUE_ADMIN: [
+    "venue.dashboard.view",
+    "venue.incidents.view",
+    "venue.sections.view",
+    "venue.sections.manage",
+    "venue.sections.status",
+    "venue.settings.view",
+    "venue.settings.manage",
+    "locations.qrcodes.manage",
+    "locations.qrcodes.view",
+  ],
+  VENUE_SUPERVISOR: [
+    "venue.dashboard.view",
+    "venue.incidents.view",
+    "venue.sections.view",
+    "venue.sections.status",
+    "venue.settings.view",
+    "locations.qrcodes.view",
+  ],
+  VENUE_SECURITY: [
+    "venue.dashboard.view",
+    "venue.incidents.view",
+    "venue.sections.view",
+    "venue.sections.status",
+    "venue.settings.view",
+  ],
+  VENUE_OPERATOR: [
+    "venue.dashboard.view",
+    "venue.incidents.view",
+    "venue.sections.view",
+    "venue.sections.status",
+    "venue.settings.view",
+  ],
+  VENUE_GUEST_SERVICES: ["venue.dashboard.view"],
 };
 
 export function canVenueRolePerform(role: VenueRole, permission: string): boolean {

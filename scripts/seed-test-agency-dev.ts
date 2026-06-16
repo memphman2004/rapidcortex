@@ -28,9 +28,9 @@ async function main() {
     createdAt: now,
     updatedAt: now,
     createdByUserId: "seed-test-agency",
-    monetizationPlanId: "essential",
+    monetizationPlanId: "command",
     subscriptionStatus: "active" as const,
-    planId: "essential",
+    planId: "command",
     config: {
       agencyId,
       protocolPackId: "default",

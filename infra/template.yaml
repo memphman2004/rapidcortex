@@ -369,6 +369,14 @@ Parameters:
     Description: >-
       When set, passes this ARN to AppSamStackV2 instead of the data-layer RingCredentialsSecret output
       (use for manually created rapid-cortex/connect/ring-credentials secrets).
+  RingRedirectUri:
+    Type: String
+    Default: "https://7c70vqd1p5.execute-api.us-east-1.amazonaws.com/api/integrations/ring/callback"
+    Description: Ring OAuth callback URL (must reach AppSam4Stack HTTP API).
+  RingAccountLinkUrl:
+    Type: String
+    Default: "https://www.rapidcortex.us/connect/ring/link"
+    Description: Post-OAuth browser redirect for Ring account linking (public marketing page).
   IncludeAppSamAlarmsNestedStack:
     Type: String
     Default: "true"
@@ -1486,7 +1494,7 @@ Resources:
         EnableCloudTrail: !Ref EnableCloudTrail
         EnableCloudTrailLambdaDataEvents: !Ref EnableCloudTrailLambdaDataEvents
         EnableCloudTrailS3DataEvents: !Ref EnableCloudTrailS3DataEvents
-        EnableLiveVideoResources: !Ref EnableLiveVideoResources
+        EnableLiveVideoResources: "false"
         ExternalApiEncryptionKeyArn: !Ref ExternalApiEncryptionKeyArn
         ExternalApiJwtSecretArn: !Ref ExternalApiJwtSecretArn
         ExternalApiRateLimitsTable:
@@ -2042,6 +2050,10 @@ Resources:
             - !GetAtt DataLayerStack.Outputs.WebhooksTable
             - !Sub "${DynamoTableNamePrefix}-webhooks-${DeploymentStage}"
         WwwCnameTarget: !Ref WwwCnameTarget
+        EnableConnectRing: "true"
+        RingPartnershipEnabled: "true"
+        RingRedirectUri: !Ref RingRedirectUri
+        RingAccountLinkUrl: !Ref RingAccountLinkUrl
         ImportedCognitoUserPoolId: !GetAtt AppSamStackV2.Outputs.UserPoolId
         ImportedCognitoWebClientId: !GetAtt AppSamStackV2.Outputs.UserPoolClientId
         ImportedCognitoNativeClientId: !GetAtt AppSamStackV2.Outputs.NativeUserPoolClientId

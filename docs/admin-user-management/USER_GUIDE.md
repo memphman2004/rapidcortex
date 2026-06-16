@@ -79,6 +79,20 @@ Scripted **demo scenarios** (`GET /api/demo/scenarios`, `POST /api/demo/start`) 
 
 `GET /api/incidents` with client-side filters; row links to `/<slug>/history/[id]` for the same read paths as the dashboard.
 
+## Media workspace (`/<slug>/media`)
+
+When enabled for your agency, the **Media** page combines caller video, facility cameras, silent text, and **Ring Connect**:
+
+| Area | Behavior |
+| --- | --- |
+| **Incident Context** | Select the active incident used for camera search and requests. |
+| **Caller Video** | WebRTC caller video assist (separate consent path). |
+| **Live Camera — Ring** | Link Ring account, manage linked devices, view nearby Ring doorbells/cameras, send **owner-consented** emergency video requests, view approved live streams. |
+| **Live Camera — Facility** | Facility / KVS live video when live video is enabled. |
+| **Text to Caller** | Silent Text panel when enabled. |
+
+**Ring Connect** requires owner approval for every device request. Doorbells and cameras share the same workflow. Step-by-step: [RING_CONNECT_CAMERA_ACCESS.md](../product-architecture/RING_CONNECT_CAMERA_ACCESS.md) · [COMMON_TASKS.md](../operations-runbooks/COMMON_TASKS.md).
+
 ## Supervisor review (`/<slug>/review`)
 
 Second-line review of incidents that need attention per your SOP; software provides queues and detail views.

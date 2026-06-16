@@ -32,7 +32,7 @@ export const RING_REDIRECT_URI =
   "https://7c70vqd1p5.execute-api.us-east-1.amazonaws.com/api/integrations/ring/callback";
 export const RING_ACCOUNT_LINK_URL =
   process.env.RING_ACCOUNT_LINK_URL?.trim() ??
-  "https://app.rapidcortex.us/app/venue/MBS/cameras";
+  "https://www.rapidcortex.us/connect/ring/link";
 export const RING_WEBHOOK_URL =
   process.env.RING_WEBHOOK_URL?.trim() ?? "https://api.rapidcortex.us/api/integrations/ring/webhook";
 export const RING_SECRETS_PREFIX =

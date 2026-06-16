@@ -1,4 +1,5 @@
 using System.Windows;
+using System.Windows.Controls;
 using System.Windows.Media;
 using RapidCortex.Desktop.Configuration;
 using RapidCortex.Desktop.Services;
@@ -46,12 +47,20 @@ public partial class MainWindow : Window
     {
         if (!_configuration.HasWebWorkspace)
         {
+#if DEBUG
             LegacyTabs.Visibility = Visibility.Visible;
             WebWorkspace.Visibility = Visibility.Collapsed;
+            WebWorkspaceRequiredPanel.Visibility = Visibility.Collapsed;
+#else
+            LegacyTabs.Visibility = Visibility.Collapsed;
+            WebWorkspace.Visibility = Visibility.Collapsed;
+            WebWorkspaceRequiredPanel.Visibility = Visibility.Visible;
+#endif
             return;
         }
 
         LegacyTabs.Visibility = Visibility.Collapsed;
+        WebWorkspaceRequiredPanel.Visibility = Visibility.Collapsed;
         WebWorkspace.Visibility = Visibility.Visible;
     }
 
@@ -91,13 +100,15 @@ public partial class MainWindow : Window
                 _webViewInitialized = true;
             }
 
+            RenderWebToolbar(idToken);
+
             if (forceReload || WorkspaceWebView.Source is null)
             {
                 await WorkspaceWebShellHost
                     .NavigateRoleHomeAsync(
                         WorkspaceWebView.CoreWebView2,
                         _webAppBaseUri,
-                        _configuration.DefaultJurisdictionSlug,
+                        ResolveJurisdictionSlug(),
                         idToken,
                         ProtectedTokenStore.TryReadRefreshToken())
                     .ConfigureAwait(true);
@@ -114,6 +125,100 @@ public partial class MainWindow : Window
                 MessageBoxButton.OK,
                 MessageBoxImage.Error);
         }
+    }
+
+    private void RenderWebToolbar(string idToken)
+    {
+        var role = DesktopPostLoginRouting.SessionRoleFromIdToken(idToken);
+        var jurisdiction = ResolveJurisdictionSlug();
+
+        WebRoleBadgeText.Text = DesktopWorkspaceNavigation.RoleBadgeLabel(role);
+        WebAgencyText.Text = ReadAgencyIdFromToken(idToken) ?? "";
+
+        WebQuickNavPanel.Children.Clear();
+        foreach (var link in DesktopWorkspaceNavigation.QuickLinks(role, jurisdiction))
+        {
+            var button = new Button
+            {
+                Content = link.Label,
+                Margin = new Thickness(0, 0, 6, 0),
+                Padding = new Thickness(10, 4, 10, 4),
+                Tag = link.Path,
+            };
+            button.Click += OnWebQuickNavClick;
+            WebQuickNavPanel.Children.Add(button);
+        }
+
+        WebManualButton.Visibility = DesktopWorkspaceNavigation.ShowsOperationsManual(role)
+            ? Visibility.Visible
+            : Visibility.Collapsed;
+    }
+
+    private static string? ReadAgencyIdFromToken(string idToken)
+    {
+        var payload = JwtPayloadParser.TryParsePayload(idToken);
+        if (payload is null)
+        {
+            return null;
+        }
+
+        var agency = JwtPayloadParser.ReadString(payload.Value, "custom:agencyId");
+        return string.IsNullOrWhiteSpace(agency) ? null : agency.Trim();
+    }
+
+    private string ResolveJurisdictionSlug() =>
+        DesktopWorkspaceNavigation.ResolveJurisdictionSlug(
+            _configuration.DefaultJurisdictionSlug,
+            ProtectedTokenStore.TryReadIdToken());
+
+    private async void OnWebQuickNavClick(object sender, RoutedEventArgs e)
+    {
+        if (sender is not Button { Tag: string path } || _webAppBaseUri is null)
+        {
+            return;
+        }
+
+        await NavigateWebPathAsync(path).ConfigureAwait(true);
+    }
+
+    private async void OnWebManualMenu(object sender, RoutedEventArgs e)
+    {
+        var menu = new ContextMenu();
+        menu.Items.Add(CreateManualMenuItem("Complete Operations Manual", includeRingChapter: false));
+        menu.Items.Add(CreateManualMenuItem("Ring Connect (Chapter 10B)", includeRingChapter: true));
+        menu.PlacementTarget = WebManualButton;
+        menu.IsOpen = true;
+    }
+
+    private MenuItem CreateManualMenuItem(string label, bool includeRingChapter)
+    {
+        var item = new MenuItem { Header = label };
+        item.Click += async (_, _) =>
+        {
+            await NavigateWebPathAsync(DesktopWorkspaceNavigation.OperationsManualHref(includeRingChapter))
+                .ConfigureAwait(true);
+        };
+        return item;
+    }
+
+    private async Task NavigateWebPathAsync(string path)
+    {
+        if (_webAppBaseUri is null
+            || ProtectedTokenStore.TryReadIdToken() is not { Length: > 0 } idToken
+            || WorkspaceWebView.CoreWebView2 is null)
+        {
+            return;
+        }
+
+        await WorkspaceWebShellHost
+            .NavigatePathAsync(
+                WorkspaceWebView.CoreWebView2,
+                _webAppBaseUri,
+                path,
+                idToken,
+                ProtectedTokenStore.TryReadRefreshToken(),
+                ProtectedTokenStore.TryReadAccessToken())
+            .ConfigureAwait(true);
     }
 
     private void UpdateSessionRoleLabel()

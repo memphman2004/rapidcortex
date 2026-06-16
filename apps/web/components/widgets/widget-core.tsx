@@ -205,7 +205,7 @@ export function PlatformHealthBarWidget({ agencyId }: WidgetProps) {
   const { data, isLoading } = useQuery({
     queryKey: ["platform-health"],
     queryFn: async () => {
-      const r = await fetch("/api/backend/api/platform/health", { credentials: "include" });
+      const r = await fetch("/api/health/upstream", { credentials: "include" });
       return r.ok ? r.json() : null;
     },
     refetchInterval: 30_000,

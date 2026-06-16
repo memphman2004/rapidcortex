@@ -32,6 +32,8 @@ struct MainShellView: View {
     @EnvironmentObject private var cognito: CognitoWebAuthCoordinator
     @State private var tab: MainTab = .dashboard
     @State private var webReloadNonce = 0
+    @State private var webNavigationPath: String?
+    @State private var webNavigationNonce = 0
     @State private var showNativeHospitalMap = false
     @State private var showCommandMap = false
 
@@ -40,6 +42,18 @@ struct MainShellView: View {
             return DesktopRoleRouting.NativeToolbarAccess(showCommandMap: false, showHospitalRouting: false)
         }
         return DesktopRoleRouting.nativeToolbarAccess(fromIdToken: idToken)
+    }
+
+    private var sessionRole: String {
+        guard let idToken = KeychainTokenStore.idToken() else { return "dispatcher" }
+        return DesktopRoleRouting.sessionRole(fromIdToken: idToken)
+    }
+
+    private var jurisdictionSlug: String {
+        DesktopWorkspaceNav.resolveJurisdictionSlug(
+            configured: session.configuration.defaultJurisdictionSlug,
+            idToken: KeychainTokenStore.idToken()
+        )
     }
 
     private var visibleLegacyTabs: [MainTab] {
@@ -61,7 +75,7 @@ struct MainShellView: View {
             if let webBase = session.configuration.webAppBaseURL {
                 webWorkspaceChrome(webBase: webBase)
             } else {
-                legacyNativeChrome
+                webWorkspaceRequiredView
             }
         }
         .onAppear {
@@ -70,6 +84,11 @@ struct MainShellView: View {
         .onChange(of: session.isSignedIn) { _, _ in
             ensureLegacyTabSelectionValid()
         }
+    }
+
+    private func navigateWeb(to path: String) {
+        webNavigationPath = path
+        webNavigationNonce += 1
     }
 
     private func ensureLegacyTabSelectionValid() {
@@ -83,18 +102,47 @@ struct MainShellView: View {
     @ViewBuilder
     private func webWorkspaceChrome(webBase: URL) -> some View {
         let access = nativeToolbarAccess
+        let role = sessionRole
+        let quickLinks = DesktopWorkspaceNav.quickLinks(role: role, jurisdictionSlug: jurisdictionSlug)
+        let agencyId = agencyLabelFromToken()
+
         VStack(spacing: 0) {
-            HStack(spacing: 12) {
+            HStack(spacing: 10) {
                 Text("Rapid Cortex")
                     .font(.headline)
+                if let agencyId {
+                    Text(agencyId)
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                        .lineLimit(1)
+                }
+                Text(DesktopWorkspaceNav.roleBadgeLabel(forRole: role))
+                    .font(.caption2.weight(.semibold))
+                    .padding(.horizontal, 8)
+                    .padding(.vertical, 3)
+                    .background(Color.accentColor.opacity(0.15))
+                    .clipShape(Capsule())
+
+                Divider()
+                    .frame(height: 18)
+
+                ForEach(quickLinks) { link in
+                    Button(link.label) {
+                        navigateWeb(to: link.path)
+                    }
+                    .buttonStyle(.borderless)
+                    .font(.caption.weight(.medium))
+                }
+
                 Spacer()
+
                 if access.showCommandMap {
                     Button {
                         showCommandMap = true
                     } label: {
                         Label("Command Map", systemImage: "map")
                     }
-                    .help("Open native command map (incident, caller, hospital, responder)")
+                    .help("Native command map (incident, caller, hospital, responder)")
                 }
 
                 if access.showHospitalRouting && session.configuration.enableNativeMapKit {
@@ -103,8 +151,23 @@ struct MainShellView: View {
                     } label: {
                         Label("Hospital routing", systemImage: "cross.case")
                     }
-                    .help("Open native Apple Maps hospital routing")
+                    .help("Native Apple Maps hospital routing")
                 }
+
+                if DesktopWorkspaceNav.showsOperationsManual(forRole: role) {
+                    Menu {
+                        Button("Complete Operations Manual") {
+                            navigateWeb(to: DesktopWorkspaceNav.operationsManualHref())
+                        }
+                        Button("Ring Connect (Chapter 10B)") {
+                            navigateWeb(to: DesktopWorkspaceNav.operationsManualHref(includeRingChapter: true))
+                        }
+                    } label: {
+                        Text("Manual")
+                    }
+                    .help("Agency operations manual (same as web app)")
+                }
+
                 Button("Reload") { webReloadNonce += 1 }
                 Button("Sign out") {
                     session.signOutWithHostedUI(cognito: cognito)
@@ -116,8 +179,10 @@ struct MainShellView: View {
 
             WorkspaceWebShellView(
                 webAppBaseURL: webBase,
-                jurisdictionSlug: session.configuration.defaultJurisdictionSlug,
+                jurisdictionSlug: jurisdictionSlug,
                 reloadNonce: webReloadNonce,
+                navigationPath: webNavigationPath,
+                navigationNonce: webNavigationNonce,
                 onNeedsReauth: {
                     session.signOut()
                     session.lastError = "Session expired or was rejected by the web app. Please sign in again."
@@ -138,6 +203,41 @@ struct MainShellView: View {
         }
     }
 
+    private var webWorkspaceRequiredView: some View {
+        Group {
+            #if DEBUG
+            legacyNativeChrome
+            #else
+            VStack(spacing: 16) {
+                Image(systemName: "globe")
+                    .font(.system(size: 40))
+                    .foregroundStyle(.secondary)
+                Text("Web workspace required")
+                    .font(.title2.weight(.semibold))
+                Text("Set **WEB_APP_BASE_URL** in Secrets.plist (e.g. `https://www.rapidcortex.us`) so this desktop app loads the same Rapid Cortex web workspace as the browser.")
+                    .multilineTextAlignment(.center)
+                    .foregroundStyle(.secondary)
+                    .frame(maxWidth: 420)
+                Text("After updating Secrets.plist, use **Reload configuration** on the sign-in screen or restart the app.")
+                    .font(.caption)
+                    .foregroundStyle(.tertiary)
+                    .multilineTextAlignment(.center)
+                    .frame(maxWidth: 420)
+            }
+            .padding(32)
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            #endif
+        }
+    }
+
+    private func agencyLabelFromToken() -> String? {
+        guard let idToken = KeychainTokenStore.idToken(),
+              let payload = DesktopRoleRouting.jwtPayloadDictionary(idToken),
+              let agency = payload["custom:agencyId"] as? String else { return nil }
+        let trimmed = agency.trimmingCharacters(in: .whitespacesAndNewlines)
+        return trimmed.isEmpty ? nil : trimmed
+    }
+
     private func makeHospitalRoutingViewModel() -> HospitalRoutingViewModel {
         let client = ApiClient(configuration: session.configuration) { [session] in
             session.idTokenForApi()
@@ -151,7 +251,7 @@ struct MainShellView: View {
             List(visibleLegacyTabs, selection: $tab) { t in
                 Label(t.title, systemImage: t.systemImage).tag(t)
             }
-            .navigationTitle("Rapid Cortex")
+            .navigationTitle("Rapid Cortex (dev)")
         } detail: {
             NavigationStack {
                 Group {

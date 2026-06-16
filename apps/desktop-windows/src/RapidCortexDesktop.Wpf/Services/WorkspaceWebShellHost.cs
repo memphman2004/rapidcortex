@@ -2,14 +2,14 @@ using Microsoft.Web.WebView2.Core;
 
 namespace RapidCortex.Desktop.Services;
 
-/// <summary>Injects Rapid Cortex session cookies and navigates to the role home in WebView2.</summary>
+/// <summary>Injects Rapid Cortex session cookies and navigates within the embedded web workspace (mirrors macOS WKWebView shell).</summary>
 public static class WorkspaceWebShellHost
 {
     private const string CookieIdToken = "rc_id_token";
     private const string CookieAccessToken = "rc_access_token";
     private const string CookieRefreshToken = "rc_refresh_token";
 
-    public static async Task NavigateRoleHomeAsync(
+    public static Task NavigateRoleHomeAsync(
         CoreWebView2 webView,
         Uri webAppBaseUrl,
         string jurisdictionSlug,
@@ -18,23 +18,35 @@ public static class WorkspaceWebShellHost
         CancellationToken cancellationToken = default)
     {
         var path = DesktopPostLoginRouting.DesktopPostLoginWebPath(idToken, jurisdictionSlug);
-        var target = new Uri(webAppBaseUrl, path);
-        var host = webAppBaseUrl.Host;
-        var isSecure = webAppBaseUrl.Scheme.Equals(Uri.UriSchemeHttps, StringComparison.OrdinalIgnoreCase);
+        return NavigatePathAsync(
+            webView,
+            webAppBaseUrl,
+            path,
+            idToken,
+            refreshToken,
+            ProtectedTokenStore.TryReadAccessToken(),
+            cancellationToken);
+    }
 
-        var cookieManager = webView.CookieManager;
-        var accessExpiry = DateTimeOffset.UtcNow.AddHours(1);
-        var refreshExpiry = DateTimeOffset.UtcNow.AddDays(30);
-
-        await SetCookieAsync(cookieManager, host, CookieIdToken, idToken, isSecure, accessExpiry).ConfigureAwait(true);
-        if (!string.IsNullOrWhiteSpace(refreshToken))
-        {
-            await SetCookieAsync(cookieManager, host, CookieRefreshToken, refreshToken, isSecure, refreshExpiry)
-                .ConfigureAwait(true);
-        }
-
-        cancellationToken.ThrowIfCancellationRequested();
-        webView.Navigate(target.AbsoluteUri);
+    public static Task NavigatePathAsync(
+        CoreWebView2 webView,
+        Uri webAppBaseUrl,
+        string path,
+        string idToken,
+        string? refreshToken,
+        string? accessToken = null,
+        CancellationToken cancellationToken = default)
+    {
+        var normalized = path.StartsWith('/') ? path : $"/{path}";
+        var target = new Uri(webAppBaseUrl, normalized);
+        return InjectCookiesAndNavigateAsync(
+            webView,
+            webAppBaseUrl,
+            target,
+            idToken,
+            refreshToken,
+            accessToken,
+            cancellationToken);
     }
 
     public static async Task ClearAuthCookiesAsync(CoreWebView2 webView, Uri webAppBaseUrl)
@@ -52,6 +64,40 @@ public static class WorkspaceWebShellHost
                 }
             }
         }
+    }
+
+    private static async Task InjectCookiesAndNavigateAsync(
+        CoreWebView2 webView,
+        Uri webAppBaseUrl,
+        Uri target,
+        string idToken,
+        string? refreshToken,
+        string? accessToken,
+        CancellationToken cancellationToken)
+    {
+        var host = webAppBaseUrl.Host;
+        var isSecure = webAppBaseUrl.Scheme.Equals(Uri.UriSchemeHttps, StringComparison.OrdinalIgnoreCase);
+
+        var cookieManager = webView.CookieManager;
+        var accessExpiry = ProtectedTokenStore.TryReadAccessTokenExpiry()
+            ?? DateTimeOffset.UtcNow.AddHours(1);
+        var refreshExpiry = DateTimeOffset.UtcNow.AddDays(30);
+
+        await SetCookieAsync(cookieManager, host, CookieIdToken, idToken, isSecure, accessExpiry).ConfigureAwait(true);
+        if (!string.IsNullOrWhiteSpace(accessToken))
+        {
+            await SetCookieAsync(cookieManager, host, CookieAccessToken, accessToken, isSecure, accessExpiry)
+                .ConfigureAwait(true);
+        }
+
+        if (!string.IsNullOrWhiteSpace(refreshToken))
+        {
+            await SetCookieAsync(cookieManager, host, CookieRefreshToken, refreshToken, isSecure, refreshExpiry)
+                .ConfigureAwait(true);
+        }
+
+        cancellationToken.ThrowIfCancellationRequested();
+        webView.Navigate(target.AbsoluteUri);
     }
 
     private static Task SetCookieAsync(

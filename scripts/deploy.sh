@@ -463,6 +463,12 @@ fi
 if [[ -n "${RING_PARTNERSHIP_ENABLED:-}" ]]; then
   PARAMS="${PARAMS} RingPartnershipEnabled=${RING_PARTNERSHIP_ENABLED}"
 fi
+if [[ -n "${RING_REDIRECT_URI:-}" ]]; then
+  PARAMS="${PARAMS} RingRedirectUri=${RING_REDIRECT_URI}"
+fi
+if [[ -n "${RING_ACCOUNT_LINK_URL:-}" ]]; then
+  PARAMS="${PARAMS} RingAccountLinkUrl=${RING_ACCOUNT_LINK_URL}"
+fi
 if [[ -n "${PilotTestFeaturesEnabled:-}" ]]; then
   PARAMS="${PARAMS} PilotTestFeaturesEnabled=${PilotTestFeaturesEnabled}"
 fi

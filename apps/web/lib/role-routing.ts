@@ -35,11 +35,20 @@ export function resolveRoleRoute(role: string, agencyId = ""): string {
 }
 
 /**
- * Build `/app/{vertical}/{roleSlug}` using shared vertical routing.
- * Falls back to `/app/{vertical}` when the role is unknown.
+ * Build the workspace URL for a vertical product shell.
+ * Never returns a bare `/app/{vertical}` path — always a concrete role dashboard.
  */
+const VERTICAL_DASHBOARD_FALLBACK: Record<string, string> = {
+  campus: "/app/campus/admin",
+  venue: "/app/venue/admin",
+  hospital: "/app/hospital/admin",
+  transit: "/app/transit/admin",
+};
+
 export function buildWorkspaceUrl(vertical: string, role: string, agencyId = ""): string {
-  const route = resolveRoleRoute(role, agencyId);
+  const normalized = normalizeVerticalRoleToken(role);
+  const route = dashboardRouteFromRole(normalized, agencyId);
   if (route.startsWith("/app/")) return route;
-  return `/app/${vertical}`;
+  if (route !== "/not-authorized") return route;
+  return VERTICAL_DASHBOARD_FALLBACK[vertical] ?? `/app/${vertical}`;
 }

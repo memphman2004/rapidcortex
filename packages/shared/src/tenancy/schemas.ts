@@ -121,6 +121,17 @@ export const createInviteBodySchema = z.object({
   expiresInDays: z.number().int().min(1).max(30).optional(),
 });
 
+export const agencyProfileResponseSchema = z.object({
+  id: z.string(),
+  name: z.string(),
+  /** Dashboard routing bucket — derived from tenant vertical. */
+  agencyType: z.enum(["psap", "campus", "venue", "hospital"]),
+  type: z.enum(AGENCY_TYPE_VALUES),
+  vertical: z.enum(["core", "campus", "venue", "hospital"]).optional(),
+  capacity: z.number().int().nonnegative().optional(),
+});
+
+export type AgencyProfileResponse = z.infer<typeof agencyProfileResponseSchema>;
 export type CreateAgencyInput = z.infer<typeof createAgencyBodySchema>;
 export type PatchAgencyInput = z.infer<typeof patchAgencyBodySchema>;
 export type CreateInviteInput = z.infer<typeof createInviteBodySchema>;
