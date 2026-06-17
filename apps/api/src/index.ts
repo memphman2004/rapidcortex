@@ -20,6 +20,7 @@ export { handler as getMe } from "./handlers/getMe.js";
 export { handler as listAgencies } from "./handlers/listAgencies.js";
 export { handler as createAgency } from "./handlers/createAgency.js";
 export { handler as getAgency } from "./handlers/getAgency.js";
+export { handler as getAgencyProfile } from "./handlers/getAgencyProfile.js";
 export { handler as patchAgency } from "./handlers/patchAgency.js";
 export { handler as listAgencyInvites } from "./handlers/listAgencyInvites.js";
 export { handler as postAgencyInvite } from "./handlers/postAgencyInvite.js";

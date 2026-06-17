@@ -95,6 +95,11 @@ export function RcAdminCreateAgencyRunbook() {
           should appear in the product.
         </li>
         <li>
+          Select <span className="text-slate-200">Product vertical</span> — PSAP / RC Core for dispatch centers; Campus
+          or Venue for those tenant types (sets dashboard routing at{" "}
+          <span className="font-mono text-slate-200">/{`{agencyId}`}</span>).
+        </li>
+        <li>
           Select <span className="text-slate-200">Type</span> using the reference table (PSAP / law enforcement / fire
           / EMS / multi-agency → closest match).
         </li>
