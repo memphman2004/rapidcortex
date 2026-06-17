@@ -143,6 +143,9 @@ export CAD_WRITEBACK_ENABLED=false
 export RING_REDIRECT_URI="https://7c70vqd1p5.execute-api.us-east-1.amazonaws.com/api/integrations/ring/callback"
 export RING_ACCOUNT_LINK_URL="https://www.rapidcortex.us/connect/ring/link"
 
+# Nest — OAuth callback must point to stack 4 (NestCamerasProvidersHttpFunction lives there, NOT stack 1)
+export NEST_REDIRECT_URI="https://7c70vqd1p5.execute-api.us-east-1.amazonaws.com/api/cameras/providers/nest/callback"
+
 # QR/NFC citizen reporting — QRNFCCodesTable in stack-app-sam-qr.yaml
 export APP_BASE_URL="https://app.rapidcortex.us"
 export QR_NFC_CODES_TABLE="rapid-cortex-qr-nfc-codes-dev"

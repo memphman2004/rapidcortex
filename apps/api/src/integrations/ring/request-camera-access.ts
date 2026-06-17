@@ -1,6 +1,6 @@
 import type { APIGatewayProxyHandlerV2 } from "aws-lambda";
 import { randomBytes, randomUUID } from "node:crypto";
-import bcrypt from "bcryptjs";
+import * as bcrypt from "bcryptjs";
 import { ringRequestCameraAccessBodySchema } from "rapid-cortex-shared";
 import { isRingEmergencyRequestsEnabled, RingDeviceService } from "../../lib/ring-integration.js";
 import { ACCOUNT_INACTIVE_MESSAGE, getUserContext, isUserAccountActive } from "../../lib/auth.js";

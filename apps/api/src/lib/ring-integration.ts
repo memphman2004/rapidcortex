@@ -19,6 +19,7 @@ export {
   isRingAvailableCamerasEnabled,
   isRingEmergencyRequestsEnabled,
   isRingEnabled,
+  normalizeRingReturnUrl,
   RingAdapter,
   getRingCredentials,
   verifyRingWebhookSignature,

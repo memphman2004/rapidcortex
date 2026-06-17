@@ -1,5 +1,5 @@
 import type { APIGatewayProxyHandlerV2 } from "aws-lambda";
-import bcrypt from "bcryptjs";
+import * as bcrypt from "bcryptjs";
 import { ringRevokeCameraAccessBodySchema } from "rapid-cortex-shared";
 import { ACCOUNT_INACTIVE_MESSAGE, getUserContext, isUserAccountActive } from "../../lib/auth.js";
 import { env } from "../../lib/env.js";

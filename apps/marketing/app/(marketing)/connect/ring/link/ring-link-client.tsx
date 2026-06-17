@@ -56,6 +56,28 @@ export function RingLinkClient() {
         </Link>
       </div>
 
+      <section className="mt-10 rounded-xl border border-slate-800 bg-slate-900/40 p-6">
+        <h2 className="text-lg font-semibold text-white">New to Rapid Cortex?</h2>
+        <p className="mt-3 text-sm leading-relaxed text-slate-300">
+          Rapid Cortex is available to licensed emergency communications centers, campus safety departments,
+          and venue security operations.
+        </p>
+        <div className="mt-5 flex flex-col gap-3 sm:flex-row sm:items-center">
+          <Link
+            href="https://www.rapidcortex.us/contact"
+            className="inline-flex min-h-11 items-center justify-center rounded-lg bg-gradient-to-r from-sky-500 to-cyan-400 px-5 text-sm font-semibold text-slate-950"
+          >
+            Request Access
+          </Link>
+          <Link
+            href="https://www.rapidcortex.us"
+            className="inline-flex min-h-11 items-center justify-center text-sm font-semibold text-sky-400 hover:text-sky-300"
+          >
+            Learn more about Rapid Cortex
+          </Link>
+        </div>
+      </section>
+
       <div className="mt-10 space-y-2 border-t border-slate-800 pt-6 text-xs text-slate-500">
         <p>
           Need help?{" "}

@@ -39,6 +39,7 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
 
   let agencyId = "";
   let userId = "";
+  let ringReturnUrl: string | null = null;
 
   const finish = async (status: "success" | "error") => {
     if (agencyId && userId) {
@@ -55,6 +56,9 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
         );
       }
     }
+    if (status === "success" && ringReturnUrl) {
+      return ringRedirect(ringReturnUrl);
+    }
     return ringRedirect(linkUrl(status));
   };
 
@@ -66,6 +70,7 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
     const parsed = decodeRingOAuthState(incomingState);
     agencyId = parsed.agencyId;
     userId = parsed.userId;
+    ringReturnUrl = parsed.ringReturnUrl ?? null;
   } catch {
     return finish("error");
   }

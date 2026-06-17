@@ -1,5 +1,5 @@
 import type { APIGatewayProxyHandlerV2 } from "aws-lambda";
-import { isRingEnabled, RingOAuthService } from "../../lib/ring-integration.js";
+import { isRingEnabled, RingOAuthService, normalizeRingReturnUrl } from "../../lib/ring-integration.js";
 import { ACCOUNT_INACTIVE_MESSAGE, getUserContext, isUserAccountActive } from "../../lib/auth.js";
 import { operationalPasswordBlock } from "../../lib/operationalPasswordGate.js";
 import { RingAccountRepository } from "../../repositories/ringAccountRepository.js";
@@ -28,7 +28,10 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
       return ringJson({ success: false, error: "Ring integration is not enabled." }, 403);
     }
 
-    const { url, state } = await oauth.buildAuthorizationUrl(user.agencyId, user.userId);
+    const qs = event.queryStringParameters ?? {};
+    const ringReturnUrl = normalizeRingReturnUrl(qs.return_url ?? qs.app_redirect_url);
+
+    const { url, state } = await oauth.buildAuthorizationUrl(user.agencyId, user.userId, ringReturnUrl);
     await accounts.saveOAuthState(user.agencyId, user.userId, state, OAUTH_STATE_TTL_SECONDS);
 
     await auditRingEvent({

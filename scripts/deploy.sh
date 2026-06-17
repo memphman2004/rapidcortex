@@ -246,14 +246,22 @@ rm -f apps/api/package-lock.json
 cd apps/api && npm install --no-workspaces && cd "$ROOT"
 # npm may re-use a bad extracted tarball; sync built dist/ from workspaces so API tsc always matches
 # packages/* (SAM still packages the tgzs produced above, which include up-to-date dist/ from npm pack).
+# rm -rf dest/dist before rsync avoids APFS races with rsync --delete (qa/*.js temp rename failures).
+sync_vendor_dist() {
+  local src="$1"
+  local dest_root="$2"
+  rm -rf "${dest_root}/dist"
+  mkdir -p "${dest_root}"
+  rsync -a "${src}/" "${dest_root}/dist/"
+}
 if [[ -d apps/api/node_modules/rapid-cortex-shared ]]; then
-  rsync -a --delete packages/shared/dist/ apps/api/node_modules/rapid-cortex-shared/dist/
+  sync_vendor_dist packages/shared/dist apps/api/node_modules/rapid-cortex-shared
 fi
 if [[ -d apps/api/node_modules/rapid-cortex-integrations ]]; then
-  rsync -a --delete packages/integrations/dist/ apps/api/node_modules/rapid-cortex-integrations/dist/
+  sync_vendor_dist packages/integrations/dist apps/api/node_modules/rapid-cortex-integrations
 fi
 if [[ -d apps/api/node_modules/rapid-cortex-security ]]; then
-  rsync -a --delete packages/security/dist/ apps/api/node_modules/rapid-cortex-security/dist/
+  sync_vendor_dist packages/security/dist apps/api/node_modules/rapid-cortex-security
 fi
 npm run build -w rapid-cortex-api
 if [[ "${BUILD_WEB_BEFORE_SAM:-0}" == "1" ]]; then

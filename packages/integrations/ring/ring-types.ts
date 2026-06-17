@@ -98,6 +98,8 @@ export interface RingOAuthState {
   userId: string;
   nonce: string;
   createdAt: number;
+  /** Ring Appstore return URL — redirect here after successful account link. */
+  ringReturnUrl?: string | null;
 }
 
 export interface RingCameraListItem {

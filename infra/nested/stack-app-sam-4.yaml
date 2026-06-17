@@ -577,7 +577,7 @@ Parameters:
     Description: Physical DynamoDB table for Connect access sessions.
   NestRedirectUri:
     Type: String
-    Default: "https://api.rapidcortex.us/api/cameras/providers/nest/callback"
+    Default: "https://7c70vqd1p5.execute-api.us-east-1.amazonaws.com/api/cameras/providers/nest/callback"
     Description: Google OAuth redirect URI for Nest SDM integration.
   NestAccountLinkUrl:
     Type: String
@@ -822,6 +822,10 @@ Conditions:
   HasRingDevicesTable: !Not [!Equals [!Ref RingDevicesTable, ""]]
   HasRingRequestsTable: !Not [!Equals [!Ref RingRequestsTable, ""]]
   HasRingSessionsTable: !Not [!Equals [!Ref RingSessionsTable, ""]]
+  CreateManagedRingAccountsTable: !Not [!Condition HasRingAccountsTable]
+  CreateManagedRingDevicesTable: !Not [!Condition HasRingDevicesTable]
+  CreateManagedRingRequestsTable: !Not [!Condition HasRingRequestsTable]
+  CreateManagedRingSessionsTable: !Not [!Condition HasRingSessionsTable]
   HasVenueFacilitiesTable: !Not [!Equals [!Ref VenueFacilitiesTable, ""]]
   HasVenueCameraAccessLogTable: !Not [!Equals [!Ref VenueCameraAccessLogTable, ""]]
   HasVenueConfigTable: !Not [!Equals [!Ref VenueConfigTable, ""]]
@@ -1737,6 +1741,159 @@ Resources:
             Action:
               - secretsmanager:GetSecretValue
             Resource: !Sub arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:rc/cameras/nest/oauth*
+
+  ManagedRingAccountsTable:
+    Type: AWS::DynamoDB::Table
+    Condition: CreateManagedRingAccountsTable
+    Properties:
+      BillingMode: !Ref DynamoBillingMode
+      TableName: !Sub "RapidCortexRingAccounts-${DeploymentStage}"
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: !If [DynamoPitrOn, true, false]
+      TimeToLiveSpecification:
+        AttributeName: ttl
+        Enabled: true
+      SSESpecification:
+        SSEEnabled: true
+        SSEType: KMS
+      AttributeDefinitions:
+        - AttributeName: agencyId
+          AttributeType: S
+        - AttributeName: userId
+          AttributeType: S
+        - AttributeName: ringAccountId
+          AttributeType: S
+      KeySchema:
+        - AttributeName: agencyId
+          KeyType: HASH
+        - AttributeName: userId
+          KeyType: RANGE
+      GlobalSecondaryIndexes:
+        - IndexName: ringAccountId-index
+          KeySchema:
+            - AttributeName: ringAccountId
+              KeyType: HASH
+          Projection:
+            ProjectionType: ALL
+
+  ManagedRingDevicesTable:
+    Type: AWS::DynamoDB::Table
+    Condition: CreateManagedRingDevicesTable
+    Properties:
+      BillingMode: !Ref DynamoBillingMode
+      TableName: !Sub "RapidCortexRingDevices-${DeploymentStage}"
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: !If [DynamoPitrOn, true, false]
+      SSESpecification:
+        SSEEnabled: true
+        SSEType: KMS
+      AttributeDefinitions:
+        - AttributeName: agencyUserKey
+          AttributeType: S
+        - AttributeName: deviceId
+          AttributeType: S
+        - AttributeName: agencyId
+          AttributeType: S
+      KeySchema:
+        - AttributeName: agencyUserKey
+          KeyType: HASH
+        - AttributeName: deviceId
+          KeyType: RANGE
+      GlobalSecondaryIndexes:
+        - IndexName: agencyId-index
+          KeySchema:
+            - AttributeName: agencyId
+              KeyType: HASH
+            - AttributeName: deviceId
+              KeyType: RANGE
+          Projection:
+            ProjectionType: ALL
+
+  ManagedRingEmergencyCameraRequestsTable:
+    Type: AWS::DynamoDB::Table
+    Condition: CreateManagedRingRequestsTable
+    Properties:
+      BillingMode: !Ref DynamoBillingMode
+      TableName: !Sub "RingEmergencyCameraRequests-${DeploymentStage}"
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: !If [DynamoPitrOn, true, false]
+      TimeToLiveSpecification:
+        AttributeName: expiresAt
+        Enabled: true
+      SSESpecification:
+        SSEEnabled: true
+        SSEType: KMS
+      AttributeDefinitions:
+        - AttributeName: agencyIncidentKey
+          AttributeType: S
+        - AttributeName: requestId
+          AttributeType: S
+        - AttributeName: deviceId
+          AttributeType: S
+        - AttributeName: createdAt
+          AttributeType: S
+        - AttributeName: requestStatus
+          AttributeType: S
+      KeySchema:
+        - AttributeName: agencyIncidentKey
+          KeyType: HASH
+        - AttributeName: requestId
+          KeyType: RANGE
+      GlobalSecondaryIndexes:
+        - IndexName: deviceId-index
+          KeySchema:
+            - AttributeName: deviceId
+              KeyType: HASH
+            - AttributeName: createdAt
+              KeyType: RANGE
+          Projection:
+            ProjectionType: ALL
+        - IndexName: requestStatus-index
+          KeySchema:
+            - AttributeName: requestStatus
+              KeyType: HASH
+            - AttributeName: createdAt
+              KeyType: RANGE
+          Projection:
+            ProjectionType: ALL
+
+  ManagedRingEmergencyCameraSessionsTable:
+    Type: AWS::DynamoDB::Table
+    Condition: CreateManagedRingSessionsTable
+    Properties:
+      BillingMode: !Ref DynamoBillingMode
+      TableName: !Sub "RingEmergencyCameraSessions-${DeploymentStage}"
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: !If [DynamoPitrOn, true, false]
+      TimeToLiveSpecification:
+        AttributeName: expiresAt
+        Enabled: true
+      SSESpecification:
+        SSEEnabled: true
+        SSEType: KMS
+      AttributeDefinitions:
+        - AttributeName: sessionId
+          AttributeType: S
+        - AttributeName: createdAt
+          AttributeType: S
+        - AttributeName: incidentId
+          AttributeType: S
+        - AttributeName: startedAt
+          AttributeType: S
+      KeySchema:
+        - AttributeName: sessionId
+          KeyType: HASH
+        - AttributeName: createdAt
+          KeyType: RANGE
+      GlobalSecondaryIndexes:
+        - IndexName: incidentId-index
+          KeySchema:
+            - AttributeName: incidentId
+              KeyType: HASH
+            - AttributeName: startedAt
+              KeyType: RANGE
+          Projection:
+            ProjectionType: ALL
 
   CameraProviderOAuthStatesTable:
     Type: AWS::DynamoDB::Table

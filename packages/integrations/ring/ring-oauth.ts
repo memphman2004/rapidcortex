@@ -35,6 +35,21 @@ export function decodeRingOAuthState(encoded: string): RingOAuthState {
   return parseOAuthState(encoded);
 }
 
+/** Allow only Ring-owned HTTPS return URLs (Appstore OAuth completion). */
+export function normalizeRingReturnUrl(raw: string | null | undefined): string | null {
+  const trimmed = raw?.trim();
+  if (!trimmed) return null;
+  try {
+    const url = new URL(trimmed);
+    if (url.protocol !== "https:") return null;
+    const host = url.hostname.toLowerCase();
+    if (host !== "ring.com" && !host.endsWith(".ring.com")) return null;
+    return url.toString();
+  } catch {
+    return null;
+  }
+}
+
 function parseOAuthState(encoded: string): RingOAuthState {
   let parsed: unknown;
   try {
@@ -53,7 +68,11 @@ function parseOAuthState(encoded: string): RingOAuthState {
   if (!agencyId || !userId || !nonce || !Number.isFinite(createdAt)) {
     throw new RingAuthError("Ring OAuth state is missing required fields");
   }
-  return { agencyId, userId, nonce, createdAt };
+  const ringReturnUrl =
+    record.ringReturnUrl == null
+      ? null
+      : normalizeRingReturnUrl(String(record.ringReturnUrl));
+  return { agencyId, userId, nonce, createdAt, ringReturnUrl };
 }
 
 type RingTokenResponse = {
@@ -87,6 +106,7 @@ export class RingOAuthService {
   async buildAuthorizationUrl(
     agencyId: string,
     userId: string,
+    ringReturnUrl?: string | null,
   ): Promise<{ url: string; state: string }> {
     const { clientId } = await getRingCredentials();
     const statePayload: RingOAuthState = {
@@ -94,6 +114,7 @@ export class RingOAuthService {
       userId,
       nonce: randomBytes(32).toString("hex"),
       createdAt: Date.now(),
+      ringReturnUrl: normalizeRingReturnUrl(ringReturnUrl),
     };
     const state = toBase64Url(JSON.stringify(statePayload));
     const params = new URLSearchParams({

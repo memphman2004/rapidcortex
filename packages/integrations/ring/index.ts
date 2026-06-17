@@ -28,7 +28,7 @@ export {
 } from "./ring-errors.js";
 
 // Services
-export { RingOAuthService, decodeRingOAuthState } from "./ring-oauth.js";
+export { RingOAuthService, decodeRingOAuthState, normalizeRingReturnUrl } from "./ring-oauth.js";
 export { RingApiClient } from "./ring-client.js";
 export { RingTokenStore } from "./ring-token-store.js";
 export { RingDeviceService } from "./ring-devices.js";

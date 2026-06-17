@@ -1,6 +1,6 @@
 import type { APIGatewayProxyHandlerV2 } from "aws-lambda";
 import { randomBytes, randomUUID } from "node:crypto";
-import bcrypt from "bcryptjs";
+import * as bcrypt from "bcryptjs";
 import type { RingEmergencyCameraRequest } from "../../lib/ring-integration.js";
 import { RingEmergencyRepository } from "../../repositories/ringEmergencyRepository.js";
 import { provisionRingEmergencyKvsChannel } from "./ring-kvs.js";
