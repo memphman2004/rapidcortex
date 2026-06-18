@@ -4,7 +4,7 @@
  */
 import type { APIGatewayProxyHandlerV2 } from "aws-lambda";
 import { isValidRCLI, qrPublicIntakeSchema } from "rapid-cortex-shared";
-import { createCampusIncident } from "../../campus/campus-incident-service.js";
+import { createCampusQrIncident } from "../../campus/campus-incident-service.js";
 import { uploadReportPhoto } from "../../campus/campus-media-service.js";
 import { createAnonToken } from "../../campus/campus-anon-service.js";
 import { withCorrelationHeaders } from "../../lib/correlation.js";
@@ -76,10 +76,11 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
 
     if (location.vertical === "campus") {
       const campusCode = location.orgCode;
-      const incident = await createCampusIncident(
+      const { incident, cameras } = await createCampusQrIncident(
         {
           campusCode,
           buildingCode: location.building ?? "UNKNOWN",
+          floor: location.floor ? Number(location.floor) : null,
           roomCode: location.zoneCode,
           zoneCode: location.zoneCode,
           qrRcli: rcli,
@@ -94,7 +95,7 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
           phoneNumber: payload.reporterPhone ?? null,
           photoDataUrl: null,
         },
-        campusCode,
+        location.agencyId,
         undefined,
       );
 
@@ -113,9 +114,11 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
         ok(
           {
             referenceId,
+            incidentId: incident.id,
             rcli,
             locationName: location.locationName,
             zoneCode: location.zoneCode,
+            cameras,
             receivedAt: new Date().toISOString(),
             message: "Your report has been received. Help is on the way.",
           },
@@ -125,7 +128,7 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
     }
 
     if (location.vertical === "venue") {
-      const incident = await createVenueQrIncident({
+      const { incident, cameras } = await createVenueQrIncident({
         venueCode: location.orgCode,
         agencyId: location.agencyId,
         rcli,
@@ -155,9 +158,11 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
         ok(
           {
             referenceId: incident.incidentId,
+            incidentId: incident.incidentId,
             rcli,
             locationName: location.locationName,
             zoneCode: location.zoneCode,
+            cameras,
             receivedAt: new Date().toISOString(),
             message: "Your report has been received. Help is on the way.",
           },

@@ -8,6 +8,32 @@ export {
 } from "./schemas.js";
 
 export {
+  venueCameraVendorSchema,
+  venueCameraStatusSchema,
+  venueCameraSchema,
+  venueCameraUpsertBodySchema,
+  venueCamerasQuerySchema,
+  campusCamerasQuerySchema,
+  venueIncidentCameraSummarySchema,
+  venueIncidentUpdateBodySchema,
+  venueIncidentStatusPatchSchema,
+  venueCameraViewerTokenQuerySchema,
+  venueCameraPtzBodySchema,
+  venueCameraDiscoverBodySchema,
+  venueCameraDiscoverResponseSchema,
+  isRtspProducerVendor,
+  venueKvsChannelName,
+  RTSP_PRODUCER_VENDORS,
+  type VenueCameraDiscoverBody,
+  type VenueCameraDiscoverResponse,
+  type VenueCamera,
+  type VenueCameraUpsertBody,
+  type VenueIncidentCameraSummary,
+  type VenueIncidentUpdateBody,
+  type VenueIncidentStatusPatch,
+} from "./camera-registry-schemas.js";
+
+export {
   venueSectionLevelSchema,
   venueSectionStatusSchema,
   venueTypeSchema,

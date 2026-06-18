@@ -14,14 +14,28 @@
 
 "use client";
 
+import Link from "next/link";
 import { useState, useEffect, type ElementType, type ReactNode } from "react";
 import {
   ShieldCheck, AlertTriangle, Building2, Users, Bell,
   MapPin, Camera, Settings, Plus, FileText,
   Activity, Clock, Radio, Siren, AlertCircle, Lock,
 } from "lucide-react";
-import { ROLE_DISPLAY_LABELS } from "rapid-cortex-shared/auth/rapid-cortex-roles";
-import type { UserRole } from "rapid-cortex-shared/types";
+import type { CampusNotificationBody } from "rapid-cortex-shared";
+import {
+  postCampusBroadcast,
+  postCampusNotification,
+} from "@/lib/campus/campus-dashboard-api";
+import { canCampusSupervisorOps } from "@/lib/vertical/supervisor-access";
+import {
+  formatTimeAgo,
+  mapIncidentStatus,
+  mapIncidentType,
+  useCampusDashboard,
+  type UiThreatLevel,
+} from "./use-campus-dashboard";
+import { CAMPUS_DASHBOARD_FONT_FAMILY } from "./campus-dashboard-font";
+import { CampusDashboardHeaderUtilities } from "./campus-dashboard-header-utilities";
 
 // ─── Design tokens (campus palette — distinct from 911 RC dark theme) ─────────
 const C = {
@@ -60,7 +74,7 @@ const C = {
 };
 
 // ─── Threat level configuration ───────────────────────────────────────────────
-type ThreatLevel = "secure" | "elevated" | "high" | "lockdown";
+type ThreatLevel = UiThreatLevel;
 
 const THREAT = {
   secure: {
@@ -98,7 +112,7 @@ const THREAT = {
 };
 
 // ─── Types ────────────────────────────────────────────────────────────────────
-interface Incident {
+interface DashboardIncident {
   id:        string;
   type:      string;
   typeColor: string;
@@ -106,8 +120,8 @@ interface Incident {
   building:  string;
   zone:      string;
   ago:       string;
-  status:    "DISPATCHED" | "EN ROUTE" | "ON SCENE" | "CLOSED";
-  priority:  "LOW" | "MEDIUM" | "HIGH" | "CRITICAL";
+  status:    string;
+  priority:  string;
 }
 
 interface Responder {
@@ -115,7 +129,7 @@ interface Responder {
   initials:  string;
   name:      string;
   zone:      string;
-  status:    "AVAILABLE" | "EN ROUTE" | "ON SCENE" | "OFF DUTY";
+  status:    string;
   role:      string;
 }
 
@@ -134,59 +148,35 @@ interface Zone {
   color:     string;
   incidents: number;
   responders:number;
+  status:    string;
 }
 
-// ─── Mock data ────────────────────────────────────────────────────────────────
-const MOCK_INCIDENTS: Incident[] = [
-  {
-    id: "INC-0441", type: "MEDICAL", typeColor: C.red,
-    location: "Room 204", building: "Reed Hall", zone: "CORE",
-    ago: "4m ago", status: "ON SCENE", priority: "HIGH",
-  },
-  {
-    id: "INC-0440", type: "SECURITY", typeColor: C.amber,
-    location: "Level 3", building: "North Parking Deck", zone: "NORTH",
-    ago: "11m ago", status: "EN ROUTE", priority: "MEDIUM",
-  },
-  {
-    id: "INC-0438", type: "FACILITIES", typeColor: C.blue,
-    location: "Stairwell B", building: "Science Library", zone: "EAST",
-    ago: "34m ago", status: "DISPATCHED", priority: "LOW",
-  },
-];
+const INCIDENT_TYPE_COLORS: Record<string, string> = {
+  MEDICAL: C.red,
+  SECURITY: C.amber,
+  "MENTAL HEALTH": C.purple,
+  "ACTIVE THREAT": C.red,
+  MAINTENANCE: C.blue,
+  OTHER: C.blue,
+};
 
-const MOCK_RESPONDERS: Responder[] = [
-  { id: "r1", initials: "MJ", name: "M. Jackson",  zone: "CORE",  status: "ON SCENE",  role: "Security Officer" },
-  { id: "r2", initials: "TW", name: "T. Williams", zone: "NORTH", status: "EN ROUTE",  role: "Patrol Supervisor" },
-  { id: "r3", initials: "AL", name: "A. Lee",      zone: "EAST",  status: "AVAILABLE", role: "Security Officer" },
-  { id: "r4", initials: "DS", name: "D. Smith",    zone: "WEST",  status: "AVAILABLE", role: "Security Officer" },
-  { id: "r5", initials: "KP", name: "K. Patel",    zone: "SOUTH", status: "AVAILABLE", role: "Health Services"  },
-  { id: "r6", initials: "RM", name: "R. Martin",   zone: "CORE",  status: "AVAILABLE", role: "Security Officer" },
-];
+function mapBuildingUiStatus(
+  status: "nominal" | "alert" | "closed",
+): Building["status"] {
+  if (status === "alert") return "incident";
+  if (status === "closed") return "closed";
+  return "clear";
+}
 
-const MOCK_BUILDINGS: Building[] = [
-  { id: "b1",  name: "Reed Hall",         abbr: "Reed",    zone: "CORE",  status: "incident",   occupancy: 340 },
-  { id: "b2",  name: "North Parking",     abbr: "N.Prk",   zone: "NORTH", status: "incident",   occupancy: null },
-  { id: "b3",  name: "Tate Center",       abbr: "Tate",    zone: "CORE",  status: "clear",      occupancy: 210 },
-  { id: "b4",  name: "Main Library",      abbr: "Lib",     zone: "CORE",  status: "clear",      occupancy: 480 },
-  { id: "b5",  name: "Science Library",   abbr: "SciLib",  zone: "EAST",  status: "monitoring", occupancy: 90  },
-  { id: "b6",  name: "MLC",               abbr: "MLC",     zone: "CORE",  status: "clear",      occupancy: 520 },
-  { id: "b7",  name: "Stegeman Coliseum", abbr: "Stege",   zone: "WEST",  status: "clear",      occupancy: 0   },
-  { id: "b8",  name: "Ramsey Center",     abbr: "Ramsey",  zone: "SOUTH", status: "clear",      occupancy: 150 },
-  { id: "b9",  name: "Sanford Stadium",   abbr: "Sanf",    zone: "WEST",  status: "clear",      occupancy: 0   },
-  { id: "b10", name: "Memorial Hall",     abbr: "Mem",     zone: "CORE",  status: "clear",      occupancy: 60  },
-  { id: "b11", name: "Park Hall",         abbr: "Park",    zone: "CORE",  status: "clear",      occupancy: 125 },
-  { id: "b12", name: "Fine Arts",         abbr: "FineArt", zone: "EAST",  status: "clear",      occupancy: 88  },
-];
+function mapStaffStatus(status: string): string {
+  return status.replace(/_/g, " ").toUpperCase();
+}
 
-const MOCK_ZONES: Zone[] = [
-  { id: "north",    name: "North",        color: C.green,  incidents: 1, responders: 2 },
-  { id: "core",     name: "Core",         color: C.amber,  incidents: 1, responders: 4 },
-  { id: "east",     name: "East",         color: C.blue,   incidents: 0, responders: 2 },
-  { id: "west",     name: "West",         color: C.green,  incidents: 0, responders: 2 },
-  { id: "south",    name: "South",        color: C.green,  incidents: 0, responders: 2 },
-  { id: "research", name: "Research Pk",  color: C.blue,   incidents: 0, responders: 1 },
-];
+function zoneAccent(status: string, incidents: number): string {
+  if (status === "elevated" || incidents >= 2) return C.amber;
+  if (status === "active" || incidents >= 1) return C.orange;
+  return C.green;
+}
 
 // ─── Utility ──────────────────────────────────────────────────────────────────
 function pad(n: number) { return n < 10 ? `0${n}` : `${n}`; }
@@ -214,9 +204,11 @@ const BUILDING_STATUS: Record<string, { color: string; label: string }> = {
 
 // ─── Sub-components ───────────────────────────────────────────────────────────
 
-function ThreatBanner({ level, onChangeLevel }: {
+function ThreatBanner({ level, canChangeLevel, onChangeLevel, busy }: {
   level: ThreatLevel;
+  canChangeLevel: boolean;
   onChangeLevel: (l: ThreatLevel) => void;
+  busy?: boolean;
 }) {
   const cfg    = THREAT[level];
   const Icon   = cfg.icon;
@@ -241,27 +233,31 @@ function ThreatBanner({ level, onChangeLevel }: {
           {cfg.sublabel}
         </span>
       </div>
-      <div style={{ display: "flex", gap: 4 }}>
-        {levels.map((l) => (
-          <button
-            key={l}
-            onClick={() => onChangeLevel(l)}
-            style={{
-              padding:      "3px 9px",
-              borderRadius: 4,
-              fontSize:     10,
-              fontWeight:   700,
-              letterSpacing: "0.04em",
-              cursor:       "pointer",
-              border:       `1px solid ${THREAT[l].border}`,
-              background:   l === level ? THREAT[l].dim : "transparent",
-              color:        l === level ? THREAT[l].color : C.textMuted,
-            }}
-          >
-            {THREAT[l].label}
-          </button>
-        ))}
-      </div>
+      {canChangeLevel ? (
+        <div style={{ display: "flex", gap: 4 }}>
+          {levels.map((l) => (
+            <button
+              key={l}
+              disabled={busy}
+              onClick={() => onChangeLevel(l)}
+              style={{
+                padding:      "3px 9px",
+                borderRadius: 4,
+                fontSize:     10,
+                fontWeight:   700,
+                letterSpacing: "0.04em",
+                cursor:       busy ? "wait" : "pointer",
+                border:       `1px solid ${THREAT[l].border}`,
+                background:   l === level ? THREAT[l].dim : "transparent",
+                color:        l === level ? THREAT[l].color : C.textMuted,
+                opacity:      busy ? 0.6 : 1,
+              }}
+            >
+              {THREAT[l].label}
+            </button>
+          ))}
+        </div>
+      ) : null}
     </div>
   );
 }
@@ -296,7 +292,7 @@ function MetricCard({ icon: Icon, label, value, color, dim, subtitle }: {
   );
 }
 
-function IncidentRow({ incident }: { incident: Incident }) {
+function IncidentRow({ incident, href }: { incident: DashboardIncident; href: string }) {
   const statusColors: Record<string, string> = {
     DISPATCHED: C.blue,
     "EN ROUTE": C.amber,
@@ -304,6 +300,7 @@ function IncidentRow({ incident }: { incident: Incident }) {
     CLOSED:      C.textMuted,
   };
   return (
+    <Link href={href} style={{ textDecoration: "none", color: "inherit" }}>
     <div style={{
       background:   C.surfaceAlt,
       border:       `1px solid ${C.border}`,
@@ -346,16 +343,17 @@ function IncidentRow({ incident }: { incident: Incident }) {
         <span style={{ color: C.textMuted, fontSize: 10 }}>{incident.ago}</span>
       </div>
     </div>
+    </Link>
   );
 }
 
-function CampusZoneGrid({ zones }: { zones: Zone[] }) {
+function CampusZoneGrid({ zones, linkBase }: { zones: Zone[]; linkBase: string }) {
   return (
     <div style={{ padding: "12px 14px" }}>
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 6 }}>
         {zones.map((z) => (
+          <Link key={z.id} href={`${linkBase}/zones/${encodeURIComponent(z.id)}`} style={{ textDecoration: "none" }}>
           <div
-            key={z.id}
             style={{
               background:   z.incidents > 0 ? C.amberDim : C.surfaceAlt,
               border:       `1px solid ${z.incidents > 0 ? "#4a3500" : C.border}`,
@@ -375,16 +373,18 @@ function CampusZoneGrid({ zones }: { zones: Zone[] }) {
               </span>
             </div>
           </div>
+          </Link>
         ))}
       </div>
     </div>
   );
 }
 
-function ResponderCard({ responder }: { responder: Responder }) {
-  const statusColor = RESPONDER_STATUS_COLOR[responder.status];
+function ResponderCard({ responder, href }: { responder: Responder; href: string }) {
+  const statusColor = RESPONDER_STATUS_COLOR[responder.status] ?? C.textMuted;
   const initials = responder.initials;
   return (
+    <Link href={href} style={{ textDecoration: "none", color: "inherit" }}>
     <div style={{
       display:      "flex",
       alignItems:   "center",
@@ -417,10 +417,11 @@ function ResponderCard({ responder }: { responder: Responder }) {
         {responder.status}
       </span>
     </div>
+    </Link>
   );
 }
 
-function BuildingStatusGrid({ buildings }: { buildings: Building[] }) {
+function BuildingStatusGrid({ buildings, linkBase }: { buildings: Building[]; linkBase: string }) {
   return (
     <div style={{
       display:             "grid",
@@ -430,8 +431,8 @@ function BuildingStatusGrid({ buildings }: { buildings: Building[] }) {
       {buildings.map((b) => {
         const s = BUILDING_STATUS[b.status];
         return (
+          <Link key={b.id} href={`${linkBase}/buildings/${encodeURIComponent(b.id)}`} style={{ textDecoration: "none" }}>
           <div
-            key={b.id}
             style={{
               background:   b.status === "incident" ? C.amberDim : b.status === "monitoring" ? C.blueDim : C.surfaceAlt,
               border:       `1px solid ${b.status === "incident" ? "#4a3500" : b.status === "monitoring" ? "#0c2d4a" : C.border}`,
@@ -451,20 +452,112 @@ function BuildingStatusGrid({ buildings }: { buildings: Building[] }) {
               {b.occupancy !== null && ` · ${b.occupancy}`}
             </div>
           </div>
+          </Link>
         );
       })}
     </div>
   );
 }
 
-function MassNotifyPanel({ threatLevel: _threatLevel }: { threatLevel: ThreatLevel }) {
-  const [selected, setSelected] = useState<string | null>(null);
-  const audiences = [
-    { id: "all_students", label: "All students",    icon: Users,     count: "38,400" },
-    { id: "all_staff",    label: "All staff",        icon: Activity,  count: "5,200" },
-    { id: "by_building",  label: "By building",      icon: Building2, count: "—" },
-    { id: "by_zone",      label: "By zone",          icon: MapPin,    count: "—" },
+function MassNotifyPanel({
+  agencyId,
+  canNotify,
+  buildings,
+  zones,
+}: {
+  agencyId: string;
+  canNotify: boolean;
+  buildings: Building[];
+  zones: Zone[];
+}) {
+  const [selected, setSelected] = useState<CampusNotificationBody["audience"] | null>(null);
+  const [targetId, setTargetId] = useState("");
+  const [message, setMessage] = useState("");
+  const [priority, setPriority] = useState<"standard" | "emergency">("standard");
+  const [notifyBusy, setNotifyBusy] = useState(false);
+  const [broadcastOpen, setBroadcastOpen] = useState(false);
+  const [broadcastMessage, setBroadcastMessage] = useState("");
+  const [broadcastBusy, setBroadcastBusy] = useState(false);
+  const [cooldownUntil, setCooldownUntil] = useState<number | null>(null);
+  const [feedback, setFeedback] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!cooldownUntil) return;
+    const id = setInterval(() => {
+      if (Date.now() >= cooldownUntil) setCooldownUntil(null);
+    }, 1000);
+    return () => clearInterval(id);
+  }, [cooldownUntil]);
+
+  const cooldownSeconds =
+    cooldownUntil != null ? Math.max(0, Math.ceil((cooldownUntil - Date.now()) / 1000)) : 0;
+
+  const audiences: Array<{
+    id: CampusNotificationBody["audience"];
+    label: string;
+    icon: ElementType;
+  }> = [
+    { id: "all_students", label: "All students", icon: Users },
+    { id: "all_staff", label: "All staff", icon: Activity },
+    { id: "by_building", label: "By building", icon: Building2 },
+    { id: "by_zone", label: "By zone", icon: MapPin },
   ];
+
+  async function sendNotification() {
+    if (!selected || !message.trim() || !canNotify) return;
+    setNotifyBusy(true);
+    setFeedback(null);
+    try {
+      await postCampusNotification(agencyId, {
+        audience: selected,
+        message: message.trim(),
+        priority,
+        buildingId: selected === "by_building" ? targetId : undefined,
+        zoneId: selected === "by_zone" ? targetId : undefined,
+      });
+      setFeedback("Notification queued");
+      setMessage("");
+      setTargetId("");
+      setSelected(null);
+    } catch (e) {
+      setFeedback(e instanceof Error ? e.message : "Send failed");
+    } finally {
+      setNotifyBusy(false);
+    }
+  }
+
+  async function sendBroadcast() {
+    if (!broadcastMessage.trim() || !canNotify) return;
+    setBroadcastBusy(true);
+    setFeedback(null);
+    try {
+      await postCampusBroadcast(agencyId, {
+        message: broadcastMessage.trim(),
+        channels: ["sms", "email", "push"],
+      });
+      setFeedback("Emergency broadcast sent");
+      setBroadcastOpen(false);
+      setBroadcastMessage("");
+    } catch (e) {
+      const err = e as Error & { cooldownSeconds?: number };
+      if (err.cooldownSeconds) {
+        setCooldownUntil(Date.now() + err.cooldownSeconds * 1000);
+      }
+      setFeedback(err.message ?? "Broadcast failed");
+    } finally {
+      setBroadcastBusy(false);
+    }
+  }
+
+  if (!canNotify) {
+    return (
+      <SidePanel label="MASS NOTIFICATION" icon={Bell}>
+        <p style={{ color: C.textSecondary, fontSize: 11, margin: 0 }}>
+          Supervisor access required to send notifications.
+        </p>
+      </SidePanel>
+    );
+  }
 
   return (
     <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 8, overflow: "hidden" }}>
@@ -477,60 +570,145 @@ function MassNotifyPanel({ threatLevel: _threatLevel }: { threatLevel: ThreatLev
           return (
             <button
               key={a.id}
-              onClick={() => setSelected(selected === a.id ? null : a.id)}
+              type="button"
+              onClick={() => {
+                setSelected(selected === a.id ? null : a.id);
+                setTargetId("");
+              }}
               style={{
-                display:     "flex",
-                alignItems:  "center",
-                gap:         8,
-                padding:     "7px 10px",
-                background:  selected === a.id ? C.blueDim : C.surfaceAlt,
-                border:      `1px solid ${selected === a.id ? C.blueMid : C.border}`,
+                display: "flex",
+                alignItems: "center",
+                gap: 8,
+                padding: "7px 10px",
+                background: selected === a.id ? C.blueDim : C.surfaceAlt,
+                border: `1px solid ${selected === a.id ? C.blueMid : C.border}`,
                 borderRadius: 6,
-                cursor:      "pointer",
-                textAlign:   "left",
+                cursor: "pointer",
+                textAlign: "left",
               }}
             >
               <Icon size={13} color={selected === a.id ? C.blue : C.textSecondary} />
-              <span style={{ color: selected === a.id ? C.blue : C.textPrimary, fontSize: 12, fontWeight: 600, flex: 1 }}>{a.label}</span>
-              <span style={{ color: C.textMuted, fontSize: 10 }}>{a.count}</span>
+              <span style={{ color: selected === a.id ? C.blue : C.textPrimary, fontSize: 12, fontWeight: 600, flex: 1 }}>
+                {a.label}
+              </span>
             </button>
           );
         })}
 
+        {selected === "by_building" ? (
+          <select
+            value={targetId}
+            onChange={(e) => setTargetId(e.target.value)}
+            style={{ background: C.surfaceAlt, color: C.textPrimary, border: `1px solid ${C.border}`, borderRadius: 6, padding: "6px 8px", fontSize: 11 }}
+          >
+            <option value="">Select building…</option>
+            {buildings.map((b) => (
+              <option key={b.id} value={b.id}>{b.name}</option>
+            ))}
+          </select>
+        ) : null}
+
+        {selected === "by_zone" ? (
+          <select
+            value={targetId}
+            onChange={(e) => setTargetId(e.target.value)}
+            style={{ background: C.surfaceAlt, color: C.textPrimary, border: `1px solid ${C.border}`, borderRadius: 6, padding: "6px 8px", fontSize: 11 }}
+          >
+            <option value="">Select zone…</option>
+            {zones.map((z) => (
+              <option key={z.id} value={z.id}>{z.name}</option>
+            ))}
+          </select>
+        ) : null}
+
+        <textarea
+          value={message}
+          onChange={(e) => setMessage(e.target.value)}
+          placeholder="Notification message…"
+          rows={3}
+          style={{ background: C.surfaceAlt, color: C.textPrimary, border: `1px solid ${C.border}`, borderRadius: 6, padding: 8, fontSize: 11, resize: "vertical" }}
+        />
+
+        <select
+          value={priority}
+          onChange={(e) => setPriority(e.target.value as "standard" | "emergency")}
+          style={{ background: C.surfaceAlt, color: C.textPrimary, border: `1px solid ${C.border}`, borderRadius: 6, padding: "6px 8px", fontSize: 11 }}
+        >
+          <option value="standard">Standard priority</option>
+          <option value="emergency">Emergency priority</option>
+        </select>
+
         <div style={{ borderTop: `1px solid ${C.border}`, marginTop: 4, paddingTop: 8, display: "flex", flexDirection: "column", gap: 6 }}>
           <button
-            disabled={!selected}
+            type="button"
+            disabled={!selected || !message.trim() || notifyBusy || (selected === "by_building" && !targetId) || (selected === "by_zone" && !targetId)}
+            onClick={() => void sendNotification()}
             style={{
-              padding:     "7px",
-              background:  selected ? C.blueMid : C.bgDeep,
-              border:      `1px solid ${selected ? C.blue : C.border}`,
+              padding: "7px",
+              background: selected && message.trim() ? C.blueMid : C.bgDeep,
+              border: `1px solid ${selected && message.trim() ? C.blue : C.border}`,
               borderRadius: 6,
-              color:       selected ? "#fff" : C.textMuted,
-              fontSize:    11,
-              fontWeight:  700,
-              cursor:      selected ? "pointer" : "not-allowed",
+              color: selected && message.trim() ? "#fff" : C.textMuted,
+              fontSize: 11,
+              fontWeight: 700,
+              cursor: notifyBusy ? "wait" : selected && message.trim() ? "pointer" : "not-allowed",
               letterSpacing: "0.04em",
             }}
           >
-            SEND NOTIFICATION
+            {notifyBusy ? "SENDING…" : "SEND NOTIFICATION"}
           </button>
           <button
+            type="button"
+            disabled={cooldownSeconds > 0}
+            onClick={() => setBroadcastOpen(true)}
             style={{
-              padding:     "7px",
-              background:  "#7f1d1d",
-              border:      "1px solid #991b1b",
+              padding: "7px",
+              background: cooldownSeconds > 0 ? C.bgDeep : "#7f1d1d",
+              border: `1px solid ${cooldownSeconds > 0 ? C.border : "#991b1b"}`,
               borderRadius: 6,
-              color:       "#fca5a5",
-              fontSize:    11,
-              fontWeight:  700,
-              cursor:      "pointer",
+              color: cooldownSeconds > 0 ? C.textMuted : "#fca5a5",
+              fontSize: 11,
+              fontWeight: 700,
+              cursor: cooldownSeconds > 0 ? "not-allowed" : "pointer",
               letterSpacing: "0.04em",
             }}
           >
-            ⚠ EMERGENCY BROADCAST
+            {cooldownSeconds > 0
+              ? `BROADCAST COOLDOWN ${Math.floor(cooldownSeconds / 60)}:${String(cooldownSeconds % 60).padStart(2, "0")}`
+              : "⚠ EMERGENCY BROADCAST"}
           </button>
+          {feedback ? <span style={{ color: C.silver, fontSize: 10 }}>{feedback}</span> : null}
         </div>
       </div>
+
+      {broadcastOpen ? (
+        <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.65)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 50 }}>
+          <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 8, padding: 16, width: 360, display: "flex", flexDirection: "column", gap: 10 }}>
+            <strong style={{ color: C.red, fontSize: 13 }}>Confirm emergency broadcast</strong>
+            <p style={{ color: C.textSecondary, fontSize: 11, margin: 0 }}>
+              This sends SMS, email, and push to the entire campus. Limited to 3 per hour.
+            </p>
+            <textarea
+              value={broadcastMessage}
+              onChange={(e) => setBroadcastMessage(e.target.value)}
+              placeholder="Broadcast message…"
+              rows={4}
+              style={{ background: C.surfaceAlt, color: C.textPrimary, border: `1px solid ${C.border}`, borderRadius: 6, padding: 8, fontSize: 11 }}
+            />
+            <div style={{ display: "flex", gap: 8, justifyContent: "flex-end" }}>
+              <button type="button" onClick={() => setBroadcastOpen(false)} style={{ padding: "6px 10px", fontSize: 11, cursor: "pointer" }}>Cancel</button>
+              <button
+                type="button"
+                disabled={!broadcastMessage.trim() || broadcastBusy}
+                onClick={() => void sendBroadcast()}
+                style={{ padding: "6px 10px", fontSize: 11, fontWeight: 700, background: "#7f1d1d", color: "#fca5a5", border: "1px solid #991b1b", borderRadius: 6, cursor: "pointer" }}
+              >
+                {broadcastBusy ? "Sending…" : "Send broadcast"}
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : null}
     </div>
   );
 }
@@ -595,31 +773,108 @@ function LiveClock() {
 }
 
 // ─── Main dashboard ───────────────────────────────────────────────────────────
-function roleLabel(role: string | undefined): string {
-  if (!role?.trim()) return "CAMPUS OPERATOR";
-  const key = role.trim().toUpperCase() as UserRole;
-  return (ROLE_DISPLAY_LABELS[key] ?? role.replace(/_/g, " ")).toUpperCase();
-}
 
 export function CampusSafetyDashboard({
+  agencyId,
   agencyName = "Campus",
   agencySlug = "campus",
+  linkBase,
   userEmail = "",
   userRole,
 }: {
+  agencyId: string;
   agencyName?: string;
   agencySlug?: string;
+  linkBase?: string;
   userEmail?: string;
   userRole?: string;
 }) {
-  const [threatLevel, setThreatLevel] = useState<ThreatLevel>("secure");
-  const [incidents]  = useState<Incident[]>(MOCK_INCIDENTS);
-  const [responders] = useState<Responder[]>(MOCK_RESPONDERS);
-  const [buildings]  = useState<Building[]>(MOCK_BUILDINGS);
-  const [zones]      = useState<Zone[]>(MOCK_ZONES);
+  const base = linkBase ?? `/${agencyId}`;
+  const canSupervisor = canCampusSupervisorOps(userRole);
+  const [threatBusy, setThreatBusy] = useState(false);
+  const [createOpen, setCreateOpen] = useState(false);
+  const {
+    loading,
+    error,
+    stats,
+    zones: zoneRows,
+    buildings: buildingRows,
+    onDuty,
+    incidents: rawIncidents,
+    threatLevel,
+    setThreatLevel,
+  } = useCampusDashboard(agencyId, agencySlug);
 
-  const activeIncidents  = incidents.filter((i) => i.status !== "CLOSED");
-  const availableRes     = responders.filter((r) => r.status === "AVAILABLE").length;
+  const incidents: DashboardIncident[] = rawIncidents.map((inc) => {
+    const type = mapIncidentType(inc.type);
+    return {
+      id: inc.id,
+      type,
+      typeColor: INCIDENT_TYPE_COLORS[type] ?? C.blue,
+      location: inc.roomCode || inc.description.slice(0, 40),
+      building: inc.buildingLabel,
+      zone: inc.zoneLabel || inc.zoneCode || "",
+      ago: formatTimeAgo(inc.updatedAt || inc.createdAt),
+      status: mapIncidentStatus(inc.status),
+      priority: inc.type === "active_threat" ? "CRITICAL" : "MEDIUM",
+    };
+  });
+
+  const responders: Responder[] = onDuty.map((r) => ({
+    id: r.userId,
+    initials: r.initials,
+    name: r.displayName,
+    zone: r.zone,
+    status: mapStaffStatus(r.status),
+    role: r.role,
+  }));
+
+  const buildings: Building[] = buildingRows.map((b) => ({
+    id: b.buildingId,
+    name: b.buildingName,
+    abbr: b.buildingName.slice(0, 6),
+    zone: b.zone,
+    status: mapBuildingUiStatus(b.status),
+    occupancy: b.occupancy,
+  }));
+
+  const zones: Zone[] = zoneRows.map((z) => ({
+    id: z.zoneId,
+    name: z.zoneName,
+    color: zoneAccent(z.status, z.incidentCount),
+    incidents: z.incidentCount,
+    responders: z.responderCount,
+    status: z.status,
+  }));
+
+  const activeIncidents = incidents.filter((i) => i.status !== "CLOSED");
+  const availableRes = responders.filter((r) => r.status === "AVAILABLE").length;
+
+  async function onThreatChange(level: ThreatLevel) {
+    setThreatBusy(true);
+    try {
+      await setThreatLevel(level);
+    } finally {
+      setThreatBusy(false);
+    }
+  }
+
+  async function createIncident() {
+    const res = await fetch("/api/campus/incidents", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        campusCode: agencySlug,
+        buildingCode: buildings[0]?.id ?? "MAIN",
+        type: "security",
+        source: "manual",
+        description: "Manual incident created from campus dashboard",
+        isAnonymous: true,
+      }),
+    });
+    if (!res.ok) throw new Error(`Create failed (${res.status})`);
+    setCreateOpen(false);
+  }
 
   return (
     <div style={{
@@ -627,7 +882,7 @@ export function CampusSafetyDashboard({
       minHeight:  "100vh",
       display:    "flex",
       flexDirection: "column",
-      fontFamily: "'Inter', 'Segoe UI', system-ui, sans-serif",
+      fontFamily: CAMPUS_DASHBOARD_FONT_FAMILY,
       color:      C.textPrimary,
     }}>
 
@@ -708,35 +963,17 @@ export function CampusSafetyDashboard({
         {/* Spacer */}
         <div style={{ flex: 1 }} />
 
-        {/* Clock */}
-        <div style={{ display: "flex", alignItems: "center", gap: 5, color: C.textSecondary, fontSize: 12 }}>
-          <Clock size={13} />
-          <LiveClock />
-        </div>
-
-        {/* Shift */}
-        <div style={{ color: C.textMuted, fontSize: 11 }}>
-          Shift <span style={{ color: C.textSecondary }}>00:42:17</span>
-        </div>
-
-        {/* User */}
-        <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-          <div style={{
-            width: 28, height: 28, borderRadius: "50%",
-            background: C.blueDim, border: `1px solid ${C.blueMid}`,
-            display: "flex", alignItems: "center", justifyContent: "center",
-            fontSize: 11, fontWeight: 700, color: C.blue,
-          }}>
-            {(userEmail || agencySlug).slice(0, 2).toUpperCase()}
+        {/* Clock + account */}
+        <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 5, color: C.textSecondary, fontSize: 12 }}>
+            <Clock size={13} />
+            <LiveClock />
           </div>
-          <div style={{ fontSize: 11 }}>
-            <div style={{ color: C.textPrimary, fontWeight: 600 }}>
-              {userEmail
-                ? userEmail.split("@")[0]!.replace(".", " ").replace(/\b\w/g, (c) => c.toUpperCase())
-                : agencySlug}
-            </div>
-            <div style={{ color: C.textMuted, fontSize: 10, letterSpacing: "0.04em" }}>{roleLabel(userRole)}</div>
-          </div>
+          <CampusDashboardHeaderUtilities
+            email={userEmail}
+            role={userRole}
+            agencyId={agencyId}
+          />
         </div>
       </header>
 
@@ -773,14 +1010,24 @@ export function CampusSafetyDashboard({
           minWidth: 0,
         }}>
           {/* Threat level banner */}
-          <ThreatBanner level={threatLevel} onChangeLevel={setThreatLevel} />
+          {error ? (
+            <div style={{ color: C.amber, fontSize: 12, padding: "8px 12px", background: C.amberDim, borderRadius: 6 }}>
+              {error}
+            </div>
+          ) : null}
+          <ThreatBanner
+            level={threatLevel}
+            canChangeLevel={canSupervisor}
+            onChangeLevel={(level) => void onThreatChange(level)}
+            busy={threatBusy}
+          />
 
           {/* Metric cards */}
           <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 8 }}>
-            <MetricCard icon={AlertCircle}  label="Active incidents"    value={activeIncidents.length} color={C.amber}  dim={C.amberDim}  subtitle="2 require response" />
-            <MetricCard icon={Users}        label="Responders on duty"  value={responders.length}      color={C.blue}   dim={C.blueDim}   subtitle={`${availableRes} available`} />
-            <MetricCard icon={Building2}    label="Buildings monitored" value={buildings.length}        color={C.green}  dim={C.greenDim}  subtitle="All sensors active" />
-            <MetricCard icon={Bell}         label="Alerts sent today"   value={3}                       color={C.purple} dim={C.purpleDim} subtitle="Last: 08:12 AM" />
+            <MetricCard icon={AlertCircle}  label="Active incidents"    value={loading ? "—" : (stats?.activeIncidents ?? activeIncidents.length)} color={C.amber}  dim={C.amberDim}  subtitle={`${activeIncidents.length} open now`} />
+            <MetricCard icon={Users}        label="Responders on duty"  value={loading ? "—" : (stats?.respondersOnDuty ?? responders.length)}      color={C.blue}   dim={C.blueDim}   subtitle={`${availableRes} available`} />
+            <MetricCard icon={Building2}    label="Buildings monitored" value={loading ? "—" : (stats?.buildingsMonitored ?? buildings.length)}        color={C.green}  dim={C.greenDim}  subtitle="Live building status" />
+            <MetricCard icon={Bell}         label="Alerts sent today"   value={loading ? "—" : (stats?.alertsSentToday ?? 0)}                       color={C.purple} dim={C.purpleDim} subtitle="Campus notifications" />
           </div>
 
           {/* Incidents + Zones */}
@@ -796,18 +1043,26 @@ export function CampusSafetyDashboard({
                   <span style={{ background: C.amberDim, color: C.amber, fontSize: 10, fontWeight: 700, padding: "2px 8px", borderRadius: 999, letterSpacing: "0.04em" }}>
                     {activeIncidents.length} OPEN
                   </span>
-                  <button style={{ display: "flex", alignItems: "center", gap: 4, background: C.blueDim, border: `1px solid ${C.blueMid}`, borderRadius: 5, padding: "3px 8px", cursor: "pointer", color: C.blue, fontSize: 10, fontWeight: 600 }}>
+                  <button
+                    type="button"
+                    onClick={() => setCreateOpen(true)}
+                    style={{ display: "flex", alignItems: "center", gap: 4, background: C.blueDim, border: `1px solid ${C.blueMid}`, borderRadius: 5, padding: "3px 8px", cursor: "pointer", color: C.blue, fontSize: 10, fontWeight: 600 }}
+                  >
                     <Plus size={11} /> New
                   </button>
                 </div>
               </div>
               <div style={{ padding: "10px 14px", display: "flex", flexDirection: "column", gap: 6 }}>
-                {incidents.map((inc) => (
-                  <IncidentRow key={inc.id} incident={inc} />
-                ))}
-                <button style={{ background: "none", border: "none", cursor: "pointer", color: C.textMuted, fontSize: 11, textAlign: "center", padding: "4px 0" }}>
+                {incidents.length === 0 ? (
+                  <p style={{ color: C.textMuted, fontSize: 11, margin: 0 }}>No open incidents.</p>
+                ) : (
+                  incidents.map((inc) => (
+                    <IncidentRow key={inc.id} incident={inc} href={`${base}/incidents/${encodeURIComponent(inc.id)}`} />
+                  ))
+                )}
+                <Link href={`${base}/incidents`} style={{ color: C.textMuted, fontSize: 11, textAlign: "center", padding: "4px 0", textDecoration: "none" }}>
                   View all incidents →
-                </button>
+                </Link>
               </div>
             </div>
 
@@ -818,9 +1073,9 @@ export function CampusSafetyDashboard({
                   <MapPin size={13} color={C.silver} />
                   <span style={{ fontSize: 12, fontWeight: 700, color: C.silver, letterSpacing: "0.05em" }}>CAMPUS ZONES</span>
                 </div>
-                <span style={{ fontSize: 10, color: C.textMuted }}>6 zones active</span>
+                <span style={{ fontSize: 10, color: C.textMuted }}>{zones.length} zones active</span>
               </div>
-              <CampusZoneGrid zones={zones} />
+              <CampusZoneGrid zones={zones} linkBase={base} />
             </div>
           </div>
 
@@ -841,7 +1096,7 @@ export function CampusSafetyDashboard({
               </div>
             </div>
             <div style={{ padding: "10px 14px" }}>
-              <BuildingStatusGrid buildings={buildings} />
+              <BuildingStatusGrid buildings={buildings} linkBase={base} />
             </div>
           </div>
         </main>
@@ -859,17 +1114,19 @@ export function CampusSafetyDashboard({
           flexShrink:   0,
         }}>
           {/* Mass notification */}
-          <MassNotifyPanel threatLevel={threatLevel} />
+          <MassNotifyPanel agencyId={agencyId} canNotify={canSupervisor} buildings={buildings} zones={zones} />
 
           {/* Responders */}
           <SidePanel label="ON DUTY" icon={Users}>
             <div style={{ display: "flex", flexDirection: "column" }}>
               {responders.slice(0, 5).map((r) => (
-                <ResponderCard key={r.id} responder={r} />
+                <ResponderCard key={r.id} responder={r} href={`${base}/staff/${encodeURIComponent(r.id)}`} />
               ))}
-              <div style={{ paddingTop: 8, textAlign: "center" }}>
-                <span style={{ color: C.textMuted, fontSize: 10 }}>+{responders.length - 5} more on duty</span>
-              </div>
+              {responders.length > 5 ? (
+                <div style={{ paddingTop: 8, textAlign: "center" }}>
+                  <span style={{ color: C.textMuted, fontSize: 10 }}>+{responders.length - 5} more on duty</span>
+                </div>
+              ) : null}
             </div>
           </SidePanel>
 
@@ -877,37 +1134,81 @@ export function CampusSafetyDashboard({
           <SidePanel label="QUICK ACTIONS" icon={Activity}>
             <div style={{ display: "flex", flexDirection: "column", gap: 5 }}>
               {[
-                { icon: Plus,       label: "New incident" },
-                { icon: Camera,     label: "View cameras" },
-                { icon: MapPin,     label: "AED locator" },
-                { icon: Radio,      label: "All-call radio" },
-                { icon: FileText,   label: "Shift report" },
-              ].map(({ icon: Icon, label }) => (
-                <button
-                  key={label}
-                  style={{
-                    display:     "flex",
-                    alignItems:  "center",
-                    gap:         8,
-                    padding:     "7px 10px",
-                    background:  C.surfaceAlt,
-                    border:      `1px solid ${C.border}`,
-                    borderRadius: 6,
-                    cursor:      "pointer",
-                    color:       C.textPrimary,
-                    fontSize:    12,
-                    fontWeight:  500,
-                    textAlign:   "left",
-                  }}
-                >
-                  <Icon size={13} color={C.textSecondary} />
-                  {label}
-                </button>
+                { icon: Plus, label: "New incident", action: () => setCreateOpen(true) },
+                { icon: Camera, label: "View cameras", href: `${base}/cameras` },
+                { icon: MapPin, label: "AED locator", href: `${base}/aed` },
+                { icon: Radio, label: "All-call radio", href: `${base}/radio` },
+                { icon: FileText, label: "Shift report", href: `${base}/reports` },
+              ].map(({ icon: Icon, label, href, action }) => (
+                href ? (
+                  <Link
+                    key={label}
+                    href={href}
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 8,
+                      padding: "7px 10px",
+                      background: C.surfaceAlt,
+                      border: `1px solid ${C.border}`,
+                      borderRadius: 6,
+                      color: C.textPrimary,
+                      fontSize: 12,
+                      fontWeight: 500,
+                      textDecoration: "none",
+                    }}
+                  >
+                    <Icon size={13} color={C.textSecondary} />
+                    {label}
+                  </Link>
+                ) : (
+                  <button
+                    key={label}
+                    type="button"
+                    onClick={action}
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 8,
+                      padding: "7px 10px",
+                      background: C.surfaceAlt,
+                      border: `1px solid ${C.border}`,
+                      borderRadius: 6,
+                      cursor: "pointer",
+                      color: C.textPrimary,
+                      fontSize: 12,
+                      fontWeight: 500,
+                      textAlign: "left",
+                    }}
+                  >
+                    <Icon size={13} color={C.textSecondary} />
+                    {label}
+                  </button>
+                )
               ))}
             </div>
           </SidePanel>
         </aside>
       </div>
+
+      {createOpen ? (
+        <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.65)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 50 }}>
+          <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 8, padding: 16, width: 360 }}>
+            <strong style={{ color: C.textPrimary, fontSize: 13 }}>Create incident</strong>
+            <p style={{ color: C.textSecondary, fontSize: 11 }}>Creates a manual security incident for the default building.</p>
+            <div style={{ display: "flex", gap: 8, justifyContent: "flex-end", marginTop: 12 }}>
+              <button type="button" onClick={() => setCreateOpen(false)} style={{ fontSize: 11 }}>Cancel</button>
+              <button
+                type="button"
+                onClick={() => void createIncident().catch(() => setCreateOpen(false))}
+                style={{ fontSize: 11, fontWeight: 700, background: C.blueMid, color: "#fff", border: "none", borderRadius: 6, padding: "6px 10px", cursor: "pointer" }}
+              >
+                Create
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : null}
     </div>
   );
 }

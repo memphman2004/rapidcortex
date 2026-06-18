@@ -1,6 +1,7 @@
 import {
   isCadWritebackUiEnabled,
   isQaScoringEnabled,
+  isVerticalOnboardingEnabled,
 } from "@/lib/runtime-flags";
 
 /** Runtime feature gates for `NavItem.feature` keys in role-nav.ts. */
@@ -10,6 +11,8 @@ export function isNavFeatureEnabled(feature: string): boolean {
       return isCadWritebackUiEnabled();
     case "qaScoringEnabled":
       return isQaScoringEnabled();
+    case "verticalOnboarding":
+      return isVerticalOnboardingEnabled();
     default:
       return true;
   }

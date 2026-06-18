@@ -54,6 +54,20 @@ Parameters:
   SmsRoutingTable:
     Type: String
     Default: ""
+  VenueCameraRegistryTable:
+    Type: String
+    Default: ""
+    Description: Venue fixed-camera registry for QR intake auto-select.
+  CampusCameraRegistryTable:
+    Type: String
+    Default: ""
+    Description: Campus fixed-camera registry for QR intake auto-select.
+  WebSocketConnectionsTable:
+    Type: String
+    Default: ""
+  WebSocketApiId:
+    Type: String
+    Default: ""
 
 Conditions:
   HasQRLocationsTable: !Not [!Equals [!Ref QRLocationsTable, ""]]
@@ -63,6 +77,12 @@ Conditions:
   HasCampusIncidentsTable: !Not [!Equals [!Ref CampusIncidentsTable, ""]]
   HasCampusConfigTable: !Not [!Equals [!Ref CampusConfigTable, ""]]
   HasSmsRoutingTable: !Not [!Equals [!Ref SmsRoutingTable, ""]]
+  HasVenueCameraRegistryTable: !Not [!Equals [!Ref VenueCameraRegistryTable, ""]]
+  HasCampusCameraRegistryTable: !Not [!Equals [!Ref CampusCameraRegistryTable, ""]]
+  HasWebSocketBroadcast:
+    Fn::And:
+      - !Not [!Equals [!Ref WebSocketConnectionsTable, ""]]
+      - !Not [!Equals [!Ref WebSocketApiId, ""]]
 
 Globals:
   Function:
@@ -90,6 +110,22 @@ Globals:
         INVITES_TABLE: !Ref InvitesTable
         APP_BASE_URL: !Sub "https://app.rapidcortex.us"
         SMS_ROUTING_TABLE: !Ref SmsRoutingTable
+        VENUE_CAMERA_REGISTRY_TABLE: !If
+          - HasVenueCameraRegistryTable
+          - !Ref VenueCameraRegistryTable
+          - ""
+        CAMPUS_CAMERA_REGISTRY_TABLE: !If
+          - HasCampusCameraRegistryTable
+          - !Ref CampusCameraRegistryTable
+          - ""
+        WEBSOCKET_CONNECTIONS_TABLE: !If
+          - HasWebSocketBroadcast
+          - !Ref WebSocketConnectionsTable
+          - ""
+        WEBSOCKET_API_ENDPOINT: !If
+          - HasWebSocketBroadcast
+          - !Sub https://${WebSocketApiId}.execute-api.${AWS::Region}.amazonaws.com/${DeploymentStage}
+          - ""
 
 Resources:
   QRNFCCodesTable:
@@ -245,8 +281,46 @@ Resources:
                 - HasCampusConfigTable
                 - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${CampusConfigTable}/index/*
                 - !Ref AWS::NoValue
+              - !If
+                - HasVenueCameraRegistryTable
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${VenueCameraRegistryTable}
+                - !Ref AWS::NoValue
+              - !If
+                - HasVenueCameraRegistryTable
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${VenueCameraRegistryTable}/index/*
+                - !Ref AWS::NoValue
+              - !If
+                - HasCampusCameraRegistryTable
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${CampusCameraRegistryTable}
+                - !Ref AWS::NoValue
+              - !If
+                - HasCampusCameraRegistryTable
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${CampusCameraRegistryTable}/index/*
+                - !Ref AWS::NoValue
+              - !If
+                - HasWebSocketBroadcast
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${WebSocketConnectionsTable}
+                - !Ref AWS::NoValue
+              - !If
+                - HasWebSocketBroadcast
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${WebSocketConnectionsTable}/index/*
+                - !Ref AWS::NoValue
               - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${AuditTable}
               - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${AuditTable}/index/*
+
+  AppManagedPolicyQrWebSocketBroadcast:
+    Type: AWS::IAM::ManagedPolicy
+    Condition: HasWebSocketBroadcast
+    Properties:
+      ManagedPolicyName: !Sub "${ManagedPolicyNamePrefix}-sam1-qr-ws-broadcast-${DeploymentStage}"
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Sid: WebSocketPostToConnection
+            Effect: Allow
+            Action:
+              - execute-api:ManageConnections
+            Resource: !Sub arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${WebSocketApiId}/${DeploymentStage}/POST/@connections/*
 
   AppManagedPolicyQrLocationS3:
     Type: AWS::IAM::ManagedPolicy
@@ -290,6 +364,10 @@ Resources:
       Policies:
         - !Ref AppManagedPolicyQrLocationDynamo
         - !Ref AppManagedPolicyQrLocationS3
+        - !If
+          - HasWebSocketBroadcast
+          - !Ref AppManagedPolicyQrWebSocketBroadcast
+          - !Ref AWS::NoValue
 
   LocationMediaUploadFunction:
     Type: AWS::Serverless::Function

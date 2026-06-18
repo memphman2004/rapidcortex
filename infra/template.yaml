@@ -990,6 +990,22 @@ Resources:
             - HasDataLayerNestedStack
             - !GetAtt DataLayerStack.Outputs.SmsRoutingTable
             - !Sub "${DynamoTableNamePrefix}-sms-routing-${DeploymentStage}"
+        VenueCameraRegistryTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.VenueCameraRegistryTable
+            - !Sub "${DynamoTableNamePrefix}-venue-camera-registry-${DeploymentStage}"
+        CampusCameraRegistryTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.CampusCameraRegistryTable
+            - !Sub "${DynamoTableNamePrefix}-campus-camera-registry-${DeploymentStage}"
+        WebSocketConnectionsTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.WebSocketConnectionsTable
+            - !Sub "${DynamoTableNamePrefix}-websocket-connections-${DeploymentStage}"
+        WebSocketApiId: !GetAtt AppSamRealtime2Stack.Outputs.WebSocketApiId
 
   AppSam2Stack:
     Type: AWS::CloudFormation::Stack
@@ -2209,6 +2225,26 @@ Resources:
             - HasDataLayerNestedStack
             - !GetAtt DataLayerStack.Outputs.CampusConfigTable
             - !Sub "rapid-cortex-campus-config-${DeploymentStage}"
+        CampusNotificationLogTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.CampusNotificationLogTable
+            - !Sub "rapid-cortex-campus-notification-log-${DeploymentStage}"
+        VenueNotificationLogTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.VenueNotificationLogTable
+            - !Sub "rapid-cortex-venue-notification-log-${DeploymentStage}"
+        VenueCameraRegistryTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.VenueCameraRegistryTable
+            - !Sub "rapid-cortex-venue-camera-registry-${DeploymentStage}"
+        CampusCameraRegistryTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.CampusCameraRegistryTable
+            - !Sub "rapid-cortex-campus-camera-registry-${DeploymentStage}"
         QRLocationsTable:
           Fn::If:
             - HasDataLayerNestedStack
@@ -2468,6 +2504,12 @@ Resources:
             - !GetAtt DataLayerStack.Outputs.WebhooksTable
             - !Sub "${DynamoTableNamePrefix}-webhooks-${DeploymentStage}"
         WwwCnameTarget: !Ref WwwCnameTarget
+        WebSocketConnectionsTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.WebSocketConnectionsTable
+            - !Sub "${DynamoTableNamePrefix}-websocket-connections-${DeploymentStage}"
+        WebSocketApiId: !GetAtt AppSamRealtime2Stack.Outputs.WebSocketApiId
         ImportedCognitoUserPoolId: !GetAtt AppSamStackV2.Outputs.UserPoolId
         ImportedCognitoWebClientId: !GetAtt AppSamStackV2.Outputs.UserPoolClientId
         ImportedCognitoNativeClientId: !GetAtt AppSamStackV2.Outputs.NativeUserPoolClientId

@@ -370,6 +370,26 @@
       "Default": "rapid-cortex-venue-config-dev",
       "Description": "Pre-existing table: VenueConfigTable (managed outside CloudFormation for dev)"
     },
+    "ExistingCampusNotificationLogTableName": {
+      "Type": "String",
+      "Default": "rapid-cortex-campus-notification-log-dev",
+      "Description": "Campus mass-notification audit log table"
+    },
+    "ExistingVenueNotificationLogTableName": {
+      "Type": "String",
+      "Default": "rapid-cortex-venue-notification-log-dev",
+      "Description": "Venue notification audit log table"
+    },
+    "ExistingVenueCameraRegistryTableName": {
+      "Type": "String",
+      "Default": "rapid-cortex-venue-camera-registry-dev",
+      "Description": "Pre-existing table: VenueCameraRegistryTable (managed outside CloudFormation for dev)"
+    },
+    "ExistingCampusCameraRegistryTableName": {
+      "Type": "String",
+      "Default": "rapid-cortex-campus-camera-registry-dev",
+      "Description": "Pre-existing table: CampusCameraRegistryTable (managed outside CloudFormation for dev)"
+    },
     "ExistingVenueAssetsTableName": {
       "Type": "String",
       "Default": "rapid-cortex-venue-assets-dev",
@@ -5566,6 +5586,30 @@
       "Description": "Physical table name for CampusConfigTable",
       "Value": {
         "Ref": "ExistingCampusConfigTableName"
+      }
+    },
+    "CampusNotificationLogTable": {
+      "Description": "Physical table name for CampusNotificationLogTable",
+      "Value": {
+        "Ref": "ExistingCampusNotificationLogTableName"
+      }
+    },
+    "VenueNotificationLogTable": {
+      "Description": "Physical table name for VenueNotificationLogTable",
+      "Value": {
+        "Ref": "ExistingVenueNotificationLogTableName"
+      }
+    },
+    "VenueCameraRegistryTable": {
+      "Description": "Physical table name for VenueCameraRegistryTable",
+      "Value": {
+        "Ref": "ExistingVenueCameraRegistryTableName"
+      }
+    },
+    "CampusCameraRegistryTable": {
+      "Description": "Physical table name for CampusCameraRegistryTable",
+      "Value": {
+        "Ref": "ExistingCampusCameraRegistryTableName"
       }
     },
     "PlatformNoticesTable": {

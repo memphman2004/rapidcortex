@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { demoJurisdictionSlug } from "@/lib/deployment-environment";
-import { marketingLoginPath } from "@/lib/marketing-links";
+import { marketingLoginPath, marketingSignupPath } from "@/lib/marketing-links";
 
 function statusMessage(status: string | null): { tone: "ok" | "err" | "neutral"; title: string; body: string } {
   if (status === "success" || status === "connected") {
@@ -33,6 +33,7 @@ export function RingLinkClient() {
   const msg = statusMessage(status);
   const jurisdiction = demoJurisdictionSlug();
   const loginHref = marketingLoginPath();
+  const signupHref = marketingSignupPath();
   const mediaHref = `https://app.rapidcortex.us/${jurisdiction}/media`;
 
   return (
@@ -47,6 +48,12 @@ export function RingLinkClient() {
           className="inline-flex min-h-11 items-center justify-center rounded-lg bg-gradient-to-r from-sky-500 to-cyan-400 px-5 text-sm font-semibold text-slate-950"
         >
           Sign in to Rapid Cortex
+        </Link>
+        <Link
+          href={signupHref}
+          className="inline-flex min-h-11 items-center justify-center rounded-lg border border-sky-500/60 px-5 text-sm font-semibold text-sky-300 hover:border-sky-400 hover:text-sky-200"
+        >
+          Sign up
         </Link>
         <Link
           href={mediaHref}
@@ -64,8 +71,14 @@ export function RingLinkClient() {
         </p>
         <div className="mt-5 flex flex-col gap-3 sm:flex-row sm:items-center">
           <Link
-            href="https://www.rapidcortex.us/contact"
+            href={signupHref}
             className="inline-flex min-h-11 items-center justify-center rounded-lg bg-gradient-to-r from-sky-500 to-cyan-400 px-5 text-sm font-semibold text-slate-950"
+          >
+            Sign up for Rapid Cortex
+          </Link>
+          <Link
+            href="https://www.rapidcortex.us/contact"
+            className="inline-flex min-h-11 items-center justify-center rounded-lg border border-slate-600 px-5 text-sm font-semibold text-slate-100 hover:border-slate-500"
           >
             Request Access
           </Link>

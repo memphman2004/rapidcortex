@@ -1,5 +1,11 @@
 import { JurisdictionWorkspacePlaceholder } from "@/components/dispatch/jurisdiction-workspace-placeholder";
+import { blockPsapRoutesForVerticalAgency } from "@/lib/venue/venue-psap-route-guard";
 
-export default function IntakePage() {
+type Props = { params: Promise<{ jurisdiction: string }> };
+
+export default async function IntakePage({ params }: Props) {
+  const { jurisdiction } = await params;
+  await blockPsapRoutesForVerticalAgency(jurisdiction);
+
   return <JurisdictionWorkspacePlaceholder title="Intake" />;
 }

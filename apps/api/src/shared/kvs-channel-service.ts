@@ -58,6 +58,31 @@ export class KvsChannelService {
     return channelName;
   }
 
+  /** Create a fixed registry KVS channel if it does not exist yet. */
+  async ensureRegistryChannel(channelName: string, agencyId: string): Promise<string> {
+    const name = channelName.trim();
+    try {
+      const described = await kvs.send(new DescribeSignalingChannelCommand({ ChannelName: name }));
+      if (described.ChannelInfo?.ChannelARN) return name;
+    } catch {
+      /* create below */
+    }
+
+    await kvs.send(
+      new CreateSignalingChannelCommand({
+        ChannelName: name,
+        ChannelType: "SINGLE_MASTER",
+        SingleMasterConfiguration: { MessageTtlSeconds: 60 },
+        Tags: [
+          { Key: "agencyId", Value: agencyId.slice(0, 128) },
+          { Key: "product", Value: "venue-registry" },
+          { Key: "managedBy", Value: "rapid-cortex" },
+        ],
+      }),
+    );
+    return name;
+  }
+
   async issueViewerToken(channelName: string): Promise<KvsViewerToken> {
     const described = await kvs.send(
       new DescribeSignalingChannelCommand({ ChannelName: channelName }),

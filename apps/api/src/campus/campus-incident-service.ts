@@ -7,8 +7,11 @@ import {
   UpdateCommand,
 } from "@aws-sdk/lib-dynamodb";
 import type { z } from "zod";
+import type { VenueIncidentCameraSummary } from "rapid-cortex-shared";
 import { makeId } from "../lib/ids.js";
 import { AuditRepository } from "../repositories/auditRepository.js";
+import { getCamerasForBuildingFloor } from "../handlers/campus/cameras/campus-camera-registry-service.js";
+import { broadcastVenueIncidentCreated } from "../venue/venue-incident-realtime.js";
 import type {
   CampusIncident,
   CampusIncidentNote,
@@ -100,6 +103,52 @@ export async function createCampusIncident(
   });
 
   return item;
+}
+
+export type CreateCampusIntakeIncidentResult = {
+  incident: CampusIncident;
+  cameras: VenueIncidentCameraSummary[];
+};
+
+async function finalizeCampusIntakeIncident(
+  agencyId: string,
+  incident: CampusIncident,
+): Promise<CreateCampusIntakeIncidentResult> {
+  let cameras: VenueIncidentCameraSummary[] = [];
+  try {
+    cameras = await getCamerasForBuildingFloor(
+      agencyId,
+      incident.buildingCode,
+      incident.floor != null ? String(incident.floor) : undefined,
+      2,
+    );
+  } catch (err) {
+    console.warn("[finalizeCampusIntakeIncident] camera lookup failed", err);
+  }
+
+  await broadcastVenueIncidentCreated({
+    agencyId,
+    incident: {
+      incidentId: incident.id,
+      zoneCode: incident.buildingCode,
+      zoneLabel: incident.zoneLabel,
+      type: incident.type,
+      source: incident.source,
+      status: incident.status,
+    },
+    cameras,
+  });
+
+  return { incident, cameras };
+}
+
+export async function createCampusQrIncident(
+  input: z.infer<typeof createIncidentSchema>,
+  agencyId: string,
+  actorId?: string,
+): Promise<CreateCampusIntakeIncidentResult> {
+  const incident = await createCampusIncident(input, agencyId, actorId);
+  return finalizeCampusIntakeIncident(agencyId, incident);
 }
 
 export async function getCampusIncident(
@@ -314,7 +363,7 @@ export async function createCampusSmsIncident(params: {
   phoneHash: string;
   reporterLast4: string;
 }): Promise<CampusIncident> {
-  return createCampusIncident(
+  const incident = await createCampusIncident(
     {
       campusCode: params.campusCode,
       buildingCode: params.buildingHint || "UNKNOWN",
@@ -326,14 +375,14 @@ export async function createCampusSmsIncident(params: {
     },
     params.campusCode,
     "sms-inbound",
-  ).then(async (incident) => {
+  ).then(async (base) => {
     const now = new Date().toISOString();
     await ddb.send(
       new UpdateCommand({
         TableName: campusIncidentsTable(),
         Key: {
           pk: CAMPUS_KEYS.incidentPk(params.campusCode),
-          sk: CAMPUS_KEYS.incidentSk(incident.id),
+          sk: CAMPUS_KEYS.incidentSk(base.id),
         },
         UpdateExpression:
           "SET phoneHash = :ph, reporterLast4 = :rl4, locationLinkSent = :lls, locationData = :ld, updatedAt = :now",
@@ -347,13 +396,15 @@ export async function createCampusSmsIncident(params: {
       }),
     );
     return {
-      ...incident,
+      ...base,
       phoneHash: params.phoneHash,
       reporterLast4: params.reporterLast4,
       locationLinkSent: false,
       locationData: [],
     };
   });
+  await finalizeCampusIntakeIncident(params.campusCode, incident);
+  return incident;
 }
 
 export async function markCampusLocationLinkSent(

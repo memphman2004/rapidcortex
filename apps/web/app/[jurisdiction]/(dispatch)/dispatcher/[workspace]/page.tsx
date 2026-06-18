@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
 import { FeatureRoutePlaceholder } from "@/components/rapid-cortex/feature-route-placeholder";
+import { blockPsapRoutesForVerticalAgency } from "@/lib/venue/venue-psap-route-guard";
 
 const WORKSPACES: Record<string, { title: string; featureId: string; summary: string }> = {
   intake: {
@@ -34,10 +35,11 @@ const WORKSPACES: Record<string, { title: string; featureId: string; summary: st
   },
 };
 
-type Ctx = { params: Promise<{ workspace: string }> };
+type Ctx = { params: Promise<{ workspace: string; jurisdiction: string }> };
 
 export default async function DispatcherWorkspacePage({ params }: Ctx) {
-  const { workspace } = await params;
+  const { workspace, jurisdiction } = await params;
+  await blockPsapRoutesForVerticalAgency(jurisdiction);
   const config = WORKSPACES[workspace];
   if (!config) {
     notFound();

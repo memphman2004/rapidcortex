@@ -1,7 +1,17 @@
 import { Suspense } from "react";
+import { redirect } from "next/navigation";
 import { DashboardWorkspace } from "@/components/dispatch/dashboard-workspace";
+import { resolveAgencyVerticalForJurisdiction } from "@/lib/venue/venue-psap-route-guard";
 
-export default function DashboardPage() {
+type Props = { params: Promise<{ jurisdiction: string }> };
+
+export default async function DashboardPage({ params }: Props) {
+  const { jurisdiction } = await params;
+  const vertical = await resolveAgencyVerticalForJurisdiction(jurisdiction);
+  if (vertical === "venue" || vertical === "campus") {
+    redirect(`/${encodeURIComponent(jurisdiction)}`);
+  }
+
   return (
     <Suspense
       fallback={

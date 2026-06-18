@@ -33,6 +33,7 @@ export default async function CampusAdminPage() {
       agencyName={agencyName}
       adminName={dashboardDisplayName(user)}
       adminEmail={user.email}
+      adminRole={user.role}
     />
   );
 }

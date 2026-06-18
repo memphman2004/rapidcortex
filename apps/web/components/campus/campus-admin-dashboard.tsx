@@ -6,6 +6,8 @@
 
 import { useMemo, useState, type CSSProperties } from "react";
 import Link from "next/link";
+import { CampusDashboardHeaderUtilities } from "@/components/campus/campus-dashboard-header-utilities";
+import { CAMPUS_DASHBOARD_FONT_FAMILY } from "@/components/campus/campus-dashboard-font";
 
 interface StatCard {
   label: string;
@@ -286,6 +288,7 @@ export interface CampusAdminDashboardProps {
   agencyName?: string;
   adminName?: string;
   adminEmail?: string;
+  adminRole?: string;
 }
 
 export function CampusAdminDashboard({
@@ -294,6 +297,7 @@ export function CampusAdminDashboard({
   agencyName = "Campus",
   adminName = "Campus Admin",
   adminEmail,
+  adminRole = "CAMPUS_ADMIN",
 }: CampusAdminDashboardProps) {
   const base = `/app/campus/${campusCode}`;
   const setupSteps = useMemo(() => buildSetupSteps(base), [base]);
@@ -308,10 +312,11 @@ export function CampusAdminDashboard({
           <span style={styles.topBarAgency}>{agencyName.toUpperCase()}</span>
         </div>
         <div style={styles.topBarRight}>
-          {adminEmail && <span style={styles.adminEmail}>{adminEmail}</span>}
-          <Link href="/api/auth/signout" style={styles.signOutBtn}>
-            Sign out
-          </Link>
+          <CampusDashboardHeaderUtilities
+            email={adminEmail}
+            role={adminRole}
+            agencyId={agencyId}
+          />
         </div>
       </div>
 
@@ -465,7 +470,7 @@ const styles = {
     minHeight: "100vh",
     background: "#080e1a",
     color: "#e2e8f0",
-    fontFamily: "Inter, system-ui, sans-serif",
+    fontFamily: CAMPUS_DASHBOARD_FONT_FAMILY,
   } as CSSProperties,
   topBar: {
     display: "flex",
@@ -507,15 +512,6 @@ const styles = {
     display: "flex",
     alignItems: "center",
     gap: 16,
-  } as CSSProperties,
-  adminEmail: {
-    fontSize: 12,
-    color: "#475569",
-  } as CSSProperties,
-  signOutBtn: {
-    color: "#475569",
-    fontSize: 12,
-    textDecoration: "none",
   } as CSSProperties,
   body: {
     maxWidth: 1200,

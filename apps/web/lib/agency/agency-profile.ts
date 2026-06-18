@@ -23,15 +23,25 @@ export async function fetchAgencyProfile(
   try {
     const res = await fetch(`${base}/api/agencies/${encodeURIComponent(agencyId)}/profile`, {
       headers: { authorization: `Bearer ${token}` },
-      next: { revalidate: 300 },
+      cache: "no-store",
     });
+    if (process.env.NODE_ENV === "development") {
+      console.log("[fetchAgencyProfile]", agencyId, "status", res.status);
+    }
     if (!res.ok) return null;
     const json = (await res.json()) as AgencyProfileResponse | { data?: AgencyProfileResponse };
-    if (json && typeof json === "object" && "agencyType" in json) {
-      return json as AgencyProfileResponse;
+    const profile =
+      json && typeof json === "object" && "agencyType" in json
+        ? (json as AgencyProfileResponse)
+        : ((json as { data?: AgencyProfileResponse }).data ?? null);
+    if (process.env.NODE_ENV === "development") {
+      console.log("[fetchAgencyProfile]", agencyId, "profile", profile);
     }
-    return (json as { data?: AgencyProfileResponse }).data ?? null;
-  } catch {
+    return profile;
+  } catch (err) {
+    if (process.env.NODE_ENV === "development") {
+      console.log("[fetchAgencyProfile]", agencyId, "error", err);
+    }
     return null;
   }
 }

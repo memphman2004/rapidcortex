@@ -23,9 +23,12 @@ type Tab = "overview" | "media";
 export function VenueIncidentDetailClient({
   venueCode,
   incidentId,
+  linkBase,
 }: {
   venueCode: string;
   incidentId: string;
+  /** Jurisdiction or legacy `/app/venue/{code}` base path for breadcrumbs. */
+  linkBase?: string;
 }) {
   const { user } = useSession();
   const [tab, setTab] = useState<Tab>("overview");
@@ -70,18 +73,18 @@ export function VenueIncidentDetailClient({
     );
   }
 
-  const venueBase = `/app/venue/${venueCode}`;
+  const venueBase = linkBase ?? `/app/venue/${venueCode}`;
   const hasLocation = incident.latitude != null && incident.longitude != null;
 
   return (
     <div className="mx-auto max-w-4xl space-y-6 p-6">
       <nav className="text-sm text-slate-400">
         <Link href={venueBase} className="hover:text-slate-200">
-          Venue Dashboard
+          Operations Center
         </Link>
         <span className="mx-2">/</span>
-        <Link href={`${venueBase}/incidents`} className="hover:text-slate-200">
-          Incidents
+        <Link href={`${venueBase}/reports`} className="hover:text-slate-200">
+          Reports
         </Link>
         <span className="mx-2">/</span>
         <span className="text-slate-200">{incident.id}</span>

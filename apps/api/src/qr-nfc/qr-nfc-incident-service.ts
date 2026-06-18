@@ -115,7 +115,7 @@ export async function createIncidentFromQrNfcReport(
 
   if (record.vertical === "venue") {
     const venueCode = extractOrgCode(record.agencyId, "venue");
-    const incident = await createVenueQrIncident({
+    const { incident } = await createVenueQrIncident({
       venueCode,
       agencyId: record.agencyId,
       rcli: record.qrId,

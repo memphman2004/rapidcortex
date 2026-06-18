@@ -1,6 +1,7 @@
 import type { APIGatewayProxyEventV2, APIGatewayProxyResultV2 } from "aws-lambda";
 import { AuthorizationService } from "rapid-cortex-security";
 import type { UserContext } from "rapid-cortex-shared";
+import { isRcInternalOperator } from "rapid-cortex-shared";
 import { ACCOUNT_INACTIVE_MESSAGE, getUserContext, isUserAccountActive } from "../../lib/auth.js";
 import { withCorrelationHeaders } from "../../lib/correlation.js";
 import { operationalPasswordBlock } from "../../lib/operationalPasswordGate.js";
@@ -41,9 +42,12 @@ export async function requireVenueRouteContext(
     return { response: withCorrelationHeaders(event, forbidden("Venue code mismatch")) };
   }
 
-  const agencyId = user.agencyId ?? "";
+  const queryAgencyId = event.queryStringParameters?.agencyId?.trim();
+  const agencyId = user.agencyId?.startsWith("rc") || isRcInternalOperator(user.role)
+    ? queryAgencyId || user.agencyId || ""
+    : user.agencyId || "";
   if (!agencyId) {
-    return { response: withCorrelationHeaders(event, forbidden()) };
+    return { response: withCorrelationHeaders(event, badRequest("agencyId is required")) };
   }
 
   return {

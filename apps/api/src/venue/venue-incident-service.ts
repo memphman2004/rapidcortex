@@ -1,9 +1,14 @@
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import { DynamoDBDocumentClient, GetCommand, PutCommand, QueryCommand } from "@aws-sdk/lib-dynamodb";
+import type { VenueIncidentCameraSummary } from "rapid-cortex-shared";
 import { AUDIT_EVENT_TYPES } from "rapid-cortex-security";
 import { makeId } from "../lib/ids.js";
 import { AuditRepository } from "../repositories/auditRepository.js";
+import { getCamerasForSection } from "../handlers/venue/venue-camera-registry-service.js";
+import { broadcastVenueIncidentCreated } from "./venue-incident-realtime.js";
 import type { VenueIncidentRecord, VenueIncidentSource, VenueIncidentType } from "./venue-types.js";
+import type { ParsedVenueSms } from "./venue-sms-parser.js";
+import { venueCodeFromAgencyId } from "../handlers/vertical/agency-id.js";
 
 const ddb = DynamoDBDocumentClient.from(new DynamoDBClient({}));
 const auditRepo = new AuditRepository();
@@ -46,7 +51,48 @@ export type CreateVenueQrIncidentInput = {
   mediaKeys?: string[];
 };
 
-export async function createVenueQrIncident(input: CreateVenueQrIncidentInput): Promise<VenueIncidentRecord> {
+export type CreateVenueQrIncidentResult = {
+  incident: VenueIncidentRecord;
+  cameras: VenueIncidentCameraSummary[];
+};
+
+type CreateVenueIntakeIncidentInput = {
+  venueCode: string;
+  agencyId: string;
+  zoneCode: string;
+  locationName: string;
+  helpType: string;
+  description: string;
+  source: VenueIncidentSource;
+  origin: string;
+  actorId: string;
+  isAnonymous: boolean;
+  reporterName?: string | null;
+  reporterPhone?: string | null;
+  rcli?: string;
+  building?: string;
+  floor?: string;
+  lat?: number | null;
+  lng?: number | null;
+  mediaKeys?: string[];
+};
+
+/** Normalize SMS zone hints like "Section 124" → "124" for camera registry lookup. */
+export function sectionFromZoneHint(zoneHint: string): string {
+  const trimmed = zoneHint.trim();
+  if (!trimmed) return "UNKNOWN";
+  const section = trimmed.match(/(?:section|sec|sect)\s*(\d{1,4}[a-z]?)/i);
+  if (section?.[1]) return section[1];
+  const gate = trimmed.match(/(?:gate|entrance)\s*([a-z])/i);
+  if (gate?.[1]) return gate[1].toUpperCase();
+  const level = trimmed.match(/(?:concourse|level)\s*(\d+)/i);
+  if (level?.[1]) return level[1];
+  return trimmed;
+}
+
+async function createVenueIntakeIncident(
+  input: CreateVenueIntakeIncidentInput,
+): Promise<CreateVenueQrIncidentResult> {
   const venueCode = input.venueCode.toUpperCase();
   const year = new Date().getFullYear();
   const incidentId = `${venueCode}-${year}-${String(Date.now()).slice(-6)}`;
@@ -63,7 +109,7 @@ export async function createVenueQrIncident(input: CreateVenueQrIncidentInput): 
     qrRcli: input.rcli,
     qrLocationName: input.locationName,
     type,
-    source: "qr" as VenueIncidentSource,
+    source: input.source,
     status: "open",
     description: input.description,
     callerPhone: input.reporterPhone ?? "",
@@ -87,7 +133,7 @@ export async function createVenueQrIncident(input: CreateVenueQrIncidentInput): 
         reporterName: input.isAnonymous ? null : input.reporterName ?? null,
         gpsLat: input.lat ?? null,
         gpsLng: input.lng ?? null,
-        origin: "qr_scan",
+        origin: input.origin,
       },
     }),
   );
@@ -96,20 +142,82 @@ export async function createVenueQrIncident(input: CreateVenueQrIncidentInput): 
     eventId: makeId("audit"),
     agencyId: input.agencyId,
     incidentId,
-    actorId: "qr-intake",
+    actorId: input.actorId,
     type: AUDIT_EVENT_TYPES.INCIDENT_CREATED,
     details: {
       venueCode,
       rcli: input.rcli,
       zoneCode: input.zoneCode,
       type,
+      source: input.source,
     },
     createdAt: now,
     resourceType: "incident",
     resourceId: incidentId,
   });
 
-  return item;
+  let cameras: VenueIncidentCameraSummary[] = [];
+  try {
+    cameras = await getCamerasForSection(input.agencyId, input.zoneCode, 2);
+  } catch (err) {
+    console.warn("[createVenueIntakeIncident] camera lookup failed", err);
+  }
+
+  await broadcastVenueIncidentCreated({
+    agencyId: input.agencyId,
+    incident: item,
+    cameras,
+  });
+
+  return { incident: item, cameras };
+}
+
+export async function createVenueQrIncident(
+  input: CreateVenueQrIncidentInput,
+): Promise<CreateVenueQrIncidentResult> {
+  return createVenueIntakeIncident({
+    venueCode: input.venueCode,
+    agencyId: input.agencyId,
+    zoneCode: input.zoneCode,
+    locationName: input.locationName,
+    helpType: input.helpType,
+    description: input.description,
+    source: "qr",
+    origin: "qr_scan",
+    actorId: "qr-intake",
+    isAnonymous: input.isAnonymous,
+    reporterName: input.reporterName,
+    reporterPhone: input.reporterPhone,
+    rcli: input.rcli,
+    building: input.building,
+    floor: input.floor,
+    lat: input.lat,
+    lng: input.lng,
+    mediaKeys: input.mediaKeys,
+  });
+}
+
+export async function createVenueSmsIncident(input: {
+  agencyId: string;
+  parsed: ParsedVenueSms;
+  callerPhone: string;
+}): Promise<CreateVenueQrIncidentResult> {
+  const venueCode = input.parsed.venueCode.toUpperCase();
+  const zoneCode = sectionFromZoneHint(input.parsed.zoneHint);
+  const locationName = input.parsed.zoneHint.trim() || `${venueCode} venue`;
+  return createVenueIntakeIncident({
+    venueCode,
+    agencyId: input.agencyId,
+    zoneCode,
+    locationName,
+    helpType: input.parsed.detectedType,
+    description: input.parsed.cleanDescription,
+    source: "sms",
+    origin: "sms_inbound",
+    actorId: "sms-inbound",
+    isAnonymous: true,
+    reporterPhone: input.callerPhone,
+  });
 }
 
 export type VenueIncidentListItem = {

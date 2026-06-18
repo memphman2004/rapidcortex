@@ -38,6 +38,7 @@ const NEXT_PUBLIC_FLAG_VALUES: Record<string, string | undefined> = {
   NEXT_PUBLIC_ENABLE_NETWORK_ACCESS: process.env.NEXT_PUBLIC_ENABLE_NETWORK_ACCESS,
   NEXT_PUBLIC_ENABLE_VENUE_INTELLIGENCE: process.env.NEXT_PUBLIC_ENABLE_VENUE_INTELLIGENCE,
   NEXT_PUBLIC_ENABLE_LOCATIONS_QR_ADMIN: process.env.NEXT_PUBLIC_ENABLE_LOCATIONS_QR_ADMIN,
+  NEXT_PUBLIC_ENABLE_VERTICAL_ONBOARDING: process.env.NEXT_PUBLIC_ENABLE_VERTICAL_ONBOARDING,
   NEXT_PUBLIC_WEBSOCKET_URL: process.env.NEXT_PUBLIC_WEBSOCKET_URL,
 };
 
@@ -281,4 +282,9 @@ export function isVenueIntelligenceUiEnabled(): boolean {
 /** QR location registry admin (campus + venue scan points). */
 export function isLocationsQrAdminEnabled(): boolean {
   return envFlag("NEXT_PUBLIC_ENABLE_LOCATIONS_QR_ADMIN");
+}
+
+/** Campus and venue customer onboarding intake + checklist. */
+export function isVerticalOnboardingEnabled(): boolean {
+  return envFlag("NEXT_PUBLIC_ENABLE_VERTICAL_ONBOARDING");
 }

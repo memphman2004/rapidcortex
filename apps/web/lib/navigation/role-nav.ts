@@ -161,6 +161,33 @@ export const RC_ADMIN_NAV: RoleNav = {
         { id: "reports",   label: "Reports",           href: "/rc-admin/usage",         icon: "BarChart3" },
       ],
     },
+    {
+      id: "settings",
+      label: "SETTINGS",
+      items: [
+        {
+          id: "onboarding-campus-intake",
+          label: "Campus Intake",
+          href: "/onboarding/campus/intake",
+          icon: "ClipboardList",
+          feature: "verticalOnboarding",
+        },
+        {
+          id: "onboarding-venue-intake",
+          label: "Venue Intake",
+          href: "/onboarding/venue/intake",
+          icon: "ClipboardList",
+          feature: "verticalOnboarding",
+        },
+        {
+          id: "onboarding-checklist",
+          label: "Onboarding Checklist",
+          href: "/onboarding/checklist/campus",
+          icon: "ListChecks",
+          feature: "verticalOnboarding",
+        },
+      ],
+    },
   ],
 };
 
@@ -375,6 +402,27 @@ export function getAgencyItNav(jurisdiction: string): RoleNav {
         items: [
           { id: "security",      label: "Security",        href: `${j}/admin/security`,     icon: "ShieldAlert" },
           { id: "settings",      label: "System Settings", href: `${j}/admin/settings`,     icon: "Settings" },
+          {
+            id: "onboarding-intake-campus",
+            label: "Campus Onboarding",
+            href: "/onboarding/campus/intake",
+            icon: "ClipboardList",
+            feature: "verticalOnboarding",
+          },
+          {
+            id: "onboarding-intake-venue",
+            label: "Venue Onboarding",
+            href: "/onboarding/venue/intake",
+            icon: "ClipboardList",
+            feature: "verticalOnboarding",
+          },
+          {
+            id: "onboarding-checklist",
+            label: "Onboarding Checklist",
+            href: "/onboarding/checklist/campus",
+            icon: "ListChecks",
+            feature: "verticalOnboarding",
+          },
         ],
       },
       {
@@ -498,6 +546,20 @@ export function getCampusAdminNav(code: string): RoleNav {
         label: "CONFIGURATION",
         items: [
           { id: "settings",    label: "Settings",          href: `${base}/settings`,        icon: "Settings" },
+          {
+            id: "onboarding-intake",
+            label: "Onboarding Intake",
+            href: `/onboarding/campus/intake?orgCode=${encodeURIComponent(code)}`,
+            icon: "ClipboardList",
+            feature: "verticalOnboarding",
+          },
+          {
+            id: "onboarding-checklist",
+            label: "Onboarding Checklist",
+            href: `/onboarding/checklist/campus?orgCode=${encodeURIComponent(code)}`,
+            icon: "ListChecks",
+            feature: "verticalOnboarding",
+          },
         ],
       },
     ],
@@ -695,6 +757,20 @@ export function getVenueAdminNav(code: string): RoleNav {
         label: "CONFIGURATION",
         items: [
           { id: "settings",    label: "Settings",          href: `${base}/settings`,         icon: "Settings" },
+          {
+            id: "onboarding-intake",
+            label: "Onboarding Intake",
+            href: `/onboarding/venue/intake?orgCode=${encodeURIComponent(code)}`,
+            icon: "ClipboardList",
+            feature: "verticalOnboarding",
+          },
+          {
+            id: "onboarding-checklist",
+            label: "Onboarding Checklist",
+            href: `/onboarding/checklist/venue?orgCode=${encodeURIComponent(code)}`,
+            icon: "ListChecks",
+            feature: "verticalOnboarding",
+          },
         ],
       },
     ],

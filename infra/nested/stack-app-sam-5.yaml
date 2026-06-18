@@ -597,6 +597,30 @@ Parameters:
     Type: String
     Default: ""
     Description: Physical DynamoDB table for campus config, buildings, zones, and anon tokens.
+  CampusNotificationLogTable:
+    Type: String
+    Default: ""
+    Description: Campus notification and broadcast log table.
+  VenueNotificationLogTable:
+    Type: String
+    Default: ""
+    Description: Venue notification log table.
+  VenueCameraRegistryTable:
+    Type: String
+    Default: ""
+    Description: Venue fixed-camera registry (section coverage, KVS channels, priority rank).
+  CampusCameraRegistryTable:
+    Type: String
+    Default: ""
+    Description: Campus fixed-camera registry (building/floor coverage, KVS channels, priority rank).
+  WebSocketConnectionsTable:
+    Type: String
+    Default: ""
+    Description: DynamoDB table for active WebSocket connection registry (from realtime stack).
+  WebSocketApiId:
+    Type: String
+    Default: ""
+    Description: API Gateway WebSocket API id (from AppSamRealtime2Stack) for agency broadcasts.
   QRLocationsTable:
     Type: String
     Default: ""
@@ -819,6 +843,18 @@ Conditions:
   HasVenueConfigTable: !Not [!Equals [!Ref VenueConfigTable, ""]]
   HasCampusIncidentsTable: !Not [!Equals [!Ref CampusIncidentsTable, ""]]
   HasCampusConfigTable: !Not [!Equals [!Ref CampusConfigTable, ""]]
+  HasCampusNotificationLogTable: !Not [!Equals [!Ref CampusNotificationLogTable, ""]]
+  HasVenueNotificationLogTable: !Not [!Equals [!Ref VenueNotificationLogTable, ""]]
+  HasVenueCameraRegistryTable: !Not [!Equals [!Ref VenueCameraRegistryTable, ""]]
+  HasCampusCameraRegistryTable: !Not [!Equals [!Ref CampusCameraRegistryTable, ""]]
+  HasAnyCameraRegistryTable:
+    Fn::Or:
+      - !Condition HasVenueCameraRegistryTable
+      - !Condition HasCampusCameraRegistryTable
+  HasWebSocketBroadcast:
+    Fn::And:
+      - !Not [!Equals [!Ref WebSocketConnectionsTable, ""]]
+      - !Not [!Equals [!Ref WebSocketApiId, ""]]
   HasQRLocationsTable: !Not [!Equals [!Ref QRLocationsTable, ""]]
   HasVenueBridgeCluster: !Not [!Equals [!Ref VenueBridgeClusterArn, ""]]
   HasRingCredentialsSecretArn: !Not [!Equals [!Ref RingCredentialsSecretArn, ""]]
@@ -1022,6 +1058,30 @@ Globals:
         CAMPUS_CONFIG_TABLE: !If
           - HasCampusConfigTable
           - !Ref CampusConfigTable
+          - ""
+        CAMPUS_NOTIFICATION_LOG_TABLE: !If
+          - HasCampusNotificationLogTable
+          - !Ref CampusNotificationLogTable
+          - ""
+        VENUE_NOTIFICATION_LOG_TABLE: !If
+          - HasVenueNotificationLogTable
+          - !Ref VenueNotificationLogTable
+          - ""
+        VENUE_CAMERA_REGISTRY_TABLE: !If
+          - HasVenueCameraRegistryTable
+          - !Ref VenueCameraRegistryTable
+          - ""
+        CAMPUS_CAMERA_REGISTRY_TABLE: !If
+          - HasCampusCameraRegistryTable
+          - !Ref CampusCameraRegistryTable
+          - ""
+        WEBSOCKET_CONNECTIONS_TABLE: !If
+          - HasWebSocketBroadcast
+          - !Ref WebSocketConnectionsTable
+          - ""
+        WEBSOCKET_API_ENDPOINT: !If
+          - HasWebSocketBroadcast
+          - !Sub https://${WebSocketApiId}.execute-api.${AWS::Region}.amazonaws.com/${DeploymentStage}
           - ""
         QR_LOCATIONS_TABLE: !If
           - HasQRLocationsTable
@@ -1318,6 +1378,46 @@ Resources:
                   - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${CampusConfigTable}/index/*
                   - !Ref AWS::NoValue
                 - !If
+                  - HasCampusNotificationLogTable
+                  - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${CampusNotificationLogTable}
+                  - !Ref AWS::NoValue
+                - !If
+                  - HasCampusNotificationLogTable
+                  - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${CampusNotificationLogTable}/index/*
+                  - !Ref AWS::NoValue
+                - !If
+                  - HasVenueNotificationLogTable
+                  - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${VenueNotificationLogTable}
+                  - !Ref AWS::NoValue
+                - !If
+                  - HasVenueNotificationLogTable
+                  - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${VenueNotificationLogTable}/index/*
+                  - !Ref AWS::NoValue
+                - !If
+                  - HasVenueCameraRegistryTable
+                  - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${VenueCameraRegistryTable}
+                  - !Ref AWS::NoValue
+                - !If
+                  - HasVenueCameraRegistryTable
+                  - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${VenueCameraRegistryTable}/index/*
+                  - !Ref AWS::NoValue
+                - !If
+                  - HasCampusCameraRegistryTable
+                  - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${CampusCameraRegistryTable}
+                  - !Ref AWS::NoValue
+                - !If
+                  - HasCampusCameraRegistryTable
+                  - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${CampusCameraRegistryTable}/index/*
+                  - !Ref AWS::NoValue
+                - !If
+                  - HasWebSocketBroadcast
+                  - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${WebSocketConnectionsTable}
+                  - !Ref AWS::NoValue
+                - !If
+                  - HasWebSocketBroadcast
+                  - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${WebSocketConnectionsTable}/index/*
+                  - !Ref AWS::NoValue
+                - !If
                   - HasQRLocationsTable
                   - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${QRLocationsTable}
                   - !Ref AWS::NoValue
@@ -1325,6 +1425,20 @@ Resources:
                   - HasQRLocationsTable
                   - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${QRLocationsTable}/index/*
                   - !Ref AWS::NoValue
+
+  AppManagedPolicyWebSocketBroadcast:
+    Type: AWS::IAM::ManagedPolicy
+    Condition: HasWebSocketBroadcast
+    Properties:
+      ManagedPolicyName: !Sub "${AppName}-sam5-ws-broadcast-${DeploymentStage}"
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Sid: WebSocketPostToConnection
+            Effect: Allow
+            Action:
+              - execute-api:ManageConnections
+            Resource: !Sub arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${WebSocketApiId}/${DeploymentStage}/POST/@connections/*
 
   AppManagedPolicyS3ApplicationBucketsCrud:
     Type: AWS::IAM::ManagedPolicy
@@ -2121,6 +2235,966 @@ Resources:
             Path: /api/venue/{venueCode}/profile
             Method: PATCH
 
+  GetCampusStatsFunction:
+    Type: AWS::Serverless::Function
+    Condition: HasCampusConfigTable
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/handlers/campus/dashboard-handlers.getStats
+      Timeout: 30
+      Policies:
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardC
+      Events:
+        Route:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/campus/{agencyId}/stats
+            Method: GET
+
+  GetCampusZonesFunction:
+    Type: AWS::Serverless::Function
+    Condition: HasCampusConfigTable
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/handlers/campus/dashboard-handlers.getZones
+      Timeout: 30
+      Policies:
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardC
+      Events:
+        Route:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/campus/{agencyId}/zones
+            Method: GET
+
+  GetCampusBuildingsDashboardFunction:
+    Type: AWS::Serverless::Function
+    Condition: HasCampusConfigTable
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/handlers/campus/dashboard-handlers.getBuildings
+      Timeout: 30
+      Policies:
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardC
+      Events:
+        Route:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/campus/{agencyId}/buildings
+            Method: GET
+
+  GetCampusThreatLevelFunction:
+    Type: AWS::Serverless::Function
+    Condition: HasCampusConfigTable
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/handlers/campus/dashboard-handlers.getThreatLevel
+      Timeout: 30
+      Policies:
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardC
+      Events:
+        Route:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/campus/{agencyId}/threat-level
+            Method: GET
+
+  PatchCampusThreatLevelFunction:
+    Type: AWS::Serverless::Function
+    Condition: HasCampusConfigTable
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/handlers/campus/dashboard-handlers.patchThreatLevel
+      Timeout: 30
+      Policies:
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardC
+        - !If
+          - HasWebSocketBroadcast
+          - !Ref AppManagedPolicyWebSocketBroadcast
+          - !Ref AWS::NoValue
+      Events:
+        Route:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/campus/{agencyId}/threat-level
+            Method: PATCH
+
+  GetCampusOnDutyFunction:
+    Type: AWS::Serverless::Function
+    Condition: HasCampusConfigTable
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/handlers/campus/dashboard-handlers.getOnDuty
+      Timeout: 30
+      Policies:
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardC
+      Events:
+        Route:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/campus/{agencyId}/staff/on-duty
+            Method: GET
+
+  PostCampusNotificationFunction:
+    Type: AWS::Serverless::Function
+    Condition: HasCampusNotificationLogTable
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/handlers/campus/dashboard-handlers.postNotification
+      Timeout: 30
+      Policies:
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardC
+        - !If
+          - HasWebSocketBroadcast
+          - !Ref AppManagedPolicyWebSocketBroadcast
+          - !Ref AWS::NoValue
+      Events:
+        Route:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/campus/{agencyId}/notifications
+            Method: POST
+
+  PostCampusBroadcastFunction:
+    Type: AWS::Serverless::Function
+    Condition: HasCampusNotificationLogTable
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/handlers/campus/dashboard-handlers.postBroadcast
+      Timeout: 30
+      Policies:
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardC
+        - !If
+          - HasWebSocketBroadcast
+          - !Ref AppManagedPolicyWebSocketBroadcast
+          - !Ref AWS::NoValue
+      Events:
+        Route:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/campus/{agencyId}/broadcast
+            Method: POST
+
+  GetVenueStatsFunction:
+    Type: AWS::Serverless::Function
+    Condition: HasVenueConfigTable
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/handlers/venue/dashboard-handlers.getStats
+      Timeout: 30
+      Policies:
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardC
+      Events:
+        Route:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/venue/{agencyId}/stats
+            Method: GET
+
+  GetVenueSectionsDashboardFunction:
+    Type: AWS::Serverless::Function
+    Condition: HasVenueConfigTable
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/handlers/venue/dashboard-handlers.getSections
+      Timeout: 30
+      Policies:
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardC
+      Events:
+        Route:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/venue/{agencyId}/sections
+            Method: GET
+
+  GetVenueEventsFunction:
+    Type: AWS::Serverless::Function
+    Condition: HasVenueConfigTable
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/handlers/venue/dashboard-handlers.getEvents
+      Timeout: 30
+      Policies:
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardC
+      Events:
+        Route:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/venue/{agencyId}/events
+            Method: GET
+
+  GetVenueOnDutyFunction:
+    Type: AWS::Serverless::Function
+    Condition: HasVenueConfigTable
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/handlers/venue/dashboard-handlers.getOnDuty
+      Timeout: 30
+      Policies:
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardC
+      Events:
+        Route:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/venue/{agencyId}/staff/on-duty
+            Method: GET
+
+  PostVenueNotificationFunction:
+    Type: AWS::Serverless::Function
+    Condition: HasVenueNotificationLogTable
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/handlers/venue/dashboard-handlers.postNotification
+      Timeout: 30
+      Policies:
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardC
+        - !If
+          - HasWebSocketBroadcast
+          - !Ref AppManagedPolicyWebSocketBroadcast
+          - !Ref AWS::NoValue
+      Events:
+        Route:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/venue/{agencyId}/notifications
+            Method: POST
+
+  GetVenueCamerasFunction:
+    Type: AWS::Serverless::Function
+    Condition: HasVenueCameraRegistryTable
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/handlers/venue/getCamerasForSection.handler
+      Timeout: 30
+      Policies:
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardC
+      Events:
+        Route:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/venue/{agencyId}/cameras
+            Method: GET
+
+  VenueCameraRegistryListCreateFunction:
+    Type: AWS::Serverless::Function
+    Condition: HasVenueCameraRegistryTable
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/handlers/venue/venue-camera-crud-handlers.listOrCreate
+      Timeout: 30
+      Policies:
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardC
+        - Statement:
+            Sid: VenueCameraRegistryKvsCreate
+            Effect: Allow
+            Action:
+              - kinesisvideo:CreateSignalingChannel
+              - kinesisvideo:DescribeSignalingChannel
+            Resource:
+              - !Sub arn:${AWS::Partition}:kinesisvideo:${AWS::Region}:${AWS::AccountId}:channel/rc-*/*
+      Events:
+        Route:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/venue/{agencyId}/cameras/registry
+            Method: GET
+        RoutePost:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/venue/{agencyId}/cameras/registry
+            Method: POST
+
+  VenueCameraRegistryMutateFunction:
+    Type: AWS::Serverless::Function
+    Condition: HasVenueCameraRegistryTable
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/handlers/venue/venue-camera-crud-handlers.updateOrDelete
+      Timeout: 30
+      Policies:
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardC
+        - Statement:
+            Sid: VenueCameraRegistryMutateKvsCreate
+            Effect: Allow
+            Action:
+              - kinesisvideo:CreateSignalingChannel
+              - kinesisvideo:DescribeSignalingChannel
+            Resource:
+              - !Sub arn:${AWS::Partition}:kinesisvideo:${AWS::Region}:${AWS::AccountId}:channel/rc-*/*
+      Events:
+        RoutePut:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/venue/{agencyId}/cameras/registry/{cameraId}
+            Method: PUT
+        RouteDelete:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/venue/{agencyId}/cameras/registry/{cameraId}
+            Method: DELETE
+
+  VenueCameraViewerTokenFunction:
+    Type: AWS::Serverless::Function
+    Condition: HasVenueCameraRegistryTable
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/handlers/venue/venue-camera-crud-handlers.viewerToken
+      Timeout: 30
+      Environment:
+        Variables:
+          KVS_BROWSER_TOKEN_ROLE_ARN: !If
+            - CreateLiveVideoResources
+            - !GetAtt KvsWebRtcBrowserTokenRole.Arn
+            - ""
+      Policies:
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardC
+        - !If
+          - CreateLiveVideoResources
+          - Statement:
+              Sid: VenueCameraViewerAssumeBrowserRole
+              Effect: Allow
+              Action: sts:AssumeRole
+              Resource: !GetAtt KvsWebRtcBrowserTokenRole.Arn
+          - !Ref AWS::NoValue
+        - Statement:
+            Sid: VenueCameraViewerKvsRead
+            Effect: Allow
+            Action:
+              - kinesisvideo:DescribeSignalingChannel
+              - kinesisvideo:GetSignalingChannelEndpoint
+              - kinesisvideo:GetIceServerConfig
+            Resource:
+              - !Sub arn:${AWS::Partition}:kinesisvideo:${AWS::Region}:${AWS::AccountId}:channel/rc-venue-*/*
+              - !Sub arn:${AWS::Partition}:kinesisvideo:${AWS::Region}:${AWS::AccountId}:channel/rc-connect-*/*
+      Events:
+        Route:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/venue/{agencyId}/cameras/viewer-token
+            Method: GET
+
+  VenueCameraPtzFunction:
+    Type: AWS::Serverless::Function
+    Condition: HasVenueCameraRegistryTable
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/handlers/venue/venue-camera-crud-handlers.ptz
+      Timeout: 30
+      Policies:
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardC
+      Events:
+        Route:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/venue/{agencyId}/cameras/{cameraId}/ptz
+            Method: POST
+
+  VenueCameraProducerConfigFunction:
+    Type: AWS::Serverless::Function
+    Condition: HasVenueCameraRegistryTable
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/handlers/venue/venue-camera-crud-handlers.producerConfig
+      Timeout: 30
+      Environment:
+        Variables:
+          VENUE_KVS_PRODUCER_ROLE_ARN: !If
+            - CreateLiveVideoResources
+            - !GetAtt KvsWebRtcBrowserTokenRole.Arn
+            - ""
+          VENUE_CAMERA_PRODUCER_API_BASE: !Sub "https://${ApiSubdomainPrefix}.${RootDomainName}"
+      Policies:
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardC
+      Events:
+        Route:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/venue/{agencyId}/cameras/producer-config
+            Method: GET
+
+  VenueCameraDiscoverFunction:
+    Type: AWS::Serverless::Function
+    Condition: HasVenueCameraRegistryTable
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/handlers/venue/venue-camera-crud-handlers.discover
+      Timeout: 45
+      Policies:
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardC
+      Events:
+        Route:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/venue/{agencyId}/cameras/discover
+            Method: POST
+
+  VenueCameraAgentHeartbeatFunction:
+    Type: AWS::Serverless::Function
+    Condition: HasVenueCameraRegistryTable
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/handlers/venue/venue-camera-crud-handlers.agentHeartbeat
+      Timeout: 15
+      Environment:
+        Variables:
+          VENUE_CAMERA_PRODUCER_KEY: !Ref InternalServiceKey
+      Policies:
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardC
+      Events:
+        Route:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/venue/{agencyId}/cameras/{cameraId}/heartbeat
+            Method: POST
+
+  GetCampusCamerasFunction:
+    Type: AWS::Serverless::Function
+    Condition: HasCampusCameraRegistryTable
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/handlers/campus/cameras/getCamerasForBuildingFloor.handler
+      Timeout: 30
+      Policies:
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardC
+      Events:
+        Route:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/campus/{agencyId}/cameras
+            Method: GET
+
+  CampusCameraRegistryListCreateFunction:
+    Type: AWS::Serverless::Function
+    Condition: HasCampusCameraRegistryTable
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/handlers/campus/cameras/campus-camera-crud-handlers.listOrCreate
+      Timeout: 30
+      Policies:
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardC
+        - Statement:
+            Sid: CampusCameraRegistryKvsCreate
+            Effect: Allow
+            Action:
+              - kinesisvideo:CreateSignalingChannel
+              - kinesisvideo:DescribeSignalingChannel
+            Resource:
+              - !Sub arn:${AWS::Partition}:kinesisvideo:${AWS::Region}:${AWS::AccountId}:channel/rc-*/*
+      Events:
+        Route:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/campus/{agencyId}/cameras/registry
+            Method: GET
+        RoutePost:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/campus/{agencyId}/cameras/registry
+            Method: POST
+
+  CampusCameraRegistryMutateFunction:
+    Type: AWS::Serverless::Function
+    Condition: HasCampusCameraRegistryTable
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/handlers/campus/cameras/campus-camera-crud-handlers.updateOrDelete
+      Timeout: 30
+      Policies:
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardC
+        - Statement:
+            Sid: CampusCameraRegistryMutateKvsCreate
+            Effect: Allow
+            Action:
+              - kinesisvideo:CreateSignalingChannel
+              - kinesisvideo:DescribeSignalingChannel
+            Resource:
+              - !Sub arn:${AWS::Partition}:kinesisvideo:${AWS::Region}:${AWS::AccountId}:channel/rc-*/*
+      Events:
+        RoutePut:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/campus/{agencyId}/cameras/registry/{cameraId}
+            Method: PUT
+        RouteDelete:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/campus/{agencyId}/cameras/registry/{cameraId}
+            Method: DELETE
+
+  CampusCameraViewerTokenFunction:
+    Type: AWS::Serverless::Function
+    Condition: HasCampusCameraRegistryTable
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/handlers/campus/cameras/campus-camera-crud-handlers.viewerToken
+      Timeout: 30
+      Environment:
+        Variables:
+          KVS_BROWSER_TOKEN_ROLE_ARN: !If
+            - CreateLiveVideoResources
+            - !GetAtt KvsWebRtcBrowserTokenRole.Arn
+            - ""
+      Policies:
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardC
+        - !If
+          - CreateLiveVideoResources
+          - Statement:
+              Sid: CampusCameraViewerAssumeBrowserRole
+              Effect: Allow
+              Action: sts:AssumeRole
+              Resource: !GetAtt KvsWebRtcBrowserTokenRole.Arn
+          - !Ref AWS::NoValue
+        - !If
+          - CreateLiveVideoResources
+          - Statement:
+              Sid: CampusCameraViewerKvsRead
+              Effect: Allow
+              Action:
+                - kinesisvideo:GetSignalingChannelEndpoint
+                - kinesisvideo:DescribeSignalingChannel
+              Resource:
+                - !Sub arn:${AWS::Partition}:kinesisvideo:${AWS::Region}:${AWS::AccountId}:channel/rc-*/*
+          - !Ref AWS::NoValue
+      Events:
+        Route:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/campus/{agencyId}/cameras/viewer-token
+            Method: GET
+
+  CampusCameraPtzFunction:
+    Type: AWS::Serverless::Function
+    Condition: HasCampusCameraRegistryTable
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/handlers/campus/cameras/campus-camera-crud-handlers.ptz
+      Timeout: 15
+      Policies:
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardC
+      Events:
+        Route:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/campus/{agencyId}/cameras/{cameraId}/ptz
+            Method: POST
+
+  CampusCameraProducerConfigFunction:
+    Type: AWS::Serverless::Function
+    Condition: HasCampusCameraRegistryTable
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/handlers/campus/cameras/campus-camera-crud-handlers.producerConfig
+      Timeout: 30
+      Policies:
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardC
+      Events:
+        Route:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/campus/{agencyId}/cameras/producer-config
+            Method: GET
+
+  CampusCameraDiscoverFunction:
+    Type: AWS::Serverless::Function
+    Condition: HasCampusCameraRegistryTable
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/handlers/campus/cameras/campus-camera-crud-handlers.discover
+      Timeout: 45
+      Policies:
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardC
+      Events:
+        Route:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/campus/{agencyId}/cameras/discover
+            Method: POST
+
+  CampusCameraAgentHeartbeatFunction:
+    Type: AWS::Serverless::Function
+    Condition: HasCampusCameraRegistryTable
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/handlers/campus/cameras/campus-camera-crud-handlers.agentHeartbeat
+      Timeout: 15
+      Environment:
+        Variables:
+          CAMPUS_CAMERA_PRODUCER_KEY: !Ref InternalServiceKey
+      Policies:
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardC
+      Events:
+        Route:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/campus/{agencyId}/cameras/{cameraId}/heartbeat
+            Method: POST
+
+  VenueIncidentUpdatesFunction:
+    Type: AWS::Serverless::Function
+    Condition: HasVenueConfigTable
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/handlers/venue/venue-incident-updates-handlers.updates
+      Timeout: 30
+      Policies:
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardC
+        - !If
+          - HasWebSocketBroadcast
+          - !Ref AppManagedPolicyWebSocketBroadcast
+          - !Ref AWS::NoValue
+      Events:
+        RouteGet:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/incidents/{incidentId}/updates
+            Method: GET
+        RoutePost:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/incidents/{incidentId}/updates
+            Method: POST
+
+  VenueIncidentStatusFunction:
+    Type: AWS::Serverless::Function
+    Condition: HasVenueConfigTable
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/handlers/venue/venue-incident-updates-handlers.status
+      Timeout: 30
+      Policies:
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardC
+        - !If
+          - HasWebSocketBroadcast
+          - !Ref AppManagedPolicyWebSocketBroadcast
+          - !Ref AWS::NoValue
+      Events:
+        Route:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/incidents/{incidentId}/status
+            Method: PATCH
+
+  CameraHeartbeatFunction:
+    Type: AWS::Serverless::Function
+    Condition: HasAnyCameraRegistryTable
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/handlers/venue/camera-heartbeat.handler
+      Timeout: 120
+      Policies:
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardC
+        - !If
+          - HasWebSocketBroadcast
+          - !Ref AppManagedPolicyWebSocketBroadcast
+          - !Ref AWS::NoValue
+        - Statement:
+            Sid: CameraHeartbeatKvsDescribe
+            Effect: Allow
+            Action:
+              - kinesisvideo:DescribeSignalingChannel
+            Resource:
+              - !Sub arn:${AWS::Partition}:kinesisvideo:${AWS::Region}:${AWS::AccountId}:channel/rc-venue-*/*
+              - !Sub arn:${AWS::Partition}:kinesisvideo:${AWS::Region}:${AWS::AccountId}:channel/rc-connect-*/*
+      Events:
+        HeartbeatSchedule:
+          Type: Schedule
+          Properties:
+            Schedule: rate(1 minute)
+            Enabled: true
+            Name: !Sub rc-camera-heartbeat-${DeploymentStage}
+
+  GetCampusOnboardingIntakeFunction:
+    Type: AWS::Serverless::Function
+    Condition: HasCampusConfigTable
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/campus/handlers/campus-onboarding-intake.getHandler
+      Timeout: 30
+      Policies:
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardC
+      Events:
+        Route:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/campus/{campusCode}/onboarding/intake
+            Method: GET
+
+  PutCampusOnboardingIntakeFunction:
+    Type: AWS::Serverless::Function
+    Condition: HasCampusConfigTable
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/campus/handlers/campus-onboarding-intake.putHandler
+      Timeout: 30
+      Policies:
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardC
+      Events:
+        Route:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/campus/{campusCode}/onboarding/intake
+            Method: PUT
+
+  GetCampusOnboardingChecklistFunction:
+    Type: AWS::Serverless::Function
+    Condition: HasCampusConfigTable
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/campus/handlers/campus-onboarding-checklist.getHandler
+      Timeout: 30
+      Policies:
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardC
+      Events:
+        Route:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/campus/{campusCode}/onboarding/checklist
+            Method: GET
+
+  PatchCampusOnboardingChecklistFunction:
+    Type: AWS::Serverless::Function
+    Condition: HasCampusConfigTable
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/campus/handlers/campus-onboarding-checklist.patchHandler
+      Timeout: 30
+      Policies:
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardC
+      Events:
+        Route:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/campus/{campusCode}/onboarding/checklist
+            Method: PATCH
+
+  GetVenueOnboardingIntakeFunction:
+    Type: AWS::Serverless::Function
+    Condition: HasVenueConfigTable
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/venue/handlers/venue-onboarding-intake.getHandler
+      Timeout: 30
+      Policies:
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardC
+      Events:
+        Route:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/venue/{venueCode}/onboarding/intake
+            Method: GET
+
+  PutVenueOnboardingIntakeFunction:
+    Type: AWS::Serverless::Function
+    Condition: HasVenueConfigTable
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/venue/handlers/venue-onboarding-intake.putHandler
+      Timeout: 30
+      Policies:
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardC
+      Events:
+        Route:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/venue/{venueCode}/onboarding/intake
+            Method: PUT
+
+  GetVenueOnboardingChecklistFunction:
+    Type: AWS::Serverless::Function
+    Condition: HasVenueConfigTable
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/venue/handlers/venue-onboarding-checklist.getHandler
+      Timeout: 30
+      Policies:
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardC
+      Events:
+        Route:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/venue/{venueCode}/onboarding/checklist
+            Method: GET
+
+  PatchVenueOnboardingChecklistFunction:
+    Type: AWS::Serverless::Function
+    Condition: HasVenueConfigTable
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/venue/handlers/venue-onboarding-checklist.patchHandler
+      Timeout: 30
+      Policies:
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardC
+      Events:
+        Route:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/venue/{venueCode}/onboarding/checklist
+            Method: PATCH
+
   VenueCameraRequestFunction:
     Type: AWS::Serverless::Function
     Metadata:
@@ -2215,6 +3289,22 @@ Resources:
           LOCATION_TOKENS_TABLE: !Ref LocationTokensTable
           SMS_ROUTING_TABLE: !Ref SmsRoutingTable
           AUDIT_TABLE: !Ref AuditTable
+          VENUE_CONFIG_TABLE: !If
+            - HasVenueConfigTable
+            - !Ref VenueConfigTable
+            - ""
+          VENUE_CAMERA_REGISTRY_TABLE: !If
+            - HasVenueCameraRegistryTable
+            - !Ref VenueCameraRegistryTable
+            - ""
+          WEBSOCKET_CONNECTIONS_TABLE: !If
+            - HasWebSocketBroadcast
+            - !Ref WebSocketConnectionsTable
+            - ""
+          WEBSOCKET_API_ENDPOINT: !If
+            - HasWebSocketBroadcast
+            - !Sub https://${WebSocketApiId}.execute-api.${AWS::Region}.amazonaws.com/${DeploymentStage}
+            - ""
           LOCATE_PUBLIC_BASE_URL: !Ref AppPublicBaseUrl
           APP_PUBLIC_BASE_URL: !Ref AppPublicBaseUrl
           INCIDENT_TIMELINE_TABLE: !Sub "rapid-cortex-incident-timeline-${DeploymentStage}"
@@ -2229,6 +3319,10 @@ Resources:
           UNROUTED_SMS_DLQ_URL: !Ref UnroutedSmsDlq
       Policies:
         - !Ref AppManagedPolicyDynamoLambdaCrudShardC
+        - !If
+          - HasWebSocketBroadcast
+          - !Ref AppManagedPolicyWebSocketBroadcast
+          - !Ref AWS::NoValue
         - Statement:
             - Effect: Allow
               Action:
