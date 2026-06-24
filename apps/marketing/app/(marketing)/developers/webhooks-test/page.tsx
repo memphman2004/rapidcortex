@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { MarketingArticleShell } from "@/components/marketing/marketing-article-shell";
 import { RC_LITE_WEBHOOK_EVENTS } from "rapid-cortex-shared";
+import { marketingDevelopersDocsPath } from "@/lib/marketing-links";
 
 export const metadata = {
   title: "RC Lite webhook lab",
@@ -33,7 +34,7 @@ export default function DevelopersWebhookSandboxPage() {
           scaffolding exists in infra tickets; see Trust Center disclosures for SLA riders.
         </p>
       </section>
-      <Link href="/developers/docs/webhooks" className="mt-14 inline-flex text-xs text-sky-400 hover:text-white">
+      <Link href={marketingDevelopersDocsPath("webhooks")} className="mt-14 inline-flex text-xs text-sky-400 hover:text-white">
         ← Canonical webhook docs
       </Link>
     </MarketingArticleShell>

@@ -176,7 +176,10 @@ export default function MediaPage() {
           <span className="text-xs text-slate-400">Silent Text · consent required</span>
         </div>
         <div className="min-h-0 flex-1 overflow-auto p-3">
-          <SilentTextPanel incidentId={selectedIncidentId} />
+          <SilentTextPanel
+            incidentId={selectedIncidentId}
+            callerLanguage={selectedIncident?.callerLanguage}
+          />
         </div>
       </div>
     </div>

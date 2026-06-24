@@ -18,6 +18,7 @@ import {
   postSilentTextResend,
   postSilentTextSession,
 } from "@/lib/api";
+import { SilentTextMessageBubble } from "@/components/dispatch/silent-text-message-bubble";
 
 function statusLabel(status: SilentTextDispatcherSession["status"]): string {
   const map: Record<SilentTextDispatcherSession["status"], string> = {
@@ -34,7 +35,14 @@ function statusLabel(status: SilentTextDispatcherSession["status"]): string {
   return map[status] ?? status;
 }
 
-export function SilentTextPanel({ incidentId }: { incidentId: string | null }) {
+export function SilentTextPanel({
+  incidentId,
+  callerLanguage,
+}: {
+  incidentId: string | null;
+  /** Incident caller language — drives outbound translation (BCP-47 primary tag). */
+  callerLanguage?: string | null;
+}) {
   const queryClient = useQueryClient();
   const [activeSessionId, setActiveSessionId] = useState<string | null>(null);
   const [phone, setPhone] = useState("");
@@ -94,6 +102,8 @@ export function SilentTextPanel({ incidentId }: { incidentId: string | null }) {
         highRisk: highRiskOnCreate,
         stealthAppearance: stealthOnCreate,
       };
+      const lang = callerLanguage?.trim();
+      if (lang && lang !== "en") body.callerLocale = lang;
       const base = publicBase.trim();
       if (base) body.publicAppBaseUrl = base;
       return postSilentTextSession(incidentId, body);
@@ -303,16 +313,7 @@ export function SilentTextPanel({ incidentId }: { incidentId: string | null }) {
               <p className="text-[11px] text-slate-500">No messages yet.</p>
             ) : (
               session.messages.map((m) => (
-                <div
-                  key={m.messageId}
-                  className={`rounded px-2 py-1.5 text-xs leading-snug ${
-                    m.from === "dispatcher" ? "ml-4 bg-violet-950/40 text-violet-100" : "mr-4 bg-slate-800 text-slate-100"
-                  }`}
-                >
-                  <span className="text-[9px] uppercase text-slate-500">{m.from}</span>
-                  <p className="mt-0.5 whitespace-pre-wrap">{m.body}</p>
-                  <p className="mt-0.5 text-[9px] text-slate-500">{new Date(m.at).toLocaleTimeString()}</p>
-                </div>
+                <SilentTextMessageBubble key={m.messageId} message={m} viewAs="dispatcher" />
               ))
             )}
           </div>

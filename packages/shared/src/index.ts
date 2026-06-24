@@ -62,6 +62,7 @@ export type { AgencySlugInput, AgencySlugResult } from "./agency/agency-slug.js"
 export { AGENCY_SLUG_REGEX } from "./tenancy/schemas.js";
 export * from "./pinpoint-surge/index.js";
 export * from "./call-control/index.js";
+export * from "./voice-bridge/schemas.js";
 export * from "./ring/index.js";
 export * from "./venue/index.js";
 export * from "./locations/index.js";

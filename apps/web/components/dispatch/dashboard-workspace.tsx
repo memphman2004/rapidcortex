@@ -7,6 +7,8 @@ import { CadDispatcherWorkspaceLayout } from "@/components/dispatch/cad-dispatch
 import { TranscriptChunkPlayer } from "@/components/dispatch/transcript-chunk-player";
 import { AnalyzeIncidentError, isApiConfigured, postTranscriptSegment } from "@/lib/api";
 import { CallLanguageSelectorBar } from "@/components/dispatch/call-language-selector-bar";
+import { DispatcherCallerReplyPanel } from "@/components/dispatch/dispatcher-caller-reply-panel";
+import { isCallerTranslationReplyEnabled } from "@/lib/runtime-flags";
 import {
   isCallerCardEnabled,
   isCrossJurisdictionSharesUiEnabled,
@@ -360,7 +362,24 @@ export function DashboardWorkspace() {
       }
       isRefreshingAi={isRefreshingAi}
       onRefreshAi={selectedId ? handleRefreshAi : undefined}
-      languageBar={isApiConfigured() ? <CallLanguageSelectorBar /> : null}
+      languageBar={
+        isApiConfigured() && isCallerTranslationReplyEnabled() && selectedId ? (
+          <>
+            <CallLanguageSelectorBar
+              incidentId={selectedId}
+              incident={incidentForUi}
+              segments={transcriptQuery.data ?? []}
+            />
+            <DispatcherCallerReplyPanel
+              incidentId={selectedId}
+              incident={incidentForUi}
+              segments={transcriptQuery.data ?? []}
+            />
+          </>
+        ) : isApiConfigured() ? (
+          <CallLanguageSelectorBar incidentId={null} incident={null} segments={[]} />
+        ) : null
+      }
       queueEmptyHint={
         isNonEmergencyTriageEnabled() && queueTab === "non_emergency" && (incidentsQuery.data?.length ?? 0) > 0
           ? "No incidents match the non-emergency filter (low / moderate urgency) right now."

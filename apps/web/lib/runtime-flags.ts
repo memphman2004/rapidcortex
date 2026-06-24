@@ -27,6 +27,8 @@ const NEXT_PUBLIC_FLAG_VALUES: Record<string, string | undefined> = {
   NEXT_PUBLIC_ENABLE_PINPOINT: process.env.NEXT_PUBLIC_ENABLE_PINPOINT,
   NEXT_PUBLIC_ENABLE_SMS_LOCATION: process.env.NEXT_PUBLIC_ENABLE_SMS_LOCATION,
   NEXT_PUBLIC_ENABLE_SILENT_TEXT: process.env.NEXT_PUBLIC_ENABLE_SILENT_TEXT,
+  NEXT_PUBLIC_ENABLE_CALLER_TRANSLATION_REPLY: process.env.NEXT_PUBLIC_ENABLE_CALLER_TRANSLATION_REPLY,
+  NEXT_PUBLIC_ENABLE_VOICE_BRIDGE: process.env.NEXT_PUBLIC_ENABLE_VOICE_BRIDGE,
   NEXT_PUBLIC_ENABLE_SURGE: process.env.NEXT_PUBLIC_ENABLE_SURGE,
   NEXT_PUBLIC_ENABLE_REPORTS: process.env.NEXT_PUBLIC_ENABLE_REPORTS,
   NEXT_PUBLIC_ENABLE_EMERGENCY_CONNECT: process.env.NEXT_PUBLIC_ENABLE_EMERGENCY_CONNECT,
@@ -212,6 +214,16 @@ export function isSmsLocationEnabled(): boolean {
  */
 export function isSilentTextEnabled(): boolean {
   return envFlag("NEXT_PUBLIC_ENABLE_SILENT_TEXT");
+}
+
+/** Dispatcher English → caller-language reply compose + Silent Text translation UI. */
+export function isCallerTranslationReplyEnabled(): boolean {
+  return envFlag("NEXT_PUBLIC_ENABLE_CALLER_TRANSLATION_REPLY");
+}
+
+/** Live-call telephony voice bridge (translate + TTS + SBC webhook). */
+export function isVoiceBridgeEnabled(): boolean {
+  return envFlag("NEXT_PUBLIC_ENABLE_VOICE_BRIDGE");
 }
 
 /** Surge View — related-call clustering (API ENABLE_SURGE). */

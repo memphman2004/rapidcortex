@@ -28,7 +28,7 @@ function DashboardCard({
 }
 
 export default async function RcInfrastructurePage() {
-  const user = await requireRole(["rcitadmin", "rcsuperadmin"]);
+  const user = await requireRole(["rcadmin", "rcitadmin", "rcsuperadmin"]);
   const isItHome = user.role === "rcitadmin";
 
   return (

@@ -246,6 +246,20 @@ export class IncidentService {
         resourceType: "incident",
         resourceId: incidentId,
       });
+    } else if (body.action === "set_caller_language") {
+      const lang = body.callerLanguage.trim().toLowerCase();
+      await incidentRepo.patchDispatchFields(incidentId, { callerLanguage: lang });
+      await auditRepo.create({
+        eventId: makeId("audit"),
+        agencyId: incident.agencyId,
+        incidentId,
+        actorId: user.userId,
+        type: AUDIT_EVENT_TYPES.VOICE_LANGUAGE_DETECTED,
+        details: { callerLanguage: lang, source: "dispatcher_manual" },
+        createdAt: now,
+        resourceType: "incident",
+        resourceId: incidentId,
+      });
     } else if (body.action === "cad_workspace_save") {
       const maskDispatchCb = (raw: string): string | null => {
         const d = raw.replace(/\D/g, "");

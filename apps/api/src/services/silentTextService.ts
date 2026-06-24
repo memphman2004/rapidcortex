@@ -510,13 +510,19 @@ export class SilentTextService {
   }
 
   private async appendTranscriptMirror(item: SilentTextDdbItem, message: SilentTextMessage, _actorHint: string) {
+    const prefix = `[Silent text · ${item.sessionId}] `;
+    const isCaller = message.from === "caller";
+    const english = isCaller ? (message.translatedForDispatcher?.trim() || message.body) : message.body;
+    const localized = isCaller ? message.body : message.translatedForCaller?.trim();
     const seg: TranscriptSegment = {
       segmentId: makeId("seg"),
       incidentId: item.incidentId,
       agencyId: item.agencyId,
-      speaker: message.from === "caller" ? "caller" : "dispatcher",
-      text: `[Silent text · ${item.sessionId}] ${message.body}`,
+      speaker: isCaller ? "caller" : "dispatcher",
+      text: `${prefix}${english}`,
       timestamp: message.at,
+      originalLanguage: item.callerLocale,
+      originalTranscript: localized && localized !== english ? localized : undefined,
     };
     try {
       await transcriptRepo.add(seg);

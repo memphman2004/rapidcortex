@@ -338,6 +338,12 @@ export class MultilingualCallService {
         resourceType: "session",
         resourceId: body.sessionId,
       });
+      if (lang !== "en" && lang !== "und" && !langLow) {
+        const inc = await incidents.get(incidentId);
+        if (inc && !inc.callerLanguage?.trim()) {
+          await incidents.patchDispatchFields(incidentId, { callerLanguage: lang });
+        }
+      }
     }
 
     const sttModels = [cfg.sttModelPrimary, cfg.sttModelSecondary, cfg.sttModelTertiary];

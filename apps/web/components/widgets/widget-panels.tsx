@@ -9,6 +9,7 @@ import {
 import type { CadWritebackAuditRecord, PlatformNotice } from "rapid-cortex-shared";
 import {
   fetchAgencies,
+  fetchAgencyAdminAccessOverridesList,
   fetchAgencyAdminWebhooks,
   fetchAgencyBillingInvoices,
   fetchAuditEvents,
@@ -449,13 +450,19 @@ export function SystemAlertsWidget({ agencyId }: WidgetProps) {
 export function ActiveGrantsWidget({ agencyId }: WidgetProps) {
   const q = useQuery({
     queryKey: ["active-grants", agencyId],
-    queryFn: () =>
-      backendGet<{ grants?: Array<{ id: string; agencyId: string; label: string }> }>(
-        `/api/platform/grants?status=active`,
-      ),
+    queryFn: async () => {
+      const res = await fetchAgencyAdminAccessOverridesList({ status: "active" }).catch(() => ({
+        items: [],
+      }));
+      return res.items.map((item) => ({
+        id: item.overrideId,
+        agencyId: item.agencyId,
+        label: item.grantedRoleOrPermission,
+      }));
+    },
   });
   if (q.isLoading) return <WidgetSkeleton />;
-  const grants = q.data?.grants ?? [];
+  const grants = q.data ?? [];
   return (
     <WidgetShell title="Active Grants" icon={Receipt} count={grants.length}>
       {grants.length === 0 ? (

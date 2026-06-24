@@ -1,6 +1,6 @@
 import Link from "next/link";
 
-import { marketingContactPath } from "@/lib/marketing-links";
+import { marketingContactPath, marketingDevelopersDocsPath } from "@/lib/marketing-links";
 
 export const metadata = {
   title: "API documentation",
@@ -71,7 +71,7 @@ export default function ApiDocumentationLandingPage() {
           </p>
           <div className="mt-6 flex flex-wrap gap-3">
             <Link
-              href="/developers/docs"
+              href={marketingDevelopersDocsPath()}
               className="inline-flex rounded-md bg-sky-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-sky-500"
             >
               Developer guides

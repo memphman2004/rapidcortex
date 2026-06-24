@@ -102,6 +102,14 @@ function isNextFlightOrPrefetchRequest(request: NextRequest): boolean {
   return false;
 }
 
+/** HTML redirects during RSC/prefetch corrupt the App Router and surface global-error UI. */
+function nextOrRedirect(request: NextRequest, destination: URL | string): NextResponse {
+  if (isNextFlightOrPrefetchRequest(request)) {
+    return NextResponse.next();
+  }
+  return NextResponse.redirect(destination);
+}
+
 /** After a successful password change, JWT `custom:pwdChangedAt` may lag; short-lived bypass cookie (see apply-password cookie TTL). */
 function handleOperationalPasswordRenewalGate(
   request: NextRequest,
@@ -112,10 +120,7 @@ function handleOperationalPasswordRenewalGate(
   if (passwordRotationNavBypassActive(request)) {
     return NextResponse.next();
   }
-  if (isNextFlightOrPrefetchRequest(request)) {
-    return NextResponse.next();
-  }
-  return NextResponse.redirect(changePasswordUrl);
+  return nextOrRedirect(request, changePasswordUrl);
 }
 
 /**
@@ -153,7 +158,7 @@ async function maybeBlockNetworkAccess(
     const dest = resolveRedirectUrl("/access-restricted", request);
     dest.searchParams.set("reason", json.data.blockedBy ?? "ip_allowlist");
     if (json.data.retryAfter) dest.searchParams.set("retryAfter", json.data.retryAfter);
-    return NextResponse.redirect(dest);
+    return nextOrRedirect(request, dest);
   } catch {
     return null;
   }
@@ -245,13 +250,13 @@ function isProductRole(role: string | undefined): boolean {
 }
 
 function redirectPublic(request: NextRequest, path: string): NextResponse {
-  return NextResponse.redirect(publicAbsoluteUrl(path, request));
+  return nextOrRedirect(request, publicAbsoluteUrl(path, request));
 }
 
 function redirectPublicPreserveQuery(request: NextRequest, path: string, search = ""): NextResponse {
   const dest = publicAbsoluteUrl(path, request);
   if (search) dest.search = search;
-  return NextResponse.redirect(dest);
+  return nextOrRedirect(request, dest);
 }
 
 function redirectToRoleAwareHome(request: NextRequest, user: UserContext, jurisdictionSlug: string) {
@@ -388,7 +393,7 @@ async function guardDashboardHub(request: NextRequest): Promise<NextResponse> {
   const redirectToLogin = () => {
     const login = resolveRedirectUrl(loginPath, request);
     login.searchParams.set("from", `${pathname}${request.nextUrl.search}`);
-    return NextResponse.redirect(login);
+    return nextOrRedirect(request, login);
   };
 
   const token = request.cookies.get(COOKIE_ID_TOKEN)?.value;
@@ -401,7 +406,7 @@ async function guardDashboardHub(request: NextRequest): Promise<NextResponse> {
   if (!user && refresh) {
     const bounce = resolveRedirectUrl("/api/auth/refresh-cookies", request);
     bounce.searchParams.set("redirect_to", `${pathname}${request.nextUrl.search}`);
-    return NextResponse.redirect(bounce);
+    return nextOrRedirect(request, bounce);
   }
   if (!user) {
     return redirectToLogin();
@@ -426,7 +431,7 @@ async function guardAuthenticatedDocs(request: NextRequest): Promise<NextRespons
   const redirectToLogin = () => {
     const login = resolveRedirectUrl(loginPath, request);
     login.searchParams.set("from", `${pathname}${request.nextUrl.search}`);
-    return NextResponse.redirect(login);
+    return nextOrRedirect(request, login);
   };
 
   const token = request.cookies.get(COOKIE_ID_TOKEN)?.value;
@@ -442,7 +447,7 @@ async function guardAuthenticatedDocs(request: NextRequest): Promise<NextRespons
       "redirect_to",
       `${pathname}${request.nextUrl.search}`,
     );
-    return NextResponse.redirect(bounce);
+    return nextOrRedirect(request, bounce);
   }
 
   if (!user) {
@@ -458,11 +463,11 @@ async function guardAuthenticatedDocs(request: NextRequest): Promise<NextRespons
     if (hasRcLitePortalAccess(user)) {
       const portal = resolveRedirectUrl("/rc-lite/portal", request);
       portal.searchParams.set("from", `${pathname}${request.nextUrl.search}`);
-      return NextResponse.redirect(portal);
+      return nextOrRedirect(request, portal);
     }
     const denied = resolveRedirectUrl(`/${defaultJurisdictionSlug()}/no-access`, request);
     denied.searchParams.set("reason", "dashboard_subscription_required");
-    return NextResponse.redirect(denied);
+    return nextOrRedirect(request, denied);
   }
 
   const docsNetwork = await maybeBlockNetworkAccess(request, user);
@@ -480,7 +485,7 @@ async function guardStandaloneChangePasswordPage(request: NextRequest): Promise<
   const redirectToLogin = () => {
     const login = resolveRedirectUrl(loginPath, request);
     login.searchParams.set("from", `${pathname}${request.nextUrl.search}`);
-    return NextResponse.redirect(login);
+    return nextOrRedirect(request, login);
   };
   const token = request.cookies.get(COOKIE_ID_TOKEN)?.value;
   const refresh = request.cookies.get(COOKIE_REFRESH_TOKEN)?.value;
@@ -491,7 +496,7 @@ async function guardStandaloneChangePasswordPage(request: NextRequest): Promise<
   if (!user && refresh) {
     const bounce = resolveRedirectUrl("/api/auth/refresh-cookies", request);
     bounce.searchParams.set("redirect_to", `${pathname}${request.nextUrl.search}`);
-    return NextResponse.redirect(bounce);
+    return nextOrRedirect(request, bounce);
   }
   if (!user) {
     return redirectToLogin();
@@ -514,11 +519,11 @@ async function guardRoleDashboard(
   const redirectToLogin = () => {
     const login = resolveRedirectUrl(loginPath, request);
     login.searchParams.set("from", `${pathname}${request.nextUrl.search}`);
-    return NextResponse.redirect(login);
+    return nextOrRedirect(request, login);
   };
 
   if (subpath === "/" || subpath === "") {
-    return NextResponse.redirect(resolveRedirectUrl(`/${prefix}/dashboard`, request));
+    return nextOrRedirect(request, resolveRedirectUrl(`/${prefix}/dashboard`, request));
   }
 
   /** All role-dashboard routes under `/{prefix}/…` require a session (not only `/dashboard`). */
@@ -537,7 +542,7 @@ async function guardRoleDashboard(
       "redirect_to",
       `${pathname}${request.nextUrl.search}`,
     );
-    return NextResponse.redirect(bounce);
+    return nextOrRedirect(request, bounce);
   }
   if (!user) {
     return redirectToLogin();
@@ -566,11 +571,11 @@ async function guardRoleDashboard(
     if (hasRcLitePortalAccess(user)) {
       const portal = resolveRedirectUrl("/rc-lite/portal", request);
       portal.searchParams.set("from", `${pathname}${request.nextUrl.search}`);
-      return NextResponse.redirect(portal);
+      return nextOrRedirect(request, portal);
     }
     const denied = resolveRedirectUrl(`/${defaultJurisdictionSlug()}/no-access`, request);
     denied.searchParams.set("reason", "dashboard_subscription_required");
-    return NextResponse.redirect(denied);
+    return nextOrRedirect(request, denied);
   }
 
   if (!userMayAccessDashboardPrefix(user, prefix)) {
@@ -594,18 +599,18 @@ async function guardRcLitePortal(request: NextRequest): Promise<NextResponse> {
   const token = request.cookies.get(COOKIE_ID_TOKEN)?.value;
   const refresh = request.cookies.get(COOKIE_REFRESH_TOKEN)?.value;
   if (!token && !refresh) {
-    return NextResponse.redirect(loginUrl);
+    return nextOrRedirect(request, loginUrl);
   }
 
   const user = token ? await verifyCognitoIdToken(token) : null;
   if (!user && refresh) {
     const bounce = resolveRedirectUrl("/api/auth/refresh-cookies", request);
     bounce.searchParams.set("redirect_to", `${pathname}${request.nextUrl.search}`);
-    return NextResponse.redirect(bounce);
+    return nextOrRedirect(request, bounce);
   }
 
   if (!user) {
-    return NextResponse.redirect(loginUrl);
+    return nextOrRedirect(request, loginUrl);
   }
 
   const portalRenewal = handleOperationalPasswordRenewalGate(
@@ -617,11 +622,11 @@ async function guardRcLitePortal(request: NextRequest): Promise<NextResponse> {
 
   if (!hasRcLitePortalAccess(user)) {
     if (hasRapidCortexDashboardAccess(user)) {
-      return NextResponse.redirect(resolveRedirectUrl("/agency-admin/api-access", request));
+      return nextOrRedirect(request, resolveRedirectUrl("/agency-admin/api-access", request));
     }
     const marketing = resolveRedirectUrl("/rc-lite", request);
     marketing.searchParams.set("reason", "api_subscription_required");
-    return NextResponse.redirect(marketing);
+    return nextOrRedirect(request, marketing);
   }
 
   const rcLiteNetwork = await maybeBlockNetworkAccess(request, user);
@@ -641,18 +646,18 @@ async function guardCampusDashboard(request: NextRequest): Promise<NextResponse>
   const token = request.cookies.get(COOKIE_ID_TOKEN)?.value;
   const refresh = request.cookies.get(COOKIE_REFRESH_TOKEN)?.value;
   if (!token && !refresh) {
-    return NextResponse.redirect(loginUrl);
+    return nextOrRedirect(request, loginUrl);
   }
 
   const user = token ? await verifyCognitoIdToken(token) : null;
   if (!user && refresh) {
     const bounce = resolveRedirectUrl("/api/auth/refresh-cookies", request);
     bounce.searchParams.set("redirect_to", `${pathname}${request.nextUrl.search}`);
-    return NextResponse.redirect(bounce);
+    return nextOrRedirect(request, bounce);
   }
 
   if (!user) {
-    return NextResponse.redirect(loginUrl);
+    return nextOrRedirect(request, loginUrl);
   }
 
   const campusRenewal = handleOperationalPasswordRenewalGate(
@@ -690,18 +695,18 @@ async function guardVenueDashboard(request: NextRequest): Promise<NextResponse> 
   const token = request.cookies.get(COOKIE_ID_TOKEN)?.value;
   const refresh = request.cookies.get(COOKIE_REFRESH_TOKEN)?.value;
   if (!token && !refresh) {
-    return NextResponse.redirect(loginUrl);
+    return nextOrRedirect(request, loginUrl);
   }
 
   const user = token ? await verifyCognitoIdToken(token) : null;
   if (!user && refresh) {
     const bounce = resolveRedirectUrl("/api/auth/refresh-cookies", request);
     bounce.searchParams.set("redirect_to", `${pathname}${request.nextUrl.search}`);
-    return NextResponse.redirect(bounce);
+    return nextOrRedirect(request, bounce);
   }
 
   if (!user) {
-    return NextResponse.redirect(loginUrl);
+    return nextOrRedirect(request, loginUrl);
   }
 
   const venueRenewal = handleOperationalPasswordRenewalGate(
@@ -739,18 +744,18 @@ async function guardHospitalDashboard(request: NextRequest): Promise<NextRespons
   const token = request.cookies.get(COOKIE_ID_TOKEN)?.value;
   const refresh = request.cookies.get(COOKIE_REFRESH_TOKEN)?.value;
   if (!token && !refresh) {
-    return NextResponse.redirect(loginUrl);
+    return nextOrRedirect(request, loginUrl);
   }
 
   const user = token ? await verifyCognitoIdToken(token) : null;
   if (!user && refresh) {
     const bounce = resolveRedirectUrl("/api/auth/refresh-cookies", request);
     bounce.searchParams.set("redirect_to", `${pathname}${request.nextUrl.search}`);
-    return NextResponse.redirect(bounce);
+    return nextOrRedirect(request, bounce);
   }
 
   if (!user) {
-    return NextResponse.redirect(loginUrl);
+    return nextOrRedirect(request, loginUrl);
   }
 
   const hospitalRenewal = handleOperationalPasswordRenewalGate(
@@ -788,18 +793,18 @@ async function guardTransitDashboard(request: NextRequest): Promise<NextResponse
   const token = request.cookies.get(COOKIE_ID_TOKEN)?.value;
   const refresh = request.cookies.get(COOKIE_REFRESH_TOKEN)?.value;
   if (!token && !refresh) {
-    return NextResponse.redirect(loginUrl);
+    return nextOrRedirect(request, loginUrl);
   }
 
   const user = token ? await verifyCognitoIdToken(token) : null;
   if (!user && refresh) {
     const bounce = resolveRedirectUrl("/api/auth/refresh-cookies", request);
     bounce.searchParams.set("redirect_to", `${pathname}${request.nextUrl.search}`);
-    return NextResponse.redirect(bounce);
+    return nextOrRedirect(request, bounce);
   }
 
   if (!user) {
-    return NextResponse.redirect(loginUrl);
+    return nextOrRedirect(request, loginUrl);
   }
 
   const transitRenewal = handleOperationalPasswordRenewalGate(
@@ -861,7 +866,7 @@ export async function middleware(request: NextRequest) {
         if (!user && refresh) {
           const bounce = resolveRedirectUrl("/api/auth/refresh-cookies", request);
           bounce.searchParams.set("redirect_to", `${pathname}${request.nextUrl.search}`);
-          return NextResponse.redirect(bounce);
+          return nextOrRedirect(request, bounce);
         }
         if (user) {
           const loginRenewal = handleOperationalPasswordRenewalGate(
@@ -926,6 +931,9 @@ export async function middleware(request: NextRequest) {
   if (pathname === "/docs" || pathname.startsWith("/docs/")) {
     return guardAuthenticatedDocs(request);
   }
+  if (pathname === "/developers/docs" || pathname.startsWith("/developers/docs/")) {
+    return guardAuthenticatedDocs(request);
+  }
 
   const parsed = parsePath(pathname);
 
@@ -967,7 +975,7 @@ export async function middleware(request: NextRequest) {
   const redirectToLogin = () => {
     const login = resolveRedirectUrl(loginPath, request);
     login.searchParams.set("from", `${pathname}${request.nextUrl.search}`);
-    return NextResponse.redirect(login);
+    return nextOrRedirect(request, login);
   };
 
   if (!token && !refresh) {
@@ -981,7 +989,7 @@ export async function middleware(request: NextRequest) {
       "redirect_to",
       `${pathname}${request.nextUrl.search}`,
     );
-    return NextResponse.redirect(bounce);
+    return nextOrRedirect(request, bounce);
   }
 
   if (!user) {
@@ -1030,11 +1038,11 @@ export async function middleware(request: NextRequest) {
     if (hasRcLitePortalAccess(user)) {
       const portal = resolveRedirectUrl("/rc-lite/portal", request);
       portal.searchParams.set("from", `${pathname}${request.nextUrl.search}`);
-      return NextResponse.redirect(portal);
+      return nextOrRedirect(request, portal);
     }
     const denied = resolveRedirectUrl(`/${defaultJurisdictionSlug()}/no-access`, request);
     denied.searchParams.set("reason", "dashboard_subscription_required");
-    return NextResponse.redirect(denied);
+    return nextOrRedirect(request, denied);
   }
 
   if (subpath.startsWith("/admin") && !isAdminRole(user.role)) {
@@ -1053,14 +1061,14 @@ export async function middleware(request: NextRequest) {
     if (!isRcsuperadmin(user) && user.role !== "agencyit" && user.role !== "rcitadmin") {
       const denied = resolveRedirectUrl(`/${jurisdiction}/dashboard`, request);
       denied.searchParams.set("toast", "access_denied");
-      return NextResponse.redirect(denied);
+      return nextOrRedirect(request, denied);
     }
   }
   if (isRcInternalOperator(user.role)) {
     if (subpath.startsWith("/admin/platform")) {
       const target = mapJurisdictionPlatformPathToRcAdmin(`/${jurisdiction}${subpath}`);
       if (target) {
-        return NextResponse.redirect(resolveRedirectUrl(target, request));
+        return nextOrRedirect(request, resolveRedirectUrl(target, request));
       }
     }
     const dispatchWorkstationPrefixes = [

@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { MarketingArticleShell } from "@/components/marketing/marketing-article-shell";
+import { marketingDevelopersDocsPath } from "@/lib/marketing-links";
 
 export const metadata = {
   title: "Developers — RC Lite API",
@@ -8,10 +9,10 @@ export const metadata = {
 };
 
 const LINKS = [
-  { href: "/developers/docs", label: "Documentation hub" },
+  { href: marketingDevelopersDocsPath(), label: "Documentation hub" },
   { href: "/developers/playground", label: "Interactive API playground" },
-  { href: "/developers/docs/errors", label: "Error catalogue" },
-  { href: "/developers/docs/authentication", label: "Authentication & API keys" },
+  { href: marketingDevelopersDocsPath("errors"), label: "Error catalogue" },
+  { href: marketingDevelopersDocsPath("authentication"), label: "Authentication & API keys" },
   { href: "/developers/sandbox", label: "Sandbox vs production" },
   { href: "/developers/simulation", label: "Simulation payloads" },
   { href: "/developers/webhooks-test", label: "Webhook signature lab" },

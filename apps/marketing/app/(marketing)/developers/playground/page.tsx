@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { MarketingArticleShell } from "@/components/marketing/marketing-article-shell";
 import { RcLiteApiPlayground } from "@/components/developers/rc-lite-playground";
+import { marketingDevelopersDocsPath } from "@/lib/marketing-links";
 
 export const metadata = {
   title: "RC Lite — Interactive API playground",
@@ -26,7 +27,7 @@ export default function DevelopersPlaygroundPage() {
         <Link className="text-sky-300 hover:text-sky-200" href="/samples/rc-lite/incident-analyze.sample.json">
           Incident sample payload
         </Link>
-        <Link className="text-sky-300 hover:text-sky-200" href="/developers/docs/errors">
+        <Link className="text-sky-300 hover:text-sky-200" href={marketingDevelopersDocsPath("errors")}>
           Error catalogue
         </Link>
       </div>

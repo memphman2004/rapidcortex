@@ -68,6 +68,7 @@ export CAD_POLLER_MOCK=1
 # `silent_text.sms.failed`. Verify with:
 #   aws secretsmanager get-secret-value --secret-id rapid-cortex/incident-media/twilio --region us-east-1
 export ENABLE_SILENT_TEXT=true
+export VOICE_BRIDGE_ENABLED=true
 export ENABLE_PINPOINT=true
 export APP_PUBLIC_BASE_URL="https://www.rapidcortex.us"
 

@@ -31,6 +31,9 @@ import type {
   SetDefaultPaymentMethodInput,
   SubscriptionPlanDefinition,
   TranscriptSegment,
+  TranslateLanguageSessionBody,
+  VoiceBridgeOutboundBody,
+  VoiceBridgeOutboundResponse,
   TakeoverCallBody,
   TransferCallBody,
   TransferCallResponse,
@@ -463,7 +466,14 @@ export async function fetchApiHealth(): Promise<ApiHealthPayload> {
     credentials: "include",
   });
   const text = await res.text();
-  const body = text ? (JSON.parse(text) as unknown) : null;
+  let body: unknown = null;
+  if (text) {
+    try {
+      body = JSON.parse(text) as unknown;
+    } catch {
+      throw new Error(`Health probe returned non-JSON (HTTP ${res.status})`);
+    }
+  }
   if (!res.ok) {
     throw new Error(formatJsonErrorMessage(body, res.status));
   }
@@ -981,6 +991,32 @@ export async function postSilentTextHighRisk(
     `/api/incidents/${encodeURIComponent(incidentId)}/silent-text/sessions/${encodeURIComponent(sessionId)}/high-risk`,
     { method: "POST", body: JSON.stringify({}) },
   );
+}
+
+export async function postLanguageSessionTranslate(
+  incidentId: string,
+  body: TranslateLanguageSessionBody,
+): Promise<{
+  translatedText: string;
+  provider: string;
+  detectedLanguage: string;
+  sourceLanguage: string;
+  targetLanguage: string;
+}> {
+  return request(`/api/incidents/${encodeURIComponent(incidentId)}/language-session/translate`, {
+    method: "POST",
+    body: JSON.stringify(body),
+  });
+}
+
+export async function postVoiceBridgeOutbound(
+  incidentId: string,
+  body: VoiceBridgeOutboundBody,
+): Promise<VoiceBridgeOutboundResponse> {
+  return request(`/api/incidents/${encodeURIComponent(incidentId)}/voice-bridge/outbound`, {
+    method: "POST",
+    body: JSON.stringify(body),
+  });
 }
 
 export type PinpointLinkBrief = {

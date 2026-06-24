@@ -123,6 +123,7 @@ export function RoleNavSections({
                 <li key={item.id}>
                   <Link
                     href={item.href}
+                    prefetch={false}
                     aria-current={active ? "page" : undefined}
                     className={linkClass}
                     style={

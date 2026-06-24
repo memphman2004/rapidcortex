@@ -115,6 +115,7 @@ export class IncidentRepository {
     fields: {
       escalationFlag?: boolean;
       dispatcherReviewAcknowledgedAt?: string | null;
+      callerLanguage?: string | null;
     },
   ): Promise<void> {
     const sets = ["updatedAt = :updatedAt"];
@@ -128,6 +129,10 @@ export class IncidentRepository {
     if (fields.dispatcherReviewAcknowledgedAt !== undefined) {
       sets.push("dispatcherReviewAcknowledgedAt = :dra");
       values[":dra"] = fields.dispatcherReviewAcknowledgedAt;
+    }
+    if (fields.callerLanguage !== undefined) {
+      sets.push("callerLanguage = :callerLanguage");
+      values[":callerLanguage"] = fields.callerLanguage;
     }
     await ddb.send(
       new UpdateCommand({

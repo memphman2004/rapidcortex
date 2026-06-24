@@ -9,7 +9,9 @@ import { MarketingBookAppointmentLink } from "@/components/marketing/marketing-b
 import {
   marketingDownloadsPath,
   marketingDevelopersRestApiDocsPath,
+  marketingDevelopersDocsPath,
   marketingDevelopersApiPath,
+  marketingSmsConsentPath,
   marketingOperationsStatusPath,
   marketingPressPath,
   marketingRcLitePath,
@@ -65,6 +67,8 @@ export function MarketingFooter() {
   const downloadsHref = marketingDownloadsPath();
   const apiDocsHref = marketingDevelopersRestApiDocsPath();
   const devHubHref = marketingDevelopersApiPath();
+  const developerGuidesHref = marketingDevelopersDocsPath();
+  const smsConsentHref = marketingSmsConsentPath();
   const statusHref = marketingOperationsStatusPath();
   const pressHref = marketingPressPath();
 
@@ -186,7 +190,7 @@ export function MarketingFooter() {
                   </Link>
                 </li>
                 <li className="hidden md:list-item">
-                  <Link href={`${devHubHref}/docs`} className={FOOTER_FOCUS_LINK_CLASS}>
+                  <Link href={developerGuidesHref} className={FOOTER_FOCUS_LINK_CLASS}>
                     Developer Guides
                   </Link>
                 </li>
@@ -217,7 +221,7 @@ export function MarketingFooter() {
                   </Link>
                 </li>
                 <li>
-                  <Link href="/sms-consent" className={FOOTER_FOCUS_LINK_CLASS}>
+                  <Link href={smsConsentHref} className={FOOTER_FOCUS_LINK_CLASS}>
                     SMS consent
                   </Link>
                 </li>

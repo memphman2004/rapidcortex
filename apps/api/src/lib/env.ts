@@ -122,6 +122,9 @@ export const env = {
   assetsBucket: required("ASSETS_BUCKET"),
   /** Optional — required for multilingual voice session + audio chunk routes. */
   languageSessionsTable: process.env.LANGUAGE_SESSIONS_TABLE?.trim() ?? "",
+  /** Dispatcher → caller voice playback (telephony webhook or mock). */
+  voiceBridgeEnabled: featureEnabled("VOICE_BRIDGE_ENABLED"),
+  voiceBridgeTelephonyWebhookUrl: process.env.VOICE_BRIDGE_TELEPHONY_WEBHOOK_URL?.trim() ?? "",
   /**
    * Optional agency SOP: target lifecycle for transcript data in days (set via stack parameter
    * `TranscriptRetentionPolicyDays`). No automatic purge; used for admin/compliance surfacing and ops.

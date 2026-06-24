@@ -16,6 +16,7 @@ const MARKETING_ROOT_SEGMENTS = new Set<string>([
   "press",
   "legal",
   "developers",
+  "sms-consent",
   "integrations",
   "911-call-transcription",
   "911-dispatch-software",
@@ -36,7 +37,6 @@ const APP_OPERATIONAL_ROOT_SEGMENTS = new Set<string>([
   "unauthorized",
   "access-restricted",
   "hospital-portal",
-  "sms-consent",
   "manifest.webmanifest",
   "_next",
   "docs",
@@ -112,6 +112,11 @@ export function isMarketingPublicPath(pathname: string): boolean {
 
   // Public intake routes (also in RESERVED_PUBLIC_ROUTE_FIRST_SEGMENTS for jurisdiction slug guards).
   if (first === "report" || first === "locate" || first === "r") return false;
+
+  // RC Lite developer guides — app host only, session required (see middleware guardAuthenticatedDocs).
+  if (first === "developers" && (segments[1] === "docs" || pathname.startsWith("/developers/docs/"))) {
+    return false;
+  }
 
   if (MARKETING_ROOT_SEGMENTS.has(first)) return true;
 

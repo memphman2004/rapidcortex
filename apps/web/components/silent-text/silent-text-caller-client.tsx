@@ -269,7 +269,10 @@ export function SilentTextCallerClient({ token }: { token: string }) {
                 stealth ? "border-zinc-300 bg-white" : "border-slate-800 bg-slate-900/50"
               }`}
             >
-              {(session?.messages ?? []).map((m) => (
+              {(session?.messages ?? []).map((m) => {
+                const display =
+                  m.from === "dispatcher" ? (m.translatedForCaller ?? m.body) : m.body;
+                return (
                 <div
                   key={m.messageId}
                   className={`rounded-lg px-3 py-2 text-sm ${
@@ -283,9 +286,13 @@ export function SilentTextCallerClient({ token }: { token: string }) {
                   }`}
                 >
                   <span className="text-[10px] uppercase opacity-60">{m.from}</span>
-                  <p className="mt-1 whitespace-pre-wrap leading-snug">{m.body}</p>
+                  <p className="mt-1 whitespace-pre-wrap leading-snug">{display}</p>
+                  {m.from === "caller" && m.translatedForDispatcher ? (
+                    <p className="mt-1 text-[11px] opacity-70">English: {m.translatedForDispatcher}</p>
+                  ) : null}
                 </div>
-              ))}
+                );
+              })}
             </div>
 
             <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-3">

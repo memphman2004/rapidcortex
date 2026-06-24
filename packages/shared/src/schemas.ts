@@ -81,6 +81,10 @@ export const patchIncidentDispatcherSchema = z.discriminatedUnion("action", [
     addressLine: z.string().min(1).max(500),
   }),
   z.object({
+    action: z.literal("set_caller_language"),
+    callerLanguage: z.string().min(2).max(16),
+  }),
+  z.object({
     action: z.literal("cad_workspace_save"),
     summary: z.string().max(500).optional(),
     cadNatureCode: z.string().max(200).optional(),

@@ -18,6 +18,7 @@ const STACK2_PATH_TESTS: RegExp[] = [
   /^\/api\/admin\/cad-writeback-approvals/,
   /^\/api\/cad\/writeback\//,
   /^\/api\/incidents\/[^/]+\/language-session/,
+  /^\/api\/incidents\/[^/]+\/voice-bridge/,
   /^\/api\/incidents\/[^/]+\/caller-card/,
   /^\/api\/incidents\/[^/]+\/premise-notes/,
   /^\/api\/incidents\/[^/]+\/pinpoint\//,

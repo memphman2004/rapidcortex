@@ -36,6 +36,7 @@ export const AUDIT_EVENT_TYPES = {
   VOICE_AUDIO_CHUNK_PROCESSED: "voice.audio_chunk.processed",
   VOICE_LANGUAGE_DETECTED: "voice.language.detected",
   VOICE_TRANSLATION_APPLIED: "voice.translation.applied",
+  VOICE_BRIDGE_OUTBOUND: "voice.bridge.outbound",
   VOICE_PIPELINE_FAILED: "voice.pipeline.failed",
   ESCALATION_RAISED: "escalation.raised",
   DISPATCHER_REVIEW_ACK: "dispatcher.review_acknowledged",

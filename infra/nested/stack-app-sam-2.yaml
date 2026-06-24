@@ -1443,6 +1443,53 @@ Resources:
             Path: /api/incidents/{id}/language-session/translate
             Method: POST
 
+  PostVoiceBridgeOutboundFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/handlers/postVoiceBridgeOutbound.handler
+      Environment:
+        Variables:
+          SUPPORTED_CALL_LANGUAGES: "en,es,zh,tl,vi,ar,fr,ko,ru,pt"
+          PRIMARY_TRANSLATION_PROVIDER: !FindInMap [ApiLambdaDefaults, !Ref DeploymentStage, Tr1]
+          SECONDARY_TRANSLATION_PROVIDER: !FindInMap [ApiLambdaDefaults, !Ref DeploymentStage, Tr2]
+          TERTIARY_TRANSLATION_PROVIDER: !FindInMap [ApiLambdaDefaults, !Ref DeploymentStage, Tr3]
+          LANGUAGE_PROVIDER: !Ref LanguageProvider
+          GOOGLE_CLOUD_PROJECT_ID: !Ref GoogleCloudProjectId
+          GOOGLE_TRANSLATE_LOCATION: "global"
+          GOOGLE_TTS_LOCATION: "global"
+          SILENT_TEXT_TTS_ENABLED: "false"
+          VOICE_BRIDGE_ENABLED: "true"
+          VOICE_BRIDGE_TELEPHONY_WEBHOOK_URL: ""
+          AZURE_SPEECH_KEY_SECRET_ARN: !If
+            - UseManagedMultilingualSecrets
+            - !Ref NestedMultilingualAzureApiKeysSecretArn
+            - !Ref AzureSpeechKeySecretArn
+          AZURE_TRANSLATION_KEY_SECRET_ARN: !If
+            - UseManagedMultilingualSecrets
+            - !Ref NestedMultilingualAzureApiKeysSecretArn
+            - !Ref AzureTranslationKeySecretArn
+          GOOGLE_APPLICATION_CREDENTIALS_SECRET_ARN: !If
+            - UseManagedMultilingualSecrets
+            - !Ref NestedMultilingualGoogleServiceAccountSecretArn
+            - !Ref GoogleApplicationCredentialsSecretArn
+      Policies:
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardA
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardB
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardC
+        - !Ref AppManagedPolicyS3ApplicationBucketsCrud
+        - !Ref AppManagedPolicySecretsMultilingualScopedRead
+      Events:
+        Route:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/incidents/{id}/voice-bridge/outbound
+            Method: POST
+
   GetLanguageSessionStatusFunction:
     Type: AWS::Serverless::Function
     Metadata:

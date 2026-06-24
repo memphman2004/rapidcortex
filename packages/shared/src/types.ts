@@ -83,6 +83,8 @@ export interface Incident {
   /** Optional geocode for map pin (WGS84). */
   callerLocationLat?: number | null;
   callerLocationLng?: number | null;
+  /** BCP-47 primary tag for caller language (e.g. `es`, `zh`) — drives outbound translation. */
+  callerLanguage?: string | null;
   /** Provenance for coordinates when not from the incident’s own form. */
   callerLocationMapLabel?: string | null;
   category: IncidentCategory;

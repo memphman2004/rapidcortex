@@ -23,6 +23,7 @@ import {
 } from "@/lib/dashboards/widget-layout-config";
 import { WIDGET_REGISTRY } from "@/components/widgets";
 import { isNavFeatureEnabled } from "@/lib/navigation/nav-feature-gates";
+import { WidgetErrorBoundary } from "@/components/dashboards/widget-error-boundary";
 
 // ─── Widget slot renderer ─────────────────────────────────────────────────────
 
@@ -38,18 +39,29 @@ function WidgetSlotRenderer({
   if (slot.feature && !isNavFeatureEnabled(slot.feature)) return null;
 
   const Component = WIDGET_REGISTRY[slot.id];
+  if (!Component) {
+    return (
+      <div className={`${SPAN_CLASS[slot.span]} ${HEIGHT_CLASS[slot.height]}`}>
+        <div className="flex h-full items-center justify-center rounded-xl border border-slate-800 bg-slate-900 p-4 text-xs text-slate-500">
+          Widget unavailable: {slot.id}
+        </div>
+      </div>
+    );
+  }
   const spanClass   = SPAN_CLASS[slot.span];
   const heightClass = HEIGHT_CLASS[slot.height];
 
   return (
     <div className={`${spanClass} ${heightClass}`}>
-      <Suspense fallback={
-        <div className={`h-full rounded-xl border border-slate-800 bg-slate-900 ${heightClass}`}>
-          <div className="h-full animate-pulse rounded-xl bg-slate-800/50" />
-        </div>
-      }>
-        <Component agencyId={agencyId} accent={accent} />
-      </Suspense>
+      <WidgetErrorBoundary widgetId={slot.id}>
+        <Suspense fallback={
+          <div className={`h-full rounded-xl border border-slate-800 bg-slate-900 ${heightClass}`}>
+            <div className="h-full animate-pulse rounded-xl bg-slate-800/50" />
+          </div>
+        }>
+          <Component agencyId={agencyId} accent={accent} />
+        </Suspense>
+      </WidgetErrorBoundary>
     </div>
   );
 }

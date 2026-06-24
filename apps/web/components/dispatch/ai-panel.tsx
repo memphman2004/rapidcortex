@@ -166,7 +166,7 @@ export function AiRecommendationPanel({
         </div>
         {silentTextEnabled ? (
           <div className="mt-4 border-t border-slate-800 pt-3">
-            <SilentTextPanel incidentId={incidentId} />
+            <SilentTextPanel incidentId={incidentId} callerLanguage={incident?.callerLanguage} />
           </div>
         ) : null}
         {pinpointEnabled ? (
