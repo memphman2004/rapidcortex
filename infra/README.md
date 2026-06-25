@@ -44,6 +44,27 @@ The template now supports this with parameters:
 
 Runtime access for Lambdas is defined in the SAM template: **per-function** DynamoDB (and Cognito where needed) plus **`S3CrudPolicy` on `AssetsBucket` for every API Lambda**, matching the required `ASSETS_BUCKET` env var from `apps/api/src/lib/env.ts`. For **humans or CI** running `sam deploy`, use a dedicated IAM user or role with a narrow policy. Edit placeholders in [`infra/iam/sam-deploy-policy.json`](iam/sam-deploy-policy.json) (`REPLACE_ACCOUNT_ID`, `REPLACE_REGION`, `REPLACE_HOSTED_ZONE_ID`), attach it to the deploy principal. For OIDC-based CI (no long-lived keys), add an IAM OIDC identity provider and trust policy for **your** IdP in AWS IAM or your org’s IaC—this repo does not ship forge-specific trust JSON.
 
+**`rapid-cortex-deploy` IAM user** (marketing S3 sync, `deploy-web-no-docker.sh`, etc.): attach [`infra/iam/rapid-cortex-deploy-policy.json`](iam/rapid-cortex-deploy-policy.json) (template with `REPLACE_*`) or the prod-ready [`infra/iam/rapid-cortex-deploy-policy.prod.json`](iam/rapid-cortex-deploy-policy.prod.json) (`158961537080`, `us-east-1`). Closes three deploy gaps: `cloudfront:CreateInvalidation` on marketing distribution **`EWZ286WS69KX1` only**, `codebuild:BatchGetProjects` / `StartBuild` on `rapid-cortex-web-build-*` (see `infra/web-pipeline-codebuild.yaml` and `scripts/deploy-web-no-docker.sh`), and `ecs:DescribeServices` on **`rapid-cortex-v2-web-prod`** / `rapid-cortex-web-*` (see `scripts/deploy-web-no-docker.sh` prod defaults).
+
+**Not applied from CI/agents** — run with an admin principal, then read back:
+
+```bash
+# Prod (policy not yet applied as of 2026-06-25 — verify after you run this)
+AWS_PROFILE=<admin-profile> aws iam put-user-policy \
+  --user-name rapid-cortex-deploy \
+  --policy-name rapid-cortex-deploy-gaps \
+  --policy-document file://infra/iam/rapid-cortex-deploy-policy.prod.json
+
+AWS_PROFILE=<admin-profile> aws iam get-user-policy \
+  --user-name rapid-cortex-deploy \
+  --policy-name rapid-cortex-deploy-gaps \
+  --query PolicyDocument --output json | jq .
+
+AWS_PROFILE=<admin-profile> aws cloudfront create-invalidation \
+  --distribution-id EWZ286WS69KX1 \
+  --paths "/security" "/security/*" "/trust" "/trust/*"
+```
+
 For reproducible artifact buckets (tighter S3 IAM), create a bucket (for example `rapid-cortex-sam-artifacts-prod`) and pass `sam deploy --s3-bucket ...` instead of only `--resolve-s3`.
 
 ## Principles

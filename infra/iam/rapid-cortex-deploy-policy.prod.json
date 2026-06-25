@@ -1,0 +1,45 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "MarketingCloudFrontInvalidation",
+      "Effect": "Allow",
+      "Action": ["cloudfront:CreateInvalidation", "cloudfront:GetInvalidation"],
+      "Resource": "arn:aws:cloudfront::158961537080:distribution/EWZ286WS69KX1"
+    },
+    {
+      "Sid": "WebCodeBuildDeployRead",
+      "Effect": "Allow",
+      "Action": [
+        "codebuild:BatchGetProjects",
+        "codebuild:BatchGetBuilds",
+        "codebuild:StartBuild"
+      ],
+      "Resource": "arn:aws:codebuild:us-east-1:158961537080:project/rapid-cortex-web-build-*"
+    },
+    {
+      "Sid": "WebEcsDeployDescribe",
+      "Effect": "Allow",
+      "Action": [
+        "ecs:DescribeServices",
+        "ecs:DescribeTasks",
+        "ecs:ListTasks"
+      ],
+      "Resource": [
+        "arn:aws:ecs:us-east-1:158961537080:service/rapid-cortex-v2-web-prod/*",
+        "arn:aws:ecs:us-east-1:158961537080:service/rapid-cortex-web-*/*",
+        "arn:aws:ecs:us-east-1:158961537080:task/rapid-cortex-v2-web-prod/*",
+        "arn:aws:ecs:us-east-1:158961537080:task/rapid-cortex-web-*/*"
+      ]
+    },
+    {
+      "Sid": "WebEcsClusterDiscovery",
+      "Effect": "Allow",
+      "Action": ["ecs:DescribeClusters", "ecs:ListServices"],
+      "Resource": [
+        "arn:aws:ecs:us-east-1:158961537080:cluster/rapid-cortex-v2-web-prod",
+        "arn:aws:ecs:us-east-1:158961537080:cluster/rapid-cortex-web-*"
+      ]
+    }
+  ]
+}
