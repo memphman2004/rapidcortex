@@ -7,57 +7,25 @@ import {
   marketingPrivacyPath,
   marketingTrustPath,
 } from "@/lib/marketing-links";
+import {
+  SECURITY_PAGE_DISCLAIMER,
+  SECURITY_PAGE_METADATA,
+  TRUST_PILLARS,
+} from "@/lib/trust-security-content";
 import { absoluteUrl } from "@/lib/seo";
 
-const TRUST_PILLARS = [
-  {
-    title: "Identity & access",
-    body: "Cognito-backed sign-in with MFA for privileged roles, JWT-authorized APIs, and role-based access scoped to agency tenancy — not URL parameters.",
-  },
-  {
-    title: "Tenant isolation",
-    body: "Operational data is partitioned by agency. Cross-tenant reads and writes are denied by default in application and API layers.",
-  },
-  {
-    title: "Encryption",
-    body: "TLS for web and API traffic; encryption at rest on managed data stores, with stronger key management available at deployment.",
-  },
-  {
-    title: "Audit & logging",
-    body: "Meaningful state changes emit audit events. Application logs avoid raw secrets, tokens, and full unredacted transcripts.",
-  },
-  {
-    title: "Media & intake",
-    body: "Caller-submitted media uses private storage with short-lived, controlled retrieval where configured.",
-  },
-  {
-    title: "Operations",
-    body: "Deployment, monitoring, and incident response are documented for review. SIEM and 24/7 response are production-tier options, not the pilot default.",
-  },
-] as const;
-
 export async function generateMetadata(): Promise<Metadata> {
-  const title = "Trust & Operations | Rapid Cortex";
-  const description =
-    "Security, privacy, and operational posture for public safety teams — identity controls, tenant isolation, encryption, and CJIS-aligned control mapping for procurement review.";
+  const { title, description, keywords, openGraphImageAlt } = SECURITY_PAGE_METADATA;
   return {
     title,
     description,
-    keywords: [
-      "cjis aligned security",
-      "public safety cybersecurity",
-      "dispatch platform security",
-      "tenant isolation",
-      "security controls",
-      "psap procurement security",
-      "emergency communications security",
-    ],
+    keywords: [...keywords],
     openGraph: {
       title,
       description,
       url: absoluteUrl("/security"),
       siteName: "Rapid Cortex",
-      images: [{ url: absoluteUrl("/api/og"), width: 1200, height: 630, alt: "Rapid Cortex trust and security" }],
+      images: [{ url: absoluteUrl("/api/og"), width: 1200, height: 630, alt: openGraphImageAlt }],
       type: "website",
     },
     twitter: {
@@ -101,11 +69,11 @@ export default function MarketingSecurityPage() {
       </div>
 
       <div className="space-y-3">
-        <h2 className="text-base font-semibold text-white">What we do not claim on this page</h2>
+        <h2 className="text-base font-semibold text-white">{SECURITY_PAGE_DISCLAIMER.heading}</h2>
         <p>
-          Rapid Cortex does <strong>not</strong> assert CJIS, CJIS-ATP, or FedRAMP certification on this page. We have
-          not completed a SOC 2 audit. &quot;CJIS-aligned&quot; means we document controls your assessors can map to
-          the CJIS Security Policy; your agency completes its own authorization path.
+          {SECURITY_PAGE_DISCLAIMER.bodyLead}
+          <strong>{SECURITY_PAGE_DISCLAIMER.bodyNegation}</strong>
+          {SECURITY_PAGE_DISCLAIMER.bodyRest}
         </p>
       </div>
 
