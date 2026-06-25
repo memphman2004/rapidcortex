@@ -72,6 +72,10 @@ export function marketingSecurityPath(): string {
   return "/security";
 }
 
+export function marketingTrustPath(): string {
+  return "/trust";
+}
+
 export function marketingContactPath(): string {
   return "/contact";
 }
@@ -151,9 +155,15 @@ export function marketingAcceptableUsePath(): string {
   return "/acceptable-use";
 }
 
-/** Public SMS consent disclosure (toll-free / carrier verification). */
+/** Public SMS consent disclosure (marketing host: rapidcortex.us / www). */
 export function marketingSmsConsentPath(): string {
   return "/sms-consent";
+}
+
+/** RC Lite developer guides — app host, session required (middleware). */
+export function marketingDevelopersDocsPath(suffix = ""): string {
+  const path = suffix ? `/developers/docs/${suffix.replace(/^\//, "")}` : "/developers/docs";
+  return withAppOrigin(path);
 }
 
 /** Complete operations manual (`public/docs/`) — requires signed-in subscriber access (middleware). */
