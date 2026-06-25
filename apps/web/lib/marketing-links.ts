@@ -72,6 +72,10 @@ export function marketingSecurityPath(): string {
   return "/security";
 }
 
+export function marketingTrustPath(): string {
+  return "/trust";
+}
+
 export function marketingContactPath(): string {
   return "/contact";
 }
