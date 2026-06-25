@@ -79,3 +79,6 @@ if fail:
     sys.exit(1)
 print("validate-iam-policies: ok")
 PY
+
+# IAM managed policy document size (6,144-byte cap after CFN resolution)
+python3 "${ROOT}/scripts/check-iam-managed-policy-sizes.py" --headroom 512

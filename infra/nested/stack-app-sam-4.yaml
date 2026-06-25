@@ -1275,6 +1275,28 @@ Resources:
                 - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${TranscriptsTable}/index/*
                 - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${UsageMetersTable}
                 - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${UsageMetersTable}/index/*
+
+  AppManagedPolicyDynamoLambdaCrudShardD:
+    Type: AWS::IAM::ManagedPolicy
+    Properties:
+      ManagedPolicyName: !Sub "${Sam4ManagedPolicyNamePrefix}-sam4-lambda-ddb-drud-${DeploymentStage}-d"
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Sid: DynamoApplicationShardD
+            Effect: Allow
+            Action:
+              - dynamodb:GetItem
+              - dynamodb:BatchGetItem
+              - dynamodb:BatchWriteItem
+              - dynamodb:PutItem
+              - dynamodb:DeleteItem
+              - dynamodb:UpdateItem
+              - dynamodb:Query
+              - dynamodb:Scan
+              - dynamodb:DescribeTable
+              - dynamodb:ConditionCheckItem
+            Resource:
                 - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${VideoAssistSessionsTable}
                 - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${VideoAssistSessionsTable}/index/*
                 - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${CadIncidentsRawTable}
@@ -1977,6 +1999,7 @@ Resources:
       Policies:
         - !Ref AppManagedPolicyDynamoLambdaCrudShardA
         - !Ref AppManagedPolicyDynamoLambdaCrudShardC
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardD
         - !Ref AppManagedPolicyRingConnectSecrets
       Events:
         Route:
@@ -2014,6 +2037,7 @@ Resources:
       Policies:
         - !Ref AppManagedPolicyDynamoLambdaCrudShardA
         - !Ref AppManagedPolicyDynamoLambdaCrudShardC
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardD
         - !Ref AppManagedPolicyRingConnectSecrets
       Events:
         Route:
@@ -2048,6 +2072,7 @@ Resources:
       Policies:
         - !Ref AppManagedPolicyDynamoLambdaCrudShardA
         - !Ref AppManagedPolicyDynamoLambdaCrudShardC
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardD
       Events:
         Route:
           Type: HttpApi
@@ -2125,6 +2150,7 @@ Resources:
       Policies:
         - !Ref AppManagedPolicyDynamoLambdaCrudShardA
         - !Ref AppManagedPolicyDynamoLambdaCrudShardC
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardD
       Events:
         Route:
           Type: HttpApi
@@ -2171,6 +2197,7 @@ Resources:
       Policies:
         - !Ref AppManagedPolicyDynamoLambdaCrudShardA
         - !Ref AppManagedPolicyDynamoLambdaCrudShardC
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardD
         - Statement:
             Sid: RingOwnerCognitoLookup
             Effect: Allow
@@ -2268,6 +2295,7 @@ Resources:
             - !Sub "RingEmergencyCameraSessions-${DeploymentStage}"
       Policies:
         - !Ref AppManagedPolicyDynamoLambdaCrudShardC
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardD
         - Statement:
             Sid: RingConsentApproveKvsCreate
             Effect: Allow
@@ -2307,6 +2335,7 @@ Resources:
             - !Sub "RingEmergencyCameraRequests-${DeploymentStage}"
       Policies:
         - !Ref AppManagedPolicyDynamoLambdaCrudShardC
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardD
       Events:
         Route:
           Type: HttpApi
@@ -2344,6 +2373,7 @@ Resources:
             - !Sub "RingEmergencyCameraSessions-${DeploymentStage}"
       Policies:
         - !Ref AppManagedPolicyDynamoLambdaCrudShardC
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardD
       Events:
         Route:
           Type: HttpApi
@@ -2376,6 +2406,7 @@ Resources:
             - !Sub "RingEmergencyCameraSessions-${DeploymentStage}"
       Policies:
         - !Ref AppManagedPolicyDynamoLambdaCrudShardC
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardD
         - Statement:
             Sid: RingStreamViewerAssumeKvsRole
             Effect: Allow
@@ -2437,6 +2468,7 @@ Resources:
         - !Ref AppManagedPolicyDynamoLambdaCrudShardA
         - !Ref AppManagedPolicyDynamoLambdaCrudShardB
         - !Ref AppManagedPolicyDynamoLambdaCrudShardC
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardD
         - !Ref AppManagedPolicyS3ApplicationBucketsCrud
 
       Events:
@@ -2463,6 +2495,7 @@ Resources:
         - !Ref AppManagedPolicyDynamoLambdaCrudShardA
         - !Ref AppManagedPolicyDynamoLambdaCrudShardB
         - !Ref AppManagedPolicyDynamoLambdaCrudShardC
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardD
         - !Ref AppManagedPolicyS3ApplicationBucketsCrud
 
       Events:
@@ -2489,6 +2522,7 @@ Resources:
         - !Ref AppManagedPolicyDynamoLambdaCrudShardA
         - !Ref AppManagedPolicyDynamoLambdaCrudShardB
         - !Ref AppManagedPolicyDynamoLambdaCrudShardC
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardD
         - !Ref AppManagedPolicyS3ApplicationBucketsCrud
 
       Events:
@@ -2515,6 +2549,7 @@ Resources:
         - !Ref AppManagedPolicyDynamoLambdaCrudShardA
         - !Ref AppManagedPolicyDynamoLambdaCrudShardB
         - !Ref AppManagedPolicyDynamoLambdaCrudShardC
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardD
         - !Ref AppManagedPolicyS3ApplicationBucketsCrud
 
       Events:
@@ -2541,6 +2576,7 @@ Resources:
         - !Ref AppManagedPolicyDynamoLambdaCrudShardA
         - !Ref AppManagedPolicyDynamoLambdaCrudShardB
         - !Ref AppManagedPolicyDynamoLambdaCrudShardC
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardD
         - !Ref AppManagedPolicyS3ApplicationBucketsCrud
 
       Events:
@@ -2567,6 +2603,7 @@ Resources:
         - !Ref AppManagedPolicyDynamoLambdaCrudShardA
         - !Ref AppManagedPolicyDynamoLambdaCrudShardB
         - !Ref AppManagedPolicyDynamoLambdaCrudShardC
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardD
         - !Ref AppManagedPolicyS3ApplicationBucketsCrud
 
       Events:
@@ -2593,6 +2630,7 @@ Resources:
         - !Ref AppManagedPolicyDynamoLambdaCrudShardA
         - !Ref AppManagedPolicyDynamoLambdaCrudShardB
         - !Ref AppManagedPolicyDynamoLambdaCrudShardC
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardD
         - !Ref AppManagedPolicyS3ApplicationBucketsCrud
 
       Events:
@@ -2619,6 +2657,7 @@ Resources:
         - !Ref AppManagedPolicyDynamoLambdaCrudShardA
         - !Ref AppManagedPolicyDynamoLambdaCrudShardB
         - !Ref AppManagedPolicyDynamoLambdaCrudShardC
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardD
         - !Ref AppManagedPolicyS3ApplicationBucketsCrud
 
       Events:
@@ -2645,6 +2684,7 @@ Resources:
         - !Ref AppManagedPolicyDynamoLambdaCrudShardA
         - !Ref AppManagedPolicyDynamoLambdaCrudShardB
         - !Ref AppManagedPolicyDynamoLambdaCrudShardC
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardD
         - !Ref AppManagedPolicyS3ApplicationBucketsCrud
 
       Events:
@@ -2671,6 +2711,7 @@ Resources:
         - !Ref AppManagedPolicyDynamoLambdaCrudShardA
         - !Ref AppManagedPolicyDynamoLambdaCrudShardB
         - !Ref AppManagedPolicyDynamoLambdaCrudShardC
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardD
         - !Ref AppManagedPolicyS3ApplicationBucketsCrud
 
       Events:
@@ -2750,6 +2791,7 @@ Resources:
         - !Ref AppManagedPolicyDynamoLambdaCrudShardA
         - !Ref AppManagedPolicyDynamoLambdaCrudShardB
         - !Ref AppManagedPolicyDynamoLambdaCrudShardC
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardD
         - !Ref AppManagedPolicyS3ApplicationBucketsCrud
 
       Events:
@@ -2782,6 +2824,7 @@ Resources:
         - !Ref AppManagedPolicyDynamoLambdaCrudShardA
         - !Ref AppManagedPolicyDynamoLambdaCrudShardB
         - !Ref AppManagedPolicyDynamoLambdaCrudShardC
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardD
         - !Ref AppManagedPolicyS3ApplicationBucketsCrud
 
       Events:
@@ -2814,6 +2857,7 @@ Resources:
         - !Ref AppManagedPolicyDynamoLambdaCrudShardA
         - !Ref AppManagedPolicyDynamoLambdaCrudShardB
         - !Ref AppManagedPolicyDynamoLambdaCrudShardC
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardD
         - !Ref AppManagedPolicyS3ApplicationBucketsCrud
 
       Events:
@@ -2847,6 +2891,7 @@ Resources:
         - !Ref AppManagedPolicyDynamoLambdaCrudShardA
         - !Ref AppManagedPolicyDynamoLambdaCrudShardB
         - !Ref AppManagedPolicyDynamoLambdaCrudShardC
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardD
       Events:
         BulkDraftInvoicesPost:
           Type: HttpApi
@@ -2916,6 +2961,7 @@ Resources:
         - !Ref AppManagedPolicyDynamoLambdaCrudShardA
         - !Ref AppManagedPolicyDynamoLambdaCrudShardB
         - !Ref AppManagedPolicyDynamoLambdaCrudShardC
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardD
         - !Ref AppManagedPolicyS3ApplicationBucketsCrud
 
       Events:
@@ -2948,6 +2994,7 @@ Resources:
         - !Ref AppManagedPolicyDynamoLambdaCrudShardA
         - !Ref AppManagedPolicyDynamoLambdaCrudShardB
         - !Ref AppManagedPolicyDynamoLambdaCrudShardC
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardD
         - !Ref AppManagedPolicyS3ApplicationBucketsCrud
         - !Ref AppManagedPolicySesBillingSenderIdentityEmails
 
@@ -2982,6 +3029,7 @@ Resources:
         - !Ref AppManagedPolicyDynamoLambdaCrudShardA
         - !Ref AppManagedPolicyDynamoLambdaCrudShardB
         - !Ref AppManagedPolicyDynamoLambdaCrudShardC
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardD
 
       Events:
         AgencyEntitlements:
@@ -3037,6 +3085,7 @@ Resources:
         - !Ref AppManagedPolicyDynamoLambdaCrudShardA
         - !Ref AppManagedPolicyDynamoLambdaCrudShardB
         - !Ref AppManagedPolicyDynamoLambdaCrudShardC
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardD
         - !Ref AppManagedPolicySesBillingSenderIdentityEmails
         - Statement:
             Effect: Allow
@@ -3148,6 +3197,7 @@ Resources:
         - !Ref AppManagedPolicyDynamoLambdaCrudShardA
         - !Ref AppManagedPolicyDynamoLambdaCrudShardB
         - !Ref AppManagedPolicyDynamoLambdaCrudShardC
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardD
         - !Ref AppManagedPolicyS3ApplicationBucketsCrud
         - !Ref AppManagedPolicySesBillingSenderIdentityEmails
 

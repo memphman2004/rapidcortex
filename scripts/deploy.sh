@@ -145,6 +145,9 @@ sam validate --lint --template-file "${ROOT}/infra/nested/stack-app-sam-4.yaml"
 sam validate --lint --template-file "${ROOT}/infra/nested/stack-app-sam-5.yaml"
 sam validate --lint --template-file "${ROOT}/infra/nested/stack-app-alarms-2.yaml"
 
+echo "IAM managed policy size preflight (6,144-byte cap)..."
+python3 "${ROOT}/scripts/check-iam-managed-policy-sizes.py" --headroom 512
+
 ROOT_DOMAIN="${ROOT_DOMAIN:-rapidcortex.us}"
 API_SUBDOMAIN_PREFIX="${API_SUBDOMAIN_PREFIX:-api}"
 API_DOMAIN_CERT_ARN="${API_DOMAIN_CERT_ARN:-}"

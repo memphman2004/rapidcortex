@@ -100,6 +100,8 @@ STACK5_DUP_FROM_STACK1 = %w[
   AppManagedPolicyDynamoLambdaCrudShardA
   AppManagedPolicyDynamoLambdaCrudShardB
   AppManagedPolicyDynamoLambdaCrudShardC
+  AppManagedPolicyDynamoLambdaCrudShardD
+  AppManagedPolicyDynamoLambdaCrudShardD
   AppManagedPolicyS3ApplicationBucketsCrud
   AppManagedPolicyBedrockAiAndQaFoundationModels
   AppManagedPolicyBedrockQaFoundationModelOnly

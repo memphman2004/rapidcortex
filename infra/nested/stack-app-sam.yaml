@@ -1261,6 +1261,28 @@ Resources:
                 - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${TranscriptsTable}/index/*
                 - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${UsageMetersTable}
                 - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${UsageMetersTable}/index/*
+
+  AppManagedPolicyDynamoLambdaCrudShardD:
+    Type: AWS::IAM::ManagedPolicy
+    Properties:
+      ManagedPolicyName: !Sub "${AppName}-lambda-ddb-drud-${DeploymentStage}-d"
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Sid: DynamoApplicationShardD
+            Effect: Allow
+            Action:
+              - dynamodb:GetItem
+              - dynamodb:BatchGetItem
+              - dynamodb:BatchWriteItem
+              - dynamodb:PutItem
+              - dynamodb:DeleteItem
+              - dynamodb:UpdateItem
+              - dynamodb:Query
+              - dynamodb:Scan
+              - dynamodb:DescribeTable
+              - dynamodb:ConditionCheckItem
+            Resource:
                 - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${VideoAssistSessionsTable}
                 - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${VideoAssistSessionsTable}/index/*
                 - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${CadIncidentsRawTable}
@@ -1979,6 +2001,7 @@ Resources:
         - !Ref AppManagedPolicyDynamoLambdaCrudShardA
         - !Ref AppManagedPolicyDynamoLambdaCrudShardB
         - !Ref AppManagedPolicyDynamoLambdaCrudShardC
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardD
         - !Ref AppManagedPolicyS3ApplicationBucketsCrud
 
       Events:
@@ -2005,6 +2028,7 @@ Resources:
         - !Ref AppManagedPolicyDynamoLambdaCrudShardA
         - !Ref AppManagedPolicyDynamoLambdaCrudShardB
         - !Ref AppManagedPolicyDynamoLambdaCrudShardC
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardD
         - !Ref AppManagedPolicyS3ApplicationBucketsCrud
 
       Events:
@@ -2031,6 +2055,7 @@ Resources:
         - !Ref AppManagedPolicyDynamoLambdaCrudShardA
         - !Ref AppManagedPolicyDynamoLambdaCrudShardB
         - !Ref AppManagedPolicyDynamoLambdaCrudShardC
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardD
         - !Ref AppManagedPolicyS3ApplicationBucketsCrud
 
       Events:
@@ -2057,6 +2082,7 @@ Resources:
         - !Ref AppManagedPolicyDynamoLambdaCrudShardA
         - !Ref AppManagedPolicyDynamoLambdaCrudShardB
         - !Ref AppManagedPolicyDynamoLambdaCrudShardC
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardD
         - !Ref AppManagedPolicyS3ApplicationBucketsCrud
 
       Events:
@@ -2083,6 +2109,7 @@ Resources:
         - !Ref AppManagedPolicyDynamoLambdaCrudShardA
         - !Ref AppManagedPolicyDynamoLambdaCrudShardB
         - !Ref AppManagedPolicyDynamoLambdaCrudShardC
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardD
         - !Ref AppManagedPolicyS3ApplicationBucketsCrud
 
       Events:
@@ -2125,6 +2152,7 @@ Resources:
         - !Ref AppManagedPolicyDynamoLambdaCrudShardA
         - !Ref AppManagedPolicyDynamoLambdaCrudShardB
         - !Ref AppManagedPolicyDynamoLambdaCrudShardC
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardD
         - !Ref AppManagedPolicyS3ApplicationBucketsCrud
         - !Ref AppManagedPolicyComprehendTranslateRegionalDetect
         - !Ref AppManagedPolicySecretsMultilingualScopedRead
@@ -2154,6 +2182,7 @@ Resources:
         - !Ref AppManagedPolicyDynamoLambdaCrudShardA
         - !Ref AppManagedPolicyDynamoLambdaCrudShardB
         - !Ref AppManagedPolicyDynamoLambdaCrudShardC
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardD
         - !Ref AppManagedPolicyS3ApplicationBucketsCrud
 
       Events:
@@ -2222,6 +2251,7 @@ Resources:
         - !Ref AppManagedPolicyDynamoLambdaCrudShardA
         - !Ref AppManagedPolicyDynamoLambdaCrudShardB
         - !Ref AppManagedPolicyDynamoLambdaCrudShardC
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardD
         - !Ref AppManagedPolicyS3ApplicationBucketsCrud
         - !Ref AppManagedPolicyComprehendTranslateRegionalDetect
         - !Ref AppManagedPolicySecretsMultilingualScopedRead
@@ -2262,6 +2292,7 @@ Resources:
         - !Ref AppManagedPolicyDynamoLambdaCrudShardA
         - !Ref AppManagedPolicyDynamoLambdaCrudShardB
         - !Ref AppManagedPolicyDynamoLambdaCrudShardC
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardD
         - !Ref AppManagedPolicyS3ApplicationBucketsCrud
         - !Ref AppManagedPolicySecretsAnalyzeProvidersRead
         - !Ref AppManagedPolicyBedrockAiAndQaFoundationModels
@@ -2295,6 +2326,7 @@ Resources:
         - !Ref AppManagedPolicyDynamoLambdaCrudShardA
         - !Ref AppManagedPolicyDynamoLambdaCrudShardB
         - !Ref AppManagedPolicyDynamoLambdaCrudShardC
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardD
         - !Ref AppManagedPolicyS3ApplicationBucketsCrud
 
       Events:
@@ -2323,6 +2355,7 @@ Resources:
         - !Ref AppManagedPolicyDynamoLambdaCrudShardA
         - !Ref AppManagedPolicyDynamoLambdaCrudShardB
         - !Ref AppManagedPolicyDynamoLambdaCrudShardC
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardD
         - !Ref AppManagedPolicyS3ApplicationBucketsCrud
 
       Events:
@@ -2356,6 +2389,7 @@ Resources:
         - !Ref AppManagedPolicyDynamoLambdaCrudShardA
         - !Ref AppManagedPolicyDynamoLambdaCrudShardB
         - !Ref AppManagedPolicyDynamoLambdaCrudShardC
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardD
         - !Ref AppManagedPolicyS3ApplicationBucketsCrud
 
       Events:
@@ -2389,6 +2423,7 @@ Resources:
         - !Ref AppManagedPolicyDynamoLambdaCrudShardA
         - !Ref AppManagedPolicyDynamoLambdaCrudShardB
         - !Ref AppManagedPolicyDynamoLambdaCrudShardC
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardD
         - !Ref AppManagedPolicyS3ApplicationBucketsCrud
 
       Events:
@@ -2416,6 +2451,7 @@ Resources:
         - !Ref AppManagedPolicyDynamoLambdaCrudShardA
         - !Ref AppManagedPolicyDynamoLambdaCrudShardB
         - !Ref AppManagedPolicyDynamoLambdaCrudShardC
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardD
         - !Ref AppManagedPolicyS3ApplicationBucketsCrud
 
       Events:
@@ -2442,6 +2478,7 @@ Resources:
         - !Ref AppManagedPolicyDynamoLambdaCrudShardA
         - !Ref AppManagedPolicyDynamoLambdaCrudShardB
         - !Ref AppManagedPolicyDynamoLambdaCrudShardC
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardD
       Events:
         GetQueue:
           Type: HttpApi
@@ -2472,6 +2509,7 @@ Resources:
         - !Ref AppManagedPolicyDynamoLambdaCrudShardA
         - !Ref AppManagedPolicyDynamoLambdaCrudShardB
         - !Ref AppManagedPolicyDynamoLambdaCrudShardC
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardD
       Events:
         Route:
           Type: HttpApi
@@ -2498,6 +2536,7 @@ Resources:
         - !Ref AppManagedPolicyDynamoLambdaCrudShardA
         - !Ref AppManagedPolicyDynamoLambdaCrudShardB
         - !Ref AppManagedPolicyDynamoLambdaCrudShardC
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardD
         - !Ref AppManagedPolicyBedrockAiAndQaFoundationModels
       Events:
         GetForecast:
@@ -2535,6 +2574,7 @@ Resources:
         - !Ref AppManagedPolicyDynamoLambdaCrudShardA
         - !Ref AppManagedPolicyDynamoLambdaCrudShardB
         - !Ref AppManagedPolicyDynamoLambdaCrudShardC
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardD
 
       Events:
         Route:
@@ -2561,6 +2601,7 @@ Resources:
         - !Ref AppManagedPolicyDynamoLambdaCrudShardA
         - !Ref AppManagedPolicyDynamoLambdaCrudShardB
         - !Ref AppManagedPolicyDynamoLambdaCrudShardC
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardD
         - !Ref AppManagedPolicyS3ApplicationBucketsCrud
 
       Events:
@@ -2588,6 +2629,7 @@ Resources:
         - !Ref AppManagedPolicyDynamoLambdaCrudShardA
         - !Ref AppManagedPolicyDynamoLambdaCrudShardB
         - !Ref AppManagedPolicyDynamoLambdaCrudShardC
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardD
         - !Ref AppManagedPolicyS3ApplicationBucketsCrud
 
       Events:
@@ -2617,6 +2659,7 @@ Resources:
         - !Ref AppManagedPolicyDynamoLambdaCrudShardA
         - !Ref AppManagedPolicyDynamoLambdaCrudShardB
         - !Ref AppManagedPolicyDynamoLambdaCrudShardC
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardD
         - !Ref AppManagedPolicyS3ApplicationBucketsCrud
 
       Events:
@@ -2643,6 +2686,7 @@ Resources:
         - !Ref AppManagedPolicyDynamoLambdaCrudShardA
         - !Ref AppManagedPolicyDynamoLambdaCrudShardB
         - !Ref AppManagedPolicyDynamoLambdaCrudShardC
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardD
         - !Ref AppManagedPolicyS3ApplicationBucketsCrud
 
       Events:
@@ -2669,6 +2713,7 @@ Resources:
         - !Ref AppManagedPolicyDynamoLambdaCrudShardA
         - !Ref AppManagedPolicyDynamoLambdaCrudShardB
         - !Ref AppManagedPolicyDynamoLambdaCrudShardC
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardD
         - !Ref AppManagedPolicyS3ApplicationBucketsCrud
 
       Events:
@@ -2739,6 +2784,7 @@ Resources:
         - !Ref AppManagedPolicyDynamoLambdaCrudShardA
         - !Ref AppManagedPolicyDynamoLambdaCrudShardB
         - !Ref AppManagedPolicyDynamoLambdaCrudShardC
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardD
         - !Ref AppManagedPolicyS3ApplicationBucketsCrud
         - !Ref AppManagedPolicyBedrockQaFoundationModelOnly
 
@@ -2782,6 +2828,7 @@ Resources:
         - !Ref AppManagedPolicyDynamoLambdaCrudShardA
         - !Ref AppManagedPolicyDynamoLambdaCrudShardB
         - !Ref AppManagedPolicyDynamoLambdaCrudShardC
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardD
         - !Ref AppManagedPolicyCadWebhookSnsPublishOnly
 
       Events:
@@ -3142,6 +3189,7 @@ Resources:
         - !Ref AppManagedPolicyDynamoLambdaCrudShardA
         - !Ref AppManagedPolicyDynamoLambdaCrudShardB
         - !Ref AppManagedPolicyDynamoLambdaCrudShardC
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardD
         - !Ref AppManagedPolicyS3ApplicationBucketsCrud
         - !Ref AppManagedPolicyBedrockQaFoundationModelOnly
       Events:
@@ -3397,6 +3445,7 @@ Resources:
         - !Ref AppManagedPolicyDynamoLambdaCrudShardA
         - !Ref AppManagedPolicyDynamoLambdaCrudShardB
         - !Ref AppManagedPolicyDynamoLambdaCrudShardC
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardD
         - !Ref AppManagedPolicyS3ApplicationBucketsCrud
 
       Events:
@@ -3423,6 +3472,7 @@ Resources:
         - !Ref AppManagedPolicyDynamoLambdaCrudShardA
         - !Ref AppManagedPolicyDynamoLambdaCrudShardB
         - !Ref AppManagedPolicyDynamoLambdaCrudShardC
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardD
         - !Ref AppManagedPolicyS3ApplicationBucketsCrud
 
       Events:
@@ -3449,6 +3499,7 @@ Resources:
         - !Ref AppManagedPolicyDynamoLambdaCrudShardA
         - !Ref AppManagedPolicyDynamoLambdaCrudShardB
         - !Ref AppManagedPolicyDynamoLambdaCrudShardC
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardD
         - !Ref AppManagedPolicyS3ApplicationBucketsCrud
 
       Events:
@@ -3475,6 +3526,7 @@ Resources:
         - !Ref AppManagedPolicyDynamoLambdaCrudShardA
         - !Ref AppManagedPolicyDynamoLambdaCrudShardB
         - !Ref AppManagedPolicyDynamoLambdaCrudShardC
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardD
         - !Ref AppManagedPolicyS3ApplicationBucketsCrud
 
       Events:
@@ -3501,6 +3553,7 @@ Resources:
         - !Ref AppManagedPolicyDynamoLambdaCrudShardA
         - !Ref AppManagedPolicyDynamoLambdaCrudShardB
         - !Ref AppManagedPolicyDynamoLambdaCrudShardC
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardD
         - !Ref AppManagedPolicyS3ApplicationBucketsCrud
 
       Events:
@@ -3527,6 +3580,7 @@ Resources:
         - !Ref AppManagedPolicyDynamoLambdaCrudShardA
         - !Ref AppManagedPolicyDynamoLambdaCrudShardB
         - !Ref AppManagedPolicyDynamoLambdaCrudShardC
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardD
         - !Ref AppManagedPolicyS3ApplicationBucketsCrud
 
       Events:
@@ -3553,6 +3607,7 @@ Resources:
         - !Ref AppManagedPolicyDynamoLambdaCrudShardA
         - !Ref AppManagedPolicyDynamoLambdaCrudShardB
         - !Ref AppManagedPolicyDynamoLambdaCrudShardC
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardD
         - !Ref AppManagedPolicyS3ApplicationBucketsCrud
 
       Events:

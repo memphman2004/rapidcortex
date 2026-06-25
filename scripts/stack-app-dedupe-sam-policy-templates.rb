@@ -56,16 +56,18 @@ def shard_yaml(letter, refs)
 end
 
 def managed_policies_yaml
-  shards = TABLE_REFS.each_slice((TABLE_REFS.size / 3.0).ceil).to_a
-  raise unless shards.size == 3
+  shards = TABLE_REFS.each_slice((TABLE_REFS.size / 4.0).ceil).to_a
+  while shards.size < 4
+    shards << []
+  end
+  shards = shards.first(4)
 
   frags = +""
   frags << "# Shared DynamoDB + S3 managed policies shrink SAM-expanded IAM (policy templates inlined per function).\n"
-  frags << shard_yaml("A", shards[0])
-  frags << "\n"
-  frags << shard_yaml("B", shards[1])
-  frags << "\n"
-  frags << shard_yaml("C", shards[2])
+  %w[A B C D].each_with_index do |letter, i|
+    frags << shard_yaml(letter, shards[i])
+    frags << "\n"
+  end
   # Note: literal two-space YAML root indent (logical id lives under Resources:)
   frags << <<~YAML
     AppManagedPolicyS3ApplicationBucketsCrud:
@@ -183,7 +185,7 @@ def dedupe_templates_in_policies_body(inner)
 
   prefixes = +""
   if stripped_dd
-    %w[A B C].each { |sx| prefixes << "        - !Ref AppManagedPolicyDynamoLambdaCrudShard#{sx}\n" }
+    %w[A B C D].each { |sx| prefixes << "        - !Ref AppManagedPolicyDynamoLambdaCrudShard#{sx}\n" }
   end
   prefixes << "        - !Ref AppManagedPolicyS3ApplicationBucketsCrud\n" if stripped_s3
 
