@@ -217,17 +217,25 @@ unset _var_name
 
 if [[ ${#_CB_ENV_OVERRIDES[@]} -gt 0 ]]; then
   echo "   CodeBuild: applying ${#_CB_ENV_OVERRIDES[@]} env override(s) from current shell → image build-args."
+  BUILD_ID="$(
+    aws codebuild start-build \
+      --project-name "${CODEBUILD_PROJECT}" \
+      --region "${AWS_REGION}" \
+      "${_CB_ENV_OVERRIDES[@]}" \
+      --query 'build.id' \
+      --output text \
+      --no-cli-pager
+  )"
+else
+  BUILD_ID="$(
+    aws codebuild start-build \
+      --project-name "${CODEBUILD_PROJECT}" \
+      --region "${AWS_REGION}" \
+      --query 'build.id' \
+      --output text \
+      --no-cli-pager
+  )"
 fi
-
-BUILD_ID="$(
-  aws codebuild start-build \
-    --project-name "${CODEBUILD_PROJECT}" \
-    --region "${AWS_REGION}" \
-    "${_CB_ENV_OVERRIDES[@]}" \
-    --query 'build.id' \
-    --output text \
-    --no-cli-pager
-)"
 unset _CB_ENV_OVERRIDES
 echo "Build ID: ${BUILD_ID}"
 echo "Console:  https://console.aws.amazon.com/codesuite/codebuild/${AWS_REGION}/projects/${CODEBUILD_PROJECT}/build/${BUILD_ID}"
