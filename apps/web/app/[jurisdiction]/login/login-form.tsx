@@ -14,7 +14,7 @@ import {
   marketingPricingPath,
   marketingSignupPath,
 } from "@/lib/marketing-links";
-import { postAuthRedirect } from "@/lib/auth/postAuthRedirect";
+import { postAuthRedirect, hardNavigateTo } from "@/lib/auth/postAuthRedirect";
 import {
   resolvePostLoginNavigationHref,
   resolvePostLoginNavigationHrefAfterPasswordChange,
@@ -169,7 +169,7 @@ export function LoginForm({
       postAuthRedirect(router, path);
       return;
     }
-    router.replace("/unauthorized?reason=session");
+    hardNavigateTo("/unauthorized?reason=session");
   }
 
   const resetForgotPassword = useCallback(() => {

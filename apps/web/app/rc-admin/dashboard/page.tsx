@@ -3,10 +3,13 @@ import { isRcItAdmin, isRcSuperAdmin } from "rapid-cortex-security";
 import { migrateLegacyRapidCortexRoleTokenValue } from "rapid-cortex-shared/auth/rapid-cortex-roles";
 import { DashboardPageContent } from "@/components/dashboards/dashboard-page-content";
 import { getDashboardSessionUser } from "@/lib/dashboards/get-dashboard-session";
+import { marketingLoginPath } from "@/lib/marketing-links";
 
 export default async function RcAdminDashboardPage() {
   const user = await getDashboardSessionUser();
-  if (!user) return null;
+  if (!user) {
+    redirect(`${marketingLoginPath()}?from=/rc-admin/dashboard`);
+  }
   const role = migrateLegacyRapidCortexRoleTokenValue(user.role) ?? user.role;
   if (isRcItAdmin(role) && !isRcSuperAdmin(role)) {
     redirect("/rc-admin/infrastructure");

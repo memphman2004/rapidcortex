@@ -54,6 +54,7 @@ import { maybeRedirectReportHost } from "@/lib/report-host-routing";
 import { publicAbsoluteUrl, resolveRedirectUrl } from "@/lib/request-origin";
 import { requiresOperationalPasswordRenewal } from "rapid-cortex-shared/auth/password-policy";
 import { isHospitalPortalEnabled, isNetworkAccessGateEnabled } from "@/lib/runtime-flags";
+import { isNextFlightOrPrefetchRequest } from "@/lib/middleware/flight-request";
 
 function isHospitalDashboardPrefix(prefix: DashboardPrefix): boolean {
   return prefix === "hospital-admin" || prefix === "hospital-staff";
@@ -90,19 +91,9 @@ function maybeRedirectToSplash(request: NextRequest): NextResponse | null {
     (host?.startsWith("localhost") ?? false);
   if (!isMarketingHost) return null;
 
-  return NextResponse.redirect(resolveRedirectUrl("/enter", request));
+  return nextOrRedirect(request, resolveRedirectUrl("/enter", request));
 }
 
-/** Next.js RSC / router prefetch must not receive HTML redirects (breaks client navigation). */
-function isNextFlightOrPrefetchRequest(request: NextRequest): boolean {
-  if (request.headers.get("RSC") === "1") return true;
-  if (request.headers.get("Next-Router-Prefetch") === "1") return true;
-  if (request.headers.get("Purpose") === "prefetch") return true;
-  if (request.nextUrl.searchParams.has("_rsc")) return true;
-  return false;
-}
-
-/** HTML redirects during RSC/prefetch corrupt the App Router and surface global-error UI. */
 function nextOrRedirect(request: NextRequest, destination: URL | string): NextResponse {
   if (isNextFlightOrPrefetchRequest(request)) {
     return NextResponse.next();
@@ -844,7 +835,7 @@ export async function middleware(request: NextRequest) {
     );
     const login = resolveRedirectUrl(marketingLoginPath(), request);
     login.searchParams.set("notice", "session");
-    return NextResponse.redirect(login);
+    return nextOrRedirect(request, login);
   }
 }
 

@@ -206,7 +206,14 @@ export function PlatformHealthBarWidget({ agencyId }: WidgetProps) {
     queryKey: ["platform-health"],
     queryFn: async () => {
       const r = await fetch("/api/health/upstream", { credentials: "include" });
-      return r.ok ? r.json() : null;
+      if (!r.ok) return null;
+      const text = await r.text();
+      if (!text) return null;
+      try {
+        return JSON.parse(text) as Record<string, unknown>;
+      } catch {
+        return null;
+      }
     },
     refetchInterval: 30_000,
   });

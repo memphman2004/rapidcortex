@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import type { AppRouterInstance } from "next/dist/shared/lib/app-router-context.shared-runtime";
-import { postAuthRedirect } from "./postAuthRedirect";
+import { postAuthRedirect, hardNavigateTo } from "./postAuthRedirect";
 
 describe("postAuthRedirect", () => {
   it("uses full document navigation by default after sign-in", () => {
@@ -24,5 +24,12 @@ describe("postAuthRedirect", () => {
 
     expect(replace).toHaveBeenCalledWith("/dispatcher/dashboard");
     expect(assign).not.toHaveBeenCalled();
+  });
+
+  it("hardNavigateTo assigns location for relative paths", () => {
+    const assign = vi.fn();
+    vi.stubGlobal("window", { location: { assign } });
+    hardNavigateTo("/rc-admin/dashboard");
+    expect(assign).toHaveBeenCalledWith("/rc-admin/dashboard");
   });
 });

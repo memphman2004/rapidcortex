@@ -17,7 +17,7 @@ export function postAuthRedirect(
 
   const useHardNav = opts?.hard !== false && typeof window !== "undefined";
   if (useHardNav) {
-    window.location.assign(target);
+    hardNavigateTo(target);
     return;
   }
 
@@ -26,5 +26,12 @@ export function postAuthRedirect(
 
 function isRelativePath(path: string): boolean {
   return path.startsWith("/") && !path.startsWith("//") && !path.includes("://");
+}
+
+/** Full document navigation — avoids corrupting App Router RSC streams after auth or role redirects. */
+export function hardNavigateTo(target: string): void {
+  if (typeof window === "undefined") return;
+  const path = isRelativePath(target) ? target : "/dashboard";
+  window.location.assign(path);
 }
 

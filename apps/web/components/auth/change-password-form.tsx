@@ -1,11 +1,11 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
 import { COGNITO_PASSWORD_REQUIREMENTS, cognitoPasswordPolicyError, isValidCognitoPassword } from "@/lib/auth/cognito-password-policy";
 import { resolvePostLoginNavigationHrefAfterPasswordChange } from "@/lib/auth/post-login-redirect";
 import { resolveDashboardHubRedirectHref } from "@/lib/auth/dashboard-hub-redirect";
+import { hardNavigateTo } from "@/lib/auth/postAuthRedirect";
 import { useSession } from "@/components/auth/session-context";
 import { ensureCsrfCookie, jsonHeadersWithCsrf } from "@/lib/csrf-client";
 import { defaultJurisdictionSlug } from "@/lib/marketing-links";
@@ -19,7 +19,6 @@ type Props = {
 };
 
 export function ChangePasswordForm({ showFullPageCopy = true, redirectFrom = null }: Props) {
-  const router = useRouter();
   const { user, refresh } = useSession();
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
@@ -93,7 +92,7 @@ export function ChangePasswordForm({ showFullPageCopy = true, redirectFrom = nul
         : "/rc-admin/dashboard";
 
       window.setTimeout(() => {
-        router.replace(destination);
+        hardNavigateTo(destination);
       }, 1800);
     } finally {
       setSubmitting(false);

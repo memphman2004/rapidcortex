@@ -19,6 +19,7 @@ export function SidebarHomeButton({
   return (
     <Link
       href={homeRoute}
+      prefetch={false}
       onClick={onNavigate}
       className={`mb-2 flex items-center gap-2.5 rounded-lg border border-slate-700/40 bg-slate-800/40 px-3 py-2 text-sm font-semibold text-slate-200 transition-colors hover:bg-slate-700/60 hover:text-white ${className}`}
     >

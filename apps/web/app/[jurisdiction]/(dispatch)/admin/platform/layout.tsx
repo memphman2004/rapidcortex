@@ -1,8 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
 import { useLayoutEffect } from "react";
+import { hardNavigateTo } from "@/lib/auth/postAuthRedirect";
 import { PlatformGate } from "@/components/platform/platform-gate";
 import { PlatformSidebar } from "@/components/platform/platform-sidebar";
 import { PlatformTopbar } from "@/components/platform/platform-topbar";
@@ -21,13 +22,12 @@ const mobileRoutes = [
 
 export default function PlatformLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname() ?? "";
-  const router = useRouter();
 
   const rcAdminTarget = mapJurisdictionPlatformPathToRcAdmin(pathname);
 
   useLayoutEffect(() => {
-    if (rcAdminTarget && rcAdminTarget !== pathname) router.replace(rcAdminTarget);
-  }, [pathname, router, rcAdminTarget]);
+    if (rcAdminTarget && rcAdminTarget !== pathname) hardNavigateTo(rcAdminTarget);
+  }, [pathname, rcAdminTarget]);
 
   if (rcAdminTarget && rcAdminTarget !== pathname) {
     return (
