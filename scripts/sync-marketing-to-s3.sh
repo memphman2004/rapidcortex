@@ -26,6 +26,8 @@ static_s3_write_build_manifest "${STATIC_DIR}" "${BUCKET}" "${REGION}"
 
 static_s3_verify_remote_deploy "${STATIC_DIR}" "${BUCKET}" "${REGION}" "${REQUIRED_ROUTES[@]}"
 
-static_s3_invalidate_cloudfront "${DIST_ID}" "${REGION}"
-
-echo "Marketing site synced, verified, and CloudFront invalidated."
+if static_s3_invalidate_cloudfront "${DIST_ID}" "${REGION}"; then
+  echo "Marketing site synced, verified, and CloudFront invalidated."
+else
+  echo "Marketing site synced and verified (S3 OK; CloudFront cache may be stale until invalidated)."
+fi

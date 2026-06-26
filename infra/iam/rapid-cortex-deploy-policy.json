@@ -40,6 +40,12 @@
         "arn:aws:ecs:REPLACE_REGION:REPLACE_ACCOUNT_ID:cluster/rapid-cortex-v2-web-prod",
         "arn:aws:ecs:REPLACE_REGION:REPLACE_ACCOUNT_ID:cluster/rapid-cortex-web-*"
       ]
+    },
+    {
+      "Sid": "MapboxTokenSsmRead",
+      "Effect": "Allow",
+      "Action": ["ssm:GetParameter"],
+      "Resource": "arn:aws:ssm:REPLACE_REGION:REPLACE_ACCOUNT_ID:parameter/rapidcortex/prod/mapbox/public-token"
     }
   ]
 }

@@ -54,11 +54,15 @@ if [[ "${ENVIRONMENT}" == "prod" && "${NEXT_PUBLIC_ENABLE_CAD_WRITEBACK:-}" == "
 fi
 
 if [[ "${ENVIRONMENT}" == "prod" ]]; then
+  # shellcheck source=scripts/lib/resolve-mapbox-token.sh
+  source "${ROOT}/scripts/lib/resolve-mapbox-token.sh"
+  resolve_mapbox_token || true
   _mapbox="${NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN:-}"
   if [[ -z "${_mapbox}" || "${_mapbox}" == "pk.REPLACE_WITH_REAL_TOKEN" ]]; then
     echo "ERROR: NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN must be set to a real Mapbox public token before prod deploy." >&2
-    echo "       source scripts/env-web-ssr-prod.sh after: export NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN=\"pk....\"" >&2
-    echo "       Or: sed -i '' 's|pk.REPLACE_WITH_REAL_TOKEN|pk.YOUR_TOKEN|' scripts/env-web-ssr-prod.sh" >&2
+    echo "       1) ADMIN_AWS_PROFILE=admin ./scripts/apply-rapid-cortex-deploy-iam.sh  # then source env-web-ssr-prod.sh" >&2
+    echo "       2) cp scripts/.deploy-secrets.local.example.sh scripts/.deploy-secrets.local.sh  # add pk. token" >&2
+    echo "       3) export NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN=\"pk....\"" >&2
     exit 1
   fi
   unset _mapbox
@@ -99,18 +103,35 @@ echo ""
 # --- Step 1: Preconditions ---
 echo "Step 1: Checking infrastructure…"
 
-if ! aws ecr describe-repositories \
+_ecr_err="$(
+  aws ecr describe-repositories \
+    --repository-names "${ECR_REPO_NAME}" \
+    --region "${AWS_REGION}" \
+    --no-cli-pager 2>&1 >/dev/null || true
+)"
+if aws ecr describe-repositories \
   --repository-names "${ECR_REPO_NAME}" \
   --region "${AWS_REGION}" \
   --no-cli-pager &>/dev/null; then
+  echo "✓ ECR repository exists (${ECR_REPO_NAME})"
+elif [[ "${_ecr_err}" == *AccessDenied* ]]; then
+  echo "⚠ ECR preflight skipped (missing ecr:DescribeRepositories) — continuing." >&2
+  echo "  Apply: ADMIN_AWS_PROFILE=admin ./scripts/apply-rapid-cortex-deploy-iam.sh" >&2
+else
   echo "❌ ECR repository not found: ${ECR_REPO_NAME}" >&2
   echo "   Deploy: aws cloudformation deploy --template-file infra/web-ecr.yaml \\" >&2
   echo "     --stack-name rapid-cortex-web-ecr-${ENVIRONMENT} --parameter-overrides Environment=${ENVIRONMENT} \\" >&2
   echo "     --capabilities CAPABILITY_IAM --region ${AWS_REGION}" >&2
   exit 1
 fi
-echo "✓ ECR repository exists (${ECR_REPO_NAME})"
+unset _ecr_err
 
+_cb_err="$(
+  aws codebuild batch-get-projects \
+    --names "${CODEBUILD_PROJECT}" \
+    --region "${AWS_REGION}" \
+    2>&1 >/dev/null || true
+)"
 cb_len="$(
   aws codebuild batch-get-projects \
     --names "${CODEBUILD_PROJECT}" \
@@ -118,14 +139,19 @@ cb_len="$(
     --query 'length(projects)' \
     --output text 2>/dev/null || echo 0
 )"
-if [[ "${cb_len:-0}" -lt 1 ]]; then
+if [[ "${cb_len:-0}" -ge 1 ]]; then
+  echo "✓ CodeBuild project exists (${CODEBUILD_PROJECT})"
+elif [[ "${_cb_err}" == *AccessDenied* ]]; then
+  echo "⚠ CodeBuild preflight skipped (missing codebuild:BatchGetProjects) — continuing." >&2
+  echo "  Apply: ADMIN_AWS_PROFILE=admin ./scripts/apply-rapid-cortex-deploy-iam.sh" >&2
+else
   echo "❌ CodeBuild project not found: ${CODEBUILD_PROJECT}" >&2
   echo "   Deploy: aws cloudformation deploy --template-file infra/web-pipeline-codebuild.yaml \\" >&2
   echo "     --stack-name ${PIPELINE_STACK} --parameter-overrides Environment=${ENVIRONMENT} \\" >&2
   echo "     --capabilities CAPABILITY_IAM --region ${AWS_REGION}" >&2
   exit 1
 fi
-echo "✓ CodeBuild project exists (${CODEBUILD_PROJECT})"
+unset _cb_err cb_len
 
 # --- Package + upload ---
 echo ""

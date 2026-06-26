@@ -198,8 +198,14 @@ static_s3_invalidate_cloudfront() {
   local dist_id="$1"
   local region="${2:-us-east-1}"
   echo "Invalidating CloudFront distribution ${dist_id} ..."
-  aws cloudfront create-invalidation \
+  if aws cloudfront create-invalidation \
     --distribution-id "${dist_id}" \
     --paths "/*" \
-    --region "${region}" >/dev/null
+    --region "${region}" >/dev/null 2>&1; then
+    return 0
+  fi
+  echo "WARN: CloudFront invalidation failed (likely missing cloudfront:CreateInvalidation)." >&2
+  echo "      S3 content is updated; edge cache may be stale until invalidated." >&2
+  echo "      Fix: ADMIN_AWS_PROFILE=admin ./scripts/apply-rapid-cortex-deploy-iam.sh --invalidate-marketing" >&2
+  return 1
 }

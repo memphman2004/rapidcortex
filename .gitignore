@@ -48,6 +48,7 @@ packages/desktop/.env.mapkit
 
 # Local SSR deploy helpers (contain/surface account identifiers; source only)
 scripts/env-web-ssr-*.sh
+scripts/.deploy-secrets.local.sh
 # Local API deploy env (account ARNs / stack output fetch; source only)
 scripts/env-api-dev.sh
 # Local macOS Developer ID + notarytool credentials (never commit)

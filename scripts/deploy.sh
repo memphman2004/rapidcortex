@@ -304,7 +304,29 @@ fi
 if [[ "${SAM_BUILD_IN_SOURCE}" == "1" ]]; then
   SAM_BUILD_CLI+=(--build-in-source)
 fi
-"${SAM_BUILD_CLI[@]}" || sam_build_failed=$?
+# SAM CLI writes build.toml under $HOME (not SAM_BUILD_DIR/TMPDIR). Redirect when boot volume is tight.
+_ORIG_HOME="${HOME:-}"
+if [[ -z "${SAM_CLI_HOME:-}" ]]; then
+  if [[ -d "/Volumes/Mac Mini" ]]; then
+    SAM_CLI_HOME="/Volumes/Mac Mini/.sam-cli-home"
+  else
+    SAM_CLI_HOME="${SAM_BUILD_DIR}/.sam-cli-home"
+  fi
+fi
+mkdir -p "${SAM_CLI_HOME}"
+_SAM_BUILD_ENV=(env HOME="${SAM_CLI_HOME}")
+if [[ -n "${_ORIG_HOME}" && -f "${_ORIG_HOME}/.aws/credentials" ]]; then
+  _SAM_BUILD_ENV+=(AWS_SHARED_CREDENTIALS_FILE="${_ORIG_HOME}/.aws/credentials")
+fi
+if [[ -n "${_ORIG_HOME}" && -f "${_ORIG_HOME}/.aws/config" ]]; then
+  _SAM_BUILD_ENV+=(AWS_CONFIG_FILE="${_ORIG_HOME}/.aws/config")
+fi
+if [[ -n "${TMPDIR:-}" ]]; then
+  _SAM_BUILD_ENV+=(TMPDIR="${TMPDIR}")
+fi
+echo "SAM CLI home (build.toml): ${SAM_CLI_HOME}"
+"${_SAM_BUILD_ENV[@]}" "${SAM_BUILD_CLI[@]}" || sam_build_failed=$?
+unset _ORIG_HOME _SAM_BUILD_ENV
 if [[ "$REVERT_API_PKG" -eq 1 ]]; then
   # The .pre-sam backup can disappear on long builds running on external/USB volumes
   # (observed 2026-05-26: 75-min build on Mac Mini USB-attached APFS volume — backup
