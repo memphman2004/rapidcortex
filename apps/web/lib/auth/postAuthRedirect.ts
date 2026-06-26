@@ -2,18 +2,26 @@ import type { AppRouterInstance } from "next/dist/shared/lib/app-router-context.
 
 /**
  * Central post-auth redirect helper with open-redirect protection.
- * Uses history-safe `replace` so auth pages are not kept in browser history.
+ * Defaults to a full document navigation so httpOnly session cookies are present
+ * on the first dashboard load (soft `router.replace` after sign-in can corrupt
+ * App Router RSC streams and surface the global "This page couldn't load" UI).
  */
 export function postAuthRedirect(
   router: AppRouterInstance,
   redirectParam?: string | null,
   defaultPath = "/dashboard",
+  opts?: { hard?: boolean },
 ): void {
-  if (redirectParam && isRelativePath(redirectParam)) {
-    router.replace(redirectParam);
+  const target =
+    redirectParam && isRelativePath(redirectParam) ? redirectParam : defaultPath;
+
+  const useHardNav = opts?.hard !== false && typeof window !== "undefined";
+  if (useHardNav) {
+    window.location.assign(target);
     return;
   }
-  router.replace(defaultPath);
+
+  router.replace(target);
 }
 
 function isRelativePath(path: string): boolean {

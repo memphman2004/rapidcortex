@@ -2,6 +2,7 @@ import type {
   VenueCamera,
   VenueCameraDiscoverResponse,
   VenueCameraUpsertBody,
+  VenueIncidentCameraSummary,
 } from "rapid-cortex-shared";
 import { venueKvsChannelName } from "rapid-cortex-shared";
 
@@ -16,7 +17,7 @@ export async function fetchVenueSectionCameras(
   sectionId: string,
   limit = 10,
   vertical: CameraApiVertical = "venue",
-) {
+): Promise<VenueIncidentCameraSummary[]> {
   const qs =
     vertical === "campus"
       ? new URLSearchParams({ building: sectionId, limit: String(limit) })
@@ -25,7 +26,7 @@ export async function fetchVenueSectionCameras(
     credentials: "include",
   });
   if (!res.ok) throw new Error(`Failed to load cameras (${res.status})`);
-  const body = (await res.json()) as { cameras?: unknown[] };
+  const body = (await res.json()) as { cameras?: VenueIncidentCameraSummary[] };
   return body.cameras ?? [];
 }
 

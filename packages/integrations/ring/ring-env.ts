@@ -30,6 +30,11 @@ export const ENABLE_CONNECT_RING_EMERGENCY_REQUESTS = parseBooleanFlag(
 export const RING_REDIRECT_URI =
   process.env.RING_REDIRECT_URI?.trim() ??
   "https://7c70vqd1p5.execute-api.us-east-1.amazonaws.com/api/integrations/ring/callback";
+
+/** OAuth redirect for citizen (non-staff) Ring linking — separate callback route. */
+export const RING_CITIZEN_REDIRECT_URI =
+  process.env.RING_CITIZEN_REDIRECT_URI?.trim() ??
+  RING_REDIRECT_URI.replace(/\/api\/integrations\/ring\/callback\/?$/, "/api/public/ring/oauth/callback");
 export const RING_ACCOUNT_LINK_URL =
   process.env.RING_ACCOUNT_LINK_URL?.trim() ??
   "https://www.rapidcortex.us/connect/ring/link";
@@ -69,6 +74,7 @@ export function assertRingEnvWhenEnabled(): void {
     process.env.RING_PARTNER_TOKEN_SECRET_ARN?.trim();
   requireNonEmpty("RING_CREDENTIALS_SECRET_ARN", credentialsArn);
   requireNonEmpty("RING_REDIRECT_URI", process.env.RING_REDIRECT_URI);
+  requireNonEmpty("RING_CITIZEN_REDIRECT_URI", process.env.RING_CITIZEN_REDIRECT_URI ?? RING_CITIZEN_REDIRECT_URI);
   requireNonEmpty("RING_ACCOUNT_LINK_URL", process.env.RING_ACCOUNT_LINK_URL);
   requireNonEmpty("RING_WEBHOOK_URL", process.env.RING_WEBHOOK_URL);
   requireNonEmpty("RING_SECRETS_PREFIX", process.env.RING_SECRETS_PREFIX);

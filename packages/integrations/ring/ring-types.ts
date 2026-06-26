@@ -102,6 +102,27 @@ export interface RingOAuthState {
   ringReturnUrl?: string | null;
 }
 
+/** Ephemeral OAuth state for citizen (non-Cognito) Ring linking. */
+export interface RingCitizenOAuthState {
+  agencyId: string;
+  nonce: string;
+  createdAt: number;
+  flow: "citizen";
+}
+
+export interface RingCitizenOwnerRecord {
+  pk: string;
+  ringAccountId: string;
+  agencyId: string;
+  name?: string;
+  phone?: string;
+  email?: string;
+  deviceIds: string[];
+  secretsManagerTokenKey: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
 export interface RingCameraListItem {
   deviceId: string;
   deviceName: string;

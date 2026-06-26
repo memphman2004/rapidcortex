@@ -24,4 +24,7 @@ export type CallIntelligenceLanguageRow = {
   providers?: { translation?: string[] };
 };
 
-export { CallerLanguageBar, CallLanguageSelectorBar } from "./caller-language-bar";
+export {
+  CallerLanguageBar,
+  CallerLanguageBar as CallLanguageSelectorBar,
+} from "./caller-language-bar";

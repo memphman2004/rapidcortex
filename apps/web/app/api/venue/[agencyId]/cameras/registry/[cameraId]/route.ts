@@ -8,7 +8,6 @@ export async function PUT(request: NextRequest, ctx: Ctx) {
   return proxyToAuthUpstream(
     request,
     `/api/venue/${encodeURIComponent(agencyId)}/cameras/registry/${encodeURIComponent(cameraId)}`,
-    { method: "PUT" },
   );
 }
 
@@ -17,6 +16,5 @@ export async function DELETE(request: NextRequest, ctx: Ctx) {
   return proxyToAuthUpstream(
     request,
     `/api/venue/${encodeURIComponent(agencyId)}/cameras/registry/${encodeURIComponent(cameraId)}`,
-    { method: "DELETE" },
   );
 }

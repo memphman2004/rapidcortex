@@ -541,6 +541,14 @@ Parameters:
   RingSecretsPrefix:
     Type: String
     Default: "rapid-cortex/connect/ring"
+  RingCitizenRedirectUri:
+    Type: String
+    Default: "https://7c70vqd1p5.execute-api.us-east-1.amazonaws.com/api/public/ring/oauth/callback"
+    Description: OAuth redirect URI for citizen (non-staff) Ring account linking.
+  RingCitizenOwnersTable:
+    Type: String
+    Default: ""
+    Description: Physical DynamoDB table for citizen Ring owners (RapidCortexRingCitizenOwners-{stage}).
   RingAccountsTable:
     Type: String
     Default: ""
@@ -826,6 +834,8 @@ Conditions:
   CreateManagedRingDevicesTable: !Not [!Condition HasRingDevicesTable]
   CreateManagedRingRequestsTable: !Not [!Condition HasRingRequestsTable]
   CreateManagedRingSessionsTable: !Not [!Condition HasRingSessionsTable]
+  HasRingCitizenOwnersTable: !Not [!Equals [!Ref RingCitizenOwnersTable, ""]]
+  CreateManagedRingCitizenOwnersTable: !Not [!Condition HasRingCitizenOwnersTable]
   HasVenueFacilitiesTable: !Not [!Equals [!Ref VenueFacilitiesTable, ""]]
   HasVenueCameraAccessLogTable: !Not [!Equals [!Ref VenueCameraAccessLogTable, ""]]
   HasVenueConfigTable: !Not [!Equals [!Ref VenueConfigTable, ""]]
@@ -1247,6 +1257,10 @@ Resources:
                   - HasRingSessionsTable
                   - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${RingSessionsTable}/index/*
                   - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/RingEmergencyCameraSessions-${DeploymentStage}/index/*
+                - !If
+                  - HasRingCitizenOwnersTable
+                  - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${RingCitizenOwnersTable}
+                  - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/RapidCortexRingCitizenOwners-${DeploymentStage}
                 - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${QASessionsTable}
                 - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${QASessionsTable}/index/*
                 - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${QATemplatesTable}
@@ -1751,6 +1765,105 @@ Resources:
                 - !Ref RingCredentialsSecretArn
                 - !Ref AWS::NoValue
 
+  AppManagedPolicyRingPublicOauthStart:
+    Type: AWS::IAM::ManagedPolicy
+    Properties:
+      ManagedPolicyName: !Sub "${Sam4ManagedPolicyNamePrefix}-sam4-lambda-ring-public-oauth-start-${DeploymentStage}"
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Sid: AgenciesReadForValidation
+            Effect: Allow
+            Action:
+              - dynamodb:GetItem
+            Resource:
+              - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${AgenciesTable}
+          - Sid: RingRequestsOAuthStateAndRateLimit
+            Effect: Allow
+            Action:
+              - dynamodb:GetItem
+              - dynamodb:PutItem
+              - dynamodb:UpdateItem
+              - dynamodb:DeleteItem
+            Resource:
+              - !If
+                - HasRingRequestsTable
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${RingRequestsTable}
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/RingEmergencyCameraRequests-${DeploymentStage}
+          - Sid: AuditWrite
+            Effect: Allow
+            Action:
+              - dynamodb:PutItem
+            Resource:
+              - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${AuditTable}
+          - Sid: RingCredentialsRead
+            Effect: Allow
+            Action:
+              - secretsmanager:GetSecretValue
+            Resource:
+              - !Sub arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:rapid-cortex/connect/ring-credentials-*
+              - !Sub arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:rapid-cortex/connect/ring-credentials-D3f1sN
+              - !If
+                - HasRingCredentialsSecretArn
+                - !Ref RingCredentialsSecretArn
+                - !Ref AWS::NoValue
+
+  AppManagedPolicyRingPublicOauthCallback:
+    Type: AWS::IAM::ManagedPolicy
+    Properties:
+      ManagedPolicyName: !Sub "${Sam4ManagedPolicyNamePrefix}-sam4-lambda-ring-public-oauth-callback-${DeploymentStage}"
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Sid: RingRequestsOAuthState
+            Effect: Allow
+            Action:
+              - dynamodb:GetItem
+              - dynamodb:DeleteItem
+            Resource:
+              - !If
+                - HasRingRequestsTable
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${RingRequestsTable}
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/RingEmergencyCameraRequests-${DeploymentStage}
+          - Sid: RingCitizenOwnersCrud
+            Effect: Allow
+            Action:
+              - dynamodb:GetItem
+              - dynamodb:PutItem
+              - dynamodb:UpdateItem
+            Resource:
+              - !If
+                - HasRingCitizenOwnersTable
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${RingCitizenOwnersTable}
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/RapidCortexRingCitizenOwners-${DeploymentStage}
+          - Sid: CitizenTokenSecrets
+            Effect: Allow
+            Action:
+              - secretsmanager:CreateSecret
+              - secretsmanager:GetSecretValue
+              - secretsmanager:PutSecretValue
+              - secretsmanager:UpdateSecret
+              - secretsmanager:DescribeSecret
+              - secretsmanager:TagResource
+            Resource: !Sub arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:${RingSecretsPrefix}/*/citizen/*
+          - Sid: AuditWrite
+            Effect: Allow
+            Action:
+              - dynamodb:PutItem
+            Resource:
+              - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${AuditTable}
+          - Sid: RingCredentialsRead
+            Effect: Allow
+            Action:
+              - secretsmanager:GetSecretValue
+            Resource:
+              - !Sub arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:rapid-cortex/connect/ring-credentials-*
+              - !Sub arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:rapid-cortex/connect/ring-credentials-D3f1sN
+              - !If
+                - HasRingCredentialsSecretArn
+                - !Ref RingCredentialsSecretArn
+                - !Ref AWS::NoValue
+
   AppManagedPolicyNestCameraSecrets:
     Type: AWS::IAM::ManagedPolicy
     Properties:
@@ -1797,6 +1910,24 @@ Resources:
               KeyType: HASH
           Projection:
             ProjectionType: ALL
+
+  ManagedRingCitizenOwnersTable:
+    Type: AWS::DynamoDB::Table
+    Condition: CreateManagedRingCitizenOwnersTable
+    Properties:
+      BillingMode: !Ref DynamoBillingMode
+      TableName: !Sub "RapidCortexRingCitizenOwners-${DeploymentStage}"
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: !If [DynamoPitrOn, true, false]
+      SSESpecification:
+        SSEEnabled: true
+        SSEType: KMS
+      AttributeDefinitions:
+        - AttributeName: pk
+          AttributeType: S
+      KeySchema:
+        - AttributeName: pk
+          KeyType: HASH
 
   ManagedRingDevicesTable:
     Type: AWS::DynamoDB::Table
@@ -2045,6 +2176,78 @@ Resources:
           Properties:
             ApiId: !Ref Api
             Path: /api/integrations/ring/callback
+            Method: GET
+            Auth:
+              Authorizer: NONE
+
+  RingPublicOauthStartFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/integrations/ring/public-oauth-start.handler
+      Timeout: 30
+      Environment:
+        Variables:
+          RING_CREDENTIALS_SECRET_ARN: !Ref RingCredentialsSecretArn
+          RING_PARTNERSHIP_ENABLED: !Ref RingPartnershipEnabled
+          ENABLE_CONNECT_RING: !Ref EnableConnectRing
+          RING_REDIRECT_URI: !Ref RingRedirectUri
+          RING_CITIZEN_REDIRECT_URI: !Ref RingCitizenRedirectUri
+          RING_ACCOUNT_LINK_URL: !Ref RingAccountLinkUrl
+          RING_SECRETS_PREFIX: !Ref RingSecretsPrefix
+          RING_TABLE_REQUESTS: !If
+            - HasRingRequestsTable
+            - !Ref RingRequestsTable
+            - !Sub "RingEmergencyCameraRequests-${DeploymentStage}"
+      Policies:
+        - !Ref AppManagedPolicyRingPublicOauthStart
+      Events:
+        Route:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/public/ring/oauth/start
+            Method: GET
+            Auth:
+              Authorizer: NONE
+
+  RingPublicOauthCallbackFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/integrations/ring/public-callback.handler
+      Timeout: 60
+      Environment:
+        Variables:
+          RING_CREDENTIALS_SECRET_ARN: !Ref RingCredentialsSecretArn
+          RING_PARTNERSHIP_ENABLED: !Ref RingPartnershipEnabled
+          ENABLE_CONNECT_RING: !Ref EnableConnectRing
+          RING_REDIRECT_URI: !Ref RingRedirectUri
+          RING_CITIZEN_REDIRECT_URI: !Ref RingCitizenRedirectUri
+          RING_ACCOUNT_LINK_URL: !Ref RingAccountLinkUrl
+          RING_SECRETS_PREFIX: !Ref RingSecretsPrefix
+          RING_TABLE_REQUESTS: !If
+            - HasRingRequestsTable
+            - !Ref RingRequestsTable
+            - !Sub "RingEmergencyCameraRequests-${DeploymentStage}"
+          RING_TABLE_CITIZEN_OWNERS: !If
+            - HasRingCitizenOwnersTable
+            - !Ref RingCitizenOwnersTable
+            - !Sub "RapidCortexRingCitizenOwners-${DeploymentStage}"
+      Policies:
+        - !Ref AppManagedPolicyRingPublicOauthCallback
+      Events:
+        Route:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/public/ring/oauth/callback
             Method: GET
             Auth:
               Authorizer: NONE

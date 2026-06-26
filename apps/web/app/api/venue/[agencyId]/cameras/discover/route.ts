@@ -8,6 +8,5 @@ export async function POST(request: NextRequest, ctx: Ctx) {
   return proxyToAuthUpstream(
     request,
     `/api/venue/${encodeURIComponent(agencyId)}/cameras/discover`,
-    { method: "POST" },
   );
 }

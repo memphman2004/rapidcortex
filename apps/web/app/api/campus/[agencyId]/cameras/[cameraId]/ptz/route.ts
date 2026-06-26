@@ -8,6 +8,5 @@ export async function POST(request: NextRequest, ctx: Ctx) {
   return proxyToAuthUpstream(
     request,
     `/api/campus/${encodeURIComponent(agencyId)}/cameras/${encodeURIComponent(cameraId)}/ptz`,
-    { method: "POST" },
   );
 }

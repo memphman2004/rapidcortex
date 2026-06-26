@@ -10,7 +10,5 @@ export async function GET(request: NextRequest, ctx: Ctx) {
 
 export async function POST(request: NextRequest, ctx: Ctx) {
   const { agencyId } = await ctx.params;
-  return proxyToAuthUpstream(request, `/api/campus/${encodeURIComponent(agencyId)}/cameras/registry`, {
-    method: "POST",
-  });
+  return proxyToAuthUpstream(request, `/api/campus/${encodeURIComponent(agencyId)}/cameras/registry`);
 }

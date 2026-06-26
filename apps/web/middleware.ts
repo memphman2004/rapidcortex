@@ -832,6 +832,23 @@ async function guardTransitDashboard(request: NextRequest): Promise<NextResponse
 }
 
 export async function middleware(request: NextRequest) {
+  try {
+    return await runMiddleware(request);
+  } catch (err) {
+    console.error(
+      JSON.stringify({
+        msg: "middleware_unhandled_error",
+        path: request.nextUrl.pathname,
+        error: err instanceof Error ? err.message : String(err),
+      }),
+    );
+    const login = resolveRedirectUrl(marketingLoginPath(), request);
+    login.searchParams.set("notice", "session");
+    return NextResponse.redirect(login);
+  }
+}
+
+async function runMiddleware(request: NextRequest) {
   const pathname = request.nextUrl.pathname;
 
   // ALB/ECS probes must not load the edge middleware graph (see matcher + node:crypto note below).

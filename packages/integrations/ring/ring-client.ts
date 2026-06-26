@@ -2,8 +2,29 @@ import type { LinkedRingDevice, RingDeviceType } from "./ring-types.js";
 import { RingAuthError, RingDeviceDiscoveryError } from "./ring-errors.js";
 
 const RING_CLIENT_API_BASE = "https://api.ring.com/clients_api";
+const RING_PARTNER_API_BASE = "https://api.amazonvision.com/v1";
 const MAX_RETRIES = 3;
 const INITIAL_RETRY_MS = 500;
+
+export type RingPartnerUserProfile = {
+  accountId: string;
+  firstName?: string;
+  lastName?: string;
+  email?: string;
+  phoneNumber?: string;
+};
+
+type RingPartnerUserResponse = {
+  data?: {
+    id?: string;
+    attributes?: {
+      first_name?: string;
+      last_name?: string;
+      email?: string;
+      phone_number?: string;
+    };
+  };
+};
 
 type RingDevicesResponse = {
   doorbots?: RingRawDevice[];
@@ -69,6 +90,26 @@ export class RingApiClient {
     return devices.find((d) => d.deviceId === deviceId) ?? null;
   }
 
+  /**
+   * Ring Partner Users API — stable account id (`data.id`) survives token rotation and re-link.
+   * @see https://developer.amazon.com/docs/ring/api-documentation.html
+   */
+  async getPartnerUserProfile(): Promise<RingPartnerUserProfile> {
+    const payload = await this.requestPartnerJson<RingPartnerUserResponse>("GET", "/users/me");
+    const accountId = payload.data?.id?.trim();
+    if (!accountId) {
+      throw new RingAuthError("Ring partner API did not return account id");
+    }
+    const attrs = payload.data?.attributes;
+    return {
+      accountId,
+      firstName: attrs?.first_name?.trim() || undefined,
+      lastName: attrs?.last_name?.trim() || undefined,
+      email: attrs?.email?.trim() || undefined,
+      phoneNumber: attrs?.phone_number?.trim() || undefined,
+    };
+  }
+
   private mapRawDevice(device: RingRawDevice, now: string): LinkedRingDevice | null {
     const id = device.id ?? device.device_id;
     if (id === undefined || id === null || id === "") return null;
@@ -91,8 +132,21 @@ export class RingApiClient {
     };
   }
 
+  private async requestPartnerJson<T>(method: string, path: string): Promise<T> {
+    const url = `${RING_PARTNER_API_BASE}${path.startsWith("/") ? path : `/${path}`}`;
+    return this.requestJsonAtUrl<T>(method, url, "ring_partner_api_request");
+  }
+
   private async requestJson<T>(method: string, path: string): Promise<T> {
     const url = `${RING_CLIENT_API_BASE}${path.startsWith("/") ? path : `/${path}`}`;
+    return this.requestJsonAtUrl<T>(method, url, "ring_api_request");
+  }
+
+  private async requestJsonAtUrl<T>(
+    method: string,
+    url: string,
+    logMsg: "ring_api_request" | "ring_partner_api_request",
+  ): Promise<T> {
     let attempt = 0;
     let delayMs = INITIAL_RETRY_MS;
 
@@ -105,9 +159,10 @@ export class RingApiClient {
         },
       });
 
+      const path = new URL(url).pathname;
       console.log(
         JSON.stringify({
-          msg: "ring_api_request",
+          msg: logMsg,
           method,
           path,
           status: response.status,

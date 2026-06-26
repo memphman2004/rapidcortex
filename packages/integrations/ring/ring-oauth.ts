@@ -1,8 +1,8 @@
 import { randomBytes, timingSafeEqual } from "node:crypto";
-import type { RingOAuthState, RingOAuthTokens } from "./ring-types.js";
+import type { RingCitizenOAuthState, RingOAuthState, RingOAuthTokens } from "./ring-types.js";
 import { RingAuthError, RingTokenExpiredError } from "./ring-errors.js";
 import { getRingCredentials } from "./ring-credentials.js";
-import { RING_REDIRECT_URI } from "./ring-env.js";
+import { RING_CITIZEN_REDIRECT_URI, RING_REDIRECT_URI } from "./ring-env.js";
 import { RingTokenStore } from "./ring-token-store.js";
 
 const RING_AUTHORIZE_URL = "https://oauth.ring.com/oauth2/authorize";
@@ -75,6 +75,12 @@ function parseOAuthState(encoded: string): RingOAuthState {
   return { agencyId, userId, nonce, createdAt, ringReturnUrl };
 }
 
+function assertCitizenStateFresh(createdAt: number): void {
+  if (Date.now() - createdAt > STATE_MAX_AGE_MS) {
+    throw new RingAuthError("Ring OAuth state expired");
+  }
+}
+
 type RingTokenResponse = {
   access_token?: string;
   refresh_token?: string;
@@ -130,6 +136,28 @@ export class RingOAuthService {
     };
   }
 
+  async buildCitizenAuthorizationUrl(agencyId: string): Promise<{ url: string; state: string }> {
+    const { clientId } = await getRingCredentials();
+    const statePayload: RingCitizenOAuthState = {
+      agencyId,
+      nonce: randomBytes(32).toString("hex"),
+      createdAt: Date.now(),
+      flow: "citizen",
+    };
+    const state = toBase64Url(JSON.stringify(statePayload));
+    const params = new URLSearchParams({
+      client_id: clientId,
+      redirect_uri: RING_CITIZEN_REDIRECT_URI,
+      response_type: "code",
+      scope: "client",
+      state,
+    });
+    return {
+      url: `${RING_AUTHORIZE_URL}?${params.toString()}`,
+      state,
+    };
+  }
+
   async exchangeCode(
     code: string,
     incomingState: string,
@@ -149,6 +177,29 @@ export class RingOAuthService {
       grant_type: "authorization_code",
       code,
       redirect_uri: RING_REDIRECT_URI,
+      client_id: clientId,
+      client_secret: clientSecret,
+    });
+
+    return this.postTokenEndpoint(body);
+  }
+
+  async exchangeCitizenCode(
+    code: string,
+    incomingState: string,
+    storedState: string,
+    createdAt: number,
+  ): Promise<RingOAuthTokens> {
+    if (!statesMatch(incomingState, storedState)) {
+      throw new RingAuthError("Ring OAuth state mismatch");
+    }
+    assertCitizenStateFresh(createdAt);
+
+    const { clientId, clientSecret } = await getRingCredentials();
+    const body = new URLSearchParams({
+      grant_type: "authorization_code",
+      code,
+      redirect_uri: RING_CITIZEN_REDIRECT_URI,
       client_id: clientId,
       client_secret: clientSecret,
     });

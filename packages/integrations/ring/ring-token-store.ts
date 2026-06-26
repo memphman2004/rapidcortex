@@ -16,6 +16,10 @@ function secretName(agencyId: string, userId: string): string {
   return `${RING_SECRETS_PREFIX}/${agencyId}/${userId}`;
 }
 
+function citizenSecretName(agencyId: string, ringAccountId: string): string {
+  return `${RING_SECRETS_PREFIX}/${agencyId}/citizen/${encodeURIComponent(ringAccountId)}`;
+}
+
 function parseStoredTokens(raw: string): RingOAuthTokens {
   let parsed: unknown;
   try {
@@ -84,6 +88,49 @@ export class RingTokenStore {
             { Key: "AgencyId", Value: agencyId },
             { Key: "UserId", Value: userId },
             { Key: "Service", Value: "rapid-cortex-ring" },
+          ],
+        }),
+      );
+    }
+
+    return name;
+  }
+
+  async storeCitizenTokens(
+    agencyId: string,
+    ringAccountId: string,
+    tokens: RingOAuthTokens,
+  ): Promise<string> {
+    const name = citizenSecretName(agencyId, ringAccountId);
+    const secretString = serializeTokens(tokens);
+    const kmsKeyId = RING_KMS_KEY_ID || undefined;
+
+    try {
+      await this.client.send(
+        new DescribeSecretCommand({
+          SecretId: name,
+        }),
+      );
+      await this.client.send(
+        new UpdateSecretCommand({
+          SecretId: name,
+          SecretString: secretString,
+          ...(kmsKeyId ? { KmsKeyId: kmsKeyId } : {}),
+        }),
+      );
+    } catch (err) {
+      if (!(err instanceof ResourceNotFoundException)) {
+        throw err;
+      }
+      await this.client.send(
+        new CreateSecretCommand({
+          Name: name,
+          SecretString: secretString,
+          ...(kmsKeyId ? { KmsKeyId: kmsKeyId } : {}),
+          Tags: [
+            { Key: "AgencyId", Value: agencyId },
+            { Key: "RingAccountId", Value: ringAccountId },
+            { Key: "Service", Value: "rapid-cortex-ring-citizen" },
           ],
         }),
       );

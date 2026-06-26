@@ -5,7 +5,5 @@ type Ctx = { params: Promise<{ agencyId: string }> };
 
 export async function POST(request: NextRequest, ctx: Ctx) {
   const { agencyId } = await ctx.params;
-  return proxyToAuthUpstream(request, `/api/campus/${encodeURIComponent(agencyId)}/cameras/discover`, {
-    method: "POST",
-  });
+  return proxyToAuthUpstream(request, `/api/campus/${encodeURIComponent(agencyId)}/cameras/discover`);
 }

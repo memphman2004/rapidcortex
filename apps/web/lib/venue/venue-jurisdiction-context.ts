@@ -44,6 +44,6 @@ export async function loadVenueJurisdictionContext(jurisdiction: string) {
     agencyId: jurisdiction,
     venueCode,
     venueName,
-    linkBase: `/${jurisdiction}`,
+    linkBase: `/${jurisdiction}/venue`,
   };
 }

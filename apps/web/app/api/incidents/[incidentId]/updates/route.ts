@@ -10,7 +10,5 @@ export async function GET(request: NextRequest, ctx: Ctx) {
 
 export async function POST(request: NextRequest, ctx: Ctx) {
   const { incidentId } = await ctx.params;
-  return proxyToAuthUpstream(request, `/api/incidents/${encodeURIComponent(incidentId)}/updates`, {
-    method: "POST",
-  });
+  return proxyToAuthUpstream(request, `/api/incidents/${encodeURIComponent(incidentId)}/updates`);
 }

@@ -54,8 +54,6 @@ export function mapIncidentStatus(status: CampusIncident["status"]): string {
     case "referred":
     case "escalated":
       return "CLOSED";
-    default:
-      return status.toUpperCase();
   }
 }
 

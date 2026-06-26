@@ -135,7 +135,7 @@ export function OnboardingChecklistClient({ vertical, orgCode, agencyId }: Props
                 onBlur={() => {
                   const note = notes[stepId]?.trim();
                   if (note === (data?.notesByStep?.[stepId] ?? "")) return;
-                  const patch = { notesByStep: { [stepId]: note || undefined } };
+                  const patch = { notesByStep: { [stepId]: note ?? "" } };
                   void (vertical === "campus"
                     ? patchCampusChecklist({ orgCode, agencyId }, patch)
                     : patchVenueChecklist({ orgCode, agencyId }, patch)

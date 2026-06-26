@@ -26,6 +26,10 @@ export const RING_AUDIT_EVENT_TYPES = {
   RING_CAMERA_SESSION_STARTED: "ring.camera.session_started",
   RING_CAMERA_SESSION_REVOKED: "ring.camera.session_revoked",
   RING_CAMERA_SESSION_EXPIRED: "ring.camera.session_expired",
+
+  // Ring Connect — citizen (non-Cognito) doorbell owner linking
+  RING_CITIZEN_OAUTH_INITIATED: "ring.citizen.oauth.initiated",
+  RING_CITIZEN_ACCOUNT_LINKED: "ring.citizen.account.linked",
 } as const;
 
 export type RingAuditEventTypeName =
