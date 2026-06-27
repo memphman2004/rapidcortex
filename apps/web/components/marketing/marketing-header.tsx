@@ -36,6 +36,7 @@ export function getMarketingMobileDrawerLinkDefs(): readonly { label: string; hr
     { label: "Home", href: marketingHomePath() },
     { label: "Features", href: marketingSolutionsAgenciesPath() },
     { label: "Pricing", href: marketingPricingPath() },
+    { label: "Blog", href: "/blog" },
     { label: "Demo", href: marketingDemoPath() },
     { label: "Contact", href: marketingContactPath() },
   ] as const;
@@ -203,6 +204,12 @@ export function MarketingHeader() {
                       className="shrink-0 rounded-lg px-2 py-2 text-sm font-medium text-slate-200 transition-colors hover:bg-slate-800/70 hover:text-white lg:px-2.5"
                     >
                       Pricing
+                    </Link>
+                    <Link
+                      href="/blog"
+                      className="shrink-0 rounded-lg px-2 py-2 text-sm font-medium text-slate-300 transition-colors hover:bg-slate-800/70 hover:text-white lg:px-2.5"
+                    >
+                      Blog
                     </Link>
                     <Link
                       href={demo}
