@@ -52,7 +52,7 @@ export default function MarketingContactPage() {
         <li>
           <strong>Book a demo</strong>:{" "}
           <MarketingBookAppointmentLink className="font-medium">
-            Request a demo (contact form)
+            Schedule on Microsoft Outlook
           </MarketingBookAppointmentLink>
         </li>
         <li>

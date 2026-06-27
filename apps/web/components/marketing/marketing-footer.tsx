@@ -6,6 +6,7 @@ import {
   isRcLiteMarketingEnabled,
 } from "@/lib/marketing-feature-flags";
 import { MarketingBookAppointmentLink } from "@/components/marketing/marketing-book-appointment-link";
+import { MarketingOpenAppLink } from "@/components/marketing/marketing-open-app-link";
 import {
   marketingDownloadsPath,
   marketingDevelopersRestApiDocsPath,
@@ -25,7 +26,9 @@ import {
   marketingPricingPath,
   marketingPrivacyPath,
   marketingSecurityPath,
+  marketingSolutionsVendorsPath,
   marketingTermsPath,
+  marketingVenuePath,
 } from "@/lib/marketing-links";
 import {
   SITE_NAME,
@@ -48,7 +51,7 @@ function FooterSectionTitle({ id, children }: { id: string; children: ReactNode 
   );
 }
 
-/** Grouped footer for public marketing — no direct installer URLs; console login hidden on narrow viewports. */
+/** Grouped footer for public marketing — product depth links consolidated here. */
 export function MarketingFooter() {
   const login = marketingLoginPath();
   const home = marketingHomePath();
@@ -61,6 +64,8 @@ export function MarketingFooter() {
   const security = marketingSecurityPath();
   const contact = marketingContactPath();
   const desktop = marketingDesktopPath();
+  const venue = marketingVenuePath();
+  const solutions = marketingSolutionsVendorsPath();
   const externalStatusHref = process.env.NEXT_PUBLIC_EXTERNAL_STATUS_PAGE_URL?.trim() || "";
 
   const rcLiteHref = marketingRcLitePath();
@@ -76,7 +81,6 @@ export function MarketingFooter() {
     <footer className="safe-bottom border-t border-slate-800/90 bg-[#030712] py-6 text-xs text-slate-400 sm:py-7">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-12 lg:gap-5">
-          {/* Brand */}
           <div className="space-y-2 lg:col-span-3 xl:col-span-3">
             <SiteLogoLink
               href={home}
@@ -103,7 +107,60 @@ export function MarketingFooter() {
             </p>
           </div>
 
-          <div className="grid grid-cols-2 gap-x-4 gap-y-5 xs:grid-cols-3 sm:grid-cols-3 lg:col-span-9 lg:grid-cols-5 lg:gap-x-5 lg:gap-y-4 xl:col-span-9">
+          <div className="grid grid-cols-2 gap-x-4 gap-y-5 xs:grid-cols-3 sm:grid-cols-3 lg:col-span-9 lg:grid-cols-3 lg:gap-x-5 lg:gap-y-4 xl:grid-cols-6 xl:col-span-9">
+            <nav className="min-w-0" aria-labelledby="footer-product-heading">
+              <FooterSectionTitle id="footer-product-heading">Product</FooterSectionTitle>
+              <ul className="mt-1.5 space-y-0.5">
+                <li>
+                  <Link href={venue} className={FOOTER_FOCUS_LINK_CLASS}>
+                    Venue
+                  </Link>
+                </li>
+                <li>
+                  <Link href={solutions} className={FOOTER_FOCUS_LINK_CLASS}>
+                    Solutions
+                  </Link>
+                </li>
+                {isRcLiteMarketingEnabled() ? (
+                  <li>
+                    <Link href={rcLiteHref} className={FOOTER_FOCUS_LINK_CLASS}>
+                      RC Lite
+                    </Link>
+                  </li>
+                ) : null}
+                <li>
+                  <Link href={devHubHref} className={FOOTER_FOCUS_LINK_CLASS}>
+                    Developers
+                  </Link>
+                </li>
+                <li>
+                  <Link href={apiDocsHref} className={FOOTER_FOCUS_LINK_CLASS}>
+                    API docs
+                  </Link>
+                </li>
+                {isDownloadsMarketingEnabled() ? (
+                  <li>
+                    <Link href={downloadsHref} className={FOOTER_FOCUS_LINK_CLASS}>
+                      Downloads
+                    </Link>
+                  </li>
+                ) : null}
+                <li>
+                  <Link href={desktop} className={FOOTER_FOCUS_LINK_CLASS}>
+                    Desktop
+                  </Link>
+                </li>
+                <li>
+                  <Link href={security} className={FOOTER_FOCUS_LINK_CLASS}>
+                    Security
+                  </Link>
+                </li>
+                <li>
+                  <MarketingOpenAppLink className={FOOTER_FOCUS_LINK_CLASS}>Open App</MarketingOpenAppLink>
+                </li>
+              </ul>
+            </nav>
+
             <nav className="min-w-0" aria-labelledby="footer-company-heading">
               <FooterSectionTitle id="footer-company-heading">Company</FooterSectionTitle>
               <ul className="mt-1.5 space-y-0.5">
@@ -133,36 +190,12 @@ export function MarketingFooter() {
                     CAD Integration
                   </Link>
                 </li>
-                <li className="hidden md:list-item">
-                  <Link href={desktop} className={FOOTER_FOCUS_LINK_CLASS}>
-                    Desktop
-                  </Link>
-                </li>
-                {isDownloadsMarketingEnabled() ? (
-                  <li className="hidden md:list-item">
-                    <Link href={downloadsHref} className={FOOTER_FOCUS_LINK_CLASS}>
-                      Downloads
-                    </Link>
-                  </li>
-                ) : null}
-                {isRcLiteMarketingEnabled() ? (
-                  <li className="hidden md:list-item">
-                    <Link href={rcLiteHref} className={FOOTER_FOCUS_LINK_CLASS}>
-                      RC Lite
-                    </Link>
-                  </li>
-                ) : null}
               </ul>
             </nav>
 
             <nav className="min-w-0" aria-labelledby="footer-resources-heading">
               <FooterSectionTitle id="footer-resources-heading">Resources</FooterSectionTitle>
               <ul className="mt-1.5 space-y-0.5">
-                <li>
-                  <Link href={security} className={FOOTER_FOCUS_LINK_CLASS}>
-                    Security
-                  </Link>
-                </li>
                 <li>
                   {externalStatusHref ? (
                     <a href={externalStatusHref} className={FOOTER_FOCUS_LINK_CLASS} target="_blank" rel="noopener noreferrer">
@@ -184,12 +217,7 @@ export function MarketingFooter() {
                     Book appointment
                   </MarketingBookAppointmentLink>
                 </li>
-                <li className="hidden md:list-item">
-                  <Link href={apiDocsHref} className={FOOTER_FOCUS_LINK_CLASS}>
-                    API Docs
-                  </Link>
-                </li>
-                <li className="hidden md:list-item">
+                <li>
                   <Link href={developerGuidesHref} className={FOOTER_FOCUS_LINK_CLASS}>
                     Developer Guides
                   </Link>

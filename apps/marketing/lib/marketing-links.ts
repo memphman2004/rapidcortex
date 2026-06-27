@@ -74,7 +74,15 @@ export function marketingContactSalesPath(): string {
   return "/contact-sales";
 }
 
-export const MARKETING_CALENDLY_DEMO_URL = "https://calendly.com/rapidcortex/demo";
+export const MARKETING_BOOK_APPOINTMENT_URL =
+  "https://outlook.office.com/book/RapidCortex@rapidcortex.us/?ismsaljsauthenabled";
+
+/** @deprecated Use {@link MARKETING_BOOK_APPOINTMENT_URL}. */
+export const MARKETING_CALENDLY_DEMO_URL = MARKETING_BOOK_APPOINTMENT_URL;
+
+export function marketingBookAppointmentUrl(): string {
+  return MARKETING_BOOK_APPOINTMENT_URL;
+}
 
 export function marketingDemoRequestPath(interest?: string): string {
   const base = marketingContactSalesPath();
@@ -82,12 +90,13 @@ export function marketingDemoRequestPath(interest?: string): string {
   return `${base}?interest=${encodeURIComponent(interest.trim())}`;
 }
 
+/** @deprecated Use {@link marketingBookAppointmentUrl}. */
 export function marketingCalendlyDemoUrl(): string {
-  return marketingDemoRequestPath("demo");
+  return marketingBookAppointmentUrl();
 }
 
 export function marketingBookDemoPath(): string {
-  return marketingDemoRequestPath("demo");
+  return marketingBookAppointmentUrl();
 }
 
 export function marketingRcLitePath(): string {

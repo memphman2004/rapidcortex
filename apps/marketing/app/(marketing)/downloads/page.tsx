@@ -2,7 +2,7 @@ import Link from "next/link";
 import type { Metadata } from "next";
 
 import {
-  marketingDemoRequestPath,
+  marketingBookAppointmentUrl,
   marketingContactPath,
   marketingDevelopersRestApiDocsPath,
   marketingLoginPath,
@@ -117,12 +117,14 @@ export default function DownloadsPage() {
             <p className="mt-4 text-sm leading-relaxed text-slate-400">
               Authorized agency users can access the secure Rapid Cortex console from approved desktop workstations.
             </p>
-            <Link
-              href={marketingDemoRequestPath("demo")}
+            <a
+              href={marketingBookAppointmentUrl()}
+              target="_blank"
+              rel="noopener noreferrer"
               className="mt-6 inline-flex rounded-md bg-sky-600 px-8 py-3 text-sm font-semibold text-white hover:bg-sky-500 md:hidden"
             >
               Request a demo
-            </Link>
+            </a>
             <Link
               href={CUSTOMER_LOGIN_PATH}
               className="mt-6 hidden rounded-md bg-sky-600 px-8 py-3 text-sm font-semibold text-white hover:bg-sky-500 md:inline-flex"

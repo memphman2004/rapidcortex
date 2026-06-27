@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { marketingContactSalesPath, marketingDemoRequestPath } from "@/lib/marketing-links";
+import { marketingContactSalesPath, marketingBookAppointmentUrl } from "@/lib/marketing-links";
 import { usePricingDemoModal } from "./pricing-demo-modal-context";
 
 export function PricingHeroCtas() {
@@ -9,12 +9,14 @@ export function PricingHeroCtas() {
 
   return (
     <div className="mt-8 flex w-full flex-col gap-3 sm:mt-10 sm:flex-row sm:flex-wrap sm:items-center">
-      <Link
-        href={marketingDemoRequestPath("demo")}
+      <a
+        href={marketingBookAppointmentUrl()}
+        target="_blank"
+        rel="noopener noreferrer"
         className="inline-flex min-h-12 w-full items-center justify-center rounded-lg bg-sky-600 px-6 py-3 text-base font-semibold text-white shadow-lg shadow-sky-950/25 transition hover:bg-sky-500 sm:w-auto sm:text-sm md:hidden"
       >
         Request a demo
-      </Link>
+      </a>
       <button
         type="button"
         onClick={openDemo}

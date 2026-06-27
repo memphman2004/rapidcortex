@@ -68,7 +68,7 @@ const PRODUCTION_CONNECT_FALLBACK_APIS = [
 
 /** Third‑party embeds used on `/contact-sales` and similar pages (iframes + loader scripts). */
 const FORM_EMBED_SCRIPT_HOSTS =
-  "https://tally.so https://*.tally.so https://*.hubspot.com https://*.hsforms.com https://*.hs-scripts.com https://*.typeform.com https://*.calendly.com https://assets.calendly.com https://www.googletagmanager.com";
+  "https://tally.so https://*.tally.so https://*.hubspot.com https://*.hsforms.com https://*.hs-scripts.com https://*.typeform.com https://www.googletagmanager.com";
 
 const YOUTUBE_EMBED_FRAME_SRC = [
   "https://www.youtube.com",
@@ -95,8 +95,6 @@ const FORM_EMBED_FRAME_SRC = [
   "https://*.hsforms.com",
   "https://*.typeform.com",
   "https://embed.typeform.com",
-  "https://*.calendly.com",
-  "https://assets.calendly.com",
 ].join(" ");
 
 /** Hosts loaders may POST/GET besides existing allowlisted origins. */
@@ -107,8 +105,6 @@ const FORM_EMBED_CONNECT_HOSTS = [
   "https://*.hsforms.com",
   "https://*.hs-scripts.com",
   "https://*.typeform.com",
-  "https://*.calendly.com",
-  "https://assets.calendly.com",
 ];
 
 function collectConnectOrigins() {
@@ -209,7 +205,12 @@ const nextConfig = {
     return [
       { source: "/intelligence-api", destination: "/rc-lite", permanent: true },
       { source: "/api", destination: "/developers/api", permanent: false },
-      { source: "/book-demo", destination: "/contact-sales?interest=demo", permanent: false },
+      {
+        source: "/book-demo",
+        destination:
+          "https://outlook.office.com/book/RapidCortex@rapidcortex.us/?ismsaljsauthenabled",
+        permanent: false,
+      },
       // Legacy RBAC route naming — preserve deep links during Cognito/UI migration (see docs).
       { source: "/superadmin", destination: "/rc-admin", permanent: false },
       { source: "/superadmin/:path*", destination: "/rc-admin/:path*", permanent: false },

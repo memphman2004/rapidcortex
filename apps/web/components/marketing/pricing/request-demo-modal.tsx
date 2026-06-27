@@ -2,8 +2,7 @@
 
 import { useEffect, useId, useState } from "react";
 import { createPortal } from "react-dom";
-import Link from "next/link";
-import { marketingDemoRequestPath } from "@/lib/marketing-links";
+import { marketingBookAppointmentUrl } from "@/lib/marketing-links";
 import { PRICING_DEMO_MAILTO } from "@/lib/marketing/pricing-content";
 import { SITE_NAME } from "@/lib/site";
 
@@ -67,17 +66,19 @@ export function RequestDemoModal({
           Request a demo
         </h2>
         <p className="mt-3 text-sm leading-relaxed text-slate-400">
-          Share your agency context with the {SITE_NAME} team. We will follow up to schedule a
-          tailored walkthrough—no public card checkout, no surprise scope.
+          Book a live walkthrough on Microsoft Outlook or share agency context with the {SITE_NAME}{" "}
+          team—we scope each deployment; no public card checkout.
         </p>
         <div className="mt-6 flex flex-col gap-3 sm:flex-row">
-          <Link
-            href={marketingDemoRequestPath("demo")}
+          <a
+            href={marketingBookAppointmentUrl()}
+            target="_blank"
+            rel="noopener noreferrer"
             className="inline-flex flex-1 items-center justify-center rounded-lg bg-sky-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-sky-500"
             onClick={onClose}
           >
-            Submit demo request
-          </Link>
+            Book appointment
+          </a>
           <a
             href={PRICING_DEMO_MAILTO}
             className="inline-flex flex-1 items-center justify-center rounded-lg border border-slate-600 px-4 py-2.5 text-sm font-medium text-slate-200 hover:border-slate-500"

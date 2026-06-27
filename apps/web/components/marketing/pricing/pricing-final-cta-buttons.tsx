@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { marketingContactSalesPath, marketingDemoRequestPath } from "@/lib/marketing-links";
+import { marketingContactSalesPath, marketingBookAppointmentUrl } from "@/lib/marketing-links";
 import { usePricingDemoModal } from "./pricing-demo-modal-context";
 
 export function PricingFinalCtaButtons() {
@@ -9,12 +9,14 @@ export function PricingFinalCtaButtons() {
 
   return (
     <div className="flex w-full max-w-md flex-col gap-3 sm:mx-auto sm:flex-row sm:justify-center">
-      <Link
-        href={marketingDemoRequestPath("demo")}
+      <a
+        href={marketingBookAppointmentUrl()}
+        target="_blank"
+        rel="noopener noreferrer"
         className="inline-flex min-h-[44px] flex-1 items-center justify-center rounded-lg bg-sky-600 px-6 py-3 text-sm font-semibold text-white shadow-md shadow-sky-950/30 transition hover:bg-sky-500 md:hidden"
       >
         Request a demo
-      </Link>
+      </a>
       <button
         type="button"
         onClick={openDemo}

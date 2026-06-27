@@ -42,12 +42,14 @@ export default function MobileAccessRestrictedPage() {
           >
             Return to Rapid Cortex
           </Link>
-          <Link
+          <a
             href={demo}
+            target="_blank"
+            rel="noopener noreferrer"
             className="rounded-md border border-slate-700 px-5 py-2.5 text-center text-sm font-medium text-slate-200 hover:border-slate-500 hover:text-white"
           >
             Book a Demo
-          </Link>
+          </a>
         </div>
       </div>
     </div>

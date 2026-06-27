@@ -103,9 +103,11 @@ describe("MarketingHeader", () => {
 
     const dialog = await screen.findByRole("dialog");
     const book = within(dialog).getByRole("link", { name: /^Request a demo$/ });
-    expect(book.getAttribute("href")).toBe("/contact-sales?interest=demo");
+    expect(book.getAttribute("href")).toBe(
+      "https://outlook.office.com/book/RapidCortex@rapidcortex.us/?ismsaljsauthenabled",
+    );
     expect(within(dialog).queryByRole("link", { name: /^Sign in$/ })).toBeNull();
-    expect(within(dialog).getByRole("link", { name: /^Open app$/ }).getAttribute("href")).toBe("/login");
+    expect(within(dialog).queryByRole("link", { name: /^Open app$/ })).toBeNull();
 
     expect(within(dialog).getByRole("link", { name: /^Home$/ }).getAttribute("href")).toBe("/");
     expect(within(dialog).getByRole("link", { name: /^Features$/ }).getAttribute("href")).toBe("/solutions/agencies");
@@ -123,6 +125,6 @@ describe("MarketingHeader", () => {
     fireEvent.click(screen.getByRole("button", { name: /^Open navigation menu$/ }));
 
     expect(await screen.findByText(/Intelligence at the speed of response/i)).toBeTruthy();
-    expect(screen.getByText(/demo request form/i)).toBeTruthy();
+    expect(screen.getByText(/Microsoft Outlook/i)).toBeTruthy();
   });
 });

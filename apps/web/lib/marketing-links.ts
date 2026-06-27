@@ -85,11 +85,16 @@ export function marketingContactSalesPath(): string {
   return "/contact-sales";
 }
 
-/**
- * Calendly is sent manually after a demo/sales form submission is reviewed — not linked from public CTAs.
- * @internal
- */
-export const MARKETING_CALENDLY_DEMO_URL = "https://calendly.com/rapidcortex/demo";
+/** Microsoft Bookings — public demo / appointment scheduling. */
+export const MARKETING_BOOK_APPOINTMENT_URL =
+  "https://outlook.office.com/book/RapidCortex@rapidcortex.us/?ismsaljsauthenabled";
+
+/** @deprecated Use {@link MARKETING_BOOK_APPOINTMENT_URL}. */
+export const MARKETING_CALENDLY_DEMO_URL = MARKETING_BOOK_APPOINTMENT_URL;
+
+export function marketingBookAppointmentUrl(): string {
+  return MARKETING_BOOK_APPOINTMENT_URL;
+}
 
 /** Public demo / sales intake form (same-origin). */
 export function marketingDemoRequestPath(interest?: string): string {
@@ -98,14 +103,14 @@ export function marketingDemoRequestPath(interest?: string): string {
   return `${base}?interest=${encodeURIComponent(interest.trim())}`;
 }
 
-/** @deprecated Use {@link marketingDemoRequestPath} — kept for incremental import renames. */
+/** @deprecated Use {@link marketingBookAppointmentUrl}. */
 export function marketingCalendlyDemoUrl(): string {
-  return marketingDemoRequestPath("demo");
+  return marketingBookAppointmentUrl();
 }
 
 /** `/book-demo` redirects here in `next.config.mjs`. */
 export function marketingBookDemoPath(): string {
-  return marketingDemoRequestPath("demo");
+  return marketingBookAppointmentUrl();
 }
 
 export function marketingRcLitePath(): string {
