@@ -25,6 +25,11 @@
     "paths": {
       "@/lib/site": ["./lib/site.ts"],
       "@/lib/seo": ["./lib/seo.ts"],
+      "@/lib/blog": ["./lib/blog"],
+      "@/lib/blog/*": ["./lib/blog/*"],
+      "@/components/blog": ["./components/blog"],
+      "@/components/blog/*": ["./components/blog/*"],
+      "@/lib/site/footer-nav": ["./lib/site/footer-nav.ts"],
       "@/lib/marketing-links": ["./lib/marketing-links.ts"],
       "@/lib/deployment-environment": ["./lib/deployment-environment.ts"],
       "@/components/auth/session-context": ["./components/auth/session-context.tsx"],

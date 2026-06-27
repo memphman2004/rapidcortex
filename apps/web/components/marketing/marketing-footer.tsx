@@ -112,8 +112,18 @@ export function MarketingFooter() {
               <FooterSectionTitle id="footer-product-heading">Product</FooterSectionTitle>
               <ul className="mt-1.5 space-y-0.5">
                 <li>
+                  <Link href="/product/core" className={FOOTER_FOCUS_LINK_CLASS}>
+                    Core
+                  </Link>
+                </li>
+                <li>
                   <Link href={venue} className={FOOTER_FOCUS_LINK_CLASS}>
                     Venue
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/product/campus" className={FOOTER_FOCUS_LINK_CLASS}>
+                    Campus
                   </Link>
                 </li>
                 <li>
@@ -164,6 +174,11 @@ export function MarketingFooter() {
             <nav className="min-w-0" aria-labelledby="footer-company-heading">
               <FooterSectionTitle id="footer-company-heading">Company</FooterSectionTitle>
               <ul className="mt-1.5 space-y-0.5">
+                <li>
+                  <Link href="/about" className={FOOTER_FOCUS_LINK_CLASS}>
+                    About
+                  </Link>
+                </li>
                 <li>
                   <Link href={pressHref} className={FOOTER_FOCUS_LINK_CLASS}>
                     Press
@@ -220,6 +235,11 @@ export function MarketingFooter() {
                 <li>
                   <Link href={developerGuidesHref} className={FOOTER_FOCUS_LINK_CLASS}>
                     Developer Guides
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/blog" className={FOOTER_FOCUS_LINK_CLASS}>
+                    Insights &amp; Blog
                   </Link>
                 </li>
               </ul>

@@ -9,7 +9,7 @@ BUCKET="${MARKETING_S3_BUCKET:-rapid-cortex-v2-web-static-prod-158961537080}"
 DIST_ID="${MARKETING_CF_DIST_ID:-EWZ286WS69KX1}"
 REGION="${AWS_REGION:-us-east-1}"
 STATIC_DIR="${ROOT}/apps/marketing/out"
-REQUIRED_ROUTES=(enter demo pricing)
+REQUIRED_ROUTES=(enter demo pricing blog)
 
 if [[ ! -d "${STATIC_DIR}" ]] || [[ ! -f "${STATIC_DIR}/index.html" ]]; then
   echo "ERROR: apps/marketing/out/ not found. Run scripts/build-marketing.sh first." >&2

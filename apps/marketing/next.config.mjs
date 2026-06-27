@@ -29,6 +29,9 @@ const nextConfig = {
       ...config.resolve.alias,
       "@/lib/site": marketingLib("site.ts"),
       "@/lib/seo": marketingLib("seo.ts"),
+      "@/lib/blog": path.join(marketingRoot, "lib/blog"),
+      "@/lib/site/footer-nav": marketingLib("site/footer-nav.ts"),
+      "@/components/blog": path.join(marketingRoot, "components/blog"),
       "@/lib/marketing-links": marketingLib("marketing-links.ts"),
       "@/lib/deployment-environment": marketingLib("deployment-environment.ts"),
       "@/components/auth/session-context": path.join(

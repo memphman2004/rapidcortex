@@ -6,7 +6,7 @@ ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 source "${ROOT}/scripts/lib/static-s3-hosting.sh"
 
 STATIC_DIR="${STATIC_DIR:-${ROOT}/apps/marketing/out}"
-REQUIRED_ROUTES=(enter demo pricing)
+REQUIRED_ROUTES=(enter demo pricing blog)
 
 if [[ ! -f "${STATIC_DIR}/index.html" ]]; then
   echo "ERROR: ${STATIC_DIR}/index.html not found. Run: npm run build:marketing" >&2
