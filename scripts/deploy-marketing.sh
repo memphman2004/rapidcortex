@@ -15,6 +15,11 @@ MODE="content"
 SKIP_BUILD=0
 STAGE="${DEPLOYMENT_STAGE:-prod}"
 
+# shellcheck source=scripts/lib/rapid-cortex-aws.sh
+source "${ROOT}/scripts/lib/rapid-cortex-aws.sh"
+export AWS_PROFILE="${AWS_PROFILE:-rapid-cortex}"
+export AWS_REGION="${AWS_REGION:-${RAPID_CORTEX_AWS_REGION}}"
+
 for arg in "$@"; do
   case "${arg}" in
   --hosting | --infra | --stack)
@@ -47,10 +52,13 @@ if [[ "${SKIP_BUILD}" -eq 0 ]]; then
   bash "${ROOT}/scripts/build-marketing.sh"
 fi
 
+rapid_cortex_assert_aws_account
+
 bash "${ROOT}/scripts/verify-marketing-static.sh"
 bash "${ROOT}/scripts/sync-marketing-to-s3.sh"
 
 echo ""
 echo "Marketing content deploy complete."
 echo "  Site: https://www.rapidcortex.us"
-echo "  Manifest: s3://${MARKETING_S3_BUCKET:-rapid-cortex-v2-web-static-prod-158961537080}/.well-known/marketing-build.json"
+echo "  Account: ${RAPID_CORTEX_AWS_ACCOUNT_ID}"
+echo "  Manifest: s3://${RAPID_CORTEX_MARKETING_S3_BUCKET}/.well-known/marketing-build.json"

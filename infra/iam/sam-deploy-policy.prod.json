@@ -23,8 +23,8 @@
         "cloudformation:ValidateTemplate"
       ],
       "Resource": [
-        "arn:aws:cloudformation:REPLACE_REGION:REPLACE_ACCOUNT_ID:stack/rapid-cortex-*/*",
-        "arn:aws:cloudformation:REPLACE_REGION:aws:transform/Serverless-2016-10-31"
+        "arn:aws:cloudformation:us-east-1:158961537080:stack/rapid-cortex-*/*",
+        "arn:aws:cloudformation:us-east-1:aws:transform/Serverless-2016-10-31"
       ]
     },
     {
@@ -85,9 +85,9 @@
         "acm:ListTagsForCertificate",
         "acm:AddTagsToCertificate",
         "acm:DeleteCertificate",
-        "acm:RemoveTagsFromCertificate"
+        "acm:RemoveTagsForCertificate"
       ],
-      "Resource": "arn:aws:acm:REPLACE_REGION:REPLACE_ACCOUNT_ID:certificate/*"
+      "Resource": "arn:aws:acm:us-east-1:158961537080:certificate/*"
     },
     {
       "Sid": "Route53RecordsInHostedZone",
@@ -124,7 +124,7 @@
         "iam:ListRolePolicies",
         "iam:ListAttachedRolePolicies"
       ],
-      "Resource": ["arn:aws:iam::REPLACE_ACCOUNT_ID:role/rapid-cortex-*"]
+      "Resource": ["arn:aws:iam::158961537080:role/rapid-cortex-*"]
     },
     {
       "Sid": "RapidCortexDeployManagedPolicyLifecycle",
@@ -143,8 +143,8 @@
         "iam:DetachRolePolicy"
       ],
       "Resource": [
-        "arn:aws:iam::REPLACE_ACCOUNT_ID:policy/rapid-cortex-*",
-        "arn:aws:iam::REPLACE_ACCOUNT_ID:role/rapid-cortex-*"
+        "arn:aws:iam::158961537080:policy/rapid-cortex-*",
+        "arn:aws:iam::158961537080:role/rapid-cortex-*"
       ]
     },
     {
@@ -161,7 +161,7 @@
         "cloudfront:GetInvalidation",
         "cloudfront:ListInvalidations"
       ],
-      "Resource": "arn:aws:cloudfront::REPLACE_ACCOUNT_ID:distribution/EWZ286WS69KX1"
+      "Resource": "arn:aws:cloudfront::158961537080:distribution/EWZ286WS69KX1"
     },
     {
       "Sid": "WebEcrDescribe",
@@ -178,7 +178,7 @@
         "codebuild:StartBuild",
         "codebuild:ListBuildsForProject"
       ],
-      "Resource": "arn:aws:codebuild:REPLACE_REGION:REPLACE_ACCOUNT_ID:project/rapid-cortex-web-build-*"
+      "Resource": "arn:aws:codebuild:us-east-1:158961537080:project/rapid-cortex-web-build-*"
     },
     {
       "Sid": "WebEcsDeployMutate",
@@ -189,10 +189,10 @@
         "ecs:CreateService"
       ],
       "Resource": [
-        "arn:aws:ecs:REPLACE_REGION:REPLACE_ACCOUNT_ID:service/rapid-cortex-v2-web-prod/*",
-        "arn:aws:ecs:REPLACE_REGION:REPLACE_ACCOUNT_ID:service/rapid-cortex-web-*/*",
-        "arn:aws:ecs:REPLACE_REGION:REPLACE_ACCOUNT_ID:task-definition/rapid-cortex-v2-web-prod:*",
-        "arn:aws:ecs:REPLACE_REGION:REPLACE_ACCOUNT_ID:task-definition/rapid-cortex-web-*:*"
+        "arn:aws:ecs:us-east-1:158961537080:service/rapid-cortex-v2-web-prod/*",
+        "arn:aws:ecs:us-east-1:158961537080:service/rapid-cortex-web-*/*",
+        "arn:aws:ecs:us-east-1:158961537080:task-definition/rapid-cortex-v2-web-prod:*",
+        "arn:aws:ecs:us-east-1:158961537080:task-definition/rapid-cortex-web-*:*"
       ]
     },
     {
@@ -205,12 +205,12 @@
         "ecs:DescribeTaskDefinition"
       ],
       "Resource": [
-        "arn:aws:ecs:REPLACE_REGION:REPLACE_ACCOUNT_ID:service/rapid-cortex-v2-web-prod/*",
-        "arn:aws:ecs:REPLACE_REGION:REPLACE_ACCOUNT_ID:service/rapid-cortex-web-*/*",
-        "arn:aws:ecs:REPLACE_REGION:REPLACE_ACCOUNT_ID:task/rapid-cortex-v2-web-prod/*",
-        "arn:aws:ecs:REPLACE_REGION:REPLACE_ACCOUNT_ID:task/rapid-cortex-web-*/*",
-        "arn:aws:ecs:REPLACE_REGION:REPLACE_ACCOUNT_ID:task-definition/rapid-cortex-v2-web-prod:*",
-        "arn:aws:ecs:REPLACE_REGION:REPLACE_ACCOUNT_ID:task-definition/rapid-cortex-web-*:*"
+        "arn:aws:ecs:us-east-1:158961537080:service/rapid-cortex-v2-web-prod/*",
+        "arn:aws:ecs:us-east-1:158961537080:service/rapid-cortex-web-*/*",
+        "arn:aws:ecs:us-east-1:158961537080:task/rapid-cortex-v2-web-prod/*",
+        "arn:aws:ecs:us-east-1:158961537080:task/rapid-cortex-web-*/*",
+        "arn:aws:ecs:us-east-1:158961537080:task-definition/rapid-cortex-v2-web-prod:*",
+        "arn:aws:ecs:us-east-1:158961537080:task-definition/rapid-cortex-web-*:*"
       ]
     },
     {
@@ -218,8 +218,8 @@
       "Effect": "Allow",
       "Action": ["ecs:DescribeClusters", "ecs:ListServices"],
       "Resource": [
-        "arn:aws:ecs:REPLACE_REGION:REPLACE_ACCOUNT_ID:cluster/rapid-cortex-v2-web-prod",
-        "arn:aws:ecs:REPLACE_REGION:REPLACE_ACCOUNT_ID:cluster/rapid-cortex-web-*"
+        "arn:aws:ecs:us-east-1:158961537080:cluster/rapid-cortex-v2-web-prod",
+        "arn:aws:ecs:us-east-1:158961537080:cluster/rapid-cortex-web-*"
       ]
     },
     {
@@ -227,8 +227,8 @@
       "Effect": "Allow",
       "Action": ["cloudformation:DescribeStacks"],
       "Resource": [
-        "arn:aws:cloudformation:REPLACE_REGION:REPLACE_ACCOUNT_ID:stack/rapid-cortex-web-*/*",
-        "arn:aws:cloudformation:REPLACE_REGION:REPLACE_ACCOUNT_ID:stack/rapid-cortex-v2-web-*/*"
+        "arn:aws:cloudformation:us-east-1:158961537080:stack/rapid-cortex-web-*/*",
+        "arn:aws:cloudformation:us-east-1:158961537080:stack/rapid-cortex-v2-web-*/*"
       ]
     },
     {
@@ -239,13 +239,13 @@
         "cloudfront:GetInvalidation",
         "cloudfront:ListInvalidations"
       ],
-      "Resource": "arn:aws:cloudfront::REPLACE_ACCOUNT_ID:distribution/*"
+      "Resource": "arn:aws:cloudfront::158961537080:distribution/*"
     },
     {
       "Sid": "MapboxTokenSsmRead",
       "Effect": "Allow",
       "Action": ["ssm:GetParameter"],
-      "Resource": "arn:aws:ssm:REPLACE_REGION:REPLACE_ACCOUNT_ID:parameter/rapidcortex/prod/mapbox/public-token"
+      "Resource": "arn:aws:ssm:us-east-1:158961537080:parameter/rapidcortex/prod/mapbox/public-token"
     }
   ]
 }

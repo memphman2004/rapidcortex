@@ -11,7 +11,7 @@
  *                             Supports: add/edit/delete sections, set level, capacity,
  *                             map position (visual drag or manual coords), CSV import.
  *
- *   3. useSections          — hook that loads sections from /api/venue/:venueId/sections
+ *   3. useSections          — hook that loads sections from /api/venue/code/:venueId/sections
  *                             and keeps dashboard + config in sync.
  *
  * DynamoDB schema (rc-venue-sections):
@@ -176,7 +176,7 @@ export function useSections(venueId: string, initial: VenueSection[] = DEFAULT_S
     setLoading(true);
     setError(null);
     try {
-      const res  = await fetch(`/api/venue/${venueId}/sections`);
+      const res  = await fetch(`/api/venue/code/${venueId}/sections`);
       const data = await res.json();
       if (!res.ok) throw new Error(data.error ?? "Failed to load sections");
       if (Array.isArray(data.sections) && data.sections.length > 0) {
@@ -208,7 +208,7 @@ export function useSections(venueId: string, initial: VenueSection[] = DEFAULT_S
       )
     );
     try {
-      await fetch(`/api/venue/${venueId}/sections/${sectionId}/status`, {
+      await fetch(`/api/venue/code/${venueId}/sections/${sectionId}/status`, {
         method:  "PATCH",
         headers: { "Content-Type": "application/json" },
         body:    JSON.stringify({ status, notes, assignedOfficer }),
@@ -224,7 +224,7 @@ export function useSections(venueId: string, initial: VenueSection[] = DEFAULT_S
       if (idx !== -1) { const n = [...prev]; n[idx] = section; return n; }
       return [...prev, section];
     });
-    await fetch(`/api/venue/${venueId}/sections/${section.id}`, {
+    await fetch(`/api/venue/code/${venueId}/sections/${section.id}`, {
       method:  "PUT",
       headers: { "Content-Type": "application/json" },
       body:    JSON.stringify(section),
@@ -233,7 +233,7 @@ export function useSections(venueId: string, initial: VenueSection[] = DEFAULT_S
 
   const deleteSection = useCallback(async (sectionId: string) => {
     setSections((prev) => prev.filter((s) => s.id !== sectionId));
-    await fetch(`/api/venue/${venueId}/sections/${sectionId}`, { method: "DELETE" });
+    await fetch(`/api/venue/code/${venueId}/sections/${sectionId}`, { method: "DELETE" });
   }, [venueId]);
 
   return { sections, setSections, loading, error, load, updateStatus, upsertSection, deleteSection };

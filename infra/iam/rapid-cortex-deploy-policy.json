@@ -4,7 +4,11 @@
     {
       "Sid": "MarketingCloudFrontInvalidation",
       "Effect": "Allow",
-      "Action": ["cloudfront:CreateInvalidation", "cloudfront:GetInvalidation"],
+      "Action": [
+        "cloudfront:CreateInvalidation",
+        "cloudfront:GetInvalidation",
+        "cloudfront:ListInvalidations"
+      ],
       "Resource": "arn:aws:cloudfront::REPLACE_ACCOUNT_ID:distribution/EWZ286WS69KX1"
     },
     {
@@ -46,6 +50,27 @@
       "Effect": "Allow",
       "Action": ["ssm:GetParameter"],
       "Resource": "arn:aws:ssm:REPLACE_REGION:REPLACE_ACCOUNT_ID:parameter/rapidcortex/prod/mapbox/public-token"
+    },
+    {
+      "Sid": "RapidCortexDeployManagedPolicyLifecycle",
+      "Effect": "Allow",
+      "Action": [
+        "iam:CreatePolicy",
+        "iam:DeletePolicy",
+        "iam:CreatePolicyVersion",
+        "iam:DeletePolicyVersion",
+        "iam:GetPolicy",
+        "iam:GetPolicyVersion",
+        "iam:ListPolicyVersions",
+        "iam:TagPolicy",
+        "iam:UntagPolicy",
+        "iam:AttachRolePolicy",
+        "iam:DetachRolePolicy"
+      ],
+      "Resource": [
+        "arn:aws:iam::REPLACE_ACCOUNT_ID:policy/rapid-cortex-*",
+        "arn:aws:iam::REPLACE_ACCOUNT_ID:role/rapid-cortex-*"
+      ]
     }
   ]
 }

@@ -62,9 +62,8 @@ allowed_sids = {
     "CloudFormationDiscovery",
     "Route53GlobalReads",
     "AcmRequestCertificate",
-    "CloudFrontWebHosting",
-    "SesEmailIdentities",
-    "ApplicationAutoScalingDynamo",
+    "LambdaApiGatewayDynamoCognitoLogs",
+    "WebEcrDescribe",
 }
 d = json.loads(deploy)
 for stmt in d.get("Statement", []):

@@ -130,9 +130,9 @@ export function LoginForm({
     if (!isLoading && user) {
       if (tryRedirectNativeDesktopOAuth(user)) return;
       const path = homePathFor(user);
-      if (path) postAuthRedirect(router, path);
+      if (path) hardNavigateTo(path);
     }
-  }, [isLoading, user, router, homePathFor, tryRedirectNativeDesktopOAuth]);
+  }, [isLoading, user, homePathFor, tryRedirectNativeDesktopOAuth]);
 
   useEffect(() => {
     if (!loginQuery.passwordReset) return;

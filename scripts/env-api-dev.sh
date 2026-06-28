@@ -10,7 +10,11 @@ export INCLUDE_DATA_LAYER_NESTED_STACK=true
 export FLAT_DATA_LAYER_BILLING_PAYMENT_INSTRUCTIONS_SECRET_ARN="arn:aws:secretsmanager:us-east-1:158961537080:secret:rapid-cortex/billing/payment-instructions-cQc3vU"
 export FLAT_DATA_LAYER_BILLING_SES_CREDENTIALS_SECRET_ARN="arn:aws:secretsmanager:us-east-1:158961537080:secret:rapid-cortex/billing/ses-credentials-kWOL2Y"
 export ENABLE_CLOUD_TRAIL=false
-export SAM_BUILD_DIR="$HOME/.rapid-cortex-sam-build"
+if [[ -d '/Volumes/Mac Mini' ]]; then
+  export SAM_BUILD_DIR="/Volumes/Mac Mini/.rapid-cortex-sam-build"
+else
+  export SAM_BUILD_DIR="${HOME}/.rapid-cortex-sam-build"
+fi
 # deploy.sh defaults SAM_PARALLEL=0; enable parallel sam build (big win with SAM_BUILD_USE_CACHE=1).
 export SAM_PARALLEL=1
 # Recovery (optional): SAM_BUILD_USE_CACHE=0 SAM_DISABLE_ROLLBACK=1 for first deploy after Cognito/AppSamStackV2 recovery.

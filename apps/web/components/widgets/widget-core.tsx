@@ -201,6 +201,10 @@ export function IntegrationHealthWidget({ agencyId }: WidgetProps) {
 
 // ─── Platform health bar ──────────────────────────────────────────────────────
 
+function upstreamHealthNumber(value: unknown, fallback: number): number {
+  return typeof value === "number" && Number.isFinite(value) ? value : fallback;
+}
+
 export function PlatformHealthBarWidget({ agencyId }: WidgetProps) {
   const { data, isLoading } = useQuery({
     queryKey: ["platform-health"],
@@ -220,12 +224,18 @@ export function PlatformHealthBarWidget({ agencyId }: WidgetProps) {
 
   if (isLoading) return <WidgetSkeleton />;
 
+  const apiP99Ms = upstreamHealthNumber(data?.apiP99Ms, 999);
+  const lambdaErrorRate = upstreamHealthNumber(data?.lambdaErrorRate, 0);
+  const ddbThrottles = upstreamHealthNumber(data?.ddbThrottles, 0);
+  const cognitoErrors = upstreamHealthNumber(data?.cognitoErrors, 0);
+  const activeAlarms = upstreamHealthNumber(data?.activeAlarms, 0);
+
   const metrics = [
-    { label: "API p99", value: data?.apiP99Ms ? `${data.apiP99Ms}ms` : "—", ok: (data?.apiP99Ms ?? 999) < 500 },
-    { label: "Lambda errors", value: data?.lambdaErrorRate ? `${(data.lambdaErrorRate * 100).toFixed(2)}%` : "0%", ok: (data?.lambdaErrorRate ?? 0) < 0.01 },
-    { label: "DDB throttles", value: data?.ddbThrottles ?? 0, ok: (data?.ddbThrottles ?? 0) === 0 },
-    { label: "Cognito errors", value: data?.cognitoErrors ?? 0, ok: (data?.cognitoErrors ?? 0) === 0 },
-    { label: "Alarms in ALARM", value: data?.activeAlarms ?? 0, ok: (data?.activeAlarms ?? 0) === 0 },
+    { label: "API p99", value: apiP99Ms < 999 ? `${apiP99Ms}ms` : "—", ok: apiP99Ms < 500 },
+    { label: "Lambda errors", value: `${(lambdaErrorRate * 100).toFixed(2)}%`, ok: lambdaErrorRate < 0.01 },
+    { label: "DDB throttles", value: ddbThrottles, ok: ddbThrottles === 0 },
+    { label: "Cognito errors", value: cognitoErrors, ok: cognitoErrors === 0 },
+    { label: "Alarms in ALARM", value: activeAlarms, ok: activeAlarms === 0 },
   ];
 
   const allOk = metrics.every(m => m.ok);

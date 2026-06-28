@@ -197,15 +197,18 @@ static_s3_verify_remote_deploy() {
 static_s3_invalidate_cloudfront() {
   local dist_id="$1"
   local region="${2:-us-east-1}"
-  echo "Invalidating CloudFront distribution ${dist_id} ..."
-  if aws cloudfront create-invalidation \
-    --distribution-id "${dist_id}" \
-    --paths "/*" \
-    --region "${region}" >/dev/null 2>&1; then
+  local root
+  root="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
+  # shellcheck source=scripts/lib/rapid-cortex-aws.sh
+  source "${root}/scripts/lib/rapid-cortex-aws.sh"
+  if rapid_cortex_invalidate_marketing_cloudfront "${dist_id}" "${region}" >/dev/null 2>&1; then
+    echo "CloudFront invalidation submitted for ${dist_id} (/*)."
     return 0
   fi
-  echo "WARN: CloudFront invalidation failed (likely missing cloudfront:CreateInvalidation)." >&2
+  echo "WARN: CloudFront invalidation failed (missing cloudfront:CreateInvalidation on ${RAPID_CORTEX_AWS_ACCOUNT_ID})." >&2
   echo "      S3 content is updated; edge cache may be stale until invalidated." >&2
-  echo "      Fix: ADMIN_AWS_PROFILE=admin ./scripts/apply-rapid-cortex-deploy-iam.sh --invalidate-marketing" >&2
+  echo "      One-time fix (admin principal on account ${RAPID_CORTEX_AWS_ACCOUNT_ID}):" >&2
+  echo "        ADMIN_AWS_PROFILE=<admin> ./scripts/apply-rapid-cortex-deploy-iam.sh --invalidate-marketing" >&2
+  echo "      Then re-run: AWS_PROFILE=rapid-cortex ./scripts/invalidate-marketing-cloudfront.sh" >&2
   return 1
 }

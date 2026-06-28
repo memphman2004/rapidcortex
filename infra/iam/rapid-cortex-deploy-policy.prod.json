@@ -2,12 +2,6 @@
   "Version": "2012-10-17",
   "Statement": [
     {
-      "Sid": "MarketingCloudFrontInvalidation",
-      "Effect": "Allow",
-      "Action": ["cloudfront:CreateInvalidation", "cloudfront:GetInvalidation"],
-      "Resource": "arn:aws:cloudfront::158961537080:distribution/EWZ286WS69KX1"
-    },
-    {
       "Sid": "WebEcrDescribe",
       "Effect": "Allow",
       "Action": ["ecr:DescribeRepositories", "ecr:GetAuthorizationToken"],

@@ -5,7 +5,7 @@ import type { DashboardPrefix } from "@/lib/dashboards/dashboard-access";
 import { evaluateDashboardGate } from "@/lib/dashboards/dashboard-access";
 import { getDashboardSessionUser } from "@/lib/dashboards/get-dashboard-session";
 import { JurisdictionProvider } from "@/lib/jurisdiction-context";
-import { defaultJurisdictionSlug, marketingLoginPath } from "@/lib/marketing-links";
+import { defaultJurisdictionSlug } from "@/lib/marketing-links";
 import { DashboardShell } from "./dashboard-shell";
 
 function DashboardShellFallback() {
@@ -27,7 +27,7 @@ export async function RoleDashboardLayout({
   const slug = defaultJurisdictionSlug();
 
   if (!user) {
-    redirect(`${marketingLoginPath()}?from=/${prefix}/dashboard`);
+    redirect(`/login?from=/${prefix}/dashboard`);
   }
 
   const gate = evaluateDashboardGate(user, prefix);

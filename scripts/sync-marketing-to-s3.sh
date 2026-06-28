@@ -4,12 +4,19 @@ ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$ROOT"
 # shellcheck source=scripts/lib/static-s3-hosting.sh
 source "${ROOT}/scripts/lib/static-s3-hosting.sh"
+# shellcheck source=scripts/lib/rapid-cortex-aws.sh
+source "${ROOT}/scripts/lib/rapid-cortex-aws.sh"
 
-BUCKET="${MARKETING_S3_BUCKET:-rapid-cortex-v2-web-static-prod-158961537080}"
-DIST_ID="${MARKETING_CF_DIST_ID:-EWZ286WS69KX1}"
-REGION="${AWS_REGION:-us-east-1}"
+export AWS_PROFILE="${AWS_PROFILE:-rapid-cortex}"
+export AWS_REGION="${AWS_REGION:-${RAPID_CORTEX_AWS_REGION}}"
+
+BUCKET="${MARKETING_S3_BUCKET:-${RAPID_CORTEX_MARKETING_S3_BUCKET}}"
+DIST_ID="${MARKETING_CF_DIST_ID:-${RAPID_CORTEX_MARKETING_CF_DIST_ID}}"
+REGION="${AWS_REGION}"
 STATIC_DIR="${ROOT}/apps/marketing/out"
 REQUIRED_ROUTES=(enter demo pricing blog)
+
+rapid_cortex_assert_aws_account
 
 if [[ ! -d "${STATIC_DIR}" ]] || [[ ! -f "${STATIC_DIR}/index.html" ]]; then
   echo "ERROR: apps/marketing/out/ not found. Run scripts/build-marketing.sh first." >&2

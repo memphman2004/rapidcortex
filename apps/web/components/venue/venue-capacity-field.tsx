@@ -17,7 +17,7 @@ export function VenueCapacityField({
     let cancelled = false;
     void (async () => {
       try {
-        const res = await fetch(`/api/venue/${venueCode}/profile`);
+        const res = await fetch(`/api/venue/code/${venueCode}/profile`);
         if (!res.ok) return;
         const data = (await res.json()) as { profile?: { capacity?: number } };
         if (!cancelled && typeof data.profile?.capacity === "number") {
@@ -36,7 +36,7 @@ export function VenueCapacityField({
     setSaving(true);
     setMessage(null);
     try {
-      const res = await fetch(`/api/venue/${venueCode}/profile`, {
+      const res = await fetch(`/api/venue/code/${venueCode}/profile`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ capacity }),
