@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 # Apply deploy-gap IAM for rapid-cortex-deploy (ECS, CodeBuild, ECR, Mapbox SSM).
-# SAM deploy + marketing CloudFront invalidation live in infra/iam/sam-deploy-policy.prod.json
-# (managed policy on the deploy user). Requires admin on account 158961537080.
+# Prefer split managed policies: scripts/apply-sam-deploy-managed-policies.sh
+#   (infra/iam/sam-deploy-policy.prod.json + sam-deploy-policy-web.prod.json)
+# This inline policy is legacy overlap — attach managed policies first.
 #
 # Usage:
 #   ADMIN_AWS_PROFILE=<admin-on-158961537080> ./scripts/apply-rapid-cortex-deploy-iam.sh

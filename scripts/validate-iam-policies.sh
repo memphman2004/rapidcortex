@@ -56,22 +56,26 @@ for i, line in enumerate(lines, start=1):
     print(f"BLOCKED: {template}:{i}: Resource * must be allowlisted (add scoped ARN) or be Comprehend/Translate/SMS-Voice with regional Condition. Context:\n{window[-400:]}")
     fail = True
 
-# sam-deploy-policy.json: only known Sids may use "Resource": "*"
-deploy = (root / "infra" / "iam" / "sam-deploy-policy.json").read_text(encoding="utf-8")
+# sam-deploy-policy*.json: only known Sids may use "Resource": "*"
 allowed_sids = {
-    "CloudFormationDiscovery",
-    "Route53GlobalReads",
-    "AcmRequestCertificate",
-    "LambdaApiGatewayDynamoCognitoLogs",
+    "CfnDiscovery",
+    "Route53Reads",
+    "AcmRequest",
+    "CoreServices",
     "WebEcrDescribe",
 }
-d = json.loads(deploy)
-for stmt in d.get("Statement", []):
-    if stmt.get("Resource") == "*":
-        sid = stmt.get("Sid", "")
-        if sid not in allowed_sids:
-            print(f"BLOCKED: sam-deploy-policy.json Sid {sid!r} uses Resource * (must be one of {allowed_sids} or add Sid + review).")
-            fail = True
+for rel in (
+    "infra/iam/sam-deploy-policy.json",
+    "infra/iam/sam-deploy-policy-web.json",
+):
+    deploy = (root / rel).read_text(encoding="utf-8")
+    d = json.loads(deploy)
+    for stmt in d.get("Statement", []):
+        if stmt.get("Resource") == "*":
+            sid = stmt.get("Sid", "")
+            if sid not in allowed_sids:
+                print(f"BLOCKED: {rel} Sid {sid!r} uses Resource * (must be one of {allowed_sids} or add Sid + review).")
+                fail = True
 
 if fail:
     print("validate-iam-policies: FAILED")

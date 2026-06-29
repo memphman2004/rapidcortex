@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 
-/** Redirect to static marketing host (apps/marketing → S3/CloudFront). */
-export default function MarketingRedirectPage() {
-  redirect("https://www.rapidcortex.us/integrations/ring-review/");
+/** Legacy app-host path → static marketing homeowner landing. */
+export default function LegacyRingReviewRedirect() {
+  redirect("https://www.rapidcortex.us/connect/ring/start/");
 }

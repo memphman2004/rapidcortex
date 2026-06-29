@@ -24,7 +24,7 @@ const oauthStates = new RingPublicOAuthStateRepository();
 
 function linkUrl(status: "success" | "error"): string {
   const base = (process.env.RING_ACCOUNT_LINK_URL?.trim() || RING_ACCOUNT_LINK_URL).replace(/\/$/, "");
-  return `${base}?status=${status}`;
+  return `${base}?status=${status}&audience=citizen`;
 }
 
 export const handler: APIGatewayProxyHandlerV2 = async (event) => {

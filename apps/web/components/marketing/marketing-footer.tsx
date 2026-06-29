@@ -23,6 +23,7 @@ import {
   marketingDesktopPath,
   marketingHomePath,
   marketingLoginPath,
+  marketingRingCustomersPath,
   marketingPricingPath,
   marketingPrivacyPath,
   marketingSecurityPath,
@@ -76,6 +77,7 @@ export function MarketingFooter() {
   const smsConsentHref = marketingSmsConsentPath();
   const statusHref = marketingOperationsStatusPath();
   const pressHref = marketingPressPath();
+  const ringConnectHref = marketingRingCustomersPath();
 
   return (
     <footer className="safe-bottom border-t border-slate-800/90 bg-[#030712] py-6 text-xs text-slate-400 sm:py-7">
@@ -241,6 +243,31 @@ export function MarketingFooter() {
                   <Link href="/blog" className={FOOTER_FOCUS_LINK_CLASS}>
                     Insights &amp; Blog
                   </Link>
+                </li>
+                <li>
+                  <details className="group [&_summary::-webkit-details-marker]:hidden">
+                    <summary
+                      className={`${FOOTER_FOCUS_LINK_CLASS} cursor-pointer list-none marker:content-none`}
+                      aria-label="Integrations — expand list"
+                    >
+                      <span className="inline-flex items-center gap-1">
+                        Integrations
+                        <span
+                          aria-hidden
+                          className="text-[9px] text-slate-500 transition-transform group-open:rotate-180"
+                        >
+                          ▾
+                        </span>
+                      </span>
+                    </summary>
+                    <ul className="mt-1 space-y-0.5 border-l border-slate-800/90 pl-2.5" aria-label="Integration partners">
+                      <li>
+                        <a href={ringConnectHref} className={FOOTER_FOCUS_LINK_CLASS}>
+                          Ring
+                        </a>
+                      </li>
+                    </ul>
+                  </details>
                 </li>
               </ul>
             </nav>

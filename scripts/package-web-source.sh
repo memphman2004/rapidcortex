@@ -6,6 +6,9 @@ ENVIRONMENT="${1:-dev}"
 
 OUT="${PACKAGE_WEB_SOURCE_OUT:-${ROOT}/web-source-${ENVIRONMENT}.zip}"
 echo "Packaging web build context for CodeBuild (${ENVIRONMENT}) → ${OUT}"
+# shellcheck source=scripts/lib/api-vendor-lock.sh
+source "${ROOT}/scripts/lib/api-vendor-lock.sh"
+rc_wait_for_api_vendor_lock
 "${ROOT}/scripts/refresh-api-vendor-packs.sh"
 rm -f "${OUT}"
 

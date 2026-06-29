@@ -1,40 +1,36 @@
-# Content roadmap — SEO release calendar
+# Content roadmap — blog posts
 
-All **67** topics from `Rapid_Cortex_SEO_Blog_Release_Calendar_Mixed_Release_Order.pdf`
-are drafted in `apps/marketing/lib/blog/seo-post-content.ts` and wired through
-`seo-calendar-posts.ts`. Posts go live on their calendar `publishedAt` date
-(see `getPublishedPosts()` in `lib/blog/utils.ts`).
+## Live in `lib/blog/posts.ts` (15 posts)
 
-Regenerate content after calendar edits:
+Weekly release cadence ending **2026-06-27** — all posts are published on the marketing site.
 
-```bash
-python3 scripts/generate-seo-blog-content.py
-```
-
-## Staged legacy brief (superseded by SEO calendar)
-
-These were queued before the SEO calendar PDF and are not yet drafted separately:
-
-| # | Title | Suggested slug | Primary keyword angle |
+| # | Title | Slug | Published |
 |---|---|---|---|
-| 1 | How AI Is Transforming 911 Centers | `ai-transforming-911-centers` | AI 911 dispatch, dispatch AI software |
-| 2 | What Is NG911 and Why Does It Matter? | `what-is-ng911` | NG911, next generation 911 |
-| 3 | The Hidden Cost of Delayed Incident Reporting | `cost-of-delayed-incident-reporting` | incident reporting delay, response time |
-| 4 | Campus Safety Trends Universities Should Watch | `campus-safety-trends` | campus safety trends, university safety |
-| 5 | How Stadiums Can Improve Fan Safety Without Adding Staff | `stadium-fan-safety-without-adding-staff` | stadium security staffing, fan safety |
-| 6 | Building a Safer Community Through Real-Time Communication | `safer-community-real-time-communication` | community safety technology |
-| 7 | Public Safety Technology Trends for 2027 | `public-safety-technology-trends-2027` | public safety technology trends |
-| 8 | Why Every Airport Needs a Modern Incident Reporting Platform | `airport-incident-reporting-platform` | airport security software |
-| 9 | Understanding Clery Act Reporting Requirements | `clery-act-reporting-requirements` | Clery Act requirements |
-| 10 | The Evolution of Emergency Communications: From Voice Calls to Multimedia Intelligence | `evolution-of-emergency-communications` | emergency communications history |
+| — | Why Rapid Cortex Is Needed | `why-rapid-cortex-is-needed` | 2026-03-21 |
+| — | Rapid Cortex Offerings | `rapid-cortex-offerings` | 2026-03-28 |
+| — | Rapid Cortex Core | `rapid-cortex-core` | 2026-04-04 |
+| — | Rapid Cortex Venue | `rapid-cortex-venue` | 2026-04-11 |
+| — | Rapid Cortex Campus | `rapid-cortex-campus` | 2026-04-18 |
+| 1 | How AI Is Transforming 911 Centers | `ai-transforming-911-centers` | 2026-04-25 |
+| 2 | What Is NG911 and Why Does It Matter? | `what-is-ng911` | 2026-05-02 |
+| 3 | The Hidden Cost of Delayed Incident Reporting | `cost-of-delayed-incident-reporting` | 2026-05-09 |
+| 4 | Campus Safety Trends Universities Should Watch | `campus-safety-trends` | 2026-05-16 |
+| 5 | How Stadiums Can Improve Fan Safety Without Adding Staff | `stadium-fan-safety-without-adding-staff` | 2026-05-23 |
+| 6 | Building a Safer Community Through Real-Time Communication | `safer-community-real-time-communication` | 2026-05-30 |
+| 7 | Public Safety Technology Trends for 2027 | `public-safety-technology-trends-2027` | 2026-06-06 |
+| 8 | Why Every Airport Needs a Modern Incident Reporting Platform | `airport-incident-reporting-platform` | 2026-06-13 |
+| 9 | Understanding Clery Act Reporting Requirements | `clery-act-reporting-requirements` | 2026-06-20 |
+| 10 | The Evolution of Emergency Communications | `evolution-of-emergency-communications` | 2026-06-27 |
 
-## Notes for whoever writes these next
+Posts appear when `publishedAt` ≤ today (`getPublishedPosts()` in `lib/blog/utils.ts`).
 
-- **#9 (Clery Act requirements)** needs the same legal care as the Campus
-  launch post: describe what the Act requires and how documentation helps,
-  never "Rapid Cortex makes you compliant." Compliance determinations stay
-  with the institution.
-- **#1 (AI in 911 centers)** is a natural pairing with the existing
-  `rapid-cortex-core` post — link both directions once both exist.
-- **#7 (2027 trends)** will age out — review and refresh annually or set a
-  recurring reminder, since "current year" trend pieces lose relevance fast.
+## Before publishing the Clery / campus-trends batch
+
+- **#9 (Clery Act)** and **#4 (campus trends)** cite time-sensitive legal facts (Stop Campus Hazing Act deadlines, recent audit findings). Route through compliance owner review before go-live — same standard as any legal-adjacent marketing copy.
+- **#7 (2027 trends)** will age out; schedule an annual refresh.
+
+## Adding new posts
+
+Append a typed `BlogPost` object to the `posts` array in `lib/blog/posts.ts`, rebuild, and deploy via `bash scripts/deploy-marketing.sh prod`.
+
+Internal links in body copy use `[label](/path)` — product pages live at `/product/core`, `/product/venue`, `/product/campus`.

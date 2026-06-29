@@ -1,6 +1,5 @@
 import Link from "next/link";
 import { MarketingArticleShell } from "@/components/marketing/marketing-article-shell";
-import { demoJurisdictionSlug } from "@/lib/deployment-environment";
 import { RC_LITE_PRODUCT_BUNDLES, RC_LITE_VERTICAL_MARKETS } from "rapid-cortex-shared";
 
 export const metadata = {
@@ -18,7 +17,6 @@ const ADAPTER_TARGETS = [
 ];
 
 export default function IntegrationsLandingPage() {
-  const jurisdiction = demoJurisdictionSlug();
   return (
     <MarketingArticleShell eyebrow="Ecosystem" title="Marketplace adapters (roadmap scaffolding)" sectionLabel="Partners">
       <p className="leading-relaxed text-slate-200">
@@ -61,32 +59,6 @@ export default function IntegrationsLandingPage() {
             <li key={item}>{item}</li>
           ))}
         </ul>
-      </section>
-
-      <section id="ring-review-test-guide" className="mt-16 rounded-3xl border border-sky-500/20 bg-sky-950/20 p-6">
-        <h2 className="text-xl font-semibold text-white">Ring reviewer test guide</h2>
-        <p className="mt-2 text-sm text-slate-300">
-          This guide is for Ring internal reviewers validating Rapid Cortex account access, OAuth linking, and
-          incident-scoped live stream behavior in production.
-        </p>
-        <ol className="mt-4 list-decimal space-y-2 pl-5 text-sm text-slate-300">
-          <li>Sign in at <span className="font-mono text-slate-200">https://app.rapidcortex.us/login</span> as the reviewer account.</li>
-          <li>Open <span className="font-mono text-slate-200">/{jurisdiction}/media</span> (dispatcher Media workspace).</li>
-          <li>Select the <strong className="text-slate-200">Ring</strong> tab under Live Camera.</li>
-          <li>Click <strong className="text-slate-200">Connect Ring Account</strong> and complete OAuth.</li>
-          <li>After authorization, confirm redirect to <span className="font-mono text-slate-200">/connect/ring/link?status=success</span>.</li>
-          <li>Return to Media, select an incident with location, and use <strong className="text-slate-200">View Available Ring Cameras</strong>.</li>
-        </ol>
-        <p className="mt-3 text-sm text-slate-400">
-          OAuth callback:{" "}
-          <span className="font-mono text-slate-200">
-            https://7c70vqd1p5.execute-api.us-east-1.amazonaws.com/api/integrations/ring/callback
-          </span>
-        </p>
-        <p className="mt-2 text-sm text-slate-400">
-          Post-link landing:{" "}
-          <span className="font-mono text-slate-200">https://www.rapidcortex.us/connect/ring/link</span>
-        </p>
       </section>
 
       <div className="mt-14 flex gap-12 text-xs text-slate-400">

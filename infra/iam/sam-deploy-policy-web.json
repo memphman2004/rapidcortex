@@ -1,0 +1,108 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "MarketingCfInval",
+      "Effect": "Allow",
+      "Action": [
+        "cloudfront:CreateInvalidation",
+        "cloudfront:GetInvalidation",
+        "cloudfront:ListInvalidations"
+      ],
+      "Resource": "arn:aws:cloudfront::REPLACE_ACCOUNT_ID:distribution/EWZ286WS69KX1"
+    },
+    {
+      "Sid": "WebEcrDescribe",
+      "Effect": "Allow",
+      "Action": ["ecr:DescribeRepositories", "ecr:GetAuthorizationToken"],
+      "Resource": "*"
+    },
+    {
+      "Sid": "WebPipelineSourceUpload",
+      "Effect": "Allow",
+      "Action": ["s3:PutObject", "s3:GetObject", "s3:ListBucket"],
+      "Resource": [
+        "arn:aws:s3:::rapid-cortex-web-pipeline-*",
+        "arn:aws:s3:::rapid-cortex-web-pipeline-*/*"
+      ]
+    },
+    {
+      "Sid": "WebCodeBuild",
+      "Effect": "Allow",
+      "Action": [
+        "codebuild:BatchGetProjects",
+        "codebuild:BatchGetBuilds",
+        "codebuild:StartBuild",
+        "codebuild:ListBuildsForProject"
+      ],
+      "Resource": "arn:aws:codebuild:REPLACE_REGION:REPLACE_ACCOUNT_ID:project/rapid-cortex-web-build-*"
+    },
+    {
+      "Sid": "WebEcsMutate",
+      "Effect": "Allow",
+      "Action": [
+        "ecs:UpdateService",
+        "ecs:RegisterTaskDefinition",
+        "ecs:CreateService"
+      ],
+      "Resource": [
+        "arn:aws:ecs:REPLACE_REGION:REPLACE_ACCOUNT_ID:service/rapid-cortex-v2-web-prod/*",
+        "arn:aws:ecs:REPLACE_REGION:REPLACE_ACCOUNT_ID:service/rapid-cortex-web-*/*",
+        "arn:aws:ecs:REPLACE_REGION:REPLACE_ACCOUNT_ID:task-definition/rapid-cortex-v2-web-prod:*",
+        "arn:aws:ecs:REPLACE_REGION:REPLACE_ACCOUNT_ID:task-definition/rapid-cortex-web-*:*"
+      ]
+    },
+    {
+      "Sid": "WebEcsDescribe",
+      "Effect": "Allow",
+      "Action": [
+        "ecs:DescribeServices",
+        "ecs:DescribeTasks",
+        "ecs:ListTasks",
+        "ecs:DescribeTaskDefinition"
+      ],
+      "Resource": [
+        "arn:aws:ecs:REPLACE_REGION:REPLACE_ACCOUNT_ID:service/rapid-cortex-v2-web-prod/*",
+        "arn:aws:ecs:REPLACE_REGION:REPLACE_ACCOUNT_ID:service/rapid-cortex-web-*/*",
+        "arn:aws:ecs:REPLACE_REGION:REPLACE_ACCOUNT_ID:task/rapid-cortex-v2-web-prod/*",
+        "arn:aws:ecs:REPLACE_REGION:REPLACE_ACCOUNT_ID:task/rapid-cortex-web-*/*",
+        "arn:aws:ecs:REPLACE_REGION:REPLACE_ACCOUNT_ID:task-definition/rapid-cortex-v2-web-prod:*",
+        "arn:aws:ecs:REPLACE_REGION:REPLACE_ACCOUNT_ID:task-definition/rapid-cortex-web-*:*"
+      ]
+    },
+    {
+      "Sid": "WebEcsClusters",
+      "Effect": "Allow",
+      "Action": ["ecs:DescribeClusters", "ecs:ListServices"],
+      "Resource": [
+        "arn:aws:ecs:REPLACE_REGION:REPLACE_ACCOUNT_ID:cluster/rapid-cortex-v2-web-prod",
+        "arn:aws:ecs:REPLACE_REGION:REPLACE_ACCOUNT_ID:cluster/rapid-cortex-web-*"
+      ]
+    },
+    {
+      "Sid": "WebCfnStackRead",
+      "Effect": "Allow",
+      "Action": ["cloudformation:DescribeStacks"],
+      "Resource": [
+        "arn:aws:cloudformation:REPLACE_REGION:REPLACE_ACCOUNT_ID:stack/rapid-cortex-web-*/*",
+        "arn:aws:cloudformation:REPLACE_REGION:REPLACE_ACCOUNT_ID:stack/rapid-cortex-v2-web-*/*"
+      ]
+    },
+    {
+      "Sid": "AppCfInval",
+      "Effect": "Allow",
+      "Action": [
+        "cloudfront:CreateInvalidation",
+        "cloudfront:GetInvalidation",
+        "cloudfront:ListInvalidations"
+      ],
+      "Resource": "arn:aws:cloudfront::REPLACE_ACCOUNT_ID:distribution/*"
+    },
+    {
+      "Sid": "MapboxTokenSsmRead",
+      "Effect": "Allow",
+      "Action": ["ssm:GetParameter"],
+      "Resource": "arn:aws:ssm:REPLACE_REGION:REPLACE_ACCOUNT_ID:parameter/rapidcortex/prod/mapbox/public-token"
+    }
+  ]
+}

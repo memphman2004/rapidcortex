@@ -2,7 +2,7 @@
   "Version": "2012-10-17",
   "Statement": [
     {
-      "Sid": "CloudFormationRapidCortexStacks",
+      "Sid": "CfnStacks",
       "Effect": "Allow",
       "Action": [
         "cloudformation:CreateChangeSet",
@@ -28,13 +28,27 @@
       ]
     },
     {
-      "Sid": "CloudFormationDiscovery",
+      "Sid": "CfnDriftDetect",
       "Effect": "Allow",
-      "Action": ["cloudformation:DescribeStacks", "cloudformation:ListStacks"],
+      "Action": [
+        "cloudformation:DetectStackDrift",
+        "cloudformation:DetectStackResourceDrift"
+      ],
+      "Resource": ["arn:aws:cloudformation:us-east-1:158961537080:stack/rapid-cortex-*/*"]
+    },
+    {
+      "Sid": "CfnDiscovery",
+      "Effect": "Allow",
+      "Action": [
+        "cloudformation:DescribeStacks",
+        "cloudformation:ListStacks",
+        "cloudformation:DescribeStackDriftDetectionStatus",
+        "cloudformation:DescribeStackResourceDrifts"
+      ],
       "Resource": "*"
     },
     {
-      "Sid": "SamArtifactBuckets",
+      "Sid": "SamBuckets",
       "Effect": "Allow",
       "Action": [
         "s3:CreateBucket",
@@ -55,7 +69,7 @@
       ]
     },
     {
-      "Sid": "LambdaApiGatewayDynamoCognitoLogs",
+      "Sid": "CoreServices",
       "Effect": "Allow",
       "Action": [
         "lambda:*",
@@ -72,31 +86,34 @@
       "Resource": "*"
     },
     {
-      "Sid": "AcmRequestCertificate",
+      "Sid": "AcmRequest",
       "Effect": "Allow",
       "Action": ["acm:RequestCertificate"],
       "Resource": "*"
     },
     {
-      "Sid": "AcmManageIssuedCertificates",
+      "Sid": "AcmManage",
       "Effect": "Allow",
       "Action": [
         "acm:DescribeCertificate",
         "acm:ListTagsForCertificate",
         "acm:AddTagsToCertificate",
         "acm:DeleteCertificate",
-        "acm:RemoveTagsForCertificate"
+        "acm:RemoveTagsFromCertificate"
       ],
       "Resource": "arn:aws:acm:us-east-1:158961537080:certificate/*"
     },
     {
-      "Sid": "Route53RecordsInHostedZone",
+      "Sid": "Route53Records",
       "Effect": "Allow",
-      "Action": ["route53:ChangeResourceRecordSets", "route53:ListResourceRecordSets"],
+      "Action": [
+        "route53:ChangeResourceRecordSets",
+        "route53:ListResourceRecordSets"
+      ],
       "Resource": "arn:aws:route53:::hostedzone/*"
     },
     {
-      "Sid": "Route53GlobalReads",
+      "Sid": "Route53Reads",
       "Effect": "Allow",
       "Action": [
         "route53:GetChange",
@@ -107,7 +124,7 @@
       "Resource": "*"
     },
     {
-      "Sid": "IamRolesForSamLambda",
+      "Sid": "IamRolesLambda",
       "Effect": "Allow",
       "Action": [
         "iam:CreateRole",
@@ -127,7 +144,7 @@
       "Resource": ["arn:aws:iam::158961537080:role/rapid-cortex-*"]
     },
     {
-      "Sid": "RapidCortexDeployManagedPolicyLifecycle",
+      "Sid": "IamPolicyLifecycle",
       "Effect": "Allow",
       "Action": [
         "iam:CreatePolicy",
@@ -148,104 +165,13 @@
       ]
     },
     {
-      "Sid": "S3AssetsBucketFromStack",
+      "Sid": "S3AssetsBucket",
       "Effect": "Allow",
       "Action": ["s3:*"],
-      "Resource": ["arn:aws:s3:::rapid-cortex-*", "arn:aws:s3:::rapid-cortex-*/*"]
-    },
-    {
-      "Sid": "MarketingCloudFrontInvalidation",
-      "Effect": "Allow",
-      "Action": [
-        "cloudfront:CreateInvalidation",
-        "cloudfront:GetInvalidation",
-        "cloudfront:ListInvalidations"
-      ],
-      "Resource": "arn:aws:cloudfront::158961537080:distribution/EWZ286WS69KX1"
-    },
-    {
-      "Sid": "WebEcrDescribe",
-      "Effect": "Allow",
-      "Action": ["ecr:DescribeRepositories", "ecr:GetAuthorizationToken"],
-      "Resource": "*"
-    },
-    {
-      "Sid": "WebCodeBuildDeploy",
-      "Effect": "Allow",
-      "Action": [
-        "codebuild:BatchGetProjects",
-        "codebuild:BatchGetBuilds",
-        "codebuild:StartBuild",
-        "codebuild:ListBuildsForProject"
-      ],
-      "Resource": "arn:aws:codebuild:us-east-1:158961537080:project/rapid-cortex-web-build-*"
-    },
-    {
-      "Sid": "WebEcsDeployMutate",
-      "Effect": "Allow",
-      "Action": [
-        "ecs:UpdateService",
-        "ecs:RegisterTaskDefinition",
-        "ecs:CreateService"
-      ],
       "Resource": [
-        "arn:aws:ecs:us-east-1:158961537080:service/rapid-cortex-v2-web-prod/*",
-        "arn:aws:ecs:us-east-1:158961537080:service/rapid-cortex-web-*/*",
-        "arn:aws:ecs:us-east-1:158961537080:task-definition/rapid-cortex-v2-web-prod:*",
-        "arn:aws:ecs:us-east-1:158961537080:task-definition/rapid-cortex-web-*:*"
+        "arn:aws:s3:::rapid-cortex-*",
+        "arn:aws:s3:::rapid-cortex-*/*"
       ]
-    },
-    {
-      "Sid": "WebEcsDeployDescribe",
-      "Effect": "Allow",
-      "Action": [
-        "ecs:DescribeServices",
-        "ecs:DescribeTasks",
-        "ecs:ListTasks",
-        "ecs:DescribeTaskDefinition"
-      ],
-      "Resource": [
-        "arn:aws:ecs:us-east-1:158961537080:service/rapid-cortex-v2-web-prod/*",
-        "arn:aws:ecs:us-east-1:158961537080:service/rapid-cortex-web-*/*",
-        "arn:aws:ecs:us-east-1:158961537080:task/rapid-cortex-v2-web-prod/*",
-        "arn:aws:ecs:us-east-1:158961537080:task/rapid-cortex-web-*/*",
-        "arn:aws:ecs:us-east-1:158961537080:task-definition/rapid-cortex-v2-web-prod:*",
-        "arn:aws:ecs:us-east-1:158961537080:task-definition/rapid-cortex-web-*:*"
-      ]
-    },
-    {
-      "Sid": "WebEcsClusterDiscovery",
-      "Effect": "Allow",
-      "Action": ["ecs:DescribeClusters", "ecs:ListServices"],
-      "Resource": [
-        "arn:aws:ecs:us-east-1:158961537080:cluster/rapid-cortex-v2-web-prod",
-        "arn:aws:ecs:us-east-1:158961537080:cluster/rapid-cortex-web-*"
-      ]
-    },
-    {
-      "Sid": "WebCfnStackRead",
-      "Effect": "Allow",
-      "Action": ["cloudformation:DescribeStacks"],
-      "Resource": [
-        "arn:aws:cloudformation:us-east-1:158961537080:stack/rapid-cortex-web-*/*",
-        "arn:aws:cloudformation:us-east-1:158961537080:stack/rapid-cortex-v2-web-*/*"
-      ]
-    },
-    {
-      "Sid": "AppCloudFrontInvalidation",
-      "Effect": "Allow",
-      "Action": [
-        "cloudfront:CreateInvalidation",
-        "cloudfront:GetInvalidation",
-        "cloudfront:ListInvalidations"
-      ],
-      "Resource": "arn:aws:cloudfront::158961537080:distribution/*"
-    },
-    {
-      "Sid": "MapboxTokenSsmRead",
-      "Effect": "Allow",
-      "Action": ["ssm:GetParameter"],
-      "Resource": "arn:aws:ssm:us-east-1:158961537080:parameter/rapidcortex/prod/mapbox/public-token"
     }
   ]
 }

@@ -2,6 +2,16 @@
   "Version": "2012-10-17",
   "Statement": [
     {
+      "Sid": "MarketingCfInval",
+      "Effect": "Allow",
+      "Action": [
+        "cloudfront:CreateInvalidation",
+        "cloudfront:GetInvalidation",
+        "cloudfront:ListInvalidations"
+      ],
+      "Resource": "arn:aws:cloudfront::158961537080:distribution/EWZ286WS69KX1"
+    },
+    {
       "Sid": "WebEcrDescribe",
       "Effect": "Allow",
       "Action": ["ecr:DescribeRepositories", "ecr:GetAuthorizationToken"],
@@ -17,7 +27,18 @@
       ]
     },
     {
-      "Sid": "WebEcsDeployMutate",
+      "Sid": "WebCodeBuild",
+      "Effect": "Allow",
+      "Action": [
+        "codebuild:BatchGetProjects",
+        "codebuild:BatchGetBuilds",
+        "codebuild:StartBuild",
+        "codebuild:ListBuildsForProject"
+      ],
+      "Resource": "arn:aws:codebuild:us-east-1:158961537080:project/rapid-cortex-web-build-*"
+    },
+    {
+      "Sid": "WebEcsMutate",
       "Effect": "Allow",
       "Action": [
         "ecs:UpdateService",
@@ -32,27 +53,7 @@
       ]
     },
     {
-      "Sid": "WebCfnStackRead",
-      "Effect": "Allow",
-      "Action": ["cloudformation:DescribeStacks"],
-      "Resource": [
-        "arn:aws:cloudformation:us-east-1:158961537080:stack/rapid-cortex-web-*/*",
-        "arn:aws:cloudformation:us-east-1:158961537080:stack/rapid-cortex-v2-web-*/*"
-      ]
-    },
-    {
-      "Sid": "WebCodeBuildDeployRead",
-      "Effect": "Allow",
-      "Action": [
-        "codebuild:BatchGetProjects",
-        "codebuild:BatchGetBuilds",
-        "codebuild:StartBuild",
-        "codebuild:ListBuildsForProject"
-      ],
-      "Resource": "arn:aws:codebuild:us-east-1:158961537080:project/rapid-cortex-web-build-*"
-    },
-    {
-      "Sid": "WebEcsDeployDescribe",
+      "Sid": "WebEcsDescribe",
       "Effect": "Allow",
       "Action": [
         "ecs:DescribeServices",
@@ -70,7 +71,7 @@
       ]
     },
     {
-      "Sid": "WebEcsClusterDiscovery",
+      "Sid": "WebEcsClusters",
       "Effect": "Allow",
       "Action": ["ecs:DescribeClusters", "ecs:ListServices"],
       "Resource": [
@@ -79,7 +80,16 @@
       ]
     },
     {
-      "Sid": "AppCloudFrontInvalidation",
+      "Sid": "WebCfnStackRead",
+      "Effect": "Allow",
+      "Action": ["cloudformation:DescribeStacks"],
+      "Resource": [
+        "arn:aws:cloudformation:us-east-1:158961537080:stack/rapid-cortex-web-*/*",
+        "arn:aws:cloudformation:us-east-1:158961537080:stack/rapid-cortex-v2-web-*/*"
+      ]
+    },
+    {
+      "Sid": "AppCfInval",
       "Effect": "Allow",
       "Action": [
         "cloudfront:CreateInvalidation",

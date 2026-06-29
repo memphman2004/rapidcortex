@@ -42,14 +42,22 @@ The template now supports this with parameters:
 
 ### Deploy IAM
 
-Runtime access for Lambdas is defined in the SAM template: **per-function** DynamoDB (and Cognito where needed) plus **`S3CrudPolicy` on `AssetsBucket` for every API Lambda**, matching the required `ASSETS_BUCKET` env var from `apps/api/src/lib/env.ts`. For **humans or CI** running `sam deploy`, use a dedicated IAM user or role with a narrow policy. Edit placeholders in [`infra/iam/sam-deploy-policy.json`](iam/sam-deploy-policy.json) (`REPLACE_ACCOUNT_ID`, `REPLACE_REGION`, `REPLACE_HOSTED_ZONE_ID`), attach it to the deploy principal. For OIDC-based CI (no long-lived keys), add an IAM OIDC identity provider and trust policy for **your** IdP in AWS IAM or your org’s IaC—this repo does not ship forge-specific trust JSON.
+Runtime access for Lambdas is defined in the SAM template: **per-function** DynamoDB (and Cognito where needed) plus **`S3CrudPolicy` on `AssetsBucket` for every API Lambda**, matching the required `ASSETS_BUCKET` env var from `apps/api/src/lib/env.ts`. For **humans or CI** running `sam deploy`, use a dedicated IAM user or role with a narrow policy.
 
-**`rapid-cortex-deploy` IAM user** (marketing S3 sync, `deploy-web-no-docker.sh`, etc.): attach [`infra/iam/rapid-cortex-deploy-policy.prod.json`](iam/rapid-cortex-deploy-policy.prod.json) (prod account **`158961537080`** ARNs pre-filled). It closes deploy gaps: `cloudfront:CreateInvalidation` on **`EWZ286WS69KX1`**, CodeBuild start/describe on `rapid-cortex-web-build-*`, ECS describe on web clusters, and SSM read for Mapbox. Apply once with an **admin** principal in account **`158961537080`** (`rapid-cortex-deploy` cannot attach its own policies):
+**Split managed policies (6144-char limit):** attach **both** to `rapid-cortex-deploy`:
+
+| Policy | File | Scope |
+| --- | --- | --- |
+| `rapid-cortex-deploy-policy` | [`infra/iam/sam-deploy-policy.prod.json`](iam/sam-deploy-policy.prod.json) | CFN/SAM, Lambda, API GW, DynamoDB, Cognito, IAM roles, Route53, ACM, S3 assets, **drift detect** |
+| `rapid-cortex-deploy-policy-web` | [`infra/iam/sam-deploy-policy-web.prod.json`](iam/sam-deploy-policy-web.prod.json) | ECR, CodeBuild, ECS, web CFN read, CloudFront invalidation, Mapbox SSM |
+
+Templates with `REPLACE_*` placeholders: [`sam-deploy-policy.json`](iam/sam-deploy-policy.json) + [`sam-deploy-policy-web.json`](iam/sam-deploy-policy-web.json). Apply prod policies (admin, account **158961537080**):
 
 ```bash
-# Admin credentials must be in account 158961537080 (not default/other profiles)
-ADMIN_AWS_PROFILE=your-admin-on-158961537080 ./scripts/apply-rapid-cortex-deploy-iam.sh --invalidate-marketing
+ADMIN_AWS_PROFILE=your-admin-on-158961537080 ./scripts/apply-sam-deploy-managed-policies.sh
 ```
+
+Optional inline gaps (legacy overlap): [`rapid-cortex-deploy-policy.prod.json`](iam/rapid-cortex-deploy-policy.prod.json) via [`scripts/apply-rapid-cortex-deploy-iam.sh`](../scripts/apply-rapid-cortex-deploy-iam.sh) — usually redundant once both managed policies are attached.
 
 After that, marketing deploys auto-invalidate via `AWS_PROFILE=rapid-cortex`:
 

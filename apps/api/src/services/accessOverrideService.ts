@@ -12,6 +12,7 @@ import type { AuditEvent, UserContext } from "rapid-cortex-shared";
 import { assertGrantWithinAuthority, extractDashboardPrefix } from "../lib/accessOverrideGrantPolicy.js";
 import { makeId } from "../lib/ids.js";
 import { env } from "../lib/env.js";
+import { AgencyRepository } from "../repositories/agencyRepository.js";
 import { AccessOverrideRepository } from "../repositories/accessOverrideRepository.js";
 import { AuditRepository } from "../repositories/auditRepository.js";
 import type {
@@ -21,6 +22,7 @@ import type {
 } from "../types/accessOverride.js";
 
 const repo = new AccessOverrideRepository();
+const agencyRepo = new AgencyRepository();
 const auditRepo = new AuditRepository();
 
 const grantBodySchema = z.object({
@@ -225,34 +227,51 @@ function auditPayload(base: {
   };
 }
 
+function filterListedOverrides(
+  rows: AccessOverrideRecord[],
+  query: { status?: string | null; search?: string | null },
+): Array<AccessOverrideRecord & { effectiveStatus: AccessOverrideStatus }> {
+  const at = Date.now();
+  let mapped = rows.map((r) => ({
+    ...r,
+    effectiveStatus: effectiveStatus(r, at),
+  }));
+  const st = query.status?.trim().toLowerCase();
+  if (st && st !== "all") {
+    mapped = mapped.filter((m) => m.effectiveStatus === st);
+  }
+  const q = query.search?.trim().toLowerCase();
+  if (q) {
+    mapped = mapped.filter(
+      (m) =>
+        m.targetUserEmail.toLowerCase().includes(q) ||
+        m.targetUserId.toLowerCase().includes(q) ||
+        m.grantedRoleOrPermission.toLowerCase().includes(q) ||
+        m.overrideId.toLowerCase().includes(q),
+    );
+  }
+  return mapped;
+}
+
 export class AccessOverrideService {
   async list(
     actor: UserContext,
     query: { agencyId?: string | null; status?: string | null; search?: string | null },
   ): Promise<{ items: Array<AccessOverrideRecord & { effectiveStatus: AccessOverrideStatus }> }> {
     assertManageAccess(actor);
-    const agency = actorAgency(actor, query.agencyId?.trim() ?? undefined);
-    const rows = await repo.queryByAgency(agency, 1000);
-    const at = Date.now();
-    let mapped = rows.map((r) => ({
-      ...r,
-      effectiveStatus: effectiveStatus(r, at),
-    }));
-    const st = query.status?.trim().toLowerCase();
-    if (st && st !== "all") {
-      mapped = mapped.filter((m) => m.effectiveStatus === st);
-    }
-    const q = query.search?.trim().toLowerCase();
-    if (q) {
-      mapped = mapped.filter(
-        (m) =>
-          m.targetUserEmail.toLowerCase().includes(q) ||
-          m.targetUserId.toLowerCase().includes(q) ||
-          m.grantedRoleOrPermission.toLowerCase().includes(q) ||
-          m.overrideId.toLowerCase().includes(q),
+    const scopedAgencyId = query.agencyId?.trim() ?? "";
+
+    if (isRcsuperadmin(actor) && !scopedAgencyId) {
+      const agencyIds = await agencyRepo.listAgencyIds();
+      const batches = await Promise.all(
+        agencyIds.map((agencyId) => repo.queryByAgency(agencyId, 500)),
       );
+      return { items: filterListedOverrides(batches.flat(), query) };
     }
-    return { items: mapped };
+
+    const agency = actorAgency(actor, scopedAgencyId || undefined);
+    const rows = await repo.queryByAgency(agency, 1000);
+    return { items: filterListedOverrides(rows, query) };
   }
 
   async getById(actor: UserContext, overrideId: string, queryAgencyId?: string | null) {

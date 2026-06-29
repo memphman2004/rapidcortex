@@ -10,6 +10,7 @@ const {
   mockUpdateRevoked,
   mockAuditCreate,
   mockSend,
+  mockListAgencyIds,
 } = vi.hoisted(() => ({
   mockPut: vi.fn(),
   mockGet: vi.fn(),
@@ -18,6 +19,7 @@ const {
   mockUpdateRevoked: vi.fn(),
   mockAuditCreate: vi.fn(),
   mockSend: vi.fn(),
+  mockListAgencyIds: vi.fn(),
 }));
 
 vi.mock("../../repositories/auditRepository.js", () => ({
@@ -33,6 +35,12 @@ vi.mock("../../repositories/accessOverrideRepository.js", () => ({
     queryByAgency = mockQueryByAgency;
     queryByAgencyAndTargetUser = mockQueryByAgencyAndTargetUser;
     updateRevoked = mockUpdateRevoked;
+  },
+}));
+
+vi.mock("../../repositories/agencyRepository.js", () => ({
+  AgencyRepository: class {
+    listAgencyIds = mockListAgencyIds;
   },
 }));
 
@@ -104,8 +112,16 @@ describe("AccessOverrideService (integration with mocked persistence)", () => {
     email: "disp@agency-a.example",
   } satisfies UserContext;
 
+  const rcSuperAdmin = {
+    userId: "rc-sub",
+    agencyId: "__platform__",
+    role: "rcsuperadmin",
+    email: "rc@rapidcortex.us",
+  } satisfies UserContext;
+
   beforeEach(() => {
     vi.clearAllMocks();
+    mockListAgencyIds.mockResolvedValue(["agency-a", "agency-b"]);
     mockAuditCreate.mockResolvedValue(undefined);
     mockPut.mockResolvedValue(undefined);
     mockUpdateRevoked.mockResolvedValue(undefined);
@@ -382,5 +398,39 @@ describe("AccessOverrideService (integration with mocked persistence)", () => {
     const { items } = await svc.list(adminSameAgency, { status: "active" });
 
     expect(items.map((i) => i.overrideId)).toEqual(["ovr_active"]);
+  });
+
+  it("rcsuperadmin lists overrides platform-wide when agencyId is omitted", async () => {
+    mockQueryByAgency.mockImplementation(async (agencyId: string) => {
+      if (agencyId !== "agency-a") return [];
+      return [
+        {
+          overrideId: "ovr_platform",
+          agencyId: "agency-a",
+          targetUserKey: "t1#ovr_platform",
+          targetUserId: "t1",
+          targetUserEmail: "a@x",
+          targetUserName: "A",
+          grantedRoleOrPermission: "dashboard:qa",
+          overrideType: "permission",
+          reason: "r",
+          status: "active",
+          grantedByUserId: "x",
+          grantedByName: "x@x",
+          grantedAt: new Date().toISOString(),
+          expiresAt: null,
+          revokedByUserId: null,
+          revokedAt: null,
+          revokeReason: null,
+          createdAt: "",
+          updatedAt: "",
+        },
+      ];
+    });
+
+    const { items } = await svc.list(rcSuperAdmin, { status: "active" });
+
+    expect(mockListAgencyIds).toHaveBeenCalledTimes(1);
+    expect(items.map((i) => i.overrideId)).toEqual(["ovr_platform"]);
   });
 });

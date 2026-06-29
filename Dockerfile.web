@@ -58,6 +58,7 @@ ARG NEXT_PUBLIC_DEFAULT_PLAN
 ARG NEXT_PUBLIC_GA_MEASUREMENT_ID
 ARG APP_ENV=production
 ARG APP_VERSION=unknown
+ARG BUILD_CACHE_BUST=1
 
 ENV NEXT_TELEMETRY_DISABLED=1
 ENV NEXT_PUBLIC_API_BASE_URL=${NEXT_PUBLIC_API_BASE_URL}
@@ -103,6 +104,9 @@ ENV NEXT_PUBLIC_APP_ENV=${APP_ENV}
 ENV APP_ENV=${APP_ENV}
 ENV APP_VERSION=${APP_VERSION}
 
+# Bust Docker layer cache when source or build args change (CodeBuild passes BUILD_CACHE_BUST).
+RUN echo "build cache bust ${BUILD_CACHE_BUST}"
+
 RUN npm run build -w rapid-cortex-shared \
   && npm run build -w rapid-cortex-maps \
   && npm run build -w rapid-cortex-protocols \
@@ -119,8 +123,10 @@ ENV HOSTNAME=0.0.0.0
 
 ARG APP_ENV=production
 ARG APP_VERSION=unknown
+ARG RC_LOG_MIDDLEWARE_RSC=
 ENV APP_ENV=${APP_ENV}
 ENV APP_VERSION=${APP_VERSION}
+ENV RC_LOG_MIDDLEWARE_RSC=${RC_LOG_MIDDLEWARE_RSC}
 
 RUN apt-get update -y \
   && apt-get install -y --no-install-recommends ca-certificates curl \

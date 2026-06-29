@@ -225,6 +225,16 @@ const nextConfig = {
         destination: "/example-city/dashboard/:path*",
         permanent: false,
       },
+      {
+        source: "/integrations/ring-review",
+        destination: "https://www.rapidcortex.us/connect/ring/start/",
+        permanent: true,
+      },
+      {
+        source: "/integrations/ring-review/:path*",
+        destination: "https://www.rapidcortex.us/connect/ring/start/",
+        permanent: true,
+      },
     ];
   },
   async rewrites() {

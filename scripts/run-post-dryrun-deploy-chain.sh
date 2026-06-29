@@ -45,11 +45,14 @@ if ! grep -q "Changeset created successfully" "${LOG}"; then
 fi
 
 CHANGESET_ARN="$(grep -oE 'arn:aws:cloudformation:[^ ]+changeSet/samcli-deploy[0-9]+/[^ ]+' "${LOG}" | tail -1)"
-if [[ -z "${CHANGESET_ARN}" ]]; then
-  echo "ERROR: Could not parse changeset ARN from ${LOG}" >&2
+CHANGESET_NAME="$(grep -oE 'samcli-deploy[0-9]+' "${LOG}" | tail -1)"
+if [[ -z "${CHANGESET_NAME}" && -n "${CHANGESET_ARN}" ]]; then
+  CHANGESET_NAME="$(echo "${CHANGESET_ARN}" | sed -n 's|.*/changeSet/\([^/]*\)/.*|\1|p')"
+fi
+if [[ -z "${CHANGESET_NAME}" ]]; then
+  echo "ERROR: Could not parse changeset name from ${LOG}" >&2
   exit 1
 fi
-CHANGESET_NAME="$(echo "${CHANGESET_ARN}" | sed -n 's|.*/changeSet/\([^/]*\)/.*|\1|p')"
 echo "Executing changeset: ${CHANGESET_NAME}"
 
 aws cloudformation execute-change-set \

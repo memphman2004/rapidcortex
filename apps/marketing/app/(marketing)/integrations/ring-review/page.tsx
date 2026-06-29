@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
 
-export default function RingReviewerGuidePage() {
-  redirect("/integrations#ring-review-test-guide");
+/** Legacy URL — reviewer steps are internal only; homeowners use /connect/ring/start. */
+export default function LegacyRingReviewRedirect() {
+  redirect("/connect/ring/start");
 }

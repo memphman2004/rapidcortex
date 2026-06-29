@@ -7,6 +7,7 @@ import {
   Shield, ShieldAlert, Siren, TrendingUp, Users, Wifi, Zap,
 } from "lucide-react";
 import type { CadWritebackAuditRecord, PlatformNotice } from "rapid-cortex-shared";
+import { PLATFORM_AGENCY_ID } from "rapid-cortex-shared/tenancy/constants";
 import {
   fetchAgencies,
   fetchAgencyAdminAccessOverridesList,
@@ -451,7 +452,10 @@ export function ActiveGrantsWidget({ agencyId }: WidgetProps) {
   const q = useQuery({
     queryKey: ["active-grants", agencyId],
     queryFn: async () => {
-      const res = await fetchAgencyAdminAccessOverridesList({ status: "active" }).catch(() => ({
+      const res = await fetchAgencyAdminAccessOverridesList({
+        status: "active",
+        ...(agencyId && agencyId !== PLATFORM_AGENCY_ID ? { agencyId } : {}),
+      }).catch(() => ({
         items: [],
       }));
       return res.items.map((item) => ({

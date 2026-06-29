@@ -12,6 +12,7 @@ import {
   marketingContactPath,
   marketingHomePath,
   marketingPricingPath,
+  marketingRingCustomersPath,
   marketingSignupPath,
 } from "@/lib/marketing-links";
 import { postAuthRedirect, hardNavigateTo } from "@/lib/auth/postAuthRedirect";
@@ -932,6 +933,15 @@ export function LoginForm({
             <Link href={marketingHomePath()} className="text-sky-400 hover:text-sky-300">
               Home
             </Link>
+            {" · "}
+            <a
+              href={marketingRingCustomersPath()}
+              className="text-sky-400 hover:text-sky-300"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              Ring customers
+            </a>
           </p>
         ) : null}
       </form>

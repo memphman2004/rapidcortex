@@ -13,9 +13,12 @@
 #   passing `--task-definition` (family from `TaskDefinitionFamily`) picks up the latest Active
 #   revision after `deploy-web-ssr.sh` updates Cognito/API env.
 #
-# Usage:
-#   ./scripts/deploy-web-no-docker.sh prod
-#   ENVIRONMENT=staging ./scripts/deploy-web-no-docker.sh   # first arg wins if both set
+# Usage (prod):
+#   source scripts/env-web-ssr-prod.sh   # required — gitignored; not optional
+#   export RC_LOG_MIDDLEWARE_RSC=1       # optional; forwarded to CodeBuild → image ENV
+#   bash scripts/deploy-web-no-docker.sh prod
+# Usage (staging/dev):
+#   ./scripts/deploy-web-no-docker.sh staging
 #
 # Env overrides:
 #   AWS_REGION                    default us-east-1
@@ -47,6 +50,19 @@ case "${ENVIRONMENT}" in
     exit 1
     ;;
 esac
+
+if [[ "${ENVIRONMENT}" == "prod" ]]; then
+  PROD_ENV_FILE="${ROOT}/scripts/env-web-ssr-prod.sh"
+  if [[ ! -f "${PROD_ENV_FILE}" ]]; then
+    echo "ERROR: ${PROD_ENV_FILE} is required for prod web deploy." >&2
+    echo "       Generate/update it: bash scripts/print-stack-outputs-for-web.sh prod us-east-1" >&2
+    echo "       (File is gitignored — must exist locally before deploy.)" >&2
+    exit 1
+  fi
+  # shellcheck source=scripts/env-web-ssr-prod.sh
+  source "${PROD_ENV_FILE}"
+  echo "✓ Sourced ${PROD_ENV_FILE}"
+fi
 
 if [[ "${ENVIRONMENT}" == "prod" && "${NEXT_PUBLIC_ENABLE_CAD_WRITEBACK:-}" == "1" ]]; then
   echo "ERROR: NEXT_PUBLIC_ENABLE_CAD_WRITEBACK=1 is not allowed for prod until pilot go/no-go and signed CAD writeback addendum." >&2
@@ -207,7 +223,8 @@ for _var_name in \
   NEXT_PUBLIC_ENABLE_QR_NFC \
   NEXT_PUBLIC_ENABLE_CALLER_CARD \
   NEXT_PUBLIC_ENABLE_BILLING \
-  NEXT_PUBLIC_DEFAULT_PLAN
+  NEXT_PUBLIC_DEFAULT_PLAN \
+  RC_LOG_MIDDLEWARE_RSC
 do
   if [[ -n "${!_var_name:-}" ]]; then
     _CB_ENV_OVERRIDES+=(--environment-variables-override "name=${_var_name},value=${!_var_name},type=PLAINTEXT")
@@ -217,6 +234,9 @@ unset _var_name
 
 if [[ ${#_CB_ENV_OVERRIDES[@]} -gt 0 ]]; then
   echo "   CodeBuild: applying ${#_CB_ENV_OVERRIDES[@]} env override(s) from current shell → image build-args."
+  if [[ -n "${RC_LOG_MIDDLEWARE_RSC:-}" ]]; then
+    echo "   RC_LOG_MIDDLEWARE_RSC=${RC_LOG_MIDDLEWARE_RSC} → baked into runner image ENV (not ECS task def)."
+  fi
   BUILD_ID="$(
     aws codebuild start-build \
       --project-name "${CODEBUILD_PROJECT}" \

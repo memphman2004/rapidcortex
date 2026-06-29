@@ -36,6 +36,18 @@ export function marketingHomePath(): string {
   return "/";
 }
 
+/** Marketing site origin when app runs on `app.*` (defaults to www). */
+export function marketingSiteOrigin(): string {
+  const explicit = process.env.NEXT_PUBLIC_MARKETING_SITE_URL?.trim().replace(/\/$/, "");
+  if (explicit) return explicit;
+  return "https://www.rapidcortex.us";
+}
+
+/** Ring homeowners — public Connect enrollment (not agency login). */
+export function marketingRingCustomersPath(): string {
+  return `${marketingSiteOrigin()}/connect/ring/start`;
+}
+
 export function marketingSignupPath(): string {
   return withAppOrigin("/signup");
 }
