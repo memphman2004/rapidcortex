@@ -10,7 +10,12 @@ import {
   fetchAgencyBillingInvoices,
   fetchPlatformSummary,
   fetchSupervisorActiveCalls,
+  type IntegrationStatusPayload,
 } from "@/lib/api";
+import {
+  countIntegrationHealthErrors,
+  integrationHealthRowsFromStatus,
+} from "@/lib/integration-health-rows";
 import { fetchLocations } from "@/lib/locations-api";
 import { extractCampusCode, extractVenueCode } from "@/lib/auth/post-login-redirect";
 import { fetchCampusIncidents } from "@/lib/campus/campus-incidents-api";
@@ -126,10 +131,9 @@ export function StatPendingReviewsWidget({ agencyId }: WidgetProps) {
 
 export function StatIntegrationErrorsWidget({ agencyId }: WidgetProps) {
   const q = useStatQuery("integration-health", agencyId, async () => {
-    const data = await backendGet<{ integrations?: Array<{ status: string }> }>(
-      `/api/agencies/${encodeURIComponent(agencyId)}/integrations/health`,
-    );
-    return data?.integrations?.filter((i) => i.status === "error" || i.status === "offline").length ?? 0;
+    const status = await backendGet<IntegrationStatusPayload>("/api/integration/status");
+    if (!status) return 0;
+    return countIntegrationHealthErrors(integrationHealthRowsFromStatus(status));
   });
   if (q.isLoading) return <WidgetSkeleton />;
   return (

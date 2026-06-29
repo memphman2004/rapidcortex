@@ -8,6 +8,10 @@ import {
   Clock, Globe, MessageSquare, PhoneCall, Shield, Users, Wifi, WifiOff, Zap,
 } from "lucide-react";
 import type { BacklogSnapshot, Incident } from "rapid-cortex-shared";
+import type { IntegrationStatusPayload } from "@/lib/api";
+import {
+  integrationHealthRowsFromStatus,
+} from "@/lib/integration-health-rows";
 import {
   backendGet,
   StatCard,
@@ -162,8 +166,9 @@ export function IntegrationHealthWidget({ agencyId }: WidgetProps) {
   const { data, isLoading } = useQuery({
     queryKey: ["integration-health", agencyId],
     queryFn: async () => {
-      const r = await fetch(`/api/backend/api/agencies/${agencyId}/integrations/health`, { credentials: "include" });
-      return r.ok ? r.json() : null;
+      const status = await backendGet<IntegrationStatusPayload>("/api/integration/status");
+      if (!status) return null;
+      return { integrations: integrationHealthRowsFromStatus(status) };
     },
     refetchInterval: 60_000,
   });
