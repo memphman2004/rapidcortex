@@ -99,7 +99,21 @@
       "Resource": "arn:aws:cloudfront::158961537080:distribution/*"
     },
     {
-      "Sid": "MapboxTokenSsmRead",
+      "Sid": "WebElbTargetHealth",
+      "Effect": "Allow",
+      "Action": ["elasticloadbalancing:DescribeTargetHealth"],
+      "Resource": "arn:aws:elasticloadbalancing:us-east-1:158961537080:targetgroup/rapid-cortex-v2-web-prod/*"
+    },
+    {
+      "Sid": "WebLogsRead",
+      "Effect": "Allow",
+      "Action": [
+        "logs:DescribeLogStreams",
+        "logs:GetLogEvents",
+        "logs:FilterLogEvents"
+      ],
+      "Resource": "arn:aws:logs:us-east-1:158961537080:log-group:/ecs/rapid-cortex-v2-web-prod:*"
+    },
       "Effect": "Allow",
       "Action": ["ssm:GetParameter"],
       "Resource": "arn:aws:ssm:us-east-1:158961537080:parameter/rapidcortex/prod/mapbox/public-token"

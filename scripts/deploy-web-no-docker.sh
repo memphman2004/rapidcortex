@@ -421,7 +421,7 @@ if [[ "${ECS_SVC_LEN}" -lt 1 ]]; then
     --network-configuration "awsvpcConfiguration={subnets=[${PRIV_SUBS_CSV}],securityGroups=[${ECS_SG}],assignPublicIp=${ASSIGN_PUB}}" \
     --load-balancers "targetGroupArn=${TG_ARN},containerName=nextjs-web,containerPort=3000" \
     --health-check-grace-period-seconds "${GRACE_SEC}" \
-    --deployment-configuration "maximumPercent=200,minimumHealthyPercent=50,deploymentCircuitBreaker={enable=false,rollback=false}" \
+    --deployment-configuration "maximumPercent=200,minimumHealthyPercent=50,deploymentCircuitBreaker={enable=true,rollback=true}" \
     --region "${AWS_REGION}" \
     --no-cli-pager >/dev/null
   echo "✓ ECS service created"

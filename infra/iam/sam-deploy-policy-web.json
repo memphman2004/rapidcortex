@@ -99,6 +99,22 @@
       "Resource": "arn:aws:cloudfront::REPLACE_ACCOUNT_ID:distribution/*"
     },
     {
+      "Sid": "WebElbTargetHealth",
+      "Effect": "Allow",
+      "Action": ["elasticloadbalancing:DescribeTargetHealth"],
+      "Resource": "arn:aws:elasticloadbalancing:REPLACE_REGION:REPLACE_ACCOUNT_ID:targetgroup/rapid-cortex-v2-web-prod/*"
+    },
+    {
+      "Sid": "WebLogsRead",
+      "Effect": "Allow",
+      "Action": [
+        "logs:DescribeLogStreams",
+        "logs:GetLogEvents",
+        "logs:FilterLogEvents"
+      ],
+      "Resource": "arn:aws:logs:REPLACE_REGION:REPLACE_ACCOUNT_ID:log-group:/ecs/rapid-cortex-v2-web-prod:*"
+    },
+    {
       "Sid": "MapboxTokenSsmRead",
       "Effect": "Allow",
       "Action": ["ssm:GetParameter"],
