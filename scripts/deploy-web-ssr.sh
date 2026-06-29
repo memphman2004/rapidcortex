@@ -99,6 +99,14 @@ API_BASE_URL_2="${API_BASE_URL_2:-${API_UPSTREAM_BASE_2:-}}"
 if [[ -n "${API_BASE_URL_2}" ]]; then
   DEPLOY_OVERRIDES+=( "ApiBaseUrl2=${API_BASE_URL_2}" )
 fi
+for n in 3 4 5; do
+  api_var="API_BASE_URL_${n}"
+  upstream_var="API_UPSTREAM_BASE_${n}"
+  v="${!api_var:-${!upstream_var:-}}"
+  if [[ -n "${v}" ]]; then
+    DEPLOY_OVERRIDES+=( "ApiBaseUrl${n}=${v}" )
+  fi
+done
 if [[ -n "${PUBLIC_SITE_URL:-}" ]]; then
   DEPLOY_OVERRIDES+=( "PublicSiteUrl=${PUBLIC_SITE_URL}" )
 fi

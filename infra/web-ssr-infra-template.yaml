@@ -107,6 +107,18 @@ Parameters:
     Description: >-
       Optional second API Gateway base (stack 2) for comms, call-intelligence, and contact-sales leads.
       Leave empty when only one API stack is deployed.
+  ApiBaseUrl3:
+    Type: String
+    Default: ""
+    Description: Optional stack-3 API base (platform summary, agency-admin overrides, video-assist).
+  ApiBaseUrl4:
+    Type: String
+    Default: ""
+    Description: Optional stack-4 API base (billing, Ring Connect).
+  ApiBaseUrl5:
+    Type: String
+    Default: ""
+    Description: Optional stack-5 API base (campus, venue, media, stream).
   CognitoUserPoolId:
     Type: String
   CognitoClientId:
@@ -187,6 +199,9 @@ Conditions:
       - !Condition AttachAppSubdomain
   HasCognitoHostedUiDomain: !Not [!Equals [!Ref CognitoHostedUiDomain, ""]]
   HasApiBaseUrl2: !Not [!Equals [!Ref ApiBaseUrl2, ""]]
+  HasApiBaseUrl3: !Not [!Equals [!Ref ApiBaseUrl3, ""]]
+  HasApiBaseUrl4: !Not [!Equals [!Ref ApiBaseUrl4, ""]]
+  HasApiBaseUrl5: !Not [!Equals [!Ref ApiBaseUrl5, ""]]
   ManageRoute53AliasRecords:
     Fn::And:
       - !Condition AttachApexWwwAliases
@@ -438,6 +453,36 @@ Resources:
               - HasApiBaseUrl2
               - Name: NEXT_PUBLIC_API_BASE_2
                 Value: !Ref ApiBaseUrl2
+              - !Ref AWS::NoValue
+            - !If
+              - HasApiBaseUrl3
+              - Name: API_UPSTREAM_BASE_3
+                Value: !Ref ApiBaseUrl3
+              - !Ref AWS::NoValue
+            - !If
+              - HasApiBaseUrl3
+              - Name: NEXT_PUBLIC_API_BASE_3
+                Value: !Ref ApiBaseUrl3
+              - !Ref AWS::NoValue
+            - !If
+              - HasApiBaseUrl4
+              - Name: API_UPSTREAM_BASE_4
+                Value: !Ref ApiBaseUrl4
+              - !Ref AWS::NoValue
+            - !If
+              - HasApiBaseUrl4
+              - Name: NEXT_PUBLIC_API_BASE_4
+                Value: !Ref ApiBaseUrl4
+              - !Ref AWS::NoValue
+            - !If
+              - HasApiBaseUrl5
+              - Name: API_UPSTREAM_BASE_5
+                Value: !Ref ApiBaseUrl5
+              - !Ref AWS::NoValue
+            - !If
+              - HasApiBaseUrl5
+              - Name: NEXT_PUBLIC_API_BASE_5
+                Value: !Ref ApiBaseUrl5
               - !Ref AWS::NoValue
             - Name: NEXT_PUBLIC_API_BASE
               Value: !Ref ApiBaseUrl
