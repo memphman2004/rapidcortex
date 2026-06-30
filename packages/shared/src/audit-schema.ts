@@ -30,6 +30,10 @@ export const RING_AUDIT_EVENT_TYPES = {
   // Ring Connect — citizen (non-Cognito) doorbell owner linking
   RING_CITIZEN_OAUTH_INITIATED: "ring.citizen.oauth.initiated",
   RING_CITIZEN_ACCOUNT_LINKED: "ring.citizen.account.linked",
+
+  // Ring Connect — citizen manage / disconnect
+  RING_CITIZEN_MANAGE_INITIATED: "ring.citizen.manage.initiated",
+  RING_CITIZEN_DISCONNECTED: "ring.citizen.disconnected",
 } as const;
 
 export type RingAuditEventTypeName =

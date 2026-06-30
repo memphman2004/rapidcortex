@@ -1864,6 +1864,135 @@ Resources:
                 - !Ref RingCredentialsSecretArn
                 - !Ref AWS::NoValue
 
+  AppManagedPolicyRingPublicAgenciesByState:
+    Type: AWS::IAM::ManagedPolicy
+    Properties:
+      ManagedPolicyName: !Sub "${Sam4ManagedPolicyNamePrefix}-sam4-lambda-ring-public-agencies-by-state-${DeploymentStage}"
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Sid: AgenciesGsiQuery
+            Effect: Allow
+            Action:
+              - dynamodb:Query
+            Resource:
+              - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${AgenciesTable}/index/publicState-index
+          - Sid: RingRequestsRateLimit
+            Effect: Allow
+            Action:
+              - dynamodb:UpdateItem
+            Resource:
+              - !If
+                - HasRingRequestsTable
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${RingRequestsTable}
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/RingEmergencyCameraRequests-${DeploymentStage}
+
+  AppManagedPolicyRingPublicLeads:
+    Type: AWS::IAM::ManagedPolicy
+    Properties:
+      ManagedPolicyName: !Sub "${Sam4ManagedPolicyNamePrefix}-sam4-lambda-ring-public-leads-${DeploymentStage}"
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Sid: SalesLeadsWrite
+            Effect: Allow
+            Action:
+              - dynamodb:PutItem
+            Resource:
+              - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${SalesLeadsTable}
+          - Sid: RingRequestsRateLimit
+            Effect: Allow
+            Action:
+              - dynamodb:UpdateItem
+            Resource:
+              - !If
+                - HasRingRequestsTable
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${RingRequestsTable}
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/RingEmergencyCameraRequests-${DeploymentStage}
+
+  AppManagedPolicyRingPublicManageStart:
+    Type: AWS::IAM::ManagedPolicy
+    Properties:
+      ManagedPolicyName: !Sub "${Sam4ManagedPolicyNamePrefix}-sam4-lambda-ring-public-manage-start-${DeploymentStage}"
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Sid: AgenciesReadForValidation
+            Effect: Allow
+            Action:
+              - dynamodb:GetItem
+            Resource:
+              - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${AgenciesTable}
+          - Sid: RingRequestsOAuthStateAndRateLimit
+            Effect: Allow
+            Action:
+              - dynamodb:GetItem
+              - dynamodb:PutItem
+              - dynamodb:UpdateItem
+              - dynamodb:DeleteItem
+            Resource:
+              - !If
+                - HasRingRequestsTable
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${RingRequestsTable}
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/RingEmergencyCameraRequests-${DeploymentStage}
+          - Sid: AuditWrite
+            Effect: Allow
+            Action:
+              - dynamodb:PutItem
+            Resource:
+              - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${AuditTable}
+          - Sid: RingCredentialsRead
+            Effect: Allow
+            Action:
+              - secretsmanager:GetSecretValue
+            Resource:
+              - !Sub arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:rapid-cortex/connect/ring-credentials-*
+              - !Sub arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:rapid-cortex/connect/ring-credentials-D3f1sN
+              - !If
+                - HasRingCredentialsSecretArn
+                - !Ref RingCredentialsSecretArn
+                - !Ref AWS::NoValue
+
+  AppManagedPolicyRingPublicManageDisconnect:
+    Type: AWS::IAM::ManagedPolicy
+    Properties:
+      ManagedPolicyName: !Sub "${Sam4ManagedPolicyNamePrefix}-sam4-lambda-ring-public-manage-disconnect-${DeploymentStage}"
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Sid: RingRequestsManageTokenAndRateLimit
+            Effect: Allow
+            Action:
+              - dynamodb:GetItem
+              - dynamodb:UpdateItem
+              - dynamodb:DeleteItem
+            Resource:
+              - !If
+                - HasRingRequestsTable
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${RingRequestsTable}
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/RingEmergencyCameraRequests-${DeploymentStage}
+          - Sid: RingCitizenOwnersReadDelete
+            Effect: Allow
+            Action:
+              - dynamodb:GetItem
+              - dynamodb:DeleteItem
+            Resource:
+              - !If
+                - HasRingCitizenOwnersTable
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${RingCitizenOwnersTable}
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/RapidCortexRingCitizenOwners-${DeploymentStage}
+          - Sid: CitizenTokenSecretDelete
+            Effect: Allow
+            Action:
+              - secretsmanager:DeleteSecret
+            Resource: !Sub arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:${RingSecretsPrefix}/*/citizen/*
+          - Sid: AuditWrite
+            Effect: Allow
+            Action:
+              - dynamodb:PutItem
+            Resource:
+              - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${AuditTable}
+
   AppManagedPolicyNestCameraSecrets:
     Type: AWS::IAM::ManagedPolicy
     Properties:
@@ -2249,6 +2378,128 @@ Resources:
             ApiId: !Ref Api
             Path: /api/public/ring/oauth/callback
             Method: GET
+            Auth:
+              Authorizer: NONE
+
+  RingPublicAgenciesByStateFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/integrations/ring/public-agencies-by-state.handler
+      Timeout: 10
+      Environment:
+        Variables:
+          RING_PARTNERSHIP_ENABLED: !Ref RingPartnershipEnabled
+          ENABLE_CONNECT_RING: !Ref EnableConnectRing
+          RING_TABLE_REQUESTS: !If
+            - HasRingRequestsTable
+            - !Ref RingRequestsTable
+            - !Sub "RingEmergencyCameraRequests-${DeploymentStage}"
+      Policies:
+        - !Ref AppManagedPolicyRingPublicAgenciesByState
+      Events:
+        Route:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/public/agencies/by-state
+            Method: GET
+            Auth:
+              Authorizer: NONE
+
+  RingPublicLeadsFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/integrations/ring/public-leads.handler
+      Timeout: 10
+      Environment:
+        Variables:
+          RING_TABLE_REQUESTS: !If
+            - HasRingRequestsTable
+            - !Ref RingRequestsTable
+            - !Sub "RingEmergencyCameraRequests-${DeploymentStage}"
+      Policies:
+        - !Ref AppManagedPolicyRingPublicLeads
+      Events:
+        Route:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/public/leads
+            Method: POST
+            Auth:
+              Authorizer: NONE
+
+  RingPublicManageStartFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/integrations/ring/public-manage-start.handler
+      Timeout: 30
+      Environment:
+        Variables:
+          RING_CREDENTIALS_SECRET_ARN: !Ref RingCredentialsSecretArn
+          RING_PARTNERSHIP_ENABLED: !Ref RingPartnershipEnabled
+          ENABLE_CONNECT_RING: !Ref EnableConnectRing
+          RING_CITIZEN_REDIRECT_URI: !Ref RingCitizenRedirectUri
+          RING_ACCOUNT_LINK_URL: !Ref RingAccountLinkUrl
+          RING_SECRETS_PREFIX: !Ref RingSecretsPrefix
+          RING_TABLE_REQUESTS: !If
+            - HasRingRequestsTable
+            - !Ref RingRequestsTable
+            - !Sub "RingEmergencyCameraRequests-${DeploymentStage}"
+      Policies:
+        - !Ref AppManagedPolicyRingPublicManageStart
+      Events:
+        Route:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/public/ring/oauth/manage-start
+            Method: GET
+            Auth:
+              Authorizer: NONE
+
+  RingPublicManageDisconnectFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/integrations/ring/public-manage-disconnect.handler
+      Timeout: 30
+      Environment:
+        Variables:
+          RING_PARTNERSHIP_ENABLED: !Ref RingPartnershipEnabled
+          ENABLE_CONNECT_RING: !Ref EnableConnectRing
+          RING_TABLE_REQUESTS: !If
+            - HasRingRequestsTable
+            - !Ref RingRequestsTable
+            - !Sub "RingEmergencyCameraRequests-${DeploymentStage}"
+          RING_TABLE_CITIZEN_OWNERS: !If
+            - HasRingCitizenOwnersTable
+            - !Ref RingCitizenOwnersTable
+            - !Sub "RapidCortexRingCitizenOwners-${DeploymentStage}"
+      Policies:
+        - !Ref AppManagedPolicyRingPublicManageDisconnect
+      Events:
+        Route:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/public/ring/disconnect
+            Method: POST
             Auth:
               Authorizer: NONE
 

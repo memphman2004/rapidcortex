@@ -1225,6 +1225,10 @@
           {
             "AttributeName": "createdAt",
             "AttributeType": "S"
+          },
+          {
+            "AttributeName": "publicState",
+            "AttributeType": "S"
           }
         ],
         "KeySchema": [
@@ -1264,6 +1268,23 @@
             ],
             "Projection": {
               "ProjectionType": "ALL"
+            }
+          },
+          {
+            "IndexName": "publicState-index",
+            "KeySchema": [
+              {
+                "AttributeName": "publicState",
+                "KeyType": "HASH"
+              }
+            ],
+            "Projection": {
+              "ProjectionType": "INCLUDE",
+              "NonKeyAttributes": [
+                "publicDisplayName",
+                "publicCity",
+                "publicDirectoryOptIn"
+              ]
             }
           }
         ]

@@ -1,4 +1,4 @@
-import { GetCommand, PutCommand } from "@aws-sdk/lib-dynamodb";
+import { DeleteCommand, GetCommand, PutCommand } from "@aws-sdk/lib-dynamodb";
 import type { RingCitizenOwnerRecord } from "rapid-cortex-integrations/ring";
 import { ddb } from "./baseRepository.js";
 import { env } from "../lib/env.js";
@@ -30,6 +30,15 @@ export class RingCitizenOwnerRepository {
       new PutCommand({
         TableName: ownersTable(),
         Item: owner,
+      }),
+    );
+  }
+
+  async delete(ringAccountId: string): Promise<void> {
+    await ddb.send(
+      new DeleteCommand({
+        TableName: ownersTable(),
+        Key: { pk: ringCitizenOwnerPk(ringAccountId) },
       }),
     );
   }

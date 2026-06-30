@@ -22,9 +22,26 @@ const tokenStore = new RingTokenStore();
 const owners = new RingCitizenOwnerRepository();
 const oauthStates = new RingPublicOAuthStateRepository();
 
-function linkUrl(status: "success" | "error"): string {
+const RING_CITIZEN_MANAGE_URL =
+  process.env.RING_CITIZEN_MANAGE_URL?.trim() ||
+  (() => {
+    const base = (process.env.RING_ACCOUNT_LINK_URL?.trim() || RING_ACCOUNT_LINK_URL)
+      .replace(/\/$/, "")
+      .replace(/\/link$/, "");
+    return `${base}/manage`;
+  })();
+
+function linkUrl(status: "success" | "error", agencyId?: string): string {
   const base = (process.env.RING_ACCOUNT_LINK_URL?.trim() || RING_ACCOUNT_LINK_URL).replace(/\/$/, "");
-  return `${base}?status=${status}&audience=citizen`;
+  const params = new URLSearchParams({ status, audience: "citizen" });
+  if (agencyId) params.set("agencyId", agencyId);
+  return `${base}?${params.toString()}`;
+}
+
+function manageUrl(status: "found" | "not_found", token?: string): string {
+  const params = new URLSearchParams({ status });
+  if (token) params.set("token", token);
+  return `${RING_CITIZEN_MANAGE_URL}?${params.toString()}`;
 }
 
 export const handler: APIGatewayProxyHandlerV2 = async (event) => {
@@ -33,25 +50,24 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
   const code = event.queryStringParameters?.code?.trim() ?? "";
   const incomingState = event.queryStringParameters?.state?.trim() ?? "";
 
-  const finish = (status: "success" | "error") => ringRedirect(linkUrl(status));
-
   if (!isRingEnabled()) {
-    return finish("error");
+    return ringRedirect(linkUrl("error"));
   }
 
   if (!code || !incomingState) {
-    return finish("error");
+    return ringRedirect(linkUrl("error"));
   }
 
   const stored = await oauthStates.takeState(incomingState);
   if (!stored) {
-    return finish("error");
+    return ringRedirect(linkUrl("error"));
   }
 
   const agencyId = stored.agencyId;
+  const mode = stored.mode;
   const createdAtMs = Date.parse(stored.createdAt);
   if (!Number.isFinite(createdAtMs)) {
-    return finish("error");
+    return ringRedirect(linkUrl("error", agencyId));
   }
 
   try {
@@ -65,6 +81,31 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
     const client = new RingApiClient(tokens.accessToken);
     const profile = await client.getPartnerUserProfile();
     const ringAccountId = deriveCitizenRingAccountId(agencyId, profile.accountId);
+
+    if (mode === "manage") {
+      // Prove identity via OAuth, then look up existing owner.
+      const existing = await owners.getByRingAccountId(ringAccountId);
+      if (!existing) {
+        await auditRingEvent({
+          type: AUDIT_EVENT_TYPES.RING_CITIZEN_MANAGE_INITIATED,
+          agencyId,
+          actorId: ringAccountId,
+          details: { outcome: "not_found" },
+        });
+        return ringRedirect(manageUrl("not_found"));
+      }
+      const manageToken = await oauthStates.saveManageToken(ringAccountId, agencyId);
+      await auditRingEvent({
+        type: AUDIT_EVENT_TYPES.RING_CITIZEN_MANAGE_INITIATED,
+        agencyId,
+        actorId: ringAccountId,
+        details: { outcome: "found" },
+        resourceId: ringAccountId,
+      });
+      return ringRedirect(manageUrl("found", manageToken));
+    }
+
+    // mode === "link" (default): upsert owner record.
     const secretKey = await tokenStore.storeCitizenTokens(agencyId, ringAccountId, tokens);
 
     let deviceIds: string[] = [];
@@ -107,30 +148,31 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
       resourceId: ringAccountId,
     });
 
-    return finish("success");
+    return ringRedirect(linkUrl("success", agencyId));
   } catch (err) {
     if (err instanceof RingAuthError && err.message.toLowerCase().includes("state mismatch")) {
       await auditRingEvent({
         type: AUDIT_EVENT_TYPES.RING_OAUTH_STATE_MISMATCH,
         agencyId,
         actorId: `citizen-oauth:${agencyId}`,
-        details: { flow: "citizen" },
+        details: { flow: mode === "manage" ? "citizen-manage" : "citizen" },
       });
     } else {
       await auditRingEvent({
         type: AUDIT_EVENT_TYPES.RING_TOKEN_EXCHANGE_FAILED,
         agencyId,
         actorId: `citizen-oauth:${agencyId}`,
-        details: { flow: "citizen", reason: "token_exchange_failed" },
+        details: { flow: mode === "manage" ? "citizen-manage" : "citizen", reason: "token_exchange_failed" },
       });
     }
     console.error(
       JSON.stringify({
         msg: "ring_public_callback_error",
         agencyId,
+        mode,
         error: err instanceof Error ? err.message : String(err),
       }),
     );
-    return finish("error");
+    return ringRedirect(linkUrl("error", agencyId));
   }
 };

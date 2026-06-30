@@ -58,6 +58,55 @@ type PilotUser = {
   temporaryPassword: string;
 };
 
+const VALID_US_STATE_CODES = new Set([
+  "AL","AK","AZ","AR","CA","CO","CT","DE","DC","FL","GA","HI","ID","IL","IN",
+  "IA","KS","KY","LA","ME","MD","MA","MI","MN","MS","MO","MT","NE","NV","NH",
+  "NJ","NM","NY","NC","ND","OH","OK","OR","PA","RI","SC","SD","TN","TX","UT",
+  "VT","VA","WA","WV","WI","WY",
+]);
+
+/**
+ * Optional — only set when enrolling the agency in the Ring Connect public directory.
+ * If omitted the agency is created but not listed (publicDirectoryOptIn defaults to false).
+ *
+ *   PILOT_RING_CONNECT_DIRECTORY_JSON='{"publicDirectoryOptIn":true,"publicDisplayName":"Memphis 911","publicCity":"Memphis","publicState":"TN"}'
+ */
+type RingConnectDirectoryInput = {
+  publicDirectoryOptIn: boolean;
+  publicDisplayName: string;
+  publicCity: string;
+  publicState: string;
+};
+
+function parseRingConnectDirectory(): RingConnectDirectoryInput | undefined {
+  const raw = parseJsonEnv<Record<string, unknown>>("PILOT_RING_CONNECT_DIRECTORY_JSON");
+  if (!raw) return undefined;
+  const optIn = raw.publicDirectoryOptIn;
+  const displayName = raw.publicDisplayName;
+  const city = raw.publicCity;
+  const state = typeof raw.publicState === "string" ? raw.publicState.trim().toUpperCase() : "";
+  if (typeof optIn !== "boolean") {
+    throw new Error("PILOT_RING_CONNECT_DIRECTORY_JSON: publicDirectoryOptIn must be boolean");
+  }
+  if (typeof displayName !== "string" || !displayName.trim()) {
+    throw new Error("PILOT_RING_CONNECT_DIRECTORY_JSON: publicDisplayName is required");
+  }
+  if (typeof city !== "string" || !city.trim()) {
+    throw new Error("PILOT_RING_CONNECT_DIRECTORY_JSON: publicCity is required");
+  }
+  if (!VALID_US_STATE_CODES.has(state)) {
+    throw new Error(
+      `PILOT_RING_CONNECT_DIRECTORY_JSON: publicState '${state}' is not a valid 2-letter US state code`,
+    );
+  }
+  return {
+    publicDirectoryOptIn: optIn,
+    publicDisplayName: String(displayName).trim(),
+    publicCity: String(city).trim(),
+    publicState: state,
+  };
+}
+
 const CANONICAL_ROLE_BY_INPUT: Record<PilotUserRoleInput, CanonicalAgencyRole> = {
   dispatcher: "dispatcher",
   supervisor: "supervisor",
@@ -219,6 +268,7 @@ async function main() {
   }
   const agencyCreate = sanitizeAgencyCreate(agencyCreateRaw);
   const agencyPatch = parseJsonEnv<AgencyPatchInput>("PILOT_AGENCY_PATCH_JSON");
+  const ringConnectDirectory = parseRingConnectDirectory();
   const users = parseJsonEnv<PilotUser[]>("PILOT_CUSTOMER_USERS_JSON", true)!;
 
   for (const user of users) {
@@ -310,6 +360,25 @@ async function main() {
         throw new Error(`Agency patch failed (${patchRes.status}): ${JSON.stringify(patchRes.body)}`);
       }
       console.log("[onboard-pilot-customer] agency patch status=200");
+    }
+
+    if (ringConnectDirectory) {
+      const dirPatchRes = await apiRequest(
+        apiUrl,
+        `/api/agencies/${resolvedAgencyId}`,
+        superadminToken,
+        { method: "PATCH", body: JSON.stringify(ringConnectDirectory) },
+      );
+      if (![200].includes(dirPatchRes.status)) {
+        throw new Error(
+          `Ring Connect directory patch failed (${dirPatchRes.status}): ${JSON.stringify(dirPatchRes.body)}`,
+        );
+      }
+      console.log(
+        `[onboard-pilot-customer] Ring Connect directory patch applied: ` +
+          `publicDirectoryOptIn=${ringConnectDirectory.publicDirectoryOptIn} ` +
+          `publicState=${ringConnectDirectory.publicState}`,
+      );
     }
 
     for (const user of users) {

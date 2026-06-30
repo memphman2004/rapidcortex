@@ -1,7 +1,9 @@
+import { Suspense } from "react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { MarketingArticleShell } from "@/components/marketing/marketing-article-shell";
 import { absoluteUrl } from "@/lib/seo";
+import { RingConnectFlow } from "./ring-connect-flow";
 
 export const metadata: Metadata = {
   title: "Connect your Ring account | Rapid Cortex",
@@ -26,42 +28,24 @@ export default function RingCustomerStartPage() {
         <h2 className="text-base font-semibold text-white">How it works</h2>
         <ul className="list-disc space-y-2 pl-5">
           <li>
-            You link your Ring account once with a participating agency you choose. That agency
-            can request video only when you have opted in and a qualifying incident involves your
-            enrolled devices.
+            <strong className="text-slate-100">Enable in the Ring app.</strong> Open Ring → Skills
+            → search for Rapid Cortex → Enable. Select your local agency on the next screen.
           </li>
           <li>
             <strong className="text-slate-100">Every video request is approved separately.</strong>{" "}
-            Dispatchers never receive standing access to your cameras.
+            When a nearby incident involves your address, dispatchers can request temporary access.
+            You decide — every time.
           </li>
           <li>
-            You can disconnect your Ring account at any time from your connection settings.
+            <strong className="text-slate-100">Disconnect anytime.</strong> Manage or remove your
+            connection from your Ring account settings at any time.
           </li>
         </ul>
       </section>
 
-      <section className="mt-8 rounded-2xl border border-white/10 bg-black/40 p-6 text-sm text-slate-300">
-        <h2 className="text-base font-semibold text-white">Connect your Ring account</h2>
-        <p className="mt-3 leading-relaxed">
-          Homeowner self-service linking is not open on this page yet. If your agency invited you to
-          enroll, use the link they provided — it includes your agency&apos;s enrollment details.
-          Otherwise contact us and we will notify you when enrollment opens in your area.
-        </p>
-        <div className="mt-6 flex flex-col gap-3 sm:flex-row">
-          <a
-            href="mailto:support@rapidcortex.us?subject=Ring%20Connect%20homeowner%20enrollment"
-            className="inline-flex min-h-11 items-center justify-center rounded-lg bg-gradient-to-r from-sky-500 to-cyan-400 px-5 text-sm font-semibold text-slate-950"
-          >
-            Contact support
-          </a>
-          <Link
-            href="/privacy"
-            className="inline-flex min-h-11 items-center justify-center rounded-lg border border-slate-600 px-5 text-sm font-semibold text-slate-100 hover:border-slate-500"
-          >
-            Privacy policy
-          </Link>
-        </div>
-      </section>
+      <Suspense fallback={null}>
+        <RingConnectFlow />
+      </Suspense>
 
       <p className="mt-10 text-xs text-slate-500">
         Dispatch center staff should use{" "}
