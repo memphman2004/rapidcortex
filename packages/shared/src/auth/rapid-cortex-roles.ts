@@ -269,6 +269,46 @@ export function isProductVerticalRoleToken(raw: string | undefined | null): bool
 }
 
 /**
+ * Cognito test / seed users may use compact (`campusadmin`) or hyphenated (`venue-admin`) tokens.
+ * Normalize at JWT parse boundaries before PSAP fallback logic runs.
+ */
+export const VERTICAL_ROLE_TOKEN_ALIASES: Record<string, RapidCortexRole> = {
+  campusadmin: "campus_admin",
+  campussecurity: "campus_security",
+  campussupervisor: "campus_supervisor",
+  campusfaculty: "campus_faculty",
+  campuscounselor: "campus_counselor",
+  "campus-admin": "campus_admin",
+  "campus-security": "campus_security",
+  "campus-supervisor": "campus_supervisor",
+  "campus-faculty": "campus_faculty",
+  "campus-counselor": "campus_counselor",
+  venueadmin: "venue_admin",
+  venuesecurity: "venue_security",
+  venuesupervisor: "venue_supervisor",
+  venueoperator: "venue_operator",
+  venueguest: "venue_guest",
+  "venue-admin": "venue_admin",
+  "venue-security": "venue_security",
+  "venue-supervisor": "venue_supervisor",
+  "venue-operator": "venue_operator",
+  "venue-guest": "venue_guest",
+  "venue-guest-services": "venue_guest",
+  "hospital-admin": "hospitaladmin",
+  "hospital-staff": "hospitalstaff",
+  transitadmin: "transit_admin",
+  transitsecurity: "transit_security",
+  "transit-admin": "transit_admin",
+  "transit-security": "transit_security",
+};
+
+export function resolveVerticalRoleTokenAlias(raw: string | undefined | null): RapidCortexRole | undefined {
+  const token = (raw ?? "").trim();
+  if (!token) return undefined;
+  return VERTICAL_ROLE_TOKEN_ALIASES[token.toLowerCase()];
+}
+
+/**
  * Session role for JWT → {@link UserContext}. Preserves product vertical tokens before legacy
  * PSAP migration so post-login routing can send venue/campus users to the correct dashboard.
  */
@@ -289,6 +329,8 @@ export function normalizeSessionRole(value: string | undefined): RapidCortexRole
 export function migrateLegacyRapidCortexRoleTokenValue(raw: string | undefined): string | undefined {
   if (raw === undefined || raw === null) return undefined;
   const t = raw.trim();
+  const aliased = resolveVerticalRoleTokenAlias(t);
+  if (aliased) return aliased;
   // Campus / venue / hospital / transit product roles (Cognito may emit SCREAMING_SNAKE).
   if (t === "CAMPUS_ADMIN") return "campus_admin";
   if (t === "CAMPUS_SUPERVISOR") return "campus_supervisor";
@@ -299,7 +341,7 @@ export function migrateLegacyRapidCortexRoleTokenValue(raw: string | undefined):
   if (t === "VENUE_SUPERVISOR") return "venue_supervisor";
   if (t === "VENUE_SECURITY") return "venue_security";
   if (t === "VENUE_OPERATOR") return "venue_operator";
-  if (t === "VENUE_GUEST") return "venue_guest";
+  if (t === "VENUE_GUEST" || t === "VENUE_GUEST_SERVICES") return "venue_guest";
   if (t === "HOSPITAL_ADMIN") return "hospital_admin";
   if (t === "HOSPITAL_SUPERVISOR") return "hospital_supervisor";
   if (t === "HOSPITAL_STAFF") return "hospital_staff";

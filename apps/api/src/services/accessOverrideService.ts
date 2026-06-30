@@ -7,7 +7,7 @@ import {
 } from "@aws-sdk/client-cognito-identity-provider";
 import type { APIGatewayProxyEventV2 } from "aws-lambda";
 import { z } from "zod";
-import { isRcsuperadmin } from "rapid-cortex-shared";
+import { isRcsuperadmin, isRcInternalOperator } from "rapid-cortex-shared";
 import type { AuditEvent, UserContext } from "rapid-cortex-shared";
 import { assertGrantWithinAuthority, extractDashboardPrefix } from "../lib/accessOverrideGrantPolicy.js";
 import { makeId } from "../lib/ids.js";
@@ -116,6 +116,17 @@ function effectiveStatus(record: AccessOverrideRecord, at = Date.now()): AccessO
 
 function assertManageAccess(actor: UserContext): void {
   if (actor.role !== "agencyadmin" && !isRcsuperadmin(actor)) throw new Error("FORBIDDEN");
+}
+
+/** Read-only list — RC internal operators may view overrides across tenants. */
+function assertListAccess(actor: UserContext): void {
+  if (
+    actor.role !== "agencyadmin" &&
+    !isRcsuperadmin(actor) &&
+    !isRcInternalOperator(actor.role)
+  ) {
+    throw new Error("FORBIDDEN");
+  }
 }
 
 function actorAgency(actor: UserContext, queryAgencyId: string | undefined): string {
@@ -258,10 +269,10 @@ export class AccessOverrideService {
     actor: UserContext,
     query: { agencyId?: string | null; status?: string | null; search?: string | null },
   ): Promise<{ items: Array<AccessOverrideRecord & { effectiveStatus: AccessOverrideStatus }> }> {
-    assertManageAccess(actor);
+    assertListAccess(actor);
     const scopedAgencyId = query.agencyId?.trim() ?? "";
 
-    if (isRcsuperadmin(actor) && !scopedAgencyId) {
+    if ((isRcsuperadmin(actor) || isRcInternalOperator(actor.role)) && !scopedAgencyId) {
       const agencyIds = await agencyRepo.listAgencyIds();
       const batches = await Promise.all(
         agencyIds.map((agencyId) => repo.queryByAgency(agencyId, 500)),

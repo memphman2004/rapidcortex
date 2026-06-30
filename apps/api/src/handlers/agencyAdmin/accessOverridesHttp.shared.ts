@@ -30,6 +30,7 @@ export function normalizeAccessOverridesError(error: unknown) {
     case "AGENCY_REQUIRED":
       return badRequest("agencyId query / body parameter is required for cross-tenant access");
     case "ACCESS_OVERRIDES_DISABLED":
+    case "ACCESS_OVERRIDES_TABLE_NOT_CONFIGURED":
       return serviceUnavailable("Access overrides persistence is not configured on this deployment");
     case "ALREADY_REVOKED":
       return conflict("Override already revoked");
