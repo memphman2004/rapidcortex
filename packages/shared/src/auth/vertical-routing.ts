@@ -41,6 +41,17 @@ export function verticalFromRole(role: UserRole | string): RCVertical {
   return "911";
 }
 
+/** Venue code segment for `/app/venue/{code}` routes (matches web `extractVenueCode`). */
+export function venueCodeFromAgencyId(agencyId: string): string {
+  const raw = agencyId.trim();
+  const match = raw.match(/(?:test-)?venue-(.+)$/i);
+  return (match?.[1] ?? raw).toUpperCase().replace(/-/g, "");
+}
+
+function venueCodeDashboardPath(agencyId: string): string {
+  return `/app/venue/${venueCodeFromAgencyId(agencyId)}`;
+}
+
 export function dashboardRouteFromRole(role: UserRole | string, agencyId: string): string {
   const raw = String(role).trim().toLowerCase();
   if (raw === "staff") return "/not-authorized";
@@ -80,7 +91,7 @@ export function dashboardRouteFromRole(role: UserRole | string, agencyId: string
     case "campus_faculty":
       return "/app/campus/faculty";
     case "venue_admin":
-      return "/app/venue/admin";
+      return venueCodeDashboardPath(agencyId);
     case "venue_supervisor":
       return "/app/venue/supervisor";
     case "venue_security":
@@ -88,7 +99,7 @@ export function dashboardRouteFromRole(role: UserRole | string, agencyId: string
     case "venue_operator":
       return "/app/venue/operator";
     case "venue_guest":
-      return "/app/venue/guest";
+      return venueCodeDashboardPath(agencyId);
     case "hospital_admin":
     case "hospitaladmin":
       return "/app/hospital/admin";
@@ -158,6 +169,15 @@ export function pathMatchesRoleDashboard(
     return true;
   }
   if (vertical === "venue") {
+    const roleToken = effectiveRole(role);
+    const venueCode = venueCodeFromAgencyId(agencyId);
+    const guestHomePaths = new Set(
+      [home, `/venue/${venueCode}`].flatMap((p) => (p ? [p, `${p}/`] : [])),
+    );
+    if (roleToken === "venue_guest") {
+      return guestHomePaths.has(path);
+    }
+
     if (path === "/app/venue" || path === "/app/venue/") return false;
     if (path.startsWith("/venue/")) return true;
     if (!path.startsWith("/app/venue/")) return false;

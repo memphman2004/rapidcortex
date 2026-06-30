@@ -1,6 +1,7 @@
 import { migrateLegacyRapidCortexRoleTokenValue } from "rapid-cortex-shared/auth/rapid-cortex-roles";
 import { isRcInternalOperator } from "rapid-cortex-shared/tenancy/principal";
 import { roleMayAccessQrNav } from "@/lib/locations/qr-access";
+import { normalizeVenueRole } from "@/lib/venue/venue-dashboard-sections";
 
 export type VenueNavKey =
   | "dashboard"
@@ -39,12 +40,12 @@ const VENUE_NAV_BY_ROLE: Record<string, readonly VenueNavKey[]> = {
   VENUE_SUPERVISOR: VENUE_SUPERVISOR_NAV,
   VENUE_SECURITY: ["dashboard", "incidents", "reports", "cameras", "zones"],
   VENUE_OPERATOR: ["dashboard", "incidents"],
-  VENUE_GUEST_SERVICES: ["reports"],
+  VENUE_GUEST_SERVICES: [],
 };
 
 export function venueNavKeysForRole(role: string | undefined | null): readonly VenueNavKey[] {
-  const upper = (role ?? "").trim().toUpperCase();
-  return VENUE_NAV_BY_ROLE[upper] ?? VENUE_NAV_BY_ROLE.VENUE_SUPERVISOR;
+  const normalized = normalizeVenueRole(role);
+  return VENUE_NAV_BY_ROLE[normalized] ?? VENUE_NAV_BY_ROLE.VENUE_SUPERVISOR;
 }
 
 export function canViewVenueNavItem(key: VenueNavKey, role: string | undefined | null): boolean {

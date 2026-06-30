@@ -478,9 +478,20 @@ function inheritVerticalMatrix(
   return { ...core, ...vertical };
 }
 
-/** Permissions explicitly granted per role in the v2.0 matrix (excluding hospital portal roles). */
-export const ROLE_ACCESS_MATRIX_V2: Record<MatrixRole, readonly Permission[]> =
-  inheritVerticalMatrix(CORE_ROLE_ACCESS_MATRIX_V2, VERTICAL_ROLE_MATRIX_BASE);
+const inheritedRoleAccessMatrix = inheritVerticalMatrix(
+  CORE_ROLE_ACCESS_MATRIX_V2,
+  VERTICAL_ROLE_MATRIX_BASE,
+);
+
+/**
+ * Guest-services staff must never inherit PSAP `auditor` grants (e.g. `incidents.view`).
+ * Vertical matrix base maps `venue_guest` → `auditor` for historical compatibility only;
+ * explicit least-privilege venue product grants override that inheritance here.
+ */
+export const ROLE_ACCESS_MATRIX_V2: Record<MatrixRole, readonly Permission[]> = {
+  ...inheritedRoleAccessMatrix,
+  venue_guest: [...VENUE_ROLE_PERMISSIONS.VENUE_GUEST_SERVICES] as readonly Permission[],
+};
 
 /** rcsuperadmin-only immutable permissions (matrix `o` column). */
 export const RCSUPERADMIN_ONLY_PERMISSIONS: readonly Permission[] = [

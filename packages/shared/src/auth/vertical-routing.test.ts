@@ -31,8 +31,12 @@ describe("dashboardRouteFromRole", () => {
     expect(dashboardRouteFromRole("campus_security", "test-campus-uga")).toBe("/app/campus/security");
   });
 
-  it("routes venue admin to venue admin console", () => {
-    expect(dashboardRouteFromRole("venue_admin", "test-venue-mbs")).toBe("/app/venue/admin");
+  it("routes venue admin to code-segment widget home", () => {
+    expect(dashboardRouteFromRole("venue_admin", "test-venue-mbs")).toBe("/app/venue/MBS");
+  });
+
+  it("routes venue guest services to code-segment widget home", () => {
+    expect(dashboardRouteFromRole("venue_guest", "test-venue-mbs")).toBe("/app/venue/MBS");
   });
 
   it("routes dispatcher to two-part jurisdiction path", () => {
@@ -82,5 +86,18 @@ describe("pathMatchesRoleDashboard", () => {
     expect(pathMatchesRoleDashboard("/app/venue/admin", "campus_security", "test-campus-uga")).toBe(
       false,
     );
+  });
+
+  it("blocks venue guest services from ops sub-routes such as reports", async () => {
+    const { pathMatchesRoleDashboard } = await import("./vertical-routing.js");
+    expect(
+      pathMatchesRoleDashboard("/app/venue/MBS", "venue_guest", "test-venue-mbs"),
+    ).toBe(true);
+    expect(
+      pathMatchesRoleDashboard("/app/venue/MBS/reports", "venue_guest", "test-venue-mbs"),
+    ).toBe(false);
+    expect(
+      pathMatchesRoleDashboard("/venue/MBS/reports", "venue_guest", "test-venue-mbs"),
+    ).toBe(false);
   });
 });

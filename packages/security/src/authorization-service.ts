@@ -11,7 +11,22 @@ import {
   isRcitadminCrossTenantPermission,
   type Permission,
 } from "./permissions.js";
-import { CAMPUS_ROLE_BASE_MAP, canCampusRolePerform, canVenueRolePerform, isCampusRole, isVenueRole } from "./role-access-matrix-v2.js";
+import {
+  CAMPUS_ROLE_BASE_MAP,
+  canCampusRolePerform,
+  canVenueRolePerform,
+  isCampusRole,
+  isVenueRole,
+  type VenueRole,
+} from "./role-access-matrix-v2.js";
+
+function resolveVenueMatrixRole(role: string): VenueRole | null {
+  const upper = role.trim().toUpperCase();
+  if (isVenueRole(upper)) return upper;
+  const migrated = migrateLegacyRapidCortexRoleTokenValue(role);
+  if (migrated === "venue_guest") return "VENUE_GUEST_SERVICES";
+  return null;
+}
 
 function resolveRoleAlias(role: UserRole | string): UserRole {
   const raw = String(role ?? "").trim();
@@ -121,8 +136,12 @@ export class AuthorizationService {
     if (isCampusRole(rawRole) && (permissionKey.startsWith("campus.") || permissionKey.startsWith("locations."))) {
       return canCampusRolePerform(rawRole, permissionKey);
     }
-    if (isVenueRole(rawRole) && permissionKey.startsWith("locations.")) {
-      return canVenueRolePerform(rawRole, permissionKey);
+    const venueRole = resolveVenueMatrixRole(rawRole);
+    if (
+      venueRole &&
+      (permissionKey.startsWith("venue.") || permissionKey.startsWith("locations."))
+    ) {
+      return canVenueRolePerform(venueRole, permissionKey);
     }
     if (!(ALL_PERMISSIONS as readonly string[]).includes(permissionKey)) return false;
     const typedPermission = permissionKey as Permission;

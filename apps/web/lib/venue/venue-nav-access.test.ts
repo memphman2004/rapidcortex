@@ -2,9 +2,10 @@ import { describe, expect, it } from "vitest";
 import { canViewVenueNavItem, venueNavKeysForRole } from "./venue-nav-access";
 
 describe("venue nav access", () => {
-  it("guest services sees reports only — no dashboard, incident, or QR tools", () => {
+  it("guest services has no venue sidebar ops routes — widget home only (role-nav uses base)", () => {
     const keys = venueNavKeysForRole("VENUE_GUEST_SERVICES");
-    expect(keys).toEqual(["reports"]);
+    expect(keys).toEqual([]);
+    expect(keys).not.toContain("reports");
     expect(keys).not.toContain("dashboard");
     expect(keys).not.toContain("incidents");
     expect(keys).not.toContain("qr");
