@@ -1437,14 +1437,6 @@ Resources:
               - MultilingualSecretsBroadPolicy
               - !Sub arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:*
               - !Sub arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:rapidcortex/${DeploymentStage}/*
-
-  AppManagedPolicySecretsAnalyzeProvidersRead:
-    Type: AWS::IAM::ManagedPolicy
-    Properties:
-      ManagedPolicyName: !Sub "${AppName}-lambda-secrets-anlz-${DeploymentStage}"
-      PolicyDocument:
-        Version: "2012-10-17"
-        Statement:
           - Sid: StackPrefixAndOptionalModelProviderSecrets
             Effect: Allow
             Action:
@@ -2156,7 +2148,6 @@ Resources:
         - !Ref AppManagedPolicyS3ApplicationBucketsCrud
         - !Ref AppManagedPolicyComprehendTranslateRegionalDetect
         - !Ref AppManagedPolicySecretsMultilingualScopedRead
-        - !Ref AppManagedPolicySecretsAnalyzeProvidersRead
         - !Ref AppManagedPolicyBedrockAiAndQaFoundationModels
       Events:
         Route:
@@ -2255,7 +2246,6 @@ Resources:
         - !Ref AppManagedPolicyS3ApplicationBucketsCrud
         - !Ref AppManagedPolicyComprehendTranslateRegionalDetect
         - !Ref AppManagedPolicySecretsMultilingualScopedRead
-        - !Ref AppManagedPolicySecretsAnalyzeProvidersRead
         - !Ref AppManagedPolicyBedrockAiAndQaFoundationModels
         - !Ref AppManagedPolicyTranscribeIncidentAudioJobsReadWrite
       Events:
@@ -2294,7 +2284,7 @@ Resources:
         - !Ref AppManagedPolicyDynamoLambdaCrudShardC
         - !Ref AppManagedPolicyDynamoLambdaCrudShardD
         - !Ref AppManagedPolicyS3ApplicationBucketsCrud
-        - !Ref AppManagedPolicySecretsAnalyzeProvidersRead
+        - !Ref AppManagedPolicySecretsMultilingualScopedRead
         - !Ref AppManagedPolicyBedrockAiAndQaFoundationModels
       Events:
         Route:

@@ -77,6 +77,7 @@
         "dynamodb:*",
         "cognito-idp:*",
         "sns:*",
+        "sqs:*",
         "ses:*",
         "logs:*",
         "events:*",
@@ -120,6 +121,17 @@
         "route53:ListHostedZones",
         "route53:GetHostedZone",
         "route53:ListHostedZonesByName"
+      ],
+      "Resource": "*"
+    },
+    {
+      "Sid": "Ec2NetworkRead",
+      "Effect": "Allow",
+      "Action": [
+        "ec2:DescribeSubnets",
+        "ec2:DescribeVpcs",
+        "ec2:DescribeSecurityGroups",
+        "ec2:DescribeAvailabilityZones"
       ],
       "Resource": "*"
     },

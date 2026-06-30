@@ -38,6 +38,12 @@
       "Resource": "arn:aws:codebuild:us-east-1:158961537080:project/rapid-cortex-web-build-*"
     },
     {
+      "Sid": "WebEcsDeregisterTaskDefinition",
+      "Effect": "Allow",
+      "Action": ["ecs:DeregisterTaskDefinition"],
+      "Resource": "*"
+    },
+    {
       "Sid": "WebEcsMutate",
       "Effect": "Allow",
       "Action": [
@@ -53,21 +59,28 @@
       ]
     },
     {
+      "Sid": "WebEcsDescribeTaskDefinition",
+      "Effect": "Allow",
+      "Action": ["ecs:DescribeTaskDefinition"],
+      "Resource": "*"
+    },
+    {
       "Sid": "WebEcsDescribe",
       "Effect": "Allow",
       "Action": [
         "ecs:DescribeServices",
         "ecs:DescribeTasks",
-        "ecs:ListTasks",
-        "ecs:DescribeTaskDefinition"
+        "ecs:ListTasks"
       ],
       "Resource": [
+        "arn:aws:ecs:us-east-1:158961537080:cluster/rapid-cortex-v2-web-prod",
+        "arn:aws:ecs:us-east-1:158961537080:cluster/rapid-cortex-web-*",
+        "arn:aws:ecs:us-east-1:158961537080:container-instance/rapid-cortex-v2-web-prod/*",
+        "arn:aws:ecs:us-east-1:158961537080:container-instance/rapid-cortex-web-*/*",
         "arn:aws:ecs:us-east-1:158961537080:service/rapid-cortex-v2-web-prod/*",
         "arn:aws:ecs:us-east-1:158961537080:service/rapid-cortex-web-*/*",
         "arn:aws:ecs:us-east-1:158961537080:task/rapid-cortex-v2-web-prod/*",
-        "arn:aws:ecs:us-east-1:158961537080:task/rapid-cortex-web-*/*",
-        "arn:aws:ecs:us-east-1:158961537080:task-definition/rapid-cortex-v2-web-prod:*",
-        "arn:aws:ecs:us-east-1:158961537080:task-definition/rapid-cortex-web-*:*"
+        "arn:aws:ecs:us-east-1:158961537080:task/rapid-cortex-web-*/*"
       ]
     },
     {
@@ -89,6 +102,37 @@
       ]
     },
     {
+      "Sid": "WebWafRead",
+      "Effect": "Allow",
+      "Action": [
+        "wafv2:GetWebACL",
+        "wafv2:GetWebACLForResource",
+        "wafv2:ListTagsForResource"
+      ],
+      "Resource": [
+        "arn:aws:wafv2:us-east-1:158961537080:global/webacl/rapid-cortex-v2-web-cdn-*/*",
+        "arn:aws:wafv2:us-east-1:158961537080:global/webacl/rapid-cortex-web-*/*"
+      ]
+    },
+    {
+      "Sid": "WebCloudFrontSsr",
+      "Effect": "Allow",
+      "Action": [
+        "cloudfront:CreateResponseHeadersPolicy",
+        "cloudfront:UpdateResponseHeadersPolicy",
+        "cloudfront:DeleteResponseHeadersPolicy",
+        "cloudfront:GetResponseHeadersPolicy",
+        "cloudfront:ListResponseHeadersPolicies",
+        "cloudfront:GetDistribution",
+        "cloudfront:GetDistributionConfig",
+        "cloudfront:UpdateDistribution"
+      ],
+      "Resource": [
+        "arn:aws:cloudfront::158961537080:response-headers-policy/*",
+        "arn:aws:cloudfront::158961537080:distribution/*"
+      ]
+    },
+    {
       "Sid": "AppCfInval",
       "Effect": "Allow",
       "Action": [
@@ -97,6 +141,17 @@
         "cloudfront:ListInvalidations"
       ],
       "Resource": "arn:aws:cloudfront::158961537080:distribution/*"
+    },
+    {
+      "Sid": "WebElbDescribe",
+      "Effect": "Allow",
+      "Action": [
+        "elasticloadbalancing:DescribeLoadBalancers",
+        "elasticloadbalancing:DescribeListeners",
+        "elasticloadbalancing:DescribeTargetGroups",
+        "elasticloadbalancing:DescribeTargetHealth"
+      ],
+      "Resource": "*"
     },
     {
       "Sid": "WebElbTargetHealth",
@@ -114,6 +169,8 @@
       ],
       "Resource": "arn:aws:logs:us-east-1:158961537080:log-group:/ecs/rapid-cortex-v2-web-prod:*"
     },
+    {
+      "Sid": "MapboxTokenSsmRead",
       "Effect": "Allow",
       "Action": ["ssm:GetParameter"],
       "Resource": "arn:aws:ssm:us-east-1:158961537080:parameter/rapidcortex/prod/mapbox/public-token"

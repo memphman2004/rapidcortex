@@ -25,12 +25,12 @@ Run **one deploy at a time**. Web packaging and SAM lean deploy both mutate `app
 | ---: | --- | --- | --- |
 | 1 | IAM managed policies on `rapid-cortex-deploy` (**core + web**, see `apply-sam-deploy-managed-policies.sh`) | ECR/CodeBuild/SSM + **`DetectStackDrift` + `DetectStackResourceDrift`** | **PASS** after split apply |
 | 2 | Confirm **AppSam4 idle** (`UPDATE_COMPLETE`, no in-flight deploy) | CFN stack status + no active CodeBuild/SAM on sam4 | **PASS** |
-| **2b** | **Stack-1 drift check** on `rapid-cortex-dev` **before** stack-1 code deploy | `detect-stack-drift` + `describe-stack-drift-detection-status`; requires **`DetectStackDrift` + `DetectStackResourceDrift`** on stack ARN | **NOT RUN** — live policy missing `DetectStackResourceDrift` (see §4) |
-| 3 | Stack-1 deploy: `accessOverrideService.ts` (rcsuperadmin platform-wide overrides) | Lean deploy stack 1 only; wait **COMPLETE + idle** before step 5 | **NOT STARTED** |
-| 4 | **Ring routing → `api4.rapidcortex.us`** (decision locked — see §5) | AppSam4 redeploy with `Route53HostedZoneId` + managed ACM; DNS resolves; oauth start 302 on custom domain | **NOT STARTED** — `api4.rapidcortex.us` does not resolve today |
-| 5 | Web prod deploy (`RC_LOG_MIDDLEWARE_RSC=1`, `deploy-web-no-docker.sh prod`) | ECS stable, health 200, host routing | **PASS** (2026-06-28) — smoke failed on `/developers/api` copy only; app health **200** |
-| 6 | Re-run Ring gate: deploy → 302 → isolation test on **`https://api4.rapidcortex.us`** | `ring-citizen-owner-isolation-test.ts` **5/5** | **PARTIAL** — 302 + 5/5 on execute-api URL only until step 4 |
-| 7 | Host routing verify (if skipped due to smoke) | `verify-host-routing.sh` | **NOT RUN** |
+| **2b** | **Stack-1 drift check** on `rapid-cortex-dev` **before** stack-1 code deploy | `detect-stack-drift` + `describe-stack-drift-detection-status` | **PASS** — IN_SYNC, 0 drifted (2026-06-29) |
+| 3 | Stack-1 deploy: `accessOverrideService.ts` (rcsuperadmin platform-wide overrides) | Lean deploy stack 1 only; wait **COMPLETE + idle** before step 5 | **PASS** — `UPDATE_COMPLETE` (2026-06-29); merged secrets IAM policies to fix 10-policy/role limit |
+| 4 | **Ring routing → `api4.rapidcortex.us`** | AppSam4 + `Route53HostedZoneId=Z03951423J46LZ4YUDS6A`; ACM issued; oauth 302 | **PASS** — `ApiCustomDomainUrl` live (2026-06-29) |
+| 5 | Web prod deploy | ECS stable, health 200, host routing | **PASS** (2026-06-28) — smoke `/developers/api` copy only |
+| 6 | Re-run Ring gate on **`https://api4.rapidcortex.us`** | `ring-citizen-owner-isolation-test.ts` **5/5** | **PASS** (2026-06-29) |
+| 7 | Host routing verify | `verify-host-routing.sh` | **PASS** (2026-06-29) |
 | 8 | Marketing / copy fixes as needed | Separate from API deploys | As needed |
 
 **Serialization rule:** Step 5 must not start until step 3 is **fully complete and idle**, not “probably done by then.” Same for any parallel SAM work.

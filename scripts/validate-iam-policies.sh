@@ -63,6 +63,10 @@ allowed_sids = {
     "AcmRequest",
     "CoreServices",
     "WebEcrDescribe",
+    "WebEcsDescribeTaskDefinition",
+    "WebEcsDeregisterTaskDefinition",
+    "WebElbDescribe",
+    "Ec2NetworkRead",
 }
 for rel in (
     "infra/iam/sam-deploy-policy.json",
