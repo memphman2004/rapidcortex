@@ -1,3 +1,5 @@
+import { migrateLegacyRapidCortexRoleTokenValue } from "rapid-cortex-shared/auth/rapid-cortex-roles";
+
 /** Venue product roles — distinct from PSAP dispatcher/supervisor dashboards. */
 export type VenueRole =
   | "VENUE_ADMIN"
@@ -54,9 +56,27 @@ const SECTIONS_BY_ROLE: Record<VenueRole, VenueDashboardSections> = {
   },
 };
 
+const MIGRATED_VENUE_ROLE: Record<string, VenueRole> = {
+  venue_admin: "VENUE_ADMIN",
+  venue_supervisor: "VENUE_SUPERVISOR",
+  venue_security: "VENUE_SECURITY",
+  venue_operator: "VENUE_OPERATOR",
+  venue_guest: "VENUE_GUEST_SERVICES",
+};
+
 export function normalizeVenueRole(role: string | undefined | null): VenueRole {
-  const upper = (role ?? "").trim().toUpperCase();
+  const raw = (role ?? "").trim();
+  if (!raw) return "VENUE_SUPERVISOR";
+
+  const upper = raw.toUpperCase();
   if (upper in SECTIONS_BY_ROLE) return upper as VenueRole;
+  if (upper === "VENUE_GUEST") return "VENUE_GUEST_SERVICES";
+
+  const migrated = migrateLegacyRapidCortexRoleTokenValue(raw);
+  if (migrated && migrated in MIGRATED_VENUE_ROLE) {
+    return MIGRATED_VENUE_ROLE[migrated];
+  }
+
   return "VENUE_SUPERVISOR";
 }
 

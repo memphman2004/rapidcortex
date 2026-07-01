@@ -28,16 +28,22 @@ export function getRoleHeaderBadgeLabel(role: string | undefined | null): string
       return "HOSPITAL ADMIN";
     case "hospitalstaff":
       return "STAFF";
+    case "venue_admin":
     case "VENUE_ADMIN":
       return "VENUE ADMIN";
+    case "venue_supervisor":
     case "VENUE_SUPERVISOR":
       return "SUPERVISOR";
+    case "venue_security":
     case "VENUE_SECURITY":
       return "SECURITY";
+    case "venue_operator":
     case "VENUE_OPERATOR":
       return "OPERATOR";
+    case "venue_guest":
     case "VENUE_GUEST_SERVICES":
       return "GUEST SERVICES";
+    case "campus_admin":
     case "CAMPUS_ADMIN":
       return "CAMPUS ADMIN";
     case "CAMPUS_SUPERVISOR":

@@ -4,6 +4,11 @@ import { useQuery } from "@tanstack/react-query";
 import { Activity, Bed, Camera, Globe, Map as MapIcon, QrCode, Users } from "lucide-react";
 import { campusOrgCodeFromAgencyId } from "@/lib/campus/campus-access";
 import { fetchCampusIncidents } from "@/lib/campus/campus-incidents-api";
+import {
+  fetchDashboardAuditFeed,
+  fetchDashboardHospitalRoutingEvents,
+  fetchDashboardVenueStats,
+} from "@/lib/dashboard-widget-api";
 import { extractVenueCode } from "@/lib/auth/post-login-redirect";
 import { fetchHospitalCapacity } from "@/lib/hospital-routing/api";
 import { fetchHospitalCapacityHistory } from "@/lib/hospital-portal/api";
@@ -97,10 +102,7 @@ export function QrScanActivityWidget({ agencyId }: WidgetProps) {
 export function CampusUserActivityWidget({ agencyId }: WidgetProps) {
   const q = useQuery({
     queryKey: ["activity-feed", agencyId, "campus"],
-    queryFn: () =>
-      backendGet<{ events?: Array<{ eventId: string; summary: string; timestamp: string }> }>(
-        `/api/agencies/${encodeURIComponent(agencyId)}/audit?limit=12`,
-      ),
+    queryFn: async () => ({ events: await fetchDashboardAuditFeed(12) }),
   });
   if (q.isLoading) return <WidgetSkeleton />;
   const events = q.data?.events ?? [];
@@ -199,14 +201,11 @@ export function RegionalCapacityMapWidget({ agencyId }: WidgetProps) {
 export function RoutingEventsWidget({ agencyId }: WidgetProps) {
   const q = useQuery({
     queryKey: ["routing-events", agencyId],
-    queryFn: () =>
-      backendGet<{ events?: Array<{ id: string; hospitalId: string; incidentId: string; createdAt: string }> }>(
-        `/api/hospital/${encodeURIComponent(agencyId)}/routing/events?limit=15`,
-      ),
+    queryFn: () => fetchDashboardHospitalRoutingEvents(agencyId, 15),
     refetchInterval: 30_000,
   });
   if (q.isLoading) return <WidgetSkeleton />;
-  const events = q.data?.events ?? [];
+  const events = q.data ?? [];
   return (
     <WidgetShell title="Routing Events" icon={Globe} count={events.length}>
       {events.length === 0 ? (
@@ -271,9 +270,7 @@ export function StaffBoardWidget({ agencyId }: WidgetProps) {
   const q = useQuery({
     queryKey: ["venue-staff", agencyId, venueCode],
     queryFn: async () => {
-      const stats = await backendGet<{ staffOnDuty?: number }>(
-        `/api/venue/${encodeURIComponent(agencyId)}/stats/live`,
-      );
+      const stats = await fetchDashboardVenueStats(agencyId);
       const incidents = await fetchVenueIncidents(venueCode).catch(() => []);
       const staff = new Map<string, { name: string; assignments: number }>();
       for (const inc of incidents) {
@@ -311,9 +308,7 @@ export function CameraGridWidget({ agencyId }: WidgetProps) {
   const q = useQuery({
     queryKey: ["venue-cameras", agencyId, venueCode],
     queryFn: async () => {
-      const stats = await backendGet<{ camerasOnline?: number }>(
-        `/api/venue/${encodeURIComponent(agencyId)}/stats/live`,
-      );
+      const stats = await fetchDashboardVenueStats(agencyId);
       const incidents = await fetchVenueIncidents(venueCode).catch(() => []);
       const cameraSet = new Set<string>();
       for (const inc of incidents) {

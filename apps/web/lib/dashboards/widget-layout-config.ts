@@ -426,6 +426,7 @@ export function resolveWidgetLayoutRole(raw: string): string {
   const upper = trimmed.toUpperCase();
 
   if (upper.startsWith("CAMPUS_")) return upper;
+  if (upper === "VENUE_GUEST") return "VENUE_GUEST_SERVICES";
   if (upper.startsWith("VENUE_")) return upper;
   if (upper === "HOSPITAL_ADMIN" || upper === "HOSPITAL_COORDINATOR" || upper === "HOSPITAL_STAFF") {
     return upper;
@@ -434,6 +435,12 @@ export function resolveWidgetLayoutRole(raw: string): string {
   const migrated = migrateLegacyRapidCortexRoleTokenValue(trimmed) ?? trimmed;
   if (migrated === "hospitaladmin") return "HOSPITAL_ADMIN";
   if (migrated === "hospitalstaff") return "HOSPITAL_STAFF";
+  if (migrated === "venue_guest") return "VENUE_GUEST_SERVICES";
+  if (migrated === "venue_admin") return "VENUE_ADMIN";
+  if (migrated === "venue_supervisor") return "VENUE_SUPERVISOR";
+  if (migrated === "venue_security") return "VENUE_SECURITY";
+  if (migrated === "venue_operator") return "VENUE_OPERATOR";
+  if (migrated === "venue_guest") return "VENUE_GUEST_SERVICES";
 
   return migrated;
 }

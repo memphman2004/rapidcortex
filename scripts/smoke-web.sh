@@ -249,6 +249,25 @@ unset _health_web_code
 
 test_endpoint "/" "" "Home page" 1
 
+echo -n "Verifying Next.js static chunks referenced by /login … "
+LOGIN_HTML="$("${curl_base[@]}" -f "${BASE_URL}/login" 2>/dev/null || true)"
+WEBPACK_CHUNK="$(printf '%s' "${LOGIN_HTML}" | rg -o '/_next/static/chunks/webpack-[a-f0-9]+\.js' -m 1 || true)"
+if [[ -z "${WEBPACK_CHUNK}" ]]; then
+  log_warn "No webpack chunk in /login HTML (RSC shell) — skipping chunk probe"
+  TESTS_PASSED=$((TESTS_PASSED + 1))
+else
+  chunk_code="$("${curl_base[@]}" -o /dev/null -w "%{http_code}" "${BASE_URL}${WEBPACK_CHUNK}" 2>/dev/null || printf '%s' '000')"
+  chunk_type="$("${curl_base[@]}" -sI "${BASE_URL}${WEBPACK_CHUNK}" 2>/dev/null | rg -i '^content-type:' | head -1 || true)"
+  if [[ "${chunk_code}" =~ ^2[0-9][0-9]$ ]] && grep -qi 'javascript' <<<"${chunk_type}"; then
+    log_info "Next chunk OK (${WEBPACK_CHUNK})"
+    TESTS_PASSED=$((TESTS_PASSED + 1))
+  else
+    log_error "Next chunk missing or wrong MIME (${WEBPACK_CHUNK} HTTP ${chunk_code:-?} ${chunk_type:-no content-type})"
+    log_warn "Usually stale HTML after deploy — hard-refresh browsers or invalidate CloudFront (/*)."
+    TESTS_FAILED=$((TESTS_FAILED + 1))
+  fi
+fi
+
 echo -n "Testing Downloads marketing page … "
 DOWNLOADS_HTML=""
 set +e

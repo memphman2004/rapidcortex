@@ -55,6 +55,7 @@ export function LocationsQrAdminPanel({
   });
   const [bulkPreview, setBulkPreview] = useState<Array<Record<string, string>>>([]);
   const [error, setError] = useState<string | null>(null);
+  const [modalError, setModalError] = useState<string | null>(null);
 
   useEffect(() => {
     if (defaultOrgCode) setOrgCode(defaultOrgCode);
@@ -89,9 +90,13 @@ export function LocationsQrAdminPanel({
     onSuccess: () => {
       setShowAdd(false);
       setError(null);
+      setModalError(null);
       void queryClient.invalidateQueries({ queryKey: ["qr-locations", agencyId] });
     },
-    onError: (e: Error) => setError(e.message),
+    onError: (e: Error) => {
+      setModalError(e.message);
+      setError(e.message);
+    },
   });
 
   const bulkMut = useMutation({
@@ -162,6 +167,7 @@ export function LocationsQrAdminPanel({
           type="button"
           onClick={() => {
             setForm((f) => ({ ...f, orgCode, vertical }));
+            setModalError(null);
             setShowAdd(true);
           }}
           disabled={!canManage}
@@ -246,6 +252,7 @@ export function LocationsQrAdminPanel({
                 </label>
               ))}
             </div>
+            {modalError ? <p className="mt-3 text-sm text-red-400">{modalError}</p> : null}
             <div className="mt-5 flex justify-end gap-2">
               <button type="button" onClick={() => setShowAdd(false)} className="rounded-md px-3 py-2 text-sm text-slate-300">
                 Cancel
@@ -256,7 +263,7 @@ export function LocationsQrAdminPanel({
                 onClick={() => createMut.mutate()}
                 className="rounded-md bg-sky-700 px-3 py-2 text-sm font-medium text-white disabled:opacity-60"
               >
-                Save
+                {createMut.isPending ? "Saving…" : "Save"}
               </button>
             </div>
           </div>

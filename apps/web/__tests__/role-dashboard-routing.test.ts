@@ -68,6 +68,16 @@ describe("role → dashboard routing", () => {
     it("normalizes VENUE_* tokens to canonical venue roles", () => {
       expect(normalizeSessionRole("VENUE_SUPERVISOR")).toBe("venue_supervisor");
       expect(normalizeRole("VENUE_ADMIN")).toBe("venue_admin");
+      expect(normalizeRole("venue-admin")).toBe("venue_admin");
+    });
+
+    it("routes hyphenated venue-admin Cognito tokens to code-segment venue home", () => {
+      expect(
+        resolveProductDashboardFromRoleAndAgency("venue-admin", "test-venue-mbs"),
+      ).toBe("/app/venue/MBS");
+      expect(
+        resolvePostAuthenticationHomeHref(user("venue-admin", "test-venue-mbs"), slug),
+      ).toBe("/app/venue/MBS");
     });
 
     it("routes venue roles to role dashboards", () => {

@@ -7,6 +7,8 @@ import { getDashboardSessionUser } from "@/lib/dashboards/get-dashboard-session"
 import { VerticalBadge } from "@/components/ui/VerticalBadge";
 import type { Vertical } from "@/lib/vertical";
 import { CampusDashboardHeaderUtilities } from "@/components/campus/campus-dashboard-header-utilities";
+import { VenueGuestServicesDisclaimerGate } from "@/components/venue/venue-guest-services-disclaimer-gate";
+import { isVenueGuestServicesRole } from "@/lib/venue/venue-guest-services";
 import { CAMPUS_DASHBOARD_FONT_FAMILY } from "@/components/campus/campus-dashboard-font";
 
 type Props = {
@@ -25,6 +27,8 @@ export async function VerticalRoleStub({ consoleTitle, vertical, role, descripti
   const body =
     description ??
     "This dashboard is coming soon. The platform is live and your account is active.";
+  const showGuestDisclaimer =
+    vertical === "venue" && isVenueGuestServicesRole(effectiveRole);
 
   return (
     <div
@@ -58,6 +62,11 @@ export async function VerticalRoleStub({ consoleTitle, vertical, role, descripti
         </div>
       </header>
       <main className="mx-auto max-w-5xl px-6 py-16">
+        {showGuestDisclaimer ? (
+          <div className="mb-6">
+            <VenueGuestServicesDisclaimerGate />
+          </div>
+        ) : null}
         <h1 className="text-3xl font-semibold tracking-tight" style={{ color: accent }}>
           {consoleTitle}
         </h1>

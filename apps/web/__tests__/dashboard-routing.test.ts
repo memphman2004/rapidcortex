@@ -17,7 +17,8 @@ const cases = [
   ["campus_admin", "test-campus-uga", "/app/campus/admin"],
   // Venue
   ["venue_security", "test-venue-mbs", "/app/venue/security"],
-  ["venue_admin", "test-venue-mbs", "/app/venue/admin"],
+  ["venue_admin", "test-venue-mbs", "/app/venue/MBS"],
+  ["venue_guest", "test-venue-mbs", "/app/venue/MBS"],
   // Hospital
   ["hospital_staff", "test-hospital", "/app/hospital/staff"],
   // Transit

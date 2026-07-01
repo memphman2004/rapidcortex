@@ -1,19 +1,13 @@
 "use client";
 
-import Link from "next/link";
 import { useEffect, useState } from "react";
 import { extractVenueCode } from "@/lib/auth/post-login-redirect";
 import { fetchVenueIncidents } from "@/lib/venue/venue-incidents-api";
 import type { VenueIncident } from "@/app/venue/[venueCode]/_lib/venue-types";
-import {
-  formatVenueTimeAgo,
-  mapVenueIncidentStatus,
-  mapVenueIncidentType,
-} from "@/components/venue/use-venue-ops-data";
+import { formatVenueTimeAgo } from "@/components/venue/use-venue-ops-data";
 
 const V = {
   surface: "#100e1a",
-  surfaceAlt: "#141220",
   border: "#1e1a30",
   amber: "#f59e0b",
   textPrimary: "#e4dff5",
@@ -21,13 +15,14 @@ const V = {
   textMuted: "#2d2445",
 };
 
-export function VenueGuestReportsPanel({
-  agencyId,
-  linkBase,
-}: {
-  agencyId: string;
-  linkBase: string;
-}) {
+function guestReportStatus(inc: VenueIncident): string {
+  if (inc.status === "resolved") return "Resolved";
+  if (inc.status === "assigned" || inc.status === "responding") return "Acknowledged";
+  return "New";
+}
+
+/** Guest-services inbox — QR/SMS submissions only; no incident queue or ops links. */
+export function VenueGuestReportsPanel({ agencyId }: { agencyId: string }) {
   const venueCode = extractVenueCode(agencyId);
   const [rows, setRows] = useState<VenueIncident[]>([]);
   const [loading, setLoading] = useState(true);
@@ -35,7 +30,9 @@ export function VenueGuestReportsPanel({
   useEffect(() => {
     void (async () => {
       try {
-        const all = await fetchVenueIncidents(venueCode, { status: ["open", "assigned", "responding", "resolved"] });
+        const all = await fetchVenueIncidents(venueCode, {
+          status: ["open", "assigned", "responding", "resolved"],
+        });
         setRows(
           all.filter((row) => row.source === "qr" || row.source === "sms").slice(0, 50),
         );
@@ -47,19 +44,14 @@ export function VenueGuestReportsPanel({
     })();
   }, [venueCode]);
 
-  function guestStatus(inc: VenueIncident): string {
-    if (inc.status === "resolved") return "Resolved";
-    if (inc.status === "assigned" || inc.status === "responding") return "Acknowledged";
-    return "New";
-  }
-
   return (
     <div style={{ padding: 14 }}>
       <h2 style={{ fontSize: 16, fontWeight: 700, color: V.textPrimary, margin: "0 0 4px" }}>
         Guest Reports
       </h2>
       <p style={{ fontSize: 12, color: V.textSecondary, margin: "0 0 16px" }}>
-        Fan-submitted QR and SMS reports — separate from internal security incidents.
+        Incoming fan-submitted QR and SMS reports. Route to security or mark resolved from this
+        inbox — not a 911 dispatch console.
       </p>
 
       {loading ? (
@@ -69,56 +61,50 @@ export function VenueGuestReportsPanel({
       ) : (
         <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
           {rows.map((row) => (
-            <Link
+            <div
               key={row.id}
-              href={`${linkBase}/incidents/${encodeURIComponent(row.id)}`}
-              style={{ textDecoration: "none", color: "inherit" }}
+              style={{
+                background: V.surface,
+                border: `1px solid ${V.border}`,
+                borderRadius: 8,
+                padding: "10px 12px",
+                display: "grid",
+                gridTemplateColumns: "80px 1fr auto",
+                gap: 12,
+                alignItems: "center",
+              }}
             >
-              <div
+              <span
                 style={{
-                  background: V.surface,
-                  border: `1px solid ${V.border}`,
-                  borderRadius: 8,
-                  padding: "10px 12px",
-                  display: "grid",
-                  gridTemplateColumns: "80px 1fr auto auto",
-                  gap: 12,
-                  alignItems: "center",
+                  fontSize: 10,
+                  fontWeight: 700,
+                  color: V.amber,
+                  background: "#1a1206",
+                  border: `1px solid ${V.amber}44`,
+                  borderRadius: 4,
+                  padding: "3px 6px",
+                  textAlign: "center",
                 }}
               >
-                <span
-                  style={{
-                    fontSize: 10,
-                    fontWeight: 700,
-                    color: V.amber,
-                    background: "#1a1206",
-                    border: `1px solid ${V.amber}44`,
-                    borderRadius: 4,
-                    padding: "3px 6px",
-                    textAlign: "center",
-                  }}
-                >
-                  {row.source.toUpperCase()}
-                </span>
-                <div>
-                  <div style={{ fontSize: 12, fontWeight: 600, color: V.textPrimary }}>
-                    {row.qrLocationName ?? row.zoneLabel}
-                  </div>
-                  <div style={{ fontSize: 10, color: V.textSecondary }}>
-                    {row.qrRcli ? `RCLI ${row.qrRcli}` : row.description.slice(0, 60)}
-                  </div>
+                {row.source.toUpperCase()}
+              </span>
+              <div>
+                <div style={{ fontSize: 12, fontWeight: 600, color: V.textPrimary }}>
+                  {row.qrLocationName ?? row.zoneLabel}
                 </div>
-                <span style={{ fontSize: 10, fontWeight: 700, color: V.amber }}>
-                  {mapVenueIncidentType(row.type)}
-                </span>
-                <div style={{ textAlign: "right" }}>
-                  <span style={{ fontSize: 10, color: V.textSecondary }}>{guestStatus(row)}</span>
-                  <div style={{ fontSize: 10, color: V.textMuted }}>
-                    {formatVenueTimeAgo(row.createdAt)}
-                  </div>
+                <div style={{ fontSize: 10, color: V.textSecondary }}>
+                  {row.description.slice(0, 120)}
                 </div>
               </div>
-            </Link>
+              <div style={{ textAlign: "right" }}>
+                <span style={{ fontSize: 10, fontWeight: 700, color: V.amber }}>
+                  {guestReportStatus(row)}
+                </span>
+                <div style={{ fontSize: 10, color: V.textMuted }}>
+                  {formatVenueTimeAgo(row.createdAt)}
+                </div>
+              </div>
+            </div>
           ))}
         </div>
       )}

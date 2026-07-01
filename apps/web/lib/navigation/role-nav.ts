@@ -861,7 +861,7 @@ export function getVenueGuestServicesNav(code: string): RoleNav {
         id: "guest",
         // No section label — single-section roles get no header
         items: [
-          { id: "reports",     label: "Guest Reports",     href: `${base}/reports`,          icon: "MessageSquare", exact: true },
+          { id: "reports",     label: "Guest Reports",     href: base,                       icon: "MessageSquare", exact: true },
         ],
       },
     ],
@@ -880,6 +880,10 @@ function resolveNavRole(raw: string): string {
   if (upper === "HOSPITAL_STAFF") return "HOSPITAL_STAFF";
 
   const migrated = migrateLegacyRapidCortexRoleTokenValue(token) ?? token;
+  if (migrated === "venue_guest") return "VENUE_GUEST_SERVICES";
+  if (migrated.startsWith("venue_")) return migrated.toUpperCase();
+  if (upper === "VENUE_GUEST") return "VENUE_GUEST_SERVICES";
+  if (migrated.startsWith("campus_")) return migrated.toUpperCase();
   if (migrated === "hospitaladmin") return "HOSPITAL_ADMIN";
   if (migrated === "hospitalstaff") return "HOSPITAL_STAFF";
   return migrated;

@@ -5,9 +5,9 @@ import Link from "next/link";
 import { motion, useReducedMotion } from "framer-motion";
 import { CheckCircle2, PlayCircle, ShieldCheck } from "lucide-react";
 import { useEffect } from "react";
+import { SITE_LOGO_HEIGHT, SITE_LOGO_PATH, SITE_LOGO_WIDTH } from "@/lib/site";
 import { marketingHomePath, marketingPricingPath } from "@/lib/marketing-links";
 
-const RC_LOGO = "/rapid-cortex-logo-2.png";
 const YOUTUBE_PLAYLIST =
   "https://www.youtube.com/playlist?list=PLQF5lJISQEZVr1E0XCdWHB3EI8Ug7KLLb";
 
@@ -87,10 +87,10 @@ export function ContactSuccessCard({ referenceId, submittedAt }: ContactSuccessC
           </div>
           <div className="relative rounded-2xl border border-sky-500/20 bg-slate-900/50 p-4 shadow-inner shadow-sky-950/50 ring-1 ring-sky-400/15">
             <Image
-              src={RC_LOGO}
+              src={SITE_LOGO_PATH}
               alt="Rapid Cortex"
-              width={220}
-              height={56}
+              width={SITE_LOGO_WIDTH}
+              height={SITE_LOGO_HEIGHT}
               className="h-auto w-[min(220px,70vw)] object-contain"
               priority
             />

@@ -103,4 +103,19 @@ describe("isCommsPlatformApiPath", () => {
   it("does not match incident list", () => {
     expect(isCommsPlatformApiPath("/api/incidents")).toBe(false);
   });
+
+  it("keeps integration status on stack 1 (handler lives on AppSamStack)", () => {
+    process.env.API_UPSTREAM_BASE = "https://stack1.example.com";
+    process.env.API_UPSTREAM_BASE_2 = "https://stack2.example.com";
+    expect(isStack2ApiPath("/api/integration/status")).toBe(false);
+    expect(resolveUpstreamApiBase("/api/integration/status")).toBe("https://stack1.example.com");
+  });
+
+  it("routes war-rooms and hospital portal paths to stack 2", () => {
+    process.env.API_UPSTREAM_BASE = "https://stack1.example.com";
+    process.env.API_UPSTREAM_BASE_2 = "https://stack2.example.com";
+    expect(resolveUpstreamApiBase("/api/war-rooms")).toBe("https://stack2.example.com");
+    expect(resolveUpstreamApiBase("/api/hospital-portal/context")).toBe("https://stack2.example.com");
+    expect(resolveUpstreamApiBase("/api/hospitals/capacity")).toBe("https://stack2.example.com");
+  });
 });

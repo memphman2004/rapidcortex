@@ -14,6 +14,7 @@ if [[ ! -f "${STATIC_DIR}/index.html" ]]; then
 fi
 
 static_s3_verify_local_css_refs "${STATIC_DIR}"
+static_s3_verify_local_brand_assets "${STATIC_DIR}"
 static_s3_verify_local_extensionless_routes "${STATIC_DIR}" "${REQUIRED_ROUTES[@]}"
 
 echo "Marketing static output OK (${STATIC_DIR})."

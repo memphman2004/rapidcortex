@@ -24,6 +24,8 @@ import {
 import { WIDGET_REGISTRY } from "@/components/widgets";
 import { isNavFeatureEnabled } from "@/lib/navigation/nav-feature-gates";
 import { WidgetErrorBoundary } from "@/components/dashboards/widget-error-boundary";
+import { VenueGuestServicesDisclaimer } from "@/components/venue/venue-guest-services-disclaimer";
+import { isVenueGuestServicesRole } from "@/lib/venue/venue-guest-services";
 
 // ─── Widget slot renderer ─────────────────────────────────────────────────────
 
@@ -123,6 +125,7 @@ export function DashboardHomeRenderer({ role, agencyId, displayName = "there" }:
 
   return (
     <div className="space-y-6">
+      {isVenueGuestServicesRole(role) ? <VenueGuestServicesDisclaimer /> : null}
       <DashboardHeader layout={layout} displayName={displayName} />
 
       {/* 12-column responsive grid */}

@@ -1,12 +1,7 @@
 import { createHash } from "node:crypto";
+import { normalizePhoneE164 } from "rapid-cortex-shared";
 
-/** Normalize to E.164 for stable hashing and routing keys. */
-export function normalizePhoneE164(phone: string): string {
-  const digits = phone.replace(/\D/g, "");
-  if (digits.length === 10) return `+1${digits}`;
-  if (digits.startsWith("1") && digits.length === 11) return `+${digits}`;
-  return phone.startsWith("+") ? phone : `+${digits}`;
-}
+export { normalizePhoneE164 };
 
 /** Normalize to digits-only E.164-ish form for stable hashing. */
 export function normalizePhoneDigits(phone: string): string {

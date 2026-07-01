@@ -1,5 +1,3 @@
-import { VerticalDisclaimerBanner } from "@/components/vertical/vertical-disclaimer-banner";
-
 const roleLabelMap: Record<string, string> = {
   VENUE_ADMIN: "VENUE ADMIN",
   VENUE_SUPERVISOR: "SUPERVISOR",
@@ -31,11 +29,6 @@ export function VenueHeader({ venueCode, role = "VENUE_SUPERVISOR" }: { venueCod
           </p>
         </div>
       </div>
-      {role === "VENUE_GUEST_SERVICES" ? (
-        <div className="mt-3">
-          <VerticalDisclaimerBanner message="NOT A 911 EMERGENCY DISPATCH SYSTEM" />
-        </div>
-      ) : null}
     </header>
   );
 }

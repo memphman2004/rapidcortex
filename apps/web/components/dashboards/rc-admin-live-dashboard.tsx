@@ -50,9 +50,9 @@ function agencyPlanLabel(agency: AgencyTenant): string {
 }
 
 function agencyHealthLabel(agency: AgencyTenant): { text: string; tone: "ok" | "warn" | "err" } {
-  const prog = countOnboardingProgress(agency.config.platformOnboarding?.steps);
+  const prog = countOnboardingProgress(agency.config?.platformOnboarding?.steps);
   if (prog.blocked > 0) return { text: `${prog.blocked} blocked`, tone: "err" };
-  if (needsOnboardingAttention(agency.status, agency.config.platformOnboarding?.steps)) {
+  if (needsOnboardingAttention(agency.status, agency.config?.platformOnboarding?.steps)) {
     return { text: "Needs attention", tone: "warn" };
   }
   if (agency.status === "suspended" || agency.status === "archived") {
@@ -84,11 +84,11 @@ function buildStats(
     agencies.filter((a) => a.status === "draft" || a.status === "pilot" || a.type === "pilot").length;
   const onboardingQueue =
     totals?.onboardingItemsNeedingAttention ??
-    agencies.filter((a) => needsOnboardingAttention(a.status, a.config.platformOnboarding?.steps)).length;
+    agencies.filter((a) => needsOnboardingAttention(a.status, a.config?.platformOnboarding?.steps)).length;
   const blockers =
     totals?.agenciesWithOnboardingBlockers ??
     agencies.filter((a) =>
-      Object.values(a.config.platformOnboarding?.steps ?? {}).some((v) => v === "blocked"),
+      Object.values(a.config?.platformOnboarding?.steps ?? {}).some((v) => v === "blocked"),
     ).length;
 
   return [
@@ -205,7 +205,7 @@ export function RcAdminHeaderStats() {
   const blockers =
     summary?.totals.agenciesWithOnboardingBlockers ??
     agencies.filter((a) =>
-      Object.values(a.config.platformOnboarding?.steps ?? {}).some((v) => v === "blocked"),
+      Object.values(a.config?.platformOnboarding?.steps ?? {}).some((v) => v === "blocked"),
     ).length;
   const healthLabel = healthQ.data?.status ?? (healthQ.isLoading ? "…" : "—");
 

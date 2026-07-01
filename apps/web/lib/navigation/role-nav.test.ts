@@ -59,4 +59,11 @@ describe("getRoleNav", () => {
     expect(hrefs).toContain("/app/campus/LINCOLNHIGH/users");
     expect(hrefs).toContain("/app/campus/LINCOLNHIGH/settings");
   });
+
+  it("maps hyphenated venue-admin Cognito token to venue console nav", () => {
+    const nav = getRoleNav("venue-admin", { venueCode: "MBS" });
+    expect(nav.roleBadge).toBe("VENUE ADMIN");
+    expect(nav.accent).toBe("orange");
+    expect(nav.sections[0]?.items[0]?.href).toBe("/app/venue/MBS");
+  });
 });

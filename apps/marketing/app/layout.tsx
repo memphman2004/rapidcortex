@@ -26,12 +26,12 @@ export const metadata: Metadata = {
   description: SITE_DESCRIPTION,
   icons: {
     icon: [
-      { url: "/icon.png", type: "image/png", sizes: "512x512" },
-      { url: "/icon-192.png", type: "image/png", sizes: "192x192" },
-      { url: "/icon-512.png", type: "image/png", sizes: "512x512" },
+      { url: SITE_PUBLIC_ICON_PATHS.tab, type: "image/png", sizes: "192x192" },
+      { url: SITE_PUBLIC_ICON_PATHS.pwa192, type: "image/png", sizes: "192x192" },
+      { url: SITE_PUBLIC_ICON_PATHS.pwa512, type: "image/png", sizes: "512x512" },
     ],
-    shortcut: [{ url: "/icon.png", type: "image/png", sizes: "512x512" }],
-    apple: [{ url: "/apple-icon.png", type: "image/png", sizes: "180x180" }],
+    shortcut: [{ url: SITE_PUBLIC_ICON_PATHS.tab, type: "image/png", sizes: "192x192" }],
+    apple: [{ url: SITE_PUBLIC_ICON_PATHS.appleIcon, type: "image/png", sizes: "180x180" }],
     other: [
       {
         rel: "apple-touch-icon-precomposed",

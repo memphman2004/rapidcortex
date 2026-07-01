@@ -1,3 +1,11 @@
+/** Normalize common US/international inputs to E.164 (e.g. "8085428061" → "+18085428061"). */
+export function normalizePhoneE164(phone: string): string {
+  const digits = phone.replace(/\D/g, "");
+  if (digits.length === 10) return `+1${digits}`;
+  if (digits.startsWith("1") && digits.length === 11) return `+${digits}`;
+  return phone.startsWith("+") ? phone : `+${digits}`;
+}
+
 /** Format E.164 for US display — e.g. "+17065551234" → "(706) 555-1234". */
 export function formatPhoneDisplay(e164: string): string {
   const digits = e164.replace(/\D/g, "");

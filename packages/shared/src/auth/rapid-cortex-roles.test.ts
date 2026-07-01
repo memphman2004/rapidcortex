@@ -52,9 +52,12 @@ describe("rapid-cortex-roles", () => {
 
   it("normalizeSessionRole maps product vertical tokens to canonical roles", () => {
     expect(normalizeSessionRole("VENUE_ADMIN")).toBe("venue_admin");
+    expect(normalizeSessionRole("venue-admin")).toBe("venue_admin");
+    expect(normalizeSessionRole("campusadmin")).toBe("campus_admin");
     expect(normalizeSessionRole("CAMPUS_ADMIN")).toBe("campus_admin");
     expect(normalizeSessionRole("HOSPITAL_STAFF")).toBe("hospital_staff");
     expect(normalizeSessionRole("CAMPUS_ADMIN")).not.toBe("agencyadmin");
+    expect(normalizeSessionRole("venue-admin")).not.toBe("dispatcher");
   });
 
   it("isHospitalPortalRole accepts canonical and legacy hospital roles", () => {

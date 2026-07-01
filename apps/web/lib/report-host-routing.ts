@@ -1,5 +1,5 @@
-import type { NextRequest } from "next/server";
-import { NextResponse } from "next/server";
+import { SITE_BRAND_ASSETS_BASE } from "@/lib/site";
+import { NextResponse, type NextRequest } from "next/server";
 import { getConfiguredMarketingSiteOrigin } from "@/lib/app-host-routing";
 
 const DEFAULT_REPORT_HOSTNAME = "report.rapidcortex.us";
@@ -40,7 +40,9 @@ function isReportHostAllowedPath(pathname: string): boolean {
     pathname.startsWith("/api/qr-nfc/") ||
     pathname.startsWith("/api/health") ||
     pathname.startsWith("/_next/") ||
+    pathname.startsWith(`${SITE_BRAND_ASSETS_BASE}/`) ||
     pathname === "/favicon.ico" ||
+    pathname === SITE_BRAND_ASSETS_BASE ||
     pathname === "/icon.png" ||
     pathname === "/apple-icon.png"
   );

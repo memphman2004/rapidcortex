@@ -16,6 +16,12 @@ import {
   countIntegrationHealthErrors,
   integrationHealthRowsFromStatus,
 } from "@/lib/integration-health-rows";
+import {
+  fetchDashboardOpenIncidents,
+  fetchDashboardQaQueue,
+  fetchDashboardSlaBacklog,
+  fetchDashboardVenueStats,
+} from "@/lib/dashboard-widget-api";
 import { fetchLocations } from "@/lib/locations-api";
 import { extractCampusCode, extractVenueCode } from "@/lib/auth/post-login-redirect";
 import { fetchCampusIncidents } from "@/lib/campus/campus-incidents-api";
@@ -37,10 +43,11 @@ export function StatOpenIncidentsWidget({ agencyId }: WidgetProps) {
       const rows = await fetchVenueIncidents(extractVenueCode(agencyId));
       return rows.filter((r) => ["open", "assigned", "responding"].includes(r.status)).length;
     }
-    const data = await backendGet<{ incidents?: unknown[] }>(
-      `/api/agencies/${encodeURIComponent(agencyId)}/incidents?status=open&limit=100`,
+    const data = await backendGet<{ items?: unknown[] }>(
+      `/api/incidents${agencyId ? `?agencyId=${encodeURIComponent(agencyId)}` : ""}`,
     );
-    return data?.incidents?.length ?? 0;
+    if (data?.items?.length != null) return data.items.length;
+    return (await fetchDashboardOpenIncidents(agencyId, 100)).length;
   }, 30_000);
   if (q.isLoading) return <WidgetSkeleton />;
   return (
@@ -63,22 +70,16 @@ export function StatActiveCallsWidget({ agencyId }: WidgetProps) {
 }
 
 export function StatUnitsAvailableWidget({ agencyId }: WidgetProps) {
-  const q = useStatQuery("unit-status", agencyId, async () => {
-    const data = await backendGet<{ available?: number; total?: number }>(
-      `/api/agencies/${encodeURIComponent(agencyId)}/units/status`,
-    );
-    return data?.available ?? "—";
-  });
+  const q = useStatQuery("unit-status", agencyId, async () => "—");
   if (q.isLoading) return <WidgetSkeleton />;
   return <StatCard label="Units available" value={q.data ?? "—"} icon={Radio} />;
 }
 
 export function StatSlaAnswerTimeWidget({ agencyId }: WidgetProps) {
   const q = useStatQuery("shift-sla", agencyId, async () => {
-    const data = await backendGet<{ avgAnswerTimeSeconds?: number }>(
-      `/api/agencies/${encodeURIComponent(agencyId)}/sla/current`,
-    );
-    return data?.avgAnswerTimeSeconds != null ? `${data.avgAnswerTimeSeconds}s` : "—";
+    const data = await fetchDashboardSlaBacklog();
+    const seconds = data?.avgWaitSeconds ?? data?.avgAnswerTimeSeconds;
+    return seconds != null ? `${seconds}s` : "—";
   }, 30_000);
   if (q.isLoading) return <WidgetSkeleton />;
   return <StatCard label="Avg answer time" value={q.data ?? "—"} icon={Clock} />;
@@ -119,12 +120,7 @@ export function StatOpenInvoicesWidget({ agencyId }: WidgetProps) {
 }
 
 export function StatPendingReviewsWidget({ agencyId }: WidgetProps) {
-  const q = useStatQuery("qa-queue", agencyId, async () => {
-    const data = await backendGet<{ sessions?: unknown[] }>(
-      `/api/agencies/${encodeURIComponent(agencyId)}/qa/queue?status=pending&limit=100`,
-    );
-    return data?.sessions?.length ?? 0;
-  });
+  const q = useStatQuery("qa-queue", agencyId, async () => (await fetchDashboardQaQueue(100)).length);
   if (q.isLoading) return <WidgetSkeleton />;
   return <StatCard label="Pending reviews" value={q.data ?? 0} icon={BarChart3} />;
 }
@@ -159,10 +155,8 @@ export function StatBedsAvailableWidget({ agencyId }: WidgetProps) {
 
 export function StatStaffOnDutyWidget({ agencyId }: WidgetProps) {
   const q = useStatQuery("venue-staff", agencyId, async () => {
-    const data = await backendGet<{ staffOnDuty?: number }>(
-      `/api/venue/${encodeURIComponent(agencyId)}/stats/live`,
-    );
-    return data?.staffOnDuty ?? 0;
+    const stats = await fetchDashboardVenueStats(agencyId);
+    return stats?.staffOnDuty ?? 0;
   }, 30_000);
   if (q.isLoading) return <WidgetSkeleton />;
   return <StatCard label="Staff on duty" value={q.data ?? 0} icon={Users} />;
@@ -170,10 +164,8 @@ export function StatStaffOnDutyWidget({ agencyId }: WidgetProps) {
 
 export function StatCamerasOnlineWidget({ agencyId }: WidgetProps) {
   const q = useStatQuery("venue-cameras", agencyId, async () => {
-    const data = await backendGet<{ camerasOnline?: number }>(
-      `/api/venue/${encodeURIComponent(agencyId)}/stats/live`,
-    );
-    return data?.camerasOnline ?? 0;
+    const stats = await fetchDashboardVenueStats(agencyId);
+    return stats?.camerasOnline ?? 0;
   }, 30_000);
   if (q.isLoading) return <WidgetSkeleton />;
   return <StatCard label="Cameras online" value={q.data ?? 0} icon={Camera} />;
@@ -181,10 +173,8 @@ export function StatCamerasOnlineWidget({ agencyId }: WidgetProps) {
 
 export function StatOpenGuestReportsWidget({ agencyId }: WidgetProps) {
   const q = useStatQuery("guest-reports", agencyId, async () => {
-    const data = await backendGet<{ reports?: unknown[] }>(
-      `/api/venue/${encodeURIComponent(agencyId)}/guest-reports?status=open&limit=100`,
-    );
-    return data?.reports?.length ?? 0;
+    const stats = await fetchDashboardVenueStats(agencyId);
+    return stats?.openGuestReports ?? 0;
   }, 30_000);
   if (q.isLoading) return <WidgetSkeleton />;
   return <StatCard label="Guest reports" value={q.data ?? 0} icon={MessageSquare} />;

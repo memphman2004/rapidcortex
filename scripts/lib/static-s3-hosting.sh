@@ -59,6 +59,25 @@ static_s3_extensionless_route_paths() {
   done < <(find "${static_dir}" -name index.html -type f | sort)
 }
 
+static_s3_verify_local_brand_assets() {
+  local static_dir="$1"
+  local -a required_assets=(
+    "Logo/rapid-cortex-logo-2.png"
+    "Logo/icon.png"
+    "Logo/icon-192.png"
+    "Logo/icon-512.png"
+    "Logo/apple-touch-icon.png"
+  )
+  local asset
+  for asset in "${required_assets[@]}"; do
+    if [[ ! -f "${static_dir}/${asset}" ]]; then
+      echo "ERROR: Required brand asset missing at ${static_dir}/${asset}" >&2
+      return 1
+    fi
+  done
+  echo "Brand assets present under ${static_dir}/Logo/"
+}
+
 static_s3_verify_local_extensionless_routes() {
   local static_dir="$1"
   shift

@@ -3,10 +3,10 @@
 #
 # Usage:
 #   source scripts/env-api-dev.sh
-#   ./scripts/deploy-lean-dev.sh [dev] [--sam1-only|--qr-only|--sam4-only|--sam5-only]
+#   ./scripts/deploy-lean-dev.sh [dev] [--sam1-only|--sam3-only|--qr-only|--sam4-only|--sam5-only]
 #
 # Env (optional):
-#   LEAN_DEPLOY_STACKS=sam1,qr,sam4,sam5   default qr + sam5
+#   LEAN_DEPLOY_STACKS=sam1,sam3,qr,sam4,sam5   default qr + sam5
 #   ROUTE53_HOSTED_ZONE_ID       when set, passed to AppSam4 deploy (api4.rapidcortex.us ACM + alias)
 #   SAM_BUILD_DIR                default /Volumes/Mac Mini/.sam-lean-build (or repo .sam-lean-build)
 #   SAM_BUILD_USE_CACHE=0        default 0 (fresh build, no stale rsync cache)
@@ -18,12 +18,14 @@ cd "$ROOT"
 
 STAGE="dev"
 DEPLOY_SAM1=0
+DEPLOY_SAM3=0
 DEPLOY_QR=0
 DEPLOY_SAM4=0
 DEPLOY_SAM5=0
 LEAN_STACKS="${LEAN_DEPLOY_STACKS:-qr,sam5}"
 if [[ -n "${LEAN_STACKS}" ]]; then
   DEPLOY_SAM1=0
+  DEPLOY_SAM3=0
   DEPLOY_QR=0
   DEPLOY_SAM4=0
   DEPLOY_SAM5=0
@@ -31,11 +33,12 @@ if [[ -n "${LEAN_STACKS}" ]]; then
   for _part in "${_LEAN_PARTS[@]}"; do
     case "${_part// /}" in
       sam1) DEPLOY_SAM1=1 ;;
+      sam3) DEPLOY_SAM3=1 ;;
       qr) DEPLOY_QR=1 ;;
       sam4) DEPLOY_SAM4=1 ;;
       sam5) DEPLOY_SAM5=1 ;;
       *)
-        echo "Unknown LEAN_DEPLOY_STACKS entry: ${_part} (use sam1, qr, sam4, sam5)" >&2
+        echo "Unknown LEAN_DEPLOY_STACKS entry: ${_part} (use sam1, sam3, qr, sam4, sam5)" >&2
         exit 1
         ;;
     esac
@@ -44,19 +47,20 @@ fi
 for arg in "$@"; do
   case "$arg" in
     dev | staging | prod | pilot) STAGE="$arg" ;;
-    --sam1-only) DEPLOY_SAM1=1; DEPLOY_QR=0; DEPLOY_SAM4=0; DEPLOY_SAM5=0 ;;
-    --qr-only) DEPLOY_SAM1=0; DEPLOY_QR=1; DEPLOY_SAM4=0; DEPLOY_SAM5=0 ;;
-    --sam4-only) DEPLOY_SAM1=0; DEPLOY_QR=0; DEPLOY_SAM4=1; DEPLOY_SAM5=0 ;;
-    --sam5-only) DEPLOY_SAM1=0; DEPLOY_QR=0; DEPLOY_SAM4=0; DEPLOY_SAM5=1 ;;
+    --sam1-only) DEPLOY_SAM1=1; DEPLOY_SAM3=0; DEPLOY_QR=0; DEPLOY_SAM4=0; DEPLOY_SAM5=0 ;;
+    --sam3-only) DEPLOY_SAM1=0; DEPLOY_SAM3=1; DEPLOY_QR=0; DEPLOY_SAM4=0; DEPLOY_SAM5=0 ;;
+    --qr-only) DEPLOY_SAM1=0; DEPLOY_SAM3=0; DEPLOY_QR=1; DEPLOY_SAM4=0; DEPLOY_SAM5=0 ;;
+    --sam4-only) DEPLOY_SAM1=0; DEPLOY_SAM3=0; DEPLOY_QR=0; DEPLOY_SAM4=1; DEPLOY_SAM5=0 ;;
+    --sam5-only) DEPLOY_SAM1=0; DEPLOY_SAM3=0; DEPLOY_QR=0; DEPLOY_SAM4=0; DEPLOY_SAM5=1 ;;
     *)
       echo "Unknown argument: $arg" >&2
-      echo "Usage: $0 [dev] [--sam1-only|--qr-only|--sam4-only|--sam5-only]" >&2
+      echo "Usage: $0 [dev] [--sam1-only|--sam3-only|--qr-only|--sam4-only|--sam5-only]" >&2
       exit 1
       ;;
   esac
 done
-if [[ "${DEPLOY_SAM1}" -eq 0 && "${DEPLOY_QR}" -eq 0 && "${DEPLOY_SAM4}" -eq 0 && "${DEPLOY_SAM5}" -eq 0 ]]; then
-  echo "ERROR: no nested stack selected (use --sam1-only, --sam4-only, --qr-only, --sam5-only, or LEAN_DEPLOY_STACKS)" >&2
+if [[ "${DEPLOY_SAM1}" -eq 0 && "${DEPLOY_SAM3}" -eq 0 && "${DEPLOY_QR}" -eq 0 && "${DEPLOY_SAM4}" -eq 0 && "${DEPLOY_SAM5}" -eq 0 ]]; then
+  echo "ERROR: no nested stack selected (use --sam1-only, --sam3-only, --sam4-only, --qr-only, --sam5-only, or LEAN_DEPLOY_STACKS)" >&2
   exit 1
 fi
 
@@ -88,6 +92,7 @@ echo "════════════════════════�
 echo " Stage:               ${STAGE}"
 echo " Root stack:          ${STACK_NAME}"
 echo " SAM1 stack:          $([[ "${DEPLOY_SAM1}" -eq 1 ]] && echo yes || echo no)"
+echo " SAM3 stack:          $([[ "${DEPLOY_SAM3}" -eq 1 ]] && echo yes || echo no)"
 echo " QR stack:            $([[ "${DEPLOY_QR}" -eq 1 ]] && echo yes || echo no)"
 echo " SAM4 stack:          $([[ "${DEPLOY_SAM4}" -eq 1 ]] && echo yes || echo no)"
 echo " SAM5 stack:          $([[ "${DEPLOY_SAM5}" -eq 1 ]] && echo yes || echo no)"
@@ -98,6 +103,9 @@ echo "════════════════════════�
 
 if [[ "${DEPLOY_SAM1}" -eq 1 ]]; then
   sam validate --lint --template-file "${ROOT}/infra/nested/stack-app-sam.yaml"
+fi
+if [[ "${DEPLOY_SAM3}" -eq 1 ]]; then
+  sam validate --lint --template-file "${ROOT}/infra/nested/stack-app-sam-3.yaml"
 fi
 if [[ "${DEPLOY_QR}" -eq 1 ]]; then
   sam validate --lint --template-file "${ROOT}/infra/nested/stack-app-sam-qr.yaml"
@@ -263,6 +271,19 @@ if [[ "${DEPLOY_SAM1}" -eq 1 ]]; then
   echo "✅ AppSamStackV2 deploy complete"
 fi
 
+if [[ "${DEPLOY_SAM3}" -eq 1 ]]; then
+  SAM3_STACK="$(nested_stack_name AppSam3Stack)"
+  if [[ -z "${SAM3_STACK}" || "${SAM3_STACK}" == "None" ]]; then
+    echo "ERROR: AppSam3Stack not found under ${STACK_NAME}" >&2
+    exit 1
+  fi
+  echo ""
+  echo "▶ AppSam3Stack (${SAM3_STACK})"
+  lean_sam_build "${ROOT}/infra/nested/stack-app-sam-3.yaml" "sam3"
+  lean_sam_deploy_nested "${SAM_BUILD_DIR}/sam3/template.yaml" "${SAM3_STACK}"
+  echo "✅ AppSam3Stack deploy complete"
+fi
+
 if [[ "${DEPLOY_QR}" -eq 1 ]]; then
   QR_STACK="$(nested_stack_name AppSamQrStack)"
   if [[ -z "${QR_STACK}" || "${QR_STACK}" == "None" ]]; then
@@ -308,6 +329,6 @@ if [[ "${DEPLOY_SAM5}" -eq 1 ]]; then
 fi
 
 echo ""
-echo "✅ Lean deploy finished (SAM1=${DEPLOY_SAM1}, QR=${DEPLOY_QR}, SAM4=${DEPLOY_SAM4}, SAM5=${DEPLOY_SAM5})."
+echo "✅ Lean deploy finished (SAM1=${DEPLOY_SAM1}, SAM3=${DEPLOY_SAM3}, QR=${DEPLOY_QR}, SAM4=${DEPLOY_SAM4}, SAM5=${DEPLOY_SAM5})."
 echo "   Verify LocationIntakeFunction env:"
 echo "   aws lambda get-function-configuration --function-name \$(aws cloudformation describe-stack-resources --stack-name ${STACK_NAME} --query \"StackResources[?contains(LogicalResourceId,'LocationIntake')].PhysicalResourceId\" --output text | head -1 | xargs basename) --query Environment.Variables"

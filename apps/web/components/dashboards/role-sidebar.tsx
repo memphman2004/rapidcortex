@@ -12,6 +12,7 @@ import { getRoleDashboardIdentity } from "@/lib/dashboards/role-dashboard-design
 import { sidebarIconForTab } from "@/lib/dashboards/role-sidebar-icons";
 import { SidebarHomeButton } from "@/components/ui/sidebar-home-button";
 import { SidebarSignOutFooter } from "@/components/ui/sidebar-sign-out-footer";
+import { SITE_SQUARE_ICON_HEIGHT, SITE_SQUARE_ICON_PATH, SITE_SQUARE_ICON_WIDTH } from "@/lib/site";
 import { useOptionalJurisdictionSlug } from "@/lib/jurisdiction-context";
 import { defaultJurisdictionSlug } from "@/lib/marketing-links";
 
@@ -55,10 +56,10 @@ export function RoleSidebar({
       <div className="flex h-full flex-col px-3 py-4">
         <div className="mb-5 hidden px-1 md:flex md:items-center md:gap-2.5">
           <Image
-            src="/icon.png"
+            src={SITE_SQUARE_ICON_PATH}
             alt="Rapid Cortex"
-            width={32}
-            height={32}
+            width={SITE_SQUARE_ICON_WIDTH}
+            height={SITE_SQUARE_ICON_HEIGHT}
             className="h-8 w-8 shrink-0 rounded-md ring-1 ring-white/10"
             priority
           />

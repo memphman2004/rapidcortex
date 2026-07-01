@@ -433,4 +433,20 @@ describe("AccessOverrideService (integration with mocked persistence)", () => {
     expect(mockListAgencyIds).toHaveBeenCalledTimes(1);
     expect(items.map((i) => i.overrideId)).toEqual(["ovr_platform"]);
   });
+
+  it("rcadmin lists overrides platform-wide when agencyId is omitted", async () => {
+    mockQueryByAgency.mockResolvedValue([]);
+
+    await svc.list(
+      {
+        userId: "rca-sub",
+        agencyId: "__platform__",
+        role: "rcadmin",
+        email: "rcadmin@rapidcortex.us",
+      },
+      { status: "active" },
+    );
+
+    expect(mockListAgencyIds).toHaveBeenCalledTimes(1);
+  });
 });

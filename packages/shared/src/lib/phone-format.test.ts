@@ -1,5 +1,16 @@
 import { describe, expect, it } from "vitest";
-import { formatPhoneDisplay, qrNfcCallButtonLabel } from "./phone-format.js";
+import { formatPhoneDisplay, normalizePhoneE164, qrNfcCallButtonLabel } from "./phone-format.js";
+
+describe("normalizePhoneE164", () => {
+  it("normalizes 10-digit US numbers", () => {
+    expect(normalizePhoneE164("8085428061")).toBe("+18085428061");
+    expect(normalizePhoneE164("(706) 555-1234")).toBe("+17065551234");
+  });
+
+  it("preserves existing E.164", () => {
+    expect(normalizePhoneE164("+17065551234")).toBe("+17065551234");
+  });
+});
 
 describe("formatPhoneDisplay", () => {
   it("formats US E.164 numbers", () => {

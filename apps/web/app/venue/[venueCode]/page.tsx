@@ -29,9 +29,6 @@ export default async function VenueDashboardPage({
   const { venueCode } = await params;
   const user = await getDashboardSessionUser();
   const role = normalizeVenueRole(user?.role);
-  if (role === "VENUE_GUEST_SERVICES") {
-    redirect(`/app/venue/${venueCode}/reports`);
-  }
   if (!user) return null;
 
   const roleToken = user.role.trim().toUpperCase();

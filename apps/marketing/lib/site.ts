@@ -15,11 +15,14 @@ export const SITE_MISSION =
  * Uses the slogan plus a one-line value prop.
  */
 export const SITE_DESCRIPTION = `${SITE_SLOGAN} — Real-time decision support for public safety: dispatch, supervision, and emergency response. Does not replace CAD, telephony, or your agency's systems of record.`;
+/** Canonical static brand directory (`apps/web/public/Logo/`). */
+export const SITE_BRAND_ASSETS_BASE = "/Logo";
+
 /**
  * Primary Rapid Cortex web mark used on marketing/header surfaces.
- * File: `public/rapid-cortex-logo-2.png` (1041×276 wordmark + tagline).
+ * File: `public/Logo/rapid-cortex-logo-2.png` (1041×276 wordmark + tagline).
  */
-export const SITE_BRAND_MARK_PATH = "/rapid-cortex-logo-2.png";
+export const SITE_BRAND_MARK_PATH = `${SITE_BRAND_ASSETS_BASE}/rapid-cortex-logo-2.png`;
 export const SITE_BRAND_MARK_WIDTH = 1041;
 export const SITE_BRAND_MARK_HEIGHT = 276;
 
@@ -33,22 +36,29 @@ export const SITE_HERO_LOGO_PATH = SITE_BRAND_MARK_PATH;
 export const SITE_HERO_LOGO_WIDTH = SITE_BRAND_MARK_WIDTH;
 export const SITE_HERO_LOGO_HEIGHT = SITE_BRAND_MARK_HEIGHT;
 
-/** Square mark used in browser tabs via `app/icon.png` (typically 512; matches Rapid911 suite). */
-export const SITE_ICON_PATH = SITE_BRAND_MARK_PATH;
+/** Square mark for sidebars and compact chrome (192×192 PNG). */
+export const SITE_SQUARE_ICON_PATH = `${SITE_BRAND_ASSETS_BASE}/icon.png`;
+export const SITE_SQUARE_ICON_WIDTH = 192;
+export const SITE_SQUARE_ICON_HEIGHT = 192;
+
+/** @deprecated Prefer {@link SITE_SQUARE_ICON_PATH} for tab/sidebar marks. */
+export const SITE_ICON_PATH = SITE_SQUARE_ICON_PATH;
 
 /** PWA/installable chrome — align with globals.css slate-950 / slate-900. */
 export const SITE_PWA_THEME_COLOR = "#0f172a";
 export const SITE_PWA_BACKGROUND_COLOR = "#020617";
 
 /**
- * Hosted paths for supplementary icons (`public/`). Source artwork: Rapid Cortex square marks.
+ * Hosted paths for supplementary icons (`public/Logo/`). Source artwork: Rapid Cortex square marks.
  * See `app/icon.png`, `app/apple-icon.png`, and root layout `metadata.icons`.
  */
 export const SITE_PUBLIC_ICON_PATHS = {
+  tab: SITE_SQUARE_ICON_PATH,
   /** 180×180 for legacy `apple-touch-icon-precomposed` and some clients */
-  appleTouch180: "/apple-touch-icon.png",
-  pwa192: "/icon-192.png",
-  pwa512: "/icon-512.png",
+  appleTouch180: `${SITE_BRAND_ASSETS_BASE}/apple-touch-icon.png`,
+  appleIcon: `${SITE_BRAND_ASSETS_BASE}/apple-touch-icon.png`,
+  pwa192: `${SITE_BRAND_ASSETS_BASE}/icon-192.png`,
+  pwa512: `${SITE_BRAND_ASSETS_BASE}/icon-512.png`,
 } as const;
 
 /** Shown in marketing footer (© line). */

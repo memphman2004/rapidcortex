@@ -24,6 +24,7 @@ if [[ ! -d "${STATIC_DIR}" ]] || [[ ! -f "${STATIC_DIR}/index.html" ]]; then
 fi
 
 static_s3_verify_local_css_refs "${STATIC_DIR}"
+static_s3_verify_local_brand_assets "${STATIC_DIR}"
 static_s3_verify_local_extensionless_routes "${STATIC_DIR}" "${REQUIRED_ROUTES[@]}"
 static_s3_prepare_root_html_dirs "${STATIC_DIR}"
 

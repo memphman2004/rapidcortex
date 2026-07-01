@@ -26,7 +26,9 @@ async function parseJson<T>(res: Response): Promise<T> {
     const message =
       typeof body === "object" && body !== null && "error" in body
         ? String((body as { error: unknown }).error)
-        : `Request failed (${res.status})`;
+        : res.status === 404
+          ? "Locations API is unavailable (route not deployed). Contact platform ops or retry after AppSamQrStack deploy."
+          : `Request failed (${res.status})`;
     throw new Error(message);
   }
   return body as T;

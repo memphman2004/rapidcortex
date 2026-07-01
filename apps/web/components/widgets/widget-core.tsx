@@ -13,6 +13,13 @@ import {
   integrationHealthRowsFromStatus,
 } from "@/lib/integration-health-rows";
 import {
+  fetchDashboardActiveCalls,
+  fetchDashboardAuditFeed,
+  fetchDashboardOpenIncidents,
+  fetchDashboardQaQueue,
+  fetchDashboardVenueStats,
+} from "@/lib/dashboard-widget-api";
+import {
   backendGet,
   StatCard,
   StatusDot,
@@ -66,8 +73,16 @@ export function ActiveCallsGridWidget({ agencyId }: WidgetProps) {
   const { data, isLoading, isError } = useQuery({
     queryKey: ["active-calls", agencyId],
     queryFn: async () => {
-      const r = await fetch(`/api/backend/api/agencies/${agencyId}/incidents?status=active`, { credentials: "include" });
-      return r.ok ? r.json() : null;
+      const calls = await fetchDashboardActiveCalls();
+      return {
+        incidents: calls.map((call) => ({
+          incidentId: call.incidentId ?? call.callId,
+          dispatcherName: call.currentHandlerUsername,
+          natureCode: call.callerPhone,
+          durationSeconds: call.durationSeconds ?? 0,
+          flagged: Boolean(call.pendingTransfer),
+        })),
+      };
     },
     refetchInterval: 10_000,
   });
@@ -111,8 +126,17 @@ export function IncidentQueueWidget({ agencyId }: WidgetProps) {
   const { data, isLoading, isError } = useQuery({
     queryKey: ["incidents", agencyId],
     queryFn: async () => {
-      const r = await fetch(`/api/backend/api/agencies/${agencyId}/incidents?status=open&limit=20`, { credentials: "include" });
-      return r.ok ? r.json() : null;
+      const incidents = await fetchDashboardOpenIncidents(agencyId, 20);
+      return {
+        incidents: incidents.map((i) => ({
+          incidentId: i.incidentId,
+          callerNumber: i.callerAddressLine ?? "—",
+          natureCode: i.cadNatureCode ?? i.title,
+          priority: i.urgency,
+          createdAt: i.createdAt,
+          assignedTo: null,
+        })),
+      };
     },
     refetchInterval: 15_000,
   });
@@ -120,9 +144,9 @@ export function IncidentQueueWidget({ agencyId }: WidgetProps) {
   if (isLoading) return <WidgetSkeleton />;
   if (isError) return <WidgetError />;
 
-  type Incident = { incidentId: string; natureCode: string; createdAt: string; priority: "high" | "medium" | "low"; assignedTo: string | null };
-  const incidents: Incident[] = data?.incidents ?? [];
-  const priorityColor = { high: "text-rose-400", medium: "text-yellow-400", low: "text-slate-400" };
+  type QueueRow = { incidentId: string; natureCode: string; createdAt: string; priority: string; assignedTo: string | null };
+  const incidents: QueueRow[] = data?.incidents ?? [];
+  const priorityColor: Record<string, string> = { high: "text-rose-400", critical: "text-rose-400", medium: "text-yellow-400", moderate: "text-yellow-400", low: "text-slate-400" };
 
   return (
     <WidgetShell title="Incident Queue" icon={AlertCircle} count={incidents.length}>
@@ -273,10 +297,7 @@ export function PlatformHealthBarWidget({ agencyId }: WidgetProps) {
 export function RecentActivityWidget({ agencyId }: WidgetProps) {
   const { data, isLoading } = useQuery({
     queryKey: ["activity-feed", agencyId],
-    queryFn: async () => {
-      const r = await fetch(`/api/backend/api/agencies/${agencyId}/audit?limit=20`, { credentials: "include" });
-      return r.ok ? r.json() : null;
-    },
+    queryFn: async () => ({ events: await fetchDashboardAuditFeed(20) }),
   });
 
   if (isLoading) return <WidgetSkeleton />;
@@ -310,10 +331,7 @@ export function RecentActivityWidget({ agencyId }: WidgetProps) {
 export function QaReviewQueueWidget({ agencyId }: WidgetProps) {
   const { data, isLoading, isError } = useQuery({
     queryKey: ["qa-queue", agencyId],
-    queryFn: async () => {
-      const r = await fetch(`/api/backend/api/agencies/${agencyId}/qa/queue?status=pending&limit=15`, { credentials: "include" });
-      return r.ok ? r.json() : null;
-    },
+    queryFn: async () => ({ sessions: await fetchDashboardQaQueue(15) }),
   });
 
   if (isLoading) return <WidgetSkeleton />;
@@ -393,17 +411,13 @@ export function CapacityStatusWidget({ agencyId }: WidgetProps) {
 // ─── Guest reports feed ───────────────────────────────────────────────────────
 
 export function GuestReportsFeedWidget({ agencyId }: WidgetProps) {
-  const { data, isLoading, isError } = useQuery({
+  const { data, isLoading } = useQuery({
     queryKey: ["guest-reports", agencyId],
-    queryFn: async () => {
-      const r = await fetch(`/api/backend/api/venue/${agencyId}/guest-reports?status=open&limit=20`, { credentials: "include" });
-      return r.ok ? r.json() : null;
-    },
+    queryFn: async () => ({ reports: [] as Array<{ reportId: string; message: string; submittedAt: string; zone: string | null; assignedTo: string | null }> }),
     refetchInterval: 15_000,
   });
 
   if (isLoading) return <WidgetSkeleton />;
-  if (isError) return <WidgetError />;
 
   type Report = { reportId: string; message: string; submittedAt: string; zone: string | null; assignedTo: string | null };
   const reports: Report[] = data?.reports ?? [];
@@ -442,17 +456,14 @@ export function GuestReportsFeedWidget({ agencyId }: WidgetProps) {
 export function VenueLiveStatsRowWidget({ agencyId }: WidgetProps) {
   const { data, isLoading } = useQuery({
     queryKey: ["venue-stats", agencyId],
-    queryFn: async () => {
-      const r = await fetch(`/api/backend/api/venue/${agencyId}/stats/live`, { credentials: "include" });
-      return r.ok ? r.json() : null;
-    },
+    queryFn: () => fetchDashboardVenueStats(agencyId),
     refetchInterval: 15_000,
   });
 
   if (isLoading) return <WidgetSkeleton />;
 
   const stats = [
-    { label: "Active incidents",   value: data?.openIncidents ?? 0,     icon: AlertCircle, valueColor: data?.openIncidents > 0 ? "text-rose-400" : "text-white" },
+    { label: "Active incidents",   value: data?.openIncidents ?? 0,     icon: AlertCircle, valueColor: (data?.openIncidents ?? 0) > 0 ? "text-rose-400" : "text-white" },
     { label: "Open guest reports", value: data?.openGuestReports ?? 0,  icon: MessageSquare, valueColor: "text-white" },
     { label: "Staff on duty",      value: data?.staffOnDuty ?? 0,       icon: Users, valueColor: "text-white" },
     { label: "Cameras online",     value: data?.camerasOnline ?? 0,     icon: Camera, valueColor: "text-white" },

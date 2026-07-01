@@ -12,8 +12,9 @@ import { getRoleNav, type NavBadge, type NavItem, type RoleNav } from "@/lib/nav
 import { useNavBadgeCounts, type NavBadgeCounts } from "@/lib/navigation/use-nav-badge-counts";
 import { SidebarHomeButton } from "@/components/ui/sidebar-home-button";
 import { SidebarSignOutFooter } from "@/components/ui/sidebar-sign-out-footer";
-import { useOptionalJurisdictionSlug } from "@/lib/jurisdiction-context";
+import { SITE_SQUARE_ICON_HEIGHT, SITE_SQUARE_ICON_PATH, SITE_SQUARE_ICON_WIDTH } from "@/lib/site";
 import { defaultJurisdictionSlug } from "@/lib/marketing-links";
+import { useOptionalJurisdictionSlug } from "@/lib/jurisdiction-context";
 
 const ACCENT_STYLES: Record<
   RoleNav["accent"],
@@ -194,10 +195,10 @@ export function RoleNavSidebar({
       {showChrome ? (
         <div className="mb-5 hidden px-1 md:flex md:items-center md:gap-2.5">
           <Image
-            src="/icon.png"
+            src={SITE_SQUARE_ICON_PATH}
             alt="Rapid Cortex"
-            width={32}
-            height={32}
+            width={SITE_SQUARE_ICON_WIDTH}
+            height={SITE_SQUARE_ICON_HEIGHT}
             className="h-8 w-8 shrink-0 rounded-md ring-1 ring-white/10"
             priority
           />

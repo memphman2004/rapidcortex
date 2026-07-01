@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import type { CreateQRNFCInput, QRNFCRecord, ReportVertical } from "rapid-cortex-shared";
-import { formatPhoneDisplay } from "rapid-cortex-shared";
+import { formatPhoneDisplay, normalizePhoneE164 } from "rapid-cortex-shared";
 import { features } from "@/lib/features";
 import { NFCInstructions } from "./nfc-instructions";
 import { SmsRoutingManager } from "@/components/sms-routing/sms-routing-manager";
@@ -36,6 +36,8 @@ export function QRNFCManager({
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [modalOpen, setModalOpen] = useState(false);
+  const [modalError, setModalError] = useState<string | null>(null);
+  const [creating, setCreating] = useState(false);
   const [created, setCreated] = useState<QRNFCRecord | null>(null);
   const [filterVertical, setFilterVertical] = useState<string>("all");
   const [filterActive, setFilterActive] = useState<string>("all");
@@ -81,24 +83,51 @@ export function QRNFCManager({
 
   async function onCreate(e: React.FormEvent) {
     e.preventDefault();
-    const res = await fetch(apiBase, {
-      method: "POST",
-      credentials: "include",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        ...form,
-        agencyId: globalView ? agencyId : undefined,
-        callNumber: form.callNumber?.trim() || undefined,
-      }),
-    });
-    const body = (await res.json()) as { record?: QRNFCRecord; error?: string };
-    if (!res.ok) {
-      setError(body.error ?? "Create failed");
-      return;
+    setCreating(true);
+    setModalError(null);
+    try {
+      const rawCall = form.callNumber?.trim();
+      let callNumber: string | undefined;
+      if (rawCall) {
+        callNumber = normalizePhoneE164(rawCall);
+        if (!/^\+[1-9]\d{6,14}$/.test(callNumber)) {
+          setModalError("Phone must be E.164 format (e.g. +17065551234 or 7065551234)");
+          return;
+        }
+      }
+
+      const res = await fetch(apiBase, {
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          ...form,
+          agencyId,
+          callNumber,
+        }),
+      });
+      const body = (await res.json().catch(() => ({}))) as { record?: QRNFCRecord; error?: string };
+      if (!res.ok) {
+        setModalError(body.error ?? `Create failed (${res.status})`);
+        return;
+      }
+      setCreated(body.record ?? null);
+      setModalOpen(false);
+      setForm({
+        name: "",
+        description: "",
+        zoneName: "",
+        vertical,
+        reportType: "anonymous",
+        nfcEnabled: true,
+        callNumber: "",
+      });
+      void load();
+    } catch {
+      setModalError("Network error — please try again.");
+    } finally {
+      setCreating(false);
     }
-    setCreated(body.record ?? null);
-    setModalOpen(false);
-    void load();
   }
 
   async function setActive(qrId: string, active: boolean) {
@@ -139,6 +168,7 @@ export function QRNFCManager({
             type="button"
             onClick={() => {
               setCreated(null);
+              setModalError(null);
               setModalOpen(true);
             }}
             className="rounded-md bg-sky-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-sky-500"
@@ -339,7 +369,7 @@ export function QRNFCManager({
               <input
                 value={form.callNumber ?? ""}
                 onChange={(e) => setForm((f) => ({ ...f, callNumber: e.target.value }))}
-                placeholder="+17065551234"
+                placeholder="7065551234 or +17065551234"
                 className="mt-1 w-full rounded border border-slate-600 bg-slate-950 px-2 py-1.5"
               />
               <span className="mt-1 block text-xs text-slate-500">
@@ -367,12 +397,22 @@ export function QRNFCManager({
               />
               NFC enabled
             </label>
+            {modalError ? <p className="mt-3 text-sm text-rose-400">{modalError}</p> : null}
             <div className="mt-5 flex justify-end gap-2">
-              <button type="button" onClick={() => setModalOpen(false)} className="rounded border border-slate-600 px-3 py-1.5 text-sm">
+              <button
+                type="button"
+                onClick={() => setModalOpen(false)}
+                disabled={creating}
+                className="rounded border border-slate-600 px-3 py-1.5 text-sm"
+              >
                 Cancel
               </button>
-              <button type="submit" className="rounded bg-sky-600 px-3 py-1.5 text-sm text-white">
-                Create
+              <button
+                type="submit"
+                disabled={creating}
+                className="rounded bg-sky-600 px-3 py-1.5 text-sm text-white disabled:opacity-60"
+              >
+                {creating ? "Creating…" : "Create"}
               </button>
             </div>
           </form>

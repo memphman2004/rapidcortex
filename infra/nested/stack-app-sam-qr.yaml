@@ -530,7 +530,7 @@ Resources:
       Principal: apigateway.amazonaws.com
       SourceArn: !Sub arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${HttpApiId}/*
 
-  RouteQrResolveGet:
+  RouteQrResolveGetV2:
     Type: AWS::ApiGatewayV2::Route
     Condition: HasQRLocationsTable
     Properties:
@@ -539,7 +539,7 @@ Resources:
       AuthorizationType: NONE
       Target: !Sub "integrations/${LocationResolveHttpIntegration}"
 
-  RouteQrIntakePost:
+  RouteQrIntakePostV2:
     Type: AWS::ApiGatewayV2::Route
     Condition: HasQRLocationsTable
     Properties:
@@ -548,7 +548,7 @@ Resources:
       AuthorizationType: NONE
       Target: !Sub "integrations/${LocationIntakeHttpIntegration}"
 
-  RouteQrMediaUploadGet:
+  RouteQrMediaUploadGetV2:
     Type: AWS::ApiGatewayV2::Route
     Condition: HasQRLocationsTable
     Properties:
@@ -557,7 +557,7 @@ Resources:
       AuthorizationType: NONE
       Target: !Sub "integrations/${LocationMediaUploadHttpIntegration}"
 
-  RouteLocationsAdminList:
+  RouteLocationsAdminListV2:
     Type: AWS::ApiGatewayV2::Route
     Condition: HasQRLocationsTable
     Properties:
@@ -565,7 +565,7 @@ Resources:
       RouteKey: "GET /api/admin/tenants/{agencyId}/locations"
       Target: !Sub "integrations/${LocationsAdminHttpIntegration}"
 
-  RouteLocationsAdminCreate:
+  RouteLocationsAdminCreateV2:
     Type: AWS::ApiGatewayV2::Route
     Condition: HasQRLocationsTable
     Properties:
@@ -573,7 +573,7 @@ Resources:
       RouteKey: "POST /api/admin/tenants/{agencyId}/locations"
       Target: !Sub "integrations/${LocationsAdminHttpIntegration}"
 
-  RouteLocationsAdminUpdate:
+  RouteLocationsAdminUpdateV2:
     Type: AWS::ApiGatewayV2::Route
     Condition: HasQRLocationsTable
     Properties:
@@ -581,7 +581,7 @@ Resources:
       RouteKey: "PUT /api/admin/tenants/{agencyId}/locations/{rcli}"
       Target: !Sub "integrations/${LocationsAdminHttpIntegration}"
 
-  RouteLocationsAdminDelete:
+  RouteLocationsAdminDeleteV2:
     Type: AWS::ApiGatewayV2::Route
     Condition: HasQRLocationsTable
     Properties:
@@ -589,7 +589,7 @@ Resources:
       RouteKey: "DELETE /api/admin/tenants/{agencyId}/locations/{rcli}"
       Target: !Sub "integrations/${LocationsAdminHttpIntegration}"
 
-  RouteLocationsAdminBulk:
+  RouteLocationsAdminBulkV2:
     Type: AWS::ApiGatewayV2::Route
     Condition: HasQRLocationsTable
     Properties:
@@ -597,7 +597,7 @@ Resources:
       RouteKey: "POST /api/admin/tenants/{agencyId}/locations/bulk"
       Target: !Sub "integrations/${LocationsAdminHttpIntegration}"
 
-  RouteLocationQrGet:
+  RouteLocationQrGetV2:
     Type: AWS::ApiGatewayV2::Route
     Condition: HasQRLocationsTable
     Properties:
@@ -605,7 +605,7 @@ Resources:
       RouteKey: "GET /api/admin/tenants/{agencyId}/locations/{rcli}/qr"
       Target: !Sub "integrations/${LocationQrHttpIntegration}"
 
-  RouteVenueIncidentsGet:
+  RouteVenueIncidentsGetV2:
     Type: AWS::ApiGatewayV2::Route
     Condition: HasVenueConfigTable
     Properties:
@@ -706,49 +706,49 @@ Resources:
       Principal: apigateway.amazonaws.com
       SourceArn: !Sub arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${HttpApiId}/*
 
-  RouteQrNfcList:
+  RouteQrNfcListV2:
     Type: AWS::ApiGatewayV2::Route
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "GET /api/qr-nfc"
       Target: !Sub "integrations/${QrNfcHttpIntegration}"
 
-  RouteQrNfcGlobalList:
+  RouteQrNfcGlobalListV2:
     Type: AWS::ApiGatewayV2::Route
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "GET /api/qr-nfc/global"
       Target: !Sub "integrations/${QrNfcHttpIntegration}"
 
-  RouteQrNfcCreate:
+  RouteQrNfcCreateV2:
     Type: AWS::ApiGatewayV2::Route
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "POST /api/qr-nfc"
       Target: !Sub "integrations/${QrNfcHttpIntegration}"
 
-  RouteQrNfcGet:
+  RouteQrNfcGetV2:
     Type: AWS::ApiGatewayV2::Route
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "GET /api/qr-nfc/{qrId}"
       Target: !Sub "integrations/${QrNfcHttpIntegration}"
 
-  RouteQrNfcPatch:
+  RouteQrNfcPatchV2:
     Type: AWS::ApiGatewayV2::Route
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "PATCH /api/qr-nfc/{qrId}"
       Target: !Sub "integrations/${QrNfcHttpIntegration}"
 
-  RouteQrNfcDelete:
+  RouteQrNfcDeleteV2:
     Type: AWS::ApiGatewayV2::Route
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "DELETE /api/qr-nfc/{qrId}"
       Target: !Sub "integrations/${QrNfcHttpIntegration}"
 
-  RouteQrNfcEngagePost:
+  RouteQrNfcEngagePostV2:
     Type: AWS::ApiGatewayV2::Route
     Properties:
       ApiId: !Ref HttpApiId
@@ -756,7 +756,7 @@ Resources:
       AuthorizationType: NONE
       Target: !Sub "integrations/${QrNfcEngageHttpIntegration}"
 
-  RoutePublicReportPost:
+  RoutePublicReportPostV2:
     Type: AWS::ApiGatewayV2::Route
     Properties:
       ApiId: !Ref HttpApiId
