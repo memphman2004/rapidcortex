@@ -1100,6 +1100,13 @@ Globals:
           - ""
         BRIDGE_SUBNET_IDS: !Ref BridgeSubnetIds
         BRIDGE_SECURITY_GROUP_IDS: !Ref BridgeSecurityGroupIds
+        INCIDENTS_TABLE: !Ref IncidentsTable
+        TRANSCRIPTS_TABLE: !Ref TranscriptsTable
+        ANALYSES_TABLE: !Ref AnalysesTable
+        AUDIT_TABLE: !Ref AuditTable
+        AGENCIES_TABLE: !Ref AgenciesTable
+        INVITES_TABLE: !Ref InvitesTable
+        ASSETS_BUCKET: !Ref AssetsBucket
 
 
 Resources:

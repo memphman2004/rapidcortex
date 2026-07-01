@@ -32,6 +32,8 @@ BUILD_ID="$(
 )"
 
 echo "✓ Build id: ${BUILD_ID}"
+# Write BUILD_ID to a temp file so callers (e.g. deploy-web-ecs.sh) can poll the build result.
+printf '%s' "${BUILD_ID}" > "${TMPDIR:-/tmp}/rc-web-codebuild-id-${ENVIRONMENT}"
 REG="${AWS_REGION:-}"
 echo "Monitor: https://console.aws.amazon.com/codesuite/codebuild/${REG}/projects/${PROJECT_NAME}"
 echo ""
