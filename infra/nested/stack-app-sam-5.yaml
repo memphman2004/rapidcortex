@@ -1107,6 +1107,9 @@ Globals:
         AGENCIES_TABLE: !Ref AgenciesTable
         INVITES_TABLE: !Ref InvitesTable
         ASSETS_BUCKET: !Ref AssetsBucket
+        COGNITO_USER_POOL_ID: !Ref ImportedCognitoUserPoolId
+        COGNITO_CLIENT_ID: !Ref ImportedCognitoWebClientId
+        COGNITO_REGION: !Sub "${AWS::Region}"
 
 
 Resources:
