@@ -1014,6 +1014,8 @@ Globals:
     Runtime: nodejs20.x
     Timeout: 10
     MemorySize: 512
+    Layers:
+      - !Ref NodeDepsLayer
     Environment:
       Variables:
         RC_RUNTIME_CONFIG_JSON: !Sub
@@ -1082,6 +1084,18 @@ Globals:
             WebhooksTable: !Ref WebhooksTable
 
 Resources:
+  NodeDepsLayer:
+    Type: AWS::Serverless::LayerVersion
+    Properties:
+      LayerName: !Sub "rapid-cortex-api-deps-${DeploymentStage}"
+      Description: "Shared node_modules for all SAM4 Lambda functions — avoids 172MB rsync per function during build"
+      ContentUri: ../../apps/api/layer/
+      CompatibleRuntimes:
+        - nodejs20.x
+      RetentionPolicy: Delete
+    Metadata:
+      BuildMethod: makefile
+
   AppManagedPolicyDynamoLambdaCrudShardA:
     Type: AWS::IAM::ManagedPolicy
     Properties:

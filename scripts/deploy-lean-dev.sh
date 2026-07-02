@@ -305,7 +305,8 @@ if [[ "${DEPLOY_SAM4}" -eq 1 ]]; then
   fi
   echo ""
   echo "▶ AppSam4Stack (${SAM4_STACK})"
-  lean_sam_build "${ROOT}/infra/nested/stack-app-sam-4.yaml" "sam4"
+  # SAM4_LEAN_BUILD skips node_modules rsync per-function; deps ship via NodeDepsLayer instead.
+  SAM4_LEAN_BUILD=1 lean_sam_build "${ROOT}/infra/nested/stack-app-sam-4.yaml" "sam4"
   _sam4_extra=()
   if [[ -n "${ROUTE53_HOSTED_ZONE_ID:-}" ]]; then
     _sam4_extra+=("Route53HostedZoneId=${ROUTE53_HOSTED_ZONE_ID}")
