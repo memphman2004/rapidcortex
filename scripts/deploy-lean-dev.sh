@@ -209,7 +209,7 @@ nested_params_override() {
     --stack-name "${nested}" \
     --region "${AWS_REGION}" \
     --query 'Stacks[0].Parameters[*].[ParameterKey,ParameterValue]' \
-    --output text | awk 'NF >= 2 && $2 != "" {printf "%s=%s ", $1, $2}'
+    --output text | awk 'NF >= 2 && $2 != "" && $2 != "****" {printf "%s=%s ", $1, $2}'
 }
 
 lean_sam_build() {
