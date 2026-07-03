@@ -162,7 +162,7 @@ for _pkg_dir in apps/api/node_modules/rapid-cortex-shared apps/api/node_modules/
   fi
 done
 rm -f apps/api/package-lock.json
-cd apps/api && npm install --no-workspaces && cd "$ROOT"
+cd apps/api && npm_config_prefer_offline=false npm install --no-workspaces && cd "$ROOT"
 sync_vendor_dist() {
   local src="$1"
   local dest_root="$2"
@@ -306,7 +306,10 @@ if [[ "${DEPLOY_SAM4}" -eq 1 ]]; then
   echo ""
   echo "▶ AppSam4Stack (${SAM4_STACK})"
   # SAM4_LEAN_BUILD skips node_modules rsync per-function; deps ship via NodeDepsLayer instead.
-  SAM4_LEAN_BUILD=1 lean_sam_build "${ROOT}/infra/nested/stack-app-sam-4.yaml" "sam4"
+  # Must be exported (not just a function-call prefix) so sam's make subprocess inherits it.
+  export SAM4_LEAN_BUILD=1
+  lean_sam_build "${ROOT}/infra/nested/stack-app-sam-4.yaml" "sam4"
+  unset SAM4_LEAN_BUILD
   _sam4_extra=()
   if [[ -n "${ROUTE53_HOSTED_ZONE_ID:-}" ]]; then
     _sam4_extra+=("Route53HostedZoneId=${ROUTE53_HOSTED_ZONE_ID}")
