@@ -1,5 +1,11 @@
-import { JurisdictionWorkspacePlaceholder } from "@/components/dispatch/jurisdiction-workspace-placeholder";
+import { redirect } from "next/navigation";
+import { dispatchDashboardHref } from "@/lib/dispatch-workspace-links";
+import { blockPsapRoutesForVerticalAgency } from "@/lib/venue/venue-psap-route-guard";
 
-export default function IncidentsPage() {
-  return <JurisdictionWorkspacePlaceholder title="Active incidents" />;
+type Props = { params: Promise<{ jurisdiction: string }> };
+
+export default async function IncidentsPage({ params }: Props) {
+  const { jurisdiction } = await params;
+  await blockPsapRoutesForVerticalAgency(jurisdiction);
+  redirect(dispatchDashboardHref(jurisdiction));
 }

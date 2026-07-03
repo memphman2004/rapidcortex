@@ -74,11 +74,12 @@ function paymentInstructionsHtml(paymentInfo: {
   checkMailingAddress?: string;
   bankName?: string;
 }): string {
-  const bank = paymentInfo.bankName ?? "Navy Federal Credit Union";
-  const achRouting = paymentInfo.achRoutingNumber ?? "XXX-XXX-XXX";
-  const achAccount = paymentInfo.achAccountNumber ?? "XXX-XXX-XXX";
-  const wire = paymentInfo.wireInstructions ?? "SWIFT: XXXXXXXX / Account: XXX-XXX-XXX";
-  const checkAddress = paymentInfo.checkMailingAddress ?? "123 Main Street, Columbus, GA 31901";
+  // Bank details come ONLY from Secrets Manager — no hardcoded fallback.
+  const bank = paymentInfo.bankName ?? "";
+  const achRouting = paymentInfo.achRoutingNumber ?? "";
+  const achAccount = paymentInfo.achAccountNumber ?? "";
+  const wire = paymentInfo.wireInstructions ?? "";
+  const checkAddress = paymentInfo.checkMailingAddress ?? "";
   return `
     <p style="margin:18px 0 6px 0;"><b>Payment Instructions</b></p>
     <p style="margin:0 0 6px 0;"><b>ACH Payment</b><br/>Bank: ${bank}<br/>Routing: ${achRouting}<br/>Account: ${achAccount}<br/>Account Name: Apps on Demand LLC</p>
@@ -95,7 +96,7 @@ async function signedInvoicePdfUrl(pdfS3Key?: string): Promise<string | null> {
       Bucket: env.billingInvoicesBucket,
       Key: pdfS3Key,
     }),
-    { expiresIn: 900 },
+    { expiresIn: 3600 },
   );
 }
 

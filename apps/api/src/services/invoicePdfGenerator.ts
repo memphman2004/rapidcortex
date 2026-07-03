@@ -2,7 +2,7 @@ import { GetObjectCommand, PutObjectCommand, S3Client } from "@aws-sdk/client-s3
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import PDFDocument from "pdfkit";
 import { env } from "../lib/env.js";
-import { readLogoBuffer } from "../lib/billing/invoicePdfGenerator.js";
+import { readLogoBuffer, loadPaymentInstructions } from "../lib/billing/invoicePdfGenerator.js";
 
 const s3 = new S3Client({ region: env.region });
 
@@ -71,6 +71,7 @@ export async function generateInvoicePDF(
   customer: CustomerPayload,
   items: InvoiceLineItem[],
 ): Promise<{ s3Key: string; signedUrl: string }> {
+  const paymentInfo = await loadPaymentInstructions();
   const pdfBytes = await new Promise<Buffer>(async (resolve, reject) => {
     const doc = new PDFDocument({ size: "LETTER", margin: 50 });
     const chunks: Buffer[] = [];
@@ -86,7 +87,8 @@ export async function generateInvoicePDF(
     doc.font("Helvetica").fontSize(9).fillColor("#444444");
     doc.text("Rapid Cortex", 50, 98);
     doc.text("Apps on Demand LLC", 50, 110);
-    doc.text("123 Main Street, Columbus, GA 31901", 50, 122);
+    // TODO: move vendor address to BILLING_PAYMENT_INSTRUCTIONS_SECRET_ARN (checkMailAddress field)
+    doc.text(paymentInfo.checkMailingAddress ?? "", 50, 122);
     doc.text("Phone: (833) 727-4311", 50, 134);
     doc.text("Email: support@appsondemand.net", 50, 146);
 
@@ -170,11 +172,18 @@ export async function generateInvoicePDF(
     doc.font("Helvetica-Bold").fontSize(11).fillColor("#2E5090").text("Payment Instructions", 50, y);
     y += 16;
     doc.font("Helvetica").fontSize(9).fillColor("#333333");
-    doc.text("ACH: Routing XXX-XXX-XXX | Account XXX-XXX-XXX", 50, y);
-    y += 12;
-    doc.text("Wire: SWIFT XXXXXXXX | Account XXX-XXX-XXX", 50, y);
-    y += 12;
-    doc.text("Check: Payable to Apps on Demand LLC, 123 Main Street, Columbus, GA 31901", 50, y);
+    // Payment details come from Secrets Manager via loadPaymentInstructions()
+    if (paymentInfo.achRoutingNumber || paymentInfo.achAccountNumber) {
+      doc.text(`ACH: ${paymentInfo.bankName ?? ""} | Routing: ${paymentInfo.achRoutingNumber ?? ""} | Account: ${paymentInfo.achAccountNumber ?? ""}`, 50, y);
+      y += 12;
+    }
+    if (paymentInfo.wireInstructions) {
+      doc.text(`Wire: ${paymentInfo.wireInstructions}`, 50, y);
+      y += 12;
+    }
+    if (paymentInfo.checkMailingAddress) {
+      doc.text(`Check: Payable to Apps on Demand LLC, ${paymentInfo.checkMailingAddress}`, 50, y);
+    }
 
     doc.font("Helvetica").fontSize(8).fillColor("#777777");
     doc.text(
@@ -205,7 +214,7 @@ export async function generateInvoicePDF(
       Bucket: env.billingInvoicesBucket,
       Key: s3Key,
     }),
-    { expiresIn: 900 },
+    { expiresIn: 3600 },
   );
 
   return { s3Key, signedUrl };

@@ -17,6 +17,8 @@ export type RingPublicOAuthStateRecord = {
   agencyId: string;
   createdAt: string;
   mode: RingOAuthMode;
+  /** Ring Appstore return URL — redirect here after successful link so Ring updates its UI. */
+  ringReturnUrl?: string | null;
 };
 
 export type RingManageTokenRecord = {
@@ -32,7 +34,12 @@ function requestsTable(): string {
 }
 
 export class RingPublicOAuthStateRepository {
-  async saveState(state: string, agencyId: string, mode: RingOAuthMode = "link"): Promise<void> {
+  async saveState(
+    state: string,
+    agencyId: string,
+    mode: RingOAuthMode = "link",
+    ringReturnUrl?: string | null,
+  ): Promise<void> {
     const now = new Date();
     const ttl = Math.floor(now.getTime() / 1000) + TTL_SECONDS;
     await ddb.send(
@@ -47,6 +54,7 @@ export class RingPublicOAuthStateRepository {
           mode,
           createdAt: now.toISOString(),
           ttl,
+          ...(ringReturnUrl ? { ringReturnUrl } : {}),
         },
       }),
     );
@@ -73,8 +81,9 @@ export class RingPublicOAuthStateRepository {
     const createdAt = String(out.Item.createdAt ?? "");
     const rawMode = String(out.Item.mode ?? "link");
     const mode: RingOAuthMode = rawMode === "manage" ? "manage" : "link";
+    const ringReturnUrl = typeof out.Item.ringReturnUrl === "string" ? out.Item.ringReturnUrl : null;
     if (!agencyId || !createdAt) return null;
-    return { state, agencyId, createdAt, mode };
+    return { state, agencyId, createdAt, mode, ringReturnUrl };
   }
 
   /** Persist a short-lived manage token after a successful manage OAuth round trip. */

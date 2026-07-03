@@ -16,6 +16,7 @@ import { DispatcherCallerReplyPanel } from "@/components/dispatch/dispatcher-cal
 import { isCallerTranslationReplyEnabled } from "@/lib/runtime-flags";
 import {
   isCallerCardEnabled,
+  isChannelMonitoringEnabled,
   isCrossJurisdictionSharesUiEnabled,
   isFieldConfidenceEnabled,
   isNonEmergencyTriageEnabled,
@@ -46,6 +47,9 @@ export function DashboardWorkspace() {
   const queryClient = useQueryClient();
   const { user } = useSession();
   const paramId = searchParams.get("incident");
+  const queueParam = searchParams.get("queue");
+  const nonEmergencyTriageEnabled = isNonEmergencyTriageEnabled();
+  const showDdbQueue = queueParam === "non_emergency" && nonEmergencyTriageEnabled;
   const [autoScroll, setAutoScroll] = useState(true);
   const [isRefreshingAi, setIsRefreshingAi] = useState(false);
   const [simulatedStreamActive, setSimulatedStreamActive] = useState(false);
@@ -59,12 +63,39 @@ export function DashboardWorkspace() {
 
   useEffect(() => {
     const list = incidentsQuery.data;
-    if (!list?.length || paramId) return;
+    if (!list?.length || paramId || showDdbQueue) return;
     const first = list[0]!.incidentId;
     router.replace(
       `${to("/dashboard")}?incident=${encodeURIComponent(first)}`,
     );
-  }, [incidentsQuery.data, paramId, router, to]);
+  }, [incidentsQuery.data, paramId, router, to, showDdbQueue]);
+
+  useEffect(() => {
+    if (queueParam === "non_emergency" && nonEmergencyTriageEnabled) {
+      setQueueTab("non_emergency");
+    } else if (queueParam === "all" || !queueParam) {
+      setQueueTab("all");
+    }
+  }, [queueParam, nonEmergencyTriageEnabled]);
+
+  const handleQueueTabChange = useCallback(
+    (tab: "all" | "non_emergency") => {
+      setQueueTab(tab);
+      if (tab === "non_emergency" && nonEmergencyTriageEnabled) {
+        const sp = new URLSearchParams();
+        sp.set("queue", "non_emergency");
+        if (paramId) sp.set("incident", paramId);
+        router.replace(`${to("/dashboard")}?${sp.toString()}`);
+        return;
+      }
+      if (paramId) {
+        router.replace(`${to("/dashboard")}?incident=${encodeURIComponent(paramId)}`);
+      } else {
+        router.replace(to("/dashboard"));
+      }
+    },
+    [nonEmergencyTriageEnabled, paramId, router, to],
+  );
 
   const selectedId = useMemo(() => {
     const list = incidentsQuery.data ?? [];
@@ -90,11 +121,7 @@ export function DashboardWorkspace() {
     [queryClient, setSelectedId],
   );
 
-  const queueIncidents = useMemo(() => {
-    const list = incidentsQuery.data ?? [];
-    if (!isNonEmergencyTriageEnabled() || queueTab === "all") return list;
-    return list.filter((i) => i.urgency === "low" || i.urgency === "moderate");
-  }, [incidentsQuery.data, queueTab]);
+  const queueIncidents = incidentsQuery.data ?? [];
 
   useEffect(() => {
     if (!selectedId) return;
@@ -360,11 +387,13 @@ export function DashboardWorkspace() {
       incidentsLoading={incidentsQuery.isLoading}
       onSelectIncident={setSelectedId}
       queueTab={queueTab}
-      onQueueTabChange={setQueueTab}
-      showNonEmergencyTabs={isNonEmergencyTriageEnabled()}
+      onQueueTabChange={handleQueueTabChange}
+      showNonEmergencyTabs={nonEmergencyTriageEnabled}
+      showDdbQueuePanel={showDdbQueue}
       detailLoading={detailLoading}
       selectedIdForPanels={selectedId}
       showCallerCard={isCallerCardEnabled()}
+      showChannelMonitor={isChannelMonitoringEnabled()}
       showSharePanel={isCrossJurisdictionSharesUiEnabled() && Boolean(incidentForUi)}
       shareOwnerAgencyId={incidentForUi?.agencyId}
       analysisError={analysisError}
@@ -394,11 +423,7 @@ export function DashboardWorkspace() {
           <CallLanguageSelectorBar incidentId={null} incident={null} segments={[]} />
         ) : null
       }
-      queueEmptyHint={
-        isNonEmergencyTriageEnabled() && queueTab === "non_emergency" && (incidentsQuery.data?.length ?? 0) > 0
-          ? "No incidents match the non-emergency filter (low / moderate urgency) right now."
-          : undefined
-      }
+      queueEmptyHint={undefined}
       createIncidentAction={
         isApiConfigured() ? (
           <CreateIncidentButton

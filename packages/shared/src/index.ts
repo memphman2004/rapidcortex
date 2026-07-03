@@ -56,6 +56,7 @@ export * from "./language/index.js";
 export * from "./desktop-releases.js";
 export * from "./seo-intelligence.js";
 export * from "./cad.js";
+export * from "./channels/channel.js";
 export { buildAgencySlug, resolveUniqueAgencySlug } from "./agency/agency-slug.js";
 export * from "./network/index.js";
 export type { AgencySlugInput, AgencySlugResult } from "./agency/agency-slug.js";

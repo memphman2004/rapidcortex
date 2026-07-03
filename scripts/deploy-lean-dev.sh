@@ -117,68 +117,15 @@ if [[ "${DEPLOY_SAM5}" -eq 1 ]]; then
   sam validate --lint --template-file "${ROOT}/infra/nested/stack-app-sam-5.yaml"
 fi
 
-# --- Vendor prep (same as deploy.sh) — exclusive lock vs web packaging ---
+# --- Vendor prep — refresh-api-vendor-packs.sh + SAM wiring (exclusive lock vs web packaging) ---
 # shellcheck source=scripts/lib/api-vendor-lock.sh
 source "${ROOT}/scripts/lib/api-vendor-lock.sh"
+# shellcheck source=scripts/lib/prepare-api-vendor-for-sam.sh
+source "${ROOT}/scripts/lib/prepare-api-vendor-for-sam.sh"
 rc_acquire_api_vendor_lock
 
 npm install
-npm run build -w rapid-cortex-shared
-npm run build -w rapid-cortex-protocols
-npm run build -w rapid-cortex-integrations
-npm run build -w rapid-cortex-security
-VENDOR_DIR="apps/api/vendor-packs"
-mkdir -p "$VENDOR_DIR"
-pack_tgz() {
-  local pkg_dir="$ROOT/$1"
-  local out
-  out="$(cd "$pkg_dir" && npm pack --pack-destination "$ROOT/$VENDOR_DIR" 2>/dev/null | tail -1)"
-  echo "$(basename "$out")"
-}
-T_SHARED="$(pack_tgz packages/shared)"
-T_INT="$(pack_tgz packages/integrations)"
-T_SEC="$(pack_tgz packages/security)"
-REVERT_API_PKG=0
-if [[ -f "${ROOT}/apps/api/package.json" ]]; then
-  cp "${ROOT}/apps/api/package.json" "${ROOT}/apps/api/package.json.pre-lean"
-  REVERT_API_PKG=1
-  if ! command -v jq &>/dev/null; then
-    echo "ERROR: jq required (brew install jq)" >&2
-    exit 1
-  fi
-  API_PKG_TMP="$(mktemp "${ROOT}/apps/api/package.json.tmp.XXXXXX")"
-  jq \
-    --arg s "file:vendor-packs/${T_SHARED}" \
-    --arg i "file:vendor-packs/${T_INT}" \
-    --arg e "file:vendor-packs/${T_SEC}" \
-    '.dependencies["rapid-cortex-shared"]=$s | .dependencies["rapid-cortex-integrations"]=$i | .dependencies["rapid-cortex-security"]=$e' \
-    "${ROOT}/apps/api/package.json" > "${API_PKG_TMP}"
-  mv "${API_PKG_TMP}" "${ROOT}/apps/api/package.json"
-fi
-for _pkg_dir in apps/api/node_modules/rapid-cortex-shared apps/api/node_modules/rapid-cortex-integrations apps/api/node_modules/rapid-cortex-security; do
-  if [[ -e "$_pkg_dir" ]]; then
-    chmod -R u+w "$_pkg_dir" 2>/dev/null || true
-    rm -rf "$_pkg_dir"
-  fi
-done
-rm -f apps/api/package-lock.json
-cd apps/api && npm_config_prefer_offline=false npm install --no-workspaces && cd "$ROOT"
-sync_vendor_dist() {
-  local src="$1"
-  local dest_root="$2"
-  rm -rf "${dest_root}/dist"
-  mkdir -p "${dest_root}"
-  rsync -a "${src}/" "${dest_root}/dist/"
-}
-if [[ -d apps/api/node_modules/rapid-cortex-shared ]]; then
-  sync_vendor_dist packages/shared/dist apps/api/node_modules/rapid-cortex-shared
-fi
-if [[ -d apps/api/node_modules/rapid-cortex-integrations ]]; then
-  sync_vendor_dist packages/integrations/dist apps/api/node_modules/rapid-cortex-integrations
-fi
-if [[ -d apps/api/node_modules/rapid-cortex-security ]]; then
-  sync_vendor_dist packages/security/dist apps/api/node_modules/rapid-cortex-security
-fi
+RC_API_PKG_BACKUP_SUFFIX=pre-lean rc_prepare_api_vendor_for_sam
 npm run build -w rapid-cortex-api
 
 restore_api_pkg() {

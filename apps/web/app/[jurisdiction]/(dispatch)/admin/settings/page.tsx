@@ -42,6 +42,13 @@ export default async function AdminSettingsPage({ params }: Props) {
           >
             Downloads → Desktop Apps (Mac)
           </Link>
+          {" · "}
+          <Link
+            href={`${prefix}/admin/settings/sla`}
+            className="text-sky-400 hover:text-sky-300 hover:underline"
+          >
+            SLA thresholds
+          </Link>
         </p>
       </div>
 

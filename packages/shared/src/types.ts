@@ -367,6 +367,7 @@ export type AuditResourceType =
   | "sms_routing"
   | "sms_inbound"
   | "staffing_forecast"
+  | "channel_config"
   | "unknown";
 
 /**

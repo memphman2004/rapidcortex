@@ -162,82 +162,14 @@ echo " SAM_PARALLEL:          ${SAM_PARALLEL:-1}"
 echo " SAM_BUILD_DIR:         ${SAM_BUILD_DIR:-<auto mktemp or set SAM_BUILD_DIR>}"
 echo "═══════════════════════════════════════════════════════"
 
-# Monorepo packages are not on npm. In-repo, `apps/api` uses `file:../../packages/*` (see `apps/api/package.json`).
-# For SAM we temporarily rewrite to `file:vendor-packs/*.tgz`, pack fresh tarballs, reinstall, and
-# rsync `dist/` from `packages/*` so TypeScript and the Lambda bundle see the same artifacts.
-# Do not commit apps/api with vendor-packs paths: npm workspaces + tarball REPLACE can crash npm 10 arborist.
+# Monorepo packages are not on npm. See scripts/lib/prepare-api-vendor-for-sam.sh (refresh-api-vendor-packs.sh).
+# shellcheck source=scripts/lib/api-vendor-lock.sh
+source "${ROOT}/scripts/lib/api-vendor-lock.sh"
+# shellcheck source=scripts/lib/prepare-api-vendor-for-sam.sh
+source "${ROOT}/scripts/lib/prepare-api-vendor-for-sam.sh"
+rc_acquire_api_vendor_lock
 npm install
-npm run build -w rapid-cortex-shared
-npm run build -w rapid-cortex-protocols
-npm run build -w rapid-cortex-integrations
-npm run build -w rapid-cortex-security
-VENDOR_DIR="apps/api/vendor-packs"
-mkdir -p "$VENDOR_DIR"
-# Prints tarball filename only (last line of npm pack is the .tgz name).
-pack_tgz() {
-  local pkg_dir="$ROOT/$1"
-  local out
-  out="$(cd "$pkg_dir" && npm pack --pack-destination "$ROOT/$VENDOR_DIR" 2>/dev/null | tail -1)"
-  echo "$(basename "$out")"
-}
-T_SHARED="$(pack_tgz packages/shared)"
-T_INT="$(pack_tgz packages/integrations)"
-T_SEC="$(pack_tgz packages/security)"
-export T_SHARED T_INT T_SEC
-for _tgz_name in "$T_SHARED" "$T_INT" "$T_SEC"; do
-  if [[ -z "${_tgz_name}" || ! -f "${ROOT}/${VENDOR_DIR}/${_tgz_name}" ]]; then
-    echo "ERROR: npm pack failed for a workspace package (expected tgz under ${VENDOR_DIR}/)." >&2
-    exit 1
-  fi
-done
-REVERT_API_PKG=0
-if [[ -f "${ROOT}/apps/api/package.json" ]]; then
-  cp "${ROOT}/apps/api/package.json" "${ROOT}/apps/api/package.json.pre-sam"
-  REVERT_API_PKG=1
-  if ! command -v jq &>/dev/null; then
-    echo "deploy2.sh requires 'jq' to rewrite apps/api/package.json for SAM (brew install jq)." >&2
-    exit 1
-  fi
-  API_PKG_TMP="$(mktemp "${ROOT}/apps/api/package.json.tmp.XXXXXX")"
-  if ! jq \
-    --arg s "file:vendor-packs/${T_SHARED}" \
-    --arg i "file:vendor-packs/${T_INT}" \
-    --arg e "file:vendor-packs/${T_SEC}" \
-    '.dependencies["rapid-cortex-shared"]=$s | .dependencies["rapid-cortex-integrations"]=$i | .dependencies["rapid-cortex-security"]=$e' \
-    "${ROOT}/apps/api/package.json" > "${API_PKG_TMP}"; then
-    rm -f "${API_PKG_TMP}"
-    echo "ERROR: jq failed to rewrite apps/api/package.json for SAM vendor-packs." >&2
-    exit 1
-  fi
-  if [[ ! -s "${API_PKG_TMP}" ]]; then
-    rm -f "${API_PKG_TMP}"
-    echo "ERROR: jq produced an empty rewrite for apps/api/package.json." >&2
-    exit 1
-  fi
-  mv "${API_PKG_TMP}" "${ROOT}/apps/api/package.json"
-fi
-# Same-version file: tgz can leave a stale copy in node_modules; remove before reinstall.
-# chmod first: some trees (e.g. nested dist/) can be non-writable on APFS/external volumes and break rm -rf.
-for _pkg_dir in apps/api/node_modules/rapid-cortex-shared apps/api/node_modules/rapid-cortex-integrations apps/api/node_modules/rapid-cortex-security; do
-  if [[ -e "$_pkg_dir" ]]; then
-    chmod -R u+w "$_pkg_dir" 2>/dev/null || true
-    rm -rf "$_pkg_dir"
-  fi
-done
-# Root npm install after rewriting to vendor tarballs can crash npm 10/11 arborist (workspace REPLACE / null target).
-# Install from apps/api with --no-workspaces so npm does not merge the monorepo workspace graph.
-cd apps/api && npm install --no-workspaces && cd "$ROOT"
-# npm may re-use a bad extracted tarball; sync built dist/ from workspaces so API tsc always matches
-# packages/* (SAM still packages the tgzs produced above, which include up-to-date dist/ from npm pack).
-if [[ -d apps/api/node_modules/rapid-cortex-shared ]]; then
-  rsync -a --delete packages/shared/dist/ apps/api/node_modules/rapid-cortex-shared/dist/
-fi
-if [[ -d apps/api/node_modules/rapid-cortex-integrations ]]; then
-  rsync -a --delete packages/integrations/dist/ apps/api/node_modules/rapid-cortex-integrations/dist/
-fi
-if [[ -d apps/api/node_modules/rapid-cortex-security ]]; then
-  rsync -a --delete packages/security/dist/ apps/api/node_modules/rapid-cortex-security/dist/
-fi
+rc_prepare_api_vendor_for_sam
 npm run build -w rapid-cortex-api
 if [[ "${BUILD_WEB_BEFORE_SAM:-0}" == "1" ]]; then
   echo "BUILD_WEB_BEFORE_SAM=1: building rapid-cortex-web (SAM does not consume this artifact)." >&2

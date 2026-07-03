@@ -41,10 +41,12 @@ const NEXT_PUBLIC_FLAG_VALUES: Record<string, string | undefined> = {
   NEXT_PUBLIC_ENABLE_VENUE_INTELLIGENCE: process.env.NEXT_PUBLIC_ENABLE_VENUE_INTELLIGENCE,
   NEXT_PUBLIC_ENABLE_LOCATIONS_QR_ADMIN: process.env.NEXT_PUBLIC_ENABLE_LOCATIONS_QR_ADMIN,
   NEXT_PUBLIC_ENABLE_VERTICAL_ONBOARDING: process.env.NEXT_PUBLIC_ENABLE_VERTICAL_ONBOARDING,
+  NEXT_PUBLIC_ENABLE_CHANNEL_MONITORING: process.env.NEXT_PUBLIC_ENABLE_CHANNEL_MONITORING,
   NEXT_PUBLIC_WEBSOCKET_URL: process.env.NEXT_PUBLIC_WEBSOCKET_URL,
 };
 
 const CAD_WRITEBACK_FLAG = "NEXT_PUBLIC_ENABLE_CAD_WRITEBACK";
+const CHANNEL_MONITORING_FLAG = "NEXT_PUBLIC_ENABLE_CHANNEL_MONITORING";
 
 function isEnabledValue(value: string | undefined): boolean {
   if (!value) return false;
@@ -66,6 +68,10 @@ function envFlag(name: string): boolean {
   if (typeof process === "undefined") return false;
   const value = NEXT_PUBLIC_FLAG_VALUES[name] ?? process.env[name];
   if (name === CAD_WRITEBACK_FLAG) {
+    if (isEnabledValue(value)) return true;
+    return false;
+  }
+  if (name === CHANNEL_MONITORING_FLAG) {
     if (isEnabledValue(value)) return true;
     return false;
   }
@@ -299,4 +305,9 @@ export function isLocationsQrAdminEnabled(): boolean {
 /** Campus and venue customer onboarding intake + checklist. */
 export function isVerticalOnboardingEnabled(): boolean {
   return envFlag("NEXT_PUBLIC_ENABLE_VERTICAL_ONBOARDING");
+}
+
+/** Channel / talk group monitoring (must match API ENABLE_CHANNEL_MONITORING — default off). */
+export function isChannelMonitoringEnabled(): boolean {
+  return envFlag("NEXT_PUBLIC_ENABLE_CHANNEL_MONITORING");
 }

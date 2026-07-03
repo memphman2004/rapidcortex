@@ -168,7 +168,7 @@ export function RingConnectFlow() {
 
       {/* Path 2: agencyId present in URL — direct OAuth button shown above picker */}
       {agencyId ? (
-        <div className="mt-5">
+        <div className="mt-5 space-y-3">
           <button
             type="button"
             onClick={() => oauthStart(agencyId)}
@@ -176,6 +176,18 @@ export function RingConnectFlow() {
           >
             Link my Ring account →
           </button>
+          <p className="text-xs text-slate-400">
+            Don&apos;t have a Ring account?{" "}
+            <a
+              href="https://ring.com/signup"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-sky-400 underline hover:text-sky-300"
+            >
+              Create one at ring.com
+            </a>
+            , then return here to connect.
+          </p>
         </div>
       ) : null}
 
@@ -201,28 +213,42 @@ export function RingConnectFlow() {
       )}
 
       {fetchState.status === "loaded" && (
-        <ul className="mt-4 space-y-2">
-          {fetchState.agencies.map((agency) => (
-            <li
-              key={agency.agencySlug}
-              className="flex items-center justify-between gap-4 rounded-lg border border-slate-700 bg-slate-900/40 px-4 py-3"
-            >
-              <div className="min-w-0">
-                <p className="truncate font-medium text-slate-100">{agency.displayName}</p>
-                <p className="text-xs text-slate-500">
-                  {agency.city}, {agency.state}
-                </p>
-              </div>
-              <button
-                type="button"
-                onClick={() => oauthStart(agency.agencySlug)}
-                className="inline-flex shrink-0 min-h-9 items-center justify-center rounded-lg bg-gradient-to-r from-sky-500 to-cyan-400 px-4 text-xs font-semibold text-slate-950"
+        <>
+          <ul className="mt-4 space-y-2">
+            {fetchState.agencies.map((agency) => (
+              <li
+                key={agency.agencySlug}
+                className="flex items-center justify-between gap-4 rounded-lg border border-slate-700 bg-slate-900/40 px-4 py-3"
               >
-                Connect →
-              </button>
-            </li>
-          ))}
-        </ul>
+                <div className="min-w-0">
+                  <p className="truncate font-medium text-slate-100">{agency.displayName}</p>
+                  <p className="text-xs text-slate-500">
+                    {agency.city}, {agency.state}
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => oauthStart(agency.agencySlug)}
+                  className="inline-flex shrink-0 min-h-9 items-center justify-center rounded-lg bg-gradient-to-r from-sky-500 to-cyan-400 px-4 text-xs font-semibold text-slate-950"
+                >
+                  Connect →
+                </button>
+              </li>
+            ))}
+          </ul>
+          <p className="mt-3 text-xs text-slate-400">
+            Don&apos;t have a Ring account?{" "}
+            <a
+              href="https://ring.com/signup"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-sky-400 underline hover:text-sky-300"
+            >
+              Create one at ring.com
+            </a>
+            , then return here to connect.
+          </p>
+        </>
       )}
 
       {fetchState.status === "empty" && <EmailWaitlist stateCode={selectedState} />}

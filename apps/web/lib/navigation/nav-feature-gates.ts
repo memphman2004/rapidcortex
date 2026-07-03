@@ -1,6 +1,8 @@
 import {
   isCadWritebackUiEnabled,
+  isChannelMonitoringEnabled,
   isQaScoringEnabled,
+  isSlaBacklogEnabled,
   isVerticalOnboardingEnabled,
 } from "@/lib/runtime-flags";
 
@@ -11,6 +13,10 @@ export function isNavFeatureEnabled(feature: string): boolean {
       return isCadWritebackUiEnabled();
     case "qaScoringEnabled":
       return isQaScoringEnabled();
+    case "slaBacklog":
+      return isSlaBacklogEnabled();
+    case "channelMonitoring":
+      return isChannelMonitoringEnabled();
     case "verticalOnboarding":
       return isVerticalOnboardingEnabled();
     default:

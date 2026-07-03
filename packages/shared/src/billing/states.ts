@@ -33,9 +33,15 @@ export type InvoiceLifecycleState =
   | "partially_paid"
   | "paid"
   | "voided"
-  | "overdue";
+  | "overdue"
+  | "disputed";
 
-export type DelinquencyTier = "none" | "notice" | "warning" | "critical" | "suspension_scheduled";
+/** MSA Article 4.6 + 13.5 delinquency tiers. */
+export type DelinquencyTier =
+  | "none"           // current
+  | "warning"        // 1-30 days overdue — $50 flat fee
+  | "suspended"      // 31-60 days overdue — 10-day notice + $500 reactivation
+  | "terminated";    // 61+ days overdue — 15-day notice sent
 
 export type ContractBillingCadence = "monthly" | "annual" | "custom";
 

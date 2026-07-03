@@ -4,9 +4,11 @@ import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState, type ReactNode } from "react";
 import { useQuery } from "@tanstack/react-query";
 import type { AIAnalysis, AggregateConfidence, ConfidenceAnalysis, Incident, TranscriptSegment } from "rapid-cortex-shared";
+import { SlaStatusBar } from "@/components/dashboards/sla-status-bar";
 import { AiRecommendationPanel } from "@/components/dispatch/ai-panel";
 import { ConfidenceMiniBar } from "@/components/confidence/confidence-mini-bar";
 import { CallerCardPanel } from "@/components/dispatch/caller-card-panel";
+import { ChannelMonitorPanel } from "@/components/dispatch/channel-monitor-panel";
 import { IncidentJurisdictionSharePanel } from "@/components/dispatch/incident-jurisdiction-share-panel";
 import { IncidentQueue } from "@/components/dispatch/incident-queue";
 import { IncidentTimelineStrip } from "@/components/dispatch/incident-timeline-strip";
@@ -17,6 +19,7 @@ import { ManualModeButton } from "@/components/dashboards/dispatcher-workspace-p
 import { SupervisorAssistPanel } from "@/components/dashboards/dispatcher-workspace-panels";
 import { CadReadyPanel } from "@/components/dashboards/dispatcher-workspace-panels";
 import { CadWritebackButton } from "@/components/cad/cad-writeback-slide-over";
+import { NonEmergencyQueuePanel } from "@/components/triage/non-emergency-queue-panel";
 import { incidentToWritebackContext } from "@/lib/cad/writeback-ui";
 import { isCadWritebackUiEnabled } from "@/lib/runtime-flags";
 import { useSession } from "@/components/auth/session-context";
@@ -438,6 +441,7 @@ export function CadDispatcherWorkspaceLayout({
   detailLoading,
   selectedIdForPanels,
   showCallerCard,
+  showChannelMonitor = false,
   showSharePanel,
   shareOwnerAgencyId,
   analysisError,
@@ -447,6 +451,7 @@ export function CadDispatcherWorkspaceLayout({
   languageBar,
   queueEmptyHint,
   createIncidentAction,
+  showDdbQueuePanel = false,
 }: {
   trainingBanner: ReactNode;
   liveEmptyBanner: ReactNode;
@@ -472,6 +477,7 @@ export function CadDispatcherWorkspaceLayout({
   detailLoading: boolean;
   selectedIdForPanels: string | null;
   showCallerCard: boolean;
+  showChannelMonitor?: boolean;
   showSharePanel: boolean;
   shareOwnerAgencyId: string | undefined;
   analysisError: string | null;
@@ -481,6 +487,8 @@ export function CadDispatcherWorkspaceLayout({
   languageBar: ReactNode;
   queueEmptyHint?: string;
   createIncidentAction?: ReactNode;
+  /** When true, swap the 3-column workspace for the DDB non-emergency queue panel. */
+  showDdbQueuePanel?: boolean;
 }) {
   const to = useJurisdictionLink();
   const clock = useLiveClock();
@@ -554,6 +562,28 @@ export function CadDispatcherWorkspaceLayout({
         </div>
       </header>
 
+      <div className="border-b px-3 py-1.5" style={{ borderColor: CAD.border, background: CAD.panel }}>
+        <SlaStatusBar />
+      </div>
+
+      {showDdbQueuePanel ? (
+        <div className="min-h-0 flex-1 overflow-y-auto p-4" style={{ background: CAD.bg }}>
+          <div className="mb-3 flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => onQueueTabChange("all")}
+              className="rounded border px-2.5 py-1 font-mono text-[10px] font-bold uppercase tracking-wide"
+              style={{ borderColor: CAD.border, color: CAD.muted, background: CAD.panel }}
+            >
+              ← All incidents
+            </button>
+            <span className="font-mono text-[10px] uppercase tracking-wider" style={{ color: CAD.muted }}>
+              Non-emergency queue (DDB)
+            </span>
+          </div>
+          <NonEmergencyQueuePanel enabled />
+        </div>
+      ) : (
       <div className="flex min-h-0 min-h-[20rem] flex-1 flex-col overflow-hidden lg:flex-row">
         {/* Left 25% — units + my queue */}
         <div
@@ -684,6 +714,11 @@ export function CadDispatcherWorkspaceLayout({
               <CallerCardPanel incidentId={selectedIdForPanels} />
             </div>
           ) : null}
+          {showChannelMonitor && selectedIdForPanels ? (
+            <div className="shrink-0 border-b p-2" style={{ borderColor: CAD.border, background: CAD.panel }}>
+              <ChannelMonitorPanel incidentId={selectedIdForPanels} />
+            </div>
+          ) : null}
           {showSharePanel && selectedIdForPanels && shareOwnerAgencyId ? (
             <div className="shrink-0 border-b p-2" style={{ borderColor: CAD.border, background: CAD.panel }}>
               <IncidentJurisdictionSharePanel incidentId={selectedIdForPanels} ownerAgencyId={shareOwnerAgencyId} />
@@ -772,6 +807,7 @@ export function CadDispatcherWorkspaceLayout({
           </div>
         </div>
       </div>
+      )}
     </div>
   );
 }

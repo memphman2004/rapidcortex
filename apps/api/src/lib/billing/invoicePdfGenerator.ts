@@ -101,12 +101,13 @@ function writePaymentInstructions(
   paymentInstructions?: PaymentInstructions,
 ): number {
   const pi = paymentInstructions ?? {};
-  const bankName = pi.bankName ?? "Navy Federal Credit Union";
+  // Bank name and account details come ONLY from Secrets Manager — no hardcoded fallback.
+  const bankName = pi.bankName ?? "";
   const bankContact = pi.bankContact ?? "billing@rapidcortex.us";
-  const achRouting = pi.achRoutingNumber ?? "XXX-XXX-XXX";
-  const achAccount = pi.achAccountNumber ?? "XXX-XXX-XXX";
-  const wire = pi.wireInstructions ?? "SWIFT: XXXXXXXX / Account: XXX-XXX-XXX";
-  const checkAddress = pi.checkMailingAddress ?? "123 Main Street, Columbus, GA 31901";
+  const achRouting = pi.achRoutingNumber ?? "";
+  const achAccount = pi.achAccountNumber ?? "";
+  const wire = pi.wireInstructions ?? "";
+  const checkAddress = pi.checkMailingAddress ?? "";
 
   doc.font("Helvetica-Bold").fontSize(11).fillColor("#2E5090").text("PAYMENT INSTRUCTIONS:", 50, y);
   y += 18;
@@ -306,7 +307,7 @@ function mapSecretToPaymentInstructions(secret: Record<string, unknown>): Paymen
       process.env.CHECK_MAILING_ADDRESS,
     bankName:
       (typeof secret.BANK_NAME === "string" ? secret.BANK_NAME : undefined) ??
-      "Navy Federal Credit Union",
+      "",
     bankContact: typeof secret.BANK_CONTACT === "string" ? secret.BANK_CONTACT : process.env.BANK_CONTACT,
   };
 }

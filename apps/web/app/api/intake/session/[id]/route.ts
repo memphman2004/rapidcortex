@@ -1,12 +1,18 @@
-import type { NextRequest } from "next/server";
-import { withFeatureContract } from "@/lib/rapid-cortex/contract-response";
-import { proxyToAuthUpstream } from "@/lib/server/auth-upstream-proxy";
+/**
+ * Path B — see apps/web/app/api/intake/session/route.ts
+ */
+import { NextResponse } from "next/server";
 
-type Ctx = { params: Promise<{ id: string }> };
+const NOT_IMPLEMENTED = {
+  ok: false,
+  error: "IntakeSession API is not yet available on this deployment.",
+  code: "INTAKE_SESSION_NOT_IMPLEMENTED",
+} as const;
 
-export async function GET(request: NextRequest, ctx: Ctx) {
-  const { id } = await ctx.params;
-  return withFeatureContract("ai_assisted_intake", async () =>
-    proxyToAuthUpstream(request, `/api/intake/session/${id}`),
-  );
+export async function GET() {
+  return NextResponse.json(NOT_IMPLEMENTED, { status: 501 });
+}
+
+export async function PATCH() {
+  return NextResponse.json(NOT_IMPLEMENTED, { status: 501 });
 }

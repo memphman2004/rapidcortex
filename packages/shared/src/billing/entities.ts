@@ -48,12 +48,39 @@ export type InvoiceRecord = {
   state: InvoiceLifecycleState;
   /** Archived external invoice id from imports / finance bridges. */
   archivedExternalInvoiceId?: string;
+  /** Human-readable invoice number, e.g. RC-2026-00042 (MSA §4.4). */
+  invoiceNumber?: string;
   issueDate: string;
   dueDate: string;
+  /** Billing period this invoice covers (MSA §4.4). */
+  periodStart?: string;
+  periodEnd?: string;
   totalCents: number;
+  /** Sum of line items before tax (stored in cents). */
+  subtotalCents?: number;
+  /** Tax amount in cents; 0 for taxExempt agencies, not omitted (MSA §4.7). */
+  taxAmountCents?: number;
+  taxExempt?: boolean;
+  taxExemptReference?: string;
   currency: "USD";
   lineItems: InvoiceLineItem[];
   notes?: string;
+  /** PO number — required when customer.requiresPO is true (MSA §4.4). */
+  poNumber?: string;
+  /** ISO timestamp when invoice was emailed to billing contact (MSA §4.4). */
+  sentAt?: string;
+  /** ISO timestamp when payment was confirmed received (MSA §4.4). */
+  paidAt?: string;
+  /** ISO timestamp when invoice was voided (MSA §4.9). */
+  voidedAt?: string;
+  voidReason?: string;
+  /** Links to the replacement invoice after a void+reissue (MSA §4.9). */
+  replacedByInvoiceId?: string;
+  /** Dispute tracking (MSA §4.9). */
+  disputeReceivedAt?: string;
+  disputeDescription?: string;
+  disputeResolvedAt?: string;
+  disputeResolution?: "agency_favor" | "vendor_favor";
   createdAt: string;
   updatedAt: string;
 };

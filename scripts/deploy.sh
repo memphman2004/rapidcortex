@@ -9,6 +9,8 @@ set -euo pipefail
 # - EXPECTED_AWS_ACCOUNT_ID optional; mismatch prints a loud WARN before deploy proceeds.
 # - Production HttpApi CORS via HTTP_API_CORS_ORIGINS must be HTTPS origins only (see validation below).
 # - Template size gate: scripts/infra-template-size-check.sh after sam build.
+# - API vendor packs: scripts/lib/prepare-api-vendor-for-sam.sh runs refresh-api-vendor-packs.sh
+#   before every SAM build (required when packages/shared|security|integrations types change).
 #
 # Optional env:
 # - ROOT_DOMAIN (default: rapidcortex.us)
@@ -180,92 +182,17 @@ echo " NODE_OPTIONS:          ${NODE_OPTIONS}"
 echo " SAM_BUILD_DIR:         ${SAM_BUILD_DIR:-${ROOT}/.rapid-cortex-sam-build}"
 echo "═══════════════════════════════════════════════════════"
 
-# Monorepo packages are not on npm. In-repo, `apps/api` uses `file:../../packages/*` (see `apps/api/package.json`).
-# For SAM we temporarily rewrite to `file:vendor-packs/*.tgz`, pack fresh tarballs, reinstall, and
-# rsync `dist/` from `packages/*` so TypeScript and the Lambda bundle see the same artifacts.
+# Monorepo packages are not on npm. `rc_prepare_api_vendor_for_sam` runs refresh-api-vendor-packs.sh
+# (rebuild shared types → vendor tgz → lockfile integrity), rewrites apps/api to file:vendor-packs/*,
+# reinstalls, and rsyncs dist/ so TypeScript and the Lambda bundle match packages/*.
 # Do not commit apps/api with vendor-packs paths: npm workspaces + tarball REPLACE can crash npm 10 arborist.
+# shellcheck source=scripts/lib/api-vendor-lock.sh
+source "${ROOT}/scripts/lib/api-vendor-lock.sh"
+# shellcheck source=scripts/lib/prepare-api-vendor-for-sam.sh
+source "${ROOT}/scripts/lib/prepare-api-vendor-for-sam.sh"
+rc_acquire_api_vendor_lock
 npm install
-npm run build -w rapid-cortex-shared
-npm run build -w rapid-cortex-protocols
-npm run build -w rapid-cortex-integrations
-npm run build -w rapid-cortex-security
-VENDOR_DIR="apps/api/vendor-packs"
-mkdir -p "$VENDOR_DIR"
-# Prints tarball filename only (last line of npm pack is the .tgz name).
-pack_tgz() {
-  local pkg_dir="$ROOT/$1"
-  local out
-  out="$(cd "$pkg_dir" && npm pack --pack-destination "$ROOT/$VENDOR_DIR" 2>/dev/null | tail -1)"
-  echo "$(basename "$out")"
-}
-T_SHARED="$(pack_tgz packages/shared)"
-T_INT="$(pack_tgz packages/integrations)"
-T_SEC="$(pack_tgz packages/security)"
-export T_SHARED T_INT T_SEC
-for _tgz_name in "$T_SHARED" "$T_INT" "$T_SEC"; do
-  if [[ -z "${_tgz_name}" || ! -f "${ROOT}/${VENDOR_DIR}/${_tgz_name}" ]]; then
-    echo "ERROR: npm pack failed for a workspace package (expected tgz under ${VENDOR_DIR}/)." >&2
-    exit 1
-  fi
-done
-REVERT_API_PKG=0
-if [[ -f "${ROOT}/apps/api/package.json" ]]; then
-  cp "${ROOT}/apps/api/package.json" "${ROOT}/apps/api/package.json.pre-sam"
-  REVERT_API_PKG=1
-  if ! command -v jq &>/dev/null; then
-    echo "deploy.sh requires 'jq' to rewrite apps/api/package.json for SAM (brew install jq)." >&2
-    exit 1
-  fi
-  API_PKG_TMP="$(mktemp "${ROOT}/apps/api/package.json.tmp.XXXXXX")"
-  if ! jq \
-    --arg s "file:vendor-packs/${T_SHARED}" \
-    --arg i "file:vendor-packs/${T_INT}" \
-    --arg e "file:vendor-packs/${T_SEC}" \
-    '.dependencies["rapid-cortex-shared"]=$s | .dependencies["rapid-cortex-integrations"]=$i | .dependencies["rapid-cortex-security"]=$e' \
-    "${ROOT}/apps/api/package.json" > "${API_PKG_TMP}"; then
-    rm -f "${API_PKG_TMP}"
-    echo "ERROR: jq failed to rewrite apps/api/package.json for SAM vendor-packs." >&2
-    exit 1
-  fi
-  if [[ ! -s "${API_PKG_TMP}" ]]; then
-    rm -f "${API_PKG_TMP}"
-    echo "ERROR: jq produced an empty rewrite for apps/api/package.json." >&2
-    exit 1
-  fi
-  mv "${API_PKG_TMP}" "${ROOT}/apps/api/package.json"
-fi
-# Same-version file: tgz can leave a stale copy in node_modules; remove before reinstall.
-# chmod first: some trees (e.g. nested dist/) can be non-writable on APFS/external volumes and break rm -rf.
-for _pkg_dir in apps/api/node_modules/rapid-cortex-shared apps/api/node_modules/rapid-cortex-integrations apps/api/node_modules/rapid-cortex-security; do
-  if [[ -e "$_pkg_dir" ]]; then
-    chmod -R u+w "$_pkg_dir" 2>/dev/null || true
-    rm -rf "$_pkg_dir"
-  fi
-done
-# Root npm install after rewriting to vendor tarballs can crash npm 10/11 arborist (workspace REPLACE / null target).
-# Install from apps/api with --no-workspaces so npm does not merge the monorepo workspace graph.
-# Fresh npm pack changes tarball integrity; stale package-lock EINTEGRITY will block install.
-rm -f apps/api/package-lock.json
-cd apps/api && npm install --no-workspaces && cd "$ROOT"
-# npm may re-use a bad extracted tarball; sync built dist/ from workspaces so API tsc always matches
-# packages/* (SAM still packages the tgzs produced above, which include up-to-date dist/ from npm pack).
-# rm -rf dest/dist before rsync avoids APFS races with rsync --delete (qa/*.js temp rename failures).
-sync_vendor_dist() {
-  local src="$1"
-  local dest_root="$2"
-  rm -rf "${dest_root}/dist"
-  mkdir -p "${dest_root}"
-  rsync -a "${src}/" "${dest_root}/dist/"
-}
-if [[ -d apps/api/node_modules/rapid-cortex-shared ]]; then
-  sync_vendor_dist packages/shared/dist apps/api/node_modules/rapid-cortex-shared
-fi
-if [[ -d apps/api/node_modules/rapid-cortex-integrations ]]; then
-  sync_vendor_dist packages/integrations/dist apps/api/node_modules/rapid-cortex-integrations
-fi
-if [[ -d apps/api/node_modules/rapid-cortex-security ]]; then
-  sync_vendor_dist packages/security/dist apps/api/node_modules/rapid-cortex-security
-fi
+rc_prepare_api_vendor_for_sam
 npm run build -w rapid-cortex-api
 if [[ "${BUILD_WEB_BEFORE_SAM:-0}" == "1" ]]; then
   echo "BUILD_WEB_BEFORE_SAM=1: building rapid-cortex-web (SAM does not consume this artifact)." >&2

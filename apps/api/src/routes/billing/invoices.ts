@@ -34,6 +34,7 @@ import {
 import { AuditRepository } from "../../repositories/auditRepository.js";
 import { ddb } from "../../repositories/baseRepository.js";
 import { BillingAuditService } from "../../services/billingAuditService.js";
+import { sendInvoiceEmail } from "../../services/billingEmailService.js";
 
 const auditRepo = new AuditRepository();
 const billingAuditService = new BillingAuditService();
@@ -411,24 +412,38 @@ export async function handleBillingInvoicesRoute(event: {
       const customer = await ddb.send(
         new GetCommand({ TableName: env.customersTable, Key: { customerId: existing.customerId } }),
       );
-      const email = (customer.Item as { email?: string } | undefined)?.email ?? null;
-      const emailedAt = nowIso();
+      const customerItem = customer.Item as { email?: string; billingContactEmail?: string; requiresPO?: boolean } | undefined;
+
+      // PO enforcement gate (MSA §4.4)
+      if (customerItem?.requiresPO && !String(existing.poNumber ?? "").trim()) {
+        return badRequest("Invoice blocked: this customer requires a PO number before sending. Add a PO number and retry.");
+      }
+
+      // Validate billing contact email is not a placeholder (MSA §2b)
+      const toEmail = (customerItem?.billingContactEmail ?? customerItem?.email ?? "").trim();
+      if (!toEmail || toEmail.endsWith("@example.com") || toEmail.endsWith("@example.invalid") || toEmail === "") {
+        return badRequest(`Invoice blocked: billing contact email "${toEmail}" is not a valid delivery address. Update the customer billing profile.`);
+      }
+
+      // Send the email first; only update status on success (MSA §4.4)
+      await sendInvoiceEmail(invoiceId, toEmail);
+
+      const sentAt = nowIso();
       await ddb.send(
         new UpdateCommand({
           TableName: env.invoicesTable,
           Key: { invoiceId },
-          UpdateExpression: "SET #status = :status, emailedTo = :emailedTo, emailedAt = :emailedAt, updatedAt = :updatedAt",
+          UpdateExpression: "SET #status = :status, sentAt = :sentAt, emailedTo = :emailedTo, emailedAt = :sentAt, updatedAt = :sentAt",
           ExpressionAttributeNames: { "#status": "status" },
           ExpressionAttributeValues: {
             ":status": "SENT",
-            ":emailedTo": email,
-            ":emailedAt": emailedAt,
-            ":updatedAt": emailedAt,
+            ":sentAt": sentAt,
+            ":emailedTo": toEmail,
           },
         }),
       );
-      await createAudit(user, scopeAgencyId, "invoice_sent", "invoice", invoiceId, { action: "invoice_sent", emailedTo: email });
-      return ok({ invoiceId, status: "SENT", emailedTo: email });
+      await createAudit(user, scopeAgencyId, "invoice_sent", "invoice", invoiceId, { action: "invoice_sent", emailedTo: toEmail });
+      return ok({ invoiceId, status: "SENT", sentAt, emailedTo: toEmail });
     }
 
     if (action === "mark-paid" && method === "POST") {
@@ -467,21 +482,33 @@ export async function handleBillingInvoicesRoute(event: {
       const existing = await loadInvoiceScoped(invoiceId, scopeAgencyId);
       if (!existing) return notFound("Invoice not found");
       assertTransition((existing.status ?? "DRAFT") as InvoiceStatus, "VOID");
-      const t = nowIso();
+      const bodyRaw =
+        event.isBase64Encoded && event.body
+          ? Buffer.from(event.body, "base64").toString("utf8")
+          : (event.body ?? "{}");
+      let voidReason: string | undefined;
+      try {
+        const parsed = JSON.parse(bodyRaw) as Record<string, unknown>;
+        if (typeof parsed.voidReason === "string" && parsed.voidReason.trim()) {
+          voidReason = parsed.voidReason.trim().slice(0, 500);
+        }
+      } catch { /* body is optional */ }
+      const voidedAt = nowIso();
       await ddb.send(
         new UpdateCommand({
           TableName: env.invoicesTable,
           Key: { invoiceId },
-          UpdateExpression: "SET #status = :status, updatedAt = :updatedAt",
+          UpdateExpression: "SET #status = :status, voidedAt = :voidedAt, voidReason = :voidReason, updatedAt = :voidedAt",
           ExpressionAttributeNames: { "#status": "status" },
           ExpressionAttributeValues: {
             ":status": "VOID",
-            ":updatedAt": t,
+            ":voidedAt": voidedAt,
+            ":voidReason": voidReason ?? null,
           },
         }),
       );
-      await createAudit(user, scopeAgencyId, "invoice_voided", "invoice", invoiceId, { action: "invoice_voided" });
-      return ok({ invoiceId, status: "VOID" });
+      await createAudit(user, scopeAgencyId, "invoice_voided", "invoice", invoiceId, { action: "invoice_voided", voidReason });
+      return ok({ invoiceId, status: "VOID", voidedAt, voidReason });
     }
 
     if (action === "pdf" && method === "GET") {
@@ -495,9 +522,9 @@ export async function handleBillingInvoicesRoute(event: {
           Bucket: env.billingInvoicesBucket,
           Key: key,
         }),
-        { expiresIn: 300 },
+        { expiresIn: 3600 },
       );
-      return ok({ invoiceId, pdfUrl: url, expiresInSeconds: 300 });
+      return ok({ invoiceId, pdfUrl: url, expiresInSeconds: 3600 });
     }
 
     if (action === "regenerate-pdf" && method === "POST") {

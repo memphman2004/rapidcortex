@@ -13,6 +13,7 @@ export const ALL_PERMISSIONS = [
   "agency.api_keys",
   "agency.notices",
   "agency.onboard",
+  "agency.settings.channels",
   "analysis.delete",
   "analysis.export",
   "analysis.override",

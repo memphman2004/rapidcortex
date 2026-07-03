@@ -68,6 +68,13 @@ import type {
   BillingAuditEventRecord,
   PatchTenantAddonBody,
   TenantEntitlements,
+  ChannelConfig,
+  IncidentChannelAssignment,
+  CreateChannelBody,
+  PatchChannelBody,
+  AssignChannelBody,
+  PatchIncidentChannelBody,
+  ChannelDiscipline,
 } from "rapid-cortex-shared";
 
 function normalizeApiOrigin(raw: string | undefined): string {
@@ -1277,6 +1284,84 @@ export async function fetchTriageQueue(): Promise<{ items: import("rapid-cortex-
   return request("/api/triage/queue");
 }
 
+export async function fetchAgencyChannels(): Promise<{ ok: boolean; channels: ChannelConfig[] }> {
+  return request("/api/channels");
+}
+
+export async function createAgencyChannel(body: CreateChannelBody): Promise<{ ok: boolean; channel: ChannelConfig }> {
+  return request("/api/channels", { method: "POST", body: JSON.stringify(body) });
+}
+
+export async function patchAgencyChannel(
+  channelId: string,
+  body: PatchChannelBody,
+): Promise<{ ok: boolean; channel: ChannelConfig }> {
+  return request(`/api/channels/${encodeURIComponent(channelId)}`, {
+    method: "PATCH",
+    body: JSON.stringify(body),
+  });
+}
+
+export async function deactivateAgencyChannel(channelId: string): Promise<{ ok: boolean; channel: ChannelConfig }> {
+  return request(`/api/channels/${encodeURIComponent(channelId)}`, { method: "DELETE" });
+}
+
+export async function fetchIncidentChannels(
+  incidentId: string,
+): Promise<{ ok: boolean; assignments: IncidentChannelAssignment[] }> {
+  return request(`/api/incidents/${encodeURIComponent(incidentId)}/channels`);
+}
+
+export async function assignIncidentChannel(
+  incidentId: string,
+  body: AssignChannelBody,
+): Promise<{ ok: boolean; assignment: IncidentChannelAssignment }> {
+  return request(`/api/incidents/${encodeURIComponent(incidentId)}/channels`, {
+    method: "POST",
+    body: JSON.stringify(body),
+  });
+}
+
+export async function patchIncidentChannelNotes(
+  incidentId: string,
+  channelId: string,
+  body: PatchIncidentChannelBody,
+): Promise<{ ok: boolean; assignment: IncidentChannelAssignment }> {
+  return request(
+    `/api/incidents/${encodeURIComponent(incidentId)}/channels/${encodeURIComponent(channelId)}`,
+    { method: "PATCH", body: JSON.stringify(body) },
+  );
+}
+
+export async function removeIncidentChannelAssignment(
+  incidentId: string,
+  channelId: string,
+): Promise<{ ok: boolean; removed: boolean }> {
+  return request(
+    `/api/incidents/${encodeURIComponent(incidentId)}/channels/${encodeURIComponent(channelId)}`,
+    { method: "DELETE" },
+  );
+}
+
+export const CHANNEL_COLOR_PRESETS: { id: string; hex: string; label: string }[] = [
+  { id: "blue", hex: "#3b82f6", label: "Blue" },
+  { id: "red", hex: "#ef4444", label: "Red" },
+  { id: "amber", hex: "#f59e0b", label: "Amber" },
+  { id: "green", hex: "#22c55e", label: "Green" },
+  { id: "purple", hex: "#a855f7", label: "Purple" },
+  { id: "slate", hex: "#64748b", label: "Slate" },
+];
+
+export const CHANNEL_DISCIPLINE_OPTIONS: { value: ChannelDiscipline; label: string }[] = [
+  { value: "law", label: "Law enforcement" },
+  { value: "fire", label: "Fire" },
+  { value: "ems", label: "EMS" },
+  { value: "ems_medical", label: "EMS medical" },
+  { value: "tactical", label: "Tactical" },
+  { value: "command", label: "Command" },
+  { value: "other", label: "Other" },
+];
+
 export async function fetchWellnessTraumaFlags(): Promise<TraumaFlagRecord[]> {
   const data = await request<{ items: TraumaFlagRecord[] }>("/api/wellness/trauma-flags");
   return data.items;
@@ -1787,6 +1872,45 @@ export async function fetchCadIncidents(params?: {
   if (params?.integrationId) sp.set("integrationId", params.integrationId);
   const q = sp.toString();
   return request(`/api/admin/cad-incidents${q ? `?${q}` : ""}`);
+}
+
+export type CapIngestStatus =
+  | "received"
+  | "routed"
+  | "no_agency"
+  | "duplicate"
+  | "skipped"
+  | "parse_error";
+
+export type CadCapRecord = {
+  agencyId: string;
+  sk: string;
+  capIdentifier: string;
+  capSender: string;
+  capSentAt: string;
+  status: CapIngestStatus;
+  msgType: string;
+  capStatus: string;
+  fipsCodes: string[];
+  headline: string;
+  incidentType: string;
+  priority: string;
+  areaDesc: string;
+  rcIncidentId?: string;
+  rawXml: string;
+  receivedAt: string;
+  ttl: number;
+};
+
+export async function fetchCadCapIncidents(params?: {
+  status?: CapIngestStatus;
+  limit?: number;
+}): Promise<{ items: CadCapRecord[] }> {
+  const sp = new URLSearchParams();
+  if (params?.limit != null) sp.set("limit", String(params.limit));
+  if (params?.status) sp.set("status", params.status);
+  const q = sp.toString();
+  return request(`/api/admin/cad-cap-incidents${q ? `?${q}` : ""}`);
 }
 
 export async function fetchCadWritebackApprovals(params?: {

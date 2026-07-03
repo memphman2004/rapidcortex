@@ -3678,6 +3678,38 @@ Resources:
             Description: "Runs billing schedules, reminders, and overdue updates daily at 08:00 UTC."
             Enabled: true
 
+  DelinquencyEscalationFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/handlers/billing/delinquencyEscalation.handler
+      Timeout: 300
+      MemorySize: 512
+      Policies:
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardA
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardB
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardC
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardD
+        - Statement:
+            Effect: Allow
+            Action:
+              - cloudwatch:PutMetricData
+            Resource: "*"
+            Condition:
+              StringEquals:
+                cloudwatch:namespace: RapidCortex/Billing
+      Events:
+        DailyDelinquencyEscalation:
+          Type: Schedule
+          Properties:
+            Name: !Sub "sam4-daily-delinquency-escalation-${DeploymentStage}"
+            Schedule: rate(1 day)
+            Description: "MSA §4.6/13.5 delinquency tier escalation — runs daily."
+            Enabled: true
+
   BillingPaymentsDisabledCatchAllFunction:
     Type: AWS::Serverless::Function
     Metadata:

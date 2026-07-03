@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 # Rebuild workspace packages, pack SAM vendor tarballs, and sync package-lock integrity.
-# CodeBuild runs `npm ci` against file:apps/api/vendor-packs/*.tgz entries in package-lock.json.
+# Invoked automatically by scripts/deploy.sh, deploy2.sh, deploy-lean-dev.sh, and package-web-source.sh.
+# Run manually after changing packages/shared, packages/security, or packages/integrations:
+#   bash scripts/refresh-api-vendor-packs.sh
 set -euo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 cd "$ROOT"

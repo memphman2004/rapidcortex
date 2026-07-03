@@ -1,5 +1,5 @@
 import type { APIGatewayProxyHandlerV2 } from "aws-lambda";
-import { isRingEnabled, RingOAuthService } from "../../lib/ring-integration.js";
+import { isRingEnabled, normalizeRingReturnUrl, RingOAuthService } from "../../lib/ring-integration.js";
 import { AgencyRepository } from "../../repositories/agencyRepository.js";
 import { RingPublicOAuthStateRepository } from "../../repositories/ringPublicOAuthStateRepository.js";
 import { auditRingEvent, AUDIT_EVENT_TYPES } from "./ring-audit.js";
@@ -38,8 +38,13 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
       return ringJson({ success: false, error: "Invalid request." }, 400);
     }
 
+    // Ring Appstore sends ring_return_url so we can redirect back after success.
+    const ringReturnUrl = normalizeRingReturnUrl(
+      event.queryStringParameters?.ring_return_url ?? null,
+    );
+
     const { url, state } = await oauth.buildCitizenAuthorizationUrl(agencyId);
-    await oauthStates.saveState(state, agencyId);
+    await oauthStates.saveState(state, agencyId, "link", ringReturnUrl);
 
     await auditRingEvent({
       type: AUDIT_EVENT_TYPES.RING_CITIZEN_OAUTH_INITIATED,

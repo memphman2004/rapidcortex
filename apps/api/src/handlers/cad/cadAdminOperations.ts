@@ -2,6 +2,7 @@ import type { APIGatewayProxyHandlerV2 } from "aws-lambda";
 import { PublishCommand, SNSClient } from "@aws-sdk/client-sns";
 import { AUDIT_EVENT_TYPES, AuthorizationService } from "rapid-cortex-security";
 import {
+  cadCapIncidentsQuerySchema,
   cadIncidentsQuerySchema,
   isRcsuperadmin,
   patchCadIntegrationBodySchema,
@@ -14,6 +15,7 @@ import { getCadParser } from "../../lib/cad/parsers/index.js";
 import type { CadIntegrationSetupContext } from "../../lib/cad/types.js";
 import { makeId } from "../../lib/ids.js";
 import { AuditRepository } from "../../repositories/auditRepository.js";
+import { CadCapIncidentsRepository } from "../../repositories/cadCapIncidentsRepository.js";
 import { CadIncidentRawRepository, type CadIncidentRawRecord } from "../../repositories/cadIncidentRawRepository.js";
 import { CadIntegrationRepository, type CadIntegrationRecord } from "../../repositories/cadIntegrationRepository.js";
 import { generateCadWebhookToken, hashCadWebhookToken } from "../../services/cad/cadWebhookSecret.js";
@@ -38,6 +40,7 @@ import type { CadPollHistoryPoint } from "../../repositories/cadIntegrationRepos
 const authz = new AuthorizationService();
 const integrationRepo = new CadIntegrationRepository();
 const rawIncidentRepo = new CadIncidentRawRepository();
+const capIncidentsRepo = new CadCapIncidentsRepository();
 const auditRepo = new AuditRepository();
 const sns = new SNSClient({ region: env.region });
 
@@ -146,7 +149,22 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
 
     const rawPath = event.rawPath ?? "";
     const pathCadIncidents = "/api/admin/cad-incidents";
+    const pathCadCapIncidents = "/api/admin/cad-cap-incidents";
     const pathIntegrationsRoot = "/api/admin/cad-integrations";
+
+    if (rawPath === pathCadCapIncidents && method === "GET") {
+      if (!canListCadIncidents(user)) return forbidden();
+      if (!env.cadCapIncidentsTable) {
+        return serviceUnavailable("CAD CAP incidents storage is not configured.");
+      }
+      const parsed = cadCapIncidentsQuerySchema.safeParse(event.queryStringParameters ?? {});
+      if (!parsed.success) return badRequestFromZod(parsed.error);
+      const items = await capIncidentsRepo.listByAgency(user.agencyId, {
+        status: parsed.data.status,
+        limit: parsed.data.limit,
+      });
+      return ok({ items });
+    }
 
     if (rawPath === pathCadIncidents && method === "GET") {
       if (!canListCadIncidents(user)) return forbidden();

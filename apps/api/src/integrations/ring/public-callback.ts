@@ -148,7 +148,8 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
       resourceId: ringAccountId,
     });
 
-    return ringRedirect(linkUrl("success", agencyId));
+    // If Ring Appstore sent ring_return_url, redirect back to Ring so their UI updates.
+    return ringRedirect(stored.ringReturnUrl ?? linkUrl("success", agencyId));
   } catch (err) {
     if (err instanceof RingAuthError && err.message.toLowerCase().includes("state mismatch")) {
       await auditRingEvent({

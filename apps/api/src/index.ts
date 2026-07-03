@@ -41,6 +41,7 @@ export { handler as billingInvoicesHttp } from "./handlers/billingInvoicesHttp.j
 export { handler as billingSchedulesHttp } from "./handlers/billingSchedulesHttp.js";
 export { handler as billingPaymentsHttp } from "./handlers/billingPaymentsHttp.js";
 export { handler as billingScheduler } from "./handlers/billingScheduler.js";
+export { handler as delinquencyEscalation } from "./handlers/billing/delinquencyEscalation.js";
 export { handler as detectIncidentType } from "./handlers/protocols/detectIncidentType.js";
 export { handler as postAgencySopUploadUrl } from "./handlers/agencies/postAgencySopUploadUrl.js";
 export { handler as getTriageResult } from "./handlers/triage/getTriageResult.js";

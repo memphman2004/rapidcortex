@@ -21,6 +21,7 @@ import type { CadTestResult } from "./IntegrationDetailDrawer";
 import { IntegrationDetailDrawer } from "./IntegrationDetailDrawer";
 import { vendorTitle, vendorTroubleshootingBullets } from "./cad-admin-ui-helpers";
 import { CadWritebackApprovals } from "./CadWritebackApprovals";
+import { CadCapRawPanel } from "./cad-cap-raw-panel";
 
 export function CadIntegrationsPage() {
   const qc = useQueryClient();
@@ -29,7 +30,7 @@ export function CadIntegrationsPage() {
   const router = useRouter();
   const pathname = usePathname();
   const writebackUi = isCadWritebackUiEnabled();
-  const [hubTab, setHubTab] = useState<"integrations" | "writeback">("integrations");
+  const [hubTab, setHubTab] = useState<"integrations" | "writeback" | "cap">("integrations");
 
   useEffect(() => {
     if (!writebackUi) return;
@@ -39,10 +40,11 @@ export function CadIntegrationsPage() {
   }, [searchParams, writebackUi]);
 
   const setTab = useCallback(
-    (next: "integrations" | "writeback") => {
+    (next: "integrations" | "writeback" | "cap") => {
       setHubTab(next);
       if (!writebackUi) return;
-      const nextUrl = next === "writeback" ? `${pathname}?tab=writeback` : pathname.split("?")[0] ?? pathname;
+      const nextUrl =
+        next === "writeback" ? `${pathname}?tab=writeback` : pathname.split("?")[0] ?? pathname;
       router.replace(nextUrl);
     },
     [pathname, router, writebackUi],
@@ -169,17 +171,26 @@ export function CadIntegrationsPage() {
 
   return (
     <div className="mx-auto max-w-6xl space-y-6 px-4 py-8 text-slate-100">
-      {writebackUi ? (
-        <div className="flex gap-2 border-b border-slate-800 pb-4">
-          <button
-            type="button"
-            onClick={() => setTab("integrations")}
-            className={`rounded-md px-3 py-1.5 text-sm font-medium ${
-              hubTab === "integrations" ? "bg-slate-800 text-white ring-1 ring-slate-600" : "text-slate-400 hover:text-white"
-            }`}
-          >
-            Integrations
-          </button>
+      <div className="flex gap-2 border-b border-slate-800 pb-4">
+        <button
+          type="button"
+          onClick={() => setTab("integrations")}
+          className={`rounded-md px-3 py-1.5 text-sm font-medium ${
+            hubTab === "integrations" ? "bg-slate-800 text-white ring-1 ring-slate-600" : "text-slate-400 hover:text-white"
+          }`}
+        >
+          Integrations
+        </button>
+        <button
+          type="button"
+          onClick={() => setTab("cap")}
+          className={`rounded-md px-3 py-1.5 text-sm font-medium ${
+            hubTab === "cap" ? "bg-slate-800 text-white ring-1 ring-slate-600" : "text-slate-400 hover:text-white"
+          }`}
+        >
+          CAP alerts
+        </button>
+        {writebackUi ? (
           <button
             type="button"
             onClick={() => setTab("writeback")}
@@ -189,11 +200,17 @@ export function CadIntegrationsPage() {
           >
             Write-back approvals
           </button>
-        </div>
-      ) : null}
+        ) : null}
+      </div>
 
       {hubTab === "writeback" && writebackUi ? (
         <CadWritebackApprovals />
+      ) : hubTab === "cap" ? (
+        user?.agencyId ? (
+          <CadCapRawPanel ingestPathAgencyId={user.agencyId} />
+        ) : (
+          <p className="text-sm text-slate-400">Agency context required to view CAP alerts.</p>
+        )
       ) : (
         <>
       <header className="flex flex-col gap-3 border-b border-slate-800 pb-6 sm:flex-row sm:items-end sm:justify-between">

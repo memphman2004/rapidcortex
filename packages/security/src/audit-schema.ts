@@ -215,6 +215,12 @@ export const AUDIT_EVENT_TYPES = {
   CALL_TRANSFER_ACCEPTED: "call.transfer.accepted",
   CALL_TRANSFER_DECLINED: "call.transfer.declined",
   CALL_TAKEOVER_INITIATED: "call.takeover.initiated",
+  CHANNEL_CONFIG_CREATED: "channel.config.created",
+  CHANNEL_CONFIG_UPDATED: "channel.config.updated",
+  CHANNEL_CONFIG_DEACTIVATED: "channel.config.deactivated",
+  INCIDENT_CHANNEL_ASSIGNED: "incident.channel.assigned",
+  INCIDENT_CHANNEL_REMOVED: "incident.channel.removed",
+  INCIDENT_CHANNEL_NOTES_UPDATED: "incident.channel.notes_updated",
 
   ...RING_AUDIT_EVENT_TYPES,
 } as const;

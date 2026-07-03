@@ -474,6 +474,21 @@ Parameters:
     Default: "true"
     AllowedValues: ["true", "false"]
     Description: When true, dispatcher write-backs queue for supervisor/admin approval before vendor HTTP.
+  CapIngestEnabled:
+    Type: String
+    Default: "false"
+    AllowedValues: ["true", "false"]
+    Description: When true, exposes POST /api/cad/cap/ingest/{agencyId} for CAP 1.2 XML ingest.
+  EnableChannelMonitoring:
+    Type: String
+    Default: "false"
+    AllowedValues: ["true", "false"]
+    Description: When true, exposes channel / talk group monitoring APIs for dispatcher console.
+  CapAcceptExercise:
+    Type: String
+    Default: "false"
+    AllowedValues: ["true", "false"]
+    Description: When true, CAP ingest processes Exercise status alerts.
   EnableSilentText:
     Type: String
     Default: "false"
@@ -800,6 +815,7 @@ Conditions:
   HasRingDevicesTable: !Not [!Equals [!Ref RingDevicesTable, ""]]
   HasRingRequestsTable: !Not [!Equals [!Ref RingRequestsTable, ""]]
   HasRingSessionsTable: !Not [!Equals [!Ref RingSessionsTable, ""]]
+  CapIngestRouteEnabled: !Equals [!Ref CapIngestEnabled, "true"]
   HasVenueFacilitiesTable: !Not [!Equals [!Ref VenueFacilitiesTable, ""]]
   HasVenueCameraAccessLogTable: !Not [!Equals [!Ref VenueCameraAccessLogTable, ""]]
   HasVenueConfigTable: !Not [!Equals [!Ref VenueConfigTable, ""]]
@@ -2483,6 +2499,96 @@ Resources:
             Path: /api/triage/queue/{incidentId}
             Method: PATCH
 
+  ChannelHttpFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      Environment:
+        Variables:
+          COGNITO_USER_POOL_ID: !Ref CognitoUserPool
+          COGNITO_CLIENT_ID: !Ref CognitoUserPoolClient
+          CHANNEL_CONFIG_TABLE: !Ref ChannelConfigTable
+          INCIDENT_CHANNEL_ASSIGNMENTS_TABLE: !Ref IncidentChannelAssignmentsTable
+          ENABLE_CHANNEL_MONITORING: !Ref EnableChannelMonitoring
+      CodeUri: ../../apps/api/
+      Handler: dist/handlers/channels/channelHandler.handler
+      Policies:
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardA
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardB
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardC
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardD
+        - Statement:
+            - Sid: ChannelConfigCrud
+              Effect: Allow
+              Action:
+                - dynamodb:GetItem
+                - dynamodb:PutItem
+                - dynamodb:UpdateItem
+                - dynamodb:Query
+              Resource:
+                - !GetAtt ChannelConfigTable.Arn
+            - Sid: IncidentChannelAssignmentsCrud
+              Effect: Allow
+              Action:
+                - dynamodb:GetItem
+                - dynamodb:PutItem
+                - dynamodb:UpdateItem
+                - dynamodb:DeleteItem
+                - dynamodb:Query
+              Resource:
+                - !GetAtt IncidentChannelAssignmentsTable.Arn
+      Events:
+        ChannelsListCreate:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/channels
+            Method: GET
+        ChannelsCreate:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/channels
+            Method: POST
+        ChannelByIdPatch:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/channels/{channelId}
+            Method: PATCH
+        ChannelByIdDelete:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/channels/{channelId}
+            Method: DELETE
+        IncidentChannelsList:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/incidents/{id}/channels
+            Method: GET
+        IncidentChannelsAssign:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/incidents/{id}/channels
+            Method: POST
+        IncidentChannelPatch:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/incidents/{id}/channels/{channelId}
+            Method: PATCH
+        IncidentChannelDelete:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/incidents/{id}/channels/{channelId}
+            Method: DELETE
+
   TriageOverrideQueueFunction:
     Type: AWS::Serverless::Function
     Metadata:
@@ -2813,6 +2919,7 @@ Resources:
               - !Ref CadPublicApiBaseUrl
           CAD_WEBHOOK_INGRESS_TOPIC_ARN: !Ref CadWebhookIngressTopic
           CAD_WEBHOOK_IDEMPOTENCY_TABLE: !Ref CadWebhookIdempotencyTable
+          CAD_CAP_INCIDENTS_TABLE: !Ref CadCapIncidentsTable
           CAD_POLLER_MOCK: "0"
       CodeUri: ../../apps/api/
       Handler: dist/handlers/cad/cadAdminRouter.handler
@@ -2836,6 +2943,12 @@ Resources:
               Resource:
                 - !Sub arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:rapidcortex/${DeploymentStage}/*
                 - !Sub arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:rapid-cortex/*
+            - Sid: CadAdminCapIncidentsQuery
+              Effect: Allow
+              Action:
+                - dynamodb:Query
+              Resource:
+                - !GetAtt CadCapIncidentsTable.Arn
 
       Events:
         CadIntegrationsGet:
@@ -2891,6 +3004,12 @@ Resources:
           Properties:
             ApiId: !Ref Api
             Path: /api/admin/cad-incidents
+            Method: GET
+        CadCapIncidentsGet:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/admin/cad-cap-incidents
             Method: GET
 
   CadWebhookHttpFunction:
@@ -3047,6 +3166,63 @@ Resources:
           Properties:
             Schedule: rate(1 minute)
             Enabled: true
+
+  CadCapIngestFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      Timeout: 30
+      MemorySize: 256
+      Environment:
+        Variables:
+          CAD_INTEGRATIONS_TABLE: !Ref CadIntegrationsTable
+          CAD_WEBHOOK_INGRESS_TOPIC_ARN: !Ref CadWebhookIngressTopic
+          CAD_WEBHOOK_IDEMPOTENCY_TABLE: !Ref CadWebhookIdempotencyTable
+          CAD_CAP_INCIDENTS_TABLE: !Ref CadCapIncidentsTable
+          CAP_FIPS_GSI_NAME: CapFipsIndex
+          CAP_ACCEPT_EXERCISE: !Ref CapAcceptExercise
+          CAP_ACCEPT_TEST: "false"
+      CodeUri: ../../apps/api/
+      Handler: dist/handlers/cad/cadCapIngest.handler
+      Policies:
+        - Statement:
+            - Sid: CapIngestIntegrationsRead
+              Effect: Allow
+              Action:
+                - dynamodb:Scan
+                - dynamodb:Query
+              Resource:
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${CadIntegrationsTable}
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${CadIntegrationsTable}/index/*
+            - Sid: CapIngestIdempotencyPut
+              Effect: Allow
+              Action:
+                - dynamodb:PutItem
+              Resource:
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${CadWebhookIdempotencyTable}
+            - Sid: CapIngestRawPut
+              Effect: Allow
+              Action:
+                - dynamodb:PutItem
+              Resource:
+                - !GetAtt CadCapIncidentsTable.Arn
+            - Sid: CapIngestIngressPublish
+              Effect: Allow
+              Action:
+                - sns:Publish
+              Resource: !Ref CadWebhookIngressTopic
+      Events:
+        CapIngestPost:
+          Type: HttpApi
+          Condition: CapIngestRouteEnabled
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/cad/cap/ingest/{agencyId}
+            Method: POST
+            Auth:
+              Authorizer: NONE
 
   DeceptionDecoyHttpFunction:
     Type: AWS::Serverless::Function
@@ -3676,6 +3852,63 @@ Resources:
       KeySchema:
         - AttributeName: dedupeKey
           KeyType: HASH
+      TimeToLiveSpecification:
+        AttributeName: ttl
+        Enabled: true
+
+  CadCapIncidentsTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      BillingMode: PAY_PER_REQUEST
+      TableName: !Sub "${AppName}-cad-cap-incidents-${DeploymentStage}"
+      AttributeDefinitions:
+        - AttributeName: agencyId
+          AttributeType: S
+        - AttributeName: sk
+          AttributeType: S
+      KeySchema:
+        - AttributeName: agencyId
+          KeyType: HASH
+        - AttributeName: sk
+          KeyType: RANGE
+      TimeToLiveSpecification:
+        AttributeName: ttl
+        Enabled: true
+
+  ChannelConfigTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      BillingMode: PAY_PER_REQUEST
+      TableName: !Sub "${AppName}-channel-config-${DeploymentStage}"
+      AttributeDefinitions:
+        - AttributeName: agencyId
+          AttributeType: S
+        - AttributeName: channelId
+          AttributeType: S
+      KeySchema:
+        - AttributeName: agencyId
+          KeyType: HASH
+        - AttributeName: channelId
+          KeyType: RANGE
+      TimeToLiveSpecification:
+        AttributeName: ttl
+        Enabled: false
+
+  IncidentChannelAssignmentsTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      BillingMode: PAY_PER_REQUEST
+      TableName: !Sub "${AppName}-incident-channel-assignments-${DeploymentStage}"
+      AttributeDefinitions:
+        - AttributeName: incidentId
+          AttributeType: S
+        - AttributeName: channelId
+          AttributeType: S
+      KeySchema:
+        - AttributeName: incidentId
+          KeyType: HASH
+        - AttributeName: channelId
+          KeyType: RANGE
       TimeToLiveSpecification:
         AttributeName: ttl
         Enabled: true

@@ -24,7 +24,12 @@ export const cadCircuitBreakerStateSchema = z.object({
   cooldownUntil: z.string().optional(),
 });
 
-export const cadConnectionTypeSchema = z.enum(["webhook_inbound", "api_poll", "tcp_feed"]);
+export const cadConnectionTypeSchema = z.enum([
+  "webhook_inbound",
+  "api_poll",
+  "tcp_feed",
+  "cap_inbound",
+]);
 
 export const cadIncidentStatusSchema = z.enum(["active", "pending", "resolved", "cancelled"]);
 
@@ -69,6 +74,23 @@ export type CadPriority = z.infer<typeof cadPrioritySchema>;
 export type PostCadIntegrationBody = z.infer<typeof postCadIntegrationBodySchema>;
 export type PatchCadIntegrationBody = z.infer<typeof patchCadIntegrationBodySchema>;
 export type CadIncidentsQuery = z.infer<typeof cadIncidentsQuerySchema>;
+
+export const capIngestStatusSchema = z.enum([
+  "received",
+  "routed",
+  "no_agency",
+  "duplicate",
+  "skipped",
+  "parse_error",
+]);
+
+export const cadCapIncidentsQuerySchema = z.object({
+  status: capIngestStatusSchema.optional(),
+  limit: z.coerce.number().int().min(1).max(200).optional(),
+});
+
+export type CapIngestStatus = z.infer<typeof capIngestStatusSchema>;
+export type CadCapIncidentsQuery = z.infer<typeof cadCapIncidentsQuerySchema>;
 
 export const cadWritebackBodySchema = z.object({
   narrative: z.string().min(1).max(2000),

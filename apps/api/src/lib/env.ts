@@ -324,6 +324,10 @@ export const env = {
   incidentSharesTable: process.env.INCIDENT_SHARES_TABLE?.trim() ?? "",
   agencySharePartnersTable: process.env.AGENCY_SHARE_PARTNERS_TABLE?.trim() ?? "",
   enableCrossJurisdictionShares: featureEnabled("ENABLE_CROSS_JURISDICTION_SHARES"),
+  /** Channel / talk group monitoring — manual assignment MVP (default off). */
+  enableChannelMonitoring: featureEnabled("ENABLE_CHANNEL_MONITORING", false),
+  channelConfigTable: process.env.CHANNEL_CONFIG_TABLE?.trim() ?? "",
+  incidentChannelAssignmentsTable: process.env.INCIDENT_CHANNEL_ASSIGNMENTS_TABLE?.trim() ?? "",
   analyticsCachePrefix: process.env.ANALYTICS_CACHE_PREFIX?.trim() || "analytics/v1",
   /**
    * Option 1 desktop (macOS) — object key inside `ASSETS_BUCKET` for the signed/notarized DMG.
@@ -455,6 +459,14 @@ export const env = {
   cadWritebackAuditTable: process.env.CAD_WRITEBACK_AUDIT_TABLE?.trim() ?? "",
   /** When true, CAD API poller skips outbound vendor HTTP (dev/CI). */
   cadPollerMock: process.env.CAD_POLLER_MOCK === "1",
+  /** Raw CAP alert receipts (TTL). */
+  cadCapIncidentsTable: process.env.CAD_CAP_INCIDENTS_TABLE?.trim() ?? "",
+  /** GSI on CadIntegrationsTable for FIPS → agency lookup (optional). */
+  capFipsGsiName: process.env.CAP_FIPS_GSI_NAME?.trim() || "CapFipsIndex",
+  /** When true, process CAP alerts with status=Exercise. */
+  capAcceptExercise: process.env.CAP_ACCEPT_EXERCISE === "1" || process.env.CAP_ACCEPT_EXERCISE === "true",
+  /** When true, process CAP alerts with status=Test. */
+  capAcceptTest: process.env.CAP_ACCEPT_TEST === "1" || process.env.CAP_ACCEPT_TEST === "true",
   /** Adobe Sign async provisioning ledger (`agreementId` PK). */
   pendingProvisionsTable: process.env.PENDING_PROVISIONS_TABLE?.trim() ?? "",
   /** Secrets Manager JSON: clientId, clientSecret, webhookToken. */

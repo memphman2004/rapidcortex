@@ -1,4 +1,5 @@
 # Source before deploying API stacks (dev): ./scripts/deploy.sh dev or ./scripts/deploy2.sh dev
+# deploy.sh / deploy-lean-dev.sh run scripts/refresh-api-vendor-packs.sh automatically before SAM build.
 # Usage: source scripts/env-api-dev.sh
 #
 # Clear overrides from other env scripts (e.g. scripts/env-web-ssr-prod.sh sets STACK_NAME for ECS/CloudFront).
@@ -143,6 +144,8 @@ export ENABLE_HOSPITAL_ROUTING=true
 export ENABLE_SURGE=true
 export ENABLE_PINPOINT=true
 export CAD_WRITEBACK_ENABLED=false
+# Channel / talk group monitoring (default OFF — matches NEXT_PUBLIC_ENABLE_CHANNEL_MONITORING)
+# export ENABLE_CHANNEL_MONITORING=true
 
 # Ring Connect — OAuth callback (stack 4 execute-api) + post-link marketing page (CFN-owned Lambda env)
 export RING_REDIRECT_URI="https://7c70vqd1p5.execute-api.us-east-1.amazonaws.com/api/integrations/ring/callback"

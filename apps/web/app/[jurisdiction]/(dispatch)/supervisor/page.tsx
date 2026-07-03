@@ -7,6 +7,7 @@ import { CreateIncidentButton } from "@/components/dispatcher/create-incident-sl
 import { isApiConfigured } from "@/lib/api";
 import { useJurisdictionLink } from "@/lib/jurisdiction-context";
 import { NonEmergencyQueuePanel } from "@/components/triage/non-emergency-queue-panel";
+import { SlaSupervisorPanel } from "@/components/dashboards/sla-supervisor-panel";
 import { StaffingForecastPanel } from "@/components/staffing/staffing-forecast-panel";
 import { ShiftAlertBadge } from "@/components/staffing/shift-alert-badge";
 import { useStaffingForecast } from "@/components/staffing/use-staffing-forecast";
@@ -49,6 +50,7 @@ export default function SupervisorHomePage() {
       ) : null}
       <StaffingForecastPanel enabled={staffingEnabled} />
       <NonEmergencyQueuePanel enabled={isNonEmergencyTriageEnabled()} />
+      <SlaSupervisorPanel />
       <DashboardHomeRenderer
         role={user.role}
         agencyId={user.agencyId}

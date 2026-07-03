@@ -1,11 +1,12 @@
-import { JurisdictionWorkspacePlaceholder } from "@/components/dispatch/jurisdiction-workspace-placeholder";
+import { redirect } from "next/navigation";
+import { dispatchDashboardHref } from "@/lib/dispatch-workspace-links";
 import { blockPsapRoutesForVerticalAgency } from "@/lib/venue/venue-psap-route-guard";
 
 type Props = { params: Promise<{ jurisdiction: string }> };
 
+/** Legacy nav target — unified live console is on /dashboard. */
 export default async function IntakePage({ params }: Props) {
   const { jurisdiction } = await params;
   await blockPsapRoutesForVerticalAgency(jurisdiction);
-
-  return <JurisdictionWorkspacePlaceholder title="Intake" />;
+  redirect(dispatchDashboardHref(jurisdiction));
 }
