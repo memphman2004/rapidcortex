@@ -26,8 +26,17 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
     const parsed = createIncidentSchema.safeParse(JSON.parse(event.body ?? "{}"));
     if (!parsed.success) return badRequestFromZod(parsed.error);
 
-    const incident = await service.create(parsed.data.title, parsed.data.source, user, {
-      callerAddressLine: parsed.data.callerAddressLine,
+    const d = parsed.data;
+    const incident = await service.create(d.title, d.source, user, {
+      callerAddressLine: d.callerAddressLine ?? d.cadLocation,
+      summary: d.summary,
+      cadNatureCode: d.cadNatureCode,
+      cadPriority: d.cadPriority,
+      cadLocation: d.cadLocation ?? d.callerAddressLine,
+      cadCoordinates: d.cadCoordinates,
+      cadCallerName: d.cadCallerName ?? undefined,
+      callerCallback: d.callerCallback,
+      assignedTo: d.assignedTo,
     });
 
     return ok(incident, 201);

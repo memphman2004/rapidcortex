@@ -257,6 +257,27 @@ export async function fetchIncidents(): Promise<Incident[]> {
   return data.items;
 }
 
+export type CreateIncidentBody = {
+  title: string;
+  source?: "demo" | "manual" | "stream" | "cad";
+  callerAddressLine?: string;
+  summary?: string;
+  callerCallback?: string;
+  assignedTo?: string;
+  cadNatureCode?: string;
+  cadPriority?: string;
+  cadLocation?: string;
+  cadCoordinates?: { lat: number; lng: number };
+  cadCallerName?: string;
+};
+
+export async function postCreateIncident(body: CreateIncidentBody): Promise<Incident> {
+  return request<Incident>("/api/incidents", {
+    method: "POST",
+    body: JSON.stringify({ source: "manual", ...body }),
+  });
+}
+
 export async function fetchIncident(id: string): Promise<Incident> {
   return request<Incident>(`/api/incidents/${id}`);
 }
@@ -1619,8 +1640,32 @@ export type CadAdminIntegration = {
   setupInstructions: string;
   lastPingAt?: string;
   lastIncidentAt?: string;
+  lastSuccessfulPollAt?: string;
+  circuitBreaker?: {
+    state: "CLOSED" | "OPEN" | "HALF_OPEN";
+    failureCount: number;
+    cooldownUntil?: string;
+    openedAt?: string;
+  };
+  pollHistory?: Array<{ ts: string; ok: boolean; incidentCount: number; latencyMs: number }>;
   errorMessage?: string;
   incidentCount: number;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type CadIntegrationHealthSummary = {
+  integrationId: string;
+  agencyId: string;
+  vendor: string;
+  name: string;
+  connectionType: string;
+  status: string;
+  lastSuccessfulPollAt?: string;
+  circuitBreaker?: CadAdminIntegration["circuitBreaker"];
+  pollHistory?: CadAdminIntegration["pollHistory"];
+  avgLatencyMs?: number;
+  recentIncidentCount?: number;
   createdAt: string;
   updatedAt: string;
 };
@@ -1640,6 +1685,13 @@ export async function fetchCadIntegrations(): Promise<{ items: CadAdminIntegrati
   return request("/api/admin/cad-integrations");
 }
 
+export async function fetchCadIntegrationsWithMetrics(): Promise<{
+  items: CadAdminIntegration[];
+  integrations: CadIntegrationHealthSummary[];
+}> {
+  return request("/api/admin/cad-integrations?includeMetrics=true");
+}
+
 export async function postCadIntegration(body: {
   vendor: string;
   connectionType: string;
@@ -1655,10 +1707,11 @@ export async function postCadIntegration(body: {
 export async function patchCadIntegration(
   id: string,
   body: {
-    status?: "active" | "inactive" | "error" | "testing";
+    status?: "active" | "inactive" | "error" | "testing" | "auth_error";
     name?: string;
     config?: Record<string, unknown>;
     regenerateToken?: boolean;
+    circuitBreaker?: NonNullable<CadAdminIntegration["circuitBreaker"]>;
   },
 ): Promise<{ integration: CadAdminIntegration | null; webhookSecret?: string }> {
   return request(`/api/admin/cad-integrations/${encodeURIComponent(id)}`, {
@@ -1681,6 +1734,45 @@ export async function postCadIntegrationTest(id: string): Promise<{
 }> {
   return request(`/api/admin/cad-integrations/${encodeURIComponent(id)}/test`, {
     method: "POST",
+  });
+}
+
+export async function postCadIntegrationForcePoll(id: string): Promise<{
+  success: boolean;
+  incidentCount: number;
+  latencyMs?: number;
+  message: string;
+  authError?: boolean;
+  circuitBreakerOpened?: boolean;
+  rateLimited?: boolean;
+  skipped?: boolean;
+}> {
+  return request(`/api/admin/cad-integrations/${encodeURIComponent(id)}/force-poll`, {
+    method: "POST",
+  });
+}
+
+export type CadPollTestConnectionBody = {
+  apiUrl: string;
+  authType: "bearer" | "api_key_header" | "basic" | "no_auth";
+  apiKey?: string;
+  apiKeyHeader?: string;
+  agencyCode?: string;
+};
+
+export async function postCadIntegrationTestConnection(
+  id: string,
+  body: CadPollTestConnectionBody,
+): Promise<{
+  ok: boolean;
+  latencyMs?: number;
+  sampleCount?: number;
+  error?: string;
+  statusCode?: number;
+}> {
+  return request(`/api/admin/cad-integrations/${encodeURIComponent(id)}/test-connection`, {
+    method: "POST",
+    body: JSON.stringify(body),
   });
 }
 
@@ -1708,17 +1800,40 @@ export async function fetchCadWritebackApprovals(params?: {
   return request(`/api/admin/cad-writeback-approvals${q ? `?${q}` : ""}`);
 }
 
-export async function postCadWritebackApprove(id: string): Promise<{ ok: boolean; cadResponse?: string; error?: string }> {
-  return request(`/api/admin/cad-writeback-approvals/${encodeURIComponent(id)}/approve`, { method: "POST" });
+export async function postCadWriteback(
+  incidentId: string,
+  body: {
+    narrative: string;
+    cadNatureCode?: string;
+    priority?: "P1" | "P2" | "P3" | "P4";
+    units?: string[];
+    notes?: string;
+  },
+): Promise<{ ok: boolean; status: string; approvalId?: string }> {
+  return request(`/api/cad/writeback/${encodeURIComponent(incidentId)}`, {
+    method: "POST",
+    body: JSON.stringify(body),
+  });
+}
+
+export async function postCadWritebackApprove(
+  id: string,
+  body?: { notes?: string },
+): Promise<{ ok: boolean; cadResponse?: string; error?: string }> {
+  return request(`/api/admin/cad-writeback-approvals/${encodeURIComponent(id)}/approve`, {
+    method: "POST",
+    body: JSON.stringify(body ?? {}),
+  });
 }
 
 export async function postCadWritebackReject(
   id: string,
-  body?: { notes?: string },
+  body?: { notes?: string; reason?: string },
 ): Promise<{ ok: boolean }> {
+  const notes = body?.notes ?? body?.reason;
   return request(`/api/admin/cad-writeback-approvals/${encodeURIComponent(id)}/reject`, {
     method: "POST",
-    body: JSON.stringify(body ?? {}),
+    body: JSON.stringify(notes ? { notes } : {}),
   });
 }
 

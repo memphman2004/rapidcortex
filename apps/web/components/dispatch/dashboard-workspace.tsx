@@ -3,7 +3,12 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import { useSession } from "@/components/auth/session-context";
 import { CadDispatcherWorkspaceLayout } from "@/components/dispatch/cad-dispatcher-workspace-layout";
+import {
+  CreateIncidentButton,
+  type CreateIncidentResult,
+} from "@/components/dispatcher/create-incident-slide-over";
 import { TranscriptChunkPlayer } from "@/components/dispatch/transcript-chunk-player";
 import { AnalyzeIncidentError, isApiConfigured, postTranscriptSegment } from "@/lib/api";
 import { CallLanguageSelectorBar } from "@/components/dispatch/call-language-selector-bar";
@@ -39,6 +44,7 @@ export function DashboardWorkspace() {
   const to = useJurisdictionLink();
   const searchParams = useSearchParams();
   const queryClient = useQueryClient();
+  const { user } = useSession();
   const paramId = searchParams.get("incident");
   const [autoScroll, setAutoScroll] = useState(true);
   const [isRefreshingAi, setIsRefreshingAi] = useState(false);
@@ -74,6 +80,14 @@ export function DashboardWorkspace() {
       );
     },
     [router, to],
+  );
+
+  const handleIncidentCreated = useCallback(
+    async (result: CreateIncidentResult) => {
+      await queryClient.invalidateQueries({ queryKey: ["incidents"] });
+      setSelectedId(result.incidentId);
+    },
+    [queryClient, setSelectedId],
   );
 
   const queueIncidents = useMemo(() => {
@@ -384,6 +398,15 @@ export function DashboardWorkspace() {
         isNonEmergencyTriageEnabled() && queueTab === "non_emergency" && (incidentsQuery.data?.length ?? 0) > 0
           ? "No incidents match the non-emergency filter (low / moderate urgency) right now."
           : undefined
+      }
+      createIncidentAction={
+        isApiConfigured() ? (
+          <CreateIncidentButton
+            userRole={user?.role}
+            mapboxToken={process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN}
+            onCreated={handleIncidentCreated}
+          />
+        ) : undefined
       }
     />
   );

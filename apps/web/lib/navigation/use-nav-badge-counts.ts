@@ -15,7 +15,14 @@ export function useNavBadgeCounts(role?: string): NavBadgeCounts {
       return r.items.length;
     },
     enabled:
-      Boolean(role && (role === "supervisor" || role === "agencyit") && isCadWritebackUiEnabled()),
+      Boolean(
+        role &&
+          (role === "supervisor" ||
+            role === "agencyadmin" ||
+            role === "agencyit" ||
+            role === "rcsuperadmin") &&
+          isCadWritebackUiEnabled(),
+      ),
     refetchInterval: 30_000,
   });
 

@@ -16,7 +16,8 @@ echo ""
 echo "G2 — CAD read-only adapter tests (Vitest)"
 npx vitest run \
   apps/web/lib/rapid-cortex/cad/__tests__/adapter-integration.test.ts \
-  apps/web/lib/rapid-cortex/cad/__tests__/staging-cad-read-adapter.test.ts
+  apps/web/lib/rapid-cortex/cad/__tests__/staging-cad-read-adapter.test.ts \
+  apps/api/src/lib/cad/poll/cad-poll-adapters.test.ts
 
 echo ""
 echo "G3 — optional live probes (set BASE_URL; may WARN/FAIL without a deployment)"

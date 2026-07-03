@@ -16,6 +16,10 @@ import { DispatchActionPanel } from "@/components/dispatch/dispatch-action-panel
 import { ManualModeButton } from "@/components/dashboards/dispatcher-workspace-panels";
 import { SupervisorAssistPanel } from "@/components/dashboards/dispatcher-workspace-panels";
 import { CadReadyPanel } from "@/components/dashboards/dispatcher-workspace-panels";
+import { CadWritebackButton } from "@/components/cad/cad-writeback-slide-over";
+import { incidentToWritebackContext } from "@/lib/cad/writeback-ui";
+import { isCadWritebackUiEnabled } from "@/lib/runtime-flags";
+import { useSession } from "@/components/auth/session-context";
 import { isApiConfigured, fetchTriage } from "@/lib/api";
 import { formatRelativeOpened } from "@/lib/format";
 import { useJurisdictionLink } from "@/lib/jurisdiction-context";
@@ -442,6 +446,7 @@ export function CadDispatcherWorkspaceLayout({
   onRefreshAi,
   languageBar,
   queueEmptyHint,
+  createIncidentAction,
 }: {
   trainingBanner: ReactNode;
   liveEmptyBanner: ReactNode;
@@ -475,10 +480,13 @@ export function CadDispatcherWorkspaceLayout({
   onRefreshAi: (() => void) | undefined;
   languageBar: ReactNode;
   queueEmptyHint?: string;
+  createIncidentAction?: ReactNode;
 }) {
   const to = useJurisdictionLink();
   const clock = useLiveClock();
   const shift = useShiftElapsedLabel();
+  const { user } = useSession();
+  const writebackUi = isCadWritebackUiEnabled();
 
   const activeTable = useMemo(() => queueIncidents.filter((i) => i.status === "active"), [queueIncidents]);
   const pendingTable = useMemo(
@@ -504,9 +512,11 @@ export function CadDispatcherWorkspaceLayout({
         style={{ borderColor: CAD.border, background: CAD.panel }}
       >
         <div className="flex min-w-0 flex-1 flex-wrap items-center gap-1.5">
-          <CadActionBarButton href={to("/command")} title="Open command workspace (⌘ shortcut TBD)">
-            New incident
-          </CadActionBarButton>
+          {createIncidentAction ?? (
+            <CadActionBarButton href={to("/command")} title="Open command workspace (⌘ shortcut TBD)">
+              New incident
+            </CadActionBarButton>
+          )}
           <CadActionBarButton onClick={() => scrollTo("cad-transcript")} title="Scroll to live transcript">
             Take call
           </CadActionBarButton>
@@ -700,12 +710,20 @@ export function CadDispatcherWorkspaceLayout({
             className="flex shrink-0 flex-wrap items-center gap-2 border-t px-2 py-2"
             style={{ borderColor: CAD.border, background: CAD.panel }}
           >
-            <Link
-              href={to("/admin/cad")}
-              className="inline-flex items-center rounded border border-[#2563eb] bg-[#2563eb] px-3 py-1.5 font-mono text-[11px] font-bold uppercase text-white hover:bg-[#3b82f6]"
-            >
-              Submit to CAD
-            </Link>
+            {writebackUi && incidentForUi ? (
+              <CadWritebackButton
+                incidentId={incidentForUi.incidentId}
+                incident={incidentToWritebackContext(incidentForUi)}
+                userRole={user?.role}
+              />
+            ) : (
+              <Link
+                href={to("/admin/cad")}
+                className="inline-flex items-center rounded border border-[#2563eb] bg-[#2563eb] px-3 py-1.5 font-mono text-[11px] font-bold uppercase text-white hover:bg-[#3b82f6]"
+              >
+                Submit to CAD
+              </Link>
+            )}
             <ManualModeButton />
             <button
               type="button"

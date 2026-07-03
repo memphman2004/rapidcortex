@@ -31,6 +31,12 @@ export const CAD_VENDOR_CARDS: {
     badge: "license",
   },
   {
+    id: "console_one",
+    title: "Console One CAD",
+    blurb: "Cloud-native JSON webhook push",
+    badge: "self-configure",
+  },
+  {
     id: "generic_webhook",
     title: "Generic Webhook",
     blurb: "Any HTTP CAD, requires field mapping",
@@ -43,6 +49,7 @@ export function vendorBadgeClass(vendor: string): string {
   if (vendor === "tyler_new_world") return "border-violet-500/50 bg-violet-500/15 text-violet-100";
   if (vendor === "central_square") return "border-emerald-500/50 bg-emerald-500/15 text-emerald-100";
   if (vendor === "hexagon") return "border-amber-500/50 bg-amber-500/15 text-amber-100";
+  if (vendor === "console_one") return "border-indigo-500/50 bg-indigo-500/15 text-indigo-100";
   return "border-slate-600 bg-slate-800 text-slate-200";
 }
 
@@ -152,6 +159,12 @@ export function vendorTroubleshootingBullets(vendor: string): string[] {
   if (vendor === "hexagon") {
     return [
       "I/CAD integrations may require an additional vendor license — confirm with Hexagon.",
+    ];
+  }
+  if (vendor === "console_one") {
+    return [
+      "Configure Console One outbound webhooks with header X-RC-Token (not X-RC-Webhook-Token).",
+      "Webhook path: /api/cad/webhook/{agencyId}/{integrationId}",
     ];
   }
   return [

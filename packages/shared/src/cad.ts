@@ -9,7 +9,20 @@ export const cadVendorSchema = z.enum([
   "generic_webhook",
 ]);
 
-export const cadIntegrationStatusSchema = z.enum(["active", "inactive", "error", "testing"]);
+export const cadIntegrationStatusSchema = z.enum([
+  "active",
+  "inactive",
+  "error",
+  "testing",
+  "auth_error",
+]);
+
+export const cadCircuitBreakerStateSchema = z.object({
+  state: z.enum(["CLOSED", "OPEN", "HALF_OPEN"]),
+  failureCount: z.number().int().min(0),
+  openedAt: z.string().optional(),
+  cooldownUntil: z.string().optional(),
+});
 
 export const cadConnectionTypeSchema = z.enum(["webhook_inbound", "api_poll", "tcp_feed"]);
 
@@ -30,6 +43,7 @@ export const patchCadIntegrationBodySchema = z
     name: z.string().min(1).max(200).optional(),
     config: z.record(z.unknown()).optional(),
     errorMessage: z.string().max(2000).optional(),
+    circuitBreaker: cadCircuitBreakerStateSchema.optional(),
     /** When true, issues a new webhook secret; response includes `webhookSecret` once. */
     regenerateToken: z.boolean().optional(),
   })

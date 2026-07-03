@@ -2812,6 +2812,8 @@ Resources:
               - !Sub "https://${ApiSubdomainPrefix}.${RootDomainName}"
               - !Ref CadPublicApiBaseUrl
           CAD_WEBHOOK_INGRESS_TOPIC_ARN: !Ref CadWebhookIngressTopic
+          CAD_WEBHOOK_IDEMPOTENCY_TABLE: !Ref CadWebhookIdempotencyTable
+          CAD_POLLER_MOCK: "0"
       CodeUri: ../../apps/api/
       Handler: dist/handlers/cad/cadAdminRouter.handler
       Policies:
@@ -2820,6 +2822,20 @@ Resources:
         - !Ref AppManagedPolicyDynamoLambdaCrudShardC
         - !Ref AppManagedPolicyDynamoLambdaCrudShardD
         - !Ref AppManagedPolicyCadWebhookSnsPublishOnly
+        - Statement:
+            - Sid: CadAdminForcePollIdempotency
+              Effect: Allow
+              Action:
+                - dynamodb:PutItem
+              Resource:
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${CadWebhookIdempotencyTable}
+            - Sid: CadAdminForcePollSecrets
+              Effect: Allow
+              Action:
+                - secretsmanager:GetSecretValue
+              Resource:
+                - !Sub arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:rapidcortex/${DeploymentStage}/*
+                - !Sub arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:rapid-cortex/*
 
       Events:
         CadIntegrationsGet:
@@ -2857,6 +2873,18 @@ Resources:
           Properties:
             ApiId: !Ref Api
             Path: /api/admin/cad-integrations/{id}/test
+            Method: POST
+        CadIntegrationByIdTestConnectionPost:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/admin/cad-integrations/{id}/test-connection
+            Method: POST
+        CadIntegrationByIdForcePollPost:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/admin/cad-integrations/{id}/force-poll
             Method: POST
         CadIncidentsGet:
           Type: HttpApi
@@ -2978,6 +3006,7 @@ Resources:
         Variables:
           CAD_INTEGRATIONS_TABLE: !Ref CadIntegrationsTable
           CAD_WEBHOOK_INGRESS_TOPIC_ARN: !Ref CadWebhookIngressTopic
+          CAD_WEBHOOK_IDEMPOTENCY_TABLE: !Ref CadWebhookIdempotencyTable
           CAD_POLLER_MOCK: "0"
       CodeUri: ../../apps/api/
       Handler: dist/handlers/cad/cadApiPoller.handler
@@ -2987,17 +3016,36 @@ Resources:
               Effect: Allow
               Action:
                 - dynamodb:Scan
+                - dynamodb:UpdateItem
               Resource: !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${CadIntegrationsTable}
+            - Sid: CadPollerIdempotencyPut
+              Effect: Allow
+              Action:
+                - dynamodb:PutItem
+              Resource:
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${CadWebhookIdempotencyTable}
             - Sid: CadPollerIngressPublish
               Effect: Allow
               Action:
                 - sns:Publish
               Resource: !Ref CadWebhookIngressTopic
+            - Sid: CadPollerSecretsRead
+              Effect: Allow
+              Action:
+                - secretsmanager:GetSecretValue
+              Resource:
+                - !Sub arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:rapidcortex/${DeploymentStage}/*
+                - !Sub arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:rapid-cortex/*
+            - Sid: CadPollerCloudWatchMetrics
+              Effect: Allow
+              Action:
+                - cloudwatch:PutMetricData
+              Resource: "*"
       Events:
         CadApiPollSchedule:
           Type: Schedule
           Properties:
-            Schedule: rate(30 minutes)
+            Schedule: rate(1 minute)
             Enabled: true
 
   DeceptionDecoyHttpFunction:

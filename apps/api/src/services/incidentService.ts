@@ -26,31 +26,71 @@ export class IncidentService {
     title: string,
     source: Incident["source"],
     user: UserContext,
-    opts?: { callerAddressLine?: string },
+    opts?: {
+      callerAddressLine?: string;
+      summary?: string;
+      cadNatureCode?: string;
+      cadPriority?: string;
+      cadLocation?: string;
+      cadCoordinates?: { lat: number; lng: number };
+      cadCallerName?: string;
+      callerCallback?: string;
+      assignedTo?: string;
+    },
   ): Promise<Incident> {
     const now = new Date().toISOString();
-    const callerAddressLine = opts?.callerAddressLine?.trim() || null;
+    const callerAddressLine =
+      opts?.callerAddressLine?.trim() || opts?.cadLocation?.trim() || null;
     const callerAddressNormalized = callerAddressLine
       ? normalizeAddressForIndex(callerAddressLine)
       : null;
+
+    const maskCallback = (raw: string): string | null => {
+      const d = raw.replace(/\D/g, "");
+      if (!d) return null;
+      if (d.length < 4) return "***";
+      return `***${d.slice(-4)}`;
+    };
+
+    const urgencyFromCadPriority = (p: string): Incident["urgency"] => {
+      const norm = p.trim().toUpperCase();
+      if (norm === "P1") return "critical";
+      if (norm === "P2") return "high";
+      if (norm === "P4") return "low";
+      return "moderate";
+    };
+
+    const summaryParts: string[] = [];
+    if (opts?.summary?.trim()) summaryParts.push(opts.summary.trim());
+    if (opts?.assignedTo?.trim()) {
+      summaryParts.push(`Assigned to: ${opts.assignedTo.trim()}`);
+    }
 
     const incident: Incident = {
       incidentId: makeId("inc"),
       agencyId: user.agencyId,
       title,
       category: "unknown",
-      urgency: "moderate",
+      urgency: opts?.cadPriority ? urgencyFromCadPriority(opts.cadPriority) : "moderate",
       status: "active",
       source,
       confidence: null,
       escalationFlag: false,
-      summary: "",
+      summary: summaryParts.join("\n\n"),
       createdAt: now,
       updatedAt: now,
       callerAddressLine,
       callerAddressNormalized: callerAddressNormalized && callerAddressNormalized.length > 0
         ? callerAddressNormalized
         : null,
+      callerLocationLat: opts?.cadCoordinates?.lat ?? null,
+      callerLocationLng: opts?.cadCoordinates?.lng ?? null,
+      cadNatureCode: opts?.cadNatureCode?.trim() || undefined,
+      cadPriority: opts?.cadPriority?.trim() || undefined,
+      cadLocation: opts?.cadLocation?.trim() || callerAddressLine || undefined,
+      cadCoordinates: opts?.cadCoordinates,
+      cadCallerName: opts?.cadCallerName?.trim() || null,
+      cadCallerCallbackMasked: opts?.callerCallback ? maskCallback(opts.callerCallback) : null,
     };
 
     const tenant = await agencyRepo.get(user.agencyId);

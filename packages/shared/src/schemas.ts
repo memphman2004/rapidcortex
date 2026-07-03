@@ -35,6 +35,12 @@ export const createIncidentSchema = z
     title: z.string().min(3),
     source: z.enum(["demo", "manual", "stream", "cad"]).default("manual"),
     callerAddressLine: z.string().min(1).max(500).optional(),
+    /** Dispatcher free-text / nature-of-call notes (manual create slide-over). */
+    summary: z.string().max(5000).optional(),
+    /** Callback number; server masks before persistence (never store full E.164 in clear text). */
+    callerCallback: z.string().min(1).max(32).optional(),
+    /** Supervisor-only routing hint — appended to summary audit trail, not a tenancy field. */
+    assignedTo: z.string().min(1).max(200).optional(),
   })
   .merge(createIncidentCadFieldsSchema);
 

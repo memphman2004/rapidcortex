@@ -28,6 +28,12 @@ import {
   unauthorized,
 } from "../../lib/response.js";
 import { ulid } from "ulid";
+import {
+  cadPollTestConnectionBodySchema,
+  testApiPollConnection,
+} from "../../lib/cad/testApiPollConnection.js";
+import { pollCadIntegration } from "../../lib/cad/poll/cad-poller-service.js";
+import type { CadPollHistoryPoint } from "../../repositories/cadIntegrationRepository.js";
 
 const authz = new AuthorizationService();
 const integrationRepo = new CadIntegrationRepository();
@@ -68,6 +74,31 @@ function canListCadIncidents(user: UserContext): boolean {
 function publicBase(): string {
   const b = env.cadPublicApiBaseUrl.trim();
   return (b || "https://api.rapidcortex.us").replace(/\/$/, "");
+}
+
+function toHealthSummary(row: CadIntegrationRecord) {
+  const history = Array.isArray(row.pollHistory) ? row.pollHistory : [];
+  const recentOk = history.filter((h) => h.ok);
+  const avgLatencyMs =
+    recentOk.length > 0
+      ? Math.round(recentOk.reduce((sum, h) => sum + h.latencyMs, 0) / recentOk.length)
+      : undefined;
+
+  return {
+    integrationId: row.id,
+    agencyId: row.agencyId,
+    vendor: row.vendor,
+    name: row.name,
+    connectionType: row.connectionType,
+    status: row.status,
+    lastSuccessfulPollAt: row.lastSuccessfulPollAt,
+    circuitBreaker: row.circuitBreaker,
+    createdAt: row.createdAt,
+    updatedAt: row.updatedAt,
+    pollHistory: history as CadPollHistoryPoint[],
+    avgLatencyMs,
+    recentIncidentCount: history.slice(-20).reduce((sum, h) => sum + (h.ok ? h.incidentCount : 0), 0),
+  };
 }
 
 function toPublicIntegration(
@@ -142,6 +173,13 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
     if (rawPath === pathIntegrationsRoot && method === "GET") {
       if (!canViewCadIntegrations(user)) return forbidden();
       const rows = await integrationRepo.listByAgency(user.agencyId);
+      const includeMetrics = event.queryStringParameters?.includeMetrics === "true";
+      if (includeMetrics) {
+        return ok({
+          items: rows.map((r) => toPublicIntegration(r)),
+          integrations: rows.map((r) => toHealthSummary(r)),
+        });
+      }
       return ok({ items: rows.map((r) => toPublicIntegration(r)) });
     }
 
@@ -189,9 +227,19 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
     if (!rawPath.startsWith(prefix)) return notFound();
 
     const tail = rawPath.slice(prefix.length);
+    const testConnectionSuffix = "/test-connection";
+    const forcePollSuffix = "/force-poll";
     const testSuffix = "/test";
-    const isTest = tail.endsWith(testSuffix);
-    const id = isTest ? tail.slice(0, -testSuffix.length) : tail;
+    const isTestConnection = tail.endsWith(testConnectionSuffix);
+    const isForcePoll = !isTestConnection && tail.endsWith(forcePollSuffix);
+    const isTest = !isTestConnection && !isForcePoll && tail.endsWith(testSuffix);
+    const id = isTestConnection
+      ? tail.slice(0, -testConnectionSuffix.length)
+      : isForcePoll
+        ? tail.slice(0, -forcePollSuffix.length)
+        : isTest
+          ? tail.slice(0, -testSuffix.length)
+          : tail;
     if (!id) return notFound();
 
     if (method === "GET") {
@@ -207,9 +255,11 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
       if (!parsed.success) return badRequestFromZod(parsed.error);
       const existing = await integrationRepo.getById(user.agencyId, id);
       if (!existing) return notFound();
-      const { regenerateToken, ...rest } = parsed.data;
+      const { regenerateToken, config, circuitBreaker, ...rest } = parsed.data;
       const salt = env.cadWebhookSecretSalt;
       const updatePayload: Parameters<typeof integrationRepo.update>[2] = { ...rest };
+      if (config) updatePayload.config = config;
+      if (circuitBreaker) updatePayload.circuitBreaker = circuitBreaker;
       let newPlainToken: string | undefined;
       if (regenerateToken) {
         if (!salt) return serviceUnavailable("CAD_WEBHOOK_SECRET_SALT is not configured.");
@@ -258,6 +308,95 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
         resourceId: id,
       });
       return ok({ deleted: true });
+    }
+
+    if (method === "POST" && isForcePoll) {
+      if (!canMutateCadIntegration(user)) return forbidden();
+      const row = await integrationRepo.getById(user.agencyId, id);
+      if (!row) return notFound();
+      if (row.connectionType !== "api_poll") {
+        return ok({
+          success: false,
+          incidentCount: 0,
+          message: "Force poll is only available for API poll integrations.",
+        });
+      }
+      const outcome = await pollCadIntegration(row, { force: true });
+      const now = new Date().toISOString();
+      await auditRepo.create({
+        eventId: makeId("aud"),
+        agencyId: user.agencyId,
+        actorId: user.userId,
+        type: AUDIT_EVENT_TYPES.CAD_INTEGRATION_TESTED,
+        details: {
+          integrationId: id,
+          mode: "force_poll",
+          success: outcome.success,
+          incidentCount: outcome.incidentCount,
+          authError: outcome.authError,
+          circuitBreakerOpened: outcome.circuitBreakerOpened,
+        },
+        createdAt: now,
+        resourceType: "integration",
+        resourceId: id,
+      });
+      return ok({
+        success: outcome.success,
+        incidentCount: outcome.incidentCount,
+        latencyMs: outcome.latencyMs,
+        authError: outcome.authError,
+        circuitBreakerOpened: outcome.circuitBreakerOpened,
+        rateLimited: outcome.rateLimited,
+        skipped: outcome.skipped,
+        message: outcome.skipped
+          ? `Poll skipped (${outcome.skipReason ?? "unknown"})`
+          : outcome.success
+            ? `Poll complete — ${outcome.incidentCount} incident(s) ingested`
+            : outcome.authError
+              ? "Poll failed — credentials rejected (auth_error)"
+              : "Poll failed — see circuit breaker and poll history",
+      });
+    }
+
+    if (method === "POST" && isTestConnection) {
+      if (!canMutateCadIntegration(user)) return forbidden();
+      const row = await integrationRepo.getById(user.agencyId, id);
+      if (!row) return notFound();
+      const parsed = cadPollTestConnectionBodySchema.safeParse(JSON.parse(event.body ?? "{}"));
+      if (!parsed.success) return badRequestFromZod(parsed.error);
+      const cfg = row.config ?? {};
+      const body = parsed.data;
+      const apiKey =
+        body.apiKey?.trim() ||
+        (typeof cfg.apiKey === "string" ? cfg.apiKey.trim() : "");
+      const result = await testApiPollConnection({
+        apiUrl: body.apiUrl,
+        authType: body.authType,
+        apiKey: apiKey || undefined,
+        apiKeyHeader: body.apiKeyHeader ?? (typeof cfg.apiKeyHeader === "string" ? cfg.apiKeyHeader : undefined),
+        agencyCode: body.agencyCode ?? (typeof cfg.agencyCode === "string" ? cfg.agencyCode : undefined),
+      });
+      const now = new Date().toISOString();
+      await auditRepo.create({
+        eventId: makeId("aud"),
+        agencyId: user.agencyId,
+        actorId: user.userId,
+        type: AUDIT_EVENT_TYPES.CAD_INTEGRATION_TESTED,
+        details: {
+          integrationId: id,
+          mode: "api_poll_connection",
+          ok: result.ok,
+          latencyMs: result.latencyMs,
+          sampleCount: result.sampleCount,
+        },
+        createdAt: now,
+        resourceType: "integration",
+        resourceId: id,
+      });
+      if (result.ok) {
+        await integrationRepo.update(user.agencyId, id, { lastPingAt: now });
+      }
+      return ok(result);
     }
 
     if (method === "POST" && isTest) {

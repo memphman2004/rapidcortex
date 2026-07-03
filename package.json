@@ -1,7 +1,10 @@
 {
   "name": "rapid-cortex",
   "private": true,
-  "workspaces": ["apps/*", "packages/*"],
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
   "scripts": {
     "test": "vitest run",
     "test:ci": "npm run test:security && npx vitest run --exclude 'apps/api/src/__tests__/security/**'",
@@ -78,5 +81,8 @@
   },
   "overrides": {
     "fast-xml-parser": "^5.7.0"
+  },
+  "dependencies": {
+    "@smithy/core": "^3.29.0"
   }
 }

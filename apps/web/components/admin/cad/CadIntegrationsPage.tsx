@@ -3,19 +3,19 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import type { CadVendor } from "rapid-cortex-shared";
 import { Plug } from "lucide-react";
+import { useSession } from "@/components/auth/session-context";
 import {
   deleteCadIntegration,
   fetchCadIncidents,
   fetchCadIntegrations,
   patchCadIntegration,
-  postCadIntegration,
   postCadIntegrationTest,
   type CadAdminIntegration,
 } from "@/lib/api";
 import { isCadWritebackUiEnabled } from "@/lib/runtime-flags";
-import { AddIntegrationWizard } from "./AddIntegrationWizard";
+import { CadIntegrationWizard } from "./cad-integration-wizard";
+import { CadIntegrationHealthPanel } from "./cad-integration-health-panel";
 import { CadIntegrationCard } from "./CadIntegrationCard";
 import type { CadTestResult } from "./IntegrationDetailDrawer";
 import { IntegrationDetailDrawer } from "./IntegrationDetailDrawer";
@@ -24,6 +24,7 @@ import { CadWritebackApprovals } from "./CadWritebackApprovals";
 
 export function CadIntegrationsPage() {
   const qc = useQueryClient();
+  const { user } = useSession();
   const searchParams = useSearchParams();
   const router = useRouter();
   const pathname = usePathname();
@@ -47,13 +48,6 @@ export function CadIntegrationsPage() {
     [pathname, router, writebackUi],
   );
   const [wizardOpen, setWizardOpen] = useState(false);
-  const [wizardStep, setWizardStep] = useState(1);
-  const [selectedVendor, setSelectedVendor] = useState<CadVendor | null>(null);
-  const [integrationName, setIntegrationName] = useState("");
-  const [connectionType, setConnectionType] = useState<"webhook_inbound" | "api_poll">("webhook_inbound");
-  const [createdSecret, setCreatedSecret] = useState<string | null>(null);
-  const [createdIntegration, setCreatedIntegration] = useState<CadAdminIntegration | null>(null);
-  const [tokenRevealed, setTokenRevealed] = useState(false);
   const [detail, setDetail] = useState<CadAdminIntegration | null>(null);
   const [detailTab, setDetailTab] = useState<"overview" | "incidents" | "troubleshoot">("overview");
   const [expandedRawId, setExpandedRawId] = useState<string | null>(null);
@@ -86,28 +80,6 @@ export function CadIntegrationsPage() {
       setBanner({ tone: "error", text: "Copy failed — select and copy manually." });
     }
   }, []);
-
-  const createMut = useMutation({
-    mutationFn: () => {
-      if (!selectedVendor || !integrationName.trim()) {
-        return Promise.reject(new Error("Choose a vendor and enter a name."));
-      }
-      return postCadIntegration({
-        vendor: selectedVendor,
-        connectionType,
-        name: integrationName.trim(),
-        config: {},
-      });
-    },
-    onSuccess: (res) => {
-      setCreatedIntegration(res.integration);
-      setCreatedSecret(res.webhookSecret);
-      setWizardStep(3);
-      setBanner(null);
-      void qc.invalidateQueries({ queryKey: ["cad-integrations"] });
-    },
-    onError: (e: Error) => setBanner({ tone: "error", text: e.message }),
-  });
 
   const patchMut = useMutation({
     mutationFn: (args: {
@@ -170,26 +142,17 @@ export function CadIntegrationsPage() {
 
   const openWizard = useCallback(() => {
     setWizardOpen(true);
-    setWizardStep(1);
-    setSelectedVendor(null);
-    setIntegrationName("");
-    setConnectionType("webhook_inbound");
-    setCreatedSecret(null);
-    setCreatedIntegration(null);
-    setTokenRevealed(false);
     setBanner(null);
   }, []);
 
   const closeWizard = useCallback(() => {
     setWizardOpen(false);
-  }, []);
+    void qc.invalidateQueries({ queryKey: ["cad-integrations"] });
+  }, [qc]);
 
   const items = listQuery.data?.items ?? [];
-
-  const vendorPlaceholder = useMemo(() => {
-    const v = selectedVendor ? vendorTitle(selectedVendor) : "Vendor";
-    return `Primary CAD — ${v}`;
-  }, [selectedVendor]);
+  const canManageHealth =
+    user?.role === "agencyadmin" || user?.role === "agencyit" || user?.role === "rcsuperadmin";
 
   const troubleshootingBullets = useMemo(() => {
     if (!detail) return [];
@@ -260,6 +223,21 @@ export function CadIntegrationsPage() {
         </div>
       ) : null}
 
+      {canManageHealth && user?.agencyId ? (
+        <section className="rounded-xl border border-slate-800 bg-[#09080f] p-4">
+          <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-slate-400">
+            API poll health
+          </h2>
+          <CadIntegrationHealthPanel
+            agencyId={user.agencyId}
+            onEditIntegration={(integrationId) => {
+              const row = items.find((i) => i.id === integrationId);
+              if (row) openDetail(row);
+            }}
+          />
+        </section>
+      ) : null}
+
       {listQuery.isError ? (
         <div className="rounded-lg border border-rose-800/50 bg-rose-950/20 px-4 py-3 text-sm text-rose-100">
           Failed to load integrations.{" "}
@@ -316,31 +294,20 @@ export function CadIntegrationsPage() {
         </div>
       )}
 
-      <AddIntegrationWizard
-        open={wizardOpen}
-        onClose={() => {
-          closeWizard();
-          void qc.invalidateQueries({ queryKey: ["cad-integrations"] });
-        }}
-        wizardStep={wizardStep}
-        setWizardStep={setWizardStep}
-        selectedVendor={selectedVendor}
-        setSelectedVendor={setSelectedVendor}
-        integrationName={integrationName}
-        setIntegrationName={setIntegrationName}
-        connectionType={connectionType}
-        setConnectionType={setConnectionType}
-        createdIntegration={createdIntegration}
-        createdSecret={createdSecret}
-        tokenRevealed={tokenRevealed}
-        setTokenRevealed={setTokenRevealed}
-        onCreate={() => createMut.mutate()}
-        onSendTest={(id) => testMut.mutate(id)}
-        onCopy={copy}
-        createPending={createMut.isPending}
-        testPending={testMut.isPending}
-        vendorPlaceholder={vendorPlaceholder}
-      />
+      {wizardOpen && user?.agencyId ? (
+        <div className="fixed inset-0 z-50 flex justify-end bg-black/60">
+          <div className="h-full w-full max-w-2xl">
+            <CadIntegrationWizard
+              agencyId={user.agencyId}
+              onClose={closeWizard}
+              onComplete={(integrationId) => {
+                setBanner({ tone: "info", text: `Integration ${integrationId} is now active.` });
+                closeWizard();
+              }}
+            />
+          </div>
+        </div>
+      ) : null}
 
       {detail ? (
         <IntegrationDetailDrawer
