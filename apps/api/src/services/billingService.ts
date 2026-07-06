@@ -38,7 +38,7 @@ function reconcileHealth(
   const t = nowIso();
 
   let tier: AgencyBillingProfile["delinquency"]["tier"] = "none";
-  if (overdueCount > 1) tier = "critical";
+  if (overdueCount > 1) tier = "suspended";
   else if (overdueCount === 1 || isSubscriptionPastDue) tier = "warning";
 
   const billingStatus: AgencyBillingProfile["billingAccount"]["status"] =
