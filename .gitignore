@@ -99,6 +99,9 @@ rapidcortex-prod-*.json
 artifacts/
 
 
+# internal marketing assets (large videos — keep local, not in git)
+Rapid Cortex Internal Docs/Sales_Marketing/Videos/
+
 # additional local/sensitive files
 *.env
 *.local
