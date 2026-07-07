@@ -376,6 +376,9 @@ export const env = {
   billingSchedulesTable: process.env.BILLING_SCHEDULES_TABLE?.trim() ?? "",
   paymentRecordsTable: process.env.PAYMENT_RECORDS_TABLE?.trim() ?? "",
   billingAuditLogTable: process.env.BILLING_AUDIT_LOG_TABLE?.trim() ?? "",
+  pricingConfigTable: process.env.PRICING_CONFIG_TABLE?.trim() ?? "",
+  tenantPricingOverridesTable: process.env.TENANT_PRICING_OVERRIDES_TABLE?.trim() ?? "",
+  pricingAuditTable: process.env.PRICING_AUDIT_TABLE?.trim() ?? "",
   billingInvoicesBucket: process.env.BILLING_INVOICES_BUCKET?.trim() ?? "",
   billingPosBucket: process.env.BILLING_POS_BUCKET?.trim() ?? "",
   billingPaymentInstructionsSecretArn:

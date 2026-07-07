@@ -422,7 +422,7 @@ Resources:
       Policies:
         - !Ref AppManagedPolicyQrLocationDynamo
 
-  LocationResolveHttpIntegration:
+  LocationResolveIntegN:
     Type: AWS::ApiGatewayV2::Integration
     Condition: HasQRLocationsTable
     Properties:
@@ -431,7 +431,7 @@ Resources:
       IntegrationUri: !Sub arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${LocationResolveFunction.Arn}/invocations
       PayloadFormatVersion: "2.0"
 
-  LocationIntakeHttpIntegration:
+  LocationIntakeIntegN:
     Type: AWS::ApiGatewayV2::Integration
     Condition: HasQRLocationsTable
     Properties:
@@ -440,7 +440,7 @@ Resources:
       IntegrationUri: !Sub arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${LocationIntakeFunction.Arn}/invocations
       PayloadFormatVersion: "2.0"
 
-  LocationMediaUploadHttpIntegration:
+  LocationMediaUploadIntegN:
     Type: AWS::ApiGatewayV2::Integration
     Condition: HasQRLocationsTable
     Properties:
@@ -449,7 +449,7 @@ Resources:
       IntegrationUri: !Sub arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${LocationMediaUploadFunction.Arn}/invocations
       PayloadFormatVersion: "2.0"
 
-  LocationsAdminHttpIntegration:
+  LocationsAdminIntegN:
     Type: AWS::ApiGatewayV2::Integration
     Condition: HasQRLocationsTable
     Properties:
@@ -458,7 +458,7 @@ Resources:
       IntegrationUri: !Sub arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${LocationsAdminFunction.Arn}/invocations
       PayloadFormatVersion: "2.0"
 
-  LocationQrHttpIntegration:
+  LocationQrIntegN:
     Type: AWS::ApiGatewayV2::Integration
     Condition: HasQRLocationsTable
     Properties:
@@ -467,7 +467,7 @@ Resources:
       IntegrationUri: !Sub arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${LocationQrFunction.Arn}/invocations
       PayloadFormatVersion: "2.0"
 
-  GetVenueIncidentsHttpIntegration:
+  GetVenueIncidentsIntegN:
     Type: AWS::ApiGatewayV2::Integration
     Condition: HasVenueConfigTable
     Properties:
@@ -537,7 +537,7 @@ Resources:
       ApiId: !Ref HttpApiId
       RouteKey: "GET /api/r/{rcli}"
       AuthorizationType: NONE
-      Target: !Sub "integrations/${LocationResolveHttpIntegration}"
+      Target: !Sub "integrations/${LocationResolveIntegN}"
 
   RouteQrIntakePostV2:
     Type: AWS::ApiGatewayV2::Route
@@ -546,7 +546,7 @@ Resources:
       ApiId: !Ref HttpApiId
       RouteKey: "POST /api/r/{rcli}"
       AuthorizationType: NONE
-      Target: !Sub "integrations/${LocationIntakeHttpIntegration}"
+      Target: !Sub "integrations/${LocationIntakeIntegN}"
 
   RouteQrMediaUploadGetV2:
     Type: AWS::ApiGatewayV2::Route
@@ -555,7 +555,7 @@ Resources:
       ApiId: !Ref HttpApiId
       RouteKey: "GET /api/r/{rcli}/media-upload-url"
       AuthorizationType: NONE
-      Target: !Sub "integrations/${LocationMediaUploadHttpIntegration}"
+      Target: !Sub "integrations/${LocationMediaUploadIntegN}"
 
   RouteLocationsAdminListV2:
     Type: AWS::ApiGatewayV2::Route
@@ -563,7 +563,7 @@ Resources:
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "GET /api/admin/tenants/{agencyId}/locations"
-      Target: !Sub "integrations/${LocationsAdminHttpIntegration}"
+      Target: !Sub "integrations/${LocationsAdminIntegN}"
 
   RouteLocationsAdminCreateV2:
     Type: AWS::ApiGatewayV2::Route
@@ -571,7 +571,7 @@ Resources:
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "POST /api/admin/tenants/{agencyId}/locations"
-      Target: !Sub "integrations/${LocationsAdminHttpIntegration}"
+      Target: !Sub "integrations/${LocationsAdminIntegN}"
 
   RouteLocationsAdminUpdateV2:
     Type: AWS::ApiGatewayV2::Route
@@ -579,7 +579,7 @@ Resources:
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "PUT /api/admin/tenants/{agencyId}/locations/{rcli}"
-      Target: !Sub "integrations/${LocationsAdminHttpIntegration}"
+      Target: !Sub "integrations/${LocationsAdminIntegN}"
 
   RouteLocationsAdminDeleteV2:
     Type: AWS::ApiGatewayV2::Route
@@ -587,7 +587,7 @@ Resources:
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "DELETE /api/admin/tenants/{agencyId}/locations/{rcli}"
-      Target: !Sub "integrations/${LocationsAdminHttpIntegration}"
+      Target: !Sub "integrations/${LocationsAdminIntegN}"
 
   RouteLocationsAdminBulkV2:
     Type: AWS::ApiGatewayV2::Route
@@ -595,7 +595,7 @@ Resources:
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "POST /api/admin/tenants/{agencyId}/locations/bulk"
-      Target: !Sub "integrations/${LocationsAdminHttpIntegration}"
+      Target: !Sub "integrations/${LocationsAdminIntegN}"
 
   RouteLocationQrGetV2:
     Type: AWS::ApiGatewayV2::Route
@@ -603,7 +603,7 @@ Resources:
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "GET /api/admin/tenants/{agencyId}/locations/{rcli}/qr"
-      Target: !Sub "integrations/${LocationQrHttpIntegration}"
+      Target: !Sub "integrations/${LocationQrIntegN}"
 
   RouteVenueIncidentsGetV2:
     Type: AWS::ApiGatewayV2::Route
@@ -611,7 +611,7 @@ Resources:
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "GET /api/venue/incidents"
-      Target: !Sub "integrations/${GetVenueIncidentsHttpIntegration}"
+      Target: !Sub "integrations/${GetVenueIncidentsIntegN}"
 
   QrNfcHttpFunction:
     Type: AWS::Serverless::Function
@@ -658,7 +658,7 @@ Resources:
         - !Ref AppManagedPolicyQrNfcDynamo
         - !Ref AppManagedPolicyQrLocationDynamo
 
-  QrNfcHttpIntegration:
+  QrNfcHttpIntegN:
     Type: AWS::ApiGatewayV2::Integration
     Properties:
       ApiId: !Ref HttpApiId
@@ -666,7 +666,7 @@ Resources:
       IntegrationUri: !Sub arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${QrNfcHttpFunction.Arn}/invocations
       PayloadFormatVersion: "2.0"
 
-  QrNfcEngageHttpIntegration:
+  QrNfcEngageIntegN:
     Type: AWS::ApiGatewayV2::Integration
     Properties:
       ApiId: !Ref HttpApiId
@@ -674,7 +674,7 @@ Resources:
       IntegrationUri: !Sub arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${QrNfcEngageFunction.Arn}/invocations
       PayloadFormatVersion: "2.0"
 
-  PublicReportSubmitHttpIntegration:
+  PublicReportIntegN:
     Type: AWS::ApiGatewayV2::Integration
     Properties:
       ApiId: !Ref HttpApiId
@@ -711,42 +711,42 @@ Resources:
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "GET /api/qr-nfc"
-      Target: !Sub "integrations/${QrNfcHttpIntegration}"
+      Target: !Sub "integrations/${QrNfcHttpIntegN}"
 
   RouteQrNfcGlobalListV2:
     Type: AWS::ApiGatewayV2::Route
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "GET /api/qr-nfc/global"
-      Target: !Sub "integrations/${QrNfcHttpIntegration}"
+      Target: !Sub "integrations/${QrNfcHttpIntegN}"
 
   RouteQrNfcCreateV2:
     Type: AWS::ApiGatewayV2::Route
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "POST /api/qr-nfc"
-      Target: !Sub "integrations/${QrNfcHttpIntegration}"
+      Target: !Sub "integrations/${QrNfcHttpIntegN}"
 
   RouteQrNfcGetV2:
     Type: AWS::ApiGatewayV2::Route
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "GET /api/qr-nfc/{qrId}"
-      Target: !Sub "integrations/${QrNfcHttpIntegration}"
+      Target: !Sub "integrations/${QrNfcHttpIntegN}"
 
   RouteQrNfcPatchV2:
     Type: AWS::ApiGatewayV2::Route
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "PATCH /api/qr-nfc/{qrId}"
-      Target: !Sub "integrations/${QrNfcHttpIntegration}"
+      Target: !Sub "integrations/${QrNfcHttpIntegN}"
 
   RouteQrNfcDeleteV2:
     Type: AWS::ApiGatewayV2::Route
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "DELETE /api/qr-nfc/{qrId}"
-      Target: !Sub "integrations/${QrNfcHttpIntegration}"
+      Target: !Sub "integrations/${QrNfcHttpIntegN}"
 
   RouteQrNfcEngagePostV2:
     Type: AWS::ApiGatewayV2::Route
@@ -754,7 +754,7 @@ Resources:
       ApiId: !Ref HttpApiId
       RouteKey: "POST /api/qr-nfc/{qrId}/engage"
       AuthorizationType: NONE
-      Target: !Sub "integrations/${QrNfcEngageHttpIntegration}"
+      Target: !Sub "integrations/${QrNfcEngageIntegN}"
 
   RoutePublicReportPostV2:
     Type: AWS::ApiGatewayV2::Route
@@ -762,4 +762,4 @@ Resources:
       ApiId: !Ref HttpApiId
       RouteKey: "POST /api/public/report"
       AuthorizationType: NONE
-      Target: !Sub "integrations/${PublicReportSubmitHttpIntegration}"
+      Target: !Sub "integrations/${PublicReportIntegN}"

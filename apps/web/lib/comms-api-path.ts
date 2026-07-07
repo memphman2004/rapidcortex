@@ -43,6 +43,7 @@ const STACK4_PATH_TESTS: RegExp[] = [
   /^\/api\/public\/ring\//,
   /^\/api\/cameras\/providers/,
   /^\/api\/admin\/invoices/,
+  /^\/api\/admin\/pricing/,
   /^\/api\/agency\/entitlements/,
   /^\/api\/agency\/network-policy/,
   /^\/api\/agency\/emergency-override/,

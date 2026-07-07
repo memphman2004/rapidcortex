@@ -66,6 +66,7 @@ export const RC_SUPERADMIN_NAV: RoleNav = {
       label: "BUSINESS",
       items: [
         { id: "billing",   label: "Billing",           href: "/rc-admin/billing",       icon: "CreditCard" },
+        { id: "pricing",   label: "Pricing config",    href: "/rc-admin/pricing",       icon: "Tag" },
         { id: "invoices",  label: "Invoices",          href: "/rc-admin/invoices",      icon: "Receipt" },
         { id: "catalog",   label: "Service Catalog",   href: "/rc-admin/billing/services", icon: "Package" },
         { id: "agreements",label: "Agreements",        href: "/rc-admin/agreements",    icon: "FileSignature" },

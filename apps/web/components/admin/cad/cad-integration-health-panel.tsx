@@ -593,7 +593,7 @@ export function CadIntegrationHealthPanel({ agencyId, onEditIntegration }: Props
           )}
           {stale > 0 && (
             <span style={{ fontSize: 12, color: V.amber }}>
-              ⏱ {stale} stale poll{stale > 1 ? "s" : ""} (>30 min)
+              ⏱ {stale} stale poll{stale > 1 ? "s" : ""} ({">"}30 min)
             </span>
           )}
         </div>

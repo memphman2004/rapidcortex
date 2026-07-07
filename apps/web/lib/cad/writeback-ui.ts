@@ -72,7 +72,7 @@ export function incidentToWritebackContext(incident: {
   cadIncidentId?: string | null;
   category?: string;
   urgency?: string;
-  callerAddressLine?: string;
+  callerAddressLine?: string | null;
 }) {
   return {
     cadIncidentId: incident.cadIncidentId,

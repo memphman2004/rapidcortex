@@ -121,7 +121,7 @@ function PendingRow({
           : await postCadWritebackReject(item.id, body);
 
       if (action === "approve" && "error" in result && result.error && !result.ok) {
-        setActionResult({ ok: false, message: result.error });
+        setActionResult({ ok: false, message: String(result.error ?? "Unknown error") });
         return;
       }
 

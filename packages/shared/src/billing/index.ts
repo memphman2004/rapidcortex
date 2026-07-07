@@ -4,3 +4,6 @@ export * from "./entities.js";
 export * from "./schemas.js";
 export * from "./addon-types.js";
 export * from "./addon-catalog.js";
+export * from "./pricing-defaults.js";
+export * from "./pricing-types.js";
+export * from "./pricing-schemas.js";

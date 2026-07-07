@@ -401,7 +401,7 @@ export function CadWritebackSlideOver({
           )}
 
           {/* ready / submitting / error+retry — show the form */}
-          {(isReady || phase === "submitting" || phase === "error") && phase !== "no_cad_link" && !isPending && (
+          {(isReady || phase === "submitting" || phase === "error") && !isPending && (
             <div>
               {/* Narrative — primary field */}
               <div style={{ marginBottom: 16 }}>

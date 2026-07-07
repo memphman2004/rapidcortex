@@ -304,7 +304,9 @@ else
   TESTS_FAILED=$((TESTS_FAILED + 1))
 fi
 
-test_endpoint "/developers/api" "API documentation" "API docs page" 1
+echo -n "Testing API docs page … "
+_apidocs_html="$("${curl_marketing[@]}" -f "${BASE_URL}/developers/api" 2>&1)" && \
+  { echo "${_apidocs_html}" | grep -qi "API documentation" && { log_info "API docs page"; TESTS_PASSED=$((TESTS_PASSED + 1)); } || { log_error "content mismatch /developers/api (need 'API documentation')"; TESTS_FAILED=$((TESTS_FAILED + 1)); }; } || { log_error "fetch failed /developers/api"; TESTS_FAILED=$((TESTS_FAILED + 1)); }
 
 echo -n "Checking Mac download link on /downloads … "
 if [[ -n "${DOWNLOADS_HTML}" ]] && grep -Fq "downloads.rapidcortex.us/mac" <<<"${DOWNLOADS_HTML}"; then

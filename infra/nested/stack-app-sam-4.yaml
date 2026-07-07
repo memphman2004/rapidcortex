@@ -2243,6 +2243,60 @@ Resources:
         SSEEnabled: true
         SSEType: KMS
 
+  PricingConfigTable:
+    Type: AWS::DynamoDB::Table
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      TableName: !Sub "${AppName}-pricing-config-${DeploymentStage}"
+      BillingMode: PAY_PER_REQUEST
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: true
+      SSESpecification:
+        SSEEnabled: true
+      KeySchema:
+        - { AttributeName: pk, KeyType: HASH }
+        - { AttributeName: sk, KeyType: RANGE }
+      AttributeDefinitions:
+        - { AttributeName: pk, AttributeType: S }
+        - { AttributeName: sk, AttributeType: S }
+
+  TenantPricingOverridesTable:
+    Type: AWS::DynamoDB::Table
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      TableName: !Sub "${AppName}-tenant-pricing-overrides-${DeploymentStage}"
+      BillingMode: PAY_PER_REQUEST
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: true
+      SSESpecification:
+        SSEEnabled: true
+      KeySchema:
+        - { AttributeName: pk, KeyType: HASH }
+        - { AttributeName: sk, KeyType: RANGE }
+      AttributeDefinitions:
+        - { AttributeName: pk, AttributeType: S }
+        - { AttributeName: sk, AttributeType: S }
+
+  PricingAuditTable:
+    Type: AWS::DynamoDB::Table
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      TableName: !Sub "${AppName}-pricing-audit-${DeploymentStage}"
+      BillingMode: PAY_PER_REQUEST
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: true
+      SSESpecification:
+        SSEEnabled: true
+      KeySchema:
+        - { AttributeName: pk, KeyType: HASH }
+        - { AttributeName: sk, KeyType: RANGE }
+      AttributeDefinitions:
+        - { AttributeName: pk, AttributeType: S }
+        - { AttributeName: sk, AttributeType: S }
+
   RingConnectLoginFunction:
     Type: AWS::Serverless::Function
     Metadata:
@@ -3709,6 +3763,67 @@ Resources:
             Schedule: rate(1 day)
             Description: "MSA §4.6/13.5 delinquency tier escalation — runs daily."
             Enabled: true
+
+  PricingAdminHttpFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      Environment:
+        Variables:
+          COGNITO_USER_POOL_ID: !Ref ImportedCognitoUserPoolId
+          COGNITO_CLIENT_ID: !Ref ImportedCognitoWebClientId
+          PRICING_CONFIG_TABLE: !Ref PricingConfigTable
+          TENANT_PRICING_OVERRIDES_TABLE: !Ref TenantPricingOverridesTable
+          PRICING_AUDIT_TABLE: !Ref PricingAuditTable
+      CodeUri: ../../apps/api/
+      Handler: dist/handlers/billing/pricingHandler.handler
+      Timeout: 30
+      Policies:
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardA
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardB
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardC
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardD
+        - DynamoDBCrudPolicy:
+            TableName: !Ref PricingConfigTable
+        - DynamoDBCrudPolicy:
+            TableName: !Ref TenantPricingOverridesTable
+        - DynamoDBCrudPolicy:
+            TableName: !Ref PricingAuditTable
+        - Statement:
+            Effect: Allow
+            Action:
+              - cloudwatch:PutMetricData
+            Resource: "*"
+            Condition:
+              StringEquals:
+                cloudwatch:namespace: RapidCortex/PricingAdmin
+      Events:
+        PricingGlobal:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/admin/pricing/global
+            Method: ANY
+        PricingTenants:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/admin/pricing/tenants
+            Method: ANY
+        PricingTenantById:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/admin/pricing/tenants/{agencyId}
+            Method: ANY
+        PricingAudit:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/admin/pricing/audit
+            Method: GET
 
   BillingPaymentsDisabledCatchAllFunction:
     Type: AWS::Serverless::Function

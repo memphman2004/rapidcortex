@@ -8,6 +8,7 @@ const RC_PLATFORM_ROLES = new Set(["rcsuperadmin", "rcadmin", "rcitadmin"]);
 const MANAGE_ROLES = new Set([
   ...RC_PLATFORM_ROLES,
   "agencyadmin",
+  "agencyit",
   "campus_admin",
   "venue_admin",
 ]);
