@@ -1,12 +1,12 @@
 "use client";
 
+import { useCallback, useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useMemo, useState } from "react";
 import { ArrowDownAZ, ArrowUpDown, Building2, Search } from "lucide-react";
 import { fetchAgencies } from "@/lib/api";
-import { useJurisdictionLink } from "@/lib/jurisdiction-context";
+import { useOptionalJurisdictionSlug } from "@/lib/jurisdiction-context";
 import { RC_PLATFORM_COMMAND_PATHS } from "@/lib/platform-command-nav";
 import { RcAdminCreateAgencyRunbook } from "@/components/platform/rc-admin-create-agency-runbook";
 import { countOnboardingProgress, needsOnboardingAttention } from "@/lib/platform-onboarding-helpers";
@@ -30,7 +30,14 @@ function resolveAgencyVertical(agency: AgencyTenant): Vertical {
 
 export default function PlatformAgenciesPage() {
   const pathname = usePathname();
-  const to = useJurisdictionLink();
+  const jurisdictionSlug = useOptionalJurisdictionSlug();
+  const to = useCallback(
+    (path: string) => {
+      const normalized = path.startsWith("/") ? path : `/${path}`;
+      return jurisdictionSlug ? `/${jurisdictionSlug}${normalized}` : normalized;
+    },
+    [jurisdictionSlug],
+  );
   const newAgencyHref = pathname.startsWith("/rc-admin")
     ? RC_PLATFORM_COMMAND_PATHS.agenciesNew
     : to("/admin/platform/agencies/new");

@@ -18,6 +18,16 @@
       "Resource": "*"
     },
     {
+      "Sid": "WebEcrCreate",
+      "Effect": "Allow",
+      "Action": [
+        "ecr:CreateRepository",
+        "ecr:PutLifecyclePolicy",
+        "ecr:TagResource"
+      ],
+      "Resource": "arn:aws:ecr:REPLACE_REGION:REPLACE_ACCOUNT_ID:repository/rapid-cortex-web-*"
+    },
+    {
       "Sid": "WebPipelineSourceUpload",
       "Effect": "Allow",
       "Action": ["s3:PutObject", "s3:GetObject", "s3:ListBucket"],
@@ -52,9 +62,9 @@
         "ecs:CreateService"
       ],
       "Resource": [
-        "arn:aws:ecs:REPLACE_REGION:REPLACE_ACCOUNT_ID:service/rapid-cortex-v2-web-prod/*",
+        "arn:aws:ecs:REPLACE_REGION:REPLACE_ACCOUNT_ID:service/rapid-cortex-v2-web-*/*",
         "arn:aws:ecs:REPLACE_REGION:REPLACE_ACCOUNT_ID:service/rapid-cortex-web-*/*",
-        "arn:aws:ecs:REPLACE_REGION:REPLACE_ACCOUNT_ID:task-definition/rapid-cortex-v2-web-prod:*",
+        "arn:aws:ecs:REPLACE_REGION:REPLACE_ACCOUNT_ID:task-definition/rapid-cortex-v2-web-*:*",
         "arn:aws:ecs:REPLACE_REGION:REPLACE_ACCOUNT_ID:task-definition/rapid-cortex-web-*:*"
       ]
     },
@@ -73,13 +83,13 @@
         "ecs:ListTasks"
       ],
       "Resource": [
-        "arn:aws:ecs:REPLACE_REGION:REPLACE_ACCOUNT_ID:cluster/rapid-cortex-v2-web-prod",
+        "arn:aws:ecs:REPLACE_REGION:REPLACE_ACCOUNT_ID:cluster/rapid-cortex-v2-web-*",
         "arn:aws:ecs:REPLACE_REGION:REPLACE_ACCOUNT_ID:cluster/rapid-cortex-web-*",
-        "arn:aws:ecs:REPLACE_REGION:REPLACE_ACCOUNT_ID:container-instance/rapid-cortex-v2-web-prod/*",
+        "arn:aws:ecs:REPLACE_REGION:REPLACE_ACCOUNT_ID:container-instance/rapid-cortex-v2-web-*/*",
         "arn:aws:ecs:REPLACE_REGION:REPLACE_ACCOUNT_ID:container-instance/rapid-cortex-web-*/*",
-        "arn:aws:ecs:REPLACE_REGION:REPLACE_ACCOUNT_ID:service/rapid-cortex-v2-web-prod/*",
+        "arn:aws:ecs:REPLACE_REGION:REPLACE_ACCOUNT_ID:service/rapid-cortex-v2-web-*/*",
         "arn:aws:ecs:REPLACE_REGION:REPLACE_ACCOUNT_ID:service/rapid-cortex-web-*/*",
-        "arn:aws:ecs:REPLACE_REGION:REPLACE_ACCOUNT_ID:task/rapid-cortex-v2-web-prod/*",
+        "arn:aws:ecs:REPLACE_REGION:REPLACE_ACCOUNT_ID:task/rapid-cortex-v2-web-*/*",
         "arn:aws:ecs:REPLACE_REGION:REPLACE_ACCOUNT_ID:task/rapid-cortex-web-*/*"
       ]
     },
@@ -88,7 +98,7 @@
       "Effect": "Allow",
       "Action": ["ecs:DescribeClusters", "ecs:ListServices"],
       "Resource": [
-        "arn:aws:ecs:REPLACE_REGION:REPLACE_ACCOUNT_ID:cluster/rapid-cortex-v2-web-prod",
+        "arn:aws:ecs:REPLACE_REGION:REPLACE_ACCOUNT_ID:cluster/rapid-cortex-v2-web-*",
         "arn:aws:ecs:REPLACE_REGION:REPLACE_ACCOUNT_ID:cluster/rapid-cortex-web-*"
       ]
     },
@@ -157,7 +167,7 @@
       "Sid": "WebElbTargetHealth",
       "Effect": "Allow",
       "Action": ["elasticloadbalancing:DescribeTargetHealth"],
-      "Resource": "arn:aws:elasticloadbalancing:REPLACE_REGION:REPLACE_ACCOUNT_ID:targetgroup/rapid-cortex-v2-web-prod/*"
+      "Resource": "arn:aws:elasticloadbalancing:REPLACE_REGION:REPLACE_ACCOUNT_ID:targetgroup/rapid-cortex-v2-web-*/*"
     },
     {
       "Sid": "WebLogsRead",
@@ -167,7 +177,7 @@
         "logs:GetLogEvents",
         "logs:FilterLogEvents"
       ],
-      "Resource": "arn:aws:logs:REPLACE_REGION:REPLACE_ACCOUNT_ID:log-group:/ecs/rapid-cortex-v2-web-prod:*"
+      "Resource": "arn:aws:logs:REPLACE_REGION:REPLACE_ACCOUNT_ID:log-group:/ecs/rapid-cortex-v2-web-*:*"
     },
     {
       "Sid": "MapboxTokenSsmRead",

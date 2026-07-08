@@ -1,3 +1,7 @@
+"use client";
+
+import { CampusDashboardHeaderUtilities } from "@/components/campus/campus-dashboard-header-utilities";
+
 const roleLabelMap: Record<string, string> = {
   VENUE_ADMIN: "VENUE ADMIN",
   VENUE_SUPERVISOR: "SUPERVISOR",
@@ -6,7 +10,17 @@ const roleLabelMap: Record<string, string> = {
   VENUE_GUEST_SERVICES: "GUEST SERVICES",
 };
 
-export function VenueHeader({ venueCode, role = "VENUE_SUPERVISOR" }: { venueCode: string; role?: string }) {
+export function VenueHeader({
+  venueCode,
+  role = "VENUE_SUPERVISOR",
+  userEmail,
+  agencyId,
+}: {
+  venueCode: string;
+  role?: string;
+  userEmail?: string;
+  agencyId?: string;
+}) {
   const roleLabel = roleLabelMap[role] ?? role;
 
   return (
@@ -28,6 +42,7 @@ export function VenueHeader({ venueCode, role = "VENUE_SUPERVISOR" }: { venueCod
                 : "Game day operations console"}
           </p>
         </div>
+        <CampusDashboardHeaderUtilities email={userEmail} role={role} agencyId={agencyId} />
       </div>
     </header>
   );

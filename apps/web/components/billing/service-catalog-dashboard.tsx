@@ -1,221 +1,206 @@
 "use client";
 
-import { type ChangeEvent, useEffect, useMemo, useRef, useState } from "react";
-import { fetchBillingServices, type BillingServiceCatalogRow } from "@/lib/api";
+import { useEffect, useMemo, useState } from "react";
+import type { CatalogItem, ServiceCategory } from "rapid-cortex-shared";
 
-type ServiceCategory =
-  | "CORE"
-  | "ADD_ON"
-  | "PROFESSIONAL_SERVICES"
-  | "SUPPORT"
-  | "USAGE"
-  | "RC_LITE";
+const CATEGORY_META: Record<string, { title: string; emoji: string }> = {
+  core: { title: "Core Services", emoji: "🚀" },
+  addon: { title: "Add-On Services", emoji: "⚡" },
+  professional: { title: "Professional Services", emoji: "🛠️" },
+  support: { title: "Support Plans", emoji: "💬" },
+  rc_lite: { title: "RC Lite API", emoji: "🔌" },
+  vertical: { title: "Vertical Packages", emoji: "🏢" },
+};
 
-type BillingType = "ONE_TIME" | "MONTHLY" | "ANNUAL" | "USAGE";
-
-type ServiceRow = BillingServiceCatalogRow & {
-  category: ServiceCategory;
-  billingType: BillingType;
+const BILLING_LABEL: Record<string, string> = {
+  monthly: "/month",
+  annual: "/year",
+  one_time: " one-time",
+  included: " included",
 };
 
 type SelectedLineItem = {
   id: string;
-  serviceId?: string;
-  serviceName: string;
+  itemId: string;
+  name: string;
   description?: string;
   quantity: number;
-  unitPrice: number;
-  isCustom?: boolean;
+  unitPriceCents: number;
 };
 
-const CATEGORY_META: Record<ServiceCategory, { title: string; emoji: string }> = {
-  CORE: { title: "Core Services", emoji: "🚀" },
-  ADD_ON: { title: "Add-On Services", emoji: "⚡" },
-  PROFESSIONAL_SERVICES: { title: "Professional Services", emoji: "🛠️" },
-  SUPPORT: { title: "Support Plans", emoji: "💬" },
-  USAGE: { title: "Usage & Overages", emoji: "📊" },
-  RC_LITE: { title: "RC Lite API", emoji: "🔌" },
-};
-
-function asMoney(value: number): string {
+function asMoney(cents: number | null): string {
+  if (cents === null) return "Custom";
   return new Intl.NumberFormat("en-US", {
     style: "currency",
     currency: "USD",
     minimumFractionDigits: 0,
     maximumFractionDigits: 2,
-  }).format(value);
-}
-
-function billingPeriod(type: BillingType): string {
-  if (type === "MONTHLY") return "/month";
-  if (type === "ANNUAL") return "/year";
-  if (type === "USAGE") return "/usage";
-  return "";
+  }).format(cents / 100);
 }
 
 export function ServiceCatalogDashboard() {
-  const seedInputRef = useRef<HTMLInputElement | null>(null);
-  const [services, setServices] = useState<ServiceRow[]>([]);
+  const [items, setItems] = useState<CatalogItem[]>([]);
+  const [catalogUpdatedAt, setCatalogUpdatedAt] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [search, setSearch] = useState("");
-  const [category, setCategory] = useState<"ALL" | ServiceCategory>("ALL");
+  const [category, setCategory] = useState<"all" | ServiceCategory>("all");
   const [error, setError] = useState<string | null>(null);
   const [selectedItems, setSelectedItems] = useState<SelectedLineItem[]>([]);
   const [customDesc, setCustomDesc] = useState("");
   const [customQty, setCustomQty] = useState(1);
-  const [customPrice, setCustomPrice] = useState(0);
+  const [customPriceCents, setCustomPriceCents] = useState(0);
 
   useEffect(() => {
-    async function loadServices() {
+    async function load() {
       try {
         setIsLoading(true);
-        const data = await fetchBillingServices({ active: true });
-        setServices(
-          (data.items ?? []).filter((x) => x.active) as ServiceRow[],
-        );
+        const res = await fetch("/api/rc-admin/pricing/catalog");
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const data = (await res.json()) as { items: CatalogItem[]; updatedAt?: string };
+        setItems((data.items ?? []).filter((x) => x.enabled));
+        if (data.updatedAt) setCatalogUpdatedAt(data.updatedAt);
       } catch (err) {
-        setError(err instanceof Error ? err.message : "Failed to load services");
+        setError(err instanceof Error ? err.message : "Failed to load catalog");
       } finally {
         setIsLoading(false);
       }
     }
-    void loadServices();
+    void load();
   }, []);
 
   const counts = useMemo(() => {
-    return {
-      CORE: services.filter((s) => s.category === "CORE").length,
-      ADD_ON: services.filter((s) => s.category === "ADD_ON").length,
-      PROFESSIONAL_SERVICES: services.filter((s) => s.category === "PROFESSIONAL_SERVICES").length,
-      SUPPORT: services.filter((s) => s.category === "SUPPORT").length,
-    };
-  }, [services]);
+    const c = { core: 0, addon: 0, professional: 0, support: 0, rc_lite: 0, vertical: 0 };
+    for (const item of items) {
+      if (item.category in c) c[item.category as keyof typeof c]++;
+    }
+    return c;
+  }, [items]);
 
   const filtered = useMemo(() => {
-    return services.filter((service) => {
-      const matchesCategory = category === "ALL" || service.category === category;
+    return items.filter((item) => {
+      const matchesCategory = category === "all" || item.category === category;
       const q = search.trim().toLowerCase();
       const matchesSearch =
         q.length === 0 ||
-        service.name.toLowerCase().includes(q) ||
-        (service.description ?? "").toLowerCase().includes(q);
+        item.name.toLowerCase().includes(q) ||
+        item.description.toLowerCase().includes(q);
       return matchesCategory && matchesSearch;
     });
-  }, [category, search, services]);
+  }, [category, search, items]);
 
   const grouped = useMemo(() => {
-    return filtered.reduce<Record<string, ServiceRow[]>>((acc, item) => {
+    return filtered.reduce<Record<string, CatalogItem[]>>((acc, item) => {
       if (!acc[item.category]) acc[item.category] = [];
       acc[item.category].push(item);
       return acc;
     }, {});
   }, [filtered]);
 
-  const subtotal = useMemo(
-    () => selectedItems.reduce((sum, item) => sum + item.quantity * item.unitPrice, 0),
+  const subtotalCents = useMemo(
+    () => selectedItems.reduce((sum, item) => sum + item.quantity * item.unitPriceCents, 0),
     [selectedItems],
   );
 
   function exportCsv() {
-    const headers = ["Service ID", "Name", "Description", "Category", "Default Price", "Billing Type"];
-    const rows = services.map((s) => [
-      s.serviceId,
+    const headers = ["ID", "Name", "Description", "Category", "Subcategory", "Unit Price (cents)", "Billing Period"];
+    const rows = items.map((s) => [
+      s.id,
       s.name,
-      s.description ?? "",
+      s.description,
       s.category,
-      String(s.defaultPrice),
-      s.billingType,
+      s.subcategory,
+      String(s.unitPrice ?? ""),
+      s.billingPeriod,
     ]);
-    const csv = [headers, ...rows].map((row) => row.map((x) => `"${x.replace(/"/g, '""')}"`).join(",")).join("\n");
+    const csv = [headers, ...rows]
+      .map((row) => row.map((x) => `"${String(x).replace(/"/g, '""')}"`).join(","))
+      .join("\n");
     const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
     link.href = url;
-    link.download = "rapid-cortex-service-catalog.csv";
+    link.download = "rapid-cortex-pricing-catalog.csv";
     link.click();
     URL.revokeObjectURL(url);
   }
 
-  async function handleSeedFilePick(event: ChangeEvent<HTMLInputElement>) {
-    const file = event.target.files?.[0];
-    if (!file) return;
-    try {
-      const text = await file.text();
-      const parsed = JSON.parse(text) as ServiceRow[];
-      if (!Array.isArray(parsed)) throw new Error("Seed JSON must be an array");
-      const valid = parsed.filter((row) => typeof row?.serviceId === "string" && typeof row?.name === "string");
-      setServices(valid);
-      setError(null);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Invalid seed JSON");
-    } finally {
-      event.target.value = "";
-    }
-  }
-
-  function toggleService(service: ServiceRow) {
+  function toggleItem(item: CatalogItem) {
     setSelectedItems((prev) => {
-      const existing = prev.find((x) => x.serviceId === service.serviceId);
-      if (existing) return prev.filter((x) => x.serviceId !== service.serviceId);
+      const existing = prev.find((x) => x.itemId === item.id);
+      if (existing) return prev.filter((x) => x.itemId !== item.id);
       return [
         ...prev,
         {
-          id: `selected-${service.serviceId}`,
-          serviceId: service.serviceId,
-          serviceName: service.name,
-          description: service.description,
+          id: `selected-${item.id}`,
+          itemId: item.id,
+          name: item.name,
+          description: item.description,
           quantity: 1,
-          unitPrice: service.defaultPrice,
+          unitPriceCents: item.unitPrice ?? 0,
         },
       ];
     });
   }
 
-  function updateSelectedItem(id: string, patch: Partial<SelectedLineItem>) {
-    setSelectedItems((prev) => prev.map((item) => (item.id === id ? { ...item, ...patch } : item)));
+  function updateSelected(id: string, patch: Partial<SelectedLineItem>) {
+    setSelectedItems((prev) => prev.map((x) => (x.id === id ? { ...x, ...patch } : x)));
   }
 
   function addCustomLineItem() {
-    if (!customDesc.trim() || customQty <= 0 || customPrice < 0) return;
+    if (!customDesc.trim() || customQty <= 0 || customPriceCents < 0) return;
     setSelectedItems((prev) => [
       ...prev,
       {
         id: `custom-${crypto.randomUUID()}`,
-        serviceName: customDesc.trim(),
+        itemId: "",
+        name: customDesc.trim(),
         description: "Custom line item",
         quantity: customQty,
-        unitPrice: customPrice,
-        isCustom: true,
+        unitPriceCents: customPriceCents,
       },
     ]);
     setCustomDesc("");
     setCustomQty(1);
-    setCustomPrice(0);
+    setCustomPriceCents(0);
   }
+
+  const categories: ("all" | ServiceCategory)[] = [
+    "all",
+    "core",
+    "addon",
+    "professional",
+    "support",
+    "rc_lite",
+    "vertical",
+  ];
 
   return (
     <div className="space-y-6">
       <div className="rounded-2xl border border-slate-700 bg-gradient-to-r from-[#2E5090] to-[#1a3a6b] p-6">
-        <h1 className="text-2xl font-semibold text-white">Rapid Cortex Service Catalog</h1>
-        <p className="mt-1 text-sm text-slate-200">Internal billing pricing dashboard and invoice service selector.</p>
+        <h1 className="text-2xl font-semibold text-white">Rapid Cortex Pricing Catalog</h1>
+        <p className="mt-1 text-sm text-slate-200">
+          Live pricing data — internal billing dashboard and invoice service selector.
+        </p>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-4">
-        <StatCard label="Core Services" value={counts.CORE} />
-        <StatCard label="Add-Ons" value={counts.ADD_ON} />
-        <StatCard label="Prof. Services" value={counts.PROFESSIONAL_SERVICES} />
-        <StatCard label="Support Plans" value={counts.SUPPORT} />
+      <div className="grid gap-4 md:grid-cols-6">
+        <StatCard label="Core" value={counts.core} />
+        <StatCard label="Add-Ons" value={counts.addon} />
+        <StatCard label="Prof. Services" value={counts.professional} />
+        <StatCard label="Support" value={counts.support} />
+        <StatCard label="RC Lite" value={counts.rc_lite} />
+        <StatCard label="Verticals" value={counts.vertical} />
       </div>
 
       <div className="flex flex-wrap items-center gap-3 rounded-xl border border-slate-800 bg-slate-900/60 p-4">
         <input
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          placeholder="Search services..."
+          placeholder="Search catalog..."
           className="min-w-64 flex-1 rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-slate-100 outline-none focus:border-sky-500"
         />
         <div className="flex flex-wrap gap-2">
-          {(["ALL", "CORE", "ADD_ON", "PROFESSIONAL_SERVICES", "SUPPORT", "RC_LITE"] as const).map((c) => (
+          {categories.map((c) => (
             <button
               key={c}
               onClick={() => setCategory(c)}
@@ -225,7 +210,7 @@ export function ServiceCatalogDashboard() {
                   : "border-slate-700 bg-slate-900 text-slate-300"
               }`}
             >
-              {c === "ALL" ? "All Services" : c.replaceAll("_", " ")}
+              {c === "all" ? "All" : c.replaceAll("_", " ")}
             </button>
           ))}
         </div>
@@ -235,19 +220,6 @@ export function ServiceCatalogDashboard() {
         >
           Export CSV
         </button>
-        <button
-          onClick={() => seedInputRef.current?.click()}
-          className="rounded-lg border border-indigo-600 bg-indigo-700/20 px-3 py-1.5 text-xs font-semibold text-indigo-200"
-        >
-          Load Seed JSON
-        </button>
-        <input
-          ref={seedInputRef}
-          type="file"
-          accept=".json,application/json"
-          className="hidden"
-          onChange={handleSeedFilePick}
-        />
       </div>
 
       {error ? (
@@ -256,26 +228,29 @@ export function ServiceCatalogDashboard() {
 
       <div className="grid gap-6 xl:grid-cols-2">
         <div className="space-y-6">
-          {isLoading ? <div className="text-sm text-slate-400">Loading service catalog...</div> : null}
+          {isLoading ? <div className="text-sm text-slate-400">Loading pricing catalog...</div> : null}
           {!isLoading &&
             Object.entries(grouped).map(([cat, rows]) => {
-              const meta = CATEGORY_META[cat as ServiceCategory];
+              const meta = CATEGORY_META[cat] ?? { title: cat, emoji: "🧩" };
               return (
                 <section key={cat} className="space-y-3">
                   <div className="flex items-center gap-3 border-b border-slate-700 pb-3">
-                    <span className="text-2xl">{meta?.emoji ?? "🧩"}</span>
+                    <span className="text-2xl">{meta.emoji}</span>
                     <div>
-                      <h2 className="text-lg font-semibold text-slate-100">{meta?.title ?? cat}</h2>
-                      <p className="text-xs text-slate-400">{rows.length} services</p>
+                      <h2 className="text-lg font-semibold text-slate-100">{meta.title}</h2>
+                      <p className="text-xs text-slate-400">{rows.length} items</p>
                     </div>
                   </div>
                   <div className="grid gap-3">
-                    {rows.map((service) => {
-                      const selected = selectedItems.some((x) => x.serviceId === service.serviceId);
+                    {rows.map((item) => {
+                      const selected = selectedItems.some((x) => x.itemId === item.id);
+                      const billingLabel =
+                        BILLING_LABEL[item.billingPeriod] ??
+                        (item.billingPeriod ? `/${item.billingPeriod}` : "");
                       return (
                         <button
-                          key={service.serviceId}
-                          onClick={() => toggleService(service)}
+                          key={item.id}
+                          onClick={() => toggleItem(item)}
                           className={`w-full rounded-xl border p-4 text-left transition ${
                             selected
                               ? "border-sky-500 bg-sky-950/30"
@@ -283,14 +258,29 @@ export function ServiceCatalogDashboard() {
                           }`}
                         >
                           <div className="flex items-start justify-between gap-3">
-                            <div>
-                              <p className="text-sm font-semibold text-slate-100">{service.name}</p>
-                              <p className="mt-1 text-xs text-slate-400">{service.description ?? "No description"}</p>
+                            <div className="min-w-0">
+                              <p className="text-sm font-semibold text-slate-100">{item.name}</p>
+                              <p className="mt-1 text-xs text-slate-400">{item.description}</p>
+                              {item.subcategory ? (
+                                <p className="mt-1 text-xs text-slate-500">{item.subcategory}</p>
+                              ) : null}
                             </div>
-                            <span className="text-sm font-semibold text-sky-200">
-                              {asMoney(service.defaultPrice)}
-                              <span className="text-xs font-normal text-slate-400">{billingPeriod(service.billingType)}</span>
-                            </span>
+                            <div className="shrink-0 text-right">
+                              {item.priceType === "custom" ? (
+                                <span className="text-sm font-semibold text-amber-300">Custom</span>
+                              ) : item.priceType === "included" ? (
+                                <span className="text-sm font-semibold text-emerald-300">Included</span>
+                              ) : item.priceType === "range" ? (
+                                <span className="text-sm font-semibold text-sky-200">
+                                  {asMoney(item.priceMin)}–{asMoney(item.priceMax)}
+                                </span>
+                              ) : (
+                                <span className="text-sm font-semibold text-sky-200">
+                                  {asMoney(item.unitPrice)}
+                                  <span className="text-xs font-normal text-slate-400">{billingLabel}</span>
+                                </span>
+                              )}
+                            </div>
                           </div>
                         </button>
                       );
@@ -304,17 +294,17 @@ export function ServiceCatalogDashboard() {
         <div className="space-y-4 rounded-xl border border-slate-800 bg-slate-900/60 p-4">
           <h3 className="text-base font-semibold text-slate-100">Selected Services (Editable)</h3>
           {selectedItems.length === 0 ? (
-            <p className="text-sm text-slate-400">Select services on the left to auto-fill pricing and quantities.</p>
+            <p className="text-sm text-slate-400">Select items on the left to build an invoice.</p>
           ) : null}
 
           {selectedItems.map((item) => {
-            const lineTotal = item.quantity * item.unitPrice;
+            const lineTotal = item.quantity * item.unitPriceCents;
             return (
               <div key={item.id} className="rounded-lg border border-slate-700 bg-slate-950 p-3">
                 <div className="mb-2 flex items-start justify-between gap-3">
                   <div>
-                    <p className="text-sm font-semibold text-slate-100">{item.serviceName}</p>
-                    {item.isCustom ? <p className="text-xs text-amber-300">Custom line item</p> : null}
+                    <p className="text-sm font-semibold text-slate-100">{item.name}</p>
+                    {!item.itemId ? <p className="text-xs text-amber-300">Custom line item</p> : null}
                   </div>
                   <button
                     onClick={() => setSelectedItems((prev) => prev.filter((x) => x.id !== item.id))}
@@ -331,20 +321,22 @@ export function ServiceCatalogDashboard() {
                       min={1}
                       value={item.quantity}
                       onChange={(e) =>
-                        updateSelectedItem(item.id, { quantity: Math.max(1, Number(e.target.value) || 1) })
+                        updateSelected(item.id, { quantity: Math.max(1, Number(e.target.value) || 1) })
                       }
                       className="mt-1 w-full rounded border border-slate-700 bg-slate-900 px-2 py-1 text-sm text-slate-100"
                     />
                   </label>
                   <label className="text-xs text-slate-400">
-                    Unit Price
+                    Unit Price (cents)
                     <input
                       type="number"
                       min={0}
-                      step="0.01"
-                      value={item.unitPrice}
+                      step={1}
+                      value={item.unitPriceCents}
                       onChange={(e) =>
-                        updateSelectedItem(item.id, { unitPrice: Math.max(0, Number(e.target.value) || 0) })
+                        updateSelected(item.id, {
+                          unitPriceCents: Math.max(0, Math.round(Number(e.target.value) || 0)),
+                        })
                       }
                       className="mt-1 w-full rounded border border-slate-700 bg-slate-900 px-2 py-1 text-sm text-slate-100"
                     />
@@ -374,14 +366,18 @@ export function ServiceCatalogDashboard() {
                 min={1}
                 value={customQty}
                 onChange={(e) => setCustomQty(Math.max(1, Number(e.target.value) || 1))}
+                placeholder="Qty"
                 className="rounded border border-slate-700 bg-slate-900 px-2 py-1 text-sm text-slate-100"
               />
               <input
                 type="number"
                 min={0}
-                step="0.01"
-                value={customPrice}
-                onChange={(e) => setCustomPrice(Math.max(0, Number(e.target.value) || 0))}
+                step={1}
+                value={customPriceCents}
+                onChange={(e) =>
+                  setCustomPriceCents(Math.max(0, Math.round(Number(e.target.value) || 0)))
+                }
+                placeholder="Cents"
                 className="rounded border border-slate-700 bg-slate-900 px-2 py-1 text-sm text-slate-100"
               />
             </div>
@@ -393,10 +389,27 @@ export function ServiceCatalogDashboard() {
             </button>
           </div>
 
-          <div className="border-t border-slate-700 pt-3 text-right">
-            <p className="text-sm text-slate-300">
-              Subtotal: <span className="font-semibold text-sky-200">{asMoney(subtotal)}</span>
-            </p>
+          <div className="border-t border-slate-700 pt-3">
+            <div className="flex items-end justify-between gap-2">
+              {catalogUpdatedAt ? (
+                <p className="text-xs text-slate-500">
+                  Prices as of{" "}
+                  {new Date(catalogUpdatedAt).toLocaleString("en-US", {
+                    month: "short",
+                    day: "numeric",
+                    year: "numeric",
+                    hour: "numeric",
+                    minute: "2-digit",
+                    timeZoneName: "short",
+                  })}
+                </p>
+              ) : (
+                <span />
+              )}
+              <p className="text-sm text-slate-300">
+                Subtotal: <span className="font-semibold text-sky-200">{asMoney(subtotalCents)}</span>
+              </p>
+            </div>
           </div>
         </div>
       </div>

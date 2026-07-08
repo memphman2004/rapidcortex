@@ -135,7 +135,10 @@ if [[ "${ROLL_ECS_AFTER_CODEBUILD:-0}" == "1" ]]; then
     --cluster "${CLUSTER}" \
     --service "${SVC}" \
     --task-definition "${NEW_TASK_DEF_ARN}" \
+    --deployment-configuration "maximumPercent=200,minimumHealthyPercent=50,deploymentCircuitBreaker={enable=false,rollback=false}" \
     --region "${AWS_REGION}"
+  # Note: aws ecs wait services-stable is hard-capped at ~10 min; use deploy-web-no-docker.sh for
+  # long rollouts where the 35-min polling loop is needed.
   aws ecs wait services-stable \
     --cluster "${CLUSTER}" \
     --services "${SVC}" \

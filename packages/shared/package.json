@@ -112,6 +112,11 @@
       "types": "./dist/staffing/index.d.ts",
       "import": "./dist/staffing/index.js",
       "require": "./dist/staffing/index.js"
+    },
+    "./pricing": {
+      "types": "./dist/pricing/index.d.ts",
+      "import": "./dist/pricing/index.js",
+      "require": "./dist/pricing/index.js"
     }
   },
   "scripts": {

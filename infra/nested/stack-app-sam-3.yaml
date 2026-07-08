@@ -1772,6 +1772,178 @@ Resources:
   # Renamed 2026-05-25 (was `PinpointSurgeIncidentsHttpFunction`) — pinpoint events moved to
   # Stack 1's `PinpointIncidentsHttpFunction`; this Lambda now only handles `/api/incidents/{id}/surge/*`.
 
+  # ---------------------------------------------------------------------------
+  # Pricing Catalog — global service pricing + agency overrides + audit trail
+  # ---------------------------------------------------------------------------
+
+  PricingTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: !Sub "rapid-cortex-pricing-${DeploymentStage}"
+      BillingMode: PAY_PER_REQUEST
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: !If [DynamoPitrOn, true, false]
+      SSESpecification:
+        SSEEnabled: true
+      AttributeDefinitions:
+        - AttributeName: pk
+          AttributeType: S
+        - AttributeName: sk
+          AttributeType: S
+      KeySchema:
+        - AttributeName: pk
+          KeyType: HASH
+        - AttributeName: sk
+          KeyType: RANGE
+
+  AppManagedPolicyPricingTableCrud:
+    Type: AWS::IAM::ManagedPolicy
+    Properties:
+      ManagedPolicyName: !Sub "${Sam3ManagedPolicyNamePrefix}-sam3-pricing-crud-${DeploymentStage}"
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Sid: PricingTableCrud
+            Effect: Allow
+            Action:
+              - dynamodb:GetItem
+              - dynamodb:BatchGetItem
+              - dynamodb:BatchWriteItem
+              - dynamodb:PutItem
+              - dynamodb:UpdateItem
+              - dynamodb:Query
+              - dynamodb:ConditionCheckItem
+            Resource:
+              - !GetAtt PricingTable.Arn
+              - !Sub "${PricingTable.Arn}/index/*"
+
+  PricingCatalogFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/handlers/rc-admin/pricing-catalog.handler
+      Environment:
+        Variables:
+          PRICING_TABLE: !Ref PricingTable
+      Policies:
+        - !Ref AppManagedPolicyPricingTableCrud
+      Events:
+        Route:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/rc-admin/pricing/catalog
+            Method: GET
+
+  PricingConfigGetFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/handlers/rc-admin/pricing-config-get.handler
+      Environment:
+        Variables:
+          PRICING_TABLE: !Ref PricingTable
+      Policies:
+        - !Ref AppManagedPolicyPricingTableCrud
+      Events:
+        Route:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/rc-admin/pricing/config
+            Method: GET
+
+  PricingConfigPutFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/handlers/rc-admin/pricing-config-put.handler
+      Timeout: 30
+      Environment:
+        Variables:
+          PRICING_TABLE: !Ref PricingTable
+      Policies:
+        - !Ref AppManagedPolicyPricingTableCrud
+      Events:
+        Route:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/rc-admin/pricing/config
+            Method: PUT
+
+  PricingConfigPatchFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/handlers/rc-admin/pricing-config-patch.handler
+      Environment:
+        Variables:
+          PRICING_TABLE: !Ref PricingTable
+      Policies:
+        - !Ref AppManagedPolicyPricingTableCrud
+      Events:
+        Route:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/rc-admin/pricing/config/{id}
+            Method: PATCH
+
+  PricingConfigAuditFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/handlers/rc-admin/pricing-config-audit.handler
+      Environment:
+        Variables:
+          PRICING_TABLE: !Ref PricingTable
+      Policies:
+        - !Ref AppManagedPolicyPricingTableCrud
+      Events:
+        Route:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/rc-admin/pricing/config/audit
+            Method: GET
+
+  PricingAgencyOverrideFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/handlers/rc-admin/pricing-agency-override.handler
+      Environment:
+        Variables:
+          PRICING_TABLE: !Ref PricingTable
+      Policies:
+        - !Ref AppManagedPolicyPricingTableCrud
+      Events:
+        Route:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/rc-admin/pricing/config/agency-override
+            Method: POST
+
 Outputs:
   OpsAlertsTopicArn:
     Description: SNS topic ARN for CloudWatch alarm notifications (stack 3 ops).

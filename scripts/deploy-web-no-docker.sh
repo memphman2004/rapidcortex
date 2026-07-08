@@ -295,7 +295,7 @@ while true; do
         --region "${AWS_REGION}" \
         --query 'builds[0].phases[*].[phaseType,phaseStatus]' \
         --output table \
-        --no-cli-pager 2>&2 || true
+        --no-cli-pager 2>&1 || true
       echo "   Build ID: ${BUILD_ID}" >&2
       echo "   Console:  https://console.aws.amazon.com/codesuite/codebuild/${AWS_REGION}/projects/${CODEBUILD_PROJECT}/build/${BUILD_ID}" >&2
       echo "   Logs:     aws logs tail /aws/codebuild/${CODEBUILD_PROJECT} --since 30m --region ${AWS_REGION}" >&2
@@ -335,6 +335,20 @@ if [[ -z "${TASK_FAMILY}" || "${TASK_FAMILY}" == "None" ]]; then
   echo "❌ Missing TaskDefinitionFamily output from stack ${SSR_STACK}." >&2
   exit 1
 fi
+
+# Fetch health-check grace period for both create and update paths.
+# Default 120s — enough for Next.js cold start on Fargate before ALB begins health checking.
+GRACE_SEC="$(
+  aws cloudformation describe-stacks \
+    --stack-name "${SSR_STACK}" \
+    --region "${AWS_REGION}" \
+    --query "Stacks[0].Outputs[?OutputKey=='EcsHealthCheckGracePeriodSecondsValue'].OutputValue | [0]" \
+    --output text \
+    --no-cli-pager 2>/dev/null || true
+)"
+GRACE_SEC="${GRACE_SEC//$'\t'/}"
+[[ -z "${GRACE_SEC}" || "${GRACE_SEC}" == "None" ]] && GRACE_SEC=120
+echo "   Health-check grace period: ${GRACE_SEC}s"
 
 PREV_TASK_DEF=""
 if [[ "${ECS_SVC_LEN}" -ge 1 ]]; then
@@ -395,14 +409,7 @@ if [[ "${ECS_SVC_LEN}" -lt 1 ]]; then
       --output text \
       --no-cli-pager 2>/dev/null || true
   )"
-  GRACE_SEC="$(
-    aws cloudformation describe-stacks \
-      --stack-name "${SSR_STACK}" \
-      --region "${AWS_REGION}" \
-      --query "Stacks[0].Outputs[?OutputKey=='EcsHealthCheckGracePeriodSecondsValue'].OutputValue | [0]" \
-      --output text \
-      --no-cli-pager 2>/dev/null || true
-  )"
+  # GRACE_SEC is fetched unconditionally above; validate it alongside the other required outputs.
   for v in TG_ARN PRIV_SUBS_CSV ECS_SG ASSIGN_PUB DESIRED_CNT GRACE_SEC; do
     eval "vv=\${${v}}"
     if [[ -z "${vv}" || "${vv}" == "None" ]]; then
@@ -421,19 +428,25 @@ if [[ "${ECS_SVC_LEN}" -lt 1 ]]; then
     --network-configuration "awsvpcConfiguration={subnets=[${PRIV_SUBS_CSV}],securityGroups=[${ECS_SG}],assignPublicIp=${ASSIGN_PUB}}" \
     --load-balancers "targetGroupArn=${TG_ARN},containerName=nextjs-web,containerPort=3000" \
     --health-check-grace-period-seconds "${GRACE_SEC}" \
-    --deployment-configuration "maximumPercent=200,minimumHealthyPercent=50,deploymentCircuitBreaker={enable=true,rollback=true}" \
+    --deployment-configuration "maximumPercent=200,minimumHealthyPercent=50,deploymentCircuitBreaker={enable=false,rollback=false}" \
     --region "${AWS_REGION}" \
     --no-cli-pager >/dev/null
   echo "✓ ECS service created"
 else
+  # Always pass --deployment-configuration on update-service: without it ECS inherits whatever
+  # is live on the service, which may have the circuit breaker ENABLED and cause spurious FAILED
+  # rollouts even when tasks are healthy. Also reapply --health-check-grace-period-seconds so
+  # Next.js cold-starts have time before the ALB begins health-checking new tasks.
   aws ecs update-service \
     --cluster "${CLUSTER_NAME}" \
     --service "${SERVICE_NAME}" \
     --task-definition "${TASK_FAMILY}" \
     --force-new-deployment \
+    --deployment-configuration "maximumPercent=200,minimumHealthyPercent=50,deploymentCircuitBreaker={enable=false,rollback=false}" \
+    --health-check-grace-period-seconds "${GRACE_SEC}" \
     --region "${AWS_REGION}" \
     --no-cli-pager >/dev/null
-  echo "✓ ECS update triggered (task definition family: ${TASK_FAMILY} → latest revision)"
+  echo "✓ ECS update triggered (task definition family: ${TASK_FAMILY} → latest revision, circuit breaker: disabled)"
 fi
 
 echo ""
@@ -446,47 +459,41 @@ ECS_DEPLOY_FAILED_TASKS_ABORT="${ECS_DEPLOY_FAILED_TASKS_ABORT:-8}"
 deadline=$(( $(date +%s) + ECS_WAIT_MINUTES * 60 ))
 stable_ok=""
 while (( $(date +%s) < deadline )); do
-  counts="$(
+  # Single describe-services call: tab-separated running, desired, pending, failedTasks, rolloutState.
+  svc_snapshot="$(
     aws ecs describe-services \
       --cluster "${CLUSTER_NAME}" \
       --services "${SERVICE_NAME}" \
       --region "${AWS_REGION}" \
-      --query 'services[0].[runningCount,desiredCount,pendingCount]' \
+      --query 'services[0].[runningCount,desiredCount,pendingCount,deployments[?status==`PRIMARY`].failedTasks|[0]|[0],deployments[?status==`PRIMARY`].rolloutState|[0]|[0]]' \
       --output text \
       --no-cli-pager 2>/dev/null || echo ""
   )"
-  if [[ -z "${counts}" || "${counts}" == "None" ]]; then
+  if [[ -z "${svc_snapshot}" || "${svc_snapshot}" == "None" ]]; then
     echo "   ⚠ describe-services returned empty; retrying…"
     sleep "${ECS_STABILITY_POLL_SECONDS}"
     continue
   fi
-  IFS=$'\t' read -r running desired pending <<< "${counts}"
+  IFS=$'\t' read -r running desired pending primary_failed rollout <<< "${svc_snapshot}"
 
-  primary_failed="$(
-    aws ecs describe-services \
-      --cluster "${CLUSTER_NAME}" \
-      --services "${SERVICE_NAME}" \
-      --region "${AWS_REGION}" \
-      --query 'services[0].deployments[?status==`PRIMARY`].failedTasks | [0]' \
-      --output text \
-      --no-cli-pager 2>/dev/null || echo "0"
-  )"
   primary_failed="${primary_failed//$'\t'/}"
   [[ -z "${primary_failed}" || "${primary_failed}" == "None" ]] && primary_failed=0
-
-  rollout="$(
-    aws ecs describe-services \
-      --cluster "${CLUSTER_NAME}" \
-      --services "${SERVICE_NAME}" \
-      --region "${AWS_REGION}" \
-      --query 'services[0].deployments[?status==`PRIMARY`].rolloutState | [0]' \
-      --output text \
-      --no-cli-pager 2>/dev/null || echo ""
-  )"
+  [[ -z "${rollout}" || "${rollout}" == "None" ]] && rollout="UNKNOWN"
 
   echo "   … running=${running} desired=${desired} pending=${pending} primary_failed=${primary_failed} rollout=${rollout}"
 
   if [[ "${running}" == "${desired}" && "${pending}" == "0" ]]; then
+    stable_ok=1
+    break
+  fi
+
+  # Guard: circuit breaker fired (rolloutState=FAILED) but tasks are running — false positive.
+  # With circuit breaker disabled above this shouldn't occur, but guard against out-of-band changes.
+  if [[ "${rollout}" == "FAILED" && "${running}" == "${desired}" ]]; then
+    echo "⚠ WARNING: ECS rolloutState=FAILED but ${running}/${desired} tasks are running." >&2
+    echo "   The circuit breaker tripped during rollout despite healthy tasks." >&2
+    echo "   Verify the app is healthy, then disable the circuit breaker on the service." >&2
+    echo "   App health: https://app.rapidcortex.us/api/health/web" >&2
     stable_ok=1
     break
   fi

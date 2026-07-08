@@ -486,4 +486,6 @@ export const env = {
   qrLocationsTable: process.env.QR_LOCATIONS_TABLE?.trim() ?? "",
   qrNfcCodesTable: process.env.QR_NFC_CODES_TABLE?.trim() ?? "",
   appBaseUrl: process.env.APP_BASE_URL?.trim() || "https://app.rapidcortex.us",
+  /** Unified pricing catalog (global items + agency overrides + audit). Empty disables pricing handlers. */
+  pricingTable: process.env.PRICING_TABLE?.trim() ?? "",
 };
