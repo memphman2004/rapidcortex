@@ -10,13 +10,20 @@ import {
   postLiveVideoRequest,
 } from "@/lib/api";
 import { startKvsViewer } from "@/components/live-video/kvs-webrtc-clients";
+import { PhoneInput } from "@/components/ui/phone-input";
 
 const DEFAULT_ICE: RTCConfiguration = {
   iceServers: [{ urls: "stun:stun.l.google.com:19302" }],
 };
 
-export function LiveVideoPanel({ incidentId }: { incidentId: string | null }) {
-  const [phone, setPhone] = useState("");
+export function LiveVideoPanel({
+  incidentId,
+  ani,
+}: {
+  incidentId: string | null;
+  ani?: string | null;
+}) {
+  const [phoneE164, setPhoneE164] = useState<string | null>(null);
   const [showRequest, setShowRequest] = useState(false);
   const [localErr, setLocalErr] = useState<string | null>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -146,11 +153,10 @@ export function LiveVideoPanel({ incidentId }: { incidentId: string | null }) {
   const requestMut = useMutation({
     mutationFn: async () => {
       if (!incidentId) throw new Error("No incident selected");
-      const trimmed = phone.trim();
-      if (!/^\+[1-9]\d{6,14}$/.test(trimmed)) {
-        throw new Error("Use caller phone in E.164 format, e.g. +15551234567");
+      if (!phoneE164) {
+        throw new Error("Enter a valid US phone number.");
       }
-      return postLiveVideoRequest(incidentId, { callerPhone: trimmed });
+      return postLiveVideoRequest(incidentId, { callerPhone: phoneE164 });
     },
     onSuccess: () => {
       setLocalErr(null);
@@ -210,15 +216,12 @@ export function LiveVideoPanel({ incidentId }: { incidentId: string | null }) {
 
       {showRequest ? (
         <div className="mt-3 space-y-2 rounded-md border border-slate-800 bg-slate-900/60 p-2">
-          <label className="block text-[10px] font-medium uppercase tracking-wide text-slate-500">
-            Caller mobile (E.164)
-            <input
-              value={phone}
-              onChange={(e) => setPhone(e.target.value)}
-              placeholder="+15551234567"
-              className="mt-1 w-full rounded border border-slate-700 bg-slate-950 px-2 py-1.5 font-mono text-xs text-slate-100"
-            />
-          </label>
+          <PhoneInput
+            label="Caller mobile"
+            ani={ani}
+            onChange={setPhoneE164}
+            disabled={requestMut.isPending}
+          />
           <button
             type="button"
             disabled={requestMut.isPending}

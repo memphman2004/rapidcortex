@@ -162,16 +162,24 @@ export function AiRecommendationPanel({
           />
         </div>
         <div className="mt-4 border-t border-slate-800 pt-3">
-          {liveVideoEnabled ? <LiveVideoPanel incidentId={incidentId} /> : <VideoAssistPanel incidentId={incidentId} />}
+          {liveVideoEnabled ? (
+            <LiveVideoPanel incidentId={incidentId} ani={incident?.callerCallback} />
+          ) : (
+            <VideoAssistPanel incidentId={incidentId} ani={incident?.callerCallback} />
+          )}
         </div>
         {silentTextEnabled ? (
           <div className="mt-4 border-t border-slate-800 pt-3">
-            <SilentTextPanel incidentId={incidentId} callerLanguage={incident?.callerLanguage} />
+            <SilentTextPanel
+              incidentId={incidentId}
+              callerLanguage={incident?.callerLanguage}
+              ani={incident?.callerCallback}
+            />
           </div>
         ) : null}
         {pinpointEnabled ? (
           <div className="mt-4 border-t border-slate-800 pt-3">
-            <PinpointPanel incidentId={incidentId} />
+            <PinpointPanel incidentId={incidentId} ani={incident?.callerCallback} />
           </div>
         ) : null}
         <div className="mt-4 border-t border-slate-800 pt-3">
@@ -181,7 +189,7 @@ export function AiRecommendationPanel({
           <DashboardQaPanel incidentId={incidentId} disabled={analysisLoading} />
         </div>
         <div className="mt-4 border-t border-slate-800 pt-3">
-          <IncidentMediaPanel incidentId={incidentId} />
+          <IncidentMediaPanel incidentId={incidentId} ani={incident?.callerCallback} />
         </div>
       </div>
       <UtilitySlot />

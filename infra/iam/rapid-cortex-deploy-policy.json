@@ -52,6 +52,18 @@
       "Resource": "arn:aws:ssm:REPLACE_REGION:REPLACE_ACCOUNT_ID:parameter/rapidcortex/prod/mapbox/public-token"
     },
     {
+      "Sid": "BillingSecretsCleanup",
+      "Effect": "Allow",
+      "Action": [
+        "secretsmanager:DescribeSecret",
+        "secretsmanager:DeleteSecret"
+      ],
+      "Resource": [
+        "arn:aws:secretsmanager:REPLACE_REGION:REPLACE_ACCOUNT_ID:secret:rapid-cortex/billing/ses-credentials-*",
+        "arn:aws:secretsmanager:REPLACE_REGION:REPLACE_ACCOUNT_ID:secret:rapid-cortex/billing/payment-instructions-*"
+      ]
+    },
+    {
       "Sid": "RapidCortexDeployManagedPolicyLifecycle",
       "Effect": "Allow",
       "Action": [

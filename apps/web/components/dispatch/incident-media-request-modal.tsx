@@ -3,19 +3,22 @@
 import { useState } from "react";
 import type { RequestIncidentMediaInput } from "rapid-cortex-shared";
 import { postIncidentMediaRequest } from "@/lib/api";
+import { PhoneInput } from "@/components/ui/phone-input";
 
 export function IncidentMediaRequestModal({
   incidentId,
   open,
   onClose,
   onCreated,
+  ani,
 }: {
   incidentId: string;
   open: boolean;
   onClose: () => void;
   onCreated: () => void;
+  ani?: string | null;
 }) {
-  const [phone, setPhone] = useState("");
+  const [phoneE164, setPhoneE164] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
   const [smsSummary, setSmsSummary] = useState<string | null>(null);
@@ -23,11 +26,15 @@ export function IncidentMediaRequestModal({
   if (!open) return null;
 
   const submit = async () => {
+    if (!phoneE164) {
+      setErr("Enter a valid US phone number.");
+      return;
+    }
     setErr(null);
     setBusy(true);
     setSmsSummary(null);
     try {
-      const body: RequestIncidentMediaInput = { callerPhoneE164: phone.trim() };
+      const body: RequestIncidentMediaInput = { callerPhoneE164: phoneE164 };
       const out = await postIncidentMediaRequest(incidentId, body);
       const ok = out.smsOutcome.dispatchStatus === "sent";
       setSmsSummary(
@@ -50,15 +57,7 @@ export function IncidentMediaRequestModal({
         <p className="mt-1 text-xs text-slate-500">
           Sends a one-time upload link (SMS). Caller must consent on the public page before upload.
         </p>
-        <label className="mt-3 block text-xs text-slate-400">
-          Caller mobile (E.164)
-          <input
-            value={phone}
-            onChange={(e) => setPhone(e.target.value)}
-            placeholder="+15551234567"
-            className="mt-1 block w-full rounded-md border border-slate-700 bg-slate-900 px-2 py-1.5 font-mono text-sm text-slate-100"
-          />
-        </label>
+        <PhoneInput label="Caller mobile" ani={ani} onChange={setPhoneE164} disabled={busy} />
         {err ? (
           <p className="mt-2 text-xs text-rose-300" role="alert">
             {err}
@@ -79,7 +78,7 @@ export function IncidentMediaRequestModal({
           </button>
           <button
             type="button"
-            disabled={busy || phone.trim().length < 8}
+            disabled={busy || !phoneE164}
             onClick={() => void submit()}
             className="rounded-md bg-sky-900/50 px-3 py-1.5 text-xs font-medium text-sky-200 ring-1 ring-sky-800 hover:bg-sky-900/70 disabled:opacity-40"
           >

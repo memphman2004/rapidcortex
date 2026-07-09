@@ -77,6 +77,13 @@ describe("resolveUpstreamApiBase", () => {
     expect(resolveUpstreamApiBase("/api/rc-admin/api-clients")).toBe("https://stack3.example.com");
     expect(resolveUpstreamApiBase("/api/rc-admin/agreements")).toBe("https://stack3.example.com");
   });
+
+  it("routes triage queue to stack 1 (primary AppSamStack)", () => {
+    process.env.API_UPSTREAM_BASE = "https://stack1.example.com";
+    process.env.API_UPSTREAM_BASE_2 = "https://stack2.example.com";
+    expect(resolveUpstreamApiBase("/api/triage/queue")).toBe("https://stack1.example.com");
+    expect(isStack2ApiPath("/api/triage/queue")).toBe(false);
+  });
 });
 
 describe("isCommsPlatformApiPath", () => {

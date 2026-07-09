@@ -4,6 +4,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import Link from "next/link";
 import { useMemo, useState } from "react";
 import { patchPremiseNote, postCreatePremiseNote } from "@/lib/api";
+import { MapModal } from "@/components/maps/mapbox-incident-map";
 import { loadCallerCard } from "@/lib/queries";
 import { useJurisdictionLink } from "@/lib/jurisdiction-context";
 import type {
@@ -17,14 +18,6 @@ function cadStatusClasses(status: GetCallerCardResponse["cadData"]["status"]): s
   if (status === "live") return "bg-emerald-500/15 text-emerald-200 ring-emerald-500/30";
   if (status === "mock") return "bg-amber-500/15 text-amber-100 ring-amber-500/30";
   return "bg-slate-600/20 text-slate-400 ring-slate-500/20";
-}
-
-function mapHref(card: GetCallerCardResponse): string {
-  const { location } = card;
-  if (typeof location.latitude === "number" && typeof location.longitude === "number") {
-    return `https://www.google.com/maps/search/?api=1&query=${location.latitude},${location.longitude}`;
-  }
-  return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(location.address)}`;
 }
 
 function LocationProvenanceLabel({ source }: { source: GetCallerCardResponse["location"]["source"] }) {
@@ -279,6 +272,7 @@ export function CallerCardPanel({ incidentId }: { incidentId: string }) {
   const [knownOccupants, setKnownOccupants] = useState("");
   const [specialInstructions, setSpecialInstructions] = useState("");
   const [showAllPrior, setShowAllPrior] = useState(false);
+  const [showMap, setShowMap] = useState(false);
 
   const q = useQuery({
     queryKey: ["caller-card", incidentId],
@@ -353,6 +347,8 @@ export function CallerCardPanel({ incidentId }: { incidentId: string }) {
     traumaRecent && !Number.isNaN(traumaRecent.getTime())
       ? traumaRecent.toLocaleString()
       : trauma.mostRecentAt;
+  const hasMapCoords =
+    typeof card.location.latitude === "number" && typeof card.location.longitude === "number";
 
   return (
     <aside className="flex w-80 min-w-0 max-w-[min(100%,20rem)] shrink-0 flex-col border-l border-slate-800 bg-slate-950/50">
@@ -399,14 +395,19 @@ export function CallerCardPanel({ incidentId }: { incidentId: string }) {
           <p className="mt-1 text-[10px] text-slate-500">
             Provenance: <LocationProvenanceLabel source={card.location.source} />
           </p>
-          <a
-            href={mapHref(card)}
-            target="_blank"
-            rel="noreferrer"
-            className="mt-2 flex h-20 items-center justify-center rounded border border-dashed border-slate-700/80 bg-slate-900/40 text-[10px] text-cyan-300/90 hover:border-slate-500 hover:bg-slate-900/60"
-          >
-            Open map preview
-          </a>
+          {hasMapCoords ? (
+            <button
+              type="button"
+              onClick={() => setShowMap(true)}
+              className="mt-2 flex h-20 w-full items-center justify-center rounded border border-dashed border-slate-700/80 bg-slate-900/40 text-[10px] font-medium text-cyan-300/90 hover:border-slate-500 hover:bg-slate-900/60"
+            >
+              Display map
+            </button>
+          ) : (
+            <p className="mt-2 rounded border border-dashed border-slate-800/80 bg-slate-900/30 px-2 py-3 text-center text-[10px] text-slate-500">
+              Map preview requires coordinates — address only on file.
+            </p>
+          )}
         </section>
 
         <section>
@@ -567,6 +568,16 @@ export function CallerCardPanel({ incidentId }: { incidentId: string }) {
           {card.provenanceSummary}
         </p>
       </div>
+      {showMap && hasMapCoords ? (
+        <MapModal
+          lat={card.location.latitude!}
+          lng={card.location.longitude!}
+          label={card.location.mapLabel ?? card.location.address}
+          incidentId={incidentId}
+          callerNumber={card.cadData.callbackPhone}
+          onClose={() => setShowMap(false)}
+        />
+      ) : null}
     </aside>
   );
 }

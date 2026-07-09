@@ -36,7 +36,7 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
     const method = event.requestContext.http.method.toUpperCase();
 
     if (method === "GET") {
-      if (!isSupervisorOrAdmin(user.role)) return forbidden();
+      if (!isSupervisorOrAdmin(user.role) && !authz.canDispatch(user)) return forbidden();
       const items = await getActiveQueue(user.agencyId);
       return ok({ items, count: items.length });
     }

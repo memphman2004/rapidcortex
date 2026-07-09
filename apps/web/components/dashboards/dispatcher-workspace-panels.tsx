@@ -14,6 +14,7 @@ import {
 } from "@/lib/caller-media-api";
 import { useJurisdictionLink } from "@/lib/jurisdiction-context";
 import { isIncidentMediaEnabled } from "@/lib/runtime-flags";
+import { PhoneInput } from "@/components/ui/phone-input";
 import { StatusBadge } from "./status-badge";
 
 export function LiveCallWorkspace({ children }: { children: React.ReactNode }) {
@@ -99,10 +100,16 @@ export function CallerInfoPanel() {
   );
 }
 
-export function CallerMediaPanel({ incidentId }: { incidentId?: string | null }) {
+export function CallerMediaPanel({
+  incidentId,
+  ani,
+}: {
+  incidentId?: string | null;
+  ani?: string | null;
+}) {
   const { user } = useSession();
   const qc = useQueryClient();
-  const [phone, setPhone] = useState("");
+  const [phoneE164, setPhoneE164] = useState<string | null>(null);
   const [showPhone, setShowPhone] = useState<"photo" | "video" | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -144,14 +151,14 @@ export function CallerMediaPanel({ incidentId }: { incidentId?: string | null })
   }
 
   const sendLink = async (mediaType: "photo" | "video") => {
-    if (!phone.trim()) {
-      setError("Enter caller phone in E.164 format (e.g. +15551234567).");
+    if (!phoneE164) {
+      setError("Enter a valid US phone number.");
       return;
     }
     setBusy(true);
     setError(null);
     try {
-      await postCallerMediaSendLink(incidentId, { callerPhone: phone.trim(), mediaType });
+      await postCallerMediaSendLink(incidentId, { callerPhone: phoneE164, mediaType });
       setShowPhone(null);
       await qc.invalidateQueries({ queryKey: ["caller-media", incidentId] });
     } catch (e) {
@@ -204,15 +211,7 @@ export function CallerMediaPanel({ incidentId }: { incidentId?: string | null })
 
       {showPhone ? (
         <div className="mt-2 space-y-2 rounded border border-slate-800 bg-slate-900/50 p-2">
-          <label className="block text-[10px] text-slate-400">
-            Caller mobile (E.164)
-            <input
-              value={phone}
-              onChange={(e) => setPhone(e.target.value)}
-              placeholder="+15551234567"
-              className="mt-1 w-full rounded border border-slate-700 bg-slate-950 px-2 py-1 font-mono text-xs text-slate-100"
-            />
-          </label>
+          <PhoneInput label="Caller mobile" ani={ani} onChange={setPhoneE164} disabled={busy} />
           <div className="flex gap-2">
             <button
               type="button"

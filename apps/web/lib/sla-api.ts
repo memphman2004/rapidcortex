@@ -15,8 +15,10 @@ const DIRECT_API_BASE =
     : "";
 
 function apiBase(): string {
+  if (typeof window !== "undefined") {
+    return `${window.location.origin}/api/backend`;
+  }
   if (USE_AUTH_PROXY) {
-    if (typeof window !== "undefined") return `${window.location.origin}/api/backend`;
     const site = process.env.NEXT_PUBLIC_SITE_URL?.trim().replace(/\/$/, "");
     return site ? `${site}/api/backend` : "http://127.0.0.1:3000/api/backend";
   }

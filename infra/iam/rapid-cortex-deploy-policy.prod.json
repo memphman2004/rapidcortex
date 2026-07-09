@@ -93,6 +93,18 @@
       "Effect": "Allow",
       "Action": ["ssm:GetParameter"],
       "Resource": "arn:aws:ssm:us-east-1:158961537080:parameter/rapidcortex/prod/mapbox/public-token"
+    },
+    {
+      "Sid": "BillingSecretsCleanup",
+      "Effect": "Allow",
+      "Action": [
+        "secretsmanager:DescribeSecret",
+        "secretsmanager:DeleteSecret"
+      ],
+      "Resource": [
+        "arn:aws:secretsmanager:us-east-1:158961537080:secret:rapid-cortex/billing/ses-credentials-*",
+        "arn:aws:secretsmanager:us-east-1:158961537080:secret:rapid-cortex/billing/payment-instructions-*"
+      ]
     }
   ]
 }

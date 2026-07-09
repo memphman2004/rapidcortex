@@ -112,7 +112,7 @@ export default function MediaPage() {
             <span className="text-xs text-slate-400">WebRTC · consent required</span>
           </div>
           <div className="min-h-0 flex-1 overflow-auto p-3">
-            <VideoAssistPanel incidentId={selectedIncidentId} />
+            <VideoAssistPanel incidentId={selectedIncidentId} ani={selectedIncident?.callerCallback} />
           </div>
         </div>
 
@@ -162,7 +162,7 @@ export default function MediaPage() {
                 )}
               </div>
             ) : (
-              <LiveVideoPanel incidentId={selectedIncidentId} />
+              <LiveVideoPanel incidentId={selectedIncidentId} ani={selectedIncident?.callerCallback} />
             )}
           </div>
         </div>
@@ -179,6 +179,7 @@ export default function MediaPage() {
           <SilentTextPanel
             incidentId={selectedIncidentId}
             callerLanguage={selectedIncident?.callerLanguage}
+            ani={selectedIncident?.callerCallback}
           />
         </div>
       </div>

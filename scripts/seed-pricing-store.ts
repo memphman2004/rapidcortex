@@ -29,7 +29,9 @@ if (!TABLE) {
 const SEED_USER_EMAIL = process.env.SEED_USER_EMAIL ?? "seed@system";
 const FORCE_RESEED = process.env.FORCE_RESEED === "true";
 
-const client = DynamoDBDocumentClient.from(new DynamoDBClient({}));
+const client = DynamoDBDocumentClient.from(new DynamoDBClient({}), {
+  marshallOptions: { removeUndefinedValues: true },
+});
 
 const PK_GLOBAL = "PRICING#GLOBAL";
 const PK_AUDIT = "PRICING#AUDIT";

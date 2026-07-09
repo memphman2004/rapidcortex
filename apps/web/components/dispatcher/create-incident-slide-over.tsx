@@ -7,6 +7,7 @@
 
 import { useCallback, useEffect, useState, type CSSProperties, type ReactNode } from "react";
 import { postCreateIncident } from "@/lib/api";
+import { PhoneInput } from "@/components/ui/phone-input";
 import {
   INCIDENT_TYPES,
   PRIORITY_META,
@@ -73,21 +74,6 @@ interface Props {
   onCreated?: (result: CreateIncidentResult) => void;
   userRole?: string;
   mapboxToken?: string;
-}
-
-function normalisePhone(raw: string): string {
-  const digits = raw.replace(/\D/g, "");
-  if (digits.length === 10) return `+1${digits}`;
-  if (digits.length === 11 && digits.startsWith("1")) return `+${digits}`;
-  return raw.trim();
-}
-
-function formatPhoneDisplay(raw: string): string {
-  const digits = raw.replace(/\D/g, "").slice(-10);
-  if (digits.length === 10) {
-    return `(${digits.slice(0, 3)}) ${digits.slice(3, 6)}-${digits.slice(6)}`;
-  }
-  return raw;
 }
 
 function buildIncidentTitle(typeLabel: string, locationLine: string): string {
@@ -256,7 +242,7 @@ export function CreateIncidentSlideOver({
   const [lat, setLat] = useState<number | null>(null);
   const [lng, setLng] = useState<number | null>(null);
   const [callerName, setCallerName] = useState("");
-  const [callerPhone, setCallerPhone] = useState("");
+  const [callerPhoneE164, setCallerPhoneE164] = useState<string | null>(null);
   const [description, setDescription] = useState("");
   const [assignTo, setAssignTo] = useState("");
 
@@ -281,7 +267,7 @@ export function CreateIncidentSlideOver({
     setLat(null);
     setLng(null);
     setCallerName("");
-    setCallerPhone("");
+    setCallerPhoneE164(null);
     setDescription("");
     setAssignTo("");
     setSubmitError(null);
@@ -341,7 +327,7 @@ export function CreateIncidentSlideOver({
 
     const type = getIncidentType(incidentTypeId)!;
     const locationLine = location.trim();
-    const phoneNorm = callerPhone.trim() ? normalisePhone(callerPhone) : "";
+    const phoneNorm = callerPhoneE164 ?? "";
 
     try {
       const incident = await postCreateIncident({
@@ -616,19 +602,11 @@ export function CreateIncidentSlideOver({
                   style={inputStyle}
                 />
               </FieldGroup>
-              <FieldGroup label="Callback Number">
-                <input
-                  type="tel"
-                  placeholder="(555) 555-5555"
-                  value={callerPhone}
-                  onChange={(e) => setCallerPhone(e.target.value)}
-                  onBlur={(e) => {
-                    const cleaned = formatPhoneDisplay(e.target.value);
-                    if (cleaned !== e.target.value) setCallerPhone(cleaned);
-                  }}
-                  style={inputStyle}
-                />
-              </FieldGroup>
+              <PhoneInput
+                label="Callback Number"
+                onChange={setCallerPhoneE164}
+                placeholder="(555) 555-5555"
+              />
             </div>
 
             <FieldGroup label="Nature of Call / Notes">

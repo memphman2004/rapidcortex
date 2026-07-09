@@ -184,6 +184,18 @@
         "arn:aws:s3:::rapid-cortex-*",
         "arn:aws:s3:::rapid-cortex-*/*"
       ]
+    },
+    {
+      "Sid": "BillingSecretsCleanup",
+      "Effect": "Allow",
+      "Action": [
+        "secretsmanager:DescribeSecret",
+        "secretsmanager:DeleteSecret"
+      ],
+      "Resource": [
+        "arn:aws:secretsmanager:us-east-1:158961537080:secret:rapid-cortex/billing/ses-credentials-*",
+        "arn:aws:secretsmanager:us-east-1:158961537080:secret:rapid-cortex/billing/payment-instructions-*"
+      ]
     }
   ]
 }

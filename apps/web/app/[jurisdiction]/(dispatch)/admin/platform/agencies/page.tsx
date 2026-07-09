@@ -52,9 +52,9 @@ export default function PlatformAgenciesPage() {
     if (t) {
       list = list.filter(
         (a) =>
-          a.name.toLowerCase().includes(t) ||
-          a.agencyId.toLowerCase().includes(t) ||
-          a.state.toLowerCase().includes(t),
+          (a.name ?? "").toLowerCase().includes(t) ||
+          (a.agencyId ?? "").toLowerCase().includes(t) ||
+          (a.state ?? "").toLowerCase().includes(t),
       );
     }
     list.sort((a, b) => {
@@ -62,12 +62,12 @@ export default function PlatformAgenciesPage() {
       if (sortKey === "vertical") {
         const byVertical = resolveAgencyVertical(a).localeCompare(resolveAgencyVertical(b)) * mul;
         if (byVertical !== 0) return byVertical;
-        return a.name.localeCompare(b.name) * mul;
+        return (a.name ?? "").localeCompare(b.name ?? "") * mul;
       }
-      if (sortKey === "name") return a.name.localeCompare(b.name) * mul;
-      if (sortKey === "status") return a.status.localeCompare(b.status) * mul;
-      if (sortKey === "type") return a.type.localeCompare(b.type) * mul;
-      return (a.updatedAt < b.updatedAt ? -1 : 1) * mul;
+      if (sortKey === "name") return (a.name ?? "").localeCompare(b.name ?? "") * mul;
+      if (sortKey === "status") return (a.status ?? "").localeCompare(b.status ?? "") * mul;
+      if (sortKey === "type") return (a.type ?? "").localeCompare(b.type ?? "") * mul;
+      return ((a.updatedAt ?? "") < (b.updatedAt ?? "") ? -1 : 1) * mul;
     });
     return list;
   }, [q.data, search, sortKey, sortDir]);
@@ -208,8 +208,8 @@ function AgencyRow({
   to: (p: string) => string;
   pathname: string;
 }) {
-  const prog = countOnboardingProgress(a.config.platformOnboarding?.steps);
-  const attention = needsOnboardingAttention(a.status, a.config.platformOnboarding?.steps);
+  const prog = countOnboardingProgress(a.config?.platformOnboarding?.steps);
+  const attention = needsOnboardingAttention(a.status, a.config?.platformOnboarding?.steps);
   const plan =
     a.type === "pilot" || a.status === "pilot" ? "Pilot" : a.status === "active" ? "Production" : "Pre-production";
   const vertical = resolveAgencyVertical(a);

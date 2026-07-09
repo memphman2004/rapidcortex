@@ -17,7 +17,9 @@ const PK_GLOBAL = "PRICING#GLOBAL";
 const PK_AUDIT = "PRICING#AUDIT";
 const agencyPk = (id: string) => `PRICING#AGENCY#${id}`;
 
-const client = DynamoDBDocumentClient.from(new DynamoDBClient({}));
+const client = DynamoDBDocumentClient.from(new DynamoDBClient({}), {
+  marshallOptions: { removeUndefinedValues: true },
+});
 
 const CAT_SK_PREFIX: Record<string, string> = {
   core: "PLAN",

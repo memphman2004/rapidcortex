@@ -2,7 +2,7 @@
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Phone, PhoneIncoming } from "lucide-react";
-import type { ActiveCallRecord } from "rapid-cortex-shared";
+import { formatPhoneDisplay, type ActiveCallRecord } from "rapid-cortex-shared";
 import {
   fetchDispatcherActiveCalls,
   isApiConfigured,
@@ -80,7 +80,7 @@ export function DispatcherActiveCallsPanel() {
               .map((c) => (
                 <li key={c.callId} className="flex items-center gap-2">
                   <Phone className="h-3 w-3 text-green-500" />
-                  {c.callerPhone}
+                  {formatPhoneDisplay(c.callerPhone)}
                 </li>
               ))}
           </ul>
@@ -109,7 +109,7 @@ function PendingTransferCard({
         Incoming transfer
       </p>
       <p className="mt-1 text-xs text-slate-400">
-        From {t.fromUsername} · {call.callerPhone}
+        From {t.fromUsername} · {formatPhoneDisplay(call.callerPhone)}
       </p>
       <p className="mt-1 text-xs text-slate-500">Accept, then complete the transfer in your CAD system.</p>
       <div className="mt-2 flex gap-2">

@@ -2,14 +2,8 @@
 
 import { useCallback, useEffect, useState } from "react";
 import type { SmsRoutingRecord, SmsRoutingVertical } from "rapid-cortex-shared";
-
-function formatPhoneDisplay(e164: string): string {
-  const digits = e164.replace(/\D/g, "");
-  if (digits.length === 11 && digits.startsWith("1")) {
-    return `+1 (${digits.slice(1, 4)}) ${digits.slice(4, 7)}-${digits.slice(7)}`;
-  }
-  return e164;
-}
+import { formatPhoneDisplay } from "rapid-cortex-shared";
+import { PhoneInput } from "@/components/ui/phone-input";
 
 type Props = {
   agencyId: string;
@@ -30,7 +24,7 @@ export function SmsRoutingManager({
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [modalOpen, setModalOpen] = useState(false);
-  const [phone, setPhone] = useState("");
+  const [phoneE164, setPhoneE164] = useState<string | null>(null);
   const [label, setLabel] = useState("Main reporting line");
   const [vertical, setVertical] = useState<SmsRoutingVertical>(defaultVertical);
   const [busy, setBusy] = useState(false);
@@ -59,6 +53,10 @@ export function SmsRoutingManager({
 
   async function onAdd(e: React.FormEvent) {
     e.preventDefault();
+    if (!phoneE164) {
+      setError("Enter a valid US phone number.");
+      return;
+    }
     setBusy(true);
     setError(null);
     try {
@@ -67,7 +65,7 @@ export function SmsRoutingManager({
         credentials: "include",
         headers: { "content-type": "application/json" },
         body: JSON.stringify({
-          phoneNumber: phone.trim(),
+          phoneNumber: phoneE164,
           agencyId,
           vertical,
           agencyName,
@@ -77,7 +75,7 @@ export function SmsRoutingManager({
       const body = (await res.json()) as { error?: string };
       if (!res.ok) throw new Error(body.error ?? "Failed to register number");
       setModalOpen(false);
-      setPhone("");
+      setPhoneE164(null);
       await load();
     } catch (e) {
       setError(e instanceof Error ? e.message : "Failed to register");
@@ -210,17 +208,10 @@ export function SmsRoutingManager({
             className="w-full max-w-md rounded-lg border border-slate-700 bg-slate-900 p-5"
           >
             <h3 className="text-lg font-semibold text-white">Register SMS number</h3>
-            <p className="mt-1 text-xs text-slate-500">Paste the Twilio number in E.164 format (e.g. +17065551234).</p>
-            <label className="mt-4 block text-sm text-slate-300">
-              Phone number *
-              <input
-                required
-                value={phone}
-                onChange={(e) => setPhone(e.target.value)}
-                placeholder="+17065551234"
-                className="mt-1 w-full rounded border border-slate-600 bg-slate-950 px-2 py-1.5 font-mono"
-              />
-            </label>
+            <p className="mt-1 text-xs text-slate-500">Twilio number for this agency routing line.</p>
+            <div className="mt-4">
+              <PhoneInput label="Phone number" onChange={setPhoneE164} disabled={busy} />
+            </div>
             <label className="mt-3 block text-sm text-slate-300">
               Label
               <input
@@ -253,7 +244,7 @@ export function SmsRoutingManager({
               </button>
               <button
                 type="submit"
-                disabled={busy}
+                disabled={busy || !phoneE164}
                 className="rounded bg-sky-700 px-3 py-1.5 text-sm font-medium text-white disabled:opacity-50"
               >
                 {busy ? "Saving…" : "Save"}

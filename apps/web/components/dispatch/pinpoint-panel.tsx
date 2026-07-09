@@ -11,10 +11,17 @@ import {
 } from "@/lib/api";
 import { isPinpointEnabled } from "@/lib/runtime-flags";
 import { PinpointDispatcherLive } from "@/components/pinpoint/pinpoint-dispatcher-live";
+import { PhoneInput } from "@/components/ui/phone-input";
 
-export function PinpointPanel({ incidentId }: { incidentId: string | null }) {
+export function PinpointPanel({
+  incidentId,
+  ani,
+}: {
+  incidentId: string | null;
+  ani?: string | null;
+}) {
   const queryClient = useQueryClient();
-  const [phone, setPhone] = useState("");
+  const [phoneE164, setPhoneE164] = useState<string | null>(null);
   const [localErr, setLocalErr] = useState<string | null>(null);
   const [selectedLinkId, setSelectedLinkId] = useState<string | null>(null);
   const pinpointOn = isPinpointEnabled();
@@ -46,15 +53,14 @@ export function PinpointPanel({ incidentId }: { incidentId: string | null }) {
   const createMut = useMutation({
     mutationFn: async () => {
       if (!incidentId) throw new Error("No incident");
-      const trimmed = phone.trim();
-      if (!/^\+[1-9]\d{6,14}$/.test(trimmed)) {
-        throw new Error("Enter caller phone in E.164 format (e.g. +15551234567).");
+      if (!phoneE164) {
+        throw new Error("Enter a valid US phone number.");
       }
-      return postPinpointLink(incidentId, { callerPhoneE164: trimmed });
+      return postPinpointLink(incidentId, { callerPhoneE164: phoneE164 });
     },
     onSuccess: (res) => {
       setLocalErr(null);
-      setPhone("");
+      setPhoneE164(null);
       setSelectedLinkId(res.linkId);
       void queryClient.invalidateQueries({ queryKey: ["pinpoint-links", incidentId] });
     },
@@ -94,12 +100,7 @@ export function PinpointPanel({ incidentId }: { incidentId: string | null }) {
             </p>
           ) : null}
           <div className="mt-2 flex flex-col gap-2">
-            <input
-              className="rounded border border-slate-700 bg-slate-900 px-2 py-1.5 font-mono text-xs text-slate-100"
-              placeholder="+15551234567"
-              value={phone}
-              onChange={(e) => setPhone(e.target.value)}
-            />
+            <PhoneInput label="Caller mobile" ani={ani} onChange={setPhoneE164} disabled={createMut.isPending} />
             <button
               type="button"
               disabled={createMut.isPending}

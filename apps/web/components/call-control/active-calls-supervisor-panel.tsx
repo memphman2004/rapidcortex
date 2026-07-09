@@ -3,7 +3,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { Phone, PhoneForwarded } from "lucide-react";
-import type { ActiveCallRecord } from "rapid-cortex-shared";
+import { formatPhoneDisplay, type ActiveCallRecord } from "rapid-cortex-shared";
 import {
   fetchSupervisorActiveCalls,
   isApiConfigured,
@@ -122,7 +122,7 @@ function CallRow({ call, onTransfer }: { call: ActiveCallRecord; onTransfer: () 
       <div>
         <p className="flex items-center gap-2 text-sm font-medium text-white">
           <Phone className="h-4 w-4 text-green-500" />
-          {call.callerPhone}
+          {formatPhoneDisplay(call.callerPhone)}
         </p>
         <p className="text-xs text-slate-400">Handler: {call.currentHandlerUsername}</p>
         {call.pendingTransfer ? (

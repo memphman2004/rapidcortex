@@ -19,6 +19,7 @@ import {
   postSilentTextSession,
 } from "@/lib/api";
 import { SilentTextMessageBubble } from "@/components/dispatch/silent-text-message-bubble";
+import { PhoneInput } from "@/components/ui/phone-input";
 
 function statusLabel(status: SilentTextDispatcherSession["status"]): string {
   const map: Record<SilentTextDispatcherSession["status"], string> = {
@@ -38,14 +39,17 @@ function statusLabel(status: SilentTextDispatcherSession["status"]): string {
 export function SilentTextPanel({
   incidentId,
   callerLanguage,
+  ani,
 }: {
   incidentId: string | null;
   /** Incident caller language — drives outbound translation (BCP-47 primary tag). */
   callerLanguage?: string | null;
+  /** E.164 callback from incident or active call — pre-fills the send-to field. */
+  ani?: string | null;
 }) {
   const queryClient = useQueryClient();
   const [activeSessionId, setActiveSessionId] = useState<string | null>(null);
-  const [phone, setPhone] = useState("");
+  const [phoneE164, setPhoneE164] = useState<string | null>(null);
   const [publicBase, setPublicBase] = useState("");
   const [highRiskOnCreate, setHighRiskOnCreate] = useState(false);
   const [stealthOnCreate, setStealthOnCreate] = useState(false);
@@ -93,12 +97,11 @@ export function SilentTextPanel({
   const createMut = useMutation({
     mutationFn: async () => {
       if (!incidentId) throw new Error("No incident");
-      const trimmed = phone.trim();
-      if (!/^\+[1-9]\d{6,14}$/.test(trimmed)) {
-        throw new Error("Enter caller phone in E.164 format (e.g. +15551234567).");
+      if (!phoneE164) {
+        throw new Error("Enter a valid US phone number.");
       }
       const body: Parameters<typeof postSilentTextSession>[1] = {
-        callerPhoneE164: trimmed,
+        callerPhoneE164: phoneE164,
         highRisk: highRiskOnCreate,
         stealthAppearance: stealthOnCreate,
       };
@@ -234,15 +237,12 @@ export function SilentTextPanel({
 
       {!minimized && showRequest ? (
         <div className="mt-3 space-y-2 rounded-md border border-slate-800 bg-slate-900/60 p-2">
-          <label className="block text-[10px] font-medium uppercase tracking-wide text-slate-500">
-            Caller mobile (E.164)
-            <input
-              value={phone}
-              onChange={(e) => setPhone(e.target.value)}
-              placeholder="+15551234567"
-              className="mt-1 w-full rounded border border-slate-700 bg-slate-950 px-2 py-1.5 font-mono text-xs text-slate-100"
-            />
-          </label>
+          <PhoneInput
+            label="Caller mobile"
+            ani={ani}
+            onChange={setPhoneE164}
+            disabled={createMut.isPending}
+          />
           <label className="block text-[10px] font-medium uppercase tracking-wide text-slate-500">
             Public site base (optional)
             <input
