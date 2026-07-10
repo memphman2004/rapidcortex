@@ -2,7 +2,7 @@
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import { useMemo, useState, type ReactNode } from "react";
 import { patchPremiseNote, postCreatePremiseNote } from "@/lib/api";
 import { MapPreviewButton } from "@/components/dispatcher/MapPreviewButton";
 import { loadCallerCard } from "@/lib/queries";
@@ -263,6 +263,227 @@ function PremiseNoteCard({
   );
 }
 
+function useCallerCardQuery(incidentId: string) {
+  return useQuery({
+    queryKey: ["caller-card", incidentId],
+    queryFn: () => loadCallerCard(incidentId),
+    enabled: Boolean(incidentId),
+    staleTime: 30_000,
+    retry: 1,
+  });
+}
+
+function CallerCardPanelBody({ children }: { children: React.ReactNode }) {
+  return <div className="p-3 text-xs text-slate-200">{children}</div>;
+}
+
+export function CallerCardLocationPanel({ incidentId }: { incidentId: string }) {
+  const to = useJurisdictionLink();
+  const [showAllPrior, setShowAllPrior] = useState(false);
+  const q = useCallerCardQuery(incidentId);
+
+  if (q.isLoading) {
+    return (
+      <CallerCardPanelBody>
+        <p className="text-slate-500">Loading location context…</p>
+      </CallerCardPanelBody>
+    );
+  }
+
+  if (q.isError || !q.data) {
+    return (
+      <CallerCardPanelBody>
+        <p className="text-slate-500">Location context unavailable.</p>
+      </CallerCardPanelBody>
+    );
+  }
+
+  const card = q.data;
+  const priorTotal = card.priorIncidentsTotal ?? card.priorIncidents.length;
+  const priorShown = showAllPrior ? card.priorIncidents : card.priorIncidents.slice(0, 10);
+  const showPriorExpand = priorTotal > 10 || card.priorIncidents.length > 10;
+  const trauma = card.addressTraumaFlags;
+  const traumaRecent = trauma.mostRecentAt ? new Date(trauma.mostRecentAt) : null;
+  const traumaRecentLabel =
+    traumaRecent && !Number.isNaN(traumaRecent.getTime())
+      ? traumaRecent.toLocaleString()
+      : trauma.mostRecentAt;
+
+  return (
+    <CallerCardPanelBody>
+      <p className="text-[10px] font-semibold uppercase text-slate-500">Prior at this address</p>
+      <p className="mt-1 text-[11px] leading-snug text-slate-300">{card.location.address}</p>
+      {trauma.count > 0 ? (
+        <p className="mt-1 text-[11px] text-amber-100/95">
+          ⚠ {trauma.count} prior trauma flag{trauma.count === 1 ? "" : "s"} at this address
+          {traumaRecentLabel ? ` · most recent ${traumaRecentLabel}` : ""}
+        </p>
+      ) : null}
+      <p className="mt-2 text-[10px] text-slate-500">
+        Provenance: <LocationProvenanceLabel source={card.location.source} />
+      </p>
+      <div className="mt-2">
+        <MapPreviewButton
+          address={card.location.address}
+          lat={card.location.latitude}
+          lng={card.location.longitude}
+          label={card.location.mapLabel ?? card.location.address}
+          incidentId={incidentId}
+          callerNumber={card.cadData.callbackPhone ?? undefined}
+        />
+      </div>
+      <p className="mt-3 text-[10px] text-slate-500">Source: prior_incidents (agency-scoped, last 12 months)</p>
+      {card.priorIncidents.length === 0 ? (
+        <p className="mt-1 text-slate-600">No prior incidents in last 12 months.</p>
+      ) : (
+        <>
+          <ol className="mt-1 space-y-1">
+            {priorShown.map((p) => (
+              <PriorRow
+                key={p.incidentId}
+                p={p}
+                href={to(`/dashboard?incident=${encodeURIComponent(p.incidentId)}`)}
+              />
+            ))}
+          </ol>
+          {showPriorExpand && !showAllPrior ? (
+            <button
+              type="button"
+              className="mt-1.5 text-[10px] font-medium text-cyan-300/90 hover:underline"
+              onClick={() => setShowAllPrior(true)}
+            >
+              Show all{priorTotal > card.priorIncidents.length ? ` (${card.priorIncidents.length} loaded)` : ""}
+            </button>
+          ) : null}
+        </>
+      )}
+    </CallerCardPanelBody>
+  );
+}
+
+export function CallerCardPremiseNotesPanel({ incidentId }: { incidentId: string }) {
+  const queryClient = useQueryClient();
+  const [draft, setDraft] = useState("");
+  const [hazardType, setHazardType] = useState<PremiseHazardType | "">("");
+  const [isHazard, setIsHazard] = useState(false);
+  const [knownOccupants, setKnownOccupants] = useState("");
+  const [specialInstructions, setSpecialInstructions] = useState("");
+  const q = useCallerCardQuery(incidentId);
+
+  const saveNote = useMutation({
+    mutationFn: () =>
+      postCreatePremiseNote(incidentId, {
+        text: draft.trim(),
+        ...(hazardType ? { hazardType } : {}),
+        isHazard,
+        ...(knownOccupants.trim() ? { knownOccupants: knownOccupants.trim() } : {}),
+        ...(specialInstructions.trim() ? { specialInstructions: specialInstructions.trim() } : {}),
+      }),
+    onSuccess: () => {
+      setDraft("");
+      setHazardType("");
+      setIsHazard(false);
+      setKnownOccupants("");
+      setSpecialInstructions("");
+      void queryClient.invalidateQueries({ queryKey: ["caller-card", incidentId] });
+    },
+  });
+
+  if (q.isLoading) {
+    return (
+      <CallerCardPanelBody>
+        <p className="text-slate-500">Loading premise notes…</p>
+      </CallerCardPanelBody>
+    );
+  }
+
+  if (q.isError || !q.data) {
+    return (
+      <CallerCardPanelBody>
+        <p className="text-slate-500">Premise notes unavailable.</p>
+      </CallerCardPanelBody>
+    );
+  }
+
+  const card = q.data;
+  const hazardNotes = card.premiseNotes.filter((n) => n.isHazard);
+
+  return (
+    <CallerCardPanelBody>
+      {hazardNotes.map((n) => (
+        <div
+          key={n.noteId}
+          className="mb-2 rounded border border-rose-700/60 bg-rose-950/40 px-2 py-1.5 text-[11px] font-semibold text-rose-100"
+        >
+          ⚠ {n.hazardType ? hazardLabel(n.hazardType).toUpperCase() : "HAZARD"}
+        </div>
+      ))}
+      {hazardNotes.some((n) => n.specialInstructions?.trim()) ? (
+        <div className="mb-2">
+          <p className="text-[10px] font-semibold uppercase text-slate-500">Special instructions</p>
+          <p className="mt-1 text-[12px] text-slate-200">
+            {hazardNotes.find((n) => n.specialInstructions?.trim())?.specialInstructions}
+          </p>
+        </div>
+      ) : null}
+      {hazardNotes.length > 0 ? (
+        <p className="mb-3 text-[10px] uppercase text-slate-500">
+          Hazard count: <span className="text-lg font-bold text-amber-400">{hazardNotes.length}</span>
+        </p>
+      ) : null}
+      <ul className="space-y-2">
+        {card.premiseNotes.length === 0 ? (
+          <li className="text-slate-600">None on file for this key.</li>
+        ) : (
+          card.premiseNotes.map((n) => (
+            <PremiseNoteCard
+              key={n.noteId}
+              n={n}
+              incidentId={incidentId}
+              onSaved={() => void queryClient.invalidateQueries({ queryKey: ["caller-card", incidentId] })}
+            />
+          ))
+        )}
+      </ul>
+      <label className="mt-3 block text-[10px] text-slate-500">
+        Hazard type (optional)
+        <select
+          className="mt-0.5 w-full rounded border border-slate-700 bg-slate-950 px-2 py-1.5 text-[12px] text-slate-200"
+          value={hazardType}
+          onChange={(e) => {
+            const v = e.target.value as PremiseHazardType | "";
+            setHazardType(v);
+            if (v && v !== "other") setIsHazard(true);
+            if (!v) setIsHazard(false);
+          }}
+        >
+          <option value="">None</option>
+          {HAZARD_OPTIONS.map((o) => (
+            <option key={o.value} value={o.value}>
+              {o.label}
+            </option>
+          ))}
+        </select>
+      </label>
+      <textarea
+        className="mt-2 w-full min-h-[72px] resize-y rounded border border-slate-700 bg-slate-950/80 px-2 py-1.5 text-[12px] text-slate-200 placeholder:text-slate-600"
+        placeholder="Add a premise note (visible for future dispatches)…"
+        value={draft}
+        onChange={(e) => setDraft(e.target.value)}
+        disabled={saveNote.isPending}
+      />
+      <button
+        type="button"
+        className="mt-1 rounded bg-slate-200 px-2 py-1 text-[11px] font-medium text-slate-900 hover:bg-white disabled:opacity-50"
+        disabled={saveNote.isPending || draft.trim().length === 0}
+        onClick={() => saveNote.mutate()}
+      >
+        {saveNote.isPending ? "Saving…" : "Save note"}
+      </button>
+    </CallerCardPanelBody>
+  );
+}
+
 export function CallerCardPanel({ incidentId }: { incidentId: string }) {
   const to = useJurisdictionLink();
   const queryClient = useQueryClient();
@@ -273,13 +494,7 @@ export function CallerCardPanel({ incidentId }: { incidentId: string }) {
   const [specialInstructions, setSpecialInstructions] = useState("");
   const [showAllPrior, setShowAllPrior] = useState(false);
 
-  const q = useQuery({
-    queryKey: ["caller-card", incidentId],
-    queryFn: () => loadCallerCard(incidentId),
-    enabled: Boolean(incidentId),
-    staleTime: 30_000,
-    retry: 1,
-  });
+  const q = useCallerCardQuery(incidentId);
 
   const saveNote = useMutation({
     mutationFn: () =>

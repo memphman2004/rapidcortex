@@ -16,9 +16,11 @@ import { PhoneInput } from "@/components/ui/phone-input";
 export function IncidentMediaPanel({
   incidentId,
   ani,
+  embedded = false,
 }: {
   incidentId: string | null;
   ani?: string | null;
+  embedded?: boolean;
 }) {
   const { user } = useSession();
   const qc = useQueryClient();
@@ -82,11 +84,15 @@ export function IncidentMediaPanel({
   };
 
   return (
-    <div className="rounded-lg border border-slate-800 bg-slate-950/40 p-3">
-      <div className="flex flex-wrap items-center justify-between gap-2">
-        <h3 className="text-[10px] font-semibold uppercase tracking-wide text-slate-500">Caller media</h3>
-      </div>
-      <p className="mt-1 text-[10px] text-slate-500">All media requests and uploads are audit logged.</p>
+    <div className={embedded ? "p-3" : "rounded-lg border border-slate-800 bg-slate-950/40 p-3"}>
+      {!embedded ? (
+        <>
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <h3 className="text-[10px] font-semibold uppercase tracking-wide text-slate-500">Caller media</h3>
+          </div>
+          <p className="mt-1 text-[10px] text-slate-500">All media requests and uploads are audit logged.</p>
+        </>
+      ) : null}
 
       {canSendLink ? (
         <div className="mt-2 flex flex-wrap gap-2">

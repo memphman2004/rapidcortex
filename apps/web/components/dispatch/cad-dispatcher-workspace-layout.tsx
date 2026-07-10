@@ -5,9 +5,8 @@ import { useCallback, useEffect, useMemo, useState, type ReactNode } from "react
 import { useQuery } from "@tanstack/react-query";
 import type { AIAnalysis, AggregateConfidence, ConfidenceAnalysis, Incident, TranscriptSegment } from "rapid-cortex-shared";
 import { SlaStatusBar } from "@/components/dashboards/sla-status-bar";
-import { AiRecommendationPanel } from "@/components/dispatch/ai-panel";
+import { DispatcherIncidentPanelGrid } from "@/components/dispatch/dispatcher-incident-panel-grid";
 import { ConfidenceMiniBar } from "@/components/confidence/confidence-mini-bar";
-import { CallerCardPanel } from "@/components/dispatch/caller-card-panel";
 import { ChannelMonitorPanel } from "@/components/dispatch/channel-monitor-panel";
 import { IncidentJurisdictionSharePanel } from "@/components/dispatch/incident-jurisdiction-share-panel";
 import { IncidentQueue } from "@/components/dispatch/incident-queue";
@@ -686,7 +685,7 @@ export function CadDispatcherWorkspaceLayout({
         {/* Center 50% */}
         <div
           id="cad-center"
-          className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden border-b lg:min-w-0 lg:max-w-none lg:flex-1 lg:border-b-0 lg:border-r"
+          className="flex min-h-0 min-w-0 flex-1 flex-col overflow-y-auto border-b lg:min-w-0 lg:max-w-none lg:flex-1 lg:border-b-0 lg:border-r"
           style={{ borderColor: CAD.border, background: CAD.bg }}
         >
           <CadActiveIncidentCard
@@ -698,7 +697,7 @@ export function CadDispatcherWorkspaceLayout({
             <IncidentTimelineStrip incident={incidentForUi ?? undefined} segments={transcriptSegments} analysis={analysisForUi ?? undefined} />
           </div>
           {languageBar}
-          <div id="cad-transcript" className="flex min-h-0 flex-1 flex-col overflow-hidden">
+          <div id="cad-transcript" className="flex h-[min(32vh,280px)] min-h-[10rem] shrink-0 flex-col overflow-hidden">
             <TranscriptPanel
               segments={transcriptSegments}
               autoScroll={transcriptAutoScroll}
@@ -709,11 +708,6 @@ export function CadDispatcherWorkspaceLayout({
               className="!min-h-0 !flex-1 !border-r-0 !bg-[#111827] !border-b !border-[#1f2937]"
             />
           </div>
-          {showCallerCard && selectedIdForPanels ? (
-            <div className="shrink-0 border-b p-2" style={{ borderColor: CAD.border, background: CAD.panel }}>
-              <CallerCardPanel incidentId={selectedIdForPanels} />
-            </div>
-          ) : null}
           {showChannelMonitor && selectedIdForPanels ? (
             <div className="shrink-0 border-b p-2" style={{ borderColor: CAD.border, background: CAD.panel }}>
               <ChannelMonitorPanel incidentId={selectedIdForPanels} />
@@ -724,9 +718,14 @@ export function CadDispatcherWorkspaceLayout({
               <IncidentJurisdictionSharePanel incidentId={selectedIdForPanels} ownerAgencyId={shareOwnerAgencyId} />
             </div>
           ) : null}
-          <div id="cad-intelligence" className="min-h-0 shrink-0 overflow-y-auto border-b" style={{ borderColor: CAD.border, maxHeight: "min(42vh, 360px)" }}>
-            <AiRecommendationPanel
+          <div
+            id="cad-intelligence"
+            className="shrink-0 scroll-mt-2 border-b"
+            style={{ borderColor: CAD.border, background: CAD.bg }}
+          >
+            <DispatcherIncidentPanelGrid
               key={selectedIdForPanels ?? "none"}
+              userId={user?.userId ?? "anonymous"}
               incidentId={selectedIdForPanels}
               incident={incidentForUi}
               analysis={analysisForUi}
@@ -734,10 +733,9 @@ export function CadDispatcherWorkspaceLayout({
               fieldConfidenceLoading={fieldConfidenceLoading}
               analysisError={analysisError}
               analysisLoading={analysisLoading}
-              onRefresh={onRefreshAi}
-              isRefreshing={isRefreshingAi}
-              className="!w-full !max-w-none !border-0 !bg-transparent"
-              showCadSuggestedBadge
+              isRefreshingAi={isRefreshingAi}
+              onRefreshAi={onRefreshAi}
+              showCallerCard={showCallerCard}
             />
           </div>
           <CadCollapsibleCadForm incident={incidentForUi} />

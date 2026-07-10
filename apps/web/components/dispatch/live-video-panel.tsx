@@ -19,12 +19,15 @@ const DEFAULT_ICE: RTCConfiguration = {
 export function LiveVideoPanel({
   incidentId,
   ani,
+  embedded = false,
 }: {
   incidentId: string | null;
   ani?: string | null;
+  /** When true, omit outer chrome for dispatcher panel grid shells. */
+  embedded?: boolean;
 }) {
   const [phoneE164, setPhoneE164] = useState<string | null>(null);
-  const [showRequest, setShowRequest] = useState(false);
+  const [showRequest, setShowRequest] = useState(embedded);
   const [localErr, setLocalErr] = useState<string | null>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
   const pcRef = useRef<RTCPeerConnection | null>(null);
@@ -183,30 +186,36 @@ export function LiveVideoPanel({
 
   if (!incidentId) {
     return (
-      <div className="rounded-lg border border-slate-800 bg-slate-950/40 p-3">
-        <h3 className="text-[10px] font-semibold uppercase tracking-wide text-slate-500">Live Video</h3>
+      <div className={embedded ? "p-3" : "rounded-lg border border-slate-800 bg-slate-950/40 p-3"}>
+        {!embedded ? (
+          <h3 className="text-[10px] font-semibold uppercase tracking-wide text-slate-500">Live Video</h3>
+        ) : null}
         <p className="mt-1 text-xs text-slate-500">Select an incident to request live video.</p>
       </div>
     );
   }
 
+  const rootClass = embedded ? "p-3" : "rounded-lg border border-slate-800 bg-slate-950/50 p-3";
+
   return (
-    <div className="rounded-lg border border-slate-800 bg-slate-950/50 p-3">
-      <div className="flex items-start justify-between gap-2">
-        <div>
-          <h3 className="text-[10px] font-semibold uppercase tracking-wide text-slate-500">Live Video</h3>
-          <p className="mt-0.5 text-[11px] leading-snug text-slate-500">
-            One-time link · Kinesis Video (WebRTC) or legacy browser WebRTC
-          </p>
+    <div className={rootClass}>
+      {!embedded ? (
+        <div className="flex items-start justify-between gap-2">
+          <div>
+            <h3 className="text-[10px] font-semibold uppercase tracking-wide text-slate-500">Live Video</h3>
+            <p className="mt-0.5 text-[11px] leading-snug text-slate-500">
+              One-time link · Kinesis Video (WebRTC) or legacy browser WebRTC
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={() => setShowRequest((s) => !s)}
+            className="shrink-0 rounded-md bg-sky-700 px-2 py-1 text-[11px] font-medium text-white hover:bg-sky-600"
+          >
+            Request Live Video
+          </button>
         </div>
-        <button
-          type="button"
-          onClick={() => setShowRequest((s) => !s)}
-          className="shrink-0 rounded-md bg-sky-700 px-2 py-1 text-[11px] font-medium text-white hover:bg-sky-600"
-        >
-          Request Live Video
-        </button>
-      </div>
+      ) : null}
 
       {localErr ? (
         <p className="mt-2 text-[11px] text-rose-400" role="alert">

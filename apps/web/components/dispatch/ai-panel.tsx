@@ -18,6 +18,169 @@ import { SopProtocolSurface } from "@/components/dispatch/sop-protocol-surface";
 import { NonEmergencyTriageStrip } from "@/components/dispatch/non-emergency-triage-strip";
 import { isFieldConfidenceEnabled, isLiveVideoEnabled, isPinpointEnabled, isSilentTextEnabled } from "@/lib/runtime-flags";
 
+export function IntelligencePanelContent({
+  incidentId,
+  incident,
+  analysis,
+  fieldConfidence = null,
+  fieldConfidenceLoading = false,
+  analysisLoading = false,
+  analysisError = null,
+  onRefresh,
+  isRefreshing,
+  assistiveLabel = "AI recommendations (assistive)",
+  variant = "aside",
+}: {
+  incidentId: string | null;
+  incident: Incident | null;
+  analysis: AIAnalysis | null;
+  fieldConfidence?: ConfidenceAnalysis | null;
+  fieldConfidenceLoading?: boolean;
+  analysisLoading?: boolean;
+  analysisError?: string | null;
+  onRefresh?: () => void;
+  isRefreshing?: boolean;
+  assistiveLabel?: string;
+  /** `grid` omits auxiliary panels bundled in the legacy aside layout. */
+  variant?: "aside" | "grid";
+}) {
+  const liveVideoEnabled = isLiveVideoEnabled();
+  const silentTextEnabled = isSilentTextEnabled();
+  const pinpointEnabled = isPinpointEnabled();
+  const fieldConfidenceEnabled = isFieldConfidenceEnabled();
+  const showFieldConfidence =
+    fieldConfidenceEnabled && (fieldConfidence != null || fieldConfidenceLoading);
+  const isGrid = variant === "grid";
+
+  return (
+    <div className={isGrid ? "p-3" : "min-h-0 flex-1 overflow-y-auto p-3"}>
+      {isGrid && onRefresh ? (
+        <div className="mb-3 flex justify-end">
+          <button
+            type="button"
+            onClick={onRefresh}
+            disabled={isRefreshing}
+            className="rounded-md bg-slate-800 px-2 py-1 text-xs font-medium text-sky-300 ring-1 ring-slate-700 hover:bg-slate-700 disabled:opacity-50"
+          >
+            {isRefreshing ? "…" : "Refresh AI"}
+          </button>
+        </div>
+      ) : null}
+      {!isGrid ? (
+        <p className="mb-3 text-[11px] leading-snug text-slate-500">{assistiveLabel}</p>
+      ) : null}
+      {incidentId && !isGrid ? (
+        <p className="mb-2 font-mono text-[10px] text-slate-500">
+          Incident <span className="text-slate-400">{incidentId}</span>
+        </p>
+      ) : null}
+      {analysisError ? (
+        <div
+          className="mb-3 rounded-md border border-rose-900/60 bg-rose-950/40 px-3 py-2 text-xs text-rose-100"
+          role="alert"
+        >
+          {analysisError}
+        </div>
+      ) : null}
+      {incidentId && incident ? (
+        <div className="mb-4 flex flex-col gap-3">
+          <SopProtocolSurface incidentId={incidentId} incident={incident} />
+          <NonEmergencyTriageStrip incidentId={incidentId} />
+        </div>
+      ) : null}
+      {showFieldConfidence && incidentId ? (
+        <div className="mb-4">
+          <ConfidencePanel
+            analysis={fieldConfidence}
+            isAnalyzing={fieldConfidenceLoading && !fieldConfidence}
+            compact
+          />
+        </div>
+      ) : null}
+      {analysisLoading ? (
+        <p className="text-sm text-slate-400">Loading intelligence for this incident…</p>
+      ) : !incidentId ? (
+        <p className="text-sm text-slate-500">Select an incident in the queue.</p>
+      ) : !analysis && !showFieldConfidence ? (
+        <p className="text-sm text-slate-500">
+          No analysis yet. Use <span className="font-medium text-slate-400">Refresh AI</span> when the API is
+          available.
+        </p>
+      ) : !analysis ? null : (
+        <div className="flex flex-col gap-4">
+          {analysis.protocolGuidance ? <ProtocolCoachBlock guidance={analysis.protocolGuidance} /> : null}
+          <div className="flex flex-wrap gap-2">
+            <CategoryBadge value={analysis.category} />
+            <UrgencyBadge value={analysis.urgency} />
+            {analysis.escalationFlag ? (
+              <span className="rounded bg-red-950 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-red-300 ring-1 ring-red-800">
+                Escalation
+              </span>
+            ) : null}
+            {incident?.dispatcherReviewAcknowledgedAt ? (
+              <span className="rounded bg-slate-800 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-slate-300 ring-1 ring-slate-600">
+                Reviewed
+              </span>
+            ) : null}
+          </div>
+          {!showFieldConfidence ? <ConfidenceMeter value01={analysis.confidence} /> : null}
+          {!showFieldConfidence || !fieldConfidence?.aggregate.topSuggestedQuestion ? (
+            <AiRecommendationCard text={analysis.nextQuestion} />
+          ) : null}
+          <Block label="Recommended action" value={analysis.recommendedAction} />
+          <SummaryCard summary={analysis.summary} />
+          <Block label="Rationale" value={analysis.rationale} muted />
+          <div className="border-t border-slate-800 pt-2 text-[11px] text-slate-500">
+            Provider: {analysis.provider} · {new Date(analysis.createdAt).toLocaleString()}
+          </div>
+        </div>
+      )}
+      {!isGrid ? (
+        <>
+          <div className="mt-4">
+            <DispatchActionPanel
+              incidentId={incidentId}
+              incident={incident}
+              analysis={analysis}
+              disabled={analysisLoading}
+            />
+          </div>
+          <div className="mt-4 border-t border-slate-800 pt-3">
+            {liveVideoEnabled ? (
+              <LiveVideoPanel incidentId={incidentId} ani={incident?.callerCallback} />
+            ) : (
+              <VideoAssistPanel incidentId={incidentId} ani={incident?.callerCallback} />
+            )}
+          </div>
+          {silentTextEnabled ? (
+            <div className="mt-4 border-t border-slate-800 pt-3">
+              <SilentTextPanel
+                incidentId={incidentId}
+                callerLanguage={incident?.callerLanguage}
+                ani={incident?.callerCallback}
+              />
+            </div>
+          ) : null}
+          {pinpointEnabled ? (
+            <div className="mt-4 border-t border-slate-800 pt-3">
+              <PinpointPanel incidentId={incidentId} ani={incident?.callerCallback} />
+            </div>
+          ) : null}
+          <div className="mt-4 border-t border-slate-800 pt-3">
+            <SurgePanel incidentId={incidentId} />
+          </div>
+          <div className="mt-4 border-t border-slate-800 pt-3">
+            <DashboardQaPanel incidentId={incidentId} disabled={analysisLoading} />
+          </div>
+          <div className="mt-4 border-t border-slate-800 pt-3">
+            <IncidentMediaPanel incidentId={incidentId} ani={incident?.callerCallback} />
+          </div>
+        </>
+      ) : null}
+    </div>
+  );
+}
+
 export function AiRecommendationPanel({
   incidentId,
   incident,
@@ -50,12 +213,6 @@ export function AiRecommendationPanel({
   /** When true, show an “AI SUGGESTED” pill near the intelligence header (CAD workbench). */
   showCadSuggestedBadge?: boolean;
 }) {
-  const liveVideoEnabled = isLiveVideoEnabled();
-  const silentTextEnabled = isSilentTextEnabled();
-  const pinpointEnabled = isPinpointEnabled();
-  const fieldConfidenceEnabled = isFieldConfidenceEnabled();
-  const showFieldConfidence =
-    fieldConfidenceEnabled && (fieldConfidence != null || fieldConfidenceLoading);
   return (
     <aside className={`flex w-80 shrink-0 flex-col bg-slate-900/30 ${className ?? ""}`.trim()}>
       <div className="flex items-center justify-between border-b border-slate-800 px-3 py-2">
@@ -72,7 +229,7 @@ export function AiRecommendationPanel({
             </span>
           ) : null}
         </div>
-        {onRefresh && (
+        {onRefresh ? (
           <button
             type="button"
             onClick={onRefresh}
@@ -81,117 +238,21 @@ export function AiRecommendationPanel({
           >
             {isRefreshing ? "…" : "Refresh AI"}
           </button>
-        )}
+        ) : null}
       </div>
-      <div className="min-h-0 flex-1 overflow-y-auto p-3">
-        <p className="mb-3 text-[11px] leading-snug text-slate-500">{assistiveLabel}</p>
-        {incidentId ? (
-          <p className="mb-2 font-mono text-[10px] text-slate-500">
-            Incident <span className="text-slate-400">{incidentId}</span>
-          </p>
-        ) : null}
-        {analysisError ? (
-          <div
-            className="mb-3 rounded-md border border-rose-900/60 bg-rose-950/40 px-3 py-2 text-xs text-rose-100"
-            role="alert"
-          >
-            {analysisError}
-          </div>
-        ) : null}
-        {incidentId && incident ? (
-          <div className="mb-4 flex flex-col gap-3">
-            <SopProtocolSurface incidentId={incidentId} incident={incident} />
-            <NonEmergencyTriageStrip incidentId={incidentId} />
-          </div>
-        ) : null}
-        {showFieldConfidence && incidentId ? (
-          <div className="mb-4">
-            <ConfidencePanel
-              analysis={fieldConfidence}
-              isAnalyzing={fieldConfidenceLoading && !fieldConfidence}
-              compact
-            />
-          </div>
-        ) : null}
-        {analysisLoading ? (
-          <p className="text-sm text-slate-400">Loading intelligence for this incident…</p>
-        ) : !incidentId ? (
-          <p className="text-sm text-slate-500">Select an incident in the queue.</p>
-        ) : !analysis && !showFieldConfidence ? (
-          <p className="text-sm text-slate-500">
-            No analysis yet for this incident. Use <span className="font-medium text-slate-400">Refresh AI</span> when
-            the API is available.
-          </p>
-        ) : !analysis ? null : (
-          <div className="flex flex-col gap-4">
-            {analysis.protocolGuidance ? (
-              <ProtocolCoachBlock guidance={analysis.protocolGuidance} />
-            ) : null}
-            <div className="flex flex-wrap gap-2">
-              <CategoryBadge value={analysis.category} />
-              <UrgencyBadge value={analysis.urgency} />
-              {analysis.escalationFlag && (
-                <span className="rounded bg-red-950 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-red-300 ring-1 ring-red-800">
-                  Escalation
-                </span>
-              )}
-              {incident?.dispatcherReviewAcknowledgedAt ? (
-                <span className="rounded bg-slate-800 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-slate-300 ring-1 ring-slate-600">
-                  Reviewed
-                </span>
-              ) : null}
-            </div>
-            {!showFieldConfidence ? <ConfidenceMeter value01={analysis.confidence} /> : null}
-            {!showFieldConfidence || !fieldConfidence?.aggregate.topSuggestedQuestion ? (
-              <AiRecommendationCard text={analysis.nextQuestion} />
-            ) : null}
-            <Block label="Recommended action" value={analysis.recommendedAction} />
-            <SummaryCard summary={analysis.summary} />
-            <Block label="Rationale" value={analysis.rationale} muted />
-            <div className="border-t border-slate-800 pt-2 text-[11px] text-slate-500">
-              Provider: {analysis.provider} · {new Date(analysis.createdAt).toLocaleString()}
-            </div>
-          </div>
-        )}
-        <div className="mt-4">
-          <DispatchActionPanel
-            incidentId={incidentId}
-            incident={incident}
-            analysis={analysis}
-            disabled={analysisLoading}
-          />
-        </div>
-        <div className="mt-4 border-t border-slate-800 pt-3">
-          {liveVideoEnabled ? (
-            <LiveVideoPanel incidentId={incidentId} ani={incident?.callerCallback} />
-          ) : (
-            <VideoAssistPanel incidentId={incidentId} ani={incident?.callerCallback} />
-          )}
-        </div>
-        {silentTextEnabled ? (
-          <div className="mt-4 border-t border-slate-800 pt-3">
-            <SilentTextPanel
-              incidentId={incidentId}
-              callerLanguage={incident?.callerLanguage}
-              ani={incident?.callerCallback}
-            />
-          </div>
-        ) : null}
-        {pinpointEnabled ? (
-          <div className="mt-4 border-t border-slate-800 pt-3">
-            <PinpointPanel incidentId={incidentId} ani={incident?.callerCallback} />
-          </div>
-        ) : null}
-        <div className="mt-4 border-t border-slate-800 pt-3">
-          <SurgePanel incidentId={incidentId} />
-        </div>
-        <div className="mt-4 border-t border-slate-800 pt-3">
-          <DashboardQaPanel incidentId={incidentId} disabled={analysisLoading} />
-        </div>
-        <div className="mt-4 border-t border-slate-800 pt-3">
-          <IncidentMediaPanel incidentId={incidentId} ani={incident?.callerCallback} />
-        </div>
-      </div>
+      <IntelligencePanelContent
+        incidentId={incidentId}
+        incident={incident}
+        analysis={analysis}
+        fieldConfidence={fieldConfidence}
+        fieldConfidenceLoading={fieldConfidenceLoading}
+        analysisLoading={analysisLoading}
+        analysisError={analysisError}
+        onRefresh={onRefresh}
+        isRefreshing={isRefreshing}
+        assistiveLabel={assistiveLabel}
+        variant="aside"
+      />
       <UtilitySlot />
     </aside>
   );

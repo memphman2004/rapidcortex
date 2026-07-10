@@ -9,6 +9,7 @@ WORKDIR /app
 
 COPY package.json package-lock.json ./
 COPY tsconfig.base.json ./
+COPY .web-docker-cache-bust ./
 COPY packages ./packages/
 COPY apps ./apps/
 

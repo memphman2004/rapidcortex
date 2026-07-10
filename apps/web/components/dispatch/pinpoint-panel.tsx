@@ -16,9 +16,11 @@ import { PhoneInput } from "@/components/ui/phone-input";
 export function PinpointPanel({
   incidentId,
   ani,
+  embedded = false,
 }: {
   incidentId: string | null;
   ani?: string | null;
+  embedded?: boolean;
 }) {
   const queryClient = useQueryClient();
   const [phoneE164, setPhoneE164] = useState<string | null>(null);
@@ -82,12 +84,18 @@ export function PinpointPanel({
 
   if (!pinpointOn) return null;
 
+  const rootClass = embedded ? "p-3" : "rounded-lg border border-slate-800 bg-slate-950/40 p-3";
+
   return (
-    <section className="rounded-lg border border-slate-800 bg-slate-950/40 p-3">
-      <div className="text-[10px] font-semibold tracking-wide text-sky-400">Rapid Cortex Pinpoint</div>
-      <p className="mt-1 text-[11px] leading-snug text-slate-500">
-        Send a secure SMS link for live GPS — accuracy radius, movement, and location history on this incident.
-      </p>
+    <section className={rootClass}>
+      {!embedded ? (
+        <>
+          <div className="text-[10px] font-semibold tracking-wide text-sky-400">Rapid Cortex Pinpoint</div>
+          <p className="mt-1 text-[11px] leading-snug text-slate-500">
+            Send a secure SMS link for live GPS — accuracy radius, movement, and location history on this incident.
+          </p>
+        </>
+      ) : null}
       {!incidentId ? (
         <p className="mt-2 text-xs text-slate-500">Select an incident.</p>
       ) : !configured ? (

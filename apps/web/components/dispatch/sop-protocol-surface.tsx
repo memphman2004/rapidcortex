@@ -6,6 +6,7 @@ import { getProtocolPackById, listProtocolPacks, type ProtocolStep } from "rapid
 import type { Incident } from "rapid-cortex-shared/types";
 import { isApiConfigured, patchIncidentDispatch, postSopDetect } from "@/lib/api";
 import { isSopProtocolEnabled } from "@/lib/runtime-flags";
+import { sopProtocolDisplayLabel, sopProtocolLabel } from "@/lib/sop/protocol-labels";
 
 function confidenceLabel(c: number): string {
   return `${Math.round(Math.min(1, Math.max(0, c)) * 100)}%`;
@@ -23,6 +24,10 @@ export function SopProtocolSurface({ incidentId, incident }: { incidentId: strin
 
   const pack = activePackId ? getProtocolPackById(activePackId) : null;
   const packIds = useMemo(() => listProtocolPacks().map((p) => p.id), []);
+  const protocolDisplayLabel = useMemo(
+    () => sopProtocolDisplayLabel(overlay?.incidentTypeLabel, activePackId),
+    [overlay?.incidentTypeLabel, activePackId],
+  );
 
   if (!isSopProtocolEnabled() || !isApiConfigured()) return null;
 
@@ -111,7 +116,7 @@ export function SopProtocolSurface({ incidentId, incident }: { incidentId: strin
         </span>
       </div>
       <p className="mt-1 text-xs text-slate-300">
-        <span className="font-medium text-white">{overlay.incidentTypeLabel}</span>
+        <span className="font-medium text-white">{protocolDisplayLabel}</span>
         {overlay.manualProtocolPackId ? (
           <span className="ml-2 text-amber-200/90">· Manual pack</span>
         ) : null}
@@ -162,7 +167,7 @@ export function SopProtocolSurface({ incidentId, incident }: { incidentId: strin
           <option value="">— Auto recommendation —</option>
           {packIds.map((id) => (
             <option key={id} value={id}>
-              {id}
+              {sopProtocolLabel(id)}
             </option>
           ))}
         </select>

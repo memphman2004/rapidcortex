@@ -5,7 +5,9 @@ ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 ENVIRONMENT="${1:-dev}"
 
 OUT="${PACKAGE_WEB_SOURCE_OUT:-${ROOT}/web-source-${ENVIRONMENT}.zip}"
-echo "Packaging web build context for CodeBuild (${ENVIRONMENT}) → ${OUT}"
+  echo "Packaging web build context for CodeBuild (${ENVIRONMENT}) → ${OUT}"
+  # Changes every package so Docker COPY layers cannot reuse a stale apps/ tree.
+  date -u +"%Y-%m-%dT%H:%M:%SZ" > "${ROOT}/.web-docker-cache-bust"
 # shellcheck source=scripts/lib/api-vendor-lock.sh
 source "${ROOT}/scripts/lib/api-vendor-lock.sh"
 rc_wait_for_api_vendor_lock
@@ -17,6 +19,7 @@ rm -f "${OUT}"
   set +f
   INCLUDES=(
     package.json package-lock.json tsconfig.base.json
+    .web-docker-cache-bust
     Dockerfile.web buildspec.web.yml .dockerignore
     scripts/verify-host-routing.sh
     packages
