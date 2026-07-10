@@ -22,6 +22,11 @@ export function SlaStatusBar() {
   if (!enabled) return null;
 
   const snap = q.data;
+  const addonBlocked =
+    q.isError &&
+    q.error instanceof Error &&
+    (q.error.message.includes("addon_not_enabled") || q.error.message.includes("403"));
+  if (addonBlocked) return null;
   const breachLevel: "ok" | "warn" | "bad" =
     (snap?.slaBreachCount ?? 0) > 0 ? "bad" : (snap?.slaWarningCount ?? 0) > 0 ? "warn" : "ok";
 
@@ -30,7 +35,7 @@ export function SlaStatusBar() {
       <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs">
         <span className="font-semibold uppercase tracking-wide text-slate-500">Queue SLA</span>
         {q.isLoading ? <span className="text-slate-500">Loading…</span> : null}
-        {q.isError ? (
+        {q.isError && !addonBlocked ? (
           <span className="text-rose-300">{q.error instanceof Error ? q.error.message : "SLA unavailable"}</span>
         ) : null}
         {snap ? (

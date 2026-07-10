@@ -40,6 +40,10 @@ async function main() {
       transcriptRedactionEnabled: true,
       auditExportEnabled: false,
       environmentFlags: {},
+      triage: {
+        enabled: true,
+        nonEmergencyQueueEnabled: true,
+      },
       supervisorEscalationRules: {},
       createdAt: now,
       updatedAt: now,

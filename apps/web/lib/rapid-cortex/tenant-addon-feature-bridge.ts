@@ -20,6 +20,10 @@ const ADDON_KEY_FEATURE_IDS: Partial<Record<AddonKey, string[]>> = {
   "transcription.diarization.tier1": ["live_transcription"],
   "transcription.diarization.tier2": ["live_transcription"],
   "transcription.diarization.tier3": ["live_transcription"],
+  "ai.triage.basic": ["call_triage_workflows", "non_emergency_intake_queue"],
+  "ai.triage.standard": ["call_triage_workflows", "non_emergency_intake_queue"],
+  "ai.triage.premium": ["call_triage_workflows", "non_emergency_intake_queue"],
+  "reliability.slo_dashboards": ["backlog_sla_tracking"],
 };
 
 function mapAddonKeyToFeatureIds(key: AddonKey): string[] {
@@ -28,6 +32,12 @@ function mapAddonKeyToFeatureIds(key: AddonKey): string[] {
   if (key.startsWith("translation.live.")) return ["live_translation"];
   if (key.startsWith("transcription.enhanced.") || key.startsWith("transcription.diarization.")) {
     return ["live_transcription"];
+  }
+  if (key.startsWith("ai.triage.")) {
+    return ["call_triage_workflows", "non_emergency_intake_queue"];
+  }
+  if (key.startsWith("reliability.")) {
+    return ["backlog_sla_tracking"];
   }
   return [];
 }

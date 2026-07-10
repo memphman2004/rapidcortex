@@ -1,8 +1,9 @@
 import { notFound } from "next/navigation";
 import { FeatureRoutePlaceholder } from "@/components/rapid-cortex/feature-route-placeholder";
+import { NonEmergencyWorkspace } from "@/components/triage/non-emergency-workspace";
 import { blockPsapRoutesForVerticalAgency } from "@/lib/venue/venue-psap-route-guard";
 
-const WORKSPACES: Record<string, { title: string; featureId: string; summary: string }> = {
+const PLACEHOLDER_WORKSPACES: Record<string, { title: string; featureId: string; summary: string }> = {
   intake: {
     title: "Dispatcher Intake",
     featureId: "ai_assisted_intake",
@@ -13,20 +14,10 @@ const WORKSPACES: Record<string, { title: string; featureId: string; summary: st
     featureId: "live_transcription",
     summary: "Start/stop transcription and review transcript stream in dispatcher workflow.",
   },
-  triage: {
-    title: "Dispatcher Triage",
-    featureId: "call_triage_workflows",
-    summary: "Review AI triage suggestions and apply dispatcher-reviewed decisions.",
-  },
   incidents: {
     title: "Dispatcher Incidents",
     featureId: "active_incident_view",
     summary: "Track active incidents and open incident details.",
-  },
-  "non-emergency": {
-    title: "Non-Emergency Queue",
-    featureId: "non_emergency_intake_queue",
-    summary: "Manage non-emergency intake and backlog handoffs.",
   },
   media: {
     title: "Dispatcher Media",
@@ -40,7 +31,15 @@ type Ctx = { params: Promise<{ workspace: string; jurisdiction: string }> };
 export default async function DispatcherWorkspacePage({ params }: Ctx) {
   const { workspace, jurisdiction } = await params;
   await blockPsapRoutesForVerticalAgency(jurisdiction);
-  const config = WORKSPACES[workspace];
+
+  if (workspace === "triage") {
+    return <NonEmergencyWorkspace variant="triage" />;
+  }
+  if (workspace === "non-emergency") {
+    return <NonEmergencyWorkspace variant="non-emergency" />;
+  }
+
+  const config = PLACEHOLDER_WORKSPACES[workspace];
   if (!config) {
     notFound();
   }

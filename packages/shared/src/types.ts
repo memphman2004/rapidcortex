@@ -85,6 +85,8 @@ export interface Incident {
   callerLocationLng?: number | null;
   /** BCP-47 primary tag for caller language (e.g. `es`, `zh`) — drives outbound translation. */
   callerLanguage?: string | null;
+  /** Callback number in E.164 when captured on the incident (dispatcher form or CAD). */
+  callerCallback?: string | null;
   /** Provenance for coordinates when not from the incident’s own form. */
   callerLocationMapLabel?: string | null;
   category: IncidentCategory;

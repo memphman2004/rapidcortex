@@ -1,6 +1,6 @@
 # Agency playbook template — pilot
 
-**Copy this file** per agency (e.g. `playbooks/<agency>-pilot-2026.md` in your internal repo, or append to the SOW appendix). Fill every bracketed field before go-live. Step-by-step onboarding: [AGENCY_ONBOARDING_RUNBOOK.md](./AGENCY_ONBOARDING_RUNBOOK.md). Operational index: [GTM_PACKAGE.md](./GTM_PACKAGE.md). Canonical product scope: [MVP_SCOPE.md](./MVP_SCOPE.md). Non-goals: [NON_GOALS.md](./NON_GOALS.md).
+**Copy this file** per agency (e.g. `playbooks/<agency>-pilot-2026.md` in your internal repo, or append to the SOW appendix). **Example filled copy:** [playbooks/EXAMPLE_agency-pilot-2026.md](./playbooks/EXAMPLE_agency-pilot-2026.md). Fill every bracketed field before go-live. Step-by-step onboarding: [AGENCY_ONBOARDING_RUNBOOK.md](./AGENCY_ONBOARDING_RUNBOOK.md). Operational index: [GTM_PACKAGE.md](./GTM_PACKAGE.md). Canonical product scope: [MVP_SCOPE.md](./MVP_SCOPE.md). Non-goals: [NON_GOALS.md](./NON_GOALS.md).
 
 ---
 

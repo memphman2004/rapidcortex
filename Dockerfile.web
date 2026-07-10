@@ -12,7 +12,8 @@ COPY tsconfig.base.json ./
 COPY packages ./packages/
 COPY apps ./apps/
 
-RUN npm install -g npm@latest && npm ci --legacy-peer-deps
+# Pin npm 11 — npm@12+ requires Node 22+; base image is node:20-bookworm-slim.
+RUN npm install -g npm@11 && npm ci --legacy-peer-deps
 
 FROM deps AS builder
 WORKDIR /app

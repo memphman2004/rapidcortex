@@ -87,7 +87,8 @@ A **controlled pilot** is **not** general availability. The following boundaries
 - [ ] [AGENCY_ONBOARDING_RUNBOOK.md](./AGENCY_ONBOARDING_RUNBOOK.md) / [AGENCY_SETUP_CHECKLIST.md](./AGENCY_SETUP_CHECKLIST.md) in progress or complete with named owners.
 - [ ] Agency admins walked through in-app **Admin → Pilot hub** (`/admin/pilot`) and [GTM_PACKAGE.md](./GTM_PACKAGE.md) / [SALES_SCOPE_MATRIX.md](./SALES_SCOPE_MATRIX.md).
 - [ ] [training/PILOT_AGENCY_ADMIN_CHECKLIST.md](./training/PILOT_AGENCY_ADMIN_CHECKLIST.md) completed.
-- [ ] [training/PILOT_DISPATCHER_CHECKLIST.md](./training/PILOT_DISPATCHER_CHECKLIST.md) completed.
+- [ ] [training/PILOT_DISPATCHER_CHECKLIST.md](../training/PILOT_DISPATCHER_CHECKLIST.md) completed.
+- [ ] [training/PILOT_SUPERVISOR_CHECKLIST.md](../training/PILOT_SUPERVISOR_CHECKLIST.md) completed.
 
 ## 10. Launch and training
 

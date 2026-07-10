@@ -391,7 +391,7 @@ const RAPID_CORTEX_FEATURES_BASE: RapidCortexFeatureBase[] = [
     requiresAgencyApproval: false,
     requiresCadVendor: false,
     requiresAuditLog: true,
-    defaultEnabled: false,
+    defaultEnabled: true,
     routePath: "/[jurisdiction]/dispatcher/non-emergency",
     rolloutNotes: "Enable when operational policy is approved.",
   },

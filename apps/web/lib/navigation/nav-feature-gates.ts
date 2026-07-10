@@ -1,6 +1,7 @@
 import {
   isCadWritebackUiEnabled,
   isChannelMonitoringEnabled,
+  isNonEmergencyTriageEnabled,
   isQaScoringEnabled,
   isSlaBacklogEnabled,
   isVerticalOnboardingEnabled,
@@ -15,6 +16,8 @@ export function isNavFeatureEnabled(feature: string): boolean {
       return isQaScoringEnabled();
     case "slaBacklog":
       return isSlaBacklogEnabled();
+    case "nonEmergencyTriage":
+      return isNonEmergencyTriageEnabled();
     case "channelMonitoring":
       return isChannelMonitoringEnabled();
     case "verticalOnboarding":

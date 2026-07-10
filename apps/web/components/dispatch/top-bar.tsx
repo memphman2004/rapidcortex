@@ -7,14 +7,12 @@ import { useSession } from "@/components/auth/session-context";
 import { isApiConfigured } from "@/lib/api";
 import { trainingModeCompactDetail } from "@/lib/training-mode";
 import { isAuthConfigured } from "@/lib/auth/roles";
-import { hasSubscriberManualAccess } from "@/lib/auth/subscriber-access";
 import { EnvironmentBadge } from "@/components/dispatch/environment-badge";
 import { FontPicker } from "@/components/ui/font-picker";
 import { UserIdentityBar } from "@/components/ui/user-identity-bar";
 import { getRoleHeaderBadgeLabel } from "@/lib/dashboards/role-header-badge";
 import { resolvePsapRole } from "@/lib/dashboards/psap-role-nav";
 import { useJurisdictionLink } from "@/lib/jurisdiction-context";
-import { marketingCompleteManualPath } from "@/lib/marketing-links";
 
 export function TopBar({ user: serverUser }: { user?: UserContext | null }) {
   const to = useJurisdictionLink();
@@ -59,14 +57,6 @@ export function TopBar({ user: serverUser }: { user?: UserContext | null }) {
       </div>
       <div className="flex shrink-0 flex-wrap items-center justify-end gap-2 sm:gap-3 lg:gap-4">
         <FontPicker />
-        {user && hasSubscriberManualAccess(user) ? (
-          <Link
-            href={marketingCompleteManualPath()}
-            className="inline-flex shrink-0 rounded-md border border-slate-700 px-2.5 py-1 text-xs font-medium text-slate-200 hover:bg-slate-900"
-          >
-            Manual
-          </Link>
-        ) : null}
         <div
           className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${
             apiLive

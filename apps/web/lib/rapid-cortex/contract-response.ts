@@ -6,6 +6,7 @@ import { loadAgencyFeatureConfig } from "@/lib/rapid-cortex/agency-config-servic
 import { requireFeatureAccess } from "@/lib/rapid-cortex/entitlements";
 import type { AgencyFeatureConfig } from "@/lib/rapid-cortex/entitlements";
 import { requireApiUser } from "@/lib/rapid-cortex/server-auth";
+import { isNonEmergencyTriageEnabled } from "@/lib/runtime-flags";
 /**
  * Standard body when backend dependencies are missing. HTTP 200 with explicit status
  * (clients should not treat 501 for expected pilot gaps).
@@ -94,4 +95,19 @@ export async function withFeatureContract(
   }
 
   return handler({ agencyConfig });
+}
+
+/** F3 triage BFF — operational flag + auth only; not gated by billing add-on SKUs. */
+export async function withTriageApiAccess(handler: () => Promise<NextResponse>) {
+  const user = await requireApiUser();
+  if (!user) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+  if (!isNonEmergencyTriageEnabled()) {
+    return NextResponse.json(
+      { error: "Non-emergency triage is disabled for this deployment" },
+      { status: 503 },
+    );
+  }
+  return handler();
 }

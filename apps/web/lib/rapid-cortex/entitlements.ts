@@ -1,4 +1,5 @@
 import { isPilotTestModeEnabled } from "@/lib/pilot-test-mode";
+import { isNonEmergencyTriageEnabled } from "@/lib/runtime-flags";
 import {
   FEATURE_AVAILABILITY,
   type FeatureAvailability,
@@ -116,6 +117,13 @@ function evaluateFeatureAccess(
       availability: feature.planAvailability[agencyConfig.plan],
       reason: "Feature disabled by agency configuration.",
     };
+  }
+
+  if (
+    isNonEmergencyTriageEnabled() &&
+    (featureId === "call_triage_workflows" || featureId === "non_emergency_intake_queue")
+  ) {
+    return { allowed: true, availability: getFeatureAvailability(agencyConfig.plan, featureId) };
   }
 
   let availability = getFeatureAvailability(agencyConfig.plan, featureId);

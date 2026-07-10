@@ -2563,6 +2563,7 @@
     "BillingAuditEventsTable": {
       "Type": "AWS::DynamoDB::Table",
       "DeletionPolicy": "Retain",
+      "UpdateReplacePolicy": "Retain",
       "Properties": {
         "BillingMode": {
           "Ref": "DynamoBillingMode"
@@ -3176,6 +3177,7 @@
     "BillingAuditLogTable": {
       "Type": "AWS::DynamoDB::Table",
       "DeletionPolicy": "Retain",
+      "UpdateReplacePolicy": "Retain",
       "Properties": {
         "BillingMode": {
           "Ref": "DynamoBillingMode"

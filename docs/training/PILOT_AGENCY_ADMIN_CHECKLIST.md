@@ -1,6 +1,6 @@
 # Pilot checklist — agency administrator
 
-Use with [USER_GUIDE.md](../USER_GUIDE.md), [PILOT_READINESS_CHECKLIST.md](../PILOT_READINESS_CHECKLIST.md), and the [PILOT_READINESS.md](../PILOT_READINESS.md) hub.
+Use with [USER_GUIDE.md](../admin-user-management/USER_GUIDE.md), [PILOT_READINESS_CHECKLIST.md](../deployment-infrastructure/PILOT_READINESS_CHECKLIST.md), and [PILOT_READINESS.md](../deployment-infrastructure/PILOT_READINESS.md).
 
 ## Before go-live
 
@@ -16,4 +16,4 @@ Use with [USER_GUIDE.md](../USER_GUIDE.md), [PILOT_READINESS_CHECKLIST.md](../PI
 
 ## Ongoing
 
-- [ ] After protocol or SOP changes, align **dispatcher training** ([PILOT_DISPATCHER_CHECKLIST.md](./PILOT_DISPATCHER_CHECKLIST.md)) with supervisor expectations.
+- [ ] After protocol or SOP changes, align **dispatcher** ([PILOT_DISPATCHER_CHECKLIST.md](./PILOT_DISPATCHER_CHECKLIST.md)) and **supervisor** ([PILOT_SUPERVISOR_CHECKLIST.md](./PILOT_SUPERVISOR_CHECKLIST.md)) training with floor expectations.

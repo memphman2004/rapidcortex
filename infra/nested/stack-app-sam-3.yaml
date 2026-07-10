@@ -1778,6 +1778,8 @@ Resources:
 
   PricingTable:
     Type: AWS::DynamoDB::Table
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       TableName: !Sub "rapid-cortex-pricing-${DeploymentStage}"
       BillingMode: PAY_PER_REQUEST

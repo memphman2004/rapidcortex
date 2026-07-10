@@ -14,7 +14,7 @@ This file is the **operational entry point** for how Rapid Cortex is introduced,
 | **Implementation / DevOps** | [IMPLEMENTATION_ASSUMPTIONS.md](./IMPLEMENTATION_ASSUMPTIONS.md), [INSTALLATION.md](./INSTALLATION.md), [DEPLOYMENT.md](./DEPLOYMENT.md), [ENVIRONMENT_MATRIX.md](./ENVIRONMENT_MATRIX.md) | [AGENCY_ONBOARDING_RUNBOOK.md](./AGENCY_ONBOARDING_RUNBOOK.md), [IMPLEMENTATION_WORKBOOK_TEMPLATE.md](./IMPLEMENTATION_WORKBOOK_TEMPLATE.md), [PILOT_VALIDATION_CHECKLIST.md](./PILOT_VALIDATION_CHECKLIST.md), [RUNBOOK.md](./RUNBOOK.md). |
 | **County / city / municipality (IT + comms)** | **[JURISDICTION_OPERATIONS_GUIDE.md](./JURISDICTION_OPERATIONS_GUIDE.md)** — install on screens, setup, maintenance, troubleshooting; **Appendix A** lists files to ship in the agency **download package** | [USER_GUIDE.md](./USER_GUIDE.md), [AUTH_OPERATIONS.md](./AUTH_OPERATIONS.md), [TROUBLESHOOTING_GUIDE.md](./TROUBLESHOOTING_GUIDE.md), [AGENCY_ONBOARDING_RUNBOOK.md](./AGENCY_ONBOARDING_RUNBOOK.md). |
 | **Agency admin** | In-app **Admin → Pilot hub** (`/admin/pilot`), **Admin → Configuration** (`/admin/configuration`), [ADMIN_GUIDE.md](./ADMIN_GUIDE.md) | [ADMIN_SETUP_GUIDE.md](./ADMIN_SETUP_GUIDE.md), [USER_PROVISIONING_GUIDE.md](./USER_PROVISIONING_GUIDE.md), [AGENCY_SETUP_CHECKLIST.md](./AGENCY_SETUP_CHECKLIST.md), [training/PILOT_AGENCY_ADMIN_CHECKLIST.md](./training/PILOT_AGENCY_ADMIN_CHECKLIST.md), [COGNITO_SELF_SIGNUP.md](./COGNITO_SELF_SIGNUP.md) if self-signup. |
-| **Training lead** | [USE_CASES.md](./USE_CASES.md), [TRAINING_QUICKSTART.md](./TRAINING_QUICKSTART.md), [TRAINING_DISPATCHER.md](./TRAINING_DISPATCHER.md), [TRAINING_SUPERVISOR.md](./TRAINING_SUPERVISOR.md), [TRAINING_ADMIN.md](./TRAINING_ADMIN.md), [QUICKSTART_CARD.md](./QUICKSTART_CARD.md), [USER_GUIDE.md](./USER_GUIDE.md) | [FIRST_DAY_CHECKLIST.md](./FIRST_DAY_CHECKLIST.md), [COMMON_TASKS.md](./COMMON_TASKS.md), [training/PILOT_DISPATCHER_CHECKLIST.md](./training/PILOT_DISPATCHER_CHECKLIST.md), [KNOWN_LIMITATIONS.md](./KNOWN_LIMITATIONS.md). |
+| **Training lead** | [USE_CASES.md](./USE_CASES.md), [TRAINING_QUICKSTART.md](../operations-runbooks/TRAINING_QUICKSTART.md), [TRAINING_DISPATCHER.md](../operations-runbooks/TRAINING_DISPATCHER.md), [TRAINING_SUPERVISOR.md](../operations-runbooks/TRAINING_SUPERVISOR.md), [TRAINING_ADMIN.md](../operations-runbooks/TRAINING_ADMIN.md), [QUICKSTART_CARD.md](../operations-runbooks/QUICKSTART_CARD.md), [USER_GUIDE.md](../admin-user-management/USER_GUIDE.md) | [FIRST_DAY_CHECKLIST.md](../operations-runbooks/FIRST_DAY_CHECKLIST.md), [COMMON_TASKS.md](../operations-runbooks/COMMON_TASKS.md), [training/PILOT_DISPATCHER_CHECKLIST.md](../training/PILOT_DISPATCHER_CHECKLIST.md), [training/PILOT_SUPERVISOR_CHECKLIST.md](../training/PILOT_SUPERVISOR_CHECKLIST.md), [KNOWN_LIMITATIONS.md](../product-architecture/KNOWN_LIMITATIONS.md). |
 | **Support / NOC** | [SUPPORT_MODEL.md](./SUPPORT_MODEL.md), [ESCALATION_PATHS.md](./ESCALATION_PATHS.md), [TROUBLESHOOTING_GUIDE.md](./TROUBLESHOOTING_GUIDE.md), [INCIDENT_RESPONSE.md](./INCIDENT_RESPONSE.md) | [OPS_CONTACT_MATRIX.md](./OPS_CONTACT_MATRIX.md), [PILOT_SUCCESS_AND_FEEDBACK.md](./PILOT_SUCCESS_AND_FEEDBACK.md), [PILOT_SUCCESS_METRICS.md](./PILOT_SUCCESS_METRICS.md), [FEEDBACK_LOOP.md](./FEEDBACK_LOOP.md), [PILOT_REVIEW_TEMPLATE.md](./PILOT_REVIEW_TEMPLATE.md), [FAQ_INTERNAL.md](./FAQ_INTERNAL.md), [RUNBOOK.md](./RUNBOOK.md), [MONITORING_AND_OPS.md](./MONITORING_AND_OPS.md). |
 
 ---
@@ -101,7 +101,13 @@ Ship **[JURISDICTION_OPERATIONS_GUIDE.md](./JURISDICTION_OPERATIONS_GUIDE.md)** 
 
 ## 6. Related documents
 
-- [CORE_USER_FLOWS.md](./CORE_USER_FLOWS.md) — UI ↔ API wiring
-- [API_SURFACE.md](./API_SURFACE.md) — RBAC per route
-- [SECURITY_MODEL.md](./SECURITY_MODEL.md) — Pilot technical posture (not certification claims)
-- [PRIVACY_RETENTION_DECISIONS.md](./PRIVACY_RETENTION_DECISIONS.md) — Data handling expectations
+- [INDEX.md](../INDEX.md) — canonical paths for all `docs/` files
+- [GTM_EXECUTION_PLAN.md](./GTM_EXECUTION_PLAN.md) — 90-day pilot-first execution plan
+- [CONTRACT_PACKAGE_INDEX.md](./CONTRACT_PACKAGE_INDEX.md) — contracts and trust artifacts to send when
+- [DOCUMENT_GAPS.md](./DOCUMENT_GAPS.md) — missing or draft artifact tracker
+- [CORE_USER_FLOWS.md](../product-architecture/CORE_USER_FLOWS.md) — UI ↔ API wiring
+- [API_SURFACE.md](../product-architecture/API_SURFACE.md) — RBAC per route
+- [SECURITY_MODEL.md](../security-compliance/SECURITY_MODEL.md) — Pilot technical posture (not certification claims)
+- [SECURITY_QUESTIONNAIRE_RESPONSES.md](../security-compliance/SECURITY_QUESTIONNAIRE_RESPONSES.md) — Draft procurement pack
+- [SUBPROCESSOR_LIST.md](../security-compliance/SUBPROCESSOR_LIST.md) — Draft subprocessor list
+- [PRIVACY_RETENTION_DECISIONS.md](../security-compliance/PRIVACY_RETENTION_DECISIONS.md) — Data handling expectations
