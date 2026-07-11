@@ -888,6 +888,7 @@ Conditions:
   HasSesConfigurationSet: !Not [!Equals [!Ref SesConfigurationSetName, ""]]
   HasRoute53HostedZone: !Not [!Equals [!Ref Route53HostedZoneId, ""]]
   CreateLiveVideoResources: !Equals [!Ref EnableLiveVideoResources, "true"]
+  HasSilentText: !Equals [!Ref EnableSilentText, "true"]
   HasApiWaf: !Equals [!Ref EnableApiWaf, "true"]
   CloudTrailEnabled: !Equals [!Ref EnableCloudTrail, "true"]
   CloudTrailS3DataEvents: !And
@@ -3840,6 +3841,14 @@ Resources:
         Variables:
           COGNITO_USER_POOL_ID: !Ref ImportedCognitoUserPoolId
           COGNITO_CLIENT_ID: !Ref ImportedCognitoWebClientId
+          COGNITO_REGION: !Sub "${AWS::Region}"
+          INCIDENTS_TABLE: !Ref IncidentsTable
+          TRANSCRIPTS_TABLE: !Ref TranscriptsTable
+          ANALYSES_TABLE: !Ref AnalysesTable
+          AUDIT_TABLE: !Ref AuditTable
+          AGENCIES_TABLE: !Ref AgenciesTable
+          INVITES_TABLE: !Ref InvitesTable
+          ASSETS_BUCKET: !Ref AssetsBucket
           ENABLE_LIVE_VIDEO: "true"
           LIVE_VIDEO_SESSIONS_TABLE: !Ref LiveVideoSessionsTable
           LIVE_VIDEO_SESSION_TTL_SECONDS: "1800"
@@ -4057,6 +4066,14 @@ Resources:
         Variables:
           COGNITO_USER_POOL_ID: !Ref ImportedCognitoUserPoolId
           COGNITO_CLIENT_ID: !Ref ImportedCognitoWebClientId
+          COGNITO_REGION: !Sub "${AWS::Region}"
+          INCIDENTS_TABLE: !Ref IncidentsTable
+          TRANSCRIPTS_TABLE: !Ref TranscriptsTable
+          ANALYSES_TABLE: !Ref AnalysesTable
+          AUDIT_TABLE: !Ref AuditTable
+          AGENCIES_TABLE: !Ref AgenciesTable
+          INVITES_TABLE: !Ref InvitesTable
+          ASSETS_BUCKET: !Ref AssetsBucket
           SILENT_TEXT_TABLE: !Ref SilentTextSessionsTable
           SILENT_TEXT_PUBLIC_BASE_URL: !Ref AppPublicBaseUrl
           ENABLE_SILENT_TEXT: !Ref EnableSilentText
@@ -4073,10 +4090,11 @@ Resources:
             - !Ref NestedMultilingualGoogleServiceAccountSecretArn
             - !Ref GoogleApplicationCredentialsSecretArn
           INCIDENT_MEDIA_TWILIO_SECRET_ARN: !Ref IncidentMediaTwilioSecretArn
-          SMS_PROVIDER: !FindInMap [SmsEnvironmentDefaults, !Ref DeploymentStage, SmsProvider]
+          # Live Twilio when Silent Text is enabled; otherwise keep stage SmsEnvironmentDefaults (dev=mock).
+          SMS_PROVIDER: !If [HasSilentText, "twilio", !FindInMap [SmsEnvironmentDefaults, !Ref DeploymentStage, SmsProvider]]
           SMS_PRIMARY_PROVIDER: !FindInMap [SmsEnvironmentDefaults, !Ref DeploymentStage, SmsPrimaryProvider]
-          MOCK_SMS_PROVIDER: !FindInMap [SmsEnvironmentDefaults, !Ref DeploymentStage, MockSmsProvider]
-          AWS_SMS_USE_SIMULATOR: !FindInMap [SmsEnvironmentDefaults, !Ref DeploymentStage, AwsSmsUseSimulator]
+          MOCK_SMS_PROVIDER: !If [HasSilentText, "false", !FindInMap [SmsEnvironmentDefaults, !Ref DeploymentStage, MockSmsProvider]]
+          AWS_SMS_USE_SIMULATOR: !If [HasSilentText, "false", !FindInMap [SmsEnvironmentDefaults, !Ref DeploymentStage, AwsSmsUseSimulator]]
           AWS_SMS_REGION: ""
       Policies:
         - !Ref AppManagedPolicyDynamoLambdaCrudShardA

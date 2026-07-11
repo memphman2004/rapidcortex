@@ -275,7 +275,17 @@ if [[ "${DEPLOY_SAM5}" -eq 1 ]]; then
   echo ""
   echo "▶ AppSam5Stack (${SAM5_STACK})"
   lean_sam_build "${ROOT}/infra/nested/stack-app-sam-5.yaml" "sam5"
-  lean_sam_deploy_nested "${SAM_BUILD_DIR}/sam5/template.yaml" "${SAM5_STACK}"
+  _sam5_extra=()
+  if [[ -n "${ENABLE_SILENT_TEXT:-}" ]]; then
+    _sam5_extra+=("EnableSilentText=${ENABLE_SILENT_TEXT}")
+  fi
+  if [[ -n "${ENABLE_PINPOINT:-}" ]]; then
+    _sam5_extra+=("EnablePinpoint=${ENABLE_PINPOINT}")
+  fi
+  if [[ -n "${ENABLE_LIVE_VIDEO_RESOURCES:-}" ]]; then
+    _sam5_extra+=("EnableLiveVideoResources=${ENABLE_LIVE_VIDEO_RESOURCES}")
+  fi
+  lean_sam_deploy_nested "${SAM_BUILD_DIR}/sam5/template.yaml" "${SAM5_STACK}" ${_sam5_extra[@]:+"${_sam5_extra[@]}"}
   echo "✅ AppSam5Stack deploy complete"
 fi
 

@@ -433,6 +433,53 @@ if [[ "${ECS_SVC_LEN}" -lt 1 ]]; then
     --no-cli-pager >/dev/null
   echo "✓ ECS service created"
 else
+  # CloudFormation often registers the task definition with an image *digest*, so
+  # `update-service --task-definition $FAMILY` alone re-rolls the same July-era image even
+  # after CodeBuild pushes a new `:latest`. Re-register with the `:latest` tag so ECS pulls
+  # the image CodeBuild just pushed.
+  echo "   Re-registering task definition to pull ECR :latest…"
+  TD_JSON="$(mktemp)"
+  TD_NEW="$(mktemp)"
+  cleanup_td() { rm -f "${TD_JSON}" "${TD_NEW}"; }
+  trap cleanup_td EXIT
+  aws ecs describe-task-definition \
+    --task-definition "${TASK_FAMILY}" \
+    --region "${AWS_REGION}" \
+    --query 'taskDefinition' \
+    --output json \
+    --no-cli-pager > "${TD_JSON}"
+  python3 - "${TD_JSON}" "${TD_NEW}" <<'PY'
+import json, sys
+src, dst = sys.argv[1], sys.argv[2]
+td = json.load(open(src))
+for k in (
+    "taskDefinitionArn", "revision", "status", "requiresAttributes",
+    "compatibilities", "registeredAt", "registeredBy", "deregisteredAt",
+):
+    td.pop(k, None)
+img = td["containerDefinitions"][0]["image"]
+if "@" in img:
+    repo = img.split("@", 1)[0]
+elif ":" in img.rsplit("/", 1)[-1]:
+    repo = img.rsplit(":", 1)[0]
+else:
+    repo = img
+td["containerDefinitions"][0]["image"] = f"{repo}:latest"
+json.dump(td, open(dst, "w"))
+print(f"   image → {repo}:latest")
+PY
+  NEW_TASK_ARN="$(
+    aws ecs register-task-definition \
+      --cli-input-json "file://${TD_NEW}" \
+      --region "${AWS_REGION}" \
+      --query 'taskDefinition.taskDefinitionArn' \
+      --output text \
+      --no-cli-pager
+  )"
+  cleanup_td
+  trap - EXIT
+  echo "   Registered ${NEW_TASK_ARN}"
+
   # Always pass --deployment-configuration on update-service: without it ECS inherits whatever
   # is live on the service, which may have the circuit breaker ENABLED and cause spurious FAILED
   # rollouts even when tasks are healthy. Also reapply --health-check-grace-period-seconds so
@@ -440,13 +487,13 @@ else
   aws ecs update-service \
     --cluster "${CLUSTER_NAME}" \
     --service "${SERVICE_NAME}" \
-    --task-definition "${TASK_FAMILY}" \
+    --task-definition "${NEW_TASK_ARN}" \
     --force-new-deployment \
     --deployment-configuration "maximumPercent=200,minimumHealthyPercent=50,deploymentCircuitBreaker={enable=false,rollback=false}" \
     --health-check-grace-period-seconds "${GRACE_SEC}" \
     --region "${AWS_REGION}" \
     --no-cli-pager >/dev/null
-  echo "✓ ECS update triggered (task definition family: ${TASK_FAMILY} → latest revision, circuit breaker: disabled)"
+  echo "✓ ECS update triggered (${NEW_TASK_ARN}, circuit breaker: disabled)"
 fi
 
 echo ""

@@ -2464,6 +2464,9 @@ Resources:
             - HasDataLayerNestedStack
             - !GetAtt DataLayerStack.Outputs.PinpointLinksTable
             - !Sub "${DynamoTableNamePrefix}-pinpoint-links-${DeploymentStage}"
+        EnableSilentText: !If [PilotTestFeaturesOn, "true", !Ref EnableSilentText]
+        EnablePinpoint: !If [PilotTestFeaturesOn, "true", !Ref EnablePinpoint]
+        AppPublicBaseUrl: !Ref AppPublicBaseUrl
         LocationTokensTable:
           Fn::If:
             - HasDataLayerNestedStack
