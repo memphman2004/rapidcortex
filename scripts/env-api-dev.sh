@@ -2,14 +2,17 @@
 # deploy.sh / deploy-lean-dev.sh run scripts/refresh-api-vendor-packs.sh automatically before SAM build.
 # Usage: source scripts/env-api-dev.sh
 #
+# NOTE: "dev" here is the production SAM stack name (rapid-cortex-dev / DeploymentStage=dev)
+# in account 158961537080 — not a separate non-prod environment.
+#
 # Clear overrides from other env scripts (e.g. scripts/env-web-ssr-prod.sh sets STACK_NAME for ECS/CloudFront).
 # Otherwise `deploy.sh dev` would update the wrong CloudFormation stack.
 unset STACK_NAME
 export APP_NAME="rapid-cortex"
 
 export INCLUDE_DATA_LAYER_NESTED_STACK=true
-export FLAT_DATA_LAYER_BILLING_PAYMENT_INSTRUCTIONS_SECRET_ARN="arn:aws:secretsmanager:us-east-1:158961537080:secret:rapid-cortex/billing/payment-instructions-cQc3vU"
-export FLAT_DATA_LAYER_BILLING_SES_CREDENTIALS_SECRET_ARN="arn:aws:secretsmanager:us-east-1:158961537080:secret:rapid-cortex/billing/ses-credentials-kWOL2Y"
+export FLAT_DATA_LAYER_BILLING_PAYMENT_INSTRUCTIONS_SECRET_ARN="arn:aws:secretsmanager:us-east-1:158961537080:secret:rapid-cortex/billing/payment-instructions-3LvGn6"
+export FLAT_DATA_LAYER_BILLING_SES_CREDENTIALS_SECRET_ARN="arn:aws:secretsmanager:us-east-1:158961537080:secret:rapid-cortex/billing/ses-credentials-jRy25A"
 export ENABLE_CLOUD_TRAIL=false
 if [[ -d '/Volumes/Mac Mini' ]]; then
   export SAM_BUILD_DIR="/Volumes/Mac Mini/.rapid-cortex-sam-build"
