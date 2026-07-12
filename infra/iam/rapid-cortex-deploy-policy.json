@@ -77,12 +77,34 @@
         "iam:TagPolicy",
         "iam:UntagPolicy",
         "iam:AttachRolePolicy",
-        "iam:DetachRolePolicy"
+        "iam:DetachRolePolicy",
+        "iam:CreateRole",
+        "iam:DeleteRole",
+        "iam:GetRole",
+        "iam:UpdateRole",
+        "iam:UpdateAssumeRolePolicy",
+        "iam:PassRole",
+        "iam:PutRolePolicy",
+        "iam:DeleteRolePolicy",
+        "iam:GetRolePolicy",
+        "iam:TagRole",
+        "iam:UntagRole"
       ],
       "Resource": [
         "arn:aws:iam::REPLACE_ACCOUNT_ID:policy/rapid-cortex-*",
         "arn:aws:iam::REPLACE_ACCOUNT_ID:role/rapid-cortex-*"
       ]
+    },
+    {
+      "Sid": "RapidCortexContinueUpdateRollback",
+      "Effect": "Allow",
+      "Action": [
+        "cloudformation:ContinueUpdateRollback",
+        "cloudformation:DescribeStackEvents",
+        "cloudformation:DescribeStacks",
+        "cloudformation:DescribeStackResources"
+      ],
+      "Resource": "arn:aws:cloudformation:REPLACE_REGION:REPLACE_ACCOUNT_ID:stack/rapid-cortex-*/*"
     }
   ]
 }

@@ -3,6 +3,7 @@
 import type { ReactNode } from "react";
 import { Ticket } from "lucide-react";
 import { CampusDashboardHeaderUtilities } from "@/components/campus/campus-dashboard-header-utilities";
+import { HelpChrome } from "@/components/help/help-chrome";
 import { VENUE_DASHBOARD_FONT_FAMILY } from "./venue-dashboard-font";
 import { VenueNav } from "./venue-nav";
 import type { VenueThreatLevel } from "./venue-threat-strip";
@@ -34,6 +35,7 @@ export function VenueOperationsShell({
   children: ReactNode;
 }) {
   return (
+    <HelpChrome role={userRole ?? "venue_admin"}>
     <div
       style={{
         minHeight: "100vh",
@@ -135,5 +137,6 @@ export function VenueOperationsShell({
         <main style={{ flex: 1, overflow: "auto", minWidth: 0 }}>{children}</main>
       </div>
     </div>
+    </HelpChrome>
   );
 }

@@ -4,6 +4,7 @@ import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { ChevronDown, ChevronUp, Columns2, Square } from "lucide-react";
 import type { ReactNode } from "react";
+import { ContextualHelp } from "@/components/help/help-button";
 
 const V = {
   surface: "#1a1625",
@@ -19,6 +20,7 @@ export interface PanelShellProps {
   accentColor: string;
   badge?: string;
   badgeColor?: string;
+  helpTopic?: string;
   wide: boolean;
   collapsed: boolean;
   onToggleWide: () => void;
@@ -32,6 +34,7 @@ export function DispatcherPanelShell({
   accentColor,
   badge,
   badgeColor,
+  helpTopic,
   wide,
   collapsed,
   onToggleWide,
@@ -103,9 +106,13 @@ export function DispatcherPanelShell({
             flex: 1,
             fontFamily: "monospace",
             userSelect: "none",
+            display: "inline-flex",
+            alignItems: "center",
+            gap: 6,
           }}
         >
           {title}
+          {helpTopic ? <ContextualHelp topic={helpTopic} /> : null}
         </span>
 
         {badge && badgeColor ? (

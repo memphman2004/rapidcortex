@@ -16,6 +16,7 @@ import { RoleDashboardHomeLayout } from "./role-dashboard-home-layout";
 import { VERTICAL_CONFIG, normalizeVertical } from "@/lib/vertical";
 import { VerticalBadge } from "@/components/ui/VerticalBadge";
 import { ActiveNoticesBanner } from "@/components/notices/ActiveNoticesBanner";
+import { HelpChrome } from "@/components/help/help-chrome";
 
 const IMPERSONATION_STORAGE_KEY = "rc-impersonation-context-v1";
 
@@ -81,6 +82,7 @@ export function DashboardShell({
   const shellVars = roleDashboardShellVars(identity) as CSSProperties;
 
   return (
+    <HelpChrome role={user.role}>
     <div
       className="min-h-screen bg-[#030712] text-slate-100"
       style={{
@@ -146,5 +148,6 @@ export function DashboardShell({
         </div>
       </div>
     </div>
+    </HelpChrome>
   );
 }

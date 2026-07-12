@@ -1,14 +1,18 @@
 import Link from "next/link";
 import type { Metadata } from "next";
 import { MarketingArticleShell } from "@/components/marketing/marketing-article-shell";
-import { MarketingBookAppointmentLink } from "@/components/marketing/marketing-book-appointment-link";
 import {
   marketingDashboardPath,
   marketingLoginPath,
   marketingPricingPath,
 } from "@/lib/marketing-links";
-import { PRICING_EXEC_DEMO_MAILTO, PRICING_SALES_MAILTO } from "@/lib/marketing/pricing-content";
 import { absoluteUrl } from "@/lib/seo";
+
+const DEMO_MAILTO = "mailto:info@rapidcortex.us?subject=Rapid%20Cortex%20%E2%80%94%20Demo%20Request";
+const SALES_MAILTO =
+  "mailto:support@rapidcortex.us?subject=Rapid%20Cortex%20%E2%80%94%20Sales%20%26%20Pilot";
+const EXEC_MAILTO =
+  "mailto:info@rapidcortex.us?subject=Rapid%20Cortex%20%E2%80%94%20Executive%20Briefing";
 
 export async function generateMetadata(): Promise<Metadata> {
   return {
@@ -51,32 +55,21 @@ export default function MarketingContactPage() {
       <ul>
         <li>
           <strong>Book a demo</strong>:{" "}
-          <MarketingBookAppointmentLink className="font-medium">
-            Schedule on Microsoft Outlook
-          </MarketingBookAppointmentLink>
+          <a href={DEMO_MAILTO} className="font-medium">
+            info@rapidcortex.us
+          </a>
         </li>
         <li>
           <strong>Sales &amp; pilot</strong>:{" "}
-          <a href={PRICING_SALES_MAILTO} className="font-medium">
+          <a href={SALES_MAILTO} className="font-medium">
             support@rapidcortex.us
           </a>
         </li>
         <li>
           <strong>Executive briefings &amp; evaluation</strong>:{" "}
-          <a href={PRICING_EXEC_DEMO_MAILTO} className="font-medium">
-            Request a conversation
+          <a href={EXEC_MAILTO} className="font-medium">
+            info@rapidcortex.us
           </a>
-        </li>
-        <li className="hidden md:list-item">
-          <strong>Already provisioned?</strong>{" "}
-          <Link href={login} className="font-medium">
-            Sign in
-          </Link>{" "}
-          or{" "}
-          <Link href={app} className="font-medium">
-            open the workspace
-          </Link>
-          .
         </li>
         <li>
           <strong>Privacy</strong>: see the email listed on our{" "}
@@ -86,6 +79,17 @@ export default function MarketingContactPage() {
           .
         </li>
       </ul>
+      <p className="hidden md:block">
+        <strong>Already provisioned?</strong>{" "}
+        <Link href={login} className="font-medium">
+          Sign in
+        </Link>{" "}
+        or{" "}
+        <Link href={app} className="font-medium">
+          open the workspace
+        </Link>
+        .
+      </p>
       <p>
         <Link href={pricing} className="font-medium">
           Plans &amp; pricing

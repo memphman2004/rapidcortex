@@ -1,6 +1,14 @@
 import type { Metadata } from "next";
+import Image from "next/image";
 import Link from "next/link";
 import { absoluteUrl, buildOrganizationJsonLd } from "@/lib/seo";
+
+const VENUE_HERO = {
+  src: "/VenueMarketing.png",
+  width: 1672,
+  height: 941,
+  alt: "Rapid Cortex Venue Command — stadium security operations, help tower, and live camera feeds at night",
+} as const;
 
 export async function generateMetadata(): Promise<Metadata> {
   return {
@@ -19,14 +27,21 @@ export async function generateMetadata(): Promise<Metadata> {
       description: "Command-level awareness for every event.",
       url: absoluteUrl("/product/venue"),
       siteName: "Rapid Cortex",
-      images: [{ url: absoluteUrl("/api/og"), width: 1200, height: 630, alt: "Rapid Cortex Venue" }],
+      images: [
+        {
+          url: absoluteUrl(VENUE_HERO.src),
+          width: VENUE_HERO.width,
+          height: VENUE_HERO.height,
+          alt: "Rapid Cortex Venue",
+        },
+      ],
       type: "website",
     },
     twitter: {
       card: "summary_large_image",
       title: "RC Venue | Rapid Cortex",
       description: "Venue and event command intelligence for security teams.",
-      images: [absoluteUrl("/api/og")],
+      images: [absoluteUrl(VENUE_HERO.src)],
     },
     alternates: { canonical: absoluteUrl("/product/venue") },
   };
@@ -35,37 +50,69 @@ export async function generateMetadata(): Promise<Metadata> {
 export default function ProductVenuePage() {
   const organizationJsonLd = buildOrganizationJsonLd();
   return (
-    <article className="mx-auto max-w-5xl px-4 py-10 sm:px-6 lg:px-8">
+    <article className="w-full">
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationJsonLd) }} />
-      <header className="space-y-4">
-        <p className="text-xs font-semibold uppercase tracking-[0.2em] text-sky-400">RC Venue</p>
-        <h1 className="text-3xl font-semibold text-white sm:text-4xl">Command-Level Awareness for Every Event</h1>
-        <p className="max-w-3xl text-sm text-slate-300">
-          Designed for venue security directors, event operations teams, and stadium command staff.
-        </p>
-      </header>
 
-      <section className="mt-8">
-        <h2 className="text-xl font-medium text-white">Key capabilities</h2>
-        <ul className="mt-3 list-disc space-y-2 pl-5 text-sm text-slate-300">
-          <li>Crowd density monitoring</li>
-          <li>Gate access control operations</li>
-          <li>Unit tracking support</li>
-          <li>Incident coordination</li>
-          <li>Event operations workflows</li>
-          <li>Post-event reporting</li>
-        </ul>
-      </section>
-
-      <section className="mt-8">
-        <Link
-          href="/request-demo?segment=venue"
-          className="inline-flex min-h-11 items-center rounded-md bg-sky-600 px-5 py-2 text-sm font-semibold text-white hover:bg-sky-500"
-        >
-          Talk to Venue Sales
-        </Link>
+      <section
+        aria-labelledby="venue-hero-title"
+        className="relative isolate w-full overflow-hidden bg-slate-950"
+      >
+        <div className="relative aspect-[1672/941] w-full min-h-[min(56vh,34rem)] sm:min-h-[min(62vh,40rem)]">
+          <Image
+            src={VENUE_HERO.src}
+            alt={VENUE_HERO.alt}
+            width={VENUE_HERO.width}
+            height={VENUE_HERO.height}
+            priority
+            unoptimized
+            className="absolute inset-0 h-full w-full object-cover object-[68%_center] sm:object-center"
+            sizes="100vw"
+          />
+          <div
+            className="pointer-events-none absolute inset-0 bg-gradient-to-r from-slate-950/90 via-slate-950/55 to-transparent sm:via-slate-950/40"
+            aria-hidden
+          />
+          <div className="relative z-10 flex h-full max-w-7xl flex-col justify-end px-4 pb-8 pt-24 sm:justify-center sm:px-6 sm:pb-12 sm:pt-28 lg:px-8">
+            <div className="max-w-xl space-y-4 sm:space-y-5">
+              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-orange-300">RC Venue</p>
+              <h1
+                id="venue-hero-title"
+                className="text-balance text-3xl font-semibold tracking-tight text-white sm:text-4xl lg:text-5xl"
+              >
+                Command-Level Awareness for Every Event
+              </h1>
+              <p className="max-w-md text-pretty text-sm leading-relaxed text-slate-200 sm:text-base">
+                Designed for venue security directors, event operations teams, and stadium command staff.
+              </p>
+              <div className="flex flex-wrap gap-3 pt-1">
+                <Link
+                  href="/contact-sales?interest=demo"
+                  className="inline-flex min-h-12 items-center justify-center rounded-lg bg-orange-600 px-6 py-3 text-sm font-semibold text-white shadow-lg shadow-orange-950/40 hover:bg-orange-500"
+                >
+                  Talk to Venue Sales
+                </Link>
+                <Link
+                  href="/pricing"
+                  className="inline-flex min-h-12 items-center justify-center rounded-lg border border-white/25 bg-slate-950/40 px-6 py-3 text-sm font-semibold text-white backdrop-blur-sm hover:border-white/40 hover:bg-slate-900/60"
+                >
+                  View plans
+                </Link>
+              </div>
+              <section className="pt-2 sm:pt-3">
+                <h2 className="text-base font-medium text-white sm:text-lg">Key capabilities</h2>
+                <ul className="mt-2 list-disc space-y-1 pl-5 text-sm text-slate-200">
+                  <li>Crowd density monitoring</li>
+                  <li>Gate access control operations</li>
+                  <li>Unit tracking support</li>
+                  <li>Incident coordination</li>
+                  <li>Event operations workflows</li>
+                  <li>Post-event reporting</li>
+                </ul>
+              </section>
+            </div>
+          </div>
+        </div>
       </section>
     </article>
   );
 }
-

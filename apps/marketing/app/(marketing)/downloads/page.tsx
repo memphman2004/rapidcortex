@@ -117,14 +117,13 @@ export default function DownloadsPage() {
             <p className="mt-4 text-sm leading-relaxed text-slate-400">
               Authorized agency users can access the secure Rapid Cortex console from approved desktop workstations.
             </p>
-            <a
+            <Link
               href={marketingBookAppointmentUrl()}
-              target="_blank"
-              rel="noopener noreferrer"
+              prefetch={false}
               className="mt-6 inline-flex rounded-md bg-sky-600 px-8 py-3 text-sm font-semibold text-white hover:bg-sky-500 md:hidden"
             >
               Request a demo
-            </a>
+            </Link>
             <Link
               href={CUSTOMER_LOGIN_PATH}
               className="mt-6 hidden rounded-md bg-sky-600 px-8 py-3 text-sm font-semibold text-white hover:bg-sky-500 md:inline-flex"

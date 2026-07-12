@@ -549,6 +549,10 @@ Parameters:
     Type: String
     Default: ""
     Description: Physical DynamoDB table for citizen Ring owners (RapidCortexRingCitizenOwners-{stage}).
+  RingHomeownerParticipantsTable:
+    Type: String
+    Default: ""
+    Description: Physical DynamoDB table for Ring device-owner pre-registration (RapidCortexRingHomeownerParticipants-{stage}).
   RingAccountsTable:
     Type: String
     Default: ""
@@ -836,6 +840,8 @@ Conditions:
   CreateManagedRingSessionsTable: !Not [!Condition HasRingSessionsTable]
   HasRingCitizenOwnersTable: !Not [!Equals [!Ref RingCitizenOwnersTable, ""]]
   CreateManagedRingCitizenOwnersTable: !Not [!Condition HasRingCitizenOwnersTable]
+  HasRingHomeownerParticipantsTable: !Not [!Equals [!Ref RingHomeownerParticipantsTable, ""]]
+  CreateManagedRingHomeownerParticipantsTable: !Not [!Condition HasRingHomeownerParticipantsTable]
   HasVenueFacilitiesTable: !Not [!Equals [!Ref VenueFacilitiesTable, ""]]
   HasVenueCameraAccessLogTable: !Not [!Equals [!Ref VenueCameraAccessLogTable, ""]]
   HasVenueConfigTable: !Not [!Equals [!Ref VenueConfigTable, ""]]
@@ -1850,6 +1856,26 @@ Resources:
                 - HasRingCitizenOwnersTable
                 - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${RingCitizenOwnersTable}
                 - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/RapidCortexRingCitizenOwners-${DeploymentStage}
+          - Sid: RingHomeownerParticipantsCrud
+            Effect: Allow
+            Action:
+              - dynamodb:GetItem
+              - dynamodb:PutItem
+              - dynamodb:UpdateItem
+              - dynamodb:Query
+            Resource:
+              - !If
+                - HasRingHomeownerParticipantsTable
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${RingHomeownerParticipantsTable}
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/RapidCortexRingHomeownerParticipants-${DeploymentStage}
+              - !If
+                - HasRingHomeownerParticipantsTable
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${RingHomeownerParticipantsTable}/index/agencyId-index
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/RapidCortexRingHomeownerParticipants-${DeploymentStage}/index/agencyId-index
+              - !If
+                - HasRingHomeownerParticipantsTable
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${RingHomeownerParticipantsTable}/index/state-index
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/RapidCortexRingHomeownerParticipants-${DeploymentStage}/index/state-index
           - Sid: CitizenTokenSecrets
             Effect: Allow
             Action:
@@ -2072,6 +2098,46 @@ Resources:
         - AttributeName: pk
           KeyType: HASH
 
+  ManagedRingHomeownerParticipantsTable:
+    Type: AWS::DynamoDB::Table
+    Condition: CreateManagedRingHomeownerParticipantsTable
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      BillingMode: !Ref DynamoBillingMode
+      TableName: !Sub "RapidCortexRingHomeownerParticipants-${DeploymentStage}"
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: !If [DynamoPitrOn, true, false]
+      SSESpecification:
+        SSEEnabled: true
+        SSEType: KMS
+      AttributeDefinitions:
+        - AttributeName: homeownerId
+          AttributeType: S
+        - AttributeName: agencyId
+          AttributeType: S
+        - AttributeName: state
+          AttributeType: S
+      KeySchema:
+        - AttributeName: homeownerId
+          KeyType: HASH
+      GlobalSecondaryIndexes:
+        - IndexName: agencyId-index
+          KeySchema:
+            - AttributeName: agencyId
+              KeyType: HASH
+          Projection:
+            ProjectionType: ALL
+        - IndexName: state-index
+          KeySchema:
+            - AttributeName: state
+              KeyType: HASH
+          Projection:
+            ProjectionType: ALL
+      TimeToLiveSpecification:
+        AttributeName: ttl
+        Enabled: true
+
   ManagedRingDevicesTable:
     Type: AWS::DynamoDB::Table
     Condition: CreateManagedRingDevicesTable
@@ -2243,59 +2309,8 @@ Resources:
         SSEEnabled: true
         SSEType: KMS
 
-  PricingConfigTable:
-    Type: AWS::DynamoDB::Table
-    DeletionPolicy: Retain
-    UpdateReplacePolicy: Retain
-    Properties:
-      TableName: !Sub "${AppName}-pricing-config-${DeploymentStage}"
-      BillingMode: PAY_PER_REQUEST
-      PointInTimeRecoverySpecification:
-        PointInTimeRecoveryEnabled: true
-      SSESpecification:
-        SSEEnabled: true
-      KeySchema:
-        - { AttributeName: pk, KeyType: HASH }
-        - { AttributeName: sk, KeyType: RANGE }
-      AttributeDefinitions:
-        - { AttributeName: pk, AttributeType: S }
-        - { AttributeName: sk, AttributeType: S }
-
-  TenantPricingOverridesTable:
-    Type: AWS::DynamoDB::Table
-    DeletionPolicy: Retain
-    UpdateReplacePolicy: Retain
-    Properties:
-      TableName: !Sub "${AppName}-tenant-pricing-overrides-${DeploymentStage}"
-      BillingMode: PAY_PER_REQUEST
-      PointInTimeRecoverySpecification:
-        PointInTimeRecoveryEnabled: true
-      SSESpecification:
-        SSEEnabled: true
-      KeySchema:
-        - { AttributeName: pk, KeyType: HASH }
-        - { AttributeName: sk, KeyType: RANGE }
-      AttributeDefinitions:
-        - { AttributeName: pk, AttributeType: S }
-        - { AttributeName: sk, AttributeType: S }
-
-  PricingAuditTable:
-    Type: AWS::DynamoDB::Table
-    DeletionPolicy: Retain
-    UpdateReplacePolicy: Retain
-    Properties:
-      TableName: !Sub "${AppName}-pricing-audit-${DeploymentStage}"
-      BillingMode: PAY_PER_REQUEST
-      PointInTimeRecoverySpecification:
-        PointInTimeRecoveryEnabled: true
-      SSESpecification:
-        SSEEnabled: true
-      KeySchema:
-        - { AttributeName: pk, KeyType: HASH }
-        - { AttributeName: sk, KeyType: RANGE }
-      AttributeDefinitions:
-        - { AttributeName: pk, AttributeType: S }
-        - { AttributeName: sk, AttributeType: S }
+  # Pricing DynamoDB tables (pricing-config / tenant-pricing-overrides / pricing-audit) already
+  # exist in AWS from a prior deploy. Do not recreate — Lambdas reference physical names via !Sub.
 
   RingConnectLoginFunction:
     Type: AWS::Serverless::Function
@@ -2437,6 +2452,10 @@ Resources:
             - HasRingCitizenOwnersTable
             - !Ref RingCitizenOwnersTable
             - !Sub "RapidCortexRingCitizenOwners-${DeploymentStage}"
+          RING_TABLE_HOMEOWNER_PARTICIPANTS: !If
+            - HasRingHomeownerParticipantsTable
+            - !Ref RingHomeownerParticipantsTable
+            - !Sub "RapidCortexRingHomeownerParticipants-${DeploymentStage}"
       Policies:
         - !Ref AppManagedPolicyRingPublicOauthCallback
       Events:
@@ -3774,9 +3793,9 @@ Resources:
         Variables:
           COGNITO_USER_POOL_ID: !Ref ImportedCognitoUserPoolId
           COGNITO_CLIENT_ID: !Ref ImportedCognitoWebClientId
-          PRICING_CONFIG_TABLE: !Ref PricingConfigTable
-          TENANT_PRICING_OVERRIDES_TABLE: !Ref TenantPricingOverridesTable
-          PRICING_AUDIT_TABLE: !Ref PricingAuditTable
+          PRICING_CONFIG_TABLE: !Sub "${AppName}-pricing-config-${DeploymentStage}"
+          TENANT_PRICING_OVERRIDES_TABLE: !Sub "${AppName}-tenant-pricing-overrides-${DeploymentStage}"
+          PRICING_AUDIT_TABLE: !Sub "${AppName}-pricing-audit-${DeploymentStage}"
       CodeUri: ../../apps/api/
       Handler: dist/handlers/billing/pricingHandler.handler
       Timeout: 30
@@ -3786,11 +3805,11 @@ Resources:
         - !Ref AppManagedPolicyDynamoLambdaCrudShardC
         - !Ref AppManagedPolicyDynamoLambdaCrudShardD
         - DynamoDBCrudPolicy:
-            TableName: !Ref PricingConfigTable
+            TableName: !Sub "${AppName}-pricing-config-${DeploymentStage}"
         - DynamoDBCrudPolicy:
-            TableName: !Ref TenantPricingOverridesTable
+            TableName: !Sub "${AppName}-tenant-pricing-overrides-${DeploymentStage}"
         - DynamoDBCrudPolicy:
-            TableName: !Ref PricingAuditTable
+            TableName: !Sub "${AppName}-pricing-audit-${DeploymentStage}"
         - Statement:
             Effect: Allow
             Action:

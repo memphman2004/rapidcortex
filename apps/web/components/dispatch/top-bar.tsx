@@ -10,6 +10,7 @@ import { isAuthConfigured } from "@/lib/auth/roles";
 import { EnvironmentBadge } from "@/components/dispatch/environment-badge";
 import { FontPicker } from "@/components/ui/font-picker";
 import { UserIdentityBar } from "@/components/ui/user-identity-bar";
+import { HelpButton } from "@/components/help/help-button";
 import { getRoleHeaderBadgeLabel } from "@/lib/dashboards/role-header-badge";
 import { resolvePsapRole } from "@/lib/dashboards/psap-role-nav";
 import { useJurisdictionLink } from "@/lib/jurisdiction-context";
@@ -56,6 +57,7 @@ export function TopBar({ user: serverUser }: { user?: UserContext | null }) {
         </div>
       </div>
       <div className="flex shrink-0 flex-wrap items-center justify-end gap-2 sm:gap-3 lg:gap-4">
+        <HelpButton />
         <FontPicker />
         <div
           className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${

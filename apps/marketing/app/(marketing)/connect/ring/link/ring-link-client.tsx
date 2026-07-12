@@ -17,26 +17,36 @@ function parseAudience(raw: string | null): LinkAudience {
   return raw?.trim().toLowerCase() === "citizen" ? "citizen" : "agency";
 }
 
-function statusMessage(status: string | null, audience: LinkAudience): StatusMessage {
+function statusMessage(
+  status: string | null,
+  audience: LinkAudience,
+  deviceCount: number | null,
+): StatusMessage {
   if (audience === "citizen") {
     if (status === "success" || status === "connected") {
+      const devicesLine =
+        typeof deviceCount === "number"
+          ? deviceCount === 1
+            ? " We registered 1 Ring device on your account."
+            : ` We registered ${deviceCount} Ring devices on your account.`
+          : "";
       return {
         tone: "ok",
         title: "Ring account connected",
-        body: "Your Ring account is linked with the participating agency you enrolled through. Dispatchers can request video only for qualifying incidents and only when you have approved sharing for that request.",
+        body: `Your Ring account is linked with Rapid Cortex Connect.${devicesLine} Dispatchers at participating agencies can request video only for qualifying incidents near your address — and only when you approve sharing for that request.`,
       };
     }
     if (status === "error") {
       return {
         tone: "err",
         title: "Ring connection could not be completed",
-        body: "We could not finish linking your Ring account. Try the enrollment link your agency provided, or contact support if the problem continues.",
+        body: "We could not finish linking your Ring account. Try connecting again from the Ring Connect page, or contact support if the problem continues.",
       };
     }
     return {
       tone: "neutral",
       title: "Rapid Cortex Connect · Ring",
-      body: "Complete Ring enrollment using the link from your participating agency.",
+      body: "Complete Ring enrollment from the Connect page — you can sign up even if your local agency has not enrolled yet.",
     };
   }
 
@@ -71,7 +81,7 @@ function CitizenLinkActions({ status }: { status: string | null }) {
         Ring Connect home
       </Link>
       <a
-        href="mailto:support@rapidcortex.us?subject=Ring%20Connect%20homeowner%20help"
+        href="mailto:support@rapidcortex.us?subject=Ring%20Connect%20device%20owner%20help"
         className="inline-flex min-h-11 items-center justify-center rounded-lg border border-slate-600 px-5 text-sm font-semibold text-slate-100 hover:border-slate-500"
       >
         Contact support
@@ -84,7 +94,8 @@ function CitizenLinkActions({ status }: { status: string | null }) {
       </Link>
       {status === "error" ? (
         <p className="w-full text-xs text-slate-500">
-          Use the enrollment link from your agency — it includes the agency details required to connect.
+          Return to Ring Connect and try again — you can enroll with or without a local agency
+          selected.
         </p>
       ) : null}
     </div>
@@ -155,12 +166,17 @@ export function RingLinkClient() {
   const searchParams = useSearchParams();
   const status = searchParams.get("status");
   const audience = parseAudience(searchParams.get("audience"));
-  const msg = statusMessage(status, audience);
+  const devicesRaw = searchParams.get("devices");
+  const deviceCount =
+    devicesRaw != null && devicesRaw !== "" && Number.isFinite(Number(devicesRaw))
+      ? Number(devicesRaw)
+      : null;
+  const msg = statusMessage(status, audience, deviceCount);
 
   return (
     <article className="mx-auto max-w-lg px-4 py-16 sm:px-6">
       <p className="text-xs font-semibold uppercase tracking-[0.2em] text-sky-400/90">
-        {audience === "citizen" ? "Ring homeowners" : "Rapid Cortex Connect"}
+        {audience === "citizen" ? "Ring Device Owners" : "Rapid Cortex Connect"}
       </p>
       <h1 className="mt-3 text-2xl font-semibold text-white sm:text-3xl">{msg.title}</h1>
       <p className="mt-4 text-sm leading-relaxed text-slate-300">{msg.body}</p>

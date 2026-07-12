@@ -8,6 +8,7 @@ import { useMemo, useState, type CSSProperties } from "react";
 import Link from "next/link";
 import { CampusDashboardHeaderUtilities } from "@/components/campus/campus-dashboard-header-utilities";
 import { CAMPUS_DASHBOARD_FONT_FAMILY } from "@/components/campus/campus-dashboard-font";
+import { HelpChrome } from "@/components/help/help-chrome";
 
 interface StatCard {
   label: string;
@@ -304,6 +305,7 @@ export function CampusAdminDashboard({
   const quickActions = useMemo(() => buildQuickActions(base), [base]);
 
   return (
+    <HelpChrome role={adminRole}>
     <div style={styles.shell}>
       <div style={styles.topBar}>
         <div style={styles.topBarLeft}>
@@ -462,6 +464,7 @@ export function CampusAdminDashboard({
         </div>
       </div>
     </div>
+    </HelpChrome>
   );
 }
 

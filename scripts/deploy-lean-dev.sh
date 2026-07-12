@@ -274,7 +274,11 @@ if [[ "${DEPLOY_SAM5}" -eq 1 ]]; then
   fi
   echo ""
   echo "▶ AppSam5Stack (${SAM5_STACK})"
+  # Same as SAM4: skip per-function node_modules rsync; deps ship via NodeDepsLayer.
+  # Parallel rsync of a live apps/api/node_modules tree was failing with ENOENT (make Error 23).
+  export SAM4_LEAN_BUILD=1
   lean_sam_build "${ROOT}/infra/nested/stack-app-sam-5.yaml" "sam5"
+  unset SAM4_LEAN_BUILD
   _sam5_extra=()
   if [[ -n "${ENABLE_SILENT_TEXT:-}" ]]; then
     _sam5_extra+=("EnableSilentText=${ENABLE_SILENT_TEXT}")

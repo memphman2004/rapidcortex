@@ -19,6 +19,21 @@ function clientIp(event: { requestContext?: { http?: { sourceIp?: string } } }):
   return event.requestContext?.http?.sourceIp?.trim() || "unknown";
 }
 
+function emptyAgenciesResponse(statusCode = 200) {
+  return {
+    statusCode,
+    headers: {
+      "Content-Type": "application/json",
+      "Cache-Control": "public, max-age=60",
+    },
+    body: JSON.stringify({ agencies: [] as const }),
+  };
+}
+
+/**
+ * Public agency directory by US state for Ring device-owner enrollment.
+ * Empty list is success — never treat "no agencies" as an error.
+ */
 export const handler: APIGatewayProxyHandlerV2 = async (event) => {
   try {
     const allowed = await consumeRingPublicOAuthRateSlot(clientIp(event));
@@ -46,11 +61,13 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
       }),
     );
 
-    const agencies = (res.Items ?? []).map((item) => ({
-      agencySlug: String(item.agencyId ?? ""),
-      publicDisplayName: String(item.publicDisplayName ?? ""),
-      publicCity: String(item.publicCity ?? ""),
-    })).filter((a) => a.agencySlug && a.publicDisplayName);
+    const agencies = (res.Items ?? [])
+      .map((item) => ({
+        agencyId: String(item.agencyId ?? ""),
+        name: String(item.publicDisplayName ?? ""),
+        city: String(item.publicCity ?? ""),
+      }))
+      .filter((a) => a.agencyId && a.name);
 
     return {
       statusCode: 200,
@@ -58,7 +75,7 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
         "Content-Type": "application/json",
         "Cache-Control": "public, max-age=60",
       },
-      body: JSON.stringify(agencies),
+      body: JSON.stringify({ agencies }),
     };
   } catch (err) {
     console.error(
@@ -67,6 +84,7 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
         error: err instanceof Error ? err.message : String(err),
       }),
     );
-    return ringJson({ success: false, error: "Unable to load agencies." }, 500);
+    // Soft-fail: enrollment must not hard-block when the directory is unavailable.
+    return emptyAgenciesResponse(200);
   }
 };

@@ -1,3 +1,4 @@
+import Link from "next/link";
 import type { ReactNode } from "react";
 import { marketingBookAppointmentUrl } from "@/lib/marketing-links";
 
@@ -6,19 +7,14 @@ type MarketingBookAppointmentLinkProps = {
   className?: string;
 };
 
-/** Opens Microsoft Bookings in a new tab. */
+/** Same-origin link to the contact-sales intake form. */
 export function MarketingBookAppointmentLink({
   children,
   className,
 }: MarketingBookAppointmentLinkProps) {
   return (
-    <a
-      href={marketingBookAppointmentUrl()}
-      className={className}
-      target="_blank"
-      rel="noopener noreferrer"
-    >
+    <Link href={marketingBookAppointmentUrl()} className={className} prefetch={false}>
       {children}
-    </a>
+    </Link>
   );
 }

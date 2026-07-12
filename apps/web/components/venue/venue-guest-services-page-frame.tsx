@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 import { CampusDashboardHeaderUtilities } from "@/components/campus/campus-dashboard-header-utilities";
+import { HelpChrome } from "@/components/help/help-chrome";
 import { VENUE_DASHBOARD_FONT_FAMILY } from "./venue-dashboard-font";
 import { VenueGuestServicesDisclaimer } from "./venue-guest-services-disclaimer";
 
@@ -26,6 +27,7 @@ export function VenueGuestServicesPageFrame({
   children: ReactNode;
 }) {
   return (
+    <HelpChrome role={userRole ?? "VENUE_GUEST_SERVICES"}>
     <div
       style={{
         minHeight: "100vh",
@@ -64,5 +66,6 @@ export function VenueGuestServicesPageFrame({
       </header>
       <main style={{ flex: 1, overflow: "auto", minWidth: 0 }}>{children}</main>
     </div>
+    </HelpChrome>
   );
 }

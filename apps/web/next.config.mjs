@@ -207,8 +207,7 @@ const nextConfig = {
       { source: "/api", destination: "/developers/api", permanent: false },
       {
         source: "/book-demo",
-        destination:
-          "https://outlook.office.com/book/RapidCortex@rapidcortex.us/?ismsaljsauthenabled",
+        destination: "/contact-sales?interest=demo",
         permanent: false,
       },
       // Legacy RBAC route naming — preserve deep links during Cognito/UI migration (see docs).

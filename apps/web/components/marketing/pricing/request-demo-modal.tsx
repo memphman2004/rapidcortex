@@ -72,8 +72,6 @@ export function RequestDemoModal({
         <div className="mt-6 flex flex-col gap-3 sm:flex-row">
           <a
             href={marketingBookAppointmentUrl()}
-            target="_blank"
-            rel="noopener noreferrer"
             className="inline-flex flex-1 items-center justify-center rounded-lg bg-sky-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-sky-500"
             onClick={onClose}
           >

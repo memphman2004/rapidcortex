@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { FontPicker } from "@/components/ui/font-picker";
 import { UserIdentityBar } from "@/components/ui/user-identity-bar";
+import { HelpButton } from "@/components/help/help-button";
 import { signOutFromClient } from "@/lib/auth/sign-out-client";
 
 function CampusSignOutButton() {
@@ -23,7 +24,7 @@ function CampusSignOutButton() {
   );
 }
 
-/** Font picker + identity/sign-out — same controls as PSAP role dashboards. */
+/** Font picker + help + identity/sign-out — same controls as PSAP role dashboards. */
 export function CampusDashboardHeaderUtilities({
   email,
   role,
@@ -37,6 +38,7 @@ export function CampusDashboardHeaderUtilities({
 
   return (
     <div className="flex shrink-0 flex-wrap items-center justify-end gap-2">
+      <HelpButton />
       <FontPicker />
       {hasIdentity ? (
         <UserIdentityBar email={email!.trim()} role={role!.trim()} agencyId={agencyId} />

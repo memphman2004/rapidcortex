@@ -28,7 +28,7 @@ import {
 const DRAWER_TITLE = "Rapid Cortex";
 const DRAWER_SLOGAN = "Intelligence at the speed of response.";
 const MOBILE_BOOKING_NOTE =
-  "Book a live demo on Microsoft Outlook — pick a time that works for your team.";
+  "Request a demo — tell us about your agency and we’ll follow up to schedule a walkthrough.";
 
 /** Primary marketing nav — product depth links live in the footer. */
 export function getMarketingMobileDrawerLinkDefs(): readonly { label: string; href: string }[] {
@@ -290,15 +290,14 @@ export function MarketingHeader() {
                       {item.label}
                     </Link>
                   ))}
-                  <a
+                  <Link
                     href={marketingBookAppointmentUrl()}
-                    target="_blank"
-                    rel="noopener noreferrer"
+                    prefetch={false}
                     className="-mx-3 mt-3 flex min-h-12 items-center justify-center rounded-xl bg-gradient-to-r from-sky-500 to-cyan-400 px-4 py-3 text-center text-base font-semibold tracking-tight text-slate-950 shadow-[0_0_20px_rgba(14,165,233,0.25)] transition hover:from-sky-400 hover:to-cyan-300 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-sky-500"
                     onClick={closeMobileMenu}
                   >
                     Request a demo
-                  </a>
+                  </Link>
                 </nav>
 
                 <p className="mt-auto shrink-0 border-t border-slate-700/30 pt-4 text-[11px] leading-relaxed text-slate-500">

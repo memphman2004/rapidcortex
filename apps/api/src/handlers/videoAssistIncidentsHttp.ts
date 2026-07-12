@@ -55,6 +55,12 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
     const sessionId = event.pathParameters?.sessionId;
     if (!incidentId) return notFound("Missing incident id");
 
+    // Collection routes (no sessionId) must be handled before the sessionId guard.
+    if (routeKey === "GET /api/incidents/{id}/video-assist/sessions") {
+      const list = await service.listSessionsBrief(incidentId, user);
+      return ok(list);
+    }
+
     if (routeKey === "POST /api/incidents/{id}/video-assist/sessions") {
       const body = JSON.parse(event.body ?? "{}");
       const out = await service.createSession(incidentId, user, body);
@@ -92,11 +98,6 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
     if (routeKey === "POST /api/incidents/{id}/video-assist/sessions/{sessionId}/live") {
       const s = await service.markLiveFromDispatcher(incidentId, sessionId, user);
       return ok(s);
-    }
-
-    if (routeKey === "GET /api/incidents/{id}/video-assist/sessions") {
-      const list = await service.listSessionsBrief(incidentId, user);
-      return ok(list);
     }
 
     return notFound("Unknown route");

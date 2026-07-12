@@ -603,6 +603,7 @@ export async function handleBillingInvoicesRoute(event: {
       return badRequest((error as Error).message);
     }
     if (error instanceof Error && error.message === "FORBIDDEN") return forbidden();
+    console.error("[handleBillingInvoicesRoute]", error);
     return serverError();
   }
 }

@@ -38,12 +38,13 @@ const PANEL_META: Record<
     accentColor: string;
     badge?: string;
     badgeColor?: string;
+    helpTopic?: string;
   }
 > = {
   intelligence: { title: "INTELLIGENCE", accentColor: "#8b5cf6", badge: "AI SUGGESTED", badgeColor: "#8b5cf6" },
-  caller_mobile: { title: "CALLER MOBILE", accentColor: "#10b981" },
-  silent_text: { title: "SILENT TEXT LINK", accentColor: "#10b981" },
-  pinpoint: { title: "RAPID CORTEX PINPOINT", accentColor: "#3b82f6" },
+  caller_mobile: { title: "CALLER MOBILE", accentColor: "#10b981", helpTopic: "live-video" },
+  silent_text: { title: "SILENT TEXT LINK", accentColor: "#10b981", helpTopic: "silent-text" },
+  pinpoint: { title: "RAPID CORTEX PINPOINT", accentColor: "#3b82f6", helpTopic: "pinpoint" },
   location: { title: "LOCATION", accentColor: "#8b5cf6" },
   premise_notes: { title: "PREMISE NOTES", accentColor: "#f59e0b" },
 };
@@ -159,6 +160,7 @@ export function DispatcherPanelGrid({ userId, panels, className }: DispatcherPan
                   accentColor={meta.accentColor}
                   badge={meta.badge}
                   badgeColor={meta.badgeColor}
+                  helpTopic={meta.helpTopic}
                   wide={wide[id] ?? false}
                   collapsed={collapsed[id] ?? false}
                   onToggleWide={() => toggleWide(id)}

@@ -15,6 +15,8 @@ import { usePathname } from "next/navigation";
 import {
   Activity, BarChart3, Bed, LayoutDashboard, Map, Route, Settings, Users,
 } from "lucide-react";
+import { HelpButton } from "@/components/help/help-button";
+import { HelpChrome } from "@/components/help/help-chrome";
 import {
   isHospitalAdminRole,
   isHospitalCoordinatorRole,
@@ -56,6 +58,7 @@ export function HospitalAdminLayout({ children, role, facilityName }: Props) {
   });
 
   return (
+    <HelpChrome role={role}>
     <div className="flex min-h-screen bg-slate-950">
       {/* Sidebar */}
       <aside className="flex w-56 flex-shrink-0 flex-col border-r border-slate-800 bg-slate-900">
@@ -65,7 +68,7 @@ export function HospitalAdminLayout({ children, role, facilityName }: Props) {
             <div className="flex h-7 w-7 items-center justify-center rounded-md bg-teal-900/60">
               <Activity className="h-4 w-4 text-teal-400" />
             </div>
-            <div className="min-w-0">
+            <div className="min-w-0 flex-1">
               <p className="truncate text-xs font-semibold text-white">
                 {facilityName ?? "Hospital Portal"}
               </p>
@@ -73,6 +76,7 @@ export function HospitalAdminLayout({ children, role, facilityName }: Props) {
                 {badge}
               </p>
             </div>
+            <HelpButton />
           </div>
         </div>
 
@@ -125,5 +129,6 @@ export function HospitalAdminLayout({ children, role, facilityName }: Props) {
         {children}
       </main>
     </div>
+    </HelpChrome>
   );
 }

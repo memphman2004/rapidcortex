@@ -8,7 +8,7 @@ import { RingConnectFlow } from "./ring-connect-flow";
 export const metadata: Metadata = {
   title: "Connect your Ring account | Rapid Cortex",
   description:
-    "Ring homeowners: link your Ring account to participate in voluntary emergency video sharing with local 911 agencies through Rapid Cortex Connect.",
+    "Ring Device Owners: link your Ring account to participate in voluntary emergency video sharing with local 911 agencies through Rapid Cortex Connect.",
   alternates: { canonical: absoluteUrl("/connect/ring/start") },
 };
 
@@ -16,7 +16,7 @@ export default function RingCustomerStartPage() {
   return (
     <MarketingArticleShell
       eyebrow="Rapid Cortex Connect"
-      title="Ring homeowners"
+      title="Ring Device Owners"
       sectionLabel="Connect"
     >
       <p className="leading-relaxed text-slate-200">
@@ -28,17 +28,22 @@ export default function RingCustomerStartPage() {
         <h2 className="text-base font-semibold text-white">How it works</h2>
         <ul className="list-disc space-y-2 pl-5">
           <li>
-            <strong className="text-slate-100">Enable in the Ring app.</strong> Open Ring → Skills
-            → search for Rapid Cortex → Enable. Select your local agency on the next screen.
+            <strong className="text-slate-100">Connect once.</strong> Link your Ring account now —
+            even if your local 911 center hasn&apos;t enrolled yet. You&apos;ll be ready when they
+            do.
           </li>
           <li>
-            <strong className="text-slate-100">Every video request is approved separately.</strong>{" "}
-            When a nearby incident involves your address, dispatchers can request temporary access.
+            <strong className="text-slate-100">Every request needs your approval.</strong> When a
+            nearby emergency involves your address, dispatchers can request temporary camera access.
             You decide — every time.
           </li>
           <li>
-            <strong className="text-slate-100">Disconnect anytime.</strong> Manage or remove your
-            connection from your Ring account settings at any time.
+            <strong className="text-slate-100">Nothing is automatic.</strong> You receive a
+            notification for each request and must tap Approve before any video is shared.
+          </li>
+          <li>
+            <strong className="text-slate-100">Disconnect anytime</strong> from your Ring app
+            settings.
           </li>
         </ul>
       </section>

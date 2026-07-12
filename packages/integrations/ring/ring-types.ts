@@ -123,6 +123,31 @@ export interface RingCitizenOwnerRecord {
   updatedAt: string;
 }
 
+/**
+ * Pre-registration / device-owner enrollment record.
+ * `agencyId` is omitted when the owner signed up before a local PSAP enrolled (sparse GSI).
+ * `state` (US abbreviation) enables matching via state-index when a PSAP goes live.
+ */
+export interface RingHomeownerParticipantRecord {
+  homeownerId: string;
+  ringAccountId: string;
+  /** Present when linked to an enrolled agency; omitted for state-only pre-registration. */
+  agencyId?: string;
+  /** US state / DC abbreviation for future PSAP matching. */
+  state?: string;
+  deviceCount: number;
+  deviceIds: string[];
+  secretsManagerTokenKey: string;
+  consentGiven: boolean;
+  name?: string;
+  phone?: string;
+  email?: string;
+  registeredAt: string;
+  updatedAt: string;
+  /** Optional TTL epoch seconds (unused for active enrollments). */
+  ttl?: number;
+}
+
 export interface RingCameraListItem {
   deviceId: string;
   deviceName: string;

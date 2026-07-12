@@ -214,6 +214,7 @@ export const env = {
   ringRequestsTable: process.env.RING_TABLE_REQUESTS?.trim() ?? "",
   ringSessionsTable: process.env.RING_TABLE_SESSIONS?.trim() ?? "",
   ringCitizenOwnersTable: process.env.RING_TABLE_CITIZEN_OWNERS?.trim() ?? "",
+  ringHomeownerParticipantsTable: process.env.RING_TABLE_HOMEOWNER_PARTICIPANTS?.trim() ?? "",
   ringCredentialsSecretArn:
     process.env.RING_CREDENTIALS_SECRET_ARN?.trim() ||
     process.env.RING_PARTNER_TOKEN_SECRET_ARN?.trim() ||

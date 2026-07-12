@@ -36,6 +36,7 @@ import {
 } from "./use-campus-dashboard";
 import { CAMPUS_DASHBOARD_FONT_FAMILY } from "./campus-dashboard-font";
 import { CampusDashboardHeaderUtilities } from "./campus-dashboard-header-utilities";
+import { HelpChrome } from "@/components/help/help-chrome";
 
 // ─── Design tokens (campus palette — distinct from 911 RC dark theme) ─────────
 const C = {
@@ -877,6 +878,7 @@ export function CampusSafetyDashboard({
   }
 
   return (
+    <HelpChrome role={userRole ?? "CAMPUS_SECURITY"}>
     <div style={{
       background: C.bg,
       minHeight:  "100vh",
@@ -1210,5 +1212,6 @@ export function CampusSafetyDashboard({
         </div>
       ) : null}
     </div>
+    </HelpChrome>
   );
 }

@@ -21,10 +21,9 @@ const US_STATES: [string, string][] = [
 ];
 
 type Agency = {
-  agencySlug: string;
-  displayName: string;
+  agencyId: string;
+  name: string;
   city: string;
-  state: string;
 };
 
 type FetchState =
@@ -32,168 +31,117 @@ type FetchState =
   | { status: "loading" }
   | { status: "loaded"; agencies: Agency[] }
   | { status: "empty" }
-  | { status: "error" };
+  | { status: "soft_empty" };
 
-// All Ring public API routes (agencies, leads, OAuth) live on Stack 4.
+// All Ring public API routes (agencies, OAuth) live on Stack 4.
 const OAUTH_BASE = process.env.NEXT_PUBLIC_RING_PUBLIC_OAUTH_BASE ?? "";
 
-function EmailWaitlist({ stateCode }: { stateCode: string }) {
-  const [email, setEmail] = useState("");
-  const [busy, setBusy] = useState(false);
-  const [outcome, setOutcome] = useState<"idle" | "ok" | "err">("idle");
-
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
-    setBusy(true);
-    try {
-      const res = await fetch(`${OAUTH_BASE}/api/public/leads`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          email,
-          source: "ring-connect-waitlist",
-          requestedState: stateCode,
-          requestedCity: null,
-        }),
-      });
-      setOutcome(res.ok ? "ok" : "err");
-    } catch {
-      setOutcome("err");
-    } finally {
-      setBusy(false);
-    }
+function parseAgenciesPayload(data: unknown): Agency[] {
+  if (Array.isArray(data)) {
+    // Legacy raw-array response
+    return data
+      .map((row) => {
+        const r = row as Record<string, unknown>;
+        return {
+          agencyId: String(r.agencyId ?? r.agencySlug ?? ""),
+          name: String(r.name ?? r.publicDisplayName ?? r.displayName ?? ""),
+          city: String(r.city ?? r.publicCity ?? ""),
+        };
+      })
+      .filter((a) => a.agencyId && a.name);
   }
-
-  if (outcome === "ok") {
-    return (
-      <p className="mt-4 text-sm text-emerald-400">
-        You&apos;re on the list — we&apos;ll reach out when enrollment opens in your area.
-      </p>
-    );
+  if (data && typeof data === "object" && Array.isArray((data as { agencies?: unknown }).agencies)) {
+    return ((data as { agencies: unknown[] }).agencies)
+      .map((row) => {
+        const r = row as Record<string, unknown>;
+        return {
+          agencyId: String(r.agencyId ?? r.agencySlug ?? ""),
+          name: String(r.name ?? r.publicDisplayName ?? r.displayName ?? ""),
+          city: String(r.city ?? r.publicCity ?? ""),
+        };
+      })
+      .filter((a) => a.agencyId && a.name);
   }
-
-  return (
-    <form onSubmit={handleSubmit} className="mt-4 space-y-3">
-      <p className="text-xs text-slate-400">
-        No agencies are listed in your area yet. Enter your email and we&apos;ll reach out when
-        enrollment opens.
-      </p>
-      <div className="flex flex-col gap-3 sm:flex-row">
-        <input
-          type="email"
-          placeholder="your@email.com"
-          required
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          className="flex-1 rounded-lg border border-slate-600 bg-slate-900/60 px-4 py-2.5 text-sm text-slate-100 placeholder-slate-500 focus:border-sky-500 focus:outline-none"
-        />
-        <button
-          type="submit"
-          disabled={busy}
-          className="inline-flex min-h-11 items-center justify-center rounded-lg bg-gradient-to-r from-sky-500 to-cyan-400 px-5 text-sm font-semibold text-slate-950 disabled:opacity-60"
-        >
-          {busy ? "Sending…" : "Notify me"}
-        </button>
-      </div>
-      {outcome === "err" && (
-        <p className="text-xs text-rose-400">
-          Something went wrong — please try again or contact support.
-        </p>
-      )}
-    </form>
-  );
+  return [];
 }
 
 export function RingConnectFlow() {
   const searchParams = useSearchParams();
-  const agencyId = searchParams.get("agencyId");
+  const agencyIdFromUrl = searchParams.get("agencyId")?.trim() || null;
 
   const [selectedState, setSelectedState] = useState("");
+  const [selectedAgencyId, setSelectedAgencyId] = useState<string | null>(agencyIdFromUrl);
   const [fetchState, setFetchState] = useState<FetchState>({ status: "idle" });
+
+  useEffect(() => {
+    if (agencyIdFromUrl) {
+      setSelectedAgencyId(agencyIdFromUrl);
+    }
+  }, [agencyIdFromUrl]);
 
   useEffect(() => {
     if (!selectedState) {
       setFetchState({ status: "idle" });
+      if (!agencyIdFromUrl) setSelectedAgencyId(null);
       return;
     }
     let stale = false;
     setFetchState({ status: "loading" });
-    fetch(`${OAUTH_BASE}/api/public/agencies/by-state?state=${selectedState}`)
-      .then((r) => r.json())
-      .then((data: Agency[]) => {
+    if (!agencyIdFromUrl) setSelectedAgencyId(null);
+
+    fetch(`${OAUTH_BASE}/api/public/agencies/by-state?state=${encodeURIComponent(selectedState)}`)
+      .then(async (r) => {
+        const data: unknown = await r.json().catch(() => ({ agencies: [] }));
         if (stale) return;
-        setFetchState(
-          Array.isArray(data) && data.length > 0
-            ? { status: "loaded", agencies: data }
-            : { status: "empty" }
-        );
+        const agencies = r.ok ? parseAgenciesPayload(data) : [];
+        if (agencies.length > 0) {
+          setFetchState({ status: "loaded", agencies });
+        } else {
+          setFetchState({ status: r.ok ? "empty" : "soft_empty" });
+        }
       })
       .catch(() => {
-        if (!stale) setFetchState({ status: "error" });
+        if (!stale) setFetchState({ status: "soft_empty" });
       });
+
     return () => {
       stale = true;
     };
-  }, [selectedState]);
+  }, [selectedState, agencyIdFromUrl]);
 
-  function oauthStart(slug: string) {
-    window.location.href = `${OAUTH_BASE}/api/public/ring/oauth/start?agencyId=${encodeURIComponent(slug)}`;
+  function startRingConnect() {
+    const params = new URLSearchParams();
+    if (selectedAgencyId) params.set("agencyId", selectedAgencyId);
+    if (selectedState) params.set("state", selectedState);
+    const qs = params.toString();
+    window.location.href = `${OAUTH_BASE}/api/public/ring/oauth/start${qs ? `?${qs}` : ""}`;
   }
 
   const stateName = US_STATES.find(([c]) => c === selectedState)?.[1] ?? selectedState;
+  const selectedAgencyName =
+    fetchState.status === "loaded"
+      ? fetchState.agencies.find((a) => a.agencyId === selectedAgencyId)?.name
+      : null;
 
   return (
-    <section className="mt-8 rounded-2xl border border-white/10 bg-black/40 p-6 text-sm text-slate-300">
-      <h2 className="text-base font-semibold text-white">Ready to help your community?</h2>
-      <p className="mt-1 text-xs text-slate-400">Takes about 60 seconds from the Ring app.</p>
-
-      <p className="mt-4 leading-relaxed">
-        Rapid Cortex lets local emergency agencies request temporary, consent-gated access to your
-        Ring cameras during active nearby incidents. Your cameras, your choice — every request
-        requires your approval, nothing is automatic, and you can disconnect at any time.
-      </p>
-
-      <p className="mt-3 leading-relaxed">
-        The easiest way to connect is directly from the Ring app: open Ring → Skills → search for
-        Rapid Cortex → Enable. You&apos;ll be guided to select your local agency and complete the
-        link in under a minute.
-      </p>
-
-      {!agencyId && (
-        <p className="mt-3 leading-relaxed">
-          Or select your state below to find your local agency. If no agencies are listed in your
-          area yet, enter your email and we&apos;ll reach out when enrollment opens.
+    <section className="mt-8 space-y-6 rounded-2xl border border-white/10 bg-black/40 p-6 text-sm text-slate-300">
+      <div>
+        <h2 className="text-base font-semibold text-white">Ready to help your community?</h2>
+        <p className="mt-1 text-xs text-slate-400">Takes about 60 seconds from the Ring app or web.</p>
+        <p className="mt-4 leading-relaxed">
+          Rapid Cortex lets local emergency agencies request temporary, consent-gated access to your
+          Ring cameras during active nearby incidents. Your cameras, your choice — every request
+          requires your approval, nothing is automatic, and you can disconnect at any time.
         </p>
-      )}
+      </div>
 
-      {/* Path 2: agencyId present in URL — direct OAuth button shown above picker */}
-      {agencyId ? (
-        <div className="mt-5 space-y-3">
-          <button
-            type="button"
-            onClick={() => oauthStart(agencyId)}
-            className="inline-flex min-h-11 items-center justify-center rounded-lg bg-gradient-to-r from-sky-500 to-cyan-400 px-5 text-sm font-semibold text-slate-950"
-          >
-            Link my Ring account →
-          </button>
-          <p className="text-xs text-slate-400">
-            Don&apos;t have a Ring account?{" "}
-            <a
-              href="https://ring.com/signup"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-sky-400 underline hover:text-sky-300"
-            >
-              Create one at ring.com
-            </a>
-            , then return here to connect.
-          </p>
-        </div>
-      ) : null}
-
-      {/* State picker (paths 1 and 3) */}
-      <div className="mt-5">
+      {/* Optional agency matching — never blocks Connect */}
+      <div className="space-y-3">
+        <label htmlFor="ring-connect-state" className="block text-xs font-semibold uppercase tracking-wide text-slate-400">
+          Find your local agency (optional)
+        </label>
         <select
+          id="ring-connect-state"
           value={selectedState}
           onChange={(e) => setSelectedState(e.target.value)}
           aria-label="Select your state"
@@ -206,62 +154,96 @@ export function RingConnectFlow() {
             </option>
           ))}
         </select>
+
+        {fetchState.status === "loading" && (
+          <p className="text-xs text-slate-400">Finding agencies in {stateName}…</p>
+        )}
+
+        {fetchState.status === "loaded" && (
+          <ul className="space-y-2">
+            {fetchState.agencies.map((agency) => {
+              const selected = selectedAgencyId === agency.agencyId;
+              return (
+                <li key={agency.agencyId}>
+                  <button
+                    type="button"
+                    onClick={() => setSelectedAgencyId(agency.agencyId)}
+                    className={`flex w-full items-center justify-between gap-4 rounded-lg border px-4 py-3 text-left transition ${
+                      selected
+                        ? "border-sky-500/60 bg-sky-950/40"
+                        : "border-slate-700 bg-slate-900/40 hover:border-slate-500"
+                    }`}
+                  >
+                    <div className="min-w-0">
+                      <p className="truncate font-medium text-slate-100">{agency.name}</p>
+                      {agency.city ? (
+                        <p className="text-xs text-slate-500">
+                          {agency.city}
+                          {selectedState ? `, ${selectedState}` : ""}
+                        </p>
+                      ) : null}
+                    </div>
+                    <span className="shrink-0 text-xs font-semibold text-sky-300">
+                      {selected ? "Selected" : "Select"}
+                    </span>
+                  </button>
+                </li>
+              );
+            })}
+          </ul>
+        )}
+
+        {(fetchState.status === "empty" || fetchState.status === "soft_empty") && (
+          <p className="rounded-lg border border-sky-500/20 bg-sky-950/30 px-4 py-3 text-sm leading-relaxed text-slate-300">
+            No agencies in your area have enrolled yet — but{" "}
+            <strong className="text-white">you can still connect now</strong>. When local emergency
+            services join Rapid Cortex, you&apos;ll already be registered.
+          </p>
+        )}
+
+        {agencyIdFromUrl && !selectedState ? (
+          <p className="text-xs text-slate-400">
+            Agency link detected. You can connect directly, or pick a state to confirm your local
+            agency.
+          </p>
+        ) : null}
       </div>
 
-      {fetchState.status === "loading" && (
-        <p className="mt-4 text-xs text-slate-400">Finding agencies in {stateName}…</p>
-      )}
-
-      {fetchState.status === "loaded" && (
-        <>
-          <ul className="mt-4 space-y-2">
-            {fetchState.agencies.map((agency) => (
-              <li
-                key={agency.agencySlug}
-                className="flex items-center justify-between gap-4 rounded-lg border border-slate-700 bg-slate-900/40 px-4 py-3"
-              >
-                <div className="min-w-0">
-                  <p className="truncate font-medium text-slate-100">{agency.displayName}</p>
-                  <p className="text-xs text-slate-500">
-                    {agency.city}, {agency.state}
-                  </p>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => oauthStart(agency.agencySlug)}
-                  className="inline-flex shrink-0 min-h-9 items-center justify-center rounded-lg bg-gradient-to-r from-sky-500 to-cyan-400 px-4 text-xs font-semibold text-slate-950"
-                >
-                  Connect →
-                </button>
-              </li>
-            ))}
-          </ul>
-          <p className="mt-3 text-xs text-slate-400">
-            Don&apos;t have a Ring account?{" "}
-            <a
-              href="https://ring.com/signup"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-sky-400 underline hover:text-sky-300"
-            >
-              Create one at ring.com
-            </a>
-            , then return here to connect.
-          </p>
-        </>
-      )}
-
-      {fetchState.status === "empty" && <EmailWaitlist stateCode={selectedState} />}
-
-      {fetchState.status === "error" && (
-        <p className="mt-4 text-xs text-rose-400">
-          Unable to load agencies right now — try again or contact support.
+      {/* Connect — always available */}
+      <div className="space-y-3 border-t border-white/10 pt-5">
+        <p className="text-xs leading-relaxed text-slate-400">
+          Every video request is approved separately. When a nearby incident involves your address,
+          dispatchers can request temporary access. You decide — every time.
         </p>
-      )}
+        <button
+          type="button"
+          onClick={startRingConnect}
+          className="inline-flex min-h-11 items-center justify-center rounded-lg bg-gradient-to-r from-sky-500 to-cyan-400 px-5 text-sm font-semibold text-slate-950"
+        >
+          {selectedAgencyName ? `Connect to ${selectedAgencyName}` : "Connect with Ring"}
+        </button>
+        <p className="text-xs leading-relaxed text-slate-500">
+          By connecting, you agree that dispatchers at participating agencies may request temporary
+          camera access during active incidents near your address.{" "}
+          <strong className="text-slate-300">Every request requires your individual approval.</strong>
+        </p>
+        <p className="text-xs text-slate-400">
+          Don&apos;t have a Ring account?{" "}
+          <a
+            href="https://ring.com/signup"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-sky-400 underline hover:text-sky-300"
+          >
+            Create one at ring.com
+          </a>
+          , then return here to connect.
+        </p>
+      </div>
 
-      <div className="mt-6 flex flex-col gap-3 sm:flex-row">
+      <div className="flex flex-col gap-3 sm:flex-row">
         <a
-          href="mailto:support@rapidcortex.us?subject=Ring%20Connect%20homeowner%20enrollment"
+          href="mailto:support@rapidcortex.us?subject=Ring%20Connect%20device%20owner%20enrollment"
           className="inline-flex min-h-11 items-center justify-center rounded-lg border border-slate-600 px-5 text-sm font-semibold text-slate-100 hover:border-slate-500"
         >
           Contact support

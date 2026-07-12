@@ -43,7 +43,7 @@ export function marketingSiteOrigin(): string {
   return "https://www.rapidcortex.us";
 }
 
-/** Ring homeowners — public Connect enrollment (not agency login). */
+/** Ring Device Owners — public Connect enrollment (not agency login). */
 export function marketingRingCustomersPath(): string {
   return `${marketingSiteOrigin()}/connect/ring/start`;
 }
@@ -97,22 +97,21 @@ export function marketingContactSalesPath(): string {
   return "/contact-sales";
 }
 
-/** Microsoft Bookings — public demo / appointment scheduling. */
-export const MARKETING_BOOK_APPOINTMENT_URL =
-  "https://outlook.office.com/book/RapidCortex@rapidcortex.us/?ismsaljsauthenabled";
+/** Public demo / sales intake form (same-origin). */
+export function marketingDemoRequestPath(interest?: string): string {
+  const base = marketingContactSalesPath();
+  if (!interest?.trim()) return base;
+  return `${base}?interest=${encodeURIComponent(interest.trim())}`;
+}
+
+/** Demo / appointment CTA — contact-sales form (not external calendaring). */
+export const MARKETING_BOOK_APPOINTMENT_URL = marketingDemoRequestPath("demo");
 
 /** @deprecated Use {@link MARKETING_BOOK_APPOINTMENT_URL}. */
 export const MARKETING_CALENDLY_DEMO_URL = MARKETING_BOOK_APPOINTMENT_URL;
 
 export function marketingBookAppointmentUrl(): string {
   return MARKETING_BOOK_APPOINTMENT_URL;
-}
-
-/** Public demo / sales intake form (same-origin). */
-export function marketingDemoRequestPath(interest?: string): string {
-  const base = marketingContactSalesPath();
-  if (!interest?.trim()) return base;
-  return `${base}?interest=${encodeURIComponent(interest.trim())}`;
 }
 
 /** @deprecated Use {@link marketingBookAppointmentUrl}. */

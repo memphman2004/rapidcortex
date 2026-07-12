@@ -27,6 +27,7 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
     return ok(profile, 201);
   } catch (error) {
     if (error instanceof Error && error.message === "FORBIDDEN") return forbidden();
+    console.error("[postAgencyBillingInvoice]", error);
     return serverError();
   }
 };

@@ -5,6 +5,7 @@ import type { UserContext } from "rapid-cortex-shared";
 import type { RoleDashboardIdentity } from "@/lib/dashboards/role-dashboard-design";
 import { FontPicker } from "@/components/ui/font-picker";
 import { UserIdentityBar } from "@/components/ui/user-identity-bar";
+import { HelpButton } from "@/components/help/help-button";
 import { getRoleHeaderBadgeLabel } from "@/lib/dashboards/role-header-badge";
 
 export function TopNav({
@@ -54,6 +55,7 @@ export function TopNav({
         ) : null}
       </div>
       <div className="flex shrink-0 flex-wrap items-center justify-end gap-2">
+        <HelpButton />
         <FontPicker />
         <button
           type="button"

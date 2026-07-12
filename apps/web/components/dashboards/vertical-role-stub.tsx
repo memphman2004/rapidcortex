@@ -7,6 +7,7 @@ import { getDashboardSessionUser } from "@/lib/dashboards/get-dashboard-session"
 import { VerticalBadge } from "@/components/ui/VerticalBadge";
 import type { Vertical } from "@/lib/vertical";
 import { CampusDashboardHeaderUtilities } from "@/components/campus/campus-dashboard-header-utilities";
+import { HelpChrome } from "@/components/help/help-chrome";
 import { VenueGuestServicesDisclaimerGate } from "@/components/venue/venue-guest-services-disclaimer-gate";
 import { isVenueGuestServicesRole } from "@/lib/venue/venue-guest-services";
 import { CAMPUS_DASHBOARD_FONT_FAMILY } from "@/components/campus/campus-dashboard-font";
@@ -31,6 +32,7 @@ export async function VerticalRoleStub({ consoleTitle, vertical, role, descripti
     vertical === "venue" && isVenueGuestServicesRole(effectiveRole);
 
   return (
+    <HelpChrome role={effectiveRole}>
     <div
       className="min-h-screen bg-slate-950 text-slate-100"
       style={
@@ -76,5 +78,6 @@ export async function VerticalRoleStub({ consoleTitle, vertical, role, descripti
         </p>
       </main>
     </div>
+    </HelpChrome>
   );
 }

@@ -1029,6 +1029,9 @@ Globals:
     Runtime: nodejs20.x
     Timeout: 10
     MemorySize: 512
+    # Shared deps layer — lean SAM builds skip per-function node_modules rsync (see SAM4_LEAN_BUILD).
+    Layers:
+      - !Ref NodeDepsLayer
     Environment:
       Variables:
         RING_CREDENTIALS_SECRET_ARN: !Ref RingCredentialsSecretArn
@@ -1114,6 +1117,18 @@ Globals:
 
 
 Resources:
+  NodeDepsLayer:
+    Type: AWS::Serverless::LayerVersion
+    Properties:
+      LayerName: !Sub "rapid-cortex-sam5-api-deps-${DeploymentStage}"
+      Description: "Shared node_modules for all SAM5 Lambda functions — avoids ~173MB rsync per function during build"
+      ContentUri: ../../apps/api/layer/
+      CompatibleRuntimes:
+        - nodejs20.x
+      RetentionPolicy: Delete
+    Metadata:
+      BuildMethod: makefile
+
   AppManagedPolicyDynamoLambdaCrudShardA:
     Type: AWS::IAM::ManagedPolicy
     Properties:
@@ -1969,33 +1984,7 @@ Resources:
             - CreateLiveVideoResources
             - !GetAtt KvsWebRtcBrowserTokenRole.Arn
             - ""
-      Policies:
-        - Statement:
-            Sid: StreamViewerTokenSessionsReadWrite
-            Effect: Allow
-            Action:
-              - dynamodb:GetItem
-              - dynamodb:UpdateItem
-            Resource:
-              - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${ConnectAccessSessionsTable}
-        - !If
-          - CreateLiveVideoResources
-          - Statement:
-              Sid: StreamViewerTokenAssumeBrowserRole
-              Effect: Allow
-              Action: sts:AssumeRole
-              Resource: !GetAtt KvsWebRtcBrowserTokenRole.Arn
-          - !Ref AWS::NoValue
-        - Statement:
-            Sid: StreamViewerTokenKvsRead
-            Effect: Allow
-            Action:
-              - kinesisvideo:DescribeSignalingChannel
-              - kinesisvideo:GetSignalingChannelEndpoint
-              - kinesisvideo:GetIceServerConfig
-            Resource:
-              - !Sub arn:${AWS::Partition}:kinesisvideo:${AWS::Region}:${AWS::AccountId}:channel/rc-connect-*/*
-              - !Sub arn:${AWS::Partition}:kinesisvideo:${AWS::Region}:${AWS::AccountId}:channel/rc-venue-*/*
+      Role: !GetAtt StreamViewerExecutionRole.Arn
       Events:
         Route:
           Type: HttpApi
@@ -2674,27 +2663,7 @@ Resources:
             - CreateLiveVideoResources
             - !GetAtt KvsWebRtcBrowserTokenRole.Arn
             - ""
-      Policies:
-        - !Ref AppManagedPolicyDynamoLambdaCrudShardC
-        - !Ref AppManagedPolicyDynamoLambdaCrudShardD
-        - !If
-          - CreateLiveVideoResources
-          - Statement:
-              Sid: VenueCameraViewerAssumeBrowserRole
-              Effect: Allow
-              Action: sts:AssumeRole
-              Resource: !GetAtt KvsWebRtcBrowserTokenRole.Arn
-          - !Ref AWS::NoValue
-        - Statement:
-            Sid: VenueCameraViewerKvsRead
-            Effect: Allow
-            Action:
-              - kinesisvideo:DescribeSignalingChannel
-              - kinesisvideo:GetSignalingChannelEndpoint
-              - kinesisvideo:GetIceServerConfig
-            Resource:
-              - !Sub arn:${AWS::Partition}:kinesisvideo:${AWS::Region}:${AWS::AccountId}:channel/rc-venue-*/*
-              - !Sub arn:${AWS::Partition}:kinesisvideo:${AWS::Region}:${AWS::AccountId}:channel/rc-connect-*/*
+      Role: !GetAtt VenueCameraViewerExecutionRole.Arn
       Events:
         Route:
           Type: HttpApi
@@ -2904,28 +2873,7 @@ Resources:
             - CreateLiveVideoResources
             - !GetAtt KvsWebRtcBrowserTokenRole.Arn
             - ""
-      Policies:
-        - !Ref AppManagedPolicyDynamoLambdaCrudShardC
-        - !Ref AppManagedPolicyDynamoLambdaCrudShardD
-        - !If
-          - CreateLiveVideoResources
-          - Statement:
-              Sid: CampusCameraViewerAssumeBrowserRole
-              Effect: Allow
-              Action: sts:AssumeRole
-              Resource: !GetAtt KvsWebRtcBrowserTokenRole.Arn
-          - !Ref AWS::NoValue
-        - !If
-          - CreateLiveVideoResources
-          - Statement:
-              Sid: CampusCameraViewerKvsRead
-              Effect: Allow
-              Action:
-                - kinesisvideo:GetSignalingChannelEndpoint
-                - kinesisvideo:DescribeSignalingChannel
-              Resource:
-                - !Sub arn:${AWS::Partition}:kinesisvideo:${AWS::Region}:${AWS::AccountId}:channel/rc-*/*
-          - !Ref AWS::NoValue
+      Role: !GetAtt CampusCameraViewerExecutionRole.Arn
       Events:
         Route:
           Type: HttpApi
@@ -3763,6 +3711,253 @@ Resources:
           MetricValue: "1"
           DefaultValue: 0
 
+  # Named execution roles that match KvsWebRtcBrowserTokenRole's trust StringLike
+  # "*LiveVideo*HttpFunctionRole*", sized to fit IAM's 64-char RoleName limit.
+  LiveVideoIncidentsExecutionRole:
+    Type: AWS::IAM::Role
+    Condition: CreateLiveVideoResources
+    Properties:
+      RoleName: !Sub "${AppName}-LiveVideoHttpFunctionRole-inc-${DeploymentStage}"
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardA
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardB
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardC
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardD
+        - !Ref AppManagedPolicyOpsAlertsSnsPublishOnly
+      Policies:
+        - PolicyName: LiveVideoIncidentsKvsAndSms
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action: sts:AssumeRole
+                Resource: !GetAtt KvsWebRtcBrowserTokenRole.Arn
+              - Effect: Allow
+                Action:
+                  - kinesisvideo:CreateSignalingChannel
+                Resource: "*"
+                Condition:
+                  StringEquals:
+                    aws:RequestedRegion: !Ref AWS::Region
+              - Effect: Allow
+                Action:
+                  - kinesisvideo:DeleteSignalingChannel
+                  - kinesisvideo:DescribeSignalingChannel
+                  - kinesisvideo:GetSignalingChannelEndpoint
+                  - kinesisvideo:JoinStorageSession
+                  - kinesisvideo:JoinStorageSessionAsViewer
+                Resource: !Sub "arn:${AWS::Partition}:kinesisvideo:${AWS::Region}:${AWS::AccountId}:channel/*/*"
+              - Effect: Allow
+                Action:
+                  - kinesisvideo:GetIceServerConfig
+                Resource: !Sub "arn:${AWS::Partition}:kinesisvideo:${AWS::Region}:${AWS::AccountId}:channel/*/*"
+              - Effect: Allow
+                Action:
+                  - kinesisvideo:DescribeMappedResourceConfiguration
+                Resource: !Sub "arn:${AWS::Partition}:kinesisvideo:${AWS::Region}:${AWS::AccountId}:stream/*/*"
+              - Effect: Allow
+                Action:
+                  - kinesisvideo:CreateStream
+                Resource: "*"
+                Condition:
+                  StringEquals:
+                    aws:RequestedRegion: !Ref AWS::Region
+              - Effect: Allow
+                Action:
+                  - kinesisvideo:DeleteStream
+                  - kinesisvideo:DescribeStream
+                  - kinesisvideo:GetDataEndpoint
+                Resource: !Sub "arn:${AWS::Partition}:kinesisvideo:${AWS::Region}:${AWS::AccountId}:stream/*/*"
+              - Effect: Allow
+                Action:
+                  - kinesisvideo:GetHLSStreamingSessionURL
+                Resource: !Sub "arn:${AWS::Partition}:kinesisvideo:${AWS::Region}:${AWS::AccountId}:stream/*/*"
+              - Effect: Allow
+                Action:
+                  - kinesisvideo:UpdateMediaStorageConfiguration
+                  - kinesisvideo:DescribeMediaStorageConfiguration
+                Resource: !Sub "arn:${AWS::Partition}:kinesisvideo:${AWS::Region}:${AWS::AccountId}:channel/*/*"
+              - Effect: Allow
+                Action:
+                  - sms-voice:DescribeAccountAttributes
+                  - sms-voice:DescribePools
+                  - sms-voice:DescribeConfigurationSets
+                Resource: "*"
+                Condition:
+                  StringEquals:
+                    aws:RequestedRegion: !Ref AWS::Region
+              - Fn::If:
+                  - HasIncidentMediaTwilioSecretArn
+                  - Effect: Allow
+                    Action:
+                      - secretsmanager:GetSecretValue
+                    Resource: !Ref IncidentMediaTwilioSecretArn
+                  - !Ref AWS::NoValue
+
+  LiveVideoPublicExecutionRole:
+    Type: AWS::IAM::Role
+    Condition: CreateLiveVideoResources
+    Properties:
+      RoleName: !Sub "${AppName}-LiveVideoHttpFunctionRole-pub-${DeploymentStage}"
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardA
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardB
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardC
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardD
+      Policies:
+        - PolicyName: LiveVideoPublicKvs
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action: sts:AssumeRole
+                Resource: !GetAtt KvsWebRtcBrowserTokenRole.Arn
+              - Effect: Allow
+                Action:
+                  - kinesisvideo:DeleteSignalingChannel
+                  - kinesisvideo:DescribeSignalingChannel
+                  - kinesisvideo:GetSignalingChannelEndpoint
+                Resource: !Sub "arn:${AWS::Partition}:kinesisvideo:${AWS::Region}:${AWS::AccountId}:channel/*/*"
+              - Effect: Allow
+                Action:
+                  - kinesisvideo:GetIceServerConfig
+                Resource: !Sub "arn:${AWS::Partition}:kinesisvideo:${AWS::Region}:${AWS::AccountId}:channel/*/*"
+
+  StreamViewerExecutionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Sub "${AppName}-LiveVideoHttpFunctionRole-svt-${DeploymentStage}"
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+      Policies:
+        - PolicyName: StreamViewerPolicy
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Sid: StreamViewerTokenSessionsReadWrite
+                Effect: Allow
+                Action:
+                  - dynamodb:GetItem
+                  - dynamodb:UpdateItem
+                Resource:
+                  - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${ConnectAccessSessionsTable}
+              - !If
+                - CreateLiveVideoResources
+                - Sid: StreamViewerTokenAssumeBrowserRole
+                  Effect: Allow
+                  Action: sts:AssumeRole
+                  Resource: !GetAtt KvsWebRtcBrowserTokenRole.Arn
+                - !Ref AWS::NoValue
+              - Sid: StreamViewerTokenKvsRead
+                Effect: Allow
+                Action:
+                  - kinesisvideo:DescribeSignalingChannel
+                  - kinesisvideo:GetSignalingChannelEndpoint
+                  - kinesisvideo:GetIceServerConfig
+                Resource:
+                  - !Sub arn:${AWS::Partition}:kinesisvideo:${AWS::Region}:${AWS::AccountId}:channel/rc-connect-*/*
+                  - !Sub arn:${AWS::Partition}:kinesisvideo:${AWS::Region}:${AWS::AccountId}:channel/rc-venue-*/*
+
+  VenueCameraViewerExecutionRole:
+    Type: AWS::IAM::Role
+    Condition: HasVenueCameraRegistryTable
+    Properties:
+      RoleName: !Sub "${AppName}-LiveVideoHttpFunctionRole-vcv-${DeploymentStage}"
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardC
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardD
+      Policies:
+        - PolicyName: VenueCameraViewerPolicy
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - !If
+                - CreateLiveVideoResources
+                - Sid: VenueCameraViewerAssumeBrowserRole
+                  Effect: Allow
+                  Action: sts:AssumeRole
+                  Resource: !GetAtt KvsWebRtcBrowserTokenRole.Arn
+                - !Ref AWS::NoValue
+              - Sid: VenueCameraViewerKvsRead
+                Effect: Allow
+                Action:
+                  - kinesisvideo:DescribeSignalingChannel
+                  - kinesisvideo:GetSignalingChannelEndpoint
+                  - kinesisvideo:GetIceServerConfig
+                Resource:
+                  - !Sub arn:${AWS::Partition}:kinesisvideo:${AWS::Region}:${AWS::AccountId}:channel/rc-venue-*/*
+                  - !Sub arn:${AWS::Partition}:kinesisvideo:${AWS::Region}:${AWS::AccountId}:channel/rc-connect-*/*
+
+  CampusCameraViewerExecutionRole:
+    Type: AWS::IAM::Role
+    Condition: HasCampusCameraRegistryTable
+    Properties:
+      RoleName: !Sub "${AppName}-LiveVideoHttpFunctionRole-ccv-${DeploymentStage}"
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardC
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardD
+      Policies:
+        - PolicyName: CampusCameraViewerPolicy
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - !If
+                - CreateLiveVideoResources
+                - Sid: CampusCameraViewerAssumeBrowserRole
+                  Effect: Allow
+                  Action: sts:AssumeRole
+                  Resource: !GetAtt KvsWebRtcBrowserTokenRole.Arn
+                - !Ref AWS::NoValue
+              - !If
+                - CreateLiveVideoResources
+                - Sid: CampusCameraViewerKvsRead
+                  Effect: Allow
+                  Action:
+                    - kinesisvideo:GetSignalingChannelEndpoint
+                    - kinesisvideo:DescribeSignalingChannel
+                  Resource:
+                    - !Sub arn:${AWS::Partition}:kinesisvideo:${AWS::Region}:${AWS::AccountId}:channel/rc-*/*
+                - !Ref AWS::NoValue
+
   KvsWebRtcBrowserTokenRole:
     Type: AWS::IAM::Role
     Condition: CreateLiveVideoResources
@@ -3778,8 +3973,7 @@ Resources:
               StringEquals:
                 aws:SourceAccount: !Ref AWS::AccountId
               StringLike:
-                aws:PrincipalArn:
-                  - !Sub "arn:aws:iam::${AWS::AccountId}:role/*LiveVideo*HttpFunctionRole*"
+                aws:PrincipalArn: !Sub "arn:aws:iam::${AWS::AccountId}:role/*LiveVideo*HttpFunctionRole*"
       Policies:
         - PolicyName: KvsWebrtcDataPlane
           PolicyDocument:
@@ -3837,6 +4031,7 @@ Resources:
     Properties:
       CodeUri: ../../apps/api/
       Handler: dist/handlers/media/liveVideoIncidentHttp.handler
+      Role: !GetAtt LiveVideoIncidentsExecutionRole.Arn
       Environment:
         Variables:
           COGNITO_USER_POOL_ID: !Ref ImportedCognitoUserPoolId
@@ -3862,87 +4057,6 @@ Resources:
           LIVE_VIDEO_KVS_STORAGE_ATTACH_TO_CHANNEL: "false"
           KVS_WEBRTC_TAG_APP: !Ref AppName
           KVS_WEBRTC_TAG_ENV: !Ref DeploymentStage
-      Policies:
-        - !Ref AppManagedPolicyDynamoLambdaCrudShardA
-        - !Ref AppManagedPolicyDynamoLambdaCrudShardB
-        - !Ref AppManagedPolicyDynamoLambdaCrudShardC
-        - !Ref AppManagedPolicyDynamoLambdaCrudShardD
-        - Statement:
-            Effect: Allow
-            Action: sts:AssumeRole
-            Resource: !GetAtt KvsWebRtcBrowserTokenRole.Arn
-        - Statement:
-            Effect: Allow
-            Action:
-              - kinesisvideo:CreateSignalingChannel
-            Resource: "*"
-            Condition:
-              StringEquals:
-                aws:RequestedRegion: !Ref AWS::Region
-        - Statement:
-            Effect: Allow
-            Action:
-              - kinesisvideo:DeleteSignalingChannel
-              - kinesisvideo:DescribeSignalingChannel
-              - kinesisvideo:GetSignalingChannelEndpoint
-              - kinesisvideo:JoinStorageSession
-              - kinesisvideo:JoinStorageSessionAsViewer
-            Resource: !Sub "arn:${AWS::Partition}:kinesisvideo:${AWS::Region}:${AWS::AccountId}:channel/*/*"
-        - Statement:
-            Effect: Allow
-            Action:
-              - kinesisvideo:GetIceServerConfig
-            Resource: !Sub "arn:${AWS::Partition}:kinesisvideo:${AWS::Region}:${AWS::AccountId}:channel/*/*"
-        - Statement:
-            Effect: Allow
-            Action:
-              - kinesisvideo:DescribeMappedResourceConfiguration
-            Resource: !Sub "arn:${AWS::Partition}:kinesisvideo:${AWS::Region}:${AWS::AccountId}:stream/*/*"
-        - Statement:
-            Effect: Allow
-            Action:
-              - kinesisvideo:CreateStream
-            Resource: "*"
-            Condition:
-              StringEquals:
-                aws:RequestedRegion: !Ref AWS::Region
-        - Statement:
-            Effect: Allow
-            Action:
-              - kinesisvideo:DeleteStream
-              - kinesisvideo:DescribeStream
-              - kinesisvideo:GetDataEndpoint
-            Resource: !Sub "arn:${AWS::Partition}:kinesisvideo:${AWS::Region}:${AWS::AccountId}:stream/*/*"
-        - Statement:
-            Effect: Allow
-            Action:
-              - kinesisvideo:GetHLSStreamingSessionURL
-            Resource: !Sub "arn:${AWS::Partition}:kinesisvideo:${AWS::Region}:${AWS::AccountId}:stream/*/*"
-        - Statement:
-            Effect: Allow
-            Action:
-              - kinesisvideo:UpdateMediaStorageConfiguration
-              - kinesisvideo:DescribeMediaStorageConfiguration
-            Resource: !Sub "arn:${AWS::Partition}:kinesisvideo:${AWS::Region}:${AWS::AccountId}:channel/*/*"
-        - !Ref AppManagedPolicyOpsAlertsSnsPublishOnly
-        - Statement:
-            Effect: Allow
-            Action:
-              - sms-voice:DescribeAccountAttributes
-              - sms-voice:DescribePools
-              - sms-voice:DescribeConfigurationSets
-            Resource: "*"
-            Condition:
-              StringEquals:
-                aws:RequestedRegion: !Ref AWS::Region
-        - Fn::If:
-            - HasIncidentMediaTwilioSecretArn
-            - Statement:
-                Effect: Allow
-                Action:
-                  - secretsmanager:GetSecretValue
-                Resource: !Ref IncidentMediaTwilioSecretArn
-            - !Ref AWS::NoValue
       Events:
         RequestLiveVideo:
           Type: HttpApi
@@ -3990,6 +4104,7 @@ Resources:
     Properties:
       CodeUri: ../../apps/api/
       Handler: dist/handlers/media/liveVideoPublicHttp.handler
+      Role: !GetAtt LiveVideoPublicExecutionRole.Arn
       Environment:
         Variables:
           ENABLE_LIVE_VIDEO: "true"
@@ -4001,27 +4116,6 @@ Resources:
           LIVE_VIDEO_KVS_TOKEN_ROLE_ARN: !GetAtt KvsWebRtcBrowserTokenRole.Arn
           LIVE_VIDEO_STORAGE_MODE: kvs
           WEBRTC_TURN_SECRET_ARN: ""
-      Policies:
-        - !Ref AppManagedPolicyDynamoLambdaCrudShardA
-        - !Ref AppManagedPolicyDynamoLambdaCrudShardB
-        - !Ref AppManagedPolicyDynamoLambdaCrudShardC
-        - !Ref AppManagedPolicyDynamoLambdaCrudShardD
-        - Statement:
-            Effect: Allow
-            Action: sts:AssumeRole
-            Resource: !GetAtt KvsWebRtcBrowserTokenRole.Arn
-        - Statement:
-            Effect: Allow
-            Action:
-              - kinesisvideo:DeleteSignalingChannel
-              - kinesisvideo:DescribeSignalingChannel
-              - kinesisvideo:GetSignalingChannelEndpoint
-            Resource: !Sub "arn:${AWS::Partition}:kinesisvideo:${AWS::Region}:${AWS::AccountId}:channel/*/*"
-        - Statement:
-            Effect: Allow
-            Action:
-              - kinesisvideo:GetIceServerConfig
-            Resource: !Sub "arn:${AWS::Partition}:kinesisvideo:${AWS::Region}:${AWS::AccountId}:channel/*/*"
       Events:
         JoinLiveVideo:
           Type: HttpApi

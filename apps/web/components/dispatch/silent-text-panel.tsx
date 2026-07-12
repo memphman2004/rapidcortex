@@ -19,6 +19,7 @@ import {
   postSilentTextSession,
 } from "@/lib/api";
 import { SilentTextMessageBubble } from "@/components/dispatch/silent-text-message-bubble";
+import { ContextualHelp } from "@/components/help/help-button";
 import { PhoneInput } from "@/components/ui/phone-input";
 
 function statusLabel(status: SilentTextDispatcherSession["status"]): string {
@@ -186,7 +187,10 @@ export function SilentTextPanel({
   if (!incidentId) {
     return (
       <div className="rounded-lg border border-slate-800 bg-slate-950/40 p-3">
-        <h3 className="text-[10px] font-semibold uppercase tracking-wide text-slate-500">Silent Text Link</h3>
+        <h3 className="text-[10px] font-semibold uppercase tracking-wide text-slate-500">
+          Silent Text Link
+          <ContextualHelp topic="silent-text" />
+        </h3>
         <p className="mt-1 text-xs text-slate-500">Select an incident to send a secure text session.</p>
       </div>
     );
@@ -195,7 +199,10 @@ export function SilentTextPanel({
   if (!configured) {
     return (
       <div className="rounded-lg border border-amber-900/50 bg-amber-950/20 p-3">
-        <h3 className="text-[10px] font-semibold uppercase tracking-wide text-amber-200/90">Silent Text Link</h3>
+        <h3 className="text-[10px] font-semibold uppercase tracking-wide text-amber-200/90">
+          Silent Text Link
+          <ContextualHelp topic="silent-text" />
+        </h3>
         <p className="mt-1 text-xs text-amber-100/80">Connect the app to your API to enable SMS and live text.</p>
       </div>
     );
@@ -206,7 +213,10 @@ export function SilentTextPanel({
       {!embedded ? (
         <div className="flex items-start justify-between gap-2">
           <div>
-            <h3 className="text-[10px] font-semibold uppercase tracking-wide text-slate-500">Silent Text Link</h3>
+            <h3 className="text-[10px] font-semibold uppercase tracking-wide text-slate-500">
+              Silent Text Link
+              <ContextualHelp topic="silent-text" />
+            </h3>
             <p className="mt-0.5 text-[11px] leading-snug text-slate-500">
               SMS secure link · text-only when speaking is not safe · logged to incident
             </p>

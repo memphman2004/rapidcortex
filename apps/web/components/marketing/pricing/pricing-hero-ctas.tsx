@@ -11,8 +11,6 @@ export function PricingHeroCtas() {
     <div className="mt-8 flex w-full flex-col gap-3 sm:mt-10 sm:flex-row sm:flex-wrap sm:items-center">
       <a
         href={marketingBookAppointmentUrl()}
-        target="_blank"
-        rel="noopener noreferrer"
         className="inline-flex min-h-12 w-full items-center justify-center rounded-lg bg-sky-600 px-6 py-3 text-base font-semibold text-white shadow-lg shadow-sky-950/25 transition hover:bg-sky-500 sm:w-auto sm:text-sm md:hidden"
       >
         Request a demo

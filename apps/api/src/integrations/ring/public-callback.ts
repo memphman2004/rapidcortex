@@ -11,15 +11,21 @@ import {
   RingCitizenOwnerRepository,
   ringCitizenOwnerPk,
 } from "../../repositories/ringCitizenOwnerRepository.js";
+import { RingHomeownerParticipantRepository } from "../../repositories/ringHomeownerParticipantRepository.js";
 import { RingPublicOAuthStateRepository } from "../../repositories/ringPublicOAuthStateRepository.js";
 import { auditRingEvent, AUDIT_EVENT_TYPES } from "./ring-audit.js";
 import { deriveCitizenRingAccountId } from "./ring-citizen-id.js";
+import {
+  homeownerIdFromPartnerAccount,
+  isUnmatchedHomeownerAgency,
+} from "./ring-homeowner-id.js";
 import { ringRedirect } from "./ring-api-response.js";
 import { configureRingEmergencyTables } from "./ring-tables.js";
 
 const oauth = new RingOAuthService();
 const tokenStore = new RingTokenStore();
 const owners = new RingCitizenOwnerRepository();
+const participants = new RingHomeownerParticipantRepository();
 const oauthStates = new RingPublicOAuthStateRepository();
 
 const RING_CITIZEN_MANAGE_URL =
@@ -31,10 +37,18 @@ const RING_CITIZEN_MANAGE_URL =
     return `${base}/manage`;
   })();
 
-function linkUrl(status: "success" | "error", agencyId?: string): string {
+function linkUrl(
+  status: "success" | "error",
+  opts?: { agencyId?: string; deviceCount?: number },
+): string {
   const base = (process.env.RING_ACCOUNT_LINK_URL?.trim() || RING_ACCOUNT_LINK_URL).replace(/\/$/, "");
   const params = new URLSearchParams({ status, audience: "citizen" });
-  if (agencyId) params.set("agencyId", agencyId);
+  if (opts?.agencyId && !isUnmatchedHomeownerAgency(opts.agencyId)) {
+    params.set("agencyId", opts.agencyId);
+  }
+  if (typeof opts?.deviceCount === "number") {
+    params.set("devices", String(opts.deviceCount));
+  }
   return `${base}?${params.toString()}`;
 }
 
@@ -64,10 +78,12 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
   }
 
   const agencyId = stored.agencyId;
+  const usState = stored.usState?.trim().toUpperCase() || null;
   const mode = stored.mode;
+  const unmatched = isUnmatchedHomeownerAgency(agencyId);
   const createdAtMs = Date.parse(stored.createdAt);
   if (!Number.isFinite(createdAtMs)) {
-    return ringRedirect(linkUrl("error", agencyId));
+    return ringRedirect(linkUrl("error", { agencyId }));
   }
 
   try {
@@ -81,9 +97,9 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
     const client = new RingApiClient(tokens.accessToken);
     const profile = await client.getPartnerUserProfile();
     const ringAccountId = deriveCitizenRingAccountId(agencyId, profile.accountId);
+    const homeownerId = homeownerIdFromPartnerAccount(profile.accountId);
 
     if (mode === "manage") {
-      // Prove identity via OAuth, then look up existing owner.
       const existing = await owners.getByRingAccountId(ringAccountId);
       if (!existing) {
         await auditRingEvent({
@@ -105,7 +121,7 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
       return ringRedirect(manageUrl("found", manageToken));
     }
 
-    // mode === "link" (default): upsert owner record.
+    // mode === "link": store tokens + participant registration (+ citizen owner when matched).
     const secretKey = await tokenStore.storeCitizenTokens(agencyId, ringAccountId, tokens);
 
     let deviceIds: string[] = [];
@@ -125,31 +141,66 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
 
     const displayName = [profile.firstName, profile.lastName].filter(Boolean).join(" ").trim();
     const now = new Date().toISOString();
-    const existing = await owners.getByRingAccountId(ringAccountId);
+    const existingParticipant = await participants.getByHomeownerId(homeownerId);
 
-    await owners.upsert({
-      pk: ringCitizenOwnerPk(ringAccountId),
+    await participants.upsert({
+      homeownerId,
       ringAccountId,
-      agencyId,
+      ...(unmatched ? {} : { agencyId }),
+      ...(usState ? { state: usState } : {}),
+      deviceCount: deviceIds.length,
       deviceIds,
       secretsManagerTokenKey: secretKey,
-      createdAt: existing?.createdAt ?? now,
+      consentGiven: true,
+      registeredAt: existingParticipant?.registeredAt ?? now,
       updatedAt: now,
-      ...(displayName ? { name: displayName } : existing?.name ? { name: existing.name } : {}),
-      ...(profile.phoneNumber ? { phone: profile.phoneNumber } : existing?.phone ? { phone: existing.phone } : {}),
-      ...(profile.email ? { email: profile.email } : existing?.email ? { email: existing.email } : {}),
+      ...(displayName ? { name: displayName } : existingParticipant?.name ? { name: existingParticipant.name } : {}),
+      ...(profile.phoneNumber
+        ? { phone: profile.phoneNumber }
+        : existingParticipant?.phone
+          ? { phone: existingParticipant.phone }
+          : {}),
+      ...(profile.email
+        ? { email: profile.email }
+        : existingParticipant?.email
+          ? { email: existingParticipant.email }
+          : {}),
     });
+
+    // Matched enrollments also write CitizenOwners so dispatcher request flows keep working.
+    if (!unmatched) {
+      const existing = await owners.getByRingAccountId(ringAccountId);
+      await owners.upsert({
+        pk: ringCitizenOwnerPk(ringAccountId),
+        ringAccountId,
+        agencyId,
+        deviceIds,
+        secretsManagerTokenKey: secretKey,
+        createdAt: existing?.createdAt ?? now,
+        updatedAt: now,
+        ...(displayName ? { name: displayName } : existing?.name ? { name: existing.name } : {}),
+        ...(profile.phoneNumber ? { phone: profile.phoneNumber } : existing?.phone ? { phone: existing.phone } : {}),
+        ...(profile.email ? { email: profile.email } : existing?.email ? { email: existing.email } : {}),
+      });
+    }
 
     await auditRingEvent({
       type: AUDIT_EVENT_TYPES.RING_CITIZEN_ACCOUNT_LINKED,
       agencyId,
-      actorId: ringAccountId,
-      details: { deviceCount: deviceIds.length },
+      actorId: homeownerId,
+      details: {
+        deviceCount: deviceIds.length,
+        participantType: "homeowner",
+        unmatched,
+        ...(usState ? { usState } : {}),
+      },
       resourceId: ringAccountId,
     });
 
-    // If Ring Appstore sent ring_return_url, redirect back to Ring so their UI updates.
-    return ringRedirect(stored.ringReturnUrl ?? linkUrl("success", agencyId));
+    return ringRedirect(
+      stored.ringReturnUrl ??
+        linkUrl("success", { agencyId, deviceCount: deviceIds.length }),
+    );
   } catch (err) {
     if (err instanceof RingAuthError && err.message.toLowerCase().includes("state mismatch")) {
       await auditRingEvent({
@@ -174,6 +225,6 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
         error: err instanceof Error ? err.message : String(err),
       }),
     );
-    return ringRedirect(linkUrl("error", agencyId));
+    return ringRedirect(linkUrl("error", { agencyId }));
   }
 };
