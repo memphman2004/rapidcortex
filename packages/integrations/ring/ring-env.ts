@@ -39,10 +39,28 @@ export const RING_ACCOUNT_LINK_URL =
   process.env.RING_ACCOUNT_LINK_URL?.trim() ??
   "https://www.rapidcortex.us/connect/ring/link";
 export const RING_WEBHOOK_URL =
-  process.env.RING_WEBHOOK_URL?.trim() ?? "https://api.rapidcortex.us/api/integrations/ring/webhook";
+  process.env.RING_WEBHOOK_URL?.trim() ??
+  "https://7c70vqd1p5.execute-api.us-east-1.amazonaws.com/api/public/ring/webhook";
 export const RING_SECRETS_PREFIX =
   process.env.RING_SECRETS_PREFIX?.trim() ?? "rapid-cortex/connect/ring";
 export const RING_KMS_KEY_ID = process.env.RING_KMS_KEY_ID?.trim() ?? "";
+
+/** Agency that receives Appstore-linked homeowner devices (pilot default: test-agency). */
+export const RING_HOMEOWNER_DEFAULT_AGENCY_ID =
+  process.env.RING_HOMEOWNER_DEFAULT_AGENCY_ID?.trim() || "test-agency";
+
+/**
+ * Fallback GPS when Ring device discovery omits lat/lng (Sonoma Point / Columbus pilot).
+ * Override via env for the homeowner address under test.
+ */
+export const RING_HOMEOWNER_FALLBACK_LATITUDE = (() => {
+  const n = Number.parseFloat(process.env.RING_HOMEOWNER_FALLBACK_LATITUDE ?? "");
+  return Number.isFinite(n) ? n : 40.06425;
+})();
+export const RING_HOMEOWNER_FALLBACK_LONGITUDE = (() => {
+  const n = Number.parseFloat(process.env.RING_HOMEOWNER_FALLBACK_LONGITUDE ?? "");
+  return Number.isFinite(n) ? n : -83.01975;
+})();
 
 export function isRingEnabled(): boolean {
   return ENABLE_CONNECT_RING && RING_PARTNERSHIP_ENABLED;

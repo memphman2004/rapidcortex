@@ -15,6 +15,7 @@ export const RING_AUDIT_EVENT_TYPES = {
   // Ring Integration — Devices
   RING_DEVICES_LISTED: "ring.devices.listed",
   RING_DEVICES_REFRESHED: "ring.devices.refreshed",
+  RING_DEVICE_CONNECT_TOGGLED: "ring.device.connect_toggled",
 
   // Ring Connect — Emergency Collaboration
   AVAILABLE_RING_CAMERAS_VIEWED: "ring.cameras.available_viewed",
@@ -34,6 +35,16 @@ export const RING_AUDIT_EVENT_TYPES = {
   // Ring Connect — citizen manage / disconnect
   RING_CITIZEN_MANAGE_INITIATED: "ring.citizen.manage.initiated",
   RING_CITIZEN_DISCONNECTED: "ring.citizen.disconnected",
+
+  // Ring Connect — Appstore one-way account linking
+  RING_APPSTORE_TOKEN_EXCHANGED: "ring.appstore.token.exchanged",
+  RING_APPSTORE_ACCOUNT_LINKED: "ring.appstore.account.linked",
+  RING_HOMEOWNER_SIGNED_IN: "ring.homeowner.signed_in",
+  RING_HOMEOWNER_SIGNED_UP: "ring.homeowner.signed_up",
+
+  // Ring Connect — inbound Appstore webhooks
+  RING_WEBHOOK_RECEIVED: "ring.webhook.received",
+  RING_WEBHOOK_SIGNATURE_FAILED: "ring.webhook.signature_failed",
 } as const;
 
 export type RingAuditEventTypeName =

@@ -74,6 +74,12 @@ function mapPayload(payload: JWTPayload): UserContext | null {
   if (role === "rcsuperadmin") {
     agencyId = agencyId || PLATFORM_AGENCY_ID;
   }
+  if (role === "homeowner") {
+    agencyId =
+      agencyId ||
+      process.env.RING_HOMEOWNER_DEFAULT_AGENCY_ID?.trim() ||
+      "test-agency";
+  }
   if (!agencyId) return null;
   const accountStatus = String(payload["custom:status"] ?? "").trim();
   const passwordLastRaw = String(payload["custom:pwdChangedAt"] ?? "").trim();

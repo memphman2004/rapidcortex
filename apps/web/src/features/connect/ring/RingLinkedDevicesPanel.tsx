@@ -139,16 +139,41 @@ export function RingLinkedDevicesPanel({
                   </span>
                 </div>
                 <p className="mt-1 text-xs text-[#8B9CB0]">{device.locationLabel || "No location label"}</p>
+                <p
+                  className={`mt-1 text-[11px] ${
+                    device.hasGps ??
+                    (typeof device.latitude === "number" && typeof device.longitude === "number")
+                      ? "text-emerald-400/90"
+                      : "text-amber-300"
+                  }`}
+                >
+                  {device.hasGps ??
+                  (typeof device.latitude === "number" && typeof device.longitude === "number")
+                    ? `GPS: ${Number(device.latitude).toFixed(5)}, ${Number(device.longitude).toFixed(5)}`
+                    : "No location — will not appear in incident camera searches"}
+                </p>
               </div>
-              <label className="flex items-center gap-2 text-xs text-[#F0F4F8]">
+              <div className="flex items-center gap-2 text-xs text-[#F0F4F8]">
                 <span>Enabled for Connect</span>
-                <input
-                  type="checkbox"
-                  checked={device.isEnabledForConnect}
+                <button
+                  type="button"
+                  role="switch"
+                  aria-checked={device.isEnabledForConnect}
                   disabled={Boolean(toggling[device.deviceId])}
-                  onChange={(e) => void toggle(device, e.target.checked)}
-                />
-              </label>
+                  onClick={() => void toggle(device, !device.isEnabledForConnect)}
+                  className={`relative h-6 w-11 shrink-0 rounded-full border transition ${
+                    device.isEnabledForConnect
+                      ? "border-emerald-600/60 bg-emerald-600/30"
+                      : "border-slate-600 bg-slate-800"
+                  } disabled:opacity-40`}
+                >
+                  <span
+                    className={`absolute top-0.5 h-4 w-4 rounded-full bg-white shadow transition ${
+                      device.isEnabledForConnect ? "left-5" : "left-0.5"
+                    }`}
+                  />
+                </button>
+              </div>
             </div>
           </div>
         ))}

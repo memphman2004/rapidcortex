@@ -1,23 +1,7 @@
 "use client";
 
 import { features, isVerticalEnabled } from "@/lib/features";
-import {
-  VERTICAL_CONFIG,
-  type Vertical,
-  normalizeVertical,
-  deriveVerticalFromAgencyId,
-  resolveAgencyVerticalFromTenant,
-  formatAgencyType,
-} from "@/lib/vertical";
-
-export type { Vertical };
-export {
-  VERTICAL_CONFIG,
-  normalizeVertical,
-  deriveVerticalFromAgencyId,
-  resolveAgencyVerticalFromTenant,
-  formatAgencyType,
-};
+import { VERTICAL_CONFIG, type Vertical } from "@/lib/vertical";
 
 export function VerticalBadge({
   vertical,

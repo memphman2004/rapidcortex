@@ -13,4 +13,10 @@ export function configureRingEmergencyTables(): void {
   if (env.ringCitizenOwnersTable) {
     process.env.RING_TABLE_CITIZEN_OWNERS = env.ringCitizenOwnersTable;
   }
+  if (env.ringHomeownerParticipantsTable) {
+    process.env.RING_TABLE_HOMEOWNER_PARTICIPANTS = env.ringHomeownerParticipantsTable;
+  }
+  if (env.ringUnclaimedTokensTable) {
+    process.env.RING_TABLE_UNCLAIMED_TOKENS = env.ringUnclaimedTokensTable;
+  }
 }

@@ -50,6 +50,7 @@ export const DASHBOARD_PREFIX_BY_ROLE: Record<UserRole, DashboardPrefix | null> 
   transit_supervisor: null,
   transit_security: null,
   transit_operator: null,
+  homeowner: null,
 };
 
 export const ROLES_BY_DASHBOARD_PREFIX: Record<DashboardPrefix, readonly UserRole[]> = {

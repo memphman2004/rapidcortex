@@ -11,7 +11,7 @@ import { env } from "../lib/env.js";
 
 function migrateLegacyExternalIds(profile: AgencyBillingProfile): AgencyBillingProfile {
   let billingAccount: BillingAccount = { ...profile.billingAccount };
-  const bc = profile.billingAccount as unknown as Record<string, unknown>;
+  const bc = (profile.billingAccount ?? {}) as unknown as Record<string, unknown>;
   if (
     typeof bc["squareCustomerId"] === "string" &&
     bc["squareCustomerId"].trim() &&

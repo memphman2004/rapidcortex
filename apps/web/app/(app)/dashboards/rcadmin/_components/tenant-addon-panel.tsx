@@ -10,7 +10,8 @@ import {
   postAdminTenantAddon,
 } from "@/lib/api";
 import { buildAddonGridRows } from "@/lib/addon-tier-utils";
-import { VerticalBadge, type Vertical as TenantVertical } from "@/components/ui/VerticalBadge";
+import { VerticalBadge } from "@/components/ui/VerticalBadge";
+import type { Vertical as TenantVertical } from "@/lib/vertical";
 import { features } from "@/lib/features";
 
 type Props = {

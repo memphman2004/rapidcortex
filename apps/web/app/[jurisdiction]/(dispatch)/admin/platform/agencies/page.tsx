@@ -12,7 +12,8 @@ import { RcAdminCreateAgencyRunbook } from "@/components/platform/rc-admin-creat
 import { countOnboardingProgress, needsOnboardingAttention } from "@/lib/platform-onboarding-helpers";
 import type { AgencyLifecycleStatus, AgencyTenant } from "rapid-cortex-shared";
 import { formatAgencyType } from "rapid-cortex-shared";
-import { VerticalBadge, resolveAgencyVerticalFromTenant, type Vertical } from "@/components/ui/VerticalBadge";
+import { VerticalBadge } from "@/components/ui/VerticalBadge";
+import { resolveAgencyVerticalFromTenant, type Vertical } from "@/lib/vertical";
 
 const statusBadge: Record<AgencyLifecycleStatus, string> = {
   draft: "bg-slate-800 text-slate-200 ring-slate-600",

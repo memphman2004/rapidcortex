@@ -237,6 +237,12 @@ export const ROLE_DASHBOARD_PALETTE_BY_ROLE: Record<UserRole, RoleDashboardIdent
     "Read-only route view",
     roleBandColor("transit_operator"),
   ),
+  homeowner: verticalRolePalette(
+    "homeowner",
+    "Ring Device Owner",
+    "Connect enrollment only",
+    roleBandColor("homeowner"),
+  ),
 };
 
 /** Vertical product palettes (venue / campus) when surfaced in agency contexts. */

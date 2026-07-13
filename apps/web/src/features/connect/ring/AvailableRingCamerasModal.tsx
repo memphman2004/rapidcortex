@@ -103,6 +103,24 @@ export function AvailableRingCamerasModal({
           </p>
         </div>
 
+        <div className="m-4 flex flex-wrap items-center gap-2 px-0 text-sm text-[#8B9CB0]">
+          <span className="text-xs uppercase tracking-wide">Search radius</span>
+          {([100, 250, 500, 1000, 2000] as const).map((r) => (
+            <button
+              key={r}
+              type="button"
+              onClick={() => setRadiusMeters(r)}
+              className={`rounded border px-2 py-1 text-xs ${
+                radiusMeters === r
+                  ? "border-sky-400 text-sky-200"
+                  : "border-slate-600 text-slate-300 hover:border-slate-500"
+              }`}
+            >
+              {r >= 1000 ? `${(r / 1000).toFixed(r % 1000 === 0 ? 0 : 1)}km` : `${r}m`}
+            </button>
+          ))}
+        </div>
+
         <div className="min-h-0 flex-1 overflow-y-auto px-4 pb-4">
           {loading ? (
             <div className="space-y-2">
@@ -121,14 +139,24 @@ export function AvailableRingCamerasModal({
           ) : null}
           {!loading && !error && cameraCount === 0 ? (
             <div className="rounded border border-[#2A3A4A] bg-[#1E2A3A] p-4 text-sm text-[#8B9CB0]">
-              <p>No eligible Ring cameras found within 500m of this incident.</p>
-              <div className="mt-3 flex gap-2">
-                <button type="button" className="rounded border border-slate-600 px-2 py-1 text-xs" onClick={() => setRadiusMeters(1000)}>
-                  Search 1,000m
-                </button>
-                <button type="button" className="rounded border border-slate-600 px-2 py-1 text-xs" onClick={() => setRadiusMeters(2000)}>
-                  Search 2,000m
-                </button>
+              <p>No eligible Ring cameras found within {radiusMeters}m of this incident.</p>
+              <p className="mt-2 text-xs">
+                Confirm the device is Enabled for Connect, has GPS coordinates, and the incident
+                address is near the camera.
+              </p>
+              <div className="mt-3 flex flex-wrap gap-2">
+                {([500, 1000, 2000] as const)
+                  .filter((r) => r > radiusMeters)
+                  .map((r) => (
+                    <button
+                      key={r}
+                      type="button"
+                      className="rounded border border-slate-600 px-2 py-1 text-xs"
+                      onClick={() => setRadiusMeters(r)}
+                    >
+                      Search {r >= 1000 ? `${r / 1000}km` : `${r}m`}
+                    </button>
+                  ))}
               </div>
             </div>
           ) : null}

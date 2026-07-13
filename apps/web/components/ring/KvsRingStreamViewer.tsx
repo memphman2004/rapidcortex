@@ -28,10 +28,12 @@ export function KvsRingStreamViewer({
   sessionId,
   deviceName,
   onClose,
+  onEnded,
 }: {
   sessionId: string;
   deviceName: string;
   onClose?: () => void;
+  onEnded?: () => void;
 }) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const peerRef = useRef<RTCPeerConnection | null>(null);
@@ -42,6 +44,7 @@ export function KvsRingStreamViewer({
 
   const [state, setState] = useState<ConnectionState>("idle");
   const [error, setError] = useState<string | null>(null);
+  const [ending, setEnding] = useState(false);
 
   const cleanup = useCallback(() => {
     if (reconnectTimerRef.current) clearTimeout(reconnectTimerRef.current);
@@ -51,6 +54,30 @@ export function KvsRingStreamViewer({
     peerRef.current?.close();
     peerRef.current = null;
   }, []);
+
+  const endAccess = useCallback(async () => {
+    if (ending) return;
+    const ok = window.confirm("End live access for this camera now?");
+    if (!ok) return;
+    setEnding(true);
+    try {
+      const res = await fetch(`/api/integrations/ring/sessions/${encodeURIComponent(sessionId)}/revoke`, {
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: "{}",
+      });
+      if (!res.ok) throw new Error("revoke_failed");
+      endedRef.current = true;
+      cleanup();
+      setState("ended");
+      onEnded?.();
+    } catch {
+      setError("Unable to end access. Try again.");
+    } finally {
+      setEnding(false);
+    }
+  }, [cleanup, ending, onEnded, sessionId]);
 
   const fetchToken = useCallback(async (): Promise<ViewerToken> => {
     const res = await fetch(
@@ -204,15 +231,27 @@ export function KvsRingStreamViewer({
           <p className="text-sm font-semibold text-slate-100">{deviceName}</p>
           <p className="text-xs text-slate-400">{statusLabel}</p>
         </div>
-        {onClose ? (
-          <button
-            type="button"
-            onClick={onClose}
-            className="rounded border border-slate-700 px-2 py-1 text-xs text-slate-300 hover:bg-slate-800"
-          >
-            Close
-          </button>
-        ) : null}
+        <div className="flex items-center gap-2">
+          {state === "live" || state === "connecting" || state === "reconnecting" ? (
+            <button
+              type="button"
+              onClick={() => void endAccess()}
+              disabled={ending}
+              className="rounded border border-rose-500/50 bg-rose-950/40 px-2 py-1 text-xs text-rose-200 hover:bg-rose-900/50 disabled:opacity-50"
+            >
+              {ending ? "Ending…" : "End Access"}
+            </button>
+          ) : null}
+          {onClose ? (
+            <button
+              type="button"
+              onClick={onClose}
+              className="rounded border border-slate-700 px-2 py-1 text-xs text-slate-300 hover:bg-slate-800"
+            >
+              Close
+            </button>
+          ) : null}
+        </div>
       </div>
       <div className="aspect-video overflow-hidden rounded-md border border-slate-800 bg-black">
         <video ref={videoRef} autoPlay playsInline muted className="h-full w-full object-contain" />

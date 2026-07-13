@@ -202,10 +202,10 @@ Parameters:
       Leave empty when using AWS-only SMS_PROVIDER or mock/simulator paths.
   HttpApiCorsAllowedOrigins:
     Type: String
-    Default: "*"
+    Default: "https://www.rapidcortex.us,https://rapidcortex.us,https://app.rapidcortex.us,https://report.rapidcortex.us"
     Description: >-
-      Comma-separated browser origins for the HttpApi CORS AllowOrigins list. Use * for local/dev.
-      For staging/production set explicitly, e.g. https://www.rapidcortex.us,https://www.example.org
+      Comma-separated browser origins for the HttpApi CORS AllowOrigins list.
+      Must include marketing (www.rapidcortex.us / rapidcortex.us) for public Ring Connect.
   GoogleCloudProjectId:
     Type: String
     Default: ""
@@ -553,6 +553,22 @@ Parameters:
     Type: String
     Default: ""
     Description: Physical DynamoDB table for Ring device-owner pre-registration (RapidCortexRingHomeownerParticipants-{stage}).
+  RingUnclaimedTokensTable:
+    Type: String
+    Default: ""
+    Description: Physical DynamoDB table for Appstore unclaimed OAuth tokens index (RapidCortexRingUnclaimedTokens-{stage}).
+  RingHomeownerDefaultAgencyId:
+    Type: String
+    Default: "test-agency"
+    Description: Agency ID used for Appstore-linked homeowner devices (pilot).
+  RingHomeownerFallbackLatitude:
+    Type: String
+    Default: "40.06425"
+    Description: Fallback device latitude when Ring omits GPS (Sonoma Point / Columbus pilot).
+  RingHomeownerFallbackLongitude:
+    Type: String
+    Default: "-83.01975"
+    Description: Fallback device longitude when Ring omits GPS (Sonoma Point / Columbus pilot).
   RingAccountsTable:
     Type: String
     Default: ""
@@ -842,6 +858,8 @@ Conditions:
   CreateManagedRingCitizenOwnersTable: !Not [!Condition HasRingCitizenOwnersTable]
   HasRingHomeownerParticipantsTable: !Not [!Equals [!Ref RingHomeownerParticipantsTable, ""]]
   CreateManagedRingHomeownerParticipantsTable: !Not [!Condition HasRingHomeownerParticipantsTable]
+  HasRingUnclaimedTokensTable: !Not [!Equals [!Ref RingUnclaimedTokensTable, ""]]
+  CreateManagedRingUnclaimedTokensTable: !Not [!Condition HasRingUnclaimedTokensTable]
   HasVenueFacilitiesTable: !Not [!Equals [!Ref VenueFacilitiesTable, ""]]
   HasVenueCameraAccessLogTable: !Not [!Equals [!Ref VenueCameraAccessLogTable, ""]]
   HasVenueConfigTable: !Not [!Equals [!Ref VenueConfigTable, ""]]
@@ -1609,10 +1627,18 @@ Resources:
         ThrottlingBurstLimit: 200
         ThrottlingRateLimit: 100
       CorsConfiguration:
-        AllowOrigins: !Split [",", !Ref HttpApiCorsAllowedOrigins]
+        # Explicit marketing + app origins (parameter-driven Split has drifted to null on this API).
+        AllowOrigins:
+          - https://www.rapidcortex.us
+          - https://rapidcortex.us
+          - https://app.rapidcortex.us
+          - https://report.rapidcortex.us
         AllowHeaders:
           - authorization
           - content-type
+          - accept
+          - origin
+          - x-requested-with
         AllowMethods:
           - GET
           - POST
@@ -1620,6 +1646,7 @@ Resources:
           - PUT
           - DELETE
           - OPTIONS
+        MaxAge: 600
       Auth:
         DefaultAuthorizer: CognitoJwtAuthorizer
         Authorizers:
@@ -1810,6 +1837,17 @@ Resources:
                 - HasRingRequestsTable
                 - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${RingRequestsTable}
                 - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/RingEmergencyCameraRequests-${DeploymentStage}
+          - Sid: RingAccountsOAuthState
+            Effect: Allow
+            Action:
+              - dynamodb:GetItem
+              - dynamodb:PutItem
+              - dynamodb:DeleteItem
+            Resource:
+              - !If
+                - HasRingAccountsTable
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${RingAccountsTable}
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/RapidCortexRingAccounts-${DeploymentStage}
           - Sid: AuditWrite
             Effect: Allow
             Action:
@@ -2138,6 +2176,26 @@ Resources:
         AttributeName: ttl
         Enabled: true
 
+  ManagedRingUnclaimedTokensTable:
+    Type: AWS::DynamoDB::Table
+    Condition: CreateManagedRingUnclaimedTokensTable
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      BillingMode: !Ref DynamoBillingMode
+      TableName: !Sub "RapidCortexRingUnclaimedTokens-${DeploymentStage}"
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: !If [DynamoPitrOn, true, false]
+      SSESpecification:
+        SSEEnabled: true
+        SSEType: KMS
+      AttributeDefinitions:
+        - AttributeName: accountId
+          AttributeType: S
+      KeySchema:
+        - AttributeName: accountId
+          KeyType: HASH
+
   ManagedRingDevicesTable:
     Type: AWS::DynamoDB::Table
     Condition: CreateManagedRingDevicesTable
@@ -2377,11 +2435,20 @@ Resources:
             - HasRingDevicesTable
             - !Ref RingDevicesTable
             - !Sub "RapidCortexRingDevices-${DeploymentStage}"
+          RING_TABLE_CITIZEN_OWNERS: !If
+            - HasRingCitizenOwnersTable
+            - !Ref RingCitizenOwnersTable
+            - !Sub "RapidCortexRingCitizenOwners-${DeploymentStage}"
+          RING_TABLE_HOMEOWNER_PARTICIPANTS: !If
+            - HasRingHomeownerParticipantsTable
+            - !Ref RingHomeownerParticipantsTable
+            - !Sub "RapidCortexRingHomeownerParticipants-${DeploymentStage}"
       Policies:
         - !Ref AppManagedPolicyDynamoLambdaCrudShardA
         - !Ref AppManagedPolicyDynamoLambdaCrudShardC
         - !Ref AppManagedPolicyDynamoLambdaCrudShardD
         - !Ref AppManagedPolicyRingConnectSecrets
+        - !Ref AppManagedPolicyRingPublicOauthCallback
       Events:
         Route:
           Type: HttpApi
@@ -2414,6 +2481,10 @@ Resources:
             - HasRingRequestsTable
             - !Ref RingRequestsTable
             - !Sub "RingEmergencyCameraRequests-${DeploymentStage}"
+          RING_TABLE_ACCOUNTS: !If
+            - HasRingAccountsTable
+            - !Ref RingAccountsTable
+            - !Sub "RapidCortexRingAccounts-${DeploymentStage}"
       Policies:
         - !Ref AppManagedPolicyRingPublicOauthStart
       Events:
@@ -2590,6 +2661,346 @@ Resources:
             Auth:
               Authorizer: NONE
 
+  AppManagedPolicyRingTokenExchange:
+    Type: AWS::IAM::ManagedPolicy
+    Properties:
+      ManagedPolicyName: !Sub "${Sam4ManagedPolicyNamePrefix}-sam4-lambda-ring-token-exchange-${DeploymentStage}"
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Sid: RingRequestsRateLimit
+            Effect: Allow
+            Action:
+              - dynamodb:GetItem
+              - dynamodb:PutItem
+              - dynamodb:UpdateItem
+              - dynamodb:DeleteItem
+            Resource:
+              - !If
+                - HasRingRequestsTable
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${RingRequestsTable}
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/RingEmergencyCameraRequests-${DeploymentStage}
+          - Sid: UnclaimedTokensIndex
+            Effect: Allow
+            Action:
+              - dynamodb:GetItem
+              - dynamodb:PutItem
+              - dynamodb:UpdateItem
+              - dynamodb:Scan
+            Resource:
+              - !If
+                - HasRingUnclaimedTokensTable
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${RingUnclaimedTokensTable}
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/RapidCortexRingUnclaimedTokens-${DeploymentStage}
+          - Sid: UnclaimedTokenSecrets
+            Effect: Allow
+            Action:
+              - secretsmanager:CreateSecret
+              - secretsmanager:GetSecretValue
+              - secretsmanager:PutSecretValue
+              - secretsmanager:UpdateSecret
+              - secretsmanager:DescribeSecret
+              - secretsmanager:TagResource
+            Resource: !Sub arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:${RingSecretsPrefix}/unclaimed/*
+          - Sid: AuditWrite
+            Effect: Allow
+            Action:
+              - dynamodb:PutItem
+            Resource:
+              - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${AuditTable}
+          - Sid: RingCredentialsRead
+            Effect: Allow
+            Action:
+              - secretsmanager:GetSecretValue
+            Resource:
+              - !Sub arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:rapid-cortex/connect/ring-credentials-*
+              - !Sub arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:rapid-cortex/connect/ring-credentials-D3f1sN
+              - !If
+                - HasRingCredentialsSecretArn
+                - !Ref RingCredentialsSecretArn
+                - !Ref AWS::NoValue
+
+  AppManagedPolicyRingHomeownerLink:
+    Type: AWS::IAM::ManagedPolicy
+    Properties:
+      ManagedPolicyName: !Sub "${Sam4ManagedPolicyNamePrefix}-sam4-lambda-ring-homeowner-link-${DeploymentStage}"
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Sid: CognitoHomeownerAuth
+            Effect: Allow
+            Action:
+              - cognito-idp:AdminCreateUser
+              - cognito-idp:AdminSetUserPassword
+              - cognito-idp:AdminUpdateUserAttributes
+            Resource: !Sub "arn:aws:cognito-idp:${AWS::Region}:${AWS::AccountId}:userpool/${ImportedCognitoUserPoolId}"
+          - Sid: CognitoInitiateAuth
+            Effect: Allow
+            Action:
+              - cognito-idp:InitiateAuth
+            Resource: "*"
+          - Sid: RingRequestsRateLimit
+            Effect: Allow
+            Action:
+              - dynamodb:GetItem
+              - dynamodb:PutItem
+              - dynamodb:UpdateItem
+              - dynamodb:DeleteItem
+            Resource:
+              - !If
+                - HasRingRequestsTable
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${RingRequestsTable}
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/RingEmergencyCameraRequests-${DeploymentStage}
+          - Sid: UnclaimedTokensIndex
+            Effect: Allow
+            Action:
+              - dynamodb:GetItem
+              - dynamodb:PutItem
+              - dynamodb:UpdateItem
+              - dynamodb:Scan
+              - dynamodb:DeleteItem
+            Resource:
+              - !If
+                - HasRingUnclaimedTokensTable
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${RingUnclaimedTokensTable}
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/RapidCortexRingUnclaimedTokens-${DeploymentStage}
+          - Sid: RingAccountsDevices
+            Effect: Allow
+            Action:
+              - dynamodb:GetItem
+              - dynamodb:PutItem
+              - dynamodb:UpdateItem
+              - dynamodb:Query
+            Resource:
+              - !If
+                - HasRingAccountsTable
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${RingAccountsTable}
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/RapidCortexRingAccounts-${DeploymentStage}
+              - !If
+                - HasRingDevicesTable
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${RingDevicesTable}
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/RapidCortexRingDevices-${DeploymentStage}
+              - !If
+                - HasRingDevicesTable
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${RingDevicesTable}/index/agencyId-index
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/RapidCortexRingDevices-${DeploymentStage}/index/agencyId-index
+          - Sid: CitizenAndParticipants
+            Effect: Allow
+            Action:
+              - dynamodb:GetItem
+              - dynamodb:PutItem
+              - dynamodb:UpdateItem
+              - dynamodb:Query
+            Resource:
+              - !If
+                - HasRingCitizenOwnersTable
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${RingCitizenOwnersTable}
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/RapidCortexRingCitizenOwners-${DeploymentStage}
+              - !If
+                - HasRingHomeownerParticipantsTable
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${RingHomeownerParticipantsTable}
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/RapidCortexRingHomeownerParticipants-${DeploymentStage}
+              - !If
+                - HasRingHomeownerParticipantsTable
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${RingHomeownerParticipantsTable}/index/agencyId-index
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/RapidCortexRingHomeownerParticipants-${DeploymentStage}/index/agencyId-index
+              - !If
+                - HasRingHomeownerParticipantsTable
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${RingHomeownerParticipantsTable}/index/state-index
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/RapidCortexRingHomeownerParticipants-${DeploymentStage}/index/state-index
+          - Sid: RingTokenSecrets
+            Effect: Allow
+            Action:
+              - secretsmanager:CreateSecret
+              - secretsmanager:GetSecretValue
+              - secretsmanager:PutSecretValue
+              - secretsmanager:UpdateSecret
+              - secretsmanager:DescribeSecret
+              - secretsmanager:TagResource
+              - secretsmanager:DeleteSecret
+            Resource:
+              - !Sub arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:${RingSecretsPrefix}/*
+          - Sid: AuditWrite
+            Effect: Allow
+            Action:
+              - dynamodb:PutItem
+            Resource:
+              - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${AuditTable}
+          - Sid: RingCredentialsRead
+            Effect: Allow
+            Action:
+              - secretsmanager:GetSecretValue
+            Resource:
+              - !Sub arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:rapid-cortex/connect/ring-credentials-*
+              - !Sub arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:rapid-cortex/connect/ring-credentials-D3f1sN
+              - !If
+                - HasRingCredentialsSecretArn
+                - !Ref RingCredentialsSecretArn
+                - !Ref AWS::NoValue
+
+  RingTokenExchangeFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/integrations/ring/token-exchange.handler
+      Timeout: 30
+      Environment:
+        Variables:
+          RING_CREDENTIALS_SECRET_ARN: !Ref RingCredentialsSecretArn
+          RING_PARTNERSHIP_ENABLED: !Ref RingPartnershipEnabled
+          ENABLE_CONNECT_RING: !Ref EnableConnectRing
+          RING_SECRETS_PREFIX: !Ref RingSecretsPrefix
+          RING_TABLE_REQUESTS: !If
+            - HasRingRequestsTable
+            - !Ref RingRequestsTable
+            - !Sub "RingEmergencyCameraRequests-${DeploymentStage}"
+          RING_TABLE_UNCLAIMED_TOKENS: !If
+            - HasRingUnclaimedTokensTable
+            - !Ref RingUnclaimedTokensTable
+            - !Sub "RapidCortexRingUnclaimedTokens-${DeploymentStage}"
+      Policies:
+        - !Ref AppManagedPolicyRingTokenExchange
+      Events:
+        Route:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/public/ring/token-exchange
+            Method: POST
+            Auth:
+              Authorizer: NONE
+
+  AppManagedPolicyRingWebhook:
+    Type: AWS::IAM::ManagedPolicy
+    Properties:
+      ManagedPolicyName: !Sub "${Sam4ManagedPolicyNamePrefix}-sam4-lambda-ring-webhook-${DeploymentStage}"
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Sid: RingCredentialsRead
+            Effect: Allow
+            Action:
+              - secretsmanager:GetSecretValue
+            Resource:
+              - !Sub arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:rapid-cortex/connect/ring-credentials-*
+              - !Sub arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:rapid-cortex/connect/ring-credentials-D3f1sN
+              - !If
+                - HasRingCredentialsSecretArn
+                - !Ref RingCredentialsSecretArn
+                - !Ref AWS::NoValue
+          - Sid: RingDevicesUpdate
+            Effect: Allow
+            Action:
+              - dynamodb:GetItem
+              - dynamodb:PutItem
+              - dynamodb:UpdateItem
+              - dynamodb:Query
+            Resource:
+              - !If
+                - HasRingDevicesTable
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${RingDevicesTable}
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/RapidCortexRingDevices-${DeploymentStage}
+              - !If
+                - HasRingDevicesTable
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${RingDevicesTable}/index/*
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/RapidCortexRingDevices-${DeploymentStage}/index/*
+          - Sid: AuditWrite
+            Effect: Allow
+            Action:
+              - dynamodb:PutItem
+            Resource:
+              - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${AuditTable}
+
+  RingWebhookFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/integrations/ring/webhook.handler
+      Timeout: 5
+      Environment:
+        Variables:
+          RING_CREDENTIALS_SECRET_ARN: !Ref RingCredentialsSecretArn
+          RING_PARTNERSHIP_ENABLED: !Ref RingPartnershipEnabled
+          ENABLE_CONNECT_RING: !Ref EnableConnectRing
+          RING_HOMEOWNER_DEFAULT_AGENCY_ID: !Ref RingHomeownerDefaultAgencyId
+          RING_TABLE_DEVICES: !If
+            - HasRingDevicesTable
+            - !Ref RingDevicesTable
+            - !Sub "RapidCortexRingDevices-${DeploymentStage}"
+      Policies:
+        - !Ref AppManagedPolicyRingWebhook
+      Events:
+        Route:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/public/ring/webhook
+            Method: POST
+            Auth:
+              Authorizer: NONE
+
+  RingHomeownerLinkFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/integrations/ring/homeowner-link.handler
+      Timeout: 60
+      Environment:
+        Variables:
+          RING_CREDENTIALS_SECRET_ARN: !Ref RingCredentialsSecretArn
+          RING_PARTNERSHIP_ENABLED: !Ref RingPartnershipEnabled
+          ENABLE_CONNECT_RING: !Ref EnableConnectRing
+          RING_SECRETS_PREFIX: !Ref RingSecretsPrefix
+          RING_HOMEOWNER_DEFAULT_AGENCY_ID: !Ref RingHomeownerDefaultAgencyId
+          RING_HOMEOWNER_FALLBACK_LATITUDE: !Ref RingHomeownerFallbackLatitude
+          RING_HOMEOWNER_FALLBACK_LONGITUDE: !Ref RingHomeownerFallbackLongitude
+          COGNITO_USER_POOL_ID: !Ref ImportedCognitoUserPoolId
+          COGNITO_CLIENT_ID: !Ref ImportedCognitoWebClientId
+          RING_TABLE_REQUESTS: !If
+            - HasRingRequestsTable
+            - !Ref RingRequestsTable
+            - !Sub "RingEmergencyCameraRequests-${DeploymentStage}"
+          RING_TABLE_UNCLAIMED_TOKENS: !If
+            - HasRingUnclaimedTokensTable
+            - !Ref RingUnclaimedTokensTable
+            - !Sub "RapidCortexRingUnclaimedTokens-${DeploymentStage}"
+          RING_TABLE_ACCOUNTS: !If
+            - HasRingAccountsTable
+            - !Ref RingAccountsTable
+            - !Sub "RapidCortexRingAccounts-${DeploymentStage}"
+          RING_TABLE_DEVICES: !If
+            - HasRingDevicesTable
+            - !Ref RingDevicesTable
+            - !Sub "RapidCortexRingDevices-${DeploymentStage}"
+          RING_TABLE_CITIZEN_OWNERS: !If
+            - HasRingCitizenOwnersTable
+            - !Ref RingCitizenOwnersTable
+            - !Sub "RapidCortexRingCitizenOwners-${DeploymentStage}"
+          RING_TABLE_HOMEOWNER_PARTICIPANTS: !If
+            - HasRingHomeownerParticipantsTable
+            - !Ref RingHomeownerParticipantsTable
+            - !Sub "RapidCortexRingHomeownerParticipants-${DeploymentStage}"
+      Policies:
+        - !Ref AppManagedPolicyRingHomeownerLink
+      Events:
+        Route:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/public/ring/homeowner/link
+            Method: POST
+            Auth:
+              Authorizer: NONE
+
   RingConnectDevicesFunction:
     Type: AWS::Serverless::Function
     Metadata:
@@ -2621,6 +3032,71 @@ Resources:
             ApiId: !Ref Api
             Path: /api/integrations/ring/devices
             Method: GET
+
+  RingConnectDeviceToggleFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/integrations/ring/device-toggle.handler
+      Timeout: 30
+      Environment:
+        Variables:
+          RING_PARTNERSHIP_ENABLED: !Ref RingPartnershipEnabled
+          ENABLE_CONNECT_RING: !Ref EnableConnectRing
+          RING_TABLE_DEVICES: !If
+            - HasRingDevicesTable
+            - !Ref RingDevicesTable
+            - !Sub "RapidCortexRingDevices-${DeploymentStage}"
+      Policies:
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardA
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardC
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardD
+      Events:
+        Route:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/integrations/ring/devices/{deviceId}/toggle
+            Method: PUT
+
+  RingConnectDevicesRefreshFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/integrations/ring/devices-refresh.handler
+      Timeout: 30
+      Environment:
+        Variables:
+          RING_CREDENTIALS_SECRET_ARN: !Ref RingCredentialsSecretArn
+          RING_PARTNERSHIP_ENABLED: !Ref RingPartnershipEnabled
+          ENABLE_CONNECT_RING: !Ref EnableConnectRing
+          RING_SECRETS_PREFIX: !Ref RingSecretsPrefix
+          RING_TABLE_ACCOUNTS: !If
+            - HasRingAccountsTable
+            - !Ref RingAccountsTable
+            - !Sub "RapidCortexRingAccounts-${DeploymentStage}"
+          RING_TABLE_DEVICES: !If
+            - HasRingDevicesTable
+            - !Ref RingDevicesTable
+            - !Sub "RapidCortexRingDevices-${DeploymentStage}"
+      Policies:
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardA
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardC
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardD
+        - !Ref AppManagedPolicyRingConnectSecrets
+      Events:
+        Route:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/integrations/ring/devices/refresh
+            Method: POST
 
   RingConnectRefreshTokenFunction:
     Type: AWS::Serverless::Function
@@ -2851,7 +3327,7 @@ Resources:
           Properties:
             ApiId: !Ref Api
             Path: /api/integrations/ring/consent/{requestToken}/approve
-            Method: POST
+            Method: GET
             Auth:
               Authorizer: NONE
 
@@ -2883,7 +3359,43 @@ Resources:
           Properties:
             ApiId: !Ref Api
             Path: /api/integrations/ring/consent/{requestToken}/decline
-            Method: POST
+            Method: GET
+            Auth:
+              Authorizer: NONE
+
+  RingConnectCameraConsentStopFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/integrations/ring/camera-consent.stopHandler
+      Timeout: 30
+      Environment:
+        Variables:
+          RING_CREDENTIALS_SECRET_ARN: !Ref RingCredentialsSecretArn
+          RING_PARTNERSHIP_ENABLED: !Ref RingPartnershipEnabled
+          ENABLE_CONNECT_RING: !Ref EnableConnectRing
+          ENABLE_CONNECT_RING_EMERGENCY_REQUESTS: !Ref EnableConnectRingEmergencyRequests
+          RING_TABLE_REQUESTS: !If
+            - HasRingRequestsTable
+            - !Ref RingRequestsTable
+            - !Sub "RingEmergencyCameraRequests-${DeploymentStage}"
+          RING_TABLE_SESSIONS: !If
+            - HasRingSessionsTable
+            - !Ref RingSessionsTable
+            - !Sub "RingEmergencyCameraSessions-${DeploymentStage}"
+      Policies:
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardC
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardD
+      Events:
+        Route:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/integrations/ring/consent/{requestToken}/stop
+            Method: GET
             Auth:
               Authorizer: NONE
 

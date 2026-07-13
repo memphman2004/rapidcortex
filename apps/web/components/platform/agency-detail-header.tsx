@@ -2,7 +2,8 @@
 
 import type { AgencyLifecycleStatus, AgencyType } from "rapid-cortex-shared";
 import { formatAgencyType } from "rapid-cortex-shared";
-import { VerticalBadge, type Vertical } from "@/components/ui/VerticalBadge";
+import { VerticalBadge } from "@/components/ui/VerticalBadge";
+import type { Vertical } from "@/lib/vertical";
 
 const statusStyle: Record<AgencyLifecycleStatus, string> = {
   draft: "bg-slate-800 text-slate-200 ring-slate-600",

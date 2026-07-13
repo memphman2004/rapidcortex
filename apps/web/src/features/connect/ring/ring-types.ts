@@ -8,6 +8,9 @@ export type RingDeviceListItem = {
   deviceName: string;
   deviceType: "CAMERA" | "DOORBELL" | "UNKNOWN";
   locationLabel: string | null;
+  latitude?: number | null;
+  longitude?: number | null;
+  hasGps?: boolean;
   isEnabledForConnect: boolean;
 };
 

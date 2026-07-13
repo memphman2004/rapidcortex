@@ -20,6 +20,10 @@ function citizenSecretName(agencyId: string, ringAccountId: string): string {
   return `${RING_SECRETS_PREFIX}/${agencyId}/citizen/${encodeURIComponent(ringAccountId)}`;
 }
 
+function unclaimedSecretName(accountId: string): string {
+  return `${RING_SECRETS_PREFIX}/unclaimed/${encodeURIComponent(accountId)}`;
+}
+
 function parseStoredTokens(raw: string): RingOAuthTokens {
   let parsed: unknown;
   try {
@@ -131,6 +135,41 @@ export class RingTokenStore {
             { Key: "AgencyId", Value: agencyId },
             { Key: "RingAccountId", Value: ringAccountId },
             { Key: "Service", Value: "rapid-cortex-ring-citizen" },
+          ],
+        }),
+      );
+    }
+
+    return name;
+  }
+
+  /** Appstore Token Exchange — store tokens before partner user claims via nonce. */
+  async storeUnclaimedTokens(accountId: string, tokens: RingOAuthTokens): Promise<string> {
+    const name = unclaimedSecretName(accountId);
+    const secretString = serializeTokens(tokens);
+    const kmsKeyId = RING_KMS_KEY_ID || undefined;
+
+    try {
+      await this.client.send(new DescribeSecretCommand({ SecretId: name }));
+      await this.client.send(
+        new UpdateSecretCommand({
+          SecretId: name,
+          SecretString: secretString,
+          ...(kmsKeyId ? { KmsKeyId: kmsKeyId } : {}),
+        }),
+      );
+    } catch (err) {
+      if (!(err instanceof ResourceNotFoundException)) {
+        throw err;
+      }
+      await this.client.send(
+        new CreateSecretCommand({
+          Name: name,
+          SecretString: secretString,
+          ...(kmsKeyId ? { KmsKeyId: kmsKeyId } : {}),
+          Tags: [
+            { Key: "RingAccountId", Value: accountId },
+            { Key: "Service", Value: "rapid-cortex-ring-unclaimed" },
           ],
         }),
       );

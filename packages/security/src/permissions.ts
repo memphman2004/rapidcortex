@@ -216,6 +216,7 @@ export const DEFAULT_ROLE_PERMISSIONS: Record<UserRole, Record<Permission, boole
   transit_supervisor: buildMatrixRolePermissions("transit_supervisor"),
   transit_security: buildMatrixRolePermissions("transit_security"),
   transit_operator: buildMatrixRolePermissions("transit_operator"),
+  homeowner: maskFromList([]),
 };
 
 export function defaultPermissionForRole(role: UserRole, permission: Permission): boolean {

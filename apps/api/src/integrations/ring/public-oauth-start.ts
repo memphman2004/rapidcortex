@@ -1,7 +1,8 @@
+import { randomUUID } from "node:crypto";
 import type { APIGatewayProxyHandlerV2 } from "aws-lambda";
 import { isRingEnabled, normalizeRingReturnUrl, RingOAuthService } from "../../lib/ring-integration.js";
 import { AgencyRepository } from "../../repositories/agencyRepository.js";
-import { RingPublicOAuthStateRepository } from "../../repositories/ringPublicOAuthStateRepository.js";
+import { RingAccountRepository } from "../../repositories/ringAccountRepository.js";
 import { auditRingEvent, AUDIT_EVENT_TYPES } from "./ring-audit.js";
 import { consumeRingPublicOAuthRateSlot } from "./ring-consent-rate-limit.js";
 import { ringJson, ringRedirect } from "./ring-api-response.js";
@@ -13,7 +14,7 @@ import {
 
 const oauth = new RingOAuthService();
 const agencies = new AgencyRepository();
-const oauthStates = new RingPublicOAuthStateRepository();
+const accounts = new RingAccountRepository();
 
 /** Closed enum of valid US state + DC codes. */
 const VALID_STATE_CODES = new Set([
@@ -29,7 +30,8 @@ function clientIp(event: { requestContext?: { http?: { sourceIp?: string } } }):
 
 /**
  * Public (no RC auth) Ring OAuth start for device owners.
- * agencyId is OPTIONAL — owners can pre-register when no local PSAP is enrolled yet.
+ * Uses RING_REDIRECT_URI (/api/integrations/ring/callback) — already registered with Ring.
+ * Homeowner flow is detected in the shared callback via the `hw:` userId prefix.
  *
  * GET /api/public/ring/oauth/start?agencyId={optional}&state={optional US abbr}
  */
@@ -62,14 +64,20 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
     }
 
     const ringReturnUrl = normalizeRingReturnUrl(qs.ring_return_url ?? null);
+    const homeownerId = `hw:${randomUUID()}`;
 
-    const { url, state } = await oauth.buildCitizenAuthorizationUrl(agencyId);
-    await oauthStates.saveState(state, agencyId, "link", ringReturnUrl, usState);
+    const { url, state } = await oauth.buildAuthorizationUrl(
+      agencyId,
+      homeownerId,
+      ringReturnUrl,
+      usState,
+    );
+    await accounts.saveOAuthState(agencyId, homeownerId, state, 600);
 
     await auditRingEvent({
       type: AUDIT_EVENT_TYPES.RING_CITIZEN_OAUTH_INITIATED,
       agencyId,
-      actorId: `citizen-oauth:${agencyId}`,
+      actorId: homeownerId,
       details: {
         participantType: "homeowner",
         unmatched: isUnmatchedHomeownerAgency(agencyId),

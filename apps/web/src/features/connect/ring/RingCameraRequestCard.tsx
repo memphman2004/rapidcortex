@@ -124,6 +124,10 @@ export function RingCameraRequestCard({
                   sessionId={streamSessionId}
                   deviceName={camera.deviceName}
                   onClose={() => setShowStream(false)}
+                  onEnded={() => {
+                    setShowStream(false);
+                    setStatus("REVOKED");
+                  }}
                 />
               )}
             </>

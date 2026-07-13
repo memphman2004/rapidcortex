@@ -5,8 +5,8 @@ import { getRingCredentials } from "./ring-credentials.js";
 import { RING_CITIZEN_REDIRECT_URI, RING_REDIRECT_URI } from "./ring-env.js";
 import { RingTokenStore } from "./ring-token-store.js";
 
-const RING_AUTHORIZE_URL = "https://oauth.ring.com/oauth2/authorize";
-const RING_TOKEN_URL = "https://oauth.ring.com/oauth2/token";
+const RING_AUTHORIZE_URL = "https://oauth.ring.com/oauth/authorize";
+const RING_TOKEN_URL = "https://oauth.ring.com/oauth/token";
 const STATE_MAX_AGE_MS = 10 * 60 * 1000;
 
 function toBase64Url(value: string): string {
@@ -72,7 +72,9 @@ function parseOAuthState(encoded: string): RingOAuthState {
     record.ringReturnUrl == null
       ? null
       : normalizeRingReturnUrl(String(record.ringReturnUrl));
-  return { agencyId, userId, nonce, createdAt, ringReturnUrl };
+  const usStateRaw = record.usState == null ? null : String(record.usState).trim().toUpperCase();
+  const usState = usStateRaw && usStateRaw.length === 2 ? usStateRaw : null;
+  return { agencyId, userId, nonce, createdAt, ringReturnUrl, usState };
 }
 
 function assertCitizenStateFresh(createdAt: number): void {
@@ -113,14 +115,17 @@ export class RingOAuthService {
     agencyId: string,
     userId: string,
     ringReturnUrl?: string | null,
+    usState?: string | null,
   ): Promise<{ url: string; state: string }> {
     const { clientId } = await getRingCredentials();
+    const normalizedState = usState?.trim().toUpperCase() || null;
     const statePayload: RingOAuthState = {
       agencyId,
       userId,
       nonce: randomBytes(32).toString("hex"),
       createdAt: Date.now(),
       ringReturnUrl: normalizeRingReturnUrl(ringReturnUrl),
+      ...(normalizedState ? { usState: normalizedState } : {}),
     };
     const state = toBase64Url(JSON.stringify(statePayload));
     const params = new URLSearchParams({
@@ -204,6 +209,25 @@ export class RingOAuthService {
       client_secret: clientSecret,
     });
 
+    return this.postTokenEndpoint(body);
+  }
+
+  /**
+   * Appstore Token Exchange URL — Ring POSTs `code` (no OAuth state / redirect_uri).
+   * Must complete within ~60 seconds of Ring issuing the code.
+   */
+  async exchangeAppstoreCode(code: string): Promise<RingOAuthTokens> {
+    const trimmed = code.trim();
+    if (!trimmed) {
+      throw new RingAuthError("Ring Appstore authorization code is missing");
+    }
+    const { clientId, clientSecret } = await getRingCredentials();
+    const body = new URLSearchParams({
+      grant_type: "authorization_code",
+      code: trimmed,
+      client_id: clientId,
+      client_secret: clientSecret,
+    });
     return this.postTokenEndpoint(body);
   }
 

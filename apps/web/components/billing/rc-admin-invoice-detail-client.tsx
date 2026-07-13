@@ -4,7 +4,8 @@ import Link from "next/link";
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { fetchAdminInvoice, patchAdminInvoice } from "@/lib/api";
-import { VerticalBadge, type Vertical } from "@/components/ui/VerticalBadge";
+import { VerticalBadge } from "@/components/ui/VerticalBadge";
+import type { Vertical } from "@/lib/vertical";
 
 type Props = { invoiceId: string };
 

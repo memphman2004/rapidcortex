@@ -13,22 +13,35 @@ export type PublicRingDevice = Pick<
   | "deviceName"
   | "deviceType"
   | "locationLabel"
+  | "latitude"
+  | "longitude"
   | "isEnabledForConnect"
   | "agencyId"
   | "createdAt"
   | "updatedAt"
->;
+> & {
+  /** True when lat/lng are present — required for available-cameras radius search. */
+  hasGps: boolean;
+};
 
 function stripDevice(device: LinkedRingDevice): PublicRingDevice {
+  const hasGps =
+    typeof device.latitude === "number" &&
+    Number.isFinite(device.latitude) &&
+    typeof device.longitude === "number" &&
+    Number.isFinite(device.longitude);
   return {
     deviceId: device.deviceId,
     deviceName: device.deviceName,
     deviceType: device.deviceType,
     locationLabel: device.locationLabel,
+    latitude: device.latitude,
+    longitude: device.longitude,
     isEnabledForConnect: device.isEnabledForConnect,
     agencyId: device.agencyId,
     createdAt: device.createdAt,
     updatedAt: device.updatedAt,
+    hasGps,
   };
 }
 

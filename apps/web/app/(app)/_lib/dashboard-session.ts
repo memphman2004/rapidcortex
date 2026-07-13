@@ -6,14 +6,14 @@ import { forbidden, redirect } from "next/navigation";
 import type { UserContext } from "rapid-cortex-shared/types";
 import { PLATFORM_AGENCY_ID } from "rapid-cortex-shared/tenancy/constants";
 import { isRcInternalOperator, isRcsuperadmin } from "rapid-cortex-shared/tenancy/principal";
-import {
-  deriveVerticalFromAgencyId,
-  normalizeVertical,
-  type TenantVertical,
-} from "@/components/dashboards/vertical-badge";
 import { COOKIE_ID_TOKEN } from "@/lib/auth/cookies";
 import { getDashboardSessionUser } from "@/lib/dashboards/get-dashboard-session";
 import { marketingLoginPath } from "@/lib/marketing-links";
+import {
+  deriveVerticalFromAgencyId,
+  normalizeVertical,
+  type Vertical as TenantVertical,
+} from "@/lib/vertical";
 
 export type DashboardRouteKey =
   | "rcsuperadmin"

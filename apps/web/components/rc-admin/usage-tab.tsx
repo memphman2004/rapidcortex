@@ -5,7 +5,8 @@ import { useQuery } from "@tanstack/react-query";
 import { canAccessRcRevenuePortal } from "rapid-cortex-shared/tenancy/principal";
 import { GenerateDraftInvoicesButton } from "@/components/billing/GenerateDraftInvoicesButton";
 import { fetchAgencies } from "@/lib/api";
-import { VERTICAL_CONFIG, deriveVerticalFromAgencyId, normalizeVertical, type Vertical } from "@/components/ui/VerticalBadge";
+import { VerticalBadge } from "@/components/ui/VerticalBadge";
+import { VERTICAL_CONFIG, deriveVerticalFromAgencyId, normalizeVertical, type Vertical } from "@/lib/vertical";
 import { isVerticalEnabled } from "@/lib/features";
 
 interface UsageRow {

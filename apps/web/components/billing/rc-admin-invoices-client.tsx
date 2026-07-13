@@ -4,7 +4,8 @@ import Link from "next/link";
 import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { fetchAdminInvoices, patchAdminInvoice, type AdminInvoiceListItem } from "@/lib/api";
-import { VerticalBadge, type Vertical } from "@/components/ui/VerticalBadge";
+import { VerticalBadge } from "@/components/ui/VerticalBadge";
+import type { Vertical } from "@/lib/vertical";
 
 type StatusFilter = "all" | "draft" | "sent" | "paid" | "overdue" | "void";
 type VerticalFilter = "all" | Vertical;

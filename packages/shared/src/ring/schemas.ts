@@ -22,3 +22,20 @@ export const ringRevokeCameraAccessBodySchema = z.object({
 });
 
 export type RingRevokeCameraAccessBody = z.infer<typeof ringRevokeCameraAccessBodySchema>;
+
+export const ringDeviceToggleBodySchema = z.object({
+  isEnabledForConnect: z.boolean(),
+});
+
+export type RingDeviceToggleBody = z.infer<typeof ringDeviceToggleBodySchema>;
+
+/** Appstore Account Link URL — homeowner sign-in/up + nonce claim (after Ring Sign in). */
+export const ringHomeownerLinkBodySchema = z.object({
+  email: z.string().email().max(320),
+  password: z.string().min(12).max(256),
+  mode: z.enum(["signin", "signup"]).default("signin"),
+  nonce: z.string().min(8).max(256),
+  time: z.string().regex(/^\d{13}$/, "time must be Unix epoch milliseconds"),
+});
+
+export type RingHomeownerLinkBody = z.infer<typeof ringHomeownerLinkBodySchema>;

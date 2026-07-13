@@ -35,6 +35,18 @@ export { RingOAuthService, decodeRingOAuthState, normalizeRingReturnUrl } from "
 export { RingApiClient } from "./ring-client.js";
 export { RingTokenStore } from "./ring-token-store.js";
 export { RingDeviceService } from "./ring-devices.js";
+export { RingUnclaimedTokenService } from "./ring-unclaimed-tokens.js";
+export {
+  computeRingLinkNonce,
+  constantTimeEqual,
+  maskEmailForRing,
+  validateRingLinkTimestamp,
+  RING_LINK_NONCE_MAX_AGE_SECONDS,
+} from "./ring-nonce.js";
+export {
+  postRingAppIntegration,
+  patchRingAppIntegrationCompleted,
+} from "./ring-app-integrations.js";
 
 // Config
 export { RING_TABLE_NAMES } from "./ring-table-names.js";
@@ -49,6 +61,9 @@ export {
   RING_SECRETS_PREFIX,
   RING_WEBHOOK_URL,
   RING_KMS_KEY_ID,
+  RING_HOMEOWNER_DEFAULT_AGENCY_ID,
+  RING_HOMEOWNER_FALLBACK_LATITUDE,
+  RING_HOMEOWNER_FALLBACK_LONGITUDE,
   assertRingEnvWhenEnabled,
   isRingAvailableCamerasEnabled,
   isRingEmergencyRequestsEnabled,

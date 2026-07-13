@@ -467,6 +467,8 @@ const VERTICAL_ROLE_MATRIX_BASE: Record<Exclude<MatrixRole, CoreMatrixRole>, Cor
   transit_supervisor: "supervisor",
   transit_security: "dispatcher",
   transit_operator: "dispatcher",
+  /** Ring Connect device owner — no PSAP grants; overridden to empty below. */
+  homeowner: "auditor",
 };
 
 function inheritVerticalMatrix(
@@ -493,6 +495,8 @@ const inheritedRoleAccessMatrix = inheritVerticalMatrix(
 export const ROLE_ACCESS_MATRIX_V2: Record<MatrixRole, readonly Permission[]> = {
   ...inheritedRoleAccessMatrix,
   venue_guest: [...VENUE_ROLE_PERMISSIONS.VENUE_GUEST_SERVICES] as readonly Permission[],
+  /** Appstore homeowner: Cognito identity only — no dispatcher/admin permissions. */
+  homeowner: [],
 };
 
 /** rcsuperadmin-only immutable permissions (matrix `o` column). */

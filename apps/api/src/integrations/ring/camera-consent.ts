@@ -47,6 +47,30 @@ function consentPage(title: string, body: string): string {
 </html>`;
 }
 
+function escapeHtml(value: string): string {
+  return value
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
+}
+
+async function findRequestByStopToken(
+  plainToken: string,
+): Promise<RingEmergencyCameraRequest | null> {
+  const statuses = ["SENT", "OPENED", "APPROVED"] as const;
+  for (const status of statuses) {
+    const candidates = await emergencyRepo.listRequestsByStatus(status);
+    for (const candidate of candidates) {
+      const hash = candidate.stopTokenHash;
+      if (!hash) continue;
+      const match = await bcrypt.compare(plainToken, hash);
+      if (match) return candidate;
+    }
+  }
+  return null;
+}
+
 async function validateConsentToken(
   event: Parameters<APIGatewayProxyHandlerV2>[0],
   plainToken: string,
@@ -77,8 +101,11 @@ export const approveHandler: APIGatewayProxyHandlerV2 = async (event) => {
     const now = new Date();
     const nowIso = now.toISOString();
     const sessionId = randomUUID();
+    // Prefer stop token from original SMS so STOP SHARING link keeps working after approve.
     const plainRevokeToken = randomBytes(32).toString("hex");
-    const revokeTokenHash = await bcrypt.hash(plainRevokeToken, 12);
+    const revokeTokenHash = record.stopTokenHash
+      ? record.stopTokenHash
+      : await bcrypt.hash(plainRevokeToken, 12);
     const approvedDurationMinutes = record.requestedDurationMinutes;
     const expiresAt = new Date(
       now.getTime() + approvedDurationMinutes * 60 * 1000,
@@ -147,7 +174,7 @@ export const approveHandler: APIGatewayProxyHandlerV2 = async (event) => {
 
     const html = consentPage(
       "Sharing approved",
-      `Thank you. You have approved temporary emergency video sharing for ${approvedDurationMinutes} minutes. Emergency responders have been notified. You can stop sharing at any time using the link in your original message.`,
+      `Thank you. You have approved temporary emergency video sharing for ${approvedDurationMinutes} minutes with ${escapeHtml(record.deviceName)}. Emergency responders have been notified. You can stop sharing at any time using the STOP SHARING link in your original SMS.`,
     );
     return ringHtml(html);
   } catch (err) {
@@ -206,5 +233,109 @@ export const declineHandler: APIGatewayProxyHandlerV2 = async (event) => {
       }),
     );
     return ringJson({ success: false, error: INVALID_LINK_MESSAGE }, 400);
+  }
+};
+
+const TERMINAL_SESSION_STATUSES = new Set(["STOPPED", "EXPIRED", "ERROR"]);
+
+/**
+ * Owner STOP SHARING from the original SMS — works before approve (cancels) or after (revokes session).
+ */
+export const stopHandler: APIGatewayProxyHandlerV2 = async (event) => {
+  try {
+    configureRingEmergencyTables();
+    const plainToken = event.pathParameters?.requestToken?.trim() ?? "";
+    if (!plainToken) {
+      return ringHtml(consentPage("Link invalid", INVALID_LINK_MESSAGE), 400);
+    }
+
+    const allowed = await consumeRingConsentRateSlot(clientIp(event));
+    if (!allowed) {
+      return ringHtml(consentPage("Too many requests", "Please wait a moment and try again."), 429);
+    }
+
+    const record = await findRequestByStopToken(plainToken);
+    if (!record) {
+      return ringHtml(consentPage("Link invalid", INVALID_LINK_MESSAGE), 400);
+    }
+
+    const nowIso = new Date().toISOString();
+
+    if (record.requestStatus === "SENT" || record.requestStatus === "OPENED") {
+      await emergencyRepo.updateRequest(record.agencyId, record.incidentId, record.requestId, {
+        requestStatus: "DECLINED",
+        declinedAt: nowIso,
+        usedAt: nowIso,
+      });
+      await auditRingEvent({
+        type: AUDIT_EVENT_TYPES.RING_CAMERA_REQUEST_DECLINED,
+        agencyId: record.agencyId,
+        actorId: record.ringAccountId,
+        details: {
+          incidentId: record.incidentId,
+          deviceId: record.deviceId,
+          requestId: record.requestId,
+          via: "owner_stop_sms",
+        },
+        resourceId: record.requestId,
+      });
+      return ringHtml(
+        consentPage(
+          "Request stopped",
+          "You have stopped this request. No video will be shared. Emergency responders have been notified.",
+        ),
+      );
+    }
+
+    if (record.requestStatus === "APPROVED") {
+      const sessions = await emergencyRepo.listSessionsForIncident(
+        record.agencyId,
+        record.incidentId,
+      );
+      const session = sessions.find(
+        (s) => s.requestId === record.requestId && !TERMINAL_SESSION_STATUSES.has(s.streamStatus),
+      );
+      if (session) {
+        await emergencyRepo.updateSession(session.sessionId, session.createdAt, {
+          streamStatus: "STOPPED",
+          stoppedAt: nowIso,
+          stoppedBy: "OWNER",
+          updatedAt: nowIso,
+        });
+      }
+      await emergencyRepo.updateRequest(record.agencyId, record.incidentId, record.requestId, {
+        requestStatus: "REVOKED",
+        revokedAt: nowIso,
+      });
+      await auditRingEvent({
+        type: AUDIT_EVENT_TYPES.RING_CAMERA_SESSION_REVOKED,
+        agencyId: record.agencyId,
+        actorId: "OWNER",
+        details: {
+          incidentId: record.incidentId,
+          deviceId: record.deviceId,
+          requestId: record.requestId,
+          sessionId: session?.sessionId,
+          via: "owner_stop_sms",
+        },
+        resourceId: session?.sessionId ?? record.requestId,
+      });
+      return ringHtml(
+        consentPage(
+          "Sharing stopped",
+          "Live video sharing has been stopped. Emergency responders can no longer view your camera for this request.",
+        ),
+      );
+    }
+
+    return ringHtml(consentPage("Already closed", "This request is already closed."));
+  } catch (err) {
+    console.error(
+      JSON.stringify({
+        msg: "ring_camera_consent_stop_error",
+        error: err instanceof Error ? err.message : String(err),
+      }),
+    );
+    return ringHtml(consentPage("Link invalid", INVALID_LINK_MESSAGE), 400);
   }
 };

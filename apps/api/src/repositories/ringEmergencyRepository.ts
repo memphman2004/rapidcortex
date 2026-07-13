@@ -157,18 +157,30 @@ export class RingEmergencyRepository {
   }
 
   async listSentRequestsNotExpired(nowMs = Date.now()): Promise<RingEmergencyCameraRequest[]> {
+    return this.listRequestsByStatus("SENT", nowMs);
+  }
+
+  async listRequestsByStatus(
+    status: RingRequestStatus,
+    nowMs = Date.now(),
+  ): Promise<RingEmergencyCameraRequest[]> {
     const out = await ddb.send(
       new QueryCommand({
         TableName: requestsTable(),
         IndexName: "requestStatus-index",
         KeyConditionExpression: "requestStatus = :status",
-        ExpressionAttributeValues: { ":status": "SENT" },
+        ExpressionAttributeValues: { ":status": status },
       }),
     );
     return (out.Items ?? [])
       .filter((item) => item.itemType !== "ring_consent_rate")
       .map((item) => fromRequestItem(item as Record<string, unknown>))
-      .filter((r) => new Date(r.expiresAt).getTime() > nowMs);
+      .filter((r) => {
+        const exp = new Date(r.expiresAt).getTime();
+        // APPROVED requests remain stoppable while session may still be live
+        if (status === "APPROVED") return true;
+        return exp > nowMs;
+      });
   }
 
   async getRequest(

@@ -1,8 +1,7 @@
-import type { APIGatewayProxyHandlerV2 } from "aws-lambda";
+import type { APIGatewayProxyHandlerV2, APIGatewayProxyEventV2 } from "aws-lambda";
 import { QueryCommand } from "@aws-sdk/lib-dynamodb";
 import { ddb } from "../../repositories/baseRepository.js";
 import { env } from "../../lib/env.js";
-import { ringJson } from "./ring-api-response.js";
 import { consumeRingPublicOAuthRateSlot } from "./ring-consent-rate-limit.js";
 
 /** Closed enum of valid US state + DC codes. */
@@ -15,18 +14,47 @@ const VALID_STATE_CODES = new Set([
 
 const PUBLIC_STATE_INDEX = "publicState-index";
 
+const CORS_ALLOWED_ORIGINS = new Set([
+  "https://www.rapidcortex.us",
+  "https://rapidcortex.us",
+  "https://app.rapidcortex.us",
+  "https://report.rapidcortex.us",
+]);
+
 function clientIp(event: { requestContext?: { http?: { sourceIp?: string } } }): string {
   return event.requestContext?.http?.sourceIp?.trim() || "unknown";
 }
 
-function emptyAgenciesResponse(statusCode = 200) {
+function requestOrigin(event: APIGatewayProxyEventV2): string {
+  const headers = event.headers ?? {};
+  return (headers.origin || headers.Origin || "").trim();
+}
+
+function corsHeaders(event: APIGatewayProxyEventV2): Record<string, string> {
+  const origin = requestOrigin(event);
+  if (!CORS_ALLOWED_ORIGINS.has(origin)) return {};
+  return {
+    "Access-Control-Allow-Origin": origin,
+    "Access-Control-Allow-Methods": "GET,OPTIONS",
+    "Access-Control-Allow-Headers": "content-type,authorization,accept,origin",
+    Vary: "Origin",
+  };
+}
+
+function withCors(
+  event: APIGatewayProxyEventV2,
+  statusCode: number,
+  body: unknown,
+  extraHeaders: Record<string, string> = {},
+) {
   return {
     statusCode,
     headers: {
       "Content-Type": "application/json",
-      "Cache-Control": "public, max-age=60",
+      ...extraHeaders,
+      ...corsHeaders(event),
     },
-    body: JSON.stringify({ agencies: [] as const }),
+    body: typeof body === "string" ? body : JSON.stringify(body),
   };
 }
 
@@ -38,12 +66,12 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
   try {
     const allowed = await consumeRingPublicOAuthRateSlot(clientIp(event));
     if (!allowed) {
-      return ringJson({ success: false, error: "Too many requests." }, 429);
+      return withCors(event, 429, { success: false, error: "Too many requests." });
     }
 
     const rawState = event.queryStringParameters?.state?.trim().toUpperCase() ?? "";
     if (!rawState || !VALID_STATE_CODES.has(rawState)) {
-      return ringJson({ success: false, error: "Invalid or missing state code." }, 400);
+      return withCors(event, 400, { success: false, error: "Invalid or missing state code." });
     }
 
     const table = env.agenciesTable;
@@ -69,14 +97,7 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
       }))
       .filter((a) => a.agencyId && a.name);
 
-    return {
-      statusCode: 200,
-      headers: {
-        "Content-Type": "application/json",
-        "Cache-Control": "public, max-age=60",
-      },
-      body: JSON.stringify({ agencies }),
-    };
+    return withCors(event, 200, { agencies }, { "Cache-Control": "public, max-age=60" });
   } catch (err) {
     console.error(
       JSON.stringify({
@@ -85,6 +106,6 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
       }),
     );
     // Soft-fail: enrollment must not hard-block when the directory is unavailable.
-    return emptyAgenciesResponse(200);
+    return withCors(event, 200, { agencies: [] }, { "Cache-Control": "public, max-age=60" });
   }
 };

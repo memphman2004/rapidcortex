@@ -101,6 +101,8 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
     const requestId = randomUUID();
     const plainToken = randomBytes(32).toString("hex");
     const requestTokenHash = await bcrypt.hash(plainToken, BCRYPT_ROUNDS);
+    const plainStopToken = randomBytes(32).toString("hex");
+    const stopTokenHash = await bcrypt.hash(plainStopToken, BCRYPT_ROUNDS);
     const now = new Date();
     const expiresAt = new Date(
       now.getTime() + (requestedDurationMinutes + 30) * 60 * 1000,
@@ -122,6 +124,7 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
     const base = consentBaseUrl();
     const approveUrl = `${base}/api/integrations/ring/consent/${plainToken}/approve`;
     const declineUrl = `${base}/api/integrations/ring/consent/${plainToken}/decline`;
+    const stopUrl = `${base}/api/integrations/ring/consent/${plainStopToken}/stop`;
 
     const record = {
       requestId,
@@ -142,6 +145,7 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
       requestedDurationMinutes,
       approvedDurationMinutes: null,
       requestTokenHash,
+      stopTokenHash,
       createdAt: now.toISOString(),
       expiresAt,
       approvedAt: null,
@@ -168,9 +172,12 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
       agencyName,
       incidentId,
       incidentCategoryLabel: incidentResult.incident.category,
+      deviceName: device.deviceName,
       requestedDurationMinutes,
       approveUrl,
       declineUrl,
+      stopUrl,
+      ringAccountId: device.ringAccountId,
     });
 
     if (!notification.delivered) {

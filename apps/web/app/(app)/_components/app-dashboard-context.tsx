@@ -1,7 +1,7 @@
 "use client";
 
 import { createContext, useContext, useMemo } from "react";
-import type { TenantVertical } from "@/components/dashboards/vertical-badge";
+import type { Vertical as TenantVertical } from "@/lib/vertical";
 
 export type AppDashboardContextValue = {
   role: string;

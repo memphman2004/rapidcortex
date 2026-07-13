@@ -22,8 +22,9 @@ export default function PrivacyPolicyPage() {
       <section className="space-y-3">
         <h2 className="text-base font-semibold text-white">Who this applies to</h2>
         <p>
-          Visitors to our public website, account holders, and agency personnel who access the
-          operational application on behalf of a municipality, PSAP, or regional center.
+          Visitors to our public website, account holders, agency personnel who access the operational application on
+          behalf of a municipality, PSAP, or regional center, and Ring Device Owners who enroll in Rapid Cortex Connect
+          through the Ring Appstore.
         </p>
       </section>
 
@@ -69,11 +70,13 @@ export default function PrivacyPolicyPage() {
       <section className="space-y-3">
         <h2 className="text-base font-semibold text-white">Ring integration and live video handling</h2>
         <p>
-          For Ring-connected workflows, Rapid Cortex is designed for live operational viewing only. We do not record,
-          retain, or store Ring video in Rapid Cortex systems (retention period: 0 days). Camera-owner consent is
-          obtained through Ring&apos;s standard OAuth authorization flow and can be revoked at any time in the Ring
-          application. When a law-enforcement request requires owner action, the camera owner is contacted directly
-          through Ring processes.
+          For Ring-connected workflows (Rapid Cortex Connect), Rapid Cortex is designed for live operational viewing
+          only. We do not record, retain, or store Ring video in Rapid Cortex systems (retention period: 0 days).{" "}
+          <strong className="font-medium text-slate-200">Ring Device Owners</strong> enroll by enabling Rapid Cortex
+          Connect in the Ring Appstore and completing device-owner sign-in when Ring shows Pending. Linking uses
+          Ring&apos;s Appstore / OAuth authorization and can be revoked anytime in Ring (for example My Apps). When a
+          participating agency requests temporary camera access for a nearby incident, the Ring Device Owner is
+          contacted by SMS and must tap Allow before any live view begins; Decline and Stop Sharing remain available.
         </p>
       </section>
 
@@ -110,13 +113,15 @@ export default function PrivacyPolicyPage() {
       <section className="space-y-3">
         <h2 className="text-base font-semibold text-white">Consent, opt-out, and withdrawal</h2>
         <p>
-          Ring camera owners manage consent through Ring OAuth and may withdraw consent by revoking authorization in
-          Ring. Agency users provide consent through account onboarding terms and can opt out of non-essential data
-          processing through account settings or support channels.
+          Ring Device Owners manage enrollment through the Ring Appstore and may disconnect Rapid Cortex Connect in
+          Ring at any time. Per-incident video sharing requires a separate Allow on each SMS request; owners may
+          Decline or Stop Sharing without disconnecting the app. Agency users provide consent through account
+          onboarding terms and can opt out of non-essential data processing through account settings or support
+          channels.
         </p>
         <p>
-          When consent is withdrawn, connected access tokens are invalidated, active access sessions are terminated,
-          and no further live camera access is permitted.
+          When consent is withdrawn or sharing is stopped, connected access tokens are invalidated where applicable,
+          active access sessions are terminated, and no further live camera access is permitted.
         </p>
       </section>
 
@@ -130,7 +135,7 @@ export default function PrivacyPolicyPage() {
         <p>
           Users can review and manage data through role-based application interfaces, agency administration controls,
           and support-assisted exports/deletions where applicable. For Ring integrations specifically, control of video
-          history and footage remains with Ring and the camera owner.
+          history and footage remains with Ring and the Ring Device Owner.
         </p>
       </section>
 

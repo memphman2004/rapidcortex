@@ -64,6 +64,11 @@ export interface RingEmergencyCameraRequest {
   revokedAt: string | null;
   /** Set when consent link is consumed (approve/decline). */
   usedAt: string | null;
+  /**
+   * bcrypt hash of owner stop token included in the original SMS.
+   * Used for mid-session revoke and pre-approve cancel.
+   */
+  stopTokenHash?: string | null;
 }
 
 export interface RingEmergencyCameraSession {
@@ -100,6 +105,8 @@ export interface RingOAuthState {
   createdAt: number;
   /** Ring Appstore return URL — redirect here after successful account link. */
   ringReturnUrl?: string | null;
+  /** Optional US state / DC for device-owner pre-registration matching. */
+  usState?: string | null;
 }
 
 /** Ephemeral OAuth state for citizen (non-Cognito) Ring linking. */

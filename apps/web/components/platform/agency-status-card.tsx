@@ -3,7 +3,8 @@
 import Link from "next/link";
 import type { AgencyLifecycleStatus } from "rapid-cortex-shared";
 import { ExternalLink, AlertCircle } from "lucide-react";
-import { VerticalBadge, type Vertical } from "@/components/ui/VerticalBadge";
+import { VerticalBadge } from "@/components/ui/VerticalBadge";
+import type { Vertical } from "@/lib/vertical";
 
 const statusRing: Record<AgencyLifecycleStatus, string> = {
   draft: "ring-amber-500/30",

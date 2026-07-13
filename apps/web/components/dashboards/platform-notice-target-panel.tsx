@@ -9,7 +9,8 @@ import {
   createPlatformNotice,
   fetchAdminPlatformNotices,
 } from "@/lib/platform-notices-api";
-import { VerticalBadge, deriveVerticalFromAgencyId, normalizeVertical, type Vertical } from "@/components/ui/VerticalBadge";
+import { VerticalBadge } from "@/components/ui/VerticalBadge";
+import { deriveVerticalFromAgencyId, normalizeVertical, type Vertical } from "@/lib/vertical";
 import { isVerticalEnabled } from "@/lib/features";
 
 type NoticeTargetMode = "all" | "vertical" | "agency";

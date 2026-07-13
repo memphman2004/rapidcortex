@@ -51,14 +51,30 @@ export class RingDeviceService {
     userId: string,
     ringAccountId: string,
     accessToken: string,
+    options?: {
+      /** Force Connect eligibility (Appstore homeowner claim). */
+      enableForConnect?: boolean;
+      /** Used when Ring omits GPS (required for available-cameras radius). */
+      fallbackLatitude?: number | null;
+      fallbackLongitude?: number | null;
+    },
   ): Promise<LinkedRingDevice[]> {
     const client = new RingApiClient(accessToken);
     const discovered = await client.getDevices();
     const ts = nowIso();
     const saved: LinkedRingDevice[] = [];
+    const enableForConnect = options?.enableForConnect === true;
+    const fallbackLat = options?.fallbackLatitude ?? null;
+    const fallbackLng = options?.fallbackLongitude ?? null;
 
     for (const raw of discovered) {
       const existing = await this.getDeviceRecord(agencyId, userId, raw.deviceId);
+      const latitude =
+        raw.latitude ?? existing?.latitude ?? (typeof fallbackLat === "number" ? fallbackLat : null);
+      const longitude =
+        raw.longitude ??
+        existing?.longitude ??
+        (typeof fallbackLng === "number" ? fallbackLng : null);
       const device: LinkedRingDevice = {
         agencyId,
         userId,
@@ -67,9 +83,11 @@ export class RingDeviceService {
         deviceName: raw.deviceName,
         deviceType: raw.deviceType,
         locationLabel: raw.locationLabel,
-        latitude: raw.latitude,
-        longitude: raw.longitude,
-        isEnabledForConnect: existing?.isEnabledForConnect ?? false,
+        latitude,
+        longitude,
+        isEnabledForConnect: enableForConnect
+          ? true
+          : (existing?.isEnabledForConnect ?? false),
         createdAt: existing?.createdAt ?? ts,
         updatedAt: ts,
       };
@@ -83,6 +101,33 @@ export class RingDeviceService {
     }
 
     return saved;
+  }
+
+  async setDeviceCoordinates(
+    agencyId: string,
+    userId: string,
+    deviceId: string,
+    latitude: number,
+    longitude: number,
+  ): Promise<void> {
+    const ts = nowIso();
+    await this.ddb.send(
+      new UpdateCommand({
+        TableName: RING_TABLE_NAMES.DEVICES,
+        Key: {
+          agencyUserKey: agencyUserKey(agencyId, userId),
+          deviceId,
+        },
+        UpdateExpression: "SET latitude = :lat, longitude = :lng, updatedAt = :updatedAt",
+        ExpressionAttributeValues: {
+          ":lat": latitude,
+          ":lng": longitude,
+          ":updatedAt": ts,
+          ":agencyId": agencyId,
+        },
+        ConditionExpression: "agencyId = :agencyId",
+      }),
+    );
   }
 
   async getLinkedDevices(agencyId: string, userId: string): Promise<LinkedRingDevice[]> {
@@ -179,6 +224,46 @@ export class RingDeviceService {
         ConditionExpression: "agencyId = :agencyId",
       }),
     );
+  }
+
+  /** Soft-remove a device after Ring `device_removed` (disable Connect; keep row for audit). */
+  async disableDeviceForConnectByAgency(
+    agencyId: string,
+    deviceId: string,
+  ): Promise<LinkedRingDevice | null> {
+    const device = await this.getDeviceByAgencyAndDeviceId(agencyId, deviceId);
+    if (!device) return null;
+    await this.setDeviceConnectEnabled(agencyId, device.userId, deviceId, false);
+    return { ...device, isEnabledForConnect: false, updatedAt: nowIso() };
+  }
+
+  /** Soft-remove all devices for a Ring account under an agency (`app_integration_removed`). */
+  async disableDevicesForRingAccount(
+    agencyId: string,
+    ringAccountId: string,
+  ): Promise<LinkedRingDevice[]> {
+    const out = await this.ddb.send(
+      new QueryCommand({
+        TableName: RING_TABLE_NAMES.DEVICES,
+        IndexName: "agencyId-index",
+        KeyConditionExpression: "agencyId = :agencyId",
+        ExpressionAttributeValues: {
+          ":agencyId": agencyId,
+        },
+      }),
+    );
+    const matched: LinkedRingDevice[] = [];
+    for (const item of out.Items ?? []) {
+      const device = fromRow(item as DeviceRow);
+      if (device.ringAccountId !== ringAccountId) continue;
+      if (!device.isEnabledForConnect) {
+        matched.push(device);
+        continue;
+      }
+      await this.setDeviceConnectEnabled(agencyId, device.userId, device.deviceId, false);
+      matched.push({ ...device, isEnabledForConnect: false, updatedAt: nowIso() });
+    }
+    return matched;
   }
 
   private async getDeviceRecord(

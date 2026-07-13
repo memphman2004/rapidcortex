@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { PilotIntegrationStatusPanel } from "@/components/admin/pilot-integration-status";
+import { useSession } from "@/components/auth/session-context";
 import { useJurisdictionLink } from "@/lib/jurisdiction-context";
 import { RingConnectButton, RingIntegrationStatus, isRingEnabled } from "@/src/features/connect/ring";
 
@@ -17,6 +18,7 @@ export function AdminIntegrationsShell({
   loadError,
 }: Props) {
   const to = useJurisdictionLink();
+  const { user } = useSession();
 
   return (
     <div className="space-y-6 p-4 md:p-6">
@@ -51,15 +53,15 @@ export function AdminIntegrationsShell({
         </div>
       </section>
 
-      {isRingEnabled() && (
+      {isRingEnabled() && user ? (
         <section className="space-y-3 rounded-lg border border-zinc-800 bg-slate-900/35 p-4">
           <h3 className="text-sm font-semibold uppercase tracking-wider text-zinc-300">
             Ring Doorbell Integration
           </h3>
-          <RingIntegrationStatus agencyId="" userId="" />
-          <RingConnectButton agencyId="" userId="" />
+          <RingIntegrationStatus agencyId={user.agencyId} userId={user.userId} />
+          <RingConnectButton agencyId={user.agencyId} userId={user.userId} />
         </section>
-      )}
+      ) : null}
 
       <section className="rounded-lg border border-slate-800 bg-slate-900/35 p-4">
         <h2 className="text-xs font-semibold uppercase tracking-wider text-teal-200/90">

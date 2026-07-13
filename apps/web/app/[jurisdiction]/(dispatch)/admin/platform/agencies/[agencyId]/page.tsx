@@ -16,7 +16,7 @@ import {
 import type { AgencyTenant, CreateInviteInput } from "rapid-cortex-shared";
 import { AgencyDetailHeader } from "@/components/platform/agency-detail-header";
 import { OnboardingChecklistCard } from "@/components/platform/onboarding-checklist-card";
-import { deriveVerticalFromAgencyId, normalizeVertical } from "@/components/ui/VerticalBadge";
+import { deriveVerticalFromAgencyId, normalizeVertical } from "@/lib/vertical";
 
 export default function AgencyDetailPage() {
   const to = useJurisdictionLink();
