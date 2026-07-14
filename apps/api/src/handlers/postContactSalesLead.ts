@@ -156,6 +156,8 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
     ...rest,
     leadId: randomUUID(),
     createdAt: new Date().toISOString(),
+    source: "contact-sales",
+    status: "new",
   };
   await repo.putLead(lead);
 

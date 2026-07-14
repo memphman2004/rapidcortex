@@ -3,6 +3,7 @@ import {
   isChannelMonitoringEnabled,
   isNonEmergencyTriageEnabled,
   isQaScoringEnabled,
+  isSalesLeadsUiEnabled,
   isSlaBacklogEnabled,
   isVerticalOnboardingEnabled,
 } from "@/lib/runtime-flags";
@@ -22,6 +23,8 @@ export function isNavFeatureEnabled(feature: string): boolean {
       return isChannelMonitoringEnabled();
     case "verticalOnboarding":
       return isVerticalOnboardingEnabled();
+    case "salesLeads":
+      return isSalesLeadsUiEnabled();
     default:
       return true;
   }

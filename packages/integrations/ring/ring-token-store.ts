@@ -12,16 +12,28 @@ import type { RingOAuthTokens } from "./ring-types.js";
 import { RingTokenExpiredError } from "./ring-errors.js";
 import { RING_KMS_KEY_ID, RING_SECRETS_PREFIX } from "./ring-env.js";
 
+/**
+ * Secrets Manager secret *names* allow only alphanumerics and -/_+=.@!
+ * Do not use encodeURIComponent — `%` is rejected (e.g. `:` → `%3A`).
+ */
+function sanitizeSecretSegment(value: string): string {
+  const cleaned = value.trim().replace(/[^A-Za-z0-9\-_/=.@!+]/g, "_");
+  if (!cleaned) {
+    throw new Error("Ring secret name segment is empty after sanitization");
+  }
+  return cleaned;
+}
+
 function secretName(agencyId: string, userId: string): string {
-  return `${RING_SECRETS_PREFIX}/${agencyId}/${userId}`;
+  return `${RING_SECRETS_PREFIX}/${sanitizeSecretSegment(agencyId)}/${sanitizeSecretSegment(userId)}`;
 }
 
 function citizenSecretName(agencyId: string, ringAccountId: string): string {
-  return `${RING_SECRETS_PREFIX}/${agencyId}/citizen/${encodeURIComponent(ringAccountId)}`;
+  return `${RING_SECRETS_PREFIX}/${sanitizeSecretSegment(agencyId)}/citizen/${sanitizeSecretSegment(ringAccountId)}`;
 }
 
 function unclaimedSecretName(accountId: string): string {
-  return `${RING_SECRETS_PREFIX}/unclaimed/${encodeURIComponent(accountId)}`;
+  return `${RING_SECRETS_PREFIX}/unclaimed/${sanitizeSecretSegment(accountId)}`;
 }
 
 function parseStoredTokens(raw: string): RingOAuthTokens {

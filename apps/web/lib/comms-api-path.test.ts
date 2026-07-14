@@ -76,6 +76,8 @@ describe("resolveUpstreamApiBase", () => {
     expect(resolveUpstreamApiBase("/api/rc-admin/usage/export")).toBe("https://stack2.example.com");
     expect(resolveUpstreamApiBase("/api/rc-admin/api-clients")).toBe("https://stack3.example.com");
     expect(resolveUpstreamApiBase("/api/rc-admin/agreements")).toBe("https://stack3.example.com");
+    expect(resolveUpstreamApiBase("/api/rc-admin/leads")).toBe("https://stack3.example.com");
+    expect(resolveUpstreamApiBase("/api/rc-admin/leads/abc")).toBe("https://stack3.example.com");
   });
 
   it("routes triage queue to stack 1 (primary AppSamStack)", () => {

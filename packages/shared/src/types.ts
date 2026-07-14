@@ -370,6 +370,7 @@ export type AuditResourceType =
   | "sms_inbound"
   | "staffing_forecast"
   | "channel_config"
+  | "sales_lead"
   | "unknown";
 
 /**

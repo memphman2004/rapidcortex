@@ -68,6 +68,11 @@ APP_NAME="${APP_NAME:-rapid-cortex}"
 STACK_NAME="${STACK_NAME:-${APP_NAME}-${STAGE}}"
 AWS_REGION="${AWS_REGION:-us-east-1}"
 export AWS_REGION AWS_DEFAULT_REGION="${AWS_DEFAULT_REGION:-$AWS_REGION}"
+export AWS_PROFILE="${AWS_PROFILE:-rapid-cortex}"
+
+# shellcheck source=scripts/lib/rapid-cortex-aws.sh
+source "${ROOT}/scripts/lib/rapid-cortex-aws.sh"
+rapid_cortex_assert_aws_account
 
 SAM_BUILD_USE_CACHE="${SAM_BUILD_USE_CACHE:-0}"
 SAM_PARALLEL="${SAM_PARALLEL:-1}"
@@ -143,11 +148,18 @@ trap restore_api_pkg EXIT
 
 nested_stack_name() {
   local logical="$1"
-  aws cloudformation describe-stack-resources \
+  local physical
+  physical="$(aws cloudformation describe-stack-resources \
     --stack-name "${STACK_NAME}" \
     --region "${AWS_REGION}" \
     --query "StackResources[?LogicalResourceId=='${logical}'].PhysicalResourceId" \
-    --output text | awk -F/ '{print $(NF-1)}'
+    --output text 2>&1)" || {
+    echo "ERROR: Could not resolve nested stack ${logical} under root stack ${STACK_NAME}." >&2
+    echo "  AWS_PROFILE=${AWS_PROFILE:-default} AWS_REGION=${AWS_REGION}" >&2
+    echo "  Run: aws sts get-caller-identity && aws cloudformation describe-stacks --stack-name ${STACK_NAME} --region ${AWS_REGION}" >&2
+    return 1
+  }
+  echo "${physical}" | awk -F/ '{print $(NF-1)}'
 }
 
 nested_params_override() {
@@ -200,6 +212,7 @@ lean_sam_deploy_nested() {
     --capabilities CAPABILITY_IAM CAPABILITY_NAMED_IAM CAPABILITY_AUTO_EXPAND \
     --parameter-overrides ${params} \
     --resolve-s3 \
+    --force-upload \
     --no-confirm-changeset \
     --no-fail-on-empty-changeset \
     --region "${AWS_REGION}"

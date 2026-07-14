@@ -42,6 +42,7 @@ const NEXT_PUBLIC_FLAG_VALUES: Record<string, string | undefined> = {
   NEXT_PUBLIC_ENABLE_LOCATIONS_QR_ADMIN: process.env.NEXT_PUBLIC_ENABLE_LOCATIONS_QR_ADMIN,
   NEXT_PUBLIC_ENABLE_VERTICAL_ONBOARDING: process.env.NEXT_PUBLIC_ENABLE_VERTICAL_ONBOARDING,
   NEXT_PUBLIC_ENABLE_CHANNEL_MONITORING: process.env.NEXT_PUBLIC_ENABLE_CHANNEL_MONITORING,
+  NEXT_PUBLIC_ENABLE_SALES_LEADS: process.env.NEXT_PUBLIC_ENABLE_SALES_LEADS,
   NEXT_PUBLIC_WEBSOCKET_URL: process.env.NEXT_PUBLIC_WEBSOCKET_URL,
 };
 
@@ -310,4 +311,9 @@ export function isVerticalOnboardingEnabled(): boolean {
 /** Channel / talk group monitoring (must match API ENABLE_CHANNEL_MONITORING — default off). */
 export function isChannelMonitoringEnabled(): boolean {
   return envFlag("NEXT_PUBLIC_ENABLE_CHANNEL_MONITORING");
+}
+
+/** RC Admin Leads CRM inbox (Contact Sales + Ring waitlist). Default on when unset. */
+export function isSalesLeadsUiEnabled(): boolean {
+  return envFlag("NEXT_PUBLIC_ENABLE_SALES_LEADS");
 }

@@ -155,6 +155,31 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
     const accessToken = tokens.accessToken;
     const masked = maskEmailForRing(auth.email);
 
+    const agencyId = RING_HOMEOWNER_DEFAULT_AGENCY_ID;
+    const userId = auth.userId;
+    const ringAccountId = deriveCitizenRingAccountId(agencyId, partnerAccountId);
+    const homeownerId = homeownerIdFromPartnerAccount(partnerAccountId);
+    const now = new Date().toISOString();
+
+    // Persist tokens before Ring finalize so a Secrets Manager failure cannot leave
+    // Ring in "completed" while we have no local claim (forces Invalid Nonce on retry).
+    let secretKey: string;
+    try {
+      secretKey = await tokenStore.storeTokens(agencyId, userId, tokens);
+      await tokenStore.storeCitizenTokens(agencyId, ringAccountId, tokens);
+    } catch (err) {
+      console.error(
+        JSON.stringify({
+          msg: "ring_homeowner_token_store_failed",
+          error: err instanceof Error ? err.message : String(err),
+        }),
+      );
+      return ringPublicJson(event, 500, {
+        success: false,
+        error: "Could not securely store Ring credentials. Try again in a moment.",
+      });
+    }
+
     try {
       await postRingAppIntegration(accessToken, {
         account_identifier: masked,
@@ -162,30 +187,35 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
       });
       await patchRingAppIntegrationCompleted(accessToken, masked);
     } catch (err) {
+      const message = err instanceof Error ? err.message : String(err);
+      // Idempotent retry: first attempt may have completed Ring POST/PATCH then failed
+      // later locally. Ring then rejects the same nonce.
+      const alreadyFinalized =
+        /Invalid Nonce/i.test(message) ||
+        /nonce validation failed/i.test(message) ||
+        /already/i.test(message);
       console.error(
         JSON.stringify({
           msg: "ring_app_integrations_failed",
-          error: err instanceof Error ? err.message : String(err),
+          error: message,
+          alreadyFinalized,
         }),
       );
-      return ringPublicJson(event, 502, {
-        success: false,
-        error: "Could not finalize Ring account link.",
-      });
+      if (!alreadyFinalized) {
+        return ringPublicJson(event, 502, {
+          success: false,
+          error: "Could not finalize Ring account link.",
+        });
+      }
+      try {
+        await patchRingAppIntegrationCompleted(accessToken, masked);
+      } catch {
+        // Non-fatal when Ring already marked the integration completed.
+      }
     }
-
-    const agencyId = RING_HOMEOWNER_DEFAULT_AGENCY_ID;
-    const userId = auth.userId;
-    const ringAccountId = deriveCitizenRingAccountId(agencyId, partnerAccountId);
-    const homeownerId = homeownerIdFromPartnerAccount(partnerAccountId);
-    const now = new Date().toISOString();
 
     const profile = await new RingApiClient(accessToken).getPartnerUserProfile();
     await syncHomeownerPhone(auth.email, profile.phoneNumber);
-
-    // Claimed tokens: staff-style path (device.userId → Cognito notify) + citizen path.
-    const secretKey = await tokenStore.storeTokens(agencyId, userId, tokens);
-    await tokenStore.storeCitizenTokens(agencyId, ringAccountId, tokens);
 
     const scopes = tokens.scope.split(/\s+/).filter(Boolean);
     const existingAccount = await accounts.getLinkedAccount(agencyId, userId);

@@ -28,6 +28,28 @@ export const contactSalesLeadBodySchema = z
 
 export type ContactSalesLeadBody = z.infer<typeof contactSalesLeadBodySchema>;
 
+/** CRM pipeline status for RC Admin Leads inbox. */
+export const salesLeadStatusSchema = z.enum([
+  "new",
+  "contacted",
+  "qualified",
+  "won",
+  "lost",
+]);
+export type SalesLeadStatus = z.infer<typeof salesLeadStatusSchema>;
+
+export const patchSalesLeadBodySchema = z
+  .object({
+    status: salesLeadStatusSchema.optional(),
+    notes: z.string().max(8000).optional(),
+    assignee: z.string().max(320).optional(),
+  })
+  .strict()
+  .refine((v) => v.status !== undefined || v.notes !== undefined || v.assignee !== undefined, {
+    message: "At least one of status, notes, or assignee is required",
+  });
+export type PatchSalesLeadBody = z.infer<typeof patchSalesLeadBodySchema>;
+
 export const publicPricingConfigSchema = z.object({
   showExactPricing: z.boolean().default(false),
 });

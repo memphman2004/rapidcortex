@@ -70,6 +70,7 @@ export const RC_SUPERADMIN_NAV: RoleNav = {
         { id: "invoices",  label: "Invoices",          href: "/rc-admin/invoices",      icon: "Receipt" },
         { id: "catalog",   label: "Service Catalog",   href: "/rc-admin/billing/services", icon: "Package" },
         { id: "agreements",label: "Agreements",        href: "/rc-admin/agreements",    icon: "FileSignature" },
+        { id: "leads",     label: "Leads",             href: "/rc-admin/leads",         icon: "Inbox", feature: "salesLeads" },
       ],
     },
     {
@@ -136,6 +137,7 @@ export const RC_ADMIN_NAV: RoleNav = {
         { id: "invoices",  label: "Invoices",          href: "/rc-admin/invoices",      icon: "Receipt" },
         { id: "catalog",   label: "Service Catalog",   href: "/rc-admin/billing/services", icon: "Package" },
         { id: "agreements",label: "Agreements",        href: "/rc-admin/agreements",    icon: "FileSignature" },
+        { id: "leads",     label: "Leads",             href: "/rc-admin/leads",         icon: "Inbox", feature: "salesLeads" },
       ],
     },
     {

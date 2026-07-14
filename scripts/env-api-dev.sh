@@ -9,6 +9,18 @@
 # Otherwise `deploy.sh dev` would update the wrong CloudFormation stack.
 unset STACK_NAME
 export APP_NAME="rapid-cortex"
+export AWS_PROFILE="${AWS_PROFILE:-rapid-cortex}"
+export AWS_REGION="${AWS_REGION:-us-east-1}"
+export AWS_DEFAULT_REGION="${AWS_DEFAULT_REGION:-${AWS_REGION}}"
+
+_ENV_API_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]:-${(%):-%x}}")/.." && pwd)"
+# shellcheck source=scripts/lib/rapid-cortex-aws.sh
+source "${_ENV_API_ROOT}/scripts/lib/rapid-cortex-aws.sh"
+if ! rapid_cortex_assert_aws_account; then
+  echo "Fix: export AWS_PROFILE=rapid-cortex (account ${RAPID_CORTEX_AWS_ACCOUNT_ID})" >&2
+  return 1 2>/dev/null || exit 1
+fi
+unset _ENV_API_ROOT
 
 export INCLUDE_DATA_LAYER_NESTED_STACK=true
 export FLAT_DATA_LAYER_BILLING_PAYMENT_INSTRUCTIONS_SECRET_ARN="arn:aws:secretsmanager:us-east-1:158961537080:secret:rapid-cortex/billing/payment-instructions-3LvGn6"

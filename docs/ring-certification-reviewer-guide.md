@@ -24,29 +24,55 @@ video access from Ring camera owners near an active emergency incident.
 
 ---
 
-## Part 1 — Link your Ring account as a dispatcher
+## Part 1 — Link a Ring account (Appstore one-way — required)
 
-### Step 1 — Sign in
+> **Do not use** Media → **Connect Ring Account** for Appstore cert. That path
+> calls `oauth.ring.com` with `scope=client` and fails with
+> `error on validating client scope`. Appstore linking is started from the **Ring app**.
+
+### Step 0 — Portal URLs (once)
+
+In Amazon Developer → your app → **Account linking** → **Production settings**, save:
+
+| Field | URL |
+|-------|-----|
+| Account Link | `https://www.rapidcortex.us/connect/ring/link` |
+| App Homepage | `https://www.rapidcortex.us/connect/ring/start` |
+| Token Exchange | `https://7c70vqd1p5.execute-api.us-east-1.amazonaws.com/api/public/ring/token-exchange` |
+| Webhook | `https://7c70vqd1p5.execute-api.us-east-1.amazonaws.com/api/public/ring/webhook` |
+
+Optional: copy the same URLs into **Staging settings** so portal Test mode hits production backends.
+
+### Step 1 — Install from Ring Appstore (device-owner phone)
+
+1. Open the **Ring** app on a phone signed into a Ring account that owns a US camera
+2. Appstore → search **Rapid Cortex Connect** → **Get App**
+3. Select device(s) + confirm scopes
+4. Ring POSTs the OAuth code to Token Exchange (background — you won't see this)
+5. Browser opens Account Link:  
+   `https://www.rapidcortex.us/connect/ring/link?nonce=…&time=…`
+
+### Step 2 — Sign in / create Rapid Cortex homeowner account
+
+1. On the link page, **sign in or create** a Rapid Cortex account (separate from Ring)
+2. Prefer the same email as the Ring account when possible
+3. Success should discover devices into agency `test-agency`
+
+### Step 3 — Dispatcher sees devices
 
 1. Go to **https://app.rapidcortex.us/test-agency/media**
 2. Sign in: `ring-reviewer@rapidcortex.us` / `RapidTest2026!`
-3. Land on the **Media** tab
+3. Media → Ring → **Linked Devices**
+4. Confirm each device shows **GPS: lat, lng** (green) — not “No location”
+5. Toggle **Enabled for Connect** on at least one device
+6. If GPS is missing after link:
 
-### Step 2 — Connect Ring Account
+```bash
+STAGE=dev AGENCY_ID=test-agency DEVICE_NAME_CONTAINS=Living \
+  npx tsx scripts/seed-ring-sonoma-point-gps.ts
+```
 
-1. Media → **Ring** → **Connect Ring Account**
-2. Complete Ring OAuth (`oauth.ring.com`)
-3. Return to `https://www.rapidcortex.us/connect/ring/link?status=success`
-4. Sign back into Rapid Cortex
-
-### Step 3 — Enable devices + confirm GPS
-
-1. Media → Ring → **Linked Devices** (or Manage devices)
-2. Confirm each device shows **GPS: lat, lng** (green) — not “No location”
-3. Toggle **Enabled for Connect** on at least one device
-4. If GPS is missing after link, contact support or run ops GPS seed for `test-agency`
-
-**Empty camera list root cause (v2):** devices without GPS or Enable for Connect off are excluded from radius search.
+**Empty camera list:** devices without GPS or with Enable for Connect off are excluded from radius search.
 
 ---
 
