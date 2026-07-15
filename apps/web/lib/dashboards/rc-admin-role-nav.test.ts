@@ -25,6 +25,8 @@ describe("RC admin role navigation", () => {
         "agencies",
         "users",
         "billing",
+        "leads",
+        "grants",
         "infrastructure",
         "audit",
         "support",
@@ -35,8 +37,8 @@ describe("RC admin role navigation", () => {
       ]);
     });
 
-    it("does not expose roadmap-only grants nav", () => {
-      expect(ids()).not.toContain("grants");
+    it("exposes the Grant Success Program grants nav", () => {
+      expect(ids()).toContain("grants");
     });
   });
 
@@ -51,17 +53,20 @@ describe("RC admin role navigation", () => {
       expect(ids()).toContain("reports");
       expect(ids()).toContain("location-qr");
       expect(ids()).toContain("billing");
+      expect(ids()).toContain("leads");
+      expect(ids()).toContain("grants");
     });
   });
 
   describe("rcitadmin", () => {
     const ids = () => filterRcAdminNavTabs(base, "rcitadmin").map((t) => t.id);
 
-    it("shows infrastructure-first nav without billing or feature flags", () => {
+    it("shows infrastructure-first nav without billing, feature flags, or grants", () => {
       expect(ids()).toEqual([
         "infrastructure",
         "system-health",
         "integrations",
+        "leads",
         "users",
         "audit",
         "system-settings",
@@ -69,6 +74,7 @@ describe("RC admin role navigation", () => {
         "security",
         "location-qr",
       ]);
+      expect(ids()).not.toContain("grants");
     });
 
     it("filters jurisdiction platform sidebar for rcitadmin", () => {
@@ -78,6 +84,7 @@ describe("RC admin role navigation", () => {
       expect(paths).toContain("/rc-admin/system-health");
       expect(paths).toContain("/rc-admin/security");
       expect(paths).toContain("/rc-admin/location-qr-codes");
+      expect(paths).toContain("/rc-admin/leads");
     });
   });
 

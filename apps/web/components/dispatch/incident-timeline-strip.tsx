@@ -1,6 +1,7 @@
 "use client";
 
 import type { AIAnalysis, Incident, TranscriptSegment } from "rapid-cortex-shared";
+import { confidenceToDisplayPercent } from "rapid-cortex-shared";
 import { formatRelativeOpened } from "@/lib/format";
 
 export function IncidentTimelineStrip({
@@ -39,7 +40,9 @@ export function IncidentTimelineStrip({
     {
       key: "ai",
       label: "AI triage",
-      sub: analysis ? `${Math.round(analysis.confidence * 100)}% · ${analysis.urgency}` : "Pending",
+      sub: analysis
+        ? `${confidenceToDisplayPercent(analysis.confidence)}% · ${analysis.urgency}`
+        : "Pending",
     },
   ];
 

@@ -14,7 +14,7 @@ export const PSAP_PLANS = [
     adminOvrFrom: 6,
     rows: [
       { id: "monthly", label: "Monthly fee", suffix: "/mo" },
-      { id: "pilot", label: "Pilot (90d)", suffix: "" },
+      { id: "pilot", label: "Pilot", suffix: "" },
       { id: "setup", label: "Setup", suffix: "" },
     ],
   },
@@ -26,7 +26,7 @@ export const PSAP_PLANS = [
     adminOvrFrom: 11,
     rows: [
       { id: "monthly", label: "Monthly fee", suffix: "/mo" },
-      { id: "pilot", label: "Pilot (90d)", suffix: "" },
+      { id: "pilot", label: "Pilot", suffix: "" },
       { id: "setup", label: "Setup", suffix: "" },
     ],
   },
@@ -38,7 +38,7 @@ export const PSAP_PLANS = [
     adminOvrFrom: 26,
     rows: [
       { id: "monthly", label: "Monthly fee", suffix: "/mo" },
-      { id: "pilot", label: "Pilot (90d)", suffix: "" },
+      { id: "pilot", label: "Pilot", suffix: "" },
       { id: "setup", label: "Setup", suffix: "" },
     ],
   },

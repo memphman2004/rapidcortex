@@ -3900,6 +3900,7 @@ Resources:
       BuildMethod: makefile
       BuildTarget: build-function
     Properties:
+      Timeout: 60
       Environment:
         Variables:
           COGNITO_USER_POOL_ID: !Ref ImportedCognitoUserPoolId

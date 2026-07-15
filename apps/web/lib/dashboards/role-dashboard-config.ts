@@ -13,6 +13,7 @@ export const ROLE_DASHBOARD_NAV: Record<DashboardPrefix, NavTab[]> = {
     { id: "agencies", label: "Agencies", href: "/rc-admin/agencies" },
     { id: "users", label: "Users", href: "/rc-admin/users" },
     { id: "billing", label: "Billing", href: "/rc-admin/billing" },
+    { id: "leads", label: "Leads", href: "/rc-admin/leads" },
     { id: "infrastructure", label: "Infrastructure", href: "/rc-admin/infrastructure" },
     { id: "audit", label: "Audit log", href: "/rc-admin/audit" },
     { id: "support", label: "Platform notices", href: "/rc-admin/support" },

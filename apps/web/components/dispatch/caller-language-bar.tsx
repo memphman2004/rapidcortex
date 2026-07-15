@@ -1,7 +1,7 @@
 "use client";
 
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { useEffect, useMemo, useState } from "react";
+import { useMemo } from "react";
 import type { Incident, TranscriptSegment } from "rapid-cortex-shared";
 import { isApiConfigured, patchIncidentDispatch } from "@/lib/api";
 import {
@@ -16,10 +16,15 @@ export function CallerLanguageBar({
   incidentId,
   incident,
   segments,
+  selectedLanguage,
+  onSelectedLanguageChange,
 }: {
   incidentId: string | null;
   incident: Incident | null;
   segments: TranscriptSegment[];
+  /** Controlled selection shared with the English reply panel. */
+  selectedLanguage: string;
+  onSelectedLanguageChange: (code: string) => void;
 }) {
   const queryClient = useQueryClient();
   const enabled = Boolean(incidentId) && isApiConfigured() && isCallerTranslationReplyEnabled();
@@ -28,26 +33,28 @@ export function CallerLanguageBar({
     () => resolveIncidentCallerLanguage(incident, segments),
     [incident, segments],
   );
-  const [pick, setPick] = useState(resolved ?? "es");
-
-  useEffect(() => {
-    if (resolved) setPick(resolved);
-    else if (inferred) setPick(inferred);
-  }, [resolved, inferred]);
 
   const saveMut = useMutation({
     mutationFn: async (callerLanguage: string) => {
       if (!incidentId) throw new Error("No incident");
       return patchIncidentDispatch(incidentId, { action: "set_caller_language", callerLanguage });
     },
-    onSuccess: () => {
+    onSuccess: (_data, callerLanguage) => {
+      queryClient.setQueryData(["incident", incidentId], (prev: Incident | undefined) =>
+        prev ? { ...prev, callerLanguage } : prev,
+      );
       void queryClient.invalidateQueries({ queryKey: ["incident", incidentId] });
     },
   });
 
   if (!enabled || !incidentId) return null;
 
-  const needsTranslation = callerLanguageNeedsTranslation(pick);
+  const needsTranslation = callerLanguageNeedsTranslation(selectedLanguage);
+
+  const persistLanguage = (code: string) => {
+    onSelectedLanguageChange(code);
+    if (code !== resolved) saveMut.mutate(code);
+  };
 
   return (
     <div className="shrink-0 border-b border-slate-800 bg-slate-950/70 px-4 py-2">
@@ -62,9 +69,9 @@ export function CallerLanguageBar({
           </p>
           <div className="mt-1">
             <LanguageSelector
-              value={pick}
-              onChange={(code) => setPick(code)}
-              onSave={(code) => saveMut.mutate(code)}
+              value={selectedLanguage}
+              onChange={onSelectedLanguageChange}
+              onSave={persistLanguage}
               saving={saveMut.isPending}
             />
           </div>
@@ -74,10 +81,7 @@ export function CallerLanguageBar({
             <button
               type="button"
               disabled={saveMut.isPending}
-              onClick={() => {
-                setPick(inferred);
-                saveMut.mutate(inferred);
-              }}
+              onClick={() => persistLanguage(inferred)}
               className="rounded border border-sky-800 bg-sky-950/40 px-2 py-1 text-[11px] text-sky-200 hover:bg-sky-950/70 disabled:opacity-50"
             >
               Use detected ({inferred})

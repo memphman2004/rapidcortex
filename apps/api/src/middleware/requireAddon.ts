@@ -1,6 +1,11 @@
 import type { APIGatewayProxyEventV2, APIGatewayProxyResultV2 } from "aws-lambda";
-import type { UserContext } from "rapid-cortex-shared";
+import {
+  ADDON_CATALOG,
+  isAddonIncludedInPlan,
+  type UserContext,
+} from "rapid-cortex-shared";
 import { AuditRepository } from "../repositories/auditRepository.js";
+import { AgencyRepository } from "../repositories/agencyRepository.js";
 import { getVerifiedJwtClaims } from "../lib/auth.js";
 import { makeId } from "../lib/ids.js";
 import { jsonStatus } from "../lib/response.js";
@@ -34,6 +39,8 @@ const FAMILY_ALIASES: Record<string, string[]> = {
   "incident_command.": ["incident_command.", "incident.command."],
 };
 
+const agencies = new AgencyRepository();
+
 function normalizeAddonFamily(key: string): string {
   const parts = key.split(".");
   const last = parts[parts.length - 1] ?? "";
@@ -43,7 +50,7 @@ function normalizeAddonFamily(key: string): string {
   return key;
 }
 
-function parseClaimAddons(raw: unknown): string[] {
+export function parseClaimAddons(raw: unknown): string[] {
   const csv = typeof raw === "string" ? raw : "";
   if (!csv) return [];
   return Array.from(
@@ -70,7 +77,7 @@ function resolvePrefixes(familyPrefix: string): string[] {
   return FAMILY_ALIASES[normalized] ?? [normalized];
 }
 
-function hasFamilyMatch(enabledAddons: string[], familyPrefix: string): boolean {
+export function hasFamilyMatch(enabledAddons: string[], familyPrefix: string): boolean {
   const prefixes = resolvePrefixes(familyPrefix);
   if (prefixes.length === 0) return false;
 
@@ -79,6 +86,24 @@ function hasFamilyMatch(enabledAddons: string[], familyPrefix: string): boolean 
     return family === addon ? [addon] : [addon, family];
   });
   return candidates.some((candidate) => prefixes.some((prefix) => candidate.startsWith(prefix)));
+}
+
+/** Plan-included and agency.addons list — used when JWT `custom:addons` is stale/empty. */
+export function agencySatisfiesAddonFamily(input: {
+  familyPrefix: string;
+  agencyAddons?: string[] | null;
+  planId?: string | null;
+}): boolean {
+  const listed = (input.agencyAddons ?? []).map((k) => k.trim()).filter(Boolean);
+  if (hasFamilyMatch(listed, input.familyPrefix)) return true;
+
+  const plan = input.planId?.trim();
+  if (!plan) return false;
+  for (const def of ADDON_CATALOG) {
+    if (!hasFamilyMatch([def.key], input.familyPrefix)) continue;
+    if (isAddonIncludedInPlan(def, plan)) return true;
+  }
+  return false;
 }
 
 async function writeAddonRejectionAudit(
@@ -108,20 +133,41 @@ async function writeAddonRejectionAudit(
     createdAt: new Date().toISOString(),
     resourceType: "agency",
     resourceId: user.agencyId,
-    ip,
-    userAgent,
   });
 }
 
 /**
  * Checks whether the tenant has ANY enabled add-on whose key starts with familyPrefix.
- * Reads enabled keys from verified JWT claim `custom:addons`.
+ * Order: JWT `custom:addons` → agency.addons list → plan-included catalog SKUs.
  */
 export function requireAddon(familyPrefix: string): LambdaMiddleware {
   return async (event, user) => {
     const claims = await getVerifiedJwtClaims(event);
     const enabledAddons = parseClaimAddons(claims?.["custom:addons"]);
     if (hasFamilyMatch(enabledAddons, familyPrefix)) return null;
+
+    try {
+      const agency = await agencies.get(user.agencyId);
+      if (
+        agency &&
+        agencySatisfiesAddonFamily({
+          familyPrefix,
+          agencyAddons: agency.addons,
+          planId: agency.monetizationPlanId ?? agency.planId,
+        })
+      ) {
+        return null;
+      }
+    } catch (error) {
+      console.warn(
+        JSON.stringify({
+          type: "addon_gate.agency_lookup_failed",
+          agencyId: user.agencyId,
+          family: familyPrefix,
+          error: error instanceof Error ? error.message : String(error),
+        }),
+      );
+    }
 
     try {
       await writeAddonRejectionAudit(event, user, familyPrefix);
@@ -131,4 +177,3 @@ export function requireAddon(familyPrefix: string): LambdaMiddleware {
     return jsonStatus({ error: "addon_not_enabled", family: familyPrefix }, 403);
   };
 }
-

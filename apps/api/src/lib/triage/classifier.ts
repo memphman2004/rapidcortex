@@ -8,6 +8,7 @@ import type { TriageAiClassification, TriageAnalyzeEvent, TriagePriority } from 
 import { TRIAGE_SYSTEM_PROMPT, buildTriageUserPrompt } from "./prompt.js";
 import { env } from "../env.js";
 import { isQuoteGroundedInTranscript } from "../validation/grounding-verifier.js";
+import { normalizeConfidencePercent } from "../../ai/confidence.js";
 
 function modelId(): string {
   return process.env.BEDROCK_MODEL_PRIMARY?.trim() || "anthropic.claude-3-5-haiku-20241022-v1:0";
@@ -101,7 +102,8 @@ export async function classifyWithBedrock(event: TriageAnalyzeEvent): Promise<Tr
       ? (parsed.classification as (typeof validClasses)[number])
       : "UNCERTAIN";
 
-    const confidence = Math.min(100, Math.max(0, Math.round(parsed.confidence ?? 0)));
+    // Prompt asks for 0–100; models sometimes return 0–1 (0.88 → Math.round = 1% without normalize).
+    const confidence = normalizeConfidencePercent(parsed.confidence ?? 0);
     const transcriptText = event.segments.map((s) => `[${s.speaker}]: ${s.text}`).join("\n");
     const sourceQuote = parsed.sourceQuote?.trim() || null;
     const quoteGrounded = isQuoteGroundedInTranscript(sourceQuote, transcriptText);

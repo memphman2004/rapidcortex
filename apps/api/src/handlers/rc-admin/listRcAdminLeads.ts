@@ -20,6 +20,7 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
       items: items.map((item) => ({
         ...item,
         status: item.status ?? "new",
+        packageSold: item.packageSold ?? "none",
         source: item.source ?? ("agencyCompany" in item && item.agencyCompany ? "contact-sales" : "unknown"),
       })),
     });

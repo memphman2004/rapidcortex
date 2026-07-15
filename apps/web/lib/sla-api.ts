@@ -36,11 +36,10 @@ async function slaRequest<T>(path: string, init?: RequestInit): Promise<T> {
   const text = await res.text();
   const body = text ? (JSON.parse(text) as unknown) : null;
   if (!res.ok) {
-    const msg =
-      body && typeof body === "object" && "message" in body && typeof (body as { message: unknown }).message === "string"
-        ? (body as { message: string }).message
-        : `Request failed ${res.status}`;
-    throw new Error(msg);
+    const o = body && typeof body === "object" ? (body as Record<string, unknown>) : null;
+    const err = o && typeof o.error === "string" ? o.error : null;
+    const message = o && typeof o.message === "string" ? o.message : null;
+    throw new Error(err ?? message ?? `Request failed ${res.status}`);
   }
   return body as T;
 }

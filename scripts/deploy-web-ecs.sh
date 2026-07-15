@@ -1,10 +1,16 @@
 #!/usr/bin/env bash
 set -euo pipefail
-# S3ZIP → CodeBuild (Docker inside AWS only) → ECR — no Docker Desktop / no GitHub.
+# S3ZIP → CodeBuild (Docker inside AWS only) → ECR → pin new image digest on ECS.
 #
-# Optional:
-# - ROLL_ECS_AFTER_CODEBUILD=1 ecs update-service + wait (override ECS_CLUSTER_NAME / ECS_SERVICE_NAME if needed)
+# IMPORTANT: prod task defs use ECR *@sha256:…* pins. `aws ecs update-service
+# --force-new-deployment` alone restarts the **same** pin and will NOT ship a new
+# CodeBuild image. This script registers a new task revision with the build digest.
+#
+# Env:
+# - ROLL_ECS_AFTER_CODEBUILD  default **1** (set 0 / SKIP_ECS_ROLL=1 to build+push only)
 # - WEB_SMOKE_BASE_URL=https://… run scripts/smoke-web.sh after rollout
+# - WEB_CLOUDFRONT_DISTRIBUTION_ID  optional CF invalidation after ECS is stable
+# - ECS_CLUSTER_NAME / ECS_SERVICE_NAME  override naming (default rapid-cortex-v2-web-{env})
 ENVIRONMENT="${1:?Usage: $0 [dev|staging|prod]}"
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
@@ -24,7 +30,14 @@ esac
 
 AWS_REGION="${AWS_REGION:-${AWS_DEFAULT_REGION:-us-east-1}}"
 
-if [[ "${ROLL_ECS_AFTER_CODEBUILD:-0}" == "1" ]]; then
+# Default on: a "successful" web deploy must pin the new digest. Opt out only when
+# intentionally building an image without rolling (e.g. inspect ECR first).
+if [[ "${SKIP_ECS_ROLL:-0}" == "1" ]]; then
+  ROLL_ECS_AFTER_CODEBUILD=0
+fi
+ROLL_ECS_AFTER_CODEBUILD="${ROLL_ECS_AFTER_CODEBUILD:-1}"
+
+if [[ "${ROLL_ECS_AFTER_CODEBUILD}" == "1" ]]; then
   # Override with ECS_CLUSTER_NAME / ECS_SERVICE_NAME if your stack uses a different naming pattern.
   CLUSTER="${ECS_CLUSTER_NAME:-rapid-cortex-v2-web-${ENVIRONMENT}}"
   SVC="${ECS_SERVICE_NAME:-rapid-cortex-v2-web-${ENVIRONMENT}}"
@@ -107,8 +120,9 @@ if [[ "${ROLL_ECS_AFTER_CODEBUILD:-0}" == "1" ]]; then
     echo "✓ Pinned image digest: ${IMAGE_DIGEST}"
     IMAGE_REF="${ECR_REGISTRY}/${ECR_REPO}@${IMAGE_DIGEST}"
   else
-    echo "WARN: Could not retrieve image digest from build logs or ECR. Falling back to :latest." >&2
-    IMAGE_REF="${ECR_REGISTRY}/${ECR_REPO}:latest"
+    echo "ERROR: Could not retrieve image digest from build logs or ECR." >&2
+    echo "  Refusing to roll ECS without a digest pin (force-new-deployment on an old pin ships nothing)." >&2
+    exit 1
   fi
 
   # --- Step 3: Register a new task definition revision pinned to this digest ---
@@ -116,6 +130,15 @@ if [[ "${ROLL_ECS_AFTER_CODEBUILD:-0}" == "1" ]]; then
     --cluster "${CLUSTER}" --services "${SVC}" \
     --region "${AWS_REGION}" \
     --query 'services[0].taskDefinition' --output text)"
+  CURRENT_IMAGE="$(aws ecs describe-task-definition \
+    --task-definition "${CURRENT_TASK_DEF_ARN}" \
+    --region "${AWS_REGION}" \
+    --query 'taskDefinition.containerDefinitions[0].image' --output text)"
+  echo "Current task image: ${CURRENT_IMAGE}"
+  echo "New task image:     ${IMAGE_REF}"
+  if [[ "${CURRENT_IMAGE}" == "${IMAGE_REF}" ]]; then
+    echo "WARN: new digest matches the current task definition image — continuing anyway." >&2
+  fi
   NEW_TASK_DEF_JSON="$(aws ecs describe-task-definition \
     --task-definition "${CURRENT_TASK_DEF_ARN}" \
     --region "${AWS_REGION}" \
@@ -130,7 +153,7 @@ if [[ "${ROLL_ECS_AFTER_CODEBUILD:-0}" == "1" ]]; then
   echo "✓ Registered task definition: ${NEW_TASK_DEF_ARN}"
 
   # --- Step 4: Deploy and wait -----------------------------------------------
-  echo "ROLL_ECS_AFTER_CODEBUILD=1 → ecs update-service ${CLUSTER}/${SVC} → ${NEW_TASK_DEF_ARN}"
+  echo "Rolling ECS ${CLUSTER}/${SVC} → ${NEW_TASK_DEF_ARN}"
   aws ecs update-service \
     --cluster "${CLUSTER}" \
     --service "${SVC}" \
@@ -143,6 +166,30 @@ if [[ "${ROLL_ECS_AFTER_CODEBUILD:-0}" == "1" ]]; then
     --cluster "${CLUSTER}" \
     --services "${SVC}" \
     --region "${AWS_REGION}"
+  echo "✓ ECS service stable on ${NEW_TASK_DEF_ARN}"
+
+  # --- Step 5: Optional CloudFront invalidation for HTML/nav routes ----------
+  CF_DIST="${WEB_CLOUDFRONT_DISTRIBUTION_ID:-}"
+  if [[ -z "${CF_DIST}" && "${ENVIRONMENT}" == "prod" ]]; then
+    CF_DIST="$(aws cloudformation describe-stacks \
+      --stack-name rapid-cortex-web-ssr-prod-v2 \
+      --region "${AWS_REGION}" \
+      --query "Stacks[0].Outputs[?OutputKey=='CloudFrontDistributionId'].OutputValue" \
+      --output text 2>/dev/null || true)"
+  fi
+  if [[ -n "${CF_DIST}" && "${CF_DIST}" != "None" ]]; then
+    echo "Invalidating CloudFront ${CF_DIST} (/, /rc-admin/*, /_next/static/*)…"
+    aws cloudfront create-invalidation \
+      --distribution-id "${CF_DIST}" \
+      --paths "/" "/rc-admin*" "/_next/static/*" \
+      --region "${AWS_REGION}" \
+      --query 'Invalidation.Id' --output text
+  fi
+elif [[ "${ROLL_ECS_AFTER_CODEBUILD}" == "0" ]]; then
+  echo "SKIP: ECS roll disabled (ROLL_ECS_AFTER_CODEBUILD=0 or SKIP_ECS_ROLL=1)."
+  echo "  Image is in ECR only. Do NOT use force-new-deployment alone — register a new"
+  echo "  task definition pinned to the new digest (re-run with default roll, or use"
+  echo "  deploy-web-no-docker.sh)."
 fi
 
 if [[ -n "${WEB_SMOKE_BASE_URL:-}" ]]; then

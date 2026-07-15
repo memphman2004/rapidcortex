@@ -1,5 +1,9 @@
 import { GetCommand, PutCommand, ScanCommand, UpdateCommand } from "@aws-sdk/lib-dynamodb";
-import type { ContactSalesLeadBody, SalesLeadStatus } from "rapid-cortex-shared";
+import type {
+  ContactSalesLeadBody,
+  SalesLeadPackageSold,
+  SalesLeadStatus,
+} from "rapid-cortex-shared";
 import { env } from "../lib/env.js";
 import { ddb } from "./baseRepository.js";
 
@@ -9,6 +13,7 @@ export type SalesLeadRecord = ContactSalesLeadBody & {
   /** Ingest channel — contact-sales form vs Ring waitlist, etc. */
   source?: string;
   status?: SalesLeadStatus;
+  packageSold?: SalesLeadPackageSold;
   notes?: string;
   assignee?: string;
   updatedAt?: string;
@@ -23,6 +28,7 @@ export type RingWaitlistLeadRecord = {
   requestedCity?: string | null;
   createdAt: string;
   status?: SalesLeadStatus;
+  packageSold?: SalesLeadPackageSold;
   notes?: string;
   assignee?: string;
   updatedAt?: string;
@@ -107,6 +113,7 @@ export class SalesLeadRepository {
     leadId: string,
     patch: {
       status?: SalesLeadStatus;
+      packageSold?: SalesLeadPackageSold;
       notes?: string;
       assignee?: string;
       updatedBy: string;
@@ -117,14 +124,20 @@ export class SalesLeadRepository {
 
     const now = new Date().toISOString();
     const sets: string[] = ["updatedAt = :updatedAt", "updatedBy = :updatedBy"];
+    const names: Record<string, string> = {};
     const values: Record<string, unknown> = {
       ":updatedAt": now,
       ":updatedBy": patch.updatedBy,
     };
 
     if (patch.status !== undefined) {
+      names["#status"] = "status";
       sets.push("#status = :status");
       values[":status"] = patch.status;
+    }
+    if (patch.packageSold !== undefined) {
+      sets.push("packageSold = :packageSold");
+      values[":packageSold"] = patch.packageSold;
     }
     if (patch.notes !== undefined) {
       sets.push("notes = :notes");
@@ -140,7 +153,7 @@ export class SalesLeadRepository {
         TableName: table(),
         Key: { leadId },
         UpdateExpression: `SET ${sets.join(", ")}`,
-        ExpressionAttributeNames: patch.status !== undefined ? { "#status": "status" } : undefined,
+        ExpressionAttributeNames: Object.keys(names).length > 0 ? names : undefined,
         ExpressionAttributeValues: values,
         ConditionExpression: "attribute_exists(leadId)",
       }),

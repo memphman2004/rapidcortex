@@ -66,6 +66,8 @@ export const AUDIT_EVENT_TYPES = {
   SALES_LEAD_UPDATED: "sales_lead.updated",
   SALES_LEAD_VIEWED: "sales_lead.viewed",
 
+  GRANT_PACKAGE_GENERATED: "grant_package.generated",
+
   ADOBE_SIGN_PROVISIONING: "adobe_sign.provisioning",
   RC_LITE_KEY_ISSUED: "rc_lite.key.issued",
   AGENCY_SUSPENDED: "agency.suspended",

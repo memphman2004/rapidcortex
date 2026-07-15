@@ -6,12 +6,14 @@ function effectiveRole(role: string): string {
   return migrateLegacyRapidCortexRoleTokenValue(role) ?? role;
 }
 
-/** rcsuperadmin — spec section 1 (Grants omitted until roadmap ships). */
+/** rcsuperadmin — spec section 1. */
 const RC_SUPERADMIN_NAV: NavTab[] = [
   { id: "overview", label: "Platform overview", href: "/rc-admin/dashboard" },
   { id: "agencies", label: "Agencies", href: "/rc-admin/agencies" },
   { id: "users", label: "Users", href: "/rc-admin/users" },
   { id: "billing", label: "Billing", href: "/rc-admin/billing" },
+  { id: "leads", label: "Leads", href: "/rc-admin/leads" },
+  { id: "grants", label: "Grants", href: "/rc-admin/grants" },
   { id: "infrastructure", label: "Infrastructure", href: "/rc-admin/infrastructure" },
   { id: "audit", label: "Audit log", href: "/rc-admin/audit" },
   { id: "support", label: "Platform notices", href: "/rc-admin/support" },
@@ -27,6 +29,8 @@ const RC_BUSINESS_ADMIN_NAV: NavTab[] = [
   { id: "agencies", label: "Agencies", href: "/rc-admin/agencies" },
   { id: "users", label: "Users", href: "/rc-admin/users" },
   { id: "billing", label: "Billing", href: "/rc-admin/billing" },
+  { id: "leads", label: "Leads", href: "/rc-admin/leads" },
+  { id: "grants", label: "Grants", href: "/rc-admin/grants" },
   { id: "service-catalog", label: "Service catalog", href: "/rc-admin/billing/services" },
   { id: "support", label: "Platform notices", href: "/rc-admin/support" },
   { id: "api-clients", label: "Developer portal", href: "/rc-admin/api-clients" },
@@ -35,11 +39,12 @@ const RC_BUSINESS_ADMIN_NAV: NavTab[] = [
   { id: "audit", label: "Audit log", href: "/rc-admin/audit" },
 ];
 
-/** rcitadmin — infrastructure home; no billing or business surfaces. */
+/** rcitadmin — infrastructure home; no billing surfaces (Leads inbox shared across RC roles). */
 const RC_IT_ADMIN_NAV: NavTab[] = [
   { id: "infrastructure", label: "Infrastructure overview", href: "/rc-admin/infrastructure" },
   { id: "system-health", label: "System health", href: "/rc-admin/system-health" },
   { id: "integrations", label: "Integrations", href: "/rc-admin/integrations" },
+  { id: "leads", label: "Leads", href: "/rc-admin/leads" },
   { id: "users", label: "Users", href: "/rc-admin/users" },
   { id: "audit", label: "Audit log", href: "/rc-admin/audit" },
   { id: "system-settings", label: "System settings", href: "/rc-admin/system-settings" },

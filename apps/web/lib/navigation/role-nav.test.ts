@@ -66,4 +66,13 @@ describe("getRoleNav", () => {
     expect(nav.accent).toBe("orange");
     expect(nav.sections[0]?.items[0]?.href).toBe("/app/venue/MBS");
   });
+
+  it("exposes Leads for all RC internal roles", () => {
+    for (const role of ["rcsuperadmin", "rcadmin", "rcitadmin"] as const) {
+      const nav = getRoleNav(role, {});
+      const leads = nav.sections.flatMap((s) => s.items).find((i) => i.id === "leads");
+      expect(leads?.href).toBe("/rc-admin/leads");
+      expect(leads?.label).toBe("Leads");
+    }
+  });
 });

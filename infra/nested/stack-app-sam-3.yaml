@@ -1528,6 +1528,32 @@ Resources:
             Path: /api/rc-admin/leads/{leadId}
             Method: PATCH
 
+  GenerateGrantPackageFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/handlers/rc-admin/generateGrantPackage.handler
+      Timeout: 60
+      Environment:
+        Variables:
+          GRANT_GENERATE_MOCK: "false"
+          GRANT_GENERATE_BEDROCK_MODEL_ID: !Ref AiBedrockFoundationModelId
+          QA_BEDROCK_MODEL_ID: !Ref QaBedrockModelId
+      Policies:
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardA
+        - !Ref AppManagedPolicySecretsAnalyzeProvidersRead
+        - !Ref AppManagedPolicyBedrockAiAndQaFoundationModels
+      Events:
+        RcAdminGrantGenerateRoute:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/platform/grant-generate
+            Method: POST
+
   GetDesktopReleasesOverviewFunction:
     Type: AWS::Serverless::Function
     Metadata:

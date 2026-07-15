@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import {
   addDaysIso,
+  buildAgencyInvoicePrefillLines,
   type AgencyBillingSummary,
   type UiAgencyInvoice,
   type UiLineItem,
@@ -44,7 +45,14 @@ export function CreateAgencyInvoiceModal({
   const [poNumber, setPoNumber] = useState("");
   const [notes, setNotes] = useState("");
   const [lineItems, setLineItems] = useState<UiLineItem[]>(
-    prefillItems?.length ? prefillItems : [newLineItem()],
+    prefillItems?.length
+      ? prefillItems
+      : agency?.suggestedLineItems?.length
+        ? agency.suggestedLineItems
+        : [newLineItem()],
+  );
+  const [prefilling, setPrefilling] = useState(
+    !prefillItems?.length && !(agency?.suggestedLineItems?.length),
   );
   const [saving, setSaving] = useState(false);
   const [sendNow, setSendNow] = useState(false);
@@ -58,6 +66,48 @@ export function CreateAgencyInvoiceModal({
       document.body.style.overflow = "";
     };
   }, []);
+
+  useEffect(() => {
+    if (prefillItems?.length) {
+      setLineItems(prefillItems);
+      setPrefilling(false);
+      return;
+    }
+    if (agency?.suggestedLineItems?.length) {
+      setLineItems(agency.suggestedLineItems);
+      setPrefilling(false);
+      return;
+    }
+
+    let cancelled = false;
+    async function loadSuggested() {
+      setPrefilling(true);
+      try {
+        const res = await fetch(
+          `/api/rc-admin/agencies/${encodeURIComponent(agencyId)}/billing-summary`,
+        );
+        if (!res.ok) return;
+        const summary = (await res.json()) as AgencyBillingSummary;
+        if (cancelled) return;
+        if (summary.suggestedLineItems?.length) {
+          setLineItems(summary.suggestedLineItems);
+        } else if (summary.plan) {
+          setLineItems(
+            buildAgencyInvoicePrefillLines({
+              plan: summary.plan,
+              currentMonthlyRate: summary.currentMonthlyRate,
+            }),
+          );
+        }
+      } finally {
+        if (!cancelled) setPrefilling(false);
+      }
+    }
+    void loadSuggested();
+    return () => {
+      cancelled = true;
+    };
+  }, [agencyId, agency?.suggestedLineItems, prefillItems]);
 
   function updateItem(id: string, field: keyof UiLineItem, value: string | number) {
     setLineItems((prev) =>
@@ -193,7 +243,18 @@ export function CreateAgencyInvoiceModal({
             </label>
           </div>
 
-          <p className="mb-2 text-[11px] font-medium uppercase tracking-wide text-slate-500">Line items</p>
+          <p className="mb-2 text-[11px] font-medium uppercase tracking-wide text-slate-500">
+            Line items
+            {prefilling ? (
+              <span className="ml-2 font-normal normal-case text-slate-600">
+                Loading plan &amp; add-ons…
+              </span>
+            ) : lineItems.some((i) => i.id === "plan-monthly" || i.id.startsWith("addon-")) ? (
+              <span className="ml-2 font-normal normal-case text-slate-600">
+                Prefill from agency plan/add-ons — editable
+              </span>
+            ) : null}
+          </p>
           <div className="overflow-x-auto">
             <table className="w-full min-w-[560px] text-xs">
               <thead>

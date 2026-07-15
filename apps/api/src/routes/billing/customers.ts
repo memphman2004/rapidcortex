@@ -1,6 +1,7 @@
 import { GetCommand, PutCommand, QueryCommand, ScanCommand, UpdateCommand } from "@aws-sdk/lib-dynamodb";
 import {
   createBillingCustomerBodySchema,
+  canAccessRcFinancePortal,
   isRcsuperadmin,
   patchBillingCustomerBodySchema,
   type UserContext,
@@ -40,7 +41,9 @@ function billingTail(rawPath: string): string[] {
 }
 
 function getAgencyScope(user: UserContext, queryAgencyId?: string): string | null {
-  if (isRcsuperadmin(user)) return (queryAgencyId ?? user.agencyId ?? "").trim() || null;
+  if (isRcsuperadmin(user) || canAccessRcFinancePortal(user.role)) {
+    return (queryAgencyId ?? user.agencyId ?? "").trim() || null;
+  }
   return user.agencyId;
 }
 

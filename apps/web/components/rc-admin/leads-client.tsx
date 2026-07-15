@@ -2,12 +2,17 @@
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
-import type { SalesLeadStatus } from "rapid-cortex-shared";
+import {
+  SALES_LEAD_PACKAGE_SOLD_LABELS,
+  type SalesLeadPackageSold,
+  type SalesLeadStatus,
+} from "rapid-cortex-shared";
 
 type LeadRow = {
   leadId: string;
   createdAt: string;
   status?: SalesLeadStatus;
+  packageSold?: SalesLeadPackageSold;
   source?: string;
   email: string;
   name?: string;
@@ -26,6 +31,7 @@ type LeadRow = {
 };
 
 const STATUSES: SalesLeadStatus[] = ["new", "contacted", "qualified", "won", "lost"];
+const PACKAGES: SalesLeadPackageSold[] = ["rc_core", "rc_campus", "rc_venue", "rc_lite", "none"];
 
 function statusClass(status: SalesLeadStatus): string {
   if (status === "won") return "bg-emerald-950/60 text-emerald-300";
@@ -39,6 +45,10 @@ function sourceLabel(source?: string): string {
   if (source === "ring-connect-waitlist") return "Ring waitlist";
   if (source === "contact-sales") return "Contact sales";
   return source ?? "Unknown";
+}
+
+function packageLabel(pkg?: SalesLeadPackageSold): string {
+  return SALES_LEAD_PACKAGE_SOLD_LABELS[pkg ?? "none"];
 }
 
 function displayName(row: LeadRow): string {
@@ -56,6 +66,7 @@ export function RcAdminLeadsClient() {
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [statusFilter, setStatusFilter] = useState<SalesLeadStatus | "all">("all");
   const [draftStatus, setDraftStatus] = useState<SalesLeadStatus>("new");
+  const [draftPackageSold, setDraftPackageSold] = useState<SalesLeadPackageSold>("none");
   const [draftNotes, setDraftNotes] = useState("");
   const [draftAssignee, setDraftAssignee] = useState("");
   const [saveMsg, setSaveMsg] = useState<string | null>(null);
@@ -80,13 +91,17 @@ export function RcAdminLeadsClient() {
   }, [items, statusFilter]);
 
   const selected = useMemo(
-    () => filtered.find((row) => row.leadId === selectedId) ?? items.find((row) => row.leadId === selectedId) ?? null,
+    () =>
+      filtered.find((row) => row.leadId === selectedId) ??
+      items.find((row) => row.leadId === selectedId) ??
+      null,
     [filtered, items, selectedId],
   );
 
   function selectLead(row: LeadRow) {
     setSelectedId(row.leadId);
     setDraftStatus(row.status ?? "new");
+    setDraftPackageSold(row.packageSold ?? "none");
     setDraftNotes(row.notes ?? "");
     setDraftAssignee(row.assignee ?? "");
     setSaveMsg(null);
@@ -101,6 +116,7 @@ export function RcAdminLeadsClient() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           status: draftStatus,
+          packageSold: draftPackageSold,
           notes: draftNotes,
           assignee: draftAssignee,
         }),
@@ -115,6 +131,7 @@ export function RcAdminLeadsClient() {
       setSaveMsg("Saved");
       void qc.invalidateQueries({ queryKey: ["rc-admin-leads"] });
       setDraftStatus(data.item.status ?? "new");
+      setDraftPackageSold(data.item.packageSold ?? "none");
       setDraftNotes(data.item.notes ?? "");
       setDraftAssignee(data.item.assignee ?? "");
     },
@@ -161,6 +178,7 @@ export function RcAdminLeadsClient() {
                   <th className="px-4 py-2 font-medium">Lead</th>
                   <th className="px-4 py-2 font-medium">Source</th>
                   <th className="px-4 py-2 font-medium">Status</th>
+                  <th className="px-4 py-2 font-medium">Package sold</th>
                   <th className="px-4 py-2 font-medium">Created</th>
                 </tr>
               </thead>
@@ -188,6 +206,9 @@ export function RcAdminLeadsClient() {
                           {status}
                         </span>
                       </td>
+                      <td className="px-4 py-3 text-xs text-slate-300">
+                        {packageLabel(row.packageSold)}
+                      </td>
                       <td className="px-4 py-3 text-xs text-slate-500">
                         {new Date(row.createdAt).toLocaleString()}
                       </td>
@@ -207,7 +228,7 @@ export function RcAdminLeadsClient() {
           <div className="space-y-4">
             <div>
               <h2 className="text-sm font-semibold text-white">{displayName(selected)}</h2>
-              <p className="mt-1 text-xs text-slate-500 font-mono">{selected.leadId}</p>
+              <p className="mt-1 font-mono text-xs text-slate-500">{selected.leadId}</p>
             </div>
 
             <dl className="grid gap-2 text-sm">
@@ -270,6 +291,20 @@ export function RcAdminLeadsClient() {
                   {STATUSES.map((s) => (
                     <option key={s} value={s}>
                       {s}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <label className="block text-xs text-slate-400">
+                Package sold
+                <select
+                  className="mt-1 w-full rounded border border-slate-700 bg-slate-900 px-2 py-2 text-sm text-slate-200"
+                  value={draftPackageSold}
+                  onChange={(e) => setDraftPackageSold(e.target.value as SalesLeadPackageSold)}
+                >
+                  {PACKAGES.map((pkg) => (
+                    <option key={pkg} value={pkg}>
+                      {SALES_LEAD_PACKAGE_SOLD_LABELS[pkg]}
                     </option>
                   ))}
                 </select>

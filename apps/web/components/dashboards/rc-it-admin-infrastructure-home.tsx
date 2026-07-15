@@ -5,6 +5,7 @@ import { useQuery } from "@tanstack/react-query";
 import { fetchApiHealth, fetchPlatformSummary } from "@/lib/api";
 import { DashboardIntegrationHealth } from "./dashboard-integration-health";
 import { RcAdminDashboardAlerts } from "./rc-admin-live-dashboard";
+import { RcAdminLeadsPreview } from "./rc-admin-leads-preview";
 
 /** rcitadmin infrastructure home widgets — spec section 1. */
 export function RcItAdminInfrastructureHome() {
@@ -19,6 +20,7 @@ export function RcItAdminInfrastructureHome() {
 
   return (
     <div className="space-y-4">
+      <RcAdminLeadsPreview />
       <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
         <div className="rounded-lg border border-slate-800 bg-slate-950/70 p-4">
           <p className="text-[10px] font-medium uppercase tracking-wide text-slate-500">API status</p>

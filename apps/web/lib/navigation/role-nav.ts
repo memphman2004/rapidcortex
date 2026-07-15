@@ -85,13 +85,7 @@ export const RC_SUPERADMIN_NAV: RoleNav = {
           icon: "Flag",
           badge: { type: "label", text: "IMMUTABLE", color: "slate" },
         },
-        {
-          id: "grants",
-          label: "Grants",
-          href: "/rc-admin/grants",
-          icon: "ShieldCheck",
-          badge: { type: "label", text: "SUPERADMIN", color: "red" },
-        },
+        { id: "grants",     label: "Grants",           href: "/rc-admin/grants",        icon: "ShieldCheck" },
         { id: "dev-portal",label: "Developer Portal",  href: "/rc-admin/api-clients",   icon: "Code2" },
       ],
     },
@@ -145,8 +139,9 @@ export const RC_ADMIN_NAV: RoleNav = {
       label: "PLATFORM OPS",
       items: [
         { id: "notices",   label: "Platform Notices",  href: "/rc-admin/support",       icon: "Megaphone" },
+        { id: "grants",    label: "Grants",            href: "/rc-admin/grants",        icon: "ShieldCheck" },
         { id: "dev-portal",label: "Developer Portal",  href: "/rc-admin/api-clients",   icon: "Code2" },
-        // Feature flags + grants: superadmin only (see RC_SUPERADMIN_NAV)
+        // Feature flags: superadmin only (see RC_SUPERADMIN_NAV)
       ],
     },
     {
@@ -209,6 +204,13 @@ export const RC_IT_ADMIN_NAV: RoleNav = {
       ],
     },
     {
+      id: "business",
+      label: "BUSINESS",
+      items: [
+        { id: "leads",     label: "Leads",             href: "/rc-admin/leads",         icon: "Inbox", feature: "salesLeads" },
+      ],
+    },
+    {
       id: "tenants",
       label: "TENANTS",
       items: [
@@ -256,13 +258,13 @@ export function getDispatcherNav(jurisdiction: string): RoleNav {
         label: "OPERATIONS",
         items: [
           { id: "dashboard",     label: "Dashboard",       href: `${j}/dashboard`,      icon: "LayoutDashboard", exact: true },
-          { id: "dispatcher",    label: "Dispatcher",      href: `${j}/dashboard`,     icon: "Headphones", exact: true },
-          { id: "intake",        label: "Intake",          href: `${j}/dashboard`,         icon: "PhoneIncoming", exact: true },
+          { id: "dispatcher",    label: "Dispatcher",      href: `${j}/dispatcher`,     icon: "Headphones", exact: true },
+          { id: "intake",        label: "Intake",          href: `${j}/dispatcher/intake`, icon: "PhoneIncoming" },
           { id: "triage",        label: "Triage",          href: `${j}/dispatcher/non-emergency`, icon: "ScanLine",
             feature: "nonEmergencyTriage" },
-          { id: "transcription", label: "Transcription",   href: `${j}/dashboard`,  icon: "FileText", exact: true },
-          { id: "incidents",     label: "Incidents",       href: `${j}/dashboard`,      icon: "AlertCircle",
-            badge: { type: "count", key: "openIncidents" }, exact: true },
+          { id: "transcription", label: "Transcription",   href: `${j}/dispatcher/transcription`, icon: "FileText" },
+          { id: "incidents",     label: "Incidents",       href: `${j}/dispatcher/incidents`, icon: "AlertCircle",
+            badge: { type: "count", key: "openIncidents" } },
           { id: "history",       label: "History",         href: `${j}/history`,        icon: "Clock" },
           { id: "media",         label: "Media",           href: `${j}/media`,          icon: "Video" },
         ],

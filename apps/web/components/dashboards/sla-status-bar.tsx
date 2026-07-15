@@ -1,6 +1,7 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
+import { isAddonNotEnabledError } from "@/lib/addon-gate-errors";
 import { fetchSlaBacklog, isSlaApiConfigured } from "@/lib/sla-api";
 import { isSlaBacklogEnabled } from "@/lib/runtime-flags";
 
@@ -17,6 +18,12 @@ export function SlaStatusBar() {
     queryFn: fetchSlaBacklog,
     enabled,
     refetchInterval: 30_000,
+    retry: (failureCount, error) => {
+      if (isAddonNotEnabledError(error) || (error instanceof Error && /\b403\b/.test(error.message))) {
+        return false;
+      }
+      return failureCount < 2;
+    },
   });
 
   if (!enabled) return null;
@@ -24,8 +31,8 @@ export function SlaStatusBar() {
   const snap = q.data;
   const addonBlocked =
     q.isError &&
-    q.error instanceof Error &&
-    (q.error.message.includes("addon_not_enabled") || q.error.message.includes("403"));
+    (isAddonNotEnabledError(q.error) ||
+      (q.error instanceof Error && /\b403\b/.test(q.error.message)));
   if (addonBlocked) return null;
   const breachLevel: "ok" | "warn" | "bad" =
     (snap?.slaBreachCount ?? 0) > 0 ? "bad" : (snap?.slaWarningCount ?? 0) > 0 ? "warn" : "ok";

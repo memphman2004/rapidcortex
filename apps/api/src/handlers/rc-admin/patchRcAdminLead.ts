@@ -49,6 +49,7 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
       details: {
         leadId,
         status: parsed.data.status,
+        packageSold: parsed.data.packageSold,
         assignee: parsed.data.assignee,
         notesUpdated: parsed.data.notes !== undefined,
       },
@@ -61,6 +62,7 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
       item: {
         ...updated,
         status: updated.status ?? "new",
+        packageSold: updated.packageSold ?? "none",
       },
     });
   } catch (error) {

@@ -58,16 +58,23 @@ export function buildAddonGridRows(catalog: AddonDefinition[] = ADDON_CATALOG): 
   });
 }
 
+/**
+ * Active tier within a family.
+ * Prefer an explicitly enabled (paid) variant over a plan-included base tier so
+ * upgrades (e.g. Included Tier 1 → paid Tier 2) remain visible and selectable.
+ */
 export function activeTierKeyInFamily(
-  family: string,
+  _family: string,
   variants: AddonDefinition[],
   addons: Record<AddonKey, { enabled?: boolean }>,
   plan: string,
   isIncluded: (def: AddonDefinition, plan: string) => boolean,
 ): AddonKey | "" {
   for (const def of variants) {
-    if (isIncluded(def, plan)) return def.key;
     if (addons[def.key]?.enabled) return def.key;
+  }
+  for (const def of variants) {
+    if (isIncluded(def, plan)) return def.key;
   }
   return "";
 }

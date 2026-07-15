@@ -115,7 +115,7 @@ function ActionBtn({
 }
 
 export function NonEmergencyQueuePanel({ enabled }: { enabled: boolean }) {
-  const { items, count, isLoading, isError, mutate } = useTriagePolling(enabled);
+  const { items, count, isLoading, isError, addonBlocked, mutate } = useTriagePolling(enabled);
   const [actionError, setActionError] = useState<string | null>(null);
 
   if (!enabled) return null;
@@ -156,8 +156,14 @@ export function NonEmergencyQueuePanel({ enabled }: { enabled: boolean }) {
 
       {actionError ? <p className="mb-2 text-xs text-red-300">{actionError}</p> : null}
       {isLoading ? <p className="text-xs text-slate-500">Loading queue…</p> : null}
+      {addonBlocked ? (
+        <p className="text-xs text-amber-200/90">
+          This agency cannot access the non-emergency queue (403). Confirm the dispatcher role has queue access and
+          that triage is enabled for the agency.
+        </p>
+      ) : null}
       {isError ? <p className="text-xs text-red-300">Could not load queue.</p> : null}
-      {!isLoading && !isError && items.length === 0 ? (
+      {!isLoading && !isError && !addonBlocked && items.length === 0 ? (
         <p className="text-xs text-slate-500">No pending non-emergency calls.</p>
       ) : null}
 

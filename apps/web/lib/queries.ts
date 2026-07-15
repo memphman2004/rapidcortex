@@ -11,6 +11,7 @@ import {
   isApiConfigured,
   postAnalyze,
 } from "@/lib/api";
+import { isAddonNotEnabledError } from "@/lib/addon-gate-errors";
 import { isCallerCardEnabled, isOfflineDemoDataEnabled } from "@/lib/runtime-flags";
 import { listDemoScenarioRows } from "rapid-cortex-shared";
 import {
@@ -65,9 +66,15 @@ export async function loadLatestAnalysis(
   incidentId: string,
 ): Promise<AIAnalysis | null> {
   if (isApiConfigured()) {
-    const list = await fetchAnalyses(incidentId);
-    const primary = list.find((a) => !a.analysisRecordKind || a.analysisRecordKind === "dispatch");
-    return primary ?? null;
+    try {
+      const list = await fetchAnalyses(incidentId);
+      const primary = list.find((a) => !a.analysisRecordKind || a.analysisRecordKind === "dispatch");
+      return primary ?? null;
+    } catch (error) {
+      // Agency without ai.* add-on — optional AI panel, not a dashboard hard failure.
+      if (isAddonNotEnabledError(error)) return null;
+      throw error;
+    }
   }
   if (isOfflineDemoDataEnabled()) return mockGetLatestAnalysis(incidentId);
   return null;
@@ -77,9 +84,14 @@ export async function loadLatestFieldConfidence(
   incidentId: string,
 ): Promise<ConfidenceAnalysis | null> {
   if (isApiConfigured()) {
-    const list = await fetchAnalyses(incidentId);
-    const row = list.find((a) => a.analysisRecordKind === "field_confidence");
-    return row?.fieldConfidenceAnalysis ?? null;
+    try {
+      const list = await fetchAnalyses(incidentId);
+      const row = list.find((a) => a.analysisRecordKind === "field_confidence");
+      return row?.fieldConfidenceAnalysis ?? null;
+    } catch (error) {
+      if (isAddonNotEnabledError(error)) return null;
+      throw error;
+    }
   }
   return null;
 }

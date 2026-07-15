@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { incidentCategorySchema, urgencyLevelSchema } from "rapid-cortex-shared";
 import { logAiValidationFailure } from "../lib/aiLog.js";
+import { normalizeConfidence } from "./confidence.js";
 
 /**
  * Strict post-provider validation before persisting an analysis.
@@ -10,7 +11,15 @@ import { logAiValidationFailure } from "../lib/aiLog.js";
 export const aiAnalysisOutputSchema = z.object({
   category: incidentCategorySchema,
   urgency: urgencyLevelSchema,
-  confidence: z.coerce.number().min(0).max(1),
+  /** Accepts 0–1 or 0–100 from providers; always yields 0–1. */
+  confidence: z.preprocess(
+    (raw) => {
+      const n = typeof raw === "string" ? Number(raw) : raw;
+      if (typeof n !== "number" || Number.isNaN(n)) return raw;
+      return normalizeConfidence(n);
+    },
+    z.number().min(0).max(1),
+  ),
   nextQuestion: z.string().trim().min(1).max(500),
   recommendedAction: z.string().trim().min(1).max(1200),
   summary: z.string().trim().min(1).max(800),

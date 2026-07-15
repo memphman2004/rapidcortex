@@ -122,7 +122,7 @@ export RING_ACCOUNT_LINK_URL="https://www.rapidcortex.us/connect/ring/link"
 # provider (OpenAiWhisperSttProvider). The same secret is consumed by Whisper STT today; any
 # direct OpenAI text/completion path can read the same ARN.
 export OPENAI_API_KEY_SECRET_ARN="arn:aws:secretsmanager:us-east-1:158961537080:secret:rapid-cortex/ai/openai-kqZQ3D"
-# export ANTHROPIC_API_KEY_SECRET_ARN="arn:aws:secretsmanager:us-east-1:158961537080:secret:rapid-cortex/ai/anthropic-fHk4y2"
+export ANTHROPIC_API_KEY_SECRET_ARN="arn:aws:secretsmanager:us-east-1:158961537080:secret:rapid-cortex/ai/anthropic-fHk4y2"
 
 # Multilingual — Translate + TTS (Google) and STT/Translator (Azure). The same Azure ARN is
 # referenced from both AzureSpeechKey and AzureTranslationKey SAM params (one rotation surface);

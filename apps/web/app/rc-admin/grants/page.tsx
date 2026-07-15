@@ -1,28 +1,31 @@
-import { requireSuperAdmin } from "@/lib/auth/require-role";
+import { redirect } from "next/navigation";
+import { isRcAdmin, isRcSuperAdmin } from "rapid-cortex-security";
+import { RcAdminGrantsTabsClient } from "@/components/rc-admin/grants-tabs-client";
 import { getDashboardSessionUser } from "@/lib/dashboards/get-dashboard-session";
-import { AccessOverridesManager } from "@/components/agency-admin/access-overrides-manager";
+import { marketingLoginPath } from "@/lib/marketing-links";
+import { isGrantSuccessProgramUiEnabled } from "@/lib/runtime-flags";
 
 export const metadata = {
-  title: "Access grants",
+  title: "Grants",
   robots: { index: false, follow: false },
 };
 
-/** Platform-wide temporary access grants (rcsuperadmin only). */
+/** Platform access grants + Grant Success Program — rcsuperadmin and rcadmin only (rcitadmin excluded). */
 export default async function RcAdminGrantsPage() {
-  await requireSuperAdmin();
   const user = await getDashboardSessionUser();
-  if (!user) return null;
+  if (!user || (!isRcSuperAdmin(user.role) && !isRcAdmin(user.role))) {
+    redirect(`${marketingLoginPath()}?from=/rc-admin/grants`);
+  }
 
   return (
     <div className="space-y-4">
       <div>
-        <h1 className="text-2xl font-semibold text-white">Access grants</h1>
+        <h1 className="text-2xl font-semibold text-white">Grants</h1>
         <p className="mt-2 max-w-3xl text-sm text-slate-400">
-          Issue, review, and revoke temporary role or permission overrides across agencies. All
-          changes are audited.
+          Issue access overrides, review active grants, and generate school safety grant packages.
         </p>
       </div>
-      <AccessOverridesManager initialUser={user} />
+      <RcAdminGrantsTabsClient initialUser={user} showGrantSuccessProgram={isGrantSuccessProgramUiEnabled()} />
     </div>
   );
 }

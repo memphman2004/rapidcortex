@@ -9,6 +9,7 @@ import { isApiConfigured } from "@/lib/api";
 import { loadIncidents } from "@/lib/queries";
 import { useJurisdictionLink } from "@/lib/jurisdiction-context";
 import type { IncidentCategory, IncidentStatus, UrgencyLevel } from "rapid-cortex-shared";
+import { confidenceToDisplayPercent } from "rapid-cortex-shared";
 
 const categories: IncidentCategory[] = [
   "medical",
@@ -175,7 +176,7 @@ export function HistoryView() {
                     <StatusBadge value={row.status} />
                   </td>
                   <td className="px-3 py-2 text-slate-300 tabular-nums">
-                    {row.confidence == null ? "—" : `${Math.round(row.confidence * 100)}%`}
+                    {row.confidence == null ? "—" : `${confidenceToDisplayPercent(row.confidence)}%`}
                   </td>
                   <td className="px-3 py-2 text-slate-300">
                     {row.escalationFlag ? (

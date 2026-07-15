@@ -3,6 +3,7 @@
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import type { Incident, TranscriptSegment, VoiceBridgeOutboundResponse } from "rapid-cortex-shared";
+import { normalizeCallLanguageCode } from "rapid-cortex-shared";
 import {
   fetchDispatcherActiveCalls,
   fetchSilentTextSessions,
@@ -34,17 +35,25 @@ export function DispatcherCallerReplyPanel({
   incidentId,
   incident,
   segments,
+  selectedLanguage,
 }: {
   incidentId: string | null;
   incident: Incident | null;
   segments: TranscriptSegment[];
+  /** Language from the bar above (may be ahead of incident.callerLanguage). */
+  selectedLanguage?: string | null;
 }) {
   const enabled =
     Boolean(incidentId) && isApiConfigured() && isCallerTranslationReplyEnabled();
-  const callerLang = useMemo(
+  const storedLang = useMemo(
     () => resolveIncidentCallerLanguage(incident, segments),
     [incident, segments],
   );
+  const callerLang = useMemo(() => {
+    const pick = selectedLanguage?.trim();
+    if (pick) return normalizeCallLanguageCode(pick);
+    return storedLang;
+  }, [selectedLanguage, storedLang]);
   const needsTranslation = callerLanguageNeedsTranslation(callerLang);
   const [draft, setDraft] = useState("");
   const [preview, setPreview] = useState<string | null>(null);
@@ -127,9 +136,12 @@ export function DispatcherCallerReplyPanel({
   const voiceMut = useMutation({
     mutationFn: async () => {
       if (!incidentId) throw new Error("No incident");
+      if (!callerLang || !needsTranslation) {
+        throw new Error("Select a non-English caller language first.");
+      }
       return postVoiceBridgeOutbound(incidentId, {
         text: draft.trim(),
-        targetLanguage: callerLang ?? undefined,
+        targetLanguage: callerLang,
         callId: matchedCallId,
       });
     },
@@ -146,6 +158,15 @@ export function DispatcherCallerReplyPanel({
   }, [draft, sendTextMut]);
 
   if (!enabled || !incidentId) return null;
+
+  const canPlayVoice = Boolean(draft.trim()) && needsTranslation && !voiceMut.isPending;
+  const voiceDisabledReason = !draft.trim()
+    ? "Type an English message first"
+    : !needsTranslation
+      ? "Select a non-English caller language above"
+      : voiceMut.isPending
+        ? "Queuing…"
+        : undefined;
 
   return (
     <div className="shrink-0 border-b border-violet-900/40 bg-violet-950/20 px-4 py-3">
@@ -188,8 +209,9 @@ export function DispatcherCallerReplyPanel({
         {isVoiceBridgeEnabled() ? (
           <button
             type="button"
-            disabled={!draft.trim() || !needsTranslation || voiceMut.isPending}
+            disabled={!canPlayVoice}
             onClick={() => voiceMut.mutate()}
+            title={voiceDisabledReason}
             className="rounded border border-emerald-800 bg-emerald-950/40 px-3 py-1.5 text-[11px] font-medium text-emerald-100 hover:bg-emerald-950/70 disabled:opacity-40"
           >
             {voiceMut.isPending ? "Queuing…" : "Play on call (voice bridge)"}
@@ -201,10 +223,19 @@ export function DispatcherCallerReplyPanel({
       ) : null}
       {isVoiceBridgeEnabled() && matchedCallId ? (
         <p className="mt-1 text-[10px] text-emerald-400/90">Linked call: {matchedCallId.slice(0, 12)}…</p>
+      ) : isVoiceBridgeEnabled() && needsTranslation ? (
+        <p className="mt-1 text-[10px] text-slate-500">
+          No linked live call yet — playback still queues to the telephony adapter when configured.
+        </p>
       ) : null}
       {lastVoice ? (
         <p className="mt-1 text-[10px] text-slate-500" role="status">
           Voice queued ({lastVoice.deliveryMode}, {lastVoice.telephonyStatus})
+          {lastVoice.deliveryMode === "mock"
+            ? " — telephony webhook not configured; caller will not hear live audio until voice bridge is connected to your call path."
+            : lastVoice.deliveryMode === "text_only"
+              ? " — audio delivery was skipped; check TTS / telephony adapter."
+              : null}
         </p>
       ) : null}
       {localErr ? (

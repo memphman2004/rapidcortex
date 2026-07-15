@@ -26,35 +26,39 @@ function parseAgencyFilter(): string | null {
   return value;
 }
 
-function escapeFilterValue(value: string): string {
-  return value.replace(/\\/g, "\\\\").replace(/"/g, '\\"');
-}
-
 function addonKeysForPlan(plan: string): string[] {
-  // Pilot live: only sync keys needed for F3 triage surfaces + queue SLA bar.
-  // Full catalog CSV exceeds Cognito custom attribute limits.
+  // Compact CSV for Cognito (full catalog exceeds custom attribute size).
+  // Plan-included families used by dispatcher workspace + SLA bar + translation reply.
   void plan;
-  return ["ai.triage.basic", "reliability.slo_dashboards"];
+  return [
+    "ai.triage.basic",
+    "ai.summarization.basic",
+    "reliability.slo_dashboards",
+    "translation.live.tier1",
+  ];
 }
 
 async function listAgencyUsernames(agencyId: string): Promise<string[]> {
   const cognito = new CognitoIdentityProviderClient({ region: REGION });
   const usernames: string[] = [];
   let paginationToken: string | undefined;
-  const filter = `custom:agencyId = "${escapeFilterValue(agencyId)}"`;
 
+  // Cognito ListUsers Filter does not reliably support custom:agencyId — paginate and match locally.
   do {
     const out = await cognito.send(
       new ListUsersCommand({
         UserPoolId: USER_POOL_ID,
-        Filter: filter,
         PaginationToken: paginationToken,
         Limit: 60,
       }),
     );
     for (const user of out.Users ?? []) {
       const username = user.Username?.trim();
-      if (username) usernames.push(username);
+      if (!username) continue;
+      const attrs = Object.fromEntries(
+        (user.Attributes ?? []).map((a) => [a.Name ?? "", a.Value ?? ""]),
+      );
+      if (attrs["custom:agencyId"] === agencyId) usernames.push(username);
     }
     paginationToken = out.PaginationToken;
   } while (paginationToken);

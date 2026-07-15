@@ -195,7 +195,8 @@ function agencyFeaturesHref(agencyId: string, pathname: string, to: (p: string) 
 
 function agencyBillingHref(agencyId: string, pathname: string, to: (p: string) => string): string {
   if (pathname.startsWith("/rc-admin")) {
-    return `${RC_PLATFORM_COMMAND_PATHS.agencies}/${encodeURIComponent(agencyId)}/billing?firstInvoice=1`;
+    // Open billing with the create-invoice modal — do not auto-POST /invoices/first.
+    return `${RC_PLATFORM_COMMAND_PATHS.agencies}/${encodeURIComponent(agencyId)}/billing?createInvoice=1`;
   }
   return to(`/admin/billing/agency/${encodeURIComponent(agencyId)}`);
 }

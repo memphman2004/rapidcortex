@@ -1058,7 +1058,8 @@ Globals:
             PilotTriageMock: !If [PilotTestFeaturesOn, "true", "false"]
             PilotEnableFieldConfidence: !If [PilotTestFeaturesOn, "true", "false"]
             PilotConfidenceScoreEveryNSegments: !If [PilotTestFeaturesOn, "5", "0"]
-            PilotConfidenceScoringMock: !If [PilotTestFeaturesOn, "true", "false"]
+            # Never default confidence scoring to mock — fake % looks "broken" in pilot/dev stages.
+            PilotConfidenceScoringMock: "false"
             PilotEnablePredictiveStaffing: !If [PilotTestFeaturesOn, "true", "false"]
             PilotPredictiveStaffingMock: !If [PilotTestFeaturesOn, "true", "false"]
             PilotDeceptionShield: !If [PilotTestFeaturesOn, "true", "false"]

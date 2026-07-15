@@ -25,7 +25,7 @@
  *     <LanguageSelector
  *       value={selectedLanguage}
  *       onChange={(code) => setSelectedLanguage(code)}
- *       onSave={(code) => handleSaveLanguage(code)}
+ *       onSave={(code) => handleSaveLanguage(code)}  // also invoked on select
  *       saving={savingLanguage}
  *     />
  *
@@ -410,6 +410,9 @@ export function LanguageSelector({
 
   function handleSelect(code: string) {
     onChange(code);
+    // Persist immediately when a save handler is provided — the Save footer button is inside
+    // this panel, and closing on select made “pick Vietnamese but never save” a common miss.
+    onSave?.(code);
     setOpen(false);
     setSearch("");
   }

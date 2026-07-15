@@ -79,7 +79,7 @@ export function AgencyBillingHubClient({ agencyId }: Props) {
   const [firstInvoiceLoading, setFirstInvoiceLoading] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
-  const autoFirstInvoiceStarted = useRef(false);
+  const autoOpenCreateStarted = useRef(false);
 
   const fetchData = useCallback(async () => {
     setLoading(true);
@@ -132,6 +132,7 @@ export function AgencyBillingHubClient({ agencyId }: Props) {
         invoice?: UiAgencyInvoice;
         billingCustomerAutoCreated?: boolean;
         sent?: boolean;
+        sendError?: string;
       };
       if (!res.ok) {
         setLoadError(body.message ?? body.error ?? "Failed to create first invoice.");
@@ -140,12 +141,19 @@ export function AgencyBillingHubClient({ agencyId }: Props) {
       if (body.invoice) {
         setInvoices((prev) => [body.invoice!, ...prev]);
       }
-      const parts = [
-        body.sent ? "Invoice created and sent." : "Invoice created as draft.",
-        body.billingCustomerAutoCreated ? "Billing customer auto-provisioned." : null,
-        body.invoice?.invoiceNumber ? `#${body.invoice.invoiceNumber}` : null,
-      ].filter(Boolean);
-      setSuccessMessage(parts.join(" "));
+      if (body.sendError) {
+        setLoadError(null);
+        setSuccessMessage(
+          `Invoice saved as draft${body.invoice?.invoiceNumber ? ` (#${body.invoice.invoiceNumber})` : ""}, but email/PDF send failed: ${body.sendError}`,
+        );
+      } else {
+        const parts = [
+          body.sent ? "Invoice created and sent." : "Invoice created as draft.",
+          body.billingCustomerAutoCreated ? "Billing customer auto-provisioned." : null,
+          body.invoice?.invoiceNumber ? `#${body.invoice.invoiceNumber}` : null,
+        ].filter(Boolean);
+        setSuccessMessage(parts.join(" "));
+      }
       await fetchData();
     } finally {
       setFirstInvoiceLoading(false);
@@ -153,11 +161,20 @@ export function AgencyBillingHubClient({ agencyId }: Props) {
   }, [agency?.agencyName, agency?.billingContactEmail, agencyId, fetchData]);
 
   useEffect(() => {
-    if (loading || invoices.length > 0 || autoFirstInvoiceStarted.current) return;
-    if (searchParams.get("firstInvoice") !== "1") return;
-    autoFirstInvoiceStarted.current = true;
-    void handleFirstInvoice({ skipConfirm: true });
-  }, [handleFirstInvoice, invoices.length, loading, searchParams]);
+    if (loading || autoOpenCreateStarted.current) return;
+    const open =
+      searchParams.get("createInvoice") === "1" || searchParams.get("firstInvoice") === "1";
+    if (!open) return;
+    autoOpenCreateStarted.current = true;
+    setShowCreate(true);
+    // Clear deep-link params so a refresh does not reopen unexpectedly / auto-retry.
+    if (typeof window !== "undefined") {
+      const url = new URL(window.location.href);
+      url.searchParams.delete("createInvoice");
+      url.searchParams.delete("firstInvoice");
+      window.history.replaceState({}, "", `${url.pathname}${url.search}`);
+    }
+  }, [loading, searchParams]);
 
   const filtered =
     statusFilter === "all" ? invoices : invoices.filter((i) => i.status === statusFilter);
@@ -467,6 +484,7 @@ export function AgencyBillingHubClient({ agencyId }: Props) {
         <CreateAgencyInvoiceModal
           agencyId={agencyId}
           agency={agency}
+          prefillItems={agency?.suggestedLineItems}
           onClose={() => setShowCreate(false)}
           onCreated={(inv) => {
             setInvoices((prev) => [inv, ...prev]);

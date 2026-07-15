@@ -3,6 +3,7 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { TRIAGE_BUCKETS, type TriageResult } from "rapid-cortex-shared/triage/triage";
+import { confidenceToDisplayPercent } from "rapid-cortex-shared";
 import { fetchTriage, isApiConfigured, postTriageOverride } from "@/lib/api";
 import { isNonEmergencyTriageEnabled } from "@/lib/runtime-flags";
 
@@ -44,7 +45,9 @@ export function NonEmergencyTriageStrip({ incidentId }: { incidentId: string | n
         <span className="rounded bg-violet-950 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-violet-200 ring-1 ring-violet-900">
           Triage · {triage.bucket.replace(/_/g, " ")}
         </span>
-        <span className="text-[10px] text-slate-500">{Math.round(triage.confidence * 100)}% confidence</span>
+        <span className="text-[10px] text-slate-500">
+          {confidenceToDisplayPercent(triage.confidence)}% confidence
+        </span>
       </div>
       <p className="mt-2 text-xs font-medium text-slate-200">{triage.headline}</p>
       <p className="mt-1 text-[11px] text-slate-500" title={triage.reasoning}>

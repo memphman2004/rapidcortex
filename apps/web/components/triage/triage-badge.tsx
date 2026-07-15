@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { confidenceToDisplayPercent } from "rapid-cortex-shared";
 import type { TriageResult } from "rapid-cortex-shared/triage/triage";
 import { TriageOverrideModal } from "./triage-override-modal";
 
@@ -56,11 +57,7 @@ export function TriageBadge({
 
   const cls = BADGE_CLASS[state];
   const label = BADGE_LABEL[state];
-  const confidencePct = result
-    ? result.classification
-      ? Math.round(result.confidence * (result.confidence <= 1 ? 100 : 1))
-      : Math.round(result.confidence * 100)
-    : null;
+  const confidencePct = result?.classification != null ? confidenceToDisplayPercent(result.confidence) : null;
 
   return (
     <>

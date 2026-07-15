@@ -38,11 +38,22 @@ export async function upstreamBillingFetch(
   }
   headers.set("authorization", `Bearer ${token}`);
 
-  return fetch(target, {
-    ...init,
-    headers,
-    cache: "no-store",
-  });
+  try {
+    return await fetch(target, {
+      ...init,
+      headers,
+      cache: "no-store",
+    });
+  } catch (err) {
+    const detail = err instanceof Error ? err.message : "Upstream request failed";
+    console.error("[upstreamBillingFetch]", upstreamPath, detail);
+    return new Response(
+      JSON.stringify({
+        error: `Billing API unreachable (${upstreamPath}): ${detail}`,
+      }),
+      { status: 502, headers: { "content-type": "application/json" } },
+    );
+  }
 }
 
 export async function upstreamBillingJson<T extends UpstreamJson = UpstreamJson>(

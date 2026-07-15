@@ -14,23 +14,18 @@ function cognito() {
   return new CognitoIdentityProviderClient({ region: env.region });
 }
 
-function escapeFilterValue(value: string): string {
-  return value.replace(/\\/g, "\\\\").replace(/"/g, '\\"');
-}
-
 export async function listAgencyUsers(agencyId: string): Promise<CognitoAgencyUser[]> {
   const poolId = env.cognitoUserPoolId;
   if (!poolId) return [];
 
   const users: CognitoAgencyUser[] = [];
   let paginationToken: string | undefined;
-  const filter = `custom:agencyId = "${escapeFilterValue(agencyId)}"`;
 
+  // ListUsers Filter does not reliably support custom attributes — match agencyId locally.
   do {
     const out = await cognito().send(
       new ListUsersCommand({
         UserPoolId: poolId,
-        Filter: filter,
         PaginationToken: paginationToken,
         Limit: 60,
       }),
@@ -38,6 +33,10 @@ export async function listAgencyUsers(agencyId: string): Promise<CognitoAgencyUs
     for (const user of out.Users ?? []) {
       const username = user.Username?.trim();
       if (!username) continue;
+      const attrs = Object.fromEntries(
+        (user.Attributes ?? []).map((a) => [a.Name ?? "", a.Value ?? ""]),
+      );
+      if (attrs["custom:agencyId"] !== agencyId) continue;
       users.push({ username, agencyId });
     }
     paginationToken = out.PaginationToken;

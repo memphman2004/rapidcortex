@@ -38,6 +38,14 @@ function asMoney(cents: number | null): string {
   }).format(cents / 100);
 }
 
+/** Reject empty / sentinel timestamps (e.g. Unix epoch → Dec 31, 1969). */
+function isUsablePriceDate(raw?: string | null): raw is string {
+  if (!raw?.trim()) return false;
+  const t = Date.parse(raw);
+  if (!Number.isFinite(t)) return false;
+  return t > 86_400_000;
+}
+
 export function ServiceCatalogDashboard() {
   const [items, setItems] = useState<CatalogItem[]>([]);
   const [catalogUpdatedAt, setCatalogUpdatedAt] = useState<string | null>(null);
@@ -58,7 +66,7 @@ export function ServiceCatalogDashboard() {
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         const data = (await res.json()) as { items: CatalogItem[]; updatedAt?: string };
         setItems((data.items ?? []).filter((x) => x.enabled));
-        if (data.updatedAt) setCatalogUpdatedAt(data.updatedAt);
+        setCatalogUpdatedAt(isUsablePriceDate(data.updatedAt) ? data.updatedAt : null);
       } catch (err) {
         setError(err instanceof Error ? err.message : "Failed to load catalog");
       } finally {

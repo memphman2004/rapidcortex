@@ -162,7 +162,7 @@ export function AgencyFeaturesClient({
           {[...fallbackGrouped.entries()].map(([category, rows]) => (
             <section
               key={category}
-              className="overflow-hidden rounded-lg border border-slate-800"
+              className="overflow-visible rounded-lg border border-slate-800"
               style={{ borderTop: "2px solid var(--role-accent)" }}
             >
               <div
@@ -296,12 +296,24 @@ export function AgencyFeaturesClient({
     );
     const def = getAddonByKey(newKey);
     if (current === newKey) return;
-    if (current) {
+
+    const newIsIncluded = isAddonIncludedInPlan(def, entitlements.plan);
+
+    // Disable any enabled paid variant in the family (never PATCH a plan-included SKU).
+    for (const v of variants) {
+      const enabled = Boolean(entitlements.addons[v.key]?.enabled);
+      if (!enabled) continue;
+      if (isAddonIncludedInPlan(v, entitlements.plan)) continue;
+      if (v.key === newKey) continue;
       await applyPatch(
-        { addonKey: current as AddonKey, enabled: false, forceImmediateDisable: true },
-        getAddonByKey(current as AddonKey).name,
+        { addonKey: v.key, enabled: false, forceImmediateDisable: true },
+        v.name,
       );
     }
+
+    // Selecting the plan-included base just clears paid upgrades — no enable PATCH.
+    if (newIsIncluded) return;
+
     await applyPatch({ addonKey: newKey, enabled: true }, def.name);
   }
 
@@ -348,9 +360,15 @@ export function AgencyFeaturesClient({
         isAddonIncludedInPlan,
       );
       const activeDef = activeKey ? getAddonByKey(activeKey) : row.variants[0];
-      const included = row.variants.some((v) => isAddonIncludedInPlan(v, entitlements.plan));
+      const activeIncluded = activeKey
+        ? isAddonIncludedInPlan(getAddonByKey(activeKey), entitlements.plan)
+        : false;
+      const familyHasIncluded = row.variants.some((v) =>
+        isAddonIncludedInPlan(v, entitlements.plan),
+      );
       const state = activeKey ? entitlements.addons[activeKey] : undefined;
-      const enabled = included || Boolean(state?.enabled);
+      const paidEnabled = Boolean(state?.enabled) && !activeIncluded;
+      const enabled = activeIncluded || paidEnabled;
       const displayDef = activeDef ?? row.variants[0]!;
 
       return (
@@ -366,19 +384,33 @@ export function AgencyFeaturesClient({
             {renderAvailabilityNote(displayDef)}
           </div>
           <select
-            className="rounded border border-slate-700 bg-slate-900 px-2 py-1.5 text-sm text-slate-200"
+            className="rounded border border-slate-700 bg-slate-900 px-2 py-1.5 text-sm text-slate-200 disabled:cursor-not-allowed disabled:opacity-60"
             value={activeKey || row.variants[0]!.key}
-            disabled={!canEdit || included || mutation.isPending}
+            disabled={!canEdit || mutation.isPending}
+            title={
+              !canEdit
+                ? "You do not have permission to change add-on tiers"
+                : familyHasIncluded
+                  ? "Change tier — plan-included base stays free; higher tiers bill as add-ons"
+                  : undefined
+            }
             onChange={(e) => void onTierChange(row.variants, e.target.value as AddonKey)}
           >
-            {row.variants.map((v) => (
-              <option key={v.key} value={v.key}>
-                {tierLabel(v.key)} —{" "}
-                {v.billingType === "monthly" ? `$${v.monthlyPrice}/mo` : `$${v.oneTimePrice}`}
-              </option>
-            ))}
+            {row.variants.map((v) => {
+              const vIncluded = isAddonIncludedInPlan(v, entitlements.plan);
+              return (
+                <option key={v.key} value={v.key}>
+                  {tierLabel(v.key)}
+                  {vIncluded
+                    ? ` — Included in ${entitlements.plan}`
+                    : v.billingType === "monthly"
+                      ? ` — $${v.monthlyPrice}/mo`
+                      : ` — $${v.oneTimePrice}`}
+                </option>
+              );
+            })}
           </select>
-          {included ? (
+          {activeIncluded && !paidEnabled ? (
             <span className="rounded bg-emerald-900/50 px-2 py-1 text-xs text-emerald-200">
               Included in {entitlements.plan}
             </span>
@@ -386,14 +418,14 @@ export function AgencyFeaturesClient({
             <label className="flex items-center gap-2 text-sm text-slate-200">
               <input
                 type="checkbox"
-                checked={Boolean(state?.enabled)}
-                disabled={!canEdit || mutation.isPending}
+                checked={paidEnabled}
+                disabled={!canEdit || mutation.isPending || activeIncluded}
                 onChange={(e) => void onToggle(displayDef, e.target.checked)}
               />
-              {state?.enabled ? "On" : "Off"}
+              {paidEnabled ? "On" : "Off"}
             </label>
           )}
-          {!included && canEdit ? (
+          {!activeIncluded && canEdit ? (
             <OverridePriceInput
               def={displayDef}
               stateCents={state?.overridePriceCents}
@@ -590,7 +622,7 @@ export function AgencyFeaturesClient({
         {[...grouped.entries()].map(([category, rows]) => (
           <section
             key={category}
-            className="overflow-hidden rounded-lg border border-slate-800"
+            className="overflow-visible rounded-lg border border-slate-800"
             style={{ borderTop: "2px solid var(--role-accent)" }}
           >
             <div

@@ -11,8 +11,8 @@ import {
 } from "@/components/dispatcher/create-incident-slide-over";
 import { TranscriptChunkPlayer } from "@/components/dispatch/transcript-chunk-player";
 import { AnalyzeIncidentError, isApiConfigured, postTranscriptSegment } from "@/lib/api";
-import { CallLanguageSelectorBar } from "@/components/dispatch/call-language-selector-bar";
-import { DispatcherCallerReplyPanel } from "@/components/dispatch/dispatcher-caller-reply-panel";
+import { isAddonNotEnabledError } from "@/lib/addon-gate-errors";
+import { CallerTranslationSection } from "@/components/dispatch/caller-translation-section";
 import { isCallerTranslationReplyEnabled } from "@/lib/runtime-flags";
 import {
   isCallerCardEnabled,
@@ -291,14 +291,22 @@ export function DashboardWorkspace() {
       analysisQuery.isLoading ||
       (fieldConfidenceEnabled && fieldConfidenceQuery.isLoading));
 
+  const analysisBlockedByAddon =
+    analysisQuery.isError && isAddonNotEnabledError(analysisQuery.error);
+
   const loadError =
-    incidentsQuery.isError || incidentQuery.isError || transcriptQuery.isError || analysisQuery.isError;
+    incidentsQuery.isError ||
+    incidentQuery.isError ||
+    transcriptQuery.isError ||
+    (analysisQuery.isError && !analysisBlockedByAddon);
 
   const loadErrorMessage =
     (incidentsQuery.error instanceof Error && incidentsQuery.error.message) ||
     (incidentQuery.error instanceof Error && incidentQuery.error.message) ||
     (transcriptQuery.error instanceof Error && transcriptQuery.error.message) ||
-    (analysisQuery.error instanceof Error && analysisQuery.error.message) ||
+    (analysisQuery.error instanceof Error &&
+      !analysisBlockedByAddon &&
+      analysisQuery.error.message) ||
     null;
 
   const showLiveEmptyQueue =
@@ -407,20 +415,11 @@ export function DashboardWorkspace() {
       onRefreshAi={selectedId ? handleRefreshAi : undefined}
       languageBar={
         isApiConfigured() && isCallerTranslationReplyEnabled() && selectedId ? (
-          <>
-            <CallLanguageSelectorBar
-              incidentId={selectedId}
-              incident={incidentForUi}
-              segments={transcriptQuery.data ?? []}
-            />
-            <DispatcherCallerReplyPanel
-              incidentId={selectedId}
-              incident={incidentForUi}
-              segments={transcriptQuery.data ?? []}
-            />
-          </>
-        ) : isApiConfigured() ? (
-          <CallLanguageSelectorBar incidentId={null} incident={null} segments={[]} />
+          <CallerTranslationSection
+            incidentId={selectedId}
+            incident={incidentForUi}
+            segments={transcriptQuery.data ?? []}
+          />
         ) : null
       }
       queueEmptyHint={undefined}

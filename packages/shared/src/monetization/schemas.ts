@@ -38,16 +38,42 @@ export const salesLeadStatusSchema = z.enum([
 ]);
 export type SalesLeadStatus = z.infer<typeof salesLeadStatusSchema>;
 
+/** Product package sold / committed for a lead. */
+export const salesLeadPackageSoldSchema = z.enum([
+  "rc_core",
+  "rc_campus",
+  "rc_venue",
+  "rc_lite",
+  "none",
+]);
+export type SalesLeadPackageSold = z.infer<typeof salesLeadPackageSoldSchema>;
+
+export const SALES_LEAD_PACKAGE_SOLD_LABELS: Record<SalesLeadPackageSold, string> = {
+  rc_core: "RC Core (911)",
+  rc_campus: "RC Campus",
+  rc_venue: "RC Venue",
+  rc_lite: "RC Lite",
+  none: "None",
+};
+
 export const patchSalesLeadBodySchema = z
   .object({
     status: salesLeadStatusSchema.optional(),
+    packageSold: salesLeadPackageSoldSchema.optional(),
     notes: z.string().max(8000).optional(),
     assignee: z.string().max(320).optional(),
   })
   .strict()
-  .refine((v) => v.status !== undefined || v.notes !== undefined || v.assignee !== undefined, {
-    message: "At least one of status, notes, or assignee is required",
-  });
+  .refine(
+    (v) =>
+      v.status !== undefined ||
+      v.packageSold !== undefined ||
+      v.notes !== undefined ||
+      v.assignee !== undefined,
+    {
+      message: "At least one of status, packageSold, notes, or assignee is required",
+    },
+  );
 export type PatchSalesLeadBody = z.infer<typeof patchSalesLeadBodySchema>;
 
 export const publicPricingConfigSchema = z.object({

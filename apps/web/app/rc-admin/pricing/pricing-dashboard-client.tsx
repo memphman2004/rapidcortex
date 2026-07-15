@@ -9,6 +9,7 @@ import {
   isTenantOverride,
 } from "@/lib/pricing/pricing-resolver";
 import {
+  fetchGlobalPricing,
   fetchTenantPricing,
   fetchTenants,
   putGlobalPricing,
@@ -43,6 +44,8 @@ export function PricingDashboardClient({ initialGlobal, initialTenants }: Props)
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
   const [savedFlash, setSavedFlash] = useState(false);
+  const [lastModifiedAt, setLastModifiedAt] = useState(initialGlobal.lastModifiedAt ?? "");
+  const [lastModifiedBy, setLastModifiedBy] = useState(initialGlobal.lastModifiedBy ?? "");
 
   const targetLabel = useMemo(() => {
     if (selectedTenant === "global") return "global pricing";
@@ -128,6 +131,9 @@ export function PricingDashboardClient({ initialGlobal, initialTenants }: Props)
             }
             return merged;
           });
+          const refreshed = await fetchGlobalPricing();
+          setLastModifiedAt(refreshed.lastModifiedAt ?? "");
+          setLastModifiedBy(refreshed.lastModifiedBy ?? "");
         } else {
           await putTenantPricing(selectedTenant, staged, reason);
           setTenantOverrides((prev) => ({ ...prev, ...staged }));
@@ -211,6 +217,20 @@ export function PricingDashboardClient({ initialGlobal, initialTenants }: Props)
             Master guide defaults with global and per-agency overrides. All changes require a
             reason and are recorded in the immutable audit log.
           </p>
+          {lastModifiedAt ? (
+            <p className="mt-1 text-xs text-slate-500">
+              Last changed{" "}
+              {new Date(lastModifiedAt).toLocaleString("en-US", {
+                month: "short",
+                day: "numeric",
+                year: "numeric",
+                hour: "numeric",
+                minute: "2-digit",
+                timeZoneName: "short",
+              })}
+              {lastModifiedBy ? ` · ${lastModifiedBy}` : ""}
+            </p>
+          ) : null}
         </div>
         <label className="inline-flex cursor-pointer items-center gap-2 rounded-lg border border-slate-700 px-3 py-2 text-sm text-slate-200">
           <input

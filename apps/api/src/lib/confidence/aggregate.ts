@@ -7,6 +7,7 @@ import type {
   FieldWeight,
 } from "rapid-cortex-shared";
 import { FIELD_REGISTRY } from "rapid-cortex-shared";
+import { normalizeConfidencePercent } from "../../ai/confidence.js";
 import {
   applyFieldGrounding,
   type GroundingFlag,
@@ -166,7 +167,8 @@ export function buildFieldsFromParsed(
     }
 
     const hasConflict = (raw.conflictingValues?.length ?? 0) > 1;
-    let score = Math.min(100, Math.max(0, Math.round(raw.score)));
+    // Models often return 0–1 despite the 0–100 prompt; Math.round(0.85) → 1% without normalize.
+    let score = normalizeConfidencePercent(raw.score);
     if (groundingDowngraded && value === null) score = 0;
     const prevField = previous?.fields.find((f) => f.field === fieldKey);
     const { trend, delta } = toTrend(score, prevField?.score);

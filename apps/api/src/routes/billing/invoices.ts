@@ -9,6 +9,7 @@ import {
 } from "@aws-sdk/lib-dynamodb";
 import {
   createBillingInvoiceBodySchema,
+  canAccessRcFinancePortal,
   isRcsuperadmin,
   patchBillingInvoiceBodySchema,
   type UserContext,
@@ -64,7 +65,9 @@ function invoicesTail(rawPath: string): string[] {
 }
 
 function getAgencyScope(user: UserContext, queryAgencyId?: string): string | null {
-  if (isRcsuperadmin(user)) return (queryAgencyId ?? user.agencyId ?? "").trim() || null;
+  if (isRcsuperadmin(user) || canAccessRcFinancePortal(user.role)) {
+    return (queryAgencyId ?? user.agencyId ?? "").trim() || null;
+  }
   return user.agencyId;
 }
 

@@ -1,14 +1,16 @@
 "use client";
 
+import { confidenceToDisplayPercent } from "rapid-cortex-shared";
+
 export function ConfidenceMeter({
   value01,
   label = "Confidence",
 }: {
-  /** Normalized 0–1 (same as persisted `AIAnalysis.confidence`). */
+  /** Normalized 0–1 (same as persisted `AIAnalysis.confidence`); also tolerates 0–100. */
   value01: number;
   label?: string;
 }) {
-  const pct = Math.round(Math.min(1, Math.max(0, value01)) * 100);
+  const pct = confidenceToDisplayPercent(value01);
   return (
     <div>
       <div className="flex items-center justify-between gap-2">

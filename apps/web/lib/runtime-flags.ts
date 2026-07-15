@@ -43,6 +43,7 @@ const NEXT_PUBLIC_FLAG_VALUES: Record<string, string | undefined> = {
   NEXT_PUBLIC_ENABLE_VERTICAL_ONBOARDING: process.env.NEXT_PUBLIC_ENABLE_VERTICAL_ONBOARDING,
   NEXT_PUBLIC_ENABLE_CHANNEL_MONITORING: process.env.NEXT_PUBLIC_ENABLE_CHANNEL_MONITORING,
   NEXT_PUBLIC_ENABLE_SALES_LEADS: process.env.NEXT_PUBLIC_ENABLE_SALES_LEADS,
+  NEXT_PUBLIC_ENABLE_GRANT_SUCCESS_PROGRAM: process.env.NEXT_PUBLIC_ENABLE_GRANT_SUCCESS_PROGRAM,
   NEXT_PUBLIC_WEBSOCKET_URL: process.env.NEXT_PUBLIC_WEBSOCKET_URL,
 };
 
@@ -316,4 +317,9 @@ export function isChannelMonitoringEnabled(): boolean {
 /** RC Admin Leads CRM inbox (Contact Sales + Ring waitlist). Default on when unset. */
 export function isSalesLeadsUiEnabled(): boolean {
   return envFlag("NEXT_PUBLIC_ENABLE_SALES_LEADS");
+}
+
+/** Grant Success Program tab on Platform Ops → Grants (AI grant package generator). Default on when unset. */
+export function isGrantSuccessProgramUiEnabled(): boolean {
+  return envFlag("NEXT_PUBLIC_ENABLE_GRANT_SUCCESS_PROGRAM");
 }

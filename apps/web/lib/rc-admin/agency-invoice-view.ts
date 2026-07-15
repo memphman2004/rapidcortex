@@ -1,3 +1,5 @@
+import { getPlanById } from "rapid-cortex-shared";
+
 export type UiInvoiceStatus = "draft" | "sent" | "paid" | "void";
 
 export type UiLineItem = {
@@ -39,7 +41,83 @@ export type AgencyBillingSummary = {
   customerId?: string;
   /** True when the BFF auto-created a billing customer from agency contacts on this load. */
   billingCustomerAutoCreated?: boolean;
+  /** Suggested create-invoice lines (plan + enabled add-ons) with resolved prices. */
+  suggestedLineItems?: UiLineItem[];
 };
+
+/** Map display / legacy plan labels onto subscription catalog ids. */
+function canonicalPlanCatalogId(plan: string): string {
+  const raw = plan.trim().toLowerCase();
+  const normalized = raw.replace(/[\s-]+/g, "_");
+  const aliases: Record<string, string> = {
+    rc_core: "essential",
+    core: "essential",
+    essential: "essential",
+    starter: "essential",
+    professional: "command",
+    pro: "command",
+    command: "command",
+    enterprise: "enterprise_statewide",
+    enterprise_statewide: "enterprise_statewide",
+    statewide: "enterprise_statewide",
+    rc_lite: "rc_lite",
+    lite: "rc_lite",
+  };
+  return aliases[normalized] ?? aliases[raw] ?? normalized;
+}
+
+/** Monthly plan rate in USD major units for invoice drafts. */
+export function resolveAgencyPlanMonthlyRate(
+  summary: Pick<AgencyBillingSummary, "plan" | "currentMonthlyRate">,
+): number {
+  if (summary.currentMonthlyRate > 0) return Number(summary.currentMonthlyRate);
+  const planDef = getPlanById(canonicalPlanCatalogId(summary.plan));
+  if (planDef?.priceCentsMonthly != null) return planDef.priceCentsMonthly / 100;
+  if (planDef?.startingPriceCentsMonthly != null) return planDef.startingPriceCentsMonthly / 100;
+  return 1_999;
+}
+
+type PrefillAddOn = {
+  id: string;
+  name: string;
+  unitPrice: number;
+  billingCycle: "monthly" | "one_time";
+  status?: "enabled" | "disabled";
+};
+
+/** Default invoice lines: assigned plan + enabled add-ons (editable in the create modal). */
+export function buildAgencyInvoicePrefillLines(
+  summary: Pick<AgencyBillingSummary, "plan" | "currentMonthlyRate">,
+  addOns: PrefillAddOn[] = [],
+): UiLineItem[] {
+  const planPrice = resolveAgencyPlanMonthlyRate(summary);
+  const planLabel = summary.plan?.trim() || "RC CORE";
+  const lines: UiLineItem[] = [
+    {
+      id: "plan-monthly",
+      description: `${planLabel} — monthly platform services`,
+      quantity: 1,
+      unitPrice: planPrice,
+      total: planPrice,
+    },
+  ];
+
+  for (const addon of addOns) {
+    if (addon.status === "disabled") continue;
+    const unitPrice = Number(addon.unitPrice) || 0;
+    if (unitPrice <= 0) continue;
+    const cadence = addon.billingCycle === "one_time" ? "one-time" : "monthly add-on";
+    lines.push({
+      id: `addon-${addon.id}`,
+      description: `${addon.name} — ${cadence}`,
+      quantity: 1,
+      unitPrice,
+      total: unitPrice,
+    });
+  }
+
+  return lines;
+}
 
 export function mapInvoiceStatus(raw: unknown): UiInvoiceStatus {
   const s = String(raw ?? "DRAFT").toUpperCase();

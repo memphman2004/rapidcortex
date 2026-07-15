@@ -2,7 +2,6 @@ import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 import {
   ADDON_CATALOG,
-  getPlanById,
   type AddonDefinition,
   type AddonKey,
   type TenantAddonState,
@@ -16,7 +15,9 @@ import {
 } from "@/lib/server/rc-admin-billing-upstream";
 import {
   addDaysIso,
+  buildAgencyInvoicePrefillLines,
   mapLineItems,
+  resolveAgencyPlanMonthlyRate,
   toUiInvoice,
   uiLineItemsToCreatePayload,
   type AgencyBillingSummary,
@@ -141,11 +142,18 @@ async function loadBillingSummary(request: NextRequest, agencyId: string): Promi
   };
 }
 
-function resolveFirstInvoiceUnitPrice(summary: AgencyBillingSummary): number {
-  if (summary.currentMonthlyRate > 0) return summary.currentMonthlyRate;
-  const planDef = getPlanById(summary.plan.toLowerCase());
-  if (planDef?.priceCentsMonthly) return planDef.priceCentsMonthly / 100;
-  return 1_999;
+async function loadEnabledAddOnRows(
+  request: NextRequest,
+  agencyId: string,
+): Promise<FeatureAddOnRow[]> {
+  const res = await upstreamBillingJson<{
+    data?: { entitlements?: { addons?: Record<string, TenantAddonState> } };
+  }>(request, `/api/admin/tenants/${encodeURIComponent(agencyId)}/entitlements`);
+  if (!res.ok) return [];
+  const addons = res.data.data?.entitlements?.addons ?? {};
+  return Object.entries(addons)
+    .map(([key, state]) => mapAddonRow(key as AddonKey, state))
+    .filter(Boolean) as FeatureAddOnRow[];
 }
 
 async function createInvoiceForAgency(
@@ -251,6 +259,13 @@ export async function billingSummaryHandler(request: NextRequest, ctx: RouteCtx)
     }
   }
 
+  const enabledAddOns = await loadEnabledAddOnRows(request, agencyId);
+  summary = {
+    ...summary,
+    currentMonthlyRate: resolveAgencyPlanMonthlyRate(summary),
+    suggestedLineItems: buildAgencyInvoicePrefillLines(summary, enabledAddOns),
+  };
+
   return NextResponse.json(summary);
 }
 
@@ -346,79 +361,95 @@ export async function createInvoiceHandler(request: NextRequest, ctx: RouteCtx) 
 }
 
 export async function createFirstInvoiceHandler(request: NextRequest, ctx: RouteCtx) {
-  const { agencyId } = await ctx.params;
-  const body = (await request.json().catch(() => ({}))) as { send?: boolean };
-  const shouldSend = body.send !== false;
+  try {
+    const { agencyId } = await ctx.params;
+    const body = (await request.json().catch(() => ({}))) as { send?: boolean };
+    const shouldSend = body.send !== false;
 
-  const loaded = await loadBillingSummary(request, agencyId);
-  if (!loaded.ok) return errorResponse(loaded.status, loaded.message);
+    const loaded = await loadBillingSummary(request, agencyId);
+    if (!loaded.ok) return errorResponse(loaded.status, loaded.message);
 
-  const ensured = await ensureBillingCustomerForAgency(request, agencyId, {
-    agencyName: loaded.summary.agencyName,
-    billingContactName: loaded.summary.billingContactName,
-    billingContactEmail: loaded.summary.billingContactEmail,
-  });
-  if ("error" in ensured) return errorResponse(ensured.status, ensured.error);
+    const ensured = await ensureBillingCustomerForAgency(request, agencyId, {
+      agencyName: loaded.summary.agencyName,
+      billingContactName: loaded.summary.billingContactName,
+      billingContactEmail: loaded.summary.billingContactEmail,
+    });
+    if ("error" in ensured) return errorResponse(ensured.status, ensured.error);
 
-  const listRes = await upstreamBillingJson<{ items?: unknown[] }>(
-    request,
-    `/api/billing/invoices?${agencyQuery(agencyId)}`,
-  );
-  if (!listRes.ok) {
-    return errorResponse(listRes.status, String(listRes.body.error ?? "Failed to check existing invoices"));
+    const listRes = await upstreamBillingJson<{ items?: unknown[] }>(
+      request,
+      `/api/billing/invoices?${agencyQuery(agencyId)}`,
+    );
+    if (!listRes.ok) {
+      return errorResponse(
+        listRes.status,
+        String(listRes.body.error ?? listRes.body.message ?? "Failed to check existing invoices"),
+      );
+    }
+    if ((listRes.data.items ?? []).length > 0) {
+      return errorResponse(409, "This agency already has invoices. Use Create invoice instead.");
+    }
+
+    const today = new Date().toISOString().slice(0, 10);
+    const enabledAddOns = await loadEnabledAddOnRows(request, agencyId);
+    const lineItems = buildAgencyInvoicePrefillLines(loaded.summary, enabledAddOns);
+
+    const created = await createInvoiceForAgency(request, agencyId, {
+      customerId: ensured.customerId,
+      invoiceDate: today,
+      dueDate: addDaysIso(today, 30),
+      notes: "Initial platform invoice — created from Platform Command billing hub.",
+      lineItems,
+    });
+    if (!created.ok) return errorResponse(created.status, created.message);
+
+    const invoiceId = String(created.invoice.invoiceId ?? "");
+    let sent = false;
+    let sendError: string | undefined;
+    if (shouldSend && invoiceId) {
+      const sendResult = await sendInvoiceWithPdf(request, agencyId, invoiceId);
+      if (sendResult.ok) {
+        sent = true;
+      } else {
+        // Keep the draft — PDF/email failures must not look like a total create failure.
+        sendError = sendResult.message;
+        console.error("[createFirstInvoice] send failed; draft retained", {
+          agencyId,
+          invoiceId,
+          sendError,
+        });
+      }
+    }
+
+    const uiInvoice = toUiInvoice(
+      {
+        ...created.invoice,
+        ...(sent ? { status: "SENT", emailedAt: new Date().toISOString() } : {}),
+      },
+      created.lineItems,
+      loaded.summary.billingContactEmail,
+      loaded.summary.agencyName,
+    );
+
+    return NextResponse.json(
+      {
+        invoice: uiInvoice,
+        billingCustomerAutoCreated: ensured.created,
+        sent,
+        ...(sendError
+          ? {
+              sendError,
+              message: `Invoice saved as draft, but send failed: ${sendError}`,
+            }
+          : {}),
+      },
+      { status: 201 },
+    );
+  } catch (err) {
+    const detail = err instanceof Error ? err.message : "Unknown error";
+    console.error("[createFirstInvoiceHandler]", detail);
+    return errorResponse(500, `Failed to create first invoice: ${detail}`);
   }
-  if ((listRes.data.items ?? []).length > 0) {
-    return errorResponse(409, "This agency already has invoices. Use Create invoice instead.");
-  }
-
-  const today = new Date().toISOString().slice(0, 10);
-  const unitPrice = resolveFirstInvoiceUnitPrice(loaded.summary);
-  const planLabel = loaded.summary.plan;
-  const lineItems: UiLineItem[] = [
-    {
-      id: "first-invoice-line",
-      description: `${planLabel} — monthly platform services`,
-      quantity: 1,
-      unitPrice,
-      total: unitPrice,
-    },
-  ];
-
-  const created = await createInvoiceForAgency(request, agencyId, {
-    customerId: ensured.customerId,
-    invoiceDate: today,
-    dueDate: addDaysIso(today, 30),
-    notes: "Initial platform invoice — created from Platform Command billing hub.",
-    lineItems,
-  });
-  if (!created.ok) return errorResponse(created.status, created.message);
-
-  const invoiceId = String(created.invoice.invoiceId ?? "");
-  if (shouldSend && invoiceId) {
-    const sent = await sendInvoiceWithPdf(request, agencyId, invoiceId);
-    if (!sent.ok) return errorResponse(sent.status, sent.message);
-  }
-
-  const uiInvoice = toUiInvoice(
-    {
-      ...created.invoice,
-      ...(shouldSend
-        ? { status: "SENT", emailedAt: new Date().toISOString() }
-        : {}),
-    },
-    created.lineItems,
-    loaded.summary.billingContactEmail,
-    loaded.summary.agencyName,
-  );
-
-  return NextResponse.json(
-    {
-      invoice: uiInvoice,
-      billingCustomerAutoCreated: ensured.created,
-      sent: shouldSend,
-    },
-    { status: 201 },
-  );
 }
 
 export async function sendInvoiceHandler(request: NextRequest, ctx: InvoiceRouteCtx) {
