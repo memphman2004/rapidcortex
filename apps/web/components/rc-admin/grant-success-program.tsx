@@ -114,7 +114,13 @@ export function GrantSuccessProgram() {
       });
       if (!res.ok) {
         const body = (await res.json().catch(() => ({}))) as { error?: string };
-        throw new Error(body.error ?? `HTTP ${res.status}`);
+        const detail = body.error?.trim();
+        throw new Error(
+          detail ||
+            (res.status === 503
+              ? "Generation timed out — retry in a moment (API gateway limit is 30s)"
+              : `HTTP ${res.status}`),
+        );
       }
       return (await res.json()) as GrantPackage;
     },

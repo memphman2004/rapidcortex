@@ -13,11 +13,22 @@ const MANAGE_ROLES = new Set([
   "venue_admin",
 ]);
 
-/** Roles that may list, view, and download QR assets. */
-const VIEW_ROLES = new Set([
+/**
+ * Field staff who may program NFC tags for existing codes (cannot create/delete codes).
+ * Aligns with venue/campus deployment workflow on the mobile app.
+ */
+const NFC_PROGRAM_ROLES = new Set([
   ...MANAGE_ROLES,
   "campus_supervisor",
   "venue_supervisor",
+  "campus_security",
+  "venue_security",
+  "venue_operator",
+]);
+
+/** Roles that may list, view, and download QR assets. */
+const VIEW_ROLES = new Set([
+  ...NFC_PROGRAM_ROLES,
   "supervisor",
 ]);
 
@@ -47,6 +58,15 @@ export function canViewQrNfcCodes(user: UserContext, agencyId: string): boolean 
 
 export function canManageQrNfcCodes(user: UserContext, agencyId: string): boolean {
   return canCreateQrNfcCodes(user, agencyId);
+}
+
+/** Program NFC tags for an existing code (field deployment). */
+export function canProgramQrNfcTags(user: UserContext, agencyId: string): boolean {
+  if (isRcsuperadmin(user)) return true;
+  const role = effectiveRole(user);
+  if (!NFC_PROGRAM_ROLES.has(role)) return false;
+  if (isQrNfcPlatformRole(role)) return true;
+  return user.agencyId === agencyId;
 }
 
 /** Alias — deactivate uses the same role set as create. */

@@ -5,7 +5,7 @@ import {
   ScanCommand,
   UpdateCommand,
 } from "@aws-sdk/lib-dynamodb";
-import type { QRNFCRecord, ReportVertical } from "rapid-cortex-shared";
+import type { QRNFCRecord, QRNFCWriteEvent, ReportVertical } from "rapid-cortex-shared";
 import { ddb } from "./baseRepository.js";
 import { env } from "../lib/env.js";
 
@@ -171,5 +171,31 @@ export class QrNfcRepository {
         ExpressionAttributeValues: { ":one": 1, ":zero": 0, ":now": now },
       }),
     );
+  }
+
+  /** Append a field NFC programming event; creates `nfcWriteLog` if missing. */
+  async appendNfcWriteLog(
+    agencyId: string,
+    qrId: string,
+    event: QRNFCWriteEvent,
+  ): Promise<QRNFCRecord | null> {
+    const now = new Date().toISOString();
+    const out = await ddb.send(
+      new UpdateCommand({
+        TableName: tableName(),
+        Key: { agencyId, qrId },
+        UpdateExpression:
+          "SET nfcWriteLog = list_append(if_not_exists(nfcWriteLog, :empty), :event), nfcEnabled = :true, updatedAt = :now",
+        ExpressionAttributeValues: {
+          ":empty": [],
+          ":event": [event],
+          ":true": true,
+          ":now": now,
+        },
+        ConditionExpression: "attribute_exists(qrId)",
+        ReturnValues: "ALL_NEW",
+      }),
+    );
+    return (out.Attributes as QRNFCRecord | undefined) ?? null;
   }
 }

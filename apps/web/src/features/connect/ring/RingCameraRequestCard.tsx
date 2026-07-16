@@ -4,6 +4,7 @@ import { Bell, Camera } from "lucide-react";
 import { useState } from "react";
 import type { RingCameraListItem } from "rapid-cortex-integrations/ring";
 import { KvsRingStreamViewer } from "@/components/ring/KvsRingStreamViewer";
+import { formatDistanceImperial } from "./format-distance-imperial";
 import { RingCameraRequestStatusBadge } from "./RingCameraRequestStatusBadge";
 
 const DURATIONS = [10, 30, 60, 120] as const;
@@ -73,7 +74,7 @@ export function RingCameraRequestCard({
         </div>
       </div>
       <div className="mt-2 flex items-center justify-between gap-2">
-        <p className="text-xs text-[#8B9CB0]">~{camera.distanceMeters}m away</p>
+        <p className="text-xs text-[#8B9CB0]">~{formatDistanceImperial(camera.distanceMeters)} away</p>
         <RingCameraRequestStatusBadge status={status} />
       </div>
 

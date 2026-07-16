@@ -110,6 +110,12 @@ Globals:
         INVITES_TABLE: !Ref InvitesTable
         APP_BASE_URL: !Sub "https://app.rapidcortex.us"
         SMS_ROUTING_TABLE: !Ref SmsRoutingTable
+        ENABLE_SAFE_SOUND: "true"
+        SAFE_SOUND_MOCK: ""
+        SAFE_SOUND_DEVICES_TABLE: !Ref SafeSoundDevicesTable
+        ENABLE_GUARDIAN: "true"
+        GUARDIAN_MOCK: ""
+        GUARDIAN_EVENTS_TABLE: !Ref GuardianEventsTable
         VENUE_CAMERA_REGISTRY_TABLE: !If
           - HasVenueCameraRegistryTable
           - !Ref VenueCameraRegistryTable
@@ -167,6 +173,78 @@ Resources:
       TimeToLiveSpecification:
         AttributeName: ttl
         Enabled: true
+
+  SafeSoundDevicesTable:
+    Type: AWS::DynamoDB::Table
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      TableName: !Sub "${AppName}-safe-sound-devices-${DeploymentStage}"
+      BillingMode: PAY_PER_REQUEST
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: true
+      SSESpecification:
+        SSEEnabled: true
+      AttributeDefinitions:
+        - AttributeName: pk
+          AttributeType: S
+        - AttributeName: sk
+          AttributeType: S
+      KeySchema:
+        - AttributeName: pk
+          KeyType: HASH
+        - AttributeName: sk
+          KeyType: RANGE
+
+  GuardianEventsTable:
+    Type: AWS::DynamoDB::Table
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      TableName: !Sub "${AppName}-guardian-events-${DeploymentStage}"
+      BillingMode: PAY_PER_REQUEST
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: true
+      SSESpecification:
+        SSEEnabled: true
+      AttributeDefinitions:
+        - AttributeName: pk
+          AttributeType: S
+        - AttributeName: sk
+          AttributeType: S
+      KeySchema:
+        - AttributeName: pk
+          KeyType: HASH
+        - AttributeName: sk
+          KeyType: RANGE
+
+  AppManagedPolicySafeSoundDynamo:
+    Type: AWS::IAM::ManagedPolicy
+    Properties:
+      ManagedPolicyName: !Sub "${ManagedPolicyNamePrefix}-sam-qr-safe-sound-ddb-${DeploymentStage}"
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Sid: SafeSoundGuardianCrud
+            Effect: Allow
+            Action:
+              - dynamodb:GetItem
+              - dynamodb:PutItem
+              - dynamodb:UpdateItem
+              - dynamodb:DeleteItem
+              - dynamodb:Query
+              - dynamodb:Scan
+              - dynamodb:BatchGetItem
+              - dynamodb:BatchWriteItem
+              - dynamodb:DescribeTable
+              - dynamodb:ConditionCheckItem
+            Resource:
+              - !GetAtt SafeSoundDevicesTable.Arn
+              - !Sub "${SafeSoundDevicesTable.Arn}/index/*"
+              - !GetAtt GuardianEventsTable.Arn
+              - !Sub "${GuardianEventsTable.Arn}/index/*"
+              - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${AuditTable}
+              - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${AuditTable}/index/*
 
   AppManagedPolicyQrNfcDynamo:
     Type: AWS::IAM::ManagedPolicy
@@ -763,3 +841,367 @@ Resources:
       RouteKey: "POST /api/public/report"
       AuthorizationType: NONE
       Target: !Sub "integrations/${PublicReportIntegN}"
+
+  # ── Safe & Sound / Guardian / Mobile Codes (Expo app) ───────────────────────
+
+  SafeSoundDevicesHttpFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/handlers/safe-sound/devicesHttp.handler
+      Timeout: 30
+      Policies:
+        - !Ref AppManagedPolicySafeSoundDynamo
+
+  SafeSoundGeofencesHttpFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/handlers/safe-sound/geofencesHttp.handler
+      Timeout: 30
+      Policies:
+        - !Ref AppManagedPolicySafeSoundDynamo
+
+  SafeSoundContactsHttpFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/handlers/safe-sound/contactsHttp.handler
+      Timeout: 30
+      Policies:
+        - !Ref AppManagedPolicySafeSoundDynamo
+
+  SafeSoundSubscriptionsHttpFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/handlers/safe-sound/subscriptionsHttp.handler
+      Timeout: 30
+      Policies:
+        - !Ref AppManagedPolicySafeSoundDynamo
+
+  GuardianEventsHttpFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/handlers/guardian/eventsHttp.handler
+      Timeout: 30
+      Policies:
+        - !Ref AppManagedPolicySafeSoundDynamo
+
+  MobileCodesHttpFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/handlers/mobile-codes/codesHttp.handler
+      Timeout: 30
+      Policies:
+        - !Ref AppManagedPolicySafeSoundDynamo
+        - !Ref AppManagedPolicyQrNfcDynamo
+        - !If
+          - HasSmsRoutingTable
+          - !Ref AppManagedPolicyQrNfcSmsRoutingRead
+          - !Ref AWS::NoValue
+
+  SafeSoundDevicesIntegN:
+    Type: AWS::ApiGatewayV2::Integration
+    Properties:
+      ApiId: !Ref HttpApiId
+      IntegrationType: AWS_PROXY
+      IntegrationUri: !Sub arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${SafeSoundDevicesHttpFunction.Arn}/invocations
+      PayloadFormatVersion: "2.0"
+
+  SafeSoundGeofencesIntegN:
+    Type: AWS::ApiGatewayV2::Integration
+    Properties:
+      ApiId: !Ref HttpApiId
+      IntegrationType: AWS_PROXY
+      IntegrationUri: !Sub arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${SafeSoundGeofencesHttpFunction.Arn}/invocations
+      PayloadFormatVersion: "2.0"
+
+  SafeSoundContactsIntegN:
+    Type: AWS::ApiGatewayV2::Integration
+    Properties:
+      ApiId: !Ref HttpApiId
+      IntegrationType: AWS_PROXY
+      IntegrationUri: !Sub arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${SafeSoundContactsHttpFunction.Arn}/invocations
+      PayloadFormatVersion: "2.0"
+
+  SafeSoundSubscriptionsIntegN:
+    Type: AWS::ApiGatewayV2::Integration
+    Properties:
+      ApiId: !Ref HttpApiId
+      IntegrationType: AWS_PROXY
+      IntegrationUri: !Sub arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${SafeSoundSubscriptionsHttpFunction.Arn}/invocations
+      PayloadFormatVersion: "2.0"
+
+  GuardianEventsIntegN:
+    Type: AWS::ApiGatewayV2::Integration
+    Properties:
+      ApiId: !Ref HttpApiId
+      IntegrationType: AWS_PROXY
+      IntegrationUri: !Sub arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${GuardianEventsHttpFunction.Arn}/invocations
+      PayloadFormatVersion: "2.0"
+
+  MobileCodesIntegN:
+    Type: AWS::ApiGatewayV2::Integration
+    Properties:
+      ApiId: !Ref HttpApiId
+      IntegrationType: AWS_PROXY
+      IntegrationUri: !Sub arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${MobileCodesHttpFunction.Arn}/invocations
+      PayloadFormatVersion: "2.0"
+
+  SafeSoundDevicesHttpInvokePermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !Ref SafeSoundDevicesHttpFunction
+      Principal: apigateway.amazonaws.com
+      SourceArn: !Sub arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${HttpApiId}/*
+
+  SafeSoundGeofencesHttpInvokePermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !Ref SafeSoundGeofencesHttpFunction
+      Principal: apigateway.amazonaws.com
+      SourceArn: !Sub arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${HttpApiId}/*
+
+  SafeSoundContactsHttpInvokePermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !Ref SafeSoundContactsHttpFunction
+      Principal: apigateway.amazonaws.com
+      SourceArn: !Sub arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${HttpApiId}/*
+
+  SafeSoundSubscriptionsHttpInvokePermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !Ref SafeSoundSubscriptionsHttpFunction
+      Principal: apigateway.amazonaws.com
+      SourceArn: !Sub arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${HttpApiId}/*
+
+  GuardianEventsHttpInvokePermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !Ref GuardianEventsHttpFunction
+      Principal: apigateway.amazonaws.com
+      SourceArn: !Sub arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${HttpApiId}/*
+
+  MobileCodesHttpInvokePermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !Ref MobileCodesHttpFunction
+      Principal: apigateway.amazonaws.com
+      SourceArn: !Sub arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${HttpApiId}/*
+
+  RouteSafeSoundDevicesListV2:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref HttpApiId
+      RouteKey: "GET /api/safe-sound/devices"
+      Target: !Sub "integrations/${SafeSoundDevicesIntegN}"
+
+  RouteSafeSoundDevicesRegisterV2:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref HttpApiId
+      RouteKey: "POST /api/safe-sound/devices/register"
+      Target: !Sub "integrations/${SafeSoundDevicesIntegN}"
+
+  RouteSafeSoundDeviceGetV2:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref HttpApiId
+      RouteKey: "GET /api/safe-sound/devices/{deviceId}"
+      Target: !Sub "integrations/${SafeSoundDevicesIntegN}"
+
+  RouteSafeSoundDevicePatchV2:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref HttpApiId
+      RouteKey: "PATCH /api/safe-sound/devices/{deviceId}"
+      Target: !Sub "integrations/${SafeSoundDevicesIntegN}"
+
+  RouteSafeSoundDeviceDeleteV2:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref HttpApiId
+      RouteKey: "DELETE /api/safe-sound/devices/{deviceId}"
+      Target: !Sub "integrations/${SafeSoundDevicesIntegN}"
+
+  RouteSafeSoundDeviceLocationGetV2:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref HttpApiId
+      RouteKey: "GET /api/safe-sound/devices/{deviceId}/location"
+      Target: !Sub "integrations/${SafeSoundDevicesIntegN}"
+
+  RouteSafeSoundDeviceLocationPostV2:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref HttpApiId
+      RouteKey: "POST /api/safe-sound/devices/{deviceId}/location"
+      Target: !Sub "integrations/${SafeSoundDevicesIntegN}"
+
+  RouteSafeSoundDeviceHistoryV2:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref HttpApiId
+      RouteKey: "GET /api/safe-sound/devices/{deviceId}/history"
+      Target: !Sub "integrations/${SafeSoundDevicesIntegN}"
+
+  RouteSafeSoundDeviceLostModeV2:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref HttpApiId
+      RouteKey: "POST /api/safe-sound/devices/{deviceId}/lost-mode"
+      Target: !Sub "integrations/${SafeSoundDevicesIntegN}"
+
+  RouteSafeSoundDeviceRcCoreConsentV2:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref HttpApiId
+      RouteKey: "PUT /api/safe-sound/devices/{deviceId}/rc-core-consent"
+      Target: !Sub "integrations/${SafeSoundDevicesIntegN}"
+
+  RouteSafeSoundDeviceActivationV2:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref HttpApiId
+      RouteKey: "GET /api/safe-sound/devices/{deviceId}/activation-status"
+      Target: !Sub "integrations/${SafeSoundSubscriptionsIntegN}"
+
+  RouteSafeSoundGeofencesListCreateV2:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref HttpApiId
+      RouteKey: "GET /api/safe-sound/devices/{deviceId}/geofences"
+      Target: !Sub "integrations/${SafeSoundGeofencesIntegN}"
+
+  RouteSafeSoundGeofencesPostV2:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref HttpApiId
+      RouteKey: "POST /api/safe-sound/devices/{deviceId}/geofences"
+      Target: !Sub "integrations/${SafeSoundGeofencesIntegN}"
+
+  RouteSafeSoundGeofenceDeleteV2:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref HttpApiId
+      RouteKey: "DELETE /api/safe-sound/geofences/{geofenceId}"
+      Target: !Sub "integrations/${SafeSoundGeofencesIntegN}"
+
+  RouteSafeSoundContactsPostV2:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref HttpApiId
+      RouteKey: "POST /api/safe-sound/emergency-contacts"
+      Target: !Sub "integrations/${SafeSoundContactsIntegN}"
+
+  RouteSafeSoundSubscriptionsListV2:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref HttpApiId
+      RouteKey: "GET /api/safe-sound/subscriptions"
+      Target: !Sub "integrations/${SafeSoundSubscriptionsIntegN}"
+
+  RouteSafeSoundSubscriptionsCreateV2:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref HttpApiId
+      RouteKey: "POST /api/safe-sound/subscriptions"
+      Target: !Sub "integrations/${SafeSoundSubscriptionsIntegN}"
+
+  RouteSafeSoundSubscriptionPortalV2:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref HttpApiId
+      RouteKey: "POST /api/safe-sound/subscriptions/{subscriptionId}/portal"
+      Target: !Sub "integrations/${SafeSoundSubscriptionsIntegN}"
+
+  RouteSafeSoundProfileLanguageV2:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref HttpApiId
+      RouteKey: "PATCH /api/safe-sound/profile/language"
+      Target: !Sub "integrations/${SafeSoundSubscriptionsIntegN}"
+
+  RouteGuardianEventGetV2:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref HttpApiId
+      RouteKey: "GET /api/guardian/events/{eventId}"
+      Target: !Sub "integrations/${GuardianEventsIntegN}"
+
+  RouteGuardianEventCancelV2:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref HttpApiId
+      RouteKey: "POST /api/guardian/events/{eventId}/cancel"
+      Target: !Sub "integrations/${GuardianEventsIntegN}"
+
+  RouteMobileCodesListV2:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref HttpApiId
+      RouteKey: "GET /api/codes"
+      Target: !Sub "integrations/${MobileCodesIntegN}"
+
+  RouteMobileCodesCreateV2:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref HttpApiId
+      RouteKey: "POST /api/codes"
+      Target: !Sub "integrations/${MobileCodesIntegN}"
+
+  RouteMobileCodeGetV2:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref HttpApiId
+      RouteKey: "GET /api/codes/{codeId}"
+      Target: !Sub "integrations/${MobileCodesIntegN}"
+
+  RouteMobileCodePatchV2:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref HttpApiId
+      RouteKey: "PATCH /api/codes/{codeId}"
+      Target: !Sub "integrations/${MobileCodesIntegN}"
+
+  RouteMobileCodeDeleteV2:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref HttpApiId
+      RouteKey: "DELETE /api/codes/{codeId}"
+      Target: !Sub "integrations/${MobileCodesIntegN}"
+
+  RouteMobileCodeNfcWriteV2:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref HttpApiId
+      RouteKey: "POST /api/codes/{codeId}/nfc-write"
+      Target: !Sub "integrations/${MobileCodesIntegN}"

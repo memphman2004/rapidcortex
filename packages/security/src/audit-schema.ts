@@ -228,6 +228,24 @@ export const AUDIT_EVENT_TYPES = {
   INCIDENT_CHANNEL_REMOVED: "incident.channel.removed",
   INCIDENT_CHANNEL_NOTES_UPDATED: "incident.channel.notes_updated",
 
+  // ── Safe & Sound / Guardian (mobile) ───────────────────────────────────────
+  SAFE_SOUND_DEVICE_REGISTERED: "safe_sound.device.registered",
+  SAFE_SOUND_DEVICE_UPDATED: "safe_sound.device.updated",
+  SAFE_SOUND_DEVICE_DELETED: "safe_sound.device.deleted",
+  SAFE_SOUND_LOCATION_RECORDED: "safe_sound.location.recorded",
+  SAFE_SOUND_LOST_MODE_TOGGLED: "safe_sound.lost_mode.toggled",
+  SAFE_SOUND_RC_CORE_CONSENT_UPDATED: "safe_sound.rc_core_consent.updated",
+  SAFE_SOUND_GEOFENCE_CREATED: "safe_sound.geofence.created",
+  SAFE_SOUND_GEOFENCE_DELETED: "safe_sound.geofence.deleted",
+  SAFE_SOUND_CONTACTS_SAVED: "safe_sound.contacts.saved",
+  SAFE_SOUND_SUBSCRIPTION_CREATED: "safe_sound.subscription.created",
+  SAFE_SOUND_PROFILE_LANGUAGE_UPDATED: "safe_sound.profile.language_updated",
+  GUARDIAN_EVENT_CANCELLED: "guardian.event.cancelled",
+  MOBILE_CODE_CREATED: "mobile_code.created",
+  MOBILE_CODE_UPDATED: "mobile_code.updated",
+  MOBILE_CODE_DELETED: "mobile_code.deleted",
+  MOBILE_CODE_NFC_WRITE_LOGGED: "mobile_code.nfc_write.logged",
+
   ...RING_AUDIT_EVENT_TYPES,
 } as const;
 

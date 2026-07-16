@@ -72,16 +72,39 @@ export async function authenticateHomeowner(input: {
       if (!(err instanceof UsernameExistsException)) {
         throw err;
       }
-      // Fall through to sign-in for existing accounts.
+      // Fall through to sign-in for existing accounts — but label wrong-password clearly.
+      try {
+        return await signInHomeowner({ email, password: input.password, agencyId, created: false });
+      } catch (signInErr) {
+        const signMsg = signInErr instanceof Error ? signInErr.message : "";
+        if (
+          signMsg === "AUTH_FAILED" ||
+          signMsg.includes("NotAuthorized") ||
+          /incorrect username or password/i.test(signMsg)
+        ) {
+          throw new Error("ACCOUNT_EXISTS_WRONG_PASSWORD");
+        }
+        throw signInErr;
+      }
     }
   }
 
+  return signInHomeowner({ email, password: input.password, agencyId, created });
+}
+
+async function signInHomeowner(input: {
+  email: string;
+  password: string;
+  agencyId: string;
+  created: boolean;
+}): Promise<HomeownerAuthResult> {
+  const clientId = process.env.COGNITO_CLIENT_ID?.trim() ?? "";
   const auth = await cip().send(
     new InitiateAuthCommand({
       AuthFlow: "USER_PASSWORD_AUTH",
       ClientId: clientId,
       AuthParameters: {
-        USERNAME: email,
+        USERNAME: input.email,
         PASSWORD: input.password,
       },
     }),
@@ -97,13 +120,13 @@ export async function authenticateHomeowner(input: {
   }
 
   // Prefer Cognito `sub` from access token payload when present; else use email username.
-  const userId = decodeJwtSub(result.IdToken) ?? email;
+  const userId = decodeJwtSub(result.IdToken) ?? input.email;
 
   return {
     userId,
-    email,
-    agencyId,
-    created,
+    email: input.email,
+    agencyId: input.agencyId,
+    created: input.created,
     authenticationResult: result,
   };
 }

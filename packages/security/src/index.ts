@@ -149,6 +149,7 @@ export { AuthorizationService } from "./authorization-service.js";
 export {
   canCreateQrNfcCodes,
   canManageQrNfcCodes,
+  canProgramQrNfcTags,
   canViewQrNfcCodes,
   canDeactivateQrNfcCodes,
   canDownloadQrNfcCodes,

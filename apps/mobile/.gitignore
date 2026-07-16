@@ -1,0 +1,6 @@
+.env
+.expo/
+node_modules/
+dist/
+google-services.json
+google-play-key.json

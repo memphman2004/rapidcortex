@@ -8,6 +8,7 @@ import {
 } from "@aws-sdk/lib-dynamodb";
 import type { RingOAuthTokens } from "./ring-types.js";
 import { RING_TABLE_NAMES } from "./ring-table-names.js";
+import { docSend } from "./ring-doc-send.js";
 import { RingTokenStore } from "./ring-token-store.js";
 import { computeRingLinkNonce, constantTimeEqual } from "./ring-nonce.js";
 import { getRingCredentials } from "./ring-credentials.js";
@@ -52,7 +53,7 @@ export class RingUnclaimedTokenService {
       status: "unclaimed",
       createdAt: nowIso(),
     };
-    await this.ddb.send(
+    await docSend(this.ddb, 
       new PutCommand({
         TableName: RING_TABLE_NAMES.UNCLAIMED_TOKENS,
         Item: record,
@@ -62,15 +63,15 @@ export class RingUnclaimedTokenService {
   }
 
   async listUnclaimed(): Promise<UnclaimedRingTokenRecord[]> {
-    const out = await this.ddb.send(
+    const out = (await docSend(this.ddb, 
       new ScanCommand({
         TableName: RING_TABLE_NAMES.UNCLAIMED_TOKENS,
         FilterExpression: "#s = :unclaimed",
         ExpressionAttributeNames: { "#s": "status" },
         ExpressionAttributeValues: { ":unclaimed": "unclaimed" },
       }),
-    );
-    return (out.Items ?? []) as UnclaimedRingTokenRecord[];
+    )) as { Items?: UnclaimedRingTokenRecord[] };
+    return out.Items ?? [];
   }
 
   /**
@@ -93,7 +94,7 @@ export class RingUnclaimedTokenService {
 
   async claim(accountId: string, userId: string): Promise<void> {
     const ts = nowIso();
-    await this.ddb.send(
+    await docSend(this.ddb, 
       new UpdateCommand({
         TableName: RING_TABLE_NAMES.UNCLAIMED_TOKENS,
         Key: { accountId },
@@ -109,7 +110,7 @@ export class RingUnclaimedTokenService {
   }
 
   async delete(accountId: string): Promise<void> {
-    await this.ddb.send(
+    await docSend(this.ddb, 
       new DeleteCommand({
         TableName: RING_TABLE_NAMES.UNCLAIMED_TOKENS,
         Key: { accountId },

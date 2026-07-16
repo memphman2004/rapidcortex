@@ -15,6 +15,7 @@ import { normalizeAddressForIndex } from "rapid-cortex-shared";
 import { AUDIT_EVENT_TYPES, AgencyScopeResolver, TenantAccessGuard, isAdminRole } from "rapid-cortex-security";
 import { resolveIncidentRead } from "../lib/incidentReadAccess.js";
 import { LegalHoldRepository } from "../repositories/legalHoldRepository.js";
+import { forwardGeocodeAddress } from "../lib/geocode/mapboxForward.js";
 
 const incidentRepo = new IncidentRepository();
 const auditRepo = new AuditRepository();
@@ -44,6 +45,16 @@ export class IncidentService {
     const callerAddressNormalized = callerAddressLine
       ? normalizeAddressForIndex(callerAddressLine)
       : null;
+
+    let cadCoordinates = opts?.cadCoordinates;
+    let callerLocationMapLabel: string | null | undefined;
+    if ((!cadCoordinates || cadCoordinates.lat == null || cadCoordinates.lng == null) && callerAddressLine) {
+      const geo = await forwardGeocodeAddress(callerAddressLine);
+      if (geo) {
+        cadCoordinates = { lat: geo.lat, lng: geo.lng };
+        callerLocationMapLabel = `mapbox:${geo.placeName}`;
+      }
+    }
 
     const maskCallback = (raw: string): string | null => {
       const d = raw.replace(/\D/g, "");
@@ -83,12 +94,13 @@ export class IncidentService {
       callerAddressNormalized: callerAddressNormalized && callerAddressNormalized.length > 0
         ? callerAddressNormalized
         : null,
-      callerLocationLat: opts?.cadCoordinates?.lat ?? null,
-      callerLocationLng: opts?.cadCoordinates?.lng ?? null,
+      callerLocationLat: cadCoordinates?.lat ?? null,
+      callerLocationLng: cadCoordinates?.lng ?? null,
+      ...(callerLocationMapLabel ? { callerLocationMapLabel } : {}),
       cadNatureCode: opts?.cadNatureCode?.trim() || undefined,
       cadPriority: opts?.cadPriority?.trim() || undefined,
       cadLocation: opts?.cadLocation?.trim() || callerAddressLine || undefined,
-      cadCoordinates: opts?.cadCoordinates,
+      cadCoordinates,
       cadCallerName: opts?.cadCallerName?.trim() || null,
       cadCallerCallbackMasked: opts?.callerCallback ? maskCallback(opts.callerCallback) : null,
     };
@@ -271,9 +283,22 @@ export class IncidentService {
       await incidentRepo.updateSopProtocolOverlay(incidentId, next);
     } else if (body.action === "caller_address") {
       const normalized = normalizeAddressForIndex(body.addressLine);
+      const line = body.addressLine.trim();
+      let lat: number | null = null;
+      let lng: number | null = null;
+      let mapLabel: string | null = null;
+      const geo = await forwardGeocodeAddress(line);
+      if (geo) {
+        lat = geo.lat;
+        lng = geo.lng;
+        mapLabel = `mapbox:${geo.placeName}`;
+      }
       await incidentRepo.updateCallerAddress(incidentId, {
-        callerAddressLine: body.addressLine.trim(),
+        callerAddressLine: line,
         callerAddressNormalized: normalized.length > 0 ? normalized : null,
+        callerLocationLat: lat,
+        callerLocationLng: lng,
+        callerLocationMapLabel: mapLabel,
       });
       await auditRepo.create({
         eventId: makeId("audit"),
@@ -281,7 +306,7 @@ export class IncidentService {
         incidentId,
         actorId: user.userId,
         type: "incident.caller_address_updated",
-        details: {},
+        details: { geocoded: Boolean(geo) },
         createdAt: now,
         resourceType: "incident",
         resourceId: incidentId,

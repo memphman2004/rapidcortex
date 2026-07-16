@@ -233,20 +233,43 @@ export class IncidentRepository {
 
   async updateCallerAddress(
     incidentId: string,
-    fields: { callerAddressLine: string | null; callerAddressNormalized: string | null },
+    fields: {
+      callerAddressLine: string | null;
+      callerAddressNormalized: string | null;
+      callerLocationLat?: number | null;
+      callerLocationLng?: number | null;
+      callerLocationMapLabel?: string | null;
+    },
   ): Promise<void> {
     const now = new Date().toISOString();
+    const sets = [
+      "callerAddressLine = :l",
+      "callerAddressNormalized = :n",
+      "updatedAt = :u",
+    ];
+    const vals: Record<string, unknown> = {
+      ":l": fields.callerAddressLine,
+      ":n": fields.callerAddressNormalized,
+      ":u": now,
+    };
+    if (fields.callerLocationLat !== undefined) {
+      sets.push("callerLocationLat = :lat");
+      vals[":lat"] = fields.callerLocationLat;
+    }
+    if (fields.callerLocationLng !== undefined) {
+      sets.push("callerLocationLng = :lng");
+      vals[":lng"] = fields.callerLocationLng;
+    }
+    if (fields.callerLocationMapLabel !== undefined) {
+      sets.push("callerLocationMapLabel = :ml");
+      vals[":ml"] = fields.callerLocationMapLabel;
+    }
     await ddb.send(
       new UpdateCommand({
         TableName: env.incidentsTable,
         Key: { incidentId },
-        UpdateExpression:
-          "SET callerAddressLine = :l, callerAddressNormalized = :n, updatedAt = :u",
-        ExpressionAttributeValues: {
-          ":l": fields.callerAddressLine,
-          ":n": fields.callerAddressNormalized,
-          ":u": now,
-        },
+        UpdateExpression: `SET ${sets.join(", ")}`,
+        ExpressionAttributeValues: vals,
       }),
     );
   }

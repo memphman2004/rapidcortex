@@ -9,6 +9,7 @@ import {
 import type { LinkedRingDevice } from "./ring-types.js";
 import { RingApiClient } from "./ring-client.js";
 import { RING_TABLE_NAMES } from "./ring-table-names.js";
+import { docSend } from "./ring-doc-send.js";
 
 const EARTH_RADIUS_M = 6_371_000;
 
@@ -91,7 +92,7 @@ export class RingDeviceService {
         createdAt: existing?.createdAt ?? ts,
         updatedAt: ts,
       };
-      await this.ddb.send(
+      await docSend(this.ddb, 
         new PutCommand({
           TableName: RING_TABLE_NAMES.DEVICES,
           Item: toRow(device),
@@ -111,7 +112,7 @@ export class RingDeviceService {
     longitude: number,
   ): Promise<void> {
     const ts = nowIso();
-    await this.ddb.send(
+    await docSend(this.ddb, 
       new UpdateCommand({
         TableName: RING_TABLE_NAMES.DEVICES,
         Key: {
@@ -131,7 +132,8 @@ export class RingDeviceService {
   }
 
   async getLinkedDevices(agencyId: string, userId: string): Promise<LinkedRingDevice[]> {
-    const out = await this.ddb.send(
+    const out = await docSend<{ Items?: DeviceRow[] }>(
+      this.ddb,
       new QueryCommand({
         TableName: RING_TABLE_NAMES.DEVICES,
         KeyConditionExpression: "agencyUserKey = :key",
@@ -140,14 +142,15 @@ export class RingDeviceService {
         },
       }),
     );
-    return (out.Items ?? []).map((item) => fromRow(item as DeviceRow));
+    return (out.Items ?? []).map((item) => fromRow(item));
   }
 
   async getDeviceByAgencyAndDeviceId(
     agencyId: string,
     deviceId: string,
   ): Promise<LinkedRingDevice | null> {
-    const out = await this.ddb.send(
+    const out = await docSend<{ Items?: DeviceRow[] }>(
+      this.ddb,
       new QueryCommand({
         TableName: RING_TABLE_NAMES.DEVICES,
         IndexName: "agencyId-index",
@@ -161,7 +164,7 @@ export class RingDeviceService {
     );
     const item = out.Items?.[0];
     if (!item) return null;
-    return fromRow(item as DeviceRow);
+    return fromRow(item);
   }
 
   async getDevicesNearIncident(
@@ -170,7 +173,8 @@ export class RingDeviceService {
     incidentLongitude: number,
     radiusMeters: number,
   ): Promise<(LinkedRingDevice & { distanceMeters: number })[]> {
-    const out = await this.ddb.send(
+    const out = await docSend<{ Items?: DeviceRow[] }>(
+      this.ddb,
       new QueryCommand({
         TableName: RING_TABLE_NAMES.DEVICES,
         IndexName: "agencyId-index",
@@ -183,7 +187,7 @@ export class RingDeviceService {
 
     const matches: (LinkedRingDevice & { distanceMeters: number })[] = [];
     for (const item of out.Items ?? []) {
-      const device = fromRow(item as DeviceRow);
+      const device = fromRow(item);
       if (!device.isEnabledForConnect) continue;
       if (device.latitude === null || device.longitude === null) continue;
       const distanceMeters = this.calculateDistanceMeters(
@@ -208,7 +212,7 @@ export class RingDeviceService {
     enabled: boolean,
   ): Promise<void> {
     const ts = nowIso();
-    await this.ddb.send(
+    await docSend(this.ddb, 
       new UpdateCommand({
         TableName: RING_TABLE_NAMES.DEVICES,
         Key: {
@@ -242,7 +246,8 @@ export class RingDeviceService {
     agencyId: string,
     ringAccountId: string,
   ): Promise<LinkedRingDevice[]> {
-    const out = await this.ddb.send(
+    const out = await docSend<{ Items?: DeviceRow[] }>(
+      this.ddb,
       new QueryCommand({
         TableName: RING_TABLE_NAMES.DEVICES,
         IndexName: "agencyId-index",
@@ -254,7 +259,7 @@ export class RingDeviceService {
     );
     const matched: LinkedRingDevice[] = [];
     for (const item of out.Items ?? []) {
-      const device = fromRow(item as DeviceRow);
+      const device = fromRow(item);
       if (device.ringAccountId !== ringAccountId) continue;
       if (!device.isEnabledForConnect) {
         matched.push(device);
@@ -271,7 +276,8 @@ export class RingDeviceService {
     userId: string,
     deviceId: string,
   ): Promise<LinkedRingDevice | null> {
-    const out = await this.ddb.send(
+    const out = await docSend<{ Item?: DeviceRow }>(
+      this.ddb,
       new GetCommand({
         TableName: RING_TABLE_NAMES.DEVICES,
         Key: {
@@ -281,7 +287,7 @@ export class RingDeviceService {
       }),
     );
     if (!out.Item) return null;
-    return fromRow(out.Item as DeviceRow);
+    return fromRow(out.Item);
   }
 
   private calculateDistanceMeters(

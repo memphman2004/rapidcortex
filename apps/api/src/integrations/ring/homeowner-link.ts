@@ -116,7 +116,18 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
           error: "Additional authentication is required. Contact support.",
         });
       }
-      if (msg === "AUTH_FAILED" || msg.includes("NotAuthorized") || msg.includes("UserNotFound")) {
+      if (msg === "ACCOUNT_EXISTS_WRONG_PASSWORD") {
+        return ringPublicJson(event, 401, {
+          success: false,
+          error: "An account with this email already exists. Switch to Sign in, or reset your password.",
+        });
+      }
+      if (
+        msg === "AUTH_FAILED" ||
+        msg.includes("NotAuthorized") ||
+        msg.includes("UserNotFound") ||
+        /incorrect username or password/i.test(msg)
+      ) {
         return ringPublicJson(event, 401, {
           success: false,
           error: "Invalid email or password.",
@@ -127,6 +138,13 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
           success: false,
           error:
             "Password must be at least 12 characters and include upper, lower, number, and symbol.",
+        });
+      }
+      if (msg === "COGNITO_NOT_CONFIGURED") {
+        console.error(JSON.stringify({ msg: "ring_homeowner_auth_error", error: msg }));
+        return ringPublicJson(event, 503, {
+          success: false,
+          error: "Sign-in is temporarily unavailable. Try again shortly.",
         });
       }
       console.error(JSON.stringify({ msg: "ring_homeowner_auth_error", error: msg }));

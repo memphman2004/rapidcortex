@@ -182,7 +182,7 @@
     {
       "Sid": "MapboxTokenSsmRead",
       "Effect": "Allow",
-      "Action": ["ssm:GetParameter"],
+      "Action": ["ssm:GetParameter", "ssm:PutParameter"],
       "Resource": "arn:aws:ssm:us-east-1:158961537080:parameter/rapidcortex/prod/mapbox/public-token"
     }
   ]

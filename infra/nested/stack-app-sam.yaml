@@ -262,14 +262,14 @@ Parameters:
   CognitoNativeCallbackUrls:
     Type: String
     Default: >-
-      rapidcortex://oauth/callback,rapidcortex-desktop://oauth/callback,rapidcortex-ios://oauth/callback,rapidcortex-windows://oauth/callback
+      rapidcortex://oauth/callback,rapidcortex://auth/callback,rapidcortex-desktop://oauth/callback,rapidcortex-ios://oauth/callback,rapidcortex-windows://oauth/callback
     Description: >-
       Comma-separated OAuth callback URLs for the **native** app client (PKCE, no secret). Append your HTTPS
       `https://{web-host}/auth/return-to-app` URL here when using the browser return-to-app handoff.
   CognitoNativeLogoutUrls:
     Type: String
     Default: >-
-      rapidcortex://logout/callback,rapidcortex-desktop://logout/callback,rapidcortex-ios://logout/callback,rapidcortex-windows://logout/callback
+      rapidcortex://logout/callback,rapidcortex://auth/logout,rapidcortex-desktop://logout/callback,rapidcortex-ios://logout/callback,rapidcortex-windows://logout/callback
     Description: Comma-separated sign-out URLs for the native app client (must match logout_uri used by native apps).
   CognitoGenerateSecret:
     Type: String
@@ -1674,6 +1674,8 @@ Resources:
         - email
         - profile
       ExplicitAuthFlows:
+        - ALLOW_USER_SRP_AUTH
+        - ALLOW_USER_PASSWORD_AUTH
         - ALLOW_REFRESH_TOKEN_AUTH
       PreventUserExistenceErrors: ENABLED
       SupportedIdentityProviders:
@@ -2004,6 +2006,7 @@ Resources:
         Variables:
           COGNITO_USER_POOL_ID: !Ref CognitoUserPool
           COGNITO_CLIENT_ID: !Ref CognitoUserPoolClient
+          MAPBOX_SSM_PARAMETER: /rapidcortex/prod/mapbox/public-token
       CodeUri: ../../apps/api/
       Handler: dist/handlers/createIncident.handler
       Policies:
@@ -2012,6 +2015,11 @@ Resources:
         - !Ref AppManagedPolicyDynamoLambdaCrudShardC
         - !Ref AppManagedPolicyDynamoLambdaCrudShardD
         - !Ref AppManagedPolicyS3ApplicationBucketsCrud
+        - Statement:
+            - Effect: Allow
+              Action:
+                - ssm:GetParameter
+              Resource: !Sub arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/rapidcortex/prod/mapbox/public-token
 
       Events:
         Route:
@@ -2085,6 +2093,7 @@ Resources:
         Variables:
           COGNITO_USER_POOL_ID: !Ref CognitoUserPool
           COGNITO_CLIENT_ID: !Ref CognitoUserPoolClient
+          MAPBOX_SSM_PARAMETER: /rapidcortex/prod/mapbox/public-token
       CodeUri: ../../apps/api/
       Handler: dist/handlers/patchIncident.handler
       Policies:
@@ -2093,6 +2102,11 @@ Resources:
         - !Ref AppManagedPolicyDynamoLambdaCrudShardC
         - !Ref AppManagedPolicyDynamoLambdaCrudShardD
         - !Ref AppManagedPolicyS3ApplicationBucketsCrud
+        - Statement:
+            - Effect: Allow
+              Action:
+                - ssm:GetParameter
+              Resource: !Sub arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/rapidcortex/prod/mapbox/public-token
 
       Events:
         Route:

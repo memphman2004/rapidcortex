@@ -3,11 +3,15 @@
 import { Info, X } from "lucide-react";
 import { useCallback, useEffect, useId, useMemo, useRef, useState } from "react";
 import type { RingCameraListItem, RingRequestStatus } from "rapid-cortex-integrations/ring";
+import { formatDistanceImperial } from "./format-distance-imperial";
 import { RingCameraRequestCard } from "./RingCameraRequestCard";
 import { isRingAvailableCamerasEnabled } from "./ring-feature-flags";
 import type { RingAvailableCamerasResponse } from "./ring-types";
 
 type OwnerStatus = RingRequestStatus | "AVAILABLE";
+
+const RADIUS_OPTIONS_METERS = [100, 250, 500, 1000, 2000] as const;
+const EMPTY_STATE_RADIUS_SUGGESTIONS = [500, 1000, 2000] as const;
 
 export function AvailableRingCamerasModal({
   incidentId,
@@ -105,7 +109,7 @@ export function AvailableRingCamerasModal({
 
         <div className="m-4 flex flex-wrap items-center gap-2 px-0 text-sm text-[#8B9CB0]">
           <span className="text-xs uppercase tracking-wide">Search radius</span>
-          {([100, 250, 500, 1000, 2000] as const).map((r) => (
+          {RADIUS_OPTIONS_METERS.map((r) => (
             <button
               key={r}
               type="button"
@@ -116,7 +120,7 @@ export function AvailableRingCamerasModal({
                   : "border-slate-600 text-slate-300 hover:border-slate-500"
               }`}
             >
-              {r >= 1000 ? `${(r / 1000).toFixed(r % 1000 === 0 ? 0 : 1)}km` : `${r}m`}
+              {formatDistanceImperial(r)}
             </button>
           ))}
         </div>
@@ -139,24 +143,25 @@ export function AvailableRingCamerasModal({
           ) : null}
           {!loading && !error && cameraCount === 0 ? (
             <div className="rounded border border-[#2A3A4A] bg-[#1E2A3A] p-4 text-sm text-[#8B9CB0]">
-              <p>No eligible Ring cameras found within {radiusMeters}m of this incident.</p>
+              <p>
+                No eligible Ring cameras found within {formatDistanceImperial(radiusMeters)} of this
+                incident.
+              </p>
               <p className="mt-2 text-xs">
                 Confirm the device is Enabled for Connect, has GPS coordinates, and the incident
                 address is near the camera.
               </p>
               <div className="mt-3 flex flex-wrap gap-2">
-                {([500, 1000, 2000] as const)
-                  .filter((r) => r > radiusMeters)
-                  .map((r) => (
-                    <button
-                      key={r}
-                      type="button"
-                      className="rounded border border-slate-600 px-2 py-1 text-xs"
-                      onClick={() => setRadiusMeters(r)}
-                    >
-                      Search {r >= 1000 ? `${r / 1000}km` : `${r}m`}
-                    </button>
-                  ))}
+                {EMPTY_STATE_RADIUS_SUGGESTIONS.filter((r) => r > radiusMeters).map((r) => (
+                  <button
+                    key={r}
+                    type="button"
+                    className="rounded border border-slate-600 px-2 py-1 text-xs"
+                    onClick={() => setRadiusMeters(r)}
+                  >
+                    Search {formatDistanceImperial(r)}
+                  </button>
+                ))}
               </div>
             </div>
           ) : null}
@@ -178,7 +183,7 @@ export function AvailableRingCamerasModal({
 
         <div className="flex items-center justify-between border-t border-[#2A3A4A] px-4 py-3 text-sm text-[#8B9CB0]">
           <span>
-            Showing {cameraCount} cameras within {radiusMeters}m
+            Showing {cameraCount} cameras within {formatDistanceImperial(radiusMeters)}
           </span>
           <button type="button" className="rounded border border-slate-600 px-3 py-1.5 text-slate-100" onClick={onClose}>
             Close

@@ -490,4 +490,12 @@ export const env = {
   appBaseUrl: process.env.APP_BASE_URL?.trim() || "https://app.rapidcortex.us",
   /** Unified pricing catalog (global items + agency overrides + audit). Empty disables pricing handlers. */
   pricingTable: process.env.PRICING_TABLE?.trim() ?? "",
+  /** Safe & Sound — personal safety devices (mobile app). */
+  enableSafeSound: featureEnabled("ENABLE_SAFE_SOUND"),
+  safeSoundMock: process.env.SAFE_SOUND_MOCK === "true",
+  safeSoundDevicesTable: process.env.SAFE_SOUND_DEVICES_TABLE?.trim() ?? "",
+  /** Guardian — wearable emergency detection events (mobile app). */
+  enableGuardian: featureEnabled("ENABLE_GUARDIAN"),
+  guardianMock: process.env.GUARDIAN_MOCK === "true",
+  guardianEventsTable: process.env.GUARDIAN_EVENTS_TABLE?.trim() ?? "",
 };

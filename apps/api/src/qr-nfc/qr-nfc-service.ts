@@ -1,5 +1,12 @@
 import { ulid } from "ulid";
-import type { CreateQRNFCInput, QRNFCRecord, QRNFCPublicRecord, UpdateQRNFCInput, UserContext } from "rapid-cortex-shared";
+import type {
+  CreateQRNFCInput,
+  QRNFCRecord,
+  QRNFCPublicRecord,
+  QRNFCWriteEvent,
+  UpdateQRNFCInput,
+  UserContext,
+} from "rapid-cortex-shared";
 import {
   createQRNFCSchema,
   migrateLegacyRapidCortexRoleTokenValue,
@@ -8,6 +15,7 @@ import {
 import {
   AUDIT_EVENT_TYPES,
   canManageQrNfcCodes,
+  canProgramQrNfcTags,
   canViewQrNfcCodes,
   isQrNfcPlatformRole,
   resolveQrNfcAgencyId,
@@ -93,6 +101,7 @@ export class QrNfcService {
       scanCount: 0,
       nfcTapCount: 0,
       totalEngagements: 0,
+      nfcWriteLog: [],
       createdBy: user.userId,
       createdByRole: migrateLegacyRapidCortexRoleTokenValue(user.role) ?? user.role,
       createdAt: now,
@@ -216,6 +225,63 @@ export class QrNfcService {
         resourceId: qrId,
       });
     }
+    return updated;
+  }
+
+  async appendNfcWriteLog(
+    user: UserContext,
+    qrId: string,
+    event: Omit<QRNFCWriteEvent, "eventId" | "writtenAt"> & { eventId?: string; writtenAt?: string },
+  ): Promise<QRNFCRecord> {
+    const existing = await repo.getByQrId(qrId);
+    if (!existing) {
+      const err = new Error("NOT_FOUND");
+      (err as Error & { statusCode?: number }).statusCode = 404;
+      throw err;
+    }
+    if (!canProgramQrNfcTags(user, existing.agencyId)) {
+      const err = new Error("FORBIDDEN");
+      (err as Error & { statusCode?: number }).statusCode = 403;
+      throw err;
+    }
+    if (!isQrNfcPlatformRole(migrateLegacyRapidCortexRoleTokenValue(user.role) ?? user.role)) {
+      if (existing.agencyId !== user.agencyId) {
+        const err = new Error("FORBIDDEN");
+        (err as Error & { statusCode?: number }).statusCode = 403;
+        throw err;
+      }
+    }
+    const entry: QRNFCWriteEvent = {
+      eventId: event.eventId ?? makeId("nfc"),
+      writtenBy: event.writtenBy,
+      writtenByName: event.writtenByName ?? null,
+      devicePlatform: event.devicePlatform,
+      writeMethod: "native_nfc",
+      bytesWritten: event.bytesWritten,
+      tagType: event.tagType ?? null,
+      writtenAt: event.writtenAt ?? new Date().toISOString(),
+    };
+    const updated = await repo.appendNfcWriteLog(existing.agencyId, qrId, entry);
+    if (!updated) {
+      const err = new Error("NOT_FOUND");
+      (err as Error & { statusCode?: number }).statusCode = 404;
+      throw err;
+    }
+    await auditRepo.create({
+      eventId: makeId("audit"),
+      agencyId: existing.agencyId,
+      actorId: user.userId,
+      type: AUDIT_EVENT_TYPES.MOBILE_CODE_NFC_WRITE_LOGGED,
+      details: {
+        qrId,
+        bytesWritten: entry.bytesWritten,
+        devicePlatform: entry.devicePlatform,
+        tagType: entry.tagType,
+      },
+      createdAt: entry.writtenAt,
+      resourceType: "integration",
+      resourceId: qrId,
+    });
     return updated;
   }
 

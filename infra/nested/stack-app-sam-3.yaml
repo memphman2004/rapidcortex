@@ -1536,10 +1536,15 @@ Resources:
     Properties:
       CodeUri: ../../apps/api/
       Handler: dist/handlers/rc-admin/generateGrantPackage.handler
-      Timeout: 60
+      # API Gateway HTTP API max integration timeout is 30s — keep Lambda ≤29s end-to-end.
+      Timeout: 29
       Environment:
         Variables:
           GRANT_GENERATE_MOCK: "false"
+          GRANT_GENERATE_PREFER_BEDROCK: "true"
+          GRANT_GENERATE_MODEL: "claude-3-5-haiku-20241022"
+          GRANT_GENERATE_MAX_TOKENS: "4000"
+          GRANT_GENERATE_PROVIDER_TIMEOUT_MS: "12000"
           GRANT_GENERATE_BEDROCK_MODEL_ID: !Ref AiBedrockFoundationModelId
           QA_BEDROCK_MODEL_ID: !Ref QaBedrockModelId
       Policies:

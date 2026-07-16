@@ -23,9 +23,19 @@ const auditRepo = new AuditRepository();
 
 const ANTHROPIC_MESSAGES_URL = "https://api.anthropic.com/v1/messages";
 const ANTHROPIC_VERSION = "2023-06-01";
-const DEFAULT_ANTHROPIC_MODEL = "claude-opus-4-8";
-const DEFAULT_OPENAI_MODEL = "gpt-4.1";
+/** Fast model — API Gateway HTTP API hard-caps at 30s; opus often exceeds that. */
+const DEFAULT_ANTHROPIC_MODEL = "claude-3-5-haiku-20241022";
+const DEFAULT_OPENAI_MODEL = "gpt-4o-mini";
 const OPENAI_CHAT_URL = "https://api.openai.com/v1/chat/completions";
+/** Per-provider budget so we can fall through before API GW / CloudFront 503. */
+const PROVIDER_TIMEOUT_MS = Math.max(
+  8_000,
+  Number.parseInt(process.env.GRANT_GENERATE_PROVIDER_TIMEOUT_MS ?? "14000", 10) || 14_000,
+);
+const MAX_OUTPUT_TOKENS = Math.max(
+  1500,
+  Number.parseInt(process.env.GRANT_GENERATE_MAX_TOKENS ?? "4000", 10) || 4000,
+);
 
 type AnthropicMessagesResponse = {
   content?: { type: string; text?: string }[];
@@ -105,6 +115,33 @@ class AnthropicCallError extends Error {
 }
 
 async function generateGrantPackage(form: GrantSuccessProfile): Promise<GrantPackage> {
+  const errors: string[] = [];
+  const preferBedrock = process.env.GRANT_GENERATE_PREFER_BEDROCK !== "false";
+
+  const tryBedrock = async (): Promise<GrantPackage | null> => {
+    const bedrockModel =
+      process.env.GRANT_GENERATE_BEDROCK_MODEL_ID?.trim() ||
+      process.env.QA_BEDROCK_MODEL_ID?.trim() ||
+      process.env.BEDROCK_MODEL_PRIMARY?.trim() ||
+      "";
+    if (!bedrockModel) return null;
+    try {
+      console.info("[generateGrantPackage] Using Bedrock", { bedrockModel });
+      return parseAndValidatePackage(await callBedrock(bedrockModel, form));
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err);
+      console.error("[generateGrantPackage] Bedrock path failed:", msg);
+      errors.push(`bedrock: ${msg}`);
+      return null;
+    }
+  };
+
+  // Prefer Bedrock (in-AWS, usually finishes under API GW 30s). External vendors hang → CloudFront 503.
+  if (preferBedrock) {
+    const fromBedrock = await tryBedrock();
+    if (fromBedrock) return fromBedrock;
+  }
+
   const anthropicKey = await resolvePlainOrSecretArn(
     process.env.ANTHROPIC_API_KEY,
     process.env.ANTHROPIC_API_KEY_SECRET_ARN,
@@ -112,7 +149,13 @@ async function generateGrantPackage(form: GrantSuccessProfile): Promise<GrantPac
     { preferredField: "apiKey" },
   );
   if (anthropicKey) {
-    return parseAndValidatePackage(await callAnthropic(anthropicKey, form));
+    try {
+      return parseAndValidatePackage(await callAnthropic(anthropicKey, form));
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err);
+      console.error("[generateGrantPackage] Anthropic path failed — trying fallback:", msg);
+      errors.push(`anthropic: ${msg}`);
+    }
   }
 
   const openAiKey = await resolvePlainOrSecretArn(
@@ -121,25 +164,30 @@ async function generateGrantPackage(form: GrantSuccessProfile): Promise<GrantPac
     { preferredField: "OPENAI_API_KEY" },
   );
   if (openAiKey) {
-    console.info("[generateGrantPackage] Anthropic unset — using OpenAI");
-    return parseAndValidatePackage(await callOpenAi(openAiKey, form));
+    try {
+      console.info("[generateGrantPackage] Using OpenAI fallback");
+      return parseAndValidatePackage(await callOpenAi(openAiKey, form));
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err);
+      console.error("[generateGrantPackage] OpenAI path failed — trying fallback:", msg);
+      errors.push(`openai: ${msg}`);
+    }
   }
 
-  const bedrockModel =
-    process.env.GRANT_GENERATE_BEDROCK_MODEL_ID?.trim() ||
-    process.env.QA_BEDROCK_MODEL_ID?.trim() ||
-    process.env.BEDROCK_MODEL_PRIMARY?.trim() ||
-    "";
-  if (bedrockModel) {
-    console.info("[generateGrantPackage] No vendor API keys — using Bedrock", { bedrockModel });
-    return parseAndValidatePackage(await callBedrock(bedrockModel, form));
+  if (!preferBedrock) {
+    const fromBedrock = await tryBedrock();
+    if (fromBedrock) return fromBedrock;
   }
 
-  console.error(
-    "[generateGrantPackage] No Anthropic, OpenAI, or Bedrock model configured (AnthropicApiKeySecretArn empty)",
-  );
+  console.error("[generateGrantPackage] All generation providers failed", {
+    errors,
+    hasAnthropic: Boolean(anthropicKey),
+    hasOpenAi: Boolean(openAiKey),
+  });
   throw new AnthropicCallError(
-    "Generation service unavailable — configure AnthropicApiKeySecretArn or OpenAI secret, or set GRANT_GENERATE_BEDROCK_MODEL_ID",
+    errors.length
+      ? `Generation service unavailable (${errors.map((e) => e.split(":")[0]).join(" → ")})`
+      : "Generation service unavailable — configure AnthropicApiKeySecretArn or OpenAI secret, or set GRANT_GENERATE_BEDROCK_MODEL_ID",
     false,
   );
 }
@@ -157,13 +205,19 @@ async function callAnthropic(apiKey: string, form: GrantSuccessProfile): Promise
       },
       body: JSON.stringify({
         model,
-        max_tokens: 8000,
+        max_tokens: MAX_OUTPUT_TOKENS,
         messages: [{ role: "user", content: buildPrompt(form) }],
       }),
+      signal: AbortSignal.timeout(PROVIDER_TIMEOUT_MS),
     });
   } catch (err) {
     console.error("[generateGrantPackage] Anthropic fetch error:", err);
-    throw new AnthropicCallError("Generation service unreachable", false);
+    throw new AnthropicCallError(
+      err instanceof Error && err.name === "TimeoutError"
+        ? "Anthropic timed out"
+        : "Generation service unreachable",
+      false,
+    );
   }
 
   if (!res.ok) {
@@ -198,11 +252,16 @@ async function callOpenAi(apiKey: string, form: GrantSuccessProfile): Promise<st
           },
           { role: "user", content: buildPrompt(form) },
         ],
+        max_tokens: MAX_OUTPUT_TOKENS,
       }),
+      signal: AbortSignal.timeout(PROVIDER_TIMEOUT_MS),
     });
   } catch (err) {
     console.error("[generateGrantPackage] OpenAI fetch error:", err);
-    throw new AnthropicCallError("Generation service unreachable", false);
+    throw new AnthropicCallError(
+      err instanceof Error && err.name === "TimeoutError" ? "OpenAI timed out" : "Generation service unreachable",
+      false,
+    );
   }
 
   if (!res.ok) {
@@ -218,6 +277,7 @@ async function callOpenAi(apiKey: string, form: GrantSuccessProfile): Promise<st
 async function callBedrock(modelId: string, form: GrantSuccessProfile): Promise<string> {
   const region = process.env.BEDROCK_REGION?.trim() || process.env.AWS_REGION?.trim() || "us-east-1";
   const client = new BedrockRuntimeClient({ region });
+  const abort = AbortSignal.timeout(PROVIDER_TIMEOUT_MS);
   try {
     const out = await client.send(
       new ConverseCommand({
@@ -229,14 +289,18 @@ async function callBedrock(modelId: string, form: GrantSuccessProfile): Promise<
           },
         ],
         messages: [{ role: "user", content: [{ text: buildPrompt(form) }] }],
-        inferenceConfig: { maxTokens: 8000, temperature: 0.2 },
+        inferenceConfig: { maxTokens: MAX_OUTPUT_TOKENS, temperature: 0.2 },
       }),
+      { abortSignal: abort },
     );
     const blocks = out.output?.message?.content;
     return blocks?.map((b) => ("text" in b ? b.text ?? "" : "")).join("")?.trim() ?? "";
   } catch (err) {
     console.error("[generateGrantPackage] Bedrock error:", err);
-    throw new AnthropicCallError("Generation service unreachable (Bedrock)", false);
+    throw new AnthropicCallError(
+      err instanceof Error && err.name === "AbortError" ? "Bedrock timed out" : "Generation service unreachable (Bedrock)",
+      false,
+    );
   }
 }
 
@@ -322,8 +386,9 @@ Return ONLY valid JSON — no markdown, no code blocks, no preamble. Exact struc
   ]
 }
 
-Include 7–9 budget line items totaling close to the requested amount. Include 5–6 timeline phases. Include 6 measurable outcomes. Make every section specific to ${form.schoolName}. Be detailed, professional, and grant-committee-ready. Avoid generic language.`;
+Keep sections concise but specific to ${form.schoolName} (executive ~3 short paragraphs; others 1–2). Include 6–8 budget line items totaling close to the requested amount, 4–5 timeline phases, and 5 measurable outcomes. Professional, grant-committee-ready — avoid generic filler.`;
 }
+
 
 /** Deterministic offline package for local/CI runs (GRANT_GENERATE_MOCK=true). */
 function mockGrantPackage(form: GrantSuccessProfile): GrantPackage {

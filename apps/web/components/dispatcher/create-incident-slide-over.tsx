@@ -7,6 +7,7 @@
 
 import { useCallback, useEffect, useState, type CSSProperties, type ReactNode } from "react";
 import { postCreateIncident } from "@/lib/api";
+import { geocodeAddress } from "@/lib/geocode-address";
 import { PhoneInput } from "@/components/ui/phone-input";
 import {
   INCIDENT_TYPES,
@@ -281,29 +282,24 @@ export function CreateIncidentSlideOver({
 
   useKeyboardShortcut({ key: "Escape", enabled: open, preventDefault: false }, handleEscape);
 
-  async function geocodeLocation(): Promise<void> {
-    if (!location.trim() || !mapboxToken) return;
+  async function geocodeLocation(): Promise<{ lat: number; lng: number; placeName: string } | null> {
+    if (!location.trim() || !mapboxToken) return null;
     setGeocoding(true);
     setGeocodeError(null);
 
     try {
-      const query = encodeURIComponent(location.trim());
-      const url = `https://api.mapbox.com/geocoding/v5/mapbox.places/${query}.json?access_token=${mapboxToken}&types=address&limit=1`;
-      const res = await fetch(url);
-      if (!res.ok) throw new Error("Geocode request failed");
-      const data = (await res.json()) as {
-        features?: { center?: [number, number]; place_name?: string }[];
-      };
-      const feature = data.features?.[0];
-      if (!feature?.center) {
+      const hit = await geocodeAddress(location.trim(), mapboxToken);
+      if (!hit) {
         setGeocodeError("Address not found — verify and retry");
-        return;
+        return null;
       }
-      setLng(feature.center[0]);
-      setLat(feature.center[1]);
-      if (feature.place_name) setLocation(feature.place_name);
+      setLng(hit.lng);
+      setLat(hit.lat);
+      if (hit.placeName) setLocation(hit.placeName);
+      return hit;
     } catch {
       setGeocodeError("Geocode unavailable — coordinates not set");
+      return null;
     } finally {
       setGeocoding(false);
     }
@@ -326,8 +322,20 @@ export function CreateIncidentSlideOver({
     setSubmitError(null);
 
     const type = getIncidentType(incidentTypeId)!;
-    const locationLine = location.trim();
+    let locationLine = location.trim();
     const phoneNorm = callerPhoneE164 ?? "";
+
+    // Always attempt auto-geocode so Ring nearby search / maps get lat-lng without a separate pin step.
+    let resolvedLat = lat;
+    let resolvedLng = lng;
+    if ((resolvedLat == null || resolvedLng == null) && mapboxToken?.trim()) {
+      const hit = await geocodeLocation();
+      if (hit) {
+        resolvedLat = hit.lat;
+        resolvedLng = hit.lng;
+        locationLine = hit.placeName || locationLine;
+      }
+    }
 
     try {
       const incident = await postCreateIncident({
@@ -336,7 +344,10 @@ export function CreateIncidentSlideOver({
         cadNatureCode: type.cadNatureCode,
         cadPriority: priority,
         cadLocation: locationLine,
-        cadCoordinates: lat != null && lng != null ? { lat, lng } : undefined,
+        cadCoordinates:
+          resolvedLat != null && resolvedLng != null
+            ? { lat: resolvedLat, lng: resolvedLng }
+            : undefined,
         cadCallerName: callerName.trim() || undefined,
         callerCallback: phoneNorm || undefined,
         summary: description.trim() || undefined,
