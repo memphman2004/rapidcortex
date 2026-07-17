@@ -58,6 +58,13 @@ export const RC_SUPERADMIN_NAV: RoleNav = {
       items: [
         { id: "overview",  label: "Overview",         href: "/rc-admin/dashboard",     icon: "LayoutDashboard", exact: true },
         { id: "agencies",  label: "Agencies",          href: "/rc-admin/agencies",      icon: "Building2" },
+        {
+          id: "deployments-map",
+          label: "Deployments map",
+          href: "/rc-admin/deployments-map",
+          icon: "Map",
+          feature: "deploymentsMap",
+        },
         { id: "users",     label: "Users",             href: "/rc-admin/users",         icon: "Users" },
       ],
     },
@@ -120,6 +127,13 @@ export const RC_ADMIN_NAV: RoleNav = {
       items: [
         { id: "overview",  label: "Overview",         href: "/rc-admin/dashboard",     icon: "LayoutDashboard", exact: true },
         { id: "agencies",  label: "Agencies",          href: "/rc-admin/agencies",      icon: "Building2" },
+        {
+          id: "deployments-map",
+          label: "Deployments map",
+          href: "/rc-admin/deployments-map",
+          icon: "Map",
+          feature: "deploymentsMap",
+        },
         { id: "users",     label: "Users",             href: "/rc-admin/users",         icon: "Users" },
       ],
     },
@@ -219,6 +233,14 @@ export const RC_IT_ADMIN_NAV: RoleNav = {
           label: "Agencies",
           href: "/rc-admin/agencies",
           icon: "Building2",
+          badge: { type: "label", text: "VIEW ONLY", color: "slate" },
+        },
+        {
+          id: "deployments-map",
+          label: "Deployments map",
+          href: "/rc-admin/deployments-map",
+          icon: "Map",
+          feature: "deploymentsMap",
           badge: { type: "label", text: "VIEW ONLY", color: "slate" },
         },
         { id: "users",     label: "Users",             href: "/rc-admin/users",         icon: "Users",

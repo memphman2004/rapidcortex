@@ -1,6 +1,7 @@
 import {
   isCadWritebackUiEnabled,
   isChannelMonitoringEnabled,
+  isDeploymentsMapEnabled,
   isNonEmergencyTriageEnabled,
   isQaScoringEnabled,
   isSalesLeadsUiEnabled,
@@ -25,6 +26,8 @@ export function isNavFeatureEnabled(feature: string): boolean {
       return isVerticalOnboardingEnabled();
     case "salesLeads":
       return isSalesLeadsUiEnabled();
+    case "deploymentsMap":
+      return isDeploymentsMapEnabled();
     default:
       return true;
   }

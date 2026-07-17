@@ -140,6 +140,7 @@ export AZURE_TRANSLATION_KEY_SECRET_ARN="arn:aws:secretsmanager:us-east-1:158961
 # Maps (Mapbox) is NOT a Secrets Manager entry — it's NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN baked
 # into apps/web at build time and protected via Mapbox URL-referrer allowlist. Set it in the
 # web ECS task env (scripts/env-web-*.sh) when needed.
+# RC Admin national deployments map UI: NEXT_PUBLIC_ENABLE_DEPLOYMENTS_MAP (default on when unset).
 
 # --- API feature flags (Lambda env) — default ON in dev except CAD write-back ---
 export ENABLE_QA_SCORING=true

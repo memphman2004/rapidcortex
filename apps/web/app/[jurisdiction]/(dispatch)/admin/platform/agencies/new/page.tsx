@@ -5,6 +5,7 @@ import { useMemo, useState } from "react";
 import { AGENCY_TYPE_VALUES, buildAgencySlug, type CreateAgencyInput } from "rapid-cortex-shared";
 import { RcAdminCreateAgencyRunbook } from "@/components/platform/rc-admin-create-agency-runbook";
 import { postAgency } from "@/lib/api";
+import { geocodeAddress } from "@/lib/geocode-address";
 import { useJurisdictionLink } from "@/lib/jurisdiction-context";
 import { AGENCY_REGION_OPTIONS, US_STATE_OPTIONS } from "@/lib/platform/location-options";
 
@@ -27,10 +28,21 @@ const defaults: CreateAgencyInput = {
   addons: [],
 };
 
+function parseOptionalCoord(raw: string): number | undefined {
+  const trimmed = raw.trim();
+  if (!trimmed) return undefined;
+  const n = Number(trimmed);
+  return Number.isFinite(n) ? n : Number.NaN;
+}
+
 export default function NewAgencyPage() {
   const router = useRouter();
   const to = useJurisdictionLink();
   const [form, setForm] = useState<CreateAgencyInput>(defaults);
+  const [latInput, setLatInput] = useState("");
+  const [lngInput, setLngInput] = useState("");
+  const [geocodeBusy, setGeocodeBusy] = useState(false);
+  const [geocodeHint, setGeocodeHint] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
@@ -52,12 +64,54 @@ export default function NewAgencyPage() {
     }
   }, [form.state, form.city, form.centerName]);
 
+  async function geocodeHq() {
+    setGeocodeHint(null);
+    const token = process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN?.trim() ?? "";
+    if (!token) {
+      setGeocodeHint("Mapbox token is not configured.");
+      return;
+    }
+    const query = [form.city, form.state, "USA"].filter(Boolean).join(", ");
+    if (!form.city.trim() || !form.state.trim()) {
+      setGeocodeHint("Enter city and state first.");
+      return;
+    }
+    setGeocodeBusy(true);
+    try {
+      const hit = await geocodeAddress(query, token, { types: "place,region,locality" });
+      if (!hit) {
+        setGeocodeHint("No geocode result.");
+        return;
+      }
+      setLatInput(String(hit.lat));
+      setLngInput(String(hit.lng));
+      setGeocodeHint(`Geocoded: ${hit.placeName}`);
+    } finally {
+      setGeocodeBusy(false);
+    }
+  }
+
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
+    const latitude = parseOptionalCoord(latInput);
+    const longitude = parseOptionalCoord(lngInput);
+    if (
+      (latitude !== undefined && Number.isNaN(latitude)) ||
+      (longitude !== undefined && Number.isNaN(longitude)) ||
+      (latitude !== undefined && (latitude < -90 || latitude > 90)) ||
+      (longitude !== undefined && (longitude < -180 || longitude > 180)) ||
+      (latitude === undefined) !== (longitude === undefined)
+    ) {
+      setError("HQ coordinates must both be valid numbers, or both left blank.");
+      return;
+    }
     setBusy(true);
     try {
-      const created = await postAgency(form);
+      const created = await postAgency({
+        ...form,
+        ...(latitude !== undefined && longitude !== undefined ? { latitude, longitude } : {}),
+      });
       router.push(to(`/admin/platform/agencies/${encodeURIComponent(created.agencyId)}`));
     } catch (err) {
       setError(err instanceof Error ? err.message : "Create failed");
@@ -127,6 +181,47 @@ export default function NewAgencyPage() {
           ) : null}
           {slugError ? <p className="text-[11px] text-red-400">{slugError}</p> : null}
         </div>
+
+        <fieldset className="space-y-3 rounded-md border border-slate-800 bg-slate-950/40 p-3">
+          <legend className="px-1 text-[11px] font-semibold uppercase tracking-wide text-slate-500">
+            HQ map pin (optional)
+          </legend>
+          <p className="text-[11px] text-slate-500">
+            Shown on the RC Admin national deployments map. Geocode from city/state or enter
+            manually.
+          </p>
+          <div className="grid gap-3 sm:grid-cols-2">
+            <label className="block text-sm">
+              <span className="text-slate-400">Latitude</span>
+              <input
+                value={latInput}
+                onChange={(e) => setLatInput(e.target.value)}
+                placeholder="33.7490"
+                inputMode="decimal"
+                className="mt-1 w-full rounded-md border border-slate-700 bg-slate-900 px-3 py-2 font-mono text-sm text-slate-100"
+              />
+            </label>
+            <label className="block text-sm">
+              <span className="text-slate-400">Longitude</span>
+              <input
+                value={lngInput}
+                onChange={(e) => setLngInput(e.target.value)}
+                placeholder="-84.3880"
+                inputMode="decimal"
+                className="mt-1 w-full rounded-md border border-slate-700 bg-slate-900 px-3 py-2 font-mono text-sm text-slate-100"
+              />
+            </label>
+          </div>
+          <button
+            type="button"
+            disabled={geocodeBusy}
+            onClick={() => void geocodeHq()}
+            className="rounded-md border border-slate-700 bg-slate-900/60 px-3 py-1.5 text-xs font-medium text-slate-200 hover:bg-slate-800 disabled:opacity-40"
+          >
+            {geocodeBusy ? "Geocoding…" : "Geocode from city/state"}
+          </button>
+          {geocodeHint ? <p className="text-[11px] text-slate-400">{geocodeHint}</p> : null}
+        </fieldset>
 
         <label className="block text-sm">
           <span className="text-slate-400">Display name</span>

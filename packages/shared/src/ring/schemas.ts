@@ -39,3 +39,21 @@ export const ringHomeownerLinkBodySchema = z.object({
 });
 
 export type RingHomeownerLinkBody = z.infer<typeof ringHomeownerLinkBodySchema>;
+
+/** Request a Cognito reset code for a Ring device-owner Rapid Cortex account. */
+export const ringHomeownerForgotPasswordBodySchema = z.object({
+  email: z.string().email().max(320),
+});
+
+export type RingHomeownerForgotPasswordBody = z.infer<typeof ringHomeownerForgotPasswordBodySchema>;
+
+/** Confirm Cognito forgot-password with email code + new password. */
+export const ringHomeownerConfirmForgotPasswordBodySchema = z.object({
+  email: z.string().email().max(320),
+  code: z.string().min(4).max(32),
+  newPassword: z.string().min(12).max(256),
+});
+
+export type RingHomeownerConfirmForgotPasswordBody = z.infer<
+  typeof ringHomeownerConfirmForgotPasswordBodySchema
+>;

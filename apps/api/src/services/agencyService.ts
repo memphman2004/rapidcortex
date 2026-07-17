@@ -106,13 +106,23 @@ export class AgencyService {
     rowWithTenantFields.addons = input.addons ?? [];
     rowWithTenantFields.planTier = input.planTier ?? "starter";
     rowWithTenantFields.pilotMode = input.pilotMode ?? false;
+    if (typeof input.latitude === "number" && typeof input.longitude === "number") {
+      row.latitude = input.latitude;
+      row.longitude = input.longitude;
+    }
     await agencyRepo.put(row);
     await auditRepo.create({
       eventId: makeId("audit"),
       agencyId: row.agencyId,
       actorId: user.userId,
       type: AUDIT_EVENT_TYPES.AGENCY_CREATED,
-      details: { agencyId: row.agencyId, name: row.name },
+      details: {
+        agencyId: row.agencyId,
+        name: row.name,
+        ...(row.latitude != null && row.longitude != null
+          ? { latitude: row.latitude, longitude: row.longitude }
+          : {}),
+      },
       createdAt: now,
       resourceType: "agency",
       resourceId: row.agencyId,
@@ -159,6 +169,17 @@ export class AgencyService {
       throw new Error("FORBIDDEN");
     }
 
+    const touchingMapPin =
+      patch.latitude !== undefined ||
+      patch.longitude !== undefined ||
+      patch.city !== undefined ||
+      patch.state !== undefined ||
+      patch.region !== undefined ||
+      patch.centerName !== undefined;
+    if (touchingMapPin && !authz.canManageAgencies(user) && !isRcInternalOperator(user.role)) {
+      throw new Error("FORBIDDEN");
+    }
+
     if (patch.campus !== undefined) {
       AgencyScopeResolver.assertCanManageCampusSettings(user, agencyId);
       if (
@@ -192,6 +213,10 @@ export class AgencyService {
       protocolPackId: patch.protocolPackId ?? row.protocolPackId,
       retentionPolicyId: patch.retentionPolicyId ?? row.retentionPolicyId,
       integrationMode: patch.integrationMode ?? row.integrationMode,
+      city: patch.city ?? row.city,
+      centerName: patch.centerName ?? row.centerName,
+      state: patch.state ?? row.state,
+      region: patch.region ?? row.region,
       updatedAt: now,
       config: {
         ...row.config,
@@ -239,6 +264,18 @@ export class AgencyService {
         updatedAt: now,
       },
     };
+
+    if (patch.latitude === null) {
+      delete next.latitude;
+    } else if (typeof patch.latitude === "number") {
+      next.latitude = patch.latitude;
+    }
+    if (patch.longitude === null) {
+      delete next.longitude;
+    } else if (typeof patch.longitude === "number") {
+      next.longitude = patch.longitude;
+    }
+
     const patchWithTenantFields = patch as PatchAgencyInput & {
       vertical?: "core" | "campus" | "venue" | "hospital";
       addons?: string[];
@@ -276,5 +313,63 @@ export class AgencyService {
       resourceId: agencyId,
     });
     return next;
+  }
+
+  /**
+   * Cross-tenant HQ pins for RC Admin national deployments map.
+   * Only agencies with both latitude and longitude are returned as markers.
+   */
+  async listDeploymentsMap(user: UserContext): Promise<{
+    markers: Array<{
+      agencyId: string;
+      name: string;
+      type: AgencyTenant["type"];
+      status: AgencyTenant["status"];
+      vertical?: AgencyTenant["vertical"];
+      state: string;
+      city?: string;
+      region?: string;
+      latitude: number;
+      longitude: number;
+    }>;
+    missingCoordinatesCount: number;
+    totalAgencies: number;
+  }> {
+    if (!authz.canManageAgencies(user) && !isRcInternalOperator(user.role)) {
+      throw new Error("FORBIDDEN");
+    }
+    const agencies = await agencyRepo.listRecent(500);
+    const markers = [];
+    let missingCoordinatesCount = 0;
+    for (const agency of agencies) {
+      const lat = agency.latitude;
+      const lng = agency.longitude;
+      if (
+        typeof lat !== "number" ||
+        typeof lng !== "number" ||
+        !Number.isFinite(lat) ||
+        !Number.isFinite(lng)
+      ) {
+        missingCoordinatesCount += 1;
+        continue;
+      }
+      markers.push({
+        agencyId: agency.agencyId,
+        name: agency.name,
+        type: agency.type,
+        status: agency.status,
+        vertical: agency.vertical,
+        state: agency.state,
+        city: agency.city,
+        region: agency.region,
+        latitude: lat,
+        longitude: lng,
+      });
+    }
+    return {
+      markers,
+      missingCoordinatesCount,
+      totalAgencies: agencies.length,
+    };
   }
 }

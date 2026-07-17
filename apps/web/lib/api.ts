@@ -450,6 +450,28 @@ export async function fetchPlatformSummary(): Promise<PlatformSummaryPayload> {
   return request<PlatformSummaryPayload>("/api/platform/summary");
 }
 
+/** RC Admin — national HQ pins for cross-agency deployments map. */
+export type AgencyDeploymentsMapPayload = {
+  markers: Array<{
+    agencyId: string;
+    name: string;
+    type: string;
+    status: string;
+    vertical?: string;
+    state: string;
+    city?: string;
+    region?: string;
+    latitude: number;
+    longitude: number;
+  }>;
+  missingCoordinatesCount: number;
+  totalAgencies: number;
+};
+
+export async function fetchPlatformDeploymentsMap(): Promise<AgencyDeploymentsMapPayload> {
+  return request<AgencyDeploymentsMapPayload>("/api/platform/deployments-map");
+}
+
 export type FetchPlatformAuditParams = {
   limit?: number;
   perAgencyCap?: number;

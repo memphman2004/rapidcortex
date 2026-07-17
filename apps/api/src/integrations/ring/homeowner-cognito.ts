@@ -2,17 +2,46 @@ import {
   AdminCreateUserCommand,
   AdminSetUserPasswordCommand,
   CognitoIdentityProviderClient,
+  ConfirmForgotPasswordCommand,
+  ForgotPasswordCommand,
   InitiateAuthCommand,
   UsernameExistsException,
   type AuthenticationResultType,
 } from "@aws-sdk/client-cognito-identity-provider";
+import { createHmac } from "node:crypto";
 import { env } from "../../lib/env.js";
 import { RING_HOMEOWNER_DEFAULT_AGENCY_ID } from "../../lib/ring-integration.js";
 
 const HOMEOWNER_ROLE = "homeowner";
 
+const GENERIC_FORGOT_MESSAGE =
+  "If an account exists for this email, we sent a verification code. Check your inbox and spam folder.";
+
 function cip(): CognitoIdentityProviderClient {
   return new CognitoIdentityProviderClient({});
+}
+
+function cognitoClientId(): string {
+  return process.env.COGNITO_CLIENT_ID?.trim() ?? "";
+}
+
+/** Matches Cognito User Pool password policy (min 12 + upper/lower/number/symbol). */
+export function isValidHomeownerPassword(password: string): boolean {
+  if (password.length < 12) return false;
+  if (!/[a-z]/.test(password)) return false;
+  if (!/[A-Z]/.test(password)) return false;
+  if (!/[0-9]/.test(password)) return false;
+  if (!/[^A-Za-z0-9]/.test(password)) return false;
+  return true;
+}
+
+function optionalSecretHash(username: string): { SECRET_HASH?: string } {
+  const clientId = cognitoClientId();
+  const secret = process.env.COGNITO_CLIENT_SECRET?.trim();
+  if (!clientId || !secret) return {};
+  return {
+    SECRET_HASH: createHmac("sha256", secret).update(username + clientId).digest("base64"),
+  };
 }
 
 export type HomeownerAuthResult = {
@@ -33,7 +62,7 @@ export async function authenticateHomeowner(input: {
   mode: "signin" | "signup";
 }): Promise<HomeownerAuthResult> {
   const poolId = env.cognitoUserPoolId;
-  const clientId = process.env.COGNITO_CLIENT_ID?.trim() ?? "";
+  const clientId = cognitoClientId();
   if (!poolId || !clientId) {
     throw new Error("COGNITO_NOT_CONFIGURED");
   }
@@ -92,13 +121,63 @@ export async function authenticateHomeowner(input: {
   return signInHomeowner({ email, password: input.password, agencyId, created });
 }
 
+/** Start Cognito forgot-password for a Ring device-owner RC account (enumeration-safe). */
+export async function requestHomeownerPasswordReset(emailRaw: string): Promise<{ message: string }> {
+  const clientId = cognitoClientId();
+  if (!clientId) {
+    throw new Error("COGNITO_NOT_CONFIGURED");
+  }
+  const email = emailRaw.trim().toLowerCase();
+  try {
+    await cip().send(
+      new ForgotPasswordCommand({
+        ClientId: clientId,
+        Username: email,
+        ...optionalSecretHash(email),
+      }),
+    );
+  } catch {
+    // Same response for unknown user / throttle / misconfig — avoid account enumeration.
+  }
+  return { message: GENERIC_FORGOT_MESSAGE };
+}
+
+/** Confirm Cognito forgot-password with verification code + new permanent password. */
+export async function confirmHomeownerPasswordReset(input: {
+  email: string;
+  code: string;
+  newPassword: string;
+}): Promise<void> {
+  const clientId = cognitoClientId();
+  if (!clientId) {
+    throw new Error("COGNITO_NOT_CONFIGURED");
+  }
+  if (!isValidHomeownerPassword(input.newPassword)) {
+    throw new Error("PASSWORD_POLICY");
+  }
+  const email = input.email.trim().toLowerCase();
+  try {
+    await cip().send(
+      new ConfirmForgotPasswordCommand({
+        ClientId: clientId,
+        Username: email,
+        ConfirmationCode: input.code.trim(),
+        Password: input.newPassword,
+        ...optionalSecretHash(email),
+      }),
+    );
+  } catch {
+    throw new Error("RESET_CONFIRM_FAILED");
+  }
+}
+
 async function signInHomeowner(input: {
   email: string;
   password: string;
   agencyId: string;
   created: boolean;
 }): Promise<HomeownerAuthResult> {
-  const clientId = process.env.COGNITO_CLIENT_ID?.trim() ?? "";
+  const clientId = cognitoClientId();
   const auth = await cip().send(
     new InitiateAuthCommand({
       AuthFlow: "USER_PASSWORD_AUTH",
@@ -106,6 +185,7 @@ async function signInHomeowner(input: {
       AuthParameters: {
         USERNAME: input.email,
         PASSWORD: input.password,
+        ...optionalSecretHash(input.email),
       },
     }),
   );

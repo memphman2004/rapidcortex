@@ -10,6 +10,7 @@ function effectiveRole(role: string): string {
 const RC_SUPERADMIN_NAV: NavTab[] = [
   { id: "overview", label: "Platform overview", href: "/rc-admin/dashboard" },
   { id: "agencies", label: "Agencies", href: "/rc-admin/agencies" },
+  { id: "deployments-map", label: "Deployments map", href: "/rc-admin/deployments-map" },
   { id: "users", label: "Users", href: "/rc-admin/users" },
   { id: "billing", label: "Billing", href: "/rc-admin/billing" },
   { id: "leads", label: "Leads", href: "/rc-admin/leads" },
@@ -27,6 +28,7 @@ const RC_SUPERADMIN_NAV: NavTab[] = [
 const RC_BUSINESS_ADMIN_NAV: NavTab[] = [
   { id: "overview", label: "Platform overview", href: "/rc-admin/dashboard" },
   { id: "agencies", label: "Agencies", href: "/rc-admin/agencies" },
+  { id: "deployments-map", label: "Deployments map", href: "/rc-admin/deployments-map" },
   { id: "users", label: "Users", href: "/rc-admin/users" },
   { id: "billing", label: "Billing", href: "/rc-admin/billing" },
   { id: "leads", label: "Leads", href: "/rc-admin/leads" },
@@ -45,6 +47,8 @@ const RC_IT_ADMIN_NAV: NavTab[] = [
   { id: "system-health", label: "System health", href: "/rc-admin/system-health" },
   { id: "integrations", label: "Integrations", href: "/rc-admin/integrations" },
   { id: "leads", label: "Leads", href: "/rc-admin/leads" },
+  { id: "agencies", label: "Agencies", href: "/rc-admin/agencies" },
+  { id: "deployments-map", label: "Deployments map", href: "/rc-admin/deployments-map" },
   { id: "users", label: "Users", href: "/rc-admin/users" },
   { id: "audit", label: "Audit log", href: "/rc-admin/audit" },
   { id: "system-settings", label: "System settings", href: "/rc-admin/system-settings" },

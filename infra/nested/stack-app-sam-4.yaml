@@ -2738,6 +2738,8 @@ Resources:
             Effect: Allow
             Action:
               - cognito-idp:InitiateAuth
+              - cognito-idp:ForgotPassword
+              - cognito-idp:ConfirmForgotPassword
             Resource: "*"
           - Sid: RingRequestsRateLimit
             Effect: Allow
@@ -2997,6 +2999,45 @@ Resources:
           Properties:
             ApiId: !Ref Api
             Path: /api/public/ring/homeowner/link
+            Method: POST
+            Auth:
+              Authorizer: NONE
+
+  RingHomeownerPasswordResetFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/integrations/ring/homeowner-password-reset.handler
+      Timeout: 30
+      Environment:
+        Variables:
+          RING_PARTNERSHIP_ENABLED: !Ref RingPartnershipEnabled
+          ENABLE_CONNECT_RING: !Ref EnableConnectRing
+          COGNITO_USER_POOL_ID: !Ref ImportedCognitoUserPoolId
+          COGNITO_CLIENT_ID: !Ref ImportedCognitoWebClientId
+          RING_TABLE_REQUESTS: !If
+            - HasRingRequestsTable
+            - !Ref RingRequestsTable
+            - !Sub "RingEmergencyCameraRequests-${DeploymentStage}"
+      Policies:
+        - !Ref AppManagedPolicyRingHomeownerLink
+      Events:
+        ForgotPassword:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/public/ring/homeowner/forgot-password
+            Method: POST
+            Auth:
+              Authorizer: NONE
+        ConfirmForgotPassword:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/public/ring/homeowner/confirm-forgot-password
             Method: POST
             Auth:
               Authorizer: NONE

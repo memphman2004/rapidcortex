@@ -15,6 +15,7 @@ import {
 } from "@/lib/api";
 import type { AgencyTenant, CreateInviteInput } from "rapid-cortex-shared";
 import { AgencyDetailHeader } from "@/components/platform/agency-detail-header";
+import { AgencyHqCoordinatesCard } from "@/components/platform/agency-hq-coordinates-card";
 import { OnboardingChecklistCard } from "@/components/platform/onboarding-checklist-card";
 import { deriveVerticalFromAgencyId, normalizeVertical } from "@/lib/vertical";
 
@@ -167,6 +168,8 @@ export default function AgencyDetailPage() {
               </div>
             </dl>
           </section>
+
+          <AgencyHqCoordinatesCard agency={a} />
 
           <section className="rounded-lg border border-slate-800 bg-slate-900/40 p-4">
             <h2 className="text-xs font-semibold uppercase tracking-wider text-slate-500">

@@ -47,3 +47,9 @@ export {
   type CreateInviteInput,
   type AgencyProfileResponse,
 } from "./schemas.js";
+export {
+  agencyDeploymentMarkerSchema,
+  agencyDeploymentsMapResponseSchema,
+  type AgencyDeploymentMarker,
+  type AgencyDeploymentsMapResponse,
+} from "./deployments-map.js";

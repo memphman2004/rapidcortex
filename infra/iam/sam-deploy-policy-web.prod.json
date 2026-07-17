@@ -103,6 +103,23 @@
       ]
     },
     {
+      "Sid": "WebEcsExecuteCommand",
+      "Effect": "Allow",
+      "Action": ["ecs:ExecuteCommand"],
+      "Resource": [
+        "arn:aws:ecs:us-east-1:158961537080:task/rapid-cortex-v2-web-*/*",
+        "arn:aws:ecs:us-east-1:158961537080:task/rapid-cortex-web-*/*"
+      ],
+      "Condition": {
+        "StringEquals": {
+          "ecs:cluster": [
+            "arn:aws:ecs:us-east-1:158961537080:cluster/rapid-cortex-v2-web-prod",
+            "arn:aws:ecs:us-east-1:158961537080:cluster/rapid-cortex-web-prod"
+          ]
+        }
+      }
+    },
+    {
       "Sid": "WebCfnStackRead",
       "Effect": "Allow",
       "Action": ["cloudformation:DescribeStacks"],

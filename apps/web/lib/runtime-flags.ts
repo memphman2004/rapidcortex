@@ -44,6 +44,8 @@ const NEXT_PUBLIC_FLAG_VALUES: Record<string, string | undefined> = {
   NEXT_PUBLIC_ENABLE_CHANNEL_MONITORING: process.env.NEXT_PUBLIC_ENABLE_CHANNEL_MONITORING,
   NEXT_PUBLIC_ENABLE_SALES_LEADS: process.env.NEXT_PUBLIC_ENABLE_SALES_LEADS,
   NEXT_PUBLIC_ENABLE_GRANT_SUCCESS_PROGRAM: process.env.NEXT_PUBLIC_ENABLE_GRANT_SUCCESS_PROGRAM,
+  NEXT_PUBLIC_ENABLE_LOCATION_MAP: process.env.NEXT_PUBLIC_ENABLE_LOCATION_MAP,
+  NEXT_PUBLIC_ENABLE_DEPLOYMENTS_MAP: process.env.NEXT_PUBLIC_ENABLE_DEPLOYMENTS_MAP,
   NEXT_PUBLIC_WEBSOCKET_URL: process.env.NEXT_PUBLIC_WEBSOCKET_URL,
 };
 
@@ -322,4 +324,14 @@ export function isSalesLeadsUiEnabled(): boolean {
 /** Grant Success Program tab on Platform Ops → Grants (AI grant package generator). Default on when unset. */
 export function isGrantSuccessProgramUiEnabled(): boolean {
   return envFlag("NEXT_PUBLIC_ENABLE_GRANT_SUCCESS_PROGRAM");
+}
+
+/** Venue/campus QR location map panel (requires NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN). Default on when unset. */
+export function isLocationMapEnabled(): boolean {
+  return envFlag("NEXT_PUBLIC_ENABLE_LOCATION_MAP");
+}
+
+/** RC Admin national cross-agency deployments map. Default on when unset. */
+export function isDeploymentsMapEnabled(): boolean {
+  return envFlag("NEXT_PUBLIC_ENABLE_DEPLOYMENTS_MAP");
 }

@@ -76,6 +76,9 @@ export const createAgencyBodySchema = z.object({
   planTier: z.enum(["starter", "professional", "command", "enterprise"]).default("starter"),
   pilotMode: z.boolean().default(false),
   addons: z.array(z.string().min(1).max(120)).max(200).default([]),
+  /** Optional HQ pin for RC Admin national deployments map. */
+  latitude: z.number().min(-90).max(90).optional(),
+  longitude: z.number().min(-180).max(180).optional(),
 });
 
 const sopAgencyConfigPatchSchema = z.object({
@@ -112,6 +115,12 @@ export const patchAgencyBodySchema = z
     planTier: z.enum(["starter", "professional", "command", "enterprise"]).optional(),
     pilotMode: z.boolean().optional(),
     addons: z.array(z.string().min(1).max(120)).max(200).optional(),
+    city: z.string().min(1).max(120).optional(),
+    centerName: z.string().min(1).max(200).optional(),
+    state: z.string().min(2).max(50).optional(),
+    region: z.string().min(1).max(120).optional(),
+    latitude: z.number().min(-90).max(90).nullable().optional(),
+    longitude: z.number().min(-180).max(180).nullable().optional(),
   })
   .strict();
 

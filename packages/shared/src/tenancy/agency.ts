@@ -126,6 +126,13 @@ export interface AgencyTenant {
   publicCity?: string;
   /** 2-letter US state code for the public directory index. */
   publicState?: string;
+
+  /**
+   * Headquarters / deployment map pin (WGS84).
+   * Optional for legacy rows; required for RC Admin national deployments map markers.
+   */
+  latitude?: number;
+  longitude?: number;
 }
 
 export function resolveAgencyVerticalFromTenant(

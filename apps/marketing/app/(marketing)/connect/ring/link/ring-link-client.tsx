@@ -69,23 +69,87 @@ function statusMessage(
 }
 
 function HomeownerAppstoreSignIn({ nonce, time }: { nonce: string; time: string }) {
-  const [mode, setMode] = useState<"signin" | "signup">("signin");
+  const [mode, setMode] = useState<"signin" | "signup" | "forgot" | "forgotConfirm">("signin");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [code, setCode] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [newPasswordConfirm, setNewPasswordConfirm] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [info, setInfo] = useState<string | null>(null);
   const [done, setDone] = useState<{ deviceCount: number } | null>(null);
+
+  function switchMode(next: "signin" | "signup" | "forgot" | "forgotConfirm") {
+    setMode(next);
+    setError(null);
+    setInfo(null);
+    setPassword("");
+    setCode("");
+    setNewPassword("");
+    setNewPasswordConfirm("");
+  }
 
   async function onSubmit(e: FormEvent) {
     e.preventDefault();
     setError(null);
+    setInfo(null);
     if (!API_BASE) {
       setError("Connect API is not configured. Contact support.");
       return;
     }
+    const api = API_BASE.replace(/\/$/, "");
     setBusy(true);
     try {
-      const res = await fetch(`${API_BASE.replace(/\/$/, "")}/api/public/ring/homeowner/link`, {
+      if (mode === "forgot") {
+        const res = await fetch(`${api}/api/public/ring/homeowner/forgot-password`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json", Accept: "application/json" },
+          body: JSON.stringify({ email }),
+        });
+        const data = (await res.json().catch(() => ({}))) as {
+          success?: boolean;
+          error?: string;
+          message?: string;
+        };
+        if (!res.ok || data.success === false) {
+          setError(data.error || "Unable to start password reset.");
+          return;
+        }
+        setInfo(data.message || "If an account exists for this email, we sent a verification code.");
+        setMode("forgotConfirm");
+        return;
+      }
+
+      if (mode === "forgotConfirm") {
+        if (newPassword !== newPasswordConfirm) {
+          setError("Passwords do not match.");
+          return;
+        }
+        const res = await fetch(`${api}/api/public/ring/homeowner/confirm-forgot-password`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json", Accept: "application/json" },
+          body: JSON.stringify({ email, code, newPassword }),
+        });
+        const data = (await res.json().catch(() => ({}))) as {
+          success?: boolean;
+          error?: string;
+          message?: string;
+        };
+        if (!res.ok || !data.success) {
+          setError(data.error || "Unable to reset password.");
+          return;
+        }
+        setPassword("");
+        setCode("");
+        setNewPassword("");
+        setNewPasswordConfirm("");
+        setInfo(data.message || "Password reset successfully. Sign in to finish linking.");
+        setMode("signin");
+        return;
+      }
+
+      const res = await fetch(`${api}/api/public/ring/homeowner/link`, {
         method: "POST",
         headers: { "Content-Type": "application/json", Accept: "application/json" },
         body: JSON.stringify({ email, password, mode, nonce, time }),
@@ -126,36 +190,41 @@ function HomeownerAppstoreSignIn({ nonce, time }: { nonce: string; time: string 
     );
   }
 
+  const isForgot = mode === "forgot" || mode === "forgotConfirm";
+
   return (
     <div className="mt-8">
       <p className="text-sm leading-relaxed text-slate-300">
-        Sign in with a Rapid Cortex device-owner account to finish linking. This is not dispatcher
-        login.
+        {isForgot
+          ? "Reset your Rapid Cortex device-owner password. This is not your Ring account password."
+          : "Sign in with a Rapid Cortex device-owner account to finish linking. This is not dispatcher login."}
       </p>
-      <div className="mt-5 flex gap-2 text-sm">
-        <button
-          type="button"
-          onClick={() => setMode("signin")}
-          className={`rounded-lg px-3 py-1.5 font-medium ${
-            mode === "signin"
-              ? "bg-sky-600 text-white"
-              : "border border-slate-600 text-slate-300 hover:border-slate-500"
-          }`}
-        >
-          Sign in
-        </button>
-        <button
-          type="button"
-          onClick={() => setMode("signup")}
-          className={`rounded-lg px-3 py-1.5 font-medium ${
-            mode === "signup"
-              ? "bg-sky-600 text-white"
-              : "border border-slate-600 text-slate-300 hover:border-slate-500"
-          }`}
-        >
-          Create account
-        </button>
-      </div>
+      {!isForgot ? (
+        <div className="mt-5 flex gap-2 text-sm">
+          <button
+            type="button"
+            onClick={() => switchMode("signin")}
+            className={`rounded-lg px-3 py-1.5 font-medium ${
+              mode === "signin"
+                ? "bg-sky-600 text-white"
+                : "border border-slate-600 text-slate-300 hover:border-slate-500"
+            }`}
+          >
+            Sign in
+          </button>
+          <button
+            type="button"
+            onClick={() => switchMode("signup")}
+            className={`rounded-lg px-3 py-1.5 font-medium ${
+              mode === "signup"
+                ? "bg-sky-600 text-white"
+                : "border border-slate-600 text-slate-300 hover:border-slate-500"
+            }`}
+          >
+            Create account
+          </button>
+        </div>
+      ) : null}
       <form onSubmit={onSubmit} className="mt-5 space-y-4">
         <label className="block">
           <span className="text-xs font-medium uppercase tracking-wide text-slate-400">Email</span>
@@ -168,32 +237,121 @@ function HomeownerAppstoreSignIn({ nonce, time }: { nonce: string; time: string 
             className="mt-1.5 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2.5 text-sm text-white outline-none focus:border-sky-500"
           />
         </label>
-        <label className="block">
-          <span className="text-xs font-medium uppercase tracking-wide text-slate-400">Password</span>
-          <input
-            type="password"
-            required
-            minLength={12}
-            autoComplete={mode === "signup" ? "new-password" : "current-password"}
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            className="mt-1.5 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2.5 text-sm text-white outline-none focus:border-sky-500"
-          />
-          {mode === "signup" ? (
-            <span className="mt-1 block text-xs text-slate-500">
-              At least 12 characters with upper, lower, number, and symbol.
-            </span>
-          ) : null}
-        </label>
+
+        {mode === "signin" || mode === "signup" ? (
+          <label className="block">
+            <span className="text-xs font-medium uppercase tracking-wide text-slate-400">Password</span>
+            <input
+              type="password"
+              required
+              minLength={12}
+              autoComplete={mode === "signup" ? "new-password" : "current-password"}
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              className="mt-1.5 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2.5 text-sm text-white outline-none focus:border-sky-500"
+            />
+            {mode === "signup" ? (
+              <span className="mt-1 block text-xs text-slate-500">
+                At least 12 characters with upper, lower, number, and symbol.
+              </span>
+            ) : null}
+          </label>
+        ) : null}
+
+        {mode === "forgotConfirm" ? (
+          <>
+            <label className="block">
+              <span className="text-xs font-medium uppercase tracking-wide text-slate-400">
+                Verification code
+              </span>
+              <input
+                type="text"
+                required
+                inputMode="numeric"
+                autoComplete="one-time-code"
+                value={code}
+                onChange={(e) => setCode(e.target.value)}
+                className="mt-1.5 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2.5 text-sm text-white outline-none focus:border-sky-500"
+              />
+            </label>
+            <label className="block">
+              <span className="text-xs font-medium uppercase tracking-wide text-slate-400">
+                New password
+              </span>
+              <input
+                type="password"
+                required
+                minLength={12}
+                autoComplete="new-password"
+                value={newPassword}
+                onChange={(e) => setNewPassword(e.target.value)}
+                className="mt-1.5 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2.5 text-sm text-white outline-none focus:border-sky-500"
+              />
+              <span className="mt-1 block text-xs text-slate-500">
+                At least 12 characters with upper, lower, number, and symbol.
+              </span>
+            </label>
+            <label className="block">
+              <span className="text-xs font-medium uppercase tracking-wide text-slate-400">
+                Confirm new password
+              </span>
+              <input
+                type="password"
+                required
+                minLength={12}
+                autoComplete="new-password"
+                value={newPasswordConfirm}
+                onChange={(e) => setNewPasswordConfirm(e.target.value)}
+                className="mt-1.5 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2.5 text-sm text-white outline-none focus:border-sky-500"
+              />
+            </label>
+          </>
+        ) : null}
+
+        {info ? <p className="text-sm text-sky-300">{info}</p> : null}
         {error ? <p className="text-sm text-rose-400">{error}</p> : null}
+
         <button
           type="submit"
           disabled={busy}
           className="inline-flex min-h-11 w-full items-center justify-center rounded-lg bg-gradient-to-r from-sky-500 to-cyan-400 px-5 text-sm font-semibold text-slate-950 disabled:opacity-60"
         >
-          {busy ? "Linking…" : mode === "signup" ? "Create account & connect" : "Sign in & connect"}
+          {busy
+            ? "Working…"
+            : mode === "forgot"
+              ? "Send reset code"
+              : mode === "forgotConfirm"
+                ? "Reset password"
+                : mode === "signup"
+                  ? "Create account & connect"
+                  : "Sign in & connect"}
         </button>
       </form>
+
+      {mode === "signin" ? (
+        <p className="mt-3 text-sm">
+          <button
+            type="button"
+            onClick={() => switchMode("forgot")}
+            className="font-medium text-sky-400 hover:text-sky-300"
+          >
+            Forgot password?
+          </button>
+        </p>
+      ) : null}
+
+      {isForgot ? (
+        <p className="mt-3 text-sm">
+          <button
+            type="button"
+            onClick={() => switchMode("signin")}
+            className="font-medium text-sky-400 hover:text-sky-300"
+          >
+            Back to sign in
+          </button>
+        </p>
+      ) : null}
+
       <p className="mt-4 text-xs text-slate-500">
         Link expires about 10 minutes after Ring redirects you here. If it expires, reopen Sign in
         from the Ring app.

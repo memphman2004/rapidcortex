@@ -27,6 +27,9 @@ import {
   postCampusNotification,
 } from "@/lib/campus/campus-dashboard-api";
 import { canCampusSupervisorOps } from "@/lib/vertical/supervisor-access";
+import { useVenueLocations } from "@/hooks/use-venue-locations";
+import { isLocationMapEnabled } from "@/lib/runtime-flags";
+import { VenueLocationMapDynamic } from "@/components/venue/VenueLocationMapDynamic";
 import {
   formatTimeAgo,
   mapIncidentStatus,
@@ -792,6 +795,8 @@ export function CampusSafetyDashboard({
 }) {
   const base = linkBase ?? `/${agencyId}`;
   const canSupervisor = canCampusSupervisorOps(userRole);
+  const { locations, isLoading: locationsLoading } = useVenueLocations(agencyId, "campus");
+  const locationMapEnabled = isLocationMapEnabled();
   const [threatBusy, setThreatBusy] = useState(false);
   const [createOpen, setCreateOpen] = useState(false);
   const {
@@ -1101,6 +1106,16 @@ export function CampusSafetyDashboard({
               <BuildingStatusGrid buildings={buildings} linkBase={base} />
             </div>
           </div>
+
+          {/* Location map */}
+          {locationMapEnabled ? (
+            <VenueLocationMapDynamic
+              locations={locations}
+              isLoading={locationsLoading}
+              vertical="campus"
+              linkBase={base}
+            />
+          ) : null}
         </main>
 
         {/* Right panel */}

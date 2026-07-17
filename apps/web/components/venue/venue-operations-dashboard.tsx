@@ -20,11 +20,14 @@ import {
 } from "lucide-react";
 import { canVenueSupervisorOps } from "@/lib/vertical/supervisor-access";
 import { useAgencyWebSocket } from "@/hooks/use-agency-websocket";
+import { useVenueLocations } from "@/hooks/use-venue-locations";
+import { isLocationMapEnabled } from "@/lib/runtime-flags";
 import { fetchVenueSectionCameras } from "@/lib/venue/venue-camera-api";
 import {
   IncidentCameraPanel,
   type VenueActiveIncidentPanel,
 } from "./IncidentCameraPanel";
+import { VenueLocationMapDynamic } from "./VenueLocationMapDynamic";
 import { VenueOperationsShell } from "./venue-operations-shell";
 import {
   CreateVenueIncidentModal,
@@ -108,6 +111,8 @@ export function VenueOperationsDashboard({
   const canSupervisor = canVenueSupervisorOps(userRole);
   const { level: threatLevel, setLevel: setThreatLevel } = useVenueThreatLevel(agencyId);
   const { loading, error, stats, sections, onDuty, incidents, refreshAll } = useVenueOpsData(agencyId);
+  const { locations, isLoading: locationsLoading } = useVenueLocations(agencyId, "venue");
+  const locationMapEnabled = isLocationMapEnabled();
 
   const [createOpen, setCreateOpen] = useState(false);
   const [notifyOpen, setNotifyOpen] = useState(false);
@@ -303,6 +308,16 @@ export function VenueOperationsDashboard({
                 </Link>
               </div>
             </div>
+
+            {/* Location map */}
+            {locationMapEnabled ? (
+              <VenueLocationMapDynamic
+                locations={locations}
+                isLoading={locationsLoading}
+                vertical="venue"
+                linkBase={linkBase}
+              />
+            ) : null}
 
             {/* Sections grid */}
             <div style={{ background: V.surface, border: `1px solid ${V.border}`, borderRadius: 8 }}>

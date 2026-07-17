@@ -407,6 +407,18 @@ Resources:
                   - logs:CreateLogStream
                   - logs:PutLogEvents
                 Resource: !Sub arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/ecs/${AppName}-web-${DeploymentStage}:*
+              # ECS Exec (SSM Session Manager) — these ssmmessages actions do not support resource-level
+              # restriction (AWS requires Resource: "*"); this is the minimum AWS-documented policy for
+              # `aws ecs execute-command` debugging shells. Temporary — remove once the healthcheck
+              # crash-loop investigation is done.
+              - Sid: EcsExecSsmMessages
+                Effect: Allow
+                Action:
+                  - ssmmessages:CreateControlChannel
+                  - ssmmessages:CreateDataChannel
+                  - ssmmessages:OpenControlChannel
+                  - ssmmessages:OpenDataChannel
+                Resource: "*"
 
   WebTaskDefinition:
     Type: AWS::ECS::TaskDefinition

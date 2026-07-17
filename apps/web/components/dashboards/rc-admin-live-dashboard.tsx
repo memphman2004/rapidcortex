@@ -18,11 +18,13 @@ import {
 } from "@/lib/platform-onboarding-helpers";
 import { formatAgencyType, resolveAgencyVerticalFromTenant } from "@/lib/vertical";
 import { VerticalBadge } from "@/components/ui/VerticalBadge";
+import { DeploymentsMapPanel } from "@/components/rc-admin/deployments-map-panel";
 import { ActivityFeed } from "./activity-feed";
 import { RcAdminLeadsPreview } from "./rc-admin-leads-preview";
 import { SecurityAlertCard } from "./security-alert-card";
 import { StatCard } from "./stat-card";
 import type { ActivityItem, KpiStat, SecurityAlert } from "@/lib/dashboards/mockDashboardData";
+import { isDeploymentsMapEnabled } from "@/lib/runtime-flags";
 
 function formatRelativeTime(iso: string): string {
   const ms = Date.now() - new Date(iso).getTime();
@@ -253,6 +255,7 @@ export function RcAdminHomePanels() {
   return (
     <div className="space-y-4">
       <RcAdminLeadsPreview />
+      {isDeploymentsMapEnabled() ? <DeploymentsMapPanel compact /> : null}
       <div className="overflow-hidden rounded-lg border border-slate-800 bg-slate-950/70">
         <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-800 px-4 py-2">
           <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">Agencies</p>
