@@ -160,6 +160,18 @@ export ENABLE_HOSPITAL_ROUTING=true
 export ENABLE_SURGE=true
 export ENABLE_PINPOINT=true
 export CAD_WRITEBACK_ENABLED=false
+
+# Response Continuity System (RCS) — addon rcs.module ($1500/mo). Tables live in
+# AppSamRcsStack2 (infra/nested/stack-app-sam-2-rcs.yaml); placeholders match its naming
+# convention so local/CI env sourcing doesn't require a live deploy to resolve names.
+export ENABLE_RCS=true
+export RCS_CALLS_TABLE="rapid-cortex-rcs-calls-dev"
+export RCS_UNITS_TABLE="rapid-cortex-rcs-units-dev"
+export RCS_ESCALATION_TABLE="rapid-cortex-rcs-escalation-dev"
+export RCS_ARRIVAL_RADIUS_METERS=150
+# RCS_ESCALATION_FUNCTION_ARN / RCS_SCHEDULER_ROLE_ARN are wired automatically inside
+# AppSamRcsStack2 for deployed Lambdas; leave unset locally — scheduleEscalations() /
+# cancelEscalations() log-and-skip when either is empty so local/CI stays functional.
 # Channel / talk group monitoring (default OFF — matches NEXT_PUBLIC_ENABLE_CHANNEL_MONITORING)
 # export ENABLE_CHANNEL_MONITORING=true
 

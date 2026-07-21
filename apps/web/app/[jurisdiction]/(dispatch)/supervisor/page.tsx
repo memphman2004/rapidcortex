@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { DashboardHomeRenderer } from "@/components/dashboards/DashboardHomeRenderer";
+import { DashboardHomeRenderer, RoleDashboardGreeting } from "@/components/dashboards/DashboardHomeRenderer";
 import { useSession } from "@/components/auth/session-context";
 import { CreateIncidentButton } from "@/components/dispatcher/create-incident-slide-over";
 import { isApiConfigured } from "@/lib/api";
@@ -31,6 +31,7 @@ export default function SupervisorHomePage() {
 
   return (
     <div className="space-y-6">
+      <RoleDashboardGreeting role={user.role} displayName={displayName} />
       {isApiConfigured() ? (
         <div className="flex flex-wrap items-center justify-between gap-3">
           <p className="text-sm text-slate-400">
@@ -55,6 +56,7 @@ export default function SupervisorHomePage() {
         role={user.role}
         agencyId={user.agencyId}
         displayName={displayName}
+        showHeader={false}
       />
     </div>
   );

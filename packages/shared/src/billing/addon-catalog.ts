@@ -949,6 +949,20 @@ export const ADDON_CATALOG: AddonDefinition[] = [
     planAvailability: commandPlus,
     verticalRequired: "hospital",
   }),
+
+  // Response Continuity System
+  withLegacyIncludedInPlans({
+    key: "rcs.module",
+    name: "Response Continuity System (RCS) Module",
+    category: "Response Continuity",
+    description:
+      "Life-safety call persistence: silent monitor queue, unit geofence arrival confirmation, audio sentinel, escalation engine, and closure gate with supervisor override audit.",
+    billingType: "monthly",
+    monthlyPrice: 1500,
+    oneTimePrice: 0,
+    planAvailability: professionalPlus,
+    featureFlag: "rcs",
+  }),
 ];
 
 export function getAddonByKey(key: AddonKey): AddonDefinition {

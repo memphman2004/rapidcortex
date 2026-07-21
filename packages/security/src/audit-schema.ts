@@ -246,6 +246,15 @@ export const AUDIT_EVENT_TYPES = {
   MOBILE_CODE_DELETED: "mobile_code.deleted",
   MOBILE_CODE_NFC_WRITE_LOGGED: "mobile_code.nfc_write.logged",
 
+  // ── Response Continuity System (RCS) ───────────────────────────────────────
+  RCS_CALL_STARTED: "rcs.call.started",
+  RCS_CALL_STATE_CHANGED: "rcs.call.state_changed",
+  RCS_CALL_ESCALATED: "rcs.call.escalated",
+  RCS_CALL_AUDIO_ALERT: "rcs.call.audio_alert",
+  RCS_CALL_SUPERVISOR_ACKNOWLEDGED: "rcs.call.supervisor_acknowledged",
+  RCS_CALL_CLOSED: "rcs.call.closed",
+  RCS_CALL_OVERRIDE_CLOSED: "rcs.call.override_closed",
+
   ...RING_AUDIT_EVENT_TYPES,
 } as const;
 

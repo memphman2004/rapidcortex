@@ -1655,6 +1655,11 @@ Resources:
             - HasDataLayerNestedStack
             - !GetAtt DataLayerStack.Outputs.SalesLeadsTable
             - !Sub "${DynamoTableNamePrefix}-sales-leads-${DeploymentStage}"
+        MarketingLeadsTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.MarketingLeadsTable
+            - !Sub "${DynamoTableNamePrefix}-marketing-leads-${DeploymentStage}"
         SelfSignupDefaultAgencyId: !Ref SelfSignupDefaultAgencyId
         SelfSignupDefaultRole: !Ref SelfSignupDefaultRole
         ServiceCatalogTable:
@@ -2554,6 +2559,78 @@ Resources:
         HospitalPreAlertsTable: !Sub "rapid-cortex-hospital-prealerts-${DeploymentStage}"
         HospitalCapacityTable: !Sub "rapid-cortex-hospital-capacity-${DeploymentStage}"
         HospitalProfilesTable: !Sub "rapid-cortex-hospital-profiles-${DeploymentStage}"
+        ManagedPolicyNamePrefix: !Ref AWS::StackName
+
+  AppSamRcsStack2:
+    Type: AWS::CloudFormation::Stack
+    Metadata:
+      cfn-lint:
+        config:
+          ignore_checks:
+            - W3005
+    DependsOn: AppSam2Stack
+    Properties:
+      TimeoutInMinutes: 60
+      TemplateURL: nested/stack-app-sam-2-rcs.yaml
+      Parameters:
+        DeploymentStage: !Ref DeploymentStage
+        HttpApiId: !GetAtt AppSam2Stack.Outputs.HttpApiId
+        # Empty = routes without gateway JWT (Lambda still validates). Set via stack param / surgical deploy when known.
+        HttpApiJwtAuthorizerId: ""
+        ImportedCognitoUserPoolId: !GetAtt AppSamStackV2.Outputs.UserPoolId
+        ImportedCognitoWebClientId: !GetAtt AppSamStackV2.Outputs.UserPoolClientId
+        ImportedCognitoIssuer: !GetAtt AppSamStackV2.Outputs.CognitoIssuer
+        RcsCallsTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.RcsCallsTable
+            - !Sub "${DynamoTableNamePrefix}-rcs-calls-${DeploymentStage}"
+        RcsUnitsTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.RcsUnitsTable
+            - !Sub "${DynamoTableNamePrefix}-rcs-units-${DeploymentStage}"
+        RcsEscalationTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.RcsEscalationTable
+            - !Sub "${DynamoTableNamePrefix}-rcs-escalation-${DeploymentStage}"
+        AuditTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.AuditTable
+            - !Sub "${DynamoTableNamePrefix}-audit-${DeploymentStage}"
+        AgenciesTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.AgenciesTable
+            - !Sub "${DynamoTableNamePrefix}-agencies-${DeploymentStage}"
+        IncidentsTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.IncidentsTable
+            - !Sub "${DynamoTableNamePrefix}-incidents-${DeploymentStage}"
+        TranscriptsTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.TranscriptsTable
+            - !Sub "${DynamoTableNamePrefix}-transcripts-${DeploymentStage}"
+        AnalysesTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.AnalysesTable
+            - !Sub "${DynamoTableNamePrefix}-analyses-${DeploymentStage}"
+        InvitesTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.InvitesTable
+            - !Sub "${DynamoTableNamePrefix}-invites-${DeploymentStage}"
+        AssetsBucket:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.AssetsBucket
+            - !Sub "${DynamoTableNamePrefix}-assets-${DeploymentStage}-${AWS::AccountId}"
+        OpsAlertsTopicArn: !GetAtt AppSam2Stack.Outputs.OpsAlertsTopicArn
         ManagedPolicyNamePrefix: !Ref AWS::StackName
 
   AppSamRealtime2Stack:

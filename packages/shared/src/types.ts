@@ -372,6 +372,7 @@ export type AuditResourceType =
   | "channel_config"
   | "sales_lead"
   | "grant_package"
+  | "rcs_call"
   | "unknown";
 
 /**

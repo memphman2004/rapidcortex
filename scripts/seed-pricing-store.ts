@@ -429,6 +429,11 @@ async function main() {
       "Chronological replay of all events, transcripts, and media for post-incident review.",
       8_000, null, null, "fixed", "monthly", "agency/month", 252, now, ["command"]),
 
+    // ADD-ONS — Response Continuity
+    addon("addon-rcs-module", "Response Continuity System (RCS) Module", "Response Continuity",
+      "Call persistence lock, silent monitor queue, unit geofence arrival, audio sentinel, escalation engine, and closure gate with supervisor override audit.",
+      150_000, null, null, "fixed", "monthly", "agency/month", 255, now, ["rcs", "life-safety"]),
+
     // ADD-ONS — Reliability & Tech Ops
     addon("addon-ops-ring-connect", "RC Connect — Ring Integration", "Reliability & Tech Ops",
       "Ring camera and doorbell integration: citizen-initiated alerts and live video from Ring devices.",

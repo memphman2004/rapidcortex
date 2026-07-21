@@ -367,6 +367,15 @@ export const env = {
   monetizationInvoicesTable: process.env.MONETIZATION_INVOICES_TABLE?.trim() ?? "",
   billingAuditEventsTable: process.env.BILLING_AUDIT_EVENTS_TABLE?.trim() ?? "",
   salesLeadsTable: process.env.SALES_LEADS_TABLE?.trim() ?? "",
+  /** Inside the Cortex marketing lead capture (pk/sk + unsubscribe tokens). */
+  marketingLeadsTable: process.env.MARKETING_LEADS_TABLE?.trim() ?? "",
+  /** Verified SES From for marketing welcome + team notify; empty skips SES. */
+  sesFromEmail: process.env.SES_FROM_EMAIL?.trim() ?? "",
+  /** Internal inbox for new Cortex signup notifications. */
+  rcTeamNotifyEmail: process.env.RC_TEAM_NOTIFY_EMAIL?.trim() ?? "team@rapidcortex.us",
+  /** When true/1, SES send is skipped (local/CI). */
+  sesMock: process.env.SES_MOCK === "true" || process.env.SES_MOCK === "1",
+  enableInsideTheCortex: featureEnabled("ENABLE_INSIDE_THE_CORTEX"),
   /** Ops SNS (e.g. `OpsAlertsTopic`) — empty skips SNS publish on contact-sales. */
   opsSnsTopicArn: process.env.OPS_ALERTS_TOPIC_ARN?.trim() ?? "",
   /** Verified SES From address for contact-sales; empty skips SES (SNS may still fire). */
@@ -498,4 +507,24 @@ export const env = {
   enableGuardian: featureEnabled("ENABLE_GUARDIAN"),
   guardianMock: process.env.GUARDIAN_MOCK === "true",
   guardianEventsTable: process.env.GUARDIAN_EVENTS_TABLE?.trim() ?? "",
+  /**
+   * Response Continuity System (RCS) — silent monitor queue, unit geofence arrival
+   * confirmation, audio sentinel, escalation engine, closure gate. Addon `rcs.module`.
+   * Empty table names disable RCS HTTP handlers at runtime (local/CI safe).
+   */
+  enableRcs: featureEnabled("ENABLE_RCS"),
+  rcsCallsTable: process.env.RCS_CALLS_TABLE?.trim() ?? "",
+  rcsUnitsTable: process.env.RCS_UNITS_TABLE?.trim() ?? "",
+  rcsEscalationTable: process.env.RCS_ESCALATION_TABLE?.trim() ?? "",
+  /** ARN of the escalation-trigger Lambda (EventBridge Scheduler target). */
+  rcsEscalationFunctionArn: process.env.RCS_ESCALATION_FUNCTION_ARN?.trim() ?? "",
+  /** IAM role EventBridge Scheduler assumes to invoke the escalation-trigger Lambda. */
+  rcsSchedulerRoleArn: process.env.RCS_SCHEDULER_ROLE_ARN?.trim() ?? "",
+  /** Optional SNS topic notified when a call escalates (supervisor paging). */
+  rcsEscalationSnsTopicArn: process.env.RCS_ESCALATION_SNS_TOPIC_ARN?.trim() ?? "",
+  /** Default geofence radius (meters) for unit arrival confirmation. */
+  rcsArrivalRadiusMeters: Math.max(
+    10,
+    Number.parseInt(process.env.RCS_ARRIVAL_RADIUS_METERS ?? "150", 10) || 150,
+  ),
 };

@@ -158,6 +158,9 @@ export const PRICING_DEFAULTS = {
   "support.mission.lg": 7500,
 
   "agency.share": 1500,
+
+  /** Response Continuity System module add-on ($/agency/month). */
+  "rcs.module": 1500,
 } as const;
 
 export type PricingKey = keyof typeof PRICING_DEFAULTS;

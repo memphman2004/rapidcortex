@@ -1,9 +1,10 @@
 "use client";
 
-import { Copy, ExternalLink, MapPin } from "lucide-react";
+import { Copy, MapPin } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { isCallControlWebSocketEnabled } from "@/lib/runtime-flags";
 import type { CampusIncidentLocationEntry } from "@/lib/campus/types";
+import { MapPreviewButton } from "@/components/dispatcher/MapPreviewButton";
 
 type LocationWsMessage = {
   type: string;
@@ -151,15 +152,14 @@ export function SmsLocationPanel({
             <Copy className="h-3 w-3" />
             Copy Coordinates
           </button>
-          <a
-            href={`https://maps.google.com/maps?q=${entry.coordinates.latitude},${entry.coordinates.longitude}`}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex items-center gap-1 rounded border border-slate-700 px-2 py-1 text-xs text-slate-300 hover:bg-slate-800"
-          >
-            <ExternalLink className="h-3 w-3" />
-            Open in Maps
-          </a>
+          <MapPreviewButton
+            address={entry.locationText ?? sourceLabel(entry.source)}
+            lat={entry.coordinates.latitude}
+            lng={entry.coordinates.longitude}
+            label={entry.locationText ?? sourceLabel(entry.source)}
+            incidentId={incidentId}
+            variant="button"
+          />
         </div>
       ) : null}
     </div>

@@ -7,8 +7,7 @@ import type {
 } from "rapid-cortex-shared";
 import { isApiConfigured } from "@/lib/api";
 
-const USE_AUTH_PROXY =
-  typeof process !== "undefined" && process.env.NEXT_PUBLIC_AUTH_PROXY === "1";
+import { resolveSameOriginBffBase, shouldUseBffCredentials } from "@/lib/same-origin-bff-base";
 
 const DIRECT_API_BASE =
   typeof process !== "undefined"
@@ -16,12 +15,7 @@ const DIRECT_API_BASE =
     : "";
 
 function apiBase(): string {
-  if (USE_AUTH_PROXY) {
-    if (typeof window !== "undefined") return `${window.location.origin}/api/backend`;
-    const site = process.env.NEXT_PUBLIC_SITE_URL?.trim().replace(/\/$/, "");
-    return site ? `${site}/api/backend` : "http://127.0.0.1:3000/api/backend";
-  }
-  return DIRECT_API_BASE;
+  return resolveSameOriginBffBase(DIRECT_API_BASE);
 }
 
 async function reviewRequest<T>(path: string, init?: RequestInit): Promise<T> {
@@ -29,7 +23,7 @@ async function reviewRequest<T>(path: string, init?: RequestInit): Promise<T> {
   if (!base) throw new Error("API base URL not configured");
   const res = await fetch(`${base}${path}`, {
     ...init,
-    credentials: USE_AUTH_PROXY ? "include" : "same-origin",
+    credentials: shouldUseBffCredentials() ? "include" : "same-origin",
     headers: { "Content-Type": "application/json", ...init?.headers },
   });
   const text = await res.text();

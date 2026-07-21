@@ -13,6 +13,8 @@ export function isMobilePublicApiPath(pathname: string): boolean {
     (p) => p === "/api/health" || p.startsWith("/api/health/"),
     (p) => p === "/api/csp-report" || p.startsWith("/api/csp-report/"),
     (p) => p === "/api/contact-sales" || p.startsWith("/api/contact-sales/"),
+    (p) => p === "/api/marketing/lead" || p.startsWith("/api/marketing/lead/"),
+    (p) => p === "/api/marketing/unsubscribe" || p.startsWith("/api/marketing/unsubscribe/"),
     (p) => p.startsWith("/api/public/"),
     (p) => p === "/api/status" || p.startsWith("/api/status/"),
     (p) => p === "/api/readiness" || p.startsWith("/api/readiness/"),

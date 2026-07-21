@@ -2630,6 +2630,8 @@
     },
     "SalesLeadsTable": {
       "Type": "AWS::DynamoDB::Table",
+      "DeletionPolicy": "Retain",
+      "UpdateReplacePolicy": "Retain",
       "Properties": {
         "BillingMode": {
           "Ref": "DynamoBillingMode"
@@ -2666,6 +2668,60 @@
             "KeyType": "HASH"
           }
         ]
+      }
+    },
+    "MarketingLeadsTable": {
+      "Type": "AWS::DynamoDB::Table",
+      "DeletionPolicy": "Retain",
+      "UpdateReplacePolicy": "Retain",
+      "Properties": {
+        "BillingMode": {
+          "Ref": "DynamoBillingMode"
+        },
+        "TableName": {
+          "Fn::If": [
+            "HasDynamoTablePrefix",
+            {
+              "Fn::Sub": "${DynamoTableNamePrefix}-marketing-leads-${DeploymentStage}"
+            },
+            {
+              "Ref": "AWS::NoValue"
+            }
+          ]
+        },
+        "PointInTimeRecoverySpecification": {
+          "PointInTimeRecoveryEnabled": {
+            "Fn::If": [
+              "DynamoPitrOn",
+              true,
+              false
+            ]
+          }
+        },
+        "AttributeDefinitions": [
+          {
+            "AttributeName": "pk",
+            "AttributeType": "S"
+          },
+          {
+            "AttributeName": "sk",
+            "AttributeType": "S"
+          }
+        ],
+        "KeySchema": [
+          {
+            "AttributeName": "pk",
+            "KeyType": "HASH"
+          },
+          {
+            "AttributeName": "sk",
+            "KeyType": "RANGE"
+          }
+        ],
+        "TimeToLiveSpecification": {
+          "AttributeName": "ttl",
+          "Enabled": true
+        }
       }
     },
     "SeoIntelligenceTable": {
@@ -4077,6 +4133,174 @@
         "TimeToLiveSpecification": {
           "AttributeName": "ttl",
           "Enabled": true
+        },
+        "AttributeDefinitions": [
+          {
+            "AttributeName": "pk",
+            "AttributeType": "S"
+          },
+          {
+            "AttributeName": "sk",
+            "AttributeType": "S"
+          }
+        ],
+        "KeySchema": [
+          {
+            "AttributeName": "pk",
+            "KeyType": "HASH"
+          },
+          {
+            "AttributeName": "sk",
+            "KeyType": "RANGE"
+          }
+        ]
+      }
+    },
+    "RcsCallsTable": {
+      "Type": "AWS::DynamoDB::Table",
+      "DeletionPolicy": "Retain",
+      "UpdateReplacePolicy": "Retain",
+      "Properties": {
+        "BillingMode": {
+          "Ref": "DynamoBillingMode"
+        },
+        "TableName": {
+          "Fn::If": [
+            "HasDynamoTablePrefix",
+            {
+              "Fn::Sub": "${DynamoTableNamePrefix}-rcs-calls-${DeploymentStage}"
+            },
+            {
+              "Ref": "AWS::NoValue"
+            }
+          ]
+        },
+        "PointInTimeRecoverySpecification": {
+          "PointInTimeRecoveryEnabled": {
+            "Fn::If": [
+              "DynamoPitrOn",
+              true,
+              false
+            ]
+          }
+        },
+        "AttributeDefinitions": [
+          {
+            "AttributeName": "callId",
+            "AttributeType": "S"
+          },
+          {
+            "AttributeName": "agencyId",
+            "AttributeType": "S"
+          },
+          {
+            "AttributeName": "updatedAt",
+            "AttributeType": "S"
+          }
+        ],
+        "KeySchema": [
+          {
+            "AttributeName": "callId",
+            "KeyType": "HASH"
+          }
+        ],
+        "GlobalSecondaryIndexes": [
+          {
+            "IndexName": "agencyId-updatedAt-index",
+            "KeySchema": [
+              {
+                "AttributeName": "agencyId",
+                "KeyType": "HASH"
+              },
+              {
+                "AttributeName": "updatedAt",
+                "KeyType": "RANGE"
+              }
+            ],
+            "Projection": {
+              "ProjectionType": "ALL"
+            }
+          }
+        ]
+      }
+    },
+    "RcsUnitsTable": {
+      "Type": "AWS::DynamoDB::Table",
+      "DeletionPolicy": "Retain",
+      "UpdateReplacePolicy": "Retain",
+      "Properties": {
+        "BillingMode": {
+          "Ref": "DynamoBillingMode"
+        },
+        "TableName": {
+          "Fn::If": [
+            "HasDynamoTablePrefix",
+            {
+              "Fn::Sub": "${DynamoTableNamePrefix}-rcs-units-${DeploymentStage}"
+            },
+            {
+              "Ref": "AWS::NoValue"
+            }
+          ]
+        },
+        "PointInTimeRecoverySpecification": {
+          "PointInTimeRecoveryEnabled": {
+            "Fn::If": [
+              "DynamoPitrOn",
+              true,
+              false
+            ]
+          }
+        },
+        "AttributeDefinitions": [
+          {
+            "AttributeName": "pk",
+            "AttributeType": "S"
+          },
+          {
+            "AttributeName": "sk",
+            "AttributeType": "S"
+          }
+        ],
+        "KeySchema": [
+          {
+            "AttributeName": "pk",
+            "KeyType": "HASH"
+          },
+          {
+            "AttributeName": "sk",
+            "KeyType": "RANGE"
+          }
+        ]
+      }
+    },
+    "RcsEscalationTable": {
+      "Type": "AWS::DynamoDB::Table",
+      "DeletionPolicy": "Retain",
+      "UpdateReplacePolicy": "Retain",
+      "Properties": {
+        "BillingMode": {
+          "Ref": "DynamoBillingMode"
+        },
+        "TableName": {
+          "Fn::If": [
+            "HasDynamoTablePrefix",
+            {
+              "Fn::Sub": "${DynamoTableNamePrefix}-rcs-escalation-${DeploymentStage}"
+            },
+            {
+              "Ref": "AWS::NoValue"
+            }
+          ]
+        },
+        "PointInTimeRecoverySpecification": {
+          "PointInTimeRecoveryEnabled": {
+            "Fn::If": [
+              "DynamoPitrOn",
+              true,
+              false
+            ]
+          }
         },
         "AttributeDefinitions": [
           {
@@ -5787,6 +6011,12 @@
         "Ref": "SalesLeadsTable"
       }
     },
+    "MarketingLeadsTable": {
+      "Description": "Physical table name for MarketingLeadsTable (Inside the Cortex; pk/sk + TTL)",
+      "Value": {
+        "Ref": "MarketingLeadsTable"
+      }
+    },
     "SeoIntelligenceTable": {
       "Description": "Physical table name for SeoIntelligenceTable (scans + issues; PK agencyId, SK entity key)",
       "Value": {
@@ -5929,6 +6159,24 @@
       "Description": "Physical table name for SurgeClustersTable",
       "Value": {
         "Ref": "SurgeClustersTable"
+      }
+    },
+    "RcsCallsTable": {
+      "Description": "Physical table name for RcsCallsTable",
+      "Value": {
+        "Ref": "RcsCallsTable"
+      }
+    },
+    "RcsUnitsTable": {
+      "Description": "Physical table name for RcsUnitsTable",
+      "Value": {
+        "Ref": "RcsUnitsTable"
+      }
+    },
+    "RcsEscalationTable": {
+      "Description": "Physical table name for RcsEscalationTable",
+      "Value": {
+        "Ref": "RcsEscalationTable"
       }
     },
     "AnalysesTable": {

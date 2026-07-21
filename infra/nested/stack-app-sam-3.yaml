@@ -268,6 +268,9 @@ Parameters:
     Type: String
   SalesLeadsTable:
     Type: String
+  MarketingLeadsTable:
+    Type: String
+    Description: Physical DynamoDB table name from data layer (MarketingLeadsTable).
   CustomersTable:
     Type: String
   ServiceCatalogTable:
@@ -1725,6 +1728,100 @@ Resources:
             ApiId: !Ref Api
             Path: /api/contact-sales
             Method: ANY
+            Auth:
+              Authorizer: NONE
+
+  MarketingLeadFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/handlers/marketing-lead.handler
+      Environment:
+        Variables:
+          MARKETING_LEADS_TABLE: !Ref MarketingLeadsTable
+          RC_TEAM_NOTIFY_EMAIL: team@rapidcortex.us
+          SES_FROM_EMAIL: noreply@rapidcortex.us
+          ENABLE_INSIDE_THE_CORTEX: "true"
+          SES_MOCK: "false"
+      Policies:
+        - Statement:
+            Sid: MarketingLeadsTableCrud
+            Effect: Allow
+            Action:
+              - dynamodb:GetItem
+              - dynamodb:PutItem
+              - dynamodb:UpdateItem
+              - dynamodb:Query
+              - dynamodb:DescribeTable
+            Resource:
+              - !Sub arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${MarketingLeadsTable}
+        - Statement:
+            Sid: SesMarketingLeadFromNoreplyIdentity
+            Effect: Allow
+            Action:
+              - ses:SendEmail
+            Resource:
+              - !Sub arn:${AWS::Partition}:ses:${AWS::Region}:${AWS::AccountId}:identity/noreply@rapidcortex.us
+              - !Sub arn:${AWS::Partition}:ses:${AWS::Region}:${AWS::AccountId}:identity/rapidcortex.us
+              - !Sub arn:${AWS::Partition}:ses:${AWS::Region}:${AWS::AccountId}:identity/support@rapidcortex.us
+      Events:
+        MarketingLeadPost:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/marketing/lead
+            Method: POST
+            Auth:
+              Authorizer: NONE
+        MarketingLeadOptions:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/marketing/lead
+            Method: OPTIONS
+            Auth:
+              Authorizer: NONE
+
+  MarketingUnsubscribeFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/handlers/marketing-unsubscribe.handler
+      Environment:
+        Variables:
+          MARKETING_LEADS_TABLE: !Ref MarketingLeadsTable
+          ENABLE_INSIDE_THE_CORTEX: "true"
+      Policies:
+        - Statement:
+            Sid: MarketingLeadsTableUnsub
+            Effect: Allow
+            Action:
+              - dynamodb:GetItem
+              - dynamodb:UpdateItem
+              - dynamodb:DescribeTable
+            Resource:
+              - !Sub arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${MarketingLeadsTable}
+      Events:
+        MarketingUnsubPost:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/marketing/unsubscribe
+            Method: POST
+            Auth:
+              Authorizer: NONE
+        MarketingUnsubOptions:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/marketing/unsubscribe
+            Method: OPTIONS
             Auth:
               Authorizer: NONE
 

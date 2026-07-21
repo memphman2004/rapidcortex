@@ -240,7 +240,12 @@ if [[ "${DEPLOY_SAM3}" -eq 1 ]]; then
   echo ""
   echo "▶ AppSam3Stack (${SAM3_STACK})"
   lean_sam_build "${ROOT}/infra/nested/stack-app-sam-3.yaml" "sam3"
-  lean_sam_deploy_nested "${SAM_BUILD_DIR}/sam3/template.yaml" "${SAM3_STACK}"
+  _sam3_extra=()
+  # New table may not yet be in nested stack params (root UPDATE_ROLLBACK_COMPLETE).
+  if [[ -n "${MARKETING_LEADS_TABLE:-}" ]]; then
+    _sam3_extra+=("MarketingLeadsTable=${MARKETING_LEADS_TABLE}")
+  fi
+  lean_sam_deploy_nested "${SAM_BUILD_DIR}/sam3/template.yaml" "${SAM3_STACK}" ${_sam3_extra[@]:+"${_sam3_extra[@]}"}
   echo "✅ AppSam3Stack deploy complete"
 fi
 

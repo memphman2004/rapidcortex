@@ -287,6 +287,8 @@ export function getDispatcherNav(jurisdiction: string): RoleNav {
           { id: "transcription", label: "Transcription",   href: `${j}/dispatcher/transcription`, icon: "FileText" },
           { id: "incidents",     label: "Incidents",       href: `${j}/dispatcher/incidents`, icon: "AlertCircle",
             badge: { type: "count", key: "openIncidents" } },
+          { id: "rcs",           label: "RCS Monitor",     href: `${j}/rcs`,            icon: "Shield",
+            feature: "rcs" },
           { id: "history",       label: "History",         href: `${j}/history`,        icon: "Clock" },
           { id: "media",         label: "Media",           href: `${j}/media`,          icon: "Video" },
         ],
@@ -332,6 +334,8 @@ export function getSupervisorNav(jurisdiction: string): RoleNav {
         items: [
           { id: "war-rooms",     label: "War Rooms",       href: `${j}/supervisor/command/war-rooms`, icon: "Siren" },
           { id: "status-pages",  label: "Status Pages",    href: `${j}/supervisor/command/status-pages`, icon: "Globe" },
+          { id: "rcs",           label: "RCS Monitor",     href: `${j}/rcs`,            icon: "Shield",
+            feature: "rcs" },
         ],
       },
       {

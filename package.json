@@ -82,7 +82,8 @@
   },
   "overrides": {
     "fast-xml-parser": "^5.7.0",
-    "@smithy/types": "^4.16.1"
+    "@smithy/types": "^4.16.1",
+    "@smithy/smithy-client": "^4.13.1"
   },
   "dependencies": {
     "@smithy/core": "^3.29.0",

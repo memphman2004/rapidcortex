@@ -70,7 +70,7 @@ function WidgetSlotRenderer({
 
 // ─── Dashboard header ─────────────────────────────────────────────────────────
 
-function DashboardHeader({
+export function DashboardHeader({
   layout,
   displayName,
 }: {
@@ -84,7 +84,7 @@ function DashboardHeader({
     "Good evening";
 
   return (
-    <div className="mb-6">
+    <div>
       <p className="text-xs font-medium uppercase tracking-widest text-slate-500">
         {layout.greeting}
       </p>
@@ -96,15 +96,35 @@ function DashboardHeader({
   );
 }
 
+/** Greeting block for pages that compose panels above the widget grid. */
+export function RoleDashboardGreeting({
+  role,
+  displayName = "there",
+}: {
+  role: string;
+  displayName?: string;
+}) {
+  const layout = getWidgetLayout(role);
+  if (!layout) return null;
+  return <DashboardHeader layout={layout} displayName={displayName} />;
+}
+
 // ─── Main renderer ────────────────────────────────────────────────────────────
 
 type Props = {
   role: string;
   agencyId: string;
   displayName?: string;
+  /** When false, omit the greeting (page already rendered RoleDashboardGreeting). */
+  showHeader?: boolean;
 };
 
-export function DashboardHomeRenderer({ role, agencyId, displayName = "there" }: Props) {
+export function DashboardHomeRenderer({
+  role,
+  agencyId,
+  displayName = "there",
+  showHeader = true,
+}: Props) {
   const layout = getWidgetLayout(role);
 
   if (!layout) {
@@ -126,7 +146,7 @@ export function DashboardHomeRenderer({ role, agencyId, displayName = "there" }:
   return (
     <div className="space-y-6">
       {isVenueGuestServicesRole(role) ? <VenueGuestServicesDisclaimer /> : null}
-      <DashboardHeader layout={layout} displayName={displayName} />
+      {showHeader ? <DashboardHeader layout={layout} displayName={displayName} /> : null}
 
       {/* 12-column responsive grid */}
       <div className="grid grid-cols-12 gap-4">

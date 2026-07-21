@@ -30,6 +30,7 @@ export const RESERVED_PUBLIC_ROUTE_FIRST_SEGMENTS: readonly string[] = [
   "acceptable-use",
   "cookies",
   "contact-sales",
+  "unsubscribe",
   /** Public SMS consent (toll-free / carrier verification). */
   "sms-consent",
   /** Root checkout/billing UX (marketing), not `{jurisdiction}/billing`. */

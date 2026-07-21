@@ -38,6 +38,10 @@ const nextConfig = {
         marketingRoot,
         "components/auth/session-context.tsx",
       ),
+      "@/components/InsideTheCortexPopup": path.join(
+        marketingRoot,
+        "components/InsideTheCortexPopup.tsx",
+      ),
       "@/app/providers": path.join(marketingRoot, "app/providers.tsx"),
       "@": webRoot,
     };

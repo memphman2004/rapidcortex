@@ -86,6 +86,7 @@ export const ADDON_KEYS = [
   "hospital.mci_routing",
   "hospital.staff_safety",
   "hospital.patient_tracking",
+  "rcs.module",
 ] as const;
 
 export type AddonKey = (typeof ADDON_KEYS)[number];

@@ -39,8 +39,14 @@ ROLL_ECS_AFTER_CODEBUILD="${ROLL_ECS_AFTER_CODEBUILD:-1}"
 
 if [[ "${ROLL_ECS_AFTER_CODEBUILD}" == "1" ]]; then
   # Override with ECS_CLUSTER_NAME / ECS_SERVICE_NAME if your stack uses a different naming pattern.
-  CLUSTER="${ECS_CLUSTER_NAME:-rapid-cortex-v2-web-${ENVIRONMENT}}"
-  SVC="${ECS_SERVICE_NAME:-rapid-cortex-v2-web-${ENVIRONMENT}}"
+  # Dev SSR uses rapid-cortex-web-{env}; prod SSR (web-ssr-prod-v2) uses rapid-cortex-v2-web-prod.
+  if [[ "${ENVIRONMENT}" == "prod" ]]; then
+    CLUSTER="${ECS_CLUSTER_NAME:-rapid-cortex-v2-web-prod}"
+    SVC="${ECS_SERVICE_NAME:-rapid-cortex-v2-web-prod}"
+  else
+    CLUSTER="${ECS_CLUSTER_NAME:-rapid-cortex-web-${ENVIRONMENT}}"
+    SVC="${ECS_SERVICE_NAME:-rapid-cortex-web-${ENVIRONMENT}}"
+  fi
 
   # --- Step 1: Wait for CodeBuild to complete --------------------------------
   BUILD_ID_FILE="${TMPDIR:-/tmp}/rc-web-codebuild-id-${ENVIRONMENT}"

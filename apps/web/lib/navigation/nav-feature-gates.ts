@@ -4,6 +4,7 @@ import {
   isDeploymentsMapEnabled,
   isNonEmergencyTriageEnabled,
   isQaScoringEnabled,
+  isRcsEnabled,
   isSalesLeadsUiEnabled,
   isSlaBacklogEnabled,
   isVerticalOnboardingEnabled,
@@ -28,6 +29,8 @@ export function isNavFeatureEnabled(feature: string): boolean {
       return isSalesLeadsUiEnabled();
     case "deploymentsMap":
       return isDeploymentsMapEnabled();
+    case "rcs":
+      return isRcsEnabled();
     default:
       return true;
   }

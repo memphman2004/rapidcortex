@@ -109,6 +109,12 @@ describe("isCommsPlatformApiPath", () => {
     expect(isStack2ApiPath("/api/agency-admin/clients")).toBe(false);
   });
 
+  it("matches marketing lead + unsubscribe (stack 3)", () => {
+    expect(isSam3ApiPath("/api/marketing/lead")).toBe(true);
+    expect(isSam3ApiPath("/api/marketing/unsubscribe")).toBe(true);
+    expect(isStack2ApiPath("/api/marketing/lead")).toBe(false);
+  });
+
   it("does not match incident list", () => {
     expect(isCommsPlatformApiPath("/api/incidents")).toBe(false);
   });
@@ -126,5 +132,15 @@ describe("isCommsPlatformApiPath", () => {
     expect(resolveUpstreamApiBase("/api/war-rooms")).toBe("https://stack2.example.com");
     expect(resolveUpstreamApiBase("/api/hospital-portal/context")).toBe("https://stack2.example.com");
     expect(resolveUpstreamApiBase("/api/hospitals/capacity")).toBe("https://stack2.example.com");
+  });
+
+  it("routes RCS (Response Continuity System) paths to stack 2", () => {
+    process.env.API_UPSTREAM_BASE = "https://stack1.example.com";
+    process.env.API_UPSTREAM_BASE_2 = "https://stack2.example.com";
+    expect(isStack2ApiPath("/api/rcs/calls")).toBe(true);
+    expect(resolveUpstreamApiBase("/api/rcs/calls")).toBe("https://stack2.example.com");
+    expect(resolveUpstreamApiBase("/api/rcs/calls/call-1/supervisor-ack")).toBe(
+      "https://stack2.example.com",
+    );
   });
 });

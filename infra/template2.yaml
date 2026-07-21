@@ -718,6 +718,46 @@ Resources:
             - !Sub "${DynamoTableNamePrefix}-agencies-${DeploymentStage}"
         ManagedPolicyNamePrefix: !Ref AWS::StackName
 
+  AppSamRcsStack2:
+    Type: AWS::CloudFormation::Stack
+    DependsOn: AppSamStack2
+    Properties:
+      TimeoutInMinutes: 60
+      TemplateURL: nested/stack-app-sam-2-rcs.yaml
+      Parameters:
+        DeploymentStage: !Ref DeploymentStage
+        HttpApiId: !GetAtt AppSamStack2.Outputs.HttpApiId
+        ImportedCognitoUserPoolId: !Ref ImportedCognitoUserPoolId
+        ImportedCognitoWebClientId: !Ref ImportedCognitoWebClientId
+        ImportedCognitoIssuer: !Ref ImportedCognitoIssuer
+        RcsCallsTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.RcsCallsTable
+            - !Sub "${DynamoTableNamePrefix}-rcs-calls-${DeploymentStage}"
+        RcsUnitsTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.RcsUnitsTable
+            - !Sub "${DynamoTableNamePrefix}-rcs-units-${DeploymentStage}"
+        RcsEscalationTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.RcsEscalationTable
+            - !Sub "${DynamoTableNamePrefix}-rcs-escalation-${DeploymentStage}"
+        AuditTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.AuditTable
+            - !Sub "${DynamoTableNamePrefix}-audit-${DeploymentStage}"
+        AgenciesTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.AgenciesTable
+            - !Sub "${DynamoTableNamePrefix}-agencies-${DeploymentStage}"
+        OpsAlertsTopicArn: !GetAtt AppSamStack2.Outputs.OpsAlertsTopicArn
+        ManagedPolicyNamePrefix: !Ref AWS::StackName
+
   AppSamAlarmsStack2:
     Type: AWS::CloudFormation::Stack
     Properties:
@@ -758,6 +798,12 @@ Outputs:
     Value: !GetAtt AppSamHospitalStack2.Outputs.HospitalCapacityTableName
   HospitalProfilesTableName:
     Value: !GetAtt AppSamHospitalStack2.Outputs.HospitalProfilesTableName
+  RcsCallsTableName:
+    Value: !GetAtt AppSamRcsStack2.Outputs.RcsCallsTableName
+  RcsUnitsTableName:
+    Value: !GetAtt AppSamRcsStack2.Outputs.RcsUnitsTableName
+  RcsEscalationTableName:
+    Value: !GetAtt AppSamRcsStack2.Outputs.RcsEscalationTableName
   DeploymentStage:
     Value: !Ref DeploymentStage
   WebSocketApiUrl:

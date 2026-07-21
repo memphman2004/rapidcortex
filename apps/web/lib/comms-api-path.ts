@@ -31,6 +31,7 @@ const STACK2_PATH_TESTS: RegExp[] = [
   /^\/api\/qa\/trends(\/|$)/,
   /^\/api\/qa\/scorecards(\/|$)/,
   /^\/api\/qa\/coaching-notes(\/|$)/,
+  /^\/api\/rcs\//,
 ];
 
 /** Billing, payments, Ring Connect, network policy — stack-app-sam-4 (AppSam4Stack). */
@@ -73,6 +74,8 @@ const STACK5_PATH_TESTS: RegExp[] = [
 /** Media, agency-admin, RC-admin, platform — stack-app-sam-3 (AppSam3Stack). */
 const STACK3_PATH_TESTS: RegExp[] = [
   /^\/api\/contact-sales(\/|$)/,
+  /^\/api\/marketing\/lead(\/|$)/,
+  /^\/api\/marketing\/unsubscribe(\/|$)/,
   /^\/api\/agency-admin\//,
   /^\/api\/rc-admin\/api-clients(\/|$)/,
   /^\/api\/rc-admin\/agreements(\/|$)/,

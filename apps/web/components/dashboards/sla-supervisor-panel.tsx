@@ -35,6 +35,16 @@ function chartTime(iso: string): string {
   return d.toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" });
 }
 
+const compactTick = new Intl.NumberFormat(undefined, {
+  notation: "compact",
+  maximumFractionDigits: 1,
+});
+
+function formatYAxisTick(value: number): string {
+  if (!Number.isFinite(value)) return "";
+  return compactTick.format(value);
+}
+
 export function SlaSupervisorPanel() {
   const { user } = useSession();
   const qc = useQueryClient();
@@ -140,10 +150,15 @@ export function SlaSupervisorPanel() {
         ) : null}
         {chartData.length > 0 ? (
           <ResponsiveContainer width="100%" height="100%">
-            <LineChart data={chartData} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
+            <LineChart data={chartData} margin={{ top: 8, right: 12, left: 4, bottom: 4 }}>
               <CartesianGrid stroke="rgb(51 65 85 / 0.4)" strokeDasharray="3 3" />
               <XAxis dataKey="time" tick={{ fill: "#94a3b8", fontSize: 10 }} />
-              <YAxis tick={{ fill: "#94a3b8", fontSize: 10 }} width={32} />
+              <YAxis
+                tick={{ fill: "#94a3b8", fontSize: 10 }}
+                width={52}
+                tickMargin={6}
+                tickFormatter={formatYAxisTick}
+              />
               <Tooltip
                 contentStyle={{ background: "#0f172a", border: "1px solid #334155", fontSize: 12 }}
               />

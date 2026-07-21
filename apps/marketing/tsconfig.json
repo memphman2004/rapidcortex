@@ -33,6 +33,7 @@
       "@/lib/marketing-links": ["./lib/marketing-links.ts"],
       "@/lib/deployment-environment": ["./lib/deployment-environment.ts"],
       "@/components/auth/session-context": ["./components/auth/session-context.tsx"],
+      "@/components/InsideTheCortexPopup": ["./components/InsideTheCortexPopup.tsx"],
       "@/app/providers": ["./app/providers.tsx"],
       "@/*": ["../web/*", "./*"]
     }

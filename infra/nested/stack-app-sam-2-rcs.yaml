@@ -1,0 +1,478 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Transform: AWS::Serverless-2016-10-31
+Description: >
+  Rapid Cortex — Response Continuity System (RCS): silent monitor queue, unit geofence
+  arrival confirmation, audio sentinel, escalation engine, closure gate. Addon rcs.module.
+  Routes attach to stack 2 HttpApi via ApiGatewayV2.
+
+Parameters:
+  DeploymentStage:
+    Type: String
+    AllowedValues: [dev, staging, prod, pilot]
+  HttpApiId:
+    Type: String
+  HttpApiJwtAuthorizerId:
+    Type: String
+    Default: ""
+    Description: Cognito JWT authorizer id on stack-2 HttpApi (required for protected /api/rcs routes).
+  ImportedCognitoUserPoolId:
+    Type: String
+  ImportedCognitoWebClientId:
+    Type: String
+  ImportedCognitoIssuer:
+    Type: String
+  RcsCallsTable:
+    Type: String
+  RcsUnitsTable:
+    Type: String
+  RcsEscalationTable:
+    Type: String
+  AuditTable:
+    Type: String
+  AgenciesTable:
+    Type: String
+  IncidentsTable:
+    Type: String
+    Default: ""
+    Description: Required by apps/api env bootstrap (AgencyRepository → env); RCS does not query incidents.
+  TranscriptsTable:
+    Type: String
+    Default: ""
+  AnalysesTable:
+    Type: String
+    Default: ""
+  InvitesTable:
+    Type: String
+    Default: ""
+  AssetsBucket:
+    Type: String
+    Default: ""
+  OpsAlertsTopicArn:
+    Type: String
+  RcsArrivalRadiusMeters:
+    Type: String
+    Default: "150"
+  ManagedPolicyNamePrefix:
+    Type: String
+    Default: rapid-cortex
+
+Globals:
+  Function:
+    Runtime: nodejs20.x
+    Timeout: 30
+    MemorySize: 512
+    Environment:
+      Variables:
+        DEPLOYMENT_STAGE: !Ref DeploymentStage
+        ALLOW_UNAUTHENTICATED_API: "false"
+        ENABLE_RCS: "true"
+        RCS_CALLS_TABLE: !Ref RcsCallsTable
+        RCS_UNITS_TABLE: !Ref RcsUnitsTable
+        RCS_ESCALATION_TABLE: !Ref RcsEscalationTable
+        RCS_ARRIVAL_RADIUS_METERS: !Ref RcsArrivalRadiusMeters
+        AUDIT_TABLE: !Ref AuditTable
+        AGENCIES_TABLE: !Ref AgenciesTable
+        # Shared env.ts required() bootstrap (loaded via requireAddon → AgencyRepository).
+        INCIDENTS_TABLE: !Ref IncidentsTable
+        TRANSCRIPTS_TABLE: !Ref TranscriptsTable
+        ANALYSES_TABLE: !Ref AnalysesTable
+        INVITES_TABLE: !Ref InvitesTable
+        ASSETS_BUCKET: !Ref AssetsBucket
+        COGNITO_USER_POOL_ID: !Ref ImportedCognitoUserPoolId
+        COGNITO_CLIENT_ID: !Ref ImportedCognitoWebClientId
+        COGNITO_REGION: !Ref AWS::Region
+
+Conditions:
+  HasHttpApiJwtAuthorizer: !Not [!Equals [!Ref HttpApiJwtAuthorizerId, ""]]
+
+Resources:
+  AppManagedPolicyRcsDynamo:
+    Type: AWS::IAM::ManagedPolicy
+    Properties:
+      ManagedPolicyName: !Sub "${ManagedPolicyNamePrefix}-sam2-rcs-ddb-${DeploymentStage}"
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Sid: RcsAndSharedTables
+            Effect: Allow
+            Action:
+              - dynamodb:GetItem
+              - dynamodb:PutItem
+              - dynamodb:UpdateItem
+              - dynamodb:DeleteItem
+              - dynamodb:Query
+              - dynamodb:BatchGetItem
+              - dynamodb:BatchWriteItem
+              - dynamodb:DescribeTable
+              - dynamodb:ConditionCheckItem
+            Resource:
+              - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${RcsCallsTable}
+              - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${RcsCallsTable}/index/*
+              - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${RcsUnitsTable}
+              - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${RcsUnitsTable}/index/*
+              - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${RcsEscalationTable}
+              - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${RcsEscalationTable}/index/*
+              - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${AuditTable}
+              - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${AuditTable}/index/*
+          - Sid: AgenciesReadOnlyForAddonGate
+            Effect: Allow
+            Action:
+              - dynamodb:GetItem
+            Resource:
+              - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${AgenciesTable}
+
+  # Schedule names are always prefixed rcs-esc-<callId>-<level> in the default group
+  # (see apps/api/src/features/rcs/rcs-scheduler.ts) — scoped to RCS only, never "*".
+  AppManagedPolicyRcsSchedulerManage:
+    Type: AWS::IAM::ManagedPolicy
+    Properties:
+      ManagedPolicyName: !Sub "${ManagedPolicyNamePrefix}-sam2-rcs-sched-${DeploymentStage}"
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Sid: ManageRcsEscalationSchedulesOnly
+            Effect: Allow
+            Action:
+              - scheduler:CreateSchedule
+              - scheduler:UpdateSchedule
+              - scheduler:DeleteSchedule
+              - scheduler:GetSchedule
+            Resource:
+              - !Sub arn:aws:scheduler:${AWS::Region}:${AWS::AccountId}:schedule/default/rcs-esc-*
+          - Sid: PassRcsSchedulerInvokeRoleOnly
+            Effect: Allow
+            Action:
+              - iam:PassRole
+            Resource: !GetAtt RcsSchedulerInvokeRole.Arn
+
+  AppManagedPolicyRcsSnsPublish:
+    Type: AWS::IAM::ManagedPolicy
+    Properties:
+      ManagedPolicyName: !Sub "${ManagedPolicyNamePrefix}-sam2-rcs-sns-${DeploymentStage}"
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Sid: PublishOpsAlertsTopicOnly
+            Effect: Allow
+            Action:
+              - sns:Publish
+            Resource: !Ref OpsAlertsTopicArn
+
+  RcsSchedulerInvokeRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Sub "${ManagedPolicyNamePrefix}-rcs-sched-invoke-${DeploymentStage}"
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: scheduler.amazonaws.com
+            Action: sts:AssumeRole
+      Policies:
+        - PolicyName: invoke-rcs-escalation-trigger
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action: lambda:InvokeFunction
+                Resource: !GetAtt RcsEscalationTriggerFunction.Arn
+
+  RcsEscalationTriggerFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/handlers/rcsEscalationTrigger.handler
+      Environment:
+        Variables:
+          RCS_ESCALATION_SNS_TOPIC_ARN: !Ref OpsAlertsTopicArn
+      Policies:
+        - !Ref AppManagedPolicyRcsDynamo
+        - !Ref AppManagedPolicyRcsSnsPublish
+
+  RcsSchedulerInvokePermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !Ref RcsEscalationTriggerFunction
+      Principal: scheduler.amazonaws.com
+      SourceArn: !Sub arn:aws:scheduler:${AWS::Region}:${AWS::AccountId}:schedule/default/rcs-esc-*
+
+  RcsCallStartFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/handlers/rcsCallStart.handler
+      Environment:
+        Variables:
+          RCS_ESCALATION_FUNCTION_ARN: !GetAtt RcsEscalationTriggerFunction.Arn
+          RCS_SCHEDULER_ROLE_ARN: !GetAtt RcsSchedulerInvokeRole.Arn
+      Policies:
+        - !Ref AppManagedPolicyRcsDynamo
+        - !Ref AppManagedPolicyRcsSchedulerManage
+
+  RcsCallsListFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/handlers/rcsCallsList.handler
+      Policies:
+        - !Ref AppManagedPolicyRcsDynamo
+
+  RcsCallStateFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/handlers/rcsCallState.handler
+      Environment:
+        Variables:
+          RCS_ESCALATION_FUNCTION_ARN: !GetAtt RcsEscalationTriggerFunction.Arn
+          RCS_SCHEDULER_ROLE_ARN: !GetAtt RcsSchedulerInvokeRole.Arn
+      Policies:
+        - !Ref AppManagedPolicyRcsDynamo
+        - !Ref AppManagedPolicyRcsSchedulerManage
+
+  RcsCallCloseFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/handlers/rcsCallClose.handler
+      Environment:
+        Variables:
+          RCS_ESCALATION_FUNCTION_ARN: !GetAtt RcsEscalationTriggerFunction.Arn
+          RCS_SCHEDULER_ROLE_ARN: !GetAtt RcsSchedulerInvokeRole.Arn
+      Policies:
+        - !Ref AppManagedPolicyRcsDynamo
+        - !Ref AppManagedPolicyRcsSchedulerManage
+
+  RcsAudioAlertFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/handlers/rcsAudioAlert.handler
+      Policies:
+        - !Ref AppManagedPolicyRcsDynamo
+
+  RcsSupervisorAckFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/handlers/rcsSupervisorAck.handler
+      Policies:
+        - !Ref AppManagedPolicyRcsDynamo
+
+  RcsUnitPositionFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/handlers/rcsUnitPosition.handler
+      Environment:
+        Variables:
+          RCS_ESCALATION_FUNCTION_ARN: !GetAtt RcsEscalationTriggerFunction.Arn
+          RCS_SCHEDULER_ROLE_ARN: !GetAtt RcsSchedulerInvokeRole.Arn
+      Policies:
+        - !Ref AppManagedPolicyRcsDynamo
+        - !Ref AppManagedPolicyRcsSchedulerManage
+
+  RcsCallStartIntegration:
+    Type: AWS::ApiGatewayV2::Integration
+    Properties:
+      ApiId: !Ref HttpApiId
+      IntegrationType: AWS_PROXY
+      IntegrationUri: !Sub arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${RcsCallStartFunction.Arn}/invocations
+      PayloadFormatVersion: "2.0"
+
+  RcsCallsListIntegration:
+    Type: AWS::ApiGatewayV2::Integration
+    Properties:
+      ApiId: !Ref HttpApiId
+      IntegrationType: AWS_PROXY
+      IntegrationUri: !Sub arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${RcsCallsListFunction.Arn}/invocations
+      PayloadFormatVersion: "2.0"
+
+  RcsCallStateIntegration:
+    Type: AWS::ApiGatewayV2::Integration
+    Properties:
+      ApiId: !Ref HttpApiId
+      IntegrationType: AWS_PROXY
+      IntegrationUri: !Sub arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${RcsCallStateFunction.Arn}/invocations
+      PayloadFormatVersion: "2.0"
+
+  RcsCallCloseIntegration:
+    Type: AWS::ApiGatewayV2::Integration
+    Properties:
+      ApiId: !Ref HttpApiId
+      IntegrationType: AWS_PROXY
+      IntegrationUri: !Sub arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${RcsCallCloseFunction.Arn}/invocations
+      PayloadFormatVersion: "2.0"
+
+  RcsAudioAlertIntegration:
+    Type: AWS::ApiGatewayV2::Integration
+    Properties:
+      ApiId: !Ref HttpApiId
+      IntegrationType: AWS_PROXY
+      IntegrationUri: !Sub arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${RcsAudioAlertFunction.Arn}/invocations
+      PayloadFormatVersion: "2.0"
+
+  RcsSupervisorAckIntegration:
+    Type: AWS::ApiGatewayV2::Integration
+    Properties:
+      ApiId: !Ref HttpApiId
+      IntegrationType: AWS_PROXY
+      IntegrationUri: !Sub arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${RcsSupervisorAckFunction.Arn}/invocations
+      PayloadFormatVersion: "2.0"
+
+  RcsUnitPositionIntegration:
+    Type: AWS::ApiGatewayV2::Integration
+    Properties:
+      ApiId: !Ref HttpApiId
+      IntegrationType: AWS_PROXY
+      IntegrationUri: !Sub arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${RcsUnitPositionFunction.Arn}/invocations
+      PayloadFormatVersion: "2.0"
+
+  RcsCallStartInvokePermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !Ref RcsCallStartFunction
+      Principal: apigateway.amazonaws.com
+      SourceArn: !Sub arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${HttpApiId}/*
+
+  RcsCallsListInvokePermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !Ref RcsCallsListFunction
+      Principal: apigateway.amazonaws.com
+      SourceArn: !Sub arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${HttpApiId}/*
+
+  RcsCallStateInvokePermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !Ref RcsCallStateFunction
+      Principal: apigateway.amazonaws.com
+      SourceArn: !Sub arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${HttpApiId}/*
+
+  RcsCallCloseInvokePermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !Ref RcsCallCloseFunction
+      Principal: apigateway.amazonaws.com
+      SourceArn: !Sub arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${HttpApiId}/*
+
+  RcsAudioAlertInvokePermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !Ref RcsAudioAlertFunction
+      Principal: apigateway.amazonaws.com
+      SourceArn: !Sub arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${HttpApiId}/*
+
+  RcsSupervisorAckInvokePermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !Ref RcsSupervisorAckFunction
+      Principal: apigateway.amazonaws.com
+      SourceArn: !Sub arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${HttpApiId}/*
+
+  RcsUnitPositionInvokePermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !Ref RcsUnitPositionFunction
+      Principal: apigateway.amazonaws.com
+      SourceArn: !Sub arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${HttpApiId}/*
+
+  RouteRcsCallStart:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref HttpApiId
+      RouteKey: "POST /api/rcs/calls"
+      Target: !Sub "integrations/${RcsCallStartIntegration}"
+      AuthorizationType: !If [HasHttpApiJwtAuthorizer, JWT, NONE]
+      AuthorizerId: !If [HasHttpApiJwtAuthorizer, !Ref HttpApiJwtAuthorizerId, !Ref AWS::NoValue]
+  RouteRcsCallsList:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref HttpApiId
+      RouteKey: "GET /api/rcs/calls"
+      Target: !Sub "integrations/${RcsCallsListIntegration}"
+      AuthorizationType: !If [HasHttpApiJwtAuthorizer, JWT, NONE]
+      AuthorizerId: !If [HasHttpApiJwtAuthorizer, !Ref HttpApiJwtAuthorizerId, !Ref AWS::NoValue]
+  RouteRcsCallState:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref HttpApiId
+      RouteKey: "PATCH /api/rcs/calls/{callId}/state"
+      Target: !Sub "integrations/${RcsCallStateIntegration}"
+      AuthorizationType: !If [HasHttpApiJwtAuthorizer, JWT, NONE]
+      AuthorizerId: !If [HasHttpApiJwtAuthorizer, !Ref HttpApiJwtAuthorizerId, !Ref AWS::NoValue]
+  RouteRcsCallClose:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref HttpApiId
+      RouteKey: "POST /api/rcs/calls/{callId}/close"
+      Target: !Sub "integrations/${RcsCallCloseIntegration}"
+      AuthorizationType: !If [HasHttpApiJwtAuthorizer, JWT, NONE]
+      AuthorizerId: !If [HasHttpApiJwtAuthorizer, !Ref HttpApiJwtAuthorizerId, !Ref AWS::NoValue]
+  RouteRcsAudioAlert:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref HttpApiId
+      RouteKey: "POST /api/rcs/calls/{callId}/audio-alert"
+      Target: !Sub "integrations/${RcsAudioAlertIntegration}"
+      AuthorizationType: !If [HasHttpApiJwtAuthorizer, JWT, NONE]
+      AuthorizerId: !If [HasHttpApiJwtAuthorizer, !Ref HttpApiJwtAuthorizerId, !Ref AWS::NoValue]
+  RouteRcsSupervisorAck:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref HttpApiId
+      RouteKey: "POST /api/rcs/calls/{callId}/acknowledge"
+      Target: !Sub "integrations/${RcsSupervisorAckIntegration}"
+      AuthorizationType: !If [HasHttpApiJwtAuthorizer, JWT, NONE]
+      AuthorizerId: !If [HasHttpApiJwtAuthorizer, !Ref HttpApiJwtAuthorizerId, !Ref AWS::NoValue]
+  RouteRcsUnitPosition:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref HttpApiId
+      RouteKey: "POST /api/rcs/units/position"
+      Target: !Sub "integrations/${RcsUnitPositionIntegration}"
+      AuthorizationType: !If [HasHttpApiJwtAuthorizer, JWT, NONE]
+      AuthorizerId: !If [HasHttpApiJwtAuthorizer, !Ref HttpApiJwtAuthorizerId, !Ref AWS::NoValue]
+
+Outputs:
+  RcsCallsTableName:
+    Value: !Ref RcsCallsTable
+  RcsUnitsTableName:
+    Value: !Ref RcsUnitsTable
+  RcsEscalationTableName:
+    Value: !Ref RcsEscalationTable
+  RcsEscalationTriggerFunctionArn:
+    Value: !GetAtt RcsEscalationTriggerFunction.Arn

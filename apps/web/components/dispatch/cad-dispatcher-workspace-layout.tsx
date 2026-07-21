@@ -26,7 +26,9 @@ import { isApiConfigured, fetchTriage } from "@/lib/api";
 import { formatRelativeOpened } from "@/lib/format";
 import { useJurisdictionLink } from "@/lib/jurisdiction-context";
 import { TriageBadge } from "@/components/triage/triage-badge";
-import { isFieldConfidenceEnabled, isNonEmergencyTriageEnabled } from "@/lib/runtime-flags";
+import { isFieldConfidenceEnabled, isNonEmergencyTriageEnabled, isRcsEnabled } from "@/lib/runtime-flags";
+import { canManageRcsCall, canViewRcsMonitor } from "@/lib/rcs/rcs-authz";
+import { RcsSilentMonitorTrigger } from "@/components/rcs/RcsSilentMonitorTrigger";
 
 const CAD = {
   bg: "#0a0f1a",
@@ -539,6 +541,23 @@ export function CadDispatcherWorkspaceLayout({
           <CadActionBarButton onClick={() => scrollTo("cad-intelligence")} title="Notifications & intelligence">
             Notifications
           </CadActionBarButton>
+          {isRcsEnabled() && user && canViewRcsMonitor(user, user.agencyId) ? (
+            <>
+              {canManageRcsCall(user, user.agencyId) && (selectedIdForPanels || incidentForUi?.incidentId) ? (
+                <RcsSilentMonitorTrigger
+                  key={selectedIdForPanels ?? incidentForUi?.incidentId ?? "rcs-idle"}
+                  user={user}
+                  compact
+                  incidentId={selectedIdForPanels ?? incidentForUi?.incidentId ?? undefined}
+                  callerPhone={incidentForUi?.callerCallback ?? undefined}
+                  notes={incidentForUi?.title ? `Incident: ${incidentForUi.title}` : undefined}
+                />
+              ) : null}
+              <CadActionBarButton href={to("/rcs")} title="Response Continuity Monitor">
+                RCS Monitor
+              </CadActionBarButton>
+            </>
+          ) : null}
         </div>
         <div className="flex shrink-0 items-center gap-3 font-mono text-[11px]" style={{ color: CAD.muted }}>
           <time dateTime={clock.toISOString()} className="tabular-nums" style={{ color: CAD.text }}>

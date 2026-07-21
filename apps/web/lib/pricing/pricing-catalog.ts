@@ -169,6 +169,13 @@ export const ADDON_SECTIONS = [
       { label: "Agency share", key: "agency.share" },
     ],
   },
+  {
+    id: "rcs",
+    label: "Response Continuity",
+    rows: [
+      { label: "Response Continuity System (RCS) Module", key: "rcs.module" },
+    ],
+  },
 ] as const;
 
 export type TabProps = {

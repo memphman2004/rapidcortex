@@ -3,6 +3,7 @@ import { Inter } from "next/font/google";
 import Script from "next/script";
 import { SITE_DESCRIPTION, SITE_NAME, SITE_PUBLIC_ICON_PATHS } from "@/lib/site";
 import { absoluteUrl, getSiteUrl, SEO_IMAGE_PATH } from "@/lib/seo";
+import { InsideTheCortexPopup } from "@/components/InsideTheCortexPopup";
 import { Providers } from "./providers";
 import "./globals.css";
 
@@ -116,6 +117,7 @@ export default function RootLayout({
       </head>
       <body className="min-h-full min-h-dvh font-sans text-slate-100 antialiased">
         <Providers>{children}</Providers>
+        <InsideTheCortexPopup />
       </body>
     </html>
   );

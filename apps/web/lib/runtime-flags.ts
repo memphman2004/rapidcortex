@@ -46,6 +46,7 @@ const NEXT_PUBLIC_FLAG_VALUES: Record<string, string | undefined> = {
   NEXT_PUBLIC_ENABLE_GRANT_SUCCESS_PROGRAM: process.env.NEXT_PUBLIC_ENABLE_GRANT_SUCCESS_PROGRAM,
   NEXT_PUBLIC_ENABLE_LOCATION_MAP: process.env.NEXT_PUBLIC_ENABLE_LOCATION_MAP,
   NEXT_PUBLIC_ENABLE_DEPLOYMENTS_MAP: process.env.NEXT_PUBLIC_ENABLE_DEPLOYMENTS_MAP,
+  NEXT_PUBLIC_ENABLE_RCS: process.env.NEXT_PUBLIC_ENABLE_RCS,
   NEXT_PUBLIC_WEBSOCKET_URL: process.env.NEXT_PUBLIC_WEBSOCKET_URL,
 };
 
@@ -321,6 +322,11 @@ export function isSalesLeadsUiEnabled(): boolean {
   return envFlag("NEXT_PUBLIC_ENABLE_SALES_LEADS");
 }
 
+/** Inside the Cortex marketing lead popup (marketing site). Default on when unset. */
+export function isInsideTheCortexEnabled(): boolean {
+  return envFlag("NEXT_PUBLIC_ENABLE_INSIDE_THE_CORTEX");
+}
+
 /** Grant Success Program tab on Platform Ops → Grants (AI grant package generator). Default on when unset. */
 export function isGrantSuccessProgramUiEnabled(): boolean {
   return envFlag("NEXT_PUBLIC_ENABLE_GRANT_SUCCESS_PROGRAM");
@@ -334,4 +340,15 @@ export function isLocationMapEnabled(): boolean {
 /** RC Admin national cross-agency deployments map. Default on when unset. */
 export function isDeploymentsMapEnabled(): boolean {
   return envFlag("NEXT_PUBLIC_ENABLE_DEPLOYMENTS_MAP");
+}
+
+/**
+ * Response Continuity System (RCS) — dispatcher/supervisor call continuity monitoring
+ * (audio dropout + silence detection, unit position tracking, supervisor silent-monitor
+ * and override, closure reporting). $1500/mo agency add-on (`rcs.module`) gates billing
+ * eligibility server-side; this flag only controls whether the UI surface renders.
+ * Default on when unset.
+ */
+export function isRcsEnabled(): boolean {
+  return envFlag("NEXT_PUBLIC_ENABLE_RCS");
 }

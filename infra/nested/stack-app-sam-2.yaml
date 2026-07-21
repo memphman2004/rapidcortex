@@ -2631,7 +2631,8 @@ Resources:
       Environment:
         Variables:
           SURGE_CLUSTERS_TABLE: !Ref SurgeClustersTable
-          ENABLE_SURGE: "false"
+          # Operational flag: default ON (project policy). Explicit "false" only for staged kill-switch.
+          ENABLE_SURGE: "true"
       Policies:
         - !Ref AppManagedPolicyDynamoLambdaCrudShardA
         - !Ref AppManagedPolicyDynamoLambdaCrudShardB
@@ -2733,13 +2734,15 @@ Resources:
           MaximumEventAgeInSeconds: 3600
           MaximumRetryAttempts: 2
 
+  # Use a constructed schedule ARN — !GetAtt …Arn calls scheduler:GetSchedule, which the
+  # deploy principal may lack (UPDATE_FAILED Jul 2026). Name matches RetentionExecutorSchedule.
   RetentionExecutorInvokePermission:
     Type: AWS::Lambda::Permission
     Properties:
       FunctionName: !Ref RetentionExecutorFunction
       Action: lambda:InvokeFunction
       Principal: scheduler.amazonaws.com
-      SourceArn: !GetAtt RetentionExecutorSchedule.Arn
+      SourceArn: !Sub arn:aws:scheduler:${AWS::Region}:${AWS::AccountId}:schedule/default/${Sam2ManagedPolicyNamePrefix}-ret-daily-${DeploymentStage}
 
 Outputs:
   OpsAlertsTopicArn:
