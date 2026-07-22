@@ -71,6 +71,90 @@ export const ADDON_CATALOG: AddonDefinition[] = [
     featureFlag: "cad_writeback",
   }),
   withLegacyIncludedInPlans({
+    key: "cad.writeback_assisted.tier1",
+    name: "CAD Assisted Write-Back - T1 Micro",
+    category: "CAD Integration",
+    description:
+      "Tiered assisted CAD write-back pricing for T1 Micro agencies (1-3 dispatchers, up to 500 calls/month). One-click transfer to CAD with dispatcher review and approval before submit.",
+    billingType: "one_time",
+    monthlyPrice: 0,
+    oneTimePrice: 28500,
+    planAvailability: commandPlus,
+    featureFlag: "cad_writeback",
+  }),
+  withLegacyIncludedInPlans({
+    key: "cad.writeback_assisted.tier2",
+    name: "CAD Assisted Write-Back - T2 Small",
+    category: "CAD Integration",
+    description:
+      "Tiered assisted CAD write-back pricing for T2 Small agencies (4-8 dispatchers, up to 1,500 calls/month). One-click transfer to CAD with dispatcher review and approval before submit.",
+    billingType: "one_time",
+    monthlyPrice: 0,
+    oneTimePrice: 34250,
+    planAvailability: commandPlus,
+    featureFlag: "cad_writeback",
+  }),
+  withLegacyIncludedInPlans({
+    key: "cad.writeback_assisted.tier3",
+    name: "CAD Assisted Write-Back - T3 Medium",
+    category: "CAD Integration",
+    description:
+      "Tiered assisted CAD write-back pricing for T3 Medium agencies (9-15 dispatchers, up to 3,500 calls/month). One-click transfer to CAD with dispatcher review and approval before submit.",
+    billingType: "one_time",
+    monthlyPrice: 0,
+    oneTimePrice: 44000,
+    planAvailability: commandPlus,
+    featureFlag: "cad_writeback",
+  }),
+  withLegacyIncludedInPlans({
+    key: "cad.writeback_assisted.tier4",
+    name: "CAD Assisted Write-Back - T4 Large",
+    category: "CAD Integration",
+    description:
+      "Tiered assisted CAD write-back pricing for T4 Large agencies (16-25 dispatchers, up to 7,500 calls/month). One-click transfer to CAD with dispatcher review and approval before submit.",
+    billingType: "one_time",
+    monthlyPrice: 0,
+    oneTimePrice: 51600,
+    planAvailability: commandPlus,
+    featureFlag: "cad_writeback",
+  }),
+  withLegacyIncludedInPlans({
+    key: "cad.writeback_automated.tier1",
+    name: "CAD Automated Write-Back - T1 Micro",
+    category: "CAD Integration",
+    description:
+      "Tiered automated CAD write-back pricing for T1 Micro agencies (1-3 dispatchers, up to 500 calls/month). Full bidirectional sync between Rapid Cortex and CAD with automated field mapping.",
+    billingType: "one_time",
+    monthlyPrice: 0,
+    oneTimePrice: 46000,
+    planAvailability: enterpriseOnly,
+    featureFlag: "cad_writeback",
+  }),
+  withLegacyIncludedInPlans({
+    key: "cad.writeback_automated.tier2",
+    name: "CAD Automated Write-Back - T2 Small",
+    category: "CAD Integration",
+    description:
+      "Tiered automated CAD write-back pricing for T2 Small agencies (4-8 dispatchers, up to 1,500 calls/month). Full bidirectional sync between Rapid Cortex and CAD with automated field mapping.",
+    billingType: "one_time",
+    monthlyPrice: 0,
+    oneTimePrice: 58000,
+    planAvailability: enterpriseOnly,
+    featureFlag: "cad_writeback",
+  }),
+  withLegacyIncludedInPlans({
+    key: "cad.writeback_automated.tier3",
+    name: "CAD Automated Write-Back - T3 Medium",
+    category: "CAD Integration",
+    description:
+      "Tiered automated CAD write-back pricing for T3 Medium agencies (9-15 dispatchers, up to 3,500 calls/month). Full bidirectional sync between Rapid Cortex and CAD with automated field mapping.",
+    billingType: "one_time",
+    monthlyPrice: 0,
+    oneTimePrice: 67000,
+    planAvailability: enterpriseOnly,
+    featureFlag: "cad_writeback",
+  }),
+  withLegacyIncludedInPlans({
     key: "cad.sandbox_testing",
     name: "CAD Sandbox Testing Package",
     category: "CAD Integration",
@@ -124,6 +208,17 @@ export const ADDON_CATALOG: AddonDefinition[] = [
     monthlyPrice: 0,
     oneTimePrice: 15000,
     planAvailability: enterpriseOnly,
+  }),
+  withLegacyIncludedInPlans({
+    key: "cad.unit_overlays_avl",
+    name: "Map Unit Overlays (AVL)",
+    category: "CAD Integration",
+    description:
+      "Real-time apparatus position markers on operational maps from the CAD/AVL feed, showing unit status, distance, and ETA.",
+    billingType: "monthly",
+    monthlyPrice: 500,
+    oneTimePrice: 0,
+    planAvailability: commandPlus,
   }),
 
   // AI / Call Intelligence
@@ -567,6 +662,28 @@ export const ADDON_CATALOG: AddonDefinition[] = [
     oneTimePrice: 0,
     planAvailability: commandPlus,
   }),
+  withLegacyIncludedInPlans({
+    key: "caller_media.livelocation_sms_link",
+    name: "LiveLocation SMS Link",
+    category: "Caller Media",
+    description:
+      "Sends the caller an SMS link that shares live GPS coordinates into the incident record without requiring the caller to describe their location.",
+    billingType: "monthly",
+    monthlyPrice: 500,
+    oneTimePrice: 0,
+    planAvailability: professionalPlus,
+  }),
+  withLegacyIncludedInPlans({
+    key: "caller_media.translation_reply",
+    name: "Caller Translation Reply",
+    category: "Caller Media",
+    description:
+      "Dispatcher composes a reply in English; the system translates and delivers it to a non-English caller as SMS in their language, logging both versions.",
+    billingType: "monthly",
+    monthlyPrice: 750,
+    oneTimePrice: 0,
+    planAvailability: professionalPlus,
+  }),
 
   // Supervisor / QA
   withLegacyIncludedInPlans({
@@ -706,6 +823,61 @@ export const ADDON_CATALOG: AddonDefinition[] = [
     oneTimePrice: 0,
     planAvailability: commandPlus,
   }),
+  withLegacyIncludedInPlans({
+    key: "supervisor_qa.wellness_flags",
+    name: "Dispatcher Wellness Flags",
+    category: "Supervisor / QA",
+    description:
+      "Monitors dispatcher activity patterns for stress and fatigue indicators, surfacing behavioral deviations to supervisors for proactive intervention. Private to supervisors, not visible to peer dispatchers.",
+    billingType: "monthly",
+    monthlyPrice: 1000,
+    oneTimePrice: 0,
+    planAvailability: commandPlus,
+  }),
+  withLegacyIncludedInPlans({
+    key: "supervisor_qa.predictive_staffing",
+    name: "Predictive Staffing",
+    category: "Supervisor / QA",
+    description:
+      "Forecasts staffing needs from historical call volume, day-of-week patterns, and seasonal trends, surfacing scheduling recommendations before shortfalls occur.",
+    billingType: "monthly",
+    monthlyPrice: 1500,
+    oneTimePrice: 0,
+    planAvailability: commandPlus,
+  }),
+  withLegacyIncludedInPlans({
+    key: "supervisor_qa.channel_monitoring",
+    name: "Channel / Talk-Group Monitoring",
+    category: "Supervisor / QA",
+    description:
+      "Integrates radio channel activity into dispatcher situational awareness, surfacing relevant field radio traffic as contextual alerts during active incidents.",
+    billingType: "monthly",
+    monthlyPrice: 1000,
+    oneTimePrice: 0,
+    planAvailability: professionalPlus,
+  }),
+  withLegacyIncludedInPlans({
+    key: "supervisor_qa.sent_monitor",
+    name: "Sent Monitor (Supervisor)",
+    category: "Supervisor / QA",
+    description:
+      "Supervisor observes a live dispatcher session — audio, screen, and transcript — without dispatcher or caller awareness, with a full audit log of all sessions.",
+    billingType: "monthly",
+    monthlyPrice: 500,
+    oneTimePrice: 0,
+    planAvailability: professionalPlus,
+  }),
+  withLegacyIncludedInPlans({
+    key: "supervisor_qa.cad_approval_queue",
+    name: "CAD Approval Queue",
+    category: "Supervisor / QA",
+    description:
+      "AI-generated CAD write-back suggestions held in a pending state until a supervisor reviews and approves them before any data enters the record of authority.",
+    billingType: "monthly",
+    monthlyPrice: 1000,
+    oneTimePrice: 0,
+    planAvailability: commandPlus,
+  }),
 
   // Incident Command
   withLegacyIncludedInPlans({
@@ -793,6 +965,28 @@ export const ADDON_CATALOG: AddonDefinition[] = [
       "Auto-generated executive briefing packages with summary, timeline, and action items.",
     billingType: "monthly",
     monthlyPrice: 1500,
+    oneTimePrice: 0,
+    planAvailability: commandPlus,
+  }),
+  withLegacyIncludedInPlans({
+    key: "incident_command.call_control_transfer",
+    name: "Call Control / Transfer",
+    category: "Incident Command",
+    description:
+      "Coordinated call handoff between PSAPs or backup centers. The receiving dispatcher inherits the full session record — no verbal brief needed — and the transfer is logged to both records.",
+    billingType: "monthly",
+    monthlyPrice: 1500,
+    oneTimePrice: 0,
+    planAvailability: commandPlus,
+  }),
+  withLegacyIncludedInPlans({
+    key: "incident_command.voice_bridge",
+    name: "Voice Bridge",
+    category: "Incident Command",
+    description:
+      "Live translation and text-to-speech integrated into radio channels and multi-agency command bridges, enabling multilingual command coordination.",
+    billingType: "monthly",
+    monthlyPrice: 2000,
     oneTimePrice: 0,
     planAvailability: commandPlus,
   }),
@@ -958,10 +1152,135 @@ export const ADDON_CATALOG: AddonDefinition[] = [
     description:
       "Life-safety call persistence: silent monitor queue, unit geofence arrival confirmation, audio sentinel, escalation engine, and closure gate with supervisor override audit.",
     billingType: "monthly",
-    monthlyPrice: 1500,
+    monthlyPrice: 3500,
     oneTimePrice: 0,
     planAvailability: professionalPlus,
     featureFlag: "rcs",
+  }),
+
+  // Platform Security & Administration
+  withLegacyIncludedInPlans({
+    key: "platform_security.deception_shield",
+    name: "Deception Shield",
+    category: "Platform Security & Administration",
+    description:
+      "Defensive security layer using honeypot data fields, synthetic access paths, and instrumented decoy records to detect unauthorized access, credential stuffing, and insider-threat reconnaissance before data exposure occurs.",
+    billingType: "monthly",
+    monthlyPrice: 2000,
+    oneTimePrice: 0,
+    planAvailability: commandPlus,
+  }),
+  withLegacyIncludedInPlans({
+    key: "platform_security.network_access_controls",
+    name: "Network Access Controls",
+    category: "Platform Security & Administration",
+    description:
+      "Restrict platform access to approved IP address ranges and time-window gates, configurable per user group. All blocked attempts are logged to the audit trail.",
+    billingType: "monthly",
+    monthlyPrice: 500,
+    oneTimePrice: 0,
+    planAvailability: professionalPlus,
+  }),
+  withLegacyIncludedInPlans({
+    key: "platform_security.agency_share",
+    name: "Agency Share",
+    category: "Platform Security & Administration",
+    description:
+      "Controlled cross-jurisdiction incident data sharing framework. Bidirectional and consent-based — both agencies must authorize — with scope configurable by incident type and all cross-agency reads logged to both agencies' audit trails.",
+    billingType: "monthly",
+    monthlyPrice: 1500,
+    oneTimePrice: 0,
+    planAvailability: professionalPlus,
+  }),
+  withLegacyIncludedInPlans({
+    key: "platform_security.extended_audit_retention",
+    name: "Extended Audit Retention",
+    category: "Platform Security & Administration",
+    description:
+      "Extended configurable retention policies beyond the standard plan retention floor, supporting legal hold, state records laws, and grant reporting obligations.",
+    billingType: "monthly",
+    monthlyPrice: 1000,
+    oneTimePrice: 0,
+    planAvailability: commandPlus,
+  }),
+  withLegacyIncludedInPlans({
+    key: "platform_security.api_keys_webhooks",
+    name: "API Keys & Webhooks",
+    category: "Platform Security & Administration",
+    description:
+      "Scoped outbound integration credentials for connecting Rapid Cortex to external agency systems, plus webhook subscriptions for real-time event delivery.",
+    billingType: "monthly",
+    monthlyPrice: 500,
+    oneTimePrice: 0,
+    planAvailability: professionalPlus,
+  }),
+
+  // Feature Add-Ons
+  withLegacyIncludedInPlans({
+    key: "feature_addons.qr_nfc_management",
+    name: "QR & NFC Code Management",
+    category: "Feature Add-Ons",
+    description:
+      "Generate unique reporting URLs per location, with downloadable QR codes and NFC tag URLs. Scan and tap counts are tracked separately per code.",
+    billingType: "monthly",
+    monthlyPrice: 500,
+    oneTimePrice: 0,
+    planAvailability: professionalPlus,
+  }),
+  withLegacyIncludedInPlans({
+    key: "feature_addons.rc_connect_standard",
+    name: "Rapid Cortex Connect - Standard",
+    category: "Feature Add-Ons",
+    description:
+      "ONVIF/RTSP camera integration linking up to 10 existing facility cameras to active incidents in the dispatcher or venue console.",
+    billingType: "monthly",
+    monthlyPrice: 500,
+    oneTimePrice: 0,
+    planAvailability: professionalPlus,
+  }),
+  withLegacyIncludedInPlans({
+    key: "feature_addons.rc_connect_professional",
+    name: "Rapid Cortex Connect - Professional",
+    category: "Feature Add-Ons",
+    description:
+      "Multi-zone camera management for larger facilities, up to 50 cameras. Feeds are surfaced contextually when an incident is created in the associated zone.",
+    billingType: "monthly",
+    monthlyPrice: 1500,
+    oneTimePrice: 0,
+    planAvailability: commandPlus,
+  }),
+  withLegacyIncludedInPlans({
+    key: "feature_addons.rc_connect_enterprise",
+    name: "Rapid Cortex Connect - Enterprise",
+    category: "Feature Add-Ons",
+    description:
+      "Unlimited camera deployments with dedicated KVS streaming infrastructure and advanced camera routing for large multi-site deployments.",
+    billingType: "monthly",
+    monthlyPrice: 4000,
+    oneTimePrice: 0,
+    planAvailability: enterpriseOnly,
+  }),
+  withLegacyIncludedInPlans({
+    key: "feature_addons.ring_connect",
+    name: "Ring Connect",
+    category: "Feature Add-Ons",
+    description:
+      "Request Ring doorbell and camera footage in proximity to active incidents. Access is granted only through prior homeowner enrollment and consent, with a full audit log of every access event.",
+    billingType: "monthly",
+    monthlyPrice: 500,
+    oneTimePrice: 0,
+    planAvailability: professionalPlus,
+  }),
+  withLegacyIncludedInPlans({
+    key: "feature_addons.grant_success_package",
+    name: "Grant Success Package",
+    category: "Feature Add-Ons",
+    description:
+      "Documentation packages, reporting templates, and outcome data exports formatted for PSAP improvement grants and emergency management preparedness funding applications.",
+    billingType: "one_time",
+    monthlyPrice: 0,
+    oneTimePrice: 2500,
+    planAvailability: professionalPlus,
   }),
 ];
 

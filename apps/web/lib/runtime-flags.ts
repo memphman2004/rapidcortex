@@ -345,7 +345,7 @@ export function isDeploymentsMapEnabled(): boolean {
 /**
  * Response Continuity System (RCS) — dispatcher/supervisor call continuity monitoring
  * (audio dropout + silence detection, unit position tracking, supervisor silent-monitor
- * and override, closure reporting). $1500/mo agency add-on (`rcs.module`) gates billing
+ * and override, closure reporting). $3500/mo agency add-on (`rcs.module`) gates billing
  * eligibility server-side; this flag only controls whether the UI surface renders.
  * Default on when unset.
  */

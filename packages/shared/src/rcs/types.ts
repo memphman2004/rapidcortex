@@ -2,7 +2,7 @@
  * Response Continuity System (RCS) — life-safety call persistence types.
  * Silent monitor queue → unit geofence arrival confirmation → audio sentinel →
  * escalation engine → closure gate with supervisor override audit.
- * Addon: `rcs.module` ($1500/mo, `packages/shared/src/billing/addon-catalog.ts`).
+ * Addon: `rcs.module` ($3500/mo, `packages/shared/src/billing/addon-catalog.ts`).
  */
 
 export const RCS_CALL_STATES = [

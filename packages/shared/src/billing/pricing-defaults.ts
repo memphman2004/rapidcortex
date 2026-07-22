@@ -160,7 +160,7 @@ export const PRICING_DEFAULTS = {
   "agency.share": 1500,
 
   /** Response Continuity System module add-on ($/agency/month). */
-  "rcs.module": 1500,
+  "rcs.module": 3500,
 } as const;
 
 export type PricingKey = keyof typeof PRICING_DEFAULTS;
