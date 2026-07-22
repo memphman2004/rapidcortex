@@ -3,44 +3,44 @@ import { Text } from 'react-native';
 import { useAuth } from '@/hooks/useAuth';
 import { FieldProductProvider } from '@/navigation/field-product';
 import { Colors, ThemeProvider } from '@/theme';
-import { isVenueRole } from '@/utils/roles';
+import { isCampusRole } from '@/utils/roles';
 import { Strings } from '@/utils/strings';
 
 function TabIcon({ symbol, focused }: { symbol: string; focused: boolean }) {
   return <Text style={{ fontSize: 20, opacity: focused ? 1 : 0.5 }}>{symbol}</Text>;
 }
 
-function VenueTabs() {
+function CampusTabs() {
   return (
     <Tabs
       screenOptions={{
         headerShown: false,
-        tabBarActiveTintColor: Colors.venue.amber,
-        tabBarInactiveTintColor: Colors.venue.textMuted,
+        tabBarActiveTintColor: Colors.campus.amber,
+        tabBarInactiveTintColor: Colors.campus.textMuted,
         tabBarStyle: {
-          backgroundColor: Colors.venue.surface,
-          borderTopColor: Colors.venue.border,
+          backgroundColor: Colors.campus.surface,
+          borderTopColor: Colors.campus.border,
         },
       }}
     >
       <Tabs.Screen
         name="index"
         options={{
-          title: Strings.venue.codes,
+          title: Strings.campus.codes,
           tabBarIcon: ({ focused }) => <TabIcon symbol="🏷️" focused={focused} />,
         }}
       />
       <Tabs.Screen
         name="create"
         options={{
-          title: Strings.venue.create,
+          title: Strings.campus.create,
           tabBarIcon: ({ focused }) => <TabIcon symbol="➕" focused={focused} />,
         }}
       />
       <Tabs.Screen
         name="account"
         options={{
-          title: Strings.venue.account,
+          title: Strings.campus.account,
           tabBarIcon: ({ focused }) => <TabIcon symbol="👤" focused={focused} />,
         }}
       />
@@ -55,17 +55,17 @@ function VenueTabs() {
   );
 }
 
-export default function VenueLayout() {
+export default function CampusLayout() {
   const { isAuthenticated, productPath, role } = useAuth();
 
   if (!isAuthenticated) return <Redirect href="/" />;
-  if (productPath !== 'venue') return <Redirect href="/" />;
-  if (!isVenueRole(role)) return <Redirect href="/" />;
+  if (productPath !== 'campus') return <Redirect href="/" />;
+  if (!isCampusRole(role)) return <Redirect href="/" />;
 
   return (
-    <ThemeProvider product="venue">
-      <FieldProductProvider product="venue">
-        <VenueTabs />
+    <ThemeProvider product="campus">
+      <FieldProductProvider product="campus">
+        <CampusTabs />
       </FieldProductProvider>
     </ThemeProvider>
   );

@@ -47,6 +47,11 @@ export const Strings = {
   productSelection: {
     safeSoundTitle: 'RC Safe & Sound',
     safeSoundSubtitle: 'Protect your family, pets, and valuables',
+    venueTitle: 'RC Venue',
+    venueSubtitle: 'Zone signs, QR codes, and NFC tag programming',
+    campusTitle: 'RC Campus',
+    campusSubtitle: 'Campus safety reporting codes and NFC deployment',
+    /** @deprecated Prefer venueTitle / campusTitle */
     venueCampusTitle: 'RC Venue / Campus',
     venueCampusSubtitle: 'Sign management and field deployment tools',
   },
@@ -61,6 +66,8 @@ export const Strings = {
     lastName: 'Last Name',
     forgotPassword: 'Forgot password?',
     verificationCode: 'Verification Code',
+    venueTools: 'Venue Tools',
+    campusTools: 'Campus Tools',
     venueCampusTools: 'Venue & Campus Tools',
     noAccountContactAdmin: "Don't have an account? Contact your Rapid Cortex administrator.",
     faceIdPrompt: 'Allow Rapid Cortex to use Face ID for secure login.',
@@ -74,7 +81,9 @@ export const Strings = {
       invalidPassword: 'Password does not meet requirements.',
       networkTimeout: 'Unable to connect. Check your internet connection and try again.',
       venueAccessDenied:
-        'Your account does not have access to venue or campus tools. Contact your administrator.',
+        'Your account does not have access to venue tools. Contact your administrator.',
+      campusAccessDenied:
+        'Your account does not have access to campus tools. Contact your administrator.',
     },
   },
 
@@ -183,10 +192,10 @@ export const Strings = {
   },
 
   venue: {
-    codes: 'Codes',
+    codes: 'QR & NFC Codes',
     create: 'Create',
     account: 'Account',
-    agencyCodes: 'Codes',
+    agencyCodes: 'QR & NFC Codes',
     searchPlaceholder: 'Search by name or zone',
     filters: {
       all: 'All',
@@ -200,9 +209,9 @@ export const Strings = {
     lastActivity: 'Last activity',
     createCode: {
       codeName: 'Code Name',
-      codeNamePlaceholder: 'e.g. McKinley Hall — 3rd Floor',
+      codeNamePlaceholder: 'e.g. Gate B Concourse',
       zone: 'Zone / Location',
-      zonePlaceholder: 'e.g. Building C, Floor 3',
+      zonePlaceholder: 'e.g. Section 112, Row A',
       reportType: 'Report Type',
       reportTypes: {
         anonymous: 'Anonymous',
@@ -269,6 +278,12 @@ export const Strings = {
       venue: 'VENUE',
       campus: 'CAMPUS',
     },
+  },
+
+  campus: {
+    codes: 'QR & NFC Codes',
+    create: 'Create',
+    account: 'Account',
   },
 
   emergency: {

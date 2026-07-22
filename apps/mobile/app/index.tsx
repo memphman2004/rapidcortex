@@ -5,8 +5,10 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { EnterTheCortex } from '@/components/splash/EnterTheCortex';
 import { useAuth } from '@/hooks/useAuth';
 import { hasEnteredCortexRecently, markCortexEntered } from '@/services/splash';
+import type { ProductPath } from '@/stores/auth.store';
 import { Colors, Spacing, Typography, BorderRadius } from '@/theme';
 import { SplashColors } from '@/theme/splash';
+import { isSafeSoundPublicEnabled } from '@/utils/feature-flags';
 import { Strings } from '@/utils/strings';
 
 type Gate = 'loading' | 'enter' | 'products';
@@ -15,6 +17,7 @@ export default function ProductSelectionScreen() {
   const router = useRouter();
   const { isAuthenticated, isLoading, productPath, setProductPath } = useAuth();
   const [gate, setGate] = useState<Gate>('loading');
+  const safeSoundPublic = isSafeSoundPublicEnabled();
 
   useEffect(() => {
     let cancelled = false;
@@ -39,22 +42,33 @@ export default function ProductSelectionScreen() {
     return <EnterTheCortex onEnterComplete={onEnterComplete} />;
   }
 
-  if (isAuthenticated && productPath === 'safe-sound') {
+  if (isAuthenticated && productPath === 'safe-sound' && safeSoundPublic) {
     return <Redirect href="/(safe-sound)" />;
   }
-  if (isAuthenticated && productPath === 'venue-campus') {
+  if (isAuthenticated && productPath === 'venue') {
     return <Redirect href="/(venue)" />;
   }
-  if (!isAuthenticated && productPath === 'safe-sound') {
+  if (isAuthenticated && productPath === 'campus') {
+    return <Redirect href="/(campus)" />;
+  }
+  if (!isAuthenticated && productPath === 'safe-sound' && safeSoundPublic) {
     return <Redirect href="/(auth)/safe-sound-login" />;
   }
-  if (!isAuthenticated && productPath === 'venue-campus') {
+  if (!isAuthenticated && productPath === 'venue') {
     return <Redirect href="/(auth)/venue-login" />;
   }
+  if (!isAuthenticated && productPath === 'campus') {
+    return <Redirect href="/(auth)/campus-login" />;
+  }
 
-  const choose = async (path: 'safe-sound' | 'venue-campus') => {
+  const choose = async (path: ProductPath) => {
+    if (path === 'safe-sound' && !safeSoundPublic) return;
     await setProductPath(path);
-    router.push(path === 'safe-sound' ? '/(auth)/safe-sound-login' : '/(auth)/venue-login');
+    if (path === 'safe-sound') {
+      router.push('/(auth)/safe-sound-login');
+      return;
+    }
+    router.push(path === 'campus' ? '/(auth)/campus-login' : '/(auth)/venue-login');
   };
 
   return (
@@ -66,30 +80,45 @@ export default function ProductSelectionScreen() {
 
       <View style={styles.cards}>
         <Pressable
-          onPress={() => choose('safe-sound')}
+          onPress={() => choose('venue')}
           accessibilityRole="button"
-          accessibilityLabel={Strings.productSelection.safeSoundTitle}
-          style={({ pressed }) => [styles.card, { opacity: pressed ? 0.9 : 1, borderColor: Colors.venue.blue }]}
-        >
-          <View style={[styles.iconCircle, { backgroundColor: Colors.venue.blue }]}>
-            <Text style={styles.iconText}>RC</Text>
-          </View>
-          <Text style={styles.cardTitle}>{Strings.productSelection.safeSoundTitle}</Text>
-          <Text style={styles.cardSubtitle}>{Strings.productSelection.safeSoundSubtitle}</Text>
-        </Pressable>
-
-        <Pressable
-          onPress={() => choose('venue-campus')}
-          accessibilityRole="button"
-          accessibilityLabel={Strings.productSelection.venueCampusTitle}
+          accessibilityLabel={Strings.productSelection.venueTitle}
           style={({ pressed }) => [styles.card, { opacity: pressed ? 0.9 : 1, borderColor: Colors.venue.amber }]}
         >
           <View style={[styles.iconCircle, { backgroundColor: Colors.venue.amber }]}>
-            <Text style={styles.iconText}>VC</Text>
+            <Text style={styles.iconText}>VN</Text>
           </View>
-          <Text style={styles.cardTitle}>{Strings.productSelection.venueCampusTitle}</Text>
-          <Text style={styles.cardSubtitle}>{Strings.productSelection.venueCampusSubtitle}</Text>
+          <Text style={styles.cardTitle}>{Strings.productSelection.venueTitle}</Text>
+          <Text style={styles.cardSubtitle}>{Strings.productSelection.venueSubtitle}</Text>
         </Pressable>
+
+        <Pressable
+          onPress={() => choose('campus')}
+          accessibilityRole="button"
+          accessibilityLabel={Strings.productSelection.campusTitle}
+          style={({ pressed }) => [styles.card, { opacity: pressed ? 0.9 : 1, borderColor: Colors.campus.amber }]}
+        >
+          <View style={[styles.iconCircle, { backgroundColor: Colors.campus.amber }]}>
+            <Text style={styles.iconText}>CP</Text>
+          </View>
+          <Text style={styles.cardTitle}>{Strings.productSelection.campusTitle}</Text>
+          <Text style={styles.cardSubtitle}>{Strings.productSelection.campusSubtitle}</Text>
+        </Pressable>
+
+        {safeSoundPublic ? (
+          <Pressable
+            onPress={() => choose('safe-sound')}
+            accessibilityRole="button"
+            accessibilityLabel={Strings.productSelection.safeSoundTitle}
+            style={({ pressed }) => [styles.card, { opacity: pressed ? 0.9 : 1, borderColor: Colors.venue.blue }]}
+          >
+            <View style={[styles.iconCircle, { backgroundColor: Colors.venue.blue }]}>
+              <Text style={styles.iconText}>RC</Text>
+            </View>
+            <Text style={styles.cardTitle}>{Strings.productSelection.safeSoundTitle}</Text>
+            <Text style={styles.cardSubtitle}>{Strings.productSelection.safeSoundSubtitle}</Text>
+          </Pressable>
+        ) : null}
       </View>
     </SafeAreaView>
   );

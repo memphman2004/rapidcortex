@@ -958,6 +958,7 @@ Resources:
             - !Sub "${AppName}-assets-${DeploymentStage}-${AWS::AccountId}"
         ImportedCognitoUserPoolId: !GetAtt AppSamStackV2.Outputs.UserPoolId
         ImportedCognitoWebClientId: !GetAtt AppSamStackV2.Outputs.UserPoolClientId
+        ImportedCognitoNativeClientId: !GetAtt AppSamStackV2.Outputs.NativeUserPoolClientId
         ImportedCognitoIssuer: !GetAtt AppSamStackV2.Outputs.CognitoIssuer
         ManagedPolicyNamePrefix: !Ref AWS::StackName
         IncidentsTable:

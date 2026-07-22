@@ -1,0 +1,44 @@
+# Keep EAS upload small — monorepo root has huge trees EAS does not need.
+# Paths are relative to the repo root (EAS archive root).
+
+# Other apps / packages not needed for mobile native build
+/apps/api/
+/apps/web/
+/apps/marketing/
+/apps/desktop-macos/
+/apps/desktop-windows/
+/infra/
+/scripts/
+/docs/
+/tools/
+/.cursor/
+/.git/
+/.github/
+/.rapid-cortex-sam-build/
+/.sam-lean-build/
+
+# Dependencies & build artifacts (reinstalled/built on EAS workers)
+**/node_modules/
+**/.expo/
+**/dist/
+**/build/
+**/.next/
+**/coverage/
+**/.turbo/
+**/*.tgz
+
+# Env / secrets / local
+**/.env
+**/.env.*
+!**/.env.example
+**/google-play-key.json
+**/Secrets.plist
+**/appsettings.Local.json
+
+# Misc
+**/.DS_Store
+**/npm-debug.log*
+**/*.log
+**/ios/Pods/
+**/android/.gradle/
+**/android/app/build/

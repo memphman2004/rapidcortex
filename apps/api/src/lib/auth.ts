@@ -124,8 +124,13 @@ async function verifyBearerToken(token: string): Promise<UserContext | null> {
 async function verifyBearerTokenClaims(token: string): Promise<JWTPayload | null> {
   const poolId = process.env.COGNITO_USER_POOL_ID;
   const region = process.env.COGNITO_REGION;
-  const clientId = process.env.COGNITO_CLIENT_ID;
-  if (!poolId || !region || !clientId) return null;
+  const webClientId = process.env.COGNITO_CLIENT_ID?.trim();
+  const nativeClientId = process.env.COGNITO_NATIVE_CLIENT_ID?.trim();
+  if (!poolId || !region || !webClientId) return null;
+
+  const audiences = [webClientId, nativeClientId].filter(
+    (value): value is string => Boolean(value),
+  );
 
   const issuer = `https://cognito-idp.${region}.amazonaws.com/${poolId}`;
   const jwks = getJwks(issuer);
@@ -133,7 +138,7 @@ async function verifyBearerTokenClaims(token: string): Promise<JWTPayload | null
   try {
     const { payload } = await jwtVerify(token, jwks, {
       issuer,
-      audience: clientId,
+      audience: audiences.length === 1 ? audiences[0] : audiences,
     });
     if (payload.token_use != null && payload.token_use !== "id") return null;
     return payload;

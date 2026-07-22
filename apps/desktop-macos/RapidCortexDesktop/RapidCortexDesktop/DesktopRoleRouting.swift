@@ -139,10 +139,10 @@ enum DesktopRoleRouting {
         let agency = agencyId.trimmingCharacters(in: .whitespacesAndNewlines)
 
         if roleUpper.hasPrefix("VENUE_") {
-            return "/app/venue/\(extractVenueCode(agency: agency))"
+            return "/app/venue/\(extractVenueCode(agencyId: agency))"
         }
         if roleUpper.hasPrefix("CAMPUS_") {
-            return "/app/campus/\(extractCampusCode(agency: agency))"
+            return "/app/campus/\(extractCampusCode(agencyId: agency))"
         }
         if let hospital = resolveHospitalPortalDashboardHref(role: roleToken) {
             return hospital

@@ -9,7 +9,9 @@ public partial class App : Application
     {
         foreach (var a in e.Args)
         {
-            if (a.StartsWith("rapidcortex://", StringComparison.OrdinalIgnoreCase))
+            if (a.StartsWith("rapidcortex://", StringComparison.OrdinalIgnoreCase)
+                || a.StartsWith("rapidcortex-desktop://", StringComparison.OrdinalIgnoreCase)
+                || a.StartsWith("rapidcortex-windows://", StringComparison.OrdinalIgnoreCase))
             {
                 CognitoNativeBrowserAuth.TryHandleActivationUri(a);
             }

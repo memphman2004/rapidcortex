@@ -50,6 +50,9 @@ Filename: "{app}\{#MyAppExeName}"; Description: "Launch {#MyAppName}"; Flags: no
 
 [Registry]
 ; Default value — friendly protocol description
+Root: HKLM; Subkey: "Software\Classes\rapidcortex"; ValueType: string; ValueName: ""; ValueData: "URL:Rapid Cortex Protocol"; Flags: uninsdeletekey
+Root: HKLM; Subkey: "Software\Classes\rapidcortex"; ValueType: string; ValueName: "URL Protocol"; ValueData: ""
+Root: HKLM; Subkey: "Software\Classes\rapidcortex\shell\open\command"; ValueType: string; ValueName: ""; ValueData: """{app}\{#MyAppExeName}"" ""%1"""
 Root: HKLM; Subkey: "Software\Classes\rapidcortex-desktop"; ValueType: string; ValueName: ""; ValueData: "URL:Rapid Cortex Desktop Protocol"; Flags: uninsdeletekey
 ; Declares this class as a URL protocol (empty value)
 Root: HKLM; Subkey: "Software\Classes\rapidcortex-desktop"; ValueType: string; ValueName: "URL Protocol"; ValueData: ""

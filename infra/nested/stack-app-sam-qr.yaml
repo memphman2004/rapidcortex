@@ -31,6 +31,10 @@ Parameters:
     Type: String
   ImportedCognitoWebClientId:
     Type: String
+  ImportedCognitoNativeClientId:
+    Type: String
+    Default: ""
+    Description: Cognito native (mobile/desktop PKCE) app client ID — accepted as ID-token audience alongside web client.
   ImportedCognitoIssuer:
     Type: String
   ManagedPolicyNamePrefix:
@@ -101,6 +105,7 @@ Globals:
         ASSETS_BUCKET: !Ref AssetsBucket
         COGNITO_USER_POOL_ID: !Ref ImportedCognitoUserPoolId
         COGNITO_CLIENT_ID: !Ref ImportedCognitoWebClientId
+        COGNITO_NATIVE_CLIENT_ID: !Ref ImportedCognitoNativeClientId
         COGNITO_REGION: !Ref AWS::Region
         QR_NFC_CODES_TABLE: !Ref QRNFCCodesTable
         INCIDENTS_TABLE: !Ref IncidentsTable

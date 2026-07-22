@@ -42,10 +42,12 @@ public static class CognitoNativeBrowserAuth
         var challenge = Base64Url(Sha256(Encoding.ASCII.GetBytes(verifier)));
         var state = RandomUrlSafeString(32);
         var returnTo = $"{webBase}/auth/return-to-app";
+        var appCallback = "rapidcortex-desktop://oauth/callback";
         var bridge =
             $"{webBase}/auth/native-login?code_challenge={Uri.EscapeDataString(challenge)}"
             + $"&state={Uri.EscapeDataString(state)}"
-            + $"&redirect_uri={Uri.EscapeDataString(returnTo)}";
+            + $"&redirect_uri={Uri.EscapeDataString(returnTo)}"
+            + $"&app_callback={Uri.EscapeDataString(appCallback)}";
 
         _activation = new TaskCompletionSource<string?>(TaskCreationOptions.RunContinuationsAsynchronously);
         try

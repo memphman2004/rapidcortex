@@ -118,10 +118,10 @@ function normalizeGroups(groups: string | string[] | undefined): string[] {
 }
 
 export function buildUserContextFromTokens(
-  accessToken: string,
+  token: string,
   preferredLanguage: string | null = null,
 ): RCUserContext {
-  const payload = decodeJwtPayload(accessToken);
+  const payload = decodeJwtPayload(token);
   if (!payload.sub) {
     throw new Error('JWT missing sub claim');
   }
@@ -135,6 +135,15 @@ export function buildUserContextFromTokens(
     'cognito:groups': normalizeGroups(payload['cognito:groups']),
     preferredLanguage,
   };
+}
+
+/** Prefer ID token claims (role/agency); fall back to access token. */
+export function buildUserContextFromSession(
+  session: CognitoSession,
+  preferredLanguage: string | null = null,
+): RCUserContext {
+  const token = session.idToken?.trim() || session.accessToken.jwtToken;
+  return buildUserContextFromTokens(token, preferredLanguage);
 }
 
 function createAccessToken(jwtToken: string, expiresAt: number): CognitoAccessToken {
@@ -255,7 +264,7 @@ async function refreshWithCognitoToken(refreshToken: string): Promise<{
 
   return {
     session,
-    user: buildUserContextFromTokens(accessToken),
+    user: buildUserContextFromSession(session),
   };
 }
 
@@ -270,10 +279,7 @@ export async function refreshFromStoredToken(
   const refreshed = await refreshWithCognitoToken(refreshToken);
   return {
     ...refreshed,
-    user: buildUserContextFromTokens(
-      refreshed.session.accessToken.jwtToken,
-      preferredLanguage,
-    ),
+    user: buildUserContextFromSession(refreshed.session, preferredLanguage),
     refreshToken,
   };
 }
@@ -326,7 +332,7 @@ export async function signIn(email: string, password: string): Promise<{
     if (result.isSignedIn) {
       await getCurrentUser();
       const { session, refreshToken } = await sessionFromAmplify();
-      const user = buildUserContextFromTokens(session.accessToken.jwtToken);
+      const user = buildUserContextFromSession(session);
       return { session, user, refreshToken };
     }
 
@@ -424,7 +430,7 @@ export async function refresh(): Promise<{
 
       return {
         session,
-        user: buildUserContextFromTokens(jwtToken),
+        user: buildUserContextFromSession(session),
         refreshToken,
       };
     }
@@ -447,25 +453,21 @@ export async function restoreSessionFromAmplify(
   try {
     await getCurrentUser();
     const { session, refreshToken } = await sessionFromAmplify();
-    const user = buildUserContextFromTokens(
-      session.accessToken.jwtToken,
-      preferredLanguage,
-    );
+    const user = buildUserContextFromSession(session, preferredLanguage);
     return { session, user, refreshToken };
   } catch {
     return null;
   }
 }
 
+/** Bearer token for background API calls — prefers Cognito ID token (custom claims). */
 export async function getBackgroundAccessToken(): Promise<string | null> {
   configureAmplifyAuth();
-  const existing = getMemoryAccessToken();
-  if (existing) return existing;
 
   try {
     const refreshed = await refresh();
-    return refreshed.session.accessToken.jwtToken;
+    return refreshed.session.idToken?.trim() || refreshed.session.accessToken.jwtToken;
   } catch {
-    return null;
+    return getMemoryAccessToken();
   }
 }

@@ -7,11 +7,11 @@ import { Input } from '@/components/common/Input';
 import { useAuth } from '@/hooks/useAuth';
 import { useAuthStore } from '@/stores/auth.store';
 import { ThemeProvider, useTheme } from '@/theme';
-import { isVenueRole, resolveFieldHome } from '@/utils/roles';
+import { isCampusRole, resolveFieldHome } from '@/utils/roles';
 import { validateEmail, validateRequired } from '@/utils/validation';
 import { Strings } from '@/utils/strings';
 
-function VenueLoginContent() {
+function CampusLoginContent() {
   const router = useRouter();
   const { colors, typography, spacing } = useTheme();
   const palette = colors as { textPrimary: string; textSecondary: string; amber: string };
@@ -33,13 +33,13 @@ function VenueLoginContent() {
     try {
       await signIn(email, password);
       const role = useAuthStore.getState().user?.['custom:role'] ?? '';
-      if (!isVenueRole(role)) {
+      if (!isCampusRole(role)) {
         await signOut();
-        setFieldError(Strings.auth.errors.venueAccessDenied);
+        setFieldError(Strings.auth.errors.campusAccessDenied);
         return;
       }
-      await useAuthStore.getState().setProductPath('venue');
-      router.replace(resolveFieldHome(role, 'venue'));
+      await useAuthStore.getState().setProductPath('campus');
+      router.replace(resolveFieldHome(role, 'campus'));
     } catch {
       // error surfaced via auth store state
     }
@@ -53,13 +53,13 @@ function VenueLoginContent() {
         <ScrollView contentContainerStyle={{ padding: spacing['5'], flexGrow: 1 }} keyboardShouldPersistTaps="handled">
           <View style={{ marginTop: spacing['10'], marginBottom: spacing['8'] }}>
             <Text style={[typography.label, { color: palette.amber, letterSpacing: 1 }]}>
-              {Strings.auth.venueTools.toUpperCase()}
+              {Strings.auth.campusTools.toUpperCase()}
             </Text>
             <Text style={[typography.display, { color: palette.textPrimary, marginTop: spacing['2'] }]}>
-              {Strings.productSelection.venueTitle}
+              {Strings.productSelection.campusTitle}
             </Text>
             <Text style={[typography.body, { color: palette.textSecondary, marginTop: spacing['2'] }]}>
-              {Strings.productSelection.venueSubtitle}
+              {Strings.productSelection.campusSubtitle}
             </Text>
           </View>
 
@@ -69,7 +69,7 @@ function VenueLoginContent() {
               value={email}
               onChangeText={setEmail}
               keyboardType="email-address"
-              placeholder="you@agency.gov"
+              placeholder="you@campus.edu"
             />
             <Input
               label={Strings.auth.password}
@@ -94,10 +94,10 @@ function VenueLoginContent() {
   );
 }
 
-export default function VenueLoginScreen() {
+export default function CampusLoginScreen() {
   return (
-    <ThemeProvider product="venue">
-      <VenueLoginContent />
+    <ThemeProvider product="campus">
+      <CampusLoginContent />
     </ThemeProvider>
   );
 }

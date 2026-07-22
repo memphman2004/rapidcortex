@@ -2,6 +2,7 @@ import Constants from 'expo-constants';
 import * as Notifications from 'expo-notifications';
 import { router } from 'expo-router';
 import { Platform } from 'react-native';
+import { useAuthStore } from '@/stores/auth.store';
 import { post } from './api/client';
 
 export type NotificationRouteType =
@@ -99,10 +100,10 @@ function routeFromNotificationData(data: Record<string, unknown>): void {
   }
 
   if (type === 'CODE_CREATED') {
-    router.push('/(venue)/');
+    const product = useAuthStore.getState().productPath;
+    router.push(product === 'campus' ? '/(campus)/' : '/(venue)/');
   }
 }
-
 let responseSubscription: Notifications.Subscription | null = null;
 let receivedSubscription: Notifications.Subscription | null = null;
 

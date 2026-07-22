@@ -66,7 +66,9 @@ apiClient.interceptors.request.use(async (config) => {
     }
   }
 
-  const token = useAuthStore.getState().session?.accessToken.jwtToken;
+  // API Lambdas verify Cognito *ID* tokens (custom:role / agencyId live there).
+  const next = useAuthStore.getState().session;
+  const token = next?.idToken?.trim() || next?.accessToken.jwtToken;
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }

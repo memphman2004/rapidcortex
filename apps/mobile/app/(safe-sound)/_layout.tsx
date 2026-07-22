@@ -2,6 +2,7 @@ import { Redirect, Tabs } from 'expo-router';
 import { Text } from 'react-native';
 import { useAuth } from '@/hooks/useAuth';
 import { Colors, ThemeProvider } from '@/theme';
+import { isSafeSoundPublicEnabled } from '@/utils/feature-flags';
 import { Strings } from '@/utils/strings';
 
 function TabIcon({ symbol, focused }: { symbol: string; focused: boolean }) {
@@ -58,6 +59,7 @@ function SafeSoundTabs() {
 export default function SafeSoundLayout() {
   const { isAuthenticated, productPath } = useAuth();
 
+  if (!isSafeSoundPublicEnabled()) return <Redirect href="/" />;
   if (!isAuthenticated) return <Redirect href="/" />;
   if (productPath !== 'safe-sound') return <Redirect href="/" />;
 

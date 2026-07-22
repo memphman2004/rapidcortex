@@ -258,7 +258,22 @@ if [[ "${DEPLOY_QR}" -eq 1 ]]; then
   echo ""
   echo "▶ AppSamQrStack (${QR_STACK})"
   lean_sam_build "${ROOT}/infra/nested/stack-app-sam-qr.yaml" "qr"
-  lean_sam_deploy_nested "${SAM_BUILD_DIR}/qr/template.yaml" "${QR_STACK}"
+  _qr_extra=()
+  # Prefer explicit override; else root stack output; else known mobile/desktop PKCE client.
+  _qr_native="${IMPORTED_COGNITO_NATIVE_CLIENT_ID:-${COGNITO_NATIVE_CLIENT_ID:-}}"
+  if [[ -z "${_qr_native}" ]]; then
+    _qr_native="$(aws cloudformation describe-stacks \
+      --stack-name "${STACK_NAME}" \
+      --region "${AWS_REGION}" \
+      --query "Stacks[0].Outputs[?OutputKey=='NativeUserPoolClientId'].OutputValue" \
+      --output text 2>/dev/null || true)"
+  fi
+  if [[ -z "${_qr_native}" || "${_qr_native}" == "None" ]]; then
+    _qr_native="3nkemnrffspnaa0ikp2un6koh0"
+  fi
+  _qr_extra+=("ImportedCognitoNativeClientId=${_qr_native}")
+  echo "  Cognito native audience: ImportedCognitoNativeClientId=${_qr_native}"
+  lean_sam_deploy_nested "${SAM_BUILD_DIR}/qr/template.yaml" "${QR_STACK}" ${_qr_extra[@]:+"${_qr_extra[@]}"}
   echo "✅ AppSamQrStack deploy complete"
 fi
 

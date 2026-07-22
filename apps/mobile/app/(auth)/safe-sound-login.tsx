@@ -1,4 +1,4 @@
-import { useRouter } from 'expo-router';
+import { Redirect, useRouter } from 'expo-router';
 import { useMemo, useState } from 'react';
 import {
   Alert,
@@ -13,6 +13,7 @@ import { Button } from '@/components/common/Button';
 import { Input } from '@/components/common/Input';
 import { useAuth } from '@/hooks/useAuth';
 import { ThemeProvider, useTheme } from '@/theme';
+import { isSafeSoundPublicEnabled } from '@/utils/feature-flags';
 import {
   getPasswordRequirementStatus,
   validateEmail,
@@ -256,6 +257,10 @@ function SafeSoundLoginContent() {
 }
 
 export default function SafeSoundLoginScreen() {
+  if (!isSafeSoundPublicEnabled()) {
+    return <Redirect href="/" />;
+  }
+
   return (
     <ThemeProvider product="safeSound">
       <SafeSoundLoginContent />

@@ -1,5 +1,5 @@
 export const Colors = {
-  // === VENUE / CAMPUS THEME (dark, enterprise) ===
+  // === VENUE THEME (dark, amber enterprise) ===
   venue: {
     background: '#0A0F1E',
     surface: '#111827',
@@ -12,6 +12,22 @@ export const Colors = {
     textPrimary: '#F1F5F9',
     textSecondary: '#94A3B8',
     textMuted: '#475569',
+  },
+
+  // === CAMPUS THEME (dark, slate / neutral) ===
+  campus: {
+    background: '#0f1117',
+    surface: '#151922',
+    surfaceAlt: '#1c212b',
+    border: '#2a3344',
+    /** Shared field name with venue screens (Switch trackColor, badges). Slate accent. */
+    amber: '#94A3B8',
+    emerald: '#10B981',
+    blue: '#38BDF8',
+    red: '#EF4444',
+    textPrimary: '#F1F5F9',
+    textSecondary: '#94A3B8',
+    textMuted: '#64748B',
   },
 
   // === SAFE & SOUND THEME (light, consumer) ===
@@ -42,6 +58,7 @@ export const Colors = {
 } as const;
 
 export type VenueColors = typeof Colors.venue;
+export type CampusColors = typeof Colors.campus;
 export type SafeSoundColors = typeof Colors.safeSound;
 export type EmergencyColors = typeof Colors.emergency;
-export type ProductTheme = 'venue' | 'safeSound' | 'emergency';
+export type ProductTheme = 'venue' | 'campus' | 'safeSound' | 'emergency';

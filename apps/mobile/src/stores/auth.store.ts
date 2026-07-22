@@ -5,7 +5,7 @@ import {
   isBiometricAvailable,
 } from '../services/biometric';
 import {
-  buildUserContextFromTokens,
+  buildUserContextFromSession,
   clearMemoryAccessToken,
   confirmSignUp as authConfirmSignUp,
   getSecureRefreshTokenKey,
@@ -18,12 +18,22 @@ import {
   type CognitoSession,
   type RCUserContext,
 } from '../services/api/auth';
+import { isSafeSoundPublicEnabled } from '../utils/feature-flags';
 
-export type ProductPath = 'safe-sound' | 'venue-campus';
+export type ProductPath = 'safe-sound' | 'venue' | 'campus';
 
 const SECURE_PRODUCT_PATH_KEY = 'rc_mobile_product_path';
 const SECURE_BIOMETRIC_ENABLED_KEY = 'rc_mobile_biometric_enabled';
 const SECURE_PREFERRED_LANGUAGE_KEY = 'rc_mobile_preferred_language';
+
+function normalizeStoredProductPath(raw: string | null): ProductPath | null {
+  if (raw === 'venue-campus') return 'venue';
+  if (raw === 'safe-sound') {
+    return isSafeSoundPublicEnabled() ? 'safe-sound' : null;
+  }
+  if (raw === 'venue' || raw === 'campus') return raw;
+  return null;
+}
 
 interface AuthStoreState {
   session: CognitoSession | null;
@@ -228,10 +238,7 @@ export const useAuthStore = create<AuthStoreState>((set, get) => ({
           readSecure(getSecureRefreshTokenKey()),
         ]);
 
-      const productPath =
-        productPathRaw === 'safe-sound' || productPathRaw === 'venue-campus'
-          ? productPathRaw
-          : null;
+      const productPath = normalizeStoredProductPath(productPathRaw);
 
       set({
         productPath,
@@ -305,10 +312,7 @@ export const useAuthStore = create<AuthStoreState>((set, get) => ({
 
     if (get().session?.accessToken.jwtToken) {
       set({
-        user: buildUserContextFromTokens(
-          get().session!.accessToken.jwtToken,
-          languageCode,
-        ),
+        user: buildUserContextFromSession(get().session!, languageCode),
       });
     }
   },

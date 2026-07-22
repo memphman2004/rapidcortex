@@ -7,7 +7,9 @@
     "noEmit": true,
     "target": "ESNext",
     "module": "ESNext",
-    "lib": ["ESNext"],
+    "lib": [
+      "ESNext"
+    ],
     "skipLibCheck": true,
     "resolveJsonModule": true,
     "isolatedModules": true,
@@ -15,10 +17,22 @@
     "allowSyntheticDefaultImports": true,
     "baseUrl": ".",
     "paths": {
-      "@/*": ["src/*"],
-      "rapid-cortex-shared": ["../../packages/shared/src/index.ts"]
+      "@/*": [
+        "src/*"
+      ],
+      "rapid-cortex-shared": [
+        "../../packages/shared/src/index.ts"
+      ]
     }
   },
-  "include": ["src", "app", "*.ts", "*.tsx"],
-  "exclude": ["node_modules"]
+  "include": [
+    "src",
+    "app",
+    "*.ts",
+    "*.tsx"
+  ],
+  "exclude": [
+    "node_modules"
+  ],
+  "extends": "expo/tsconfig.base"
 }
