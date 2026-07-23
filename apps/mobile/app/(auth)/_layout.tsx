@@ -1,18 +1,23 @@
 import { Redirect, Stack } from 'expo-router';
 import { useAuth } from '@/hooks/useAuth';
 import { isSafeSoundPublicEnabled } from '@/utils/feature-flags';
+import { isCampusRole, isVenueRole } from '@/utils/roles';
 
 export default function AuthLayout() {
-  const { isAuthenticated, productPath } = useAuth();
+  const { isAuthenticated, productPath, role } = useAuth();
   const safeSoundPublic = isSafeSoundPublicEnabled();
 
+  // Only leave the login stack once the role matches the selected product.
+  // Otherwise a successful Cognito sign-in with a mismatched/legacy role token
+  // redirects into /(venue) or /(campus), fails the layout gate, and looks like
+  // a dead post-login screen.
   if (isAuthenticated && productPath === 'safe-sound' && safeSoundPublic) {
     return <Redirect href="/(safe-sound)" />;
   }
-  if (isAuthenticated && productPath === 'venue') {
+  if (isAuthenticated && productPath === 'venue' && isVenueRole(role)) {
     return <Redirect href="/(venue)" />;
   }
-  if (isAuthenticated && productPath === 'campus') {
+  if (isAuthenticated && productPath === 'campus' && isCampusRole(role)) {
     return <Redirect href="/(campus)" />;
   }
 

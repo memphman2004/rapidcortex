@@ -36,7 +36,9 @@ export default function CodeDetailScreen() {
   const { colors, typography, spacing } = useTheme();
   const palette = colors as { background: string; textPrimary: string; textSecondary: string; amber: string; red: string; emerald: string; border: string };
 
-  const cachedCode = useCodesStore((state) => state.getCodeById(id));
+  const cachedCode = useCodesStore((state) =>
+    id ? state.codes.find((code) => code.codeId === id) : undefined,
+  );
   const patchCode = useCodesStore((state) => state.patchCode);
   const removeCode = useCodesStore((state) => state.removeCode);
 

@@ -1,0 +1,107 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Transform: AWS::Serverless-2016-10-31
+Description: >
+  Rapid Cortex — surgical GET /api/platform/deployments-map on AppSam3 HttpApi.
+  Avoids full AppSam3Stack deploy when only this route is missing.
+
+Parameters:
+  DeploymentStage:
+    Type: String
+    AllowedValues: [dev, staging, prod, pilot]
+  HttpApiId:
+    Type: String
+    Description: AppSam3 HttpApi id (tbr4zvjlk5 on rapid-cortex-dev).
+  HttpApiJwtAuthorizerId:
+    Type: String
+    Description: CognitoJwtAuthorizer id on that HttpApi (k8rjdh on rapid-cortex-dev).
+  AgenciesTable:
+    Type: String
+  AuditTable:
+    Type: String
+  ImportedCognitoUserPoolId:
+    Type: String
+  ImportedCognitoWebClientId:
+    Type: String
+  ManagedPolicyNamePrefix:
+    Type: String
+    Default: rapid-cortex
+  ApprovedCorsOrigins:
+    Type: String
+    Default: "https://www.rapidcortex.us,https://rapidcortex.us,https://app.rapidcortex.us,https://report.rapidcortex.us"
+
+Globals:
+  Function:
+    Runtime: nodejs20.x
+    Timeout: 30
+    MemorySize: 512
+    Environment:
+      Variables:
+        DEPLOYMENT_STAGE: !Ref DeploymentStage
+        ALLOW_UNAUTHENTICATED_API: "false"
+        AGENCIES_TABLE: !Ref AgenciesTable
+        AUDIT_TABLE: !Ref AuditTable
+        COGNITO_USER_POOL_ID: !Ref ImportedCognitoUserPoolId
+        COGNITO_CLIENT_ID: !Ref ImportedCognitoWebClientId
+        COGNITO_REGION: !Ref AWS::Region
+        APPROVED_CORS_ORIGINS: !Ref ApprovedCorsOrigins
+
+Resources:
+  AppManagedPolicyDeploymentsMapDdb:
+    Type: AWS::IAM::ManagedPolicy
+    Properties:
+      ManagedPolicyName: !Sub "${ManagedPolicyNamePrefix}-sam3-depmap-ddb-${DeploymentStage}"
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Sid: AgenciesTableRead
+            Effect: Allow
+            Action:
+              - dynamodb:GetItem
+              - dynamodb:Query
+              - dynamodb:Scan
+              - dynamodb:DescribeTable
+            Resource:
+              - !Sub arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${AgenciesTable}
+              - !Sub arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${AgenciesTable}/index/*
+
+  GetPlatformDeploymentsMapFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/handlers/getPlatformDeploymentsMap.handler
+      Policies:
+        - !Ref AppManagedPolicyDeploymentsMapDdb
+
+  DeploymentsMapIntegration:
+    Type: AWS::ApiGatewayV2::Integration
+    Properties:
+      ApiId: !Ref HttpApiId
+      IntegrationType: AWS_PROXY
+      IntegrationUri: !Sub arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${GetPlatformDeploymentsMapFunction.Arn}/invocations
+      PayloadFormatVersion: "2.0"
+
+  DeploymentsMapInvokePermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !Ref GetPlatformDeploymentsMapFunction
+      Principal: apigateway.amazonaws.com
+      SourceArn: !Sub arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${HttpApiId}/*
+
+  RouteDeploymentsMapGet:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref HttpApiId
+      RouteKey: "GET /api/platform/deployments-map"
+      Target: !Sub "integrations/${DeploymentsMapIntegration}"
+      AuthorizationType: JWT
+      AuthorizerId: !Ref HttpApiJwtAuthorizerId
+
+Outputs:
+  GetPlatformDeploymentsMapFunctionArn:
+    Value: !GetAtt GetPlatformDeploymentsMapFunction.Arn
+  HttpApiId:
+    Value: !Ref HttpApiId

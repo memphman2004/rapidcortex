@@ -2,6 +2,9 @@ import { useCallback, useEffect } from 'react';
 import { useAuthStore } from '../stores/auth.store';
 import { isVenueCampusRole } from '../utils/roles';
 
+/** Ensure SecureStore hydrate runs once app-wide, not per useAuth() consumer. */
+let hydrateStarted = false;
+
 export function useAuth() {
   const session = useAuthStore((state) => state.session);
   const user = useAuthStore((state) => state.user);
@@ -23,6 +26,8 @@ export function useAuth() {
   const setPreferredLanguage = useAuthStore((state) => state.setPreferredLanguage);
 
   useEffect(() => {
+    if (hydrateStarted) return;
+    hydrateStarted = true;
     void hydrateFromSecureStore();
   }, [hydrateFromSecureStore]);
 

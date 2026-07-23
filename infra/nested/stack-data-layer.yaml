@@ -2660,12 +2660,38 @@
           {
             "AttributeName": "leadId",
             "AttributeType": "S"
+          },
+          {
+            "AttributeName": "pipelineStage",
+            "AttributeType": "S"
+          },
+          {
+            "AttributeName": "createdAt",
+            "AttributeType": "S"
           }
         ],
         "KeySchema": [
           {
             "AttributeName": "leadId",
             "KeyType": "HASH"
+          }
+        ],
+        "GlobalSecondaryIndexes": [
+          {
+            "IndexName": "PipelineStageIndex",
+            "KeySchema": [
+              {
+                "AttributeName": "pipelineStage",
+                "KeyType": "HASH"
+              },
+              {
+                "AttributeName": "createdAt",
+                "KeyType": "RANGE"
+              }
+            ],
+            "Projection": {
+              "ProjectionType": "ALL"
+            }
           }
         ]
       }

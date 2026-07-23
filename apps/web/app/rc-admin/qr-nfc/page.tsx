@@ -12,7 +12,8 @@ export default async function RcAdminQrNfcPage() {
   return (
     <div className="mx-auto max-w-4xl px-4 py-8">
       <p className="mb-4 text-sm text-slate-400">
-        All QR codes across agencies. Filter by vertical or open a tenant from{" "}
+        All QR &amp; NFC codes across agencies. Use the QR / NFC toggle to focus each medium, or open a
+        tenant from{" "}
         <a href="/rc-admin/agencies" className="text-sky-400 hover:text-sky-300">
           Agencies
         </a>

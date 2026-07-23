@@ -1,15 +1,23 @@
 "use client";
 
+import { useState } from "react";
+
 type Props = {
   url: string;
 };
 
 export function NFCInstructions({ url }: Props) {
+  const [copied, setCopied] = useState(false);
+  const [copyError, setCopyError] = useState(false);
+
   async function copyUrl() {
+    setCopyError(false);
     try {
       await navigator.clipboard.writeText(url);
+      setCopied(true);
+      window.setTimeout(() => setCopied(false), 2000);
     } catch {
-      /* ignore */
+      setCopyError(true);
     }
   }
 
@@ -18,7 +26,7 @@ export function NFCInstructions({ url }: Props) {
       <h3 className="font-semibold text-slate-100">How to program an NFC tag</h3>
       <ol className="mt-3 list-decimal space-y-2 pl-5">
         <li>Order NTAG213 NFC stickers (search Amazon — about $15–20 per 100 tags).</li>
-        <li>Download &quot;NFC Tools&quot; (free) on iOS or Android.</li>
+        <li>Download &quot;NFC Tools&quot; (free) on iOS or Android — or use the Rapid Cortex mobile app NFC write screen.</li>
         <li>Open NFC Tools → Write → Add Record → URL.</li>
         <li>
           Paste this URL:
@@ -29,9 +37,12 @@ export function NFCInstructions({ url }: Props) {
               onClick={() => void copyUrl()}
               className="rounded border border-slate-600 px-2 py-1 text-xs hover:bg-slate-800"
             >
-              Copy
+              {copied ? "Copied" : "Copy"}
             </button>
           </div>
+          {copyError ? (
+            <p className="mt-1 text-xs text-rose-400">Clipboard blocked — select and copy the URL manually.</p>
+          ) : null}
         </li>
         <li>Tap Write, then hold your NFC tag to the back of your phone.</li>
         <li>Stick the programmed tag to the back of your sign.</li>

@@ -38,6 +38,7 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
     const updated = await repo.updateCrmFields(leadId, {
       ...parsed.data,
       updatedBy: user.userId,
+      updatedByName: user.email ?? user.userId,
     });
     if (!updated) return ok({ error: "Lead not found" }, 404);
 
@@ -48,10 +49,7 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
       type: AUDIT_EVENT_TYPES.SALES_LEAD_UPDATED,
       details: {
         leadId,
-        status: parsed.data.status,
-        packageSold: parsed.data.packageSold,
-        assignee: parsed.data.assignee,
-        notesUpdated: parsed.data.notes !== undefined,
+        fields: Object.keys(parsed.data),
       },
       createdAt: new Date().toISOString(),
       resourceType: "sales_lead",
@@ -59,11 +57,9 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
     });
 
     return ok({
-      item: {
-        ...updated,
-        status: updated.status ?? "new",
-        packageSold: updated.packageSold ?? "none",
-      },
+      success: true,
+      data: updated,
+      item: updated,
     });
   } catch (error) {
     if (error instanceof Error && error.message === "SALES_LEADS_TABLE_NOT_CONFIGURED") {

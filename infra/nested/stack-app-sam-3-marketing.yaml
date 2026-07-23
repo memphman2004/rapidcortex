@@ -13,6 +13,9 @@ Parameters:
     Description: AppSam3 HttpApi id (tbr4zvjlk5 on rapid-cortex-dev).
   MarketingLeadsTable:
     Type: String
+  SalesLeadsTable:
+    Type: String
+    Description: Dual-write target for Inside the Cortex CRM leads [CR-5].
   AuditTable:
     Type: String
   AgenciesTable:
@@ -61,6 +64,7 @@ Globals:
         ALLOW_UNAUTHENTICATED_API: "false"
         ENABLE_INSIDE_THE_CORTEX: "true"
         MARKETING_LEADS_TABLE: !Ref MarketingLeadsTable
+        SALES_LEADS_TABLE: !Ref SalesLeadsTable
         SES_FROM_EMAIL: !Ref SesFromEmail
         RC_TEAM_NOTIFY_EMAIL: !Ref RcTeamNotifyEmail
         SES_MOCK: !Ref SesMock
@@ -93,6 +97,13 @@ Resources:
               - dynamodb:DescribeTable
             Resource:
               - !Sub arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${MarketingLeadsTable}
+          - Sid: SalesLeadsDualWrite
+            Effect: Allow
+            Action:
+              - dynamodb:PutItem
+              - dynamodb:DescribeTable
+            Resource:
+              - !Sub arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${SalesLeadsTable}
           - Sid: AuditAppend
             Effect: Allow
             Action:

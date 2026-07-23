@@ -122,8 +122,9 @@ export function EnterTheCortex({ onEnterComplete }: EnterTheCortexProps) {
         </Text>
         <Text style={styles.tagline}>{Strings.enterSplash.tagline}</Text>
 
-        <View style={styles.buttonWrap}>
+        <View style={styles.buttonWrap} pointerEvents="box-none">
           <Animated.View
+            pointerEvents="none"
             style={[
               styles.ring,
               styles.ringInner,
@@ -131,6 +132,7 @@ export function EnterTheCortex({ onEnterComplete }: EnterTheCortexProps) {
             ]}
           />
           <Animated.View
+            pointerEvents="none"
             style={[
               styles.ring,
               styles.ringOuter,
@@ -141,6 +143,7 @@ export function EnterTheCortex({ onEnterComplete }: EnterTheCortexProps) {
           <Pressable
             onPress={handleEnter}
             disabled={accessing}
+            hitSlop={24}
             accessibilityRole="button"
             accessibilityLabel={Strings.enterSplash.initialize}
             style={({ pressed }) => [
@@ -181,6 +184,7 @@ const styles = StyleSheet.create({
   },
   content: {
     zIndex: 10,
+    elevation: 10,
     alignItems: 'center',
     paddingHorizontal: 24,
   },
@@ -242,6 +246,8 @@ const styles = StyleSheet.create({
     borderColor: SplashColors.ringOuter,
   },
   button: {
+    zIndex: 20,
+    elevation: 20,
     borderWidth: 1,
     borderColor: SplashColors.buttonBorder,
     paddingVertical: 17,

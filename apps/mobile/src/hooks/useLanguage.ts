@@ -25,6 +25,10 @@ export function useLanguage() {
     ? detectDeviceLanguage(languages)
     : null;
 
+  const translatableLanguages = isLoaded
+    ? getSupportedTranslationLanguages()
+    : [];
+
   return {
     languages,
     isLoaded,
@@ -34,7 +38,7 @@ export function useLanguage() {
     primaryProvider,
     detectedDeviceLanguage,
     getLanguageByCode,
-    translatableLanguages: getSupportedTranslationLanguages(),
+    translatableLanguages,
     reload: load,
   };
 }

@@ -1,0 +1,185 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Transform: AWS::Serverless-2016-10-31
+Description: >
+  Rapid Cortex — surgical RC Admin Leads CRM routes on AppSam3 HttpApi.
+  Adds pipeline / stage / notes / attribution under /api/rc-admin/leads/*
+  without a full AppSam3Stack deploy.
+
+Parameters:
+  DeploymentStage:
+    Type: String
+    AllowedValues: [dev, staging, prod, pilot]
+  HttpApiId:
+    Type: String
+    Description: AppSam3 HttpApi id (tbr4zvjlk5 on rapid-cortex-dev).
+  HttpApiJwtAuthorizerId:
+    Type: String
+    Description: CognitoJwtAuthorizer id on that HttpApi (k8rjdh on rapid-cortex-dev).
+  SalesLeadsTable:
+    Type: String
+  AuditTable:
+    Type: String
+  AgenciesTable:
+    Type: String
+    Default: ""
+  ImportedCognitoUserPoolId:
+    Type: String
+  ImportedCognitoWebClientId:
+    Type: String
+  ManagedPolicyNamePrefix:
+    Type: String
+    Default: rapid-cortex
+  ApprovedCorsOrigins:
+    Type: String
+    Default: "https://www.rapidcortex.us,https://rapidcortex.us,https://app.rapidcortex.us,https://report.rapidcortex.us"
+
+Globals:
+  Function:
+    Runtime: nodejs20.x
+    Timeout: 30
+    MemorySize: 512
+    Environment:
+      Variables:
+        DEPLOYMENT_STAGE: !Ref DeploymentStage
+        ALLOW_UNAUTHENTICATED_API: "false"
+        SALES_LEADS_TABLE: !Ref SalesLeadsTable
+        AUDIT_TABLE: !Ref AuditTable
+        AGENCIES_TABLE: !Ref AgenciesTable
+        PIPELINE_STAGE_GSI: PipelineStageIndex
+        COGNITO_USER_POOL_ID: !Ref ImportedCognitoUserPoolId
+        COGNITO_CLIENT_ID: !Ref ImportedCognitoWebClientId
+        COGNITO_REGION: !Ref AWS::Region
+        APPROVED_CORS_ORIGINS: !Ref ApprovedCorsOrigins
+
+Resources:
+  AppManagedPolicyLeadsCrmDdb:
+    Type: AWS::IAM::ManagedPolicy
+    Properties:
+      ManagedPolicyName: !Sub "${ManagedPolicyNamePrefix}-sam3-leadscrm-ddb-${DeploymentStage}"
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Sid: SalesLeadsCrmCrud
+            Effect: Allow
+            Action:
+              - dynamodb:GetItem
+              - dynamodb:PutItem
+              - dynamodb:UpdateItem
+              - dynamodb:DeleteItem
+              - dynamodb:Scan
+              - dynamodb:Query
+              - dynamodb:DescribeTable
+            Resource:
+              - !Sub arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${SalesLeadsTable}
+              - !Sub arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${SalesLeadsTable}/index/*
+          - Sid: AuditAppend
+            Effect: Allow
+            Action:
+              - dynamodb:PutItem
+            Resource:
+              - !Sub arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${AuditTable}
+
+  RcAdminLeadsCrmFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/handlers/rc-admin/rcAdminLeadsHttp.handler
+      Policies:
+        - !Ref AppManagedPolicyLeadsCrmDdb
+
+  LeadsCrmIntegration:
+    Type: AWS::ApiGatewayV2::Integration
+    Properties:
+      ApiId: !Ref HttpApiId
+      IntegrationType: AWS_PROXY
+      IntegrationUri: !Sub arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${RcAdminLeadsCrmFunction.Arn}/invocations
+      PayloadFormatVersion: "2.0"
+
+  LeadsCrmInvokePermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !Ref RcAdminLeadsCrmFunction
+      Principal: apigateway.amazonaws.com
+      SourceArn: !Sub arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${HttpApiId}/*
+
+  RouteLeadsPipelineGet:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref HttpApiId
+      RouteKey: "GET /api/rc-admin/leads/pipeline"
+      Target: !Sub "integrations/${LeadsCrmIntegration}"
+      AuthorizationType: JWT
+      AuthorizerId: !Ref HttpApiJwtAuthorizerId
+
+  RouteLeadsAttributionSummaryGet:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref HttpApiId
+      RouteKey: "GET /api/rc-admin/leads/attribution-summary"
+      Target: !Sub "integrations/${LeadsCrmIntegration}"
+      AuthorizationType: JWT
+      AuthorizerId: !Ref HttpApiJwtAuthorizerId
+
+  RouteLeadsGetById:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref HttpApiId
+      RouteKey: "GET /api/rc-admin/leads/{leadId}"
+      Target: !Sub "integrations/${LeadsCrmIntegration}"
+      AuthorizationType: JWT
+      AuthorizerId: !Ref HttpApiJwtAuthorizerId
+
+  RouteLeadsStagePatch:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref HttpApiId
+      RouteKey: "PATCH /api/rc-admin/leads/{leadId}/stage"
+      Target: !Sub "integrations/${LeadsCrmIntegration}"
+      AuthorizationType: JWT
+      AuthorizerId: !Ref HttpApiJwtAuthorizerId
+
+  RouteLeadsFieldsPatch:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref HttpApiId
+      RouteKey: "PATCH /api/rc-admin/leads/{leadId}/fields"
+      Target: !Sub "integrations/${LeadsCrmIntegration}"
+      AuthorizationType: JWT
+      AuthorizerId: !Ref HttpApiJwtAuthorizerId
+
+  RouteLeadsNotesPost:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref HttpApiId
+      RouteKey: "POST /api/rc-admin/leads/{leadId}/notes"
+      Target: !Sub "integrations/${LeadsCrmIntegration}"
+      AuthorizationType: JWT
+      AuthorizerId: !Ref HttpApiJwtAuthorizerId
+
+  RouteLeadsActivitiesPost:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref HttpApiId
+      RouteKey: "POST /api/rc-admin/leads/{leadId}/activities"
+      Target: !Sub "integrations/${LeadsCrmIntegration}"
+      AuthorizationType: JWT
+      AuthorizerId: !Ref HttpApiJwtAuthorizerId
+
+  RouteLeadsNoteDelete:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref HttpApiId
+      RouteKey: "DELETE /api/rc-admin/leads/{leadId}/notes/{noteId}"
+      Target: !Sub "integrations/${LeadsCrmIntegration}"
+      AuthorizationType: JWT
+      AuthorizerId: !Ref HttpApiJwtAuthorizerId
+
+Outputs:
+  RcAdminLeadsCrmFunctionArn:
+    Value: !GetAtt RcAdminLeadsCrmFunction.Arn
+  HttpApiId:
+    Value: !Ref HttpApiId

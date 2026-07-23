@@ -77,6 +77,7 @@ sam deploy \
     DeploymentStage=dev \
     "HttpApiId=${HTTP_API_ID}" \
     MarketingLeadsTable=rapid-cortex-marketing-leads-dev \
+    SalesLeadsTable=rapid-cortex-sales-leads-dev \
     AuditTable=rapid-cortex-audit-dev \
     AgenciesTable=rapid-cortex-agencies-dev \
     IncidentsTable=rapid-cortex-incidents-dev \

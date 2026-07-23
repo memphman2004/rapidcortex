@@ -15,18 +15,15 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
   try {
     const rawLimit = event.queryStringParameters?.limit;
     const limit = rawLimit ? Number(rawLimit) : 200;
-    const items = await repo.listRecent(Number.isFinite(limit) ? limit : 200);
+    const items = await repo.listNormalized(Number.isFinite(limit) ? limit : 200);
     return ok({
-      items: items.map((item) => ({
-        ...item,
-        status: item.status ?? "new",
-        packageSold: item.packageSold ?? "none",
-        source: item.source ?? ("agencyCompany" in item && item.agencyCompany ? "contact-sales" : "unknown"),
-      })),
+      items,
+      success: true,
+      data: { items },
     });
   } catch (error) {
     if (error instanceof Error && error.message === "SALES_LEADS_TABLE_NOT_CONFIGURED") {
-      return ok({ items: [] });
+      return ok({ items: [], success: true, data: { items: [] } });
     }
     console.error("[listRcAdminLeads]", error);
     return serverError();

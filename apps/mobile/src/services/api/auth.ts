@@ -7,6 +7,8 @@ import {
   signOut as amplifySignOut,
   signUp as amplifySignUp,
 } from 'aws-amplify/auth';
+import Constants from 'expo-constants';
+import { canonicalizeMobileRole } from '../../utils/roles';
 
 export interface RCUserContext {
   sub: string;
@@ -46,17 +48,36 @@ let configured = false;
 let memoryAccessToken: string | null = null;
 let memoryAccessTokenExpiresAt = 0;
 
-function getEnv(name: string): string {
-  const value = process.env[name];
-  if (!value) {
-    throw new Error(`Missing required environment variable: ${name}`);
+type ExtraEnv = Record<string, string | undefined>;
+
+function readExtra(): ExtraEnv {
+  const fromExpoConfig = Constants.expoConfig?.extra as ExtraEnv | undefined;
+  if (fromExpoConfig && Object.keys(fromExpoConfig).length > 0) {
+    return fromExpoConfig;
   }
-  return value;
+  const manifest2 = Constants.manifest2 as
+    | { extra?: { expoClient?: { extra?: ExtraEnv } }; extras?: ExtraEnv }
+    | null
+    | undefined;
+  const fromManifest2 =
+    manifest2?.extra?.expoClient?.extra ??
+    (Constants as { manifest?: { extra?: ExtraEnv } }).manifest?.extra;
+  return (fromManifest2 ?? {}) as ExtraEnv;
+}
+
+function getEnv(name: string): string {
+  const fromProcess = process.env[name]?.trim();
+  if (fromProcess) return fromProcess;
+  const fromExtra = readExtra()[name]?.trim();
+  if (fromExtra) return fromExtra;
+  throw new Error(`Missing required environment variable: ${name}`);
 }
 
 function getOptionalEnv(name: string): string | undefined {
-  const value = process.env[name];
-  return value && value.length > 0 ? value : undefined;
+  const fromProcess = process.env[name]?.trim();
+  if (fromProcess) return fromProcess;
+  const fromExtra = readExtra()[name]?.trim();
+  return fromExtra && fromExtra.length > 0 ? fromExtra : undefined;
 }
 
 function getMobileClientId(): string {
@@ -129,7 +150,7 @@ export function buildUserContextFromTokens(
   return {
     sub: payload.sub,
     email: payload.email ?? '',
-    'custom:role': payload['custom:role'] ?? '',
+    'custom:role': canonicalizeMobileRole(payload['custom:role'] ?? ''),
     'custom:agencyId': payload['custom:agencyId'] ?? '',
     'custom:vertical': payload['custom:vertical'] ?? null,
     'cognito:groups': normalizeGroups(payload['cognito:groups']),
@@ -206,6 +227,13 @@ function mapCognitoError(error: unknown): string {
   }
   if (message.toLowerCase().includes('network')) {
     return 'Unable to connect. Check your internet connection and try again.';
+  }
+  if (
+    message.toLowerCase().includes('userpool') ||
+    message.toLowerCase().includes('not configured') ||
+    message.toLowerCase().includes('missing required environment')
+  ) {
+    return 'Sign-in is not configured on this build. Reinstall the latest preview build.';
   }
 
   return message || 'Authentication failed. Please try again.';

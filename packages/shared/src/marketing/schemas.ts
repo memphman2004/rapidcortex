@@ -35,6 +35,10 @@ export const marketingLeadBodySchema = z
     referrer: z.string().max(2000).nullable().optional(),
     landingPage: z.string().max(500).optional(),
     capturedAt: z.string().max(64).optional(),
+    utmSource: z.string().max(200).optional(),
+    utmMedium: z.string().max(200).optional(),
+    utmCampaign: z.string().max(200).optional(),
+    utmContent: z.string().max(200).optional(),
   })
   .strict();
 
@@ -52,6 +56,10 @@ export type MarketingLeadCaptureContext = {
   /** Prefer pathname + search so UTM params are retained. */
   landingPage?: string;
   capturedAt?: string;
+  utmSource?: string;
+  utmMedium?: string;
+  utmCampaign?: string;
+  utmContent?: string;
 };
 
 /**
@@ -72,6 +80,10 @@ export function buildMarketingLeadRequestBody(
     referrer: ctx.referrer === undefined ? undefined : ctx.referrer || null,
     landingPage: ctx.landingPage,
     capturedAt: ctx.capturedAt,
+    utmSource: ctx.utmSource,
+    utmMedium: ctx.utmMedium,
+    utmCampaign: ctx.utmCampaign,
+    utmContent: ctx.utmContent,
   });
   if (parsed.success) return { ok: true, body: parsed.data };
 

@@ -28,11 +28,18 @@ export const contactSalesLeadBodySchema = z
 
 export type ContactSalesLeadBody = z.infer<typeof contactSalesLeadBodySchema>;
 
-/** CRM pipeline status for RC Admin Leads inbox. */
+/**
+ * Legacy lowercase CRM status (still written alongside pipelineStage).
+ * Expanded to cover all 9 pipeline stages [CR-2][CR-3].
+ */
 export const salesLeadStatusSchema = z.enum([
   "new",
   "contacted",
   "qualified",
+  "discovery",
+  "proposal",
+  "negotiation",
+  "pilot",
   "won",
   "lost",
 ]);
@@ -56,24 +63,33 @@ export const SALES_LEAD_PACKAGE_SOLD_LABELS: Record<SalesLeadPackageSold, string
   none: "None",
 };
 
+/** @deprecated Prefer patchSalesLeadCrmBodySchema — kept for back-compat. */
 export const patchSalesLeadBodySchema = z
   .object({
     status: salesLeadStatusSchema.optional(),
     packageSold: salesLeadPackageSoldSchema.optional(),
+    /** Legacy flat notes string — CRM now uses notes[] via POST /notes. */
     notes: z.string().max(8000).optional(),
     assignee: z.string().max(320).optional(),
+    firstName: z.string().max(100).optional(),
+    lastName: z.string().max(100).optional(),
+    phone: z.string().max(40).optional(),
+    title: z.string().max(200).optional(),
+    agencyName: z.string().max(300).optional(),
+    agencyType: z.string().max(100).optional(),
+    vertical: z.enum(["rc911", "campus", "venue", "hospital", "transit", "unknown"]).optional(),
+    estimatedValue: z.number().min(0).max(100_000_000).optional(),
+    probability: z.number().min(0).max(100).optional(),
+    assignedTo: z.string().max(320).optional(),
+    assignedToName: z.string().max(200).optional(),
+    nextAction: z.string().max(500).optional(),
+    nextActionDate: z.string().max(64).optional(),
+    lostReason: z.string().max(200).optional(),
   })
   .strict()
-  .refine(
-    (v) =>
-      v.status !== undefined ||
-      v.packageSold !== undefined ||
-      v.notes !== undefined ||
-      v.assignee !== undefined,
-    {
-      message: "At least one of status, packageSold, notes, or assignee is required",
-    },
-  );
+  .refine((v) => Object.keys(v).length > 0, {
+    message: "At least one field is required",
+  });
 export type PatchSalesLeadBody = z.infer<typeof patchSalesLeadBodySchema>;
 
 export const publicPricingConfigSchema = z.object({

@@ -3,6 +3,7 @@ import axios, {
   type AxiosRequestConfig,
   type AxiosResponse,
 } from 'axios';
+import Constants from 'expo-constants';
 import { useAuthStore } from '../../stores/auth.store';
 
 const DEFAULT_TIMEOUT_MS = 15_000;
@@ -16,12 +17,19 @@ function trimTrailingSlash(value: string): string {
   return value.replace(/\/$/, '');
 }
 
+function readExtraEnv(name: string): string {
+  const fromProcess = process.env[name]?.trim();
+  if (fromProcess) return fromProcess;
+  const extra = (Constants.expoConfig?.extra ?? {}) as Record<string, string | undefined>;
+  return extra[name]?.trim() ?? '';
+}
+
 function getApiBase(): string {
-  return trimTrailingSlash(process.env.EXPO_PUBLIC_API_BASE ?? '');
+  return trimTrailingSlash(readExtraEnv('EXPO_PUBLIC_API_BASE'));
 }
 
 function getApiBase2(): string | undefined {
-  const value = process.env.EXPO_PUBLIC_API_BASE_2;
+  const value = readExtraEnv('EXPO_PUBLIC_API_BASE_2');
   return value ? trimTrailingSlash(value) : undefined;
 }
 
@@ -79,8 +87,15 @@ apiClient.interceptors.request.use(async (config) => {
 apiClient.interceptors.response.use(
   (response) => response,
   async (error: unknown) => {
+    // Only clear session on authenticated API 401s — never for public/registry probes.
     if (axios.isAxiosError(error) && error.response?.status === 401) {
-      await useAuthStore.getState().signOut();
+      const path = String(error.config?.url ?? '');
+      const hadSession = Boolean(useAuthStore.getState().session?.accessToken.jwtToken);
+      const isPublicProbe =
+        path.includes('/api/languages') || path.includes('/api/call-intelligence');
+      if (hadSession && !isPublicProbe) {
+        await useAuthStore.getState().signOut();
+      }
     }
     return Promise.reject(error);
   },

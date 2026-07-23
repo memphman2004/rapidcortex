@@ -1,7 +1,12 @@
-import { FlashList } from '@shopify/flash-list';
 import { useRouter } from 'expo-router';
-import { useCallback, useEffect, useState } from 'react';
-import { Pressable, RefreshControl, Text, View } from 'react-native';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import {
+  FlatList,
+  Pressable,
+  RefreshControl,
+  Text,
+  View,
+} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Badge, type BadgeTone } from '@/components/common/Badge';
 import { Input } from '@/components/common/Input';
@@ -25,17 +30,39 @@ export default function CodesListScreen() {
   const { href, vertical } = useFieldProduct();
   const { agencyId } = useAuth();
   const { colors, typography, spacing } = useTheme();
-  const palette = colors as { background: string; textPrimary: string; textSecondary: string; amber: string };
+  const palette = colors as {
+    background: string;
+    textPrimary: string;
+    textSecondary: string;
+    amber: string;
+  };
 
   const isLoading = useCodesStore((state) => state.isLoading);
   const error = useCodesStore((state) => state.error);
+  const codes = useCodesStore((state) => state.codes);
   const search = useCodesStore((state) => state.search);
   const statusFilter = useCodesStore((state) => state.statusFilter);
+  const verticalFilter = useCodesStore((state) => state.verticalFilter);
   const fetchCodes = useCodesStore((state) => state.fetchCodes);
   const setSearch = useCodesStore((state) => state.setSearch);
   const setStatusFilter = useCodesStore((state) => state.setStatusFilter);
   const setVerticalFilter = useCodesStore((state) => state.setVerticalFilter);
-  const filteredCodes = useCodesStore((state) => state.getFilteredCodes());
+
+  const filteredCodes = useMemo(() => {
+    const query = search.trim().toLowerCase();
+    return codes.filter((code) => {
+      if (verticalFilter !== 'all' && code.vertical !== verticalFilter) return false;
+      if (statusFilter === 'active' && code.status !== 'active') return false;
+      if (statusFilter === 'inactive' && code.status !== 'inactive') return false;
+      if (statusFilter === 'nfcWritten' && code.nfcWriteLog.length === 0) return false;
+      if (statusFilter === 'notWritten' && code.nfcWriteLog.length > 0) return false;
+      if (!query) return true;
+      return (
+        code.name.toLowerCase().includes(query) ||
+        code.zone.toLowerCase().includes(query)
+      );
+    });
+  }, [codes, search, statusFilter, verticalFilter]);
 
   const [refreshing, setRefreshing] = useState(false);
 
@@ -50,17 +77,38 @@ export default function CodesListScreen() {
   const onRefresh = useCallback(async () => {
     if (!agencyId) return;
     setRefreshing(true);
-    await fetchCodes(agencyId);
-    setRefreshing(false);
+    try {
+      await fetchCodes(agencyId);
+    } finally {
+      setRefreshing(false);
+    }
   }, [agencyId, fetchCodes]);
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: palette.background }} edges={['top']}>
-      <View style={{ paddingHorizontal: spacing['5'], paddingTop: spacing['4'], paddingBottom: spacing['3'] }}>
+      <View
+        style={{
+          paddingHorizontal: spacing['5'],
+          paddingTop: spacing['4'],
+          paddingBottom: spacing['3'],
+        }}
+      >
         <Text style={[typography.h1, { color: palette.textPrimary, marginBottom: spacing['4'] }]}>
           {Strings.venue.agencyCodes}
         </Text>
-        <Input value={search} onChangeText={setSearch} placeholder={Strings.venue.searchPlaceholder} />
+        <Input
+          value={search}
+          onChangeText={setSearch}
+          placeholder={Strings.venue.searchPlaceholder}
+        />
+        <Text
+          style={[
+            typography.caption,
+            { color: palette.textSecondary, marginTop: spacing['2'] },
+          ]}
+        >
+          Tap a code for QR details, or Program NFC Tag on the card.
+        </Text>
 
         <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginTop: spacing['3'] }}>
           {STATUS_FILTERS.map((filter) => (
@@ -75,27 +123,94 @@ export default function CodesListScreen() {
       </View>
 
       {error ? (
-        <Text style={[typography.caption, { color: '#EF4444', paddingHorizontal: spacing['5'], marginBottom: spacing['2'] }]}>
+        <Text
+          style={[
+            typography.caption,
+            {
+              color: '#EF4444',
+              paddingHorizontal: spacing['5'],
+              marginBottom: spacing['2'],
+            },
+          ]}
+        >
           {error}
         </Text>
       ) : null}
 
-      {filteredCodes.length === 0 && !isLoading ? (
-        <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: spacing['8'] }}>
-          <Text style={{ fontSize: 48, marginBottom: spacing['4'] }}>🏷️</Text>
+      {!agencyId ? (
+        <View
+          style={{
+            flex: 1,
+            alignItems: 'center',
+            justifyContent: 'center',
+            paddingHorizontal: spacing['8'],
+          }}
+        >
           <Text style={[typography.body, { color: palette.textSecondary, textAlign: 'center' }]}>
-            No codes match your filters yet.
+            Your account is missing an agency assignment. Contact your admin.
           </Text>
         </View>
       ) : (
-        <FlashList
+        <FlatList
+          style={{ flex: 1 }}
           data={filteredCodes}
           keyExtractor={(item) => item.codeId}
-          estimatedItemSize={150}
-          contentContainerStyle={{ paddingHorizontal: spacing['5'], paddingBottom: spacing['8'] }}
-          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={palette.amber} />}
+          contentContainerStyle={{
+            paddingHorizontal: spacing['5'],
+            paddingBottom: spacing['8'],
+            flexGrow: 1,
+          }}
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={() => void onRefresh()}
+              tintColor={palette.amber}
+            />
+          }
+          ListEmptyComponent={
+            !isLoading ? (
+              <View
+                style={{
+                  flex: 1,
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  paddingTop: spacing['12'],
+                  paddingHorizontal: spacing['8'],
+                }}
+              >
+                <Text style={{ fontSize: 48, marginBottom: spacing['4'] }}>🏷️</Text>
+                <Text
+                  style={[
+                    typography.body,
+                    { color: palette.textSecondary, textAlign: 'center' },
+                  ]}
+                >
+                  No codes match your filters yet.
+                </Text>
+              </View>
+            ) : (
+              <Text
+                style={[
+                  typography.caption,
+                  {
+                    color: palette.textSecondary,
+                    textAlign: 'center',
+                    marginTop: spacing['8'],
+                  },
+                ]}
+              >
+                {Strings.common.loading}
+              </Text>
+            )
+          }
           renderItem={({ item }) => (
-            <CodeCard code={item} onPress={() => router.push(href(`/code/${item.codeId}`) as never)} />
+            <CodeCard
+              code={item}
+              onPress={() => router.push(href(`/code/${item.codeId}`) as never)}
+              onProgramNfc={() =>
+                router.push(href(`/code/${item.codeId}/nfc-write`) as never)
+              }
+            />
           )}
         />
       )}

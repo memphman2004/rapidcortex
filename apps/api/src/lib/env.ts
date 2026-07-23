@@ -367,6 +367,8 @@ export const env = {
   monetizationInvoicesTable: process.env.MONETIZATION_INVOICES_TABLE?.trim() ?? "",
   billingAuditEventsTable: process.env.BILLING_AUDIT_EVENTS_TABLE?.trim() ?? "",
   salesLeadsTable: process.env.SALES_LEADS_TABLE?.trim() ?? "",
+  /** GSI name for pipeline queries (Scan-first until ~1K leads) [CR-7]. */
+  pipelineStageGsiName: process.env.PIPELINE_STAGE_GSI?.trim() || "PipelineStageIndex",
   /** Inside the Cortex marketing lead capture (pk/sk + unsubscribe tokens). */
   marketingLeadsTable: process.env.MARKETING_LEADS_TABLE?.trim() ?? "",
   /** Verified SES From for marketing welcome + team notify; empty skips SES. */

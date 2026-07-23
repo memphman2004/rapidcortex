@@ -44,6 +44,7 @@ interface AuthStoreState {
   biometricEnabled: boolean;
 
   setProductPath: (path: ProductPath) => Promise<void>;
+  clearProductPath: () => Promise<void>;
   signIn: (email: string, password: string) => Promise<void>;
   signUp: (
     email: string,
@@ -102,6 +103,11 @@ export const useAuthStore = create<AuthStoreState>((set, get) => ({
   setProductPath: async (path) => {
     await writeSecure(SECURE_PRODUCT_PATH_KEY, path);
     set({ productPath: path });
+  },
+
+  clearProductPath: async () => {
+    await deleteSecure(SECURE_PRODUCT_PATH_KEY);
+    set({ productPath: null });
   },
 
   signIn: async (email, password) => {
@@ -228,7 +234,7 @@ export const useAuthStore = create<AuthStoreState>((set, get) => ({
   clearError: () => set({ error: null }),
 
   hydrateFromSecureStore: async () => {
-    set({ isLoading: true });
+    // Intentionally does not toggle global isLoading — root layout must stay mounted.
     try {
       const [productPathRaw, biometricRaw, preferredLanguage, refreshToken] =
         await Promise.all([
@@ -246,7 +252,6 @@ export const useAuthStore = create<AuthStoreState>((set, get) => ({
       });
 
       if (!refreshToken) {
-        set({ isLoading: false });
         return;
       }
 
@@ -259,7 +264,6 @@ export const useAuthStore = create<AuthStoreState>((set, get) => ({
         if (get().biometricEnabled) {
           const passed = await biometricAuthenticate('Unlock Rapid Cortex');
           if (!passed) {
-            set({ isLoading: false });
             return;
           }
         }
@@ -267,20 +271,17 @@ export const useAuthStore = create<AuthStoreState>((set, get) => ({
         set({
           session: restored.session,
           user: restored.user,
-          isLoading: false,
         });
         return;
       } catch {
         const restored = await restoreSessionFromAmplify(preferredLanguage);
         if (!restored) {
-          set({ isLoading: false });
           return;
         }
 
         if (get().biometricEnabled) {
           const passed = await biometricAuthenticate('Unlock Rapid Cortex');
           if (!passed) {
-            set({ isLoading: false });
             return;
           }
         }
@@ -288,12 +289,11 @@ export const useAuthStore = create<AuthStoreState>((set, get) => ({
         set({
           session: restored.session,
           user: applyPreferredLanguage(restored.user, preferredLanguage),
-          isLoading: false,
         });
         return;
       }
     } catch {
-      set({ isLoading: false });
+      // Cold start without a restorable session is fine.
     }
   },
 

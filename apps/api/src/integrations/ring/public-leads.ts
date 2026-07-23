@@ -47,13 +47,24 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
       return ringJson({ success: false, error: "Invalid source." }, 400);
     }
 
+    const now = new Date().toISOString();
     await repo.putRingWaitlistLead({
       leadId: makeId("lead"),
       email,
       source,
       requestedState: requestedState ?? null,
       requestedCity: requestedCity ?? null,
-      createdAt: new Date().toISOString(),
+      createdAt: now,
+      status: "new",
+      pipelineStage: "NEW",
+      attribution: {
+        channel: "ring_waitlist",
+        channelLabel: "Ring Waitlist",
+        referrerDomain: "ring.com",
+        firstTouchAt: now,
+        ipRegion: requestedState ?? null,
+        ipCity: requestedCity ?? null,
+      },
     });
 
     return ringJson({ success: true }, 200);

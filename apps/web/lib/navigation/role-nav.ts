@@ -100,7 +100,7 @@ export const RC_SUPERADMIN_NAV: RoleNav = {
       id: "locations",
       label: "LOCATIONS",
       items: [
-        { id: "qr",        label: "QR Codes",          href: "/rc-admin/qr-nfc", icon: "QrCode" },
+        { id: "qr",        label: "QR & NFC",          href: "/rc-admin/qr-nfc", icon: "QrCode" },
         { id: "qr-legacy", label: "Location QR (RCLI)", href: "/rc-admin/location-qr-codes", icon: "MapPin" },
       ],
     },
@@ -162,7 +162,7 @@ export const RC_ADMIN_NAV: RoleNav = {
       id: "locations",
       label: "LOCATIONS",
       items: [
-        { id: "qr",        label: "QR Codes",          href: "/rc-admin/qr-nfc", icon: "QrCode" },
+        { id: "qr",        label: "QR & NFC",          href: "/rc-admin/qr-nfc", icon: "QrCode" },
         { id: "qr-legacy", label: "Location QR (RCLI)", href: "/rc-admin/location-qr-codes", icon: "MapPin" },
       ],
     },
@@ -251,7 +251,7 @@ export const RC_IT_ADMIN_NAV: RoleNav = {
       id: "locations",
       label: "LOCATIONS",
       items: [
-        { id: "qr",        label: "QR Codes",          href: "/rc-admin/qr-nfc", icon: "QrCode" },
+        { id: "qr",        label: "QR & NFC",          href: "/rc-admin/qr-nfc", icon: "QrCode" },
         { id: "qr-legacy", label: "Location QR (RCLI)", href: "/rc-admin/location-qr-codes", icon: "MapPin" },
       ],
     },

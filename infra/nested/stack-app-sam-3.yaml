@@ -1531,6 +1531,72 @@ Resources:
             Path: /api/rc-admin/leads/{leadId}
             Method: PATCH
 
+  RcAdminLeadsCrmFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/handlers/rc-admin/rcAdminLeadsHttp.handler
+      Timeout: 30
+      Environment:
+        Variables:
+          SALES_LEADS_TABLE: !Ref SalesLeadsTable
+      Policies:
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardA
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardB
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardC
+      Events:
+        PipelineGet:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/rc-admin/leads/pipeline
+            Method: GET
+        AttributionSummaryGet:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/rc-admin/leads/attribution-summary
+            Method: GET
+        LeadGet:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/rc-admin/leads/{leadId}
+            Method: GET
+        LeadStagePatch:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/rc-admin/leads/{leadId}/stage
+            Method: PATCH
+        LeadFieldsPatch:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/rc-admin/leads/{leadId}/fields
+            Method: PATCH
+        LeadNotesPost:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/rc-admin/leads/{leadId}/notes
+            Method: POST
+        LeadActivitiesPost:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/rc-admin/leads/{leadId}/activities
+            Method: POST
+        LeadNoteDelete:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/rc-admin/leads/{leadId}/notes/{noteId}
+            Method: DELETE
+
   GenerateGrantPackageFunction:
     Type: AWS::Serverless::Function
     Metadata:
@@ -1742,6 +1808,7 @@ Resources:
       Environment:
         Variables:
           MARKETING_LEADS_TABLE: !Ref MarketingLeadsTable
+          SALES_LEADS_TABLE: !Ref SalesLeadsTable
           RC_TEAM_NOTIFY_EMAIL: team@rapidcortex.us
           SES_FROM_EMAIL: noreply@rapidcortex.us
           ENABLE_INSIDE_THE_CORTEX: "true"
@@ -1758,6 +1825,14 @@ Resources:
               - dynamodb:DescribeTable
             Resource:
               - !Sub arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${MarketingLeadsTable}
+        - Statement:
+            Sid: SalesLeadsDualWrite
+            Effect: Allow
+            Action:
+              - dynamodb:PutItem
+              - dynamodb:DescribeTable
+            Resource:
+              - !Sub arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${SalesLeadsTable}
         - Statement:
             Sid: SesMarketingLeadFromNoreplyIdentity
             Effect: Allow

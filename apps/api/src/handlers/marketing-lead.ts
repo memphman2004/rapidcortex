@@ -3,13 +3,15 @@
  * Route: POST /api/marketing/lead (public, Authorizer NONE)
  */
 
-import { randomUUID } from "node:crypto";
+import { createHash, randomUUID } from "node:crypto";
 import type { APIGatewayProxyHandlerV2 } from "aws-lambda";
 import { GetCommand, PutCommand } from "@aws-sdk/lib-dynamodb";
 import { SESClient, SendEmailCommand } from "@aws-sdk/client-ses";
 import { marketingLeadBodySchema, resolveMarketingLeadSource } from "rapid-cortex-shared";
 import { ddb } from "../repositories/baseRepository.js";
 import { env } from "../lib/env.js";
+import { parseDeviceType } from "../features/leads/leads-normalize.js";
+import { SalesLeadRepository } from "../repositories/salesLeadRepository.js";
 
 const ses = new SESClient({});
 
@@ -133,6 +135,67 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
       }),
     );
     return json({ error: "Failed to capture lead" }, 500);
+  }
+
+  // [CR-5] Dual-write into SalesLeads CRM (non-fatal; MarketingLeads remains SoT for unsubscribe).
+  try {
+    const salesRepo = new SalesLeadRepository();
+    const headers = event.headers ?? {};
+    const ua = headers["user-agent"] ?? headers["User-Agent"] ?? "";
+    let referrerDomain: string | null = null;
+    if (referrer) {
+      try {
+        referrerDomain = new URL(referrer).hostname;
+      } catch {
+        referrerDomain = null;
+      }
+    }
+    const cortexLeadId = `cortex-${createHash("sha256").update(emailLower).digest("hex").slice(0, 24)}`;
+    await salesRepo.putCortexLeadIfAbsent({
+      leadId: cortexLeadId,
+      email: emailLower,
+      firstName,
+      lastName,
+      state,
+      source: "inside_the_cortex",
+      status: "new",
+      pipelineStage: "NEW",
+      packageSold: "none",
+      notes: [],
+      activities: [
+        {
+          activityId: randomUUID(),
+          type: "created",
+          description: "Lead created · Source: Inside the Cortex",
+          createdAt: now,
+        },
+      ],
+      attribution: {
+        channel: "inside_the_cortex",
+        channelLabel: "Inside the Cortex",
+        landingPage: landingPage ?? null,
+        referrerUrl: referrer,
+        referrerDomain,
+        utmSource: body.utmSource ?? null,
+        utmMedium: body.utmMedium ?? null,
+        utmCampaign: body.utmCampaign ?? null,
+        utmContent: body.utmContent ?? null,
+        deviceType: parseDeviceType(ua),
+        ipRegion: headers["cloudfront-viewer-state"] ?? headers["CloudFront-Viewer-State"] ?? null,
+        ipCity: headers["cloudfront-viewer-city"] ?? headers["CloudFront-Viewer-City"] ?? null,
+        ipCountry: headers["cloudfront-viewer-country"] ?? headers["CloudFront-Viewer-Country"] ?? "US",
+        firstTouchAt: now,
+      },
+      createdAt: now,
+      updatedAt: now,
+    });
+  } catch (err) {
+    console.error(
+      JSON.stringify({
+        msg: "cortex_lead_sales_write_error",
+        error: err instanceof Error ? err.message : String(err),
+      }),
+    );
   }
 
   const siteUrl = "https://www.rapidcortex.us";

@@ -1,5 +1,6 @@
 import { Redirect, Tabs } from 'expo-router';
 import { Text } from 'react-native';
+import { ScreenErrorBoundary } from '@/components/common/ScreenErrorBoundary';
 import { useAuth } from '@/hooks/useAuth';
 import { FieldProductProvider } from '@/navigation/field-product';
 import { Colors, ThemeProvider } from '@/theme';
@@ -65,7 +66,9 @@ export default function VenueLayout() {
   return (
     <ThemeProvider product="venue">
       <FieldProductProvider product="venue">
-        <VenueTabs />
+        <ScreenErrorBoundary>
+          <VenueTabs />
+        </ScreenErrorBoundary>
       </FieldProductProvider>
     </ThemeProvider>
   );

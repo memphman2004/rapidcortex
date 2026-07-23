@@ -31,7 +31,9 @@ export default function RootLayout() {
   });
 
   const router = useRouter();
-  const { isAuthenticated, isLoading, user } = useAuth();
+  // Do not gate the tree on auth isLoading — sign-in sets it and would unmount
+  // the login screen (Sign In flicker). Hydrate runs in the background.
+  const { isAuthenticated, user } = useAuth();
   useLanguage();
 
   const hasHandledInitialRoute = useRef(false);
@@ -53,7 +55,7 @@ export default function RootLayout() {
     });
   }, [isAuthenticated, user, router]);
 
-  if (!fontsLoaded || isLoading) {
+  if (!fontsLoaded) {
     return (
       <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: '#00040e' }}>
         <ActivityIndicator size="large" color="#3b82f6" />

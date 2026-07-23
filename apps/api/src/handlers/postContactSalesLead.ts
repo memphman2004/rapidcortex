@@ -152,12 +152,19 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
     };
   }
 
+  const now = new Date().toISOString();
   const lead: SalesLeadRecord = {
     ...rest,
     leadId: randomUUID(),
-    createdAt: new Date().toISOString(),
+    createdAt: now,
     source: "contact-sales",
     status: "new",
+    pipelineStage: "NEW",
+    attribution: {
+      channel: "contact_sales",
+      channelLabel: "Contact Sales",
+      firstTouchAt: now,
+    },
   };
   await repo.putLead(lead);
 

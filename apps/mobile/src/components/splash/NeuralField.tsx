@@ -145,8 +145,8 @@ export function NeuralField() {
       }
 
       frame += 1;
-      // ~20fps UI updates keep RN responsive while matching the marketing feel
-      if (frame % 3 === 0) setTick((t) => t + 1);
+      // ~5fps — full SVG redraws were starving the JS thread so taps felt dead
+      if (frame % 12 === 0) setTick((t) => t + 1);
 
       rafRef.current = requestAnimationFrame(loop);
     };

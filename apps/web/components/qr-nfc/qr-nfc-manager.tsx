@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import type { CreateQRNFCInput, QRNFCRecord, ReportVertical } from "rapid-cortex-shared";
 import { formatPhoneDisplay, normalizePhoneE164 } from "rapid-cortex-shared";
 import { features } from "@/lib/features";
@@ -8,6 +8,7 @@ import { NFCInstructions } from "./nfc-instructions";
 import { SmsRoutingManager } from "@/components/sms-routing/sms-routing-manager";
 
 type ListItem = Omit<QRNFCRecord, "qrImageBase64">;
+type MediumView = "qr" | "nfc" | "all";
 
 type Props = {
   agencyId: string;
@@ -20,6 +21,23 @@ type Props = {
   globalView?: boolean;
   apiBase?: string;
 };
+
+async function copyText(text: string): Promise<void> {
+  if (navigator.clipboard?.writeText) {
+    await navigator.clipboard.writeText(text);
+    return;
+  }
+  const ta = document.createElement("textarea");
+  ta.value = text;
+  ta.setAttribute("readonly", "");
+  ta.style.position = "fixed";
+  ta.style.left = "-9999px";
+  document.body.appendChild(ta);
+  ta.select();
+  const ok = document.execCommand("copy");
+  document.body.removeChild(ta);
+  if (!ok) throw new Error("Clipboard copy failed");
+}
 
 export function QRNFCManager({
   agencyId,
@@ -35,12 +53,16 @@ export function QRNFCManager({
   const [items, setItems] = useState<ListItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [actionMsg, setActionMsg] = useState<{ tone: "ok" | "err"; text: string } | null>(null);
+  const [busyId, setBusyId] = useState<string | null>(null);
   const [modalOpen, setModalOpen] = useState(false);
   const [modalError, setModalError] = useState<string | null>(null);
   const [creating, setCreating] = useState(false);
   const [created, setCreated] = useState<QRNFCRecord | null>(null);
   const [filterVertical, setFilterVertical] = useState<string>("all");
   const [filterActive, setFilterActive] = useState<string>("all");
+  const [mediumView, setMediumView] = useState<MediumView>("all");
+  const [expandedNfcId, setExpandedNfcId] = useState<string | null>(null);
 
   const [form, setForm] = useState<CreateQRNFCInput & { callNumber?: string }>({
     name: "",
@@ -51,6 +73,10 @@ export function QRNFCManager({
     nfcEnabled: true,
     callNumber: "",
   });
+
+  const flash = useCallback((tone: "ok" | "err", text: string) => {
+    setActionMsg({ tone, text });
+  }, []);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -76,6 +102,12 @@ export function QRNFCManager({
     if (!features.qrNfc) return;
     void load();
   }, [load]);
+
+  const visibleItems = useMemo(() => {
+    if (mediumView === "nfc") return items.filter((row) => row.nfcEnabled);
+    if (mediumView === "qr") return items;
+    return items;
+  }, [items, mediumView]);
 
   if (!features.qrNfc) {
     return <p className="text-sm text-slate-400">QR & NFC management is disabled for this environment.</p>;
@@ -122,6 +154,7 @@ export function QRNFCManager({
         nfcEnabled: true,
         callNumber: "",
       });
+      if (body.record?.nfcEnabled) setMediumView("nfc");
       void load();
     } catch {
       setModalError("Network error — please try again.");
@@ -132,37 +165,111 @@ export function QRNFCManager({
 
   async function setActive(qrId: string, active: boolean) {
     if (!canDeactivate) return;
-    await fetch(`${apiBase}/${encodeURIComponent(qrId)}`, {
-      method: "PATCH",
-      credentials: "include",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ active }),
-    });
-    void load();
+    setBusyId(qrId);
+    try {
+      const res = await fetch(`${apiBase}/${encodeURIComponent(qrId)}`, {
+        method: "PATCH",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ active }),
+      });
+      const body = (await res.json().catch(() => ({}))) as { error?: string };
+      if (!res.ok) {
+        flash("err", body.error ?? `Could not update status (${res.status})`);
+        return;
+      }
+      flash("ok", active ? "Code activated." : "Code deactivated.");
+      void load();
+    } catch {
+      flash("err", "Network error updating status.");
+    } finally {
+      setBusyId(null);
+    }
   }
 
   async function deactivate(qrId: string) {
     if (!canDeactivate) return;
-    await fetch(`${apiBase}/${encodeURIComponent(qrId)}`, {
-      method: "DELETE",
-      credentials: "include",
-    });
-    void load();
+    if (!window.confirm("Deactivate this code? Scans and NFC taps will stop working.")) return;
+    setBusyId(qrId);
+    try {
+      const res = await fetch(`${apiBase}/${encodeURIComponent(qrId)}`, {
+        method: "DELETE",
+        credentials: "include",
+      });
+      const body = (await res.json().catch(() => ({}))) as { error?: string };
+      if (!res.ok) {
+        flash("err", body.error ?? `Deactivate failed (${res.status})`);
+        return;
+      }
+      flash("ok", "Code deactivated.");
+      void load();
+    } catch {
+      flash("err", "Network error deactivating code.");
+    } finally {
+      setBusyId(null);
+    }
   }
 
   function downloadPng(record: QRNFCRecord | ListItem, image?: string) {
     const src = image ?? (record as QRNFCRecord).qrImageBase64;
-    if (!src) return;
+    if (!src) {
+      flash("err", "No QR image available for this code.");
+      return;
+    }
     const a = document.createElement("a");
     a.href = src;
     a.download = `${record.name.replace(/\s+/g, "-")}-qr.png`;
     a.click();
+    flash("ok", "QR PNG download started.");
   }
+
+  async function onDownloadPng(row: ListItem) {
+    setBusyId(row.qrId);
+    try {
+      const params = new URLSearchParams();
+      if (row.agencyId) params.set("agencyId", row.agencyId);
+      const qs = params.toString();
+      const res = await fetch(
+        `${apiBase}/${encodeURIComponent(row.qrId)}${qs ? `?${qs}` : ""}`,
+        { credentials: "include" },
+      );
+      const body = (await res.json().catch(() => ({}))) as {
+        record?: QRNFCRecord;
+        error?: string;
+        message?: string;
+      };
+      if (!res.ok) {
+        flash("err", body.error ?? body.message ?? `Download failed (${res.status})`);
+        return;
+      }
+      if (!body.record?.qrImageBase64) {
+        flash("err", "QR image missing on server — recreate the code or contact support.");
+        return;
+      }
+      downloadPng(row, body.record.qrImageBase64);
+    } catch {
+      flash("err", "Network error downloading QR PNG.");
+    } finally {
+      setBusyId(null);
+    }
+  }
+
+  async function onCopy(label: string, text: string) {
+    try {
+      await copyText(text);
+      flash("ok", `${label} copied.`);
+    } catch {
+      flash("err", `Could not copy ${label.toLowerCase()}.`);
+    }
+  }
+
+  const title =
+    mediumView === "nfc" ? "NFC Tags" : mediumView === "qr" ? "QR Codes" : "QR & NFC Codes";
 
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <h2 className="text-lg font-semibold text-slate-100">QR Codes</h2>
+        <h2 className="text-lg font-semibold text-slate-100">{title}</h2>
         {canCreate ? (
           <button
             type="button"
@@ -173,20 +280,55 @@ export function QRNFCManager({
             }}
             className="rounded-md bg-sky-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-sky-500"
           >
-            + New QR Code
+            + New QR / NFC Code
           </button>
         ) : null}
       </div>
 
+      <div
+        className="inline-flex rounded-lg border border-slate-700 bg-slate-950/80 p-0.5"
+        role="tablist"
+        aria-label="QR or NFC view"
+      >
+        {(
+          [
+            ["all", "All"],
+            ["qr", "QR"],
+            ["nfc", "NFC"],
+          ] as const
+        ).map(([key, label]) => (
+          <button
+            key={key}
+            type="button"
+            role="tab"
+            aria-selected={mediumView === key}
+            onClick={() => setMediumView(key)}
+            className={`rounded-md px-3 py-1.5 text-xs font-medium transition ${
+              mediumView === key
+                ? "bg-sky-600 text-white"
+                : "text-slate-400 hover:text-slate-200"
+            }`}
+          >
+            {label}
+          </button>
+        ))}
+      </div>
+
       <div className="rounded-lg border border-slate-800 bg-slate-950/50 p-4">
-        <h3 className="text-xs font-semibold uppercase tracking-wide text-slate-500">Print on your sign</h3>
+        <h3 className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+          {mediumView === "nfc" ? "Program NFC tags" : "Print on your sign"}
+        </h3>
         <p className="mt-1 text-xs text-slate-500">
-          Signs only need the QR code and NFC tag. When someone scans, they can tap to call or submit a report.
+          {mediumView === "nfc"
+            ? "Each code below has an NFC URL. Copy it into NFC Tools (or write from the mobile app) and stick the tag behind the sign."
+            : "Signs only need the QR code and NFC tag. When someone scans, they can tap to call or submit a report."}
         </p>
-        <ul className="mt-2 list-inside list-disc text-xs text-slate-500">
-          <li>Scan the QR code</li>
-          <li>Tap this sign (NFC)</li>
-        </ul>
+        {mediumView !== "nfc" ? (
+          <ul className="mt-2 list-inside list-disc text-xs text-slate-500">
+            <li>Scan the QR code</li>
+            <li>Tap this sign (NFC)</li>
+          </ul>
+        ) : null}
         <p className="mt-2 text-xs text-slate-500">
           Register an agency SMS number below to enable the tap-to-call button on intake pages.
         </p>
@@ -226,6 +368,14 @@ export function QRNFCManager({
       </div>
 
       {error ? <p className="text-sm text-rose-400">{error}</p> : null}
+      {actionMsg ? (
+        <p
+          className={`text-sm ${actionMsg.tone === "ok" ? "text-emerald-400" : "text-rose-400"}`}
+          role="status"
+        >
+          {actionMsg.text}
+        </p>
+      ) : null}
       {loading ? <p className="text-sm text-slate-400">Loading…</p> : null}
 
       {created ? (
@@ -236,12 +386,23 @@ export function QRNFCManager({
             <img src={created.qrImageBase64} alt="QR code" className="mt-3 h-40 w-40 rounded bg-white p-2" />
           ) : null}
           <div className="mt-3 flex flex-wrap gap-2">
-            <button type="button" onClick={() => downloadPng(created, created.qrImageBase64)} className="rounded border border-slate-600 px-2 py-1 text-xs">
+            <button
+              type="button"
+              onClick={() => downloadPng(created, created.qrImageBase64)}
+              className="rounded border border-slate-600 px-2 py-1 text-xs"
+            >
               Download PNG
             </button>
             <button
               type="button"
-              onClick={() => void navigator.clipboard.writeText(`${created.url}?medium=nfc`)}
+              onClick={() => void onCopy("QR URL", created.url)}
+              className="rounded border border-slate-600 px-2 py-1 text-xs"
+            >
+              Copy QR URL
+            </button>
+            <button
+              type="button"
+              onClick={() => void onCopy("NFC URL", `${created.url}?medium=nfc`)}
               className="rounded border border-slate-600 px-2 py-1 text-xs"
             >
               Copy NFC URL
@@ -251,88 +412,129 @@ export function QRNFCManager({
         </section>
       ) : null}
 
+      {!loading && visibleItems.length === 0 ? (
+        <p className="rounded-lg border border-dashed border-slate-800 px-4 py-8 text-center text-sm text-slate-500">
+          {mediumView === "nfc"
+            ? "No NFC-enabled codes match these filters."
+            : "No codes match these filters."}
+        </p>
+      ) : null}
+
       <ul className="divide-y divide-slate-800 rounded-lg border border-slate-800">
-        {items.map((row) => (
-          <li key={row.qrId} className="space-y-2 px-4 py-4">
-            <div className="flex flex-wrap items-start justify-between gap-2">
-              <div>
-                <p className="font-medium text-slate-100">{row.name}</p>
-                <p className="text-xs text-slate-400">
-                  {row.vertical} · {row.reportType}
-                  {globalView ? ` · ${row.agencyId}` : ""}
-                </p>
-                {row.callNumber ? (
-                  <p className="mt-1 text-xs text-emerald-400">
-                    📞 {formatPhoneDisplay(row.callNumber)} · tap-to-call enabled
+        {visibleItems.map((row) => {
+          const nfcUrl = `${row.url}?medium=nfc`;
+          const showQrActions = mediumView !== "nfc";
+          const showNfcActions = mediumView !== "qr" && row.nfcEnabled;
+          const busy = busyId === row.qrId;
+          return (
+            <li key={row.qrId} className="space-y-2 px-4 py-4">
+              <div className="flex flex-wrap items-start justify-between gap-2">
+                <div>
+                  <p className="font-medium text-slate-100">{row.name}</p>
+                  <p className="text-xs text-slate-400">
+                    {row.vertical} · {row.reportType}
+                    {globalView ? ` · ${row.agencyId}` : ""}
+                    {row.nfcEnabled ? " · NFC on" : " · NFC off"}
                   </p>
+                  {row.callNumber ? (
+                    <p className="mt-1 text-xs text-emerald-400">
+                      📞 {formatPhoneDisplay(row.callNumber)} · tap-to-call enabled
+                    </p>
+                  ) : (
+                    <p className="mt-1 text-xs text-slate-500">
+                      No call button — add an SMS routing number or set a call number on this code
+                    </p>
+                  )}
+                </div>
+                {canDeactivate ? (
+                  <label className="flex items-center gap-1.5 text-xs text-slate-400">
+                    <input
+                      type="checkbox"
+                      checked={row.active}
+                      disabled={busy}
+                      onChange={(e) => void setActive(row.qrId, e.target.checked)}
+                      className="rounded border-slate-600"
+                    />
+                    Active
+                  </label>
                 ) : (
-                  <p className="mt-1 text-xs text-slate-500">
-                    No call button — add an SMS routing number or set a call number on this code
-                  </p>
+                  <span className={`text-xs ${row.active ? "text-emerald-400" : "text-slate-500"}`}>
+                    {row.active ? "Active" : "Inactive"}
+                  </span>
                 )}
               </div>
-              {canDeactivate ? (
-                <label className="flex items-center gap-1.5 text-xs text-slate-400">
-                  <input
-                    type="checkbox"
-                    checked={row.active}
-                    onChange={(e) => void setActive(row.qrId, e.target.checked)}
-                    className="rounded border-slate-600"
-                  />
-                  Active
-                </label>
-              ) : (
-                <span className={`text-xs ${row.active ? "text-emerald-400" : "text-slate-500"}`}>
-                  {row.active ? "Active" : "Inactive"}
-                </span>
-              )}
-            </div>
-            <p className="text-xs text-slate-400">
-              QR: {row.scanCount} scans · NFC: {row.nfcTapCount} taps · Total: {row.totalEngagements}
-              {row.lastEngagementAt ? ` · Last: ${new Date(row.lastEngagementAt).toLocaleString()}` : ""}
-            </p>
-            <div className="flex flex-wrap gap-2">
-              {canDownload ? (
-                <button
-                  type="button"
-                  onClick={async () => {
-                    const res = await fetch(`${apiBase}/${encodeURIComponent(row.qrId)}`, { credentials: "include" });
-                    const body = (await res.json()) as { record?: QRNFCRecord };
-                    if (body.record?.qrImageBase64) downloadPng(row, body.record.qrImageBase64);
-                  }}
-                  className="rounded border border-slate-600 px-2 py-1 text-xs text-slate-200"
-                >
-                  Download PNG
-                </button>
+              <p className="text-xs text-slate-400">
+                QR: {row.scanCount} scans · NFC: {row.nfcTapCount} taps · Total: {row.totalEngagements}
+                {row.lastEngagementAt ? ` · Last: ${new Date(row.lastEngagementAt).toLocaleString()}` : ""}
+              </p>
+              <div className="flex flex-wrap gap-2">
+                {showQrActions && canDownload ? (
+                  <button
+                    type="button"
+                    disabled={busy}
+                    onClick={() => void onDownloadPng(row)}
+                    className="rounded border border-slate-600 px-2 py-1 text-xs text-slate-200 hover:bg-slate-800 disabled:opacity-50"
+                  >
+                    {busy ? "Working…" : "Download PNG"}
+                  </button>
+                ) : null}
+                {showQrActions ? (
+                  <button
+                    type="button"
+                    disabled={busy}
+                    onClick={() => void onCopy("QR URL", row.url)}
+                    className="rounded border border-slate-600 px-2 py-1 text-xs text-slate-200 hover:bg-slate-800 disabled:opacity-50"
+                  >
+                    Copy QR URL
+                  </button>
+                ) : null}
+                {showNfcActions ? (
+                  <button
+                    type="button"
+                    disabled={busy}
+                    onClick={() => void onCopy("NFC URL", nfcUrl)}
+                    className="rounded border border-sky-700 px-2 py-1 text-xs text-sky-200 hover:bg-sky-950/40 disabled:opacity-50"
+                  >
+                    Copy NFC URL
+                  </button>
+                ) : null}
+                {showNfcActions ? (
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setExpandedNfcId((id) => (id === row.qrId ? null : row.qrId))
+                    }
+                    className="rounded border border-slate-600 px-2 py-1 text-xs text-slate-200 hover:bg-slate-800"
+                  >
+                    {expandedNfcId === row.qrId ? "Hide NFC guide" : "NFC programming"}
+                  </button>
+                ) : null}
+                {canDeactivate && row.active ? (
+                  <button
+                    type="button"
+                    disabled={busy}
+                    onClick={() => void deactivate(row.qrId)}
+                    className="rounded border border-rose-800 px-2 py-1 text-xs text-rose-300 hover:bg-rose-950/40 disabled:opacity-50"
+                  >
+                    Deactivate
+                  </button>
+                ) : null}
+              </div>
+              {expandedNfcId === row.qrId && row.nfcEnabled ? (
+                <NFCInstructions url={nfcUrl} />
               ) : null}
-              <button
-                type="button"
-                onClick={() => void navigator.clipboard.writeText(row.url)}
-                className="rounded border border-slate-600 px-2 py-1 text-xs text-slate-200"
-              >
-                Copy URL
-              </button>
-              {row.nfcEnabled ? (
-                <button
-                  type="button"
-                  onClick={() => void navigator.clipboard.writeText(`${row.url}?medium=nfc`)}
-                  className="rounded border border-slate-600 px-2 py-1 text-xs text-slate-200"
-                >
-                  Copy NFC URL
-                </button>
+              {mediumView === "nfc" && row.nfcWriteLog && row.nfcWriteLog.length > 0 ? (
+                <p className="text-xs text-slate-500">
+                  Last NFC write:{" "}
+                  {new Date(row.nfcWriteLog[row.nfcWriteLog.length - 1]!.writtenAt).toLocaleString()}
+                  {row.nfcWriteLog[row.nfcWriteLog.length - 1]?.writtenByName
+                    ? ` by ${row.nfcWriteLog[row.nfcWriteLog.length - 1]!.writtenByName}`
+                    : ""}
+                </p>
               ) : null}
-              {canDeactivate && row.active ? (
-                <button
-                  type="button"
-                  onClick={() => void deactivate(row.qrId)}
-                  className="rounded border border-rose-800 px-2 py-1 text-xs text-rose-300"
-                >
-                  Deactivate
-                </button>
-              ) : null}
-            </div>
-          </li>
-        ))}
+            </li>
+          );
+        })}
       </ul>
 
       {modalOpen ? (

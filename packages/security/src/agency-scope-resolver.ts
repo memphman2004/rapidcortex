@@ -25,9 +25,26 @@ export class AgencyScopeResolver {
 
   static assertCanReadAgencyProfile(user: UserContext, targetAgencyId: string): void {
     if (isRcsuperadmin(user) || isRcInternalOperator(user.role)) return;
-    const role = user.role as string;
-    if (user.role === "agencyadmin" && user.agencyId === targetAgencyId) return;
-    if (role === "CAMPUS_ADMIN" && user.agencyId === targetAgencyId) return;
+    if (user.agencyId !== targetAgencyId) {
+      const err = new Error("FORBIDDEN");
+      (err as Error & { statusCode?: number }).statusCode = 403;
+      throw err;
+    }
+    const role = String(user.role ?? "");
+    const upper = role.toUpperCase();
+    const lower = role.toLowerCase();
+    if (user.role === "agencyadmin") return;
+    if (upper.startsWith("CAMPUS_") || lower.startsWith("campus_")) return;
+    if (upper.startsWith("VENUE_") || lower.startsWith("venue_")) return;
+    if (
+      lower === "dispatcher" ||
+      lower === "supervisor" ||
+      lower === "agencyit" ||
+      lower === "analyst" ||
+      lower === "auditor"
+    ) {
+      return;
+    }
     const err = new Error("FORBIDDEN");
     (err as Error & { statusCode?: number }).statusCode = 403;
     throw err;
