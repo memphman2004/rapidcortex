@@ -78,6 +78,11 @@ sam deploy \
     SalesLeadsTable=rapid-cortex-sales-leads-dev \
     AuditTable=rapid-cortex-audit-dev \
     AgenciesTable=rapid-cortex-agencies-dev \
+    IncidentsTable=rapid-cortex-incidents-dev \
+    TranscriptsTable=rapid-cortex-transcripts-dev \
+    AnalysesTable=rapid-cortex-analyses-dev \
+    InvitesTable=rapid-cortex-invites-dev \
+    AssetsBucket=rapid-cortex-assets-dev-158961537080 \
     ImportedCognitoUserPoolId=us-east-1_0z6tA6WBs \
     ImportedCognitoWebClientId=7moi6sgc2uf4o31omgvo77h3v5 \
     ManagedPolicyNamePrefix=rapid-cortex-dev

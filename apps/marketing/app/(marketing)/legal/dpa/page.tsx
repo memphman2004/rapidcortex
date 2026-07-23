@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { absoluteUrl } from "@/lib/seo";
+import { absoluteUrl, buildOgShareImage } from "@/lib/seo";
 
 export async function generateMetadata(): Promise<Metadata> {
   return {
@@ -11,14 +11,14 @@ export async function generateMetadata(): Promise<Metadata> {
       description: "Data processing terms and controls summary for Rapid Cortex engagements.",
       url: absoluteUrl("/legal/dpa"),
       siteName: "Rapid Cortex",
-      images: [{ url: absoluteUrl("/api/og"), width: 1200, height: 630, alt: "Rapid Cortex DPA" }],
+      images: [buildOgShareImage("Rapid Cortex DPA")],
       type: "website",
     },
     twitter: {
       card: "summary_large_image",
       title: "DPA | Rapid Cortex",
       description: "Data processing addendum summary.",
-      images: [absoluteUrl("/api/og")],
+      images: [{ url: buildOgShareImage().url, alt: buildOgShareImage().alt }],
     },
     alternates: { canonical: absoluteUrl("/legal/dpa") },
   };

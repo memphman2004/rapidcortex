@@ -102,96 +102,95 @@ function StageChangeModal({
   const lostRequired = stage === "LOST" && !lostReason.trim();
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
-      <div className="w-full max-w-md rounded-lg border border-slate-800 bg-slate-950 shadow-xl">
-        <div className="flex items-center justify-between border-b border-slate-800 px-4 py-3">
-          <h2 className="text-sm font-semibold text-white">Move Stage</h2>
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 p-4 backdrop-blur-sm"
+      onClick={(e) => {
+        if (e.target === e.currentTarget) onClose();
+      }}
+    >
+      <div className="w-full max-w-md overflow-hidden rounded-2xl border border-[rgba(255,255,255,0.08)] bg-[#0d1b35] shadow-2xl shadow-black/60">
+        <div className="flex items-center justify-between border-b border-[rgba(255,255,255,0.06)] px-6 py-4">
+          <h2 className="text-sm font-bold text-slate-100">Move Stage</h2>
           <button
             type="button"
             onClick={onClose}
-            className="rounded px-1.5 text-slate-500 hover:bg-slate-800 hover:text-slate-200"
+            className="text-[#334155] transition hover:text-slate-300"
           >
             ✕
           </button>
         </div>
-        <div className="space-y-3 px-4 py-4">
-          <div className="flex items-center justify-center gap-3 text-xs">
-            <span
-              className={`rounded-full px-2.5 py-1 font-bold ${STAGE_CONFIG[lead.pipelineStage].bgClass} ${STAGE_CONFIG[lead.pipelineStage].textClass}`}
-            >
-              {STAGE_CONFIG[lead.pipelineStage].label}
-            </span>
-            <span className="text-slate-500">→</span>
-            <select
-              value={stage}
-              onChange={(e) => setStage(e.target.value as PipelineStage)}
-              className="rounded border border-slate-700 bg-slate-900 px-2 py-1 text-xs text-slate-100"
-            >
-              {PIPELINE_STAGES.map((s) => (
-                <option key={s} value={s}>
-                  {STAGE_CONFIG[s].label}
-                </option>
-              ))}
-            </select>
+        <div className="space-y-4 px-6 py-5">
+          <div className="flex flex-wrap gap-2">
+            {PIPELINE_STAGES.map((s) => (
+              <button
+                key={s}
+                type="button"
+                onClick={() => setStage(s)}
+                className={[
+                  "rounded-full border px-3 py-1.5 text-[11px] font-bold transition",
+                  stage === s
+                    ? `${STAGE_CONFIG[s].bgClass} ${STAGE_CONFIG[s].textClass} border-transparent`
+                    : "border-[rgba(255,255,255,0.06)] text-slate-500 hover:border-[rgba(255,255,255,0.12)]",
+                ].join(" ")}
+              >
+                {STAGE_CONFIG[s].label}
+              </button>
+            ))}
           </div>
 
-          <div>
-            <label className="mb-1 block text-[11px] text-slate-500">
-              Reason {stage === "LOST" ? "(required)" : "(optional)"}
-            </label>
-            {stage === "LOST" ? (
+          {stage === "LOST" && (
+            <div>
+              <label className="mb-1.5 block text-[10px] font-bold uppercase tracking-widest text-slate-600">
+                Reason <span className="text-red-400">*</span>
+              </label>
               <select
                 value={lostReason}
                 onChange={(e) => setLostReason(e.target.value)}
-                className="w-full rounded border border-slate-700 bg-slate-900 px-2 py-1.5 text-xs text-slate-100"
+                className="w-full rounded-lg border border-[rgba(255,255,255,0.08)] bg-[#080f1e] px-3 py-2 text-xs text-slate-200 outline-none focus:border-sky-500"
               >
-                <option value="">Select lost reason…</option>
+                <option value="">Select reason…</option>
                 {LOST_REASONS.map((r) => (
                   <option key={r} value={r}>
                     {r}
                   </option>
                 ))}
               </select>
-            ) : (
-              <textarea
-                rows={3}
-                value={note}
-                onChange={(e) => setNote(e.target.value)}
-                placeholder="Optional note about this stage change…"
-                className="w-full resize-none rounded border border-slate-700 bg-slate-900 px-2 py-1.5 text-xs text-slate-100 outline-none focus:border-sky-500"
-              />
-            )}
-          </div>
+            </div>
+          )}
 
           {stage === "PILOT" && (
             <div>
-              <label className="mb-1 block text-[11px] text-slate-500">Pilot start date</label>
+              <label className="mb-1.5 block text-[10px] font-bold uppercase tracking-widest text-slate-600">
+                Pilot Start Date
+              </label>
               <input
                 type="date"
                 value={pilotStartDate}
                 onChange={(e) => setPilotStartDate(e.target.value)}
-                className="w-full rounded border border-slate-700 bg-slate-900 px-2 py-1.5 text-xs text-slate-100"
+                className="w-full rounded-lg border border-[rgba(255,255,255,0.08)] bg-[#080f1e] px-3 py-2 text-xs text-slate-200 outline-none focus:border-sky-500"
               />
             </div>
           )}
 
-          {stage === "LOST" && (
+          <div>
+            <label className="mb-1.5 block text-[10px] font-bold uppercase tracking-widest text-slate-600">
+              Note (optional)
+            </label>
             <textarea
               rows={2}
               value={note}
               onChange={(e) => setNote(e.target.value)}
-              placeholder="Optional additional note…"
-              className="w-full resize-none rounded border border-slate-700 bg-slate-900 px-2 py-1.5 text-xs text-slate-100"
+              placeholder="Reason for moving…"
+              className="w-full resize-none rounded-lg border border-[rgba(255,255,255,0.08)] bg-[#080f1e] px-3 py-2 text-xs text-slate-200 outline-none focus:border-sky-500"
             />
-          )}
-
+          </div>
           {error && <p className="text-[11px] text-red-400">{error}</p>}
         </div>
-        <div className="flex justify-end gap-2 border-t border-slate-800 px-4 py-3">
+        <div className="flex items-center justify-end gap-2 border-t border-[rgba(255,255,255,0.06)] px-6 py-4">
           <button
             type="button"
             onClick={onClose}
-            className="rounded border border-slate-700 px-3 py-1.5 text-[11px] font-semibold text-slate-400 hover:bg-slate-900"
+            className="px-4 py-2 text-xs font-semibold text-slate-600 transition hover:text-slate-300"
           >
             Cancel
           </button>
@@ -202,11 +201,11 @@ function StageChangeModal({
               onConfirm({
                 stage,
                 note: note.trim() || undefined,
-                lostReason: stage === "LOST" ? lostReason : undefined,
+                lostReason: stage === "LOST" ? lostReason || undefined : undefined,
                 pilotStartDate: stage === "PILOT" ? pilotStartDate || undefined : undefined,
               })
             }
-            className="rounded bg-sky-600 px-3 py-1.5 text-[11px] font-semibold text-white hover:bg-sky-500 disabled:opacity-50"
+            className="rounded-lg bg-sky-600 px-5 py-2 text-xs font-bold text-white transition hover:bg-sky-500 disabled:opacity-40"
           >
             {busy ? "Moving…" : `Move to ${STAGE_CONFIG[stage].label}`}
           </button>
@@ -278,11 +277,11 @@ function LeadsListView({
   }
 
   const th = (key: ListSortKey, label: string) => (
-    <th className="px-3 py-2 text-left">
+    <th className="px-5 py-3 text-left text-[9px] font-bold uppercase tracking-widest text-slate-600 first:pl-5 last:pr-5">
       <button
         type="button"
         onClick={() => toggleSort(key)}
-        className="text-[10px] font-bold uppercase tracking-wide text-slate-500 hover:text-slate-300"
+        className="hover:text-slate-300"
       >
         {label}
         {sortKey === key ? (sortAsc ? " ↑" : " ↓") : ""}
@@ -291,10 +290,10 @@ function LeadsListView({
   );
 
   return (
-    <div className="flex-1 overflow-auto p-3.5">
-      <table className="w-full min-w-[900px] border-collapse text-left">
-        <thead className="sticky top-0 bg-slate-950/95">
-          <tr className="border-b border-slate-800">
+    <div className="flex-1 overflow-auto [&::-webkit-scrollbar]:w-1 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-[rgba(255,255,255,0.06)]">
+      <table className="w-full min-w-[700px] border-collapse">
+        <thead>
+          <tr className="sticky top-0 z-10 border-b border-[rgba(255,255,255,0.06)] bg-[#0a1628]">
             {th("name", "Name / Email")}
             {th("agency", "Agency")}
             {th("stage", "Stage")}
@@ -302,48 +301,51 @@ function LeadsListView({
             {th("value", "Est. Value")}
             {th("next", "Next Action")}
             {th("updated", "Updated")}
-            <th className="px-3 py-2 text-[10px] font-bold uppercase tracking-wide text-slate-500">
+            <th className="px-5 py-3 text-left text-[9px] font-bold uppercase tracking-widest text-slate-600">
               Assigned
             </th>
           </tr>
         </thead>
         <tbody>
-          {sorted.map((lead) => (
-            <tr
-              key={lead.leadId}
-              onClick={() => onSelect(lead.leadId)}
-              className={[
-                "cursor-pointer border-b border-slate-900/80 hover:bg-slate-900/60",
-                selectedLeadId === lead.leadId ? "bg-sky-950/40" : "",
-              ].join(" ")}
-            >
-              <td className="px-3 py-2">
-                <div className="text-xs font-medium text-slate-100">{leadDisplayName(lead)}</div>
-                <div className="text-[10px] text-slate-500">{lead.email}</div>
-              </td>
-              <td className="px-3 py-2 text-xs text-slate-400">{leadAgency(lead) || "—"}</td>
-              <td className="px-3 py-2">
-                <span
-                  className={`rounded-full px-2 py-0.5 text-[9px] font-bold ${STAGE_CONFIG[lead.pipelineStage].bgClass} ${STAGE_CONFIG[lead.pipelineStage].textClass}`}
-                >
-                  {STAGE_CONFIG[lead.pipelineStage].label}
-                </span>
-              </td>
-              <td className="px-3 py-2 text-xs text-slate-400">{verticalLabel(lead.vertical)}</td>
-              <td className="px-3 py-2 text-xs text-slate-400">
-                {formatCurrency(lead.estimatedValue)}
-              </td>
-              <td className="max-w-[160px] truncate px-3 py-2 text-xs text-amber-400/80">
-                {lead.nextAction || "—"}
-              </td>
-              <td className="px-3 py-2 text-[11px] text-slate-500">
-                {formatShortDate(lead.updatedAt ?? lead.createdAt)}
-              </td>
-              <td className="px-3 py-2 text-xs text-slate-500">
-                {lead.assignedToName ?? lead.assignedTo ?? lead.assignee ?? "—"}
-              </td>
-            </tr>
-          ))}
+          {sorted.map((lead) => {
+            const selected = selectedLeadId === lead.leadId;
+            return (
+              <tr
+                key={lead.leadId}
+                onClick={() => onSelect(lead.leadId)}
+                className={[
+                  "cursor-pointer border-b border-[rgba(255,255,255,0.03)] transition-colors",
+                  selected ? "bg-sky-500/5" : "hover:bg-[rgba(255,255,255,0.02)]",
+                ].join(" ")}
+              >
+                <td className="px-5 py-3 text-xs first:pl-5 last:pr-5">
+                  <div className="font-medium text-slate-100">{leadDisplayName(lead)}</div>
+                  <div className="text-[10px] text-slate-500">{lead.email}</div>
+                </td>
+                <td className="px-5 py-3 text-xs text-slate-400">{leadAgency(lead) || "—"}</td>
+                <td className="px-5 py-3 text-xs">
+                  <span
+                    className={`rounded-full px-2 py-0.5 text-[9px] font-bold ${STAGE_CONFIG[lead.pipelineStage].bgClass} ${STAGE_CONFIG[lead.pipelineStage].textClass}`}
+                  >
+                    {STAGE_CONFIG[lead.pipelineStage].label}
+                  </span>
+                </td>
+                <td className="px-5 py-3 text-xs text-slate-400">{verticalLabel(lead.vertical)}</td>
+                <td className="px-5 py-3 text-xs text-slate-400">
+                  {formatCurrency(lead.estimatedValue)}
+                </td>
+                <td className="max-w-[160px] truncate px-5 py-3 text-xs text-amber-400/80">
+                  {lead.nextAction || "—"}
+                </td>
+                <td className="px-5 py-3 text-[11px] text-slate-500">
+                  {formatShortDate(lead.updatedAt ?? lead.createdAt)}
+                </td>
+                <td className="px-5 py-3 text-xs text-slate-500">
+                  {lead.assignedToName ?? lead.assignedTo ?? lead.assignee ?? "—"}
+                </td>
+              </tr>
+            );
+          })}
         </tbody>
       </table>
       {sorted.length === 0 && (
@@ -395,9 +397,11 @@ export function LeadsCrmPage() {
 
   const selected = useMemo(() => {
     if (!selectedId) return null;
-    return allFiltered.find((l) => l.leadId === selectedId)
-      ?? PIPELINE_STAGES.flatMap((s) => stages[s] ?? []).find((l) => l.leadId === selectedId)
-      ?? null;
+    return (
+      allFiltered.find((l) => l.leadId === selectedId) ??
+      PIPELINE_STAGES.flatMap((s) => stages[s] ?? []).find((l) => l.leadId === selectedId) ??
+      null
+    );
   }, [allFiltered, selectedId, stages]);
 
   const patchCacheLead = useCallback(
@@ -437,11 +441,10 @@ export function LeadsCrmPage() {
   });
 
   function requestStageMove(leadId: string, toStage: PipelineStage) {
-    const from =
-      PIPELINE_STAGES.flatMap((s) => stages[s] ?? []).find((l) => l.leadId === leadId)
-        ?.pipelineStage;
+    const from = PIPELINE_STAGES.flatMap((s) => stages[s] ?? []).find(
+      (l) => l.leadId === leadId,
+    )?.pipelineStage;
     if (!from || from === toStage) return;
-    // Always open modal for LOST/PILOT/WON or when dropping; for active→active still confirm
     setStageError(null);
     setStageModal({ leadId, targetStage: toStage });
   }
@@ -450,7 +453,10 @@ export function LeadsCrmPage() {
     function onKey(e: KeyboardEvent) {
       const tag = (e.target as HTMLElement | null)?.tagName?.toLowerCase();
       const typing =
-        tag === "input" || tag === "textarea" || tag === "select" || (e.target as HTMLElement)?.isContentEditable;
+        tag === "input" ||
+        tag === "textarea" ||
+        tag === "select" ||
+        (e.target as HTMLElement)?.isContentEditable;
 
       if (e.key === "/" && !typing) {
         e.preventDefault();
@@ -493,42 +499,61 @@ export function LeadsCrmPage() {
   ];
 
   return (
-    <div className="-mx-1 flex min-h-[calc(100vh-8rem)] flex-col overflow-hidden rounded-lg border border-slate-800 bg-[#060c1a]">
-      {/* Metrics */}
-      <div className="flex flex-wrap items-center gap-0 border-b border-slate-800 bg-[#0c1428] px-4 py-2.5">
-        <Metric value={String(metrics?.total ?? 0)} label="TOTAL LEADS" color="text-sky-400" />
+    <div className="flex min-h-[calc(100vh-6rem)] flex-col overflow-hidden rounded-2xl border border-[rgba(255,255,255,0.06)] bg-[#050c1a]">
+      <div className="flex flex-wrap items-stretch gap-2 border-b border-[rgba(255,255,255,0.06)] bg-[#0a1628] px-5 py-3">
+        <Metric
+          value={String(metrics?.total ?? 0)}
+          label="Total Leads"
+          color="text-sky-400"
+          icon="◎"
+        />
         <Metric
           value={formatCurrency(metrics?.totalPipelineValue ?? 0)}
-          label="PIPELINE VALUE"
+          label="Pipeline Value"
           color="text-emerald-400"
+          icon="$"
         />
         <Metric
           value={String(metrics?.activeDeals ?? 0)}
-          label="ACTIVE DEALS"
+          label="Active Deals"
           color="text-amber-400"
+          icon="⚡"
         />
-        <Metric value={`${metrics?.winRate ?? 0}%`} label="WIN RATE" color="text-violet-400" />
         <Metric
-          value={metrics?.avgDaysToClose == null ? "—" : String(metrics.avgDaysToClose)}
-          label="AVG DAYS TO CLOSE"
-          color="text-slate-400"
+          value={`${metrics?.winRate ?? 0}%`}
+          label="Win Rate"
+          color="text-violet-400"
+          icon="✓"
         />
-        <div className="ml-auto flex items-center gap-2">
-          <div className="rounded-md border border-emerald-500/30 bg-emerald-500/[0.06] px-3 py-1 text-center">
-            <div className="text-sm font-bold text-emerald-400">{stages.WON?.length ?? 0}</div>
-            <div className="text-[9px] tracking-wide text-emerald-300/80">WON</div>
+        <Metric
+          value={metrics?.avgDaysToClose == null ? "—" : `${metrics.avgDaysToClose}d`}
+          label="Avg to Close"
+          color="text-slate-500"
+          icon="◷"
+        />
+        <div className="ml-auto flex items-stretch gap-2">
+          <div className="flex flex-col items-center justify-center rounded-xl border border-emerald-500/20 bg-emerald-500/[0.05] px-4 py-2">
+            <span className="text-xl font-extrabold leading-none text-emerald-400">
+              {stages.WON?.length ?? 0}
+            </span>
+            <span className="mt-1 text-[9px] font-bold uppercase tracking-widest text-emerald-600">
+              Won
+            </span>
           </div>
-          <div className="rounded-md border border-red-500/30 bg-red-500/[0.06] px-3 py-1 text-center">
-            <div className="text-sm font-bold text-red-400">{stages.LOST?.length ?? 0}</div>
-            <div className="text-[9px] tracking-wide text-red-300/80">LOST</div>
+          <div className="flex flex-col items-center justify-center rounded-xl border border-red-500/20 bg-red-500/[0.05] px-4 py-2">
+            <span className="text-xl font-extrabold leading-none text-red-400">
+              {stages.LOST?.length ?? 0}
+            </span>
+            <span className="mt-1 text-[9px] font-bold uppercase tracking-widest text-red-600">
+              Lost
+            </span>
           </div>
         </div>
       </div>
 
-      {/* Controls */}
-      <div className="flex flex-wrap items-center gap-2.5 border-b border-slate-800 bg-[#0a1428] px-4 py-2">
-        <div className="relative max-w-[280px] flex-1">
-          <span className="pointer-events-none absolute left-2 top-1/2 -translate-y-1/2 text-xs text-slate-500">
+      <div className="flex flex-wrap items-center gap-2 border-b border-[rgba(255,255,255,0.06)] bg-[#0a1628] px-5 py-2.5">
+        <div className="relative min-w-[240px] max-w-[300px] flex-1">
+          <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-xs text-[#334155]">
             🔍
           </span>
           <input
@@ -536,7 +561,7 @@ export function LeadsCrmPage() {
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Search leads, agencies, emails…"
-            className="w-full rounded border border-slate-800 bg-slate-950 py-1.5 pl-7 pr-2 text-xs text-slate-200 outline-none focus:border-sky-500"
+            className="w-full rounded-lg border border-[rgba(255,255,255,0.06)] bg-[#080f1e] py-2 pl-8 pr-3 text-xs text-slate-200 placeholder-[#334155] outline-none transition focus:border-sky-500 focus:ring-1 focus:ring-sky-500/20"
           />
         </div>
         {sourceChips.map((chip) => (
@@ -545,10 +570,10 @@ export function LeadsCrmPage() {
             type="button"
             onClick={() => setSourceFilter(chip.id)}
             className={[
-              "rounded-full border px-2.5 py-1 text-[11px]",
+              "rounded-full border px-3 py-1.5 text-[11px] font-semibold transition",
               sourceFilter === chip.id
                 ? "border-sky-500 bg-sky-500/10 text-sky-300"
-                : "border-slate-800 text-slate-500 hover:border-slate-600",
+                : "border-[rgba(255,255,255,0.06)] text-slate-600 hover:border-[rgba(255,255,255,0.12)] hover:text-slate-400",
             ].join(" ")}
           >
             {chip.label}
@@ -557,7 +582,7 @@ export function LeadsCrmPage() {
         <select
           value={verticalFilter}
           onChange={(e) => setVerticalFilter(e.target.value as VerticalFilter)}
-          className="rounded-full border border-slate-800 bg-transparent px-2.5 py-1 text-[11px] text-slate-400"
+          className="rounded-full border border-[rgba(255,255,255,0.06)] bg-transparent px-3 py-1.5 text-[11px] text-slate-600 outline-none focus:border-sky-500"
         >
           <option value="all">All Verticals</option>
           {(["rc911", "campus", "venue", "hospital", "transit", "unknown"] as LeadVertical[]).map(
@@ -568,49 +593,57 @@ export function LeadsCrmPage() {
             ),
           )}
         </select>
-        <div className="ml-auto flex gap-1">
-          <button
-            type="button"
-            title="Board view"
-            onClick={() => setView("board")}
-            className={[
-              "rounded border px-2.5 py-1 text-xs",
-              view === "board"
-                ? "border-sky-500 bg-sky-500/15 text-sky-300"
-                : "border-slate-800 text-slate-500",
-            ].join(" ")}
-          >
-            ⊞
-          </button>
-          <button
-            type="button"
-            title="List view"
-            onClick={() => setView("list")}
-            className={[
-              "rounded border px-2.5 py-1 text-xs",
-              view === "list"
-                ? "border-sky-500 bg-sky-500/15 text-sky-300"
-                : "border-slate-800 text-slate-500",
-            ].join(" ")}
-          >
-            ☰
-          </button>
+        <div className="ml-auto flex rounded-lg border border-[rgba(255,255,255,0.06)] bg-[#080f1e] p-0.5">
+          {(["board", "list"] as const).map((v) => (
+            <button
+              key={v}
+              type="button"
+              onClick={() => setView(v)}
+              className={[
+                "rounded-md px-3 py-1.5 text-[11px] font-semibold transition",
+                view === v ? "bg-sky-500/15 text-sky-300" : "text-[#334155] hover:text-slate-400",
+              ].join(" ")}
+            >
+              {v === "board" ? "⊞ Board" : "☰ List"}
+            </button>
+          ))}
         </div>
       </div>
 
-      {/* Main */}
-      <div className="flex min-h-0 flex-1 overflow-hidden">
+      <div className="flex min-h-0 flex-1 overflow-hidden bg-[#050c1a]">
         {pipelineQ.isLoading ? (
-          <div className="flex flex-1 items-center justify-center text-sm text-slate-500">
+          <div className="flex flex-1 items-center justify-center gap-2.5 text-sm text-slate-600">
+            <span className="animate-spin text-sky-500/60">↻</span>
             Loading pipeline…
           </div>
         ) : pipelineQ.isError ? (
-          <div className="flex flex-1 items-center justify-center text-sm text-red-400">
-            {(pipelineQ.error as Error).message}
+          <div className="flex flex-1 flex-col items-center justify-center gap-4 p-8 text-center">
+            <div className="rounded-2xl border border-red-500/15 bg-red-500/[0.04] px-10 py-8">
+              <div className="mb-2 text-4xl opacity-30">⚠</div>
+              <div className="mb-1 text-sm font-semibold text-red-400">Pipeline failed to load</div>
+              <div className="mb-5 max-w-[260px] text-xs text-slate-600">
+                {(pipelineQ.error as Error).message}
+              </div>
+              <button
+                type="button"
+                onClick={() => void pipelineQ.refetch()}
+                className="rounded-lg border border-sky-500/30 bg-sky-500/8 px-5 py-2 text-xs font-bold text-sky-300 transition hover:bg-sky-500/15"
+              >
+                ↻ Try again
+              </button>
+            </div>
           </div>
-        ) : allFiltered.length === 0 && !search && sourceFilter === "all" && verticalFilter === "all" ? (
-          <div className="flex flex-1 items-center justify-center px-6 text-center text-sm text-slate-500">
-            No leads yet. Leads from Contact Sales and Ring Waitlist will appear here.
+        ) : allFiltered.length === 0 &&
+          !search &&
+          sourceFilter === "all" &&
+          verticalFilter === "all" ? (
+          <div className="flex flex-1 flex-col items-center justify-center gap-3 p-8 text-center">
+            <div className="text-5xl opacity-[0.05]">◎</div>
+            <div className="text-sm font-semibold text-slate-400">Pipeline is empty</div>
+            <div className="max-w-[260px] text-xs text-slate-600">
+              Leads from Contact Sales, Ring Waitlist, and Inside the Cortex appear here
+              automatically.
+            </div>
           </div>
         ) : view === "board" ? (
           <PipelineBoard
@@ -672,15 +705,24 @@ function Metric({
   value,
   label,
   color,
+  icon,
 }: {
   value: string;
   label: string;
   color: string;
+  icon: string;
 }) {
   return (
-    <div className="border-r border-slate-800 px-5 py-1 first:pl-0 last:border-r-0">
-      <div className={`text-xl font-bold leading-none ${color}`}>{value}</div>
-      <div className="mt-0.5 text-[10px] tracking-wide text-slate-500">{label}</div>
+    <div className="flex min-w-[110px] flex-col gap-1 rounded-xl border border-[rgba(255,255,255,0.06)] bg-[#0d1b35] px-4 py-3">
+      <div className="flex items-baseline gap-1.5">
+        <span className={`text-[12px] opacity-50 ${color}`}>{icon}</span>
+        <span
+          className={`text-2xl font-extrabold leading-none tracking-tight tabular-nums ${color}`}
+        >
+          {value}
+        </span>
+      </div>
+      <div className="text-[9px] font-bold uppercase tracking-widest text-slate-600">{label}</div>
     </div>
   );
 }

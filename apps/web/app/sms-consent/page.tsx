@@ -169,7 +169,7 @@ export default function SmsConsentPage() {
             {SITE_OPERATOR_NAME}
           </a>
           . For questions about this disclosure, contact your agency administrator or reach us via the{" "}
-          <Link href="/contact">contact</Link> page.
+          <Link href="https://www.rapidcortex.us/contact-sales?interest=demo">contact</Link> page.
         </p>
       </section>
     </LegalDocShell>

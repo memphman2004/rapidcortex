@@ -61,7 +61,8 @@ const config: ExpoConfig = {
       ITSAppUsesNonExemptEncryption: false,
     },
     entitlements: {
-      'com.apple.developer.nfc.readersession.formats': ['NDEF'],
+      // Apple rejects listing "NDEF" here (ITMS-90778). Use TAG only; NDEF R/W still works.
+      'com.apple.developer.nfc.readersession.formats': ['TAG'],
     },
   },
   android: {
@@ -90,10 +91,13 @@ const config: ExpoConfig = {
       'react-native-nfc-manager',
       {
         nfcPermission: 'Allow Rapid Cortex to program NFC safety reporting tags',
+        includeNdefEntitlement: false,
         selectIdentifiers: [],
         systemCodes: [],
       },
     ],
+    // Required for App Store (iOS 26 SDK / Xcode 26) on Expo SDK 52.
+    './plugins/with-xcode26-fmt-fix.js',
   ],
   extra: {
     eas: { projectId: '2d1ae3e1-5867-48f0-8ed8-a8eb53d920dc' },

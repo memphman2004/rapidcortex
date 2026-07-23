@@ -45,7 +45,7 @@ export function resolveLeadChannel(lead: SalesLeadCrmRecord): LeadChannel {
   if (lead.attribution?.channel) return lead.attribution.channel;
   const src = String(lead.source ?? "").toLowerCase();
   if (src.includes("ring")) return "ring_waitlist";
-  if (src.includes("contact") || src.includes("sales")) return "contact_sales";
+  if (src.includes("contact") || src.includes("sales") || src.includes("demo")) return "contact_sales";
   if (src.includes("cortex") || src.includes("newsletter") || src.includes("inside")) {
     return "inside_the_cortex";
   }
@@ -118,6 +118,35 @@ export function formatDateTime(iso?: string | null): string {
 export function stageBadgeClasses(stage: PipelineStage): string {
   const cfg = STAGE_CONFIG[stage];
   return `${cfg.bgClass} ${cfg.textClass}`;
+}
+
+/** 0 = fresh, 1 = amber (≥5d), 2 = red (≥14d or never contacted). */
+export function staleLevel(lead: SalesLeadCrmRecord): 0 | 1 | 2 {
+  if (!lead.lastContactedAt) return 2;
+  const days = (Date.now() - new Date(lead.lastContactedAt).getTime()) / 86_400_000;
+  if (days >= 14) return 2;
+  if (days >= 5) return 1;
+  return 0;
+}
+
+export function relTime(d?: string | null): string | null {
+  if (!d) return null;
+  const days = Math.floor((Date.now() - new Date(d).getTime()) / 86_400_000);
+  if (Number.isNaN(days)) return null;
+  if (days === 0) return "Today";
+  if (days === 1) return "Yesterday";
+  if (days < 30) return `${days}d ago`;
+  return `${Math.floor(days / 30)}mo ago`;
+}
+
+export function isOverdue(d?: string | null): boolean {
+  return !!d && new Date(d) < new Date();
+}
+
+export function isDueSoon(d?: string | null): boolean {
+  if (!d) return false;
+  const ms = new Date(d).getTime() - Date.now();
+  return ms > 0 && ms < 3 * 86_400_000;
 }
 
 export function matchesSearch(lead: SalesLeadCrmRecord, q: string): boolean {

@@ -41,3 +41,6 @@ const corePodspec = path.join(mobileNm, 'expo-modules-core', 'ExpoModulesCore.po
 console.log(
   `[eas-pods] ExpoModulesCore.podspec ${fs.existsSync(corePodspec) ? 'OK' : 'MISSING'}`
 );
+
+// SDK 52 + Xcode 26: exhaustive Calendar.Identifier switch
+require('./patch-expo-localization-xcode26.js');

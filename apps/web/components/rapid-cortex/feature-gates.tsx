@@ -39,7 +39,7 @@ export function UpgradeOrContactSalesCTA({
 }) {
   return (
     <Link
-      href="/contact"
+      href="https://www.rapidcortex.us/contact-sales?interest=demo"
       className="inline-flex items-center rounded-md border border-sky-500/30 bg-sky-950/30 px-3 py-1.5 text-xs font-medium text-sky-200 hover:bg-sky-900/35"
     >
       {label}

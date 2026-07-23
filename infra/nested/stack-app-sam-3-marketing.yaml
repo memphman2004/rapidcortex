@@ -52,6 +52,10 @@ Parameters:
     Type: String
     Default: "false"
     AllowedValues: ["true", "false"]
+  MarketingSiteOrigin:
+    Type: String
+    Default: "https://www.rapidcortex.us"
+    Description: Origin used for OG share 302 Location targets.
 
 Globals:
   Function:
@@ -150,6 +154,21 @@ Resources:
       Policies:
         - !Ref AppManagedPolicyMarketingLeads
 
+  # Rotates email/iMessage/social link-preview images (302 → static share assets).
+  MarketingOgShareFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/handlers/marketing-og-share.handler
+      Timeout: 5
+      MemorySize: 128
+      Environment:
+        Variables:
+          MARKETING_SITE_ORIGIN: !Ref MarketingSiteOrigin
+
   MarketingLeadIntegration:
     Type: AWS::ApiGatewayV2::Integration
     Properties:
@@ -166,6 +185,14 @@ Resources:
       IntegrationUri: !Sub arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${MarketingUnsubscribeFunction.Arn}/invocations
       PayloadFormatVersion: "2.0"
 
+  MarketingOgShareIntegration:
+    Type: AWS::ApiGatewayV2::Integration
+    Properties:
+      ApiId: !Ref HttpApiId
+      IntegrationType: AWS_PROXY
+      IntegrationUri: !Sub arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${MarketingOgShareFunction.Arn}/invocations
+      PayloadFormatVersion: "2.0"
+
   MarketingLeadInvokePermission:
     Type: AWS::Lambda::Permission
     Properties:
@@ -179,6 +206,14 @@ Resources:
     Properties:
       Action: lambda:InvokeFunction
       FunctionName: !Ref MarketingUnsubscribeFunction
+      Principal: apigateway.amazonaws.com
+      SourceArn: !Sub arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${HttpApiId}/*
+
+  MarketingOgShareInvokePermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !Ref MarketingOgShareFunction
       Principal: apigateway.amazonaws.com
       SourceArn: !Sub arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${HttpApiId}/*
 
@@ -214,10 +249,30 @@ Resources:
       Target: !Sub "integrations/${MarketingUnsubscribeIntegration}"
       AuthorizationType: NONE
 
+  RouteMarketingOgShareGet:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref HttpApiId
+      RouteKey: "GET /api/marketing/og-share"
+      Target: !Sub "integrations/${MarketingOgShareIntegration}"
+      AuthorizationType: NONE
+
+  RouteMarketingOgShareHead:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref HttpApiId
+      RouteKey: "HEAD /api/marketing/og-share"
+      Target: !Sub "integrations/${MarketingOgShareIntegration}"
+      AuthorizationType: NONE
+
 Outputs:
   MarketingLeadFunctionArn:
     Value: !GetAtt MarketingLeadFunction.Arn
   MarketingUnsubscribeFunctionArn:
     Value: !GetAtt MarketingUnsubscribeFunction.Arn
+  MarketingOgShareFunctionArn:
+    Value: !GetAtt MarketingOgShareFunction.Arn
   HttpApiId:
     Value: !Ref HttpApiId
+  MarketingOgShareUrl:
+    Value: !Sub "https://${HttpApiId}.execute-api.${AWS::Region}.amazonaws.com/api/marketing/og-share"

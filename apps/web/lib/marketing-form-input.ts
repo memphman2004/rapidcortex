@@ -15,3 +15,21 @@ export function scrollMarketingFieldIntoViewOnFocus(event: FocusEvent<HTMLElemen
     event.currentTarget.scrollIntoView({ block: "center", behavior: "smooth" });
   });
 }
+
+/**
+ * Static marketing (www) has no Next BFF — post to app origin (same pattern as Inside the Cortex).
+ * On app.rapidcortex.us, same-origin `/api/contact-sales` is the BFF.
+ */
+export function contactSalesSubmitUrl(): string {
+  if (typeof window !== "undefined") {
+    const host = window.location.hostname;
+    if (host === "www.rapidcortex.us" || host === "rapidcortex.us") {
+      const appOrigin = (process.env.NEXT_PUBLIC_APP_ORIGIN ?? "https://app.rapidcortex.us").replace(
+        /\/$/,
+        "",
+      );
+      return `${appOrigin}/api/contact-sales`;
+    }
+  }
+  return "/api/contact-sales";
+}

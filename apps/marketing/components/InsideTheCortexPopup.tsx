@@ -2,19 +2,11 @@
 
 /**
  * InsideTheCortexPopup
- * apps/marketing/src/components/InsideTheCortexPopup.tsx
  *
- * Shows once on first visit (localStorage gated).
+ * Shows once on first visit (localStorage gated) on every device/network.
  * Collects: first name, last name, business email, state.
- * POSTs to: https://app.rapidcortex.us/api/marketing/lead
- *
- * Mount in apps/marketing/src/app/layout.tsx:
- *   import { InsideTheCortexPopup } from "@/components/InsideTheCortexPopup";
- *   ...
- *   <body>
- *     {children}
- *     <InsideTheCortexPopup />
- *   </body>
+ * POSTs to the public marketing HttpApi (Authorizer NONE) — not the app BFF —
+ * so capture works from www/apex without depending on app.rapidcortex.us reachability.
  */
 
 import { useState, useEffect, useCallback } from "react";
@@ -22,7 +14,16 @@ import { buildMarketingLeadRequestBody } from "rapid-cortex-shared";
 
 const STORAGE_KEY = "rc_cortex_joined";
 const APPEAR_DELAY_MS = 2500;
-const API_BASE = process.env.NEXT_PUBLIC_APP_ORIGIN ?? "https://app.rapidcortex.us";
+
+/** AppSam3 marketing HttpApi — public POST /api/marketing/lead. */
+const DEFAULT_MARKETING_LEAD_URL =
+  "https://tbr4zvjlk5.execute-api.us-east-1.amazonaws.com/api/marketing/lead";
+
+function marketingLeadSubmitUrl(): string {
+  const override = process.env.NEXT_PUBLIC_MARKETING_LEAD_URL?.trim();
+  if (override) return override;
+  return DEFAULT_MARKETING_LEAD_URL;
+}
 
 /** Default on when unset (matches platform feature-flag policy). */
 function isInsideTheCortexEnabled(): boolean {
@@ -110,15 +111,27 @@ export function InsideTheCortexPopup() {
     setApiError(null);
 
     try {
-      const res = await fetch(`${API_BASE}/api/marketing/lead`, {
+      const res = await fetch(marketingLeadSubmitUrl(), {
         method: "POST",
         headers: { "content-type": "application/json" },
         body: JSON.stringify(built.body),
       });
 
-      if (!res.ok) {
-        const body = await res.json().catch(() => ({})) as { error?: string };
-        throw new Error(body.error ?? `HTTP ${res.status}`);
+      const raw = await res.text();
+      let payload = {} as { success?: boolean; error?: string; duplicate?: boolean };
+      if (raw.trim()) {
+        try {
+          payload = JSON.parse(raw) as typeof payload;
+        } catch {
+          /* non-JSON is not a successful capture */
+        }
+      }
+
+      const accepted = res.ok && (payload.success === true || payload.duplicate === true);
+      if (!accepted) {
+        throw new Error(
+          (typeof payload.error === "string" && payload.error.trim()) || `HTTP ${res.status}`,
+        );
       }
 
       localStorage.setItem(STORAGE_KEY, "1");
@@ -135,17 +148,25 @@ export function InsideTheCortexPopup() {
   if (view === "hidden") return null;
 
   return (
-    // Backdrop
+    // Backdrop — scrollable so the form remains usable on short mobile viewports
     <div
       onClick={(e) => { if (e.target === e.currentTarget) dismiss(); }}
       style={{
-        position: "fixed", inset: 0, zIndex: 9999,
+        position: "fixed",
+        inset: 0,
+        zIndex: 9999,
         background: "rgba(4,8,18,0.88)",
         backdropFilter: "blur(4px)",
-        display: "flex", alignItems: "center", justifyContent: "center",
-        padding: "16px",
+        display: "flex",
+        alignItems: "flex-end",
+        justifyContent: "center",
+        padding:
+          "max(12px, env(safe-area-inset-top)) 12px max(12px, env(safe-area-inset-bottom))",
+        overflowY: "auto",
+        WebkitOverflowScrolling: "touch",
         animation: "rcFadeIn 0.2s ease-out",
       }}
+      className="rc-cortex-popup-backdrop"
     >
       <style>{`
         @keyframes rcFadeIn  { from { opacity: 0; } to { opacity: 1; } }
@@ -155,6 +176,11 @@ export function InsideTheCortexPopup() {
         @keyframes rcScaleIn { from { transform: scale(0.7); opacity: 0; }
                                to   { transform: scale(1);   opacity: 1; } }
         @keyframes rcBlink   { 0%,100% { opacity: 1; } 50% { opacity: 0.3; } }
+        @media (min-width: 640px) {
+          .rc-cortex-popup-backdrop { align-items: center !important; padding: 16px !important; }
+          .rc-cortex-popup-card { border-radius: 12px !important; max-height: min(90vh, 720px) !important; }
+          .rc-cortex-name-grid { grid-template-columns: 1fr 1fr !important; }
+        }
       `}</style>
 
       {/* Modal card */}
@@ -162,15 +188,22 @@ export function InsideTheCortexPopup() {
         role="dialog"
         aria-modal="true"
         aria-labelledby="rc-popup-title"
+        className="rc-cortex-popup-card"
         style={{
-          width: "100%", maxWidth: "460px",
+          width: "100%",
+          maxWidth: "460px",
+          maxHeight: "min(92dvh, 720px)",
           background: "#101c32",
           border: "1px solid #1b2b47",
-          borderRadius: "12px",
-          overflow: "hidden",
+          borderRadius: "12px 12px 0 0",
+          overflowX: "hidden",
+          overflowY: "auto",
+          WebkitOverflowScrolling: "touch",
           boxShadow: "0 24px 64px rgba(0,0,0,0.6)",
           animation: "rcSlideUp 0.25s ease-out",
           fontFamily: "system-ui, -apple-system, sans-serif",
+          marginTop: "auto",
+          marginBottom: "auto",
         }}
       >
         {/* ── Success state ── */}
@@ -184,18 +217,20 @@ export function InsideTheCortexPopup() {
             {/* Header */}
             <div style={{
               background: "#0c1428",
-              padding: "24px 28px 22px",
+              padding: "20px 18px 18px",
               borderBottom: "1px solid #1b2b47",
               position: "relative",
             }}>
               <button
+                type="button"
                 onClick={dismiss}
                 aria-label="Close"
                 style={{
-                  position: "absolute", top: "14px", right: "14px",
+                  position: "absolute", top: "10px", right: "10px",
                   background: "transparent", border: "none", cursor: "pointer",
-                  color: "#334466", fontSize: "18px", lineHeight: 1, padding: "4px",
+                  color: "#334466", fontSize: "20px", lineHeight: 1, padding: "8px",
                   borderRadius: "4px",
+                  minWidth: "44px", minHeight: "44px",
                 }}
               >
                 ✕
@@ -232,10 +267,10 @@ export function InsideTheCortexPopup() {
             </div>
 
             {/* Body */}
-            <div style={{ padding: "22px 28px 26px" }}>
+            <div style={{ padding: "18px 18px 22px" }}>
               <p style={{
                 fontSize: "13px", color: "#6b83a8", lineHeight: 1.65,
-                marginBottom: "20px", paddingBottom: "20px",
+                marginBottom: "16px", paddingBottom: "16px",
                 borderBottom: "1px solid #1b2b47",
               }}>
                 Emergency communications is changing fast. We&apos;re at the center
@@ -246,8 +281,11 @@ export function InsideTheCortexPopup() {
                 from the people building it.
               </p>
 
-              {/* First + Last */}
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px", marginBottom: "10px" }}>
+              {/* First + Last — stacked on narrow screens, side-by-side from sm+ */}
+              <div
+                className="rc-cortex-name-grid"
+                style={{ display: "grid", gridTemplateColumns: "1fr", gap: "10px", marginBottom: "10px" }}
+              >
                 <Field
                   label="First name"
                   value={values.firstName}
@@ -296,16 +334,26 @@ export function InsideTheCortexPopup() {
 
               {/* Submit */}
               <button
+                type="button"
                 onClick={view === "form" ? handleSubmit : undefined}
                 disabled={view === "submitting"}
                 style={{
-                  width: "100%", height: "42px", marginTop: "18px",
+                  width: "100%",
+                  minHeight: "48px",
+                  height: "48px",
+                  marginTop: "18px",
                   background: view === "submitting" ? "#1d4ed8" : "#3b82f6",
-                  border: "none", borderRadius: "5px",
+                  border: "none",
+                  borderRadius: "8px",
                   cursor: view === "submitting" ? "default" : "pointer",
-                  fontSize: "13px", fontWeight: 500, color: "#fff",
+                  fontSize: "15px",
+                  fontWeight: 600,
+                  color: "#fff",
                   letterSpacing: "0.03em",
-                  display: "flex", alignItems: "center", justifyContent: "center", gap: "8px",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  gap: "8px",
                   transition: "background 0.15s",
                 }}
               >
@@ -364,12 +412,18 @@ function Field({
         placeholder={placeholder}
         disabled={disabled}
         onChange={onChange}
+        autoComplete={type === "email" ? "email" : "on"}
+        inputMode={type === "email" ? "email" : undefined}
         style={{
-          width: "100%", height: "38px", padding: "0 12px",
+          width: "100%",
+          height: "44px",
+          padding: "0 12px",
           background: "#0c1428",
           border: `1px solid ${error ? "#ef4444" : "#1b2b47"}`,
           borderRadius: "5px",
-          fontSize: "13px", color: "#dce6f5",
+          // 16px avoids iOS Safari focus zoom on mobile
+          fontSize: "16px",
+          color: "#dce6f5",
           outline: "none",
           fontFamily: "inherit",
           opacity: disabled ? 0.6 : 1,

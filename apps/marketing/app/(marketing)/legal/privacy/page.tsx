@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { absoluteUrl } from "@/lib/seo";
+import { absoluteUrl, buildOgShareImage } from "@/lib/seo";
 
 export async function generateMetadata(): Promise<Metadata> {
   return {
@@ -12,14 +12,14 @@ export async function generateMetadata(): Promise<Metadata> {
       description: "Privacy and data-handling overview for Rapid Cortex.",
       url: absoluteUrl("/legal/privacy"),
       siteName: "Rapid Cortex",
-      images: [{ url: absoluteUrl("/api/og"), width: 1200, height: 630, alt: "Rapid Cortex privacy policy" }],
+      images: [buildOgShareImage("Rapid Cortex privacy policy")],
       type: "website",
     },
     twitter: {
       card: "summary_large_image",
       title: "Privacy | Rapid Cortex",
       description: "Privacy and data-handling overview.",
-      images: [absoluteUrl("/api/og")],
+      images: [{ url: buildOgShareImage().url, alt: buildOgShareImage().alt }],
     },
     alternates: { canonical: absoluteUrl("/legal/privacy") },
   };

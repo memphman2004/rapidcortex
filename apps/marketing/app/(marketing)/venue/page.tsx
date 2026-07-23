@@ -117,13 +117,13 @@ export default function MarketingVenuePage() {
         </p>
         <div className="mt-6 flex flex-col gap-3 sm:flex-row">
           <Link
-            href="/contact-sales?interest=venue-demo"
+            href="https://www.rapidcortex.us/contact-sales?interest=demo"
             className="inline-flex min-h-12 items-center justify-center rounded-md bg-sky-600 px-6 py-3 text-sm font-semibold text-white hover:bg-sky-500"
           >
             Request a demo
           </Link>
           <Link
-            href="/contact"
+            href="https://www.rapidcortex.us/contact-sales?interest=demo"
             className="inline-flex min-h-12 items-center justify-center rounded-md border border-slate-600/90 bg-slate-950/40 px-6 py-3 text-sm font-semibold text-slate-100 hover:border-slate-500"
           >
             Contact us

@@ -42,7 +42,7 @@ export default function PlatformLayout({ children }: { children: React.ReactNode
       <div
         className="rc-workstation-root flex min-h-0 min-h-[50vh] flex-1 flex-col bg-gradient-to-b from-slate-950 via-slate-950 to-slate-900 lg:flex-row"
         style={{
-          fontFamily: 'var(--rc-dashboard-font-family, "Courier New", monospace)',
+          fontFamily: 'var(--rc-dashboard-font-family, Inter, ui-sans-serif, system-ui, sans-serif)',
         }}
       >
         <PlatformSidebar />

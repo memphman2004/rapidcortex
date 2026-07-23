@@ -10,7 +10,7 @@ import { ddb } from "../repositories/baseRepository.js";
 import { env } from "../lib/env.js";
 
 const CORS = {
-  "Access-Control-Allow-Origin": "https://www.rapidcortex.us",
+  "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Methods": "POST, OPTIONS",
   "Access-Control-Allow-Headers": "Content-Type",
   "Content-Type": "application/json",

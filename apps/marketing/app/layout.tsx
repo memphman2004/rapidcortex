@@ -2,7 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Inter } from "next/font/google";
 import Script from "next/script";
 import { SITE_DESCRIPTION, SITE_NAME, SITE_PUBLIC_ICON_PATHS } from "@/lib/site";
-import { absoluteUrl, getSiteUrl, SEO_IMAGE_PATH } from "@/lib/seo";
+import { buildOgShareImage, getSiteUrl } from "@/lib/seo";
 import { InsideTheCortexPopup } from "@/components/InsideTheCortexPopup";
 import { Providers } from "./providers";
 import "./globals.css";
@@ -14,7 +14,7 @@ const inter = Inter({
 });
 
 const siteUrl = getSiteUrl();
-const defaultOgImage = absoluteUrl(SEO_IMAGE_PATH);
+const defaultOgImage = buildOgShareImage(`${SITE_NAME} — branded preview`);
 const GA_MEASUREMENT_ID = process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID ?? "G-S83NHMBHRD";
 
 export const metadata: Metadata = {
@@ -51,20 +51,13 @@ export const metadata: Metadata = {
     description: SITE_DESCRIPTION,
     url: siteUrl,
     locale: "en_US",
-    images: [
-      {
-        url: defaultOgImage,
-        width: 1200,
-        height: 630,
-        alt: `${SITE_NAME} — branded preview`,
-      },
-    ],
+    images: [defaultOgImage],
   },
   twitter: {
     card: "summary_large_image",
     title: SITE_NAME,
     description: SITE_DESCRIPTION,
-    images: [{ url: defaultOgImage, alt: `${SITE_NAME} preview` }],
+    images: [{ url: defaultOgImage.url, alt: defaultOgImage.alt }],
   },
   robots: {
     index: true,

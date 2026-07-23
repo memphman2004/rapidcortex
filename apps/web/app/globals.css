@@ -6,7 +6,7 @@
   --role-accent: #0ea5e9;
   --role-accent-muted: rgba(14, 165, 233, 0.35);
   --role-accent-glow: rgba(14, 165, 233, 0.55);
-  --rc-dashboard-font-family: "Courier New", Courier, monospace;
+  --rc-dashboard-font-family: var(--font-inter), Inter, ui-sans-serif, system-ui, sans-serif;
   /* Desktop / workstation baseline (1280px+ primary; smaller viewports use graceful layout fallback) */
   --rc-baseline-width: 1280px;
   --rc-content-max: 100rem; /* ~1600px; ultrawide does not over-stretch single columns */
@@ -62,7 +62,7 @@ body {
   min-height: 100dvh;
   background: transparent;
   color: var(--foreground);
-  font-family: var(--rc-dashboard-font-family), ui-monospace, system-ui, sans-serif;
+  font-family: var(--rc-dashboard-font-family), ui-sans-serif, system-ui, sans-serif;
   -webkit-tap-highlight-color: transparent;
   overflow-x: clip;
 }

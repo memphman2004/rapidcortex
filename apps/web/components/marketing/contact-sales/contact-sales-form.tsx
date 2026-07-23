@@ -7,6 +7,7 @@ import { Loader2 } from "lucide-react";
 import {
   MARKETING_FORM_INPUT_CLASS,
   MARKETING_FORM_TEXTAREA_CLASS,
+  contactSalesSubmitUrl,
   scrollMarketingFieldIntoViewOnFocus,
 } from "@/lib/marketing-form-input";
 
@@ -40,15 +41,25 @@ export function ContactSalesForm({ interestFromSearch = null, onSuccess }: Conta
   const [status, setStatus] = useState<"idle" | "sending" | "error">("idle");
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-  const defaultInterestPilot = interestFromSearch === "pilot_program";
+  const defaultInterestKeys = (() => {
+    const raw = (interestFromSearch ?? "").trim().toLowerCase();
+    if (raw === "api_access") return ["api_access"] as const;
+    if (raw === "cad_integration") return ["cad_integration"] as const;
+    if (raw === "enterprise_statewide") return ["enterprise_statewide"] as const;
+    if (raw === "dashboard_platform") return ["dashboard_platform"] as const;
+    // `demo`, `pilot_program`, and bare CTAs → pilot + platform (CRM sales lead)
+    return ["pilot_program", "dashboard_platform"] as const;
+  })();
+  const defaultInterestSet = new Set<string>(defaultInterestKeys);
 
   async function handleSubmit(ev: FormEvent<HTMLFormElement>) {
     ev.preventDefault();
     if (status === "sending") return;
 
+    const form = ev.currentTarget;
     setStatus("sending");
     setErrorMessage(null);
-    const fd = new FormData(ev.currentTarget);
+    const fd = new FormData(form);
 
     const interestedRaw = fd.getAll("interestedIn");
     const interestedIn =
@@ -66,16 +77,20 @@ export function ContactSalesForm({ interestFromSearch = null, onSuccess }: Conta
       interestedIn:
         interestedIn.length > 0
           ? interestedIn
-          : defaultInterestPilot
-            ? ["pilot_program"]
-            : ["dashboard_platform"],
+          : [...defaultInterestKeys],
       estimatedAgencySize: String(fd.get("estimatedAgencySize") ?? "").trim() || undefined,
-      message: String(fd.get("message") ?? "").trim() || undefined,
+      message: (() => {
+        const userMsg = String(fd.get("message") ?? "").trim();
+        const isDemoCta = (interestFromSearch ?? "").trim().toLowerCase() === "demo";
+        if (!isDemoCta) return userMsg || undefined;
+        const prefix = "Source: contact-sales?interest=demo";
+        return (userMsg ? `${prefix}\n\n${userMsg}` : prefix).slice(0, 5000);
+      })(),
       website: String(fd.get("website") ?? ""),
     };
 
     try {
-      const res = await fetch("/api/contact-sales", {
+      const res = await fetch(contactSalesSubmitUrl(), {
         method: "POST",
         headers: { "content-type": "application/json" },
         body: JSON.stringify(body),
@@ -87,11 +102,12 @@ export function ContactSalesForm({ interestFromSearch = null, onSuccess }: Conta
         try {
           j = JSON.parse(raw) as typeof j;
         } catch {
-          /* non-JSON body on 2xx — still treat as success once `res.ok` below */
+          /* non-JSON body — not a successful lead capture */
         }
       }
-      /** Lead API returns `202 Accepted` with JSON; any 2xx counts as success (`res.ok` is 200–299). */
-      if (!res.ok) {
+      /** API returns `{ ok: true, leadId }` (often 202). Reject HTML/S3 200 false positives. */
+      const accepted = res.ok && (j.ok === true || typeof j.leadId === "string");
+      if (!accepted) {
         const serverMsg =
           (typeof j.error === "string" && j.error.trim()) ||
           (typeof j.message === "string" && j.message.trim()) ||
@@ -100,7 +116,7 @@ export function ContactSalesForm({ interestFromSearch = null, onSuccess }: Conta
         throw new Error(msg);
       }
 
-      ev.currentTarget.reset();
+      form.reset();
       setStatus("idle");
       onSuccess?.({ leadId: typeof j.leadId === "string" ? j.leadId : null });
     } catch (err) {
@@ -201,10 +217,7 @@ export function ContactSalesForm({ interestFromSearch = null, onSuccess }: Conta
               <input
                 type="checkbox"
                 name="interestedIn"
-                defaultChecked={
-                  (defaultInterestPilot && id === "pilot_program") ||
-                  (!defaultInterestPilot && id === "dashboard_platform")
-                }
+                defaultChecked={defaultInterestSet.has(id)}
                 value={id}
                 className="rounded border-slate-600 bg-slate-900"
               />{" "}

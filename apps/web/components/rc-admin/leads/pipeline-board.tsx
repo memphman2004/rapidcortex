@@ -19,7 +19,12 @@ export function PipelineBoard({
   onDropLead,
 }: Props) {
   return (
-    <div className="flex flex-1 items-start gap-2.5 overflow-x-auto p-3.5">
+    <div
+      className="flex gap-3 overflow-x-auto px-5 py-4 pb-8
+        [&::-webkit-scrollbar]:h-1
+        [&::-webkit-scrollbar-thumb]:rounded-full
+        [&::-webkit-scrollbar-thumb]:bg-[rgba(255,255,255,0.06)]"
+    >
       {ACTIVE_PIPELINE_STAGES.map((stage) => (
         <PipelineColumn
           key={stage}

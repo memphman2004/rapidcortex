@@ -1,5 +1,16 @@
 import type { Metadata, Viewport } from "next";
-import { Geist, Geist_Mono, Inter } from "next/font/google";
+import {
+  DM_Sans,
+  Geist,
+  Geist_Mono,
+  IBM_Plex_Sans,
+  Inter,
+  Manrope,
+  Open_Sans,
+  Poppins,
+  Roboto,
+  Source_Sans_3,
+} from "next/font/google";
 import Script from "next/script";
 import { SITE_DESCRIPTION, SITE_NAME, SITE_PUBLIC_ICON_PATHS } from "@/lib/site";
 import { absoluteUrl, getSiteUrl, SEO_IMAGE_PATH } from "@/lib/seo";
@@ -21,6 +32,53 @@ const geistMono = Geist_Mono({
 const inter = Inter({
   subsets: ["latin"],
   variable: "--font-inter",
+  display: "swap",
+});
+
+/** Dashboard picker label: "Modern" */
+const modern = DM_Sans({
+  subsets: ["latin"],
+  variable: "--font-modern",
+  display: "swap",
+});
+
+const poppins = Poppins({
+  subsets: ["latin"],
+  weight: ["400", "500", "600", "700"],
+  variable: "--font-poppins",
+  display: "swap",
+});
+
+const roboto = Roboto({
+  subsets: ["latin"],
+  weight: ["400", "500", "700"],
+  variable: "--font-roboto",
+  display: "swap",
+});
+
+const ibmPlexSans = IBM_Plex_Sans({
+  subsets: ["latin"],
+  weight: ["400", "500", "600", "700"],
+  variable: "--font-ibm-plex-sans",
+  display: "swap",
+});
+
+const openSans = Open_Sans({
+  subsets: ["latin"],
+  variable: "--font-open-sans",
+  display: "swap",
+});
+
+const manrope = Manrope({
+  subsets: ["latin"],
+  variable: "--font-manrope",
+  display: "swap",
+});
+
+/** Source Sans Pro successor on Google Fonts */
+const sourceSans = Source_Sans_3({
+  subsets: ["latin"],
+  variable: "--font-source-sans",
   display: "swap",
 });
 
@@ -113,7 +171,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`dark ${geistSans.variable} ${geistMono.variable} ${inter.variable} h-full antialiased`}
+      className={`dark ${geistSans.variable} ${geistMono.variable} ${inter.variable} ${modern.variable} ${poppins.variable} ${roboto.variable} ${ibmPlexSans.variable} ${openSans.variable} ${manrope.variable} ${sourceSans.variable} h-full antialiased`}
     >
       <head>
         {gaEnabled ? (

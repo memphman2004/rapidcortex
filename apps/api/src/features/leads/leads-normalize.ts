@@ -20,7 +20,7 @@ function asRecord(item: unknown): Record<string, unknown> {
 function sourceToChannel(source: string | undefined): LeadChannel {
   const s = (source ?? "").toLowerCase();
   if (s.includes("ring")) return "ring_waitlist";
-  if (s.includes("contact") || s === "contact-sales") return "contact_sales";
+  if (s.includes("contact") || s === "contact-sales" || s.includes("demo")) return "contact_sales";
   if (s.includes("cortex") || s.includes("inside")) return "inside_the_cortex";
   if (s === "linkedin") return "linkedin";
   if (s === "google" || s === "organic_search") return "organic_search";

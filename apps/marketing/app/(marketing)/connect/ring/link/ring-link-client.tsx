@@ -434,7 +434,7 @@ function AgencyLinkActions() {
             Sign up for Rapid Cortex
           </Link>
           <Link
-            href="https://www.rapidcortex.us/contact"
+            href="https://www.rapidcortex.us/contact-sales?interest=demo"
             className="inline-flex min-h-11 items-center justify-center rounded-lg border border-slate-600 px-5 text-sm font-semibold text-slate-100 hover:border-slate-500"
           >
             Request Access
@@ -522,7 +522,7 @@ export function RingLinkClient() {
         ) : null}
         <p>
           Need help?{" "}
-          <Link href="/contact" className="text-sky-400 hover:text-sky-300">
+          <Link href="/contact-sales?interest=demo" className="text-sky-400 hover:text-sky-300">
             Contact support
           </Link>{" "}
           or email{" "}

@@ -87,7 +87,7 @@ export function DashboardShell({
       className="min-h-screen bg-[#030712] text-slate-100"
       style={{
         ...shellVars,
-        fontFamily: "var(--rc-dashboard-font-family, \"Courier New\", monospace)",
+        fontFamily: 'var(--rc-dashboard-font-family, Inter, ui-sans-serif, system-ui, sans-serif)',
       }}
     >
       {mobileNav ? (

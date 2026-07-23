@@ -103,7 +103,7 @@ describe("MarketingHeader", () => {
 
     const dialog = await screen.findByRole("dialog");
     const book = within(dialog).getByRole("link", { name: /^Request a demo$/ });
-    expect(book.getAttribute("href")).toBe("/contact-sales?interest=demo");
+    expect(book.getAttribute("href")).toBe("https://www.rapidcortex.us/contact-sales?interest=demo");
     expect(within(dialog).queryByRole("link", { name: /^Sign in$/ })).toBeNull();
     expect(within(dialog).queryByRole("link", { name: /^Open app$/ })).toBeNull();
 
@@ -111,7 +111,9 @@ describe("MarketingHeader", () => {
     expect(within(dialog).getByRole("link", { name: /^Features$/ }).getAttribute("href")).toBe("/solutions/agencies");
     expect(within(dialog).getByRole("link", { name: /^Pricing$/ }).getAttribute("href")).toBe("/pricing");
     expect(within(dialog).getByRole("link", { name: /^Demo$/ }).getAttribute("href")).toBe("/demo");
-    expect(within(dialog).getByRole("link", { name: /^Contact$/ }).getAttribute("href")).toBe("/contact");
+    expect(within(dialog).getByRole("link", { name: /^Contact$/ }).getAttribute("href")).toBe(
+      "https://www.rapidcortex.us/contact-sales?interest=demo",
+    );
 
     /** Close via Escape restores focus target */
     fireEvent.keyDown(document, { key: "Escape" });

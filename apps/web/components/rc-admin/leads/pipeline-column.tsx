@@ -3,14 +3,15 @@
 import { useState } from "react";
 import { STAGE_CONFIG, type PipelineStage, type SalesLeadCrmRecord } from "rapid-cortex-shared";
 import { LeadCard } from "./lead-card";
+import { formatCurrency } from "./leads-utils";
 
 type Props = {
   stage: PipelineStage;
   leads: SalesLeadCrmRecord[];
   selectedLeadId: string | null;
-  onSelect: (leadId: string) => void;
-  onDragStart: (leadId: string, stage: PipelineStage) => void;
-  onDropLead: (leadId: string, toStage: PipelineStage) => void;
+  onSelect: (id: string) => void;
+  onDragStart: (id: string, stage: PipelineStage) => void;
+  onDropLead: (id: string, toStage: PipelineStage) => void;
 };
 
 export function PipelineColumn({
@@ -23,17 +24,32 @@ export function PipelineColumn({
 }: Props) {
   const [dragOver, setDragOver] = useState(false);
   const cfg = STAGE_CONFIG[stage];
+  const totalValue = leads.reduce((s, l) => s + (l.estimatedValue ?? 0), 0);
+  const topBarBg = cfg.borderClass.replace("border-l-", "bg-");
 
   return (
-    <div className="w-[210px] shrink-0">
-      <div className="mb-2 flex items-center justify-between">
-        <span
-          className={`rounded-full px-2 py-0.5 text-[10px] font-bold tracking-wider ${cfg.bgClass} ${cfg.textClass}`}
-        >
-          ● {cfg.label.toUpperCase()}
-        </span>
-        <span className="text-[10px] text-slate-500">{leads.length}</span>
+    <div className="flex w-64 shrink-0 flex-col">
+      <div className="mb-2 overflow-hidden rounded-xl border border-[rgba(255,255,255,0.06)] bg-[#0a1628]">
+        <div className={`h-[3px] w-full ${topBarBg}`} />
+        <div className="flex items-start justify-between px-3 py-2.5">
+          <div>
+            <div className={`text-[11px] font-bold uppercase tracking-widest ${cfg.textClass}`}>
+              {cfg.label}
+            </div>
+            {totalValue > 0 && (
+              <div className="mt-0.5 text-[10px] text-[#334155]">
+                {formatCurrency(totalValue)} total
+              </div>
+            )}
+          </div>
+          <span
+            className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${cfg.bgClass} ${cfg.textClass}`}
+          >
+            {leads.length}
+          </span>
+        </div>
       </div>
+
       <div
         onDragOver={(e) => {
           e.preventDefault();
@@ -44,17 +60,22 @@ export function PipelineColumn({
         onDrop={(e) => {
           e.preventDefault();
           setDragOver(false);
-          const leadId = e.dataTransfer.getData("text/leadId");
-          if (leadId) onDropLead(leadId, stage);
+          const id = e.dataTransfer.getData("text/leadId");
+          if (id) onDropLead(id, stage);
         }}
         className={[
-          "flex min-h-[60px] flex-col gap-2 rounded-md border border-slate-800 bg-white/[0.02] p-1.5 transition",
-          dragOver ? "border-sky-500 bg-sky-500/10" : "",
+          "flex min-h-[100px] flex-1 flex-col gap-2 rounded-xl border border-dashed p-2 transition-all duration-150",
+          dragOver
+            ? "border-sky-500/60 bg-sky-500/[0.04] shadow-inner"
+            : "border-[rgba(255,255,255,0.05)] bg-[rgba(255,255,255,0.01)]",
         ].join(" ")}
       >
         {leads.length === 0 ? (
-          <div className="px-2 py-4 text-center text-[11px] text-slate-600">
-            Drop here or move a lead
+          <div className="flex flex-1 flex-col items-center justify-center gap-2 py-8 text-center">
+            <span className="text-2xl opacity-[0.06]">↓</span>
+            <span className="text-[11px] text-[#1e3a5f]">
+              {dragOver ? "Release to move" : "No leads"}
+            </span>
           </div>
         ) : (
           leads.map((lead) => (

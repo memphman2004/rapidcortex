@@ -16,7 +16,7 @@ export function DispatchShell({
     <div
       className="rc-workstation-root bg-slate-950/90 text-slate-100 ring-1 ring-slate-800/30 backdrop-blur-sm"
       style={{
-        fontFamily: 'var(--rc-dashboard-font-family, "Courier New", monospace)',
+        fontFamily: 'var(--rc-dashboard-font-family, Inter, ui-sans-serif, system-ui, sans-serif)',
       }}
     >
       <TopBar user={user} />

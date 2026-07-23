@@ -13,7 +13,7 @@ export function PricingPlanCta({ plan }: { plan: PricingPlanCardContent }) {
   if (plan.ctaKind === "contact_sales") {
     return (
       <Link
-        href="/contact-sales"
+        href="https://www.rapidcortex.us/contact-sales?interest=demo"
         className={`${baseOutline} border border-slate-600 bg-slate-950/50 text-white hover:border-slate-500 hover:bg-slate-800/60`}
       >
         Contact Support
@@ -24,7 +24,7 @@ export function PricingPlanCta({ plan }: { plan: PricingPlanCardContent }) {
   if (plan.ctaKind === "request_rc_lite") {
     return (
       <Link
-        href="/contact-sales?interest=api_access"
+        href="https://www.rapidcortex.us/contact-sales?interest=api_access"
         className={`${baseOutline} border border-sky-500/40 bg-sky-950/40 text-white hover:bg-sky-950/70`}
       >
         Request RC Lite Access
@@ -35,7 +35,7 @@ export function PricingPlanCta({ plan }: { plan: PricingPlanCardContent }) {
   if (plan.ctaKind === "request_pilot") {
     return (
       <Link
-        href="/contact-sales?interest=pilot_program"
+        href="https://www.rapidcortex.us/contact-sales?interest=pilot_program"
         className={`${baseOutline} bg-sky-600 text-white shadow-sm shadow-sky-950/30 hover:bg-sky-500`}
       >
         Request Pilot

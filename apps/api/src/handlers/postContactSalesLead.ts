@@ -153,16 +153,24 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
   }
 
   const now = new Date().toISOString();
+  const isDemoRequest =
+    (rest.message ?? "").includes("Source: /demo") ||
+    (rest.message ?? "").includes("interest=demo");
   const lead: SalesLeadRecord = {
     ...rest,
     leadId: randomUUID(),
     createdAt: now,
-    source: "contact-sales",
+    source: isDemoRequest ? "demo" : "contact-sales",
     status: "new",
     pipelineStage: "NEW",
     attribution: {
       channel: "contact_sales",
-      channelLabel: "Contact Sales",
+      channelLabel: isDemoRequest ? "Live demo request" : "Contact Sales",
+      landingPage: isDemoRequest
+        ? (rest.message ?? "").includes("interest=demo")
+          ? "/contact-sales?interest=demo"
+          : "/demo"
+        : null,
       firstTouchAt: now,
     },
   };

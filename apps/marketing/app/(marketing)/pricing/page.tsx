@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { ADDONS } from "@/lib/addons";
-import { absoluteUrl } from "@/lib/seo";
+import { absoluteUrl, buildOgShareImage } from "@/lib/seo";
 
 export async function generateMetadata(): Promise<Metadata> {
   return {
@@ -19,14 +19,14 @@ export async function generateMetadata(): Promise<Metadata> {
       description: "All plans are quote-based for agency-specific requirements.",
       url: absoluteUrl("/pricing"),
       siteName: "Rapid Cortex",
-      images: [{ url: absoluteUrl("/api/og"), width: 1200, height: 630, alt: "Rapid Cortex pricing" }],
+      images: [buildOgShareImage("Rapid Cortex pricing")],
       type: "website",
     },
     twitter: {
       card: "summary_large_image",
       title: "Pricing | Rapid Cortex",
       description: "Quote-based plan tiers and add-on catalog.",
-      images: [absoluteUrl("/api/og")],
+      images: [{ url: buildOgShareImage().url, alt: buildOgShareImage().alt }],
     },
     alternates: { canonical: absoluteUrl("/pricing") },
   };
@@ -52,13 +52,13 @@ export default function PricingPage() {
               <h3 className="text-base font-semibold text-slate-100">{tier}</h3>
               <nav className="mt-4 flex gap-2">
                 <Link
-                  href="/request-demo"
+                  href="https://www.rapidcortex.us/contact-sales?interest=demo"
                   className="inline-flex min-h-10 items-center rounded-md bg-sky-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-sky-500"
                 >
                   Request Demo
                 </Link>
                 <Link
-                  href="/contact"
+                  href="https://www.rapidcortex.us/contact-sales?interest=demo"
                   className="inline-flex min-h-10 items-center rounded-md border border-slate-700 px-3 py-1.5 text-xs font-semibold text-slate-100 hover:bg-slate-800"
                 >
                   Contact

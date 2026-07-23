@@ -85,16 +85,16 @@ export function KeywordLandingPage({
           </p>
           <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
             <Link
-              href="/contact-sales"
+              href="https://www.rapidcortex.us/contact-sales?interest=demo"
               className="inline-flex min-h-11 items-center justify-center rounded-md bg-sky-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-sky-500"
             >
               Contact Support
             </Link>
             <Link
-              href="/demo"
+              href="https://www.rapidcortex.us/contact-sales?interest=demo"
               className="inline-flex min-h-11 items-center justify-center rounded-md border border-slate-600 bg-slate-900/50 px-5 py-2.5 text-sm font-semibold text-slate-100 hover:border-slate-500"
             >
-              Watch demo
+              Request a demo
             </Link>
           </div>
         </section>

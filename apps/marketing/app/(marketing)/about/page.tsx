@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { absoluteUrl } from "@/lib/seo";
+import { absoluteUrl, buildOgShareImage } from "@/lib/seo";
 
 export async function generateMetadata(): Promise<Metadata> {
   return {
@@ -13,14 +13,14 @@ export async function generateMetadata(): Promise<Metadata> {
       description: "Our mission and product focus for emergency response intelligence.",
       url: absoluteUrl("/about"),
       siteName: "Rapid Cortex",
-      images: [{ url: absoluteUrl("/api/og"), width: 1200, height: 630, alt: "About Rapid Cortex" }],
+      images: [buildOgShareImage("About Rapid Cortex")],
       type: "website",
     },
     twitter: {
       card: "summary_large_image",
       title: "About | Rapid Cortex",
       description: "Mission-focused emergency communications intelligence platform.",
-      images: [absoluteUrl("/api/og")],
+      images: [{ url: buildOgShareImage().url, alt: buildOgShareImage().alt }],
     },
     alternates: { canonical: absoluteUrl("/about") },
   };
@@ -46,7 +46,7 @@ export default function AboutPage() {
           The platform is built to augment trained professionals with better context, not replace dispatch judgment or
           established protocols.
         </p>
-        <Link href="/request-demo" className="inline-flex text-sm font-medium text-sky-300 hover:text-sky-200">
+        <Link href="https://www.rapidcortex.us/contact-sales?interest=demo" className="inline-flex text-sm font-medium text-sky-300 hover:text-sky-200">
           Request a demo
         </Link>
       </section>

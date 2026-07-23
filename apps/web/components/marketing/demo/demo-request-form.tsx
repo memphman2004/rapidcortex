@@ -6,6 +6,7 @@ import { Loader2 } from "lucide-react";
 import {
   MARKETING_FORM_INPUT_CLASS,
   MARKETING_FORM_TEXTAREA_CLASS,
+  contactSalesSubmitUrl,
   scrollMarketingFieldIntoViewOnFocus,
 } from "@/lib/marketing-form-input";
 
@@ -37,9 +38,10 @@ export function DemoRequestForm() {
     ev.preventDefault();
     if (status === "sending") return;
 
+    const form = ev.currentTarget;
     setStatus("sending");
     setErrorMessage(null);
-    const fd = new FormData(ev.currentTarget);
+    const fd = new FormData(form);
 
     const name = String(fd.get("name") ?? "").trim();
     const email = String(fd.get("email") ?? "").trim();
@@ -75,26 +77,29 @@ export function DemoRequestForm() {
     };
 
     try {
-      const res = await fetch("/api/contact-sales", {
+      const res = await fetch(contactSalesSubmitUrl(), {
         method: "POST",
         headers: { "content-type": "application/json" },
         body: JSON.stringify(body),
       });
       const raw = await res.text();
-      let j = {} as { ok?: boolean; error?: string };
+      let j = {} as { ok?: boolean; leadId?: string; error?: string };
       if (raw.trim()) {
         try {
           j = JSON.parse(raw) as typeof j;
         } catch {
-          /* ignore */
+          /* non-JSON (e.g. static host HTML) is not a successful lead capture */
         }
       }
-      if (!res.ok) {
+      const accepted = res.ok && (j.ok === true || typeof j.leadId === "string");
+      if (!accepted) {
         const msg =
-          typeof j.error === "string" && j.error.trim().length > 0 ? j.error.trim() : `Request failed (${res.status}).`;
+          typeof j.error === "string" && j.error.trim().length > 0
+            ? j.error.trim()
+            : `Request failed (${res.status}).`;
         throw new Error(msg);
       }
-      ev.currentTarget.reset();
+      form.reset();
       setStatus("success");
     } catch (err) {
       setStatus("idle");

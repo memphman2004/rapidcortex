@@ -41,12 +41,14 @@ RC_API_PKG_BACKUP_SUFFIX=pre-lean rc_prepare_api_vendor_for_sam
 # Full workspace tsc often fails on duplicate @aws-sdk types after --no-workspaces install.
 # Marketing handlers are small; emit only those entrypoints when a full build is unavailable.
 if [[ ! -f "${ROOT}/apps/api/dist/handlers/marketing-lead.js" ]] || \
-   [[ ! -f "${ROOT}/apps/api/dist/handlers/marketing-unsubscribe.js" ]]; then
+   [[ ! -f "${ROOT}/apps/api/dist/handlers/marketing-unsubscribe.js" ]] || \
+   [[ ! -f "${ROOT}/apps/api/dist/handlers/marketing-og-share.js" ]]; then
   echo "── Compiling marketing handlers (tsc project may report unrelated errors) ──"
   npm run build -w rapid-cortex-api || true
 fi
 if [[ ! -f "${ROOT}/apps/api/dist/handlers/marketing-lead.js" ]] || \
-   [[ ! -f "${ROOT}/apps/api/dist/handlers/marketing-unsubscribe.js" ]]; then
+   [[ ! -f "${ROOT}/apps/api/dist/handlers/marketing-unsubscribe.js" ]] || \
+   [[ ! -f "${ROOT}/apps/api/dist/handlers/marketing-og-share.js" ]]; then
   echo "ERROR: marketing handler dist missing after build" >&2
   exit 1
 fi
@@ -90,7 +92,8 @@ sam deploy \
     ManagedPolicyNamePrefix=rapid-cortex-dev \
     SesFromEmail=noreply@rapidcortex.us \
     RcTeamNotifyEmail=team@rapidcortex.us \
-    SesMock=false
+    SesMock=false \
+    MarketingSiteOrigin=https://www.rapidcortex.us
 
 echo "Marketing API stack status:"
 aws cloudformation describe-stacks --stack-name "${STACK_NAME}" \

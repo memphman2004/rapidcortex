@@ -22,6 +22,18 @@ Parameters:
   AgenciesTable:
     Type: String
     Default: ""
+  # Shared env.js requires these at module load (via baseRepository → ddb), even though
+  # this function only reads/writes SalesLeads + Audit.
+  IncidentsTable:
+    Type: String
+  TranscriptsTable:
+    Type: String
+  AnalysesTable:
+    Type: String
+  InvitesTable:
+    Type: String
+  AssetsBucket:
+    Type: String
   ImportedCognitoUserPoolId:
     Type: String
   ImportedCognitoWebClientId:
@@ -45,6 +57,11 @@ Globals:
         SALES_LEADS_TABLE: !Ref SalesLeadsTable
         AUDIT_TABLE: !Ref AuditTable
         AGENCIES_TABLE: !Ref AgenciesTable
+        INCIDENTS_TABLE: !Ref IncidentsTable
+        TRANSCRIPTS_TABLE: !Ref TranscriptsTable
+        ANALYSES_TABLE: !Ref AnalysesTable
+        INVITES_TABLE: !Ref InvitesTable
+        ASSETS_BUCKET: !Ref AssetsBucket
         PIPELINE_STAGE_GSI: PipelineStageIndex
         COGNITO_USER_POOL_ID: !Ref ImportedCognitoUserPoolId
         COGNITO_CLIENT_ID: !Ref ImportedCognitoWebClientId

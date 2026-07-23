@@ -53,7 +53,7 @@ export function PricingPageContent() {
           </p>
           <div className="mt-6 flex flex-wrap justify-center gap-3">
             <Link
-              href="/contact-sales"
+              href="https://www.rapidcortex.us/contact-sales?interest=demo"
               className="inline-flex rounded-lg bg-sky-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-sky-500"
             >
               Contact Support
@@ -65,7 +65,7 @@ export function PricingPageContent() {
               Request RC Lite Access
             </Link>
             <Link
-              href="/contact-sales"
+              href="https://www.rapidcortex.us/contact-sales?interest=demo"
               className="inline-flex rounded-lg border border-slate-600 px-5 py-2.5 text-sm font-medium text-slate-200 hover:bg-slate-800/70"
             >
               Request pilot

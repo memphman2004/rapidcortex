@@ -87,7 +87,7 @@ export default function ProductCorePage() {
               </p>
               <div className="flex flex-wrap gap-3 pt-1">
                 <Link
-                  href="/contact-sales?interest=demo"
+                  href="https://www.rapidcortex.us/contact-sales?interest=demo"
                   className="inline-flex min-h-12 items-center justify-center rounded-lg bg-sky-600 px-6 py-3 text-sm font-semibold text-white shadow-lg shadow-sky-950/40 hover:bg-sky-500"
                 >
                   Request a Demo

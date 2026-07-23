@@ -14,7 +14,7 @@ import {
 } from "@/lib/marketing-links";
 import { MarketingPilotResourcesStrip } from "@/components/marketing/pilot-resources-strip";
 import { SITE_MISSION, SITE_NAME, SITE_SLOGAN } from "@/lib/site";
-import { absoluteUrl, buildOrganizationJsonLd, buildWebsiteJsonLd } from "@/lib/seo";
+import { absoluteUrl, buildOrganizationJsonLd, buildWebsiteJsonLd, buildOgShareImage } from "@/lib/seo";
 
 export async function generateMetadata(): Promise<Metadata> {
   return {
@@ -33,14 +33,14 @@ export async function generateMetadata(): Promise<Metadata> {
       description: "Intelligence at the speed of response.",
       url: absoluteUrl("/"),
       siteName: "Rapid Cortex",
-      images: [{ url: absoluteUrl("/api/og"), width: 1200, height: 630, alt: "Rapid Cortex home" }],
+      images: [buildOgShareImage("Rapid Cortex home")],
       type: "website",
     },
     twitter: {
       card: "summary_large_image",
       title: "Home | Rapid Cortex",
       description: "Intelligence at the speed of response.",
-      images: [absoluteUrl("/api/og")],
+      images: [{ url: buildOgShareImage().url, alt: buildOgShareImage().alt }],
     },
     alternates: { canonical: absoluteUrl("/") },
   };

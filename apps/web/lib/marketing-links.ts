@@ -89,19 +89,22 @@ export function marketingTrustPath(): string {
 }
 
 export function marketingContactPath(): string {
-  return "/contact";
+  /** All “Contact us” CTAs land on the CRM sales form. */
+  return marketingDemoRequestPath("demo");
 }
 
 /** Sales-qualified conversations (pricing, integrations, pilots). */
 export function marketingContactSalesPath(): string {
-  return "/contact-sales";
+  // Absolute URL avoids Next `trailingSlash` rewriting to `/contact-sales/?…`
+  // (CloudFront/S3 serves the homepage error document for that path).
+  return `${marketingSiteOrigin()}/contact-sales`;
 }
 
-/** Public demo / sales intake form (same-origin). */
-export function marketingDemoRequestPath(interest?: string): string {
+/** Public demo / sales intake form. Defaults to `interest=demo` for CRM. */
+export function marketingDemoRequestPath(interest = "demo"): string {
   const base = marketingContactSalesPath();
-  if (!interest?.trim()) return base;
-  return `${base}?interest=${encodeURIComponent(interest.trim())}`;
+  const q = interest.trim() || "demo";
+  return `${base}?interest=${encodeURIComponent(q)}`;
 }
 
 /** Demo / appointment CTA — contact-sales form (not external calendaring). */

@@ -12,10 +12,11 @@ import {
   SECURITY_PAGE_METADATA,
   TRUST_PILLARS,
 } from "@/lib/trust-security-content";
-import { absoluteUrl } from "@/lib/seo";
+import { absoluteUrl, buildOgShareImage } from "@/lib/seo";
 
 export async function generateMetadata(): Promise<Metadata> {
   const { title, description, keywords, openGraphImageAlt } = SECURITY_PAGE_METADATA;
+  const shareImage = buildOgShareImage(openGraphImageAlt);
   return {
     title,
     description,
@@ -25,14 +26,14 @@ export async function generateMetadata(): Promise<Metadata> {
       description,
       url: absoluteUrl("/security"),
       siteName: "Rapid Cortex",
-      images: [{ url: absoluteUrl("/api/og"), width: 1200, height: 630, alt: openGraphImageAlt }],
+      images: [shareImage],
       type: "website",
     },
     twitter: {
       card: "summary_large_image",
       title,
       description,
-      images: [absoluteUrl("/api/og")],
+      images: [{ url: shareImage.url, alt: shareImage.alt }],
     },
     alternates: { canonical: absoluteUrl("/security") },
   };
