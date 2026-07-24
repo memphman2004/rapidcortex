@@ -515,38 +515,33 @@ export function LoginForm({
   const authReady = signInConfigured ?? isAuthConfigured();
   if (!authReady) {
     return (
-      <div className="w-full max-w-md rounded-lg border border-amber-900/40 bg-slate-900/60 p-6 shadow-lg lg:max-w-lg">
-        <h1 className="text-lg font-semibold text-white">Sign-in is not available on this host yet</h1>
-        <p className="mt-2 text-sm text-slate-400">
+      <div className="rc-login-card">
+        <div className="rc-login-card__header">
+          <h1 className="rc-login-card__title">Sign-in is not available on this host yet</h1>
+        </div>
+        <p className="rc-login-note">
           Ask your deployment operator or Rapid Cortex administrator to finish secure sign-in configuration. If you need
           access or a pilot workspace, reach out and we will help route you to the correct environment.
         </p>
-        <ul className="mt-4 flex flex-col gap-2 text-sm text-sky-400/90">
-          <li>
-            <Link href={marketingHomePath()} className="hover:text-sky-300 hover:underline">
-              Home
-            </Link>
-          </li>
-          <li>
-            <Link href={marketingContactPath()} className="hover:text-sky-300 hover:underline">
-              Contact us
-            </Link>
-          </li>
-          <li>
+        <div className="rc-login-card__footer">
+          <div className="rc-login-card__links">
+            <Link href={marketingHomePath()}>Home</Link>
+            <span className="rc-login-card__links-sep" aria-hidden>
+              ·
+            </span>
+            <Link href={marketingContactPath()}>Contact us</Link>
+            <span className="rc-login-card__links-sep" aria-hidden>
+              ·
+            </span>
+            {signupEnabled ? <Link href={marketingSignupPath()}>Sign up</Link> : null}
             {signupEnabled ? (
-              <Link href={marketingSignupPath()} className="hover:text-sky-300 hover:underline">
-                Create account (sign up)
-              </Link>
-            ) : (
-              "Account provisioning is staff/admin-managed."
-            )}
-          </li>
-          <li>
-            <Link href={marketingPricingPath()} className="hover:text-sky-300 hover:underline">
-              Plans
-            </Link>
-          </li>
-        </ul>
+              <span className="rc-login-card__links-sep" aria-hidden>
+                ·
+              </span>
+            ) : null}
+            <Link href={marketingPricingPath()}>Plans</Link>
+          </div>
+        </div>
       </div>
     );
   }
@@ -564,173 +559,181 @@ export function LoginForm({
       ? `otpauth://totp/${encodeURIComponent("Rapid Cortex")}:${encodeURIComponent(challengeUsername)}?secret=${encodeURIComponent(totpSecret)}&issuer=${encodeURIComponent("Rapid Cortex")}`
       : null;
 
+  const cardTitle = inNewPassword
+    ? "Set a new password"
+    : inMfaSetup
+      ? "Set up authenticator (required)"
+      : inEmailOtp
+        ? "Enter email verification code"
+        : inMfaLogin
+          ? activeChallenge === "SMS_MFA"
+            ? "Enter SMS code"
+            : "Enter authenticator code"
+          : inForgotConfirm
+            ? "Reset your password"
+            : inForgotRequest
+              ? "Forgot password"
+              : "Sign in";
+
+  const cardNote = inNewPassword
+    ? "Your account requires a new password before you can continue to your secure workspace."
+    : inMfaSetup
+      ? "Rapid Cortex requires two-factor authentication. Add this account to an app such as Google Authenticator or 1Password, then enter the 6-digit code."
+      : inEmailOtp
+        ? "A one-time code was sent to your account email. Enter it below to finish signing in."
+        : inMfaLogin
+          ? activeChallenge === "SMS_MFA"
+            ? "Enter the one-time code sent to your phone."
+            : "Open your authenticator app and enter the current 6-digit code."
+          : inForgotConfirm
+            ? "Enter the verification code from your email and choose a new password that meets the requirements below."
+            : inForgotRequest
+              ? "Enter the email you use to sign in. If an account exists, we will send a verification code."
+              : "Your account is configured by your administrator with the correct organization and permissions so operational data stays aligned to your agency.";
+
   return (
-    <div className="w-full rounded-lg border border-slate-800/90 bg-slate-900/70 p-6 shadow-lg lg:p-7">
-      <h1 className="text-lg font-semibold text-white">
-        {inNewPassword
-          ? "Set a new password"
-          : inMfaSetup
-            ? "Set up authenticator (required)"
-            : inEmailOtp
-              ? "Enter email verification code"
-              : inMfaLogin
-                ? activeChallenge === "SMS_MFA"
-                  ? "Enter SMS code"
-                  : "Enter authenticator code"
-                : inForgotConfirm
-                  ? "Reset your password"
-                  : inForgotRequest
-                    ? "Forgot password"
-                    : "Sign in"}
-      </h1>
-      <p className="mt-1 text-sm text-slate-400">
-        {inNewPassword
-          ? "Your account requires a new password before you can continue to your secure workspace."
-          : inMfaSetup
-            ? "Rapid Cortex requires two-factor authentication. Add this account to an app such as Google Authenticator or 1Password, then enter the 6-digit code."
-            : inEmailOtp
-              ? "A one-time code was sent to your account email. Enter it below to finish signing in."
-              : inMfaLogin
-                ? activeChallenge === "SMS_MFA"
-                  ? "Enter the one-time code sent to your phone."
-                  : "Open your authenticator app and enter the current 6-digit code."
-                : inForgotConfirm
-                  ? "Enter the verification code from your email and choose a new password that meets the requirements below."
-                  : inForgotRequest
-                    ? "Enter the email you use to sign in. If an account exists, we will send a verification code."
-                    : "Your account is configured by your administrator with the correct organization and permissions so operational data stays aligned to your agency."}
-      </p>
+    <div className="rc-login-card">
+      <div className="rc-login-card__header">
+        <h1 className="rc-login-card__title">{cardTitle}</h1>
+        {!inNewPassword && !inMfaSetup && !inMfaLogin && !inEmailOtp && !inForgotRequest && !inForgotConfirm ? (
+          <div className="rc-login-secure-badge">
+            <span className="rc-login-secure-badge__dot" aria-hidden />
+            <span className="rc-login-secure-badge__label">Secure</span>
+          </div>
+        ) : null}
+      </div>
+
+      <p className="rc-login-note">{cardNote}</p>
+
       {!inNewPassword && !inMfaSetup && !inMfaLogin && (justConfirmed || justVerified) ? (
-        <p className="mt-3 rounded-md border border-emerald-900/50 bg-emerald-950/30 px-3 py-2 text-xs text-emerald-300">
+        <p className="rc-login-banner-success">
           {justConfirmed
             ? "Email confirmed. You can sign in now."
             : "Account verified. You can sign in now."}
         </p>
       ) : null}
       {!inNewPassword && !inMfaSetup && !inMfaLogin && passwordResetNoticeVisible ? (
-        <p className="mt-3 rounded-md border border-emerald-900/50 bg-emerald-950/30 px-3 py-2 text-xs text-emerald-300">
+        <p className="rc-login-banner-success">
           Password reset successfully. Please sign in with your new password.
         </p>
       ) : null}
       {sessionNotice === "dashboard_required" ? (
-        <p className="mt-3 rounded-md border border-amber-900/50 bg-amber-950/30 px-3 py-2 text-xs text-amber-200">
+        <p className="rc-login-banner-warn">
           Your account does not currently have Rapid Cortex dashboard access. Contact your agency administrator or Rapid
           Cortex support.
         </p>
       ) : null}
       {sessionNotice === "rc_lite_portal" ? (
-        <p className="mt-3 rounded-md border border-sky-900/50 bg-sky-950/30 px-3 py-2 text-xs text-sky-200">
+        <p className="rc-login-banner-info">
           Your account has RC Lite API access. Use the RC Lite portal to manage API clients, usage, webhooks, and
           documentation.
         </p>
       ) : null}
       {sessionNotice === "no_product" ? (
-        <p className="mt-3 rounded-md border border-slate-700 bg-slate-950/50 px-3 py-2 text-xs text-slate-300">
+        <p className="rc-login-banner-info">
           Your account is active, but no product access has been assigned yet.
         </p>
       ) : null}
-      <form className="mt-6 flex flex-col gap-4" noValidate onSubmit={onSubmit}>
+
+      <form noValidate onSubmit={onSubmit}>
         {!inNewPassword && !inMfaSetup && !inMfaLogin && !inEmailOtp && !inForgotRequest && !inForgotConfirm ? (
           <>
-            <label className="flex flex-col gap-1 text-sm">
-              <span className="text-slate-300">Email</span>
+            <label className="rc-login-field">
+              <span className="rc-login-label">Email</span>
               <input
                 type="email"
                 autoComplete="username"
                 required
+                placeholder="you@agency.gov"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="rounded-md border border-slate-700 bg-slate-950 px-3 py-2 text-slate-100 outline-none ring-sky-500 focus:ring-2"
+                className="rc-login-input"
               />
             </label>
-            <label className="flex flex-col gap-1 text-sm">
-              <span className="text-slate-300">Password</span>
-              <div className="relative">
+            <label className="rc-login-field">
+              <span className="rc-login-label">Password</span>
+              <div className="rc-login-password-wrap">
                 <input
                   type={showPassword ? "text" : "password"}
                   autoComplete="current-password"
                   required
+                  placeholder="••••••••••••"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="w-full rounded-md border border-slate-700 bg-slate-950 py-2 pl-3 pr-10 text-slate-100 outline-none ring-sky-500 focus:ring-2"
+                  className="rc-login-input rc-login-input--password"
                 />
                 <button
                   type="button"
                   aria-label={showPassword ? "Hide password" : "Show password"}
                   onClick={() => setShowPassword((v) => !v)}
-                  className="absolute right-2 top-1/2 -translate-y-1/2 border-0 bg-transparent p-1 text-slate-500 hover:text-slate-400 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sky-500"
+                  className="rc-login-password-toggle"
                 >
-                  {showPassword ? <EyeOff className="h-4 w-4 shrink-0" aria-hidden /> : <Eye className="h-4 w-4 shrink-0" aria-hidden />}
+                  {showPassword ? (
+                    <EyeOff className="h-4 w-4 shrink-0" aria-hidden />
+                  ) : (
+                    <Eye className="h-4 w-4 shrink-0" aria-hidden />
+                  )}
                 </button>
               </div>
             </label>
-            <div className="flex flex-col items-end gap-1">
-              <button
-                type="button"
-                className="text-xs text-sky-400 hover:text-sky-300 hover:underline"
-                onClick={() => {
-                  setForgotStep("request");
-                  setForgotInfoMessage(null);
-                  setForgotCode("");
-                  setForgotNewPassword("");
-                  setForgotNewPasswordConfirm("");
-                  setError(null);
-                }}
-              >
-                Forgot password?
-              </button>
-              <p className="max-w-sm text-right text-[11px] leading-snug text-slate-500">
-                Forgot password? Reset your password through secure agency sign-in.
-              </p>
-            </div>
+            <button
+              type="button"
+              className="rc-login-forgot"
+              onClick={() => {
+                setForgotStep("request");
+                setForgotInfoMessage(null);
+                setForgotCode("");
+                setForgotNewPassword("");
+                setForgotNewPasswordConfirm("");
+                setError(null);
+              }}
+            >
+              Forgot password?
+            </button>
           </>
         ) : null}
 
         {inForgotRequest ? (
-          <label className="flex flex-col gap-1 text-sm">
-            <span className="text-slate-300">Email</span>
+          <label className="rc-login-field">
+            <span className="rc-login-label">Email</span>
             <input
               type="email"
               autoComplete="username"
               required
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="rounded-md border border-slate-700 bg-slate-950 px-3 py-2 text-slate-100 outline-none ring-sky-500 focus:ring-2"
+              className="rc-login-input"
             />
           </label>
         ) : null}
 
         {inForgotConfirm ? (
           <>
-            {forgotInfoMessage ? (
-              <p className="rounded-md border border-sky-900/50 bg-sky-950/30 px-3 py-2 text-xs text-sky-200">
-                {forgotInfoMessage}
-              </p>
-            ) : null}
-            <label className="flex flex-col gap-1 text-sm">
-              <span className="text-slate-300">Email</span>
+            {forgotInfoMessage ? <p className="rc-login-banner-info">{forgotInfoMessage}</p> : null}
+            <label className="rc-login-field">
+              <span className="rc-login-label">Email</span>
               <input
                 type="email"
                 autoComplete="username"
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="rounded-md border border-slate-700 bg-slate-950 px-3 py-2 text-slate-100 outline-none ring-sky-500 focus:ring-2"
+                className="rc-login-input"
               />
             </label>
-            <label className="flex flex-col gap-1 text-sm">
-              <span className="text-slate-300">Verification code</span>
+            <label className="rc-login-field">
+              <span className="rc-login-label">Verification code</span>
               <input
                 type="text"
                 autoComplete="one-time-code"
                 required
                 value={forgotCode}
                 onChange={(e) => setForgotCode(e.target.value)}
-                className="rounded-md border border-slate-700 bg-slate-950 px-3 py-2 text-slate-100 outline-none ring-sky-500 focus:ring-2"
+                className="rc-login-input"
               />
             </label>
-            <label className="flex flex-col gap-1 text-sm">
-              <span className="text-slate-300">New password</span>
+            <label className="rc-login-field">
+              <span className="rc-login-label">New password</span>
               <input
                 type="password"
                 autoComplete="new-password"
@@ -738,11 +741,11 @@ export function LoginForm({
                 minLength={12}
                 value={forgotNewPassword}
                 onChange={(e) => setForgotNewPassword(e.target.value)}
-                className="rounded-md border border-slate-700 bg-slate-950 px-3 py-2 text-slate-100 outline-none ring-sky-500 focus:ring-2"
+                className="rc-login-input"
               />
             </label>
-            <label className="flex flex-col gap-1 text-sm">
-              <span className="text-slate-300">Confirm new password</span>
+            <label className="rc-login-field">
+              <span className="rc-login-label">Confirm new password</span>
               <input
                 type="password"
                 autoComplete="new-password"
@@ -750,20 +753,20 @@ export function LoginForm({
                 minLength={12}
                 value={forgotNewPasswordConfirm}
                 onChange={(e) => setForgotNewPasswordConfirm(e.target.value)}
-                className="rounded-md border border-slate-700 bg-slate-950 px-3 py-2 text-slate-100 outline-none ring-sky-500 focus:ring-2"
+                className="rc-login-input"
               />
             </label>
-            <p className="text-xs text-slate-500">{COGNITO_PASSWORD_REQUIREMENTS}</p>
+            <p className="rc-login-hint">{COGNITO_PASSWORD_REQUIREMENTS}</p>
           </>
         ) : null}
 
         {inNewPassword ? (
           <>
-            <p className="text-xs text-slate-500">
-              Account: <span className="font-mono text-slate-300">{challengeUsername}</span>
+            <p className="rc-login-hint">
+              Account: <span className="font-mono text-[#e2ecf8]">{challengeUsername}</span>
             </p>
-            <label className="flex flex-col gap-1 text-sm">
-              <span className="text-slate-300">New password</span>
+            <label className="rc-login-field">
+              <span className="rc-login-label">New password</span>
               <input
                 type="password"
                 autoComplete="new-password"
@@ -771,11 +774,11 @@ export function LoginForm({
                 minLength={12}
                 value={newPassword}
                 onChange={(e) => setNewPassword(e.target.value)}
-                className="rounded-md border border-slate-700 bg-slate-950 px-3 py-2 text-slate-100 outline-none ring-sky-500 focus:ring-2"
+                className="rc-login-input"
               />
             </label>
-            <label className="flex flex-col gap-1 text-sm">
-              <span className="text-slate-300">Confirm new password</span>
+            <label className="rc-login-field">
+              <span className="rc-login-label">Confirm new password</span>
               <input
                 type="password"
                 autoComplete="new-password"
@@ -783,7 +786,7 @@ export function LoginForm({
                 minLength={12}
                 value={newPasswordConfirm}
                 onChange={(e) => setNewPasswordConfirm(e.target.value)}
-                className="rounded-md border border-slate-700 bg-slate-950 px-3 py-2 text-slate-100 outline-none ring-sky-500 focus:ring-2"
+                className="rc-login-input"
               />
             </label>
           </>
@@ -791,30 +794,32 @@ export function LoginForm({
 
         {inMfaSetup ? (
           <>
-            <p className="text-xs text-slate-500">
-              Account: <span className="font-mono text-slate-300">{challengeUsername}</span>
+            <p className="rc-login-hint">
+              Account: <span className="font-mono text-[#e2ecf8]">{challengeUsername}</span>
             </p>
             {associateError ? (
-              <p className="text-sm text-rose-400">{associateError}</p>
+              <p className="rc-login-banner-error">{associateError}</p>
             ) : totpSecret ? (
               <>
-                <p className="text-xs text-slate-400">
-                  Add this account in Google Authenticator, 1Password, or another TOTP app—use the button on your phone or enter the secret manually.
+                <p className="rc-login-note">
+                  Add this account in Google Authenticator, 1Password, or another TOTP app—use the button on your phone
+                  or enter the secret manually.
                 </p>
                 {otpauthUrl ? (
                   <a
                     href={otpauthUrl}
-                    className="rounded-md border border-sky-800 bg-sky-950/40 px-3 py-2 text-center text-sm font-medium text-sky-200 hover:bg-sky-900/50"
+                    className="rc-login-submit"
+                    style={{ display: "block", textAlign: "center", textDecoration: "none", marginTop: 0, marginBottom: 17 }}
                   >
                     Open in authenticator app
                   </a>
                 ) : null}
-                <label className="flex flex-col gap-1 font-mono text-xs text-slate-400">
-                  Secret (manual entry)
-                  <input readOnly value={totpSecret} className="rounded border border-slate-700 bg-slate-950 px-2 py-1 text-slate-200" />
+                <label className="rc-login-field">
+                  <span className="rc-login-label">Secret (manual entry)</span>
+                  <input readOnly value={totpSecret} className="rc-login-input font-mono text-xs" />
                 </label>
-                <label className="flex flex-col gap-1 text-sm">
-                  <span className="text-slate-300">6-digit code</span>
+                <label className="rc-login-field">
+                  <span className="rc-login-label">6-digit code</span>
                   <input
                     inputMode="numeric"
                     autoComplete="one-time-code"
@@ -823,25 +828,23 @@ export function LoginForm({
                     required
                     value={totpCode}
                     onChange={(e) => setTotpCode(e.target.value.replace(/\D/g, ""))}
-                    className="rounded-md border border-slate-700 bg-slate-950 px-3 py-2 text-slate-100 outline-none ring-sky-500 focus:ring-2"
+                    className="rc-login-input"
                   />
                 </label>
               </>
             ) : (
-              <p className="text-sm text-slate-400">Preparing authenticator setup…</p>
+              <p className="rc-login-hint">Preparing authenticator setup…</p>
             )}
           </>
         ) : null}
 
         {inEmailOtp || inMfaLogin ? (
           <>
-            <p className="text-xs text-slate-500">
-              Account: <span className="font-mono text-slate-300">{challengeUsername}</span>
+            <p className="rc-login-hint">
+              Account: <span className="font-mono text-[#e2ecf8]">{challengeUsername}</span>
             </p>
-            <label className="flex flex-col gap-1 text-sm">
-              <span className="text-slate-300">
-                {inEmailOtp ? "Email code" : "Verification code"}
-              </span>
+            <label className="rc-login-field">
+              <span className="rc-login-label">{inEmailOtp ? "Email code" : "Verification code"}</span>
               <input
                 inputMode={inEmailOtp ? "text" : "numeric"}
                 autoComplete="one-time-code"
@@ -850,21 +853,20 @@ export function LoginForm({
                 required
                 value={mfaLoginCode}
                 onChange={(e) =>
-                  setMfaLoginCode(
-                    inEmailOtp ? e.target.value.trim() : e.target.value.replace(/\D/g, ""),
-                  )
+                  setMfaLoginCode(inEmailOtp ? e.target.value.trim() : e.target.value.replace(/\D/g, ""))
                 }
-                className="rounded-md border border-slate-700 bg-slate-950 px-3 py-2 text-slate-100 outline-none ring-sky-500 focus:ring-2"
+                className="rc-login-input"
               />
             </label>
           </>
         ) : null}
 
         {error ? (
-          <p className="text-sm text-rose-400" role="alert" aria-live="polite">
+          <p className="rc-login-banner-error" role="alert" aria-live="polite">
             {error}
           </p>
         ) : null}
+
         <button
           type="submit"
           disabled={
@@ -874,7 +876,7 @@ export function LoginForm({
             (inForgotConfirm &&
               (!forgotCode.trim() || !forgotNewPassword.trim() || !forgotNewPasswordConfirm.trim()))
           }
-          className="rounded-md bg-sky-600 py-2 text-sm font-medium text-white hover:bg-sky-500 disabled:opacity-50"
+          className="rc-login-submit"
         >
           {submitting
             ? "Working…"
@@ -890,10 +892,11 @@ export function LoginForm({
                       ? "Send verification code"
                       : "Sign in"}
         </button>
+
         {activeChallenge || inForgotRequest || inForgotConfirm ? (
           <button
             type="button"
-            className="text-xs text-slate-500 underline hover:text-slate-300"
+            className="rc-login-back"
             onClick={() => {
               resetChallenges();
               resetForgotPassword();
@@ -903,6 +906,7 @@ export function LoginForm({
             Back to sign in
           </button>
         ) : null}
+
         {process.env.NODE_ENV !== "production" ? (
           <div className="mt-6 rounded-md border border-amber-900/40 bg-slate-950/80 p-3 font-mono text-[10px] leading-relaxed text-amber-100/90">
             <div className="font-semibold text-amber-200">Auth debug (dev only)</div>
@@ -913,36 +917,31 @@ export function LoginForm({
             <div className="break-all">last error: {authDbg.lastError}</div>
           </div>
         ) : null}
+
         {!activeChallenge && !inForgotRequest && !inForgotConfirm ? (
-          <p className="mt-6 text-center text-xs text-slate-500">
-            Need an account?{" "}
-            {signupEnabled ? (
-              <>
-                <Link href={marketingSignupPath()} className="text-sky-400 hover:text-sky-300">
-                  Sign up
-                </Link>
-                {" · "}
-              </>
-            ) : (
-              "Contact your admin · "
-            )}
-            <Link href={marketingPricingPath()} className="text-sky-400 hover:text-sky-300">
-              Plans
-            </Link>
-            {" · "}
-            <Link href={marketingHomePath()} className="text-sky-400 hover:text-sky-300">
-              Home
-            </Link>
-            {" · "}
-            <a
-              href={marketingRingCustomersPath()}
-              className="text-sky-400 hover:text-sky-300"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              Ring customers
-            </a>
-          </p>
+          <div className="rc-login-card__footer">
+            <p className="rc-login-card__account-note">
+              Need an account?{" "}
+              {signupEnabled ? (
+                <Link href={marketingSignupPath()}>Sign up</Link>
+              ) : (
+                <Link href={marketingContactPath()}>Contact your admin</Link>
+              )}
+            </p>
+            <div className="rc-login-card__links">
+              <Link href={marketingPricingPath()}>Plans</Link>
+              <span className="rc-login-card__links-sep" aria-hidden>
+                ·
+              </span>
+              <Link href={marketingHomePath()}>Home</Link>
+              <span className="rc-login-card__links-sep" aria-hidden>
+                ·
+              </span>
+              <a href={marketingRingCustomersPath()} target="_blank" rel="noopener noreferrer">
+                Ring customers
+              </a>
+            </div>
+          </div>
         ) : null}
       </form>
     </div>

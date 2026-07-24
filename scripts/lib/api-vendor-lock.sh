@@ -2,7 +2,14 @@
 # Serialize mutations to apps/api vendor-packs + package.json (web zip vs SAM lean deploy).
 set -euo pipefail
 
-RC_API_VENDOR_LOCK="${RC_API_VENDOR_LOCK:-${1:-/tmp/rapid-cortex-api-vendor.lock}}"
+# When this file is *sourced*, $1 is the caller's arg (e.g. "prod" from
+# package-web-source.sh) — never treat that as a lock path. Only honor $1 when
+# this script is executed directly.
+if [[ "${BASH_SOURCE[0]}" == "$0" ]]; then
+  RC_API_VENDOR_LOCK="${RC_API_VENDOR_LOCK:-${1:-/tmp/rapid-cortex-api-vendor.lock}}"
+else
+  RC_API_VENDOR_LOCK="${RC_API_VENDOR_LOCK:-/tmp/rapid-cortex-api-vendor.lock}"
+fi
 
 _rc_has_flock() {
   command -v flock >/dev/null 2>&1

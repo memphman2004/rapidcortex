@@ -22,6 +22,17 @@ function withAppOrigin(path: string): string {
   return `${origin}${path.startsWith("/") ? path : `/${path}`}`;
 }
 
+/**
+ * Public marketing pages live on www when {@link marketingAppOrigin} is set.
+ * On the app host, `/` middleware-redirects to `/login`, so relative home links loop.
+ */
+function withMarketingOrigin(path: string): string {
+  const normalized = path.startsWith("/") ? path : `/${path}`;
+  if (!marketingAppOrigin()) return normalized === "/" ? "/" : normalized;
+  const origin = marketingSiteOrigin();
+  return normalized === "/" ? `${origin}/` : `${origin}${normalized}`;
+}
+
 /** Canonical product sign-in — app subdomain when {@link marketingAppOrigin} is set. */
 export function marketingLoginPath(): string {
   return withAppOrigin("/login");
@@ -31,9 +42,9 @@ export function marketingDashboardPath(): string {
   return withAppOrigin(`/${defaultJurisdictionSlug()}/dashboard`);
 }
 
-/** Marketing site routes (same origin as the Next.js app). */
+/** Marketing homepage (www when app/marketing hosts are split). */
 export function marketingHomePath(): string {
-  return "/";
+  return withMarketingOrigin("/");
 }
 
 /** Marketing site origin when app runs on `app.*` (defaults to www). */
@@ -53,7 +64,7 @@ export function marketingSignupPath(): string {
 }
 
 export function marketingPricingPath(): string {
-  return "/pricing";
+  return withMarketingOrigin("/pricing");
 }
 
 /** Public product demo (embedded video + live demo request). */
