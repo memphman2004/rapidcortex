@@ -102,7 +102,7 @@ export function AgencyInvoicesPanel() {
             <tbody>
               {invoices.map((inv, i) => {
                 const badge = statusLabel(inv.state);
-                const pdfHref = `/api/backend/api/billing/invoices/${encodeURIComponent(inv.invoiceId)}/pdf?agencyId=${encodeURIComponent(agencyId)}`;
+                const pdfHref = `/api/backend/api/billing/invoices/${encodeURIComponent(inv.invoiceId)}/pdf?agencyId=${encodeURIComponent(agencyId)}&refresh=1`;
                 return (
                   <tr
                     key={inv.invoiceId}

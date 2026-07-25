@@ -82,8 +82,9 @@ export function getAiRuntimeConfig(): AiRuntimeConfig {
   const openaiModelTertiary =
     process.env.OPENAI_MODEL_TERTIARY?.trim() || openaiModelSecondary;
 
+  // Claude 3.5 Haiku retired 2026-02-19 — default to Haiku 4.5.
   const anthropicModelPrimary =
-    process.env.ANTHROPIC_MODEL_PRIMARY?.trim() || "claude-3-5-haiku-20241022";
+    process.env.ANTHROPIC_MODEL_PRIMARY?.trim() || "claude-haiku-4-5-20251001";
   const anthropicModelSecondary =
     process.env.ANTHROPIC_MODEL_SECONDARY?.trim() || anthropicModelPrimary;
   const anthropicModelTertiary =
@@ -91,8 +92,10 @@ export function getAiRuntimeConfig(): AiRuntimeConfig {
 
   const bedrockRegion =
     process.env.BEDROCK_REGION?.trim() || process.env.AWS_REGION?.trim() || "us-east-1";
+  // Prefer US inference profile id (required for on-demand Haiku 4.5 on Bedrock).
   const bedrockModelPrimary =
-    process.env.BEDROCK_MODEL_PRIMARY?.trim() || "anthropic.claude-3-5-haiku-20241022-v1:0";
+    process.env.BEDROCK_MODEL_PRIMARY?.trim() ||
+    "us.anthropic.claude-haiku-4-5-20251001-v1:0";
   const bedrockModelSecondary =
     process.env.BEDROCK_MODEL_SECONDARY?.trim() || bedrockModelPrimary;
   const bedrockModelTertiary =
@@ -105,7 +108,7 @@ export function getAiRuntimeConfig(): AiRuntimeConfig {
     tertiaryProvider: normalizeKind(tertiaryFromLegacy, "off"),
     enableFallbacks: boolEnv("AI_ENABLE_FALLBACKS", true),
     storeProviderMetadata: boolEnv("AI_STORE_PROVIDER_METADATA", true),
-    promptVersion: process.env.AI_PROMPT_VERSION?.trim() || "dispatch-triage-v1",
+    promptVersion: process.env.AI_PROMPT_VERSION?.trim() || "dispatch-triage-v2",
     requestTimeoutMs: Math.max(5_000, intEnv("AI_REQUEST_TIMEOUT_MS", 55_000)),
     maxRetriesPerProvider: Math.max(0, Math.min(5, intEnv("AI_MAX_RETRIES_PER_PROVIDER", 1))),
     analysisDebounceSeconds: Math.max(0, intEnv("AI_ANALYSIS_DEBOUNCE_SECONDS", 0)),
@@ -200,7 +203,7 @@ export function assertProductionAiConfigHealthy(cfg: AiRuntimeConfig): void {
       retryable: false,
       httpStatus: 503,
       publicMessage:
-        "Staging/pilot/production AI is set to mock/off only. Set PRIMARY_PROVIDER (e.g. bedrock) and IAM/secrets, or set AI_ALLOW_MOCK_ONLY_IN_PROD=true for isolated sandboxes.",
+        "Staging/pilot/production AI is set to mock/off only. Set PRIMARY_PROVIDER (e.g. anthropic) and IAM/secrets, or set AI_ALLOW_MOCK_ONLY_IN_PROD=true for isolated sandboxes.",
     });
   }
 

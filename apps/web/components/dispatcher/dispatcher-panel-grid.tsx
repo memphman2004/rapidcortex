@@ -29,6 +29,7 @@ export const DISPATCHER_PANEL_DEFS: PanelDef[] = [
   { id: "pinpoint", defaultWide: true },
   { id: "location", defaultWide: false },
   { id: "premise_notes", defaultWide: false },
+  { id: "ng911_assist", defaultWide: true },
 ];
 
 const PANEL_META: Record<
@@ -47,6 +48,7 @@ const PANEL_META: Record<
   pinpoint: { title: "RAPID CORTEX PINPOINT", accentColor: "#3b82f6", helpTopic: "pinpoint" },
   location: { title: "LOCATION", accentColor: "#8b5cf6" },
   premise_notes: { title: "PREMISE NOTES", accentColor: "#f59e0b" },
+  ng911_assist: { title: "NG9-1-1 ASSIST", accentColor: "#0ea5e9", badge: "CRISIS / EIDO", badgeColor: "#f59e0b" },
 };
 
 export type PanelContentMap = Partial<Record<string, ReactNode>>;

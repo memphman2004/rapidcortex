@@ -13,6 +13,10 @@ export class BillingAuditService {
     userId: string,
     details: BillingAuditDetails = {},
   ): Promise<void> {
+    if (!env.billingAuditLogTable?.trim()) {
+      console.warn("[BillingAuditService] BILLING_AUDIT_LOG_TABLE is not configured; skipping audit write");
+      return;
+    }
     const now = new Date().toISOString();
     await ddb.send(
       new PutCommand({

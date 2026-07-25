@@ -73,7 +73,7 @@ export const RC_SUPERADMIN_NAV: RoleNav = {
       label: "BUSINESS",
       items: [
         { id: "billing",   label: "Billing",           href: "/rc-admin/billing",       icon: "CreditCard" },
-        { id: "pricing",   label: "Pricing config",    href: "/rc-admin/pricing",       icon: "Tag" },
+        { id: "pricing",   label: "Pricing Menu",    href: "/rc-admin/pricing",       icon: "Tag" },
         { id: "invoices",  label: "Invoices",          href: "/rc-admin/invoices",      icon: "Receipt" },
         { id: "catalog",   label: "Service Catalog",   href: "/rc-admin/billing/services", icon: "Package" },
         { id: "agreements",label: "Agreements",        href: "/rc-admin/agreements",    icon: "FileSignature" },
@@ -326,6 +326,8 @@ export function getSupervisorNav(jurisdiction: string): RoleNav {
             feature: "qaScoringEnabled" },
           { id: "team",          label: "Team Performance",href: `${j}/supervisor/team-performance`, icon: "Users" },
           { id: "reports",       label: "Reports",         href: `${j}/supervisor/reports`, icon: "BarChart3" },
+          { id: "ng911-metrics", label: "NG9-1-1 Metrics", href: `${j}/admin/ng911/metrics`, icon: "BarChart3",
+            feature: "ng911Assist" },
         ],
       },
       {
@@ -379,6 +381,10 @@ export function getAgencyAdminNav(jurisdiction: string): RoleNav {
             feature: "slaBacklog" },
           { id: "channels",      label: "Channels & Talk Groups", href: `${j}/admin/settings/channels`, icon: "Radio",
             feature: "channelMonitoring" },
+          { id: "diversion",     label: "Diversion",       href: `${j}/admin/ng911/diversion`, icon: "MessageSquare",
+            feature: "ng911Assist" },
+          { id: "ng911-metrics", label: "NG9-1-1 Metrics", href: `${j}/admin/ng911/metrics`, icon: "BarChart3",
+            feature: "ng911Assist" },
         ],
       },
       {
@@ -427,6 +433,10 @@ export function getAgencyItNav(jurisdiction: string): RoleNav {
             feature: "channelMonitoring" },
           { id: "api-keys",      label: "API Keys",        href: `${j}/admin/api-keys`,     icon: "Key" },
           { id: "webhooks",      label: "Webhooks",        href: `${j}/admin/webhooks`,     icon: "Webhook" },
+          { id: "diversion",     label: "Diversion",       href: `${j}/admin/ng911/diversion`, icon: "MessageSquare",
+            feature: "ng911Assist" },
+          { id: "ng911-metrics", label: "NG9-1-1 Metrics", href: `${j}/admin/ng911/metrics`, icon: "BarChart3",
+            feature: "ng911Assist" },
         ],
       },
       {

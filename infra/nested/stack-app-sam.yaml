@@ -184,15 +184,17 @@ Parameters:
     Description: custom:role written by PostConfirmation when the user has no role yet.
   QaBedrockModelId:
     Type: String
-    Default: anthropic.claude-3-5-haiku-20241022-v1:0
+    Default: anthropic.claude-haiku-4-5-20251001-v1:0
     Description: >-
       Bedrock foundation model id for automated QA structured JSON scoring (InvokeModel / Converse).
+      Runtime BEDROCK_MODEL_* / QA paths use the US inference profile us.<this-id>.
   AiBedrockFoundationModelId:
     Type: String
-    Default: anthropic.claude-3-5-haiku-20241022-v1:0
+    Default: anthropic.claude-haiku-4-5-20251001-v1:0
     Description: >-
       Bedrock foundation model id for analysis / language paths that call Bedrock (InvokeModel / Converse).
-      IAM and Globals BEDROCK_MODEL_* must match runtime configuration (CJIS: no foundation-model/* wildcard).
+      Runtime BEDROCK_MODEL_* uses us.<this-id> inference profile. IAM allows foundation-model and
+      inference-profile ARNs (CJIS: no foundation-model/* wildcard on the model id).
   IncidentMediaTwilioSecretArn:
     Type: String
     Default: ""
@@ -923,11 +925,11 @@ Mappings:
       Tr2: "mock"
       Tr3: "off"
     staging:
-      PrimaryAi: bedrock
-      SecondaryAi: "off"
-      TertiaryAi: "off"
-      AiFallback: "off"
-      AiSecondaryFallback: "off"
+      PrimaryAi: anthropic
+      SecondaryAi: openai
+      TertiaryAi: bedrock
+      AiFallback: openai
+      AiSecondaryFallback: bedrock
       Lid1: aws
       Lid2: mock
       Lid3: "off"
@@ -938,11 +940,11 @@ Mappings:
       Tr2: "mock"
       Tr3: "off"
     prod:
-      PrimaryAi: bedrock
-      SecondaryAi: "off"
-      TertiaryAi: "off"
-      AiFallback: "off"
-      AiSecondaryFallback: "off"
+      PrimaryAi: anthropic
+      SecondaryAi: openai
+      TertiaryAi: bedrock
+      AiFallback: openai
+      AiSecondaryFallback: bedrock
       Lid1: aws
       Lid2: mock
       Lid3: "off"
@@ -953,11 +955,11 @@ Mappings:
       Tr2: "mock"
       Tr3: "off"
     pilot:
-      PrimaryAi: bedrock
-      SecondaryAi: "off"
-      TertiaryAi: "off"
-      AiFallback: "off"
-      AiSecondaryFallback: "off"
+      PrimaryAi: anthropic
+      SecondaryAi: openai
+      TertiaryAi: bedrock
+      AiFallback: openai
+      AiSecondaryFallback: bedrock
       Lid1: aws
       Lid2: mock
       Lid3: "off"
@@ -997,7 +999,7 @@ Globals:
     Environment:
       Variables:
         RC_RUNTIME_CONFIG_JSON: !Sub
-          - '{"ds":"${DeploymentStage}","trp":"${TranscriptRetentionPolicyDays}","it":"${IncidentsTable}","tt":"${TranscriptsTable}","at":"${AnalysesTable}","aud":"${AuditTable}","dda":"${DataDeletionAuditTable}","drp":"cjis-default-v1","ag":"${AgenciesTable}","iv":"${InvitesTable}","ao":"${AccessOverridesTable}","neo":"${NetworkEmergencyOverridesTable}","ans":"","nae":"false","waf":"${WafArn}","wsc":"REGIONAL","ac":"${ApiClientsTable}","wh":"${WebhooksTable}","erl":"${ExternalApiRateLimitsTable}","rle":"true","rak":"${RcLiteApiKeysTable}","rrl":"${RcLiteRateLimitTable}","rlu":"${RcLiteUsageTable}","sit":"${SeoIntelligenceTable}","ste":"${SeoToolEnabled}","sae":"${SeoAutoScanEnabled}","sai":"${SeoAiSuggestionsEnabled}","det":"${DeceptionEventsTable}","dse":"${PilotDeceptionShield}","dae":"false","dal":"true","ops":"${OpsAlertsTopic}","ej":"${ExternalApiJwtSecretArn}","ek":"${ExternalApiEncryptionKeyArn}","pma":"60","peg":"0","pcf":"true","ab":"${AssetsBucket}","ls":"${LanguageSessionsTable}","aef":"true","asm":"true","apv":"dispatch-triage-v1","art":"55000","amr":"1","adb":"0","amh":"120","asu":"true","ail":"90","oa":"${OpenAiApiKeySecretArn}","aa":"${AnthropicApiKeySecretArn}","aas":"0","aua":"false","aco":"${HttpApiCorsAllowedOrigins}","eqs":"${PilotEnableQaScoring}","eqa":"${PilotEnableQaAfterAnalysis}","qss":"${QASessionsTable}","qts":"${QATemplatesTable}","qsm":"${PilotQaScoringMock}","qbm":"${QaBedrockModelId}","br":"${AWSRegion}","eim":"${PilotEnableIncidentMedia}","imt":"${IncidentMediaTable}","imp":"","imn":"120","imu":"900","imx":"52428800","ent":"${PilotEnableNonEmergencyTriage}","tdn":"${PilotTriageDetectEveryNSegments}","tmk":"${PilotTriageMock}","neq":"${NonEmergencyQueueTable}","efc":"${PilotEnableFieldConfidence}","csn":"${PilotConfidenceScoreEveryNSegments}","csm":"${PilotConfidenceScoringMock}","eps":"${PilotEnablePredictiveStaffing}","psm":"${PilotPredictiveStaffingMock}","sft":"${StaffingForecastTable}","tft":"${TraumaFlagsTable}","pn":"${PremiseNotesTable}","dcn":"${DispatcherCoachingNotesTable}","itl":"${IncidentTimelineTable}","ish":"${IncidentSharesTable}","asp":"${AgencySharePartnersTable}","lp":"${LanguageProvider}","cr":"${AWSRegion}","cwe":"${CadWritebackEnabled}","cwr":"${CadWritebackRequiresApproval}","cwa":"${CadWritebackAuditTable}","bp":"${BillingProfilesTable}","inv":"${InvoicesTable}","ii":"${InvoiceItemsTable}","bae":"${BillingAuditEventsTable}","mao":"${MonetizationAddOnsTable}","minv":"${MonetizationInvoicesTable}","slt":"${SalesLeadsTable}","cfe":"support@rapidcortex.us"}'
+          - '{"ds":"${DeploymentStage}","trp":"${TranscriptRetentionPolicyDays}","it":"${IncidentsTable}","tt":"${TranscriptsTable}","at":"${AnalysesTable}","aud":"${AuditTable}","dda":"${DataDeletionAuditTable}","drp":"cjis-default-v1","ag":"${AgenciesTable}","iv":"${InvitesTable}","ao":"${AccessOverridesTable}","neo":"${NetworkEmergencyOverridesTable}","ans":"","nae":"false","waf":"${WafArn}","wsc":"REGIONAL","ac":"${ApiClientsTable}","wh":"${WebhooksTable}","erl":"${ExternalApiRateLimitsTable}","rle":"true","rak":"${RcLiteApiKeysTable}","rrl":"${RcLiteRateLimitTable}","rlu":"${RcLiteUsageTable}","sit":"${SeoIntelligenceTable}","ste":"${SeoToolEnabled}","sae":"${SeoAutoScanEnabled}","sai":"${SeoAiSuggestionsEnabled}","det":"${DeceptionEventsTable}","dse":"${PilotDeceptionShield}","dae":"false","dal":"true","ops":"${OpsAlertsTopic}","ej":"${ExternalApiJwtSecretArn}","ek":"${ExternalApiEncryptionKeyArn}","pma":"60","peg":"0","pcf":"true","ab":"${AssetsBucket}","ls":"${LanguageSessionsTable}","aef":"true","asm":"true","apv":"dispatch-triage-v2","a1":"${PrimaryAi}","a2":"${SecondaryAi}","a3":"${TertiaryAi}","amp":"claude-haiku-4-5-20251001","omp":"gpt-4o-mini","bmp":"${BedrockModelPrimary}","art":"55000","amr":"1","adb":"0","amh":"120","asu":"true","ail":"90","oa":"${OpenAiApiKeySecretArn}","aa":"${AnthropicApiKeySecretArn}","aas":"0","aua":"false","aco":"${HttpApiCorsAllowedOrigins}","eqs":"${PilotEnableQaScoring}","eqa":"${PilotEnableQaAfterAnalysis}","qss":"${QASessionsTable}","qts":"${QATemplatesTable}","qsm":"${PilotQaScoringMock}","qbm":"${QaBedrockModelId}","br":"${AWSRegion}","eim":"${PilotEnableIncidentMedia}","imt":"${IncidentMediaTable}","imp":"","imn":"120","imu":"900","imx":"52428800","ent":"${PilotEnableNonEmergencyTriage}","tdn":"${PilotTriageDetectEveryNSegments}","tmk":"${PilotTriageMock}","neq":"${NonEmergencyQueueTable}","efc":"${PilotEnableFieldConfidence}","csn":"${PilotConfidenceScoreEveryNSegments}","csm":"${PilotConfidenceScoringMock}","eps":"${PilotEnablePredictiveStaffing}","psm":"${PilotPredictiveStaffingMock}","sft":"${StaffingForecastTable}","tft":"${TraumaFlagsTable}","pn":"${PremiseNotesTable}","dcn":"${DispatcherCoachingNotesTable}","itl":"${IncidentTimelineTable}","ish":"${IncidentSharesTable}","asp":"${AgencySharePartnersTable}","lp":"${LanguageProvider}","cr":"${AWSRegion}","cwe":"${CadWritebackEnabled}","cwr":"${CadWritebackRequiresApproval}","cwa":"${CadWritebackAuditTable}","bp":"${BillingProfilesTable}","inv":"${InvoicesTable}","ii":"${InvoiceItemsTable}","bae":"${BillingAuditEventsTable}","mao":"${MonetizationAddOnsTable}","minv":"${MonetizationInvoicesTable}","slt":"${SalesLeadsTable}","cfe":"support@rapidcortex.us"}'
           -
             AWSRegion: !Ref AWS::Region
             AccessOverridesTable: !Ref AccessOverridesTable
@@ -1016,6 +1018,10 @@ Globals:
             DataDeletionAuditTable: !Ref DataDeletionAuditTable
             DeceptionEventsTable: !Ref DeceptionEventsTable
             DeploymentStage: !Ref DeploymentStage
+            PrimaryAi: !FindInMap [ApiLambdaDefaults, !Ref DeploymentStage, PrimaryAi]
+            SecondaryAi: !FindInMap [ApiLambdaDefaults, !Ref DeploymentStage, SecondaryAi]
+            TertiaryAi: !FindInMap [ApiLambdaDefaults, !Ref DeploymentStage, TertiaryAi]
+            BedrockModelPrimary: !Sub "us.${AiBedrockFoundationModelId}"
             DispatcherCoachingNotesTable: !Ref DispatcherCoachingNotesTable
             ExternalApiEncryptionKeyArn: !Ref ExternalApiEncryptionKeyArn
             ExternalApiJwtSecretArn: !Ref ExternalApiJwtSecretArn
@@ -1421,8 +1427,17 @@ Resources:
               - bedrock:InvokeModel
               - bedrock:Converse
             Resource:
+              # On-demand Haiku 4.5 requires inference-profile + underlying foundation model in profile regions.
+              - !Sub arn:aws:bedrock:${AWS::Region}:${AWS::AccountId}:inference-profile/us.${AiBedrockFoundationModelId}
+              - !Sub arn:aws:bedrock:${AWS::Region}:${AWS::AccountId}:inference-profile/us.${QaBedrockModelId}
               - !Sub arn:aws:bedrock:${AWS::Region}::foundation-model/${AiBedrockFoundationModelId}
               - !Sub arn:aws:bedrock:${AWS::Region}::foundation-model/${QaBedrockModelId}
+              - !Sub arn:aws:bedrock:us-east-1::foundation-model/${AiBedrockFoundationModelId}
+              - !Sub arn:aws:bedrock:us-east-1::foundation-model/${QaBedrockModelId}
+              - !Sub arn:aws:bedrock:us-east-2::foundation-model/${AiBedrockFoundationModelId}
+              - !Sub arn:aws:bedrock:us-east-2::foundation-model/${QaBedrockModelId}
+              - !Sub arn:aws:bedrock:us-west-2::foundation-model/${AiBedrockFoundationModelId}
+              - !Sub arn:aws:bedrock:us-west-2::foundation-model/${QaBedrockModelId}
 
   AppManagedPolicyBedrockQaFoundationModelOnly:
     Type: AWS::IAM::ManagedPolicy
@@ -1437,7 +1452,11 @@ Resources:
               - bedrock:InvokeModel
               - bedrock:Converse
             Resource:
+              - !Sub arn:aws:bedrock:${AWS::Region}:${AWS::AccountId}:inference-profile/us.${QaBedrockModelId}
               - !Sub arn:aws:bedrock:${AWS::Region}::foundation-model/${QaBedrockModelId}
+              - !Sub arn:aws:bedrock:us-east-1::foundation-model/${QaBedrockModelId}
+              - !Sub arn:aws:bedrock:us-east-2::foundation-model/${QaBedrockModelId}
+              - !Sub arn:aws:bedrock:us-west-2::foundation-model/${QaBedrockModelId}
 
   AppManagedPolicySecretsMultilingualScopedRead:
     Type: AWS::IAM::ManagedPolicy
@@ -2157,6 +2176,7 @@ Resources:
         Variables:
           # 4KB Lambda env limit — same slim set as PostIncidentAudioChunkFunction; table/AI
           # config hydrates from RC_RUNTIME_CONFIG_JSON via hydrateLambdaEnv.ts.
+          # AI provider chain (a1/a2/a3) lives in RC_RUNTIME_CONFIG_JSON — do not duplicate here.
           COGNITO_USER_POOL_ID: !Ref CognitoUserPool
           COGNITO_CLIENT_ID: !Ref CognitoUserPoolClient
           MULTILINGUAL_STRICT_VALIDATION: !FindInMap [MultilingualStageDefaults, !Ref DeploymentStage, StrictValidation]
@@ -2297,9 +2317,16 @@ Resources:
         Variables:
           COGNITO_USER_POOL_ID: !Ref CognitoUserPool
           COGNITO_CLIENT_ID: !Ref CognitoUserPoolClient
-          BEDROCK_MODEL_PRIMARY: !Ref AiBedrockFoundationModelId
-          BEDROCK_MODEL_SECONDARY: !Ref AiBedrockFoundationModelId
-          BEDROCK_MODEL_TERTIARY: !Ref AiBedrockFoundationModelId
+          PRIMARY_PROVIDER: !FindInMap [ApiLambdaDefaults, !Ref DeploymentStage, PrimaryAi]
+          SECONDARY_PROVIDER: !FindInMap [ApiLambdaDefaults, !Ref DeploymentStage, SecondaryAi]
+          FALLBACK_PROVIDER: !FindInMap [ApiLambdaDefaults, !Ref DeploymentStage, AiFallback]
+          TERTIARY_PROVIDER: !FindInMap [ApiLambdaDefaults, !Ref DeploymentStage, TertiaryAi]
+          BEDROCK_MODEL_PRIMARY: !Sub "us.${AiBedrockFoundationModelId}"
+          BEDROCK_MODEL_SECONDARY: !Sub "us.${AiBedrockFoundationModelId}"
+          BEDROCK_MODEL_TERTIARY: !Sub "us.${AiBedrockFoundationModelId}"
+          ANTHROPIC_MODEL_PRIMARY: claude-haiku-4-5-20251001
+          ANTHROPIC_MODEL_SECONDARY: claude-haiku-4-5-20251001
+          ANTHROPIC_MODEL_TERTIARY: claude-haiku-4-5-20251001
           ENABLE_SOP_PROTOCOL_AI: !If [PilotTestFeaturesOn, "true", "false"]
           SOP_DETECT_EVERY_N_SEGMENTS: "0"
           SOP_DETECTION_MOCK: "false"
@@ -2335,9 +2362,9 @@ Resources:
         Variables:
           COGNITO_USER_POOL_ID: !Ref CognitoUserPool
           COGNITO_CLIENT_ID: !Ref CognitoUserPoolClient
-          BEDROCK_MODEL_PRIMARY: !Ref AiBedrockFoundationModelId
-          BEDROCK_MODEL_SECONDARY: !Ref AiBedrockFoundationModelId
-          BEDROCK_MODEL_TERTIARY: !Ref AiBedrockFoundationModelId
+          BEDROCK_MODEL_PRIMARY: !Sub "us.${AiBedrockFoundationModelId}"
+          BEDROCK_MODEL_SECONDARY: !Sub "us.${AiBedrockFoundationModelId}"
+          BEDROCK_MODEL_TERTIARY: !Sub "us.${AiBedrockFoundationModelId}"
           ENABLE_SOP_PROTOCOL_AI: !If [PilotTestFeaturesOn, "true", "false"]
           SOP_DETECT_EVERY_N_SEGMENTS: "0"
           SOP_DETECTION_MOCK: "false"
@@ -2397,9 +2424,9 @@ Resources:
         Variables:
           COGNITO_USER_POOL_ID: !Ref CognitoUserPool
           COGNITO_CLIENT_ID: !Ref CognitoUserPoolClient
-          BEDROCK_MODEL_PRIMARY: !Ref AiBedrockFoundationModelId
-          BEDROCK_MODEL_SECONDARY: !Ref AiBedrockFoundationModelId
-          BEDROCK_MODEL_TERTIARY: !Ref AiBedrockFoundationModelId
+          BEDROCK_MODEL_PRIMARY: !Sub "us.${AiBedrockFoundationModelId}"
+          BEDROCK_MODEL_SECONDARY: !Sub "us.${AiBedrockFoundationModelId}"
+          BEDROCK_MODEL_TERTIARY: !Sub "us.${AiBedrockFoundationModelId}"
           TRIAGE_DETECT_EVERY_N_SEGMENTS: "0"
           TRIAGE_MOCK: "false"
           ENABLE_DISPATCHER_WELLNESS: "false"
@@ -2431,9 +2458,9 @@ Resources:
         Variables:
           COGNITO_USER_POOL_ID: !Ref CognitoUserPool
           COGNITO_CLIENT_ID: !Ref CognitoUserPoolClient
-          BEDROCK_MODEL_PRIMARY: !Ref AiBedrockFoundationModelId
-          BEDROCK_MODEL_SECONDARY: !Ref AiBedrockFoundationModelId
-          BEDROCK_MODEL_TERTIARY: !Ref AiBedrockFoundationModelId
+          BEDROCK_MODEL_PRIMARY: !Sub "us.${AiBedrockFoundationModelId}"
+          BEDROCK_MODEL_SECONDARY: !Sub "us.${AiBedrockFoundationModelId}"
+          BEDROCK_MODEL_TERTIARY: !Sub "us.${AiBedrockFoundationModelId}"
           TRIAGE_DETECT_EVERY_N_SEGMENTS: "0"
           TRIAGE_MOCK: "false"
           ENABLE_DISPATCHER_WELLNESS: "false"
@@ -2761,9 +2788,9 @@ Resources:
         Variables:
           COGNITO_USER_POOL_ID: !Ref CognitoUserPool
           COGNITO_CLIENT_ID: !Ref CognitoUserPoolClient
-          BEDROCK_MODEL_PRIMARY: !Ref AiBedrockFoundationModelId
-          BEDROCK_MODEL_SECONDARY: !Ref AiBedrockFoundationModelId
-          BEDROCK_MODEL_TERTIARY: !Ref AiBedrockFoundationModelId
+          BEDROCK_MODEL_PRIMARY: !Sub "us.${AiBedrockFoundationModelId}"
+          BEDROCK_MODEL_SECONDARY: !Sub "us.${AiBedrockFoundationModelId}"
+          BEDROCK_MODEL_TERTIARY: !Sub "us.${AiBedrockFoundationModelId}"
       CodeUri: ../../apps/api/
       Handler: dist/handlers/shares/revokeIncidentShare.handler
       Policies:

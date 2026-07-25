@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { fetchAdminInvoices, patchAdminInvoice, type AdminInvoiceListItem } from "@/lib/api";
+import { CreateInvoiceLauncher } from "@/components/billing/create-invoice-launcher";
 import { VerticalBadge } from "@/components/ui/VerticalBadge";
 import type { Vertical } from "@/lib/vertical";
 
@@ -71,15 +72,18 @@ export function RcAdminInvoicesClient() {
 
   return (
     <div className="space-y-6">
-      <header className="space-y-2">
-        <h1 className="text-2xl font-semibold text-white">Invoices & PO</h1>
-        <p className="max-w-3xl text-sm text-slate-400">
-          Cross-tenant invoice registry for government and enterprise procurement. Track PO numbers, due dates, and
-          manual paid status on monetization invoice records.
-        </p>
-        <Link href="/rc-admin/billing" className="inline-block text-sm text-sky-400 hover:text-sky-300">
-          ← Billing hub
-        </Link>
+      <header className="flex flex-wrap items-start justify-between gap-4">
+        <div className="space-y-2">
+          <h1 className="text-2xl font-semibold text-white">Invoices & PO</h1>
+          <p className="max-w-3xl text-sm text-slate-400">
+            Create invoices for any agency, track PO numbers and due dates, and mark paid. New invoices open on the
+            agency billing hub (PDF, send, void).
+          </p>
+          <Link href="/rc-admin/billing" className="inline-block text-sm text-sky-400 hover:text-sky-300">
+            ← Billing hub
+          </Link>
+        </div>
+        <CreateInvoiceLauncher />
       </header>
 
       {stats ? (
@@ -161,8 +165,14 @@ export function RcAdminInvoicesClient() {
 
       {!query.isLoading && !query.isError && items.length === 0 ? (
         <div className="rounded-lg border border-slate-800 bg-slate-950/40 px-4 py-8 text-center text-sm text-slate-400">
-          No invoices yet. Invoices are created automatically when add-ons are enabled or when a billing cycle
-          completes.
+          <p>No invoices in this registry yet.</p>
+          <p className="mt-2 text-xs text-slate-500">
+            Create one with the button above, or open an agency under Agencies → Billing. You can also build line items
+            in Service Catalog first.
+          </p>
+          <div className="mt-4 flex justify-center">
+            <CreateInvoiceLauncher />
+          </div>
           {query.data?.note ? <p className="mt-2 text-xs text-amber-300/90">{query.data.note}</p> : null}
         </div>
       ) : null}

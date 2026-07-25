@@ -27,6 +27,8 @@ HTTP_API_URL_2="$(get_output HttpApi2Url)"
 HTTP_API_URL_3="$(get_output HttpApi3Url)"
 HTTP_API_URL_4="$(get_output HttpApi4Url)"
 HTTP_API_URL_5="$(get_output HttpApi5Url)"
+GRANT_GENERATE_FUNCTION_NAME="$(get_output GenerateGrantPackageFunctionName)"
+GRANT_GENERATE_FUNCTION_ARN="$(get_output GenerateGrantPackageFunctionArn)"
 API_CUSTOM_DOMAIN_URL="$(get_output ApiCustomDomainUrl)"
 USER_POOL_ID="$(get_output UserPoolId)"
 USER_POOL_CLIENT_ID="$(get_output UserPoolClientId)"
@@ -152,6 +154,11 @@ fi
 if [[ -n "${HTTP_API_URL_5:-}" && "$HTTP_API_URL_5" != "None" ]]; then
   echo "API_UPSTREAM_BASE_5=${HTTP_API_URL_5}"
   echo "NEXT_PUBLIC_API_BASE_5=${HTTP_API_URL_5}"
+fi
+if [[ -n "${GRANT_GENERATE_FUNCTION_NAME:-}" && "$GRANT_GENERATE_FUNCTION_NAME" != "None" ]]; then
+  echo ""
+  echo "# --- Grant PDF (BFF→Lambda Invoke; bypasses API Gateway 30s cap) ---"
+  echo "GRANT_GENERATE_FUNCTION_NAME=${GRANT_GENERATE_FUNCTION_NAME}"
 fi
 echo ""
 echo "# --- Environment badge (matches stack DeploymentStage) ---"

@@ -103,15 +103,16 @@ Parameters:
     Description: custom:role written by PostConfirmation when the user has no role yet.
   QaBedrockModelId:
     Type: String
-    Default: anthropic.claude-3-5-haiku-20241022-v1:0
+    Default: anthropic.claude-haiku-4-5-20251001-v1:0
     Description: >-
       Bedrock foundation model id for automated QA structured JSON scoring (InvokeModel / Converse).
   AiBedrockFoundationModelId:
     Type: String
-    Default: anthropic.claude-3-5-haiku-20241022-v1:0
+    Default: anthropic.claude-haiku-4-5-20251001-v1:0
     Description: >-
       Bedrock foundation model id for analysis / language paths that call Bedrock (InvokeModel / Converse).
-      IAM and Globals BEDROCK_MODEL_* must match runtime configuration (CJIS: no foundation-model/* wildcard).
+      Runtime BEDROCK_MODEL_* uses us.<this-id> inference profile. IAM allows foundation-model and
+      inference-profile ARNs (CJIS: no foundation-model/* wildcard on the model id).
   IncidentMediaTwilioSecretArn:
     Type: String
     Default: ""
@@ -2634,6 +2635,64 @@ Resources:
         OpsAlertsTopicArn: !GetAtt AppSam2Stack.Outputs.OpsAlertsTopicArn
         ManagedPolicyNamePrefix: !Ref AWS::StackName
 
+  AppSamNg911Stack2:
+    Type: AWS::CloudFormation::Stack
+    Metadata:
+      cfn-lint:
+        config:
+          ignore_checks:
+            - W3005
+    DependsOn: AppSam2Stack
+    Properties:
+      TimeoutInMinutes: 60
+      TemplateURL: nested/stack-app-sam-2-ng911.yaml
+      Parameters:
+        DeploymentStage: !Ref DeploymentStage
+        HttpApiId: !GetAtt AppSam2Stack.Outputs.HttpApiId
+        HttpApiJwtAuthorizerId: ""
+        ImportedCognitoUserPoolId: !GetAtt AppSamStackV2.Outputs.UserPoolId
+        ImportedCognitoWebClientId: !GetAtt AppSamStackV2.Outputs.UserPoolClientId
+        ImportedCognitoIssuer: !GetAtt AppSamStackV2.Outputs.CognitoIssuer
+        AuditTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.AuditTable
+            - !Sub "${DynamoTableNamePrefix}-audit-${DeploymentStage}"
+        AgenciesTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.AgenciesTable
+            - !Sub "${DynamoTableNamePrefix}-agencies-${DeploymentStage}"
+        IncidentsTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.IncidentsTable
+            - !Sub "${DynamoTableNamePrefix}-incidents-${DeploymentStage}"
+        TranscriptsTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.TranscriptsTable
+            - !Sub "${DynamoTableNamePrefix}-transcripts-${DeploymentStage}"
+        AnalysesTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.AnalysesTable
+            - !Sub "${DynamoTableNamePrefix}-analyses-${DeploymentStage}"
+        InvitesTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.InvitesTable
+            - !Sub "${DynamoTableNamePrefix}-invites-${DeploymentStage}"
+        AssetsBucket:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.AssetsBucket
+            - !Sub "${DynamoTableNamePrefix}-assets-${DeploymentStage}-${AWS::AccountId}"
+        PremiseNotesTable: !Sub "rapid-cortex-premise-notes-${DeploymentStage}"
+        IncidentMediaTable: !Sub "rapid-cortex-incident-media-${DeploymentStage}"
+        NonEmergencyQueueTable: !Sub "rapid-cortex-non-emergency-queue-${DeploymentStage}"
+        ManagedPolicyNamePrefix: !Ref AWS::StackName
+
   AppSamRealtime2Stack:
     Type: AWS::CloudFormation::Stack
     Properties:
@@ -2718,6 +2777,12 @@ Outputs:
   HttpApi3Id:
     Description: Tertiary HTTP API ID (stack-app-sam-3)
     Value: !GetAtt AppSam3Stack.Outputs.HttpApiId
+  GenerateGrantPackageFunctionName:
+    Description: Grant generate Lambda name (web BFF direct Invoke for ~60s Anthropic budget)
+    Value: !GetAtt AppSam3Stack.Outputs.GenerateGrantPackageFunctionName
+  GenerateGrantPackageFunctionArn:
+    Description: Grant generate Lambda ARN (web ECS task role invoke)
+    Value: !GetAtt AppSam3Stack.Outputs.GenerateGrantPackageFunctionArn
   HttpApi4Url:
     Description: Quaternary HTTP API base URL (stack-app-sam-4 billing/ring routes)
     Value: !GetAtt AppSam4Stack.Outputs.HttpApiUrl

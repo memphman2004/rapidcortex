@@ -2,6 +2,8 @@
 
 import { useEffect, useMemo, useState } from "react";
 import type { CatalogItem, ServiceCategory } from "rapid-cortex-shared";
+import { CreateInvoiceLauncher } from "@/components/billing/create-invoice-launcher";
+import type { UiLineItem } from "@/lib/rc-admin/agency-invoice-view";
 
 const CATEGORY_META: Record<string, { title: string; emoji: string }> = {
   core: { title: "Core Services", emoji: "🚀" },
@@ -398,7 +400,7 @@ export function ServiceCatalogDashboard() {
           </div>
 
           <div className="border-t border-slate-700 pt-3">
-            <div className="flex items-end justify-between gap-2">
+            <div className="flex flex-wrap items-end justify-between gap-3">
               {catalogUpdatedAt ? (
                 <p className="text-xs text-slate-500">
                   Prices as of{" "}
@@ -414,9 +416,25 @@ export function ServiceCatalogDashboard() {
               ) : (
                 <span />
               )}
-              <p className="text-sm text-slate-300">
-                Subtotal: <span className="font-semibold text-sky-200">{asMoney(subtotalCents)}</span>
-              </p>
+              <div className="flex flex-wrap items-center gap-3">
+                <p className="text-sm text-slate-300">
+                  Subtotal: <span className="font-semibold text-sky-200">{asMoney(subtotalCents)}</span>
+                </p>
+                {selectedItems.length > 0 ? (
+                  <CreateInvoiceLauncher
+                    buttonLabel="Create invoice from selection"
+                    prefillItems={selectedItems.map(
+                      (item): UiLineItem => ({
+                        id: item.id,
+                        description: item.name || item.description || "Line item",
+                        quantity: item.quantity,
+                        unitPrice: item.unitPriceCents / 100,
+                        total: (item.quantity * item.unitPriceCents) / 100,
+                      }),
+                    )}
+                  />
+                ) : null}
+              </div>
             </div>
           </div>
         </div>

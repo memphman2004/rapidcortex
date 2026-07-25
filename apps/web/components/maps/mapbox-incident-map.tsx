@@ -17,6 +17,7 @@ export function MapboxIncidentMap({
   height = 380,
   zoom = 14,
   className,
+  fill = false,
 }: {
   lat: number;
   lng: number;
@@ -24,14 +25,40 @@ export function MapboxIncidentMap({
   height?: number;
   zoom?: number;
   className?: string;
+  /** When true, fill the parent (parent must have an explicit height). */
+  fill?: boolean;
 }) {
   const [mapInstance, setMapInstance] = useState<Map | null>(null);
+
+  useEffect(() => {
+    if (!mapInstance) return;
+    // Mapbox often mounts before the flex layout settles — force a resize.
+    const id = window.requestAnimationFrame(() => {
+      try {
+        mapInstance.resize();
+      } catch {
+        /* ignore */
+      }
+    });
+    const onWinResize = () => {
+      try {
+        mapInstance.resize();
+      } catch {
+        /* ignore */
+      }
+    };
+    window.addEventListener("resize", onWinResize);
+    return () => {
+      window.cancelAnimationFrame(id);
+      window.removeEventListener("resize", onWinResize);
+    };
+  }, [mapInstance, fill, height]);
 
   if (!mapboxTokenOk()) {
     return (
       <div
         className={`flex flex-col items-center justify-center gap-3 rounded-lg border border-rose-500/30 bg-slate-950 px-6 py-8 text-center ${className ?? ""}`}
-        style={{ height }}
+        style={fill ? { height: "100%", minHeight: 280 } : { height }}
       >
         <p className="text-sm font-semibold text-rose-300">Mapbox token not configured</p>
         <p className="max-w-sm text-xs leading-relaxed text-slate-500">
@@ -46,12 +73,16 @@ export function MapboxIncidentMap({
   }
 
   return (
-    <div className={`overflow-hidden rounded-lg border border-slate-700 ${className ?? ""}`} style={{ height }}>
+    <div
+      className={`overflow-hidden rounded-lg border border-slate-700 ${fill ? "h-full min-h-0 w-full" : ""} ${className ?? ""}`}
+      style={fill ? undefined : { height }}
+    >
       <RapidCortexMap
         theme="dark"
         center={[lng, lat]}
         zoom={zoom}
         showControls
+        className="h-full w-full"
         onMapLoad={setMapInstance}
       >
         <LocationMarker
@@ -88,8 +119,13 @@ export function MapModal({
     function onKey(e: KeyboardEvent) {
       if (e.key === "Escape") onClose();
     }
+    const prevOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
     window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
+    return () => {
+      document.body.style.overflow = prevOverflow;
+      window.removeEventListener("keydown", onKey);
+    };
   }, [onClose]);
 
   const displayLabel =
@@ -97,17 +133,17 @@ export function MapModal({
 
   return (
     <div
-      className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/85 p-6"
+      className="fixed inset-0 z-[9999] flex items-stretch justify-center bg-black/85 p-2 sm:p-4"
       onClick={onClose}
       role="dialog"
       aria-modal="true"
       aria-label="Incident location map"
     >
       <div
-        className="w-full max-w-3xl overflow-hidden rounded-lg border border-slate-700 bg-slate-950 shadow-2xl"
+        className="flex h-[min(96dvh,100%)] w-full max-w-[1600px] flex-col overflow-hidden rounded-lg border border-slate-700 bg-slate-950 shadow-2xl"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="flex items-center justify-between border-b border-slate-800 px-4 py-3">
+        <div className="flex shrink-0 items-center justify-between border-b border-slate-800 px-4 py-3">
           <div>
             <h3 className="text-sm font-semibold text-white">Incident location</h3>
             {incidentId ? <p className="mt-0.5 font-mono text-[11px] text-slate-500">{incidentId}</p> : null}
@@ -126,7 +162,16 @@ export function MapModal({
             </button>
           </div>
         </div>
-        <MapboxIncidentMap lat={lat} lng={lng} label={displayLabel} height={420} zoom={zoom} />
+        <div className="min-h-0 flex-1 p-2 sm:p-3">
+          <MapboxIncidentMap
+            lat={lat}
+            lng={lng}
+            label={displayLabel}
+            fill
+            zoom={zoom}
+            className="h-full rounded-md"
+          />
+        </div>
       </div>
     </div>
   );

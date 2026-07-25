@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { canAccessRcFinancePortal } from "rapid-cortex-shared";
+import { CreateInvoiceLauncher } from "@/components/billing/create-invoice-launcher";
 import { marketingLoginPath } from "@/lib/marketing-links";
 import { getDashboardSessionUser } from "@/lib/dashboards/get-dashboard-session";
 
@@ -16,39 +17,40 @@ export default async function RcAdminBillingPage() {
   }
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-semibold text-white">Monetization & billing</h1>
-        <p className="mt-3 max-w-3xl text-sm text-slate-400">
-          Configure plans/add-ons directly in Dynamo, reconcile internal billing webhooks and usage meters, or apply manual
-          entitlements—all actions emit billing audit envelopes for oversight.
-        </p>
-        <p className="mt-3 max-w-3xl text-sm text-slate-500">
-          Keep <strong className="text-slate-300">Rapid Cortex platform</strong> (dispatcher/supervisor dashboards) rows
-          distinct from <strong className="text-slate-300">RC Lite</strong> API-only rows: each plan record exposes{" "}
-          <code className="rounded bg-slate-900 px-1.5 py-0.5 text-xs text-sky-200">productLine</code>, dashboard vs API
-          flags, and entitlement templates so Cognito claims and middleware stay aligned.
-        </p>
+    <div className="space-y-8">
+      <div className="flex flex-wrap items-start justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-semibold text-white">Monetization & billing</h1>
+          <p className="mt-3 max-w-3xl text-sm text-slate-400">
+            Create invoices, manage the service catalog, and configure plans. Agency access is contract, pilot, and
+            invoice driven — card processors are disabled.
+          </p>
+        </div>
+        <CreateInvoiceLauncher />
       </div>
-      <ul className="space-y-3 text-sm text-slate-300">
-        <li>
-          <strong className="text-white">Retired processor proxies</strong> — legacy HTTPS paths under{" "}
-          <code className="rounded bg-slate-900 px-2 py-0.5 text-xs text-sky-200">/api/billing/…</code> that formerly
-          proxied external card processors now return{" "}
-          <code className="rounded bg-slate-900 px-1.5 py-0.5 text-xs text-sky-200">410 Gone</code> with{" "}
-          <code className="rounded bg-slate-900 px-1.5 py-0.5 text-xs text-sky-200">payments_disabled</code>. Agency access is
-          contract, pilot, and invoice driven.
-        </li>
-        <li>
-          <strong className="text-white">Tenant billing reads</strong> —{" "}
-          <code className="rounded bg-slate-900 px-2 py-0.5 text-xs text-sky-200">GET /api/billing/current-subscription</code>,{" "}
-          invoices, and usage reporting (no card capture on these routes).
-        </li>
-        <li>
-          <strong className="text-white">Data plane</strong> — Tables: monetization-plans, monetization-addons,
-          agency-subscriptions, usage-meters, monetization-invoices, billing-audit-events, sales-leads.
-        </li>
-      </ul>
+
+      <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <HubCard
+          title="Create invoice"
+          body="Pick an agency, edit line items, set PO # and due date, then save as draft or send."
+          href="/rc-admin/invoices"
+          cta="Open invoices"
+          primary
+        />
+        <HubCard
+          title="Service Catalog"
+          body="Browse live catalog prices, select services, then create an invoice from the selection."
+          href="/rc-admin/billing/services"
+          cta="Open catalog"
+        />
+        <HubCard
+          title="Pricing Menu"
+          body="Master guide defaults and per-agency overrides for plans, verticals, CAD, and add-ons."
+          href="/rc-admin/pricing"
+          cta="Open pricing"
+        />
+      </section>
+
       <div className="flex flex-wrap gap-3">
         <Link
           href="/rc-admin/plans"
@@ -87,6 +89,54 @@ export default async function RcAdminBillingPage() {
           API clients →
         </Link>
       </div>
+
+      <details className="rounded-xl border border-slate-800 bg-slate-950/40 p-4 text-sm text-slate-400">
+        <summary className="cursor-pointer font-medium text-slate-300">Technical notes</summary>
+        <ul className="mt-3 list-disc space-y-2 pl-5">
+          <li>
+            Retired processor proxies under{" "}
+            <code className="rounded bg-slate-900 px-1.5 py-0.5 text-xs text-sky-200">/api/billing/…</code> return{" "}
+            <code className="rounded bg-slate-900 px-1.5 py-0.5 text-xs text-sky-200">410 Gone</code>.
+          </li>
+          <li>
+            Keep Rapid Cortex platform rows distinct from RC Lite API-only plans via{" "}
+            <code className="rounded bg-slate-900 px-1.5 py-0.5 text-xs text-sky-200">productLine</code>.
+          </li>
+        </ul>
+      </details>
+    </div>
+  );
+}
+
+function HubCard({
+  title,
+  body,
+  href,
+  cta,
+  primary,
+}: {
+  title: string;
+  body: string;
+  href: string;
+  cta: string;
+  primary?: boolean;
+}) {
+  return (
+    <div
+      className={`rounded-xl border p-5 ${
+        primary ? "border-violet-700/60 bg-violet-950/20" : "border-slate-800 bg-slate-950/40"
+      }`}
+    >
+      <h2 className="text-base font-semibold text-white">{title}</h2>
+      <p className="mt-2 text-sm text-slate-400">{body}</p>
+      <Link
+        href={href}
+        className={`mt-4 inline-flex text-sm font-semibold ${
+          primary ? "text-violet-300 hover:text-violet-200" : "text-sky-400 hover:text-sky-300"
+        }`}
+      >
+        {cta} →
+      </Link>
     </div>
   );
 }

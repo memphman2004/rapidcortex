@@ -17,7 +17,10 @@ import { STAFFING_SYSTEM_PROMPT, buildStaffingUserPrompt } from "./prompt.js";
 import { env } from "../env.js";
 
 function modelId(): string {
-  return process.env.BEDROCK_MODEL_PRIMARY?.trim() || "anthropic.claude-3-5-haiku-20241022-v1:0";
+  return (
+    process.env.BEDROCK_MODEL_PRIMARY?.trim() ||
+    "us.anthropic.claude-haiku-4-5-20251001-v1:0"
+  );
 }
 
 function isoDate(d: Date): string {

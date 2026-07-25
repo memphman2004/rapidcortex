@@ -13,9 +13,11 @@ import { PinpointPanel } from "@/components/dispatch/pinpoint-panel";
 import { SilentTextPanel } from "@/components/dispatch/silent-text-panel";
 import { VideoAssistPanel } from "@/components/dispatch/video-assist-panel";
 import { DispatcherPanelGrid } from "@/components/dispatcher/dispatcher-panel-grid";
+import { Ng911AssistPanel } from "@/components/dispatch/ng911-assist-panel";
 import {
   isIncidentMediaEnabled,
   isLiveVideoEnabled,
+  isNg911AssistEnabled,
   isPinpointEnabled,
   isSilentTextEnabled,
 } from "@/lib/runtime-flags";
@@ -104,6 +106,11 @@ export function DispatcherIncidentPanelGrid({
         ) : (
           <PanelUnavailable message="Premise notes require caller card access." />
         ),
+      ng911_assist: isNg911AssistEnabled() ? (
+        <Ng911AssistPanel incidentId={incidentId} />
+      ) : (
+        <PanelUnavailable message="NG9-1-1 assist is not enabled for this agency." />
+      ),
     };
   }, [
     analysis,

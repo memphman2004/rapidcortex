@@ -11,7 +11,10 @@ import { isQuoteGroundedInTranscript } from "../validation/grounding-verifier.js
 import { normalizeConfidencePercent } from "../../ai/confidence.js";
 
 function modelId(): string {
-  return process.env.BEDROCK_MODEL_PRIMARY?.trim() || "anthropic.claude-3-5-haiku-20241022-v1:0";
+  return (
+    process.env.BEDROCK_MODEL_PRIMARY?.trim() ||
+    "us.anthropic.claude-haiku-4-5-20251001-v1:0"
+  );
 }
 
 export function mockClassify(event: TriageAnalyzeEvent): TriageAiClassification {

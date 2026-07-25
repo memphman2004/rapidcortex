@@ -23,14 +23,27 @@ const auditRepo = new AuditRepository();
 
 const ANTHROPIC_MESSAGES_URL = "https://api.anthropic.com/v1/messages";
 const ANTHROPIC_VERSION = "2023-06-01";
-/** Fast model — API Gateway HTTP API hard-caps at 30s; opus often exceeds that. */
-const DEFAULT_ANTHROPIC_MODEL = "claude-3-5-haiku-20241022";
+/** Fast model — API Gateway HTTP API hard-caps at 30s; opus often exceeds that.
+ *  claude-3-5-haiku-20241022 retired 2026-02-19 — use Haiku 4.5. */
+const DEFAULT_ANTHROPIC_MODEL = "claude-haiku-4-5-20251001";
 const DEFAULT_OPENAI_MODEL = "gpt-4o-mini";
 const OPENAI_CHAT_URL = "https://api.openai.com/v1/chat/completions";
-/** Per-provider budget so we can fall through before API GW / CloudFront 503. */
-const PROVIDER_TIMEOUT_MS = Math.max(
+/**
+ * Grant packages are rare; give Anthropic most of a 60s Lambda budget.
+ * Sync HTTP via API Gateway still hard-caps at 30s — the web BFF should
+ * Invoke this Lambda directly (GRANT_GENERATE_FUNCTION_NAME) for the full budget.
+ */
+const ANTHROPIC_TIMEOUT_MS = Math.max(
+  20_000,
+  Number.parseInt(process.env.GRANT_GENERATE_PROVIDER_TIMEOUT_MS ?? "55000", 10) || 55_000,
+);
+const OPENAI_TIMEOUT_MS = Math.max(
+  6_000,
+  Number.parseInt(process.env.GRANT_GENERATE_OPENAI_TIMEOUT_MS ?? "15000", 10) || 15_000,
+);
+const BEDROCK_TIMEOUT_MS = Math.max(
   8_000,
-  Number.parseInt(process.env.GRANT_GENERATE_PROVIDER_TIMEOUT_MS ?? "14000", 10) || 14_000,
+  Number.parseInt(process.env.GRANT_GENERATE_BEDROCK_TIMEOUT_MS ?? "20000", 10) || 20_000,
 );
 const MAX_OUTPUT_TOKENS = Math.max(
   1500,
@@ -116,15 +129,17 @@ class AnthropicCallError extends Error {
 
 async function generateGrantPackage(form: GrantSuccessProfile): Promise<GrantPackage> {
   const errors: string[] = [];
-  const preferBedrock = process.env.GRANT_GENERATE_PREFER_BEDROCK !== "false";
+  /** Opt-in only. Default path is Anthropic → OpenAI via API keys. */
+  const allowBedrock =
+    process.env.GRANT_GENERATE_ALLOW_BEDROCK === "true" ||
+    process.env.GRANT_GENERATE_PREFER_BEDROCK === "true";
 
   const tryBedrock = async (): Promise<GrantPackage | null> => {
     const bedrockModel =
       process.env.GRANT_GENERATE_BEDROCK_MODEL_ID?.trim() ||
       process.env.QA_BEDROCK_MODEL_ID?.trim() ||
       process.env.BEDROCK_MODEL_PRIMARY?.trim() ||
-      "";
-    if (!bedrockModel) return null;
+      "us.anthropic.claude-haiku-4-5-20251001-v1:0";
     try {
       console.info("[generateGrantPackage] Using Bedrock", { bedrockModel });
       return parseAndValidatePackage(await callBedrock(bedrockModel, form));
@@ -136,12 +151,13 @@ async function generateGrantPackage(form: GrantSuccessProfile): Promise<GrantPac
     }
   };
 
-  // Prefer Bedrock (in-AWS, usually finishes under API GW 30s). External vendors hang → CloudFront 503.
-  if (preferBedrock) {
+  // Optional: Bedrock-first when PREFER is set (fast path inside AWS).
+  if (process.env.GRANT_GENERATE_PREFER_BEDROCK === "true") {
     const fromBedrock = await tryBedrock();
     if (fromBedrock) return fromBedrock;
   }
 
+  // 1) Anthropic
   const anthropicKey = await resolvePlainOrSecretArn(
     process.env.ANTHROPIC_API_KEY,
     process.env.ANTHROPIC_API_KEY_SECRET_ARN,
@@ -150,14 +166,18 @@ async function generateGrantPackage(form: GrantSuccessProfile): Promise<GrantPac
   );
   if (anthropicKey) {
     try {
+      console.info("[generateGrantPackage] Using Anthropic (primary)");
       return parseAndValidatePackage(await callAnthropic(anthropicKey, form));
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err);
-      console.error("[generateGrantPackage] Anthropic path failed — trying fallback:", msg);
+      console.error("[generateGrantPackage] Anthropic path failed — trying next:", msg);
       errors.push(`anthropic: ${msg}`);
     }
+  } else {
+    errors.push("anthropic: API key not configured");
   }
 
+  // 2) OpenAI
   const openAiKey = await resolvePlainOrSecretArn(
     process.env.OPENAI_API_KEY,
     process.env.OPENAI_API_KEY_SECRET_ARN,
@@ -165,16 +185,19 @@ async function generateGrantPackage(form: GrantSuccessProfile): Promise<GrantPac
   );
   if (openAiKey) {
     try {
-      console.info("[generateGrantPackage] Using OpenAI fallback");
+      console.info("[generateGrantPackage] Using OpenAI (fallback)");
       return parseAndValidatePackage(await callOpenAi(openAiKey, form));
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err);
-      console.error("[generateGrantPackage] OpenAI path failed — trying fallback:", msg);
+      console.error("[generateGrantPackage] OpenAI path failed:", msg);
       errors.push(`openai: ${msg}`);
     }
+  } else {
+    errors.push("openai: API key not configured");
   }
 
-  if (!preferBedrock) {
+  // 3) Bedrock (opt-in only via GRANT_GENERATE_ALLOW_BEDROCK=true)
+  if (allowBedrock && process.env.GRANT_GENERATE_PREFER_BEDROCK !== "true") {
     const fromBedrock = await tryBedrock();
     if (fromBedrock) return fromBedrock;
   }
@@ -183,11 +206,12 @@ async function generateGrantPackage(form: GrantSuccessProfile): Promise<GrantPac
     errors,
     hasAnthropic: Boolean(anthropicKey),
     hasOpenAi: Boolean(openAiKey),
+    allowBedrock,
   });
   throw new AnthropicCallError(
     errors.length
       ? `Generation service unavailable (${errors.map((e) => e.split(":")[0]).join(" → ")})`
-      : "Generation service unavailable — configure AnthropicApiKeySecretArn or OpenAI secret, or set GRANT_GENERATE_BEDROCK_MODEL_ID",
+      : "Generation service unavailable — configure AnthropicApiKeySecretArn or OpenAI secret",
     false,
   );
 }
@@ -208,13 +232,13 @@ async function callAnthropic(apiKey: string, form: GrantSuccessProfile): Promise
         max_tokens: MAX_OUTPUT_TOKENS,
         messages: [{ role: "user", content: buildPrompt(form) }],
       }),
-      signal: AbortSignal.timeout(PROVIDER_TIMEOUT_MS),
+      signal: AbortSignal.timeout(ANTHROPIC_TIMEOUT_MS),
     });
   } catch (err) {
     console.error("[generateGrantPackage] Anthropic fetch error:", err);
     throw new AnthropicCallError(
       err instanceof Error && err.name === "TimeoutError"
-        ? "Anthropic timed out"
+        ? `Anthropic timed out after ${ANTHROPIC_TIMEOUT_MS}ms`
         : "Generation service unreachable",
       false,
     );
@@ -222,8 +246,8 @@ async function callAnthropic(apiKey: string, form: GrantSuccessProfile): Promise
 
   if (!res.ok) {
     const errText = await res.text().catch(() => "");
-    console.error(`[generateGrantPackage] Anthropic API error ${res.status}:`, errText);
-    throw new AnthropicCallError(`Generation failed (upstream ${res.status})`, true);
+    console.error(`[generateGrantPackage] Anthropic API error ${res.status}:`, errText.slice(0, 500));
+    throw new AnthropicCallError(`Anthropic failed (upstream ${res.status})`, true);
   }
 
   const data = (await res.json()) as AnthropicMessagesResponse;
@@ -254,20 +278,29 @@ async function callOpenAi(apiKey: string, form: GrantSuccessProfile): Promise<st
         ],
         max_tokens: MAX_OUTPUT_TOKENS,
       }),
-      signal: AbortSignal.timeout(PROVIDER_TIMEOUT_MS),
+      signal: AbortSignal.timeout(OPENAI_TIMEOUT_MS),
     });
   } catch (err) {
     console.error("[generateGrantPackage] OpenAI fetch error:", err);
     throw new AnthropicCallError(
-      err instanceof Error && err.name === "TimeoutError" ? "OpenAI timed out" : "Generation service unreachable",
+      err instanceof Error && err.name === "TimeoutError"
+        ? `OpenAI timed out after ${OPENAI_TIMEOUT_MS}ms`
+        : "Generation service unreachable",
       false,
     );
   }
 
   if (!res.ok) {
     const errText = await res.text().catch(() => "");
-    console.error(`[generateGrantPackage] OpenAI API error ${res.status}:`, errText);
-    throw new AnthropicCallError(`Generation failed (upstream ${res.status})`, true);
+    console.error(`[generateGrantPackage] OpenAI API error ${res.status}:`, errText.slice(0, 500));
+    const quota =
+      res.status === 429 && /insufficient_quota|exceeded your current quota/i.test(errText);
+    throw new AnthropicCallError(
+      quota
+        ? "OpenAI quota exceeded — add billing/credits at platform.openai.com"
+        : `OpenAI failed (upstream ${res.status})`,
+      true,
+    );
   }
 
   const data = (await res.json()) as OpenAiChatResponse;
@@ -277,7 +310,7 @@ async function callOpenAi(apiKey: string, form: GrantSuccessProfile): Promise<st
 async function callBedrock(modelId: string, form: GrantSuccessProfile): Promise<string> {
   const region = process.env.BEDROCK_REGION?.trim() || process.env.AWS_REGION?.trim() || "us-east-1";
   const client = new BedrockRuntimeClient({ region });
-  const abort = AbortSignal.timeout(PROVIDER_TIMEOUT_MS);
+  const abort = AbortSignal.timeout(BEDROCK_TIMEOUT_MS);
   try {
     const out = await client.send(
       new ConverseCommand({
@@ -386,7 +419,7 @@ Return ONLY valid JSON — no markdown, no code blocks, no preamble. Exact struc
   ]
 }
 
-Keep sections concise but specific to ${form.schoolName} (executive ~3 short paragraphs; others 1–2). Include 6–8 budget line items totaling close to the requested amount, 4–5 timeline phases, and 5 measurable outcomes. Professional, grant-committee-ready — avoid generic filler.`;
+Keep sections compact and specific to ${form.schoolName}: 2 short paragraphs per narrative field (executiveSummary may be 3). Include 5–6 budget line items totaling close to the requested amount, 4 timeline phases, and 4 measurable outcomes. Professional, grant-committee-ready — no filler.`;
 }
 
 

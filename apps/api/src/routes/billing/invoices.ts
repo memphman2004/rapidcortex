@@ -199,6 +199,19 @@ export async function handleBillingInvoicesRoute(event: {
       if (!parsed.success) return badRequestFromZod(parsed.error);
       const payload = parsed.data;
 
+      if (!env.customersTable?.trim()) {
+        return jsonStatus(
+          { error: "Billing customers table is not configured on this API. Contact platform ops." },
+          503,
+        );
+      }
+      if (!env.invoicesTable?.trim() || !env.invoiceItemsTable?.trim()) {
+        return jsonStatus(
+          { error: "Billing invoices tables are not configured on this API. Contact platform ops." },
+          503,
+        );
+      }
+
       const customer = await ddb.send(
         new GetCommand({
           TableName: env.customersTable,
@@ -261,6 +274,12 @@ export async function handleBillingInvoicesRoute(event: {
     }
 
     if (tail.length === 0 && method === "GET") {
+      if (!env.invoicesTable?.trim()) {
+        return jsonStatus(
+          { error: "Billing invoices table is not configured on this API. Contact platform ops." },
+          503,
+        );
+      }
       const qs = event.queryStringParameters ?? {};
       const out = await ddb.send(
         new ScanCommand({
@@ -517,8 +536,67 @@ export async function handleBillingInvoicesRoute(event: {
     if (action === "pdf" && method === "GET") {
       const existing = await loadInvoiceScoped(invoiceId, scopeAgencyId);
       if (!existing) return notFound("Invoice not found");
-      const key = String(existing.pdfS3Key ?? "");
-      if (!key) return notFound("Invoice PDF not generated");
+      // Always regenerate on download so branding updates are not stuck on stale S3 objects.
+      const customer = await ddb.send(
+        new GetCommand({
+          TableName: env.customersTable,
+          Key: { customerId: existing.customerId },
+        }),
+      );
+      const customerItem = (customer.Item ?? {}) as {
+        agencyName?: string;
+        billingContact?: string;
+        email?: string;
+        address?: string;
+        paymentTerms?: string;
+      };
+      const lineItemsRaw = (await invoiceItems(invoiceId, scopeAgencyId)) as Array<{
+        serviceName?: string;
+        description?: string;
+        quantity?: number;
+        unitPrice?: number;
+        lineTotal?: number;
+      }>;
+      const pdf = await generateInvoicePdfBuffer(
+        {
+          invoiceId,
+          invoiceNumber: String(existing.invoiceNumber ?? invoiceId),
+          invoiceDate: String(existing.invoiceDate ?? ""),
+          dueDate: String(existing.dueDate ?? ""),
+          customerName: customerItem.agencyName ?? "Customer",
+          billingContactName: customerItem.billingContact,
+          billingContactEmail: customerItem.email,
+          billingAddress: customerItem.address ? { street: customerItem.address } : undefined,
+          poNumber: (existing.poNumber as string | undefined) ?? undefined,
+          subtotal: Number(existing.subtotal ?? 0),
+          discount: Number(existing.discount ?? 0),
+          tax: Number(existing.tax ?? 0),
+          total: Number(existing.total ?? 0),
+          currency: String(existing.currency ?? "USD"),
+          paymentTerms: customerItem.paymentTerms,
+        },
+        lineItemsRaw.map((li) => ({
+          serviceName: li.serviceName ?? "Service",
+          description: li.description,
+          quantity: Number(li.quantity ?? 0),
+          unitPrice: Number(li.unitPrice ?? 0),
+          lineTotal: Number(li.lineTotal ?? 0),
+        })),
+        await loadPaymentInstructions(),
+      );
+      const key = await uploadInvoicePdfToS3(pdf, invoiceId, scopeAgencyId);
+      await ddb.send(
+        new UpdateCommand({
+          TableName: env.invoicesTable,
+          Key: { invoiceId },
+          UpdateExpression: "SET pdfS3Key = :pdfS3Key, updatedAt = :updatedAt",
+          ExpressionAttributeValues: {
+            ":pdfS3Key": key,
+            ":updatedAt": nowIso(),
+          },
+        }),
+      );
+
       const url = await getSignedUrl(
         s3,
         new GetObjectCommand({
@@ -607,6 +685,10 @@ export async function handleBillingInvoicesRoute(event: {
     }
     if (error instanceof Error && error.message === "FORBIDDEN") return forbidden();
     console.error("[handleBillingInvoicesRoute]", error);
+    const msg = error instanceof Error ? error.message : "";
+    if (msg.includes("BILLING_SES_SENDER_EMAIL") || msg.includes("BILLING_INVOICES_BUCKET")) {
+      return jsonStatus({ error: msg }, 500);
+    }
     return serverError();
   }
 }

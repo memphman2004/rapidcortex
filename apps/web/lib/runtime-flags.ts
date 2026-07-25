@@ -9,6 +9,7 @@ const NEXT_PUBLIC_FLAG_VALUES: Record<string, string | undefined> = {
   NEXT_PUBLIC_ENABLE_LIVE_VIDEO: process.env.NEXT_PUBLIC_ENABLE_LIVE_VIDEO,
   NEXT_PUBLIC_ENABLE_SOP_PROTOCOL_AI: process.env.NEXT_PUBLIC_ENABLE_SOP_PROTOCOL_AI,
   NEXT_PUBLIC_ENABLE_NON_EMERGENCY_TRIAGE: process.env.NEXT_PUBLIC_ENABLE_NON_EMERGENCY_TRIAGE,
+  NEXT_PUBLIC_ENABLE_NG911_ASSIST: process.env.NEXT_PUBLIC_ENABLE_NG911_ASSIST,
   NEXT_PUBLIC_ENABLE_FIELD_CONFIDENCE: process.env.NEXT_PUBLIC_ENABLE_FIELD_CONFIDENCE,
   NEXT_PUBLIC_ENABLE_PREDICTIVE_STAFFING: process.env.NEXT_PUBLIC_ENABLE_PREDICTIVE_STAFFING,
   NEXT_PUBLIC_ENABLE_DISPATCHER_WELLNESS: process.env.NEXT_PUBLIC_ENABLE_DISPATCHER_WELLNESS,
@@ -131,6 +132,11 @@ export function isSopProtocolEnabled(): boolean {
 /** F3 non-emergency triage (must match API ENABLE_NON_EMERGENCY_TRIAGE). */
 export function isNonEmergencyTriageEnabled(): boolean {
   return envFlag("NEXT_PUBLIC_ENABLE_NON_EMERGENCY_TRIAGE");
+}
+
+/** NG911 assist: diversion, EIDO, Additional Data, metrics (ENABLE_NG911_ASSIST). */
+export function isNg911AssistEnabled(): boolean {
+  return envFlag("NEXT_PUBLIC_ENABLE_NG911_ASSIST");
 }
 
 /** F6 predictive staffing intelligence (must match API ENABLE_PREDICTIVE_STAFFING). */

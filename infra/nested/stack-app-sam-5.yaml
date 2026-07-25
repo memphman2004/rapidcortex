@@ -184,12 +184,12 @@ Parameters:
     Description: custom:role written by PostConfirmation when the user has no role yet.
   QaBedrockModelId:
     Type: String
-    Default: anthropic.claude-3-5-haiku-20241022-v1:0
+    Default: anthropic.claude-haiku-4-5-20251001-v1:0
     Description: >-
       Bedrock foundation model id for automated QA structured JSON scoring (InvokeModel / Converse).
   AiBedrockFoundationModelId:
     Type: String
-    Default: anthropic.claude-3-5-haiku-20241022-v1:0
+    Default: anthropic.claude-haiku-4-5-20251001-v1:0
     Description: >-
       Bedrock foundation model id for analysis / language paths that call Bedrock (InvokeModel / Converse).
       IAM and Globals BEDROCK_MODEL_* must match runtime configuration (CJIS: no foundation-model/* wildcard).
@@ -958,11 +958,11 @@ Mappings:
       Tr2: "mock"
       Tr3: "off"
     staging:
-      PrimaryAi: bedrock
-      SecondaryAi: "off"
-      TertiaryAi: "off"
-      AiFallback: "off"
-      AiSecondaryFallback: "off"
+      PrimaryAi: anthropic
+      SecondaryAi: openai
+      TertiaryAi: bedrock
+      AiFallback: openai
+      AiSecondaryFallback: bedrock
       Lid1: aws
       Lid2: mock
       Lid3: "off"
@@ -973,11 +973,11 @@ Mappings:
       Tr2: "mock"
       Tr3: "off"
     prod:
-      PrimaryAi: bedrock
-      SecondaryAi: "off"
-      TertiaryAi: "off"
-      AiFallback: "off"
-      AiSecondaryFallback: "off"
+      PrimaryAi: anthropic
+      SecondaryAi: openai
+      TertiaryAi: bedrock
+      AiFallback: openai
+      AiSecondaryFallback: bedrock
       Lid1: aws
       Lid2: mock
       Lid3: "off"
@@ -988,11 +988,11 @@ Mappings:
       Tr2: "mock"
       Tr3: "off"
     pilot:
-      PrimaryAi: bedrock
-      SecondaryAi: "off"
-      TertiaryAi: "off"
-      AiFallback: "off"
-      AiSecondaryFallback: "off"
+      PrimaryAi: anthropic
+      SecondaryAi: openai
+      TertiaryAi: bedrock
+      AiFallback: openai
+      AiSecondaryFallback: bedrock
       Lid1: aws
       Lid2: mock
       Lid3: "off"
@@ -1533,8 +1533,16 @@ Resources:
               - bedrock:InvokeModel
               - bedrock:Converse
             Resource:
+              - !Sub arn:aws:bedrock:${AWS::Region}:${AWS::AccountId}:inference-profile/us.${AiBedrockFoundationModelId}
+              - !Sub arn:aws:bedrock:${AWS::Region}:${AWS::AccountId}:inference-profile/us.${QaBedrockModelId}
               - !Sub arn:aws:bedrock:${AWS::Region}::foundation-model/${AiBedrockFoundationModelId}
               - !Sub arn:aws:bedrock:${AWS::Region}::foundation-model/${QaBedrockModelId}
+              - !Sub arn:aws:bedrock:us-east-1::foundation-model/${AiBedrockFoundationModelId}
+              - !Sub arn:aws:bedrock:us-east-1::foundation-model/${QaBedrockModelId}
+              - !Sub arn:aws:bedrock:us-east-2::foundation-model/${AiBedrockFoundationModelId}
+              - !Sub arn:aws:bedrock:us-east-2::foundation-model/${QaBedrockModelId}
+              - !Sub arn:aws:bedrock:us-west-2::foundation-model/${AiBedrockFoundationModelId}
+              - !Sub arn:aws:bedrock:us-west-2::foundation-model/${QaBedrockModelId}
 
   AppManagedPolicyBedrockQaFoundationModelOnly:
     Type: AWS::IAM::ManagedPolicy
@@ -1549,7 +1557,11 @@ Resources:
               - bedrock:InvokeModel
               - bedrock:Converse
             Resource:
+              - !Sub arn:aws:bedrock:${AWS::Region}:${AWS::AccountId}:inference-profile/us.${QaBedrockModelId}
               - !Sub arn:aws:bedrock:${AWS::Region}::foundation-model/${QaBedrockModelId}
+              - !Sub arn:aws:bedrock:us-east-1::foundation-model/${QaBedrockModelId}
+              - !Sub arn:aws:bedrock:us-east-2::foundation-model/${QaBedrockModelId}
+              - !Sub arn:aws:bedrock:us-west-2::foundation-model/${QaBedrockModelId}
 
   AppManagedPolicySecretsMultilingualScopedRead:
     Type: AWS::IAM::ManagedPolicy

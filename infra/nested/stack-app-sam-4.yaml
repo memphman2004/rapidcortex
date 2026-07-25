@@ -184,12 +184,12 @@ Parameters:
     Description: custom:role written by PostConfirmation when the user has no role yet.
   QaBedrockModelId:
     Type: String
-    Default: anthropic.claude-3-5-haiku-20241022-v1:0
+    Default: anthropic.claude-haiku-4-5-20251001-v1:0
     Description: >-
       Bedrock foundation model id for automated QA structured JSON scoring (InvokeModel / Converse).
   AiBedrockFoundationModelId:
     Type: String
-    Default: anthropic.claude-3-5-haiku-20241022-v1:0
+    Default: anthropic.claude-haiku-4-5-20251001-v1:0
     Description: >-
       Bedrock foundation model id for analysis / language paths that call Bedrock (InvokeModel / Converse).
       IAM and Globals BEDROCK_MODEL_* must match runtime configuration (CJIS: no foundation-model/* wildcard).
@@ -888,6 +888,7 @@ Conditions:
     Fn::And:
       - !Not [!Equals [!Ref SesIdentityValue, ""]]
       - !Not [!Equals [!Ref SesIdentityType, ""]]
+  HasBillingSesSenderEmail: !Not [!Equals [!Ref BillingSesSenderEmail, ""]]
   CreateBillingSesIdentities: !And
     - !Not [!Equals [!Ref BillingSesSenderEmail, ""]]
     - !Not [!Equals [!Ref BillingSesDomain, ""]]
@@ -967,11 +968,11 @@ Mappings:
       Tr2: "mock"
       Tr3: "off"
     staging:
-      PrimaryAi: bedrock
-      SecondaryAi: "off"
-      TertiaryAi: "off"
-      AiFallback: "off"
-      AiSecondaryFallback: "off"
+      PrimaryAi: anthropic
+      SecondaryAi: openai
+      TertiaryAi: bedrock
+      AiFallback: openai
+      AiSecondaryFallback: bedrock
       Lid1: aws
       Lid2: mock
       Lid3: "off"
@@ -982,11 +983,11 @@ Mappings:
       Tr2: "mock"
       Tr3: "off"
     prod:
-      PrimaryAi: bedrock
-      SecondaryAi: "off"
-      TertiaryAi: "off"
-      AiFallback: "off"
-      AiSecondaryFallback: "off"
+      PrimaryAi: anthropic
+      SecondaryAi: openai
+      TertiaryAi: bedrock
+      AiFallback: openai
+      AiSecondaryFallback: bedrock
       Lid1: aws
       Lid2: mock
       Lid3: "off"
@@ -997,11 +998,11 @@ Mappings:
       Tr2: "mock"
       Tr3: "off"
     pilot:
-      PrimaryAi: bedrock
-      SecondaryAi: "off"
-      TertiaryAi: "off"
-      AiFallback: "off"
-      AiSecondaryFallback: "off"
+      PrimaryAi: anthropic
+      SecondaryAi: openai
+      TertiaryAi: bedrock
+      AiFallback: openai
+      AiSecondaryFallback: bedrock
       Lid1: aws
       Lid2: mock
       Lid3: "off"
@@ -1043,7 +1044,7 @@ Globals:
     Environment:
       Variables:
         RC_RUNTIME_CONFIG_JSON: !Sub
-          - '{"ds":"${DeploymentStage}","trp":"${TranscriptRetentionPolicyDays}","it":"${IncidentsTable}","tt":"${TranscriptsTable}","at":"${AnalysesTable}","aud":"${AuditTable}","dda":"${DataDeletionAuditTable}","drp":"cjis-default-v1","ag":"${AgenciesTable}","iv":"${InvitesTable}","ao":"${AccessOverridesTable}","neo":"${NetworkEmergencyOverridesTable}","ans":"${AgencyNetworkPolicySyncTopic}","nae":"false","waf":"${WafArn}","wsc":"REGIONAL","ac":"${ApiClientsTable}","wh":"${WebhooksTable}","erl":"${ExternalApiRateLimitsTable}","rle":"true","rak":"${RcLiteApiKeysTable}","rrl":"${RcLiteRateLimitTable}","rlu":"${RcLiteUsageTable}","sit":"${SeoIntelligenceTable}","ste":"${SeoToolEnabled}","sae":"${SeoAutoScanEnabled}","sai":"${SeoAiSuggestionsEnabled}","det":"${DeceptionEventsTable}","dse":"${PilotDeceptionShield}","dae":"false","dal":"true","ops":"${OpsAlertsTopic}","ej":"${ExternalApiJwtSecretArn}","ek":"${ExternalApiEncryptionKeyArn}","pma":"60","peg":"0","pcf":"true","ab":"${AssetsBucket}","ls":"${LanguageSessionsTable}","aef":"true","asm":"true","apv":"dispatch-triage-v1","art":"55000","amr":"1","adb":"0","amh":"120","asu":"true","ail":"90","oa":"${OpenAiApiKeySecretArn}","aa":"${AnthropicApiKeySecretArn}","aas":"0","aua":"false","aco":"${HttpApiCorsAllowedOrigins}","eqs":"${PilotEnableQaScoring}","eqa":"${PilotEnableQaAfterAnalysis}","qss":"${QASessionsTable}","qts":"${QATemplatesTable}","qsm":"${PilotQaScoringMock}","qbm":"${QaBedrockModelId}","br":"${AWSRegion}","eim":"${PilotEnableIncidentMedia}","imt":"${IncidentMediaTable}","imp":"","imn":"120","imu":"900","imx":"52428800","ent":"${PilotEnableNonEmergencyTriage}","tft":"${TraumaFlagsTable}","pn":"${PremiseNotesTable}","dcn":"${DispatcherCoachingNotesTable}","itl":"${IncidentTimelineTable}","ish":"${IncidentSharesTable}","asp":"${AgencySharePartnersTable}","lp":"${LanguageProvider}","cr":"${AWSRegion}","cwe":"${CadWritebackEnabled}","cwr":"${CadWritebackRequiresApproval}","cwa":"${CadWritebackAuditTable}","bp":"${BillingProfilesTable}","inv":"${InvoicesTable}","ii":"${InvoiceItemsTable}","bae":"${BillingAuditEventsTable}","mao":"${MonetizationAddOnsTable}","minv":"${MonetizationInvoicesTable}","slt":"${SalesLeadsTable}","sct":"${ServiceCatalogTable}","cfe":"support@rapidcortex.us"}'
+          - '{"ds":"${DeploymentStage}","trp":"${TranscriptRetentionPolicyDays}","it":"${IncidentsTable}","tt":"${TranscriptsTable}","at":"${AnalysesTable}","aud":"${AuditTable}","dda":"${DataDeletionAuditTable}","drp":"cjis-default-v1","ag":"${AgenciesTable}","iv":"${InvitesTable}","ao":"${AccessOverridesTable}","neo":"${NetworkEmergencyOverridesTable}","ans":"${AgencyNetworkPolicySyncTopic}","nae":"false","waf":"${WafArn}","wsc":"REGIONAL","ac":"${ApiClientsTable}","wh":"${WebhooksTable}","erl":"${ExternalApiRateLimitsTable}","rle":"true","rak":"${RcLiteApiKeysTable}","rrl":"${RcLiteRateLimitTable}","rlu":"${RcLiteUsageTable}","sit":"${SeoIntelligenceTable}","ste":"${SeoToolEnabled}","sae":"${SeoAutoScanEnabled}","sai":"${SeoAiSuggestionsEnabled}","det":"${DeceptionEventsTable}","dse":"${PilotDeceptionShield}","dae":"false","dal":"true","ops":"${OpsAlertsTopic}","ej":"${ExternalApiJwtSecretArn}","ek":"${ExternalApiEncryptionKeyArn}","pma":"60","peg":"0","pcf":"true","ab":"${AssetsBucket}","ls":"${LanguageSessionsTable}","aef":"true","asm":"true","apv":"dispatch-triage-v1","art":"55000","amr":"1","adb":"0","amh":"120","asu":"true","ail":"90","oa":"${OpenAiApiKeySecretArn}","aa":"${AnthropicApiKeySecretArn}","aas":"0","aua":"false","aco":"${HttpApiCorsAllowedOrigins}","eqs":"${PilotEnableQaScoring}","eqa":"${PilotEnableQaAfterAnalysis}","qss":"${QASessionsTable}","qts":"${QATemplatesTable}","qsm":"${PilotQaScoringMock}","qbm":"${QaBedrockModelId}","br":"${AWSRegion}","eim":"${PilotEnableIncidentMedia}","imt":"${IncidentMediaTable}","imp":"","imn":"120","imu":"900","imx":"52428800","ent":"${PilotEnableNonEmergencyTriage}","tft":"${TraumaFlagsTable}","pn":"${PremiseNotesTable}","dcn":"${DispatcherCoachingNotesTable}","itl":"${IncidentTimelineTable}","ish":"${IncidentSharesTable}","asp":"${AgencySharePartnersTable}","lp":"${LanguageProvider}","cr":"${AWSRegion}","cwe":"${CadWritebackEnabled}","cwr":"${CadWritebackRequiresApproval}","cwa":"${CadWritebackAuditTable}","bp":"${BillingProfilesTable}","cst":"${CustomersTable}","inv":"${InvoicesTable}","ii":"${InvoiceItemsTable}","bae":"${BillingAuditEventsTable}","bal":"${BillingAuditLogTable}","bib":"${BillingInvoicesBucket}","mao":"${MonetizationAddOnsTable}","minv":"${MonetizationInvoicesTable}","slt":"${SalesLeadsTable}","sct":"${ServiceCatalogTable}","bse":"support@rapidcortex.us","cfe":"support@rapidcortex.us"}'
           -
             AWSRegion: !Ref AWS::Region
             AccessOverridesTable: !Ref AccessOverridesTable
@@ -1056,6 +1057,9 @@ Globals:
             AssetsBucket: !Ref AssetsBucket
             AuditTable: !Ref AuditTable
             BillingAuditEventsTable: !Ref BillingAuditEventsTable
+            BillingAuditLogTable: !Ref BillingAuditLogTable
+            BillingInvoicesBucket: !Ref BillingInvoicesBucket
+            CustomersTable: !Ref CustomersTable
             BillingProfilesTable: !Ref BillingProfilesTable
             CadWritebackAuditTable: !Ref CadWritebackAuditTable
             CadWritebackEnabled: !Ref CadWritebackEnabled
@@ -1470,8 +1474,16 @@ Resources:
               - bedrock:InvokeModel
               - bedrock:Converse
             Resource:
+              - !Sub arn:aws:bedrock:${AWS::Region}:${AWS::AccountId}:inference-profile/us.${AiBedrockFoundationModelId}
+              - !Sub arn:aws:bedrock:${AWS::Region}:${AWS::AccountId}:inference-profile/us.${QaBedrockModelId}
               - !Sub arn:aws:bedrock:${AWS::Region}::foundation-model/${AiBedrockFoundationModelId}
               - !Sub arn:aws:bedrock:${AWS::Region}::foundation-model/${QaBedrockModelId}
+              - !Sub arn:aws:bedrock:us-east-1::foundation-model/${AiBedrockFoundationModelId}
+              - !Sub arn:aws:bedrock:us-east-1::foundation-model/${QaBedrockModelId}
+              - !Sub arn:aws:bedrock:us-east-2::foundation-model/${AiBedrockFoundationModelId}
+              - !Sub arn:aws:bedrock:us-east-2::foundation-model/${QaBedrockModelId}
+              - !Sub arn:aws:bedrock:us-west-2::foundation-model/${AiBedrockFoundationModelId}
+              - !Sub arn:aws:bedrock:us-west-2::foundation-model/${QaBedrockModelId}
 
   AppManagedPolicyBedrockQaFoundationModelOnly:
     Type: AWS::IAM::ManagedPolicy
@@ -1486,7 +1498,11 @@ Resources:
               - bedrock:InvokeModel
               - bedrock:Converse
             Resource:
+              - !Sub arn:aws:bedrock:${AWS::Region}:${AWS::AccountId}:inference-profile/us.${QaBedrockModelId}
               - !Sub arn:aws:bedrock:${AWS::Region}::foundation-model/${QaBedrockModelId}
+              - !Sub arn:aws:bedrock:us-east-1::foundation-model/${QaBedrockModelId}
+              - !Sub arn:aws:bedrock:us-east-2::foundation-model/${QaBedrockModelId}
+              - !Sub arn:aws:bedrock:us-west-2::foundation-model/${QaBedrockModelId}
 
   AppManagedPolicySecretsMultilingualScopedRead:
     Type: AWS::IAM::ManagedPolicy
@@ -1579,10 +1595,14 @@ Resources:
                 - ses:SendTemplatedEmail
               Resource:
                 - !Sub arn:${AWS::Partition}:ses:${AWS::Region}:${AWS::AccountId}:identity/${BillingSesSenderEmail}
-            - Sid: SesBillingIdentitiesSkippedPlaceholder
+            - Sid: SesSendFromDefaultSupportIdentity
               Effect: Allow
-              Action: sts:GetCallerIdentity
-              Resource: "*"
+              Action:
+                - ses:SendEmail
+                - ses:SendTemplatedEmail
+              Resource:
+                - !Sub arn:${AWS::Partition}:ses:${AWS::Region}:${AWS::AccountId}:identity/support@rapidcortex.us
+                - !Sub arn:${AWS::Partition}:ses:${AWS::Region}:${AWS::AccountId}:identity/rapidcortex.us
 
   AppManagedPolicyTranscribeIncidentAudioJobsReadWrite:
     Type: AWS::IAM::ManagedPolicy
@@ -3815,11 +3835,14 @@ Resources:
             ApiId: !Ref Api
             Path: /api/billing/current-subscription
             Method: GET
-        Invoices:
+        # Do NOT register GET /api/billing/invoices here — that path is owned by
+        # BillingInvoicesHttpFunction (customer invoices table). A prior GET route
+        # shadowed ANY and returned empty monetization invoices to the billing hub.
+        MonetizationInvoices:
           Type: HttpApi
           Properties:
             ApiId: !Ref Api
-            Path: /api/billing/invoices
+            Path: /api/billing/monetization/invoices
             Method: GET
         Usage:
           Type: HttpApi
@@ -3946,6 +3969,19 @@ Resources:
         Variables:
           COGNITO_USER_POOL_ID: !Ref ImportedCognitoUserPoolId
           COGNITO_CLIENT_ID: !Ref ImportedCognitoWebClientId
+          # Explicit longs so send/PDF never depends only on RC_RUNTIME short-key hydrate.
+          BILLING_SES_SENDER_EMAIL: !If
+            - HasBillingSesSenderEmail
+            - !Ref BillingSesSenderEmail
+            - support@rapidcortex.us
+          CONTACT_FROM_EMAIL: !If
+            - HasBillingSesSenderEmail
+            - !Ref BillingSesSenderEmail
+            - support@rapidcortex.us
+          BILLING_INVOICES_BUCKET: !Ref BillingInvoicesBucket
+          INVOICES_TABLE: !Ref InvoicesTable
+          INVOICE_ITEMS_TABLE: !Ref InvoiceItemsTable
+          CUSTOMERS_TABLE: !Ref CustomersTable
       CodeUri: ../../apps/api/
       Handler: dist/handlers/billingInvoicesHttp.handler
       Policies:
@@ -3954,6 +3990,7 @@ Resources:
         - !Ref AppManagedPolicyDynamoLambdaCrudShardC
         - !Ref AppManagedPolicyDynamoLambdaCrudShardD
         - !Ref AppManagedPolicyS3ApplicationBucketsCrud
+        - !Ref AppManagedPolicySesBillingSenderIdentityEmails
 
       Events:
         InvoicesRoot:

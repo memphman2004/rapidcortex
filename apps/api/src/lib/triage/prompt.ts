@@ -23,6 +23,12 @@ Classification rules:
 Safety rule: A false EMERGENCY classification is far less harmful than a false NON_EMERGENCY.
 When uncertain, classify as UNCERTAIN — it will be treated as EMERGENCY operationally.
 
+Confidence calibration (integer 0–100 only — never a 0–1 fraction):
+- 90–100: Clear classification with an explicit supporting quote
+- 70–89: Likely classification; minor ambiguity remains
+- 40–69: Mixed or thin evidence — prefer UNCERTAIN if NON_EMERGENCY is not obvious
+- 0–39: Insufficient evidence; classification should be UNCERTAIN
+
 Respond ONLY with a valid JSON object matching this exact schema. No markdown, no preamble:
 {
   "classification": "EMERGENCY" | "NON_EMERGENCY" | "UNCERTAIN",

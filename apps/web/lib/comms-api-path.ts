@@ -32,6 +32,10 @@ const STACK2_PATH_TESTS: RegExp[] = [
   /^\/api\/qa\/scorecards(\/|$)/,
   /^\/api\/qa\/coaching-notes(\/|$)/,
   /^\/api\/rcs\//,
+  /^\/api\/ng911\//,
+  /^\/api\/public\/diversion\//,
+  /^\/api\/incidents\/[^/]+\/eido$/,
+  /^\/api\/incidents\/[^/]+\/additional-data/,
 ];
 
 /** Billing, payments, Ring Connect, network policy — stack-app-sam-4 (AppSam4Stack). */

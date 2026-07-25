@@ -11,6 +11,7 @@ import { RC_PLATFORM_COMMAND_PATHS } from "@/lib/platform-command-nav";
 import {
   isDeceptionShieldUiEnabled,
   isDispatcherWellnessUiEnabled,
+  isNg911AssistEnabled,
   isNonEmergencyTriageEnabled,
   isQaScoringEnabled,
   isSeoIntelligenceUiEnabled,
@@ -28,6 +29,9 @@ const tabs = [
   { path: "/admin/protocols/sop", label: "SOP docs", feature: "sop" as const },
   { path: "/admin/qa/templates", label: "QA templates", feature: "qa" as const },
   { path: "/admin/triage/config", label: "Triage", feature: "triage" as const },
+  { path: "/admin/ng911/diversion", label: "Diversion", feature: "ng911" as const },
+  { path: "/admin/ng911/crisis", label: "Crisis", feature: "ng911" as const },
+  { path: "/admin/ng911/metrics", label: "NG9-1-1", feature: "ng911" as const },
   { path: "/admin/wellness", label: "Wellness", feature: "wellness" as const },
   { path: "/admin/integrations", label: "Integrations" },
   { path: "/admin/settings", label: "Environment" },
@@ -56,6 +60,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     if (t.feature === "qa") return isQaScoringEnabled();
     if (t.feature === "sop") return isSopProtocolEnabled();
     if (t.feature === "triage") return isNonEmergencyTriageEnabled();
+    if (t.feature === "ng911") return isNg911AssistEnabled();
     if (t.feature === "wellness") return isDispatcherWellnessUiEnabled();
     if (t.feature === "seoIntel") return isSeoIntelligenceUiEnabled();
     return true;

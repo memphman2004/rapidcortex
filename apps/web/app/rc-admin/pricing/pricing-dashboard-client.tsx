@@ -212,7 +212,7 @@ export function PricingDashboardClient({ initialGlobal, initialTenants }: Props)
     <div className="space-y-6 pb-28">
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-semibold text-white">Pricing configuration</h1>
+          <h1 className="text-2xl font-semibold text-white">Pricing Menu</h1>
           <p className="mt-2 max-w-3xl text-sm text-slate-400">
             Master guide defaults with global and per-agency overrides. All changes require a
             reason and are recorded in the immutable audit log.

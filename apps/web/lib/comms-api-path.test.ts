@@ -143,4 +143,16 @@ describe("isCommsPlatformApiPath", () => {
       "https://stack2.example.com",
     );
   });
+
+  it("routes NG9-1-1 assist paths to stack 2", () => {
+    process.env.API_UPSTREAM_BASE = "https://stack1.example.com";
+    process.env.API_UPSTREAM_BASE_2 = "https://stack2.example.com";
+    expect(isStack2ApiPath("/api/ng911/metrics")).toBe(true);
+    expect(isStack2ApiPath("/api/public/diversion/agency-1/start")).toBe(true);
+    expect(isStack2ApiPath("/api/incidents/inc-1/eido")).toBe(true);
+    expect(isStack2ApiPath("/api/incidents/inc-1/additional-data")).toBe(true);
+    expect(resolveUpstreamApiBase("/api/ng911/diversion/workflows")).toBe(
+      "https://stack2.example.com",
+    );
+  });
 });

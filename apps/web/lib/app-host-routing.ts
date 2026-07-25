@@ -111,7 +111,7 @@ export function isMarketingPublicPath(pathname: string): boolean {
   if (APP_OPERATIONAL_ROOT_SEGMENTS.has(first)) return false;
 
   // Public intake routes (also in RESERVED_PUBLIC_ROUTE_FIRST_SEGMENTS for jurisdiction slug guards).
-  if (first === "report" || first === "locate" || first === "r") return false;
+  if (first === "report" || first === "locate" || first === "r" || first === "diversion") return false;
 
   // RC Lite developer guides — app host only, session required (see middleware guardAuthenticatedDocs).
   if (first === "developers" && (segments[1] === "docs" || pathname.startsWith("/developers/docs/"))) {

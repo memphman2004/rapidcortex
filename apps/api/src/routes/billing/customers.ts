@@ -86,6 +86,12 @@ export async function handleBillingCustomersRoute(event: {
     const scopeAgencyId = getAgencyScope(user, event.queryStringParameters?.agencyId);
 
     if (!scopeAgencyId) return badRequest("agencyId query required when acting as RC Super Admin (rcsuperadmin)");
+    if (!env.customersTable?.trim()) {
+      return jsonStatus(
+        { error: "Billing customers table is not configured on this API. Contact platform ops." },
+        503,
+      );
+    }
 
     if (tail.length === 0 && method === "POST") {
       const bodyRaw =

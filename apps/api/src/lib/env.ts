@@ -250,7 +250,7 @@ export const env = {
   /** When true with ENABLE_QA_SCORING, successful incident analysis triggers QA scoring for draft/failed sessions on that incident. */
   enableQaScoreAfterAnalysis: featureEnabled("ENABLE_QA_SCORE_AFTER_ANALYSIS"),
   qaScoringMock: process.env.QA_SCORING_MOCK === "true",
-  /** Bedrock foundation model id for structured QA JSON (e.g. anthropic.claude-3-5-haiku-20241022-v1:0). */
+  /** Bedrock model id for structured QA JSON (prefer us.anthropic.claude-haiku-4-5-… inference profile). */
   qaBedrockModelId: process.env.QA_BEDROCK_MODEL_ID?.trim() ?? "",
   /** F2 caller media — empty table disables incident media HTTP handlers. */
   incidentMediaTable: process.env.INCIDENT_MEDIA_TABLE?.trim() ?? "",
@@ -306,6 +306,10 @@ export const env = {
   ),
   triageMock: process.env.TRIAGE_MOCK === "true",
   nonEmergencyQueueTable: process.env.NON_EMERGENCY_QUEUE_TABLE?.trim() ?? "",
+  /** NG911 assist: diversion workflows, EIDO, Additional Data packages. */
+  enableNg911Assist: featureEnabled("ENABLE_NG911_ASSIST"),
+  ng911AssistTable: process.env.NG911_ASSIST_TABLE?.trim() ?? "",
+  ng911DiversionMockSms: process.env.NG911_DIVERSION_MOCK_SMS === "true",
   /** Per-field incident picture confidence (F-confidence). */
   enableFieldConfidence: featureEnabled("ENABLE_FIELD_CONFIDENCE"),
   confidenceScoreEveryNSegments: Math.max(

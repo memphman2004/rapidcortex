@@ -6,7 +6,7 @@ import type { GlobalPricingConfig, TenantPricingSummary } from "@/lib/pricing/pr
 import { PricingDashboardClient } from "./pricing-dashboard-client";
 
 export const metadata = {
-  title: "Pricing configuration",
+  title: "Pricing Menu",
   robots: { index: false, follow: false },
 };
 

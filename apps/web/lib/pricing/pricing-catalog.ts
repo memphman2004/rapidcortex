@@ -50,10 +50,10 @@ export const VERTICALS = [
     label: "Campus",
     annualTiers: [] as const,
     implSizes: [
-      { id: "sm", label: "Small" },
-      { id: "md", label: "Medium" },
-      { id: "lg", label: "Large" },
-      { id: "xl", label: "XL" },
+      { id: "sm", label: "Small — Up to 4,999" },
+      { id: "md", label: "Medium — Up to 14,999" },
+      { id: "lg", label: "Large — Up to 29,999" },
+      { id: "xl", label: "X-Large — over 30,000" },
     ],
   },
   {

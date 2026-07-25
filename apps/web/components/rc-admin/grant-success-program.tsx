@@ -118,7 +118,7 @@ export function GrantSuccessProgram() {
         throw new Error(
           detail ||
             (res.status === 503
-              ? "Generation timed out — retry in a moment (API gateway limit is 30s)"
+              ? "Generation timed out — retry in a moment"
               : `HTTP ${res.status}`),
         );
       }

@@ -1,4 +1,4 @@
-import type { APIGatewayProxyHandlerV2 } from "aws-lambda";
+import type { APIGatewayProxyHandlerV2, APIGatewayProxyStructuredResultV2 } from "aws-lambda";
 
 /**
  * Link-preview rotator for marketing shares (email / iMessage / social).
@@ -15,13 +15,16 @@ const SITE_ORIGIN = (process.env.MARKETING_SITE_ORIGIN ?? "https://www.rapidcort
   "",
 );
 
-export const handler: APIGatewayProxyHandlerV2 = async () => {
+export const handler: APIGatewayProxyHandlerV2 = async (): Promise<APIGatewayProxyStructuredResultV2> => {
   const path = SHARE_PATHS[Math.floor(Date.now() / 1000) % SHARE_PATHS.length]!;
   const upstream = await fetch(`${SITE_ORIGIN}${path}`);
   if (!upstream.ok) {
     return {
       statusCode: 502,
-      headers: { "Cache-Control": "no-store" },
+      headers: {
+        "Content-Type": "text/plain; charset=utf-8",
+        "Cache-Control": "no-store",
+      },
       body: `Upstream share image failed: ${upstream.status}`,
     };
   }

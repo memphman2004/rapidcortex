@@ -1,6 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import type { CatalogItem } from "rapid-cortex-shared";
+import { InvoiceServiceDescriptionField } from "@/components/billing/invoice-service-description-field";
 import {
   addDaysIso,
   buildAgencyInvoicePrefillLines,
@@ -57,6 +59,8 @@ export function CreateAgencyInvoiceModal({
   const [saving, setSaving] = useState(false);
   const [sendNow, setSendNow] = useState(false);
   const [error, setError] = useState("");
+  const [catalog, setCatalog] = useState<CatalogItem[]>([]);
+  const [catalogLoading, setCatalogLoading] = useState(true);
 
   const subtotal = lineItems.reduce((s, i) => s + i.total, 0);
 
@@ -64,6 +68,27 @@ export function CreateAgencyInvoiceModal({
     document.body.style.overflow = "hidden";
     return () => {
       document.body.style.overflow = "";
+    };
+  }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+    async function loadCatalog() {
+      setCatalogLoading(true);
+      try {
+        const res = await fetch("/api/rc-admin/pricing/catalog");
+        if (!res.ok) return;
+        const data = (await res.json()) as { items?: CatalogItem[] };
+        if (!cancelled) setCatalog(data.items ?? []);
+      } catch {
+        /* keep empty — free-text descriptions still work */
+      } finally {
+        if (!cancelled) setCatalogLoading(false);
+      }
+    }
+    void loadCatalog();
+    return () => {
+      cancelled = true;
     };
   }, []);
 
@@ -118,6 +143,21 @@ export function CreateAgencyInvoiceModal({
           updated.total = Number(updated.quantity) * Number(updated.unitPrice);
         }
         return updated;
+      }),
+    );
+  }
+
+  function applyCatalogPick(id: string, name: string, unitPriceDollars: number | null) {
+    setLineItems((prev) =>
+      prev.map((item) => {
+        if (item.id !== id) return item;
+        const unitPrice = unitPriceDollars == null ? item.unitPrice : unitPriceDollars;
+        return {
+          ...item,
+          description: name,
+          unitPrice,
+          total: Number(item.quantity) * Number(unitPrice),
+        };
       }),
     );
   }
@@ -249,13 +289,13 @@ export function CreateAgencyInvoiceModal({
               <span className="ml-2 font-normal normal-case text-slate-600">
                 Loading plan &amp; add-ons…
               </span>
-            ) : lineItems.some((i) => i.id === "plan-monthly" || i.id.startsWith("addon-")) ? (
+            ) : (
               <span className="ml-2 font-normal normal-case text-slate-600">
-                Prefill from agency plan/add-ons — editable
+                Click description to browse Pricing Menu categories — type to filter
               </span>
-            ) : null}
+            )}
           </p>
-          <div className="overflow-x-auto">
+          <div className="overflow-x-auto overflow-y-visible">
             <table className="w-full min-w-[560px] text-xs">
               <thead>
                 <tr className="border-b border-white/10 text-left text-[10px] uppercase tracking-wide text-slate-500">
@@ -269,15 +309,16 @@ export function CreateAgencyInvoiceModal({
               <tbody>
                 {lineItems.map((item) => (
                   <tr key={item.id} className="border-b border-white/5">
-                    <td className="py-2 pr-2">
-                      <input
+                    <td className="relative py-2 pr-2 align-top">
+                      <InvoiceServiceDescriptionField
                         value={item.description}
-                        onChange={(e) => updateItem(item.id, "description", e.target.value)}
-                        placeholder="Service or feature name"
-                        className="w-full rounded border border-slate-700 bg-slate-900 px-2 py-1 text-xs text-slate-100"
+                        catalog={catalog}
+                        catalogLoading={catalogLoading}
+                        onChange={(description) => updateItem(item.id, "description", description)}
+                        onPick={(pick) => applyCatalogPick(item.id, pick.name, pick.unitPriceDollars)}
                       />
                     </td>
-                    <td className="px-1 py-2 text-center">
+                    <td className="px-1 py-2 text-center align-top">
                       <input
                         type="number"
                         min={1}
@@ -286,7 +327,7 @@ export function CreateAgencyInvoiceModal({
                         className="w-14 rounded border border-slate-700 bg-slate-900 px-1 py-1 text-center text-xs text-slate-100"
                       />
                     </td>
-                    <td className="px-1 py-2 text-right">
+                    <td className="px-1 py-2 text-right align-top">
                       <input
                         type="number"
                         min={0}
@@ -296,10 +337,10 @@ export function CreateAgencyInvoiceModal({
                         className="w-24 rounded border border-slate-700 bg-slate-900 px-1 py-1 text-right text-xs text-slate-100"
                       />
                     </td>
-                    <td className="px-1 py-2 text-right tabular-nums text-slate-200">
+                    <td className="px-1 py-2 text-right align-top tabular-nums text-slate-200">
                       {formatCurrency(item.total)}
                     </td>
-                    <td className="py-2 text-center">
+                    <td className="py-2 text-center align-top">
                       <button
                         type="button"
                         onClick={() =>

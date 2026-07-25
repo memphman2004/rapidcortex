@@ -119,6 +119,16 @@ Parameters:
     Type: String
     Default: ""
     Description: Optional stack-5 API base (campus, venue, media, stream).
+  GrantGenerateFunctionName:
+    Type: String
+    Default: ""
+    Description: >-
+      GenerateGrantPackage Lambda name. When set, web BFF invokes it directly
+      (bypasses API Gateway 30s limit for rare ~60s grant PDF generation).
+  GrantGenerateFunctionArn:
+    Type: String
+    Default: ""
+    Description: GenerateGrantPackage Lambda ARN for ECS task-role invoke permission.
   CognitoUserPoolId:
     Type: String
   CognitoClientId:
@@ -202,6 +212,8 @@ Conditions:
   HasApiBaseUrl3: !Not [!Equals [!Ref ApiBaseUrl3, ""]]
   HasApiBaseUrl4: !Not [!Equals [!Ref ApiBaseUrl4, ""]]
   HasApiBaseUrl5: !Not [!Equals [!Ref ApiBaseUrl5, ""]]
+  HasGrantGenerateFunction: !Not [!Equals [!Ref GrantGenerateFunctionName, ""]]
+  HasGrantGenerateFunctionArn: !Not [!Equals [!Ref GrantGenerateFunctionArn, ""]]
   ManageRoute53AliasRecords:
     Fn::And:
       - !Condition AttachApexWwwAliases
@@ -338,6 +350,9 @@ Resources:
           Value: "true"
         - Key: deletion_protection.enabled
           Value: !Ref AlbDeletionProtectionEnabled
+        # Grant PDF BFF→Lambda can take ~60s; keep ALB idle above that.
+        - Key: idle_timeout.timeout_seconds
+          Value: "90"
 
   WebTargetGroup:
     Type: AWS::ElasticLoadBalancingV2::TargetGroup
@@ -407,6 +422,14 @@ Resources:
                   - logs:CreateLogStream
                   - logs:PutLogEvents
                 Resource: !Sub arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/ecs/${AppName}-web-${DeploymentStage}:*
+              - !If
+                - HasGrantGenerateFunctionArn
+                - Sid: GrantGenerateInvoke
+                  Effect: Allow
+                  Action:
+                    - lambda:InvokeFunction
+                  Resource: !Ref GrantGenerateFunctionArn
+                - !Ref AWS::NoValue
               # ECS Exec (SSM Session Manager) — these ssmmessages actions do not support resource-level
               # restriction (AWS requires Resource: "*"); this is the minimum AWS-documented policy for
               # `aws ecs execute-command` debugging shells. Temporary — remove once the healthcheck
@@ -495,6 +518,11 @@ Resources:
               - HasApiBaseUrl5
               - Name: NEXT_PUBLIC_API_BASE_5
                 Value: !Ref ApiBaseUrl5
+              - !Ref AWS::NoValue
+            - !If
+              - HasGrantGenerateFunction
+              - Name: GRANT_GENERATE_FUNCTION_NAME
+                Value: !Ref GrantGenerateFunctionName
               - !Ref AWS::NoValue
             - Name: NEXT_PUBLIC_API_BASE
               Value: !Ref ApiBaseUrl
@@ -656,7 +684,7 @@ Resources:
             CustomOriginConfig:
               HTTPPort: 80
               OriginProtocolPolicy: http-only
-              OriginReadTimeout: 60
+              OriginReadTimeout: 90
               OriginKeepaliveTimeout: 5
         # Prefer not to cache authenticated/sensitive `/api/*` at the CDN (avoid stale 404/JSON).
         CacheBehaviors:

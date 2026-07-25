@@ -43,6 +43,8 @@ export const RESERVED_PUBLIC_ROUTE_FIRST_SEGMENTS: readonly string[] = [
   "report",
   /** Public SMS GPS location share — no auth (`/locate/{token}`). */
   "locate",
+  /** Public non-emergency diversion IVR/web flow (`/diversion/{agencyId}`). */
+  "diversion",
   /** Legacy RCLI intake (`/r/{rcli}`). */
   "r",
 ];

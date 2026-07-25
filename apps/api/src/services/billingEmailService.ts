@@ -14,8 +14,14 @@ const billingAuditService = new BillingAuditService();
 type ReminderType = "3_DAYS_BEFORE" | "DUE_TODAY" | "7_DAYS_OVERDUE" | "15_DAYS_OVERDUE" | "30_DAYS_OVERDUE";
 
 function requireSenderEmail(): string {
-  const sender = env.billingSesSenderEmail?.trim();
-  if (!sender) throw new Error("BILLING_SES_SENDER_EMAIL is required");
+  // Prefer dedicated billing sender; fall back to CONTACT_FROM_EMAIL (RC_RUNTIME short key `cfe`).
+  const sender =
+    env.billingSesSenderEmail?.trim() ||
+    env.contactFromEmail?.trim() ||
+    "";
+  if (!sender) {
+    throw new Error("BILLING_SES_SENDER_EMAIL is required");
+  }
   return sender;
 }
 

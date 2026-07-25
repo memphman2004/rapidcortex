@@ -119,6 +119,32 @@ fi
 if [[ -n "${NEXT_PUBLIC_REPORT_ORIGIN:-}" ]]; then
   DEPLOY_OVERRIDES+=( "ReportSiteUrl=${NEXT_PUBLIC_REPORT_ORIGIN}" )
 fi
+GRANT_GENERATE_FUNCTION_NAME="${GRANT_GENERATE_FUNCTION_NAME:-}"
+GRANT_GENERATE_FUNCTION_ARN="${GRANT_GENERATE_FUNCTION_ARN:-}"
+if [[ -z "$GRANT_GENERATE_FUNCTION_NAME" || -z "$GRANT_GENERATE_FUNCTION_ARN" ]]; then
+  # Prefer root stack outputs when not supplied explicitly.
+  ROOT_STACK="rapid-cortex-${STAGE}"
+  if [[ -z "$GRANT_GENERATE_FUNCTION_NAME" ]]; then
+    GRANT_GENERATE_FUNCTION_NAME="$(
+      aws cloudformation describe-stacks --region "$AWS_REGION" --stack-name "$ROOT_STACK" \
+        --query "Stacks[0].Outputs[?OutputKey=='GenerateGrantPackageFunctionName'].OutputValue | [0]" \
+        --output text 2>/dev/null || true
+    )"
+  fi
+  if [[ -z "$GRANT_GENERATE_FUNCTION_ARN" ]]; then
+    GRANT_GENERATE_FUNCTION_ARN="$(
+      aws cloudformation describe-stacks --region "$AWS_REGION" --stack-name "$ROOT_STACK" \
+        --query "Stacks[0].Outputs[?OutputKey=='GenerateGrantPackageFunctionArn'].OutputValue | [0]" \
+        --output text 2>/dev/null || true
+    )"
+  fi
+fi
+if [[ -n "$GRANT_GENERATE_FUNCTION_NAME" && "$GRANT_GENERATE_FUNCTION_NAME" != "None" ]]; then
+  DEPLOY_OVERRIDES+=( "GrantGenerateFunctionName=${GRANT_GENERATE_FUNCTION_NAME}" )
+fi
+if [[ -n "$GRANT_GENERATE_FUNCTION_ARN" && "$GRANT_GENERATE_FUNCTION_ARN" != "None" ]]; then
+  DEPLOY_OVERRIDES+=( "GrantGenerateFunctionArn=${GRANT_GENERATE_FUNCTION_ARN}" )
+fi
 
 aws cloudformation deploy \
   --region "$AWS_REGION" \

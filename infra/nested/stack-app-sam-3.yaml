@@ -106,10 +106,10 @@ Parameters:
     AllowedValues: [dispatcher, commsupervisor, agencyadmin, agencyit, analyst, auditor, rcsuperadmin, rcadmin, rcitadmin]
   QaBedrockModelId:
     Type: String
-    Default: anthropic.claude-3-5-haiku-20241022-v1:0
+    Default: anthropic.claude-haiku-4-5-20251001-v1:0
   AiBedrockFoundationModelId:
     Type: String
-    Default: anthropic.claude-3-5-haiku-20241022-v1:0
+    Default: anthropic.claude-haiku-4-5-20251001-v1:0
   IncidentMediaTwilioSecretArn:
     Type: String
     Default: ""
@@ -516,11 +516,11 @@ Mappings:
       Tr2: "mock"
       Tr3: "off"
     staging:
-      PrimaryAi: bedrock
-      SecondaryAi: "off"
-      TertiaryAi: "off"
-      AiFallback: "off"
-      AiSecondaryFallback: "off"
+      PrimaryAi: anthropic
+      SecondaryAi: openai
+      TertiaryAi: bedrock
+      AiFallback: openai
+      AiSecondaryFallback: bedrock
       Lid1: aws
       Lid2: mock
       Lid3: "off"
@@ -531,11 +531,11 @@ Mappings:
       Tr2: "mock"
       Tr3: "off"
     prod:
-      PrimaryAi: bedrock
-      SecondaryAi: "off"
-      TertiaryAi: "off"
-      AiFallback: "off"
-      AiSecondaryFallback: "off"
+      PrimaryAi: anthropic
+      SecondaryAi: openai
+      TertiaryAi: bedrock
+      AiFallback: openai
+      AiSecondaryFallback: bedrock
       Lid1: aws
       Lid2: mock
       Lid3: "off"
@@ -546,11 +546,11 @@ Mappings:
       Tr2: "mock"
       Tr3: "off"
     pilot:
-      PrimaryAi: bedrock
-      SecondaryAi: "off"
-      TertiaryAi: "off"
-      AiFallback: "off"
-      AiSecondaryFallback: "off"
+      PrimaryAi: anthropic
+      SecondaryAi: openai
+      TertiaryAi: bedrock
+      AiFallback: openai
+      AiSecondaryFallback: bedrock
       Lid1: aws
       Lid2: mock
       Lid3: "off"
@@ -855,8 +855,16 @@ Resources:
               - bedrock:InvokeModel
               - bedrock:Converse
             Resource:
+              - !Sub arn:aws:bedrock:${AWS::Region}:${AWS::AccountId}:inference-profile/us.${AiBedrockFoundationModelId}
+              - !Sub arn:aws:bedrock:${AWS::Region}:${AWS::AccountId}:inference-profile/us.${QaBedrockModelId}
               - !Sub arn:aws:bedrock:${AWS::Region}::foundation-model/${AiBedrockFoundationModelId}
               - !Sub arn:aws:bedrock:${AWS::Region}::foundation-model/${QaBedrockModelId}
+              - !Sub arn:aws:bedrock:us-east-1::foundation-model/${AiBedrockFoundationModelId}
+              - !Sub arn:aws:bedrock:us-east-1::foundation-model/${QaBedrockModelId}
+              - !Sub arn:aws:bedrock:us-east-2::foundation-model/${AiBedrockFoundationModelId}
+              - !Sub arn:aws:bedrock:us-east-2::foundation-model/${QaBedrockModelId}
+              - !Sub arn:aws:bedrock:us-west-2::foundation-model/${AiBedrockFoundationModelId}
+              - !Sub arn:aws:bedrock:us-west-2::foundation-model/${QaBedrockModelId}
 
   AppManagedPolicyBedrockQaFoundationModelOnly:
     Type: AWS::IAM::ManagedPolicy
@@ -871,7 +879,11 @@ Resources:
               - bedrock:InvokeModel
               - bedrock:Converse
             Resource:
+              - !Sub arn:aws:bedrock:${AWS::Region}:${AWS::AccountId}:inference-profile/us.${QaBedrockModelId}
               - !Sub arn:aws:bedrock:${AWS::Region}::foundation-model/${QaBedrockModelId}
+              - !Sub arn:aws:bedrock:us-east-1::foundation-model/${QaBedrockModelId}
+              - !Sub arn:aws:bedrock:us-east-2::foundation-model/${QaBedrockModelId}
+              - !Sub arn:aws:bedrock:us-west-2::foundation-model/${QaBedrockModelId}
 
   AppManagedPolicySecretsMultilingualScopedRead:
     Type: AWS::IAM::ManagedPolicy
@@ -1605,16 +1617,21 @@ Resources:
     Properties:
       CodeUri: ../../apps/api/
       Handler: dist/handlers/rc-admin/generateGrantPackage.handler
-      # API Gateway HTTP API max integration timeout is 30s — keep Lambda ≤29s end-to-end.
-      Timeout: 29
+      # Rare admin path: allow ~60s for Anthropic. HTTP API still caps at 30s;
+      # web BFF invokes this function directly when GRANT_GENERATE_FUNCTION_NAME is set.
+      Timeout: 60
       Environment:
         Variables:
           GRANT_GENERATE_MOCK: "false"
-          GRANT_GENERATE_PREFER_BEDROCK: "true"
-          GRANT_GENERATE_MODEL: "claude-3-5-haiku-20241022"
+          # Grant PDF: Anthropic → OpenAI. Bedrock off — use Secrets Manager API keys only.
+          GRANT_GENERATE_PREFER_BEDROCK: "false"
+          GRANT_GENERATE_ALLOW_BEDROCK: "false"
+          GRANT_GENERATE_MODEL: "claude-haiku-4-5-20251001"
+          GRANT_GENERATE_OPENAI_MODEL: "gpt-4o-mini"
           GRANT_GENERATE_MAX_TOKENS: "4000"
-          GRANT_GENERATE_PROVIDER_TIMEOUT_MS: "12000"
-          GRANT_GENERATE_BEDROCK_MODEL_ID: !Ref AiBedrockFoundationModelId
+          GRANT_GENERATE_PROVIDER_TIMEOUT_MS: "55000"
+          GRANT_GENERATE_OPENAI_TIMEOUT_MS: "15000"
+          GRANT_GENERATE_BEDROCK_MODEL_ID: !Sub "us.${AiBedrockFoundationModelId}"
           QA_BEDROCK_MODEL_ID: !Ref QaBedrockModelId
       Policies:
         - !Ref AppManagedPolicyDynamoLambdaCrudShardA
@@ -2223,6 +2240,12 @@ Outputs:
   HttpApiUrl:
     Description: HTTP API base URL (stack 3)
     Value: !GetAtt Api.ApiEndpoint
+  GenerateGrantPackageFunctionName:
+    Description: Lambda name for grant PDF generation (web BFF Invoke — bypasses API GW 30s cap).
+    Value: !Ref GenerateGrantPackageFunction
+  GenerateGrantPackageFunctionArn:
+    Description: Lambda ARN for grant PDF generation (web ECS task role invoke).
+    Value: !GetAtt GenerateGrantPackageFunction.Arn
   HttpApiId:
     Description: HTTP API ID (stack 3)
     Value: !Ref Api

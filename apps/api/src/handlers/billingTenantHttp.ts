@@ -72,7 +72,9 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
       });
     }
 
-    if (path === "/api/billing/invoices" && method === "GET") {
+    // Monetization invoice reads live under /api/billing/monetization/invoices.
+    // GET /api/billing/invoices is owned by BillingInvoicesHttpFunction (customer invoices).
+    if (path === "/api/billing/monetization/invoices" && method === "GET") {
       const agencyId = resolveAgencyId();
       if (!agencyId) return badRequest("agencyId query required when acting as RC Super Admin (rcsuperadmin)");
       if (!isRcsuperadmin(user) && user.agencyId !== agencyId) return forbidden();
