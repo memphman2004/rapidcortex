@@ -4,10 +4,13 @@ import {
   DndContext,
   DragOverlay,
   KeyboardSensor,
+  MeasuringStrategy,
   PointerSensor,
-  closestCenter,
+  closestCorners,
+  pointerWithin,
   useSensor,
   useSensors,
+  type CollisionDetection,
   type DragEndEvent,
   type DragStartEvent,
 } from "@dnd-kit/core";
@@ -51,6 +54,13 @@ const PANEL_META: Record<
   ng911_assist: { title: "NG9-1-1 ASSIST", accentColor: "#0ea5e9", badge: "CRISIS / EIDO", badgeColor: "#f59e0b" },
 };
 
+/** Prefer the panel under the pointer (CRM-like); fall back to nearest corner. */
+const panelCollisionDetection: CollisionDetection = (args) => {
+  const pointerHits = pointerWithin(args);
+  if (pointerHits.length > 0) return pointerHits;
+  return closestCorners(args);
+};
+
 export type PanelContentMap = Partial<Record<string, ReactNode>>;
 
 interface DispatcherPanelGridProps {
@@ -66,6 +76,7 @@ export function DispatcherPanelGrid({ userId, panels, className }: DispatcherPan
   );
 
   const [activeId, setActiveId] = useState<string | null>(null);
+  const isDragging = activeId != null;
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -77,15 +88,27 @@ export function DispatcherPanelGrid({ userId, panels, className }: DispatcherPan
   );
 
   function handleDragStart({ active }: DragStartEvent) {
-    setActiveId(active.id as string);
+    setActiveId(String(active.id));
+  }
+
+  function handleDragCancel() {
+    setActiveId(null);
   }
 
   function handleDragEnd({ active, over }: DragEndEvent) {
     setActiveId(null);
     if (!over || active.id === over.id) return;
-    const oldIndex = order.indexOf(active.id as string);
-    const newIndex = order.indexOf(over.id as string);
-    setOrder(arrayMove(order, oldIndex, newIndex));
+
+    const activeKey = String(active.id);
+    const overKey = String(over.id);
+
+    setOrder((prev) => {
+      const oldIndex = prev.indexOf(activeKey);
+      const newIndex = prev.indexOf(overKey);
+      if (oldIndex < 0 || newIndex < 0 || oldIndex === newIndex) return prev;
+      // Insert at the drop target index (same feel as dropping a CRM card onto a slot).
+      return arrayMove(prev, oldIndex, newIndex);
+    });
   }
 
   const activeMeta = activeId ? PANEL_META[activeId] : null;
@@ -136,15 +159,19 @@ export function DispatcherPanelGrid({ userId, panels, className }: DispatcherPan
 
       <DndContext
         sensors={sensors}
-        collisionDetection={closestCenter}
+        collisionDetection={panelCollisionDetection}
+        measuring={{ droppable: { strategy: MeasuringStrategy.Always } }}
         onDragStart={handleDragStart}
         onDragEnd={handleDragEnd}
+        onDragCancel={handleDragCancel}
       >
         <SortableContext items={order} strategy={rectSortingStrategy}>
           <div
             style={{
               display: "grid",
-              gridTemplateColumns: "1fr 1fr",
+              // While dragging, flatten to equal cells so drop targets match pointer position
+              // (full-width spans otherwise pull collision toward the first slot).
+              gridTemplateColumns: isDragging ? "1fr 1fr" : "1fr 1fr",
               gap: 8,
               alignItems: "start",
             }}
@@ -164,6 +191,7 @@ export function DispatcherPanelGrid({ userId, panels, className }: DispatcherPan
                   badgeColor={meta.badgeColor}
                   helpTopic={meta.helpTopic}
                   wide={wide[id] ?? false}
+                  forceHalfWidth={isDragging}
                   collapsed={collapsed[id] ?? false}
                   onToggleWide={() => toggleWide(id)}
                   onToggleCollapse={() => toggleCollapse(id)}
@@ -186,16 +214,18 @@ export function DispatcherPanelGrid({ userId, panels, className }: DispatcherPan
           </div>
         </SortableContext>
 
-        <DragOverlay>
+        <DragOverlay dropAnimation={null}>
           {activeId && activeMeta ? (
             <div
               style={{
                 border: `1px solid ${activeMeta.accentColor}`,
                 borderRadius: 8,
                 background: "#1a1625",
-                padding: "8px 10px",
-                opacity: 0.9,
-                boxShadow: `0 0 0 1px ${activeMeta.accentColor}44`,
+                padding: "10px 12px",
+                opacity: 0.95,
+                boxShadow: `0 12px 40px rgba(0,0,0,0.55), 0 0 0 1px ${activeMeta.accentColor}55`,
+                cursor: "grabbing",
+                minWidth: 220,
               }}
             >
               <div style={{ display: "flex", alignItems: "center", gap: 7 }}>
@@ -220,6 +250,9 @@ export function DispatcherPanelGrid({ userId, panels, className }: DispatcherPan
                   {activeMeta.title}
                 </span>
               </div>
+              <p style={{ margin: "8px 0 0", fontSize: 10, color: "#5a4d7a", fontFamily: "monospace" }}>
+                Drop on a panel to place here
+              </p>
             </div>
           ) : null}
         </DragOverlay>
@@ -237,7 +270,7 @@ export function DispatcherPanelGrid({ userId, panels, className }: DispatcherPan
           fontFamily: "monospace",
         }}
       >
-        ⠿ drag handle to reorder · ◧ / ▭ toggle full width · ▽ collapse · layout persists per session
+        ⠿ drag panel to reorder · ◧ / ▭ toggle full width · ▽ collapse · layout saved for next session
       </div>
     </div>
   );

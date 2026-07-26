@@ -1,6 +1,7 @@
 "use client";
 
-import { useSortable } from "@dnd-kit/sortable";
+import { useSortable, defaultAnimateLayoutChanges } from "@dnd-kit/sortable";
+import type { AnimateLayoutChanges } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { ChevronDown, ChevronUp, Columns2, Square } from "lucide-react";
 import type { ReactNode } from "react";
@@ -14,6 +15,13 @@ const V = {
   handle: "#3d3460",
 } as const;
 
+/** Skip cascading grid transforms — they shove items toward slot 0 with full-width spans. */
+const animateLayoutChanges: AnimateLayoutChanges = (args) => {
+  const { isSorting, wasDragging } = args;
+  if (isSorting || wasDragging) return false;
+  return defaultAnimateLayoutChanges(args);
+};
+
 export interface PanelShellProps {
   id: string;
   title: string;
@@ -23,6 +31,8 @@ export interface PanelShellProps {
   helpTopic?: string;
   wide: boolean;
   collapsed: boolean;
+  /** When true, force half-width for accurate drop targeting during a drag. */
+  forceHalfWidth?: boolean;
   onToggleWide: () => void;
   onToggleCollapse: () => void;
   children: ReactNode;
@@ -37,24 +47,33 @@ export function DispatcherPanelShell({
   helpTopic,
   wide,
   collapsed,
+  forceHalfWidth = false,
   onToggleWide,
   onToggleCollapse,
   children,
 }: PanelShellProps) {
-  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id });
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
+    id,
+    animateLayoutChanges,
+  });
+
+  const spanWide = forceHalfWidth ? false : wide;
 
   return (
     <div
       ref={setNodeRef}
+      data-panel-id={id}
       style={{
-        gridColumn: wide ? "1 / -1" : "auto",
+        gridColumn: spanWide ? "1 / -1" : "auto",
         transform: CSS.Transform.toString(transform),
-        transition,
-        opacity: isDragging ? 0.3 : 1,
-        border: `1px solid ${V.border}`,
+        transition: isDragging ? undefined : transition,
+        opacity: isDragging ? 0.35 : 1,
+        border: `1px solid ${isDragging ? accentColor : V.border}`,
         borderRadius: 8,
         background: V.surface,
         minWidth: 0,
+        zIndex: isDragging ? 2 : 1,
+        boxShadow: isDragging ? `0 0 0 1px ${accentColor}66` : undefined,
       }}
     >
       <div

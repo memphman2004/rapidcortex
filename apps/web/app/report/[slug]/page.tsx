@@ -4,6 +4,7 @@ import Link from "next/link";
 import { QRNfcIntakeClient } from "@/components/qr-nfc/qr-nfc-intake-client";
 import { resolveUpstreamApiBase } from "@/lib/comms-api-path";
 import { isQrNfcSlug } from "@/lib/qr-nfc/is-qr-nfc-slug";
+import { LegacyReportShell } from "../_components/LegacyReportShell";
 import { ReportWizard } from "../_components/ReportWizard";
 
 type PageParams = { slug: string };
@@ -46,12 +47,14 @@ async function engageQrCode(qrId: string, medium: ReportMedium): Promise<QRNFCPu
 
 function inactiveReportMessage() {
   return (
-    <section className="flex min-h-[70vh] flex-col items-center justify-center px-4 text-center">
-      <h1 className="text-2xl font-semibold text-slate-800">This reporting link is no longer active.</h1>
-      <p className="mt-3 max-w-sm text-sm text-slate-500">
-        Please contact security directly or call 911 for emergencies.
-      </p>
-    </section>
+    <LegacyReportShell>
+      <section className="flex min-h-[70vh] flex-col items-center justify-center px-4 text-center">
+        <h1 className="text-2xl font-semibold text-slate-800">This reporting link is no longer active.</h1>
+        <p className="mt-3 max-w-sm text-sm text-slate-500">
+          Please contact security directly or call 911 for emergencies.
+        </p>
+      </section>
+    </LegacyReportShell>
   );
 }
 
@@ -66,11 +69,13 @@ export default async function ReportSlugPage({
 
   if (!isQrNfcSlug(slug)) {
     return (
-      <ReportWizard
-        initialVenueCode={slug.toUpperCase()}
-        initialZoneCode=""
-        initialZoneLabel=""
-      />
+      <LegacyReportShell>
+        <ReportWizard
+          initialVenueCode={slug.toUpperCase()}
+          initialZoneCode=""
+          initialZoneLabel=""
+        />
+      </LegacyReportShell>
     );
   }
 
@@ -86,7 +91,7 @@ export default async function ReportSlugPage({
 
   if ("active" in engaged && engaged.active === false) {
     return (
-      <>
+      <LegacyReportShell>
         <section className="flex min-h-[70vh] flex-col items-center justify-center px-4 text-center">
           <p className="text-4xl" aria-hidden>
             🔒
@@ -99,7 +104,7 @@ export default async function ReportSlugPage({
             Inactive
           </Link>
         </section>
-      </>
+      </LegacyReportShell>
     );
   }
 

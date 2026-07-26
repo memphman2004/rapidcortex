@@ -743,8 +743,7 @@ export function CadDispatcherWorkspaceLayout({
             style={{ borderColor: CAD.border, background: CAD.bg }}
           >
             <DispatcherIncidentPanelGrid
-              key={selectedIdForPanels ?? "none"}
-              userId={user?.userId ?? "anonymous"}
+              userId={user?.userId ?? ""}
               incidentId={selectedIdForPanels}
               incident={incidentForUi}
               analysis={analysisForUi}

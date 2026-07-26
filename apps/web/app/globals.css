@@ -235,16 +235,6 @@ textarea {
   }
 }
 
-/* Horizontal ECG paper feed — seamless because the track holds two identical tiles */
-@keyframes rcEcgScroll {
-  from {
-    transform: translate3d(0, 0, 0);
-  }
-  to {
-    transform: translate3d(-50%, 0, 0);
-  }
-}
-
 @keyframes rcBlink {
   0%,
   100% {
@@ -314,53 +304,31 @@ textarea {
   left: 0;
   z-index: 1;
   display: flex;
-  height: 36px;
+  height: 48px;
   align-items: center;
   overflow: hidden;
+  opacity: 0.85;
   animation: rcScan 14s linear infinite;
   /* Soft CRT-style edges so the moving trace reads as a monitor sweep */
   -webkit-mask-image: linear-gradient(
     90deg,
     transparent 0%,
-    #000 8%,
-    #000 88%,
+    #000 6%,
+    #000 90%,
     transparent 100%
   );
-  mask-image: linear-gradient(90deg, transparent 0%, #000 8%, #000 88%, transparent 100%);
+  mask-image: linear-gradient(90deg, transparent 0%, #000 6%, #000 90%, transparent 100%);
 }
 
-.rc-login-page__scan-track {
-  display: flex;
-  width: 200%;
-  height: 100%;
-  flex-shrink: 0;
-  will-change: transform;
-  animation: rcEcgScroll 2.75s linear infinite;
-}
-
-.rc-login-page__scan-svg {
+.rc-login-page__ecg-canvas {
   display: block;
-  width: 50%;
-  height: 36px;
-  flex: 0 0 50%;
-  filter: drop-shadow(0 0 4px rgba(34, 197, 94, 0.85)) drop-shadow(0 0 12px rgba(34, 197, 94, 0.35));
-}
-
-.rc-login-page__scan-path {
-  fill: none;
-  stroke: #22c55e;
-  stroke-width: 1.75;
-  stroke-linecap: round;
-  stroke-linejoin: round;
+  width: 100%;
+  height: 48px;
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .rc-login-page__scan,
-  .rc-login-page__scan-track {
-    animation: none;
-  }
-
   .rc-login-page__scan {
+    animation: none;
     top: 42%;
     opacity: 0.7;
   }

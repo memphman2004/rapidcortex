@@ -20,11 +20,18 @@ SOURCE_BUCKET="$(
     --stack-name "${PIPELINE_STACK}" \
     --query 'Stacks[0].Outputs[?OutputKey==`SourceBucketName`].OutputValue' \
     --output text \
-    --region "${AWS_REGION}" 2>/dev/null || true
-)"
+    --region "${AWS_REGION}"
+)" || true
+
+# Some sandboxed/proxy environments return empty text on CF failures; allow override.
+if [[ -z "${SOURCE_BUCKET}" || "${SOURCE_BUCKET}" == "None" ]]; then
+  SOURCE_BUCKET="${WEB_PIPELINE_SOURCE_BUCKET:-}"
+fi
 
 if [[ -z "${SOURCE_BUCKET}" || "${SOURCE_BUCKET}" == "None" ]]; then
-  echo "❌ Source bucket not found. Deploy infra/web-pipeline-codebuild.yaml as stack ${PIPELINE_STACK}" >&2
+  echo "❌ Source bucket not found for stack ${PIPELINE_STACK}." >&2
+  echo "   Check: aws cloudformation describe-stacks --stack-name ${PIPELINE_STACK} --region ${AWS_REGION}" >&2
+  echo "   Or set WEB_PIPELINE_SOURCE_BUCKET=… and re-run." >&2
   exit 1
 fi
 

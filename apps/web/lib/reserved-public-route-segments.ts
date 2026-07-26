@@ -45,6 +45,8 @@ export const RESERVED_PUBLIC_ROUTE_FIRST_SEGMENTS: readonly string[] = [
   "locate",
   /** Public non-emergency diversion IVR/web flow (`/diversion/{agencyId}`). */
   "diversion",
+  /** Detachable incident map window (pop-out to second monitor). */
+  "map-preview",
   /** Legacy RCLI intake (`/r/{rcli}`). */
   "r",
 ];

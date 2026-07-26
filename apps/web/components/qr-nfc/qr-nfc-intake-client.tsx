@@ -3,204 +3,187 @@
 import { useState } from "react";
 import type { QRNFCPublicRecord, ReportMedium } from "rapid-cortex-shared";
 import { qrNfcCallButtonLabel } from "rapid-cortex-shared";
-
-const VERTICAL_COPY: Record<
-  string,
-  { header: string; subhead: string; button: string; accent: string; bg: string }
-> = {
-  campus: {
-    header: "Report a Safety Concern",
-    subhead: "Your report goes directly to campus security.",
-    button: "Submit Report",
-    accent: "#10B981",
-    bg: "#ECFDF5",
-  },
-  venue: {
-    header: "Contact Venue Security",
-    subhead: "Your message goes directly to security staff.",
-    button: "Send to Security",
-    accent: "#F59E0B",
-    bg: "#FFFBEB",
-  },
-  "911": {
-    header: "Submit a Report",
-    subhead: "Your report goes directly to the communications center.",
-    button: "Submit Report",
-    accent: "#2979FF",
-    bg: "#EFF6FF",
-  },
-  hospital: {
-    header: "Report a Patient Concern",
-    subhead: "Your message goes directly to hospital staff.",
-    button: "Submit",
-    accent: "#EF4444",
-    bg: "#FEF2F2",
-  },
-  transit: {
-    header: "Report a Transit Issue",
-    subhead: "Your report goes directly to transit security.",
-    button: "Submit Report",
-    accent: "#6366F1",
-    bg: "#EEF2FF",
-  },
-};
+import {
+  ReportLanguageProvider,
+  useReportLanguage,
+} from "@/components/intake/report-language";
+import {
+  EmergencyCallCard,
+  ReportDivider,
+  ReportForm,
+  ReportSuccessState,
+  SafetyHeader,
+  SafetyHeroCard,
+  StickyEmergencyFooter,
+  SAFETY_BRAND,
+  safetyConfigForVertical,
+  type ReportFormValues,
+} from "./safety-reporting";
 
 type Props = {
   record: QRNFCPublicRecord;
   medium: ReportMedium;
 };
 
-export function QRNfcIntakeClient({ record, medium }: Props) {
-  const copy = VERTICAL_COPY[record.vertical] ?? VERTICAL_COPY["911"]!;
-  const [message, setMessage] = useState("");
-  const [locationNote, setLocationNote] = useState(record.zoneName ?? "");
-  const [reporterName, setReporterName] = useState("");
-  const [reporterPhone, setReporterPhone] = useState("");
-  const [anonymous, setAnonymous] = useState(record.reportType === "anonymous");
+export function QRNfcIntakeClient(props: Props) {
+  return (
+    <ReportLanguageProvider>
+      <QRNfcIntakeClientInner {...props} />
+    </ReportLanguageProvider>
+  );
+}
+
+function QRNfcIntakeClientInner({ record, medium }: Props) {
+  const { t, dir, code: langCode } = useReportLanguage();
+  const config = safetyConfigForVertical(record.vertical);
+  const isCampus = record.vertical === "campus";
+  const isVenue = record.vertical === "venue";
+
+  const [values, setValues] = useState<ReportFormValues>({
+    message: "",
+    locationNote: record.zoneName ?? "",
+    reporterName: "",
+    reporterPhone: "",
+    anonymous: record.reportType === "anonymous",
+    category: null,
+  });
   const [submitting, setSubmitting] = useState(false);
+  const [submitted, setSubmitted] = useState(false);
   const [referenceCode, setReferenceCode] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   const showIdentity =
-    record.reportType === "identified" ||
-    (record.reportType === "both" && !anonymous);
+    record.reportType === "identified" || (record.reportType === "both" && !values.anonymous);
+
+  const productLabel = isCampus
+    ? t("campusHeader")
+    : isVenue
+      ? t("venueHeader")
+      : config.productLabel;
+  const contextLabel = isCampus
+    ? t("campusAgencyLabel")
+    : isVenue
+      ? t("venueAgencyLabel")
+      : config.contextLabel;
+  const headline = isCampus ? t("campusTitle") : isVenue ? t("venueTitle") : config.headline;
+  const supporting = isCampus ? t("campusDesc") : isVenue ? t("venueDesc") : config.supporting;
+  const callFallback = isCampus
+    ? t("campusCall")
+    : isVenue
+      ? t("venueCall")
+      : config.callButtonFallback;
+  const callLabel = qrNfcCallButtonLabel(record.vertical) || callFallback;
+  const locationFieldLabel = t("locationZone");
+  const submitLabel = t("submitReport");
+  const categoryLabels =
+    isCampus && config.categories.length === 6
+      ? config.categories.map((_, i) => t(`cat.campus.${i}`))
+      : isVenue && config.categories.length === 6
+        ? config.categories.map((_, i) => t(`cat.venue.${i}`))
+        : config.categories;
+
+  function patchValues(patch: Partial<ReportFormValues>) {
+    setValues((current) => ({ ...current, ...patch }));
+  }
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
+    const trimmed = values.message.trim();
+    if (!trimmed) {
+      setError(t("whatHappeningError"));
+      return;
+    }
+
     setSubmitting(true);
     setError(null);
     try {
+      // Category is UI-only: prepend into message so existing public report schema stays unchanged.
+      // Store English category values from config so ops queues stay language-stable.
+      const message = values.category ? `[${values.category}] ${trimmed}` : trimmed;
+
       const res = await fetch("/api/public/report", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           qrId: record.qrId,
           message,
-          locationNote: locationNote || undefined,
-          reporterName: showIdentity ? reporterName || undefined : undefined,
-          reporterPhone: showIdentity ? reporterPhone || undefined : undefined,
+          locationNote: values.locationNote || undefined,
+          reporterName: showIdentity ? values.reporterName || undefined : undefined,
+          reporterPhone: showIdentity ? values.reporterPhone || undefined : undefined,
           medium,
         }),
       });
       const body = (await res.json()) as { referenceCode?: string; error?: string };
-      if (!res.ok) throw new Error(body.error ?? "Submission failed");
+      if (!res.ok) throw new Error(body.error ?? "Please check your connection and try again.");
       setReferenceCode(body.referenceCode ?? null);
+      setSubmitted(true);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Submission failed");
+      setError(err instanceof Error ? err.message : "Please check your connection and try again.");
     } finally {
       setSubmitting(false);
     }
   }
 
-  if (referenceCode) {
+  if (submitted) {
     return (
-      <section className="mx-auto max-w-lg px-4 py-16 text-center">
-        <h1 className="text-2xl font-semibold text-slate-900">Your report has been received.</h1>
-        <p className="mt-3 text-slate-600">Reference: <span className="font-mono font-semibold">{referenceCode}</span></p>
-      </section>
+      <div dir={dir} lang={langCode.toLowerCase()}>
+        <ReportSuccessState
+          referenceCode={referenceCode}
+          title={isVenue ? t("venueSuccessTitle") : t("campusSuccessTitle")}
+          description={isVenue ? t("venueSuccessDesc") : t("campusSuccessDesc")}
+        />
+      </div>
     );
   }
 
   return (
-    <section
-      className="min-h-screen px-4 py-10"
-      style={{ backgroundColor: copy.bg }}
+    <div
+      className="flex min-h-[100dvh] flex-col"
+      dir={dir}
+      lang={langCode.toLowerCase()}
+      style={{
+        background: `linear-gradient(180deg, ${SAFETY_BRAND.lightBg} 0%, #EEF3FA 55%, ${SAFETY_BRAND.lightBg} 100%)`,
+      }}
     >
-      <form onSubmit={(e) => void onSubmit(e)} className="mx-auto max-w-lg rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
-        <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
-          {record.agencyName}
-        </p>
-        {record.zoneName ? (
-          <p className="mt-1 text-sm font-medium text-slate-700">{record.zoneName}</p>
-        ) : null}
-        <h1 className="mt-3 text-2xl font-semibold" style={{ color: copy.accent }}>
-          {copy.header}
-        </h1>
-        <p className="mt-2 text-sm text-slate-600">{copy.subhead}</p>
+      <SafetyHeader productLabel={productLabel} />
+
+      <main className="mx-auto w-full max-w-lg flex-1 space-y-4 px-4 pb-28 pt-4">
+        <SafetyHeroCard
+          contextLabel={contextLabel}
+          agencyName={record.agencyName}
+          zoneName={record.zoneName}
+          headline={headline}
+          supporting={supporting}
+        />
 
         {record.callNumber ? (
-          <a
-            href={`tel:${record.callNumber}`}
-            className="mt-6 block w-full rounded-lg px-4 py-4 text-center text-white no-underline shadow-sm"
-            style={{ backgroundColor: copy.accent }}
-          >
-            <span className="text-lg font-bold tracking-wide">
-              📞 {qrNfcCallButtonLabel(record.vertical)}
-            </span>
-            {record.callNumberDisplay ? (
-              <span className="mt-1 block text-sm font-normal opacity-90">
-                {record.callNumberDisplay}
-              </span>
-            ) : null}
-          </a>
-        ) : null}
-
-        {record.callNumber ? (
-          <p className="my-6 text-center text-xs font-medium uppercase tracking-wide text-slate-400">
-            — or submit a report —
-          </p>
-        ) : null}
-
-        <label className={`block text-sm font-medium text-slate-700 ${record.callNumber ? "" : "mt-6"}`}>
-          What is happening? *
-          <textarea
-            required
-            maxLength={1000}
-            value={message}
-            onChange={(e) => setMessage(e.target.value)}
-            className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2 text-sm"
-            rows={4}
-          />
-        </label>
-
-        <label className="mt-4 block text-sm font-medium text-slate-700">
-          Your location / zone
-          <input
-            value={locationNote}
-            onChange={(e) => setLocationNote(e.target.value)}
-            className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2 text-sm"
-          />
-        </label>
-
-        {record.reportType === "both" ? (
-          <label className="mt-4 flex items-center gap-2 text-sm text-slate-700">
-            <input type="checkbox" checked={anonymous} onChange={(e) => setAnonymous(e.target.checked)} />
-            Report anonymously
-          </label>
-        ) : null}
-
-        {showIdentity ? (
           <>
-            <label className="mt-4 block text-sm font-medium text-slate-700">
-              Your name
-              <input
-                value={reporterName}
-                onChange={(e) => setReporterName(e.target.value)}
-                className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2 text-sm"
-              />
-            </label>
-            <label className="mt-4 block text-sm font-medium text-slate-700">
-              Your phone number
-              <input
-                value={reporterPhone}
-                onChange={(e) => setReporterPhone(e.target.value)}
-                className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2 text-sm"
-              />
-            </label>
+            <EmergencyCallCard
+              callLabel={callLabel}
+              callNumber={record.callNumber}
+              callNumberDisplay={record.callNumberDisplay}
+            />
+            <ReportDivider />
           </>
         ) : null}
 
-        {error ? <p className="mt-4 text-sm text-rose-600">{error}</p> : null}
+        <ReportForm
+          values={values}
+          onChange={patchValues}
+          categories={config.categories}
+          categoryLabels={categoryLabels}
+          locationFieldLabel={locationFieldLabel}
+          locationPlaceholder={config.defaultLocationPlaceholder}
+          submitLabel={submitLabel}
+          showAnonymousToggle={record.reportType === "both"}
+          showIdentity={showIdentity}
+          submitting={submitting}
+          error={error}
+          onSubmit={(e) => void onSubmit(e)}
+        />
+      </main>
 
-        <button
-          type="submit"
-          disabled={submitting}
-          className="mt-6 w-full rounded-md px-4 py-2.5 text-sm font-semibold text-white disabled:opacity-60"
-          style={{ backgroundColor: copy.accent }}
-        >
-          {submitting ? "Submitting…" : copy.button}
-        </button>
-      </form>
-    </section>
+      <StickyEmergencyFooter />
+    </div>
   );
 }

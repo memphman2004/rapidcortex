@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { isQrNfcSlug } from "@/lib/qr-nfc/is-qr-nfc-slug";
+import { LegacyReportShell } from "../../_components/LegacyReportShell";
 import { ReportWizard } from "../../_components/ReportWizard";
 import { humanizeZoneCode } from "../../_lib/humanize-zone-code";
 
@@ -34,10 +35,12 @@ export default async function ReportByZonePage({
   const zoneLabel = humanizeZoneCode(zoneCode);
 
   return (
-    <ReportWizard
-      initialVenueCode={venueCode}
-      initialZoneCode={zoneCode}
-      initialZoneLabel={zoneLabel}
-    />
+    <LegacyReportShell>
+      <ReportWizard
+        initialVenueCode={venueCode}
+        initialZoneCode={zoneCode}
+        initialZoneLabel={zoneLabel}
+      />
+    </LegacyReportShell>
   );
 }

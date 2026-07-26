@@ -3226,7 +3226,9 @@ Resources:
             - !Ref VenueConfigTable
             - !Ref AWS::NoValue
       Policies:
+        # Shard B includes IncidentsTable — required by requireActiveRingIncident().
         - !Ref AppManagedPolicyDynamoLambdaCrudShardA
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardB
         - !Ref AppManagedPolicyDynamoLambdaCrudShardC
         - !Ref AppManagedPolicyDynamoLambdaCrudShardD
       Events:
@@ -3273,7 +3275,9 @@ Resources:
           MOCK_SMS_PROVIDER: !FindInMap [SmsEnvironmentDefaults, !Ref DeploymentStage, MockSmsProvider]
           AWS_SMS_USE_SIMULATOR: !FindInMap [SmsEnvironmentDefaults, !Ref DeploymentStage, AwsSmsUseSimulator]
       Policies:
+        # Shard B includes IncidentsTable — required by requireActiveRingIncident().
         - !Ref AppManagedPolicyDynamoLambdaCrudShardA
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardB
         - !Ref AppManagedPolicyDynamoLambdaCrudShardC
         - !Ref AppManagedPolicyDynamoLambdaCrudShardD
         - Statement:

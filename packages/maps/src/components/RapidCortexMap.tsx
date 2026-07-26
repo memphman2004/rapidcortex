@@ -24,6 +24,15 @@ export interface RapidCortexMapProps {
   onMapClick?: (e: mapboxgl.MapMouseEvent) => void;
 }
 
+function safeResize(map: mapboxgl.Map | null) {
+  if (!map) return;
+  try {
+    map.resize();
+  } catch {
+    /* map may already be removed */
+  }
+}
+
 /**
  * Base Rapid Cortex map — LiveLocation, Surge View, Event Command, workstations.
  * Switching `theme` resets the base style; recreate overlay layers after `onMapLoad` if you depend on custom sources.
@@ -42,6 +51,7 @@ export function RapidCortexMap({
   onMapLoad,
   onMapClick,
 }: RapidCortexMapProps) {
+  const rootRef = useRef<HTMLDivElement | null>(null);
   const mapContainer = useRef<HTMLDivElement | null>(null);
   const map = useRef<mapboxgl.Map | null>(null);
   const skippedThemeEffect = useRef(true);
@@ -91,16 +101,44 @@ export function RapidCortexMap({
       "bottom-right",
     );
 
-    map.current.once("load", () => {
-      if (map.current && onMapLoad) onMapLoad(map.current);
-    });
+    const instance = map.current;
 
     const handler = (e: mapboxgl.MapMouseEvent) => clickHandler.current?.(e);
-    map.current.on("click", handler);
+    instance.on("click", handler);
+
+    // Layout often settles after first paint (flex/modal/panel). Resize aggressively.
+    const kickResize = () => safeResize(instance);
+    instance.once("load", () => {
+      kickResize();
+      if (onMapLoad) onMapLoad(instance);
+    });
+
+    const raf = window.requestAnimationFrame(() => {
+      kickResize();
+      window.requestAnimationFrame(kickResize);
+    });
+    const t1 = window.setTimeout(kickResize, 50);
+    const t2 = window.setTimeout(kickResize, 250);
+    const t3 = window.setTimeout(kickResize, 600);
+
+    let observer: ResizeObserver | null = null;
+    const observeTarget = rootRef.current ?? mapContainer.current;
+    if (typeof ResizeObserver !== "undefined" && observeTarget) {
+      observer = new ResizeObserver(() => kickResize());
+      observer.observe(observeTarget);
+    }
+
+    window.addEventListener("resize", kickResize);
 
     return () => {
-      if (map.current) map.current.off("click", handler);
-      map.current?.remove();
+      window.cancelAnimationFrame(raf);
+      window.clearTimeout(t1);
+      window.clearTimeout(t2);
+      window.clearTimeout(t3);
+      window.removeEventListener("resize", kickResize);
+      observer?.disconnect();
+      instance.off("click", handler);
+      instance.remove();
       map.current = null;
     };
     // Intentionally mount once — prop changes handled below.
@@ -116,6 +154,7 @@ export function RapidCortexMap({
     map.current.setStyle(RAPID_CORTEX_MAP_STYLES[theme]);
     map.current.once("load", () => {
       if (!map.current) return;
+      safeResize(map.current);
       if (onMapLoad) onMapLoad(map.current);
     });
      
@@ -146,8 +185,17 @@ export function RapidCortexMap({
   }, [zoom]);
 
   return (
-    <div className={`relative size-full ${className}`.trim()}>
-      <div ref={mapContainer} className="size-full min-h-[12rem]" />
+    <div
+      ref={rootRef}
+      className={`relative h-full w-full min-h-0 ${className}`.trim()}
+      style={{ height: "100%", width: "100%" }}
+    >
+      {/* Explicit 100% box — avoid min-height-only hosts that leave Mapbox canvas as a strip. */}
+      <div
+        ref={mapContainer}
+        className="absolute inset-0"
+        style={{ width: "100%", height: "100%", minHeight: "100%" }}
+      />
       {children}
     </div>
   );
