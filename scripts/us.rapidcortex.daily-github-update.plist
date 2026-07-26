@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>Label</key>
+  <string>us.rapidcortex.daily-github-update</string>
+  <key>ProgramArguments</key>
+  <array>
+    <string>/bin/bash</string>
+    <string>/Volumes/Mac Mini/Coding Projects/Hibernation/WebApp/Rapid Cortex/scripts/daily-github-update.sh</string>
+  </array>
+  <key>WorkingDirectory</key>
+  <string>/Volumes/Mac Mini/Coding Projects/Hibernation/WebApp/Rapid Cortex</string>
+  <key>StartCalendarInterval</key>
+  <array>
+    <dict>
+      <key>Hour</key>
+      <integer>6</integer>
+      <key>Minute</key>
+      <integer>0</integer>
+    </dict>
+    <dict>
+      <key>Hour</key>
+      <integer>22</integer>
+      <key>Minute</key>
+      <integer>0</integer>
+    </dict>
+  </array>
+  <key>RunAtLoad</key>
+  <false/>
+  <key>StandardOutPath</key>
+  <string>/Users/jeffcoleman/Library/Logs/rapid-cortex/daily-github-update.launchd.out.log</string>
+  <key>StandardErrorPath</key>
+  <string>/Users/jeffcoleman/Library/Logs/rapid-cortex/daily-github-update.launchd.err.log</string>
+</dict>
+</plist>

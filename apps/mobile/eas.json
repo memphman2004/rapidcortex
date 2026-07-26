@@ -49,7 +49,9 @@
       "autoIncrement": true,
       "ios": {
         "credentialsSource": "remote",
-        "image": "latest"
+        // SDK 52's default image is still Xcode 16.2 (iOS 18.2) — Apple rejects that (ITMS-90725).
+        // Pin an explicit Xcode 26 image: https://docs.expo.dev/build-reference/infrastructure/
+        "image": "macos-sequoia-15.6-xcode-26.2"
       },
       "android": {
         "buildType": "app-bundle",

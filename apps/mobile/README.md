@@ -42,7 +42,7 @@ source scripts/env-api-dev.sh && ./scripts/deploy-lean-dev.sh dev --qr-only
 
 Configured in `app.config.ts` (Expo source of truth; not a separate `app.json`):
 
-- iOS entitlement `com.apple.developer.nfc.readersession.formats: ["NDEF"]`
+- iOS entitlement `com.apple.developer.nfc.readersession.formats: ["TAG"]` (not NDEF — ITMS-90778)
 - `NFCReaderUsageDescription` for App Review
 - Android `NFC` permission + `react-native-nfc-manager` plugin
 

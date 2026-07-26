@@ -91,11 +91,14 @@ const config: ExpoConfig = {
       'react-native-nfc-manager',
       {
         nfcPermission: 'Allow Rapid Cortex to program NFC safety reporting tags',
+        // ITMS-90778: NDEF in readersession.formats is rejected; TAG is required.
         includeNdefEntitlement: false,
         selectIdentifiers: [],
         systemCodes: [],
       },
     ],
+    // Runs after nfc-manager plugin — force TAG-only (strips any injected NDEF).
+    './plugins/with-nfc-tag-only.js',
     // Required for App Store (iOS 26 SDK / Xcode 26) on Expo SDK 52.
     './plugins/with-xcode26-fmt-fix.js',
   ],
