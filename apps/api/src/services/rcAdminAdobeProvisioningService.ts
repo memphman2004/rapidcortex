@@ -8,6 +8,7 @@ import {
 import { AUDIT_EVENT_TYPES } from "rapid-cortex-security";
 import { env } from "../lib/env.js";
 import { makeId } from "../lib/ids.js";
+import { sesConfigurationSetFields } from "../lib/ses/sesConfigurationSet.js";
 import { AgencyRepository } from "../repositories/agencyRepository.js";
 import { AuditRepository } from "../repositories/auditRepository.js";
 import { PendingProvisionRepository } from "../repositories/pendingProvisionRepository.js";
@@ -56,6 +57,7 @@ async function sendEmail(params: {
   }
   await ses.send(
     new SendEmailCommand({
+      ...sesConfigurationSetFields(),
       Source: from,
       Destination: { ToAddresses: [params.to] },
       Message: {

@@ -5,6 +5,8 @@ import {
   buildAgencyLineItems,
   bulkDraftNotesTag,
 } from "../billing/usage-to-line-items.js";
+import { nextInvoiceNumber } from "../lib/billing/invoice-sequence.js";
+import { computeTotalsCents, dollarsToCents } from "../lib/billing/money-cents.js";
 import { env } from "../lib/env.js";
 import { makeId } from "../lib/ids.js";
 import { AgencyRepository } from "../repositories/agencyRepository.js";
@@ -26,29 +28,6 @@ function addDays(dateIso: string, days: number): string {
   const d = new Date(dateIso);
   d.setUTCDate(d.getUTCDate() + days);
   return d.toISOString().slice(0, 10);
-}
-
-function monthPrefix(dateIso: string): string {
-  return dateIso.slice(0, 7);
-}
-
-async function nextInvoiceNumber(agencyId: string, invoiceDate: string): Promise<string> {
-  const prefix = monthPrefix(invoiceDate);
-  const out = await ddb.send(
-    new ScanCommand({
-      TableName: env.invoicesTable,
-      FilterExpression: "agencyId = :agencyId",
-      ExpressionAttributeValues: { ":agencyId": agencyId },
-    }),
-  );
-  const items = (out.Items ?? []) as Array<{ invoiceNumber?: string }>;
-  const max = items.reduce((m, row) => {
-    const num = row.invoiceNumber ?? "";
-    const match = num.match(/^RC-(\d{4}-\d{2})-(\d{4})$/);
-    if (!match || match[1] !== prefix) return m;
-    return Math.max(m, Number.parseInt(match[2] ?? "0", 10));
-  }, 0);
-  return `RC-${prefix}-${`${max + 1}`.padStart(4, "0")}`;
 }
 
 async function resolveBillingCustomerId(agencyId: string): Promise<string | null> {
@@ -106,9 +85,12 @@ async function writeDraftInvoice(params: {
   const dueDate = addDays(invoiceDate, 30);
   const invoiceId = makeId("inv");
   const invoiceNumber = await nextInvoiceNumber(params.agencyId, invoiceDate);
-  const computedSubtotal = Number(
-    params.lineItems.reduce((sum, li) => sum + li.quantity * li.unitPrice, 0).toFixed(2),
-  );
+  const totals = computeTotalsCents({
+    lineItems: params.lineItems.map((li) => ({
+      quantity: li.quantity,
+      unitPriceDollars: li.unitPrice,
+    })),
+  });
   const notes = `RC Lite usage billing — ${params.yearMonth} (${bulkDraftNotesTag(params.yearMonth)})`;
 
   await ddb.send(
@@ -120,10 +102,7 @@ async function writeDraftInvoice(params: {
         customerId: params.customerId,
         invoiceNumber,
         status: "DRAFT",
-        subtotal: computedSubtotal,
-        discount: 0,
-        tax: 0,
-        total: computedSubtotal,
+        ...totals,
         currency: "USD",
         invoiceDate,
         dueDate,
@@ -136,6 +115,8 @@ async function writeDraftInvoice(params: {
   );
 
   for (const [i, li] of params.lineItems.entries()) {
+    const unitPriceCents = dollarsToCents(li.unitPrice);
+    const lineTotalCents = dollarsToCents(li.quantity * li.unitPrice);
     await ddb.send(
       new PutCommand({
         TableName: env.invoiceItemsTable,
@@ -147,8 +128,10 @@ async function writeDraftInvoice(params: {
           description: li.description,
           quantity: li.quantity,
           unitPrice: li.unitPrice,
+          unitPriceCents,
           lineTotal: Number((li.quantity * li.unitPrice).toFixed(2)),
-          sortOrder: li.sortOrder ?? i,
+          lineTotalCents,
+          sortOrder: i,
           createdAt: t,
         },
       }),
@@ -178,7 +161,7 @@ async function writeDraftInvoice(params: {
     { agencyId: params.agencyId, yearMonth: params.yearMonth, invoiceNumber },
   );
 
-  return { invoiceId, total: computedSubtotal, lineItemCount: params.lineItems.length };
+  return { invoiceId, total: totals.total, lineItemCount: params.lineItems.length };
 }
 
 export class BulkDraftInvoicesService {

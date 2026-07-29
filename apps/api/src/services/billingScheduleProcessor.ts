@@ -1,7 +1,12 @@
 import { SendEmailCommand, SESClient } from "@aws-sdk/client-ses";
 import { GetCommand, PutCommand, QueryCommand, UpdateCommand } from "@aws-sdk/lib-dynamodb";
+import { nextInvoiceNumber } from "../lib/billing/invoice-sequence.js";
+import { dollarsToCents } from "../lib/billing/money-cents.js";
+import { validatePaymentInstructionsForSend } from "../lib/billing/payment-instructions.js";
+import { loadPaymentInstructions } from "../lib/billing/invoicePdfGenerator.js";
 import { env } from "../lib/env.js";
 import { makeId } from "../lib/ids.js";
+import { sesConfigurationSetFields } from "../lib/ses/sesConfigurationSet.js";
 import { ddb } from "../repositories/baseRepository.js";
 import { BillingAuditService } from "./billingAuditService.js";
 import { sendInvoiceEmail } from "./billingEmailService.js";
@@ -17,11 +22,21 @@ type BillingScheduleRow = {
   serviceName?: string;
   frequency?: ScheduleFrequency;
   amount?: number;
+  /** Optional integer cents; preferred when present. */
+  amountCents?: number;
   currency?: string;
   notes?: string;
   enabled?: string;
   autoSendEmail?: boolean;
   nextRunDate?: string;
+};
+
+export type ProcessScheduledBillingOptions = {
+  /**
+   * MSA §4.4 / TODO-6: when true (EventBridge on the 15th), generate next-month
+   * invoices with due date = last day of next month (≥15 days lead time).
+   */
+  advanceMonthly?: boolean;
 };
 
 const ses = new SESClient({ region: env.region });
@@ -61,27 +76,24 @@ function calculateDueDate(invoiceDateIso: string, days = 30): string {
   return d.toISOString();
 }
 
-async function nextInvoiceNumber(agencyId: string, invoiceDate: string): Promise<string> {
-  const d = new Date(invoiceDate);
-  const yyyy = d.getUTCFullYear();
-  const mm = `${d.getUTCMonth() + 1}`.padStart(2, "0");
-  const prefix = `${yyyy}-${mm}`;
-  const out = await ddb.send(
-    new QueryCommand({
-      TableName: env.invoicesTable,
-      IndexName: "customerId-createdAt-index",
-      KeyConditionExpression: "customerId = :customerId",
-      ExpressionAttributeValues: { ":customerId": agencyId },
-      Limit: 1,
-    }),
-  );
-  const items = (out.Items ?? []) as Array<{ invoiceNumber?: string }>;
-  const max = items.reduce((m, row) => {
-    const match = (row.invoiceNumber ?? "").match(/^RC-(\d{4}-\d{2})-(\d{4})$/);
-    if (!match || match[1] !== prefix) return m;
-    return Math.max(m, Number.parseInt(match[2] ?? "0", 10));
-  }, 0);
-  return `RC-${prefix}-${`${max + 1}`.padStart(4, "0")}`;
+/** Next calendar month period (UTC) for 15-day advance invoicing. */
+export function nextMonthBillingPeriod(from = new Date()): {
+  periodStart: string;
+  periodEnd: string;
+  dueDate: string;
+} {
+  const periodStartDate = new Date(Date.UTC(from.getUTCFullYear(), from.getUTCMonth() + 1, 1));
+  const periodEndDate = new Date(Date.UTC(from.getUTCFullYear(), from.getUTCMonth() + 2, 0));
+  const periodStart = periodStartDate.toISOString().slice(0, 10);
+  const periodEnd = periodEndDate.toISOString().slice(0, 10);
+  return { periodStart, periodEnd, dueDate: periodEnd };
+}
+
+function scheduleAmountDollars(schedule: BillingScheduleRow): number {
+  if (typeof schedule.amountCents === "number" && Number.isFinite(schedule.amountCents)) {
+    return Number((schedule.amountCents / 100).toFixed(2));
+  }
+  return Number((schedule.amount ?? 0).toFixed(2));
 }
 
 async function sendAdminFailureNotification(subject: string, body: string): Promise<void> {
@@ -89,6 +101,7 @@ async function sendAdminFailureNotification(subject: string, body: string): Prom
   if (!sender) return;
   await ses.send(
     new SendEmailCommand({
+      ...sesConfigurationSetFields(),
       Source: sender,
       Destination: { ToAddresses: [sender] },
       Message: {
@@ -99,10 +112,17 @@ async function sendAdminFailureNotification(subject: string, body: string): Prom
   );
 }
 
-async function processOneSchedule(schedule: BillingScheduleRow): Promise<void> {
+async function processOneSchedule(
+  schedule: BillingScheduleRow,
+  options: ProcessScheduledBillingOptions = {},
+): Promise<void> {
   if (!schedule.scheduleId || !schedule.customerId || !schedule.serviceName || !schedule.frequency) {
     throw new Error("Schedule missing required fields");
   }
+  if (options.advanceMonthly && schedule.frequency !== "MONTHLY") {
+    return;
+  }
+
   const customerOut = await ddb.send(
     new GetCommand({
       TableName: env.customersTable,
@@ -135,9 +155,14 @@ async function processOneSchedule(schedule: BillingScheduleRow): Promise<void> {
   const t = nowIso();
   const invoiceId = makeId("inv");
   const invoiceDate = t;
-  const dueDate = calculateDueDate(invoiceDate, 30);
-  const invoiceNumber = await nextInvoiceNumber(schedule.agencyId ?? customer.agencyId ?? schedule.customerId, invoiceDate);
-  const amount = Number((schedule.amount ?? 0).toFixed(2));
+  const advancePeriod = options.advanceMonthly ? nextMonthBillingPeriod() : null;
+  const dueDate = advancePeriod ? `${advancePeriod.dueDate}T00:00:00.000Z` : calculateDueDate(invoiceDate, 30);
+  const invoiceNumber = await nextInvoiceNumber(
+    schedule.agencyId ?? customer.agencyId ?? schedule.customerId,
+    invoiceDate,
+  );
+  const amount = scheduleAmountDollars(schedule);
+  const amountCents = typeof schedule.amountCents === "number" ? schedule.amountCents : dollarsToCents(amount);
   const currency = (schedule.currency ?? "USD").toUpperCase();
 
   await ddb.send(
@@ -153,14 +178,21 @@ async function processOneSchedule(schedule: BillingScheduleRow): Promise<void> {
         discount: 0,
         tax: 0,
         total: amount,
+        subtotalCents: amountCents,
+        discountCents: 0,
+        taxCents: 0,
+        totalCents: amountCents,
         currency,
         invoiceDate,
         dueDate,
+        periodStart: advancePeriod?.periodStart,
+        periodEnd: advancePeriod?.periodEnd,
         notes: schedule.notes,
-        createdBy: "billing-schedule-processor",
+        createdBy: options.advanceMonthly ? "billing-advance-monthly" : "billing-schedule-processor",
         createdAt: t,
         updatedAt: t,
         billingScheduleId: schedule.scheduleId,
+        advanceGenerated: Boolean(options.advanceMonthly),
       },
     }),
   );
@@ -174,10 +206,14 @@ async function processOneSchedule(schedule: BillingScheduleRow): Promise<void> {
         agencyId: schedule.agencyId ?? customer.agencyId,
         serviceId: schedule.serviceId,
         serviceName: schedule.serviceName,
-        description: schedule.notes ?? "Recurring scheduled billing",
+        description: advancePeriod
+          ? `Recurring scheduled billing (${advancePeriod.periodStart} → ${advancePeriod.periodEnd})`
+          : (schedule.notes ?? "Recurring scheduled billing"),
         quantity: 1,
         unitPrice: amount,
+        unitPriceCents: amountCents,
         lineTotal: amount,
+        lineTotalCents: amountCents,
         sortOrder: 0,
         createdAt: t,
       },
@@ -228,6 +264,7 @@ async function processOneSchedule(schedule: BillingScheduleRow): Promise<void> {
   );
 
   if (schedule.autoSendEmail && customer.email) {
+    validatePaymentInstructionsForSend(await loadPaymentInstructions());
     await sendInvoiceEmail(invoiceId, customer.email, []);
     await ddb.send(
       new UpdateCommand({
@@ -244,7 +281,9 @@ async function processOneSchedule(schedule: BillingScheduleRow): Promise<void> {
   }
 
   const runAt = nowIso();
-  const nextRunDate = computeNextRunDate(runAt, schedule.frequency);
+  const nextRunDate = options.advanceMonthly
+    ? computeNextRunDate(advancePeriod!.periodStart, schedule.frequency)
+    : computeNextRunDate(runAt, schedule.frequency);
   await ddb.send(
     new UpdateCommand({
       TableName: env.billingSchedulesTable,
@@ -258,19 +297,31 @@ async function processOneSchedule(schedule: BillingScheduleRow): Promise<void> {
     }),
   );
 
-  await billingAuditService.logBillingAction("schedule_executed", "schedule", schedule.scheduleId, "billing-schedule-processor", {
-    agencyId: schedule.agencyId ?? customer.agencyId,
-    customerId: schedule.customerId,
-    invoiceId,
-    nextRunDate,
-    autoSendEmail: Boolean(schedule.autoSendEmail),
-  });
+  await billingAuditService.logBillingAction(
+    options.advanceMonthly ? "advance_schedule_executed" : "schedule_executed",
+    "schedule",
+    schedule.scheduleId,
+    "billing-schedule-processor",
+    {
+      agencyId: schedule.agencyId ?? customer.agencyId,
+      customerId: schedule.customerId,
+      invoiceId,
+      nextRunDate,
+      autoSendEmail: Boolean(schedule.autoSendEmail),
+      advanceMonthly: Boolean(options.advanceMonthly),
+      periodStart: advancePeriod?.periodStart,
+      periodEnd: advancePeriod?.periodEnd,
+    },
+  );
 }
 
-export async function processScheduledBilling(): Promise<{
+export async function processScheduledBilling(
+  options: ProcessScheduledBillingOptions = {},
+): Promise<{
   scanned: number;
   processed: number;
   failed: number;
+  mode: "daily" | "advance_monthly";
 }> {
   const now = nowIso();
   const out = await ddb.send(
@@ -284,13 +335,34 @@ export async function processScheduledBilling(): Promise<{
       },
     }),
   );
-  const schedules = (out.Items ?? []) as BillingScheduleRow[];
+  let schedules = (out.Items ?? []) as BillingScheduleRow[];
+  if (options.advanceMonthly) {
+    // Also pick up monthly schedules whose next run is within the upcoming month window.
+    const period = nextMonthBillingPeriod();
+    const lookahead = await ddb.send(
+      new QueryCommand({
+        TableName: env.billingSchedulesTable,
+        IndexName: "enabled-nextRunDate-index",
+        KeyConditionExpression: "enabled = :enabled AND nextRunDate <= :periodEnd",
+        ExpressionAttributeValues: {
+          ":enabled": "true",
+          ":periodEnd": `${period.periodEnd}T23:59:59.999Z`,
+        },
+      }),
+    );
+    const byId = new Map<string, BillingScheduleRow>();
+    for (const row of [...schedules, ...((lookahead.Items ?? []) as BillingScheduleRow[])]) {
+      if (row.scheduleId && row.frequency === "MONTHLY") byId.set(row.scheduleId, row);
+    }
+    schedules = [...byId.values()];
+  }
+
   let processed = 0;
   let failed = 0;
 
   for (const schedule of schedules) {
     try {
-      await processOneSchedule(schedule);
+      await processOneSchedule(schedule, options);
       processed += 1;
     } catch (error) {
       failed += 1;
@@ -304,6 +376,7 @@ export async function processScheduledBilling(): Promise<{
           agencyId: schedule.agencyId,
           customerId: schedule.customerId,
           error: message,
+          advanceMonthly: Boolean(options.advanceMonthly),
         },
       );
       await sendAdminFailureNotification(
@@ -317,5 +390,6 @@ export async function processScheduledBilling(): Promise<{
     scanned: schedules.length,
     processed,
     failed,
+    mode: options.advanceMonthly ? "advance_monthly" : "daily",
   };
 }

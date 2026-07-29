@@ -6,6 +6,7 @@ import { contactSalesLeadBodySchema } from "rapid-cortex-shared";
 import { badRequestFromZod } from "../lib/response.js";
 import { SalesLeadRepository, type SalesLeadRecord } from "../repositories/salesLeadRepository.js";
 import { env } from "../lib/env.js";
+import { sesConfigurationSetFields } from "../lib/ses/sesConfigurationSet.js";
 
 const repo = new SalesLeadRepository();
 const sns = new SNSClient({});
@@ -65,6 +66,7 @@ async function sendSalesLeadEmails(lead: SalesLeadRecord): Promise<void> {
 
   await ses.send(
     new SendEmailCommand({
+      ...sesConfigurationSetFields(),
       Source: from,
       Destination: { ToAddresses: [CONTACT_SALES_INTERNAL_TO] },
       Message: {
@@ -84,6 +86,7 @@ async function sendSalesLeadEmails(lead: SalesLeadRecord): Promise<void> {
 
   await ses.send(
     new SendEmailCommand({
+      ...sesConfigurationSetFields(),
       Source: from,
       Destination: { ToAddresses: [lead.email] },
       Message: {

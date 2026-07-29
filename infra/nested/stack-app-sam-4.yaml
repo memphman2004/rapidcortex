@@ -889,6 +889,7 @@ Conditions:
       - !Not [!Equals [!Ref SesIdentityValue, ""]]
       - !Not [!Equals [!Ref SesIdentityType, ""]]
   HasBillingSesSenderEmail: !Not [!Equals [!Ref BillingSesSenderEmail, ""]]
+  HasBillingPaymentInstructionsSecretArn: !Not [!Equals [!Ref BillingPaymentInstructionsSecretArn, ""]]
   CreateBillingSesIdentities: !And
     - !Not [!Equals [!Ref BillingSesSenderEmail, ""]]
     - !Not [!Equals [!Ref BillingSesDomain, ""]]
@@ -1045,6 +1046,10 @@ Globals:
       Variables:
         RC_RUNTIME_CONFIG_JSON: !Sub
           - '{"ds":"${DeploymentStage}","trp":"${TranscriptRetentionPolicyDays}","it":"${IncidentsTable}","tt":"${TranscriptsTable}","at":"${AnalysesTable}","aud":"${AuditTable}","dda":"${DataDeletionAuditTable}","drp":"cjis-default-v1","ag":"${AgenciesTable}","iv":"${InvitesTable}","ao":"${AccessOverridesTable}","neo":"${NetworkEmergencyOverridesTable}","ans":"${AgencyNetworkPolicySyncTopic}","nae":"false","waf":"${WafArn}","wsc":"REGIONAL","ac":"${ApiClientsTable}","wh":"${WebhooksTable}","erl":"${ExternalApiRateLimitsTable}","rle":"true","rak":"${RcLiteApiKeysTable}","rrl":"${RcLiteRateLimitTable}","rlu":"${RcLiteUsageTable}","sit":"${SeoIntelligenceTable}","ste":"${SeoToolEnabled}","sae":"${SeoAutoScanEnabled}","sai":"${SeoAiSuggestionsEnabled}","det":"${DeceptionEventsTable}","dse":"${PilotDeceptionShield}","dae":"false","dal":"true","ops":"${OpsAlertsTopic}","ej":"${ExternalApiJwtSecretArn}","ek":"${ExternalApiEncryptionKeyArn}","pma":"60","peg":"0","pcf":"true","ab":"${AssetsBucket}","ls":"${LanguageSessionsTable}","aef":"true","asm":"true","apv":"dispatch-triage-v1","art":"55000","amr":"1","adb":"0","amh":"120","asu":"true","ail":"90","oa":"${OpenAiApiKeySecretArn}","aa":"${AnthropicApiKeySecretArn}","aas":"0","aua":"false","aco":"${HttpApiCorsAllowedOrigins}","eqs":"${PilotEnableQaScoring}","eqa":"${PilotEnableQaAfterAnalysis}","qss":"${QASessionsTable}","qts":"${QATemplatesTable}","qsm":"${PilotQaScoringMock}","qbm":"${QaBedrockModelId}","br":"${AWSRegion}","eim":"${PilotEnableIncidentMedia}","imt":"${IncidentMediaTable}","imp":"","imn":"120","imu":"900","imx":"52428800","ent":"${PilotEnableNonEmergencyTriage}","tft":"${TraumaFlagsTable}","pn":"${PremiseNotesTable}","dcn":"${DispatcherCoachingNotesTable}","itl":"${IncidentTimelineTable}","ish":"${IncidentSharesTable}","asp":"${AgencySharePartnersTable}","lp":"${LanguageProvider}","cr":"${AWSRegion}","cwe":"${CadWritebackEnabled}","cwr":"${CadWritebackRequiresApproval}","cwa":"${CadWritebackAuditTable}","bp":"${BillingProfilesTable}","cst":"${CustomersTable}","inv":"${InvoicesTable}","ii":"${InvoiceItemsTable}","bae":"${BillingAuditEventsTable}","bal":"${BillingAuditLogTable}","bib":"${BillingInvoicesBucket}","mao":"${MonetizationAddOnsTable}","minv":"${MonetizationInvoicesTable}","slt":"${SalesLeadsTable}","sct":"${ServiceCatalogTable}","bse":"support@rapidcortex.us","cfe":"support@rapidcortex.us"}'
+          # NOTE: Do not put `bpi` / `scs` in Globals RC_RUNTIME_CONFIG_JSON — the secret ARN
+          # pushes Ring + other AppSam4 functions over Lambda's 4KB env limit (UPDATE_FAILED 2026-07-28).
+          # Billing send/PDF paths set BILLING_PAYMENT_INSTRUCTIONS_SECRET_ARN (and SES config set)
+          # explicitly on BillingInvoicesHttpFunction / BillingSchedulerFunction only.
           -
             AWSRegion: !Ref AWS::Region
             AccessOverridesTable: !Ref AccessOverridesTable
@@ -1504,21 +1509,22 @@ Resources:
               - !Sub arn:aws:bedrock:us-east-2::foundation-model/${QaBedrockModelId}
               - !Sub arn:aws:bedrock:us-west-2::foundation-model/${QaBedrockModelId}
 
-  AppManagedPolicySecretsMultilingualScopedRead:
+  AppManagedPolicySecretsBillingPaymentInstructionsRead:
     Type: AWS::IAM::ManagedPolicy
     Properties:
-      ManagedPolicyName: !Sub "${Sam4ManagedPolicyNamePrefix}-sam4-lambda-secrets-mlling-${DeploymentStage}"
+      ManagedPolicyName: !Sub "${Sam4ManagedPolicyNamePrefix}-sam4-lambda-secrets-billpay-${DeploymentStage}"
       PolicyDocument:
         Version: "2012-10-17"
         Statement:
-          - Sid: MultilingualSecretsScopedOrBroadDev
+          - Sid: BillingPaymentInstructionsSecretRead
             Effect: Allow
             Action:
               - secretsmanager:GetSecretValue
-            Resource: !If
-              - MultilingualSecretsBroadPolicy
-              - !Sub arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:*
-              - !Sub arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:rapidcortex/${DeploymentStage}/*
+            Resource:
+              - !If
+                - HasBillingPaymentInstructionsSecretArn
+                - !Ref BillingPaymentInstructionsSecretArn
+                - !Sub arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:rapid-cortex/billing/payment-instructions*
 
   AppManagedPolicySecretsAnalyzeProvidersRead:
     Type: AWS::IAM::ManagedPolicy
@@ -3983,6 +3989,8 @@ Resources:
             - !Ref BillingSesSenderEmail
             - support@rapidcortex.us
           BILLING_INVOICES_BUCKET: !Ref BillingInvoicesBucket
+          BILLING_PAYMENT_INSTRUCTIONS_SECRET_ARN: !Ref BillingPaymentInstructionsSecretArn
+          SES_CONFIGURATION_SET_NAME: !Sub "rapid-cortex-transactional-${DeploymentStage}"
           INVOICES_TABLE: !Ref InvoicesTable
           INVOICE_ITEMS_TABLE: !Ref InvoiceItemsTable
           CUSTOMERS_TABLE: !Ref CustomersTable
@@ -3995,6 +4003,7 @@ Resources:
         - !Ref AppManagedPolicyDynamoLambdaCrudShardD
         - !Ref AppManagedPolicyS3ApplicationBucketsCrud
         - !Ref AppManagedPolicySesBillingSenderIdentityEmails
+        - !Ref AppManagedPolicySecretsBillingPaymentInstructionsRead
 
       Events:
         InvoicesRoot:
@@ -4325,6 +4334,18 @@ Resources:
         Variables:
           COGNITO_USER_POOL_ID: !Ref ImportedCognitoUserPoolId
           COGNITO_CLIENT_ID: !Ref ImportedCognitoWebClientId
+          BILLING_SES_SENDER_EMAIL: !If
+            - HasBillingSesSenderEmail
+            - !Ref BillingSesSenderEmail
+            - support@rapidcortex.us
+          BILLING_PAYMENT_INSTRUCTIONS_SECRET_ARN: !Ref BillingPaymentInstructionsSecretArn
+          SES_CONFIGURATION_SET_NAME: !Sub "rapid-cortex-transactional-${DeploymentStage}"
+          BILLING_INVOICES_BUCKET: !Ref BillingInvoicesBucket
+          INVOICES_TABLE: !Ref InvoicesTable
+          INVOICE_ITEMS_TABLE: !Ref InvoiceItemsTable
+          CUSTOMERS_TABLE: !Ref CustomersTable
+          BILLING_SCHEDULES_TABLE: !Ref BillingSchedulesTable
+          SERVICE_CATALOG_TABLE: !Ref ServiceCatalogTable
       CodeUri: ../../apps/api/
       Handler: dist/handlers/billingScheduler.handler
       Timeout: 300
@@ -4336,6 +4357,7 @@ Resources:
         - !Ref AppManagedPolicyDynamoLambdaCrudShardD
         - !Ref AppManagedPolicyS3ApplicationBucketsCrud
         - !Ref AppManagedPolicySesBillingSenderIdentityEmails
+        - !Ref AppManagedPolicySecretsBillingPaymentInstructionsRead
 
       Events:
         DailyBillingScheduler:
@@ -4345,6 +4367,15 @@ Resources:
             Schedule: cron(0 8 * * ? *)
             Description: "Runs billing schedules, reminders, and overdue updates daily at 08:00 UTC."
             Enabled: true
+            Input: '{"mode":"daily"}'
+        AdvanceMonthlyBillingScheduler:
+          Type: Schedule
+          Properties:
+            Name: !Sub "sam4-advance-billing-15th-${DeploymentStage}"
+            Schedule: cron(0 9 15 * ? *)
+            Description: "MSA §4.4 — generate next-month invoices on the 15th (≥15 days before month-end due)."
+            Enabled: true
+            Input: '{"mode":"advance_monthly"}'
 
   DelinquencyEscalationFunction:
     Type: AWS::Serverless::Function

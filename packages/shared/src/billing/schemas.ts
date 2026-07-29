@@ -151,6 +151,7 @@ export const billingInvoiceLineItemSchema = z.object({
   serviceName: z.string().min(1).max(200),
   description: z.string().min(1).max(1000),
   quantity: z.number().positive(),
+  /** Unit price in dollars (API/UI). Persisted as unitPriceCents + dollar mirror. */
   unitPrice: z.number().nonnegative(),
   sortOrder: z.number().int().min(0).max(9999).optional().default(0),
 });
@@ -162,7 +163,9 @@ export const createBillingInvoiceBodySchema = z
     dueDate: z.string().min(1),
     poNumber: z.string().max(120).optional(),
     currency: z.string().min(3).max(3).optional().default("USD"),
+    /** Discount in dollars; stored as discountCents. */
     discount: z.number().nonnegative().optional().default(0),
+    /** Tax in dollars; stored as taxCents. */
     tax: z.number().nonnegative().optional().default(0),
     lineItems: z.array(billingInvoiceLineItemSchema).min(1),
     notes: z.string().max(2000).optional(),

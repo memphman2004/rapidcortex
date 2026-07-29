@@ -69,15 +69,38 @@ export function RingLinkedDevicesPanel({
   const refresh = async () => {
     setRefreshing(true);
     try {
+      // Optional agency HQ / incident coords via env-less body — UI can extend later.
+      // Seed script remains the ops path when Ring omits GPS.
       const res = await fetch("/api/integrations/ring/devices/refresh", {
         method: "POST",
         credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({}),
       });
-      if (!res.ok) throw new Error("refresh_failed");
+      const body = (await res.json().catch(() => null)) as
+        | { success?: boolean; data?: { deviceCount?: number }; error?: string }
+        | null;
+      if (!res.ok || body?.success === false) {
+        throw new Error(body?.error ?? "refresh_failed");
+      }
       await load();
-    } catch {
+      const n = body?.data?.deviceCount;
+      setToast({
+        tone: "ok",
+        text:
+          typeof n === "number"
+            ? `Synced ${n} device${n === 1 ? "" : "s"} from Ring.`
+            : "Device list refreshed from Ring.",
+      });
+    } catch (err) {
       await load();
-      setToast({ tone: "err", text: "Refresh endpoint unavailable. Reloaded current device list." });
+      setToast({
+        tone: "err",
+        text:
+          err instanceof Error && err.message !== "refresh_failed"
+            ? err.message
+            : "Refresh failed. Reloaded cached device list. If GPS is missing, run scripts/seed-ring-sonoma-point-gps.ts.",
+      });
     } finally {
       setRefreshing(false);
     }

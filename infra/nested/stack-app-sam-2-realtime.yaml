@@ -295,6 +295,28 @@ Resources:
         - !Ref AppManagedPolicyRealtimeDynamo
         - !Ref AppManagedPolicyWebSocketManageConnections
 
+  SupervisorListOperatorsFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/handlers/supervisor/listSupervisorOperators.handler
+      Policies:
+        - !Ref AppManagedPolicyRealtimeDynamo
+
+  SupervisorWatchingFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/handlers/supervisor/postSupervisorWatching.handler
+      Policies:
+        - !Ref AppManagedPolicyRealtimeDynamo
+
   SupervisorListActiveCallsHttpIntegration:
     Type: AWS::ApiGatewayV2::Integration
     Properties:
@@ -391,6 +413,38 @@ Resources:
       Principal: apigateway.amazonaws.com
       SourceArn: !Sub arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${HttpApiId}/*
 
+  SupervisorListOperatorsHttpIntegration:
+    Type: AWS::ApiGatewayV2::Integration
+    Properties:
+      ApiId: !Ref HttpApiId
+      IntegrationType: AWS_PROXY
+      IntegrationUri: !Sub arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${SupervisorListOperatorsFunction.Arn}/invocations
+      PayloadFormatVersion: "2.0"
+
+  SupervisorWatchingHttpIntegration:
+    Type: AWS::ApiGatewayV2::Integration
+    Properties:
+      ApiId: !Ref HttpApiId
+      IntegrationType: AWS_PROXY
+      IntegrationUri: !Sub arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${SupervisorWatchingFunction.Arn}/invocations
+      PayloadFormatVersion: "2.0"
+
+  SupervisorListOperatorsHttpInvokePermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !Ref SupervisorListOperatorsFunction
+      Principal: apigateway.amazonaws.com
+      SourceArn: !Sub arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${HttpApiId}/*
+
+  SupervisorWatchingHttpInvokePermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !Ref SupervisorWatchingFunction
+      Principal: apigateway.amazonaws.com
+      SourceArn: !Sub arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${HttpApiId}/*
+
   RouteSupervisorListActiveCalls:
     Type: AWS::ApiGatewayV2::Route
     Properties:
@@ -432,6 +486,20 @@ Resources:
       ApiId: !Ref HttpApiId
       RouteKey: "POST /api/dispatcher/decline-transfer"
       Target: !Sub "integrations/${DispatcherDeclineTransferHttpIntegration}"
+
+  RouteSupervisorListOperators:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref HttpApiId
+      RouteKey: "GET /api/supervisor/operators"
+      Target: !Sub "integrations/${SupervisorListOperatorsHttpIntegration}"
+
+  RouteSupervisorWatching:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref HttpApiId
+      RouteKey: "POST /api/supervisor/watching"
+      Target: !Sub "integrations/${SupervisorWatchingHttpIntegration}"
 
 Outputs:
   WebSocketApiUrl:

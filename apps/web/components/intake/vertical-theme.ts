@@ -1,5 +1,42 @@
 /** Single source of truth for Campus / Venue public NFC/QR intake theming. */
 
+/** Public QR/NFC post-scan backgrounds (served from `apps/web/public`). */
+export const INTAKE_PAGE_BACKGROUNDS = {
+  campus: "/Campustap.png",
+  venue: "/Venuetap.png",
+} as const;
+
+/** Cover photo + dark scrim so white/dark cards stay readable on cinematic art. */
+export function intakePageBackgroundStyle(
+  vertical: string,
+): {
+  backgroundColor: string;
+  backgroundImage: string;
+  backgroundSize: string;
+  backgroundPosition: string;
+  backgroundRepeat: string;
+} | null {
+  if (vertical === "venue") {
+    return {
+      backgroundColor: "#020617",
+      backgroundImage: `linear-gradient(180deg, rgba(2,6,23,0.42) 0%, rgba(2,6,23,0.78) 100%), url(${INTAKE_PAGE_BACKGROUNDS.venue})`,
+      backgroundSize: "cover",
+      backgroundPosition: "center top",
+      backgroundRepeat: "no-repeat",
+    };
+  }
+  if (vertical === "campus") {
+    return {
+      backgroundColor: "#020617",
+      backgroundImage: `linear-gradient(180deg, rgba(2,6,23,0.38) 0%, rgba(2,6,23,0.75) 100%), url(${INTAKE_PAGE_BACKGROUNDS.campus})`,
+      backgroundSize: "cover",
+      backgroundPosition: "center top",
+      backgroundRepeat: "no-repeat",
+    };
+  }
+  return null;
+}
+
 export const VERTICAL_THEME = {
   campus: {
     headerBg: "#0a1628",

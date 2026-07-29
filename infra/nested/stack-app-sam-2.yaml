@@ -587,7 +587,7 @@ Globals:
     Environment:
       Variables:
         RC_RUNTIME_CONFIG_JSON: !Sub
-          - '{"ds":"${DeploymentStage}","trp":"${TranscriptRetentionPolicyDays}","it":"${IncidentsTable}","tt":"${TranscriptsTable}","at":"${AnalysesTable}","aud":"${AuditTable}","dda":"${DataDeletionAuditTable}","drp":"cjis-default-v1","ag":"${AgenciesTable}","iv":"${InvitesTable}","ao":"${AccessOverridesTable}","neo":"${NetworkEmergencyOverridesTable}","ac":"${ApiClientsTable}","wh":"${WebhooksTable}","erl":"${ExternalApiRateLimitsTable}","det":"${DeceptionEventsTable}","dse":"false","dae":"false","dal":"true","ops":"${OpsAlertsTopic}","pma":"60","peg":"0","pcf":"true","ab":"${AssetsBucket}","ls":"${LanguageSessionsTable}","aef":"true","asm":"true","apv":"dispatch-triage-v1","art":"55000","amr":"1","adb":"0","amh":"120","asu":"true","ail":"90","oa":"${OpenAiApiKeySecretArn}","aa":"${AnthropicApiKeySecretArn}","aas":"0","aua":"false","aco":"${HttpApiCorsAllowedOrigins}","br":"${AWSRegion}","eim":"false","imt":"${IncidentMediaTable}","imp":"","imn":"120","imu":"900","imx":"52428800","ent":"false","tft":"${TraumaFlagsTable}","pn":"${PremiseNotesTable}","dcn":"${DispatcherCoachingNotesTable}","itl":"${IncidentTimelineTable}","ish":"${IncidentSharesTable}","asp":"${AgencySharePartnersTable}","lp":"${LanguageProvider}","cpu":"${ImportedCognitoUserPoolId}","cc":"${ImportedCognitoWebClientId}","cr":"${AWSRegion}","cwe":"${CadWritebackEnabled}","cwr":"${CadWritebackRequiresApproval}","cwa":"${CadWritebackAuditTable}","bp":"${BillingProfilesTable}","inv":"${InvoicesTable}","ii":"${InvoiceItemsTable}","bae":"${BillingAuditEventsTable}","mao":"${MonetizationAddOnsTable}","minv":"${MonetizationInvoicesTable}","slt":"${SalesLeadsTable}"}'
+          - '{"ds":"${DeploymentStage}","scs":"rapid-cortex-transactional-${DeploymentStage}","trp":"${TranscriptRetentionPolicyDays}","it":"${IncidentsTable}","tt":"${TranscriptsTable}","at":"${AnalysesTable}","aud":"${AuditTable}","dda":"${DataDeletionAuditTable}","drp":"cjis-default-v1","ag":"${AgenciesTable}","iv":"${InvitesTable}","ao":"${AccessOverridesTable}","neo":"${NetworkEmergencyOverridesTable}","ac":"${ApiClientsTable}","wh":"${WebhooksTable}","erl":"${ExternalApiRateLimitsTable}","det":"${DeceptionEventsTable}","dse":"false","dae":"false","dal":"true","ops":"${OpsAlertsTopic}","pma":"60","peg":"0","pcf":"true","ab":"${AssetsBucket}","ls":"${LanguageSessionsTable}","aef":"true","asm":"true","apv":"dispatch-triage-v1","art":"55000","amr":"1","adb":"0","amh":"120","asu":"true","ail":"90","oa":"${OpenAiApiKeySecretArn}","aa":"${AnthropicApiKeySecretArn}","aas":"0","aua":"false","aco":"${HttpApiCorsAllowedOrigins}","br":"${AWSRegion}","eim":"false","imt":"${IncidentMediaTable}","imp":"","imn":"120","imu":"900","imx":"52428800","ent":"false","tft":"${TraumaFlagsTable}","pn":"${PremiseNotesTable}","dcn":"${DispatcherCoachingNotesTable}","itl":"${IncidentTimelineTable}","ish":"${IncidentSharesTable}","asp":"${AgencySharePartnersTable}","lp":"${LanguageProvider}","cpu":"${ImportedCognitoUserPoolId}","cc":"${ImportedCognitoWebClientId}","cr":"${AWSRegion}","cwe":"${CadWritebackEnabled}","cwr":"${CadWritebackRequiresApproval}","cwa":"${CadWritebackAuditTable}","bp":"${BillingProfilesTable}","inv":"${InvoicesTable}","ii":"${InvoiceItemsTable}","bae":"${BillingAuditEventsTable}","mao":"${MonetizationAddOnsTable}","minv":"${MonetizationInvoicesTable}","slt":"${SalesLeadsTable}"}'
           -
             AWSRegion: !Ref AWS::Region
         DEPLOYMENT_STAGE: !Ref DeploymentStage
@@ -1006,6 +1006,86 @@ Resources:
       TopicArn: !Ref OpsAlertsTopic
       Protocol: sms
       Endpoint: !Ref SnsSmsSubscription
+
+  # ── SES transactional config set + bounce/complaint → Lambda suppress ──────
+  SesTransactionalConfigurationSet:
+    Type: AWS::SES::ConfigurationSet
+    Properties:
+      Name: !Sub "rapid-cortex-transactional-${DeploymentStage}"
+
+  SesNotificationsTopic:
+    Type: AWS::SNS::Topic
+    Properties:
+      TopicName: !Sub "${AppName}-ses-notifications-${DeploymentStage}"
+      DisplayName: !Sub "${AppName} SES bounce/complaint (${DeploymentStage})"
+
+  SesNotificationsTopicPolicy:
+    Type: AWS::SNS::TopicPolicy
+    Properties:
+      Topics:
+        - !Ref SesNotificationsTopic
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Sid: AllowSesPublishBounceComplaint
+            Effect: Allow
+            Principal:
+              Service: ses.amazonaws.com
+            Action: sns:Publish
+            Resource: !Ref SesNotificationsTopic
+            Condition:
+              StringEquals:
+                AWS:SourceAccount: !Ref AWS::AccountId
+
+  SesBounceComplaintEventDestination:
+    Type: AWS::SES::ConfigurationSetEventDestination
+    DependsOn: SesNotificationsTopicPolicy
+    Properties:
+      ConfigurationSetName: !Ref SesTransactionalConfigurationSet
+      EventDestination:
+        Name: ses-bounce-complaint-sns
+        Enabled: true
+        MatchingEventTypes:
+          - bounce
+          - complaint
+          - reject
+          - send
+        SnsDestination:
+          TopicARN: !Ref SesNotificationsTopic
+
+  SesNotificationsOpsEmailSubscription:
+    Type: AWS::SNS::Subscription
+    Condition: HasSnsEmailSubscription
+    Properties:
+      TopicArn: !Ref SesNotificationsTopic
+      Protocol: email
+      Endpoint: !Ref SnsEmailSubscription
+
+  SesNotificationHandlerFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/handlers/sesNotification.handler
+      Timeout: 30
+      MemorySize: 256
+      Description: Hard-bounce and complaint → SES account suppression list + structured logs
+      Policies:
+        - Statement:
+            - Sid: SesPutSuppressedDestinationAccount
+              Effect: Allow
+              Action:
+                - ses:PutSuppressedDestination
+                - sesv2:PutSuppressedDestination
+              # Account-level SES suppression API does not support resource ARNs.
+              Resource: "*"
+      Events:
+        SesBounceComplaintSns:
+          Type: SNS
+          Properties:
+            Topic: !Ref SesNotificationsTopic
 
   Api:
     Type: AWS::Serverless::HttpApi
@@ -2759,6 +2839,12 @@ Resources:
 Outputs:
   OpsAlertsTopicArn:
     Value: !Ref OpsAlertsTopic
+  SesTransactionalConfigurationSetName:
+    Description: SES configuration set for transactional mail (bounce/complaint SNS wired).
+    Value: !Ref SesTransactionalConfigurationSet
+  SesNotificationsTopicArn:
+    Description: SNS topic receiving SES bounce/complaint/send/reject events.
+    Value: !Ref SesNotificationsTopic
   HttpApiUrl:
     Value: !GetAtt Api.ApiEndpoint
   HttpApiId:

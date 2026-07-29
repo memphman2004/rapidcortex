@@ -102,42 +102,22 @@ The secret must exist in `us-east-1` under the ARN configured in the SAM stack p
 After populating: run `aws secretsmanager get-secret-value --secret-id <ARN> --profile rapid-cortex` to verify.
 
 ### TODO-2: Fix invoice number sequencing (H6)
-The current `nextInvoiceNumber()` function uses a full-table Scan to find the max invoice number — race condition risk under concurrent creation. Replace with an atomic DynamoDB counter:
-```typescript
-// In a BILLING_META_TABLE row:
-const result = await ddb.send(new UpdateCommand({
-  TableName: env.billingMetaTable,
-  Key: { pk: "INVOICE_SEQUENCE" },
-  UpdateExpression: "SET #seq = if_not_exists(#seq, :zero) + :inc",
-  ExpressionAttributeNames: { "#seq": "sequence" },
-  ExpressionAttributeValues: { ":zero": 0, ":inc": 1 },
-  ReturnValues: "UPDATED_NEW",
-}));
-const seq = result.Attributes!.sequence as number;
-const year = new Date().getUTCFullYear();
-return `RC-${year}-${String(seq).padStart(5, "0")}`;
-```
-Requires adding a `BILLING_META_TABLE` env var and DynamoDB table.
+**Status (2026-07-28): DONE in code** — see `apps/api/src/lib/billing/invoice-sequence.ts` (`RC-YYYY-NNNNN` atomic counter). Deploy AppSam4 to activate.
 
 ### TODO-3: Migrate financial amounts to cents integers (H7)
-`invoices.ts` stores `subtotal`, `discount`, `tax`, `total`, and `unitPrice` as floating-point decimals (dollars). All should be integers in cents. This is a schema migration affecting the invoices table, invoice items table, and all callers. Coordinate a migration window before the first billing cycle closes.
+**Status (2026-07-28): DONE in code (dual-write)** — writes `*Cents` + dollar mirrors; PDF/email prefer cents. Deploy AppSam4 to activate.
 
 ### TODO-4: Verify SES domain `rapidcortex.us` is verified in production
-```bash
-aws ses get-identity-verification-attributes \
-  --identities billing@rapidcortex.us rapidcortex.us \
-  --region us-east-1 --profile rapid-cortex
-```
-Both must show `"VerificationStatus": "Success"`. If the domain is not verified, SES will silently fail or sandbox-restrict delivery.
+**Status (2026-07-28): Domain verified (Success + DKIM SUCCESS).** SES account still sandbox (`ProductionAccessEnabled: false`) — request production access before external customer email.
 
 ### TODO-5: Populate business mailing address in Secrets Manager (H7)
-The PDF header renders the vendor mailing address from `paymentInfo.checkMailingAddress`. Populate `CHECK_MAIL_TO` in `BILLING_PAYMENT_INSTRUCTIONS_SECRET_ARN` with the correct physical address for check payments.
+Populate `CHECK_MAIL_TO` / `checkMailingAddress` in `rapid-cortex/billing/payment-instructions`. Send path now validates before email.
 
 ### TODO-6: Add 15-day advance invoice generation schedule (M3)
-Per MSA §4.4, recurring invoices must be delivered at least 15 days before due date. Add an EventBridge schedule that fires on the 15th of each month (`cron(0 9 15 * ? *)`) to generate the following month's invoices, and wire it to a new Lambda that calls `processScheduledBilling()` with the next-month due date.
+**Status (2026-07-28): DONE in code** — EventBridge `cron(0 9 15 * ? *)` → `BillingSchedulerFunction` with `{"mode":"advance_monthly"}`. Deploy AppSam4 to activate.
 
 ### TODO-7: Privacy Policy and Terms of Service pages (from Ring audit)
-The website links for Privacy Policy and Terms of Service redirect to homepage instead of valid pages. These must be live URLs before billing contact is sent any invoice (CAN-SPAM and regulatory requirement).
+**Status: DONE** — live marketing `/privacy` and `/terms` (and `/legal/*`).
 
 ---
 

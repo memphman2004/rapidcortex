@@ -7,6 +7,7 @@ import {
 import { SendEmailCommand, SESClient } from "@aws-sdk/client-ses";
 import { env } from "../lib/env.js";
 import { sendSilentTextSms } from "../lib/silentTextSms.js";
+import { sesConfigurationSetFields } from "../lib/ses/sesConfigurationSet.js";
 import { RingCitizenOwnerRepository } from "../repositories/ringCitizenOwnerRepository.js";
 
 const ses = new SESClient({ region: env.region });
@@ -178,6 +179,7 @@ export async function notifyRingAccountOwner(
     try {
       await ses.send(
         new SendEmailCommand({
+          ...sesConfigurationSetFields(),
           Source: fromEmail,
           Destination: { ToAddresses: [contact.email] },
           Message: {

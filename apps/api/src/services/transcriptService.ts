@@ -18,11 +18,16 @@ const auditRepo = new AuditRepository();
 const agencyRepo = new AgencyRepository();
 
 export class TranscriptService {
-  async add(incidentId: string, payload: TranscriptChunkInput, user: UserContext): Promise<TranscriptSegment> {
+  /** Fail-closed agency check used before request-body validation. */
+  async assertAccess(incidentId: string, user: UserContext): Promise<void> {
     const incident = await incidentRepo.get(incidentId);
     if (!incident || incident.agencyId !== user.agencyId) {
       throw new Error("FORBIDDEN");
     }
+  }
+
+  async add(incidentId: string, payload: TranscriptChunkInput, user: UserContext): Promise<TranscriptSegment> {
+    await this.assertAccess(incidentId, user);
 
     const list = await transcriptRepo.listByIncident(incidentId);
     const segmentIndex = list.length;

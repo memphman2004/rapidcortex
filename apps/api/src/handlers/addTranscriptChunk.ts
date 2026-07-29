@@ -33,6 +33,13 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
     const incidentId = event.pathParameters?.id;
     if (!incidentId) return badRequest("Incident ID required");
 
+    // Auth + tenant before body validation so cross-agency writes fail closed with 403
+    // (not 400 from Zod on attacker-controlled payloads).
+    const user = await getUserContext(event);
+    if (!user) return unauthorized();
+    if (!isUserAccountActive(user)) return unauthorized(ACCOUNT_INACTIVE_MESSAGE);
+    await service.assertAccess(incidentId, user);
+
     const parsed = transcriptSegmentSchema.safeParse(JSON.parse(event.body ?? "{}"));
     if (!parsed.success) return badRequestFromZod(parsed.error);
 
@@ -48,9 +55,6 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
       );
     }
 
-    const user = await getUserContext(event);
-    if (!user) return unauthorized();
-    if (!isUserAccountActive(user)) return unauthorized(ACCOUNT_INACTIVE_MESSAGE);
     const segment = await service.add(incidentId, parsed.data, user);
 
     const segmentCount = (segment.segmentIndex ?? 0) + 1;

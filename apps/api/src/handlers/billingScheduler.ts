@@ -4,8 +4,13 @@ import { ddb } from "../repositories/baseRepository.js";
 import { env } from "../lib/env.js";
 import { processScheduledBilling } from "../services/billingScheduleProcessor.js";
 import { checkAndSendReminders } from "../services/reminderService.js";
+import { sesConfigurationSetFields } from "../lib/ses/sesConfigurationSet.js";
 
 const ses = new SESClient({ region: env.region });
+
+type SchedulerEvent = {
+  mode?: "daily" | "advance_monthly";
+};
 
 function todayIsoDate(): string {
   return new Date().toISOString().slice(0, 10);
@@ -27,7 +32,7 @@ async function updateOverdueInvoices(): Promise<number> {
   const invoices = (out.Items ?? []) as Array<{ invoiceId?: string }>;
   let updated = 0;
   for (const invoice of invoices) {
-    if (!invoice.invoiceId) continue;
+    if (!invoice.invoiceId || invoice.invoiceId === "INVOICE_SEQUENCE") continue;
     await ddb.send(
       new UpdateCommand({
         TableName: env.invoicesTable,
@@ -47,6 +52,7 @@ async function updateOverdueInvoices(): Promise<number> {
 }
 
 async function sendDailyBillingSummary(summary: {
+  mode: string;
   scheduledScanned: number;
   scheduledProcessed: number;
   scheduledFailed: number;
@@ -57,8 +63,9 @@ async function sendDailyBillingSummary(summary: {
 }): Promise<void> {
   const sender = env.billingSesSenderEmail?.trim();
   if (!sender) return;
-  const subject = `Daily Billing Scheduler Summary - ${todayIsoDate()}`;
+  const subject = `Billing Scheduler Summary (${summary.mode}) - ${todayIsoDate()}`;
   const body = [
+    `Mode: ${summary.mode}`,
     `Scheduled billing scanned: ${summary.scheduledScanned}`,
     `Scheduled billing processed: ${summary.scheduledProcessed}`,
     `Scheduled billing failed: ${summary.scheduledFailed}`,
@@ -69,6 +76,7 @@ async function sendDailyBillingSummary(summary: {
   ].join("\n");
   await ses.send(
     new SendEmailCommand({
+      ...sesConfigurationSetFields(),
       Source: sender,
       Destination: { ToAddresses: [sender] },
       Message: {
@@ -79,11 +87,22 @@ async function sendDailyBillingSummary(summary: {
   );
 }
 
-export const handler = async () => {
-  const scheduled = await processScheduledBilling();
+export const handler = async (event: SchedulerEvent = {}) => {
+  const advanceMonthly = event.mode === "advance_monthly";
+  const scheduled = await processScheduledBilling({ advanceMonthly });
+
+  if (advanceMonthly) {
+    return {
+      ok: true,
+      scheduled,
+      runAt: new Date().toISOString(),
+    };
+  }
+
   const reminders = await checkAndSendReminders();
   const overdueUpdated = await updateOverdueInvoices();
   await sendDailyBillingSummary({
+    mode: scheduled.mode,
     scheduledScanned: scheduled.scanned,
     scheduledProcessed: scheduled.processed,
     scheduledFailed: scheduled.failed,

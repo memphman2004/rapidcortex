@@ -18,13 +18,13 @@
 
 | Gate | Status | Confidence | Blockers Remaining |
 |------|--------|------------|-------------------|
-| **G1: Tenant Isolation & Auth** | 🟡 YELLOW | 85% | Customer-specific validation pending |
-| **G2: CAD Integration Safety** | 🟡 YELLOW | 70% | Vendor adapter implementation needed |
-| **G3: Security Controls** | 🟡 YELLOW | 80% | Evidence package incomplete |
-| **G4: Auditability & Forensics** | 🟡 YELLOW | 75% | End-to-end scenario coverage needed |
-| **G5: Operational Safety** | 🟡 YELLOW | 70% | Fire drill evidence pending |
+| **G1: Tenant Isolation & Auth** | 🟡 YELLOW | 95% | Redeploy media/transcript tenant-first fixes; re-run live isolation to 32/32; sign-off. Evidence: `docs/evidence/2026-07-28/P0-GATES-STATUS.md` |
+| **G2: CAD Integration Safety** | 🟡 YELLOW | 85% | Write-back disabled proven. Full GREEN needs vendor CAD read E2E (optional for manual shadow pilot). |
+| **G3: Security Controls** | 🟡 YELLOW | 60% | **API `EnableApiWaf=false`** — must enable + attach WebACL; CORS matrix + sign-off. CDN WAF OK on SSR. |
+| **G4: Auditability & Forensics** | 🟡 YELLOW | 70% | Live authenticated audit export pack (≥5 scenarios) + sign-off. |
+| **G5: Operational Safety** | 🟡 YELLOW | 75% | Timed fire-drill log + API smoke; N−1 rollback optional; SRE sign-off. |
 
-**Overall P0 Assessment:** YELLOW - Conditional GO for pilot with documented limitations
+**Overall P0 Assessment:** YELLOW — **not** 100% GREEN. Closest path: redeploy G1 fixes → enable API WAF → complete G4/G5 evidence + sign-offs.
 
 ### P1 Gates (Required for Production)
 

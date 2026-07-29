@@ -81,6 +81,7 @@
         "ses:*",
         "logs:*",
         "events:*",
+        "scheduler:*",
         "application-autoscaling:*",
         "cloudwatch:*"
       ],

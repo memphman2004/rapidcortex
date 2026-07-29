@@ -286,6 +286,11 @@ export const AUDIT_EVENT_TYPES = {
   RCS_CALL_CLOSED: "rcs.call.closed",
   RCS_CALL_OVERRIDE_CLOSED: "rcs.call.override_closed",
 
+  /** Supervisor opened Silent Monitor / presence on a dispatcher session. */
+  SUPERVISOR_WATCHING: "supervisor.watching",
+  /** Supervisor loaded the live operator presence list. */
+  SUPERVISOR_OPERATORS_VIEWED: "supervisor.operators.viewed",
+
   ...RING_AUDIT_EVENT_TYPES,
 } as const;
 

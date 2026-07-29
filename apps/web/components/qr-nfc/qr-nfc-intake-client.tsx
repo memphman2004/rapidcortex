@@ -7,6 +7,7 @@ import {
   ReportLanguageProvider,
   useReportLanguage,
 } from "@/components/intake/report-language";
+import { intakePageBackgroundStyle } from "@/components/intake/vertical-theme";
 import {
   EmergencyCallCard,
   ReportDivider,
@@ -124,10 +125,17 @@ function QRNfcIntakeClientInner({ record, medium }: Props) {
     }
   }
 
+  const pageBackground =
+    intakePageBackgroundStyle(record.vertical) ??
+    ({
+      background: `linear-gradient(180deg, ${SAFETY_BRAND.lightBg} 0%, #EEF3FA 55%, ${SAFETY_BRAND.lightBg} 100%)`,
+    } as const);
+
   if (submitted) {
     return (
       <div dir={dir} lang={langCode.toLowerCase()}>
         <ReportSuccessState
+          vertical={record.vertical}
           referenceCode={referenceCode}
           title={isVenue ? t("venueSuccessTitle") : t("campusSuccessTitle")}
           description={isVenue ? t("venueSuccessDesc") : t("campusSuccessDesc")}
@@ -141,9 +149,7 @@ function QRNfcIntakeClientInner({ record, medium }: Props) {
       className="flex min-h-[100dvh] flex-col"
       dir={dir}
       lang={langCode.toLowerCase()}
-      style={{
-        background: `linear-gradient(180deg, ${SAFETY_BRAND.lightBg} 0%, #EEF3FA 55%, ${SAFETY_BRAND.lightBg} 100%)`,
-      }}
+      style={pageBackground}
     >
       <SafetyHeader productLabel={productLabel} />
 

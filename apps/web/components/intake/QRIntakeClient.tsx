@@ -24,6 +24,7 @@ import {
 } from "@/components/intake/report-language";
 import {
   categoryToHelpType,
+  intakePageBackgroundStyle,
   themeForVertical,
   type VerticalTheme,
 } from "@/components/intake/vertical-theme";
@@ -232,13 +233,15 @@ function QRIntakeClientInner({
     }
   }
 
+  const pageBackground = intakePageBackgroundStyle(location.vertical);
+
   return (
     <div
       className="flex min-h-[100dvh] flex-col"
       dir={dir}
       lang={langCode.toLowerCase()}
       style={{
-        background: theme.pageBg,
+        ...(pageBackground ?? { background: theme.pageBg }),
         fontFamily: "system-ui, -apple-system, sans-serif",
       }}
     >

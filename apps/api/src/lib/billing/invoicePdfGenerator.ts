@@ -4,6 +4,7 @@ import PDFDocument from "pdfkit";
 import { existsSync, readFileSync } from "node:fs";
 import path from "node:path";
 import { env } from "../env.js";
+import { normalizePaymentInstructions } from "./payment-instructions.js";
 
 export type InvoicePdfLineItem = {
   serviceName: string;
@@ -545,41 +546,41 @@ export function loadPaymentInstructionsFromEnv(): PaymentInstructions {
 }
 
 function mapSecretToPaymentInstructions(secret: Record<string, unknown>): PaymentInstructions {
-  const wireFromParts = [secret.WIRE_SWIFT_CODE, secret.WIRE_ACCOUNT_NUMBER]
-    .filter((x): x is string => typeof x === "string" && x.trim().length > 0)
-    .join(" / ");
+  const normalized = normalizePaymentInstructions({
+    ...secret,
+    ACH_ROUTING_NUMBER: secret.ACH_ROUTING_NUMBER ?? process.env.ACH_ROUTING_NUMBER,
+    ACH_ACCOUNT_NUMBER: secret.ACH_ACCOUNT_NUMBER ?? process.env.ACH_ACCOUNT_NUMBER,
+    WIRE_INSTRUCTIONS: secret.WIRE_INSTRUCTIONS ?? process.env.WIRE_INSTRUCTIONS,
+    CHECK_MAIL_TO:
+      secret.CHECK_MAIL_TO ?? process.env.CHECK_MAIL_TO ?? process.env.CHECK_MAILING_ADDRESS,
+    BANK_NAME: secret.BANK_NAME ?? process.env.BANK_NAME,
+    BANK_CONTACT: secret.BANK_CONTACT ?? process.env.BANK_CONTACT,
+  });
   return {
-    achRoutingNumber:
-      (typeof secret.ACH_ROUTING_NUMBER === "string" ? secret.ACH_ROUTING_NUMBER : undefined) ??
-      process.env.ACH_ROUTING_NUMBER,
-    achAccountNumber:
-      (typeof secret.ACH_ACCOUNT_NUMBER === "string" ? secret.ACH_ACCOUNT_NUMBER : undefined) ??
-      process.env.ACH_ACCOUNT_NUMBER,
-    wireInstructions:
-      (typeof secret.WIRE_INSTRUCTIONS === "string" ? secret.WIRE_INSTRUCTIONS : undefined) ??
-      wireFromParts ??
-      process.env.WIRE_INSTRUCTIONS,
-    checkMailingAddress:
-      (typeof secret.CHECK_MAIL_TO === "string" ? secret.CHECK_MAIL_TO : undefined) ??
-      process.env.CHECK_MAIL_TO ??
-      process.env.CHECK_MAILING_ADDRESS,
-    bankName: (typeof secret.BANK_NAME === "string" ? secret.BANK_NAME : undefined) ?? "",
-    bankContact:
-      typeof secret.BANK_CONTACT === "string" ? secret.BANK_CONTACT : process.env.BANK_CONTACT,
+    achRoutingNumber: normalized.achRoutingNumber || undefined,
+    achAccountNumber: normalized.achAccountNumber || undefined,
+    wireInstructions: normalized.wireInstructions || undefined,
+    checkMailingAddress: normalized.checkMailingAddress || undefined,
+    bankName: normalized.bankName || undefined,
+    bankContact: normalized.bankContact || undefined,
   };
 }
 
+/**
+ * Load banking / ACH / wire / check instructions for invoice PDF + email.
+ * Prefers Secrets Manager whenever BILLING_PAYMENT_INSTRUCTIONS_SECRET_ARN is set
+ * (any stage — not production-only). Env vars remain a local/dev fallback.
+ */
 export async function loadPaymentInstructions(): Promise<PaymentInstructions> {
   if (cachedPaymentInstructions) return cachedPaymentInstructions;
-  const environment = (process.env.ENVIRONMENT ?? process.env.NODE_ENV ?? "").toLowerCase();
-  const isProduction = environment === "production";
-  if (!isProduction || !env.billingPaymentInstructionsSecretArn) {
+  const secretArn = env.billingPaymentInstructionsSecretArn?.trim();
+  if (!secretArn) {
     cachedPaymentInstructions = loadPaymentInstructionsFromEnv();
     return cachedPaymentInstructions;
   }
   try {
     const result = await secretsManager.send(
-      new GetSecretValueCommand({ SecretId: env.billingPaymentInstructionsSecretArn }),
+      new GetSecretValueCommand({ SecretId: secretArn }),
     );
     const raw = result.SecretString
       ? (JSON.parse(result.SecretString) as Record<string, unknown>)
@@ -594,6 +595,11 @@ export async function loadPaymentInstructions(): Promise<PaymentInstructions> {
     cachedPaymentInstructions = loadPaymentInstructionsFromEnv();
     return cachedPaymentInstructions;
   }
+}
+
+/** Clear cache (tests / after secret rotation). */
+export function clearPaymentInstructionsCache(): void {
+  cachedPaymentInstructions = null;
 }
 
 export function readLogoBuffer(fileName: string): Buffer | null {

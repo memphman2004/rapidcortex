@@ -412,6 +412,20 @@ export const env = {
     process.env.BILLING_SES_CREDENTIALS_SECRET_ARN?.trim() ?? "",
   billingSesSenderEmail: process.env.BILLING_SES_SENDER_EMAIL?.trim() ?? "",
   /**
+   * SES configuration set for bounce/complaint event routing.
+   * Default: rapid-cortex-transactional-{stage} when DEPLOYMENT_STAGE/STAGE is set.
+   */
+  sesConfigurationSetName: (() => {
+    const explicit = process.env.SES_CONFIGURATION_SET_NAME?.trim();
+    if (explicit) return explicit;
+    const stage =
+      process.env.DEPLOYMENT_STAGE?.trim() ||
+      process.env.STAGE?.trim() ||
+      process.env.ENVIRONMENT?.trim() ||
+      "";
+    return stage ? `rapid-cortex-transactional-${stage}` : "";
+  })(),
+  /**
    * Origin of the public marketing site (absolute logo URLs in HTML email, etc.).
    * Aligns with web `NEXT_PUBLIC_SITE_URL`; defaults to https://www.rapidcortex.us
    */

@@ -287,13 +287,14 @@ export class MediaService {
   }
 
   async listForIncident(incidentId: string, user: UserContext): Promise<{ items: IncidentMediaListItem[] }> {
-    assertMediaInfra(user);
+    // Tenant check BEFORE infra gates so cross-agency probes get 403, not 503.
     if (!authz.canDispatch(user)) {
       const err = new Error("FORBIDDEN");
       (err as Error & { statusCode?: number }).statusCode = 403;
       throw err;
     }
-    const incident = TenantAccessGuard.assertIncidentAccess(await incidents.get(incidentId), user);
+    TenantAccessGuard.assertIncidentAccess(await incidents.get(incidentId), user);
+    assertMediaInfra(user);
 
     const rows = await repo.listByIncident(user.agencyId, incidentId);
     const items: IncidentMediaListItem[] = [];

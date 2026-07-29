@@ -1,47 +1,85 @@
 /**
- * Validates the BILLING_PAYMENT_INSTRUCTIONS_SECRET_ARN secret structure.
- * Throw before generating any invoice if this check fails — prevents sending
- * invoices with blank or placeholder payment information.
+ * Validates billing payment instructions before invoice email/PDF send.
+ * Accepts both camelCase (data-layer default) and UPPER_SNAKE (ops/docs) keys.
  */
 
-export interface PaymentInstructionsSecret {
+export type NormalizedPaymentInstructions = {
   achRoutingNumber: string;
   achAccountNumber: string;
-  achAccountName: string;
-  achBankName: string;
-  wireSwiftCode: string;
-  wireAccountNumber: string;
-  wireAccountName: string;
-  wireBankName: string;
-  checkPayableTo: string;
-  checkMailAddress: string;
+  bankName: string;
+  wireInstructions: string;
+  checkMailingAddress: string;
+  bankContact: string;
+};
+
+function pickString(raw: Record<string, unknown>, ...keys: string[]): string {
+  for (const key of keys) {
+    const val = raw[key];
+    if (typeof val === "string" && val.trim()) return val.trim();
+  }
+  return "";
 }
 
-const REQUIRED_KEYS: (keyof PaymentInstructionsSecret)[] = [
-  "achRoutingNumber",
-  "achAccountNumber",
-  "achAccountName",
-  "wireSwiftCode",
-  "wireAccountNumber",
-  "checkPayableTo",
-  "checkMailAddress",
-];
+function isPlaceholder(value: string): boolean {
+  return /replace|placeholder|your |todo|xxx|changeme|example/i.test(value);
+}
 
-export function validatePaymentInstructions(secret: unknown): PaymentInstructionsSecret {
-  const s = secret as Record<string, unknown>;
-  for (const key of REQUIRED_KEYS) {
-    const val = s[key];
-    if (typeof val !== "string" || val.trim() === "" || val.toUpperCase().includes("PLACEHOLDER")) {
+export function normalizePaymentInstructions(secret: unknown): NormalizedPaymentInstructions {
+  const s = (secret && typeof secret === "object" ? secret : {}) as Record<string, unknown>;
+  const wireFromParts = [
+    pickString(s, "WIRE_SWIFT_CODE", "wireSwiftCode"),
+    pickString(s, "WIRE_ACCOUNT_NUMBER", "wireAccountNumber"),
+  ]
+    .filter(Boolean)
+    .join(" / ");
+  return {
+    achRoutingNumber: pickString(s, "ACH_ROUTING_NUMBER", "achRoutingNumber"),
+    achAccountNumber: pickString(s, "ACH_ACCOUNT_NUMBER", "achAccountNumber"),
+    bankName: pickString(s, "BANK_NAME", "bankName", "achBankName"),
+    wireInstructions:
+      pickString(s, "WIRE_INSTRUCTIONS", "wireInstructions") || wireFromParts,
+    checkMailingAddress: pickString(
+      s,
+      "CHECK_MAIL_TO",
+      "CHECK_MAILING_ADDRESS",
+      "checkMailingAddress",
+      "checkMailAddress",
+    ),
+    bankContact: pickString(s, "BANK_CONTACT", "bankContact") || "billing@rapidcortex.us",
+  };
+}
+
+/**
+ * Throw before emailing an invoice if ACH/check instructions are blank or placeholders.
+ */
+export function validatePaymentInstructionsForSend(
+  secret: unknown,
+): NormalizedPaymentInstructions {
+  const normalized = normalizePaymentInstructions(secret);
+  const required: Array<keyof NormalizedPaymentInstructions> = [
+    "achRoutingNumber",
+    "achAccountNumber",
+    "bankName",
+    "checkMailingAddress",
+  ];
+  for (const key of required) {
+    const val = normalized[key];
+    if (!val || isPlaceholder(val)) {
       throw new Error(
-        `[billing] BILLING_PAYMENT_INSTRUCTIONS_SECRET_ARN is missing or has a placeholder value for: ${key}. ` +
-          `Invoices cannot be sent until this is populated in Secrets Manager.`,
+        `[billing] Payment instructions secret is missing or has a placeholder for: ${key}. ` +
+          `Populate rapid-cortex/billing/payment-instructions before sending invoices.`,
       );
     }
   }
-  if (!/^\d{9}$/.test((s.achRoutingNumber as string).trim())) {
+  if (!/^\d{9}$/.test(normalized.achRoutingNumber)) {
     throw new Error(
-      `[billing] ACH routing number "${s.achRoutingNumber}" is not a valid 9-digit routing number.`,
+      `[billing] ACH routing number is not a valid 9-digit routing number.`,
     );
   }
-  return s as unknown as PaymentInstructionsSecret;
+  return normalized;
+}
+
+/** @deprecated Use validatePaymentInstructionsForSend — kept for older imports. */
+export function validatePaymentInstructions(secret: unknown): NormalizedPaymentInstructions {
+  return validatePaymentInstructionsForSend(secret);
 }

@@ -1988,6 +1988,35 @@ export async function fetchSupervisorActiveCalls(): Promise<ActiveCallRecord[]> 
   return data.items;
 }
 
+export type SupervisorOperatorPresence = {
+  userId: string;
+  displayName: string;
+  role: string;
+  connectedAt: string;
+  connectionCount: number;
+  status: "online" | "on_call";
+  activeCallId: string | null;
+  activeIncidentId: string | null;
+  callStatus: string | null;
+};
+
+export async function fetchSupervisorOperators(): Promise<SupervisorOperatorPresence[]> {
+  const data = await request<{ items: SupervisorOperatorPresence[] }>("/api/supervisor/operators");
+  return data.items ?? [];
+}
+
+export async function postSupervisorWatching(body: {
+  targetUserId: string;
+  targetDisplayName?: string;
+  incidentId?: string;
+  sessionId?: string;
+}): Promise<{ ok: boolean; eventId: string; createdAt: string }> {
+  return request("/api/supervisor/watching", {
+    method: "POST",
+    body: JSON.stringify(body),
+  });
+}
+
 export async function fetchDispatcherActiveCalls(): Promise<ActiveCallRecord[]> {
   const data = await request<ActiveCallsListResponse>("/api/dispatcher/active-calls");
   return data.items;

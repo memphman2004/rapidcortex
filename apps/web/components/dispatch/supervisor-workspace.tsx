@@ -7,7 +7,7 @@ import { CategoryBadge, StatusBadge, UrgencyBadge } from "@/components/dispatch/
 import { formatRelativeOpened } from "@/lib/format";
 import { WarRoomLauncher } from "@/components/command/war-room-launcher";
 import { QaReviewIncidentBadge } from "@/components/dispatch/qa/qa-review-incident-badge";
-import { fetchQaSessions, isApiConfigured } from "@/lib/api";
+import { fetchQaSessions, fetchSupervisorOperators, isApiConfigured } from "@/lib/api";
 import { loadAuditEvents, loadIncidents } from "@/lib/queries";
 import { useJurisdictionLink } from "@/lib/jurisdiction-context";
 import { isQaScoringEnabled } from "@/lib/runtime-flags";
@@ -32,8 +32,15 @@ export function SupervisorWorkspace() {
     queryFn: fetchQaSessions,
     enabled: isQaScoringEnabled() && isApiConfigured(),
   });
+  const operatorsQuery = useQuery({
+    queryKey: ["supervisor-operators"],
+    queryFn: fetchSupervisorOperators,
+    enabled: isApiConfigured(),
+    refetchInterval: 15_000,
+  });
 
   const incidents = useMemo(() => incidentsQuery.data ?? [], [incidentsQuery.data]);
+  const operators = useMemo(() => operatorsQuery.data ?? [], [operatorsQuery.data]);
   const qaByIncident = useMemo(() => {
     const m = new Map<string, QASession[]>();
     for (const s of qaSessionsQuery.data ?? []) {
@@ -139,17 +146,71 @@ export function SupervisorWorkspace() {
         </div>
       </section>
 
-      <section className="rounded-lg border border-dashed border-slate-700 bg-slate-950/40 p-4">
-        <h2 className="text-xs font-semibold uppercase tracking-wider text-slate-500">
-          Active operators
-        </h2>
-        <p className="mt-2 text-sm text-slate-400">
-          Presence and session telemetry will list signed-in dispatchers per agency. Placeholder
-          until WebSocket or Cognito last-active hooks land.
-        </p>
-        <ul className="mt-3 space-y-2 text-sm text-slate-500">
-          <li>— No live operator feed yet (presence not wired)</li>
-        </ul>
+      <section className="rounded-lg border border-slate-800 bg-slate-950/60 p-4">
+        <div className="flex flex-wrap items-end justify-between gap-2">
+          <div>
+            <h2 className="text-xs font-semibold uppercase tracking-wider text-slate-500">
+              Active operators
+            </h2>
+            <p className="mt-1 text-xs text-slate-500">
+              Live WebSocket presence for your agency (refreshes every 15s).
+            </p>
+          </div>
+          <Link
+            href={to("/supervisor/monitor")}
+            className="text-xs font-medium text-sky-400 hover:underline"
+          >
+            Silent Monitor →
+          </Link>
+        </div>
+        {operatorsQuery.isLoading ? (
+          <p className="mt-3 text-sm text-slate-500">Loading presence…</p>
+        ) : operatorsQuery.isError ? (
+          <p className="mt-3 text-sm text-amber-300">
+            Presence feed unavailable. Confirm stack-2 realtime API is deployed.
+          </p>
+        ) : operators.length === 0 ? (
+          <p className="mt-3 text-sm text-slate-500">
+            No operators connected right now. Dispatchers appear here when the live workspace
+            WebSocket is connected.
+          </p>
+        ) : (
+          <ul className="mt-3 divide-y divide-slate-800">
+            {operators.map((op) => (
+              <li
+                key={op.userId}
+                className="flex flex-wrap items-center justify-between gap-2 py-2 text-sm"
+              >
+                <div className="min-w-0">
+                  <p className="truncate font-medium text-slate-100">{op.displayName}</p>
+                  <p className="text-[11px] text-slate-500">
+                    {op.role} · connected {formatRelativeOpened(op.connectedAt)}
+                    {op.connectionCount > 1 ? ` · ${op.connectionCount} sessions` : ""}
+                  </p>
+                </div>
+                <div className="flex shrink-0 items-center gap-2">
+                  <span
+                    className={`rounded-full px-2 py-0.5 text-[11px] font-medium ${
+                      op.status === "on_call"
+                        ? "bg-amber-900/50 text-amber-200 ring-1 ring-amber-800"
+                        : "bg-emerald-900/40 text-emerald-200 ring-1 ring-emerald-800"
+                    }`}
+                  >
+                    {op.status === "on_call" ? "On call" : "Online"}
+                  </span>
+                  {op.activeIncidentId ? (
+                    <Link
+                      href={`${to("/dashboard")}?incident=${encodeURIComponent(op.activeIncidentId)}`}
+                      className="font-mono text-[11px] text-sky-400 hover:underline"
+                    >
+                      {op.activeIncidentId.slice(0, 12)}…
+                    </Link>
+                  ) : null}
+                </div>
+              </li>
+            ))}
+          </ul>
+        )}
       </section>
 
       <section className="rounded-lg border border-slate-800 bg-slate-950/60 p-4">

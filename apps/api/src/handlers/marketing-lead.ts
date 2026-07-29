@@ -11,6 +11,7 @@ import { marketingLeadBodySchema, resolveMarketingLeadSource } from "rapid-corte
 import { ddb } from "../repositories/baseRepository.js";
 import { env } from "../lib/env.js";
 import { parseDeviceType } from "../features/leads/leads-normalize.js";
+import { sesConfigurationSetFields } from "../lib/ses/sesConfigurationSet.js";
 import { SalesLeadRepository } from "../repositories/salesLeadRepository.js";
 
 const ses = new SESClient({});
@@ -207,6 +208,7 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
     try {
       await ses.send(
         new SendEmailCommand({
+          ...sesConfigurationSetFields(),
           Source: `Rapid Cortex <${sesFrom}>`,
           Destination: { ToAddresses: [`${firstName} ${lastName} <${emailLower}>`] },
           Message: {
@@ -256,6 +258,7 @@ siteUrl,
     try {
       await ses.send(
         new SendEmailCommand({
+          ...sesConfigurationSetFields(),
           Source: `Rapid Cortex <${sesFrom}>`,
           Destination: { ToAddresses: [teamEmail] },
           Message: {

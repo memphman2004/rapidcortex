@@ -72,11 +72,29 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
       throw err;
     }
 
+    let fallbackLatitude: number | null = null;
+    let fallbackLongitude: number | null = null;
+    try {
+      const body = JSON.parse(event.body ?? "{}") as {
+        fallbackLatitude?: unknown;
+        fallbackLongitude?: unknown;
+      };
+      if (typeof body.fallbackLatitude === "number" && Number.isFinite(body.fallbackLatitude)) {
+        fallbackLatitude = body.fallbackLatitude;
+      }
+      if (typeof body.fallbackLongitude === "number" && Number.isFinite(body.fallbackLongitude)) {
+        fallbackLongitude = body.fallbackLongitude;
+      }
+    } catch {
+      /* empty / non-JSON body is fine */
+    }
+
     const devices = await deviceService.discoverAndSaveDevices(
       user.agencyId,
       user.userId,
       account.ringAccountId,
       accessToken,
+      { fallbackLatitude, fallbackLongitude },
     );
 
     await auditRingEvent({

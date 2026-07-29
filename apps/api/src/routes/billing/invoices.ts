@@ -18,6 +18,9 @@ import { AUDIT_EVENT_TYPES } from "rapid-cortex-security";
 import { z } from "zod";
 import { env } from "../../lib/env.js";
 import { makeId } from "../../lib/ids.js";
+import { nextInvoiceNumber } from "../../lib/billing/invoice-sequence.js";
+import { computeTotalsCents, dollarsToCents, resolveAmountDollars } from "../../lib/billing/money-cents.js";
+import { validatePaymentInstructionsForSend } from "../../lib/billing/payment-instructions.js";
 import {
   generateInvoicePdfBuffer,
   loadPaymentInstructions,
@@ -96,20 +99,6 @@ async function createAudit(
   });
 }
 
-function computeTotals(input: {
-  lineItems: Array<{ quantity: number; unitPrice: number }>;
-  discount?: number;
-  tax?: number;
-}) {
-  const subtotal = Number(
-    input.lineItems.reduce((sum, item) => sum + item.quantity * item.unitPrice, 0).toFixed(2),
-  );
-  const discount = Number((input.discount ?? 0).toFixed(2));
-  const tax = Number((input.tax ?? 0).toFixed(2));
-  const total = Number(Math.max(0, subtotal - discount + tax).toFixed(2));
-  return { subtotal, discount, tax, total };
-}
-
 function assertTransition(current: InvoiceStatus, next: InvoiceStatus): void {
   const allowed: Record<InvoiceStatus, InvoiceStatus[]> = {
     DRAFT: ["SENT", "CANCELED", "VOID"],
@@ -123,32 +112,6 @@ function assertTransition(current: InvoiceStatus, next: InvoiceStatus): void {
     (err as Error & { code?: string }).code = "INVALID_TRANSITION";
     throw err;
   }
-}
-
-function monthPrefix(dateIso: string): string {
-  const d = new Date(dateIso);
-  const yyyy = d.getUTCFullYear();
-  const mm = `${d.getUTCMonth() + 1}`.padStart(2, "0");
-  return `${yyyy}-${mm}`;
-}
-
-async function nextInvoiceNumber(agencyId: string, invoiceDate: string): Promise<string> {
-  const prefix = monthPrefix(invoiceDate);
-  const out = await ddb.send(
-    new ScanCommand({
-      TableName: env.invoicesTable,
-      FilterExpression: "agencyId = :agencyId",
-      ExpressionAttributeValues: { ":agencyId": agencyId },
-    }),
-  );
-  const items = (out.Items ?? []) as Array<{ invoiceNumber?: string }>;
-  const max = items.reduce((m, row) => {
-    const num = row.invoiceNumber ?? "";
-    const match = num.match(/^RC-(\d{4}-\d{2})-(\d{4})$/);
-    if (!match || match[1] !== prefix) return m;
-    return Math.max(m, Number.parseInt(match[2] ?? "0", 10));
-  }, 0);
-  return `RC-${prefix}-${`${max + 1}`.padStart(4, "0")}`;
 }
 
 async function loadInvoiceScoped(invoiceId: string, agencyId: string) {
@@ -227,7 +190,14 @@ export async function handleBillingInvoicesRoute(event: {
       const t = nowIso();
       const invoiceIdValue = makeId("inv");
       const invoiceNumber = await nextInvoiceNumber(scopeAgencyId, payload.invoiceDate);
-      const totals = computeTotals(payload);
+      const totals = computeTotalsCents({
+        lineItems: payload.lineItems.map((li) => ({
+          quantity: li.quantity,
+          unitPriceDollars: li.unitPrice,
+        })),
+        discountDollars: payload.discount,
+        taxDollars: payload.tax,
+      });
       const invoiceRow = {
         invoiceId: invoiceIdValue,
         agencyId: scopeAgencyId,
@@ -246,6 +216,8 @@ export async function handleBillingInvoicesRoute(event: {
       };
       await ddb.send(new PutCommand({ TableName: env.invoicesTable, Item: invoiceRow }));
       for (const [i, li] of payload.lineItems.entries()) {
+        const unitPriceCents = dollarsToCents(li.unitPrice);
+        const lineTotalCents = dollarsToCents(li.quantity * li.unitPrice);
         await ddb.send(
           new PutCommand({
             TableName: env.invoiceItemsTable,
@@ -258,7 +230,9 @@ export async function handleBillingInvoicesRoute(event: {
               description: li.description,
               quantity: li.quantity,
               unitPrice: li.unitPrice,
+              unitPriceCents,
               lineTotal: Number((li.quantity * li.unitPrice).toFixed(2)),
+              lineTotalCents,
               sortOrder: li.sortOrder ?? i,
               createdAt: t,
             },
@@ -297,6 +271,7 @@ export async function handleBillingInvoicesRoute(event: {
       if (customerIdFilter) items = items.filter((x) => String(x.customerId ?? "") === customerIdFilter);
       if (dateFrom) items = items.filter((x) => String(x.invoiceDate ?? "") >= dateFrom);
       if (dateTo) items = items.filter((x) => String(x.invoiceDate ?? "") <= dateTo);
+      items = items.filter((x) => String(x.invoiceId ?? "") !== "INVOICE_SEQUENCE");
       items.sort((a, b) => String(b.createdAt ?? "").localeCompare(String(a.createdAt ?? "")));
       return ok({ items });
     }
@@ -325,20 +300,39 @@ export async function handleBillingInvoicesRoute(event: {
       if (Object.keys(parsed.data).length === 0) return badRequest("No fields to update");
 
       const nextLineItems = parsed.data.lineItems;
-      const totals = nextLineItems
-        ? computeTotals({
-            lineItems: nextLineItems,
-            discount: parsed.data.discount ?? Number(existing.discount ?? 0),
-            tax: parsed.data.tax ?? Number(existing.tax ?? 0),
-          })
-        : computeTotals({
-            lineItems: (await invoiceItems(invoiceId, scopeAgencyId)).map((x) => ({
-              quantity: Number((x as { quantity?: number }).quantity ?? 0),
-              unitPrice: Number((x as { unitPrice?: number }).unitPrice ?? 0),
-            })),
-            discount: parsed.data.discount ?? Number(existing.discount ?? 0),
-            tax: parsed.data.tax ?? Number(existing.tax ?? 0),
-          });
+      const existingItems = nextLineItems
+        ? nextLineItems.map((li) => ({
+            quantity: li.quantity,
+            unitPriceDollars: li.unitPrice,
+          }))
+        : (await invoiceItems(invoiceId, scopeAgencyId)).map((x) => ({
+            quantity: Number((x as { quantity?: number }).quantity ?? 0),
+            unitPriceDollars: resolveAmountDollars(
+              x as { unitPriceCents?: number; unitPrice?: number },
+              "unitPrice",
+            ),
+          }));
+      const totals = computeTotalsCents({
+        lineItems: existingItems,
+        discountDollars:
+          parsed.data.discount ??
+          resolveAmountDollars(
+            {
+              amountCents: (existing as { discountCents?: number }).discountCents,
+              amount: existing.discount,
+            },
+            "amount",
+          ),
+        taxDollars:
+          parsed.data.tax ??
+          resolveAmountDollars(
+            {
+              amountCents: (existing as { taxCents?: number }).taxCents,
+              amount: existing.tax,
+            },
+            "amount",
+          ),
+      });
 
       const names: Record<string, string> = {
         "#updatedAt": "updatedAt",
@@ -346,6 +340,10 @@ export async function handleBillingInvoicesRoute(event: {
         "#discount": "discount",
         "#tax": "tax",
         "#total": "total",
+        "#subtotalCents": "subtotalCents",
+        "#discountCents": "discountCents",
+        "#taxCents": "taxCents",
+        "#totalCents": "totalCents",
       };
       const values: Record<string, unknown> = {
         ":updatedAt": nowIso(),
@@ -353,6 +351,10 @@ export async function handleBillingInvoicesRoute(event: {
         ":discount": totals.discount,
         ":tax": totals.tax,
         ":total": totals.total,
+        ":subtotalCents": totals.subtotalCents,
+        ":discountCents": totals.discountCents,
+        ":taxCents": totals.taxCents,
+        ":totalCents": totals.totalCents,
       };
       const setParts = [
         "#updatedAt = :updatedAt",
@@ -360,6 +362,10 @@ export async function handleBillingInvoicesRoute(event: {
         "#discount = :discount",
         "#tax = :tax",
         "#total = :total",
+        "#subtotalCents = :subtotalCents",
+        "#discountCents = :discountCents",
+        "#taxCents = :taxCents",
+        "#totalCents = :totalCents",
       ];
       for (const [k, v] of Object.entries(parsed.data)) {
         if (k === "lineItems") continue;
@@ -381,6 +387,8 @@ export async function handleBillingInvoicesRoute(event: {
       );
       if (nextLineItems) {
         for (const [i, li] of nextLineItems.entries()) {
+          const unitPriceCents = dollarsToCents(li.unitPrice);
+          const lineTotalCents = dollarsToCents(li.quantity * li.unitPrice);
           await ddb.send(
             new PutCommand({
               TableName: env.invoiceItemsTable,
@@ -393,7 +401,9 @@ export async function handleBillingInvoicesRoute(event: {
                 description: li.description,
                 quantity: li.quantity,
                 unitPrice: li.unitPrice,
+                unitPriceCents,
                 lineTotal: Number((li.quantity * li.unitPrice).toFixed(2)),
+                lineTotalCents,
                 sortOrder: li.sortOrder ?? i,
                 createdAt: nowIso(),
               },
@@ -445,6 +455,13 @@ export async function handleBillingInvoicesRoute(event: {
       const toEmail = (customerItem?.billingContactEmail ?? customerItem?.email ?? "").trim();
       if (!toEmail || toEmail.endsWith("@example.com") || toEmail.endsWith("@example.invalid") || toEmail === "") {
         return badRequest(`Invoice blocked: billing contact email "${toEmail}" is not a valid delivery address. Update the customer billing profile.`);
+      }
+
+      // Banking details must be present before email (PDF + HTML body)
+      try {
+        validatePaymentInstructionsForSend(await loadPaymentInstructions());
+      } catch (error) {
+        return badRequest(error instanceof Error ? error.message : "Payment instructions incomplete");
       }
 
       // Send the email first; only update status on success (MSA §4.4)
@@ -555,7 +572,9 @@ export async function handleBillingInvoicesRoute(event: {
         description?: string;
         quantity?: number;
         unitPrice?: number;
+        unitPriceCents?: number;
         lineTotal?: number;
+        lineTotalCents?: number;
       }>;
       const pdf = await generateInvoicePdfBuffer(
         {
@@ -568,10 +587,22 @@ export async function handleBillingInvoicesRoute(event: {
           billingContactEmail: customerItem.email,
           billingAddress: customerItem.address ? { street: customerItem.address } : undefined,
           poNumber: (existing.poNumber as string | undefined) ?? undefined,
-          subtotal: Number(existing.subtotal ?? 0),
-          discount: Number(existing.discount ?? 0),
-          tax: Number(existing.tax ?? 0),
-          total: Number(existing.total ?? 0),
+          subtotal: resolveAmountDollars(existing as { subtotalCents?: number; subtotal?: number }, "subtotal"),
+          discount: resolveAmountDollars(
+            {
+              amountCents: (existing as { discountCents?: number }).discountCents,
+              amount: existing.discount,
+            },
+            "amount",
+          ),
+          tax: resolveAmountDollars(
+            {
+              amountCents: (existing as { taxCents?: number }).taxCents,
+              amount: existing.tax,
+            },
+            "amount",
+          ),
+          total: resolveAmountDollars(existing as { totalCents?: number; total?: number }, "total"),
           currency: String(existing.currency ?? "USD"),
           paymentTerms: customerItem.paymentTerms,
         },
@@ -579,8 +610,8 @@ export async function handleBillingInvoicesRoute(event: {
           serviceName: li.serviceName ?? "Service",
           description: li.description,
           quantity: Number(li.quantity ?? 0),
-          unitPrice: Number(li.unitPrice ?? 0),
-          lineTotal: Number(li.lineTotal ?? 0),
+          unitPrice: resolveAmountDollars(li, "unitPrice"),
+          lineTotal: resolveAmountDollars(li, "lineTotal"),
         })),
         await loadPaymentInstructions(),
       );
@@ -629,7 +660,9 @@ export async function handleBillingInvoicesRoute(event: {
         description?: string;
         quantity?: number;
         unitPrice?: number;
+        unitPriceCents?: number;
         lineTotal?: number;
+        lineTotalCents?: number;
       }>;
       const pdf = await generateInvoicePdfBuffer(
         {
@@ -642,10 +675,22 @@ export async function handleBillingInvoicesRoute(event: {
           billingContactEmail: customerItem.email,
           billingAddress: customerItem.address ? { street: customerItem.address } : undefined,
           poNumber: (existing.poNumber as string | undefined) ?? undefined,
-          subtotal: Number(existing.subtotal ?? 0),
-          discount: Number(existing.discount ?? 0),
-          tax: Number(existing.tax ?? 0),
-          total: Number(existing.total ?? 0),
+          subtotal: resolveAmountDollars(existing as { subtotalCents?: number; subtotal?: number }, "subtotal"),
+          discount: resolveAmountDollars(
+            {
+              amountCents: (existing as { discountCents?: number }).discountCents,
+              amount: existing.discount,
+            },
+            "amount",
+          ),
+          tax: resolveAmountDollars(
+            {
+              amountCents: (existing as { taxCents?: number }).taxCents,
+              amount: existing.tax,
+            },
+            "amount",
+          ),
+          total: resolveAmountDollars(existing as { totalCents?: number; total?: number }, "total"),
           currency: String(existing.currency ?? "USD"),
           paymentTerms: customerItem.paymentTerms,
         },
@@ -653,8 +698,8 @@ export async function handleBillingInvoicesRoute(event: {
           serviceName: li.serviceName ?? "Service",
           description: li.description,
           quantity: Number(li.quantity ?? 0),
-          unitPrice: Number(li.unitPrice ?? 0),
-          lineTotal: Number(li.lineTotal ?? 0),
+          unitPrice: resolveAmountDollars(li, "unitPrice"),
+          lineTotal: resolveAmountDollars(li, "lineTotal"),
         })),
         await loadPaymentInstructions(),
       );

@@ -4,6 +4,9 @@ import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { GetCommand, UpdateCommand } from "@aws-sdk/lib-dynamodb";
 import { env } from "../lib/env.js";
 import { loadPaymentInstructions } from "../lib/billing/invoicePdfGenerator.js";
+import { resolveAmountDollars } from "../lib/billing/money-cents.js";
+import { validatePaymentInstructionsForSend } from "../lib/billing/payment-instructions.js";
+import { sesConfigurationSetFields } from "../lib/ses/sesConfigurationSet.js";
 import { ddb } from "../repositories/baseRepository.js";
 import { BillingAuditService } from "./billingAuditService.js";
 
@@ -139,6 +142,7 @@ export async function sendInvoiceEmail(
   const customer = customerOut.Item as { agencyName?: string; billingContact?: string } | undefined;
   const pdfUrl = await signedInvoicePdfUrl(invoice.pdfS3Key);
   const paymentInfo = await loadPaymentInstructions();
+  validatePaymentInstructionsForSend(paymentInfo);
 
   const html = brandedHtml(`
     <h2 style="margin:0 0 10px 0;">Invoice ${invoice.invoiceNumber ?? invoice.invoiceId}</h2>
@@ -147,10 +151,10 @@ export async function sendInvoiceEmail(
       <tr><td><b>Invoice Date</b></td><td>${invoice.invoiceDate ?? "-"}</td></tr>
       <tr><td><b>Due Date</b></td><td>${invoice.dueDate ?? "-"}</td></tr>
       <tr><td><b>PO Number</b></td><td>${invoice.poNumber ?? "-"}</td></tr>
-      <tr><td><b>Subtotal</b></td><td>${money(Number(invoice.subtotal ?? 0), invoice.currency ?? "USD")}</td></tr>
-      <tr><td><b>Discount</b></td><td>${money(Number(invoice.discount ?? 0), invoice.currency ?? "USD")}</td></tr>
-      <tr><td><b>Tax</b></td><td>${money(Number(invoice.tax ?? 0), invoice.currency ?? "USD")}</td></tr>
-      <tr><td><b>Total Due</b></td><td><b>${money(Number(invoice.total ?? 0), invoice.currency ?? "USD")}</b></td></tr>
+      <tr><td><b>Subtotal</b></td><td>${money(resolveAmountDollars(invoice as { subtotalCents?: number; subtotal?: number }, "subtotal"), invoice.currency ?? "USD")}</td></tr>
+      <tr><td><b>Discount</b></td><td>${money(resolveAmountDollars({ amountCents: (invoice as { discountCents?: number }).discountCents, amount: invoice.discount }, "amount"), invoice.currency ?? "USD")}</td></tr>
+      <tr><td><b>Tax</b></td><td>${money(resolveAmountDollars({ amountCents: (invoice as { taxCents?: number }).taxCents, amount: invoice.tax }, "amount"), invoice.currency ?? "USD")}</td></tr>
+      <tr><td><b>Total Due</b></td><td><b>${money(resolveAmountDollars(invoice as { totalCents?: number; total?: number }, "total"), invoice.currency ?? "USD")}</b></td></tr>
     </table>
     ${paymentInstructionsHtml(paymentInfo)}
     <p style="margin:0 0 16px 0;">Terms: ${invoice.paymentTerms ?? "NET 30"}.</p>
@@ -163,6 +167,7 @@ export async function sendInvoiceEmail(
 
   await ses.send(
     new SendEmailCommand({
+      ...sesConfigurationSetFields(),
       Source: sender,
       Destination: {
         ToAddresses: [toEmail],
@@ -242,6 +247,7 @@ export async function sendPaymentConfirmationEmail(paymentId: string): Promise<{
 
   await ses.send(
     new SendEmailCommand({
+      ...sesConfigurationSetFields(),
       Source: sender,
       Destination: { ToAddresses: [customer.email] },
       Message: {
@@ -324,6 +330,7 @@ export async function sendReminderEmail(
 
   await ses.send(
     new SendEmailCommand({
+      ...sesConfigurationSetFields(),
       Source: sender,
       Destination: { ToAddresses: [customer.email] },
       Message: {

@@ -220,7 +220,10 @@ Parameters:
   SesConfigurationSetName:
     Type: String
     Default: ""
-    Description: Optional SES configuration set to associate with the identity.
+    Description: >-
+      Optional SES configuration set name. AppSam2 creates rapid-cortex-transactional-{stage}
+      with bounce/complaint SNS → SesNotificationHandlerFunction. Leave blank to use that
+      naming convention via Lambda env (scs / SES_CONFIGURATION_SET_NAME).
   BillingSesSenderEmail:
     Type: String
     Default: ""
@@ -2768,6 +2771,12 @@ Outputs:
   HttpApi2Url:
     Description: Secondary HTTP API base URL (stack-app-sam-2 routes; execute-api endpoint)
     Value: !GetAtt AppSam2Stack.Outputs.HttpApiUrl
+  SesTransactionalConfigurationSetName:
+    Description: SES config set with bounce/complaint SNS → SesNotificationHandler (AppSam2)
+    Value: !GetAtt AppSam2Stack.Outputs.SesTransactionalConfigurationSetName
+  SesNotificationsTopicArn:
+    Description: SNS topic for SES bounce/complaint/send/reject events (AppSam2)
+    Value: !GetAtt AppSam2Stack.Outputs.SesNotificationsTopicArn
   HttpApi2Id:
     Description: Secondary HTTP API ID (stack-app-sam-2)
     Value: !GetAtt AppSam2Stack.Outputs.HttpApiId

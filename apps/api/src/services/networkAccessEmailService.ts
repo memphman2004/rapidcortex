@@ -1,6 +1,7 @@
 import { SendEmailCommand, SESClient } from "@aws-sdk/client-ses";
 import type { AgencyTenant } from "rapid-cortex-shared";
 import { env } from "../lib/env.js";
+import { sesConfigurationSetFields } from "../lib/ses/sesConfigurationSet.js";
 
 const ses = new SESClient({ region: env.region });
 
@@ -55,6 +56,7 @@ export async function sendEmergencyOverrideRequestEmail(input: {
 
   await ses.send(
     new SendEmailCommand({
+      ...sesConfigurationSetFields(),
       Source: from,
       Destination: { ToAddresses: to },
       Message: {
@@ -84,6 +86,7 @@ export async function sendEmergencyOverrideGrantedEmail(input: {
 
   await ses.send(
     new SendEmailCommand({
+      ...sesConfigurationSetFields(),
       Source: from,
       Destination: { ToAddresses: [input.targetEmail.trim()] },
       Message: {
