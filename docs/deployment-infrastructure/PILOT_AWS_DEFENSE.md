@@ -9,14 +9,32 @@ Concise runbook for **911-agency pilot** hardening. Infra is defined in `infra/t
   - `AWSManagedRulesCommonRuleSet`
   - `AWSManagedRulesKnownBadInputsRuleSet`
   - A **per-IP block** when the request count exceeds the rate limit (throttling at the edge, before your Lambdas in many cases).
-- **Association:** `AWS::WAFv2::WebACLAssociation` targets the **HTTP API** default stage:  
-  `arn:aws:apigateway:<region>::/apis/<api-id>/stages/$default`
-- **Not replaced:** **API Gateway stage throttling** (`DefaultRouteSettings` on the `Serverless::HttpApi` resource: burst **200** / rate **100** RPS) remains in effect. WAF and stage limits stack.
-- **Cost:** WAF is billed per web ACL, rules, and requests — enable for **pilot/prod**; leave `false` in dev to avoid surprise spend.
-- **Deploy (example):**  
-  `ENABLE_API_WAF=true WAF_RATE_LIMIT_5M=2000 ./scripts/deploy.sh pilot`
+- **Association (important):** WAFv2 **regional** association supports REST API stages, ALBs, AppSync, Cognito — **not** API Gateway **HTTP APIs** (v2).  
+  CLI attempt **2026-07-29** against primary HttpApi `k26yw4o3xk` stage `$default`:
+  ```text
+  aws wafv2 associate-web-acl \
+    --web-acl-arn arn:aws:wafv2:us-east-1:158961537080:regional/webacl/rapid-cortex-httpapi-waf-dev/4b66008e-f221-4de5-80c0-7a28152cce38 \
+    --resource-arn arn:aws:apigateway:us-east-1::/apis/k26yw4o3xk/stages/$default
+  → WAFInvalidParameterException: The ARN isn't valid. … field: RESOURCE_ARN
+  ```
+  **Do not** reintroduce `AWS::WAFv2::WebACLAssociation` on the HttpApi stage in SAM — it rolls back the same way.
 
-**Output:** `ApiWebAclArn` when WAF is enabled.
+- **Pilot edge path (LIVE 2026-07-29):** CloudFront in front of primary `api.rapidcortex.us` with a **CLOUDFRONT**-scope WebACL.
+  - Template: [`infra/api-edge-cloudfront.yaml`](../../infra/api-edge-cloudfront.yaml)
+  - Deploy: `scripts/deploy-api-edge.sh`
+  - Stack: `rapid-cortex-api-edge-dev`
+  - Distribution: `E22OK65GJG6A2C` (`d2nmlvfqle5i0g.cloudfront.net`)
+  - WebACL: `arn:aws:wafv2:us-east-1:158961537080:global/webacl/rapid-cortex-httpapi-cdn-waf-dev/7f68bde8-cc59-4b9d-bed7-dd1f66e7eeef` (attached on the distribution)
+  - Origin: API Gateway regional custom-domain target `d-zp1gcdowhi.execute-api.us-east-1.amazonaws.com` with **AllViewer** (forwards `Host: api.rapidcortex.us`)
+  - Verify: `curl -sS https://api.rapidcortex.us/api/health` → `{"status":"ok",...}`
+  - DNS ownership: cut over Route53 A/AAAA to CloudFront; set AppSam `ManageApiDomainDns=false` then `CREATE_ROUTE53_ALIAS_RECORDS=true` so the edge stack owns DNS in CFN.
+- **Not replaced:** **API Gateway stage throttling** (`DefaultRouteSettings` on the `Serverless::HttpApi` resource: burst **200** / rate **100** RPS) remains in effect.
+- **Cost:** WAF is billed per web ACL, rules, and requests — enable for **pilot/prod**; leave `false` in pure local/dev if unused.
+- **Deploy (example):**  
+  `ENABLE_API_WAF=true WAF_RATE_LIMIT_5M=2000 ./scripts/deploy.sh pilot`  
+  plus API edge: see `scripts/deploy-api-edge.sh`.
+
+**Output:** `ApiWebAclArn` when the REGIONAL WebACL resource is created (inventory / ALB). **Live traffic protection** is `ApiEdgeWebAclArn` on the CloudFront distribution.
 
 ## 2. CloudWatch → SNS → email (and SMS)
 

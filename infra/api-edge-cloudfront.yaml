@@ -1,0 +1,230 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: >-
+  Rapid Cortex primary API edge — CloudFront distribution + CLOUDFRONT-scope WAFv2 in front of
+  the AppSamStackV2 HTTP API (execute-api origin). Use this because WAFv2 cannot associate with
+  API Gateway HTTP API stages. DNS for api.<root> can be cut over here after AppSam stops managing
+  ApiDomainDnsRecordA/AAAA (ManageApiDomainDns=false).
+
+Parameters:
+  AppName:
+    Type: String
+    Default: rapid-cortex
+  DeploymentStage:
+    Type: String
+    Default: dev
+    AllowedValues: [dev, staging, pilot, prod]
+  RootDomainName:
+    Type: String
+    Default: rapidcortex.us
+  ApiSubdomainPrefix:
+    Type: String
+    Default: api
+  HttpApiId:
+    Type: String
+    Default: ""
+    Description: >-
+      Primary HTTP API id (e.g. k26yw4o3xk). Used when ApiGatewayOriginDomainName is empty
+      to build {HttpApiId}.execute-api.{region}.amazonaws.com.
+  ApiGatewayOriginDomainName:
+    Type: String
+    Default: ""
+    Description: >-
+      Preferred origin hostname — API Gateway regional custom-domain target
+      (e.g. d-zp1gcdowhi.execute-api.us-east-1.amazonaws.com). When set, CloudFront forwards
+      viewer Host (api.<root>) via AllViewer so the custom-domain mapping matches.
+  AwsRegionForOrigin:
+    Type: String
+    Default: us-east-1
+    Description: Region of the HTTP API execute-api origin (must match AppSam).
+  ViewerCertificateArn:
+    Type: String
+    Description: >-
+      ACM certificate ARN in us-east-1 covering api.<RootDomainName> (CloudFront requires us-east-1).
+      May reuse the regional API Gateway cert when that cert is already in us-east-1.
+  Route53HostedZoneId:
+    Type: String
+    Default: ""
+    Description: Public hosted zone for RootDomainName. Required when CreateRoute53AliasRecords=true.
+  CreateRoute53AliasRecords:
+    Type: String
+    Default: "false"
+    AllowedValues: ["true", "false"]
+    Description: >-
+      When true, create A/AAAA alias records for api.<root> → this distribution. Set false until
+      AppSam ManageApiDomainDns=false (or existing APIGW alias records are removed) to avoid conflicts.
+  AttachCloudFrontAlias:
+    Type: String
+    Default: "true"
+    AllowedValues: ["true", "false"]
+    Description: When true, add api.<root> as a CloudFront alternate domain name (requires ViewerCertificateArn).
+  WafRateLimitPer5Min:
+    Type: Number
+    Default: 2000
+    MinValue: 10
+    MaxValue: 20000000
+    Description: WAF rate-based rule — max requests per 5-minute window per source IP.
+  PriceClass:
+    Type: String
+    Default: PriceClass_100
+    AllowedValues: [PriceClass_100, PriceClass_200, PriceClass_All]
+
+Conditions:
+  UseCloudFrontAlias: !Equals [!Ref AttachCloudFrontAlias, "true"]
+  ManageRoute53: !And
+    - !Equals [!Ref CreateRoute53AliasRecords, "true"]
+    - !Not [!Equals [!Ref Route53HostedZoneId, ""]]
+  UseRegionalCustomDomainOrigin: !Not [!Equals [!Ref ApiGatewayOriginDomainName, ""]]
+  UseExecuteApiOrigin: !And
+    - !Equals [!Ref ApiGatewayOriginDomainName, ""]
+    - !Not [!Equals [!Ref HttpApiId, ""]]
+
+Resources:
+  ApiEdgeWebAcl:
+    Type: AWS::WAFv2::WebACL
+    Properties:
+      Name: !Sub ${AppName}-httpapi-cdn-waf-${DeploymentStage}
+      Description: CLOUDFRONT-scope WAF for primary API edge CloudFront to HttpApi
+      Scope: CLOUDFRONT
+      DefaultAction:
+        Allow: {}
+      VisibilityConfig:
+        CloudWatchMetricsEnabled: true
+        MetricName: !Sub ${AppName}-httpapi-cdn-waf-${DeploymentStage}
+        SampledRequestsEnabled: true
+      Rules:
+        - Name: AWSManagedRulesCommonRuleSet
+          Priority: 1
+          OverrideAction: { None: {} }
+          Statement:
+            ManagedRuleGroupStatement:
+              VendorName: AWS
+              Name: AWSManagedRulesCommonRuleSet
+          VisibilityConfig:
+            CloudWatchMetricsEnabled: true
+            MetricName: api-edge-common-rules
+            SampledRequestsEnabled: true
+        - Name: AWSManagedRulesKnownBadInputsRuleSet
+          Priority: 2
+          OverrideAction: { None: {} }
+          Statement:
+            ManagedRuleGroupStatement:
+              VendorName: AWS
+              Name: AWSManagedRulesKnownBadInputsRuleSet
+          VisibilityConfig:
+            CloudWatchMetricsEnabled: true
+            MetricName: api-edge-known-bad-inputs
+            SampledRequestsEnabled: true
+        - Name: AWSManagedRulesAmazonIpReputationList
+          Priority: 3
+          OverrideAction: { None: {} }
+          Statement:
+            ManagedRuleGroupStatement:
+              VendorName: AWS
+              Name: AWSManagedRulesAmazonIpReputationList
+          VisibilityConfig:
+            CloudWatchMetricsEnabled: true
+            MetricName: api-edge-ip-reputation
+            SampledRequestsEnabled: true
+        - Name: PerIpRateLimit
+          Priority: 4
+          Action: { Block: {} }
+          Statement:
+            RateBasedStatement:
+              AggregateKeyType: IP
+              Limit: !Ref WafRateLimitPer5Min
+          VisibilityConfig:
+            CloudWatchMetricsEnabled: true
+            MetricName: api-edge-rate-limit
+            SampledRequestsEnabled: true
+
+  ApiEdgeDistribution:
+    Type: AWS::CloudFront::Distribution
+    Properties:
+      DistributionConfig:
+        Enabled: true
+        Comment: !Sub ${AppName} primary API edge (${DeploymentStage})
+        HttpVersion: http2and3
+        PriceClass: !Ref PriceClass
+        Aliases: !If
+          - UseCloudFrontAlias
+          - - !Sub ${ApiSubdomainPrefix}.${RootDomainName}
+          - !Ref AWS::NoValue
+        WebACLId: !GetAtt ApiEdgeWebAcl.Arn
+        Origins:
+          - Id: HttpApiOrigin
+            # Prefer regional custom-domain target so viewer Host (api.<root>) matches ApiMapping.
+            # Never use api.<root> as Origin DomainName (DNS loop once alias points here).
+            DomainName: !If
+              - UseRegionalCustomDomainOrigin
+              - !Ref ApiGatewayOriginDomainName
+              - !Sub ${HttpApiId}.execute-api.${AwsRegionForOrigin}.amazonaws.com
+            CustomOriginConfig:
+              HTTPSPort: 443
+              OriginProtocolPolicy: https-only
+              OriginSSLProtocols: [TLSv1.2]
+              OriginReadTimeout: 60
+              OriginKeepaliveTimeout: 5
+        DefaultCacheBehavior:
+          TargetOriginId: HttpApiOrigin
+          ViewerProtocolPolicy: https-only
+          AllowedMethods: [GET, HEAD, OPTIONS, PUT, POST, PATCH, DELETE]
+          CachedMethods: [GET, HEAD]
+          Compress: true
+          # CachingDisabled
+          CachePolicyId: 4135ea2d-6df8-44a3-9df3-4b5a84be39ad
+          # AllViewer when using custom-domain origin (forward Host: api.<root>).
+          # AllViewerExceptHostHeader when using execute-api id origin.
+          OriginRequestPolicyId: !If
+            - UseRegionalCustomDomainOrigin
+            - 216adef6-5c7f-47e4-b989-5492eafa07d3
+            - 33f36d7e-f396-46d9-90e0-52428a34d9dc
+        ViewerCertificate: !If
+          - UseCloudFrontAlias
+          - AcmCertificateArn: !Ref ViewerCertificateArn
+            SslSupportMethod: sni-only
+            MinimumProtocolVersion: TLSv1.2_2021
+          - CloudFrontDefaultCertificate: true
+
+  ApiEdgeDnsA:
+    Type: AWS::Route53::RecordSet
+    Condition: ManageRoute53
+    Properties:
+      HostedZoneId: !Ref Route53HostedZoneId
+      Name: !Sub ${ApiSubdomainPrefix}.${RootDomainName}.
+      Type: A
+      AliasTarget:
+        DNSName: !GetAtt ApiEdgeDistribution.DomainName
+        HostedZoneId: Z2FDTNDATAQYW2
+        EvaluateTargetHealth: false
+
+  ApiEdgeDnsAAAA:
+    Type: AWS::Route53::RecordSet
+    Condition: ManageRoute53
+    Properties:
+      HostedZoneId: !Ref Route53HostedZoneId
+      Name: !Sub ${ApiSubdomainPrefix}.${RootDomainName}.
+      Type: AAAA
+      AliasTarget:
+        DNSName: !GetAtt ApiEdgeDistribution.DomainName
+        HostedZoneId: Z2FDTNDATAQYW2
+        EvaluateTargetHealth: false
+
+Outputs:
+  ApiEdgeDistributionId:
+    Description: CloudFront distribution id for the primary API edge
+    Value: !Ref ApiEdgeDistribution
+  ApiEdgeDistributionDomainName:
+    Description: "CloudFront domain name (*.cloudfront.net) for the API edge"
+    Value: !GetAtt ApiEdgeDistribution.DomainName
+  ApiEdgeWebAclArn:
+    Description: CLOUDFRONT-scope WebACL ARN attached to the API edge distribution
+    Value: !GetAtt ApiEdgeWebAcl.Arn
+  ApiEdgePublicUrl:
+    Description: Public API URL when alias + DNS are configured
+    Value: !Sub https://${ApiSubdomainPrefix}.${RootDomainName}
+  ApiEdgeOriginDomain:
+    Description: API Gateway origin hostname used by CloudFront
+    Value: !If
+      - UseRegionalCustomDomainOrigin
+      - !Ref ApiGatewayOriginDomainName
+      - !Sub ${HttpApiId}.execute-api.${AwsRegionForOrigin}.amazonaws.com

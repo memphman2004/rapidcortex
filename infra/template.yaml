@@ -270,8 +270,16 @@ Parameters:
     Default: "false"
     AllowedValues: ["true", "false"]
     Description: >-
-      When true, deploys a regional AWS WAF web ACL (managed rules + per-IP rate limit) and associates it
-      with the API Gateway HTTP API $default stage. Enable for pilot/production edge protection (additional cost).
+      When true, deploys a REGIONAL AWS WAF web ACL on AppSam nests (inventory / ALB path). HTTP API
+      stages cannot use WAFv2 association — primary api.<root> edge protection is CloudFront +
+      CLOUDFRONT-scope ACL via infra/api-edge-cloudfront.yaml (scripts/deploy-api-edge.sh).
+  ManageApiDomainDns:
+    Type: String
+    Default: "true"
+    AllowedValues: ["true", "false"]
+    Description: >-
+      When true, AppSamStackV2 owns Route53 A/AAAA for api.<root> → API Gateway. Set false before
+      api-edge CloudFront takes DNS (CREATE_ROUTE53_ALIAS_RECORDS=true).
   WafRateLimitPer5Min:
     Type: Number
     Default: 2000
@@ -714,6 +722,7 @@ Resources:
         DynamoPointInTimeRecovery: !Ref DynamoPointInTimeRecovery
         DynamoTableNamePrefix: !Ref DynamoTableNamePrefix
         EnableApiWaf: !Ref EnableApiWaf
+        ManageApiDomainDns: !Ref ManageApiDomainDns
         EnableCloudTrail: !Ref EnableCloudTrail
         EnableCloudTrailLambdaDataEvents: !Ref EnableCloudTrailLambdaDataEvents
         EnableCloudTrailS3DataEvents: !Ref EnableCloudTrailS3DataEvents

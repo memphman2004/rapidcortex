@@ -20,7 +20,8 @@ Recommended public topology for U.S. municipal buyers:
 
 - `rapidcortex.us` — apex marketing (optional)
 - `www.rapidcortex.us` — **primary web app host**; product routes live under **`https://www.rapidcortex.us/<city-town-or-county-name>/…`** (URL slug for the city, town, or county, e.g. **`https://www.rapidcortex.us/columbus/dashboard`**)
-- `api.rapidcortex.us` — backend API custom domain
+- `api.rapidcortex.us` — backend API (**CloudFront + CLOUDFRONT WAF** edge in front of AppSam HttpApi; see `infra/api-edge-cloudfront.yaml` / `scripts/deploy-api-edge.sh`)
+
 - `app.rapidcortex.us` — optional alternate app host if you split marketing from app later
 - `admin.rapidcortex.us` — optional dedicated admin host (not required if admins use the same `www` URLs with an admin role)
 

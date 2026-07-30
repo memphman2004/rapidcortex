@@ -16,7 +16,7 @@ export const CAD_WRITEBACK_ENV_DISABLED_ERROR =
   "CAD write-back is not enabled for this environment";
 
 /**
- * BFF routes: check env gate before JWT validation or agency scoping.
+ * BFF routes: call only after auth (anonymous callers must get 401 first).
  * Returns a 400 response when write-back is off; otherwise `null` (proceed).
  */
 export function cadWritebackEnvBlockedResponse(): NextResponse | null {

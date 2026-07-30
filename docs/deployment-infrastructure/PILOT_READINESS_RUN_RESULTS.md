@@ -23,7 +23,9 @@
 | 5.1 | Multilingual table + validation |  |  |
 | 5.2 | `GET /api/integration/status` clean |  |  |
 | 6.1 | `ALLOW_UNAUTHENTICATED_API` posture |  |  |
-| 6.2 | Audit route exercised |  |  |
+| 6.2 | Regional API WebACL exists | PASS | 2026-07-29: `rapid-cortex-httpapi-waf-dev` / `4b66008e-f221-4de5-80c0-7a28152cce38` |
+| 6.3 | API WebACL on request path (CloudFront) | PASS | 2026-07-29: `rapid-cortex-api-edge-dev` / dist `E22OK65GJG6A2C` / ACL `rapid-cortex-httpapi-cdn-waf-dev`; `GET /api/health` 200 via `api.rapidcortex.us` |
+| 6.4 | Audit route exercised |  |  |
 | 7.1 | Alarms + SNS / on-call |  |  |
 | 7.2 | On-call knows health + alarm semantics |  |  |
 | 8.1 | `npm run build` + `sam validate` |  |  |
@@ -39,7 +41,7 @@
 
 | Item | Result | Notes |
 |------|--------|--------|
-| WAF on API (`EnableApiWaf=true`) |  | [PILOT_AWS_DEFENSE.md](./PILOT_AWS_DEFENSE.md) |
+| WAF on API (`EnableApiWaf` + CloudFront edge) | PASS | Edge LIVE 2026-07-29: CF `E22OK65GJG6A2C` + CLOUDFRONT ACL `rapid-cortex-httpapi-cdn-waf-dev`. HttpApi stage associate unsupported (expected). [PILOT_AWS_DEFENSE.md](./PILOT_AWS_DEFENSE.md) |
 | `SnsEmailSubscription` confirmed |  |  |
 | `TRANSCRIPT_RETENTION_POLICY_DAYS` / parameter set (if required) |  | [TRANSCRIPT_RETENTION_POLICY.md](./TRANSCRIPT_RETENTION_POLICY.md) |
 | Cognito callback URLs = web + desktop + staging |  |  |

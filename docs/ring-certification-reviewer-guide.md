@@ -1,4 +1,4 @@
-# Rapid Cortex Connect — Ring Certification Reviewer Guide (v3)
+# Rapid Cortex Connect — Ring Certification Reviewer Guide (v4)
 
 **App name:** Rapid Cortex Connect  
 **Reviewer test account:** ring-reviewer@rapidcortex.us  
@@ -7,6 +7,14 @@
 
 > **Agency note:** Cognito `custom:agencyId` for this reviewer is `test-agency`.  
 > Do **not** use `/columbus-state/media` — that slug does not match the reviewer tenant and will show empty cameras.
+
+## Certification package (portal paste)
+
+| Doc | Purpose |
+|-----|---------|
+| [ring-certification/PRIVACY_LEGAL_QUESTIONNAIRE.md](./ring-certification/PRIVACY_LEGAL_QUESTIONNAIRE.md) | Privacy & Legal questionnaire answers (5 tabs) |
+| [ring-certification/REVIEWER_NOTES.md](./ring-certification/REVIEWER_NOTES.md) | Three “Add notes for reviewer” fields |
+| [ring-certification/SUBMIT_RUNBOOK.md](./ring-certification/SUBMIT_RUNBOOK.md) | Portal URLs + attestation + ops checklist |
 
 ---
 
@@ -52,11 +60,12 @@ Optional: copy the same URLs into **Staging settings** so portal Test mode hits 
 5. Browser opens Account Link:  
    `https://www.rapidcortex.us/connect/ring/link?nonce=…&time=…`
 
-### Step 2 — Sign in / create Rapid Cortex homeowner account
+### Step 2 — Create account / sign in (Rapid Cortex homeowner)
 
-1. On the link page, **sign in or create** a Rapid Cortex account (separate from Ring)
+1. On the link page, prefer **Create account** (first-time), or **Sign in** if you already have a device-owner account
 2. Prefer the same email as the Ring account when possible
-3. Success should discover devices into agency `test-agency`
+3. Success shows **Account linked** with **device name(s)** (not raw device IDs)
+4. Devices are discovered into agency `test-agency`
 
 ### Step 3 — Dispatcher sees devices
 
@@ -99,7 +108,9 @@ Rate limits: max 5 requests/incident/hour; one active request per camera/inciden
 | Terms | https://www.rapidcortex.us/legal/terms/ |
 | Support | https://www.rapidcortex.us/contact/ |
 | Sign-in | https://app.rapidcortex.us/login |
+| App Homepage | https://www.rapidcortex.us/connect/ring/start |
 | Post-OAuth landing | https://www.rapidcortex.us/connect/ring/link |
+| Privacy & data deletion (in-app) | https://www.rapidcortex.us/connect/ring/start#privacy-data |
 
 ---
 
@@ -109,7 +120,7 @@ Rate limits: max 5 requests/incident/hour; one active request per camera/inciden
 
 - Ring Appstore → Rapid Cortex Connect → enable devices  
 - Or https://www.rapidcortex.us/connect/ring/start  
-- Appstore account link sign-in: https://www.rapidcortex.us/connect/ring/link?nonce=…&time=…
+- Appstore account link: https://www.rapidcortex.us/connect/ring/link?nonce=…&time=…
 
 ### SMS format (sent on request)
 
@@ -135,22 +146,22 @@ Consent links are **GET** (tappable from SMS). No Rapid Cortex login required.
 - Time-limited; auto-expires  
 - Owner can decline or STOP mid-session  
 - Owner can remove the app in Ring My Apps  
+- Data deletion: Ring My Apps disconnect + privacy@rapidcortex.us + in-app Privacy & data section  
 
 ---
 
 ## Pre-submit checklist (ops)
 
+- [ ] Paste questionnaire + reviewer notes (`docs/ring-certification/`)
+- [ ] Staging + Production portal URLs set (same four endpoints)
+- [ ] Marketing redeployed with Create Account–first link page + `#privacy-data`
 - [ ] `ring-reviewer@rapidcortex.us` can sign in at `/test-agency/media`
 - [ ] At least one linked device with **GPS** + **Enabled for Connect**
 - [ ] Incident at that address returns the camera at 500m
 - [ ] SMS Allow / Decline / Stop all open HTML confirmation pages
 - [ ] Live stream opens; End Access works
 - [ ] Legal URLs in Part 3 return HTTP 200
-- [ ] Token Exchange URL + Account Link URL + Webhook URL registered in Ring Developer Portal (Appstore one-way flow)
-  - Account Link: `https://www.rapidcortex.us/connect/ring/link`
-  - App Homepage: `https://www.rapidcortex.us/connect/ring/start`
-  - Token Exchange: `https://7c70vqd1p5.execute-api.us-east-1.amazonaws.com/api/public/ring/token-exchange`
-  - Webhook: `https://7c70vqd1p5.execute-api.us-east-1.amazonaws.com/api/public/ring/webhook`
+- [ ] Token Exchange + Account Link + Webhook registered (Part 1 Step 0)
 
 GPS seed (if needed):
 
@@ -159,4 +170,4 @@ STAGE=dev AGENCY_ID=test-agency DEVICE_NAME_CONTAINS=Living \
   npx tsx scripts/seed-ring-sonoma-point-gps.ts
 ```
 
-**SMS phone:** After **Connect Ring Account**, Rapid Cortex syncs the Ring profile phone onto the Cognito reviewer user when Ring returns it. If SMS still falls back to email, set Cognito `phone_number` (E.164) on `ring-reviewer@rapidcortex.us` and re-test.
+**SMS phone:** After linking, Rapid Cortex syncs the Ring profile phone onto the Cognito homeowner user when Ring returns it. If SMS still falls back to email, set Cognito `phone_number` (E.164) on the owner/reviewer path and re-test.

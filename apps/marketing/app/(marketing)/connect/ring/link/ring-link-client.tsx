@@ -68,8 +68,15 @@ function statusMessage(
   };
 }
 
+type LinkedDeviceSummary = {
+  deviceName: string;
+  isEnabledForConnect?: boolean;
+  hasCoordinates?: boolean;
+};
+
 function HomeownerAppstoreSignIn({ nonce, time }: { nonce: string; time: string }) {
-  const [mode, setMode] = useState<"signin" | "signup" | "forgot" | "forgotConfirm">("signin");
+  // Ring UX guide: emphasize Create Account over Sign In for first-time linking.
+  const [mode, setMode] = useState<"signin" | "signup" | "forgot" | "forgotConfirm">("signup");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [code, setCode] = useState("");
@@ -78,7 +85,9 @@ function HomeownerAppstoreSignIn({ nonce, time }: { nonce: string; time: string 
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [info, setInfo] = useState<string | null>(null);
-  const [done, setDone] = useState<{ deviceCount: number } | null>(null);
+  const [done, setDone] = useState<{ deviceCount: number; devices: LinkedDeviceSummary[] } | null>(
+    null,
+  );
 
   function switchMode(next: "signin" | "signup" | "forgot" | "forgotConfirm") {
     setMode(next);
@@ -157,13 +166,27 @@ function HomeownerAppstoreSignIn({ nonce, time }: { nonce: string; time: string 
       const data = (await res.json().catch(() => ({}))) as {
         success?: boolean;
         error?: string;
-        data?: { deviceCount?: number };
+        data?: {
+          deviceCount?: number;
+          devices?: Array<{
+            deviceName?: string;
+            isEnabledForConnect?: boolean;
+            hasCoordinates?: boolean;
+          }>;
+        };
       };
       if (!res.ok || !data.success) {
         setError(data.error || "Unable to complete linking.");
         return;
       }
-      setDone({ deviceCount: data.data?.deviceCount ?? 0 });
+      const devices = (data.data?.devices ?? [])
+        .map((d) => ({
+          deviceName: String(d.deviceName ?? "").trim(),
+          isEnabledForConnect: d.isEnabledForConnect,
+          hasCoordinates: d.hasCoordinates,
+        }))
+        .filter((d) => d.deviceName.length > 0);
+      setDone({ deviceCount: data.data?.deviceCount ?? devices.length, devices });
     } catch {
       setError("Network error. Check your connection and try again.");
     } finally {
@@ -174,7 +197,7 @@ function HomeownerAppstoreSignIn({ nonce, time }: { nonce: string; time: string 
   if (done) {
     return (
       <div className="mt-8 rounded-xl border border-emerald-500/40 bg-emerald-950/30 p-6">
-        <h2 className="text-lg font-semibold text-emerald-200">Connected</h2>
+        <h2 className="text-lg font-semibold text-emerald-200">Account linked</h2>
         <p className="mt-3 text-sm leading-relaxed text-slate-300">
           Your Rapid Cortex account is linked to Ring
           {done.deviceCount > 0
@@ -182,9 +205,37 @@ function HomeownerAppstoreSignIn({ nonce, time }: { nonce: string; time: string 
             : "."}{" "}
           Return to the Ring app — status should show Connected instead of Pending.
         </p>
+        {done.devices.length > 0 ? (
+          <ul className="mt-4 space-y-2 text-sm text-slate-200">
+            {done.devices.map((device) => (
+              <li
+                key={device.deviceName}
+                className="rounded-lg border border-emerald-500/20 bg-slate-950/40 px-3 py-2"
+              >
+                <span className="font-medium text-white">{device.deviceName}</span>
+                <span className="mt-1 block text-xs text-slate-400">
+                  {device.isEnabledForConnect === false
+                    ? "Not enabled for Connect yet"
+                    : "Enabled for Connect"}
+                  {device.hasCoordinates === false ? " · Location pending" : ""}
+                </span>
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <p className="mt-4 text-sm text-amber-200/90">
+            No cameras were returned yet. Confirm devices were selected in the Ring Appstore, then
+            reopen Sign in from Ring if needed.
+          </p>
+        )}
         <p className="mt-4 text-xs text-slate-500">
-          You can close this window. Dispatchers may request video only for nearby emergencies, and
-          only after you tap Allow on each SMS. You can Decline or Stop Sharing anytime.
+          Dispatchers may request video only for nearby emergencies, and only after you tap Allow on
+          each SMS. You can Decline, Stop Sharing, or remove Rapid Cortex Connect in Ring → My Apps
+          anytime. Privacy &amp; deletion:{" "}
+          <Link href="/legal/privacy/" className="text-sky-400 hover:text-sky-300">
+            Privacy policy
+          </Link>
+          .
         </p>
       </div>
     );
@@ -197,21 +248,12 @@ function HomeownerAppstoreSignIn({ nonce, time }: { nonce: string; time: string 
       <p className="text-sm leading-relaxed text-slate-300">
         {isForgot
           ? "Reset your Rapid Cortex device-owner password. This is not your Ring account password."
-          : "Sign in with a Rapid Cortex device-owner account to finish linking. This is not dispatcher login."}
+          : mode === "signup"
+            ? "Create a Rapid Cortex device-owner account to finish linking. This is not dispatcher login."
+            : "Already have a Rapid Cortex device-owner account? Sign in to finish linking."}
       </p>
       {!isForgot ? (
         <div className="mt-5 flex gap-2 text-sm">
-          <button
-            type="button"
-            onClick={() => switchMode("signin")}
-            className={`rounded-lg px-3 py-1.5 font-medium ${
-              mode === "signin"
-                ? "bg-sky-600 text-white"
-                : "border border-slate-600 text-slate-300 hover:border-slate-500"
-            }`}
-          >
-            Sign in
-          </button>
           <button
             type="button"
             onClick={() => switchMode("signup")}
@@ -222,6 +264,17 @@ function HomeownerAppstoreSignIn({ nonce, time }: { nonce: string; time: string 
             }`}
           >
             Create account
+          </button>
+          <button
+            type="button"
+            onClick={() => switchMode("signin")}
+            className={`rounded-lg px-3 py-1.5 font-medium ${
+              mode === "signin"
+                ? "bg-sky-600 text-white"
+                : "border border-slate-600 text-slate-300 hover:border-slate-500"
+            }`}
+          >
+            Sign in
           </button>
         </div>
       ) : null}
@@ -470,11 +523,12 @@ export function RingLinkClient() {
           Ring Device Owners
         </p>
         <h1 className="mt-3 text-2xl font-semibold text-white sm:text-3xl">
-          Sign in to finish connecting
+          Create your account to finish connecting
         </h1>
         <p className="mt-4 text-sm leading-relaxed text-slate-300">
-          Ring requires Rapid Cortex sign-in so we can securely claim your camera link. After you
-          sign in, Ring will show Connected.
+          Ring redirected you here to link accounts. Create a Rapid Cortex device-owner account (or
+          sign in if you already have one). After linking, Ring shows Connected — and no video is
+          shared until you tap Allow on each emergency SMS request.
         </p>
         <HomeownerAppstoreSignIn nonce={nonce} time={time} />
         <div className="mt-10 space-y-2 border-t border-slate-800 pt-6 text-xs text-slate-500">
@@ -484,6 +538,20 @@ export function RingLinkClient() {
               agency sign-in
             </Link>
             , not this page.
+          </p>
+          <p>
+            Privacy &amp; data deletion:{" "}
+            <Link href="/legal/privacy/" className="text-sky-400 hover:text-sky-300">
+              Privacy policy
+            </Link>{" "}
+            ·{" "}
+            <Link href="/connect/ring/start#privacy-data" className="text-sky-400 hover:text-sky-300">
+              Disconnect &amp; delete
+            </Link>{" "}
+            ·{" "}
+            <a href="mailto:privacy@rapidcortex.us" className="text-sky-400 hover:text-sky-300">
+              privacy@rapidcortex.us
+            </a>
           </p>
           <p>
             Need help?{" "}

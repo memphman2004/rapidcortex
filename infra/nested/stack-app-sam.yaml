@@ -330,8 +330,17 @@ Parameters:
     Default: "false"
     AllowedValues: ["true", "false"]
     Description: >-
-      When true, deploys a regional AWS WAF web ACL (managed rules + per-IP rate limit) and associates it
-      with the API Gateway HTTP API $default stage. Enable for pilot/production edge protection (additional cost).
+      When true, deploys a REGIONAL AWS WAF web ACL (inventory / ALB path). HTTP API stages cannot use
+      WAFv2 association — edge protection for api.<root> is CloudFront + CLOUDFRONT-scope ACL via
+      infra/api-edge-cloudfront.yaml (scripts/deploy-api-edge.sh).
+  ManageApiDomainDns:
+    Type: String
+    Default: "true"
+    AllowedValues: ["true", "false"]
+    Description: >-
+      When true (default), creates Route53 A/AAAA for api.<root> → API Gateway custom domain.
+      Set false before api-edge CloudFront takes DNS (CREATE_ROUTE53_ALIAS_RECORDS=true) to avoid
+      conflicting alias records. Custom domain + mapping remain when DNS management is off.
   WafRateLimitPer5Min:
     Type: Number
     Default: 2000
@@ -796,6 +805,9 @@ Conditions:
       - !Equals [!Ref ApiDomainCertificateArn, ""]
       - !Not [!Equals [!Ref Route53HostedZoneId, ""]]
   HasApiCustomDomainCert: !Or [!Condition HasImportedApiCert, !Condition HasManagedApiCert]
+  ManageApiDomainDnsRecords: !And
+    - !Condition HasApiCustomDomainCert
+    - !Equals [!Ref ManageApiDomainDns, "true"]
   HasAppCnameTarget: !Not [!Equals [!Ref AppCnameTarget, ""]]
   HasAdminCnameTarget: !Not [!Equals [!Ref AdminCnameTarget, ""]]
   HasWwwCnameTarget: !Not [!Equals [!Ref WwwCnameTarget, ""]]
@@ -1897,15 +1909,12 @@ Resources:
             MetricName: !Sub "${AppName}WafIpRate"
             SampledRequestsEnabled: true
 
-  ApiWebAclAssociation:
-    Type: AWS::WAFv2::WebACLAssociation
-    Condition: HasApiWaf
-    Properties:
-      WebACLArn: !GetAtt ApiWebAcl.Arn
-      ResourceArn: !Sub
-        - "arn:${AWS::Partition}:apigateway:${AWS::Region}::/apis/${ApiId}/stages/${StageName}"
-        - ApiId: !Ref Api
-          StageName: "$default"
+  # NOTE: AWS WAFv2 does NOT support association with API Gateway HTTP APIs
+  # (Scope REGIONAL association requires REST `/restapis/.../stages/...` ARNs).
+  # Associating `.../apis/${ApiId}/stages/$default` fails with WAFInvalidParameterException.
+  # EnableApiWaf still creates ApiWebAcl + ApiWebAclArn for inventory / future CloudFront|ALB attach.
+  # Do not reintroduce ApiWebAclAssociation against the HttpApi stage until AWS adds support
+  # or the edge path moves to CloudFront/ALB.
 
   ApiManagedCertificate:
     Type: AWS::CertificateManager::Certificate
@@ -1937,7 +1946,7 @@ Resources:
 
   ApiDomainDnsRecordA:
     Type: AWS::Route53::RecordSet
-    Condition: HasApiCustomDomainCert
+    Condition: ManageApiDomainDnsRecords
     Properties:
       HostedZoneName: !Sub "${RootDomainName}."
       Name: !Sub "${ApiSubdomainPrefix}.${RootDomainName}."
@@ -1948,7 +1957,7 @@ Resources:
 
   ApiDomainDnsRecordAAAA:
     Type: AWS::Route53::RecordSet
-    Condition: HasApiCustomDomainCert
+    Condition: ManageApiDomainDnsRecords
     Properties:
       HostedZoneName: !Sub "${RootDomainName}."
       Name: !Sub "${ApiSubdomainPrefix}.${RootDomainName}."
@@ -4370,19 +4379,14 @@ Resources:
     Condition: CloudTrailEnabled
     DeletionPolicy: Retain
     UpdateReplacePolicy: Retain
-    Metadata:
-      cfn-lint:
-        config:
-          # cfn-lint resource spec can lag; ObjectLockEnabledForBucket is required with ObjectLockConfiguration for new lock buckets.
-          ignore_checks:
-            - E3002
     Properties:
       # Globally unique; versioned, encrypted, and Object Lock (must be on at create).
       BucketName: !Sub "${AppName}-cloudtrail-logs-${DeploymentStage}-${AWS::AccountId}"
       VersioningConfiguration:
         Status: Enabled
-      # Required by S3 when creating a bucket with Object Lock + default retention.
-      ObjectLockEnabledForBucket: true
+      # CFN property is ObjectLockEnabled (boolean). ObjectLockEnabledForBucket is CLI-only and
+      # is rejected by CloudFormation ("extraneous key … is not permitted").
+      ObjectLockEnabled: true
       ObjectLockConfiguration:
         # COMPLIANCE: nobody (including the root account) can reduce retention or
         # delete/overwrite protected until retention expires; supports audit proof.

@@ -2,6 +2,7 @@ import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 import { withFeatureContract } from "@/lib/rapid-cortex/contract-response";
 import { proxyToAuthUpstream } from "@/lib/server/auth-upstream-proxy";
+import { resolveBffBearerToken } from "@/lib/server/bff-auth-token";
 
 type Ctx = { params: Promise<{ segments?: string[] }> };
 const MAX_UPLOAD_BYTES = 500 * 1024 * 1024; // 500 MB
@@ -25,6 +26,15 @@ function resolveFeatureId(segments: string[]): string {
 
 async function handler(request: NextRequest, ctx: Ctx) {
   const { segments = [] } = await ctx.params;
+
+  // Auth before path/content-type validation — anonymous callers must get 401, not 415/400.
+  if (request.method !== "GET" && request.method !== "HEAD") {
+    const auth = await resolveBffBearerToken(request);
+    if (!auth.token) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+  }
+
   const candidateId = segments[0];
   if (candidateId && !/^[a-zA-Z0-9_-]+$/.test(candidateId)) {
     return NextResponse.json({ error: "Invalid media identifier" }, { status: 400 });

@@ -55,7 +55,11 @@ export default function RingCustomerStartPage() {
           </li>
           <li>
             <strong className="text-slate-100">Disconnect anytime</strong> from Ring → My Apps, or by
-            removing Rapid Cortex Connect.
+            removing Rapid Cortex Connect. See{" "}
+            <a href="#privacy-data" className="text-sky-400 underline hover:text-sky-300">
+              Privacy &amp; data deletion
+            </a>{" "}
+            below.
           </li>
         </ul>
       </section>
@@ -64,13 +68,61 @@ export default function RingCustomerStartPage() {
         <RingConnectFlow />
       </Suspense>
 
+      <section
+        id="privacy-data"
+        className="mt-10 space-y-4 rounded-2xl border border-slate-700/80 bg-slate-950/40 p-6 text-sm leading-relaxed text-slate-300"
+      >
+        <h2 className="text-base font-semibold text-white">Privacy &amp; data deletion</h2>
+        <p>
+          Rapid Cortex does not record or store Ring video (0-day retention). Live video is only
+          shared after you tap <strong className="text-slate-100">Allow</strong> on that request.
+        </p>
+        <ul className="list-disc space-y-2 pl-5">
+          <li>
+            <strong className="text-slate-100">Disconnect in Ring:</strong> Ring app → My Apps →
+            remove <strong className="text-slate-100">Rapid Cortex Connect</strong>. This stops new
+            requests and disables linked devices.
+          </li>
+          <li>
+            <strong className="text-slate-100">Stop an active session:</strong> use{" "}
+            <strong className="text-slate-100">STOP SHARING</strong> in the consent SMS, or Decline
+            future requests.
+          </li>
+          <li>
+            <strong className="text-slate-100">Delete Rapid Cortex account data:</strong> email{" "}
+            <a
+              href="mailto:privacy@rapidcortex.us?subject=Ring%20Connect%20data%20deletion"
+              className="text-sky-400 underline hover:text-sky-300"
+            >
+              privacy@rapidcortex.us
+            </a>{" "}
+            with the email used for linking. We process deletion requests for Connect profile,
+            device enrollment records, and related tokens.
+          </li>
+        </ul>
+        <p className="text-xs text-slate-500">
+          Full policy:{" "}
+          <Link href="/legal/privacy/" className="text-sky-400 hover:text-sky-300">
+            Privacy policy
+          </Link>{" "}
+          ·{" "}
+          <Link href="/legal/terms/" className="text-sky-400 hover:text-sky-300">
+            Terms
+          </Link>{" "}
+          · Support{" "}
+          <a href="mailto:support@rapidcortex.us" className="text-sky-400 hover:text-sky-300">
+            support@rapidcortex.us
+          </a>
+        </p>
+      </section>
+
       <p className="mt-10 text-xs text-slate-500">
         Dispatch center staff should use{" "}
         <Link href="https://app.rapidcortex.us/login" className="text-sky-400 hover:text-sky-300">
           agency sign-in
         </Link>
-        , not this page. Agency Ring linking uses a separate dispatcher OAuth flow in the Media
-        workspace.
+        , not this page. For Ring Appstore certification, agencies use the Appstore owner-link flow
+        — not Media → Connect Ring Account.
       </p>
     </MarketingArticleShell>
   );

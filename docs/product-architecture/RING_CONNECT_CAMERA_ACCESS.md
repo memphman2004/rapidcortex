@@ -4,6 +4,8 @@
 **Product path:** `/<slug>/media` (dispatcher Media workspace) · **Admin:** `/<slug>/admin/integrations`  
 **Also in:** [Complete Operations Manual](/docs/rapidcortex-complete-manual.html) (Chapter 10B) · [COMMON_TASKS.md](../operations-runbooks/COMMON_TASKS.md)
 
+> **Ring Appstore certification:** Device-owner enrollment is **Ring Appstore → Rapid Cortex Connect → Get App**, then account link at `/connect/ring/link`. Do **not** use Media → **Connect Ring Account** for Appstore cert (wrong OAuth scope). See [ring-certification-reviewer-guide.md](../ring-certification-reviewer-guide.md) and [ring-certification/SUBMIT_RUNBOOK.md](../ring-certification/SUBMIT_RUNBOOK.md).
+
 ## What this feature does
 
 **Rapid Cortex Connect (Ring)** lets authorized dispatch staff request **temporary, owner-approved** live video from **Ring doorbells and cameras** near an **active incident**. The camera owner (resident or staff member who linked their Ring account) must **explicitly approve** each request. Rapid Cortex does **not** access Ring devices silently or without consent.

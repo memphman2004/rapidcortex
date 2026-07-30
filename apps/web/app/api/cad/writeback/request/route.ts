@@ -25,11 +25,11 @@ function isCadWriteAction(value: unknown): value is CadWriteAction {
 }
 
 export async function POST(request: Request) {
-  const envBlocked = cadWritebackEnvBlockedResponse();
-  if (envBlocked) return envBlocked;
-
   const auth = await requireCadApiUser();
   if (!auth.ok) return auth.response;
+
+  const envBlocked = cadWritebackEnvBlockedResponse();
+  if (envBlocked) return envBlocked;
 
   let body: Record<string, unknown> = {};
   try {

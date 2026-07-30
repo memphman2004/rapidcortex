@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { withFeatureContract } from "@/lib/rapid-cortex/contract-response";
 import { resolveCadAdapter, resolveCadReadProvider } from "@/lib/rapid-cortex/cad";
+import { requireCadApiUser } from "@/lib/rapid-cortex/cad/cad-api-auth";
 import { cadWritebackEnvBlockedResponse } from "@/lib/rapid-cortex/cad/cad-writeback-gate";
 import { serviceNotConfiguredPilotResponse } from "@/lib/rapid-cortex/pilot-service-disabled-response";
 
@@ -89,10 +90,13 @@ export async function GET(_request: Request, ctx: Ctx) {
   });
 }
 
-export async function POST(request: Request, ctx: Ctx) {
+export async function POST(_request: Request, ctx: Ctx) {
   const { segments = [] } = await ctx.params;
 
   if (isCadWritebackPostRoute(segments)) {
+    // Auth before env/content/schema gates — anonymous callers must get 401, not 400.
+    const auth = await requireCadApiUser();
+    if (!auth.ok) return auth.response;
     const envBlocked = cadWritebackEnvBlockedResponse();
     if (envBlocked) return envBlocked;
   }

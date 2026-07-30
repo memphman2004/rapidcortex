@@ -8,11 +8,11 @@ const writeback = new CadWritebackService();
 type Ctx = { params: Promise<{ incidentId: string }> };
 
 export async function POST(request: Request, ctx: Ctx) {
-  const envBlocked = cadWritebackEnvBlockedResponse();
-  if (envBlocked) return envBlocked;
-
   const auth = await requireCadApiUser();
   if (!auth.ok) return auth.response;
+
+  const envBlocked = cadWritebackEnvBlockedResponse();
+  if (envBlocked) return envBlocked;
 
   const { incidentId } = await ctx.params;
   let body: Record<string, unknown> = {};

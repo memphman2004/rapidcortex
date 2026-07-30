@@ -320,7 +320,7 @@ export function QRNFCManager({
         </h3>
         <p className="mt-1 text-xs text-slate-500">
           {mediumView === "nfc"
-            ? "Each code below has an NFC URL. Copy it into NFC Tools (or write from the mobile app) and stick the tag behind the sign."
+            ? "Open each code in the Rapid Cortex mobile app, tap Program NFC Tag, hold an NTAG213 to your phone, then stick the tag behind the sign."
             : "Signs only need the QR code and NFC tag. When someone scans, they can tap to call or submit a report."}
         </p>
         {mediumView !== "nfc" ? (

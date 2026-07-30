@@ -235,7 +235,12 @@ if [[ "${DEPLOY_SAM1}" -eq 1 ]]; then
   echo ""
   echo "▶ AppSamStackV2 (${SAM1_STACK})"
   lean_sam_build "${ROOT}/infra/nested/stack-app-sam.yaml" "sam1"
-  lean_sam_deploy_nested "${SAM_BUILD_DIR}/sam1/template.yaml" "${SAM1_STACK}"
+  _sam1_extra=()
+  if [[ -n "${MANAGE_API_DOMAIN_DNS:-}" ]]; then
+    _sam1_extra+=("ManageApiDomainDns=${MANAGE_API_DOMAIN_DNS}")
+    echo "  ManageApiDomainDns=${MANAGE_API_DOMAIN_DNS}"
+  fi
+  lean_sam_deploy_nested "${SAM_BUILD_DIR}/sam1/template.yaml" "${SAM1_STACK}" ${_sam1_extra[@]:+"${_sam1_extra[@]}"}
   echo "✅ AppSamStackV2 deploy complete"
 fi
 

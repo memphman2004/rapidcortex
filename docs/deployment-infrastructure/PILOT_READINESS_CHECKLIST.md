@@ -70,6 +70,8 @@ A **controlled pilot** is **not** general availability. The following boundaries
 ## 6. Security and audit
 
 - [ ] `ALLOW_UNAUTHENTICATED_API=false` (or equivalent production posture).
+- [x] Regional **API WebACL** exists (`rapid-cortex-httpapi-waf-dev`, id `4b66008e-f221-4de5-80c0-7a28152cce38`) — inventory / ALB path; evidence [g3-waf-proof.md](../security/g3-waf-proof.md).
+- [x] **API WebACL on request path (CloudFront edge)** — **LIVE 2026-07-29.** Stack `rapid-cortex-api-edge-dev`, distribution `E22OK65GJG6A2C`, CLOUDFRONT WebACL `rapid-cortex-httpapi-cdn-waf-dev` attached. `curl https://api.rapidcortex.us/api/health` → 200. Direct HttpApi stage associate remains unsupported (expected). See [PILOT_AWS_DEFENSE.md](./PILOT_AWS_DEFENSE.md), `scripts/deploy-api-edge.sh`.
 - [ ] **Audit** route exercised; sampling plan for pilot volume.
 
 ## 7. Monitoring and reliability
