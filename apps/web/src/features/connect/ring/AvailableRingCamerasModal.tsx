@@ -5,6 +5,7 @@ import { useCallback, useEffect, useId, useMemo, useRef, useState } from "react"
 import type { RingCameraListItem, RingRequestStatus } from "rapid-cortex-integrations/ring";
 import { formatDistanceImperial } from "./format-distance-imperial";
 import { RingCameraRequestCard } from "./RingCameraRequestCard";
+import { RING_TM } from "@/lib/brand-marks";
 import { isRingAvailableCamerasEnabled } from "./ring-feature-flags";
 import type { RingAvailableCamerasResponse } from "./ring-types";
 
@@ -92,7 +93,7 @@ export function AvailableRingCamerasModal({
       >
         <div className="flex items-center justify-between border-b border-[#2A3A4A] px-4 py-3">
           <h2 id={titleId} className="text-lg font-semibold text-[#F0F4F8]">
-            Available Ring Cameras Near Incident
+            Available {RING_TM} Cameras Near Incident
           </h2>
           <button ref={closeRef} type="button" onClick={onClose} className="rounded p-1 text-[#8B9CB0] hover:text-white">
             <X size={16} />
@@ -144,7 +145,7 @@ export function AvailableRingCamerasModal({
           {!loading && !error && cameraCount === 0 ? (
             <div className="rounded border border-[#2A3A4A] bg-[#1E2A3A] p-4 text-sm text-[#8B9CB0]">
               <p>
-                No eligible Ring cameras found within {formatDistanceImperial(radiusMeters)} of this
+                No eligible {RING_TM} cameras found within {formatDistanceImperial(radiusMeters)} of this
                 incident.
               </p>
               <p className="mt-2 text-xs">

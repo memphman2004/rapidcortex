@@ -34,6 +34,10 @@ export const updateIncidentSchema = z.object({
   assignedTo: z.string().nullable().optional(),
   assignedToName: z.string().nullable().optional(),
   cleryCategory: z.string().nullable().optional(),
+  cleryGeography: z
+    .enum(["on_campus", "on_campus_residential", "noncampus", "public_property"])
+    .nullable()
+    .optional(),
 });
 
 export const addNoteSchema = z.object({

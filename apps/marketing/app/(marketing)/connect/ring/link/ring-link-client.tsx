@@ -36,35 +36,35 @@ function statusMessage(
     if (status === "error") {
       return {
         tone: "err",
-        title: "Complete setup in the Ring app",
-        body: "Ring Device Owners enroll in the Ring Appstore (Ring → Appstore → Rapid Cortex Connect → Get App). If Ring shows Pending — App sign-in required, use Sign in on this site with your device-owner email and password — not dispatcher login.",
+        title: "Complete setup in the Ring™ app",
+        body: "Ring™ Device Owners enroll in the Ring™ Appstore (Ring™ → Appstore → Rapid Cortex Connect → Get App). If Ring™ shows Pending — App sign-in required, use Sign in on this site with your device-owner email and password — not dispatcher login.",
       };
     }
     return {
       tone: "neutral",
-      title: "Rapid Cortex Connect · Ring",
-      body: "Enable Rapid Cortex Connect in the Ring Appstore to participate. Every camera request requires your individual approval by SMS (Allow or Decline).",
+      title: "Rapid Cortex Connect · Ring™",
+      body: "Enable Rapid Cortex Connect in the Ring™ Appstore to participate. Every camera request requires your individual approval by SMS (Allow or Decline).",
     };
   }
 
   if (status === "success" || status === "connected") {
     return {
       tone: "ok",
-      title: "Ring account linked",
-      body: "Your Ring devices are connected to Rapid Cortex Connect. Sign in to manage cameras from the dispatcher Media workspace.",
+      title: "Ring™ account linked",
+      body: "Your Ring™ devices are connected to Rapid Cortex Connect. Sign in to manage cameras from the dispatcher Media workspace.",
     };
   }
   if (status === "error") {
     return {
       tone: "err",
-      title: "Ring connection failed",
-      body: "We could not complete the Ring authorization. Sign in and try Connect Ring Account again from Media.",
+      title: "Ring™ connection failed",
+      body: "We could not complete the Ring™ authorization. Sign in and try Connect Ring™ Account again from Media.",
     };
   }
   return {
     tone: "neutral",
-    title: "Rapid Cortex Connect · Ring",
-    body: "Link your Ring account from the Rapid Cortex app, then return here after authorization completes.",
+    title: "Rapid Cortex Connect · Ring™",
+    body: "Link your Ring™ account from the Rapid Cortex app, then return here after authorization completes.",
   };
 }
 
@@ -75,7 +75,7 @@ type LinkedDeviceSummary = {
 };
 
 function HomeownerAppstoreSignIn({ nonce, time }: { nonce: string; time: string }) {
-  // Ring UX guide: emphasize Create Account over Sign In for first-time linking.
+  // Ring™ UX guide: emphasize Create Account over Sign In for first-time linking.
   const [mode, setMode] = useState<"signin" | "signup" | "forgot" | "forgotConfirm">("signup");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -199,11 +199,11 @@ function HomeownerAppstoreSignIn({ nonce, time }: { nonce: string; time: string 
       <div className="mt-8 rounded-xl border border-emerald-500/40 bg-emerald-950/30 p-6">
         <h2 className="text-lg font-semibold text-emerald-200">Account linked</h2>
         <p className="mt-3 text-sm leading-relaxed text-slate-300">
-          Your Rapid Cortex account is linked to Ring
+          Your Rapid Cortex account is linked to Ring™
           {done.deviceCount > 0
             ? ` (${done.deviceCount} camera${done.deviceCount === 1 ? "" : "s"} registered).`
             : "."}{" "}
-          Return to the Ring app — status should show Connected instead of Pending.
+          Return to the Ring™ app — status should show Connected instead of Pending.
         </p>
         {done.devices.length > 0 ? (
           <ul className="mt-4 space-y-2 text-sm text-slate-200">
@@ -224,13 +224,13 @@ function HomeownerAppstoreSignIn({ nonce, time }: { nonce: string; time: string 
           </ul>
         ) : (
           <p className="mt-4 text-sm text-amber-200/90">
-            No cameras were returned yet. Confirm devices were selected in the Ring Appstore, then
-            reopen Sign in from Ring if needed.
+            No cameras were returned yet. Confirm devices were selected in the Ring™ Appstore, then
+            reopen Sign in from Ring™ if needed.
           </p>
         )}
         <p className="mt-4 text-xs text-slate-500">
           Dispatchers may request video only for nearby emergencies, and only after you tap Allow on
-          each SMS. You can Decline, Stop Sharing, or remove Rapid Cortex Connect in Ring → My Apps
+          each SMS. You can Decline, Stop Sharing, or remove Rapid Cortex Connect in Ring™ → My Apps
           anytime. Privacy &amp; deletion:{" "}
           <Link href="/legal/privacy/" className="text-sky-400 hover:text-sky-300">
             Privacy policy
@@ -247,7 +247,7 @@ function HomeownerAppstoreSignIn({ nonce, time }: { nonce: string; time: string 
     <div className="mt-8">
       <p className="text-sm leading-relaxed text-slate-300">
         {isForgot
-          ? "Reset your Rapid Cortex device-owner password. This is not your Ring account password."
+          ? "Reset your Rapid Cortex device-owner password. This is not your Ring™ account password."
           : mode === "signup"
             ? "Create a Rapid Cortex device-owner account to finish linking. This is not dispatcher login."
             : "Already have a Rapid Cortex device-owner account? Sign in to finish linking."}
@@ -406,8 +406,8 @@ function HomeownerAppstoreSignIn({ nonce, time }: { nonce: string; time: string 
       ) : null}
 
       <p className="mt-4 text-xs text-slate-500">
-        Link expires about 10 minutes after Ring redirects you here. If it expires, reopen Sign in
-        from the Ring app.
+        Link expires about 10 minutes after Ring™ redirects you here. If it expires, reopen Sign in
+        from the Ring™ app.
       </p>
     </div>
   );
@@ -420,7 +420,7 @@ function CitizenLinkActions({ status }: { status: string | null }) {
         href="/connect/ring/start"
         className="inline-flex min-h-11 items-center justify-center rounded-lg bg-gradient-to-r from-sky-500 to-cyan-400 px-5 text-sm font-semibold text-slate-950"
       >
-        Ring Connect home
+        Ring™ Connect home
       </Link>
       <a
         href="mailto:support@rapidcortex.us?subject=Ring%20Connect%20device%20owner%20help"
@@ -436,8 +436,8 @@ function CitizenLinkActions({ status }: { status: string | null }) {
       </Link>
       {status === "error" ? (
         <p className="w-full text-xs text-slate-500">
-          In the Ring app: Appstore → search Rapid Cortex Connect → Get App. If Pending,
-          return here from Sign in in Ring.
+          In the Ring™ app: Appstore → search Rapid Cortex Connect → Get App. If Pending,
+          return here from Sign in in Ring™.
         </p>
       ) : null}
     </div>
@@ -520,14 +520,14 @@ export function RingLinkClient() {
     return (
       <article className="mx-auto max-w-lg px-4 py-16 sm:px-6">
         <p className="text-xs font-semibold uppercase tracking-[0.2em] text-sky-400/90">
-          Ring Device Owners
+          Ring™ Device Owners
         </p>
         <h1 className="mt-3 text-2xl font-semibold text-white sm:text-3xl">
           Create your account to finish connecting
         </h1>
         <p className="mt-4 text-sm leading-relaxed text-slate-300">
-          Ring redirected you here to link accounts. Create a Rapid Cortex device-owner account (or
-          sign in if you already have one). After linking, Ring shows Connected — and no video is
+          Ring™ redirected you here to link accounts. Create a Rapid Cortex device-owner account (or
+          sign in if you already have one). After linking, Ring™ shows Connected — and no video is
           shared until you tap Allow on each emergency SMS request.
         </p>
         <HomeownerAppstoreSignIn nonce={nonce} time={time} />
@@ -567,7 +567,7 @@ export function RingLinkClient() {
   return (
     <article className="mx-auto max-w-lg px-4 py-16 sm:px-6">
       <p className="text-xs font-semibold uppercase tracking-[0.2em] text-sky-400/90">
-        {audience === "citizen" ? "Ring Device Owners" : "Rapid Cortex Connect"}
+        {audience === "citizen" ? "Ring™ Device Owners" : "Rapid Cortex Connect"}
       </p>
       <h1 className="mt-3 text-2xl font-semibold text-white sm:text-3xl">{msg.title}</h1>
       <p className="mt-4 text-sm leading-relaxed text-slate-300">{msg.body}</p>

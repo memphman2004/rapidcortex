@@ -51,11 +51,19 @@ export type CampusHelpType =
   | "active_threat"
   | "other";
 
+export type CleryGeography =
+  | "on_campus"
+  | "on_campus_residential"
+  | "noncampus"
+  | "public_property";
+
 export interface CampusIncident {
   pk: string; // CAMPUS#{campusCode}
   sk: string; // INCIDENT#{incidentId}
   id: string;
   campusCode: string;
+  /** Optional agency tenant id when present on older/newer records. */
+  agencyId?: string;
   buildingCode: string;
   buildingLabel: string;
   floor: number | null;
@@ -79,6 +87,8 @@ export interface CampusIncident {
   updatedAt: string;
   resolvedAt: string | null;
   cleryCategory: string | null;
+  /** Optional Clery geography when CSA classifies the incident. */
+  cleryGeography?: CleryGeography | null;
   /** SHA-256 hash of reporter phone — never plain text. */
   phoneHash?: string;
   reporterLast4?: string;
@@ -171,4 +181,7 @@ export const CAMPUS_KEYS = {
   anonTokenPk: (hashedToken: string) => `ANON_TOKEN#${hashedToken}`,
   anonTokenSk: () => "TOKEN",
   noteSk: (noteId: string) => `NOTE#${noteId}`,
+  cleryEntrySk: (academicYear: string, entryId: string) =>
+    `CLERY_ENTRY#${academicYear}#${entryId}`,
+  cleryEntrySkPrefix: (academicYear: string) => `CLERY_ENTRY#${academicYear}#`,
 } as const;

@@ -30,7 +30,11 @@ export function roleMayAccessQrNav(role: string | undefined | null): boolean {
   if (upper === "CAMPUS_ADMIN" || upper === "CAMPUS_SUPERVISOR" || upper === "CAMPUS_SECURITY") {
     return true;
   }
-  if (upper === "VENUE_ADMIN" || upper === "VENUE_SUPERVISOR") {
+  if (
+    upper === "VENUE_ADMIN" ||
+    upper === "VENUE_SUPERVISOR" ||
+    upper === "VENUE_OPERATOR"
+  ) {
     return true;
   }
   return false;

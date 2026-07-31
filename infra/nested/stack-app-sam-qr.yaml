@@ -72,6 +72,14 @@ Parameters:
   WebSocketApiId:
     Type: String
     Default: ""
+  ExistingSafeSoundDevicesTableName:
+    Type: String
+    Default: ""
+    Description: When set, use this existing DynamoDB table instead of creating SafeSoundDevicesTable (Retain orphans after DELETE_SKIPPED).
+  ExistingGuardianEventsTableName:
+    Type: String
+    Default: ""
+    Description: When set, use this existing DynamoDB table instead of creating GuardianEventsTable (Retain orphans after DELETE_SKIPPED).
 
 Conditions:
   HasQRLocationsTable: !Not [!Equals [!Ref QRLocationsTable, ""]]
@@ -83,6 +91,8 @@ Conditions:
   HasSmsRoutingTable: !Not [!Equals [!Ref SmsRoutingTable, ""]]
   HasVenueCameraRegistryTable: !Not [!Equals [!Ref VenueCameraRegistryTable, ""]]
   HasCampusCameraRegistryTable: !Not [!Equals [!Ref CampusCameraRegistryTable, ""]]
+  CreateSafeSoundDevicesTable: !Equals [!Ref ExistingSafeSoundDevicesTableName, ""]
+  CreateGuardianEventsTable: !Equals [!Ref ExistingGuardianEventsTableName, ""]
   HasWebSocketBroadcast:
     Fn::And:
       - !Not [!Equals [!Ref WebSocketConnectionsTable, ""]]
@@ -117,10 +127,16 @@ Globals:
         SMS_ROUTING_TABLE: !Ref SmsRoutingTable
         ENABLE_SAFE_SOUND: "true"
         SAFE_SOUND_MOCK: ""
-        SAFE_SOUND_DEVICES_TABLE: !Ref SafeSoundDevicesTable
+        SAFE_SOUND_DEVICES_TABLE: !If
+          - CreateSafeSoundDevicesTable
+          - !Ref SafeSoundDevicesTable
+          - !Ref ExistingSafeSoundDevicesTableName
         ENABLE_GUARDIAN: "true"
         GUARDIAN_MOCK: ""
-        GUARDIAN_EVENTS_TABLE: !Ref GuardianEventsTable
+        GUARDIAN_EVENTS_TABLE: !If
+          - CreateGuardianEventsTable
+          - !Ref GuardianEventsTable
+          - !Ref ExistingGuardianEventsTableName
         VENUE_CAMERA_REGISTRY_TABLE: !If
           - HasVenueCameraRegistryTable
           - !Ref VenueCameraRegistryTable
@@ -181,6 +197,7 @@ Resources:
 
   SafeSoundDevicesTable:
     Type: AWS::DynamoDB::Table
+    Condition: CreateSafeSoundDevicesTable
     DeletionPolicy: Retain
     UpdateReplacePolicy: Retain
     Properties:
@@ -203,6 +220,7 @@ Resources:
 
   GuardianEventsTable:
     Type: AWS::DynamoDB::Table
+    Condition: CreateGuardianEventsTable
     DeletionPolicy: Retain
     UpdateReplacePolicy: Retain
     Properties:
@@ -244,10 +262,22 @@ Resources:
               - dynamodb:DescribeTable
               - dynamodb:ConditionCheckItem
             Resource:
-              - !GetAtt SafeSoundDevicesTable.Arn
-              - !Sub "${SafeSoundDevicesTable.Arn}/index/*"
-              - !GetAtt GuardianEventsTable.Arn
-              - !Sub "${GuardianEventsTable.Arn}/index/*"
+              - !If
+                  - CreateSafeSoundDevicesTable
+                  - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${SafeSoundDevicesTable}"
+                  - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${ExistingSafeSoundDevicesTableName}"
+              - !If
+                  - CreateSafeSoundDevicesTable
+                  - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${SafeSoundDevicesTable}/index/*"
+                  - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${ExistingSafeSoundDevicesTableName}/index/*"
+              - !If
+                  - CreateGuardianEventsTable
+                  - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${GuardianEventsTable}"
+                  - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${ExistingGuardianEventsTableName}"
+              - !If
+                  - CreateGuardianEventsTable
+                  - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${GuardianEventsTable}/index/*"
+                  - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${ExistingGuardianEventsTableName}/index/*"
               - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${AuditTable}
               - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${AuditTable}/index/*
 

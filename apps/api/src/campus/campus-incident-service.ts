@@ -250,6 +250,10 @@ export async function updateCampusIncident(
     updates.push("cleryCategory = :cc");
     values[":cc"] = update.cleryCategory;
   }
+  if (update.cleryGeography !== undefined) {
+    updates.push("cleryGeography = :cg");
+    values[":cg"] = update.cleryGeography;
+  }
 
   const result = await ddb.send(
     new UpdateCommand({

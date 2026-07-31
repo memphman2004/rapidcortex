@@ -1020,6 +1020,10 @@ Resources:
             - !GetAtt DataLayerStack.Outputs.WebSocketConnectionsTable
             - !Sub "${DynamoTableNamePrefix}-websocket-connections-${DeploymentStage}"
         WebSocketApiId: !GetAtt AppSamRealtime2Stack.Outputs.WebSocketApiId
+        # Retain orphans after DELETE_SKIPPED — skip CREATE when physical tables already exist.
+        # Lean deploy auto-detects; root passes names so nested updates do not recreate them.
+        ExistingSafeSoundDevicesTableName: !Sub "${AppName}-safe-sound-devices-${DeploymentStage}"
+        ExistingGuardianEventsTableName: !Sub "${AppName}-guardian-events-${DeploymentStage}"
 
   AppSam2Stack:
     Type: AWS::CloudFormation::Stack

@@ -100,7 +100,7 @@ HOSPITAL_STAFF     → /hospital-staff/dashboard
 - Always check permissions via `AuthorizationService.canPerform()` from `packages/security`
 - Always scope resource access by `agencyId` — never allow cross-tenant data access
 - `rcsuperadmin` is the only role exempt from agencyId scoping
-- QR code management: `CAMPUS_ADMIN` and `VENUE_ADMIN` only (PSAP roles excluded)
+- QR code management: `CAMPUS_ADMIN`, `CAMPUS_SUPERVISOR`, `VENUE_ADMIN`, `VENUE_SUPERVISOR`, and `VENUE_OPERATOR` (PSAP roles excluded)
 - Use `normalizeSessionRole()` from `packages/shared` to parse JWT roles — product vertical tokens (VENUE_*, CAMPUS_*) must be preserved before PSAP migration runs
 
 ---
@@ -256,7 +256,7 @@ const role = normalizeRole(raw);              // deprecated, do not use
 - All admin actions must emit an audit event via `AuditLogger`
 - Supervisor monitoring of dispatcher sessions must be logged with `SUPERVISOR_WATCHING` indicator
 - No CAD writeback without dispatcher review and approval
-- QR code creation: campus/venue admins only — PSAP roles explicitly excluded
+- QR code creation/deletion: `CAMPUS_ADMIN`, `CAMPUS_SUPERVISOR`, `VENUE_ADMIN`, `VENUE_SUPERVISOR`, `VENUE_OPERATOR` — PSAP roles explicitly excluded
 - Never log JWT tokens, PII, or CAD data in CloudWatch
 - CORS: only approved origins, never `*` in production
 
@@ -379,4 +379,4 @@ API_UPSTREAM_BASE_4        # Stack 4 API (billing, Ring Connect)
 - **HOSPITAL_COORDINATOR:** Add permission set to the Hospital role description when defined in `packages/security`.
 - **Stack 4 (`API_UPSTREAM_BASE_4`):** After deploy lands, confirm the BFF routing prefix table above matches `scripts/print-stack-outputs-for-web.sh` output.
 - **OG images:** Add verified `og:image` dimension guidance once logo/OG asset dimensions are confirmed in production builds (open item from logo fix).
-- **QR RBAC:** If `locations.qrcodes.manage` grants change, sync Authorization rules, SECURITY section, and `packages/security/src/qr-locations-access.ts`.
+- **QR RBAC:** Sync Authorization rules, SECURITY section, `qr-nfc-access.ts`, and `qr-locations-access.ts` when `locations.qrcodes.manage` grants change.

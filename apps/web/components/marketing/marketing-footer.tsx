@@ -263,8 +263,13 @@ export function MarketingFooter() {
                     <ul className="mt-1 space-y-0.5 border-l border-slate-800/90 pl-2.5" aria-label="Integration partners">
                       <li>
                         <a href={ringConnectHref} className={FOOTER_FOCUS_LINK_CLASS}>
-                          Ring
+                          Ring™
                         </a>
+                      </li>
+                      <li>
+                        <Link href="/integrations" className={FOOTER_FOCUS_LINK_CLASS}>
+                          Nest™
+                        </Link>
                       </li>
                     </ul>
                   </details>

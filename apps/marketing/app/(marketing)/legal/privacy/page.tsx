@@ -36,13 +36,13 @@ export default function LegalPrivacyPage() {
         </p>
       </header>
       <section className="mt-8 space-y-3 text-sm text-slate-300">
-        <h2 className="text-xl font-medium text-white">Ring Device Owners</h2>
+        <h2 className="text-xl font-medium text-white">Ring™ Device Owners</h2>
         <p>
-          Rapid Cortex Connect is voluntary for Ring Device Owners. Enrollment happens in the Ring Appstore; when Ring
+          Rapid Cortex Connect is voluntary for Ring™ Device Owners. Enrollment happens in the Ring™ Appstore; when Ring™
           shows Pending — App sign-in required, owners finish linking with a Rapid Cortex device-owner account (not
           agency dispatcher login). Live video is not shared until the owner taps Allow on each SMS request. Owners may
-          Decline, Stop Sharing, or disconnect Rapid Cortex Connect in Ring at any time. Rapid Cortex does not record or
-          store Ring video (0-day retention).
+          Decline, Stop Sharing, or disconnect Rapid Cortex Connect in Ring™ at any time. Rapid Cortex does not record or
+          store Ring™ video (0-day retention).
         </p>
         <p>
           Full details:{" "}

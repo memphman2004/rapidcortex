@@ -39,7 +39,7 @@ const VENUE_NAV_BY_ROLE: Record<string, readonly VenueNavKey[]> = {
   VENUE_ADMIN: ALL_NAV,
   VENUE_SUPERVISOR: VENUE_SUPERVISOR_NAV,
   VENUE_SECURITY: ["dashboard", "incidents", "reports", "cameras", "zones"],
-  VENUE_OPERATOR: ["dashboard", "incidents"],
+  VENUE_OPERATOR: ["dashboard", "incidents", "qr"],
   VENUE_GUEST_SERVICES: [],
 };
 
@@ -55,8 +55,8 @@ export function canViewVenueNavItem(key: VenueNavKey, role: string | undefined |
 
 /** Campus sidebar — school safety intake only (no PSAP CAD/transcription tools). */
 const CAMPUS_NAV_BY_ROLE: Record<string, readonly string[]> = {
-  CAMPUS_ADMIN: ["dashboard", "incidents", "reports", "zones", "qr-codes", "users", "settings"],
-  CAMPUS_SUPERVISOR: ["dashboard", "incidents", "reports", "zones", "qr-codes"],
+  CAMPUS_ADMIN: ["dashboard", "incidents", "reports", "clery", "zones", "qr-codes", "users", "settings"],
+  CAMPUS_SUPERVISOR: ["dashboard", "incidents", "reports", "clery", "zones", "qr-codes"],
   CAMPUS_SECURITY: ["dashboard", "incidents", "qr-codes", "zones"],
   CAMPUS_DISPATCH: ["dashboard", "incidents", "zones", "reports"],
   CAMPUS_COUNSELOR: ["dashboard", "reports"],

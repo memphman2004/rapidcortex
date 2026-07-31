@@ -7,6 +7,9 @@ import { useSession } from "@/components/auth/session-context";
 import { RingConnectButton, isRingEnabled } from "@/src/features/connect/ring";
 import { CameraProviderSetup } from "@/components/cameras/CameraProviderSetup";
 import type { RingDevicesResponse } from "@/src/features/connect/ring/ring-types";
+import { NestCameraPanel } from "@/components/cameras/NestCameraPanel";
+import { NEST_TM, RING_TM } from "@/lib/brand-marks";
+import { isNestEnabled } from "@/lib/nest-feature-flags";
 
 async function fetchRingDevices(): Promise<RingDevicesResponse> {
   const res = await fetch("/api/integrations/ring/devices", { credentials: "include" });
@@ -20,6 +23,8 @@ export function VenueCamerasClient({ venueCode }: { venueCode: string }) {
   const { user } = useSession();
   const queryClient = useQueryClient();
   const ringEnabled = isRingEnabled();
+
+  const nestEnabled = isNestEnabled();
 
   useEffect(() => {
     const qp = new URLSearchParams(window.location.search);
@@ -42,10 +47,10 @@ export function VenueCamerasClient({ venueCode }: { venueCode: string }) {
   const devices = devicesQuery.data?.data?.devices ?? [];
   const linked = devices.length > 0;
 
-  if (!ringEnabled) {
+  if (!ringEnabled && !nestEnabled) {
     return (
       <div className="rounded-lg border border-slate-700/60 bg-slate-900/40 p-6 text-sm text-slate-300">
-        Ring Connect is not enabled in this environment.
+        {RING_TM} / {NEST_TM} Connect is not enabled in this environment.
       </div>
     );
   }
@@ -59,19 +64,39 @@ export function VenueCamerasClient({ venueCode }: { venueCode: string }) {
       <div>
         <h1 className="text-2xl font-bold text-white">Cameras</h1>
         <p className="mt-1 text-sm text-slate-400">
-          Link your Ring account and request live video from active incidents.
+          Link your {RING_TM} account and request live video from active incidents. Connect {NEST_TM}{" "}
+          for agency cameras.
         </p>
       </div>
 
-      <RingConnectButton
-        agencyId={user.agencyId}
-        userId={user.userId}
-        onLinked={() => void queryClient.invalidateQueries({ queryKey: ["ring-devices", venueCode] })}
-      />
+      <div className="grid gap-6 xl:grid-cols-2">
+        {ringEnabled ? (
+          <section className="space-y-3 rounded-lg border border-blue-500/30 bg-slate-900/40 p-4">
+            <h2 className="text-sm font-semibold text-blue-200">{RING_TM}</h2>
+            <RingConnectButton
+              agencyId={user.agencyId}
+              userId={user.userId}
+              onLinked={() =>
+                void queryClient.invalidateQueries({ queryKey: ["ring-devices", venueCode] })
+              }
+            />
+          </section>
+        ) : null}
 
-      <CameraProviderSetup />
+        {nestEnabled ? (
+          <section className="space-y-3 rounded-lg border border-emerald-500/30 bg-slate-900/40 p-4">
+            <h2 className="text-sm font-semibold text-emerald-200">{NEST_TM}</h2>
+            <CameraProviderSetup />
+            <NestCameraPanel
+              agencyId={user.agencyId}
+              incidentId={null}
+              connectSettingsHref={`/app/venue/${venueCode}/cameras`}
+            />
+          </section>
+        ) : null}
+      </div>
 
-      {linked ? (
+      {ringEnabled && linked ? (
         <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
           {devices.map((device) => (
             <article
@@ -106,13 +131,15 @@ export function VenueCamerasClient({ venueCode }: { venueCode: string }) {
             </article>
           ))}
         </section>
-      ) : (
+      ) : ringEnabled ? (
         <div className="rounded-lg border border-dashed border-slate-700 bg-slate-900/30 p-8 text-center">
           <Camera className="mx-auto mb-2 h-8 w-8 text-slate-500" />
-          <p className="text-sm text-slate-300">No Ring cameras linked yet.</p>
-          <p className="mt-1 text-xs text-slate-500">Use Connect Ring Account above to authorize your devices.</p>
+          <p className="text-sm text-slate-300">No {RING_TM} cameras linked yet.</p>
+          <p className="mt-1 text-xs text-slate-500">
+            Use Connect {RING_TM} Account above to authorize your devices.
+          </p>
         </div>
-      )}
+      ) : null}
 
     </div>
   );

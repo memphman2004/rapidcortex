@@ -209,6 +209,7 @@ export const env = {
   enableSurge: featureEnabled("ENABLE_SURGE"),
   /** Rapid Cortex Connect — Ring integration (empty table names disable Ring HTTP handlers). */
   enableConnectRing: featureEnabled("ENABLE_CONNECT_RING"),
+  enableConnectNest: featureEnabled("ENABLE_CONNECT_NEST"),
   ringAccountsTable: process.env.RING_TABLE_ACCOUNTS?.trim() ?? "",
   ringDevicesTable: process.env.RING_TABLE_DEVICES?.trim() ?? "",
   ringRequestsTable: process.env.RING_TABLE_REQUESTS?.trim() ?? "",
@@ -382,6 +383,15 @@ export const env = {
   /** When true/1, SES send is skipped (local/CI). */
   sesMock: process.env.SES_MOCK === "true" || process.env.SES_MOCK === "1",
   enableInsideTheCortex: featureEnabled("ENABLE_INSIDE_THE_CORTEX"),
+  /** Campus Clery ASR workspace (manual entry, import, report). Default on when unset. */
+  enableCampusClery: featureEnabled("ENABLE_CAMPUS_CLERY"),
+  /**
+   * When true/1, `sourceSystem=mock` external sync returns sample Clery rows for local/CI.
+   * Real third-party connectors still require credentials (not wired here).
+   */
+  campusCleryExternalMock:
+    process.env.ENABLE_CAMPUS_CLERY_EXTERNAL_MOCK === "true" ||
+    process.env.ENABLE_CAMPUS_CLERY_EXTERNAL_MOCK === "1",
   /** Ops SNS (e.g. `OpsAlertsTopic`) — empty skips SNS publish on contact-sales. */
   opsSnsTopicArn: process.env.OPS_ALERTS_TOPIC_ARN?.trim() ?? "",
   /** Verified SES From address for contact-sales; empty skips SES (SNS may still fire). */

@@ -79,6 +79,7 @@
         "appleTeamId": "6D7D94PU3M"
       },
       "android": {
+        // Google Play Console developer account ID: 7807903929046926180 (Rapid Cortex org)
         "serviceAccountKeyPath": "./google-play-key.json",
         "track": "production"
       }

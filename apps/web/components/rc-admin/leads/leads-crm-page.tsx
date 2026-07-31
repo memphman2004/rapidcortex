@@ -493,7 +493,7 @@ export function LeadsCrmPage() {
 
   const sourceChips: { id: SourceFilter; label: string }[] = [
     { id: "all", label: "All Sources" },
-    { id: "ring_waitlist", label: "Ring Waitlist" },
+    { id: "ring_waitlist", label: "Ring™ Waitlist" },
     { id: "contact_sales", label: "Contact Sales" },
     { id: "inside_the_cortex", label: "Inside the Cortex" },
   ];
@@ -641,7 +641,7 @@ export function LeadsCrmPage() {
             <div className="text-5xl opacity-[0.05]">◎</div>
             <div className="text-sm font-semibold text-slate-400">Pipeline is empty</div>
             <div className="max-w-[260px] text-xs text-slate-600">
-              Leads from Contact Sales, Ring Waitlist, and Inside the Cortex appear here
+              Leads from Contact Sales, Ring™ Waitlist, and Inside the Cortex appear here
               automatically.
             </div>
           </div>

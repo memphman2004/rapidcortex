@@ -6,9 +6,9 @@ import { absoluteUrl } from "@/lib/seo";
 import { RingConnectFlow } from "./ring-connect-flow";
 
 export const metadata: Metadata = {
-  title: "Ring Device Owners | Rapid Cortex Connect",
+  title: "Ring™ Device Owners | Rapid Cortex Connect",
   description:
-    "Ring Device Owners: enable Rapid Cortex Connect in the Ring Appstore for voluntary, consent-gated emergency video sharing with local 911 agencies. Every request requires your approval.",
+    "Ring™ Device Owners: enable Rapid Cortex Connect in the Ring™ Appstore for voluntary, consent-gated emergency video sharing with local 911 agencies. Every request requires your approval.",
   alternates: { canonical: absoluteUrl("/connect/ring/start") },
 };
 
@@ -16,11 +16,11 @@ export default function RingCustomerStartPage() {
   return (
     <MarketingArticleShell
       eyebrow="Rapid Cortex Connect"
-      title="Ring Device Owners"
+      title="Ring™ Device Owners"
       sectionLabel="Connect"
     >
       <p className="leading-relaxed text-slate-200">
-        This program is for <strong className="text-white">Ring Device Owners</strong> (Ring account
+        This program is for <strong className="text-white">Ring™ Device Owners</strong> (Ring™ account
         holders with doorbells or cameras) — not dispatch center staff. Agency login is not used for
         enrollment.
       </p>
@@ -29,7 +29,7 @@ export default function RingCustomerStartPage() {
         <h2 className="text-base font-semibold text-white">How it works</h2>
         <ul className="list-disc space-y-2 pl-5">
           <li>
-            <strong className="text-slate-100">Enable in the Ring Appstore.</strong> Open Ring →
+            <strong className="text-slate-100">Enable in the Ring™ Appstore.</strong> Open Ring™ →
             Appstore → search <strong className="text-slate-100">Rapid Cortex Connect</strong>{" "}
             → Get App, or use the{" "}
             <a
@@ -40,7 +40,7 @@ export default function RingCustomerStartPage() {
             >
               Rapid Cortex Connect listing
             </a>
-            . Select which devices to share, then finish Rapid Cortex sign-in if Ring shows{" "}
+            . Select which devices to share, then finish Rapid Cortex sign-in if Ring™ shows{" "}
             <em>Pending — App sign-in required</em>.
           </li>
           <li>
@@ -54,7 +54,7 @@ export default function RingCustomerStartPage() {
             you tap Allow. Access is time-limited, and you can stop sharing anytime.
           </li>
           <li>
-            <strong className="text-slate-100">Disconnect anytime</strong> from Ring → My Apps, or by
+            <strong className="text-slate-100">Disconnect anytime</strong> from Ring™ → My Apps, or by
             removing Rapid Cortex Connect. See{" "}
             <a href="#privacy-data" className="text-sky-400 underline hover:text-sky-300">
               Privacy &amp; data deletion
@@ -74,12 +74,12 @@ export default function RingCustomerStartPage() {
       >
         <h2 className="text-base font-semibold text-white">Privacy &amp; data deletion</h2>
         <p>
-          Rapid Cortex does not record or store Ring video (0-day retention). Live video is only
+          Rapid Cortex does not record or store Ring™ video (0-day retention). Live video is only
           shared after you tap <strong className="text-slate-100">Allow</strong> on that request.
         </p>
         <ul className="list-disc space-y-2 pl-5">
           <li>
-            <strong className="text-slate-100">Disconnect in Ring:</strong> Ring app → My Apps →
+            <strong className="text-slate-100">Disconnect in Ring™:</strong> Ring™ app → My Apps →
             remove <strong className="text-slate-100">Rapid Cortex Connect</strong>. This stops new
             requests and disables linked devices.
           </li>
@@ -121,8 +121,8 @@ export default function RingCustomerStartPage() {
         <Link href="https://app.rapidcortex.us/login" className="text-sky-400 hover:text-sky-300">
           agency sign-in
         </Link>
-        , not this page. For Ring Appstore certification, agencies use the Appstore owner-link flow
-        — not Media → Connect Ring Account.
+        , not this page. For Ring™ Appstore certification, agencies use the Appstore owner-link flow
+        — not Media → Connect Ring™ Account.
       </p>
     </MarketingArticleShell>
   );

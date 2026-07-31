@@ -6,13 +6,13 @@ import { PostCard } from "@/components/blog/PostCard";
 export const metadata: Metadata = {
   title: "Blog | Rapid Cortex",
   description:
-    "Operational insight on 911 dispatch technology, public safety compliance, and AI decision-support — from the team building Rapid Cortex.",
+    "Operational insight on 911 dispatch, campus safety, and venue operations — compliance and decision-support from the Rapid Cortex team",
   alternates: { canonical: `${SITE_URL}/blog` },
   openGraph: {
     type: "website",
     title: "Rapid Cortex Blog",
     description:
-      "Operational insight on 911 dispatch technology, public safety compliance, and AI decision-support.",
+      "Operational insight on 911 dispatch, campus safety, and venue operations — compliance and decision-support.",
     url: `${SITE_URL}/blog`,
     siteName: SITE_NAME,
   },
@@ -45,9 +45,10 @@ export default function BlogIndexPage() {
             Field notes from the public safety frontline
           </h1>
           <p className="mt-4 max-w-2xl text-slate-400">
-            Operational thinking on 911 dispatch technology, compliance, and
-            decision-support — written for the people who run command
-            centers, not for marketing.
+            Operational thinking on 911 dispatch, campus safety, and venue
+            operations — technology, compliance, and decision-support written
+            for the people who run command centers, campuses, and venues, not
+            for marketing.
           </p>
         </div>
       </section>

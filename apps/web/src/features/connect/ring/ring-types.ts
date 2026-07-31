@@ -33,4 +33,8 @@ export type RingRole =
   | "emergency_manager"
   | "rc_admin"
   | "VENUE_SUPERVISOR"
-  | "VENUE_ADMIN";
+  | "VENUE_ADMIN"
+  | "CAMPUS_ADMIN"
+  | "CAMPUS_SUPERVISOR"
+  | "CAMPUS_SECURITY"
+  | "CAMPUS_DISPATCH";

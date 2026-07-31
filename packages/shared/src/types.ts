@@ -373,6 +373,8 @@ export type AuditResourceType =
   | "sales_lead"
   | "grant_package"
   | "rcs_call"
+  | "clery_entry"
+  | "clery_report"
   | "unknown";
 
 /**

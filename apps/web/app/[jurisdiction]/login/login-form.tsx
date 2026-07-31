@@ -15,6 +15,7 @@ import {
   marketingRingCustomersPath,
   marketingSignupPath,
 } from "@/lib/marketing-links";
+import { RING_TM } from "@/lib/brand-marks";
 import { postAuthRedirect, hardNavigateTo } from "@/lib/auth/postAuthRedirect";
 import {
   resolvePostLoginNavigationHref,
@@ -938,7 +939,7 @@ export function LoginForm({
                 ·
               </span>
               <a href={marketingRingCustomersPath()} target="_blank" rel="noopener noreferrer">
-                Ring customers
+                {RING_TM} customers
               </a>
             </div>
           </div>

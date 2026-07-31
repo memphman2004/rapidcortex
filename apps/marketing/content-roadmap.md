@@ -1,8 +1,8 @@
 # Content roadmap — blog posts
 
-## Live in `lib/blog/posts.ts` (15 posts)
+## Live in `lib/blog/posts.ts` (19 posts)
 
-Weekly release cadence ending **2026-06-27** — all posts are published on the marketing site.
+Weekly Saturday cadence through **2026-07-25**. July posts are pulled from the SEO calendar (`seo-calendar-posts.ts`) by slug.
 
 | # | Title | Slug | Published |
 |---|---|---|---|
@@ -21,6 +21,10 @@ Weekly release cadence ending **2026-06-27** — all posts are published on the 
 | 8 | Why Every Airport Needs a Modern Incident Reporting Platform | `airport-incident-reporting-platform` | 2026-06-13 |
 | 9 | Understanding Clery Act Reporting Requirements | `clery-act-reporting-requirements` | 2026-06-20 |
 | 10 | The Evolution of Emergency Communications | `evolution-of-emergency-communications` | 2026-06-27 |
+| 11 | Why Stadium Safety Reporting Should Be as Easy as Sending a Text | `stadium-safety-text-reporting` | 2026-07-04 |
+| 12 | Why Airports Need Faster Ways for Travelers to Report Safety Concerns | `airport-safety-reporting-platform` | 2026-07-11 |
+| 13 | What Happens When a 911 Caller Cannot Safely Speak? | `silent-911-text-chat` | 2026-07-18 |
+| 14 | What Happens When a Fan Needs Security but Does Not Know Who to Call? | `fan-to-security-communication` | 2026-07-25 |
 
 Posts appear when `publishedAt` ≤ today (`getPublishedPosts()` in `lib/blog/utils.ts`).
 

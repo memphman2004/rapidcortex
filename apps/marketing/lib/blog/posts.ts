@@ -1,4 +1,21 @@
 import type { BlogPost } from "./types";
+import { seoCalendarPosts } from "./seo-calendar-posts";
+
+/** Weekly Saturday releases for July 2026 (from SEO calendar). */
+const JULY_2026_WEEKLY_SLUGS = [
+  "stadium-safety-text-reporting", // 2026-07-04
+  "airport-safety-reporting-platform", // 2026-07-11
+  "silent-911-text-chat", // 2026-07-18
+  "fan-to-security-communication", // 2026-07-25
+] as const;
+
+const july2026WeeklyPosts: BlogPost[] = JULY_2026_WEEKLY_SLUGS.map((slug) => {
+  const post = seoCalendarPosts.find((entry) => entry.slug === slug);
+  if (!post) {
+    throw new Error(`Missing July 2026 weekly blog post for slug: ${slug}`);
+  }
+  return post;
+});
 
 export const posts: BlogPost[] = [
   {
@@ -3915,4 +3932,5 @@ export const posts: BlogPost[] = [
     href: "/demo",
   },
   },
+  ...july2026WeeklyPosts,
 ];

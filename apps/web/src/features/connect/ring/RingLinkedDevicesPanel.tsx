@@ -2,6 +2,7 @@
 
 import { Bell, Camera, RefreshCw, X } from "lucide-react";
 import { useEffect, useState } from "react";
+import { RING_TM } from "@/lib/brand-marks";
 import { isRingEnabled } from "./ring-feature-flags";
 import type { RingDeviceListItem, RingDevicesResponse } from "./ring-types";
 
@@ -89,8 +90,8 @@ export function RingLinkedDevicesPanel({
         tone: "ok",
         text:
           typeof n === "number"
-            ? `Synced ${n} device${n === 1 ? "" : "s"} from Ring.`
-            : "Device list refreshed from Ring.",
+            ? `Synced ${n} device${n === 1 ? "" : "s"} from ${RING_TM}.`
+            : `Device list refreshed from ${RING_TM}.`,
       });
     } catch (err) {
       await load();
@@ -112,7 +113,7 @@ export function RingLinkedDevicesPanel({
     <div className="fixed inset-y-0 right-0 z-50 w-full max-w-xl border-l border-[#2A3A4A] bg-[#0A0F1E] p-4 shadow-2xl">
       <div className="flex items-start justify-between gap-3">
         <div>
-          <h3 className="text-lg font-semibold text-[#F0F4F8]">Linked Ring Devices</h3>
+          <h3 className="text-lg font-semibold text-[#F0F4F8]">Linked {RING_TM} Devices</h3>
           <p className="mt-1 text-sm text-[#8B9CB0]">
             These devices are available for emergency collaboration when enabled.
           </p>
@@ -126,7 +127,7 @@ export function RingLinkedDevicesPanel({
 
       {accountError ? (
         <div className="mt-3 rounded border border-amber-500/40 bg-amber-950/20 p-3 text-sm text-amber-200">
-          Your Ring account needs to be reconnected. Some devices may not be available.{" "}
+          Your {RING_TM} account needs to be reconnected. Some devices may not be available.{" "}
           <button
             type="button"
             className="underline"
@@ -147,7 +148,7 @@ export function RingLinkedDevicesPanel({
         {loading ? <p className="text-sm text-[#8B9CB0]">Loading devices...</p> : null}
         {!loading && devices.length === 0 ? (
           <p className="text-sm text-[#8B9CB0]">
-            No Ring devices found. Make sure your Ring account is linked and has cameras.
+            No {RING_TM} devices found. Make sure your {RING_TM} account is linked and has cameras.
           </p>
         ) : null}
         {devices.map((device) => (

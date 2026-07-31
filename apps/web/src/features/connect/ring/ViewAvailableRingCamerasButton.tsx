@@ -5,6 +5,7 @@ import { useState } from "react";
 import { AvailableRingCamerasModal } from "./AvailableRingCamerasModal";
 import { isRingAvailableCamerasEnabled } from "./ring-feature-flags";
 import type { RingRole } from "./ring-types";
+import { RING_TM } from "@/lib/brand-marks";
 
 const AUTHORIZED_ROLES: RingRole[] = [
   "dispatcher",
@@ -15,6 +16,10 @@ const AUTHORIZED_ROLES: RingRole[] = [
   "rc_admin",
   "VENUE_SUPERVISOR",
   "VENUE_ADMIN",
+  "CAMPUS_ADMIN",
+  "CAMPUS_SUPERVISOR",
+  "CAMPUS_SECURITY",
+  "CAMPUS_DISPATCH",
 ];
 
 export function ViewAvailableRingCamerasButton({
@@ -52,7 +57,7 @@ export function ViewAvailableRingCamerasButton({
         className="inline-flex items-center gap-2 rounded border border-[#2A3A4A] bg-[#1E2A3A] px-3 py-1.5 text-sm text-[#F0F4F8] disabled:cursor-not-allowed disabled:opacity-50"
       >
         <Camera size={14} />
-        View Available Ring Cameras
+        View Available {RING_TM} Cameras
       </button>
       {open && incidentId && incidentLatitude != null && incidentLongitude != null ? (
         <AvailableRingCamerasModal

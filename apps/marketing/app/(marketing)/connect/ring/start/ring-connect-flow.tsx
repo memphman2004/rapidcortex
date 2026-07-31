@@ -95,7 +95,7 @@ function EmailWaitlist({ stateCode }: { stateCode: string }) {
     return (
       <p className="mt-3 text-sm text-emerald-400">
         You&apos;re on the list — we&apos;ll reach out when enrollment opens in your area. You can
-        still enable Rapid Cortex Connect in the Ring Appstore anytime.
+        still enable Rapid Cortex Connect in the Ring™ Appstore anytime.
       </p>
     );
   }
@@ -104,7 +104,7 @@ function EmailWaitlist({ stateCode }: { stateCode: string }) {
     <form onSubmit={handleSubmit} className="mt-3 space-y-3">
       <p className="text-xs text-slate-400">
         Leave your email and we&apos;ll notify you when a local agency enrolls. Enabling Rapid Cortex
-        Connect in Ring now still helps you stay ready.
+        Connect in Ring™ now still helps you stay ready.
       </p>
       <div className="flex flex-col gap-3 sm:flex-row">
         <input
@@ -187,11 +187,11 @@ export function RingConnectFlow() {
     <section className="mt-8 space-y-6 rounded-2xl border border-white/10 bg-black/40 p-6 text-sm text-slate-300">
       <div>
         <h2 className="text-base font-semibold text-white">Ready to help your community?</h2>
-        <p className="mt-1 text-xs text-slate-400">Takes about a minute in the Ring app.</p>
+        <p className="mt-1 text-xs text-slate-400">Takes about a minute in the Ring™ app.</p>
         <p className="mt-4 leading-relaxed">
           Rapid Cortex Connect lets local emergency agencies request temporary, consent-gated access
-          to your Ring devices during active nearby incidents. Ring Device Owners enroll through the{" "}
-          <strong className="text-white">Ring Appstore</strong> — not agency dispatcher login. Your
+          to your Ring™ devices during active nearby incidents. Ring™ Device Owners enroll through the{" "}
+          <strong className="text-white">Ring™ Appstore</strong> — not agency dispatcher login. Your
           devices, your choice — every request requires your approval.
         </p>
       </div>
@@ -206,10 +206,10 @@ export function RingConnectFlow() {
         ) : null}
         <ol className="list-decimal space-y-2 pl-5 text-sm leading-relaxed text-slate-200">
           <li>
-            Open the <strong className="text-white">Ring</strong> app on your phone
+            Open the <strong className="text-white">Ring™</strong> app on your phone
           </li>
           <li>
-            Go to the <strong className="text-white">Ring Appstore</strong>
+            Go to the <strong className="text-white">Ring™ Appstore</strong>
           </li>
           <li>
             Search for <strong className="text-white">Rapid Cortex Connect</strong>
@@ -218,7 +218,7 @@ export function RingConnectFlow() {
             Tap <strong className="text-white">Get App</strong>, choose your devices, and confirm
           </li>
           <li>
-            If Ring shows <strong className="text-white">Pending — App sign-in required</strong>, tap
+            If Ring™ shows <strong className="text-white">Pending — App sign-in required</strong>, tap
             Sign in and create or use your Rapid Cortex device-owner account (email + password — not
             dispatcher login)
           </li>
@@ -230,7 +230,7 @@ export function RingConnectFlow() {
             rel="noopener noreferrer"
             className="inline-flex min-h-11 items-center justify-center rounded-lg bg-gradient-to-r from-sky-500 to-cyan-400 px-5 text-sm font-semibold text-slate-950"
           >
-            Open Rapid Cortex Connect in Ring
+            Open Rapid Cortex Connect in Ring™
           </a>
           <a
             href="https://ring.com/app"
@@ -238,11 +238,11 @@ export function RingConnectFlow() {
             rel="noopener noreferrer"
             className="inline-flex min-h-11 items-center justify-center rounded-lg border border-slate-600 px-5 text-sm font-semibold text-slate-100 hover:border-slate-500"
           >
-            Get the Ring app
+            Get the Ring™ app
           </a>
         </div>
         <p className="text-xs leading-relaxed text-amber-200/90">
-          Requires an active Ring Protect plan. If you don&apos;t have one, you&apos;ll be prompted
+          Requires an active Ring™ Protect plan. If you don&apos;t have one, you&apos;ll be prompted
           to subscribe during setup.
         </p>
         <p className="text-xs leading-relaxed text-slate-400">
@@ -313,7 +313,7 @@ export function RingConnectFlow() {
           <div className="rounded-lg border border-sky-500/20 bg-sky-950/30 px-4 py-3">
             <p className="text-sm leading-relaxed text-slate-300">
               No agencies in {stateName || "your area"} have enrolled yet — you can still enable
-              Rapid Cortex Connect in Ring now, and join the waitlist below.
+              Rapid Cortex Connect in Ring™ now, and join the waitlist below.
             </p>
             <EmailWaitlist stateCode={selectedState} />
           </div>
@@ -326,7 +326,7 @@ export function RingConnectFlow() {
           you get an SMS with Allow, Decline, and Stop Sharing. You decide — every time.
         </p>
         <p className="text-xs leading-relaxed text-slate-500">
-          Don&apos;t have a Ring account?{" "}
+          Don&apos;t have a Ring™ account?{" "}
           <a
             href="https://ring.com/signup"
             target="_blank"
@@ -335,7 +335,7 @@ export function RingConnectFlow() {
           >
             Create one at ring.com
           </a>
-          , then enable Rapid Cortex Connect in the Ring Appstore.
+          , then enable Rapid Cortex Connect in the Ring™ Appstore.
         </p>
       </div>
 

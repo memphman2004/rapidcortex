@@ -300,6 +300,17 @@ if [[ "${DEPLOY_QR}" -eq 1 ]]; then
   fi
   _qr_extra+=("ImportedCognitoNativeClientId=${_qr_native}")
   echo "  Cognito native audience: ImportedCognitoNativeClientId=${_qr_native}"
+  # Retain orphans: tables DELETE_SKIPPED from CFN still exist physically — skip CREATE.
+  _qr_ss="rapid-cortex-safe-sound-devices-${STAGE}"
+  _qr_ge="rapid-cortex-guardian-events-${STAGE}"
+  if aws dynamodb describe-table --table-name "${_qr_ss}" --region "${AWS_REGION}" >/dev/null 2>&1; then
+    _qr_extra+=("ExistingSafeSoundDevicesTableName=${_qr_ss}")
+    echo "  ExistingSafeSoundDevicesTableName=${_qr_ss}"
+  fi
+  if aws dynamodb describe-table --table-name "${_qr_ge}" --region "${AWS_REGION}" >/dev/null 2>&1; then
+    _qr_extra+=("ExistingGuardianEventsTableName=${_qr_ge}")
+    echo "  ExistingGuardianEventsTableName=${_qr_ge}"
+  fi
   lean_sam_deploy_nested "${SAM_BUILD_DIR}/qr/template.yaml" "${QR_STACK}" ${_qr_extra[@]:+"${_qr_extra[@]}"}
   echo "✅ AppSamQrStack deploy complete"
 fi

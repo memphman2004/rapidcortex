@@ -71,6 +71,16 @@ npx eas-cli init          # writes real `extra.eas.projectId` (replaces REPLACE_
 
 Confirm `owner: 'rapid-cortex'` matches the org slug at [expo.dev/accounts](https://expo.dev/accounts).
 
+### Store account IDs
+
+| Store | ID | Notes |
+|-------|-----|--------|
+| Apple App Store Connect | App ID `6793105966` | Also in `eas.json` → `submit.production.ios.ascAppId` |
+| Apple Team | `6D7D94PU3M` | `eas.json` → `appleTeamId` |
+| Google Play Console | Developer account `7807903929046926180` | Org **Rapid Cortex**; finish identity / website / phone verification before API access + publish |
+
+Android EAS submit expects a Play API service-account JSON at `apps/mobile/google-play-key.json` (do not commit). Create it under Play Console → **Users and permissions → API access** after account verification is complete.
+
 Android: `google-services.json` is optional for v1 (only needed for Firebase push). The config wires it only if the file exists.
 
 ## Not App Store ready until

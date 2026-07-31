@@ -24,12 +24,12 @@ describe("QR locations access (locations.qrcodes.*)", () => {
     expect(canViewQrLocations(admin, agencyId)).toBe(true);
   });
 
-  it("grants CAMPUS_SUPERVISOR view only — not manage", () => {
+  it("grants CAMPUS_SUPERVISOR manage + view within same agency", () => {
     const sup = makeUser("CAMPUS_SUPERVISOR");
     expect(auth.canPerform(sup, "locations.qrcodes.view")).toBe(true);
-    expect(auth.canPerform(sup, "locations.qrcodes.manage")).toBe(false);
+    expect(auth.canPerform(sup, "locations.qrcodes.manage")).toBe(true);
     expect(canViewQrLocations(sup, agencyId)).toBe(true);
-    expect(canManageQrLocations(sup, agencyId)).toBe(false);
+    expect(canManageQrLocations(sup, agencyId)).toBe(true);
   });
 
   it("grants VENUE_ADMIN manage within same agency", () => {
@@ -43,10 +43,13 @@ describe("QR locations access (locations.qrcodes.*)", () => {
     expect(canManageQrLocations(sec, "agency-venue-1")).toBe(false);
   });
 
-  it("denies VENUE_OPERATOR QR access", () => {
+  it("grants VENUE_SUPERVISOR and VENUE_OPERATOR QR manage", () => {
+    const sup = makeUser("VENUE_SUPERVISOR", "agency-venue-1");
     const op = makeUser("VENUE_OPERATOR", "agency-venue-1");
-    expect(canManageQrLocations(op, "agency-venue-1")).toBe(false);
-    expect(canViewQrLocations(op, "agency-venue-1")).toBe(false);
+    expect(canManageQrLocations(sup, "agency-venue-1")).toBe(true);
+    expect(canViewQrLocations(sup, "agency-venue-1")).toBe(true);
+    expect(canManageQrLocations(op, "agency-venue-1")).toBe(true);
+    expect(canViewQrLocations(op, "agency-venue-1")).toBe(true);
   });
 
   it("grants rcadmin cross-tenant QR manage", () => {

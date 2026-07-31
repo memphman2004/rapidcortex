@@ -42,7 +42,7 @@ function statusClass(status: SalesLeadStatus): string {
 }
 
 function sourceLabel(source?: string): string {
-  if (source === "ring-connect-waitlist") return "Ring waitlist";
+  if (source === "ring-connect-waitlist") return "Ring™ waitlist";
   if (source === "contact-sales") return "Contact sales";
   return source ?? "Unknown";
 }

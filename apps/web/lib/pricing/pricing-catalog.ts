@@ -162,7 +162,7 @@ export const ADDON_SECTIONS = [
       { label: "Connect Standard", loKey: "connect.std.lo", hiKey: "connect.std.hi" },
       { label: "Connect Pro", loKey: "connect.pro.lo", hiKey: "connect.pro.hi" },
       { label: "Connect Enterprise", loKey: "connect.ent.lo", hiKey: "connect.ent.hi" },
-      { label: "Ring Connect", loKey: "connect.ring.lo", hiKey: "connect.ring.hi" },
+      { label: "Ring™ Connect", loKey: "connect.ring.lo", hiKey: "connect.ring.hi" },
       { label: "Connect setup", loKey: "connect.setup.lo", hiKey: "connect.setup.hi" },
       { label: "Priority support SM/MD/LG", keys: ["support.priority.sm", "support.priority.md", "support.priority.lg"] },
       { label: "Mission support SM/MD/LG", keys: ["support.mission.sm", "support.mission.md", "support.mission.lg"] },

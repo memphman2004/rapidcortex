@@ -208,6 +208,44 @@ export default function MarketingHomePage() {
       </section>
 
       <section className="relative z-10 bg-slate-950 mx-auto max-w-6xl px-4 pb-8 sm:px-6">
+        <h2 className="text-center text-xl font-semibold text-white sm:text-2xl">Camera integrations</h2>
+        <p className="mx-auto mt-4 max-w-3xl text-center text-sm text-slate-400">
+          Rapid Cortex Connect requests temporary live video from citizen and facility cameras during
+          active incidents — with owner consent for residential devices.
+        </p>
+        <ul className="mt-8 grid gap-4 sm:grid-cols-2">
+          <li className="rounded-lg border border-blue-500/25 bg-slate-900/40 p-5">
+            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-blue-300">Partner</p>
+            <h3 className="mt-2 text-lg font-semibold text-white">Ring™</h3>
+            <p className="mt-2 text-sm leading-relaxed text-slate-400">
+              Consent-based emergency video from Ring™ doorbells and cameras near the incident —
+              available to authorized dispatch and campus teams.
+            </p>
+            <Link
+              href="/connect/ring/start"
+              className="mt-4 inline-flex text-sm font-medium text-sky-400 hover:text-sky-300"
+            >
+              Ring™ Connect for device owners →
+            </Link>
+          </li>
+          <li className="rounded-lg border border-emerald-500/25 bg-slate-900/40 p-5">
+            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-emerald-300">Partner</p>
+            <h3 className="mt-2 text-lg font-semibold text-white">Google Nest™</h3>
+            <p className="mt-2 text-sm leading-relaxed text-slate-400">
+              Agency-linked Nest™ cameras plus nearby citizen Nest™ devices with the same
+              consent-first request pattern used for Ring™.
+            </p>
+            <Link
+              href="/integrations"
+              className="mt-4 inline-flex text-sm font-medium text-sky-400 hover:text-sky-300"
+            >
+              See integrations →
+            </Link>
+          </li>
+        </ul>
+      </section>
+
+      <section className="relative z-10 bg-slate-950 mx-auto max-w-6xl px-4 pb-8 sm:px-6">
         <h2 className="text-center text-xl font-semibold text-white sm:text-2xl">Explore product lines</h2>
         <nav className="mt-6 grid gap-3 sm:grid-cols-3" aria-label="Product pages">
           <Link

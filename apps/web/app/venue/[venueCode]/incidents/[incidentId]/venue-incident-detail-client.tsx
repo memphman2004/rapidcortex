@@ -11,6 +11,7 @@ import { IncidentSourceBadge } from "../../_components/IncidentSourceBadge";
 import { IncidentStatusBadge } from "../../_components/IncidentStatusBadge";
 import { incidentTypeLabel } from "../../_components/IncidentTypeIcon";
 import { RelativeTime } from "../../_components/RelativeTime";
+import { RING_TM } from "@/lib/brand-marks";
 import {
   ViewAvailableRingCamerasButton,
   isRingAvailableCamerasEnabled,
@@ -162,9 +163,11 @@ export function VenueIncidentDetailClient({
 
           {ringEnabled && ringCamerasEnabled && user ? (
             <div className="mt-6 space-y-3 border-t border-slate-800 pt-4">
-              <h3 className="text-sm font-semibold uppercase tracking-wide text-slate-300">Ring Cameras</h3>
+              <h3 className="text-sm font-semibold uppercase tracking-wide text-slate-300">
+                {RING_TM} Cameras
+              </h3>
               <p className="text-xs text-slate-500">
-                Find nearby Ring cameras and send an emergency consent request to the device owner.
+                Find nearby {RING_TM} cameras and send an emergency consent request to the device owner.
               </p>
               <ViewAvailableRingCamerasButton
                 incidentId={incident.id}
@@ -174,7 +177,7 @@ export function VenueIncidentDetailClient({
               />
               {!hasLocation ? (
                 <p className="text-xs text-amber-300">
-                  Incident GPS is required before Ring camera discovery can run.
+                  Incident GPS is required before {RING_TM} camera discovery can run.
                 </p>
               ) : null}
             </div>

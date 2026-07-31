@@ -70,6 +70,7 @@ export * from "./venue/index.js";
 export * from "./locations/index.js";
 export * from "./onboarding/index.js";
 export * from "./campus/dashboard-schemas.js";
+export * from "./campus/clery-schemas.js";
 export * from "./venue/dashboard-schemas.js";
 export * from "./qr-nfc/types.js";
 export * from "./qr-nfc/schemas.js";

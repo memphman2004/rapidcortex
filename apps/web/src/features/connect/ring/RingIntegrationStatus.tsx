@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { RING_TM } from "@/lib/brand-marks";
 import { isRingEnabled } from "./ring-feature-flags";
 import type { RingDevicesResponse } from "./ring-types";
 
@@ -53,12 +54,12 @@ export function RingIntegrationStatus({ agencyId: _agencyId, userId: _userId }: 
           : "bg-slate-500";
   const label =
     state === "loading"
-      ? "Checking Ring connection..."
+      ? `Checking ${RING_TM} connection...`
       : state === "connected"
-        ? "Ring Connected"
+        ? `${RING_TM} Connected`
         : state === "error"
-          ? "Ring Auth Error"
-          : "Ring Not Connected";
+          ? `${RING_TM} Auth Error`
+          : `${RING_TM} Not Connected`;
   const hint =
     state === "connected"
       ? `${count} devices linked`

@@ -2109,6 +2109,24 @@ Resources:
             Action:
               - secretsmanager:GetSecretValue
             Resource: !Sub arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:rc/cameras/nest/oauth*
+          # Camera oauth/token/registry tables are not in Dynamo shards A–D; grant explicitly
+          # so Nest connect/callback survives without manual inline IAM on the function role.
+          - Sid: NestCameraDynamoCrud
+            Effect: Allow
+            Action:
+              - dynamodb:PutItem
+              - dynamodb:GetItem
+              - dynamodb:DeleteItem
+              - dynamodb:UpdateItem
+              - dynamodb:Query
+              - dynamodb:Scan
+            Resource:
+              - !GetAtt CameraProviderOAuthStatesTable.Arn
+              - !Sub "${CameraProviderOAuthStatesTable.Arn}/index/*"
+              - !GetAtt CameraProviderTokensTable.Arn
+              - !Sub "${CameraProviderTokensTable.Arn}/index/*"
+              - !GetAtt CamerasRegistryTable.Arn
+              - !Sub "${CamerasRegistryTable.Arn}/index/*"
 
   ManagedRingAccountsTable:
     Type: AWS::DynamoDB::Table
@@ -4064,6 +4082,7 @@ Resources:
           CAMERAS_TABLE: !Ref CamerasRegistryTable
           NEST_REDIRECT_URI: !Ref NestRedirectUri
           NEST_ACCOUNT_LINK_URL: !Ref NestAccountLinkUrl
+          ENABLE_CONNECT_NEST: "true"
       Policies:
         - !Ref AppManagedPolicyDynamoLambdaCrudShardA
         - !Ref AppManagedPolicyDynamoLambdaCrudShardB
@@ -4074,6 +4093,22 @@ Resources:
           Properties:
             ApiId: !Ref Api
             Path: /api/cameras/providers/nest/callback
+            Method: GET
+            Auth:
+              Authorizer: NONE
+        NestConsentApprove:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/cameras/providers/nest/consent/{token}/approve
+            Method: GET
+            Auth:
+              Authorizer: NONE
+        NestConsentDecline:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/cameras/providers/nest/consent/{token}/decline
             Method: GET
             Auth:
               Authorizer: NONE

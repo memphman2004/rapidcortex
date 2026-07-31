@@ -7,6 +7,8 @@ export const metadata = {
 };
 
 const ADAPTER_TARGETS = [
+  "Ring™ doorbell & camera Connect (consent-based emergency video)",
+  "Google Nest™ SDM cameras (agency-linked + citizen consent requests)",
   "CAD RMS cores (motorola-central, centralsquare, Tyler, Mark43-compatible)",
   "RMS ingestion + RMS exports",
   "Twilio & vendor telephony gateways",

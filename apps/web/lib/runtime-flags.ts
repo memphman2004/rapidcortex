@@ -44,10 +44,13 @@ const NEXT_PUBLIC_FLAG_VALUES: Record<string, string | undefined> = {
   NEXT_PUBLIC_ENABLE_VERTICAL_ONBOARDING: process.env.NEXT_PUBLIC_ENABLE_VERTICAL_ONBOARDING,
   NEXT_PUBLIC_ENABLE_CHANNEL_MONITORING: process.env.NEXT_PUBLIC_ENABLE_CHANNEL_MONITORING,
   NEXT_PUBLIC_ENABLE_SALES_LEADS: process.env.NEXT_PUBLIC_ENABLE_SALES_LEADS,
+  NEXT_PUBLIC_ENABLE_INSIDE_THE_CORTEX: process.env.NEXT_PUBLIC_ENABLE_INSIDE_THE_CORTEX,
+  NEXT_PUBLIC_ENABLE_CAMPUS_CLERY: process.env.NEXT_PUBLIC_ENABLE_CAMPUS_CLERY,
   NEXT_PUBLIC_ENABLE_GRANT_SUCCESS_PROGRAM: process.env.NEXT_PUBLIC_ENABLE_GRANT_SUCCESS_PROGRAM,
   NEXT_PUBLIC_ENABLE_LOCATION_MAP: process.env.NEXT_PUBLIC_ENABLE_LOCATION_MAP,
   NEXT_PUBLIC_ENABLE_DEPLOYMENTS_MAP: process.env.NEXT_PUBLIC_ENABLE_DEPLOYMENTS_MAP,
   NEXT_PUBLIC_ENABLE_RCS: process.env.NEXT_PUBLIC_ENABLE_RCS,
+  NEXT_PUBLIC_ENABLE_CONNECT_NEST: process.env.NEXT_PUBLIC_ENABLE_CONNECT_NEST,
   NEXT_PUBLIC_WEBSOCKET_URL: process.env.NEXT_PUBLIC_WEBSOCKET_URL,
 };
 
@@ -328,6 +331,11 @@ export function isSalesLeadsUiEnabled(): boolean {
   return envFlag("NEXT_PUBLIC_ENABLE_SALES_LEADS");
 }
 
+/** Campus Clery ASR workspace (manual entry, CSV import, report). Default on when unset. */
+export function isCampusCleryEnabled(): boolean {
+  return envFlag("NEXT_PUBLIC_ENABLE_CAMPUS_CLERY");
+}
+
 /** Inside the Cortex marketing lead popup (marketing site). Default on when unset. */
 export function isInsideTheCortexEnabled(): boolean {
   return envFlag("NEXT_PUBLIC_ENABLE_INSIDE_THE_CORTEX");
@@ -357,4 +365,9 @@ export function isDeploymentsMapEnabled(): boolean {
  */
 export function isRcsEnabled(): boolean {
   return envFlag("NEXT_PUBLIC_ENABLE_RCS");
+}
+
+/** Google Nest camera connect on dispatcher Media + admin integrations. Default on when unset. */
+export function isConnectNestEnabled(): boolean {
+  return envFlag("NEXT_PUBLIC_ENABLE_CONNECT_NEST");
 }

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { GOOGLE_NEST_TM, NEST_TM } from "@/lib/brand-marks";
 
 type ProviderField = {
   key: string;
@@ -19,8 +20,8 @@ const PROVIDERS: Record<
   }
 > = {
   nest: {
-    label: "Google Nest",
-    description: "Connect Nest cameras via Google SDM OAuth (client secret stored in AWS Secrets Manager).",
+    label: GOOGLE_NEST_TM,
+    description: `Connect ${NEST_TM} cameras via Google SDM OAuth (client secret stored in AWS Secrets Manager).`,
     connectPath: "/api/cameras/providers/nest/connect",
     fields: [
       {

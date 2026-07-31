@@ -3541,6 +3541,72 @@ Resources:
             Path: /api/campus/analytics
             Method: GET
 
+  CampusCleryHttpFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/campus/handlers/campus-clery.handler
+      Timeout: 30
+      Environment:
+        Variables:
+          ENABLE_CAMPUS_CLERY: ""
+          ENABLE_CAMPUS_CLERY_EXTERNAL_MOCK: ""
+      Policies:
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardC
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardD
+      Events:
+        GetReport:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/campus/clery/report
+            Method: GET
+        GetEntries:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/campus/clery/entries
+            Method: GET
+        PostEntry:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/campus/clery/entries
+            Method: POST
+        PatchEntry:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/campus/clery/entries/{entryId}
+            Method: PATCH
+        DeleteEntry:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/campus/clery/entries/{entryId}
+            Method: DELETE
+        PostImport:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/campus/clery/import
+            Method: POST
+        PostExternalSync:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/campus/clery/external-sync
+            Method: POST
+        PostSync:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/campus/clery/sync
+            Method: POST
+
   PostCampusPublicReportFunction:
     Type: AWS::Serverless::Function
     Metadata:

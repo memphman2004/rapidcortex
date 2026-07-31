@@ -103,6 +103,8 @@ export INCIDENT_MEDIA_TWILIO_SECRET_ARN="arn:aws:secretsmanager:us-east-1:158961
 # Ring Connect — live partner credentials (rapid-cortex/connect/ring-credentials)
 export RING_CREDENTIALS_SECRET_ARN_OVERRIDE="arn:aws:secretsmanager:us-east-1:158961537080:secret:rapid-cortex/connect/ring-credentials-D3f1sN"
 export ENABLE_CONNECT_RING=true
+export ENABLE_CONNECT_NEST=true
+export NEXT_PUBLIC_ENABLE_CONNECT_NEST="${NEXT_PUBLIC_ENABLE_CONNECT_NEST:-1}"
 export RING_PARTNERSHIP_ENABLED=true
 export RING_REDIRECT_URI="https://7c70vqd1p5.execute-api.us-east-1.amazonaws.com/api/integrations/ring/callback"
 export RING_ACCOUNT_LINK_URL="https://www.rapidcortex.us/connect/ring/link"

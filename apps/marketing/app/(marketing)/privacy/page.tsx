@@ -23,8 +23,8 @@ export default function PrivacyPolicyPage() {
         <h2 className="text-base font-semibold text-white">Who this applies to</h2>
         <p>
           Visitors to our public website, account holders, agency personnel who access the operational application on
-          behalf of a municipality, PSAP, or regional center, and Ring Device Owners who enroll in Rapid Cortex Connect
-          through the Ring Appstore.
+          behalf of a municipality, PSAP, or regional center, and Ring™ Device Owners who enroll in Rapid Cortex Connect
+          through the Ring™ Appstore.
         </p>
       </section>
 
@@ -68,14 +68,14 @@ export default function PrivacyPolicyPage() {
       </section>
 
       <section className="space-y-3">
-        <h2 className="text-base font-semibold text-white">Ring integration and live video handling</h2>
+        <h2 className="text-base font-semibold text-white">Ring™ integration and live video handling</h2>
         <p>
-          For Ring-connected workflows (Rapid Cortex Connect), Rapid Cortex is designed for live operational viewing
-          only. We do not record, retain, or store Ring video in Rapid Cortex systems (retention period: 0 days).{" "}
-          <strong className="font-medium text-slate-200">Ring Device Owners</strong> enroll by enabling Rapid Cortex
-          Connect in the Ring Appstore and completing device-owner sign-in when Ring shows Pending. Linking uses
-          Ring&apos;s Appstore / OAuth authorization and can be revoked anytime in Ring (for example My Apps). When a
-          participating agency requests temporary camera access for a nearby incident, the Ring Device Owner is
+          For Ring™-connected workflows (Rapid Cortex Connect), Rapid Cortex is designed for live operational viewing
+          only. We do not record, retain, or store Ring™ video in Rapid Cortex systems (retention period: 0 days).{" "}
+          <strong className="font-medium text-slate-200">Ring™ Device Owners</strong> enroll by enabling Rapid Cortex
+          Connect in the Ring™ Appstore and completing device-owner sign-in when Ring™ shows Pending. Linking uses
+          Ring™&apos;s Appstore / OAuth authorization and can be revoked anytime in Ring™ (for example My Apps). When a
+          participating agency requests temporary camera access for a nearby incident, the Ring™ Device Owner is
           contacted by SMS and must tap Allow before any live view begins; Decline and Stop Sharing remain available.
         </p>
       </section>
@@ -101,7 +101,7 @@ export default function PrivacyPolicyPage() {
           Data Subject Access Requests (DSAR) and deletion requests can also be submitted to{" "}
           <a href="mailto:support@rapidcortex.us?subject=Privacy%20request">support@rapidcortex.us</a>. We acknowledge
           requests within 5 business days and target fulfillment within 30 days. DSAR responses include data held in
-          Rapid Cortex systems for the requestor; Ring video is not included because it is not stored by Rapid Cortex.
+          Rapid Cortex systems for the requestor; Ring™ video is not included because it is not stored by Rapid Cortex.
         </p>
         <p>
           Account deletion requests are processed within 30 days. Agencies may request deletion through their
@@ -113,8 +113,8 @@ export default function PrivacyPolicyPage() {
       <section className="space-y-3">
         <h2 className="text-base font-semibold text-white">Consent, opt-out, and withdrawal</h2>
         <p>
-          Ring Device Owners manage enrollment through the Ring Appstore and may disconnect Rapid Cortex Connect in
-          Ring at any time. Per-incident video sharing requires a separate Allow on each SMS request; owners may
+          Ring™ Device Owners manage enrollment through the Ring™ Appstore and may disconnect Rapid Cortex Connect in
+          Ring™ at any time. Per-incident video sharing requires a separate Allow on each SMS request; owners may
           Decline or Stop Sharing without disconnecting the app. Agency users provide consent through account
           onboarding terms and can opt out of non-essential data processing through account settings or support
           channels.
@@ -134,8 +134,8 @@ export default function PrivacyPolicyPage() {
         </p>
         <p>
           Users can review and manage data through role-based application interfaces, agency administration controls,
-          and support-assisted exports/deletions where applicable. For Ring integrations specifically, control of video
-          history and footage remains with Ring and the Ring Device Owner.
+          and support-assisted exports/deletions where applicable. For Ring™ integrations specifically, control of video
+          history and footage remains with Ring™ and the Ring™ Device Owner.
         </p>
       </section>
 

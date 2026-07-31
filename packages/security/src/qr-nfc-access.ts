@@ -10,20 +10,20 @@ const MANAGE_ROLES = new Set([
   "agencyadmin",
   "agencyit",
   "campus_admin",
+  "campus_supervisor",
   "venue_admin",
+  "venue_supervisor",
+  "venue_operator",
 ]);
 
 /**
- * Field staff who may program NFC tags for existing codes (cannot create/delete codes).
+ * Field staff who may program NFC tags for existing codes.
  * Aligns with venue/campus deployment workflow on the mobile app.
  */
 const NFC_PROGRAM_ROLES = new Set([
   ...MANAGE_ROLES,
-  "campus_supervisor",
-  "venue_supervisor",
   "campus_security",
   "venue_security",
-  "venue_operator",
 ]);
 
 /** Roles that may list, view, and download QR assets. */

@@ -5,6 +5,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { RingLinkedDevicesPanel } from "./RingLinkedDevicesPanel";
 import { isRingEnabled } from "./ring-feature-flags";
 import type { RingDevicesResponse } from "./ring-types";
+import { RING_TM } from "@/lib/brand-marks";
 
 type State = "loading" | "not_linked" | "linked" | "error";
 type Toast = { tone: "ok" | "err"; text: string } | null;
@@ -28,9 +29,9 @@ export function RingConnectButton({
     const qp = new URLSearchParams(window.location.search);
     const status = qp.get("status");
     if (status === "success" || status === "connected") {
-      setToast({ tone: "ok", text: "Ring account connected." });
+      setToast({ tone: "ok", text: `${RING_TM} account connected.` });
     }
-    if (status === "error") setToast({ tone: "err", text: "Ring account connection failed." });
+    if (status === "error") setToast({ tone: "err", text: `${RING_TM} account connection failed.` });
     if (status) {
       qp.delete("status");
       const next = `${window.location.pathname}${qp.toString() ? `?${qp.toString()}` : ""}`;
@@ -67,9 +68,9 @@ export function RingConnectButton({
 
   const action = useMemo(() => {
     if (state === "loading") return "Checking...";
-    if (state === "error") return "Reconnect Ring Account";
+    if (state === "error") return `Reconnect ${RING_TM} Account`;
     if (state === "linked") return "Manage devices →";
-    return "Connect Ring Account";
+    return `Connect ${RING_TM} Account`;
   }, [state]);
 
   if (!isRingEnabled()) return null;
@@ -83,7 +84,7 @@ export function RingConnectButton({
         <div className="space-y-2">
           <p className="inline-flex items-center gap-2 text-sm text-[#22C55E]">
             <CheckCircle2 size={16} />
-            Ring Account Connected
+            {RING_TM} Account Connected
           </p>
           <p className="text-xs text-[#8B9CB0]">{deviceCount} devices linked</p>
           <button
@@ -98,7 +99,7 @@ export function RingConnectButton({
         <div className="space-y-2">
           <p className="inline-flex items-center gap-2 text-sm text-[#FF4444]">
             <AlertTriangle size={16} />
-            Ring Auth Error — Reconnect Required
+            {RING_TM} Auth Error — Reconnect Required
           </p>
           <button
             type="button"
@@ -122,7 +123,7 @@ export function RingConnectButton({
           >
             {action}
           </button>
-          <p className="text-xs text-[#8B9CB0]">Link your Ring account for emergency collaboration.</p>
+          <p className="text-xs text-[#8B9CB0]">Link your {RING_TM} account for emergency collaboration.</p>
         </div>
       )}
 

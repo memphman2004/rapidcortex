@@ -21,7 +21,7 @@ export default async function RcAdminLeadsPage() {
       <div>
         <h1 className="text-2xl font-semibold text-white">Leads CRM</h1>
         <p className="mt-2 max-w-3xl text-sm text-slate-400">
-          Pipeline board for Contact Sales, Ring Waitlist, and Inside the Cortex leads. Drag cards
+          Pipeline board for Contact Sales, Ring™ Waitlist, and Inside the Cortex leads. Drag cards
           between stages, edit CRM fields inline, and track activity.
         </p>
       </div>

@@ -83,6 +83,7 @@ export const CAMPUS_ROLE_PERMISSIONS: Record<CampusRole, string[]> = {
     "campus.analytics.view",
     "campus.buildings.view",
     "locations.qrcodes.view",
+    "locations.qrcodes.manage",
     "campus.cameras.view",
     "campus.settings.view",
     "campus.clery.view",
@@ -154,6 +155,7 @@ export const VENUE_ROLE_PERMISSIONS: Record<VenueRole, string[]> = {
     "venue.sections.status",
     "venue.settings.view",
     "locations.qrcodes.view",
+    "locations.qrcodes.manage",
   ],
   VENUE_SECURITY: [
     "venue.dashboard.view",
@@ -168,6 +170,8 @@ export const VENUE_ROLE_PERMISSIONS: Record<VenueRole, string[]> = {
     "venue.sections.view",
     "venue.sections.status",
     "venue.settings.view",
+    "locations.qrcodes.view",
+    "locations.qrcodes.manage",
   ],
   VENUE_GUEST_SERVICES: ["venue.dashboard.view"],
 };

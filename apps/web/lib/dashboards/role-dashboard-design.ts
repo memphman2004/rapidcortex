@@ -239,7 +239,7 @@ export const ROLE_DASHBOARD_PALETTE_BY_ROLE: Record<UserRole, RoleDashboardIdent
   ),
   homeowner: verticalRolePalette(
     "homeowner",
-    "Ring Device Owner",
+    "Ring™ Device Owner",
     "Connect enrollment only",
     roleBandColor("homeowner"),
   ),
