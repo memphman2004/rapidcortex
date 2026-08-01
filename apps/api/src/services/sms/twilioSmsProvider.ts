@@ -68,6 +68,8 @@ export async function sendWithTwilio(args: {
   agencyId: string;
   incidentId: string;
   messageType: SmsMessageType;
+  /** Public delivery-receipt webhook. Empty means we never learn the terminal status. */
+  statusCallbackUrl?: string;
 }): Promise<SmsSendResult> {
   const sentAt = new Date().toISOString();
   const recipientRedacted = redactE164Phone(args.toPhoneE164);
@@ -86,6 +88,10 @@ export async function sendWithTwilio(args: {
   }
 
   const body = new URLSearchParams({ To: args.toPhoneE164, Body: args.messageBody });
+  const statusCallbackUrl = args.statusCallbackUrl?.trim() ?? "";
+  if (statusCallbackUrl) {
+    body.set("StatusCallback", statusCallbackUrl);
+  }
   let authHeader: string;
   let url: string;
 
@@ -149,9 +155,13 @@ export async function sendWithTwilio(args: {
       };
     }
     let sid: string | undefined;
+    let providerStatus: string | undefined;
+    let numSegments: string | undefined;
     try {
-      const j = JSON.parse(text) as { sid?: string };
+      const j = JSON.parse(text) as { sid?: string; status?: string; num_segments?: string };
       sid = typeof j.sid === "string" ? j.sid : undefined;
+      providerStatus = typeof j.status === "string" ? j.status : undefined;
+      numSegments = typeof j.num_segments === "string" ? j.num_segments : undefined;
     } catch {
       sid = undefined;
     }
@@ -159,7 +169,12 @@ export async function sendWithTwilio(args: {
       JSON.stringify({
         type: "outbound.sms",
         provider: "twilio",
-        outcome: "sent",
+        // Twilio has accepted the message for delivery; the handset outcome arrives later on
+        // the StatusCallback webhook. Do not read this as proof of delivery.
+        outcome: "accepted",
+        providerStatus: providerStatus ?? null,
+        numSegments: numSegments ?? null,
+        deliveryReceiptsEnabled: statusCallbackUrl.length > 0,
         messageType: args.messageType,
         agencyId: args.agencyId,
         incidentId: args.incidentId,

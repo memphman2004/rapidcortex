@@ -54,6 +54,7 @@ const PUBLIC_ROUTES: RouteEntry[] = [
   { path: "/cad-integration", changeFrequency: "weekly", priority: 0.7 },
   { path: "/supervisor-dashboard", changeFrequency: "monthly", priority: 0.55 },
   { path: "/connect/ring/start", changeFrequency: "weekly", priority: 0.7 },
+  { path: "/connect/nest", changeFrequency: "weekly", priority: 0.7 },
 
   // SEO keyword landings
   { path: "/911-dispatch-software", changeFrequency: "monthly", priority: 0.7 },

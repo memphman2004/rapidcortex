@@ -149,8 +149,10 @@ export function AvailableRingCamerasModal({
                 incident.
               </p>
               <p className="mt-2 text-xs">
-                Confirm the device is Enabled for Connect, has GPS coordinates, and the incident
-                address is near the camera.
+                Nearby search uses the Rapid Cortex incident map pin (from the incident address).{" "}
+                {RING_TM} Location address is for registration — devices at that property still need
+                GPS near the map pin and must be Enabled for Connect in {RING_TM} My Apps → Rapid Cortex
+                Connect.
               </p>
               <div className="mt-3 flex flex-wrap gap-2">
                 {EMPTY_STATE_RADIUS_SUGGESTIONS.filter((r) => r > radiusMeters).map((r) => (

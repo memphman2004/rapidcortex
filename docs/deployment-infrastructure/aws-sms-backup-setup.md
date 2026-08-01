@@ -72,7 +72,7 @@ export AWS_SMS_EVENT_SNS_TOPIC_ARN=arn:aws:sns:us-east-1:123456789012:rc-sms-eve
 | `INCIDENT_MEDIA_SMS_MOCK` | Legacy: same idea as mock paths when `true`. |
 | `TWILIO_SECRET_ARN` | Preferred name for the Secrets Manager Twilio secret. |
 | `INCIDENT_MEDIA_TWILIO_SECRET_ARN` | Legacy alias for the same secret. |
-| `TWILIO_MESSAGING_PHONE_NUMBER` | Optional — E.164 of **approved toll-free** for runbooks/dashboards (**`+18556293679`**). Not required for send when secret JSON includes `messagingServiceSid`. |
+| `TWILIO_MESSAGING_PHONE_NUMBER` | Optional — E.164 of the **sending number** for runbooks/dashboards (**`+14707482763`**, US local 10DLC). Not required for send when secret JSON includes `messagingServiceSid`. |
 | `TWILIO_SMS_FROM` | Optional — same as above for SMS lineage docs. |
 | `TWILIO_MMS_FROM` | Optional — same for MMS lineage docs. |
 

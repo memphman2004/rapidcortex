@@ -351,10 +351,10 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
           // so certification radius search is not empty.
           enableForConnect: true,
           fallbackLatitude: Number.parseFloat(
-            process.env.RING_HOMEOWNER_FALLBACK_LATITUDE ?? "40.06425",
+            process.env.RING_HOMEOWNER_FALLBACK_LATITUDE ?? "32.5369",
           ),
           fallbackLongitude: Number.parseFloat(
-            process.env.RING_HOMEOWNER_FALLBACK_LONGITUDE ?? "-83.01975",
+            process.env.RING_HOMEOWNER_FALLBACK_LONGITUDE ?? "-84.9274",
           ),
         },
       );

@@ -24,6 +24,7 @@ import {
   marketingHomePath,
   marketingLoginPath,
   marketingRingCustomersPath,
+  marketingNestConnectPath,
   marketingPricingPath,
   marketingPrivacyPath,
   marketingSecurityPath,
@@ -78,6 +79,7 @@ export function MarketingFooter() {
   const statusHref = marketingOperationsStatusPath();
   const pressHref = marketingPressPath();
   const ringConnectHref = marketingRingCustomersPath();
+  const nestConnectHref = marketingNestConnectPath();
 
   return (
     <footer className="safe-bottom border-t border-slate-800/90 bg-[#030712] py-6 text-xs text-slate-400 sm:py-7">
@@ -267,9 +269,9 @@ export function MarketingFooter() {
                         </a>
                       </li>
                       <li>
-                        <Link href="/integrations" className={FOOTER_FOCUS_LINK_CLASS}>
+                        <a href={nestConnectHref} className={FOOTER_FOCUS_LINK_CLASS}>
                           Nest™
-                        </Link>
+                        </a>
                       </li>
                     </ul>
                   </details>

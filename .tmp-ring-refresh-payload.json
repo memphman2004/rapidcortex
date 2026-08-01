@@ -1,0 +1,24 @@
+{
+  "version": "2.0",
+  "routeKey": "POST /api/integrations/ring/devices/refresh",
+  "rawPath": "/api/integrations/ring/devices/refresh",
+  "headers": {"content-type": "application/json"},
+  "requestContext": {
+    "http": {"method": "POST", "path": "/api/integrations/ring/devices/refresh", "protocol": "HTTP/1.1", "sourceIp": "127.0.0.1", "userAgent": "ops"},
+    "authorizer": {
+      "jwt": {
+        "claims": {
+          "sub": "8408e488-d071-70ab-2b5c-29c107e3890d",
+          "custom:agencyId": "test-agency",
+          "custom:role": "homeowner",
+          "custom:pwdChangedAt": "2026-07-31T04:35:32.000Z",
+          "custom:status": "active",
+          "email": "memphman2004@yahoo.com",
+          "cognito:username": "8408e488-d071-70ab-2b5c-29c107e3890d"
+        }
+      }
+    }
+  },
+  "body": "{\"fallbackLatitude\":32.5369,\"fallbackLongitude\":-84.9274}",
+  "isBase64Encoded": false
+}

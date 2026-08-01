@@ -19,6 +19,8 @@ export type SmsFactoryEnv = {
   /** Non-secret operator config (passed through for AWS path logging / future Pinpoint). */
   awsSmsConfigurationSetName?: string;
   awsSmsPoolId?: string;
+  /** Public Twilio delivery-receipt webhook; empty disables delivery receipts. */
+  smsStatusCallbackUrl?: string;
 };
 
 function shouldMock(env: SmsFactoryEnv): boolean {
@@ -47,6 +49,23 @@ function buildAwsCallArgs(
     useSimulator: env.awsSmsUseSimulator,
     configurationSetName: env.awsSmsConfigurationSetName,
     poolId: env.awsSmsPoolId,
+  };
+}
+
+function buildTwilioCallArgs(
+  env: SmsFactoryEnv,
+  base: {
+    toPhoneE164: string;
+    messageBody: string;
+    agencyId: string;
+    incidentId: string;
+    messageType: SmsMessageType;
+  },
+) {
+  return {
+    ...base,
+    secretArn: env.twilioSecretArn,
+    statusCallbackUrl: env.smsStatusCallbackUrl,
   };
 }
 
@@ -152,14 +171,7 @@ export async function sendIncidentMediaLinkSms(
       incidentId: args.incidentId,
       destinationMasked,
     });
-    const r = await sendWithTwilio({
-      secretArn: env.twilioSecretArn,
-      toPhoneE164: args.toPhoneE164,
-      messageBody: args.messageBody,
-      agencyId: args.agencyId,
-      incidentId: args.incidentId,
-      messageType: args.messageType,
-    });
+    const r = await sendWithTwilio(buildTwilioCallArgs(env, args));
     logRoutingSummary(r, {
       routingMode: "twilio",
       messageType: args.messageType,
@@ -243,14 +255,7 @@ async function sendAutoFailover(
       incidentId: args.incidentId,
       destinationMasked,
     });
-    const first = await sendWithTwilio({
-      secretArn: env.twilioSecretArn,
-      toPhoneE164: args.toPhoneE164,
-      messageBody: args.messageBody,
-      agencyId: args.agencyId,
-      incidentId: args.incidentId,
-      messageType: args.messageType,
-    });
+    const first = await sendWithTwilio(buildTwilioCallArgs(env, args));
     if (first.status === "sent") {
       logRoutingSummary(
         { ...first, smsFailoverUsed: false },
@@ -350,14 +355,7 @@ async function sendAutoFailover(
       incidentId: args.incidentId,
       destinationMasked,
     });
-    const second = await sendWithTwilio({
-      secretArn: env.twilioSecretArn,
-      toPhoneE164: args.toPhoneE164,
-      messageBody: args.messageBody,
-      agencyId: args.agencyId,
-      incidentId: args.incidentId,
-      messageType: args.messageType,
-    });
+    const second = await sendWithTwilio(buildTwilioCallArgs(env, args));
     if (second.status === "sent") {
       const r: SmsSendResult = {
         ...second,

@@ -39,6 +39,12 @@ type ActiveStream = {
 };
 
 const DURATIONS = [10, 30, 60, 120] as const;
+const RADIUS_OPTIONS_METERS = [100, 250, 500, 1000, 2000] as const;
+
+function formatRadiusLabel(meters: number): string {
+  if (meters < 1609) return `${Math.round(meters * 3.28084)} ft`;
+  return `${(meters / 1609.34).toFixed(1)} mi`;
+}
 
 function statusColor(status: NestConsentStatus | AgencyCamera["status"]): string {
   if (status === "ONLINE" || status === "APPROVED" || status === "AVAILABLE") return V.green;
@@ -70,6 +76,8 @@ export function NestCameraPanel({
   const [streams, setStreams] = useState<ActiveStream[]>([]);
   const [durationByDevice, setDurationByDevice] = useState<Record<string, (typeof DURATIONS)[number]>>({});
   const [busyDevice, setBusyDevice] = useState<string | null>(null);
+  const [radiusMeters, setRadiusMeters] = useState<(typeof RADIUS_OPTIONS_METERS)[number]>(500);
+  const [refreshCooldown, setRefreshCooldown] = useState(0);
 
   const pendingCount = useMemo(
     () => citizenCams.filter((c) => c.ownerStatus === "SENT" || c.ownerStatus === "DRAFT").length,
@@ -109,7 +117,7 @@ export function NestCameraPanel({
       return;
     }
     const res = await fetch(
-      `/api/cameras/providers/nest/available-cameras?incidentId=${encodeURIComponent(incidentId)}&radiusMeters=500`,
+      `/api/cameras/providers/nest/available-cameras?incidentId=${encodeURIComponent(incidentId)}&radiusMeters=${radiusMeters}`,
       { credentials: "include" },
     );
     const json = (await res.json()) as {
@@ -121,24 +129,36 @@ export function NestCameraPanel({
       throw new Error(json.error ?? `Unable to list nearby ${NEST_TM} cameras`);
     }
     setCitizenCams(json.data?.cameras ?? []);
-  }, [incidentId, incidentLat, incidentLng]);
+  }, [incidentId, incidentLat, incidentLng, radiusMeters]);
 
-  const refreshAll = useCallback(async () => {
+  // Runs once on mount only — do not depend on refreshAll/refreshCitizen refs
+  // (incidentLat/Lng floats from parents would retrigger and hammer Nest SDM).
+  useEffect(() => {
+    let cancelled = false;
     setLoading(true);
     setError(null);
-    try {
-      await refreshStatusAndAgency();
-      await refreshCitizen();
-    } catch (err) {
-      setError(err instanceof Error ? err.message : `${NEST_TM} load failed`);
-    } finally {
-      setLoading(false);
-    }
-  }, [refreshCitizen, refreshStatusAndAgency]);
+    void (async () => {
+      try {
+        await refreshStatusAndAgency();
+        await refreshCitizen();
+      } catch (err) {
+        if (!cancelled) {
+          setError(err instanceof Error ? err.message : `${NEST_TM} load failed`);
+        }
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
+  // Citizen nearby search is Dynamo-only — safe to refresh when radius/incident changes.
   useEffect(() => {
-    void refreshAll();
-  }, [refreshAll]);
+    void refreshCitizen().catch(() => undefined);
+  }, [refreshCitizen]);
 
   useEffect(() => {
     const hasSent = citizenCams.some((c) => c.ownerStatus === "SENT");
@@ -148,6 +168,26 @@ export function NestCameraPanel({
     }, 15_000);
     return () => window.clearInterval(id);
   }, [citizenCams, refreshCitizen]);
+
+  const handleManualRefresh = useCallback(async () => {
+    if (refreshCooldown > 0) return;
+    setRefreshCooldown(60);
+    const timer = window.setInterval(() => {
+      setRefreshCooldown((prev) => {
+        if (prev <= 1) {
+          window.clearInterval(timer);
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+    setError(null);
+    try {
+      await refreshStatusAndAgency();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : `${NEST_TM} refresh failed`);
+    }
+  }, [refreshCooldown, refreshStatusAndAgency]);
 
   const openStream = (cam: { deviceId: string; displayName: string }, source: ActiveStream["source"]) => {
     setStreams((prev) => {
@@ -225,9 +265,20 @@ export function NestCameraPanel({
       ) : null}
 
       <section className="space-y-2">
-        <h3 className="text-[10px] font-semibold uppercase tracking-widest" style={{ color: V.muted }}>
-          Agency {NEST_TM} cameras
-        </h3>
+        <div className="flex items-center justify-between gap-2">
+          <h3 className="text-[10px] font-semibold uppercase tracking-widest" style={{ color: V.muted }}>
+            Agency {NEST_TM} cameras
+          </h3>
+          <button
+            type="button"
+            disabled={refreshCooldown > 0}
+            onClick={() => void handleManualRefresh()}
+            className="rounded border px-2 py-0.5 text-[10px] font-semibold disabled:opacity-50"
+            style={{ borderColor: V.border, color: V.text }}
+          >
+            {refreshCooldown > 0 ? `Refresh (${refreshCooldown}s)` : "Refresh"}
+          </button>
+        </div>
         {agencyCams.length === 0 ? (
           <p className="text-xs" style={{ color: V.muted }}>
             No agency {NEST_TM} cameras with live stream capability.
@@ -269,13 +320,35 @@ export function NestCameraPanel({
         <h3 className="text-[10px] font-semibold uppercase tracking-widest" style={{ color: V.muted }}>
           Nearby citizen {NEST_TM} cameras
         </h3>
+        {incidentId && incidentLat != null && incidentLng != null ? (
+          <div className="flex flex-wrap items-center gap-1">
+            <span className="text-[10px] uppercase tracking-wide" style={{ color: V.muted }}>
+              Search radius
+            </span>
+            {RADIUS_OPTIONS_METERS.map((r) => (
+              <button
+                key={r}
+                type="button"
+                onClick={() => setRadiusMeters(r)}
+                className="rounded border px-2 py-0.5 text-[10px]"
+                style={{
+                  borderColor: radiusMeters === r ? V.green : V.border,
+                  color: V.text,
+                  background: radiusMeters === r ? `${V.green}22` : "transparent",
+                }}
+              >
+                {formatRadiusLabel(r)}
+              </button>
+            ))}
+          </div>
+        ) : null}
         {!incidentId || incidentLat == null || incidentLng == null ? (
           <p className="text-xs" style={{ color: V.muted }}>
             Select an incident with a known location to search nearby citizen {NEST_TM} cameras.
           </p>
         ) : citizenCams.length === 0 ? (
           <p className="text-xs" style={{ color: V.muted }}>
-            No citizen {NEST_TM} cameras within 500m of this incident.
+            No citizen {NEST_TM} cameras within {formatRadiusLabel(radiusMeters)} of this incident.
           </p>
         ) : (
           <div className="grid gap-2 sm:grid-cols-2">

@@ -9,6 +9,7 @@ import {
   marketingDashboardPath,
   marketingDemoPath,
   marketingLoginPath,
+  marketingNestConnectPath,
   marketingPricingPath,
   marketingSignupPath,
 } from "@/lib/marketing-links";
@@ -221,12 +222,12 @@ export default function MarketingHomePage() {
               Consent-based emergency video from Ring™ doorbells and cameras near the incident —
               available to authorized dispatch and campus teams.
             </p>
-            <Link
+            <a
               href="/connect/ring/start"
               className="mt-4 inline-flex text-sm font-medium text-sky-400 hover:text-sky-300"
             >
               Ring™ Connect for device owners →
-            </Link>
+            </a>
           </li>
           <li className="rounded-lg border border-emerald-500/25 bg-slate-900/40 p-5">
             <p className="text-xs font-semibold uppercase tracking-[0.2em] text-emerald-300">Partner</p>
@@ -235,12 +236,12 @@ export default function MarketingHomePage() {
               Agency-linked Nest™ cameras plus nearby citizen Nest™ devices with the same
               consent-first request pattern used for Ring™.
             </p>
-            <Link
-              href="/integrations"
+            <a
+              href={marketingNestConnectPath()}
               className="mt-4 inline-flex text-sm font-medium text-sky-400 hover:text-sky-300"
             >
-              See integrations →
-            </Link>
+              Nest™ Connect →
+            </a>
           </li>
         </ul>
       </section>

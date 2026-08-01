@@ -283,6 +283,12 @@ export const env = {
   /** Non-secret AWS SMS / Pinpoint config (set in template; not credentials). */
   awsSmsConfigurationSetName: process.env.AWS_SMS_CONFIGURATION_SET_NAME?.trim() ?? "",
   awsSmsPoolId: process.env.AWS_SMS_POOL_ID?.trim() ?? "",
+  /**
+   * Override for the public Twilio delivery-receipt webhook. Normally left unset and derived
+   * from `ringPublicApiBaseUrl` — these Lambdas sit against the 4KB env-var ceiling, so the
+   * URL is computed rather than stored.
+   */
+  smsStatusCallbackUrl: process.env.SMS_STATUS_CALLBACK_URL?.trim() ?? "",
   /** When >0, overrides INCIDENT_MEDIA_TOKEN_TTL_MINUTES for upload-token expiry. */
   mediaUploadTokenTtlSeconds: Math.max(
     0,

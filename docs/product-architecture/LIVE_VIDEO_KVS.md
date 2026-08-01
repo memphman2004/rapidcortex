@@ -43,7 +43,7 @@ If your console is open in **us-east-2 (Ohio)** but the stack runs in **us-east-
 
 - **Region**: Use the same `AWS_REGION` as the rest of the stack (KVS signaling, optional video stream, and archived-media HLS are all regional).
 - **KVS WebRTC browser role**: `LIVE_VIDEO_KVS_TOKEN_ROLE_ARN` must point at an IAM role the API can `sts:AssumeRole` into, scoped for `kinesisvideo:ConnectAsMaster` / `ConnectAsViewer` on the channels used by the app.
-- **SMS**: `SMS_PROVIDER` and Twilio or AWS SNS; secrets via Secrets Manager (e.g. `INCIDENT_MEDIA_TWILIO_SECRET_ARN`). SMS is **link delivery only**. Outbound identity (e.g. toll-free **`+18556293679`** on Twilio) is **send-only**; `callerPhone` on **`POST .../live-video/request`** must always be the **caller's mobile** (E.164), not the toll-free.
+- **SMS**: `SMS_PROVIDER` and Twilio or AWS SNS; secrets via Secrets Manager (e.g. `INCIDENT_MEDIA_TWILIO_SECRET_ARN`). SMS is **link delivery only**. Outbound identity (**`+14707482763`** on Twilio) is **send-only**; `callerPhone` on **`POST .../live-video/request`** must always be the **caller's mobile** (E.164), not the sending number.
 
 ## Signaling channel behavior
 

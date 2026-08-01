@@ -50,16 +50,24 @@ export const RING_HOMEOWNER_DEFAULT_AGENCY_ID =
   process.env.RING_HOMEOWNER_DEFAULT_AGENCY_ID?.trim() || "test-agency";
 
 /**
- * Fallback GPS when Ring device discovery omits lat/lng (Sonoma Point / Columbus pilot).
- * Override via env for the homeowner address under test.
+ * Fallback GPS when Ring device discovery omits lat/lng.
+ *
+ * Model:
+ * - Ring Location address → used at Appstore registration / validation (coarse place).
+ * - Rapid Cortex incident map pin → precise proximity search center.
+ * - Device lat/lng in RapidCortexRingDevices (seeded/fallback) → eligible cameras near the pin.
+ * Multiple cameras at one Ring Location share that property; we stamp the same fallback GPS
+ * when Ring omits coordinates (Ring only exposes country/state, not precise GPS).
+ *
+ * Default: Columbus, GA Sonoma Pointe pilot (32.5369, -84.9274). Override via env.
  */
 export const RING_HOMEOWNER_FALLBACK_LATITUDE = (() => {
   const n = Number.parseFloat(process.env.RING_HOMEOWNER_FALLBACK_LATITUDE ?? "");
-  return Number.isFinite(n) ? n : 40.06425;
+  return Number.isFinite(n) ? n : 32.5369;
 })();
 export const RING_HOMEOWNER_FALLBACK_LONGITUDE = (() => {
   const n = Number.parseFloat(process.env.RING_HOMEOWNER_FALLBACK_LONGITUDE ?? "");
-  return Number.isFinite(n) ? n : -83.01975;
+  return Number.isFinite(n) ? n : -84.9274;
 })();
 
 export function isRingEnabled(): boolean {

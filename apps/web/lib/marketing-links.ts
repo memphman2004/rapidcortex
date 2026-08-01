@@ -59,6 +59,13 @@ export function marketingRingCustomersPath(): string {
   return `${marketingSiteOrigin()}/connect/ring/start`;
 }
 
+/** Google Nest™ Connect — agency + citizen consent camera overview.
+ * Extensionless URL (no trailing slash) — CloudFront maps 404 → homepage.
+ */
+export function marketingNestConnectPath(): string {
+  return `${marketingSiteOrigin()}/connect/nest`;
+}
+
 export function marketingSignupPath(): string {
   return withAppOrigin("/signup");
 }

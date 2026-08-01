@@ -1,10 +1,13 @@
 #!/usr/bin/env npx tsx
 /**
- * Set GPS + isEnabledForConnect on Ring devices for the Sonoma Point / Columbus pilot.
+ * Set GPS + isEnabledForConnect on Ring devices for the Columbus GA / Sonoma Pointe pilot.
+ *
+ * Flow: incident address → map pin coordinates → proximity search → eligible Ring cameras.
+ * Ring Location address is for registration; device GPS here must sit near the Rapid Cortex map pin.
  *
  * Usage:
  *   STAGE=dev AGENCY_ID=test-agency \\
- *   LAT=40.06425 LNG=-83.01975 \\
+ *   LAT=32.5369 LNG=-84.9274 \\
  *   npx tsx scripts/seed-ring-sonoma-point-gps.ts
  *
  * Optional DEVICE_NAME_CONTAINS=Living to target Jeff's Living Room camera only.
@@ -16,8 +19,8 @@ const stage = process.env.STAGE?.trim() || "dev";
 const agencyId = process.env.AGENCY_ID?.trim() || "test-agency";
 const table =
   process.env.RING_TABLE_DEVICES?.trim() || `RapidCortexRingDevices-${stage}`;
-const lat = Number.parseFloat(process.env.LAT ?? "40.06425");
-const lng = Number.parseFloat(process.env.LNG ?? "-83.01975");
+const lat = Number.parseFloat(process.env.LAT ?? "32.5369");
+const lng = Number.parseFloat(process.env.LNG ?? "-84.9274");
 const nameFilter = process.env.DEVICE_NAME_CONTAINS?.trim().toLowerCase() ?? "";
 
 if (!Number.isFinite(lat) || !Number.isFinite(lng)) {

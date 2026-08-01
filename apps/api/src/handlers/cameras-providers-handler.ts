@@ -2,6 +2,7 @@ import type { APIGatewayProxyHandlerV2 } from "aws-lambda";
 import { z } from "zod";
 import { ACCOUNT_INACTIVE_MESSAGE, getUserContext, isUserAccountActive } from "../lib/auth.js";
 import { operationalPasswordBlock } from "../lib/operationalPasswordGate.js";
+import { consentActionForm, consentPage, escapeHtml } from "../lib/consentPage.js";
 import { env } from "../lib/env.js";
 import { jsonStatus, unauthorized } from "../lib/response.js";
 import { AgencyRepository } from "../repositories/agencyRepository.js";
@@ -18,6 +19,7 @@ import {
   listAgencyNestCameras,
   listCitizenNestNearIncident,
   loadNestToken,
+  peekNestConsentRequest,
   resolveNestConsentToken,
 } from "../integrations/cameras/nest-camera-service.js";
 import {
@@ -97,6 +99,51 @@ function parseRadiusMeters(raw: string | undefined): number {
 
 const agencyRepo = new AgencyRepository();
 
+const NEST_INVALID_LINK = "This link is no longer valid.";
+
+function html(body: string, statusCode = 200) {
+  return {
+    statusCode,
+    headers: { "Content-Type": "text/html; charset=utf-8" },
+    body,
+  };
+}
+
+async function nestConsentLanding(plainToken: string) {
+  try {
+    const request = await peekNestConsentRequest(plainToken);
+    if (!request) return html(consentPage("Link invalid", NEST_INVALID_LINK), 400);
+
+    if (request.requestStatus !== "SENT" || new Date(request.expiresAt).getTime() <= Date.now()) {
+      return html(consentPage("Already closed", "This request is no longer active."));
+    }
+
+    const minutes = request.requestedDurationMinutes;
+    const basePath = `/api/cameras/providers/nest/consent/${encodeURIComponent(plainToken)}`;
+    const actions = `<div class="actions">${consentActionForm({
+      actionPath: `${basePath}/approve`,
+      label: `Allow for ${minutes} minutes`,
+      variant: "allow",
+    })}${consentActionForm({
+      actionPath: `${basePath}/decline`,
+      label: "Decline",
+      variant: "decline",
+    })}</div>
+      <p class="fine">Sharing stops automatically after ${minutes} minutes.</p>`;
+
+    return html(
+      consentPage(
+        "Emergency video request",
+        `Emergency responders are requesting temporary live video from ${escapeHtml(request.deviceName)} for an active emergency near your address.`,
+        actions,
+      ),
+    );
+  } catch (err) {
+    console.error("[nest/consent-landing]", err);
+    return html(consentPage("Something went wrong", "Please try the link again."), 500);
+  }
+}
+
 export const handler: APIGatewayProxyHandlerV2 = async (event) => {
   const method = event.requestContext.http.method;
   if (method === "OPTIONS") {
@@ -131,20 +178,33 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
     }
   }
 
-  // Public consent links (no JWT) — SMS buttons
-  if (method === "GET" && tail[0] === "nest" && tail[1] === "consent" && tail[3]) {
+  // Public consent landing page (no JWT) — the single link carried by the consent SMS.
+  // GET only renders state; consent itself is POST so a link preview cannot approve sharing.
+  if (method === "GET" && tail[0] === "nest" && tail[1] === "c" && tail[2]) {
+    return nestConsentLanding(tail[2]);
+  }
+
+  // Public consent actions (no JWT). GET is retained for links already delivered.
+  if ((method === "POST" || method === "GET") && tail[0] === "nest" && tail[1] === "consent" && tail[3]) {
     const plainToken = tail[2] ?? "";
     const decision = tail[3] === "approve" ? "APPROVED" : tail[3] === "decline" ? "DECLINED" : null;
     if (!plainToken || !decision) {
-      return jsonStatus({ error: "Invalid consent link" }, 400);
+      return html(consentPage("Link invalid", NEST_INVALID_LINK), 400);
     }
     try {
       const resolved = await resolveNestConsentToken(plainToken, decision);
-      if (!resolved) return jsonStatus({ error: "Invalid or expired token" }, 404);
-      return jsonStatus({ ok: true, status: decision, ...resolved }, 200);
+      if (!resolved) return html(consentPage("Link invalid", NEST_INVALID_LINK), 404);
+      return html(
+        consentPage(
+          decision === "APPROVED" ? "Sharing approved" : "Request declined",
+          decision === "APPROVED"
+            ? "Thank you. Emergency responders can now view your camera for the requested time. Sharing ends automatically when the time is up."
+            : "You have declined the request. No video will be shared.",
+        ),
+      );
     } catch (err) {
       console.error("[nest/consent]", err);
-      return jsonStatus({ error: "Unable to process consent" }, 500);
+      return html(consentPage("Something went wrong", "Please try the link again."), 500);
     }
   }
 

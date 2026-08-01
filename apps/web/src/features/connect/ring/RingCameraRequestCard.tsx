@@ -43,9 +43,22 @@ export function RingCameraRequestCard({
           requestedDurationMinutes: duration,
         }),
       });
-      if (res.status === 201) {
+      const body = (await res.json().catch(() => ({}))) as {
+        success?: boolean;
+        data?: { requestStatus?: string };
+        error?: string;
+      };
+
+      // API returns 201 when owner notified (SENT), 202 when request saved but notify failed (DRAFT).
+      if (res.status === 201 || (res.status === 202 && body.success)) {
         setStatus("SENT");
         onRequestSent?.(camera.deviceId);
+        if (res.status === 202) {
+          setToast(
+            body.error?.trim() ||
+              "Request saved, but the owner notification could not be delivered. Try again or contact the owner directly.",
+          );
+        }
         return;
       }
       if (res.status === 409) {
@@ -56,7 +69,7 @@ export function RingCameraRequestCard({
         setToast("Too many requests for this incident. Please wait before trying again.");
         return;
       }
-      setToast("Failed to send request. Please try again.");
+      setToast(body.error?.trim() || "Failed to send request. Please try again.");
     } catch {
       setToast("Failed to send request. Please try again.");
     } finally {

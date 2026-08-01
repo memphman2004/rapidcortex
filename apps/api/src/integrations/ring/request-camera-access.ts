@@ -19,6 +19,7 @@ import { incidentCoordinates, requireActiveRingIncident } from "./ring-incident.
 import { configureRingEmergencyTables } from "./ring-tables.js";
 
 const BCRYPT_ROUNDS = 12;
+const CONSENT_TOKEN_BYTES = 16;
 const deviceService = new RingDeviceService();
 const emergencyRepo = new RingEmergencyRepository();
 const agencyRepo = new AgencyRepository();
@@ -99,9 +100,11 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
 
     const { latitude, longitude } = incidentCoordinates(incidentResult.incident);
     const requestId = randomUUID();
-    const plainToken = randomBytes(32).toString("hex");
+    // base64url keeps 128 bits of entropy in 22 characters; hex would cost 64 and push the
+    // consent SMS past two segments, where carrier filtering gets aggressive.
+    const plainToken = randomBytes(CONSENT_TOKEN_BYTES).toString("base64url");
     const requestTokenHash = await bcrypt.hash(plainToken, BCRYPT_ROUNDS);
-    const plainStopToken = randomBytes(32).toString("hex");
+    const plainStopToken = randomBytes(CONSENT_TOKEN_BYTES).toString("base64url");
     const stopTokenHash = await bcrypt.hash(plainStopToken, BCRYPT_ROUNDS);
     const now = new Date();
     const expiresAt = new Date(
@@ -122,6 +125,7 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
     const agencyName = agency?.name ?? user.agencyId;
 
     const base = consentBaseUrl();
+    const consentUrl = `${base}/api/integrations/ring/c/${plainToken}`;
     const approveUrl = `${base}/api/integrations/ring/consent/${plainToken}/approve`;
     const declineUrl = `${base}/api/integrations/ring/consent/${plainToken}/decline`;
     const stopUrl = `${base}/api/integrations/ring/consent/${plainStopToken}/stop`;
@@ -174,6 +178,7 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
       incidentCategoryLabel: incidentResult.incident.category,
       deviceName: device.deviceName,
       requestedDurationMinutes,
+      consentUrl,
       approveUrl,
       declineUrl,
       stopUrl,

@@ -10,6 +10,7 @@ import { env } from "../lib/env.js";
 import { incidentTimelineLogger } from "../lib/incidentTimelineLogger.js";
 import { makeId } from "../lib/ids.js";
 import { PublicBurstLimiter } from "../lib/publicRateLimiter.js";
+import { buildSmsFactoryEnv } from "../lib/smsFactoryEnv.js";
 import { LocationTokenRepository } from "../repositories/locationTokenRepository.js";
 import { WebSocketNotificationService } from "./websocketNotificationService.js";
 import { sendIncidentMediaLinkSms } from "./sms/smsProviderFactory.js";
@@ -34,19 +35,7 @@ function publicBaseUrl(): string {
 }
 
 function smsFactoryEnv() {
-  return {
-    smsProvider: env.smsProvider,
-    smsPrimaryProvider: env.smsPrimaryProvider,
-    deploymentStage: env.deploymentStage,
-    incidentMediaSmsMock: env.incidentMediaSmsMock || env.locateSmsMock,
-    mockSmsProvider: env.mockSmsProvider,
-    awsRegion: env.region,
-    awsSmsRegion: env.awsSmsRegion,
-    awsSmsUseSimulator: env.awsSmsUseSimulator,
-    twilioSecretArn: env.incidentMediaTwilioSecretArn,
-    awsSmsConfigurationSetName: env.awsSmsConfigurationSetName,
-    awsSmsPoolId: env.awsSmsPoolId,
-  };
+  return buildSmsFactoryEnv({ extraMock: env.locateSmsMock });
 }
 
 function autoReplyMessage(vertical: "campus" | "venue", token: string, base: string): string {

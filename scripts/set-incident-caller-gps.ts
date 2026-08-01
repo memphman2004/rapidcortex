@@ -2,12 +2,14 @@
 /**
  * Set callerLocationLat/Lng on an existing incident so Ring nearby search unlocks.
  *
- * Defaults match Ring homeowner device fallback GPS (Sonoma Point pilot):
- *   LAT=40.06425 LNG=-83.01975
+ * Defaults match Ring homeowner device fallback GPS (Columbus GA / Sonoma Pointe pilot):
+ *   LAT=32.5369 LNG=-84.9274
+ *
+ * Flow: incident address → map pin coordinates → proximity search → eligible Ring cameras.
  *
  * Usage:
- *   AWS_PROFILE=rapid-cortex STAGE=dev \\
- *   INCIDENT_ID=inc_… \\
+ *   AWS_PROFILE=rapid-cortex STAGE=dev \
+ *   INCIDENT_ID=inc_… \
  *   npx tsx scripts/set-incident-caller-gps.ts
  */
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
@@ -15,11 +17,10 @@ import { DynamoDBDocumentClient, GetCommand, UpdateCommand } from "@aws-sdk/lib-
 
 const stage = process.env.STAGE?.trim() || "dev";
 const incidentId = process.env.INCIDENT_ID?.trim();
-const table =
-  process.env.INCIDENTS_TABLE?.trim() || `rapid-cortex-incidents-${stage}`;
-const lat = Number.parseFloat(process.env.LAT ?? "40.06425");
-const lng = Number.parseFloat(process.env.LNG ?? "-83.01975");
-const mapLabel = process.env.MAP_LABEL?.trim() || "seed:sonoma-point-pilot";
+const table = process.env.INCIDENTS_TABLE?.trim() || `rapid-cortex-incidents-${stage}`;
+const lat = Number.parseFloat(process.env.LAT ?? "32.5369");
+const lng = Number.parseFloat(process.env.LNG ?? "-84.9274");
+const mapLabel = process.env.MAP_LABEL?.trim() || "seed:columbus-ga-sonoma-pointe";
 
 if (!incidentId) {
   console.error("INCIDENT_ID is required");
@@ -35,9 +36,7 @@ const ddb = DynamoDBDocumentClient.from(new DynamoDBClient({}), {
 });
 
 async function main(): Promise<void> {
-  const existing = await ddb.send(
-    new GetCommand({ TableName: table, Key: { incidentId } }),
-  );
+  const existing = await ddb.send(new GetCommand({ TableName: table, Key: { incidentId } }));
   if (!existing.Item) {
     console.error(JSON.stringify({ msg: "incident_not_found", incidentId, table }));
     process.exit(1);

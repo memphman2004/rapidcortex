@@ -70,5 +70,36 @@ describe("twilioSmsProvider", () => {
     const [, init] = fetchMock.mock.calls[0]!;
     expect(init.headers).toMatchObject({ "Content-Type": "application/x-www-form-urlencoded" });
     expect(String(init.body)).toContain("MessagingServiceSid=MGcccccccccccccccccccccccccccccccc");
+    expect(String(init.body)).not.toContain("StatusCallback");
+  });
+
+  it("requests delivery receipts when a status callback URL is configured", async () => {
+    smSend.mockResolvedValue({
+      SecretString: JSON.stringify({
+        accountSid: "ACaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        authToken: "token",
+        messagingServiceSid: "MGcccccccccccccccccccccccccccccccc",
+      }),
+    });
+    fetchMock.mockResolvedValue(
+      new Response(JSON.stringify({ sid: "SMz", status: "queued", num_segments: "2" }), {
+        status: 201,
+      }),
+    );
+
+    await sendWithTwilio({
+      secretArn: "arn:aws:secretsmanager:us-east-1:0:secret:test",
+      toPhoneE164: "+15555550100",
+      messageBody: "hi",
+      agencyId: "a",
+      incidentId: "i",
+      messageType: "silent_text",
+      statusCallbackUrl: "https://api.example.com/api/sms/twilio/status?k=abc",
+    });
+
+    const [, init] = fetchMock.mock.calls[0]!;
+    expect(String(init.body)).toContain(
+      `StatusCallback=${encodeURIComponent("https://api.example.com/api/sms/twilio/status?k=abc")}`,
+    );
   });
 });

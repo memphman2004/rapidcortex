@@ -34,6 +34,19 @@ type RingDevicesResponse = {
   [key: string]: unknown;
 };
 
+/** Amazon Vision / Ring Appstore device discovery (JSON:API). */
+type RingPartnerDevicesResponse = {
+  data?: Array<{
+    type?: string;
+    id?: string;
+    attributes?: {
+      name?: string;
+      kind?: string;
+      device_type?: string;
+    };
+  }>;
+};
+
 type RingRawDevice = {
   id?: number | string;
   device_id?: string;
@@ -72,7 +85,61 @@ function parseRetryAfterMs(header: string | null): number | undefined {
 export class RingApiClient {
   constructor(private readonly accessToken: string) {}
 
+  /**
+   * List devices authorized for this Appstore OAuth token.
+   * Uses Amazon Vision Device Discovery (`GET /v1/devices`) — Appstore AVA tokens
+   * do not work against legacy `api.ring.com/clients_api/ring_devices`.
+   * Location is country/state only from Ring; callers must stamp fallback GPS for proximity.
+   */
   async getDevices(): Promise<LinkedRingDevice[]> {
+    try {
+      return await this.getPartnerDevices();
+    } catch (err) {
+      // Legacy fallback for non-Appstore consumer tokens only.
+      if (!(err instanceof RingAuthError)) throw err;
+      console.warn(
+        JSON.stringify({
+          msg: "ring_partner_devices_auth_failed_fallback_clients_api",
+          error: err.message,
+        }),
+      );
+      return this.getLegacyClientDevices();
+    }
+  }
+
+  /** Appstore / AVA device discovery. */
+  private async getPartnerDevices(): Promise<LinkedRingDevice[]> {
+    const payload = await this.requestPartnerJson<RingPartnerDevicesResponse>(
+      "GET",
+      "/devices?include=status",
+    );
+    const now = new Date().toISOString();
+    const devices: LinkedRingDevice[] = [];
+    for (const item of payload.data ?? []) {
+      const deviceId = item.id?.trim();
+      if (!deviceId) continue;
+      const name = item.attributes?.name?.trim() || `Ring device ${deviceId}`;
+      const kind = item.attributes?.kind ?? item.attributes?.device_type;
+      devices.push({
+        agencyId: "",
+        userId: "",
+        ringAccountId: "",
+        deviceId,
+        deviceName: name,
+        deviceType: mapDeviceType(kind),
+        locationLabel: null,
+        latitude: null,
+        longitude: null,
+        isEnabledForConnect: false,
+        createdAt: now,
+        updatedAt: now,
+      });
+    }
+    return devices;
+  }
+
+  /** Legacy consumer clients_api (not used for Appstore AVA tokens). */
+  private async getLegacyClientDevices(): Promise<LinkedRingDevice[]> {
     const payload = await this.requestJson<RingDevicesResponse>("GET", "/ring_devices");
     const raw: RingRawDevice[] = [
       ...(payload.doorbots ?? []),

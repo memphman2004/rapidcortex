@@ -563,12 +563,15 @@ Parameters:
     Description: Agency ID used for Appstore-linked homeowner devices (pilot).
   RingHomeownerFallbackLatitude:
     Type: String
-    Default: "40.06425"
-    Description: Fallback device latitude when Ring omits GPS (Sonoma Point / Columbus pilot).
+    Default: "32.5369"
+    Description: >-
+      Fallback device latitude when Ring omits GPS. Ring Location address is for registration;
+      Rapid Cortex map pin is the proximity center — stamp device GPS near that pin (Columbus GA pilot).
   RingHomeownerFallbackLongitude:
     Type: String
-    Default: "-83.01975"
-    Description: Fallback device longitude when Ring omits GPS (Sonoma Point / Columbus pilot).
+    Default: "-84.9274"
+    Description: >-
+      Fallback device longitude when Ring omits GPS. Match Rapid Cortex incident map pin for the pilot property.
   RingAccountsTable:
     Type: String
     Default: ""
@@ -2471,6 +2474,8 @@ Resources:
           RING_REDIRECT_URI: !Ref RingRedirectUri
           RING_ACCOUNT_LINK_URL: !Ref RingAccountLinkUrl
           RING_SECRETS_PREFIX: !Ref RingSecretsPrefix
+          RING_HOMEOWNER_FALLBACK_LATITUDE: !Ref RingHomeownerFallbackLatitude
+          RING_HOMEOWNER_FALLBACK_LONGITUDE: !Ref RingHomeownerFallbackLongitude
           RING_TABLE_ACCOUNTS: !If
             - HasRingAccountsTable
             - !Ref RingAccountsTable
@@ -3162,6 +3167,8 @@ Resources:
           RING_PARTNERSHIP_ENABLED: !Ref RingPartnershipEnabled
           ENABLE_CONNECT_RING: !Ref EnableConnectRing
           RING_SECRETS_PREFIX: !Ref RingSecretsPrefix
+          RING_HOMEOWNER_FALLBACK_LATITUDE: !Ref RingHomeownerFallbackLatitude
+          RING_HOMEOWNER_FALLBACK_LONGITUDE: !Ref RingHomeownerFallbackLongitude
           RING_TABLE_ACCOUNTS: !If
             - HasRingAccountsTable
             - !Ref RingAccountsTable
@@ -3294,10 +3301,15 @@ Resources:
             - !Ref VenueConfigTable
             - !Ref AWS::NoValue
           INCIDENT_MEDIA_TWILIO_SECRET_ARN: !Ref IncidentMediaTwilioSecretArn
-          SMS_PROVIDER: !FindInMap [SmsEnvironmentDefaults, !Ref DeploymentStage, SmsProvider]
-          SMS_PRIMARY_PROVIDER: !FindInMap [SmsEnvironmentDefaults, !Ref DeploymentStage, SmsPrimaryProvider]
-          MOCK_SMS_PROVIDER: !FindInMap [SmsEnvironmentDefaults, !Ref DeploymentStage, MockSmsProvider]
-          AWS_SMS_USE_SIMULATOR: !FindInMap [SmsEnvironmentDefaults, !Ref DeploymentStage, AwsSmsUseSimulator]
+          SMS_PROVIDER: twilio
+          SMS_PRIMARY_PROVIDER: twilio
+          MOCK_SMS_PROVIDER: "false"
+          AWS_SMS_USE_SIMULATOR: "false"
+          RING_TABLE_CITIZEN_OWNERS: !If
+            - HasRingCitizenOwnersTable
+            - !Ref RingCitizenOwnersTable
+            - !Sub "RapidCortexRingCitizenOwners-${DeploymentStage}"
+          CONTACT_FROM_EMAIL: support@rapidcortex.us
       Policies:
         # Shard B includes IncidentsTable — required by requireActiveRingIncident().
         - !Ref AppManagedPolicyDynamoLambdaCrudShardA
@@ -3333,8 +3345,11 @@ Resources:
             Effect: Allow
             Action:
               - ses:SendEmail
+              - ses:SendRawEmail
             Resource:
               - !Sub arn:${AWS::Partition}:ses:${AWS::Region}:${AWS::AccountId}:identity/support@rapidcortex.us
+              - !Sub arn:${AWS::Partition}:ses:${AWS::Region}:${AWS::AccountId}:identity/rapidcortex.us
+              - !Sub arn:${AWS::Partition}:ses:${AWS::Region}:${AWS::AccountId}:configuration-set/rapid-cortex-transactional-${DeploymentStage}
       Events:
         Route:
           Type: HttpApi
@@ -3374,6 +3389,74 @@ Resources:
                   - kinesisvideo:GetSignalingChannelEndpoint
                   - kinesisvideo:GetIceServerConfig
                 Resource: !Sub "arn:${AWS::Partition}:kinesisvideo:${AWS::Region}:${AWS::AccountId}:channel/*/*"
+
+  # Twilio delivery receipts. Without it a Twilio 201 is the last signal we get, so a
+  # carrier-filtered message looks identical to a delivered one. Log-only, no tenant data.
+  TwilioSmsStatusCallbackFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/integrations/sms/twilio-status-callback.handler
+      Timeout: 10
+      MemorySize: 256
+      Environment:
+        Variables:
+          RING_PUBLIC_API_BASE_URL: !Ref RingPublicApiBaseUrl
+          INCIDENT_MEDIA_TWILIO_SECRET_ARN: !Ref IncidentMediaTwilioSecretArn
+      Policies:
+        - !If
+          - HasIncidentMediaTwilioSecretArn
+          - Statement:
+              Sid: ReadTwilioSecretForReceiptSignature
+              Effect: Allow
+              Action:
+                - secretsmanager:GetSecretValue
+              Resource: !Ref IncidentMediaTwilioSecretArn
+          - !Ref AWS::NoValue
+      Events:
+        Route:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/sms/twilio/status
+            Method: POST
+            Auth:
+              Authorizer: NONE
+
+  # Single short link carried by the consent SMS. GET only renders state; approve/decline/stop
+  # are POST so a carrier or SMS-app link preview cannot consent on the owner's behalf.
+  RingConnectCameraConsentLandingFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/integrations/ring/camera-consent.landingHandler
+      Timeout: 30
+      Environment:
+        Variables:
+          ENABLE_CONNECT_RING: !Ref EnableConnectRing
+          ENABLE_CONNECT_RING_EMERGENCY_REQUESTS: !Ref EnableConnectRingEmergencyRequests
+          RING_TABLE_REQUESTS: !If
+            - HasRingRequestsTable
+            - !Ref RingRequestsTable
+            - !Sub "RingEmergencyCameraRequests-${DeploymentStage}"
+      Policies:
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardC
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardD
+      Events:
+        Route:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/integrations/ring/c/{requestToken}
+            Method: GET
+            Auth:
+              Authorizer: NONE
 
   RingConnectCameraConsentApproveFunction:
     Type: AWS::Serverless::Function
@@ -3419,6 +3502,14 @@ Resources:
             Method: GET
             Auth:
               Authorizer: NONE
+        RoutePost:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/integrations/ring/consent/{requestToken}/approve
+            Method: POST
+            Auth:
+              Authorizer: NONE
 
   RingConnectCameraConsentDeclineFunction:
     Type: AWS::Serverless::Function
@@ -3449,6 +3540,14 @@ Resources:
             ApiId: !Ref Api
             Path: /api/integrations/ring/consent/{requestToken}/decline
             Method: GET
+            Auth:
+              Authorizer: NONE
+        RoutePost:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/integrations/ring/consent/{requestToken}/decline
+            Method: POST
             Auth:
               Authorizer: NONE
 
@@ -3485,6 +3584,14 @@ Resources:
             ApiId: !Ref Api
             Path: /api/integrations/ring/consent/{requestToken}/stop
             Method: GET
+            Auth:
+              Authorizer: NONE
+        RoutePost:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/integrations/ring/consent/{requestToken}/stop
+            Method: POST
             Auth:
               Authorizer: NONE
 
@@ -4083,16 +4190,49 @@ Resources:
           NEST_REDIRECT_URI: !Ref NestRedirectUri
           NEST_ACCOUNT_LINK_URL: !Ref NestAccountLinkUrl
           ENABLE_CONNECT_NEST: "true"
+          # Consent SMS must reach real phones — do not inherit SmsEnvironmentDefaults mock for stage=dev.
+          INCIDENT_MEDIA_TWILIO_SECRET_ARN: !Ref IncidentMediaTwilioSecretArn
+          SMS_PROVIDER: twilio
+          SMS_PRIMARY_PROVIDER: twilio
+          MOCK_SMS_PROVIDER: "false"
+          AWS_SMS_USE_SIMULATOR: "false"
+          NEST_PUBLIC_API_BASE_URL: !Ref RingPublicApiBaseUrl
+          RING_PUBLIC_API_BASE_URL: !Ref RingPublicApiBaseUrl
       Policies:
         - !Ref AppManagedPolicyDynamoLambdaCrudShardA
         - !Ref AppManagedPolicyDynamoLambdaCrudShardB
         - !Ref AppManagedPolicyNestCameraSecrets
+        - !If
+          - HasIncidentMediaTwilioSecretArn
+          - Statement:
+              Sid: ReadTwilioSecretNestConsentSms
+              Effect: Allow
+              Action:
+                - secretsmanager:GetSecretValue
+              Resource: !Ref IncidentMediaTwilioSecretArn
+          - !Ref AWS::NoValue
+        - Statement:
+            Sid: SnsPublishToPhoneNumbersNestConsentSms
+            Effect: Allow
+            Action: sns:Publish
+            Resource: "*"
+            Condition:
+              StringEquals:
+                "sns:Type": "Transactional"
       Events:
         NestCallback:
           Type: HttpApi
           Properties:
             ApiId: !Ref Api
             Path: /api/cameras/providers/nest/callback
+            Method: GET
+            Auth:
+              Authorizer: NONE
+        NestConsentLanding:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/cameras/providers/nest/c/{token}
             Method: GET
             Auth:
               Authorizer: NONE
@@ -4104,12 +4244,28 @@ Resources:
             Method: GET
             Auth:
               Authorizer: NONE
+        NestConsentApprovePost:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/cameras/providers/nest/consent/{token}/approve
+            Method: POST
+            Auth:
+              Authorizer: NONE
         NestConsentDecline:
           Type: HttpApi
           Properties:
             ApiId: !Ref Api
             Path: /api/cameras/providers/nest/consent/{token}/decline
             Method: GET
+            Auth:
+              Authorizer: NONE
+        NestConsentDeclinePost:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/cameras/providers/nest/consent/{token}/decline
+            Method: POST
             Auth:
               Authorizer: NONE
         ProvidersRoot:

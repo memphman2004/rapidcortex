@@ -1,7 +1,8 @@
 import type { APIGatewayProxyHandlerV2 } from "aws-lambda";
 import { randomBytes, randomUUID } from "node:crypto";
 import * as bcrypt from "bcryptjs";
-import type { RingEmergencyCameraRequest } from "../../lib/ring-integration.js";
+import { consentActionForm, consentPage, escapeHtml } from "../../lib/consentPage.js";
+import type { RingEmergencyCameraRequest, RingRequestStatus } from "../../lib/ring-integration.js";
 import { RingEmergencyRepository } from "../../repositories/ringEmergencyRepository.js";
 import { provisionRingEmergencyKvsChannel } from "./ring-kvs.js";
 import { consumeRingConsentRateSlot } from "./ring-consent-rate-limit.js";
@@ -16,50 +17,52 @@ function clientIp(event: { requestContext?: { http?: { sourceIp?: string } } }):
   return event.requestContext?.http?.sourceIp?.trim() || "unknown";
 }
 
-async function findRequestByConsentToken(
+/** SENT and OPENED both accept consent; OPENED just means the owner loaded the landing page. */
+const CONSENTABLE_STATUSES = ["SENT", "OPENED"] as const;
+
+async function findRequestByRequestToken(
   plainToken: string,
+  statuses: readonly RingRequestStatus[],
 ): Promise<RingEmergencyCameraRequest | null> {
-  const candidates = await emergencyRepo.listSentRequestsNotExpired();
-  for (const candidate of candidates) {
-    const match = await bcrypt.compare(plainToken, candidate.requestTokenHash);
-    if (match) return candidate;
+  for (const status of statuses) {
+    const candidates = await emergencyRepo.listRequestsByStatus(status);
+    for (const candidate of candidates) {
+      const match = await bcrypt.compare(plainToken, candidate.requestTokenHash);
+      if (match) return candidate;
+    }
   }
   return null;
 }
 
-function consentPage(title: string, body: string): string {
-  return `<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>${title}</title>
-  <style>
-    body { font-family: system-ui, sans-serif; margin: 2rem; line-height: 1.5; color: #111; }
-    .brand { font-weight: 700; letter-spacing: 0.02em; margin-bottom: 1rem; }
-    .card { max-width: 32rem; padding: 1.25rem; border: 1px solid #e5e7eb; border-radius: 8px; }
-  </style>
-</head>
-<body>
-  <div class="brand">Rapid Cortex</div>
-  <div class="card"><p>${body}</p></div>
-</body>
-</html>`;
+async function findRequestByConsentToken(
+  plainToken: string,
+): Promise<RingEmergencyCameraRequest | null> {
+  return findRequestByRequestToken(plainToken, CONSENTABLE_STATUSES);
 }
 
-function escapeHtml(value: string): string {
-  return value
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;");
+function actionForm(
+  token: string,
+  action: "approve" | "decline" | "stop",
+  label: string,
+  variant: "allow" | "decline" | "stop",
+): string {
+  return consentActionForm({
+    actionPath: `/api/integrations/ring/consent/${encodeURIComponent(token)}/${action}`,
+    label,
+    variant,
+  });
 }
 
+const STOPPABLE_STATUSES = ["SENT", "OPENED", "APPROVED"] as const;
+
+/**
+ * Accepts either the dedicated stop token (from the email) or the request token (from the SMS
+ * landing page) — the SMS carries a single link, so its token must also be able to stop sharing.
+ */
 async function findRequestByStopToken(
   plainToken: string,
 ): Promise<RingEmergencyCameraRequest | null> {
-  const statuses = ["SENT", "OPENED", "APPROVED"] as const;
-  for (const status of statuses) {
+  for (const status of STOPPABLE_STATUSES) {
     const candidates = await emergencyRepo.listRequestsByStatus(status);
     for (const candidate of candidates) {
       const hash = candidate.stopTokenHash;
@@ -68,8 +71,80 @@ async function findRequestByStopToken(
       if (match) return candidate;
     }
   }
-  return null;
+  return findRequestByRequestToken(plainToken, STOPPABLE_STATUSES);
 }
+
+/**
+ * Single link sent by SMS. Safe to prefetch: GET only renders state, it never grants or revokes.
+ * Approve/decline/stop are POST forms so an SMS app's link preview cannot consent on the owner's
+ * behalf.
+ */
+export const landingHandler: APIGatewayProxyHandlerV2 = async (event) => {
+  try {
+    configureRingEmergencyTables();
+    const plainToken = event.pathParameters?.requestToken?.trim() ?? "";
+    if (!plainToken) {
+      return ringHtml(consentPage("Link invalid", INVALID_LINK_MESSAGE), 400);
+    }
+
+    const allowed = await consumeRingConsentRateSlot(clientIp(event));
+    if (!allowed) {
+      return ringHtml(consentPage("Too many requests", "Please wait a moment and try again."), 429);
+    }
+
+    const record = await findRequestByRequestToken(plainToken, STOPPABLE_STATUSES);
+    if (!record) {
+      return ringHtml(consentPage("Link invalid", INVALID_LINK_MESSAGE), 400);
+    }
+
+    const device = escapeHtml(record.deviceName || "camera");
+
+    if (record.requestStatus === "APPROVED") {
+      return ringHtml(
+        consentPage(
+          "Sharing active",
+          `You are currently sharing live video from ${device} with emergency responders. You can stop at any time.`,
+          `<div class="actions">${actionForm(plainToken, "stop", "Stop sharing now", "stop")}</div>`,
+        ),
+      );
+    }
+
+    if (new Date(record.expiresAt).getTime() <= Date.now() || record.usedAt) {
+      return ringHtml(consentPage("Already closed", "This request is no longer active."));
+    }
+
+    if (record.requestStatus === "SENT") {
+      await emergencyRepo.updateRequest(record.agencyId, record.incidentId, record.requestId, {
+        requestStatus: "OPENED",
+      });
+    }
+
+    const minutes = record.requestedDurationMinutes;
+    const actions = `<div class="actions">${actionForm(
+      plainToken,
+      "approve",
+      `Allow for ${minutes} minutes`,
+      "allow",
+    )}${actionForm(plainToken, "decline", "Decline", "decline")}</div>
+      <p class="fine">Sharing stops automatically after ${minutes} minutes, and you can stop it sooner at any time.</p>`;
+
+    return ringHtml(
+      consentPage(
+        "Emergency video request",
+        `Emergency responders are requesting temporary live video from ${device} for an active emergency near your address.`,
+        actions,
+      ),
+    );
+  } catch (err) {
+    console.error(
+      JSON.stringify({
+        msg: "ring_camera_consent_landing_error",
+        error: err instanceof Error ? err.message : String(err),
+      }),
+    );
+    return ringHtml(consentPage("Link invalid", INVALID_LINK_MESSAGE), 400);
+  }
+};
 
 async function validateConsentToken(
   event: Parameters<APIGatewayProxyHandlerV2>[0],

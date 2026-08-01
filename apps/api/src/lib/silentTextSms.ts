@@ -1,5 +1,5 @@
-import { env } from "./env.js";
 import { sendIncidentMediaLinkSms } from "../services/sms/smsProviderFactory.js";
+import { buildSmsFactoryEnv } from "./smsFactoryEnv.js";
 
 /**
  * Outcome of a Silent Text SMS send. `ok=true` requires a real send by Twilio/AWS/mock —
@@ -32,28 +32,13 @@ export async function sendSilentTextSms(params: {
   agencyId: string;
   incidentId: string;
 }): Promise<SilentTextSmsResult> {
-  const result = await sendIncidentMediaLinkSms(
-    {
-      smsProvider: env.smsProvider,
-      smsPrimaryProvider: env.smsPrimaryProvider,
-      deploymentStage: env.deploymentStage,
-      incidentMediaSmsMock: env.incidentMediaSmsMock,
-      mockSmsProvider: env.mockSmsProvider,
-      awsRegion: env.region,
-      awsSmsRegion: env.awsSmsRegion,
-      awsSmsUseSimulator: env.awsSmsUseSimulator,
-      twilioSecretArn: env.incidentMediaTwilioSecretArn,
-      awsSmsConfigurationSetName: env.awsSmsConfigurationSetName,
-      awsSmsPoolId: env.awsSmsPoolId,
-    },
-    {
-      toPhoneE164: params.phoneE164,
-      messageBody: params.message,
-      agencyId: params.agencyId,
-      incidentId: params.incidentId,
-      messageType: "silent_text",
-    },
-  );
+  const result = await sendIncidentMediaLinkSms(buildSmsFactoryEnv(), {
+    toPhoneE164: params.phoneE164,
+    messageBody: params.message,
+    agencyId: params.agencyId,
+    incidentId: params.incidentId,
+    messageType: "silent_text",
+  });
 
   const provider: SilentTextSmsResult["provider"] =
     result.provider === "twilio" || result.provider === "aws" || result.provider === "mock"

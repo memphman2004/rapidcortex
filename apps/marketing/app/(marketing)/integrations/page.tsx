@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { MarketingArticleShell } from "@/components/marketing/marketing-article-shell";
+import { marketingNestConnectPath, marketingRingCustomersPath } from "@/lib/marketing-links";
 import { RC_LITE_PRODUCT_BUNDLES, RC_LITE_VERTICAL_MARKETS } from "rapid-cortex-shared";
 
 export const metadata = {
@@ -63,7 +64,13 @@ export default function IntegrationsLandingPage() {
         </ul>
       </section>
 
-      <div className="mt-14 flex gap-12 text-xs text-slate-400">
+      <div className="mt-14 flex flex-wrap gap-8 text-xs text-slate-400">
+        <a href={marketingNestConnectPath()} className="hover:text-white">
+          Nest™ Connect →
+        </a>
+        <a href={marketingRingCustomersPath()} className="hover:text-white">
+          Ring™ Connect →
+        </a>
         <Link href="/developers" className="hover:text-white">
           Developers hub →
         </Link>

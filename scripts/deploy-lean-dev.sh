@@ -333,6 +333,12 @@ if [[ "${DEPLOY_SAM4}" -eq 1 ]]; then
     _sam4_extra+=("Route53HostedZoneId=${ROUTE53_HOSTED_ZONE_ID}")
     echo "  api4 DNS: Route53HostedZoneId=${ROUTE53_HOSTED_ZONE_ID} → api4.rapidcortex.us"
   fi
+  if [[ -n "${RING_HOMEOWNER_FALLBACK_LATITUDE:-}" ]]; then
+    _sam4_extra+=("RingHomeownerFallbackLatitude=${RING_HOMEOWNER_FALLBACK_LATITUDE}")
+  fi
+  if [[ -n "${RING_HOMEOWNER_FALLBACK_LONGITUDE:-}" ]]; then
+    _sam4_extra+=("RingHomeownerFallbackLongitude=${RING_HOMEOWNER_FALLBACK_LONGITUDE}")
+  fi
   lean_sam_deploy_nested "${SAM_BUILD_DIR}/sam4/template.yaml" "${SAM4_STACK}" ${_sam4_extra[@]:+"${_sam4_extra[@]}"}
   echo "✅ AppSam4Stack deploy complete"
 fi

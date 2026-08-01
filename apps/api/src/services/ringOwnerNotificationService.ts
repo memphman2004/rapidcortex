@@ -120,6 +120,8 @@ export type RingOwnerNotificationInput = {
   incidentCategoryLabel?: string;
   deviceName?: string;
   requestedDurationMinutes: number;
+  /** Single short link used by SMS; opens a landing page with the approve/decline actions. */
+  consentUrl?: string;
   approveUrl: string;
   declineUrl: string;
   /** Owner stop/revoke link (same SMS as Allow/Decline). */
@@ -130,26 +132,40 @@ export type RingOwnerNotificationInput = {
   ringAccountId?: string;
 };
 
-function buildMessageBody(input: RingOwnerNotificationInput): string {
+/**
+ * Kept to two SMS segments with a single link. Multi-segment messages carrying several long
+ * links read as spam to US carriers and get dropped after Twilio has already accepted them, so
+ * the device name and incident detail live on the landing page instead of in the text.
+ * ASCII only — a single non-GSM-7 character (™, curly quotes) halves the per-segment budget.
+ */
+export function buildSmsBody(input: RingOwnerNotificationInput): string {
+  const link = input.consentUrl || input.approveUrl;
+  return [
+    `Rapid Cortex: ${input.agencyName} requests ${input.requestedDurationMinutes}-min live camera view for an active emergency near you.`,
+    `Approve or decline: ${link}`,
+    "Reply STOP to opt out.",
+  ].join("\n");
+}
+
+/** Email has no segment budget, so it keeps the full context and every direct action link. */
+function buildEmailBody(input: RingOwnerNotificationInput): string {
   const device = input.deviceName?.trim() || "camera";
   const incidentType = input.incidentCategoryLabel?.trim() || "active emergency";
   const lines = [
-    "RAPID CORTEX EMERGENCY REQUEST",
     `${input.agencyName} is requesting temporary access to your ${device}`,
     `for an active emergency near your address.`,
     `Incident type: ${incidentType}`,
     `Duration: ${input.requestedDurationMinutes} minutes`,
     "",
-    `ALLOW: ${input.approveUrl}`,
-    `DECLINE: ${input.declineUrl}`,
   ];
+  if (input.consentUrl) {
+    lines.push(`REVIEW THIS REQUEST: ${input.consentUrl}`, "");
+  }
+  lines.push(`ALLOW: ${input.approveUrl}`, `DECLINE: ${input.declineUrl}`);
   if (input.stopUrl) {
     lines.push(`STOP SHARING: ${input.stopUrl}`);
   }
-  lines.push(
-    "",
-    "Every request requires your approval. You can disconnect anytime.",
-  );
+  lines.push("", "Every request requires your approval. You can disconnect anytime.");
   return lines.join("\n");
 }
 
@@ -157,7 +173,6 @@ export async function notifyRingAccountOwner(
   input: RingOwnerNotificationInput,
 ): Promise<{ delivered: boolean; channel?: "sms" | "email" }> {
   const subject = "RAPID CORTEX EMERGENCY REQUEST";
-  const body = buildMessageBody(input);
   const contact = await resolveOwnerContact(input.ownerUserId, {
     phoneE164: input.ownerPhoneE164,
     email: input.ownerEmail,
@@ -167,7 +182,7 @@ export async function notifyRingAccountOwner(
   if (contact.phoneE164) {
     const sms = await sendSilentTextSms({
       phoneE164: contact.phoneE164,
-      message: `${subject}\n\n${body}`,
+      message: buildSmsBody(input),
       agencyId: input.agencyId,
       incidentId: input.incidentId,
     });
@@ -184,7 +199,7 @@ export async function notifyRingAccountOwner(
           Destination: { ToAddresses: [contact.email] },
           Message: {
             Subject: { Data: subject },
-            Body: { Text: { Data: body } },
+            Body: { Text: { Data: buildEmailBody(input) } },
           },
         }),
       );

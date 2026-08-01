@@ -187,19 +187,26 @@ These artifacts **support** evidence collection; they **do not** replace environ
 | `./scripts/fire-drill-rollback.sh` | G5 rollback / kill-switch **checklist** (no cloud mutations). |
 | [`docs/evidence/templates/README.md`](./evidence/templates/README.md) | Copy templates into `docs/evidence/` when filling customer packets. |
 
-### 5C. Communications / SMS evidence (Twilio toll-free)
+### 5C. Communications / SMS evidence (Twilio A2P 10DLC)
 
-#### Toll-Free Messaging Verification
+#### A2P 10DLC Registration
 
-**Status:** APPROVED  
+**Status:** Campaign registration in progress — not production-ready until the campaign is approved **and** the number is assigned to it.  
 **Provider:** Twilio  
-**Verified Number:** +1 855-629-3679 (E.164: `+18556293679`)  
+**Sending Number:** +1 (470) 748-2763 (E.164: `+14707482763`) — US local 10DLC  
 **Business:** Apps On Demand LLC  
-**Approved use:** SMS/MMS messaging through Twilio for **Rapid Cortex** dispatcher-initiated, incident-specific workflows to individuals who contacted 911/public safety and gave consent — see [`docs/product-architecture/INCIDENT_MEDIA_SMS.md`](./product-architecture/INCIDENT_MEDIA_SMS.md).  
-**Evidence:** Twilio approval email from **donotreply@twilio.com** (Twilio Consumer Trust Team); attach PDF beside this gate sheet when submitting a customer packet.  
-**Twilio Toll-Free Verification Request SID:** `HH0d6af73f3875d5b5b416f7579f8144a2` (lookup / disputes in Twilio Console).  
+**Registered use:** SMS/MMS messaging through Twilio for **Rapid Cortex** dispatcher-initiated, incident-specific workflows to individuals who contacted 911/public safety and gave consent — see [`docs/product-architecture/INCIDENT_MEDIA_SMS.md`](./product-architecture/INCIDENT_MEDIA_SMS.md).  
+**Evidence:** Twilio brand + campaign approval notices; attach PDFs beside this gate sheet when submitting a customer packet.  
 **Twilio Account SID:** must match **`accountSid`** in your **Secrets Manager** Twilio JSON and the owning Twilio project — **do not** paste `TWILIO_AUTH_TOKEN` or API secrets into Markdown or ticket bodies.  
-**Restriction:** Do **not** use this number for marketing, promotional campaigns, broad demos, newsletters, or unrelated outbound messaging — that can jeopardize toll-free verification.
+**Gate check:** confirm a live send reaches a real handset and that the delivery receipt reports `delivered` — Twilio returns HTTP 201 for messages carriers later drop, so an accepted send is **not** evidence of delivery. Watch for `errorCode` **30034** (unregistered campaign) and **30007** (carrier filtering) in the `outbound.sms` / `delivery_receipt` CloudWatch logs.  
+**Restriction:** Do **not** use this number for marketing, promotional campaigns, broad demos, newsletters, or unrelated outbound messaging — that can jeopardize the campaign registration.
+
+#### Retired: Toll-Free Messaging Verification
+
+**Status:** APPROVED, sender retired in favor of the 10DLC number above. This verification is specific to the toll-free and does **not** transfer.  
+**Verified Number:** +1 855-629-3679 (E.164: `+18556293679`)  
+**Twilio Toll-Free Verification Request SID:** `HH0d6af73f3875d5b5b416f7579f8144a2` (lookup / disputes in Twilio Console).  
+**Evidence:** Twilio approval email from **donotreply@twilio.com** (Twilio Consumer Trust Team) — retain as historical evidence.
 
 **Controlled test message (staging / own handset first):**
 

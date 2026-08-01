@@ -1,6 +1,8 @@
 import type { APIGatewayProxyHandlerV2 } from "aws-lambda";
 import {
   isRingEnabled,
+  RING_HOMEOWNER_FALLBACK_LATITUDE,
+  RING_HOMEOWNER_FALLBACK_LONGITUDE,
   RingDeviceService,
   RingOAuthService,
   RingTokenExpiredError,
@@ -72,8 +74,8 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
       throw err;
     }
 
-    let fallbackLatitude: number | null = null;
-    let fallbackLongitude: number | null = null;
+    let fallbackLatitude: number | null = RING_HOMEOWNER_FALLBACK_LATITUDE;
+    let fallbackLongitude: number | null = RING_HOMEOWNER_FALLBACK_LONGITUDE;
     try {
       const body = JSON.parse(event.body ?? "{}") as {
         fallbackLatitude?: unknown;
@@ -86,7 +88,7 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
         fallbackLongitude = body.fallbackLongitude;
       }
     } catch {
-      /* empty / non-JSON body is fine */
+      /* empty / non-JSON body is fine — use Columbus GA pilot fallback */
     }
 
     const devices = await deviceService.discoverAndSaveDevices(
@@ -94,7 +96,7 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
       user.userId,
       account.ringAccountId,
       accessToken,
-      { fallbackLatitude, fallbackLongitude },
+      { fallbackLatitude, fallbackLongitude, enableForConnect: true },
     );
 
     await auditRingEvent({

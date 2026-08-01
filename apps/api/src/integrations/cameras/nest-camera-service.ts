@@ -234,8 +234,11 @@ export async function listCitizenNestNearIncident(
     ownership?: string;
     latitude?: number;
     longitude?: number;
+    lat?: number;
+    lng?: number;
     ownerPhone?: string;
     active?: boolean;
+    status?: string;
   }>;
 
   const requests = await listNestRequestsForIncident(agencyId, incidentId);
@@ -248,9 +251,9 @@ export async function listCitizenNestNearIncident(
   const cameras: NestCitizenCamera[] = [];
   for (const item of items) {
     if (item.provider !== "nest" || item.ownership !== "citizen") continue;
-    if (item.active === false) continue;
-    const lat = Number(item.latitude);
-    const lng = Number(item.longitude);
+    if (item.active === false || item.status === "inactive") continue;
+    const lat = Number(item.latitude ?? item.lat);
+    const lng = Number(item.longitude ?? item.lng);
     if (!Number.isFinite(lat) || !Number.isFinite(lng)) continue;
     const distanceMeters = haversineMeters(latitude, longitude, lat, lng);
     if (distanceMeters > radiusMeters) continue;
@@ -303,7 +306,8 @@ export async function createNestConsentRequest(params: {
   }
 
   const requestId = randomUUID();
-  const plainToken = randomBytes(24).toString("hex");
+  // 128 bits in 22 characters — hex would add 26 characters to a length-critical consent SMS.
+  const plainToken = randomBytes(16).toString("base64url");
   const now = new Date();
   const expiresAt = new Date(
     now.getTime() + (params.requestedDurationMinutes + 30) * 60 * 1000,
@@ -335,10 +339,15 @@ export async function createNestConsentRequest(params: {
     process.env.NEST_PUBLIC_API_BASE_URL?.replace(/\/$/, "") ||
     process.env.RING_PUBLIC_API_BASE_URL?.replace(/\/$/, "") ||
     "https://api.rapidcortex.us";
-  const approveUrl = `${base}/api/cameras/providers/nest/consent/${plainToken}/approve`;
-  const declineUrl = `${base}/api/cameras/providers/nest/consent/${plainToken}/decline`;
+  // One short link, ASCII only: multi-segment texts carrying several long links are dropped by
+  // US carriers after Twilio has already accepted them.
+  const consentUrl = `${base}/api/cameras/providers/nest/c/${plainToken}`;
 
-  const body = `${params.agencyName} is requesting temporary Nest camera access for an emergency (${params.requestedDurationMinutes} min). Approve: ${approveUrl} Decline: ${declineUrl}`;
+  const body = [
+    `Rapid Cortex: ${params.agencyName} requests ${params.requestedDurationMinutes}-min live camera view for an active emergency near you.`,
+    `Approve or decline: ${consentUrl}`,
+    "Reply STOP to opt out.",
+  ].join("\n");
   try {
     const sms = await sendSilentTextSms({
       phoneE164: phone,
@@ -358,10 +367,7 @@ export async function createNestConsentRequest(params: {
   }
 }
 
-export async function resolveNestConsentToken(
-  plainToken: string,
-  decision: "APPROVED" | "DECLINED",
-): Promise<{ agencyId: string; incidentId: string } | null> {
+async function findNestRequestByToken(plainToken: string): Promise<NestRequestRecord | null> {
   const { ScanCommand } = await import("@aws-sdk/lib-dynamodb");
   const out = await ddb.send(
     new ScanCommand({
@@ -370,7 +376,31 @@ export async function resolveNestConsentToken(
       ExpressionAttributeValues: { ":t": "nest_request", ":tok": plainToken },
     }),
   );
-  const row = (out.Items?.[0] as NestRequestRecord | undefined) ?? null;
+  return (out.Items?.[0] as NestRequestRecord | undefined) ?? null;
+}
+
+/** Read-only lookup for the consent landing page; does not consume the token. */
+export async function peekNestConsentRequest(plainToken: string): Promise<{
+  deviceName: string;
+  requestedDurationMinutes: number;
+  requestStatus: string;
+  expiresAt: string;
+} | null> {
+  const row = await findNestRequestByToken(plainToken);
+  if (!row) return null;
+  return {
+    deviceName: row.deviceName ?? "camera",
+    requestedDurationMinutes: row.requestedDurationMinutes,
+    requestStatus: row.requestStatus,
+    expiresAt: row.expiresAt,
+  };
+}
+
+export async function resolveNestConsentToken(
+  plainToken: string,
+  decision: "APPROVED" | "DECLINED",
+): Promise<{ agencyId: string; incidentId: string } | null> {
+  const row = await findNestRequestByToken(plainToken);
   if (!row) return null;
   await putNestRequest({ ...row, requestStatus: decision, plainToken: undefined });
   return { agencyId: row.agencyId, incidentId: row.incidentId };
