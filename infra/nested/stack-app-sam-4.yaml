@@ -549,6 +549,10 @@ Parameters:
     Type: String
     Default: ""
     Description: Physical DynamoDB table for citizen Ring owners (RapidCortexRingCitizenOwners-{stage}).
+  SmsRoutingTable:
+    Type: String
+    Default: ""
+    Description: Physical DynamoDB table from the data layer (SmsRoutingTable). Resolves each agency's own outbound sender.
   RingHomeownerParticipantsTable:
     Type: String
     Default: ""
@@ -859,6 +863,7 @@ Conditions:
   CreateManagedRingSessionsTable: !Not [!Condition HasRingSessionsTable]
   HasRingCitizenOwnersTable: !Not [!Equals [!Ref RingCitizenOwnersTable, ""]]
   CreateManagedRingCitizenOwnersTable: !Not [!Condition HasRingCitizenOwnersTable]
+  HasSmsRoutingTable: !Not [!Equals [!Ref SmsRoutingTable, ""]]
   HasRingHomeownerParticipantsTable: !Not [!Equals [!Ref RingHomeownerParticipantsTable, ""]]
   CreateManagedRingHomeownerParticipantsTable: !Not [!Condition HasRingHomeownerParticipantsTable]
   HasRingUnclaimedTokensTable: !Not [!Equals [!Ref RingUnclaimedTokensTable, ""]]
@@ -3309,7 +3314,12 @@ Resources:
             - HasRingCitizenOwnersTable
             - !Ref RingCitizenOwnersTable
             - !Sub "RapidCortexRingCitizenOwners-${DeploymentStage}"
-          CONTACT_FROM_EMAIL: support@rapidcortex.us
+          # CONTACT_FROM_EMAIL intentionally omitted: Globals RC_RUNTIME_CONFIG_JSON already
+          # carries it as "cfe". This function is ~50 bytes from Lambda's 4KB env ceiling.
+          SMS_ROUTING_TABLE: !If
+            - HasSmsRoutingTable
+            - !Ref SmsRoutingTable
+            - !Ref AWS::NoValue
       Policies:
         # Shard B includes IncidentsTable — required by requireActiveRingIncident().
         - !Ref AppManagedPolicyDynamoLambdaCrudShardA
@@ -3339,6 +3349,17 @@ Resources:
               Action:
                 - secretsmanager:GetSecretValue
               Resource: !Ref IncidentMediaTwilioSecretArn
+          - !Ref AWS::NoValue
+        - !If
+          - HasSmsRoutingTable
+          - Statement:
+              Sid: ReadAgencySmsSenderRingOwnerNotify
+              Effect: Allow
+              Action:
+                - dynamodb:Query
+              Resource:
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${SmsRoutingTable}
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${SmsRoutingTable}/index/*
           - !Ref AWS::NoValue
         - Statement:
             Sid: SesRingOwnerNotifyFromSupportIdentity
@@ -4196,12 +4217,29 @@ Resources:
           SMS_PRIMARY_PROVIDER: twilio
           MOCK_SMS_PROVIDER: "false"
           AWS_SMS_USE_SIMULATOR: "false"
-          NEST_PUBLIC_API_BASE_URL: !Ref RingPublicApiBaseUrl
+          # NEST_PUBLIC_API_BASE_URL intentionally omitted: it held the identical value and the
+          # handler already falls back to RING_PUBLIC_API_BASE_URL. This function is the tightest
+          # in the stack against Lambda's 4KB env ceiling.
           RING_PUBLIC_API_BASE_URL: !Ref RingPublicApiBaseUrl
+          SMS_ROUTING_TABLE: !If
+            - HasSmsRoutingTable
+            - !Ref SmsRoutingTable
+            - !Ref AWS::NoValue
       Policies:
         - !Ref AppManagedPolicyDynamoLambdaCrudShardA
         - !Ref AppManagedPolicyDynamoLambdaCrudShardB
         - !Ref AppManagedPolicyNestCameraSecrets
+        - !If
+          - HasSmsRoutingTable
+          - Statement:
+              Sid: ReadAgencySmsSenderNestConsentSms
+              Effect: Allow
+              Action:
+                - dynamodb:Query
+              Resource:
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${SmsRoutingTable}
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${SmsRoutingTable}/index/*
+          - !Ref AWS::NoValue
         - !If
           - HasIncidentMediaTwilioSecretArn
           - Statement:

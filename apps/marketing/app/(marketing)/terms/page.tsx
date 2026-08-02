@@ -9,7 +9,7 @@ export const metadata = {
 
 export default function TermsOfUsePage() {
   return (
-    <LegalDocShell title="Terms of use" lastUpdated="April 23, 2026">
+    <LegalDocShell title="Terms of use" lastReviewed="August 1, 2026">
       <p className="text-slate-400">
         These terms govern access to the {SITE_NAME} websites and, together with an order form or
         statement of work, the use of the software service. A signed agreement with your agency takes

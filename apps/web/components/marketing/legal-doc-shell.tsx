@@ -4,14 +4,16 @@ import { marketingHomePath } from "@/lib/marketing-links";
 
 type Props = {
   title: string;
-  lastUpdated: string;
+  /** Date of the last review. A review that changed nothing still counts, which is why this is
+   * not "last updated" — bumping that would imply a revision to readers relying on the document. */
+  lastReviewed: string;
   children: ReactNode;
 };
 
 /**
  * Public marketing legal pages: desktop-first readable column, not legal advice.
  */
-export function LegalDocShell({ title, lastUpdated, children }: Props) {
+export function LegalDocShell({ title, lastReviewed, children }: Props) {
   const home = marketingHomePath();
   return (
     <article className="mx-auto max-w-3xl px-4 py-12 sm:px-6 sm:py-16">
@@ -25,7 +27,7 @@ export function LegalDocShell({ title, lastUpdated, children }: Props) {
       <h1 className="mt-4 text-2xl font-semibold tracking-tight text-white sm:text-3xl">
         {title}
       </h1>
-      <p className="mt-1 text-sm text-slate-500">Last updated {lastUpdated}</p>
+      <p className="mt-1 text-sm text-slate-500">Last reviewed {lastReviewed}</p>
       <div className="mt-8 space-y-8 text-sm leading-relaxed text-slate-300 [&_a]:text-sky-400 [&_a]:underline-offset-2 hover:[&_a]:text-sky-300">
         {children}
       </div>

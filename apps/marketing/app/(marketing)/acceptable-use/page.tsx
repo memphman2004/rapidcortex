@@ -12,7 +12,7 @@ export const metadata: Metadata = buildPublicPageMetadata({
 
 export default function AcceptableUsePage() {
   return (
-    <LegalDocShell title="Acceptable use policy" lastUpdated="April 23, 2026">
+    <LegalDocShell title="Acceptable use policy" lastReviewed="August 1, 2026">
       <p className="text-slate-400">
         This policy sets expectations for use of the {SITE_NAME} product, APIs, and customer-facing
         properties. It supplements your <Link href="/terms">Terms of use</Link> and any written agreement

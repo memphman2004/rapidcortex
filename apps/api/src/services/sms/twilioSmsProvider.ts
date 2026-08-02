@@ -70,6 +70,12 @@ export async function sendWithTwilio(args: {
   messageType: SmsMessageType;
   /** Public delivery-receipt webhook. Empty means we never learn the terminal status. */
   statusCallbackUrl?: string;
+  /**
+   * Agency-owned sender. Must be a number in the Messaging Service pool, otherwise Twilio
+   * rejects with 21606. Keeping the service attached preserves A2P campaign registration and
+   * STOP/HELP handling; the number only pins which sender the resident sees.
+   */
+  senderE164?: string;
 }): Promise<SmsSendResult> {
   const sentAt = new Date().toISOString();
   const recipientRedacted = redactE164Phone(args.toPhoneE164);
@@ -92,6 +98,10 @@ export async function sendWithTwilio(args: {
   if (statusCallbackUrl) {
     body.set("StatusCallback", statusCallbackUrl);
   }
+  const senderE164 = args.senderE164?.trim() ?? "";
+  if (senderE164) {
+    body.set("From", senderE164);
+  }
   let authHeader: string;
   let url: string;
 
@@ -102,9 +112,9 @@ export async function sendWithTwilio(args: {
   } else {
     if (creds.messagingServiceSid) {
       body.set("MessagingServiceSid", creds.messagingServiceSid);
-    } else if (creds.fromE164) {
+    } else if (creds.fromE164 && !senderE164) {
       body.set("From", creds.fromE164);
-    } else {
+    } else if (!senderE164) {
       return {
         provider: "twilio",
         status: "failed",
@@ -175,6 +185,8 @@ export async function sendWithTwilio(args: {
         providerStatus: providerStatus ?? null,
         numSegments: numSegments ?? null,
         deliveryReceiptsEnabled: statusCallbackUrl.length > 0,
+        senderScope: senderE164 ? "agency" : "shared",
+        sender: senderE164 || null,
         messageType: args.messageType,
         agencyId: args.agencyId,
         incidentId: args.incidentId,

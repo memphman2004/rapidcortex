@@ -4,7 +4,7 @@ import * as twilio from "./twilioSmsProvider.js";
 import { sendIncidentMediaLinkSms, type SmsFactoryEnv } from "./smsProviderFactory.js";
 
 vi.mock("./awsSmsProvider.js", () => ({
-  sendWithAwsSns: vi.fn(),
+  sendWithAwsSms: vi.fn(),
 }));
 
 vi.mock("./twilioSmsProvider.js", () => ({
@@ -33,7 +33,7 @@ const baseArgs = {
 
 describe("sendIncidentMediaLinkSms", () => {
   beforeEach(() => {
-    vi.mocked(aws.sendWithAwsSns).mockReset();
+    vi.mocked(aws.sendWithAwsSms).mockReset();
     vi.mocked(twilio.sendWithTwilio).mockReset();
   });
 
@@ -43,11 +43,11 @@ describe("sendIncidentMediaLinkSms", () => {
       baseArgs,
     );
     expect(r.provider).toBe("mock");
-    expect(aws.sendWithAwsSns).not.toHaveBeenCalled();
+    expect(aws.sendWithAwsSms).not.toHaveBeenCalled();
   });
 
   it("aws mode calls AWS only", async () => {
-    vi.mocked(aws.sendWithAwsSns).mockResolvedValue({
+    vi.mocked(aws.sendWithAwsSms).mockResolvedValue({
       provider: "aws",
       status: "sent",
       messageId: "m1",
@@ -56,8 +56,8 @@ describe("sendIncidentMediaLinkSms", () => {
     });
     const r = await sendIncidentMediaLinkSms({ ...baseEnv, smsProvider: "aws" }, baseArgs);
     expect(r.status).toBe("sent");
-    expect(aws.sendWithAwsSns).toHaveBeenCalledTimes(1);
-    expect(vi.mocked(aws.sendWithAwsSns).mock.calls[0]![0].messageType).toBe("media_upload");
+    expect(aws.sendWithAwsSms).toHaveBeenCalledTimes(1);
+    expect(vi.mocked(aws.sendWithAwsSms).mock.calls[0]![0].messageType).toBe("media_upload");
   });
 
   it("twilio mode calls Twilio only", async () => {
@@ -84,7 +84,7 @@ describe("sendIncidentMediaLinkSms", () => {
       sentAt: new Date().toISOString(),
       retryable: true,
     });
-    vi.mocked(aws.sendWithAwsSns).mockResolvedValue({
+    vi.mocked(aws.sendWithAwsSms).mockResolvedValue({
       provider: "aws",
       status: "sent",
       messageId: "sns-1",
@@ -96,7 +96,7 @@ describe("sendIncidentMediaLinkSms", () => {
     expect(r.provider).toBe("aws");
     expect(r.smsFailoverUsed).toBe(true);
     expect(r.firstAttemptProvider).toBe("twilio");
-    expect(aws.sendWithAwsSns).toHaveBeenCalledTimes(1);
+    expect(aws.sendWithAwsSms).toHaveBeenCalledTimes(1);
   });
 
   it("auto with primary twilio does not fail over on non-retryable Twilio failure", async () => {
@@ -111,11 +111,11 @@ describe("sendIncidentMediaLinkSms", () => {
     const r = await sendIncidentMediaLinkSms({ ...baseEnv, smsProvider: "auto" }, baseArgs);
     expect(r.status).toBe("failed");
     expect(r.provider).toBe("twilio");
-    expect(aws.sendWithAwsSns).not.toHaveBeenCalled();
+    expect(aws.sendWithAwsSms).not.toHaveBeenCalled();
   });
 
   it("auto with primary aws fails over to Twilio on retryable AWS failure", async () => {
-    vi.mocked(aws.sendWithAwsSns).mockResolvedValue({
+    vi.mocked(aws.sendWithAwsSms).mockResolvedValue({
       provider: "aws",
       status: "failed",
       errorCode: "Throttling",

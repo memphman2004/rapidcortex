@@ -12,7 +12,7 @@ export const metadata: Metadata = buildPublicPageMetadata({
 
 export default function PrivacyPolicyPage() {
   return (
-    <LegalDocShell title="Privacy policy" lastUpdated="June 1, 2026">
+    <LegalDocShell title="Privacy policy" lastReviewed="August 1, 2026">
       <p className="text-slate-400">
         This policy describes how {SITE_NAME} and its operators collect, use, and protect information
         in connection with the product and marketing sites. It is not a substitute for your agency’s

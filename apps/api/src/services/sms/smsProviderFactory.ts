@@ -1,6 +1,6 @@
 import type { SmsMessageType, SmsPrimaryProvider, SmsProviderMode, SmsSendResult } from "rapid-cortex-shared";
 import { redactE164Phone } from "rapid-cortex-shared";
-import { sendWithAwsSns } from "./awsSmsProvider.js";
+import { sendWithAwsSms } from "./awsSmsProvider.js";
 import { sendMockSms } from "./mockSmsProvider.js";
 import { sendWithTwilio } from "./twilioSmsProvider.js";
 
@@ -21,6 +21,11 @@ export type SmsFactoryEnv = {
   awsSmsPoolId?: string;
   /** Public Twilio delivery-receipt webhook; empty disables delivery receipts. */
   smsStatusCallbackUrl?: string;
+  /**
+   * Agency-owned sending number, already resolved and tenant-scoped by the caller.
+   * Empty means fall back to the shared Messaging Service pool.
+   */
+  agencySenderE164?: string;
 };
 
 function shouldMock(env: SmsFactoryEnv): boolean {
@@ -49,6 +54,9 @@ function buildAwsCallArgs(
     useSimulator: env.awsSmsUseSimulator,
     configurationSetName: env.awsSmsConfigurationSetName,
     poolId: env.awsSmsPoolId,
+    // Without this the agency's sender would silently revert to the shared pool the moment a
+    // Twilio send fails over to AWS.
+    agencySenderE164: env.agencySenderE164,
   };
 }
 
@@ -66,6 +74,7 @@ function buildTwilioCallArgs(
     ...base,
     secretArn: env.twilioSecretArn,
     statusCallbackUrl: env.smsStatusCallbackUrl,
+    senderE164: env.agencySenderE164,
   };
 }
 
@@ -191,7 +200,7 @@ export async function sendIncidentMediaLinkSms(
       incidentId: args.incidentId,
       destinationMasked,
     });
-    const r = await sendWithAwsSns(buildAwsCallArgs(env, args));
+    const r = await sendWithAwsSms(buildAwsCallArgs(env, args));
     logRoutingSummary(r, { routingMode: "aws", messageType: args.messageType, agencyId: args.agencyId, incidentId: args.incidentId });
     return r;
   }
@@ -232,7 +241,7 @@ async function sendAutoFailover(
       incidentId: args.incidentId,
       destinationMasked,
     });
-    const r = await sendWithAwsSns(buildAwsCallArgs(env, args));
+    const r = await sendWithAwsSms(buildAwsCallArgs(env, args));
     logRoutingSummary(
       { ...r, smsFailoverUsed: false },
       {
@@ -278,7 +287,7 @@ async function sendAutoFailover(
         incidentId: args.incidentId,
         destinationMasked,
       });
-      const second = await sendWithAwsSns(buildAwsCallArgs(env, args));
+      const second = await sendWithAwsSms(buildAwsCallArgs(env, args));
       if (second.status === "sent") {
         const r: SmsSendResult = {
           ...second,
@@ -332,7 +341,7 @@ async function sendAutoFailover(
     incidentId: args.incidentId,
     destinationMasked,
   });
-  const first = await sendWithAwsSns(buildAwsCallArgs(env, args));
+  const first = await sendWithAwsSms(buildAwsCallArgs(env, args));
   if (first.status === "sent") {
     logRoutingSummary(
       { ...first, smsFailoverUsed: false },

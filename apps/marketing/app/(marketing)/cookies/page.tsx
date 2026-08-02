@@ -9,7 +9,7 @@ export const metadata = {
 
 export default function CookiePolicyPage() {
   return (
-    <LegalDocShell title="Cookie policy" lastUpdated="April 23, 2026">
+    <LegalDocShell title="Cookie policy" lastReviewed="August 1, 2026">
       <p className="text-slate-400">
         This policy explains how {SITE_NAME} and its hosting providers use cookies and similar
         technologies. For personal data more broadly, see our <Link href="/privacy">Privacy policy</Link>.

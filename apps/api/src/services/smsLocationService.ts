@@ -10,7 +10,7 @@ import { env } from "../lib/env.js";
 import { incidentTimelineLogger } from "../lib/incidentTimelineLogger.js";
 import { makeId } from "../lib/ids.js";
 import { PublicBurstLimiter } from "../lib/publicRateLimiter.js";
-import { buildSmsFactoryEnv } from "../lib/smsFactoryEnv.js";
+import { buildSmsFactoryEnvForAgency } from "../lib/smsFactoryEnv.js";
 import { LocationTokenRepository } from "../repositories/locationTokenRepository.js";
 import { WebSocketNotificationService } from "./websocketNotificationService.js";
 import { sendIncidentMediaLinkSms } from "./sms/smsProviderFactory.js";
@@ -34,8 +34,8 @@ function publicBaseUrl(): string {
   );
 }
 
-function smsFactoryEnv() {
-  return buildSmsFactoryEnv({ extraMock: env.locateSmsMock });
+function smsFactoryEnv(agencyId: string) {
+  return buildSmsFactoryEnvForAgency(agencyId, { extraMock: env.locateSmsMock });
 }
 
 function autoReplyMessage(vertical: "campus" | "venue", token: string, base: string): string {
@@ -79,7 +79,7 @@ export class SmsLocationService {
     const publicUrl = `${base}/locate/${encodeURIComponent(token)}`;
     const messageBody = autoReplyMessage(params.vertical, token, base);
 
-    await sendIncidentMediaLinkSms(smsFactoryEnv(), {
+    await sendIncidentMediaLinkSms(await smsFactoryEnv(params.agencyId), {
       toPhoneE164: params.callerPhoneE164,
       messageBody,
       agencyId: params.agencyId,

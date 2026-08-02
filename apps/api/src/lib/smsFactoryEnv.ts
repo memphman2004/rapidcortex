@@ -1,4 +1,5 @@
 import { env } from "./env.js";
+import { resolveAgencySender } from "./agencySmsSender.js";
 import type { SmsFactoryEnv } from "../services/sms/smsProviderFactory.js";
 
 /**
@@ -19,6 +20,22 @@ export function buildSmsFactoryEnv(opts?: { extraMock?: boolean }): SmsFactoryEn
     awsSmsConfigurationSetName: env.awsSmsConfigurationSetName,
     awsSmsPoolId: env.awsSmsPoolId,
     smsStatusCallbackUrl: statusCallbackUrl(),
+  };
+}
+
+/**
+ * Agency-aware variant: residents see their own agency's local number, and no agency can send
+ * under another's sender. Degrades to the shared Messaging Service when the agency has no
+ * registered number, so a missing record never blocks an emergency-path message.
+ */
+export async function buildSmsFactoryEnvForAgency(
+  agencyId: string,
+  opts?: { extraMock?: boolean },
+): Promise<SmsFactoryEnv> {
+  const agencySenderE164 = await resolveAgencySender(agencyId);
+  return {
+    ...buildSmsFactoryEnv(opts),
+    agencySenderE164: agencySenderE164 ?? undefined,
   };
 }
 

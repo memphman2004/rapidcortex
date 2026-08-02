@@ -339,6 +339,25 @@ if [[ "${DEPLOY_SAM4}" -eq 1 ]]; then
   if [[ -n "${RING_HOMEOWNER_FALLBACK_LONGITUDE:-}" ]]; then
     _sam4_extra+=("RingHomeownerFallbackLongitude=${RING_HOMEOWNER_FALLBACK_LONGITUDE}")
   fi
+  # nested_params_override only replays parameters already on the deployed stack, so a newly
+  # added one must be passed explicitly or it silently falls back to its "" default.
+  _sms_routing_table="${SMS_ROUTING_TABLE:-}"
+  if [[ -z "${_sms_routing_table}" ]]; then
+    _data_layer_stack="$(nested_stack_name DataLayerStack || true)"
+    if [[ -n "${_data_layer_stack}" && "${_data_layer_stack}" != "None" ]]; then
+      _sms_routing_table="$(aws cloudformation describe-stacks \
+        --stack-name "${_data_layer_stack}" \
+        --region "${AWS_REGION}" \
+        --query "Stacks[0].Outputs[?OutputKey=='SmsRoutingTable'].OutputValue" \
+        --output text 2>/dev/null || true)"
+    fi
+  fi
+  if [[ -n "${_sms_routing_table}" && "${_sms_routing_table}" != "None" ]]; then
+    _sam4_extra+=("SmsRoutingTable=${_sms_routing_table}")
+    echo "  agency SMS senders: SmsRoutingTable=${_sms_routing_table}"
+  else
+    echo "  agency SMS senders: no SmsRoutingTable resolved — all agencies stay on the shared sender"
+  fi
   lean_sam_deploy_nested "${SAM_BUILD_DIR}/sam4/template.yaml" "${SAM4_STACK}" ${_sam4_extra[@]:+"${_sam4_extra[@]}"}
   echo "✅ AppSam4Stack deploy complete"
 fi
@@ -365,6 +384,15 @@ if [[ "${DEPLOY_SAM5}" -eq 1 ]]; then
   fi
   if [[ -n "${ENABLE_LIVE_VIDEO_RESOURCES:-}" ]]; then
     _sam5_extra+=("EnableLiveVideoResources=${ENABLE_LIVE_VIDEO_RESOURCES}")
+  fi
+  # New parameters are not on the deployed stack yet, so nested_params_override cannot replay them.
+  if [[ -n "${AWS_SMS_POOL_ID:-}" ]]; then
+    _sam5_extra+=("AwsSmsPoolId=${AWS_SMS_POOL_ID}")
+  fi
+  if [[ -n "${AWS_SMS_CONFIGURATION_SET_NAME:-}" ]]; then
+    _sam5_extra+=("AwsSmsConfigurationSetName=${AWS_SMS_CONFIGURATION_SET_NAME}")
+  else
+    echo "  AWS SMS: no configuration set — delivery events will not be emitted"
   fi
   lean_sam_deploy_nested "${SAM_BUILD_DIR}/sam5/template.yaml" "${SAM5_STACK}" ${_sam5_extra[@]:+"${_sam5_extra[@]}"}
   echo "✅ AppSam5Stack deploy complete"

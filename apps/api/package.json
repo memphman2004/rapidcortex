@@ -19,6 +19,7 @@
     "@aws-sdk/client-kinesis-video-archived-media": "^3.699.0",
     "@aws-sdk/client-kinesis-video-signaling": "^3.699.0",
     "@aws-sdk/client-lambda": "^3.699.0",
+    "@aws-sdk/client-pinpoint-sms-voice-v2": "^3.1101.0",
     "@aws-sdk/client-s3": "^3.699.0",
     "@aws-sdk/client-scheduler": "^3.699.0",
     "@aws-sdk/client-secrets-manager": "^3.699.0",

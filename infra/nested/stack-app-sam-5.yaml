@@ -701,6 +701,18 @@ Parameters:
   SmsRoutingTable:
     Type: String
     Description: Physical DynamoDB table name from data layer (SmsRoutingTable).
+  AwsSmsPoolId:
+    Type: String
+    Default: ""
+    Description: >-
+      AWS End User Messaging phone pool id used as the shared sender when an agency has no number
+      of its own. Blank lets the account auto-select an originator.
+  AwsSmsConfigurationSetName:
+    Type: String
+    Default: ""
+    Description: >-
+      AWS End User Messaging configuration set. Required for delivery events — without it an
+      accepted send and a carrier-blocked one are indistinguishable.
   AnalysesTable:
     Type: String
     Description: Physical DynamoDB table name from data layer (AnalysesTable).
@@ -3318,6 +3330,120 @@ Resources:
       QueueName: !Sub "${AppName}-unrouted-sms-${DeploymentStage}"
       MessageRetentionPeriod: 1209600
 
+  # AWS End User Messaging delivers inbound SMS and delivery events to SNS topics rather than
+  # calling an HTTP webhook the way Twilio does, so both paths are SNS-triggered.
+  AwsSmsInboundTopic:
+    Type: AWS::SNS::Topic
+    Properties:
+      TopicName: !Sub "${AppName}-aws-sms-inbound-${DeploymentStage}"
+
+  AwsSmsDeliveryEventsTopic:
+    Type: AWS::SNS::Topic
+    Properties:
+      TopicName: !Sub "${AppName}-aws-sms-delivery-events-${DeploymentStage}"
+
+  AwsSmsTopicPolicy:
+    Type: AWS::SNS::TopicPolicy
+    Properties:
+      Topics:
+        - !Ref AwsSmsInboundTopic
+        - !Ref AwsSmsDeliveryEventsTopic
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Sid: AllowEndUserMessagingPublish
+            Effect: Allow
+            Principal:
+              Service: sms-voice.amazonaws.com
+            Action: sns:Publish
+            Resource:
+              - !Ref AwsSmsInboundTopic
+              - !Ref AwsSmsDeliveryEventsTopic
+            Condition:
+              StringEquals:
+                aws:SourceAccount: !Ref AWS::AccountId
+
+  AwsSmsInboundFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/integrations/sms/aws-sms-inbound.handler
+      Description: "AWS End User Messaging inbound SMS → venue + campus routing"
+      MemorySize: 256
+      Timeout: 15
+      Environment:
+        Variables:
+          LOCATION_TOKENS_TABLE: !Ref LocationTokensTable
+          SMS_ROUTING_TABLE: !Ref SmsRoutingTable
+          AUDIT_TABLE: !Ref AuditTable
+          VENUE_CONFIG_TABLE: !If
+            - HasVenueConfigTable
+            - !Ref VenueConfigTable
+            - ""
+          VENUE_CAMERA_REGISTRY_TABLE: !If
+            - HasVenueCameraRegistryTable
+            - !Ref VenueCameraRegistryTable
+            - ""
+          WEBSOCKET_CONNECTIONS_TABLE: !If
+            - HasWebSocketBroadcast
+            - !Ref WebSocketConnectionsTable
+            - ""
+          WEBSOCKET_API_ENDPOINT: !If
+            - HasWebSocketBroadcast
+            - !Sub https://${WebSocketApiId}.execute-api.${AWS::Region}.amazonaws.com/${DeploymentStage}
+            - ""
+          LOCATE_PUBLIC_BASE_URL: !Ref AppPublicBaseUrl
+          APP_PUBLIC_BASE_URL: !Ref AppPublicBaseUrl
+          INCIDENT_TIMELINE_TABLE: !Sub "rapid-cortex-incident-timeline-${DeploymentStage}"
+          ENABLE_SMS_LOCATION: "true"
+          CARRIER_LOCATION_MOCK: !If [PilotTestFeaturesOn, "true", "false"]
+          LOCATE_SMS_MOCK: !FindInMap [SmsEnvironmentDefaults, !Ref DeploymentStage, MockSmsProvider]
+          SMS_PROVIDER: !FindInMap [SmsEnvironmentDefaults, !Ref DeploymentStage, SmsProvider]
+          SMS_PRIMARY_PROVIDER: !FindInMap [SmsEnvironmentDefaults, !Ref DeploymentStage, SmsPrimaryProvider]
+          MOCK_SMS_PROVIDER: !FindInMap [SmsEnvironmentDefaults, !Ref DeploymentStage, MockSmsProvider]
+          AWS_SMS_USE_SIMULATOR: !FindInMap [SmsEnvironmentDefaults, !Ref DeploymentStage, AwsSmsUseSimulator]
+          AWS_SMS_POOL_ID: !Ref AwsSmsPoolId
+          AWS_SMS_CONFIGURATION_SET_NAME: !Ref AwsSmsConfigurationSetName
+          INCIDENT_MEDIA_TWILIO_SECRET_ARN: !Ref IncidentMediaTwilioSecretArn
+          UNROUTED_SMS_DLQ_URL: !Ref UnroutedSmsDlq
+      Policies:
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardC
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardD
+        - !If
+          - HasWebSocketBroadcast
+          - !Ref AppManagedPolicyWebSocketBroadcast
+          - !Ref AWS::NoValue
+        - Statement:
+            - Effect: Allow
+              Action:
+                - sqs:SendMessage
+              Resource: !GetAtt UnroutedSmsDlq.Arn
+      Events:
+        InboundSms:
+          Type: SNS
+          Properties:
+            Topic: !Ref AwsSmsInboundTopic
+
+  AwsSmsDeliveryEventsFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/integrations/sms/aws-sms-delivery-events.handler
+      Description: "AWS End User Messaging delivery events → CloudWatch (log-only)"
+      MemorySize: 128
+      Timeout: 10
+      Events:
+        DeliveryEvents:
+          Type: SNS
+          Properties:
+            Topic: !Ref AwsSmsDeliveryEventsTopic
+
   VenueSmsInboundFunction:
     Type: AWS::Serverless::Function
     Metadata:
@@ -4268,6 +4394,8 @@ Resources:
           MOCK_SMS_PROVIDER: !If [HasSilentText, "false", !FindInMap [SmsEnvironmentDefaults, !Ref DeploymentStage, MockSmsProvider]]
           AWS_SMS_USE_SIMULATOR: !If [HasSilentText, "false", !FindInMap [SmsEnvironmentDefaults, !Ref DeploymentStage, AwsSmsUseSimulator]]
           AWS_SMS_REGION: ""
+          AWS_SMS_POOL_ID: !Ref AwsSmsPoolId
+          AWS_SMS_CONFIGURATION_SET_NAME: !Ref AwsSmsConfigurationSetName
       Policies:
         - !Ref AppManagedPolicyDynamoLambdaCrudShardA
         - !Ref AppManagedPolicyDynamoLambdaCrudShardB
@@ -4288,6 +4416,15 @@ Resources:
             Condition:
               StringEquals:
                 "sns:Type": "Transactional"
+        - Statement:
+            Sid: AwsEndUserMessagingSendText
+            Effect: Allow
+            Action:
+              - sms-voice:SendTextMessage
+            Resource:
+              - !Sub arn:${AWS::Partition}:sms-voice:${AWS::Region}:${AWS::AccountId}:phone-number/*
+              - !Sub arn:${AWS::Partition}:sms-voice:${AWS::Region}:${AWS::AccountId}:pool/*
+              - !Sub arn:${AWS::Partition}:sms-voice:${AWS::Region}:${AWS::AccountId}:configuration-set/*
         - Statement:
             Sid: AwsEndUserMessagingReadOnly
             Effect: Allow
@@ -4481,6 +4618,8 @@ Resources:
           MOCK_SMS_PROVIDER: !FindInMap [SmsEnvironmentDefaults, !Ref DeploymentStage, MockSmsProvider]
           AWS_SMS_USE_SIMULATOR: !FindInMap [SmsEnvironmentDefaults, !Ref DeploymentStage, AwsSmsUseSimulator]
           AWS_SMS_REGION: ""
+          AWS_SMS_POOL_ID: !Ref AwsSmsPoolId
+          AWS_SMS_CONFIGURATION_SET_NAME: !Ref AwsSmsConfigurationSetName
           # The handler also gates on SURGE_*; blank them here so the file-loaded `env.ts` resolves
           # ENABLE_SURGE=false and Surge routes 503 even if they were ever bound to this function.
           SURGE_CLUSTERS_TABLE: ""
@@ -4499,6 +4638,15 @@ Resources:
             Condition:
               StringEquals:
                 "sns:Type": "Transactional"
+        - Statement:
+            Sid: AwsEndUserMessagingSendText
+            Effect: Allow
+            Action:
+              - sms-voice:SendTextMessage
+            Resource:
+              - !Sub arn:${AWS::Partition}:sms-voice:${AWS::Region}:${AWS::AccountId}:phone-number/*
+              - !Sub arn:${AWS::Partition}:sms-voice:${AWS::Region}:${AWS::AccountId}:pool/*
+              - !Sub arn:${AWS::Partition}:sms-voice:${AWS::Region}:${AWS::AccountId}:configuration-set/*
         - Statement:
             Sid: AwsEndUserMessagingReadOnly
             Effect: Allow
@@ -4727,3 +4875,11 @@ Outputs:
   UnroutedSmsDlqArn:
     Description: SQS DLQ ARN for unrouted inbound SMS.
     Value: !GetAtt UnroutedSmsDlq.Arn
+  AwsSmsInboundTopicArn:
+    Description: >-
+      Set this as the two-way SMS destination on each AWS End User Messaging phone number.
+    Value: !Ref AwsSmsInboundTopic
+  AwsSmsDeliveryEventsTopicArn:
+    Description: >-
+      Set this as the SNS event destination on the AWS End User Messaging configuration set.
+    Value: !Ref AwsSmsDeliveryEventsTopic

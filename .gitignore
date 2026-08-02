@@ -129,3 +129,8 @@ apps/desktop-windows/src/RapidCortexDesktop.Wpf/appsettings.Staging.json
 apps/desktop-windows/src/RapidCortexDesktop.Wpf/appsettings.Development.json
 apps/desktop-windows/src/RapidCortexDesktop.Wpf/appsettings.json
 
+# 10DLC filings carry the company EIN and registration ids; only the templates are tracked
+scripts/aws-10dlc/*.json
+!scripts/aws-10dlc/*.example.json
+.aws-10dlc-state.json
+

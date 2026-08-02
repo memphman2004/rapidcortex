@@ -102,4 +102,54 @@ describe("twilioSmsProvider", () => {
       `StatusCallback=${encodeURIComponent("https://api.example.com/api/sms/twilio/status?k=abc")}`,
     );
   });
+
+  it("pins the agency sender while keeping the Messaging Service attached", async () => {
+    smSend.mockResolvedValue({
+      SecretString: JSON.stringify({
+        accountSid: "ACaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        authToken: "token",
+        messagingServiceSid: "MGcccccccccccccccccccccccccccccccc",
+      }),
+    });
+    fetchMock.mockResolvedValue(new Response(JSON.stringify({ sid: "SMz" }), { status: 201 }));
+
+    await sendWithTwilio({
+      secretArn: "arn:aws:secretsmanager:us-east-1:0:secret:test",
+      toPhoneE164: "+15555550100",
+      messageBody: "hi",
+      agencyId: "columbus-ga",
+      incidentId: "i",
+      messageType: "silent_text",
+      senderE164: "+14707482763",
+    });
+
+    const [, init] = fetchMock.mock.calls[0]!;
+    // Both must be present: the service carries A2P registration and STOP handling,
+    // the From decides which number the resident actually sees.
+    expect(String(init.body)).toContain("From=%2B14707482763");
+    expect(String(init.body)).toContain("MessagingServiceSid=MGcccccccccccccccccccccccccccccccc");
+  });
+
+  it("uses the shared Messaging Service when no agency sender is resolved", async () => {
+    smSend.mockResolvedValue({
+      SecretString: JSON.stringify({
+        accountSid: "ACaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        authToken: "token",
+        messagingServiceSid: "MGcccccccccccccccccccccccccccccccc",
+      }),
+    });
+    fetchMock.mockResolvedValue(new Response(JSON.stringify({ sid: "SMz" }), { status: 201 }));
+
+    await sendWithTwilio({
+      secretArn: "arn:aws:secretsmanager:us-east-1:0:secret:test",
+      toPhoneE164: "+15555550100",
+      messageBody: "hi",
+      agencyId: "columbus-ga",
+      incidentId: "i",
+      messageType: "silent_text",
+    });
+
+    const [, init] = fetchMock.mock.calls[0]!;
+    expect(String(init.body)).not.toContain("From=");
+  });
 });

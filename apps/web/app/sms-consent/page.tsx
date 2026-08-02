@@ -13,7 +13,7 @@ export const metadata = {
 
 export default function SmsConsentPage() {
   return (
-    <LegalDocShell title={PAGE_TITLE} lastUpdated="April 30, 2026">
+    <LegalDocShell title={PAGE_TITLE} lastReviewed="August 1, 2026">
       <section className="space-y-4 pb-8">
         <p>
           By providing a mobile number through Rapid Cortex forms or approved agency workflows, you consent to receive

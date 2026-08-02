@@ -1,6 +1,28 @@
-import { PublishCommand, SNSClient } from "@aws-sdk/client-sns";
+import {
+  PinpointSMSVoiceV2Client,
+  SendTextMessageCommand,
+} from "@aws-sdk/client-pinpoint-sms-voice-v2";
 import type { SmsMessageType, SmsSendResult } from "rapid-cortex-shared";
 import { redactE164Phone } from "rapid-cortex-shared";
+
+/**
+ * AWS End User Messaging SMS (the SMS/Voice v2 API, `pinpoint-sms-voice-v2`).
+ *
+ * Replaces the earlier SNS `Publish` path, which could not select an origination number per
+ * message and so could not honor an agency's own sender. Despite the SDK package name, this API
+ * is unaffected by the Amazon Pinpoint end of support on 2026-10-30.
+ */
+
+/** Lambda containers are reused; one client per region avoids rebuilding it per invocation. */
+const clients = new Map<string, PinpointSMSVoiceV2Client>();
+
+function clientFor(region: string): PinpointSMSVoiceV2Client {
+  const existing = clients.get(region);
+  if (existing) return existing;
+  const created = new PinpointSMSVoiceV2Client({ region });
+  clients.set(region, created);
+  return created;
+}
 
 /** E.164: leading +, then 2–15 digits (ITU max length). */
 function isE164(phone: string): boolean {
@@ -35,10 +57,32 @@ export function classifyAwsSmsError(e: unknown): AwsSmsErrorClassification {
   if (name === "OptedOutException" || name === "EndpointDisabled" || m.includes("opt out") || m.includes("opted out")) {
     return { retryable: false, errorCode: code, errorMessage: message.slice(0, 500) };
   }
-  if (name === "Throttling" || name === "TooManyRequestsException" || name === "ServiceUnavailable" || m.includes("throttl")) {
+  // v2 API surfaces these for a missing/unregistered origination identity or an exhausted spend
+  // quota. Failing them over to Twilio is right — retrying AWS cannot succeed.
+  if (
+    name === "AccessDeniedException" ||
+    name === "ResourceNotFoundException" ||
+    name === "ConflictException" ||
+    name === "ServiceQuotaExceededException"
+  ) {
+    return { retryable: false, errorCode: code, errorMessage: message.slice(0, 500) };
+  }
+  if (
+    name === "Throttling" ||
+    name === "ThrottlingException" ||
+    name === "TooManyRequestsException" ||
+    name === "ServiceUnavailable" ||
+    m.includes("throttl")
+  ) {
     return { retryable: true, errorCode: code, errorMessage: message.slice(0, 500) };
   }
-  if (name === "InternalError" || name === "InternalFailure" || name === "RequestTimeout" || m.includes("timeout")) {
+  if (
+    name === "InternalError" ||
+    name === "InternalFailure" ||
+    name === "InternalServerException" ||
+    name === "RequestTimeout" ||
+    m.includes("timeout")
+  ) {
     return { retryable: true, errorCode: code, errorMessage: message.slice(0, 500) };
   }
   if (name === "NetworkingError" || name === "TimeoutError" || m.includes("econnreset") || m.includes("socket")) {
@@ -51,11 +95,26 @@ export function classifyAwsSmsError(e: unknown): AwsSmsErrorClassification {
 }
 
 /**
- * AWS SNS direct-to-number publish (SMS). All AWS-specific behavior stays in this module.
- * Optional configuration set / pool ids are non-secret; when set they are logged for ops (SNS Publish
- * does not accept Pinpoint pool ids — use account-level SMS settings or a future Pinpoint path).
+ * Resolve which identity the message is sent from, in descending order of specificity:
+ * the agency's own number, then the shared pool, then whatever the account auto-selects.
  */
-export async function sendWithAwsSns(args: {
+function resolveOriginationIdentity(args: {
+  agencySenderE164?: string;
+  poolId?: string;
+}): { originationIdentity?: string; senderScope: "agency" | "pool" | "account" } {
+  const agencySender = args.agencySenderE164?.trim();
+  if (agencySender) return { originationIdentity: agencySender, senderScope: "agency" };
+  const poolId = args.poolId?.trim();
+  if (poolId) return { originationIdentity: poolId, senderScope: "pool" };
+  return { senderScope: "account" };
+}
+
+/**
+ * AWS End User Messaging SMS send. All AWS-specific behavior stays in this module.
+ * The configuration set is what routes delivery events, so leaving it unset means the same
+ * blind spot Twilio had before delivery receipts: an accepted send and a dropped one look alike.
+ */
+export async function sendWithAwsSms(args: {
   toPhoneE164: string;
   messageBody: string;
   agencyId: string;
@@ -66,6 +125,8 @@ export async function sendWithAwsSns(args: {
   /** Non-secret operator config (logged, not credentials). */
   configurationSetName?: string;
   poolId?: string;
+  /** Agency-owned sender, already tenant-scoped by the caller. */
+  agencySenderE164?: string;
 }): Promise<SmsSendResult> {
   const sentAt = new Date().toISOString();
   const recipientRedacted = isE164(args.toPhoneE164) ? redactE164Phone(args.toPhoneE164) : "***";
@@ -119,18 +180,16 @@ export async function sendWithAwsSns(args: {
     };
   }
 
-  const sns = new SNSClient({ region: args.region });
+  const { originationIdentity, senderScope } = resolveOriginationIdentity(args);
+
   try {
-    const out = await sns.send(
-      new PublishCommand({
-        PhoneNumber: args.toPhoneE164,
-        Message: args.messageBody,
-        MessageAttributes: {
-          "AWS.SNS.SMS.SMSType": {
-            DataType: "String",
-            StringValue: "Transactional",
-          },
-        },
+    const out = await clientFor(args.region).send(
+      new SendTextMessageCommand({
+        DestinationPhoneNumber: args.toPhoneE164,
+        MessageBody: args.messageBody,
+        MessageType: "TRANSACTIONAL",
+        OriginationIdentity: originationIdentity,
+        ConfigurationSetName: args.configurationSetName?.trim() || undefined,
       }),
     );
 
@@ -138,14 +197,18 @@ export async function sendWithAwsSns(args: {
       JSON.stringify({
         type: "outbound.sms",
         provider: "aws",
-        outcome: "sent",
+        // AWS has accepted the message; the handset outcome arrives later as a configuration-set
+        // delivery event. Do not read this as proof of delivery.
+        outcome: "accepted",
         messageType: args.messageType,
         agencyId: args.agencyId,
         incidentId: args.incidentId,
         destinationMasked: recipientRedacted,
         messageId: out.MessageId ?? null,
         configurationSetName: args.configurationSetName ?? null,
-        poolId: args.poolId ?? null,
+        senderScope,
+        sender: originationIdentity ?? null,
+        deliveryEventsEnabled: Boolean(args.configurationSetName?.trim()),
       }),
     );
 

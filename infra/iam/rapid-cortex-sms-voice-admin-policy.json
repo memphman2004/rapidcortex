@@ -1,0 +1,114 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "SmsVoiceReadOnlyDiscovery",
+      "Effect": "Allow",
+      "Action": [
+        "sms-voice:DescribeAccountAttributes",
+        "sms-voice:DescribeAccountLimits",
+        "sms-voice:DescribeConfigurationSets",
+        "sms-voice:DescribeKeywords",
+        "sms-voice:DescribeOptOutLists",
+        "sms-voice:DescribePhoneNumbers",
+        "sms-voice:DescribePools",
+        "sms-voice:DescribeRegistrationAttachments",
+        "sms-voice:DescribeRegistrationFieldDefinitions",
+        "sms-voice:DescribeRegistrationFieldValues",
+        "sms-voice:DescribeRegistrationSectionDefinitions",
+        "sms-voice:DescribeRegistrationTypeDefinitions",
+        "sms-voice:DescribeRegistrationVersions",
+        "sms-voice:DescribeRegistrations",
+        "sms-voice:DescribeSenderIds",
+        "sms-voice:DescribeSpendLimits",
+        "sms-voice:DescribeVerifiedDestinationNumbers",
+        "sms-voice:ListPoolOriginationIdentities",
+        "sms-voice:ListRegistrationAssociations",
+        "sms-voice:ListTagsForResource"
+      ],
+      "Resource": "*"
+    },
+    {
+      "Sid": "TenDlcRegistrationLifecycle",
+      "Effect": "Allow",
+      "Action": [
+        "sms-voice:CreateRegistration",
+        "sms-voice:CreateRegistrationAssociation",
+        "sms-voice:CreateRegistrationAttachment",
+        "sms-voice:CreateRegistrationVersion",
+        "sms-voice:DeleteRegistration",
+        "sms-voice:DeleteRegistrationAttachment",
+        "sms-voice:DeleteRegistrationFieldValue",
+        "sms-voice:DiscardRegistrationVersion",
+        "sms-voice:PutRegistrationFieldValue",
+        "sms-voice:SubmitRegistrationVersion"
+      ],
+      "Resource": [
+        "arn:aws:sms-voice:us-east-1:158961537080:registration/*",
+        "arn:aws:sms-voice:us-east-1:158961537080:registration-attachment/*"
+      ]
+    },
+    {
+      "Sid": "OriginationIdentityAndConfigSetManagement",
+      "Effect": "Allow",
+      "Action": [
+        "sms-voice:AssociateOriginationIdentity",
+        "sms-voice:CreateConfigurationSet",
+        "sms-voice:CreateEventDestination",
+        "sms-voice:CreatePool",
+        "sms-voice:DeleteConfigurationSet",
+        "sms-voice:DeleteEventDestination",
+        "sms-voice:DisassociateOriginationIdentity",
+        "sms-voice:RequestPhoneNumber",
+        "sms-voice:SetDefaultMessageType",
+        "sms-voice:UpdateEventDestination",
+        "sms-voice:UpdatePhoneNumber",
+        "sms-voice:UpdatePool"
+      ],
+      "Resource": [
+        "arn:aws:sms-voice:us-east-1:158961537080:configuration-set/*",
+        "arn:aws:sms-voice:us-east-1:158961537080:phone-number/*",
+        "arn:aws:sms-voice:us-east-1:158961537080:pool/*"
+      ]
+    },
+    {
+      "Sid": "RuntimeKeywordAndOptOutManagement",
+      "Effect": "Allow",
+      "Action": [
+        "sms-voice:CreateOptOutList",
+        "sms-voice:DeleteKeyword",
+        "sms-voice:DeleteOptedOutNumber",
+        "sms-voice:DescribeOptedOutNumbers",
+        "sms-voice:PutKeyword",
+        "sms-voice:PutOptedOutNumber"
+      ],
+      "Resource": [
+        "arn:aws:sms-voice:us-east-1:158961537080:opt-out-list/*",
+        "arn:aws:sms-voice:us-east-1:158961537080:phone-number/*",
+        "arn:aws:sms-voice:us-east-1:158961537080:pool/*"
+      ]
+    },
+    {
+      "Sid": "SmokeTestSend",
+      "Effect": "Allow",
+      "Action": ["sms-voice:SendTextMessage"],
+      "Resource": [
+        "arn:aws:sms-voice:us-east-1:158961537080:configuration-set/*",
+        "arn:aws:sms-voice:us-east-1:158961537080:phone-number/*",
+        "arn:aws:sms-voice:us-east-1:158961537080:pool/*",
+        "arn:aws:sms-voice:us-east-1:158961537080:sender-id/*"
+      ]
+    },
+    {
+      "Sid": "SandboxDestinationVerification",
+      "Effect": "Allow",
+      "Action": [
+        "sms-voice:CreateVerifiedDestinationNumber",
+        "sms-voice:DeleteVerifiedDestinationNumber",
+        "sms-voice:SendDestinationNumberVerificationCode",
+        "sms-voice:VerifyDestinationNumber"
+      ],
+      "Resource": "arn:aws:sms-voice:us-east-1:158961537080:verified-destination-number/*"
+    }
+  ]
+}

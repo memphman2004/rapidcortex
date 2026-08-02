@@ -16,7 +16,7 @@ import { AUDIT_EVENT_TYPES, TenantAccessGuard } from "rapid-cortex-security";
 import { env } from "../lib/env.js";
 import { makeId } from "../lib/ids.js";
 import { classifyLocationConfidence } from "../lib/location-confidence.js";
-import { buildSmsFactoryEnv } from "../lib/smsFactoryEnv.js";
+import { buildSmsFactoryEnvForAgency } from "../lib/smsFactoryEnv.js";
 import { AuditRepository } from "../repositories/auditRepository.js";
 import { PinpointLinkRepository, type PinpointLinkDdbItem } from "../repositories/pinpointLinkRepository.js";
 import { resolveIncidentRead } from "../lib/incidentReadAccess.js";
@@ -77,7 +77,7 @@ export class PinpointService {
     const msg = `Rapid Cortex: help responders find you. Optional — tap to share your phone location once: ${publicUrl}`;
 
     const sms = await sendIncidentMediaLinkSms(
-      buildSmsFactoryEnv({ extraMock: env.pinpointSmsMock }),
+      await buildSmsFactoryEnvForAgency(incident.agencyId, { extraMock: env.pinpointSmsMock }),
       {
         toPhoneE164: body.callerPhoneE164,
         messageBody: msg,

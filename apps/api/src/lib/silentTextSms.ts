@@ -1,5 +1,5 @@
 import { sendIncidentMediaLinkSms } from "../services/sms/smsProviderFactory.js";
-import { buildSmsFactoryEnv } from "./smsFactoryEnv.js";
+import { buildSmsFactoryEnvForAgency } from "./smsFactoryEnv.js";
 
 /**
  * Outcome of a Silent Text SMS send. `ok=true` requires a real send by Twilio/AWS/mock —
@@ -32,7 +32,7 @@ export async function sendSilentTextSms(params: {
   agencyId: string;
   incidentId: string;
 }): Promise<SilentTextSmsResult> {
-  const result = await sendIncidentMediaLinkSms(buildSmsFactoryEnv(), {
+  const result = await sendIncidentMediaLinkSms(await buildSmsFactoryEnvForAgency(params.agencyId), {
     toPhoneE164: params.phoneE164,
     messageBody: params.message,
     agencyId: params.agencyId,

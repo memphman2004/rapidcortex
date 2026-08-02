@@ -1,0 +1,16 @@
+{
+  "companyInfo.companyName": "REPLACE Legal Company Name LLC",
+  "companyInfo.taxIdIssuingCountry": "US",
+  "companyInfo.taxId": "REPLACE-EIN-99-9999999",
+  "companyInfo.legalType": "PRIVATE_PROFIT",
+  "companyInfo.address": "REPLACE 123 Example St Suite 100",
+  "companyInfo.city": "REPLACE City",
+  "companyInfo.state": "REPLACE ST",
+  "companyInfo.zipCode": "REPLACE 00000",
+  "companyInfo.isoCountryCode": "US",
+  "contactInfo.dbaName": "Rapid Cortex",
+  "contactInfo.vertical": "GOVERNMENT",
+  "contactInfo.website": "REPLACE https://www.example.com",
+  "contactInfo.supportEmail": "REPLACE support@example.com",
+  "contactInfo.supportPhoneNumber": "REPLACE +15555550100"
+}

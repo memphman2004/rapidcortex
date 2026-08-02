@@ -15,7 +15,7 @@ import type {
 import { redactE164Phone } from "rapid-cortex-shared";
 import { env } from "../lib/env.js";
 import { makeId } from "../lib/ids.js";
-import { buildSmsFactoryEnv } from "../lib/smsFactoryEnv.js";
+import { buildSmsFactoryEnvForAgency } from "../lib/smsFactoryEnv.js";
 import { AuditRepository } from "../repositories/auditRepository.js";
 import { IncidentRepository } from "../repositories/incidentRepository.js";
 import { LiveVideoRepository } from "../repositories/liveVideoRepository.js";
@@ -146,7 +146,7 @@ export class LiveVideoService {
 
     const smsText = `Rapid Cortex: A dispatcher requested a secure live video link for your active incident. Joining is optional. Open: ${callerUrl}`;
     const smsResult = await sendIncidentMediaLinkSms(
-      buildSmsFactoryEnv(),
+      await buildSmsFactoryEnvForAgency(incident.agencyId),
       {
         toPhoneE164: body.callerPhone,
         messageBody: smsText,

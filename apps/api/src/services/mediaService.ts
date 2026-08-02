@@ -23,7 +23,7 @@ import {
 import { isSupervisorOrAdmin } from "rapid-cortex-security";
 import { env } from "../lib/env.js";
 import { makeId } from "../lib/ids.js";
-import { buildSmsFactoryEnv } from "../lib/smsFactoryEnv.js";
+import { buildSmsFactoryEnvForAgency } from "../lib/smsFactoryEnv.js";
 import { sendIncidentMediaLinkSms } from "./sms/smsProviderFactory.js";
 import { AuditRepository } from "../repositories/auditRepository.js";
 import { AgencyRepository } from "../repositories/agencyRepository.js";
@@ -161,7 +161,7 @@ export class MediaService {
     const msg = `Rapid Cortex: A dispatcher requested a secure incident media upload link. Sharing is optional. Open: ${publicUrl}`;
 
     const sms = await sendIncidentMediaLinkSms(
-      buildSmsFactoryEnv(),
+      await buildSmsFactoryEnvForAgency(incident.agencyId),
       {
         toPhoneE164: body.callerPhoneE164,
         messageBody: msg,

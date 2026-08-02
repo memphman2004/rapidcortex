@@ -101,6 +101,18 @@ Parameters:
     Default: dispatcher
     AllowedValues: [dispatcher, commsupervisor, agencyadmin, agencyit, analyst, auditor, rcsuperadmin, rcadmin, rcitadmin]
     Description: custom:role written by PostConfirmation when the user has no role yet.
+  AwsSmsPoolId:
+    Type: String
+    Default: ""
+    Description: >-
+      AWS End User Messaging phone pool id used as the shared SMS sender when an agency has no
+      number of its own. Blank lets the account auto-select an originator.
+  AwsSmsConfigurationSetName:
+    Type: String
+    Default: ""
+    Description: >-
+      AWS End User Messaging configuration set name. Required for SMS delivery events — without it
+      an accepted send and a carrier-blocked one look identical.
   QaBedrockModelId:
     Type: String
     Default: anthropic.claude-haiku-4-5-20251001-v1:0
@@ -2059,6 +2071,11 @@ Resources:
             - HasDataLayerNestedStack
             - !GetAtt DataLayerStack.Outputs.PinpointLinksTable
             - !Sub "${DynamoTableNamePrefix}-pinpoint-links-${DeploymentStage}"
+        SmsRoutingTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.SmsRoutingTable
+            - !Sub "${DynamoTableNamePrefix}-sms-routing-${DeploymentStage}"
         SnsEmailSubscription: !Ref SnsEmailSubscription
         SnsSmsSubscription: !Ref SnsSmsSubscription
         TranscriptRetentionPolicyDays: !Ref TranscriptRetentionPolicyDays
@@ -2500,6 +2517,8 @@ Resources:
             - HasDataLayerNestedStack
             - !GetAtt DataLayerStack.Outputs.SmsRoutingTable
             - !Sub "${DynamoTableNamePrefix}-sms-routing-${DeploymentStage}"
+        AwsSmsPoolId: !Ref AwsSmsPoolId
+        AwsSmsConfigurationSetName: !Ref AwsSmsConfigurationSetName
         SnsEmailSubscription: !Ref SnsEmailSubscription
         SnsSmsSubscription: !Ref SnsSmsSubscription
         TranscriptRetentionPolicyDays: !Ref TranscriptRetentionPolicyDays
