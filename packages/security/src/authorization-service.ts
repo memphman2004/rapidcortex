@@ -17,6 +17,7 @@ import {
   canVenueRolePerform,
   isCampusRole,
   isVenueRole,
+  type CampusRole,
   type VenueRole,
 } from "./role-access-matrix-v2.js";
 
@@ -28,9 +29,22 @@ function resolveVenueMatrixRole(role: string): VenueRole | null {
   return null;
 }
 
+/** Session tokens are often `campus_admin`; matrix keys are `CAMPUS_ADMIN`. */
+function resolveCampusMatrixRole(role: string): CampusRole | null {
+  const upper = role.trim().toUpperCase();
+  if (isCampusRole(upper)) return upper;
+  const migrated = migrateLegacyRapidCortexRoleTokenValue(role)?.toUpperCase() ?? "";
+  // migrateLegacy maps CAMPUS_DISPATCH → campus_security
+  if (migrated === "CAMPUS_SECURITY" || migrated === "CAMPUS_DISPATCH") return "CAMPUS_SECURITY";
+  if (isCampusRole(migrated)) return migrated;
+  return null;
+}
+
 function resolveRoleAlias(role: UserRole | string): UserRole {
   const raw = String(role ?? "").trim();
-  const campusMapped = CAMPUS_ROLE_BASE_MAP[raw as keyof typeof CAMPUS_ROLE_BASE_MAP];
+  const campusMapped =
+    CAMPUS_ROLE_BASE_MAP[raw as keyof typeof CAMPUS_ROLE_BASE_MAP] ??
+    CAMPUS_ROLE_BASE_MAP[raw.toUpperCase() as keyof typeof CAMPUS_ROLE_BASE_MAP];
   if (campusMapped) return campusMapped;
   return (migrateLegacyRapidCortexRoleTokenValue(raw) ?? raw) as UserRole;
 }
@@ -65,7 +79,12 @@ export class AuthorizationService {
 
   canCreateInvite(user: UserContext, targetAgencyId: string): boolean {
     if (isRcsuperadmin(user)) return true;
-    return user.role === "agencyadmin" && user.agencyId === targetAgencyId;
+    if (!user.agencyId || user.agencyId !== targetAgencyId) return false;
+    if (user.role === "agencyadmin") return true;
+    // Campus / venue admins manage staff invites inside their own tenant.
+    if (resolveCampusMatrixRole(String(user.role)) === "CAMPUS_ADMIN") return true;
+    if (resolveVenueMatrixRole(String(user.role)) === "VENUE_ADMIN") return true;
+    return false;
   }
 
   assertAgencyAdminManagingSameAgency(user: UserContext, targetAgencyId: string): void {
@@ -133,8 +152,12 @@ export class AuthorizationService {
     if (isRcsuperadmin(user)) return true;
     const permissionKey = String(permission);
     const rawRole = String(user.role ?? "").trim();
-    if (isCampusRole(rawRole) && (permissionKey.startsWith("campus.") || permissionKey.startsWith("locations."))) {
-      return canCampusRolePerform(rawRole, permissionKey);
+    const campusRole = resolveCampusMatrixRole(rawRole);
+    if (
+      campusRole &&
+      (permissionKey.startsWith("campus.") || permissionKey.startsWith("locations."))
+    ) {
+      return canCampusRolePerform(campusRole, permissionKey);
     }
     const venueRole = resolveVenueMatrixRole(rawRole);
     if (

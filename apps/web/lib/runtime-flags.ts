@@ -331,6 +331,11 @@ export function isSalesLeadsUiEnabled(): boolean {
   return envFlag("NEXT_PUBLIC_ENABLE_SALES_LEADS");
 }
 
+/** RC Admin Hiring ATS (careers applications). Default on when unset. */
+export function isHiringUiEnabled(): boolean {
+  return envFlag("NEXT_PUBLIC_ENABLE_HIRING");
+}
+
 /** Campus Clery ASR workspace (manual entry, CSV import, report). Default on when unset. */
 export function isCampusCleryEnabled(): boolean {
   return envFlag("NEXT_PUBLIC_ENABLE_CAMPUS_CLERY");

@@ -134,6 +134,25 @@ describe("AuthorizationService.canPerform / assertCanPerform", () => {
         auth.canPerform(supervisor, "qa.scorecards_create"),
       );
     });
+
+    it("grants campus.* permissions for session-normalized campus_admin tokens", () => {
+      const sessionCampusAdmin = makeUser("campus_admin" as UserRole, {
+        agencyId: "last-campus-uga",
+      });
+      expect(auth.canPerform(sessionCampusAdmin, "campus.clery.view")).toBe(true);
+      expect(auth.canPerform(sessionCampusAdmin, "campus.clery.manage")).toBe(true);
+      expect(auth.canPerform(sessionCampusAdmin, "campus.analytics.view")).toBe(true);
+      expect(auth.canCreateInvite(sessionCampusAdmin, "last-campus-uga")).toBe(true);
+      expect(auth.canCreateInvite(sessionCampusAdmin, "other-agency")).toBe(false);
+    });
+
+    it("grants venue invite creation for session-normalized venue_admin tokens", () => {
+      const sessionVenueAdmin = makeUser("venue_admin" as UserRole, {
+        agencyId: "last-venue-acme",
+      });
+      expect(auth.canCreateInvite(sessionVenueAdmin, "last-venue-acme")).toBe(true);
+      expect(auth.canCreateInvite(sessionVenueAdmin, "other-agency")).toBe(false);
+    });
   });
 
   describe("hospital roles", () => {

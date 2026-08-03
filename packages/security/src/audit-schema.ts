@@ -67,6 +67,11 @@ export const AUDIT_EVENT_TYPES = {
   SALES_LEAD_VIEWED: "sales_lead.viewed",
   SALES_LEAD_STAGE_CHANGED: "sales_lead.stage_changed",
   SALES_LEAD_NOTE_ADDED: "sales_lead.note_added",
+  JOB_APPLICATION_CREATED: "job_application.created",
+  JOB_APPLICATION_VIEWED: "job_application.viewed",
+  JOB_APPLICATION_STATUS_CHANGED: "job_application.status_changed",
+  JOB_APPLICATION_NOTE_ADDED: "job_application.note_added",
+  JOB_APPLICATION_RESUME_VIEWED: "job_application.resume_viewed",
 
   GRANT_PACKAGE_GENERATED: "grant_package.generated",
 

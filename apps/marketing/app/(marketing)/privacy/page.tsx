@@ -16,8 +16,33 @@ export default function PrivacyPolicyPage() {
       <p className="text-slate-400">
         This policy describes how {SITE_NAME} and its operators collect, use, and protect information
         in connection with the product and marketing sites. It is not a substitute for your agency’s
-        own privacy program, public records rules, or counsel review.
+        own privacy program, public records rules, or counsel review. For A2P 10DLC and SMS compliance,
+        this page at{" "}
+        <a href="https://www.rapidcortex.us/privacy">https://www.rapidcortex.us/privacy</a> is the
+        single controlling privacy policy for Apps on Demand LLC d/b/a Rapid Cortex.
       </p>
+
+      <section className="space-y-3 rounded-lg border border-sky-800/40 bg-sky-950/20 p-4">
+        <h2 className="text-base font-semibold text-white">
+          Mobile numbers and messaging consent — no marketing sharing
+        </h2>
+        <p>
+          <strong className="font-medium text-slate-100">
+            We do not share, sell, or provide your mobile phone number or messaging consent data to
+            third parties or affiliates for marketing or promotional purposes.
+          </strong>
+        </p>
+        <p className="text-slate-400">
+          Mobile phone numbers and SMS opt-in/consent data collected for the Rapid Cortex SMS messaging
+          program (including Rapid Cortex Connect camera-consent texts and dispatcher-initiated incident
+          texts) are used only to deliver those transactional messages, honor STOP/HELP requests, and
+          operate, secure, and audit the service. Message frequency varies.{" "}
+          <strong className="font-medium text-slate-200">Message and data rates may apply.</strong> Reply{" "}
+          <strong className="font-medium text-slate-200">STOP</strong> to opt out or{" "}
+          <strong className="font-medium text-slate-200">HELP</strong> for help (
+          <a href="mailto:support@rapidcortex.us">support@rapidcortex.us</a>).
+        </p>
+      </section>
 
       <section className="space-y-3">
         <h2 className="text-base font-semibold text-white">Who this applies to</h2>
@@ -36,6 +61,12 @@ export default function PrivacyPolicyPage() {
             identifier, and role, provided during onboarding or sign-in.
           </li>
           <li>
+            <span className="text-slate-300">Mobile and SMS data:</span> mobile phone numbers, SMS
+            opt-in/opt-out status, message delivery metadata, and consent records related to Rapid Cortex
+            SMS programs (including Rapid Cortex Connect camera-consent texts and dispatcher-initiated
+            incident texts).
+          </li>
+          <li>
             <span className="text-slate-300">Service and product data:</span> operational content you
             generate in the application (for example, incident records, transcript segments, and related
             metadata) in accordance with your deployment and contract.
@@ -52,8 +83,10 @@ export default function PrivacyPolicyPage() {
         <h2 className="text-base font-semibold text-white">How we use information</h2>
         <p>
           To provide, secure, and improve the service; authenticate users; support agencies under
-          contract; meet legal and safety obligations; and communicate with you about the product. We do
-          not sell personal information.
+          contract; deliver transactional SMS related to enrolled camera-consent requests or active
+          public-safety incidents; meet legal and safety obligations; and communicate with you about the
+          product. We do not sell personal information. We do not use SMS consent or mobile numbers for
+          marketing, advertising, or promotional campaigns.
         </p>
       </section>
 
@@ -61,9 +94,42 @@ export default function PrivacyPolicyPage() {
         <h2 className="text-base font-semibold text-white">Sharing</h2>
         <p>
           We use infrastructure and subprocessors appropriate to a cloud-hosted emergency-communications
-          product (for example, identity, hosting, and email delivery). We share data when required by law,
-          to protect life and safety, or as directed by a valid agency agreement. Cross-border transfers,
-          if any, follow the safeguards in your order form or addendum.
+          product (for example, identity, hosting, SMS delivery, and email delivery). We may disclose
+          account or operational data when required by law, to protect life and safety, or as directed by
+          a valid agency agreement. Those disclosures do not include selling or providing mobile numbers or
+          messaging consent for marketing. Cross-border transfers, if any, follow the safeguards in your
+          order form or addendum.
+        </p>
+        <p>
+          <strong className="font-medium text-slate-200">
+            We do not share, sell, or provide your mobile phone number or messaging consent data to
+            third parties or affiliates for marketing or promotional purposes.
+          </strong>{" "}
+          Infrastructure and subprocessors (for example SMS delivery providers) process messages only to
+          operate the service — not for their own marketing. Mobile numbers and SMS consent are not sold,
+          rented, or shared with third parties, affiliates, or lead generators for marketing or promotional
+          purposes.
+        </p>
+      </section>
+
+      <section className="space-y-3">
+        <h2 className="text-base font-semibold text-white">SMS and mobile messaging</h2>
+        <p>
+          Rapid Cortex (operated by Apps on Demand LLC) may send transactional SMS under the{" "}
+          <strong className="font-medium text-slate-200">Rapid Cortex SMS</strong> messaging program,
+          including Rapid Cortex Connect camera-consent requests to enrolled Ring™ or Nest™ device owners
+          and dispatcher-initiated, incident-specific texts authorized by a participating public safety
+          agency. Message frequency varies based on incident activity and enrolled-device proximity; many
+          recipients will receive no messages unless a nearby emergency or authorized workflow requires
+          one. <strong className="font-medium text-slate-200">Message and data rates may apply.</strong>
+        </p>
+        <p>
+          You may reply <strong className="font-medium text-slate-200">STOP</strong> to opt out of further
+          SMS from that program, or <strong className="font-medium text-slate-200">HELP</strong> for
+          assistance. Support:{" "}
+          <a href="mailto:support@rapidcortex.us?subject=SMS%20help">support@rapidcortex.us</a>.
+          Additional program details appear in our <Link href="/terms">Terms of use</Link> and on the{" "}
+          <Link href="/sms-consent">SMS Consent</Link> page.
         </p>
       </section>
 
@@ -164,7 +230,7 @@ export default function PrivacyPolicyPage() {
       <section className="space-y-3">
         <h2 className="text-base font-semibold text-white">Changes</h2>
         <p>
-          We may update this policy and will adjust the &quot;Last updated&quot; date. Material changes
+          We may update this policy and will adjust the &quot;Last reviewed&quot; date. Material changes
           may be announced through the product, email, or the website as appropriate.
         </p>
       </section>

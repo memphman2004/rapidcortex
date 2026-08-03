@@ -35,7 +35,8 @@ function attr(attrs: AttributeType[] | undefined, name: string): string {
 }
 
 function isCampusAdminActor(role: UserRole): boolean {
-  return (role as string) === "CAMPUS_ADMIN";
+  // Session/JWT roles normalize to `campus_admin`; Cognito may still emit `CAMPUS_ADMIN`.
+  return String(role ?? "").trim().toUpperCase() === "CAMPUS_ADMIN";
 }
 
 export type AdminUserRow = {

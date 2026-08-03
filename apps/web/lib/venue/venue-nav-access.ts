@@ -55,11 +55,33 @@ export function canViewVenueNavItem(key: VenueNavKey, role: string | undefined |
 
 /** Campus sidebar — school safety intake only (no PSAP CAD/transcription tools). */
 const CAMPUS_NAV_BY_ROLE: Record<string, readonly string[]> = {
-  CAMPUS_ADMIN: ["dashboard", "incidents", "reports", "clery", "zones", "qr-codes", "users", "settings"],
-  CAMPUS_SUPERVISOR: ["dashboard", "incidents", "reports", "clery", "zones", "qr-codes"],
-  CAMPUS_SECURITY: ["dashboard", "incidents", "qr-codes", "zones"],
-  CAMPUS_DISPATCH: ["dashboard", "incidents", "zones", "reports"],
-  CAMPUS_COUNSELOR: ["dashboard", "reports"],
+  CAMPUS_ADMIN: [
+    "dashboard",
+    "incidents",
+    "cameras",
+    "reports",
+    "clery",
+    "analytics",
+    "zones",
+    "buildings",
+    "qr-codes",
+    "users",
+    "settings",
+  ],
+  CAMPUS_SUPERVISOR: [
+    "dashboard",
+    "incidents",
+    "cameras",
+    "reports",
+    "clery",
+    "analytics",
+    "zones",
+    "buildings",
+    "qr-codes",
+  ],
+  CAMPUS_SECURITY: ["dashboard", "incidents", "cameras", "qr-codes", "zones", "buildings"],
+  CAMPUS_DISPATCH: ["dashboard", "incidents", "zones", "buildings", "reports", "analytics"],
+  CAMPUS_COUNSELOR: ["dashboard", "reports", "analytics"],
   CAMPUS_FACULTY: ["dashboard", "reports"],
 };
 

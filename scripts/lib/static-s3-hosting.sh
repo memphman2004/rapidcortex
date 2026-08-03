@@ -118,7 +118,7 @@ static_s3_upload_extensionless_keys() {
   local static_dir="$1"
   local bucket="$2"
   local region="${3:-us-east-1}"
-  local html_file rel route_path count=0
+  local html_file rel route_path count=0 slash_count=0
 
   echo "Uploading extensionless S3 keys for clean URLs (/enter, /demo, …) ..."
   while IFS= read -r html_file; do
@@ -128,13 +128,24 @@ static_s3_upload_extensionless_keys() {
     case "${route_path}" in
     index | 404 | _not-found) continue ;;
     esac
+    # /privacy → key "privacy" (works with CloudFront REST origin)
     aws s3 cp "${html_file}" "s3://${bucket}/${route_path}" \
       --content-type "text/html; charset=utf-8" \
       --cache-control "public, max-age=300, must-revalidate" \
       --region "${region}"
     count=$((count + 1))
+    # /privacy/ → key "privacy/" (Next trailingSlash + Twilio/TCR often append /).
+    # Without this object, CloudFront 404 CustomErrorResponses serves the homepage.
+    aws s3api put-object \
+      --bucket "${bucket}" \
+      --key "${route_path}/" \
+      --body "${html_file}" \
+      --content-type "text/html; charset=utf-8" \
+      --cache-control "public, max-age=300, must-revalidate" \
+      --region "${region}" >/dev/null
+    slash_count=$((slash_count + 1))
   done < <(find "${static_dir}" -name index.html -type f)
-  echo "Uploaded ${count} extensionless route object(s)."
+  echo "Uploaded ${count} extensionless route object(s) and ${slash_count} trailing-slash object(s)."
 }
 
 static_s3_write_build_manifest() {

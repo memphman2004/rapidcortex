@@ -23,6 +23,7 @@ const PUBLIC_ROUTES: RouteEntry[] = [
   { path: "/", changeFrequency: "weekly", priority: 1 },
   { path: "/blog", changeFrequency: "weekly", priority: 0.8 },
   { path: "/about", changeFrequency: "monthly", priority: 0.65 },
+  { path: "/careers", changeFrequency: "weekly", priority: 0.7 },
   { path: "/pricing", changeFrequency: "weekly", priority: 0.9 },
   { path: "/security", changeFrequency: "monthly", priority: 0.7 },
   { path: "/trust", changeFrequency: "monthly", priority: 0.65 },
@@ -73,12 +74,10 @@ const PUBLIC_ROUTES: RouteEntry[] = [
   { path: "/developers/roi", changeFrequency: "monthly", priority: 0.5 },
   { path: "/developers/status", changeFrequency: "weekly", priority: 0.45 },
 
-  // Legal / compliance
-  { path: "/legal/privacy", changeFrequency: "monthly", priority: 0.4 },
-  { path: "/legal/terms", changeFrequency: "monthly", priority: 0.4 },
+  // Legal / compliance (canonical privacy/terms — not /legal/* stubs)
   { path: "/legal/dpa", changeFrequency: "monthly", priority: 0.4 },
-  { path: "/privacy", changeFrequency: "monthly", priority: 0.35 },
-  { path: "/terms", changeFrequency: "monthly", priority: 0.35 },
+  { path: "/privacy", changeFrequency: "monthly", priority: 0.55 },
+  { path: "/terms", changeFrequency: "monthly", priority: 0.55 },
   { path: "/cookies", changeFrequency: "monthly", priority: 0.35 },
   { path: "/acceptable-use", changeFrequency: "monthly", priority: 0.35 },
   { path: "/sms-consent", changeFrequency: "monthly", priority: 0.4 },

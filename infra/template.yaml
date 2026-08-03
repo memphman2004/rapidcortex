@@ -1690,6 +1690,16 @@ Resources:
             - HasDataLayerNestedStack
             - !GetAtt DataLayerStack.Outputs.MarketingLeadsTable
             - !Sub "${DynamoTableNamePrefix}-marketing-leads-${DeploymentStage}"
+        JobApplicationsTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.JobApplicationsTable
+            - !Sub "${DynamoTableNamePrefix}-job-applications-${DeploymentStage}"
+        ResumesBucket:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.ResumesBucket
+            - !Sub "rapid-cortex-resumes-${DeploymentStage}-${AWS::AccountId}"
         SelfSignupDefaultAgencyId: !Ref SelfSignupDefaultAgencyId
         SelfSignupDefaultRole: !Ref SelfSignupDefaultRole
         ServiceCatalogTable:

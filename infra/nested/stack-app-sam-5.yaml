@@ -3342,23 +3342,38 @@ Resources:
     Properties:
       TopicName: !Sub "${AppName}-aws-sms-delivery-events-${DeploymentStage}"
 
-  AwsSmsTopicPolicy:
+  AwsSmsInboundTopicPolicy:
     Type: AWS::SNS::TopicPolicy
     Properties:
       Topics:
         - !Ref AwsSmsInboundTopic
-        - !Ref AwsSmsDeliveryEventsTopic
       PolicyDocument:
         Version: "2012-10-17"
         Statement:
-          - Sid: AllowEndUserMessagingPublish
+          - Sid: AllowEndUserMessagingPublishInbound
             Effect: Allow
             Principal:
               Service: sms-voice.amazonaws.com
             Action: sns:Publish
-            Resource:
-              - !Ref AwsSmsInboundTopic
-              - !Ref AwsSmsDeliveryEventsTopic
+            Resource: !Ref AwsSmsInboundTopic
+            Condition:
+              StringEquals:
+                aws:SourceAccount: !Ref AWS::AccountId
+
+  AwsSmsDeliveryEventsTopicPolicy:
+    Type: AWS::SNS::TopicPolicy
+    Properties:
+      Topics:
+        - !Ref AwsSmsDeliveryEventsTopic
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Sid: AllowEndUserMessagingPublishDelivery
+            Effect: Allow
+            Principal:
+              Service: sms-voice.amazonaws.com
+            Action: sns:Publish
+            Resource: !Ref AwsSmsDeliveryEventsTopic
             Condition:
               StringEquals:
                 aws:SourceAccount: !Ref AWS::AccountId

@@ -347,7 +347,7 @@ export function RingConnectFlow() {
           Contact support
         </a>
         <a
-          href="/legal/privacy/"
+          href="/privacy/"
           className="inline-flex min-h-11 items-center justify-center rounded-lg border border-slate-600 px-5 text-sm font-semibold text-slate-100 hover:border-slate-500"
         >
           Privacy policy

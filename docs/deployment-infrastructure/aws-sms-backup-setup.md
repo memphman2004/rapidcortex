@@ -117,7 +117,7 @@ aws pinpoint-sms-voice-v2 put-keyword --region us-east-1 \
 
 Outstanding items to complete after approval:
 
-- [ ] Replace the placeholder support number in the registered `helpMessage` — it currently carries a personal cell, which is fine for the brand contact carriers use but should not be the public-facing HELP reply.
+- [ ] Keep the public HELP reply email-only (`support@rapidcortex.us`). Do not put a personal cell in customer-facing HELP text, privacy, or terms. Brand registration may still list a business support phone for TCR; that is separate from public HELP copy.
 - [ ] Set per-number `HELP` and `STOP` keyword responses for each agency number.
 - [ ] Keep the registered copy and the runtime replies consistent; carriers can audit that they match.
 

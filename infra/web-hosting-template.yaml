@@ -72,6 +72,30 @@ Resources:
         SigningBehavior: always
         SigningProtocol: sigv4
 
+  # Next.js trailingSlash:true → S3 keys like privacy/index.html. Without a rewrite,
+  # CloudFront requests for /privacy/ miss the object, CustomErrorResponses maps the
+  # 404 to /index.html (homepage), and Twilio/TCR policy URL checks fail.
+  MarketingUriRewriteFunction:
+    Type: AWS::CloudFront::Function
+    Properties:
+      Name: !Sub "${AppName}-marketing-uri-rewrite-${DeploymentStage}"
+      AutoPublish: true
+      FunctionConfig:
+        Comment: Rewrite trailing-slash routes to {path}/index.html for S3 static export
+        Runtime: cloudfront-js-2.0
+      FunctionCode: |
+        function handler(event) {
+          var request = event.request;
+          var uri = request.uri;
+          if (uri.indexOf('.') !== -1) {
+            return request;
+          }
+          if (uri.endsWith('/')) {
+            request.uri = uri + 'index.html';
+          }
+          return request;
+        }
+
   WebDistribution:
     Type: AWS::CloudFront::Distribution
     Properties:
@@ -102,6 +126,9 @@ Resources:
           Compress: true
           ForwardedValues:
             QueryString: false
+          FunctionAssociations:
+            - EventType: viewer-request
+              FunctionARN: !GetAtt MarketingUriRewriteFunction.FunctionMetadata.FunctionARN
         ViewerCertificate:
           AcmCertificateArn: !If
             - CreateManagedCertificate

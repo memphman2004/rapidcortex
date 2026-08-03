@@ -78,6 +78,7 @@ export const RC_SUPERADMIN_NAV: RoleNav = {
         { id: "catalog",   label: "Service Catalog",   href: "/rc-admin/billing/services", icon: "Package" },
         { id: "agreements",label: "Agreements",        href: "/rc-admin/agreements",    icon: "FileSignature" },
         { id: "leads",     label: "Leads",             href: "/rc-admin/leads",         icon: "Inbox", feature: "salesLeads" },
+        { id: "hiring",    label: "Hiring",            href: "/rc-admin/hiring",        icon: "Users", feature: "hiring" },
       ],
     },
     {
@@ -146,6 +147,7 @@ export const RC_ADMIN_NAV: RoleNav = {
         { id: "catalog",   label: "Service Catalog",   href: "/rc-admin/billing/services", icon: "Package" },
         { id: "agreements",label: "Agreements",        href: "/rc-admin/agreements",    icon: "FileSignature" },
         { id: "leads",     label: "Leads",             href: "/rc-admin/leads",         icon: "Inbox", feature: "salesLeads" },
+        { id: "hiring",    label: "Hiring",            href: "/rc-admin/hiring",        icon: "Users", feature: "hiring" },
       ],
     },
     {
@@ -222,6 +224,7 @@ export const RC_IT_ADMIN_NAV: RoleNav = {
       label: "BUSINESS",
       items: [
         { id: "leads",     label: "Leads",             href: "/rc-admin/leads",         icon: "Inbox", feature: "salesLeads" },
+        { id: "hiring",    label: "Hiring",            href: "/rc-admin/hiring",        icon: "Users", feature: "hiring" },
       ],
     },
     {

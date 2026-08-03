@@ -104,8 +104,8 @@ Rate limits: max 5 requests/incident/hour; one active request per camera/inciden
 | Page | URL |
 |------|-----|
 | Website | https://www.rapidcortex.us |
-| Privacy Policy | https://www.rapidcortex.us/legal/privacy/ |
-| Terms | https://www.rapidcortex.us/legal/terms/ |
+| Privacy Policy | https://www.rapidcortex.us/privacy/ |
+| Terms | https://www.rapidcortex.us/terms/ |
 | Support | https://www.rapidcortex.us/contact/ |
 | Sign-in | https://app.rapidcortex.us/login |
 | App Homepage | https://www.rapidcortex.us/connect/ring/start |

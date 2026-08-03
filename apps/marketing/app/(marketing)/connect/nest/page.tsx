@@ -64,11 +64,11 @@ export default function NestConnectPage() {
           </li>
           <li>
             Full policy:{" "}
-            <Link href="/legal/privacy/" className="text-sky-400 hover:text-sky-300">
+            <Link href="/privacy/" className="text-sky-400 hover:text-sky-300">
               Privacy policy
             </Link>{" "}
             ·{" "}
-            <Link href="/legal/terms/" className="text-sky-400 hover:text-sky-300">
+            <Link href="/terms/" className="text-sky-400 hover:text-sky-300">
               Terms
             </Link>
           </li>

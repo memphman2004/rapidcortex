@@ -155,9 +155,13 @@ export default function SmsConsentPage() {
       <section className="space-y-3">
         <h2 className="text-base font-semibold text-white">No sale of SMS consent for marketing</h2>
         <p>
-          SMS consent obtained for this dispatcher-initiated, incident-specific workflow is{" "}
-          <strong className="text-slate-200">not sold, rented, or shared for marketing purposes.</strong> Communications
-          are limited to public safety incident workflows and authorized agency use of {SITE_NAME}.
+          <strong className="text-slate-200">
+            We do not share, sell, or provide your mobile phone number or messaging consent data to third parties or
+            affiliates for marketing or promotional purposes.
+          </strong>{" "}
+          SMS consent obtained for this dispatcher-initiated, incident-specific workflow is used only to deliver
+          incident-related messages and operate the service. Communications are limited to public safety incident
+          workflows and authorized agency use of {SITE_NAME}.
         </p>
       </section>
 

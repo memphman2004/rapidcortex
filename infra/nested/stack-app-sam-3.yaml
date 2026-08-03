@@ -271,6 +271,12 @@ Parameters:
   MarketingLeadsTable:
     Type: String
     Description: Physical DynamoDB table name from data layer (MarketingLeadsTable).
+  JobApplicationsTable:
+    Type: String
+    Description: Physical DynamoDB table name from data layer (JobApplicationsTable).
+  ResumesBucket:
+    Type: String
+    Description: Physical S3 bucket name from data layer (ResumesBucket).
   CustomersTable:
     Type: String
   ServiceCatalogTable:
@@ -1916,6 +1922,197 @@ Resources:
             Method: OPTIONS
             Auth:
               Authorizer: NONE
+
+  CareersPresignedUploadFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/handlers/careers/presignedUpload.handler
+      Environment:
+        Variables:
+          RESUMES_BUCKET: !Ref ResumesBucket
+          ENABLE_HIRING: "true"
+      Policies:
+        - Statement:
+            Sid: ResumesBucketPresignPut
+            Effect: Allow
+            Action:
+              - s3:PutObject
+            Resource:
+              - !Sub arn:${AWS::Partition}:s3:::${ResumesBucket}/resumes/*
+      Events:
+        CareersPresignPost:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/careers/presigned-upload
+            Method: POST
+            Auth:
+              Authorizer: NONE
+        CareersPresignOptions:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/careers/presigned-upload
+            Method: OPTIONS
+            Auth:
+              Authorizer: NONE
+
+  CareersApplyFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/handlers/careers/apply.handler
+      Environment:
+        Variables:
+          JOB_APPLICATIONS_TABLE: !Ref JobApplicationsTable
+          RESUMES_BUCKET: !Ref ResumesBucket
+          FROM_EMAIL: careers@rapidcortex.us
+          NOTIFY_EMAIL: jeff@rapidcortex.us
+          ENABLE_HIRING: "true"
+          SES_MOCK: "false"
+      Policies:
+        - Statement:
+            Sid: JobApplicationsPut
+            Effect: Allow
+            Action:
+              - dynamodb:PutItem
+              - dynamodb:DescribeTable
+            Resource:
+              - !Sub arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${JobApplicationsTable}
+        - Statement:
+            Sid: AuditAppendHiring
+            Effect: Allow
+            Action:
+              - dynamodb:PutItem
+            Resource:
+              - !Sub arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${AuditTable}
+        - Statement:
+            Sid: SesCareersFromIdentity
+            Effect: Allow
+            Action:
+              - ses:SendEmail
+              - ses:SendRawEmail
+            Resource:
+              - !Sub arn:${AWS::Partition}:ses:${AWS::Region}:${AWS::AccountId}:identity/careers@rapidcortex.us
+              - !Sub arn:${AWS::Partition}:ses:${AWS::Region}:${AWS::AccountId}:identity/rapidcortex.us
+              - !Sub arn:${AWS::Partition}:ses:${AWS::Region}:${AWS::AccountId}:identity/support@rapidcortex.us
+      Events:
+        CareersApplyPost:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/careers/apply
+            Method: POST
+            Auth:
+              Authorizer: NONE
+        CareersApplyOptions:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/careers/apply
+            Method: OPTIONS
+            Auth:
+              Authorizer: NONE
+
+  RcAdminApplicationsHttpFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/handlers/rc-admin/rcAdminApplicationsHttp.handler
+      Environment:
+        Variables:
+          JOB_APPLICATIONS_TABLE: !Ref JobApplicationsTable
+          RESUMES_BUCKET: !Ref ResumesBucket
+          FROM_EMAIL: careers@rapidcortex.us
+          NOTIFY_EMAIL: jeff@rapidcortex.us
+          REVIEWER_NAME: Jeffrey Coleman
+          ENABLE_HIRING: "true"
+          SES_MOCK: "false"
+      Policies:
+        - Statement:
+            Sid: JobApplicationsCrud
+            Effect: Allow
+            Action:
+              - dynamodb:GetItem
+              - dynamodb:PutItem
+              - dynamodb:UpdateItem
+              - dynamodb:Scan
+              - dynamodb:Query
+              - dynamodb:DescribeTable
+            Resource:
+              - !Sub arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${JobApplicationsTable}
+              - !Sub arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${JobApplicationsTable}/index/*
+        - Statement:
+            Sid: ResumesBucketGet
+            Effect: Allow
+            Action:
+              - s3:GetObject
+            Resource:
+              - !Sub arn:${AWS::Partition}:s3:::${ResumesBucket}/resumes/*
+        - Statement:
+            Sid: AuditAppendHiringAdmin
+            Effect: Allow
+            Action:
+              - dynamodb:PutItem
+            Resource:
+              - !Sub arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${AuditTable}
+        - Statement:
+            Sid: SesCareersStatusEmail
+            Effect: Allow
+            Action:
+              - ses:SendEmail
+              - ses:SendRawEmail
+            Resource:
+              - !Sub arn:${AWS::Partition}:ses:${AWS::Region}:${AWS::AccountId}:identity/careers@rapidcortex.us
+              - !Sub arn:${AWS::Partition}:ses:${AWS::Region}:${AWS::AccountId}:identity/rapidcortex.us
+              - !Sub arn:${AWS::Partition}:ses:${AWS::Region}:${AWS::AccountId}:identity/support@rapidcortex.us
+      Events:
+        ApplicationsList:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/rc-admin/applications
+            Method: GET
+        ApplicationGet:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/rc-admin/applications/{applicationId}
+            Method: GET
+        ApplicationPut:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/rc-admin/applications/{applicationId}
+            Method: PUT
+        ApplicationPatch:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/rc-admin/applications/{applicationId}
+            Method: PATCH
+        ApplicationNotes:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/rc-admin/applications/{applicationId}/notes
+            Method: POST
+        ApplicationResumeUrl:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/rc-admin/applications/{applicationId}/resume-url
+            Method: GET
 
   VideoAssistIncidentsHttpFunction:
     Type: AWS::Serverless::Function

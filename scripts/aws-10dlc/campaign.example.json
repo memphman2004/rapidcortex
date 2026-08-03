@@ -1,8 +1,8 @@
 {
   "campaignInfo.campaignName": "Rapid Cortex Emergency Camera Access",
   "campaignInfo.vertical": "GOVERNMENT",
-  "campaignInfo.termsAndConditionsLink": "REPLACE https://www.example.com/sms-terms",
-  "campaignInfo.privacyPolicyLink": "REPLACE https://www.example.com/privacy",
+  "campaignInfo.termsAndConditionsLink": "https://www.rapidcortex.us/terms",
+  "campaignInfo.privacyPolicyLink": "https://www.rapidcortex.us/privacy",
   "campaignInfo.optInWorkflow": "Residents opt in on the Rapid Cortex citizen camera registration page, hosted by their local public safety agency. They enter their mobile number and check a box reading: 'I agree to receive SMS from Rapid Cortex on behalf of my public safety agency about emergencies near my registered camera. Msg & data rates may apply. Reply STOP to opt out, HELP for help.' The number is only messaged when an incident is dispatched near a camera that resident registered.",
   "campaignInfo.optInKeyword": "START",
   "campaignInfo.optInMessage": "Rapid Cortex: You are subscribed to emergency camera access requests from your public safety agency. Msg & data rates may apply. Reply HELP for help, STOP to opt out.",

@@ -4,6 +4,7 @@ import { ACCOUNT_INACTIVE_MESSAGE, getUserContext, isUserAccountActive } from ".
 import { withCorrelationHeaders } from "../../lib/correlation.js";
 import { operationalPasswordBlock } from "../../lib/operationalPasswordGate.js";
 import { badRequest, forbidden, ok, serverError, unauthorized } from "../../lib/response.js";
+import { canAccessCampusTenant } from "../campus-access.js";
 import { getCampusAnalytics } from "../campus-config-service.js";
 
 const authz = new AuthorizationService();
@@ -22,6 +23,9 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
     const campusCode = event.queryStringParameters?.campusCode;
     if (!campusCode) {
       return withCorrelationHeaders(event, badRequest("campusCode is required"));
+    }
+    if (!canAccessCampusTenant(user, campusCode)) {
+      return withCorrelationHeaders(event, forbidden("Campus code mismatch"));
     }
 
     const range = (event.queryStringParameters?.range ?? "today") as "today" | "week" | "month";

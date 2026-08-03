@@ -184,6 +184,11 @@ export function MarketingFooter() {
                   </Link>
                 </li>
                 <li>
+                  <Link href="/careers" className={FOOTER_FOCUS_LINK_CLASS}>
+                    Careers
+                  </Link>
+                </li>
+                <li>
                   <Link href={pressHref} className={FOOTER_FOCUS_LINK_CLASS}>
                     Press
                   </Link>

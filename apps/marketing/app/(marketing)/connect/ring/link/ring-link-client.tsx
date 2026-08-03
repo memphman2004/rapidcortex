@@ -232,7 +232,7 @@ function HomeownerAppstoreSignIn({ nonce, time }: { nonce: string; time: string 
           Dispatchers may request video only for nearby emergencies, and only after you tap Allow on
           each SMS. You can Decline, Stop Sharing, or remove Rapid Cortex Connect in Ring™ → My Apps
           anytime. Privacy &amp; deletion:{" "}
-          <Link href="/legal/privacy/" className="text-sky-400 hover:text-sky-300">
+          <Link href="/privacy/" className="text-sky-400 hover:text-sky-300">
             Privacy policy
           </Link>
           .
@@ -429,7 +429,7 @@ function CitizenLinkActions({ status }: { status: string | null }) {
         Contact support
       </a>
       <Link
-        href="/legal/privacy/"
+        href="/privacy/"
         className="inline-flex min-h-11 items-center justify-center rounded-lg border border-slate-600 px-5 text-sm font-semibold text-slate-100 hover:border-slate-500"
       >
         Privacy policy
@@ -541,7 +541,7 @@ export function RingLinkClient() {
           </p>
           <p>
             Privacy &amp; data deletion:{" "}
-            <Link href="/legal/privacy/" className="text-sky-400 hover:text-sky-300">
+            <Link href="/privacy/" className="text-sky-400 hover:text-sky-300">
               Privacy policy
             </Link>{" "}
             ·{" "}

@@ -382,12 +382,24 @@ export const env = {
   pipelineStageGsiName: process.env.PIPELINE_STAGE_GSI?.trim() || "PipelineStageIndex",
   /** Inside the Cortex marketing lead capture (pk/sk + unsubscribe tokens). */
   marketingLeadsTable: process.env.MARKETING_LEADS_TABLE?.trim() ?? "",
+  /** Careers / ATS applications (PK applicationId). */
+  jobApplicationsTable: process.env.JOB_APPLICATIONS_TABLE?.trim() ?? "",
+  /** Private resumes bucket for careers apply uploads. */
+  resumesBucket: process.env.RESUMES_BUCKET?.trim() ?? "",
+  /** SES From for careers confirmation + status emails. */
+  careersFromEmail: process.env.FROM_EMAIL?.trim() || process.env.CAREERS_FROM_EMAIL?.trim() || "careers@rapidcortex.us",
+  /** Internal inbox for new job application notifications. */
+  careersNotifyEmail: process.env.NOTIFY_EMAIL?.trim() || process.env.CAREERS_NOTIFY_EMAIL?.trim() || "jeff@rapidcortex.us",
+  /** Fallback signature name when Cognito claims lack name/email. */
+  careersReviewerName: process.env.REVIEWER_NAME?.trim() || "Jeffrey Coleman",
   /** Verified SES From for marketing welcome + team notify; empty skips SES. */
   sesFromEmail: process.env.SES_FROM_EMAIL?.trim() ?? "",
   /** Internal inbox for new Cortex signup notifications. */
   rcTeamNotifyEmail: process.env.RC_TEAM_NOTIFY_EMAIL?.trim() ?? "team@rapidcortex.us",
   /** When true/1, SES send is skipped (local/CI). */
   sesMock: process.env.SES_MOCK === "true" || process.env.SES_MOCK === "1",
+  /** Careers UI + public apply. Default ON when unset. */
+  enableHiring: featureEnabled("ENABLE_HIRING"),
   enableInsideTheCortex: featureEnabled("ENABLE_INSIDE_THE_CORTEX"),
   /** Campus Clery ASR workspace (manual entry, import, report). Default on when unset. */
   enableCampusClery: featureEnabled("ENABLE_CAMPUS_CLERY"),

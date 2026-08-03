@@ -7,6 +7,7 @@ import {
   isNg911AssistEnabled,
   isQaScoringEnabled,
   isRcsEnabled,
+  isHiringUiEnabled,
   isSalesLeadsUiEnabled,
   isSlaBacklogEnabled,
   isVerticalOnboardingEnabled,
@@ -31,6 +32,8 @@ export function isNavFeatureEnabled(feature: string): boolean {
       return isVerticalOnboardingEnabled();
     case "salesLeads":
       return isSalesLeadsUiEnabled();
+    case "hiring":
+      return isHiringUiEnabled();
     case "deploymentsMap":
       return isDeploymentsMapEnabled();
     case "rcs":

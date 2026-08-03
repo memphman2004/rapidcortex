@@ -82,3 +82,4 @@ export * from "./rcs/index.js";
 export * from "./ng911/index.js";
 
 export * from "./marketing/index.js";
+export * from "./hiring/index.js";

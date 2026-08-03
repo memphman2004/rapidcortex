@@ -91,13 +91,56 @@ export default function TermsOfUsePage() {
       </section>
 
       <section className="space-y-3">
+        <h2 className="text-base font-semibold text-white">Rapid Cortex SMS messaging program</h2>
+        <p>
+          <strong className="font-medium text-slate-200">Program name:</strong> Rapid Cortex SMS
+          (including Rapid Cortex Connect), operated by {SITE_OPERATOR_NAME} LLC d/b/a {SITE_NAME} (
+          <a href="https://www.rapidcortex.us">https://www.rapidcortex.us</a>).
+        </p>
+        <p>
+          <strong className="font-medium text-slate-200">Program description:</strong> {SITE_NAME}{" "}
+          sends transactional SMS related to public-safety workflows. This includes (1) one-time camera
+          consent requests to property owners who enrolled an eligible Ring™ or Nest™ device in Rapid
+          Cortex Connect, when a participating agency requests temporary live camera access for a nearby
+          active emergency; and (2) dispatcher-initiated, incident-specific texts to individuals who
+          contacted 911 or another public safety communications center and agreed on that call to receive
+          a text for the active incident (for example, a secure media upload, location clarification, or
+          language-assistance link). Messages are not used for marketing, advertising, promotions, or mass
+          public alerting.
+        </p>
+        <p>
+          <strong className="font-medium text-slate-200">Message frequency:</strong> Message frequency
+          varies. Texts are incident-triggered and typically infrequent; enrolled device owners or
+          consented callers may receive zero messages unless an authorized workflow requires one.
+        </p>
+        <p>
+          <strong className="font-medium text-slate-200">Message and data rates:</strong> Message and
+          data rates may apply. Carrier charges are the recipient&apos;s responsibility under their
+          wireless plan.
+        </p>
+        <p>
+          <strong className="font-medium text-slate-200">Opt-out and help:</strong> Reply{" "}
+          <strong>STOP</strong> to opt out of further SMS from this program. Reply <strong>HELP</strong>{" "}
+          for help. Opting out of SMS does not cancel 911 voice service or other non-SMS emergency
+          channels. Additional consent and disclosure details are published at{" "}
+          <Link href="/sms-consent">https://www.rapidcortex.us/sms-consent</Link>. Mobile numbers and SMS
+          consent are handled as described in our <Link href="/privacy">Privacy policy</Link>.
+        </p>
+        <p>
+          <strong className="font-medium text-slate-200">Support contact:</strong>{" "}
+          <a href="mailto:support@rapidcortex.us?subject=SMS%20program%20help">support@rapidcortex.us</a>.
+        </p>
+      </section>
+
+      <section className="space-y-3">
         <h2 className="text-base font-semibold text-white">Contact</h2>
         <p>
           <a href={SITE_OPERATOR_URL} target="_blank" rel="noopener noreferrer">
             {SITE_OPERATOR_NAME}
           </a>{" "}
           supports site operations. Product and contracting questions should follow the channel in your
-          order documentation.
+          order documentation. For SMS program support, use the contacts listed under Rapid Cortex SMS
+          messaging program above.
         </p>
       </section>
     </LegalDocShell>
