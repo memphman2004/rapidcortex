@@ -1,5 +1,6 @@
 import type { UserContext } from "rapid-cortex-shared";
 import { isRcInternalOperator } from "rapid-cortex-shared";
+import { AgencyRepository } from "../repositories/agencyRepository.js";
 
 export function normalizeCampusCode(code: string): string {
   return code.trim().toUpperCase().replace(/-/g, "");
@@ -19,4 +20,22 @@ export function canAccessCampusTenant(user: UserContext, campusCode: string): bo
   const agencyId = user.agencyId ?? "";
   if (!agencyId) return false;
   return campusCodeFromAgencyId(agencyId) === normalizeCampusCode(campusCode);
+}
+
+/**
+ * Resolve tenant agencyId from a campus org code for public/SMS intake
+ * (camera registry + websocket rooms are keyed by agencyId).
+ */
+export async function resolveCampusAgencyId(campusCode: string): Promise<string | null> {
+  const code = normalizeCampusCode(campusCode);
+  if (!code) return null;
+  const lower = code.toLowerCase();
+  const agencies = new AgencyRepository();
+  const candidates = [`test-campus-${lower}`, `campus-${lower}`, `last-campus-${lower}`];
+  for (const id of candidates) {
+    const hit = await agencies.get(id);
+    if (hit) return id;
+  }
+  const ids = await agencies.listAgencyIds();
+  return ids.find((id) => campusCodeFromAgencyId(id) === code) ?? null;
 }

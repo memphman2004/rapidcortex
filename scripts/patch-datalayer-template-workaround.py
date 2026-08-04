@@ -198,6 +198,16 @@ ORPHANED = {
         f"arn:aws:secretsmanager:us-east-1:{ACCOUNT_ID}:secret:rapid-cortex/connect/ring-credentials",
         "secret",
     ),
+    "JobApplicationsTable": (
+        "ExistingJobApplicationsTableName",
+        f"rapid-cortex-job-applications-{STAGE}",
+        "table",
+    ),
+    "ResumesBucket": (
+        "ExistingResumesBucketName",
+        f"rapid-cortex-resumes-{STAGE}-{ACCOUNT_ID}",
+        "bucket",
+    ),
 }
 
 

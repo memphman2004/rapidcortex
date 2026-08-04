@@ -11,7 +11,10 @@ import {
   serverError,
   unauthorized,
 } from "../../lib/response.js";
-import { createCampusIncident } from "../campus-incident-service.js";
+import {
+  createCampusIncident,
+  finalizeCampusIntakeIncident,
+} from "../campus-incident-service.js";
 import { createIncidentSchema } from "../campus-schemas.js";
 
 const authz = new AuthorizationService();
@@ -39,8 +42,9 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
       return withCorrelationHeaders(event, badRequestFromZod(parsed.error));
     }
 
-    const incident = await createCampusIncident(parsed.data, user.agencyId, user.userId);
-    return withCorrelationHeaders(event, ok({ incident }, 201));
+    const created = await createCampusIncident(parsed.data, user.agencyId, user.userId);
+    const { incident, cameras } = await finalizeCampusIntakeIncident(user.agencyId, created);
+    return withCorrelationHeaders(event, ok({ incident, cameras }, 201));
   } catch (error) {
     if (error instanceof Error && error.message === "FORBIDDEN_PERMISSION") {
       return withCorrelationHeaders(event, forbidden());

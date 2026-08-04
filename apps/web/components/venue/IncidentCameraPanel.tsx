@@ -9,6 +9,7 @@ import {
   patchVenueIncidentStatus,
   postVenueCameraPtz,
   postVenueIncidentUpdate,
+  type CameraApiVertical,
   type VenueIncidentUpdateRow,
 } from "@/lib/venue/venue-camera-api";
 
@@ -46,6 +47,9 @@ export function IncidentCameraPanel({
   onCameraOffline,
   embedded = false,
   mode = "new",
+  apiVertical = "venue",
+  locationNoun = "Section",
+  enableDispatchControls = true,
 }: {
   agencyId: string;
   incident: VenueActiveIncidentPanel;
@@ -55,6 +59,11 @@ export function IncidentCameraPanel({
   /** When true, renders inline on the incident detail page instead of a modal overlay. */
   embedded?: boolean;
   mode?: "new" | "detail";
+  apiVertical?: CameraApiVertical;
+  /** UI label for location key (Section vs Building). */
+  locationNoun?: string;
+  /** When false, hides venue incident update/status APIs (campus uses campus incident APIs). */
+  enableDispatchControls?: boolean;
 }) {
   const [streamCameras, setStreamCameras] = useState<VenueIncidentCameraSummary[]>(incident.cameras);
   const [sectionCameras, setSectionCameras] = useState<VenueIncidentCameraSummary[]>([]);
@@ -65,6 +74,7 @@ export function IncidentCameraPanel({
   const [sending, setSending] = useState(false);
   const [statusBusy, setStatusBusy] = useState(false);
   const [ptzCameraId, setPtzCameraId] = useState<string | null>(null);
+  const showDispatch = canDispatch && enableDispatchControls;
 
   useEffect(() => {
     setStreamCameras(incident.cameras.slice(0, 2));
@@ -72,18 +82,22 @@ export function IncidentCameraPanel({
 
   const loadSectionCameras = useCallback(async () => {
     try {
-      const rows = await fetchVenueSectionCameras(agencyId, incident.section, 20);
+      const rows = await fetchVenueSectionCameras(agencyId, incident.section, 20, apiVertical);
       setSectionCameras(rows);
     } catch {
       setSectionCameras([]);
     }
-  }, [agencyId, incident.section]);
+  }, [agencyId, apiVertical, incident.section]);
 
   useEffect(() => {
     void loadSectionCameras();
   }, [loadSectionCameras]);
 
   useEffect(() => {
+    if (!enableDispatchControls) {
+      setUpdates([]);
+      return;
+    }
     void (async () => {
       try {
         const rows = await fetchVenueIncidentUpdates(incident.incidentId);
@@ -92,7 +106,7 @@ export function IncidentCameraPanel({
         setUpdates([]);
       }
     })();
-  }, [incident.incidentId]);
+  }, [enableDispatchControls, incident.incidentId]);
 
   const displayedIds = useMemo(() => new Set(streamCameras.map((c) => c.cameraId)), [streamCameras]);
 
@@ -120,7 +134,7 @@ export function IncidentCameraPanel({
 
   const sendUpdate = async () => {
     const message = draft.trim();
-    if (!message || !canDispatch) return;
+    if (!message || !showDispatch) return;
     setSending(true);
     try {
       const row = await postVenueIncidentUpdate(incident.incidentId, message);
@@ -132,7 +146,7 @@ export function IncidentCameraPanel({
   };
 
   const setStatus = async (status: "assigned" | "responding" | "resolved") => {
-    if (!canDispatch) return;
+    if (!showDispatch) return;
     setStatusBusy(true);
     try {
       await patchVenueIncidentStatus(incident.incidentId, status);
@@ -143,7 +157,7 @@ export function IncidentCameraPanel({
 
   const runPtz = async (cameraId: string, action: string) => {
     try {
-      await postVenueCameraPtz(agencyId, cameraId, action);
+      await postVenueCameraPtz(agencyId, cameraId, action, apiVertical);
     } catch {
       /* surface via toast later */
     }
@@ -175,7 +189,7 @@ export function IncidentCameraPanel({
             <span style={{ color: V.amber, fontWeight: 800, fontSize: 12 }}>INCIDENT {incident.incidentId}</span>
           )}
           <span style={{ color: V.text, fontWeight: 700, fontSize: 13 }}>
-            Section {incident.section} · {incident.reportType.toUpperCase()}
+            {locationNoun} {incident.section} · {incident.reportType.toUpperCase()}
           </span>
           <span style={{ color: V.muted, fontSize: 11 }}>{incident.location}</span>
           <div style={{ flex: 1 }} />
@@ -189,7 +203,7 @@ export function IncidentCameraPanel({
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, padding: 12 }}>
           {streamCameras.length === 0 ? (
             <div style={{ gridColumn: "1 / -1", color: V.muted, fontSize: 12, padding: 12 }}>
-              No online cameras registered for Section {incident.section}.
+              No online cameras registered for {locationNoun} {incident.section}.
             </div>
           ) : (
             streamCameras.map((cam) => (
@@ -198,6 +212,7 @@ export function IncidentCameraPanel({
                   agencyId={agencyId}
                   kvsChannelName={cam.kvsChannelName}
                   displayName={cam.displayName}
+                  apiVertical={apiVertical}
                 />
                 {cam.ptzCapable && canDispatch ? (
                   <div style={{ marginTop: 6, display: "flex", flexWrap: "wrap", gap: 4 }}>
@@ -258,7 +273,7 @@ export function IncidentCameraPanel({
             onClick={() => setShowAllSection((v) => !v)}
             style={{ fontSize: 11, color: V.muted }}
           >
-            All cameras for Section {incident.section} ({sectionCameras.length} total)
+            All cameras for {locationNoun} {incident.section} ({sectionCameras.length} total)
           </button>
         </div>
 
@@ -287,12 +302,12 @@ export function IncidentCameraPanel({
 
         <div style={{ borderTop: `1px solid ${V.border}`, padding: 12 }}>
           <div style={{ fontSize: 11, fontWeight: 700, color: V.muted, marginBottom: 8 }}>
-            DISPATCHER UPDATES
+            {enableDispatchControls ? "DISPATCHER UPDATES" : "INCIDENT CONTEXT"}
           </div>
           <div style={{ maxHeight: 140, overflow: "auto", marginBottom: 10 }}>
             {updates.length === 0 ? (
               <p style={{ fontSize: 11, color: V.muted, margin: 0 }}>
-                Incident received · Section {incident.section} · {incident.reportType}
+                Incident received · {locationNoun} {incident.section} · {incident.reportType}
               </p>
             ) : (
               updates.map((row) => (
@@ -304,7 +319,7 @@ export function IncidentCameraPanel({
             )}
           </div>
 
-          {canDispatch ? (
+          {showDispatch ? (
             <>
               <div style={{ display: "flex", gap: 8, marginBottom: 8 }}>
                 <input

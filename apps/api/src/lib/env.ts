@@ -384,6 +384,10 @@ export const env = {
   marketingLeadsTable: process.env.MARKETING_LEADS_TABLE?.trim() ?? "",
   /** Careers / ATS applications (PK applicationId). */
   jobApplicationsTable: process.env.JOB_APPLICATIONS_TABLE?.trim() ?? "",
+  /** Public job postings (PK postingId; GSIs status-publishedAt, slug). */
+  jobPostingsTable: process.env.JOB_POSTINGS_TABLE?.trim() ?? "",
+  /** Platform settings (PK settingKey) — hiring Bookings URLs, etc. */
+  platformSettingsTable: process.env.PLATFORM_SETTINGS_TABLE?.trim() ?? "",
   /** Private resumes bucket for careers apply uploads. */
   resumesBucket: process.env.RESUMES_BUCKET?.trim() ?? "",
   /** SES From for careers confirmation + status emails. */

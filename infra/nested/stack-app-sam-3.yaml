@@ -206,6 +206,14 @@ Parameters:
     Type: String
     Default: "false"
     AllowedValues: ["true", "false"]
+  EnableHiringInAppSam3:
+    Type: String
+    Default: "false"
+    AllowedValues: ["true", "false"]
+    Description: >
+      When true, create Careers + RcAdmin applications Lambdas/routes inside AppSam3.
+      Keep false while AppSamHiringStack owns those HttpApi routes (scripts/deploy-hiring-api.sh).
+      Flip to true only after deleting the surgical hiring stack.
   EnableApiWaf:
     Type: String
     Default: "false"
@@ -441,6 +449,10 @@ Conditions:
   HasExternalApiJwtSecretArn: !Not [!Equals [!Ref ExternalApiJwtSecretArn, ""]]
   HasExternalApiEncryptionKeyArn: !Not [!Equals [!Ref ExternalApiEncryptionKeyArn, ""]]
   HasDynamoTablePrefix: !Not [!Equals [!Ref DynamoTableNamePrefix, ""]]
+  # Hiring careers/ATS Lambdas: default OFF in AppSam3 because live routes are owned by
+  # rapid-cortex-dev-AppSamHiringStack (scripts/deploy-hiring-api.sh). Set EnableHiringInAppSam3=true
+  # only after deleting that surgical stack to avoid duplicate HttpApi route keys.
+  HiringInAppSam3Enabled: !Equals [!Ref EnableHiringInAppSam3, "true"]
   DynamoPitrOn:
     Fn::Or:
       - Fn::And:
@@ -1925,6 +1937,7 @@ Resources:
 
   CareersPresignedUploadFunction:
     Type: AWS::Serverless::Function
+    Condition: HiringInAppSam3Enabled
     Metadata:
       BuildMethod: makefile
       BuildTarget: build-function
@@ -1963,6 +1976,7 @@ Resources:
 
   CareersApplyFunction:
     Type: AWS::Serverless::Function
+    Condition: HiringInAppSam3Enabled
     Metadata:
       BuildMethod: makefile
       BuildTarget: build-function
@@ -2023,6 +2037,7 @@ Resources:
 
   RcAdminApplicationsHttpFunction:
     Type: AWS::Serverless::Function
+    Condition: HiringInAppSam3Enabled
     Metadata:
       BuildMethod: makefile
       BuildTarget: build-function

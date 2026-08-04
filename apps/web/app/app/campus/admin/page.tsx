@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { dashboardRouteFromRole, normalizeRole } from "rapid-cortex-shared/auth/vertical-routing";
-import { CampusAdminDashboard } from "@/components/campus/campus-admin-dashboard";
+import { CampusConsoleHome } from "@/components/campus/campus-console-home";
 import { extractCampusCode } from "@/lib/auth/post-login-redirect";
 import { resolveCampusDisplayName } from "@/lib/campus/campus-admin-page";
 import { dashboardDisplayName } from "@/lib/dashboards/dashboard-display-name";
@@ -27,13 +27,13 @@ export default async function CampusAdminPage() {
   const agencyName = await resolveCampusDisplayName(campusCode);
 
   return (
-    <CampusAdminDashboard
+    <CampusConsoleHome
       agencyId={user.agencyId}
       campusCode={campusCode}
       agencyName={agencyName}
-      adminName={dashboardDisplayName(user)}
-      adminEmail={user.email}
-      adminRole={user.role}
+      displayName={dashboardDisplayName(user)}
+      userEmail={user.email}
+      userRole={user.role}
     />
   );
 }

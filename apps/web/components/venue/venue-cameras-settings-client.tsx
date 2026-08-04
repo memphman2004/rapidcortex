@@ -42,6 +42,7 @@ function emptyForm(agencyId: string): VenueCameraUpsertBody {
     sections: [""],
     priorityRank: 1,
     ptzCapable: false,
+    floor: undefined,
   };
 }
 
@@ -105,6 +106,8 @@ export function VenueCamerasSettingsClient({
       priorityRank: camera.priorityRank,
       ptzCapable: camera.ptzCapable,
       status: camera.status,
+      buildingId: camera.buildingId,
+      floor: camera.floor,
     });
   };
 
@@ -157,6 +160,8 @@ export function VenueCamerasSettingsClient({
       }
       if (isCampus) {
         payload.buildingId = payload.sections[0];
+        const floor = form.floor?.trim();
+        payload.floor = floor || undefined;
       }
       if (editingId === "new") {
         await createVenueCameraRegistryEntry(agencyId, payload, apiVertical);
@@ -356,6 +361,14 @@ export function VenueCamerasSettingsClient({
                 })
               }
             />
+            {isCampus ? (
+              <Field
+                label="Floor (optional)"
+                value={form.floor ?? ""}
+                onChange={(v) => setForm({ ...form, floor: v || undefined })}
+                hint="Match intake floor when set — leave blank for whole-building cameras"
+              />
+            ) : null}
             <Field
               label="Priority rank (1 = best view)"
               value={String(form.priorityRank)}

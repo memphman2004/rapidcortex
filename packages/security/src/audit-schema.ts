@@ -72,6 +72,9 @@ export const AUDIT_EVENT_TYPES = {
   JOB_APPLICATION_STATUS_CHANGED: "job_application.status_changed",
   JOB_APPLICATION_NOTE_ADDED: "job_application.note_added",
   JOB_APPLICATION_RESUME_VIEWED: "job_application.resume_viewed",
+  JOB_POSTING_CREATED: "job_posting.created",
+  JOB_POSTING_UPDATED: "job_posting.updated",
+  HIRING_BOOKINGS_UPDATED: "hiring_bookings.updated",
 
   GRANT_PACKAGE_GENERATED: "grant_package.generated",
 

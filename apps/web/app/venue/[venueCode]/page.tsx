@@ -1,10 +1,11 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { dashboardRouteFromRole } from "rapid-cortex-shared";
-import { VenueDashboardHome } from "@/components/dashboards/DashboardHomeRenderer";
+import { VenueConsoleHome } from "@/components/venue/venue-console-home";
+import { extractVenueCode } from "@/lib/auth/post-login-redirect";
 import { dashboardDisplayName } from "@/lib/dashboards/dashboard-display-name";
 import { getDashboardSessionUser } from "@/lib/dashboards/get-dashboard-session";
-import { normalizeVenueRole } from "@/lib/venue/venue-dashboard-sections";
+import { resolveVenueDisplayName } from "@/lib/venue/venue-tenant";
 
 type VenueDashboardParams = { venueCode: string };
 
@@ -28,7 +29,6 @@ export default async function VenueDashboardPage({
 }) {
   const { venueCode } = await params;
   const user = await getDashboardSessionUser();
-  const role = normalizeVenueRole(user?.role);
   if (!user) return null;
 
   const roleToken = user.role.trim().toUpperCase();
@@ -36,12 +36,19 @@ export default async function VenueDashboardPage({
     redirect(dashboardRouteFromRole(user.role, user.agencyId));
   }
 
+  const code = venueCode.toUpperCase();
+  const agencyId = user.agencyId;
+  const resolvedCode = extractVenueCode(agencyId) || code;
+  const venueName = await resolveVenueDisplayName(resolvedCode);
+
   return (
-    <VenueDashboardHome
-      venueCode={venueCode}
-      role={role}
-      agencyId={user.agencyId}
+    <VenueConsoleHome
+      agencyId={agencyId}
+      venueCode={resolvedCode}
+      venueName={venueName}
       displayName={dashboardDisplayName(user)}
+      userEmail={user.email ?? ""}
+      userRole={user.role}
     />
   );
 }

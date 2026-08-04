@@ -29,7 +29,13 @@ export function TopBar({ user: serverUser }: { user?: UserContext | null }) {
   const psapRole = user ? resolvePsapRole(user.role) : "";
 
   return (
-    <header className="rc-sticky-toolbar flex h-36 shrink-0 items-center justify-between border-b-0 bg-slate-950 px-3 sm:h-40 sm:px-4 lg:px-6 2xl:px-8">
+    <header
+      className="rc-sticky-toolbar flex h-36 shrink-0 items-center justify-between border-b-0 px-3 sm:h-40 sm:px-4 lg:px-6 2xl:px-8"
+      style={{
+        background: "#0d1321",
+        borderBottom: "1px solid rgba(255,255,255,0.07)",
+      }}
+    >
       <div className="flex min-w-0 items-center gap-2 sm:gap-3 lg:gap-4">
         <Link href={to("/dashboard")} className="flex shrink-0 items-center gap-2">
           <SiteLogoMark heightClass="h-24 sm:h-28" priority />
@@ -47,9 +53,18 @@ export function TopBar({ user: serverUser }: { user?: UserContext | null }) {
             <span
               className={`rounded-full px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wide ${
                 psapRole === "dispatcher"
-                  ? "bg-sky-950 text-sky-300 ring-1 ring-sky-800"
+                  ? "ring-1"
                   : "bg-slate-900 text-slate-300 ring-1 ring-slate-700"
               }`}
+              style={
+                psapRole === "dispatcher"
+                  ? {
+                      background: "rgba(59,130,246,0.15)",
+                      color: "#93c5fd",
+                      boxShadow: "inset 0 0 0 1px rgba(59,130,246,0.45)",
+                    }
+                  : undefined
+              }
             >
               {roleBadge}
             </span>

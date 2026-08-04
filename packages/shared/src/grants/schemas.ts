@@ -82,43 +82,115 @@ export const generateGrantPackageRequestSchema = z
   .strict();
 export type GenerateGrantPackageRequest = z.infer<typeof generateGrantPackageRequestSchema>;
 
+/** Models often emit numeric fields as strings — coerce before reject. */
+const moneyNumber = z.coerce.number().finite();
+
 const budgetLineSchema = z.object({
-  item: z.string(),
-  quantity: z.number(),
-  unitCost: z.number(),
-  totalCost: z.number(),
-  category: z.string(),
+  item: z.string().min(1),
+  quantity: moneyNumber,
+  unitCost: moneyNumber,
+  totalCost: moneyNumber,
+  category: z.string().min(1),
 });
 
 const timelinePhaseSchema = z.object({
-  phase: z.string(),
-  period: z.string(),
-  milestones: z.array(z.string()),
+  phase: z.string().min(1),
+  period: z.string().min(1),
+  milestones: z
+    .array(z.union([z.string(), z.number()]).transform((v) => String(v)))
+    .default([]),
 });
 
 const grantOutcomeSchema = z.object({
-  metric: z.string(),
-  baseline: z.string(),
-  target: z.string(),
-  timeframe: z.string(),
+  metric: z.string().min(1),
+  baseline: z.string().min(1),
+  target: z.string().min(1),
+  timeframe: z.string().min(1),
 });
 
 /** AI-generated grant package returned by /api/platform/grant-generate. */
 export const grantPackageSchema = z.object({
-  executiveSummary: z.string(),
-  problemStatement: z.string(),
-  projectNarrative: z.string(),
-  technologyDescription: z.string(),
-  budget: z.array(budgetLineSchema),
-  totalBudget: z.number(),
-  budgetJustification: z.string(),
-  timeline: z.array(timelinePhaseSchema),
-  cybersecurity: z.string(),
-  sustainability: z.string(),
-  evaluation: z.string(),
-  outcomes: z.array(grantOutcomeSchema),
+  executiveSummary: z.string().min(1),
+  problemStatement: z.string().min(1),
+  projectNarrative: z.string().min(1),
+  technologyDescription: z.string().min(1),
+  budget: z.array(budgetLineSchema).min(1),
+  totalBudget: moneyNumber,
+  budgetJustification: z.string().min(1),
+  timeline: z.array(timelinePhaseSchema).min(1),
+  cybersecurity: z.string().min(1),
+  sustainability: z.string().min(1),
+  evaluation: z.string().min(1),
+  outcomes: z.array(grantOutcomeSchema).min(1),
 });
 export type GrantPackage = z.infer<typeof grantPackageSchema>;
 export type GrantBudgetLine = z.infer<typeof budgetLineSchema>;
 export type GrantTimelinePhase = z.infer<typeof timelinePhaseSchema>;
 export type GrantOutcome = z.infer<typeof grantOutcomeSchema>;
+
+/**
+ * Normalize common LLM shape drift before Zod (extra keys, stringified arrays, nulls).
+ */
+export function normalizeGrantPackageCandidate(raw: unknown): unknown {
+  if (!raw || typeof raw !== "object" || Array.isArray(raw)) return raw;
+  const o = { ...(raw as Record<string, unknown>) };
+
+  const asText = (v: unknown): string => {
+    if (typeof v === "string") return v.trim();
+    if (v == null) return "";
+    if (typeof v === "number" || typeof v === "boolean") return String(v);
+    return JSON.stringify(v);
+  };
+
+  for (const key of [
+    "executiveSummary",
+    "problemStatement",
+    "projectNarrative",
+    "technologyDescription",
+    "budgetJustification",
+    "cybersecurity",
+    "sustainability",
+    "evaluation",
+  ] as const) {
+    if (key in o) o[key] = asText(o[key]);
+  }
+
+  if (Array.isArray(o.budget)) {
+    o.budget = o.budget.map((line) => {
+      if (!line || typeof line !== "object") return line;
+      const row = { ...(line as Record<string, unknown>) };
+      if (row.item != null) row.item = asText(row.item);
+      if (row.category != null) row.category = asText(row.category);
+      return row;
+    });
+  }
+
+  if (Array.isArray(o.timeline)) {
+    o.timeline = o.timeline.map((phase) => {
+      if (!phase || typeof phase !== "object") return phase;
+      const row = { ...(phase as Record<string, unknown>) };
+      if (row.phase != null) row.phase = asText(row.phase);
+      if (row.period != null) row.period = asText(row.period);
+      if (typeof row.milestones === "string") {
+        row.milestones = row.milestones
+          .split(/\n|;|•/)
+          .map((s) => s.trim())
+          .filter(Boolean);
+      }
+      return row;
+    });
+  }
+
+  if (Array.isArray(o.outcomes)) {
+    o.outcomes = o.outcomes.map((out) => {
+      if (!out || typeof out !== "object") return out;
+      const row = { ...(out as Record<string, unknown>) };
+      for (const k of ["metric", "baseline", "target", "timeframe"] as const) {
+        if (k in row) row[k] = asText(row[k]);
+      }
+      return row;
+    });
+  }
+
+  return o;
+}

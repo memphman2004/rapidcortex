@@ -15,7 +15,13 @@ export function VenueNav({ venueCode, role = "VENUE_SUPERVISOR" }: { venueCode: 
   );
 
   return (
-    <nav className="w-full rounded-lg border border-slate-700/60 bg-slate-900/40 p-3 lg:w-64 lg:shrink-0">
+    <nav
+      className="w-full rounded-lg p-3 lg:w-64 lg:shrink-0"
+      style={{
+        background: "#0e0c1a",
+        border: "1px solid rgba(255,255,255,0.07)",
+      }}
+    >
       <RoleNavSections nav={nav} variant="compact" />
     </nav>
   );

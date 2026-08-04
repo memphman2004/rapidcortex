@@ -660,6 +660,49 @@ function GrantResult({
     outcomes: grantData.outcomes.map((o) => `${o.metric}: ${o.baseline} → ${o.target}`).join("\n"),
   };
 
+  const [pdfBusy, setPdfBusy] = useState(false);
+  const [pdfError, setPdfError] = useState<string | null>(null);
+
+  async function downloadPdf() {
+    setPdfError(null);
+    setPdfBusy(true);
+    try {
+      const res = await fetch("/api/platform/grant-package-pdf", {
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          profile: {
+            schoolName: form.schoolName,
+            city: form.city,
+            state: form.state,
+            grantAmount: form.grantAmount,
+            projectPeriod: form.projectPeriod,
+          },
+          grantPackage: grantData,
+        }),
+      });
+      if (!res.ok) {
+        const body = (await res.json().catch(() => ({}))) as { error?: string };
+        throw new Error(body.error?.trim() || `PDF failed (HTTP ${res.status})`);
+      }
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      const safe = form.schoolName.replace(/[^a-zA-Z0-9-_]+/g, "-").slice(0, 40) || "draft";
+      a.href = url;
+      a.download = `RC-Grant-Package-${safe}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+    } catch (err) {
+      setPdfError(err instanceof Error ? err.message : "PDF download failed");
+    } finally {
+      setPdfBusy(false);
+    }
+  }
+
   return (
     <div className="flex min-h-[560px] overflow-hidden rounded-lg border border-slate-800">
       <div className="flex w-52 shrink-0 flex-col border-r border-slate-800 bg-slate-950">
@@ -689,12 +732,21 @@ function GrantResult({
           ))}
         </div>
         <div className="flex flex-col gap-1.5 border-t border-slate-800 p-2.5">
+          {pdfError && <p className="px-0.5 text-[10px] leading-snug text-rose-400">{pdfError}</p>}
+          <button
+            type="button"
+            disabled={pdfBusy}
+            onClick={() => void downloadPdf()}
+            className="rounded border border-sky-800 bg-sky-950/40 py-2 text-[11px] font-semibold text-sky-300 disabled:opacity-50"
+          >
+            {pdfBusy ? "Building PDF…" : "⬇ Download PDF"}
+          </button>
           <button
             type="button"
             onClick={() => window.print()}
-            className="rounded border border-sky-800 bg-sky-950/40 py-2 text-[11px] font-semibold text-sky-300"
+            className="rounded border border-slate-700 bg-slate-900/60 py-1.5 text-[11px] font-medium text-slate-400"
           >
-            🖨 Print / PDF
+            Print
           </button>
           <button type="button" onClick={onReset} className="py-1.5 text-[11px] text-slate-600">
             ← New package

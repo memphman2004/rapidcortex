@@ -55,6 +55,11 @@ export default async function RcAdminSystemSettingsPage() {
           href="/rc-admin/agencies"
         />
         <SettingsCard
+          title="Hiring"
+          description="Microsoft Bookings URLs for phone screens and interviews."
+          href="/rc-admin/hiring/settings"
+        />
+        <SettingsCard
           title="System health"
           description="Stack health, alarms, and deployment integration snapshot."
           href="/rc-admin/system-health"

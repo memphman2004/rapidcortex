@@ -32,14 +32,15 @@ describe("grounding-verifier", () => {
     expect(result.flag?.gate).toBe("source_citation");
   });
 
-  it("rejects fabricated address not in transcript", () => {
+  it("soft-caps fabricated address when quote is grounded but terms are not", () => {
     const result = applyFieldGrounding({
       field: "location",
       value: "123 Main Street",
       sourceQuote: "they have a knife",
       transcript,
     });
-    expect(result.value).toBeNull();
+    expect(result.value).toBe("123 Main Street");
+    expect(result.scoreCap).toBe(45);
     expect(result.flag?.gate).toBe("lexical_terms");
   });
 

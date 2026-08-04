@@ -6,95 +6,22 @@ import type {
   FieldConfidence,
   FieldWeight,
 } from "rapid-cortex-shared";
-import { FIELD_REGISTRY } from "rapid-cortex-shared";
+import {
+  FIELD_REGISTRY,
+  applyScoreAdjustments,
+  computeAggregate,
+  resolveLastUpdatedSegment,
+  toLevel,
+  toTrend,
+  LEXICAL_GROUNDING_SCORE_CAP,
+} from "rapid-cortex-shared";
 import { normalizeConfidencePercent } from "../../ai/confidence.js";
 import {
   applyFieldGrounding,
   type GroundingFlag,
 } from "../validation/grounding-verifier.js";
 
-export function toLevel(score: number, hasConflict: boolean): ConfidenceLevel {
-  if (hasConflict) return "CONFLICT";
-  if (score >= 80) return "HIGH";
-  if (score >= 60) return "MEDIUM";
-  if (score > 0) return "LOW";
-  return "MISSING";
-}
-
-export function toTrend(
-  current: number,
-  previous: number | undefined,
-): { trend: ConfidenceTrend; delta: number } {
-  if (previous === undefined) return { trend: "STABLE", delta: 0 };
-  const delta = current - previous;
-  if (delta > 5) return { trend: "IMPROVING", delta };
-  if (delta < -5) return { trend: "DEGRADING", delta };
-  return { trend: "STABLE", delta };
-}
-
-const LEVEL_ORDER: Record<ConfidenceLevel, number> = {
-  CONFLICT: 0,
-  MISSING: 1,
-  LOW: 2,
-  MEDIUM: 3,
-  HIGH: 4,
-};
-
-export function computeAggregate(
-  fields: FieldConfidence[],
-  audioQualityFactor: number,
-  segmentCount: number,
-): AggregateConfidence {
-  const criticalFields = fields.filter((f) => f.weight === "CRITICAL");
-  const highFields = fields.filter((f) => f.weight === "HIGH");
-
-  const weightedSum = [
-    ...criticalFields.map((f) => ({ score: f.score, w: 3 })),
-    ...highFields.map((f) => ({ score: f.score, w: 2 })),
-  ].reduce(
-    (acc, { score, w }) => ({ sum: acc.sum + score * w, total: acc.total + w }),
-    { sum: 0, total: 0 },
-  );
-
-  const rawScore = weightedSum.total > 0 ? Math.round(weightedSum.sum / weightedSum.total) : 0;
-  const overallScore = Math.round(rawScore * audioQualityFactor);
-
-  const criticalGaps = criticalFields.filter(
-    (f) => f.level === "LOW" || f.level === "MISSING" || f.level === "CONFLICT",
-  ).length;
-  const hasConflicts = fields.some((f) => f.level === "CONFLICT");
-
-  const attentionRequired = fields
-    .filter(
-      (f) =>
-        (f.weight === "CRITICAL" || f.weight === "HIGH") &&
-        (f.level === "LOW" || f.level === "MISSING" || f.level === "CONFLICT"),
-    )
-    .sort((a, b) => LEVEL_ORDER[a.level] - LEVEL_ORDER[b.level])
-    .map((f) => f.field);
-
-  let pictureStatus: AggregateConfidence["pictureStatus"];
-  if (hasConflicts) pictureStatus = "CONFLICTED";
-  else if (criticalGaps === 0 && overallScore >= 80) pictureStatus = "COMPLETE";
-  else if (criticalGaps <= 1 && overallScore >= 55) pictureStatus = "PARTIAL";
-  else pictureStatus = "INCOMPLETE";
-
-  const topField = attentionRequired
-    .map((fieldName) => fields.find((f) => f.field === fieldName))
-    .find((f) => f?.suggestedQuestion != null);
-
-  return {
-    overallScore,
-    pictureStatus,
-    attentionRequired,
-    criticalGaps,
-    hasConflicts,
-    audioQualityFactor,
-    topSuggestedQuestion: topField?.suggestedQuestion ?? null,
-    computedAt: new Date().toISOString(),
-    segmentCount,
-  };
-}
+export { toLevel, toTrend, computeAggregate };
 
 type RawField = {
   value: string | null;
@@ -116,6 +43,7 @@ export function buildFieldsFromParsed(
   const fields = Object.entries(FIELD_REGISTRY).map(([fieldKey, meta]) => {
     const raw = parsedFields[fieldKey];
     if (!raw) {
+      const prevField = previous?.fields.find((f) => f.field === fieldKey);
       return {
         field: fieldKey,
         label: meta.label,
@@ -128,7 +56,13 @@ export function buildFieldsFromParsed(
         suggestedQuestion:
           meta.weight === "CRITICAL" || meta.weight === "HIGH" ? meta.questionTemplate : null,
         weight: meta.weight as FieldWeight,
-        lastUpdatedAtSegment: segmentCount,
+        lastUpdatedAtSegment: resolveLastUpdatedSegment({
+          segmentCount,
+          previous: prevField,
+          value: null,
+          score: 0,
+          conflictingValues: [],
+        }),
         conflictingValues: [],
       };
     }
@@ -136,6 +70,7 @@ export function buildFieldsFromParsed(
     let value = raw.value;
     let sourceQuote = raw.sourceQuote ?? null;
     let groundingDowngraded = false;
+    let scoreCap: number | undefined;
     let reason = (raw.reason ?? "").slice(0, 150);
 
     if (transcriptText && value?.trim()) {
@@ -152,6 +87,9 @@ export function buildFieldsFromParsed(
           reason = `${reason} ${grounded.reasonSuffix}`.slice(0, 150);
         }
       }
+      if (grounded.scoreCap != null) {
+        scoreCap = grounded.scoreCap;
+      }
       value = grounded.value;
       sourceQuote = grounded.sourceQuote;
     } else if (value?.trim() && !sourceQuote?.trim()) {
@@ -166,12 +104,26 @@ export function buildFieldsFromParsed(
       });
     }
 
-    const hasConflict = (raw.conflictingValues?.length ?? 0) > 1;
+    const conflictingValues = raw.conflictingValues ?? [];
+    const hasConflict = conflictingValues.length > 1;
     // Models often return 0–1 despite the 0–100 prompt; Math.round(0.85) → 1% without normalize.
     let score = normalizeConfidencePercent(raw.score);
-    if (groundingDowngraded && value === null) score = 0;
+    score = applyScoreAdjustments({
+      rawScore: score,
+      groundingDowngraded,
+      scoreCap: scoreCap ?? (groundingDowngraded && value ? LEXICAL_GROUNDING_SCORE_CAP : undefined),
+      valueNullified: groundingDowngraded && value === null,
+    });
+
     const prevField = previous?.fields.find((f) => f.field === fieldKey);
     const { trend, delta } = toTrend(score, prevField?.score);
+    const lastUpdatedAtSegment = resolveLastUpdatedSegment({
+      segmentCount,
+      previous: prevField,
+      value,
+      score,
+      conflictingValues,
+    });
 
     return {
       field: fieldKey,
@@ -182,10 +134,14 @@ export function buildFieldsFromParsed(
       trend,
       trendDelta: delta,
       reason,
-      suggestedQuestion: value ? raw.suggestedQuestion : meta.weight !== "LOW" ? meta.questionTemplate : raw.suggestedQuestion,
+      suggestedQuestion: value
+        ? raw.suggestedQuestion
+        : meta.weight !== "LOW"
+          ? meta.questionTemplate
+          : raw.suggestedQuestion,
       weight: meta.weight as FieldWeight,
-      lastUpdatedAtSegment: segmentCount,
-      conflictingValues: raw.conflictingValues ?? [],
+      lastUpdatedAtSegment,
+      conflictingValues,
       ...(sourceQuote ? { sourceQuote } : {}),
       ...(groundingDowngraded ? { groundingDowngraded: true } : {}),
     };
@@ -224,13 +180,15 @@ export function mockScoreConfidence(
         : [];
 
     const hasConflict = conflictingValues.length > 1;
+    const score = hasConflict ? 18 : baseScore;
+    const value = baseScore > 30 ? `[Mock ${meta.label}]` : null;
 
     return {
       field: fieldKey,
       label: meta.label,
-      value: baseScore > 30 ? `[Mock ${meta.label}]` : null,
-      score: hasConflict ? 18 : baseScore,
-      level: toLevel(hasConflict ? 18 : baseScore, hasConflict),
+      value,
+      score,
+      level: toLevel(score, hasConflict),
       trend,
       trendDelta: delta,
       reason: hasConflict
@@ -239,7 +197,13 @@ export function mockScoreConfidence(
       suggestedQuestion:
         baseScore < 70 && meta.weight !== "LOW" ? meta.questionTemplate : null,
       weight: meta.weight as FieldWeight,
-      lastUpdatedAtSegment: segmentCount,
+      lastUpdatedAtSegment: resolveLastUpdatedSegment({
+        segmentCount,
+        previous: prevField,
+        value,
+        score,
+        conflictingValues,
+      }),
       conflictingValues,
     };
   });
@@ -255,3 +219,6 @@ export function mockScoreConfidence(
     previousVersion: previous?.version,
   };
 }
+
+// Re-export types used by tests / callers that imported from aggregate before.
+export type { AggregateConfidence, ConfidenceLevel, ConfidenceTrend };

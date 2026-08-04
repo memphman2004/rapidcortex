@@ -1,11 +1,13 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   ALL_STAGES,
   EMAIL_TRIGGERS,
   STATUS_CONFIG,
+  getBookingUrlForStatus,
   type ApplicationStatus,
+  type HiringBookingsConfig,
   type JobApplication,
 } from "rapid-cortex-shared";
 
@@ -64,6 +66,29 @@ export function StatusMoveModal({ app, onClose, onConfirm, busy, error }: Status
   const [schedulingLink, setLink] = useState("");
   const [customMessage, setCustomMsg] = useState("");
   const [sendEmail, setSendEmail] = useState(true);
+  const [bookings, setBookings] = useState<HiringBookingsConfig>({});
+
+  useEffect(() => {
+    let cancelled = false;
+    void (async () => {
+      try {
+        const r = await fetch("/api/rc-admin/settings/hiring-bookings", { credentials: "include" });
+        if (!r.ok) return;
+        const cfg = (await r.json()) as HiringBookingsConfig;
+        if (!cancelled) setBookings(cfg);
+      } catch {
+        /* ignore — modal still works with manual link */
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  useEffect(() => {
+    const auto = getBookingUrlForStatus(status, bookings);
+    if (auto) setLink(auto);
+  }, [status, bookings]);
 
   const isEmailStatus = EMAIL_TRIGGERS.has(status);
   const needsLink = SCHEDULING_NEEDED.has(status);
@@ -129,34 +154,43 @@ export function StatusMoveModal({ app, onClose, onConfirm, busy, error }: Status
             ))}
           </div>
 
-          {isEmailStatus && sendEmail && badge && (
+          {isEmailStatus && sendEmail && badge ? (
             <div className={`rounded-md border px-3 py-2 text-xs ${badge.color}`}>
               {badge.icon} {badge.label} to <strong>{app.email}</strong>
             </div>
-          )}
+          ) : null}
 
-          {isEmailStatus && needsLink && sendEmail && (
+          {isEmailStatus && needsLink && sendEmail ? (
             <div>
               <label className="mb-1 block text-xs font-medium text-slate-300">
                 Scheduling link{" "}
-                <span className="font-normal text-slate-500">(Calendly / cal.com)</span>
+                <span className="font-normal text-slate-500">
+                  {status === "PHONE_SCREEN"
+                    ? "(Microsoft Bookings — phone call, no Teams)"
+                    : "(Microsoft Bookings — Teams meeting)"}
+                </span>
               </label>
               <input
                 type="url"
                 value={schedulingLink}
                 onChange={(e) => setLink(e.target.value)}
-                placeholder="https://calendly.com/…"
+                placeholder="https://outlook.office.com/book/…"
                 className="w-full rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-xs text-slate-200 outline-none focus:border-sky-500"
               />
-              {!schedulingLink.trim() && (
+              {!schedulingLink.trim() ? (
                 <p className="mt-1 text-[11px] text-amber-400/90">
-                  Without a link, the email will say you will follow up to schedule.
+                  Without a link, the email will say you will follow up to schedule. Configure defaults
+                  in Hiring Settings.
+                </p>
+              ) : (
+                <p className="mt-1 text-[11px] text-emerald-400/80">
+                  Auto-filled from Hiring Settings — edit if needed.
                 </p>
               )}
             </div>
-          )}
+          ) : null}
 
-          {isEmailStatus && sendEmail && (
+          {isEmailStatus && sendEmail ? (
             <div>
               <label className="mb-1 block text-xs font-medium text-slate-300">
                 Custom message in email{" "}
@@ -170,7 +204,7 @@ export function StatusMoveModal({ app, onClose, onConfirm, busy, error }: Status
                 className="w-full resize-none rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-xs text-slate-200 outline-none focus:border-sky-500"
               />
             </div>
-          )}
+          ) : null}
 
           <div>
             <label className="mb-1 block text-xs font-medium text-slate-300">
@@ -185,7 +219,7 @@ export function StatusMoveModal({ app, onClose, onConfirm, busy, error }: Status
             />
           </div>
 
-          {isEmailStatus && (
+          {isEmailStatus ? (
             <label className="flex cursor-pointer items-center gap-2 text-xs text-slate-300">
               <input
                 type="checkbox"
@@ -195,9 +229,9 @@ export function StatusMoveModal({ app, onClose, onConfirm, busy, error }: Status
               />
               Send automated email to applicant
             </label>
-          )}
+          ) : null}
 
-          {error && <p className="text-xs text-red-400">{error}</p>}
+          {error ? <p className="text-xs text-red-400">{error}</p> : null}
         </div>
 
         <div className="flex justify-end gap-2 border-t border-slate-800 px-5 py-4">

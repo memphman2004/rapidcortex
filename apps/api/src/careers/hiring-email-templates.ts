@@ -145,12 +145,13 @@ export function phoneScreenEmail(input: EmailTemplateInput): { subject: string; 
   const html = wrap(
     "We'd love to connect — you've been selected for a phone screen.",
     `<p ${P}>Hi ${firstName},</p>
-     <p ${P}>Thank you for applying to Rapid Cortex. We reviewed your application for the <strong>${input.position}</strong> role and we would love to connect for a brief introductory call.</p>
+     <p ${P}>Thank you for applying to Rapid Cortex. We reviewed your application for the <strong>${input.position}</strong> role, and we would love to connect for a brief introductory call.</p>
      ${infoBox(`
        <strong>📞 Phone Screen</strong><br>
        Duration: approximately 15–20 minutes<br>
-       Format: informal conversation — no preparation required<br>
-       Who you'll speak with: ${reviewerName}, Founder &amp; CEO
+       Format: phone call — no video, no preparation required<br>
+       Who you'll speak with: ${reviewerName}, Founder &amp; CEO<br>
+       <span style="color:#0c4a6e;font-size:13px;">We will call you at the number you provide during booking.</span>
      `)}
      <p ${P}>We just want to learn a bit more about your background and give you a chance to ask questions about the role and what we are building at Rapid Cortex.</p>
      ${customMessage ? `<p ${P}>${customMessage}</p>` : ""}
@@ -166,7 +167,7 @@ export function phoneScreenEmail(input: EmailTemplateInput): { subject: string; 
     "",
     `Thank you for applying for the ${input.position} role at Rapid Cortex.`,
     "",
-    "We reviewed your application and would love to connect for a brief phone screen — about 15–20 minutes, informal, no preparation required.",
+    "We reviewed your application and would love to connect for a brief phone call — about 15–20 minutes, no video required, no preparation needed. We will call you at the number you provide when you book.",
     "",
     ...(customMessage ? [customMessage, ""] : []),
     schedulingLink
@@ -201,9 +202,10 @@ export function interviewEmail(input: EmailTemplateInput): { subject: string; ht
      <p ${P}>We are pleased to invite you to interview for the <strong>${input.position}</strong> position at Rapid Cortex. We were impressed by your application and are excited to learn more about your experience.</p>
      ${infoBox(`
        <strong>🗓️ Interview Details</strong><br>
-       Format: video or phone call<br>
        Duration: approximately 30–45 minutes<br>
-       Who you'll meet: ${reviewerName}, Founder &amp; CEO
+       Format: Microsoft Teams video call<br>
+       Who you'll meet: ${reviewerName}, Founder &amp; CEO<br>
+       <span style="color:#0c4a6e;font-size:13px;">A Teams meeting link will be included in your booking confirmation email.</span>
      `)}
      ${customMessage ? `<p ${P}>${customMessage}</p>` : ""}
      ${scheduleSection}
@@ -226,8 +228,9 @@ export function interviewEmail(input: EmailTemplateInput): { subject: string; ht
     `We are pleased to invite you to interview for the ${input.position} position at Rapid Cortex.`,
     "",
     "Interview details:",
-    "  Format: video or phone call",
+    "  Format: Microsoft Teams video call",
     "  Duration: approximately 30–45 minutes",
+    "  Note: A Teams meeting link will be in your booking confirmation email.",
     `  Who you'll meet: ${reviewerName}, Founder & CEO`,
     "",
     ...(customMessage ? [customMessage, ""] : []),

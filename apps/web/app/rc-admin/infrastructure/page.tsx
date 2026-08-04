@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { requireRole } from "@/lib/auth/require-role";
-import { RcItAdminInfrastructureHome } from "@/components/dashboards/rc-it-admin-infrastructure-home";
+import { RcAdminConsoleHome } from "@/components/rc-admin/rc-admin-console-home";
+import { dashboardDisplayName } from "@/lib/dashboards/dashboard-display-name";
 
 export const metadata = {
   title: "Infrastructure overview",
@@ -19,10 +20,10 @@ function DashboardCard({
   return (
     <Link
       href={href}
-      className="block rounded-xl border border-slate-700/60 bg-slate-900/60 p-5 transition-colors hover:border-sky-700/40 hover:bg-slate-900"
+      className="block rounded-xl border border-violet-900/40 bg-[#0b0b17]/60 p-5 transition-colors hover:border-violet-600/40 hover:bg-[#0b0b17]"
     >
-      <h2 className="text-sm font-semibold text-white">{title}</h2>
-      <p className="mt-2 text-xs text-slate-400">{description}</p>
+      <h2 className="text-sm font-semibold text-[#e4dff5]">{title}</h2>
+      <p className="mt-2 text-xs text-[#5a4d7a]">{description}</p>
     </Link>
   );
 }
@@ -31,20 +32,28 @@ export default async function RcInfrastructurePage() {
   const user = await requireRole(["rcadmin", "rcitadmin", "rcsuperadmin"]);
   const isItHome = user.role === "rcitadmin";
 
+  if (isItHome) {
+    const displayName = user.displayName?.trim() || dashboardDisplayName(user);
+    return (
+      <RcAdminConsoleHome
+        agencyId={user.agencyId}
+        displayName={displayName}
+        userEmail={user.email}
+        userRole={user.role}
+      />
+    );
+  }
+
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-xl font-semibold text-white">
-          {isItHome ? "Infrastructure overview" : "Infrastructure & platform health"}
+        <h1 className="text-xl font-semibold text-[#e4dff5]">
+          Infrastructure &amp; platform health
         </h1>
-        <p className="mt-1 text-sm text-slate-400">
-          {isItHome
-            ? "RC Internal IT — system health, integrations, CAD adapters, and cross-tenant technical support."
-            : "Platform diagnostics, integration monitoring, and stack health across all tenants."}
+        <p className="mt-1 text-sm text-[#5a4d7a]">
+          Platform diagnostics, integration monitoring, and stack health across all tenants.
         </p>
       </div>
-
-      {isItHome ? <RcItAdminInfrastructureHome /> : null}
 
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
         <DashboardCard

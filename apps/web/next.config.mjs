@@ -257,6 +257,7 @@ const nextConfig = {
     "rapid-cortex-integrations",
     "rapid-cortex-security",
   ],
+  serverExternalPackages: ["pdfkit"],
   async headers() {
     const csp = buildCspHeader(collectConnectOrigins());
     const strictTransportSecurity =

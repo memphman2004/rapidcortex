@@ -3,9 +3,10 @@ import type { AgencyProfileResponse } from "rapid-cortex-shared";
 import { dashboardRouteFromRole, verticalFromRole } from "rapid-cortex-shared";
 import { extractCampusCode } from "@/lib/auth/post-login-redirect";
 import { resolveCampusDisplayName } from "@/lib/campus/campus-admin-page";
+import { dashboardDisplayName } from "@/lib/dashboards/dashboard-display-name";
 import { getDashboardSessionUser } from "@/lib/dashboards/get-dashboard-session";
 import { isVerticalEnabled } from "@/lib/features";
-import { CampusSafetyDashboard } from "./campus-safety-dashboard";
+import { CampusConsoleHome } from "./campus-console-home";
 
 const CAMPUS_CONSOLE_ROLES = new Set([
   "CAMPUS_SECURITY",
@@ -48,11 +49,11 @@ export async function CampusSafetyDashboardPage({
   const agencyName = profile?.name ?? (await resolveCampusDisplayName(campusCode));
 
   return (
-    <CampusSafetyDashboard
+    <CampusConsoleHome
       agencyId={agencyId}
+      campusCode={campusCode}
       agencyName={agencyName}
-      agencySlug={campusCode}
-      linkBase={`/${agencyId}`}
+      displayName={dashboardDisplayName(user)}
       userEmail={user.email ?? ""}
       userRole={user.role}
     />

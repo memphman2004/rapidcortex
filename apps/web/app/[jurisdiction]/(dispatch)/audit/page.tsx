@@ -1,57 +1,36 @@
-import { DashboardCard } from "@/components/ui/dashboard-card";
+import { PsapConsoleHome } from "@/components/psap/psap-console-home";
+import { fetchAgencyProfile } from "@/lib/agency/agency-profile";
 import { requireRole } from "@/lib/auth/require-role";
+import { dashboardDisplayName } from "@/lib/dashboards/dashboard-display-name";
+import { formatJurisdictionAgencyName } from "@/lib/psap/format-agency-display-name";
 
-export default async function AuditorDashboardPage() {
-  await requireRole(["auditor", "agencyadmin", "agencyit", "rcsuperadmin"]);
+type Props = {
+  params: Promise<{ jurisdiction: string }>;
+};
+
+export default async function AuditorDashboardPage({ params }: Props) {
+  const user = await requireRole([
+    "auditor",
+    "agencyadmin",
+    "agencyit",
+    "rcsuperadmin",
+  ]);
+  const { jurisdiction } = await params;
+  const profile = await fetchAgencyProfile(user.agencyId);
+  const agencyName =
+    profile?.name?.trim() ||
+    formatJurisdictionAgencyName(jurisdiction, user.agencyId);
+  const displayName =
+    user.displayName?.trim() || dashboardDisplayName(user);
 
   return (
-    <div className="mx-auto w-full max-w-[var(--rc-content-max)] space-y-6 px-4 py-4 lg:px-6 lg:py-5 2xl:px-8">
-      <section className="space-y-1">
-        <h1 className="text-xl font-semibold text-white">Audit Overview</h1>
-        <p className="text-sm text-slate-400">
-          Read-only compliance surface — view and export audit records, CAD writeback history, and
-          operational reports. No write actions are available for this role.
-        </p>
-      </section>
-
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-        <DashboardCard
-          title="Audit Log"
-          description="Full chronological audit trail of all system actions."
-          href="audit/log"
-          status="active"
-        />
-        <DashboardCard
-          title="Incident Records"
-          description="Read-only incident history with full detail view."
-          href="audit/incidents"
-          status="active"
-        />
-        <DashboardCard
-          title="User Activity"
-          description="Login history and action log by user."
-          href="audit/user-activity"
-          status="active"
-        />
-        <DashboardCard
-          title="Data Retention"
-          description="View retention policy status and scheduled deletions."
-          href="audit/retention"
-          status="active"
-        />
-        <DashboardCard
-          title="Compliance Export"
-          description="Export records for CJIS, accreditation, or legal review."
-          href="audit/export"
-          status="active"
-        />
-        <DashboardCard
-          title="Access Reports"
-          description="Who accessed what data and when."
-          href="audit/access"
-          status="active"
-        />
-      </div>
-    </div>
+    <PsapConsoleHome
+      agencyId={user.agencyId}
+      jurisdiction={jurisdiction}
+      agencyName={agencyName}
+      displayName={displayName}
+      userEmail={user.email}
+      userRole={user.role}
+    />
   );
 }

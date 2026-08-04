@@ -2,7 +2,9 @@
 
 import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { OPEN_ROLES, type OpenRole } from "@/lib/careers/open-roles";
+import { careersApiBase, fetchPublishedRoles } from "@/lib/careers/fetch-postings";
+import type { OpenRole } from "@/lib/careers/open-roles";
+import { OPEN_ROLES } from "@/lib/careers/open-roles";
 
 type Step = "idle" | "form" | "uploading" | "submitting" | "success" | "error";
 
@@ -27,14 +29,6 @@ const EMPTY: FormState = {
   weeklyAvailability: "",
   coverNote: "",
 };
-
-const DEFAULT_CAREERS_API_BASE = "https://tbr4zvjlk5.execute-api.us-east-1.amazonaws.com";
-
-function careersApiBase(): string {
-  const override = process.env.NEXT_PUBLIC_CAREERS_API_BASE?.trim();
-  if (override) return override.replace(/\/$/, "");
-  return DEFAULT_CAREERS_API_BASE;
-}
 
 async function getPresignedUploadUrl(fileName: string, contentType: string) {
   const res = await fetch(`${careersApiBase()}/api/careers/presigned-upload`, {
@@ -192,6 +186,8 @@ function JobDetail({
         xhr.onerror = () => reject(new Error("Network error during upload"));
         xhr.open("PUT", uploadUrl);
         xhr.setRequestHeader("Content-Type", resumeFile.type || "application/pdf");
+        // Must match PutObjectCommand ServerSideEncryption on the presigned URL.
+        xhr.setRequestHeader("x-amz-server-side-encryption", "AES256");
         xhr.send(resumeFile);
       });
 
@@ -536,24 +532,39 @@ function JobDetail({
 }
 
 export function CareersJobsClient() {
+  const [roles, setRoles] = useState<OpenRole[]>(OPEN_ROLES);
+  const [loading, setLoading] = useState(true);
   const [selectedId, setSelectedId] = useState<string | null>(null);
 
   useEffect(() => {
-    const fromHash = window.location.hash.replace(/^#/, "").trim();
-    if (fromHash && OPEN_ROLES.some((r) => r.id === fromHash)) {
-      setSelectedId(fromHash);
-      return;
-    }
-    // Desktop: select first job so the split pane is populated like LinkedIn.
-    if (window.matchMedia("(min-width: 1024px)").matches) {
-      setSelectedId(OPEN_ROLES[0]?.id ?? null);
-    }
+    let cancelled = false;
+    void (async () => {
+      const fetched = await fetchPublishedRoles();
+      if (cancelled) return;
+      setRoles(fetched);
+      setLoading(false);
+
+      const params = new URLSearchParams(window.location.search);
+      const fromQuery = params.get("slug")?.trim() ?? "";
+      const fromHash = window.location.hash.replace(/^#/, "").trim();
+      const preferred = fromQuery || fromHash;
+      if (preferred && fetched.some((r) => r.id === preferred)) {
+        setSelectedId(preferred);
+        return;
+      }
+      if (window.matchMedia("(min-width: 1024px)").matches) {
+        setSelectedId(fetched[0]?.id ?? null);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   useEffect(() => {
     if (!selectedId) {
       if (window.location.hash) {
-        history.replaceState(null, "", window.location.pathname);
+        history.replaceState(null, "", `${window.location.pathname}${window.location.search}`);
       }
       return;
     }
@@ -563,8 +574,8 @@ export function CareersJobsClient() {
   }, [selectedId]);
 
   const selected = useMemo(
-    () => OPEN_ROLES.find((r) => r.id === selectedId) ?? null,
-    [selectedId],
+    () => roles.find((r) => r.id === selectedId) ?? null,
+    [roles, selectedId],
   );
 
   return (
@@ -575,51 +586,60 @@ export function CareersJobsClient() {
           Jobs at Rapid Cortex
         </h1>
         <p className="mt-3 text-sm text-slate-400">
-          {OPEN_ROLES.length} open {OPEN_ROLES.length === 1 ? "role" : "roles"} · Apps on Demand LLC
-          d/b/a Rapid Cortex ·{" "}
+          {loading
+            ? "Loading open roles…"
+            : `${roles.length} open ${roles.length === 1 ? "role" : "roles"}`}{" "}
+          · Apps on Demand LLC d/b/a Rapid Cortex ·{" "}
           <a href="mailto:careers@rapidcortex.us" className="text-sky-400 hover:text-sky-300">
             careers@rapidcortex.us
           </a>
         </p>
       </header>
 
-      <div className="grid gap-4 lg:grid-cols-[minmax(0,22rem)_minmax(0,1fr)] lg:items-start">
-        {/* Job list — LinkedIn-style left rail */}
-        <aside
-          className={[
-            "space-y-3",
-            selected ? "hidden lg:block" : "block",
-          ].join(" ")}
-        >
-          <div className="rounded-xl border border-slate-800 bg-slate-950/50 px-4 py-3">
-            <p className="text-sm font-medium text-white">Open roles</p>
-            <p className="text-xs text-slate-500">Select a job to view details</p>
-          </div>
-          {OPEN_ROLES.map((role) => (
-            <JobListCard
-              key={role.id}
-              role={role}
-              selected={selectedId === role.id}
-              onSelect={() => setSelectedId(role.id)}
-            />
-          ))}
-        </aside>
-
-        {/* Detail pane */}
-        <main className={selected ? "block" : "hidden lg:block"}>
-          {selected ? (
-            <JobDetail
-              key={selected.id}
-              role={selected}
-              onBack={() => setSelectedId(null)}
-            />
-          ) : (
-            <div className="flex min-h-[28rem] items-center justify-center rounded-xl border border-dashed border-slate-800 bg-slate-950/30 px-6 text-center text-sm text-slate-500">
-              Select a job on the left to view the description and apply.
+      {!loading && roles.length === 0 ? (
+        <div className="rounded-xl border border-slate-800 bg-slate-950/50 p-12 text-center">
+          <p className="text-slate-400">No open positions at the moment.</p>
+          <p className="mt-2 text-sm text-slate-500">
+            Check back soon or connect with us on{" "}
+            <a
+              href="https://www.linkedin.com/company/rapidcortex"
+              className="text-sky-400 hover:underline"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              LinkedIn
+            </a>
+            .
+          </p>
+        </div>
+      ) : (
+        <div className="grid gap-4 lg:grid-cols-[minmax(0,22rem)_minmax(0,1fr)] lg:items-start">
+          <aside className={["space-y-3", selected ? "hidden lg:block" : "block"].join(" ")}>
+            <div className="rounded-xl border border-slate-800 bg-slate-950/50 px-4 py-3">
+              <p className="text-sm font-medium text-white">Open roles</p>
+              <p className="text-xs text-slate-500">Select a job to view details</p>
             </div>
-          )}
-        </main>
-      </div>
+            {roles.map((role) => (
+              <JobListCard
+                key={role.id}
+                role={role}
+                selected={selectedId === role.id}
+                onSelect={() => setSelectedId(role.id)}
+              />
+            ))}
+          </aside>
+
+          <main className={selected ? "block" : "hidden lg:block"}>
+            {selected ? (
+              <JobDetail key={selected.id} role={selected} onBack={() => setSelectedId(null)} />
+            ) : (
+              <div className="flex min-h-[28rem] items-center justify-center rounded-xl border border-dashed border-slate-800 bg-slate-950/30 px-6 text-center text-sm text-slate-500">
+                Select a job on the left to view the description and apply.
+              </div>
+            )}
+          </main>
+        </div>
+      )}
     </div>
   );
 }

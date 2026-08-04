@@ -34,16 +34,18 @@ export function SideNav() {
           ? { accent: "#14B8A6", dim: "#134E4A" }
           : nav?.accent === "slate"
             ? { accent: "#94A3B8", dim: "#1E293B" }
-            : { accent: "#0284C7", dim: "#0C4A6E" };
+            : { accent: "#3b82f6", dim: "#1e3a5f" };
 
   return (
     <nav
-      className="flex h-full min-h-0 w-56 shrink-0 flex-col border-r border-slate-800 bg-slate-950/90 sm:w-[var(--rc-sidebar-ops)] xl:w-[var(--rc-sidebar-ops-xl)]"
+      className="flex h-full min-h-0 w-56 shrink-0 flex-col sm:w-[var(--rc-sidebar-ops)] xl:w-[var(--rc-sidebar-ops-xl)]"
       aria-label="Operations and administration"
       style={
         {
           "--role-accent": palette.accent,
           "--role-accent-dim": palette.dim,
+          background: "#0d1321",
+          borderRight: "1px solid rgba(255,255,255,0.07)",
         } as CSSProperties
       }
     >

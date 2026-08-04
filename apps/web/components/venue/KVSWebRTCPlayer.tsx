@@ -23,17 +23,19 @@ type ViewerToken = {
 
 type ConnectionState = "idle" | "fetching" | "connecting" | "live" | "reconnecting" | "ended" | "error";
 
-/** KVS WebRTC viewer for venue registry cameras (fixed channel name). */
+/** KVS WebRTC viewer for venue/campus registry cameras (fixed channel name). */
 export function KVSWebRTCPlayer({
   agencyId,
   kvsChannelName,
   displayName,
   onClose,
+  apiVertical = "venue",
 }: {
   agencyId: string;
   kvsChannelName: string;
   displayName: string;
   onClose?: () => void;
+  apiVertical?: "venue" | "campus";
 }) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const peerRef = useRef<RTCPeerConnection | null>(null);
@@ -57,13 +59,13 @@ export function KVSWebRTCPlayer({
   const fetchToken = useCallback(async (): Promise<ViewerToken> => {
     const qs = new URLSearchParams({ kvsChannelName });
     const res = await fetch(
-      `/api/venue/${encodeURIComponent(agencyId)}/cameras/viewer-token?${qs}`,
+      `/api/${apiVertical}/${encodeURIComponent(agencyId)}/cameras/viewer-token?${qs}`,
       { credentials: "include" },
     );
     const body = (await res.json()) as ViewerToken & { error?: string };
     if (!res.ok) throw new Error(body.error ?? `Unable to load stream (${res.status})`);
     return body;
-  }, [agencyId, kvsChannelName]);
+  }, [agencyId, apiVertical, kvsChannelName]);
 
   const connect = useCallback(async () => {
     cleanup();

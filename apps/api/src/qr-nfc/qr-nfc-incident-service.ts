@@ -1,5 +1,5 @@
 import type { PublicReportSubmitInput, QRNFCRecord, ReportMedium } from "rapid-cortex-shared";
-import { createCampusIncident } from "../campus/campus-incident-service.js";
+import { createCampusQrIncident } from "../campus/campus-incident-service.js";
 import { createVenueQrIncident } from "../venue/venue-incident-service.js";
 import { IncidentRepository } from "../repositories/incidentRepository.js";
 import { AuditRepository } from "../repositories/auditRepository.js";
@@ -91,7 +91,7 @@ export async function createIncidentFromQrNfcReport(
 
   if (record.vertical === "campus") {
     const campusCode = extractOrgCode(record.agencyId, "campus");
-    const incident = await createCampusIncident(
+    const { incident } = await createCampusQrIncident(
       {
         campusCode,
         buildingCode: record.zoneId ?? "UNKNOWN",
@@ -107,8 +107,8 @@ export async function createIncidentFromQrNfcReport(
         phoneNumber: reporterPhone ?? null,
         photoDataUrl: null,
       },
-      campusCode,
-      undefined,
+      record.agencyId,
+      "qr-nfc-intake",
     );
     return incident.id;
   }

@@ -444,6 +444,16 @@
       "Type": "String",
       "Default": "rapid-cortex-venue-assets-dev-158961537080",
       "Description": "Pre-existing bucket: VenueAssetsBucket (managed outside CloudFormation for dev)"
+    },
+    "ExistingJobApplicationsTableName": {
+      "Type": "String",
+      "Default": "rapid-cortex-job-applications-dev",
+      "Description": "Pre-existing table: JobApplicationsTable (careers/ATS; created by hiring surgical deploy)"
+    },
+    "ExistingResumesBucketName": {
+      "Type": "String",
+      "Default": "rapid-cortex-resumes-dev-158961537080",
+      "Description": "Pre-existing bucket: ResumesBucket (careers resumes; created by hiring surgical deploy)"
     }
   },
   "Rules": {
@@ -2748,94 +2758,6 @@
           "AttributeName": "ttl",
           "Enabled": true
         }
-      }
-    },
-    "JobApplicationsTable": {
-      "Type": "AWS::DynamoDB::Table",
-      "DeletionPolicy": "Retain",
-      "UpdateReplacePolicy": "Retain",
-      "Properties": {
-        "BillingMode": {
-          "Ref": "DynamoBillingMode"
-        },
-        "TableName": {
-          "Fn::If": [
-            "HasDynamoTablePrefix",
-            {
-              "Fn::Sub": "${DynamoTableNamePrefix}-job-applications-${DeploymentStage}"
-            },
-            {
-              "Ref": "AWS::NoValue"
-            }
-          ]
-        },
-        "PointInTimeRecoverySpecification": {
-          "PointInTimeRecoveryEnabled": {
-            "Fn::If": [
-              "DynamoPitrOn",
-              true,
-              false
-            ]
-          }
-        },
-        "AttributeDefinitions": [
-          {
-            "AttributeName": "applicationId",
-            "AttributeType": "S"
-          },
-          {
-            "AttributeName": "status",
-            "AttributeType": "S"
-          },
-          {
-            "AttributeName": "position",
-            "AttributeType": "S"
-          },
-          {
-            "AttributeName": "createdAt",
-            "AttributeType": "S"
-          }
-        ],
-        "KeySchema": [
-          {
-            "AttributeName": "applicationId",
-            "KeyType": "HASH"
-          }
-        ],
-        "GlobalSecondaryIndexes": [
-          {
-            "IndexName": "StatusCreatedAtIndex",
-            "KeySchema": [
-              {
-                "AttributeName": "status",
-                "KeyType": "HASH"
-              },
-              {
-                "AttributeName": "createdAt",
-                "KeyType": "RANGE"
-              }
-            ],
-            "Projection": {
-              "ProjectionType": "ALL"
-            }
-          },
-          {
-            "IndexName": "PositionCreatedAtIndex",
-            "KeySchema": [
-              {
-                "AttributeName": "position",
-                "KeyType": "HASH"
-              },
-              {
-                "AttributeName": "createdAt",
-                "KeyType": "RANGE"
-              }
-            ],
-            "Projection": {
-              "ProjectionType": "ALL"
-            }
-          }
-        ]
       }
     },
     "SeoIntelligenceTable": {
@@ -5756,70 +5678,6 @@
         }
       }
     },
-    "ResumesBucket": {
-      "Type": "AWS::S3::Bucket",
-      "DeletionPolicy": "Retain",
-      "UpdateReplacePolicy": "Retain",
-      "Properties": {
-        "BucketName": {
-          "Fn::Sub": "rapid-cortex-resumes-${DeploymentStage}-${AWS::AccountId}"
-        },
-        "BucketEncryption": {
-          "ServerSideEncryptionConfiguration": [
-            {
-              "ServerSideEncryptionByDefault": {
-                "SSEAlgorithm": "AES256"
-              }
-            }
-          ]
-        },
-        "PublicAccessBlockConfiguration": {
-          "BlockPublicAcls": true,
-          "BlockPublicPolicy": true,
-          "IgnorePublicAcls": true,
-          "RestrictPublicBuckets": true
-        },
-        "CorsConfiguration": {
-          "CorsRules": [
-            {
-              "AllowedMethods": [
-                "GET",
-                "PUT",
-                "HEAD"
-              ],
-              "AllowedHeaders": [
-                "*"
-              ],
-              "AllowedOrigins": {
-                "Fn::Split": [
-                  ",",
-                  {
-                    "Ref": "HttpApiCorsAllowedOrigins"
-                  }
-                ]
-              },
-              "ExposedHeaders": [
-                "ETag",
-                "x-amz-request-id",
-                "x-amz-id-2"
-              ],
-              "MaxAge": 3600
-            }
-          ]
-        },
-        "LifecycleConfiguration": {
-          "Rules": [
-            {
-              "Id": "abort-incomplete-multipart",
-              "Status": "Enabled",
-              "AbortIncompleteMultipartUpload": {
-                "DaysAfterInitiation": 7
-              }
-            }
-          ]
-        }
-      }
-    },
     "BillingInvoicesBucket": {
       "Type": "AWS::S3::Bucket",
       "Properties": {
@@ -6198,13 +6056,13 @@
     "JobApplicationsTable": {
       "Description": "Physical table name for JobApplicationsTable (careers / ATS)",
       "Value": {
-        "Ref": "JobApplicationsTable"
+        "Ref": "ExistingJobApplicationsTableName"
       }
     },
     "ResumesBucket": {
       "Description": "Physical bucket name for ResumesBucket (careers resume uploads)",
       "Value": {
-        "Ref": "ResumesBucket"
+        "Ref": "ExistingResumesBucketName"
       }
     },
     "SeoIntelligenceTable": {

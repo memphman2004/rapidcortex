@@ -4,7 +4,7 @@ import { parseVenueSmsForCode } from "../venue/venue-sms-parser.js";
 import { smsRoutingService } from "./smsRoutingService.js";
 import { logUnroutedInboundSms } from "./smsInboundUnrouted.js";
 import { handleVenueInboundSms } from "../venue/venue-sms-intake-service.js";
-import { venueCodeFromAgencyId } from "../handlers/vertical/agency-id.js";
+import { campusCodeFromAgencyId, venueCodeFromAgencyId } from "../handlers/vertical/agency-id.js";
 
 export async function routeInboundSms(params: {
   toPhone: string;
@@ -23,9 +23,11 @@ export async function routeInboundSms(params: {
   }
 
   if (route.vertical === "campus") {
-    const parsed = parseCampusSmsForCode(route.agencyId, params.rawBody, params.rawBody);
+    const campusCode = campusCodeFromAgencyId(route.agencyId);
+    const parsed = parseCampusSmsForCode(campusCode, params.rawBody, params.rawBody);
     await handleCampusInboundSms({
       parsed,
+      agencyId: route.agencyId,
       callerPhone: params.callerPhone,
       toPhone: params.toPhone,
       inboundParams: params.inboundParams,

@@ -20,6 +20,17 @@ function transcriptToText(segments: TranscriptSegment[]): string {
   return segments.map((s) => `[${s.speaker}]: ${s.text}`).join("\n");
 }
 
+/** Mean of available STT confidences (0–1) over the most recent segments. */
+function meanSttConfidence(segments: TranscriptSegment[]): number | undefined {
+  const recent = segments.slice(-20);
+  const scores = recent
+    .map((s) => s.transcriptConfidence ?? s.originalTranscriptConfidence)
+    .filter((c): c is number => typeof c === "number" && Number.isFinite(c) && c >= 0);
+  if (scores.length === 0) return undefined;
+  const normalized = scores.map((c) => (c > 1 && c <= 100 ? c / 100 : Math.min(1, c)));
+  return normalized.reduce((a, b) => a + b, 0) / normalized.length;
+}
+
 export class FieldConfidenceService {
   async getLatest(incidentId: string, user: UserContext): Promise<ConfidenceAnalysis | null> {
     const incident = await incidentRepo.get(incidentId);
@@ -72,6 +83,7 @@ export class FieldConfidenceService {
       segmentCount,
       version,
       previous ?? undefined,
+      { meanSttConfidence: meanSttConfidence(segments) },
     );
 
     const now = new Date().toISOString();

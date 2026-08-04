@@ -770,6 +770,10 @@ Resources:
       Policies:
         - !Ref AppManagedPolicyQrNfcDynamo
         - !Ref AppManagedPolicyQrLocationDynamo
+        - !If
+          - HasWebSocketBroadcast
+          - !Ref AppManagedPolicyQrWebSocketBroadcast
+          - !Ref AWS::NoValue
 
   QrNfcHttpIntegN:
     Type: AWS::ApiGatewayV2::Integration

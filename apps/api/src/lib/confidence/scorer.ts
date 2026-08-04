@@ -19,6 +19,11 @@ export type ConfidenceScoreResult = {
  * Throws (via NormalizedAiError) if every configured tier fails; callers fall back to
  * the previous analysis or the mock heuristic (see scoreConfidence below).
  */
+export type ScoreConfidenceOptions = {
+  /** Mean STT confidence 0–1 from recent transcript segments. */
+  meanSttConfidence?: number;
+};
+
 export async function scoreConfidenceWithProviderChain(
   incidentId: string,
   agencyId: string,
@@ -26,6 +31,7 @@ export async function scoreConfidenceWithProviderChain(
   segmentCount: number,
   version: number,
   previous?: ConfidenceAnalysis,
+  options: ScoreConfidenceOptions = {},
 ): Promise<ConfidenceScoreResult> {
   const result = await runConfidenceOrchestrator({ incidentId, agencyId, transcriptText });
   if (!result.ok) {
@@ -39,7 +45,9 @@ export async function scoreConfidenceWithProviderChain(
     previous,
     transcriptText,
   );
-  const aggregate = computeAggregate(fields, audioQualityFactor, segmentCount);
+  const aggregate = computeAggregate(fields, audioQualityFactor, segmentCount, {
+    meanSttConfidence: options.meanSttConfidence,
+  });
 
   return {
     analysis: {
@@ -61,6 +69,7 @@ export async function scoreConfidence(
   segmentCount: number,
   version: number,
   previous?: ConfidenceAnalysis,
+  options: ScoreConfidenceOptions = {},
 ): Promise<ConfidenceScoreResult> {
   if (env.confidenceScoringMock) {
     const analysis = mockScoreConfidence(incidentId, agencyId, segmentCount, version, previous);
@@ -75,6 +84,7 @@ export async function scoreConfidence(
       segmentCount,
       version,
       previous,
+      options,
     );
   } catch (err) {
     console.error(

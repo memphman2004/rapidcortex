@@ -372,6 +372,8 @@ export type AuditResourceType =
   | "channel_config"
   | "sales_lead"
   | "job_application"
+  | "job_posting"
+  | "hiring_bookings"
   | "grant_package"
   | "rcs_call"
   | "clery_entry"

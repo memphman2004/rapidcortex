@@ -1,5 +1,5 @@
-import { VerticalRoleStub } from "@/components/dashboards/vertical-role-stub";
+import { CampusSafetyDashboardPage } from "@/components/campus/campus-safety-dashboard-page";
 
 export default function CampusFacultyPage() {
-  return <VerticalRoleStub consoleTitle="Campus Faculty" vertical="campus" />;
+  return <CampusSafetyDashboardPage />;
 }

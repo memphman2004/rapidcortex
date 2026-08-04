@@ -13,9 +13,10 @@ import {
   serverError,
   serviceUnavailable,
 } from "../../lib/response.js";
+import { resolveCampusAgencyId } from "../campus-access.js";
 import { createAnonToken } from "../campus-anon-service.js";
 import { getCampusConfig } from "../campus-config-service.js";
-import { createCampusIncident } from "../campus-incident-service.js";
+import { createCampusQrIncident } from "../campus-incident-service.js";
 import { uploadReportPhoto } from "../campus-media-service.js";
 import { isConfidentialType, publicReportSchema } from "../campus-schemas.js";
 
@@ -64,6 +65,11 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
       return withCorrelationHeaders(event, notFound("Campus not found"));
     }
 
+    const agencyId = await resolveCampusAgencyId(campusCode);
+    if (!agencyId) {
+      return withCorrelationHeaders(event, notFound("Campus agency not found"));
+    }
+
     const typeMap: Record<string, string> = {
       medical: "medical",
       security: "security",
@@ -76,7 +82,7 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
     };
     const incidentType = typeMap[helpType] ?? "other";
 
-    const incident = await createCampusIncident(
+    const { incident } = await createCampusQrIncident(
       {
         campusCode,
         buildingCode: buildingCode || "UNKNOWN",
@@ -89,8 +95,8 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
         phoneNumber: phoneNumber ?? null,
         photoDataUrl: null,
       },
-      campusCode,
-      undefined,
+      agencyId,
+      "public-report",
     );
 
     if (photoDataUrl && incident.id) {

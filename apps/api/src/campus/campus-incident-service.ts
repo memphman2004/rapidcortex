@@ -55,6 +55,7 @@ export async function createCampusIncident(
     sk: CAMPUS_KEYS.incidentSk(id),
     id,
     campusCode: input.campusCode,
+    agencyId,
     buildingCode: input.buildingCode,
     buildingLabel: input.buildingCode,
     floor: input.floor ?? null,
@@ -110,7 +111,7 @@ export type CreateCampusIntakeIncidentResult = {
   cameras: VenueIncidentCameraSummary[];
 };
 
-async function finalizeCampusIntakeIncident(
+export async function finalizeCampusIntakeIncident(
   agencyId: string,
   incident: CampusIncident,
 ): Promise<CreateCampusIntakeIncidentResult> {
@@ -360,13 +361,15 @@ export async function findOpenCampusIncidentByPhoneHash(
 
 export async function createCampusSmsIncident(params: {
   campusCode: string;
+  /** Tenant agencyId — required for camera registry + websocket broadcast. */
+  agencyId: string;
   type: CampusIncidentType;
   description: string;
   buildingHint: string;
   roomHint: string;
   phoneHash: string;
   reporterLast4: string;
-}): Promise<CampusIncident> {
+}): Promise<CreateCampusIntakeIncidentResult> {
   const incident = await createCampusIncident(
     {
       campusCode: params.campusCode,
@@ -377,7 +380,7 @@ export async function createCampusSmsIncident(params: {
       description: params.description,
       isAnonymous: true,
     },
-    params.campusCode,
+    params.agencyId,
     "sms-inbound",
   ).then(async (base) => {
     const now = new Date().toISOString();
@@ -407,8 +410,7 @@ export async function createCampusSmsIncident(params: {
       locationData: [],
     };
   });
-  await finalizeCampusIntakeIncident(params.campusCode, incident);
-  return incident;
+  return finalizeCampusIntakeIncident(params.agencyId, incident);
 }
 
 export async function markCampusLocationLinkSent(

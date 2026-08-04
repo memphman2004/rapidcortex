@@ -2,10 +2,11 @@ import { redirect } from "next/navigation";
 import type { AgencyProfileResponse } from "rapid-cortex-shared";
 import { dashboardRouteFromRole, verticalFromRole } from "rapid-cortex-shared";
 import { extractVenueCode } from "@/lib/auth/post-login-redirect";
+import { dashboardDisplayName } from "@/lib/dashboards/dashboard-display-name";
 import { getDashboardSessionUser } from "@/lib/dashboards/get-dashboard-session";
 import { isVerticalEnabled } from "@/lib/features";
 import { resolveVenueDisplayName } from "@/lib/venue/venue-tenant";
-import { VenueOperationsDashboard } from "./venue-operations-dashboard";
+import { VenueConsoleHome } from "./venue-console-home";
 
 const VENUE_CONSOLE_ROLES = new Set([
   "VENUE_SECURITY",
@@ -48,11 +49,11 @@ export async function VenueOperationsDashboardPage({
   const venueName = profile?.name ?? (await resolveVenueDisplayName(venueCode));
 
   return (
-    <VenueOperationsDashboard
+    <VenueConsoleHome
       agencyId={agencyId}
+      venueCode={venueCode}
       venueName={venueName}
-      agencySlug={venueCode}
-      linkBase={`/${agencyId}`}
+      displayName={dashboardDisplayName(user)}
       userEmail={user.email ?? ""}
       userRole={user.role}
     />

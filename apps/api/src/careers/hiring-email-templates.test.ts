@@ -27,7 +27,22 @@ describe("hiring email templates", () => {
     expect(email).not.toBeNull();
     expect(email!.html).toContain("https://calendly.com/example/phone");
     expect(email!.html).toContain("Excited to meet you.");
+    expect(email!.html).toContain("phone call — no video");
+    expect(email!.html).toContain("We will call you at the number you provide during booking.");
     expect(email!.text).toContain("Excited to meet you.");
+    expect(email!.text).toContain("no video required");
+  });
+
+  it("interview email mentions Teams and booking confirmation", () => {
+    const email = buildEmail("INTERVIEW", {
+      ...base,
+      schedulingLink: "https://outlook.office.com/book/VideoInterview@rapidcortex.us/",
+    });
+    expect(email).not.toBeNull();
+    expect(email!.html).toContain("Microsoft Teams video call");
+    expect(email!.html).toContain("A Teams meeting link will be included in your booking confirmation email.");
+    expect(email!.text).toContain("Microsoft Teams video call");
+    expect(email!.text).toContain("booking confirmation email");
   });
 
   it("does not treat statusNote fallback — customMessage alone", () => {

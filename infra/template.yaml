@@ -1541,6 +1541,7 @@ Resources:
         EnableCloudTrailLambdaDataEvents: !Ref EnableCloudTrailLambdaDataEvents
         EnableCloudTrailS3DataEvents: !Ref EnableCloudTrailS3DataEvents
         EnableLiveVideoResources: "false"
+        EnableHiringInAppSam3: "false"
         ExternalApiEncryptionKeyArn: !Ref ExternalApiEncryptionKeyArn
         ExternalApiJwtSecretArn: !Ref ExternalApiJwtSecretArn
         ExternalApiRateLimitsTable:

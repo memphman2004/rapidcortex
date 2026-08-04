@@ -14,6 +14,10 @@ Parameters:
     Type: String
   JobApplicationsTable:
     Type: String
+  JobPostingsTable:
+    Type: String
+  PlatformSettingsTable:
+    Type: String
   ResumesBucket:
     Type: String
   AuditTable:
@@ -65,6 +69,8 @@ Globals:
         DEPLOYMENT_STAGE: !Ref DeploymentStage
         ALLOW_UNAUTHENTICATED_API: "false"
         JOB_APPLICATIONS_TABLE: !Ref JobApplicationsTable
+        JOB_POSTINGS_TABLE: !Ref JobPostingsTable
+        PLATFORM_SETTINGS_TABLE: !Ref PlatformSettingsTable
         RESUMES_BUCKET: !Ref ResumesBucket
         AUDIT_TABLE: !Ref AuditTable
         AGENCIES_TABLE: !Ref AgenciesTable
@@ -103,6 +109,27 @@ Resources:
             Resource:
               - !Sub arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${JobApplicationsTable}
               - !Sub arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${JobApplicationsTable}/index/*
+          - Sid: JobPostingsCrud
+            Effect: Allow
+            Action:
+              - dynamodb:GetItem
+              - dynamodb:PutItem
+              - dynamodb:UpdateItem
+              - dynamodb:Scan
+              - dynamodb:Query
+              - dynamodb:DescribeTable
+            Resource:
+              - !Sub arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${JobPostingsTable}
+              - !Sub arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${JobPostingsTable}/index/*
+          - Sid: PlatformSettingsCrud
+            Effect: Allow
+            Action:
+              - dynamodb:GetItem
+              - dynamodb:PutItem
+              - dynamodb:UpdateItem
+              - dynamodb:DescribeTable
+            Resource:
+              - !Sub arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${PlatformSettingsTable}
           - Sid: AuditAppend
             Effect: Allow
             Action:
@@ -290,6 +317,182 @@ Resources:
       ApiId: !Ref HttpApiId
       RouteKey: "GET /api/rc-admin/applications/{applicationId}/resume-url"
       Target: !Sub "integrations/${ApplicationsAdminIntegration}"
+      AuthorizationType: JWT
+      AuthorizerId: !Ref HttpApiJwtAuthorizerId
+
+  CareersPostingsFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/handlers/careers/postings.handler
+      Policies:
+        - !Ref AppManagedPolicyHiringDdbS3
+
+  RcAdminJobPostingsHttpFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/handlers/rc-admin/rcAdminJobPostingsHttp.handler
+      Policies:
+        - !Ref AppManagedPolicyHiringDdbS3
+
+  RcAdminHiringBookingsHttpFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/handlers/rc-admin/rcAdminHiringBookingsHttp.handler
+      Policies:
+        - !Ref AppManagedPolicyHiringDdbS3
+
+  CareersPostingsIntegration:
+    Type: AWS::ApiGatewayV2::Integration
+    Properties:
+      ApiId: !Ref HttpApiId
+      IntegrationType: AWS_PROXY
+      IntegrationUri: !Sub arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${CareersPostingsFunction.Arn}/invocations
+      PayloadFormatVersion: "2.0"
+
+  JobPostingsAdminIntegration:
+    Type: AWS::ApiGatewayV2::Integration
+    Properties:
+      ApiId: !Ref HttpApiId
+      IntegrationType: AWS_PROXY
+      IntegrationUri: !Sub arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${RcAdminJobPostingsHttpFunction.Arn}/invocations
+      PayloadFormatVersion: "2.0"
+
+  HiringBookingsAdminIntegration:
+    Type: AWS::ApiGatewayV2::Integration
+    Properties:
+      ApiId: !Ref HttpApiId
+      IntegrationType: AWS_PROXY
+      IntegrationUri: !Sub arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${RcAdminHiringBookingsHttpFunction.Arn}/invocations
+      PayloadFormatVersion: "2.0"
+
+  CareersPostingsInvokePermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !Ref CareersPostingsFunction
+      Principal: apigateway.amazonaws.com
+      SourceArn: !Sub arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${HttpApiId}/*
+
+  JobPostingsAdminInvokePermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !Ref RcAdminJobPostingsHttpFunction
+      Principal: apigateway.amazonaws.com
+      SourceArn: !Sub arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${HttpApiId}/*
+
+  HiringBookingsAdminInvokePermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !Ref RcAdminHiringBookingsHttpFunction
+      Principal: apigateway.amazonaws.com
+      SourceArn: !Sub arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${HttpApiId}/*
+
+  RouteCareersPostingsList:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref HttpApiId
+      RouteKey: "GET /api/careers/postings"
+      Target: !Sub "integrations/${CareersPostingsIntegration}"
+      AuthorizationType: NONE
+
+  RouteCareersPostingsListOptions:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref HttpApiId
+      RouteKey: "OPTIONS /api/careers/postings"
+      Target: !Sub "integrations/${CareersPostingsIntegration}"
+      AuthorizationType: NONE
+
+  RouteCareersPostingBySlug:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref HttpApiId
+      RouteKey: "GET /api/careers/postings/{slug}"
+      Target: !Sub "integrations/${CareersPostingsIntegration}"
+      AuthorizationType: NONE
+
+  RouteCareersPostingBySlugOptions:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref HttpApiId
+      RouteKey: "OPTIONS /api/careers/postings/{slug}"
+      Target: !Sub "integrations/${CareersPostingsIntegration}"
+      AuthorizationType: NONE
+
+  RouteJobPostingsList:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref HttpApiId
+      RouteKey: "GET /api/rc-admin/job-postings"
+      Target: !Sub "integrations/${JobPostingsAdminIntegration}"
+      AuthorizationType: JWT
+      AuthorizerId: !Ref HttpApiJwtAuthorizerId
+
+  RouteJobPostingsCreate:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref HttpApiId
+      RouteKey: "POST /api/rc-admin/job-postings"
+      Target: !Sub "integrations/${JobPostingsAdminIntegration}"
+      AuthorizationType: JWT
+      AuthorizerId: !Ref HttpApiJwtAuthorizerId
+
+  RouteJobPostingGet:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref HttpApiId
+      RouteKey: "GET /api/rc-admin/job-postings/{postingId}"
+      Target: !Sub "integrations/${JobPostingsAdminIntegration}"
+      AuthorizationType: JWT
+      AuthorizerId: !Ref HttpApiJwtAuthorizerId
+
+  RouteJobPostingPut:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref HttpApiId
+      RouteKey: "PUT /api/rc-admin/job-postings/{postingId}"
+      Target: !Sub "integrations/${JobPostingsAdminIntegration}"
+      AuthorizationType: JWT
+      AuthorizerId: !Ref HttpApiJwtAuthorizerId
+
+  RouteJobPostingPatch:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref HttpApiId
+      RouteKey: "PATCH /api/rc-admin/job-postings/{postingId}"
+      Target: !Sub "integrations/${JobPostingsAdminIntegration}"
+      AuthorizationType: JWT
+      AuthorizerId: !Ref HttpApiJwtAuthorizerId
+
+  RouteHiringBookingsGet:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref HttpApiId
+      RouteKey: "GET /api/rc-admin/settings/hiring-bookings"
+      Target: !Sub "integrations/${HiringBookingsAdminIntegration}"
+      AuthorizationType: JWT
+      AuthorizerId: !Ref HttpApiJwtAuthorizerId
+
+  RouteHiringBookingsPut:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref HttpApiId
+      RouteKey: "PUT /api/rc-admin/settings/hiring-bookings"
+      Target: !Sub "integrations/${HiringBookingsAdminIntegration}"
       AuthorizationType: JWT
       AuthorizerId: !Ref HttpApiJwtAuthorizerId
 

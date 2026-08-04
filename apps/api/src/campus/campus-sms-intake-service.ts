@@ -12,9 +12,6 @@ import {
   recordManualLocationReply,
   smsLocationService,
 } from "../services/smsLocationService.js";
-import { WebSocketNotificationService } from "../services/websocketNotificationService.js";
-
-const ws = new WebSocketNotificationService();
 
 function looksLikeManualLocation(text: string): boolean {
   const lower = text.toLowerCase();
@@ -29,6 +26,8 @@ function looksLikeManualLocation(text: string): boolean {
 
 export async function handleCampusInboundSms(params: {
   parsed: ParsedCampusSms;
+  /** Tenant agencyId from SMS routing — not the org code. */
+  agencyId: string;
   callerPhone: string;
   toPhone: string;
   inboundParams: Record<string, string>;
@@ -36,7 +35,7 @@ export async function handleCampusInboundSms(params: {
   const phoneHash = hashPhoneSha256(params.callerPhone);
   const reporterLast4 = maskPhoneLast4(params.callerPhone);
   const campusCode = params.parsed.campusCode;
-  const agencyId = campusCode;
+  const agencyId = params.agencyId;
 
   const existing = await findOpenCampusIncidentByPhoneHash(campusCode, phoneHash);
   if (existing) {
@@ -58,8 +57,9 @@ export async function handleCampusInboundSms(params: {
     return;
   }
 
-  const incident = await createCampusSmsIncident({
+  const { incident } = await createCampusSmsIncident({
     campusCode,
+    agencyId,
     type: params.parsed.detectedType,
     description: params.parsed.cleanDescription,
     buildingHint: params.parsed.buildingHint,
@@ -88,12 +88,7 @@ export async function handleCampusInboundSms(params: {
     payload: { bodyLength: params.parsed.cleanDescription.length },
   });
 
-  await ws.broadcastIncidentCreated({
-    agencyId,
-    incidentId: incident.id,
-    source: "sms",
-    campusCode,
-  });
+  // Camera lookup + incident:created (with cameras) already broadcast by finalizeCampusIntakeIncident.
 
   await Promise.all([
     (async () => {

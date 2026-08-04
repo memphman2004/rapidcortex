@@ -1,15 +1,16 @@
 "use client";
 
-import { useEffect, useMemo, useState, type CSSProperties } from "react";
+import { useEffect, useState, type CSSProperties } from "react";
 import { isRcSuperAdmin } from "rapid-cortex-security";
 import type { UserContext } from "rapid-cortex-shared/types";
-import { useSearchParams } from "next/navigation";
+import { usePathname, useSearchParams } from "next/navigation";
 import type { DashboardPrefix } from "@/lib/dashboards/dashboard-access";
 import {
   getRoleDashboardIdentity,
   roleDashboardShellVars,
 } from "@/lib/dashboards/role-dashboard-design";
 import { RoleNavSidebar } from "@/components/navigation/role-nav-sidebar";
+import { isRcAdminConsoleHomePath } from "@/components/rc-admin/rc-admin-shell-chrome";
 import { TopNav } from "./top-nav";
 import { RoleDashboardHeaderStrip } from "./role-dashboard-header-strip";
 import { RoleDashboardHomeLayout } from "./role-dashboard-home-layout";
@@ -39,8 +40,12 @@ export function DashboardShell({
   const [mobileNav, setMobileNav] = useState(false);
   const [impersonation, setImpersonation] = useState<ImpersonationContext | null>(null);
   const searchParams = useSearchParams();
+  const pathname = usePathname() ?? "";
   const identity = getRoleDashboardIdentity(prefix, user.role);
   const isSuperAdmin = isRcSuperAdmin(user.role);
+  const isRcAdmin = prefix === "rc-admin";
+  const consoleHome =
+    isRcAdmin && isRcAdminConsoleHomePath(pathname, user.role);
 
   useEffect(() => {
     if (!isSuperAdmin) return;
@@ -81,13 +86,25 @@ export function DashboardShell({
 
   const shellVars = roleDashboardShellVars(identity) as CSSProperties;
 
+  // Console home owns its own chrome (sidebar/header); avoid double nav.
+  if (consoleHome) {
+    return <>{children}</>;
+  }
+
   return (
     <HelpChrome role={user.role}>
     <div
-      className="min-h-screen bg-[#030712] text-slate-100"
+      className={
+        isRcAdmin
+          ? "min-h-screen bg-[#07070f] text-[#e4dff5]"
+          : "min-h-screen bg-[#030712] text-slate-100"
+      }
       style={{
         ...shellVars,
         fontFamily: 'var(--rc-dashboard-font-family, Inter, ui-sans-serif, system-ui, sans-serif)',
+        ...(isRcAdmin
+          ? ({ ["--role-accent" as string]: "#8b5cf6" } as CSSProperties)
+          : null),
       }}
     >
       {mobileNav ? (
@@ -142,7 +159,13 @@ export function DashboardShell({
           ) : null}
           <ActiveNoticesBanner />
           <RoleDashboardHeaderStrip prefix={prefix} user={user} />
-          <main className="flex-1 bg-gradient-to-b from-[#050b14] via-slate-950 to-slate-950 p-4 md:p-6">
+          <main
+            className={
+              isRcAdmin
+                ? "flex-1 bg-gradient-to-b from-[#0b0b17] via-[#07070f] to-[#050508] p-4 md:p-6"
+                : "flex-1 bg-gradient-to-b from-[#050b14] via-slate-950 to-slate-950 p-4 md:p-6"
+            }
+          >
             <RoleDashboardHomeLayout prefix={prefix}>{children}</RoleDashboardHomeLayout>
           </main>
         </div>

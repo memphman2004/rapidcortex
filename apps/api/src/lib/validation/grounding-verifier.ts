@@ -98,7 +98,7 @@ export function areKeyTermsGrounded(value: string, transcript: string): boolean 
 
 /**
  * Apply citation + lexical gates. Ungrounded extractions become null (citation fail)
- * or capped low confidence (lexical fail).
+ * or are kept with a soft scoreCap (lexical fail) for dispatcher review.
  */
 export function applyFieldGrounding(params: {
   field: string;
@@ -126,14 +126,16 @@ export function applyFieldGrounding(params: {
   }
 
   if (!areKeyTermsGrounded(value, transcript)) {
+    // Soft-cap: keep the value for dispatcher review, but never treat as high confidence.
     return {
-      value: null,
-      sourceQuote: sourceQuote ?? null,
-      reasonSuffix: "Removed — extracted terms not found in transcript.",
+      value: value.trim(),
+      sourceQuote: sourceQuote?.trim() ?? null,
+      scoreCap: 45,
+      reasonSuffix: "Capped — extracted terms weakly grounded in transcript.",
       flag: {
         field,
         originalValue: value,
-        reason: "Lexical grounding check failed",
+        reason: "Lexical grounding check failed — score capped",
         gate: "lexical_terms",
       },
     };

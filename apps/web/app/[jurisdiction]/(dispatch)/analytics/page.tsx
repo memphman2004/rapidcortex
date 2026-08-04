@@ -1,57 +1,36 @@
-import { DashboardCard } from "@/components/ui/dashboard-card";
+import { PsapConsoleHome } from "@/components/psap/psap-console-home";
+import { fetchAgencyProfile } from "@/lib/agency/agency-profile";
 import { requireRole } from "@/lib/auth/require-role";
+import { dashboardDisplayName } from "@/lib/dashboards/dashboard-display-name";
+import { formatJurisdictionAgencyName } from "@/lib/psap/format-agency-display-name";
 
-export default async function AnalystDashboardPage() {
-  await requireRole(["analyst", "supervisor", "agencyadmin", "rcsuperadmin"]);
+type Props = {
+  params: Promise<{ jurisdiction: string }>;
+};
+
+export default async function AnalystDashboardPage({ params }: Props) {
+  const user = await requireRole([
+    "analyst",
+    "supervisor",
+    "agencyadmin",
+    "rcsuperadmin",
+  ]);
+  const { jurisdiction } = await params;
+  const profile = await fetchAgencyProfile(user.agencyId);
+  const agencyName =
+    profile?.name?.trim() ||
+    formatJurisdictionAgencyName(jurisdiction, user.agencyId);
+  const displayName =
+    user.displayName?.trim() || dashboardDisplayName(user);
 
   return (
-    <div className="mx-auto w-full max-w-[var(--rc-content-max)] space-y-6 px-4 py-4 lg:px-6 lg:py-5 2xl:px-8">
-      <section className="space-y-1">
-        <h1 className="text-xl font-semibold text-white">QA Dashboard</h1>
-        <p className="text-sm text-slate-400">
-          Quality review queue, scorecards, and trends for your agency. This is not a live dispatch
-          console — operational call-taking is handled by dispatchers and supervisors.
-        </p>
-      </section>
-
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-        <DashboardCard
-          title="Call Volume"
-          description="Daily, weekly, and monthly call volume trends."
-          href="analytics/call-volume"
-          status="active"
-        />
-        <DashboardCard
-          title="Response Times"
-          description="Answer and dispatch time analytics by priority."
-          href="analytics/response-times"
-          status="active"
-        />
-        <DashboardCard
-          title="Incident Summary"
-          description="Incident type breakdown and geographic distribution."
-          href="analytics/incidents"
-          status="active"
-        />
-        <DashboardCard
-          title="QA Scores"
-          description="Agency-wide quality score trends and dispatcher performance."
-          href="analytics/qa"
-          status="active"
-        />
-        <DashboardCard
-          title="Translation Usage"
-          description="Language distribution and translation request volume."
-          href="analytics/translation"
-          status="active"
-        />
-        <DashboardCard
-          title="SLA Compliance"
-          description="SLA adherence rates by priority and shift."
-          href="analytics/sla"
-          status="active"
-        />
-      </div>
-    </div>
+    <PsapConsoleHome
+      agencyId={user.agencyId}
+      jurisdiction={jurisdiction}
+      agencyName={agencyName}
+      displayName={displayName}
+      userEmail={user.email}
+      userRole={user.role}
+    />
   );
 }

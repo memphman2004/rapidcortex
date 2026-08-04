@@ -8,6 +8,7 @@ import {
   GRANT_PROGRAM_LABELS,
   GRANT_SCHOOL_TYPE_LABELS,
   grantPackageSchema,
+  normalizeGrantPackageCandidate,
   type GrantPackage,
   type GrantSuccessProfile,
 } from "rapid-cortex-shared";
@@ -355,7 +356,7 @@ function parseAndValidatePackage(rawText: string): GrantPackage {
     throw new AnthropicCallError("Could not parse generated grant package", true);
   }
 
-  const validated = grantPackageSchema.safeParse(candidate);
+  const validated = grantPackageSchema.safeParse(normalizeGrantPackageCandidate(candidate));
   if (!validated.success) {
     console.error("[generateGrantPackage] Schema validation failed:", validated.error.message);
     throw new AnthropicCallError("Generated grant package failed validation", true);

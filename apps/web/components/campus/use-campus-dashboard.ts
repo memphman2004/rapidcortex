@@ -7,6 +7,7 @@ import type {
   CampusStatsResponse,
   CampusThreatLevel,
   CampusZoneSummary,
+  VenueIncidentCameraSummary,
 } from "rapid-cortex-shared";
 import {
   fetchCampusBuildings,
@@ -19,6 +20,8 @@ import {
 } from "@/lib/campus/campus-dashboard-api";
 import type { CampusIncident } from "@/lib/campus/types";
 import { useAgencyWebSocket } from "@/hooks/use-agency-websocket";
+import { fetchVenueSectionCameras } from "@/lib/venue/venue-camera-api";
+import type { VenueActiveIncidentPanel } from "@/components/venue/IncidentCameraPanel";
 
 export type UiThreatLevel = "secure" | "elevated" | "high" | "lockdown";
 
@@ -70,6 +73,8 @@ export type CampusDashboardState = {
   onDuty: CampusOnDutyStaff[];
   incidents: CampusIncident[];
   threatLevel: UiThreatLevel;
+  activeCameraIncident: VenueActiveIncidentPanel | null;
+  clearActiveCameraIncident: () => void;
   refresh: () => Promise<void>;
   setThreatLevel: (level: UiThreatLevel) => Promise<void>;
 };
@@ -83,6 +88,9 @@ export function useCampusDashboard(agencyId: string, campusCode: string): Campus
   const [onDuty, setOnDuty] = useState<CampusOnDutyStaff[]>([]);
   const [incidents, setIncidents] = useState<CampusIncident[]>([]);
   const [threatLevel, setThreatLevelState] = useState<UiThreatLevel>("secure");
+  const [activeCameraIncident, setActiveCameraIncident] = useState<VenueActiveIncidentPanel | null>(
+    null,
+  );
 
   const refresh = useCallback(async () => {
     if (!agencyId) return;
@@ -114,6 +122,33 @@ export function useCampusDashboard(agencyId: string, campusCode: string): Campus
     void refresh();
   }, [refresh]);
 
+  const openCameraPanel = useCallback(
+    async (data: Record<string, unknown>) => {
+      const incidentId = String(data.incidentId ?? "");
+      const section = String(data.section ?? "");
+      if (!incidentId || !section) return;
+
+      let cameras = (data.cameras as VenueIncidentCameraSummary[] | undefined) ?? [];
+      if (cameras.length === 0) {
+        try {
+          cameras = await fetchVenueSectionCameras(agencyId, section, 2, "campus");
+        } catch {
+          cameras = [];
+        }
+      }
+
+      setActiveCameraIncident({
+        incidentId,
+        section,
+        reportType: String(data.reportType ?? "incident"),
+        location: String(data.location ?? `Building ${section}`),
+        cameras,
+        createdAt: String(data.createdAt ?? new Date().toISOString()),
+      });
+    },
+    [agencyId],
+  );
+
   useAgencyWebSocket((msg) => {
     if (
       msg.type === "incident:created" ||
@@ -121,6 +156,9 @@ export function useCampusDashboard(agencyId: string, campusCode: string): Campus
       msg.type === "staff:status-changed"
     ) {
       void refresh();
+      if (msg.type === "incident:created") {
+        void openCameraPanel(msg.data);
+      }
       return;
     }
     if (msg.type === "campus:threat-level-changed") {
@@ -128,6 +166,35 @@ export function useCampusDashboard(agencyId: string, campusCode: string): Campus
       if (typeof level === "string") {
         setThreatLevelState(apiThreatToUi(level as CampusThreatLevel));
       }
+      return;
+    }
+    if (msg.type === "camera:offline" && activeCameraIncident) {
+      const cameraId = String(msg.data.cameraId ?? "");
+      const sections = (msg.data.sections as string[] | undefined) ?? [];
+      const buildingId = String(msg.data.buildingId ?? "");
+      const matchesSection =
+        sections.includes(activeCameraIncident.section) ||
+        buildingId === activeCameraIncident.section;
+      if (!cameraId || !matchesSection) return;
+      void (async () => {
+        const replacements = await fetchVenueSectionCameras(
+          agencyId,
+          activeCameraIncident.section,
+          10,
+          "campus",
+        );
+        setActiveCameraIncident((prev) => {
+          if (!prev) return prev;
+          const nextCameras = prev.cameras.map((cam) => {
+            if (cam.cameraId !== cameraId) return cam;
+            const replacement = replacements.find(
+              (r) => r.cameraId !== cameraId && !prev.cameras.some((c) => c.cameraId === r.cameraId),
+            );
+            return replacement ?? cam;
+          });
+          return { ...prev, cameras: nextCameras.filter(Boolean) };
+        });
+      })();
     }
   });
 
@@ -139,6 +206,8 @@ export function useCampusDashboard(agencyId: string, campusCode: string): Campus
     [agencyId],
   );
 
+  const clearActiveCameraIncident = useCallback(() => setActiveCameraIncident(null), []);
+
   return {
     loading,
     error,
@@ -148,6 +217,8 @@ export function useCampusDashboard(agencyId: string, campusCode: string): Campus
     onDuty,
     incidents,
     threatLevel,
+    activeCameraIncident,
+    clearActiveCameraIncident,
     refresh,
     setThreatLevel,
   };
