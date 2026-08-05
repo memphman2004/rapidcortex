@@ -17,7 +17,7 @@ export function VenueNotificationsPanel({
   if (!allowed) {
     return (
       <div style={{ padding: 14 }}>
-        <p style={{ color: "#5a4d7a", fontSize: 12 }}>Supervisor access required to compose notifications.</p>
+        <p style={{ color: "var(--rc-text-muted)", fontSize: 12 }}>Supervisor access required to compose notifications.</p>
       </div>
     );
   }
@@ -25,7 +25,7 @@ export function VenueNotificationsPanel({
   return (
     <div style={{ padding: 14 }}>
       <h2 style={{ fontSize: 16, fontWeight: 700, margin: "0 0 12px" }}>Notifications</h2>
-      <p style={{ fontSize: 12, color: "#5a4d7a", marginBottom: 12 }}>
+      <p style={{ fontSize: 12, color: "var(--rc-text-muted)", marginBottom: 12 }}>
         Send staff alerts by section, gate, or all security personnel.
       </p>
       <button
@@ -33,7 +33,7 @@ export function VenueNotificationsPanel({
         onClick={() => setOpen(true)}
         style={{
           padding: "8px 14px",
-          background: "#f59e0b",
+          background: "var(--rc-amber)",
           color: "#000",
           border: "none",
           borderRadius: 6,

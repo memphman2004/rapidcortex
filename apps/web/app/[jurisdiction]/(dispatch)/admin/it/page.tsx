@@ -26,6 +26,7 @@ export default async function ItAdminDashboardPage({ params }: Props) {
       displayName={displayName}
       userEmail={user.email}
       userRole={user.role}
+      userId={user.userId}
     />
   );
 }

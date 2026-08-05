@@ -42,7 +42,8 @@ export const ROLE_DASHBOARD_NAV: Record<DashboardPrefix, NavTab[]> = {
     { id: "history", label: "History", href: "/history" },
   ],
   dispatcher: [
-    { id: "overview", label: "Live call workspace", href: "/dashboard" },
+    { id: "overview", label: "Ops dashboard", href: "/dashboard" },
+    { id: "live-workspace", label: "Live call workspace", href: "/dispatcher" },
     { id: "active-incident", label: "Active incident", href: "/incidents" },
     // BACKLOG (before 2026-09-02): /caller redirect stub is temporary — update href to the
     // canonical caller-info route when that page ships (see apps/web/app/.../caller/page.tsx).

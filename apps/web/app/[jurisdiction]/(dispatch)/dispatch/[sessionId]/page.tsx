@@ -4,7 +4,7 @@ import { blockPsapRoutesForVerticalAgency } from "@/lib/venue/venue-psap-route-g
 
 type Props = { params: Promise<{ jurisdiction: string; sessionId: string }> };
 
-/** Legacy deep links — unified live console is on /dashboard?incident=. */
+/** Legacy deep links — unified live console is on /dispatcher?incident=. */
 export default async function DispatchSessionRedirectPage({ params }: Props) {
   const { jurisdiction, sessionId } = await params;
   await blockPsapRoutesForVerticalAgency(jurisdiction);

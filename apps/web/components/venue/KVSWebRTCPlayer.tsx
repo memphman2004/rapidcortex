@@ -164,19 +164,19 @@ export function KVSWebRTCPlayer({
   return (
     <div
       style={{
-        background: "#141220",
-        border: "1px solid #1e1a30",
+        background: "var(--rc-surface-alt)",
+        border: "1px solid var(--rc-border)",
         borderRadius: 8,
         padding: 10,
       }}
     >
       <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 8 }}>
         <div>
-          <div style={{ fontSize: 12, fontWeight: 700, color: "#e4dff5" }}>{displayName}</div>
-          <div style={{ fontSize: 10, color: "#7c6fa0" }}>{statusLabel}</div>
+          <div style={{ fontSize: 12, fontWeight: 700, color: "var(--rc-text-primary)" }}>{displayName}</div>
+          <div style={{ fontSize: 10, color: "var(--rc-text-secondary)" }}>{statusLabel}</div>
         </div>
         {onClose ? (
-          <button type="button" onClick={onClose} style={{ fontSize: 10, color: "#7c6fa0" }}>
+          <button type="button" onClick={onClose} style={{ fontSize: 10, color: "var(--rc-text-secondary)" }}>
             ✕
           </button>
         ) : null}

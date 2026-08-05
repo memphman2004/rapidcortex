@@ -3,12 +3,21 @@ import {
   GetCommand,
   PutCommand,
   QueryCommand,
+  ScanCommand,
+  UpdateCommand,
 } from "@aws-sdk/lib-dynamodb";
-import type { RcsCall, RcsEscalationLevel, RcsUnit } from "rapid-cortex-shared";
+import type {
+  RcsCall,
+  RcsCallEnriched,
+  RcsEscalationLevel,
+  RcsEscalationRules,
+  RcsUnit,
+} from "rapid-cortex-shared";
+import { RCS_CLOSED_STATES, RCS_ESCALATION_RULES_DEFAULTS } from "rapid-cortex-shared";
 import { ddb } from "../../repositories/baseRepository.js";
 import { env } from "../../lib/env.js";
 
-export type RcsCallDdbItem = RcsCall & { entityType: "rcs_call" };
+export type RcsCallDdbItem = RcsCallEnriched & { entityType: "rcs_call" };
 
 export type RcsUnitDdbItem = {
   entityType: "rcs_unit";
@@ -35,6 +44,12 @@ export type RcsEscalationScheduleItem = {
   createdAt: string;
 };
 
+type RcsEscalationRulesItem = RcsEscalationRules & {
+  entityType: "rcs_escalation_rules";
+  pk: string;
+  sk: string;
+};
+
 function unitKey(agencyId: string, unitId: string) {
   return { pk: `AGENCY#${agencyId}`, sk: `UNIT#${unitId}` };
 }
@@ -42,6 +57,12 @@ function unitKey(agencyId: string, unitId: string) {
 function escalationKey(callId: string, scheduleName: string) {
   return { pk: `CALL#${callId}`, sk: `SCHED#${scheduleName}` };
 }
+
+function rulesKey(agencyId: string) {
+  return { pk: `AGENCY#${agencyId}`, sk: "RCS_ESCALATION_RULES" };
+}
+
+const CLOSED = new Set<string>(RCS_CLOSED_STATES);
 
 export class RcsRepository {
   private callsTable(): string {
@@ -62,10 +83,12 @@ export class RcsRepository {
     return t;
   }
 
-  // ── Calls ──────────────────────────────────────────────────────────────────
-
-  async createCall(call: RcsCall): Promise<void> {
-    const item: RcsCallDdbItem = { ...call, entityType: "rcs_call" };
+  async createCall(call: RcsCall | RcsCallEnriched): Promise<void> {
+    const item: RcsCallDdbItem = {
+      ...call,
+      stateEnteredAt: (call as RcsCallEnriched).stateEnteredAt ?? call.createdAt,
+      entityType: "rcs_call",
+    };
     await ddb.send(
       new PutCommand({
         TableName: this.callsTable(),
@@ -75,7 +98,7 @@ export class RcsRepository {
     );
   }
 
-  async getCall(agencyId: string, callId: string): Promise<RcsCall | null> {
+  async getCall(agencyId: string, callId: string): Promise<RcsCallEnriched | null> {
     const r = await ddb.send(
       new GetCommand({ TableName: this.callsTable(), Key: { callId } }),
     );
@@ -84,15 +107,78 @@ export class RcsRepository {
     return this.toCall(item);
   }
 
-  async putCall(call: RcsCall): Promise<void> {
+  async getCallById(callId: string): Promise<RcsCallEnriched | null> {
+    const r = await ddb.send(
+      new GetCommand({ TableName: this.callsTable(), Key: { callId } }),
+    );
+    const item = r.Item as RcsCallDdbItem | undefined;
+    if (!item) return null;
+    return this.toCall(item);
+  }
+
+  async putCall(call: RcsCall | RcsCallEnriched): Promise<void> {
     const item: RcsCallDdbItem = { ...call, entityType: "rcs_call" };
     await ddb.send(new PutCommand({ TableName: this.callsTable(), Item: item }));
   }
 
+  /**
+   * Conditional update for intelligence fields / escalation.
+   * When `expectedUpdatedAt` is set, ConditionExpression prevents races.
+   */
+  async updateCallAttributes(
+    agencyId: string,
+    callId: string,
+    attrs: Record<string, unknown>,
+    opts?: { expectedUpdatedAt?: string },
+  ): Promise<RcsCallEnriched | null> {
+    const names: Record<string, string> = { "#agencyId": "agencyId" };
+    const values: Record<string, unknown> = { ":agencyId": agencyId };
+    const sets: string[] = [];
+    let i = 0;
+    for (const [key, value] of Object.entries(attrs)) {
+      const nk = `#k${i}`;
+      const vk = `:v${i}`;
+      names[nk] = key;
+      values[vk] = value;
+      sets.push(`${nk} = ${vk}`);
+      i += 1;
+    }
+    if (sets.length === 0) return this.getCall(agencyId, callId);
+
+    let condition = "#agencyId = :agencyId";
+    if (opts?.expectedUpdatedAt) {
+      names["#updatedAt"] = "updatedAt";
+      values[":prevUpdatedAt"] = opts.expectedUpdatedAt;
+      condition += " AND #updatedAt = :prevUpdatedAt";
+    }
+
+    try {
+      const r = await ddb.send(
+        new UpdateCommand({
+          TableName: this.callsTable(),
+          Key: { callId },
+          UpdateExpression: `SET ${sets.join(", ")}`,
+          ConditionExpression: condition,
+          ExpressionAttributeNames: names,
+          ExpressionAttributeValues: values,
+          ReturnValues: "ALL_NEW",
+        }),
+      );
+      return this.toCall(r.Attributes as RcsCallDdbItem);
+    } catch (err) {
+      const name =
+        err && typeof err === "object" && "name" in err
+          ? String((err as { name: string }).name)
+          : "";
+      if (name === "ConditionalCheckFailedException") return null;
+      throw err;
+    }
+  }
+
   async listCallsByAgency(
     agencyId: string,
-    opts?: { state?: string; limit?: number },
-  ): Promise<RcsCall[]> {
+    opts?: { state?: string; limit?: number; openOnly?: boolean },
+  ): Promise<RcsCallEnriched[]> {
     const r = await ddb.send(
       new QueryCommand({
         TableName: this.callsTable(),
@@ -100,25 +186,51 @@ export class RcsRepository {
         KeyConditionExpression: "agencyId = :a",
         ExpressionAttributeValues: { ":a": agencyId },
         ScanIndexForward: false,
-        Limit: Math.max(opts?.limit ?? 50, opts?.state ? 200 : opts?.limit ?? 50),
+        Limit: Math.max(opts?.limit ?? 50, opts?.state || opts?.openOnly ? 200 : opts?.limit ?? 50),
       }),
     );
-    const items = ((r.Items as RcsCallDdbItem[]) ?? []).map((i) => this.toCall(i));
-    const filtered = opts?.state ? items.filter((i) => i.state === opts.state) : items;
-    return filtered.slice(0, opts?.limit ?? 50);
+    let items = ((r.Items as RcsCallDdbItem[]) ?? []).map((i) => this.toCall(i));
+    if (opts?.state) items = items.filter((i) => i.state === opts.state);
+    if (opts?.openOnly) items = items.filter((i) => !CLOSED.has(i.state));
+    return items.slice(0, opts?.limit ?? 50);
   }
 
-  private toCall(item: RcsCallDdbItem): RcsCall {
-    const { entityType, ...rest } = item;
+  /** Paginated scan of open calls for scheduled workers. */
+  async scanOpenCalls(opts?: {
+    limit?: number;
+    exclusiveStartKey?: Record<string, unknown>;
+  }): Promise<{ items: RcsCallEnriched[]; lastKey?: Record<string, unknown> }> {
+    const r = await ddb.send(
+      new ScanCommand({
+        TableName: this.callsTable(),
+        Limit: opts?.limit ?? 25,
+        ExclusiveStartKey: opts?.exclusiveStartKey,
+        FilterExpression: "attribute_exists(agencyId) AND attribute_exists(#st)",
+        ExpressionAttributeNames: { "#st": "state" },
+      }),
+    );
+    const items = ((r.Items as RcsCallDdbItem[]) ?? [])
+      .map((i) => this.toCall(i))
+      .filter((c) => !CLOSED.has(c.state));
+    return {
+      items,
+      lastKey: r.LastEvaluatedKey as Record<string, unknown> | undefined,
+    };
+  }
+
+  private toCall(item: RcsCallDdbItem): RcsCallEnriched {
+    const { entityType: _e, ...rest } = item;
     return rest;
   }
-
-  // ── Units ──────────────────────────────────────────────────────────────────
 
   async putUnitPosition(
     unit: Omit<RcsUnitDdbItem, "entityType" | "pk" | "sk">,
   ): Promise<void> {
-    const item: RcsUnitDdbItem = { ...unit, entityType: "rcs_unit", ...unitKey(unit.agencyId, unit.unitId) };
+    const item: RcsUnitDdbItem = {
+      ...unit,
+      entityType: "rcs_unit",
+      ...unitKey(unit.agencyId, unit.unitId),
+    };
     await ddb.send(new PutCommand({ TableName: this.unitsTable(), Item: item }));
   }
 
@@ -139,8 +251,6 @@ export class RcsRepository {
     );
     return (r.Items as RcsUnitDdbItem[]) ?? [];
   }
-
-  // ── Escalation schedules ─────────────────────────────────────────────────────
 
   async recordEscalationSchedule(item: {
     callId: string;
@@ -171,7 +281,38 @@ export class RcsRepository {
 
   async deleteEscalationSchedule(callId: string, scheduleName: string): Promise<void> {
     await ddb.send(
-      new DeleteCommand({ TableName: this.escalationTable(), Key: escalationKey(callId, scheduleName) }),
+      new DeleteCommand({
+        TableName: this.escalationTable(),
+        Key: escalationKey(callId, scheduleName),
+      }),
     );
   }
+
+  async getEscalationRules(agencyId: string): Promise<RcsEscalationRules> {
+    const r = await ddb.send(
+      new GetCommand({ TableName: this.escalationTable(), Key: rulesKey(agencyId) }),
+    );
+    const item = r.Item as RcsEscalationRulesItem | undefined;
+    if (!item) {
+      return {
+        agencyId,
+        ...RCS_ESCALATION_RULES_DEFAULTS,
+        updatedAt: new Date(0).toISOString(),
+        updatedByUserId: "system",
+      };
+    }
+    const { entityType: _e, pk: _p, sk: _s, ...rest } = item;
+    return rest;
+  }
+
+  async putEscalationRules(rules: RcsEscalationRules): Promise<void> {
+    const item: RcsEscalationRulesItem = {
+      ...rules,
+      entityType: "rcs_escalation_rules",
+      ...rulesKey(rules.agencyId),
+    };
+    await ddb.send(new PutCommand({ TableName: this.escalationTable(), Item: item }));
+  }
 }
+
+export type RcsUnitScenePick = Pick<RcsUnit, "unitId" | "callSign" | "onScene" | "distanceMeters">;

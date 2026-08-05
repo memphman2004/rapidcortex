@@ -15,6 +15,7 @@ export default async function VenueReportsPage({ params }: Props) {
       linkBase={linkBase}
       userEmail={user.email ?? ""}
       userRole={user.role}
+      userId={user.userId}
     >
       <VenueReportsPanel agencyId={agencyId} linkBase={linkBase} />
     </VenueOperationsShell>

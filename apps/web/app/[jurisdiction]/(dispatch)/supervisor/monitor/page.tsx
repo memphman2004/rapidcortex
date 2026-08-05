@@ -111,7 +111,7 @@ export default function SupervisorMonitorPage() {
                       sessionId: op.activeCallId ?? undefined,
                     });
                     if (op.activeIncidentId) {
-                      window.location.href = `${to("/dashboard")}?incident=${encodeURIComponent(op.activeIncidentId)}&supervisorWatching=1`;
+                      window.location.href = `${to("/dispatcher")}?incident=${encodeURIComponent(op.activeIncidentId)}&supervisorWatching=1`;
                     }
                   }}
                 >

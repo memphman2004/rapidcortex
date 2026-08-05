@@ -36,9 +36,20 @@ API handlers gate with `requireAddon("rcs.module")`.
 | POST | `/api/rcs/calls/{callId}/audio-alert` |
 | POST | `/api/rcs/calls/{callId}/acknowledge` |
 | POST | `/api/rcs/units/position` |
+| GET | `/api/rcs/calls/{callId}/summary` |
+| POST | `/api/rcs/calls/{callId}/summary` |
+| POST | `/api/rcs/calls/{callId}/handoff` |
+| POST | `/api/rcs/calls/{callId}/handoff/accept` |
+| DELETE | `/api/rcs/calls/{callId}/handoff` |
+| GET | `/api/rcs/floor-health` |
+| GET | `/api/rcs/escalation-rules` |
+| PUT | `/api/rcs/escalation-rules` |
+
+Scheduled (rate 1 minute): `rcsAiSummarizer`, `rcsEscalationWatchdog`, `rcsFloorHealthPush`.
 
 Infra: Dynamo tables in `stack-data-layer.yaml`; Lambdas in `stack-app-sam-2-rcs.yaml`
-wired from `infra/template.yaml` as `AppSamRcsStack2` (HttpApi from AppSam2Stack).
+wired from `infra/template.yaml` as `AppSamRcsStack2` (HttpApi from AppSam2Stack;
+WebSocket fan-out from AppSamRealtime2Stack).
 
 ## UI
 

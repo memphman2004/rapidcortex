@@ -27,6 +27,123 @@
     #1d4ed8 84%,
     #172554 100%
   );
+
+  /* ── Rapid Cortex theme tokens (dark default; light via [data-theme="light"] on shell) ── */
+  --rc-bg: #0a0812;
+  --rc-surface: #100e1a;
+  --rc-surface-alt: #141220;
+  --rc-surface-hover: #1a1528;
+  --rc-surface-deep: #080710;
+  --rc-border: #1e1a30;
+  --rc-border-hover: #2d2445;
+  --rc-text-primary: #e4dff5;
+  --rc-text-secondary: #7c6fa0;
+  --rc-text-muted: #5a4d7a;
+  --rc-text-faint: #2d2445;
+  --rc-violet: #8b5cf6;
+  --rc-violet-dim: #130e1e;
+  --rc-violet-mid: #4c1d95;
+  --rc-violet-border: #3b1e6e;
+  --rc-amber: #f59e0b;
+  --rc-amber-dim: #1a1206;
+  --rc-amber-border: #4a3500;
+  --rc-green: #10b981;
+  --rc-green-dim: #0a1810;
+  --rc-green-border: #1a4d35;
+  --rc-red: #ef4444;
+  --rc-red-dim: #1a0808;
+  --rc-red-border: #4d1515;
+  --rc-red-deep: #7f1d1d;
+  --rc-red-light: #fca5a5;
+  --rc-blue: #3b82f6;
+  --rc-blue-dim: #071828;
+  --rc-sky: #38bdf8;
+  --rc-input-bg: #0f0d1a;
+  --rc-input-border: #2d2845;
+  --rc-shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.5);
+  --rc-shadow-md: 0 4px 16px rgba(0, 0, 0, 0.6);
+  --rc-scrollbar: #1e1a30;
+}
+
+/* Light theme — soft blue-gray #f4f5f9 (not pure white) for shift-friendly reading */
+[data-theme="light"] {
+  --rc-bg: #f4f5f9;
+  --rc-surface: #ffffff;
+  --rc-surface-alt: #f0f1f7;
+  --rc-surface-hover: #e8eaf2;
+  --rc-surface-deep: #eaecf4;
+  --rc-border: #dde0ec;
+  --rc-border-hover: #c4c8db;
+  --rc-text-primary: #0f0e1a;
+  --rc-text-secondary: #4a4870;
+  --rc-text-muted: #8a88aa;
+  --rc-text-faint: #c0bdd8;
+  --rc-violet: #7c3aed;
+  --rc-violet-dim: #ede9fe;
+  --rc-violet-mid: #7c3aed;
+  --rc-violet-border: #c4b5fd;
+  --rc-amber: #d97706;
+  --rc-amber-dim: #fef3c7;
+  --rc-amber-border: #fcd34d;
+  --rc-green: #059669;
+  --rc-green-dim: #d1fae5;
+  --rc-green-border: #6ee7b7;
+  --rc-red: #dc2626;
+  --rc-red-dim: #fee2e2;
+  --rc-red-border: #fca5a5;
+  --rc-red-deep: #fee2e2;
+  --rc-red-light: #dc2626;
+  --rc-blue: #2563eb;
+  --rc-blue-dim: #dbeafe;
+  --rc-sky: #0284c7;
+  --rc-input-bg: #ffffff;
+  --rc-input-border: #c4c8db;
+  --rc-shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.1);
+  --rc-shadow-md: 0 4px 16px rgba(0, 0, 0, 0.12);
+  --rc-scrollbar: #dde0ec;
+}
+
+/* Tailwind v4: dark: variants follow shell data-theme (not prefers-color-scheme) */
+@custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
+
+/* Scoped light-mode remaps for Tailwind slate utilities inside themed shells */
+[data-theme="light"] .bg-slate-950 {
+  background-color: var(--rc-bg) !important;
+}
+[data-theme="light"] .bg-slate-900 {
+  background-color: var(--rc-surface) !important;
+}
+[data-theme="light"] .bg-slate-800 {
+  background-color: var(--rc-surface-alt) !important;
+}
+[data-theme="light"] .bg-slate-700 {
+  background-color: var(--rc-surface-hover) !important;
+}
+[data-theme="light"] .border-slate-800 {
+  border-color: var(--rc-border) !important;
+}
+[data-theme="light"] .border-slate-700 {
+  border-color: var(--rc-border-hover) !important;
+}
+[data-theme="light"] .text-slate-100,
+[data-theme="light"] .text-slate-200 {
+  color: var(--rc-text-primary) !important;
+}
+[data-theme="light"] .text-slate-300,
+[data-theme="light"] .text-slate-400 {
+  color: var(--rc-text-secondary) !important;
+}
+[data-theme="light"] .text-slate-500 {
+  color: var(--rc-text-muted) !important;
+}
+[data-theme="light"] .text-slate-600 {
+  color: var(--rc-text-faint) !important;
+}
+[data-theme="light"] .hover\:bg-slate-800:hover {
+  background-color: var(--rc-surface-alt) !important;
+}
+[data-theme="light"] .hover\:bg-slate-700:hover {
+  background-color: var(--rc-surface-hover) !important;
 }
 
 @theme inline {

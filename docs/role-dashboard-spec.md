@@ -204,8 +204,8 @@ These roles operate inside a specific agency's jurisdiction workspace. Agency co
 **Visual theme:** Dark charcoal/navy, electric blue (`sky-600`) accents, monospace/high-legibility font option (Courier, Inter, Times New Roman, Arial — user-selectable). "SYSTEM NOMINAL" status badge top right. Clock and shift timer always visible. Designed for single-monitor or multi-monitor command center environments.
 
 ### Navigation sidebar
-- Dashboard (live workspace — home)
-- Dispatcher (call intake and active session)
+- Dashboard (ops overview home — KPIs, queue snapshot, map)
+- Dispatcher (live call workspace — home for active call-taking)
 - Intake (new call entry)
 - Triage (call classification)
 - Transcription (live transcript viewer)
@@ -214,7 +214,9 @@ These roles operate inside a specific agency's jurisdiction workspace. Agency co
 - Media (caller video, live camera, text-to-caller)
 
 ### Home dashboard layout
-**Primary workspace (center, full height):**
+**Ops overview (`/{jurisdiction}/dashboard`):** refreshed PSAP console (KPIs, active calls strip, operational map, quick actions). Primary CTA opens the live workspace.
+
+**Live workspace (`/{jurisdiction}/dispatcher`) — primary call-taking surface:**
 - **Active incident panel** — current call session: caller info, incident type badge, AI-suggested nature code, confidence indicator
 - **Live transcript** — scrolling real-time transcript with auto-scroll toggle, language indicator, RTL support for Arabic/Hebrew
 - **Call translation strip** — active language selector (EN/ES/AR/ZH/TL/FR), translation confidence

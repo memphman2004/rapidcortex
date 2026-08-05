@@ -31,6 +31,7 @@ export default function SupervisorHomePage() {
       displayName={displayName}
       userEmail={user.email}
       userRole={user.role}
+      userId={user.userId}
     />
   );
 }

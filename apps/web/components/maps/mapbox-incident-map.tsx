@@ -1,10 +1,8 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
-import type { Map } from "mapbox-gl";
-import { LocationMarker } from "rapid-cortex-maps/components/LocationMarker";
-import { RapidCortexMap } from "rapid-cortex-maps/components/RapidCortexMap";
+import { RapidCortexMap } from "@/components/maps/RapidCortexMap";
 
 function mapboxTokenOk(): boolean {
   const token = process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN?.trim() ?? "";
@@ -74,20 +72,17 @@ export function MapboxIncidentMap({
   fill?: boolean;
 }) {
   const shellRef = useRef<HTMLDivElement | null>(null);
-  const [mapInstance, setMapInstance] = useState<Map | null>(null);
+  const mapReadyRef = useRef(false);
 
   useEffect(() => {
-    if (!mapInstance) return;
+    const el = shellRef.current;
+    if (!el) return;
 
     const resize = () => {
-      try {
-        mapInstance.resize();
-      } catch {
-        /* ignore */
-      }
+      // Mapbox listens to window resize; trigger after flex layout settles.
+      window.dispatchEvent(new Event("resize"));
     };
 
-    // Modal / popup flex layout often settles after first paint.
     const raf = window.requestAnimationFrame(() => {
       resize();
       window.requestAnimationFrame(resize);
@@ -98,9 +93,9 @@ export function MapboxIncidentMap({
     window.addEventListener("resize", resize);
 
     let observer: ResizeObserver | null = null;
-    if (typeof ResizeObserver !== "undefined" && shellRef.current) {
+    if (typeof ResizeObserver !== "undefined") {
       observer = new ResizeObserver(() => resize());
-      observer.observe(shellRef.current);
+      observer.observe(el);
     }
 
     return () => {
@@ -110,7 +105,7 @@ export function MapboxIncidentMap({
       window.removeEventListener("resize", resize);
       observer?.disconnect();
     };
-  }, [mapInstance, fill, height]);
+  }, [fill, height]);
 
   if (!mapboxTokenOk()) {
     return (
@@ -138,28 +133,34 @@ export function MapboxIncidentMap({
       } ${className ?? ""}`}
       style={fill ? { height: "100%", width: "100%", minHeight: 0 } : { height }}
     >
-      {/* Absolute host so Mapbox always gets a non-zero box (flex % height is unreliable). */}
       <div
         className="absolute inset-0"
         style={{ top: 0, right: 0, bottom: 0, left: 0, width: "100%", height: "100%" }}
       >
         <RapidCortexMap
-          theme="dark"
-          center={[lng, lat]}
+          vertical="core"
+          centerLat={lat}
+          centerLng={lng}
           zoom={zoom}
-          showControls
+          height="100%"
+          showLayerControl
           className="h-full w-full"
-          onMapLoad={setMapInstance}
-        >
-          <LocationMarker
-            map={mapInstance}
-            latitude={lat}
-            longitude={lng}
-            accuracy={60}
-            confidence="medium"
-            label={label ?? `${lat.toFixed(5)}, ${lng.toFixed(5)}`}
-          />
-        </RapidCortexMap>
+          onMapReady={() => {
+            mapReadyRef.current = true;
+            window.dispatchEvent(new Event("resize"));
+          }}
+          defaultLayers={{
+            liveTraffic: true,
+            liveTrafficClosures: true,
+            airports: true,
+          }}
+          callerLocation={{
+            lat,
+            lng,
+            label: label ?? `${lat.toFixed(5)}, ${lng.toFixed(5)}`,
+            source: "manual",
+          }}
+        />
       </div>
     </div>
   );
@@ -182,95 +183,63 @@ export function MapModal({
   callerNumber?: string;
   zoom?: number;
 }) {
-  const [mounted, setMounted] = useState(false);
-
   useEffect(() => {
-    setMounted(true);
-  }, []);
-
-  useEffect(() => {
-    function onKey(e: KeyboardEvent) {
+    const onKey = (e: KeyboardEvent) => {
       if (e.key === "Escape") onClose();
-    }
-    const prevOverflow = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-    window.addEventListener("keydown", onKey);
-    return () => {
-      document.body.style.overflow = prevOverflow;
-      window.removeEventListener("keydown", onKey);
     };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
   }, [onClose]);
 
-  const displayLabel =
-    label ?? `${callerNumber ? `${callerNumber} · ` : ""}${lat.toFixed(5)}, ${lng.toFixed(5)}`;
-
-  function popOut() {
-    openMapPreviewWindow({
-      lat,
-      lng,
-      label: displayLabel,
-      incidentId,
-      zoom,
-    });
-    onClose();
-  }
-
-  // Portal to body so drag-panel `transform` ancestors cannot trap `position: fixed`
-  // (that was collapsing the modal into a thin strip inside a panel).
-  if (!mounted) return null;
+  if (typeof document === "undefined") return null;
 
   return createPortal(
     <div
-      className="fixed inset-0 z-[9999] flex items-stretch justify-center bg-black/85 p-2 sm:p-4"
-      onClick={onClose}
+      className="fixed inset-0 z-[80] flex items-center justify-center bg-black/70 p-4"
       role="dialog"
       aria-modal="true"
-      aria-label="Incident location map"
+      aria-label="Incident map"
+      onClick={onClose}
+      onKeyDown={(e) => {
+        if (e.key === "Escape") onClose();
+      }}
     >
       <div
-        className="flex h-[min(96dvh,100%)] w-full max-w-[1600px] flex-col overflow-hidden rounded-lg border border-slate-700 bg-slate-950 shadow-2xl"
+        className="flex max-h-[90vh] w-full max-w-5xl flex-col overflow-hidden rounded-xl border border-slate-700 bg-slate-950 shadow-2xl"
         onClick={(e) => e.stopPropagation()}
+        onKeyDown={(e) => e.stopPropagation()}
       >
-        <div className="flex shrink-0 items-center justify-between gap-3 border-b border-slate-800 px-4 py-3">
+        <header className="flex items-start justify-between gap-3 border-b border-slate-800 px-4 py-3">
           <div className="min-w-0">
-            <h3 className="text-sm font-semibold text-white">Incident location</h3>
-            {incidentId ? (
-              <p className="mt-0.5 truncate font-mono text-[11px] text-slate-500">{incidentId}</p>
-            ) : null}
-          </div>
-          <div className="flex shrink-0 items-center gap-2">
-            <span className="hidden font-mono text-[11px] text-slate-500 sm:inline">
+            <p className="text-[11px] font-semibold uppercase tracking-wide text-sky-400/90">
+              Rapid Cortex · Map
+            </p>
+            <h2 className="truncate text-sm font-semibold text-white">
+              {label ?? "Incident location"}
+            </h2>
+            <p className="mt-0.5 font-mono text-[11px] text-slate-500">
+              {incidentId ? `${incidentId} · ` : ""}
               {lat.toFixed(5)}, {lng.toFixed(5)}
-            </span>
-            <button
-              type="button"
-              onClick={popOut}
-              className="rounded-md border border-sky-700/60 bg-sky-950/40 px-2.5 py-1 text-[11px] font-medium text-sky-200 hover:bg-sky-900/50"
-              title="Open in a separate window you can drag to another monitor"
-            >
-              Pop out
-            </button>
-            <button
-              type="button"
-              onClick={onClose}
-              className="flex h-7 w-7 items-center justify-center rounded-md border border-slate-700 text-slate-400 hover:text-slate-200"
-              aria-label="Close map"
-            >
-              ×
-            </button>
+              {callerNumber ? ` · ${callerNumber}` : ""}
+            </p>
           </div>
-        </div>
-        <div className="relative min-h-0 flex-1 p-2 sm:p-3">
-          <div className="absolute inset-2 sm:inset-3">
-            <MapboxIncidentMap
-              lat={lat}
-              lng={lng}
-              label={displayLabel}
-              fill
-              zoom={zoom}
-              className="rounded-md border-0"
-            />
-          </div>
+          <button
+            type="button"
+            onClick={onClose}
+            className="rounded border border-slate-700 px-2 py-1 text-xs text-slate-300 hover:bg-slate-900"
+          >
+            Close
+          </button>
+        </header>
+        <div className="min-h-0 flex-1 p-3" style={{ height: "min(70vh, 640px)" }}>
+          <MapboxIncidentMap
+            lat={lat}
+            lng={lng}
+            label={label}
+            zoom={zoom}
+            fill
+            className="rounded-lg"
+          />
         </div>
       </div>
     </div>,

@@ -40,6 +40,12 @@ Globals:
         ALLOW_UNAUTHENTICATED_API: "false"
         AGENCIES_TABLE: !Ref AgenciesTable
         AUDIT_TABLE: !Ref AuditTable
+        # env.ts requires these at import even though this handler only scans agencies.
+        INCIDENTS_TABLE: !Sub "rapid-cortex-incidents-${DeploymentStage}"
+        TRANSCRIPTS_TABLE: !Sub "rapid-cortex-transcripts-${DeploymentStage}"
+        ANALYSES_TABLE: !Sub "rapid-cortex-analyses-${DeploymentStage}"
+        INVITES_TABLE: !Sub "rapid-cortex-invites-${DeploymentStage}"
+        ASSETS_BUCKET: !Sub "rapid-cortex-assets-${DeploymentStage}-${AWS::AccountId}"
         COGNITO_USER_POOL_ID: !Ref ImportedCognitoUserPoolId
         COGNITO_CLIENT_ID: !Ref ImportedCognitoWebClientId
         COGNITO_REGION: !Ref AWS::Region

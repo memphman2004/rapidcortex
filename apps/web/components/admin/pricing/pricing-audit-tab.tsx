@@ -8,6 +8,7 @@ type PricingAuditTabProps = {
   tenants: TenantPricingSummary[];
   onSelectTenant: (agencyId: string) => void;
   onTenantsRefresh: () => Promise<void>;
+  canEdit?: boolean;
 };
 
 const tableClass = "w-full border-collapse text-sm text-slate-200";
@@ -23,6 +24,7 @@ export function PricingAuditTab({
   tenants,
   onSelectTenant,
   onTenantsRefresh,
+  canEdit = false,
 }: PricingAuditTabProps) {
   const [records, setRecords] = useState<PricingAuditRecord[]>([]);
   const [nextBefore, setNextBefore] = useState<string | undefined>();
@@ -96,15 +98,17 @@ export function PricingAuditTab({
                       >
                         View
                       </button>
-                      <button
-                        type="button"
-                        className="rounded border border-red-500/50 px-2 py-1 text-xs text-red-300 hover:bg-red-500/10"
-                        onClick={() => setConfirmRevert(t.agencyId)}
-                      >
-                        Revert all
-                      </button>
+                      {canEdit ? (
+                        <button
+                          type="button"
+                          className="rounded border border-red-500/50 px-2 py-1 text-xs text-red-300 hover:bg-red-500/10"
+                          onClick={() => setConfirmRevert(t.agencyId)}
+                        >
+                          Revert all
+                        </button>
+                      ) : null}
                     </div>
-                    {confirmRevert === t.agencyId && (
+                    {canEdit && confirmRevert === t.agencyId && (
                       <div className="mt-2 flex gap-2">
                         <button
                           type="button"

@@ -7,5 +7,5 @@ import { UserIdentityBar } from "@/components/ui/user-identity-bar";
 export function SessionUserIdentityBar() {
   const { user } = useSession();
   if (!user) return null;
-  return <UserIdentityBar email={user.email} role={user.role} agencyId={user.agencyId} />;
+  return <UserIdentityBar email={user.email} role={user.role} agencyId={user.agencyId} userId={user.userId} />;
 }

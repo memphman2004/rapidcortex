@@ -99,7 +99,7 @@ export async function handlePricingAdminRoute(
 
       if (method === "PUT") {
         try {
-          authz.assertCanPerform(user, "billing.manage");
+          authz.assertCanPerform(user, "billing.revenue_view");
         } catch {
           return forbidden("Forbidden");
         }
@@ -116,7 +116,7 @@ export async function handlePricingAdminRoute(
 
       if (method === "DELETE") {
         try {
-          authz.assertCanPerform(user, "billing.manage");
+          authz.assertCanPerform(user, "billing.revenue_view");
         } catch {
           return forbidden("Forbidden");
         }

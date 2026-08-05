@@ -4,14 +4,6 @@ import { useState } from "react";
 import type { VenueNotificationBody } from "rapid-cortex-shared";
 import { postVenueNotification } from "@/lib/venue/venue-dashboard-api";
 
-const V = {
-  surface: "#100e1a",
-  border: "#1e1a30",
-  amber: "#f59e0b",
-  red: "#ef4444",
-  textPrimary: "#e4dff5",
-  textSecondary: "#5a4d7a",
-};
 
 function ModalShell({
   title,
@@ -36,8 +28,8 @@ function ModalShell({
     >
       <div
         style={{
-          background: V.surface,
-          border: `1px solid ${V.border}`,
+          background: "var(--rc-surface)",
+          border: `1px solid var(--rc-border)`,
           borderRadius: 8,
           padding: 16,
           width: 400,
@@ -45,8 +37,8 @@ function ModalShell({
         }}
       >
         <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 12 }}>
-          <strong style={{ color: V.textPrimary, fontSize: 14 }}>{title}</strong>
-          <button type="button" onClick={onClose} style={{ background: "none", border: "none", color: V.textSecondary, cursor: "pointer" }}>
+          <strong style={{ color: "var(--rc-text-primary)", fontSize: 14 }}>{title}</strong>
+          <button type="button" onClick={onClose} style={{ background: "none", border: "none", color: "var(--rc-text-secondary)", cursor: "pointer" }}>
             ✕
           </button>
         </div>
@@ -95,10 +87,10 @@ export function CreateVenueIncidentModal({
 
   return (
     <ModalShell title="New incident" onClose={onClose}>
-      <p style={{ color: V.textSecondary, fontSize: 12, marginTop: 0 }}>
+      <p style={{ color: "var(--rc-text-secondary)", fontSize: 12, marginTop: 0 }}>
         Creates a manual security incident for the venue operations queue.
       </p>
-      {error ? <p style={{ color: V.red, fontSize: 11 }}>{error}</p> : null}
+      {error ? <p style={{ color: "var(--rc-red)", fontSize: 11 }}>{error}</p> : null}
       <div style={{ display: "flex", gap: 8, justifyContent: "flex-end", marginTop: 12 }}>
         <button type="button" onClick={onClose} style={{ fontSize: 12 }}>Cancel</button>
         <button
@@ -108,7 +100,7 @@ export function CreateVenueIncidentModal({
           style={{
             fontSize: 12,
             fontWeight: 700,
-            background: V.amber,
+            background: "var(--rc-amber)",
             color: "#000",
             border: "none",
             borderRadius: 6,
@@ -162,7 +154,7 @@ export function NotifyStaffModal({
         <select
           value={audience}
           onChange={(e) => setAudience(e.target.value as VenueNotificationBody["audience"])}
-          style={{ padding: 8, fontSize: 12, background: "#141220", color: V.textPrimary, border: `1px solid ${V.border}`, borderRadius: 6 }}
+          style={{ padding: 8, fontSize: 12, background: "var(--rc-surface-alt)", color: "var(--rc-text-primary)", border: `1px solid var(--rc-border)`, borderRadius: 6 }}
         >
           <option value="all_security">All security</option>
           <option value="by_section">By section</option>
@@ -173,7 +165,7 @@ export function NotifyStaffModal({
             placeholder="Section ID"
             value={sectionId}
             onChange={(e) => setSectionId(e.target.value)}
-            style={{ padding: 8, fontSize: 12, background: "#141220", color: V.textPrimary, border: `1px solid ${V.border}`, borderRadius: 6 }}
+            style={{ padding: 8, fontSize: 12, background: "var(--rc-surface-alt)", color: "var(--rc-text-primary)", border: `1px solid var(--rc-border)`, borderRadius: 6 }}
           />
         ) : null}
         <textarea
@@ -181,24 +173,24 @@ export function NotifyStaffModal({
           placeholder="Message to staff…"
           value={message}
           onChange={(e) => setMessage(e.target.value)}
-          style={{ padding: 8, fontSize: 12, background: "#141220", color: V.textPrimary, border: `1px solid ${V.border}`, borderRadius: 6 }}
+          style={{ padding: 8, fontSize: 12, background: "var(--rc-surface-alt)", color: "var(--rc-text-primary)", border: `1px solid var(--rc-border)`, borderRadius: 6 }}
         />
         <select
           value={priority}
           onChange={(e) => setPriority(e.target.value as VenueNotificationBody["priority"])}
-          style={{ padding: 8, fontSize: 12, background: "#141220", color: V.textPrimary, border: `1px solid ${V.border}`, borderRadius: 6 }}
+          style={{ padding: 8, fontSize: 12, background: "var(--rc-surface-alt)", color: "var(--rc-text-primary)", border: `1px solid var(--rc-border)`, borderRadius: 6 }}
         >
           <option value="standard">Standard</option>
           <option value="emergency">Emergency</option>
         </select>
-        {error ? <p style={{ color: V.red, fontSize: 11, margin: 0 }}>{error}</p> : null}
+        {error ? <p style={{ color: "var(--rc-red)", fontSize: 11, margin: 0 }}>{error}</p> : null}
         <button
           type="button"
           disabled={busy || !message.trim()}
           onClick={() => void submit()}
           style={{
             padding: 10,
-            background: V.amber,
+            background: "var(--rc-amber)",
             color: "#000",
             border: "none",
             borderRadius: 6,
@@ -246,7 +238,7 @@ export function VenueBroadcastModal({
 
   return (
     <ModalShell title="Emergency broadcast" onClose={onClose}>
-      <p style={{ color: V.red, fontSize: 12, marginTop: 0 }}>
+      <p style={{ color: "var(--rc-red)", fontSize: 12, marginTop: 0 }}>
         This alerts all venue security immediately. Confirm before sending.
       </p>
       <textarea
@@ -254,13 +246,13 @@ export function VenueBroadcastModal({
         placeholder="Broadcast message…"
         value={message}
         onChange={(e) => setMessage(e.target.value)}
-        style={{ width: "100%", boxSizing: "border-box", padding: 8, fontSize: 12, background: "#141220", color: V.textPrimary, border: `1px solid ${V.red}`, borderRadius: 6 }}
+        style={{ width: "100%", boxSizing: "border-box", padding: 8, fontSize: 12, background: "var(--rc-surface-alt)", color: "var(--rc-text-primary)", border: `1px solid var(--rc-red)`, borderRadius: 6 }}
       />
-      <label style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 12, color: V.textPrimary, marginTop: 8 }}>
+      <label style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 12, color: "var(--rc-text-primary)", marginTop: 8 }}>
         <input type="checkbox" checked={confirmed} onChange={(e) => setConfirmed(e.target.checked)} />
         I confirm this emergency broadcast should be sent now.
       </label>
-      {error ? <p style={{ color: V.red, fontSize: 11 }}>{error}</p> : null}
+      {error ? <p style={{ color: "var(--rc-red)", fontSize: 11 }}>{error}</p> : null}
       <div style={{ display: "flex", gap: 8, justifyContent: "flex-end", marginTop: 12 }}>
         <button type="button" onClick={onClose}>Cancel</button>
         <button
@@ -269,9 +261,9 @@ export function VenueBroadcastModal({
           onClick={() => void submit()}
           style={{
             padding: "6px 12px",
-            background: "#7f1d1d",
-            color: "#fca5a5",
-            border: `1px solid ${V.red}`,
+            background: "var(--rc-red-deep)",
+            color: "var(--rc-red-light)",
+            border: `1px solid var(--rc-red)`,
             borderRadius: 6,
             fontWeight: 700,
             fontSize: 12,

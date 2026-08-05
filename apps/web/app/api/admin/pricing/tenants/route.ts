@@ -1,11 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
-import { canAccessRcRevenuePortal } from "rapid-cortex-shared";
+import { canAccessRcFinancePortal } from "rapid-cortex-shared";
 import { getDashboardSessionUser } from "@/lib/dashboards/get-dashboard-session";
 import { upstreamBillingFetch } from "@/lib/server/rc-admin-billing-upstream";
 
 export async function GET(request: NextRequest) {
   const user = await getDashboardSessionUser();
-  if (!user || !canAccessRcRevenuePortal(user.role)) {
+  if (!user || !canAccessRcFinancePortal(user.role)) {
     return NextResponse.json({ ok: false, error: "Forbidden", code: "FORBIDDEN" }, { status: 403 });
   }
 

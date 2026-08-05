@@ -56,6 +56,7 @@ export async function VenueOperationsDashboardPage({
       displayName={dashboardDisplayName(user)}
       userEmail={user.email ?? ""}
       userRole={user.role}
+      userId={user.userId}
     />
   );
 }

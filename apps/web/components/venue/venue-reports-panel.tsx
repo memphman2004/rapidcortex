@@ -25,10 +25,10 @@ export function VenueReportsPanel({ agencyId, linkBase }: { agencyId: string; li
       <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
         {rows.map((row) => (
           <Link key={row.id} href={`${linkBase}/incidents/${row.id}`} style={{ textDecoration: "none", color: "inherit" }}>
-            <div style={{ background: "#141220", border: "1px solid #1e1a30", borderRadius: 8, padding: 12 }}>
-              <div style={{ fontWeight: 700, color: "#f59e0b", fontSize: 11 }}>{mapVenueIncidentType(row.type)}</div>
+            <div style={{ background: "var(--rc-surface-alt)", border: "1px solid var(--rc-border)", borderRadius: 8, padding: 12 }}>
+              <div style={{ fontWeight: 700, color: "var(--rc-amber)", fontSize: 11 }}>{mapVenueIncidentType(row.type)}</div>
               <div style={{ fontSize: 12, marginTop: 4 }}>{row.zoneLabel}</div>
-              <div style={{ fontSize: 10, color: "#5a4d7a", marginTop: 4 }}>
+              <div style={{ fontSize: 10, color: "var(--rc-text-muted)", marginTop: 4 }}>
                 {mapVenueIncidentStatus(row.status)} · {formatVenueTimeAgo(row.updatedAt)}
               </div>
             </div>

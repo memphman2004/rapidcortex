@@ -13,7 +13,8 @@ type Props = { params: Promise<{ jurisdiction: string }> };
 
 /**
  * Agency home at `/{agencySlug}` — routes by DynamoDB agency type, not JWT claims alone.
- * PSAP agencies keep the legacy dispatcher workspace at `/{slug}/dashboard`.
+ * PSAP agencies redirect to the ops overview at `/{slug}/dashboard`.
+ * Live CAD remains at `/{slug}/dispatcher`.
  */
 export default async function JurisdictionRootPage({ params }: Props) {
   const { jurisdiction } = await params;

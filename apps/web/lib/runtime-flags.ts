@@ -44,6 +44,7 @@ const NEXT_PUBLIC_FLAG_VALUES: Record<string, string | undefined> = {
   NEXT_PUBLIC_ENABLE_VERTICAL_ONBOARDING: process.env.NEXT_PUBLIC_ENABLE_VERTICAL_ONBOARDING,
   NEXT_PUBLIC_ENABLE_CHANNEL_MONITORING: process.env.NEXT_PUBLIC_ENABLE_CHANNEL_MONITORING,
   NEXT_PUBLIC_ENABLE_SALES_LEADS: process.env.NEXT_PUBLIC_ENABLE_SALES_LEADS,
+  NEXT_PUBLIC_ENABLE_PSAP_PROSPECTS: process.env.NEXT_PUBLIC_ENABLE_PSAP_PROSPECTS,
   NEXT_PUBLIC_ENABLE_INSIDE_THE_CORTEX: process.env.NEXT_PUBLIC_ENABLE_INSIDE_THE_CORTEX,
   NEXT_PUBLIC_ENABLE_CAMPUS_CLERY: process.env.NEXT_PUBLIC_ENABLE_CAMPUS_CLERY,
   NEXT_PUBLIC_ENABLE_GRANT_SUCCESS_PROGRAM: process.env.NEXT_PUBLIC_ENABLE_GRANT_SUCCESS_PROGRAM,
@@ -329,6 +330,11 @@ export function isChannelMonitoringEnabled(): boolean {
 /** RC Admin Leads CRM inbox (Contact Sales + Ring waitlist). Default on when unset. */
 export function isSalesLeadsUiEnabled(): boolean {
   return envFlag("NEXT_PUBLIC_ENABLE_SALES_LEADS");
+}
+
+/** RC Admin PSAP Prospect CRM (national outbound outreach). Default on when unset. */
+export function isPsapProspectsUiEnabled(): boolean {
+  return envFlag("NEXT_PUBLIC_ENABLE_PSAP_PROSPECTS");
 }
 
 /** RC Admin Hiring ATS (careers applications). Default on when unset. */

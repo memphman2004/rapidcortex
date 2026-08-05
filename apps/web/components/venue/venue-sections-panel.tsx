@@ -18,9 +18,9 @@ export function VenueSectionsPanel({ agencyId, linkBase }: { agencyId: string; l
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(160px, 1fr))", gap: 8 }}>
         {sections.map((s) => (
           <Link key={s.sectionId} href={`${linkBase}/sections/${encodeURIComponent(s.sectionId)}`} style={{ textDecoration: "none", color: "inherit" }}>
-            <div style={{ background: "#141220", border: "1px solid #1e1a30", borderRadius: 8, padding: 12 }}>
-              <div style={{ fontWeight: 700, color: "#f59e0b" }}>Section {s.sectionName}</div>
-              <div style={{ fontSize: 11, color: "#5a4d7a", marginTop: 4 }}>{s.level} · Gate {s.gate}</div>
+            <div style={{ background: "var(--rc-surface-alt)", border: "1px solid var(--rc-border)", borderRadius: 8, padding: 12 }}>
+              <div style={{ fontWeight: 700, color: "var(--rc-amber)" }}>Section {s.sectionName}</div>
+              <div style={{ fontSize: 11, color: "var(--rc-text-muted)", marginTop: 4 }}>{s.level} · Gate {s.gate}</div>
               <div style={{ fontSize: 11, marginTop: 4 }}>{s.incidentCount} incidents · cap {s.capacity}</div>
             </div>
           </Link>

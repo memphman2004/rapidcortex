@@ -66,14 +66,14 @@ export function VenueIncidentOpsDetailClient({
   }, [agencyId, incidentId, venueCode]);
 
   if (loading) {
-    return <p style={{ padding: 14, fontSize: 12, color: "#5a4d7a" }}>Loading incident…</p>;
+    return <p style={{ padding: 14, fontSize: 12, color: "var(--rc-text-muted)" }}>Loading incident…</p>;
   }
 
   if (error || !panel) {
     return (
       <div style={{ padding: 14 }}>
-        <p style={{ fontSize: 12, color: "#f59e0b" }}>{error ?? "Incident not found"}</p>
-        <Link href={linkBase} style={{ fontSize: 12, color: "#7c6fa0" }}>
+        <p style={{ fontSize: 12, color: "var(--rc-amber)" }}>{error ?? "Incident not found"}</p>
+        <Link href={linkBase} style={{ fontSize: 12, color: "var(--rc-text-secondary)" }}>
           ← Operations center
         </Link>
       </div>
@@ -83,7 +83,7 @@ export function VenueIncidentOpsDetailClient({
   return (
     <div>
       <div style={{ padding: "14px 14px 0" }}>
-        <Link href={linkBase} style={{ color: "#7c6fa0", fontSize: 12, textDecoration: "none" }}>
+        <Link href={linkBase} style={{ color: "var(--rc-text-secondary)", fontSize: 12, textDecoration: "none" }}>
           ← Operations center
         </Link>
       </div>

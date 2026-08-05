@@ -15,6 +15,7 @@ import type {
   FieldConfidence,
   FieldWeight,
 } from "./types.js";
+import { normalizeConfidencePercent } from "./normalize.js";
 
 /** Relative importance in the weighted mean. */
 export const FIELD_WEIGHT_MULTIPLIER: Record<FieldWeight, number> = {
@@ -140,7 +141,7 @@ export function applyScoreAdjustments(params: {
   valueNullified?: boolean;
 }): number {
   if (params.valueNullified) return 0;
-  let score = params.rawScore;
+  let score = normalizeConfidencePercent(params.rawScore);
   if (params.scoreCap != null) {
     score = Math.min(score, params.scoreCap);
   }

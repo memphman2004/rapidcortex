@@ -1,5 +1,8 @@
 import { redirect } from "next/navigation";
-import { canAccessRcRevenuePortal } from "rapid-cortex-shared";
+import {
+  canAccessRcFinancePortal,
+  canAccessRcRevenuePortal,
+} from "rapid-cortex-shared";
 import { getDashboardSessionUser } from "@/lib/dashboards/get-dashboard-session";
 import { serverPricingJson } from "@/lib/server/server-pricing-fetch";
 import type { GlobalPricingConfig, TenantPricingSummary } from "@/lib/pricing/pricing-types";
@@ -14,9 +17,12 @@ export const dynamic = "force-dynamic";
 
 export default async function PricingAdminPage() {
   const user = await getDashboardSessionUser();
-  if (!user || !canAccessRcRevenuePortal(user.role)) {
+  // rcadmin + rcsuperadmin (+ rcitadmin via finance portal) may view; only superadmin edits.
+  if (!user || !canAccessRcFinancePortal(user.role)) {
     redirect("/unauthorized");
   }
+
+  const canEdit = canAccessRcRevenuePortal(user.role);
 
   const [initialGlobal, initialTenantsRes] = await Promise.all([
     serverPricingJson<GlobalPricingConfig & { pricing: Record<string, number> }>(
@@ -38,6 +44,7 @@ export default async function PricingAdminPage() {
     <PricingDashboardClient
       initialGlobal={initialGlobalSafe}
       initialTenants={initialTenantsRes?.tenants ?? []}
+      canEdit={canEdit}
     />
   );
 }

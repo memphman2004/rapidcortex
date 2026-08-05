@@ -177,6 +177,15 @@ if [[ -f "$PROD_ENV" ]]; then
     echo "  ⚠️  NEXT_PUBLIC_ENABLE_PINPOINT is NOT in $PROD_ENV"
     echo "     → Add it for Pinpoint UI to render"
   fi
+
+  if grep -q "NEXT_PUBLIC_MAPBOX_STYLE_URL" "$PROD_ENV"; then
+    STYLE_LINE=$(grep "NEXT_PUBLIC_MAPBOX_STYLE_URL" "$PROD_ENV" | head -1)
+    echo "  ✅ NEXT_PUBLIC_MAPBOX_STYLE_URL found:"
+    echo "     $STYLE_LINE"
+  else
+    echo "  ⚠️  NEXT_PUBLIC_MAPBOX_STYLE_URL is NOT in $PROD_ENV"
+    echo "     → Add: export NEXT_PUBLIC_MAPBOX_STYLE_URL=\"mapbox://styles/memphman2004/cmr3afd69002401qq1uywfk5p\""
+  fi
 else
   echo "  ⚠️  $PROD_ENV not found — run from repo root"
 fi

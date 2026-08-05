@@ -1,16 +1,15 @@
 import type { ReactNode } from "react";
 import { CampusNav } from "./_components/CampusNav";
 import { CampusShellHeader } from "./_components/CampusShellHeader";
-import { CAMPUS_DASHBOARD_FONT_FAMILY } from "@/components/campus/campus-dashboard-font";
+import { CampusShellThemeRoot } from "./_components/CampusShellThemeRoot";
 import { HelpChrome } from "@/components/help/help-chrome";
+import { ThemeToggle } from "@/components/ui/ThemeToggle";
 import { getDashboardSessionUser } from "@/lib/dashboards/get-dashboard-session";
 
 /** Matches campus console mockup tokens (bg / surface). */
 const SHELL = {
-  bg: "#090d1a",
-  surface: "#0d1321",
+  surface: "var(--rc-surface)",
   border: "rgba(255,255,255,0.07)",
-  text: "#e2e8f0",
 } as const;
 
 export default async function CampusShellLayout({
@@ -26,20 +25,14 @@ export default async function CampusShellLayout({
 
   return (
     <HelpChrome role={role}>
-      <div
-        className="min-h-screen"
-        style={{
-          background: SHELL.bg,
-          color: SHELL.text,
-          fontFamily: CAMPUS_DASHBOARD_FONT_FAMILY,
-        }}
-      >
+      <CampusShellThemeRoot>
         <div className="mx-auto flex min-h-screen max-w-[1600px] flex-col px-4 py-5">
           <CampusShellHeader
             campusCode={campusCode.toUpperCase()}
             role={role}
             userEmail={user?.email}
             agencyId={user?.agencyId}
+            leadingSlot={<ThemeToggle variant="inline" />}
           />
           <CampusNav campusCode={campusCode} role={role} />
           <div
@@ -52,7 +45,7 @@ export default async function CampusShellLayout({
             {children}
           </div>
         </div>
-      </div>
+      </CampusShellThemeRoot>
     </HelpChrome>
   );
 }

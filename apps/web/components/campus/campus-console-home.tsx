@@ -25,6 +25,7 @@ import {
   Headphones,
   Image as ImageIcon,
   Link2,
+  MapPin,
   QrCode,
   Shield,
   Upload,
@@ -35,6 +36,8 @@ import {
 import { isRcInternalOperator } from "rapid-cortex-shared/tenancy/principal";
 import { HelpChrome } from "@/components/help/help-chrome";
 import { IncidentCameraPanel } from "@/components/venue/IncidentCameraPanel";
+import { RapidCortexMap } from "@/components/maps/RapidCortexMap";
+import { campusIncidentsToMap } from "@/components/maps/map-incident-adapters";
 import { buildNavContext } from "@/lib/navigation/nav-context";
 import { filterRoleNavByFeatures } from "@/lib/navigation/filter-role-nav";
 import { navIconByName } from "@/lib/navigation/nav-icons";
@@ -47,27 +50,36 @@ import { useNavBadgeCounts } from "@/lib/navigation/use-nav-badge-counts";
 import type { CampusIncident } from "@/lib/campus/types";
 import { CAMPUS_DASHBOARD_FONT_FAMILY } from "./campus-dashboard-font";
 import { CampusDashboardHeaderUtilities } from "./campus-dashboard-header-utilities";
+import { ThemeProvider, useThemeRoot } from "@/lib/theme/theme-context";
+import { ThemeToggle } from "@/components/ui/ThemeToggle";
 import {
   formatTimeAgo,
   mapIncidentType,
   useCampusDashboard,
 } from "./use-campus-dashboard";
+import {
+  consoleBgStorageKey,
+  loadConsoleBg,
+  removeLocalStorage,
+  writeAccountAvatar,
+  writeLocalStorage,
+} from "@/lib/account/account-picture";
 
 // ─── Design tokens (mockup palette) ───────────────────────────────────────────
 
 const C = {
-  bg: "#090d1a",
-  surface: "#0d1321",
+  bg: "var(--rc-bg)",
+  surface: "var(--rc-surface)",
   card: "rgba(255,255,255,0.035)",
   border: "rgba(255,255,255,0.07)",
   borderHard: "rgba(255,255,255,0.12)",
-  text: "#e2e8f0",
-  textSub: "#94a3b8",
-  textMuted: "#64748b",
-  blue: "#3b82f6",
-  red: "#ef4444",
-  green: "#10b981",
-  amber: "#f59e0b",
+  text: "var(--rc-text-primary)",
+  textSub: "var(--rc-text-secondary)",
+  textMuted: "var(--rc-text-muted)",
+  blue: "var(--rc-blue)",
+  red: "var(--rc-red)",
+  green: "var(--rc-green)",
+  amber: "var(--rc-amber)",
 } as const;
 
 const CREST_BG = "#1e3a5f";
@@ -128,7 +140,7 @@ function card(extra: CSSProperties = {}): CSSProperties {
   };
 }
 
-function bgStorageKey(agencyId: string): string {
+function campusBgLegacyKey(agencyId: string): string {
   return `rc-campus-bg:${agencyId}`;
 }
 
@@ -388,6 +400,8 @@ export type CampusConsoleHomeProps = {
   displayName: string;
   userEmail?: string;
   userRole?: string;
+  /** Cognito user id — scopes welcome image per account. */
+  userId?: string;
 };
 
 type ModalTab = "presets" | "url" | "upload";
@@ -404,13 +418,22 @@ type QuickActionDef = {
 
 // ─── Main ─────────────────────────────────────────────────────────────────────
 
-export function CampusConsoleHome({
+export function CampusConsoleHome(props: CampusConsoleHomeProps) {
+  return (
+    <ThemeProvider storageKey="rc-theme-campus">
+      <CampusConsoleHomeInner {...props} />
+    </ThemeProvider>
+  );
+}
+
+function CampusConsoleHomeInner({
   agencyId,
   campusCode,
   agencyName,
   displayName,
   userEmail,
   userRole,
+  userId = "",
 }: CampusConsoleHomeProps) {
   const pathname = usePathname() ?? "";
   // Nav hrefs are rooted at /app/campus/{CODE} via getRoleNav (campusCode below).
@@ -450,6 +473,7 @@ export function CampusConsoleHome({
   const [showModal, setShowModal] = useState(false);
   const [modalTab, setModalTab] = useState<ModalTab>("presets");
   const [urlInput, setUrlInput] = useState("");
+  const [selectedMapIncident, setSelectedMapIncident] = useState<string | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -458,13 +482,18 @@ export function CampusConsoleHome({
   }, []);
 
   useEffect(() => {
-    try {
-      const stored = window.localStorage.getItem(bgStorageKey(agencyId));
-      setCustomBg(stored);
-    } catch {
+    if (!userId) {
       setCustomBg(null);
+      return;
     }
-  }, [agencyId]);
+    setCustomBg(
+      loadConsoleBg({
+        userId,
+        keyed: consoleBgStorageKey("campus", userId, agencyId),
+        legacyKey: campusBgLegacyKey(agencyId),
+      }),
+    );
+  }, [agencyId, userId]);
 
   const currentBg = customBg ?? DEFAULT_CAMPUS_BG;
   const hasCustomBg = Boolean(customBg);
@@ -474,26 +503,25 @@ export function CampusConsoleHome({
   const applyBg = useCallback(
     (url: string) => {
       setCustomBg(url);
-      try {
-        window.localStorage.setItem(bgStorageKey(agencyId), url);
-      } catch {
-        /* ignore quota / private mode */
+      if (userId) {
+        writeLocalStorage(consoleBgStorageKey("campus", userId, agencyId), url);
+        if (url.startsWith("data:") || url.startsWith("http")) {
+          writeAccountAvatar(userId, url);
+        }
       }
       setShowModal(false);
       setUrlInput("");
     },
-    [agencyId],
+    [agencyId, userId],
   );
 
   const resetBg = useCallback(() => {
     setCustomBg(null);
-    try {
-      window.localStorage.removeItem(bgStorageKey(agencyId));
-    } catch {
-      /* ignore */
+    if (userId) {
+      removeLocalStorage(consoleBgStorageKey("campus", userId, agencyId));
     }
     setShowModal(false);
-  }, [agencyId]);
+  }, [agencyId, userId]);
 
   const handleFile = (e: ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -513,6 +541,8 @@ export function CampusConsoleHome({
       ),
     [incidents],
   );
+
+  const mapIncidents = useMemo(() => campusIncidentsToMap(openIncidents), [openIncidents]);
 
   const buildingsOnline = useMemo(() => {
     if (buildings.length === 0) {
@@ -929,7 +959,9 @@ export function CampusConsoleHome({
                   width: 30,
                   height: 30,
                   borderRadius: "50%",
-                  background: "linear-gradient(135deg,#4f46e5,#0891b2)",
+                  background: customBg
+                    ? `center / cover no-repeat url(${JSON.stringify(customBg)})`
+                    : "linear-gradient(135deg,#4f46e5,#0891b2)",
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
@@ -937,9 +969,11 @@ export function CampusConsoleHome({
                   fontWeight: 700,
                   color: "#fff",
                   flexShrink: 0,
+                  overflow: "hidden",
                 }}
+                aria-hidden={Boolean(customBg)}
               >
-                {initialsFromName(displayName)}
+                {customBg ? null : initialsFromName(displayName)}
               </div>
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div
@@ -1052,6 +1086,7 @@ export function CampusConsoleHome({
                   email={userEmail}
                   role={userRole}
                   agencyId={agencyId}
+                  userId={userId}
                 />
               </div>
             </header>
@@ -1074,7 +1109,7 @@ export function CampusConsoleHome({
               ) : null}
 
               {/* Hero */}
-              <div style={{ position: "relative", height: 288, overflow: "hidden", flexShrink: 0 }}>
+              <div style={{ position: "relative", height: 330, overflow: "hidden", flexShrink: 0 }}>
                 <div
                   style={{
                     position: "absolute",
@@ -1109,7 +1144,7 @@ export function CampusConsoleHome({
                     display: "flex",
                     flexDirection: "column",
                     justifyContent: "space-between",
-                    padding: "22px 18px 0",
+                    padding: "22px 18px 16px",
                   }}
                 >
                   <div>
@@ -1141,7 +1176,6 @@ export function CampusConsoleHome({
                       display: "grid",
                       gridTemplateColumns: "repeat(4,1fr)",
                       gap: 10,
-                      marginBottom: -22,
                     }}
                   >
                     {kpiCards.map((s) => (
@@ -1259,7 +1293,7 @@ export function CampusConsoleHome({
                   }}
                 >
                   <Camera size={13} color={C.text} strokeWidth={1.7} />
-                  Change Campus Image
+                  Change My Image
                   {hasCustomBg ? (
                     <span
                       style={{
@@ -1555,6 +1589,53 @@ export function CampusConsoleHome({
                   <div style={{ padding: "4px 10px 12px" }}>
                     <ZoneMap zoneLabels={zoneLabels} />
                   </div>
+                </div>
+              </div>
+
+              {/* Operational Map */}
+              <div style={{ padding: "0 16px 12px" }}>
+                <div
+                  style={{
+                    ...card(),
+                    overflow: "hidden",
+                    height: 420,
+                  }}
+                >
+                  <div
+                    style={{
+                      padding: "10px 14px",
+                      borderBottom: `1px solid ${C.border}`,
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 6,
+                    }}
+                  >
+                    <MapPin size={13} color={C.textSub} />
+                    <span
+                      style={{
+                        fontSize: 12,
+                        fontWeight: 700,
+                        color: C.textSub,
+                        letterSpacing: "0.05em",
+                      }}
+                    >
+                      OPERATIONAL MAP
+                    </span>
+                  </div>
+                  <RapidCortexMap
+                    incidents={mapIncidents}
+                    selectedIncidentId={selectedMapIncident}
+                    onIncidentClick={(inc) => setSelectedMapIncident(inc.id)}
+                    vertical="campus"
+                    height="372px"
+                    showLayerControl
+                    defaultLayers={{
+                      campusZones: true,
+                      agencyZones: false,
+                      counties: false,
+                      activeIncidents: true,
+                    }}
+                  />
                 </div>
               </div>
 

@@ -17,6 +17,8 @@ import {
 } from "lucide-react";
 import { HelpButton } from "@/components/help/help-button";
 import { HelpChrome } from "@/components/help/help-chrome";
+import { ThemeProvider, useThemeRoot } from "@/lib/theme/theme-context";
+import { ThemeToggle } from "@/components/ui/ThemeToggle";
 import {
   isHospitalAdminRole,
   isHospitalCoordinatorRole,
@@ -46,11 +48,20 @@ type Props = {
   facilityName?: string;
 };
 
-export function HospitalAdminLayout({ children, role, facilityName }: Props) {
+export function HospitalAdminLayout(props: Props) {
+  return (
+    <ThemeProvider storageKey="rc-theme-hospital">
+      <HospitalAdminLayoutInner {...props} />
+    </ThemeProvider>
+  );
+}
+
+function HospitalAdminLayoutInner({ children, role, facilityName }: Props) {
   const pathname = usePathname();
   const isAdmin = isHospitalAdminRole(role);
   const isCoordinator = isHospitalCoordinatorRole(role);
   const badge = hospitalRoleBadge(role);
+  const { rootRef } = useThemeRoot<HTMLDivElement>();
 
   const visibleNav = NAV_ITEMS.filter(item => {
     if (item.adminOnly && !isAdmin) return false;
@@ -59,7 +70,7 @@ export function HospitalAdminLayout({ children, role, facilityName }: Props) {
 
   return (
     <HelpChrome role={role}>
-    <div className="flex min-h-screen bg-slate-950">
+    <div ref={rootRef} data-theme="dark" className="flex min-h-screen bg-slate-950">
       {/* Sidebar */}
       <aside className="flex w-56 flex-shrink-0 flex-col border-r border-slate-800 bg-slate-900">
         {/* Brand / facility header */}
@@ -76,6 +87,7 @@ export function HospitalAdminLayout({ children, role, facilityName }: Props) {
                 {badge}
               </p>
             </div>
+            <ThemeToggle variant="tailwind" />
             <HelpButton />
           </div>
         </div>

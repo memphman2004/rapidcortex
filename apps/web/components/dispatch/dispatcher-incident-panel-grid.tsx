@@ -1,19 +1,26 @@
 "use client";
 
-import { useMemo } from "react";
-import type { AIAnalysis, ConfidenceAnalysis, Incident } from "rapid-cortex-shared";
+import { useMemo, type ReactNode } from "react";
+import type {
+  AIAnalysis,
+  ConfidenceAnalysis,
+  Incident,
+  TranscriptSegment,
+} from "rapid-cortex-shared";
 import { IntelligencePanelContent } from "@/components/dispatch/ai-panel";
 import {
   CallerCardLocationPanel,
   CallerCardPremiseNotesPanel,
 } from "@/components/dispatch/caller-card-panel";
+import { IncidentContextMap } from "@/components/dispatch/incident-context-map";
 import { IncidentMediaPanel } from "@/components/dispatch/incident-media-panel";
 import { LiveVideoPanel } from "@/components/dispatch/live-video-panel";
+import { Ng911AssistPanel } from "@/components/dispatch/ng911-assist-panel";
 import { PinpointPanel } from "@/components/dispatch/pinpoint-panel";
 import { SilentTextPanel } from "@/components/dispatch/silent-text-panel";
+import { TranscriptPanel } from "@/components/dispatch/transcript-panel";
 import { VideoAssistPanel } from "@/components/dispatch/video-assist-panel";
 import { DispatcherPanelGrid } from "@/components/dispatcher/dispatcher-panel-grid";
-import { Ng911AssistPanel } from "@/components/dispatch/ng911-assist-panel";
 import {
   isIncidentMediaEnabled,
   isLiveVideoEnabled,
@@ -24,6 +31,28 @@ import {
 
 function PanelUnavailable({ message }: { message: string }) {
   return <p className="p-3 text-xs text-slate-500">{message}</p>;
+}
+
+function resolveIncidentMapPin(incident: Incident | null): {
+  lat: number;
+  lng: number;
+  label: string;
+} | null {
+  if (!incident) return null;
+  const lat =
+    (typeof incident.callerLocationLat === "number" ? incident.callerLocationLat : undefined) ??
+    (typeof incident.cadCoordinates?.lat === "number" ? incident.cadCoordinates.lat : undefined);
+  const lng =
+    (typeof incident.callerLocationLng === "number" ? incident.callerLocationLng : undefined) ??
+    (typeof incident.cadCoordinates?.lng === "number" ? incident.cadCoordinates.lng : undefined);
+  if (lat == null || lng == null || !Number.isFinite(lat) || !Number.isFinite(lng)) return null;
+  const label =
+    incident.callerLocationMapLabel ||
+    incident.callerAddressLine ||
+    incident.cadLocation ||
+    incident.title ||
+    "Incident";
+  return { lat, lng, label };
 }
 
 export function DispatcherIncidentPanelGrid({
@@ -38,6 +67,12 @@ export function DispatcherIncidentPanelGrid({
   isRefreshingAi = false,
   onRefreshAi,
   showCallerCard = false,
+  transcriptSegments = [],
+  transcriptToolbar,
+  transcriptAutoScroll = true,
+  onTranscriptAutoScrollChange,
+  transcriptStreaming = false,
+  transcriptLoading = false,
 }: {
   userId: string;
   incidentId: string | null;
@@ -50,7 +85,15 @@ export function DispatcherIncidentPanelGrid({
   isRefreshingAi?: boolean;
   onRefreshAi?: () => void;
   showCallerCard?: boolean;
+  transcriptSegments?: TranscriptSegment[];
+  transcriptToolbar?: ReactNode;
+  transcriptAutoScroll?: boolean;
+  onTranscriptAutoScrollChange?: (v: boolean) => void;
+  transcriptStreaming?: boolean;
+  transcriptLoading?: boolean;
 }) {
+  const mapPin = useMemo(() => resolveIncidentMapPin(incident), [incident]);
+
   const panels = useMemo(() => {
     const callerMobile =
       !incidentId ? (
@@ -64,6 +107,36 @@ export function DispatcherIncidentPanelGrid({
       );
 
     return {
+      transcript: (
+        <div id="cad-transcript" className="flex h-[min(36vh,320px)] min-h-[12rem] flex-col">
+          <TranscriptPanel
+            segments={transcriptSegments}
+            autoScroll={transcriptAutoScroll}
+            onAutoScrollChange={onTranscriptAutoScrollChange ?? (() => {})}
+            isStreaming={transcriptStreaming}
+            isLoading={Boolean(incidentId) && transcriptLoading}
+            toolbar={transcriptToolbar}
+            className="!min-h-0 !flex-1 !border-r-0 !bg-transparent !border-0"
+          />
+        </div>
+      ),
+      map: mapPin ? (
+        <div className="p-2">
+          <IncidentContextMap
+            latitude={mapPin.lat}
+            longitude={mapPin.lng}
+            label={mapPin.label}
+          />
+        </div>
+      ) : (
+        <PanelUnavailable
+          message={
+            incidentId
+              ? "No map coordinates yet — Pinpoint GPS or CAD location will appear here."
+              : "Select an incident to load the map."
+          }
+        />
+      ),
       intelligence: (
         <IntelligencePanelContent
           incidentId={incidentId}
@@ -121,15 +194,16 @@ export function DispatcherIncidentPanelGrid({
     incident,
     incidentId,
     isRefreshingAi,
+    mapPin,
     onRefreshAi,
+    onTranscriptAutoScrollChange,
     showCallerCard,
+    transcriptAutoScroll,
+    transcriptLoading,
+    transcriptSegments,
+    transcriptStreaming,
+    transcriptToolbar,
   ]);
-
-  if (!incidentId) {
-    return (
-      <div className="p-3 font-mono text-xs text-slate-500">Select an incident to load incident panels.</div>
-    );
-  }
 
   return <DispatcherPanelGrid userId={userId} panels={panels} className="p-2" />;
 }

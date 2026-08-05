@@ -11,6 +11,7 @@ import { EnvironmentBadge } from "@/components/dispatch/environment-badge";
 import { FontPicker } from "@/components/ui/font-picker";
 import { UserIdentityBar } from "@/components/ui/user-identity-bar";
 import { HelpButton } from "@/components/help/help-button";
+import { ThemeToggle } from "@/components/ui/ThemeToggle";
 import { getRoleHeaderBadgeLabel } from "@/lib/dashboards/role-header-badge";
 import { resolvePsapRole } from "@/lib/dashboards/psap-role-nav";
 import { useJurisdictionLink } from "@/lib/jurisdiction-context";
@@ -32,7 +33,7 @@ export function TopBar({ user: serverUser }: { user?: UserContext | null }) {
     <header
       className="rc-sticky-toolbar flex h-36 shrink-0 items-center justify-between border-b-0 px-3 sm:h-40 sm:px-4 lg:px-6 2xl:px-8"
       style={{
-        background: "#0d1321",
+        background: "var(--rc-surface)",
         borderBottom: "1px solid rgba(255,255,255,0.07)",
       }}
     >
@@ -73,6 +74,7 @@ export function TopBar({ user: serverUser }: { user?: UserContext | null }) {
       </div>
       <div className="flex shrink-0 flex-wrap items-center justify-end gap-2 sm:gap-3 lg:gap-4">
         <HelpButton />
+        <ThemeToggle variant="inline" />
         <FontPicker />
         <div
           className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${
@@ -91,7 +93,7 @@ export function TopBar({ user: serverUser }: { user?: UserContext | null }) {
           {apiLive ? (useProxy ? "API (auth)" : "API") : "Training"}
         </div>
         {user ? (
-          <UserIdentityBar email={user.email} role={user.role} agencyId={user.agencyId} />
+          <UserIdentityBar email={user.email} role={user.role} agencyId={user.agencyId} userId={user.userId} />
         ) : null}
       </div>
     </header>

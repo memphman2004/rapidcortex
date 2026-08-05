@@ -31,6 +31,7 @@ export default async function AnalystDashboardPage({ params }: Props) {
       displayName={displayName}
       userEmail={user.email}
       userRole={user.role}
+      userId={user.userId}
     />
   );
 }

@@ -8,13 +8,6 @@ import { fetchVenueOnDuty } from "@/lib/venue/venue-dashboard-api";
 import { fetchVenueIncidents } from "@/lib/venue/venue-incidents-api";
 import { formatVenueTimeAgo, mapVenueIncidentType } from "./use-venue-ops-data";
 
-const V = {
-  surface: "#141220",
-  border: "#1e1a30",
-  amber: "#f59e0b",
-  text: "#e4dff5",
-  muted: "#5a4d7a",
-};
 
 export function VenueStaffDetailClient({
   agencyId,
@@ -77,7 +70,7 @@ export function VenueStaffDetailClient({
 
   return (
     <div style={{ padding: 14 }}>
-      <Link href={`${linkBase}/staff`} style={{ color: "#7c6fa0", fontSize: 12, textDecoration: "none" }}>
+      <Link href={`${linkBase}/staff`} style={{ color: "var(--rc-text-secondary)", fontSize: 12, textDecoration: "none" }}>
         ← Staff roster
       </Link>
 
@@ -95,12 +88,12 @@ export function VenueStaffDetailClient({
                 width: 48,
                 height: 48,
                 borderRadius: "50%",
-                background: "#1a1528",
+                background: "var(--rc-surface-hover)",
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
                 fontWeight: 700,
-                color: V.amber,
+                color: "var(--rc-amber)",
                 fontSize: 16,
               }}
             >
@@ -133,7 +126,7 @@ export function VenueStaffDetailClient({
                   <div style={{ fontSize: 11, color: V.muted, marginTop: 4 }}>
                     {activeIncident.description.slice(0, 100)}
                   </div>
-                  <div style={{ fontSize: 10, color: V.amber, marginTop: 6 }}>
+                  <div style={{ fontSize: 10, color: "var(--rc-amber)", marginTop: 6 }}>
                     {formatVenueTimeAgo(activeIncident.createdAt)}
                   </div>
                 </Link>
@@ -167,14 +160,14 @@ export function VenueStaffDetailClient({
 
 function Card({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <div style={{ background: V.surface, border: `1px solid ${V.border}`, borderRadius: 8 }}>
+    <div style={{ background: "var(--rc-surface)", border: `1px solid var(--rc-border)`, borderRadius: 8 }}>
       <div
         style={{
           padding: "10px 12px",
-          borderBottom: `1px solid ${V.border}`,
+          borderBottom: `1px solid var(--rc-border)`,
           fontSize: 11,
           fontWeight: 700,
-          color: "#7c6fa0",
+          color: "var(--rc-text-secondary)",
         }}
       >
         {title}

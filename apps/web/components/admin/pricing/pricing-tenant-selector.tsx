@@ -10,6 +10,7 @@ type PricingTenantSelectorProps = {
   stagedCount: number;
   onTenantChange: (agencyId: string) => void;
   onRevertAllComplete: () => void;
+  canEdit?: boolean;
 };
 
 export function PricingTenantSelector({
@@ -18,6 +19,7 @@ export function PricingTenantSelector({
   stagedCount,
   onTenantChange,
   onRevertAllComplete,
+  canEdit = false,
 }: PricingTenantSelectorProps) {
   const [confirmName, setConfirmName] = useState("");
   const [showRevert, setShowRevert] = useState(false);
@@ -66,10 +68,10 @@ export function PricingTenantSelector({
       {selected && (
         <div className="flex flex-wrap items-center gap-3 rounded-xl border border-amber-500/30 bg-amber-500/5 px-4 py-3 text-sm">
           <span className="text-amber-100">
-            Editing <strong>{selected.agencyName}</strong> · {selected.overrideCount} active
-            override{selected.overrideCount === 1 ? "" : "s"}
+            {canEdit ? "Editing" : "Viewing"} <strong>{selected.agencyName}</strong> ·{" "}
+            {selected.overrideCount} active override{selected.overrideCount === 1 ? "" : "s"}
           </span>
-          {!showRevert ? (
+          {canEdit && !showRevert ? (
             <button
               type="button"
               className="text-xs text-amber-300 underline hover:text-amber-100"
@@ -77,7 +79,8 @@ export function PricingTenantSelector({
             >
               Revert all to global
             </button>
-          ) : (
+          ) : null}
+          {canEdit && showRevert ? (
             <span className="inline-flex flex-wrap items-center gap-2">
               <input
                 type="text"
@@ -105,7 +108,7 @@ export function PricingTenantSelector({
                 Cancel
               </button>
             </span>
-          )}
+          ) : null}
         </div>
       )}
     </div>

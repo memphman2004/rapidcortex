@@ -10,10 +10,11 @@ import {
 } from "./psap-role-nav";
 
 describe("psap role navigation", () => {
-  it("scopes dispatcher to live workspace paths only", () => {
+  it("scopes dispatcher to overview + live workspace paths", () => {
     const paths = psapOperationsNavForRole("dispatcher").map((i) => i.path);
     expect(paths).toEqual(DISPATCHER_OPS_NAV.map((i) => i.path));
     expect(paths).toContain("/dashboard");
+    expect(paths).toContain("/dispatcher");
     expect(paths).not.toContain("/admin");
   });
 

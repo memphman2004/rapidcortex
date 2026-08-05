@@ -2,7 +2,6 @@ import { migrateLegacyRapidCortexRoleTokenValue } from "rapid-cortex-shared/auth
 
 /** Jurisdiction paths that constitute the live PSAP call-taking workspace. */
 export const DISPATCH_LIVE_WORKSPACE_PREFIXES = [
-  "/dashboard",
   "/dispatcher",
   "/demo",
   "/caller",

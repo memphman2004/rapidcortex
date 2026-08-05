@@ -58,3 +58,58 @@ export const rcsCallsListQuerySchema = z.object({
   state: rcsCallStateSchema.optional(),
   limit: z.coerce.number().int().min(1).max(200).optional(),
 });
+
+// ─── Intelligence layer ───────────────────────────────────────────────────────
+
+export const RCS_CONCERN_KEYWORDS = [
+  "weapon",
+  "unconscious",
+  "no_response",
+  "fire",
+  "explosion",
+  "medical_critical",
+  "children_involved",
+  "suspect_fleeing",
+  "multiple_victims",
+  "officer_down",
+  "structure_collapse",
+  "chemical_hazard",
+  "prolonged_silence",
+  "unit_overdue",
+] as const;
+
+export const rcsSoftHandoffRequestSchema = z
+  .object({
+    note: z.string().trim().max(500).optional(),
+  })
+  .strict();
+
+export const rcsSoftHandoffAcceptRequestSchema = z
+  .object({
+    acceptorDisplayName: z.string().trim().min(1).max(128),
+  })
+  .strict();
+
+export const rcsEscalationRulesPutSchema = z
+  .object({
+    dispatchedWithoutArrivalSeconds: z.number().int().min(60).max(3600),
+    level1UnackedSeconds: z.number().int().min(60).max(3600),
+    level2UnackedSeconds: z.number().int().min(60).max(3600),
+    audioSilenceAlertSeconds: z.number().int().min(10).max(300),
+    supervisorPushOnEscalation: z.boolean(),
+  })
+  .strict();
+
+export const rcsAiSummarySchema = z
+  .object({
+    text: z.string().trim().min(1).max(500),
+    /** ISO timestamp — flexible string (offset optional). */
+    generatedAt: z.string().trim().min(1),
+    concernKeywords: z.array(z.string().trim().min(1).max(64)).max(20),
+    confidence: z.number().min(0).max(1),
+  })
+  .strict();
+
+export const rcsFloorHealthQuerySchema = z.object({
+  agencyId: z.string().trim().min(1).max(128).optional(),
+});

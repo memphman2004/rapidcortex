@@ -18,6 +18,7 @@ import { VERTICAL_CONFIG, normalizeVertical } from "@/lib/vertical";
 import { VerticalBadge } from "@/components/ui/VerticalBadge";
 import { ActiveNoticesBanner } from "@/components/notices/ActiveNoticesBanner";
 import { HelpChrome } from "@/components/help/help-chrome";
+import { ThemeProvider, useThemeRoot } from "@/lib/theme/theme-context";
 
 const IMPERSONATION_STORAGE_KEY = "rc-impersonation-context-v1";
 
@@ -28,7 +29,19 @@ type ImpersonationContext = {
   planTier: string;
 };
 
-export function DashboardShell({
+export function DashboardShell(props: {
+  prefix: DashboardPrefix;
+  user: UserContext;
+  children: React.ReactNode;
+}) {
+  return (
+    <ThemeProvider storageKey="rc-theme-admin">
+      <DashboardShellInner {...props} />
+    </ThemeProvider>
+  );
+}
+
+function DashboardShellInner({
   prefix,
   user,
   children,
@@ -85,6 +98,7 @@ export function DashboardShell({
   }, [isSuperAdmin, searchParams]);
 
   const shellVars = roleDashboardShellVars(identity) as CSSProperties;
+  const { theme, rootRef } = useThemeRoot<HTMLDivElement>();
 
   // Console home owns its own chrome (sidebar/header); avoid double nav.
   if (consoleHome) {
@@ -94,16 +108,18 @@ export function DashboardShell({
   return (
     <HelpChrome role={user.role}>
     <div
+      ref={rootRef}
+      data-theme="dark"
       className={
         isRcAdmin
-          ? "min-h-screen bg-[#07070f] text-[#e4dff5]"
+          ? "min-h-screen bg-[var(--rc-bg)] text-[var(--rc-text-primary)]"
           : "min-h-screen bg-[#030712] text-slate-100"
       }
       style={{
         ...shellVars,
         fontFamily: 'var(--rc-dashboard-font-family, Inter, ui-sans-serif, system-ui, sans-serif)',
         ...(isRcAdmin
-          ? ({ ["--role-accent" as string]: "#8b5cf6" } as CSSProperties)
+          ? ({ ["--role-accent" as string]: "var(--rc-violet)" } as CSSProperties)
           : null),
       }}
     >
@@ -162,7 +178,9 @@ export function DashboardShell({
           <main
             className={
               isRcAdmin
-                ? "flex-1 bg-gradient-to-b from-[#0b0b17] via-[#07070f] to-[#050508] p-4 md:p-6"
+                ? theme === "light"
+                  ? "flex-1 bg-[var(--rc-bg)] p-4 md:p-6"
+                  : "flex-1 bg-gradient-to-b from-[#0b0b17] via-[#07070f] to-[#050508] p-4 md:p-6"
                 : "flex-1 bg-gradient-to-b from-[#050b14] via-slate-950 to-slate-950 p-4 md:p-6"
             }
           >

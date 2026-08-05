@@ -1,6 +1,7 @@
 "use client";
 
 import type { AggregateConfidence } from "rapid-cortex-shared";
+import { confidenceToDisplayPercent } from "rapid-cortex-shared";
 
 const STATUS_BAR: Record<string, string> = {
   COMPLETE: "bg-emerald-500",
@@ -19,17 +20,18 @@ const STATUS_TEXT: Record<string, string> = {
 export function ConfidenceMiniBar({ aggregate }: { aggregate: AggregateConfidence }) {
   const barColor = STATUS_BAR[aggregate.pictureStatus] ?? "bg-slate-500";
   const textColor = STATUS_TEXT[aggregate.pictureStatus] ?? "text-slate-400";
+  const pct = confidenceToDisplayPercent(aggregate.overallScore);
 
   return (
     <div className="flex items-center gap-1.5" title={`Picture: ${aggregate.pictureStatus}`}>
       <div className="h-0.5 w-[60px] overflow-hidden rounded-full bg-slate-800">
         <div
           className={`h-full rounded-full transition-[width] duration-300 ease-out ${barColor}`}
-          style={{ width: `${aggregate.overallScore}%` }}
+          style={{ width: `${pct}%` }}
         />
       </div>
       <span className={`min-w-[28px] text-[10px] font-bold tabular-nums ${textColor}`}>
-        {aggregate.overallScore}%
+        {pct}%
       </span>
       {aggregate.criticalGaps > 0 ? (
         <span className="rounded bg-red-500/15 px-1 py-px text-[8px] font-bold tracking-wide text-red-400">

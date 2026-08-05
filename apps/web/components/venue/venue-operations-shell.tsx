@@ -4,25 +4,37 @@ import type { ReactNode } from "react";
 import { Ticket } from "lucide-react";
 import { CampusDashboardHeaderUtilities } from "@/components/campus/campus-dashboard-header-utilities";
 import { HelpChrome } from "@/components/help/help-chrome";
+import { ThemeProvider, useThemeRoot } from "@/lib/theme/theme-context";
+import { ThemeToggle } from "@/components/ui/ThemeToggle";
 import { VENUE_DASHBOARD_FONT_FAMILY } from "./venue-dashboard-font";
 import { VenueNav } from "./venue-nav";
 import type { VenueThreatLevel } from "./venue-threat-strip";
 import { venueThreatLabel } from "./venue-threat-strip";
 
-const V = {
-  bg: "#0c0b14",
-  surface: "#100e1a",
-  border: "#1e1a30",
-  amber: "#f59e0b",
-  textSecondary: "#5a4d7a",
-};
+export function VenueOperationsShell(props: {
+  venueName: string;
+  linkBase: string;
+  userEmail?: string;
+  userRole?: string;
+  agencyId: string;
+  userId?: string;
+  threatLevel?: VenueThreatLevel;
+  children: ReactNode;
+}) {
+  return (
+    <ThemeProvider storageKey="rc-theme-venue">
+      <VenueOperationsShellInner {...props} />
+    </ThemeProvider>
+  );
+}
 
-export function VenueOperationsShell({
+function VenueOperationsShellInner({
   venueName,
   linkBase,
   userEmail,
   userRole,
   agencyId,
+  userId,
   threatLevel = "secure",
   children,
 }: {
@@ -31,25 +43,30 @@ export function VenueOperationsShell({
   userEmail?: string;
   userRole?: string;
   agencyId: string;
+  userId?: string;
   threatLevel?: VenueThreatLevel;
   children: ReactNode;
 }) {
+  const { rootRef } = useThemeRoot<HTMLDivElement>();
+
   return (
     <HelpChrome role={userRole ?? "venue_admin"}>
     <div
+      ref={rootRef}
+      data-theme="dark"
       style={{
         minHeight: "100vh",
         display: "flex",
         flexDirection: "column",
-        background: V.bg,
-        color: "#e4dff5",
+        background: "var(--rc-bg)",
+        color: "var(--rc-text-primary)",
         fontFamily: VENUE_DASHBOARD_FONT_FAMILY,
       }}
     >
       <header
         style={{
-          background: V.surface,
-          borderBottom: `1px solid ${V.border}`,
+          background: "var(--rc-surface)",
+          borderBottom: `1px solid var(--rc-border)`,
           padding: "0 16px",
           height: 52,
           display: "flex",
@@ -64,29 +81,29 @@ export function VenueOperationsShell({
               width: 32,
               height: 32,
               borderRadius: 8,
-              background: "#141220",
-              border: `1px solid ${V.border}`,
+              background: "var(--rc-surface-alt)",
+              border: `1px solid var(--rc-border)`,
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
             }}
           >
-            <Ticket size={16} color={V.amber} />
+            <Ticket size={16} color="var(--rc-amber)" />
           </div>
           <div>
             <div style={{ fontSize: 13, fontWeight: 700 }}>Rapid Cortex</div>
-            <div style={{ fontSize: 10, color: V.textSecondary, letterSpacing: "0.05em" }}>
+            <div style={{ fontSize: 10, color: "var(--rc-text-secondary)", letterSpacing: "0.05em" }}>
               VENUE OPERATIONS
             </div>
           </div>
         </div>
 
-        <div style={{ width: 1, height: 28, background: V.border }} />
+        <div style={{ width: 1, height: 28, background: "var(--rc-border)" }} />
 
         <span
           style={{
-            background: "#141220",
-            border: `1px solid ${V.border}`,
+            background: "var(--rc-surface-alt)",
+            border: `1px solid var(--rc-border)`,
             borderRadius: 6,
             padding: "3px 10px",
             fontSize: 11,
@@ -97,12 +114,12 @@ export function VenueOperationsShell({
         </span>
         <span
           style={{
-            background: "#142b1a",
-            border: "1px solid #1e5c2a",
+            background: "var(--rc-green-dim)",
+            border: "1px solid var(--rc-green-border)",
             borderRadius: 6,
             padding: "3px 10px",
             fontSize: 11,
-            color: "#10b981",
+            color: "var(--rc-green)",
             fontWeight: 600,
           }}
         >
@@ -110,14 +127,14 @@ export function VenueOperationsShell({
         </span>
         <span
           style={{
-            background: "#141220",
-            border: `1px solid ${V.border}`,
+            background: "var(--rc-surface-alt)",
+            border: `1px solid var(--rc-border)`,
             borderRadius: 6,
             padding: "3px 10px",
             fontSize: 10,
             fontWeight: 700,
             letterSpacing: "0.06em",
-            color: V.amber,
+            color: "var(--rc-amber)",
           }}
         >
           {venueThreatLabel(threatLevel)}
@@ -129,6 +146,8 @@ export function VenueOperationsShell({
           email={userEmail}
           role={userRole}
           agencyId={agencyId}
+          userId={userId}
+          leadingSlot={<ThemeToggle variant="inline" />}
         />
       </header>
 

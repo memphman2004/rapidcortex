@@ -6,14 +6,26 @@ import { SideNav } from "@/components/dispatch/side-nav";
 import { TopBar } from "@/components/dispatch/top-bar";
 import { HelpChrome } from "@/components/help/help-chrome";
 import { isPsapConsoleHomePath } from "@/components/psap/psap-shell-chrome";
+import { ThemeProvider, useThemeRoot } from "@/lib/theme/theme-context";
 import type { UserContext } from "rapid-cortex-shared";
 
 const SHELL = {
-  bg: "#090d1a",
-  accent: "#3b82f6",
+  bg: "var(--rc-bg)",
+  accent: "var(--rc-blue)",
 } as const;
 
-export function DispatchShell({
+export function DispatchShell(props: {
+  children: React.ReactNode;
+  user?: UserContext | null;
+}) {
+  return (
+    <ThemeProvider storageKey="rc-theme-dispatcher">
+      <DispatchShellInner {...props} />
+    </ThemeProvider>
+  );
+}
+
+function DispatchShellInner({
   children,
   user,
 }: {
@@ -22,6 +34,7 @@ export function DispatchShell({
 }) {
   const pathname = usePathname() ?? "";
   const consoleHome = isPsapConsoleHomePath(pathname);
+  const { rootRef } = useThemeRoot<HTMLDivElement>();
 
   // Console home owns its own chrome (sidebar/header); avoid double nav.
   if (consoleHome) {
@@ -31,11 +44,13 @@ export function DispatchShell({
   return (
     <HelpChrome role={user?.role ?? "dispatcher"}>
       <div
+        ref={rootRef}
+        data-theme="dark"
         className="rc-workstation-root text-slate-100"
         style={{
           fontFamily: "var(--rc-dashboard-font-family, Inter, ui-sans-serif, system-ui, sans-serif)",
           background: SHELL.bg,
-          color: "#e2e8f0",
+          color: "var(--rc-text-primary)",
           // Accent token for dispatcher chrome (sky → product blue)
           ["--rc-psap-accent" as string]: SHELL.accent,
         }}

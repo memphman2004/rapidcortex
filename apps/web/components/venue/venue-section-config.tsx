@@ -47,30 +47,6 @@ import {
 } from "lucide-react";
 
 // ─── Design tokens ─────────────────────────────────────────────────────────────
-const V = {
-  bg:           "#0c0b14",
-  bgDeep:       "#080710",
-  surface:      "#100e1a",
-  surfaceAlt:   "#141220",
-  surfaceHover: "#1a1528",
-  border:       "#1e1a30",
-  borderSoft:   "#150f24",
-  violet:       "#8b5cf6",
-  violetDim:    "#130e1e",
-  violetMid:    "#4c1d95",
-  green:        "#10b981",
-  greenDim:     "#0a1810",
-  amber:        "#f59e0b",
-  amberDim:     "#1a1206",
-  red:          "#ef4444",
-  redDim:       "#1a0808",
-  blue:         "#38bdf8",
-  blueDim:      "#071828",
-  textPrimary:  "#e4dff5",
-  textSecondary:"#5a4d7a",
-  textMuted:    "#2d2445",
-  silver:       "#7c6fa0",
-};
 
 // ─── Types ─────────────────────────────────────────────────────────────────────
 export type SectionLevel  = "lower" | "club" | "upper" | "suite";
@@ -94,18 +70,18 @@ export interface VenueSection {
 const STATUS_CFG: Record<SectionStatus, {
   label: string; color: string; dim: string; border: string; icon: React.ElementType;
 }> = {
-  clear:    { label: "Clear",    color: V.green, dim: V.greenDim, border: "#1a4d35", icon: CheckCircle2 },
-  elevated: { label: "Elevated", color: V.amber, dim: V.amberDim, border: "#4a3500", icon: AlertTriangle },
-  incident: { label: "Incident", color: V.red,   dim: V.redDim,   border: "#4d1515", icon: AlertCircle  },
-  closed:   { label: "Closed",   color: V.textSecondary, dim: V.bgDeep, border: V.borderSoft, icon: Ban },
+  clear:    { label: "Clear",    color: "var(--rc-green)", dim: "var(--rc-green-dim)", border: "var(--rc-green-border)", icon: CheckCircle2 },
+  elevated: { label: "Elevated", color: "var(--rc-amber)", dim: "var(--rc-amber-dim)", border: "var(--rc-amber-border)", icon: AlertTriangle },
+  incident: { label: "Incident", color: "var(--rc-red)",   dim: "var(--rc-red-dim)",   border: "var(--rc-red-border)", icon: AlertCircle  },
+  closed:   { label: "Closed",   color: "var(--rc-text-secondary)", dim: "var(--rc-surface-deep)", border: "var(--rc-text-faint)", icon: Ban },
 };
 
 // ─── Level config ──────────────────────────────────────────────────────────────
 const LEVEL_CFG: Record<SectionLevel, { label: string; color: string; svgLabel: string }> = {
-  lower: { label: "Lower Bowl",  color: V.violet, svgLabel: "LOWER BOWL"  },
+  lower: { label: "Lower Bowl",  color: "var(--rc-violet)", svgLabel: "LOWER BOWL"  },
   club:  { label: "Club Level",  color: V.blue,   svgLabel: "CLUB LEVEL"  },
-  upper: { label: "Upper Deck",  color: V.green,  svgLabel: "UPPER DECK"  },
-  suite: { label: "Suites",      color: V.amber,  svgLabel: "SUITES"      },
+  upper: { label: "Upper Deck",  color: "var(--rc-green)",  svgLabel: "UPPER DECK"  },
+  suite: { label: "Suites",      color: "var(--rc-amber)",  svgLabel: "SUITES"      },
 };
 
 const LEVELS: SectionLevel[] = ["lower", "club", "upper", "suite"];
@@ -271,34 +247,34 @@ function SectionStatusPanel({
       zIndex: 9999, padding: 16,
     }}>
       <div style={{
-        background: V.surface, border: `1px solid ${V.border}`,
+        background: "var(--rc-surface)", border: `1px solid var(--rc-border)`,
         borderRadius: 12, width: "100%", maxWidth: 380,
         boxShadow: "0 24px 64px rgba(0,0,0,0.9)",
       }}>
         {/* Header */}
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "14px 18px", borderBottom: `1px solid ${V.border}` }}>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "14px 18px", borderBottom: `1px solid var(--rc-border)` }}>
           <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
             <div style={{ width: 28, height: 28, borderRadius: 6, background: STATUS_CFG[section.status].dim, display: "flex", alignItems: "center", justifyContent: "center" }}>
               <MapPin size={13} color={STATUS_CFG[section.status].color} />
             </div>
             <div>
-              <div style={{ color: V.textPrimary, fontWeight: 700, fontSize: 14 }}>
+              <div style={{ color: "var(--rc-text-primary)", fontWeight: 700, fontSize: 14 }}>
                 Section {section.label}
               </div>
-              <div style={{ color: V.textSecondary, fontSize: 11 }}>
+              <div style={{ color: "var(--rc-text-secondary)", fontSize: 11 }}>
                 {LEVEL_CFG[section.level].label} · {section.zone} · Cap {section.capacity.toLocaleString()}
               </div>
             </div>
           </div>
           <button onClick={onClose} style={{ background: "none", border: "none", cursor: "pointer", padding: 4 }}>
-            <X size={16} color={V.textSecondary} />
+            <X size={16} color="var(--rc-text-secondary)" />
           </button>
         </div>
 
         <div style={{ padding: 18, display: "flex", flexDirection: "column", gap: 14 }}>
           {/* Status selector */}
           <div>
-            <label style={{ color: V.silver, fontSize: 11, fontWeight: 700, letterSpacing: "0.05em", display: "block", marginBottom: 8 }}>
+            <label style={{ color: "var(--rc-text-secondary)", fontSize: 11, fontWeight: 700, letterSpacing: "0.05em", display: "block", marginBottom: 8 }}>
               STATUS
             </label>
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 6 }}>
@@ -315,14 +291,14 @@ function SectionStatusPanel({
                       alignItems:  "center",
                       gap:         8,
                       padding:     "9px 12px",
-                      background:  sel ? c.dim : V.surfaceAlt,
-                      border:      `1px solid ${sel ? c.border : V.border}`,
+                      background:  sel ? c.dim : "var(--rc-surface-alt)",
+                      border:      `1px solid ${sel ? c.border : "var(--rc-border)"}`,
                       borderRadius: 8,
                       cursor:      "pointer",
-                      color:       sel ? c.color : V.textSecondary,
+                      color:       sel ? c.color : "var(--rc-text-secondary)",
                     }}
                   >
-                    <Icon size={14} color={sel ? c.color : V.textSecondary} />
+                    <Icon size={14} color={sel ? c.color : "var(--rc-text-secondary)"} />
                     <span style={{ fontSize: 12, fontWeight: sel ? 700 : 500 }}>{c.label}</span>
                   </button>
                 );
@@ -332,7 +308,7 @@ function SectionStatusPanel({
 
           {/* Assigned officer */}
           <div>
-            <label style={{ color: V.silver, fontSize: 11, fontWeight: 700, letterSpacing: "0.05em", display: "block", marginBottom: 6 }}>
+            <label style={{ color: "var(--rc-text-secondary)", fontSize: 11, fontWeight: 700, letterSpacing: "0.05em", display: "block", marginBottom: 6 }}>
               ASSIGNED OFFICER
             </label>
             <input
@@ -340,9 +316,9 @@ function SectionStatusPanel({
               onChange={(e) => setOfficer(e.target.value)}
               placeholder="e.g. Officer Martinez"
               style={{
-                background: V.bgDeep, border: `1px solid ${V.border}`,
+                background: "var(--rc-surface-deep)", border: `1px solid var(--rc-border)`,
                 borderRadius: 6, padding: "8px 10px",
-                color: V.textPrimary, fontSize: 13, outline: "none",
+                color: "var(--rc-text-primary)", fontSize: 13, outline: "none",
                 width: "100%", boxSizing: "border-box", fontFamily: "inherit",
               }}
             />
@@ -350,7 +326,7 @@ function SectionStatusPanel({
 
           {/* Notes */}
           <div>
-            <label style={{ color: V.silver, fontSize: 11, fontWeight: 700, letterSpacing: "0.05em", display: "block", marginBottom: 6 }}>
+            <label style={{ color: "var(--rc-text-secondary)", fontSize: 11, fontWeight: 700, letterSpacing: "0.05em", display: "block", marginBottom: 6 }}>
               NOTES
             </label>
             <textarea
@@ -359,9 +335,9 @@ function SectionStatusPanel({
               placeholder="Optional — describe the situation"
               rows={2}
               style={{
-                background: V.bgDeep, border: `1px solid ${V.border}`,
+                background: "var(--rc-surface-deep)", border: `1px solid var(--rc-border)`,
                 borderRadius: 6, padding: "8px 10px",
-                color: V.textPrimary, fontSize: 13, outline: "none",
+                color: "var(--rc-text-primary)", fontSize: 13, outline: "none",
                 width: "100%", boxSizing: "border-box", fontFamily: "inherit",
                 resize: "none",
               }}
@@ -369,14 +345,14 @@ function SectionStatusPanel({
           </div>
         </div>
 
-        <div style={{ display: "flex", gap: 8, justifyContent: "flex-end", padding: "12px 18px", borderTop: `1px solid ${V.border}` }}>
-          <button onClick={onClose} style={{ padding: "8px 16px", background: V.surfaceAlt, border: `1px solid ${V.border}`, borderRadius: 6, color: V.textSecondary, fontSize: 13, fontWeight: 600, cursor: "pointer", fontFamily: "inherit" }}>
+        <div style={{ display: "flex", gap: 8, justifyContent: "flex-end", padding: "12px 18px", borderTop: `1px solid var(--rc-border)` }}>
+          <button onClick={onClose} style={{ padding: "8px 16px", background: "var(--rc-surface-alt)", border: `1px solid var(--rc-border)`, borderRadius: 6, color: "var(--rc-text-secondary)", fontSize: 13, fontWeight: 600, cursor: "pointer", fontFamily: "inherit" }}>
             Cancel
           </button>
           <button
             onClick={handleSave}
             disabled={saving}
-            style={{ padding: "8px 16px", background: V.violet, border: "none", borderRadius: 6, color: "#fff", fontSize: 13, fontWeight: 700, cursor: saving ? "not-allowed" : "pointer", opacity: saving ? 0.6 : 1, display: "flex", alignItems: "center", gap: 6, fontFamily: "inherit" }}
+            style={{ padding: "8px 16px", background: "var(--rc-violet)", border: "none", borderRadius: 6, color: "#fff", fontSize: 13, fontWeight: 700, cursor: saving ? "not-allowed" : "pointer", opacity: saving ? 0.6 : 1, display: "flex", alignItems: "center", gap: 6, fontFamily: "inherit" }}
           >
             {saving && <Loader size={12} style={{ animation: "spin 1s linear infinite" }} />}
             {saving ? "Saving…" : "Save"}
@@ -415,7 +391,7 @@ export function SectionBowlMap({
   return (
     <>
       {/* Level tabs */}
-      <div style={{ display: "flex", gap: 0, borderBottom: `1px solid ${V.border}` }}>
+      <div style={{ display: "flex", gap: 0, borderBottom: `1px solid var(--rc-border)` }}>
         {levelsWithData.map((level) => {
           const cfg     = LEVEL_CFG[level];
           const active  = level === activeLevel;
@@ -428,11 +404,11 @@ export function SectionBowlMap({
               style={{
                 flex:        1,
                 padding:     "8px 4px",
-                background:  active ? V.surfaceAlt : "transparent",
+                background:  active ? "var(--rc-surface-alt)" : "transparent",
                 border:      "none",
                 borderBottom: active ? `2px solid ${cfg.color}` : "2px solid transparent",
                 cursor:      "pointer",
-                color:       active ? cfg.color : V.textSecondary,
+                color:       active ? cfg.color : "var(--rc-text-secondary)",
                 fontSize:    11,
                 fontWeight:  700,
                 letterSpacing: "0.04em",
@@ -444,9 +420,9 @@ export function SectionBowlMap({
             >
               {cfg.label}
               {hasIncident && (
-                <span style={{ width: 6, height: 6, borderRadius: "50%", background: V.red }} />
+                <span style={{ width: 6, height: 6, borderRadius: "50%", background: "var(--rc-red)" }} />
               )}
-              <span style={{ color: V.textMuted, fontWeight: 400, fontSize: 10 }}>
+              <span style={{ color: "var(--rc-text-muted)", fontWeight: 400, fontSize: 10 }}>
                 ({secs.length})
               </span>
             </button>
@@ -457,19 +433,19 @@ export function SectionBowlMap({
       {/* SVG map */}
       <div style={{ padding: "12px 14px" }}>
         <svg viewBox="0 0 260 148" width="100%" style={{ display: "block" }}>
-          <rect width="260" height="148" fill={V.bgDeep} rx="4"/>
+          <rect width="260" height="148" fill="var(--rc-surface-deep)" rx="4"/>
 
           {/* Bowl rings for context */}
-          <ellipse cx="130" cy="74" rx="108" ry="65" fill="none" stroke={V.borderSoft} strokeWidth="0.5"/>
-          <ellipse cx="130" cy="74" rx="82"  ry="52" fill="none" stroke={V.borderSoft} strokeWidth="0.5"/>
-          <ellipse cx="130" cy="74" rx="55"  ry="35" fill="none" stroke={V.borderSoft} strokeWidth="0.5"/>
+          <ellipse cx="130" cy="74" rx="108" ry="65" fill="none" stroke="var(--rc-text-faint)" strokeWidth="0.5"/>
+          <ellipse cx="130" cy="74" rx="82"  ry="52" fill="none" stroke="var(--rc-text-faint)" strokeWidth="0.5"/>
+          <ellipse cx="130" cy="74" rx="55"  ry="35" fill="none" stroke="var(--rc-text-faint)" strokeWidth="0.5"/>
 
           {/* Active level ring highlight */}
           <ellipse cx="130" cy="74" rx={ring.rx} ry={ring.ry} fill="none" stroke={levelCfg.color + "44"} strokeWidth="1.5" strokeDasharray="4 3"/>
 
           {/* Field */}
-          <ellipse cx="130" cy="74" rx="38" ry="24" fill="#0d2218" stroke="#1a4d35" strokeWidth="0.5"/>
-          <text x="130" y="77" textAnchor="middle" fill={V.green} fontSize="7" fontWeight="600">FIELD</text>
+          <ellipse cx="130" cy="74" rx="38" ry="24" fill="var(--rc-green-dim)" stroke="var(--rc-green-border)" strokeWidth="0.5"/>
+          <text x="130" y="77" textAnchor="middle" fill="var(--rc-green)" fontSize="7" fontWeight="600">FIELD</text>
 
           {/* Section dots — current level */}
           {filtered.map((s) => {
@@ -489,7 +465,7 @@ export function SectionBowlMap({
           })}
 
           {/* Level label */}
-          <text x="130" y="142" textAnchor="middle" fill={V.textMuted} fontSize="7" letterSpacing="1">
+          <text x="130" y="142" textAnchor="middle" fill="var(--rc-text-muted)" fontSize="7" letterSpacing="1">
             {levelCfg.svgLabel}
           </text>
         </svg>
@@ -502,13 +478,13 @@ export function SectionBowlMap({
             return (
               <div key={s} style={{ display: "flex", alignItems: "center", gap: 4 }}>
                 <div style={{ width: 6, height: 6, borderRadius: "50%", background: c.color }} />
-                <span style={{ color: V.textSecondary, fontSize: 10 }}>{c.label} {counts[s]}</span>
+                <span style={{ color: "var(--rc-text-secondary)", fontSize: 10 }}>{c.label} {counts[s]}</span>
               </div>
             );
           })}
         </div>
 
-        <p style={{ color: V.textMuted, fontSize: 10, textAlign: "center", margin: "6px 0 0" }}>
+        <p style={{ color: "var(--rc-text-muted)", fontSize: 10, textAlign: "center", margin: "6px 0 0" }}>
           Click any section to change status
         </p>
       </div>
@@ -560,23 +536,23 @@ function SectionFormModal({
   };
 
   const inputStyle: React.CSSProperties = {
-    background: V.bgDeep, border: `1px solid ${V.border}`,
+    background: "var(--rc-surface-deep)", border: `1px solid var(--rc-border)`,
     borderRadius: 6, padding: "8px 10px",
-    color: V.textPrimary, fontSize: 13, outline: "none",
+    color: "var(--rc-text-primary)", fontSize: 13, outline: "none",
     width: "100%", boxSizing: "border-box", fontFamily: "inherit",
   };
 
   return (
     <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.8)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 9999, padding: 16 }}>
-      <div style={{ background: V.surface, border: `1px solid ${V.border}`, borderRadius: 12, width: "100%", maxWidth: 440, boxShadow: "0 24px 64px rgba(0,0,0,0.9)" }}>
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "14px 18px", borderBottom: `1px solid ${V.border}` }}>
-          <span style={{ color: V.textPrimary, fontWeight: 700, fontSize: 14 }}>{isEdit ? "Edit Section" : "Add Section"}</span>
-          <button onClick={onClose} style={{ background: "none", border: "none", cursor: "pointer" }}><X size={16} color={V.textSecondary}/></button>
+      <div style={{ background: "var(--rc-surface)", border: `1px solid var(--rc-border)`, borderRadius: 12, width: "100%", maxWidth: 440, boxShadow: "0 24px 64px rgba(0,0,0,0.9)" }}>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "14px 18px", borderBottom: `1px solid var(--rc-border)` }}>
+          <span style={{ color: "var(--rc-text-primary)", fontWeight: 700, fontSize: 14 }}>{isEdit ? "Edit Section" : "Add Section"}</span>
+          <button onClick={onClose} style={{ background: "none", border: "none", cursor: "pointer" }}><X size={16} color="var(--rc-text-secondary)"/></button>
         </div>
 
         <div style={{ padding: 18, display: "flex", flexDirection: "column", gap: 12 }}>
           {error && (
-            <div style={{ background: V.redDim, border: `1px solid ${V.red}`, borderRadius: 6, padding: "8px 12px", color: V.red, fontSize: 12, display: "flex", gap: 6 }}>
+            <div style={{ background: "var(--rc-red-dim)", border: `1px solid var(--rc-red)`, borderRadius: 6, padding: "8px 12px", color: "var(--rc-red)", fontSize: 12, display: "flex", gap: 6 }}>
               <AlertTriangle size={14} style={{ flexShrink: 0, marginTop: 1 }}/>{error}
             </div>
           )}
@@ -612,23 +588,23 @@ function SectionFormModal({
 
           {/* Live position preview */}
           <div>
-            <label style={{ color: V.silver, fontSize: 11, fontWeight: 700, letterSpacing: "0.05em", display: "block", marginBottom: 6 }}>POSITION PREVIEW</label>
-            <svg viewBox="0 0 260 148" width="100%" style={{ display: "block", border: `1px solid ${V.border}`, borderRadius: 6, background: V.bgDeep }}>
-              <ellipse cx="130" cy="74" rx="108" ry="65" fill="none" stroke={V.borderSoft} strokeWidth="0.5"/>
-              <ellipse cx="130" cy="74" rx="82"  ry="52" fill="none" stroke={V.borderSoft} strokeWidth="0.5"/>
-              <ellipse cx="130" cy="74" rx="55"  ry="35" fill="none" stroke={V.borderSoft} strokeWidth="0.5"/>
-              <ellipse cx="130" cy="74" rx="38"  ry="24" fill="#0d2218" stroke="#1a4d35" strokeWidth="0.5"/>
-              <text x="130" y="77" textAnchor="middle" fill={V.green} fontSize="7">FIELD</text>
-              <circle cx={form.svgX} cy={form.svgY} r="9" fill={V.violetDim} stroke={V.violet} strokeWidth="1.5"/>
-              <text x={form.svgX} y={form.svgY + 4} textAnchor="middle" fill={V.violet} fontSize="5.5" fontWeight="700">{form.label || "?"}</text>
+            <label style={{ color: "var(--rc-text-secondary)", fontSize: 11, fontWeight: 700, letterSpacing: "0.05em", display: "block", marginBottom: 6 }}>POSITION PREVIEW</label>
+            <svg viewBox="0 0 260 148" width="100%" style={{ display: "block", border: `1px solid var(--rc-border)`, borderRadius: 6, background: "var(--rc-surface-deep)" }}>
+              <ellipse cx="130" cy="74" rx="108" ry="65" fill="none" stroke="var(--rc-text-faint)" strokeWidth="0.5"/>
+              <ellipse cx="130" cy="74" rx="82"  ry="52" fill="none" stroke="var(--rc-text-faint)" strokeWidth="0.5"/>
+              <ellipse cx="130" cy="74" rx="55"  ry="35" fill="none" stroke="var(--rc-text-faint)" strokeWidth="0.5"/>
+              <ellipse cx="130" cy="74" rx="38"  ry="24" fill="var(--rc-green-dim)" stroke="var(--rc-green-border)" strokeWidth="0.5"/>
+              <text x="130" y="77" textAnchor="middle" fill="var(--rc-green)" fontSize="7">FIELD</text>
+              <circle cx={form.svgX} cy={form.svgY} r="9" fill="var(--rc-violet-dim)" stroke="var(--rc-violet)" strokeWidth="1.5"/>
+              <text x={form.svgX} y={form.svgY + 4} textAnchor="middle" fill="var(--rc-violet)" fontSize="5.5" fontWeight="700">{form.label || "?"}</text>
             </svg>
-            <p style={{ color: V.textMuted, fontSize: 10, marginTop: 4 }}>Adjust X/Y values above until the dot is in the correct position.</p>
+            <p style={{ color: "var(--rc-text-muted)", fontSize: 10, marginTop: 4 }}>Adjust X/Y values above until the dot is in the correct position.</p>
           </div>
         </div>
 
-        <div style={{ display: "flex", gap: 8, justifyContent: "flex-end", padding: "12px 18px", borderTop: `1px solid ${V.border}` }}>
-          <button onClick={onClose} style={{ padding: "8px 16px", background: V.surfaceAlt, border: `1px solid ${V.border}`, borderRadius: 6, color: V.textSecondary, fontSize: 13, fontWeight: 600, cursor: "pointer", fontFamily: "inherit" }}>Cancel</button>
-          <button onClick={handleSave} disabled={saving} style={{ padding: "8px 16px", background: V.violet, border: "none", borderRadius: 6, color: "#fff", fontSize: 13, fontWeight: 700, cursor: saving ? "not-allowed" : "pointer", opacity: saving ? 0.6 : 1, display: "flex", alignItems: "center", gap: 6, fontFamily: "inherit" }}>
+        <div style={{ display: "flex", gap: 8, justifyContent: "flex-end", padding: "12px 18px", borderTop: `1px solid var(--rc-border)` }}>
+          <button onClick={onClose} style={{ padding: "8px 16px", background: "var(--rc-surface-alt)", border: `1px solid var(--rc-border)`, borderRadius: 6, color: "var(--rc-text-secondary)", fontSize: 13, fontWeight: 600, cursor: "pointer", fontFamily: "inherit" }}>Cancel</button>
+          <button onClick={handleSave} disabled={saving} style={{ padding: "8px 16px", background: "var(--rc-violet)", border: "none", borderRadius: 6, color: "#fff", fontSize: 13, fontWeight: 700, cursor: saving ? "not-allowed" : "pointer", opacity: saving ? 0.6 : 1, display: "flex", alignItems: "center", gap: 6, fontFamily: "inherit" }}>
             {saving && <Loader size={12} style={{ animation: "spin 1s linear infinite" }}/>}
             {saving ? "Saving…" : isEdit ? "Save Changes" : "Add Section"}
           </button>
@@ -641,9 +617,9 @@ function SectionFormModal({
 function CfgField({ label, hint, children }: { label: string; hint?: string; children: React.ReactNode }) {
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
-      <label style={{ color: V.silver, fontSize: 11, fontWeight: 700, letterSpacing: "0.05em" }}>{label.toUpperCase()}</label>
+      <label style={{ color: "var(--rc-text-secondary)", fontSize: 11, fontWeight: 700, letterSpacing: "0.05em" }}>{label.toUpperCase()}</label>
       {children}
-      {hint && <span style={{ color: V.textSecondary, fontSize: 10 }}>{hint}</span>}
+      {hint && <span style={{ color: "var(--rc-text-secondary)", fontSize: 10 }}>{hint}</span>}
     </div>
   );
 }
@@ -728,46 +704,46 @@ export function VenueSectionConfig({
   const totalCap = sections.reduce((sum, s) => sum + s.capacity, 0);
 
   return (
-    <div style={{ background: V.bg, minHeight: "100vh", padding: 20, fontFamily: "'Inter','Segoe UI',system-ui,sans-serif", color: V.textPrimary }}>
+    <div style={{ background: "var(--rc-bg)", minHeight: "100vh", padding: 20, fontFamily: "'Inter','Segoe UI',system-ui,sans-serif", color: "var(--rc-text-primary)" }}>
       <style>{`@keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}`}</style>
 
       {/* Header */}
       <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: 20, flexWrap: "wrap", gap: 12 }}>
         <div>
           <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4 }}>
-            <MapPin size={18} color={V.violet} />
-            <h1 style={{ color: V.textPrimary, fontSize: 16, fontWeight: 800, margin: 0 }}>Section Configuration</h1>
+            <MapPin size={18} color="var(--rc-violet)" />
+            <h1 style={{ color: "var(--rc-text-primary)", fontSize: 16, fontWeight: 800, margin: 0 }}>Section Configuration</h1>
           </div>
-          <p style={{ color: V.textSecondary, fontSize: 12, margin: 0 }}>{venueName} · {sections.length} sections · {totalCap.toLocaleString()} total capacity</p>
+          <p style={{ color: "var(--rc-text-secondary)", fontSize: 12, margin: 0 }}>{venueName} · {sections.length} sections · {totalCap.toLocaleString()} total capacity</p>
         </div>
         <div style={{ display: "flex", gap: 8 }}>
           <input ref={fileRef} type="file" accept=".csv" onChange={handleCSVImport} style={{ display: "none" }}/>
-          <button onClick={() => fileRef.current?.click()} style={{ display: "flex", alignItems: "center", gap: 6, padding: "7px 14px", background: V.surfaceAlt, border: `1px solid ${V.border}`, borderRadius: 6, color: V.textSecondary, fontSize: 13, fontWeight: 600, cursor: "pointer" }}>
+          <button onClick={() => fileRef.current?.click()} style={{ display: "flex", alignItems: "center", gap: 6, padding: "7px 14px", background: "var(--rc-surface-alt)", border: `1px solid var(--rc-border)`, borderRadius: 6, color: "var(--rc-text-secondary)", fontSize: 13, fontWeight: 600, cursor: "pointer" }}>
             <Upload size={14}/> Import CSV
           </button>
-          <button onClick={() => exportCSV(sections)} style={{ display: "flex", alignItems: "center", gap: 6, padding: "7px 14px", background: V.surfaceAlt, border: `1px solid ${V.border}`, borderRadius: 6, color: V.textSecondary, fontSize: 13, fontWeight: 600, cursor: "pointer" }}>
+          <button onClick={() => exportCSV(sections)} style={{ display: "flex", alignItems: "center", gap: 6, padding: "7px 14px", background: "var(--rc-surface-alt)", border: `1px solid var(--rc-border)`, borderRadius: 6, color: "var(--rc-text-secondary)", fontSize: 13, fontWeight: 600, cursor: "pointer" }}>
             <Download size={14}/> Export
           </button>
-          <button onClick={() => setAddOpen(true)} style={{ display: "flex", alignItems: "center", gap: 6, padding: "7px 14px", background: V.violet, border: "none", borderRadius: 6, color: "#fff", fontSize: 13, fontWeight: 600, cursor: "pointer" }}>
+          <button onClick={() => setAddOpen(true)} style={{ display: "flex", alignItems: "center", gap: 6, padding: "7px 14px", background: "var(--rc-violet)", border: "none", borderRadius: 6, color: "#fff", fontSize: 13, fontWeight: 600, cursor: "pointer" }}>
             <Plus size={14}/> Add Section
           </button>
         </div>
       </div>
 
       {/* CSV format hint */}
-      <div style={{ background: V.surfaceAlt, border: `1px solid ${V.border}`, borderRadius: 8, padding: "10px 14px", marginBottom: 16, display: "flex", gap: 10 }}>
-        <Info size={14} color={V.silver} style={{ flexShrink: 0, marginTop: 1 }}/>
-        <p style={{ color: V.textSecondary, fontSize: 12, margin: 0, lineHeight: 1.6 }}>
-          CSV format: <code style={{ color: V.violet, background: V.bgDeep, padding: "1px 5px", borderRadius: 3 }}>label,level,capacity,zone,svgX,svgY</code> — level must be one of: lower, club, upper, suite. svgX is 0–260, svgY is 0–148. Use the position preview in the form to dial in coordinates.
+      <div style={{ background: "var(--rc-surface-alt)", border: `1px solid var(--rc-border)`, borderRadius: 8, padding: "10px 14px", marginBottom: 16, display: "flex", gap: 10 }}>
+        <Info size={14} color="var(--rc-text-secondary)" style={{ flexShrink: 0, marginTop: 1 }}/>
+        <p style={{ color: "var(--rc-text-secondary)", fontSize: 12, margin: 0, lineHeight: 1.6 }}>
+          CSV format: <code style={{ color: "var(--rc-violet)", background: "var(--rc-surface-deep)", padding: "1px 5px", borderRadius: 3 }}>label,level,capacity,zone,svgX,svgY</code> — level must be one of: lower, club, upper, suite. svgX is 0–260, svgY is 0–148. Use the position preview in the form to dial in coordinates.
         </p>
       </div>
 
       <div style={{ display: "grid", gridTemplateColumns: "1fr 320px", gap: 16 }}>
 
         {/* Section table */}
-        <div style={{ background: V.surface, border: `1px solid ${V.border}`, borderRadius: 8, overflow: "hidden" }}>
+        <div style={{ background: "var(--rc-surface)", border: `1px solid var(--rc-border)`, borderRadius: 8, overflow: "hidden" }}>
           {/* Filter tabs */}
-          <div style={{ display: "flex", borderBottom: `1px solid ${V.border}` }}>
+          <div style={{ display: "flex", borderBottom: `1px solid var(--rc-border)` }}>
             {(["all", ...LEVELS] as (SectionLevel | "all")[]).map((level) => {
               const count = level === "all" ? sections.length : sections.filter((s) => s.level === level).length;
               const active = filterLevel === level;
@@ -775,7 +751,7 @@ export function VenueSectionConfig({
                 <button
                   key={level}
                   onClick={() => setFilterLevel(level)}
-                  style={{ flex: 1, padding: "9px 4px", background: active ? V.surfaceAlt : "transparent", border: "none", borderBottom: `2px solid ${active ? V.violet : "transparent"}`, cursor: "pointer", color: active ? V.violet : V.textSecondary, fontSize: 11, fontWeight: 700, letterSpacing: "0.04em" }}
+                  style={{ flex: 1, padding: "9px 4px", background: active ? "var(--rc-surface-alt)" : "transparent", border: "none", borderBottom: `2px solid ${active ? "var(--rc-violet)" : "transparent"}`, cursor: "pointer", color: active ? "var(--rc-violet)" : "var(--rc-text-secondary)", fontSize: 11, fontWeight: 700, letterSpacing: "0.04em" }}
                 >
                   {level === "all" ? "ALL" : LEVEL_CFG[level].label.toUpperCase()} ({count})
                 </button>
@@ -784,9 +760,9 @@ export function VenueSectionConfig({
           </div>
 
           {/* Column headers */}
-          <div style={{ display: "grid", gridTemplateColumns: "60px 100px 1fr 80px 80px 60px 80px", gap: 8, padding: "8px 14px", borderBottom: `1px solid ${V.border}` }}>
+          <div style={{ display: "grid", gridTemplateColumns: "60px 100px 1fr 80px 80px 60px 80px", gap: 8, padding: "8px 14px", borderBottom: `1px solid var(--rc-border)` }}>
             {["SECTION", "LEVEL", "ZONE", "CAP.", "SVG X/Y", "STATUS", ""].map((h) => (
-              <span key={h} style={{ color: V.silver, fontSize: 10, fontWeight: 700, letterSpacing: "0.05em" }}>{h}</span>
+              <span key={h} style={{ color: "var(--rc-text-secondary)", fontSize: 10, fontWeight: 700, letterSpacing: "0.05em" }}>{h}</span>
             ))}
           </div>
 
@@ -794,29 +770,29 @@ export function VenueSectionConfig({
           <div style={{ maxHeight: 520, overflowY: "auto" }}>
             {filtered.length === 0 ? (
               <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "40px 20px", gap: 8 }}>
-                <MapPin size={24} color={V.textMuted} />
-                <span style={{ color: V.textSecondary, fontSize: 13 }}>No sections for this level</span>
-                <button onClick={() => setAddOpen(true)} style={{ background: V.violet, border: "none", borderRadius: 6, padding: "7px 14px", color: "#fff", fontSize: 12, fontWeight: 600, cursor: "pointer" }}>Add first section</button>
+                <MapPin size={24} color="var(--rc-text-muted)" />
+                <span style={{ color: "var(--rc-text-secondary)", fontSize: 13 }}>No sections for this level</span>
+                <button onClick={() => setAddOpen(true)} style={{ background: "var(--rc-violet)", border: "none", borderRadius: 6, padding: "7px 14px", color: "#fff", fontSize: 12, fontWeight: 600, cursor: "pointer" }}>Add first section</button>
               </div>
             ) : filtered.map((s) => {
               const scfg  = STATUS_CFG[s.status];
               const lcfg  = LEVEL_CFG[s.level];
               return (
-                <div key={s.id} style={{ display: "grid", gridTemplateColumns: "60px 100px 1fr 80px 80px 60px 80px", gap: 8, padding: "10px 14px", borderBottom: `1px solid ${V.borderSoft}`, alignItems: "center" }}>
-                  <span style={{ color: V.textPrimary, fontWeight: 700, fontSize: 14 }}>{s.label}</span>
+                <div key={s.id} style={{ display: "grid", gridTemplateColumns: "60px 100px 1fr 80px 80px 60px 80px", gap: 8, padding: "10px 14px", borderBottom: `1px solid $"var(--rc-text-faint)"`, alignItems: "center" }}>
+                  <span style={{ color: "var(--rc-text-primary)", fontWeight: 700, fontSize: 14 }}>{s.label}</span>
                   <span style={{ color: lcfg.color, fontSize: 11, fontWeight: 600 }}>{lcfg.label}</span>
-                  <span style={{ color: V.textSecondary, fontSize: 12 }}>{s.zone}</span>
-                  <span style={{ color: V.silver, fontSize: 12 }}>{s.capacity.toLocaleString()}</span>
-                  <span style={{ color: V.textMuted, fontSize: 11 }}>{s.svgX}, {s.svgY}</span>
+                  <span style={{ color: "var(--rc-text-secondary)", fontSize: 12 }}>{s.zone}</span>
+                  <span style={{ color: "var(--rc-text-secondary)", fontSize: 12 }}>{s.capacity.toLocaleString()}</span>
+                  <span style={{ color: "var(--rc-text-muted)", fontSize: 11 }}>{s.svgX}, {s.svgY}</span>
                   <span style={{ background: scfg.dim, color: scfg.color, fontSize: 10, fontWeight: 700, padding: "2px 6px", borderRadius: 4, border: `1px solid ${scfg.border}` }}>
                     {s.status.toUpperCase()}
                   </span>
                   <div style={{ display: "flex", gap: 4 }}>
-                    <button onClick={() => setEditSection(s)} style={{ background: "none", border: `1px solid ${V.border}`, borderRadius: 4, padding: 5, cursor: "pointer", display: "flex" }}>
-                      <Edit2 size={12} color={V.silver}/>
+                    <button onClick={() => setEditSection(s)} style={{ background: "none", border: `1px solid var(--rc-border)`, borderRadius: 4, padding: 5, cursor: "pointer", display: "flex" }}>
+                      <Edit2 size={12} color="var(--rc-text-secondary)"/>
                     </button>
-                    <button onClick={() => setDeleteTarget(s)} style={{ background: "none", border: `1px solid ${V.border}`, borderRadius: 4, padding: 5, cursor: "pointer", display: "flex" }}>
-                      <Trash2 size={12} color={V.red}/>
+                    <button onClick={() => setDeleteTarget(s)} style={{ background: "none", border: `1px solid var(--rc-border)`, borderRadius: 4, padding: 5, cursor: "pointer", display: "flex" }}>
+                      <Trash2 size={12} color="var(--rc-red)"/>
                     </button>
                   </div>
                 </div>
@@ -827,9 +803,9 @@ export function VenueSectionConfig({
 
         {/* Live preview */}
         <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-          <div style={{ background: V.surface, border: `1px solid ${V.border}`, borderRadius: 8, overflow: "hidden" }}>
-            <div style={{ padding: "10px 14px", borderBottom: `1px solid ${V.border}` }}>
-              <span style={{ color: V.silver, fontSize: 11, fontWeight: 700, letterSpacing: "0.05em" }}>MAP PREVIEW</span>
+          <div style={{ background: "var(--rc-surface)", border: `1px solid var(--rc-border)`, borderRadius: 8, overflow: "hidden" }}>
+            <div style={{ padding: "10px 14px", borderBottom: `1px solid var(--rc-border)` }}>
+              <span style={{ color: "var(--rc-text-secondary)", fontSize: 11, fontWeight: 700, letterSpacing: "0.05em" }}>MAP PREVIEW</span>
             </div>
             <SectionBowlMap
               sections={sections}
@@ -841,8 +817,8 @@ export function VenueSectionConfig({
           </div>
 
           {/* Level summary */}
-          <div style={{ background: V.surface, border: `1px solid ${V.border}`, borderRadius: 8, padding: "12px 14px" }}>
-            <span style={{ color: V.silver, fontSize: 11, fontWeight: 700, letterSpacing: "0.05em" }}>BY LEVEL</span>
+          <div style={{ background: "var(--rc-surface)", border: `1px solid var(--rc-border)`, borderRadius: 8, padding: "12px 14px" }}>
+            <span style={{ color: "var(--rc-text-secondary)", fontSize: 11, fontWeight: 700, letterSpacing: "0.05em" }}>BY LEVEL</span>
             <div style={{ marginTop: 10, display: "flex", flexDirection: "column", gap: 8 }}>
               {LEVELS.filter((l) => sections.some((s) => s.level === l)).map((l) => {
                 const secs = sections.filter((s) => s.level === l);
@@ -852,11 +828,11 @@ export function VenueSectionConfig({
                   <div key={l} style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
                     <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
                       <div style={{ width: 8, height: 8, borderRadius: "50%", background: cfg.color }}/>
-                      <span style={{ color: V.textPrimary, fontSize: 12 }}>{cfg.label}</span>
+                      <span style={{ color: "var(--rc-text-primary)", fontSize: 12 }}>{cfg.label}</span>
                     </div>
                     <div style={{ textAlign: "right" }}>
-                      <span style={{ color: V.silver, fontSize: 12, fontWeight: 600 }}>{secs.length}</span>
-                      <span style={{ color: V.textMuted, fontSize: 11 }}> sec · {cap.toLocaleString()} cap</span>
+                      <span style={{ color: "var(--rc-text-secondary)", fontSize: 12, fontWeight: 600 }}>{secs.length}</span>
+                      <span style={{ color: "var(--rc-text-muted)", fontSize: 11 }}> sec · {cap.toLocaleString()} cap</span>
                     </div>
                   </div>
                 );
@@ -882,17 +858,17 @@ export function VenueSectionConfig({
       )}
       {deleteTarget && (
         <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.8)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 9999 }}>
-          <div style={{ background: V.surface, border: `1px solid ${V.red}`, borderRadius: 10, padding: 24, width: 340, boxShadow: "0 24px 64px rgba(0,0,0,0.9)" }}>
+          <div style={{ background: "var(--rc-surface)", border: `1px solid var(--rc-red)`, borderRadius: 10, padding: 24, width: 340, boxShadow: "0 24px 64px rgba(0,0,0,0.9)" }}>
             <div style={{ display: "flex", gap: 10, marginBottom: 12 }}>
-              <AlertTriangle size={18} color={V.red} style={{ flexShrink: 0 }}/>
-              <span style={{ color: V.textPrimary, fontWeight: 700, fontSize: 14 }}>Remove Section {deleteTarget.label}?</span>
+              <AlertTriangle size={18} color="var(--rc-red)" style={{ flexShrink: 0 }}/>
+              <span style={{ color: "var(--rc-text-primary)", fontWeight: 700, fontSize: 14 }}>Remove Section {deleteTarget.label}?</span>
             </div>
-            <p style={{ color: V.textSecondary, fontSize: 13, lineHeight: 1.6, marginBottom: 20 }}>
+            <p style={{ color: "var(--rc-text-secondary)", fontSize: 13, lineHeight: 1.6, marginBottom: 20 }}>
               This removes the section from the map configuration. Incident history is not affected.
             </p>
             <div style={{ display: "flex", gap: 8, justifyContent: "flex-end" }}>
-              <button onClick={() => setDeleteTarget(null)} style={{ padding: "8px 16px", background: V.surfaceAlt, border: `1px solid ${V.border}`, borderRadius: 6, color: V.textSecondary, fontSize: 13, fontWeight: 600, cursor: "pointer", fontFamily: "inherit" }}>Cancel</button>
-              <button onClick={() => { deleteSection(deleteTarget.id); setDeleteTarget(null); }} style={{ padding: "8px 16px", background: V.redDim, border: `1px solid ${V.red}`, borderRadius: 6, color: V.red, fontSize: 13, fontWeight: 600, cursor: "pointer", fontFamily: "inherit" }}>Remove</button>
+              <button onClick={() => setDeleteTarget(null)} style={{ padding: "8px 16px", background: "var(--rc-surface-alt)", border: `1px solid var(--rc-border)`, borderRadius: 6, color: "var(--rc-text-secondary)", fontSize: 13, fontWeight: 600, cursor: "pointer", fontFamily: "inherit" }}>Cancel</button>
+              <button onClick={() => { deleteSection(deleteTarget.id); setDeleteTarget(null); }} style={{ padding: "8px 16px", background: "var(--rc-red-dim)", border: `1px solid var(--rc-red)`, borderRadius: 6, color: "var(--rc-red)", fontSize: 13, fontWeight: 600, cursor: "pointer", fontFamily: "inherit" }}>Remove</button>
             </div>
           </div>
         </div>

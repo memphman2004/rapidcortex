@@ -1,38 +1,114 @@
 "use client";
 
 /**
- * Single RCS-monitored call card — state, escalation, units, closure gate.
+ * Single RCS-monitored call card — state, escalation, units, closure gate,
+ * AI summary, soft handoff, and arrival confirmation.
  */
 
 import { useState } from "react";
-import { Clock, MapPin, Radio, Shield } from "lucide-react";
+import type { CSSProperties } from "react";
+import { ChevronDown, ChevronUp, Clock, HandHelping, Radio, Shield } from "lucide-react";
 import type { UserContext } from "rapid-cortex-shared";
-import { canManageRcsCall } from "@/lib/rcs/rcs-authz";
+import {
+  canAcceptSoftHandoff,
+  canManageRcsCall,
+  canRequestSoftHandoff,
+} from "@/lib/rcs/rcs-authz";
 import { rcsEscalationColor, rcsStateToken, RCS_SURFACE } from "@/lib/rcs/rcs-colors";
-import type { RcsCall } from "@/lib/rcs/rcs-api";
+import {
+  rcsAcceptSoftHandoff,
+  rcsClearSoftHandoff,
+  rcsRequestSoftHandoff,
+  rcsTriggerCallSummary,
+  type RcsCall,
+} from "@/lib/rcs/rcs-api";
+import { formatElapsed } from "./rcs-ui-utils";
+import { RcsAiSummaryStrip } from "./RcsAiSummaryStrip";
+import { RcsArrivalConfirmationBadge } from "./RcsArrivalConfirmationBadge";
+import { RcsEscalationBeacon } from "./RcsEscalationBeacon";
+import { RcsSoftHandoffBanner } from "./RcsSoftHandoffBanner";
 import { RcsClosureModal } from "./RcsClosureModal";
 
 export type RcsCallCardProps = {
   call: RcsCall;
   user: UserContext;
   onUpdated?: (call: RcsCall) => void;
+  /** Start expanded (default false for compact grid). */
+  defaultExpanded?: boolean;
 };
 
-function formatDuration(startedAt: string): string {
-  const ms = Date.now() - new Date(startedAt).getTime();
-  if (!Number.isFinite(ms) || ms < 0) return "—";
-  const totalSeconds = Math.floor(ms / 1000);
-  const minutes = Math.floor(totalSeconds / 60);
-  const seconds = totalSeconds % 60;
-  return `${minutes}m ${seconds.toString().padStart(2, "0")}s`;
-}
-
-export function RcsCallCard({ call, user, onUpdated }: RcsCallCardProps) {
+export function RcsCallCard({ call, user, onUpdated, defaultExpanded = false }: RcsCallCardProps) {
   const [closureOpen, setClosureOpen] = useState(false);
+  const [expanded, setExpanded] = useState(defaultExpanded);
+  const [busy, setBusy] = useState(false);
+  const [actionError, setActionError] = useState<string | null>(null);
   const stateToken = rcsStateToken(call.state);
   const canManage = canManageRcsCall(user, call.agencyId);
+  const canRequest = canRequestSoftHandoff(user, call.agencyId, call.assignedDispatcherId);
+  const canAccept =
+    Boolean(call.softHandoff) &&
+    canAcceptSoftHandoff(user, call.agencyId, call.softHandoff?.requestedByUserId ?? "");
   const isClosed = call.state === "CLOSED" || call.state === "OVERRIDE_CLOSED";
-  const onSceneUnits = call.units.filter((u) => u.onScene).length;
+  const displayName =
+    user.displayName?.trim() || user.email?.trim() || user.userId;
+
+  async function refreshLocal(patch: Partial<RcsCall>) {
+    onUpdated?.({ ...call, ...patch, updatedAt: new Date().toISOString() });
+  }
+
+  async function requestHandoff() {
+    setBusy(true);
+    setActionError(null);
+    try {
+      const handoff = await rcsRequestSoftHandoff(call.callId);
+      await refreshLocal({ softHandoff: handoff });
+    } catch (e) {
+      setActionError(e instanceof Error ? e.message : "Handoff request failed");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function acceptHandoff() {
+    setBusy(true);
+    setActionError(null);
+    try {
+      const handoff = await rcsAcceptSoftHandoff(call.callId, {
+        acceptorDisplayName: displayName,
+      });
+      await refreshLocal({ softHandoff: handoff });
+    } catch (e) {
+      setActionError(e instanceof Error ? e.message : "Accept failed");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function clearHandoff() {
+    setBusy(true);
+    setActionError(null);
+    try {
+      await rcsClearSoftHandoff(call.callId);
+      await refreshLocal({ softHandoff: undefined });
+    } catch (e) {
+      setActionError(e instanceof Error ? e.message : "Clear failed");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function refreshSummary() {
+    setBusy(true);
+    setActionError(null);
+    try {
+      const summary = await rcsTriggerCallSummary(call.callId);
+      await refreshLocal({ aiSummary: summary });
+    } catch (e) {
+      setActionError(e instanceof Error ? e.message : "Summary failed");
+    } finally {
+      setBusy(false);
+    }
+  }
 
   return (
     <div
@@ -47,13 +123,16 @@ export function RcsCallCard({ call, user, onUpdated }: RcsCallCardProps) {
       }}
     >
       <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 8 }}>
-        <div>
-          <div style={{ fontSize: 13, fontWeight: 600, color: RCS_SURFACE.heading }}>
-            {call.callId}
-          </div>
-          <div style={{ fontSize: 11, color: RCS_SURFACE.subtleText, marginTop: 2 }}>
-            {call.incidentId ? `Incident ${call.incidentId}` : "No CAD incident link"}
-            {call.callerPhone ? ` · ${call.callerPhone}` : ""}
+        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+          <RcsEscalationBeacon level={call.escalationLevel} />
+          <div>
+            <div style={{ fontSize: 13, fontWeight: 600, color: RCS_SURFACE.heading }}>
+              {call.callId}
+            </div>
+            <div style={{ fontSize: 11, color: RCS_SURFACE.subtleText, marginTop: 2 }}>
+              {call.incidentId ? `Incident ${call.incidentId}` : "No CAD incident link"}
+              {call.callerPhone ? ` · ${call.callerPhone}` : ""}
+            </div>
           </div>
         </div>
         <span
@@ -80,7 +159,7 @@ export function RcsCallCard({ call, user, onUpdated }: RcsCallCardProps) {
       <div style={{ display: "flex", flexWrap: "wrap", gap: 12, fontSize: 11, color: RCS_SURFACE.bodyText }}>
         <span style={{ display: "inline-flex", alignItems: "center", gap: 4 }}>
           <Clock size={12} />
-          {formatDuration(call.createdAt)}
+          {formatElapsed(call.createdAt)}
         </span>
         <span style={{ display: "inline-flex", alignItems: "center", gap: 4 }}>
           <Shield size={12} color={rcsEscalationColor(call.escalationLevel)} />
@@ -90,34 +169,80 @@ export function RcsCallCard({ call, user, onUpdated }: RcsCallCardProps) {
           <Radio size={12} />
           Audio: {call.audioStatus}
         </span>
-        <span style={{ display: "inline-flex", alignItems: "center", gap: 4 }}>
-          <MapPin size={12} />
-          Units: {call.units.length} ({onSceneUnits} on scene)
-        </span>
+        <RcsArrivalConfirmationBadge units={call.units} compact />
       </div>
+
+      <RcsAiSummaryStrip summary={call.aiSummary} compact />
+
+      {call.softHandoff && call.softHandoff.state !== "CLEARED" ? (
+        <RcsSoftHandoffBanner
+          handoff={call.softHandoff}
+          canAccept={canAccept && !isClosed}
+          canClear={(canRequest || canAccept) && !isClosed}
+          onAccept={() => void acceptHandoff()}
+          onClear={() => void clearHandoff()}
+        />
+      ) : null}
 
       {call.notes ? (
         <p style={{ margin: 0, fontSize: 11, color: RCS_SURFACE.subtleText }}>{call.notes}</p>
       ) : null}
 
-      {canManage && !isClosed ? (
-        <div style={{ display: "flex", gap: 8, marginTop: 4 }}>
+      {actionError ? (
+        <p style={{ margin: 0, fontSize: 11, color: "#fca5a5" }}>{actionError}</p>
+      ) : null}
+
+      <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginTop: 4, alignItems: "center" }}>
+        {canManage && !isClosed ? (
           <button
             type="button"
             onClick={() => setClosureOpen(true)}
-            style={{
-              borderRadius: 6,
-              border: "1px solid #334155",
-              background: "#0f172a",
-              color: "#e2e8f0",
-              fontSize: 11,
-              fontWeight: 600,
-              padding: "6px 10px",
-              cursor: "pointer",
-            }}
+            style={btnStyle}
           >
             Close call…
           </button>
+        ) : null}
+        {canRequest && !isClosed && (!call.softHandoff || call.softHandoff.state === "CLEARED") ? (
+          <button type="button" disabled={busy} onClick={() => void requestHandoff()} style={btnStyle}>
+            <HandHelping size={12} style={{ display: "inline", marginRight: 4, verticalAlign: "middle" }} />
+            Request handoff
+          </button>
+        ) : null}
+        {canManage && !isClosed ? (
+          <button type="button" disabled={busy} onClick={() => void refreshSummary()} style={btnStyle}>
+            Refresh AI
+          </button>
+        ) : null}
+        <button
+          type="button"
+          onClick={() => setExpanded((v) => !v)}
+          style={{ ...btnStyle, marginLeft: "auto", display: "inline-flex", alignItems: "center", gap: 4 }}
+        >
+          {expanded ? <ChevronUp size={12} /> : <ChevronDown size={12} />}
+          {expanded ? "Less" : "More"}
+        </button>
+      </div>
+
+      {expanded ? (
+        <div
+          style={{
+            fontSize: 11,
+            color: RCS_SURFACE.subtleText,
+            borderTop: `1px solid ${RCS_SURFACE.border}`,
+            paddingTop: 8,
+            display: "flex",
+            flexDirection: "column",
+            gap: 4,
+          }}
+        >
+          <div>Dispatcher: {call.assignedDispatcherDisplayName ?? call.assignedDispatcherId ?? "—"}</div>
+          <div>Units: {call.units.length}</div>
+          {call.units.map((u) => (
+            <div key={u.unitId}>
+              {u.callSign ?? u.unitId}
+              {u.onScene ? " · on scene" : u.distanceMeters != null ? ` · ${Math.round(u.distanceMeters)}m` : ""}
+            </div>
+          ))}
         </div>
       ) : null}
 
@@ -135,3 +260,14 @@ export function RcsCallCard({ call, user, onUpdated }: RcsCallCardProps) {
     </div>
   );
 }
+
+const btnStyle: CSSProperties = {
+  borderRadius: 6,
+  border: "1px solid #334155",
+  background: "#0f172a",
+  color: "#e2e8f0",
+  fontSize: 11,
+  fontWeight: 600,
+  padding: "6px 10px",
+  cursor: "pointer",
+};

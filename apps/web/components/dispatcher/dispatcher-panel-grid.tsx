@@ -26,6 +26,8 @@ import { DispatcherPanelShell } from "@/components/dispatcher/dispatcher-panel-s
 import { usePanelLayout, type PanelDef } from "@/lib/dispatcher/use-panel-layout";
 
 export const DISPATCHER_PANEL_DEFS: PanelDef[] = [
+  { id: "transcript", defaultWide: true },
+  { id: "map", defaultWide: true },
   { id: "intelligence", defaultWide: true },
   { id: "caller_mobile", defaultWide: false },
   { id: "silent_text", defaultWide: false },
@@ -45,6 +47,8 @@ const PANEL_META: Record<
     helpTopic?: string;
   }
 > = {
+  transcript: { title: "TRANSCRIPT", accentColor: "#38bdf8" },
+  map: { title: "INCIDENT MAP", accentColor: "#22d3ee", helpTopic: "pinpoint" },
   intelligence: { title: "INTELLIGENCE", accentColor: "#8b5cf6", badge: "AI SUGGESTED", badgeColor: "#8b5cf6" },
   caller_mobile: { title: "CALLER MOBILE", accentColor: "#10b981", helpTopic: "live-video" },
   silent_text: { title: "SILENT TEXT LINK", accentColor: "#10b981", helpTopic: "silent-text" },
@@ -133,6 +137,9 @@ export function DispatcherPanelGrid({ userId, panels, className }: DispatcherPan
           }}
         >
           INCIDENT PANEL LAYOUT
+          <span style={{ color: "#5a4d7a", fontWeight: 500, letterSpacing: "0.04em" }}>
+            · drag ⠿ to rearrange
+          </span>
         </span>
         <button
           type="button"

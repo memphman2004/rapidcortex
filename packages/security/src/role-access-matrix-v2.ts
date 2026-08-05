@@ -216,6 +216,30 @@ const HOSPITAL_ROUTING_VIEW_ANALYTICS: readonly Permission[] = [
   "hospital_routing.analytics_view",
 ] as const;
 
+/** Response Continuity System — full intelligence + ops surface. */
+const RCS_ALL: readonly Permission[] = [
+  "rcs.call.manage",
+  "rcs.call.override",
+  "rcs.summary.view",
+  "rcs.summary.trigger",
+  "rcs.handoff.request",
+  "rcs.handoff.accept",
+  "rcs.floor.view",
+  "rcs.rules.manage",
+] as const;
+
+/** Dispatcher frontline: manage calls, summaries, request soft handoff. */
+const RCS_DISPATCHER: readonly Permission[] = [
+  "rcs.call.manage",
+  "rcs.summary.view",
+  "rcs.summary.trigger",
+  "rcs.handoff.request",
+  "rcs.handoff.accept",
+] as const;
+
+/** Read-only AI summary for QA/audit. */
+const RCS_SUMMARY_VIEW: readonly Permission[] = ["rcs.summary.view"] as const;
+
 /** Core PSAP matrix roles from the v2.0 PDF (vertical product roles inherit below). */
 const CORE_ROLE_ACCESS_MATRIX_V2 = {
   rcadmin: [
@@ -237,6 +261,7 @@ const CORE_ROLE_ACCESS_MATRIX_V2 = {
     "grants.view",
     "users.view_activity",
     ...HOSPITAL_ROUTING_VIEW_ANALYTICS,
+    ...RCS_ALL,
   ],
   rcitadmin: [
     "system.tenant_mgmt",
@@ -315,6 +340,7 @@ const CORE_ROLE_ACCESS_MATRIX_V2 = {
     ...EMERGENCY_CONNECT_MANAGE,
     ...EMERGENCY_CONNECT_VIEW,
     ...HOSPITAL_ROUTING_FULL,
+    ...RCS_ALL,
   ],
   agencyit: [
     "users.view",
@@ -332,6 +358,7 @@ const CORE_ROLE_ACCESS_MATRIX_V2 = {
     "audit.access_reports",
     ...HOSPITAL_ROUTING_VIEW_ANALYTICS,
     ...EMERGENCY_CONNECT_VIEW,
+    ...RCS_DISPATCHER,
   ],
   supervisor: [
     "users.view",
@@ -384,6 +411,7 @@ const CORE_ROLE_ACCESS_MATRIX_V2 = {
     ...EMERGENCY_CONNECT_VIEW,
     ...EMERGENCY_CONNECT_OPERATIONS,
     ...HOSPITAL_ROUTING_VIEW_ANALYTICS,
+    ...RCS_ALL,
   ],
   dispatcher: [
     "incidents.view",
@@ -410,6 +438,7 @@ const CORE_ROLE_ACCESS_MATRIX_V2 = {
     ...EMERGENCY_CONNECT_VIEW,
     ...EMERGENCY_CONNECT_OPERATIONS,
     ...HOSPITAL_ROUTING_VIEW,
+    ...RCS_DISPATCHER,
   ],
   analyst: [
     "incidents.view",
@@ -427,6 +456,7 @@ const CORE_ROLE_ACCESS_MATRIX_V2 = {
     "reports.schedule",
     "audit.view",
     ...HOSPITAL_ROUTING_VIEW_ANALYTICS,
+    ...RCS_SUMMARY_VIEW,
   ],
   auditor: [
     "users.view",
@@ -443,6 +473,7 @@ const CORE_ROLE_ACCESS_MATRIX_V2 = {
     "audit.cad_writeback",
     "audit.access_reports",
     ...HOSPITAL_ROUTING_VIEW_ANALYTICS,
+    ...RCS_SUMMARY_VIEW,
   ],
 } as const satisfies Record<
   "rcadmin" | "rcitadmin" | "agencyadmin" | "agencyit" | "supervisor" | "dispatcher" | "analyst" | "auditor",

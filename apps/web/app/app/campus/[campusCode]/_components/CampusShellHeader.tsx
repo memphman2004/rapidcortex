@@ -1,15 +1,16 @@
 "use client";
 
+import type { ReactNode } from "react";
 import { VerticalDisclaimerBanner } from "@/components/vertical/vertical-disclaimer-banner";
 import { CampusDashboardHeaderUtilities } from "@/components/campus/campus-dashboard-header-utilities";
 
 const C = {
-  surface: "#0d1321",
+  surface: "var(--rc-surface)",
   border: "rgba(255,255,255,0.07)",
   borderHard: "rgba(255,255,255,0.12)",
-  text: "#e2e8f0",
-  textMuted: "#64748b",
-  blue: "#3b82f6",
+  text: "var(--rc-text-primary)",
+  textMuted: "var(--rc-text-muted)",
+  blue: "var(--rc-blue)",
   crestBg: "#1e3a5f",
 } as const;
 
@@ -33,11 +34,14 @@ export function CampusShellHeader({
   role = "CAMPUS_SUPERVISOR",
   userEmail,
   agencyId,
+  leadingSlot,
 }: {
   campusCode: string;
   role?: string;
   userEmail?: string;
   agencyId?: string;
+  /** Rendered immediately left of Help / Font (e.g. ThemeToggle). */
+  leadingSlot?: ReactNode;
 }) {
   const badge = roleBadgeMap[role.trim().toUpperCase()] ?? role;
   const abbr = crestAbbr(campusCode);
@@ -88,7 +92,12 @@ export function CampusShellHeader({
             </p>
           </div>
         </div>
-        <CampusDashboardHeaderUtilities email={userEmail} role={role} agencyId={agencyId} />
+        <CampusDashboardHeaderUtilities
+          email={userEmail}
+          role={role}
+          agencyId={agencyId}
+          leadingSlot={leadingSlot}
+        />
       </div>
       <div className="mt-3">
         <VerticalDisclaimerBanner

@@ -63,15 +63,6 @@ function navItems(base: string): NavItem[] {
   ];
 }
 
-const V = {
-  bgDeep: "#080710",
-  border: "#1e1a30",
-  violet: "#8b5cf6",
-  violetDim: "#130e1e",
-  textMuted: "#2d2445",
-  silver: "#7c6fa0",
-  textPrimary: "#e4dff5",
-};
 
 export function VenueNav({
   linkBase,
@@ -98,8 +89,8 @@ export function VenueNav({
     <nav
       style={{
         width: 180,
-        background: V.bgDeep,
-        borderRight: `1px solid ${V.border}`,
+        background: "var(--rc-surface-deep)",
+        borderRight: `1px solid var(--rc-border)`,
         padding: "12px 8px",
         display: "flex",
         flexDirection: "column",
@@ -124,9 +115,9 @@ export function VenueNav({
               padding: "8px 10px",
               borderRadius: 6,
               textDecoration: "none",
-              background: active ? V.violetDim : "transparent",
-              border: `1px solid ${active ? "#3b1e6e" : "transparent"}`,
-              color: active ? V.violet : V.silver,
+              background: active ? "var(--rc-violet-dim)" : "transparent",
+              border: `1px solid ${active ? "var(--rc-violet-border)" : "transparent"}`,
+              color: active ? "var(--rc-violet)" : "var(--rc-text-secondary)",
               fontSize: 12,
               fontWeight: active ? 700 : 500,
             }}

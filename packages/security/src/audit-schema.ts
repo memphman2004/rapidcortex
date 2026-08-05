@@ -67,6 +67,10 @@ export const AUDIT_EVENT_TYPES = {
   SALES_LEAD_VIEWED: "sales_lead.viewed",
   SALES_LEAD_STAGE_CHANGED: "sales_lead.stage_changed",
   SALES_LEAD_NOTE_ADDED: "sales_lead.note_added",
+  PSAP_PROSPECT_UPDATED: "psap_prospect.updated",
+  PSAP_PROSPECT_ACTIVITY_ADDED: "psap_prospect.activity_added",
+  PSAP_PROSPECT_STATUS_CHANGED: "psap_prospect.status_changed",
+  PSAP_PROSPECT_EXPORTED: "psap_prospect.exported",
   JOB_APPLICATION_CREATED: "job_application.created",
   JOB_APPLICATION_VIEWED: "job_application.viewed",
   JOB_APPLICATION_STATUS_CHANGED: "job_application.status_changed",
@@ -300,6 +304,10 @@ export const AUDIT_EVENT_TYPES = {
   RCS_CALL_SUPERVISOR_ACKNOWLEDGED: "rcs.call.supervisor_acknowledged",
   RCS_CALL_CLOSED: "rcs.call.closed",
   RCS_CALL_OVERRIDE_CLOSED: "rcs.call.override_closed",
+  RCS_SUMMARY_GENERATED: "rcs.summary.generated",
+  RCS_HANDOFF_REQUESTED: "rcs.handoff.requested",
+  RCS_HANDOFF_ACCEPTED: "rcs.handoff.accepted",
+  RCS_ESCALATION_WATCHDOG: "rcs.escalation.watchdog",
 
   /** Supervisor opened Silent Monitor / presence on a dispatcher session. */
   SUPERVISOR_WATCHING: "supervisor.watching",

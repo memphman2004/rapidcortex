@@ -55,6 +55,22 @@ Parameters:
   ManagedPolicyNamePrefix:
     Type: String
     Default: rapid-cortex
+  WebSocketConnectionsTable:
+    Type: String
+    Default: ""
+    Description: Optional DynamoDB table for WebSocket connection fan-out (soft no-op when empty).
+  WebSocketApiEndpoint:
+    Type: String
+    Default: ""
+    Description: Optional ApiGatewayManagementApi HTTPS endpoint (soft no-op when empty).
+  WebSocketApiId:
+    Type: String
+    Default: ""
+    Description: Optional WebSocket API id for scoped ManageConnections IAM (skip when empty).
+  AnthropicApiKeySecretArn:
+    Type: String
+    Default: ""
+    Description: Optional Secrets Manager ARN for Anthropic (AI summarizer).
 
 Globals:
   Function:
@@ -81,9 +97,27 @@ Globals:
         COGNITO_USER_POOL_ID: !Ref ImportedCognitoUserPoolId
         COGNITO_CLIENT_ID: !Ref ImportedCognitoWebClientId
         COGNITO_REGION: !Ref AWS::Region
+        WEBSOCKET_CONNECTIONS_TABLE: !If
+          - HasWebSocketBroadcast
+          - !Ref WebSocketConnectionsTable
+          - ""
+        WEBSOCKET_API_ENDPOINT: !If
+          - HasWebSocketBroadcast
+          - !Ref WebSocketApiEndpoint
+          - ""
+        ANTHROPIC_API_KEY_SECRET_ARN: !If
+          - HasAnthropicApiKeySecretArn
+          - !Ref AnthropicApiKeySecretArn
+          - ""
 
 Conditions:
   HasHttpApiJwtAuthorizer: !Not [!Equals [!Ref HttpApiJwtAuthorizerId, ""]]
+  HasWebSocketConnectionsTable: !Not [!Equals [!Ref WebSocketConnectionsTable, ""]]
+  HasWebSocketApiId: !Not [!Equals [!Ref WebSocketApiId, ""]]
+  HasWebSocketBroadcast: !And
+    - !Condition HasWebSocketConnectionsTable
+    - !Not [!Equals [!Ref WebSocketApiEndpoint, ""]]
+  HasAnthropicApiKeySecretArn: !Not [!Equals [!Ref AnthropicApiKeySecretArn, ""]]
 
 Resources:
   AppManagedPolicyRcsDynamo:
@@ -114,12 +148,48 @@ Resources:
               - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${RcsEscalationTable}/index/*
               - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${AuditTable}
               - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${AuditTable}/index/*
+              - !If
+                - HasWebSocketConnectionsTable
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${WebSocketConnectionsTable}
+                - !Ref AWS::NoValue
+              - !If
+                - HasWebSocketConnectionsTable
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${WebSocketConnectionsTable}/index/*
+                - !Ref AWS::NoValue
           - Sid: AgenciesReadOnlyForAddonGate
             Effect: Allow
             Action:
               - dynamodb:GetItem
             Resource:
               - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${AgenciesTable}
+
+  AppManagedPolicyRcsWebSocketBroadcast:
+    Type: AWS::IAM::ManagedPolicy
+    Condition: HasWebSocketApiId
+    Properties:
+      ManagedPolicyName: !Sub "${ManagedPolicyNamePrefix}-sam2-rcs-ws-${DeploymentStage}"
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Sid: WebSocketPostToConnection
+            Effect: Allow
+            Action:
+              - execute-api:ManageConnections
+            Resource: !Sub arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${WebSocketApiId}/${DeploymentStage}/POST/@connections/*
+
+  AppManagedPolicyRcsAnthropicSecret:
+    Type: AWS::IAM::ManagedPolicy
+    Condition: HasAnthropicApiKeySecretArn
+    Properties:
+      ManagedPolicyName: !Sub "${ManagedPolicyNamePrefix}-sam2-rcs-anthropic-${DeploymentStage}"
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Sid: ReadAnthropicApiKeySecret
+            Effect: Allow
+            Action:
+              - secretsmanager:GetSecretValue
+            Resource: !Ref AnthropicApiKeySecretArn
 
   # Schedule names are always prefixed rcs-esc-<callId>-<level> in the default group
   # (see apps/api/src/features/rcs/rcs-scheduler.ts) — scoped to RCS only, never "*".
@@ -464,6 +534,245 @@ Resources:
       ApiId: !Ref HttpApiId
       RouteKey: "POST /api/rcs/units/position"
       Target: !Sub "integrations/${RcsUnitPositionIntegration}"
+      AuthorizationType: !If [HasHttpApiJwtAuthorizer, JWT, NONE]
+      AuthorizerId: !If [HasHttpApiJwtAuthorizer, !Ref HttpApiJwtAuthorizerId, !Ref AWS::NoValue]
+
+  # ── Intelligence Layer ──────────────────────────────────────────────────────
+
+  RcsCallSummaryFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/handlers/rcsCallSummary.handler
+      Policies:
+        - !Ref AppManagedPolicyRcsDynamo
+        - !If [HasWebSocketApiId, !Ref AppManagedPolicyRcsWebSocketBroadcast, !Ref AWS::NoValue]
+        - !If [HasAnthropicApiKeySecretArn, !Ref AppManagedPolicyRcsAnthropicSecret, !Ref AWS::NoValue]
+
+  RcsCallHandoffFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/handlers/rcsCallHandoff.handler
+      Policies:
+        - !Ref AppManagedPolicyRcsDynamo
+        - !If [HasWebSocketApiId, !Ref AppManagedPolicyRcsWebSocketBroadcast, !Ref AWS::NoValue]
+
+  RcsFloorHealthFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/handlers/rcsFloorHealth.handler
+      Policies:
+        - !Ref AppManagedPolicyRcsDynamo
+
+  RcsEscalationRulesFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/handlers/rcsEscalationRules.handler
+      Policies:
+        - !Ref AppManagedPolicyRcsDynamo
+
+  RcsAiSummarizerFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/handlers/rcsAiSummarizer.handler
+      Timeout: 55
+      Environment:
+        Variables:
+          RCS_AI_MOCK: "false"
+      Policies:
+        - !Ref AppManagedPolicyRcsDynamo
+        - !If [HasWebSocketApiId, !Ref AppManagedPolicyRcsWebSocketBroadcast, !Ref AWS::NoValue]
+        - !If [HasAnthropicApiKeySecretArn, !Ref AppManagedPolicyRcsAnthropicSecret, !Ref AWS::NoValue]
+      Events:
+        Schedule:
+          Type: Schedule
+          Properties:
+            Schedule: rate(1 minute)
+            Enabled: true
+
+  RcsEscalationWatchdogFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/handlers/rcsEscalationWatchdog.handler
+      Timeout: 55
+      Policies:
+        - !Ref AppManagedPolicyRcsDynamo
+        - !If [HasWebSocketApiId, !Ref AppManagedPolicyRcsWebSocketBroadcast, !Ref AWS::NoValue]
+      Events:
+        Schedule:
+          Type: Schedule
+          Properties:
+            Schedule: rate(1 minute)
+            Enabled: true
+
+  RcsFloorHealthPushFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/handlers/rcsFloorHealthPush.handler
+      Timeout: 25
+      Policies:
+        - !Ref AppManagedPolicyRcsDynamo
+        - !If [HasWebSocketApiId, !Ref AppManagedPolicyRcsWebSocketBroadcast, !Ref AWS::NoValue]
+      Events:
+        Schedule:
+          Type: Schedule
+          Properties:
+            Schedule: rate(1 minute)
+            Enabled: true
+
+  RcsCallSummaryIntegration:
+    Type: AWS::ApiGatewayV2::Integration
+    Properties:
+      ApiId: !Ref HttpApiId
+      IntegrationType: AWS_PROXY
+      IntegrationUri: !Sub arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${RcsCallSummaryFunction.Arn}/invocations
+      PayloadFormatVersion: "2.0"
+
+  RcsCallHandoffIntegration:
+    Type: AWS::ApiGatewayV2::Integration
+    Properties:
+      ApiId: !Ref HttpApiId
+      IntegrationType: AWS_PROXY
+      IntegrationUri: !Sub arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${RcsCallHandoffFunction.Arn}/invocations
+      PayloadFormatVersion: "2.0"
+
+  RcsFloorHealthIntegration:
+    Type: AWS::ApiGatewayV2::Integration
+    Properties:
+      ApiId: !Ref HttpApiId
+      IntegrationType: AWS_PROXY
+      IntegrationUri: !Sub arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${RcsFloorHealthFunction.Arn}/invocations
+      PayloadFormatVersion: "2.0"
+
+  RcsEscalationRulesIntegration:
+    Type: AWS::ApiGatewayV2::Integration
+    Properties:
+      ApiId: !Ref HttpApiId
+      IntegrationType: AWS_PROXY
+      IntegrationUri: !Sub arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${RcsEscalationRulesFunction.Arn}/invocations
+      PayloadFormatVersion: "2.0"
+
+  RcsCallSummaryInvokePermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !Ref RcsCallSummaryFunction
+      Principal: apigateway.amazonaws.com
+      SourceArn: !Sub arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${HttpApiId}/*
+
+  RcsCallHandoffInvokePermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !Ref RcsCallHandoffFunction
+      Principal: apigateway.amazonaws.com
+      SourceArn: !Sub arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${HttpApiId}/*
+
+  RcsFloorHealthInvokePermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !Ref RcsFloorHealthFunction
+      Principal: apigateway.amazonaws.com
+      SourceArn: !Sub arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${HttpApiId}/*
+
+  RcsEscalationRulesInvokePermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !Ref RcsEscalationRulesFunction
+      Principal: apigateway.amazonaws.com
+      SourceArn: !Sub arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${HttpApiId}/*
+
+  RouteRcsCallSummaryGet:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref HttpApiId
+      RouteKey: "GET /api/rcs/calls/{callId}/summary"
+      Target: !Sub "integrations/${RcsCallSummaryIntegration}"
+      AuthorizationType: !If [HasHttpApiJwtAuthorizer, JWT, NONE]
+      AuthorizerId: !If [HasHttpApiJwtAuthorizer, !Ref HttpApiJwtAuthorizerId, !Ref AWS::NoValue]
+  RouteRcsCallSummaryPost:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref HttpApiId
+      RouteKey: "POST /api/rcs/calls/{callId}/summary"
+      Target: !Sub "integrations/${RcsCallSummaryIntegration}"
+      AuthorizationType: !If [HasHttpApiJwtAuthorizer, JWT, NONE]
+      AuthorizerId: !If [HasHttpApiJwtAuthorizer, !Ref HttpApiJwtAuthorizerId, !Ref AWS::NoValue]
+  RouteRcsCallHandoffPost:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref HttpApiId
+      RouteKey: "POST /api/rcs/calls/{callId}/handoff"
+      Target: !Sub "integrations/${RcsCallHandoffIntegration}"
+      AuthorizationType: !If [HasHttpApiJwtAuthorizer, JWT, NONE]
+      AuthorizerId: !If [HasHttpApiJwtAuthorizer, !Ref HttpApiJwtAuthorizerId, !Ref AWS::NoValue]
+  RouteRcsCallHandoffAccept:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref HttpApiId
+      RouteKey: "POST /api/rcs/calls/{callId}/handoff/accept"
+      Target: !Sub "integrations/${RcsCallHandoffIntegration}"
+      AuthorizationType: !If [HasHttpApiJwtAuthorizer, JWT, NONE]
+      AuthorizerId: !If [HasHttpApiJwtAuthorizer, !Ref HttpApiJwtAuthorizerId, !Ref AWS::NoValue]
+  RouteRcsCallHandoffDelete:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref HttpApiId
+      RouteKey: "DELETE /api/rcs/calls/{callId}/handoff"
+      Target: !Sub "integrations/${RcsCallHandoffIntegration}"
+      AuthorizationType: !If [HasHttpApiJwtAuthorizer, JWT, NONE]
+      AuthorizerId: !If [HasHttpApiJwtAuthorizer, !Ref HttpApiJwtAuthorizerId, !Ref AWS::NoValue]
+  RouteRcsFloorHealth:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref HttpApiId
+      RouteKey: "GET /api/rcs/floor-health"
+      Target: !Sub "integrations/${RcsFloorHealthIntegration}"
+      AuthorizationType: !If [HasHttpApiJwtAuthorizer, JWT, NONE]
+      AuthorizerId: !If [HasHttpApiJwtAuthorizer, !Ref HttpApiJwtAuthorizerId, !Ref AWS::NoValue]
+  RouteRcsEscalationRulesGet:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref HttpApiId
+      RouteKey: "GET /api/rcs/escalation-rules"
+      Target: !Sub "integrations/${RcsEscalationRulesIntegration}"
+      AuthorizationType: !If [HasHttpApiJwtAuthorizer, JWT, NONE]
+      AuthorizerId: !If [HasHttpApiJwtAuthorizer, !Ref HttpApiJwtAuthorizerId, !Ref AWS::NoValue]
+  RouteRcsEscalationRulesPut:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref HttpApiId
+      RouteKey: "PUT /api/rcs/escalation-rules"
+      Target: !Sub "integrations/${RcsEscalationRulesIntegration}"
       AuthorizationType: !If [HasHttpApiJwtAuthorizer, JWT, NONE]
       AuthorizerId: !If [HasHttpApiJwtAuthorizer, !Ref HttpApiJwtAuthorizerId, !Ref AWS::NoValue]
 

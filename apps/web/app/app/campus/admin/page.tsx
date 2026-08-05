@@ -34,6 +34,7 @@ export default async function CampusAdminPage() {
       displayName={dashboardDisplayName(user)}
       userEmail={user.email}
       userRole={user.role}
+      userId={user.userId}
     />
   );
 }

@@ -6,6 +6,7 @@ import type { RoleDashboardIdentity } from "@/lib/dashboards/role-dashboard-desi
 import { FontPicker } from "@/components/ui/font-picker";
 import { UserIdentityBar } from "@/components/ui/user-identity-bar";
 import { HelpButton } from "@/components/help/help-button";
+import { ThemeToggle } from "@/components/ui/ThemeToggle";
 import { getRoleHeaderBadgeLabel } from "@/lib/dashboards/role-header-badge";
 
 export function TopNav({
@@ -56,6 +57,7 @@ export function TopNav({
       </div>
       <div className="flex shrink-0 flex-wrap items-center justify-end gap-2">
         <HelpButton />
+        <ThemeToggle variant="tailwind" />
         <FontPicker />
         <button
           type="button"
@@ -66,7 +68,12 @@ export function TopNav({
           <span className="absolute right-1 top-1 h-2 w-2 rounded-full bg-red-500 ring-2 ring-slate-950" />
         </button>
         {user ? (
-          <UserIdentityBar email={user.email} role={user.role} agencyId={user.agencyId} />
+          <UserIdentityBar
+            email={user.email}
+            role={user.role}
+            agencyId={user.agencyId}
+            userId={user.userId}
+          />
         ) : null}
       </div>
     </header>

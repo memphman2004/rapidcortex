@@ -4,7 +4,7 @@ import { blockPsapRoutesForVerticalAgency } from "@/lib/venue/venue-psap-route-g
 
 type Props = { params: Promise<{ jurisdiction: string }> };
 
-/** Live dispatcher workspace — same surface as /dashboard so Operations → Dispatcher is a real destination. */
+/** Live dispatcher call-taking workspace (CAD). Ops overview is at /dashboard. */
 export default async function DispatcherRootPage({ params }: Props) {
   const { jurisdiction } = await params;
   await blockPsapRoutesForVerticalAgency(jurisdiction);

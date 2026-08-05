@@ -49,6 +49,7 @@ export default async function VenueDashboardPage({
       displayName={dashboardDisplayName(user)}
       userEmail={user.email ?? ""}
       userRole={user.role}
+      userId={user.userId}
     />
   );
 }

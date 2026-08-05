@@ -25,6 +25,11 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
+  cadPushGateMessage,
+  isCadPushBlockedByPictureStatus,
+  type PictureStatus,
+} from "rapid-cortex-shared";
+import {
   useCadWriteback,
   type WritebackFormValues,
 } from "@/hooks/use-cad-writeback";
@@ -137,6 +142,8 @@ export interface CadWritebackSlideOverProps {
     callerName?: string;
   };
   userRole?: string;
+  /** Field-confidence picture status — blocks submit when INCOMPLETE/CONFLICTED. */
+  pictureStatus?: PictureStatus | null;
 }
 
 // ─── Main component ───────────────────────────────────────────────────────────
@@ -147,12 +154,17 @@ export function CadWritebackSlideOver({
   incidentId,
   incident,
   userRole,
+  pictureStatus = null,
 }: CadWritebackSlideOverProps) {
   const { state, submit, retry, openPreflight } = useCadWriteback({
     incidentId,
     incident,
     onSubmitted: () => {},
   });
+
+  const pictureBlocked = isCadPushBlockedByPictureStatus(pictureStatus);
+  const pictureBlockMessage =
+    pictureBlocked && pictureStatus ? cadPushGateMessage(pictureStatus) : null;
 
   useEffect(() => {
     if (open) void openPreflight();
@@ -186,6 +198,7 @@ export function CadWritebackSlideOver({
   useKeyboardShortcut({ key: "Escape", enabled: open }, onClose);
 
   const handleSubmit = useCallback(async () => {
+    if (pictureBlocked) return;
     if (narrative.trim().length < 10) {
       setNarrativeError("Narrative must be at least 10 characters");
       return;
@@ -200,7 +213,7 @@ export function CadWritebackSlideOver({
       internalNotes: internalNotes.trim() || undefined,
     };
     await submit(values);
-  }, [narrative, attested, cadNatureCode, priority, units, internalNotes, submit]);
+  }, [narrative, attested, cadNatureCode, priority, units, internalNotes, submit, pictureBlocked]);
 
   const phase = state.phase;
   const isPending = phase === "pending";
@@ -490,18 +503,44 @@ export function CadWritebackSlideOver({
                 />
               </div>
 
+              {/* Picture-status gate */}
+              {pictureBlockMessage ? (
+                <div
+                  role="alert"
+                  style={{
+                    marginBottom: 14,
+                    padding: "10px 12px",
+                    background: V.redBg,
+                    border: `1px solid ${V.redBorder}`,
+                    borderRadius: 7,
+                    color: "#fca5a5",
+                    fontSize: 12,
+                    lineHeight: 1.5,
+                  }}
+                >
+                  {pictureBlockMessage}
+                  {pictureStatus ? (
+                    <div style={{ marginTop: 4, fontSize: 10, color: V.textMuted }}>
+                      Picture status: {pictureStatus}
+                    </div>
+                  ) : null}
+                </div>
+              ) : null}
+
               {/* Attestation */}
               <label style={{
                 display: "flex", gap: 10, alignItems: "flex-start",
                 padding: "12px 14px",
                 background: attested ? "#0a1a10" : V.amberBg,
                 border: `1px solid ${attested ? V.greenBorder : V.amberBorder}`,
-                borderRadius: 7, cursor: "pointer",
+                borderRadius: 7, cursor: pictureBlocked ? "not-allowed" : "pointer",
                 transition: "all 0.15s",
+                opacity: pictureBlocked ? 0.55 : 1,
               }}>
                 <input
                   type="checkbox"
                   checked={attested}
+                  disabled={pictureBlocked}
                   onChange={(e) => setAttested(e.target.checked)}
                   style={{ marginTop: 2, flexShrink: 0, accentColor: V.green }}
                 />
@@ -541,21 +580,23 @@ export function CadWritebackSlideOver({
             <div style={{ flex: 1 }} />
             <button
               type="button"
-              disabled={!attested || isSubmitting || narrative.trim().length < 10}
+              disabled={pictureBlocked || !attested || isSubmitting || narrative.trim().length < 10}
               onClick={() => void handleSubmit()}
               style={{
                 padding: "9px 22px",
-                background: attested && narrative.trim().length >= 10 && !isSubmitting
-                  ? V.amber : V.surfaceAlt,
-                border: `1px solid ${attested ? V.amberBorder : V.border}`,
+                background:
+                  !pictureBlocked && attested && narrative.trim().length >= 10 && !isSubmitting
+                    ? V.amber
+                    : V.surfaceAlt,
+                border: `1px solid ${!pictureBlocked && attested ? V.amberBorder : V.border}`,
                 borderRadius: 6,
-                color: attested && !isSubmitting ? "#0d0a00" : V.textMuted,
+                color: !pictureBlocked && attested && !isSubmitting ? "#0d0a00" : V.textMuted,
                 fontSize: 13, fontWeight: 800,
-                cursor: attested && !isSubmitting ? "pointer" : "not-allowed",
+                cursor: !pictureBlocked && attested && !isSubmitting ? "pointer" : "not-allowed",
                 minWidth: 150,
               }}
             >
-              {isSubmitting ? "Submitting…" : "Send to CAD"}
+              {pictureBlocked ? "Picture incomplete" : isSubmitting ? "Submitting…" : "Send to CAD"}
             </button>
           </div>
         )}
@@ -597,10 +638,12 @@ export function CadWritebackButton({
   incidentId,
   incident,
   userRole,
+  pictureStatus = null,
 }: {
   incidentId: string;
   incident?: CadWritebackSlideOverProps["incident"];
   userRole?: string;
+  pictureStatus?: PictureStatus | null;
 }) {
   const [open, setOpen] = useState(false);
   const enabled = isCadWritebackUiEnabled();
@@ -608,28 +651,37 @@ export function CadWritebackButton({
   if (!enabled) return null;
 
   const hasCadLink = !!incident?.cadIncidentId;
+  const pictureBlocked = isCadPushBlockedByPictureStatus(pictureStatus);
 
   return (
     <>
       <button
         type="button"
         onClick={() => setOpen(true)}
-        title={hasCadLink ? "Send update to CAD" : "No CAD incident linked"}
+        title={
+          pictureBlocked && pictureStatus
+            ? cadPushGateMessage(pictureStatus)
+            : hasCadLink
+              ? "Send update to CAD"
+              : "No CAD incident linked"
+        }
         style={{
           display: "inline-flex", alignItems: "center", gap: 7,
           padding: "8px 14px",
-          background: hasCadLink ? V.amberBg : V.surfaceAlt,
-          border: `1px solid ${hasCadLink ? V.amberBorder : V.border}`,
+          background: pictureBlocked ? V.redBg : hasCadLink ? V.amberBg : V.surfaceAlt,
+          border: `1px solid ${pictureBlocked ? V.redBorder : hasCadLink ? V.amberBorder : V.border}`,
           borderRadius: 6,
-          color: hasCadLink ? V.amberText : V.textMuted,
+          color: pictureBlocked ? "#fca5a5" : hasCadLink ? V.amberText : V.textMuted,
           fontSize: 12, fontWeight: 600, cursor: "pointer",
         }}
       >
         <span style={{ fontSize: 14 }}>↑</span>
         Send to CAD
-        {!hasCadLink && (
+        {pictureBlocked ? (
+          <span style={{ fontSize: 10, color: "#fca5a5" }}>({pictureStatus})</span>
+        ) : !hasCadLink ? (
           <span style={{ fontSize: 10, color: V.textMuted }}>(no link)</span>
-        )}
+        ) : null}
       </button>
 
       <CadWritebackSlideOver
@@ -638,6 +690,7 @@ export function CadWritebackButton({
         incidentId={incidentId}
         incident={incident}
         userRole={userRole}
+        pictureStatus={pictureStatus}
       />
     </>
   );

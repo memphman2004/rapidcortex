@@ -6,10 +6,10 @@ export function resolvePsapRole(role: string | undefined | null): string {
   return migrateLegacyRapidCortexRoleTokenValue(role?.trim() ?? "") ?? role?.trim() ?? "";
 }
 
-/** Dispatcher live workspace — spec section 2. */
+/** Dispatcher — overview home + live workspace. */
 export const DISPATCHER_OPS_NAV: readonly PsapNavItem[] = [
-  { path: "/dashboard", label: "Live workspace" },
-  { path: "/dispatcher", label: "Dispatcher" },
+  { path: "/dashboard", label: "Dashboard" },
+  { path: "/dispatcher", label: "Live workspace" },
   { path: "/intake", label: "Intake" },
   { path: "/triage", label: "Triage" },
   { path: "/transcription", label: "Transcription" },

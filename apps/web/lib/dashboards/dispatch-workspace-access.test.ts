@@ -6,7 +6,8 @@ import {
 
 describe("dispatch live workspace access", () => {
   it("identifies live ops paths", () => {
-    expect(isDispatchLiveWorkspaceSubpath("/dashboard")).toBe(true);
+    expect(isDispatchLiveWorkspaceSubpath("/dispatcher")).toBe(true);
+    expect(isDispatchLiveWorkspaceSubpath("/dashboard")).toBe(false);
     expect(isDispatchLiveWorkspaceSubpath("/transcription/live")).toBe(true);
     expect(isDispatchLiveWorkspaceSubpath("/history")).toBe(false);
     expect(isDispatchLiveWorkspaceSubpath("/admin")).toBe(false);

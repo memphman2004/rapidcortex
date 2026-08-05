@@ -15,6 +15,7 @@ export default async function VenueNotificationsPage({ params }: Props) {
       linkBase={linkBase}
       userEmail={user.email ?? ""}
       userRole={user.role}
+      userId={user.userId}
     >
       <VenueNotificationsPanel agencyId={agencyId} userRole={user.role} />
     </VenueOperationsShell>

@@ -38,6 +38,10 @@ import {
 } from "lucide-react";
 import { HelpChrome } from "@/components/help/help-chrome";
 import { CampusDashboardHeaderUtilities } from "@/components/campus/campus-dashboard-header-utilities";
+import { ThemeProvider, useThemeRoot } from "@/lib/theme/theme-context";
+import { ThemeToggle } from "@/components/ui/ThemeToggle";
+import { RapidCortexMap } from "@/components/maps/RapidCortexMap";
+import { venueIncidentsToMap } from "@/components/maps/map-incident-adapters";
 import { useAgencyWebSocket } from "@/hooks/use-agency-websocket";
 import { buildNavContext } from "@/lib/navigation/nav-context";
 import { filterRoleNavByFeatures } from "@/lib/navigation/filter-role-nav";
@@ -72,22 +76,30 @@ import {
   useVenueOpsData,
 } from "./use-venue-ops-data";
 import type { VenueIncident } from "@/app/venue/[venueCode]/_lib/venue-types";
+import { FIXTURE_ZONES } from "@/app/venue/[venueCode]/_lib/venue-fixtures";
+import {
+  consoleBgStorageKey,
+  loadConsoleBg,
+  removeLocalStorage,
+  writeAccountAvatar,
+  writeLocalStorage,
+} from "@/lib/account/account-picture";
 
 // ─── Design tokens (venue amber mockup) ───────────────────────────────────────
 
 const C = {
-  bg: "#09090f",
-  surface: "#0e0c1a",
+  bg: "var(--rc-bg)",
+  surface: "var(--rc-surface)",
   card: "rgba(255,255,255,0.032)",
   border: "rgba(255,255,255,0.07)",
   borderHard: "rgba(255,255,255,0.12)",
-  text: "#e4dff5",
-  textSub: "#7c6fa0",
-  textMuted: "#3d3460",
-  amber: "#f59e0b",
-  blue: "#3b82f6",
-  red: "#ef4444",
-  green: "#10b981",
+  text: "var(--rc-text-primary)",
+  textSub: "var(--rc-text-secondary)",
+  textMuted: "var(--rc-text-muted)",
+  amber: "var(--rc-amber)",
+  blue: "var(--rc-blue)",
+  red: "var(--rc-red)",
+  green: "var(--rc-green)",
   orange: "#f97316",
 } as const;
 
@@ -187,7 +199,7 @@ function card(extra: CSSProperties = {}): CSSProperties {
   };
 }
 
-function bgStorageKey(agencyId: string): string {
+function venueBgLegacyKey(agencyId: string): string {
   return `rc-venue-bg:${agencyId}`;
 }
 
@@ -294,31 +306,80 @@ function formatReportedTime(iso: string): string {
   });
 }
 
-function extractSectionCode(raw: string): string | null {
-  const digits = raw.match(/\d{2,3}/);
-  return digits?.[0] ?? null;
-}
-
 type SectionMapStatus = "clear" | "active" | "multiple";
 
+type SectionMapZone = {
+  /** Canonical zone/section code used for status lookup (e.g. S101, G-A, FIELD). */
+  id: string;
+  /** Short label rendered on the tile. */
+  label: string;
+};
+
+function normalizeZoneKey(raw: string): string {
+  return raw.trim().toUpperCase().replace(/\s+/g, " ");
+}
+
+function compactZoneKey(raw: string): string {
+  return normalizeZoneKey(raw).replace(/[\s_-]+/g, "");
+}
+
+/** Match an incident location string to a known zone id, if any. */
+function matchZoneId(
+  raw: string,
+  zones: SectionMapZone[],
+): string | null {
+  const key = normalizeZoneKey(raw);
+  const compact = compactZoneKey(raw);
+  if (!key) return null;
+
+  for (const z of zones) {
+    const zKey = normalizeZoneKey(z.id);
+    const zLabel = normalizeZoneKey(z.label);
+    if (key === zKey || key === zLabel) return z.id;
+    if (compact && compact === compactZoneKey(z.id)) return z.id;
+    if (compact && compact === compactZoneKey(z.label)) return z.id;
+  }
+
+  // "Section 101" / "101" → S101 when that zone exists
+  const digits = raw.match(/\d{2,4}/)?.[0];
+  if (digits) {
+    const asS = `S${digits}`;
+    const hit =
+      zones.find((z) => normalizeZoneKey(z.id) === asS) ??
+      zones.find((z) => normalizeZoneKey(z.id) === digits);
+    if (hit) return hit.id;
+  }
+
+  return null;
+}
+
+function statusFromCount(count: number): SectionMapStatus {
+  if (count >= 2) return "multiple";
+  if (count === 1) return "active";
+  return "clear";
+}
+
+function layoutRingPositions(
+  count: number,
+  cx: number,
+  cy: number,
+  rx: number,
+  ry: number,
+): Array<{ x: number; y: number }> {
+  if (count <= 0) return [];
+  return Array.from({ length: count }, (_, i) => {
+    const angle = -Math.PI / 2 + (2 * Math.PI * i) / count;
+    return { x: cx + rx * Math.cos(angle), y: cy + ry * Math.sin(angle) };
+  });
+}
+
 function StadiumMap({
+  zones,
   statusBySection,
 }: {
+  zones: SectionMapZone[];
   statusBySection: Record<string, SectionMapStatus>;
 }) {
-  const SECTIONS = [
-    { id: "101", x: 87, y: 25 },
-    { id: "102", x: 153, y: 25 },
-    { id: "103", x: 202, y: 52 },
-    { id: "104", x: 213, y: 95 },
-    { id: "105", x: 202, y: 138 },
-    { id: "106", x: 153, y: 165 },
-    { id: "107", x: 87, y: 165 },
-    { id: "108", x: 38, y: 138 },
-    { id: "109", x: 27, y: 95 },
-    { id: "110", x: 38, y: 52 },
-  ] as const;
-
   const SC = {
     clear: {
       fill: "rgba(16,185,129,0.12)",
@@ -340,30 +401,42 @@ function StadiumMap({
     },
   } as const;
 
+  const n = zones.length;
+  // Widen canvas slightly when many zones so labels stay readable.
+  const viewW = n > 14 ? 280 : 240;
+  const viewH = n > 14 ? 220 : 190;
+  const cx = viewW / 2;
+  const cy = (viewH - 18) / 2;
+  const rx = Math.min(viewW / 2 - 28, n > 14 ? 118 : 96);
+  const ry = Math.min(cy - 22, n > 14 ? 88 : 76);
+  const positions = layoutRingPositions(n, cx, cy, rx, ry);
+  const fontSize = n > 16 ? 6.5 : n > 12 ? 7.5 : 9;
+  const boxH = n > 16 ? 18 : 22;
+
   return (
     <svg
-      viewBox="0 0 240 190"
+      viewBox={`0 0 ${viewW} ${viewH}`}
       xmlns="http://www.w3.org/2000/svg"
       style={{ width: "100%", height: "auto", display: "block" }}
     >
-      <rect width="240" height="190" fill="#060810" rx="6" />
-      {[40, 80, 120, 160, 200].map((x) => (
+      <rect width={viewW} height={viewH} fill="#060810" rx="6" />
+      {[40, 80, 120, 160, 200, 240].filter((x) => x < viewW).map((x) => (
         <line
           key={`v${x}`}
           x1={x}
           y1="0"
           x2={x}
-          y2="190"
+          y2={viewH}
           stroke="rgba(255,255,255,0.025)"
           strokeWidth="1"
         />
       ))}
-      {[47, 95, 143].map((y) => (
+      {[47, 95, 143, 191].filter((y) => y < viewH).map((y) => (
         <line
           key={`h${y}`}
           x1="0"
           y1={y}
-          x2="240"
+          x2={viewW}
           y2={y}
           stroke="rgba(255,255,255,0.025)"
           strokeWidth="1"
@@ -371,21 +444,51 @@ function StadiumMap({
       ))}
 
       <ellipse
-        cx="120"
-        cy="95"
-        rx="96"
-        ry="76"
+        cx={cx}
+        cy={cy}
+        rx={rx}
+        ry={ry}
         fill="rgba(20,10,5,0.5)"
         stroke="rgba(245,158,11,0.1)"
         strokeWidth="1"
       />
-      <ellipse cx="120" cy="95" rx="52" ry="37" fill="#061208" stroke="#0f3a12" strokeWidth="1.5" />
-      <line x1="120" y1="58" x2="120" y2="132" stroke="#0d2a0e" strokeWidth="0.8" />
-      <line x1="68" y1="95" x2="172" y2="95" stroke="#0d2a0e" strokeWidth="0.8" />
-      <ellipse cx="120" cy="95" rx="28" ry="18" fill="none" stroke="#0d2a0e" strokeWidth="0.8" />
+      <ellipse
+        cx={cx}
+        cy={cy}
+        rx={Math.min(52, rx * 0.55)}
+        ry={Math.min(37, ry * 0.5)}
+        fill="#061208"
+        stroke="#0f3a12"
+        strokeWidth="1.5"
+      />
+      <line
+        x1={cx}
+        y1={cy - 37}
+        x2={cx}
+        y2={cy + 37}
+        stroke="#0d2a0e"
+        strokeWidth="0.8"
+      />
+      <line
+        x1={cx - 52}
+        y1={cy}
+        x2={cx + 52}
+        y2={cy}
+        stroke="#0d2a0e"
+        strokeWidth="0.8"
+      />
+      <ellipse
+        cx={cx}
+        cy={cy}
+        rx={28}
+        ry={18}
+        fill="none"
+        stroke="#0d2a0e"
+        strokeWidth="0.8"
+      />
       <text
-        x="120"
-        y="91"
+        x={cx}
+        y={cy - 4}
         textAnchor="middle"
         fill="#1a5020"
         fontSize="9"
@@ -395,8 +498,8 @@ function StadiumMap({
         FIELD
       </text>
       <text
-        x="120"
-        y="103"
+        x={cx}
+        y={cy + 8}
         textAnchor="middle"
         fill="#0f3010"
         fontSize="7"
@@ -405,48 +508,58 @@ function StadiumMap({
         EVENT AREA
       </text>
 
-      {SECTIONS.map((s) => {
-        const status = statusBySection[s.id] ?? "clear";
+      {zones.map((zone, i) => {
+        const pos = positions[i];
+        if (!pos) return null;
+        const status = statusBySection[zone.id] ?? "clear";
         const sc = SC[status];
+        const label = zone.label.length > 7 ? zone.label.slice(0, 6) : zone.label;
+        const boxW = Math.max(34, 10 + label.length * (fontSize * 0.62) + 12);
         return (
-          <g key={s.id}>
+          <g key={zone.id}>
+            <title>{`${zone.label}: ${status}`}</title>
             <rect
-              x={s.x - 17}
-              y={s.y - 11}
-              width="34"
-              height="22"
+              x={pos.x - boxW / 2}
+              y={pos.y - boxH / 2}
+              width={boxW}
+              height={boxH}
               rx="4"
               fill={sc.fill}
               stroke={sc.stroke}
               strokeWidth="1.2"
             />
             <text
-              x={s.x - 4}
-              y={s.y + 2}
+              x={pos.x - 4}
+              y={pos.y + fontSize * 0.35}
               textAnchor="middle"
               fill={sc.text}
-              fontSize="9"
+              fontSize={fontSize}
               fontWeight="700"
               fontFamily="inherit"
             >
-              {s.id}
+              {label}
             </text>
-            <circle cx={s.x + 11} cy={s.y - 1} r="3.5" fill={sc.dot} />
+            <circle
+              cx={pos.x + boxW / 2 - 7}
+              cy={pos.y - 1}
+              r="3.5"
+              fill={sc.dot}
+            />
           </g>
         );
       })}
 
       <g>
-        <circle cx="14" cy="180" r="3.5" fill="#10b981" />
-        <text x="21" y="183" fill="#3d3460" fontSize="7.5" fontFamily="inherit">
+        <circle cx="14" cy={viewH - 10} r="3.5" fill="#10b981" />
+        <text x="21" y={viewH - 7} fill="#3d3460" fontSize="7.5" fontFamily="inherit">
           Clear
         </text>
-        <circle cx="52" cy="180" r="3.5" fill="#f59e0b" />
-        <text x="59" y="183" fill="#3d3460" fontSize="7.5" fontFamily="inherit">
+        <circle cx="52" cy={viewH - 10} r="3.5" fill="#f59e0b" />
+        <text x="59" y={viewH - 7} fill="#3d3460" fontSize="7.5" fontFamily="inherit">
           Active
         </text>
-        <circle cx="93" cy="180" r="3.5" fill="#ef4444" />
-        <text x="100" y="183" fill="#3d3460" fontSize="7.5" fontFamily="inherit">
+        <circle cx="93" cy={viewH - 10} r="3.5" fill="#ef4444" />
+        <text x="100" y={viewH - 7} fill="#3d3460" fontSize="7.5" fontFamily="inherit">
           Multiple
         </text>
       </g>
@@ -463,6 +576,8 @@ export type VenueConsoleHomeProps = {
   displayName: string;
   userEmail?: string;
   userRole?: string;
+  /** Cognito user id — scopes welcome image per account. */
+  userId?: string;
 };
 
 type ModalTab = "presets" | "url" | "upload";
@@ -492,13 +607,22 @@ type QuickActionDef =
 
 // ─── Main ─────────────────────────────────────────────────────────────────────
 
-export function VenueConsoleHome({
+export function VenueConsoleHome(props: VenueConsoleHomeProps) {
+  return (
+    <ThemeProvider storageKey="rc-theme-venue">
+      <VenueConsoleHomeInner {...props} />
+    </ThemeProvider>
+  );
+}
+
+function VenueConsoleHomeInner({
   agencyId,
   venueCode,
   venueName,
   displayName,
   userEmail,
   userRole,
+  userId = "",
 }: VenueConsoleHomeProps) {
   const pathname = usePathname() ?? "";
   const codeUpper = venueCode.toUpperCase();
@@ -543,7 +667,9 @@ export function VenueConsoleHome({
   const [notifyOpen, setNotifyOpen] = useState(false);
   const [broadcastOpen, setBroadcastOpen] = useState(false);
   const [activeIncident, setActiveIncident] = useState<VenueActiveIncidentPanel | null>(null);
+  const [selectedMapIncident, setSelectedMapIncident] = useState<string | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
+  const { rootRef } = useThemeRoot<HTMLDivElement>();
 
   useEffect(() => {
     const id = window.setInterval(() => setNow(new Date()), 30_000);
@@ -551,13 +677,18 @@ export function VenueConsoleHome({
   }, []);
 
   useEffect(() => {
-    try {
-      const stored = window.localStorage.getItem(bgStorageKey(agencyId));
-      setCustomBg(stored);
-    } catch {
+    if (!userId) {
       setCustomBg(null);
+      return;
     }
-  }, [agencyId]);
+    setCustomBg(
+      loadConsoleBg({
+        userId,
+        keyed: consoleBgStorageKey("venue", userId, agencyId),
+        legacyKey: venueBgLegacyKey(agencyId),
+      }),
+    );
+  }, [agencyId, userId]);
 
   const currentBg = customBg ?? DEFAULT_VENUE_BG;
   const hasCustomBg = Boolean(customBg);
@@ -566,26 +697,25 @@ export function VenueConsoleHome({
   const applyBg = useCallback(
     (url: string) => {
       setCustomBg(url);
-      try {
-        window.localStorage.setItem(bgStorageKey(agencyId), url);
-      } catch {
-        /* ignore quota / private mode */
+      if (userId) {
+        writeLocalStorage(consoleBgStorageKey("venue", userId, agencyId), url);
+        if (url.startsWith("data:") || url.startsWith("http")) {
+          writeAccountAvatar(userId, url);
+        }
       }
       setShowModal(false);
       setUrlInput("");
     },
-    [agencyId],
+    [agencyId, userId],
   );
 
   const resetBg = useCallback(() => {
     setCustomBg(null);
-    try {
-      window.localStorage.removeItem(bgStorageKey(agencyId));
-    } catch {
-      /* ignore */
+    if (userId) {
+      removeLocalStorage(consoleBgStorageKey("venue", userId, agencyId));
     }
     setShowModal(false);
-  }, [agencyId]);
+  }, [agencyId, userId]);
 
   const handleFile = (e: ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -658,63 +788,84 @@ export function VenueConsoleHome({
     [incidents],
   );
 
+  const mapIncidents = useMemo(() => venueIncidentsToMap(openIncidents), [openIncidents]);
+
+  const mapZones = useMemo((): SectionMapZone[] => {
+    if (sections.length > 0) {
+      return sections.map((s) => ({
+        id: s.sectionId,
+        label: s.sectionId || s.sectionName,
+      }));
+    }
+    const fixtures = FIXTURE_ZONES.filter(
+      (z) => !codeUpper || z.venueCode.toUpperCase() === codeUpper,
+    );
+    const source = fixtures.length > 0 ? fixtures : FIXTURE_ZONES;
+    return source.map((z) => ({ id: z.code, label: z.code }));
+  }, [sections, codeUpper]);
+
   const sectionIncidentCounts = useMemo(() => {
     const counts = new Map<string, number>();
+    for (const z of mapZones) counts.set(z.id, 0);
+
     for (const s of sections) {
-      const code = extractSectionCode(s.sectionId) ?? extractSectionCode(s.sectionName);
-      if (code) counts.set(code, (counts.get(code) ?? 0) + (s.incidentCount ?? 0));
+      const id =
+        mapZones.find((z) => normalizeZoneKey(z.id) === normalizeZoneKey(s.sectionId))?.id ??
+        s.sectionId;
+      if (!counts.has(id)) counts.set(id, 0);
+      counts.set(id, Math.max(counts.get(id) ?? 0, s.incidentCount ?? 0));
     }
+
+    const live = new Map<string, number>();
     for (const inc of openIncidents) {
-      const code =
-        extractSectionCode(inc.zoneCode) ??
-        extractSectionCode(inc.zoneLabel) ??
-        extractSectionCode(inc.qrLocationName ?? "");
-      if (!code) continue;
-      if (!counts.has(code)) counts.set(code, 0);
-      // Prefer live open-incident tally when section API has no match
-      if ((counts.get(code) ?? 0) === 0) {
-        counts.set(code, (counts.get(code) ?? 0) + 1);
+      const matched =
+        matchZoneId(inc.zoneCode, mapZones) ??
+        matchZoneId(inc.zoneLabel, mapZones) ??
+        (inc.qrLocationName ? matchZoneId(inc.qrLocationName, mapZones) : null);
+      if (!matched) continue;
+      live.set(matched, (live.get(matched) ?? 0) + 1);
+    }
+    for (const [id, n] of live) {
+      counts.set(id, Math.max(counts.get(id) ?? 0, n));
+    }
+
+    // When dashboard sections API is empty, mirror fixture zone incident counts
+    // so overview colors match the Zones table.
+    if (sections.length === 0) {
+      for (const z of FIXTURE_ZONES) {
+        if (codeUpper && z.venueCode.toUpperCase() !== codeUpper) continue;
+        const id =
+          mapZones.find((m) => normalizeZoneKey(m.id) === normalizeZoneKey(z.code))?.id ??
+          z.code;
+        if (!counts.has(id)) continue;
+        counts.set(id, Math.max(counts.get(id) ?? 0, z.activeIncidents));
       }
     }
+
     return counts;
-  }, [sections, openIncidents]);
+  }, [mapZones, sections, openIncidents, codeUpper]);
 
   const statusBySection = useMemo(() => {
     const out: Record<string, SectionMapStatus> = {};
-    for (const [code, count] of sectionIncidentCounts) {
-      if (count >= 2) out[code] = "multiple";
-      else if (count === 1) out[code] = "active";
-      else out[code] = "clear";
+    for (const z of mapZones) {
+      out[z.id] = statusFromCount(sectionIncidentCounts.get(z.id) ?? 0);
     }
     return out;
-  }, [sectionIncidentCounts]);
+  }, [mapZones, sectionIncidentCounts]);
 
   const sectionSummary = useMemo(() => {
-    const total = sections.length > 0 ? sections.length : 48;
+    const total = mapZones.length;
     let clear = 0;
     let active = 0;
     let multiple = 0;
-
-    if (sections.length > 0) {
-      for (const s of sections) {
-        const n = s.incidentCount ?? 0;
-        if (n >= 2) multiple += 1;
-        else if (n === 1) active += 1;
-        else clear += 1;
-      }
-    } else {
-      // Fallback: derive from map tiles when sections API is empty
-      const codes = ["101", "102", "103", "104", "105", "106", "107", "108", "109", "110"];
-      for (const code of codes) {
-        const n = sectionIncidentCounts.get(code) ?? 0;
-        if (n >= 2) multiple += 1;
-        else if (n === 1) active += 1;
-        else clear += 1;
-      }
+    for (const z of mapZones) {
+      const n = sectionIncidentCounts.get(z.id) ?? 0;
+      if (n >= 2) multiple += 1;
+      else if (n === 1) active += 1;
+      else clear += 1;
     }
-
     return { total, clear, active, multiple };
-  }, [sections, sectionIncidentCounts]);
+  }, [mapZones, sectionIncidentCounts]);
 
   const kpiIncidents = stats?.activeIncidents ?? openIncidents.length;
   const kpiStaff = stats?.securityOnDuty ?? onDuty.length;
@@ -893,6 +1044,8 @@ export function VenueConsoleHome({
   return (
     <HelpChrome role={userRole ?? "VENUE_SECURITY"}>
       <div
+        ref={rootRef}
+        data-theme="dark"
         style={{
           display: "flex",
           height: "100vh",
@@ -1088,7 +1241,9 @@ export function VenueConsoleHome({
                   width: 30,
                   height: 30,
                   borderRadius: "50%",
-                  background: "linear-gradient(135deg,#92400e,#b45309)",
+                  background: customBg
+                    ? `center / cover no-repeat url(${JSON.stringify(customBg)})`
+                    : "linear-gradient(135deg,#92400e,#b45309)",
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
@@ -1096,9 +1251,11 @@ export function VenueConsoleHome({
                   fontWeight: 700,
                   color: "#fff",
                   flexShrink: 0,
+                  overflow: "hidden",
                 }}
+                aria-hidden={Boolean(customBg)}
               >
-                {initialsFromName(displayName)}
+                {customBg ? null : initialsFromName(displayName)}
               </div>
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div
@@ -1316,6 +1473,8 @@ export function VenueConsoleHome({
                   email={userEmail}
                   role={userRole}
                   agencyId={agencyId}
+                  userId={userId}
+                  leadingSlot={<ThemeToggle variant="inline" />}
                 />
               </div>
             </header>
@@ -1351,7 +1510,7 @@ export function VenueConsoleHome({
               ) : null}
 
               {/* Hero */}
-              <div style={{ position: "relative", height: 288, overflow: "hidden", flexShrink: 0 }}>
+              <div style={{ position: "relative", height: 330, overflow: "hidden", flexShrink: 0 }}>
                 <div
                   style={{
                     position: "absolute",
@@ -1386,7 +1545,7 @@ export function VenueConsoleHome({
                     display: "flex",
                     flexDirection: "column",
                     justifyContent: "space-between",
-                    padding: "22px 18px 0",
+                    padding: "22px 18px 16px",
                   }}
                 >
                   <div>
@@ -1418,7 +1577,6 @@ export function VenueConsoleHome({
                       display: "grid",
                       gridTemplateColumns: "repeat(4,1fr)",
                       gap: 10,
-                      marginBottom: -22,
                     }}
                   >
                     {kpiCards.map((s) => (
@@ -1536,7 +1694,7 @@ export function VenueConsoleHome({
                   }}
                 >
                   <Camera size={13} color={C.text} strokeWidth={1.7} />
-                  Change Venue Image
+                  Change My Image
                   {hasCustomBg ? (
                     <span
                       style={{
@@ -1880,8 +2038,55 @@ export function VenueConsoleHome({
                     ) : null}
                   </div>
                   <div style={{ padding: "4px 10px 12px" }}>
-                    <StadiumMap statusBySection={statusBySection} />
+                    <StadiumMap zones={mapZones} statusBySection={statusBySection} />
                   </div>
+                </div>
+              </div>
+
+              {/* Operational Map */}
+              <div style={{ padding: "0 16px 12px" }}>
+                <div
+                  style={{
+                    ...card(),
+                    overflow: "hidden",
+                    height: 400,
+                  }}
+                >
+                  <div
+                    style={{
+                      padding: "10px 14px",
+                      borderBottom: `1px solid ${C.border}`,
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 6,
+                    }}
+                  >
+                    <MapPin size={13} color={C.textSub} />
+                    <span
+                      style={{
+                        fontSize: 12,
+                        fontWeight: 700,
+                        color: C.textSub,
+                        letterSpacing: "0.05em",
+                      }}
+                    >
+                      OPERATIONAL MAP
+                    </span>
+                  </div>
+                  <RapidCortexMap
+                    incidents={mapIncidents}
+                    selectedIncidentId={selectedMapIncident}
+                    onIncidentClick={(inc) => setSelectedMapIncident(inc.id)}
+                    vertical="venue"
+                    height="352px"
+                    showLayerControl
+                    defaultLayers={{
+                      venueZones: true,
+                      agencyZones: false,
+                      counties: false,
+                      activeIncidents: true,
+                    }}
+                  />
                 </div>
               </div>
 

@@ -97,7 +97,7 @@ export class PricingAdminService {
   }
 
   async getGlobal(user: UserContext) {
-    authz.assertCanPerform(user, "billing.revenue_view");
+    authz.assertCanPerform(user, "billing.manage");
     this.assertTablesConfigured();
     const row = await globalRepo.getGlobal();
     const overrides = row?.overrides ?? {};
@@ -149,7 +149,7 @@ export class PricingAdminService {
   }
 
   async listTenants(user: UserContext): Promise<{ tenants: TenantPricingSummary[] }> {
-    authz.assertCanPerform(user, "billing.revenue_view");
+    authz.assertCanPerform(user, "billing.manage");
     this.assertTablesConfigured();
     const rows = await tenantRepo.listAll();
     const tenants: TenantPricingSummary[] = [];
@@ -169,7 +169,7 @@ export class PricingAdminService {
   }
 
   async getTenant(user: UserContext, agencyId: string) {
-    authz.assertCanPerform(user, "billing.revenue_view");
+    authz.assertCanPerform(user, "billing.manage");
     this.assertTablesConfigured();
 
     const agency = await agencies.get(agencyId);
@@ -198,7 +198,7 @@ export class PricingAdminService {
     changes: PricingOverrides,
     reason: string,
   ) {
-    authz.assertCanPerform(user, "billing.manage");
+    authz.assertCanPerform(user, "billing.revenue_view");
     this.assertTablesConfigured();
 
     const agency = await agencies.get(agencyId);
@@ -243,7 +243,7 @@ export class PricingAdminService {
   }
 
   async deleteTenant(user: UserContext, agencyId: string, reason: string) {
-    authz.assertCanPerform(user, "billing.manage");
+    authz.assertCanPerform(user, "billing.revenue_view");
     this.assertTablesConfigured();
 
     const agency = await agencies.get(agencyId);
@@ -287,7 +287,7 @@ export class PricingAdminService {
     user: UserContext,
     params: { scope?: string; agencyId?: string; limit?: number; before?: string },
   ) {
-    authz.assertCanPerform(user, "billing.revenue_view");
+    authz.assertCanPerform(user, "billing.manage");
     this.assertTablesConfigured();
     return auditRepo.query(params);
   }

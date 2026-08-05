@@ -1773,6 +1773,69 @@ Resources:
         ImportedCognitoIssuer: !GetAtt AppSamStackV2.Outputs.CognitoIssuer
         ImportedOpsAlertsTopicArn: !GetAtt AppSamStackV2.Outputs.OpsAlertsTopicArn
 
+  # Surgical RC Admin PSAP Prospect CRM routes on AppSam3 HttpApi
+  # (list/stats/export/map-pins/get/patch/activities). Separate nested stack so
+  # CRM can ship without a full AppSam3Stack redeploy.
+  AppSamPsapCrmStack:
+    Type: AWS::CloudFormation::Stack
+    Metadata:
+      cfn-lint:
+        config:
+          ignore_checks:
+            - W3005
+    DependsOn: AppSam3Stack
+    Properties:
+      TimeoutInMinutes: 60
+      TemplateURL: nested/stack-app-sam-3-psap-crm.yaml
+      Parameters:
+        DeploymentStage: !Ref DeploymentStage
+        HttpApiId: !GetAtt AppSam3Stack.Outputs.HttpApiId
+        # Empty = routes without gateway JWT (Lambda still validates via getUserContext).
+        HttpApiJwtAuthorizerId: ""
+        PsapProspectsTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.PsapProspectsTable
+            - !Sub "${DynamoTableNamePrefix}-psap-prospects-${DeploymentStage}"
+        AuditTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.AuditTable
+            - !Sub "${DynamoTableNamePrefix}-audit-${DeploymentStage}"
+        AgenciesTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.AgenciesTable
+            - !Sub "${DynamoTableNamePrefix}-agencies-${DeploymentStage}"
+        IncidentsTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.IncidentsTable
+            - !Sub "${DynamoTableNamePrefix}-incidents-${DeploymentStage}"
+        TranscriptsTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.TranscriptsTable
+            - !Sub "${DynamoTableNamePrefix}-transcripts-${DeploymentStage}"
+        AnalysesTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.AnalysesTable
+            - !Sub "${DynamoTableNamePrefix}-analyses-${DeploymentStage}"
+        InvitesTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.InvitesTable
+            - !Sub "${DynamoTableNamePrefix}-invites-${DeploymentStage}"
+        AssetsBucket:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.AssetsBucket
+            - !Sub "${DynamoTableNamePrefix}-assets-${DeploymentStage}-${AWS::AccountId}"
+        ImportedCognitoUserPoolId: !GetAtt AppSamStackV2.Outputs.UserPoolId
+        ImportedCognitoWebClientId: !GetAtt AppSamStackV2.Outputs.UserPoolClientId
+        ManagedPolicyNamePrefix: !Ref AWS::StackName
+
   AppSam4Stack:
     Type: AWS::CloudFormation::Stack
     Properties:
@@ -2616,7 +2679,9 @@ Resources:
         config:
           ignore_checks:
             - W3005
-    DependsOn: AppSam2Stack
+    DependsOn:
+      - AppSam2Stack
+      - AppSamRealtime2Stack
     Properties:
       TimeoutInMinutes: 60
       TemplateURL: nested/stack-app-sam-2-rcs.yaml
@@ -2680,6 +2745,16 @@ Resources:
             - !Sub "${DynamoTableNamePrefix}-assets-${DeploymentStage}-${AWS::AccountId}"
         OpsAlertsTopicArn: !GetAtt AppSam2Stack.Outputs.OpsAlertsTopicArn
         ManagedPolicyNamePrefix: !Ref AWS::StackName
+        WebSocketConnectionsTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.WebSocketConnectionsTable
+            - !Sub "${DynamoTableNamePrefix}-websocket-connections-${DeploymentStage}"
+        WebSocketApiEndpoint: !Sub
+          - "https://${ApiId}.execute-api.${AWS::Region}.amazonaws.com/${DeploymentStage}"
+          - ApiId: !GetAtt AppSamRealtime2Stack.Outputs.WebSocketApiId
+        WebSocketApiId: !GetAtt AppSamRealtime2Stack.Outputs.WebSocketApiId
+        AnthropicApiKeySecretArn: !Ref AnthropicApiKeySecretArn
 
   AppSamNg911Stack2:
     Type: AWS::CloudFormation::Stack

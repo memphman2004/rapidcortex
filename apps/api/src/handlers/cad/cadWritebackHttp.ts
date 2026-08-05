@@ -2,11 +2,14 @@ import type { APIGatewayProxyHandlerV2 } from "aws-lambda";
 import { PublishCommand, SNSClient } from "@aws-sdk/client-sns";
 import { AUDIT_EVENT_TYPES, AuthorizationService } from "rapid-cortex-security";
 import {
+  cadPushGateMessage,
   cadWritebackApprovalBodySchema,
   cadWritebackBodySchema,
+  isCadPushBlockedByPictureStatus,
   isRcsuperadmin,
   type CadWritebackAuditRecord,
   type CadWritebackBody,
+  type PictureStatus,
   type UserContext,
 } from "rapid-cortex-shared";
 import { ACCOUNT_INACTIVE_MESSAGE, getUserContext, isUserAccountActive } from "../../lib/auth.js";
@@ -17,6 +20,7 @@ import { AuditRepository } from "../../repositories/auditRepository.js";
 import { CadIntegrationRepository, type CadIntegrationRecord } from "../../repositories/cadIntegrationRepository.js";
 import { CadWritebackAuditRepository } from "../../repositories/cadWritebackAuditRepository.js";
 import { IncidentRepository } from "../../repositories/incidentRepository.js";
+import { FieldConfidenceService } from "../../services/fieldConfidenceService.js";
 import { incidentTimelineLogger } from "../../lib/incidentTimelineLogger.js";
 import { requireAddon } from "../../middleware/requireAddon.js";
 import {
@@ -36,8 +40,38 @@ const incidentsRepo = new IncidentRepository();
 const integrationRepo = new CadIntegrationRepository();
 const writebackAuditRepo = new CadWritebackAuditRepository();
 const auditRepo = new AuditRepository();
+const fieldConfidenceService = new FieldConfidenceService();
 const sns = new SNSClient({ region: env.region });
 const requireCadAddon = requireAddon("cad.");
+
+/**
+ * When field confidence + CAD confidence gate are on, block push for INCOMPLETE/CONFLICTED.
+ * No analysis yet → allow (first segments / flag off).
+ */
+async function assertCadConfidenceGate(
+  incidentId: string,
+  user: UserContext,
+): Promise<{ blocked: true; pictureStatus: PictureStatus; message: string } | { blocked: false }> {
+  if (!env.enableFieldConfidence || !env.enableCadConfidenceGate) {
+    return { blocked: false };
+  }
+  try {
+    const analysis = await fieldConfidenceService.getLatest(incidentId, user);
+    const pictureStatus = analysis?.aggregate?.pictureStatus;
+    if (!isCadPushBlockedByPictureStatus(pictureStatus) || !pictureStatus) {
+      return { blocked: false };
+    }
+    return {
+      blocked: true,
+      pictureStatus,
+      message: cadPushGateMessage(pictureStatus),
+    };
+  } catch {
+    // FORBIDDEN / infra errors: fail open on the confidence gate so CAD ops still work;
+    // RBAC on the writeback path already enforced agency scope.
+    return { blocked: false };
+  }
+}
 
 function cors204() {
   return {
@@ -160,6 +194,35 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
       const cadIncidentId = incident.cadIncidentId?.trim();
       if (!cadIncidentId) {
         return badRequest("Incident must have a CAD incident ID for write-back");
+      }
+
+      const confidenceGate = await assertCadConfidenceGate(incidentId, user);
+      if (confidenceGate.blocked) {
+        const now = new Date().toISOString();
+        await auditRepo.create({
+          eventId: makeId("aud"),
+          agencyId: user.agencyId,
+          actorId: user.userId,
+          incidentId,
+          type: AUDIT_EVENT_TYPES.CAD_WRITEBACK_BLOCKED,
+          details: {
+            reason: "picture_status",
+            pictureStatus: confidenceGate.pictureStatus,
+            message: confidenceGate.message,
+          },
+          createdAt: now,
+          resourceType: "incident",
+          resourceId: incidentId,
+        });
+        return jsonStatus(
+          {
+            ok: false,
+            status: "blocked",
+            error: confidenceGate.message,
+            pictureStatus: confidenceGate.pictureStatus,
+          },
+          409,
+        );
       }
 
       const integrations = await integrationRepo.listByAgency(user.agencyId);
@@ -301,6 +364,37 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
       if (!incident || incident.agencyId !== user.agencyId) return notFound();
       const cadIncidentId = incident.cadIncidentId?.trim();
       if (!cadIncidentId) return badRequest("Incident no longer has a CAD incident ID");
+
+      const confidenceGate = await assertCadConfidenceGate(record.incidentId, user);
+      if (confidenceGate.blocked) {
+        const blockedAt = new Date().toISOString();
+        await auditRepo.create({
+          eventId: makeId("aud"),
+          agencyId: user.agencyId,
+          actorId: user.userId,
+          incidentId: record.incidentId,
+          type: AUDIT_EVENT_TYPES.CAD_WRITEBACK_BLOCKED,
+          details: {
+            reason: "picture_status",
+            phase: "approve",
+            writebackId: id,
+            pictureStatus: confidenceGate.pictureStatus,
+            message: confidenceGate.message,
+          },
+          createdAt: blockedAt,
+          resourceType: "incident",
+          resourceId: record.incidentId,
+        });
+        return jsonStatus(
+          {
+            ok: false,
+            status: "blocked",
+            error: confidenceGate.message,
+            pictureStatus: confidenceGate.pictureStatus,
+          },
+          409,
+        );
+      }
 
       const adapter = getCadWriteAdapter(integration.vendor);
       const cfg = integrationConfigStrings(integration.config);

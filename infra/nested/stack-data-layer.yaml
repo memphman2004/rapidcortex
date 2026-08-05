@@ -2706,6 +2706,116 @@
         ]
       }
     },
+    "PsapProspectsTable": {
+      "Type": "AWS::DynamoDB::Table",
+      "DeletionPolicy": "Retain",
+      "UpdateReplacePolicy": "Retain",
+      "Properties": {
+        "BillingMode": {
+          "Ref": "DynamoBillingMode"
+        },
+        "TableName": {
+          "Fn::If": [
+            "HasDynamoTablePrefix",
+            {
+              "Fn::Sub": "${DynamoTableNamePrefix}-psap-prospects-${DeploymentStage}"
+            },
+            {
+              "Ref": "AWS::NoValue"
+            }
+          ]
+        },
+        "PointInTimeRecoverySpecification": {
+          "PointInTimeRecoveryEnabled": {
+            "Fn::If": [
+              "DynamoPitrOn",
+              true,
+              false
+            ]
+          }
+        },
+        "AttributeDefinitions": [
+          {
+            "AttributeName": "psapId",
+            "AttributeType": "S"
+          },
+          {
+            "AttributeName": "state",
+            "AttributeType": "S"
+          },
+          {
+            "AttributeName": "outreachStatus",
+            "AttributeType": "S"
+          },
+          {
+            "AttributeName": "updatedAt",
+            "AttributeType": "S"
+          },
+          {
+            "AttributeName": "phone",
+            "AttributeType": "S"
+          }
+        ],
+        "KeySchema": [
+          {
+            "AttributeName": "psapId",
+            "KeyType": "HASH"
+          }
+        ],
+        "GlobalSecondaryIndexes": [
+          {
+            "IndexName": "StateUpdatedIndex",
+            "KeySchema": [
+              {
+                "AttributeName": "state",
+                "KeyType": "HASH"
+              },
+              {
+                "AttributeName": "updatedAt",
+                "KeyType": "RANGE"
+              }
+            ],
+            "Projection": {
+              "ProjectionType": "ALL"
+            }
+          },
+          {
+            "IndexName": "StatusUpdatedIndex",
+            "KeySchema": [
+              {
+                "AttributeName": "outreachStatus",
+                "KeyType": "HASH"
+              },
+              {
+                "AttributeName": "updatedAt",
+                "KeyType": "RANGE"
+              }
+            ],
+            "Projection": {
+              "ProjectionType": "ALL"
+            }
+          },
+          {
+            "IndexName": "PhoneIndex",
+            "KeySchema": [
+              {
+                "AttributeName": "phone",
+                "KeyType": "HASH"
+              }
+            ],
+            "Projection": {
+              "ProjectionType": "KEYS_ONLY"
+            }
+          }
+        ],
+        "Tags": [
+          {
+            "Key": "Component",
+            "Value": "psap-crm"
+          }
+        ]
+      }
+    },
     "MarketingLeadsTable": {
       "Type": "AWS::DynamoDB::Table",
       "DeletionPolicy": "Retain",
@@ -6045,6 +6155,12 @@
       "Description": "Physical table name for SalesLeadsTable",
       "Value": {
         "Ref": "SalesLeadsTable"
+      }
+    },
+    "PsapProspectsTable": {
+      "Description": "Physical table name for PsapProspectsTable (RC Admin outbound PSAP CRM)",
+      "Value": {
+        "Ref": "PsapProspectsTable"
       }
     },
     "MarketingLeadsTable": {

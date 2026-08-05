@@ -14,6 +14,7 @@ export default async function VenueGuestReportsPage({ params }: Props) {
       venueName={venueName}
       userEmail={user.email ?? ""}
       userRole={user.role}
+      userId={user.userId}
     >
       <VenueGuestReportsPanel agencyId={agencyId} />
     </VenueGuestServicesPageFrame>

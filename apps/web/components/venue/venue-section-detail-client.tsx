@@ -13,13 +13,6 @@ import {
   mapVenueIncidentType,
 } from "./use-venue-ops-data";
 
-const V = {
-  surface: "#141220",
-  border: "#1e1a30",
-  amber: "#f59e0b",
-  text: "#e4dff5",
-  muted: "#5a4d7a",
-};
 
 export function VenueSectionDetailClient({
   agencyId,
@@ -105,7 +98,7 @@ export function VenueSectionDetailClient({
 
   return (
     <div style={{ padding: 14 }}>
-      <Link href={`${linkBase}/sections`} style={{ color: "#7c6fa0", fontSize: 12, textDecoration: "none" }}>
+      <Link href={`${linkBase}/sections`} style={{ color: "var(--rc-text-secondary)", fontSize: 12, textDecoration: "none" }}>
         ← Sections
       </Link>
       <h2 style={{ fontSize: 16, fontWeight: 700, margin: "12px 0 4px", color: V.text }}>
@@ -213,14 +206,14 @@ function SectionBlock({
   children: React.ReactNode;
 }) {
   return (
-    <div style={{ background: V.surface, border: `1px solid ${V.border}`, borderRadius: 8 }}>
+    <div style={{ background: "var(--rc-surface)", border: `1px solid var(--rc-border)`, borderRadius: 8 }}>
       <div
         style={{
           padding: "10px 12px",
-          borderBottom: `1px solid ${V.border}`,
+          borderBottom: `1px solid var(--rc-border)`,
           fontSize: 11,
           fontWeight: 700,
-          color: "#7c6fa0",
+          color: "var(--rc-text-secondary)",
           letterSpacing: "0.05em",
         }}
       >
@@ -235,15 +228,15 @@ function Row({ primary, secondary, meta }: { primary: string; secondary: string;
   return (
     <div
       style={{
-        background: "#100e1a",
-        border: `1px solid ${V.border}`,
+        background: "var(--rc-surface)",
+        border: `1px solid var(--rc-border)`,
         borderRadius: 6,
         padding: "8px 10px",
       }}
     >
       <div style={{ fontSize: 12, fontWeight: 600, color: V.text }}>{primary}</div>
       <div style={{ fontSize: 11, color: V.muted, marginTop: 2 }}>{secondary}</div>
-      <div style={{ fontSize: 10, color: V.amber, marginTop: 4 }}>{meta}</div>
+      <div style={{ fontSize: 10, color: "var(--rc-amber)", marginTop: 4 }}>{meta}</div>
     </div>
   );
 }

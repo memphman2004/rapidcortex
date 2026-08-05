@@ -358,7 +358,7 @@ export class AgencyService {
         name: agency.name,
         type: agency.type,
         status: agency.status,
-        vertical: agency.vertical,
+        vertical: resolveAgencyVerticalFromTenant(agency),
         state: agency.state,
         city: agency.city,
         region: agency.region,

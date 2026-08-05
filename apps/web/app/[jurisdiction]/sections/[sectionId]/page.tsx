@@ -16,6 +16,7 @@ export default async function VenueSectionDetailPage({ params }: Props) {
       linkBase={linkBase}
       userEmail={user.email ?? ""}
       userRole={user.role}
+      userId={user.userId}
     >
       <VenueSectionDetailClient
         agencyId={agencyId}

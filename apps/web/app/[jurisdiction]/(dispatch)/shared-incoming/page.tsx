@@ -34,7 +34,7 @@ export default function SharedIncomingIncidentsPage() {
             </div>
             <Link
               className="rounded bg-sky-900/40 px-3 py-1 text-xs font-medium text-sky-100 hover:bg-sky-800/50"
-              href={`${to("/dashboard")}?incident=${encodeURIComponent(incident.incidentId)}`}
+              href={`${to("/dispatcher")}?incident=${encodeURIComponent(incident.incidentId)}`}
             >
               Open read-only workspace
             </Link>

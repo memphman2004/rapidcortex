@@ -41,6 +41,8 @@ import type { AgencyTenant } from "rapid-cortex-shared";
 import { resolveAgencyVerticalFromTenant } from "rapid-cortex-shared";
 import { HelpChrome } from "@/components/help/help-chrome";
 import { CampusDashboardHeaderUtilities } from "@/components/campus/campus-dashboard-header-utilities";
+import { ThemeProvider, useThemeRoot } from "@/lib/theme/theme-context";
+import { ThemeToggle } from "@/components/ui/ThemeToggle";
 import {
   fetchAgencies,
   fetchApiHealth,
@@ -57,23 +59,30 @@ import {
 } from "@/lib/navigation/role-nav";
 import { useNavBadgeCounts } from "@/lib/navigation/use-nav-badge-counts";
 import { needsOnboardingAttention } from "@/lib/platform-onboarding-helpers";
+import {
+  loadConsoleBg,
+  rcAdminBgStorageKey,
+  removeLocalStorage,
+  writeAccountAvatar,
+  writeLocalStorage,
+} from "@/lib/account/account-picture";
 
 // ─── Design tokens ────────────────────────────────────────────────────────────
 
 const C = {
-  bg: "#07070f",
-  surface: "#0b0b17",
+  bg: "var(--rc-bg)",
+  surface: "var(--rc-surface)",
   card: "rgba(255,255,255,0.032)",
   border: "rgba(255,255,255,0.07)",
   borderHard: "rgba(255,255,255,0.12)",
-  text: "#e4dff5",
-  textSub: "#5a4d7a",
-  textMuted: "#2d2445",
-  purple: "#8b5cf6",
-  blue: "#3b82f6",
-  green: "#10b981",
-  amber: "#f59e0b",
-  red: "#ef4444",
+  text: "var(--rc-text-primary)",
+  textSub: "var(--rc-text-secondary)",
+  textMuted: "var(--rc-text-muted)",
+  purple: "var(--rc-violet)",
+  blue: "var(--rc-blue)",
+  green: "var(--rc-green)",
+  amber: "var(--rc-amber)",
+  red: "var(--rc-red)",
   cyan: "#06b6d4",
 } as const;
 
@@ -267,10 +276,6 @@ function card(extra: CSSProperties = {}): CSSProperties {
     borderRadius: "10px",
     ...extra,
   };
-}
-
-function bgStorageKey(envId: string): string {
-  return `rc-admin-bg:${envId}`;
 }
 
 function initialsFromName(name: string): string {
@@ -473,6 +478,8 @@ function PlanDistChart({
 
 export type RcAdminConsoleHomeProps = {
   agencyId?: string;
+  /** Cognito / session user id — scopes the welcome banner image per account. */
+  userId?: string;
   displayName: string;
   userEmail?: string;
   userRole: string;
@@ -493,8 +500,17 @@ type QuickActionDef = {
 
 // ─── Main ─────────────────────────────────────────────────────────────────────
 
-export function RcAdminConsoleHome({
+export function RcAdminConsoleHome(props: RcAdminConsoleHomeProps) {
+  return (
+    <ThemeProvider storageKey="rc-theme-admin">
+      <RcAdminConsoleHomeInner {...props} />
+    </ThemeProvider>
+  );
+}
+
+function RcAdminConsoleHomeInner({
   agencyId,
+  userId = "",
   displayName,
   userEmail,
   userRole,
@@ -543,6 +559,7 @@ export function RcAdminConsoleHome({
   const [urlInput, setUrlInput] = useState("");
   const [envOpen, setEnvOpen] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
+  const { rootRef } = useThemeRoot<HTMLDivElement>();
 
   useEffect(() => {
     const id = window.setInterval(() => setNow(new Date()), 30_000);
@@ -558,12 +575,18 @@ export function RcAdminConsoleHome({
   }, []);
 
   useEffect(() => {
-    try {
-      setCustomBg(window.localStorage.getItem(bgStorageKey(envId)));
-    } catch {
+    if (!userId) {
       setCustomBg(null);
+      return;
     }
-  }, [envId]);
+    setCustomBg(
+      loadConsoleBg({
+        userId,
+        keyed: rcAdminBgStorageKey(userId, envId),
+        legacyKey: `rc-admin-bg:${envId}`,
+      }),
+    );
+  }, [envId, userId]);
 
   const env = findEnv(envId);
   const currentBg = customBg ?? env.defaultBg;
@@ -583,26 +606,26 @@ export function RcAdminConsoleHome({
   const applyBg = useCallback(
     (url: string) => {
       setCustomBg(url);
-      try {
-        window.localStorage.setItem(bgStorageKey(envId), url);
-      } catch {
-        /* ignore */
+      if (userId) {
+        writeLocalStorage(rcAdminBgStorageKey(userId, envId), url);
+        // Uploaded/custom images also become this account's header avatar.
+        if (url.startsWith("data:") || url.startsWith("http")) {
+          writeAccountAvatar(userId, url);
+        }
       }
       setShowModal(false);
       setUrlInput("");
     },
-    [envId],
+    [envId, userId],
   );
 
   const resetBg = useCallback(() => {
     setCustomBg(null);
-    try {
-      window.localStorage.removeItem(bgStorageKey(envId));
-    } catch {
-      /* ignore */
+    if (userId) {
+      removeLocalStorage(rcAdminBgStorageKey(userId, envId));
     }
     setShowModal(false);
-  }, [envId]);
+  }, [envId, userId]);
 
   const handleFile = (e: ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -883,6 +906,8 @@ export function RcAdminConsoleHome({
   return (
     <HelpChrome role={userRole}>
       <div
+        ref={rootRef}
+        data-theme="dark"
         style={{
           display: "flex",
           height: "100vh",
@@ -1189,7 +1214,9 @@ export function RcAdminConsoleHome({
                   width: 30,
                   height: 30,
                   borderRadius: "50%",
-                  background: "linear-gradient(135deg,#6d28d9,#4c1d95)",
+                  background: customBg
+                    ? `center / cover no-repeat url(${JSON.stringify(customBg)})`
+                    : "linear-gradient(135deg,#6d28d9,#4c1d95)",
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
@@ -1197,9 +1224,11 @@ export function RcAdminConsoleHome({
                   fontWeight: 700,
                   color: "#fff",
                   flexShrink: 0,
+                  overflow: "hidden",
                 }}
+                aria-hidden={Boolean(customBg)}
               >
-                {initialsFromName(displayName)}
+                {customBg ? null : initialsFromName(displayName)}
               </div>
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div
@@ -1352,13 +1381,15 @@ export function RcAdminConsoleHome({
                   email={userEmail}
                   role={userRole}
                   agencyId={agencyId}
+                  userId={userId}
+                  leadingSlot={<ThemeToggle variant="tailwind" />}
                 />
               </div>
             </header>
 
             <div style={{ flex: 1, overflowY: "auto", overflowX: "hidden" }}>
               {/* Hero */}
-              <div style={{ position: "relative", height: 288, overflow: "hidden", flexShrink: 0 }}>
+              <div style={{ position: "relative", height: 330, overflow: "hidden", flexShrink: 0 }}>
                 <div
                   style={{
                     position: "absolute",
@@ -1393,7 +1424,7 @@ export function RcAdminConsoleHome({
                     display: "flex",
                     flexDirection: "column",
                     justifyContent: "space-between",
-                    padding: "22px 18px 0",
+                    padding: "22px 18px 16px",
                   }}
                 >
                   <div>
@@ -1431,7 +1462,6 @@ export function RcAdminConsoleHome({
                       display: "grid",
                       gridTemplateColumns: "repeat(4,1fr)",
                       gap: 10,
-                      marginBottom: -22,
                     }}
                   >
                     {kpiCards.map((s) => (
@@ -1549,7 +1579,7 @@ export function RcAdminConsoleHome({
                   }}
                 >
                   <Camera size={13} color={C.text} strokeWidth={1.7} />
-                  Change Platform Image
+                  Change My Image
                   {hasCustomBg ? (
                     <span
                       style={{
@@ -2385,7 +2415,7 @@ export function RcAdminConsoleHome({
               >
                 <div>
                   <div style={{ fontSize: 15, fontWeight: 700, color: C.text }}>
-                    Change Platform Image
+                    Change My Image
                   </div>
                   <div style={{ fontSize: 11, color: C.textSub, marginTop: 2 }}>
                     {env.name} environment — stored locally for this browser

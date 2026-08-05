@@ -25,9 +25,9 @@ const VENDOR_OPTIONS: Array<{ value: VenueCameraUpsertBody["vendor"]; label: str
 ];
 
 function statusColor(status: VenueCamera["status"]): string {
-  if (status === "online") return "#10b981";
-  if (status === "offline") return "#ef4444";
-  return "#f59e0b";
+  if (status === "online") return "var(--rc-green)";
+  if (status === "offline") return "var(--rc-red)";
+  return "var(--rc-amber)";
 }
 
 function emptyForm(agencyId: string): VenueCameraUpsertBody {
@@ -187,8 +187,8 @@ export function VenueCamerasSettingsClient({
     <div style={{ padding: 14 }}>
       <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 12, gap: 8, flexWrap: "wrap" }}>
         <div>
-          <h2 style={{ fontSize: 16, fontWeight: 700, margin: 0, color: "#e4dff5" }}>Camera Registry</h2>
-          <p style={{ fontSize: 12, color: "#5a4d7a", margin: "4px 0 0", maxWidth: 560 }}>
+          <h2 style={{ fontSize: 16, fontWeight: 700, margin: 0, color: "var(--rc-text-primary)" }}>Camera Registry</h2>
+          <p style={{ fontSize: 12, color: "var(--rc-text-muted)", margin: "4px 0 0", maxWidth: 560 }}>
             Universal RTSP → KVS path. Connect Genetec, Milestone, Axis, Hanwha, or any ONVIF camera.
             Download the producer config for your on-site KVS agent after saving cameras.
           </p>
@@ -215,15 +215,15 @@ export function VenueCamerasSettingsClient({
         style={{
           marginBottom: 16,
           padding: 12,
-          background: "#141220",
-          border: "1px solid #1e1a30",
+          background: "var(--rc-surface-alt)",
+          border: "1px solid var(--rc-border)",
           borderRadius: 8,
         }}
       >
-        <div style={{ fontSize: 12, fontWeight: 700, color: "#7c6fa0", marginBottom: 8 }}>
+        <div style={{ fontSize: 12, fontWeight: 700, color: "var(--rc-text-secondary)", marginBottom: 8 }}>
           ONVIF DISCOVERY
         </div>
-        <p style={{ fontSize: 11, color: "#5a4d7a", margin: "0 0 10px" }}>
+        <p style={{ fontSize: 11, color: "var(--rc-text-muted)", margin: "0 0 10px" }}>
           Enter a camera IP — RC discovers the RTSP URL automatically (no digging through your VMS).
         </p>
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr auto", gap: 8 }}>
@@ -252,19 +252,19 @@ export function VenueCamerasSettingsClient({
         </div>
       </div>
 
-      {error ? <p style={{ color: "#f59e0b", fontSize: 12 }}>{error}</p> : null}
-      {loading ? <p style={{ color: "#7c6fa0", fontSize: 12 }}>Loading cameras…</p> : null}
+      {error ? <p style={{ color: "var(--rc-amber)", fontSize: 12 }}>{error}</p> : null}
+      {loading ? <p style={{ color: "var(--rc-text-secondary)", fontSize: 12 }}>Loading cameras…</p> : null}
 
       {!loading && cameras.length === 0 ? (
-        <p style={{ color: "#7c6fa0", fontSize: 12 }}>No cameras registered yet.</p>
+        <p style={{ color: "var(--rc-text-secondary)", fontSize: 12 }}>No cameras registered yet.</p>
       ) : (
         <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
           {cameras.map((cam) => (
             <div
               key={cam.cameraId}
               style={{
-                background: "#100e1a",
-                border: `1px solid ${cam.status === "offline" ? "#7f1d1d" : "#1e1a30"}`,
+                background: "var(--rc-surface)",
+                border: `1px solid ${cam.status === "offline" ? "var(--rc-red-deep)" : "var(--rc-border)"}`,
                 borderRadius: 8,
                 padding: "10px 12px",
                 display: "grid",
@@ -282,13 +282,13 @@ export function VenueCamerasSettingsClient({
                       background: statusColor(cam.status),
                     }}
                   />
-                  <div style={{ fontWeight: 700, color: "#e4dff5", fontSize: 13 }}>{cam.displayName}</div>
+                  <div style={{ fontWeight: 700, color: "var(--rc-text-primary)", fontSize: 13 }}>{cam.displayName}</div>
                 </div>
-                <div style={{ fontSize: 11, color: "#7c6fa0", marginTop: 4 }}>
+                <div style={{ fontSize: 11, color: "var(--rc-text-secondary)", marginTop: 4 }}>
                   {locationLabel}: {isCampus ? (cam.buildingId ?? cam.sections[0] ?? "—") : cam.sections.join(", ")}
                   {isCampus && cam.floor ? ` · Floor ${cam.floor}` : ""} · Rank {cam.priorityRank} · {cam.vendor}
                 </div>
-                <div style={{ fontSize: 10, color: "#5a4d7a", marginTop: 2 }}>
+                <div style={{ fontSize: 10, color: "var(--rc-text-muted)", marginTop: 2 }}>
                   KVS: {cam.kvsChannelName}
                   {cam.rtspUrl ? ` · RTSP configured` : " · No RTSP URL"}
                   {cam.lastHeartbeat ? ` · Last heartbeat ${new Date(cam.lastHeartbeat).toLocaleString()}` : ""}
@@ -312,12 +312,12 @@ export function VenueCamerasSettingsClient({
           style={{
             marginTop: 16,
             padding: 12,
-            border: "1px solid #1e1a30",
+            border: "1px solid var(--rc-border)",
             borderRadius: 8,
-            background: "#141220",
+            background: "var(--rc-surface-alt)",
           }}
         >
-          <h3 style={{ fontSize: 14, color: "#e4dff5", margin: "0 0 10px" }}>
+          <h3 style={{ fontSize: 14, color: "var(--rc-text-primary)", margin: "0 0 10px" }}>
             {editingId === "new" ? "New camera" : "Edit camera"}
           </h3>
           <div style={{ display: "grid", gap: 8 }}>
@@ -379,7 +379,7 @@ export function VenueCamerasSettingsClient({
               value={form.cameraIp ?? ""}
               onChange={(v) => setForm({ ...form, cameraIp: v || undefined })}
             />
-            <label style={{ fontSize: 11, color: "#7c6fa0", display: "flex", gap: 8, alignItems: "center" }}>
+            <label style={{ fontSize: 11, color: "var(--rc-text-secondary)", display: "flex", gap: 8, alignItems: "center" }}>
               <input
                 type="checkbox"
                 checked={form.ptzCapable}
@@ -416,36 +416,36 @@ function Field({
   return (
     <label style={{ display: "block" }}>
       <span style={labelStyle}>{label}</span>
-      {hint ? <span style={{ fontSize: 10, color: "#5a4d7a", marginLeft: 6 }}>{hint}</span> : null}
+      {hint ? <span style={{ fontSize: 10, color: "var(--rc-text-muted)", marginLeft: 6 }}>{hint}</span> : null}
       <input value={value} onChange={(e) => onChange(e.target.value)} style={{ ...inputStyle, marginTop: 4 }} />
     </label>
   );
 }
 
-const labelStyle = { fontSize: 10, color: "#7c6fa0", fontWeight: 600 } as const;
+const labelStyle = { fontSize: 10, color: "var(--rc-text-secondary)", fontWeight: 600 } as const;
 const inputStyle = {
   display: "block",
   width: "100%",
   padding: "8px 10px",
-  background: "#100e1a",
-  border: "1px solid #1e1a30",
+  background: "var(--rc-surface)",
+  border: "1px solid var(--rc-border)",
   borderRadius: 6,
-  color: "#e4dff5",
+  color: "var(--rc-text-primary)",
   fontSize: 12,
 } as const;
 const ghostBtn = {
   fontSize: 11,
   padding: "6px 10px",
-  border: "1px solid #1e1a30",
+  border: "1px solid var(--rc-border)",
   borderRadius: 6,
-  color: "#7c6fa0",
+  color: "var(--rc-text-secondary)",
   background: "transparent",
 } as const;
 const primaryBtn = {
   fontSize: 11,
   padding: "6px 12px",
   borderRadius: 6,
-  color: "#1a1206",
-  background: "#f59e0b",
+  color: "var(--rc-amber-dim)",
+  background: "var(--rc-amber)",
   fontWeight: 700,
 } as const;

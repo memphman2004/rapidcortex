@@ -319,11 +319,17 @@ export const env = {
   ng911DiversionMockSms: process.env.NG911_DIVERSION_MOCK_SMS === "true",
   /** Per-field incident picture confidence (F-confidence). */
   enableFieldConfidence: featureEnabled("ENABLE_FIELD_CONFIDENCE"),
+  /** Live auto-rescoring interval; 0 disables. Unset → 5 (operational default). */
   confidenceScoreEveryNSegments: Math.max(
     0,
-    Number.parseInt(process.env.CONFIDENCE_SCORE_EVERY_N_SEGMENTS ?? "0", 10) || 0,
+    Number.parseInt(process.env.CONFIDENCE_SCORE_EVERY_N_SEGMENTS ?? "5", 10) || 0,
   ),
   confidenceScoringMock: process.env.CONFIDENCE_SCORING_MOCK === "true",
+  /**
+   * Block CAD write-back when field-confidence pictureStatus is INCOMPLETE/CONFLICTED.
+   * Default on when unset; only applies when ENABLE_FIELD_CONFIDENCE is on and an analysis exists.
+   */
+  enableCadConfidenceGate: featureEnabled("ENABLE_CAD_CONFIDENCE_GATE"),
   /** F6 — predictive staffing intelligence. */
   enablePredictiveStaffing: featureEnabled("ENABLE_PREDICTIVE_STAFFING", false),
   predictiveStaffingMock: process.env.PREDICTIVE_STAFFING_MOCK === "true",
@@ -378,6 +384,9 @@ export const env = {
   monetizationInvoicesTable: process.env.MONETIZATION_INVOICES_TABLE?.trim() ?? "",
   billingAuditEventsTable: process.env.BILLING_AUDIT_EVENTS_TABLE?.trim() ?? "",
   salesLeadsTable: process.env.SALES_LEADS_TABLE?.trim() ?? "",
+  /** RC Admin PSAP Prospect CRM — national outbound registry. */
+  psapProspectsTable: process.env.PSAP_PROSPECTS_TABLE?.trim() ?? "",
+  enablePsapProspects: featureEnabled("ENABLE_PSAP_PROSPECTS"),
   /** GSI name for pipeline queries (Scan-first until ~1K leads) [CR-7]. */
   pipelineStageGsiName: process.env.PIPELINE_STAGE_GSI?.trim() || "PipelineStageIndex",
   /** Inside the Cortex marketing lead capture (pk/sk + unsubscribe tokens). */

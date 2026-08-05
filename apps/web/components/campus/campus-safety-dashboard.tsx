@@ -12,6 +12,7 @@ export function CampusSafetyDashboard({
   userEmail = "",
   userRole,
   displayName,
+  userId,
 }: {
   agencyId: string;
   agencyName?: string;
@@ -20,6 +21,7 @@ export function CampusSafetyDashboard({
   userEmail?: string;
   userRole?: string;
   displayName?: string;
+  userId?: string;
 }) {
   const name =
     displayName?.trim() ||
@@ -35,6 +37,7 @@ export function CampusSafetyDashboard({
       displayName={name}
       userEmail={userEmail}
       userRole={userRole}
+      userId={userId}
     />
   );
 }

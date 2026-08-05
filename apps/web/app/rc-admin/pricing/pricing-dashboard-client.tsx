@@ -29,9 +29,15 @@ type TabId = "plans" | "verticals" | "cad" | "addons" | "audit";
 type Props = {
   initialGlobal: GlobalPricingConfig & { pricing?: PricingOverrides };
   initialTenants: TenantPricingSummary[];
+  /** rcsuperadmin only — Edit mode + save/revert. */
+  canEdit?: boolean;
 };
 
-export function PricingDashboardClient({ initialGlobal, initialTenants }: Props) {
+export function PricingDashboardClient({
+  initialGlobal,
+  initialTenants,
+  canEdit = false,
+}: Props) {
   const [tab, setTab] = useState<TabId>("plans");
   const [editMode, setEditMode] = useState(false);
   const [selectedTenant, setSelectedTenant] = useState<string>("global");
@@ -47,6 +53,8 @@ export function PricingDashboardClient({ initialGlobal, initialTenants }: Props)
   const [lastModifiedAt, setLastModifiedAt] = useState(initialGlobal.lastModifiedAt ?? "");
   const [lastModifiedBy, setLastModifiedBy] = useState(initialGlobal.lastModifiedBy ?? "");
 
+  const effectiveEditMode = canEdit && editMode;
+
   const targetLabel = useMemo(() => {
     if (selectedTenant === "global") return "global pricing";
     const t = tenantList.find((x) => x.agencyId === selectedTenant);
@@ -60,6 +68,7 @@ export function PricingDashboardClient({ initialGlobal, initialTenants }: Props)
 
   const onStage = useCallback(
     (key: string, value: number) => {
+      if (!canEdit) return;
       const effective = effectivePrice(
         key as PricingKey,
         globalOverrides,
@@ -75,11 +84,12 @@ export function PricingDashboardClient({ initialGlobal, initialTenants }: Props)
         return next;
       });
     },
-    [globalOverrides, tenantOverrides, selectedTenant],
+    [canEdit, globalOverrides, tenantOverrides, selectedTenant],
   );
 
   const onRevert = useCallback(
     async (key: string) => {
+      if (!canEdit) return;
       setStaged((prev: PricingOverrides) => {
         const next = { ...prev };
         delete next[key];
@@ -114,11 +124,12 @@ export function PricingDashboardClient({ initialGlobal, initialTenants }: Props)
         setSaveError(err instanceof Error ? err.message : "Revert failed");
       }
     },
-    [selectedTenant, refreshTenants],
+    [canEdit, selectedTenant, refreshTenants],
   );
 
   const onSave = useCallback(
     async (reason: string) => {
+      if (!canEdit) return;
       setSaving(true);
       setSaveError(null);
       try {
@@ -148,7 +159,7 @@ export function PricingDashboardClient({ initialGlobal, initialTenants }: Props)
         setSaving(false);
       }
     },
-    [selectedTenant, staged, refreshTenants],
+    [canEdit, selectedTenant, staged, refreshTenants],
   );
 
   const onTenantChange = useCallback(
@@ -191,7 +202,7 @@ export function PricingDashboardClient({ initialGlobal, initialTenants }: Props)
   );
 
   const tabProps = {
-    editMode,
+    editMode: effectiveEditMode,
     globalOverrides,
     tenantOverrides: selectedTenant === "global" ? undefined : tenantOverrides,
     staged,
@@ -232,15 +243,21 @@ export function PricingDashboardClient({ initialGlobal, initialTenants }: Props)
             </p>
           ) : null}
         </div>
-        <label className="inline-flex cursor-pointer items-center gap-2 rounded-lg border border-slate-700 px-3 py-2 text-sm text-slate-200">
-          <input
-            type="checkbox"
-            checked={editMode}
-            onChange={(e) => setEditMode(e.target.checked)}
-            className="rounded border-slate-600"
-          />
-          Edit mode
-        </label>
+        {canEdit ? (
+          <label className="inline-flex cursor-pointer items-center gap-2 rounded-lg border border-slate-700 px-3 py-2 text-sm text-slate-200">
+            <input
+              type="checkbox"
+              checked={editMode}
+              onChange={(e) => setEditMode(e.target.checked)}
+              className="rounded border-slate-600"
+            />
+            Edit mode
+          </label>
+        ) : (
+          <span className="rounded-lg border border-slate-800 px-3 py-2 text-xs font-semibold uppercase tracking-wide text-slate-500">
+            View only
+          </span>
+        )}
       </div>
 
       <PricingTenantSelector
@@ -248,6 +265,7 @@ export function PricingDashboardClient({ initialGlobal, initialTenants }: Props)
         tenants={tenantList}
         stagedCount={Object.keys(staged).length}
         onTenantChange={(id) => void onTenantChange(id)}
+        canEdit={canEdit}
         onRevertAllComplete={() => {
           void refreshTenants();
           if (selectedTenant !== "global") {
@@ -280,6 +298,7 @@ export function PricingDashboardClient({ initialGlobal, initialTenants }: Props)
       {tab === "audit" && (
         <PricingAuditTab
           tenants={tenantList}
+          canEdit={canEdit}
           onSelectTenant={(id) => {
             setTab("plans");
             void onTenantChange(id);
@@ -288,15 +307,17 @@ export function PricingDashboardClient({ initialGlobal, initialTenants }: Props)
         />
       )}
 
-      <PricingSaveBar
-        changeCount={Object.keys(staged).length}
-        targetLabel={targetLabel}
-        saving={saving}
-        saveError={saveError}
-        savedFlash={savedFlash}
-        onDiscard={() => setStaged({})}
-        onSave={(reason) => void onSave(reason)}
-      />
+      {canEdit ? (
+        <PricingSaveBar
+          changeCount={Object.keys(staged).length}
+          targetLabel={targetLabel}
+          saving={saving}
+          saveError={saveError}
+          savedFlash={savedFlash}
+          onDiscard={() => setStaged({})}
+          onSave={(reason) => void onSave(reason)}
+        />
+      ) : null}
     </div>
   );
 }

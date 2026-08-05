@@ -1,5 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
-import { canAccessRcRevenuePortal } from "rapid-cortex-shared";
+import {
+  canAccessRcFinancePortal,
+  canAccessRcRevenuePortal,
+} from "rapid-cortex-shared";
 import { getDashboardSessionUser } from "@/lib/dashboards/get-dashboard-session";
 import { upstreamBillingFetch } from "@/lib/server/rc-admin-billing-upstream";
 
@@ -11,13 +14,21 @@ async function proxyTenant(
   method: string,
 ) {
   const user = await getDashboardSessionUser();
-  if (!user || !canAccessRcRevenuePortal(user.role)) {
+  if (!user) {
+    return NextResponse.json({ ok: false, error: "Unauthorized", code: "UNAUTHORIZED" }, { status: 401 });
+  }
+
+  const isWrite = method !== "GET" && method !== "HEAD";
+  if (isWrite) {
+    if (!canAccessRcRevenuePortal(user.role)) {
+      return NextResponse.json({ ok: false, error: "Forbidden", code: "FORBIDDEN" }, { status: 403 });
+    }
+  } else if (!canAccessRcFinancePortal(user.role)) {
     return NextResponse.json({ ok: false, error: "Forbidden", code: "FORBIDDEN" }, { status: 403 });
   }
 
   const path = `/api/admin/pricing/tenants/${encodeURIComponent(agencyId)}`;
-  const body =
-    method === "GET" || method === "HEAD" ? undefined : await request.text();
+  const body = isWrite ? await request.text() : undefined;
 
   try {
     const upstream = await upstreamBillingFetch(request, path, {

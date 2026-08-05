@@ -16,6 +16,7 @@ export default async function VenueJurisdictionIncidentPage({ params }: Props) {
       linkBase={linkBase}
       userEmail={user.email ?? ""}
       userRole={user.role}
+      userId={user.userId}
     >
       <VenueIncidentOpsDetailClient
         agencyId={agencyId}

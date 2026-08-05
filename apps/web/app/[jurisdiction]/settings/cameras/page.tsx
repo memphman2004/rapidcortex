@@ -28,6 +28,7 @@ export default async function VenueCamerasSettingsPage({ params }: Props) {
       linkBase={linkBase}
       userEmail={user.email ?? ""}
       userRole={user.role}
+      userId={user.userId}
     >
       <VenueCamerasSettingsClient agencyId={agencyId} apiVertical={apiVertical} />
     </VenueOperationsShell>

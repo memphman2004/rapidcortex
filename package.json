@@ -45,6 +45,8 @@
     "seed:campus:cognito": "CREATE_CAMPUS_TEST_USERS=1 bash scripts/setup-campus-cognito-roles.sh",
     "seed:test-agency": "tsx scripts/seed-test-agency-dev.ts",
     "seed:venue:test-agency": "tsx scripts/archive/seed-venue-test-facility-dev.ts",
+    "seed:psap-prospects": "tsx scripts/seed-psap-prospects.ts",
+    "enrich:psap-addresses": "tsx scripts/enrich-psap-addresses.ts",
     "onboard:pilot-customer": "tsx scripts/onboard-pilot-customer.ts",
     "typecheck": "npm run build -w rapid-cortex-shared && npm run build -w rapid-cortex-security && tsc -p apps/web/tsconfig.json --noEmit",
     "sam:validate": "sam validate --template-file infra/template.yaml --lint",
@@ -78,7 +80,8 @@
     "@aws-sdk/lib-dynamodb": "^3.699.0",
     "prettier": "^3.5.3",
     "tsx": "^4.20.0",
-    "vitest": "^3.2.4"
+    "vitest": "^3.2.4",
+    "xlsx": "^0.18.5"
   },
   "overrides": {
     "fast-xml-parser": "^5.7.0",

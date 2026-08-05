@@ -1,9 +1,10 @@
 "use client";
 
-import { useState } from "react";
-import type { Map } from "mapbox-gl";
-import { LocationMarker } from "rapid-cortex-maps/components/LocationMarker";
-import { RapidCortexMap } from "rapid-cortex-maps/components/RapidCortexMap";
+/**
+ * Compact incident location map for the dispatcher CAD workspace.
+ * Uses the Rapid Cortex Dispatch Dark Studio style (911 Core).
+ */
+import { RapidCortexMap } from "@/components/maps/RapidCortexMap";
 
 export function IncidentContextMap({
   latitude,
@@ -14,7 +15,6 @@ export function IncidentContextMap({
   longitude: number;
   label?: string;
 }) {
-  const [mapInstance, setMapInstance] = useState<Map | null>(null);
   const mapboxToken = process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN?.trim();
 
   if (!mapboxToken) {
@@ -31,21 +31,26 @@ export function IncidentContextMap({
   return (
     <div className="h-48 overflow-hidden rounded-lg border border-slate-700">
       <RapidCortexMap
-        theme="dark"
-        center={[longitude, latitude]}
+        vertical="core"
+        centerLat={latitude}
+        centerLng={longitude}
         zoom={15}
-        showControls
-        onMapLoad={setMapInstance}
-      >
-        <LocationMarker
-          map={mapInstance}
-          latitude={latitude}
-          longitude={longitude}
-          accuracy={60}
-          confidence="medium"
-          label={label}
-        />
-      </RapidCortexMap>
+        height="100%"
+        showLayerControl
+        // Street-level ops: traffic is the Studio overlay that actually paints here.
+        // Counties/states in the published style max out at zoom 10 / 8.
+        defaultLayers={{
+          liveTraffic: true,
+          liveTrafficClosures: true,
+          airports: true,
+        }}
+        callerLocation={{
+          lat: latitude,
+          lng: longitude,
+          label,
+          source: "manual",
+        }}
+      />
     </div>
   );
 }

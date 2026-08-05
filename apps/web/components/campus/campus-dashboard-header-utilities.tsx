@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 import { FontPicker } from "@/components/ui/font-picker";
 import { UserIdentityBar } from "@/components/ui/user-identity-bar";
 import { HelpButton } from "@/components/help/help-button";
@@ -29,19 +29,30 @@ export function CampusDashboardHeaderUtilities({
   email,
   role,
   agencyId,
+  userId,
+  leadingSlot,
 }: {
   email?: string;
   role?: string;
   agencyId?: string;
+  userId?: string;
+  /** Rendered immediately left of Help / Font (e.g. ThemeToggle). */
+  leadingSlot?: ReactNode;
 }) {
   const hasIdentity = Boolean(email?.trim() && role?.trim());
 
   return (
     <div className="flex shrink-0 flex-wrap items-center justify-end gap-2">
+      {leadingSlot}
       <HelpButton />
       <FontPicker />
       {hasIdentity ? (
-        <UserIdentityBar email={email!.trim()} role={role!.trim()} agencyId={agencyId} />
+        <UserIdentityBar
+          email={email!.trim()}
+          role={role!.trim()}
+          agencyId={agencyId}
+          userId={userId}
+        />
       ) : (
         <CampusSignOutButton />
       )}

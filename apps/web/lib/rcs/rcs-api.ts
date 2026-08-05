@@ -5,21 +5,36 @@
  */
 
 import type {
+  RcsAiSummary,
   RcsAudioAlertRequest,
-  RcsCall,
   RcsCallCloseRequest,
+  RcsCallEnriched,
   RcsCallStartRequest,
   RcsCallStateUpdateRequest,
+  RcsEscalationRules,
+  RcsFloorHealthSnapshot,
+  RcsSoftHandoff,
+  RcsSoftHandoffAcceptRequest,
+  RcsSoftHandoffRequest,
   RcsUnitPositionRequest,
 } from "rapid-cortex-shared";
 
+/** Client call record includes optional intelligence-layer fields. */
+export type RcsCall = RcsCallEnriched;
+
 export type {
-  RcsCall,
+  RcsAiSummary,
+  RcsAudioAlertRequest,
   RcsCallCloseRequest,
+  RcsCallEnriched,
   RcsCallStartRequest,
   RcsCallStateUpdateRequest,
+  RcsEscalationRules,
+  RcsFloorHealthSnapshot,
+  RcsSoftHandoff,
+  RcsSoftHandoffAcceptRequest,
+  RcsSoftHandoffRequest,
   RcsUnitPositionRequest,
-  RcsAudioAlertRequest,
 } from "rapid-cortex-shared";
 
 class RcsApiError extends Error {
@@ -31,7 +46,17 @@ class RcsApiError extends Error {
   }
 }
 
-type RcsEnvelope<T> = { success?: boolean; data?: T; error?: string; items?: T[]; call?: T };
+type RcsEnvelope<T> = {
+  success?: boolean;
+  data?: T;
+  error?: string;
+  items?: T[];
+  call?: T;
+  summary?: RcsAiSummary;
+  handoff?: RcsSoftHandoff;
+  rules?: RcsEscalationRules;
+  snapshot?: RcsFloorHealthSnapshot;
+};
 
 async function rcsRequest<T>(path: string, init?: RequestInit): Promise<T> {
   const res = await fetch(`/api/rcs${path}`, {
@@ -119,6 +144,82 @@ export async function rcsPostUnitPosition(input: RcsUnitPositionRequest): Promis
     method: "POST",
     body: JSON.stringify(input),
   });
+}
+
+export async function rcsGetCallSummary(callId: string): Promise<RcsAiSummary> {
+  const data = await rcsRequest<{ summary?: RcsAiSummary } | RcsAiSummary>(
+    `/calls/${encodeURIComponent(callId)}/summary`,
+  );
+  if (data && typeof data === "object" && "summary" in data && data.summary) {
+    return data.summary;
+  }
+  return data as RcsAiSummary;
+}
+
+export async function rcsTriggerCallSummary(callId: string): Promise<RcsAiSummary> {
+  const data = await rcsRequest<{ summary?: RcsAiSummary } | RcsAiSummary>(
+    `/calls/${encodeURIComponent(callId)}/summary`,
+    { method: "POST", body: "{}" },
+  );
+  if (data && typeof data === "object" && "summary" in data && data.summary) {
+    return data.summary;
+  }
+  return data as RcsAiSummary;
+}
+
+export async function rcsRequestSoftHandoff(
+  callId: string,
+  input: RcsSoftHandoffRequest = {},
+): Promise<RcsSoftHandoff> {
+  const data = await rcsRequest<{ handoff?: RcsSoftHandoff; call?: RcsCall } | RcsSoftHandoff>(
+    `/calls/${encodeURIComponent(callId)}/handoff`,
+    { method: "POST", body: JSON.stringify(input) },
+  );
+  if (data && typeof data === "object" && "handoff" in data && data.handoff) return data.handoff;
+  return data as RcsSoftHandoff;
+}
+
+export async function rcsAcceptSoftHandoff(
+  callId: string,
+  input: RcsSoftHandoffAcceptRequest,
+): Promise<RcsSoftHandoff> {
+  const data = await rcsRequest<{ handoff?: RcsSoftHandoff } | RcsSoftHandoff>(
+    `/calls/${encodeURIComponent(callId)}/handoff/accept`,
+    { method: "POST", body: JSON.stringify(input) },
+  );
+  if (data && typeof data === "object" && "handoff" in data && data.handoff) return data.handoff;
+  return data as RcsSoftHandoff;
+}
+
+export async function rcsClearSoftHandoff(callId: string): Promise<void> {
+  await rcsRequest(`/calls/${encodeURIComponent(callId)}/handoff`, { method: "DELETE" });
+}
+
+export async function rcsGetFloorHealth(): Promise<RcsFloorHealthSnapshot> {
+  const data = await rcsRequest<{ snapshot?: RcsFloorHealthSnapshot } | RcsFloorHealthSnapshot>(
+    "/floor-health",
+  );
+  if (data && typeof data === "object" && "snapshot" in data && data.snapshot) return data.snapshot;
+  return data as RcsFloorHealthSnapshot;
+}
+
+export async function rcsGetEscalationRules(): Promise<RcsEscalationRules> {
+  const data = await rcsRequest<{ rules?: RcsEscalationRules } | RcsEscalationRules>(
+    "/escalation-rules",
+  );
+  if (data && typeof data === "object" && "rules" in data && data.rules) return data.rules;
+  return data as RcsEscalationRules;
+}
+
+export async function rcsPutEscalationRules(
+  input: Omit<RcsEscalationRules, "agencyId" | "updatedAt" | "updatedByUserId">,
+): Promise<RcsEscalationRules> {
+  const data = await rcsRequest<{ rules?: RcsEscalationRules } | RcsEscalationRules>(
+    "/escalation-rules",
+    { method: "PUT", body: JSON.stringify(input) },
+  );
+  if (data && typeof data === "object" && "rules" in data && data.rules) return data.rules;
+  return data as RcsEscalationRules;
 }
 
 export { RcsApiError };

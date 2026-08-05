@@ -22,6 +22,7 @@ export default async function RcAdminDashboardPage() {
   return (
     <RcAdminConsoleHome
       agencyId={user.agencyId}
+      userId={user.userId}
       displayName={displayName}
       userEmail={user.email}
       userRole={role}

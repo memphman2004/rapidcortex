@@ -12,7 +12,6 @@ import { IncidentJurisdictionSharePanel } from "@/components/dispatch/incident-j
 import { IncidentQueue } from "@/components/dispatch/incident-queue";
 import { IncidentTimelineStrip } from "@/components/dispatch/incident-timeline-strip";
 import { TranscriptChunkPlayer } from "@/components/dispatch/transcript-chunk-player";
-import { TranscriptPanel } from "@/components/dispatch/transcript-panel";
 import { DispatchActionPanel } from "@/components/dispatch/dispatch-action-panel";
 import { ManualModeButton } from "@/components/dashboards/dispatcher-workspace-panels";
 import { SupervisorAssistPanel } from "@/components/dashboards/dispatcher-workspace-panels";
@@ -526,7 +525,7 @@ export function CadDispatcherWorkspaceLayout({
               New incident
             </CadActionBarButton>
           )}
-          <CadActionBarButton onClick={() => scrollTo("cad-transcript")} title="Scroll to live transcript">
+          <CadActionBarButton onClick={() => scrollTo("cad-intelligence")} title="Scroll to transcript & movable panels">
             Take call
           </CadActionBarButton>
           <CadActionBarButton href={to("/cad")} title="CAD entry workspace">
@@ -716,30 +715,9 @@ export function CadDispatcherWorkspaceLayout({
             <IncidentTimelineStrip incident={incidentForUi ?? undefined} segments={transcriptSegments} analysis={analysisForUi ?? undefined} />
           </div>
           {languageBar}
-          <div id="cad-transcript" className="flex h-[min(32vh,280px)] min-h-[10rem] shrink-0 flex-col overflow-hidden">
-            <TranscriptPanel
-              segments={transcriptSegments}
-              autoScroll={transcriptAutoScroll}
-              onAutoScrollChange={onTranscriptAutoScrollChange}
-              isStreaming={transcriptStreaming}
-              isLoading={detailLoading && transcriptLoading}
-              toolbar={transcriptToolbar}
-              className="!min-h-0 !flex-1 !border-r-0 !bg-[#111827] !border-b !border-[#1f2937]"
-            />
-          </div>
-          {showChannelMonitor && selectedIdForPanels ? (
-            <div className="shrink-0 border-b p-2" style={{ borderColor: CAD.border, background: CAD.panel }}>
-              <ChannelMonitorPanel incidentId={selectedIdForPanels} />
-            </div>
-          ) : null}
-          {showSharePanel && selectedIdForPanels && shareOwnerAgencyId ? (
-            <div className="shrink-0 border-b p-2" style={{ borderColor: CAD.border, background: CAD.panel }}>
-              <IncidentJurisdictionSharePanel incidentId={selectedIdForPanels} ownerAgencyId={shareOwnerAgencyId} />
-            </div>
-          ) : null}
           <div
             id="cad-intelligence"
-            className="shrink-0 scroll-mt-2 border-b"
+            className="min-h-0 shrink-0 scroll-mt-2 border-b"
             style={{ borderColor: CAD.border, background: CAD.bg }}
           >
             <DispatcherIncidentPanelGrid
@@ -754,8 +732,24 @@ export function CadDispatcherWorkspaceLayout({
               isRefreshingAi={isRefreshingAi}
               onRefreshAi={onRefreshAi}
               showCallerCard={showCallerCard}
+              transcriptSegments={transcriptSegments}
+              transcriptToolbar={transcriptToolbar}
+              transcriptAutoScroll={transcriptAutoScroll}
+              onTranscriptAutoScrollChange={onTranscriptAutoScrollChange}
+              transcriptStreaming={transcriptStreaming}
+              transcriptLoading={detailLoading && transcriptLoading}
             />
           </div>
+          {showChannelMonitor && selectedIdForPanels ? (
+            <div className="shrink-0 border-b p-2" style={{ borderColor: CAD.border, background: CAD.panel }}>
+              <ChannelMonitorPanel incidentId={selectedIdForPanels} />
+            </div>
+          ) : null}
+          {showSharePanel && selectedIdForPanels && shareOwnerAgencyId ? (
+            <div className="shrink-0 border-b p-2" style={{ borderColor: CAD.border, background: CAD.panel }}>
+              <IncidentJurisdictionSharePanel incidentId={selectedIdForPanels} ownerAgencyId={shareOwnerAgencyId} />
+            </div>
+          ) : null}
           <CadCollapsibleCadForm incident={incidentForUi} />
           <div
             className="flex shrink-0 flex-wrap items-center gap-2 border-t px-2 py-2"
@@ -766,6 +760,7 @@ export function CadDispatcherWorkspaceLayout({
                 incidentId={incidentForUi.incidentId}
                 incident={incidentToWritebackContext(incidentForUi)}
                 userRole={user?.role}
+                pictureStatus={fieldConfidenceAggregate?.pictureStatus ?? null}
               />
             ) : (
               <Link

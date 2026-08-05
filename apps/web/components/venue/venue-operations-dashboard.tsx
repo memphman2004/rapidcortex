@@ -13,6 +13,7 @@ export function VenueOperationsDashboard({
   userEmail = "",
   userRole,
   displayName,
+  userId,
 }: {
   agencyId: string;
   venueName?: string;
@@ -21,6 +22,7 @@ export function VenueOperationsDashboard({
   userEmail?: string;
   userRole?: string;
   displayName?: string;
+  userId?: string;
 }) {
   const venueCode = agencySlug ?? agencyId;
   const name =
@@ -37,6 +39,7 @@ export function VenueOperationsDashboard({
       displayName={name}
       userEmail={userEmail}
       userRole={userRole}
+      userId={userId}
     />
   );
 }

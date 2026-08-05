@@ -58,6 +58,7 @@ export async function VerticalRoleStub({ consoleTitle, vertical, role, descripti
                 email={user?.email}
                 role={effectiveRole}
                 agencyId={user?.agencyId}
+                userId={user?.userId}
               />
             </div>
           ) : null}

@@ -342,7 +342,7 @@ export function CallerCardLocationPanel({ incidentId }: { incidentId: string }) 
               <PriorRow
                 key={p.incidentId}
                 p={p}
-                href={to(`/dashboard?incident=${encodeURIComponent(p.incidentId)}`)}
+                href={to(`/dispatcher?incident=${encodeURIComponent(p.incidentId)}`)}
               />
             ))}
           </ol>
@@ -630,7 +630,7 @@ export function CallerCardPanel({ incidentId }: { incidentId: string }) {
                   <PriorRow
                     key={p.incidentId}
                     p={p}
-                    href={to(`/dashboard?incident=${encodeURIComponent(p.incidentId)}`)}
+                    href={to(`/dispatcher?incident=${encodeURIComponent(p.incidentId)}`)}
                   />
                 ))}
               </ol>

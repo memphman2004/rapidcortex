@@ -22,14 +22,6 @@ export type VenueActiveIncidentPanel = {
   createdAt?: string;
 };
 
-const V = {
-  surface: "#100e1a",
-  border: "#1e1a30",
-  amber: "#f59e0b",
-  red: "#ef4444",
-  text: "#e4dff5",
-  muted: "#7c6fa0",
-};
 
 function formatClock(iso: string): string {
   try {
@@ -169,24 +161,24 @@ export function IncidentCameraPanel({
           width: embedded ? "100%" : "min(1100px, 100%)",
           maxHeight: embedded ? undefined : "95vh",
           overflow: embedded ? "visible" : "auto",
-          background: V.surface,
-          border: `1px solid ${V.border}`,
+          background: "var(--rc-surface)",
+          border: `1px solid var(--rc-border)`,
           borderRadius: 10,
         }}
       >
         <div
           style={{
             padding: "12px 16px",
-            borderBottom: `1px solid ${V.border}`,
+            borderBottom: `1px solid var(--rc-border)`,
             display: "flex",
             alignItems: "center",
             gap: 10,
           }}
         >
           {mode === "new" ? (
-            <span style={{ color: V.red, fontWeight: 800, fontSize: 12 }}>● NEW INCIDENT</span>
+            <span style={{ color: "var(--rc-red)", fontWeight: 800, fontSize: 12 }}>● NEW INCIDENT</span>
           ) : (
-            <span style={{ color: V.amber, fontWeight: 800, fontSize: 12 }}>INCIDENT {incident.incidentId}</span>
+            <span style={{ color: "var(--rc-amber)", fontWeight: 800, fontSize: 12 }}>INCIDENT {incident.incidentId}</span>
           )}
           <span style={{ color: V.text, fontWeight: 700, fontSize: 13 }}>
             {locationNoun} {incident.section} · {incident.reportType.toUpperCase()}
@@ -219,7 +211,7 @@ export function IncidentCameraPanel({
                     <button
                       type="button"
                       onClick={() => setPtzCameraId(ptzCameraId === cam.cameraId ? null : cam.cameraId)}
-                      style={{ fontSize: 10, color: V.amber }}
+                      style={{ fontSize: 10, color: "var(--rc-amber)" }}
                     >
                       PTZ Controls {ptzCameraId === cam.cameraId ? "▲" : "▼"}
                     </button>
@@ -234,7 +226,7 @@ export function IncidentCameraPanel({
                               style={{
                                 fontSize: 10,
                                 padding: "2px 6px",
-                                border: `1px solid ${V.border}`,
+                                border: `1px solid var(--rc-border)`,
                                 borderRadius: 4,
                                 color: V.text,
                               }}
@@ -264,7 +256,7 @@ export function IncidentCameraPanel({
           <button
             type="button"
             onClick={() => setPickerOpen((v) => !v)}
-            style={{ fontSize: 11, color: V.amber, fontWeight: 600 }}
+            style={{ fontSize: 11, color: "var(--rc-amber)", fontWeight: 600 }}
           >
             + Add camera view
           </button>
@@ -288,7 +280,7 @@ export function IncidentCameraPanel({
                 style={{
                   fontSize: 10,
                   padding: "6px 8px",
-                  border: `1px solid ${V.border}`,
+                  border: `1px solid var(--rc-border)`,
                   borderRadius: 6,
                   color: displayedIds.has(cam.cameraId) ? V.muted : V.text,
                   opacity: displayedIds.has(cam.cameraId) ? 0.5 : 1,
@@ -300,7 +292,7 @@ export function IncidentCameraPanel({
           </div>
         ) : null}
 
-        <div style={{ borderTop: `1px solid ${V.border}`, padding: 12 }}>
+        <div style={{ borderTop: `1px solid var(--rc-border)`, padding: 12 }}>
           <div style={{ fontSize: 11, fontWeight: 700, color: V.muted, marginBottom: 8 }}>
             {enableDispatchControls ? "DISPATCHER UPDATES" : "INCIDENT CONTEXT"}
           </div>
@@ -328,8 +320,8 @@ export function IncidentCameraPanel({
                   placeholder="Type update here…"
                   style={{
                     flex: 1,
-                    background: "#141220",
-                    border: `1px solid ${V.border}`,
+                    background: "var(--rc-surface-alt)",
+                    border: `1px solid var(--rc-border)`,
                     borderRadius: 6,
                     padding: "8px 10px",
                     color: V.text,
@@ -342,8 +334,8 @@ export function IncidentCameraPanel({
                   onClick={() => void sendUpdate()}
                   style={{
                     padding: "8px 12px",
-                    background: V.amber,
-                    color: "#1a1206",
+                    background: "var(--rc-amber)",
+                    color: "var(--rc-amber-dim)",
                     fontWeight: 700,
                     borderRadius: 6,
                     fontSize: 12,
@@ -373,7 +365,7 @@ export function IncidentCameraPanel({
                   type="button"
                   disabled={statusBusy}
                   onClick={() => void setStatus("resolved")}
-                  style={{ ...statusBtnStyle, borderColor: V.red, color: "#fca5a5" }}
+                  style={{ ...statusBtnStyle, borderColor: "var(--rc-red)", color: "var(--rc-red-light)" }}
                 >
                   ✓ Resolved
                 </button>
@@ -409,10 +401,10 @@ export function IncidentCameraPanel({
 const statusBtnStyle = {
   fontSize: 11,
   padding: "6px 10px",
-  border: "1px solid #1e1a30",
+  border: "1px solid var(--rc-border)",
   borderRadius: 6,
-  color: "#e4dff5",
-  background: "#141220",
+  color: "var(--rc-text-primary)",
+  background: "var(--rc-surface-alt)",
 } as const;
 
 // expose offline swap for parent websocket handler

@@ -147,6 +147,14 @@ export const ALL_PERMISSIONS = [
   "workspace.supervisor_assist",
   "workspace.transcription",
   "workspace.translation",
+  "rcs.call.manage",
+  "rcs.call.override",
+  "rcs.summary.view",
+  "rcs.summary.trigger",
+  "rcs.handoff.request",
+  "rcs.handoff.accept",
+  "rcs.floor.view",
+  "rcs.rules.manage",
 ] as const;
 
 export type Permission = (typeof ALL_PERMISSIONS)[number];

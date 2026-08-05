@@ -25,7 +25,8 @@ export interface PanelLayoutState {
 }
 
 function storageKey(userId: string) {
-  return `rc-panel-layout:${userId}`;
+  // v2: transcript + map panels restored to the free-move grid (above-the-fold defaults).
+  return `rc-panel-layout:v2:${userId}`;
 }
 
 function canPersist(userId: string): boolean {

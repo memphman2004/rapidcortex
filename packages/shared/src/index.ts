@@ -32,6 +32,7 @@ export * from "./review-types.js";
 export * from "./report-types.js";
 export * from "./billing/index.js";
 export * from "./monetization/index.js";
+export * from "./psap/index.js";
 export * from "./grants/index.js";
 export * from "./rc-lite/index.js";
 export * from "./adobe-sign/index.js";

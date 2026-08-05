@@ -26,6 +26,7 @@ import {
   Headphones,
   Image as ImageIcon,
   Link2,
+  MapPin,
   Mic,
   PhoneCall,
   Upload,
@@ -36,6 +37,10 @@ import {
 import type { Incident, UrgencyLevel } from "rapid-cortex-shared";
 import { HelpChrome } from "@/components/help/help-chrome";
 import { CampusDashboardHeaderUtilities } from "@/components/campus/campus-dashboard-header-utilities";
+import { ThemeProvider, useThemeRoot } from "@/lib/theme/theme-context";
+import { ThemeToggle } from "@/components/ui/ThemeToggle";
+import { RapidCortexMap } from "@/components/maps/RapidCortexMap";
+import { psapIncidentsToMap } from "@/components/maps/map-incident-adapters";
 import {
   fetchSupervisorActiveCalls,
   fetchSupervisorOperators,
@@ -52,23 +57,30 @@ import {
 } from "@/lib/navigation/role-nav";
 import { useNavBadgeCounts } from "@/lib/navigation/use-nav-badge-counts";
 import { loadIncidents } from "@/lib/queries";
+import {
+  consoleBgStorageKey,
+  loadConsoleBg,
+  removeLocalStorage,
+  writeAccountAvatar,
+  writeLocalStorage,
+} from "@/lib/account/account-picture";
 
 // ─── Design tokens ────────────────────────────────────────────────────────────
 
 const C = {
-  bg: "#090d1a",
-  surface: "#0d1321",
+  bg: "var(--rc-bg)",
+  surface: "var(--rc-surface)",
   card: "rgba(255,255,255,0.033)",
   border: "rgba(255,255,255,0.07)",
   borderHard: "rgba(255,255,255,0.12)",
-  text: "#e2e8f0",
-  textSub: "#64748b",
-  textMuted: "#334155",
-  blue: "#3b82f6",
-  red: "#ef4444",
-  green: "#10b981",
-  amber: "#f59e0b",
-  purple: "#8b5cf6",
+  text: "var(--rc-text-primary)",
+  textSub: "var(--rc-text-secondary)",
+  textMuted: "var(--rc-text-muted)",
+  blue: "var(--rc-blue)",
+  red: "var(--rc-red)",
+  green: "var(--rc-green)",
+  amber: "var(--rc-amber)",
+  purple: "var(--rc-violet)",
 } as const;
 
 const FONT =
@@ -235,7 +247,7 @@ function card(extra: CSSProperties = {}): CSSProperties {
   };
 }
 
-function bgStorageKey(agencyId: string): string {
+function psapBgLegacyKey(agencyId: string): string {
   return `rc-psap-bg:${agencyId}`;
 }
 
@@ -494,6 +506,8 @@ export type PsapConsoleHomeProps = {
   displayName: string;
   userEmail?: string;
   userRole?: string;
+  /** Cognito user id — scopes welcome image per account. */
+  userId?: string;
 };
 
 type ModalTab = "presets" | "url" | "upload";
@@ -510,17 +524,28 @@ type QuickActionDef = {
 
 // ─── Main ─────────────────────────────────────────────────────────────────────
 
-export function PsapConsoleHome({
+export function PsapConsoleHome(props: PsapConsoleHomeProps) {
+  return (
+    <ThemeProvider storageKey="rc-theme-dispatcher">
+      <PsapConsoleHomeInner {...props} />
+    </ThemeProvider>
+  );
+}
+
+function PsapConsoleHomeInner({
   agencyId,
   jurisdiction,
   agencyName,
   displayName,
   userEmail,
   userRole,
+  userId = "",
 }: PsapConsoleHomeProps) {
   const pathname = usePathname() ?? "";
   const abbr = agencyAbbr(agencyName, jurisdiction);
   const canCad = canEditCadPhase(userRole);
+  const isDispatcher =
+    (userRole ?? "").trim().toLowerCase() === "dispatcher";
   const apiLive = isApiConfigured();
 
   const nav = useMemo(() => {
@@ -540,7 +565,7 @@ export function PsapConsoleHome({
   const operatorsQuery = useQuery({
     queryKey: ["supervisor-operators", "psap-console", agencyId],
     queryFn: fetchSupervisorOperators,
-    enabled: apiLive,
+    enabled: apiLive && !isDispatcher,
     refetchInterval: 15_000,
   });
 
@@ -563,7 +588,9 @@ export function PsapConsoleHome({
   const [urlInput, setUrlInput] = useState("");
   const [cadOpen, setCadOpen] = useState(false);
   const [cadPhase, setCadPhase] = useState(1);
+  const [selectedMapIncident, setSelectedMapIncident] = useState<string | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
+  const { rootRef } = useThemeRoot<HTMLDivElement>();
 
   useEffect(() => {
     const id = window.setInterval(() => setNow(new Date()), 30_000);
@@ -572,13 +599,25 @@ export function PsapConsoleHome({
 
   useEffect(() => {
     try {
-      setCustomBg(window.localStorage.getItem(bgStorageKey(agencyId)));
       setCadPhase(parseCadPhase(window.localStorage.getItem(cadPhaseStorageKey(agencyId))));
     } catch {
-      setCustomBg(null);
       setCadPhase(1);
     }
   }, [agencyId]);
+
+  useEffect(() => {
+    if (!userId) {
+      setCustomBg(null);
+      return;
+    }
+    setCustomBg(
+      loadConsoleBg({
+        userId,
+        keyed: consoleBgStorageKey("psap", userId, agencyId),
+        legacyKey: psapBgLegacyKey(agencyId),
+      }),
+    );
+  }, [agencyId, userId]);
 
   const currentBg = customBg ?? DEFAULT_PSAP_BG;
   const hasCustomBg = Boolean(customBg);
@@ -588,26 +627,25 @@ export function PsapConsoleHome({
   const applyBg = useCallback(
     (url: string) => {
       setCustomBg(url);
-      try {
-        window.localStorage.setItem(bgStorageKey(agencyId), url);
-      } catch {
-        /* ignore */
+      if (userId) {
+        writeLocalStorage(consoleBgStorageKey("psap", userId, agencyId), url);
+        if (url.startsWith("data:") || url.startsWith("http")) {
+          writeAccountAvatar(userId, url);
+        }
       }
       setShowModal(false);
       setUrlInput("");
     },
-    [agencyId],
+    [agencyId, userId],
   );
 
   const resetBg = useCallback(() => {
     setCustomBg(null);
-    try {
-      window.localStorage.removeItem(bgStorageKey(agencyId));
-    } catch {
-      /* ignore */
+    if (userId) {
+      removeLocalStorage(consoleBgStorageKey("psap", userId, agencyId));
     }
     setShowModal(false);
-  }, [agencyId]);
+  }, [agencyId, userId]);
 
   const setCadPhasePersisted = useCallback(
     (phase: number) => {
@@ -636,6 +674,8 @@ export function PsapConsoleHome({
 
   const openIncidents = useMemo(() => incidents.filter(isOpenIncident), [incidents]);
 
+  const mapIncidents = useMemo(() => psapIncidentsToMap(openIncidents), [openIncidents]);
+
   const operatorByIncident = useMemo(() => {
     const m = new Map<string, SupervisorOperatorPresence>();
     for (const op of operators) {
@@ -660,21 +700,34 @@ export function PsapConsoleHome({
       : "—";
   const kpiQueue = openIncidents.filter((i) => i.status === "active").length;
 
-  const activeCallsHref = findNavHref(navItems, "active-calls", "dashboard", "incidents");
+  const activeCallsHref = findNavHref(navItems, "active-calls", "dispatcher", "incidents", "dashboard");
   const cadQueueHref = findNavHref(navItems, "cad-queue", "cad", "cad-audit");
   const transcriptsHref = findNavHref(navItems, "transcripts", "history");
   const reportsHref = findNavHref(navItems, "reports");
   const qaHref = findNavHref(navItems, "qa", "queue", "scorecards");
   const teamHref = findNavHref(navItems, "team", "users");
-  const incidentsHref = findNavHref(navItems, "incidents", "dashboard", "active-calls");
+  const incidentsHref = findNavHref(navItems, "incidents", "dispatcher", "active-calls");
+  const liveWorkspaceHref =
+    findNavHref(navItems, "dispatcher") ?? `/${jurisdiction}/dispatcher`;
   const auditHref = findNavHref(navItems, "audit", "log");
 
   const quickActions = useMemo(() => {
     const actions: QuickActionDef[] = [];
+    if (isDispatcher && liveWorkspaceHref) {
+      actions.push({
+        key: "live-workspace",
+        label: "Live Workspace",
+        href: liveWorkspaceHref,
+        Icon: Headphones,
+        bg: "rgba(30,58,95,0.55)",
+        color: "#93c5fd",
+        bdr: "rgba(59,130,246,0.35)",
+      });
+    }
     if (activeCallsHref) {
       actions.push({
         key: "active-calls",
-        label: "Active Calls",
+        label: isDispatcher ? "My Queue" : "Active Calls",
         href: activeCallsHref,
         Icon: PhoneCall,
         bg: "rgba(30,58,95,0.4)",
@@ -738,7 +791,16 @@ export function PsapConsoleHome({
       });
     }
     return actions;
-  }, [activeCallsHref, teamHref, qaHref, cadQueueHref, transcriptsHref, reportsHref]);
+  }, [
+    isDispatcher,
+    liveWorkspaceHref,
+    activeCallsHref,
+    teamHref,
+    qaHref,
+    cadQueueHref,
+    transcriptsHref,
+    reportsHref,
+  ]);
 
   const notifications = useMemo(() => {
     return openIncidents.slice(0, 8).map((inc) => {
@@ -838,17 +900,27 @@ export function PsapConsoleHome({
       color: kpiActiveCalls > 0 ? C.red : C.text,
       icon: <PhoneCall size={17} color={C.red} strokeWidth={1.7} />,
       iconBg: "rgba(239,68,68,0.15)",
-      linkLabel: "View active calls",
-      href: activeCallsHref ?? incidentsHref,
+      linkLabel: isDispatcher ? "Open live workspace" : "View active calls",
+      href: isDispatcher
+        ? liveWorkspaceHref
+        : (activeCallsHref ?? incidentsHref),
     },
     {
-      label: "DISPATCHERS ON DUTY",
-      value: loading && operators.length === 0 ? "…" : kpiDispatchers,
+      label: isDispatcher ? "LIVE WORKSPACE" : "DISPATCHERS ON DUTY",
+      value: isDispatcher
+        ? "Enter"
+        : loading && operators.length === 0
+          ? "…"
+          : kpiDispatchers,
       color: C.text,
-      icon: <Users size={17} color={C.blue} strokeWidth={1.7} />,
+      icon: isDispatcher ? (
+        <Headphones size={17} color={C.blue} strokeWidth={1.7} />
+      ) : (
+        <Users size={17} color={C.blue} strokeWidth={1.7} />
+      ),
       iconBg: "rgba(59,130,246,0.15)",
-      linkLabel: "View dispatcher board",
-      href: teamHref,
+      linkLabel: isDispatcher ? "Open call-taking console" : "View dispatcher board",
+      href: isDispatcher ? liveWorkspaceHref : teamHref,
     },
     {
       label: "QUEUE DEPTH",
@@ -873,6 +945,8 @@ export function PsapConsoleHome({
   return (
     <HelpChrome role={userRole ?? "supervisor"}>
       <div
+        ref={rootRef}
+        data-theme="dark"
         style={{
           display: "flex",
           height: "100vh",
@@ -1068,7 +1142,9 @@ export function PsapConsoleHome({
                   width: 30,
                   height: 30,
                   borderRadius: "50%",
-                  background: "linear-gradient(135deg,#1d4ed8,#1e40af)",
+                  background: customBg
+                    ? `center / cover no-repeat url(${JSON.stringify(customBg)})`
+                    : "linear-gradient(135deg,#1d4ed8,#1e40af)",
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
@@ -1076,9 +1152,11 @@ export function PsapConsoleHome({
                   fontWeight: 700,
                   color: "#fff",
                   flexShrink: 0,
+                  overflow: "hidden",
                 }}
+                aria-hidden={Boolean(customBg)}
               >
-                {initialsFromName(displayName)}
+                {customBg ? null : initialsFromName(displayName)}
               </div>
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div
@@ -1283,6 +1361,8 @@ export function PsapConsoleHome({
                   email={userEmail}
                   role={userRole}
                   agencyId={agencyId}
+                  userId={userId}
+                  leadingSlot={<ThemeToggle variant="inline" />}
                 />
               </div>
             </header>
@@ -1296,7 +1376,7 @@ export function PsapConsoleHome({
               role="presentation"
             >
               {/* Hero */}
-              <div style={{ position: "relative", height: 288, overflow: "hidden", flexShrink: 0 }}>
+              <div style={{ position: "relative", height: 330, overflow: "hidden", flexShrink: 0 }}>
                 <div
                   style={{
                     position: "absolute",
@@ -1331,7 +1411,7 @@ export function PsapConsoleHome({
                     display: "flex",
                     flexDirection: "column",
                     justifyContent: "space-between",
-                    padding: "22px 18px 0",
+                    padding: "22px 18px 16px",
                   }}
                 >
                   <div>
@@ -1363,7 +1443,6 @@ export function PsapConsoleHome({
                       display: "grid",
                       gridTemplateColumns: "repeat(4,1fr)",
                       gap: 10,
-                      marginBottom: -22,
                     }}
                   >
                     {kpiCards.map((s) => (
@@ -1481,7 +1560,7 @@ export function PsapConsoleHome({
                   }}
                 >
                   <Camera size={13} color={C.text} strokeWidth={1.7} />
-                  Change Agency Background
+                  Change My Image
                   {hasCustomBg ? (
                     <span
                       style={{
@@ -1697,7 +1776,7 @@ export function PsapConsoleHome({
                   ) : null}
                 </div>
 
-                {/* Dispatcher board */}
+                {/* Dispatcher board — or live workspace CTA for dispatcher role */}
                 <div style={card()}>
                   <div
                     style={{
@@ -1715,9 +1794,9 @@ export function PsapConsoleHome({
                         letterSpacing: "0.7px",
                       }}
                     >
-                      DISPATCHER BOARD
+                      {isDispatcher ? "LIVE WORKSPACE" : "DISPATCHER BOARD"}
                     </span>
-                    {teamHref ? (
+                    {!isDispatcher && teamHref ? (
                       <Link
                         href={teamHref}
                         style={{
@@ -1731,6 +1810,35 @@ export function PsapConsoleHome({
                       </Link>
                     ) : null}
                   </div>
+                  {isDispatcher ? (
+                    <div style={{ padding: "8px 15px 16px" }}>
+                      <p style={{ fontSize: 12, color: C.textSub, margin: "0 0 12px", lineHeight: 1.45 }}>
+                        Open the call-taking console for live transcription, CAD, and your active
+                        incident queue.
+                      </p>
+                      <Link
+                        href={liveWorkspaceHref}
+                        style={{
+                          display: "inline-flex",
+                          alignItems: "center",
+                          gap: 8,
+                          padding: "10px 14px",
+                          borderRadius: 8,
+                          background: "rgba(59,130,246,0.18)",
+                          border: "1px solid rgba(59,130,246,0.35)",
+                          color: "#93c5fd",
+                          fontSize: 13,
+                          fontWeight: 700,
+                          textDecoration: "none",
+                        }}
+                      >
+                        <Headphones size={16} strokeWidth={1.8} />
+                        Enter Live Workspace
+                        <ArrowRight size={14} strokeWidth={1.8} />
+                      </Link>
+                    </div>
+                  ) : (
+                    <>
                   <div style={{ padding: "0 8px 8px", minHeight: 120 }}>
                     {operatorsQuery.isLoading && operators.length === 0 ? (
                       <div style={{ padding: 12, fontSize: 12, color: C.textMuted }}>Loading…</div>
@@ -1824,6 +1932,8 @@ export function PsapConsoleHome({
                       View dispatcher board <ArrowRight size={12} strokeWidth={1.7} />
                     </Link>
                   ) : null}
+                    </>
+                  )}
                 </div>
 
                 {/* Call volume */}
@@ -1863,6 +1973,47 @@ export function PsapConsoleHome({
                   <div style={{ padding: "4px 10px 12px" }}>
                     <CallVolumeChart data={volumeData} currentHourIndex={currentHourIndex} />
                   </div>
+                </div>
+              </div>
+
+              {/* Operational Map */}
+              <div style={{ padding: "0 16px 12px" }}>
+                <div
+                  style={{
+                    ...card(),
+                    overflow: "hidden",
+                    height: 480,
+                  }}
+                >
+                  <div
+                    style={{
+                      padding: "10px 14px",
+                      borderBottom: `1px solid ${C.border}`,
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 6,
+                    }}
+                  >
+                    <MapPin size={13} color={C.textSub} />
+                    <span
+                      style={{
+                        fontSize: 12,
+                        fontWeight: 700,
+                        color: C.textSub,
+                        letterSpacing: "0.05em",
+                      }}
+                    >
+                      OPERATIONAL MAP
+                    </span>
+                  </div>
+                  <RapidCortexMap
+                    incidents={mapIncidents}
+                    selectedIncidentId={selectedMapIncident}
+                    onIncidentClick={(inc) => setSelectedMapIncident(inc.id)}
+                    vertical="core"
+                    height="432px"
+                    showLayerControl
+                  />
                 </div>
               </div>
 
@@ -2357,7 +2508,7 @@ export function PsapConsoleHome({
               >
                 <div>
                   <div style={{ fontSize: 15, fontWeight: 700, color: C.text }}>
-                    Change Agency Background
+                    Change My Image
                   </div>
                   <div style={{ fontSize: 11, color: C.textSub, marginTop: 2 }}>
                     {agencyName} — stored locally for this browser

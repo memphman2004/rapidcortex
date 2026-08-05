@@ -134,3 +134,6 @@ scripts/aws-10dlc/*.json
 !scripts/aws-10dlc/*.example.json
 .aws-10dlc-state.json
 
+# PSAP address enrichment resume file
+.psap-enrich.checkpoint
+

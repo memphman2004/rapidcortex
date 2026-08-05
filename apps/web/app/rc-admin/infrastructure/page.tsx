@@ -37,6 +37,7 @@ export default async function RcInfrastructurePage() {
     return (
       <RcAdminConsoleHome
         agencyId={user.agencyId}
+        userId={user.userId}
         displayName={displayName}
         userEmail={user.email}
         userRole={user.role}

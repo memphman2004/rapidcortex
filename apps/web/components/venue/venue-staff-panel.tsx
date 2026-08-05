@@ -18,13 +18,13 @@ export function VenueStaffPanel({ agencyId, linkBase }: { agencyId: string; link
       <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
         {staff.map((member) => (
           <Link key={member.userId} href={`${linkBase}/staff/${member.userId}`} style={{ textDecoration: "none", color: "inherit" }}>
-            <div style={{ background: "#141220", border: "1px solid #1e1a30", borderRadius: 8, padding: 12, display: "flex", gap: 12, alignItems: "center" }}>
-              <div style={{ width: 36, height: 36, borderRadius: "50%", background: "#1a1528", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 700, color: "#f59e0b" }}>
+            <div style={{ background: "var(--rc-surface-alt)", border: "1px solid var(--rc-border)", borderRadius: 8, padding: 12, display: "flex", gap: 12, alignItems: "center" }}>
+              <div style={{ width: 36, height: 36, borderRadius: "50%", background: "var(--rc-surface-hover)", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 700, color: "var(--rc-amber)" }}>
                 {member.initials}
               </div>
               <div>
                 <div style={{ fontWeight: 600 }}>{member.displayName}</div>
-                <div style={{ fontSize: 11, color: "#5a4d7a" }}>{member.role} · {member.zone} · {member.status.replace(/_/g, " ")}</div>
+                <div style={{ fontSize: 11, color: "var(--rc-text-muted)" }}>{member.role} · {member.zone} · {member.status.replace(/_/g, " ")}</div>
               </div>
             </div>
           </Link>

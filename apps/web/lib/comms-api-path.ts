@@ -86,6 +86,7 @@ const STACK3_PATH_TESTS: RegExp[] = [
   /^\/api\/rc-admin\/api-clients(\/|$)/,
   /^\/api\/rc-admin\/agreements(\/|$)/,
   /^\/api\/rc-admin\/leads(\/|$)/,
+  /^\/api\/rc-admin\/psap-prospects(\/|$)/,
   /^\/api\/rc-admin\/applications(\/|$)/,
   /^\/api\/rc-admin\/job-postings(\/|$)/,
   /^\/api\/rc-admin\/settings\/hiring-bookings(\/|$)/,

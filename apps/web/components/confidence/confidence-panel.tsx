@@ -6,6 +6,7 @@ import type {
   ConfidenceLevel,
   FieldConfidence,
 } from "rapid-cortex-shared";
+import { confidenceToDisplayPercent } from "rapid-cortex-shared";
 
 const LEVEL_COLOR: Record<ConfidenceLevel, string> = {
   HIGH: "text-emerald-400",
@@ -55,11 +56,12 @@ const STATUS_BG: Record<string, string> = {
 const WEIGHT_ORDER = { CRITICAL: 0, HIGH: 1, MEDIUM: 2, LOW: 3 } as const;
 
 function ScoreBar({ score, level }: { score: number; level: ConfidenceLevel }) {
+  const pct = confidenceToDisplayPercent(score);
   return (
     <div className="mt-1 h-0.5 overflow-hidden rounded-full bg-slate-800">
       <div
         className={`h-full rounded-full transition-[width] duration-500 ease-out ${LEVEL_BAR[level]}`}
-        style={{ width: `${score}%` }}
+        style={{ width: `${pct}%` }}
       />
     </div>
   );
@@ -114,7 +116,7 @@ function FieldRow({
           ) : null}
         </span>
         <span className={`min-w-[32px] text-right text-[11px] font-extrabold tabular-nums ${LEVEL_COLOR[level]}`}>
-          {level === "MISSING" ? "—" : `${field.score}%`}
+          {level === "MISSING" ? "—" : `${confidenceToDisplayPercent(field.score)}%`}
         </span>
       </div>
 
@@ -218,7 +220,7 @@ export function ConfidencePanel({
         {aggregate ? (
           <div className="flex items-center gap-2.5">
             <span className={`text-sm font-extrabold tabular-nums ${statusColor}`}>
-              {aggregate.overallScore}%
+              {confidenceToDisplayPercent(aggregate.overallScore)}%
             </span>
             <span
               className={`rounded border px-1.5 py-0.5 text-[9px] font-bold tracking-wide ${STATUS_BG[aggregate.pictureStatus]}`}

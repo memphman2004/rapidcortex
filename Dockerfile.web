@@ -111,6 +111,9 @@ ENV APP_VERSION=${APP_VERSION}
 # Bust Docker layer cache when source or build args change (CodeBuild passes BUILD_CACHE_BUST).
 RUN echo "build cache bust ${BUILD_CACHE_BUST}"
 
+# next build regularly OOMs under default Node heap on CodeBuild LARGE + Docker.
+ENV NODE_OPTIONS="--max-old-space-size=8192"
+
 RUN npm run build -w rapid-cortex-shared \
   && npm run build -w rapid-cortex-maps \
   && npm run build -w rapid-cortex-protocols \

@@ -12,6 +12,7 @@ export interface CampusAdminDashboardProps {
   adminName?: string;
   adminEmail?: string;
   adminRole?: string;
+  userId?: string;
 }
 
 export function CampusAdminDashboard({
@@ -21,6 +22,7 @@ export function CampusAdminDashboard({
   adminName = "Campus Admin",
   adminEmail,
   adminRole = "CAMPUS_ADMIN",
+  userId,
 }: CampusAdminDashboardProps) {
   return (
     <CampusConsoleHome
@@ -30,6 +32,7 @@ export function CampusAdminDashboard({
       displayName={adminName}
       userEmail={adminEmail}
       userRole={adminRole}
+      userId={userId}
     />
   );
 }

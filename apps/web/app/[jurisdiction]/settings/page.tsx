@@ -21,6 +21,7 @@ export default async function VenueSettingsPage({ params }: Props) {
       linkBase={linkBase}
       userEmail={user.email ?? ""}
       userRole={user.role}
+      userId={user.userId}
     >
       <div style={{ padding: 14 }}>
         <h2 style={{ fontSize: 16, fontWeight: 700, margin: "0 0 8px" }}>Venue Settings</h2>
