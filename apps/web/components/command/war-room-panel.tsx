@@ -7,8 +7,10 @@ import type { WarRoom, WarRoomMessage } from "rapid-cortex-shared";
 import { useSession } from "@/components/auth/session-context";
 import { useJurisdictionLink } from "@/lib/jurisdiction-context";
 import {
+  closeWarRoom,
   fetchWarRoom,
   fetchWarRoomMessages,
+  leaveWarRoom,
   pinWarRoomMessage,
   postWarRoomMessage,
 } from "@/lib/war-room-api";
@@ -17,6 +19,18 @@ function statusBadge(status: WarRoom["status"]): string {
   if (status === "active") return "bg-emerald-950/80 text-emerald-200 ring-emerald-800";
   if (status === "standby") return "bg-amber-950/80 text-amber-200 ring-amber-800";
   return "bg-slate-800 text-slate-400 ring-slate-700";
+}
+
+function canCloseWarRoom(role: string | null | undefined): boolean {
+  const r = (role ?? "").trim().toLowerCase();
+  return (
+    r === "supervisor" ||
+    r === "agencyadmin" ||
+    r === "rcadmin" ||
+    r === "rcsuperadmin" ||
+    r === "rcitadmin" ||
+    r === "commsupervisor"
+  );
 }
 
 export function WarRoomPanel({ roomId }: { roomId: string }) {
@@ -51,6 +65,12 @@ export function WarRoomPanel({ roomId }: { roomId: string }) {
     if (el) el.scrollTop = el.scrollHeight;
   }, [thread.length]);
 
+  const invalidateRoom = async () => {
+    await qc.invalidateQueries({ queryKey: ["war-room", roomId] });
+    await qc.invalidateQueries({ queryKey: ["war-room-messages", roomId] });
+    await qc.invalidateQueries({ queryKey: ["war-rooms"] });
+  };
+
   const send = async () => {
     if (!draft.trim() || room?.status === "closed") return;
     setBusy(true);
@@ -69,10 +89,36 @@ export function WarRoomPanel({ roomId }: { roomId: string }) {
   const pin = async (msg: WarRoomMessage) => {
     try {
       await pinWarRoomMessage(roomId, msg.messageId);
-      await qc.invalidateQueries({ queryKey: ["war-room-messages", roomId] });
-      await qc.invalidateQueries({ queryKey: ["war-room", roomId] });
+      await invalidateRoom();
     } catch (e) {
       setError(e instanceof Error ? e.message : "Pin failed");
+    }
+  };
+
+  const leave = async () => {
+    setBusy(true);
+    setError(null);
+    try {
+      await leaveWarRoom(roomId);
+      await invalidateRoom();
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Leave failed");
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const close = async () => {
+    if (!window.confirm("Close this war room? All participants will be marked inactive.")) return;
+    setBusy(true);
+    setError(null);
+    try {
+      await closeWarRoom(roomId);
+      await invalidateRoom();
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Close failed");
+    } finally {
+      setBusy(false);
     }
   };
 
@@ -85,6 +131,8 @@ export function WarRoomPanel({ roomId }: { roomId: string }) {
   }
 
   const activeCount = room.participants.filter((p) => p.active).length;
+  const isParticipant = room.participants.some((p) => p.userId === user?.userId && p.active);
+  const showClose = canCloseWarRoom(user?.role) && room.status !== "closed";
 
   return (
     <div className="flex h-full min-h-[28rem] flex-col rounded-lg border border-slate-800 bg-slate-950/60">
@@ -99,13 +147,34 @@ export function WarRoomPanel({ roomId }: { roomId: string }) {
               Incident {room.incidentId}
             </Link>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             <span className="text-xs text-slate-400">{activeCount} active</span>
             <span className={`rounded px-2 py-0.5 text-[10px] font-semibold uppercase ring-1 ${statusBadge(room.status)}`}>
               {room.status}
             </span>
+            {isParticipant && room.status !== "closed" ? (
+              <button
+                type="button"
+                disabled={busy}
+                onClick={() => void leave()}
+                className="rounded border border-slate-700 px-2 py-0.5 text-[10px] font-medium text-slate-300 hover:bg-slate-800 disabled:opacity-40"
+              >
+                Leave
+              </button>
+            ) : null}
+            {showClose ? (
+              <button
+                type="button"
+                disabled={busy}
+                onClick={() => void close()}
+                className="rounded border border-rose-900/60 bg-rose-950/40 px-2 py-0.5 text-[10px] font-medium text-rose-200 hover:bg-rose-950/70 disabled:opacity-40"
+              >
+                Close
+              </button>
+            ) : null}
           </div>
         </div>
+        {error ? <p className="mt-1 text-xs text-rose-300">{error}</p> : null}
       </header>
 
       <div className="grid min-h-0 flex-1 grid-cols-1 gap-0 md:grid-cols-[1fr_10rem]">
@@ -169,7 +238,6 @@ export function WarRoomPanel({ roomId }: { roomId: string }) {
                   Send
                 </button>
               </div>
-              {error ? <p className="mt-1 text-xs text-rose-300">{error}</p> : null}
             </div>
           ) : (
             <p className="border-t border-slate-800 p-2 text-xs text-slate-500">Room closed — read only.</p>

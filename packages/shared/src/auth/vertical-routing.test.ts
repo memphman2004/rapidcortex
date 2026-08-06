@@ -41,7 +41,7 @@ describe("dashboardRouteFromRole", () => {
 
   it("routes dispatcher to two-part jurisdiction path", () => {
     expect(dashboardRouteFromRole("dispatcher", "ga-columbus-appsondemandpilotcenter")).toBe(
-      "/ga-columbus/dispatcher",
+      "/ga-columbus/dashboard",
     );
     expect(dashboardRouteFromRole("supervisor", "test-agency")).toBe("/test-agency/supervisor");
   });

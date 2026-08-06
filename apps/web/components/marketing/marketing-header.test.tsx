@@ -5,6 +5,14 @@
 import { cleanup, render, screen, fireEvent, waitFor, within } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { SessionProvider } from "@/components/auth/session-context";
+import {
+  marketingContactPath,
+  marketingDemoPath,
+  marketingDemoRequestPath,
+  marketingHomePath,
+  marketingPricingPath,
+  marketingSolutionsAgenciesPath,
+} from "@/lib/marketing-links";
 import { MarketingHeader, getMarketingMobileDrawerLinkDefs, isOperationalAuthHref } from "./marketing-header";
 
 function MarketingHeaderHarness() {
@@ -103,17 +111,17 @@ describe("MarketingHeader", () => {
 
     const dialog = await screen.findByRole("dialog");
     const book = within(dialog).getByRole("link", { name: /^Request a demo$/ });
-    expect(book.getAttribute("href")).toBe("https://www.rapidcortex.us/contact-sales?interest=demo");
+    expect(book.getAttribute("href")).toBe(marketingDemoRequestPath("demo"));
     expect(within(dialog).queryByRole("link", { name: /^Sign in$/ })).toBeNull();
     expect(within(dialog).queryByRole("link", { name: /^Open app$/ })).toBeNull();
 
-    expect(within(dialog).getByRole("link", { name: /^Home$/ }).getAttribute("href")).toBe("/");
-    expect(within(dialog).getByRole("link", { name: /^Features$/ }).getAttribute("href")).toBe("/solutions/agencies");
-    expect(within(dialog).getByRole("link", { name: /^Pricing$/ }).getAttribute("href")).toBe("/pricing");
-    expect(within(dialog).getByRole("link", { name: /^Demo$/ }).getAttribute("href")).toBe("/demo");
-    expect(within(dialog).getByRole("link", { name: /^Contact$/ }).getAttribute("href")).toBe(
-      "https://www.rapidcortex.us/contact-sales?interest=demo",
+    expect(within(dialog).getByRole("link", { name: /^Home$/ }).getAttribute("href")).toBe(marketingHomePath());
+    expect(within(dialog).getByRole("link", { name: /^Features$/ }).getAttribute("href")).toBe(
+      marketingSolutionsAgenciesPath(),
     );
+    expect(within(dialog).getByRole("link", { name: /^Pricing$/ }).getAttribute("href")).toBe(marketingPricingPath());
+    expect(within(dialog).getByRole("link", { name: /^Demo$/ }).getAttribute("href")).toBe(marketingDemoPath());
+    expect(within(dialog).getByRole("link", { name: /^Contact$/ }).getAttribute("href")).toBe(marketingContactPath());
 
     /** Close via Escape restores focus target */
     fireEvent.keyDown(document, { key: "Escape" });

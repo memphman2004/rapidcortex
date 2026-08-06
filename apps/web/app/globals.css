@@ -146,6 +146,11 @@
   background-color: var(--rc-surface-hover) !important;
 }
 
+* {
+  scrollbar-color: var(--rc-scrollbar) transparent;
+  scrollbar-width: thin;
+}
+
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);

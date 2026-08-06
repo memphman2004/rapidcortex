@@ -1,6 +1,7 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
+import Link from "next/link";
 import {
   Activity, AlertCircle, AlertTriangle, BarChart3, Bell, CheckCircle2,
   Clock, CreditCard, FileText, Globe, Key, Package, Radio, Receipt,
@@ -24,6 +25,7 @@ import {
 import { fetchAdminPlatformNotices } from "@/lib/platform-notices-api";
 import { fetchQaScorecards, fetchQaTrends } from "@/lib/qa-module-api";
 import { fetchWarRooms } from "@/lib/war-room-api";
+import { useJurisdictionLink } from "@/lib/jurisdiction-context";
 import { needsOnboardingAttention } from "@/lib/platform-onboarding-helpers";
 import {
   fetchDashboardOpenIncidents,
@@ -135,6 +137,7 @@ export function TeamWorkloadWidget({ agencyId }: WidgetProps) {
 }
 
 export function WarRoomsActiveWidget({ agencyId }: WidgetProps) {
+  const to = useJurisdictionLink();
   const q = useQuery({
     queryKey: ["war-rooms", agencyId],
     queryFn: () => fetchWarRooms(),
@@ -144,16 +147,32 @@ export function WarRoomsActiveWidget({ agencyId }: WidgetProps) {
   const rooms = q.data ?? [];
   const active = rooms.filter((r) => r.status === "active" || r.status === "standby");
   return (
-    <WidgetShell title="War Rooms" icon={Siren} count={active.length}>
+    <WidgetShell
+      title="War Rooms"
+      icon={Siren}
+      count={active.length}
+      action={
+        <Link
+          href={to("/supervisor/command/war-rooms")}
+          className="text-[10px] font-medium text-sky-400 hover:underline"
+        >
+          View all
+        </Link>
+      }
+    >
       {active.length === 0 ? (
         <EmptyState message="No active war rooms" />
       ) : (
         <div className="divide-y divide-slate-800/40">
           {active.map((room) => (
-            <div key={room.roomId} className="px-4 py-3">
+            <Link
+              key={room.roomId}
+              href={to(`/command/war-room/${encodeURIComponent(room.roomId)}`)}
+              className="block px-4 py-3 transition-colors hover:bg-slate-800/40"
+            >
               <p className="text-xs font-medium text-white">{room.name}</p>
               <p className="text-[10px] text-slate-500">Incident {room.incidentId}</p>
-            </div>
+            </Link>
           ))}
         </div>
       )}

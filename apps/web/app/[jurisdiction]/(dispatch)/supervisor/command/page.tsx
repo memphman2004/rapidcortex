@@ -2,12 +2,16 @@
 
 import Link from "next/link";
 import { Clock, FileSearch, Globe, Radio } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
 import { useSession } from "@/components/auth/session-context";
 import { useJurisdictionLink } from "@/lib/jurisdiction-context";
+import { fetchWarRooms, isWarRoomApiConfigured } from "@/lib/war-room-api";
+import { isWarRoomsEnabled } from "@/lib/runtime-flags";
 import { isSupervisorOrStaffRole, SupervisorAccessRestricted } from "../_components/supervisor-access";
 
 const commandCards = [
   {
+    id: "war-rooms",
     title: "War Rooms",
     description: "Coordinate tasks and checklists during major incidents",
     href: "/supervisor/command/war-rooms",
@@ -15,6 +19,7 @@ const commandCards = [
     icon: Radio,
   },
   {
+    id: "pir",
     title: "Post-Incident Reviews",
     description: "Structure lessons-learned after significant events",
     href: "/supervisor/command/pir",
@@ -22,6 +27,7 @@ const commandCards = [
     icon: FileSearch,
   },
   {
+    id: "status-pages",
     title: "Stakeholder Status Pages",
     description: "Publish controlled status updates to leadership",
     href: "/supervisor/command/status-pages",
@@ -29,6 +35,7 @@ const commandCards = [
     icon: Globe,
   },
   {
+    id: "timeline",
     title: "Incident Timeline",
     description: "Reconstruct event sequences for AAR and training",
     href: "/supervisor/command/timeline",
@@ -40,6 +47,18 @@ const commandCards = [
 export default function SupervisorCommandPage() {
   const { user } = useSession();
   const to = useJurisdictionLink();
+
+  const warRoomsEnabled = isWarRoomsEnabled() && isWarRoomApiConfigured();
+  const warRoomsQuery = useQuery({
+    queryKey: ["war-rooms", "agency", "command-hub"],
+    queryFn: () => fetchWarRooms(),
+    enabled: warRoomsEnabled && isSupervisorOrStaffRole(user?.role),
+    refetchInterval: 30_000,
+  });
+
+  const activeWarRooms = (warRoomsQuery.data ?? []).filter(
+    (r) => r.status === "active" || r.status === "standby",
+  ).length;
 
   if (!isSupervisorOrStaffRole(user?.role)) {
     return <SupervisorAccessRestricted />;
@@ -57,6 +76,10 @@ export default function SupervisorCommandPage() {
       <div className="grid gap-4 md:grid-cols-2">
         {commandCards.map((card) => {
           const Icon = card.icon;
+          const badge =
+            card.id === "war-rooms"
+              ? `${warRoomsEnabled ? activeWarRooms : 0} Active`
+              : card.badge;
           return (
             <Link
               key={card.href}
@@ -68,7 +91,7 @@ export default function SupervisorCommandPage() {
                   <Icon className="h-4 w-4 text-sky-300" />
                   <h2 className="text-sm font-semibold text-slate-100">{card.title}</h2>
                 </div>
-                <span className="rounded bg-slate-800 px-2 py-0.5 text-xs text-slate-300">{card.badge}</span>
+                <span className="rounded bg-slate-800 px-2 py-0.5 text-xs text-slate-300">{badge}</span>
               </div>
               <p className="mt-2 text-sm text-slate-400">{card.description}</p>
             </Link>

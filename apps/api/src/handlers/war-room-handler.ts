@@ -16,6 +16,7 @@ import {
   serviceUnavailable,
   unauthorized,
 } from "../lib/response.js";
+import { env } from "../lib/env.js";
 import { WarRoomService } from "../services/warRoomService.js";
 import { requireAddon } from "../middleware/requireAddon.js";
 
@@ -39,8 +40,10 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
     const user = await getUserContext(event);
     if (!user) return unauthorized();
     if (!isUserAccountActive(user)) return unauthorized(ACCOUNT_INACTIVE_MESSAGE);
-    const addonGate = await requireCommandAddon(event, user);
-    if (addonGate) return addonGate;
+    if (env.warRoomsRequireAddon) {
+      const addonGate = await requireCommandAddon(event, user);
+      if (addonGate) return addonGate;
+    }
 
     const routeKey = event.routeKey ?? "";
     const roomId = event.pathParameters?.roomId;

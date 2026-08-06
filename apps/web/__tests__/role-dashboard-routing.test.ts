@@ -28,7 +28,7 @@ function user(role: string, agencyId: string): UserContext {
 describe("role → dashboard routing", () => {
   describe("PSAP roles (jurisdiction workspace)", () => {
     it.each([
-      ["dispatcher", "/ga-columbus/dispatcher", "ga-columbus-demo"],
+      ["dispatcher", "/ga-columbus/dashboard", "ga-columbus-demo"],
       ["supervisor", "/ga-columbus/supervisor", "ga-columbus-demo"],
       ["agencyadmin", "/ga-columbus/admin", "ga-columbus-demo"],
       ["agencyit", "/ga-columbus/it", "ga-columbus-demo"],
@@ -97,7 +97,7 @@ describe("role → dashboard routing", () => {
           dispatcher.agencyId,
           "venue",
         ),
-      ).toBe("/test-agency/dispatcher");
+      ).toBe("/test-agency/dashboard");
     });
   });
 
@@ -124,8 +124,8 @@ describe("role → dashboard routing", () => {
           dispatcher.agencyId,
           "campus",
         ),
-      ).toBe("/test-agency/dispatcher");
-      expect(resolvePostAuthenticationHomeHref(dispatcher, slug)).toBe("/test-agency/dispatcher");
+      ).toBe("/test-agency/dashboard");
+      expect(resolvePostAuthenticationHomeHref(dispatcher, slug)).toBe("/test-agency/dashboard");
     });
   });
 

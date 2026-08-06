@@ -9,7 +9,7 @@ const cases = [
   ["rcsuperadmin", "__platform__", "/rc-admin"],
   ["rcadmin", "__platform__", "/rc-admin"],
   // 911
-  ["dispatcher", "ga-columbus-appsondemand", "/ga-columbus/dispatcher"],
+  ["dispatcher", "ga-columbus-appsondemand", "/ga-columbus/dashboard"],
   ["supervisor", "test-agency", "/test-agency/supervisor"],
   ["agencyadmin", "tx-testville-testvillepsap", "/tx-testville/admin"],
   // Campus

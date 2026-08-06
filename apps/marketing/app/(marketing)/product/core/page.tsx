@@ -69,11 +69,11 @@ export default function ProductCorePage() {
             sizes="100vw"
           />
           <div
-            className="pointer-events-none absolute inset-0 bg-gradient-to-r from-slate-950/92 via-slate-950/60 to-transparent sm:via-slate-950/45"
+            className="pointer-events-none absolute inset-0 bg-gradient-to-b from-slate-950/75 via-slate-950/55 to-slate-950/80"
             aria-hidden
           />
-          <div className="relative z-10 flex h-full max-w-7xl flex-col justify-end px-4 pb-8 pt-24 sm:justify-center sm:px-6 sm:pb-12 sm:pt-28 lg:px-8">
-            <div className="max-w-xl space-y-4 sm:space-y-5">
+          <div className="relative z-10 flex h-full w-full flex-col items-start justify-start px-4 pb-8 pt-6 text-left sm:px-6 sm:pb-12 sm:pt-8 lg:px-8">
+            <div className="max-w-2xl space-y-3 sm:space-y-4">
               <p className="text-xs font-semibold uppercase tracking-[0.2em] text-sky-300">RC Core</p>
               <h1
                 id="core-hero-title"
@@ -85,7 +85,7 @@ export default function ProductCorePage() {
                 Built for 911 PSAP, EMS, fire rescue, and law enforcement teams that need coordinated
                 decision-support under high-pressure incident conditions.
               </p>
-              <div className="flex flex-wrap gap-3 pt-1">
+              <div className="flex flex-wrap justify-start gap-3 pt-1">
                 <Link
                   href="https://www.rapidcortex.us/contact-sales?interest=demo"
                   className="inline-flex min-h-12 items-center justify-center rounded-lg bg-sky-600 px-6 py-3 text-sm font-semibold text-white shadow-lg shadow-sky-950/40 hover:bg-sky-500"

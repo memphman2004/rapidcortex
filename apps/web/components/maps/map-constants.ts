@@ -15,13 +15,24 @@ import type { ExpressionSpecification } from "mapbox-gl";
 
 /**
  * Resolved at runtime from env — never hard-code a token in source.
- * Set NEXT_PUBLIC_MAPBOX_STYLE_URL in .env.local or via the SSM-backed env script.
+ * Prefer theme-specific URLs; fall back to NEXT_PUBLIC_MAPBOX_STYLE_URL (legacy).
  */
-export const RC_STYLE_URL =
+export const RC_STYLE_URL_DARK =
   (typeof process !== "undefined" &&
-    process.env.NEXT_PUBLIC_MAPBOX_STYLE_URL) ||
+    (process.env.NEXT_PUBLIC_MAPBOX_STYLE_URL_DARK ||
+      process.env.NEXT_PUBLIC_MAPBOX_STYLE_URL)) ||
   "mapbox://styles/memphman2004/cmr3afd69002401qq1uywfk5p";
 
+export const RC_STYLE_URL_LIGHT =
+  (typeof process !== "undefined" && process.env.NEXT_PUBLIC_MAPBOX_STYLE_URL_LIGHT) ||
+  "mapbox://styles/memphman2004/cmsfheap9009w01s96hcr95b1";
+
+/** @deprecated Prefer RC_STYLE_URL_DARK / resolveMapStyleUrl — kept for older callers */
+export const RC_STYLE_URL = RC_STYLE_URL_DARK;
+
+export function resolveMapStyleUrl(theme: "dark" | "light" = "dark"): string {
+  return theme === "light" ? RC_STYLE_URL_LIGHT : RC_STYLE_URL_DARK;
+}
 // ─── Mapbox Studio layer IDs ──────────────────────────────────────────────────
 
 /**

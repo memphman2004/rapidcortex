@@ -474,7 +474,9 @@ function CampusConsoleHomeInner({
   const [modalTab, setModalTab] = useState<ModalTab>("presets");
   const [urlInput, setUrlInput] = useState("");
   const [selectedMapIncident, setSelectedMapIncident] = useState<string | null>(null);
+  const [mapTheme, setMapTheme] = useState<"dark" | "light">("dark");
   const fileRef = useRef<HTMLInputElement>(null);
+  const { rootRef } = useThemeRoot<HTMLDivElement>();
 
   useEffect(() => {
     const id = window.setInterval(() => setNow(new Date()), 30_000);
@@ -764,6 +766,8 @@ function CampusConsoleHomeInner({
   return (
     <HelpChrome role={userRole ?? "CAMPUS_SECURITY"}>
       <div
+        ref={rootRef}
+        data-theme="dark"
         style={{
           display: "flex",
           height: "100vh",
@@ -1087,6 +1091,7 @@ function CampusConsoleHomeInner({
                   role={userRole}
                   agencyId={agencyId}
                   userId={userId}
+                  leadingSlot={<ThemeToggle variant="inline" />}
                 />
               </div>
             </header>
@@ -1623,6 +1628,8 @@ function CampusConsoleHomeInner({
                     </span>
                   </div>
                   <RapidCortexMap
+                    theme={mapTheme}
+                    onThemeChange={setMapTheme}
                     incidents={mapIncidents}
                     selectedIncidentId={selectedMapIncident}
                     onIncidentClick={(inc) => setSelectedMapIncident(inc.id)}

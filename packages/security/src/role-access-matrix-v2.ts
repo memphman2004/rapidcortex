@@ -337,6 +337,8 @@ const CORE_ROLE_ACCESS_MATRIX_V2 = {
     "audit.view",
     "audit.cad_writeback",
     "audit.access_reports",
+    "command.war_room_create",
+    "command.war_room_join",
     ...EMERGENCY_CONNECT_MANAGE,
     ...EMERGENCY_CONNECT_VIEW,
     ...HOSPITAL_ROUTING_FULL,

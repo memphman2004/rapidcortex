@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import type { Incident } from "rapid-cortex-shared";
@@ -24,6 +25,7 @@ export function WarRoomLauncher({ incident }: { incident: Incident }) {
   const router = useRouter();
   const to = useJurisdictionLink();
   const qc = useQueryClient();
+  const [error, setError] = useState<string | null>(null);
   const enabled =
     isWarRoomsEnabled() && isWarRoomApiConfigured() && isHighPriority(incident) && isActive(incident);
 
@@ -40,6 +42,7 @@ export function WarRoomLauncher({ incident }: { incident: Incident }) {
   const participantCount = activeRoom?.participants.filter((p) => p.active).length ?? 0;
 
   const open = async () => {
+    setError(null);
     try {
       let roomId = activeRoom?.roomId;
       if (!roomId) {
@@ -53,23 +56,26 @@ export function WarRoomLauncher({ incident }: { incident: Incident }) {
       }
       await qc.invalidateQueries({ queryKey: ["war-rooms", incident.incidentId] });
       router.push(to(`/command/war-room/${encodeURIComponent(roomId)}`));
-    } catch {
-      // surfaced on destination page if navigation still occurs
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Failed to open war room");
     }
   };
 
   return (
-    <button
-      type="button"
-      onClick={() => void open()}
-      className="relative rounded-md bg-violet-950/60 px-2 py-1 text-xs font-medium text-violet-100 ring-1 ring-violet-800 hover:bg-violet-900/50"
-    >
-      Open War Room
-      {participantCount > 0 ? (
-        <span className="absolute -right-1 -top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-violet-500 px-1 text-[9px] font-bold text-white">
-          {participantCount}
-        </span>
-      ) : null}
-    </button>
+    <div className="inline-flex flex-col items-end gap-1">
+      <button
+        type="button"
+        onClick={() => void open()}
+        className="relative rounded-md bg-violet-950/60 px-2 py-1 text-xs font-medium text-violet-100 ring-1 ring-violet-800 hover:bg-violet-900/50"
+      >
+        Open War Room
+        {participantCount > 0 ? (
+          <span className="absolute -right-1 -top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-violet-500 px-1 text-[9px] font-bold text-white">
+            {participantCount}
+          </span>
+        ) : null}
+      </button>
+      {error ? <p className="max-w-[12rem] text-right text-[10px] text-rose-300">{error}</p> : null}
+    </div>
   );
 }

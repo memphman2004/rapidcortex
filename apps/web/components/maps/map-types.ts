@@ -109,4 +109,10 @@ export interface RCMapProps {
    * "core" = 911/PSAP; "campus" = campus safety; "venue" = stadium/arena/airport
    */
   vertical?: "core" | "campus" | "venue" | "airport";
+
+  /** Mapbox Studio style theme — dark (dispatch) vs light */
+  theme?: "dark" | "light";
+
+  /** Called when the in-map theme toggle is clicked */
+  onThemeChange?: (theme: "dark" | "light") => void;
 }

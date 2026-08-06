@@ -110,7 +110,6 @@ export class WarRoomService {
 
   async list(user: UserContext, incidentId?: string): Promise<{ items: WarRoom[] }> {
     assertInfra();
-    assertSupervisor(user);
     if (!user.agencyId) {
       const err = new Error("FORBIDDEN");
       (err as Error & { statusCode?: number }).statusCode = 403;
@@ -124,7 +123,6 @@ export class WarRoomService {
 
   async get(user: UserContext, roomId: string): Promise<WarRoom> {
     assertInfra();
-    assertSupervisor(user);
     if (!user.agencyId) {
       const err = new Error("FORBIDDEN");
       (err as Error & { statusCode?: number }).statusCode = 403;
@@ -142,7 +140,6 @@ export class WarRoomService {
 
   async join(user: UserContext, roomId: string): Promise<WarRoom> {
     assertInfra();
-    assertSupervisor(user);
     const room = await this.get(user, roomId);
     if (room.status === "closed") {
       const err = new Error("ROOM_CLOSED");
@@ -188,7 +185,6 @@ export class WarRoomService {
 
   async leave(user: UserContext, roomId: string): Promise<WarRoom> {
     assertInfra();
-    assertSupervisor(user);
     const room = await this.get(user, roomId);
     const ts = nowIso();
     const participants = room.participants.map((p) =>
@@ -216,7 +212,6 @@ export class WarRoomService {
 
   async postMessage(user: UserContext, roomId: string, body: PostWarRoomMessageBody): Promise<WarRoomMessage> {
     assertInfra();
-    assertSupervisor(user);
     const room = await this.get(user, roomId);
     if (room.status === "closed") {
       const err = new Error("ROOM_CLOSED");
@@ -252,7 +247,6 @@ export class WarRoomService {
 
   async listMessages(user: UserContext, roomId: string): Promise<{ items: WarRoomMessage[] }> {
     assertInfra();
-    assertSupervisor(user);
     await this.get(user, roomId);
     const items = await messages.listByRoom(roomId);
     return { items };
@@ -260,7 +254,6 @@ export class WarRoomService {
 
   async pinMessage(user: UserContext, roomId: string, messageId: string): Promise<WarRoomMessage> {
     assertInfra();
-    assertSupervisor(user);
     const room = await this.get(user, roomId);
     const all = await messages.listByRoom(roomId);
     const target = all.find((m) => m.messageId === messageId);

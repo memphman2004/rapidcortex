@@ -157,87 +157,84 @@ export function MarketingHeader() {
   return (
     <>
       <header className="sticky top-0 z-50 border-b border-white/10 bg-slate-950/70 pt-[env(safe-area-inset-top)] backdrop-blur-xl supports-[backdrop-filter]:bg-slate-950/55">
-        <div className="mx-auto max-w-7xl px-4 py-2 sm:px-6 lg:px-8">
-          <div className="flex min-w-0 items-stretch gap-2 sm:gap-3 md:min-h-[84px] md:gap-4">
+        <div className="mx-auto max-w-6xl px-4 py-2 sm:px-6 lg:px-8">
+          {/* Classic header: logo | centered nav | auth — within a centered page column */}
+          <div className="grid min-h-[56px] grid-cols-[1fr_auto] items-center gap-3 sm:min-h-[64px] md:min-h-[84px] md:grid-cols-[1fr_auto_1fr] md:gap-4">
             <Link
               href={home}
-              className="relative z-10 inline-flex max-w-[9.5rem] shrink-0 items-center sm:max-w-[10rem] md:max-w-[11.5rem] lg:max-w-[12.5rem] [-webkit-tap-highlight-color:transparent]"
+              className="relative z-10 inline-flex max-w-[9.5rem] justify-self-start sm:max-w-[10rem] md:max-w-[11.5rem] lg:max-w-[12.5rem] [-webkit-tap-highlight-color:transparent]"
               onClick={() => mobileOpen && closeMobileMenu()}
             >
               <SiteLogoMark heightClass="h-9 sm:h-10 md:h-11 lg:h-12" priority />
             </Link>
 
-            <div className="flex min-h-[56px] min-w-0 flex-1 items-center rounded-2xl border border-slate-700/60 bg-gradient-to-r from-slate-950/90 via-slate-900/75 to-slate-950/85 px-1.5 shadow-[0_10px_30px_-20px_rgba(56,189,248,0.45)] sm:min-h-[64px] sm:px-2 md:min-h-[84px] md:px-2 lg:px-3">
-              <div className="flex min-w-0 flex-1 items-center justify-end gap-1 sm:gap-2 md:gap-3">
-                <button
-                  ref={menuBtnRef}
-                  type="button"
-                  className="-mr-1 inline-flex size-12 min-h-[3rem] min-w-[3rem] shrink-0 items-center justify-center rounded-xl border border-slate-600/80 bg-slate-900/80 text-white shadow-sm shadow-black/20 transition-colors hover:bg-slate-800/90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sky-500 md:hidden"
-                  aria-expanded={mobileOpen}
-                  aria-controls="marketing-mobile-navigation"
-                  aria-label={mobileOpen ? "Close navigation menu" : "Open navigation menu"}
-                  aria-haspopup="dialog"
-                  onClick={toggleMobileMenu}
+            <div className="hidden justify-self-center md:block">
+              <nav
+                className="flex w-max items-center gap-0.5 whitespace-nowrap rounded-2xl border border-slate-700/60 bg-gradient-to-r from-slate-950/90 via-slate-900/75 to-slate-950/85 px-2 py-2 text-sm shadow-[0_10px_30px_-20px_rgba(56,189,248,0.45)] lg:gap-1.5 lg:px-3 xl:gap-2"
+                aria-label="Primary"
+              >
+                <Link
+                  href={home}
+                  className="shrink-0 rounded-lg px-2 py-2 text-sm font-medium text-slate-200 transition-colors hover:bg-slate-800/70 hover:text-white lg:px-2.5"
                 >
-                  <Menu className="size-7" aria-hidden strokeWidth={1.75} />
-                </button>
+                  Home
+                </Link>
+                <Link
+                  href={features}
+                  className="shrink-0 rounded-lg px-2 py-2 text-sm font-medium text-slate-300 transition-colors hover:bg-slate-800/70 hover:text-white lg:px-2.5"
+                >
+                  Features
+                </Link>
+                <Link
+                  href={pricing}
+                  className="shrink-0 rounded-lg px-2 py-2 text-sm font-medium text-slate-200 transition-colors hover:bg-slate-800/70 hover:text-white lg:px-2.5"
+                >
+                  Pricing
+                </Link>
+                <Link
+                  href="/blog"
+                  className="shrink-0 rounded-lg px-2 py-2 text-sm font-medium text-slate-300 transition-colors hover:bg-slate-800/70 hover:text-white lg:px-2.5"
+                >
+                  Blog
+                </Link>
+                <Link
+                  href={demo}
+                  className="inline-flex shrink-0 items-center gap-1.5 rounded-lg border border-sky-500/35 bg-sky-500/10 px-2 py-2 text-sm font-semibold text-sky-200 shadow-[0_0_20px_-8px_rgba(56,189,248,0.55)] transition-colors hover:border-sky-400/50 hover:bg-sky-500/15 hover:text-white lg:px-2.5"
+                >
+                  <Play className="size-3.5 shrink-0 fill-current" aria-hidden />
+                  Demo
+                </Link>
+              </nav>
+            </div>
 
-                <div className="hidden min-w-0 flex-1 overflow-x-auto md:block [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
-                  <nav
-                    className="flex w-max max-w-none items-center gap-0.5 whitespace-nowrap pl-1 text-sm lg:gap-1.5 xl:gap-2"
-                    aria-label="Primary"
-                  >
-                    <Link
-                      href={home}
-                      className="shrink-0 rounded-lg px-2 py-2 text-sm font-medium text-slate-200 transition-colors hover:bg-slate-800/70 hover:text-white lg:px-2.5"
-                    >
-                      Home
-                    </Link>
-                    <Link
-                      href={features}
-                      className="shrink-0 rounded-lg px-2 py-2 text-sm font-medium text-slate-300 transition-colors hover:bg-slate-800/70 hover:text-white lg:px-2.5"
-                    >
-                      Features
-                    </Link>
-                    <Link
-                      href={pricing}
-                      className="shrink-0 rounded-lg px-2 py-2 text-sm font-medium text-slate-200 transition-colors hover:bg-slate-800/70 hover:text-white lg:px-2.5"
-                    >
-                      Pricing
-                    </Link>
-                    <Link
-                      href="/blog"
-                      className="shrink-0 rounded-lg px-2 py-2 text-sm font-medium text-slate-300 transition-colors hover:bg-slate-800/70 hover:text-white lg:px-2.5"
-                    >
-                      Blog
-                    </Link>
-                    <Link
-                      href={demo}
-                      className="inline-flex shrink-0 items-center gap-1.5 rounded-lg border border-sky-500/35 bg-sky-500/10 px-2 py-2 text-sm font-semibold text-sky-200 shadow-[0_0_20px_-8px_rgba(56,189,248,0.55)] transition-colors hover:border-sky-400/50 hover:bg-sky-500/15 hover:text-white lg:px-2.5"
-                    >
-                      <Play className="size-3.5 shrink-0 fill-current" aria-hidden />
-                      Demo
-                    </Link>
-                  </nav>
-                </div>
+            <div className="flex items-center justify-end gap-1.5 justify-self-end lg:gap-2">
+              <button
+                ref={menuBtnRef}
+                type="button"
+                className="inline-flex size-12 min-h-[3rem] min-w-[3rem] shrink-0 items-center justify-center rounded-xl border border-slate-600/80 bg-slate-900/80 text-white shadow-sm shadow-black/20 transition-colors hover:bg-slate-800/90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sky-500 md:hidden"
+                aria-expanded={mobileOpen}
+                aria-controls="marketing-mobile-navigation"
+                aria-label={mobileOpen ? "Close navigation menu" : "Open navigation menu"}
+                aria-haspopup="dialog"
+                onClick={toggleMobileMenu}
+              >
+                <Menu className="size-7" aria-hidden strokeWidth={1.75} />
+              </button>
 
-                <div className="hidden shrink-0 items-center gap-1.5 border-l border-slate-700/60 pl-2 md:flex lg:gap-2 lg:pl-3">
-                  <Link
-                    href={login}
-                    className="shrink-0 rounded-lg border border-slate-600/80 px-2.5 py-2 text-sm font-medium text-slate-100 transition-colors hover:border-slate-500 hover:bg-slate-800/80 lg:px-3"
-                  >
-                    Sign in
-                  </Link>
-                  {signupEnabled ? (
-                    <Link
-                      href={signup}
-                      className="hidden shrink-0 rounded-lg border border-slate-600/80 px-2.5 py-2 text-sm font-medium text-slate-100 transition-colors hover:border-slate-500 hover:bg-slate-800/80 lg:inline-flex lg:px-3"
-                    >
-                      Sign up
-                    </Link>
-                  ) : null}
-                </div>
-              </div>
+              <Link
+                href={login}
+                className="hidden shrink-0 rounded-lg border border-slate-600/80 px-2.5 py-2 text-sm font-medium text-slate-100 transition-colors hover:border-slate-500 hover:bg-slate-800/80 md:inline-flex lg:px-3"
+              >
+                Sign in
+              </Link>
+              {signupEnabled ? (
+                <Link
+                  href={signup}
+                  className="hidden shrink-0 rounded-lg border border-slate-600/80 px-2.5 py-2 text-sm font-medium text-slate-100 transition-colors hover:border-slate-500 hover:bg-slate-800/80 lg:inline-flex lg:px-3"
+                >
+                  Sign up
+                </Link>
+              ) : null}
             </div>
           </div>
         </div>

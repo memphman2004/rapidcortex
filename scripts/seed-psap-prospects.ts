@@ -40,7 +40,8 @@ type XlsxModule = {
 
 async function loadXlsx(): Promise<XlsxModule> {
   try {
-    return (await import("xlsx")) as unknown as XlsxModule;
+    const mod = (await import("xlsx")) as unknown as XlsxModule & { default?: XlsxModule };
+    return mod.default ?? mod;
   } catch {
     console.error(
       "ERROR: package `xlsx` is required. Install with `npm i -D xlsx` (or ensure it is resolvable).",

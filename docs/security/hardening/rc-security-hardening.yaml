@@ -1,0 +1,758 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: >
+  Rapid Cortex — AWS-Native Security Hardening Stack
+  Adds VPN/proxy blocking, geo-restriction, bot control, threat detection,
+  and enhanced audit logging to existing CloudFront + API WAF ACLs.
+
+  DEPLOY ORDER:
+    1. This stack (us-east-1 for CloudFront WAF; regional for API WAF)
+    2. Reference CdnWebAclArn output in your web-ssr-infra-template.yaml
+    3. Reference ApiSecurityWebAclArn in each SAM API stack
+
+  NOTE: CloudFront WAF (Scope: CLOUDFRONT) MUST be deployed in us-east-1.
+  Regional WAF (Scope: REGIONAL) deploys in your primary region.
+
+Parameters:
+  AppName:
+    Type: String
+    Default: rapid-cortex
+  DeploymentStage:
+    Type: String
+    Default: prod
+    AllowedValues: [dev, staging, prod]
+
+  # --- Agency IP Allowlist ---
+  # Comma-separated CIDRs for known agency networks.
+  # These bypass VPN/geo checks (agencies may use gov't VPNs).
+  # Populate during agency onboarding.
+  AgencyAllowlistCIDRs:
+    Type: CommaDelimitedList
+    Default: "203.0.113.0/32"  # Placeholder — replace with real agency CIDRs
+    Description: >
+      Known agency IP ranges. These are allowed regardless of VPN/proxy
+      detection. Add agency CIDRs at onboarding.
+
+  # --- Rate Limiting ---
+  WafRateLimitPer5Min:
+    Type: Number
+    Default: 2000
+    Description: Max requests per IP per 5-minute window (CloudFront WAF)
+  ApiRateLimitPer5Min:
+    Type: Number
+    Default: 500
+    Description: Max API requests per IP per 5-minute window (Regional WAF)
+
+  # --- GuardDuty ---
+  EnableGuardDuty:
+    Type: String
+    Default: "true"
+    AllowedValues: ["true", "false"]
+  GuardDutyAlertEmail:
+    Type: String
+    Description: Email for GuardDuty HIGH/CRITICAL finding alerts
+    Default: ""
+
+  # --- Audit Log Retention ---
+  WafLogRetentionDays:
+    Type: Number
+    Default: 365
+    Description: WAF access log retention in CloudWatch Logs (days)
+
+Conditions:
+  IsProd: !Equals [!Ref DeploymentStage, prod]
+  EnableGuardDutyCondition: !Equals [!Ref EnableGuardDuty, "true"]
+  HasAlertEmail: !Not [!Equals [!Ref GuardDutyAlertEmail, ""]]
+
+# ─────────────────────────────────────────────────────────────────────────────
+# SECTION 1 — Agency IP Allowlist
+# ─────────────────────────────────────────────────────────────────────────────
+Resources:
+
+  # CLOUDFRONT SCOPE (us-east-1 only)
+  AgencyAllowlistIPSetCdn:
+    Type: AWS::WAFv2::IPSet
+    Properties:
+      Name: !Sub "${AppName}-agency-allowlist-cdn-${DeploymentStage}"
+      Scope: CLOUDFRONT
+      IPAddressVersion: IPV4
+      Addresses: !Ref AgencyAllowlistCIDRs
+      Tags:
+        - Key: Stack
+          Value: !Sub "${AppName}-security-${DeploymentStage}"
+        - Key: Purpose
+          Value: AgencyNetworkAllowlist
+
+  # REGIONAL SCOPE (API Gateway / ALB)
+  AgencyAllowlistIPSetRegional:
+    Type: AWS::WAFv2::IPSet
+    Properties:
+      Name: !Sub "${AppName}-agency-allowlist-regional-${DeploymentStage}"
+      Scope: REGIONAL
+      IPAddressVersion: IPV4
+      Addresses: !Ref AgencyAllowlistCIDRs
+      Tags:
+        - Key: Stack
+          Value: !Sub "${AppName}-security-${DeploymentStage}"
+        - Key: Purpose
+          Value: AgencyNetworkAllowlist
+
+# ─────────────────────────────────────────────────────────────────────────────
+# SECTION 2 — CloudFront WAF WebACL (CLOUDFRONT scope — us-east-1 only)
+# Attach to your CloudFront distribution in web-ssr-infra-template.yaml
+# ─────────────────────────────────────────────────────────────────────────────
+
+  CdnWebAcl:
+    Type: AWS::WAFv2::WebACL
+    Properties:
+      Name: !Sub "${AppName}-cdn-security-${DeploymentStage}"
+      Scope: CLOUDFRONT
+      Description: "Rapid Cortex CDN security: VPN block, geo-restrict, bot control, rate limit"
+      DefaultAction:
+        Allow: {}
+      VisibilityConfig:
+        SampledRequestsEnabled: true
+        CloudWatchMetricsEnabled: true
+        MetricName: !Sub "${AppName}CdnWebAcl${DeploymentStage}"
+      Rules:
+
+        # ── Priority 0: Allow known agency IPs before any blocks ─────────────
+        # Agencies using government-operated VPNs will pass through here.
+        - Name: AllowKnownAgencyIPs
+          Priority: 0
+          Action:
+            Allow: {}
+          Statement:
+            IPSetReferenceStatement:
+              ARN: !GetAtt AgencyAllowlistIPSetCdn.Arn
+          VisibilityConfig:
+            SampledRequestsEnabled: true
+            CloudWatchMetricsEnabled: true
+            MetricName: !Sub "${AppName}AllowedAgencyIPs"
+
+        # ── Priority 1: Geo-restrict to US + Canada ──────────────────────────
+        # Rapid Cortex serves North American public safety agencies only.
+        - Name: GeoRestrictToNorthAmerica
+          Priority: 1
+          Action:
+            Block:
+              CustomResponse:
+                ResponseCode: 403
+                CustomResponseBodyKey: GeoBlockedBody
+          Statement:
+            NotStatement:
+              Statement:
+                GeoMatchStatement:
+                  CountryCodes:
+                    - US
+                    - CA
+          VisibilityConfig:
+            SampledRequestsEnabled: true
+            CloudWatchMetricsEnabled: true
+            MetricName: !Sub "${AppName}GeoBlocked"
+
+        # ── Priority 2: Block VPN, Tor, proxies, anonymizers ────────────────
+        # AWS Managed Anonymous IP List — updated by AWS continuously.
+        # Blocks: commercial VPN exit nodes, Tor exit relays, open proxies,
+        # data center hosting used for anonymization.
+        - Name: BlockAnonymousIPs
+          Priority: 2
+          OverrideAction:
+            Block: {}
+          Statement:
+            ManagedRuleGroupStatement:
+              VendorName: AWS
+              Name: AWSManagedRulesAnonymousIpList
+              # HostingProviderIPList excluded: some agencies use cloud-hosted
+              # dispatch tools (Tyler, Motorola CAD) behind AWS/Azure IPs.
+              RuleActionOverrides:
+                - Name: HostingProviderIPList
+                  ActionToUse:
+                    Count: {}   # Count only — review logs before hardening to Block
+          VisibilityConfig:
+            SampledRequestsEnabled: true
+            CloudWatchMetricsEnabled: true
+            MetricName: !Sub "${AppName}AnonymousIPBlocked"
+
+        # ── Priority 3: Bot Control ──────────────────────────────────────────
+        # Blocks known malicious bots. Common crawlers allowed (no impact to ops).
+        - Name: BotControl
+          Priority: 3
+          OverrideAction:
+            None: {}
+          Statement:
+            ManagedRuleGroupStatement:
+              VendorName: AWS
+              Name: AWSManagedRulesBotControlRuleSet
+              ManagedRuleGroupConfigs:
+                - AWSManagedRulesBotControlRuleSet:
+                    InspectionLevel: COMMON  # TARGETED available for higher cost
+          VisibilityConfig:
+            SampledRequestsEnabled: true
+            CloudWatchMetricsEnabled: true
+            MetricName: !Sub "${AppName}BotControl"
+
+        # ── Priority 4: Core rule set (SQLi, XSS, common exploits) ──────────
+        - Name: AWSManagedRulesCommonRuleSet
+          Priority: 4
+          OverrideAction:
+            None: {}
+          Statement:
+            ManagedRuleGroupStatement:
+              VendorName: AWS
+              Name: AWSManagedRulesCommonRuleSet
+              RuleActionOverrides:
+                # SizeRestrictions_BODY: override to count — Next.js SSR POST
+                # bodies for file upload can be large; tune after observation.
+                - Name: SizeRestrictions_BODY
+                  ActionToUse:
+                    Count: {}
+          VisibilityConfig:
+            SampledRequestsEnabled: true
+            CloudWatchMetricsEnabled: true
+            MetricName: !Sub "${AppName}CommonRuleSet"
+
+        # ── Priority 5: Known Bad Inputs (Log4j, SSRF, etc.) ────────────────
+        - Name: AWSManagedRulesKnownBadInputsRuleSet
+          Priority: 5
+          OverrideAction:
+            None: {}
+          Statement:
+            ManagedRuleGroupStatement:
+              VendorName: AWS
+              Name: AWSManagedRulesKnownBadInputsRuleSet
+          VisibilityConfig:
+            SampledRequestsEnabled: true
+            CloudWatchMetricsEnabled: true
+            MetricName: !Sub "${AppName}KnownBadInputs"
+
+        # ── Priority 6: Rate Limiting ────────────────────────────────────────
+        - Name: RateLimitPerIP
+          Priority: 6
+          Action:
+            Block:
+              CustomResponse:
+                ResponseCode: 429
+                CustomResponseBodyKey: RateLimitedBody
+          Statement:
+            RateBasedStatement:
+              Limit: !Ref WafRateLimitPer5Min
+              AggregateKeyType: IP
+          VisibilityConfig:
+            SampledRequestsEnabled: true
+            CloudWatchMetricsEnabled: true
+            MetricName: !Sub "${AppName}RateLimited"
+
+      CustomResponseBodies:
+        GeoBlockedBody:
+          ContentType: APPLICATION_JSON
+          Content: '{"error":"ACCESS_RESTRICTED","message":"This service is only available in authorized regions."}'
+        RateLimitedBody:
+          ContentType: APPLICATION_JSON
+          Content: '{"error":"RATE_LIMITED","message":"Too many requests. Please slow down."}'
+
+      Tags:
+        - Key: App
+          Value: !Ref AppName
+        - Key: Stage
+          Value: !Ref DeploymentStage
+        - Key: SecurityLayer
+          Value: CDN
+
+# ─────────────────────────────────────────────────────────────────────────────
+# SECTION 3 — Regional WAF WebACL (API Gateway / ALB)
+# Reference ApiSecurityWebAclArn in each SAM API stack's HasApiWaf condition
+# ─────────────────────────────────────────────────────────────────────────────
+
+  ApiWebAcl:
+    Type: AWS::WAFv2::WebACL
+    Properties:
+      Name: !Sub "${AppName}-api-security-${DeploymentStage}"
+      Scope: REGIONAL
+      Description: "Rapid Cortex API security: VPN block, geo-restrict, SQL/XSS, rate limit"
+      DefaultAction:
+        Allow: {}
+      VisibilityConfig:
+        SampledRequestsEnabled: true
+        CloudWatchMetricsEnabled: true
+        MetricName: !Sub "${AppName}ApiWebAcl${DeploymentStage}"
+      Rules:
+
+        - Name: AllowKnownAgencyIPs
+          Priority: 0
+          Action:
+            Allow: {}
+          Statement:
+            IPSetReferenceStatement:
+              ARN: !GetAtt AgencyAllowlistIPSetRegional.Arn
+          VisibilityConfig:
+            SampledRequestsEnabled: true
+            CloudWatchMetricsEnabled: true
+            MetricName: !Sub "${AppName}ApiAllowedAgencyIPs"
+
+        - Name: GeoRestrictToNorthAmerica
+          Priority: 1
+          Action:
+            Block:
+              CustomResponse:
+                ResponseCode: 403
+                CustomResponseBodyKey: GeoBlockedBody
+          Statement:
+            NotStatement:
+              Statement:
+                GeoMatchStatement:
+                  CountryCodes: [US, CA]
+          VisibilityConfig:
+            SampledRequestsEnabled: true
+            CloudWatchMetricsEnabled: true
+            MetricName: !Sub "${AppName}ApiGeoBlocked"
+
+        - Name: BlockAnonymousIPs
+          Priority: 2
+          OverrideAction:
+            Block: {}
+          Statement:
+            ManagedRuleGroupStatement:
+              VendorName: AWS
+              Name: AWSManagedRulesAnonymousIpList
+              RuleActionOverrides:
+                - Name: HostingProviderIPList
+                  ActionToUse:
+                    Count: {}
+          VisibilityConfig:
+            SampledRequestsEnabled: true
+            CloudWatchMetricsEnabled: true
+            MetricName: !Sub "${AppName}ApiAnonymousIPBlocked"
+
+        - Name: AWSManagedRulesCommonRuleSet
+          Priority: 3
+          OverrideAction:
+            None: {}
+          Statement:
+            ManagedRuleGroupStatement:
+              VendorName: AWS
+              Name: AWSManagedRulesCommonRuleSet
+              RuleActionOverrides:
+                - Name: SizeRestrictions_BODY
+                  ActionToUse:
+                    Count: {}
+          VisibilityConfig:
+            SampledRequestsEnabled: true
+            CloudWatchMetricsEnabled: true
+            MetricName: !Sub "${AppName}ApiCommonRuleSet"
+
+        - Name: AWSManagedRulesSQLiRuleSet
+          Priority: 4
+          OverrideAction:
+            None: {}
+          Statement:
+            ManagedRuleGroupStatement:
+              VendorName: AWS
+              Name: AWSManagedRulesSQLiRuleSet
+          VisibilityConfig:
+            SampledRequestsEnabled: true
+            CloudWatchMetricsEnabled: true
+            MetricName: !Sub "${AppName}ApiSQLi"
+
+        - Name: AWSManagedRulesKnownBadInputsRuleSet
+          Priority: 5
+          OverrideAction:
+            None: {}
+          Statement:
+            ManagedRuleGroupStatement:
+              VendorName: AWS
+              Name: AWSManagedRulesKnownBadInputsRuleSet
+          VisibilityConfig:
+            SampledRequestsEnabled: true
+            CloudWatchMetricsEnabled: true
+            MetricName: !Sub "${AppName}ApiKnownBadInputs"
+
+        # Stricter rate limit at the API layer
+        - Name: ApiRateLimitPerIP
+          Priority: 6
+          Action:
+            Block:
+              CustomResponse:
+                ResponseCode: 429
+                CustomResponseBodyKey: RateLimitedBody
+          Statement:
+            RateBasedStatement:
+              Limit: !Ref ApiRateLimitPer5Min
+              AggregateKeyType: IP
+          VisibilityConfig:
+            SampledRequestsEnabled: true
+            CloudWatchMetricsEnabled: true
+            MetricName: !Sub "${AppName}ApiRateLimited"
+
+      CustomResponseBodies:
+        GeoBlockedBody:
+          ContentType: APPLICATION_JSON
+          Content: '{"error":"ACCESS_RESTRICTED","message":"This service is only available in authorized regions."}'
+        RateLimitedBody:
+          ContentType: APPLICATION_JSON
+          Content: '{"error":"RATE_LIMITED","message":"Too many requests."}'
+
+      Tags:
+        - Key: App
+          Value: !Ref AppName
+        - Key: Stage
+          Value: !Ref DeploymentStage
+        - Key: SecurityLayer
+          Value: API
+
+# ─────────────────────────────────────────────────────────────────────────────
+# SECTION 4 — WAF Audit Logging (S3 + CloudWatch)
+# WAF log group name MUST start with "aws-waf-logs-"
+# ─────────────────────────────────────────────────────────────────────────────
+
+  WafCdnLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub "aws-waf-logs-${AppName}-cdn-${DeploymentStage}"
+      RetentionInDays: !Ref WafLogRetentionDays
+
+  WafApiLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub "aws-waf-logs-${AppName}-api-${DeploymentStage}"
+      RetentionInDays: !Ref WafLogRetentionDays
+
+  # Long-term WAF log archive (S3 — CJIS-aware retention)
+  WafLogArchiveBucket:
+    Type: AWS::S3::Bucket
+    DeletionPolicy: Retain
+    Properties:
+      BucketName: !Sub "${AppName}-waf-logs-${DeploymentStage}-${AWS::AccountId}"
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: AES256
+      VersioningConfiguration:
+        Status: Enabled
+      LifecycleConfiguration:
+        Rules:
+          - Id: TransitionToIA
+            Status: Enabled
+            Transitions:
+              - TransitionInDays: 90
+                StorageClass: STANDARD_IA
+          - Id: TransitionToGlacier
+            Status: Enabled
+            Transitions:
+              - TransitionInDays: 365
+                StorageClass: GLACIER
+          - Id: ExpireAfter7Years
+            Status: Enabled
+            ExpirationInDays: 2555  # 7 years — CJIS audit retention guidance
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+      Tags:
+        - Key: Purpose
+          Value: WafAuditLogs
+        - Key: Compliance
+          Value: CJIS-Aligned
+
+  WafLogArchiveBucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket: !Ref WafLogArchiveBucket
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Sid: DenyNonSecureTransport
+            Effect: Deny
+            Principal: "*"
+            Action: "s3:*"
+            Resource:
+              - !GetAtt WafLogArchiveBucket.Arn
+              - !Sub "${WafLogArchiveBucket.Arn}/*"
+            Condition:
+              Bool:
+                "aws:SecureTransport": false
+          - Sid: AllowDelivery
+            Effect: Allow
+            Principal:
+              Service: delivery.logs.amazonaws.com
+            Action:
+              - s3:GetBucketAcl
+              - s3:PutObject
+            Resource:
+              - !GetAtt WafLogArchiveBucket.Arn
+              - !Sub "${WafLogArchiveBucket.Arn}/waf-logs/*"
+
+  # CDN WAF → CloudWatch Logs
+  CdnWebAclLoggingConfiguration:
+    Type: AWS::WAFv2::LoggingConfiguration
+    Properties:
+      ResourceArn: !GetAtt CdnWebAcl.Arn
+      LogDestinationConfigs:
+        - !GetAtt WafCdnLogGroup.Arn
+      LoggingFilter:
+        DefaultBehavior: DROP  # Only log BLOCK actions to reduce noise
+        Filters:
+          - Behavior: KEEP
+            Conditions:
+              - ActionCondition:
+                  Action: BLOCK
+              - ActionCondition:
+                  Action: COUNT
+            Requirement: MEETS_ANY
+
+  # API WAF → CloudWatch Logs
+  ApiWebAclLoggingConfiguration:
+    Type: AWS::WAFv2::LoggingConfiguration
+    Properties:
+      ResourceArn: !GetAtt ApiWebAcl.Arn
+      LogDestinationConfigs:
+        - !GetAtt WafApiLogGroup.Arn
+      LoggingFilter:
+        DefaultBehavior: DROP
+        Filters:
+          - Behavior: KEEP
+            Conditions:
+              - ActionCondition:
+                  Action: BLOCK
+              - ActionCondition:
+                  Action: COUNT
+            Requirement: MEETS_ANY
+
+# ─────────────────────────────────────────────────────────────────────────────
+# SECTION 5 — CloudWatch Alarms (SNS alerts for security events)
+# ─────────────────────────────────────────────────────────────────────────────
+
+  SecurityAlertsTopic:
+    Type: AWS::SNS::Topic
+    Properties:
+      TopicName: !Sub "${AppName}-security-alerts-${DeploymentStage}"
+      KmsMasterKeyId: alias/aws/sns
+
+  SecurityAlertsEmailSubscription:
+    Type: AWS::SNS::Subscription
+    Condition: HasAlertEmail
+    Properties:
+      TopicArn: !Ref SecurityAlertsTopic
+      Protocol: email
+      Endpoint: !Ref GuardDutyAlertEmail
+
+  # Alarm: VPN/proxy block spike (anomaly = potential coordinated access attempt)
+  AnonymousIPBlockAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: !Sub "${AppName}-vpn-proxy-blocks-${DeploymentStage}"
+      AlarmDescription: "High volume of VPN/proxy blocks — possible coordinated access attempt"
+      Namespace: AWS/WAFV2
+      MetricName: BlockedRequests
+      Dimensions:
+        - Name: WebACL
+          Value: !Sub "${AppName}-cdn-security-${DeploymentStage}"
+        - Name: Region
+          Value: !Ref AWS::Region
+        - Name: Rule
+          Value: !Sub "${AppName}AnonymousIPBlocked"
+      Statistic: Sum
+      Period: 300
+      EvaluationPeriods: 1
+      Threshold: 50
+      ComparisonOperator: GreaterThanThreshold
+      TreatMissingData: notBreaching
+      AlarmActions:
+        - !Ref SecurityAlertsTopic
+
+  # Alarm: Rate limit trigger
+  RateLimitAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: !Sub "${AppName}-rate-limit-triggered-${DeploymentStage}"
+      AlarmDescription: "Rate limiting triggered — possible brute force or scraping"
+      Namespace: AWS/WAFV2
+      MetricName: BlockedRequests
+      Dimensions:
+        - Name: WebACL
+          Value: !Sub "${AppName}-cdn-security-${DeploymentStage}"
+        - Name: Region
+          Value: !Ref AWS::Region
+        - Name: Rule
+          Value: !Sub "${AppName}RateLimited"
+      Statistic: Sum
+      Period: 300
+      EvaluationPeriods: 1
+      Threshold: 100
+      ComparisonOperator: GreaterThanThreshold
+      TreatMissingData: notBreaching
+      AlarmActions:
+        - !Ref SecurityAlertsTopic
+
+  # Alarm: Geo-block spike (traffic from outside US/CA)
+  GeoBlockAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: !Sub "${AppName}-geo-blocks-${DeploymentStage}"
+      AlarmDescription: "High volume of geo-blocked requests — possible international probing"
+      Namespace: AWS/WAFV2
+      MetricName: BlockedRequests
+      Dimensions:
+        - Name: WebACL
+          Value: !Sub "${AppName}-cdn-security-${DeploymentStage}"
+        - Name: Region
+          Value: !Ref AWS::Region
+        - Name: Rule
+          Value: !Sub "${AppName}GeoBlocked"
+      Statistic: Sum
+      Period: 300
+      EvaluationPeriods: 1
+      Threshold: 25
+      ComparisonOperator: GreaterThanThreshold
+      TreatMissingData: notBreaching
+      AlarmActions:
+        - !Ref SecurityAlertsTopic
+
+# ─────────────────────────────────────────────────────────────────────────────
+# SECTION 6 — Amazon GuardDuty (Threat Detection)
+# Detects: credential compromise, port scanning, C2 traffic, crypto mining,
+# data exfiltration, unusual API call patterns
+# ─────────────────────────────────────────────────────────────────────────────
+
+  GuardDutyDetector:
+    Type: AWS::GuardDuty::Detector
+    Condition: EnableGuardDutyCondition
+    Properties:
+      Enable: true
+      FindingPublishingFrequency: FIFTEEN_MINUTES  # CJIS-aligned — fast notification
+      DataSources:
+        S3Logs:
+          Enable: true
+        Kubernetes:
+          AuditLogs:
+            Enable: false
+        MalwareProtection:
+          ScanEc2InstanceWithFindings:
+            EbsVolumes: false
+      Tags:
+        - Key: App
+          Value: !Ref AppName
+        - Key: Stage
+          Value: !Ref DeploymentStage
+
+  # Route HIGH/CRITICAL GuardDuty findings → SNS → email alert
+  GuardDutyHighFindingsRule:
+    Type: AWS::Events::Rule
+    Condition: EnableGuardDutyCondition
+    Properties:
+      Name: !Sub "${AppName}-guardduty-high-findings-${DeploymentStage}"
+      Description: "Route HIGH/CRITICAL GuardDuty findings to security alerts"
+      EventPattern:
+        source:
+          - aws.guardduty
+        detail-type:
+          - GuardDuty Finding
+        detail:
+          severity:
+            - numeric:
+                - ">="
+                - 7  # HIGH = 7.0-8.9, CRITICAL = 9.0-10.0
+      State: ENABLED
+      Targets:
+        - Id: SecurityAlertsSNS
+          Arn: !Ref SecurityAlertsTopic
+          InputTransformer:
+            InputPathsMap:
+              severity: "$.detail.severity"
+              type: "$.detail.type"
+              region: "$.region"
+              accountId: "$.account"
+              time: "$.time"
+            InputTemplate: |
+              "RAPID CORTEX SECURITY ALERT"
+              "Time: <time>"
+              "Account: <accountId> | Region: <region>"
+              "Finding Type: <type>"
+              "Severity: <severity>"
+              "Review findings: https://console.aws.amazon.com/guardduty"
+
+  # Allow EventBridge to publish to SNS
+  GuardDutySnsPolicy:
+    Type: AWS::SNS::TopicPolicy
+    Condition: EnableGuardDutyCondition
+    Properties:
+      Topics:
+        - !Ref SecurityAlertsTopic
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Sid: AllowEventBridgePublish
+            Effect: Allow
+            Principal:
+              Service: events.amazonaws.com
+            Action: sns:Publish
+            Resource: !Ref SecurityAlertsTopic
+
+# ─────────────────────────────────────────────────────────────────────────────
+# SECTION 7 — Outputs
+# Reference these ARNs in your web-ssr-infra-template.yaml and SAM stacks
+# ─────────────────────────────────────────────────────────────────────────────
+
+Outputs:
+
+  # ── WAF ACL ARNs ────────────────────────────────────────────────────────────
+
+  CdnWebAclArn:
+    Description: >
+      CloudFront WAF WebACL ARN (us-east-1).
+      Set as WebACLId on your CloudFront distribution in web-ssr-infra-template.yaml.
+    Value: !GetAtt CdnWebAcl.Arn
+    Export:
+      Name: !Sub "${AppName}-cdn-web-acl-arn-${DeploymentStage}"
+
+  CdnWebAclId:
+    Description: CloudFront WAF WebACL ID (for CloudFront distribution WebACLId field)
+    Value: !Ref CdnWebAcl
+    Export:
+      Name: !Sub "${AppName}-cdn-web-acl-id-${DeploymentStage}"
+
+  ApiSecurityWebAclArn:
+    Description: >
+      Regional WAF WebACL ARN.
+      Use as ApiWebAcl in SAM stacks (replaces per-stack httpapi-waf WebACLs).
+      Associate via AWS::WAFv2::WebACLAssociation or pass ARN to each API stack.
+    Value: !GetAtt ApiWebAcl.Arn
+    Export:
+      Name: !Sub "${AppName}-api-web-acl-arn-${DeploymentStage}"
+
+  # ── Agency Allowlist ─────────────────────────────────────────────────────────
+
+  AgencyAllowlistIPSetCdnArn:
+    Description: CDN-scope agency allowlist IP set ARN (manage CIDRs here for all stacks)
+    Value: !GetAtt AgencyAllowlistIPSetCdn.Arn
+    Export:
+      Name: !Sub "${AppName}-agency-allowlist-cdn-arn-${DeploymentStage}"
+
+  AgencyAllowlistIPSetRegionalArn:
+    Description: Regional agency allowlist IP set ARN
+    Value: !GetAtt AgencyAllowlistIPSetRegional.Arn
+    Export:
+      Name: !Sub "${AppName}-agency-allowlist-regional-arn-${DeploymentStage}"
+
+  # ── Logging ──────────────────────────────────────────────────────────────────
+
+  WafLogArchiveBucketName:
+    Description: S3 bucket for long-term WAF log archival (7-year retention)
+    Value: !Ref WafLogArchiveBucket
+    Export:
+      Name: !Sub "${AppName}-waf-log-archive-${DeploymentStage}"
+
+  SecurityAlertsTopicArn:
+    Description: SNS topic ARN for security event alerts (WAF alarms + GuardDuty)
+    Value: !Ref SecurityAlertsTopic
+    Export:
+      Name: !Sub "${AppName}-security-alerts-topic-${DeploymentStage}"
+
+  # ── GuardDuty ────────────────────────────────────────────────────────────────
+
+  GuardDutyDetectorId:
+    Condition: EnableGuardDutyCondition
+    Description: GuardDuty detector ID
+    Value: !Ref GuardDutyDetector
+    Export:
+      Name: !Sub "${AppName}-guardduty-detector-${DeploymentStage}"

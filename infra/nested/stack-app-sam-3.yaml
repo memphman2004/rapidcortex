@@ -223,6 +223,12 @@ Parameters:
     Default: 2000
     MinValue: 10
     MaxValue: 20000000
+  AgencyAllowlistCIDRs:
+    Type: CommaDelimitedList
+    Default: "203.0.113.0/32"
+    Description: >-
+      Known agency network CIDRs for REGIONAL WAF allowlist (inventory / ALB path).
+      DOC placeholder — replace at agency onboarding.
   TranscriptRetentionPolicyDays:
     Type: String
     Default: ""
@@ -1058,11 +1064,26 @@ Resources:
                 - !Ref ImportedCognitoWebClientId
                 - !Ref ImportedCognitoNativeClientId
 
+  AgencyAllowlistIPSetRegional:
+    Type: AWS::WAFv2::IPSet
+    Condition: HasApiWaf
+    Properties:
+      Name: !Sub "${AppName}-agency-allowlist-api3-${DeploymentStage}"
+      Scope: REGIONAL
+      IPAddressVersion: IPV4
+      Addresses: !Ref AgencyAllowlistCIDRs
+      Tags:
+        - Key: Purpose
+          Value: AgencyNetworkAllowlist
+
   ApiWebAcl:
     Type: AWS::WAFv2::WebACL
     Condition: HasApiWaf
     Properties:
       Name: !Sub "${AppName}-httpapi3-waf-${DeploymentStage}"
+      Description: >-
+        Rapid Cortex API security — agency allowlist, US/CA geo (block), anonymous/VPN
+        monitor (count). Site access is not VPN-gated; VPN only where agencies need it.
       Scope: REGIONAL
       DefaultAction:
         Allow: {}
@@ -1070,21 +1091,73 @@ Resources:
         CloudWatchMetricsEnabled: true
         MetricName: !Sub "${AppName}ApiWaf"
         SampledRequestsEnabled: true
+      CustomResponseBodies:
+        GeoBlockedBody:
+          ContentType: APPLICATION_JSON
+          Content: '{"error":"ACCESS_RESTRICTED","message":"This service is only available in authorized regions."}'
+        RateLimitedBody:
+          ContentType: APPLICATION_JSON
+          Content: '{"error":"RATE_LIMITED","message":"Too many requests."}'
       Rules:
-        - Name: AWSManagedCommon
+        - Name: AllowKnownAgencyIPs
           Priority: 0
+          Action:
+            Allow: {}
+          Statement:
+            IPSetReferenceStatement:
+              ARN: !GetAtt AgencyAllowlistIPSetRegional.Arn
+          VisibilityConfig:
+            CloudWatchMetricsEnabled: true
+            MetricName: !Sub "${AppName}AllowedAgencyIPs"
+            SampledRequestsEnabled: true
+        - Name: GeoRestrictToNorthAmerica
+          Priority: 1
+          Action:
+            Block:
+              CustomResponse:
+                ResponseCode: 403
+                CustomResponseBodyKey: GeoBlockedBody
+          Statement:
+            NotStatement:
+              Statement:
+                GeoMatchStatement:
+                  CountryCodes:
+                    - US
+                    - CA
+          VisibilityConfig:
+            CloudWatchMetricsEnabled: true
+            MetricName: !Sub "${AppName}GeoBlocked"
+            SampledRequestsEnabled: true
+        - Name: MonitorAnonymousIPs
+          Priority: 2
+          OverrideAction:
+            Count: {}
+          Statement:
+            ManagedRuleGroupStatement:
+              VendorName: AWS
+              Name: AWSManagedRulesAnonymousIpList
+          VisibilityConfig:
+            CloudWatchMetricsEnabled: true
+            MetricName: !Sub "${AppName}AnonymousIPBlocked"
+            SampledRequestsEnabled: true
+        - Name: AWSManagedCommon
+          Priority: 3
           OverrideAction:
             None: {}
           Statement:
             ManagedRuleGroupStatement:
               VendorName: AWS
               Name: AWSManagedRulesCommonRuleSet
+              RuleActionOverrides:
+                - Name: SizeRestrictions_BODY
+                  ActionToUse:
+                    Count: {}
           VisibilityConfig:
             CloudWatchMetricsEnabled: true
             MetricName: !Sub "${AppName}WafCommon"
             SampledRequestsEnabled: true
         - Name: AWSManagedBadInputs
-          Priority: 1
+          Priority: 4
           OverrideAction:
             None: {}
           Statement:
@@ -1096,7 +1169,7 @@ Resources:
             MetricName: !Sub "${AppName}WafBadInputs"
             SampledRequestsEnabled: true
         - Name: AWSManagedIpReputation
-          Priority: 2
+          Priority: 5
           OverrideAction:
             None: {}
           Statement:
@@ -1108,9 +1181,12 @@ Resources:
             MetricName: !Sub "${AppName}WafIpRep"
             SampledRequestsEnabled: true
         - Name: PerIpRateLimit
-          Priority: 3
+          Priority: 6
           Action:
-            Block: {}
+            Block:
+              CustomResponse:
+                ResponseCode: 429
+                CustomResponseBodyKey: RateLimitedBody
           Statement:
             RateBasedStatement:
               Limit: !Ref WafRateLimitPer5Min

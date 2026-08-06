@@ -31,16 +31,20 @@ import {
   LIVE_RESOLVED_LAYER,
   LIVE_SOURCE_ID,
   MAP_TOKENS as T,
-  RC_STYLE_URL,
+  resolveMapStyleUrl,
   SEVERITY_COLOR_EXPRESSION,
   SEVERITY_RADIUS_EXPRESSION,
   STUDIO_LAYER_GROUPS,
   STUDIO_LAYER_IDS,
 } from "./map-constants";
-import type { RCMapLayerVisibility, RCMapProps } from "./map-types";
+import type { RCIncident, RCMapLayerVisibility, RCMapProps } from "./map-types";
 import { DEFAULT_LAYER_VISIBILITY } from "./map-types";
 import { buildCallerPopupHTML, buildIncidentPopupHTML, incidentsToGeoJSON } from "./map-utils";
 import { MapLayerControl } from "./MapLayerControl";
+
+type MapClickHandler = (
+  e: mapboxgl.MapMouseEvent & { features?: mapboxgl.MapboxGeoJSONFeature[] }
+) => void;
 
 // ─── Component ────────────────────────────────────────────────────────────────
 
@@ -58,17 +62,41 @@ export default function RapidCortexMapCore({
   height = "100%",
   className,
   vertical = "core",
+  theme: themeProp = "dark",
+  onThemeChange,
 }: RCMapProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const mapRef       = useRef<mapboxgl.Map | null>(null);
   const popupRef     = useRef<mapboxgl.Popup | null>(null);
+  const layersRef    = useRef<RCMapLayerVisibility>({
+    ...DEFAULT_LAYER_VISIBILITY,
+    ...defaultLayers,
+  });
+  const incidentsRef = useRef<RCIncident[]>(incidents);
+  const appliedThemeRef = useRef<"dark" | "light" | null>(null);
+  const clickHandlerRef = useRef<MapClickHandler>(() => undefined);
 
   const [mapReady,  setMapReady]  = useState(false);
   const [mapError,  setMapError]  = useState<string | null>(null);
+  const [localTheme, setLocalTheme] = useState<"dark" | "light">(themeProp);
   const [layers, setLayers]       = useState<RCMapLayerVisibility>({
     ...DEFAULT_LAYER_VISIBILITY,
     ...defaultLayers,
   });
+
+  const theme = onThemeChange ? themeProp : localTheme;
+
+  useEffect(() => {
+    layersRef.current = layers;
+  }, [layers]);
+
+  useEffect(() => {
+    incidentsRef.current = incidents;
+  }, [incidents]);
+
+  useEffect(() => {
+    if (onThemeChange) setLocalTheme(themeProp);
+  }, [themeProp, onThemeChange]);
 
   // ─── Initialize map (runs once) ─────────────────────────────────────────────
 
@@ -87,9 +115,12 @@ export default function RapidCortexMapCore({
 
     mapboxgl.accessToken = token;
 
+    const initialTheme = themeProp;
+    appliedThemeRef.current = initialTheme;
+
     const map = new mapboxgl.Map({
       container:          containerRef.current,
-      style:              RC_STYLE_URL,
+      style:              resolveMapStyleUrl(initialTheme),
       center:             [centerLng ?? DEFAULT_CENTER[0], centerLat ?? DEFAULT_CENTER[1]],
       zoom:               zoom ?? DEFAULT_ZOOM,
       attributionControl: false,
@@ -108,135 +139,16 @@ export default function RapidCortexMapCore({
       "bottom-left"
     );
 
+    const onIncidentLayerClick: MapClickHandler = (e) => {
+      clickHandlerRef.current(e);
+    };
+
     // ── After style loads ────────────────────────────────────────────────────
     map.on("load", () => {
-
-      // 1. Live incidents — GeoJSON source
-      if (!map.getSource(LIVE_SOURCE_ID)) {
-        map.addSource(LIVE_SOURCE_ID, {
-          type: "geojson",
-          data: incidentsToGeoJSON(incidents),
-        });
-      }
-
-      // 2. Active incident circles
-      if (!map.getLayer(LIVE_ACTIVE_LAYER)) {
-        map.addLayer({
-          id:     LIVE_ACTIVE_LAYER,
-          type:   "circle",
-          source: LIVE_SOURCE_ID,
-          filter: ["!=", ["get", "status"], "resolved"],
-          paint:  {
-            "circle-radius":       SEVERITY_RADIUS_EXPRESSION,
-            "circle-color":        SEVERITY_COLOR_EXPRESSION,
-            "circle-opacity":      0.92,
-            "circle-stroke-width": 2,
-            "circle-stroke-color": "#ffffff",
-          },
-        });
-      }
-
-      // 3. Pulse ring on critical/high — visual urgency cue
-      if (!map.getLayer(LIVE_PULSE_LAYER)) {
-        map.addLayer({
-          id:     LIVE_PULSE_LAYER,
-          type:   "circle",
-          source: LIVE_SOURCE_ID,
-          filter: ["in", ["get", "severity"], ["literal", ["critical", "high"]]],
-          paint:  {
-            "circle-radius":         ["interpolate", ["linear"], ["zoom"], 8, 18, 14, 24],
-            "circle-color":          "transparent",
-            "circle-stroke-width":   2,
-            "circle-stroke-color":   "#ef4444",
-            "circle-stroke-opacity": 0.35,
-          },
-        });
-      }
-
-      // 4. Resolved incidents — dimmed
-      if (!map.getLayer(LIVE_RESOLVED_LAYER)) {
-        map.addLayer({
-          id:     LIVE_RESOLVED_LAYER,
-          type:   "circle",
-          source: LIVE_SOURCE_ID,
-          filter: ["==", ["get", "status"], "resolved"],
-          paint:  {
-            "circle-radius":       6,
-            "circle-color":        "#6b7280",
-            "circle-opacity":      0.55,
-            "circle-stroke-width": 1,
-            "circle-stroke-color": "#9ca3af",
-          },
-          layout: {
-            visibility: layers.resolvedIncidents ? "visible" : "none",
-          },
-        });
-      }
-
-      // 5. Caller / report location source
-      if (!map.getSource(CALLER_SOURCE_ID)) {
-        map.addSource(CALLER_SOURCE_ID, {
-          type: "geojson",
-          data: { type: "FeatureCollection", features: [] },
-        });
-      }
-
-      if (!map.getLayer(CALLER_LAYER)) {
-        map.addLayer({
-          id:     CALLER_LAYER,
-          type:   "circle",
-          source: CALLER_SOURCE_ID,
-          paint:  {
-            "circle-radius":       13,
-            "circle-color":        "#0ea5e9",
-            "circle-opacity":      0.9,
-            "circle-stroke-width": 3,
-            "circle-stroke-color": "#ffffff",
-          },
-        });
-      }
-
-      if (!map.getLayer(CALLER_LABEL_LAYER)) {
-        map.addLayer({
-          id:     CALLER_LABEL_LAYER,
-          type:   "symbol",
-          source: CALLER_SOURCE_ID,
-          layout: {
-            "text-field":      ["get", "label"],
-            "text-size":       11,
-            "text-offset":     [0, 1.8],
-            "text-anchor":     "top",
-            "text-font":       ["DIN Offc Pro Medium", "Arial Unicode MS Regular"],
-            "text-max-width":  10,
-          },
-          paint: {
-            "text-color":       "#0ea5e9",
-            "text-halo-color":  "#0f0d1c",
-            "text-halo-width":  1.5,
-          },
-        });
-      }
-
-      // 6. Pin custom Studio overlays above Mapbox Standard basemap slots
+      ensureLiveLayers(map, layersRef.current, incidentsRef.current);
       promoteStudioOverlays(map);
-
-      // 7. Apply initial visibility to studio layers (safe — skips missing layers)
-      applyStudioVisibility(map, layers);
-
-      // 8. Incident click handler
-      map.on("click", LIVE_ACTIVE_LAYER, handleIncidentClick);
-      map.on("click", LIVE_RESOLVED_LAYER, handleIncidentClick);
-
-      // 9. Cursor pointer on hover
-      [LIVE_ACTIVE_LAYER, LIVE_RESOLVED_LAYER].forEach((layerId) => {
-        map.on("mouseenter", layerId, () => {
-          map.getCanvas().style.cursor = "pointer";
-        });
-        map.on("mouseleave", layerId, () => {
-          map.getCanvas().style.cursor = "";
-        });
-      });
-
+      applyStudioVisibility(map, layersRef.current);
+      bindIncidentInteractions(map, onIncidentLayerClick);
       setMapReady(true);
       onMapReady?.();
     });
@@ -255,6 +167,29 @@ export default function RapidCortexMapCore({
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []); // Only runs on mount — intentional
+
+  // ─── Swap Mapbox Studio style when theme changes ─────────────────────────
+
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map || !mapReady) return;
+    if (appliedThemeRef.current === theme) return;
+
+    appliedThemeRef.current = theme;
+    setMapReady(false);
+    popupRef.current?.remove();
+
+    const onStyleLoad = () => {
+      ensureLiveLayers(map, layersRef.current, incidentsRef.current);
+      promoteStudioOverlays(map);
+      applyStudioVisibility(map, layersRef.current);
+      bindIncidentInteractions(map, (e) => clickHandlerRef.current(e));
+      setMapReady(true);
+    };
+
+    map.once("style.load", onStyleLoad);
+    map.setStyle(resolveMapStyleUrl(theme));
+  }, [theme, mapReady]);
 
   // ─── Update live incidents when prop changes ─────────────────────────────
 
@@ -355,9 +290,9 @@ export default function RapidCortexMapCore({
     []
   );
 
-  // ─── Incident click (used as map event handler — must be stable) ─────────
+  // ─── Incident click (kept current via ref for map listeners) ─────────────
 
-  function handleIncidentClick(e: mapboxgl.MapMouseEvent & { features?: mapboxgl.MapboxGeoJSONFeature[] }) {
+  clickHandlerRef.current = (e) => {
     if (!e.features?.[0] || !mapRef.current) return;
 
     const props = e.features[0].properties as {
@@ -373,7 +308,6 @@ export default function RapidCortexMapCore({
     const geometry = e.features[0].geometry as GeoJSON.Point;
     const [lng, lat] = geometry.coordinates;
 
-    // Close existing popup
     popupRef.current?.remove();
     popupRef.current = new mapboxgl.Popup({
       closeButton:  true,
@@ -384,12 +318,17 @@ export default function RapidCortexMapCore({
       .setHTML(buildIncidentPopupHTML(props))
       .addTo(mapRef.current);
 
-    // Notify parent
     const matched = incidents.find((i) => i.id === props.id);
     if (matched) {
       onIncidentClick?.(matched);
     }
-  }
+  };
+
+  const handleThemeToggle = () => {
+    const next = theme === "dark" ? "light" : "dark";
+    setLocalTheme(next);
+    onThemeChange?.(next);
+  };
 
   // ─── Render ──────────────────────────────────────────────────────────────
 
@@ -443,6 +382,31 @@ export default function RapidCortexMapCore({
           onToggle={handleLayerToggle}
           vertical={vertical}
         />
+      )}
+
+      {/* Dark / light Studio style toggle */}
+      {mapReady && (
+        <button
+          type="button"
+          onClick={handleThemeToggle}
+          aria-label={theme === "dark" ? "Switch to light map" : "Switch to dark map"}
+          style={{
+            position:     "absolute",
+            bottom:       48,
+            right:        12,
+            zIndex:       10,
+            background:   T.surface,
+            border:       `1px solid ${T.border}`,
+            borderRadius: 6,
+            padding:      "6px 10px",
+            cursor:       "pointer",
+            color:        T.textMuted,
+            fontSize:     11,
+            fontWeight:   600,
+          }}
+        >
+          {theme === "dark" ? "☀ Light" : "☾ Dark"}
+        </button>
       )}
 
       {/* Loading state overlay */}
@@ -519,6 +483,156 @@ export default function RapidCortexMapCore({
 }
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
+
+/** Re-add app-managed GeoJSON sources/layers after initial load or setStyle. */
+function ensureLiveLayers(
+  map: mapboxgl.Map,
+  layers: RCMapLayerVisibility,
+  incidents: RCIncident[]
+): void {
+  if (!map.getSource(LIVE_SOURCE_ID)) {
+    map.addSource(LIVE_SOURCE_ID, {
+      type: "geojson",
+      data: incidentsToGeoJSON(incidents),
+    });
+  } else {
+    (map.getSource(LIVE_SOURCE_ID) as mapboxgl.GeoJSONSource).setData(
+      incidentsToGeoJSON(incidents)
+    );
+  }
+
+  if (!map.getLayer(LIVE_ACTIVE_LAYER)) {
+    map.addLayer({
+      id:     LIVE_ACTIVE_LAYER,
+      type:   "circle",
+      source: LIVE_SOURCE_ID,
+      filter: ["!=", ["get", "status"], "resolved"],
+      paint:  {
+        "circle-radius":       SEVERITY_RADIUS_EXPRESSION,
+        "circle-color":        SEVERITY_COLOR_EXPRESSION,
+        "circle-opacity":      0.92,
+        "circle-stroke-width": 2,
+        "circle-stroke-color": "#ffffff",
+      },
+    });
+  }
+
+  if (!map.getLayer(LIVE_PULSE_LAYER)) {
+    map.addLayer({
+      id:     LIVE_PULSE_LAYER,
+      type:   "circle",
+      source: LIVE_SOURCE_ID,
+      filter: ["in", ["get", "severity"], ["literal", ["critical", "high"]]],
+      paint:  {
+        "circle-radius":         ["interpolate", ["linear"], ["zoom"], 8, 18, 14, 24],
+        "circle-color":          "transparent",
+        "circle-stroke-width":   2,
+        "circle-stroke-color":   "#ef4444",
+        "circle-stroke-opacity": 0.35,
+      },
+    });
+  }
+
+  if (!map.getLayer(LIVE_RESOLVED_LAYER)) {
+    map.addLayer({
+      id:     LIVE_RESOLVED_LAYER,
+      type:   "circle",
+      source: LIVE_SOURCE_ID,
+      filter: ["==", ["get", "status"], "resolved"],
+      paint:  {
+        "circle-radius":       6,
+        "circle-color":        "#6b7280",
+        "circle-opacity":      0.55,
+        "circle-stroke-width": 1,
+        "circle-stroke-color": "#9ca3af",
+      },
+      layout: {
+        visibility: layers.resolvedIncidents ? "visible" : "none",
+      },
+    });
+  }
+
+  if (!map.getSource(CALLER_SOURCE_ID)) {
+    map.addSource(CALLER_SOURCE_ID, {
+      type: "geojson",
+      data: { type: "FeatureCollection", features: [] },
+    });
+  }
+
+  if (!map.getLayer(CALLER_LAYER)) {
+    map.addLayer({
+      id:     CALLER_LAYER,
+      type:   "circle",
+      source: CALLER_SOURCE_ID,
+      paint:  {
+        "circle-radius":       13,
+        "circle-color":        "#0ea5e9",
+        "circle-opacity":      0.9,
+        "circle-stroke-width": 3,
+        "circle-stroke-color": "#ffffff",
+      },
+    });
+  }
+
+  if (!map.getLayer(CALLER_LABEL_LAYER)) {
+    map.addLayer({
+      id:     CALLER_LABEL_LAYER,
+      type:   "symbol",
+      source: CALLER_SOURCE_ID,
+      layout: {
+        "text-field":      ["get", "label"],
+        "text-size":       11,
+        "text-offset":     [0, 1.8],
+        "text-anchor":     "top",
+        "text-font":       ["DIN Offc Pro Medium", "Arial Unicode MS Regular"],
+        "text-max-width":  10,
+      },
+      paint: {
+        "text-color":       "#0ea5e9",
+        "text-halo-color":  "#0f0d1c",
+        "text-halo-width":  1.5,
+      },
+    });
+  }
+
+  safeSetVisibility(map, LIVE_ACTIVE_LAYER, layers.activeIncidents);
+  safeSetVisibility(map, LIVE_PULSE_LAYER, layers.activeIncidents);
+  safeSetVisibility(map, LIVE_RESOLVED_LAYER, layers.resolvedIncidents);
+  safeSetVisibility(map, CALLER_LAYER, layers.callerPin);
+  safeSetVisibility(map, CALLER_LABEL_LAYER, layers.callerPin);
+}
+
+const incidentCursorEnterByMap = new WeakMap<mapboxgl.Map, () => void>();
+const incidentCursorLeaveByMap = new WeakMap<mapboxgl.Map, () => void>();
+
+function bindIncidentInteractions(map: mapboxgl.Map, handler: MapClickHandler): void {
+  map.off("click", LIVE_ACTIVE_LAYER, handler);
+  map.off("click", LIVE_RESOLVED_LAYER, handler);
+  map.on("click", LIVE_ACTIVE_LAYER, handler);
+  map.on("click", LIVE_RESOLVED_LAYER, handler);
+
+  let onEnter = incidentCursorEnterByMap.get(map);
+  if (!onEnter) {
+    onEnter = () => {
+      map.getCanvas().style.cursor = "pointer";
+    };
+    incidentCursorEnterByMap.set(map, onEnter);
+  }
+  let onLeave = incidentCursorLeaveByMap.get(map);
+  if (!onLeave) {
+    onLeave = () => {
+      map.getCanvas().style.cursor = "";
+    };
+    incidentCursorLeaveByMap.set(map, onLeave);
+  }
+
+  for (const layerId of [LIVE_ACTIVE_LAYER, LIVE_RESOLVED_LAYER]) {
+    map.off("mouseenter", layerId, onEnter);
+    map.off("mouseleave", layerId, onLeave);
+    map.on("mouseenter", layerId, onEnter);
+    map.on("mouseleave", layerId, onLeave);
+  }
+}
 
 /**
  * Safely toggle a single Mapbox layer's visibility.

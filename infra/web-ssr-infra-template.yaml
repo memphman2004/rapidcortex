@@ -98,6 +98,21 @@ Parameters:
   WafRateLimitPer5Min:
     Type: Number
     Default: 2000
+    Description: Max requests per IP per 5-minute window (CloudFront WAF rate rule).
+  AgencyAllowlistCIDRs:
+    Type: CommaDelimitedList
+    Default: "203.0.113.0/32"
+    Description: >-
+      Known agency network CIDRs. Matched IPs bypass geo/anonymous/rate blocks on the CDN ACL.
+      Replace DOC placeholder with real agency ranges at onboarding.
+  WafSecurityAlertEmail:
+    Type: String
+    Default: ""
+    Description: Optional email for WAF block/rate/geo CloudWatch alarm SNS subscription.
+  WafLogRetentionDays:
+    Type: Number
+    Default: 365
+    Description: CloudWatch retention for aws-waf-logs-* CDN WAF log group.
   ApiBaseUrl:
     Type: String
     Description: API base URL for Next SSR proxy (e.g. https://api.rapidcortex.us)
@@ -226,6 +241,7 @@ Conditions:
     Fn::And:
       - !Condition AttachReportSubdomain
       - !Equals [!Ref CreateRoute53ReportSubdomainRecords, "true"]
+  HasWafSecurityAlertEmail: !Not [!Equals [!Ref WafSecurityAlertEmail, ""]]
 
 Mappings:
   # com.amazonaws.global.cloudfront.origin-facing — restrict ALB:80 to CloudFront edges only.
@@ -593,54 +609,146 @@ Resources:
             ModeBlock: true
             Override: true
 
+  # Agency IP allowlist — CLOUDFRONT scope (must live in us-east-1 with the CDN ACL).
+  AgencyAllowlistIPSetCdn:
+    Type: AWS::WAFv2::IPSet
+    Properties:
+      Name: !Sub ${AppName}-agency-allowlist-cdn-${DeploymentStage}
+      Scope: CLOUDFRONT
+      IPAddressVersion: IPV4
+      Addresses: !Ref AgencyAllowlistCIDRs
+      Tags:
+        - Key: App
+          Value: !Ref AppName
+        - Key: Stage
+          Value: !Ref DeploymentStage
+        - Key: Purpose
+          Value: AgencyNetworkAllowlist
+
   CdnWebAcl:
     Type: AWS::WAFv2::WebACL
     Properties:
       Name: !Sub ${AppName}-web-cdn-${DeploymentStage}
       Scope: CLOUDFRONT
+      Description: >-
+        RC CDN WAF: agency allowlist, US/CA geo (block), anonymous/VPN monitor (count),
+        managed rules, rate limit. Site access is not VPN-gated; VPN only where agencies need it.
       DefaultAction:
         Allow: {}
       VisibilityConfig:
         CloudWatchMetricsEnabled: true
         MetricName: !Sub ${AppName}-web-cdn-${DeploymentStage}
         SampledRequestsEnabled: true
+      CustomResponseBodies:
+        GeoBlockedBody:
+          ContentType: APPLICATION_JSON
+          Content: '{"error":"ACCESS_RESTRICTED","message":"This service is only available in authorized regions."}'
+        RateLimitedBody:
+          ContentType: APPLICATION_JSON
+          Content: '{"error":"RATE_LIMITED","message":"Too many requests. Please slow down."}'
       Rules:
-        - Name: AWSManagedRulesCommonRuleSet
+        # Priority 0: known agency networks bypass subsequent blocks
+        - Name: AllowKnownAgencyIPs
+          Priority: 0
+          Action:
+            Allow: {}
+          Statement:
+            IPSetReferenceStatement:
+              ARN: !GetAtt AgencyAllowlistIPSetCdn.Arn
+          VisibilityConfig:
+            CloudWatchMetricsEnabled: true
+            MetricName: !Sub ${AppName}AllowedAgencyIPs
+            SampledRequestsEnabled: true
+
+        # Priority 1: North America only (US + CA)
+        - Name: GeoRestrictToNorthAmerica
           Priority: 1
+          Action:
+            Block:
+              CustomResponse:
+                ResponseCode: 403
+                CustomResponseBodyKey: GeoBlockedBody
+          Statement:
+            NotStatement:
+              Statement:
+                GeoMatchStatement:
+                  CountryCodes:
+                    - US
+                    - CA
+          VisibilityConfig:
+            CloudWatchMetricsEnabled: true
+            MetricName: !Sub ${AppName}GeoBlocked
+            SampledRequestsEnabled: true
+
+        # Priority 2: VPN / Tor / anonymizers — Count only (do not gate site on VPN).
+        # Geo US/CA is the access boundary; agency IP allowlist is the "VPN/network as needed" bypass.
+        - Name: MonitorAnonymousIPs
+          Priority: 2
+          OverrideAction:
+            Count: {}
+          Statement:
+            ManagedRuleGroupStatement:
+              VendorName: AWS
+              Name: AWSManagedRulesAnonymousIpList
+          VisibilityConfig:
+            CloudWatchMetricsEnabled: true
+            MetricName: !Sub ${AppName}AnonymousIPBlocked
+            SampledRequestsEnabled: true
+
+        # Priority 3: Core OWASP-ish rules (large SSR/upload bodies → Count)
+        - Name: AWSManagedRulesCommonRuleSet
+          Priority: 3
+          OverrideAction:
+            None: {}
           Statement:
             ManagedRuleGroupStatement:
               VendorName: AWS
               Name: AWSManagedRulesCommonRuleSet
-          OverrideAction: { None: {} }
+              RuleActionOverrides:
+                - Name: SizeRestrictions_BODY
+                  ActionToUse:
+                    Count: {}
           VisibilityConfig:
             CloudWatchMetricsEnabled: true
             MetricName: common-rules
             SampledRequestsEnabled: true
+
+        # Priority 4: Known bad inputs (Log4j, SSRF, …)
         - Name: AWSManagedRulesKnownBadInputsRuleSet
-          Priority: 2
+          Priority: 4
+          OverrideAction:
+            None: {}
           Statement:
             ManagedRuleGroupStatement:
               VendorName: AWS
               Name: AWSManagedRulesKnownBadInputsRuleSet
-          OverrideAction: { None: {} }
           VisibilityConfig:
             CloudWatchMetricsEnabled: true
             MetricName: known-bad-inputs
             SampledRequestsEnabled: true
+
+        # Priority 5: Amazon IP reputation
         - Name: AWSManagedRulesAmazonIpReputationList
-          Priority: 3
+          Priority: 5
+          OverrideAction:
+            None: {}
           Statement:
             ManagedRuleGroupStatement:
               VendorName: AWS
               Name: AWSManagedRulesAmazonIpReputationList
-          OverrideAction: { None: {} }
           VisibilityConfig:
             CloudWatchMetricsEnabled: true
             MetricName: ip-reputation
             SampledRequestsEnabled: true
+
+        # Priority 6: Per-IP rate limit
         - Name: PerIpRateLimit
-          Priority: 4
-          Action: { Block: {} }
+          Priority: 6
+          Action:
+            Block:
+              CustomResponse:
+                ResponseCode: 429
+                CustomResponseBodyKey: RateLimitedBody
           Statement:
             RateBasedStatement:
               AggregateKeyType: IP
@@ -649,6 +757,112 @@ Resources:
             CloudWatchMetricsEnabled: true
             MetricName: rate-limit
             SampledRequestsEnabled: true
+
+  WafCdnLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub aws-waf-logs-${AppName}-cdn-${DeploymentStage}
+      RetentionInDays: !Ref WafLogRetentionDays
+
+  CdnWebAclLoggingConfiguration:
+    Type: AWS::WAFv2::LoggingConfiguration
+    Properties:
+      ResourceArn: !GetAtt CdnWebAcl.Arn
+      LogDestinationConfigs:
+        - !GetAtt WafCdnLogGroup.Arn
+      LoggingFilter:
+        DefaultBehavior: DROP
+        Filters:
+          - Behavior: KEEP
+            Requirement: MEETS_ANY
+            Conditions:
+              - ActionCondition:
+                  Action: BLOCK
+              - ActionCondition:
+                  Action: COUNT
+
+  WafSecurityAlertsTopic:
+    Type: AWS::SNS::Topic
+    Properties:
+      TopicName: !Sub ${AppName}-waf-security-alerts-${DeploymentStage}
+      DisplayName: Rapid Cortex WAF Security Alerts
+
+  WafSecurityAlertsEmailSubscription:
+    Type: AWS::SNS::Subscription
+    Condition: HasWafSecurityAlertEmail
+    Properties:
+      TopicArn: !Ref WafSecurityAlertsTopic
+      Protocol: email
+      Endpoint: !Ref WafSecurityAlertEmail
+
+  AlarmWafAnonymousIpBlocks:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: !Sub ${AppName}-waf-vpn-proxy-blocks-${DeploymentStage}
+      AlarmDescription: High volume of VPN/proxy matches on CDN WAF (count mode — not site-blocking)
+      Namespace: AWS/WAFV2
+      MetricName: BlockedRequests
+      Dimensions:
+        - Name: WebACL
+          Value: !Sub ${AppName}-web-cdn-${DeploymentStage}
+        - Name: Region
+          Value: CloudFront
+        - Name: Rule
+          Value: !Sub ${AppName}AnonymousIPBlocked
+      Statistic: Sum
+      Period: 300
+      EvaluationPeriods: 1
+      Threshold: 50
+      ComparisonOperator: GreaterThanThreshold
+      TreatMissingData: notBreaching
+      AlarmActions:
+        - !Ref WafSecurityAlertsTopic
+
+  AlarmWafRateLimit:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: !Sub ${AppName}-waf-rate-limit-${DeploymentStage}
+      AlarmDescription: CDN WAF per-IP rate limit triggered
+      Namespace: AWS/WAFV2
+      MetricName: BlockedRequests
+      Dimensions:
+        - Name: WebACL
+          Value: !Sub ${AppName}-web-cdn-${DeploymentStage}
+        - Name: Region
+          Value: CloudFront
+        - Name: Rule
+          Value: rate-limit
+      Statistic: Sum
+      Period: 300
+      EvaluationPeriods: 1
+      Threshold: 100
+      ComparisonOperator: GreaterThanThreshold
+      TreatMissingData: notBreaching
+      AlarmActions:
+        - !Ref WafSecurityAlertsTopic
+
+  AlarmWafGeoBlocks:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: !Sub ${AppName}-waf-geo-blocks-${DeploymentStage}
+      AlarmDescription: High volume of geo-blocked requests on CDN WAF
+      Namespace: AWS/WAFV2
+      MetricName: BlockedRequests
+      Dimensions:
+        - Name: WebACL
+          Value: !Sub ${AppName}-web-cdn-${DeploymentStage}
+        - Name: Region
+          Value: CloudFront
+        - Name: Rule
+          Value: !Sub ${AppName}GeoBlocked
+      Statistic: Sum
+      Period: 300
+      EvaluationPeriods: 1
+      Threshold: 25
+      ComparisonOperator: GreaterThanThreshold
+      TreatMissingData: notBreaching
+      AlarmActions:
+        - !Ref WafSecurityAlertsTopic
 
   WebCdnDistribution:
     Type: AWS::CloudFront::Distribution
@@ -873,3 +1087,15 @@ Outputs:
     Value: !Ref WebCdnDistribution
   CloudFrontDomainName:
     Value: !GetAtt WebCdnDistribution.DomainName
+  CdnWebAclArn:
+    Description: CloudFront WAF WebACL ARN attached to the SSR distribution
+    Value: !GetAtt CdnWebAcl.Arn
+  AgencyAllowlistIPSetCdnArn:
+    Description: CDN-scope agency allowlist IP set (update CIDRs via stack parameter)
+    Value: !GetAtt AgencyAllowlistIPSetCdn.Arn
+  WafSecurityAlertsTopicArn:
+    Description: SNS topic for CDN WAF CloudWatch alarms
+    Value: !Ref WafSecurityAlertsTopic
+  WafCdnLogGroupName:
+    Description: CloudWatch log group for CDN WAF BLOCK/COUNT samples
+    Value: !Ref WafCdnLogGroup

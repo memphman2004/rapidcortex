@@ -29,6 +29,7 @@ import {
   MapPin,
   Mic,
   PhoneCall,
+  Radio,
   Upload,
   Users,
   X,
@@ -57,6 +58,8 @@ import {
 } from "@/lib/navigation/role-nav";
 import { useNavBadgeCounts } from "@/lib/navigation/use-nav-badge-counts";
 import { loadIncidents } from "@/lib/queries";
+import { isWarRoomsEnabled } from "@/lib/runtime-flags";
+import { fetchWarRooms, isWarRoomApiConfigured } from "@/lib/war-room-api";
 import {
   consoleBgStorageKey,
   loadConsoleBg,
@@ -576,9 +579,23 @@ function PsapConsoleHomeInner({
     refetchInterval: 15_000,
   });
 
+  const warRoomsEnabled =
+    !isDispatcher && isWarRoomsEnabled() && isWarRoomApiConfigured();
+  const warRoomsQuery = useQuery({
+    queryKey: ["war-rooms", "psap-console", agencyId],
+    queryFn: () => fetchWarRooms(),
+    enabled: apiLive && warRoomsEnabled,
+    refetchInterval: 30_000,
+  });
+
   const incidents = useMemo(() => incidentsQuery.data ?? [], [incidentsQuery.data]);
   const operators = useMemo(() => operatorsQuery.data ?? [], [operatorsQuery.data]);
   const activeCalls = useMemo(() => activeCallsQuery.data ?? [], [activeCallsQuery.data]);
+  const warRooms = useMemo(() => warRoomsQuery.data ?? [], [warRoomsQuery.data]);
+  const activeWarRooms = useMemo(
+    () => warRooms.filter((r) => r.status === "active" || r.status === "standby"),
+    [warRooms],
+  );
   const loading = incidentsQuery.isLoading;
 
   const [now, setNow] = useState(() => new Date());
@@ -589,6 +606,7 @@ function PsapConsoleHomeInner({
   const [cadOpen, setCadOpen] = useState(false);
   const [cadPhase, setCadPhase] = useState(1);
   const [selectedMapIncident, setSelectedMapIncident] = useState<string | null>(null);
+  const [mapTheme, setMapTheme] = useState<"dark" | "light">("dark");
   const fileRef = useRef<HTMLInputElement>(null);
   const { rootRef } = useThemeRoot<HTMLDivElement>();
 
@@ -710,6 +728,8 @@ function PsapConsoleHomeInner({
   const liveWorkspaceHref =
     findNavHref(navItems, "dispatcher") ?? `/${jurisdiction}/dispatcher`;
   const auditHref = findNavHref(navItems, "audit", "log");
+  const warRoomsHref =
+    findNavHref(navItems, "war-rooms") ?? `/${jurisdiction}/supervisor/command/war-rooms`;
 
   const quickActions = useMemo(() => {
     const actions: QuickActionDef[] = [];
@@ -1976,6 +1996,122 @@ function PsapConsoleHomeInner({
                 </div>
               </div>
 
+              {warRoomsEnabled ? (
+                <div style={{ padding: "0 16px 12px" }}>
+                  <div style={card()}>
+                    <div
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "space-between",
+                        padding: "13px 15px 9px",
+                      }}
+                    >
+                      <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                        <Radio size={14} color="#c4b5fd" strokeWidth={1.7} />
+                        <span
+                          style={{
+                            fontSize: 11,
+                            fontWeight: 700,
+                            color: C.textSub,
+                            letterSpacing: "0.7px",
+                          }}
+                        >
+                          WAR ROOMS
+                        </span>
+                        <span
+                          style={{
+                            fontSize: 10,
+                            fontWeight: 700,
+                            padding: "1px 7px",
+                            borderRadius: 999,
+                            background: activeWarRooms.length > 0 ? "rgba(139,92,246,0.25)" : "rgba(255,255,255,0.06)",
+                            color: activeWarRooms.length > 0 ? "#ddd6fe" : C.textMuted,
+                            border: `1px solid ${activeWarRooms.length > 0 ? "rgba(139,92,246,0.4)" : C.border}`,
+                          }}
+                        >
+                          {activeWarRooms.length} Active
+                        </span>
+                      </div>
+                      <Link
+                        href={warRoomsHref}
+                        style={{
+                          fontSize: 11,
+                          color: C.blue,
+                          fontWeight: 500,
+                          textDecoration: "none",
+                        }}
+                      >
+                        View all
+                      </Link>
+                    </div>
+                    <div style={{ padding: "0 8px 8px", minHeight: 72 }}>
+                      {warRoomsQuery.isLoading && activeWarRooms.length === 0 ? (
+                        <div style={{ padding: 12, fontSize: 12, color: C.textMuted }}>Loading…</div>
+                      ) : activeWarRooms.length === 0 ? (
+                        <div style={{ padding: 12, fontSize: 12, color: C.textMuted }}>
+                          No active war rooms. Open one from an escalated incident on Review.
+                        </div>
+                      ) : (
+                        activeWarRooms.slice(0, 5).map((room) => {
+                          const participants = room.participants.filter((p) => p.active).length;
+                          return (
+                            <div
+                              key={room.roomId}
+                              style={{
+                                display: "flex",
+                                alignItems: "center",
+                                justifyContent: "space-between",
+                                gap: 10,
+                                padding: "8px 8px",
+                                borderRadius: 7,
+                                background: "rgba(139,92,246,0.06)",
+                                border: "1px solid rgba(139,92,246,0.18)",
+                                marginBottom: 6,
+                              }}
+                            >
+                              <div style={{ minWidth: 0, flex: 1 }}>
+                                <div
+                                  style={{
+                                    fontSize: 12,
+                                    fontWeight: 600,
+                                    color: C.text,
+                                    overflow: "hidden",
+                                    textOverflow: "ellipsis",
+                                    whiteSpace: "nowrap",
+                                  }}
+                                >
+                                  {room.name}
+                                </div>
+                                <div style={{ fontSize: 10.5, color: C.textSub }}>
+                                  Incident {room.incidentId} · {participants} active · {room.status}
+                                </div>
+                              </div>
+                              <Link
+                                href={`/${jurisdiction}/command/war-room/${encodeURIComponent(room.roomId)}`}
+                                style={{
+                                  flexShrink: 0,
+                                  fontSize: 11,
+                                  fontWeight: 600,
+                                  color: "#ddd6fe",
+                                  textDecoration: "none",
+                                  padding: "5px 10px",
+                                  borderRadius: 6,
+                                  background: "rgba(139,92,246,0.22)",
+                                  border: "1px solid rgba(139,92,246,0.35)",
+                                }}
+                              >
+                                Open
+                              </Link>
+                            </div>
+                          );
+                        })
+                      )}
+                    </div>
+                  </div>
+                </div>
+              ) : null}
+
               {/* Operational Map */}
               <div style={{ padding: "0 16px 12px" }}>
                 <div
@@ -2007,6 +2143,8 @@ function PsapConsoleHomeInner({
                     </span>
                   </div>
                   <RapidCortexMap
+                    theme={mapTheme}
+                    onThemeChange={setMapTheme}
                     incidents={mapIncidents}
                     selectedIncidentId={selectedMapIncident}
                     onIncidentClick={(inc) => setSelectedMapIncident(inc.id)}

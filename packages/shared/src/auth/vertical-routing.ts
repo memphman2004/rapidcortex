@@ -73,7 +73,7 @@ export function dashboardRouteFromRole(role: UserRole | string, agencyId: string
     case "supervisor":
       return `/${jurisdiction}/supervisor`;
     case "dispatcher":
-      return `/${jurisdiction}/dispatcher`;
+      return `/${jurisdiction}/dashboard`;
     case "analyst":
       return `/${jurisdiction}/analytics`;
     case "auditor":

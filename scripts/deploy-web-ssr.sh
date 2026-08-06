@@ -36,6 +36,10 @@ set -euo pipefail
 #   CREATE_ROUTE53_APP_SUBDOMAIN_RECORDS (true|false, default true) — app subdomain A/AAAA in Route53.
 #   PUBLIC_SITE_URL (optional) — NEXT_PUBLIC_SITE_URL on ECS (default template: https://app.rapidcortex.us).
 #   ALLOWED_ORIGINS (optional) — APP_ALLOWED_ORIGINS on ECS (comma-separated https origins).
+#   AGENCY_CIDRS (optional) — comma-separated agency network CIDRs for CDN WAF allowlist.
+#   WAF_SECURITY_ALERT_EMAIL (optional) — SNS subscription for CDN WAF CloudWatch alarms.
+#   WAF_RATE_LIMIT_5M (optional) — CDN WAF per-IP rate limit (default 2000).
+#   WAF_LOG_RETENTION_DAYS (optional) — aws-waf-logs-* retention (default 365).
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$ROOT"
@@ -118,6 +122,18 @@ if [[ -n "${ALLOWED_ORIGINS:-}" ]]; then
 fi
 if [[ -n "${NEXT_PUBLIC_REPORT_ORIGIN:-}" ]]; then
   DEPLOY_OVERRIDES+=( "ReportSiteUrl=${NEXT_PUBLIC_REPORT_ORIGIN}" )
+fi
+if [[ -n "${AGENCY_CIDRS:-}" ]]; then
+  DEPLOY_OVERRIDES+=( "AgencyAllowlistCIDRs=${AGENCY_CIDRS}" )
+fi
+if [[ -n "${WAF_SECURITY_ALERT_EMAIL:-}" ]]; then
+  DEPLOY_OVERRIDES+=( "WafSecurityAlertEmail=${WAF_SECURITY_ALERT_EMAIL}" )
+fi
+if [[ -n "${WAF_RATE_LIMIT_5M:-}" ]]; then
+  DEPLOY_OVERRIDES+=( "WafRateLimitPer5Min=${WAF_RATE_LIMIT_5M}" )
+fi
+if [[ -n "${WAF_LOG_RETENTION_DAYS:-}" ]]; then
+  DEPLOY_OVERRIDES+=( "WafLogRetentionDays=${WAF_LOG_RETENTION_DAYS}" )
 fi
 GRANT_GENERATE_FUNCTION_NAME="${GRANT_GENERATE_FUNCTION_NAME:-}"
 GRANT_GENERATE_FUNCTION_ARN="${GRANT_GENERATE_FUNCTION_ARN:-}"

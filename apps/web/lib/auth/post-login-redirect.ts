@@ -109,7 +109,8 @@ export function resolvePostAuthenticationHomeHref(
 }
 
 /**
- * Applies the `from` query safely: legacy `/{slug}/dashboard` hub is replaced with the role home;
+ * Applies the `from` query safely: legacy `/{slug}/dashboard` hub is replaced with the role home
+ * for non-dispatcher roles (dispatcher home *is* `/{slug}/dashboard`);
  * role-dashboard URLs are kept only when the user may access that prefix.
  */
 function resolveTrustedPostLoginFromParam(

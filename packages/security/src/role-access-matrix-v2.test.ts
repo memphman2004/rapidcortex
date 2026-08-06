@@ -53,6 +53,11 @@ describe("Role Access Matrix v2.0 (PDF)", () => {
     expect(defaultPermissionForRole("agencyadmin", "transcripts.view")).toBe(false);
   });
 
+  it("agencyadmin can create and join war rooms", () => {
+    expect(defaultPermissionForRole("agencyadmin", "command.war_room_create")).toBe(true);
+    expect(defaultPermissionForRole("agencyadmin", "command.war_room_join")).toBe(true);
+  });
+
   it("dispatcher has transcripts and war-room join but not supervisor-only workspace", () => {
     expect(defaultPermissionForRole("dispatcher", "transcripts.view")).toBe(true);
     expect(defaultPermissionForRole("dispatcher", "command.war_room_join")).toBe(true);

@@ -353,7 +353,8 @@ export function getSupervisorNav(jurisdiction: string): RoleNav {
         id: "command",
         label: "COMMAND",
         items: [
-          { id: "war-rooms",     label: "War Rooms",       href: `${j}/supervisor/command/war-rooms`, icon: "Siren" },
+          { id: "war-rooms",     label: "War Rooms",       href: `${j}/supervisor/command/war-rooms`, icon: "Siren",
+            feature: "warRooms" },
           { id: "status-pages",  label: "Status Pages",    href: `${j}/supervisor/command/status-pages`, icon: "Globe" },
           { id: "rcs",           label: "RCS Monitor",     href: `${j}/rcs`,            icon: "Shield",
             feature: "rcs" },
@@ -418,7 +419,8 @@ export function getAgencyAdminNav(jurisdiction: string): RoleNav {
         id: "command",
         label: "COMMAND",
         items: [
-          { id: "war-rooms",     label: "War Rooms",       href: `${j}/supervisor/command/war-rooms`, icon: "Siren" },
+          { id: "war-rooms",     label: "War Rooms",       href: `${j}/supervisor/command/war-rooms`, icon: "Siren",
+            feature: "warRooms" },
           { id: "reviews",       label: "Post-Incident",   href: `${j}/reviews`,            icon: "FileSearch" },
         ],
       },

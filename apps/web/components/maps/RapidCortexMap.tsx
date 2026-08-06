@@ -18,8 +18,10 @@
  *   />
  *
  * Required env vars (set in .env.local or env-web-*.sh):
- *   NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN  — public token, URL-referrer restricted
- *   NEXT_PUBLIC_MAPBOX_STYLE_URL     — e.g. mapbox://styles/memphman2004/cmr3afd69002401qq1uywfk5p
+ *   NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN      — public token, URL-referrer restricted
+ *   NEXT_PUBLIC_MAPBOX_STYLE_URL_DARK    — dark dispatch Studio style
+ *   NEXT_PUBLIC_MAPBOX_STYLE_URL_LIGHT   — light Studio style
+ *   NEXT_PUBLIC_MAPBOX_STYLE_URL         — legacy dark fallback
  */
 
 "use client";

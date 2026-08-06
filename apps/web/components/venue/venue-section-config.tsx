@@ -79,7 +79,7 @@ const STATUS_CFG: Record<SectionStatus, {
 // ─── Level config ──────────────────────────────────────────────────────────────
 const LEVEL_CFG: Record<SectionLevel, { label: string; color: string; svgLabel: string }> = {
   lower: { label: "Lower Bowl",  color: "var(--rc-violet)", svgLabel: "LOWER BOWL"  },
-  club:  { label: "Club Level",  color: V.blue,   svgLabel: "CLUB LEVEL"  },
+  club:  { label: "Club Level",  color: "var(--rc-blue)",   svgLabel: "CLUB LEVEL"  },
   upper: { label: "Upper Deck",  color: "var(--rc-green)",  svgLabel: "UPPER DECK"  },
   suite: { label: "Suites",      color: "var(--rc-amber)",  svgLabel: "SUITES"      },
 };
@@ -778,7 +778,7 @@ export function VenueSectionConfig({
               const scfg  = STATUS_CFG[s.status];
               const lcfg  = LEVEL_CFG[s.level];
               return (
-                <div key={s.id} style={{ display: "grid", gridTemplateColumns: "60px 100px 1fr 80px 80px 60px 80px", gap: 8, padding: "10px 14px", borderBottom: `1px solid $"var(--rc-text-faint)"`, alignItems: "center" }}>
+                <div key={s.id} style={{ display: "grid", gridTemplateColumns: "60px 100px 1fr 80px 80px 60px 80px", gap: 8, padding: "10px 14px", borderBottom: "1px solid var(--rc-surface-hover)", alignItems: "center" }}>
                   <span style={{ color: "var(--rc-text-primary)", fontWeight: 700, fontSize: 14 }}>{s.label}</span>
                   <span style={{ color: lcfg.color, fontSize: 11, fontWeight: 600 }}>{lcfg.label}</span>
                   <span style={{ color: "var(--rc-text-secondary)", fontSize: 12 }}>{s.zone}</span>

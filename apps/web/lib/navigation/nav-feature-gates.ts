@@ -12,6 +12,7 @@ import {
   isSalesLeadsUiEnabled,
   isSlaBacklogEnabled,
   isVerticalOnboardingEnabled,
+  isWarRoomsEnabled,
 } from "@/lib/runtime-flags";
 
 /** Runtime feature gates for `NavItem.feature` keys in role-nav.ts. */
@@ -43,6 +44,8 @@ export function isNavFeatureEnabled(feature: string): boolean {
       return isRcsEnabled();
     case "campusClery":
       return isCampusCleryEnabled();
+    case "warRooms":
+      return isWarRoomsEnabled();
     default:
       return true;
   }

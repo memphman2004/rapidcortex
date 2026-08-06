@@ -75,9 +75,9 @@ export function VenueStaffDetailClient({
       </Link>
 
       {loading ? (
-        <p style={{ fontSize: 12, color: V.muted, marginTop: 12 }}>Loading staff profile…</p>
+        <p style={{ fontSize: 12, color: "var(--rc-text-secondary)", marginTop: 12 }}>Loading staff profile…</p>
       ) : !member ? (
-        <p style={{ fontSize: 12, color: V.muted, marginTop: 12 }}>
+        <p style={{ fontSize: 12, color: "var(--rc-text-secondary)", marginTop: 12 }}>
           Staff member not found on current duty roster.
         </p>
       ) : (
@@ -100,8 +100,8 @@ export function VenueStaffDetailClient({
               {member.initials}
             </div>
             <div>
-              <h2 style={{ fontSize: 16, fontWeight: 700, margin: 0, color: V.text }}>{member.displayName}</h2>
-              <p style={{ fontSize: 12, color: V.muted, margin: "4px 0 0" }}>
+              <h2 style={{ fontSize: 16, fontWeight: 700, margin: 0, color: "var(--rc-text-primary)" }}>{member.displayName}</h2>
+              <p style={{ fontSize: 12, color: "var(--rc-text-secondary)", margin: "4px 0 0" }}>
                 {member.role} · Zone {member.zone}
               </p>
             </div>
@@ -120,10 +120,10 @@ export function VenueStaffDetailClient({
                   href={`${linkBase}/incidents/${encodeURIComponent(activeIncident.id)}`}
                   style={{ textDecoration: "none", color: "inherit" }}
                 >
-                  <div style={{ fontSize: 12, fontWeight: 600, color: V.text }}>
+                  <div style={{ fontSize: 12, fontWeight: 600, color: "var(--rc-text-primary)" }}>
                     {mapVenueIncidentType(activeIncident.type)} · Section {activeIncident.zoneCode}
                   </div>
-                  <div style={{ fontSize: 11, color: V.muted, marginTop: 4 }}>
+                  <div style={{ fontSize: 11, color: "var(--rc-text-secondary)", marginTop: 4 }}>
                     {activeIncident.description.slice(0, 100)}
                   </div>
                   <div style={{ fontSize: 10, color: "var(--rc-amber)", marginTop: 6 }}>
@@ -131,20 +131,20 @@ export function VenueStaffDetailClient({
                   </div>
                 </Link>
               ) : (
-                <p style={{ fontSize: 11, color: V.muted, margin: 0 }}>Not assigned to an active incident.</p>
+                <p style={{ fontSize: 11, color: "var(--rc-text-secondary)", margin: 0 }}>Not assigned to an active incident.</p>
               )}
             </Card>
 
             <Card title="SHIFT HISTORY (INCIDENT ASSIGNMENTS)">
               {shiftHistory.length === 0 ? (
-                <p style={{ fontSize: 11, color: V.muted, margin: 0 }}>No recorded assignments this shift.</p>
+                <p style={{ fontSize: 11, color: "var(--rc-text-secondary)", margin: 0 }}>No recorded assignments this shift.</p>
               ) : (
                 shiftHistory.map((inc) => (
                   <div key={inc.id} style={{ marginBottom: 8 }}>
-                    <div style={{ fontSize: 12, color: V.text }}>
+                    <div style={{ fontSize: 12, color: "var(--rc-text-primary)" }}>
                       {mapVenueIncidentType(inc.type)} · {inc.status}
                     </div>
-                    <div style={{ fontSize: 10, color: V.muted }}>
+                    <div style={{ fontSize: 10, color: "var(--rc-text-secondary)" }}>
                       Section {inc.zoneCode} · {formatVenueTimeAgo(inc.updatedAt)}
                     </div>
                   </div>
@@ -180,8 +180,8 @@ function Card({ title, children }: { title: string; children: React.ReactNode })
 function Stat({ label, value }: { label: string; value: string }) {
   return (
     <div style={{ marginBottom: 8 }}>
-      <div style={{ fontSize: 10, color: V.muted }}>{label}</div>
-      <div style={{ fontSize: 13, fontWeight: 600, color: V.text }}>{value}</div>
+      <div style={{ fontSize: 10, color: "var(--rc-text-secondary)" }}>{label}</div>
+      <div style={{ fontSize: 13, fontWeight: 600, color: "var(--rc-text-primary)" }}>{value}</div>
     </div>
   );
 }

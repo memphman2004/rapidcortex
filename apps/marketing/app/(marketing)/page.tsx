@@ -251,19 +251,19 @@ export default function MarketingHomePage() {
         <nav className="mt-6 grid gap-3 sm:grid-cols-3" aria-label="Product pages">
           <Link
             href="/product/core"
-            className="rounded-md border border-slate-700 bg-slate-900/40 px-4 py-3 text-sm font-medium text-slate-200 hover:border-slate-600 hover:bg-slate-900/70"
+            className="flex items-start rounded-md border border-slate-700 bg-slate-900/40 px-4 pt-2 pb-3 text-sm font-medium leading-snug text-slate-200 hover:border-slate-600 hover:bg-slate-900/70"
           >
             RC Core
           </Link>
           <Link
             href="/product/campus"
-            className="rounded-md border border-slate-700 bg-slate-900/40 px-4 py-3 text-sm font-medium text-slate-200 hover:border-slate-600 hover:bg-slate-900/70"
+            className="flex items-start rounded-md border border-slate-700 bg-slate-900/40 px-4 pt-2 pb-3 text-sm font-medium leading-snug text-slate-200 hover:border-slate-600 hover:bg-slate-900/70"
           >
             RC Campus
           </Link>
           <Link
             href="/product/venue"
-            className="rounded-md border border-slate-700 bg-slate-900/40 px-4 py-3 text-sm font-medium text-slate-200 hover:border-slate-600 hover:bg-slate-900/70"
+            className="flex items-start rounded-md border border-slate-700 bg-slate-900/40 px-4 pt-2 pb-3 text-sm font-medium leading-snug text-slate-200 hover:border-slate-600 hover:bg-slate-900/70"
           >
             RC Venue
           </Link>

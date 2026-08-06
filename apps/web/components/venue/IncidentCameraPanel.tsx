@@ -180,13 +180,13 @@ export function IncidentCameraPanel({
           ) : (
             <span style={{ color: "var(--rc-amber)", fontWeight: 800, fontSize: 12 }}>INCIDENT {incident.incidentId}</span>
           )}
-          <span style={{ color: V.text, fontWeight: 700, fontSize: 13 }}>
+          <span style={{ color: "var(--rc-text-primary)", fontWeight: 700, fontSize: 13 }}>
             {locationNoun} {incident.section} · {incident.reportType.toUpperCase()}
           </span>
-          <span style={{ color: V.muted, fontSize: 11 }}>{incident.location}</span>
+          <span style={{ color: "var(--rc-text-secondary)", fontSize: 11 }}>{incident.location}</span>
           <div style={{ flex: 1 }} />
           {onClose ? (
-            <button type="button" onClick={onClose} style={{ color: V.muted, fontSize: 12 }}>
+            <button type="button" onClick={onClose} style={{ color: "var(--rc-text-secondary)", fontSize: 12 }}>
               {embedded ? "Back" : "Close panel"}
             </button>
           ) : null}
@@ -194,7 +194,7 @@ export function IncidentCameraPanel({
 
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, padding: 12 }}>
           {streamCameras.length === 0 ? (
-            <div style={{ gridColumn: "1 / -1", color: V.muted, fontSize: 12, padding: 12 }}>
+            <div style={{ gridColumn: "1 / -1", color: "var(--rc-text-secondary)", fontSize: 12, padding: 12 }}>
               No online cameras registered for {locationNoun} {incident.section}.
             </div>
           ) : (
@@ -228,7 +228,7 @@ export function IncidentCameraPanel({
                                 padding: "2px 6px",
                                 border: `1px solid var(--rc-border)`,
                                 borderRadius: 4,
-                                color: V.text,
+                                color: "var(--rc-text-primary)",
                               }}
                             >
                               {action.replace("_", " ")}
@@ -263,7 +263,7 @@ export function IncidentCameraPanel({
           <button
             type="button"
             onClick={() => setShowAllSection((v) => !v)}
-            style={{ fontSize: 11, color: V.muted }}
+            style={{ fontSize: 11, color: "var(--rc-text-secondary)" }}
           >
             All cameras for {locationNoun} {incident.section} ({sectionCameras.length} total)
           </button>
@@ -282,7 +282,7 @@ export function IncidentCameraPanel({
                   padding: "6px 8px",
                   border: `1px solid var(--rc-border)`,
                   borderRadius: 6,
-                  color: displayedIds.has(cam.cameraId) ? V.muted : V.text,
+                  color: displayedIds.has(cam.cameraId) ? "var(--rc-text-secondary)" : "var(--rc-text-primary)",
                   opacity: displayedIds.has(cam.cameraId) ? 0.5 : 1,
                 }}
               >
@@ -293,18 +293,18 @@ export function IncidentCameraPanel({
         ) : null}
 
         <div style={{ borderTop: `1px solid var(--rc-border)`, padding: 12 }}>
-          <div style={{ fontSize: 11, fontWeight: 700, color: V.muted, marginBottom: 8 }}>
+          <div style={{ fontSize: 11, fontWeight: 700, color: "var(--rc-text-secondary)", marginBottom: 8 }}>
             {enableDispatchControls ? "DISPATCHER UPDATES" : "INCIDENT CONTEXT"}
           </div>
           <div style={{ maxHeight: 140, overflow: "auto", marginBottom: 10 }}>
             {updates.length === 0 ? (
-              <p style={{ fontSize: 11, color: V.muted, margin: 0 }}>
+              <p style={{ fontSize: 11, color: "var(--rc-text-secondary)", margin: 0 }}>
                 Incident received · {locationNoun} {incident.section} · {incident.reportType}
               </p>
             ) : (
               updates.map((row) => (
-                <div key={row.updateId} style={{ fontSize: 11, color: V.text, marginBottom: 6 }}>
-                  <span style={{ color: V.muted }}>{formatClock(row.createdAt)}</span> [{row.actorLabel}]{" "}
+                <div key={row.updateId} style={{ fontSize: 11, color: "var(--rc-text-primary)", marginBottom: 6 }}>
+                  <span style={{ color: "var(--rc-text-secondary)" }}>{formatClock(row.createdAt)}</span> [{row.actorLabel}]{" "}
                   {row.message}
                 </div>
               ))
@@ -324,7 +324,7 @@ export function IncidentCameraPanel({
                     border: `1px solid var(--rc-border)`,
                     borderRadius: 6,
                     padding: "8px 10px",
-                    color: V.text,
+                    color: "var(--rc-text-primary)",
                     fontSize: 12,
                   }}
                 />

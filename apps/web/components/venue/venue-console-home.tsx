@@ -668,6 +668,7 @@ function VenueConsoleHomeInner({
   const [broadcastOpen, setBroadcastOpen] = useState(false);
   const [activeIncident, setActiveIncident] = useState<VenueActiveIncidentPanel | null>(null);
   const [selectedMapIncident, setSelectedMapIncident] = useState<string | null>(null);
+  const [mapTheme, setMapTheme] = useState<"dark" | "light">("dark");
   const fileRef = useRef<HTMLInputElement>(null);
   const { rootRef } = useThemeRoot<HTMLDivElement>();
 
@@ -2073,20 +2074,24 @@ function VenueConsoleHomeInner({
                       OPERATIONAL MAP
                     </span>
                   </div>
-                  <RapidCortexMap
-                    incidents={mapIncidents}
-                    selectedIncidentId={selectedMapIncident}
-                    onIncidentClick={(inc) => setSelectedMapIncident(inc.id)}
-                    vertical="venue"
-                    height="352px"
-                    showLayerControl
-                    defaultLayers={{
-                      venueZones: true,
-                      agencyZones: false,
-                      counties: false,
-                      activeIncidents: true,
-                    }}
-                  />
+                  <div style={{ height: 420, borderRadius: 8, overflow: "hidden" }}>
+                    <RapidCortexMap
+                      theme={mapTheme}
+                      onThemeChange={setMapTheme}
+                      incidents={mapIncidents}
+                      selectedIncidentId={selectedMapIncident}
+                      onIncidentClick={(inc) => setSelectedMapIncident(inc.id)}
+                      vertical="venue"
+                      height="420px"
+                      showLayerControl
+                      defaultLayers={{
+                        venueZones: true,
+                        agencyZones: false,
+                        counties: false,
+                        activeIncidents: true,
+                      }}
+                    />
+                  </div>
                 </div>
               </div>
 

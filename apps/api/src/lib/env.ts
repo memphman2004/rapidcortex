@@ -244,6 +244,9 @@ export const env = {
   slaBacklogSnapshotsTable: process.env.SLA_BACKLOG_SNAPSHOTS_TABLE?.trim() ?? "",
   warRoomsTable: process.env.WAR_ROOMS_TABLE?.trim() ?? "",
   warRoomMessagesTable: process.env.WAR_ROOM_MESSAGES_TABLE?.trim() ?? "",
+  /** When true, war-room HTTP requires the incident_command.* addon. Default false for pilot UX. */
+  warRoomsRequireAddon:
+    process.env.WAR_ROOMS_REQUIRE_ADDON === "true" || process.env.WAR_ROOMS_REQUIRE_ADDON === "1",
   stakeholderPagesTable: process.env.STAKEHOLDER_PAGES_TABLE?.trim() ?? "",
   postIncidentReviewsTable: process.env.POST_INCIDENT_REVIEWS_TABLE?.trim() ?? "",
   agencyReportsTable: process.env.AGENCY_REPORTS_TABLE?.trim() ?? "",

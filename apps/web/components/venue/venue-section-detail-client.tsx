@@ -101,19 +101,19 @@ export function VenueSectionDetailClient({
       <Link href={`${linkBase}/sections`} style={{ color: "var(--rc-text-secondary)", fontSize: 12, textDecoration: "none" }}>
         ← Sections
       </Link>
-      <h2 style={{ fontSize: 16, fontWeight: 700, margin: "12px 0 4px", color: V.text }}>
+      <h2 style={{ fontSize: 16, fontWeight: 700, margin: "12px 0 4px", color: "var(--rc-text-primary)" }}>
         Section {title}
       </h2>
       {section ? (
-        <p style={{ fontSize: 12, color: V.muted, margin: "0 0 16px" }}>
+        <p style={{ fontSize: 12, color: "var(--rc-text-secondary)", margin: "0 0 16px" }}>
           {section.level} · Gate {section.gate} · Cap {section.capacity} · Status {section.status}
         </p>
       ) : (
-        <p style={{ fontSize: 12, color: V.muted, margin: "0 0 16px" }}>Zone coverage for {decodedSection}</p>
+        <p style={{ fontSize: 12, color: "var(--rc-text-secondary)", margin: "0 0 16px" }}>Zone coverage for {decodedSection}</p>
       )}
 
       {loading ? (
-        <p style={{ fontSize: 12, color: V.muted }}>Loading section…</p>
+        <p style={{ fontSize: 12, color: "var(--rc-text-secondary)" }}>Loading section…</p>
       ) : (
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
           <SectionBlock title="ACTIVE INCIDENTS" count={activeIncidents.length}>
@@ -234,13 +234,13 @@ function Row({ primary, secondary, meta }: { primary: string; secondary: string;
         padding: "8px 10px",
       }}
     >
-      <div style={{ fontSize: 12, fontWeight: 600, color: V.text }}>{primary}</div>
-      <div style={{ fontSize: 11, color: V.muted, marginTop: 2 }}>{secondary}</div>
+      <div style={{ fontSize: 12, fontWeight: 600, color: "var(--rc-text-primary)" }}>{primary}</div>
+      <div style={{ fontSize: 11, color: "var(--rc-text-secondary)", marginTop: 2 }}>{secondary}</div>
       <div style={{ fontSize: 10, color: "var(--rc-amber)", marginTop: 4 }}>{meta}</div>
     </div>
   );
 }
 
 function EmptyRow({ text }: { text: string }) {
-  return <p style={{ fontSize: 11, color: V.muted, margin: "4px 6px" }}>{text}</p>;
+  return <p style={{ fontSize: 11, color: "var(--rc-text-secondary)", margin: "4px 6px" }}>{text}</p>;
 }

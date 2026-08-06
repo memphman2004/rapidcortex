@@ -13,6 +13,8 @@ const nextConfig = {
   distDir: isProductionBuild ? "out" : ".next",
   images: { unoptimized: true },
   trailingSlash: true,
+  // Mac Mini / large marketing tree: static pages can exceed the default 60s under load.
+  staticPageGenerationTimeout: 300,
   transpilePackages: [
     "rapid-cortex-maps",
     "rapid-cortex-shared",
@@ -22,6 +24,9 @@ const nextConfig = {
   ],
   experimental: {
     externalDir: true,
+    // Cap static-generation workers — 9 concurrent workers on a Mini + external volume
+    // causes widespread >60s page timeouts during `next build` / `output: "export"`.
+    cpus: 2,
   },
   webpack: (config) => {
     const marketingLib = (name) => path.join(marketingRoot, "lib", name);
