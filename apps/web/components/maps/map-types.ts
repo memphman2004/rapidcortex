@@ -115,4 +115,10 @@ export interface RCMapProps {
 
   /** Called when the in-map theme toggle is clicked */
   onThemeChange?: (theme: "dark" | "light") => void;
+
+  /**
+   * When set, layer visibility + theme (if uncontrolled) persist to localStorage
+   * for this Cognito user id + {@link vertical} across logout/login.
+   */
+  persistUserId?: string | null;
 }

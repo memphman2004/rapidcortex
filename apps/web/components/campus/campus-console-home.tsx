@@ -36,7 +36,9 @@ import {
 import { isRcInternalOperator } from "rapid-cortex-shared/tenancy/principal";
 import { HelpChrome } from "@/components/help/help-chrome";
 import { IncidentCameraPanel } from "@/components/venue/IncidentCameraPanel";
+import { SiteSquareMark } from "@/components/brand/site-logo-link";
 import { RapidCortexMap } from "@/components/maps/RapidCortexMap";
+import { loadMapTheme, saveMapTheme } from "@/lib/maps/persisted-map-prefs";
 import { campusIncidentsToMap } from "@/components/maps/map-incident-adapters";
 import { buildNavContext } from "@/lib/navigation/nav-context";
 import { filterRoleNavByFeatures } from "@/lib/navigation/filter-role-nav";
@@ -64,25 +66,11 @@ import {
   writeAccountAvatar,
   writeLocalStorage,
 } from "@/lib/account/account-picture";
+import { C } from "@/lib/theme/rc-theme-tokens";
 
-// ─── Design tokens (mockup palette) ───────────────────────────────────────────
+// ─── Design tokens (theme-aware CSS vars via C) ───────────────────────────────
 
-const C = {
-  bg: "var(--rc-bg)",
-  surface: "var(--rc-surface)",
-  card: "rgba(255,255,255,0.035)",
-  border: "rgba(255,255,255,0.07)",
-  borderHard: "rgba(255,255,255,0.12)",
-  text: "var(--rc-text-primary)",
-  textSub: "var(--rc-text-secondary)",
-  textMuted: "var(--rc-text-muted)",
-  blue: "var(--rc-blue)",
-  red: "var(--rc-red)",
-  green: "var(--rc-green)",
-  amber: "var(--rc-amber)",
-} as const;
-
-const CREST_BG = "#1e3a5f";
+const CREST_BG = "var(--rc-crest)";
 
 const DEFAULT_CAMPUS_BG =
   "https://images.unsplash.com/photo-1562774053-701939374585?auto=format&fit=crop&w=1920&q=80";
@@ -484,6 +472,18 @@ function CampusConsoleHomeInner({
   }, []);
 
   useEffect(() => {
+    if (!userId) return;
+    setMapTheme(loadMapTheme(userId, "campus", "dark"));
+  }, [userId]);
+
+  const onMapThemeChange = useCallback(
+    (next: "dark" | "light") => {
+      setMapTheme(next);
+      saveMapTheme(userId || null, "campus", next);
+    },
+    [userId],
+  );
+  useEffect(() => {
     if (!userId) {
       setCustomBg(null);
       return;
@@ -568,6 +568,16 @@ function CampusConsoleHomeInner({
   const settingsHref = findNavHref(navItems, "settings");
 
   const quickActions = useMemo(() => {
+    const tile = {
+      bg: "color-mix(in srgb, var(--rc-blue) 14%, var(--rc-surface))",
+      color: "var(--rc-text-primary)",
+      bdr: "var(--rc-border)",
+    };
+    const danger = {
+      bg: "color-mix(in srgb, var(--rc-red, #ef4444) 14%, var(--rc-surface))",
+      color: "var(--rc-text-primary)",
+      bdr: "var(--rc-border)",
+    };
     const actions: QuickActionDef[] = [];
     if (incidentsHref) {
       actions.push({
@@ -575,9 +585,7 @@ function CampusConsoleHomeInner({
         label: "Report Incident",
         href: incidentsHref,
         Icon: AlertTriangle,
-        bg: "rgba(127,29,29,0.4)",
-        color: "#fca5a5",
-        bdr: "rgba(239,68,68,0.2)",
+        ...danger,
       });
     }
     if (buildingsHref) {
@@ -586,9 +594,7 @@ function CampusConsoleHomeInner({
         label: "Buildings",
         href: buildingsHref,
         Icon: Building2,
-        bg: "rgba(30,37,56,0.4)",
-        color: C.textSub,
-        bdr: C.border,
+        ...tile,
       });
     }
     if (zonesHref) {
@@ -597,9 +603,7 @@ function CampusConsoleHomeInner({
         label: "Zones",
         href: zonesHref,
         Icon: Shield,
-        bg: "rgba(30,58,95,0.4)",
-        color: "#93c5fd",
-        bdr: "rgba(59,130,246,0.2)",
+        ...tile,
       });
     }
     if (qrHref) {
@@ -608,9 +612,7 @@ function CampusConsoleHomeInner({
         label: "QR / NFC",
         href: qrHref,
         Icon: QrCode,
-        bg: "rgba(30,37,56,0.4)",
-        color: C.textSub,
-        bdr: C.border,
+        ...tile,
       });
     }
     if (reportsHref) {
@@ -619,9 +621,7 @@ function CampusConsoleHomeInner({
         label: "Reports",
         href: reportsHref,
         Icon: BarChart2,
-        bg: "rgba(30,37,56,0.4)",
-        color: C.textSub,
-        bdr: C.border,
+        ...tile,
       });
     }
     if (camerasHref) {
@@ -630,9 +630,7 @@ function CampusConsoleHomeInner({
         label: "Cameras",
         href: camerasHref,
         Icon: Camera,
-        bg: "rgba(30,58,95,0.4)",
-        color: "#93c5fd",
-        bdr: "rgba(59,130,246,0.2)",
+        ...tile,
       });
     }
     return actions;
@@ -793,30 +791,13 @@ function CampusConsoleHomeInner({
         >
           <div style={{ padding: "18px 14px 14px", borderBottom: `1px solid ${C.border}` }}>
             <div style={{ display: "flex", alignItems: "center", gap: 9 }}>
-              <div
-                style={{
-                  width: 34,
-                  height: 34,
-                  background: "linear-gradient(135deg,#1d4ed8,#1e3a5f)",
-                  borderRadius: 7,
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  fontSize: 12,
-                  fontWeight: 800,
-                  color: "#fff",
-                  letterSpacing: "-0.5px",
-                  flexShrink: 0,
-                }}
-              >
-                RC
-              </div>
+              <SiteSquareMark size={34} priority />
               <div>
                 <div
                   style={{
                     fontSize: 13,
                     fontWeight: 800,
-                    color: "#fff",
+                    color: "var(--rc-text-primary)",
                     letterSpacing: "0.5px",
                     lineHeight: 1,
                   }}
@@ -1629,7 +1610,8 @@ function CampusConsoleHomeInner({
                   </div>
                   <RapidCortexMap
                     theme={mapTheme}
-                    onThemeChange={setMapTheme}
+                    onThemeChange={onMapThemeChange}
+                    persistUserId={userId || null}
                     incidents={mapIncidents}
                     selectedIncidentId={selectedMapIncident}
                     onIncidentClick={(inc) => setSelectedMapIncident(inc.id)}

@@ -38,9 +38,11 @@ import {
 } from "lucide-react";
 import { HelpChrome } from "@/components/help/help-chrome";
 import { CampusDashboardHeaderUtilities } from "@/components/campus/campus-dashboard-header-utilities";
+import { SiteSquareMark } from "@/components/brand/site-logo-link";
 import { ThemeProvider, useThemeRoot } from "@/lib/theme/theme-context";
 import { ThemeToggle } from "@/components/ui/ThemeToggle";
 import { RapidCortexMap } from "@/components/maps/RapidCortexMap";
+import { loadMapTheme, saveMapTheme } from "@/lib/maps/persisted-map-prefs";
 import { venueIncidentsToMap } from "@/components/maps/map-incident-adapters";
 import { useAgencyWebSocket } from "@/hooks/use-agency-websocket";
 import { buildNavContext } from "@/lib/navigation/nav-context";
@@ -84,26 +86,11 @@ import {
   writeAccountAvatar,
   writeLocalStorage,
 } from "@/lib/account/account-picture";
+import { C } from "@/lib/theme/rc-theme-tokens";
 
-// ─── Design tokens (venue amber mockup) ───────────────────────────────────────
+// ─── Design tokens (theme-aware CSS vars via C) ───────────────────────────────
 
-const C = {
-  bg: "var(--rc-bg)",
-  surface: "var(--rc-surface)",
-  card: "rgba(255,255,255,0.032)",
-  border: "rgba(255,255,255,0.07)",
-  borderHard: "rgba(255,255,255,0.12)",
-  text: "var(--rc-text-primary)",
-  textSub: "var(--rc-text-secondary)",
-  textMuted: "var(--rc-text-muted)",
-  amber: "var(--rc-amber)",
-  blue: "var(--rc-blue)",
-  red: "var(--rc-red)",
-  green: "var(--rc-green)",
-  orange: "#f97316",
-} as const;
-
-const CREST_BG = "#7f1d1d";
+const CREST_BG = "var(--rc-red-deep)";
 
 const DEFAULT_VENUE_BG =
   "https://images.unsplash.com/photo-1540747913346-19e32dc3e97e?auto=format&fit=crop&w=1920&q=80";
@@ -678,6 +665,18 @@ function VenueConsoleHomeInner({
   }, []);
 
   useEffect(() => {
+    if (!userId) return;
+    setMapTheme(loadMapTheme(userId, "venue", "dark"));
+  }, [userId]);
+
+  const onMapThemeChange = useCallback(
+    (next: "dark" | "light") => {
+      setMapTheme(next);
+      saveMapTheme(userId || null, "venue", next);
+    },
+    [userId],
+  );
+  useEffect(() => {
     if (!userId) {
       setCustomBg(null);
       return;
@@ -886,6 +885,21 @@ function VenueConsoleHomeInner({
   const staffHref = findNavHref(navItems, "staff");
 
   const quickActions = useMemo(() => {
+    const tile = {
+      bg: "color-mix(in srgb, var(--rc-blue) 14%, var(--rc-surface))",
+      color: "var(--rc-text-primary)",
+      bdr: "var(--rc-border)",
+    };
+    const warn = {
+      bg: "color-mix(in srgb, var(--rc-amber, #f59e0b) 16%, var(--rc-surface))",
+      color: "var(--rc-text-primary)",
+      bdr: "var(--rc-border)",
+    };
+    const danger = {
+      bg: "color-mix(in srgb, var(--rc-red, #ef4444) 16%, var(--rc-surface))",
+      color: "var(--rc-text-primary)",
+      bdr: "var(--rc-border)",
+    };
     const actions: QuickActionDef[] = [];
     if (canSupervisor) {
       actions.push({
@@ -894,9 +908,7 @@ function VenueConsoleHomeInner({
         label: "New Incident",
         onClick: () => setCreateOpen(true),
         Icon: Plus,
-        bg: "rgba(120,53,15,0.4)",
-        color: "#fcd34d",
-        bdr: "rgba(245,158,11,0.25)",
+        ...warn,
       });
     }
     if (zonesHref) {
@@ -906,9 +918,7 @@ function VenueConsoleHomeInner({
         label: "Section Map",
         href: zonesHref,
         Icon: MapPin,
-        bg: "rgba(30,58,95,0.4)",
-        color: "#93c5fd",
-        bdr: "rgba(59,130,246,0.2)",
+        ...tile,
       });
     }
     if (canSupervisor) {
@@ -918,9 +928,7 @@ function VenueConsoleHomeInner({
         label: "Notify Staff",
         onClick: () => setNotifyOpen(true),
         Icon: Volume2,
-        bg: "rgba(120,53,15,0.3)",
-        color: "#fcd34d",
-        bdr: "rgba(245,158,11,0.2)",
+        ...warn,
       });
     }
     if (camerasHref) {
@@ -930,9 +938,7 @@ function VenueConsoleHomeInner({
         label: "Live Cameras",
         href: camerasHref,
         Icon: Video,
-        bg: "rgba(76,29,149,0.35)",
-        color: "#c4b5fd",
-        bdr: "rgba(139,92,246,0.2)",
+        ...tile,
       });
     }
     if (guestHref) {
@@ -942,9 +948,7 @@ function VenueConsoleHomeInner({
         label: "Guest Reports",
         href: guestHref,
         Icon: MessageSquare,
-        bg: "rgba(30,37,56,0.4)",
-        color: "#94a3b8",
-        bdr: C.border,
+        ...tile,
       });
     }
     if (canSupervisor) {
@@ -954,9 +958,7 @@ function VenueConsoleHomeInner({
         label: "Emergency Broadcast",
         onClick: () => setBroadcastOpen(true),
         Icon: Zap,
-        bg: "rgba(120,20,20,0.45)",
-        color: "#fca5a5",
-        bdr: "rgba(239,68,68,0.35)",
+        ...danger,
         emergency: true,
       });
     }
@@ -1072,30 +1074,13 @@ function VenueConsoleHomeInner({
         >
           <div style={{ padding: "18px 14px 14px", borderBottom: `1px solid ${C.border}` }}>
             <div style={{ display: "flex", alignItems: "center", gap: 9 }}>
-              <div
-                style={{
-                  width: 34,
-                  height: 34,
-                  background: "linear-gradient(135deg,#92400e,#78350f)",
-                  borderRadius: 7,
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  fontSize: 12,
-                  fontWeight: 800,
-                  color: "#fff",
-                  letterSpacing: "-0.5px",
-                  flexShrink: 0,
-                }}
-              >
-                RC
-              </div>
+              <SiteSquareMark size={34} priority />
               <div>
                 <div
                   style={{
                     fontSize: 13,
                     fontWeight: 800,
-                    color: "#fff",
+                    color: "var(--rc-text-primary)",
                     letterSpacing: "0.5px",
                     lineHeight: 1,
                   }}
@@ -2077,7 +2062,8 @@ function VenueConsoleHomeInner({
                   <div style={{ height: 420, borderRadius: 8, overflow: "hidden" }}>
                     <RapidCortexMap
                       theme={mapTheme}
-                      onThemeChange={setMapTheme}
+                      onThemeChange={onMapThemeChange}
+                      persistUserId={userId || null}
                       incidents={mapIncidents}
                       selectedIncidentId={selectedMapIncident}
                       onIncidentClick={(inc) => setSelectedMapIncident(inc.id)}

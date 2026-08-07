@@ -37,6 +37,8 @@ export async function fetchVenueCameraRegistry(
   const res = await fetch(`${camerasBase(vertical, agencyId)}/registry`, {
     credentials: "include",
   });
+  // Empty registry or not-yet-provisioned table should not block the setup UI.
+  if (res.status === 404) return [];
   if (!res.ok) throw new Error(`Failed to load camera registry (${res.status})`);
   const body = (await res.json()) as { cameras?: VenueCamera[] };
   return body.cameras ?? [];

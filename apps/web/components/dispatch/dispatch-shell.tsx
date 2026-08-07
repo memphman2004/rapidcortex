@@ -61,7 +61,7 @@ function DispatchShellInner({
           <div className="flex min-h-0 min-w-0 flex-1 flex-col">
             <div
               className="flex min-h-0 flex-1 flex-col overflow-hidden"
-              style={{ background: "rgba(9,13,26,0.85)" }}
+              style={{ background: "color-mix(in srgb, var(--rc-bg-deep) 85%, transparent)" }}
             >
               {children}
             </div>

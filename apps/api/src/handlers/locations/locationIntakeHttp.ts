@@ -19,9 +19,24 @@ import {
 } from "../../lib/response.js";
 import { QRLocationsRepository } from "../../repositories/qrLocationsRepository.js";
 import { createVenueQrIncident } from "../../venue/venue-incident-service.js";
+import { getVenueGuestMediaFlags } from "../../venue/venue-profile-service.js";
 
 const limiter = new PublicBurstLimiter(10, 3600_000);
 const repo = new QRLocationsRepository();
+
+function isVideoMediaKey(key: string): boolean {
+  const lower = key.toLowerCase();
+  return lower.endsWith(".mp4") || lower.endsWith(".webm") || lower.endsWith(".mov");
+}
+
+function filterGuestMediaKeys(
+  keys: string[],
+  flags: { photoUploadsEnabled: boolean; videoUploadsEnabled: boolean },
+): string[] {
+  return keys.filter((key) =>
+    isVideoMediaKey(key) ? flags.videoUploadsEnabled : flags.photoUploadsEnabled,
+  );
+}
 
 const helpTypeMap: Record<string, string> = {
   medical: "medical",
@@ -128,6 +143,10 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
     }
 
     if (location.vertical === "venue") {
+      const mediaFlags = await getVenueGuestMediaFlags(location.orgCode, location.agencyId).catch(
+        () => ({ photoUploadsEnabled: true, videoUploadsEnabled: false }),
+      );
+      const allowedKeys = filterGuestMediaKeys(payload.mediaKeys, mediaFlags);
       const { incident, cameras } = await createVenueQrIncident({
         venueCode: location.orgCode,
         agencyId: location.agencyId,
@@ -146,9 +165,9 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
         lat: payload.lat,
         lng: payload.lng,
         mediaKeys:
-          payload.mediaKeys.length > 0
-            ? payload.mediaKeys
-            : payload.photoDataUrl
+          allowedKeys.length > 0
+            ? allowedKeys
+            : mediaFlags.photoUploadsEnabled && payload.photoDataUrl
               ? ["inline-photo"]
               : [],
       });

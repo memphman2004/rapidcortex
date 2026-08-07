@@ -36,10 +36,10 @@ export const SITE_HERO_LOGO_PATH = SITE_BRAND_MARK_PATH;
 export const SITE_HERO_LOGO_WIDTH = SITE_BRAND_MARK_WIDTH;
 export const SITE_HERO_LOGO_HEIGHT = SITE_BRAND_MARK_HEIGHT;
 
-/** Square mark for sidebars and compact chrome (192×192 PNG). */
-export const SITE_SQUARE_ICON_PATH = `${SITE_BRAND_ASSETS_BASE}/icon.png`;
-export const SITE_SQUARE_ICON_WIDTH = 192;
-export const SITE_SQUARE_ICON_HEIGHT = 192;
+/** Square mark for sidebars and compact chrome (256×256 PNG). */
+export const SITE_SQUARE_ICON_PATH = `${SITE_BRAND_ASSETS_BASE}/icon-256.png`;
+export const SITE_SQUARE_ICON_WIDTH = 256;
+export const SITE_SQUARE_ICON_HEIGHT = 256;
 
 /** @deprecated Prefer {@link SITE_SQUARE_ICON_PATH} for tab/sidebar marks. */
 export const SITE_ICON_PATH = SITE_SQUARE_ICON_PATH;

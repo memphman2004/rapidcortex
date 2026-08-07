@@ -1,0 +1,40 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: >
+  Rapid Cortex — AWS Location Place Index for PSAP prospect address enrichment (Esri).
+  Deploy standalone; the enrichment script can also create the index if missing.
+
+Parameters:
+  Stage:
+    Type: String
+    Default: dev
+    AllowedValues: [dev, staging, prod]
+    Description: Deployment stage (index name suffix).
+
+Resources:
+  PsapEnrichmentPlaceIndex:
+    Type: AWS::Location::PlaceIndex
+    Properties:
+      IndexName: !Sub "rapid-cortex-psap-enrichment-${Stage}"
+      DataSource: Esri
+      DataSourceConfiguration:
+        IntendedUse: Storage
+      Description: PSAP prospect address enrichment — reverse/forward geocoding
+      Tags:
+        - Key: App
+          Value: rapid-cortex
+        - Key: Stage
+          Value: !Ref Stage
+        - Key: Purpose
+          Value: psap-enrichment
+
+Outputs:
+  PsapEnrichmentPlaceIndexName:
+    Description: Place index name for enrich-psap-addresses.ts
+    Value: !Ref PsapEnrichmentPlaceIndex
+    Export:
+      Name: !Sub "rapid-cortex-psap-place-index-name-${Stage}"
+  PsapEnrichmentPlaceIndexArn:
+    Description: Place index ARN
+    Value: !GetAtt PsapEnrichmentPlaceIndex.Arn
+    Export:
+      Name: !Sub "rapid-cortex-psap-place-index-arn-${Stage}"

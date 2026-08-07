@@ -9,6 +9,7 @@ import {
   updateQRLocationSchema,
 } from "rapid-cortex-shared";
 import { QRLocationsRepository } from "../repositories/qrLocationsRepository.js";
+import { getVenueGuestMediaFlags } from "../venue/venue-profile-service.js";
 
 const repo = new QRLocationsRepository();
 
@@ -107,7 +108,26 @@ export async function resolvePublicLocation(rcli: string): Promise<QRLocationPub
   const row = await repo.getByRcli(rcli.trim().toUpperCase());
   if (!row || !row.active) return null;
   await repo.recordScan(rcli.trim().toUpperCase());
-  return toPublicLocation(row);
+  const pub = toPublicLocation(row);
+
+  if (row.vertical === "venue") {
+    const flags = await getVenueGuestMediaFlags(row.orgCode, row.agencyId).catch(() => ({
+      photoUploadsEnabled: true,
+      videoUploadsEnabled: false,
+    }));
+    return {
+      ...pub,
+      photoUploadsEnabled: flags.photoUploadsEnabled,
+      videoUploadsEnabled: flags.videoUploadsEnabled,
+    };
+  }
+
+  // Campus / core intake already supports photo + video uploads.
+  return {
+    ...pub,
+    photoUploadsEnabled: true,
+    videoUploadsEnabled: true,
+  };
 }
 
 export async function bulkCreateLocations(

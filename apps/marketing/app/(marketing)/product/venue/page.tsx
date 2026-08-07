@@ -72,7 +72,7 @@ export default function ProductVenuePage() {
             className="pointer-events-none absolute inset-0 bg-gradient-to-b from-slate-950/75 via-slate-950/55 to-slate-950/80"
             aria-hidden
           />
-          <div className="relative z-10 flex h-full w-full flex-col items-start justify-start px-4 pb-8 pt-6 text-left sm:px-6 sm:pb-12 sm:pt-8 lg:px-8">
+          <div className="relative z-10 flex h-full w-full flex-col items-start justify-start px-4 pb-8 pt-2 text-left sm:px-6 sm:pb-10 sm:pt-3 lg:px-8">
             <div className="max-w-2xl space-y-3 sm:space-y-4">
               <p className="text-xs font-semibold uppercase tracking-[0.2em] text-orange-300">RC Venue</p>
               <h1

@@ -22,7 +22,7 @@ export function ThemeToggle({
         type="button"
         onClick={toggleTheme}
         title={`Switch to ${label.toLowerCase()} mode`}
-        className="flex select-none items-center gap-1.5 rounded-md border border-slate-700 px-2 py-1 text-[11px] font-semibold tracking-wide text-slate-400 transition-colors hover:border-slate-600 hover:bg-slate-800 hover:text-slate-200"
+        className="flex select-none items-center gap-1.5 rounded-md border border-rc-border bg-rc-surface px-2 py-1 text-[11px] font-semibold tracking-wide text-rc-secondary transition-colors hover:border-rc-border-strong hover:bg-rc-surface-alt hover:text-rc-text"
       >
         {isDark ? <Sun size={12} strokeWidth={2} /> : <Moon size={12} strokeWidth={2} />}
         {label.toUpperCase()}

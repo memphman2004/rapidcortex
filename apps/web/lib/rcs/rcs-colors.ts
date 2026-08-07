@@ -14,11 +14,11 @@ export type RcsColorToken = {
 };
 
 export const RCS_SURFACE = {
-  cardBg: "#0c1428",
-  heading: "#e2e8f0",
-  bodyText: "#cbd5e1",
-  subtleText: "#64748b",
-  border: "#1b2b47",
+  cardBg: "var(--rc-surface)",
+  heading: "var(--rc-text-primary)",
+  bodyText: "var(--rc-text-secondary)",
+  subtleText: "var(--rc-text-muted)",
+  border: "var(--rc-border)",
 } as const;
 
 export const RCS_STATE_COLORS: Record<RcsCallState, RcsColorToken> = {

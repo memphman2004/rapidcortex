@@ -130,6 +130,19 @@ function QRIntakeClientInner({
 
   const eventData = loc.currentEvent ?? null;
   const securityPhone = loc.securityPhone?.trim() || null;
+  // Venue defaults: photo on, video off. Campus/core: both on unless explicitly disabled.
+  const allowPhoto = location.photoUploadsEnabled !== false;
+  const allowVideo =
+    location.vertical === "venue"
+      ? location.videoUploadsEnabled === true
+      : location.videoUploadsEnabled !== false;
+  const mediaEnabled = allowPhoto || allowVideo;
+  const mediaAccept = [
+    allowPhoto ? "image/*" : null,
+    allowVideo ? "video/*" : null,
+  ]
+    .filter(Boolean)
+    .join(",");
 
   const requestLocation = useCallback(() => {
     if (!navigator.geolocation) return;
@@ -147,6 +160,15 @@ function QRIntakeClientInner({
     if (!file) {
       setPhotoPreview(null);
       setPhotoFile(null);
+      return;
+    }
+    const isVideo = file.type.startsWith("video/");
+    if (isVideo && !allowVideo) {
+      setError("Video uploads are disabled for this location.");
+      return;
+    }
+    if (!isVideo && !allowPhoto) {
+      setError("Photo uploads are disabled for this location.");
       return;
     }
     const dataUrl = await fileToDataUrl(file);
@@ -311,6 +333,9 @@ function QRIntakeClientInner({
               photoInputRef={photoInputRef}
               photoPreview={photoPreview}
               shareLiveLocation={shareLiveLocation}
+              mediaEnabled={mediaEnabled}
+              mediaAccept={mediaAccept || "image/*"}
+              mediaLabel={t("addPhotoVideo")}
               onPickPhoto={() => photoInputRef.current?.click()}
               onPhotoChange={(file) => void handlePhoto(file)}
               onShareLocation={requestLocation}
@@ -573,6 +598,9 @@ function ReportForm({
   photoInputRef,
   photoPreview,
   shareLiveLocation,
+  mediaEnabled,
+  mediaAccept,
+  mediaLabel,
   onPickPhoto,
   onPhotoChange,
   onShareLocation,
@@ -600,6 +628,9 @@ function ReportForm({
   photoInputRef: React.RefObject<HTMLInputElement | null>;
   photoPreview: string | null;
   shareLiveLocation: boolean;
+  mediaEnabled: boolean;
+  mediaAccept: string;
+  mediaLabel: string;
   onPickPhoto: () => void;
   onPhotoChange: (file: File | null) => void;
   onShareLocation: () => void;
@@ -812,25 +843,27 @@ function ReportForm({
       <input
         ref={photoInputRef}
         type="file"
-        accept="image/*,video/*"
+        accept={mediaAccept}
         capture="environment"
         className="sr-only"
         onChange={(e) => onPhotoChange(e.target.files?.[0] ?? null)}
       />
 
-      <div className="mb-3 grid grid-cols-2 gap-2">
-        <button
-          type="button"
-          onClick={onPickPhoto}
-          className="flex min-h-12 items-center justify-center gap-1.5 rounded-xl py-2.5 text-[12px] transition-colors"
-          style={{
-            border: `0.5px solid ${theme.inputBorder}`,
-            background: theme.inputBg,
-            color: "#64748b",
-          }}
-        >
-          <Camera size={14} aria-hidden /> {t("addPhotoVideo")}
-        </button>
+      <div className={`mb-3 grid gap-2 ${mediaEnabled ? "grid-cols-2" : "grid-cols-1"}`}>
+        {mediaEnabled ? (
+          <button
+            type="button"
+            onClick={onPickPhoto}
+            className="flex min-h-12 items-center justify-center gap-1.5 rounded-xl py-2.5 text-[12px] transition-colors"
+            style={{
+              border: `0.5px solid ${theme.inputBorder}`,
+              background: theme.inputBg,
+              color: "#64748b",
+            }}
+          >
+            <Camera size={14} aria-hidden /> {mediaLabel}
+          </button>
+        ) : null}
         <button
           type="button"
           onClick={onShareLocation}

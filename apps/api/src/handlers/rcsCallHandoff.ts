@@ -32,7 +32,7 @@ const requireRcsAddon = requireAddon("rcs.module");
 const CLOSED = new Set<string>(RCS_CLOSED_STATES);
 
 function displayName(user: { displayName?: string; email?: string; userId: string }): string {
-  return user.displayName?.trim() || user.email?.trim() || user.userId;
+  return user.email?.trim() || user.displayName?.trim() || user.userId;
 }
 
 export const handler: APIGatewayProxyHandlerV2 = async (event) => {

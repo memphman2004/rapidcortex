@@ -113,7 +113,10 @@ export interface PsapMailingAddress {
   zip?: string;
   verified: boolean;
   enrichedAt?: string;
-  source?: "nominatim" | "manual" | "import";
+  source?: "aws_location" | "nominatim" | "manual" | "import";
+  /** Full Esri/AWS Location label when enriched via Location Service. */
+  formattedAddress?: string;
+  confidence?: "high" | "medium" | "low";
 }
 
 export interface PsapProspect {

@@ -9,8 +9,9 @@ import { isValidRCLI } from "rapid-cortex-shared";
 import { withCorrelationHeaders } from "../../lib/correlation.js";
 import { env } from "../../lib/env.js";
 import { PublicBurstLimiter } from "../../lib/publicRateLimiter.js";
-import { jsonStatus, ok, serverError, serviceUnavailable } from "../../lib/response.js";
+import { forbidden, jsonStatus, ok, serverError, serviceUnavailable } from "../../lib/response.js";
 import { QRLocationsRepository } from "../../repositories/qrLocationsRepository.js";
+import { getVenueGuestMediaFlags } from "../../venue/venue-profile-service.js";
 
 const limiter = new PublicBurstLimiter(5, 600_000);
 const repo = new QRLocationsRepository();
@@ -46,8 +47,29 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
     }
 
     const mediaType = (event.queryStringParameters?.type ?? "image").toLowerCase();
-    const ext = mediaType === "video" ? "mp4" : "jpg";
-    const contentType = mediaType === "video" ? "video/mp4" : "image/jpeg";
+    const isVideo = mediaType === "video";
+
+    if (location.vertical === "venue") {
+      const flags = await getVenueGuestMediaFlags(location.orgCode, location.agencyId).catch(() => ({
+        photoUploadsEnabled: true,
+        videoUploadsEnabled: false,
+      }));
+      if (isVideo && !flags.videoUploadsEnabled) {
+        return withCorrelationHeaders(
+          event,
+          forbidden("Video uploads are disabled for this venue."),
+        );
+      }
+      if (!isVideo && !flags.photoUploadsEnabled) {
+        return withCorrelationHeaders(
+          event,
+          forbidden("Photo uploads are disabled for this venue."),
+        );
+      }
+    }
+
+    const ext = isVideo ? "mp4" : "jpg";
+    const contentType = isVideo ? "video/mp4" : "image/jpeg";
     const key = `qr-intake/${location.agencyId}/${rcli}/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
 
     const uploadUrl = await getSignedUrl(

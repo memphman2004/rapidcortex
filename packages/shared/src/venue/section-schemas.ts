@@ -58,6 +58,10 @@ export const venueProfileSchema = z.object({
   active: z.boolean().optional(),
   smsEnabled: z.boolean().optional(),
   qrEnabled: z.boolean().optional(),
+  /** Guest QR/SMS intake may attach still images. */
+  photoUploadsEnabled: z.boolean().optional(),
+  /** Guest QR/SMS intake may attach short video clips. */
+  videoUploadsEnabled: z.boolean().optional(),
 });
 
 export type VenueProfile = z.infer<typeof venueProfileSchema>;

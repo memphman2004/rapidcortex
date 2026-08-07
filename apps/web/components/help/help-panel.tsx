@@ -9,18 +9,7 @@ import { ArrowLeft, BookOpen, ExternalLink, X } from "lucide-react";
 import { useHelpPanel } from "./help-panel-context";
 import { fetchHelpArticle, type HelpArticleContent } from "@/lib/help/fetch-help-article";
 import { getHelpIndex, type HelpArticle, type HelpIndex } from "@/lib/help/help-content";
-
-const V = {
-  bg: "#0d0b1a",
-  surface: "#1a1625",
-  surfaceAlt: "#13102a",
-  border: "#2a2440",
-  purple: "#8b5cf6",
-  text: "#e4dff5",
-  muted: "#7c6fa0",
-  silver: "#a8a0c0",
-  dim: "#5a4d7a",
-} as const;
+import { V } from "@/lib/theme/rc-theme-tokens";
 
 function ArticleView({
   role,
@@ -331,8 +320,8 @@ export function HelpPanel() {
               fontWeight: 700,
               letterSpacing: "0.07em",
               color: V.purple,
-              background: `${V.purple}20`,
-              border: `1px solid ${V.purple}44`,
+              background: "var(--rc-violet-dim)",
+              border: "1px solid var(--rc-violet-border)",
               padding: "2px 7px",
               borderRadius: 999,
               fontFamily: "monospace",

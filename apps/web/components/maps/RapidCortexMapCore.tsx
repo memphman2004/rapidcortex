@@ -41,6 +41,12 @@ import type { RCIncident, RCMapLayerVisibility, RCMapProps } from "./map-types";
 import { DEFAULT_LAYER_VISIBILITY } from "./map-types";
 import { buildCallerPopupHTML, buildIncidentPopupHTML, incidentsToGeoJSON } from "./map-utils";
 import { MapLayerControl } from "./MapLayerControl";
+import {
+  loadMapLayers,
+  loadMapTheme,
+  saveMapLayers,
+  saveMapTheme,
+} from "@/lib/maps/persisted-map-prefs";
 
 type MapClickHandler = (
   e: mapboxgl.MapMouseEvent & { features?: mapboxgl.MapboxGeoJSONFeature[] }
@@ -64,6 +70,7 @@ export default function RapidCortexMapCore({
   vertical = "core",
   theme: themeProp = "dark",
   onThemeChange,
+  persistUserId,
 }: RCMapProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const mapRef       = useRef<mapboxgl.Map | null>(null);
@@ -97,6 +104,17 @@ export default function RapidCortexMapCore({
   useEffect(() => {
     if (onThemeChange) setLocalTheme(themeProp);
   }, [themeProp, onThemeChange]);
+
+  // Hydrate per-user layer (and uncontrolled theme) prefs after mount / user change.
+  useEffect(() => {
+    if (!persistUserId) return;
+    const stored = loadMapLayers(persistUserId, vertical, defaultLayers);
+    setLayers(stored);
+    layersRef.current = stored;
+    if (!onThemeChange) {
+      setLocalTheme(loadMapTheme(persistUserId, vertical, themeProp));
+    }
+  }, [persistUserId, vertical]); // eslint-disable-line react-hooks/exhaustive-deps — hydrate once per user/vertical
 
   // ─── Initialize map (runs once) ─────────────────────────────────────────────
 
@@ -285,9 +303,13 @@ export default function RapidCortexMapCore({
 
   const handleLayerToggle = useCallback(
     (key: keyof RCMapLayerVisibility, value: boolean) => {
-      setLayers((prev) => ({ ...prev, [key]: value }));
+      setLayers((prev) => {
+        const next = { ...prev, [key]: value };
+        saveMapLayers(persistUserId, vertical, next);
+        return next;
+      });
     },
-    []
+    [persistUserId, vertical]
   );
 
   // ─── Incident click (kept current via ref for map listeners) ─────────────
@@ -327,6 +349,7 @@ export default function RapidCortexMapCore({
   const handleThemeToggle = () => {
     const next = theme === "dark" ? "light" : "dark";
     setLocalTheme(next);
+    saveMapTheme(persistUserId, vertical, next);
     onThemeChange?.(next);
   };
 
@@ -384,7 +407,7 @@ export default function RapidCortexMapCore({
         />
       )}
 
-      {/* Dark / light Studio style toggle */}
+      {/* Dark / light Studio style toggle — above Mapbox +/- (bottom-right) */}
       {mapReady && (
         <button
           type="button"
@@ -392,7 +415,7 @@ export default function RapidCortexMapCore({
           aria-label={theme === "dark" ? "Switch to light map" : "Switch to dark map"}
           style={{
             position:     "absolute",
-            bottom:       48,
+            bottom:       90,
             right:        12,
             zIndex:       10,
             background:   T.surface,
@@ -403,6 +426,8 @@ export default function RapidCortexMapCore({
             color:        T.textMuted,
             fontSize:     11,
             fontWeight:   600,
+            lineHeight:   1.2,
+            boxShadow:    "0 2px 6px rgba(0,0,0,.35)",
           }}
         >
           {theme === "dark" ? "☀ Light" : "☾ Dark"}

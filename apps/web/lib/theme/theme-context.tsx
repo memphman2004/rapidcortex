@@ -70,6 +70,7 @@ export function useThemeRoot<T extends HTMLElement = HTMLDivElement>() {
     const el = rootRef.current;
     if (!el) return;
     el.setAttribute("data-theme", theme);
+    el.style.colorScheme = theme;
   }, [theme]);
 
   return { theme, toggleTheme, rootRef };

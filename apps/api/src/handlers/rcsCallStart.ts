@@ -46,6 +46,8 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
       updatedAt: now,
       createdByUserId: user.userId,
       assignedDispatcherId: user.userId,
+      assignedDispatcherDisplayName:
+        user.email?.trim() || user.displayName?.trim() || user.userId,
       notes: parsed.data.notes,
     };
 

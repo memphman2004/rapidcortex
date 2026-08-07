@@ -18,23 +18,7 @@ import {
   type IncidentTypeDefinition,
 } from "@/lib/dispatcher/incident-protocols";
 import { useKeyboardShortcut } from "@/hooks/use-keyboard-shortcut";
-
-const V = {
-  bg: "#09080f",
-  surface: "#0f0d1a",
-  surfaceAlt: "#141220",
-  border: "#1e1a30",
-  textPrimary: "#e4dff5",
-  textSecondary: "#9b91bb",
-  textMuted: "#5a4d7a",
-  violet: "#7c3aed",
-  violetHover: "#6d28d9",
-  red: "#ef4444",
-  amber: "#f59e0b",
-  successBg: "#052e16",
-  successBorder: "#166534",
-  successText: "#86efac",
-} as const;
+import { V } from "@/lib/theme/rc-theme-tokens";
 
 const inputStyle: CSSProperties = {
   width: "100%",

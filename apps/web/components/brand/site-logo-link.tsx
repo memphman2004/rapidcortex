@@ -5,6 +5,9 @@ import {
   SITE_LOGO_PATH,
   SITE_LOGO_WIDTH,
   SITE_NAME,
+  SITE_SQUARE_ICON_HEIGHT,
+  SITE_SQUARE_ICON_PATH,
+  SITE_SQUARE_ICON_WIDTH,
 } from "@/lib/site";
 
 type SiteLogoMarkProps = {
@@ -37,6 +40,46 @@ export function SiteLogoMark({
         .filter(Boolean)
         .join(" ")}
     />
+  );
+}
+
+type SiteSquareMarkProps = {
+  /** Display size in px (intrinsic asset is 256×256). */
+  size?: number;
+  className?: string;
+  priority?: boolean;
+  /** Optional border radius on the mark container. */
+  borderRadius?: number;
+};
+
+/** Compact square Rapid Cortex icon for dashboard sidebars / chrome. */
+export function SiteSquareMark({
+  size = 34,
+  className = "",
+  priority = false,
+  borderRadius = 7,
+}: SiteSquareMarkProps) {
+  return (
+    <span
+      className={["inline-flex shrink-0 overflow-hidden", className].filter(Boolean).join(" ")}
+      style={{ width: size, height: size, borderRadius }}
+    >
+      <Image
+        src={SITE_SQUARE_ICON_PATH}
+        alt={SITE_NAME}
+        width={SITE_SQUARE_ICON_WIDTH}
+        height={SITE_SQUARE_ICON_HEIGHT}
+        priority={priority}
+        unoptimized
+        sizes={`${size}px`}
+        style={{
+          width: size,
+          height: size,
+          objectFit: "contain",
+          display: "block",
+        }}
+      />
+    </span>
   );
 }
 

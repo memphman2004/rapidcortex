@@ -217,6 +217,33 @@
         "arn:aws:secretsmanager:us-east-1:158961537080:secret:rapid-cortex/billing/ses-credentials-*",
         "arn:aws:secretsmanager:us-east-1:158961537080:secret:rapid-cortex/billing/payment-instructions-*"
       ]
+    },
+    {
+      "Sid": "PsapAddressEnrichmentLocation",
+      "Effect": "Allow",
+      "Action": [
+        "geo:CreatePlaceIndex",
+        "geo:DeletePlaceIndex",
+        "geo:DescribePlaceIndex",
+        "geo:ListPlaceIndexes",
+        "geo:TagResource",
+        "geo:UntagResource",
+        "geo:SearchPlaceIndexForPosition",
+        "geo:SearchPlaceIndexForText",
+        "geo:UpdatePlaceIndex"
+      ],
+      "Resource": [
+        "arn:aws:geo:us-east-1:158961537080:place-index/rapid-cortex-psap-enrichment-*"
+      ]
+    },
+    {
+      "Sid": "PsapAddressEnrichmentLocationCreate",
+      "Effect": "Allow",
+      "Action": [
+        "geo:CreatePlaceIndex",
+        "geo:ListPlaceIndexes"
+      ],
+      "Resource": "*"
     }
   ]
 }

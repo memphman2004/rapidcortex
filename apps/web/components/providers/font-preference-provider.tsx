@@ -9,6 +9,7 @@ import {
   useState,
   type ReactNode,
 } from "react";
+import { useSession } from "@/components/auth/session-context";
 
 export const RC_PREFERRED_FONT_STORAGE_KEY = "rc-preferred-font" as const;
 
@@ -63,18 +64,41 @@ function isPreferredFont(value: string): value is PreferredDashboardFont {
   return (PREFERRED_DASHBOARD_FONTS as readonly string[]).includes(value);
 }
 
-function readStoredFont(): PreferredDashboardFont {
-  if (typeof window === "undefined") return "inter";
-  const raw = window.localStorage.getItem(RC_PREFERRED_FONT_STORAGE_KEY)?.toLowerCase().trim() ?? "";
-  const normalized = raw.replace(/[\s-]+/g, "_");
+export function preferredFontStorageKey(userId?: string | null): string {
+  const id = userId?.trim();
+  return id ? `${RC_PREFERRED_FONT_STORAGE_KEY}:user:${id}` : RC_PREFERRED_FONT_STORAGE_KEY;
+}
+
+function parseFontValue(raw: string | null | undefined): PreferredDashboardFont {
+  const value = (raw ?? "").toLowerCase().trim();
+  const normalized = value.replace(/[\s-]+/g, "_");
   if (isPreferredFont(normalized)) return normalized;
   if (normalized === "sourcesanspro" || normalized === "source_sans") return "source_sans_pro";
   if (normalized === "ibmplexsans" || normalized === "ibm_plex") return "ibm_plex_sans";
   if (normalized === "opensans") return "open_sans";
-  if (LEGACY_REMOVED.has(raw) || LEGACY_REMOVED.has(normalized.replace(/_/g, " "))) {
+  if (LEGACY_REMOVED.has(value) || LEGACY_REMOVED.has(normalized.replace(/_/g, " "))) {
     return "inter";
   }
   return "inter";
+}
+
+function readStoredFont(userId?: string | null): PreferredDashboardFont {
+  if (typeof window === "undefined") return "inter";
+  const keyed = preferredFontStorageKey(userId);
+  const perUser = window.localStorage.getItem(keyed);
+  if (perUser) return parseFontValue(perUser);
+  // Migrate once from the legacy global key into the user-scoped key.
+  const legacy = window.localStorage.getItem(RC_PREFERRED_FONT_STORAGE_KEY);
+  if (legacy && userId) {
+    const font = parseFontValue(legacy);
+    try {
+      window.localStorage.setItem(keyed, font);
+    } catch {
+      /* ignore */
+    }
+    return font;
+  }
+  return parseFontValue(legacy);
 }
 
 function applyFontToDocument(font: PreferredDashboardFont): void {
@@ -91,25 +115,32 @@ type FontPreferenceContextValue = {
 const FontPreferenceContext = createContext<FontPreferenceContextValue | null>(null);
 
 export function FontPreferenceProvider({ children }: { children: ReactNode }) {
+  const { user } = useSession();
+  const userId = user?.userId ?? null;
   const [font, setFontState] = useState<PreferredDashboardFont>("inter");
 
   useEffect(() => {
-    setFontState(readStoredFont());
-  }, []);
+    const next = readStoredFont(userId);
+    setFontState(next);
+    applyFontToDocument(next);
+  }, [userId]);
 
   useEffect(() => {
     applyFontToDocument(font);
   }, [font]);
 
-  const setFont = useCallback((next: PreferredDashboardFont) => {
-    try {
-      window.localStorage.setItem(RC_PREFERRED_FONT_STORAGE_KEY, next);
-    } catch {
-      /* ignore quota / private mode */
-    }
-    setFontState(next);
-    applyFontToDocument(next);
-  }, []);
+  const setFont = useCallback(
+    (next: PreferredDashboardFont) => {
+      try {
+        window.localStorage.setItem(preferredFontStorageKey(userId), next);
+      } catch {
+        /* ignore quota / private mode */
+      }
+      setFontState(next);
+      applyFontToDocument(next);
+    },
+    [userId],
+  );
 
   const value = useMemo(() => ({ font, setFont }), [font, setFont]);
 

@@ -5,6 +5,7 @@ import { badRequestFromZod, forbidden, serverError, serviceUnavailable, unauthor
 import { env } from "../lib/env.js";
 import { requireAddon } from "../middleware/requireAddon.js";
 import { canReadRcs } from "../features/rcs/rcs-authz.js";
+import { enrichCallsWithDispatcherEmail } from "../features/rcs/rcs-dispatcher-label.js";
 import { RcsRepository } from "../features/rcs/rcs-repository.js";
 import { rcsJson } from "../features/rcs/rcs-api-response.js";
 
@@ -26,10 +27,11 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
     const parsed = rcsCallsListQuerySchema.safeParse(event.queryStringParameters ?? {});
     if (!parsed.success) return badRequestFromZod(parsed.error);
 
-    const items = await repo.listCallsByAgency(user.agencyId, {
+    const raw = await repo.listCallsByAgency(user.agencyId, {
       state: parsed.data.state,
       limit: parsed.data.limit,
     });
+    const items = await enrichCallsWithDispatcherEmail(raw);
 
     return rcsJson({ items });
   } catch (e) {

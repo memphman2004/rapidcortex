@@ -353,6 +353,8 @@ export interface VenueConfigRecord {
   active: boolean;
   smsEnabled: boolean;
   qrEnabled: boolean;
+  photoUploadsEnabled?: boolean;
+  videoUploadsEnabled?: boolean;
   createdAt: string;
   updatedAt: string;
 }

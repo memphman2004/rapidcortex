@@ -189,7 +189,7 @@ export function RcsCallCard({ call, user, onUpdated, defaultExpanded = false }: 
       ) : null}
 
       {actionError ? (
-        <p style={{ margin: 0, fontSize: 11, color: "#fca5a5" }}>{actionError}</p>
+        <p style={{ margin: 0, fontSize: 11, color: "var(--rc-red-light)" }}>{actionError}</p>
       ) : null}
 
       <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginTop: 4, alignItems: "center" }}>
@@ -235,7 +235,10 @@ export function RcsCallCard({ call, user, onUpdated, defaultExpanded = false }: 
             gap: 4,
           }}
         >
-          <div>Dispatcher: {call.assignedDispatcherDisplayName ?? call.assignedDispatcherId ?? "—"}</div>
+          <div>
+            Dispatcher:{" "}
+            {formatDispatcherLabel(call.assignedDispatcherDisplayName, call.assignedDispatcherId)}
+          </div>
           <div>Units: {call.units.length}</div>
           {call.units.map((u) => (
             <div key={u.unitId}>
@@ -261,11 +264,26 @@ export function RcsCallCard({ call, user, onUpdated, defaultExpanded = false }: 
   );
 }
 
+/** Prefer email / human label; avoid showing Cognito UUID usernames. */
+function formatDispatcherLabel(
+  displayName: string | null | undefined,
+  dispatcherId: string | null | undefined,
+): string {
+  const label = displayName?.trim();
+  if (label && !isCognitoUuid(label)) return label;
+  if (dispatcherId?.trim() && !isCognitoUuid(dispatcherId)) return dispatcherId.trim();
+  return label || dispatcherId?.trim() || "—";
+}
+
+function isCognitoUuid(value: string): boolean {
+  return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(value.trim());
+}
+
 const btnStyle: CSSProperties = {
   borderRadius: 6,
-  border: "1px solid #334155",
-  background: "#0f172a",
-  color: "#e2e8f0",
+  border: "1px solid var(--rc-border)",
+  background: "var(--rc-surface)",
+  color: "var(--rc-text-primary)",
   fontSize: 11,
   fontWeight: 600,
   padding: "6px 10px",

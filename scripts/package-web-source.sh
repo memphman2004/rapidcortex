@@ -4,15 +4,18 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 ENVIRONMENT="${1:-dev}"
 
-OUT="${PACKAGE_WEB_SOURCE_OUT:-${ROOT}/web-source-${ENVIRONMENT}.zip}"
-  echo "Packaging web build context for CodeBuild (${ENVIRONMENT}) → ${OUT}"
+OUT_FINAL="${PACKAGE_WEB_SOURCE_OUT:-${ROOT}/web-source-${ENVIRONMENT}.zip}"
+# Zip on local disk first — writing a large archive onto an external volume often stalls.
+OUT_TMP="${PACKAGE_WEB_SOURCE_TMP:-${TMPDIR:-/tmp}/web-source-${ENVIRONMENT}.$$.zip}"
+OUT="${OUT_TMP}"
+  echo "Packaging web build context for CodeBuild (${ENVIRONMENT}) → ${OUT_FINAL} (via ${OUT_TMP})"
   # Changes every package so Docker COPY layers cannot reuse a stale apps/ tree.
   date -u +"%Y-%m-%dT%H:%M:%SZ" > "${ROOT}/.web-docker-cache-bust"
 # shellcheck source=scripts/lib/api-vendor-lock.sh
 source "${ROOT}/scripts/lib/api-vendor-lock.sh"
 rc_wait_for_api_vendor_lock
 "${ROOT}/scripts/refresh-api-vendor-packs.sh"
-rm -f "${OUT}"
+rm -f "${OUT_TMP}" "${OUT_FINAL}"
 
 (
   cd "$ROOT"
@@ -33,7 +36,7 @@ rm -f "${OUT}"
   done
 
   # Do not exclude apps/api/vendor-packs/*.tgz — workspace lockfile uses file: entries for npm ci in Docker.
-  zip -rq "${OUT}" "${INCLUDES[@]}" \
+  zip -rq "${OUT_TMP}" "${INCLUDES[@]}" \
     -x '*/node_modules/*' \
     -x '*/*/.next/*' \
     -x '*/dist/*' \
@@ -45,4 +48,5 @@ rm -f "${OUT}"
     -x '*.msi'
 )
 
-ls -lh "${OUT}"
+mv -f "${OUT_TMP}" "${OUT_FINAL}"
+ls -lh "${OUT_FINAL}"

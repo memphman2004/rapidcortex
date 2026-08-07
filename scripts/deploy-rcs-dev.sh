@@ -14,7 +14,8 @@ export AWS_DEFAULT_REGION="${AWS_DEFAULT_REGION:-$AWS_REGION}"
 export NODE_OPTIONS="${NODE_OPTIONS:---max-old-space-size=8192}"
 
 # Force an isolated build dir AFTER env-api-dev.sh (which sets a shared SAM_BUILD_DIR).
-SAM_BUILD_DIR="/Volumes/Mac Mini/.sam-lean-build/rcs-$(date +%Y%m%d-%H%M%S)"
+# Prefer local disk (/tmp): rsync of node_modules onto an external volume thrashs and stalls.
+SAM_BUILD_DIR="${TMPDIR:-/tmp}/rc-sam-rcs-$(date +%Y%m%d-%H%M%S)"
 mkdir -p "${SAM_BUILD_DIR}"
 export SAM_BUILD_DIR
 echo "SAM_BUILD_DIR=${SAM_BUILD_DIR}"
@@ -41,13 +42,26 @@ trap restore_api_pkg EXIT
 RC_API_PKG_BACKUP_SUFFIX=pre-lean rc_prepare_api_vendor_for_sam
 npm run build -w rapid-cortex-api
 
+# One freeze of node_modules onto local disk, OUTSIDE SAM_BUILD_DIR (sam build
+# recreates/cleans the build dir and would wipe an in-tree snapshot).
+NM_SNAP="${TMPDIR:-/tmp}/rc-nm-snap-rcs-$$"
+echo "Freezing apps/api/node_modules → ${NM_SNAP} (one copy)…"
+mkdir -p "${NM_SNAP}"
+rsync -a --delete "${ROOT}/apps/api/node_modules/" "${NM_SNAP}/"
+export SAM_NODE_MODULES_SRC="${NM_SNAP}"
+export SAM_NODE_MODULES_HARDLINK=1
+cleanup_nm_snap() {
+  rm -rf "${NM_SNAP}" 2>/dev/null || true
+}
+trap 'cleanup_nm_snap; restore_api_pkg' EXIT
+
 sam validate --lint --template-file "${ROOT}/infra/nested/stack-app-sam-2-rcs.yaml"
 
+# Avoid --parallel: still safer sequentially even with hardlinks.
 sam build \
   --template-file "${ROOT}/infra/nested/stack-app-sam-2-rcs.yaml" \
   --build-dir "${SAM_BUILD_DIR}" \
   --no-cached \
-  --parallel \
   --build-in-source
 
 OPS_TOPIC="$(aws cloudformation describe-stacks \

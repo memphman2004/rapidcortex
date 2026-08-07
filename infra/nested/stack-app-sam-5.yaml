@@ -1761,9 +1761,7 @@ Resources:
     Condition: HasApiWaf
     Properties:
       Name: !Sub "${AppName}-httpapi5-waf-${DeploymentStage}"
-      Description: >-
-        Rapid Cortex API security — agency allowlist, US/CA geo (block), anonymous/VPN
-        monitor (count). Site access is not VPN-gated; VPN only where agencies need it.
+      Description: Rapid Cortex API security - agency allowlist, US/CA geo block, anonymous/VPN monitor count.
       Scope: REGIONAL
       DefaultAction:
         Allow: {}
@@ -1785,7 +1783,7 @@ Resources:
             Allow: {}
           Statement:
             IPSetReferenceStatement:
-              ARN: !GetAtt AgencyAllowlistIPSetRegional.Arn
+              Arn: !GetAtt AgencyAllowlistIPSetRegional.Arn
           VisibilityConfig:
             CloudWatchMetricsEnabled: true
             MetricName: !Sub "${AppName}AllowedAgencyIPs"
@@ -3772,6 +3770,8 @@ Resources:
           ENABLE_CAMPUS_CLERY: ""
           ENABLE_CAMPUS_CLERY_EXTERNAL_MOCK: ""
       Policies:
+        # Shard A includes AuditTable — Clery mutations + report generation write audit events.
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardA
         - !Ref AppManagedPolicyDynamoLambdaCrudShardC
         - !Ref AppManagedPolicyDynamoLambdaCrudShardD
       Events:

@@ -29,4 +29,8 @@ export interface QRLocationPublic {
   floor?: string;
   zoneCode: string;
   active: boolean;
+  /** Venue/campus guest media policy — defaults true when unset. */
+  photoUploadsEnabled?: boolean;
+  /** Venue/campus guest media policy — defaults true for campus, false for venue when unset. */
+  videoUploadsEnabled?: boolean;
 }

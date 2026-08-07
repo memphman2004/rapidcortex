@@ -31,6 +31,20 @@ function toApiProfile(row: VenueConfigRecord): VenueProfile {
     active: row.active,
     smsEnabled: row.smsEnabled,
     qrEnabled: row.qrEnabled,
+    photoUploadsEnabled: row.photoUploadsEnabled ?? true,
+    videoUploadsEnabled: row.videoUploadsEnabled ?? false,
+  };
+}
+
+/** Guest media policy for public QR intake (agency-scoped). */
+export async function getVenueGuestMediaFlags(
+  venueCode: string,
+  agencyId: string,
+): Promise<{ photoUploadsEnabled: boolean; videoUploadsEnabled: boolean }> {
+  const profile = await getVenueProfile(venueCode, agencyId);
+  return {
+    photoUploadsEnabled: profile?.photoUploadsEnabled ?? true,
+    videoUploadsEnabled: profile?.videoUploadsEnabled ?? false,
   };
 }
 
@@ -87,6 +101,10 @@ export async function patchVenueProfile(opts: {
     active: opts.patch.active ?? prior?.active ?? true,
     smsEnabled: opts.patch.smsEnabled ?? prior?.smsEnabled ?? true,
     qrEnabled: opts.patch.qrEnabled ?? prior?.qrEnabled ?? true,
+    photoUploadsEnabled:
+      opts.patch.photoUploadsEnabled ?? prior?.photoUploadsEnabled ?? true,
+    videoUploadsEnabled:
+      opts.patch.videoUploadsEnabled ?? prior?.videoUploadsEnabled ?? false,
     venueType: opts.patch.venueType ?? prior?.venueType,
     capacity: opts.patch.capacity ?? prior?.capacity,
     levels: opts.patch.levels ?? prior?.levels,

@@ -64,8 +64,8 @@ export function VenueCamerasClient({ venueCode }: { venueCode: string }) {
       <div>
         <h1 className="text-2xl font-bold text-white">Cameras</h1>
         <p className="mt-1 text-sm text-slate-400">
-          Link your {RING_TM} account and request live video from active incidents. Connect {NEST_TM}{" "}
-          for agency cameras.
+          Register venue RTSP / ONVIF cameras for KVS streaming above, then link {RING_TM} and{" "}
+          {NEST_TM} accounts for emergency collaboration during incidents.
         </p>
       </div>
 

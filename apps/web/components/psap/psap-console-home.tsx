@@ -38,9 +38,11 @@ import {
 import type { Incident, UrgencyLevel } from "rapid-cortex-shared";
 import { HelpChrome } from "@/components/help/help-chrome";
 import { CampusDashboardHeaderUtilities } from "@/components/campus/campus-dashboard-header-utilities";
+import { SiteSquareMark } from "@/components/brand/site-logo-link";
 import { ThemeProvider, useThemeRoot } from "@/lib/theme/theme-context";
 import { ThemeToggle } from "@/components/ui/ThemeToggle";
 import { RapidCortexMap } from "@/components/maps/RapidCortexMap";
+import { loadMapTheme, saveMapTheme } from "@/lib/maps/persisted-map-prefs";
 import { psapIncidentsToMap } from "@/components/maps/map-incident-adapters";
 import {
   fetchSupervisorActiveCalls,
@@ -67,29 +69,14 @@ import {
   writeAccountAvatar,
   writeLocalStorage,
 } from "@/lib/account/account-picture";
+import { C } from "@/lib/theme/rc-theme-tokens";
 
-// ─── Design tokens ────────────────────────────────────────────────────────────
-
-const C = {
-  bg: "var(--rc-bg)",
-  surface: "var(--rc-surface)",
-  card: "rgba(255,255,255,0.033)",
-  border: "rgba(255,255,255,0.07)",
-  borderHard: "rgba(255,255,255,0.12)",
-  text: "var(--rc-text-primary)",
-  textSub: "var(--rc-text-secondary)",
-  textMuted: "var(--rc-text-muted)",
-  blue: "var(--rc-blue)",
-  red: "var(--rc-red)",
-  green: "var(--rc-green)",
-  amber: "var(--rc-amber)",
-  purple: "var(--rc-violet)",
-} as const;
+// ─── Design tokens (theme-aware CSS vars via C) ───────────────────────────────
 
 const FONT =
   "var(--rc-dashboard-font-family, Inter, ui-sans-serif, system-ui, sans-serif)";
 
-const CREST_BG = "#1e3a5f";
+const CREST_BG = "var(--rc-crest)";
 
 const DEFAULT_PSAP_BG =
   "https://images.unsplash.com/photo-1477959858617-67f85cf4f1df?auto=format&fit=crop&w=1920&q=80";
@@ -616,6 +603,18 @@ function PsapConsoleHomeInner({
   }, []);
 
   useEffect(() => {
+    if (!userId) return;
+    setMapTheme(loadMapTheme(userId, "core", "dark"));
+  }, [userId]);
+
+  const onMapThemeChange = useCallback(
+    (next: "dark" | "light") => {
+      setMapTheme(next);
+      saveMapTheme(userId || null, "core", next);
+    },
+    [userId],
+  );
+  useEffect(() => {
     try {
       setCadPhase(parseCadPhase(window.localStorage.getItem(cadPhaseStorageKey(agencyId))));
     } catch {
@@ -733,15 +732,23 @@ function PsapConsoleHomeInner({
 
   const quickActions = useMemo(() => {
     const actions: QuickActionDef[] = [];
+    const tile = {
+      bg: "color-mix(in srgb, var(--rc-blue) 14%, var(--rc-surface))",
+      color: "var(--rc-text-primary)",
+      bdr: "var(--rc-border)",
+    };
+    const accent = (mix: string) => ({
+      bg: `color-mix(in srgb, ${mix} 16%, var(--rc-surface))`,
+      color: "var(--rc-text-primary)",
+      bdr: "var(--rc-border)",
+    });
     if (isDispatcher && liveWorkspaceHref) {
       actions.push({
         key: "live-workspace",
         label: "Live Workspace",
         href: liveWorkspaceHref,
         Icon: Headphones,
-        bg: "rgba(30,58,95,0.55)",
-        color: "#93c5fd",
-        bdr: "rgba(59,130,246,0.35)",
+        ...tile,
       });
     }
     if (activeCallsHref) {
@@ -750,9 +757,7 @@ function PsapConsoleHomeInner({
         label: isDispatcher ? "My Queue" : "Active Calls",
         href: activeCallsHref,
         Icon: PhoneCall,
-        bg: "rgba(30,58,95,0.4)",
-        color: "#93c5fd",
-        bdr: "rgba(59,130,246,0.2)",
+        ...tile,
       });
     }
     if (teamHref) {
@@ -761,9 +766,7 @@ function PsapConsoleHomeInner({
         label: "Dispatcher Board",
         href: teamHref,
         Icon: Users,
-        bg: "rgba(30,37,56,0.4)",
-        color: C.textSub,
-        bdr: C.border,
+        ...tile,
       });
     }
     if (qaHref) {
@@ -772,9 +775,7 @@ function PsapConsoleHomeInner({
         label: "QA Review",
         href: qaHref,
         Icon: Eye,
-        bg: "rgba(6,78,59,0.35)",
-        color: "#6ee7b7",
-        bdr: "rgba(16,185,129,0.2)",
+        ...accent("var(--rc-green, #10b981)"),
       });
     }
     if (cadQueueHref) {
@@ -783,9 +784,7 @@ function PsapConsoleHomeInner({
         label: "CAD Queue",
         href: cadQueueHref,
         Icon: Database,
-        bg: "rgba(7,89,133,0.35)",
-        color: "#67e8f9",
-        bdr: "rgba(6,182,212,0.2)",
+        ...accent("var(--rc-cyan, #06b6d4)"),
       });
     }
     if (transcriptsHref) {
@@ -794,9 +793,7 @@ function PsapConsoleHomeInner({
         label: "Transcripts",
         href: transcriptsHref,
         Icon: Activity,
-        bg: "rgba(30,37,56,0.4)",
-        color: C.textSub,
-        bdr: C.border,
+        ...tile,
       });
     }
     if (reportsHref) {
@@ -805,9 +802,7 @@ function PsapConsoleHomeInner({
         label: "Reports",
         href: reportsHref,
         Icon: BarChart2,
-        bg: "rgba(30,58,95,0.4)",
-        color: "#93c5fd",
-        bdr: "rgba(59,130,246,0.2)",
+        ...tile,
       });
     }
     return actions;
@@ -992,30 +987,13 @@ function PsapConsoleHomeInner({
         >
           <div style={{ padding: "18px 14px 14px", borderBottom: `1px solid ${C.border}` }}>
             <div style={{ display: "flex", alignItems: "center", gap: 9 }}>
-              <div
-                style={{
-                  width: 34,
-                  height: 34,
-                  background: "linear-gradient(135deg,#1d4ed8,#1e3a5f)",
-                  borderRadius: 7,
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  fontSize: 12,
-                  fontWeight: 800,
-                  color: "#fff",
-                  letterSpacing: "-0.5px",
-                  flexShrink: 0,
-                }}
-              >
-                RC
-              </div>
+              <SiteSquareMark size={34} priority />
               <div>
                 <div
                   style={{
                     fontSize: 13,
                     fontWeight: 800,
-                    color: "#fff",
+                    color: "var(--rc-text-primary)",
                     letterSpacing: "0.5px",
                     lineHeight: 1,
                   }}
@@ -1844,9 +1822,9 @@ function PsapConsoleHomeInner({
                           gap: 8,
                           padding: "10px 14px",
                           borderRadius: 8,
-                          background: "rgba(59,130,246,0.18)",
-                          border: "1px solid rgba(59,130,246,0.35)",
-                          color: "#93c5fd",
+                          background: "color-mix(in srgb, var(--rc-blue) 18%, var(--rc-surface))",
+                          border: "1px solid color-mix(in srgb, var(--rc-blue) 40%, var(--rc-border))",
+                          color: "var(--rc-text-primary)",
                           fontSize: 13,
                           fontWeight: 700,
                           textDecoration: "none",
@@ -2144,7 +2122,8 @@ function PsapConsoleHomeInner({
                   </div>
                   <RapidCortexMap
                     theme={mapTheme}
-                    onThemeChange={setMapTheme}
+                    onThemeChange={onMapThemeChange}
+                    persistUserId={userId || null}
                     incidents={mapIncidents}
                     selectedIncidentId={selectedMapIncident}
                     onIncidentClick={(inc) => setSelectedMapIncident(inc.id)}

@@ -46,6 +46,12 @@ export default function VenueSettingsPage({
       if (profile.timezone) setTimezone(profile.timezone);
       if (typeof profile.qrEnabled === "boolean") setQrReporting(profile.qrEnabled);
       if (typeof profile.smsEnabled === "boolean") setSmsReporting(profile.smsEnabled);
+      if (typeof profile.photoUploadsEnabled === "boolean") {
+        setPhotoUploads(profile.photoUploadsEnabled);
+      }
+      if (typeof profile.videoUploadsEnabled === "boolean") {
+        setVideoUploads(profile.videoUploadsEnabled);
+      }
     } catch (error) {
       setErrorMessage(error instanceof Error ? error.message : "Failed to load venue profile");
     }
@@ -98,6 +104,8 @@ export default function VenueSettingsPage({
       await patchVenueProfile(normalizedVenueCode, {
         qrEnabled: qrReporting,
         smsEnabled: smsReporting,
+        photoUploadsEnabled: photoUploads,
+        videoUploadsEnabled: videoUploads,
       });
       setStatusMessage("Reporting configuration saved.");
     } catch (error) {
@@ -236,7 +244,7 @@ export default function VenueSettingsPage({
               Configure bowl sections, levels, and SVG positions.
             </p>
             <Link
-              href={`/venue/${normalizedVenueCode}/sections`}
+              href={`/app/venue/${normalizedVenueCode}/sections`}
               className="mt-2 inline-flex rounded-md border border-violet-500/40 bg-violet-500/10 px-3 py-1.5 text-xs font-semibold text-violet-200 hover:bg-violet-500/20"
             >
               Open section configuration
@@ -269,15 +277,9 @@ export default function VenueSettingsPage({
               key={toggle.label}
               className="flex items-center justify-between rounded-md border border-slate-700 bg-slate-900/60 px-3 py-2 text-sm text-slate-200"
             >
-              <span>
-                {toggle.label}
-                {toggle.label.includes("Photo") || toggle.label.includes("Video") ? (
-                  <span className="ml-2 text-xs text-slate-500">(API pending)</span>
-                ) : null}
-              </span>
+              <span>{toggle.label}</span>
               <button
                 type="button"
-                disabled={toggle.label.includes("Photo") || toggle.label.includes("Video")}
                 onClick={() => toggle.setter(!toggle.value)}
                 className={`rounded-full border px-3 py-1 text-xs font-semibold ${
                   toggle.value

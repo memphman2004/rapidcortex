@@ -55,6 +55,7 @@ import {
   useCallback,
   type KeyboardEvent,
 } from "react";
+import { V } from "@/lib/theme/rc-theme-tokens";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -142,28 +143,28 @@ const FALLBACK_NAMES: Record<string, [string, string]> = {
 
 const RTL_CODES = new Set(["ar", "fa", "ur", "he", "yi", "ps", "dv", "ug"]);
 
-// ─── Design tokens ────────────────────────────────────────────────────────────
+// ─── Design tokens (theme-aware) ──────────────────────────────────────────────
 
 const C = {
-  bg:           "#0a0812",
-  surface:      "#0d0b17",
-  card:         "#100e1a",
-  cardHover:    "#141220",
-  border:       "#1e1a30",
-  borderFocus:  "#3b2f6e",
-  purple:       "#7c3aed",
-  purpleDim:    "rgba(124,58,237,0.15)",
-  blue:         "#3b82f6",
-  blueDim:      "rgba(59,130,246,0.08)",
-  green:        "#10b981",
-  greenDim:     "rgba(16,185,129,0.08)",
-  amber:        "#f59e0b",
-  red:          "#ef4444",
-  textPrimary:  "#e4dff5",
-  textSecondary:"#9688c0",
-  textMuted:    "#5a4d7a",
-  scrollbar:    "#1e1a30",
-};
+  bg: V.bg,
+  surface: V.surface,
+  card: V.surface,
+  cardHover: V.cardHover,
+  border: V.border,
+  borderFocus: V.borderFocus,
+  purple: V.purple,
+  purpleDim: V.purpleDim,
+  blue: V.blue,
+  blueDim: V.blueDim,
+  green: V.green,
+  greenDim: V.greenDim,
+  amber: V.amber,
+  red: V.red,
+  textPrimary: V.textPrimary,
+  textSecondary: V.textSecondary,
+  textMuted: V.textMuted,
+  scrollbar: V.scrollbar,
+} as const;
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 

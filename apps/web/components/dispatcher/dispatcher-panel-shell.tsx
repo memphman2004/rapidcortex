@@ -6,14 +6,7 @@ import { CSS } from "@dnd-kit/utilities";
 import { ChevronDown, ChevronUp, Columns2, Square } from "lucide-react";
 import type { ReactNode } from "react";
 import { ContextualHelp } from "@/components/help/help-button";
-
-const V = {
-  surface: "#1a1625",
-  border: "#2a2440",
-  silver: "#a8a0c0",
-  dim: "#5a4d7a",
-  handle: "#3d3460",
-} as const;
+import { V } from "@/lib/theme/rc-theme-tokens";
 
 /** Skip cascading grid transforms — they shove items toward slot 0 with full-width spans. */
 const animateLayoutChanges: AnimateLayoutChanges = (args) => {

@@ -2,15 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { NEST_TM } from "@/lib/brand-marks";
-
-const V = {
-  surface: "#100e1a",
-  border: "#1e1a30",
-  text: "#e4dff5",
-  muted: "#7c6fa0",
-  green: "#10b981",
-  red: "#ef4444",
-};
+import { V } from "@/lib/theme/rc-theme-tokens";
 
 /**
  * Nest SDM WebRTC player — browser creates the SDP offer; Nest returns the answer.

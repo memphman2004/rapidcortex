@@ -7,5 +7,5 @@ export default async function VenueAdminSectionsRedirect({
   params: Promise<{ venueId: string }>;
 }) {
   const { venueId } = await params;
-  redirect(`/venue/${venueId.toUpperCase()}/sections`);
+  redirect(`/app/venue/${venueId.toUpperCase()}/sections`);
 }

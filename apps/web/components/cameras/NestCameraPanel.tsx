@@ -4,16 +4,7 @@ import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { NestWebRTCPlayer } from "./NestWebRTCPlayer";
 import { GOOGLE_NEST_TM, NEST_TM } from "@/lib/brand-marks";
-
-const V = {
-  surface: "#100e1a",
-  border: "#1e1a30",
-  amber: "#f59e0b",
-  red: "#ef4444",
-  text: "#e4dff5",
-  muted: "#7c6fa0",
-  green: "#10b981",
-};
+import { V } from "@/lib/theme/rc-theme-tokens";
 
 type NestConsentStatus = "AVAILABLE" | "SENT" | "APPROVED" | "DECLINED" | "DRAFT" | "EXPIRED" | "REVOKED";
 

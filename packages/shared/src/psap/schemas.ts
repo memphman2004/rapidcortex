@@ -12,7 +12,9 @@ export const psapMailingAddressSchema = z
     zip: z.string().trim().max(20).optional(),
     verified: z.boolean(),
     enrichedAt: z.string().min(1).optional(),
-    source: z.enum(["nominatim", "manual", "import"]).optional(),
+    source: z.enum(["aws_location", "nominatim", "manual", "import"]).optional(),
+    formattedAddress: z.string().trim().max(400).optional(),
+    confidence: z.enum(["high", "medium", "low"]).optional(),
   })
   .strict();
 

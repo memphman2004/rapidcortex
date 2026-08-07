@@ -41,6 +41,7 @@ import type { AgencyTenant } from "rapid-cortex-shared";
 import { resolveAgencyVerticalFromTenant } from "rapid-cortex-shared";
 import { HelpChrome } from "@/components/help/help-chrome";
 import { CampusDashboardHeaderUtilities } from "@/components/campus/campus-dashboard-header-utilities";
+import { SiteSquareMark } from "@/components/brand/site-logo-link";
 import { ThemeProvider, useThemeRoot } from "@/lib/theme/theme-context";
 import { ThemeToggle } from "@/components/ui/ThemeToggle";
 import {
@@ -66,25 +67,9 @@ import {
   writeAccountAvatar,
   writeLocalStorage,
 } from "@/lib/account/account-picture";
+import { C } from "@/lib/theme/rc-theme-tokens";
 
-// ─── Design tokens ────────────────────────────────────────────────────────────
-
-const C = {
-  bg: "var(--rc-bg)",
-  surface: "var(--rc-surface)",
-  card: "rgba(255,255,255,0.032)",
-  border: "rgba(255,255,255,0.07)",
-  borderHard: "rgba(255,255,255,0.12)",
-  text: "var(--rc-text-primary)",
-  textSub: "var(--rc-text-secondary)",
-  textMuted: "var(--rc-text-muted)",
-  purple: "var(--rc-violet)",
-  blue: "var(--rc-blue)",
-  green: "var(--rc-green)",
-  amber: "var(--rc-amber)",
-  red: "var(--rc-red)",
-  cyan: "#06b6d4",
-} as const;
+// ─── Design tokens (theme-aware CSS vars via C) ───────────────────────────────
 
 const FONT =
   "var(--rc-dashboard-font-family, Inter, ui-sans-serif, system-ui, sans-serif)";
@@ -681,6 +666,11 @@ function RcAdminConsoleHomeInner({
     roleLower === "rcitadmin" || roleLower === "rcsuperadmin";
 
   const quickActions = useMemo(() => {
+    const tile = (mix: string) => ({
+      bg: `color-mix(in srgb, ${mix} 16%, var(--rc-surface))`,
+      color: "var(--rc-text-primary)",
+      bdr: "var(--rc-border)",
+    });
     const actions: QuickActionDef[] = [];
     if (onboardAgencyHref || agenciesHref) {
       actions.push({
@@ -688,9 +678,7 @@ function RcAdminConsoleHomeInner({
         label: "Onboard Agency",
         href: onboardAgencyHref ?? agenciesHref!,
         Icon: Building2,
-        bg: "rgba(6,78,59,0.35)",
-        color: "#6ee7b7",
-        bdr: "rgba(16,185,129,0.2)",
+        ...tile("var(--rc-green, #10b981)"),
       });
     }
     if (flagsHref) {
@@ -699,9 +687,7 @@ function RcAdminConsoleHomeInner({
         label: "Feature Flags",
         href: flagsHref,
         Icon: GitBranch,
-        bg: "rgba(76,29,149,0.35)",
-        color: "#c4b5fd",
-        bdr: "rgba(139,92,246,0.2)",
+        ...tile("var(--rc-violet, #8b5cf6)"),
       });
     }
     if (healthHref) {
@@ -710,9 +696,7 @@ function RcAdminConsoleHomeInner({
         label: "Platform Health",
         href: healthHref,
         Icon: Activity,
-        bg: "rgba(30,58,95,0.4)",
-        color: "#93c5fd",
-        bdr: "rgba(59,130,246,0.2)",
+        ...tile("var(--rc-blue, #3b82f6)"),
       });
     }
     if (supportHref) {
@@ -721,9 +705,7 @@ function RcAdminConsoleHomeInner({
         label: "User Support",
         href: supportHref,
         Icon: Users,
-        bg: "rgba(7,89,133,0.35)",
-        color: "#67e8f9",
-        bdr: "rgba(6,182,212,0.2)",
+        ...tile("var(--rc-sky, #38bdf8)"),
       });
     }
     if (agreementsHref) {
@@ -732,9 +714,7 @@ function RcAdminConsoleHomeInner({
         label: "Adobe Sign",
         href: agreementsHref,
         Icon: FileText,
-        bg: "rgba(120,53,15,0.35)",
-        color: "#fcd34d",
-        bdr: "rgba(245,158,11,0.2)",
+        ...tile("var(--rc-amber, #f59e0b)"),
       });
     }
     if (showEmergency && usersHref) {
@@ -743,9 +723,7 @@ function RcAdminConsoleHomeInner({
         label: "Emergency Deactivate",
         href: usersHref,
         Icon: Zap,
-        bg: "rgba(120,20,20,0.45)",
-        color: "#fca5a5",
-        bdr: "rgba(239,68,68,0.35)",
+        ...tile("var(--rc-red, #ef4444)"),
         emergency: true,
       });
     }
@@ -938,30 +916,13 @@ function RcAdminConsoleHomeInner({
         >
           <div style={{ padding: "18px 14px 14px", borderBottom: `1px solid ${C.border}` }}>
             <div style={{ display: "flex", alignItems: "center", gap: 9 }}>
-              <div
-                style={{
-                  width: 34,
-                  height: 34,
-                  background: "linear-gradient(135deg,#6d28d9,#4c1d95)",
-                  borderRadius: 7,
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  fontSize: 12,
-                  fontWeight: 800,
-                  color: "#fff",
-                  letterSpacing: "-0.5px",
-                  flexShrink: 0,
-                }}
-              >
-                RC
-              </div>
+              <SiteSquareMark size={34} priority />
               <div>
                 <div
                   style={{
                     fontSize: 13,
                     fontWeight: 800,
-                    color: "#fff",
+                    color: "var(--rc-text-primary)",
                     letterSpacing: "0.5px",
                     lineHeight: 1,
                   }}

@@ -12,6 +12,7 @@ import {
 import { env } from "../lib/env.js";
 import { requireAddon } from "../middleware/requireAddon.js";
 import { canViewFloorHealth } from "../features/rcs/rcs-authz.js";
+import { enrichCallsWithDispatcherEmail } from "../features/rcs/rcs-dispatcher-label.js";
 import { RcsRepository } from "../features/rcs/rcs-repository.js";
 import { rcsJson } from "../features/rcs/rcs-api-response.js";
 import { buildFloorHealthSnapshot } from "../features/rcs/rcs-intelligence.js";
@@ -38,10 +39,11 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
     const agencyId = parsed.data.agencyId?.trim() || user.agencyId;
     if (!isRcsuperadmin(user) && agencyId !== user.agencyId) return forbidden();
 
-    const [calls, rules] = await Promise.all([
+    const [rawCalls, rules] = await Promise.all([
       repo.listCallsByAgency(agencyId, { openOnly: true, limit: 200 }),
       repo.getEscalationRules(agencyId),
     ]);
+    const calls = await enrichCallsWithDispatcherEmail(rawCalls);
 
     const snapshot = buildFloorHealthSnapshot(
       agencyId,
