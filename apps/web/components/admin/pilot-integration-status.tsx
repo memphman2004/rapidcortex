@@ -39,10 +39,7 @@ export function PilotIntegrationStatusPanel() {
   if (!isApiConfigured()) {
     return (
       <p className="text-sm text-amber-200/90">
-        API is not configured in this browser deployment. Set{" "}
-        <span className="font-mono text-amber-100/90">NEXT_PUBLIC_AUTH_PROXY=1</span> and{" "}
-        <span className="font-mono text-amber-100/90">API_UPSTREAM_BASE</span> (or{" "}
-        <span className="font-mono text-amber-100/90">NEXT_PUBLIC_API_BASE</span>) to load live
+        Platform connection isn’t configured. Contact Rapid Cortex support to load live
         integration status.
       </p>
     );

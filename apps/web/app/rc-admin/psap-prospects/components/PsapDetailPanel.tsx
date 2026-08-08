@@ -154,9 +154,25 @@ export function PsapDetailPanel({ prospect, onClose, onUpdated }: Props) {
     ? "No address yet"
     : draft.mailingAddress.verified
       ? "Manually verified"
-      : draft.mailingAddress.source === "nominatim"
-        ? "Address from Nominatim — not verified"
-        : "Address present — not verified";
+      : draft.mailingAddress.source === "aws_location"
+        ? "Address from AWS Location — not verified"
+        : draft.mailingAddress.source === "nominatim"
+          ? "Address from Nominatim — not verified"
+          : "Address present — not verified";
+
+  /** PATCH payload: editable fields only; mark as manual edit. */
+  function mailingPatchFromDraft(): NonNullable<PatchPsapProspectBody["mailingAddress"]> {
+    const m = draft.mailingAddress;
+    return {
+      streetAddress: m?.streetAddress?.trim() || undefined,
+      city: (m?.city || draft.city).trim(),
+      county: (m?.county || draft.county).trim(),
+      state: (m?.state || draft.state).trim().toUpperCase().slice(0, 2),
+      zip: m?.zip?.trim() || undefined,
+      verified: Boolean(m?.verified),
+      source: "manual",
+    };
+  }
 
   const activities: PsapActivity[] = [...(draft.activities ?? [])].sort((a, b) =>
     b.performedAt.localeCompare(a.performedAt),
@@ -431,11 +447,11 @@ export function PsapDetailPanel({ prospect, onClose, onUpdated }: Props) {
                 setDraft((d) => ({
                   ...d,
                   mailingAddress: {
+                    ...d.mailingAddress,
                     city: d.mailingAddress?.city ?? d.city,
                     county: d.mailingAddress?.county ?? d.county,
                     state: d.mailingAddress?.state ?? d.state,
                     verified: d.mailingAddress?.verified ?? false,
-                    ...d.mailingAddress,
                     streetAddress: v,
                     source: "manual",
                   },
@@ -450,11 +466,12 @@ export function PsapDetailPanel({ prospect, onClose, onUpdated }: Props) {
                   setDraft((d) => ({
                     ...d,
                     mailingAddress: {
-                      city: v,
+                      ...d.mailingAddress,
                       county: d.mailingAddress?.county ?? d.county,
                       state: d.mailingAddress?.state ?? d.state,
                       verified: d.mailingAddress?.verified ?? false,
-                      ...d.mailingAddress,
+                      city: v,
+                      source: "manual",
                     },
                   }))
                 }
@@ -466,11 +483,12 @@ export function PsapDetailPanel({ prospect, onClose, onUpdated }: Props) {
                   setDraft((d) => ({
                     ...d,
                     mailingAddress: {
+                      ...d.mailingAddress,
                       city: d.mailingAddress?.city ?? d.city,
-                      county: v,
                       state: d.mailingAddress?.state ?? d.state,
                       verified: d.mailingAddress?.verified ?? false,
-                      ...d.mailingAddress,
+                      county: v,
+                      source: "manual",
                     },
                   }))
                 }
@@ -482,11 +500,12 @@ export function PsapDetailPanel({ prospect, onClose, onUpdated }: Props) {
                   setDraft((d) => ({
                     ...d,
                     mailingAddress: {
+                      ...d.mailingAddress,
                       city: d.mailingAddress?.city ?? d.city,
                       county: d.mailingAddress?.county ?? d.county,
-                      state: v,
                       verified: d.mailingAddress?.verified ?? false,
-                      ...d.mailingAddress,
+                      state: v,
+                      source: "manual",
                     },
                   }))
                 }
@@ -498,12 +517,13 @@ export function PsapDetailPanel({ prospect, onClose, onUpdated }: Props) {
                   setDraft((d) => ({
                     ...d,
                     mailingAddress: {
+                      ...d.mailingAddress,
                       city: d.mailingAddress?.city ?? d.city,
                       county: d.mailingAddress?.county ?? d.county,
                       state: d.mailingAddress?.state ?? d.state,
                       verified: d.mailingAddress?.verified ?? false,
-                      ...d.mailingAddress,
                       zip: v,
+                      source: "manual",
                     },
                   }))
                 }
@@ -517,12 +537,12 @@ export function PsapDetailPanel({ prospect, onClose, onUpdated }: Props) {
                   setDraft((d) => ({
                     ...d,
                     mailingAddress: {
+                      ...d.mailingAddress,
                       city: d.mailingAddress?.city ?? d.city,
                       county: d.mailingAddress?.county ?? d.county,
                       state: d.mailingAddress?.state ?? d.state,
-                      ...d.mailingAddress,
                       verified: e.target.checked,
-                      source: d.mailingAddress?.source ?? "manual",
+                      source: "manual",
                     },
                   }))
                 }
@@ -535,7 +555,7 @@ export function PsapDetailPanel({ prospect, onClose, onUpdated }: Props) {
                 disabled={saving}
                 onClick={() =>
                   void savePatch({
-                    mailingAddress: draft.mailingAddress,
+                    mailingAddress: mailingPatchFromDraft(),
                   })
                 }
                 className="rounded border border-violet-500/40 bg-violet-500/10 px-2.5 py-1 text-xs text-violet-200 disabled:opacity-50"

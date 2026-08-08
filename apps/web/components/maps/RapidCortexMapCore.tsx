@@ -124,10 +124,7 @@ export default function RapidCortexMapCore({
     const token = process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN;
 
     if (!token || token === "pk.REPLACE_WITH_REAL_TOKEN") {
-      setMapError(
-        "Map unavailable — Mapbox access token is not configured.\n" +
-          "Set NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN in your environment."
-      );
+      setMapError("Map isn’t configured for this environment. Contact Rapid Cortex support.");
       return;
     }
 

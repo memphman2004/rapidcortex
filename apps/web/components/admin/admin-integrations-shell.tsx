@@ -48,8 +48,7 @@ export function AdminIntegrationsShell({
           Live integration status
         </h2>
         <p className="mt-2 text-xs text-slate-500">
-          From <span className="font-mono text-slate-400">GET /api/integration/status</span> — use
-          for pilot readiness (see <span className="font-mono">docs/PILOT_READINESS.md</span>).
+          Live integration posture for pilot readiness.
         </p>
         <div className="mt-4">
           <PilotIntegrationStatusPanel />

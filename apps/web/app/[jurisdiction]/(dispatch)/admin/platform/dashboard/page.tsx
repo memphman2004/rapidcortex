@@ -220,7 +220,7 @@ export default function PlatformDashboardPage() {
           hint={
             healthQ.data?.deploymentStage
               ? `Stage ${healthQ.data.deploymentStage}`
-              : "GET /api/health/upstream"
+              : "Upstream health check"
           }
         />
       </div>

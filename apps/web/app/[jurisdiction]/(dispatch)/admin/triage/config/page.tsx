@@ -66,9 +66,7 @@ export default function AdminTriageConfigPage() {
       <div className="space-y-4 p-4 md:p-6">
         <h1 className="text-lg font-semibold text-white">Non-emergency triage</h1>
         <p className="max-w-xl text-sm text-slate-400">
-          Non-emergency triage is disabled for this web deployment. Set{" "}
-          <code className="text-violet-300">NEXT_PUBLIC_ENABLE_NON_EMERGENCY_TRIAGE=1</code> and{" "}
-          <code className="text-violet-300">ENABLE_NON_EMERGENCY_TRIAGE</code> on the API.
+          Non-emergency triage isn’t enabled for this agency. Contact Rapid Cortex support.
         </p>
         <Link href={to("/admin")} className="text-sm text-sky-400 hover:underline">
           ← Admin overview
@@ -154,9 +152,8 @@ export default function AdminTriageConfigPage() {
           <span>
             <span className="block text-sm font-medium text-white">Enable non-emergency intake queue</span>
             <span className="mt-0.5 block text-xs text-slate-500">
-              When enabled, calls classified as non-emergency are routed to a separate DynamoDB-backed queue.
-              Dispatchers see the queue tab on their console. Requires{" "}
-              <code className="text-slate-400">NEXT_PUBLIC_ENABLE_NON_EMERGENCY_TRIAGE</code> on this deployment.
+              When enabled, calls classified as non-emergency are routed to a separate intake queue.
+              Dispatchers see the queue tab on their console.
             </span>
           </span>
         </label>

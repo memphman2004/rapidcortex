@@ -80,7 +80,7 @@ export function ItSecurityPosturePanel() {
     <section className="rounded-lg border border-teal-900/40 bg-teal-950/15 p-4">
       <h2 className="text-sm font-semibold text-white">Security posture</h2>
       <p className="mt-1 text-xs text-slate-400">
-        Authentication health, integration status, and audit evidence. Incident queues are not shown
+        Authentication health, integration status, and audit history. Incident queues are not shown
         on this dashboard.
       </p>
       <ul className="mt-4 space-y-2 text-xs text-slate-300">

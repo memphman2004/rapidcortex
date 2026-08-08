@@ -36,8 +36,8 @@ export function AdminAddUserRunbook() {
       </div>
 
       <p className="mt-4 rounded-md border border-amber-900/50 bg-amber-950/20 px-3 py-2 text-xs leading-relaxed text-amber-100/95">
-        <span className="font-medium text-amber-50">Welcome email:</span> User creation from this admin API uses
-        Cognito with messaging suppressed. Until automated welcome email is enabled,{" "}
+        <span className="font-medium text-amber-50">Welcome email:</span> User creation from this admin
+        form does not send an automated welcome email yet. Until that is enabled,{" "}
         <span className="text-amber-50">you must deliver</span> the temporary password and sign-in link through your
         agency&apos;s approved secure channel (treat steps 7–8 as your runbook for that handoff). Use subject line
         such as <span className="font-mono text-amber-200/90">Your Rapid Cortex account is ready</span> if your
@@ -73,10 +73,10 @@ export function AdminAddUserRunbook() {
         </li>
         <li>
           Instruct the user to sign in before the temporary password expires (commonly within seven days — confirm your
-          Cognito user pool password policy).
+          agency password policy).
         </li>
         <li>
-          On first login they must set a new password; enroll in MFA if your pool requires an authenticator app.
+          On first login they must set a new password; enroll in MFA if your agency requires an authenticator app.
         </li>
         <li>Confirm with the user that they have successfully signed in before closing the ticket.</li>
       </ol>

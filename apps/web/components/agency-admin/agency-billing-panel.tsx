@@ -28,7 +28,7 @@ export function AgencyBillingPanel({ initialUser }: { initialUser: UserContext }
   const load = useCallback(async () => {
     setErr(null);
     if (!isApiConfigured()) {
-      setErr("API not configured — set NEXT_PUBLIC_API_BASE or NEXT_PUBLIC_AUTH_PROXY.");
+      setErr("Billing data isn’t available — contact Rapid Cortex support.");
       return;
     }
     try {

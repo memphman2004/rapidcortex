@@ -14,11 +14,8 @@ export function PublicWebConfigurationPanel() {
   return (
     <div className="space-y-4 text-sm text-slate-300">
       <p className="text-xs leading-relaxed text-slate-500">
-        Browser-visible configuration only (<span className="font-mono text-slate-400">NEXT_PUBLIC_*</span>).
-        Lambda secrets, provider API keys, and <span className="font-mono text-slate-400">API_UPSTREAM_BASE</span> are{" "}
-        <span className="font-medium text-slate-400">server-only</span> — see{" "}
-        <span className="font-mono text-slate-400">docs/ENVIRONMENT_CONFIGURATION_REFERENCE.md</span> and{" "}
-        <span className="font-mono text-slate-400">docs/FEATURE_FLAGS.md</span>.
+        Browser feature flags for this deployment. Server secrets and upstream API settings are not
+        shown here — contact Rapid Cortex support for infrastructure changes.
       </p>
       <div className="overflow-x-auto rounded-md border border-slate-800 bg-slate-950/50">
         <table className="min-w-full text-left text-xs text-slate-300">

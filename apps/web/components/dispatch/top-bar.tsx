@@ -22,7 +22,6 @@ export function TopBar({ user: serverUser }: { user?: UserContext | null }) {
   const user = serverUser ?? sessionUser;
   const apiLive = isApiConfigured();
   const authOn = isAuthConfigured();
-  const useProxy = typeof process !== "undefined" && process.env.NEXT_PUBLIC_AUTH_PROXY === "1";
 
   const agencyLabel =
     user?.agencyId ?? (authOn && isLoading ? "…" : authOn ? "—" : "Configure auth");
@@ -82,15 +81,9 @@ export function TopBar({ user: serverUser }: { user?: UserContext | null }) {
               ? "bg-emerald-950 text-emerald-400 ring-1 ring-emerald-800"
               : "bg-amber-950 text-amber-300 ring-1 ring-amber-800"
           }`}
-          title={
-            apiLive
-              ? useProxy
-                ? "Using authenticated proxy (/api/backend)"
-                : "Using NEXT_PUBLIC_API_BASE"
-              : `${trainingModeCompactDetail()} Optional local mock: NEXT_PUBLIC_OFFLINE_DEMO_MODE=1`
-          }
+          title={apiLive ? "Connected" : trainingModeCompactDetail()}
         >
-          {apiLive ? (useProxy ? "API (auth)" : "API") : "Training"}
+          {apiLive ? "Connected" : "Training"}
         </div>
         {user ? (
           <UserIdentityBar email={user.email} role={user.role} agencyId={user.agencyId} userId={user.userId} />

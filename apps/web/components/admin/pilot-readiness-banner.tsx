@@ -141,8 +141,7 @@ export function PilotReadinessBanner({ showInfoLevel = false }: PilotReadinessBa
         ))}
       </ul>
       <p className="mt-2 text-[11px] leading-relaxed opacity-80">
-        Read-only signals from <span className="font-mono">GET /api/integration/status</span> for your
-        agency. See also{" "}
+        Read-only integration signals for your agency. See also{" "}
         <Link href={to("/admin/configuration")} className="text-sky-400 underline-offset-2 hover:underline">
           Configuration
         </Link>

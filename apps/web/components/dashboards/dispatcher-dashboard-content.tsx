@@ -30,16 +30,6 @@ export function DispatcherDashboardContent({ user }: { user: UserContext }) {
           Live call handling view optimized for current incident speed and readability. AI output is
           assistive only and must be reviewed by dispatch.
         </p>
-        <ul className="list-inside list-disc text-xs text-slate-500">
-          <li>
-            TODO: Load active incident + queue from API with agency-scoped filters and
-            shift-assignment checks.
-          </li>
-          <li>
-            TODO: Audit log manual mode changes and CAD submissions with userId, role, agencyId,
-            incidentId, timestamp, and reason.
-          </li>
-        </ul>
         <DashboardLiveDataHint feature="sla" />
       </section>
 

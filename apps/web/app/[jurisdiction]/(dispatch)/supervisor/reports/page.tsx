@@ -28,8 +28,7 @@ export default function SupervisorReportsPage() {
         <ReportsDashboard />
       ) : (
         <p className="text-sm text-slate-500">
-          Enable <code className="text-slate-400">NEXT_PUBLIC_ENABLE_REPORTS=1</code> and connect the API to use
-          reporting.
+          Reporting isn’t enabled yet. Contact Rapid Cortex support.
         </p>
       )}
     </div>

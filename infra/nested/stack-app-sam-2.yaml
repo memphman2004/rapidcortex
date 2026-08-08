@@ -480,6 +480,11 @@ Conditions:
   HasCloudTrailKms: !Not [!Equals [!Ref CloudTrailKmsKeyArn, ""]]
   HasOpenAiApiKeySecretArn: !Not [!Equals [!Ref OpenAiApiKeySecretArn, ""]]
   HasAnthropicApiKeySecretArn: !Not [!Equals [!Ref AnthropicApiKeySecretArn, ""]]
+  HasAzureSpeechKeySecretArn: !Not [!Equals [!Ref AzureSpeechKeySecretArn, ""]]
+  HasAzureTranslationKeySecretArn: !Not [!Equals [!Ref AzureTranslationKeySecretArn, ""]]
+  HasGoogleApplicationCredentialsSecretArn: !Not [!Equals [!Ref GoogleApplicationCredentialsSecretArn, ""]]
+  HasNestedMultilingualAzureApiKeysSecretArn: !Not [!Equals [!Ref NestedMultilingualAzureApiKeysSecretArn, ""]]
+  HasNestedMultilingualGoogleServiceAccountSecretArn: !Not [!Equals [!Ref NestedMultilingualGoogleServiceAccountSecretArn, ""]]
 
 Mappings:
   MultilingualStageDefaults:
@@ -894,14 +899,39 @@ Resources:
       PolicyDocument:
         Version: "2012-10-17"
         Statement:
+          # Scoped mode must cover BOTH naming conventions used in this account:
+          # - managed DataLayer secrets: rapidcortex/{stage}/multilingual/*
+          # - external ops secrets: rapid-cortex/multilingual/* (hyphenated AppName prefix)
+          # Plus any explicitly passed secret ARNs (Azure/Google params).
           - Sid: MultilingualSecretsScopedOrBroadDev
             Effect: Allow
             Action:
               - secretsmanager:GetSecretValue
             Resource: !If
               - MultilingualSecretsBroadPolicy
-              - !Sub arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:*
-              - !Sub arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:rapidcortex/${DeploymentStage}/*
+              - - !Sub arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:*
+              - - !Sub arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:rapidcortex/${DeploymentStage}/*
+                - !Sub arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:rapid-cortex/multilingual/*
+                - !If
+                  - HasAzureSpeechKeySecretArn
+                  - !Ref AzureSpeechKeySecretArn
+                  - !Ref AWS::NoValue
+                - !If
+                  - HasAzureTranslationKeySecretArn
+                  - !Ref AzureTranslationKeySecretArn
+                  - !Ref AWS::NoValue
+                - !If
+                  - HasGoogleApplicationCredentialsSecretArn
+                  - !Ref GoogleApplicationCredentialsSecretArn
+                  - !Ref AWS::NoValue
+                - !If
+                  - HasNestedMultilingualAzureApiKeysSecretArn
+                  - !Ref NestedMultilingualAzureApiKeysSecretArn
+                  - !Ref AWS::NoValue
+                - !If
+                  - HasNestedMultilingualGoogleServiceAccountSecretArn
+                  - !Ref NestedMultilingualGoogleServiceAccountSecretArn
+                  - !Ref AWS::NoValue
 
   AppManagedPolicySecretsAnalyzeProvidersRead:
     Type: AWS::IAM::ManagedPolicy

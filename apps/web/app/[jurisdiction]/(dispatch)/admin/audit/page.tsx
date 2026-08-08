@@ -26,7 +26,7 @@ export default function AdminAuditPage() {
   const downloadJson = useCallback(() => {
     const payload = {
       exportedAt: new Date().toISOString(),
-      source: "GET /api/audit/events",
+      source: "rapid-cortex-audit-export",
       limit: 80,
       items,
     };
@@ -47,10 +47,8 @@ export default function AdminAuditPage() {
         <div>
           <h1 className="text-lg font-semibold text-white">Audit log</h1>
           <p className="mt-1 max-w-2xl text-sm text-slate-400">
-            Newest-first operational events for your agency from{" "}
-            <code className="rounded bg-slate-900 px-1 text-slate-200">GET /api/audit/events</code>{" "}
-            (incidents, transcripts, analyses, admin actions as emitted by the API). Requires a configured
-            API and <span className="font-mono text-slate-300">admin</span> (or equivalent) role.
+            Newest-first operational events for your agency (incidents, transcripts, analyses, and
+            admin actions). Requires a configured platform connection and an admin-equivalent role.
           </p>
         </div>
         <div className="shrink-0">

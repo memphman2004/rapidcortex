@@ -32,9 +32,7 @@ export function resolveTextTranslationBackend(cfg?: MultilingualVoiceConfig): Te
   const c = cfg ?? getMultilingualVoiceConfig();
   if (c.languageProvider === "google") return "google";
   if (c.languageProvider === "aws") return "aws";
-  const hasGoogle =
-    Boolean(c.googleCloudProjectId) &&
-    Boolean(c.googleCredentialsSecretArn || c.googleApplicationCredentialsJson);
+  const hasGoogle = Boolean(c.googleCredentialsSecretArn || c.googleApplicationCredentialsJson);
   return hasGoogle ? "google" : "aws";
 }
 

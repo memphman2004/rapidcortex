@@ -15,14 +15,25 @@ National outbound prospect database for US PSAPs (Public Safety Answering Points
 - Routes under `/api/rc-admin/psap-prospects/*` on AppSam3 HttpApi
 - Web BFF mirrors those paths under `apps/web/app/api/rc-admin/psap-prospects/`
 
-## Seed
+## Seed / upsert
 
 ```bash
+# Preview (no writes) — match phone, else FIPS + name
 PSAP_PROSPECTS_TABLE=rapid-cortex-psap-prospects-dev \
-  npx tsx scripts/seed-psap-prospects.ts ./rc-psap-with-coordinates.xlsx
+  npx tsx scripts/seed-psap-prospects.ts "./rc-public safety answering points (PSAPs)-phone-numbers.xls" --dry-run
+
+# Upsert: update matched registry fields; insert unknown phones
+PSAP_PROSPECTS_TABLE=rapid-cortex-psap-prospects-dev \
+  npx tsx scripts/seed-psap-prospects.ts "./rc-public safety answering points (PSAPs)-phone-numbers.xls"
+
+# Old insert-only behavior (skip any phone that already exists)
+PSAP_PROSPECTS_TABLE=rapid-cortex-psap-prospects-dev \
+  npx tsx scripts/seed-psap-prospects.ts ./file.xlsx --insert-only
 ```
 
-Requires `xlsx` (`npm i -D xlsx`). Dedupes by phone via `PhoneIndex`.
+Requires `xlsx` (`npm i -D xlsx`). Columns accepted include `NAME` / `psap_name`, `County`, `State`, `City`, `Phone number` / `phone`, `FIPS`, and optional `latitude` / `longitude`.
+
+**Match order:** phone → FIPS + PSAP name → insert. FIPS alone is not unique (many PSAPs share a county). Upserts preserve outreach, activities, contacts, and `mailingAddress`. Coords are only overwritten when the sheet includes lat/lng.
 
 ## Address enrichment
 

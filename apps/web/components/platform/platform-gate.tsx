@@ -24,11 +24,8 @@ export function PlatformGate({ children }: { children: ReactNode }) {
         </div>
         <h1 className="text-lg font-semibold text-white">RC internal area restricted</h1>
         <p className="text-sm leading-relaxed text-slate-400">
-          This command center is for Rapid Cortex internal operators (
-          <code className="rounded bg-slate-900 px-1 font-mono text-slate-300">rcsuperadmin</code>,{" "}
-          <code className="rounded bg-slate-900 px-1 font-mono text-slate-300">rcadmin</code>, or{" "}
-          <code className="rounded bg-slate-900 px-1 font-mono text-slate-300">rcitadmin</code>{" "}
-          in Cognito). Agency administrators use the standard Admin section.
+          This command center is for Rapid Cortex internal operators (RC Super Admin, RC Admin, or RC
+          IT Admin). Agency administrators use the standard Admin section.
         </p>
       </div>
     );

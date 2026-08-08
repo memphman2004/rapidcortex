@@ -206,7 +206,7 @@ export default function AdminCrisisDiversionPage() {
       <div className="space-y-4 p-4 md:p-6">
         <h1 className="text-lg font-semibold text-white">Crisis diversion</h1>
         <p className="text-sm text-slate-400">
-          Enable with <code className="text-violet-300">NEXT_PUBLIC_ENABLE_NG911_ASSIST=1</code>.
+          NG9-1-1 assist is not enabled for this agency. Contact Rapid Cortex support to turn it on.
         </p>
       </div>
     );
@@ -519,7 +519,7 @@ export default function AdminCrisisDiversionPage() {
         <section className="max-w-lg space-y-3">
           <h2 className="text-sm font-semibold text-white">Unit costs (savings estimates)</h2>
           <p className="text-xs text-slate-500">
-            Agency-supplied avoided-response costs. Used in metrics and DataPath export.
+            Agency-supplied avoided-response costs used for savings estimates in metrics.
             {configQuery.data
               ? ` Current: LE $${configQuery.data.unitCostAvoidedLeUsd ?? 0} · EMS $${configQuery.data.unitCostAvoidedEmsUsd ?? 0}.`
               : null}
@@ -561,7 +561,7 @@ export default function AdminCrisisDiversionPage() {
         <section className="space-y-3">
           <h2 className="text-sm font-semibold text-white">Clinician consult queue</h2>
           <p className="text-xs text-slate-500">
-            Uses supervisor / agency admin (no new Cognito role). Dispatchers can request consults from
+            Uses existing supervisor / agency admin roles. Dispatchers can request consults from
             the NG9-1-1 assist panel.
           </p>
           {(consultQuery.data ?? []).length === 0 ? (

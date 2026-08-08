@@ -20,8 +20,7 @@ export default function AdminWellnessPage() {
       </div>
       {!isDispatcherWellnessUiEnabled() ? (
         <p className="rounded-lg border border-amber-900/50 bg-amber-950/30 p-3 text-sm text-amber-100">
-          Enable <span className="font-mono">ENABLE_DISPATCHER_WELLNESS</span> and{" "}
-          <span className="font-mono">NEXT_PUBLIC_ENABLE_DISPATCHER_WELLNESS</span> for this surface.
+          Dispatcher wellness isn’t enabled for this agency. Contact Rapid Cortex support.
         </p>
       ) : null}
       <section className="rounded-lg border border-slate-800 bg-slate-900/35 p-4">

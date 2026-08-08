@@ -21,7 +21,7 @@ export function getIntegrationStatusRows(): IntegrationStatusRow[] {
       id: "api",
       label: "Rapid Cortex API",
       detail: apiLive
-        ? "Live backend (cookie proxy or NEXT_PUBLIC_API_BASE)"
+        ? "Connected"
         : trainingModeCompactDetail(),
       health: apiLive ? "live" : "offline",
     },

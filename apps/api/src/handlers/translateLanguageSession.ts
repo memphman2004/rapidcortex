@@ -16,6 +16,7 @@ import { ACCOUNT_INACTIVE_MESSAGE, getUserContext, isUserAccountActive } from ".
 import { MultilingualCallService } from "../services/multilingualCallService.js";
 import { env } from "../lib/env.js";
 import { VoiceProviderError } from "../voice/providerErrors.js";
+import { TranslationUnavailableError } from "../services/language/translationControlledError.js";
 import { requireAddon } from "../middleware/requireAddon.js";
 
 const service = new MultilingualCallService();
@@ -68,9 +69,23 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
     if (msg === "FORBIDDEN_PERMISSION" && statusCode === 403) return forbidden();
     if (msg === "FORBIDDEN") return forbidden();
     if (msg === "SESSION_NOT_FOUND") return jsonStatus({ error: "Session not found" }, 404);
+    if (error instanceof TranslationUnavailableError) {
+      return jsonStatus(
+        {
+          error: "Translation is temporarily unavailable. Contact Rapid Cortex support.",
+          code: "translation_unavailable",
+        },
+        503,
+      );
+    }
     if (error instanceof VoiceProviderError) {
       return jsonStatus({ error: "Translation provider error", code: error.code }, 502);
     }
+    console.error(
+      "[language-session/translate]",
+      error instanceof Error ? error.name : "error",
+      msg,
+    );
     return serverError();
   }
 };

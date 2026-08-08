@@ -111,7 +111,11 @@ export default function AdminQaTemplatesPage() {
   }
 
   if (!isApiConfigured()) {
-    return <div className="p-6 text-sm text-slate-400">Configure the API (auth proxy or NEXT_PUBLIC_API_BASE).</div>;
+    return (
+      <div className="p-6 text-sm text-slate-400">
+        Platform connection isn’t configured. Contact Rapid Cortex support.
+      </div>
+    );
   }
 
   return (

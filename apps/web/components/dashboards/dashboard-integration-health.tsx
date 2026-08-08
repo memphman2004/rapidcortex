@@ -39,13 +39,13 @@ export function DashboardIntegrationHealth({
     <section
       className="relative overflow-hidden rounded-lg border border-slate-800 bg-slate-950/60 p-4"
       style={{ borderTop: "3px solid var(--role-accent)" }}
-      aria-label="Integration health"
+      aria-label="System health"
     >
       <div className="flex flex-wrap items-center justify-between gap-2">
         <div>
-          <h2 className="text-sm font-semibold text-white">Integration health</h2>
+          <h2 className="text-sm font-semibold text-white">System health</h2>
           <p className="mt-0.5 text-xs text-slate-500">
-            Cognito session, API Gateway, Lambda handlers, and DynamoDB for this workspace.
+            Sign-in, platform connection, and data services for this workspace.
           </p>
         </div>
         <button
@@ -80,8 +80,8 @@ export function DashboardIntegrationHealth({
           role="status"
         >
           {allOk
-            ? "All integration checks passed for this dashboard."
-            : "One or more checks failed — verify deployment env vars and IAM before go-live."}
+            ? "All checks passed for this dashboard."
+            : "One or more checks failed — contact Rapid Cortex support if this continues."}
         </p>
       ) : null}
     </section>

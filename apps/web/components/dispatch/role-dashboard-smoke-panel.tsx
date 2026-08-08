@@ -51,8 +51,8 @@ export function RoleDashboardSmokePanel({ title, pathLabel }: Props) {
           <dd className="text-slate-200">{user.agencyId}</dd>
         </div>
         <div className="sm:col-span-2">
-          <dt className="text-slate-500">Status (Cognito custom:status / token)</dt>
-          <dd className="text-slate-200">{user.accountStatus ?? "— (not in ID token or unset)"}</dd>
+          <dt className="text-slate-500">Account status</dt>
+          <dd className="text-slate-200">{user.accountStatus ?? "—"}</dd>
         </div>
       </dl>
     </div>

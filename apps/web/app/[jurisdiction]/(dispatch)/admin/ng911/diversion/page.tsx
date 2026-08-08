@@ -114,9 +114,7 @@ export default function AdminDiversionPage() {
       <div className="space-y-4 p-4 md:p-6">
         <h1 className="text-lg font-semibold text-white">Non-emergency diversion</h1>
         <p className="max-w-xl text-sm text-slate-400">
-          NG9-1-1 assist is disabled for this web deployment. Set{" "}
-          <code className="text-violet-300">NEXT_PUBLIC_ENABLE_NG911_ASSIST=1</code> and{" "}
-          <code className="text-violet-300">ENABLE_NG911_ASSIST</code> on the API.
+          NG9-1-1 assist is not enabled for this agency. Contact Rapid Cortex support to turn it on.
         </p>
         <Link href={to("/admin")} className="text-sm text-sky-400 hover:underline">
           ← Admin overview

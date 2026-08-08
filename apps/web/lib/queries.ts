@@ -100,7 +100,7 @@ export async function runAnalysis(incidentId: string): Promise<AIAnalysis> {
   if (!isApiConfigured()) {
     if (!isOfflineDemoDataEnabled()) {
       throw new Error(
-        "API is not configured. Set NEXT_PUBLIC_AUTH_PROXY=1 and API_UPSTREAM_BASE (or NEXT_PUBLIC_API_BASE). For local-only mock incidents, set NEXT_PUBLIC_OFFLINE_DEMO_MODE=1.",
+        "Platform connection isn’t configured. Contact Rapid Cortex support. Training mode can still show sample incidents.",
       );
     }
     const existing = mockGetLatestAnalysis(incidentId);

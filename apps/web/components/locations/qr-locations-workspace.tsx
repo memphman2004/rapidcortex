@@ -30,15 +30,17 @@ export function QrLocationsWorkspace({
   if (!enabled) {
     return (
       <p className="text-sm text-slate-400">
-        QR locations are disabled. Set{" "}
-        <code className="rounded bg-slate-900 px-1 text-slate-300">NEXT_PUBLIC_ENABLE_LOCATIONS_QR_ADMIN=1</code>.
+        QR location tools aren’t enabled for this site. Contact Rapid Cortex support.
       </p>
     );
   }
 
   if (!api) {
-    return <p className="text-sm text-slate-400">Configure the API base URL to manage QR locations.</p>;
-  }
+    return (
+      <p className="text-sm text-slate-400">
+        Platform connection isn’t configured. Contact Rapid Cortex support.
+      </p>
+    );
 
   if (!canView) {
     return (

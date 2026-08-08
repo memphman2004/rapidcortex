@@ -14,9 +14,25 @@ export function mapLocaleForAzureTranslator(code: string): string {
 }
 
 async function resolveTranslatorKey(cfg: MultilingualVoiceConfig): Promise<string> {
-  const k = await resolvePlainOrSecretArn(cfg.azureTranslatorKey, cfg.azureTranslatorKeySecretArn, {
-    preferredField: "azureTranslationKey",
-  });
+  let k: string | undefined;
+  try {
+    k = await resolvePlainOrSecretArn(cfg.azureTranslatorKey, cfg.azureTranslatorKeySecretArn, {
+      preferredField: "azureTranslationKey",
+    });
+  } catch (e) {
+    const name = e instanceof Error ? e.name : "Error";
+    console.error(
+      JSON.stringify({
+        event: "azure_translator_secret_resolve_failed",
+        errorName: name,
+        hasSecretArn: Boolean(cfg.azureTranslatorKeySecretArn?.trim()),
+      }),
+    );
+    throw new VoiceProviderError("Azure Translator key unavailable", VOICE_ERROR_CODES.PROVIDER_CONFIG_ERROR, {
+      retryable: false,
+      cause: e,
+    });
+  }
   if (!k?.trim()) {
     throw new VoiceProviderError("Azure Translator key missing", VOICE_ERROR_CODES.PROVIDER_CONFIG_ERROR, {
       retryable: false,
@@ -62,6 +78,16 @@ export async function azureTranslatorTranslateText(opts: {
   });
 
   if (!res.ok) {
+    console.error(
+      JSON.stringify({
+        event: "azure_translator_http_error",
+        httpStatus: res.status,
+        region,
+        from,
+        to,
+        agencyId: opts.agencyId,
+      }),
+    );
     throw new VoiceProviderError(`Azure translate HTTP ${res.status}`, VOICE_ERROR_CODES.TRANSLATION_INVALID_RESPONSE, {
       httpStatus: res.status,
       retryable: res.status === 429 || res.status >= 500,

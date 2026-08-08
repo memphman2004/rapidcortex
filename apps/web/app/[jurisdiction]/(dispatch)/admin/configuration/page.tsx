@@ -13,11 +13,9 @@ export default async function AdminConfigurationPage({ params }: Props) {
       <div>
         <h1 className="text-lg font-semibold text-white">Configuration</h1>
         <p className="mt-2 max-w-3xl text-sm leading-relaxed text-slate-400">
-          Read-only visibility for agency admins: what this browser build exposes, pilot-oriented web
-          flags, and live integration posture from the API. Changing Lambda or Cognito settings is{" "}
-          <span className="font-medium text-slate-300">not</span> done from this page — follow{" "}
-          <span className="font-mono text-slate-300">docs/ADMIN_SETUP_GUIDE.md</span> and{" "}
-          <span className="font-mono text-slate-300">docs/AGENCY_CONFIGURATION_GUIDE.md</span>.
+          Read-only visibility for agency admins: browser feature flags and live integration posture.
+          Platform auth and compute settings are not changed from this page — contact Rapid Cortex
+          support for infrastructure changes.
         </p>
       </div>
 

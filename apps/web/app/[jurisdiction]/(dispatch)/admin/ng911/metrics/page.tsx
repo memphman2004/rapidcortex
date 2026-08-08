@@ -21,9 +21,21 @@ function canViewMetrics(role: string | undefined): boolean {
   );
 }
 
+/** Compliance / export packs — not for floor supervisors or dispatchers. */
+function canViewCompliancePacks(role: string | undefined): boolean {
+  return (
+    role === "rcsuperadmin" ||
+    role === "rcadmin" ||
+    role === "rcitadmin" ||
+    role === "auditor" ||
+    role === "agencyit"
+  );
+}
+
 export default function AdminNg911MetricsPage() {
   const { user } = useSession();
   const to = useJurisdictionLink();
+  const showCompliance = canViewCompliancePacks(user?.role);
 
   const metricsQuery = useQuery({
     queryKey: ["ng911-metrics"],
@@ -34,13 +46,17 @@ export default function AdminNg911MetricsPage() {
   const evidenceQuery = useQuery({
     queryKey: ["ng911-ng-sec"],
     queryFn: () => fetchNgSecEvidence(),
-    enabled: Boolean(user && isApiConfigured() && isNg911AssistEnabled() && canViewMetrics(user.role)),
+    enabled: Boolean(
+      user && isApiConfigured() && isNg911AssistEnabled() && showCompliance && canViewMetrics(user.role),
+    ),
   });
 
   const dataPathQuery = useQuery({
     queryKey: ["ng911-datapath"],
     queryFn: () => fetchDataPathExport(),
-    enabled: Boolean(user && isApiConfigured() && isNg911AssistEnabled() && canViewMetrics(user.role)),
+    enabled: Boolean(
+      user && isApiConfigured() && isNg911AssistEnabled() && showCompliance && canViewMetrics(user.role),
+    ),
   });
 
   if (!user) return null;
@@ -58,7 +74,7 @@ export default function AdminNg911MetricsPage() {
       <div className="space-y-4 p-4 md:p-6">
         <h1 className="text-lg font-semibold text-white">NG9-1-1 metrics</h1>
         <p className="max-w-xl text-sm text-slate-400">
-          Enable with <code className="text-violet-300">NEXT_PUBLIC_ENABLE_NG911_ASSIST=1</code>.
+          NG9-1-1 assist is not enabled for this agency. Contact Rapid Cortex support to turn it on.
         </p>
       </div>
     );
@@ -73,7 +89,7 @@ export default function AdminNg911MetricsPage() {
         <p className="text-[11px] font-semibold uppercase tracking-wide text-violet-400/90">NG9-1-1 assist</p>
         <h1 className="text-lg font-semibold text-white">Call-processing metrics</h1>
         <p className="mt-1 max-w-2xl text-sm text-slate-400">
-          Audit-derived diversion, crisis diversion, triage, and assist counts.
+          Diversion, crisis support, triage, and assist activity for your agency.
         </p>
         <p className="mt-2 text-sm">
           <Link href={to("/admin/ng911/diversion")} className="text-sky-400 hover:underline">
@@ -137,87 +153,98 @@ export default function AdminNg911MetricsPage() {
         </div>
       ) : null}
 
-      <section className="space-y-3">
-        <div className="flex items-center justify-between gap-3">
-          <h2 className="text-sm font-semibold text-white">DataPath-aligned export</h2>
-          {dataPathQuery.data ? (
-            <button
-              type="button"
-              className="text-xs text-sky-400 hover:underline"
-              onClick={() => {
-                const blob = new Blob([JSON.stringify(dataPathQuery.data, null, 2)], {
-                  type: "application/json",
-                });
-                const url = URL.createObjectURL(blob);
-                const a = document.createElement("a");
-                a.href = url;
-                a.download = `datapath-assist-${user.agencyId}.json`;
-                a.click();
-                URL.revokeObjectURL(url);
-              }}
-            >
-              Download JSON
-            </button>
-          ) : null}
-        </div>
-        {dataPathQuery.data ? (
-          <ul className="grid gap-2 sm:grid-cols-2">
-            {dataPathQuery.data.elements.map((el) => (
-              <li
-                key={el.elementId}
-                className="rounded-lg border border-slate-800 bg-slate-900/40 px-3 py-2 text-xs text-slate-300"
-              >
-                <p className="font-medium text-white">{el.label}</p>
-                <p className="mt-0.5 font-mono text-sky-300">{String(el.value)}</p>
-                <p className="text-slate-500">{el.elementId}</p>
-              </li>
-            ))}
-          </ul>
-        ) : null}
-      </section>
-
-      <section className="space-y-3">
-        <div className="flex items-center justify-between gap-3">
-          <h2 className="text-sm font-semibold text-white">NG-SEC evidence pack</h2>
-          {evidenceQuery.data ? (
-            <button
-              type="button"
-              className="text-xs text-sky-400 hover:underline"
-              onClick={() => {
-                const blob = new Blob([JSON.stringify(evidenceQuery.data, null, 2)], {
-                  type: "application/json",
-                });
-                const url = URL.createObjectURL(blob);
-                const a = document.createElement("a");
-                a.href = url;
-                a.download = `ng-sec-evidence-${user.agencyId}.json`;
-                a.click();
-                URL.revokeObjectURL(url);
-              }}
-            >
-              Download JSON
-            </button>
-          ) : null}
-        </div>
-        {evidenceQuery.isLoading ? <p className="text-sm text-slate-500">Loading evidence…</p> : null}
-        {evidenceQuery.data ? (
-          <ul className="space-y-2">
-            {evidenceQuery.data.controls.map((c) => (
-              <li
-                key={c.controlId}
-                className="rounded-lg border border-slate-800 bg-slate-900/40 px-3 py-2 text-xs text-slate-300"
-              >
-                <p className="font-medium text-white">
-                  {c.controlId}{" "}
-                  <span className="font-normal text-slate-500">· {c.status}</span>
+      {showCompliance ? (
+        <>
+          <section className="space-y-3">
+            <div className="flex items-center justify-between gap-3">
+              <div>
+                <h2 className="text-sm font-semibold text-white">Assist summary export</h2>
+                <p className="mt-0.5 text-xs text-slate-500">
+                  Downloadable summary for compliance and reporting (IT / audit roles).
                 </p>
-                <p className="mt-0.5 text-slate-400">{c.title}</p>
-                {c.evidence ? <p className="mt-1 text-slate-500">{c.evidence}</p> : null}
-              </li>
-            ))}
-          </ul>
-        ) : null}
-      </section>
+              </div>
+              {dataPathQuery.data ? (
+                <button
+                  type="button"
+                  className="text-xs text-sky-400 hover:underline"
+                  onClick={() => {
+                    const blob = new Blob([JSON.stringify(dataPathQuery.data, null, 2)], {
+                      type: "application/json",
+                    });
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement("a");
+                    a.href = url;
+                    a.download = `datapath-assist-${user.agencyId}.json`;
+                    a.click();
+                    URL.revokeObjectURL(url);
+                  }}
+                >
+                  Download JSON
+                </button>
+              ) : null}
+            </div>
+            {dataPathQuery.data ? (
+              <ul className="grid gap-2 sm:grid-cols-2">
+                {dataPathQuery.data.elements.map((el) => (
+                  <li
+                    key={el.elementId}
+                    className="rounded-lg border border-slate-800 bg-slate-900/40 px-3 py-2 text-xs text-slate-300"
+                  >
+                    <p className="font-medium text-white">{el.label}</p>
+                    <p className="mt-0.5 text-lg font-semibold text-sky-200">{String(el.value)}</p>
+                  </li>
+                ))}
+              </ul>
+            ) : null}
+          </section>
+
+          <section className="space-y-3">
+            <div className="flex items-center justify-between gap-3">
+              <div>
+                <h2 className="text-sm font-semibold text-white">Security controls checklist</h2>
+                <p className="mt-0.5 text-xs text-slate-500">
+                  Control status for compliance review (IT / audit roles).
+                </p>
+              </div>
+              {evidenceQuery.data ? (
+                <button
+                  type="button"
+                  className="text-xs text-sky-400 hover:underline"
+                  onClick={() => {
+                    const blob = new Blob([JSON.stringify(evidenceQuery.data, null, 2)], {
+                      type: "application/json",
+                    });
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement("a");
+                    a.href = url;
+                    a.download = `ng-sec-evidence-${user.agencyId}.json`;
+                    a.click();
+                    URL.revokeObjectURL(url);
+                  }}
+                >
+                  Download JSON
+                </button>
+              ) : null}
+            </div>
+            {evidenceQuery.isLoading ? <p className="text-sm text-slate-500">Loading checklist…</p> : null}
+            {evidenceQuery.data ? (
+              <ul className="space-y-2">
+                {evidenceQuery.data.controls.map((c) => (
+                  <li
+                    key={c.controlId}
+                    className="rounded-lg border border-slate-800 bg-slate-900/40 px-3 py-2 text-xs text-slate-300"
+                  >
+                    <p className="font-medium text-white">
+                      {c.title}{" "}
+                      <span className="font-normal capitalize text-slate-500">· {c.status}</span>
+                    </p>
+                  </li>
+                ))}
+              </ul>
+            ) : null}
+          </section>
+        </>
+      ) : null}
     </div>
   );
 }
@@ -230,7 +257,7 @@ function MetricCard({ title, rows }: { title: string; rows: [string, number][] }
         {rows.map(([label, value]) => (
           <div key={label} className="flex justify-between gap-3 text-sm">
             <dt className="text-slate-400">{label}</dt>
-            <dd className="font-mono text-white">{value}</dd>
+            <dd className="tabular-nums text-white">{value}</dd>
           </div>
         ))}
       </dl>

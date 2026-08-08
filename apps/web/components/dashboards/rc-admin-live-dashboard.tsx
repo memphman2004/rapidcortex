@@ -99,7 +99,7 @@ function buildStats(
       id: "agencies",
       label: "Total agencies",
       value: String(totals?.agencies ?? agencies.length),
-      hint: "Tenants in DynamoDB",
+      hint: "Active agency tenants",
     },
     {
       id: "active",
@@ -109,11 +109,11 @@ function buildStats(
     },
     {
       id: "users",
-      label: "Users (Cognito)",
+      label: "Directory users",
       value: totals?.users != null ? String(totals.users) : usersCount != null ? String(usersCount) : "—",
       hint:
         totals?.activeUsers != null
-          ? `${totals.activeUsers} enabled in pool`
+          ? `${totals.activeUsers} enabled accounts`
           : "Directory sample from admin API",
     },
     {

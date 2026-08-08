@@ -33,7 +33,7 @@ export default function WarRoomPage() {
   if (!enabled) {
     return (
       <div className="p-6 text-sm text-slate-400">
-        War rooms are disabled. Set <code className="text-slate-300">NEXT_PUBLIC_ENABLE_WAR_ROOMS=1</code>.
+        War rooms aren’t enabled for this agency. Contact Rapid Cortex support.
       </div>
     );
   }

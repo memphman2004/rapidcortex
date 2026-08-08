@@ -79,7 +79,7 @@ export function AdminUsersPanel() {
   if (!isApiConfigured()) {
     return (
       <p className="text-sm text-amber-200/90">
-        Connect the UI to your API (NEXT_PUBLIC_API_BASE or auth proxy) to manage Cognito users.
+        Platform connection isn’t configured. Contact Rapid Cortex support to manage users.
       </p>
     );
   }
@@ -93,23 +93,12 @@ export function AdminUsersPanel() {
           complexity). User will set a new password on first sign-in.
         </p>
         <p className="mt-2 text-xs leading-relaxed text-slate-500">
-          Agency <span className="font-mono text-slate-400">agencyadmin</span> users can assign roles{" "}
-          <span className="font-mono text-slate-400">dispatcher</span>,{" "}
-          <span className="font-mono text-slate-400">supervisor</span>,{" "}
-          <span className="font-mono text-slate-400">agencyadmin</span>, or{" "}
-          <span className="font-mono text-slate-400">agencyit</span> only within their own{" "}
-          <span className="font-mono text-slate-400">custom:agencyId</span>.{" "}
-          Only Rapid Cortex <span className="text-slate-300">RC Super Admin</span> (
-          <span className="font-mono text-slate-400">rcsuperadmin</span>) may assign{" "}
-          <span className="font-mono text-slate-400">rcsuperadmin</span>,{" "}
-          <span className="font-mono text-slate-400">rcadmin</span>, or{" "}
-          <span className="font-mono text-slate-400">rcitadmin</span> when editing users in the directory below.
-          Invite/create above is agency-role only.{" "}
-          <span className="font-mono text-slate-400">auditor</span> and{" "}
-          <span className="font-mono text-slate-400">analyst</span> are still runbook/Cognito-admin only.{" "}
-          <span className="font-medium text-slate-400">Re-enabling</span> a deactivated account is not in this UI; use
-          Cognito <span className="font-mono text-slate-400">AdminEnableUser</span> or the console (see{" "}
-          <span className="font-mono text-slate-400">docs/USER_PROVISIONING_GUIDE.md</span>).
+          Agency administrators can assign Dispatcher, Supervisor, Agency Admin, or Agency IT roles
+          only within their own agency. Only Rapid Cortex Super Admin may assign RC Admin roles when
+          editing users in the directory below. Invite/create above is agency-role only. Auditor and
+          Analyst accounts are provisioned by Rapid Cortex support.{" "}
+          <span className="font-medium text-slate-400">Re-enabling</span> a deactivated account is not
+          in this UI — contact Rapid Cortex support.
         </p>
         <form
           className="mt-4 grid max-w-xl gap-3 sm:grid-cols-2"
@@ -130,7 +119,7 @@ export function AdminUsersPanel() {
             />
           </label>
           <label className="flex flex-col gap-1 text-xs">
-            <span className="text-slate-400">Agency ID (JWT custom:agencyId)</span>
+            <span className="text-slate-400">Agency ID</span>
             <input
               required
               value={agencyId}

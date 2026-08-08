@@ -47,8 +47,7 @@ export function RcAdminQrPanel() {
   if (!enabled) {
     return (
       <p className="text-sm text-slate-400">
-        QR locations are disabled. Set{" "}
-        <code className="rounded bg-slate-900 px-1 text-slate-300">NEXT_PUBLIC_ENABLE_LOCATIONS_QR_ADMIN=1</code>.
+        QR location tools aren’t enabled. Contact Rapid Cortex support.
       </p>
     );
   }

@@ -24,9 +24,9 @@ function attemptOrder(): TextProviderKind[] {
 }
 
 function missingGoogleCreds(cfg: MultilingualVoiceConfig): boolean {
-  return !(
-    Boolean(cfg.googleCloudProjectId) && Boolean(cfg.googleCredentialsSecretArn || cfg.googleApplicationCredentialsJson)
-  );
+  // Translate REST uses SA JSON from the secret; project id is optional here
+  // (STT/TTS paths still prefer GOOGLE_CLOUD_PROJECT_ID when set).
+  return !Boolean(cfg.googleCredentialsSecretArn || cfg.googleApplicationCredentialsJson);
 }
 
 function missingAzureCreds(cfg: MultilingualVoiceConfig): boolean {

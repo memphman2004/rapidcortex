@@ -22,9 +22,7 @@ export default function AdminCadPage() {
       <div className="mx-auto max-w-3xl px-4 py-10 text-slate-200">
         <h1 className="text-xl font-semibold text-white">CAD Integrations</h1>
         <p className="mt-3 text-sm text-slate-400">
-          This admin surface is disabled. Set{" "}
-          <code className="rounded bg-slate-900 px-1 py-0.5 text-slate-300">NEXT_PUBLIC_ENABLE_CAD_ADMIN=1</code> for
-          environments that expose the CAD integration API.
+          CAD admin isn’t enabled for this agency. Contact Rapid Cortex support.
         </p>
       </div>
     );
@@ -35,8 +33,7 @@ export default function AdminCadPage() {
       <div className="mx-auto max-w-3xl px-4 py-10 text-slate-200">
         <h1 className="text-xl font-semibold text-white">CAD Integrations</h1>
         <p className="mt-3 text-sm text-slate-400">
-          Configure <code className="text-slate-300">NEXT_PUBLIC_API_BASE</code> or auth proxy mode so the browser can reach
-          the Rapid Cortex API.
+          Platform connection isn’t configured. Contact Rapid Cortex support.
         </p>
       </div>
     );

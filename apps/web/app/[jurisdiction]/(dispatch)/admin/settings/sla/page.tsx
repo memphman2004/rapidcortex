@@ -29,9 +29,7 @@ export default function AdminSlaSettingsPage() {
       <div className="space-y-4 p-4 md:p-6">
         <h1 className="text-lg font-semibold text-white">SLA thresholds</h1>
         <p className="max-w-xl text-sm text-slate-400">
-          SLA backlog tracking is disabled for this environment. Set{" "}
-          <code className="text-violet-300">NEXT_PUBLIC_ENABLE_SLA_BACKLOG=1</code> to enable
-          queue SLA metrics and threshold configuration.
+          SLA backlog tracking isn’t enabled for this agency. Contact Rapid Cortex support.
         </p>
         <Link href={to("/admin/settings")} className="text-sm text-sky-400 hover:underline">
           ← Back to settings

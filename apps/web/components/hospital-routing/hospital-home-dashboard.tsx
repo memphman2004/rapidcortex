@@ -76,9 +76,7 @@ export function HospitalHomeDashboard({
   if (!portalEnabled) {
     return (
       <div className="rounded-lg border border-slate-800 bg-slate-950/40 p-6 text-sm text-slate-300">
-        Hospital portal is not enabled in this environment. Set{" "}
-        <code className="text-slate-200">NEXT_PUBLIC_ENABLE_HOSPITAL_PORTAL</code> or enable pilot
-        test mode.
+        Hospital portal isn’t enabled for this agency. Contact Rapid Cortex support.
       </div>
     );
   }
@@ -176,9 +174,7 @@ export function HospitalHomeDashboard({
         </section>
       ) : (
         <section className="rounded-lg border border-slate-800 bg-slate-950/40 p-4 text-sm text-slate-400">
-          Regional routing map is off. Enable{" "}
-          <code className="text-slate-300">NEXT_PUBLIC_ENABLE_HOSPITAL_ROUTING</code> to preview the
-          hospital network map on this page.
+          Regional routing map isn’t enabled for this agency. Contact Rapid Cortex support.
         </section>
       )}
     </div>

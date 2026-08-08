@@ -254,9 +254,23 @@ function needsEnrichment(record: PsapRecord): boolean {
 
 async function writeEnrichment(record: PsapRecord, result: EnrichmentResult): Promise<void> {
   const now = new Date().toISOString();
+  // Rural PSAP coords often reverse-geocode to zip/city only (no street number).
+  // Prefer real street; else keep prior street; else leave unset and still store city/zip/label.
+  const streetAddress =
+    result.streetAddress?.trim() ||
+    record.mailingAddress?.streetAddress?.trim() ||
+    undefined;
+  const city = (result.city || record.mailingAddress?.city || record.city || "").trim();
+  const zip = (result.zip ?? record.mailingAddress?.zip)?.trim();
+  const formattedAddress = result.formattedAddress?.trim();
+
+  if (!streetAddress && !city && !zip && !formattedAddress) {
+    throw new Error("Geocode returned no usable address fields");
+  }
+
   const mailingAddress = {
-    streetAddress: result.streetAddress ?? record.mailingAddress?.streetAddress,
-    city: (result.city || record.mailingAddress?.city || record.city).trim(),
+    streetAddress,
+    city: city || record.city,
     county: (result.county || record.mailingAddress?.county || record.county).trim(),
     state: (
       (result.state?.length === 2 ? result.state : undefined) ||
@@ -266,17 +280,13 @@ async function writeEnrichment(record: PsapRecord, result: EnrichmentResult): Pr
       .trim()
       .toUpperCase()
       .slice(0, 2),
-    zip: result.zip ?? record.mailingAddress?.zip,
+    zip,
     verified: false,
     enrichedAt: now,
     source: "aws_location" as const,
-    formattedAddress: result.formattedAddress,
-    confidence: result.confidence,
+    formattedAddress,
+    confidence: streetAddress ? result.confidence : ("low" as const),
   };
-
-  if (!mailingAddress.streetAddress?.trim()) {
-    throw new Error("No street address from geocode");
-  }
 
   const exprNames: Record<string, string> = {
     "#mailingAddress": "mailingAddress",

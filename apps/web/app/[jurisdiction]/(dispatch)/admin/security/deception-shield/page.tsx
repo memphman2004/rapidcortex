@@ -146,11 +146,7 @@ function DeceptionShieldContent() {
           <ShieldAlert className="h-6 w-6 text-sky-400" aria-hidden /> Deception Shield
         </h1>
         <p className="text-sm leading-relaxed text-slate-400">
-          Gate this UI explicitly with{" "}
-          <code className="rounded bg-slate-900 px-1 py-0.5 text-xs text-slate-300">
-            NEXT_PUBLIC_ENABLE_DECEPTION_SHIELD_UI=1
-          </code>{" "}
-          for deployments that intentionally ship the deception admin API route.
+          Deception Shield isn’t enabled for this agency. Contact Rapid Cortex support.
         </p>
       </div>
     );

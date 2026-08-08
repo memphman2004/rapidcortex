@@ -113,10 +113,9 @@ export function MapboxIncidentMap({
         className={`flex flex-col items-center justify-center gap-3 rounded-lg border border-rose-500/30 bg-slate-950 px-6 py-8 text-center ${className ?? ""}`}
         style={fill ? { height: "100%", minHeight: 280 } : { height }}
       >
-        <p className="text-sm font-semibold text-rose-300">Mapbox token not configured</p>
+        <p className="text-sm font-semibold text-rose-300">Map isn’t configured</p>
         <p className="max-w-sm text-xs leading-relaxed text-slate-500">
-          Set <code className="text-violet-300">NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN</code> in SSM at{" "}
-          <code className="text-violet-300">/rapidcortex/prod/mapbox/public-token</code> and redeploy the web app.
+          Map isn’t available in this environment. Contact Rapid Cortex support.
         </p>
         <p className="font-mono text-[11px] text-slate-500">
           {lat.toFixed(5)}, {lng.toFixed(5)}

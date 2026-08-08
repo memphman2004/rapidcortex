@@ -383,8 +383,7 @@ export function DeploymentsMapPanel({
     if (tokenMissing) {
       return (
         <div className="flex h-full items-center justify-center px-6 text-center text-sm text-slate-500">
-          Set <code className="mx-1 text-violet-300">NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN</code> to
-          render the deployments map.
+          Map isn’t configured for this environment.
         </div>
       );
     }

@@ -98,7 +98,7 @@ export function QaDashboardPage() {
   if (!enabled) {
     return (
       <div className="p-6 text-sm text-slate-400">
-        QA module requires API configuration and <code className="text-slate-300">NEXT_PUBLIC_ENABLE_QA_SCORING=1</code>.
+        QA scoring isn’t enabled for this agency. Contact Rapid Cortex support.
       </div>
     );
   }

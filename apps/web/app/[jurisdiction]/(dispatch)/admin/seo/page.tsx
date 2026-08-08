@@ -62,9 +62,7 @@ export default function CortexSeoIntelligencePage() {
       <div className="mx-auto max-w-3xl px-4 py-10 text-slate-200">
         <h1 className="text-xl font-semibold text-white">Cortex SEO Intelligence</h1>
         <p className="mt-3 text-sm text-slate-400">
-          This internal dashboard is disabled. Set{" "}
-          <code className="rounded bg-slate-900 px-1 py-0.5 text-slate-300">NEXT_PUBLIC_ENABLE_SEO_INTELLIGENCE=1</code>{" "}
-          for environments that ship the SEO Intelligence API.
+          SEO Intelligence isn’t enabled for this environment. Contact Rapid Cortex support.
         </p>
       </div>
     );

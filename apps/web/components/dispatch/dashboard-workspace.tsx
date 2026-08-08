@@ -34,11 +34,7 @@ import {
 import type { SimulatedTranscriptChunk } from "@/lib/transcript-sim-stream";
 import type { TranscriptSegment } from "rapid-cortex-shared";
 import { useJurisdictionLink } from "@/lib/jurisdiction-context";
-import {
-  TRAINING_MODE_LABEL,
-  TRAINING_MODE_PUBLIC_API_ENV,
-  trainingModeExplanationParts,
-} from "@/lib/training-mode";
+import { TRAINING_MODE_LABEL, TRAINING_MODE_API_EXPLANATION } from "@/lib/training-mode";
 
 export function DashboardWorkspace() {
   const router = useRouter();
@@ -315,8 +311,6 @@ export function DashboardWorkspace() {
     (incidentsQuery.data?.length ?? 0) === 0 &&
     !incidentsQuery.isFetching;
 
-  const [trainingExplainBefore, trainingExplainAfter] = trainingModeExplanationParts();
-
   const transcriptToolbar = isTrainingTranscriptToolbarEnabled() ? (
     <TranscriptChunkPlayer
       disabled={
@@ -340,15 +334,7 @@ export function DashboardWorkspace() {
             role="status"
           >
             <span className="font-medium">{TRAINING_MODE_LABEL}.</span>{" "}
-            {trainingExplainAfter ? (
-              <>
-                {trainingExplainBefore}
-                <code className="rounded bg-black/30 px-1">{TRAINING_MODE_PUBLIC_API_ENV}</code>
-                {trainingExplainAfter}
-              </>
-            ) : (
-              trainingExplainBefore
-            )}
+            {TRAINING_MODE_API_EXPLANATION}
           </div>
         ) : null
       }

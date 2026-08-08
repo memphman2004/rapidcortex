@@ -8,7 +8,7 @@ import { patchAgency } from "@/lib/api";
 const STEP_LABELS: Record<PlatformOnboardingStepId, string> = {
   tenant_created: "Tenant created",
   first_admin: "First admin provisioned",
-  cognito_ready: "Cognito / auth ready",
+  cognito_ready: "Sign-in ready",
   dns_web: "DNS & web / TLS",
   ses: "SES / email",
   sms: "SMS (Twilio / AWS)",

@@ -12,7 +12,7 @@ export function EnvironmentBadge() {
             ? "bg-violet-950 text-violet-200 ring-1 ring-violet-800"
             : "bg-slate-800 text-slate-300 ring-1 ring-slate-600"
       }`}
-      title="Deployment environment (NEXT_PUBLIC_APP_ENV or Vercel env)"
+      title="Deployment environment"
     >
       {env}
     </span>

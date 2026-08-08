@@ -132,9 +132,8 @@ export function FeatureRegistryPanel() {
         </div>
         <p className="mt-2 text-sm text-slate-400">
           Public plans are quote-based. This panel shows capability availability only and does not
-          expose internal pricing. CAD write-back never enables without{" "}
-          <code className="text-slate-300">agencyApprovedCadWriteBack</code>, audit logging, and
-          dispatcher approval on each change.
+          expose internal pricing. CAD write-back never enables without agency CAD write-back
+          approval, audit logging, and dispatcher approval on each change.
         </p>
         <p className="mt-2 text-xs text-amber-200/80">
           Automated CAD write-back remains blocked in product defaults; configure only under explicit

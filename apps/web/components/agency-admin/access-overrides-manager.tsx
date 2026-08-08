@@ -203,7 +203,7 @@ export function AccessOverridesManager({ initialUser }: { initialUser: UserConte
         <h1 className="text-xl font-semibold text-white">Per-user feature access</h1>
         <p className="mt-1 max-w-prose text-sm text-slate-400">
           Grant individual users extra roles, permissions, or feature flags without changing their
-          base Cognito group. Choose override type <strong className="font-normal text-slate-300">Feature flag</strong>{" "}
+          base role assignment. Choose override type <strong className="font-normal text-slate-300">Feature flag</strong>{" "}
           and set the grant descriptor (for example{" "}
           <span className="font-mono text-slate-300">feature:video_assist</span> or{" "}
           <span className="font-mono text-slate-300">dashboard:qa</span>). Records are
@@ -265,7 +265,7 @@ export function AccessOverridesManager({ initialUser }: { initialUser: UserConte
           Search
           <input
             className="rounded-md border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-slate-100"
-            placeholder="Email, Cognito subject, dashboard grant fragment…"
+            placeholder="Email, user id, dashboard grant fragment…"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
@@ -355,7 +355,7 @@ export function AccessOverridesManager({ initialUser }: { initialUser: UserConte
             <h2 className="text-lg font-semibold text-white">Grant override</h2>
             <div className="mt-4 flex flex-col gap-3">
               <label className="text-sm">
-                <span className="block text-xs text-slate-400">Target user email or Cognito sub</span>
+                <span className="block text-xs text-slate-400">Target user email or user id</span>
                 <input
                   required
                   className="mt-1 w-full rounded-md border border-slate-800 bg-slate-900 px-3 py-2 text-sm"

@@ -13,7 +13,8 @@ export AWS_REGION="${AWS_REGION:-us-east-1}"
 export AWS_DEFAULT_REGION="${AWS_DEFAULT_REGION:-$AWS_REGION}"
 export NODE_OPTIONS="${NODE_OPTIONS:---max-old-space-size=8192}"
 
-SAM_BUILD_DIR="/Volumes/Mac Mini/.sam-lean-build/psap-crm-$(date +%Y%m%d-%H%M%S)"
+# Prefer caller override (e.g. /tmp) — env-api-dev.sh may set a shared Mac Mini path.
+SAM_BUILD_DIR="${PSAP_CRM_SAM_BUILD_DIR:-${SAM_BUILD_DIR:-/tmp/rc-sam-psap-crm-$(date +%Y%m%d-%H%M%S)}}"
 mkdir -p "${SAM_BUILD_DIR}"
 export SAM_BUILD_DIR
 echo "SAM_BUILD_DIR=${SAM_BUILD_DIR}"

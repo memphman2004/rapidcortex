@@ -304,9 +304,7 @@ export function SupervisorWorkspace() {
           <h2 className="text-xs font-semibold uppercase tracking-wider text-slate-500">
             Recent AI alerts
           </h2>
-          <p className="mt-1 text-xs text-slate-500">
-            From audit log (<code className="text-slate-400">analysis.created</code>).
-          </p>
+          <p className="mt-1 text-xs text-slate-500">From recent AI analysis events.</p>
           {aiAlerts.length === 0 ? (
             <p className="mt-3 text-sm text-slate-500">
               {auditQuery.isLoading ? "Loading…" : "No AI analysis events yet."}

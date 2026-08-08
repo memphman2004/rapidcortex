@@ -27,32 +27,32 @@ async function checkCognitoSession(): Promise<IntegrationCheckResult> {
     if (!res.ok) {
       return {
         id: "cognito",
-        label: "Cognito session",
+        label: "Sign-in",
         ok: false,
-        detail: `Session HTTP ${res.status}`,
+        detail: `Could not verify session (${res.status})`,
       };
     }
     const body = (await res.json()) as { user?: { email?: string } | null };
     if (!body.user?.email) {
       return {
         id: "cognito",
-        label: "Cognito session",
+        label: "Sign-in",
         ok: false,
-        detail: "No signed-in user in session",
+        detail: "No signed-in user",
       };
     }
     return {
       id: "cognito",
-      label: "Cognito session",
+      label: "Sign-in",
       ok: true,
       detail: body.user.email,
     };
   } catch (e) {
     return {
       id: "cognito",
-      label: "Cognito session",
+      label: "Sign-in",
       ok: false,
-      detail: e instanceof Error ? e.message : "Session check failed",
+      detail: e instanceof Error ? e.message : "Sign-in check failed",
     };
   }
 }
@@ -61,25 +61,25 @@ async function checkApiGateway(): Promise<IntegrationCheckResult> {
   if (!isApiConfigured()) {
     return {
       id: "api",
-      label: "API connectivity",
+      label: "Platform connection",
       ok: false,
-      detail: "Use /api/backend BFF or set NEXT_PUBLIC_API_BASE",
+      detail: "Platform API is not configured for this environment",
     };
   }
   try {
     const health = await fetchApiHealth();
     return {
       id: "api",
-      label: "API connectivity",
+      label: "Platform connection",
       ok: ["ok", "healthy", "up"].includes(String(health.status).toLowerCase()),
-      detail: `${health.service}${health.deploymentStage ? ` · ${health.deploymentStage}` : ""}`,
+      detail: health.deploymentStage ? `Connected · ${health.deploymentStage}` : "Connected",
     };
   } catch (e) {
     return {
       id: "api",
-      label: "API connectivity",
+      label: "Platform connection",
       ok: false,
-      detail: e instanceof Error ? e.message : "Upstream health failed",
+      detail: e instanceof Error ? e.message : "Platform health check failed",
     };
   }
 }
@@ -96,10 +96,10 @@ async function runDomainProbe(prefix: DashboardPrefix): Promise<{
   });
 
   if (!isApiConfigured()) {
-    const msg = "API not configured — cannot probe Lambda/DynamoDB";
+    const msg = "Platform API is not configured — cannot verify services";
     return {
-      lambda: fail("lambda", "Lambda handlers", msg),
-      dynamodb: fail("dynamodb", "DynamoDB", msg),
+      lambda: fail("lambda", "Application services", msg),
+      dynamodb: fail("dynamodb", "Data access", msg),
     };
   }
 
@@ -110,13 +110,13 @@ async function runDomainProbe(prefix: DashboardPrefix): Promise<{
         return {
           lambda: {
             id: "lambda",
-            label: "Lambda (platform)",
+            label: "Application services",
             ok: true,
-            detail: "GET /api/agencies",
+            detail: "Agency directory reachable",
           },
           dynamodb: {
             id: "dynamodb",
-            label: "DynamoDB (tenants)",
+            label: "Data access",
             ok: true,
             detail: `${items.length} agencies loaded`,
           },
@@ -128,15 +128,15 @@ async function runDomainProbe(prefix: DashboardPrefix): Promise<{
         return {
           lambda: {
             id: "lambda",
-            label: "Lambda (agency admin)",
+            label: "Application services",
             ok: true,
-            detail: "Access overrides + /api/me",
+            detail: "Admin profile reachable",
           },
           dynamodb: {
             id: "dynamodb",
-            label: "DynamoDB (overrides)",
+            label: "Data access",
             ok: true,
-            detail: "Override list readable",
+            detail: "Access overrides readable",
           },
         };
       }
@@ -146,13 +146,13 @@ async function runDomainProbe(prefix: DashboardPrefix): Promise<{
         return {
           lambda: {
             id: "lambda",
-            label: "Lambda (incidents)",
+            label: "Application services",
             ok: true,
-            detail: "GET /api/incidents",
+            detail: "Incidents API reachable",
           },
           dynamodb: {
             id: "dynamodb",
-            label: "DynamoDB (incidents)",
+            label: "Data access",
             ok: true,
             detail: `${incidents.length} incidents in scope`,
           },
@@ -163,13 +163,13 @@ async function runDomainProbe(prefix: DashboardPrefix): Promise<{
         return {
           lambda: {
             id: "lambda",
-            label: "Lambda (QA)",
+            label: "Application services",
             ok: true,
-            detail: "GET /api/qa/sessions",
+            detail: "QA sessions reachable",
           },
           dynamodb: {
             id: "dynamodb",
-            label: "DynamoDB (QA)",
+            label: "Data access",
             ok: true,
             detail: `${sessions.length} QA sessions`,
           },
@@ -180,13 +180,13 @@ async function runDomainProbe(prefix: DashboardPrefix): Promise<{
         return {
           lambda: {
             id: "lambda",
-            label: "Lambda (audit)",
+            label: "Application services",
             ok: true,
-            detail: "GET /api/audit/events",
+            detail: "Audit feed reachable",
           },
           dynamodb: {
             id: "dynamodb",
-            label: "DynamoDB (audit)",
+            label: "Data access",
             ok: true,
             detail: `${events.length} recent events`,
           },
@@ -197,15 +197,15 @@ async function runDomainProbe(prefix: DashboardPrefix): Promise<{
         return {
           lambda: {
             id: "lambda",
-            label: "Lambda (analytics)",
+            label: "Application services",
             ok: true,
-            detail: "GET /api/admin/analytics/summary",
+            detail: "Analytics reachable",
           },
           dynamodb: {
             id: "dynamodb",
-            label: "DynamoDB (reporting)",
+            label: "Data access",
             ok: true,
-            detail: "Analytics summary reachable",
+            detail: "Reporting summary reachable",
           },
         };
       }
@@ -215,13 +215,13 @@ async function runDomainProbe(prefix: DashboardPrefix): Promise<{
         return {
           lambda: {
             id: "lambda",
-            label: "Lambda (hospital portal)",
+            label: "Application services",
             ok: true,
-            detail: "GET /api/hospital-portal/context",
+            detail: "Hospital portal reachable",
           },
           dynamodb: {
             id: "dynamodb",
-            label: "DynamoDB (hospital capacity)",
+            label: "Data access",
             ok: true,
             detail: ctx.hospital.name,
           },
@@ -229,24 +229,24 @@ async function runDomainProbe(prefix: DashboardPrefix): Promise<{
       }
       default:
         return {
-          lambda: fail("lambda", "Lambda handlers", "No probe for this dashboard"),
-          dynamodb: fail("dynamodb", "DynamoDB", "No probe for this dashboard"),
+          lambda: fail("lambda", "Application services", "No check for this dashboard"),
+          dynamodb: fail("dynamodb", "Data access", "No check for this dashboard"),
         };
     }
   } catch (e) {
-    const raw = e instanceof Error ? e.message : "Domain API failed";
+    const raw = e instanceof Error ? e.message : "Service check failed";
     const msg =
       raw === "Load failed" || raw === "Failed to fetch"
-        ? "Authenticated API call failed — ensure API_UPSTREAM_BASE is set and /api/backend proxy is reachable"
+        ? "Could not reach application services — try again or contact support"
         : raw;
     return {
-      lambda: fail("lambda", "Lambda handlers", msg),
-      dynamodb: fail("dynamodb", "DynamoDB", msg),
+      lambda: fail("lambda", "Application services", msg),
+      dynamodb: fail("dynamodb", "Data access", msg),
     };
   }
 }
 
-/** Run Cognito, API Gateway, Lambda, and DynamoDB checks for a role dashboard. */
+/** Run sign-in, platform, application, and data checks for a role dashboard. */
 export async function runDashboardIntegrationChecks(
   prefix: DashboardPrefix,
 ): Promise<IntegrationCheckResult[]> {

@@ -163,8 +163,7 @@ export function PsapMapView({ pins, statusFilter, onSelectProspect, isLoading }:
   if (tokenMissing) {
     return (
       <div className="flex h-[560px] items-center justify-center rounded-lg border border-[#1e2130] bg-[#0f1117] text-sm text-slate-500">
-        Set <code className="mx-1 text-violet-300">NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN</code> to render
-        the PSAP map.
+        Map isn’t configured for this environment.
       </div>
     );
   }
