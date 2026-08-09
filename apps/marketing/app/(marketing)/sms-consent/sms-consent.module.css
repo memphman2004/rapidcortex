@@ -1,0 +1,276 @@
+.partHeader {
+  padding: 12px 0 28px;
+  border-bottom: 1px solid #2a3347;
+  margin-bottom: 40px;
+  scroll-margin-top: 96px;
+}
+
+.partHeader + .partHeader,
+.section + .partHeader {
+  margin-top: 64px;
+}
+
+.partEyebrow {
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  margin-bottom: 10px;
+}
+
+.partEyebrowBlue {
+  color: #2f72e0;
+}
+
+.partEyebrowAmber {
+  color: #d97706;
+}
+
+.partHeader h2 {
+  font-size: 22px;
+  font-weight: 800;
+  color: #f0f4fa;
+  letter-spacing: -0.02em;
+  margin-bottom: 10px;
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+.partHeader p {
+  font-size: 14px;
+  color: #8b95a8;
+  max-width: 580px;
+}
+
+.section {
+  margin-bottom: 44px;
+  scroll-margin-top: 96px;
+}
+
+.section h3 {
+  font-size: 17px;
+  font-weight: 700;
+  color: #f0f4fa;
+  letter-spacing: -0.01em;
+  margin-bottom: 12px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid #2a3347;
+}
+
+.section p {
+  font-size: 15px;
+  color: #c9d1de;
+  margin-bottom: 12px;
+}
+
+.section a {
+  color: #2f72e0;
+  text-decoration: none;
+}
+
+.section a:hover {
+  text-decoration: underline;
+}
+
+.generalConsentBox {
+  background: #1f1405;
+  border: 1px solid #d97706;
+  border-radius: 10px;
+  padding: 26px 30px;
+  margin: 24px 0;
+}
+
+.generalConsentBox p {
+  font-size: 15px;
+  color: #c9d1de;
+  margin-bottom: 10px;
+}
+
+.generalConsentBox p:last-child {
+  margin-bottom: 0;
+}
+
+.notice {
+  background: #0a2618;
+  border: 1px solid #2aad6a;
+  border-radius: 8px;
+  padding: 18px 22px;
+  margin: 16px 0;
+  font-size: 14px;
+  color: #c9d1de;
+}
+
+.notice strong {
+  color: #f0f4fa;
+}
+
+.consentCard {
+  background: #0e1e3a;
+  border: 1px solid #2f72e0;
+  border-radius: 10px;
+  padding: 26px 30px;
+  margin: 20px 0;
+}
+
+.cardLabel {
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: #2f72e0;
+  margin-bottom: 10px;
+}
+
+.consentCard h4 {
+  font-size: 15px;
+  font-weight: 700;
+  color: #f0f4fa;
+  margin-bottom: 8px;
+}
+
+.consentCard p {
+  font-size: 14px;
+  color: #c9d1de;
+  margin: 0;
+}
+
+.consentCard strong {
+  color: #f0f4fa;
+}
+
+.scriptBlock {
+  background: #1c2333;
+  border: 1px solid #2a3347;
+  border-left: 3px solid #e03535;
+  border-radius: 0 8px 8px 0;
+  padding: 24px 28px;
+  margin: 20px 0;
+}
+
+.scriptLabel {
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #e03535;
+  margin-bottom: 12px;
+}
+
+.scriptBlock blockquote {
+  font-size: 15px;
+  color: #f0f4fa;
+  font-style: italic;
+  line-height: 1.8;
+  margin: 0;
+}
+
+.scriptNote {
+  margin-top: 12px;
+  font-size: 13px;
+  color: #8b95a8;
+  font-style: normal;
+}
+
+.bulletList {
+  list-style: none;
+  margin: 14px 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.bulletList li {
+  display: flex;
+  gap: 10px;
+  font-size: 15px;
+  color: #c9d1de;
+  align-items: flex-start;
+}
+
+.bulletList li::before {
+  content: "—";
+  color: #8b95a8;
+  flex-shrink: 0;
+}
+
+.recordTable {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 16px 0;
+  font-size: 14px;
+}
+
+.recordTable td {
+  padding: 10px 14px;
+  border: 1px solid #2a3347;
+  color: #c9d1de;
+  vertical-align: top;
+}
+
+.recordTable td:first-child {
+  color: #f0f4fa;
+  font-weight: 600;
+  background: #1c2333;
+  width: 40%;
+}
+
+.keyword {
+  display: inline-block;
+  font-family: ui-monospace, "Courier New", Courier, monospace;
+  font-size: 13px;
+  font-weight: 700;
+  color: #f0f4fa;
+  background: #2a3347;
+  border-radius: 4px;
+  padding: 1px 8px;
+  letter-spacing: 0.08em;
+}
+
+.operatorBox {
+  background: #1c2333;
+  border: 1px solid #2a3347;
+  border-radius: 8px;
+  padding: 20px 24px;
+  margin-top: 16px;
+  font-size: 14px;
+  color: #8b95a8;
+}
+
+.operatorBox a {
+  color: #8b95a8;
+  text-decoration: underline;
+}
+
+.policyRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.policyLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  background: #1c2333;
+  border: 1px solid #2a3347;
+  border-radius: 6px;
+  color: #f0f4fa;
+  text-decoration: none;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.policyLink:hover {
+  border-color: #2f72e0;
+}
+
+@media (max-width: 600px) {
+  .consentCard,
+  .scriptBlock,
+  .generalConsentBox {
+    padding: 18px 16px;
+  }
+}

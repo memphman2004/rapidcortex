@@ -4,12 +4,14 @@ import type { Metadata } from "next";
 import {
   marketingBookAppointmentUrl,
   marketingContactPath,
+  marketingDesktopPath,
   marketingDevelopersRestApiDocsPath,
   marketingLoginPath,
   marketingRcLitePath,
 } from "@/lib/marketing-links";
 import { WatchDemoDownloadsLink } from "@/components/marketing/watch-demo-youtube";
 import { buildPublicPageMetadata } from "@/lib/seo";
+import { SITE_NAME, SITE_OPERATOR_NAME } from "@/lib/site";
 
 const MAC_DOWNLOAD_URL =
   process.env.NEXT_PUBLIC_MAC_DOWNLOAD_URL?.trim() || "https://downloads.rapidcortex.us/mac/latest/RapidCortex.dmg";
@@ -32,8 +34,7 @@ const RC_LITE_MARKETING = marketingRcLitePath();
 
 export const metadata: Metadata = buildPublicPageMetadata({
   title: "Downloads | Rapid Cortex Public Safety Platform",
-  description:
-    "Access Rapid Cortex desktop installers, integration resources, and authorized customer distribution links for emergency communications and public safety operations.",
+  description: `${SITE_NAME} desktop installers and RC Lite API resources — a product of ${SITE_OPERATOR_NAME}. Same role dashboards on desktop as in the browser.`,
   path: "/downloads",
 });
 
@@ -44,13 +45,24 @@ export default function DownloadsPage() {
     <div className="min-h-full bg-slate-950 px-4 py-14 text-slate-100 sm:px-6 lg:px-8">
       <div className="mx-auto max-w-7xl">
         <div className="mb-12 text-center">
-          <p className="text-xs font-semibold uppercase tracking-[0.25em] text-sky-400/90">Rapid Cortex</p>
+          <p className="text-xs font-semibold uppercase tracking-[0.25em] text-sky-400/90">
+            {SITE_NAME} · {SITE_OPERATOR_NAME}
+          </p>
           <h1 className="mt-3 text-3xl font-semibold tracking-tight text-white sm:text-4xl md:text-5xl">
-            Rapid Cortex Downloads
+            {SITE_NAME} Downloads
           </h1>
           <p className="mx-auto mt-4 max-w-3xl text-pretty text-lg text-slate-300">
-            Desktop installers, RC Lite references, and customer sign-in shortcuts. Updates and installer distribution
-            for authorized workstations are coordinated with your agency&apos;s Rapid Cortex administrators.
+            Desktop installers, RC Lite references, and customer sign-in shortcuts. Mac and Windows
+            desktop apps load the <strong className="font-medium text-slate-100">same role dashboards</strong>{" "}
+            as the web app for a seamless workstation experience. Distribution for authorized seats is
+            coordinated with your agency&apos;s {SITE_NAME} administrators.
+          </p>
+          <p className="mt-3 text-sm text-slate-500">
+            Learn more on the{" "}
+            <Link href={marketingDesktopPath()} className="text-sky-400 hover:text-sky-300">
+              Desktop overview
+            </Link>
+            .
           </p>
           <p className="mt-5">
             <WatchDemoDownloadsLink />
@@ -61,7 +73,8 @@ export default function DownloadsPage() {
           <article className="rounded-xl border border-slate-700/80 bg-slate-900/40 p-8 shadow-xl shadow-black/40">
             <h2 className="text-xl font-semibold text-white">Rapid Cortex Desktop — Mac</h2>
             <p className="mt-4 text-sm leading-relaxed text-slate-400">
-              macOS installer access for approved Rapid Cortex desktop deployments.
+              macOS workstation shell with the same {SITE_NAME} web dashboards as the browser
+              (WKWebView).
             </p>
             <a
               href={MAC_DOWNLOAD_URL}
@@ -77,7 +90,8 @@ export default function DownloadsPage() {
           <article className="rounded-xl border border-slate-700/80 bg-slate-900/40 p-8 shadow-xl shadow-black/40">
             <h2 className="text-xl font-semibold text-white">Rapid Cortex Desktop — Windows</h2>
             <p className="mt-4 text-sm leading-relaxed text-slate-400">
-              Windows installer access for approved Rapid Cortex desktop deployments.
+              Windows workstation shell with the same {SITE_NAME} web dashboards as the browser
+              (WebView2).
             </p>
             <a
               href={WINDOWS_DOWNLOAD_URL}

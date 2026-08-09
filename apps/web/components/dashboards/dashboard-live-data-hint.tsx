@@ -40,6 +40,7 @@ export function DashboardLiveDataHint({ feature }: DashboardLiveDataHintProps) {
 
   if (isApiConfigured()) return null;
 
+  return (
     <p className="rounded-md border border-slate-800 bg-slate-900/60 px-3 py-2 text-xs text-slate-400">
       Preview metrics use sample data until the platform is connected.
       {isOfflineDemoDataEnabled()

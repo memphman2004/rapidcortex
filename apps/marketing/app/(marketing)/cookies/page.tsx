@@ -7,15 +7,29 @@ export const metadata = {
   description: `How ${SITE_NAME} uses cookies and similar technologies on the website and in the app.`,
 };
 
+const COOKIES_NAV = [
+  { href: "#what", label: "What are cookies?" },
+  { href: "#how", label: "How we use them" },
+  { href: "#choices", label: "Your choices" },
+  { href: "#changes", label: "Changes" },
+] as const;
+
 export default function CookiePolicyPage() {
   return (
-    <LegalDocShell title="Cookie policy" lastReviewed="August 1, 2026">
-      <p className="text-slate-400">
+    <LegalDocShell
+      eyebrow="Legal"
+      title="Cookie policy"
+      description={`How ${SITE_NAME} and its hosting providers use cookies and similar technologies on the website and in the app.`}
+      lastReviewed="August 1, 2026"
+      navItems={COOKIES_NAV}
+      complianceNote="This page is publicly accessible without login for regulatory and carrier compliance review purposes."
+    >
+      <p>
         This policy explains how {SITE_NAME} and its hosting providers use cookies and similar
         technologies. For personal data more broadly, see our <Link href="/privacy">Privacy policy</Link>.
       </p>
 
-      <section className="space-y-3">
+      <section id="what" className="space-y-3">
         <h2 className="text-base font-semibold text-white">What are cookies?</h2>
         <p>
           Cookies are small text files placed on your device. We also use local storage, session
@@ -23,7 +37,7 @@ export default function CookiePolicyPage() {
         </p>
       </section>
 
-      <section className="space-y-3">
+      <section id="how" className="space-y-3">
         <h2 className="text-base font-semibold text-white">How we use them</h2>
         <ul className="ml-4 list-disc space-y-1 text-slate-400">
           <li>
@@ -43,7 +57,7 @@ export default function CookiePolicyPage() {
         </ul>
       </section>
 
-      <section className="space-y-3">
+      <section id="choices" className="space-y-3">
         <h2 className="text-base font-semibold text-white">Your choices</h2>
         <p>
           You can block or remove cookies through browser settings, but the operational application may
@@ -53,7 +67,7 @@ export default function CookiePolicyPage() {
         </p>
       </section>
 
-      <section className="space-y-3">
+      <section id="changes" className="space-y-3">
         <h2 className="text-base font-semibold text-white">Changes</h2>
         <p>We will update this page when our practices or technologies change in a material way.</p>
       </section>

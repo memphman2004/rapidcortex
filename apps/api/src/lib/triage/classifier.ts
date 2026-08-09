@@ -19,7 +19,13 @@ function modelId(): string {
 
 export function mockClassify(event: TriageAnalyzeEvent): TriageAiClassification {
   const id = event.incidentId.toLowerCase();
-  const isNonEmergency = id.includes("nonemerge") || id.includes("nonemerg");
+  const transcript = event.segments.map((s) => s.text).join(" ").toLowerCase();
+  const isNonEmergency =
+    id.includes("nonemerge") ||
+    id.includes("nonemerg") ||
+    /\b(noise complaint|loud music|parking ticket|lost cat|trash pickup|office hours|callback later|barking dog|not an emergency)\b/.test(
+      transcript,
+    );
 
   return {
     classification: isNonEmergency ? "NON_EMERGENCY" : "EMERGENCY",

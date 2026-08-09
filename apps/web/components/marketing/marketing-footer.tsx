@@ -226,9 +226,9 @@ export function MarketingFooter() {
                       Status
                     </a>
                   ) : (
-                    <Link href={statusHref} className={FOOTER_FOCUS_LINK_CLASS}>
+                    <a href={statusHref} className={FOOTER_FOCUS_LINK_CLASS}>
                       Status
-                    </Link>
+                    </a>
                   )}
                 </li>
                 <li>

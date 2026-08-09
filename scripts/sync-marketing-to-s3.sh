@@ -14,7 +14,7 @@ BUCKET="${MARKETING_S3_BUCKET:-${RAPID_CORTEX_MARKETING_S3_BUCKET}}"
 DIST_ID="${MARKETING_CF_DIST_ID:-${RAPID_CORTEX_MARKETING_CF_DIST_ID}}"
 REGION="${AWS_REGION}"
 STATIC_DIR="${ROOT}/apps/marketing/out"
-REQUIRED_ROUTES=(enter demo pricing blog unsubscribe)
+REQUIRED_ROUTES=(enter demo pricing blog unsubscribe sms-consent status)
 
 rapid_cortex_assert_aws_account
 

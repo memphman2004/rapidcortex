@@ -41,6 +41,7 @@ export function QrLocationsWorkspace({
         Platform connection isn’t configured. Contact Rapid Cortex support.
       </p>
     );
+  }
 
   if (!canView) {
     return (

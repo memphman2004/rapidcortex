@@ -4,7 +4,7 @@ import { useCallback, useId, useState } from "react";
 import { Check, Copy, Download, ImageIcon } from "lucide-react";
 
 export const PRESS_BOILERPLATE =
-  "Rapid Cortex is a real-time AI intelligence platform for public safety agencies. The platform provides 911 dispatchers and supervisors with live transcription, AI-generated incident summaries, and CAD system integration — designed to CJIS security standards. Rapid Cortex is available as a web platform, desktop application, and API. For more information, visit rapidcortex.us.";
+  "Rapid Cortex is a real-time AI intelligence platform for public safety agencies and a product of Apps on Demand, founded in 2025. The platform provides 911 dispatchers and supervisors with live transcription, AI-generated incident summaries, and CAD system integration — designed to CJIS security standards. Rapid Cortex is available as a web platform, desktop application, and API. For press inquiries, contact info@rapidcortex.us. For more information, visit rapidcortex.us.";
 
 export function PressBoilerplateCopy() {
   const [state, setState] = useState<"idle" | "copied">("idle");

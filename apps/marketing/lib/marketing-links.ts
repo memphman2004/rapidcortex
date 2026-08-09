@@ -146,8 +146,9 @@ export function marketingDownloadsPath(): string {
   return "/downloads";
 }
 
+/** Public system status — hosted on the marketing site (not the app subdomain). */
 export function marketingOperationsStatusPath(): string {
-  return withAppOrigin("/status");
+  return "/status";
 }
 
 export function marketingPrivacyPath(): string {

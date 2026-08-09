@@ -1081,9 +1081,7 @@ Resources:
     Condition: HasApiWaf
     Properties:
       Name: !Sub "${AppName}-httpapi3-waf-${DeploymentStage}"
-      Description: >-
-        Rapid Cortex API security — agency allowlist, US/CA geo (block), anonymous/VPN
-        monitor (count). Site access is not VPN-gated; VPN only where agencies need it.
+      Description: Rapid Cortex API WAF - agency allowlist, US/CA geo block, anonymous VPN monitor.
       Scope: REGIONAL
       DefaultAction:
         Allow: {}
@@ -1105,7 +1103,7 @@ Resources:
             Allow: {}
           Statement:
             IPSetReferenceStatement:
-              ARN: !GetAtt AgencyAllowlistIPSetRegional.Arn
+              Arn: !GetAtt AgencyAllowlistIPSetRegional.Arn
           VisibilityConfig:
             CloudWatchMetricsEnabled: true
             MetricName: !Sub "${AppName}AllowedAgencyIPs"

@@ -41,9 +41,11 @@ function ServiceRow({ component }: { component: StatusComponent }) {
 
 type StatusPageClientProps = {
   initial: PublicStatusPayload;
+  /** When false, skip live polling (static marketing export has no /api/public/status). */
+  enablePolling?: boolean;
 };
 
-export function StatusPageClient({ initial }: StatusPageClientProps) {
+export function StatusPageClient({ initial, enablePolling = true }: StatusPageClientProps) {
   const [data, setData] = useState<PublicStatusPayload>(initial);
   const [lastSuccessIso, setLastSuccessIso] = useState(initial.lastUpdated);
   const [fetchError, setFetchError] = useState(false);
@@ -55,6 +57,7 @@ export function StatusPageClient({ initial }: StatusPageClientProps) {
   }, []);
 
   useEffect(() => {
+    if (!enablePolling) return;
     let cancelled = false;
     async function poll() {
       try {
@@ -74,7 +77,7 @@ export function StatusPageClient({ initial }: StatusPageClientProps) {
       cancelled = true;
       window.clearInterval(timer);
     };
-  }, []);
+  }, [enablePolling]);
 
   const grouped = groupStatusComponents(data.components);
   const headline = overallHeadline(data.overallStatus);
@@ -104,7 +107,7 @@ export function StatusPageClient({ initial }: StatusPageClientProps) {
             <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] text-slate-400">
               <span className="inline-flex items-center gap-1">
                 <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-emerald-400/90" aria-hidden />
-                Refreshes every 3 minutes
+                {enablePolling ? "Refreshes every 3 minutes" : "Public status snapshot"}
               </span>
               <span className="hidden sm:inline" aria-hidden>
                 ·

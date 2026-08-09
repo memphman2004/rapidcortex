@@ -122,4 +122,31 @@ export const DEMO_TRANSCRIPT_CHUNKS: Record<
       timestamp: "",
     },
   ],
+  "noise-complaint": [
+    {
+      speaker: "caller",
+      text: "Hi, this is a noise complaint — my neighbor's loud music has been going since midnight.",
+      timestamp: "",
+    },
+    {
+      speaker: "dispatcher",
+      text: "Is anyone in danger, or are there threats involved?",
+      timestamp: "",
+    },
+    {
+      speaker: "caller",
+      text: "No threats, just loud music. I'd like an officer when they can get to it — not an emergency.",
+      timestamp: "",
+    },
+    {
+      speaker: "dispatcher",
+      text: "Understood. We'll log a non-emergency noise complaint for your address.",
+      timestamp: "",
+    },
+    {
+      speaker: "caller",
+      text: "Thanks — no weapons, no fighting, just the music.",
+      timestamp: "",
+    },
+  ],
 };

@@ -75,4 +75,14 @@ describe("getRoleNav", () => {
       expect(leads?.label).toBe("Leads");
     }
   });
+
+  it("dispatcher Intake/Transcription/Incidents land on live dispatcher workspace", () => {
+    const nav = getRoleNav("dispatcher", { jurisdiction: "test-psap" });
+    const items = nav.sections.flatMap((s) => s.items);
+    const byId = Object.fromEntries(items.map((i) => [i.id, i.href]));
+    expect(byId.intake).toBe("/test-psap/dispatcher");
+    expect(byId.transcription).toBe("/test-psap/dispatcher#cad-transcript");
+    expect(byId.incidents).toBe("/test-psap/dispatcher");
+    expect(byId.triage).toBe("/test-psap/dispatcher/non-emergency");
+  });
 });

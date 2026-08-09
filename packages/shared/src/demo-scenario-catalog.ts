@@ -49,6 +49,12 @@ export const DEMO_SCENARIO_CATALOG: readonly DemoScenarioCatalogRow[] = [
     category: "unknown",
     valuePitch: "Fragmented audio and distress — uncertainty handling and keep-alive triage.",
   },
+  {
+    id: "noise-complaint",
+    name: "Noise complaint",
+    category: "police",
+    valuePitch: "Clearly non-emergency neighbor noise — fills Triage non-emergency queue in training.",
+  },
 ] as const;
 
 export function listDemoScenarioRows(): DemoScenarioCatalogRow[] {

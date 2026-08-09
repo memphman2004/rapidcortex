@@ -33,8 +33,8 @@ export function NonEmergencyWorkspace({ variant }: NonEmergencyWorkspaceProps) {
         <p className="text-sm text-slate-400">
           Non-emergency triage isn’t enabled for this agency. Contact Rapid Cortex support.
         </p>
-        <Link href={to("/dashboard")} className="text-sm text-sky-400 hover:underline">
-          ← Dispatcher dashboard
+        <Link href={to("/dispatcher")} className="text-sm text-sky-400 hover:underline">
+          ← Dispatcher console
         </Link>
       </div>
     );
@@ -52,7 +52,7 @@ export function NonEmergencyWorkspace({ variant }: NonEmergencyWorkspaceProps) {
         </div>
         <div className="flex flex-wrap gap-2">
           <Link
-            href={`${to("/dashboard")}?queue=non_emergency`}
+            href={`${to("/dispatcher")}?queue=non_emergency`}
             className="rounded-md border border-sky-500/40 bg-sky-500/10 px-3 py-2 text-xs font-semibold text-sky-200 hover:bg-sky-500/20"
           >
             Open in dispatcher console

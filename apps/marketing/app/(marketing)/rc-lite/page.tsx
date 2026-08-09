@@ -5,11 +5,11 @@ import {
   marketingDevelopersApiPath,
   marketingPricingPath,
 } from "@/lib/marketing-links";
+import { SITE_NAME, SITE_OPERATOR_NAME, SITE_OPERATOR_URL } from "@/lib/site";
 
 export const metadata = {
   title: "RC Lite — API-only Rapid Cortex intelligence",
-  description:
-    "RC Lite gives approved agencies and public safety technology partners secure API access to Rapid Cortex intelligence without requiring the full Rapid Cortex dashboard platform.",
+  description: `RC Lite gives approved agencies and partners secure API access to ${SITE_NAME} intelligence — a product of ${SITE_OPERATOR_NAME}, founded in 2025 — without requiring the full dashboard platform.`,
 };
 
 export default function RcLiteMarketingPage() {
@@ -25,13 +25,33 @@ export default function RcLiteMarketingPage() {
     >
       <p className="text-lg font-medium leading-relaxed text-slate-100">
         Secure public-safety intelligence APIs for CAD vendors, dispatch platforms, emergency operations systems, and
-        safety-focused software teams. RC Lite lets approved partners add Rapid Cortex intelligence to their own systems —
+        safety-focused software teams. RC Lite lets approved partners add {SITE_NAME} intelligence to their own systems —
         including incident classification, risk scoring, CAD-ready export, transcription, translation, caller media links,
         and QA analysis.
       </p>
+      <p className="mt-4 text-sm leading-relaxed text-slate-400">
+        {SITE_NAME} is a product of{" "}
+        <a
+          href={SITE_OPERATOR_URL}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-sky-400 hover:text-sky-300"
+        >
+          {SITE_OPERATOR_NAME}
+        </a>
+        , founded in 2025. Agency operations teams that need the full console use the same role dashboards in the{" "}
+        <Link href="/desktop" className="text-sky-400 hover:text-sky-300">
+          browser and desktop apps
+        </Link>
+        ; RC Lite is the API-only path for partners embedding intelligence in their own products.
+      </p>
       <p className="mt-4 text-xs leading-relaxed text-slate-500">
         Disclaimer: RC Lite enhances existing emergency systems. It does not replace CAD, RMS, 911 telephony, or official
-        dispatch procedures.
+        dispatch procedures. Press contact:{" "}
+        <a href="mailto:info@rapidcortex.us" className="text-sky-500 hover:text-sky-400">
+          info@rapidcortex.us
+        </a>
+        .
       </p>
       <p className="mt-10 text-xl font-semibold tracking-tight text-sky-300">
         Emergency intelligence, delivered by API.

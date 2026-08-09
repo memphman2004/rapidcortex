@@ -1,33 +1,11 @@
-import { notFound } from "next/navigation";
-import { FeatureRoutePlaceholder } from "@/components/rapid-cortex/feature-route-placeholder";
+import { notFound, redirect } from "next/navigation";
 import { NonEmergencyWorkspace } from "@/components/triage/non-emergency-workspace";
+import { dispatchDashboardHref } from "@/lib/dispatch-workspace-links";
 import { blockPsapRoutesForVerticalAgency } from "@/lib/venue/venue-psap-route-guard";
-
-const PLACEHOLDER_WORKSPACES: Record<string, { title: string; featureId: string; summary: string }> = {
-  intake: {
-    title: "Dispatcher Intake",
-    featureId: "ai_assisted_intake",
-    summary: "Create and manage active intake sessions with AI-assisted guidance.",
-  },
-  transcription: {
-    title: "Dispatcher Transcription",
-    featureId: "live_transcription",
-    summary: "Start/stop transcription and review transcript stream in dispatcher workflow.",
-  },
-  incidents: {
-    title: "Dispatcher Incidents",
-    featureId: "active_incident_view",
-    summary: "Track active incidents and open incident details.",
-  },
-  media: {
-    title: "Dispatcher Media",
-    featureId: "caller_video_upload",
-    summary: "Review caller media workflows and evidentiary context.",
-  },
-};
 
 type Ctx = { params: Promise<{ workspace: string; jurisdiction: string }> };
 
+/** Legacy `/dispatcher/{workspace}` shells → live CAD workspace (or dedicated triage UI). */
 export default async function DispatcherWorkspacePage({ params }: Ctx) {
   const { workspace, jurisdiction } = await params;
   await blockPsapRoutesForVerticalAgency(jurisdiction);
@@ -39,16 +17,13 @@ export default async function DispatcherWorkspacePage({ params }: Ctx) {
     return <NonEmergencyWorkspace variant="non-emergency" />;
   }
 
-  const config = PLACEHOLDER_WORKSPACES[workspace];
-  if (!config) {
-    notFound();
+  if (workspace === "intake" || workspace === "transcription" || workspace === "incidents") {
+    redirect(dispatchDashboardHref(jurisdiction));
   }
 
-  return (
-    <FeatureRoutePlaceholder
-      title={config.title}
-      featureId={config.featureId}
-      summary={config.summary}
-    />
-  );
+  if (workspace === "media") {
+    redirect(`/${encodeURIComponent(jurisdiction)}/media`);
+  }
+
+  notFound();
 }

@@ -33,12 +33,13 @@ import {
 } from "@/lib/queries";
 import type { SimulatedTranscriptChunk } from "@/lib/transcript-sim-stream";
 import type { TranscriptSegment } from "rapid-cortex-shared";
-import { useJurisdictionLink } from "@/lib/jurisdiction-context";
+import { useJurisdictionSlug } from "@/lib/jurisdiction-context";
+import { dispatchDashboardHref } from "@/lib/dispatch-workspace-links";
 import { TRAINING_MODE_LABEL, TRAINING_MODE_API_EXPLANATION } from "@/lib/training-mode";
 
 export function DashboardWorkspace() {
   const router = useRouter();
-  const to = useJurisdictionLink();
+  const jurisdiction = useJurisdictionSlug();
   const searchParams = useSearchParams();
   const queryClient = useQueryClient();
   const { user } = useSession();
@@ -62,9 +63,9 @@ export function DashboardWorkspace() {
     if (!list?.length || paramId || showDdbQueue) return;
     const first = list[0]!.incidentId;
     router.replace(
-      `${to("/dashboard")}?incident=${encodeURIComponent(first)}`,
+      dispatchDashboardHref(jurisdiction, { incidentId: first }),
     );
-  }, [incidentsQuery.data, paramId, router, to, showDdbQueue]);
+  }, [incidentsQuery.data, paramId, router, jurisdiction, showDdbQueue]);
 
   useEffect(() => {
     if (queueParam === "non_emergency" && nonEmergencyTriageEnabled) {
@@ -78,19 +79,21 @@ export function DashboardWorkspace() {
     (tab: "all" | "non_emergency") => {
       setQueueTab(tab);
       if (tab === "non_emergency" && nonEmergencyTriageEnabled) {
-        const sp = new URLSearchParams();
-        sp.set("queue", "non_emergency");
-        if (paramId) sp.set("incident", paramId);
-        router.replace(`${to("/dashboard")}?${sp.toString()}`);
+        router.replace(
+          dispatchDashboardHref(jurisdiction, {
+            queue: "non_emergency",
+            incidentId: paramId ?? undefined,
+          }),
+        );
         return;
       }
       if (paramId) {
-        router.replace(`${to("/dashboard")}?incident=${encodeURIComponent(paramId)}`);
+        router.replace(dispatchDashboardHref(jurisdiction, { incidentId: paramId }));
       } else {
-        router.replace(to("/dashboard"));
+        router.replace(dispatchDashboardHref(jurisdiction));
       }
     },
-    [nonEmergencyTriageEnabled, paramId, router, to],
+    [nonEmergencyTriageEnabled, paramId, router, jurisdiction],
   );
 
   const selectedId = useMemo(() => {
@@ -102,11 +105,9 @@ export function DashboardWorkspace() {
 
   const setSelectedId = useCallback(
     (id: string) => {
-      router.replace(
-        `${to("/dashboard")}?incident=${encodeURIComponent(id)}`,
-      );
+      router.replace(dispatchDashboardHref(jurisdiction, { incidentId: id }));
     },
-    [router, to],
+    [router, jurisdiction],
   );
 
   const handleIncidentCreated = useCallback(
@@ -141,6 +142,7 @@ export function DashboardWorkspace() {
     queryFn: () => (selectedId ? loadTranscript(selectedId) : Promise.resolve([])),
     enabled: Boolean(selectedId),
     staleTime: 1_500,
+    refetchInterval: selectedId ? 2_000 : false,
     gcTime: 5 * 60 * 1000,
   });
 

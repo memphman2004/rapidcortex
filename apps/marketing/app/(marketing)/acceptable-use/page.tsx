@@ -10,16 +10,30 @@ export const metadata: Metadata = buildPublicPageMetadata({
   path: "/acceptable-use",
 });
 
+const AUP_NAV = [
+  { href: "#permitted", label: "Permitted use" },
+  { href: "#prohibited", label: "Prohibited conduct" },
+  { href: "#enforcement", label: "Enforcement" },
+  { href: "#contact", label: "Contact" },
+] as const;
+
 export default function AcceptableUsePage() {
   return (
-    <LegalDocShell title="Acceptable use policy" lastReviewed="August 1, 2026">
-      <p className="text-slate-400">
+    <LegalDocShell
+      eyebrow="Legal"
+      title="Acceptable use policy"
+      description={`Permitted and prohibited uses of the ${SITE_NAME} platform, APIs, and public properties for emergency communications and public safety operations.`}
+      lastReviewed="August 1, 2026"
+      navItems={AUP_NAV}
+      complianceNote="This page is publicly accessible without login for regulatory and carrier compliance review purposes."
+    >
+      <p>
         This policy sets expectations for use of the {SITE_NAME} product, APIs, and customer-facing
         properties. It supplements your <Link href="/terms">Terms of use</Link> and any written agreement
         with your agency.
       </p>
 
-      <section className="space-y-3">
+      <section id="permitted" className="space-y-3">
         <h2 className="text-base font-semibold text-white">Permitted use</h2>
         <p>
           Use the service only for lawful public-safety, emergency-communications, and training purposes
@@ -28,7 +42,7 @@ export default function AcceptableUsePage() {
         </p>
       </section>
 
-      <section className="space-y-3">
+      <section id="prohibited" className="space-y-3">
         <h2 className="text-base font-semibold text-white">Prohibited conduct</h2>
         <p>You must not, and must not allow others to:</p>
         <ul className="ml-4 list-disc space-y-1 text-slate-400">
@@ -41,7 +55,7 @@ export default function AcceptableUsePage() {
         </ul>
       </section>
 
-      <section className="space-y-3">
+      <section id="enforcement" className="space-y-3">
         <h2 className="text-base font-semibold text-white">Enforcement</h2>
         <p>
           We may suspend, throttle, or terminate access that appears to violate this policy, where
@@ -50,7 +64,7 @@ export default function AcceptableUsePage() {
         </p>
       </section>
 
-      <section className="space-y-3">
+      <section id="contact" className="space-y-3">
         <h2 className="text-base font-semibold text-white">Contact</h2>
         <p>
           Report abuse or questions to your agency’s {SITE_NAME} admin or, for security issues, the

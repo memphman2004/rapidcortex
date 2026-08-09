@@ -21,7 +21,7 @@ import { marketingContactPath, marketingPressPath } from "@/lib/marketing-links"
 import { buildPublicPageMetadata } from "@/lib/seo";
 
 const PRESS_PATH = marketingPressPath();
-const PRESS_EMAIL = "press@rapidcortex.us";
+const PRESS_EMAIL = "info@rapidcortex.us";
 const SUPPORT_EMAIL = "support@rapidcortex.us";
 
 export const metadata: Metadata = buildPublicPageMetadata({
@@ -163,8 +163,9 @@ export default function MarketingPressPage() {
         <div className="mt-10 grid gap-10 lg:grid-cols-2 lg:gap-12">
           <div className="space-y-5 text-sm leading-relaxed text-slate-300 sm:text-base">
             <p>
-              Rapid Cortex is a Real-Time AI Intelligence platform built for public safety agencies. We help 911
-              dispatchers, supervisors, and emergency response teams make faster, clearer decisions during active
+              Rapid Cortex is a product of Apps on Demand, founded in 2025. It is a Real-Time AI
+              Intelligence platform built for public safety agencies. We help 911 dispatchers,
+              supervisors, and emergency response teams make faster, clearer decisions during active
               incidents — without replacing the systems they already trust.
             </p>
             <p>
@@ -174,7 +175,11 @@ export default function MarketingPressPage() {
             </p>
             <p>
               Rapid Cortex is CJIS-aligned, built on AWS enterprise infrastructure, and designed from the ground up for
-              the unique demands of emergency communications centers.
+              the unique demands of emergency communications centers. Press contact:{" "}
+              <a href={`mailto:${PRESS_EMAIL}`} className="text-sky-300 hover:text-sky-200">
+                {PRESS_EMAIL}
+              </a>
+              .
             </p>
           </div>
           <aside className="rounded-xl border border-sky-500/35 bg-slate-950/60 p-6 shadow-[0_0_40px_-20px_rgba(56,189,248,0.35)] sm:p-8">
@@ -182,7 +187,8 @@ export default function MarketingPressPage() {
             <dl className="mt-6 space-y-4 text-sm">
               {(
                 [
-                  ["Founded", "2024"],
+                  ["Founded", "2025"],
+                  ["Operator", "Apps on Demand"],
                   ["Headquarters", "United States"],
                   ["Industry", "Public Safety Technology / AI"],
                   ["Platform", "SaaS — Web, Desktop, API"],

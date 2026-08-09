@@ -7,16 +7,31 @@ export const metadata = {
   description: `Terms governing use of the ${SITE_NAME} product and public websites.`,
 };
 
+const TERMS_NAV = [
+  { href: "#service", label: "The service" },
+  { href: "#accounts", label: "Accounts" },
+  { href: "#liability", label: "Liability" },
+  { href: "#sms", label: "SMS program" },
+  { href: "#contact", label: "Contact" },
+] as const;
+
 export default function TermsOfUsePage() {
   return (
-    <LegalDocShell title="Terms of use" lastReviewed="August 1, 2026">
-      <p className="text-slate-400">
+    <LegalDocShell
+      eyebrow="Legal"
+      title="Terms of use"
+      description={`Terms governing use of the ${SITE_NAME} product and public websites. A signed agreement with your agency takes precedence where it explicitly differs.`}
+      lastReviewed="August 1, 2026"
+      navItems={TERMS_NAV}
+      complianceNote="This page is publicly accessible without login for regulatory and carrier compliance review purposes."
+    >
+      <p>
         These terms govern access to the {SITE_NAME} websites and, together with an order form or
         statement of work, the use of the software service. A signed agreement with your agency takes
         precedence where it explicitly differs.
       </p>
 
-      <section className="space-y-3">
+      <section id="service" className="space-y-3">
         <h2 className="text-base font-semibold text-white">The service</h2>
         <p>
           {SITE_NAME} provides decision-support, workflow, and related capabilities for public-safety and
@@ -26,7 +41,7 @@ export default function TermsOfUsePage() {
         </p>
       </section>
 
-      <section className="space-y-3">
+      <section id="accounts" className="space-y-3">
         <h2 className="text-base font-semibold text-white">Accounts and access</h2>
         <p>
           You are responsible for credentials issued to your organization. You will not share accounts,
@@ -61,7 +76,7 @@ export default function TermsOfUsePage() {
         </p>
       </section>
 
-      <section className="space-y-3">
+      <section id="liability" className="space-y-3">
         <h2 className="text-base font-semibold text-white">Limitation of liability</h2>
         <p>
           To the maximum extent permitted by law, neither {SITE_NAME} nor {SITE_OPERATOR_NAME} is liable
@@ -90,7 +105,7 @@ export default function TermsOfUsePage() {
         </p>
       </section>
 
-      <section className="space-y-3">
+      <section id="sms" className="space-y-3">
         <h2 className="text-base font-semibold text-white">Rapid Cortex SMS messaging program</h2>
         <p>
           <strong className="font-medium text-slate-200">Program name:</strong> Rapid Cortex SMS
@@ -132,7 +147,7 @@ export default function TermsOfUsePage() {
         </p>
       </section>
 
-      <section className="space-y-3">
+      <section id="contact" className="space-y-3">
         <h2 className="text-base font-semibold text-white">Contact</h2>
         <p>
           <a href={SITE_OPERATOR_URL} target="_blank" rel="noopener noreferrer">

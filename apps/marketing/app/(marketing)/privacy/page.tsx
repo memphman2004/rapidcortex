@@ -10,19 +10,36 @@ export const metadata: Metadata = buildPublicPageMetadata({
   path: "/privacy",
 });
 
+const PRIVACY_NAV = [
+  { href: "#sms-consent", label: "SMS & messaging" },
+  { href: "#sharing", label: "Sharing" },
+  { href: "#sms", label: "SMS program" },
+  { href: "#ring", label: "Ring integration" },
+  { href: "#rights", label: "Your rights" },
+  { href: "#changes", label: "Changes" },
+] as const;
+
 export default function PrivacyPolicyPage() {
   return (
-    <LegalDocShell title="Privacy policy" lastReviewed="August 1, 2026">
-      <p className="text-slate-400">
+    <LegalDocShell
+      eyebrow="Legal"
+      title="Privacy policy"
+      description={`How ${SITE_NAME} and its operators collect, use, and protect information for public safety agencies, emergency communications teams, and platform users.`}
+      lastReviewed="August 1, 2026"
+      navItems={PRIVACY_NAV}
+      complianceNote="This page is publicly accessible without login for regulatory and carrier compliance review purposes."
+    >
+      <p>
         This policy describes how {SITE_NAME} and its operators collect, use, and protect information
         in connection with the product and marketing sites. It is not a substitute for your agency’s
         own privacy program, public records rules, or counsel review. For A2P 10DLC and SMS compliance,
         this page at{" "}
         <a href="https://www.rapidcortex.us/privacy">https://www.rapidcortex.us/privacy</a> is the
-        single controlling privacy policy for Apps on Demand LLC d/b/a Rapid Cortex.
+        single controlling privacy policy for Apps on Demand LLC d/b/a Rapid Cortex. See also the{" "}
+        <Link href="/sms-consent">SMS Consent</Link> disclosure.
       </p>
 
-      <section className="space-y-3 rounded-lg border border-sky-800/40 bg-sky-950/20 p-4">
+      <section id="sms-consent" className="space-y-3 rounded-lg border border-sky-800/40 bg-sky-950/20 p-4">
         <h2 className="text-base font-semibold text-white">
           Mobile numbers and messaging consent — no marketing sharing
         </h2>
@@ -90,7 +107,7 @@ export default function PrivacyPolicyPage() {
         </p>
       </section>
 
-      <section className="space-y-3">
+      <section id="sharing" className="space-y-3">
         <h2 className="text-base font-semibold text-white">Sharing</h2>
         <p>
           We use infrastructure and subprocessors appropriate to a cloud-hosted emergency-communications
@@ -112,7 +129,7 @@ export default function PrivacyPolicyPage() {
         </p>
       </section>
 
-      <section className="space-y-3">
+      <section id="sms" className="space-y-3">
         <h2 className="text-base font-semibold text-white">SMS and mobile messaging</h2>
         <p>
           Rapid Cortex (operated by Apps on Demand LLC) may send transactional SMS under the{" "}
@@ -133,7 +150,7 @@ export default function PrivacyPolicyPage() {
         </p>
       </section>
 
-      <section className="space-y-3">
+      <section id="ring" className="space-y-3">
         <h2 className="text-base font-semibold text-white">Ring™ integration and live video handling</h2>
         <p>
           For Ring™-connected workflows (Rapid Cortex Connect), Rapid Cortex is designed for live operational viewing
@@ -154,7 +171,7 @@ export default function PrivacyPolicyPage() {
         </p>
       </section>
 
-      <section className="space-y-3">
+      <section id="rights" className="space-y-3">
         <h2 className="text-base font-semibold text-white">Your rights and choices</h2>
         <p>
           Depending on your location and role, you may have rights to access, correct, export, or delete
@@ -227,7 +244,7 @@ export default function PrivacyPolicyPage() {
         </p>
       </section>
 
-      <section className="space-y-3">
+      <section id="changes" className="space-y-3">
         <h2 className="text-base font-semibold text-white">Changes</h2>
         <p>
           We may update this policy and will adjust the &quot;Last reviewed&quot; date. Material changes
