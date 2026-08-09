@@ -9,6 +9,7 @@ import {
   isRcsEnabled,
   isHiringUiEnabled,
   isPsapProspectsUiEnabled,
+  isRapidIqUiEnabled,
   isSalesLeadsUiEnabled,
   isSlaBacklogEnabled,
   isVerticalOnboardingEnabled,
@@ -36,6 +37,8 @@ export function isNavFeatureEnabled(feature: string): boolean {
       return isSalesLeadsUiEnabled();
     case "psapProspects":
       return isPsapProspectsUiEnabled();
+    case "rapidIq":
+      return isRapidIqUiEnabled();
     case "hiring":
       return isHiringUiEnabled();
     case "deploymentsMap":

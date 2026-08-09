@@ -52,6 +52,7 @@ const NEXT_PUBLIC_FLAG_VALUES: Record<string, string | undefined> = {
   NEXT_PUBLIC_ENABLE_DEPLOYMENTS_MAP: process.env.NEXT_PUBLIC_ENABLE_DEPLOYMENTS_MAP,
   NEXT_PUBLIC_ENABLE_RCS: process.env.NEXT_PUBLIC_ENABLE_RCS,
   NEXT_PUBLIC_ENABLE_CONNECT_NEST: process.env.NEXT_PUBLIC_ENABLE_CONNECT_NEST,
+  NEXT_PUBLIC_ENABLE_RAPID_IQ: process.env.NEXT_PUBLIC_ENABLE_RAPID_IQ,
   NEXT_PUBLIC_WEBSOCKET_URL: process.env.NEXT_PUBLIC_WEBSOCKET_URL,
 };
 
@@ -381,4 +382,9 @@ export function isRcsEnabled(): boolean {
 /** Google Nest camera connect on dispatcher Media + admin integrations. Default on when unset. */
 export function isConnectNestEnabled(): boolean {
   return envFlag("NEXT_PUBLIC_ENABLE_CONNECT_NEST");
+}
+
+/** RC Admin Rapid IQ sales intelligence (procurement signals). Default on when unset. */
+export function isRapidIqUiEnabled(): boolean {
+  return envFlag("NEXT_PUBLIC_ENABLE_RAPID_IQ");
 }

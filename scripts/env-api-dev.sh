@@ -169,6 +169,17 @@ export CAD_WRITEBACK_ENABLED=false
 # Response Continuity System (RCS) — addon rcs.module ($1500/mo). Tables live in
 # AppSamRcsStack2 (infra/nested/stack-app-sam-2-rcs.yaml); placeholders match its naming
 # convention so local/CI env sourcing doesn't require a live deploy to resolve names.
+# Rapid IQ (RC Admin sales intelligence) — default ON; collectors mock without Anthropic/SAM secrets
+export ENABLE_RAPID_IQ=true
+export NEXT_PUBLIC_ENABLE_RAPID_IQ="${NEXT_PUBLIC_ENABLE_RAPID_IQ:-1}"
+export RAPID_IQ_COLLECTORS_MOCK="${RAPID_IQ_COLLECTORS_MOCK:-1}"
+export RAPID_IQ_OPPORTUNITIES_TABLE="${RAPID_IQ_OPPORTUNITIES_TABLE:-rapid-cortex-rapid-iq-opportunities-dev}"
+export RAPID_IQ_SIGNALS_TABLE="${RAPID_IQ_SIGNALS_TABLE:-rapid-cortex-rapid-iq-signals-dev}"
+export RAPID_IQ_CONTACTS_TABLE="${RAPID_IQ_CONTACTS_TABLE:-rapid-cortex-rapid-iq-contacts-dev}"
+export RAPID_IQ_SOURCES_TABLE="${RAPID_IQ_SOURCES_TABLE:-rapid-cortex-rapid-iq-sources-dev}"
+export RAPID_IQ_JURISDICTIONS_TABLE="${RAPID_IQ_JURISDICTIONS_TABLE:-rapid-cortex-rapid-iq-jurisdictions-dev}"
+export RAPID_IQ_STATE_COVERAGE_TABLE="${RAPID_IQ_STATE_COVERAGE_TABLE:-rapid-cortex-rapid-iq-state-coverage-dev}"
+
 export ENABLE_RCS=true
 export RCS_CALLS_TABLE="rapid-cortex-rcs-calls-dev"
 export RCS_UNITS_TABLE="rapid-cortex-rcs-units-dev"

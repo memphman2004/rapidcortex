@@ -390,6 +390,18 @@ export const env = {
   /** RC Admin PSAP Prospect CRM — national outbound registry. */
   psapProspectsTable: process.env.PSAP_PROSPECTS_TABLE?.trim() ?? "",
   enablePsapProspects: featureEnabled("ENABLE_PSAP_PROSPECTS"),
+  /** Rapid IQ — RC-global sales intelligence (no agencyId scoping). */
+  enableRapidIq: featureEnabled("ENABLE_RAPID_IQ"),
+  rapidIqOpportunitiesTable: process.env.RAPID_IQ_OPPORTUNITIES_TABLE?.trim() ?? "",
+  rapidIqSignalsTable: process.env.RAPID_IQ_SIGNALS_TABLE?.trim() ?? "",
+  rapidIqContactsTable: process.env.RAPID_IQ_CONTACTS_TABLE?.trim() ?? "",
+  rapidIqSourcesTable: process.env.RAPID_IQ_SOURCES_TABLE?.trim() ?? "",
+  rapidIqJurisdictionsTable: process.env.RAPID_IQ_JURISDICTIONS_TABLE?.trim() ?? "",
+  rapidIqStateCoverageTable: process.env.RAPID_IQ_STATE_COVERAGE_TABLE?.trim() ?? "",
+  rapidIqOrchestratorFunctionName: process.env.RAPID_IQ_ORCHESTRATOR_FUNCTION_NAME?.trim() ?? "",
+  rapidIqCollectorsMock:
+    process.env.RAPID_IQ_COLLECTORS_MOCK === "true" || process.env.RAPID_IQ_COLLECTORS_MOCK === "1",
+
   /** GSI name for pipeline queries (Scan-first until ~1K leads) [CR-7]. */
   pipelineStageGsiName: process.env.PIPELINE_STAGE_GSI?.trim() || "PipelineStageIndex",
   /** Inside the Cortex marketing lead capture (pk/sk + unsubscribe tokens). */

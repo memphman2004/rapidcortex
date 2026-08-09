@@ -1836,6 +1836,69 @@ Resources:
         ImportedCognitoWebClientId: !GetAtt AppSamStackV2.Outputs.UserPoolClientId
         ManagedPolicyNamePrefix: !Ref AWS::StackName
 
+  # Surgical Rapid IQ sales intelligence on AppSam3 HttpApi
+  # (opportunities/signals/contacts/sources + collectors + EventBridge).
+  AppSamRapidIqStack:
+    Type: AWS::CloudFormation::Stack
+    Metadata:
+      cfn-lint:
+        config:
+          ignore_checks:
+            - W3005
+    DependsOn: AppSam3Stack
+    Properties:
+      TimeoutInMinutes: 60
+      TemplateURL: nested/stack-app-sam-rapid-iq.yaml
+      Parameters:
+        DeploymentStage: !Ref DeploymentStage
+        HttpApiId: !GetAtt AppSam3Stack.Outputs.HttpApiId
+        HttpApiJwtAuthorizerId: ""
+        RapidIqOpportunitiesTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.RapidIqOpportunitiesTable
+            - !Sub "${DynamoTableNamePrefix}-rapid-iq-opportunities-${DeploymentStage}"
+        RapidIqSignalsTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.RapidIqSignalsTable
+            - !Sub "${DynamoTableNamePrefix}-rapid-iq-signals-${DeploymentStage}"
+        RapidIqContactsTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.RapidIqContactsTable
+            - !Sub "${DynamoTableNamePrefix}-rapid-iq-contacts-${DeploymentStage}"
+        RapidIqSourcesTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.RapidIqSourcesTable
+            - !Sub "${DynamoTableNamePrefix}-rapid-iq-sources-${DeploymentStage}"
+        RapidIqJurisdictionsTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.RapidIqJurisdictionsTable
+            - !Sub "${DynamoTableNamePrefix}-rapid-iq-jurisdictions-${DeploymentStage}"
+        RapidIqStateCoverageTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.RapidIqStateCoverageTable
+            - !Sub "${DynamoTableNamePrefix}-rapid-iq-state-coverage-${DeploymentStage}"
+        SalesLeadsTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.SalesLeadsTable
+            - !Sub "${DynamoTableNamePrefix}-sales-leads-${DeploymentStage}"
+        AuditTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.AuditTable
+            - !Sub "${DynamoTableNamePrefix}-audit-${DeploymentStage}"
+        AnthropicApiKeySecretArn: !Ref AnthropicApiKeySecretArn
+        RapidIqSamGovApiKeySecretArn: ""
+        ImportedCognitoUserPoolId: !GetAtt AppSamStackV2.Outputs.UserPoolId
+        ImportedCognitoWebClientId: !GetAtt AppSamStackV2.Outputs.UserPoolClientId
+        ManagedPolicyNamePrefix: !Ref AWS::StackName
+
   AppSam4Stack:
     Type: AWS::CloudFormation::Stack
     Properties:

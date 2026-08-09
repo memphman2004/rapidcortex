@@ -84,3 +84,4 @@ export * from "./ng911/index.js";
 
 export * from "./marketing/index.js";
 export * from "./hiring/index.js";
+export * from "./rapid-iq/index.js";

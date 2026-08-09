@@ -2816,6 +2816,416 @@
         ]
       }
     },
+    "RapidIqOpportunitiesTable": {
+      "Type": "AWS::DynamoDB::Table",
+      "DeletionPolicy": "Retain",
+      "UpdateReplacePolicy": "Retain",
+      "Properties": {
+        "BillingMode": {
+          "Ref": "DynamoBillingMode"
+        },
+        "TableName": {
+          "Fn::If": [
+            "HasDynamoTablePrefix",
+            {
+              "Fn::Sub": "${DynamoTableNamePrefix}-rapid-iq-opportunities-${DeploymentStage}"
+            },
+            {
+              "Ref": "AWS::NoValue"
+            }
+          ]
+        },
+        "AttributeDefinitions": [
+          {
+            "AttributeName": "opportunityId",
+            "AttributeType": "S"
+          },
+          {
+            "AttributeName": "vertical",
+            "AttributeType": "S"
+          },
+          {
+            "AttributeName": "opportunityScore",
+            "AttributeType": "N"
+          },
+          {
+            "AttributeName": "status",
+            "AttributeType": "S"
+          },
+          {
+            "AttributeName": "detectedAt",
+            "AttributeType": "S"
+          }
+        ],
+        "KeySchema": [
+          {
+            "AttributeName": "opportunityId",
+            "KeyType": "HASH"
+          }
+        ],
+        "Tags": [
+          {
+            "Key": "Component",
+            "Value": "rapid-iq"
+          }
+        ],
+        "PointInTimeRecoverySpecification": {
+          "PointInTimeRecoveryEnabled": {
+            "Fn::If": [
+              "DynamoPitrOn",
+              true,
+              false
+            ]
+          }
+        },
+        "GlobalSecondaryIndexes": [
+          {
+            "IndexName": "vertical-score-index",
+            "KeySchema": [
+              {
+                "AttributeName": "vertical",
+                "KeyType": "HASH"
+              },
+              {
+                "AttributeName": "opportunityScore",
+                "KeyType": "RANGE"
+              }
+            ],
+            "Projection": {
+              "ProjectionType": "ALL"
+            }
+          },
+          {
+            "IndexName": "status-detected-index",
+            "KeySchema": [
+              {
+                "AttributeName": "status",
+                "KeyType": "HASH"
+              },
+              {
+                "AttributeName": "detectedAt",
+                "KeyType": "RANGE"
+              }
+            ],
+            "Projection": {
+              "ProjectionType": "ALL"
+            }
+          }
+        ]
+      }
+    },
+    "RapidIqSignalsTable": {
+      "Type": "AWS::DynamoDB::Table",
+      "DeletionPolicy": "Retain",
+      "UpdateReplacePolicy": "Retain",
+      "Properties": {
+        "BillingMode": {
+          "Ref": "DynamoBillingMode"
+        },
+        "TableName": {
+          "Fn::If": [
+            "HasDynamoTablePrefix",
+            {
+              "Fn::Sub": "${DynamoTableNamePrefix}-rapid-iq-signals-${DeploymentStage}"
+            },
+            {
+              "Ref": "AWS::NoValue"
+            }
+          ]
+        },
+        "AttributeDefinitions": [
+          {
+            "AttributeName": "signalId",
+            "AttributeType": "S"
+          },
+          {
+            "AttributeName": "opportunityId",
+            "AttributeType": "S"
+          },
+          {
+            "AttributeName": "publishedAt",
+            "AttributeType": "S"
+          }
+        ],
+        "KeySchema": [
+          {
+            "AttributeName": "signalId",
+            "KeyType": "HASH"
+          }
+        ],
+        "Tags": [
+          {
+            "Key": "Component",
+            "Value": "rapid-iq"
+          }
+        ],
+        "GlobalSecondaryIndexes": [
+          {
+            "IndexName": "opportunityId-published-index",
+            "KeySchema": [
+              {
+                "AttributeName": "opportunityId",
+                "KeyType": "HASH"
+              },
+              {
+                "AttributeName": "publishedAt",
+                "KeyType": "RANGE"
+              }
+            ],
+            "Projection": {
+              "ProjectionType": "ALL"
+            }
+          }
+        ]
+      }
+    },
+    "RapidIqContactsTable": {
+      "Type": "AWS::DynamoDB::Table",
+      "DeletionPolicy": "Retain",
+      "UpdateReplacePolicy": "Retain",
+      "Properties": {
+        "BillingMode": {
+          "Ref": "DynamoBillingMode"
+        },
+        "TableName": {
+          "Fn::If": [
+            "HasDynamoTablePrefix",
+            {
+              "Fn::Sub": "${DynamoTableNamePrefix}-rapid-iq-contacts-${DeploymentStage}"
+            },
+            {
+              "Ref": "AWS::NoValue"
+            }
+          ]
+        },
+        "AttributeDefinitions": [
+          {
+            "AttributeName": "contactId",
+            "AttributeType": "S"
+          },
+          {
+            "AttributeName": "opportunityId",
+            "AttributeType": "S"
+          }
+        ],
+        "KeySchema": [
+          {
+            "AttributeName": "contactId",
+            "KeyType": "HASH"
+          }
+        ],
+        "Tags": [
+          {
+            "Key": "Component",
+            "Value": "rapid-iq"
+          }
+        ],
+        "GlobalSecondaryIndexes": [
+          {
+            "IndexName": "opportunityId-index",
+            "KeySchema": [
+              {
+                "AttributeName": "opportunityId",
+                "KeyType": "HASH"
+              }
+            ],
+            "Projection": {
+              "ProjectionType": "ALL"
+            }
+          }
+        ]
+      }
+    },
+    "RapidIqSourcesTable": {
+      "Type": "AWS::DynamoDB::Table",
+      "DeletionPolicy": "Retain",
+      "UpdateReplacePolicy": "Retain",
+      "Properties": {
+        "BillingMode": {
+          "Ref": "DynamoBillingMode"
+        },
+        "TableName": {
+          "Fn::If": [
+            "HasDynamoTablePrefix",
+            {
+              "Fn::Sub": "${DynamoTableNamePrefix}-rapid-iq-sources-${DeploymentStage}"
+            },
+            {
+              "Ref": "AWS::NoValue"
+            }
+          ]
+        },
+        "AttributeDefinitions": [
+          {
+            "AttributeName": "sourceId",
+            "AttributeType": "S"
+          },
+          {
+            "AttributeName": "opportunityId",
+            "AttributeType": "S"
+          }
+        ],
+        "KeySchema": [
+          {
+            "AttributeName": "sourceId",
+            "KeyType": "HASH"
+          }
+        ],
+        "Tags": [
+          {
+            "Key": "Component",
+            "Value": "rapid-iq"
+          }
+        ],
+        "GlobalSecondaryIndexes": [
+          {
+            "IndexName": "opportunityId-index",
+            "KeySchema": [
+              {
+                "AttributeName": "opportunityId",
+                "KeyType": "HASH"
+              }
+            ],
+            "Projection": {
+              "ProjectionType": "ALL"
+            }
+          }
+        ]
+      }
+    },
+    "RapidIqJurisdictionsTable": {
+      "Type": "AWS::DynamoDB::Table",
+      "DeletionPolicy": "Retain",
+      "UpdateReplacePolicy": "Retain",
+      "Properties": {
+        "BillingMode": {
+          "Ref": "DynamoBillingMode"
+        },
+        "TableName": {
+          "Fn::If": [
+            "HasDynamoTablePrefix",
+            {
+              "Fn::Sub": "${DynamoTableNamePrefix}-rapid-iq-jurisdictions-${DeploymentStage}"
+            },
+            {
+              "Ref": "AWS::NoValue"
+            }
+          ]
+        },
+        "AttributeDefinitions": [
+          {
+            "AttributeName": "jurisdictionId",
+            "AttributeType": "S"
+          },
+          {
+            "AttributeName": "stateCode",
+            "AttributeType": "S"
+          },
+          {
+            "AttributeName": "tier",
+            "AttributeType": "N"
+          },
+          {
+            "AttributeName": "lastScannedAt",
+            "AttributeType": "S"
+          }
+        ],
+        "KeySchema": [
+          {
+            "AttributeName": "jurisdictionId",
+            "KeyType": "HASH"
+          }
+        ],
+        "Tags": [
+          {
+            "Key": "Component",
+            "Value": "rapid-iq"
+          }
+        ],
+        "PointInTimeRecoverySpecification": {
+          "PointInTimeRecoveryEnabled": {
+            "Fn::If": [
+              "DynamoPitrOn",
+              true,
+              false
+            ]
+          }
+        },
+        "GlobalSecondaryIndexes": [
+          {
+            "IndexName": "state-tier-index",
+            "KeySchema": [
+              {
+                "AttributeName": "stateCode",
+                "KeyType": "HASH"
+              },
+              {
+                "AttributeName": "tier",
+                "KeyType": "RANGE"
+              }
+            ],
+            "Projection": {
+              "ProjectionType": "ALL"
+            }
+          },
+          {
+            "IndexName": "tier-lastScanned-index",
+            "KeySchema": [
+              {
+                "AttributeName": "tier",
+                "KeyType": "HASH"
+              },
+              {
+                "AttributeName": "lastScannedAt",
+                "KeyType": "RANGE"
+              }
+            ],
+            "Projection": {
+              "ProjectionType": "ALL"
+            }
+          }
+        ]
+      }
+    },
+    "RapidIqStateCoverageTable": {
+      "Type": "AWS::DynamoDB::Table",
+      "DeletionPolicy": "Retain",
+      "UpdateReplacePolicy": "Retain",
+      "Properties": {
+        "BillingMode": {
+          "Ref": "DynamoBillingMode"
+        },
+        "TableName": {
+          "Fn::If": [
+            "HasDynamoTablePrefix",
+            {
+              "Fn::Sub": "${DynamoTableNamePrefix}-rapid-iq-state-coverage-${DeploymentStage}"
+            },
+            {
+              "Ref": "AWS::NoValue"
+            }
+          ]
+        },
+        "AttributeDefinitions": [
+          {
+            "AttributeName": "stateCode",
+            "AttributeType": "S"
+          }
+        ],
+        "KeySchema": [
+          {
+            "AttributeName": "stateCode",
+            "KeyType": "HASH"
+          }
+        ],
+        "Tags": [
+          {
+            "Key": "Component",
+            "Value": "rapid-iq"
+          }
+        ]
+      }
+    },
     "MarketingLeadsTable": {
       "Type": "AWS::DynamoDB::Table",
       "DeletionPolicy": "Retain",
@@ -6161,6 +6571,42 @@
       "Description": "Physical table name for PsapProspectsTable (RC Admin outbound PSAP CRM)",
       "Value": {
         "Ref": "PsapProspectsTable"
+      }
+    },
+    "RapidIqOpportunitiesTable": {
+      "Description": "Rapid IQ opportunities",
+      "Value": {
+        "Ref": "RapidIqOpportunitiesTable"
+      }
+    },
+    "RapidIqSignalsTable": {
+      "Description": "Rapid IQ signals",
+      "Value": {
+        "Ref": "RapidIqSignalsTable"
+      }
+    },
+    "RapidIqContactsTable": {
+      "Description": "Rapid IQ contacts",
+      "Value": {
+        "Ref": "RapidIqContactsTable"
+      }
+    },
+    "RapidIqSourcesTable": {
+      "Description": "Rapid IQ sources",
+      "Value": {
+        "Ref": "RapidIqSourcesTable"
+      }
+    },
+    "RapidIqJurisdictionsTable": {
+      "Description": "Rapid IQ jurisdiction registry",
+      "Value": {
+        "Ref": "RapidIqJurisdictionsTable"
+      }
+    },
+    "RapidIqStateCoverageTable": {
+      "Description": "Rapid IQ state coverage",
+      "Value": {
+        "Ref": "RapidIqStateCoverageTable"
       }
     },
     "MarketingLeadsTable": {

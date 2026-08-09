@@ -372,6 +372,8 @@ export type AuditResourceType =
   | "channel_config"
   | "sales_lead"
   | "psap_prospect"
+  | "rapid_iq_opportunity"
+  | "rapid_iq_refresh"
   | "job_application"
   | "job_posting"
   | "hiring_bookings"
