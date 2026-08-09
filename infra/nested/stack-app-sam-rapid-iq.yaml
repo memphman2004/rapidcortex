@@ -29,6 +29,18 @@ Parameters:
     Type: String
   AuditTable:
     Type: String
+  AgenciesTable:
+    Type: String
+  IncidentsTable:
+    Type: String
+  TranscriptsTable:
+    Type: String
+  AnalysesTable:
+    Type: String
+  InvitesTable:
+    Type: String
+  AssetsBucket:
+    Type: String
   AnthropicApiKeySecretArn:
     Type: String
     Default: ""
@@ -70,6 +82,12 @@ Globals:
         RAPID_IQ_STATE_COVERAGE_TABLE: !Ref RapidIqStateCoverageTable
         SALES_LEADS_TABLE: !Ref SalesLeadsTable
         AUDIT_TABLE: !Ref AuditTable
+        AGENCIES_TABLE: !Ref AgenciesTable
+        INCIDENTS_TABLE: !Ref IncidentsTable
+        TRANSCRIPTS_TABLE: !Ref TranscriptsTable
+        ANALYSES_TABLE: !Ref AnalysesTable
+        INVITES_TABLE: !Ref InvitesTable
+        ASSETS_BUCKET: !Ref AssetsBucket
         ANTHROPIC_API_KEY_SECRET_ARN: !Ref AnthropicApiKeySecretArn
         RAPID_IQ_SAM_GOV_API_KEY_SECRET_ARN: !Ref RapidIqSamGovApiKeySecretArn
         COGNITO_USER_POOL_ID: !Ref ImportedCognitoUserPoolId

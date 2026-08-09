@@ -1893,6 +1893,36 @@ Resources:
             - HasDataLayerNestedStack
             - !GetAtt DataLayerStack.Outputs.AuditTable
             - !Sub "${DynamoTableNamePrefix}-audit-${DeploymentStage}"
+        AgenciesTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.AgenciesTable
+            - !Sub "${DynamoTableNamePrefix}-agencies-${DeploymentStage}"
+        IncidentsTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.IncidentsTable
+            - !Sub "${DynamoTableNamePrefix}-incidents-${DeploymentStage}"
+        TranscriptsTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.TranscriptsTable
+            - !Sub "${DynamoTableNamePrefix}-transcripts-${DeploymentStage}"
+        AnalysesTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.AnalysesTable
+            - !Sub "${DynamoTableNamePrefix}-analyses-${DeploymentStage}"
+        InvitesTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.InvitesTable
+            - !Sub "${DynamoTableNamePrefix}-invites-${DeploymentStage}"
+        AssetsBucket:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.AssetsBucket
+            - !Sub "${DynamoTableNamePrefix}-assets-${DeploymentStage}-${AWS::AccountId}"
         AnthropicApiKeySecretArn: !Ref AnthropicApiKeySecretArn
         RapidIqSamGovApiKeySecretArn: ""
         ImportedCognitoUserPoolId: !GetAtt AppSamStackV2.Outputs.UserPoolId
