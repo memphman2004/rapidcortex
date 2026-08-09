@@ -1,6 +1,7 @@
 import type { RapidIqOpportunity, RapidIqSignal, SignalChatMessage } from "rapid-cortex-shared";
 import { resolvePlainOrSecretArn } from "../runtimeSecrets.js";
 import { isCollectorsMockEnabled } from "./agenda-finder.js";
+import { textMatchesUniversityTerms } from "./university-search-terms.js";
 
 export type ClassifiedSignal = {
   isRelevant: boolean;
@@ -75,7 +76,9 @@ export async function classifySignal(
 ): Promise<ClassifiedSignal> {
   if (isCollectorsMockEnabled() || !(await resolveAnthropicKey())) {
     const lower = rawText.toLowerCase();
+    const isCampus = textMatchesUniversityTerms(rawText);
     const relevant =
+      isCampus ||
       lower.includes("911") ||
       lower.includes("dispatch") ||
       lower.includes("ng911") ||
@@ -85,35 +88,47 @@ export async function classifySignal(
       isRelevant: relevant,
       signalType: lower.includes("grant") ? "grant" : lower.includes("rfp") ? "rfp" : "budget",
       agencyName: sourceName,
-      agencyType: "county_911",
+      agencyType: isCampus ? "university" : "county_911",
       city: null,
       state: null,
       county: sourceName,
       population: null,
-      aiHeadline: `${sourceName} discussing public safety technology investment`,
-      aiSummary: `${sourceName} meeting materials reference CAD/NG911 modernization. This is a Rapid Cortex Core fit for AI-assisted dispatch intelligence.`,
-      excerpt: "public safety software procurement",
+      aiHeadline: isCampus
+        ? `${sourceName} discussing campus safety technology investment`
+        : `${sourceName} discussing public safety technology investment`,
+      aiSummary: isCampus
+        ? `${sourceName} materials reference campus safety / Clery compliance technology. This is a Rapid Cortex Campus fit.`
+        : `${sourceName} meeting materials reference CAD/NG911 modernization. This is a Rapid Cortex Core fit for AI-assisted dispatch intelligence.`,
+      excerpt: isCampus ? "campus safety software procurement" : "public safety software procurement",
       dollarValue: lower.includes("$") ? 1250000 : null,
       dollarValueContext: "budget line item",
       incumbentVendor: null,
       intentStage: "evaluation",
-      rcProduct: "core",
-      tags: ["OPPORTUNITY", "PSAP SOFTWARE"],
-      mentionedEntities: [{ name: "Communications Director", role: "procurement contact" }],
+      rcProduct: isCampus ? "campus" : "core",
+      tags: isCampus ? ["CAMPUS SAFETY", "OPPORTUNITY"] : ["OPPORTUNITY", "PSAP SOFTWARE"],
+      mentionedEntities: [
+        {
+          name: isCampus ? "Campus Police Chief" : "Communications Director",
+          role: "procurement contact",
+        },
+      ],
       scoreContrib: relevant ? 18 : 0,
       confidence: "medium",
-      vertical: "911",
+      vertical: isCampus ? "campus" : "911",
     };
   }
 
   const text = await callClaude(
     `You are a public safety technology sales intelligence analyst for Rapid Cortex.
+Cover PSAP/911 (Core), campus/university safety (Campus), and venue operations (Venue).
+University signals often involve Board of Trustees, campus police, Clery Act, Title IX, or student safety fees.
 Extract only factual information present in the document. Never invent information. Respond ONLY with valid JSON.`,
-    `Analyze this document for public safety software procurement signals.
+    `Analyze this document for public safety software procurement signals (911/PSAP, campus safety, or venue).
 Source: ${sourceName}
 URL: ${sourceUrl}
 Text: ${rawText.slice(0, 4000)}
-Return JSON with keys: isRelevant, signalType, agencyName, agencyType, city, state, county, population, aiHeadline, aiSummary, excerpt, dollarValue, dollarValueContext, incumbentVendor, intentStage, rcProduct, tags, mentionedEntities, scoreContrib, confidence, vertical`,
+Return JSON with keys: isRelevant, signalType, agencyName, agencyType, city, state, county, population, aiHeadline, aiSummary, excerpt, dollarValue, dollarValueContext, incumbentVendor, intentStage, rcProduct, tags, mentionedEntities, scoreContrib, confidence, vertical.
+For higher-ed / campus safety set vertical="campus" and rcProduct="campus".`,
     1000,
   );
   const parsed = parseJsonLoose<Partial<ClassifiedSignal>>(text, { isRelevant: false });

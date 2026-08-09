@@ -1,27 +1,40 @@
 import { resolvePlainOrSecretArn } from "../../../lib/runtimeSecrets.js";
 import { isCollectorsMockEnabled } from "../../../lib/rapid-iq/agenda-finder.js";
 import { classifySignal } from "../../../lib/rapid-iq/claude-classifier.js";
+import { UNIVERSITY_SEARCH_TERMS } from "../../../lib/rapid-iq/university-search-terms.js";
 import { upsertSignalAndOpportunity } from "./upsert-signal.js";
+
+const SAM_KEYWORDS = ["911 CAD", UNIVERSITY_SEARCH_TERMS[0], "campus safety software"];
 
 export async function runSamGovCollector(): Promise<{ signalsFound: number }> {
   if (isCollectorsMockEnabled()) {
-    const classified = await classifySignal(
-      "SAM.gov notice: County seeks CAD / NG911 software RFP for public safety communications center modernization. Estimated $850,000.",
-      "https://sam.gov/opp/mock-rapid-iq",
-      "SAM.gov",
-    );
-    if (classified.isRelevant) {
+    let total = 0;
+    const mocks = [
+      {
+        text: "SAM.gov notice: County seeks CAD / NG911 software RFP for public safety communications center modernization. Estimated $850,000.",
+        url: "https://sam.gov/opp/mock-rapid-iq",
+        jurisdictionId: "state_agency#US#sam",
+      },
+      {
+        text: "SAM.gov notice: University campus safety software RFP for Clery Act compliance technology and campus emergency notification. Estimated $420,000.",
+        url: "https://sam.gov/opp/mock-rapid-iq-campus",
+        jurisdictionId: "university_news#US#sam",
+      },
+    ];
+    for (const mock of mocks) {
+      const classified = await classifySignal(mock.text, mock.url, "SAM.gov");
+      if (!classified.isRelevant) continue;
       classified.state = classified.state ?? "GA";
       await upsertSignalAndOpportunity(
         classified,
-        "https://sam.gov/opp/mock-rapid-iq",
+        mock.url,
         classified.agencyName ?? "SAM.gov Opportunity",
         "sam_gov",
-        "state_agency#US#sam",
+        mock.jurisdictionId,
       );
-      return { signalsFound: 1 };
+      total++;
     }
-    return { signalsFound: 0 };
+    return { signalsFound: total };
   }
 
   const apiKey = await resolvePlainOrSecretArn(
@@ -34,31 +47,31 @@ export async function runSamGovCollector(): Promise<{ signalsFound: number }> {
     return { signalsFound: 0 };
   }
 
-  // Live SAM.gov search is intentionally narrow; failures must not fail the run.
+  let total = 0;
   try {
-    const url =
-      "https://api.sam.gov/opportunities/v2/search?limit=5&postedFrom=01/01/2024&keyword=911%20CAD";
-    const res = await fetch(url, {
-      headers: { "X-Api-Key": apiKey },
-      signal: AbortSignal.timeout(20_000),
-    });
-    if (!res.ok) return { signalsFound: 0 };
-    const data = (await res.json()) as {
-      opportunitiesData?: Array<{ title?: string; uiLink?: string; description?: string }>;
-    };
-    let total = 0;
-    for (const opp of data.opportunitiesData ?? []) {
-      const text = `${opp.title ?? ""}\n${opp.description ?? ""}`;
-      const classified = await classifySignal(text, opp.uiLink ?? "https://sam.gov", "SAM.gov");
-      if (!classified.isRelevant) continue;
-      await upsertSignalAndOpportunity(
-        classified,
-        opp.uiLink ?? "https://sam.gov",
-        classified.agencyName ?? opp.title ?? "SAM.gov",
-        "sam_gov",
-        "state_agency#US#sam",
-      );
-      total++;
+    for (const keyword of SAM_KEYWORDS) {
+      const url = `https://api.sam.gov/opportunities/v2/search?limit=5&postedFrom=01/01/2024&keyword=${encodeURIComponent(keyword)}`;
+      const res = await fetch(url, {
+        headers: { "X-Api-Key": apiKey },
+        signal: AbortSignal.timeout(20_000),
+      });
+      if (!res.ok) continue;
+      const data = (await res.json()) as {
+        opportunitiesData?: Array<{ title?: string; uiLink?: string; description?: string }>;
+      };
+      for (const opp of data.opportunitiesData ?? []) {
+        const text = `${opp.title ?? ""}\n${opp.description ?? ""}`;
+        const classified = await classifySignal(text, opp.uiLink ?? "https://sam.gov", "SAM.gov");
+        if (!classified.isRelevant) continue;
+        await upsertSignalAndOpportunity(
+          classified,
+          opp.uiLink ?? "https://sam.gov",
+          classified.agencyName ?? opp.title ?? "SAM.gov",
+          "sam_gov",
+          "state_agency#US#sam",
+        );
+        total++;
+      }
     }
     return { signalsFound: total };
   } catch (err) {
@@ -68,6 +81,6 @@ export async function runSamGovCollector(): Promise<{ signalsFound: number }> {
         error: err instanceof Error ? err.message : String(err),
       }),
     );
-    return { signalsFound: 0 };
+    return { signalsFound: total };
   }
 }

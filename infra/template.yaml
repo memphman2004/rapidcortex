@@ -1925,6 +1925,7 @@ Resources:
             - !Sub "${DynamoTableNamePrefix}-assets-${DeploymentStage}-${AWS::AccountId}"
         AnthropicApiKeySecretArn: !Ref AnthropicApiKeySecretArn
         RapidIqSamGovApiKeySecretArn: ""
+        RapidIqLegiscanApiKey: ""
         ImportedCognitoUserPoolId: !GetAtt AppSamStackV2.Outputs.UserPoolId
         ImportedCognitoWebClientId: !GetAtt AppSamStackV2.Outputs.UserPoolClientId
         ManagedPolicyNamePrefix: !Ref AWS::StackName

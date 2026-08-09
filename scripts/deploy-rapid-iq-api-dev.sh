@@ -175,6 +175,9 @@ fi
 if [[ -n "${ANTHROPIC_ARN}" ]]; then
   PARAM_OVERRIDES+=("AnthropicApiKeySecretArn=${ANTHROPIC_ARN}")
 fi
+if [[ -n "${RAPID_IQ_LEGISCAN_API_KEY:-}" ]]; then
+  PARAM_OVERRIDES+=("RapidIqLegiscanApiKey=${RAPID_IQ_LEGISCAN_API_KEY}")
+fi
 
 sam deploy \
   --template-file "${SAM_BUILD_DIR}/template.yaml" \

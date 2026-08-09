@@ -1,5 +1,16 @@
 import type { IntentStage, RapidIqVertical } from "rapid-cortex-shared";
 
+/** Additive scoreContrib boosts by source quality (applied before scoreOpportunity). */
+export const SOURCE_SCORE_BOOSTS = {
+  officialProcurementSite: 10,
+  governmentDocument: 8,
+  newsArticle: 4,
+  stateLegislatureBill: 15,
+  e911CoordinatorReport: 18,
+  femaGrantAward: 20,
+  ntiaGrant: 22,
+} as const;
+
 export function scoreOpportunity(input: {
   scoreContrib: number;
   intentStage?: IntentStage | null;

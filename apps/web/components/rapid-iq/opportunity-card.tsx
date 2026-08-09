@@ -19,6 +19,12 @@ const TAG_STYLES: Record<string, string> = {
   "PSAP SOFTWARE": "bg-sky-500/15 text-sky-300 border border-sky-500/30",
   COMPETITOR: "bg-amber-500/15 text-amber-300 border border-amber-500/30",
   NG911: "bg-blue-500/15 text-blue-300 border border-blue-500/30",
+  "STATE BILL": "bg-purple-500/15 text-purple-300 border border-purple-500/30",
+  "FEMA FUNDED": "bg-green-500/15 text-green-300 border border-green-500/30",
+  "NTIA GRANT": "bg-teal-500/15 text-teal-300 border border-teal-500/30",
+  "E911 PLAN": "bg-blue-500/15 text-blue-300 border border-blue-500/30",
+  "STATE MANDATE": "bg-orange-500/15 text-orange-300 border border-orange-500/30",
+  "CAMPUS SAFETY": "bg-emerald-500/15 text-emerald-300 border border-emerald-500/30",
 };
 
 const VERTICAL_BORDER: Record<RapidIqVertical, string> = {

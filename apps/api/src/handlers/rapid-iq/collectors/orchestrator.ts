@@ -4,8 +4,12 @@ import { applyStateCoverageBoosts } from "../../../lib/rapid-iq/state-coverage-t
 import { RapidIqJurisdictionRepository } from "../../../repositories/rapidIqJurisdictionRepository.js";
 import { RapidIqRefreshStatusRepository } from "../../../repositories/rapidIqRefreshStatusRepository.js";
 import { runAgendaCollector } from "./agenda-collector.js";
+import { runE911CoordinatorCollector } from "./e911-coordinator-collector.js";
+import { runFemaGrantsCollector } from "./fema-grants-collector.js";
 import { runGrantsGovCollector } from "./grants-gov-collector.js";
+import { runLegislatureCollector } from "./legislature-collector.js";
 import { runSamGovCollector } from "./sam-gov-collector.js";
+import { runUniversityNewsCollector } from "./university-news-collector.js";
 
 const repo = new RapidIqJurisdictionRepository();
 const refreshRepo = new RapidIqRefreshStatusRepository();
@@ -71,18 +75,70 @@ export async function runOrchestrator(event: OrchestratorEvent = {}): Promise<{
           tier2: batch.filter((j) => j.tier === 2).length,
           tier3: batch.filter((j) => j.tier === 3).length,
         },
+        collectors: [
+          "agenda",
+          "sam_gov",
+          "grants_gov",
+          "legislature",
+          "e911_coordinator",
+          "fema_grants",
+          "university_news",
+        ],
       }),
     );
 
-    const agendaResult = await runAgendaCollector(batch);
-    totalSignals += agendaResult.signalsFound;
-
-    const [samResult, grantsResult] = await Promise.allSettled([
+    const [
+      agendaResult,
+      samResult,
+      grantsResult,
+      legislatureResult,
+      e911Result,
+      femaResult,
+      uniNewsResult,
+    ] = await Promise.allSettled([
+      runAgendaCollector(batch),
       runSamGovCollector(),
       runGrantsGovCollector(),
+      runLegislatureCollector(),
+      runE911CoordinatorCollector(),
+      runFemaGrantsCollector(),
+      runUniversityNewsCollector(),
     ]);
-    if (samResult.status === "fulfilled") totalSignals += samResult.value.signalsFound;
-    if (grantsResult.status === "fulfilled") totalSignals += grantsResult.value.signalsFound;
+
+    for (const result of [
+      agendaResult,
+      samResult,
+      grantsResult,
+      legislatureResult,
+      e911Result,
+      femaResult,
+      uniNewsResult,
+    ]) {
+      if (result.status === "fulfilled") {
+        totalSignals += result.value.signalsFound;
+      } else {
+        console.error(
+          JSON.stringify({
+            msg: "rapid_iq_collector_rejected",
+            error: result.reason instanceof Error ? result.reason.message : String(result.reason),
+          }),
+        );
+      }
+    }
+
+    console.log(
+      JSON.stringify({
+        msg: "rapid_iq_collector_settlement",
+        agenda: agendaResult.status,
+        sam_gov: samResult.status,
+        grants_gov: grantsResult.status,
+        legislature: legislatureResult.status,
+        e911_coordinator: e911Result.status,
+        fema_grants: femaResult.status,
+        university_news: uniNewsResult.status,
+        signalsFound: totalSignals,
+      }),
+    );
 
     const now = new Date().toISOString();
     await Promise.allSettled(batch.map((j) => repo.updateLastScanned(j.jurisdictionId, now)));

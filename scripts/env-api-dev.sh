@@ -173,6 +173,8 @@ export CAD_WRITEBACK_ENABLED=false
 export ENABLE_RAPID_IQ=true
 export NEXT_PUBLIC_ENABLE_RAPID_IQ="${NEXT_PUBLIC_ENABLE_RAPID_IQ:-1}"
 export RAPID_IQ_COLLECTORS_MOCK="${RAPID_IQ_COLLECTORS_MOCK:-1}"
+# LegiScan free key — https://legiscan.com/legiscan (optional; collector skips when unset)
+export RAPID_IQ_LEGISCAN_API_KEY="${RAPID_IQ_LEGISCAN_API_KEY:-}"
 export RAPID_IQ_OPPORTUNITIES_TABLE="${RAPID_IQ_OPPORTUNITIES_TABLE:-rapid-cortex-rapid-iq-opportunities-dev}"
 export RAPID_IQ_SIGNALS_TABLE="${RAPID_IQ_SIGNALS_TABLE:-rapid-cortex-rapid-iq-signals-dev}"
 export RAPID_IQ_CONTACTS_TABLE="${RAPID_IQ_CONTACTS_TABLE:-rapid-cortex-rapid-iq-contacts-dev}"

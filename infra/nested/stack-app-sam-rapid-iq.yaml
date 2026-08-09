@@ -47,6 +47,11 @@ Parameters:
   RapidIqSamGovApiKeySecretArn:
     Type: String
     Default: ""
+  RapidIqLegiscanApiKey:
+    Type: String
+    Default: ""
+    NoEcho: true
+    Description: LegiScan API key for Rapid IQ legislature collector (optional)
   ImportedCognitoUserPoolId:
     Type: String
   ImportedCognitoWebClientId:
@@ -90,6 +95,7 @@ Globals:
         ASSETS_BUCKET: !Ref AssetsBucket
         ANTHROPIC_API_KEY_SECRET_ARN: !Ref AnthropicApiKeySecretArn
         RAPID_IQ_SAM_GOV_API_KEY_SECRET_ARN: !Ref RapidIqSamGovApiKeySecretArn
+        RAPID_IQ_LEGISCAN_API_KEY: !Ref RapidIqLegiscanApiKey
         COGNITO_USER_POOL_ID: !Ref ImportedCognitoUserPoolId
         COGNITO_CLIENT_ID: !Ref ImportedCognitoWebClientId
         COGNITO_REGION: !Ref AWS::Region

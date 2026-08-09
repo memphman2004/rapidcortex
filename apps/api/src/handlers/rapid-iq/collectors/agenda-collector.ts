@@ -27,6 +27,14 @@ export async function runAgendaCollector(
         if (signal.isRelevant) {
           if (!signal.state) signal.state = jurisdiction.stateCode;
           if (!signal.population) signal.population = jurisdiction.population;
+          if (jurisdiction.type === "university" || jurisdiction.type === "university_system") {
+            signal.vertical = "campus";
+            signal.rcProduct = "campus";
+            signal.agencyType = signal.agencyType ?? jurisdiction.type;
+            signal.tags = Array.from(
+              new Set(["CAMPUS SAFETY", ...(signal.tags ?? [])]),
+            );
+          }
           await upsertSignalAndOpportunity(
             signal,
             doc.url,

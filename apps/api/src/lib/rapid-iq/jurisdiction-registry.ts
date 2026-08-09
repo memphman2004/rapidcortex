@@ -1,8 +1,15 @@
 /** Rapid IQ jurisdiction registry — RC-global (no agencyId). Seed source for DynamoDB. */
 
+import { UNIVERSITY_JURISDICTIONS } from "./university-registry.js";
+
 export type ScanTier = 0 | 1 | 2 | 3;
 
-export type JurisdictionType = "county" | "city" | "university" | "state_agency";
+export type JurisdictionType =
+  | "county"
+  | "city"
+  | "university"
+  | "university_system"
+  | "state_agency";
 
 export interface Jurisdiction {
   jurisdictionId: string;
@@ -1705,21 +1712,6 @@ export const ALL_JURISDICTIONS: JurisdictionSeed[] = [
     notes: "Active NG911 evaluation signal",
   },
   {
-    jurisdictionId: "university#GA#uga",
-    type: "university",
-    name: "University of Georgia",
-    stateCode: "GA",
-    stateName: "Georgia",
-    population: 40118,
-    tier: 2 as ScanTier,
-    tierWeight: 2.0,
-    intervalHours: 48,
-    agendaBaseUrl: "https://www.usg.edu",
-    agendaPathHints: ["/board/meetings", "/agendas"],
-    isActive: true,
-    notes: "UGA \u2014 active pilot market",
-  },
-  {
     jurisdictionId: "county#GA#chatham",
     type: "county",
     name: "Chatham County",
@@ -1839,6 +1831,7 @@ export const ALL_JURISDICTIONS: JurisdictionSeed[] = [
     isActive: true,
     notes: null,
   },
+  ...UNIVERSITY_JURISDICTIONS,
 ];
 
 export function hydrateJurisdiction(seed: JurisdictionSeed, overrides?: Partial<Jurisdiction>): Jurisdiction {

@@ -4,6 +4,17 @@ export const SCORE_TIERS = {
   medium: 55,
 } as const;
 
+/** Display/docs mirror of API source quality boosts. */
+export const SOURCE_SCORE_BOOSTS = {
+  officialProcurementSite: 10,
+  governmentDocument: 8,
+  newsArticle: 4,
+  stateLegislatureBill: 15,
+  e911CoordinatorReport: 18,
+  femaGrantAward: 20,
+  ntiaGrant: 22,
+} as const;
+
 export function scoreFontColor(score: number): string {
   if (score >= SCORE_TIERS.actNow) return "text-red-300";
   if (score >= SCORE_TIERS.high) return "text-amber-300";
