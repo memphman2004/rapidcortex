@@ -51,9 +51,13 @@ async function refreshSessionAfterSignIn(
   return null;
 }
 
+export type LoginPulseState = "idle" | "authenticating" | "success";
+
 export function LoginForm({
   loginQuery,
   signInConfigured,
+  onPulseStateChange,
+  onDeferNavigate,
 }: {
   loginQuery: LoginQuerySnapshot;
   /**
@@ -61,6 +65,10 @@ export function LoginForm({
    * the browser — without this, `isAuthConfigured()` would always be false client-side and hide the form.
    */
   signInConfigured?: boolean;
+  /** Atmosphere pulse: idle → authenticating → success */
+  onPulseStateChange?: (state: LoginPulseState) => void;
+  /** When set, successful auth waits for the success pulse before navigating */
+  onDeferNavigate?: (navigate: () => void) => void;
 }) {
   const router = useRouter();
   const jurisdictionSlug = useJurisdictionSlug();
@@ -146,32 +154,40 @@ export function LoginForm({
     ctx: string,
     opts?: { afterPasswordChange?: boolean; preferredPath?: string | null },
   ) {
-    if (tryRedirectNativeDesktopOAuth(sessionUser)) return;
-    const path =
-      opts?.preferredPath?.startsWith("/")
-        ? opts.preferredPath
-        : homePathFor(sessionUser, opts?.afterPasswordChange);
-    const isProd = process.env.NODE_ENV === "production";
-    if (!isProd) {
-      console.info("[login]", {
-        phase: ctx,
-        sessionPresent: Boolean(sessionUser),
-        role: sessionUser?.role ?? null,
-        redirectTarget: path,
-      });
-      setAuthDbg({
-        step: ctx,
-        sessionPresent: Boolean(sessionUser),
-        role: sessionUser?.role ?? "(none)",
-        redirectTarget: path ?? "/unauthorized?reason=session",
-        lastError: "—",
-      });
-    }
-    if (sessionUser && path) {
-      postAuthRedirect(router, path);
+    const go = () => {
+      if (tryRedirectNativeDesktopOAuth(sessionUser)) return;
+      const path =
+        opts?.preferredPath?.startsWith("/")
+          ? opts.preferredPath
+          : homePathFor(sessionUser, opts?.afterPasswordChange);
+      const isProd = process.env.NODE_ENV === "production";
+      if (!isProd) {
+        console.info("[login]", {
+          phase: ctx,
+          sessionPresent: Boolean(sessionUser),
+          role: sessionUser?.role ?? null,
+          redirectTarget: path,
+        });
+        setAuthDbg({
+          step: ctx,
+          sessionPresent: Boolean(sessionUser),
+          role: sessionUser?.role ?? "(none)",
+          redirectTarget: path ?? "/unauthorized?reason=session",
+          lastError: "—",
+        });
+      }
+      if (sessionUser && path) {
+        postAuthRedirect(router, path);
+        return;
+      }
+      hardNavigateTo("/unauthorized?reason=session");
+    };
+
+    if (onDeferNavigate) {
+      onDeferNavigate(go);
       return;
     }
-    hardNavigateTo("/unauthorized?reason=session");
+    go();
   }
 
   const resetForgotPassword = useCallback(() => {
@@ -259,6 +275,8 @@ export function LoginForm({
     e.preventDefault();
     setError(null);
     setSubmitting(true);
+    onPulseStateChange?.("authenticating");
+    let authSucceeded = false;
     try {
       await ensureCsrfCookie();
       if (activeChallenge === "NEW_PASSWORD_REQUIRED" && authSession && challengeUsername) {
@@ -305,6 +323,7 @@ export function LoginForm({
           );
           return;
         }
+        authSucceeded = true;
         navigatePostAuth(destinationUser, "complete_new_password", { afterPasswordChange: true });
         return;
       }
@@ -331,6 +350,7 @@ export function LoginForm({
         }
         resetChallenges();
         const uEmail = await refreshSessionAfterSignIn(refresh);
+        authSucceeded = true;
         navigatePostAuth(uEmail, "email_otp");
         return;
       }
@@ -359,6 +379,7 @@ export function LoginForm({
         }
         resetChallenges();
         const u2 = await refreshSessionAfterSignIn(refresh);
+        authSucceeded = true;
         navigatePostAuth(u2, "mfa_login");
         return;
       }
@@ -386,6 +407,7 @@ export function LoginForm({
         }
         resetChallenges();
         const u3 = await refreshSessionAfterSignIn(refresh);
+        authSucceeded = true;
         navigatePostAuth(u3, "mfa_setup");
         return;
       }
@@ -498,6 +520,7 @@ export function LoginForm({
         );
         return;
       }
+      authSucceeded = true;
       navigatePostAuth(u4, "password_signin", { preferredPath: signInBody.redirectTo });
     } catch (err) {
       console.error(err);
@@ -508,6 +531,9 @@ export function LoginForm({
       );
     } finally {
       setSubmitting(false);
+      if (!authSucceeded) {
+        onPulseStateChange?.("idle");
+      }
     }
   }
 

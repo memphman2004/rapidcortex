@@ -14,6 +14,7 @@ import { AUDIT_EVENT_TYPES } from "rapid-cortex-security";
 import { ACCOUNT_INACTIVE_MESSAGE, getUserContext, isUserAccountActive } from "../../lib/auth.js";
 import { withCorrelationHeaders } from "../../lib/correlation.js";
 import { generateTalkingPoints, signalChat } from "../../lib/rapid-iq/claude-classifier.js";
+import { findAgencyContacts } from "../../lib/rapid-iq/agency-contact-finder.js";
 import { env } from "../../lib/env.js";
 import { makeId } from "../../lib/ids.js";
 import {
@@ -163,8 +164,32 @@ export async function handler(event: APIGatewayProxyEventV2): Promise<APIGateway
         ...(parsed.data.history ?? []),
         { role: "user" as const, content: parsed.data.message },
       ];
-      const reply = await signalChat(opp, history);
-      return withCorrelationHeaders(event, ok({ reply }));
+      try {
+        const [signals, sources] = await Promise.all([
+          sigRepo.listByOpportunity(opp.opportunityId),
+          sourceRepo.listByOpportunity(opp.opportunityId),
+        ]);
+        const reply = await signalChat(opp, history, signals, sources);
+        return withCorrelationHeaders(event, ok({ reply }));
+      } catch (err) {
+        console.error(
+          JSON.stringify({
+            msg: "rapid_iq_chat_error",
+            opportunityId: opp.opportunityId,
+            error: err instanceof Error ? err.message : String(err),
+          }),
+        );
+        return withCorrelationHeaders(
+          event,
+          ok(
+            {
+              error: err instanceof Error ? err.message : "Chat failed",
+              detail: "Check CloudWatch logs for rapid_iq_chat_error",
+            },
+            500,
+          ),
+        );
+      }
     }
 
     // POST /api/rapid-iq/search-contacts
@@ -173,6 +198,37 @@ export async function handler(event: APIGatewayProxyEventV2): Promise<APIGateway
       if (body === null) return withCorrelationHeaders(event, badRequest("Invalid JSON"));
       const parsed = searchContactsBodySchema.safeParse(body);
       if (!parsed.success) return withCorrelationHeaders(event, badRequestFromZod(parsed.error));
+      const opp = await oppRepo.get(parsed.data.opportunityId);
+      if (!opp) return withCorrelationHeaders(event, notFound("Opportunity not found"));
+
+      const vertical =
+        opp.rcProduct === "campus" || opp.vertical === "campus"
+          ? "campus"
+          : opp.rcProduct === "venue" || opp.vertical === "venue"
+            ? "venue"
+            : "911";
+
+      try {
+        const found = await findAgencyContacts({
+          agencyName: opp.agencyName,
+          agencyType: opp.agencyType,
+          city: opp.city,
+          state: opp.state,
+          vertical,
+        });
+        for (const contact of found) {
+          await contactRepo.put({ ...contact, opportunityId: opp.opportunityId });
+        }
+      } catch (err) {
+        console.error(
+          JSON.stringify({
+            msg: "rapid_iq_contact_finder_error",
+            opportunityId: opp.opportunityId,
+            error: err instanceof Error ? err.message : String(err),
+          }),
+        );
+      }
+
       let contacts = await contactRepo.listByOpportunity(parsed.data.opportunityId);
       const q = parsed.data.query?.trim().toLowerCase();
       if (q) {
@@ -180,7 +236,7 @@ export async function handler(event: APIGatewayProxyEventV2): Promise<APIGateway
           `${c.name ?? ""} ${c.title} ${c.email ?? ""} ${c.phone ?? ""}`.toLowerCase().includes(q),
         );
       }
-      return withCorrelationHeaders(event, ok({ contacts }));
+      return withCorrelationHeaders(event, ok({ contacts, count: contacts.length }));
     }
 
     // POST /api/rapid-iq/convert-to-lead
@@ -267,7 +323,21 @@ export async function handler(event: APIGatewayProxyEventV2): Promise<APIGateway
       if (method === "GET") {
         const opp = await oppRepo.get(opportunityId);
         if (!opp) return withCorrelationHeaders(event, notFound("Opportunity not found"));
-        return withCorrelationHeaders(event, ok(opp));
+        const [signals, contacts, sources] = await Promise.all([
+          sigRepo.listByOpportunity(opportunityId),
+          contactRepo.listByOpportunity(opportunityId),
+          sourceRepo.listByOpportunity(opportunityId),
+        ]);
+        const mentioned = contacts.slice(0, 8).map((c) => ({
+          name: c.name ?? c.title,
+          role: c.title,
+          status: (c.name ? "found" : "not_found") as "found" | "searching" | "not_found",
+          linkedContactId: c.name ? c.contactId : null,
+        }));
+        return withCorrelationHeaders(
+          event,
+          ok({ opportunity: opp, signals, contacts, sources, mentioned }),
+        );
       }
     }
 

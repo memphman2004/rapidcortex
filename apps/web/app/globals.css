@@ -433,23 +433,6 @@ textarea {
 }
 
 /* ── Agency login page (app.rapidcortex.us/login) ───────────────────────── */
-@keyframes rcScan {
-  0% {
-    top: -28px;
-    opacity: 0;
-  }
-  5% {
-    opacity: 1;
-  }
-  92% {
-    opacity: 0.55;
-  }
-  100% {
-    top: 100%;
-    opacity: 0;
-  }
-}
-
 @keyframes rcBlink {
   0%,
   100% {
@@ -478,7 +461,7 @@ textarea {
 .rc-login-page__grid,
 .rc-login-page__glow-blue,
 .rc-login-page__glow-red,
-.rc-login-page__scan {
+.rc-pulse-layer {
   pointer-events: none;
 }
 
@@ -512,40 +495,134 @@ textarea {
   background: radial-gradient(ellipse 60% 55% at 50% 100%, rgba(196, 30, 58, 0.07) 0%, transparent 70%);
 }
 
-.rc-login-page__scan {
+/* Full-bleed Rapid Cortex pulse (login atmosphere) */
+.rc-pulse-layer {
   position: absolute;
-  top: 0;
-  right: 0;
-  left: 0;
+  inset: 0;
   z-index: 1;
   display: flex;
-  height: 48px;
   align-items: center;
   overflow: hidden;
-  opacity: 0.85;
-  animation: rcScan 14s linear infinite;
-  /* Soft CRT-style edges so the moving trace reads as a monitor sweep */
-  -webkit-mask-image: linear-gradient(
-    90deg,
-    transparent 0%,
-    #000 6%,
-    #000 90%,
-    transparent 100%
-  );
-  mask-image: linear-gradient(90deg, transparent 0%, #000 6%, #000 90%, transparent 100%);
+  pointer-events: none;
+  --pulse-duration: 7s;
+  --pulse-opacity: 0.72;
+  --pulse-glow: 0.35;
+  --pulse-scale: 1;
 }
 
-.rc-login-page__ecg-canvas {
-  display: block;
-  width: 100%;
-  height: 48px;
+.rc-pulse-svg {
+  position: absolute;
+  left: 0;
+  width: 200%;
+  height: 220px;
+  overflow: visible;
+  transform-origin: center;
+  animation: rcPulseMove var(--pulse-duration) linear infinite;
+  transition:
+    filter 300ms ease,
+    opacity 300ms ease;
+}
+
+.rc-pulse-path {
+  fill: none;
+  vector-effect: non-scaling-stroke;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.rc-pulse-path-main {
+  stroke: url(#rapid-cortex-pulse-gradient);
+  stroke-width: 2;
+  opacity: var(--pulse-opacity);
+  filter:
+    drop-shadow(0 0 3px rgba(65, 190, 255, 0.85))
+    drop-shadow(0 0 9px rgba(0, 135, 255, var(--pulse-glow)));
+}
+
+.rc-pulse-path-glow {
+  stroke: #009dff;
+  stroke-width: 11;
+  opacity: 0.08;
+  filter: blur(7px);
+}
+
+.rc-pulse-idle {
+  --pulse-duration: 7s;
+  --pulse-opacity: 0.7;
+  --pulse-glow: 0.3;
+}
+
+.rc-pulse-authenticating {
+  --pulse-duration: 3.1s;
+  --pulse-opacity: 1;
+  --pulse-glow: 0.75;
+}
+
+.rc-pulse-authenticating .rc-pulse-svg {
+  animation:
+    rcPulseMove var(--pulse-duration) linear infinite,
+    rcAuthenticationGlow 800ms ease-in-out infinite alternate;
+}
+
+.rc-pulse-success-active .rc-pulse-svg {
+  animation: rcSuccessSweep 1.05s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+.rc-pulse-success-active .rc-pulse-path-main {
+  stroke-width: 3;
+  opacity: 1;
+  filter:
+    drop-shadow(0 0 5px rgba(120, 220, 255, 1))
+    drop-shadow(0 0 15px rgba(0, 170, 255, 0.95))
+    drop-shadow(0 0 35px rgba(0, 120, 255, 0.7));
+}
+
+.rc-pulse-success-active .rc-pulse-path-glow {
+  opacity: 0.22;
+  stroke-width: 18;
+}
+
+@keyframes rcPulseMove {
+  from {
+    transform: translateX(0) scaleY(var(--pulse-scale));
+  }
+  to {
+    transform: translateX(-50%) scaleY(var(--pulse-scale));
+  }
+}
+
+@keyframes rcAuthenticationGlow {
+  from {
+    filter: brightness(1) saturate(1);
+  }
+  to {
+    filter: brightness(1.5) saturate(1.3);
+  }
+}
+
+@keyframes rcSuccessSweep {
+  0% {
+    transform: translateX(0) scaleY(1);
+    filter: brightness(1);
+  }
+  35% {
+    transform: translateX(-15%) scaleY(1.15);
+    filter: brightness(2);
+  }
+  70% {
+    transform: translateX(-38%) scaleY(1.35);
+    filter: brightness(2.8);
+  }
+  100% {
+    transform: translateX(-50%) scaleY(1);
+    filter: brightness(1.4);
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .rc-login-page__scan {
-    animation: none;
-    top: 42%;
-    opacity: 0.7;
+  .rc-pulse-svg {
+    animation: none !important;
+    transform: translateX(-25%);
   }
 }
 
@@ -957,7 +1034,6 @@ textarea {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .rc-login-page__scan,
   .rc-login-status__dot,
   .rc-login-secure-badge__dot {
     animation: none;

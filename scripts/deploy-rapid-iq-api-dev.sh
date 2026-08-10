@@ -198,18 +198,23 @@ aws apigatewayv2 get-routes --api-id "${HTTP_API_ID}" \
   --query 'Items[?contains(RouteKey, `rapid-iq`)].[RouteKey,AuthorizationType]' \
   --output table
 
-if [[ "${RAPID_IQ_SKIP_SEED:-0}" != "1" ]]; then
-  echo "── Seeding jurisdictions + dev opportunities ──"
-  STAGE=dev \
-    RAPID_IQ_JURISDICTIONS_TABLE="${JUR_TABLE}" \
-    RAPID_IQ_STATE_COVERAGE_TABLE="${COV_TABLE}" \
-    npx tsx scripts/seed-rapid-iq-jurisdictions.ts
+if [[ "${RAPID_IQ_SEED_OPPORTUNITIES:-0}" == "1" ]]; then
+  echo "── Seeding DEMO opportunities (RAPID_IQ_SEED_OPPORTUNITIES=1) ──"
   STAGE=dev \
     RAPID_IQ_OPPORTUNITIES_TABLE="${OPP_TABLE}" \
     RAPID_IQ_SIGNALS_TABLE="${SIG_TABLE}" \
     RAPID_IQ_CONTACTS_TABLE="${CON_TABLE}" \
     RAPID_IQ_SOURCES_TABLE="${SRC_TABLE}" \
     npx tsx scripts/seed-rapid-iq-dev.ts
+elif [[ "${RAPID_IQ_SKIP_SEED:-0}" != "1" ]]; then
+  echo "── Seeding jurisdictions registry only (no demo opportunities) ──"
+  STAGE=dev \
+    RAPID_IQ_JURISDICTIONS_TABLE="${JUR_TABLE}" \
+    RAPID_IQ_STATE_COVERAGE_TABLE="${COV_TABLE}" \
+    npx tsx scripts/seed-rapid-iq-jurisdictions.ts
+  echo "── Skipping opportunity seed (set RAPID_IQ_SEED_OPPORTUNITIES=1 to force demo data) ──"
+else
+  echo "── Skipping all Rapid IQ seeds (RAPID_IQ_SKIP_SEED=1) ──"
 fi
 
 echo "✅ Rapid IQ API deploy complete"

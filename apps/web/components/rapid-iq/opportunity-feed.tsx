@@ -54,7 +54,13 @@ export function OpportunityFeed({ opportunities, selectedId, onSelect, vertical,
           />
         ))}
         {opportunities.length === 0 && (
-          <p className="py-12 text-center text-sm text-slate-600">No opportunities match filters.</p>
+          <div className="flex flex-col items-center gap-2 px-6 py-12 text-center">
+            <p className="text-sm text-slate-400">No live opportunities yet.</p>
+            <p className="max-w-[280px] text-[11px] text-slate-600">
+              Click <span className="text-slate-400">Update Now</span> to scan Grants.gov, agendas,
+              and other live sources. Demo seed data has been removed.
+            </p>
+          </div>
         )}
       </div>
     </div>

@@ -1,16 +1,47 @@
 import { randomUUID } from "node:crypto";
 import type { ClassifiedSignal } from "../../../lib/rapid-iq/claude-classifier.js";
+import { findAgencyContacts } from "../../../lib/rapid-iq/agency-contact-finder.js";
 import { opportunityDedupeKey, signalDedupeKey } from "../../../lib/rapid-iq/deduplication.js";
 import { scoreOpportunity } from "../../../lib/rapid-iq/opportunity-scorer.js";
 import { RapidIqContactRepository } from "../../../repositories/rapidIqContactRepository.js";
 import { RapidIqOpportunityRepository } from "../../../repositories/rapidIqOpportunityRepository.js";
 import { RapidIqSignalRepository } from "../../../repositories/rapidIqSignalRepository.js";
 import { RapidIqSourceRepository } from "../../../repositories/rapidIqSourceRepository.js";
+import type { RapidIqSource } from "rapid-cortex-shared";
 
 const oppRepo = new RapidIqOpportunityRepository();
 const sigRepo = new RapidIqSignalRepository();
 const srcRepo = new RapidIqSourceRepository();
 const contactRepo = new RapidIqContactRepository();
+
+function isPdfUrl(url: string): boolean {
+  try {
+    const path = new URL(url).pathname.toLowerCase();
+    return path.endsWith(".pdf");
+  } catch {
+    return url.toLowerCase().includes(".pdf");
+  }
+}
+
+function deriveSourceRole(signalType: string | null): RapidIqSource["sourceRole"] {
+  if (signalType === "rfp" || signalType === "rfi") return "procurement";
+  if (signalType === "budget" || signalType === "grant") return "budget";
+  return "primary";
+}
+
+function deriveDocumentType(signalType: string | null, sourceType: string): string {
+  if (sourceType === "grant_db") return "grant";
+  if (sourceType === "news" || sourceType === "trade_publication" || sourceType === "association") {
+    return "news";
+  }
+  if (sourceType === "government_doc") {
+    if (signalType === "meeting_minutes") return "minutes";
+    if (signalType === "budget") return "budget_pdf";
+    if (signalType === "rfp" || signalType === "rfi") return "rfp";
+    return "agenda";
+  }
+  return "agenda";
+}
 
 export async function upsertSignalAndOpportunity(
   classified: ClassifiedSignal,
@@ -30,6 +61,10 @@ export async function upsertSignalAndOpportunity(
     hasDollarValue: Boolean(classified.dollarValue),
     vertical: classified.vertical,
   });
+
+  const docUrlCandidate = classified.sourceDocUrl?.trim() || sourceUrl;
+  const pdf = isPdfUrl(docUrlCandidate);
+  const sourceDocUrl = pdf ? docUrlCandidate : null;
 
   const opportunity = {
     opportunityId,
@@ -77,7 +112,7 @@ export async function upsertSignalAndOpportunity(
     sourceName: agencyFallback,
     sourceType,
     sourceUrl,
-    sourceDocUrl: sourceUrl.endsWith(".pdf") ? sourceUrl : null,
+    sourceDocUrl,
     pageReference: null,
     publishedAt: now,
     detectedAt: now,
@@ -87,11 +122,11 @@ export async function upsertSignalAndOpportunity(
   await srcRepo.put({
     sourceId: `src#${signalId}`,
     opportunityId,
-    sourceRole: "primary",
+    sourceRole: deriveSourceRole(classified.signalType),
     title: classified.aiHeadline ?? "Source document",
     url: sourceUrl,
-    docUrl: sourceUrl.endsWith(".pdf") ? sourceUrl : null,
-    documentType: sourceUrl.endsWith(".pdf") ? "pdf" : "web",
+    docUrl: sourceDocUrl,
+    documentType: deriveDocumentType(classified.signalType, sourceType),
     excerpt: classified.excerpt,
     pageReference: null,
     publishedAt: now,
@@ -117,6 +152,37 @@ export async function upsertSignalAndOpportunity(
       phone: null,
       linkedInUrl: null,
     });
+  }
+
+  try {
+    const contacts = await findAgencyContacts({
+      agencyName,
+      agencyType: classified.agencyType ?? "county_911",
+      city: classified.city ?? "",
+      state,
+      vertical: classified.vertical,
+      jurisdictionId,
+    });
+    for (const contact of contacts) {
+      await contactRepo.put({ ...contact, opportunityId });
+    }
+    if (contacts.length > 0) {
+      console.log(
+        JSON.stringify({
+          msg: "rapid_iq_contacts_found",
+          opportunityId,
+          contactCount: contacts.length,
+        }),
+      );
+    }
+  } catch (err) {
+    console.error(
+      JSON.stringify({
+        msg: "rapid_iq_contact_finder_error",
+        opportunityId,
+        error: err instanceof Error ? err.message : String(err),
+      }),
+    );
   }
 
   return { opportunityId, created: !existing };

@@ -18,11 +18,14 @@ export async function runAgendaCollector(
   let total = 0;
   for (const jurisdiction of batch) {
     try {
-      await sleep(process.env.RAPID_IQ_COLLECTORS_MOCK ? 10 : 2000);
+      const mockOn =
+        process.env.RAPID_IQ_COLLECTORS_MOCK?.trim().toLowerCase() === "1" ||
+        process.env.RAPID_IQ_COLLECTORS_MOCK?.trim().toLowerCase() === "true";
+      await sleep(mockOn ? 10 : 2000);
       const docs = await findAgendaDocuments(jurisdiction);
       for (const doc of docs.slice(0, 5)) {
         const pdfText = await extractPdfText(doc.url);
-        if (!pdfText) continue;
+        if (!pdfText || pdfText.length < 80) continue;
         const signal = await classifySignal(pdfText, doc.url, jurisdiction.name);
         if (signal.isRelevant) {
           if (!signal.state) signal.state = jurisdiction.stateCode;
@@ -35,6 +38,7 @@ export async function runAgendaCollector(
               new Set(["CAMPUS SAFETY", ...(signal.tags ?? [])]),
             );
           }
+          signal.sourceDocUrl = doc.url;
           await upsertSignalAndOpportunity(
             signal,
             doc.url,

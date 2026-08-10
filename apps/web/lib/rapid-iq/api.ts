@@ -25,6 +25,14 @@ import {
 
 const BASE = "/api/rapid-iq";
 
+/** Explicit opt-in only — production never silently substitutes demo inventory. */
+function allowDemoFallback(): boolean {
+  return (
+    process.env.NEXT_PUBLIC_RAPID_IQ_DEMO === "1" ||
+    process.env.NEXT_PUBLIC_RAPID_IQ_DEMO === "true"
+  );
+}
+
 type ApiEnvelope<T> = {
   success?: boolean;
   data?: T;
@@ -54,9 +62,10 @@ async function parseJson<T>(res: Response): Promise<T> {
   return body as T;
 }
 
-function unwrapItems<T>(body: ApiEnvelope<T[]> & { items?: T[] }): T[] {
+function unwrapItems<T>(body: ApiEnvelope<T[]> & { items?: T[]; contacts?: T[] }): T[] {
   if (Array.isArray(body.items)) return body.items;
   if (Array.isArray(body.data)) return body.data;
+  if (Array.isArray(body.contacts)) return body.contacts;
   return [];
 }
 
@@ -79,17 +88,20 @@ export async function listOpportunities(params: OpportunityListParams = {}): Pro
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const body = (await res.json()) as ApiEnvelope<RapidIqOpportunity[]>;
     const items = unwrapItems<RapidIqOpportunity>(body);
-    if (items.length === 0) {
+    if (items.length === 0 && allowDemoFallback()) {
       return { items: filterDemoOpportunities(params), demo: true };
     }
     return { items, demo: false };
-  } catch {
-    return { items: filterDemoOpportunities(params), demo: true };
+  } catch (err) {
+    if (allowDemoFallback()) {
+      return { items: filterDemoOpportunities(params), demo: true };
+    }
+    throw err instanceof Error ? err : new Error("Failed to load opportunities");
   }
 }
 
 export async function getOpportunityDetail(opportunityId: string): Promise<OpportunityDetailBundle | null> {
-  const demoOpp = getDemoOpportunity(opportunityId);
+  const demoOpp = allowDemoFallback() ? getDemoOpportunity(opportunityId) : null;
 
   try {
     const res = await fetch(`${BASE}/opportunities/${encodeURIComponent(opportunityId)}`, {
@@ -98,19 +110,59 @@ export async function getOpportunityDetail(opportunityId: string): Promise<Oppor
     });
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const body = (await res.json()) as ApiEnvelope<RapidIqOpportunity> & {
+      opportunity?: RapidIqOpportunity;
       signals?: RapidIqSignal[];
       contacts?: RapidIqContact[];
       sources?: RapidIqSource[];
       mentioned?: MentionedEntity[];
+      opportunityId?: string;
     };
-    const opportunity = body.data ?? body.items;
-    if (!opportunity) throw new Error("Missing opportunity");
+
+    const opportunity =
+      body.opportunity ??
+      (typeof body.data === "object" && body.data && "opportunityId" in (body.data as object)
+        ? (body.data as RapidIqOpportunity)
+        : null) ??
+      (body.opportunityId ? (body as unknown as RapidIqOpportunity) : null);
+
+    if (!opportunity?.opportunityId) throw new Error("Missing opportunity");
+
+    let signals = Array.isArray(body.signals) ? body.signals : [];
+    let contacts = Array.isArray(body.contacts) ? body.contacts : [];
+    let sources = Array.isArray(body.sources) ? body.sources : [];
+    let mentioned = Array.isArray(body.mentioned) ? body.mentioned : [];
+
+    if (signals.length === 0 || contacts.length === 0 || sources.length === 0) {
+      const [s, c, src] = await Promise.all([
+        signals.length
+          ? Promise.resolve(signals)
+          : fetchSignals(opportunityId, false).catch(() => [] as RapidIqSignal[]),
+        contacts.length
+          ? Promise.resolve(contacts)
+          : fetchContacts(opportunityId, false).catch(() => [] as RapidIqContact[]),
+        sources.length
+          ? Promise.resolve(sources)
+          : fetchSources(opportunityId, false).catch(() => [] as RapidIqSource[]),
+      ]);
+      signals = s;
+      contacts = c;
+      sources = src;
+    }
+    if (mentioned.length === 0 && contacts.length > 0) {
+      mentioned = contacts.slice(0, 8).map((c) => ({
+        name: c.name ?? c.title,
+        role: c.title,
+        status: c.name ? ("found" as const) : ("not_found" as const),
+        linkedContactId: c.name ? c.contactId : null,
+      }));
+    }
+
     return {
       opportunity,
-      signals: body.signals ?? [],
-      contacts: body.contacts ?? [],
-      sources: body.sources ?? [],
-      mentioned: body.mentioned ?? [],
+      signals,
+      contacts,
+      sources,
+      mentioned,
       demo: false,
     };
   } catch {
@@ -128,44 +180,32 @@ export async function getOpportunityDetail(opportunityId: string): Promise<Oppor
 
 export async function fetchSignals(opportunityId: string, demo = false): Promise<RapidIqSignal[]> {
   if (demo) return getDemoSignals(opportunityId);
-  try {
-    const res = await fetch(`${BASE}/opportunities/${encodeURIComponent(opportunityId)}/signals`, {
-      credentials: "include",
-    });
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    const body = await parseJson<ApiEnvelope<RapidIqSignal[]>>(res);
-    return unwrapItems<RapidIqSignal>(body);
-  } catch {
-    return getDemoSignals(opportunityId);
-  }
+  const res = await fetch(`${BASE}/opportunities/${encodeURIComponent(opportunityId)}/signals`, {
+    credentials: "include",
+  });
+  if (!res.ok) throw new Error(`HTTP ${res.status}`);
+  const body = await parseJson<ApiEnvelope<RapidIqSignal[]>>(res);
+  return unwrapItems<RapidIqSignal>(body);
 }
 
 export async function fetchContacts(opportunityId: string, demo = false): Promise<RapidIqContact[]> {
   if (demo) return getDemoContacts(opportunityId);
-  try {
-    const res = await fetch(`${BASE}/opportunities/${encodeURIComponent(opportunityId)}/contacts`, {
-      credentials: "include",
-    });
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    const body = await parseJson<ApiEnvelope<RapidIqContact[]>>(res);
-    return unwrapItems<RapidIqContact>(body);
-  } catch {
-    return getDemoContacts(opportunityId);
-  }
+  const res = await fetch(`${BASE}/opportunities/${encodeURIComponent(opportunityId)}/contacts`, {
+    credentials: "include",
+  });
+  if (!res.ok) throw new Error(`HTTP ${res.status}`);
+  const body = await parseJson<ApiEnvelope<RapidIqContact[]>>(res);
+  return unwrapItems<RapidIqContact>(body);
 }
 
 export async function fetchSources(opportunityId: string, demo = false): Promise<RapidIqSource[]> {
   if (demo) return getDemoSources(opportunityId);
-  try {
-    const res = await fetch(`${BASE}/opportunities/${encodeURIComponent(opportunityId)}/sources`, {
-      credentials: "include",
-    });
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    const body = await parseJson<ApiEnvelope<RapidIqSource[]>>(res);
-    return unwrapItems<RapidIqSource>(body);
-  } catch {
-    return getDemoSources(opportunityId);
-  }
+  const res = await fetch(`${BASE}/opportunities/${encodeURIComponent(opportunityId)}/sources`, {
+    credentials: "include",
+  });
+  if (!res.ok) throw new Error(`HTTP ${res.status}`);
+  const body = await parseJson<ApiEnvelope<RapidIqSource[]>>(res);
+  return unwrapItems<RapidIqSource>(body);
 }
 
 export async function updateOpportunity(
@@ -184,8 +224,10 @@ export async function updateOpportunity(
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(body),
   });
-  const parsed = await parseJson<ApiEnvelope<RapidIqOpportunity>>(res);
-  const opp = parsed.data ?? parsed.items;
+  const parsed = await parseJson<ApiEnvelope<RapidIqOpportunity> & RapidIqOpportunity>(res);
+  const opp =
+    (parsed as { data?: RapidIqOpportunity }).data ??
+    ((parsed as RapidIqOpportunity).opportunityId ? (parsed as RapidIqOpportunity) : null);
   if (!opp) throw new Error("Missing opportunity in response");
   return opp;
 }
@@ -209,19 +251,18 @@ export async function fetchTalkingPoints(
   demo = false,
 ): Promise<string[]> {
   if (demo) return demoTalkingPoints(opportunityId);
-  try {
-    const res = await fetch(`${BASE}/talking-points`, {
-      method: "POST",
-      credentials: "include",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ opportunityId }),
-    });
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    const body = (await res.json()) as { points?: string[]; data?: { points: string[] } };
-    return body.points ?? body.data?.points ?? demoTalkingPoints(opportunityId);
-  } catch {
-    return demoTalkingPoints(opportunityId);
+  const res = await fetch(`${BASE}/talking-points`, {
+    method: "POST",
+    credentials: "include",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ opportunityId }),
+  });
+  if (!res.ok) {
+    const body = (await res.json().catch(() => ({}))) as { error?: string };
+    throw new Error(body.error ?? `HTTP ${res.status}`);
   }
+  const body = (await res.json()) as { points?: string[]; data?: { points: string[] } };
+  return body.points ?? body.data?.points ?? [];
 }
 
 export async function fetchSignalChat(
@@ -238,11 +279,19 @@ export async function fetchSignalChat(
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ opportunityId, message, history: history.slice(0, -1) }),
     });
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    const body = (await res.json()) as { reply?: string; content?: string; data?: { reply: string } };
-    return body.reply ?? body.content ?? body.data?.reply ?? demoSignalChatReply(opportunityId, message);
-  } catch {
-    return demoSignalChatReply(opportunityId, message);
+    const body = (await res.json().catch(() => ({}))) as {
+      reply?: string;
+      content?: string;
+      data?: { reply: string };
+      error?: string;
+      detail?: string;
+    };
+    if (!res.ok) {
+      return `Error: ${body.error ?? `HTTP ${res.status}`}${body.detail ? ` (${body.detail})` : ""}`;
+    }
+    return body.reply ?? body.content ?? body.data?.reply ?? `Error: empty chat response`;
+  } catch (err) {
+    return `Network error: ${err instanceof Error ? err.message : "Unknown error"}. Check your connection.`;
   }
 }
 
@@ -263,31 +312,40 @@ export async function searchContactsLive(
         c.phone?.includes(q),
     );
   }
-  try {
-    const res = await fetch(`${BASE}/search-contacts`, {
-      method: "POST",
-      credentials: "include",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ opportunityId, query }),
-    });
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    const body = await parseJson<ApiEnvelope<RapidIqContact[]>>(res);
-    return unwrapItems<RapidIqContact>(body);
-  } catch {
-    return getDemoContacts(opportunityId);
-  }
+  const res = await fetch(`${BASE}/search-contacts`, {
+    method: "POST",
+    credentials: "include",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ opportunityId, query }),
+  });
+  if (!res.ok) throw new Error(`HTTP ${res.status}`);
+  const body = await parseJson<ApiEnvelope<RapidIqContact[]> & { contacts?: RapidIqContact[] }>(res);
+  return unwrapItems<RapidIqContact>(body);
+}
+
+function isRefreshStatus(value: unknown): value is RefreshStatus {
+  return (
+    typeof value === "object" &&
+    value !== null &&
+    "status" in value &&
+    typeof (value as RefreshStatus).status === "string"
+  );
 }
 
 export async function fetchRefreshStatus(demo = false): Promise<RefreshStatus> {
   if (demo) return DEMO_REFRESH_STATUS;
-  try {
-    const res = await fetch(`${BASE}/refresh/status`, { credentials: "include" });
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    const body = (await res.json()) as ApiEnvelope<RefreshStatus>;
-    return body.data ?? DEMO_REFRESH_STATUS;
-  } catch {
-    return DEMO_REFRESH_STATUS;
-  }
+  const res = await fetch(`${BASE}/refresh/status`, { credentials: "include", cache: "no-store" });
+  if (!res.ok) throw new Error(`HTTP ${res.status}`);
+  const body = (await res.json()) as ApiEnvelope<RefreshStatus> & RefreshStatus;
+  if (isRefreshStatus(body.data)) return body.data;
+  if (isRefreshStatus(body)) return body;
+  return {
+    status: "idle",
+    startedAt: null,
+    completedAt: null,
+    signalsFound: 0,
+    error: null,
+  };
 }
 
 export async function triggerRefresh(demo = false): Promise<void> {

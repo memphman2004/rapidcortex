@@ -49,7 +49,7 @@ const SEEDS: SeedOpp[] = [
     estimatedDollarValue: 850000,
     aiHeadline: "DeSoto County ECC soliciting next-gen CAD/911 platform replacement",
     aiSummary:
-      "Commission minutes authorize $850K for ECC modernization including CAD replacement and NG911-ready recording.",
+      "Commission minutes authorize $850K for DeSoto County ECC modernization including CAD replacement and NG911-ready recording. The ECC serves Arcadia and surrounding DeSoto County with a Hexagon incumbent stack under active displacement review. Rapid Cortex Core's real-time transcription, CAD integration, and AI coaching map directly to the next-gen CAD/911 platform replacement they are soliciting. Outreach should happen before RFP scoring closes — this is an active procurement window.",
     tags: ["RFP LIVE", "NG911", "PSAP SOFTWARE"],
     isActNow: true,
     intentStage: "active_rfp",
@@ -67,7 +67,8 @@ const SEEDS: SeedOpp[] = [
     opportunityScore: 92,
     estimatedDollarValue: 420000,
     aiHeadline: "Upshur County evaluating NG911 recording and analytics stack",
-    aiSummary: "Budget workshop discusses $420K NG911 readiness including recording analytics and QA.",
+    aiSummary:
+      "A budget workshop discusses $420K for NG911 readiness including recording analytics and QA tooling for Upshur County 911. The center currently runs a Motorola Solutions–centric stack and is assessing analytics that improve call QA and supervisor visibility. Rapid Cortex Core's AI coaching and real-time transcription complement NG911 recording modernization without requiring a full CAD rip-and-replace. Contact before the next commission budget vote — the evaluation window is open now.",
     tags: ["NG911", "OPPORTUNITY"],
     isActNow: true,
     intentStage: "evaluation",
@@ -85,7 +86,8 @@ const SEEDS: SeedOpp[] = [
     opportunityScore: 78,
     estimatedDollarValue: 1200000,
     aiHeadline: "Muscogee County reviewing AI-assisted dispatch tooling",
-    aiSummary: "Columbus GA market — RC HQ — discussing AI assist for call taking and supervisor coaching.",
+    aiSummary:
+      "The July Muscogee County Commission budget workshop discusses $1.2M in capital improvements for 911 technology modernization, specifically mentioning AI-assisted dispatch tools and supervisor coaching systems. Muscogee County 911 currently runs a legacy CAD environment and serves Columbus GA — population 206,922 — with high annual call volume. Rapid Cortex Core's real-time transcription, AI coaching, and CAD integration directly address the AI dispatch tooling they are evaluating; this is RC's home market. Outreach should happen before the next commission meeting — the budget approval window is open now.",
     tags: ["PSAP SOFTWARE", "CAD INTEGRATION"],
     isActNow: false,
     intentStage: "evaluation",
@@ -103,7 +105,8 @@ const SEEDS: SeedOpp[] = [
     opportunityScore: 71,
     estimatedDollarValue: 2100000,
     aiHeadline: "Jefferson County EMA exploring multi-PSAP consolidation software",
-    aiSummary: "Regional center exploring shared CAD intelligence and surge staffing tools.",
+    aiSummary:
+      "Jefferson County EMA materials reference a $2.1M emergency communications and multi-PSAP consolidation software initiative with CentralSquare cited as the incumbent environment. The county serves the Birmingham metro and is modernizing EMA/911 coordination tooling under a regional capital plan. Rapid Cortex Core can displace or complement CentralSquare workflows with AI-assisted dispatch intelligence and CAD-adjacent transcription. Competitor displacement outreach should land before the next EMA board or procurement milestone — within the current capital cycle.",
     tags: ["OPPORTUNITY", "COMPETITOR"],
     isActNow: false,
     intentStage: "awareness",
@@ -220,6 +223,34 @@ const SEEDS: SeedOpp[] = [
   },
 ];
 
+const SEED_SOURCE_URLS: Record<string, { url: string; docUrl: string; sourceName: string }> = {
+  "seed-fl-desoto": {
+    url: "https://www.desotocountyfl.gov/government/bcc/agendas",
+    docUrl: "https://www.desotocountyfl.gov/government/bcc/agendas",
+    sourceName: "DeSoto County BCC agendas",
+  },
+  "seed-wv-upshur": {
+    url: "https://upshurwv.org/commission/agendas",
+    docUrl: "https://upshurwv.org/commission/agendas",
+    sourceName: "Upshur County Commission agendas",
+  },
+  "seed-ga-muscogee": {
+    url: "https://www.columbusga.gov/government/council/agendas",
+    docUrl: "https://www.columbusga.gov/government/council/agendas",
+    sourceName: "Columbus / Muscogee County Council agendas",
+  },
+  "seed-al-jefferson": {
+    url: "https://www.jccal.org",
+    docUrl: "https://www.jccal.org",
+    sourceName: "Jefferson County AL Commission",
+  },
+  "seed-uga": {
+    url: "https://www.usg.edu/board/meeting-materials",
+    docUrl: "https://www.usg.edu/board/meeting-materials",
+    sourceName: "University System of Georgia Board meeting materials",
+  },
+};
+
 async function main() {
   console.log(`Seeding ${SEEDS.length} opportunities → ${OPP}`);
   for (const s of SEEDS) {
@@ -256,6 +287,12 @@ async function main() {
       }),
     );
 
+    const sourceMeta = SEED_SOURCE_URLS[s.opportunityId] ?? {
+      url: `https://www.${s.city.toLowerCase().replace(/\s+/g, "")}.gov/meetings`,
+      docUrl: `https://www.${s.city.toLowerCase().replace(/\s+/g, "")}.gov/meetings`,
+      sourceName: `${s.county} public meetings`,
+    };
+
     for (let i = 0; i < 2; i++) {
       const signalId = `sig#${s.opportunityId}#${i}`;
       await ddb.send(
@@ -268,11 +305,11 @@ async function main() {
             title: s.aiHeadline,
             summary: s.aiSummary,
             excerpt: "public safety software procurement",
-            sourceName: `${s.county} Commission`,
+            sourceName: sourceMeta.sourceName,
             sourceType: "government_doc",
-            sourceUrl: `https://example.gov/${s.state.toLowerCase()}/${s.opportunityId}/agenda.pdf`,
-            sourceDocUrl: `https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf`,
-            pageReference: "p. 12",
+            sourceUrl: sourceMeta.url,
+            sourceDocUrl: sourceMeta.docUrl,
+            pageReference: i === 0 ? "agenda" : "budget",
             publishedAt: now,
             detectedAt: now,
             scoreContrib: 18,
@@ -286,12 +323,12 @@ async function main() {
             sourceId: `src#${signalId}`,
             opportunityId: s.opportunityId,
             sourceRole: i === 0 ? "primary" : "budget",
-            title: `${s.agencyName} agenda`,
-            url: `https://example.gov/${s.opportunityId}`,
-            docUrl: "https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf",
-            documentType: "pdf",
+            title: `${s.agencyName} — ${sourceMeta.sourceName}`,
+            url: sourceMeta.url,
+            docUrl: sourceMeta.docUrl,
+            documentType: i === 0 ? "agenda" : "budget_pdf",
             excerpt: "public safety software procurement",
-            pageReference: "p. 12",
+            pageReference: i === 0 ? "agenda" : "budget",
             publishedAt: now,
             retrievedAt: now,
           },

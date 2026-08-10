@@ -1,4 +1,9 @@
-import type { RapidIqOpportunity, RapidIqSignal, SignalChatMessage } from "rapid-cortex-shared";
+import type {
+  RapidIqOpportunity,
+  RapidIqSignal,
+  RapidIqSource,
+  SignalChatMessage,
+} from "rapid-cortex-shared";
 import { resolvePlainOrSecretArn } from "../runtimeSecrets.js";
 import { isCollectorsMockEnabled } from "./agenda-finder.js";
 import { textMatchesUniversityTerms } from "./university-search-terms.js";
@@ -25,6 +30,8 @@ export type ClassifiedSignal = {
   scoreContrib: number;
   confidence: "high" | "medium" | "low";
   vertical: RapidIqOpportunity["vertical"];
+  /** Direct PDF / document URL when known (agenda collector). */
+  sourceDocUrl?: string | null;
 };
 
 async function resolveAnthropicKey(): Promise<string> {
@@ -64,9 +71,77 @@ async function callClaude(system: string, user: string, maxTokens: number): Prom
     }),
     signal: AbortSignal.timeout(45_000),
   });
-  if (!res.ok) return "";
+  if (!res.ok) {
+    console.warn(
+      JSON.stringify({
+        msg: "rapid_iq_claude_http_error",
+        status: res.status,
+        model,
+      }),
+    );
+    return "";
+  }
   const body = (await res.json()) as { content?: Array<{ type: string; text?: string }> };
   return body.content?.find((b) => b.type === "text")?.text ?? "";
+}
+
+function classifySignalHeuristic(
+  rawText: string,
+  sourceName: string,
+): ClassifiedSignal {
+  const lower = rawText.toLowerCase();
+  const isCampus = textMatchesUniversityTerms(rawText);
+  const relevant =
+    isCampus ||
+    lower.includes("911") ||
+    lower.includes("dispatch") ||
+    lower.includes("ng911") ||
+    lower.includes("public safety") ||
+    lower.includes("cad") ||
+    lower.includes("emergency communications") ||
+    lower.includes("psap");
+  return {
+    isRelevant: relevant,
+    signalType: lower.includes("grant") ? "grant" : lower.includes("rfp") ? "rfp" : "budget",
+    agencyName: sourceName,
+    agencyType: isCampus ? "university" : "county_911",
+    city: null,
+    state: null,
+    county: sourceName,
+    population: null,
+    aiHeadline: isCampus
+      ? `${sourceName} discussing campus safety technology investment`
+      : `${sourceName} discussing public safety technology investment`,
+    aiSummary: isCampus
+      ? [
+          `The source materials from ${sourceName} discuss campus safety technology modernization and Clery Act–related compliance tooling.`,
+          `${sourceName} appears to be evaluating student safety platforms and emergency notification upgrades for campus police operations.`,
+          `Rapid Cortex Campus fits with real-time incident intelligence, QR wayfinding, and campus public-safety workflows tied to this evaluation.`,
+          `Outreach should happen while the safety technology budget cycle is open — ideally before the next board or cabinet decision window.`,
+        ].join(" ")
+      : [
+          `The meeting materials from ${sourceName} discuss CAD/NG911 modernization and AI-assisted dispatch tooling under active review.`,
+          `The agency is working through public safety communications upgrades and evaluating software that improves call-taking and supervisor coaching.`,
+          `Rapid Cortex Core's real-time transcription, AI coaching, and CAD integration directly address the AI dispatch capabilities under discussion.`,
+          `Outreach should happen before the next commission or board vote while the budget approval window remains open.`,
+        ].join(" "),
+    excerpt: isCampus ? "campus safety software procurement" : "public safety software procurement",
+    dollarValue: lower.includes("$") ? 1250000 : null,
+    dollarValueContext: "budget line item",
+    incumbentVendor: null,
+    intentStage: "evaluation",
+    rcProduct: isCampus ? "campus" : "core",
+    tags: isCampus ? ["CAMPUS SAFETY", "OPPORTUNITY"] : ["OPPORTUNITY", "PSAP SOFTWARE"],
+    mentionedEntities: [
+      {
+        name: isCampus ? "Campus Police Chief" : "Communications Director",
+        role: "procurement contact",
+      },
+    ],
+    scoreContrib: relevant ? 18 : 0,
+    confidence: "medium",
+    vertical: isCampus ? "campus" : "911",
+  };
 }
 
 export async function classifySignal(
@@ -75,62 +150,47 @@ export async function classifySignal(
   sourceName: string,
 ): Promise<ClassifiedSignal> {
   if (isCollectorsMockEnabled() || !(await resolveAnthropicKey())) {
-    const lower = rawText.toLowerCase();
-    const isCampus = textMatchesUniversityTerms(rawText);
-    const relevant =
-      isCampus ||
-      lower.includes("911") ||
-      lower.includes("dispatch") ||
-      lower.includes("ng911") ||
-      lower.includes("public safety") ||
-      lower.includes("cad");
-    return {
-      isRelevant: relevant,
-      signalType: lower.includes("grant") ? "grant" : lower.includes("rfp") ? "rfp" : "budget",
-      agencyName: sourceName,
-      agencyType: isCampus ? "university" : "county_911",
-      city: null,
-      state: null,
-      county: sourceName,
-      population: null,
-      aiHeadline: isCampus
-        ? `${sourceName} discussing campus safety technology investment`
-        : `${sourceName} discussing public safety technology investment`,
-      aiSummary: isCampus
-        ? `${sourceName} materials reference campus safety / Clery compliance technology. This is a Rapid Cortex Campus fit.`
-        : `${sourceName} meeting materials reference CAD/NG911 modernization. This is a Rapid Cortex Core fit for AI-assisted dispatch intelligence.`,
-      excerpt: isCampus ? "campus safety software procurement" : "public safety software procurement",
-      dollarValue: lower.includes("$") ? 1250000 : null,
-      dollarValueContext: "budget line item",
-      incumbentVendor: null,
-      intentStage: "evaluation",
-      rcProduct: isCampus ? "campus" : "core",
-      tags: isCampus ? ["CAMPUS SAFETY", "OPPORTUNITY"] : ["OPPORTUNITY", "PSAP SOFTWARE"],
-      mentionedEntities: [
-        {
-          name: isCampus ? "Campus Police Chief" : "Communications Director",
-          role: "procurement contact",
-        },
-      ],
-      scoreContrib: relevant ? 18 : 0,
-      confidence: "medium",
-      vertical: isCampus ? "campus" : "911",
-    };
+    return classifySignalHeuristic(rawText, sourceName);
   }
 
   const text = await callClaude(
     `You are a public safety technology sales intelligence analyst for Rapid Cortex.
 Cover PSAP/911 (Core), campus/university safety (Campus), and venue operations (Venue).
 University signals often involve Board of Trustees, campus police, Clery Act, Title IX, or student safety fees.
-Extract only factual information present in the document. Never invent information. Respond ONLY with valid JSON.`,
+Extract only factual information present in the document. Never invent information. Respond ONLY with valid JSON.
+
+SUMMARY QUALITY RULES:
+- aiSummary must be 3-4 complete sentences. A single sentence is a FAILURE.
+- Always name the specific government document or meeting (e.g. "The July 14 budget workshop agenda" not "a document").
+- Always state the dollar amount if one appears in the text.
+- Always name the incumbent vendor if one is mentioned.
+- Always connect to a specific Rapid Cortex feature (real-time transcription, CAD integration, AI coaching, LiveLocation, etc.).
+- End with a time-sensitive action recommendation ("Contact before the August board vote" / "RFP expected within 60 days").`,
     `Analyze this document for public safety software procurement signals (911/PSAP, campus safety, or venue).
 Source: ${sourceName}
 URL: ${sourceUrl}
 Text: ${rawText.slice(0, 4000)}
 Return JSON with keys: isRelevant, signalType, agencyName, agencyType, city, state, county, population, aiHeadline, aiSummary, excerpt, dollarValue, dollarValueContext, incumbentVendor, intentStage, rcProduct, tags, mentionedEntities, scoreContrib, confidence, vertical.
-For higher-ed / campus safety set vertical="campus" and rcProduct="campus".`,
-    1000,
+For higher-ed / campus safety set vertical="campus" and rcProduct="campus".
+aiSummary REQUIRED: exactly 3-4 sentences structured as follows —
+Sentence 1: What specifically was found (meeting, document, vote, report) and what it shows.
+Sentence 2: Context about the agency's current situation — size, current system, problem they are solving.
+Sentence 3: Why this is a direct Rapid Cortex opportunity — name the specific RC feature or product that fits.
+Sentence 4: The recommended urgency and window for outreach.
+Always include dollar amounts when present. Never use vague language like "this may be an opportunity." Be specific.`,
+    1400,
   );
+  if (!text.trim()) {
+    console.warn(
+      JSON.stringify({
+        msg: "rapid_iq_classify_claude_empty",
+        sourceName,
+        sourceUrl,
+        fallback: "keyword_heuristic",
+      }),
+    );
+    return classifySignalHeuristic(rawText, sourceName);
+  }
   const parsed = parseJsonLoose<Partial<ClassifiedSignal>>(text, { isRelevant: false });
   return {
     isRelevant: Boolean(parsed.isRelevant),
@@ -187,23 +247,86 @@ export async function generateTalkingPoints(
 export async function signalChat(
   opportunity: RapidIqOpportunity,
   messages: SignalChatMessage[],
+  signals: RapidIqSignal[] = [],
+  sources: RapidIqSource[] = [],
 ): Promise<string> {
+  const sourceBlock =
+    sources.length > 0
+      ? sources
+          .map(
+            (s) =>
+              `- ${s.sourceRole.toUpperCase()}: "${s.title}" — ${s.url}` +
+              (s.docUrl ? ` (doc: ${s.docUrl})` : "") +
+              (s.pageReference ? ` (${s.pageReference})` : "") +
+              (s.excerpt ? `\n  Excerpt: "${s.excerpt}"` : ""),
+          )
+          .join("\n")
+      : "No source documents have been linked to this opportunity yet.";
+
+  const signalBlock =
+    signals.length > 0
+      ? signals
+          .map(
+            (s) =>
+              `- [${s.signalType.toUpperCase()}] ${s.title} (${s.publishedAt?.slice(0, 10) ?? "n/a"})\n` +
+              `  Source: ${s.sourceName} — ${s.sourceUrl}\n` +
+              `  Summary: ${s.summary}`,
+          )
+          .join("\n\n")
+      : "No individual signals recorded.";
+
+  const systemPrompt = `You are a sales intelligence assistant for Rapid Cortex, a public safety AI platform.
+Answer accurately using only the information below. If asked for a source, provide the exact URL from SOURCE DOCUMENTS or SIGNALS.
+Never invent URLs. If you lack information, say what you do and don't know.
+
+═══ OPPORTUNITY ═══
+Agency: ${opportunity.agencyName ?? "Unknown"}
+Location: ${opportunity.city ?? ""}, ${opportunity.state ?? ""}
+Type: ${opportunity.agencyType ?? "Unknown"}
+Population: ${opportunity.population?.toLocaleString() ?? "Unknown"}
+RC Product Fit: ${opportunity.rcProduct ?? "Unknown"}
+Intent Stage: ${opportunity.intentStage ?? "Unknown"}
+Score: ${opportunity.opportunityScore ?? 0}/100
+Estimated Value: ${
+    opportunity.estimatedDollarValue
+      ? `$${opportunity.estimatedDollarValue.toLocaleString()}`
+      : "Not specified"
+  }
+Incumbent Vendor: ${opportunity.incumbentVendor ?? "Not identified"}
+AI Summary: ${opportunity.aiSummary ?? "No summary available"}
+
+═══ SIGNALS (${signals.length} total) ═══
+${signalBlock}
+
+═══ SOURCE DOCUMENTS ═══
+${sourceBlock}`;
+
   if (isCollectorsMockEnabled() || !(await resolveAnthropicKey())) {
     const last = messages.filter((m) => m.role === "user").at(-1)?.content ?? "";
+    const lower = last.toLowerCase();
+    if (lower.includes("source") || lower.includes("url") || lower.includes("document")) {
+      const first = sources[0] ?? null;
+      const sig = signals[0] ?? null;
+      if (first?.url) {
+        return `The primary source for ${opportunity.agencyName} is "${first.title}" at ${first.url}${first.docUrl ? ` (document: ${first.docUrl})` : ""}.`;
+      }
+      if (sig?.sourceUrl) {
+        return `The linked signal source for ${opportunity.agencyName} is ${sig.sourceName}: ${sig.sourceUrl}.`;
+      }
+      return `No source documents are linked yet for ${opportunity.agencyName}. Re-run collectors or refresh so real agenda/PDF URLs are attached.`;
+    }
     return `For ${opportunity.agencyName}: ${opportunity.aiSummary.slice(0, 280)} Re: "${last.slice(0, 120)}" — lead with the score (${opportunity.opportunityScore}) and the ${opportunity.intentStage.replace(/_/g, " ")} stage.`;
   }
+
   const text = await callClaude(
-    `You are a sales intelligence assistant for Rapid Cortex. Answer about this opportunity only. Be concise.
-OPPORTUNITY: ${opportunity.agencyName}, ${opportunity.city} ${opportunity.state}
-Signal: ${opportunity.aiHeadline}
-Summary: ${opportunity.aiSummary}
-Score: ${opportunity.opportunityScore}/100
-Dollar value: ${opportunity.estimatedDollarValue ?? "not specified"}
-RC Product fit: ${opportunity.rcProduct}`,
+    systemPrompt,
     messages.map((m) => `${m.role.toUpperCase()}: ${m.content}`).join("\n"),
-    500,
+    700,
   );
-  return text || "Unable to generate a response right now.";
+  if (!text) {
+    throw new Error("Claude returned empty response");
+  }
+  return text;
 }
 
 export async function generateOutreach(

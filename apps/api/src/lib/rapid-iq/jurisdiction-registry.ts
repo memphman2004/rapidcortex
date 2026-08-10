@@ -29,6 +29,8 @@ export interface Jurisdiction {
   isActive: boolean;
   priorityBoost: number;
   notes: string | null;
+  /** Optional known-good staff/directory URLs for contact finder (all agencies). */
+  contactUrls?: string[];
 }
 
 export interface StateCoverage {
@@ -1680,6 +1682,11 @@ export const ALL_JURISDICTIONS: JurisdictionSeed[] = [
     agendaPathHints: ["/government/council/agendas", "/meetings"],
     isActive: true,
     notes: "Columbus GA \u2014 RC HQ market",
+    contactUrls: [
+      "https://www.muscogee911.com",
+      "https://www.columbusga.gov/departments/public-safety",
+      "https://www.columbusga.gov/government/directory",
+    ],
   },
   {
     jurisdictionId: "county#FL#desoto",
@@ -1695,6 +1702,11 @@ export const ALL_JURISDICTIONS: JurisdictionSeed[] = [
     agendaPathHints: ["/government/bcc/agendas", "/meetings"],
     isActive: true,
     notes: "Active E911 PSAP procurement signal \u2014 priority watch",
+    contactUrls: [
+      "https://www.desotocountyfl.gov/departments/emergency-management",
+      "https://www.desotosheriff.org/administration",
+      "https://www.desotocountyfl.gov/government/directory",
+    ],
   },
   {
     jurisdictionId: "county#WV#upshur",
@@ -1710,6 +1722,11 @@ export const ALL_JURISDICTIONS: JurisdictionSeed[] = [
     agendaPathHints: ["/commission/agendas", "/meetings"],
     isActive: true,
     notes: "Active NG911 evaluation signal",
+    contactUrls: [
+      "https://upshurwv.org/departments/911",
+      "https://upshurwv.org/commissioners",
+      "https://upshurwv.org/about",
+    ],
   },
   {
     jurisdictionId: "county#GA#chatham",
@@ -1770,6 +1787,11 @@ export const ALL_JURISDICTIONS: JurisdictionSeed[] = [
     agendaPathHints: ["/commission/agendas", "/meetings"],
     isActive: true,
     notes: null,
+    contactUrls: [
+      "https://www.jccal.org/Default.asp?ID=688",
+      "https://www.jccal.org/Default.asp?ID=9",
+      "https://www.jccal.org/Default.asp?ID=690",
+    ],
   },
   {
     jurisdictionId: "county#AL#madison",
