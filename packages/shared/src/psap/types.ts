@@ -119,6 +119,33 @@ export interface PsapMailingAddress {
   confidence?: "high" | "medium" | "low";
 }
 
+export const PSAP_CONTACT_ROLE_TIERS = [
+  "primary",
+  "secondary",
+  "procurement",
+  "executive",
+] as const;
+export type PsapContactRoleTier = (typeof PSAP_CONTACT_ROLE_TIERS)[number];
+
+export const PSAP_CONTACT_SOURCES = ["hunter", "apollo", "manual", "directory"] as const;
+export type PsapContactSource = (typeof PSAP_CONTACT_SOURCES)[number];
+
+/** Enriched decision-maker contact on a PSAP prospect (Hunter / Apollo / manual). */
+export interface PsapProspectContact {
+  contactId: string;
+  name: string | null;
+  title: string;
+  roleTier: PsapContactRoleTier;
+  email: string | null;
+  emailVerified: boolean;
+  phone: string | null;
+  linkedInUrl?: string | null;
+  verificationStatus: "verified" | "predicted" | "unverified";
+  verificationSource: string;
+  source: PsapContactSource;
+  addedAt: string;
+}
+
 export interface PsapProspect {
   psapId: string;
   psapName: string;
@@ -134,6 +161,12 @@ export interface PsapProspect {
   primaryContactTitle?: string;
   primaryContactEmail?: string;
   primaryContactPhone?: string;
+  /** Hunter/Apollo enriched contacts (cap ~5). */
+  contacts?: PsapProspectContact[];
+  contactCount?: number;
+  lastEnrichedAt?: string | null;
+  /** Optional agency website for domain-based enrichment. */
+  website?: string;
   outreachStatus: PsapOutreachStatus;
   assignedToUserId?: string;
   assignedToName?: string;
@@ -156,8 +189,9 @@ export interface PatchPsapProspectBody {
   primaryContactName?: string;
   primaryContactTitle?: string;
   primaryContactEmail?: string;
-  primaryContactPhone?: string;
+    primaryContactPhone?: string;
   mailingAddress?: Partial<PsapMailingAddress>;
+  website?: string;
   notes?: string;
   nextActionDate?: string;
   nextActionNote?: string;

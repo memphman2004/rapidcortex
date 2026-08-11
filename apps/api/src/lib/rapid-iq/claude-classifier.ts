@@ -91,7 +91,12 @@ function classifySignalHeuristic(
 ): ClassifiedSignal {
   const lower = rawText.toLowerCase();
   const isCampus = textMatchesUniversityTerms(rawText);
-  const relevant =
+  const dollarMatch = rawText.match(/\$[\d,]+(?:\.\d+)?(?:\s*(?:million|m|k))?/i);
+  const dateMatch = rawText.match(
+    /\b(?:January|February|March|April|May|June|July|August|September|October|November|December)\s+\d{1,2},?\s+\d{4}\b|\b\d{1,2}\/\d{1,2}\/\d{2,4}\b/,
+  );
+  const hasSpecificDetail = Boolean(dollarMatch || dateMatch);
+  const keywordHit =
     isCampus ||
     lower.includes("911") ||
     lower.includes("dispatch") ||
@@ -100,46 +105,51 @@ function classifySignalHeuristic(
     lower.includes("cad") ||
     lower.includes("emergency communications") ||
     lower.includes("psap");
+  // Heuristic path must not invent buyer agencies from collector source labels
+  const relevant = keywordHit && hasSpecificDetail;
+
+  const excerpt = rawText.replace(/\s+/g, " ").trim().slice(0, 180);
+  const dollarValue = dollarMatch
+    ? Number(dollarMatch[0].replace(/[$,]/g, "").replace(/\s*(million|m)/i, "000000").replace(/\s*k/i, "000")) ||
+      null
+    : null;
+
   return {
     isRelevant: relevant,
     signalType: lower.includes("grant") ? "grant" : lower.includes("rfp") ? "rfp" : "budget",
-    agencyName: sourceName,
+    agencyName: null,
     agencyType: isCampus ? "university" : "county_911",
     city: null,
     state: null,
-    county: sourceName,
+    county: null,
     population: null,
-    aiHeadline: isCampus
-      ? `${sourceName} discussing campus safety technology investment`
-      : `${sourceName} discussing public safety technology investment`,
-    aiSummary: isCampus
+    aiHeadline: relevant
+      ? `${sourceName}: ${excerpt.slice(0, 80)}`
+      : `${sourceName} signal (insufficient detail)`,
+    aiSummary: relevant
       ? [
-          `The source materials from ${sourceName} discuss campus safety technology modernization and Clery Act–related compliance tooling.`,
-          `${sourceName} appears to be evaluating student safety platforms and emergency notification upgrades for campus police operations.`,
-          `Rapid Cortex Campus fits with real-time incident intelligence, QR wayfinding, and campus public-safety workflows tied to this evaluation.`,
-          `Outreach should happen while the safety technology budget cycle is open — ideally before the next board or cabinet decision window.`,
+          `Source document from ${sourceName} includes concrete public-safety language: "${excerpt}".`,
+          dollarMatch
+            ? `A specific funding figure appears in the text (${dollarMatch[0]}).`
+            : dateMatch
+              ? `A specific date appears in the text (${dateMatch[0]}).`
+              : "Additional procurement context is present in the excerpted passage.",
+          isCampus
+            ? "Rapid Cortex Campus maps to campus safety / Clery-related operations when the buyer agency can be confirmed from the document."
+            : "Rapid Cortex Core maps to CAD/NG911 and AI coaching needs when the buyer agency can be confirmed from the document.",
+          "Confirm the purchasing agency and decision window from the original document before outreach.",
         ].join(" ")
-      : [
-          `The meeting materials from ${sourceName} discuss CAD/NG911 modernization and AI-assisted dispatch tooling under active review.`,
-          `The agency is working through public safety communications upgrades and evaluating software that improves call-taking and supervisor coaching.`,
-          `Rapid Cortex Core's real-time transcription, AI coaching, and CAD integration directly address the AI dispatch capabilities under discussion.`,
-          `Outreach should happen before the next commission or board vote while the budget approval window remains open.`,
-        ].join(" "),
-    excerpt: isCampus ? "campus safety software procurement" : "public safety software procurement",
-    dollarValue: lower.includes("$") ? 1250000 : null,
-    dollarValueContext: "budget line item",
+      : "",
+    excerpt: excerpt || null,
+    dollarValue,
+    dollarValueContext: dollarMatch ? "mentioned in source text" : null,
     incumbentVendor: null,
     intentStage: "evaluation",
     rcProduct: isCampus ? "campus" : "core",
     tags: isCampus ? ["CAMPUS SAFETY", "OPPORTUNITY"] : ["OPPORTUNITY", "PSAP SOFTWARE"],
-    mentionedEntities: [
-      {
-        name: isCampus ? "Campus Police Chief" : "Communications Director",
-        role: "procurement contact",
-      },
-    ],
-    scoreContrib: relevant ? 18 : 0,
-    confidence: "medium",
+    mentionedEntities: [],
+    scoreContrib: relevant ? 12 : 0,
+    confidence: "low",
     vertical: isCampus ? "campus" : "911",
   };
 }
@@ -165,19 +175,29 @@ SUMMARY QUALITY RULES:
 - Always state the dollar amount if one appears in the text.
 - Always name the incumbent vendor if one is mentioned.
 - Always connect to a specific Rapid Cortex feature (real-time transcription, CAD integration, AI coaching, LiveLocation, etc.).
-- End with a time-sensitive action recommendation ("Contact before the August board vote" / "RFP expected within 60 days").`,
+- End with a time-sensitive action recommendation ("Contact before the August board vote" / "RFP expected within 60 days").
+
+ANTI-TEMPLATE RULES — CRITICAL:
+- NEVER write "The meeting materials from [X] discuss..." — this is a template.
+- NEVER write "under active review" — this is filler.
+- NEVER write "AI-assisted dispatch tooling" unless those exact words appear in the source.
+- NEVER set agencyName to the data source label (e.g. Grants.gov, SAM.gov, FEMA, a state 911 program office). agencyName must be the buying agency / recipient (county, city, PSAP, campus, venue).
+- The summary MUST include at least one SPECIFIC detail that only exists in THIS document: a dollar amount, date, vendor name, vote outcome, named technology, or quoted statement.
+- If you cannot find a specific detail in the source text, set "isRelevant": false.
+- The summary must read differently for every signal.`,
     `Analyze this document for public safety software procurement signals (911/PSAP, campus safety, or venue).
-Source: ${sourceName}
+Source label (NOT the agency unless the text proves otherwise): ${sourceName}
 URL: ${sourceUrl}
 Text: ${rawText.slice(0, 4000)}
 Return JSON with keys: isRelevant, signalType, agencyName, agencyType, city, state, county, population, aiHeadline, aiSummary, excerpt, dollarValue, dollarValueContext, incumbentVendor, intentStage, rcProduct, tags, mentionedEntities, scoreContrib, confidence, vertical.
 For higher-ed / campus safety set vertical="campus" and rcProduct="campus".
-aiSummary REQUIRED: exactly 3-4 sentences structured as follows —
-Sentence 1: What specifically was found (meeting, document, vote, report) and what it shows.
-Sentence 2: Context about the agency's current situation — size, current system, problem they are solving.
-Sentence 3: Why this is a direct Rapid Cortex opportunity — name the specific RC feature or product that fits.
-Sentence 4: The recommended urgency and window for outreach.
-Always include dollar amounts when present. Never use vague language like "this may be an opportunity." Be specific.`,
+agencyName MUST be the purchasing agency or grant recipient named in the text — never "${sourceName}" unless that string is clearly a county/city/campus buyer.
+aiSummary REQUIRED: 3-4 sentences that MUST include:
+1. The SPECIFIC document title and date when present (not "meeting materials").
+2. A SPECIFIC dollar amount, vendor name, vote outcome, or technology named in the source. If none exist, set isRelevant: false.
+3. Why this is a direct Rapid Cortex Core/Campus/Venue opportunity.
+4. Time-sensitive action or decision window.
+NO TEMPLATES. NO GENERIC LANGUAGE.`,
     1400,
   );
   if (!text.trim()) {
@@ -221,27 +241,51 @@ export async function generateTalkingPoints(
   opportunity: RapidIqOpportunity,
   _signals: RapidIqSignal[],
 ): Promise<string[]> {
-  if (opportunity.talkingPoints?.length) return opportunity.talkingPoints;
+  const fallback = (): string[] => [
+    `Reference the ${opportunity.aiHeadline} signal in your opener.`,
+    `Ask about timeline for ${opportunity.intentStage.replace(/_/g, " ")}.`,
+    opportunity.estimatedDollarValue
+      ? `Confirm whether the ~$${opportunity.estimatedDollarValue.toLocaleString()} budget is still allocated.`
+      : "Ask which budget cycle funds the modernization.",
+    opportunity.incumbentVendor
+      ? `Position Rapid Cortex as a complement/displacement vs ${opportunity.incumbentVendor}.`
+      : "Ask which CAD/NG911 stack they run today.",
+    `Offer a 20-minute Rapid Cortex Core demo tailored to ${opportunity.agencyName}.`,
+  ];
+
+  // Only reuse non-empty cached points (empty [] means a prior failed generate).
+  if (opportunity.talkingPoints && opportunity.talkingPoints.length > 0) {
+    return opportunity.talkingPoints;
+  }
   if (isCollectorsMockEnabled() || !(await resolveAnthropicKey())) {
-    return [
-      `Reference the ${opportunity.aiHeadline} signal in your opener.`,
-      `Ask about timeline for ${opportunity.intentStage.replace(/_/g, " ")}.`,
-      opportunity.estimatedDollarValue
-        ? `Confirm whether the ~$${opportunity.estimatedDollarValue.toLocaleString()} budget is still allocated.`
-        : "Ask which budget cycle funds the modernization.",
-      opportunity.incumbentVendor
-        ? `Position Rapid Cortex as a complement/displacement vs ${opportunity.incumbentVendor}.`
-        : "Ask which CAD/NG911 stack they run today.",
-      `Offer a 20-minute Rapid Cortex Core demo tailored to ${opportunity.agencyName}.`,
-    ];
+    return fallback();
   }
   const text = await callClaude(
     "Generate sales talking points for Rapid Cortex reps. Return ONLY a JSON array of exactly 5 strings.",
     `5 talking points for a call with ${opportunity.agencyName}. Signal: ${opportunity.aiHeadline}. Dollar: ${opportunity.estimatedDollarValue ?? "unknown"}. Incumbent: ${opportunity.incumbentVendor ?? "unknown"}. Product: ${opportunity.rcProduct}`,
     600,
   );
-  const arr = parseJsonLoose<string[]>(text, []);
-  return Array.isArray(arr) ? arr.slice(0, 5) : [];
+  const parsed = parseJsonLoose<unknown>(text, null);
+  let points: string[] = [];
+  if (Array.isArray(parsed)) {
+    points = parsed.filter((p): p is string => typeof p === "string" && p.trim().length > 0);
+  } else if (parsed && typeof parsed === "object" && Array.isArray((parsed as { points?: unknown }).points)) {
+    points = ((parsed as { points: unknown[] }).points).filter(
+      (p): p is string => typeof p === "string" && p.trim().length > 0,
+    );
+  }
+  points = points.slice(0, 5);
+  if (points.length === 0) {
+    console.warn(
+      JSON.stringify({
+        msg: "rapid_iq_talking_points_fallback",
+        opportunityId: opportunity.opportunityId,
+        claudeEmpty: !text,
+      }),
+    );
+    return fallback();
+  }
+  return points;
 }
 
 export async function signalChat(
@@ -349,4 +393,190 @@ export async function generateOutreach(
     subject: `Rapid Cortex — ${opportunity.agencyName}`,
     body: "",
   });
+}
+
+export type RfpResponseOutline = {
+  executiveSummary: string;
+  requirements: { requirement: string; rcCapability: string; rcFeature: string }[];
+  differentiators: string[];
+  potentialConcerns: string[];
+  recommendedApproach: string;
+};
+
+export async function generateRfpResponseOutline(
+  rfpText: string,
+  sourceUrl: string,
+  agencyName: string,
+): Promise<RfpResponseOutline> {
+  const empty: RfpResponseOutline = {
+    executiveSummary: "Could not analyze RFP automatically.",
+    requirements: [],
+    differentiators: [],
+    potentialConcerns: [],
+    recommendedApproach: "",
+  };
+  if (isCollectorsMockEnabled() || !(await resolveAnthropicKey())) {
+    return {
+      executiveSummary: `Position Rapid Cortex for ${agencyName} against this RFP using Core transcription, CAD integration, and CJIS-aware tenancy.`,
+      requirements: [
+        {
+          requirement: "Real-time call documentation",
+          rcCapability: "AI transcription + CAD assist",
+          rcFeature: "Live Transcription",
+        },
+      ],
+      differentiators: ["Agency-isolated data", "Multi-vertical (911 / campus / venue)"],
+      potentialConcerns: ["Confirm CAD writeback addendum if write path is required"],
+      recommendedApproach: "Lead with compliance + dispatcher UX; attach capability matrix.",
+    };
+  }
+  const text = await callClaude(
+    `You are a senior solutions engineer for Rapid Cortex, an AI-powered public safety platform for 911 centers, campus safety, and venue security.
+Analyze RFP documents and map stated requirements to Rapid Cortex capabilities.
+
+Rapid Cortex key capabilities:
+- Real-time call transcription (AI-powered, 40+ languages)
+- CAD integration (read/write with major CAD vendors)
+- AI coaching and supervisor dashboards
+- Silent Text (SMS to caller for location/media sharing)
+- LiveLocation (GPS sharing during active call)
+- QR/NFC incident reporting
+- Ring/camera integration
+- CJIS-aware architecture, agency-isolated data
+- Cloud-native, AWS-hosted, SOC2-aligned
+
+Return ONLY valid JSON matching the specified schema.`,
+    `Analyze this RFP from ${agencyName} and generate a response outline.
+
+Source: ${sourceUrl}
+RFP Text:
+${rfpText.slice(0, 6000)}
+
+Return JSON:
+{
+  "executiveSummary": "2-3 sentence executive summary positioning RC for this RFP",
+  "requirements": [
+    {
+      "requirement": "stated RFP requirement",
+      "rcCapability": "how RC meets it",
+      "rcFeature": "specific RC feature name"
+    }
+  ],
+  "differentiators": ["key RC differentiator vs typical competitors"],
+  "potentialConcerns": ["requirement we need to address carefully"],
+  "recommendedApproach": "overall response strategy in 2-3 sentences"
+}`,
+    2000,
+  );
+  return parseJsonLoose(text, empty);
+}
+
+export type AgencyIntelProfile = {
+  annualCallVolume: number | null;
+  dispatcherCount: number | null;
+  populationServed: number | null;
+  estimatedBudget: number | null;
+  currentCadVendor: string | null;
+  cadNotes: string | null;
+  agencyWebsite: string | null;
+  psapType: string | null;
+  notes: string;
+};
+
+export async function generateAgencyProfile(
+  agencyName: string,
+  city: string,
+  state: string,
+  vertical: string,
+): Promise<AgencyIntelProfile> {
+  const empty: AgencyIntelProfile = {
+    annualCallVolume: null,
+    dispatcherCount: null,
+    populationServed: null,
+    estimatedBudget: null,
+    currentCadVendor: null,
+    cadNotes: null,
+    agencyWebsite: null,
+    psapType: null,
+    notes: "Profile could not be generated automatically.",
+  };
+  if (isCollectorsMockEnabled() || !(await resolveAnthropicKey())) {
+    return {
+      ...empty,
+      notes: `Mock profile for ${agencyName} (${city}, ${state}) — ${vertical}. Enable Anthropic for live research.`,
+    };
+  }
+  const text = await callClaude(
+    `You are a public safety intelligence analyst. Provide factual, research-based information about government agencies. Only include information you are confident about. Use null for unknown values. Return ONLY valid JSON.`,
+    `Research this public safety agency and return what you know:
+
+Agency: ${agencyName}
+Location: ${city}, ${state}
+Type: ${vertical}
+
+Return JSON:
+{
+  "annualCallVolume": number or null,
+  "dispatcherCount": number or null,
+  "populationServed": number or null,
+  "estimatedBudget": number or null,
+  "currentCadVendor": string or null,
+  "cadNotes": string or null,
+  "agencyWebsite": string or null,
+  "psapType": string or null,
+  "notes": "any other relevant intel"
+}
+
+Do not fabricate. If you don't know something, use null.`,
+    800,
+  );
+  return parseJsonLoose(text, empty);
+}
+
+export async function researchAgency(
+  agencyName: string,
+  city: string,
+  state: string,
+): Promise<string> {
+  if (isCollectorsMockEnabled() || !(await resolveAnthropicKey())) {
+    return `Research stub for ${agencyName} in ${city}, ${state}. Enable Anthropic for a full sales intelligence brief.`;
+  }
+  const text = await callClaude(
+    `You are a public safety technology sales intelligence analyst. Research government agencies and provide actionable sales intelligence. Be specific and factual. Include only what you know confidently.`,
+    `Research ${agencyName} in ${city}, ${state}.
+
+Provide:
+1. What you know about their current technology stack (CAD, radio, recording)
+2. Any known modernization projects or technology initiatives
+3. Recent news, incidents, or events that might create technology needs
+4. Key leadership if known
+5. Budget context (county budget size, recent allocations)
+6. How Rapid Cortex Core specifically fits their situation
+
+Be specific and cite what you know vs what is estimated.`,
+    1000,
+  );
+  return text || `No research returned for ${agencyName}.`;
+}
+
+export async function generateCompetitorIntel(
+  incumbentVendor: string,
+  agencyName: string,
+): Promise<string> {
+  if (isCollectorsMockEnabled() || !(await resolveAnthropicKey())) {
+    return `Displacement notes for ${agencyName} vs ${incumbentVendor}: emphasize open integration, multi-language transcription, and agency-isolated CJIS posture.`;
+  }
+  const text = await callClaude(
+    `You are a competitive intelligence analyst for Rapid Cortex. Provide honest competitive analysis to help with displacement opportunities.`,
+    `${agencyName} currently uses ${incumbentVendor}.
+
+Provide:
+1. Known weaknesses or pain points with ${incumbentVendor} in public safety
+2. Common reasons agencies leave ${incumbentVendor}
+3. Key Rapid Cortex advantages in this displacement scenario
+4. Recommended talking points for this specific situation
+Keep it factual and concise.`,
+    600,
+  );
+  return text || `No competitor intel for ${incumbentVendor}.`;
 }

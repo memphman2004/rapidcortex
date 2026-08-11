@@ -173,8 +173,20 @@ export CAD_WRITEBACK_ENABLED=false
 export ENABLE_RAPID_IQ=true
 export NEXT_PUBLIC_ENABLE_RAPID_IQ="${NEXT_PUBLIC_ENABLE_RAPID_IQ:-1}"
 export RAPID_IQ_COLLECTORS_MOCK="${RAPID_IQ_COLLECTORS_MOCK:-1}"
-# LegiScan free key — https://legiscan.com/legiscan (optional; collector skips when unset)
+# Microsoft Teams — Rapid IQ Alerts channel (Power Automate webhook; channel+flow already complete)
+export RAPID_IQ_TEAMS_WEBHOOK_SECRET_ARN="${RAPID_IQ_TEAMS_WEBHOOK_SECRET_ARN:-arn:aws:secretsmanager:us-east-1:158961537080:secret:rapid-cortex/rapid-iq/teams-webhook-url-JjTaCF}"
+# Hunter.io — domain search (.gov/.edu) for Rapid IQ contacts
+export RAPID_IQ_HUNTER_API_KEY_SECRET_ARN="${RAPID_IQ_HUNTER_API_KEY_SECRET_ARN:-arn:aws:secretsmanager:us-east-1:158961537080:secret:rapid-cortex/rapid-iq/hunter-api-key-LXEwMX}"
+# Apollo.io — people search by title + domain (fills gaps Hunter misses)
+export RAPID_IQ_APOLLO_API_KEY_SECRET_ARN="${RAPID_IQ_APOLLO_API_KEY_SECRET_ARN:-arn:aws:secretsmanager:us-east-1:158961537080:secret:rapid-cortex/rapid-iq/apollo-api-key-BDql0e}"
+# Collectors live when Anthropic + enrichment secrets are wired (override only for local dry-runs)
+export RAPID_IQ_COLLECTORS_MOCK="${RAPID_IQ_COLLECTORS_MOCK:-0}"
+# LegiScan — state legislature bill tracking (Secrets Manager; monitors in LegiScan UI)
+export RAPID_IQ_LEGISCAN_API_KEY_SECRET_ARN="${RAPID_IQ_LEGISCAN_API_KEY_SECRET_ARN:-arn:aws:secretsmanager:us-east-1:158961537080:secret:rapid-cortex/rapid-iq/legiscan-api-key-iwBcKv}"
+# Optional plain override for local dry-runs (prefer the secret ARN above)
 export RAPID_IQ_LEGISCAN_API_KEY="${RAPID_IQ_LEGISCAN_API_KEY:-}"
+export APP_BASE_URL="${APP_BASE_URL:-https://app.rapidcortex.us}"
+export APP_PUBLIC_BASE_URL="${APP_PUBLIC_BASE_URL:-https://app.rapidcortex.us}"
 export RAPID_IQ_OPPORTUNITIES_TABLE="${RAPID_IQ_OPPORTUNITIES_TABLE:-rapid-cortex-rapid-iq-opportunities-dev}"
 export RAPID_IQ_SIGNALS_TABLE="${RAPID_IQ_SIGNALS_TABLE:-rapid-cortex-rapid-iq-signals-dev}"
 export RAPID_IQ_CONTACTS_TABLE="${RAPID_IQ_CONTACTS_TABLE:-rapid-cortex-rapid-iq-contacts-dev}"
@@ -201,7 +213,7 @@ export RING_ACCOUNT_LINK_URL="https://www.rapidcortex.us/connect/ring/link"
 export NEST_REDIRECT_URI="https://7c70vqd1p5.execute-api.us-east-1.amazonaws.com/api/cameras/providers/nest/callback"
 
 # QR/NFC citizen reporting — QRNFCCodesTable in stack-app-sam-qr.yaml
-export APP_BASE_URL="https://app.rapidcortex.us"
+# APP_BASE_URL already set in Rapid IQ block above
 export QR_NFC_CODES_TABLE="rapid-cortex-qr-nfc-codes-dev"
 
 # --- CAD write-back pilot onboarding (per agency) ---

@@ -16,7 +16,10 @@ export NODE_OPTIONS="${NODE_OPTIONS:---max-old-space-size=8192}"
 SAM_BUILD_DIR="${RAPID_IQ_SAM_BUILD_DIR:-/Volumes/Mac Mini/.sam-lean-build/rapid-iq-$(date +%Y%m%d-%H%M%S)}"
 mkdir -p "${SAM_BUILD_DIR}"
 export SAM_BUILD_DIR
+# Same-volume hardlinks avoid multi-GB rsync of node_modules (USB/external builds).
+export SAM_NODE_MODULES_HARDLINK="${SAM_NODE_MODULES_HARDLINK:-1}"
 echo "SAM_BUILD_DIR=${SAM_BUILD_DIR}"
+echo "SAM_NODE_MODULES_HARDLINK=${SAM_NODE_MODULES_HARDLINK}"
 
 ensure_table() {
   local name="$1"
@@ -174,6 +177,21 @@ if [[ -n "${JWT_AUTHORIZER_ID}" ]]; then
 fi
 if [[ -n "${ANTHROPIC_ARN}" ]]; then
   PARAM_OVERRIDES+=("AnthropicApiKeySecretArn=${ANTHROPIC_ARN}")
+fi
+if [[ -n "${RAPID_IQ_SAM_GOV_API_KEY_SECRET_ARN:-}" ]]; then
+  PARAM_OVERRIDES+=("RapidIqSamGovApiKeySecretArn=${RAPID_IQ_SAM_GOV_API_KEY_SECRET_ARN}")
+fi
+if [[ -n "${RAPID_IQ_HUNTER_API_KEY_SECRET_ARN:-}" ]]; then
+  PARAM_OVERRIDES+=("RapidIqHunterApiKeySecretArn=${RAPID_IQ_HUNTER_API_KEY_SECRET_ARN}")
+fi
+if [[ -n "${RAPID_IQ_APOLLO_API_KEY_SECRET_ARN:-}" ]]; then
+  PARAM_OVERRIDES+=("RapidIqApolloApiKeySecretArn=${RAPID_IQ_APOLLO_API_KEY_SECRET_ARN}")
+fi
+if [[ -n "${RAPID_IQ_TEAMS_WEBHOOK_SECRET_ARN:-}" ]]; then
+  PARAM_OVERRIDES+=("RapidIqTeamsWebhookSecretArn=${RAPID_IQ_TEAMS_WEBHOOK_SECRET_ARN}")
+fi
+if [[ -n "${RAPID_IQ_LEGISCAN_API_KEY_SECRET_ARN:-}" ]]; then
+  PARAM_OVERRIDES+=("RapidIqLegiscanApiKeySecretArn=${RAPID_IQ_LEGISCAN_API_KEY_SECRET_ARN}")
 fi
 if [[ -n "${RAPID_IQ_LEGISCAN_API_KEY:-}" ]]; then
   PARAM_OVERRIDES+=("RapidIqLegiscanApiKey=${RAPID_IQ_LEGISCAN_API_KEY}")

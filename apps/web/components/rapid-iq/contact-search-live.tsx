@@ -214,7 +214,12 @@ export function ContactSearchLive({ contacts, mentioned }: Props) {
               ) : entity.status === "not_found" ? (
                 <span className="text-[10px] text-slate-700">Not found</span>
               ) : (
-                <span className="text-[10px] text-sky-400">{entity.linkedContactId ?? "Found"}</span>
+                <span className="text-[10px] text-sky-400">
+                  {(() => {
+                    const linked = contacts.find((c) => c.contactId === entity.linkedContactId);
+                    return linked?.name ?? linked?.title ?? entity.name ?? "View contact";
+                  })()}
+                </span>
               )}
             </div>
           ))}

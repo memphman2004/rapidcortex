@@ -84,6 +84,14 @@ PARAM_OVERRIDES=(
 if [[ -n "${JWT_AUTHORIZER_ID}" ]]; then
   PARAM_OVERRIDES+=("HttpApiJwtAuthorizerId=${JWT_AUTHORIZER_ID}")
 fi
+if [[ -n "${RAPID_IQ_HUNTER_API_KEY_SECRET_ARN:-}" ]]; then
+  PARAM_OVERRIDES+=("RapidIqHunterApiKeySecretArn=${RAPID_IQ_HUNTER_API_KEY_SECRET_ARN}")
+fi
+if [[ -n "${RAPID_IQ_APOLLO_API_KEY_SECRET_ARN:-}" ]]; then
+  PARAM_OVERRIDES+=("RapidIqApolloApiKeySecretArn=${RAPID_IQ_APOLLO_API_KEY_SECRET_ARN}")
+fi
+
+export SAM_NODE_MODULES_HARDLINK="${SAM_NODE_MODULES_HARDLINK:-1}"
 
 sam deploy \
   --template-file "${SAM_BUILD_DIR}/template.yaml" \

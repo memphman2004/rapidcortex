@@ -106,14 +106,14 @@ export async function runUniversityNewsCollector(): Promise<{ signalsFound: numb
         signal.agencyType = signal.agencyType ?? "university";
         signal.tags = Array.from(new Set(["CAMPUS SAFETY", "OPPORTUNITY", ...(signal.tags ?? [])]));
 
-        await upsertSignalAndOpportunity(
+        const result = await upsertSignalAndOpportunity(
           signal,
           article.url,
-          signal.agencyName ?? source.name,
+          source.name,
           source.type,
           "university_news#US",
         );
-        total++;
+        if (result.saved) total++;
       }
     } catch (err) {
       console.error(

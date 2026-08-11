@@ -38,8 +38,20 @@ function matchesFilters(p: PsapProspect, q: PsapProspectListQuery): boolean {
   if (q.assignedToUserId && p.assignedToUserId !== q.assignedToUserId) return false;
   if (q.hasAddress === true && !p.mailingAddress?.streetAddress?.trim()) return false;
   if (q.hasAddress === false && p.mailingAddress?.streetAddress?.trim()) return false;
-  if (q.hasContact === true && !p.primaryContactName?.trim()) return false;
-  if (q.hasContact === false && p.primaryContactName?.trim()) return false;
+  if (q.hasContact === true) {
+    const has =
+      Boolean(p.primaryContactName?.trim()) ||
+      Boolean(p.primaryContactEmail?.trim()) ||
+      (p.contacts?.length ?? 0) > 0;
+    if (!has) return false;
+  }
+  if (q.hasContact === false) {
+    const has =
+      Boolean(p.primaryContactName?.trim()) ||
+      Boolean(p.primaryContactEmail?.trim()) ||
+      (p.contacts?.length ?? 0) > 0;
+    if (has) return false;
+  }
   if (q.verifiedOnly === true && p.mailingAddress?.verified !== true) return false;
   if (q.search?.trim()) {
     const s = q.search.trim().toLowerCase();
@@ -193,7 +205,13 @@ export class PsapProspectRepository {
     for (const p of items) {
       stats.byStatus[p.outreachStatus] = (stats.byStatus[p.outreachStatus] ?? 0) + 1;
       if (p.mailingAddress?.streetAddress?.trim()) stats.withAddress += 1;
-      if (p.primaryContactName?.trim()) stats.withContact += 1;
+      if (
+        p.primaryContactName?.trim() ||
+        p.primaryContactEmail?.trim() ||
+        (p.contacts?.length ?? 0) > 0
+      ) {
+        stats.withContact += 1;
+      }
       if (typeof p.estimatedValue === "number") stats.totalEstimatedValue += p.estimatedValue;
     }
     return stats;
@@ -241,6 +259,10 @@ export class PsapProspectRepository {
         body.primaryContactEmail === ""
           ? undefined
           : (body.primaryContactEmail ?? current.primaryContactEmail),
+      website:
+        body.website === ""
+          ? undefined
+          : (body.website ?? current.website),
       updatedAt: now,
       activities: [...(current.activities ?? [])],
     };
@@ -260,6 +282,57 @@ export class PsapProspectRepository {
 
     await ddb.send(new PutCommand({ TableName: table(), Item: next }));
     return next;
+  }
+
+  /**
+   * Persist Hunter/Apollo contacts and mirror the best hit into primaryContact* fields
+   * so existing hasContact filters and CSV export keep working.
+   */
+  async saveEnrichedContacts(
+    psapId: string,
+    contacts: import("rapid-cortex-shared").PsapProspectContact[],
+  ): Promise<PsapProspect | null> {
+    const current = await this.get(psapId);
+    if (!current) return null;
+    const now = new Date().toISOString();
+    const primary =
+      contacts.find((c) => c.roleTier === "primary" && c.email) ??
+      contacts.find((c) => c.email) ??
+      contacts[0];
+    const next: PsapProspect = {
+      ...current,
+      contacts,
+      contactCount: contacts.length,
+      lastEnrichedAt: now,
+      updatedAt: now,
+      ...(primary
+        ? {
+            primaryContactName: primary.name ?? current.primaryContactName,
+            primaryContactTitle: primary.title || current.primaryContactTitle,
+            primaryContactEmail: primary.email ?? current.primaryContactEmail,
+            primaryContactPhone: primary.phone ?? current.primaryContactPhone,
+          }
+        : {}),
+    };
+    await ddb.send(new PutCommand({ TableName: table(), Item: next }));
+    return next;
+  }
+
+  /** Prospects with no contacts or last enriched > 30 days ago. No-contact first. */
+  async listNeedingEnrichment(staleBeforeIso: string, limit = 10): Promise<PsapProspect[]> {
+    const items = await this.scanAll();
+    const stale = items.filter((p) => {
+      if (!p.contacts?.length && !p.primaryContactEmail?.trim()) return true;
+      if (!p.lastEnrichedAt) return true;
+      return p.lastEnrichedAt < staleBeforeIso;
+    });
+    stale.sort((a, b) => {
+      const aEmpty = !a.contacts?.length && !a.primaryContactEmail?.trim() ? 0 : 1;
+      const bEmpty = !b.contacts?.length && !b.primaryContactEmail?.trim() ? 0 : 1;
+      if (aEmpty !== bEmpty) return aEmpty - bEmpty;
+      return (a.lastEnrichedAt ?? "").localeCompare(b.lastEnrichedAt ?? "");
+    });
+    return stale.slice(0, Math.max(1, Math.min(limit, 25)));
   }
 
   async addActivity(

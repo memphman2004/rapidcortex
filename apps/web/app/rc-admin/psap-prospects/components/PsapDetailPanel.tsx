@@ -9,9 +9,10 @@ import {
   type PsapActivity,
   type PsapOutreachStatus,
   type PsapProspect,
+  type PsapProspectContact,
 } from "rapid-cortex-shared";
-import { Copy, X } from "lucide-react";
-import { addPsapActivity, patchPsapProspect } from "@/lib/psap/psap-api";
+import { AlertCircle, CheckCircle, Copy, Mail, Phone, Sparkles, X } from "lucide-react";
+import { addPsapActivity, enrichPsapContacts, patchPsapProspect } from "@/lib/psap/psap-api";
 import { PsapStatusBadge } from "./PsapStatusBadge";
 
 type Tab = "details" | "activity" | "mailing";
@@ -82,10 +83,89 @@ function formatActivityTime(iso: string): string {
   }
 }
 
+function formatTimeAgo(iso: string): string {
+  const ms = Date.now() - new Date(iso).getTime();
+  if (!Number.isFinite(ms) || ms < 0) return "just now";
+  const mins = Math.floor(ms / 60_000);
+  if (mins < 1) return "just now";
+  if (mins < 60) return `${mins} minute${mins === 1 ? "" : "s"} ago`;
+  const hours = Math.floor(mins / 60);
+  if (hours < 48) return `${hours} hour${hours === 1 ? "" : "s"} ago`;
+  const days = Math.floor(hours / 24);
+  return `${days} day${days === 1 ? "" : "s"} ago`;
+}
+
+const ROLE_TIER_STYLE: Record<PsapProspectContact["roleTier"], string> = {
+  primary: "bg-sky-900/50 text-sky-300",
+  secondary: "bg-slate-800 text-slate-300",
+  procurement: "bg-amber-900/40 text-amber-300",
+  executive: "bg-violet-900/40 text-violet-300",
+};
+
+function EnrichedContactCard({ contact }: { contact: PsapProspectContact }) {
+  const sourceLabel =
+    contact.source === "hunter"
+      ? "Hunter.io"
+      : contact.source === "apollo"
+        ? "Apollo"
+        : contact.source === "directory"
+          ? "Directory"
+          : "Manual";
+  return (
+    <div className="mb-2 rounded border border-slate-800 bg-slate-900/50 p-2.5">
+      <div className="flex items-start justify-between gap-2">
+        <div>
+          <div className="text-xs font-semibold text-slate-200">
+            {contact.name ?? "Name not found"}
+          </div>
+          <div className="text-[10px] text-slate-500">{contact.title}</div>
+          <div className="mt-0.5 flex items-center gap-1">
+            {contact.verificationStatus === "verified" ? (
+              <span className="flex items-center gap-1 text-[9px] font-bold text-emerald-400">
+                <CheckCircle size={9} /> VERIFIED
+              </span>
+            ) : (
+              <span className="flex items-center gap-1 text-[9px] font-bold text-amber-400">
+                <AlertCircle size={9} /> PREDICTED
+              </span>
+            )}
+            <span className="text-[9px] text-slate-600">via {sourceLabel}</span>
+          </div>
+        </div>
+        <span
+          className={`rounded px-1.5 py-0.5 text-[8px] font-bold uppercase ${ROLE_TIER_STYLE[contact.roleTier]}`}
+        >
+          {contact.roleTier}
+        </span>
+      </div>
+      {contact.email && (
+        <div className="mt-1.5 flex items-center gap-1.5 text-[10px]">
+          <Mail size={9} className="text-slate-600" />
+          <a href={`mailto:${contact.email}`} className="text-slate-400 hover:text-sky-400">
+            {contact.email}
+          </a>
+          {contact.emailVerified ? (
+            <CheckCircle size={9} className="text-emerald-400" />
+          ) : (
+            <AlertCircle size={9} className="text-amber-400" />
+          )}
+        </div>
+      )}
+      {contact.phone && (
+        <div className="mt-0.5 flex items-center gap-1.5 text-[10px]">
+          <Phone size={9} className="text-slate-600" />
+          <span className="text-slate-400">{contact.phone}</span>
+        </div>
+      )}
+    </div>
+  );
+}
+
 export function PsapDetailPanel({ prospect, onClose, onUpdated }: Props) {
   const [tab, setTab] = useState<Tab>("details");
   const [draft, setDraft] = useState(prospect);
   const [saving, setSaving] = useState(false);
+  const [enriching, setEnriching] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [activityType, setActivityType] = useState<Exclude<ActivityType, "stage_change">>("note");
   const [activityText, setActivityText] = useState("");
@@ -107,6 +187,20 @@ export function PsapDetailPanel({ prospect, onClose, onUpdated }: Props) {
       setError(e instanceof Error ? e.message : "Save failed");
     } finally {
       setSaving(false);
+    }
+  }
+
+  async function handleEnrichContacts() {
+    setEnriching(true);
+    setError(null);
+    try {
+      const { prospect: updated } = await enrichPsapContacts(prospect.psapId);
+      onUpdated(updated);
+      setDraft(updated);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Enrichment failed");
+    } finally {
+      setEnriching(false);
     }
   }
 
@@ -289,7 +383,38 @@ export function PsapDetailPanel({ prospect, onClose, onUpdated }: Props) {
               Save value
             </button>
 
-            <SectionHeader title="Primary Contact" />
+            <div className="mb-2 flex items-center justify-between">
+              <h3 className="text-[9px] font-bold uppercase tracking-widest text-slate-500">
+                Contacts
+              </h3>
+              <button
+                type="button"
+                onClick={() => void handleEnrichContacts()}
+                disabled={enriching || saving}
+                className="flex items-center gap-1.5 rounded border border-slate-700 bg-slate-800 px-2.5 py-1 text-[10px] font-semibold text-slate-300 transition-colors hover:bg-slate-700 disabled:opacity-50"
+              >
+                <Sparkles size={10} />
+                {enriching ? "Finding contacts…" : "Enrich Contacts"}
+              </button>
+            </div>
+            {draft.lastEnrichedAt && (
+              <div className="mb-2 text-[9px] text-slate-600">
+                Last enriched {formatTimeAgo(draft.lastEnrichedAt)}
+              </div>
+            )}
+            {(draft.contacts?.length ?? 0) > 0 ? (
+              <div className="mb-3">
+                {draft.contacts!.map((c) => (
+                  <EnrichedContactCard key={c.contactId} contact={c} />
+                ))}
+              </div>
+            ) : (
+              <p className="mb-3 text-[11px] text-slate-600">
+                No enriched contacts yet — click Enrich Contacts to run Hunter.io + Apollo.
+              </p>
+            )}
+
+            <SectionHeader title="Primary Contact (manual)" />
             <Field
               label="Name"
               value={draft.primaryContactName ?? ""}
@@ -335,6 +460,19 @@ export function PsapDetailPanel({ prospect, onClose, onUpdated }: Props) {
               <Field label="FIPS" value={draft.fips} readOnly />
             </div>
             <Field label="Phone" value={draft.phone} readOnly />
+            <Field
+              label="Website (optional)"
+              value={draft.website ?? ""}
+              onChange={(v) => setDraft((d) => ({ ...d, website: v || undefined }))}
+            />
+            <button
+              type="button"
+              disabled={saving}
+              onClick={() => void savePatch({ website: draft.website?.trim() || "" })}
+              className="text-xs text-violet-300 hover:underline disabled:opacity-50"
+            >
+              Save website
+            </button>
 
             <SectionHeader title="Notes / Next Action" />
             <label className="block space-y-1">

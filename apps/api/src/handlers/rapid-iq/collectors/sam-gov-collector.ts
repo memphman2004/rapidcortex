@@ -23,16 +23,16 @@ export async function runSamGovCollector(): Promise<{ signalsFound: number }> {
     ];
     for (const mock of mocks) {
       const classified = await classifySignal(mock.text, mock.url, "SAM.gov");
-      if (!classified.isRelevant) continue;
+      if (!classified.isRelevant || !classified.agencyName?.trim()) continue;
       classified.state = classified.state ?? "GA";
-      await upsertSignalAndOpportunity(
+      const result = await upsertSignalAndOpportunity(
         classified,
         mock.url,
-        classified.agencyName ?? "SAM.gov Opportunity",
+        "SAM.gov",
         "sam_gov",
         mock.jurisdictionId,
       );
-      total++;
+      if (result.saved) total++;
     }
     return { signalsFound: total };
   }
@@ -62,15 +62,15 @@ export async function runSamGovCollector(): Promise<{ signalsFound: number }> {
       for (const opp of data.opportunitiesData ?? []) {
         const text = `${opp.title ?? ""}\n${opp.description ?? ""}`;
         const classified = await classifySignal(text, opp.uiLink ?? "https://sam.gov", "SAM.gov");
-        if (!classified.isRelevant) continue;
-        await upsertSignalAndOpportunity(
+        if (!classified.isRelevant || !classified.agencyName?.trim()) continue;
+        const result = await upsertSignalAndOpportunity(
           classified,
           opp.uiLink ?? "https://sam.gov",
-          classified.agencyName ?? opp.title ?? "SAM.gov",
+          "SAM.gov",
           "sam_gov",
           "state_agency#US#sam",
         );
-        total++;
+        if (result.saved) total++;
       }
     }
     return { signalsFound: total };

@@ -23,7 +23,7 @@ export function RcAdminGrantsTabsClient({
           Access grants
         </TabButton>
         {showGrantSuccessProgram && (
-          <TabButton active={tab === "generator"} onClick={() => setTab("generator")} badge="NEW">
+          <TabButton active={tab === "generator"} onClick={() => setTab("generator")}>
             Grant Success Program
           </TabButton>
         )}

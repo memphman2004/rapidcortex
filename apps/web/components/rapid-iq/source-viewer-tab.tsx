@@ -1,18 +1,65 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { ExternalLink } from "lucide-react";
 import type { RapidIqSource } from "@/lib/rapid-iq/types";
+
+const SOURCE_ROLE_LABELS: Record<string, string> = {
+  primary: "Primary Source",
+  supporting: "Supporting",
+  procurement: "Procurement",
+  budget: "Budget",
+  contact: "Contact Source",
+};
+
+/** Collapse locale/tracking query variants of the same page into one tab. */
+function normalizeSourceUrl(url: string): string {
+  try {
+    const u = new URL(url.trim());
+    const dropExact = new Set(["oc_lang", "lang", "locale", "hl", "language"]);
+    for (const key of [...u.searchParams.keys()]) {
+      const lower = key.toLowerCase();
+      if (dropExact.has(lower) || lower.startsWith("utm_")) {
+        u.searchParams.delete(key);
+      }
+    }
+    u.hash = "";
+    if (u.pathname.length > 1 && u.pathname.endsWith("/")) {
+      u.pathname = u.pathname.slice(0, -1);
+    }
+    return u.toString().toLowerCase();
+  } catch {
+    return url.trim().toLowerCase();
+  }
+}
+
+function dedupeSources(sources: RapidIqSource[]): RapidIqSource[] {
+  const byUrl = new Map<string, RapidIqSource>();
+  for (const s of sources) {
+    const key = normalizeSourceUrl(s.url);
+    const existing = byUrl.get(key);
+    if (!existing) {
+      byUrl.set(key, s);
+      continue;
+    }
+    if (s.sourceRole === "primary" && existing.sourceRole !== "primary") {
+      byUrl.set(key, s);
+    }
+  }
+  return [...byUrl.values()];
+}
 
 type Props = {
   sources: RapidIqSource[];
 };
 
 export function SourceViewerTab({ sources }: Props) {
-  const [activeId, setActiveId] = useState(sources[0]?.sourceId ?? null);
-  const active = sources.find((s) => s.sourceId === activeId) ?? sources[0];
+  const uniqueSources = useMemo(() => dedupeSources(sources), [sources]);
+  const [activeId, setActiveId] = useState(uniqueSources[0]?.sourceId ?? null);
+  const active =
+    uniqueSources.find((s) => s.sourceId === activeId) ?? uniqueSources[0];
 
-  if (sources.length === 0) {
+  if (uniqueSources.length === 0) {
     return (
       <div className="flex h-full items-center justify-center p-8 text-sm text-slate-600">
         No source documents linked to this opportunity.
@@ -22,9 +69,9 @@ export function SourceViewerTab({ sources }: Props) {
 
   return (
     <div className="flex h-full flex-col">
-      {sources.length > 1 && (
+      {uniqueSources.length > 1 && (
         <div className="flex gap-1 overflow-x-auto border-b border-slate-800 px-4 py-2">
-          {sources.map((s) => (
+          {uniqueSources.map((s) => (
             <button
               key={s.sourceId}
               type="button"
@@ -36,7 +83,7 @@ export function SourceViewerTab({ sources }: Props) {
                   : "text-slate-500 hover:text-slate-300",
               ].join(" ")}
             >
-              {s.sourceRole.toUpperCase()}
+              {SOURCE_ROLE_LABELS[s.sourceRole] ?? s.sourceRole}
             </button>
           ))}
         </div>
@@ -49,7 +96,7 @@ export function SourceViewerTab({ sources }: Props) {
             <div className="p-4">
               <div className="rounded border border-slate-800 bg-slate-900/50 p-4">
                 <div className="mb-2 text-[10px] font-bold uppercase tracking-wide text-slate-500">
-                  {active.sourceRole.toUpperCase()} SOURCE
+                  {SOURCE_ROLE_LABELS[active.sourceRole] ?? active.sourceRole} SOURCE
                 </div>
                 <div className="mb-1 text-sm font-semibold text-slate-200">{active.title}</div>
                 {active.pageReference && (

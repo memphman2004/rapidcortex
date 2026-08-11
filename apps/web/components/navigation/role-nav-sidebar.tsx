@@ -40,6 +40,25 @@ function navItemIsActive(pathname: string, item: NavItem): boolean {
   return pathname === item.href || pathname.startsWith(`${item.href}/`);
 }
 
+/** Section label with extending rule — visual boundary without competing with items. */
+function NavSectionHeader({ label, compact }: { label: string; compact?: boolean }) {
+  if (compact) {
+    return (
+      <p className="mb-2 text-[10px] font-semibold uppercase tracking-[0.16em] text-slate-500">
+        {label}
+      </p>
+    );
+  }
+  return (
+    <div className="flex items-center gap-2.5 px-2 pt-5 pb-1">
+      <span className="shrink-0 whitespace-nowrap text-[9px] font-bold uppercase tracking-widest text-slate-600">
+        {label}
+      </span>
+      <div className="h-px flex-1 bg-slate-800/80" aria-hidden />
+    </div>
+  );
+}
+
 function NavItemBadge({
   badge,
   counts,
@@ -89,19 +108,11 @@ export function RoleNavSections({
   const badgeCounts = counts ?? {};
 
   return (
-    <div className={variant === "compact" ? "space-y-3" : "space-y-4"}>
+    <div className={variant === "compact" ? "space-y-3" : "space-y-0"}>
       {nav.sections.map((section) => (
         <div key={section.id}>
           {section.label ? (
-            <p
-              className={
-                variant === "compact"
-                  ? "mb-2 text-[10px] font-semibold uppercase tracking-[0.16em] text-slate-500"
-                  : "mb-1 px-2 text-[10px] font-semibold uppercase tracking-[0.18em] text-slate-500"
-              }
-            >
-              {section.label}
-            </p>
+            <NavSectionHeader label={section.label} compact={variant === "compact"} />
           ) : null}
           <ul className={variant === "compact" ? "flex flex-wrap gap-2" : "flex flex-col gap-0.5"}>
             {section.items.map((item) => {

@@ -4,6 +4,11 @@ import { randomUUID } from "node:crypto";
 import {
   canAccessRapidIq,
   convertToLeadBodySchema,
+  outreachBodySchema,
+  agencyProfileBodySchema,
+  competitorIntelBodySchema,
+  researchAgencyBodySchema,
+  rfpOutlineBodySchema,
   searchContactsBodySchema,
   signalChatBodySchema,
   talkingPointsBodySchema,
@@ -13,8 +18,17 @@ import {
 import { AUDIT_EVENT_TYPES } from "rapid-cortex-security";
 import { ACCOUNT_INACTIVE_MESSAGE, getUserContext, isUserAccountActive } from "../../lib/auth.js";
 import { withCorrelationHeaders } from "../../lib/correlation.js";
-import { generateTalkingPoints, signalChat } from "../../lib/rapid-iq/claude-classifier.js";
+import {
+  generateAgencyProfile,
+  generateCompetitorIntel,
+  generateOutreach,
+  generateRfpResponseOutline,
+  generateTalkingPoints,
+  researchAgency,
+  signalChat,
+} from "../../lib/rapid-iq/claude-classifier.js";
 import { findAgencyContacts } from "../../lib/rapid-iq/agency-contact-finder.js";
+import { dedupeSourcesByUrl } from "../../lib/rapid-iq/deduplication.js";
 import { env } from "../../lib/env.js";
 import { makeId } from "../../lib/ids.js";
 import {
@@ -137,8 +151,11 @@ export async function handler(event: APIGatewayProxyEventV2): Promise<APIGateway
       if (!opp) return withCorrelationHeaders(event, notFound("Opportunity not found"));
       const signals = await sigRepo.listByOpportunity(opp.opportunityId);
       const points = await generateTalkingPoints(opp, signals);
-      const updated = { ...opp, talkingPoints: points, lastRefreshedAt: new Date().toISOString() };
-      await oppRepo.put(updated);
+      // Never persist an empty list — that locks the UI into a silent no-op on later clicks.
+      if (points.length > 0) {
+        const updated = { ...opp, talkingPoints: points, lastRefreshedAt: new Date().toISOString() };
+        await oppRepo.put(updated);
+      }
       await auditRepo.create({
         eventId: makeId("audit"),
         agencyId: "platform",
@@ -150,6 +167,139 @@ export async function handler(event: APIGatewayProxyEventV2): Promise<APIGateway
         resourceId: opp.opportunityId,
       });
       return withCorrelationHeaders(event, ok({ points }));
+    }
+
+    // POST /api/rapid-iq/outreach
+    if (method === "POST" && path.endsWith("/outreach")) {
+      const body = parseBody(event);
+      if (body === null) return withCorrelationHeaders(event, badRequest("Invalid JSON"));
+      const parsed = outreachBodySchema.safeParse(body);
+      if (!parsed.success) return withCorrelationHeaders(event, badRequestFromZod(parsed.error));
+      const opp = await oppRepo.get(parsed.data.opportunityId);
+      if (!opp) return withCorrelationHeaders(event, notFound("Opportunity not found"));
+      let contact: { name?: string | null; title?: string } | undefined;
+      if (parsed.data.contactId) {
+        const contacts = await contactRepo.listByOpportunity(opp.opportunityId);
+        const match = contacts.find((c) => c.contactId === parsed.data.contactId);
+        if (match) contact = { name: match.name, title: match.title };
+      }
+      const draft = await generateOutreach(opp, contact);
+      await auditRepo.create({
+        eventId: makeId("audit"),
+        agencyId: "platform",
+        actorId: user.userId,
+        type: AUDIT_EVENT_TYPES.RAPID_IQ_OUTREACH_GENERATED,
+        details: { contactId: parsed.data.contactId ?? null },
+        createdAt: new Date().toISOString(),
+        resourceType: "rapid_iq_opportunity",
+        resourceId: opp.opportunityId,
+      });
+      return withCorrelationHeaders(event, ok(draft));
+    }
+
+    // POST /api/rapid-iq/rfp-outline
+    if (method === "POST" && path.endsWith("/rfp-outline")) {
+      const body = parseBody(event);
+      if (body === null) return withCorrelationHeaders(event, badRequest("Invalid JSON"));
+      const parsed = rfpOutlineBodySchema.safeParse(body);
+      if (!parsed.success) return withCorrelationHeaders(event, badRequestFromZod(parsed.error));
+      const opp = await oppRepo.get(parsed.data.opportunityId);
+      if (!opp) return withCorrelationHeaders(event, notFound("Opportunity not found"));
+      const [signals, sources] = await Promise.all([
+        sigRepo.listByOpportunity(opp.opportunityId),
+        sourceRepo.listByOpportunity(opp.opportunityId),
+      ]);
+      const rfpText =
+        [opp.aiSummary, ...signals.map((s) => s.summary), ...sources.map((s) => s.excerpt ?? "")]
+          .filter(Boolean)
+          .join("\n\n") || opp.aiHeadline;
+      const sourceUrl = sources[0]?.url ?? signals[0]?.sourceUrl ?? "";
+      const outline = await generateRfpResponseOutline(rfpText, sourceUrl, opp.agencyName);
+      await auditRepo.create({
+        eventId: makeId("audit"),
+        agencyId: "platform",
+        actorId: user.userId,
+        type: AUDIT_EVENT_TYPES.RAPID_IQ_RFP_OUTLINE_GENERATED,
+        details: { requirementCount: outline.requirements.length },
+        createdAt: new Date().toISOString(),
+        resourceType: "rapid_iq_opportunity",
+        resourceId: opp.opportunityId,
+      });
+      return withCorrelationHeaders(event, ok(outline));
+    }
+
+    // POST /api/rapid-iq/agency-profile
+    if (method === "POST" && path.endsWith("/agency-profile")) {
+      const body = parseBody(event);
+      if (body === null) return withCorrelationHeaders(event, badRequest("Invalid JSON"));
+      const parsed = agencyProfileBodySchema.safeParse(body);
+      if (!parsed.success) return withCorrelationHeaders(event, badRequestFromZod(parsed.error));
+      const opp = await oppRepo.get(parsed.data.opportunityId);
+      if (!opp) return withCorrelationHeaders(event, notFound("Opportunity not found"));
+      const profile = await generateAgencyProfile(
+        opp.agencyName,
+        opp.city,
+        opp.state,
+        opp.vertical,
+      );
+      await auditRepo.create({
+        eventId: makeId("audit"),
+        agencyId: "platform",
+        actorId: user.userId,
+        type: AUDIT_EVENT_TYPES.RAPID_IQ_AGENCY_PROFILE_GENERATED,
+        details: {},
+        createdAt: new Date().toISOString(),
+        resourceType: "rapid_iq_opportunity",
+        resourceId: opp.opportunityId,
+      });
+      return withCorrelationHeaders(event, ok(profile));
+    }
+
+    // POST /api/rapid-iq/research-agency
+    if (method === "POST" && path.endsWith("/research-agency")) {
+      const body = parseBody(event);
+      if (body === null) return withCorrelationHeaders(event, badRequest("Invalid JSON"));
+      const parsed = researchAgencyBodySchema.safeParse(body);
+      if (!parsed.success) return withCorrelationHeaders(event, badRequestFromZod(parsed.error));
+      const opp = await oppRepo.get(parsed.data.opportunityId);
+      if (!opp) return withCorrelationHeaders(event, notFound("Opportunity not found"));
+      const research = await researchAgency(opp.agencyName, opp.city, opp.state);
+      await auditRepo.create({
+        eventId: makeId("audit"),
+        agencyId: "platform",
+        actorId: user.userId,
+        type: AUDIT_EVENT_TYPES.RAPID_IQ_AGENCY_RESEARCHED,
+        details: {},
+        createdAt: new Date().toISOString(),
+        resourceType: "rapid_iq_opportunity",
+        resourceId: opp.opportunityId,
+      });
+      return withCorrelationHeaders(event, ok({ research }));
+    }
+
+    // POST /api/rapid-iq/competitor-intel
+    if (method === "POST" && path.endsWith("/competitor-intel")) {
+      const body = parseBody(event);
+      if (body === null) return withCorrelationHeaders(event, badRequest("Invalid JSON"));
+      const parsed = competitorIntelBodySchema.safeParse(body);
+      if (!parsed.success) return withCorrelationHeaders(event, badRequestFromZod(parsed.error));
+      const opp = await oppRepo.get(parsed.data.opportunityId);
+      if (!opp) return withCorrelationHeaders(event, notFound("Opportunity not found"));
+      if (!opp.incumbentVendor) {
+        return withCorrelationHeaders(event, badRequest("No incumbent vendor on this opportunity"));
+      }
+      const intel = await generateCompetitorIntel(opp.incumbentVendor, opp.agencyName);
+      await auditRepo.create({
+        eventId: makeId("audit"),
+        agencyId: "platform",
+        actorId: user.userId,
+        type: AUDIT_EVENT_TYPES.RAPID_IQ_COMPETITOR_INTEL_GENERATED,
+        details: { incumbentVendor: opp.incumbentVendor },
+        createdAt: new Date().toISOString(),
+        resourceType: "rapid_iq_opportunity",
+        resourceId: opp.opportunityId,
+      });
+      return withCorrelationHeaders(event, ok({ intel }));
     }
 
     // POST /api/rapid-iq/signal-chat
@@ -298,7 +448,7 @@ export async function handler(event: APIGatewayProxyEventV2): Promise<APIGateway
         return withCorrelationHeaders(event, ok({ items: contacts }));
       }
       if (method === "GET" && path.endsWith("/sources")) {
-        const sources = await sourceRepo.listByOpportunity(opportunityId);
+        const sources = dedupeSourcesByUrl(await sourceRepo.listByOpportunity(opportunityId));
         return withCorrelationHeaders(event, ok({ items: sources }));
       }
       if (method === "PATCH") {
@@ -323,11 +473,12 @@ export async function handler(event: APIGatewayProxyEventV2): Promise<APIGateway
       if (method === "GET") {
         const opp = await oppRepo.get(opportunityId);
         if (!opp) return withCorrelationHeaders(event, notFound("Opportunity not found"));
-        const [signals, contacts, sources] = await Promise.all([
+        const [signals, contacts, sourcesRaw] = await Promise.all([
           sigRepo.listByOpportunity(opportunityId),
           contactRepo.listByOpportunity(opportunityId),
           sourceRepo.listByOpportunity(opportunityId),
         ]);
+        const sources = dedupeSourcesByUrl(sourcesRaw);
         const mentioned = contacts.slice(0, 8).map((c) => ({
           name: c.name ?? c.title,
           role: c.title,

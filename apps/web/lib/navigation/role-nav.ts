@@ -69,17 +69,29 @@ export const RC_SUPERADMIN_NAV: RoleNav = {
       ],
     },
     {
+      id: "sales-crm",
+      label: "SALES & CRM",
+      items: [
+        { id: "leads",     label: "Leads",             href: "/rc-admin/leads",         icon: "Inbox", feature: "salesLeads" },
+        { id: "psap-prospects", label: "PSAP Prospects", href: "/rc-admin/psap-prospects", icon: "RadioTower", feature: "psapProspects" },
+        { id: "rapid-iq", label: "Rapid IQ", href: "/rc-admin/rapid-iq", icon: "Zap", feature: "rapidIq" },
+      ],
+    },
+    {
       id: "business",
       label: "BUSINESS",
       items: [
         { id: "billing",   label: "Billing",           href: "/rc-admin/billing",       icon: "CreditCard" },
         { id: "pricing",   label: "Pricing Menu",    href: "/rc-admin/pricing",       icon: "Tag" },
         { id: "invoices",  label: "Invoices",          href: "/rc-admin/invoices",      icon: "Receipt" },
-        { id: "catalog",   label: "Service Catalog",   href: "/rc-admin/billing/services", icon: "Package" },
         { id: "agreements",label: "Agreements",        href: "/rc-admin/agreements",    icon: "FileSignature" },
-        { id: "leads",     label: "Leads",             href: "/rc-admin/leads",         icon: "Inbox", feature: "salesLeads" },
-        { id: "psap-prospects", label: "PSAP Prospects", href: "/rc-admin/psap-prospects", icon: "RadioTower", feature: "psapProspects" },
-        { id: "rapid-iq", label: "Rapid IQ", href: "/rc-admin/rapid-iq", icon: "Zap", feature: "rapidIq", badge: { type: "label", text: "NEW", color: "blue" } },
+        { id: "catalog",   label: "Service Catalog",   href: "/rc-admin/billing/services", icon: "Package" },
+      ],
+    },
+    {
+      id: "talent",
+      label: "TALENT",
+      items: [
         { id: "hiring",         label: "Hiring ATS",      href: "/rc-admin/hiring",          icon: "Users", feature: "hiring" },
         { id: "hiringPostings", label: "Job Postings",    href: "/rc-admin/hiring/postings", icon: "Briefcase", feature: "hiring" },
         { id: "hiringSettings", label: "Hiring Settings", href: "/rc-admin/hiring/settings", icon: "Settings", feature: "hiring" },
@@ -143,6 +155,15 @@ export const RC_ADMIN_NAV: RoleNav = {
       ],
     },
     {
+      id: "sales-crm",
+      label: "SALES & CRM",
+      items: [
+        { id: "leads",     label: "Leads",             href: "/rc-admin/leads",         icon: "Inbox", feature: "salesLeads" },
+        { id: "psap-prospects", label: "PSAP Prospects", href: "/rc-admin/psap-prospects", icon: "RadioTower", feature: "psapProspects" },
+        { id: "rapid-iq", label: "Rapid IQ", href: "/rc-admin/rapid-iq", icon: "Zap", feature: "rapidIq" },
+      ],
+    },
+    {
       id: "business",
       label: "BUSINESS",
       items: [
@@ -155,11 +176,14 @@ export const RC_ADMIN_NAV: RoleNav = {
           badge: { type: "label", text: "VIEW ONLY", color: "slate" },
         },
         { id: "invoices",  label: "Invoices",          href: "/rc-admin/invoices",      icon: "Receipt" },
-        { id: "catalog",   label: "Service Catalog",   href: "/rc-admin/billing/services", icon: "Package" },
         { id: "agreements",label: "Agreements",        href: "/rc-admin/agreements",    icon: "FileSignature" },
-        { id: "leads",     label: "Leads",             href: "/rc-admin/leads",         icon: "Inbox", feature: "salesLeads" },
-        { id: "psap-prospects", label: "PSAP Prospects", href: "/rc-admin/psap-prospects", icon: "RadioTower", feature: "psapProspects" },
-        { id: "rapid-iq", label: "Rapid IQ", href: "/rc-admin/rapid-iq", icon: "Zap", feature: "rapidIq", badge: { type: "label", text: "NEW", color: "blue" } },
+        { id: "catalog",   label: "Service Catalog",   href: "/rc-admin/billing/services", icon: "Package" },
+      ],
+    },
+    {
+      id: "talent",
+      label: "TALENT",
+      items: [
         { id: "hiring",         label: "Hiring ATS",      href: "/rc-admin/hiring",          icon: "Users", feature: "hiring" },
         { id: "hiringPostings", label: "Job Postings",    href: "/rc-admin/hiring/postings", icon: "Briefcase", feature: "hiring" },
         { id: "hiringSettings", label: "Hiring Settings", href: "/rc-admin/hiring/settings", icon: "Settings", feature: "hiring" },
@@ -235,11 +259,17 @@ export const RC_IT_ADMIN_NAV: RoleNav = {
       ],
     },
     {
-      id: "business",
-      label: "BUSINESS",
+      id: "sales-crm",
+      label: "SALES & CRM",
       items: [
         { id: "leads",     label: "Leads",             href: "/rc-admin/leads",         icon: "Inbox", feature: "salesLeads" },
         { id: "psap-prospects", label: "PSAP Prospects", href: "/rc-admin/psap-prospects", icon: "RadioTower", feature: "psapProspects" },
+      ],
+    },
+    {
+      id: "talent",
+      label: "TALENT",
+      items: [
         { id: "hiring",         label: "Hiring ATS",      href: "/rc-admin/hiring",          icon: "Users", feature: "hiring" },
         { id: "hiringPostings", label: "Job Postings",    href: "/rc-admin/hiring/postings", icon: "Briefcase", feature: "hiring" },
         { id: "hiringSettings", label: "Hiring Settings", href: "/rc-admin/hiring/settings", icon: "Settings", feature: "hiring" },

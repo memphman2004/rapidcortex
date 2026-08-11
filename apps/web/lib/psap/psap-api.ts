@@ -3,6 +3,7 @@ import type {
   PatchPsapProspectBody,
   PsapMapPin,
   PsapProspect,
+  PsapProspectContact,
   PsapProspectListQuery,
   PsapProspectListResponse,
   PsapProspectStats,
@@ -13,6 +14,8 @@ const BASE = "/api/rc-admin/psap-prospects";
 type ApiEnvelope<T> = {
   prospect?: T;
   pins?: PsapMapPin[];
+  contacts?: PsapProspectContact[];
+  count?: number;
   error?: string;
 } & Partial<T>;
 
@@ -86,6 +89,41 @@ export async function addPsapActivity(
   });
   const body = await parseJson<ApiEnvelope<PsapProspect>>(res);
   return unwrapProspect(body);
+}
+
+export async function enrichPsapContacts(psapId: string): Promise<{
+  prospect: PsapProspect;
+  contacts: PsapProspectContact[];
+  count: number;
+}> {
+  const res = await fetch(`${BASE}/${encodeURIComponent(psapId)}/enrich-contacts`, {
+    method: "POST",
+    credentials: "include",
+    headers: { "Content-Type": "application/json" },
+    body: "{}",
+  });
+  const body = await parseJson<
+    ApiEnvelope<PsapProspect> & { contacts?: PsapProspectContact[]; count?: number }
+  >(res);
+  return {
+    prospect: unwrapProspect(body),
+    contacts: body.contacts ?? [],
+    count: body.count ?? body.contacts?.length ?? 0,
+  };
+}
+
+export async function enrichAllPsapContacts(limit = 10): Promise<{
+  count: number;
+  contactsFound: number;
+  message: string;
+}> {
+  const res = await fetch(`${BASE}/enrich-all`, {
+    method: "POST",
+    credentials: "include",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ limit }),
+  });
+  return parseJson<{ count: number; contactsFound: number; message: string }>(res);
 }
 
 export async function getPsapStats(): Promise<PsapProspectStats> {

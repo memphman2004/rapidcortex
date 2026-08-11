@@ -9,12 +9,13 @@ import {
   listOpportunities,
   OPPORTUNITIES_QUERY_KEY,
 } from "@/lib/rapid-iq/api";
+import { isKnownCompetitor } from "@/lib/rapid-iq/competitor-registry";
 import { ConvertToLeadModal } from "./convert-to-lead-modal";
 import { OpportunityDetailPanel } from "./opportunity-detail-panel";
 import { OpportunityFeed } from "./opportunity-feed";
 import { RapidIqRefreshButton } from "./rapid-iq-refresh-button";
 import { RapidIqStatsBar } from "./rapid-iq-stats-bar";
-import { VerticalTabs } from "./vertical-tabs";
+import { VerticalTabs, type FeedTab } from "./vertical-tabs";
 
 const US_STATES = [
   "AL", "AK", "AZ", "AR", "CA", "CO", "CT", "DE", "FL", "GA", "HI", "ID", "IL", "IN", "IA", "KS",
@@ -25,7 +26,7 @@ const US_STATES = [
 
 export function RapidIqClient() {
   const searchRef = useRef<HTMLInputElement>(null);
-  const [vertical, setVertical] = useState<RapidIqVertical>("911");
+  const [feedTab, setFeedTab] = useState<FeedTab>("911");
   const [stateFilter, setStateFilter] = useState<string>("all");
   const [stageFilter, setStageFilter] = useState<IntentStage | "all">("all");
   const [search, setSearch] = useState("");
@@ -33,11 +34,14 @@ export function RapidIqClient() {
   const [convertOpp, setConvertOpp] = useState<string | null>(null);
   const [convertSuccess, setConvertSuccess] = useState<string | null>(null);
 
+  const listVertical: RapidIqVertical | undefined =
+    feedTab === "competitor" ? undefined : feedTab;
+
   const listQ = useQuery({
-    queryKey: [...OPPORTUNITIES_QUERY_KEY, vertical, stateFilter, stageFilter, search],
+    queryKey: [...OPPORTUNITIES_QUERY_KEY, feedTab, stateFilter, stageFilter, search],
     queryFn: () =>
       listOpportunities({
-        vertical,
+        vertical: listVertical,
         state: stateFilter === "all" ? undefined : stateFilter,
         intentStage: stageFilter === "all" ? undefined : stageFilter,
         search: search.trim() || undefined,
@@ -48,7 +52,22 @@ export function RapidIqClient() {
   });
 
   const demo = listQ.data?.demo ?? false;
-  const opportunities = listQ.data?.items ?? [];
+  const rawItems = listQ.data?.items ?? [];
+  const opportunities = useMemo(() => {
+    if (feedTab !== "competitor") return rawItems;
+    return rawItems.filter((o) => isKnownCompetitor(o.incumbentVendor));
+  }, [feedTab, rawItems]);
+
+  const competitorCountQ = useQuery({
+    queryKey: [...OPPORTUNITIES_QUERY_KEY, "competitor-count"],
+    queryFn: () => listOpportunities({}),
+    staleTime: 60_000,
+  });
+  const competitorCount = useMemo(
+    () => (competitorCountQ.data?.items ?? []).filter((o) => isKnownCompetitor(o.incumbentVendor)).length,
+    [competitorCountQ.data],
+  );
+
   const stats = useMemo(() => computeStats(opportunities), [opportunities]);
 
   const selectedOpp = useMemo(
@@ -74,7 +93,14 @@ export function RapidIqClient() {
       />
 
       <div className="flex flex-wrap items-center gap-2 border-b border-[rgba(255,255,255,0.06)] bg-[#0a1628] px-5 py-2.5">
-        <VerticalTabs value={vertical} onChange={(v) => { setVertical(v); setSelectedId(null); }} />
+        <VerticalTabs
+          value={feedTab}
+          competitorCount={competitorCount}
+          onChange={(v) => {
+            setFeedTab(v);
+            setSelectedId(null);
+          }}
+        />
 
         <select
           value={stateFilter}
@@ -146,7 +172,7 @@ export function RapidIqClient() {
               opportunities={opportunities}
               selectedId={selectedId}
               onSelect={setSelectedId}
-              vertical={vertical}
+              vertical={feedTab}
               demo={demo}
             />
           )}

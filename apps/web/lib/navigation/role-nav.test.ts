@@ -76,6 +76,31 @@ describe("getRoleNav", () => {
     }
   });
 
+  it("splits RC superadmin BUSINESS into Sales & CRM, Business, and Talent", () => {
+    const nav = getRoleNav("rcsuperadmin", {});
+    const byId = Object.fromEntries(nav.sections.map((s) => [s.id, s]));
+    expect(byId["sales-crm"]?.label).toBe("SALES & CRM");
+    expect(byId["sales-crm"]?.items.map((i) => i.id)).toEqual([
+      "leads",
+      "psap-prospects",
+      "rapid-iq",
+    ]);
+    expect(byId.business?.label).toBe("BUSINESS");
+    expect(byId.business?.items.map((i) => i.id)).toEqual([
+      "billing",
+      "pricing",
+      "invoices",
+      "agreements",
+      "catalog",
+    ]);
+    expect(byId.talent?.label).toBe("TALENT");
+    expect(byId.talent?.items.map((i) => i.id)).toEqual([
+      "hiring",
+      "hiringPostings",
+      "hiringSettings",
+    ]);
+  });
+
   it("dispatcher Intake/Transcription/Incidents land on live dispatcher workspace", () => {
     const nav = getRoleNav("dispatcher", { jurisdiction: "test-psap" });
     const items = nav.sections.flatMap((s) => s.items);

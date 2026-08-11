@@ -47,11 +47,29 @@ Parameters:
   RapidIqSamGovApiKeySecretArn:
     Type: String
     Default: ""
+  RapidIqHunterApiKeySecretArn:
+    Type: String
+    Default: ""
+    Description: Secrets Manager ARN for Hunter.io API key (Rapid IQ domain-search contact enrichment)
+  RapidIqApolloApiKeySecretArn:
+    Type: String
+    Default: ""
+    Description: Secrets Manager ARN for Apollo.io API key (Rapid IQ people-search contact enrichment)
+  RapidIqTeamsWebhookSecretArn:
+    Type: String
+    Default: ""
+    Description: >
+      Secrets Manager ARN for Rapid IQ Alerts Teams Power Automate webhook URL
+      (channel + flow already provisioned — do not recreate)
+  RapidIqLegiscanApiKeySecretArn:
+    Type: String
+    Default: ""
+    Description: Secrets Manager ARN for LegiScan API key (Rapid IQ legislature collector)
   RapidIqLegiscanApiKey:
     Type: String
     Default: ""
     NoEcho: true
-    Description: LegiScan API key for Rapid IQ legislature collector (optional)
+    Description: Optional plain LegiScan API key override (prefer RapidIqLegiscanApiKeySecretArn)
   ImportedCognitoUserPoolId:
     Type: String
   ImportedCognitoWebClientId:
@@ -67,6 +85,10 @@ Conditions:
   HasHttpApiJwtAuthorizer: !Not [!Equals [!Ref HttpApiJwtAuthorizerId, ""]]
   HasAnthropicApiKeySecretArn: !Not [!Equals [!Ref AnthropicApiKeySecretArn, ""]]
   HasSamGovSecretArn: !Not [!Equals [!Ref RapidIqSamGovApiKeySecretArn, ""]]
+  HasHunterSecretArn: !Not [!Equals [!Ref RapidIqHunterApiKeySecretArn, ""]]
+  HasApolloSecretArn: !Not [!Equals [!Ref RapidIqApolloApiKeySecretArn, ""]]
+  HasTeamsWebhookSecretArn: !Not [!Equals [!Ref RapidIqTeamsWebhookSecretArn, ""]]
+  HasLegiscanSecretArn: !Not [!Equals [!Ref RapidIqLegiscanApiKeySecretArn, ""]]
 
 Globals:
   Function:
@@ -95,7 +117,13 @@ Globals:
         ASSETS_BUCKET: !Ref AssetsBucket
         ANTHROPIC_API_KEY_SECRET_ARN: !Ref AnthropicApiKeySecretArn
         RAPID_IQ_SAM_GOV_API_KEY_SECRET_ARN: !Ref RapidIqSamGovApiKeySecretArn
+        RAPID_IQ_HUNTER_API_KEY_SECRET_ARN: !Ref RapidIqHunterApiKeySecretArn
+        RAPID_IQ_APOLLO_API_KEY_SECRET_ARN: !Ref RapidIqApolloApiKeySecretArn
+        RAPID_IQ_TEAMS_WEBHOOK_SECRET_ARN: !Ref RapidIqTeamsWebhookSecretArn
+        RAPID_IQ_LEGISCAN_API_KEY_SECRET_ARN: !Ref RapidIqLegiscanApiKeySecretArn
         RAPID_IQ_LEGISCAN_API_KEY: !Ref RapidIqLegiscanApiKey
+        APP_BASE_URL: !Sub "https://app.rapidcortex.us"
+        APP_PUBLIC_BASE_URL: !Sub "https://app.rapidcortex.us"
         COGNITO_USER_POOL_ID: !Ref ImportedCognitoUserPoolId
         COGNITO_CLIENT_ID: !Ref ImportedCognitoWebClientId
         COGNITO_REGION: !Ref AWS::Region
@@ -182,6 +210,38 @@ Resources:
                 - HasSamGovSecretArn
                 - !Ref RapidIqSamGovApiKeySecretArn
                 - !Sub arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:rapid-cortex/unused-rapidiq-sam-*
+            - Sid: ReadHunterSecret
+              Effect: Allow
+              Action:
+                - secretsmanager:GetSecretValue
+              Resource: !If
+                - HasHunterSecretArn
+                - !Ref RapidIqHunterApiKeySecretArn
+                - !Sub arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:rapid-cortex/unused-rapidiq-hunter-*
+            - Sid: ReadApolloSecret
+              Effect: Allow
+              Action:
+                - secretsmanager:GetSecretValue
+              Resource: !If
+                - HasApolloSecretArn
+                - !Ref RapidIqApolloApiKeySecretArn
+                - !Sub arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:rapid-cortex/unused-rapidiq-apollo-*
+            - Sid: ReadTeamsWebhookSecret
+              Effect: Allow
+              Action:
+                - secretsmanager:GetSecretValue
+              Resource: !If
+                - HasTeamsWebhookSecretArn
+                - !Ref RapidIqTeamsWebhookSecretArn
+                - !Sub arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:rapid-cortex/unused-rapidiq-teams-*
+            - Sid: ReadLegiscanSecret
+              Effect: Allow
+              Action:
+                - secretsmanager:GetSecretValue
+              Resource: !If
+                - HasLegiscanSecretArn
+                - !Ref RapidIqLegiscanApiKeySecretArn
+                - !Sub arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:rapid-cortex/unused-rapidiq-legiscan-*
       Environment:
         Variables:
           RAPID_IQ_ORCHESTRATOR_FUNCTION_NAME: !Ref RapidIqOrchestratorFunction
@@ -215,6 +275,38 @@ Resources:
                 - HasSamGovSecretArn
                 - !Ref RapidIqSamGovApiKeySecretArn
                 - !Sub arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:rapid-cortex/unused-rapidiq-sam-*
+            - Sid: ReadHunterSecret
+              Effect: Allow
+              Action:
+                - secretsmanager:GetSecretValue
+              Resource: !If
+                - HasHunterSecretArn
+                - !Ref RapidIqHunterApiKeySecretArn
+                - !Sub arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:rapid-cortex/unused-rapidiq-hunter-*
+            - Sid: ReadApolloSecret
+              Effect: Allow
+              Action:
+                - secretsmanager:GetSecretValue
+              Resource: !If
+                - HasApolloSecretArn
+                - !Ref RapidIqApolloApiKeySecretArn
+                - !Sub arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:rapid-cortex/unused-rapidiq-apollo-*
+            - Sid: ReadTeamsWebhookSecret
+              Effect: Allow
+              Action:
+                - secretsmanager:GetSecretValue
+              Resource: !If
+                - HasTeamsWebhookSecretArn
+                - !Ref RapidIqTeamsWebhookSecretArn
+                - !Sub arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:rapid-cortex/unused-rapidiq-teams-*
+            - Sid: ReadLegiscanSecret
+              Effect: Allow
+              Action:
+                - secretsmanager:GetSecretValue
+              Resource: !If
+                - HasLegiscanSecretArn
+                - !Ref RapidIqLegiscanApiKeySecretArn
+                - !Sub arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:rapid-cortex/unused-rapidiq-legiscan-*
 
   RapidIqScheduledCollector:
     Type: AWS::Events::Rule
@@ -329,6 +421,51 @@ Resources:
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "POST /api/rapid-iq/talking-points"
+      Target: !Sub "integrations/${RapidIqHttpIntegration}"
+      AuthorizationType: !If [HasHttpApiJwtAuthorizer, JWT, NONE]
+      AuthorizerId: !If [HasHttpApiJwtAuthorizer, !Ref HttpApiJwtAuthorizerId, !Ref AWS::NoValue]
+
+  RouteRapidIqOutreach:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref HttpApiId
+      RouteKey: "POST /api/rapid-iq/outreach"
+      Target: !Sub "integrations/${RapidIqHttpIntegration}"
+      AuthorizationType: !If [HasHttpApiJwtAuthorizer, JWT, NONE]
+      AuthorizerId: !If [HasHttpApiJwtAuthorizer, !Ref HttpApiJwtAuthorizerId, !Ref AWS::NoValue]
+
+  RouteRapidIqRfpOutline:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref HttpApiId
+      RouteKey: "POST /api/rapid-iq/rfp-outline"
+      Target: !Sub "integrations/${RapidIqHttpIntegration}"
+      AuthorizationType: !If [HasHttpApiJwtAuthorizer, JWT, NONE]
+      AuthorizerId: !If [HasHttpApiJwtAuthorizer, !Ref HttpApiJwtAuthorizerId, !Ref AWS::NoValue]
+
+  RouteRapidIqAgencyProfile:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref HttpApiId
+      RouteKey: "POST /api/rapid-iq/agency-profile"
+      Target: !Sub "integrations/${RapidIqHttpIntegration}"
+      AuthorizationType: !If [HasHttpApiJwtAuthorizer, JWT, NONE]
+      AuthorizerId: !If [HasHttpApiJwtAuthorizer, !Ref HttpApiJwtAuthorizerId, !Ref AWS::NoValue]
+
+  RouteRapidIqResearchAgency:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref HttpApiId
+      RouteKey: "POST /api/rapid-iq/research-agency"
+      Target: !Sub "integrations/${RapidIqHttpIntegration}"
+      AuthorizationType: !If [HasHttpApiJwtAuthorizer, JWT, NONE]
+      AuthorizerId: !If [HasHttpApiJwtAuthorizer, !Ref HttpApiJwtAuthorizerId, !Ref AWS::NoValue]
+
+  RouteRapidIqCompetitorIntel:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref HttpApiId
+      RouteKey: "POST /api/rapid-iq/competitor-intel"
       Target: !Sub "integrations/${RapidIqHttpIntegration}"
       AuthorizationType: !If [HasHttpApiJwtAuthorizer, JWT, NONE]
       AuthorizerId: !If [HasHttpApiJwtAuthorizer, !Ref HttpApiJwtAuthorizerId, !Ref AWS::NoValue]

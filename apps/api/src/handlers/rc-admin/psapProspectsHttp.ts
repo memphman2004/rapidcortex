@@ -20,6 +20,10 @@ import {
 } from "../../lib/response.js";
 import { env } from "../../lib/env.js";
 import { makeId } from "../../lib/ids.js";
+import {
+  enrichPsapProspectContacts,
+  enrichPsapProspectsInBatches,
+} from "../../lib/psap/enrich-psap-contacts.js";
 import { AuditRepository } from "../../repositories/auditRepository.js";
 import { PsapProspectRepository } from "../../repositories/psapProspectRepository.js";
 
@@ -28,6 +32,8 @@ const auditRepo = new AuditRepository();
 
 const MAP_CACHE_PATH = "/tmp/psap-map-pins-cache.json";
 const MAP_CACHE_TTL_MS = 5 * 60 * 1000;
+const ENRICH_STALE_DAYS = 30;
+const ENRICH_ALL_DEFAULT_LIMIT = 10;
 
 type JsonResult = ReturnType<typeof ok>;
 
@@ -190,6 +196,122 @@ export async function handler(event: APIGatewayProxyEventV2): Promise<APIGateway
         },
         body: csv,
       };
+    }
+
+    // POST /enrich-all — batch stale prospects (max 25/request; client may loop)
+    if (method === "POST" && path.endsWith("/enrich-all")) {
+      const role = String(user.role ?? "").toLowerCase();
+      if (role !== "rcsuperadmin" && role !== "rcadmin") return forbidden();
+      let limit = ENRICH_ALL_DEFAULT_LIMIT;
+      try {
+        const body = JSON.parse(event.body ?? "{}") as { limit?: number };
+        if (typeof body.limit === "number" && Number.isFinite(body.limit)) {
+          limit = Math.max(1, Math.min(25, Math.floor(body.limit)));
+        }
+      } catch {
+        /* default limit */
+      }
+      const staleBefore = new Date();
+      staleBefore.setDate(staleBefore.getDate() - ENRICH_STALE_DAYS);
+      const stale = await repo.listNeedingEnrichment(staleBefore.toISOString(), limit);
+
+      let contactsFound = 0;
+      const results: Array<{ psapId: string; count: number }> = [];
+
+      await enrichPsapProspectsInBatches(
+        stale,
+        async (p) => {
+          const enriched = await enrichPsapProspectContacts(p);
+          const updated = await repo.saveEnrichedContacts(p.psapId, enriched.contacts);
+          contactsFound += enriched.contacts.length;
+          results.push({ psapId: p.psapId, count: enriched.contacts.length });
+          console.log(
+            JSON.stringify({
+              msg: "psap_prospect_contacts_enriched",
+              psapId: p.psapId,
+              agencyName: p.psapName,
+              contactsFound: enriched.contacts.length,
+              hunterCount: enriched.hunterCount,
+              apolloCount: enriched.apolloCount,
+              domains: enriched.domains,
+              bulk: true,
+            }),
+          );
+          if (updated) {
+            await auditRepo.create({
+              eventId: makeId("audit"),
+              agencyId: "platform",
+              actorId: user.userId,
+              type: AUDIT_EVENT_TYPES.PSAP_PROSPECT_CONTACTS_ENRICHED,
+              details: {
+                psapId: p.psapId,
+                contactsFound: String(enriched.contacts.length),
+                hunterCount: String(enriched.hunterCount),
+                apolloCount: String(enriched.apolloCount),
+                bulk: "1",
+              },
+              createdAt: new Date().toISOString(),
+              resourceType: "psap_prospect",
+              resourceId: p.psapId,
+            });
+          }
+        },
+        { batchSize: 5, pauseMs: 2_000 },
+      );
+
+      return ok({
+        message: `Enriched ${stale.length} prospects`,
+        count: stale.length,
+        contactsFound,
+        results,
+        limit,
+      });
+    }
+
+    // POST /{psapId}/enrich-contacts
+    if (method === "POST" && psapId && path.includes("/enrich-contacts")) {
+      const prospect = await repo.get(psapId);
+      if (!prospect) return notFound("PSAP not found");
+
+      const enriched = await enrichPsapProspectContacts(prospect);
+      const updated = await repo.saveEnrichedContacts(psapId, enriched.contacts);
+      if (!updated) return notFound("PSAP not found");
+
+      console.log(
+        JSON.stringify({
+          msg: "psap_prospect_contacts_enriched",
+          prospectId: psapId,
+          agencyName: prospect.psapName,
+          contactsFound: enriched.contacts.length,
+          hunterCount: enriched.hunterCount,
+          apolloCount: enriched.apolloCount,
+          domains: enriched.domains,
+        }),
+      );
+
+      await auditRepo.create({
+        eventId: makeId("audit"),
+        agencyId: "platform",
+        actorId: user.userId,
+        type: AUDIT_EVENT_TYPES.PSAP_PROSPECT_CONTACTS_ENRICHED,
+        details: {
+          psapId,
+          contactsFound: String(enriched.contacts.length),
+          hunterCount: String(enriched.hunterCount),
+          apolloCount: String(enriched.apolloCount),
+        },
+        createdAt: new Date().toISOString(),
+        resourceType: "psap_prospect",
+        resourceId: psapId,
+      });
+
+      return ok({
+        prospect: updated,
+        contacts: enriched.contacts,
+        count: enriched.contacts.length,
+        hunterCount: enriched.hunterCount,
+        apolloCount: enriched.apolloCount,
+      });
     }
 
     // POST /{psapId}/activities

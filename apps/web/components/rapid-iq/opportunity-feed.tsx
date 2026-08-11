@@ -8,7 +8,7 @@ type Props = {
   opportunities: RapidIqOpportunity[];
   selectedId: string | null;
   onSelect: (id: string) => void;
-  vertical: RapidIqVertical;
+  vertical: RapidIqVertical | "competitor";
   demo?: boolean;
 };
 

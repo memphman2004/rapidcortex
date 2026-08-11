@@ -39,14 +39,17 @@ export async function runAgendaCollector(
             );
           }
           signal.sourceDocUrl = doc.url;
-          await upsertSignalAndOpportunity(
+          // Prefer classified buyer; fall back to jurisdiction registry name (a real agency)
+          if (!signal.agencyName?.trim()) signal.agencyName = jurisdiction.name;
+          if (!signal.state?.trim()) signal.state = jurisdiction.stateCode;
+          const result = await upsertSignalAndOpportunity(
             signal,
             doc.url,
             jurisdiction.name,
             "government_doc",
             jurisdiction.jurisdictionId,
           );
-          total++;
+          if (result.saved) total++;
         }
       }
     } catch (err) {

@@ -186,6 +186,32 @@ export const talkingPointsBodySchema = z.object({
 });
 export type TalkingPointsBody = z.infer<typeof talkingPointsBodySchema>;
 
+export const outreachBodySchema = z.object({
+  opportunityId: z.string().min(1),
+  contactId: z.string().min(1).optional(),
+});
+export type OutreachBody = z.infer<typeof outreachBodySchema>;
+
+export const rfpOutlineBodySchema = z.object({
+  opportunityId: z.string().min(1),
+});
+export type RfpOutlineBody = z.infer<typeof rfpOutlineBodySchema>;
+
+export const agencyProfileBodySchema = z.object({
+  opportunityId: z.string().min(1),
+});
+export type AgencyProfileBody = z.infer<typeof agencyProfileBodySchema>;
+
+export const researchAgencyBodySchema = z.object({
+  opportunityId: z.string().min(1),
+});
+export type ResearchAgencyBody = z.infer<typeof researchAgencyBodySchema>;
+
+export const competitorIntelBodySchema = z.object({
+  opportunityId: z.string().min(1),
+});
+export type CompetitorIntelBody = z.infer<typeof competitorIntelBodySchema>;
+
 export const searchContactsBodySchema = z.object({
   opportunityId: z.string().min(1),
   query: z.string().max(200).optional(),

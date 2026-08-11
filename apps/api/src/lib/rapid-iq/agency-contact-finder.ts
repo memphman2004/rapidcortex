@@ -1,6 +1,9 @@
 import { randomUUID } from "node:crypto";
 import type { RapidIqContact, RapidIqVertical } from "rapid-cortex-shared";
 import { isCollectorsMockEnabled } from "./agenda-finder.js";
+import { findContactsViaApollo } from "./apollo-enrichment.js";
+import { MAX_CONTACTS, mergeContacts } from "./contact-enrichment-shared.js";
+import { findContactsViaHunter } from "./hunter-enrichment.js";
 import { resolvePlainOrSecretArn } from "../runtimeSecrets.js";
 import { ALL_JURISDICTIONS } from "./jurisdiction-registry.js";
 
@@ -21,6 +24,22 @@ export type FindAgencyContactsInput = {
   jurisdictionId?: string;
   priorityUrls?: string[];
 };
+
+const GENERIC_TITLE_NAMES = [
+  "communications director",
+  "911 director",
+  "ems director",
+  "procurement officer",
+  "procurement contact",
+  "county manager",
+  "city manager",
+  "public safety director",
+  "emergency management director",
+  "campus police chief",
+  "it / cad manager",
+  "director of public safety",
+  "911 communications director",
+];
 
 function sleep(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
@@ -50,6 +69,15 @@ function stripHtml(html: string): string {
     .replace(/\s+/g, " ")
     .trim()
     .slice(0, 3000);
+}
+
+function isUsableExtracted(c: ExtractedContact): boolean {
+  const name = c.name?.trim() ?? "";
+  const email = c.email?.trim() ?? "";
+  const phone = c.phone?.trim() ?? "";
+  if (!name && !email && !phone) return false;
+  if (name && GENERIC_TITLE_NAMES.some((t) => name.toLowerCase() === t)) return false;
+  return Boolean(c.title?.trim());
 }
 
 export function buildContactSearchTargets(
@@ -132,19 +160,13 @@ export async function extractContacts(
   vertical: RapidIqVertical,
 ): Promise<ExtractedContact[]> {
   if (isCollectorsMockEnabled() || !(await resolveAnthropicKey())) {
+    // Mock: only return contacts with identifiable emails (never nameless title stubs)
     return [
       {
-        name: null,
+        name: "Alex Rivera",
         title: vertical === "campus" ? "Campus Police Chief" : "911 Communications Director",
         roleTier: "primary",
-        email: null,
-        phone: null,
-      },
-      {
-        name: null,
-        title: vertical === "campus" ? "Director of Public Safety" : "IT / CAD Manager",
-        roleTier: "secondary",
-        email: null,
+        email: `alex.rivera@example-${agencyName.toLowerCase().replace(/[^a-z0-9]+/g, "")}.gov`,
         phone: null,
       },
     ];
@@ -163,7 +185,7 @@ export async function extractContacts(
       model,
       max_tokens: 800,
       system:
-        "Extract public safety decision-maker contacts from directory text. Return ONLY a JSON array of objects with keys name, title, roleTier (primary|secondary|influencer), email, phone. Never invent emails or phones.",
+        "Extract public safety decision-maker contacts from directory text. Return ONLY a JSON array of objects with keys name, title, roleTier (primary|secondary|procurement|executive), email, phone. Never invent emails or phones. Never put a job title in the name field. Skip entries with no real person name and no email/phone.",
       messages: [
         {
           role: "user",
@@ -177,7 +199,7 @@ export async function extractContacts(
   const body = (await res.json()) as { content?: Array<{ type: string; text?: string }> };
   const raw = body.content?.find((b) => b.type === "text")?.text ?? "[]";
   const parsed = parseJsonLoose<ExtractedContact[]>(raw, []);
-  return Array.isArray(parsed) ? parsed.filter((c) => c?.title) : [];
+  return Array.isArray(parsed) ? parsed.filter((c) => c?.title && isUsableExtracted(c)) : [];
 }
 
 export async function findAgencyContacts(
@@ -202,64 +224,93 @@ export async function findAgencyContacts(
       input.agencyName,
       input.vertical,
     );
-    return extracted.slice(0, 2).map((c) => ({
-      contactId: randomUUID(),
-      name: c.name,
-      title: c.title,
-      roleTier: c.roleTier,
-      matchType: c.name ? ("exact" as const) : ("related" as const),
-      matchedOn: c.title,
-      verificationStatus: c.name ? ("verified" as const) : ("predicted" as const),
-      verificationSource: targets[0]?.label ?? "directory",
-      sourceCount: 1,
-      verifiedAt: c.name ? new Date().toISOString() : null,
-      sourceUrl: targets[0]?.url ?? null,
-      email: c.email,
-      emailVerified: Boolean(c.email),
-      phone: c.phone,
-      linkedInUrl: null,
-    }));
+    return extracted
+      .filter(isUsableExtracted)
+      .slice(0, MAX_CONTACTS)
+      .map((c) => ({
+        contactId: randomUUID(),
+        name: c.name,
+        title: c.title,
+        roleTier: c.roleTier,
+        matchType: c.name ? ("exact" as const) : ("related" as const),
+        matchedOn: c.title,
+        verificationStatus: c.name ? ("verified" as const) : ("predicted" as const),
+        verificationSource: targets[0]?.label ?? "directory",
+        sourceCount: 1,
+        verifiedAt: c.name ? new Date().toISOString() : null,
+        sourceUrl: targets[0]?.url ?? null,
+        email: c.email,
+        emailVerified: Boolean(c.email),
+        phone: c.phone,
+        linkedInUrl: null,
+      }));
   }
 
-  const allContacts: Omit<RapidIqContact, "opportunityId">[] = [];
+  const enrichInput = {
+    agencyName: input.agencyName,
+    city: input.city,
+    state: input.state,
+    vertical: input.vertical,
+    candidateUrls: targets.map((t) => t.url),
+  };
 
-  for (const target of targets.slice(0, 4)) {
-    try {
-      await sleep(1_500);
-      const res = await fetch(target.url, {
-        headers: { "user-agent": "RapidCortex-RapidIQ/1.0 (+https://rapidcortex.us)" },
-        signal: AbortSignal.timeout(8_000),
-      });
-      if (!res.ok) continue;
-      const text = stripHtml(await res.text());
-      if (text.length < 40) continue;
+  // 1) Hunter.io domain search (.gov / .edu) — best for government agencies
+  let contacts = await findContactsViaHunter(enrichInput);
 
-      const extracted = await extractContacts(text, input.agencyName, input.vertical);
-      for (const c of extracted) {
-        if (!c.title) continue;
-        allContacts.push({
-          contactId: randomUUID(),
-          name: c.name,
-          title: c.title,
-          roleTier: c.roleTier ?? "primary",
-          matchType: c.name ? "exact" : "related",
-          matchedOn: c.title,
-          verificationStatus: c.name ? "verified" : "predicted",
-          verificationSource: target.label,
-          sourceCount: 1,
-          verifiedAt: c.name ? new Date().toISOString() : null,
-          sourceUrl: target.url,
-          email: c.email,
-          emailVerified: Boolean(c.email),
-          phone: c.phone,
-          linkedInUrl: null,
+  // 2) Apollo.io people search by title + domain — fills gaps Hunter misses
+  if (contacts.length < MAX_CONTACTS) {
+    const apollo = await findContactsViaApollo(enrichInput);
+    contacts = mergeContacts(contacts, apollo);
+  }
+
+  // 3) Web scrape — fallback only when both APIs returned nothing
+  if (contacts.length === 0) {
+    const scraped: Omit<RapidIqContact, "opportunityId">[] = [];
+    const seenKeys = new Set<string>();
+
+    for (const target of targets.slice(0, 4)) {
+      if (scraped.length >= MAX_CONTACTS) break;
+      try {
+        await sleep(1_500);
+        const res = await fetch(target.url, {
+          headers: { "user-agent": "RapidCortex-RapidIQ/1.0 (+https://rapidcortex.us)" },
+          signal: AbortSignal.timeout(8_000),
         });
+        if (!res.ok) continue;
+        const text = stripHtml(await res.text());
+        if (text.length < 40) continue;
+
+        const extracted = await extractContacts(text, input.agencyName, input.vertical);
+        for (const c of extracted) {
+          if (!isUsableExtracted(c)) continue;
+          const dedupeKey = `${(c.title ?? "").toLowerCase()}|${c.roleTier ?? "primary"}|${(c.name ?? "").toLowerCase()}`;
+          if (seenKeys.has(dedupeKey)) continue;
+          seenKeys.add(dedupeKey);
+          scraped.push({
+            contactId: randomUUID(),
+            name: c.name,
+            title: c.title,
+            roleTier: c.roleTier ?? "primary",
+            matchType: c.name ? "exact" : "related",
+            matchedOn: c.title,
+            verificationStatus: c.name ? "verified" : "predicted",
+            verificationSource: target.label,
+            sourceCount: 1,
+            verifiedAt: c.name ? new Date().toISOString() : null,
+            sourceUrl: target.url,
+            email: c.email,
+            emailVerified: Boolean(c.email),
+            phone: c.phone,
+            linkedInUrl: null,
+          });
+          if (scraped.length >= MAX_CONTACTS) break;
+        }
+      } catch {
+        /* skip unreachable directories */
       }
-      if (allContacts.length >= 4) break;
-    } catch {
-      /* skip unreachable directories */
     }
+    contacts = scraped;
   }
 
-  return allContacts;
+  return contacts.slice(0, MAX_CONTACTS);
 }

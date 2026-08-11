@@ -9,8 +9,9 @@ import {
   type PsapProspect,
   type PsapProspectListQuery,
 } from "rapid-cortex-shared";
-import { List, Map as MapIcon } from "lucide-react";
+import { List, Map as MapIcon, Sparkles } from "lucide-react";
 import {
+  enrichAllPsapContacts,
   getPsapMapPins,
   getPsapStats,
   listPsapProspects,
@@ -83,6 +84,8 @@ export function PsapProspectsClient() {
 
   const [view, setView] = useState<ViewMode>("table");
   const [selected, setSelected] = useState<PsapProspect | null>(null);
+  const [bulkEnriching, setBulkEnriching] = useState(false);
+  const [bulkMsg, setBulkMsg] = useState<string | null>(null);
 
   useEffect(() => {
     try {
@@ -140,6 +143,22 @@ export function PsapProspectsClient() {
     syncQuery({ ...listQuery, sortBy, sortDir, page: 1 });
   };
 
+  const handleBulkEnrich = async () => {
+    setBulkEnriching(true);
+    setBulkMsg(null);
+    try {
+      const result = await enrichAllPsapContacts(10);
+      setBulkMsg(
+        `${result.message}${result.contactsFound != null ? ` (${result.contactsFound} contacts)` : ""}`,
+      );
+      await queryClient.invalidateQueries({ queryKey: ["psap-prospects"] });
+    } catch (e) {
+      setBulkMsg(e instanceof Error ? e.message : "Bulk enrich failed");
+    } finally {
+      setBulkEnriching(false);
+    }
+  };
+
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap items-start justify-between gap-3">
@@ -150,30 +169,42 @@ export function PsapProspectsClient() {
             {statsQuery.data ? ` — ${statsQuery.data.total.toLocaleString()} dispatch centers` : ""}.
             Track outbound contact status separately from inbound Leads CRM.
           </p>
+          {bulkMsg && <p className="mt-1 text-xs text-slate-500">{bulkMsg}</p>}
         </div>
-        <div className="inline-flex rounded-md border border-[#1e2130] bg-[#0f1117] p-0.5">
+        <div className="flex flex-wrap items-center gap-2">
           <button
             type="button"
-            onClick={() => setViewMode("table")}
-            className={`inline-flex items-center gap-1.5 rounded px-3 py-1.5 text-xs font-medium ${
-              view === "table"
-                ? "bg-violet-500/20 text-violet-200"
-                : "text-slate-500 hover:text-slate-300"
-            }`}
+            onClick={() => void handleBulkEnrich()}
+            disabled={bulkEnriching}
+            className="flex items-center gap-1.5 rounded border border-slate-700 bg-slate-800 px-3 py-1.5 text-[11px] font-semibold text-slate-300 hover:bg-slate-700 disabled:opacity-50"
           >
-            <List className="h-3.5 w-3.5" /> Table
+            <Sparkles size={11} />
+            {bulkEnriching ? "Enriching…" : "Enrich All Contacts"}
           </button>
-          <button
-            type="button"
-            onClick={() => setViewMode("map")}
-            className={`inline-flex items-center gap-1.5 rounded px-3 py-1.5 text-xs font-medium ${
-              view === "map"
-                ? "bg-violet-500/20 text-violet-200"
-                : "text-slate-500 hover:text-slate-300"
-            }`}
-          >
-            <MapIcon className="h-3.5 w-3.5" /> Map
-          </button>
+          <div className="inline-flex rounded-md border border-[#1e2130] bg-[#0f1117] p-0.5">
+            <button
+              type="button"
+              onClick={() => setViewMode("table")}
+              className={`inline-flex items-center gap-1.5 rounded px-3 py-1.5 text-xs font-medium ${
+                view === "table"
+                  ? "bg-violet-500/20 text-violet-200"
+                  : "text-slate-500 hover:text-slate-300"
+              }`}
+            >
+              <List className="h-3.5 w-3.5" /> Table
+            </button>
+            <button
+              type="button"
+              onClick={() => setViewMode("map")}
+              className={`inline-flex items-center gap-1.5 rounded px-3 py-1.5 text-xs font-medium ${
+                view === "map"
+                  ? "bg-violet-500/20 text-violet-200"
+                  : "text-slate-500 hover:text-slate-300"
+              }`}
+            >
+              <MapIcon className="h-3.5 w-3.5" /> Map
+            </button>
+          </div>
         </div>
       </div>
 

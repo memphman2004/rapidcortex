@@ -40,20 +40,31 @@ Parameters:
   ApprovedCorsOrigins:
     Type: String
     Default: "https://www.rapidcortex.us,https://rapidcortex.us,https://app.rapidcortex.us,https://report.rapidcortex.us"
+  RapidIqHunterApiKeySecretArn:
+    Type: String
+    Default: ""
+    Description: Hunter.io secret ARN (shared with Rapid IQ contact enrichment)
+  RapidIqApolloApiKeySecretArn:
+    Type: String
+    Default: ""
+    Description: Apollo.io secret ARN (shared with Rapid IQ contact enrichment)
 
 Conditions:
   HasHttpApiJwtAuthorizer: !Not [!Equals [!Ref HttpApiJwtAuthorizerId, ""]]
+  HasHunterSecretArn: !Not [!Equals [!Ref RapidIqHunterApiKeySecretArn, ""]]
+  HasApolloSecretArn: !Not [!Equals [!Ref RapidIqApolloApiKeySecretArn, ""]]
 
 Globals:
   Function:
     Runtime: nodejs20.x
-    Timeout: 60
+    Timeout: 120
     MemorySize: 1024
     Environment:
       Variables:
         DEPLOYMENT_STAGE: !Ref DeploymentStage
         ALLOW_UNAUTHENTICATED_API: "false"
         ENABLE_PSAP_PROSPECTS: "true"
+        RAPID_IQ_COLLECTORS_MOCK: "false"
         PSAP_PROSPECTS_TABLE: !Ref PsapProspectsTable
         AUDIT_TABLE: !Ref AuditTable
         AGENCIES_TABLE: !Ref AgenciesTable
@@ -66,6 +77,8 @@ Globals:
         COGNITO_CLIENT_ID: !Ref ImportedCognitoWebClientId
         COGNITO_REGION: !Ref AWS::Region
         APPROVED_CORS_ORIGINS: !Ref ApprovedCorsOrigins
+        RAPID_IQ_HUNTER_API_KEY_SECRET_ARN: !Ref RapidIqHunterApiKeySecretArn
+        RAPID_IQ_APOLLO_API_KEY_SECRET_ARN: !Ref RapidIqApolloApiKeySecretArn
 
 Resources:
   AppManagedPolicyPsapCrmDdb:
@@ -106,8 +119,26 @@ Resources:
     Properties:
       CodeUri: ../../apps/api/
       Handler: dist/handlers/rc-admin/psapProspectsHttp.handler
+      Timeout: 120
       Policies:
         - !Ref AppManagedPolicyPsapCrmDdb
+        - Statement:
+            - Sid: ReadHunterSecret
+              Effect: Allow
+              Action:
+                - secretsmanager:GetSecretValue
+              Resource: !If
+                - HasHunterSecretArn
+                - !Ref RapidIqHunterApiKeySecretArn
+                - !Sub arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:rapid-cortex/unused-psap-hunter-*
+            - Sid: ReadApolloSecret
+              Effect: Allow
+              Action:
+                - secretsmanager:GetSecretValue
+              Resource: !If
+                - HasApolloSecretArn
+                - !Ref RapidIqApolloApiKeySecretArn
+                - !Sub arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:rapid-cortex/unused-psap-apollo-*
 
   PsapProspectsIntegration:
     Type: AWS::ApiGatewayV2::Integration
@@ -184,6 +215,24 @@ Resources:
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "POST /api/rc-admin/psap-prospects/{psapId}/activities"
+      Target: !Sub "integrations/${PsapProspectsIntegration}"
+      AuthorizationType: !If [HasHttpApiJwtAuthorizer, JWT, NONE]
+      AuthorizerId: !If [HasHttpApiJwtAuthorizer, !Ref HttpApiJwtAuthorizerId, !Ref AWS::NoValue]
+
+  RoutePsapEnrichContacts:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref HttpApiId
+      RouteKey: "POST /api/rc-admin/psap-prospects/{psapId}/enrich-contacts"
+      Target: !Sub "integrations/${PsapProspectsIntegration}"
+      AuthorizationType: !If [HasHttpApiJwtAuthorizer, JWT, NONE]
+      AuthorizerId: !If [HasHttpApiJwtAuthorizer, !Ref HttpApiJwtAuthorizerId, !Ref AWS::NoValue]
+
+  RoutePsapEnrichAll:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref HttpApiId
+      RouteKey: "POST /api/rc-admin/psap-prospects/enrich-all"
       Target: !Sub "integrations/${PsapProspectsIntegration}"
       AuthorizationType: !If [HasHttpApiJwtAuthorizer, JWT, NONE]
       AuthorizerId: !If [HasHttpApiJwtAuthorizer, !Ref HttpApiJwtAuthorizerId, !Ref AWS::NoValue]

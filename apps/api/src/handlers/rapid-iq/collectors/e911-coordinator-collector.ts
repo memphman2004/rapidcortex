@@ -77,14 +77,27 @@ export async function runE911CoordinatorCollector(): Promise<{ signalsFound: num
         signal.scoreContrib =
           (signal.scoreContrib ?? 0) + SOURCE_SCORE_BOOSTS.e911CoordinatorReport;
 
-        await upsertSignalAndOpportunity(
+        // office.name is a coordinator/program (source), not the buyer — require classified agency
+        if (!signal.agencyName?.trim() || signal.agencyName.trim() === office.name) {
+          console.warn(
+            JSON.stringify({
+              msg: "rapid_iq_signal_rejected",
+              reason: "e911_missing_buyer_agency",
+              office: office.name,
+              agency: signal.agencyName,
+            }),
+          );
+          continue;
+        }
+
+        const result = await upsertSignalAndOpportunity(
           signal,
           doc.url,
           office.name,
           "government_doc",
           `e911_coordinator#${office.stateCode}`,
         );
-        total++;
+        if (result.saved) total++;
       }
     } catch (err) {
       console.error(

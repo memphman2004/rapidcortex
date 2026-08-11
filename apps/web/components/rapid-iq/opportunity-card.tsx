@@ -47,14 +47,17 @@ type Props = {
   opportunity: RapidIqOpportunity;
   selected: boolean;
   onSelect: () => void;
-  vertical: RapidIqVertical;
+  vertical: RapidIqVertical | "competitor";
   demo?: boolean;
 };
 
 export function OpportunityCard({ opportunity, selected, onSelect, vertical, demo = false }: Props) {
   const [talkingPointsOpen, setTalkingPointsOpen] = useState(false);
-  const [talkingPoints, setTalkingPoints] = useState<string[] | null>(opportunity.talkingPoints);
+  const [talkingPoints, setTalkingPoints] = useState<string[] | null>(
+    opportunity.talkingPoints?.length ? opportunity.talkingPoints : null,
+  );
   const [loadingTp, setLoadingTp] = useState(false);
+  const [tpError, setTpError] = useState<string | null>(null);
 
   async function handleTalkingPoints(e: React.MouseEvent) {
     e.stopPropagation();
@@ -63,14 +66,27 @@ export function OpportunityCard({ opportunity, selected, onSelect, vertical, dem
       return;
     }
     setLoadingTp(true);
+    setTpError(null);
     try {
       const points = await fetchTalkingPoints(opportunity.opportunityId, demo);
+      if (!points.length) {
+        setTpError("No talking points returned — try again");
+        setTalkingPointsOpen(false);
+        return;
+      }
       setTalkingPoints(points);
       setTalkingPointsOpen(true);
+    } catch (err) {
+      setTpError(err instanceof Error ? err.message : "Failed to generate talking points");
     } finally {
       setLoadingTp(false);
     }
   }
+
+  const borderClass =
+    vertical === "competitor"
+      ? "border-l-red-500"
+      : VERTICAL_BORDER[vertical] ?? VERTICAL_BORDER[opportunity.vertical];
 
   return (
     <div
@@ -86,7 +102,7 @@ export function OpportunityCard({ opportunity, selected, onSelect, vertical, dem
       className={[
         "cursor-pointer border-b border-slate-900/80 border-l-2 px-4 py-3 transition-colors",
         "hover:bg-slate-900/60",
-        VERTICAL_BORDER[vertical],
+        borderClass,
         selected ? "bg-sky-950/40" : "",
       ].join(" ")}
     >
@@ -97,7 +113,12 @@ export function OpportunityCard({ opportunity, selected, onSelect, vertical, dem
             <span className="text-sm font-bold text-slate-100">{opportunity.agencyName}</span>
             <span className="text-sm text-slate-500">, {opportunity.state}</span>
             {opportunity.incumbentVendor && (
-              <span className="text-[10px] text-slate-600">vs {opportunity.incumbentVendor}</span>
+              <span className="rounded-full border border-red-500/30 bg-red-500/10 px-2 py-0.5 text-[9px] font-bold text-red-400">
+                vs {opportunity.incumbentVendor}
+              </span>
+            )}
+            {opportunity.contractExpirySignal && (
+              <span className="text-[9px] text-amber-400">Contract ending soon</span>
             )}
           </div>
           <div className="mt-1 flex flex-wrap gap-1">
@@ -154,6 +175,10 @@ export function OpportunityCard({ opportunity, selected, onSelect, vertical, dem
           )}
         </button>
       </div>
+
+      {tpError && (
+        <div className="mt-2 text-[10px] text-red-400">{tpError}</div>
+      )}
 
       {talkingPointsOpen && talkingPoints && talkingPoints.length > 0 && (
         <div className="mt-2 space-y-1.5 border-l-2 border-sky-500/30 pl-3">

@@ -29,9 +29,19 @@ type Props = {
   mentioned: MentionedEntity[];
   demo?: boolean;
   onConvert: () => void;
+  onDraftEmail?: () => void;
+  draftingEmail?: boolean;
 };
 
-export function SignalAnalysisTab({ opportunity, contacts, mentioned, demo, onConvert }: Props) {
+export function SignalAnalysisTab({
+  opportunity,
+  contacts,
+  mentioned,
+  demo,
+  onConvert,
+  onDraftEmail,
+  draftingEmail,
+}: Props) {
   return (
     <div className="flex h-full flex-col overflow-hidden">
       <div className="flex-1 space-y-5 overflow-y-auto p-4">
@@ -45,9 +55,11 @@ export function SignalAnalysisTab({ opportunity, contacts, mentioned, demo, onCo
             <TalkingPointsSection opportunity={opportunity} demo={demo} />
             <button
               type="button"
-              className="flex items-center gap-1.5 rounded border border-slate-700 px-3 py-1.5 text-[11px] font-semibold text-slate-300 transition-colors hover:bg-slate-800"
+              disabled={draftingEmail}
+              onClick={onDraftEmail}
+              className="flex items-center gap-1.5 rounded border border-slate-700 px-3 py-1.5 text-[11px] font-semibold text-slate-300 transition-colors hover:bg-slate-800 disabled:opacity-50"
             >
-              <Mail size={11} /> Draft Email
+              <Mail size={11} /> {draftingEmail ? "Drafting…" : "Draft Email"}
             </button>
             <button
               type="button"

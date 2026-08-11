@@ -185,24 +185,39 @@ export async function runFemaGrantsCollector(): Promise<{ signalsFound: number }
         "https://www.fema.gov/grants/mitigation/building-resilient-infrastructure-communities";
 
       const signal = await classifySignal(rawText, sourceUrl, "FEMA BRIC / HMGP");
+      // Structured API fields win — never let Claude/source labels override recipient identity
       signal.isRelevant = true;
       signal.signalType = "grant";
-      signal.state = signal.state ?? grant.recipientState;
-      signal.agencyName = signal.agencyName ?? grant.recipientName;
-      signal.city = signal.city ?? grant.recipientCity;
-      signal.dollarValue = signal.dollarValue ?? grant.federalShareObligated;
+      signal.agencyName = grant.recipientName || null;
+      signal.city = grant.recipientCity || null;
+      signal.state = grant.recipientState || null;
+      signal.county = grant.projectCounty || signal.county;
+      signal.dollarValue = grant.federalShareObligated || signal.dollarValue;
       signal.intentStage = signal.intentStage ?? "evaluation";
       signal.scoreContrib = SOURCE_SCORE_BOOSTS.femaGrantAward;
       signal.tags = Array.from(new Set(["FEMA FUNDED", "GRANT FUNDING", ...(signal.tags ?? [])]));
+      if (!signal.aiSummary || signal.aiSummary.toLowerCase().includes("meeting materials from")) {
+        signal.aiSummary = [
+          `FEMA ${grant.programName} approved funding for "${grant.projectTitle}" to ${grant.recipientName} in ${grant.recipientCity}, ${grant.recipientState}.`,
+          `Federal share obligated: $${Number(grant.federalShareObligated || 0).toLocaleString()} (approved ${grant.dateApproved || "n/a"}).`,
+          `Project description: ${grant.projectDescription || "emergency communications / public safety infrastructure"}.`,
+          `Rapid Cortex Core aligns with funded PSAP and emergency-communications modernization — engage while award funds are being obligated.`,
+        ].join(" ");
+      }
 
-      await upsertSignalAndOpportunity(
-        signal,
+      const result = await upsertSignalAndOpportunity(
+        {
+          ...signal,
+          agencyName: grant.recipientName,
+          city: grant.recipientCity,
+          state: grant.recipientState,
+        },
         sourceUrl,
-        grant.recipientName || "FEMA BRIC / HMGP",
+        grant.recipientName || "Unknown FEMA recipient",
         "grant_db",
         `fema_bric#${grant.recipientState || "US"}`,
       );
-      total++;
+      if (result.saved) total++;
     }
 
     console.log(
@@ -236,14 +251,17 @@ export async function runFemaGrantsCollector(): Promise<{ signalsFound: number }
         signal.scoreContrib = (signal.scoreContrib ?? 0) + SOURCE_SCORE_BOOSTS.ntiaGrant;
         signal.tags = Array.from(new Set(["NTIA GRANT", "GRANT FUNDING", ...(signal.tags ?? [])]));
 
-        await upsertSignalAndOpportunity(
+        if (!signal.agencyName?.trim() || signal.agencyName.trim() === source.name) {
+          continue;
+        }
+        const ntiaResult = await upsertSignalAndOpportunity(
           signal,
           doc.url,
           source.name,
           "grant_db",
           "ntia#federal",
         );
-        total++;
+        if (ntiaResult.saved) total++;
       }
     } catch (err) {
       console.error(

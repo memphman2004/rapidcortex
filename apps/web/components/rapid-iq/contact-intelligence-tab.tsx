@@ -1,24 +1,101 @@
 "use client";
 
+import { useState } from "react";
+import {
+  fetchAgencyProfile,
+  fetchAgencyResearch,
+  fetchCompetitorIntel,
+  type AgencyProfileResult,
+} from "@/lib/rapid-iq/api";
 import type { RapidIqContact, RapidIqOpportunity } from "@/lib/rapid-iq/types";
 import { formatCurrency, formatShortDate } from "@/lib/rapid-iq/scoring";
 import { CONTACT_ROLES_BY_VERTICAL } from "@/lib/rapid-iq/contact-roles";
+import { BuyingCommitteeMap } from "./buying-committee-map";
 
 type Props = {
   opportunity: RapidIqOpportunity;
   contacts: RapidIqContact[];
+  demo?: boolean;
 };
 
-export function ContactIntelligenceTab({ opportunity, contacts }: Props) {
+export function ContactIntelligenceTab({ opportunity, contacts, demo }: Props) {
   const roles = CONTACT_ROLES_BY_VERTICAL[opportunity.vertical];
+  const [profile, setProfile] = useState<AgencyProfileResult | null>(null);
+  const [loadingProfile, setLoadingProfile] = useState(false);
+  const [research, setResearch] = useState<string | null>(null);
+  const [loadingResearch, setLoadingResearch] = useState(false);
+  const [competitorIntel, setCompetitorIntel] = useState<string | null>(null);
+  const [loadingIntel, setLoadingIntel] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  async function loadProfile() {
+    setLoadingProfile(true);
+    setError(null);
+    try {
+      setProfile(await fetchAgencyProfile(opportunity.opportunityId, demo));
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Profile failed");
+    } finally {
+      setLoadingProfile(false);
+    }
+  }
+
+  async function loadResearch() {
+    setLoadingResearch(true);
+    setError(null);
+    try {
+      setResearch(await fetchAgencyResearch(opportunity.opportunityId, demo));
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Research failed");
+    } finally {
+      setLoadingResearch(false);
+    }
+  }
+
+  async function loadCompetitorIntel() {
+    setLoadingIntel(true);
+    setError(null);
+    try {
+      setCompetitorIntel(await fetchCompetitorIntel(opportunity.opportunityId, demo));
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Competitor intel failed");
+    } finally {
+      setLoadingIntel(false);
+    }
+  }
 
   return (
-    <div className="h-full overflow-y-auto p-4 space-y-5">
+    <div className="h-full space-y-5 overflow-y-auto p-4">
+      <BuyingCommitteeMap contacts={contacts} />
+
       <div>
-        <div className="mb-2 text-[10px] font-bold uppercase tracking-wide text-slate-500">
-          Agency profile
+        <div className="mb-2 flex items-center justify-between gap-2">
+          <div className="text-[10px] font-bold uppercase tracking-wide text-slate-500">
+            Agency profile
+          </div>
+          <div className="flex gap-2">
+            <button
+              type="button"
+              disabled={loadingProfile}
+              onClick={() => void loadProfile()}
+              className="rounded border border-slate-700 px-2 py-0.5 text-[10px] font-semibold text-slate-400 hover:bg-slate-800 disabled:opacity-50"
+            >
+              {loadingProfile ? "Loading…" : profile ? "Refresh profile" : "Load profile"}
+            </button>
+            <button
+              type="button"
+              disabled={loadingResearch}
+              onClick={() => void loadResearch()}
+              className="rounded border border-sky-500/30 bg-sky-500/10 px-2 py-0.5 text-[10px] font-semibold text-sky-300 hover:bg-sky-500/20 disabled:opacity-50"
+            >
+              {loadingResearch ? "Researching…" : "Research Agency"}
+            </button>
+          </div>
         </div>
-        <div className="rounded border border-slate-800 bg-slate-900/50 p-4 text-[11px] text-slate-400 space-y-2">
+
+        {error && <p className="mb-2 text-[11px] text-red-400">{error}</p>}
+
+        <div className="space-y-2 rounded border border-slate-800 bg-slate-900/50 p-4 text-[11px] text-slate-400">
           <div className="flex justify-between gap-4">
             <span className="text-slate-500">Agency</span>
             <span className="text-slate-200">{opportunity.agencyName}</span>
@@ -61,8 +138,86 @@ export function ContactIntelligenceTab({ opportunity, contacts }: Props) {
             <span className="text-slate-500">Last signal</span>
             <span>{formatShortDate(opportunity.lastSignalAt)}</span>
           </div>
+
+          {profile && (
+            <div className="mt-3 grid grid-cols-2 gap-x-4 gap-y-2 border-t border-slate-800 pt-3 text-[11px]">
+              {[
+                {
+                  label: "Annual Calls",
+                  value: profile.annualCallVolume?.toLocaleString() ?? "—",
+                },
+                {
+                  label: "Dispatchers",
+                  value: profile.dispatcherCount?.toLocaleString() ?? "—",
+                },
+                {
+                  label: "Population",
+                  value: profile.populationServed?.toLocaleString() ?? "—",
+                },
+                {
+                  label: "Est. Budget",
+                  value: profile.estimatedBudget
+                    ? `$${(profile.estimatedBudget / 1000).toFixed(0)}K/yr`
+                    : "—",
+                },
+                { label: "CAD Vendor", value: profile.currentCadVendor ?? "Unknown" },
+                { label: "PSAP Type", value: profile.psapType ?? "—" },
+              ].map(({ label, value }) => (
+                <div key={label} className="flex items-start gap-2">
+                  <span className="w-24 shrink-0 text-slate-500">{label}</span>
+                  <span
+                    className={`font-medium ${
+                      value === "—" || value === "Unknown" ? "text-slate-600" : "text-slate-200"
+                    }`}
+                  >
+                    {value}
+                  </span>
+                </div>
+              ))}
+              {profile.cadNotes && (
+                <div className="col-span-2 text-[10px] italic text-slate-500">{profile.cadNotes}</div>
+              )}
+              {profile.notes && (
+                <div className="col-span-2 text-[10px] text-slate-500">{profile.notes}</div>
+              )}
+            </div>
+          )}
         </div>
       </div>
+
+      {research && (
+        <div>
+          <div className="mb-2 text-[10px] font-bold uppercase tracking-wide text-slate-500">
+            Agency research
+          </div>
+          <pre className="whitespace-pre-wrap rounded border border-slate-800 bg-slate-900/40 p-3 font-sans text-[11px] leading-relaxed text-slate-300">
+            {research}
+          </pre>
+        </div>
+      )}
+
+      {opportunity.incumbentVendor && (
+        <div>
+          <div className="mb-2 flex items-center justify-between">
+            <div className="text-[10px] font-bold uppercase tracking-wide text-slate-500">
+              Competitor displacement
+            </div>
+            <button
+              type="button"
+              disabled={loadingIntel}
+              onClick={() => void loadCompetitorIntel()}
+              className="rounded border border-red-500/30 bg-red-500/10 px-2 py-0.5 text-[10px] font-semibold text-red-300 hover:bg-red-500/20 disabled:opacity-50"
+            >
+              {loadingIntel ? "Loading…" : competitorIntel ? "Refresh intel" : "Generate intel"}
+            </button>
+          </div>
+          {competitorIntel && (
+            <pre className="whitespace-pre-wrap rounded border border-red-500/20 bg-red-500/5 p-3 font-sans text-[11px] leading-relaxed text-slate-300">
+              {competitorIntel}
+            </pre>
+          )}
+        </div>
+      )}
 
       <div>
         <div className="mb-2 text-[10px] font-bold uppercase tracking-wide text-slate-500">

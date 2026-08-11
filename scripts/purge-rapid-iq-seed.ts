@@ -34,6 +34,26 @@ function isSeedId(id: unknown): boolean {
   return id.startsWith("seed-") || id.startsWith("demo-") || id.startsWith("src#sig#seed-");
 }
 
+/** Source/platform labels mis-stored as agencyName (live collector bug). */
+const BAD_AGENCY_NAMES = [
+  "grants.gov",
+  "sam.gov",
+  "ntia",
+  "fema",
+  "pennsylvania 911 program",
+  "california e911",
+  "texas csec",
+  "fema bric",
+  "usac",
+];
+
+function isBadAgencyOpportunity(item: Record<string, unknown>): boolean {
+  if (isSeedId(item.opportunityId)) return true;
+  const agency = String(item.agencyName ?? "").toLowerCase();
+  if (!agency) return false;
+  return BAD_AGENCY_NAMES.some((n) => agency === n || agency.includes(n));
+}
+
 async function scanAll(tableName: string): Promise<Record<string, unknown>[]> {
   const items: Record<string, unknown>[] = [];
   let ExclusiveStartKey: Record<string, unknown> | undefined;
@@ -103,10 +123,13 @@ async function main(): Promise<void> {
 
   const opps = await scanAll(OPP);
   const seedOppIds = opps
+    .filter((o) => isBadAgencyOpportunity(o))
     .map((o) => String(o.opportunityId ?? ""))
-    .filter((id) => isSeedId(id));
+    .filter(Boolean);
 
-  console.log(`Found ${seedOppIds.length} seed/demo opportunities: ${seedOppIds.join(", ") || "(none)"}`);
+  console.log(
+    `Found ${seedOppIds.length} seed/demo/bad-agency opportunities: ${seedOppIds.join(", ") || "(none)"}`,
+  );
 
   let sigKeys: Array<Record<string, unknown>> = [];
   let conKeys: Array<Record<string, unknown>> = [];

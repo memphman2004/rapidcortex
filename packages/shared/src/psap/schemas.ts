@@ -28,6 +28,7 @@ export const patchPsapProspectBodySchema = z
     primaryContactEmail: z.string().trim().email().max(200).optional().or(z.literal("")),
     primaryContactPhone: z.string().trim().max(32).optional(),
     mailingAddress: psapMailingAddressSchema.partial().optional(),
+    website: z.string().trim().url().max(400).optional().or(z.literal("")),
     notes: z.string().trim().max(8000).optional(),
     nextActionDate: z.string().trim().max(40).optional(),
     nextActionNote: z.string().trim().max(500).optional(),

@@ -10,6 +10,7 @@ import { runGrantsGovCollector } from "./grants-gov-collector.js";
 import { runLegislatureCollector } from "./legislature-collector.js";
 import { runSamGovCollector } from "./sam-gov-collector.js";
 import { runUniversityNewsCollector } from "./university-news-collector.js";
+import { runConferenceCollector } from "./conference-collector.js";
 
 const repo = new RapidIqJurisdictionRepository();
 const refreshRepo = new RapidIqRefreshStatusRepository();
@@ -83,6 +84,7 @@ export async function runOrchestrator(event: OrchestratorEvent = {}): Promise<{
           "e911_coordinator",
           "fema_grants",
           "university_news",
+          "conference",
         ],
       }),
     );
@@ -95,6 +97,7 @@ export async function runOrchestrator(event: OrchestratorEvent = {}): Promise<{
       e911Result,
       femaResult,
       uniNewsResult,
+      conferenceResult,
     ] = await Promise.allSettled([
       runAgendaCollector(batch),
       runSamGovCollector(),
@@ -103,6 +106,7 @@ export async function runOrchestrator(event: OrchestratorEvent = {}): Promise<{
       runE911CoordinatorCollector(),
       runFemaGrantsCollector(),
       runUniversityNewsCollector(),
+      runConferenceCollector(),
     ]);
 
     for (const result of [
@@ -113,6 +117,7 @@ export async function runOrchestrator(event: OrchestratorEvent = {}): Promise<{
       e911Result,
       femaResult,
       uniNewsResult,
+      conferenceResult,
     ]) {
       if (result.status === "fulfilled") {
         totalSignals += result.value.signalsFound;
@@ -136,6 +141,7 @@ export async function runOrchestrator(event: OrchestratorEvent = {}): Promise<{
         e911_coordinator: e911Result.status,
         fema_grants: femaResult.status,
         university_news: uniNewsResult.status,
+        conference: conferenceResult.status,
         signalsFound: totalSignals,
       }),
     );

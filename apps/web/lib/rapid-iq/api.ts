@@ -265,6 +265,154 @@ export async function fetchTalkingPoints(
   return body.points ?? body.data?.points ?? [];
 }
 
+export async function fetchOutreach(
+  opportunityId: string,
+  contactId?: string,
+  demo = false,
+): Promise<{ subject: string; body: string }> {
+  if (demo) {
+    return {
+      subject: `Rapid Cortex — opportunity ${opportunityId}`,
+      body: "Demo outreach draft. Switch off demo mode for live Claude generation.",
+    };
+  }
+  const res = await fetch(`${BASE}/outreach`, {
+    method: "POST",
+    credentials: "include",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ opportunityId, contactId }),
+  });
+  if (!res.ok) {
+    const err = (await res.json().catch(() => ({}))) as { error?: string };
+    throw new Error(err.error ?? `HTTP ${res.status}`);
+  }
+  const body = (await res.json()) as {
+    subject?: string;
+    body?: string;
+    data?: { subject: string; body: string };
+  };
+  return {
+    subject: body.subject ?? body.data?.subject ?? "",
+    body: body.body ?? body.data?.body ?? "",
+  };
+}
+
+export type RfpOutlineResult = {
+  executiveSummary: string;
+  requirements: { requirement: string; rcCapability: string; rcFeature: string }[];
+  differentiators: string[];
+  potentialConcerns: string[];
+  recommendedApproach: string;
+};
+
+export async function fetchRfpOutline(
+  opportunityId: string,
+  demo = false,
+): Promise<RfpOutlineResult> {
+  if (demo) {
+    return {
+      executiveSummary: "Demo RFP outline — enable live API for Claude analysis.",
+      requirements: [],
+      differentiators: [],
+      potentialConcerns: [],
+      recommendedApproach: "",
+    };
+  }
+  const res = await fetch(`${BASE}/rfp-outline`, {
+    method: "POST",
+    credentials: "include",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ opportunityId }),
+  });
+  if (!res.ok) {
+    const err = (await res.json().catch(() => ({}))) as { error?: string };
+    throw new Error(err.error ?? `HTTP ${res.status}`);
+  }
+  const body = (await res.json()) as RfpOutlineResult & { data?: RfpOutlineResult };
+  return body.data ?? body;
+}
+
+export type AgencyProfileResult = {
+  annualCallVolume: number | null;
+  dispatcherCount: number | null;
+  populationServed: number | null;
+  estimatedBudget: number | null;
+  currentCadVendor: string | null;
+  cadNotes: string | null;
+  agencyWebsite: string | null;
+  psapType: string | null;
+  notes: string;
+};
+
+export async function fetchAgencyProfile(
+  opportunityId: string,
+  demo = false,
+): Promise<AgencyProfileResult> {
+  if (demo) {
+    return {
+      annualCallVolume: null,
+      dispatcherCount: null,
+      populationServed: null,
+      estimatedBudget: null,
+      currentCadVendor: null,
+      cadNotes: null,
+      agencyWebsite: null,
+      psapType: null,
+      notes: "Demo profile — live research requires Anthropic.",
+    };
+  }
+  const res = await fetch(`${BASE}/agency-profile`, {
+    method: "POST",
+    credentials: "include",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ opportunityId }),
+  });
+  if (!res.ok) {
+    const err = (await res.json().catch(() => ({}))) as { error?: string };
+    throw new Error(err.error ?? `HTTP ${res.status}`);
+  }
+  const body = (await res.json()) as AgencyProfileResult & { data?: AgencyProfileResult };
+  return body.data ?? body;
+}
+
+export async function fetchAgencyResearch(
+  opportunityId: string,
+  demo = false,
+): Promise<string> {
+  if (demo) return "Demo agency research brief.";
+  const res = await fetch(`${BASE}/research-agency`, {
+    method: "POST",
+    credentials: "include",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ opportunityId }),
+  });
+  if (!res.ok) {
+    const err = (await res.json().catch(() => ({}))) as { error?: string };
+    throw new Error(err.error ?? `HTTP ${res.status}`);
+  }
+  const body = (await res.json()) as { research?: string; data?: { research: string } };
+  return body.research ?? body.data?.research ?? "";
+}
+
+export async function fetchCompetitorIntel(
+  opportunityId: string,
+  demo = false,
+): Promise<string> {
+  if (demo) return "Demo competitor displacement intel.";
+  const res = await fetch(`${BASE}/competitor-intel`, {
+    method: "POST",
+    credentials: "include",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ opportunityId }),
+  });
+  if (!res.ok) {
+    const err = (await res.json().catch(() => ({}))) as { error?: string };
+    throw new Error(err.error ?? `HTTP ${res.status}`);
+  }
+  const body = (await res.json()) as { intel?: string; data?: { intel: string } };
+  return body.intel ?? body.data?.intel ?? "";
+}
+
 export async function fetchSignalChat(
   opportunityId: string,
   history: SignalChatMessage[],
