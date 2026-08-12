@@ -6,6 +6,11 @@ import type {
 } from "rapid-cortex-shared";
 import { resolvePlainOrSecretArn } from "../runtimeSecrets.js";
 import { isCollectorsMockEnabled } from "./agenda-finder.js";
+import {
+  extractMentionedCompetitors,
+  findCompetitor,
+  resolveIncumbentBrand,
+} from "./competitor-registry.js";
 import { textMatchesUniversityTerms } from "./university-search-terms.js";
 
 export type ClassifiedSignal = {
@@ -43,9 +48,28 @@ async function resolveAnthropicKey(): Promise<string> {
 }
 
 function parseJsonLoose<T>(text: string, fallback: T): T {
+  const cleaned = text.replace(/```json|```/g, "").trim();
   try {
-    return JSON.parse(text.replace(/```json|```/g, "").trim()) as T;
+    return JSON.parse(cleaned) as T;
   } catch {
+    const objStart = cleaned.indexOf("{");
+    const objEnd = cleaned.lastIndexOf("}");
+    if (objStart >= 0 && objEnd > objStart) {
+      try {
+        return JSON.parse(cleaned.slice(objStart, objEnd + 1)) as T;
+      } catch {
+        /* fall through */
+      }
+    }
+    const arrStart = cleaned.indexOf("[");
+    const arrEnd = cleaned.lastIndexOf("]");
+    if (arrStart >= 0 && arrEnd > arrStart) {
+      try {
+        return JSON.parse(cleaned.slice(arrStart, arrEnd + 1)) as T;
+      } catch {
+        /* fall through */
+      }
+    }
     return fallback;
   }
 }
@@ -154,13 +178,52 @@ function classifySignalHeuristic(
   };
 }
 
+/** Apply competitor registry enrichment (incumbent brand, COMPETITOR tag, +10 score). */
+export function enrichWithCompetitorIntel(
+  signal: ClassifiedSignal,
+  rawText: string,
+): ClassifiedSignal {
+  const haystack = [
+    rawText,
+    signal.incumbentVendor ?? "",
+    signal.aiHeadline ?? "",
+    signal.aiSummary ?? "",
+    signal.excerpt ?? "",
+  ].join("\n");
+  const mentioned = extractMentionedCompetitors(haystack);
+  if (mentioned.length === 0 && !signal.incumbentVendor) return signal;
+
+  const fromIncumbent = signal.incumbentVendor
+    ? findCompetitor(signal.incumbentVendor)
+    : null;
+  const primary = fromIncumbent ?? mentioned[0];
+  if (!primary) return signal;
+
+  const tags = new Set(signal.tags);
+  const alreadyTagged = [...tags].some((t) => t.toUpperCase() === "COMPETITOR");
+  tags.add("COMPETITOR");
+  const incumbentVendor = resolveIncumbentBrand(signal.incumbentVendor ?? primary.name);
+  const intentStage =
+    signal.intentStage === "awareness" || !signal.intentStage
+      ? "evaluation"
+      : signal.intentStage;
+
+  return {
+    ...signal,
+    incumbentVendor,
+    intentStage,
+    tags: [...tags],
+    scoreContrib: alreadyTagged ? signal.scoreContrib : signal.scoreContrib + 10,
+  };
+}
+
 export async function classifySignal(
   rawText: string,
   sourceUrl: string,
   sourceName: string,
 ): Promise<ClassifiedSignal> {
   if (isCollectorsMockEnabled() || !(await resolveAnthropicKey())) {
-    return classifySignalHeuristic(rawText, sourceName);
+    return enrichWithCompetitorIntel(classifySignalHeuristic(rawText, sourceName), rawText);
   }
 
   const text = await callClaude(
@@ -184,7 +247,33 @@ ANTI-TEMPLATE RULES — CRITICAL:
 - NEVER set agencyName to the data source label (e.g. Grants.gov, SAM.gov, FEMA, a state 911 program office). agencyName must be the buying agency / recipient (county, city, PSAP, campus, venue).
 - The summary MUST include at least one SPECIFIC detail that only exists in THIS document: a dollar amount, date, vendor name, vote outcome, named technology, or quoted statement.
 - If you cannot find a specific detail in the source text, set "isRelevant": false.
-- The summary must read differently for every signal.`,
+- The summary must read differently for every signal.
+
+COMPETITOR INTELLIGENCE:
+When a document mentions any of these companies as an incumbent, current vendor,
+or technology being evaluated/replaced, this is a HIGH-VALUE signal:
+
+911/PSAP competitors: Axon, Carbyne, Prepared, Motorola Solutions, PremierOne,
+CommandCentral, VESTA, RapidSOS, Rave Mobile Safety, CentralSquare, Hexagon,
+Mark43, Tyler Technologies, Zetron, Intrado, RapidDeploy
+
+Campus competitors: Rave Guardian, Rave Alert, Omnilert, Navigate360, Alertus,
+Everbridge, Omnigo, ZeroEyes, LiveSafe, Regroup
+
+Venue competitors: 24/7 Software, Raven Controls, Omnigo, inOrbit, Convergint
+
+When a competitor is named as incumbent, set:
+- incumbentVendor: [competitor name]
+- intentStage: "evaluation" or higher
+- scoreContrib: add 10 points
+- tags: include "COMPETITOR"
+
+CRITICAL M&A CONTEXT (August 2026):
+- Axon acquired Carbyne (Nov 2025) AND Prepared (Sep 2025)
+- Motorola acquired Exacom (Mar 2026) and Hyper (Apr 2026)
+- RapidSOS raised $100M, acquired Northern911
+Any agency on these platforms is in an active displacement window.
+Treat Carbyne or Prepared incumbents as Axon incumbents.`,
     `Analyze this document for public safety software procurement signals (911/PSAP, campus safety, or venue).
 Source label (NOT the agency unless the text proves otherwise): ${sourceName}
 URL: ${sourceUrl}
@@ -209,10 +298,10 @@ NO TEMPLATES. NO GENERIC LANGUAGE.`,
         fallback: "keyword_heuristic",
       }),
     );
-    return classifySignalHeuristic(rawText, sourceName);
+    return enrichWithCompetitorIntel(classifySignalHeuristic(rawText, sourceName), rawText);
   }
   const parsed = parseJsonLoose<Partial<ClassifiedSignal>>(text, { isRelevant: false });
-  return {
+  const signal: ClassifiedSignal = {
     isRelevant: Boolean(parsed.isRelevant),
     signalType: parsed.signalType ?? null,
     agencyName: parsed.agencyName ?? null,
@@ -235,6 +324,7 @@ NO TEMPLATES. NO GENERIC LANGUAGE.`,
     confidence: parsed.confidence ?? "low",
     vertical: parsed.vertical ?? "911",
   };
+  return enrichWithCompetitorIntel(signal, rawText);
 }
 
 export async function generateTalkingPoints(
@@ -373,26 +463,127 @@ ${sourceBlock}`;
   return text;
 }
 
+export function buildOutreachFallback(
+  opportunity: RapidIqOpportunity,
+  contact?: { name?: string | null; title?: string },
+  talkingPoints: string[] = [],
+): { subject: string; body: string } {
+  const who = contact?.name?.trim() || "Director";
+  const title = contact?.title?.trim();
+  const greeting = title ? `Hi ${who} (${title}),` : `Hi ${who},`;
+  const points =
+    talkingPoints.length > 0
+      ? talkingPoints
+      : [
+          `Reference the ${opportunity.aiHeadline} signal in your opener.`,
+          `Ask about timeline for ${opportunity.intentStage.replace(/_/g, " ")}.`,
+          opportunity.estimatedDollarValue
+            ? `Confirm whether the ~$${opportunity.estimatedDollarValue.toLocaleString()} budget is still allocated.`
+            : "Ask which budget cycle funds the modernization.",
+          opportunity.incumbentVendor
+            ? `Position Rapid Cortex as a complement/displacement vs ${opportunity.incumbentVendor}.`
+            : "Ask which CAD/NG911 stack they run today.",
+          `Offer a 20-minute Rapid Cortex Core demo tailored to ${opportunity.agencyName}.`,
+        ];
+
+  const pointsBlock = points.map((p, i) => `${i + 1}. ${p}`).join("\n");
+  const summary = opportunity.aiSummary?.trim() || opportunity.aiHeadline;
+
+  return {
+    subject: `Rapid Cortex — ${opportunity.agencyName}`,
+    body: [
+      greeting,
+      "",
+      `I noticed ${opportunity.aiHeadline}.`,
+      "",
+      summary,
+      "",
+      "Talking points for our conversation:",
+      pointsBlock,
+      "",
+      `Would you have 20 minutes this week for a brief Rapid Cortex overview tailored to ${opportunity.agencyName}?`,
+      "",
+      "Best,",
+      "Rapid Cortex",
+    ].join("\n"),
+  };
+}
+
+function normalizeOutreachDraft(
+  parsed: unknown,
+  fallback: { subject: string; body: string },
+): { subject: string; body: string } {
+  if (!parsed || typeof parsed !== "object") return fallback;
+  const o = parsed as Record<string, unknown>;
+  const subjectRaw = o.subject;
+  const bodyRaw = o.body ?? o.message ?? o.emailBody ?? o.email;
+  const subject =
+    typeof subjectRaw === "string" && subjectRaw.trim() ? subjectRaw.trim() : fallback.subject;
+  const body = typeof bodyRaw === "string" && bodyRaw.trim() ? bodyRaw.trim() : fallback.body;
+  return { subject, body };
+}
+
 export async function generateOutreach(
   opportunity: RapidIqOpportunity,
   contact?: { name?: string | null; title?: string },
+  talkingPoints: string[] = [],
 ): Promise<{ subject: string; body: string }> {
+  const fallback = buildOutreachFallback(opportunity, contact, talkingPoints);
+
   if (isCollectorsMockEnabled() || !(await resolveAnthropicKey())) {
-    const who = contact?.name?.trim() || "Director";
-    return {
-      subject: `Rapid Cortex — ${opportunity.agencyName} (${opportunity.state})`,
-      body: `Hi ${who},\n\nI noticed ${opportunity.aiHeadline}. ${opportunity.aiSummary}\n\nWould you have 20 minutes this week for a brief Rapid Cortex overview?\n\nBest,\nRapid Cortex`,
-    };
+    return fallback;
   }
+
+  const pointsForPrompt =
+    talkingPoints.length > 0
+      ? talkingPoints.map((p, i) => `${i + 1}. ${p}`).join("\n")
+      : "(none provided — invent 4–5 concrete talking points from the signal)";
+
   const text = await callClaude(
-    "You are a senior SDR for Rapid Cortex. Return ONLY valid JSON {subject, body}. Under 180 words.",
-    `Write outreach for: ${opportunity.agencyName}, ${opportunity.state}. Signal: ${opportunity.aiHeadline}. Contact: ${contact?.name ?? "Director"}, ${contact?.title ?? ""}`,
-    600,
+    [
+      "You are a senior SDR for Rapid Cortex (public safety AI for 911 / campus / venue).",
+      "Return ONLY valid JSON with keys subject and body (no markdown fences).",
+      "body must be a complete email: greeting, 2–4 sentence message grounded in the signal summary,",
+      "a numbered Talking points section (use the provided points when present), and a soft CTA.",
+      "Keep body under 220 words. Never leave body empty.",
+    ].join(" "),
+    [
+      `Agency: ${opportunity.agencyName}, ${opportunity.state}`,
+      `Contact: ${contact?.name ?? "Director"}${contact?.title ? ` — ${contact.title}` : ""}`,
+      `Headline: ${opportunity.aiHeadline}`,
+      `Summary: ${opportunity.aiSummary}`,
+      `Product: ${opportunity.rcProduct}`,
+      `Intent stage: ${opportunity.intentStage}`,
+      `Dollar value: ${opportunity.estimatedDollarValue ?? "unknown"}`,
+      `Incumbent: ${opportunity.incumbentVendor ?? "unknown"}`,
+      `Talking points:\n${pointsForPrompt}`,
+    ].join("\n"),
+    900,
   );
-  return parseJsonLoose(text, {
-    subject: `Rapid Cortex — ${opportunity.agencyName}`,
-    body: "",
-  });
+
+  if (!text?.trim()) {
+    console.warn(
+      JSON.stringify({
+        msg: "rapid_iq_outreach_claude_empty",
+        opportunityId: opportunity.opportunityId,
+      }),
+    );
+    return fallback;
+  }
+
+  const draft = normalizeOutreachDraft(parseJsonLoose(text, null), fallback);
+  if (!draft.body.trim()) return fallback;
+  // Ensure talking points appear even if Claude omitted them.
+  if (
+    talkingPoints.length > 0 &&
+    !/talking points/i.test(draft.body) &&
+    !talkingPoints.some((p) => draft.body.includes(p.slice(0, 32)))
+  ) {
+    draft.body = `${draft.body.trim()}\n\nTalking points for our conversation:\n${talkingPoints
+      .map((p, i) => `${i + 1}. ${p}`)
+      .join("\n")}`;
+  }
+  return draft;
 }
 
 export type RfpResponseOutline = {
@@ -483,36 +674,153 @@ export type AgencyIntelProfile = {
   notes: string;
 };
 
-export async function generateAgencyProfile(
-  agencyName: string,
-  city: string,
-  state: string,
-  vertical: string,
-): Promise<AgencyIntelProfile> {
-  const empty: AgencyIntelProfile = {
-    annualCallVolume: null,
-    dispatcherCount: null,
-    populationServed: null,
-    estimatedBudget: null,
-    currentCadVendor: null,
-    cadNotes: null,
+export type AgencyProfileContext = {
+  agencyName: string;
+  city: string;
+  state: string;
+  county?: string | null;
+  vertical: string;
+  agencyType?: string | null;
+  population?: number | null;
+  estimatedDollarValue?: number | null;
+  incumbentVendor?: string | null;
+  aiSummary?: string | null;
+  aiHeadline?: string | null;
+};
+
+function seedAgencyProfileFromContext(ctx: AgencyProfileContext): AgencyIntelProfile {
+  const population = ctx.population && ctx.population > 0 ? ctx.population : null;
+  // Rough public-safety heuristics when Claude cannot fill gaps (not fabrications of named vendors).
+  const annualCallVolume = population ? Math.round(population * 0.55) : null;
+  const dispatcherCount = population
+    ? Math.max(8, Math.round(population / 45_000))
+    : null;
+  const estimatedBudget =
+    ctx.estimatedDollarValue && ctx.estimatedDollarValue > 0
+      ? ctx.estimatedDollarValue
+      : population
+        ? Math.round(population * 2.5)
+        : null;
+  const location = [ctx.city, ctx.county, ctx.state].filter(Boolean).join(", ");
+  const typeHint =
+    ctx.agencyType?.includes("county") || ctx.vertical === "911"
+      ? "Primary PSAP / ECC"
+      : ctx.vertical === "campus"
+        ? "Campus safety / dispatch"
+        : ctx.vertical === "venue"
+          ? "Venue operations / security"
+          : null;
+
+  return {
+    annualCallVolume,
+    dispatcherCount,
+    populationServed: population,
+    estimatedBudget,
+    currentCadVendor: ctx.incumbentVendor?.trim() || null,
+    cadNotes: ctx.incumbentVendor
+      ? `Incumbent from Rapid IQ signal: ${ctx.incumbentVendor}`
+      : null,
     agencyWebsite: null,
-    psapType: null,
-    notes: "Profile could not be generated automatically.",
+    psapType: typeHint,
+    notes: [
+      `Seeded from Rapid IQ opportunity for ${ctx.agencyName}${location ? ` (${location})` : ""}.`,
+      ctx.aiHeadline ? `Signal: ${ctx.aiHeadline}` : null,
+      annualCallVolume || dispatcherCount
+        ? "Call volume / staffing figures are heuristic estimates pending verified sources — Refresh profile to enrich via Claude."
+        : "Click Refresh profile to enrich with Claude research.",
+    ]
+      .filter(Boolean)
+      .join(" "),
   };
+}
+
+function mergeAgencyProfiles(
+  seed: AgencyIntelProfile,
+  parsed: Partial<AgencyIntelProfile> | null,
+): AgencyIntelProfile {
+  if (!parsed) return seed;
+  const num = (v: unknown, fallback: number | null): number | null =>
+    typeof v === "number" && Number.isFinite(v) && v > 0 ? v : fallback;
+  const str = (v: unknown, fallback: string | null): string | null =>
+    typeof v === "string" && v.trim() && v.trim().toLowerCase() !== "null" ? v.trim() : fallback;
+
+  const notesFromClaude = str(parsed.notes, null);
+  const notes =
+    notesFromClaude && !/could not be generated/i.test(notesFromClaude)
+      ? notesFromClaude
+      : seed.notes;
+
+  return {
+    annualCallVolume: num(parsed.annualCallVolume, seed.annualCallVolume),
+    dispatcherCount: num(parsed.dispatcherCount, seed.dispatcherCount),
+    populationServed: num(parsed.populationServed, seed.populationServed),
+    estimatedBudget: num(parsed.estimatedBudget, seed.estimatedBudget),
+    currentCadVendor: str(parsed.currentCadVendor, seed.currentCadVendor),
+    cadNotes: str(parsed.cadNotes, seed.cadNotes),
+    agencyWebsite: str(parsed.agencyWebsite, seed.agencyWebsite),
+    psapType: str(parsed.psapType, seed.psapType),
+    notes,
+  };
+}
+
+export async function generateAgencyProfile(
+  agencyNameOrCtx: string | AgencyProfileContext,
+  city?: string,
+  state?: string,
+  vertical?: string,
+): Promise<AgencyIntelProfile> {
+  const ctx: AgencyProfileContext =
+    typeof agencyNameOrCtx === "string"
+      ? {
+          agencyName: agencyNameOrCtx,
+          city: city ?? "",
+          state: state ?? "",
+          vertical: vertical ?? "911",
+        }
+      : agencyNameOrCtx;
+
+  const seed = seedAgencyProfileFromContext(ctx);
+  const emptyFail: AgencyIntelProfile = {
+    ...seed,
+    notes: seed.notes.includes("Seeded")
+      ? seed.notes
+      : "Profile could not be generated automatically.",
+  };
+
   if (isCollectorsMockEnabled() || !(await resolveAnthropicKey())) {
     return {
-      ...empty,
-      notes: `Mock profile for ${agencyName} (${city}, ${state}) — ${vertical}. Enable Anthropic for live research.`,
+      ...seed,
+      notes: `Mock/offline profile for ${ctx.agencyName}. ${seed.notes}`,
     };
   }
-  const text = await callClaude(
-    `You are a public safety intelligence analyst. Provide factual, research-based information about government agencies. Only include information you are confident about. Use null for unknown values. Return ONLY valid JSON.`,
-    `Research this public safety agency and return what you know:
 
-Agency: ${agencyName}
-Location: ${city}, ${state}
-Type: ${vertical}
+  const knownFacts = [
+    ctx.population ? `Known population (from opportunity): ${ctx.population}` : null,
+    ctx.estimatedDollarValue
+      ? `Known est. opportunity value: $${ctx.estimatedDollarValue.toLocaleString()}`
+      : null,
+    ctx.incumbentVendor ? `Known incumbent/CAD signal: ${ctx.incumbentVendor}` : null,
+    ctx.agencyType ? `Agency type: ${ctx.agencyType}` : null,
+    ctx.aiSummary ? `Signal summary: ${ctx.aiSummary.slice(0, 500)}` : null,
+  ]
+    .filter(Boolean)
+    .join("\n");
+
+  const text = await callClaude(
+    `You are a public safety intelligence analyst for Rapid Cortex sales.
+Enrich agency profiles with best-available estimates grounded in known US PSAP / ECC norms.
+Prefer the provided known facts when present. Use null only when you truly have no basis.
+Return ONLY valid JSON (no markdown).`,
+    `Research / estimate this public safety agency profile:
+
+Agency: ${ctx.agencyName}
+City: ${ctx.city || "unknown"}
+County: ${ctx.county || "unknown"}
+State: ${ctx.state}
+Vertical: ${ctx.vertical}
+
+Known facts from Rapid IQ:
+${knownFacts || "(none)"}
 
 Return JSON:
 {
@@ -524,13 +832,34 @@ Return JSON:
   "cadNotes": string or null,
   "agencyWebsite": string or null,
   "psapType": string or null,
-  "notes": "any other relevant intel"
-}
-
-Do not fabricate. If you don't know something, use null.`,
-    800,
+  "notes": "short intel note for sales reps"
+}`,
+    1000,
   );
-  return parseJsonLoose(text, empty);
+
+  if (!text?.trim()) {
+    console.warn(
+      JSON.stringify({
+        msg: "rapid_iq_agency_profile_claude_empty",
+        agencyName: ctx.agencyName,
+        state: ctx.state,
+      }),
+    );
+    return emptyFail;
+  }
+
+  const parsed = parseJsonLoose<Partial<AgencyIntelProfile> | null>(text, null);
+  if (!parsed || typeof parsed !== "object") {
+    console.warn(
+      JSON.stringify({
+        msg: "rapid_iq_agency_profile_parse_failed",
+        agencyName: ctx.agencyName,
+        preview: text.slice(0, 120),
+      }),
+    );
+    return emptyFail;
+  }
+  return mergeAgencyProfiles(seed, parsed);
 }
 
 export async function researchAgency(
@@ -563,12 +892,31 @@ export async function generateCompetitorIntel(
   incumbentVendor: string,
   agencyName: string,
 ): Promise<string> {
+  const competitor = findCompetitor(incumbentVendor) ?? findCompetitor(resolveIncumbentBrand(incumbentVendor));
+  const registryContext = competitor
+    ? [
+        `Registry: ${competitor.name} (${competitor.urgencyLevel} urgency).`,
+        `Recent news: ${competitor.recentNews ?? "n/a"}`,
+        `Displacement notes: ${competitor.displacementNotes}`,
+        `RC advantages: ${competitor.rcAdvantages.join("; ")}`,
+      ].join("\n")
+    : "";
+
   if (isCollectorsMockEnabled() || !(await resolveAnthropicKey())) {
+    if (competitor) {
+      return [
+        `Displacement notes for ${agencyName} vs ${resolveIncumbentBrand(incumbentVendor)}:`,
+        competitor.displacementNotes,
+        `RC advantages: ${competitor.rcAdvantages.join(" ")}`,
+      ].join(" ");
+    }
     return `Displacement notes for ${agencyName} vs ${incumbentVendor}: emphasize open integration, multi-language transcription, and agency-isolated CJIS posture.`;
   }
   const text = await callClaude(
-    `You are a competitive intelligence analyst for Rapid Cortex. Provide honest competitive analysis to help with displacement opportunities.`,
+    `You are a competitive intelligence analyst for Rapid Cortex. Provide honest competitive analysis to help with displacement opportunities.
+CRITICAL M&A CONTEXT (August 2026): Axon acquired Carbyne and Prepared; Motorola acquired Exacom and Hyper; RapidSOS raised $100M and acquired Northern911.`,
     `${agencyName} currently uses ${incumbentVendor}.
+${registryContext}
 
 Provide:
 1. Known weaknesses or pain points with ${incumbentVendor} in public safety

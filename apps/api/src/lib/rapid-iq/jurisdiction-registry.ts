@@ -1,6 +1,7 @@
 /** Rapid IQ jurisdiction registry — RC-global (no agencyId). Seed source for DynamoDB. */
 
 import { UNIVERSITY_JURISDICTIONS } from "./university-registry.js";
+import { VENUE_JURISDICTIONS } from "./venue-registry.js";
 
 export type ScanTier = 0 | 1 | 2 | 3;
 
@@ -9,7 +10,9 @@ export type JurisdictionType =
   | "city"
   | "university"
   | "university_system"
-  | "state_agency";
+  | "state_agency"
+  | "venue_event"
+  | "venue_corporate";
 
 export interface Jurisdiction {
   jurisdictionId: string;
@@ -1854,6 +1857,7 @@ export const ALL_JURISDICTIONS: JurisdictionSeed[] = [
     notes: null,
   },
   ...UNIVERSITY_JURISDICTIONS,
+  ...VENUE_JURISDICTIONS,
 ];
 
 export function hydrateJurisdiction(seed: JurisdictionSeed, overrides?: Partial<Jurisdiction>): Jurisdiction {

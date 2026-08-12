@@ -53,6 +53,8 @@ const NEXT_PUBLIC_FLAG_VALUES: Record<string, string | undefined> = {
   NEXT_PUBLIC_ENABLE_RCS: process.env.NEXT_PUBLIC_ENABLE_RCS,
   NEXT_PUBLIC_ENABLE_CONNECT_NEST: process.env.NEXT_PUBLIC_ENABLE_CONNECT_NEST,
   NEXT_PUBLIC_ENABLE_RAPID_IQ: process.env.NEXT_PUBLIC_ENABLE_RAPID_IQ,
+  NEXT_PUBLIC_ENABLE_RAPID_IQ_PIPELINE: process.env.NEXT_PUBLIC_ENABLE_RAPID_IQ_PIPELINE,
+  NEXT_PUBLIC_ENABLE_CONTACTS_MODULE: process.env.NEXT_PUBLIC_ENABLE_CONTACTS_MODULE,
   NEXT_PUBLIC_WEBSOCKET_URL: process.env.NEXT_PUBLIC_WEBSOCKET_URL,
 };
 
@@ -387,4 +389,14 @@ export function isConnectNestEnabled(): boolean {
 /** RC Admin Rapid IQ sales intelligence (procurement signals). Default on when unset. */
 export function isRapidIqUiEnabled(): boolean {
   return envFlag("NEXT_PUBLIC_ENABLE_RAPID_IQ");
+}
+
+/** RC Admin Rapid IQ Signal Intelligence Pipeline. Default on when unset. */
+export function isRapidIqPipelineUiEnabled(): boolean {
+  return envFlag("NEXT_PUBLIC_ENABLE_RAPID_IQ_PIPELINE");
+}
+
+/** RC Admin Contacts address book. Default on when unset. */
+export function isContactsModuleUiEnabled(): boolean {
+  return envFlag("NEXT_PUBLIC_ENABLE_CONTACTS_MODULE");
 }

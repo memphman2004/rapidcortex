@@ -5,6 +5,7 @@ import { ddb } from "./baseRepository.js";
 
 /** Stored as a singleton row in state-coverage table under reserved key. */
 const STATUS_KEY = "__REFRESH_STATUS__";
+const RAMP_SCAN_KEY = "__RAMP_SCAN__";
 
 function table(): string {
   const t = env.rapidIqStateCoverageTable;
@@ -41,6 +42,37 @@ export class RapidIqRefreshStatusRepository {
           stateName: "Rapid IQ Refresh",
           ...status,
           updatedAt: new Date().toISOString(),
+        },
+      }),
+    );
+  }
+
+  /** Last completed LA28 / RAMP scan (48-hour cadence gate). */
+  async getRampScan(): Promise<{ completedAt: string | null; signalsFound: number }> {
+    try {
+      const r = await ddb.send(new GetCommand({ TableName: table(), Key: { stateCode: RAMP_SCAN_KEY } }));
+      const item = r.Item as { completedAt?: string; signalsFound?: number } | undefined;
+      return {
+        completedAt: item?.completedAt ?? null,
+        signalsFound: item?.signalsFound ?? 0,
+      };
+    } catch {
+      return { completedAt: null, signalsFound: 0 };
+    }
+  }
+
+  async putRampScan(signalsFound: number): Promise<void> {
+    const completedAt = new Date().toISOString();
+    await ddb.send(
+      new PutCommand({
+        TableName: table(),
+        Item: {
+          stateCode: RAMP_SCAN_KEY,
+          stateName: "Rapid IQ RAMP Scan",
+          status: "complete",
+          completedAt,
+          signalsFound,
+          updatedAt: completedAt,
         },
       }),
     );

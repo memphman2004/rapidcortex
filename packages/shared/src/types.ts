@@ -374,6 +374,8 @@ export type AuditResourceType =
   | "psap_prospect"
   | "rapid_iq_opportunity"
   | "rapid_iq_refresh"
+  | "contact_company"
+  | "contact_person"
   | "job_application"
   | "job_posting"
   | "hiring_bookings"

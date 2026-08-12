@@ -20,10 +20,18 @@ export const CONTACT_ROLES_BY_VERTICAL: Record<RapidIqVertical, ContactRoleDefin
     { tier: "secondary", label: "Clery Compliance Officer", matchedOn: "Clery" },
   ],
   venue: [
+    { tier: "primary", label: "Race Director", matchedOn: "Race Director" },
+    { tier: "primary", label: "Event Director", matchedOn: "Event Director" },
+    { tier: "primary", label: "Director of Operations", matchedOn: "Director of Operations" },
     { tier: "primary", label: "Director of Security", matchedOn: "Security Director" },
-    { tier: "executive", label: "General Manager", matchedOn: "GM" },
-    { tier: "procurement", label: "Operations Procurement", matchedOn: "Operations" },
+    { tier: "primary", label: "Medical Director", matchedOn: "Medical Director" },
+    { tier: "secondary", label: "Course / Venue Manager", matchedOn: "Course Manager" },
+    { tier: "secondary", label: "Volunteer Coordinator", matchedOn: "Volunteer Coordinator" },
     { tier: "secondary", label: "Guest Services Lead", matchedOn: "Guest Services" },
+    { tier: "procurement", label: "Sponsorship / Partnerships Manager", matchedOn: "Sponsorships" },
+    { tier: "procurement", label: "Operations Procurement", matchedOn: "Operations" },
+    { tier: "executive", label: "Race Series Owner / CEO", matchedOn: "Race Series Owner" },
+    { tier: "executive", label: "General Manager", matchedOn: "GM" },
   ],
 };
 

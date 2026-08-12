@@ -17,6 +17,27 @@ export function computePriorityScore(j: Jurisdiction, nowMs = Date.now()): numbe
   return overdueFactor * weight + (j.priorityBoost ?? 0);
 }
 
+const VENUE_SEASONAL_BOOST = 3;
+const VENUE_TYPES = new Set(["venue_event", "venue_corporate"]);
+
+/** Peak race / outdoor-event seasons: Mar–May and Sep–Nov. */
+export function isVenuePeakSeason(now = new Date()): boolean {
+  const month = now.getUTCMonth() + 1;
+  return (month >= 3 && month <= 5) || (month >= 9 && month <= 11);
+}
+
+export function applyVenueSeasonalBoost(
+  jurisdictions: Jurisdiction[],
+  now = new Date(),
+): Jurisdiction[] {
+  if (!isVenuePeakSeason(now)) return jurisdictions;
+  return jurisdictions.map((j) =>
+    VENUE_TYPES.has(j.type)
+      ? { ...j, priorityBoost: (j.priorityBoost ?? 0) + VENUE_SEASONAL_BOOST }
+      : j,
+  );
+}
+
 export function selectJurisdictionsForRun(
   all: Jurisdiction[],
   maxCount = MAX_JURISDICTIONS_PER_RUN,

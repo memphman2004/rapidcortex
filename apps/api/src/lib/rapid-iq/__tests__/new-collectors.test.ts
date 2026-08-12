@@ -6,11 +6,13 @@ describe("runLegislatureCollector", () => {
     vi.resetModules();
   });
 
-  it("skips gracefully when RAPID_IQ_LEGISCAN_API_KEY is unset", async () => {
+  it("skips gracefully when LegiScan credentials are unset", async () => {
     vi.stubEnv("RAPID_IQ_LEGISCAN_API_KEY", "");
-    const { runLegislatureCollector } = await import(
+    vi.stubEnv("RAPID_IQ_LEGISCAN_API_KEY_SECRET_ARN", "");
+    const { clearLegiscanApiKeyCacheForTests, runLegislatureCollector } = await import(
       "../../../handlers/rapid-iq/collectors/legislature-collector.js"
     );
+    clearLegiscanApiKeyCacheForTests();
     const result = await runLegislatureCollector();
     expect(result).toEqual({ signalsFound: 0 });
   });

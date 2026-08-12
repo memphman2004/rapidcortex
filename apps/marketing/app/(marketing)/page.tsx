@@ -300,6 +300,34 @@ export default function MarketingHomePage() {
         </div>
       </section>
 
+      <section className="relative z-10 bg-slate-950 mx-auto max-w-6xl px-4 pb-16 sm:px-6">
+        <h2 className="text-center text-xl font-semibold text-white sm:text-2xl">
+          Campus and venue safety resources
+        </h2>
+        <p className="mx-auto mt-4 max-w-3xl text-center text-sm text-slate-400">
+          QR/SMS reporting and operations dashboards for universities, stadiums, and large events —
+          alongside existing campus police, venue security, and 911.
+        </p>
+        <div className="mt-8 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          {[
+            { href: "/campus-safety-software", label: "Campus safety software" },
+            { href: "/campus-safety-integrations", label: "Campus safety integrations" },
+            { href: "/venue-safety-software", label: "Venue safety software" },
+            { href: "/venue-safety-integrations", label: "Venue safety integrations" },
+            { href: "/stadium-security-software", label: "Stadium security software" },
+            { href: "/integrations", label: "Integrations overview" },
+          ].map((item) => (
+            <Link
+              key={item.href}
+              href={item.href}
+              className="rounded-md border border-slate-700 bg-slate-900/40 px-4 py-3 text-sm font-medium text-slate-200 hover:border-slate-600 hover:bg-slate-900/70"
+            >
+              {item.label}
+            </Link>
+          ))}
+        </div>
+      </section>
+
       <MarketingPilotResourcesStrip />
     </div>
   );

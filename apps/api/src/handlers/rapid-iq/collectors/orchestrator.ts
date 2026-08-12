@@ -1,5 +1,8 @@
 import type { Handler } from "aws-lambda";
-import { selectJurisdictionsForRun } from "../../../lib/rapid-iq/jurisdiction-scheduler.js";
+import {
+  applyVenueSeasonalBoost,
+  selectJurisdictionsForRun,
+} from "../../../lib/rapid-iq/jurisdiction-scheduler.js";
 import { applyStateCoverageBoosts } from "../../../lib/rapid-iq/state-coverage-tracker.js";
 import { RapidIqJurisdictionRepository } from "../../../repositories/rapidIqJurisdictionRepository.js";
 import { RapidIqRefreshStatusRepository } from "../../../repositories/rapidIqRefreshStatusRepository.js";
@@ -11,9 +14,14 @@ import { runLegislatureCollector } from "./legislature-collector.js";
 import { runSamGovCollector } from "./sam-gov-collector.js";
 import { runUniversityNewsCollector } from "./university-news-collector.js";
 import { runConferenceCollector } from "./conference-collector.js";
+import { runCompetitorCollector } from "./competitor-collector.js";
+import { runVenueCollector } from "./venue-collector.js";
+import { runRampCollector } from "./ramp-collector.js";
 
 const repo = new RapidIqJurisdictionRepository();
 const refreshRepo = new RapidIqRefreshStatusRepository();
+
+const RAMP_INTERVAL_HOURS = 48;
 
 export function isWithinCollectionWindow(now = new Date()): boolean {
   const etHour = Number.parseInt(
@@ -31,13 +39,46 @@ export type OrchestratorEvent = {
   source?: string;
 };
 
+function isRampOnlySource(source: string | undefined): boolean {
+  return source === "ramp-scheduler" || source === "ramp-manual";
+}
+
+async function hoursSinceLastRampScan(): Promise<number> {
+  const last = await refreshRepo.getRampScan();
+  if (!last.completedAt) return 999;
+  return (Date.now() - new Date(last.completedAt).getTime()) / 3_600_000;
+}
+
+async function runRampIfDue(force: boolean): Promise<{ signalsFound: number }> {
+  if (!force) {
+    const hours = await hoursSinceLastRampScan();
+    if (hours < RAMP_INTERVAL_HOURS) {
+      console.log(
+        JSON.stringify({
+          msg: "ramp_collector_skipped",
+          reason: "within_48h_window",
+          hoursSinceLastScan: Math.round(hours * 10) / 10,
+        }),
+      );
+      return { signalsFound: 0 };
+    }
+  }
+  const result = await runRampCollector();
+  await refreshRepo.putRampScan(result.signalsFound);
+  return result;
+}
+
 export async function runOrchestrator(event: OrchestratorEvent = {}): Promise<{
   skipped?: boolean;
   signalsFound?: number;
 }> {
-  const isManual = event.source === "manual-refresh";
+  const source = event.source ?? "scheduler";
+  const isManual = source === "manual-refresh";
+  const isRampOnly = isRampOnlySource(source);
+  const forceRamp = source === "ramp-manual";
 
-  if (!isManual && !isWithinCollectionWindow()) {
+  // RAMP-only runs always execute (manual or 48h EventBridge). Full scans respect ET window.
+  if (!isManual && !isRampOnly && !isWithinCollectionWindow()) {
     console.log(
       JSON.stringify({
         msg: "rapid_iq_collector_skipped",
@@ -59,15 +100,39 @@ export async function runOrchestrator(event: OrchestratorEvent = {}): Promise<{
   let totalSignals = 0;
 
   try {
+    if (isRampOnly) {
+      console.log(
+        JSON.stringify({
+          msg: "rapid_iq_ramp_run_started",
+          source,
+          force: forceRamp,
+        }),
+      );
+      totalSignals = (await runRampIfDue(forceRamp)).signalsFound;
+      const now = new Date().toISOString();
+      await refreshRepo.put({
+        status: "complete",
+        startedAt: null,
+        completedAt: now,
+        signalsFound: totalSignals,
+        error: null,
+      });
+      console.log(
+        JSON.stringify({ msg: "rapid_iq_ramp_run_complete", signalsFound: totalSignals }),
+      );
+      return { signalsFound: totalSignals };
+    }
+
     let jurisdictions = await repo.listAll();
     jurisdictions = await applyStateCoverageBoosts(jurisdictions, repo);
+    jurisdictions = applyVenueSeasonalBoost(jurisdictions);
     const batch = selectJurisdictionsForRun(jurisdictions);
 
     console.log(
       JSON.stringify({
         msg: "rapid_iq_run_started",
         isManual,
-        source: isManual ? "manual-refresh" : (event.source ?? "scheduler"),
+        source: isManual ? "manual-refresh" : source,
         batchSize: batch.length,
         statesInBatch: [...new Set(batch.map((j) => j.stateCode))].sort(),
         tierBreakdown: {
@@ -85,6 +150,9 @@ export async function runOrchestrator(event: OrchestratorEvent = {}): Promise<{
           "fema_grants",
           "university_news",
           "conference",
+          "venue",
+          "competitor",
+          "ramp",
         ],
       }),
     );
@@ -98,6 +166,9 @@ export async function runOrchestrator(event: OrchestratorEvent = {}): Promise<{
       femaResult,
       uniNewsResult,
       conferenceResult,
+      venueResult,
+      competitorResult,
+      rampResult,
     ] = await Promise.allSettled([
       runAgendaCollector(batch),
       runSamGovCollector(),
@@ -107,6 +178,9 @@ export async function runOrchestrator(event: OrchestratorEvent = {}): Promise<{
       runFemaGrantsCollector(),
       runUniversityNewsCollector(),
       runConferenceCollector(),
+      runVenueCollector(),
+      runCompetitorCollector(),
+      runRampIfDue(false),
     ]);
 
     for (const result of [
@@ -118,6 +192,9 @@ export async function runOrchestrator(event: OrchestratorEvent = {}): Promise<{
       femaResult,
       uniNewsResult,
       conferenceResult,
+      venueResult,
+      competitorResult,
+      rampResult,
     ]) {
       if (result.status === "fulfilled") {
         totalSignals += result.value.signalsFound;
@@ -142,6 +219,9 @@ export async function runOrchestrator(event: OrchestratorEvent = {}): Promise<{
         fema_grants: femaResult.status,
         university_news: uniNewsResult.status,
         conference: conferenceResult.status,
+        venue: venueResult.status,
+        competitor: competitorResult.status,
+        ramp: rampResult.status,
         signalsFound: totalSignals,
       }),
     );

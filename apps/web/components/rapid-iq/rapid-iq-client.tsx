@@ -9,7 +9,7 @@ import {
   listOpportunities,
   OPPORTUNITIES_QUERY_KEY,
 } from "@/lib/rapid-iq/api";
-import { isKnownCompetitor } from "@/lib/rapid-iq/competitor-registry";
+import { isCompetitorOpportunity } from "@/lib/rapid-iq/competitor-registry";
 import { ConvertToLeadModal } from "./convert-to-lead-modal";
 import { OpportunityDetailPanel } from "./opportunity-detail-panel";
 import { OpportunityFeed } from "./opportunity-feed";
@@ -55,7 +55,7 @@ export function RapidIqClient() {
   const rawItems = listQ.data?.items ?? [];
   const opportunities = useMemo(() => {
     if (feedTab !== "competitor") return rawItems;
-    return rawItems.filter((o) => isKnownCompetitor(o.incumbentVendor));
+    return rawItems.filter((o) => isCompetitorOpportunity(o));
   }, [feedTab, rawItems]);
 
   const competitorCountQ = useQuery({
@@ -64,7 +64,7 @@ export function RapidIqClient() {
     staleTime: 60_000,
   });
   const competitorCount = useMemo(
-    () => (competitorCountQ.data?.items ?? []).filter((o) => isKnownCompetitor(o.incumbentVendor)).length,
+    () => (competitorCountQ.data?.items ?? []).filter((o) => isCompetitorOpportunity(o)).length,
     [competitorCountQ.data],
   );
 

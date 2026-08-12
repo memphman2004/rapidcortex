@@ -1930,6 +1930,49 @@ Resources:
         ImportedCognitoWebClientId: !GetAtt AppSamStackV2.Outputs.UserPoolClientId
         ManagedPolicyNamePrefix: !Ref AWS::StackName
 
+  # Rapid IQ Signal Intelligence Pipeline (procurement signals → CRM)
+  # Separate from AppSamRapidIqStack opportunity feed.
+  AppSamRapidIqPipelineStack:
+    Type: AWS::CloudFormation::Stack
+    Metadata:
+      cfn-lint:
+        config:
+          ignore_checks:
+            - W3005
+    DependsOn: AppSam3Stack
+    Properties:
+      TimeoutInMinutes: 60
+      TemplateURL: nested/stack-app-sam-rapid-iq-pipeline.yaml
+      Parameters:
+        DeploymentStage: !Ref DeploymentStage
+        HttpApiId: !GetAtt AppSam3Stack.Outputs.HttpApiId
+        HttpApiJwtAuthorizerId: ""
+        RapidIqPipelineSignalsTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.RapidIqPipelineSignalsTable
+            - !Sub "${DynamoTableNamePrefix}-rapid-iq-pipeline-signals-${DeploymentStage}"
+        SalesLeadsTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.SalesLeadsTable
+            - !Sub "${DynamoTableNamePrefix}-sales-leads-${DeploymentStage}"
+        AuditTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.AuditTable
+            - !Sub "${DynamoTableNamePrefix}-audit-${DeploymentStage}"
+        AnthropicApiKeySecretArn: !Ref AnthropicApiKeySecretArn
+        RapidIqSamGovApiKeySecretArn: ""
+        # Apollo/Hunter ARNs — same Secrets Manager secrets as AppSamRapidIqStack / PsapCrm.
+        # Pass via deploy override (RAPID_IQ_*_SECRET_ARN); empty = enrichment falls back to NLP.
+        RapidIqHunterApiKeySecretArn: ""
+        RapidIqApolloApiKeySecretArn: ""
+        RapidIqOpenstatesApiKeySecretArn: ""
+        ImportedCognitoUserPoolId: !GetAtt AppSamStackV2.Outputs.UserPoolId
+        ImportedCognitoWebClientId: !GetAtt AppSamStackV2.Outputs.UserPoolClientId
+        ManagedPolicyNamePrefix: !Ref AWS::StackName
+
   AppSam4Stack:
     Type: AWS::CloudFormation::Stack
     Properties:

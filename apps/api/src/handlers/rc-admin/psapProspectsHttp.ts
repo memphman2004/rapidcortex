@@ -24,6 +24,7 @@ import {
   enrichPsapProspectContacts,
   enrichPsapProspectsInBatches,
 } from "../../lib/psap/enrich-psap-contacts.js";
+import { syncContactToAddressBook } from "../../lib/contacts/sync-to-address-book.js";
 import { AuditRepository } from "../../repositories/auditRepository.js";
 import { PsapProspectRepository } from "../../repositories/psapProspectRepository.js";
 
@@ -225,6 +226,25 @@ export async function handler(event: APIGatewayProxyEventV2): Promise<APIGateway
           const updated = await repo.saveEnrichedContacts(p.psapId, enriched.contacts);
           contactsFound += enriched.contacts.length;
           results.push({ psapId: p.psapId, count: enriched.contacts.length });
+          for (const c of enriched.contacts) {
+            void syncContactToAddressBook(
+              {
+                name: c.name,
+                title: c.title,
+                email: c.email,
+                emailVerified: c.emailVerified,
+                phone: c.phone,
+                linkedInUrl: c.linkedInUrl,
+                verifiedAt: c.verificationStatus === "verified" ? c.addedAt : null,
+              },
+              {
+                agencyName: p.psapName,
+                prospectId: p.psapId,
+                vertical: "911",
+                source: "psap",
+              },
+            );
+          }
           console.log(
             JSON.stringify({
               msg: "psap_prospect_contacts_enriched",
@@ -276,6 +296,26 @@ export async function handler(event: APIGatewayProxyEventV2): Promise<APIGateway
       const enriched = await enrichPsapProspectContacts(prospect);
       const updated = await repo.saveEnrichedContacts(psapId, enriched.contacts);
       if (!updated) return notFound("PSAP not found");
+
+      for (const c of enriched.contacts) {
+        void syncContactToAddressBook(
+          {
+            name: c.name,
+            title: c.title,
+            email: c.email,
+            emailVerified: c.emailVerified,
+            phone: c.phone,
+            linkedInUrl: c.linkedInUrl,
+            verifiedAt: c.verificationStatus === "verified" ? c.addedAt : null,
+          },
+          {
+            agencyName: prospect.psapName,
+            prospectId: psapId,
+            vertical: "911",
+            source: "psap",
+          },
+        );
+      }
 
       console.log(
         JSON.stringify({

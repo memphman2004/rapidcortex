@@ -43,20 +43,28 @@ export function RapidIqRefreshButton({ demo = false, refreshStatus: externalStat
     }
   }, [refreshStatus?.status, qc]);
 
-  const mutation = useMutation({
-    mutationFn: () => triggerRefresh(demo),
-    onSuccess: () => {
-      void qc.invalidateQueries({ queryKey: REFRESH_STATUS_QUERY_KEY });
-      // Optimistically show running until status poll confirms
-      qc.setQueryData<RefreshStatus>(REFRESH_STATUS_QUERY_KEY, (prev) => ({
-        status: "running",
-        startedAt: new Date().toISOString(),
-        completedAt: null,
-        signalsFound: prev?.signalsFound ?? 0,
-        error: null,
-      }));
-    },
+  const markRunning = () => {
+    void qc.invalidateQueries({ queryKey: REFRESH_STATUS_QUERY_KEY });
+    qc.setQueryData<RefreshStatus>(REFRESH_STATUS_QUERY_KEY, (prev) => ({
+      status: "running",
+      startedAt: new Date().toISOString(),
+      completedAt: null,
+      signalsFound: prev?.signalsFound ?? 0,
+      error: null,
+    }));
+  };
+
+  const refreshMutation = useMutation({
+    mutationFn: () => triggerRefresh(demo, "manual"),
+    onSuccess: markRunning,
   });
+
+  const rampMutation = useMutation({
+    mutationFn: () => triggerRefresh(demo, "ramp"),
+    onSuccess: markRunning,
+  });
+
+  const busy = isRunning || refreshMutation.isPending || rampMutation.isPending;
 
   return (
     <div className="flex items-center gap-2">
@@ -76,15 +84,26 @@ export function RapidIqRefreshButton({ demo = false, refreshStatus: externalStat
           Scan failed{refreshStatus.error ? `: ${refreshStatus.error}` : ""}
         </span>
       )}
-      {mutation.isError && (
+      {(refreshMutation.isError || rampMutation.isError) && (
         <span className="text-[10px] text-red-400">
-          {mutation.error instanceof Error ? mutation.error.message : "Refresh failed"}
+          {(refreshMutation.error ?? rampMutation.error) instanceof Error
+            ? (refreshMutation.error ?? rampMutation.error)!.message
+            : "Refresh failed"}
         </span>
       )}
       <button
         type="button"
-        onClick={() => mutation.mutate()}
-        disabled={isRunning || mutation.isPending || demo}
+        onClick={() => rampMutation.mutate()}
+        disabled={busy || demo}
+        title={demo ? "RAMP check requires live API" : "Scan RAMPLA.org for LA28 opportunities"}
+        className="flex items-center gap-1.5 rounded border border-amber-500/30 bg-amber-500/10 px-3 py-1.5 text-[11px] font-semibold text-amber-300 transition-colors hover:bg-amber-500/20 disabled:opacity-50"
+      >
+        🏅 Check RAMP
+      </button>
+      <button
+        type="button"
+        onClick={() => refreshMutation.mutate()}
+        disabled={busy || demo}
         title={demo ? "Refresh requires live API" : undefined}
         className="flex items-center gap-1.5 rounded border border-[rgba(255,255,255,0.08)] bg-[#0d1b35] px-3 py-1.5 text-[11px] font-semibold text-slate-200 transition hover:bg-[#102040] disabled:opacity-50"
       >

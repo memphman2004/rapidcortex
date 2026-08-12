@@ -5,7 +5,7 @@ import { absoluteUrl } from "@/lib/seo";
 export const dynamic = "force-static";
 
 /** Bumped when the public route set changes (forces crawlers to re-fetch). */
-const STABLE_LAST_MODIFIED = new Date("2026-07-29T00:00:00.000Z");
+const STABLE_LAST_MODIFIED = new Date("2026-08-11T00:00:00.000Z");
 
 type RouteEntry = {
   path: string;
@@ -63,6 +63,11 @@ const PUBLIC_ROUTES: RouteEntry[] = [
   { path: "/ng911-software", changeFrequency: "monthly", priority: 0.7 },
   { path: "/psap-software", changeFrequency: "monthly", priority: 0.7 },
   { path: "/public-safety-intelligence", changeFrequency: "monthly", priority: 0.7 },
+  { path: "/campus-safety-software", changeFrequency: "weekly", priority: 0.85 },
+  { path: "/venue-safety-software", changeFrequency: "weekly", priority: 0.85 },
+  { path: "/stadium-security-software", changeFrequency: "weekly", priority: 0.8 },
+  { path: "/campus-safety-integrations", changeFrequency: "weekly", priority: 0.8 },
+  { path: "/venue-safety-integrations", changeFrequency: "weekly", priority: 0.8 },
 
   // Developers (public docs surface)
   { path: "/developers", changeFrequency: "weekly", priority: 0.7 },

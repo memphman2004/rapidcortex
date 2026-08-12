@@ -10,6 +10,7 @@ import {
 } from "../../../lib/rapid-iq/deduplication.js";
 import { scoreOpportunity } from "../../../lib/rapid-iq/opportunity-scorer.js";
 import { sendTeamsAlert } from "../../../lib/rapid-iq/teams-notifier.js";
+import { syncContactToAddressBook } from "../../../lib/contacts/sync-to-address-book.js";
 import { RapidIqContactRepository } from "../../../repositories/rapidIqContactRepository.js";
 import { RapidIqOpportunityRepository } from "../../../repositories/rapidIqOpportunityRepository.js";
 import { RapidIqSignalRepository } from "../../../repositories/rapidIqSignalRepository.js";
@@ -235,7 +236,9 @@ export async function upsertSignalAndOpportunity(
   }
 
   // Fire Teams Adaptive Card for high-score opps (Power Automate webhook already provisioned).
-  if (opportunity.opportunityScore >= 85) {
+  // LA28 / RAMP alerts are always sent from ramp-collector (every opp, branded card) — skip here.
+  const isLa28 = opportunity.tags.some((t) => t.toUpperCase() === "LA28 OLYMPICS");
+  if (opportunity.opportunityScore >= 85 && !isLa28) {
     void sendTeamsAlert({
       opportunityId,
       agencyName: opportunity.agencyName,
@@ -246,6 +249,7 @@ export async function upsertSignalAndOpportunity(
       tags: opportunity.tags,
       aiHeadline: opportunity.aiHeadline,
       incumbentVendor: opportunity.incumbentVendor,
+      agencyType: opportunity.agencyType,
     }).catch((err) =>
       console.error(
         JSON.stringify({
@@ -314,6 +318,12 @@ export async function upsertSignalAndOpportunity(
       if (isDuplicate) continue;
       await contactRepo.put({ ...contact, opportunityId });
       written++;
+      void syncContactToAddressBook(contact, {
+        agencyName,
+        opportunityId,
+        vertical: classified.vertical,
+        source: "rapid_iq",
+      });
     }
     if (written > 0) {
       console.log(

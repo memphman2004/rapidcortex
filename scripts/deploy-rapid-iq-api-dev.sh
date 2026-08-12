@@ -196,6 +196,15 @@ fi
 if [[ -n "${RAPID_IQ_LEGISCAN_API_KEY:-}" ]]; then
   PARAM_OVERRIDES+=("RapidIqLegiscanApiKey=${RAPID_IQ_LEGISCAN_API_KEY}")
 fi
+if [[ -n "${RAPID_IQ_RUNSIGNUP_CREDENTIALS_SECRET_ARN:-}" ]]; then
+  PARAM_OVERRIDES+=("RapidIqRunsignupCredentialsSecretArn=${RAPID_IQ_RUNSIGNUP_CREDENTIALS_SECRET_ARN}")
+fi
+if [[ -n "${CONTACT_COMPANIES_TABLE:-}" ]]; then
+  PARAM_OVERRIDES+=("ContactCompaniesTable=${CONTACT_COMPANIES_TABLE}")
+fi
+if [[ -n "${CONTACT_PERSONS_TABLE:-}" ]]; then
+  PARAM_OVERRIDES+=("ContactPersonsTable=${CONTACT_PERSONS_TABLE}")
+fi
 
 sam deploy \
   --template-file "${SAM_BUILD_DIR}/template.yaml" \

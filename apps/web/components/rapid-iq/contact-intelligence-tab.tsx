@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   fetchAgencyProfile,
   fetchAgencyResearch,
@@ -18,6 +18,43 @@ type Props = {
   demo?: boolean;
 };
 
+function seedProfileFromOpportunity(opportunity: RapidIqOpportunity): AgencyProfileResult {
+  const population =
+    opportunity.population && opportunity.population > 0 ? opportunity.population : null;
+  return {
+    annualCallVolume: population ? Math.round(population * 0.55) : null,
+    dispatcherCount: population ? Math.max(8, Math.round(population / 45_000)) : null,
+    populationServed: population,
+    estimatedBudget:
+      opportunity.estimatedDollarValue && opportunity.estimatedDollarValue > 0
+        ? opportunity.estimatedDollarValue
+        : population
+          ? Math.round(population * 2.5)
+          : null,
+    currentCadVendor: opportunity.incumbentVendor ?? null,
+    cadNotes: opportunity.incumbentVendor
+      ? `Incumbent from Rapid IQ signal: ${opportunity.incumbentVendor}`
+      : null,
+    agencyWebsite: null,
+    psapType:
+      opportunity.agencyType?.includes("county") || opportunity.vertical === "911"
+        ? "Primary PSAP / ECC"
+        : null,
+    notes: `Seeded from opportunity data for ${opportunity.agencyName}. Refresh to enrich via Claude.`,
+  };
+}
+
+function isEmptyProfile(profile: AgencyProfileResult): boolean {
+  return (
+    profile.annualCallVolume == null &&
+    profile.dispatcherCount == null &&
+    profile.populationServed == null &&
+    profile.estimatedBudget == null &&
+    !profile.currentCadVendor &&
+    !profile.psapType
+  );
+}
+
 export function ContactIntelligenceTab({ opportunity, contacts, demo }: Props) {
   const roles = CONTACT_ROLES_BY_VERTICAL[opportunity.vertical];
   const [profile, setProfile] = useState<AgencyProfileResult | null>(null);
@@ -32,13 +69,21 @@ export function ContactIntelligenceTab({ opportunity, contacts, demo }: Props) {
     setLoadingProfile(true);
     setError(null);
     try {
-      setProfile(await fetchAgencyProfile(opportunity.opportunityId, demo));
+      const result = await fetchAgencyProfile(opportunity.opportunityId, demo);
+      setProfile(isEmptyProfile(result) ? seedProfileFromOpportunity(opportunity) : result);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Profile failed");
+      setProfile(seedProfileFromOpportunity(opportunity));
+      setError(err instanceof Error ? err.message : "Profile failed — showing opportunity seed");
     } finally {
       setLoadingProfile(false);
     }
   }
+
+  useEffect(() => {
+    void loadProfile();
+    // Load once per opportunity open; Refresh still re-runs loadProfile.
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- intentional opportunityId gate
+  }, [opportunity.opportunityId, demo]);
 
   async function loadResearch() {
     setLoadingResearch(true);
@@ -63,6 +108,11 @@ export function ContactIntelligenceTab({ opportunity, contacts, demo }: Props) {
       setLoadingIntel(false);
     }
   }
+
+  const locationLabel = [opportunity.city, opportunity.county, opportunity.state]
+    .map((p) => (typeof p === "string" ? p.trim() : ""))
+    .filter(Boolean)
+    .join(", ");
 
   return (
     <div className="h-full space-y-5 overflow-y-auto p-4">
@@ -106,9 +156,7 @@ export function ContactIntelligenceTab({ opportunity, contacts, demo }: Props) {
           </div>
           <div className="flex justify-between gap-4">
             <span className="text-slate-500">Location</span>
-            <span>
-              {opportunity.city}, {opportunity.county} County, {opportunity.state}
-            </span>
+            <span>{locationLabel || "—"}</span>
           </div>
           {opportunity.population != null && (
             <div className="flex justify-between gap-4">
@@ -138,6 +186,12 @@ export function ContactIntelligenceTab({ opportunity, contacts, demo }: Props) {
             <span className="text-slate-500">Last signal</span>
             <span>{formatShortDate(opportunity.lastSignalAt)}</span>
           </div>
+
+          {loadingProfile && !profile && (
+            <div className="mt-3 border-t border-slate-800 pt-3 text-[10px] text-slate-600">
+              Generating agency profile…
+            </div>
+          )}
 
           {profile && (
             <div className="mt-3 grid grid-cols-2 gap-x-4 gap-y-2 border-t border-slate-800 pt-3 text-[11px]">

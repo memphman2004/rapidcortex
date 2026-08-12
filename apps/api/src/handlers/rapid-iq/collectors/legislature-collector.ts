@@ -26,8 +26,16 @@ type LegiscanBill = {
 
 let cachedApiKey: string | null = null;
 
+function isLegiscanConfigured(): boolean {
+  return Boolean(
+    process.env.RAPID_IQ_LEGISCAN_API_KEY?.trim() ||
+      process.env.RAPID_IQ_LEGISCAN_API_KEY_SECRET_ARN?.trim(),
+  );
+}
+
 async function getApiKey(): Promise<string> {
   if (cachedApiKey) return cachedApiKey;
+  if (!isLegiscanConfigured()) return "";
   const key = await resolvePlainOrSecretArn(
     process.env.RAPID_IQ_LEGISCAN_API_KEY,
     process.env.RAPID_IQ_LEGISCAN_API_KEY_SECRET_ARN,
@@ -35,6 +43,11 @@ async function getApiKey(): Promise<string> {
   );
   cachedApiKey = key.trim();
   return cachedApiKey;
+}
+
+/** Test helper — clears cached LegiScan key between unit tests. */
+export function clearLegiscanApiKeyCacheForTests(): void {
+  cachedApiKey = null;
 }
 
 function sleep(ms: number): Promise<void> {
@@ -350,9 +363,4 @@ export async function runLegislatureCollector(): Promise<{ signalsFound: number 
 
   console.log(JSON.stringify({ msg: "legislature_collector_complete", signalsFound: total }));
   return { signalsFound: total };
-}
-
-/** Test helper */
-export function clearLegiscanApiKeyCacheForTests(): void {
-  cachedApiKey = null;
 }

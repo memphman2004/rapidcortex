@@ -74,7 +74,15 @@ export const RC_SUPERADMIN_NAV: RoleNav = {
       items: [
         { id: "leads",     label: "Leads",             href: "/rc-admin/leads",         icon: "Inbox", feature: "salesLeads" },
         { id: "psap-prospects", label: "PSAP Prospects", href: "/rc-admin/psap-prospects", icon: "RadioTower", feature: "psapProspects" },
+        { id: "contacts", label: "Contacts", href: "/rc-admin/contacts", icon: "Users", feature: "contactsModule" },
         { id: "rapid-iq", label: "Rapid IQ", href: "/rc-admin/rapid-iq", icon: "Zap", feature: "rapidIq" },
+        {
+          id: "rapid-iq-signals",
+          label: "Rapid IQ Signals",
+          href: "/rc-admin/rapid-iq/signals",
+          icon: "Radar",
+          feature: "rapidIqPipeline",
+        },
       ],
     },
     {
@@ -160,7 +168,15 @@ export const RC_ADMIN_NAV: RoleNav = {
       items: [
         { id: "leads",     label: "Leads",             href: "/rc-admin/leads",         icon: "Inbox", feature: "salesLeads" },
         { id: "psap-prospects", label: "PSAP Prospects", href: "/rc-admin/psap-prospects", icon: "RadioTower", feature: "psapProspects" },
+        { id: "contacts", label: "Contacts", href: "/rc-admin/contacts", icon: "Users", feature: "contactsModule" },
         { id: "rapid-iq", label: "Rapid IQ", href: "/rc-admin/rapid-iq", icon: "Zap", feature: "rapidIq" },
+        {
+          id: "rapid-iq-signals",
+          label: "Rapid IQ Signals",
+          href: "/rc-admin/rapid-iq/signals",
+          icon: "Radar",
+          feature: "rapidIqPipeline",
+        },
       ],
     },
     {

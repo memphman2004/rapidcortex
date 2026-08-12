@@ -1,0 +1,278 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Transform: AWS::Serverless-2016-10-31
+Description: >
+  Rapid Cortex — Contacts address book (companies + persons) on AppSam3 HttpApi.
+  Creates DynamoDB tables and /api/contacts/* routes without a full AppSam3 deploy.
+
+Parameters:
+  DeploymentStage:
+    Type: String
+    AllowedValues: [dev, staging, prod, pilot]
+  HttpApiId:
+    Type: String
+  HttpApiJwtAuthorizerId:
+    Type: String
+  AuditTable:
+    Type: String
+  AgenciesTable:
+    Type: String
+    Default: ""
+  IncidentsTable:
+    Type: String
+  TranscriptsTable:
+    Type: String
+  AnalysesTable:
+    Type: String
+  InvitesTable:
+    Type: String
+  AssetsBucket:
+    Type: String
+  ImportedCognitoUserPoolId:
+    Type: String
+  ImportedCognitoWebClientId:
+    Type: String
+  ManagedPolicyNamePrefix:
+    Type: String
+    Default: rapid-cortex
+  ApprovedCorsOrigins:
+    Type: String
+    Default: "https://www.rapidcortex.us,https://rapidcortex.us,https://app.rapidcortex.us,https://report.rapidcortex.us"
+  DynamoTableNamePrefix:
+    Type: String
+    Default: rapid-cortex
+
+Globals:
+  Function:
+    Runtime: nodejs20.x
+    Timeout: 30
+    MemorySize: 512
+    Environment:
+      Variables:
+        DEPLOYMENT_STAGE: !Ref DeploymentStage
+        ALLOW_UNAUTHENTICATED_API: "false"
+        CONTACT_COMPANIES_TABLE: !Ref ContactCompaniesTable
+        CONTACT_PERSONS_TABLE: !Ref ContactPersonsTable
+        AUDIT_TABLE: !Ref AuditTable
+        AGENCIES_TABLE: !Ref AgenciesTable
+        INCIDENTS_TABLE: !Ref IncidentsTable
+        TRANSCRIPTS_TABLE: !Ref TranscriptsTable
+        ANALYSES_TABLE: !Ref AnalysesTable
+        INVITES_TABLE: !Ref InvitesTable
+        ASSETS_BUCKET: !Ref AssetsBucket
+        COGNITO_USER_POOL_ID: !Ref ImportedCognitoUserPoolId
+        COGNITO_CLIENT_ID: !Ref ImportedCognitoWebClientId
+        COGNITO_REGION: !Ref AWS::Region
+        APPROVED_CORS_ORIGINS: !Ref ApprovedCorsOrigins
+
+Resources:
+  ContactCompaniesTable:
+    Type: AWS::DynamoDB::Table
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      TableName: !Sub "${DynamoTableNamePrefix}-contact-companies-${DeploymentStage}"
+      BillingMode: PAY_PER_REQUEST
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: true
+      AttributeDefinitions:
+        - AttributeName: companyId
+          AttributeType: S
+        - AttributeName: relationshipType
+          AttributeType: S
+        - AttributeName: createdAt
+          AttributeType: S
+      KeySchema:
+        - AttributeName: companyId
+          KeyType: HASH
+      GlobalSecondaryIndexes:
+        - IndexName: type-created-index
+          KeySchema:
+            - AttributeName: relationshipType
+              KeyType: HASH
+            - AttributeName: createdAt
+              KeyType: RANGE
+          Projection:
+            ProjectionType: ALL
+
+  ContactPersonsTable:
+    Type: AWS::DynamoDB::Table
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      TableName: !Sub "${DynamoTableNamePrefix}-contact-persons-${DeploymentStage}"
+      BillingMode: PAY_PER_REQUEST
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: true
+      AttributeDefinitions:
+        - AttributeName: contactId
+          AttributeType: S
+        - AttributeName: companyId
+          AttributeType: S
+        - AttributeName: createdAt
+          AttributeType: S
+      KeySchema:
+        - AttributeName: contactId
+          KeyType: HASH
+      GlobalSecondaryIndexes:
+        - IndexName: company-created-index
+          KeySchema:
+            - AttributeName: companyId
+              KeyType: HASH
+            - AttributeName: createdAt
+              KeyType: RANGE
+          Projection:
+            ProjectionType: ALL
+
+  AppManagedPolicyContactsDdb:
+    Type: AWS::IAM::ManagedPolicy
+    Properties:
+      ManagedPolicyName: !Sub "${ManagedPolicyNamePrefix}-sam3-contacts-ddb-${DeploymentStage}"
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Sid: ContactsTablesCrud
+            Effect: Allow
+            Action:
+              - dynamodb:GetItem
+              - dynamodb:PutItem
+              - dynamodb:UpdateItem
+              - dynamodb:DeleteItem
+              - dynamodb:Scan
+              - dynamodb:Query
+              - dynamodb:DescribeTable
+            Resource:
+              - !GetAtt ContactCompaniesTable.Arn
+              - !Sub "${ContactCompaniesTable.Arn}/index/*"
+              - !GetAtt ContactPersonsTable.Arn
+              - !Sub "${ContactPersonsTable.Arn}/index/*"
+          - Sid: AuditAppend
+            Effect: Allow
+            Action:
+              - dynamodb:PutItem
+            Resource:
+              - !Sub arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${AuditTable}
+
+  ContactsHttpFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/handlers/contacts/contactsHttp.handler
+      Policies:
+        - !Ref AppManagedPolicyContactsDdb
+
+  ContactsIntegration:
+    Type: AWS::ApiGatewayV2::Integration
+    Properties:
+      ApiId: !Ref HttpApiId
+      IntegrationType: AWS_PROXY
+      IntegrationUri: !Sub arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${ContactsHttpFunction.Arn}/invocations
+      PayloadFormatVersion: "2.0"
+
+  ContactsInvokePermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !Ref ContactsHttpFunction
+      Principal: apigateway.amazonaws.com
+      SourceArn: !Sub arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${HttpApiId}/*
+
+  RouteContactsSearchGet:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref HttpApiId
+      RouteKey: "GET /api/contacts/search"
+      Target: !Sub "integrations/${ContactsIntegration}"
+      AuthorizationType: JWT
+      AuthorizerId: !Ref HttpApiJwtAuthorizerId
+
+  RouteContactsCompaniesGet:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref HttpApiId
+      RouteKey: "GET /api/contacts/companies"
+      Target: !Sub "integrations/${ContactsIntegration}"
+      AuthorizationType: JWT
+      AuthorizerId: !Ref HttpApiJwtAuthorizerId
+
+  RouteContactsCompaniesPost:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref HttpApiId
+      RouteKey: "POST /api/contacts/companies"
+      Target: !Sub "integrations/${ContactsIntegration}"
+      AuthorizationType: JWT
+      AuthorizerId: !Ref HttpApiJwtAuthorizerId
+
+  RouteContactsCompanyGet:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref HttpApiId
+      RouteKey: "GET /api/contacts/companies/{companyId}"
+      Target: !Sub "integrations/${ContactsIntegration}"
+      AuthorizationType: JWT
+      AuthorizerId: !Ref HttpApiJwtAuthorizerId
+
+  RouteContactsCompanyPatch:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref HttpApiId
+      RouteKey: "PATCH /api/contacts/companies/{companyId}"
+      Target: !Sub "integrations/${ContactsIntegration}"
+      AuthorizationType: JWT
+      AuthorizerId: !Ref HttpApiJwtAuthorizerId
+
+  RouteContactsCompanyDelete:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref HttpApiId
+      RouteKey: "DELETE /api/contacts/companies/{companyId}"
+      Target: !Sub "integrations/${ContactsIntegration}"
+      AuthorizationType: JWT
+      AuthorizerId: !Ref HttpApiJwtAuthorizerId
+
+  RouteContactsCompanyContactsGet:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref HttpApiId
+      RouteKey: "GET /api/contacts/companies/{companyId}/contacts"
+      Target: !Sub "integrations/${ContactsIntegration}"
+      AuthorizationType: JWT
+      AuthorizerId: !Ref HttpApiJwtAuthorizerId
+
+  RouteContactsCompanyContactsPost:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref HttpApiId
+      RouteKey: "POST /api/contacts/companies/{companyId}/contacts"
+      Target: !Sub "integrations/${ContactsIntegration}"
+      AuthorizationType: JWT
+      AuthorizerId: !Ref HttpApiJwtAuthorizerId
+
+  RouteContactsPersonPatch:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref HttpApiId
+      RouteKey: "PATCH /api/contacts/{contactId}"
+      Target: !Sub "integrations/${ContactsIntegration}"
+      AuthorizationType: JWT
+      AuthorizerId: !Ref HttpApiJwtAuthorizerId
+
+  RouteContactsPersonDelete:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref HttpApiId
+      RouteKey: "DELETE /api/contacts/{contactId}"
+      Target: !Sub "integrations/${ContactsIntegration}"
+      AuthorizationType: JWT
+      AuthorizerId: !Ref HttpApiJwtAuthorizerId
+
+Outputs:
+  ContactsHttpFunctionArn:
+    Value: !GetAtt ContactsHttpFunction.Arn
+  ContactCompaniesTableName:
+    Value: !Ref ContactCompaniesTable
+  ContactPersonsTableName:
+    Value: !Ref ContactPersonsTable

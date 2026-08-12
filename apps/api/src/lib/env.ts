@@ -387,13 +387,20 @@ export const env = {
   monetizationInvoicesTable: process.env.MONETIZATION_INVOICES_TABLE?.trim() ?? "",
   billingAuditEventsTable: process.env.BILLING_AUDIT_EVENTS_TABLE?.trim() ?? "",
   salesLeadsTable: process.env.SALES_LEADS_TABLE?.trim() ?? "",
+  /** RC Admin Contacts address book (companies + persons). */
+  contactCompaniesTable: process.env.CONTACT_COMPANIES_TABLE?.trim() ?? "",
+  contactPersonsTable: process.env.CONTACT_PERSONS_TABLE?.trim() ?? "",
   /** RC Admin PSAP Prospect CRM — national outbound registry. */
   psapProspectsTable: process.env.PSAP_PROSPECTS_TABLE?.trim() ?? "",
   enablePsapProspects: featureEnabled("ENABLE_PSAP_PROSPECTS"),
   /** Rapid IQ — RC-global sales intelligence (no agencyId scoping). */
   enableRapidIq: featureEnabled("ENABLE_RAPID_IQ"),
+  /** Rapid IQ Signal Intelligence Pipeline (procurement signals → CRM). Default on when unset. */
+  enableRapidIqPipeline: featureEnabled("ENABLE_RAPID_IQ_PIPELINE"),
   rapidIqOpportunitiesTable: process.env.RAPID_IQ_OPPORTUNITIES_TABLE?.trim() ?? "",
   rapidIqSignalsTable: process.env.RAPID_IQ_SIGNALS_TABLE?.trim() ?? "",
+  /** Pipeline signals table — distinct from opportunity-linked RAPID_IQ_SIGNALS_TABLE. */
+  rapidIqPipelineSignalsTable: process.env.RAPID_IQ_PIPELINE_SIGNALS_TABLE?.trim() ?? "",
   rapidIqContactsTable: process.env.RAPID_IQ_CONTACTS_TABLE?.trim() ?? "",
   rapidIqSourcesTable: process.env.RAPID_IQ_SOURCES_TABLE?.trim() ?? "",
   rapidIqJurisdictionsTable: process.env.RAPID_IQ_JURISDICTIONS_TABLE?.trim() ?? "",

@@ -70,6 +70,18 @@ Parameters:
     Default: ""
     NoEcho: true
     Description: Optional plain LegiScan API key override (prefer RapidIqLegiscanApiKeySecretArn)
+  RapidIqRunsignupCredentialsSecretArn:
+    Type: String
+    Default: ""
+    Description: Secrets Manager ARN for RunSignUp {token,secret} JSON (Rapid IQ venue collector)
+  ContactCompaniesTable:
+    Type: String
+    Default: ""
+    Description: Contacts address book companies table (optional — sync no-ops when empty)
+  ContactPersonsTable:
+    Type: String
+    Default: ""
+    Description: Contacts address book persons table (optional — sync no-ops when empty)
   ImportedCognitoUserPoolId:
     Type: String
   ImportedCognitoWebClientId:
@@ -89,6 +101,8 @@ Conditions:
   HasApolloSecretArn: !Not [!Equals [!Ref RapidIqApolloApiKeySecretArn, ""]]
   HasTeamsWebhookSecretArn: !Not [!Equals [!Ref RapidIqTeamsWebhookSecretArn, ""]]
   HasLegiscanSecretArn: !Not [!Equals [!Ref RapidIqLegiscanApiKeySecretArn, ""]]
+  HasRunsignupSecretArn: !Not [!Equals [!Ref RapidIqRunsignupCredentialsSecretArn, ""]]
+  HasContactCompaniesTable: !Not [!Equals [!Ref ContactCompaniesTable, ""]]
 
 Globals:
   Function:
@@ -122,6 +136,9 @@ Globals:
         RAPID_IQ_TEAMS_WEBHOOK_SECRET_ARN: !Ref RapidIqTeamsWebhookSecretArn
         RAPID_IQ_LEGISCAN_API_KEY_SECRET_ARN: !Ref RapidIqLegiscanApiKeySecretArn
         RAPID_IQ_LEGISCAN_API_KEY: !Ref RapidIqLegiscanApiKey
+        RAPID_IQ_RUNSIGNUP_CREDENTIALS_SECRET_ARN: !Ref RapidIqRunsignupCredentialsSecretArn
+        CONTACT_COMPANIES_TABLE: !Ref ContactCompaniesTable
+        CONTACT_PERSONS_TABLE: !Ref ContactPersonsTable
         APP_BASE_URL: !Sub "https://app.rapidcortex.us"
         APP_PUBLIC_BASE_URL: !Sub "https://app.rapidcortex.us"
         COGNITO_USER_POOL_ID: !Ref ImportedCognitoUserPoolId
@@ -176,6 +193,22 @@ Resources:
             Resource:
               - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${AuditTable}
               - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${AuditTable}/index/*
+          - Sid: ContactsAddressBookWrite
+            Effect: Allow
+            Action:
+              - dynamodb:GetItem
+              - dynamodb:PutItem
+              - dynamodb:UpdateItem
+              - dynamodb:Query
+              - dynamodb:Scan
+            Resource: !If
+              - HasContactCompaniesTable
+              - - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${ContactCompaniesTable}
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${ContactCompaniesTable}/index/*
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${ContactPersonsTable}
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${ContactPersonsTable}/index/*
+              - - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/rapid-cortex-unused-contact-companies
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/rapid-cortex-unused-contact-persons
 
   RapidIqHttpFunction:
     Type: AWS::Serverless::Function
@@ -242,6 +275,14 @@ Resources:
                 - HasLegiscanSecretArn
                 - !Ref RapidIqLegiscanApiKeySecretArn
                 - !Sub arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:rapid-cortex/unused-rapidiq-legiscan-*
+            - Sid: ReadRunsignupSecret
+              Effect: Allow
+              Action:
+                - secretsmanager:GetSecretValue
+              Resource: !If
+                - HasRunsignupSecretArn
+                - !Ref RapidIqRunsignupCredentialsSecretArn
+                - !Sub arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:rapid-cortex/unused-rapidiq-runsignup-*
       Environment:
         Variables:
           RAPID_IQ_ORCHESTRATOR_FUNCTION_NAME: !Ref RapidIqOrchestratorFunction
@@ -307,6 +348,14 @@ Resources:
                 - HasLegiscanSecretArn
                 - !Ref RapidIqLegiscanApiKeySecretArn
                 - !Sub arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:rapid-cortex/unused-rapidiq-legiscan-*
+            - Sid: ReadRunsignupSecret
+              Effect: Allow
+              Action:
+                - secretsmanager:GetSecretValue
+              Resource: !If
+                - HasRunsignupSecretArn
+                - !Ref RapidIqRunsignupCredentialsSecretArn
+                - !Sub arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:rapid-cortex/unused-rapidiq-runsignup-*
 
   RapidIqScheduledCollector:
     Type: AWS::Events::Rule
@@ -327,6 +376,27 @@ Resources:
       Action: lambda:InvokeFunction
       Principal: events.amazonaws.com
       SourceArn: !GetAtt RapidIqScheduledCollector.Arn
+
+  # LA28 / RAMPLA.org — every 48 hours (faster than LA28's "check every two weeks")
+  RapidIqRampMonitor:
+    Type: AWS::Events::Rule
+    Properties:
+      Name: !Sub "rapid-iq-ramp-monitor-${DeploymentStage}"
+      Description: "Monitors RAMPLA.org for LA28 procurement opportunities every 48 hours"
+      ScheduleExpression: "rate(48 hours)"
+      State: ENABLED
+      Targets:
+        - Arn: !GetAtt RapidIqOrchestratorFunction.Arn
+          Id: RapidIqRampCollector
+          Input: '{"source":"ramp-scheduler"}'
+
+  RapidIqRampMonitorPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      FunctionName: !Ref RapidIqOrchestratorFunction
+      Action: lambda:InvokeFunction
+      Principal: events.amazonaws.com
+      SourceArn: !GetAtt RapidIqRampMonitor.Arn
 
   RapidIqHttpIntegration:
     Type: AWS::ApiGatewayV2::Integration

@@ -10,6 +10,7 @@ import type {
   UpdateOpportunityBody,
 } from "./types";
 import type { MentionedEntity, OpportunityListParams, RapidIqStats } from "./types";
+import { isCompetitorOpportunity } from "./competitor-registry";
 import {
   DEMO_REFRESH_STATUS,
   demoSignalChatReply,
@@ -273,7 +274,21 @@ export async function fetchOutreach(
   if (demo) {
     return {
       subject: `Rapid Cortex — opportunity ${opportunityId}`,
-      body: "Demo outreach draft. Switch off demo mode for live Claude generation.",
+      body: [
+        "Hi Director,",
+        "",
+        "Demo outreach draft grounded in this Rapid IQ signal.",
+        "",
+        "Talking points for our conversation:",
+        "1. Reference the signal in your opener.",
+        "2. Ask about evaluation timeline.",
+        "3. Ask which budget cycle funds the modernization.",
+        "4. Ask which CAD/NG911 stack they run today.",
+        "5. Offer a Rapid Cortex Core demo.",
+        "",
+        "Best,",
+        "Rapid Cortex",
+      ].join("\n"),
     };
   }
   const res = await fetch(`${BASE}/outreach`, {
@@ -350,14 +365,14 @@ export async function fetchAgencyProfile(
 ): Promise<AgencyProfileResult> {
   if (demo) {
     return {
-      annualCallVolume: null,
-      dispatcherCount: null,
-      populationServed: null,
-      estimatedBudget: null,
-      currentCadVendor: null,
-      cadNotes: null,
+      annualCallVolume: 420_000,
+      dispatcherCount: 48,
+      populationServed: 850_000,
+      estimatedBudget: 2_100_000,
+      currentCadVendor: "CentralSquare",
+      cadNotes: "Demo CAD vendor",
       agencyWebsite: null,
-      psapType: null,
+      psapType: "Primary PSAP / ECC",
       notes: "Demo profile — live research requires Anthropic.",
     };
   }
@@ -496,9 +511,14 @@ export async function fetchRefreshStatus(demo = false): Promise<RefreshStatus> {
   };
 }
 
-export async function triggerRefresh(demo = false): Promise<void> {
+export async function triggerRefresh(demo = false, source: "manual" | "ramp" = "manual"): Promise<void> {
   if (demo) return;
-  const res = await fetch(`${BASE}/refresh`, { method: "POST", credentials: "include" });
+  const res = await fetch(`${BASE}/refresh`, {
+    method: "POST",
+    credentials: "include",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ source: source === "ramp" ? "ramp" : "manual-refresh" }),
+  });
   if (!res.ok) {
     const body = (await res.json().catch(() => ({}))) as { error?: string };
     throw new Error(body.error ?? `HTTP ${res.status}`);
@@ -509,7 +529,7 @@ export function computeStats(opportunities: RapidIqOpportunity[]): RapidIqStats 
   return {
     opportunities: opportunities.length,
     rfps: opportunities.filter((o) => o.tags.includes("RFP LIVE")).length,
-    competitor: opportunities.filter((o) => o.tags.includes("COMPETITOR")).length,
+    competitor: opportunities.filter((o) => isCompetitorOpportunity(o)).length,
     grantFunding: opportunities.filter((o) => o.tags.includes("GRANT FUNDING")).length,
   };
 }

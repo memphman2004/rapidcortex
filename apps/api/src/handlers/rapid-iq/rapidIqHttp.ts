@@ -114,11 +114,20 @@ export async function handler(event: APIGatewayProxyEventV2): Promise<APIGateway
           serviceUnavailable("RAPID_IQ_ORCHESTRATOR_FUNCTION_NAME not configured"),
         );
       }
+      const body = parseBody(event);
+      const requestedSource =
+        body && typeof body === "object" && typeof (body as { source?: unknown }).source === "string"
+          ? (body as { source: string }).source.trim()
+          : "manual-refresh";
+      const invokeSource =
+        requestedSource === "ramp" || requestedSource === "ramp-manual"
+          ? "ramp-manual"
+          : "manual-refresh";
       await lambda.send(
         new InvokeCommand({
           FunctionName: fn,
           InvocationType: "Event",
-          Payload: Buffer.from(JSON.stringify({ source: "manual-refresh" })),
+          Payload: Buffer.from(JSON.stringify({ source: invokeSource })),
         }),
       );
       await refreshRepo.put({
@@ -133,12 +142,21 @@ export async function handler(event: APIGatewayProxyEventV2): Promise<APIGateway
         agencyId: "platform",
         actorId: user.userId,
         type: AUDIT_EVENT_TYPES.RAPID_IQ_REFRESH_TRIGGERED,
-        details: { source: "manual-refresh" },
+        details: { source: invokeSource },
         createdAt: new Date().toISOString(),
         resourceType: "rapid_iq_refresh",
-        resourceId: "manual",
+        resourceId: invokeSource === "ramp-manual" ? "ramp" : "manual",
       });
-      return withCorrelationHeaders(event, ok({ message: "Refresh started" }, 202));
+      return withCorrelationHeaders(
+        event,
+        ok(
+          {
+            message:
+              invokeSource === "ramp-manual" ? "RAMP scan started" : "Refresh started",
+          },
+          202,
+        ),
+      );
     }
 
     // POST /api/rapid-iq/talking-points
@@ -183,13 +201,22 @@ export async function handler(event: APIGatewayProxyEventV2): Promise<APIGateway
         const match = contacts.find((c) => c.contactId === parsed.data.contactId);
         if (match) contact = { name: match.name, title: match.title };
       }
-      const draft = await generateOutreach(opp, contact);
+      const signals = await sigRepo.listByOpportunity(opp.opportunityId);
+      const talkingPoints = await generateTalkingPoints(opp, signals);
+      if (talkingPoints.length > 0 && (!opp.talkingPoints || opp.talkingPoints.length === 0)) {
+        await oppRepo.put({
+          ...opp,
+          talkingPoints,
+          lastRefreshedAt: new Date().toISOString(),
+        });
+      }
+      const draft = await generateOutreach(opp, contact, talkingPoints);
       await auditRepo.create({
         eventId: makeId("audit"),
         agencyId: "platform",
         actorId: user.userId,
         type: AUDIT_EVENT_TYPES.RAPID_IQ_OUTREACH_GENERATED,
-        details: { contactId: parsed.data.contactId ?? null },
+        details: { contactId: parsed.data.contactId ?? null, talkingPoints: talkingPoints.length },
         createdAt: new Date().toISOString(),
         resourceType: "rapid_iq_opportunity",
         resourceId: opp.opportunityId,
@@ -236,18 +263,28 @@ export async function handler(event: APIGatewayProxyEventV2): Promise<APIGateway
       if (!parsed.success) return withCorrelationHeaders(event, badRequestFromZod(parsed.error));
       const opp = await oppRepo.get(parsed.data.opportunityId);
       if (!opp) return withCorrelationHeaders(event, notFound("Opportunity not found"));
-      const profile = await generateAgencyProfile(
-        opp.agencyName,
-        opp.city,
-        opp.state,
-        opp.vertical,
-      );
+      const profile = await generateAgencyProfile({
+        agencyName: opp.agencyName,
+        city: opp.city,
+        state: opp.state,
+        county: opp.county,
+        vertical: opp.vertical,
+        agencyType: opp.agencyType,
+        population: opp.population,
+        estimatedDollarValue: opp.estimatedDollarValue,
+        incumbentVendor: opp.incumbentVendor,
+        aiSummary: opp.aiSummary,
+        aiHeadline: opp.aiHeadline,
+      });
       await auditRepo.create({
         eventId: makeId("audit"),
         agencyId: "platform",
         actorId: user.userId,
         type: AUDIT_EVENT_TYPES.RAPID_IQ_AGENCY_PROFILE_GENERATED,
-        details: {},
+        details: {
+          populationServed: profile.populationServed,
+          hasCad: Boolean(profile.currentCadVendor),
+        },
         createdAt: new Date().toISOString(),
         resourceType: "rapid_iq_opportunity",
         resourceId: opp.opportunityId,

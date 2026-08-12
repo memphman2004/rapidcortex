@@ -5,6 +5,7 @@ import { Building2, FileText, X } from "lucide-react";
 import {
   fetchOutreach,
   fetchRfpOutline,
+  fetchTalkingPoints,
   type RfpOutlineResult,
 } from "@/lib/rapid-iq/api";
 import type {
@@ -32,6 +33,35 @@ type Props = {
   onClose: () => void;
   onConvert: () => void;
 };
+
+function buildLocalOutreachBody(opportunity: RapidIqOpportunity, talkingPoints: string[]): string {
+  const points =
+    talkingPoints.length > 0
+      ? talkingPoints
+      : [
+          `Reference the ${opportunity.aiHeadline} signal in your opener.`,
+          "Ask about timeline for evaluation.",
+          "Ask which budget cycle funds the modernization.",
+          "Ask which CAD/NG911 stack they run today.",
+          `Offer a 30-minute Rapid Cortex Core demo tailored to ${opportunity.agencyName}.`,
+        ];
+  const summary = opportunity.aiSummary?.trim() || opportunity.aiHeadline;
+  return [
+    "Hi Director,",
+    "",
+    `I noticed ${opportunity.aiHeadline}.`,
+    "",
+    summary,
+    "",
+    "Talking points for our conversation:",
+    ...points.map((p, i) => `${i + 1}. ${p}`),
+    "",
+    `Would you have 20 minutes this week for a brief Rapid Cortex overview tailored to ${opportunity.agencyName}?`,
+    "",
+    "Best,",
+    "Rapid Cortex",
+  ].join("\n");
+}
 
 export function OpportunityDetailPanel({
   opportunity,
@@ -63,8 +93,31 @@ export function OpportunityDetailPanel({
     setGeneratingEmail(true);
     setEmailError(null);
     try {
+      let talkingPoints =
+        opportunity.talkingPoints && opportunity.talkingPoints.length > 0
+          ? opportunity.talkingPoints
+          : [];
+      if (talkingPoints.length === 0) {
+        talkingPoints = await fetchTalkingPoints(opportunity.opportunityId, demo).catch(() => []);
+      }
+
       const result = await fetchOutreach(opportunity.opportunityId, undefined, demo);
-      setOutreachDraft(result);
+      const subject =
+        result.subject?.trim() || `Rapid Cortex — ${opportunity.agencyName}`;
+      let body = result.body?.trim() ?? "";
+      if (!body) {
+        body = buildLocalOutreachBody(opportunity, talkingPoints);
+      } else if (
+        talkingPoints.length > 0 &&
+        !/talking points/i.test(body) &&
+        !talkingPoints.some((p) => body.includes(p.slice(0, 32)))
+      ) {
+        body = `${body}\n\nTalking points for our conversation:\n${talkingPoints
+          .map((p, i) => `${i + 1}. ${p}`)
+          .join("\n")}`;
+      }
+
+      setOutreachDraft({ subject, body });
       setOutreachOpen(true);
     } catch (err) {
       setEmailError(err instanceof Error ? err.message : "Failed to generate email");

@@ -2979,6 +2979,103 @@
         ]
       }
     },
+    "RapidIqPipelineSignalsTable": {
+      "Type": "AWS::DynamoDB::Table",
+      "DeletionPolicy": "Retain",
+      "UpdateReplacePolicy": "Retain",
+      "Properties": {
+        "BillingMode": {
+          "Ref": "DynamoBillingMode"
+        },
+        "TableName": {
+          "Fn::If": [
+            "HasDynamoTablePrefix",
+            {
+              "Fn::Sub": "${DynamoTableNamePrefix}-rapid-iq-pipeline-signals-${DeploymentStage}"
+            },
+            {
+              "Ref": "AWS::NoValue"
+            }
+          ]
+        },
+        "AttributeDefinitions": [
+          {
+            "AttributeName": "pk",
+            "AttributeType": "S"
+          },
+          {
+            "AttributeName": "sk",
+            "AttributeType": "S"
+          },
+          {
+            "AttributeName": "gsi1pk",
+            "AttributeType": "S"
+          },
+          {
+            "AttributeName": "gsi1sk",
+            "AttributeType": "S"
+          },
+          {
+            "AttributeName": "gsi2pk",
+            "AttributeType": "S"
+          },
+          {
+            "AttributeName": "gsi2sk",
+            "AttributeType": "S"
+          }
+        ],
+        "KeySchema": [
+          {
+            "AttributeName": "pk",
+            "KeyType": "HASH"
+          },
+          {
+            "AttributeName": "sk",
+            "KeyType": "RANGE"
+          }
+        ],
+        "Tags": [
+          {
+            "Key": "Component",
+            "Value": "rapid-iq-pipeline"
+          }
+        ],
+        "GlobalSecondaryIndexes": [
+          {
+            "IndexName": "gsi1-status-score",
+            "KeySchema": [
+              {
+                "AttributeName": "gsi1pk",
+                "KeyType": "HASH"
+              },
+              {
+                "AttributeName": "gsi1sk",
+                "KeyType": "RANGE"
+              }
+            ],
+            "Projection": {
+              "ProjectionType": "ALL"
+            }
+          },
+          {
+            "IndexName": "gsi2-source-date",
+            "KeySchema": [
+              {
+                "AttributeName": "gsi2pk",
+                "KeyType": "HASH"
+              },
+              {
+                "AttributeName": "gsi2sk",
+                "KeyType": "RANGE"
+              }
+            ],
+            "Projection": {
+              "ProjectionType": "ALL"
+            }
+          }
+        ]
+      }
+    },
     "RapidIqContactsTable": {
       "Type": "AWS::DynamoDB::Table",
       "DeletionPolicy": "Retain",
@@ -6583,6 +6680,12 @@
       "Description": "Rapid IQ signals",
       "Value": {
         "Ref": "RapidIqSignalsTable"
+      }
+    },
+    "RapidIqPipelineSignalsTable": {
+      "Description": "Rapid IQ pipeline procurement signals",
+      "Value": {
+        "Ref": "RapidIqPipelineSignalsTable"
       }
     },
     "RapidIqContactsTable": {

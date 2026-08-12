@@ -109,6 +109,29 @@ export default function MarketingVenuePage() {
         </ul>
       </section>
 
+      <section className="mt-12">
+        <h2 className="text-xl font-semibold text-white sm:text-2xl">Related resources</h2>
+        <ul className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          {[
+            { href: "/venue-safety-software", label: "Venue safety software" },
+            { href: "/stadium-security-software", label: "Stadium security software" },
+            { href: "/venue-safety-integrations", label: "Venue safety integrations" },
+            { href: "/product/venue", label: "RC Venue product" },
+            { href: "/integrations", label: "Integrations overview" },
+            { href: "/free-60-day-pilot", label: "Free 60-Day Pilot" },
+          ].map((item) => (
+            <li key={item.href}>
+              <Link
+                href={item.href}
+                className="block rounded-md border border-slate-800 bg-slate-900/30 px-4 py-3 text-sm font-medium text-slate-200 hover:border-slate-600"
+              >
+                {item.label}
+              </Link>
+            </li>
+          ))}
+        </ul>
+      </section>
+
       <section className="mt-12 rounded-lg border border-slate-800 bg-slate-900/30 p-6">
         <h2 className="text-xl font-semibold text-white sm:text-2xl">Free 60-Day Pilot</h2>
         <p className="mt-4 text-sm leading-relaxed text-slate-300 sm:text-base">

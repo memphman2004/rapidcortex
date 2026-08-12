@@ -13,6 +13,11 @@ type RelatedLink = {
   label: string;
 };
 
+type FaqItem = {
+  question: string;
+  answer: string;
+};
+
 type KeywordLandingPageProps = {
   title: string;
   description: string;
@@ -22,6 +27,7 @@ type KeywordLandingPageProps = {
   intro: string;
   sections: LandingSection[];
   relatedLinks: RelatedLink[];
+  faq?: FaqItem[];
 };
 
 export function KeywordLandingPage({
@@ -33,6 +39,7 @@ export function KeywordLandingPage({
   intro,
   sections,
   relatedLinks,
+  faq,
 }: KeywordLandingPageProps) {
   const pageJsonLd = {
     "@context": "https://schema.org",
@@ -54,12 +61,34 @@ export function KeywordLandingPage({
     },
   };
 
+  const faqJsonLd =
+    faq && faq.length > 0
+      ? {
+          "@context": "https://schema.org",
+          "@type": "FAQPage",
+          mainEntity: faq.map((item) => ({
+            "@type": "Question",
+            name: item.question,
+            acceptedAnswer: {
+              "@type": "Answer",
+              text: item.answer,
+            },
+          })),
+        }
+      : null;
+
   return (
     <>
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(pageJsonLd) }}
       />
+      {faqJsonLd ? (
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }}
+        />
+      ) : null}
       <MarketingArticleShell title={h1} eyebrow={eyebrow} sectionLabel="Solutions">
         <p>{intro}</p>
 
@@ -98,6 +127,20 @@ export function KeywordLandingPage({
             </Link>
           </div>
         </section>
+
+        {faq && faq.length > 0 ? (
+          <section className="space-y-3">
+            <h2 className="text-base font-semibold text-white">Frequently asked questions</h2>
+            <dl className="space-y-4">
+              {faq.map((item) => (
+                <div key={item.question}>
+                  <dt className="font-medium text-slate-100">{item.question}</dt>
+                  <dd className="mt-1 text-slate-300">{item.answer}</dd>
+                </div>
+              ))}
+            </dl>
+          </section>
+        ) : null}
 
         <section className="space-y-2">
           <h2 className="text-base font-semibold text-white">Related resources</h2>

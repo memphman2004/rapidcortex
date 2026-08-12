@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Calendar, ChevronDown, Sparkles, Users } from "lucide-react";
+import { Calendar, ChevronDown, Sparkles, Swords, Users } from "lucide-react";
 import { fetchTalkingPoints } from "@/lib/rapid-iq/api";
 import type { RapidIqOpportunity, RapidIqVertical } from "@/lib/rapid-iq/types";
 import {
@@ -18,6 +18,8 @@ const TAG_STYLES: Record<string, string> = {
   "CAD INTEGRATION": "bg-violet-500/15 text-violet-300 border border-violet-500/30",
   "PSAP SOFTWARE": "bg-sky-500/15 text-sky-300 border border-sky-500/30",
   COMPETITOR: "bg-amber-500/15 text-amber-300 border border-amber-500/30",
+  "M&A SIGNAL": "bg-red-500/15 text-red-300 border border-red-500/30",
+  DISPLACEMENT: "bg-orange-500/15 text-orange-300 border border-orange-500/30",
   NG911: "bg-blue-500/15 text-blue-300 border border-blue-500/30",
   "STATE BILL": "bg-purple-500/15 text-purple-300 border border-purple-500/30",
   "FEMA FUNDED": "bg-green-500/15 text-green-300 border border-green-500/30",
@@ -25,6 +27,11 @@ const TAG_STYLES: Record<string, string> = {
   "E911 PLAN": "bg-blue-500/15 text-blue-300 border border-blue-500/30",
   "STATE MANDATE": "bg-orange-500/15 text-orange-300 border border-orange-500/30",
   "CAMPUS SAFETY": "bg-emerald-500/15 text-emerald-300 border border-emerald-500/30",
+  "ROAD RACE": "bg-orange-500/15 text-orange-300 border border-orange-500/30",
+  "UPCOMING EVENT": "bg-red-500/15 text-red-300 border border-red-500/30",
+  "LARGE EVENT": "bg-violet-500/15 text-violet-300 border border-violet-500/30",
+  "OBSTACLE COURSE": "bg-amber-500/15 text-amber-300 border border-amber-500/30",
+  "CORPORATE ACCOUNT": "bg-sky-500/15 text-sky-300 border border-sky-500/30",
 };
 
 const VERTICAL_BORDER: Record<RapidIqVertical, string> = {
@@ -112,7 +119,13 @@ export function OpportunityCard({ opportunity, selected, onSelect, vertical, dem
           <div className="flex flex-wrap items-center gap-1.5">
             <span className="text-sm font-bold text-slate-100">{opportunity.agencyName}</span>
             <span className="text-sm text-slate-500">, {opportunity.state}</span>
-            {opportunity.incumbentVendor && (
+            {opportunity.agencyType === "competitor_watch" && (
+              <span className="mt-0.5 flex items-center gap-1 text-[9px] font-bold uppercase tracking-wide text-red-400">
+                <Swords size={9} aria-hidden />
+                Competitor Intel
+              </span>
+            )}
+            {opportunity.incumbentVendor && opportunity.agencyType !== "competitor_watch" && (
               <span className="rounded-full border border-red-500/30 bg-red-500/10 px-2 py-0.5 text-[9px] font-bold text-red-400">
                 vs {opportunity.incumbentVendor}
               </span>

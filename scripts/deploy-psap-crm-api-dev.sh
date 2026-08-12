@@ -90,6 +90,12 @@ fi
 if [[ -n "${RAPID_IQ_APOLLO_API_KEY_SECRET_ARN:-}" ]]; then
   PARAM_OVERRIDES+=("RapidIqApolloApiKeySecretArn=${RAPID_IQ_APOLLO_API_KEY_SECRET_ARN}")
 fi
+if [[ -n "${CONTACT_COMPANIES_TABLE:-}" ]]; then
+  PARAM_OVERRIDES+=("ContactCompaniesTable=${CONTACT_COMPANIES_TABLE}")
+fi
+if [[ -n "${CONTACT_PERSONS_TABLE:-}" ]]; then
+  PARAM_OVERRIDES+=("ContactPersonsTable=${CONTACT_PERSONS_TABLE}")
+fi
 
 export SAM_NODE_MODULES_HARDLINK="${SAM_NODE_MODULES_HARDLINK:-1}"
 

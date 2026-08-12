@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { hydrateJurisdiction, type JurisdictionSeed } from "../jurisdiction-registry.js";
 import {
+  applyVenueSeasonalBoost,
   computePriorityScore,
   NEVER_SCANNED_PRIORITY,
   selectJurisdictionsForRun,
@@ -81,6 +82,23 @@ describe("jurisdiction-scheduler", () => {
       STATE_COVERAGE_BOOST,
     );
     expect(boosted.find((j) => j.jurisdictionId === "county#WV#b")?.priorityBoost).toBe(0);
+  });
+
+  it("boosts venue jurisdictions in March–May and September–November", () => {
+    const venue = hydrateJurisdiction(
+      seed({
+        jurisdictionId: "venue_event#GA#peachtree",
+        type: "venue_event",
+        tier: 1,
+      }),
+    );
+    const county = hydrateJurisdiction(seed({ jurisdictionId: "county#GA#x", tier: 1 }));
+    const peak = applyVenueSeasonalBoost([venue, county], new Date("2026-04-15T12:00:00.000Z"));
+    expect(peak.find((j) => j.type === "venue_event")?.priorityBoost).toBe(3);
+    expect(peak.find((j) => j.type === "county")?.priorityBoost).toBe(0);
+
+    const off = applyVenueSeasonalBoost([venue], new Date("2026-07-04T12:00:00.000Z"));
+    expect(off[0]?.priorityBoost).toBe(0);
   });
 });
 

@@ -39,6 +39,13 @@ const CONFERENCES = [
     pathHints: ["/agenda", "/speakers", "/expo"],
     vertical: "campus" as const,
   },
+  {
+    name: "VenuesNow Conference 2026",
+    url: "https://www.venuesnow.com/conference",
+    date: "2026-09-29",
+    pathHints: ["/agenda", "/speakers", "/exhibitors"],
+    vertical: "venue" as const,
+  },
 ];
 
 function sleep(ms: number): Promise<void> {

@@ -172,6 +172,8 @@ export CAD_WRITEBACK_ENABLED=false
 # Rapid IQ (RC Admin sales intelligence) — default ON; collectors mock without Anthropic/SAM secrets
 export ENABLE_RAPID_IQ=true
 export NEXT_PUBLIC_ENABLE_RAPID_IQ="${NEXT_PUBLIC_ENABLE_RAPID_IQ:-1}"
+export ENABLE_RAPID_IQ_PIPELINE=true
+export NEXT_PUBLIC_ENABLE_RAPID_IQ_PIPELINE="${NEXT_PUBLIC_ENABLE_RAPID_IQ_PIPELINE:-1}"
 export RAPID_IQ_COLLECTORS_MOCK="${RAPID_IQ_COLLECTORS_MOCK:-1}"
 # Microsoft Teams — Rapid IQ Alerts channel (Power Automate webhook; channel+flow already complete)
 export RAPID_IQ_TEAMS_WEBHOOK_SECRET_ARN="${RAPID_IQ_TEAMS_WEBHOOK_SECRET_ARN:-arn:aws:secretsmanager:us-east-1:158961537080:secret:rapid-cortex/rapid-iq/teams-webhook-url-JjTaCF}"
@@ -185,6 +187,8 @@ export RAPID_IQ_COLLECTORS_MOCK="${RAPID_IQ_COLLECTORS_MOCK:-0}"
 export RAPID_IQ_LEGISCAN_API_KEY_SECRET_ARN="${RAPID_IQ_LEGISCAN_API_KEY_SECRET_ARN:-arn:aws:secretsmanager:us-east-1:158961537080:secret:rapid-cortex/rapid-iq/legiscan-api-key-iwBcKv}"
 # Optional plain override for local dry-runs (prefer the secret ARN above)
 export RAPID_IQ_LEGISCAN_API_KEY="${RAPID_IQ_LEGISCAN_API_KEY:-}"
+# RunSignUp — venue collector race search (registration already complete; do not recreate)
+export RAPID_IQ_RUNSIGNUP_CREDENTIALS_SECRET_ARN="${RAPID_IQ_RUNSIGNUP_CREDENTIALS_SECRET_ARN:-arn:aws:secretsmanager:us-east-1:158961537080:secret:rapid-cortex/rapid-iq/runsignup-credentials-NgWGzS}"
 export APP_BASE_URL="${APP_BASE_URL:-https://app.rapidcortex.us}"
 export APP_PUBLIC_BASE_URL="${APP_PUBLIC_BASE_URL:-https://app.rapidcortex.us}"
 export RAPID_IQ_OPPORTUNITIES_TABLE="${RAPID_IQ_OPPORTUNITIES_TABLE:-rapid-cortex-rapid-iq-opportunities-dev}"
@@ -193,6 +197,11 @@ export RAPID_IQ_CONTACTS_TABLE="${RAPID_IQ_CONTACTS_TABLE:-rapid-cortex-rapid-iq
 export RAPID_IQ_SOURCES_TABLE="${RAPID_IQ_SOURCES_TABLE:-rapid-cortex-rapid-iq-sources-dev}"
 export RAPID_IQ_JURISDICTIONS_TABLE="${RAPID_IQ_JURISDICTIONS_TABLE:-rapid-cortex-rapid-iq-jurisdictions-dev}"
 export RAPID_IQ_STATE_COVERAGE_TABLE="${RAPID_IQ_STATE_COVERAGE_TABLE:-rapid-cortex-rapid-iq-state-coverage-dev}"
+
+# Contacts address book (RC Admin SALES & CRM)
+export CONTACT_COMPANIES_TABLE="${CONTACT_COMPANIES_TABLE:-rapid-cortex-contact-companies-dev}"
+export CONTACT_PERSONS_TABLE="${CONTACT_PERSONS_TABLE:-rapid-cortex-contact-persons-dev}"
+# export NEXT_PUBLIC_ENABLE_CONTACTS_MODULE=1
 
 export ENABLE_RCS=true
 export RCS_CALLS_TABLE="rapid-cortex-rcs-calls-dev"

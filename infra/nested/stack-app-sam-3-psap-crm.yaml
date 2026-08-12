@@ -48,11 +48,20 @@ Parameters:
     Type: String
     Default: ""
     Description: Apollo.io secret ARN (shared with Rapid IQ contact enrichment)
+  ContactCompaniesTable:
+    Type: String
+    Default: ""
+    Description: Contacts address book companies table (optional — sync no-ops when empty)
+  ContactPersonsTable:
+    Type: String
+    Default: ""
+    Description: Contacts address book persons table (optional — sync no-ops when empty)
 
 Conditions:
   HasHttpApiJwtAuthorizer: !Not [!Equals [!Ref HttpApiJwtAuthorizerId, ""]]
   HasHunterSecretArn: !Not [!Equals [!Ref RapidIqHunterApiKeySecretArn, ""]]
   HasApolloSecretArn: !Not [!Equals [!Ref RapidIqApolloApiKeySecretArn, ""]]
+  HasContactCompaniesTable: !Not [!Equals [!Ref ContactCompaniesTable, ""]]
 
 Globals:
   Function:
@@ -79,6 +88,8 @@ Globals:
         APPROVED_CORS_ORIGINS: !Ref ApprovedCorsOrigins
         RAPID_IQ_HUNTER_API_KEY_SECRET_ARN: !Ref RapidIqHunterApiKeySecretArn
         RAPID_IQ_APOLLO_API_KEY_SECRET_ARN: !Ref RapidIqApolloApiKeySecretArn
+        CONTACT_COMPANIES_TABLE: !Ref ContactCompaniesTable
+        CONTACT_PERSONS_TABLE: !Ref ContactPersonsTable
 
 Resources:
   AppManagedPolicyPsapCrmDdb:
@@ -110,6 +121,22 @@ Resources:
             Resource:
               - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${AuditTable}
               - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${AuditTable}/index/*
+          - Sid: ContactsAddressBookWrite
+            Effect: Allow
+            Action:
+              - dynamodb:GetItem
+              - dynamodb:PutItem
+              - dynamodb:UpdateItem
+              - dynamodb:Query
+              - dynamodb:Scan
+            Resource: !If
+              - HasContactCompaniesTable
+              - - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${ContactCompaniesTable}
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${ContactCompaniesTable}/index/*
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${ContactPersonsTable}
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${ContactPersonsTable}/index/*
+              - - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/rapid-cortex-unused-contact-companies
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/rapid-cortex-unused-contact-persons
 
   PsapProspectsHttpFunction:
     Type: AWS::Serverless::Function

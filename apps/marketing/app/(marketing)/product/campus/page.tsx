@@ -116,6 +116,31 @@ export default function ProductCampusPage() {
           </div>
         </div>
       </section>
+
+      <section className="mx-auto max-w-6xl px-4 py-10 sm:px-6" aria-labelledby="campus-related-heading">
+        <h2 id="campus-related-heading" className="text-lg font-semibold text-white">
+          Related campus resources
+        </h2>
+        <ul className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          {[
+            { href: "/campus-safety-software", label: "Campus safety software" },
+            { href: "/campus-safety-integrations", label: "Campus safety integrations" },
+            { href: "/integrations", label: "Integrations overview" },
+            { href: "/connect/ring/start", label: "Ring Connect" },
+            { href: "/free-60-day-pilot", label: "Free 60-Day Pilot" },
+            { href: "/blog/rapid-cortex-campus", label: "Campus blog" },
+          ].map((item) => (
+            <li key={item.href}>
+              <Link
+                href={item.href}
+                className="block rounded-md border border-slate-700 bg-slate-900/40 px-4 py-3 text-sm font-medium text-slate-200 hover:border-slate-600 hover:bg-slate-900/70"
+              >
+                {item.label}
+              </Link>
+            </li>
+          ))}
+        </ul>
+      </section>
     </article>
   );
 }

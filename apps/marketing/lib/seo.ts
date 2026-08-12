@@ -67,12 +67,14 @@ export function buildPublicPageMetadata(input: {
   title: string;
   description: string;
   path: string;
+  keywords?: string[];
 }): Metadata {
   const canonical = absoluteUrl(input.path);
   const image = buildOgShareImage();
   return {
     title: input.title,
     description: input.description,
+    keywords: input.keywords,
     alternates: { canonical },
     openGraph: {
       type: "website",
