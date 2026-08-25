@@ -16,6 +16,7 @@ describe("RAPID_IQ_PIPELINE_SOURCE_IDS (state ingestion expansion)", () => {
     expect(RAPID_IQ_PIPELINE_SOURCE_IDS).toContain("state-911-board");
     expect(RAPID_IQ_PIPELINE_SOURCE_IDS).toContain("state-arpa");
     expect(RAPID_IQ_PIPELINE_SOURCE_IDS).toContain("openlegislative");
+    expect(RAPID_IQ_PIPELINE_SOURCE_IDS).toContain("county-procurement");
     expect(RAPID_IQ_PIPELINE_SOURCE_IDS).not.toContain("granicus");
   });
 
@@ -28,6 +29,18 @@ describe("RAPID_IQ_PIPELINE_SOURCE_IDS (state ingestion expansion)", () => {
     expect(RAPID_IQ_PIPELINE_SOURCE_LABELS["state-911-board"]).toBe("911 Board");
     expect(RAPID_IQ_PIPELINE_SOURCE_LABELS["state-arpa"]).toBe("ARPA Dashboard");
     expect(RAPID_IQ_PIPELINE_SOURCE_LABELS.openlegislative).toBe("State Legislature");
+    expect(RAPID_IQ_PIPELINE_SOURCE_LABELS["county-procurement"]).toBe("County Procurement");
+    expect(RAPID_IQ_PIPELINE_SOURCE_IDS).toContain("grants-gov");
+    expect(RAPID_IQ_PIPELINE_SOURCE_IDS).toContain("911-gov");
+    expect(RAPID_IQ_PIPELINE_SOURCE_IDS).toContain("trade-publication");
+    expect(RAPID_IQ_PIPELINE_SOURCE_IDS).toContain("competitor-intel");
+    expect(RAPID_IQ_PIPELINE_SOURCE_IDS).toContain("boarddocs");
+    expect(RAPID_IQ_PIPELINE_SOURCE_IDS).toContain("civiclerk");
+    expect(RAPID_IQ_PIPELINE_SOURCE_IDS).toContain("sourcewell-omnia");
+    expect(RAPID_IQ_PIPELINE_SOURCE_IDS).toContain("university-procurement");
+    expect(RAPID_IQ_PIPELINE_SOURCE_LABELS["grants-gov"]).toBe("Grants.gov");
+    expect(RAPID_IQ_PIPELINE_SOURCE_LABELS["911-gov"]).toBe("911.gov");
+    expect(RAPID_IQ_PIPELINE_SOURCE_LABELS["competitor-intel"]).toBe("Competitor Intel");
   });
 });
 

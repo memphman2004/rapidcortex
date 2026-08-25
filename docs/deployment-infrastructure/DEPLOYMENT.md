@@ -4,14 +4,33 @@ This document is the **operator runbook** for shipping Rapid Cortex API + Cognit
 
 ## Supported deployment stages
 
+In account **158961537080**, names are inverted from the SAM parameter labels. See [ENVIRONMENT_MATRIX.md](./ENVIRONMENT_MATRIX.md).
+
 | `DeploymentStage` | Stack name convention | Typical use |
 |-------------------|----------------------|-------------|
-| `dev` | `rapid-cortex-dev` | Engineers; mock-friendly defaults in SAM mappings. |
-| `staging` | `rapid-cortex-staging` | Pre-prod validation; Bedrock/AWS multilingual defaults. |
-| `prod` | `rapid-cortex-prod` | Live multi-agency SaaS (when ready). |
+| `dev` | `rapid-cortex-dev` | **Live production** (`https://app.rapidcortex.us`). Requires `source scripts/env-api-dev.sh` (`I_UNDERSTAND_DEV_IS_PROD=1`). |
+| `staging` | `rapid-cortex-staging` | **Engineering** (`https://app-staging.rapidcortex.us`). `source scripts/env-api-staging.sh`. Isolated tables; no `api.rapidcortex.us` DNS. |
+| `prod` | `rapid-cortex-prod` | Unused CFN name — **not** the live host. |
 | `pilot` | `rapid-cortex-pilot` | **Single controlled agency** production-like stack (same AI/multilingual defaults as `prod` in template). |
 
-Each stage is a **separate CloudFormation stack**: its own **Cognito user pool**, **DynamoDB tables** (CloudFormation-generated physical names), **S3 assets bucket** (`rapid-cortex-assets-<stage>-<accountId>`), and **Cognito hosted UI domain prefix** (`rapidcortex-<stage>-<accountId>`).
+Each stage is a **separate CloudFormation stack**: its own **Cognito user pool**, **DynamoDB tables**, **S3 assets bucket** (`rapid-cortex-assets-<stage>-<accountId>`), and **Cognito hosted UI domain prefix**.
+
+### First-time staging (engineering) bring-up
+
+```bash
+cp scripts/env-api-staging.example.sh scripts/env-api-staging.sh
+source scripts/env-api-staging.sh
+bash scripts/ensure-stage-orphan-resources.sh staging
+# If rapid-cortex-staging is CREATE_FAILED from an earlier attempt:
+#   bash scripts/delete-failed-staging-parent.sh
+bash scripts/deploy.sh staging --changeset-only   # review, then deploy without the flag
+bash scripts/ensure-staging-acm-cert.sh
+cp scripts/env-web-ssr-staging.example.sh scripts/env-web-ssr-staging.sh
+# Fill Cognito + API URLs from print-stack-outputs-for-web.sh staging, then:
+# source scripts/env-web-ssr-staging.sh && bash scripts/deploy-web-ssr.sh
+```
+
+Do **not** set `ROUTE53_HOSTED_ZONE_ID` or `API_DOMAIN_CERT_ARN` on the API stack. Web SSR owns `app-staging.rapidcortex.us`.
 
 ## Prerequisites
 
@@ -38,12 +57,19 @@ Notes:
 
 ## Standard deploy
 
-From repo root:
+From repo root (engineering):
 
 ```bash
 chmod +x scripts/deploy.sh scripts/post-deploy-smoke.sh scripts/print-stack-outputs-for-web.sh
-export HTTP_API_CORS_ORIGINS="https://www.rapidcortex.us"   # example; required for non-dev
+source scripts/env-api-staging.sh
 ./scripts/deploy.sh staging
+```
+
+Live production (`DeploymentStage=dev` / `app.rapidcortex.us`):
+
+```bash
+source scripts/env-api-dev.sh
+./scripts/deploy.sh dev
 ```
 
 With environment-style mapping:

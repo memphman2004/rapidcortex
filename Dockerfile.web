@@ -117,6 +117,12 @@ ENV APP_VERSION=${APP_VERSION}
 # Bust Docker layer cache when source or build args change (CodeBuild passes BUILD_CACHE_BUST).
 RUN echo "build cache bust ${BUILD_CACHE_BUST}"
 
+# Guard: empty Mapbox token produces a silent client-side maps failure in prod.
+RUN if [ -z "$NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN" ] || [ "$NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN" = "pk.REPLACE_WITH_REAL_TOKEN" ]; then \
+      echo "ERROR: NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN must be a real pk.* token at image build time" >&2; \
+      exit 1; \
+    fi
+
 # next build regularly OOMs under default Node heap on CodeBuild LARGE + Docker.
 ENV NODE_OPTIONS="--max-old-space-size=8192"
 

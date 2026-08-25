@@ -14,16 +14,17 @@ export function CampusShellThemeRoot({ children }: { children: ReactNode }) {
 }
 
 function CampusShellThemeRootInner({ children }: { children: ReactNode }) {
-  const { rootRef } = useThemeRoot<HTMLDivElement>();
+  const { theme, rootRef } = useThemeRoot<HTMLDivElement>();
 
   return (
     <div
       ref={rootRef}
-      data-theme="dark"
+      data-theme={theme}
       className="min-h-screen"
       style={{
         background: "var(--rc-bg)",
         color: "var(--rc-text-primary)",
+        colorScheme: theme,
         fontFamily: CAMPUS_DASHBOARD_FONT_FAMILY,
       }}
     >

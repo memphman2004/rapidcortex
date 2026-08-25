@@ -4,7 +4,7 @@ import Link from "next/link";
 import { absoluteUrl, buildOrganizationJsonLd } from "@/lib/seo";
 
 const CAMPUS_HERO = {
-  src: "/CampusMarketing.png",
+  src: "/images/campus-hero.webp",
   width: 1672,
   height: 941,
   alt: "Rapid Cortex Campus — emergency tower, campus safety operations, and intelligence overlays at night",

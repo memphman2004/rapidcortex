@@ -30,8 +30,10 @@ export function SiteLogoMark({
       width={SITE_LOGO_WIDTH}
       height={SITE_LOGO_HEIGHT}
       priority={priority}
+      loading={priority ? "eager" : "lazy"}
+      decoding="async"
       unoptimized
-      sizes="(max-width: 1024px) 280px, 900px"
+      sizes="(max-width: 1024px) 160px, 200px"
       className={[
         "inline-block w-auto max-w-full shrink-0 object-contain object-left",
         heightClass,

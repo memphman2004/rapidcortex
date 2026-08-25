@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useMemo, useState, type FormEvent } from "react";
 import { demoJurisdictionSlug } from "@/lib/deployment-environment";
-import { marketingLoginPath, marketingSignupPath } from "@/lib/marketing-links";
+import { marketingDemoRequestPath, marketingLoginPath } from "@/lib/marketing-links";
 
 type LinkAudience = "citizen" | "agency";
 
@@ -447,23 +447,24 @@ function CitizenLinkActions({ status }: { status: string | null }) {
 function AgencyLinkActions() {
   const jurisdiction = demoJurisdictionSlug();
   const loginHref = marketingLoginPath();
-  const signupHref = marketingSignupPath();
+  const requestAccessHref = marketingDemoRequestPath("ring_connect");
   const mediaHref = `https://app.rapidcortex.us/${jurisdiction}/media`;
 
   return (
     <>
-      <div className="mt-8 flex flex-col gap-3 sm:flex-row">
+      <p className="mt-8 text-sm text-slate-300">
+        Already a Rapid Cortex customer?{" "}
+        <Link href={loginHref} className="font-semibold text-sky-400 hover:text-sky-300">
+          Sign In →
+        </Link>
+      </p>
+
+      <div className="mt-4 flex flex-col gap-3 sm:flex-row">
         <Link
           href={loginHref}
           className="inline-flex min-h-11 items-center justify-center rounded-lg bg-gradient-to-r from-sky-500 to-cyan-400 px-5 text-sm font-semibold text-slate-950"
         >
-          Sign in to Rapid Cortex
-        </Link>
-        <Link
-          href={signupHref}
-          className="inline-flex min-h-11 items-center justify-center rounded-lg border border-sky-500/60 px-5 text-sm font-semibold text-sky-300 hover:border-sky-400 hover:text-sky-200"
-        >
-          Sign up
+          Sign In
         </Link>
         <Link
           href={mediaHref}
@@ -476,21 +477,15 @@ function AgencyLinkActions() {
       <section className="mt-10 rounded-xl border border-slate-800 bg-slate-900/40 p-6">
         <h2 className="text-lg font-semibold text-white">New to Rapid Cortex?</h2>
         <p className="mt-3 text-sm leading-relaxed text-slate-300">
-          Rapid Cortex is available to licensed emergency communications centers, campus safety
-          departments, and venue security operations.
+          Rapid Cortex is an AI-powered platform for verified 911 dispatch centers and public safety
+          agencies.
         </p>
-        <div className="mt-5 flex flex-col gap-3 sm:flex-row sm:items-center">
+        <div className="mt-5">
           <Link
-            href={signupHref}
+            href={requestAccessHref}
             className="inline-flex min-h-11 items-center justify-center rounded-lg bg-gradient-to-r from-sky-500 to-cyan-400 px-5 text-sm font-semibold text-slate-950"
           >
-            Sign up for Rapid Cortex
-          </Link>
-          <Link
-            href="https://www.rapidcortex.us/contact-sales?interest=demo"
-            className="inline-flex min-h-11 items-center justify-center rounded-lg border border-slate-600 px-5 text-sm font-semibold text-slate-100 hover:border-slate-500"
-          >
-            Request Access
+            Request Access for Your Agency
           </Link>
         </div>
       </section>

@@ -214,7 +214,7 @@ struct MainShellView: View {
                     .foregroundStyle(.secondary)
                 Text("Web workspace required")
                     .font(.title2.weight(.semibold))
-                Text("Set **WEB_APP_BASE_URL** in Secrets.plist (e.g. `https://www.rapidcortex.us`) so this desktop app loads the same Rapid Cortex web workspace as the browser.")
+                Text("Set **WEB_APP_BASE_URL** in Secrets.plist (e.g. `https://app.rapidcortex.us`) so this desktop app loads the same Rapid Cortex web workspace as the browser.")
                     .multilineTextAlignment(.center)
                     .foregroundStyle(.secondary)
                     .frame(maxWidth: 420)

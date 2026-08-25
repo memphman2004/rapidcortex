@@ -17,6 +17,8 @@ export type NativeDesktopLoginOAuth = {
 
 export type LoginQuerySnapshot = {
   from: string | null;
+  /** `?error=desktop-required` after mobile PSAP/RC sign-in attempt */
+  error: string | null;
   notice: string | null;
   /** `?passwordReset=true` after forgot-password completion */
   passwordReset: boolean;
@@ -79,6 +81,7 @@ export function parseLoginSearchParams(
 ): LoginQuerySnapshot {
   return {
     from: pick(raw, "from"),
+    error: pick(raw, "error"),
     notice: pick(raw, "notice"),
     passwordReset: pick(raw, "passwordReset") === "true",
     signupJustConfirmed: pick(raw, "confirmed") === "1",

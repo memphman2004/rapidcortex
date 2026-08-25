@@ -89,7 +89,7 @@ async function sendPaymentConfirmationEmail(input: {
     new SendTemplatedEmailCommand({
       Source: env.billingSesSenderEmail,
       Destination: { ToAddresses: [input.to] },
-      Template: "payment-received-confirmation",
+      Template: `payment-received-confirmation-${env.deploymentStage}`,
       TemplateData: JSON.stringify({
         customerName: input.customerName,
         invoiceNumber: input.invoiceNumber,

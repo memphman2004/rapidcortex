@@ -12,6 +12,8 @@ import {
 
 export type RcTheme = "dark" | "light";
 
+const RC_THEME_EVENT = "rc-theme-change";
+
 interface ThemeContextValue {
   theme: RcTheme;
   toggleTheme: () => void;
@@ -21,6 +23,21 @@ const ThemeContext = createContext<ThemeContextValue>({
   theme: "dark",
   toggleTheme: () => {},
 });
+
+function isRcTheme(value: string | null | undefined): value is RcTheme {
+  return value === "light" || value === "dark";
+}
+
+function readStoredTheme(storageKey: string, fallback: RcTheme): RcTheme {
+  if (typeof window === "undefined") return fallback;
+  const stored = localStorage.getItem(storageKey);
+  return isRcTheme(stored) ? stored : fallback;
+}
+
+function broadcastTheme(storageKey: string, theme: RcTheme) {
+  localStorage.setItem(storageKey, theme);
+  window.dispatchEvent(new CustomEvent(RC_THEME_EVENT, { detail: { storageKey, theme } }));
+}
 
 /**
  * Wraps a dashboard shell (not the app root) with independent theme state.
@@ -35,16 +52,23 @@ export function ThemeProvider({
   storageKey: string;
   defaultTheme?: RcTheme;
 }) {
-  const [theme, setTheme] = useState<RcTheme>(() => {
-    if (typeof window === "undefined") return defaultTheme;
-    const stored = localStorage.getItem(storageKey);
-    return stored === "light" || stored === "dark" ? stored : defaultTheme;
-  });
+  const [theme, setTheme] = useState<RcTheme>(() => readStoredTheme(storageKey, defaultTheme));
+
+  useEffect(() => {
+    const onChange = (event: Event) => {
+      const detail = (event as CustomEvent<{ storageKey?: string; theme?: string }>).detail;
+      const next = detail?.theme;
+      if (detail?.storageKey !== storageKey || !isRcTheme(next)) return;
+      setTheme(next);
+    };
+    window.addEventListener(RC_THEME_EVENT, onChange);
+    return () => window.removeEventListener(RC_THEME_EVENT, onChange);
+  }, [storageKey]);
 
   const toggleTheme = useCallback(() => {
     setTheme((prev) => {
       const next: RcTheme = prev === "dark" ? "light" : "dark";
-      localStorage.setItem(storageKey, next);
+      broadcastTheme(storageKey, next);
       return next;
     });
   }, [storageKey]);

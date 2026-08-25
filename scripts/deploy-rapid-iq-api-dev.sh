@@ -93,6 +93,16 @@ ensure_table "${COV_TABLE}" \
   --attribute-definitions AttributeName=stateCode,AttributeType=S \
   --key-schema AttributeName=stateCode,KeyType=HASH
 
+CONF_EVENTS_TABLE="${CONFERENCES_TABLE:-rapid-cortex-conferences-dev}"
+ensure_table "${CONF_EVENTS_TABLE}" \
+  --attribute-definitions \
+    AttributeName=conferenceId,AttributeType=S \
+    AttributeName=agencyId,AttributeType=S \
+    AttributeName=startDate,AttributeType=S \
+  --key-schema AttributeName=conferenceId,KeyType=HASH \
+  --global-secondary-indexes \
+    '[{"IndexName":"agencyId-startDate-index","KeySchema":[{"AttributeName":"agencyId","KeyType":"HASH"},{"AttributeName":"startDate","KeyType":"RANGE"}],"Projection":{"ProjectionType":"ALL"}}]'
+
 # shellcheck source=scripts/lib/api-vendor-lock.sh
 source "${ROOT}/scripts/lib/api-vendor-lock.sh"
 # shellcheck source=scripts/lib/prepare-api-vendor-for-sam.sh
@@ -134,6 +144,14 @@ if [[ ! -f "${ROOT}/apps/api/dist/handlers/rapid-iq/collectors/orchestrator.js" 
   echo "ERROR: orchestrator dist missing after build" >&2
   exit 1
 fi
+if [[ ! -f "${ROOT}/apps/api/dist/handlers/rc-admin/refresh-conferences.js" ]]; then
+  echo "ERROR: refresh-conferences dist missing after build" >&2
+  exit 1
+fi
+if [[ ! -f "${ROOT}/apps/api/dist/handlers/rc-admin/conferencesHttp.js" ]]; then
+  echo "ERROR: conferencesHttp dist missing after build" >&2
+  exit 1
+fi
 echo "── Using Rapid IQ handler dist ──"
 
 TEMPLATE="${ROOT}/infra/nested/stack-app-sam-rapid-iq.yaml"
@@ -160,6 +178,7 @@ PARAM_OVERRIDES=(
   "RapidIqSourcesTable=${SRC_TABLE}"
   "RapidIqJurisdictionsTable=${JUR_TABLE}"
   "RapidIqStateCoverageTable=${COV_TABLE}"
+  "ConferencesTable=${CONF_EVENTS_TABLE}"
   "SalesLeadsTable=${SALES_LEADS_TABLE}"
   "AuditTable=${AUDIT_TABLE}"
   AgenciesTable=rapid-cortex-agencies-dev

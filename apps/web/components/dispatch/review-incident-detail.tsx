@@ -2,21 +2,27 @@
 
 import { useQuery } from "@tanstack/react-query";
 import Link from "next/link";
+import { useMemo, useState } from "react";
 import { AiRecommendationPanel } from "@/components/dispatch/ai-panel";
 import { CategoryBadge, StatusBadge, UrgencyBadge } from "@/components/dispatch/badges";
 import { TranscriptPanel } from "@/components/dispatch/transcript-panel";
+import { QaReviewIncidentStrip } from "@/components/dispatch/qa/qa-review-incident-strip";
+import { CreateStakeholderPageButton } from "@/components/command/stakeholder-page-builder";
+import { ReportWriterPanel } from "@/components/dispatcher/report-writer-panel";
+import { useSession } from "@/components/auth/session-context";
 import { formatRelativeOpened } from "@/lib/format";
 import { isApiConfigured } from "@/lib/api";
 import { loadIncident, loadLatestAnalysis, loadTranscript } from "@/lib/queries";
-import { useState } from "react";
-import { QaReviewIncidentStrip } from "@/components/dispatch/qa/qa-review-incident-strip";
 import { useJurisdictionLink } from "@/lib/jurisdiction-context";
-import { isQaScoringEnabled } from "@/lib/runtime-flags";
-import { CreateStakeholderPageButton } from "@/components/command/stakeholder-page-builder";
-import { isStakeholderPagesEnabled } from "@/lib/runtime-flags";
+import {
+  isQaScoringEnabled,
+  isRmsUiEnabled,
+  isStakeholderPagesEnabled,
+} from "@/lib/runtime-flags";
 
 export function ReviewIncidentDetail({ incidentId }: { incidentId: string }) {
   const to = useJurisdictionLink();
+  const { user } = useSession();
   const [autoScroll, setAutoScroll] = useState(true);
 
   const incidentQuery = useQuery({
@@ -35,6 +41,20 @@ export function ReviewIncidentDetail({ incidentId }: { incidentId: string }) {
   });
 
   const inc = incidentQuery.data;
+  const transcriptText = useMemo(() => {
+    const segs = transcriptQuery.data ?? [];
+    return segs
+      .map((s) => `${s.speaker}: ${s.text}`.trim())
+      .filter(Boolean)
+      .join("\n");
+  }, [transcriptQuery.data]);
+
+  const showReportWriter =
+    isRmsUiEnabled() &&
+    !!user?.agencyId &&
+    !!inc &&
+    (inc.status === "completed" || inc.status === "archived") &&
+    transcriptText.length > 0;
 
   if (incidentQuery.isSuccess && !inc) {
     return (
@@ -70,12 +90,12 @@ export function ReviewIncidentDetail({ incidentId }: { incidentId: string }) {
               </>
             )}
           </div>
-          {inc && (
-            <p className="mt-1 max-w-3xl text-sm text-slate-300">{inc.title}</p>
-          )}
+          {inc && <p className="mt-1 max-w-3xl text-sm text-slate-300">{inc.title}</p>}
         </div>
         <div className="flex flex-wrap items-center gap-2">
-          {isStakeholderPagesEnabled() ? <CreateStakeholderPageButton incidentId={incidentId} /> : null}
+          {isStakeholderPagesEnabled() ? (
+            <CreateStakeholderPageButton incidentId={incidentId} />
+          ) : null}
           <Link
             href={`${to("/dashboard")}?incident=${encodeURIComponent(incidentId)}`}
             className="rounded-md bg-slate-800 px-3 py-1.5 text-xs font-medium text-sky-300 ring-1 ring-slate-700 hover:bg-slate-700"
@@ -88,13 +108,39 @@ export function ReviewIncidentDetail({ incidentId }: { incidentId: string }) {
         <QaReviewIncidentStrip incidentId={incidentId} transcript={transcriptQuery.data ?? []} />
       ) : null}
       <div className="flex min-h-0 flex-1">
-        <TranscriptPanel
-          segments={transcriptQuery.data ?? []}
-          autoScroll={autoScroll}
-          onAutoScrollChange={setAutoScroll}
-          isStreaming={false}
-          isLoading={transcriptQuery.isLoading}
-        />
+        <div className="flex min-h-0 min-w-0 flex-1 flex-col">
+          <TranscriptPanel
+            segments={transcriptQuery.data ?? []}
+            autoScroll={autoScroll}
+            onAutoScrollChange={setAutoScroll}
+            isStreaming={false}
+            isLoading={transcriptQuery.isLoading}
+          />
+          {showReportWriter && user?.agencyId ? (
+            <div className="max-h-[42%] overflow-y-auto border-t border-slate-800 p-3">
+              <ReportWriterPanel
+                incidentId={incidentId}
+                agencyId={user.agencyId}
+                transcript={transcriptText}
+                extractedEntities={{
+                  location: inc?.callerAddressLine ?? inc?.cadLocation ?? undefined,
+                  incidentType: inc?.category ?? undefined,
+                  additionalContext: analysisQuery.data?.summary,
+                }}
+                callMetadata={{
+                  callDate: inc?.createdAt?.slice(0, 10),
+                  callTime: inc?.createdAt?.slice(11, 16),
+                  callerPhone: inc?.callerCallback ?? undefined,
+                  cadNumber: inc?.cadIncidentId ?? undefined,
+                }}
+                agencyPreferences={{
+                  narrativeStyle: "first_person",
+                  includeCallerStatements: true,
+                }}
+              />
+            </div>
+          ) : null}
+        </div>
         <AiRecommendationPanel
           incidentId={incidentId}
           incident={inc ?? null}

@@ -21,9 +21,13 @@ import {
 import { env } from "../../lib/env.js";
 import { makeId } from "../../lib/ids.js";
 import {
+  buildEnrichmentChangeLog,
   enrichPsapProspectContacts,
   enrichPsapProspectsInBatches,
 } from "../../lib/psap/enrich-psap-contacts.js";
+import { isExplicitCollectorsMockEnabled } from "../../lib/rapid-iq/agenda-finder.js";
+import { hasApolloApiKey } from "../../lib/rapid-iq/apollo-enrichment.js";
+import { hasHunterApiKey } from "../../lib/rapid-iq/hunter-enrichment.js";
 import { syncContactToAddressBook } from "../../lib/contacts/sync-to-address-book.js";
 import { AuditRepository } from "../../repositories/auditRepository.js";
 import { PsapProspectRepository } from "../../repositories/psapProspectRepository.js";
@@ -37,6 +41,22 @@ const ENRICH_STALE_DAYS = 30;
 const ENRICH_ALL_DEFAULT_LIMIT = 10;
 
 type JsonResult = ReturnType<typeof ok>;
+
+async function requireEnrichmentProviders(): Promise<JsonResult | null> {
+  if (isExplicitCollectorsMockEnabled()) {
+    return serviceUnavailable("Contact enrichment is in mock mode.");
+  }
+  const [hunterConfigured, apolloConfigured] = await Promise.all([
+    hasHunterApiKey(),
+    hasApolloApiKey(),
+  ]);
+  if (!hunterConfigured && !apolloConfigured) {
+    return serviceUnavailable(
+      "Contact enrichment is not configured (Hunter.io and Apollo API keys are missing).",
+    );
+  }
+  return null;
+}
 
 function actorName(user: { displayName?: string; email?: string; userId: string }): string {
   return user.displayName?.trim() || user.email?.trim() || user.userId;
@@ -203,6 +223,8 @@ export async function handler(event: APIGatewayProxyEventV2): Promise<APIGateway
     if (method === "POST" && path.endsWith("/enrich-all")) {
       const role = String(user.role ?? "").toLowerCase();
       if (role !== "rcsuperadmin" && role !== "rcadmin") return forbidden();
+      const providers = await requireEnrichmentProviders();
+      if (providers) return providers;
       let limit = ENRICH_ALL_DEFAULT_LIMIT;
       try {
         const body = JSON.parse(event.body ?? "{}") as { limit?: number };
@@ -247,14 +269,12 @@ export async function handler(event: APIGatewayProxyEventV2): Promise<APIGateway
           }
           console.log(
             JSON.stringify({
-              msg: "psap_prospect_contacts_enriched",
-              psapId: p.psapId,
+              msg: "psap_prospect_contacts_change",
+              prospectId: p.psapId,
               agencyName: p.psapName,
-              contactsFound: enriched.contacts.length,
-              hunterCount: enriched.hunterCount,
-              apolloCount: enriched.apolloCount,
-              domains: enriched.domains,
-              bulk: true,
+              ...(updated
+                ? buildEnrichmentChangeLog(p, updated, enriched)
+                : { changed: false, reason: "save_failed" }),
             }),
           );
           if (updated) {
@@ -290,6 +310,8 @@ export async function handler(event: APIGatewayProxyEventV2): Promise<APIGateway
 
     // POST /{psapId}/enrich-contacts
     if (method === "POST" && psapId && path.includes("/enrich-contacts")) {
+      const providers = await requireEnrichmentProviders();
+      if (providers) return providers;
       const prospect = await repo.get(psapId);
       if (!prospect) return notFound("PSAP not found");
 
@@ -317,15 +339,16 @@ export async function handler(event: APIGatewayProxyEventV2): Promise<APIGateway
         );
       }
 
+      const changeLog = buildEnrichmentChangeLog(prospect, updated, enriched);
       console.log(
         JSON.stringify({
-          msg: "psap_prospect_contacts_enriched",
+          msg: "psap_prospect_contacts_change",
           prospectId: psapId,
           agencyName: prospect.psapName,
-          contactsFound: enriched.contacts.length,
+          websitePresent: Boolean(prospect.website?.trim()),
           hunterCount: enriched.hunterCount,
           apolloCount: enriched.apolloCount,
-          domains: enriched.domains,
+          ...changeLog,
         }),
       );
 
@@ -351,6 +374,9 @@ export async function handler(event: APIGatewayProxyEventV2): Promise<APIGateway
         count: enriched.contacts.length,
         hunterCount: enriched.hunterCount,
         apolloCount: enriched.apolloCount,
+        domains: enriched.domains,
+        changed: changeLog.changed,
+        changeLog,
       });
     }
 

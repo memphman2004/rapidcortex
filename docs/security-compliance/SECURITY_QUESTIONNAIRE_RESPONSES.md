@@ -3,7 +3,7 @@
 **Audience:** agency IT security, CJIS coordinators, procurement.  
 **Status:** **DRAFT** — customize per RFP; not a certification. Remove or edit rows that do not apply to the **specific** deployment profile (pilot vs production, modules sold).
 
-**Supporting artifacts:** [SECURITY_MODEL.md](./SECURITY_MODEL.md), [SUBPROCESSOR_LIST.md](./SUBPROCESSOR_LIST.md), [TENANT_ISOLATION_MODEL.md](./TENANT_ISOLATION_MODEL.md), [AUDIT_EVENT_MATRIX.md](./AUDIT_EVENT_MATRIX.md), [PRIVACY_RETENTION_DECISIONS.md](./PRIVACY_RETENTION_DECISIONS.md), data flow PDF in Internal Product requirements.
+**Supporting artifacts:** [RFP pack](../rfp/README.md) (cybersecurity controls + implementation/transition), [SECURITY_MODEL.md](./SECURITY_MODEL.md), [SUBPROCESSOR_LIST.md](./SUBPROCESSOR_LIST.md), [TENANT_ISOLATION_MODEL.md](./TENANT_ISOLATION_MODEL.md), [AUDIT_EVENT_MATRIX.md](./AUDIT_EVENT_MATRIX.md), [PRIVACY_RETENTION_DECISIONS.md](./PRIVACY_RETENTION_DECISIONS.md), data flow PDF in Internal Product requirements.
 
 ---
 
@@ -107,6 +107,7 @@
 
 ## Attachments checklist for RFP response
 
+- [ ] [RFP pack README](../rfp/README.md) + [cybersecurity-controls.md](../rfp/cybersecurity-controls.md) + [implementation-and-transition.md](../rfp/implementation-and-transition.md)
 - [ ] [SUBPROCESSOR_LIST.md](./SUBPROCESSOR_LIST.md)
 - [ ] Data flow diagram PDF (Internal Product requirements)
 - [ ] CJIS alignment statement PDF
@@ -121,3 +122,4 @@
 | Version | Date | Notes |
 |---------|------|-------|
 | 0.1 | 2026-07-09 | Initial draft for pilot procurement |
+| 0.2 | 2026-08-21 | Link complete RFP cybersecurity + implementation pack |

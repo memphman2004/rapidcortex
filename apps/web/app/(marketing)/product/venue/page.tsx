@@ -1,14 +1,17 @@
 import type { Metadata } from "next";
-import Image from "next/image";
+import dynamic from "next/dynamic";
 import Link from "next/link";
+import { VENUE_HERO_IMAGE, VenueHeroImage } from "@/components/marketing/venue-hero-image";
 import { absoluteUrl, buildOrganizationJsonLd } from "@/lib/seo";
 
-const VENUE_HERO = {
-  src: "/VenueMarketing.png",
-  width: 1672,
-  height: 941,
-  alt: "Rapid Cortex Venue Command — stadium security operations, help tower, and live camera feeds at night",
-} as const;
+const VenueRelatedResources = dynamic(() =>
+  import("@/components/marketing/venue-related-resources").then((m) => ({
+    default: m.VenueRelatedResources,
+  })),
+);
+
+/** Social-preview crawlers (iMessage/Slack/older unfurl bots) have inconsistent WebP support — keep OG/Twitter on a compressed JPEG. */
+const VENUE_OG_IMAGE_SRC = "/images/venue-og.jpg";
 
 export async function generateMetadata(): Promise<Metadata> {
   return {
@@ -29,9 +32,9 @@ export async function generateMetadata(): Promise<Metadata> {
       siteName: "Rapid Cortex",
       images: [
         {
-          url: absoluteUrl(VENUE_HERO.src),
-          width: VENUE_HERO.width,
-          height: VENUE_HERO.height,
+          url: absoluteUrl(VENUE_OG_IMAGE_SRC),
+          width: VENUE_HERO_IMAGE.width,
+          height: VENUE_HERO_IMAGE.height,
           alt: "Rapid Cortex Venue",
         },
       ],
@@ -41,7 +44,7 @@ export async function generateMetadata(): Promise<Metadata> {
       card: "summary_large_image",
       title: "RC Venue | Rapid Cortex",
       description: "Venue and event command intelligence for security teams.",
-      images: [absoluteUrl(VENUE_HERO.src)],
+      images: [absoluteUrl(VENUE_OG_IMAGE_SRC)],
     },
     alternates: { canonical: absoluteUrl("/product/venue") },
   };
@@ -58,16 +61,7 @@ export default function ProductVenuePage() {
         className="relative isolate w-full overflow-hidden bg-slate-950"
       >
         <div className="relative aspect-[1672/941] w-full min-h-[min(56vh,34rem)] sm:min-h-[min(62vh,40rem)]">
-          <Image
-            src={VENUE_HERO.src}
-            alt={VENUE_HERO.alt}
-            width={VENUE_HERO.width}
-            height={VENUE_HERO.height}
-            priority
-            unoptimized
-            className="absolute inset-0 h-full w-full object-cover object-[68%_center] sm:object-center"
-            sizes="100vw"
-          />
+          <VenueHeroImage />
           <div
             className="pointer-events-none absolute inset-0 bg-gradient-to-b from-slate-950/75 via-slate-950/55 to-slate-950/80"
             aria-hidden
@@ -113,6 +107,7 @@ export default function ProductVenuePage() {
           </div>
         </div>
       </section>
+      <VenueRelatedResources />
     </article>
   );
 }

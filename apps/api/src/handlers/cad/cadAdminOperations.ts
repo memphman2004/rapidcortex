@@ -4,6 +4,8 @@ import { AUDIT_EVENT_TYPES, AuthorizationService } from "rapid-cortex-security";
 import {
   cadCapIncidentsQuerySchema,
   cadIncidentsQuerySchema,
+  canonicalizeCadNatureMappings,
+  cadNatureCodeMappingsSchema,
   isRcsuperadmin,
   patchCadIntegrationBodySchema,
   postCadIntegrationBodySchema,
@@ -21,6 +23,7 @@ import { CadIntegrationRepository, type CadIntegrationRecord } from "../../repos
 import { generateCadWebhookToken, hashCadWebhookToken } from "../../services/cad/cadWebhookSecret.js";
 import type { CadWebhookIngressMessage } from "../../services/cad/cadWebhookProcessService.js";
 import {
+  badRequest,
   badRequestFromZod,
   forbidden,
   notFound,
@@ -274,9 +277,17 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
       const existing = await integrationRepo.getById(user.agencyId, id);
       if (!existing) return notFound();
       const { regenerateToken, config, circuitBreaker, ...rest } = parsed.data;
+      let nextConfig = config;
+      if (config && Object.prototype.hasOwnProperty.call(config, "natureCodeMappings")) {
+        const parsedMappings = cadNatureCodeMappingsSchema.safeParse(config.natureCodeMappings);
+        if (!parsedMappings.success) return badRequestFromZod(parsedMappings.error);
+        const canon = canonicalizeCadNatureMappings(parsedMappings.data, () => ulid());
+        if (!canon.ok) return badRequest(canon.error);
+        nextConfig = { ...config, natureCodeMappings: canon.mappings };
+      }
       const salt = env.cadWebhookSecretSalt;
       const updatePayload: Parameters<typeof integrationRepo.update>[2] = { ...rest };
-      if (config) updatePayload.config = config;
+      if (nextConfig) updatePayload.config = nextConfig;
       if (circuitBreaker) updatePayload.circuitBreaker = circuitBreaker;
       let newPlainToken: string | undefined;
       if (regenerateToken) {
@@ -289,13 +300,25 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
       }
       await integrationRepo.update(user.agencyId, id, updatePayload);
       const now = new Date().toISOString();
-      const auditFields = [...Object.keys(rest), ...(regenerateToken ? ["regenerateToken"] : [])];
+      const mappingTouched = Boolean(nextConfig && Object.prototype.hasOwnProperty.call(nextConfig, "natureCodeMappings"));
+      const auditFields = [
+        ...Object.keys(rest),
+        ...(nextConfig ? ["config"] : []),
+        ...(regenerateToken ? ["regenerateToken"] : []),
+        ...(mappingTouched ? ["natureCodeMappings"] : []),
+      ];
       await auditRepo.create({
         eventId: makeId("aud"),
         agencyId: user.agencyId,
         actorId: user.userId,
         type: AUDIT_EVENT_TYPES.CAD_INTEGRATION_UPDATED,
-        details: { integrationId: id, fields: auditFields },
+        details: {
+          integrationId: id,
+          fields: auditFields,
+          ...(mappingTouched
+            ? { mappingCount: Array.isArray(nextConfig?.natureCodeMappings) ? nextConfig.natureCodeMappings.length : 0 }
+            : {}),
+        },
         createdAt: now,
         resourceType: "integration",
         resourceId: id,

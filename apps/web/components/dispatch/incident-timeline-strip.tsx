@@ -15,7 +15,7 @@ export function IncidentTimelineStrip({
 }) {
   if (!incident) {
     return (
-      <div className="shrink-0 border-b border-slate-800 bg-slate-900/30 px-4 py-2 text-xs text-slate-500">
+      <div className="shrink-0 border-b px-4 py-2 text-xs text-[var(--rc-text-muted)]" style={{ borderColor: "var(--rc-border)", background: "var(--rc-panel-bg)" }}>
         Select an incident to view session timeline.
       </div>
     );
@@ -45,17 +45,52 @@ export function IncidentTimelineStrip({
         : "Pending",
     },
   ];
+  if (incident.cadLastSyncAt) {
+    items.push({
+      key: "cad",
+      label: "CAD sync",
+      sub: formatRelativeOpened(incident.cadLastSyncAt),
+    });
+  }
+  if (incident.cadNatureCode) {
+    items.push({
+      key: "nature",
+      label: "CAD nature",
+      sub: incident.cadNatureCode,
+    });
+  }
+  if (incident.cadBeat) {
+    items.push({
+      key: "beat",
+      label: "Beat",
+      sub: incident.cadBeat,
+    });
+  }
+  if (incident.cadDuplicateOfCadNumber) {
+    items.push({
+      key: "dup",
+      label: "Duplicate of",
+      sub: incident.cadDuplicateOfCadNumber,
+    });
+  }
+  if ((incident.cadRelatedCadNumbers ?? []).length > 0) {
+    items.push({
+      key: "rel",
+      label: "Related CFS",
+      sub: (incident.cadRelatedCadNumbers ?? []).slice(0, 3).join(", "),
+    });
+  }
 
   return (
-    <div className="shrink-0 border-b border-slate-800 bg-slate-900/40 px-4 py-2">
-      <div className="mb-1 text-[10px] font-semibold uppercase tracking-wider text-slate-500">
+    <div className="shrink-0 border-b px-4 py-2" style={{ borderColor: "var(--rc-border)", background: "var(--rc-panel-bg)" }}>
+      <div className="mb-1 text-[10px] font-semibold uppercase tracking-wider text-[var(--rc-text-muted)]">
         Session timeline
       </div>
       <div className="flex flex-wrap gap-4">
         {items.map((it) => (
           <div key={it.key} className="min-w-[7rem]">
-            <div className="text-[10px] uppercase tracking-wide text-slate-500">{it.label}</div>
-            <div className="text-xs font-medium text-slate-200">{it.sub}</div>
+            <div className="text-[10px] uppercase tracking-wide text-[var(--rc-text-muted)]">{it.label}</div>
+            <div className="text-xs font-medium text-[var(--rc-text)]">{it.sub}</div>
           </div>
         ))}
       </div>

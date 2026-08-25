@@ -2,7 +2,7 @@
 
 WPF on **.NET 8**: Cognito **Hosted UI** (PKCE), **`/oauth2/token`** exchange via **loopback** redirect, DPAPI-backed session store, API client with `Authorization: Bearer <id_token>`, environment-based config, dashboard health ping, and incidents preview. **Release** builds hide manual token paste; use sign-in or Debug smoke tests.
 
-When **`WebAppBaseUrl`** is set (recommended), the app embeds the **same web workspace** as the browser (WebView2): dispatcher/supervisor navigation shortcuts, **Media / Ring Connect**, and the **Operations Manual** from the toolbar **Manual** menu.
+When **`WebAppBaseUrl`** is set (recommended: `https://app.rapidcortex.us`), the app embeds the **same web workspace** as the browser (WebView2): dispatcher/supervisor navigation shortcuts, **Media / Ring Connect**, and the **Operations Manual** from the toolbar **Manual** menu. Do **not** use `www.rapidcortex.us` (marketing site has no native-login).
 
 ## Run locally
 
@@ -37,5 +37,5 @@ Values in JSON may be overridden with environment variables prefixed `RapidCorte
 
 ## Next steps
 
-- Refresh-token rotation and richer view models for incidents.
-- MSIX / signed installer pipeline (see distribution docs).
+- Microsoft Store MSIX: `store/RapidCortexDesktop.Package.wapproj` — see [APP_STORE_SUBMISSION.md](../../docs/desktop/APP_STORE_SUBMISSION.md).
+- Sideload installer: [README-installer.md](./README-installer.md).

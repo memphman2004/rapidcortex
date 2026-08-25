@@ -4,15 +4,29 @@ VisualStudioVersion = 17.0.31903.59
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RapidCortexDesktop.Wpf", "src\RapidCortexDesktop.Wpf\RapidCortexDesktop.Wpf.csproj", "{8DB9F5B1-0A2C-4E8D-9F1A-2B3C4D5E6F70}"
 EndProject
+Project("{C7167F0D-BC9F-4E6E-A969-83DC33456D75}") = "RapidCortexDesktop.Package", "store\RapidCortexDesktop.Package.wapproj", "{B7E21C90-4D55-4A1F-9C3E-8F0A1B2C3D4E}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
 		Release|Any CPU = Release|Any CPU
+		Debug|x64 = Debug|x64
+		Release|x64 = Release|x64
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
 		{8DB9F5B1-0A2C-4E8D-9F1A-2B3C4D5E6F70}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{8DB9F5B1-0A2C-4E8D-9F1A-2B3C4D5E6F70}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{8DB9F5B1-0A2C-4E8D-9F1A-2B3C4D5E6F70}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{8DB9F5B1-0A2C-4E8D-9F1A-2B3C4D5E6F70}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8DB9F5B1-0A2C-4E8D-9F1A-2B3C4D5E6F70}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{8DB9F5B1-0A2C-4E8D-9F1A-2B3C4D5E6F70}.Debug|x64.Build.0 = Debug|Any CPU
+		{8DB9F5B1-0A2C-4E8D-9F1A-2B3C4D5E6F70}.Release|x64.ActiveCfg = Release|Any CPU
+		{8DB9F5B1-0A2C-4E8D-9F1A-2B3C4D5E6F70}.Release|x64.Build.0 = Release|Any CPU
+		{B7E21C90-4D55-4A1F-9C3E-8F0A1B2C3D4E}.Debug|x64.ActiveCfg = Debug|x64
+		{B7E21C90-4D55-4A1F-9C3E-8F0A1B2C3D4E}.Debug|x64.Build.0 = Debug|x64
+		{B7E21C90-4D55-4A1F-9C3E-8F0A1B2C3D4E}.Debug|x64.Deploy.0 = Debug|x64
+		{B7E21C90-4D55-4A1F-9C3E-8F0A1B2C3D4E}.Release|x64.ActiveCfg = Release|x64
+		{B7E21C90-4D55-4A1F-9C3E-8F0A1B2C3D4E}.Release|x64.Build.0 = Release|x64
+		{B7E21C90-4D55-4A1F-9C3E-8F0A1B2C3D4E}.Release|x64.Deploy.0 = Release|x64
 	EndGlobalSection
 EndGlobal

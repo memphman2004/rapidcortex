@@ -74,6 +74,11 @@ export function marketingPricingPath(): string {
   return withMarketingOrigin("/pricing");
 }
 
+/** Grant Success Program landing page. */
+export function marketingGrantsPath(): string {
+  return withMarketingOrigin("/grants");
+}
+
 /** Public product demo (embedded video + live demo request). */
 export function marketingDemoPath(): string {
   return "/demo";

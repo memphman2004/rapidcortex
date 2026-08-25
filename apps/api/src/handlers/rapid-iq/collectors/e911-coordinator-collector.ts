@@ -3,6 +3,7 @@ import {
   findAgendaDocuments,
 } from "../../../lib/rapid-iq/agenda-finder.js";
 import { classifySignal } from "../../../lib/rapid-iq/claude-classifier.js";
+import { rapidIqIngestSinceDate } from "../../../lib/rapid-iq/ingest-window.js";
 import type { Jurisdiction } from "../../../lib/rapid-iq/jurisdiction-registry.js";
 import { SOURCE_SCORE_BOOSTS } from "../../../lib/rapid-iq/opportunity-scorer.js";
 import {
@@ -13,12 +14,6 @@ import { upsertSignalAndOpportunity } from "./upsert-signal.js";
 
 function sleep(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
-}
-
-function ninetyDaysAgo(): string {
-  const d = new Date();
-  d.setDate(d.getDate() - 90);
-  return d.toISOString().slice(0, 10);
 }
 
 function officeAsJurisdiction(office: StateE911Coordinator): Jurisdiction {
@@ -45,7 +40,7 @@ function officeAsJurisdiction(office: StateE911Coordinator): Jurisdiction {
 
 export async function runE911CoordinatorCollector(): Promise<{ signalsFound: number }> {
   let total = 0;
-  const cutoff = ninetyDaysAgo();
+  const cutoff = rapidIqIngestSinceDate();
   const offices = selectE911OfficesForRun();
 
   console.log(

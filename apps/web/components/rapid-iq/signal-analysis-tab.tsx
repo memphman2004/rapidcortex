@@ -28,7 +28,10 @@ type Props = {
   contacts: RapidIqContact[];
   mentioned: MentionedEntity[];
   demo?: boolean;
-  onConvert: () => void;
+  onAddToPipeline: () => void;
+  onDismiss: () => void;
+  inPipeline?: boolean;
+  pipelineBusy?: boolean;
   onDraftEmail?: () => void;
   draftingEmail?: boolean;
 };
@@ -38,7 +41,10 @@ export function SignalAnalysisTab({
   contacts,
   mentioned,
   demo,
-  onConvert,
+  onAddToPipeline,
+  onDismiss,
+  inPipeline = false,
+  pipelineBusy = false,
   onDraftEmail,
   draftingEmail,
 }: Props) {
@@ -63,11 +69,22 @@ export function SignalAnalysisTab({
             </button>
             <button
               type="button"
-              onClick={onConvert}
-              className="ml-auto flex items-center gap-1.5 rounded bg-sky-600 px-3 py-1.5 text-[11px] font-semibold text-white transition-colors hover:bg-sky-500"
+              onClick={onAddToPipeline}
+              disabled={inPipeline || pipelineBusy}
+              className="ml-auto flex items-center gap-1.5 rounded bg-sky-600 px-3 py-1.5 text-[11px] font-semibold text-white transition-colors hover:bg-sky-500 disabled:opacity-50"
             >
-              Add to Pipeline
+              {inPipeline ? "In Pipeline" : "Send to Pipeline"}
             </button>
+            {!inPipeline && (
+              <button
+                type="button"
+                onClick={onDismiss}
+                disabled={pipelineBusy}
+                className="flex items-center gap-1.5 rounded px-3 py-1.5 text-[11px] font-semibold text-slate-500 hover:text-slate-300"
+              >
+                Dismiss
+              </button>
+            )}
           </div>
         </div>
       </div>

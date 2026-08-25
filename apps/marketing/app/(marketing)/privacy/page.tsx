@@ -13,6 +13,8 @@ export const metadata: Metadata = buildPublicPageMetadata({
 const PRIVACY_NAV = [
   { href: "#sms-consent", label: "SMS & messaging" },
   { href: "#sharing", label: "Sharing" },
+  { href: "#ai-training", label: "AI training" },
+  { href: "#retention", label: "Retention" },
   { href: "#sms", label: "SMS program" },
   { href: "#ring", label: "Ring integration" },
   { href: "#rights", label: "Your rights" },
@@ -25,7 +27,7 @@ export default function PrivacyPolicyPage() {
       eyebrow="Legal"
       title="Privacy policy"
       description={`How ${SITE_NAME} and its operators collect, use, and protect information for public safety agencies, emergency communications teams, and platform users.`}
-      lastReviewed="August 1, 2026"
+      lastReviewed="August 23, 2026"
       navItems={PRIVACY_NAV}
       complianceNote="This page is publicly accessible without login for regulatory and carrier compliance review purposes."
     >
@@ -127,6 +129,33 @@ export default function PrivacyPolicyPage() {
           rented, or shared with third parties, affiliates, or lead generators for marketing or promotional
           purposes.
         </p>
+        <p>
+          Rapid Cortex shares data with the following categories of sub-processors to deliver the
+          service:
+        </p>
+        <ul className="ml-4 list-disc space-y-1 text-slate-400">
+          <li>
+            <span className="text-slate-300">Infrastructure:</span> Amazon Web Services (AWS) — hosting,
+            storage, and compute
+          </li>
+          <li>
+            <span className="text-slate-300">Communications:</span> Twilio Inc. — SMS and voice messaging
+          </li>
+          <li>
+            <span className="text-slate-300">Camera integration:</span> Ring LLC (Amazon) — device
+            authorization and live video streaming, solely pursuant to user consent
+          </li>
+          <li>
+            <span className="text-slate-300">AI processing:</span> Anthropic PBC — natural language
+            processing and transcription analysis under a data processing agreement
+          </li>
+        </ul>
+        <p>
+          Rapid Cortex does not sell, rent, or share personal data with third parties for advertising,
+          marketing, or any purpose other than delivering the contracted services. A complete list of
+          sub-processors is published at{" "}
+          <Link href="/legal/sub-processors">rapidcortex.us/legal/sub-processors/</Link>.
+        </p>
       </section>
 
       <section id="sms" className="space-y-3">
@@ -163,11 +192,19 @@ export default function PrivacyPolicyPage() {
         </p>
       </section>
 
-      <section className="space-y-3">
-        <h2 className="text-base font-semibold text-white">Retention</h2>
+      <section id="retention" className="space-y-3">
+        <h2 className="text-base font-semibold text-white">Data retention</h2>
         <p>
-          We retain data as long as needed to provide the service and meet contractual and legal
-          obligations, including your agency’s retention and audit settings where configured.
+          Incident and call data is retained for the duration of the agency&apos;s active subscription
+          plus 90 days following contract termination, after which it is permanently deleted. Ring
+          camera access tokens are deleted immediately upon account unlinking or subscription
+          termination. Audit logs are retained for 7 years in compliance with public safety
+          recordkeeping requirements. Users may request data deletion by contacting{" "}
+          <a href="mailto:privacy@rapidcortex.us">privacy@rapidcortex.us</a>.
+        </p>
+        <p>
+          Ring™ video is not stored in Rapid Cortex systems (retention period: 0 days). Control of Ring™
+          video history remains with Ring™ and the Ring™ Device Owner.
         </p>
       </section>
 
@@ -222,17 +259,21 @@ export default function PrivacyPolicyPage() {
         </p>
       </section>
 
-      <section className="space-y-3">
-        <h2 className="text-base font-semibold text-white">AI updates and training choices</h2>
+      <section id="ai-training" className="space-y-3">
+        <h2 className="text-base font-semibold text-white">
+          Use of customer data for AI model training
+        </h2>
+        <p>
+          Rapid Cortex does not use customer data, incident data, call recordings, transcripts, or any
+          personally identifiable information to train, fine-tune, or develop AI or machine learning
+          models. AI functionality within Rapid Cortex is provided by third-party AI providers operating
+          under data processing agreements that explicitly prohibit the use of customer data for model
+          training purposes.
+        </p>
         <p>
           We communicate material AI capability updates (including new features, quality/accuracy changes, and
           detection enhancements) through product release notes, in-app notices, and direct agency communications as
           appropriate.
-        </p>
-        <p>
-          If an agency opts out of eligible data usage for model training or product improvement workflows, core
-          contracted service functionality remains available, but certain improvement-driven capabilities may progress
-          more slowly for that deployment.
         </p>
       </section>
 

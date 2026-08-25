@@ -6,12 +6,12 @@ import { CampusDashboardHeaderUtilities } from "@/components/campus/campus-dashb
 
 const C = {
   surface: "var(--rc-surface)",
-  border: "rgba(255,255,255,0.07)",
-  borderHard: "rgba(255,255,255,0.12)",
+  border: "var(--rc-border)",
+  borderHard: "var(--rc-border-hard)",
   text: "var(--rc-text-primary)",
   textMuted: "var(--rc-text-muted)",
   blue: "var(--rc-blue)",
-  crestBg: "#1e3a5f",
+  crestBg: "var(--rc-crest)",
 } as const;
 
 const roleBadgeMap: Record<string, string> = {

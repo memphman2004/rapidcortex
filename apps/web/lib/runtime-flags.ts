@@ -20,6 +20,7 @@ const NEXT_PUBLIC_FLAG_VALUES: Record<string, string | undefined> = {
   NEXT_PUBLIC_ENABLE_SEO_INTELLIGENCE: process.env.NEXT_PUBLIC_ENABLE_SEO_INTELLIGENCE,
   NEXT_PUBLIC_ENABLE_DECEPTION_SHIELD_UI: process.env.NEXT_PUBLIC_ENABLE_DECEPTION_SHIELD_UI,
   NEXT_PUBLIC_ENABLE_CAD_ADMIN: process.env.NEXT_PUBLIC_ENABLE_CAD_ADMIN,
+  NEXT_PUBLIC_ENABLE_CAD_NATURE_MAPPING: process.env.NEXT_PUBLIC_ENABLE_CAD_NATURE_MAPPING,
   NEXT_PUBLIC_ENABLE_CAD_WRITEBACK: process.env.NEXT_PUBLIC_ENABLE_CAD_WRITEBACK,
   NEXT_PUBLIC_ENABLE_SLA_BACKLOG: process.env.NEXT_PUBLIC_ENABLE_SLA_BACKLOG,
   NEXT_PUBLIC_ENABLE_WAR_ROOMS: process.env.NEXT_PUBLIC_ENABLE_WAR_ROOMS,
@@ -54,6 +55,9 @@ const NEXT_PUBLIC_FLAG_VALUES: Record<string, string | undefined> = {
   NEXT_PUBLIC_ENABLE_CONNECT_NEST: process.env.NEXT_PUBLIC_ENABLE_CONNECT_NEST,
   NEXT_PUBLIC_ENABLE_RAPID_IQ: process.env.NEXT_PUBLIC_ENABLE_RAPID_IQ,
   NEXT_PUBLIC_ENABLE_RAPID_IQ_PIPELINE: process.env.NEXT_PUBLIC_ENABLE_RAPID_IQ_PIPELINE,
+  NEXT_PUBLIC_ENABLE_CONFERENCES: process.env.NEXT_PUBLIC_ENABLE_CONFERENCES,
+  NEXT_PUBLIC_ENABLE_ESCALATION: process.env.NEXT_PUBLIC_ENABLE_ESCALATION,
+  NEXT_PUBLIC_ENABLE_RMS: process.env.NEXT_PUBLIC_ENABLE_RMS,
   NEXT_PUBLIC_ENABLE_CONTACTS_MODULE: process.env.NEXT_PUBLIC_ENABLE_CONTACTS_MODULE,
   NEXT_PUBLIC_WEBSOCKET_URL: process.env.NEXT_PUBLIC_WEBSOCKET_URL,
 };
@@ -191,9 +195,14 @@ export function isDeceptionShieldUiEnabled(): boolean {
   return envFlag("NEXT_PUBLIC_ENABLE_DECEPTION_SHIELD_UI");
 }
 
-/** CAD integration admin (SAM stack-1 `/api/admin/cad-*`). Opt-in UI. */
+/** CAD integration admin (SAM stack-1 `/api/admin/cad-*`). Default on when unset. */
 export function isCadAdminUiEnabled(): boolean {
   return envFlag("NEXT_PUBLIC_ENABLE_CAD_ADMIN");
+}
+
+/** Agency CAD nature-code → Rapid Cortex type/SOP mapping editor. Default on when unset. */
+export function isCadNatureMappingUiEnabled(): boolean {
+  return envFlag("NEXT_PUBLIC_ENABLE_CAD_NATURE_MAPPING");
 }
 
 /** CAD vendor write-back from dispatcher workspace (requires API Step 7). Off by default. */
@@ -396,7 +405,22 @@ export function isRapidIqPipelineUiEnabled(): boolean {
   return envFlag("NEXT_PUBLIC_ENABLE_RAPID_IQ_PIPELINE");
 }
 
+/** RC Admin conference tracker (weekly website refresh). Default on when unset. */
+export function isConferencesUiEnabled(): boolean {
+  return envFlag("NEXT_PUBLIC_ENABLE_CONFERENCES");
+}
+
 /** RC Admin Contacts address book. Default on when unset. */
 export function isContactsModuleUiEnabled(): boolean {
   return envFlag("NEXT_PUBLIC_ENABLE_CONTACTS_MODULE");
+}
+
+/** Venue/campus → 911 Escalation Bridge. Default on when unset. */
+export function isEscalationUiEnabled(): boolean {
+  return envFlag("NEXT_PUBLIC_ENABLE_ESCALATION");
+}
+
+/** AI Report Writer / NIBRS / RMS push / pre-call context. Default ON when unset. */
+export function isRmsUiEnabled(): boolean {
+  return envFlag("NEXT_PUBLIC_ENABLE_RMS");
 }

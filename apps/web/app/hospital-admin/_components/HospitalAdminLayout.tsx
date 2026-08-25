@@ -61,7 +61,7 @@ function HospitalAdminLayoutInner({ children, role, facilityName }: Props) {
   const isAdmin = isHospitalAdminRole(role);
   const isCoordinator = isHospitalCoordinatorRole(role);
   const badge = hospitalRoleBadge(role);
-  const { rootRef } = useThemeRoot<HTMLDivElement>();
+  const { theme, rootRef } = useThemeRoot<HTMLDivElement>();
 
   const visibleNav = NAV_ITEMS.filter(item => {
     if (item.adminOnly && !isAdmin) return false;
@@ -70,9 +70,14 @@ function HospitalAdminLayoutInner({ children, role, facilityName }: Props) {
 
   return (
     <HelpChrome role={role}>
-    <div ref={rootRef} data-theme="dark" className="flex min-h-screen bg-slate-950">
+    <div
+      ref={rootRef}
+      data-theme={theme}
+      className="flex min-h-screen bg-[var(--rc-bg)] text-[var(--rc-text-primary)]"
+      style={{ colorScheme: theme }}
+    >
       {/* Sidebar */}
-      <aside className="flex w-56 flex-shrink-0 flex-col border-r border-slate-800 bg-slate-900">
+      <aside className="flex w-56 flex-shrink-0 flex-col border-r border-slate-800 bg-[var(--rc-surface)]">
         {/* Brand / facility header */}
         <div className="border-b border-slate-800 px-4 py-4">
           <div className="flex items-center gap-2">

@@ -1039,8 +1039,8 @@ Resources:
     Type: AWS::Serverless::HttpApi
     Properties:
       DefaultRouteSettings:
-        ThrottlingBurstLimit: 200
-        ThrottlingRateLimit: 100
+        ThrottlingBurstLimit: 1000
+        ThrottlingRateLimit: 500
       CorsConfiguration:
         AllowOrigins: !Split [",", !Ref HttpApiCorsAllowedOrigins]
         AllowHeaders:
@@ -1735,6 +1735,31 @@ Resources:
           Properties:
             ApiId: !Ref Api
             Path: /api/platform/grant-generate
+            Method: POST
+
+  GrantWriterHttpFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/handlers/rc-admin/grantWriterHttp.handler
+      Timeout: 180
+      MemorySize: 1024
+      Environment:
+        Variables:
+          # Never put ANTHROPIC_API_KEY in Lambda env. Secret ARN is in RC_RUNTIME_CONFIG_JSON (`aa`).
+          GRANT_WRITER_MOCK: !If [HasAnthropicApiKeySecretArn, "false", "true"]
+      Policies:
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardA
+        - !Ref AppManagedPolicySecretsAnalyzeProvidersRead
+      Events:
+        RcAdminGrantWriterRoute:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/rc-admin/grant-writer/generate
             Method: POST
 
   GetDesktopReleasesOverviewFunction:
@@ -2519,6 +2544,32 @@ Resources:
             Path: /api/rc-admin/pricing/config/agency-override
             Method: POST
 
+  HealthFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      Environment:
+        Variables:
+          HEALTH_STACK_ID: "3"
+      CodeUri: ../../apps/api/
+      Handler: dist/handlers/health.handler
+      Timeout: 5
+      MemorySize: 128
+      Description: Public liveness probe for stack 3 HttpApi (no JWT)
+      Policies:
+        - !Ref AppManagedPolicyS3ApplicationBucketsCrud
+      Events:
+        HealthRoute:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/health
+            Method: GET
+            Auth:
+              Authorizer: NONE
+
 Outputs:
   OpsAlertsTopicArn:
     Description: SNS topic ARN for CloudWatch alarm notifications (stack 3 ops).
@@ -2532,6 +2583,12 @@ Outputs:
   GenerateGrantPackageFunctionArn:
     Description: Lambda ARN for grant PDF generation (web ECS task role invoke).
     Value: !GetAtt GenerateGrantPackageFunction.Arn
+  GrantWriterFunctionName:
+    Description: Lambda name for Grant Success Program .docx writer (web BFF Invoke — bypasses API GW 30s cap).
+    Value: !Ref GrantWriterHttpFunction
+  GrantWriterFunctionArn:
+    Description: Lambda ARN for grant writer (web ECS task role invoke).
+    Value: !GetAtt GrantWriterHttpFunction.Arn
   HttpApiId:
     Description: HTTP API ID (stack 3)
     Value: !Ref Api

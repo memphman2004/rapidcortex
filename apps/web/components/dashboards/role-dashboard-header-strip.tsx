@@ -14,7 +14,7 @@ function StatPill({ label, value }: { label: string; value: string }) {
       className="rounded-md border px-3 py-1.5"
       style={{
         borderColor: "color-mix(in srgb, var(--role-accent) 35%, transparent)",
-        backgroundColor: "color-mix(in srgb, var(--role-accent-dim) 45%, rgb(2 6 23))",
+        backgroundColor: "color-mix(in srgb, var(--role-accent-dim) 45%, var(--rc-nav-active-mix, rgb(2 6 23)))",
       }}
     >
       <p className="text-[10px] font-medium uppercase tracking-wide" style={{ color: "var(--role-text-accent)" }}>
@@ -37,7 +37,7 @@ export function RoleDashboardHeaderStrip({
   const stripStyle = {
     borderColor: id.accentMuted,
     borderTop: `3px solid ${id.accent}`,
-    background: `linear-gradient(90deg, color-mix(in srgb, ${id.dim} 75%, #020617) 0%, #020617 60%)`,
+    background: `linear-gradient(90deg, color-mix(in srgb, ${id.dim} 75%, var(--rc-nav-active-mix, #020617)) 0%, var(--rc-nav-active-mix, #020617) 60%)`,
   } as const;
 
   if (prefix === "dispatcher") {

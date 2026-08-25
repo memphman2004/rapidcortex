@@ -22,11 +22,14 @@ import "./globals.css";
 const geistSans = Geist({
   variable: "--font-geist-sans",
   subsets: ["latin"],
+  display: "swap",
 });
 
 const geistMono = Geist_Mono({
   variable: "--font-geist-mono",
   subsets: ["latin"],
+  display: "swap",
+  preload: false,
 });
 
 const inter = Inter({
@@ -40,6 +43,7 @@ const modern = DM_Sans({
   subsets: ["latin"],
   variable: "--font-modern",
   display: "swap",
+  preload: false,
 });
 
 const poppins = Poppins({
@@ -47,6 +51,7 @@ const poppins = Poppins({
   weight: ["400", "500", "600", "700"],
   variable: "--font-poppins",
   display: "swap",
+  preload: false,
 });
 
 const roboto = Roboto({
@@ -54,6 +59,7 @@ const roboto = Roboto({
   weight: ["400", "500", "700"],
   variable: "--font-roboto",
   display: "swap",
+  preload: false,
 });
 
 const ibmPlexSans = IBM_Plex_Sans({
@@ -61,18 +67,21 @@ const ibmPlexSans = IBM_Plex_Sans({
   weight: ["400", "500", "600", "700"],
   variable: "--font-ibm-plex-sans",
   display: "swap",
+  preload: false,
 });
 
 const openSans = Open_Sans({
   subsets: ["latin"],
   variable: "--font-open-sans",
   display: "swap",
+  preload: false,
 });
 
 const manrope = Manrope({
   subsets: ["latin"],
   variable: "--font-manrope",
   display: "swap",
+  preload: false,
 });
 
 /** Source Sans Pro successor on Google Fonts */
@@ -80,6 +89,7 @@ const sourceSans = Source_Sans_3({
   subsets: ["latin"],
   variable: "--font-source-sans",
   display: "swap",
+  preload: false,
 });
 
 const siteUrl = getSiteUrl();
@@ -91,6 +101,12 @@ const gaEnabled = GA_MEASUREMENT_ID.length > 0;
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
   applicationName: SITE_NAME,
+  manifest: "/manifest.json",
+  appleWebApp: {
+    capable: true,
+    title: "RC Venue",
+    statusBarStyle: "black-translucent",
+  },
   title: {
     default: SITE_NAME,
     template: `%s | ${SITE_NAME}`,
@@ -178,9 +194,9 @@ export default function RootLayout({
           <>
             <Script
               src={`https://www.googletagmanager.com/gtag/js?id=${GA_MEASUREMENT_ID}`}
-              strategy="beforeInteractive"
+              strategy="afterInteractive"
             />
-            <Script id="google-analytics" strategy="beforeInteractive">
+            <Script id="google-analytics" strategy="afterInteractive">
               {`
             window.dataLayer = window.dataLayer || [];
             function gtag(){dataLayer.push(arguments);}

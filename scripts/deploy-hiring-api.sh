@@ -5,6 +5,13 @@
 # AppSam3 keeps Careers* / RcAdminApplications* behind EnableHiringInAppSam3=false so a
 # normal AppSam3 update does not collide with these routes.
 #
+# If AppSam3 replaces HttpApi3, hiring Route/Integration physical IDs go missing while
+# CloudFormation still tracks them. Do NOT sam deploy until you:
+#   1) ship DeletionPolicy: Retain on those resources (already in this template)
+#   2) strip Route/Integration resources and update (stack forgets missing IDs)
+#   3) restore the resources and update (creates live routes again)
+# Or run scripts/restore-hiring-httpapi-routes.sh to recreate live routes immediately.
+#
 # Usage:
 #   source scripts/env-api-dev.sh && bash scripts/deploy-hiring-api.sh
 #

@@ -11,8 +11,11 @@ import {
 } from "@aws-sdk/lib-dynamodb";
 import { createHash } from "node:crypto";
 import type {
+  RapidIqAgencyContact,
+  RapidIqAgencyProfile,
   RapidIqPipelineSignal,
   RapidIqPipelineSignalStatus,
+  RapidIqProcurementStage,
 } from "rapid-cortex-shared";
 import { env } from "../../env.js";
 import { ddb } from "../../../repositories/baseRepository.js";
@@ -43,14 +46,19 @@ export function contentHash(title: string, snippet: string): string {
     .slice(0, 32);
 }
 
-export async function signalExistsByHash(hash: string): Promise<boolean> {
+export async function getSignalIdByHash(hash: string): Promise<string | null> {
   const res = await ddb.send(
     new GetCommand({
       TableName: table(),
       Key: { pk: `HASH#${hash}`, sk: "META" },
     }),
   );
-  return !!res.Item;
+  const id = res.Item?.signalId;
+  return typeof id === "string" && id.trim() ? id : null;
+}
+
+export async function signalExistsByHash(hash: string): Promise<boolean> {
+  return (await getSignalIdByHash(hash)) != null;
 }
 
 export async function reserveHash(hash: string, signalId: string): Promise<void> {
@@ -190,4 +198,210 @@ export async function updateSignalStatus(
   const updated = await getSignal(signalId);
   if (!updated) throw new Error(`Signal ${signalId} missing after update`);
   return updated;
+}
+
+const AGENCY_PROFILE_GSI2PK = "AGENCY_PROFILE";
+
+function agencyPk(agencyId: string) {
+  return `AGENCY#${agencyId}`;
+}
+
+function stripAgencyKeys(obj: Record<string, unknown>): RapidIqAgencyProfile {
+  const { pk: _pk, sk: _sk, gsi1pk: _g1, gsi1sk: _g1s, gsi2pk: _g2, gsi2sk: _g2s, ...rest } = obj;
+  void _pk;
+  void _sk;
+  void _g1;
+  void _g1s;
+  void _g2;
+  void _g2s;
+  return rest as RapidIqAgencyProfile;
+}
+
+function stripContactKeys(obj: Record<string, unknown>): RapidIqAgencyContact {
+  const { pk: _pk, sk: _sk, gsi1pk: _g1, gsi1sk: _g1s, gsi2pk: _g2, gsi2sk: _g2s, ...rest } = obj;
+  void _pk;
+  void _sk;
+  void _g1;
+  void _g1s;
+  void _g2;
+  void _g2s;
+  return rest as RapidIqAgencyContact;
+}
+
+export async function updateSignalFields(
+  signalId: string,
+  fields: {
+    status?: RapidIqPipelineSignalStatus;
+    procurementStage?: RapidIqProcurementStage;
+    agencyProfileId?: string;
+    recommendedAction?: string;
+  },
+): Promise<RapidIqPipelineSignal> {
+  const current = await getSignal(signalId);
+  if (!current) throw new Error(`Signal ${signalId} not found`);
+  const now = new Date().toISOString();
+  const status = fields.status ?? current.status;
+  const names: Record<string, string> = {};
+  const values: Record<string, unknown> = {
+    ":gsi1pk": gsi1pk(status),
+    ":gsi1sk": gsi1sk(current.fitScore, current.signalDate),
+    ":now": now,
+  };
+  const sets = ["gsi1pk = :gsi1pk", "gsi1sk = :gsi1sk"];
+
+  if (fields.status) {
+    names["#status"] = "status";
+    values[":status"] = fields.status;
+    sets.push("#status = :status");
+    sets.push("reviewedAt = :now");
+  }
+  if (fields.procurementStage) {
+    names["#stage"] = "procurementStage";
+    values[":stage"] = fields.procurementStage;
+    sets.push("#stage = :stage");
+  }
+  if (fields.agencyProfileId) {
+    values[":agencyProfileId"] = fields.agencyProfileId;
+    sets.push("agencyProfileId = :agencyProfileId");
+  }
+  if (fields.recommendedAction) {
+    values[":recommendedAction"] = fields.recommendedAction;
+    sets.push("recommendedAction = :recommendedAction");
+  }
+
+  await ddb.send(
+    new UpdateCommand({
+      TableName: table(),
+      Key: { pk: pk(signalId), sk: "META" },
+      UpdateExpression: `SET ${sets.join(", ")}`,
+      ExpressionAttributeValues: values,
+      ...(Object.keys(names).length > 0 ? { ExpressionAttributeNames: names } : {}),
+    }),
+  );
+  const updated = await getSignal(signalId);
+  if (!updated) throw new Error(`Signal ${signalId} missing after update`);
+  return updated;
+}
+
+export async function putAgencyProfile(profile: RapidIqAgencyProfile): Promise<void> {
+  await ddb.send(
+    new PutCommand({
+      TableName: table(),
+      Item: {
+        ...profile,
+        pk: agencyPk(profile.agencyId),
+        sk: "PROFILE",
+        gsi2pk: AGENCY_PROFILE_GSI2PK,
+        gsi2sk: `${String(profile.combinedScore).padStart(3, "0")}#${profile.agencyId}`,
+      },
+    }),
+  );
+}
+
+export async function getAgencyProfile(agencyId: string): Promise<RapidIqAgencyProfile | null> {
+  const res = await ddb.send(
+    new GetCommand({
+      TableName: table(),
+      Key: { pk: agencyPk(agencyId), sk: "PROFILE" },
+    }),
+  );
+  if (!res.Item) return null;
+  return stripAgencyKeys(res.Item as Record<string, unknown>);
+}
+
+export async function listAgencyProfiles(limit = 200): Promise<RapidIqAgencyProfile[]> {
+  const items: RapidIqAgencyProfile[] = [];
+  let startKey: Record<string, unknown> | undefined;
+  do {
+    const res = await ddb.send(
+      new QueryCommand({
+        TableName: table(),
+        IndexName: "gsi2-source-date",
+        KeyConditionExpression: "gsi2pk = :pk",
+        ExpressionAttributeValues: { ":pk": AGENCY_PROFILE_GSI2PK },
+        ScanIndexForward: false,
+        Limit: Math.min(100, limit - items.length),
+        ExclusiveStartKey: startKey,
+      }),
+    );
+    for (const item of res.Items ?? []) {
+      items.push(stripAgencyKeys(item as Record<string, unknown>));
+    }
+    startKey = res.LastEvaluatedKey as Record<string, unknown> | undefined;
+  } while (startKey && items.length < limit);
+  return items;
+}
+
+export async function putAgencySignalLink(
+  agencyId: string,
+  signal: {
+    signalId: string;
+    rawTitle: string;
+    signalDate: string;
+    sourceUrl: string;
+    combinedScore?: number;
+    fitScore: number;
+  },
+): Promise<void> {
+  await ddb.send(
+    new PutCommand({
+      TableName: table(),
+      Item: {
+        pk: agencyPk(agencyId),
+        sk: `SIGNAL#${signal.signalId}`,
+        signalId: signal.signalId,
+        rawTitle: signal.rawTitle,
+        signalDate: signal.signalDate,
+        sourceUrl: signal.sourceUrl,
+        combinedScore: signal.combinedScore ?? signal.fitScore,
+      },
+    }),
+  );
+}
+
+export async function listAgencySignalLinks(
+  agencyId: string,
+): Promise<Array<{ signalId: string; signalDate?: string; combinedScore?: number }>> {
+  const res = await ddb.send(
+    new QueryCommand({
+      TableName: table(),
+      KeyConditionExpression: "pk = :pk AND begins_with(sk, :sk)",
+      ExpressionAttributeValues: { ":pk": agencyPk(agencyId), ":sk": "SIGNAL#" },
+      Limit: 100,
+    }),
+  );
+  return (res.Items ?? []).map((item) => ({
+    signalId: String(item.signalId ?? String(item.sk ?? "").replace(/^SIGNAL#/, "")),
+    signalDate: typeof item.signalDate === "string" ? item.signalDate : undefined,
+    combinedScore: typeof item.combinedScore === "number" ? item.combinedScore : undefined,
+  }));
+}
+
+export async function putAgencyContact(contact: RapidIqAgencyContact): Promise<void> {
+  await ddb.send(
+    new PutCommand({
+      TableName: table(),
+      Item: {
+        ...contact,
+        pk: agencyPk(contact.agencyId),
+        sk: `CONTACT#${contact.contactId}`,
+      },
+    }),
+  );
+}
+
+export async function listAgencyContacts(agencyId: string): Promise<RapidIqAgencyContact[]> {
+  const res = await ddb.send(
+    new QueryCommand({
+      TableName: table(),
+      KeyConditionExpression: "pk = :pk AND begins_with(sk, :sk)",
+      ExpressionAttributeValues: { ":pk": agencyPk(agencyId), ":sk": "CONTACT#" },
+      Limit: 50,
+    }),
+  );
+  return (res.Items ?? []).map((i) => stripContactKeys(i as Record<string, unknown>));
+}
+
+export async function listSignalsForResearch(limit = 200): Promise<RapidIqPipelineSignal[]> {
+  return listAllSignals(limit);
 }

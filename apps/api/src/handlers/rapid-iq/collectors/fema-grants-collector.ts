@@ -4,6 +4,7 @@ import {
   isCollectorsMockEnabled,
 } from "../../../lib/rapid-iq/agenda-finder.js";
 import { classifySignal } from "../../../lib/rapid-iq/claude-classifier.js";
+import { rapidIqIngestSinceDate } from "../../../lib/rapid-iq/ingest-window.js";
 import type { Jurisdiction } from "../../../lib/rapid-iq/jurisdiction-registry.js";
 import { SOURCE_SCORE_BOOSTS } from "../../../lib/rapid-iq/opportunity-scorer.js";
 import { upsertSignalAndOpportunity } from "./upsert-signal.js";
@@ -19,6 +20,8 @@ const FEMA_GRANT_KEYWORDS = [
   "first responder",
   "dispatch",
   "campus safety",
+  "ng911",
+  "esinet",
 ];
 
 type FemaGrant = {
@@ -103,7 +106,7 @@ function normalizeFemaGrants(payload: unknown, collectionKey: string): FemaGrant
   });
 }
 
-async function fetchFemaBricGrants(daysBack = 90): Promise<FemaGrant[]> {
+async function fetchFemaBricGrants(): Promise<FemaGrant[]> {
   if (isCollectorsMockEnabled()) {
     return [
       {
@@ -122,9 +125,7 @@ async function fetchFemaBricGrants(daysBack = 90): Promise<FemaGrant[]> {
     ];
   }
 
-  const cutoff = new Date();
-  cutoff.setDate(cutoff.getDate() - daysBack);
-  const cutoffStr = cutoff.toISOString().slice(0, 10);
+  const cutoffStr = rapidIqIngestSinceDate();
 
   const endpoints = [
     "HazardMitigationGrantProgramProjectSummaries",
@@ -163,7 +164,7 @@ export async function runFemaGrantsCollector(): Promise<{ signalsFound: number }
   let total = 0;
 
   try {
-    const bricGrants = await fetchFemaBricGrants(90);
+    const bricGrants = await fetchFemaBricGrants();
     let matched = 0;
 
     for (const grant of bricGrants) {

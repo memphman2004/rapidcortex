@@ -9,12 +9,12 @@ import { navIconByName } from "@/lib/navigation/nav-icons";
 import { getRoleNav, type NavItem } from "@/lib/navigation/role-nav";
 
 const C = {
-  surface: "#0d1321",
-  border: "rgba(255,255,255,0.07)",
-  text: "#e2e8f0",
-  textSub: "#94a3b8",
-  textMuted: "#64748b",
-  blue: "#3b82f6",
+  surface: "var(--rc-surface)",
+  border: "var(--rc-border)",
+  text: "var(--rc-text-primary)",
+  textSub: "var(--rc-text-secondary)",
+  textMuted: "var(--rc-text-muted)",
+  blue: "var(--rc-blue)",
 } as const;
 
 function navItemActive(pathname: string, item: NavItem): boolean {

@@ -9,6 +9,6 @@
     "tsBuildInfoFile": "./.tsbuildinfo",
     "types": ["node", "aws-lambda"]
   },
-  "include": ["src/**/*.ts"],
+  "include": ["src/**/*.ts", "src/**/*.json"],
   "exclude": ["src/**/*.test.ts", "src/**/__tests__/**"]
 }

@@ -438,7 +438,7 @@ export function HospitalDashboardClient({ agencyId, role, displayName }: Props) 
   const greeting = hour < 12 ? "Good morning" : hour < 17 ? "Good afternoon" : "Good evening";
 
   return (
-    <div className="min-h-full bg-slate-950 p-6">
+    <div className="min-h-full bg-[var(--rc-bg)] p-6 text-[var(--rc-text-primary)]">
       {/* Page header */}
       <div className="mb-6">
         <p className="text-xs font-medium uppercase tracking-widest text-teal-600">

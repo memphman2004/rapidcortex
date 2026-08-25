@@ -35,6 +35,29 @@ export const cadIncidentStatusSchema = z.enum(["active", "pending", "resolved", 
 
 export const cadPrioritySchema = z.enum(["P1", "P2", "P3", "P4"]);
 
+export const cadLocationSourceSchema = z.enum(["cad", "e911", "ali", "manual"]);
+export type CadLocationSource = z.infer<typeof cadLocationSourceSchema>;
+
+export const cadAniAliSourceSchema = z.enum(["e911", "cad", "manual"]);
+export type CadAniAliSource = z.infer<typeof cadAniAliSourceSchema>;
+
+/** Assigned unit as received from CAD (read-only intelligence — Rapid Cortex does not dispatch units). */
+export const cadUnitAssignmentSchema = z.object({
+  unitId: z.string().min(1).max(64),
+  unitType: z.string().max(40).optional(),
+  status: z.string().max(40).optional(),
+  etaSeconds: z.number().int().min(0).max(86_400).optional(),
+  beat: z.string().max(40).optional(),
+  callSign: z.string().max(40).optional(),
+});
+export type CadUnitAssignment = z.infer<typeof cadUnitAssignmentSchema>;
+
+export const cadAlertSchema = z.object({
+  type: z.string().min(1).max(80),
+  text: z.string().min(1).max(500),
+});
+export type CadAlert = z.infer<typeof cadAlertSchema>;
+
 export const postCadIntegrationBodySchema = z.object({
   vendor: cadVendorSchema,
   connectionType: cadConnectionTypeSchema,

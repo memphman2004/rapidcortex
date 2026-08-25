@@ -8,6 +8,7 @@ import type {
   CadSearchQuery,
   CadWriteResult,
 } from "@/lib/rapid-cortex/cad/CadAdapter";
+import { asUnitList, firstString, unwrapCadIncidentList } from "@/lib/rapid-cortex/cad/vendors/http-json-cad-client";
 
 type FetchLike = typeof fetch;
 
@@ -86,12 +87,17 @@ export class MotorolaPremierOneCadAdapter implements CadAdapter {
     if (query.limit) search.set("limit", String(query.limit));
     const suffix = search.toString();
     const payload = await this.request(`/incidents${suffix ? `?${suffix}` : ""}`);
-
-    if (!Array.isArray(payload)) {
-      throw new Error("Malformed CAD response: incidents list must be an array.");
+    const list = Array.isArray(payload) ? payload : unwrapCadIncidentList(payload);
+    if (!Array.isArray(payload) && list.length === 0) {
+      const o = payload && typeof payload === "object" ? (payload as Record<string, unknown>) : null;
+      const emptyEnvelope =
+        o &&
+        ["incidents", "Incidents", "events", "Events", "data", "results", "value"].some((k) => k in o);
+      if (!emptyEnvelope) {
+        throw new Error("Malformed CAD response: incidents list must be an array.");
+      }
     }
-
-    return payload.map((item, index) => this.mapIncident(item, `motorola-incident-${index}`));
+    return list.map((item, index) => this.mapIncident(item, `motorola-incident-${index}`));
   }
 
   async getUnit(unitId: string): Promise<MotorolaUnit> {
@@ -174,15 +180,16 @@ export class MotorolaPremierOneCadAdapter implements CadAdapter {
     }
 
     const candidate = raw as MotorolaIncident;
+    const rec = candidate as Record<string, unknown>;
     return {
-      incidentId: String(candidate.incidentId ?? candidate.id ?? fallbackId),
-      status: typeof candidate.status === "string" ? candidate.status : undefined,
-      callType: typeof candidate.callType === "string" ? candidate.callType : undefined,
-      location: typeof candidate.location === "string" ? candidate.location : undefined,
-      units: Array.isArray(candidate.units)
-        ? candidate.units.filter((unit): unit is string => typeof unit === "string")
-        : undefined,
-      lastUpdatedAt: typeof candidate.updatedAt === "string" ? candidate.updatedAt : undefined,
+      incidentId: String(
+        firstString(rec, ["EventId", "EventNumber", "IncidentNumber", "incidentId", "id"]) ?? fallbackId,
+      ),
+      status: firstString(rec, ["Status", "status", "EventStatus"]),
+      callType: firstString(rec, ["NatureCode", "CallType", "callType", "incidentType"]),
+      location: firstString(rec, ["Location", "Address", "location"]),
+      units: asUnitList(candidate.units ?? rec.Units ?? rec.AssignedUnits),
+      lastUpdatedAt: firstString(rec, ["updatedAt", "UpdatedAt", "lastUpdatedAt"]),
       raw: candidate,
     };
   }

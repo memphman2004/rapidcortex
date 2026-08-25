@@ -168,6 +168,9 @@ fi
 if [[ -n "${RAPID_IQ_OPENSTATES_API_KEY_SECRET_ARN:-}" ]]; then
   PARAM_OVERRIDES+=("RapidIqOpenstatesApiKeySecretArn=${RAPID_IQ_OPENSTATES_API_KEY_SECRET_ARN}")
 fi
+if [[ -n "${RAPID_IQ_LEGISCAN_API_KEY_SECRET_ARN:-}" ]]; then
+  PARAM_OVERRIDES+=("RapidIqLegiscanApiKeySecretArn=${RAPID_IQ_LEGISCAN_API_KEY_SECRET_ARN}")
+fi
 
 sam deploy \
   --template-file "${SAM_BUILD_DIR}/template.yaml" \

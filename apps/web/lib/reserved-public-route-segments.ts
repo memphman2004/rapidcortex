@@ -13,6 +13,7 @@ export const RESERVED_PUBLIC_ROUTE_FIRST_SEGMENTS: readonly string[] = [
   "about",
   "contact",
   "pricing",
+  "grants",
   "security",
   "solutions",
   "integrations",
@@ -49,6 +50,8 @@ export const RESERVED_PUBLIC_ROUTE_FIRST_SEGMENTS: readonly string[] = [
   "map-preview",
   /** Legacy RCLI intake (`/r/{rcli}`). */
   "r",
+  /** Public escalation viewer (`/e/{token}`). */
+  "e",
 ];
 
 export function isReservedPublicJurisdictionSlug(slug: string): boolean {

@@ -22,8 +22,8 @@ export function TopNav({
 
   return (
     <header
-      className="sticky top-0 z-30 flex min-h-14 flex-wrap items-center justify-between gap-3 border-b border-slate-800/90 bg-slate-950/95 px-4 py-2 backdrop-blur md:px-6"
-      style={{ borderBottomColor: "color-mix(in srgb, var(--role-accent) 25%, rgb(30 41 59))" }}
+      className="sticky top-0 z-30 flex min-h-14 flex-wrap items-center justify-between gap-3 border-b bg-[var(--rc-surface)] px-4 py-2 backdrop-blur md:px-6"
+      style={{ borderBottomColor: "var(--rc-border)" }}
     >
       <div className="flex min-w-0 flex-1 items-center gap-3">
         <button
@@ -43,7 +43,7 @@ export function TopNav({
             className="hidden max-w-[240px] items-center gap-1.5 rounded border px-2 py-1 text-[10px] font-medium uppercase tracking-wide sm:inline-flex"
             style={{
               borderColor: "color-mix(in srgb, var(--role-accent) 45%, transparent)",
-              backgroundColor: "color-mix(in srgb, var(--role-badge-bg) 35%, rgb(2 6 23))",
+              backgroundColor: "color-mix(in srgb, var(--role-badge-bg) 35%, var(--rc-nav-active-mix, rgb(2 6 23)))",
               color: "var(--role-text-accent)",
             }}
           >

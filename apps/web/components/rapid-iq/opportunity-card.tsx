@@ -40,7 +40,7 @@ const VERTICAL_BORDER: Record<RapidIqVertical, string> = {
   venue: "border-l-violet-500",
 };
 
-function ScoreBadge({ score }: { score: number }) {
+export function ScoreBadge({ score }: { score: number }) {
   return (
     <div
       className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border text-sm font-bold ${scoreBadgeClass(score)}`}
@@ -56,9 +56,25 @@ type Props = {
   onSelect: () => void;
   vertical: RapidIqVertical | "competitor";
   demo?: boolean;
+  inPipeline?: boolean;
+  pipelineBusy?: boolean;
+  dismissBusy?: boolean;
+  onAddToPipeline?: () => void;
+  onDismiss?: () => void;
 };
 
-export function OpportunityCard({ opportunity, selected, onSelect, vertical, demo = false }: Props) {
+export function OpportunityCard({
+  opportunity,
+  selected,
+  onSelect,
+  vertical,
+  demo = false,
+  inPipeline = false,
+  pipelineBusy = false,
+  dismissBusy = false,
+  onAddToPipeline,
+  onDismiss,
+}: Props) {
   const [talkingPointsOpen, setTalkingPointsOpen] = useState(false);
   const [talkingPoints, setTalkingPoints] = useState<string[] | null>(
     opportunity.talkingPoints?.length ? opportunity.talkingPoints : null,
@@ -155,6 +171,32 @@ export function OpportunityCard({ opportunity, selected, onSelect, vertical, dem
       </div>
 
       <div className="mt-2 flex flex-wrap items-center gap-2.5">
+        {onAddToPipeline && (
+          <button
+            type="button"
+            className={`signal-pipeline-btn ${inPipeline ? "in-pipeline" : ""}`}
+            disabled={inPipeline || pipelineBusy}
+            onClick={(e) => {
+              e.stopPropagation();
+              if (!inPipeline) onAddToPipeline();
+            }}
+          >
+            {inPipeline ? "✓ In Pipeline" : pipelineBusy ? "Adding…" : "+ Pipeline"}
+          </button>
+        )}
+        {onDismiss && !inPipeline && (
+          <button
+            type="button"
+            className="btn-dismiss"
+            disabled={dismissBusy || pipelineBusy}
+            onClick={(e) => {
+              e.stopPropagation();
+              onDismiss();
+            }}
+          >
+            {dismissBusy ? "Dismissing…" : "Dismiss"}
+          </button>
+        )}
         <span className="flex items-center gap-1 text-[10px] text-slate-600">
           <Calendar size={9} />
           {formatShortDate(opportunity.lastSignalAt)}

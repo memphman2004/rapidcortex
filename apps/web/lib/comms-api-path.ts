@@ -3,6 +3,8 @@
  * When upstream env vars are unset, traffic falls back to stack 1 only.
  */
 
+import { normalizeUpstreamApiBase } from "./upstream-url";
+
 const STACK2_PATH_TESTS: RegExp[] = [
   /^\/api\/v1(\/|$)/,
   /^\/api\/wellness\//,
@@ -59,7 +61,7 @@ const STACK4_PATH_TESTS: RegExp[] = [
 /** Campus, venue, media, stream, live video — stack-app-sam-5 (AppSam5Stack). */
 const STACK5_PATH_TESTS: RegExp[] = [
   /^\/api\/campus\//,
-  /^\/api\/venue\//,
+  /^\/api\/venue\/(?!push-subscription(\/|$))/,
   /^\/api\/incidents\/[^/]+\/media/,
   /^\/api\/incidents\/[^/]+\/live-video/,
   /^\/api\/incidents\/[^/]+\/silent-text/,
@@ -89,8 +91,15 @@ const STACK3_PATH_TESTS: RegExp[] = [
   /^\/api\/rc-admin\/psap-prospects(\/|$)/,
   /^\/api\/contacts(\/|$)/,
   /^\/api\/rapid-iq(\/|$)/,
-  /^\/api\/rc-admin\/applications(\/|$)/,
+  /^\/api\/rc-admin\/rapid-iq(\/|$)/,
+  /^\/api\/rc-admin\/conferences(\/|$)/,
+  /^\/api\/venue\/push-subscription(\/|$)/,
+  /^\/api\/escalations(\/|$)/,
+  /^\/api\/rms(\/|$)/,
+  /^\/api\/rc-admin\/agencies\/[^/]+\/escalation-relationship/,
+  /^\/api\/rc-admin\/grant-writer(\/|$)/,
   /^\/api\/rc-admin\/job-postings(\/|$)/,
+  /^\/api\/rc-admin\/applications(\/|$)/,
   /^\/api\/rc-admin\/settings\/hiring-bookings(\/|$)/,
   /^\/api\/careers(\/|$)/,
   /^\/api\/rc-admin\/pricing\//,
@@ -127,13 +136,13 @@ export function isCommsPlatformApiPath(path: string): boolean {
   return isSam4ApiPath(path) || isSam5ApiPath(path) || isSam3ApiPath(path) || isStack2ApiPath(path);
 }
 
-/** Server-side BFF / Route Handlers: pick the correct upstream base. */
+/** Server-side BFF / Route Handlers: pick the correct upstream base (never includes a trailing `/api`). */
 export function resolveUpstreamApiBase(path: string): string {
-  const b1 = process.env.API_UPSTREAM_BASE?.replace(/\/$/, "") ?? "";
-  const b2 = process.env.API_UPSTREAM_BASE_2?.replace(/\/$/, "") ?? "";
-  const b3 = process.env.API_UPSTREAM_BASE_3?.replace(/\/$/, "") ?? "";
-  const b4 = process.env.API_UPSTREAM_BASE_4?.replace(/\/$/, "") ?? "";
-  const b5 = process.env.API_UPSTREAM_BASE_5?.replace(/\/$/, "") ?? "";
+  const b1 = normalizeUpstreamApiBase(process.env.API_UPSTREAM_BASE ?? "");
+  const b2 = normalizeUpstreamApiBase(process.env.API_UPSTREAM_BASE_2 ?? "");
+  const b3 = normalizeUpstreamApiBase(process.env.API_UPSTREAM_BASE_3 ?? "");
+  const b4 = normalizeUpstreamApiBase(process.env.API_UPSTREAM_BASE_4 ?? "");
+  const b5 = normalizeUpstreamApiBase(process.env.API_UPSTREAM_BASE_5 ?? "");
   if (isSam4ApiPath(path)) {
     return b4;
   }

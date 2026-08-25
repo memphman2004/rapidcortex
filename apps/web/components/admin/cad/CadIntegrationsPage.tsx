@@ -51,7 +51,7 @@ export function CadIntegrationsPage() {
   );
   const [wizardOpen, setWizardOpen] = useState(false);
   const [detail, setDetail] = useState<CadAdminIntegration | null>(null);
-  const [detailTab, setDetailTab] = useState<"overview" | "incidents" | "troubleshoot">("overview");
+  const [detailTab, setDetailTab] = useState<"overview" | "incidents" | "mappings" | "troubleshoot">("overview");
   const [expandedRawId, setExpandedRawId] = useState<string | null>(null);
   const [banner, setBanner] = useState<{ tone: "info" | "error"; text: string } | null>(null);
   const [drawerTestResult, setDrawerTestResult] = useState<CadTestResult | null>(null);
@@ -356,6 +356,9 @@ export function CadIntegrationsPage() {
           regenMessage={regenMessage}
           onCopy={copy}
           troubleshootingBullets={troubleshootingBullets}
+          canEditMappings={
+            user?.role === "agencyadmin" || user?.role === "agencyit" || user?.role === "rcsuperadmin"
+          }
         />
       ) : null}
         </>

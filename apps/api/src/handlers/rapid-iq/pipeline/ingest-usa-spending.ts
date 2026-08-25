@@ -3,6 +3,8 @@
  */
 
 import type { RapidIqPipelineRawSignal } from "rapid-cortex-shared";
+import { isRelevantSignalText } from "rapid-cortex-shared";
+import { rapidIqIngestSinceDate } from "../../../lib/rapid-iq/ingest-window.js";
 import { enqueueMockIfEnabled, enqueueRawSignal } from "./queue-raw-signal.js";
 
 const TARGET_CFDA = [
@@ -11,22 +13,6 @@ const TARGET_CFDA = [
   "97.044", // FIRE Act Grants
   "16.738", // Edward Byrne Memorial JAG
   "97.088",
-];
-
-const RELEVANCE_KEYWORDS = [
-  "dispatch",
-  "911",
-  "computer aided dispatch",
-  "cad",
-  "communications center",
-  "emergency communications",
-  "tyler technologies",
-  "motorola solutions",
-  "axon",
-  "hexagon",
-  "centralsquare",
-  "public safety software",
-  "psap",
 ];
 
 type AwardRow = Record<string, unknown>;
@@ -38,16 +24,13 @@ function field(row: AwardRow, ...keys: string[]): unknown {
   return undefined;
 }
 
-async function fetchRecentAwards(): Promise<AwardRow[]> {
-  const today = new Date();
-  const thirtyDaysAgo = new Date(today);
-  thirtyDaysAgo.setDate(today.getDate() - 30);
-
-  const body = {
+/** Grant (non-loan assistance) field names accepted by spending_by_award. */
+export function buildUsaSpendingSearchBody(today = new Date()) {
+  return {
     filters: {
       time_period: [
         {
-          start_date: thirtyDaysAgo.toISOString().slice(0, 10),
+          start_date: rapidIqIngestSinceDate(today),
           end_date: today.toISOString().slice(0, 10),
         },
       ],
@@ -59,16 +42,20 @@ async function fetchRecentAwards(): Promise<AwardRow[]> {
       "Recipient Name",
       "Description",
       "Award Amount",
-      "Action Date",
-      "Recipient State Code",
-      "Recipient County Name",
+      "Start Date",
+      "Last Modified Date",
       "generated_internal_id",
+      "recipient_location_state_code",
     ],
     page: 1,
     limit: 100,
-    sort: "Action Date",
-    order: "desc",
+    sort: "Last Modified Date",
+    order: "desc" as const,
   };
+}
+
+async function fetchRecentAwards(): Promise<AwardRow[]> {
+  const body = buildUsaSpendingSearchBody();
 
   const res = await fetch("https://api.usaspending.gov/api/v2/search/spending_by_award/", {
     method: "POST",
@@ -86,8 +73,7 @@ async function fetchRecentAwards(): Promise<AwardRow[]> {
 }
 
 function isRelevant(description: string): boolean {
-  const lower = description.toLowerCase();
-  return RELEVANCE_KEYWORDS.some((kw) => lower.includes(kw));
+  return isRelevantSignalText(description);
 }
 
 export async function handler(): Promise<void> {
@@ -120,11 +106,21 @@ export async function handler(): Promise<void> {
     const recipient = String(field(award, "Recipient Name", "recipient_name") ?? "Unknown");
     const amount = field(award, "Award Amount", "total_obligation", "amount");
     const actionDate = String(
-      field(award, "Action Date", "date_signed", "action_date") ??
-        new Date().toISOString().slice(0, 10),
+      field(
+        award,
+        "Last Modified Date",
+        "Start Date",
+        "Action Date",
+        "date_signed",
+        "action_date",
+      ) ?? new Date().toISOString().slice(0, 10),
     ).slice(0, 10);
-    const state = field(award, "Recipient State Code", "recipient_state_code");
-    const county = field(award, "Recipient County Name", "recipient_county_name");
+    const state = field(
+      award,
+      "recipient_location_state_code",
+      "Recipient State Code",
+      "recipient_state_code",
+    );
 
     const signal: RapidIqPipelineRawSignal = {
       sourceId: "usa-spending",
@@ -135,7 +131,6 @@ export async function handler(): Promise<void> {
         description,
         amount,
         state,
-        county,
         dateSigned: actionDate,
       }),
       signalDate: actionDate,

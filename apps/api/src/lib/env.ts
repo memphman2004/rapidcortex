@@ -51,12 +51,23 @@ function resolveSmsPrimaryProvider(): SmsPrimaryProvider {
   return "twilio";
 }
 
+/**
+ * PSAP table/bucket names are getters so Rapid IQ (and other lean Lambdas) can
+ * import `env` without INCIDENTS_TABLE / AGENCIES_TABLE / ASSETS_BUCKET set.
+ * Accessing a getter still throws if that handler actually needs the var.
+ */
 export const env = {
   region: required("AWS_REGION"),
   deploymentStage: process.env.DEPLOYMENT_STAGE?.trim() || "dev",
-  incidentsTable: required("INCIDENTS_TABLE"),
-  transcriptsTable: required("TRANSCRIPTS_TABLE"),
-  analysesTable: required("ANALYSES_TABLE"),
+  get incidentsTable(): string {
+    return required("INCIDENTS_TABLE");
+  },
+  get transcriptsTable(): string {
+    return required("TRANSCRIPTS_TABLE");
+  },
+  get analysesTable(): string {
+    return required("ANALYSES_TABLE");
+  },
   auditTable: required("AUDIT_TABLE"),
   /** Immutable CJI deletion audit (optional in local; required for `retentionExecutor` in AWS). */
   dataDeletionAuditTable: process.env.DATA_DELETION_AUDIT_TABLE?.trim() ?? "",
@@ -82,8 +93,12 @@ export const env = {
     1,
     Math.min(100, Number.parseInt(process.env.RETENTION_PURGE_PAGE_SIZE ?? "25", 10) || 25),
   ),
-  agenciesTable: required("AGENCIES_TABLE"),
-  invitesTable: required("INVITES_TABLE"),
+  get agenciesTable(): string {
+    return required("AGENCIES_TABLE");
+  },
+  get invitesTable(): string {
+    return required("INVITES_TABLE");
+  },
   /** Tenant access overrides (`access-overrides` table). Empty disables handlers (local/mock). */
   accessOverridesTable: process.env.ACCESS_OVERRIDES_TABLE?.trim() ?? "",
   networkEmergencyOverridesTable: process.env.NETWORK_EMERGENCY_OVERRIDES_TABLE?.trim() ?? "",
@@ -119,7 +134,9 @@ export const env = {
   externalApiMock: process.env.EXTERNAL_API_MOCK === "true",
   billingProfilesTable: process.env.BILLING_PROFILES_TABLE?.trim() ?? "",
   billingWebhookEventsTable: process.env.BILLING_WEBHOOK_EVENTS_TABLE?.trim() ?? "",
-  assetsBucket: required("ASSETS_BUCKET"),
+  get assetsBucket(): string {
+    return required("ASSETS_BUCKET");
+  },
   /** Optional — required for multilingual voice session + audio chunk routes. */
   languageSessionsTable: process.env.LANGUAGE_SESSIONS_TABLE?.trim() ?? "",
   /** Dispatcher → caller voice playback (telephony webhook or mock). */
@@ -333,6 +350,8 @@ export const env = {
    * Default on when unset; only applies when ENABLE_FIELD_CONFIDENCE is on and an analysis exists.
    */
   enableCadConfidenceGate: featureEnabled("ENABLE_CAD_CONFIDENCE_GATE"),
+  /** Agency CAD nature → RC type/SOP mapping on ingest. Operational default on. */
+  enableCadNatureMapping: featureEnabled("ENABLE_CAD_NATURE_MAPPING"),
   /** F6 — predictive staffing intelligence. */
   enablePredictiveStaffing: featureEnabled("ENABLE_PREDICTIVE_STAFFING", false),
   predictiveStaffingMock: process.env.PREDICTIVE_STAFFING_MOCK === "true",
@@ -397,6 +416,20 @@ export const env = {
   enableRapidIq: featureEnabled("ENABLE_RAPID_IQ"),
   /** Rapid IQ Signal Intelligence Pipeline (procurement signals → CRM). Default on when unset. */
   enableRapidIqPipeline: featureEnabled("ENABLE_RAPID_IQ_PIPELINE"),
+  /** RC Admin conference catalog + weekly website refresh. Default on when unset. */
+  enableConferences: featureEnabled("ENABLE_CONFERENCES"),
+  conferencesTable: process.env.CONFERENCES_TABLE?.trim() ?? "",
+  /** Venue/campus → 911 Escalation Bridge. Default on when unset. */
+  enableEscalation: featureEnabled("ENABLE_ESCALATION"),
+  /** Records Intelligence — AI report writer, NIBRS, RMS push, pre-call context. Default ON when unset. */
+  enableRms: featureEnabled("ENABLE_RMS"),
+  incidentReportsTable: process.env.INCIDENT_REPORTS_TABLE ?? "",
+  anthropicApiKeySecretArn: process.env.ANTHROPIC_API_KEY_SECRET_ARN ?? "",
+  rmsVendorSecretArn: process.env.RMS_VENDOR_SECRET_ARN?.trim() ?? "",
+  escalationsTable: process.env.ESCALATIONS_TABLE?.trim() ?? "",
+  escalationAuditTable: process.env.ESCALATION_AUDIT_TABLE?.trim() ?? "",
+  agencyRelationshipsTable: process.env.AGENCY_RELATIONSHIPS_TABLE?.trim() ?? "",
+  pushSubscriptionsTable: process.env.PUSH_SUBSCRIPTIONS_TABLE?.trim() ?? "",
   rapidIqOpportunitiesTable: process.env.RAPID_IQ_OPPORTUNITIES_TABLE?.trim() ?? "",
   rapidIqSignalsTable: process.env.RAPID_IQ_SIGNALS_TABLE?.trim() ?? "",
   /** Pipeline signals table — distinct from opportunity-linked RAPID_IQ_SIGNALS_TABLE. */

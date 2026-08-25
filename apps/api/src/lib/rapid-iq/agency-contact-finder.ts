@@ -255,12 +255,12 @@ export async function findAgencyContacts(
   };
 
   // 1) Hunter.io domain search (.gov / .edu) — best for government agencies
-  let contacts = await findContactsViaHunter(enrichInput);
+  let contacts = (await findContactsViaHunter(enrichInput)).contacts;
 
   // 2) Apollo.io people search by title + domain — fills gaps Hunter misses
   if (contacts.length < MAX_CONTACTS) {
     const apollo = await findContactsViaApollo(enrichInput);
-    contacts = mergeContacts(contacts, apollo);
+    contacts = mergeContacts(contacts, apollo.contacts);
   }
 
   // 3) Web scrape — fallback only when both APIs returned nothing

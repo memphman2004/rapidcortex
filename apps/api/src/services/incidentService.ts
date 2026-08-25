@@ -238,6 +238,7 @@ export class IncidentService {
           ...next,
           manualProtocolPackId: body.protocolPackId,
           dismissedAt: null,
+          source: "manual",
         };
         await auditRepo.create({
           eventId: makeId("audit"),

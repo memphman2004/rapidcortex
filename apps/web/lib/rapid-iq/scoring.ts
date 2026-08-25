@@ -29,6 +29,13 @@ export function scoreBadgeClass(score: number): string {
   return "border-slate-700 bg-slate-800 text-slate-400";
 }
 
+/** Rapid IQ intent/fit prompt colors: red ≥ 70, amber 40–69, green < 40. */
+export function intentFitBadgeClass(score: number): string {
+  if (score >= 70) return "border-red-500/40 bg-red-500/10 text-red-300";
+  if (score >= 40) return "border-amber-500/40 bg-amber-500/10 text-amber-300";
+  return "border-emerald-500/40 bg-emerald-500/10 text-emerald-300";
+}
+
 export function fitLabel(fitScore: number): string {
   if (fitScore >= 80) return "HIGH FIT";
   if (fitScore >= 60) return "GOOD FIT";

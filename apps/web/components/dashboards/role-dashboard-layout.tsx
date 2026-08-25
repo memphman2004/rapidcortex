@@ -10,7 +10,7 @@ import { DashboardShell } from "./dashboard-shell";
 
 function DashboardShellFallback() {
   return (
-    <div className="flex min-h-screen items-center justify-center bg-[#030712] text-sm text-slate-400">
+    <div className="flex min-h-screen items-center justify-center bg-[var(--rc-bg)] text-sm text-[var(--rc-text-muted)]">
       Loading workspace…
     </div>
   );

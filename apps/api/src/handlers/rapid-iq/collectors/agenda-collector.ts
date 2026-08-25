@@ -1,4 +1,4 @@
-import { extractPdfText, findAgendaDocuments } from "../../../lib/rapid-iq/agenda-finder.js";
+import { extractPdfText, findAgendaDocuments, isProcurementListingPath } from "../../../lib/rapid-iq/agenda-finder.js";
 import { classifySignal } from "../../../lib/rapid-iq/claude-classifier.js";
 import type { Jurisdiction } from "../../../lib/rapid-iq/jurisdiction-registry.js";
 import { upsertSignalAndOpportunity } from "./upsert-signal.js";
@@ -42,11 +42,15 @@ export async function runAgendaCollector(
           // Prefer classified buyer; fall back to jurisdiction registry name (a real agency)
           if (!signal.agencyName?.trim()) signal.agencyName = jurisdiction.name;
           if (!signal.state?.trim()) signal.state = jurisdiction.stateCode;
+          const sourceType =
+            isProcurementListingPath(doc.url) || /(?:rfp|rfq|bids?|solicitation|procurement|esinet|ng911|9-1-1)/i.test(doc.url)
+              ? "procurement_portal"
+              : "government_doc";
           const result = await upsertSignalAndOpportunity(
             signal,
             doc.url,
             jurisdiction.name,
-            "government_doc",
+            sourceType,
             jurisdiction.jurisdictionId,
           );
           if (result.saved) total++;

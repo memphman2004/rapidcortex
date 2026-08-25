@@ -21,6 +21,12 @@ describe("pathnameIsMobileOperationalBlockedPage", () => {
     expect(pathnameIsMobileOperationalBlockedPage("/mobile-access-restricted")).toBe(false);
   });
 
+  it("allows venue/campus mobile login and PWA", () => {
+    expect(pathnameIsMobileOperationalBlockedPage("/login/mobile")).toBe(false);
+    expect(pathnameIsMobileOperationalBlockedPage("/app/venue/MBS/supervisor")).toBe(false);
+    expect(pathnameIsMobileOperationalBlockedPage("/e/viewer-token")).toBe(false);
+  });
+
   it("blocks /login", () => {
     expect(pathnameIsMobileOperationalBlockedPage("/login")).toBe(true);
   });
@@ -50,6 +56,11 @@ describe("isMobilePublicApiPath", () => {
 
   it("allows contact-sales", () => {
     expect(isMobilePublicApiPath("/api/contact-sales")).toBe(true);
+  });
+
+  it("allows mobile venue sign-in and escalation viewer", () => {
+    expect(isMobilePublicApiPath("/api/auth/signin")).toBe(true);
+    expect(isMobilePublicApiPath("/api/escalations/viewer/abc")).toBe(true);
   });
 
   it("does not classify operational BFF as public", () => {

@@ -53,6 +53,18 @@ Parameters:
     Type: String
     Default: ""
     Description: Optional Secrets Manager secret ARN for Anthropic (plain string or JSON with apiKey).
+  RapidIqHunterApiKeySecretArn:
+    Type: String
+    Default: "arn:aws:secretsmanager:us-east-1:158961537080:secret:rapid-cortex/rapid-iq/hunter-api-key-LXEwMX"
+    Description: Secrets Manager ARN for Hunter.io (PSAP / Rapid IQ contact enrichment).
+  RapidIqApolloApiKeySecretArn:
+    Type: String
+    Default: "arn:aws:secretsmanager:us-east-1:158961537080:secret:rapid-cortex/rapid-iq/apollo-api-key-BDql0e"
+    Description: Secrets Manager ARN for Apollo.io (PSAP / Rapid IQ contact enrichment).
+  RmsVendorSecretArn:
+    Type: String
+    Default: ""
+    Description: Secrets Manager ARN for Tyler/Mark43 RMS keys (JSON with TYLER_API_KEY, MARK43_API_KEY). Never put raw vendor keys in Lambda env.
   AzureSpeechKeySecretArn:
     Type: String
     Default: ""
@@ -381,6 +393,18 @@ Parameters:
     Description: >-
       When IncludeDataLayerNestedStack is false (dev legacy): ARN of the existing billing ses-credentials secret. Ignored
       when the nested data layer is enabled. Required in dev when IncludeDataLayerNestedStack is false.
+  ExistingBillingPaymentInstructionsSecretArn:
+    Type: String
+    Default: ""
+    Description: >-
+      When set, nested DataLayer skips creating rapid-cortex/${stage}/billing/payment-instructions and emits this ARN.
+      Required on staging recreate if that secret already exists (Secrets Manager name is global per account).
+  ExistingBillingSesCredentialsSecretArn:
+    Type: String
+    Default: ""
+    Description: >-
+      When set, nested DataLayer skips creating rapid-cortex/${stage}/billing/ses-credentials and emits this ARN.
+      Required on staging recreate if that secret already exists.
   FlatDataLayerRingCredentialsSecretArn:
     Type: String
     Default: ""
@@ -504,6 +528,41 @@ Resources:
         EnableCloudTrailS3DataEvents: !Ref EnableCloudTrailS3DataEvents
         EnableLiveVideoResources: !Ref EnableLiveVideoResources
         ExistingRingCredentialsSecretArn: !Ref RingCredentialsSecretArnOverride
+        ExistingBillingPaymentInstructionsSecretArn: !Ref ExistingBillingPaymentInstructionsSecretArn
+        ExistingBillingSesCredentialsSecretArn: !Ref ExistingBillingSesCredentialsSecretArn
+        ExistingQRLocationsTableName: !Sub "${DynamoTableNamePrefix}-qr-locations-${DeploymentStage}"
+        ExistingCampusConfigTableName: !Sub "${DynamoTableNamePrefix}-campus-config-${DeploymentStage}"
+        ExistingCampusIncidentsTableName: !Sub "${DynamoTableNamePrefix}-campus-incidents-${DeploymentStage}"
+        ExistingVenueConfigTableName: !Sub "${DynamoTableNamePrefix}-venue-config-${DeploymentStage}"
+        ExistingCampusNotificationLogTableName: !Sub "${DynamoTableNamePrefix}-campus-notification-log-${DeploymentStage}"
+        ExistingVenueNotificationLogTableName: !Sub "${DynamoTableNamePrefix}-venue-notification-log-${DeploymentStage}"
+        ExistingVenueCameraRegistryTableName: !Sub "${DynamoTableNamePrefix}-venue-camera-registry-${DeploymentStage}"
+        ExistingCampusCameraRegistryTableName: !Sub "${DynamoTableNamePrefix}-campus-camera-registry-${DeploymentStage}"
+        ExistingVenueAssetsTableName: !Sub "${DynamoTableNamePrefix}-venue-assets-${DeploymentStage}"
+        ExistingVenueFacilitiesTableName: !Sub "${DynamoTableNamePrefix}-venue-facilities-${DeploymentStage}"
+        ExistingConnectRegistryTableName: !Sub "${DynamoTableNamePrefix}-connect-registry-${DeploymentStage}"
+        ExistingConnectEvidenceTableName: !Sub "${DynamoTableNamePrefix}-connect-evidence-${DeploymentStage}"
+        ExistingConnectAccessSessionsTableName: !Sub "${DynamoTableNamePrefix}-connect-sessions-${DeploymentStage}"
+        ExistingConnectAccessLogTableName: !Sub "${DynamoTableNamePrefix}-connect-access-log-${DeploymentStage}"
+        ExistingPlatformNoticesTableName: !Sub "${DynamoTableNamePrefix}-platform-notices-${DeploymentStage}"
+        ExistingPlatformNoticeAcksTableName: !Sub "${DynamoTableNamePrefix}-platform-notice-acks-${DeploymentStage}"
+        ExistingVenueCameraAccessLogTableName: !Sub "${DynamoTableNamePrefix}-venue-camera-access-log-${DeploymentStage}"
+        ExistingVenueIncidentOverlaysTableName: !Sub "${DynamoTableNamePrefix}-venue-incident-overlays-${DeploymentStage}"
+        ExistingVenueAssetsBucketName: !Sub "${DynamoTableNamePrefix}-venue-assets-${DeploymentStage}-${AWS::AccountId}"
+        ExistingJobApplicationsTableName: !Sub "${DynamoTableNamePrefix}-job-applications-${DeploymentStage}"
+        ExistingResumesBucketName: !Sub "${DynamoTableNamePrefix}-resumes-${DeploymentStage}-${AWS::AccountId}"
+        ExistingMarketingLeadsTableName: !Sub "${DynamoTableNamePrefix}-marketing-leads-${DeploymentStage}"
+        ExistingPsapProspectsTableName: !Sub "${DynamoTableNamePrefix}-psap-prospects-${DeploymentStage}"
+        ExistingRapidIqOpportunitiesTableName: !Sub "${DynamoTableNamePrefix}-rapid-iq-opportunities-${DeploymentStage}"
+        ExistingRapidIqSignalsTableName: !Sub "${DynamoTableNamePrefix}-rapid-iq-signals-${DeploymentStage}"
+        ExistingRapidIqContactsTableName: !Sub "${DynamoTableNamePrefix}-rapid-iq-contacts-${DeploymentStage}"
+        ExistingRapidIqSourcesTableName: !Sub "${DynamoTableNamePrefix}-rapid-iq-sources-${DeploymentStage}"
+        ExistingRapidIqJurisdictionsTableName: !Sub "${DynamoTableNamePrefix}-rapid-iq-jurisdictions-${DeploymentStage}"
+        ExistingRapidIqStateCoverageTableName: !Sub "${DynamoTableNamePrefix}-rapid-iq-state-coverage-${DeploymentStage}"
+        ExistingRapidIqPipelineSignalsTableName: !Sub "${DynamoTableNamePrefix}-rapid-iq-pipeline-signals-${DeploymentStage}"
+        ExistingRcsCallsTableName: !Sub "${DynamoTableNamePrefix}-rcs-calls-${DeploymentStage}"
+        ExistingRcsUnitsTableName: !Sub "${DynamoTableNamePrefix}-rcs-units-${DeploymentStage}"
+        ExistingRcsEscalationTableName: !Sub "${DynamoTableNamePrefix}-rcs-escalation-${DeploymentStage}"
         ExternalApiEncryptionKeyArn: !Ref ExternalApiEncryptionKeyArn
         ExternalApiJwtSecretArn: !Ref ExternalApiJwtSecretArn
         HttpApiCorsAllowedOrigins: !Ref HttpApiCorsAllowedOrigins
@@ -1835,6 +1894,8 @@ Resources:
         ImportedCognitoUserPoolId: !GetAtt AppSamStackV2.Outputs.UserPoolId
         ImportedCognitoWebClientId: !GetAtt AppSamStackV2.Outputs.UserPoolClientId
         ManagedPolicyNamePrefix: !Ref AWS::StackName
+        RapidIqHunterApiKeySecretArn: !Ref RapidIqHunterApiKeySecretArn
+        RapidIqApolloApiKeySecretArn: !Ref RapidIqApolloApiKeySecretArn
 
   # Surgical Rapid IQ sales intelligence on AppSam3 HttpApi
   # (opportunities/signals/contacts/sources + collectors + EventBridge).
@@ -1883,6 +1944,7 @@ Resources:
             - HasDataLayerNestedStack
             - !GetAtt DataLayerStack.Outputs.RapidIqStateCoverageTable
             - !Sub "${DynamoTableNamePrefix}-rapid-iq-state-coverage-${DeploymentStage}"
+        ConferencesTable: !Sub "${DynamoTableNamePrefix}-conferences-${DeploymentStage}"
         SalesLeadsTable:
           Fn::If:
             - HasDataLayerNestedStack
@@ -1926,6 +1988,8 @@ Resources:
         AnthropicApiKeySecretArn: !Ref AnthropicApiKeySecretArn
         RapidIqSamGovApiKeySecretArn: ""
         RapidIqLegiscanApiKey: ""
+        RapidIqHunterApiKeySecretArn: !Ref RapidIqHunterApiKeySecretArn
+        RapidIqApolloApiKeySecretArn: !Ref RapidIqApolloApiKeySecretArn
         ImportedCognitoUserPoolId: !GetAtt AppSamStackV2.Outputs.UserPoolId
         ImportedCognitoWebClientId: !GetAtt AppSamStackV2.Outputs.UserPoolClientId
         ManagedPolicyNamePrefix: !Ref AWS::StackName
@@ -1965,10 +2029,145 @@ Resources:
         AnthropicApiKeySecretArn: !Ref AnthropicApiKeySecretArn
         RapidIqSamGovApiKeySecretArn: ""
         # Apollo/Hunter ARNs — same Secrets Manager secrets as AppSamRapidIqStack / PsapCrm.
-        # Pass via deploy override (RAPID_IQ_*_SECRET_ARN); empty = enrichment falls back to NLP.
-        RapidIqHunterApiKeySecretArn: ""
-        RapidIqApolloApiKeySecretArn: ""
+        RapidIqHunterApiKeySecretArn: !Ref RapidIqHunterApiKeySecretArn
+        RapidIqApolloApiKeySecretArn: !Ref RapidIqApolloApiKeySecretArn
         RapidIqOpenstatesApiKeySecretArn: ""
+        RapidIqLegiscanApiKeySecretArn: ""
+        ImportedCognitoUserPoolId: !GetAtt AppSamStackV2.Outputs.UserPoolId
+        ImportedCognitoWebClientId: !GetAtt AppSamStackV2.Outputs.UserPoolClientId
+        ManagedPolicyNamePrefix: !Ref AWS::StackName
+
+  AppSamEscalationStack:
+    Type: AWS::CloudFormation::Stack
+    Metadata:
+      cfn-lint:
+        config:
+          ignore_checks:
+            - W3005
+    DependsOn: AppSam3Stack
+    Properties:
+      TimeoutInMinutes: 60
+      TemplateURL: nested/stack-app-sam-escalation.yaml
+      Parameters:
+        DeploymentStage: !Ref DeploymentStage
+        HttpApiId: !GetAtt AppSam3Stack.Outputs.HttpApiId
+        HttpApiJwtAuthorizerId: ""
+        EscalationsTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.EscalationsTable
+            - !Sub "${DynamoTableNamePrefix}-escalations-${DeploymentStage}"
+        EscalationAuditTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.EscalationAuditTable
+            - !Sub "${DynamoTableNamePrefix}-escalation-audit-${DeploymentStage}"
+        AgencyRelationshipsTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.AgencyRelationshipsTable
+            - !Sub "${DynamoTableNamePrefix}-agency-relationships-${DeploymentStage}"
+        PushSubscriptionsTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.PushSubscriptionsTable
+            - !Sub "${DynamoTableNamePrefix}-push-subscriptions-${DeploymentStage}"
+        AgenciesTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.AgenciesTable
+            - !Sub "${DynamoTableNamePrefix}-agencies-${DeploymentStage}"
+        AuditTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.AuditTable
+            - !Sub "${DynamoTableNamePrefix}-audit-${DeploymentStage}"
+        IncidentsTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.IncidentsTable
+            - !Sub "${DynamoTableNamePrefix}-incidents-${DeploymentStage}"
+        TranscriptsTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.TranscriptsTable
+            - !Sub "${DynamoTableNamePrefix}-transcripts-${DeploymentStage}"
+        AnalysesTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.AnalysesTable
+            - !Sub "${DynamoTableNamePrefix}-analyses-${DeploymentStage}"
+        InvitesTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.InvitesTable
+            - !Sub "${DynamoTableNamePrefix}-invites-${DeploymentStage}"
+        AssetsBucket:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.AssetsBucket
+            - !Sub "${DynamoTableNamePrefix}-assets-${DeploymentStage}-${AWS::AccountId}"
+        ImportedCognitoUserPoolId: !GetAtt AppSamStackV2.Outputs.UserPoolId
+        ImportedCognitoWebClientId: !GetAtt AppSamStackV2.Outputs.UserPoolClientId
+        ManagedPolicyNamePrefix: !Ref AWS::StackName
+
+  AppSamRmsStack:
+    Type: AWS::CloudFormation::Stack
+    Metadata:
+      cfn-lint:
+        config:
+          ignore_checks:
+            - W3005
+    DependsOn: AppSam3Stack
+    Properties:
+      TimeoutInMinutes: 60
+      TemplateURL: nested/stack-app-sam-rms.yaml
+      Parameters:
+        DeploymentStage: !Ref DeploymentStage
+        HttpApiId: !GetAtt AppSam3Stack.Outputs.HttpApiId
+        HttpApiJwtAuthorizerId: ""
+        IncidentReportsTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.IncidentReportsTable
+            - !Sub "${DynamoTableNamePrefix}-incident-reports-${DeploymentStage}"
+        AuditTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.AuditTable
+            - !Sub "${DynamoTableNamePrefix}-audit-${DeploymentStage}"
+        IncidentsTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.IncidentsTable
+            - !Sub "${DynamoTableNamePrefix}-incidents-${DeploymentStage}"
+        TranscriptsTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.TranscriptsTable
+            - !Sub "${DynamoTableNamePrefix}-transcripts-${DeploymentStage}"
+        AnalysesTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.AnalysesTable
+            - !Sub "${DynamoTableNamePrefix}-analyses-${DeploymentStage}"
+        AgenciesTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.AgenciesTable
+            - !Sub "${DynamoTableNamePrefix}-agencies-${DeploymentStage}"
+        InvitesTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.InvitesTable
+            - !Sub "${DynamoTableNamePrefix}-invites-${DeploymentStage}"
+        AssetsBucket:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.AssetsBucket
+            - !Sub "${DynamoTableNamePrefix}-assets-${DeploymentStage}-${AWS::AccountId}"
+        AnthropicApiKeySecretArn: !Ref AnthropicApiKeySecretArn
+        RmsVendorSecretArn: !Ref RmsVendorSecretArn
         ImportedCognitoUserPoolId: !GetAtt AppSamStackV2.Outputs.UserPoolId
         ImportedCognitoWebClientId: !GetAtt AppSamStackV2.Outputs.UserPoolClientId
         ManagedPolicyNamePrefix: !Ref AWS::StackName
@@ -2907,7 +3106,8 @@ Resources:
       Parameters:
         DeploymentStage: !Ref DeploymentStage
         HttpApiId: !GetAtt AppSam2Stack.Outputs.HttpApiId
-        HttpApiJwtAuthorizerId: ""
+        HttpApiJwtAuthorizerId: "3ui9q4"
+        ExistingNg911AssistTableName: !Sub "rapid-cortex-ng911-assist-${DeploymentStage}"
         ImportedCognitoUserPoolId: !GetAtt AppSamStackV2.Outputs.UserPoolId
         ImportedCognitoWebClientId: !GetAtt AppSamStackV2.Outputs.UserPoolClientId
         ImportedCognitoIssuer: !GetAtt AppSamStackV2.Outputs.CognitoIssuer
@@ -3047,6 +3247,12 @@ Outputs:
   GenerateGrantPackageFunctionArn:
     Description: Grant generate Lambda ARN (web ECS task role invoke)
     Value: !GetAtt AppSam3Stack.Outputs.GenerateGrantPackageFunctionArn
+  GrantWriterFunctionName:
+    Description: Grant writer Lambda name (web BFF direct Invoke; Anthropic via Secrets Manager)
+    Value: !GetAtt AppSam3Stack.Outputs.GrantWriterFunctionName
+  GrantWriterFunctionArn:
+    Description: Grant writer Lambda ARN (web ECS task role invoke)
+    Value: !GetAtt AppSam3Stack.Outputs.GrantWriterFunctionArn
   HttpApi4Url:
     Description: Quaternary HTTP API base URL (stack-app-sam-4 billing/ring routes)
     Value: !GetAtt AppSam4Stack.Outputs.HttpApiUrl

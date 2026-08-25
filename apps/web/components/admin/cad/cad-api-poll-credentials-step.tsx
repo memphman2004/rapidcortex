@@ -197,6 +197,10 @@ export function CadApiPollCredentialsStep({
           aria-required="true"
         />
         {urlError ? <div style={{ fontSize: 11, color: V.red, marginTop: 3 }}>{urlError}</div> : null}
+        <div style={{ fontSize: 11, color: V.textMuted, marginTop: 5 }}>
+          Paste the full incidents-list HTTPS URL from the vendor. Rapid Cortex adds poll query params
+          (since / eventsSince / modifiedSince) and does not append extra path segments.
+        </div>
       </div>
 
       <div style={{ marginBottom: 14 }}>

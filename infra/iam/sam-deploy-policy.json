@@ -211,12 +211,57 @@
       "Effect": "Allow",
       "Action": [
         "secretsmanager:DescribeSecret",
-        "secretsmanager:DeleteSecret"
+        "secretsmanager:DeleteSecret",
+        "secretsmanager:CreateSecret"
       ],
       "Resource": [
+        "arn:aws:secretsmanager:REPLACE_REGION:REPLACE_ACCOUNT_ID:secret:rapid-cortex/*/billing/ses-credentials-*",
+        "arn:aws:secretsmanager:REPLACE_REGION:REPLACE_ACCOUNT_ID:secret:rapid-cortex/*/billing/payment-instructions-*",
         "arn:aws:secretsmanager:REPLACE_REGION:REPLACE_ACCOUNT_ID:secret:rapid-cortex/billing/ses-credentials-*",
         "arn:aws:secretsmanager:REPLACE_REGION:REPLACE_ACCOUNT_ID:secret:rapid-cortex/billing/payment-instructions-*"
       ]
+    },
+    {
+      "Sid": "ElbManage",
+      "Effect": "Allow",
+      "Action": [
+        "elasticloadbalancing:DescribeLoadBalancers",
+        "elasticloadbalancing:DescribeLoadBalancerAttributes",
+        "elasticloadbalancing:ModifyLoadBalancerAttributes",
+        "elasticloadbalancing:DescribeListeners",
+        "elasticloadbalancing:DescribeListenerAttributes",
+        "elasticloadbalancing:ModifyListener",
+        "elasticloadbalancing:DescribeTargetGroups",
+        "elasticloadbalancing:DescribeTargetGroupAttributes",
+        "elasticloadbalancing:ModifyTargetGroup",
+        "elasticloadbalancing:ModifyTargetGroupAttributes",
+        "elasticloadbalancing:DescribeTargetHealth",
+        "elasticloadbalancing:DescribeRules",
+        "elasticloadbalancing:ModifyRule"
+      ],
+      "Resource": "*"
+    },
+    {
+      "Sid": "CodeBuildPipelineAdmin",
+      "Effect": "Allow",
+      "Action": [
+        "codebuild:CreateProject",
+        "codebuild:UpdateProject",
+        "codebuild:DeleteProject",
+        "codebuild:BatchGetProjects",
+        "codebuild:StartBuild",
+        "codebuild:BatchGetBuilds",
+        "codebuild:StopBuild"
+      ],
+      "Resource": "arn:aws:codebuild:REPLACE_REGION:REPLACE_ACCOUNT_ID:project/rapid-cortex-*"
+    },
+    {
+      "Sid": "CloudTrailReadLogs",
+      "Effect": "Allow",
+      "Action": [
+        "cloudtrail:LookupEvents"
+      ],
+      "Resource": "*"
     }
   ]
 }

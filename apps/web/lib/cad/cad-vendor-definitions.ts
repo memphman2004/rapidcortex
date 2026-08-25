@@ -92,7 +92,7 @@ const MOTOROLA_PREMIER_ONE: CadVendorDefinition = {
   label: "Motorola PremierOne",
   fullName: "Motorola Solutions PremierOne CAD",
   logoText: "MSI",
-  description: "Industry-leading CAD for large metro PSAPs. Webhook push and REST API poll.",
+  description: "Read-only JSON/XML webhook and configurable REST poll. Agency supplies the PremierOne outbound URL and credentials — not a Motorola-certified connector.",
   supportedConnectionTypes: ["webhook_inbound", "api_poll"],
   recommendedConnectionType: "webhook_inbound",
   sourceFields: [
@@ -136,10 +136,14 @@ const MOTOROLA_PREMIER_ONE: CadVendorDefinition = {
 4. Webhook URL: paste URL from Step 3
 5. Header name: X-RC-Token  |  Header value: [token from Step 3]
 6. Events: Incident Created, Incident Updated
-7. Payload format: JSON
-8. Save and use "Send test" in Step 5`,
+7. Payload format: JSON (EventId / IncidentNumber / NatureCode / Location) or XML
+8. Save and use "Send test" in Step 5
+
+API poll (optional): paste the full incidents-list HTTPS URL from your PremierOne gateway.
+Rapid Cortex adds since + pageSize + agencyId. It does not invent a Motorola REST path.
+Write-back stays off.`,
   suggestedPollIntervalMinutes: 2,
-  knownApiEndpointPattern: "https://{host}/PremierOneAPI/api/incidents?since={iso8601}",
+  knownApiEndpointPattern: "https://{host}/PremierOneAPI/api/incidents",
 };
 
 const TYLER_NEW_WORLD: CadVendorDefinition = {
@@ -147,8 +151,8 @@ const TYLER_NEW_WORLD: CadVendorDefinition = {
   label: "Tyler New World",
   fullName: "Tyler Technologies New World CAD",
   logoText: "TYL",
-  description: "Widely deployed in mid-sized PSAPs. API polling is the primary integration path.",
-  supportedConnectionTypes: ["api_poll"],
+  description: "Widely deployed in mid-sized PSAPs. API polling is typical; outbound webhooks when Tyler enables them. Not a Tyler-certified connector.",
+  supportedConnectionTypes: ["api_poll", "webhook_inbound"],
   recommendedConnectionType: "api_poll",
   sourceFields: [
     { key: "eventNumber", label: "Event Number", example: "2024-1234", suggestedTarget: "cadEventId" },
@@ -181,16 +185,18 @@ const TYLER_NEW_WORLD: CadVendorDefinition = {
   ],
   defaultPriorityMapping: { "1": "P1", "2": "P2", "3": "P3", "4": "P4", "5": "P4" },
   authHeaderName: "X-RC-Token",
-  vendorWebhookNotes: "Tyler New World uses REST API polling only. Configure API endpoint and credentials in Step 3.",
-  setupInstructions: `Tyler New World API Poll Setup
+  vendorWebhookNotes:
+    "If Tyler enables outbound HTTP, POST JSON with header X-RC-Token. Otherwise use API poll with the incidents-list URL Tyler provides.",
+  setupInstructions: `Tyler New World CAD Setup
 ────────────────────────────────
-1. Work with Tyler to enable API access
+1. Work with Tyler to enable API access (often 2–5 business days)
 2. Obtain API Base URL, API Key, Agency Code
-3. Typical endpoint: GET /nwcad/api/incidents?since={iso8601}&agencyCode={code}
-4. Enter credentials in Step 3
-5. Rapid Cortex polls at the configured interval (default: 2 min)`,
+3. Paste the full incidents-list HTTPS URL in Admin → CAD
+4. Rapid Cortex polls with eventsSince, agencyCode, and limit
+5. Optional webhook: POST JSON { eventNumber, callType, locationAddress, … } with X-RC-Token
+Write-back stays off.`,
   suggestedPollIntervalMinutes: 2,
-  knownApiEndpointPattern: "https://{host}/nwcad/api/incidents?since={iso8601}&agencyCode={agencyCode}",
+  knownApiEndpointPattern: "https://{host}/nwcad/api/incidents",
 };
 
 const CENTRAL_SQUARE: CadVendorDefinition = {
@@ -198,7 +204,7 @@ const CENTRAL_SQUARE: CadVendorDefinition = {
   label: "CentralSquare",
   fullName: "CentralSquare CAD (formerly TriTech / Superion)",
   logoText: "CS",
-  description: "Common across county and regional PSAPs. Webhook push via Integration Engine.",
+  description: "Common across county and regional PSAPs. Read-only webhook via Integration Engine and configurable REST poll. Field names vary by Enterprise / Inform / Superion version.",
   supportedConnectionTypes: ["webhook_inbound", "api_poll"],
   recommendedConnectionType: "webhook_inbound",
   sourceFields: [
@@ -238,9 +244,11 @@ const CENTRAL_SQUARE: CadVendorDefinition = {
 2. Create Outbound Integration → REST/HTTP
 3. Webhook URL from Step 3
 4. Header: X-RC-Token = [token from Step 3]
-5. Events: Incident Created, Updated, Units Assigned`,
+5. Events: Incident Created, Updated, Units Assigned
+6. JSON body: IncidentId / NatureOfCall / Address (or incident_id / nature / address)
+Batches: { "Incidents": [ … ] }. Write-back stays off.`,
   suggestedPollIntervalMinutes: 2,
-  knownApiEndpointPattern: "https://{host}/cs-cad/api/v1/incidents?modifiedSince={iso8601}",
+  knownApiEndpointPattern: "https://{host}/cs-cad/api/v1/incidents",
 };
 
 const HEXAGON: CadVendorDefinition = {

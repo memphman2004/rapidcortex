@@ -58,6 +58,10 @@ export function marketingPricingPath(): string {
   return "/pricing";
 }
 
+export function marketingGrantsPath(): string {
+  return "/grants";
+}
+
 export function marketingDemoPath(): string {
   return "/demo";
 }

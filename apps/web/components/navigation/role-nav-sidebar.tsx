@@ -51,10 +51,10 @@ function NavSectionHeader({ label, compact }: { label: string; compact?: boolean
   }
   return (
     <div className="flex items-center gap-2.5 px-2 pt-5 pb-1">
-      <span className="shrink-0 whitespace-nowrap text-[9px] font-bold uppercase tracking-widest text-slate-600">
+      <span className="shrink-0 whitespace-nowrap text-[9px] font-bold uppercase tracking-widest text-[var(--rc-text-muted)]">
         {label}
       </span>
-      <div className="h-px flex-1 bg-slate-800/80" aria-hidden />
+      <div className="h-px flex-1 bg-[var(--rc-border)]" aria-hidden />
     </div>
   );
 }
@@ -144,7 +144,7 @@ export function RoleNavSections({
                             borderLeft: "3px solid var(--role-accent)",
                             paddingLeft: "calc(0.5rem - 3px)",
                             backgroundColor:
-                              "color-mix(in srgb, var(--role-accent-dim) 55%, rgb(2 6 23))",
+                              "color-mix(in srgb, var(--role-accent-dim) 55%, var(--rc-nav-active-mix, rgb(2 6 23)))",
                             boxShadow:
                               "inset 0 0 0 1px color-mix(in srgb, var(--role-accent) 20%, transparent)",
                           }
@@ -158,7 +158,7 @@ export function RoleNavSections({
                     {variant === "sidebar" ? (
                       <Icon
                         className="h-4 w-4 shrink-0 opacity-90"
-                        style={{ color: active ? "var(--role-accent)" : "rgb(148 163 184)" }}
+                        style={{ color: active ? "var(--role-accent)" : "var(--rc-text-muted, rgb(148 163 184))" }}
                         aria-hidden
                       />
                     ) : null}

@@ -1,10 +1,12 @@
 import { randomUUID } from "node:crypto";
 import type { RapidIqContact } from "rapid-cortex-shared";
 import { resolvePlainOrSecretArn } from "../runtimeSecrets.js";
-import { isCollectorsMockEnabled } from "./agenda-finder.js";
+import { isExplicitCollectorsMockEnabled } from "./agenda-finder.js";
 import {
   collectAgencyDomains,
   type ContactEnrichInput,
+  type ContactProviderResult,
+  type ContactProviderTrace,
   inferRoleTier,
   isPublicSafetyRelevantTitle,
   MAX_CONTACTS,
@@ -79,21 +81,45 @@ function mapApolloPerson(
  * Stage 2: Apollo.io people search by org domain + public-safety titles.
  * Key must be in X-Api-Key header — never as a query param.
  */
+export async function hasApolloApiKey(): Promise<boolean> {
+  if (isExplicitCollectorsMockEnabled()) return false;
+  return Boolean(await resolveApolloApiKey());
+}
+
+/** Current docs: People API Search is mixed_people/api_search (or a master key). */
+const APOLLO_SEARCH_URLS = [
+  "https://api.apollo.io/api/v1/mixed_people/api_search",
+  "https://api.apollo.io/api/v1/mixed_people/search",
+  "https://api.apollo.io/v1/mixed_people/api_search",
+  "https://api.apollo.io/v1/mixed_people/search",
+];
+
 export async function findContactsViaApollo(
   input: ContactEnrichInput,
-): Promise<Omit<RapidIqContact, "opportunityId">[]> {
-  if (isCollectorsMockEnabled()) return [];
+): Promise<ContactProviderResult> {
+  if (isExplicitCollectorsMockEnabled()) {
+    return {
+      contacts: [],
+      traces: [{ provider: "apollo", domain: "", httpStatus: 0, rawHits: 0, kept: 0, error: "mock" }],
+    };
+  }
 
   const apiKey = await resolveApolloApiKey();
   if (!apiKey) {
     console.log(JSON.stringify({ msg: "apollo_enrichment_skipped", reason: "no_api_key" }));
-    return [];
+    return {
+      contacts: [],
+      traces: [{ provider: "apollo", domain: "", httpStatus: 0, rawHits: 0, kept: 0, error: "no_api_key" }],
+    };
   }
 
   const domains = collectAgencyDomains(input.candidateUrls ?? []);
   if (domains.length === 0) {
     console.log(JSON.stringify({ msg: "apollo_enrichment_skipped", reason: "no_domain" }));
-    return [];
+    return {
+      contacts: [],
+      traces: [{ provider: "apollo", domain: "", httpStatus: 0, rawHits: 0, kept: 0, error: "no_domain" }],
+    };
   }
 
   const titles =
@@ -101,65 +127,112 @@ export async function findContactsViaApollo(
     PERSON_TITLES_BY_VERTICAL[input.vertical] ??
     PERSON_TITLES_BY_VERTICAL["911"];
   const found: Omit<RapidIqContact, "opportunityId">[] = [];
+  const traces: ContactProviderTrace[] = [];
 
   try {
     for (const domain of domains.slice(0, 2)) {
       if (found.length >= MAX_CONTACTS) break;
 
-      const res = await fetch("https://api.apollo.io/v1/mixed_people/search", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Cache-Control": "no-cache",
-          "X-Api-Key": apiKey,
-        },
-        body: JSON.stringify({
-          q_organization_domains: [domain],
-          person_titles: titles.slice(0, 8),
-          page: 1,
-          per_page: 5,
-        }),
-        signal: AbortSignal.timeout(8_000),
-      });
-
-      if (!res.ok) {
+      let res: Response | null = null;
+      for (const url of APOLLO_SEARCH_URLS) {
+        res = await fetch(url, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Cache-Control": "no-cache",
+            "x-api-key": apiKey,
+          },
+          body: JSON.stringify({
+            q_organization_domains: [domain],
+            person_titles: titles.slice(0, 8),
+            page: 1,
+            per_page: 5,
+          }),
+          signal: AbortSignal.timeout(8_000),
+        });
+        // Retired /search often returns 401 even for a valid key. Try the next path.
+        if (res.ok) break;
+        if (res.status !== 401 && res.status !== 403 && res.status !== 404) break;
+      }
+      if (!res || !res.ok) {
+        const failed = res;
         let detail = "";
-        try {
-          const errBody = (await res.json()) as { error?: string };
-          detail = errBody.error ?? "";
-        } catch {
-          /* ignore */
+        if (failed) {
+          try {
+            const errBody = (await failed.json()) as { error?: string };
+            detail = errBody.error ?? "";
+          } catch {
+            /* ignore */
+          }
         }
+        const error =
+          failed?.status === 401
+            ? "invalid_api_key"
+            : failed?.status === 403 && /free plan/i.test(detail)
+              ? "plan_blocked_free"
+              : failed
+                ? `http_${failed.status}`
+                : "no_response";
         console.log(
           JSON.stringify({
             msg: "apollo_api_error",
-            status: res.status,
+            status: failed?.status ?? 0,
             domain,
             detail: detail.slice(0, 240),
-            planHint:
-              res.status === 403 && /free plan/i.test(detail)
-                ? "Apollo Free plan blocks people search — upgrade required for Rapid IQ contact enrichment"
-                : undefined,
+            planHint: error === "plan_blocked_free"
+              ? "Apollo Free plan blocks people search — upgrade required for Rapid IQ contact enrichment"
+              : undefined,
           }),
         );
+        traces.push({
+          provider: "apollo",
+          domain,
+          httpStatus: failed?.status ?? 0,
+          rawHits: 0,
+          kept: 0,
+          error,
+        });
         continue;
       }
 
       const body = (await res.json()) as ApolloSearchResponse;
-      for (const person of body.people ?? []) {
+      const people = body.people ?? [];
+      let droppedByTitle = 0;
+      let kept = 0;
+      for (const person of people) {
+        if (person.title && !isPublicSafetyRelevantTitle(person.title)) {
+          droppedByTitle += 1;
+          continue;
+        }
         const mapped = mapApolloPerson(person, domain);
-        if (mapped) found.push(mapped);
+        if (mapped) {
+          found.push(mapped);
+          kept += 1;
+        }
         if (found.length >= MAX_CONTACTS) break;
       }
+      traces.push({
+        provider: "apollo",
+        domain,
+        httpStatus: res.status,
+        rawHits: people.length,
+        kept,
+        droppedByTitle,
+      });
     }
   } catch (err) {
-    console.log(
-      JSON.stringify({
-        msg: "apollo_people_search_failed",
-        error: err instanceof Error ? err.message : "unknown",
-      }),
-    );
+    const error = err instanceof Error ? err.message : "unknown";
+    console.log(JSON.stringify({ msg: "apollo_people_search_failed", error }));
+    traces.push({
+      provider: "apollo",
+      domain: domains[0] ?? "",
+      httpStatus: 0,
+      rawHits: 0,
+      kept: 0,
+      error,
+    });
   }
 
-  return found.slice(0, MAX_CONTACTS);
+  return { contacts: found.slice(0, MAX_CONTACTS), traces };
 }
+

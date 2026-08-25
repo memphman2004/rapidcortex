@@ -2,6 +2,7 @@ import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 import { isSam3ApiPath, isSam4ApiPath, isSam5ApiPath, isStack2ApiPath, resolveUpstreamApiBase } from "@/lib/comms-api-path";
 import { applyRotatedAuthCookies, resolveBffBearerToken } from "@/lib/server/bff-auth-token";
+import { joinUpstreamApiUrl, normalizeUpstreamApiPath } from "@/lib/upstream-url";
 
 type ProxyOptions = {
   allowAnonymous?: boolean;
@@ -12,12 +13,13 @@ export async function proxyToAuthUpstream(
   upstreamPath: string,
   options: ProxyOptions = {},
 ): Promise<NextResponse> {
-  const base = resolveUpstreamApiBase(upstreamPath);
+  const path = normalizeUpstreamApiPath(upstreamPath);
+  const base = resolveUpstreamApiBase(path);
   if (!base) {
-    const needsStack4 = isSam4ApiPath(upstreamPath);
-    const needsStack5 = isSam5ApiPath(upstreamPath);
-    const needsStack3 = isSam3ApiPath(upstreamPath);
-    const needsStack2 = isStack2ApiPath(upstreamPath);
+    const needsStack4 = isSam4ApiPath(path);
+    const needsStack5 = isSam5ApiPath(path);
+    const needsStack3 = isSam3ApiPath(path);
+    const needsStack2 = isStack2ApiPath(path);
     return NextResponse.json(
       {
         error: needsStack4
@@ -48,7 +50,7 @@ export async function proxyToAuthUpstream(
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const target = new URL(`${base}${upstreamPath}`);
+  const target = joinUpstreamApiUrl(base, path);
   target.search = request.nextUrl.search;
 
   const headers = new Headers();

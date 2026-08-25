@@ -1,6 +1,7 @@
 import type { CadConnectionType, CadVendor } from "rapid-cortex-shared";
+import type { CadAlert, CadAniAliSource, CadLocationSource, CadPriority, CadUnitAssignment } from "rapid-cortex-shared";
 
-export type CadPriority = "P1" | "P2" | "P3" | "P4";
+export type { CadPriority };
 
 /** Minimal integration context for vendor-specific setup copy (URLs, headers, field hints). */
 export type CadIntegrationSetupContext = {
@@ -30,6 +31,20 @@ export interface NormalizedCadIncident {
   /** Monotonic vendor revision when provided (else treated as 0). */
   revision?: number;
   rawPayload: unknown;
+  priorityModifier?: string;
+  disposition?: string;
+  intersection?: string;
+  beat?: string;
+  zone?: string;
+  jurisdiction?: string;
+  locationConfidence?: string;
+  locationSource?: CadLocationSource;
+  callerAddress?: string;
+  aniAliSource?: CadAniAliSource;
+  relatedCadNumbers?: string[];
+  duplicateOfCadNumber?: string;
+  unitDetails?: CadUnitAssignment[];
+  alerts?: CadAlert[];
 }
 
 export interface CadParser {

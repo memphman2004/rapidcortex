@@ -1,4 +1,5 @@
 import { classifySignal } from "../../../lib/rapid-iq/claude-classifier.js";
+import { rapidIqIngestSinceDate } from "../../../lib/rapid-iq/ingest-window.js";
 import {
   LEGISLATURE_QUERIES,
   LEGISLATURE_STATES_PER_RUN,
@@ -54,10 +55,8 @@ function sleep(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
-function ninetyDaysAgo(): string {
-  const d = new Date();
-  d.setDate(d.getDate() - 90);
-  return d.toISOString().slice(0, 10);
+function ingestCutoff(): string {
+  return rapidIqIngestSinceDate();
 }
 
 function billStatusLabel(status: number): string {
@@ -246,7 +245,7 @@ async function processBill(
   vertical: LegislatureQuery["vertical"],
   sourceLabel: string,
 ): Promise<boolean> {
-  const cutoff = ninetyDaysAgo();
+  const cutoff = ingestCutoff();
   // Keep introduced-only bills only when recently active.
   if (bill.status < 2 && bill.last_action_date && bill.last_action_date < cutoff) {
     return false;

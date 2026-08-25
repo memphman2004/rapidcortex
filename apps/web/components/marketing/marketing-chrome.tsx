@@ -1,10 +1,20 @@
 "use client";
 
 import { usePathname } from "next/navigation";
+import dynamic from "next/dynamic";
 import type { ReactNode } from "react";
-import { MarketingFooter } from "@/components/marketing/marketing-footer";
 import { MarketingHeader } from "@/components/marketing/marketing-header";
-import { MarketingMobileStickyDemoCta } from "@/components/marketing/marketing-mobile-sticky-demo-cta";
+
+const MarketingFooter = dynamic(() =>
+  import("@/components/marketing/marketing-footer").then((m) => ({ default: m.MarketingFooter })),
+);
+const MarketingMobileStickyDemoCta = dynamic(
+  () =>
+    import("@/components/marketing/marketing-mobile-sticky-demo-cta").then((m) => ({
+      default: m.MarketingMobileStickyDemoCta,
+    })),
+  { ssr: false },
+);
 
 /** Full marketing chrome — skipped on standalone splash routes like `/enter`. */
 export function MarketingChrome({ children }: { children: ReactNode }) {

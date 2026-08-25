@@ -106,7 +106,7 @@
     <StackPanel x:Name="WebWorkspaceRequiredPanel" Visibility="Collapsed" Margin="32" VerticalAlignment="Center" HorizontalAlignment="Center" MaxWidth="520">
       <TextBlock Text="Web workspace required" FontSize="22" FontWeight="SemiBold" HorizontalAlignment="Center" />
       <TextBlock TextWrapping="Wrap" Foreground="#666" Margin="0,12,0,0" TextAlignment="Center"
-                 Text="Set RapidCortex:WebAppBaseUrl in appsettings (e.g. https://www.rapidcortex.us) so this desktop app loads the same Rapid Cortex web workspace as the browser." />
+                 Text="Set RapidCortex:WebAppBaseUrl in appsettings (e.g. https://app.rapidcortex.us) so this desktop app loads the same Rapid Cortex web workspace as the browser." />
       <TextBlock TextWrapping="Wrap" Foreground="#888" FontSize="12" Margin="0,12,0,0" TextAlignment="Center"
                  Text="After updating configuration, restart the app or use Reload configuration on the About tab (Debug builds)." />
     </StackPanel>

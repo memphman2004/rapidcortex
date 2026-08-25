@@ -183,7 +183,7 @@ echo "Step 4: Starting CodeBuild (image build + ECR push in AWS)…"
 # Merge non-empty NEXT_PUBLIC_/build-related exports into CodeBuild when present
 # (e.g. after sourcing scripts/env-web-ssr-prod.sh). Otherwise stack CodeBuild defaults
 # can bake stale API/Cognito URLs into the image.
-declare -a _CB_ENV_OVERRIDES=()
+declare -a _CB_ENV_JSON_ITEMS=()
 for _var_name in \
   NEXT_PUBLIC_API_BASE_URL \
   NEXT_PUBLIC_API_BASE \
@@ -231,25 +231,32 @@ for _var_name in \
   RC_LOG_MIDDLEWARE_RSC
 do
   if [[ -n "${!_var_name:-}" ]]; then
-    _CB_ENV_OVERRIDES+=(--environment-variables-override "name=${_var_name},value=${!_var_name},type=PLAINTEXT")
+    _CB_ENV_JSON_ITEMS+=("$(jq -nc --arg n "${_var_name}" --arg v "${!_var_name}" '{name:$n,value:$v,type:"PLAINTEXT"}')")
   fi
 done
 unset _var_name
 
-if [[ ${#_CB_ENV_OVERRIDES[@]} -gt 0 ]]; then
-  echo "   CodeBuild: applying ${#_CB_ENV_OVERRIDES[@]} env override(s) from current shell → image build-args."
+if [[ ${#_CB_ENV_JSON_ITEMS[@]} -gt 0 ]]; then
+  echo "   CodeBuild: applying ${#_CB_ENV_JSON_ITEMS[@]} env override(s) from current shell → image build-args."
   if [[ -n "${RC_LOG_MIDDLEWARE_RSC:-}" ]]; then
     echo "   RC_LOG_MIDDLEWARE_RSC=${RC_LOG_MIDDLEWARE_RSC} → baked into runner image ENV (not ECS task def)."
   fi
+  _CB_ENV_FILE="$(mktemp "${TMPDIR:-/tmp}/rc-codebuild-env.XXXXXX.json")"
+  printf '%s\n' "${_CB_ENV_JSON_ITEMS[@]}" | jq -s \
+    --arg project "${CODEBUILD_PROJECT}" \
+    '{projectName:$project, environmentVariablesOverride:.}' > "${_CB_ENV_FILE}"
+  # shellcheck disable=SC2064
+  trap 'rm -f "${_CB_ENV_FILE}"' EXIT
   BUILD_ID="$(
     aws codebuild start-build \
-      --project-name "${CODEBUILD_PROJECT}" \
       --region "${AWS_REGION}" \
-      "${_CB_ENV_OVERRIDES[@]}" \
+      --cli-input-json "file://${_CB_ENV_FILE}" \
       --query 'build.id' \
       --output text \
       --no-cli-pager
   )"
+  rm -f "${_CB_ENV_FILE}"
+  trap - EXIT
 else
   BUILD_ID="$(
     aws codebuild start-build \
@@ -260,7 +267,7 @@ else
       --no-cli-pager
   )"
 fi
-unset _CB_ENV_OVERRIDES
+unset _CB_ENV_JSON_ITEMS
 echo "Build ID: ${BUILD_ID}"
 echo "Console:  https://console.aws.amazon.com/codesuite/codebuild/${AWS_REGION}/projects/${CODEBUILD_PROJECT}/build/${BUILD_ID}"
 

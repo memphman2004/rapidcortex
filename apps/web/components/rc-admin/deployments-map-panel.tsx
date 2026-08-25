@@ -17,6 +17,8 @@ import {
 } from "@/lib/api";
 import { getPsapMapPins } from "@/lib/psap/psap-api";
 import { isDeploymentsMapEnabled, isPsapProspectsUiEnabled } from "@/lib/runtime-flags";
+import { MapFourColorLegend } from "@/components/maps/MapFourColorLegend";
+import { DeploymentsCoverageLayer } from "@/components/rc-admin/deployments-coverage-layer";
 
 type Marker = AgencyDeploymentsMapPayload["markers"][number];
 type Vertical = "core" | "campus" | "venue" | "hospital";
@@ -415,27 +417,31 @@ export function DeploymentsMapPanel({
       );
     }
     return (
-      <RapidCortexMap
-        center={US_CENTER}
-        zoom={3.4}
-        theme="dark"
-        showControls={!compact}
-        className="h-full w-full"
-        onMapLoad={setMap}
-      >
-        {markers.map((m) => (
-          <AgencyPin
-            key={m.agencyId}
-            map={map}
-            marker={m}
-            selected={selectedId === m.agencyId || hoveredId === m.agencyId}
-            onHover={onHover}
-            onSelect={onSelect}
-          />
-        ))}
-        {psapLayerOn &&
-          psapPins.map((p) => <PsapProspectPin key={p.psapId} map={map} pin={p} />)}
-      </RapidCortexMap>
+      <>
+        <RapidCortexMap
+          center={US_CENTER}
+          zoom={3.4}
+          theme="dark"
+          showControls={!compact}
+          className="h-full w-full"
+          onMapLoad={setMap}
+        >
+          <DeploymentsCoverageLayer map={map} markers={markers} />
+          {markers.map((m) => (
+            <AgencyPin
+              key={m.agencyId}
+              map={map}
+              marker={m}
+              selected={selectedId === m.agencyId || hoveredId === m.agencyId}
+              onHover={onHover}
+              onSelect={onSelect}
+            />
+          ))}
+          {psapLayerOn &&
+            psapPins.map((p) => <PsapProspectPin key={p.psapId} map={map} pin={p} />)}
+        </RapidCortexMap>
+        {!compact ? <MapFourColorLegend /> : null}
+      </>
     );
   })();
 

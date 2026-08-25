@@ -23,6 +23,7 @@ export const footerNav: FooterNavItem[] = [
       { label: "Rapid Cortex Core", href: "/product/core" },
       { label: "Rapid Cortex Venue", href: "/product/venue" },
       { label: "Rapid Cortex Campus", href: "/product/campus" },
+      { label: "Grant Success Program", href: "/grants" },
       { label: "Campus safety software", href: "/campus-safety-software" },
       { label: "Venue safety software", href: "/venue-safety-software" },
       { label: "Integrations", href: "/integrations" },
@@ -32,4 +33,12 @@ export const footerNav: FooterNavItem[] = [
   { label: "Careers", href: "/careers" },
   { label: "Contact", href: "https://www.rapidcortex.us/contact-sales?interest=demo" },
   { label: "Insights & Resources", href: "/blog" },
+  {
+    label: "Legal",
+    links: [
+      { label: "Privacy policy", href: "/privacy" },
+      { label: "Terms of use", href: "/terms" },
+      { label: "Sub-processors", href: "/legal/sub-processors" },
+    ],
+  },
 ];

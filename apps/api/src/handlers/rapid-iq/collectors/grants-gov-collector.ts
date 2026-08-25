@@ -3,11 +3,16 @@ import { classifySignal } from "../../../lib/rapid-iq/claude-classifier.js";
 import { upsertSignalAndOpportunity } from "./upsert-signal.js";
 
 const GRANT_KEYWORDS = [
+  "911 emergency communications",
+  "next generation 911",
   "NG911",
+  "public safety answering point",
   "PSAP",
-  "emergency communications",
-  "public safety communications",
-  "911 grant",
+  "emergency communications center",
+  "CAD computer aided dispatch",
+  "law enforcement technology",
+  "campus safety",
+  "first responder",
 ];
 
 type GrantHit = {

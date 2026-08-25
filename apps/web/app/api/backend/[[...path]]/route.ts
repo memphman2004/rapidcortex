@@ -2,9 +2,10 @@ import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 import { isSam3ApiPath, isSam4ApiPath, isSam5ApiPath, isStack2ApiPath, resolveUpstreamApiBase } from "@/lib/comms-api-path";
 import { applyRotatedAuthCookies, resolveBffBearerToken } from "@/lib/server/bff-auth-token";
+import { joinUpstreamApiUrl, normalizeUpstreamApiPath } from "@/lib/upstream-url";
 
 async function proxy(request: NextRequest, pathSegments: string[]) {
-  const path = `/${pathSegments.join("/")}`;
+  const path = normalizeUpstreamApiPath(`/${pathSegments.join("/")}`);
   const base = resolveUpstreamApiBase(path);
   if (!base) {
     const needsStack4 = isSam4ApiPath(path);
@@ -41,7 +42,7 @@ async function proxy(request: NextRequest, pathSegments: string[]) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const target = new URL(`${base}${path}`);
+  const target = joinUpstreamApiUrl(base, path);
   target.search = request.nextUrl.search;
 
   const headers = new Headers();

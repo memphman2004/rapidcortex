@@ -21,6 +21,7 @@ import {
   marketingHomePath,
   marketingLoginPath,
   marketingPricingPath,
+  marketingGrantsPath,
   marketingSignupPath,
   marketingSolutionsAgenciesPath,
 } from "@/lib/marketing-links";
@@ -35,6 +36,7 @@ export function getMarketingMobileDrawerLinkDefs(): readonly { label: string; hr
   return [
     { label: "Home", href: marketingHomePath() },
     { label: "Features", href: marketingSolutionsAgenciesPath() },
+    { label: "Grants", href: marketingGrantsPath() },
     { label: "Pricing", href: marketingPricingPath() },
     { label: "Blog", href: "/blog" },
     { label: "Demo", href: marketingDemoPath() },
@@ -103,6 +105,7 @@ export function MarketingHeader() {
   const home = marketingHomePath();
   const signup = marketingSignupPath();
   const pricing = marketingPricingPath();
+  const grants = marketingGrantsPath();
   const features = marketingSolutionsAgenciesPath();
   const demo = marketingDemoPath();
   const signupEnabled = isPublicSignupUiEnabled();
@@ -184,6 +187,12 @@ export function MarketingHeader() {
                   className="shrink-0 rounded-lg px-2 py-2 text-sm font-medium text-slate-300 transition-colors hover:bg-slate-800/70 hover:text-white lg:px-2.5"
                 >
                   Features
+                </Link>
+                <Link
+                  href={grants}
+                  className="shrink-0 rounded-lg px-2 py-2 text-sm font-medium text-slate-300 transition-colors hover:bg-slate-800/70 hover:text-white lg:px-2.5"
+                >
+                  Grants
                 </Link>
                 <Link
                   href={pricing}

@@ -13,9 +13,9 @@
  * without making any outbound HTTP calls. This is the dev/staging behavior.
  *
  * Pagination:
- *   Motorola:     page-based (page, pageSize params)
- *   Tyler:        since-based cursor (eventsSince param)
- *   CentralSquare: modifiedSince ISO param
+ *   Motorola:     since + pageSize on the configured incidents-list URL
+ *   Tyler:        eventsSince cursor on the configured URL
+ *   CentralSquare: modifiedSince ISO param on the configured URL
  *   Hexagon:      timestamp-based (since param)
  *   Generic:      configurable (since param)
  *
@@ -37,9 +37,22 @@ import {
   applyPriorityMapping,
   extractField,
 } from "./cad-poll-adapter.js";
+import { extractCadIncidentRecords } from "../parsers/parse-helpers.js";
 
 const MAX_INCIDENTS_PER_CYCLE = 200;
 const FETCH_TIMEOUT_MS = 15_000;
+
+function withQuery(apiUrl: string, params: Record<string, string | undefined>): string {
+  const url = new URL(apiUrl);
+  for (const [key, value] of Object.entries(params)) {
+    if (value != null && value !== "") url.searchParams.set(key, value);
+  }
+  return url.toString();
+}
+
+function pollItemsFromBody(body: unknown): Record<string, unknown>[] {
+  return extractCadIncidentRecords(body).slice(0, MAX_INCIDENTS_PER_CYCLE);
+}
 
 // ─── Mock support ─────────────────────────────────────────────────────────────
 
@@ -96,11 +109,11 @@ export const motorolaPremierOneAdapter: CadPollAdapter = {
     }
 
     const headers = buildAuthHeaders(config);
-    // PremierOne uses since + pageSize; agencyCode scopes results
-    const url = new URL(`${config.apiUrl}/api/incidents`);
-    url.searchParams.set("since", sinceIso);
-    url.searchParams.set("pageSize", "100");
-    if (config.agencyCode) url.searchParams.set("agencyId", config.agencyCode);
+    const url = withQuery(config.apiUrl, {
+      since: sinceIso,
+      pageSize: "100",
+      ...(config.agencyCode ? { agencyId: config.agencyCode } : {}),
+    });
 
     let latencyMs: number;
     let response: Response;
@@ -122,32 +135,28 @@ export const motorolaPremierOneAdapter: CadPollAdapter = {
       return { ok: false, errorType: "parse_error", message: "Response is not valid JSON", latencyMs, httpStatus: response.status };
     }
 
-    const raw = body as Record<string, unknown>;
-    const items = (raw.incidents ?? raw.Events ?? raw.data ?? []) as Record<string, unknown>[];
-    if (!Array.isArray(items)) {
-      return { ok: false, errorType: "parse_error", message: "Expected array in response", latencyMs, httpStatus: response.status };
-    }
+    const items = pollItemsFromBody(body);
 
     const now = new Date().toISOString();
-    const incidents: RawCadIncident[] = items.slice(0, MAX_INCIDENTS_PER_CYCLE).map((item) => {
+    const incidents: RawCadIncident[] = items.map((item) => {
       const mapped = applyFieldMapping(item, config, (p) => ({
-        cadEventId:     extractField(p, "EventId")    ?? extractField(p, "incidentId"),
-        incidentNumber: extractField(p, "CallNumber") ?? extractField(p, "eventNumber"),
-        incidentType:   extractField(p, "NatureCode") ?? extractField(p, "callType"),
-        priority:       extractField(p, "Priority"),
-        location:       extractField(p, "Location")   ?? extractField(p, "locationAddress"),
-        latitude:       parseFloat(extractField(p, "Latitude") ?? "") || undefined,
-        longitude:      parseFloat(extractField(p, "Longitude") ?? "") || undefined,
+        cadEventId:     extractField(p, "EventId")    ?? extractField(p, "EventNumber") ?? extractField(p, "IncidentId") ?? extractField(p, "incidentId"),
+        incidentNumber: extractField(p, "CallNumber") ?? extractField(p, "IncidentNumber") ?? extractField(p, "eventNumber"),
+        incidentType:   extractField(p, "NatureCode") ?? extractField(p, "CallType") ?? extractField(p, "callType"),
+        priority:       extractField(p, "Priority") ?? extractField(p, "PriorityCode"),
+        location:       extractField(p, "Location")   ?? extractField(p, "Address") ?? extractField(p, "locationAddress"),
+        latitude:       parseFloat(extractField(p, "Latitude") ?? extractField(p, "Lat") ?? "") || undefined,
+        longitude:      parseFloat(extractField(p, "Longitude") ?? extractField(p, "Lon") ?? "") || undefined,
         callerName:     extractField(p, "CallerName"),
-        callerPhone:    extractField(p, "CallerPhone"),
-        narrative:      extractField(p, "Narrative"),
-        units:          extractField(p, "Units"),
-        status:         extractField(p, "Status"),
+        callerPhone:    extractField(p, "CallerPhone") ?? extractField(p, "CallbackNumber"),
+        narrative:      extractField(p, "Narrative") ?? extractField(p, "Notes"),
+        units:          extractField(p, "Units") ?? extractField(p, "AssignedUnits"),
+        status:         extractField(p, "Status") ?? extractField(p, "EventStatus"),
         agencyCode:     extractField(p, "AgencyId") ?? config.agencyCode,
       }));
       return {
         ...mapped,
-        cadEventId: mapped.cadEventId ?? String(item.EventId ?? item.id ?? "unknown"),
+        cadEventId: mapped.cadEventId ?? String(item.EventId ?? item.EventNumber ?? item.IncidentNumber ?? item.id ?? "unknown"),
         rcPriority: applyPriorityMapping(mapped.priority, config.priorityMapping),
         rawPayload: item,
         receivedAt: now,
@@ -175,10 +184,11 @@ export const tylerNewWorldAdapter: CadPollAdapter = {
     }
 
     const headers = buildAuthHeaders(config);
-    const url = new URL(config.apiUrl);
-    url.searchParams.set("eventsSince", sinceIso);
-    if (config.agencyCode) url.searchParams.set("agencyCode", config.agencyCode);
-    url.searchParams.set("limit", "100");
+    const url = withQuery(config.apiUrl, {
+      eventsSince: sinceIso,
+      limit: "100",
+      ...(config.agencyCode ? { agencyCode: config.agencyCode } : {}),
+    });
 
     let response: Response;
     let latencyMs: number;
@@ -197,32 +207,28 @@ export const tylerNewWorldAdapter: CadPollAdapter = {
       return { ok: false, errorType: "parse_error", message: "Invalid JSON", latencyMs, httpStatus: response.status };
     }
 
-    const raw = body as Record<string, unknown>;
-    const items = (raw.events ?? raw.incidents ?? raw.data ?? raw) as Record<string, unknown>[];
-    if (!Array.isArray(items)) {
-      return { ok: false, errorType: "parse_error", message: "Unexpected Tyler response shape", latencyMs, httpStatus: response.status };
-    }
+    const items = pollItemsFromBody(body);
 
     const now = new Date().toISOString();
-    const incidents: RawCadIncident[] = items.slice(0, MAX_INCIDENTS_PER_CYCLE).map((item) => {
+    const incidents: RawCadIncident[] = items.map((item) => {
       const mapped = applyFieldMapping(item, config, (p) => ({
-        cadEventId:     extractField(p, "eventNumber") ?? extractField(p, "id"),
-        incidentNumber: extractField(p, "callNumber"),
-        incidentType:   extractField(p, "callType"),
-        priority:       extractField(p, "priority"),
-        location:       extractField(p, "locationAddress"),
-        latitude:       parseFloat(extractField(p, "gpsLat") ?? "") || undefined,
-        longitude:      parseFloat(extractField(p, "gpsLon") ?? "") || undefined,
-        callerName:     extractField(p, "callerName"),
-        callerPhone:    extractField(p, "callerPhone"),
-        narrative:      extractField(p, "remarks"),
-        units:          extractField(p, "assignedUnits"),
-        status:         extractField(p, "eventStatus"),
+        cadEventId:     extractField(p, "eventNumber") ?? extractField(p, "EventNumber") ?? extractField(p, "id"),
+        incidentNumber: extractField(p, "callNumber") ?? extractField(p, "CallNumber") ?? extractField(p, "call_number"),
+        incidentType:   extractField(p, "callType") ?? extractField(p, "call_type") ?? extractField(p, "CallType"),
+        priority:       extractField(p, "priority") ?? extractField(p, "priority_code"),
+        location:       extractField(p, "locationAddress") ?? extractField(p, "location_text") ?? extractField(p, "address"),
+        latitude:       parseFloat(extractField(p, "gpsLat") ?? extractField(p, "Latitude") ?? "") || undefined,
+        longitude:      parseFloat(extractField(p, "gpsLon") ?? extractField(p, "Longitude") ?? "") || undefined,
+        callerName:     extractField(p, "callerName") ?? extractField(p, "caller_name"),
+        callerPhone:    extractField(p, "callerPhone") ?? extractField(p, "caller_phone"),
+        narrative:      extractField(p, "remarks") ?? extractField(p, "Comments"),
+        units:          extractField(p, "assignedUnits") ?? extractField(p, "apparatus"),
+        status:         extractField(p, "eventStatus") ?? extractField(p, "dispatch_status") ?? extractField(p, "status"),
         agencyCode:     extractField(p, "agencyCode") ?? config.agencyCode,
       }));
       return {
         ...mapped,
-        cadEventId: mapped.cadEventId ?? String(item.eventNumber ?? item.id ?? "unknown"),
+        cadEventId: mapped.cadEventId ?? String(item.eventNumber ?? item.EventNumber ?? item.id ?? "unknown"),
         rcPriority: applyPriorityMapping(mapped.priority, config.priorityMapping),
         rawPayload: item,
         receivedAt: now,
@@ -244,11 +250,12 @@ export const centralSquareAdapter: CadPollAdapter = {
     }
 
     const headers = buildAuthHeaders(config);
-    const url = new URL(config.apiUrl);
-    url.searchParams.set("modifiedSince", sinceIso);
-    if (config.agencyCode) url.searchParams.set("orgCode", config.agencyCode);
-    url.searchParams.set("pageSize", "100");
-    url.searchParams.set("page", "1");
+    const url = withQuery(config.apiUrl, {
+      modifiedSince: sinceIso,
+      pageSize: "100",
+      page: "1",
+      ...(config.agencyCode ? { orgCode: config.agencyCode } : {}),
+    });
 
     let response: Response;
     let latencyMs: number;
@@ -267,32 +274,28 @@ export const centralSquareAdapter: CadPollAdapter = {
       return { ok: false, errorType: "parse_error", message: "Invalid JSON", latencyMs, httpStatus: response.status };
     }
 
-    const raw = body as Record<string, unknown>;
-    const items = (raw.Incidents ?? raw.incidents ?? raw.results ?? raw.data ?? []) as Record<string, unknown>[];
-    if (!Array.isArray(items)) {
-      return { ok: false, errorType: "parse_error", message: "Unexpected CentralSquare shape", latencyMs, httpStatus: response.status };
-    }
+    const items = pollItemsFromBody(body);
 
     const now = new Date().toISOString();
-    const incidents: RawCadIncident[] = items.slice(0, MAX_INCIDENTS_PER_CYCLE).map((item) => {
+    const incidents: RawCadIncident[] = items.map((item) => {
       const mapped = applyFieldMapping(item, config, (p) => ({
-        cadEventId:     extractField(p, "IncidentId"),
-        incidentNumber: extractField(p, "IncidentNumber"),
-        incidentType:   extractField(p, "NatureOfCall"),
-        priority:       extractField(p, "Priority"),
-        location:       extractField(p, "Address"),
-        latitude:       parseFloat(extractField(p, "Lat") ?? "") || undefined,
-        longitude:      parseFloat(extractField(p, "Lon") ?? "") || undefined,
-        callerName:     extractField(p, "CallerName"),
-        callerPhone:    extractField(p, "CallerPhone"),
-        narrative:      extractField(p, "Comments"),
-        units:          extractField(p, "UnitList"),
-        status:         extractField(p, "Status"),
-        agencyCode:     config.agencyCode,
+        cadEventId:     extractField(p, "IncidentId") ?? extractField(p, "incident_id") ?? extractField(p, "incidentId"),
+        incidentNumber: extractField(p, "IncidentNumber") ?? extractField(p, "CaseNumber"),
+        incidentType:   extractField(p, "NatureOfCall") ?? extractField(p, "nature") ?? extractField(p, "incident_type"),
+        priority:       extractField(p, "Priority") ?? extractField(p, "priority"),
+        location:       extractField(p, "Address") ?? extractField(p, "address") ?? extractField(p, "location"),
+        latitude:       parseFloat(extractField(p, "Lat") ?? extractField(p, "Latitude") ?? "") || undefined,
+        longitude:      parseFloat(extractField(p, "Lon") ?? extractField(p, "Longitude") ?? "") || undefined,
+        callerName:     extractField(p, "CallerName") ?? extractField(p, "caller_name"),
+        callerPhone:    extractField(p, "CallerPhone") ?? extractField(p, "callback"),
+        narrative:      extractField(p, "Comments") ?? extractField(p, "Narrative"),
+        units:          extractField(p, "UnitList") ?? extractField(p, "assigned_units"),
+        status:         extractField(p, "Status") ?? extractField(p, "incident_status"),
+        agencyCode:     extractField(p, "OrgCode") ?? config.agencyCode,
       }));
       return {
         ...mapped,
-        cadEventId: mapped.cadEventId ?? String(item.IncidentId ?? item.id ?? "unknown"),
+        cadEventId: mapped.cadEventId ?? String(item.IncidentId ?? item.incident_id ?? item.id ?? "unknown"),
         rcPriority: applyPriorityMapping(mapped.priority, config.priorityMapping),
         rawPayload: item,
         receivedAt: now,

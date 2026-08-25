@@ -4,9 +4,13 @@ import { AUDIT_EVENT_TYPES } from "rapid-cortex-security";
 import type { CadVendor } from "rapid-cortex-shared";
 import type { Incident } from "rapid-cortex-shared";
 import { normalizeAddressForIndex } from "rapid-cortex-shared";
-import { getCadParser } from "../../lib/cad/parsers/index.js";
+import { extractCadIncidentRecords, getCadParser } from "../../lib/cad/parsers/index.js";
+import { asRecord } from "../../lib/cad/parsers/parse-helpers.js";
+import { mergeCadExtras, resolveCadIngestIntelligence } from "../../lib/cad/cad-ingest-intelligence.js";
+import type { CadParser } from "../../lib/cad/types.js";
 import type { NormalizedCadIncident } from "../../lib/cad/types.js";
 import { env } from "../../lib/env.js";
+import { incidentTimelineLogger } from "../../lib/incidentTimelineLogger.js";
 import { buildIncidentDedupe, buildRetentionFields } from "../../lib/retentionPolicy.js";
 import { makeId } from "../../lib/ids.js";
 import { AgencyRepository } from "../../repositories/agencyRepository.js";
@@ -94,6 +98,59 @@ function integrationCadKey(integrationId: string, cadNumber: string): string {
   return `${integrationId}:${cadNumber}`;
 }
 
+async function resolveRelatedIncidentIds(
+  agencyId: string,
+  cadNumbers: string[],
+  selfCadNumber: string,
+): Promise<string[]> {
+  const ids: string[] = [];
+  const seen = new Set<string>();
+  for (const raw of cadNumbers.slice(0, 8)) {
+    const n = raw.trim();
+    if (!n || n === selfCadNumber || seen.has(n)) continue;
+    seen.add(n);
+    const found = await incidentRepo.findByCadIncidentId(agencyId, n);
+    if (found) ids.push(found.incidentId);
+  }
+  return ids;
+}
+
+async function emitCadSyncedTimeline(args: {
+  incidentId: string;
+  agencyId: string;
+  action: "created" | "updated";
+  normalized: NormalizedCadIncident;
+  mappedTypeId: string | null;
+}): Promise<void> {
+  try {
+    await incidentTimelineLogger.emit({
+      incidentId: args.incidentId,
+      agencyId: args.agencyId,
+      kind: "cad_synced",
+      source: "cad",
+      payload: {
+        summary: `CAD ${args.action} ${args.normalized.cadNumber}`,
+        cadNumber: args.normalized.cadNumber,
+        action: args.action,
+        natureCode: args.normalized.incidentType,
+        location: args.normalized.location,
+        units: args.normalized.units.slice(0, 20),
+        mappedTypeId: args.mappedTypeId,
+      },
+    });
+  } catch {
+    /* timeline is best-effort — ingest must not fail closed */
+  }
+}
+
+async function persistCadMappedSop(
+  incidentId: string,
+  overlay: ReturnType<typeof resolveCadIngestIntelligence>["sopOverlay"],
+): Promise<void> {
+  if (!overlay) return;
+  await incidentRepo.updateSopProtocolOverlay(incidentId, overlay);
+}
+
 function buildSelfTestPayload(vendor: CadVendor): unknown {
   switch (vendor) {
     case "motorola_premier_one":
@@ -107,11 +164,23 @@ function buildSelfTestPayload(vendor: CadVendor): unknown {
       };
     case "tyler_new_world":
       return {
+        eventNumber: `RC-TEST-${Date.now()}`,
         call_number: `RC-TEST-${Date.now()}`,
         call_type: "TEST",
         location_text: "1 Test St",
         priority: "P3",
         apparatus: [],
+      };
+    case "central_square":
+      return {
+        IncidentId: `RC-TEST-${Date.now()}`,
+        IncidentNumber: `RC-TEST-${Date.now()}`,
+        NatureOfCall: "TEST",
+        Address: "1 Test St",
+        Priority: "P3",
+        UnitList: [],
+        CallerName: "Rapid Cortex",
+        CallerPhone: "5550100",
       };
     default:
       return {
@@ -122,6 +191,266 @@ function buildSelfTestPayload(vendor: CadVendor): unknown {
         units: [],
       };
   }
+}
+
+const MAX_WEBHOOK_BATCH = 200;
+
+function decorateParserPayload(record: unknown, fieldMapping: unknown): unknown {
+  if (!fieldMapping) return record;
+  const rec = asRecord(record);
+  if (!rec) return record;
+  return { ...rec, fieldMapping };
+}
+
+function webhookRecordsForParser(parsedUnknown: unknown, parser: CadParser, fieldMapping: unknown): unknown[] {
+  const extracted = extractCadIncidentRecords(parsedUnknown);
+  const candidates = extracted.length > 0 ? extracted : [parsedUnknown];
+  return candidates.map((r) => decorateParserPayload(r, fieldMapping)).filter((r) => parser.validate(r)).slice(0, MAX_WEBHOOK_BATCH);
+}
+
+async function ingestNormalizedCadIncident(args: {
+  msg: CadWebhookIngressMessage;
+  integration: CadIntegrationRecord;
+  normalized: NormalizedCadIncident;
+  rawBody: string;
+  now: string;
+  ttlSec: number;
+  existingRawId?: string;
+}): Promise<{ incidentId: string; action: "created" | "updated" | "stale_skip"; rawId: string } | null> {
+  const { msg, integration, normalized, rawBody, now, ttlSec } = args;
+  const vendorRevKey = normalized.revision !== undefined ? String(normalized.revision) : "n";
+  const deterministicRawId = `raw#${msg.agencyId}#${normalized.cadNumber}#${vendorRevKey}`;
+  let activeRawId = args.existingRawId;
+
+  if (!activeRawId) {
+    const inserted = await rawRepo.putIfAbsent({
+      id: deterministicRawId,
+      agencyId: msg.agencyId,
+      integrationId: msg.integrationId,
+      receivedAt: msg.receivedAt,
+      rawBody,
+      ...(msg.contentType ? { contentType: msg.contentType } : {}),
+      status: "received",
+      ttl: ttlSec,
+    });
+    if (!inserted.inserted) {
+      return null;
+    }
+    activeRawId = deterministicRawId;
+    await rawRepo.updateStatus(activeRawId, { status: "processing" });
+  }
+
+  const stableCadKey = integrationCadKey(msg.integrationId, normalized.cadNumber);
+  const existing =
+    (await incidentRepo.findByCadIncidentId(msg.agencyId, normalized.cadNumber)) ??
+    (await incidentRepo.findByCadDedupeKey(stableCadKey));
+
+  if (existing) {
+    const prevVendor = existing.cadVendorRevisionLast ?? 0;
+    if (normalized.revision !== undefined && prevVendor > normalized.revision) {
+      await rawRepo.updateStatus(activeRawId, {
+        status: "duplicate_skip",
+        errorMessage: "stale_revision",
+        linkedIncidentId: existing.incidentId,
+      });
+      return { incidentId: existing.incidentId, action: "stale_skip", rawId: activeRawId };
+    }
+
+    const nextCadRevision = (existing.cadRevision ?? 0) + 1;
+    const nextVendorRev =
+      normalized.revision !== undefined ?
+        Math.max(prevVendor, normalized.revision)
+      : (existing.cadVendorRevisionLast ?? null);
+
+    const callerAddressLine = normalized.location || existing.callerAddressLine || null;
+    const callerAddressNormalized = callerAddressLine ? normalizeAddressForIndex(callerAddressLine) : null;
+    const mergedSummary = normalized.notes || existing.summary || "";
+    const intel = resolveCadIngestIntelligence({
+      normalized,
+      config: integration.config,
+      existing,
+      now,
+      mappingEnabled: env.enableCadNatureMapping,
+    });
+    const extras = mergeCadExtras(normalized, existing);
+    const relatedNumbers = [
+      ...(extras.cadRelatedCadNumbers ?? []),
+      ...(extras.cadDuplicateOfCadNumber ? [extras.cadDuplicateOfCadNumber] : []),
+    ];
+    const cadLinkedIncidentIds = await resolveRelatedIncidentIds(
+      msg.agencyId,
+      relatedNumbers,
+      normalized.cadNumber,
+    );
+
+    await incidentRepo.patchFromCadIngest(existing.incidentId, {
+      cadRevision: nextCadRevision,
+      cadVendorRevisionLast: nextVendorRev ?? null,
+      cadLastSyncAt: now,
+      cadStatus: normalized.cadStatus ?? null,
+      cadUnits: normalized.units?.length ? normalized.units : existing.cadUnits ?? [],
+      callerAddressLine,
+      callerAddressNormalized: callerAddressNormalized && callerAddressNormalized.length > 0 ? callerAddressNormalized : null,
+      urgency: priorityToUrgency(normalized.priority),
+      title: intel.title,
+      cadNatureCode: normalized.incidentType ?? null,
+      cadPriority: normalized.priority,
+      cadLocation: normalized.location ?? null,
+      cadCoordinates: normalized.coordinates ?? existing.cadCoordinates ?? null,
+      cadRawPayload: rawBody.slice(0, 450_000),
+      cadCallerName: normalized.callerName?.trim() ? normalized.callerName.trim() : existing.cadCallerName ?? null,
+      cadCallerCallbackMasked: maskCallback(normalized.callerCallback) ?? existing.cadCallerCallbackMasked ?? null,
+      summary: mergedSummary,
+      cadDedupeKey: stableCadKey,
+      cadSystem: vendorToCadSystem(integration.vendor),
+      cadIncidentId: normalized.cadNumber,
+      source: "cad",
+      ...extras,
+      cadLinkedIncidentIds: cadLinkedIncidentIds.length ? cadLinkedIncidentIds : existing.cadLinkedIncidentIds ?? [],
+      cadMappedIncidentTypeId: intel.mappedTypeId ?? existing.cadMappedIncidentTypeId ?? null,
+      category: intel.category,
+      escalationFlag: intel.escalationFlag || existing.escalationFlag ? true : undefined,
+    });
+    await persistCadMappedSop(existing.incidentId, intel.sopOverlay);
+    await emitCadSyncedTimeline({
+      incidentId: existing.incidentId,
+      agencyId: msg.agencyId,
+      action: "updated",
+      normalized,
+      mappedTypeId: intel.mappedTypeId,
+    });
+
+    await rawRepo.updateStatus(activeRawId, { status: "ok", linkedIncidentId: existing.incidentId });
+    await integrationRepo.update(msg.agencyId, msg.integrationId, {
+      lastIncidentAt: now,
+      incrementIncidentCount: 1,
+    });
+
+    if (env.cadWebhookSnsTopicArn) {
+      await sns.send(
+        new PublishCommand({
+          TopicArn: env.cadWebhookSnsTopicArn,
+          Message: JSON.stringify({
+            type: "cad.incident.received",
+            agencyId: msg.agencyId,
+            integrationId: msg.integrationId,
+            cadIncidentId: existing.incidentId,
+            cadNumber: normalized.cadNumber,
+            priority: normalized.priority,
+            receivedAt: now,
+          }),
+        }),
+      );
+    }
+
+    await auditRepo.create({
+      eventId: makeId("aud"),
+      agencyId: msg.agencyId,
+      type: AUDIT_EVENT_TYPES.CAD_INCIDENT_INGESTED,
+      details: {
+        integrationId: msg.integrationId,
+        rawId: activeRawId,
+        cadNumber: normalized.cadNumber,
+        action: "updated",
+        mappedTypeId: intel.mappedTypeId,
+        callerCallbackMasked: normalized.callerCallback ? maskTail(normalized.callerCallback) : undefined,
+      },
+      createdAt: now,
+      incidentId: existing.incidentId,
+      resourceType: "integration",
+      resourceId: msg.integrationId,
+    });
+
+    return { incidentId: existing.incidentId, action: "updated", rawId: activeRawId };
+  }
+
+  const intel = resolveCadIngestIntelligence({
+    normalized,
+    config: integration.config,
+    existing: null,
+    now,
+    mappingEnabled: env.enableCadNatureMapping,
+  });
+  const extras = mergeCadExtras(normalized, null);
+  const relatedNumbers = [
+    ...(extras.cadRelatedCadNumbers ?? []),
+    ...(extras.cadDuplicateOfCadNumber ? [extras.cadDuplicateOfCadNumber] : []),
+  ];
+  const cadLinkedIncidentIds = await resolveRelatedIncidentIds(
+    msg.agencyId,
+    relatedNumbers,
+    normalized.cadNumber,
+  );
+  const incident = newCadIncident(
+    msg.agencyId,
+    normalized,
+    integration,
+    rawBody,
+    stableCadKey,
+    now,
+    intel,
+    extras,
+    cadLinkedIncidentIds,
+  );
+  const tenant = await agencyRepo.get(msg.agencyId);
+  const ret = buildRetentionFields("incident", {
+    agencyConfig: tenant?.config,
+    anchorIso: now,
+    policyId: env.defaultRetentionPolicyId,
+    dedupe: buildIncidentDedupe(incident.incidentId),
+    envDefaults: env,
+  });
+  Object.assign(incident, { ...ret, legalHold: false });
+  await incidentRepo.create(incident);
+  await emitCadSyncedTimeline({
+    incidentId: incident.incidentId,
+    agencyId: msg.agencyId,
+    action: "created",
+    normalized,
+    mappedTypeId: intel.mappedTypeId,
+  });
+  await rawRepo.updateStatus(activeRawId, { status: "ok", linkedIncidentId: incident.incidentId });
+  await integrationRepo.update(msg.agencyId, msg.integrationId, {
+    lastIncidentAt: now,
+    incrementIncidentCount: 1,
+  });
+
+  if (env.cadWebhookSnsTopicArn) {
+    await sns.send(
+      new PublishCommand({
+        TopicArn: env.cadWebhookSnsTopicArn,
+        Message: JSON.stringify({
+          type: "cad.incident.received",
+          agencyId: msg.agencyId,
+          integrationId: msg.integrationId,
+          cadIncidentId: incident.incidentId,
+          cadNumber: normalized.cadNumber,
+          priority: normalized.priority,
+          receivedAt: now,
+        }),
+      }),
+    );
+  }
+
+  await auditRepo.create({
+    eventId: makeId("aud"),
+    agencyId: msg.agencyId,
+    type: AUDIT_EVENT_TYPES.CAD_INCIDENT_INGESTED,
+    details: {
+      integrationId: msg.integrationId,
+      rawId: activeRawId,
+        cadNumber: normalized.cadNumber,
+        action: "created",
+        mappedTypeId: intel.mappedTypeId,
+        callerCallbackMasked: normalized.callerCallback ? maskTail(normalized.callerCallback) : undefined,
+      },
+      createdAt: now,
+      incidentId: incident.incidentId,
+    resourceType: "integration",
+    resourceId: msg.integrationId,
+  });
+
+  return { incidentId: incident.incidentId, action: "created", rawId: activeRawId };
 }
 
 function parseInboundPayload(rawBody: string, contentType?: string): unknown {
@@ -145,6 +474,9 @@ function newCadIncident(
   rawBody: string,
   stableCadKey: string,
   now: string,
+  intel: ReturnType<typeof resolveCadIngestIntelligence>,
+  extras: ReturnType<typeof mergeCadExtras>,
+  cadLinkedIncidentIds: string[],
 ): Incident {
   const incidentId = makeId("inc");
   const callerAddressLine = n.location || null;
@@ -152,10 +484,10 @@ function newCadIncident(
   const incident: Incident = {
     incidentId,
     agencyId,
-    title: n.incidentType || `CAD ${n.cadNumber}`,
+    title: intel.title,
     callerAddressLine,
     callerAddressNormalized: callerAddressNormalized && callerAddressNormalized.length > 0 ? callerAddressNormalized : null,
-    category: "unknown",
+    category: intel.category ?? "unknown",
     urgency: priorityToUrgency(n.priority),
     status: "active",
     source: "cad",
@@ -168,6 +500,7 @@ function newCadIncident(
     cadStatus: n.cadStatus,
     cadPriority: n.priority,
     cadNatureCode: n.incidentType,
+    cadMappedIncidentTypeId: intel.mappedTypeId,
     cadLocation: n.location,
     cadUnits: n.units ?? [],
     cadCoordinates: n.coordinates,
@@ -175,10 +508,13 @@ function newCadIncident(
     cadCallerName: n.callerName?.trim() ? n.callerName.trim() : null,
     cadCallerCallbackMasked: maskCallback(n.callerCallback),
     confidence: null,
-    escalationFlag: false,
+    escalationFlag: Boolean(intel.escalationFlag),
     summary: n.notes || "",
     createdAt: now,
     updatedAt: now,
+    ...extras,
+    cadLinkedIncidentIds,
+    ...(intel.sopOverlay ? { sopProtocolOverlay: intel.sopOverlay } : {}),
   };
   return incident;
 }
@@ -234,18 +570,11 @@ export async function processCadWebhookIngressMessage(msg: CadWebhookIngressMess
 
   const parsedUnknown = parseInboundPayload(rawBody, msg.contentType);
   const parser = getCadParser(integration.vendor);
-  const payloadForParser =
-    integration.vendor === "generic_webhook" ?
-      {
-        ...(typeof parsedUnknown === "object" && parsedUnknown !== null ? (parsedUnknown as object) : {}),
-        fieldMapping: integration.config?.fieldMapping,
-      }
-    : parsedUnknown;
+  const fieldMapping = integration.config?.fieldMapping;
+  const records = webhookRecordsForParser(parsedUnknown, parser, fieldMapping);
 
-  let activeRawId = msg.existingRawRecordId;
-
-  if (!parser.validate(payloadForParser)) {
-    if (!activeRawId) {
+  if (records.length === 0) {
+    if (!msg.existingRawRecordId) {
       const errId = makeId("raw");
       await rawRepo.put({
         id: errId,
@@ -259,192 +588,41 @@ export async function processCadWebhookIngressMessage(msg: CadWebhookIngressMess
         ttl: ttlSec,
       });
     } else {
-      await rawRepo.updateStatus(activeRawId, { status: "error", errorMessage: "payload_validation_failed" });
+      await rawRepo.updateStatus(msg.existingRawRecordId, { status: "error", errorMessage: "payload_validation_failed" });
     }
     return;
   }
 
-  const normalized = parser.parse(payloadForParser);
-  const vendorRevKey = normalized.revision !== undefined ? String(normalized.revision) : "n";
-  const deterministicRawId = `raw#${msg.agencyId}#${normalized.cadNumber}#${vendorRevKey}`;
-
-  if (!activeRawId) {
-    const inserted = await rawRepo.putIfAbsent({
-      id: deterministicRawId,
-      agencyId: msg.agencyId,
-      integrationId: msg.integrationId,
-      receivedAt: msg.receivedAt,
+  const results: Array<{ incidentId: string; action: string }> = [];
+  for (let i = 0; i < records.length; i++) {
+    const normalized = parser.parse(records[i]);
+    const existingRawId = i === 0 ? msg.existingRawRecordId : undefined;
+    const result = await ingestNormalizedCadIncident({
+      msg,
+      integration,
+      normalized,
       rawBody,
-      ...(msg.contentType ? { contentType: msg.contentType } : {}),
-      status: "received",
-      ttl: ttlSec,
+      now,
+      ttlSec,
+      existingRawId,
     });
-    if (!inserted.inserted) {
-      return;
+    if (result && result.action !== "stale_skip") {
+      results.push({ incidentId: result.incidentId, action: result.action });
     }
-    activeRawId = deterministicRawId;
-    await rawRepo.updateStatus(activeRawId, { status: "processing" });
   }
 
-  const stableCadKey = integrationCadKey(msg.integrationId, normalized.cadNumber);
-  let existing =
-    (await incidentRepo.findByCadIncidentId(msg.agencyId, normalized.cadNumber)) ??
-    (await incidentRepo.findByCadDedupeKey(stableCadKey));
-
-  if (existing) {
-    const prevVendor = existing.cadVendorRevisionLast ?? 0;
-    if (normalized.revision !== undefined && prevVendor > normalized.revision) {
-      await rawRepo.updateStatus(activeRawId, {
-        status: "duplicate_skip",
-        errorMessage: "stale_revision",
-        linkedIncidentId: existing.incidentId,
-      });
-      return;
-    }
-
-    const nextCadRevision = (existing.cadRevision ?? 0) + 1;
-    const nextVendorRev =
-      normalized.revision !== undefined ?
-        Math.max(prevVendor, normalized.revision)
-      : (existing.cadVendorRevisionLast ?? null);
-
-    const callerAddressLine = normalized.location || existing.callerAddressLine || null;
-    const callerAddressNormalized = callerAddressLine ? normalizeAddressForIndex(callerAddressLine) : null;
-    const mergedSummary = normalized.notes || existing.summary || "";
-
-    await incidentRepo.patchFromCadIngest(existing.incidentId, {
-      cadRevision: nextCadRevision,
-      cadVendorRevisionLast: nextVendorRev ?? null,
-      cadLastSyncAt: now,
-      cadStatus: normalized.cadStatus ?? null,
-      cadUnits: normalized.units?.length ? normalized.units : existing.cadUnits ?? [],
-      callerAddressLine,
-      callerAddressNormalized: callerAddressNormalized && callerAddressNormalized.length > 0 ? callerAddressNormalized : null,
-      urgency: priorityToUrgency(normalized.priority),
-      title: normalized.incidentType || existing.title,
-      cadNatureCode: normalized.incidentType ?? null,
-      cadPriority: normalized.priority,
-      cadLocation: normalized.location ?? null,
-      cadCoordinates: normalized.coordinates ?? existing.cadCoordinates ?? null,
-      cadRawPayload: rawBody.slice(0, 450_000),
-      cadCallerName: normalized.callerName?.trim() ? normalized.callerName.trim() : existing.cadCallerName ?? null,
-      cadCallerCallbackMasked: maskCallback(normalized.callerCallback) ?? existing.cadCallerCallbackMasked ?? null,
-      summary: mergedSummary,
-      cadDedupeKey: stableCadKey,
-      cadSystem: vendorToCadSystem(integration.vendor),
-      cadIncidentId: normalized.cadNumber,
-      source: "cad",
-    });
-
-    await rawRepo.updateStatus(activeRawId, { status: "ok", linkedIncidentId: existing.incidentId });
-    await integrationRepo.update(msg.agencyId, msg.integrationId, {
-      lastIncidentAt: now,
-      incrementIncidentCount: 1,
-    });
-
-    if (env.cadWebhookSnsTopicArn) {
-      await sns.send(
-        new PublishCommand({
-          TopicArn: env.cadWebhookSnsTopicArn,
-          Message: JSON.stringify({
-            type: "cad.incident.received",
-            agencyId: msg.agencyId,
-            integrationId: msg.integrationId,
-            cadIncidentId: existing.incidentId,
-            cadNumber: normalized.cadNumber,
-            priority: normalized.priority,
-            receivedAt: now,
-          }),
-        }),
-      );
-    }
-
-    await auditRepo.create({
-      eventId: makeId("aud"),
-      agencyId: msg.agencyId,
-      type: AUDIT_EVENT_TYPES.CAD_INCIDENT_INGESTED,
-      details: {
-        integrationId: msg.integrationId,
-        rawId: activeRawId,
-        cadNumber: normalized.cadNumber,
-        action: "updated",
-        callerCallbackMasked: normalized.callerCallback ? maskTail(normalized.callerCallback) : undefined,
-      },
-      createdAt: now,
-      resourceType: "integration",
-      resourceId: msg.integrationId,
-    });
-
-    if (msg.idempotencyKey?.trim()) {
-      const idemRepo = new CadWebhookIdempotencyRepository();
-      const key = idempotencyDedupeKey(msg.agencyId, msg.integrationId, msg.idempotencyKey.trim());
-      const ttlIdem = Math.floor(Date.now() / 1000) + 600;
-      await idemRepo.put({
-        dedupeKey: key,
-        responseJson: JSON.stringify({ ok: true, incidentId: existing.incidentId, action: "updated" }),
-        ttl: ttlIdem,
-      });
-    }
-    return;
-  }
-
-  const incident = newCadIncident(msg.agencyId, normalized, integration, rawBody, stableCadKey, now);
-  const tenant = await agencyRepo.get(msg.agencyId);
-  const ret = buildRetentionFields("incident", {
-    agencyConfig: tenant?.config,
-    anchorIso: now,
-    policyId: env.defaultRetentionPolicyId,
-    dedupe: buildIncidentDedupe(incident.incidentId),
-    envDefaults: env,
-  });
-  Object.assign(incident, { ...ret, legalHold: false });
-  await incidentRepo.create(incident);
-  await rawRepo.updateStatus(activeRawId, { status: "ok", linkedIncidentId: incident.incidentId });
-  await integrationRepo.update(msg.agencyId, msg.integrationId, {
-    lastIncidentAt: now,
-    incrementIncidentCount: 1,
-  });
-
-  if (env.cadWebhookSnsTopicArn) {
-    await sns.send(
-      new PublishCommand({
-        TopicArn: env.cadWebhookSnsTopicArn,
-        Message: JSON.stringify({
-          type: "cad.incident.received",
-          agencyId: msg.agencyId,
-          integrationId: msg.integrationId,
-          cadIncidentId: incident.incidentId,
-          cadNumber: normalized.cadNumber,
-          priority: normalized.priority,
-          receivedAt: now,
-        }),
-      }),
-    );
-  }
-
-  await auditRepo.create({
-    eventId: makeId("aud"),
-    agencyId: msg.agencyId,
-    type: AUDIT_EVENT_TYPES.CAD_INCIDENT_INGESTED,
-    details: {
-      integrationId: msg.integrationId,
-      rawId: activeRawId,
-      cadNumber: normalized.cadNumber,
-      action: "created",
-      callerCallbackMasked: normalized.callerCallback ? maskTail(normalized.callerCallback) : undefined,
-    },
-    createdAt: now,
-    resourceType: "integration",
-    resourceId: msg.integrationId,
-  });
-
-  if (msg.idempotencyKey?.trim()) {
+  if (msg.idempotencyKey?.trim() && results.length > 0) {
     const idemRepo = new CadWebhookIdempotencyRepository();
     const key = idempotencyDedupeKey(msg.agencyId, msg.integrationId, msg.idempotencyKey.trim());
     const ttlIdem = Math.floor(Date.now() / 1000) + 600;
     await idemRepo.put({
       dedupeKey: key,
-      responseJson: JSON.stringify({ ok: true, incidentId: incident.incidentId, action: "created" }),
+      responseJson: JSON.stringify({
+        ok: true,
+        incidentId: results[0]?.incidentId,
+        action: results[0]?.action,
+        count: results.length,
+      }),
       ttl: ttlIdem,
     });
   }

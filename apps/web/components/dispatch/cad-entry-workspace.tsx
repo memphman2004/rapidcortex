@@ -321,6 +321,92 @@ export function CadEntryWorkspace({ incidentId }: { incidentId: string | null })
               CAD system: <span className="text-slate-300">{cadSystemLabel(incident.cadSystem)}</span>
             </p>
           ) : null}
+          {(incident.cadBeat ||
+            incident.cadZone ||
+            incident.cadIntersection ||
+            incident.cadJurisdiction ||
+            incident.cadDisposition ||
+            incident.cadPriorityModifier ||
+            incident.cadCallerAddressLine ||
+            incident.cadDuplicateOfCadNumber ||
+            (incident.cadRelatedCadNumbers ?? []).length > 0 ||
+            (incident.cadLinkedIncidentIds ?? []).length > 0) && (
+            <div className="rounded-lg border border-slate-800 bg-slate-950/60 p-3 text-xs text-slate-400">
+              <p className="mb-2 font-semibold uppercase tracking-wide text-slate-500">CAD location &amp; related CFS</p>
+              <dl className="grid grid-cols-2 gap-x-3 gap-y-1">
+                {incident.cadBeat ? (
+                  <>
+                    <dt>Beat</dt>
+                    <dd className="font-mono text-slate-200">{incident.cadBeat}</dd>
+                  </>
+                ) : null}
+                {incident.cadZone ? (
+                  <>
+                    <dt>Zone</dt>
+                    <dd className="font-mono text-slate-200">{incident.cadZone}</dd>
+                  </>
+                ) : null}
+                {incident.cadIntersection ? (
+                  <>
+                    <dt>Intersection</dt>
+                    <dd className="text-slate-200">{incident.cadIntersection}</dd>
+                  </>
+                ) : null}
+                {incident.cadJurisdiction ? (
+                  <>
+                    <dt>Jurisdiction</dt>
+                    <dd className="text-slate-200">{incident.cadJurisdiction}</dd>
+                  </>
+                ) : null}
+                {incident.cadDisposition ? (
+                  <>
+                    <dt>Disposition</dt>
+                    <dd className="font-mono text-slate-200">{incident.cadDisposition}</dd>
+                  </>
+                ) : null}
+                {incident.cadPriorityModifier ? (
+                  <>
+                    <dt>Priority mod</dt>
+                    <dd className="text-slate-200">{incident.cadPriorityModifier}</dd>
+                  </>
+                ) : null}
+                {incident.cadCallerAddressLine ? (
+                  <>
+                    <dt>ANI/ALI addr</dt>
+                    <dd className="text-slate-200">{incident.cadCallerAddressLine}</dd>
+                  </>
+                ) : null}
+                {incident.cadAniAliSource ? (
+                  <>
+                    <dt>ANI/ALI</dt>
+                    <dd className="uppercase text-slate-200">{incident.cadAniAliSource}</dd>
+                  </>
+                ) : null}
+              </dl>
+              {incident.cadDuplicateOfCadNumber ? (
+                <p className="mt-2 text-amber-200">
+                  Duplicate of CAD #{incident.cadDuplicateOfCadNumber}
+                  <span className="ml-1 text-slate-500">(CAD-owned — Rapid Cortex does not close CFS)</span>
+                </p>
+              ) : null}
+              {(incident.cadRelatedCadNumbers ?? []).length > 0 ? (
+                <p className="mt-2">
+                  Related CAD:{" "}
+                  <span className="font-mono text-slate-200">{incident.cadRelatedCadNumbers!.join(", ")}</span>
+                </p>
+              ) : null}
+              {(incident.cadLinkedIncidentIds ?? []).length > 0 ? (
+                <p className="mt-1">
+                  Linked Rapid Cortex incidents:{" "}
+                  {(incident.cadLinkedIncidentIds ?? []).map((id) => (
+                    <Link key={id} href={to(`/incidents/${encodeURIComponent(id)}`)} className="mr-2 font-mono text-sky-400 hover:text-sky-300">
+                      {id}
+                    </Link>
+                  ))}
+                </p>
+              ) : null}
+            </div>
+          )}
         </section>
 
         <section className="space-y-4 rounded-xl border border-slate-800 bg-slate-900/40 p-4">

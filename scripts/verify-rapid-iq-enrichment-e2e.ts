@@ -142,7 +142,7 @@ async function main(): Promise<void> {
   let pipeline: StageResult;
 
   try {
-    hunterLib = summarize("hunter_lib", await findContactsViaHunter(enrichInput));
+    hunterLib = summarize("hunter_lib", (await findContactsViaHunter(enrichInput)).contacts);
   } catch (err) {
     hunterLib = {
       provider: "hunter_lib",
@@ -154,7 +154,7 @@ async function main(): Promise<void> {
   }
 
   try {
-    apolloLib = summarize("apollo_lib", await findContactsViaApollo(enrichInput));
+    apolloLib = summarize("apollo_lib", (await findContactsViaApollo(enrichInput)).contacts);
   } catch (err) {
     apolloLib = {
       provider: "apollo_lib",

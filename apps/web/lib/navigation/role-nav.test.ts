@@ -83,7 +83,9 @@ describe("getRoleNav", () => {
     expect(byId["sales-crm"]?.items.map((i) => i.id)).toEqual([
       "leads",
       "psap-prospects",
+      "contacts",
       "rapid-iq",
+      "conferences",
     ]);
     expect(byId.business?.label).toBe("BUSINESS");
     expect(byId.business?.items.map((i) => i.id)).toEqual([
@@ -109,5 +111,20 @@ describe("getRoleNav", () => {
     expect(byId.transcription).toBe("/test-psap/dispatcher#cad-transcript");
     expect(byId.incidents).toBe("/test-psap/dispatcher");
     expect(byId.triage).toBe("/test-psap/dispatcher/non-emergency");
+  });
+
+  it("keeps Rapid IQ in SALES & CRM and does not expose a separate Pipeline nav item", () => {
+    for (const role of ["rcsuperadmin", "rcadmin"] as const) {
+      const nav = getRoleNav(role, {});
+      const items = nav.sections.flatMap((s) => s.items);
+      const rapidIq = items.find((i) => i.id === "rapid-iq");
+      expect(rapidIq?.href).toBe("/rc-admin/rapid-iq");
+      expect(items.find((i) => i.id === "conferences")?.href).toBe("/rc-admin/conferences");
+      expect(items.find((i) => i.id === "rapid-iq-pipeline")).toBeUndefined();
+    }
+    const itNav = getRoleNav("rcitadmin", {});
+    const itItems = itNav.sections.flatMap((s) => s.items);
+    expect(itItems.find((i) => i.id === "rapid-iq-pipeline")).toBeUndefined();
+    expect(itItems.find((i) => i.id === "conferences")).toBeUndefined();
   });
 });

@@ -208,6 +208,67 @@ ORPHANED = {
         f"rapid-cortex-resumes-{STAGE}-{ACCOUNT_ID}",
         "bucket",
     ),
+    # Pre-created Rapid IQ / marketing / RCS / PSAP CRM tables (exist outside CFN).
+    "MarketingLeadsTable": (
+        "ExistingMarketingLeadsTableName",
+        f"rapid-cortex-marketing-leads-{STAGE}",
+        "table",
+    ),
+    "PsapProspectsTable": (
+        "ExistingPsapProspectsTableName",
+        f"rapid-cortex-psap-prospects-{STAGE}",
+        "table",
+    ),
+    "RapidIqOpportunitiesTable": (
+        "ExistingRapidIqOpportunitiesTableName",
+        f"rapid-cortex-rapid-iq-opportunities-{STAGE}",
+        "table",
+    ),
+    "RapidIqSignalsTable": (
+        "ExistingRapidIqSignalsTableName",
+        f"rapid-cortex-rapid-iq-signals-{STAGE}",
+        "table",
+    ),
+    "RapidIqPipelineSignalsTable": (
+        "ExistingRapidIqPipelineSignalsTableName",
+        f"rapid-cortex-rapid-iq-pipeline-signals-{STAGE}",
+        "table",
+    ),
+    "RapidIqContactsTable": (
+        "ExistingRapidIqContactsTableName",
+        f"rapid-cortex-rapid-iq-contacts-{STAGE}",
+        "table",
+    ),
+    "RapidIqSourcesTable": (
+        "ExistingRapidIqSourcesTableName",
+        f"rapid-cortex-rapid-iq-sources-{STAGE}",
+        "table",
+    ),
+    "RapidIqJurisdictionsTable": (
+        "ExistingRapidIqJurisdictionsTableName",
+        f"rapid-cortex-rapid-iq-jurisdictions-{STAGE}",
+        "table",
+    ),
+    "RapidIqStateCoverageTable": (
+        "ExistingRapidIqStateCoverageTableName",
+        f"rapid-cortex-rapid-iq-state-coverage-{STAGE}",
+        "table",
+    ),
+    "RcsCallsTable": (
+        "ExistingRcsCallsTableName",
+        f"rapid-cortex-rcs-calls-{STAGE}",
+        "table",
+    ),
+    "RcsUnitsTable": (
+        "ExistingRcsUnitsTableName",
+        f"rapid-cortex-rcs-units-{STAGE}",
+        "table",
+    ),
+    "RcsEscalationTable": (
+        "ExistingRcsEscalationTableName",
+        f"rapid-cortex-rcs-escalation-{STAGE}",
+        "table",
+    ),
 }
 
 

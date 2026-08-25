@@ -8,7 +8,7 @@ import { resolvePlainOrSecretArn } from "../../runtimeSecrets.js";
 import { isCollectorsMockEnabled } from "../agenda-finder.js";
 import { canSpend } from "./credit-guard.js";
 
-const APOLLO_BASE = "https://api.apollo.io/v1";
+const APOLLO_BASE = "https://api.apollo.io/api/v1";
 
 const TARGET_TITLES = [
   "911 Director",
@@ -64,12 +64,12 @@ async function searchPeople(
   titles: string[],
   maxResults: number,
 ): Promise<ApolloPerson[]> {
-  const res = await fetch(`${APOLLO_BASE}/mixed_people/search`, {
+  const res = await fetch(`${APOLLO_BASE}/mixed_people/api_search`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
       "Cache-Control": "no-cache",
-      "X-Api-Key": apiKey,
+      "x-api-key": apiKey,
     },
     body: JSON.stringify({
       person_titles: titles,
@@ -98,7 +98,7 @@ async function revealContacts(apiKey: string, personIds: string[]): Promise<Apol
     headers: {
       "Content-Type": "application/json",
       "Cache-Control": "no-cache",
-      "X-Api-Key": apiKey,
+      "x-api-key": apiKey,
     },
     body: JSON.stringify({
       details: personIds.map((id) => ({ id })),

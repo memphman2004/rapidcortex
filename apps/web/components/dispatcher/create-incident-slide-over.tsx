@@ -5,7 +5,8 @@
  * Right-edge panel; Alt+N shortcut; POST /api/incidents via BFF (agencyId from JWT).
  */
 
-import { useCallback, useEffect, useState, type CSSProperties, type ReactNode } from "react";
+import { useCallback, useEffect, useMemo, useState, type CSSProperties, type ReactNode } from "react";
+import { ClipboardList } from "lucide-react";
 import { postCreateIncident } from "@/lib/api";
 import { geocodeAddress } from "@/lib/geocode-address";
 import { PhoneInput } from "@/components/ui/phone-input";
@@ -17,8 +18,20 @@ import {
   type IncidentPriority,
   type IncidentTypeDefinition,
 } from "@/lib/dispatcher/incident-protocols";
+import {
+  INCIDENT_ICON_MAP,
+  filterIncidentTypesForGrid,
+  type IncidentGridTab,
+} from "@/lib/dispatcher/incident-icon-map";
 import { useKeyboardShortcut } from "@/hooks/use-keyboard-shortcut";
 import { V } from "@/lib/theme/rc-theme-tokens";
+
+const DISCIPLINE_TABS: ReadonlyArray<{ id: IncidentGridTab; label: string; accent: string }> = [
+  { id: "all", label: "ALL", accent: "#ffffff" },
+  { id: "law", label: "LAW", accent: "#1565C0" },
+  { id: "fire_ems", label: "FIRE / EMS", accent: "#B71C1C" },
+  { id: "other", label: "OTHER", accent: "#6A1FC2" },
+];
 
 const inputStyle: CSSProperties = {
   width: "100%",
@@ -32,6 +45,12 @@ const inputStyle: CSSProperties = {
   lineHeight: 1.4,
   outline: "none",
   transition: "border-color 0.15s",
+};
+
+const searchInputStyle: CSSProperties = {
+  ...inputStyle,
+  height: 30,
+  padding: "0 12px",
 };
 
 const labelStyle: CSSProperties = {
@@ -138,6 +157,10 @@ function IncidentTypeCard({
   selected: boolean;
   onClick: () => void;
 }) {
+  const entry = INCIDENT_ICON_MAP[type.id];
+  const Icon = entry?.icon ?? ClipboardList;
+  const iconColor = entry?.color ?? "#C084FC";
+
   return (
     <button
       type="button"
@@ -158,7 +181,7 @@ function IncidentTypeCard({
         minHeight: 72,
       }}
     >
-      <span style={{ fontSize: 20, lineHeight: 1 }}>{type.icon}</span>
+      <Icon size={28} strokeWidth={1.5} color={iconColor} aria-hidden />
       <span
         style={{
           fontSize: 10,
@@ -223,6 +246,8 @@ export function CreateIncidentSlideOver({
 }: Props) {
   const [incidentTypeId, setIncidentTypeId] = useState("");
   const [priority, setPriority] = useState<IncidentPriority>("P2");
+  const [search, setSearch] = useState("");
+  const [disciplineTab, setDisciplineTab] = useState<IncidentGridTab>("all");
   const [location, setLocation] = useState("");
   const [lat, setLat] = useState<number | null>(null);
   const [lng, setLng] = useState<number | null>(null);
@@ -237,10 +262,10 @@ export function CreateIncidentSlideOver({
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [success, setSuccess] = useState<CreateIncidentResult | null>(null);
 
-  const handleTypeSelect = useCallback((id: string) => {
-    setIncidentTypeId(id);
-    const def = getIncidentType(id);
-    if (def) setPriority(def.defaultPriority);
+  const handleIncidentSelect = useCallback((key: string) => {
+    setIncidentTypeId(key);
+    const entry = INCIDENT_ICON_MAP[key];
+    if (entry) setPriority(entry.defaultPriority);
     setSubmitError(null);
   }, []);
 
@@ -248,6 +273,8 @@ export function CreateIncidentSlideOver({
     if (!open) return;
     setIncidentTypeId("");
     setPriority("P2");
+    setSearch("");
+    setDisciplineTab("all");
     setLocation("");
     setLat(null);
     setLng(null);
@@ -359,6 +386,11 @@ export function CreateIncidentSlideOver({
       setSubmitting(false);
     }
   }
+
+  const visibleIncidentTypes = useMemo(
+    () => filterIncidentTypesForGrid(INCIDENT_TYPES, search, disciplineTab),
+    [search, disciplineTab],
+  );
 
   const canGeocode = !!mapboxToken?.trim() && !!location.trim();
   const selectedType = incidentTypeId ? getIncidentType(incidentTypeId) : null;
@@ -493,22 +525,76 @@ export function CreateIncidentSlideOver({
 
         <div style={{ flex: 1, overflowY: "auto", padding: "16px 18px" }}>
           <SectionLabel>Incident Type</SectionLabel>
+          <input
+            type="text"
+            placeholder="Search incidents..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            style={{ ...searchInputStyle, marginBottom: 8 }}
+            aria-label="Search incidents"
+            autoComplete="off"
+          />
           <div
+            role="tablist"
+            aria-label="Incident discipline"
             style={{
-              display: "grid",
-              gridTemplateColumns: "repeat(4, 1fr)",
-              gap: 8,
-              marginBottom: 4,
+              display: "flex",
+              height: 32,
+              marginBottom: 8,
+              borderBottom: `1px solid ${V.border}`,
             }}
           >
-            {INCIDENT_TYPES.map((type) => (
-              <IncidentTypeCard
-                key={type.id}
-                type={type}
-                selected={incidentTypeId === type.id}
-                onClick={() => handleTypeSelect(type.id)}
-              />
-            ))}
+            {DISCIPLINE_TABS.map((tab) => {
+              const active = disciplineTab === tab.id;
+              return (
+                <button
+                  key={tab.id}
+                  type="button"
+                  role="tab"
+                  aria-selected={active}
+                  onClick={() => setDisciplineTab(tab.id)}
+                  style={{
+                    flex: 1,
+                    height: 32,
+                    padding: 0,
+                    background: "transparent",
+                    border: "none",
+                    borderBottom: active ? `2px solid ${tab.accent}` : "2px solid transparent",
+                    color: active ? tab.accent : V.textMuted,
+                    fontSize: 10,
+                    fontWeight: 700,
+                    letterSpacing: "0.06em",
+                    cursor: "pointer",
+                    lineHeight: 1,
+                  }}
+                >
+                  {tab.label}
+                </button>
+              );
+            })}
+          </div>
+          <div className="incident-grid-scroll" style={{ marginBottom: 4 }}>
+            <div
+              style={{
+                display: "grid",
+                gridTemplateColumns: "repeat(4, 1fr)",
+                gap: 8,
+              }}
+            >
+              {visibleIncidentTypes.map((type) => (
+                <IncidentTypeCard
+                  key={type.id}
+                  type={type}
+                  selected={incidentTypeId === type.id}
+                  onClick={() => handleIncidentSelect(type.id)}
+                />
+              ))}
+            </div>
+            {visibleIncidentTypes.length === 0 ? (
+              <div style={{ fontSize: 12, color: V.textMuted, padding: "18px 4px", textAlign: "center" }}>
+                No matching incident types
+              </div>
+            ) : null}
           </div>
 
           {incidentTypeId ? <ProtocolHints typeId={incidentTypeId} /> : null}

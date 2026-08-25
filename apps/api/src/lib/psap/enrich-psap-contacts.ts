@@ -2,6 +2,7 @@ import type { PsapProspect, PsapProspectContact } from "rapid-cortex-shared";
 import { findContactsViaApollo } from "../rapid-iq/apollo-enrichment.js";
 import {
   collectAgencyDomains,
+  type ContactProviderTrace,
   MAX_CONTACTS,
   mergeContacts,
 } from "../rapid-iq/contact-enrichment-shared.js";
@@ -92,10 +93,35 @@ export function buildDomainFromName(agencyName: string, state: string): string |
   return `${slug}${stateSlug}.gov`;
 }
 
+/** County/city hostnames to try before the long invented `{name}{statename}.gov` guess. */
+export function guessPsapDomains(agencyName: string, state: string): string[] {
+  const stateCode = state.toUpperCase().replace(/[^A-Z]/g, "").toLowerCase();
+  const countyMatch = agencyName.match(/([A-Za-z]+)\s+county/i);
+  const county = countyMatch?.[1]?.toLowerCase().replace(/[^a-z]/g, "") ?? "";
+  const domains: string[] = [];
+  const add = (d: string | null | undefined) => {
+    const v = d?.trim().toLowerCase();
+    if (v && !domains.includes(v)) domains.push(v);
+  };
+  if (county && stateCode) {
+    add(`${county}county.gov`);
+    add(`${county}county${stateCode}.gov`);
+    add(`${county}911.com`);
+    add(`${county}911.org`);
+    add(`${county}county.us`);
+    add(`co.${county}.${stateCode}.us`);
+    add(`${county}co.gov`);
+  }
+  add(buildDomainFromName(agencyName, state));
+  return domains;
+}
+
 function candidateUrlsForProspect(prospect: PsapProspect): string[] {
   const fromWebsite = prospect.website?.trim() ? [prospect.website.trim()] : [];
-  const guessedDomain = buildDomainFromName(prospect.psapName, prospect.state);
-  const guessed = guessedDomain ? [`https://www.${guessedDomain}`, `https://${guessedDomain}`] : [];
+  const guessed = guessPsapDomains(prospect.psapName, prospect.state).flatMap((d) => [
+    `https://www.${d}`,
+    `https://${d}`,
+  ]);
   const targets = buildContactSearchTargets(
     prospect.psapName,
     prospect.city || prospect.county,
@@ -115,7 +141,7 @@ function mapSource(verificationSource: string | null | undefined): PsapProspectC
 }
 
 export function adaptRapidIqContactToPsap(
-  c: Awaited<ReturnType<typeof findContactsViaHunter>>[number],
+  c: Awaited<ReturnType<typeof findContactsViaHunter>>["contacts"][number],
 ): PsapProspectContact {
   return {
     contactId: c.contactId,
@@ -159,7 +185,87 @@ export type EnrichPsapContactsResult = {
   hunterCount: number;
   apolloCount: number;
   domains: string[];
+  traces: ContactProviderTrace[];
 };
+
+type ProspectContactSnapshot = {
+  contactCount: number;
+  lastEnrichedAt: string | null;
+  hasPrimaryName: boolean;
+  hasPrimaryEmail: boolean;
+  hasPrimaryPhone: boolean;
+};
+
+function snapshotProspectContacts(p: PsapProspect): ProspectContactSnapshot {
+  return {
+    contactCount: p.contacts?.length ?? p.contactCount ?? 0,
+    lastEnrichedAt: p.lastEnrichedAt ?? null,
+    hasPrimaryName: Boolean(p.primaryContactName?.trim()),
+    hasPrimaryEmail: Boolean(p.primaryContactEmail?.trim()),
+    hasPrimaryPhone: Boolean(p.primaryContactPhone?.trim()),
+  };
+}
+
+export type EnrichmentChangeLog = {
+  changed: boolean;
+  reason: string;
+  fieldsChanged: string[];
+  before: ProspectContactSnapshot;
+  after: ProspectContactSnapshot;
+  domains: string[];
+  traces: ContactProviderTrace[];
+  savedContacts: Array<{
+    title: string;
+    roleTier: string;
+    source: string;
+    hasName: boolean;
+    hasEmail: boolean;
+    hasPhone: boolean;
+  }>;
+};
+
+export function buildEnrichmentChangeLog(
+  beforeProspect: PsapProspect,
+  afterProspect: PsapProspect,
+  enriched: EnrichPsapContactsResult,
+): EnrichmentChangeLog {
+  const before = snapshotProspectContacts(beforeProspect);
+  const after = snapshotProspectContacts(afterProspect);
+  const fieldsChanged: string[] = [];
+  if (before.contactCount !== after.contactCount) fieldsChanged.push("contactCount");
+  if (before.lastEnrichedAt !== after.lastEnrichedAt) fieldsChanged.push("lastEnrichedAt");
+  if (before.hasPrimaryName !== after.hasPrimaryName) fieldsChanged.push("primaryContactName");
+  if (before.hasPrimaryEmail !== after.hasPrimaryEmail) fieldsChanged.push("primaryContactEmail");
+  if (before.hasPrimaryPhone !== after.hasPrimaryPhone) fieldsChanged.push("primaryContactPhone");
+
+  const providerErrors = [...new Set(enriched.traces.map((t) => t.error).filter(Boolean))] as string[];
+  let reason = "no_contacts_found";
+  if (enriched.contacts.length > 0) {
+    reason = fieldsChanged.includes("contactCount") ? "contacts_saved" : "contacts_unchanged";
+  } else if (providerErrors.length > 0) {
+    reason = providerErrors.join("+");
+  } else if (fieldsChanged.length === 1 && fieldsChanged[0] === "lastEnrichedAt") {
+    reason = "timestamp_only";
+  }
+
+  return {
+    changed: fieldsChanged.some((f) => f !== "lastEnrichedAt"),
+    reason,
+    fieldsChanged,
+    before,
+    after,
+    domains: enriched.domains,
+    traces: enriched.traces,
+    savedContacts: enriched.contacts.map((c) => ({
+      title: c.title,
+      roleTier: c.roleTier,
+      source: c.source,
+      hasName: Boolean(c.name?.trim()),
+      hasEmail: Boolean(c.email?.trim()),
+      hasPhone: Boolean(c.phone?.trim()),
+    })),
+  };
+}
 
 /**
  * Hunter (.gov domain search) → Apollo (title gaps) for a PSAP prospect.
@@ -182,12 +288,15 @@ export async function enrichPsapProspectContacts(
   // Domain list for logging:
   const domains = collectAgencyDomains(candidateUrls);
   if (domains.length === 0) {
-    const fallback = buildDomainFromName(prospect.psapName, prospect.state);
-    if (fallback) domains.push(fallback);
+    for (const fallback of guessPsapDomains(prospect.psapName, prospect.state)) {
+      domains.push(fallback);
+      if (domains.length >= 5) break;
+    }
   }
 
   const hunter = await findContactsViaHunter(enrichInput);
-  let merged = hunter;
+  let merged = hunter.contacts;
+  const traces: ContactProviderTrace[] = [...hunter.traces];
   if (merged.length < MAX_CONTACTS) {
     const apollo = await findContactsViaApollo({
       ...enrichInput,
@@ -197,14 +306,15 @@ export async function enrichPsapProspectContacts(
           ? domains.map((d) => `https://${d}`)
           : enrichInput.candidateUrls,
     });
-    merged = mergeContacts(merged, apollo);
+    traces.push(...apollo.traces);
+    merged = mergeContacts(merged, apollo.contacts);
   }
 
   const contacts = dedupePsapContacts(merged.map(adaptRapidIqContactToPsap));
   const hunterCount = contacts.filter((c) => c.source === "hunter").length;
   const apolloCount = contacts.filter((c) => c.source === "apollo").length;
 
-  return { contacts, hunterCount, apolloCount, domains };
+  return { contacts, hunterCount, apolloCount, domains, traces };
 }
 
 export async function enrichPsapProspectsInBatches(

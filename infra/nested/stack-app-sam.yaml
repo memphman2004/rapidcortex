@@ -1826,8 +1826,8 @@ Resources:
     Type: AWS::Serverless::HttpApi
     Properties:
       DefaultRouteSettings:
-        ThrottlingBurstLimit: 200
-        ThrottlingRateLimit: 100
+        ThrottlingBurstLimit: 1000
+        ThrottlingRateLimit: 500
       CorsConfiguration:
         AllowOrigins: !Split [",", !Ref HttpApiCorsAllowedOrigins]
         AllowHeaders:
@@ -2096,6 +2096,7 @@ Resources:
         Variables:
           COGNITO_USER_POOL_ID: !Ref CognitoUserPool
           COGNITO_CLIENT_ID: !Ref CognitoUserPoolClient
+          HEALTH_STACK_ID: "1"
       CodeUri: ../../apps/api/
       Handler: dist/handlers/health.handler
       Policies:
@@ -4212,7 +4213,7 @@ Resources:
     Type: AWS::SES::Template
     Properties:
       Template:
-        TemplateName: invoice-sent
+        TemplateName: !Sub invoice-sent-${DeploymentStage}
         SubjectPart: "Rapid Cortex invoice {{invoiceNumber}} is ready"
         HtmlPart: "<p>Hello {{customerName}},</p><p>Your invoice <strong>{{invoiceNumber}}</strong> is ready.</p><p>Total: {{currency}} {{total}}</p><p>Due date: {{dueDate}}</p><p><a href='{{invoiceUrl}}'>View invoice</a></p>"
         TextPart: "Hello {{customerName}}, your invoice {{invoiceNumber}} is ready. Total: {{currency}} {{total}}. Due: {{dueDate}}. View: {{invoiceUrl}}"
@@ -4221,7 +4222,7 @@ Resources:
     Type: AWS::SES::Template
     Properties:
       Template:
-        TemplateName: invoice-reminder-3-days-before
+        TemplateName: !Sub invoice-reminder-3-days-before-${DeploymentStage}
         SubjectPart: "Reminder: invoice {{invoiceNumber}} is due in 3 days"
         HtmlPart: "<p>Hello {{customerName}},</p><p>This is a reminder that invoice <strong>{{invoiceNumber}}</strong> is due in 3 days on {{dueDate}}.</p><p>Balance due: {{currency}} {{balanceDue}}</p><p><a href='{{invoiceUrl}}'>View invoice</a></p>"
         TextPart: "Reminder: invoice {{invoiceNumber}} is due in 3 days on {{dueDate}}. Balance due: {{currency}} {{balanceDue}}. View: {{invoiceUrl}}"
@@ -4230,7 +4231,7 @@ Resources:
     Type: AWS::SES::Template
     Properties:
       Template:
-        TemplateName: invoice-reminder-due-today
+        TemplateName: !Sub invoice-reminder-due-today-${DeploymentStage}
         SubjectPart: "Invoice {{invoiceNumber}} is due today"
         HtmlPart: "<p>Hello {{customerName}},</p><p>Invoice <strong>{{invoiceNumber}}</strong> is due today ({{dueDate}}).</p><p>Balance due: {{currency}} {{balanceDue}}</p><p><a href='{{invoiceUrl}}'>Pay now</a></p>"
         TextPart: "Invoice {{invoiceNumber}} is due today ({{dueDate}}). Balance due: {{currency}} {{balanceDue}}. Pay now: {{invoiceUrl}}"
@@ -4239,7 +4240,7 @@ Resources:
     Type: AWS::SES::Template
     Properties:
       Template:
-        TemplateName: invoice-reminder-7-days-overdue
+        TemplateName: !Sub invoice-reminder-7-days-overdue-${DeploymentStage}
         SubjectPart: "Past due: invoice {{invoiceNumber}} is 7 days overdue"
         HtmlPart: "<p>Hello {{customerName}},</p><p>Invoice <strong>{{invoiceNumber}}</strong> is now 7 days overdue.</p><p>Balance due: {{currency}} {{balanceDue}}</p><p><a href='{{invoiceUrl}}'>View invoice</a></p>"
         TextPart: "Invoice {{invoiceNumber}} is now 7 days overdue. Balance due: {{currency}} {{balanceDue}}. View: {{invoiceUrl}}"
@@ -4248,7 +4249,7 @@ Resources:
     Type: AWS::SES::Template
     Properties:
       Template:
-        TemplateName: invoice-reminder-15-days-overdue
+        TemplateName: !Sub invoice-reminder-15-days-overdue-${DeploymentStage}
         SubjectPart: "Past due: invoice {{invoiceNumber}} is 15 days overdue"
         HtmlPart: "<p>Hello {{customerName}},</p><p>Invoice <strong>{{invoiceNumber}}</strong> is 15 days overdue.</p><p>Balance due: {{currency}} {{balanceDue}}</p><p>Please contact billing if you need assistance.</p>"
         TextPart: "Invoice {{invoiceNumber}} is 15 days overdue. Balance due: {{currency}} {{balanceDue}}. Please contact billing for assistance."
@@ -4257,7 +4258,7 @@ Resources:
     Type: AWS::SES::Template
     Properties:
       Template:
-        TemplateName: invoice-reminder-30-days-overdue
+        TemplateName: !Sub invoice-reminder-30-days-overdue-${DeploymentStage}
         SubjectPart: "Final notice: invoice {{invoiceNumber}} is 30 days overdue"
         HtmlPart: "<p>Hello {{customerName}},</p><p>Invoice <strong>{{invoiceNumber}}</strong> is 30 days overdue.</p><p>Balance due: {{currency}} {{balanceDue}}</p><p>Immediate attention is required.</p>"
         TextPart: "Final notice: invoice {{invoiceNumber}} is 30 days overdue. Balance due: {{currency}} {{balanceDue}}. Immediate attention is required."
@@ -4266,7 +4267,7 @@ Resources:
     Type: AWS::SES::Template
     Properties:
       Template:
-        TemplateName: payment-received-confirmation
+        TemplateName: !Sub payment-received-confirmation-${DeploymentStage}
         SubjectPart: "Payment received for invoice {{invoiceNumber}}"
         HtmlPart: "<p>Hello {{customerName}},</p><p>We received your payment for invoice <strong>{{invoiceNumber}}</strong>.</p><p>Amount received: {{currency}} {{amountPaid}}</p><p>Payment date: {{paymentDate}}</p><p>Thank you.</p>"
         TextPart: "Payment received for invoice {{invoiceNumber}}. Amount received: {{currency}} {{amountPaid}}. Payment date: {{paymentDate}}. Thank you."

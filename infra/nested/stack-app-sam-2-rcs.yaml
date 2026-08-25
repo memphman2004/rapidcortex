@@ -123,7 +123,8 @@ Resources:
   AppManagedPolicyRcsDynamo:
     Type: AWS::IAM::ManagedPolicy
     Properties:
-      ManagedPolicyName: !Sub "${ManagedPolicyNamePrefix}-sam2-rcs-ddb-${DeploymentStage}"
+      # Do not set ManagedPolicyName — rapid-cortex-dev-sam2-rcs-ddb-dev already exists
+      # (15 attachments; CREATE_FAILED nested retry hit AlreadyExists).
       PolicyDocument:
         Version: "2012-10-17"
         Statement:
@@ -196,7 +197,6 @@ Resources:
   AppManagedPolicyRcsSchedulerManage:
     Type: AWS::IAM::ManagedPolicy
     Properties:
-      ManagedPolicyName: !Sub "${ManagedPolicyNamePrefix}-sam2-rcs-sched-${DeploymentStage}"
       PolicyDocument:
         Version: "2012-10-17"
         Statement:
@@ -218,7 +218,7 @@ Resources:
   AppManagedPolicyRcsSnsPublish:
     Type: AWS::IAM::ManagedPolicy
     Properties:
-      ManagedPolicyName: !Sub "${ManagedPolicyNamePrefix}-sam2-rcs-sns-${DeploymentStage}"
+      # Do not set ManagedPolicyName — rapid-cortex-dev-sam2-rcs-sns-dev already exists.
       PolicyDocument:
         Version: "2012-10-17"
         Statement:
@@ -231,7 +231,6 @@ Resources:
   RcsSchedulerInvokeRole:
     Type: AWS::IAM::Role
     Properties:
-      RoleName: !Sub "${ManagedPolicyNamePrefix}-rcs-sched-invoke-${DeploymentStage}"
       AssumeRolePolicyDocument:
         Version: "2012-10-17"
         Statement:

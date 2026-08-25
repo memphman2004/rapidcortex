@@ -167,6 +167,7 @@ export function PsapDetailPanel({ prospect, onClose, onUpdated }: Props) {
   const [saving, setSaving] = useState(false);
   const [enriching, setEnriching] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [enrichNotice, setEnrichNotice] = useState<string | null>(null);
   const [activityType, setActivityType] = useState<Exclude<ActivityType, "stage_change">>("note");
   const [activityText, setActivityText] = useState("");
   const [copyMsg, setCopyMsg] = useState<string | null>(null);
@@ -174,6 +175,7 @@ export function PsapDetailPanel({ prospect, onClose, onUpdated }: Props) {
   useEffect(() => {
     setDraft(prospect);
     setError(null);
+    setEnrichNotice(null);
   }, [prospect]);
 
   async function savePatch(patch: PatchPsapProspectBody) {
@@ -193,10 +195,27 @@ export function PsapDetailPanel({ prospect, onClose, onUpdated }: Props) {
   async function handleEnrichContacts() {
     setEnriching(true);
     setError(null);
+    setEnrichNotice(null);
     try {
-      const { prospect: updated } = await enrichPsapContacts(prospect.psapId);
-      onUpdated(updated);
-      setDraft(updated);
+      const result = await enrichPsapContacts(prospect.psapId);
+      onUpdated(result.prospect);
+      setDraft(result.prospect);
+      if (result.count === 0) {
+        const domains = result.changeLog?.domains ?? result.domains;
+        const domainText = domains?.filter(Boolean).slice(0, 5).join(", ");
+        const reason = result.changeLog?.reason ?? "";
+        const parts: string[] = [];
+        if (reason.includes("rate_limited")) parts.push("Hunter.io rate-limited this request.");
+        if (reason.includes("invalid_api_key")) parts.push("Apollo API key was rejected.");
+        if (reason.includes("no_api_key")) parts.push("Hunter.io / Apollo keys are not configured.");
+        if (reason === "timestamp_only") {
+          parts.push("No contacts found; only the last-enriched timestamp was updated.");
+        } else if (parts.length === 0) {
+          parts.push(reason ? `No contacts saved (${reason}).` : "No contacts found.");
+        }
+        const reasonText = parts.join(" ");
+        setEnrichNotice(domainText ? `${reasonText} Searched ${domainText}.` : reasonText);
+      }
     } catch (e) {
       setError(e instanceof Error ? e.message : "Enrichment failed");
     } finally {
@@ -401,6 +420,11 @@ export function PsapDetailPanel({ prospect, onClose, onUpdated }: Props) {
               <div className="mb-2 text-[9px] text-slate-600">
                 Last enriched {formatTimeAgo(draft.lastEnrichedAt)}
               </div>
+            )}
+            {enrichNotice && (
+              <p className="mb-3 rounded border border-amber-500/30 bg-amber-500/10 px-2 py-1.5 text-[11px] text-amber-200">
+                {enrichNotice}
+              </p>
             )}
             {(draft.contacts?.length ?? 0) > 0 ? (
               <div className="mb-3">

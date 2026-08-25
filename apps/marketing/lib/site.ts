@@ -20,11 +20,12 @@ export const SITE_BRAND_ASSETS_BASE = "/Logo";
 
 /**
  * Primary Rapid Cortex web mark used on marketing/header surfaces.
- * File: `public/Logo/rapid-cortex-logo-2.png` (1041×276 wordmark + tagline).
+ * File: `public/Logo/rapid-cortex-logo-2.webp` (624×165 wordmark + tagline, ~3× display size).
+ * PNG original remains at `rapid-cortex-logo-2.png` for PDF/print.
  */
-export const SITE_BRAND_MARK_PATH = `${SITE_BRAND_ASSETS_BASE}/rapid-cortex-logo-2.png`;
-export const SITE_BRAND_MARK_WIDTH = 1041;
-export const SITE_BRAND_MARK_HEIGHT = 276;
+export const SITE_BRAND_MARK_PATH = `${SITE_BRAND_ASSETS_BASE}/rapid-cortex-logo-2.webp`;
+export const SITE_BRAND_MARK_WIDTH = 624;
+export const SITE_BRAND_MARK_HEIGHT = 165;
 
 /** Primary web mark (same as brand mark). */
 export const SITE_LOGO_PATH = SITE_BRAND_MARK_PATH;

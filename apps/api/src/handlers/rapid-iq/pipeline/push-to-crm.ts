@@ -289,7 +289,7 @@ export async function createCrmLeadFromPipelineSignal(
     attribution: {
       channel: "contact_sales",
       channelLabel: "Rapid IQ Pipeline",
-      landingPage: "/rc-admin/rapid-iq/signals",
+      landingPage: "/rc-admin/rapid-iq",
       firstTouchAt: now,
       utmSource: signal.sourceId,
       utmCampaign: signal.signalId,

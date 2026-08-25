@@ -57,6 +57,18 @@ describe("AuthorizationService.canPerform / assertCanPerform", () => {
   });
 
   describe("agency role mapping (Role Access Matrix v2.0)", () => {
+    it("denies dispatcher rms.finalize_report and grants supervisor", () => {
+      const dispatcher = makeUser("dispatcher");
+      const supervisor = makeUser("supervisor");
+      expect(auth.canPerform(dispatcher, "rms.finalize_report")).toBe(false);
+      expect(() => auth.assertCanPerform(dispatcher, "rms.finalize_report")).toThrow(
+        "FORBIDDEN_PERMISSION",
+      );
+      expect(auth.canPerform(supervisor, "rms.finalize_report")).toBe(true);
+      expect(auth.canPerform(dispatcher, "rms.generate_report")).toBe(true);
+      expect(auth.canPerform(dispatcher, "rms.push_to_rms")).toBe(false);
+    });
+
     it("denies dispatcher access to qa.scorecards_create", () => {
       const dispatcher = makeUser("dispatcher");
       expect(auth.canPerform(dispatcher, "qa.scorecards_create")).toBe(false);

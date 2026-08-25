@@ -46,9 +46,12 @@ packages/desktop/.env.mapkit
 
 # Local SSR deploy helpers (contain/surface account identifiers; source only)
 scripts/env-web-ssr-*.sh
+!scripts/env-web-ssr-*.example.sh
 scripts/.deploy-secrets.local.sh
 # Local API deploy env (account ARNs / stack output fetch; source only)
 scripts/env-api-dev.sh
+scripts/env-api-staging.sh
+!scripts/env-api-*.example.sh
 # Local macOS Developer ID + notarytool credentials (never commit)
 scripts/env-mac-signing.sh
 
@@ -136,4 +139,10 @@ scripts/aws-10dlc/*.json
 
 # PSAP address enrichment resume file
 .psap-enrich.checkpoint
+
+# Stress test output
+results/*.json
+results/*.log
+results/stress-report.html
+!results/.gitkeep
 

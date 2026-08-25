@@ -109,14 +109,11 @@ function DashboardShellInner({
     <HelpChrome role={user.role}>
     <div
       ref={rootRef}
-      data-theme="dark"
-      className={
-        isRcAdmin
-          ? "min-h-screen bg-[var(--rc-bg)] text-[var(--rc-text-primary)]"
-          : "min-h-screen bg-[#030712] text-slate-100"
-      }
+      data-theme={theme}
+      className="min-h-screen bg-[var(--rc-bg)] text-[var(--rc-text-primary)]"
       style={{
         ...shellVars,
+        colorScheme: theme,
         fontFamily: 'var(--rc-dashboard-font-family, Inter, ui-sans-serif, system-ui, sans-serif)',
         ...(isRcAdmin
           ? ({ ["--role-accent" as string]: "var(--rc-violet)" } as CSSProperties)
@@ -175,15 +172,7 @@ function DashboardShellInner({
           ) : null}
           <ActiveNoticesBanner />
           <RoleDashboardHeaderStrip prefix={prefix} user={user} />
-          <main
-            className={
-              isRcAdmin
-                ? theme === "light"
-                  ? "flex-1 bg-[var(--rc-bg)] p-4 md:p-6"
-                  : "flex-1 bg-gradient-to-b from-[#0b0b17] via-[#07070f] to-[#050508] p-4 md:p-6"
-                : "flex-1 bg-gradient-to-b from-[#050b14] via-slate-950 to-slate-950 p-4 md:p-6"
-            }
-          >
+          <main className="flex-1 bg-[var(--rc-bg)] p-4 md:p-6">
             <RoleDashboardHomeLayout prefix={prefix}>{children}</RoleDashboardHomeLayout>
           </main>
         </div>

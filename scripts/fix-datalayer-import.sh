@@ -21,6 +21,15 @@ set -euo pipefail
 #   get-template alone drifts on ~58 TableName Fn::If expressions vs stack state;
 #   IMPORT rejects that as "modified resources not being imported."
 #
+# WHEN IMPORT CANNOT RUN
+#   If the nested DataLayer already exposes those 16 as Outputs via ExistingXxx
+#   parameters (patch-datalayer-template-workaround.py), CreateChangeSet fails:
+#   "As part of the import operation, you cannot modify or add [Outputs]".
+#   In that state skip IMPORT and run deploy.sh with IncludeDataLayerNestedStack=true
+#   so new tables (Escalations, IncidentReports) can CREATE. Do not set
+#   INCLUDE_DATA_LAYER_NESTED_STACK=false — that skips DataLayer and never creates
+#   those tables.
+#
 # USAGE
 #   export AWS_REGION=us-east-1
 #   bash scripts/fix-datalayer-import.sh [dev]
@@ -42,7 +51,10 @@ REGION="${AWS_REGION:-${AWS_DEFAULT_REGION:-us-east-1}}"
 ROOT_STACK="${ROOT_STACK_NAME:-rapid-cortex-dev}"
 SAM_BUCKET="${SAM_DEPLOY_BUCKET:-aws-sam-cli-managed-default-samclisourcebucket-cytgt6pjll2k}"
 IMPORT_JSON="${ROOT}/scripts/resources-to-import-new.json"
-REPO_TEMPLATE="${ROOT}/infra/nested/stack-data-layer.yaml"
+# Current DataLayer YAML may be the ExistingXxx parameter workaround (orphans
+# removed from Resources). IMPORT still needs the original resource blocks.
+REPO_TEMPLATE="${DATA_LAYER_IMPORT_TEMPLATE:-${ROOT}/infra/nested/stack-data-layer.yaml}"
+ORIGINAL_TEMPLATE="${ROOT}/infra/nested/stack-data-layer.yaml.original"
 SKIP_EXECUTE="${SKIP_EXECUTE:-0}"
 
 die()  { echo "fix-datalayer-import.sh: $*" >&2; exit 1; }
@@ -53,6 +65,26 @@ need aws
 need jq
 need python3
 
+if [[ -z "${DATA_LAYER_IMPORT_TEMPLATE:-}" && -f "$ORIGINAL_TEMPLATE" ]]; then
+  if ! python3 - "$REPO_TEMPLATE" << 'PY'
+import json, sys
+path = sys.argv[1]
+try:
+    with open(path) as f:
+        t = json.load(f)
+except json.JSONDecodeError:
+    import yaml
+    with open(path) as f:
+        t = yaml.safe_load(f)
+sys.exit(0 if "QRLocationsTable" in (t.get("Resources") or {}) else 1)
+PY
+  then
+    echo "Current DataLayer template has no QRLocationsTable resource (ExistingXxx workaround)."
+    echo "Using stack-data-layer.yaml.original for IMPORT resource blocks."
+    REPO_TEMPLATE="$ORIGINAL_TEMPLATE"
+  fi
+fi
+
 [[ -f "$IMPORT_JSON" ]] || die "import list not found: $IMPORT_JSON"
 [[ -f "$REPO_TEMPLATE" ]] || die "repo template not found: $REPO_TEMPLATE"
 
@@ -61,6 +93,7 @@ echo "Stage        : $STAGE"
 echo "Region       : $REGION"
 echo "Root stack   : $ROOT_STACK"
 echo "SAM bucket   : $SAM_BUCKET"
+echo "Repo template: $REPO_TEMPLATE"
 echo ""
 
 # ── Resolve nested DataLayer stack ───────────────────────────────────────────
@@ -340,12 +373,35 @@ ok "Change set status: $CS_STATUS"
 if [[ "$SKIP_EXECUTE" == "1" ]]; then
   echo ""
   echo "SKIP_EXECUTE=1 — change set created but NOT executed."
-  echo "Review it in the CloudFormation console, then execute with:"
+  echo ""
+  echo "Change set actions:"
+  aws cloudformation describe-change-set \
+    --stack-name "$NESTED_STACK" \
+    --change-set-name "$CHANGE_SET_NAME" \
+    --region "$REGION" \
+    --output json \
+    | jq -r '
+      .Changes[]?
+      | [.ResourceChange.Action, .ResourceChange.LogicalResourceId, .ResourceChange.ResourceType]
+      | @tsv
+    '
+  echo ""
+  echo "Action counts:"
+  aws cloudformation describe-change-set \
+    --stack-name "$NESTED_STACK" \
+    --change-set-name "$CHANGE_SET_NAME" \
+    --region "$REGION" \
+    --output json \
+    | jq -r '[.Changes[].ResourceChange.Action] | group_by(.) | map({action:.[0], count:length})'
+  echo ""
+  echo "Review in console, then execute with:"
   echo ""
   echo "  aws cloudformation execute-change-set \\"
   echo "    --stack-name '$NESTED_STACK' \\"
   echo "    --change-set-name '$CHANGE_SET_NAME' \\"
   echo "    --region $REGION"
+  echo ""
+  echo "Or: bash scripts/fix-datalayer-import.sh ${STAGE}"
   exit 0
 fi
 

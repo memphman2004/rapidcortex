@@ -28,7 +28,7 @@ Select the **RapidCortexDesktop** scheme, pick **My Mac**, then **Run** (⌘R).
 | `COGNITO_DOMAIN` | `your-prefix.auth.us-east-1.amazoncognito.com` (you may paste `https://…`; the app strips the scheme) |
 | `COGNITO_CLIENT_ID` | App client ID (public client, no secret on device) |
 | `COGNITO_REDIRECT_URI` | Must match **exactly** the native app client’s **Allowed callback URLs** in Cognito. For stacks using the default `CognitoNativeCallbackUrls`, use **`rapidcortex-desktop://oauth/callback`** (see `infra/template.yaml`). Using a scheme not listed in `Info.plist` `CFBundleURLSchemes` (e.g. `com.rapidcortex.desktop://…` without registering it) causes `redirect_mismatch` or a broken return to the app. |
-| `WEB_APP_BASE_URL` | Next.js origin (e.g. `https://rapidcortex.us` or `https://www.rapidcortex.us`). When set, sign-in uses the **system browser** + `/auth/native-login` (→ branded `/login`) + `/auth/return-to-app` + BFF `/api/auth/native/token`. When omitted, the app uses **embedded** `ASWebAuthenticationSession` + direct Cognito token exchange (dev / fallback). |
+| `WEB_APP_BASE_URL` | Next.js product origin (`https://app.rapidcortex.us`). When set, sign-in uses the **system browser** + `/auth/native-login` (→ branded `/login`) + `/auth/return-to-app` + BFF `/api/auth/native/token`. When omitted, the app uses **embedded** `ASWebAuthenticationSession` + direct Cognito token exchange (dev / fallback). Do **not** point this at `www.rapidcortex.us` (marketing). |
 | `COGNITO_LOGOUT_URI` | Optional; default **`rapidcortex-desktop://logout/callback`** for Cognito `/logout` (must match Cognito **Allowed sign-out URLs**). |
 | `ENABLE_NATIVE_MAPKIT` | `1` or `true` — **native Apple Maps** hospital routing (toolbar **Hospital map** + **Maps** tab). Requires API `ENABLE_HOSPITAL_ROUTING` and hospital capacity data. Uses system MapKit (no MapKit JS JWT). |
 
@@ -94,9 +94,12 @@ Optional: `SKIP_NOTARIZE=1` to sign + DMG only. Optional: `OUTPUT_DIR`, `DMG_FIL
 
 CI can also set **`RUN_MAC_DISTRIBUTION_BUILD_BEFORE_UPLOAD=1`** when invoking **`upload-desktop-downloads.sh`** so the DMG at **`FILE_PATH`** is rebuilt/signed/notarized immediately before upload.
 
-See `docs/desktop-downloads.md`.
+### Mac App Store
+
+Sandbox entitlements are in `RapidCortexDesktop.entitlements`. Export a Transporter `.pkg` with `./scripts/macos-app-store-export.sh`. Full steps: [docs/desktop/APP_STORE_SUBMISSION.md](../../docs/desktop/APP_STORE_SUBMISSION.md).
 
 ## Further reading
 
 - `docs/DESKTOP_APP_API_CONTRACT.md` — API + auth contract
 - `docs/DESKTOP_DOWNLOAD_FLOW.md` — admin presigned macOS download (separate from local dev)
+- `docs/desktop/APP_STORE_SUBMISSION.md` — Mac App Store + Microsoft Store

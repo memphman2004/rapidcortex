@@ -66,6 +66,7 @@ allowed_sids = {
     "WebEcsDescribeTaskDefinition",
     "WebEcsDeregisterTaskDefinition",
     "WebElbDescribe",
+    "ElbManage",
     "Ec2NetworkRead",
 }
 for rel in (

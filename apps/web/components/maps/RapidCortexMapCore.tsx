@@ -140,6 +140,7 @@ export default function RapidCortexMapCore({
       zoom:               zoom ?? DEFAULT_ZOOM,
       attributionControl: false,
       logoPosition:       "bottom-left",
+      trackResize:        true,
     });
 
     mapRef.current = map;
@@ -164,6 +165,8 @@ export default function RapidCortexMapCore({
       promoteStudioOverlays(map);
       applyStudioVisibility(map, layersRef.current);
       bindIncidentInteractions(map, onIncidentLayerClick);
+      // Dock modules mount hidden (`display: none`); canvas is ~300px until shown.
+      map.resize();
       setMapReady(true);
       onMapReady?.();
     });
@@ -175,7 +178,24 @@ export default function RapidCortexMapCore({
       }
     });
 
+    let resizeRaf = 0;
+    const resizeObserver =
+      typeof ResizeObserver !== "undefined"
+        ? new ResizeObserver(() => {
+            if (resizeRaf) cancelAnimationFrame(resizeRaf);
+            resizeRaf = requestAnimationFrame(() => {
+              resizeRaf = 0;
+              mapRef.current?.resize();
+            });
+          })
+        : null;
+    if (resizeObserver && containerRef.current) {
+      resizeObserver.observe(containerRef.current);
+    }
+
     return () => {
+      if (resizeRaf) cancelAnimationFrame(resizeRaf);
+      resizeObserver?.disconnect();
       popupRef.current?.remove();
       map.remove();
       mapRef.current = null;
@@ -199,6 +219,7 @@ export default function RapidCortexMapCore({
       promoteStudioOverlays(map);
       applyStudioVisibility(map, layersRef.current);
       bindIncidentInteractions(map, (e) => clickHandlerRef.current(e));
+      map.resize();
       setMapReady(true);
     };
 

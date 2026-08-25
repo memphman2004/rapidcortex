@@ -38,6 +38,7 @@
     "fast-xml-parser": "^5.7.0",
     "google-auth-library": "^9.15.1",
     "jose": "^4.15.9",
+    "mnemonist": "0.38.3",
     "node-onvif": "^0.1.7",
     "pdfkit": "^0.18.0",
     "qrcode": "^1.5.4",

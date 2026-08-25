@@ -1538,7 +1538,7 @@ Resources:
               - !If
                 - HasBillingPaymentInstructionsSecretArn
                 - !Ref BillingPaymentInstructionsSecretArn
-                - !Sub arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:rapid-cortex/billing/payment-instructions*
+                - !Sub arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:rapid-cortex/*/billing/payment-instructions*
 
   AppManagedPolicySecretsAnalyzeProvidersRead:
     Type: AWS::IAM::ManagedPolicy
@@ -1664,8 +1664,8 @@ Resources:
     Type: AWS::Serverless::HttpApi
     Properties:
       DefaultRouteSettings:
-        ThrottlingBurstLimit: 200
-        ThrottlingRateLimit: 100
+        ThrottlingBurstLimit: 1000
+        ThrottlingRateLimit: 500
       CorsConfiguration:
         # Explicit marketing + app origins (parameter-driven Split has drifted to null on this API).
         AllowOrigins:
@@ -3095,6 +3095,17 @@ Resources:
           RING_HOMEOWNER_FALLBACK_LONGITUDE: !Ref RingHomeownerFallbackLongitude
           COGNITO_USER_POOL_ID: !Ref ImportedCognitoUserPoolId
           COGNITO_CLIENT_ID: !Ref ImportedCognitoWebClientId
+          RC_RUNTIME_CONFIG_JSON: !Sub
+            - '{"ds":"${DeploymentStage}","it":"${IncidentsTable}","tt":"${TranscriptsTable}","at":"${AnalysesTable}","aud":"${AuditTable}","ag":"${AgenciesTable}","iv":"${InvitesTable}","ab":"${AssetsBucket}","br":"${AWSRegion}"}'
+            -
+              AWSRegion: !Ref AWS::Region
+              IncidentsTable: !Ref IncidentsTable
+              TranscriptsTable: !Ref TranscriptsTable
+              AnalysesTable: !Ref AnalysesTable
+              AuditTable: !Ref AuditTable
+              AgenciesTable: !Ref AgenciesTable
+              InvitesTable: !Ref InvitesTable
+              AssetsBucket: !Ref AssetsBucket
           RING_TABLE_REQUESTS: !If
             - HasRingRequestsTable
             - !Ref RingRequestsTable
@@ -3375,10 +3386,20 @@ Resources:
             - HasRingRequestsTable
             - !Ref RingRequestsTable
             - !Sub "RingEmergencyCameraRequests-${DeploymentStage}"
-          VENUE_CONFIG_TABLE: !If
-            - HasVenueConfigTable
-            - !Ref VenueConfigTable
-            - !Ref AWS::NoValue
+          # Slim runtime JSON: Globals RC_RUNTIME_CONFIG_JSON (~2.8KB) plus Ring/SMS vars
+          # exceeded Lambda's 4KB env limit (UPDATE_FAILED on this function). Keep hydrate
+          # keys required by env.ts; Ring tables stay as individual vars below.
+          RC_RUNTIME_CONFIG_JSON: !Sub
+            - '{"ds":"${DeploymentStage}","it":"${IncidentsTable}","tt":"${TranscriptsTable}","at":"${AnalysesTable}","aud":"${AuditTable}","ag":"${AgenciesTable}","iv":"${InvitesTable}","ab":"${AssetsBucket}","br":"${AWSRegion}"}'
+            -
+              AWSRegion: !Ref AWS::Region
+              IncidentsTable: !Ref IncidentsTable
+              TranscriptsTable: !Ref TranscriptsTable
+              AnalysesTable: !Ref AnalysesTable
+              AuditTable: !Ref AuditTable
+              AgenciesTable: !Ref AgenciesTable
+              InvitesTable: !Ref InvitesTable
+              AssetsBucket: !Ref AssetsBucket
           INCIDENT_MEDIA_TWILIO_SECRET_ARN: !Ref IncidentMediaTwilioSecretArn
           SMS_PROVIDER: twilio
           SMS_PRIMARY_PROVIDER: twilio
@@ -4285,6 +4306,17 @@ Resources:
           NEST_REDIRECT_URI: !Ref NestRedirectUri
           NEST_ACCOUNT_LINK_URL: !Ref NestAccountLinkUrl
           ENABLE_CONNECT_NEST: "true"
+          RC_RUNTIME_CONFIG_JSON: !Sub
+            - '{"ds":"${DeploymentStage}","it":"${IncidentsTable}","tt":"${TranscriptsTable}","at":"${AnalysesTable}","aud":"${AuditTable}","ag":"${AgenciesTable}","iv":"${InvitesTable}","ab":"${AssetsBucket}","br":"${AWSRegion}"}'
+            -
+              AWSRegion: !Ref AWS::Region
+              IncidentsTable: !Ref IncidentsTable
+              TranscriptsTable: !Ref TranscriptsTable
+              AnalysesTable: !Ref AnalysesTable
+              AuditTable: !Ref AuditTable
+              AgenciesTable: !Ref AgenciesTable
+              InvitesTable: !Ref InvitesTable
+              AssetsBucket: !Ref AssetsBucket
           # Consent SMS must reach real phones — do not inherit SmsEnvironmentDefaults mock for stage=dev.
           INCIDENT_MEDIA_TWILIO_SECRET_ARN: !Ref IncidentMediaTwilioSecretArn
           SMS_PROVIDER: twilio
@@ -4796,6 +4828,31 @@ Resources:
             Path: /api/billing/legacy-webhooks/{proxy+}
             Method: ANY
 
+  HealthFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      Environment:
+        Variables:
+          HEALTH_STACK_ID: "4"
+      CodeUri: ../../apps/api/
+      Handler: dist/handlers/health.handler
+      Timeout: 5
+      MemorySize: 128
+      Description: Public liveness probe for stack 4 HttpApi (no JWT)
+      Policies:
+        - !Ref AppManagedPolicyS3ApplicationBucketsCrud
+      Events:
+        HealthRoute:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/health
+            Method: GET
+            Auth:
+              Authorizer: NONE
 
 Outputs:
   OpsAlertsTopicArn:

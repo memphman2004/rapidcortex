@@ -119,6 +119,8 @@ export function SopProtocolSurface({ incidentId, incident }: { incidentId: strin
         <span className="font-medium text-white">{protocolDisplayLabel}</span>
         {overlay.manualProtocolPackId ? (
           <span className="ml-2 text-amber-200/90">· Manual pack</span>
+        ) : overlay.source === "cad_nature_code" ? (
+          <span className="ml-2 text-sky-200/90">· From CAD nature code</span>
         ) : null}
       </p>
       {dismissed ? (

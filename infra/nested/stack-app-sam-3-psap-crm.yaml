@@ -95,7 +95,8 @@ Resources:
   AppManagedPolicyPsapCrmDdb:
     Type: AWS::IAM::ManagedPolicy
     Properties:
-      ManagedPolicyName: !Sub "${ManagedPolicyNamePrefix}-sam3-psapcrm-ddb-${DeploymentStage}"
+      # Do not set ManagedPolicyName — the global name already exists from a prior
+      # CREATE_FAILED nested stack (AlreadyExists on retry).
       PolicyDocument:
         Version: "2012-10-17"
         Statement:

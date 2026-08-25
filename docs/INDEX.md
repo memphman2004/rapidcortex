@@ -96,6 +96,9 @@ Paths below are **canonical** — prefer these over flat `docs/FOO.md` links in 
 
 | Document | Path |
 |----------|------|
+| RFP cybersecurity & implementation pack | [rfp/README.md](./rfp/README.md) |
+| RFP cybersecurity controls | [rfp/cybersecurity-controls.md](./rfp/cybersecurity-controls.md) |
+| RFP implementation & transition | [rfp/implementation-and-transition.md](./rfp/implementation-and-transition.md) |
 | Security model | [security-compliance/SECURITY_MODEL.md](./security-compliance/SECURITY_MODEL.md) |
 | Security questionnaire (draft) | [security-compliance/SECURITY_QUESTIONNAIRE_RESPONSES.md](./security-compliance/SECURITY_QUESTIONNAIRE_RESPONSES.md) |
 | Subprocessor list (draft) | [security-compliance/SUBPROCESSOR_LIST.md](./security-compliance/SUBPROCESSOR_LIST.md) |

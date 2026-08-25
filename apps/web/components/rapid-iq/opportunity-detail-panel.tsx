@@ -31,7 +31,10 @@ type Props = {
   mentioned: MentionedEntity[];
   demo?: boolean;
   onClose: () => void;
-  onConvert: () => void;
+  onAddToPipeline: () => void;
+  onDismiss: () => void;
+  inPipeline?: boolean;
+  pipelineBusy?: boolean;
 };
 
 function buildLocalOutreachBody(opportunity: RapidIqOpportunity, talkingPoints: string[]): string {
@@ -71,7 +74,10 @@ export function OpportunityDetailPanel({
   mentioned,
   demo,
   onClose,
-  onConvert,
+  onAddToPipeline,
+  onDismiss,
+  inPipeline = false,
+  pipelineBusy = false,
 }: Props) {
   const [tab, setTab] = useState<Tab>("analysis");
   const [generatingEmail, setGeneratingEmail] = useState(false);
@@ -207,11 +213,22 @@ export function OpportunityDetailPanel({
         )}
         <button
           type="button"
-          onClick={onConvert}
-          className="rounded bg-sky-600 px-2.5 py-1 text-[11px] font-semibold text-white hover:bg-sky-500"
+          onClick={onAddToPipeline}
+          disabled={inPipeline || pipelineBusy}
+          className="rounded bg-sky-600 px-2.5 py-1 text-[11px] font-semibold text-white hover:bg-sky-500 disabled:opacity-50"
         >
-          Add to Pipeline
+          {inPipeline ? "In Pipeline" : pipelineBusy ? "Adding…" : "Send to Pipeline"}
         </button>
+        {!inPipeline && (
+          <button
+            type="button"
+            onClick={onDismiss}
+            disabled={pipelineBusy}
+            className="rounded px-2.5 py-1 text-[11px] font-semibold text-slate-500 hover:text-slate-300"
+          >
+            Dismiss
+          </button>
+        )}
       </div>
 
       {emailError && (
@@ -264,7 +281,10 @@ export function OpportunityDetailPanel({
             contacts={contacts}
             mentioned={mentioned}
             demo={demo}
-            onConvert={onConvert}
+            onAddToPipeline={onAddToPipeline}
+            onDismiss={onDismiss}
+            inPipeline={inPipeline}
+            pipelineBusy={pipelineBusy}
             onDraftEmail={() => void handleGenerateEmail()}
             draftingEmail={generatingEmail}
           />

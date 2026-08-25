@@ -1,10 +1,12 @@
 import { randomUUID } from "node:crypto";
 import type { RapidIqContact } from "rapid-cortex-shared";
 import { resolvePlainOrSecretArn } from "../runtimeSecrets.js";
-import { isCollectorsMockEnabled } from "./agenda-finder.js";
+import { isExplicitCollectorsMockEnabled } from "./agenda-finder.js";
 import {
   collectAgencyDomains,
   type ContactEnrichInput,
+  type ContactProviderResult,
+  type ContactProviderTrace,
   inferRoleTier,
   isPublicSafetyRelevantTitle,
   MAX_CONTACTS,
@@ -83,75 +85,142 @@ function mapHunterEmail(
 }
 
 /**
- * Hunter domain-search. Auth via Authorization Bearer (never api_key query param).
+ * Hunter domain-search. Prefer Authorization Bearer; fall back to api_key query param.
  * Best source for .gov / .edu agency directories.
  */
 async function hunterDomainSearch(
   apiKey: string,
   domain: string,
-): Promise<Omit<RapidIqContact, "opportunityId">[]> {
+): Promise<{ contacts: Omit<RapidIqContact, "opportunityId">[]; trace: ContactProviderTrace }> {
   const url = new URL("https://api.hunter.io/v2/domain-search");
   url.searchParams.set("domain", domain);
   url.searchParams.set("limit", "10");
 
-  const res = await fetch(url.toString(), {
-    headers: {
-      Accept: "application/json",
-      Authorization: `Bearer ${apiKey}`,
-    },
+  const headers = {
+    Accept: "application/json",
+    Authorization: `Bearer ${apiKey}`,
+  };
+  let res = await fetch(url.toString(), {
+    headers,
     signal: AbortSignal.timeout(8_000),
   });
+  // Some Hunter keys still only accept the legacy api_key query param.
+  if (res.status === 401 || res.status === 403) {
+    const fallback = new URL("https://api.hunter.io/v2/domain-search");
+    fallback.searchParams.set("domain", domain);
+    fallback.searchParams.set("limit", "10");
+    fallback.searchParams.set("api_key", apiKey);
+    res = await fetch(fallback.toString(), {
+      headers: { Accept: "application/json" },
+      signal: AbortSignal.timeout(8_000),
+    });
+  }
   if (!res.ok) {
     console.log(JSON.stringify({ msg: "hunter_api_error", status: res.status, domain }));
-    return [];
+    return {
+      contacts: [],
+      trace: {
+        provider: "hunter",
+        domain,
+        httpStatus: res.status,
+        rawHits: 0,
+        kept: 0,
+        error: res.status === 429 ? "rate_limited" : `http_${res.status}`,
+      },
+    };
   }
   const body = (await res.json()) as HunterDomainSearchResponse;
+  const emails = body.data?.emails ?? [];
+  let droppedByTitle = 0;
+  let droppedByConfidence = 0;
   const out: Omit<RapidIqContact, "opportunityId">[] = [];
-  for (const e of body.data?.emails ?? []) {
+  for (const e of emails) {
+    const confidence = e.confidence ?? 0;
+    if (confidence > 0 && confidence < MIN_CONFIDENCE) {
+      droppedByConfidence += 1;
+      continue;
+    }
+    if (e.position && !isPublicSafetyRelevantTitle(e.position)) {
+      droppedByTitle += 1;
+      continue;
+    }
     const mapped = mapHunterEmail(e, body.data?.domain ?? domain);
     if (mapped) out.push(mapped);
     if (out.length >= MAX_CONTACTS) break;
   }
-  return out;
+  return {
+    contacts: out,
+    trace: {
+      provider: "hunter",
+      domain,
+      httpStatus: res.status,
+      rawHits: emails.length,
+      kept: out.length,
+      droppedByTitle,
+      droppedByConfidence,
+    },
+  };
 }
 
 /**
  * Stage 1: Hunter.io domain search (.gov / .edu preferred).
  */
+export async function hasHunterApiKey(): Promise<boolean> {
+  if (isExplicitCollectorsMockEnabled()) return false;
+  return Boolean(await resolveHunterApiKey());
+}
+
 export async function findContactsViaHunter(
   input: ContactEnrichInput,
-): Promise<Omit<RapidIqContact, "opportunityId">[]> {
-  if (isCollectorsMockEnabled()) return [];
+): Promise<ContactProviderResult> {
+  if (isExplicitCollectorsMockEnabled()) {
+    return {
+      contacts: [],
+      traces: [{ provider: "hunter", domain: "", httpStatus: 0, rawHits: 0, kept: 0, error: "mock" }],
+    };
+  }
 
   const apiKey = await resolveHunterApiKey();
   if (!apiKey) {
     console.log(JSON.stringify({ msg: "hunter_enrichment_skipped", reason: "no_api_key" }));
-    return [];
+    return {
+      contacts: [],
+      traces: [{ provider: "hunter", domain: "", httpStatus: 0, rawHits: 0, kept: 0, error: "no_api_key" }],
+    };
   }
 
   const domains = collectAgencyDomains(input.candidateUrls ?? []);
   if (domains.length === 0) {
     console.log(JSON.stringify({ msg: "hunter_enrichment_skipped", reason: "no_domain" }));
-    return [];
+    return {
+      contacts: [],
+      traces: [{ provider: "hunter", domain: "", httpStatus: 0, rawHits: 0, kept: 0, error: "no_domain" }],
+    };
   }
 
   const found: Omit<RapidIqContact, "opportunityId">[] = [];
+  const traces: ContactProviderTrace[] = [];
   try {
     for (const domain of domains) {
       if (found.length >= MAX_CONTACTS) break;
       const batch = await hunterDomainSearch(apiKey, domain);
-      found.push(...batch);
+      traces.push(batch.trace);
+      found.push(...batch.contacts);
     }
   } catch (err) {
-    console.log(
-      JSON.stringify({
-        msg: "hunter_domain_search_failed",
-        error: err instanceof Error ? err.message : "unknown",
-      }),
-    );
+    const error = err instanceof Error ? err.message : "unknown";
+    console.log(JSON.stringify({ msg: "hunter_domain_search_failed", error }));
+    traces.push({
+      provider: "hunter",
+      domain: domains[0] ?? "",
+      httpStatus: 0,
+      rawHits: 0,
+      kept: 0,
+      error,
+    });
   }
 
-  return found.slice(0, MAX_CONTACTS);
+  return { contacts: found.slice(0, MAX_CONTACTS), traces };
 }
 
 /** @deprecated use findContactsViaHunter — kept for existing imports during transition */
@@ -160,7 +229,7 @@ export async function enrichContactsWithHunter(
   existing: Omit<RapidIqContact, "opportunityId">[],
 ): Promise<Omit<RapidIqContact, "opportunityId">[]> {
   const found = await findContactsViaHunter(input);
-  return mergeContacts(existing, found);
+  return mergeContacts(existing, found.contacts);
 }
 
 export {

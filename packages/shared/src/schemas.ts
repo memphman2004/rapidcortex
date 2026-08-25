@@ -1,5 +1,11 @@
 import { z } from "zod";
-import { cadPrioritySchema } from "./cad.js";
+import {
+  cadAniAliSourceSchema,
+  cadAlertSchema,
+  cadLocationSourceSchema,
+  cadPrioritySchema,
+  cadUnitAssignmentSchema,
+} from "./cad.js";
 import { protocolGuidanceSchema } from "./protocol/guidance-schema.js";
 import { triageResultSchema } from "./triage/triage.js";
 import { confidenceAnalysisSchema } from "./confidence/types.js";
@@ -28,6 +34,22 @@ export const createIncidentCadFieldsSchema = z.object({
   cadDedupeKey: z.string().min(1).max(400).optional(),
   cadCallerName: z.string().min(1).max(200).nullable().optional(),
   cadCallerCallbackMasked: z.string().min(1).max(64).nullable().optional(),
+  cadPriorityModifier: z.string().max(40).nullable().optional(),
+  cadMappedIncidentTypeId: z.string().max(80).nullable().optional(),
+  cadDisposition: z.string().max(80).nullable().optional(),
+  cadIntersection: z.string().max(500).nullable().optional(),
+  cadBeat: z.string().max(80).nullable().optional(),
+  cadZone: z.string().max(80).nullable().optional(),
+  cadJurisdiction: z.string().max(200).nullable().optional(),
+  cadLocationConfidence: z.string().max(80).nullable().optional(),
+  cadLocationSource: cadLocationSourceSchema.nullable().optional(),
+  cadUnitDetails: z.array(cadUnitAssignmentSchema).max(200).optional(),
+  cadCallerAddressLine: z.string().max(500).nullable().optional(),
+  cadAniAliSource: cadAniAliSourceSchema.nullable().optional(),
+  cadRelatedCadNumbers: z.array(z.string().min(1).max(80)).max(20).optional(),
+  cadDuplicateOfCadNumber: z.string().max(80).nullable().optional(),
+  cadLinkedIncidentIds: z.array(z.string().min(1).max(120)).max(20).optional(),
+  cadAlerts: z.array(cadAlertSchema).max(20).optional(),
 });
 
 export const createIncidentSchema = z

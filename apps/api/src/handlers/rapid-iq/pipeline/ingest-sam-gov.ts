@@ -3,22 +3,15 @@
  */
 
 import type { RapidIqPipelineRawSignal } from "rapid-cortex-shared";
+import { isRelevantSignalText } from "rapid-cortex-shared";
+import {
+  rapidIqIngestSinceSlashDate,
+  rapidIqIngestUntilSlashDate,
+} from "../../../lib/rapid-iq/ingest-window.js";
 import { resolvePlainOrSecretArn } from "../../../lib/runtimeSecrets.js";
 import { enqueueMockIfEnabled, enqueueRawSignal } from "./queue-raw-signal.js";
 
 const TARGET_NAICS = ["541512", "922190", "541519", "511210"];
-
-const RELEVANCE_KEYWORDS = [
-  "dispatch",
-  "911",
-  "computer aided dispatch",
-  "emergency communications",
-  "psap",
-  "public safety software",
-  "tyler",
-  "motorola",
-  "centralsquare",
-];
 
 interface SamOpportunity {
   noticeId: string;
@@ -44,13 +37,11 @@ async function resolveSamApiKey(): Promise<string> {
 
 async function fetchOpportunities(apiKey: string): Promise<SamOpportunity[]> {
   const today = new Date();
-  const thirtyDaysAgo = new Date(today);
-  thirtyDaysAgo.setDate(today.getDate() - 30);
 
   const params = new URLSearchParams({
     api_key: apiKey,
-    postedFrom: thirtyDaysAgo.toISOString().slice(0, 10).replace(/-/g, "/"),
-    postedTo: today.toISOString().slice(0, 10).replace(/-/g, "/"),
+    postedFrom: rapidIqIngestSinceSlashDate(today),
+    postedTo: rapidIqIngestUntilSlashDate(today),
     ptype: "o,p,k",
     limit: "100",
     offset: "0",
@@ -71,8 +62,7 @@ async function fetchOpportunities(apiKey: string): Promise<SamOpportunity[]> {
 }
 
 function isRelevant(opp: SamOpportunity): boolean {
-  const text = `${opp.title} ${opp.description ?? ""}`.toLowerCase();
-  return RELEVANCE_KEYWORDS.some((kw) => text.includes(kw));
+  return isRelevantSignalText(`${opp.title} ${opp.description ?? ""}`);
 }
 
 export async function handler(): Promise<void> {

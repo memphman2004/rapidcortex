@@ -46,6 +46,48 @@ const CONFERENCES = [
     pathHints: ["/agenda", "/speakers", "/exhibitors"],
     vertical: "venue" as const,
   },
+  {
+    name: "Georgia Emergency Communications Conference",
+    url: "https://ga911.com",
+    date: "2027-03-07",
+    pathHints: ["/register", "/hotels", "/agenda", "/exhibitors"],
+    vertical: "911" as const,
+  },
+  {
+    name: "NENA Annual Conference 2027",
+    url: "https://www.nena.org/page/Conference",
+    date: "2027-06-26",
+    pathHints: ["/agenda", "/exhibitors"],
+    vertical: "911" as const,
+  },
+  {
+    name: "APCO International 2027",
+    url: "https://www.apco911.org/annual-conference",
+    date: "2027-07-25",
+    pathHints: ["/agenda", "/exhibitors", "/speakers"],
+    vertical: "911" as const,
+  },
+  {
+    name: "NCS4 National Sports Safety Conference",
+    url: "https://ncs4.usm.edu/events/annual-conference/",
+    date: "2027-06-22",
+    pathHints: ["/agenda", "/exhibitors"],
+    vertical: "venue" as const,
+  },
+  {
+    name: "AAAE Annual Conference 2027",
+    url: "https://www.aaae.org",
+    date: "2027-05-16",
+    pathHints: ["/agenda", "/exhibitors"],
+    vertical: "venue" as const,
+  },
+  {
+    name: "GSX 2026",
+    url: "https://www.gsx.org",
+    date: "2026-09-14",
+    pathHints: ["/agenda", "/exhibitors"],
+    vertical: "venue" as const,
+  },
 ];
 
 function sleep(ms: number): Promise<void> {

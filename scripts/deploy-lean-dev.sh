@@ -220,7 +220,6 @@ lean_sam_deploy_nested() {
     --capabilities CAPABILITY_IAM CAPABILITY_NAMED_IAM CAPABILITY_AUTO_EXPAND \
     --parameter-overrides ${params} \
     --resolve-s3 \
-    --force-upload \
     --no-confirm-changeset \
     --no-fail-on-empty-changeset \
     --region "${AWS_REGION}"

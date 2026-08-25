@@ -1,10 +1,7 @@
 import type { CadIntegrationSetupContext } from "../types.js";
 import type { CadParser } from "../types.js";
 import type { NormalizedCadIncident } from "../types.js";
-
-function asRecord(v: unknown): Record<string, unknown> | null {
-  return v !== null && typeof v === "object" && !Array.isArray(v) ? (v as Record<string, unknown>) : null;
-}
+import { asRecord, enrichNormalizedCadIncident, parseCadUnits } from "./parse-helpers.js";
 
 type FieldMap = Record<string, string>;
 
@@ -74,8 +71,9 @@ export const genericWebhookCadParser: CadParser = {
     const pr = String(g("priority") ?? "P3").toUpperCase();
     const priority = normalizePriority(pr);
     const unitsRaw = g("units");
-    const units = Array.isArray(unitsRaw) ? (unitsRaw as unknown[]).map(String) : [];
-    return {
+    const units = parseCadUnits(unitsRaw);
+    const payloadRecord = payload;
+    const base: NormalizedCadIncident = {
       cadNumber: String(g("cadNumber") ?? "UNKNOWN"),
       incidentType: String(g("incidentType") ?? "UNKNOWN"),
       priority,
@@ -86,6 +84,7 @@ export const genericWebhookCadParser: CadParser = {
       notes: g("notes") != null ? String(g("notes")) : undefined,
       rawPayload: asRecord(root.payload) ?? rawPayload,
     };
+    return enrichNormalizedCadIncident(base, payloadRecord);
   },
   generateSetupInstructions(integration: CadIntegrationSetupContext): string {
     const u = integration.webhookUrl;

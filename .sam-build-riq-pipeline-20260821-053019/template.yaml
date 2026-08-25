@@ -1,0 +1,856 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: "Rapid Cortex \u2014 Rapid IQ Signal Intelligence Pipeline (procurement\
+  \ signal ingest \u2192 SQS \u2192 NLP \u2192 DynamoDB \u2192 CRM push). Distinct\
+  \ from stack-app-sam-rapid-iq.yaml (opportunity feed).\n"
+Parameters:
+  DeploymentStage:
+    Type: String
+    AllowedValues:
+    - dev
+    - staging
+    - prod
+    - pilot
+  HttpApiId:
+    Type: String
+  HttpApiJwtAuthorizerId:
+    Type: String
+    Default: ''
+  RapidIqPipelineSignalsTable:
+    Type: String
+  SalesLeadsTable:
+    Type: String
+  AuditTable:
+    Type: String
+  AnthropicApiKeySecretArn:
+    Type: String
+    Default: ''
+  RapidIqSamGovApiKeySecretArn:
+    Type: String
+    Default: ''
+  RapidIqHunterApiKeySecretArn:
+    Type: String
+    Default: ''
+    Description: Secrets Manager ARN for Hunter.io API key (pipeline CRM enrichment)
+  RapidIqApolloApiKeySecretArn:
+    Type: String
+    Default: ''
+    Description: Secrets Manager ARN for Apollo.io API key (pipeline CRM enrichment)
+  RapidIqOpenstatesApiKeySecretArn:
+    Type: String
+    Default: ''
+  RapidIqLegiscanApiKeySecretArn:
+    Type: String
+    Default: ''
+    Description: Secrets Manager ARN for LegiScan (legislative ingest fallback)
+  ImportedCognitoUserPoolId:
+    Type: String
+  ImportedCognitoWebClientId:
+    Type: String
+  ManagedPolicyNamePrefix:
+    Type: String
+    Default: rapid-cortex
+  ApprovedCorsOrigins:
+    Type: String
+    Default: https://www.rapidcortex.us,https://rapidcortex.us,https://app.rapidcortex.us,https://report.rapidcortex.us
+Conditions:
+  HasHttpApiJwtAuthorizer:
+    Fn::Not:
+    - Fn::Equals:
+      - Ref: HttpApiJwtAuthorizerId
+      - ''
+  HasAnthropicApiKeySecretArn:
+    Fn::Not:
+    - Fn::Equals:
+      - Ref: AnthropicApiKeySecretArn
+      - ''
+  HasSamGovSecretArn:
+    Fn::Not:
+    - Fn::Equals:
+      - Ref: RapidIqSamGovApiKeySecretArn
+      - ''
+  HasHunterSecretArn:
+    Fn::Not:
+    - Fn::Equals:
+      - Ref: RapidIqHunterApiKeySecretArn
+      - ''
+  HasApolloSecretArn:
+    Fn::Not:
+    - Fn::Equals:
+      - Ref: RapidIqApolloApiKeySecretArn
+      - ''
+  HasOpenstatesSecretArn:
+    Fn::Not:
+    - Fn::Equals:
+      - Ref: RapidIqOpenstatesApiKeySecretArn
+      - ''
+  HasLegiscanSecretArn:
+    Fn::Not:
+    - Fn::Equals:
+      - Ref: RapidIqLegiscanApiKeySecretArn
+      - ''
+Globals:
+  Function:
+    Runtime: nodejs20.x
+    Timeout: 60
+    MemorySize: 512
+    Environment:
+      Variables:
+        DEPLOYMENT_STAGE:
+          Ref: DeploymentStage
+        ALLOW_UNAUTHENTICATED_API: 'false'
+        ENABLE_RAPID_IQ_PIPELINE: 'true'
+        RAPID_IQ_INGEST_SINCE: '2026-01-01'
+        RAPID_IQ_COLLECTORS_MOCK:
+          Fn::If:
+          - HasAnthropicApiKeySecretArn
+          - 'false'
+          - 'true'
+        RAPID_IQ_PIPELINE_SIGNALS_TABLE:
+          Ref: RapidIqPipelineSignalsTable
+        SALES_LEADS_TABLE:
+          Ref: SalesLeadsTable
+        AUDIT_TABLE:
+          Ref: AuditTable
+        ANTHROPIC_API_KEY_SECRET_ARN:
+          Ref: AnthropicApiKeySecretArn
+        RAPID_IQ_SAM_GOV_API_KEY_SECRET_ARN:
+          Ref: RapidIqSamGovApiKeySecretArn
+        RAPID_IQ_HUNTER_API_KEY_SECRET_ARN:
+          Ref: RapidIqHunterApiKeySecretArn
+        RAPID_IQ_APOLLO_API_KEY_SECRET_ARN:
+          Ref: RapidIqApolloApiKeySecretArn
+        RAPID_IQ_OPENSTATES_API_KEY_SECRET_ARN:
+          Ref: RapidIqOpenstatesApiKeySecretArn
+        RAPID_IQ_LEGISCAN_API_KEY_SECRET_ARN:
+          Ref: RapidIqLegiscanApiKeySecretArn
+        COGNITO_USER_POOL_ID:
+          Ref: ImportedCognitoUserPoolId
+        COGNITO_CLIENT_ID:
+          Ref: ImportedCognitoWebClientId
+        COGNITO_REGION:
+          Ref: AWS::Region
+        APPROVED_CORS_ORIGINS:
+          Ref: ApprovedCorsOrigins
+Resources:
+  RawSignalsDLQ:
+    Type: AWS::SQS::Queue
+    Properties:
+      QueueName:
+        Fn::Sub: ${ManagedPolicyNamePrefix}-rapid-iq-pipeline-raw-signals-dlq-${DeploymentStage}.fifo
+      FifoQueue: true
+      ContentBasedDeduplication: false
+      MessageRetentionPeriod: 604800
+  RawSignalsQueue:
+    Type: AWS::SQS::Queue
+    Properties:
+      QueueName:
+        Fn::Sub: ${ManagedPolicyNamePrefix}-rapid-iq-pipeline-raw-signals-${DeploymentStage}.fifo
+      FifoQueue: true
+      ContentBasedDeduplication: false
+      DeduplicationScope: messageGroup
+      FifoThroughputLimit: perMessageGroupId
+      VisibilityTimeout: 120
+      MessageRetentionPeriod: 86400
+      RedrivePolicy:
+        deadLetterTargetArn:
+          Fn::GetAtt:
+          - RawSignalsDLQ
+          - Arn
+        maxReceiveCount: 3
+  AppManagedPolicyRapidIqPipeline:
+    Type: AWS::IAM::ManagedPolicy
+    Properties:
+      ManagedPolicyName:
+        Fn::Sub: ${ManagedPolicyNamePrefix}-sam-rapidiq-pipeline-${DeploymentStage}
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+        - Sid: PipelineSignalsCrud
+          Effect: Allow
+          Action:
+          - dynamodb:GetItem
+          - dynamodb:PutItem
+          - dynamodb:UpdateItem
+          - dynamodb:DeleteItem
+          - dynamodb:Query
+          - dynamodb:Scan
+          - dynamodb:DescribeTable
+          Resource:
+          - Fn::Sub: arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${RapidIqPipelineSignalsTable}
+          - Fn::Sub: arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${RapidIqPipelineSignalsTable}/index/*
+        - Sid: SalesLeadsWrite
+          Effect: Allow
+          Action:
+          - dynamodb:PutItem
+          - dynamodb:GetItem
+          - dynamodb:UpdateItem
+          Resource:
+          - Fn::Sub: arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${SalesLeadsTable}
+        - Sid: AuditWrite
+          Effect: Allow
+          Action:
+          - dynamodb:PutItem
+          - dynamodb:GetItem
+          Resource:
+          - Fn::Sub: arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${AuditTable}
+          - Fn::Sub: arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${AuditTable}/index/*
+        - Sid: SqsSend
+          Effect: Allow
+          Action:
+          - sqs:SendMessage
+          - sqs:GetQueueAttributes
+          - sqs:GetQueueUrl
+          Resource:
+            Fn::GetAtt:
+            - RawSignalsQueue
+            - Arn
+        - Sid: SqsConsume
+          Effect: Allow
+          Action:
+          - sqs:ReceiveMessage
+          - sqs:DeleteMessage
+          - sqs:GetQueueAttributes
+          - sqs:ChangeMessageVisibility
+          Resource:
+            Fn::GetAtt:
+            - RawSignalsQueue
+            - Arn
+        - Sid: ReadAnthropicSecret
+          Effect: Allow
+          Action:
+          - secretsmanager:GetSecretValue
+          Resource:
+            Fn::If:
+            - HasAnthropicApiKeySecretArn
+            - Ref: AnthropicApiKeySecretArn
+            - Fn::Sub: arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:rapid-cortex/unused-rapidiq-pipeline-*
+        - Sid: ReadSamGovSecret
+          Effect: Allow
+          Action:
+          - secretsmanager:GetSecretValue
+          Resource:
+            Fn::If:
+            - HasSamGovSecretArn
+            - Ref: RapidIqSamGovApiKeySecretArn
+            - Fn::Sub: arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:rapid-cortex/unused-rapidiq-sam-*
+        - Sid: ReadHunterSecret
+          Effect: Allow
+          Action:
+          - secretsmanager:GetSecretValue
+          Resource:
+            Fn::If:
+            - HasHunterSecretArn
+            - Ref: RapidIqHunterApiKeySecretArn
+            - Fn::Sub: arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:rapid-cortex/unused-rapidiq-hunter-*
+        - Sid: ReadApolloSecret
+          Effect: Allow
+          Action:
+          - secretsmanager:GetSecretValue
+          Resource:
+            Fn::If:
+            - HasApolloSecretArn
+            - Ref: RapidIqApolloApiKeySecretArn
+            - Fn::Sub: arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:rapid-cortex/unused-rapidiq-apollo-*
+        - Sid: ReadOpenstatesSecret
+          Effect: Allow
+          Action:
+          - secretsmanager:GetSecretValue
+          Resource:
+            Fn::If:
+            - HasOpenstatesSecretArn
+            - Ref: RapidIqOpenstatesApiKeySecretArn
+            - Fn::Sub: arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:rapid-cortex/unused-rapidiq-openstates-*
+        - Sid: ReadLegiscanSecret
+          Effect: Allow
+          Action:
+          - secretsmanager:GetSecretValue
+          Resource:
+            Fn::If:
+            - HasLegiscanSecretArn
+            - Ref: RapidIqLegiscanApiKeySecretArn
+            - Fn::Sub: arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:rapid-cortex/unused-rapidiq-legiscan-*
+  IngestUsaSpendingFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+      SamResourceId: IngestUsaSpendingFunction
+    Properties:
+      CodeUri: IngestUsaSpendingFunction
+      Handler: dist/handlers/rapid-iq/pipeline/ingest-usa-spending.handler
+      Timeout: 120
+      Environment:
+        Variables:
+          RAW_SIGNALS_QUEUE_URL:
+            Ref: RawSignalsQueue
+      Policies:
+      - Ref: AppManagedPolicyRapidIqPipeline
+      Events:
+        Schedule:
+          Type: Schedule
+          Properties:
+            Schedule: cron(0 6 * * ? *)
+            Name:
+              Fn::Sub: ${ManagedPolicyNamePrefix}-riq-pipe-usa-${DeploymentStage}
+            Enabled: true
+            Description: Rapid IQ pipeline USASpending daily ingest
+  IngestSamGovFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+      SamResourceId: IngestSamGovFunction
+    Properties:
+      CodeUri: IngestSamGovFunction
+      Handler: dist/handlers/rapid-iq/pipeline/ingest-sam-gov.handler
+      Timeout: 120
+      Environment:
+        Variables:
+          RAW_SIGNALS_QUEUE_URL:
+            Ref: RawSignalsQueue
+      Policies:
+      - Ref: AppManagedPolicyRapidIqPipeline
+      Events:
+        Schedule:
+          Type: Schedule
+          Properties:
+            Schedule: cron(30 6 * * ? *)
+            Name:
+              Fn::Sub: ${ManagedPolicyNamePrefix}-riq-pipe-sam-${DeploymentStage}
+            Enabled: true
+            Description: Rapid IQ pipeline SAM.gov daily ingest
+  IngestNewsRssFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+      SamResourceId: IngestNewsRssFunction
+    Properties:
+      CodeUri: IngestNewsRssFunction
+      Handler: dist/handlers/rapid-iq/pipeline/ingest-news-rss.handler
+      Timeout: 120
+      Environment:
+        Variables:
+          RAW_SIGNALS_QUEUE_URL:
+            Ref: RawSignalsQueue
+      Policies:
+      - Ref: AppManagedPolicyRapidIqPipeline
+      Events:
+        Schedule:
+          Type: Schedule
+          Properties:
+            Schedule: rate(4 hours)
+            Name:
+              Fn::Sub: ${ManagedPolicyNamePrefix}-riq-pipe-rss-${DeploymentStage}
+            Enabled: true
+            Description: Rapid IQ pipeline news RSS ingest
+  IngestLegistarBulkFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+      SamResourceId: IngestLegistarBulkFunction
+    Properties:
+      CodeUri: IngestLegistarBulkFunction
+      Handler: dist/handlers/rapid-iq/pipeline/ingest-legistar-bulk.handler
+      Timeout: 600
+      MemorySize: 1024
+      Environment:
+        Variables:
+          RAW_SIGNALS_QUEUE_URL:
+            Ref: RawSignalsQueue
+      Policies:
+      - Ref: AppManagedPolicyRapidIqPipeline
+      Events:
+        Schedule:
+          Type: Schedule
+          Properties:
+            Schedule: cron(30 7 * * ? *)
+            Name:
+              Fn::Sub: ${ManagedPolicyNamePrefix}-riq-pipe-legistar-${DeploymentStage}
+            Enabled: true
+            Description: Rapid IQ pipeline Legistar bulk daily ingest
+  IngestSocrataFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+      SamResourceId: IngestSocrataFunction
+    Properties:
+      CodeUri: IngestSocrataFunction
+      Handler: dist/handlers/rapid-iq/pipeline/ingest-socrata.handler
+      Timeout: 300
+      MemorySize: 512
+      Environment:
+        Variables:
+          RAW_SIGNALS_QUEUE_URL:
+            Ref: RawSignalsQueue
+      Policies:
+      - Ref: AppManagedPolicyRapidIqPipeline
+      Events:
+        Schedule:
+          Type: Schedule
+          Properties:
+            Schedule: cron(0 8 * * ? *)
+            Name:
+              Fn::Sub: ${ManagedPolicyNamePrefix}-riq-pipe-socrata-${DeploymentStage}
+            Enabled: true
+            Description: Rapid IQ pipeline Socrata state contracts daily ingest
+  IngestState911BoardsFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+      SamResourceId: IngestState911BoardsFunction
+    Properties:
+      CodeUri: IngestState911BoardsFunction
+      Handler: dist/handlers/rapid-iq/pipeline/ingest-state-911-boards.handler
+      Timeout: 540
+      MemorySize: 512
+      Environment:
+        Variables:
+          RAW_SIGNALS_QUEUE_URL:
+            Ref: RawSignalsQueue
+      Policies:
+      - Ref: AppManagedPolicyRapidIqPipeline
+      Events:
+        Schedule:
+          Type: Schedule
+          Properties:
+            Schedule: cron(30 8 * * ? *)
+            Name:
+              Fn::Sub: ${ManagedPolicyNamePrefix}-riq-pipe-911boards-${DeploymentStage}
+            Enabled: true
+            Description: Rapid IQ pipeline state 911 boards daily ingest
+  IngestStateArpaFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+      SamResourceId: IngestStateArpaFunction
+    Properties:
+      CodeUri: IngestStateArpaFunction
+      Handler: dist/handlers/rapid-iq/pipeline/ingest-state-arpa.handler
+      Timeout: 300
+      MemorySize: 512
+      Environment:
+        Variables:
+          RAW_SIGNALS_QUEUE_URL:
+            Ref: RawSignalsQueue
+      Policies:
+      - Ref: AppManagedPolicyRapidIqPipeline
+      Events:
+        Schedule:
+          Type: Schedule
+          Properties:
+            Schedule: cron(0 9 * * ? *)
+            Name:
+              Fn::Sub: ${ManagedPolicyNamePrefix}-riq-pipe-arpa-${DeploymentStage}
+            Enabled: true
+            Description: Rapid IQ pipeline state ARPA dashboards daily ingest
+  IngestOpenLegislativeFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+      SamResourceId: IngestOpenLegislativeFunction
+    Properties:
+      CodeUri: IngestOpenLegislativeFunction
+      Handler: dist/handlers/rapid-iq/pipeline/ingest-openlegislative.handler
+      Timeout: 300
+      MemorySize: 256
+      Environment:
+        Variables:
+          RAW_SIGNALS_QUEUE_URL:
+            Ref: RawSignalsQueue
+      Policies:
+      - Ref: AppManagedPolicyRapidIqPipeline
+      Events:
+        Schedule:
+          Type: Schedule
+          Properties:
+            Schedule: cron(30 9 * * ? *)
+            Name:
+              Fn::Sub: ${ManagedPolicyNamePrefix}-riq-pipe-openleg-${DeploymentStage}
+            Enabled: true
+            Description: Rapid IQ pipeline OpenStates legislative daily ingest
+  IngestCountyProcurementFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+      SamResourceId: IngestCountyProcurementFunction
+    Properties:
+      CodeUri: IngestCountyProcurementFunction
+      Handler: dist/handlers/rapid-iq/pipeline/ingest-county-procurement.handler
+      Timeout: 540
+      MemorySize: 512
+      Environment:
+        Variables:
+          RAW_SIGNALS_QUEUE_URL:
+            Ref: RawSignalsQueue
+      Policies:
+      - Ref: AppManagedPolicyRapidIqPipeline
+      Events:
+        Schedule:
+          Type: Schedule
+          Properties:
+            Schedule: rate(2 hours)
+            Name:
+              Fn::Sub: ${ManagedPolicyNamePrefix}-riq-pipe-county-${DeploymentStage}
+            Enabled: true
+            Description: Rapid IQ pipeline county procurement portals every 2 hours
+  IngestGrantsGovFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+      SamResourceId: IngestGrantsGovFunction
+    Properties:
+      CodeUri: IngestGrantsGovFunction
+      Handler: dist/handlers/rapid-iq/pipeline/ingest-grants-gov.handler
+      Timeout: 120
+      Environment:
+        Variables:
+          RAW_SIGNALS_QUEUE_URL:
+            Ref: RawSignalsQueue
+      Policies:
+      - Ref: AppManagedPolicyRapidIqPipeline
+      Events:
+        Schedule:
+          Type: Schedule
+          Properties:
+            Schedule: cron(0 7 * * ? *)
+            Name:
+              Fn::Sub: ${ManagedPolicyNamePrefix}-riq-pipe-grants-${DeploymentStage}
+            Enabled: true
+            Description: Rapid IQ pipeline Grants.gov daily ingest
+  IngestNineOneOneGovFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+      SamResourceId: IngestNineOneOneGovFunction
+    Properties:
+      CodeUri: IngestNineOneOneGovFunction
+      Handler: dist/handlers/rapid-iq/pipeline/ingest-911-gov.handler
+      Timeout: 120
+      Environment:
+        Variables:
+          RAW_SIGNALS_QUEUE_URL:
+            Ref: RawSignalsQueue
+      Policies:
+      - Ref: AppManagedPolicyRapidIqPipeline
+      Events:
+        Schedule:
+          Type: Schedule
+          Properties:
+            Schedule: cron(0 8 * * ? *)
+            Name:
+              Fn::Sub: ${ManagedPolicyNamePrefix}-riq-pipe-911gov-${DeploymentStage}
+            Enabled: true
+            Description: Rapid IQ pipeline 911.gov and FCC daily ingest
+  IngestApcoNenaFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+      SamResourceId: IngestApcoNenaFunction
+    Properties:
+      CodeUri: IngestApcoNenaFunction
+      Handler: dist/handlers/rapid-iq/pipeline/ingest-apco-nena.handler
+      Timeout: 120
+      Environment:
+        Variables:
+          RAW_SIGNALS_QUEUE_URL:
+            Ref: RawSignalsQueue
+      Policies:
+      - Ref: AppManagedPolicyRapidIqPipeline
+      Events:
+        Schedule:
+          Type: Schedule
+          Properties:
+            Schedule: cron(0 9 * * ? *)
+            Name:
+              Fn::Sub: ${ManagedPolicyNamePrefix}-riq-pipe-apco-${DeploymentStage}
+            Enabled: true
+            Description: Rapid IQ pipeline APCO NENA NASNA daily ingest
+  IngestCompetitorIntelFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+      SamResourceId: IngestCompetitorIntelFunction
+    Properties:
+      CodeUri: IngestCompetitorIntelFunction
+      Handler: dist/handlers/rapid-iq/pipeline/ingest-competitor-intel.handler
+      Timeout: 300
+      Environment:
+        Variables:
+          RAW_SIGNALS_QUEUE_URL:
+            Ref: RawSignalsQueue
+      Policies:
+      - Ref: AppManagedPolicyRapidIqPipeline
+      Events:
+        Schedule:
+          Type: Schedule
+          Properties:
+            Schedule: cron(0 10 * * ? *)
+            Name:
+              Fn::Sub: ${ManagedPolicyNamePrefix}-riq-pipe-comp-${DeploymentStage}
+            Enabled: true
+            Description: Rapid IQ pipeline competitor intel daily ingest
+  IngestBoardDocsFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+      SamResourceId: IngestBoardDocsFunction
+    Properties:
+      CodeUri: IngestBoardDocsFunction
+      Handler: dist/handlers/rapid-iq/pipeline/ingest-boarddocs.handler
+      Timeout: 300
+      Environment:
+        Variables:
+          RAW_SIGNALS_QUEUE_URL:
+            Ref: RawSignalsQueue
+      Policies:
+      - Ref: AppManagedPolicyRapidIqPipeline
+      Events:
+        Schedule:
+          Type: Schedule
+          Properties:
+            Schedule: cron(30 7 * * ? *)
+            Name:
+              Fn::Sub: ${ManagedPolicyNamePrefix}-riq-pipe-bdocs-${DeploymentStage}
+            Enabled: true
+            Description: Rapid IQ pipeline BoardDocs daily ingest
+  IngestCivicClerkFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+      SamResourceId: IngestCivicClerkFunction
+    Properties:
+      CodeUri: IngestCivicClerkFunction
+      Handler: dist/handlers/rapid-iq/pipeline/ingest-civiclerk.handler
+      Timeout: 120
+      Environment:
+        Variables:
+          RAW_SIGNALS_QUEUE_URL:
+            Ref: RawSignalsQueue
+      Policies:
+      - Ref: AppManagedPolicyRapidIqPipeline
+      Events:
+        Schedule:
+          Type: Schedule
+          Properties:
+            Schedule: cron(0 8 * * ? *)
+            Name:
+              Fn::Sub: ${ManagedPolicyNamePrefix}-riq-pipe-civic-${DeploymentStage}
+            Enabled: true
+            Description: Rapid IQ pipeline CivicClerk daily ingest
+  IngestSourcewellFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+      SamResourceId: IngestSourcewellFunction
+    Properties:
+      CodeUri: IngestSourcewellFunction
+      Handler: dist/handlers/rapid-iq/pipeline/ingest-sourcewell-omnia.handler
+      Timeout: 120
+      Environment:
+        Variables:
+          RAW_SIGNALS_QUEUE_URL:
+            Ref: RawSignalsQueue
+      Policies:
+      - Ref: AppManagedPolicyRapidIqPipeline
+      Events:
+        Schedule:
+          Type: Schedule
+          Properties:
+            Schedule: cron(0 11 * * ? *)
+            Name:
+              Fn::Sub: ${ManagedPolicyNamePrefix}-riq-pipe-coop-${DeploymentStage}
+            Enabled: true
+            Description: Rapid IQ pipeline Sourcewell OMNIA NASPO HGAC daily ingest
+  IngestUniversityProcurementFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+      SamResourceId: IngestUniversityProcurementFunction
+    Properties:
+      CodeUri: IngestUniversityProcurementFunction
+      Handler: dist/handlers/rapid-iq/pipeline/ingest-university-procurement.handler
+      Timeout: 300
+      Environment:
+        Variables:
+          RAW_SIGNALS_QUEUE_URL:
+            Ref: RawSignalsQueue
+      Policies:
+      - Ref: AppManagedPolicyRapidIqPipeline
+      Events:
+        Schedule:
+          Type: Schedule
+          Properties:
+            Schedule: cron(0 12 * * ? *)
+            Name:
+              Fn::Sub: ${ManagedPolicyNamePrefix}-riq-pipe-univ-${DeploymentStage}
+            Enabled: true
+            Description: Rapid IQ pipeline university procurement daily ingest
+  ProcessSignalFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+      SamResourceId: ProcessSignalFunction
+    Properties:
+      CodeUri: ProcessSignalFunction
+      Handler: dist/handlers/rapid-iq/pipeline/process-signal.handler
+      Timeout: 120
+      ReservedConcurrentExecutions: 5
+      Policies:
+      - Ref: AppManagedPolicyRapidIqPipeline
+      Events:
+        SqsTrigger:
+          Type: SQS
+          Properties:
+            Queue:
+              Fn::GetAtt:
+              - RawSignalsQueue
+              - Arn
+            BatchSize: 1
+            FunctionResponseTypes:
+            - ReportBatchItemFailures
+  SignalHttpFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+      SamResourceId: SignalHttpFunction
+    Properties:
+      CodeUri: SignalHttpFunction
+      Handler: dist/handlers/rapid-iq/pipeline/signalHttp.handler
+      Timeout: 60
+      Policies:
+      - Ref: AppManagedPolicyRapidIqPipeline
+  SignalHttpIntegration:
+    Type: AWS::ApiGatewayV2::Integration
+    Properties:
+      ApiId:
+        Ref: HttpApiId
+      IntegrationType: AWS_PROXY
+      IntegrationUri:
+        Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${SignalHttpFunction.Arn}/invocations
+      PayloadFormatVersion: '2.0'
+  SignalHttpInvokePermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName:
+        Ref: SignalHttpFunction
+      Principal: apigateway.amazonaws.com
+      SourceArn:
+        Fn::Sub: arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${HttpApiId}/*
+  RoutePipelineSignalsGet:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId:
+        Ref: HttpApiId
+      RouteKey: GET /api/rapid-iq/pipeline/signals
+      Target:
+        Fn::Sub: integrations/${SignalHttpIntegration}
+      AuthorizationType:
+        Fn::If:
+        - HasHttpApiJwtAuthorizer
+        - JWT
+        - NONE
+      AuthorizerId:
+        Fn::If:
+        - HasHttpApiJwtAuthorizer
+        - Ref: HttpApiJwtAuthorizerId
+        - Ref: AWS::NoValue
+  RoutePipelineCreditsGet:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId:
+        Ref: HttpApiId
+      RouteKey: GET /api/rapid-iq/pipeline/credits
+      Target:
+        Fn::Sub: integrations/${SignalHttpIntegration}
+      AuthorizationType:
+        Fn::If:
+        - HasHttpApiJwtAuthorizer
+        - JWT
+        - NONE
+      AuthorizerId:
+        Fn::If:
+        - HasHttpApiJwtAuthorizer
+        - Ref: HttpApiJwtAuthorizerId
+        - Ref: AWS::NoValue
+  RoutePipelineSignalGet:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId:
+        Ref: HttpApiId
+      RouteKey: GET /api/rapid-iq/pipeline/signals/{signalId}
+      Target:
+        Fn::Sub: integrations/${SignalHttpIntegration}
+      AuthorizationType:
+        Fn::If:
+        - HasHttpApiJwtAuthorizer
+        - JWT
+        - NONE
+      AuthorizerId:
+        Fn::If:
+        - HasHttpApiJwtAuthorizer
+        - Ref: HttpApiJwtAuthorizerId
+        - Ref: AWS::NoValue
+  RoutePipelineSignalPatch:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId:
+        Ref: HttpApiId
+      RouteKey: PATCH /api/rapid-iq/pipeline/signals/{signalId}
+      Target:
+        Fn::Sub: integrations/${SignalHttpIntegration}
+      AuthorizationType:
+        Fn::If:
+        - HasHttpApiJwtAuthorizer
+        - JWT
+        - NONE
+      AuthorizerId:
+        Fn::If:
+        - HasHttpApiJwtAuthorizer
+        - Ref: HttpApiJwtAuthorizerId
+        - Ref: AWS::NoValue
+  RoutePipelinePushToCrm:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId:
+        Ref: HttpApiId
+      RouteKey: POST /api/rapid-iq/pipeline/signals/{signalId}/push-to-crm
+      Target:
+        Fn::Sub: integrations/${SignalHttpIntegration}
+      AuthorizationType:
+        Fn::If:
+        - HasHttpApiJwtAuthorizer
+        - JWT
+        - NONE
+      AuthorizerId:
+        Fn::If:
+        - HasHttpApiJwtAuthorizer
+        - Ref: HttpApiJwtAuthorizerId
+        - Ref: AWS::NoValue
+Outputs:
+  RawSignalsQueueUrl:
+    Value:
+      Ref: RawSignalsQueue
+  SignalHttpFunctionArn:
+    Value:
+      Fn::GetAtt:
+      - SignalHttpFunction
+      - Arn

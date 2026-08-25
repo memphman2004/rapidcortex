@@ -8,6 +8,8 @@ export type { CadAdapter } from "@/lib/rapid-cortex/cad/CadAdapter";
 export { DisabledCadAdapter } from "@/lib/rapid-cortex/cad/DisabledCadAdapter";
 export { ReadOnlyCadAdapter } from "@/lib/rapid-cortex/cad/ReadOnlyCadAdapter";
 export { MotorolaPremierOneCadAdapter } from "@/lib/rapid-cortex/cad/vendors/MotorolaPremierOneCadAdapter";
+export { CentralSquareCadAdapter } from "@/lib/rapid-cortex/cad/vendors/CentralSquareCadAdapter";
+export { TylerNewWorldCadAdapter } from "@/lib/rapid-cortex/cad/vendors/TylerNewWorldCadAdapter";
 export { resolveCadAdapter, resolveCadReadProvider } from "@/lib/rapid-cortex/cad/CadAdapterFactory";
 
 export type {

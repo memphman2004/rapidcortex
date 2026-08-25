@@ -96,13 +96,30 @@ export function extractCadPreview(rawBody: string): {
         (j.payload as Record<string, unknown>)
       : j;
     const cadNumber = String(
-      flat.IncidentNumber ?? flat.cadNumber ?? flat.call_number ?? flat.incident_id ?? flat.CADNumber ?? "—",
+      flat.EventId ??
+        flat.IncidentNumber ??
+        flat.IncidentId ??
+        flat.eventNumber ??
+        flat.cadNumber ??
+        flat.call_number ??
+        flat.incident_id ??
+        flat.CADNumber ??
+        "—",
     );
     const callType = String(
-      flat.NatureCode ?? flat.incidentType ?? flat.call_type ?? flat.EventType ?? flat.nature_code ?? "—",
+      flat.NatureCode ??
+        flat.NatureOfCall ??
+        flat.callType ??
+        flat.incidentType ??
+        flat.call_type ??
+        flat.EventType ??
+        flat.nature_code ??
+        "—",
     );
     const priority = String(flat.Priority ?? flat.priority ?? flat.CallPriority ?? "—");
-    const location = String(flat.Location ?? flat.location ?? flat.Address ?? flat.location_text ?? "—");
+    const location = String(
+      flat.Location ?? flat.location ?? flat.Address ?? flat.locationAddress ?? flat.location_text ?? "—",
+    );
     return { cadNumber, callType, priority, location };
   } catch {
     const num = t.match(/<IncidentNumber>([^<]*)</i)?.[1];
@@ -142,18 +159,23 @@ export function vendorTroubleshootingBullets(vendor: string): string[] {
       "Confirm PremierOne outbound HTTPS is allowed to your Rapid Cortex API host.",
       "JSON and XML bodies are accepted; match Content-Type when sending XML.",
       "Use header X-RC-Token with the issued secret; optional HMAC X-RC-Signature for integrity.",
+      "Accepted ids: EventId, IncidentNumber, CallNumber. Batches may use { incidents: [...] }.",
+      "For API poll, paste the full incidents-list URL from your PremierOne gateway — Rapid Cortex does not invent a Motorola REST path.",
     ];
   }
   if (vendor === "tyler_new_world") {
     return [
       "Tyler often requires their PSAP team to enable the feed — plan 2–5 business days.",
-      "Validate API base URL and agency code with Tyler before go-live.",
+      "Paste the full incidents-list HTTPS URL, API key, and agency code Tyler provides.",
+      "Poll uses eventsSince / agencyCode / limit. Webhooks use X-RC-Token when Tyler enables outbound HTTP.",
+      "Accepted ids: eventNumber, call_number, callNumber, id. Batches may use { events: [...] }.",
     ];
   }
   if (vendor === "central_square") {
     return [
       "Confirm the CAD export user can reach the public webhook URL over TLS 1.2+.",
-      "CentralSquare field names vary by version — use generic mapping if payloads differ.",
+      "Field names vary by Enterprise / Inform / Superion version — PascalCase (IncidentId) and snake_case (incident_id) both parse.",
+      "Batches may use { Incidents: [...] }. Poll uses modifiedSince, pageSize, orgCode.",
     ];
   }
   if (vendor === "hexagon") {

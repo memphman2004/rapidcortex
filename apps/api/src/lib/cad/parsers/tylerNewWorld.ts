@@ -1,55 +1,78 @@
 import type { CadIntegrationSetupContext } from "../types.js";
 import type { CadParser } from "../types.js";
 import type { NormalizedCadIncident } from "../types.js";
+import {
+  anyExtractedRecordHasCadId,
+  asRecord,
+  normalizeCadPriority,
+  parseCadCoordinates,
+  parseCadRevision,
+  parseCadUnits,
+  pickFirst,
+  pickFirstString,
+  resolveIncidentRecord,
+  enrichNormalizedCadIncident,
+} from "./parse-helpers.js";
 
-function asRecord(v: unknown): Record<string, unknown> | null {
-  return v !== null && typeof v === "object" && !Array.isArray(v) ? (v as Record<string, unknown>) : null;
+export const TYLER_CAD_NUMBER_KEYS = [
+  "eventNumber",
+  "EventNumber",
+  "call_number",
+  "callNumber",
+  "CallNumber",
+  "CallId",
+  "IncidentNumber",
+  "id",
+];
+
+const TYPE_KEYS = ["callType", "call_type", "CallType", "nature", "Nature", "incidentType"];
+const LOCATION_KEYS = [
+  "locationAddress",
+  "location_text",
+  "locationText",
+  "address",
+  "Address",
+  "Location",
+  "location",
+];
+const PRIORITY_KEYS = ["priority", "priority_code", "priorityCode", "Priority"];
+const NAME_KEYS = ["callerName", "caller_name", "CallerName", "Name"];
+const PHONE_KEYS = ["callerPhone", "caller_phone", "CallerPhone", "Phone"];
+const NOTES_KEYS = ["remarks", "Comments", "Narrative", "notes", "Remarks"];
+const STATUS_KEYS = ["eventStatus", "dispatch_status", "call_status", "status", "Status"];
+const UNIT_KEYS = ["assignedUnits", "apparatus", "Units", "units", "AssignedUnits"];
+const REV_KEYS = ["version_number", "Version", "Revision", "Sequence"];
+
+function callerBlock(o: Record<string, unknown>): Record<string, unknown> | null {
+  return asRecord(o.caller) ?? asRecord(o.Caller) ?? asRecord(o.reportingParty);
 }
 
-function normalizePriority(v: unknown): NormalizedCadIncident["priority"] {
-  const n = Number(v);
-  if (n === 1) return "P1";
-  if (n === 2) return "P2";
-  if (n === 4) return "P4";
-  const s = String(v ?? "P3").toUpperCase();
-  if (s === "P1" || s === "P2" || s === "P3" || s === "P4") return s;
-  return "P3";
+function parseTylerRecord(o: Record<string, unknown>): NormalizedCadIncident {
+  const caller = callerBlock(o);
+  const base: NormalizedCadIncident = {
+    cadNumber: pickFirstString(o, TYLER_CAD_NUMBER_KEYS) ?? "UNKNOWN",
+    incidentType: pickFirstString(o, TYPE_KEYS) ?? "UNKNOWN",
+    priority: normalizeCadPriority(pickFirst(o, PRIORITY_KEYS)),
+    location: pickFirstString(o, LOCATION_KEYS) || "Unknown",
+    callerCallback: (caller ? pickFirstString(caller, PHONE_KEYS) : undefined) ?? pickFirstString(o, PHONE_KEYS),
+    callerName: (caller ? pickFirstString(caller, NAME_KEYS) : undefined) ?? pickFirstString(o, NAME_KEYS),
+    units: parseCadUnits(pickFirst(o, UNIT_KEYS)),
+    coordinates: parseCadCoordinates(o),
+    notes: pickFirstString(o, NOTES_KEYS),
+    cadStatus: pickFirstString(o, STATUS_KEYS),
+    revision: parseCadRevision(o, REV_KEYS),
+    rawPayload: o,
+  };
+  return enrichNormalizedCadIncident(base, o);
 }
 
 export const tylerNewWorldCadParser: CadParser = {
   vendor: "tyler_new_world",
   validate(rawPayload: unknown): boolean {
-    const o = asRecord(rawPayload);
-    if (!o) return false;
-    return typeof o.call_number === "string" || typeof o.callNumber === "string" || typeof o.id === "string";
+    return anyExtractedRecordHasCadId(rawPayload, TYLER_CAD_NUMBER_KEYS);
   },
   parse(rawPayload: unknown): NormalizedCadIncident {
-    const o = asRecord(rawPayload) ?? {};
-    const cadNumber = String(o.call_number ?? o.callNumber ?? o.id ?? "UNKNOWN");
-    const incidentType = String(o.call_type ?? o.callType ?? o.nature ?? "UNKNOWN");
-    const location = String(o.location_text ?? o.locationText ?? o.address ?? "");
-    const units = Array.isArray(o.apparatus)
-      ? (o.apparatus as unknown[]).map((u) => {
-          const r = asRecord(u);
-          return r ? String(r.unit_id ?? r.unitId ?? r.id ?? "") : "";
-        }).filter(Boolean)
-      : [];
-    return {
-      cadNumber,
-      incidentType,
-      priority: normalizePriority(o.priority_code ?? o.priorityCode ?? o.priority),
-      location: location || "Unknown",
-      callerCallback: o.caller_phone != null ? String(o.caller_phone) : undefined,
-      callerName: o.caller_name != null ? String(o.caller_name) : undefined,
-      units,
-      cadStatus:
-        o.dispatch_status != null ? String(o.dispatch_status)
-        : o.status != null ? String(o.status)
-        : o.call_status != null ? String(o.call_status)
-        : undefined,
-      revision: typeof o.version_number === "number" ? o.version_number : undefined,
-      rawPayload,
-    };
+    return parseTylerRecord(resolveIncidentRecord(rawPayload));
   },
   generateSetupInstructions(integration: CadIntegrationSetupContext): string {
     const u = integration.webhookUrl;
@@ -57,12 +80,22 @@ export const tylerNewWorldCadParser: CadParser = {
     return [
       `Tyler New World — “${integration.name}” (${integration.id}):`,
       "",
-      "1) Contact Tyler Technologies support to enable CAD API / outbound webhooks for your agency.",
-      `2) Provide Rapid Cortex inbound URL: ${u}`,
-      `3) Authentication: header X-RC-Token (token suffix …${tp})`,
-      "4) Optional integrity: X-RC-Signature: sha256=<hex> where hex = HMAC-SHA256(UTF-8 body, plaintext token).",
+      "Read-only ingest. Tyler typically enables API access through their PSAP team (plan 2–5 business days).",
+      "Rapid Cortex is not a Tyler-certified connector; use the base URL and agency code Tyler provides.",
       "",
-      "For API poll mode, set integration.config fields: apiUrl, apiKey, agencyCode (Tyler agency identifier).",
+      "API poll (typical)",
+      "1) Obtain API base URL, API key, and agency code from Tyler.",
+      "2) Paste the full incidents-list HTTPS URL in Admin → CAD (auth type + agency code).",
+      "3) Rapid Cortex polls with `eventsSince`, `agencyCode`, and `limit`.",
+      "",
+      "Webhook (if Tyler enables outbound HTTP)",
+      `POST ${u}`,
+      `Header X-RC-Token: <token ending …${tp}>`,
+      "Optional: X-RC-Signature: sha256=<hex> (HMAC-SHA256 of raw body, key=plaintext token).",
+      "",
+      "Accepted keys: eventNumber / call_number / id, callType, locationAddress / location_text,",
+      "priority, callerName, callerPhone, remarks, assignedUnits / apparatus[], eventStatus.",
+      "Batches: { \"events\": [ … ] } or { \"incidents\": [ … ] }.",
     ].join("\n");
   },
 };

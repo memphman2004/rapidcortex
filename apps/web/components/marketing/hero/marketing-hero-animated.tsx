@@ -20,7 +20,9 @@ function useNeuralCanvas(
     if (!ctxRaw) return;
     const ctx: CanvasRenderingContext2D = ctxRaw;
 
-    let animFrameId: number;
+    let animFrameId = 0;
+    let initFrame = 0;
+    let idleId = 0;
     let W = 0;
     let H = 0;
 
@@ -114,11 +116,19 @@ function useNeuralCanvas(
       beams = [];
     }
 
-    // Defer one rAF so the DOM has fully laid out before we read dimensions
-    let initFrame = requestAnimationFrame(() => {
+    // Defer the first paint-heavy rAF loop until the browser is idle so LCP
+    // (logo + copy) is not competing with the neural canvas.
+    const start = () => {
       resize();
       initFrame = requestAnimationFrame(animate);
-    });
+    };
+    if (typeof requestIdleCallback === "function") {
+      idleId = requestIdleCallback(start, { timeout: 1800 });
+    } else {
+      initFrame = requestAnimationFrame(() => {
+        start();
+      });
+    }
 
     const resizeObserver = new ResizeObserver(resize);
     resizeObserver.observe(containerEl);
@@ -200,6 +210,9 @@ function useNeuralCanvas(
     }
 
     return () => {
+      if (typeof cancelIdleCallback === "function" && idleId) {
+        cancelIdleCallback(idleId);
+      }
       cancelAnimationFrame(initFrame);
       cancelAnimationFrame(animFrameId);
       resizeObserver.disconnect();

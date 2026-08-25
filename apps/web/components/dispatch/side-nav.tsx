@@ -12,8 +12,11 @@ import { getRoleNav } from "@/lib/navigation/role-nav";
 import { useNavBadgeCounts } from "@/lib/navigation/use-nav-badge-counts";
 import { useOptionalJurisdictionSlug } from "@/lib/jurisdiction-context";
 import { defaultJurisdictionSlug } from "@/lib/marketing-links";
+import { ModulePicker } from "@/components/dispatch/module-dock";
+import { useDispatcherModuleRail } from "@/components/dispatch/dispatcher-module-rail-context";
 
-export function SideNav() {
+export function SideNav({ compactRail = false }: { compactRail?: boolean }) {
+  const moduleRail = useDispatcherModuleRail();
   const { user, isLoading } = useSession();
   const auth = isAuthConfigured();
   const jurisdictionSlug = useOptionalJurisdictionSlug() ?? defaultJurisdictionSlug();
@@ -38,14 +41,18 @@ export function SideNav() {
 
   return (
     <nav
-      className="flex h-full min-h-0 w-56 shrink-0 flex-col sm:w-[var(--rc-sidebar-ops)] xl:w-[var(--rc-sidebar-ops-xl)]"
+      className={
+        compactRail
+          ? "dispatcher-nav-rail flex h-full min-h-0 shrink-0 flex-col"
+          : "flex h-full min-h-0 w-56 shrink-0 flex-col sm:w-[var(--rc-sidebar-ops)] xl:w-[var(--rc-sidebar-ops-xl)]"
+      }
       aria-label="Operations and administration"
       style={
         {
           "--role-accent": palette.accent,
           "--role-accent-dim": palette.dim,
-          background: "#0d1321",
-          borderRight: "1px solid rgba(255,255,255,0.07)",
+          background: "var(--rc-panel-bg)",
+          borderRight: "1px solid var(--rc-border)",
         } as CSSProperties
       }
     >
@@ -59,6 +66,17 @@ export function SideNav() {
         {nav ? (
           <div className="px-1">
             <RoleNavSections nav={nav} counts={counts} />
+            {moduleRail?.rail ? (
+              <div className="pt-1">
+                <div className="flex items-center gap-2.5 px-2 pt-4 pb-1">
+                  <span className="shrink-0 whitespace-nowrap text-[9px] font-bold uppercase tracking-widest text-[var(--rc-text-muted)]">
+                    Modules
+                  </span>
+                  <div className="h-px flex-1 bg-[var(--rc-border)]" aria-hidden />
+                </div>
+                <ModulePicker dock={moduleRail.rail.dock} onOpenModule={moduleRail.rail.onOpen} />
+              </div>
+            ) : null}
           </div>
         ) : null}
       </div>

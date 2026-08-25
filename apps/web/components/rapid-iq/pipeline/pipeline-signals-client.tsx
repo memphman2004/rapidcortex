@@ -6,22 +6,34 @@ import type {
   RapidIqPipelineCreditToolStatus,
   RapidIqPipelineSignal,
   RapidIqPipelineSignalStatus,
+  RapidIqProcurementStage,
+  RapidIqProcurementStageFilterId,
 } from "rapid-cortex-shared";
-import { RAPID_IQ_PIPELINE_SOURCE_LABELS } from "rapid-cortex-shared";
+import {
+  displayPipelineScores,
+  matchesProcurementStageFilter,
+  RAPID_IQ_PIPELINE_SOURCE_LABELS,
+  resolveProcurementStage,
+} from "rapid-cortex-shared";
+import { DualScoreBadge } from "../dual-score-badge";
+import { ProcurementStageBadge } from "../procurement-stage-badge";
+import { ProcurementStageTabs } from "../procurement-stage-tabs";
+import { SignalEvidenceBlock } from "../signal-evidence";
 import {
   getPipelineCredits,
   getPipelineSignals,
+  patchPipelineSignal,
   patchPipelineSignalStatus,
   PIPELINE_CREDITS_QUERY_KEY,
+  PIPELINE_SIGNALS_QUERY_KEY,
+  pushPipelineSignalToCrm,
 } from "@/lib/rapid-iq/pipeline-api";
+import { PipelineKanban } from "./pipeline-kanban";
 import { SignalDetailPanel } from "./signal-detail-panel";
 
-const QUERY_KEY = ["rapid-iq-pipeline-signals"] as const;
-
-const STATUS_TABS: Array<{ value: RapidIqPipelineSignalStatus | "all"; label: string }> = [
+const STATUS_TABS: Array<{ value: RapidIqPipelineSignalStatus | "all" | "ready"; label: string }> = [
   { value: "all", label: "All" },
-  { value: "new", label: "New" },
-  { value: "reviewed", label: "Reviewed" },
+  { value: "ready", label: "Ready" },
   { value: "pushed", label: "Pushed to CRM" },
   { value: "dismissed", label: "Dismissed" },
 ];
@@ -41,6 +53,15 @@ function sourceBadge(sourceId: string): string {
   if (sourceId === "state-911-board") return "bg-rose-500/10 text-rose-400";
   if (sourceId === "state-arpa") return "bg-amber-500/10 text-amber-400";
   if (sourceId === "openlegislative") return "bg-cyan-500/10 text-cyan-400";
+  if (sourceId === "county-procurement") return "bg-orange-600/10 text-orange-300";
+  if (sourceId === "rapid-iq") return "bg-sky-600/15 text-sky-300";
+  if (sourceId === "grants-gov") return "bg-emerald-500/10 text-emerald-400";
+  if (sourceId === "911-gov" || sourceId === "fcc-reports") return "bg-rose-600/10 text-rose-300";
+  if (sourceId === "trade-publication") return "bg-indigo-600/10 text-indigo-300";
+  if (sourceId === "competitor-intel") return "bg-violet-500/15 text-violet-300";
+  if (sourceId === "boarddocs" || sourceId === "civiclerk") return "bg-amber-500/10 text-amber-300";
+  if (sourceId === "sourcewell-omnia") return "bg-teal-600/10 text-teal-300";
+  if (sourceId === "university-procurement") return "bg-sky-500/10 text-sky-300";
   return "bg-slate-700/50 text-slate-400";
 }
 
@@ -92,18 +113,42 @@ function CreditMeter({
 
 function SignalCard({
   signal,
-  onClick,
+  busy,
+  selected,
+  onOpen,
+  onPushToCrm,
+  onReview,
   onDismiss,
 }: {
   signal: RapidIqPipelineSignal;
-  onClick: () => void;
-  onDismiss: (e: React.MouseEvent) => void;
+  busy: boolean;
+  selected?: boolean;
+  onOpen: () => void;
+  onPushToCrm: () => void;
+  onReview: () => void;
+  onDismiss: () => void;
 }) {
+  const isPushed = signal.status === "pushed";
+  const showActions = signal.status === "new" || signal.status === "reviewed" || isPushed;
+
   return (
-    <button
-      type="button"
-      onClick={onClick}
-      className="w-full text-left bg-slate-900 border border-slate-800 rounded-lg p-4 hover:border-slate-600 hover:bg-slate-800/60 transition-colors group"
+    <div
+      role="button"
+      tabIndex={0}
+      aria-expanded={selected}
+      onClick={onOpen}
+      onKeyDown={(e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          onOpen();
+        }
+      }}
+      className={[
+        "w-full cursor-pointer text-left bg-slate-900 border rounded-lg p-4 transition-colors",
+        selected
+          ? "border-sky-500/60 bg-slate-800/80"
+          : "border-slate-800 hover:border-slate-600 hover:bg-slate-800/60",
+      ].join(" ")}
     >
       <div className="flex items-start justify-between gap-3">
         <div className="flex-1 min-w-0">
@@ -113,7 +158,8 @@ function SignalCard({
             >
               {RAPID_IQ_PIPELINE_SOURCE_LABELS[signal.sourceId] ?? signal.sourceId}
             </span>
-            {signal.status === "pushed" && (
+            <ProcurementStageBadge signal={signal} />
+            {isPushed && (
               <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-emerald-900/40 text-emerald-400 border border-emerald-800">
                 IN CRM
               </span>
@@ -150,14 +196,18 @@ function SignalCard({
             {signal.dollarAmount != null && (
               <span className="text-[10px] text-slate-400">{formatAmount(signal.dollarAmount)}</span>
             )}
+            {signal.manualEntry && (
+              <span className="text-[10px] font-semibold text-slate-400">Manual Entry</span>
+            )}
           </div>
+          <SignalEvidenceBlock signal={signal} />
         </div>
 
         <div className="flex-shrink-0 flex flex-col items-end gap-1.5">
-          <div className="text-right">
-            <div className="text-2xl font-bold text-white leading-none">{signal.fitScore}</div>
-            <div className="text-[9px] text-slate-500 uppercase tracking-wider">fit</div>
-          </div>
+          <DualScoreBadge
+            intent={displayPipelineScores(signal).intent}
+            fit={displayPipelineScores(signal).fit}
+          />
           <span
             className={`text-[10px] font-semibold px-2 py-0.5 rounded-full uppercase tracking-wide ${fitBadge(signal.fitLabel)}`}
           >
@@ -166,31 +216,78 @@ function SignalCard({
         </div>
       </div>
 
-      {(signal.status === "new" || signal.status === "reviewed") && (
-        <div className="mt-3 flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+      {showActions && (
+        <div className="pipeline-item-actions mt-3 flex flex-wrap items-center gap-2">
           <button
             type="button"
-            onClick={onDismiss}
-            className="text-[10px] text-slate-500 hover:text-slate-300 transition-colors px-2 py-1 rounded border border-slate-700 hover:border-slate-600"
+            className={`btn-push-crm ${isPushed ? "in-crm" : ""}`}
+            disabled={isPushed || busy}
+            onClick={(e) => {
+              e.stopPropagation();
+              if (!isPushed) onPushToCrm();
+            }}
           >
-            Dismiss
+            {isPushed ? "✓ In CRM" : "Push to CRM"}
           </button>
+          {!isPushed && (
+            <>
+              <button
+                type="button"
+                className="btn-review"
+                disabled={busy || signal.status === "reviewed"}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onReview();
+                }}
+              >
+                Mark Reviewed
+              </button>
+              <button
+                type="button"
+                className="btn-dismiss"
+                disabled={busy}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onDismiss();
+                }}
+              >
+                Dismiss
+              </button>
+            </>
+          )}
         </div>
       )}
-    </button>
+    </div>
   );
 }
 
-export function PipelineSignalsClient() {
+type Props = {
+  /** Fill the Rapid IQ workspace instead of a standalone page chrome. */
+  embedded?: boolean;
+  /** Pre-sliced signals for the active 911 / campus / venue / competitor tab. */
+  items?: RapidIqPipelineSignal[];
+  categoryLabel?: string;
+};
+
+export function PipelineSignalsClient({
+  embedded = false,
+  items: itemsProp,
+  categoryLabel,
+}: Props) {
   const qc = useQueryClient();
-  const [activeTab, setActiveTab] = useState<RapidIqPipelineSignalStatus | "all">("new");
+  const [activeTab, setActiveTab] = useState<RapidIqPipelineSignalStatus | "all" | "ready">("all");
+  const [stageFilter, setStageFilter] = useState<RapidIqProcurementStageFilterId>("all");
   const [selectedSignal, setSelectedSignal] = useState<RapidIqPipelineSignal | null>(null);
+  const [toast, setToast] = useState<string | null>(null);
+  const [actionError, setActionError] = useState<string | null>(null);
+  const [viewMode, setViewMode] = useState<"kanban" | "list">("kanban");
 
   const { data, isLoading, error } = useQuery({
-    queryKey: [...QUERY_KEY, activeTab],
-    queryFn: () => getPipelineSignals(activeTab === "all" ? undefined : activeTab),
+    queryKey: [...PIPELINE_SIGNALS_QUERY_KEY, "standalone"],
+    queryFn: () => getPipelineSignals(),
     staleTime: 60_000,
     refetchInterval: 120_000,
+    enabled: itemsProp == null,
   });
 
   const creditsQuery = useQuery({
@@ -200,30 +297,107 @@ export function PipelineSignalsClient() {
     refetchInterval: 120_000,
   });
 
+  const invalidatePipeline = () => {
+    void qc.invalidateQueries({ queryKey: PIPELINE_SIGNALS_QUERY_KEY });
+    void qc.invalidateQueries({ queryKey: PIPELINE_CREDITS_QUERY_KEY });
+  };
+
   const dismissMutation = useMutation({
     mutationFn: (signalId: string) => patchPipelineSignalStatus(signalId, "dismissed"),
-    onSuccess: () => qc.invalidateQueries({ queryKey: QUERY_KEY }),
+    onSuccess: (updated) => {
+      setActionError(null);
+      if (selectedSignal?.signalId === updated.signalId) setSelectedSignal(updated);
+      invalidatePipeline();
+    },
+    onError: (err) => setActionError(err instanceof Error ? err.message : "Dismiss failed"),
   });
 
-  const signals = data ?? [];
-  const newCount = signals.filter((s) => s.status === "new").length;
+  const reviewMutation = useMutation({
+    mutationFn: (signalId: string) => patchPipelineSignalStatus(signalId, "reviewed"),
+    onSuccess: (updated) => {
+      setActionError(null);
+      if (selectedSignal?.signalId === updated.signalId) setSelectedSignal(updated);
+      invalidatePipeline();
+    },
+    onError: (err) => setActionError(err instanceof Error ? err.message : "Review failed"),
+  });
+
+  const stageMutation = useMutation({
+    mutationFn: ({ signalId, stage }: { signalId: string; stage: RapidIqProcurementStage }) =>
+      patchPipelineSignal(signalId, { procurementStage: stage }),
+    onSuccess: (updated) => {
+      setActionError(null);
+      if (selectedSignal?.signalId === updated.signalId) setSelectedSignal(updated);
+      invalidatePipeline();
+    },
+    onError: (err) => setActionError(err instanceof Error ? err.message : "Stage update failed"),
+  });
+
+  const pushMutation = useMutation({
+    mutationFn: async (signal: RapidIqPipelineSignal) => {
+      const result = await pushPipelineSignalToCrm(signal.signalId, {
+        overrideAgencyName: signal.agencyName,
+        notes: signal.summary,
+      });
+      return { result, signal };
+    },
+    onSuccess: ({ result, signal }) => {
+      setActionError(null);
+      const agency = signal.agencyName ?? signal.jurisdiction ?? "agency";
+      setToast(`Pushed to CRM — ${agency}`);
+      const updated: RapidIqPipelineSignal = {
+        ...signal,
+        status: "pushed",
+        crmLeadId: result.leadId,
+      };
+      if (selectedSignal?.signalId === signal.signalId) setSelectedSignal(updated);
+      invalidatePipeline();
+    },
+    onError: (err) => setActionError(err instanceof Error ? err.message : "Push to CRM failed"),
+  });
+
+  const allSignals = itemsProp ?? data ?? [];
+  const signals = allSignals.filter((s) => {
+    if (activeTab === "all") {
+      if (s.status === "dismissed") return false;
+    } else if (activeTab === "ready") {
+      if (s.status !== "new" && s.status !== "reviewed") return false;
+    } else if (s.status !== activeTab) {
+      return false;
+    }
+    return matchesProcurementStageFilter(resolveProcurementStage(s), stageFilter);
+  });
+  const readyCount = allSignals.filter((s) => s.status === "new" || s.status === "reviewed").length;
   const credits = creditsQuery.data;
+  const busy =
+    dismissMutation.isPending ||
+    reviewMutation.isPending ||
+    pushMutation.isPending ||
+    stageMutation.isPending;
 
   return (
-    <div className="min-h-[70vh] bg-slate-950 text-white rounded-lg border border-slate-800 overflow-hidden">
+    <div
+      className={
+        embedded
+          ? "flex h-full min-h-0 flex-col overflow-hidden bg-slate-950 text-white"
+          : "min-h-[70vh] bg-slate-950 text-white rounded-lg border border-slate-800 overflow-hidden"
+      }
+    >
       <div className="border-b border-slate-800 px-6 py-4">
         <div className="flex items-center justify-between gap-4 flex-wrap">
           <div>
             <div className="flex items-center gap-2">
-              <h2 className="text-lg font-semibold text-white">Signal Intelligence</h2>
-              {newCount > 0 && (
+              <h2 className="text-lg font-semibold text-white">
+                Pipeline{categoryLabel ? ` · ${categoryLabel}` : ""}
+              </h2>
+              {readyCount > 0 && (
                 <span className="bg-red-600 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full">
-                  {newCount}
+                  {readyCount}
                 </span>
               )}
             </div>
             <p className="text-xs text-slate-500 mt-0.5">
-              Procurement signal intelligence — public safety agencies
+              Push to CRM to create a Lead and start outreach
             </p>
           </div>
           <div className="flex items-center gap-6 flex-wrap">
@@ -231,10 +405,7 @@ export function PipelineSignalsClient() {
             <CreditMeter label="Hunter" status={credits?.hunter} />
             <button
               type="button"
-              onClick={() => {
-                qc.invalidateQueries({ queryKey: QUERY_KEY });
-                qc.invalidateQueries({ queryKey: PIPELINE_CREDITS_QUERY_KEY });
-              }}
+              onClick={() => invalidatePipeline()}
               className="text-xs text-slate-400 hover:text-white border border-slate-700 hover:border-slate-500 px-3 py-1.5 rounded-md transition-colors"
             >
               Refresh
@@ -258,55 +429,128 @@ export function PipelineSignalsClient() {
             </button>
           ))}
         </div>
+        <div className="mt-3 flex flex-wrap items-center gap-3">
+          <ProcurementStageTabs value={stageFilter} onChange={setStageFilter} />
+          <div className="ml-auto flex gap-1">
+            <button
+              type="button"
+              onClick={() => setViewMode("kanban")}
+              className={`rounded px-2 py-1 text-[10px] font-semibold ${
+                viewMode === "kanban" ? "bg-slate-700 text-white" : "text-slate-500"
+              }`}
+            >
+              Kanban
+            </button>
+            <button
+              type="button"
+              onClick={() => setViewMode("list")}
+              className={`rounded px-2 py-1 text-[10px] font-semibold ${
+                viewMode === "list" ? "bg-slate-700 text-white" : "text-slate-500"
+              }`}
+            >
+              List
+            </button>
+          </div>
+        </div>
       </div>
 
-      <div className="flex h-[calc(100vh-220px)] min-h-[420px]">
-        <div className="flex-1 overflow-y-auto p-4">
-          {isLoading ? (
-            <div className="flex items-center justify-center h-48 text-slate-500 text-sm">
-              Loading signals…
-            </div>
-          ) : error ? (
-            <div className="flex items-center justify-center h-48 text-red-400 text-sm">
-              Failed to load signals.
-            </div>
-          ) : signals.length === 0 ? (
-            <div className="flex flex-col items-center justify-center h-48 gap-2">
-              <div className="text-slate-500 text-sm">No signals in this view</div>
-              <div className="text-slate-600 text-xs">
-                Ingestion runs on schedule — check back after the next run
-              </div>
-            </div>
-          ) : (
-            <div className="space-y-3 max-w-3xl">
-              {signals.map((signal) => (
-                <SignalCard
-                  key={signal.signalId}
-                  signal={signal}
-                  onClick={() => setSelectedSignal(signal)}
-                  onDismiss={(e) => {
-                    e.stopPropagation();
-                    dismissMutation.mutate(signal.signalId);
-                  }}
-                />
-              ))}
-            </div>
-          )}
+      {toast && (
+        <div className="border-b border-emerald-500/20 bg-emerald-500/10 px-5 py-2 text-xs text-emerald-300">
+          {toast}
         </div>
+      )}
+      {actionError && (
+        <div className="border-b border-red-500/20 bg-red-500/10 px-5 py-2 text-xs text-red-300">
+          {actionError}
+        </div>
+      )}
 
-        {selectedSignal && (
-          <SignalDetailPanel
-            signal={selectedSignal}
-            credits={credits}
-            onClose={() => setSelectedSignal(null)}
-            onSignalUpdated={(updated) => {
-              setSelectedSignal(updated);
-              qc.invalidateQueries({ queryKey: QUERY_KEY });
-              qc.invalidateQueries({ queryKey: PIPELINE_CREDITS_QUERY_KEY });
-            }}
-          />
+      <div className={embedded ? "min-h-0 flex-1 overflow-y-auto p-4" : "h-[calc(100vh-220px)] min-h-[420px] overflow-y-auto p-4"}>
+        {itemsProp == null && isLoading ? (
+          <div className="flex items-center justify-center h-48 text-slate-500 text-sm">
+            Loading signals…
+          </div>
+        ) : itemsProp == null && error ? (
+          <div className="flex items-center justify-center h-48 text-red-400 text-sm">
+            Failed to load signals.
+          </div>
+        ) : signals.length === 0 ? (
+          <div className="flex flex-col items-center justify-center h-48 gap-2">
+            <div className="text-slate-500 text-sm">No pipeline items in this category</div>
+            <div className="text-slate-600 text-xs">
+              From the inbox, send keepers here — then Push to CRM
+            </div>
+          </div>
+        ) : viewMode === "kanban" ? (
+          <div className="space-y-3">
+            <PipelineKanban
+              signals={signals}
+              busy={busy || stageMutation.isPending}
+              onMoveStage={(signalId, stage) => stageMutation.mutate({ signalId, stage })}
+              onOpen={(signal) =>
+                setSelectedSignal((cur) => (cur?.signalId === signal.signalId ? null : signal))
+              }
+            />
+            {selectedSignal && (
+              <SignalDetailPanel
+                signal={selectedSignal}
+                credits={credits}
+                anchored
+                onClose={() => setSelectedSignal(null)}
+                onSignalUpdated={(updated) => {
+                  setSelectedSignal(updated);
+                  invalidatePipeline();
+                }}
+              />
+            )}
+          </div>
+        ) : (
+          <div className="space-y-3">
+            {signals.map((signal) => {
+              const isOpen = selectedSignal?.signalId === signal.signalId;
+              return (
+                <div
+                  key={signal.signalId}
+                  className="flex flex-col items-stretch gap-3 lg:flex-row lg:items-start"
+                >
+                  <div className="min-w-0 w-full max-w-3xl shrink-0 lg:w-[min(100%,48rem)]">
+                    <SignalCard
+                      signal={selectedSignal?.signalId === signal.signalId ? selectedSignal : signal}
+                      selected={isOpen}
+                      busy={busy}
+                      onOpen={() =>
+                        setSelectedSignal((cur) =>
+                          cur?.signalId === signal.signalId ? null : signal,
+                        )
+                      }
+                      onPushToCrm={() => pushMutation.mutate(signal)}
+                      onReview={() => reviewMutation.mutate(signal.signalId)}
+                      onDismiss={() => dismissMutation.mutate(signal.signalId)}
+                    />
+                  </div>
+                  {isOpen && selectedSignal && (
+                    <div className="min-w-0 w-full max-w-xl lg:sticky lg:top-0 lg:max-w-[440px]">
+                      <SignalDetailPanel
+                        signal={selectedSignal}
+                        credits={credits}
+                        anchored
+                        onClose={() => setSelectedSignal(null)}
+                        onSignalUpdated={(updated) => {
+                          setSelectedSignal(updated);
+                          invalidatePipeline();
+                        }}
+                      />
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
         )}
       </div>
     </div>
   );
 }
+
+/** Alias used by the Rapid IQ page toggle. */
+export const PipelineView = PipelineSignalsClient;

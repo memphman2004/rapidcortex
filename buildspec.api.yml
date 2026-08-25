@@ -1,0 +1,35 @@
+version: 0.2
+
+env:
+  variables:
+    NODE_OPTIONS: --max-old-space-size=8192
+
+phases:
+  install:
+    runtime-versions:
+      nodejs: 20
+    commands:
+      - echo "Installing SAM CLI (pinned to match local dev version — newer releases' bundled"
+      - echo "cfn-lint flags nodejs20.x as deprecated (W2531) and fails sam validate --lint)..."
+      - pip3 install --quiet "aws-sam-cli==1.141.0"
+      - sam --version
+      - make --version
+
+  pre_build:
+    commands:
+      - set -eu
+      - echo "Deploying stage ${DEPLOYMENT_STAGE:?DEPLOYMENT_STAGE not set} as $(aws sts get-caller-identity --query Arn --output text)"
+
+  build:
+    commands:
+      - set -eu
+      - bash scripts/deploy.sh "${DEPLOYMENT_STAGE}"
+
+  post_build:
+    commands:
+      - |
+        if [ "${CODEBUILD_BUILD_SUCCEEDING:-1}" = "1" ]; then
+          echo "✅ API deploy finished for stage ${DEPLOYMENT_STAGE}"
+        else
+          echo "❌ API deploy failed for stage ${DEPLOYMENT_STAGE} — see phase output above"
+        fi

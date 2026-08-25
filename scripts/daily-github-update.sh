@@ -3,7 +3,7 @@
 # Safe defaults: skip if clean tree; never force-push; respect .gitignore.
 set -euo pipefail
 
-REPO_ROOT="${REPO_ROOT:-/Volumes/Mac Mini/Coding Projects/Hibernation/WebApp/Rapid Cortex}"
+REPO_ROOT="${REPO_ROOT:-/Volumes/Mac Mini/Coding Projects/Rapid Cortex}"
 LOG_DIR="${HOME}/Library/Logs/rapid-cortex"
 LOG_FILE="${LOG_DIR}/daily-github-update.log"
 LOCK_DIR="${TMPDIR:-/tmp}/rapid-cortex-daily-github-update.lock"

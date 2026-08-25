@@ -7,6 +7,7 @@ import { HelpChrome } from "@/components/help/help-chrome";
 import { ThemeProvider, useThemeRoot } from "@/lib/theme/theme-context";
 import { ThemeToggle } from "@/components/ui/ThemeToggle";
 import { VENUE_DASHBOARD_FONT_FAMILY } from "./venue-dashboard-font";
+import { extractVenueCode } from "@/lib/auth/post-login-redirect";
 import { VenueNav } from "./venue-nav";
 import type { VenueThreatLevel } from "./venue-threat-strip";
 import { venueThreatLabel } from "./venue-threat-strip";
@@ -47,19 +48,20 @@ function VenueOperationsShellInner({
   threatLevel?: VenueThreatLevel;
   children: ReactNode;
 }) {
-  const { rootRef } = useThemeRoot<HTMLDivElement>();
+  const { theme, rootRef } = useThemeRoot<HTMLDivElement>();
 
   return (
     <HelpChrome role={userRole ?? "venue_admin"}>
     <div
       ref={rootRef}
-      data-theme="dark"
+      data-theme={theme}
       style={{
         minHeight: "100vh",
         display: "flex",
         flexDirection: "column",
         background: "var(--rc-bg)",
         color: "var(--rc-text-primary)",
+        colorScheme: theme,
         fontFamily: VENUE_DASHBOARD_FONT_FAMILY,
       }}
     >
@@ -141,6 +143,15 @@ function VenueOperationsShellInner({
         </span>
 
         <div style={{ flex: 1 }} />
+
+        {/(supervisor)/i.test(userRole ?? "") ? (
+          <a
+            href={`/app/venue/${extractVenueCode(agencyId)}/supervisor`}
+            style={{ fontSize: 12, color: "var(--rc-amber)", fontWeight: 600, marginRight: 8 }}
+          >
+            📱 Mobile view
+          </a>
+        ) : null}
 
         <CampusDashboardHeaderUtilities
           email={userEmail}

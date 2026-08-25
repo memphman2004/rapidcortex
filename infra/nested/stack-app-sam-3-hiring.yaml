@@ -188,6 +188,7 @@ Resources:
 
   CareersPresignIntegration:
     Type: AWS::ApiGatewayV2::Integration
+    DeletionPolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       IntegrationType: AWS_PROXY
@@ -196,6 +197,7 @@ Resources:
 
   CareersApplyIntegration:
     Type: AWS::ApiGatewayV2::Integration
+    DeletionPolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       IntegrationType: AWS_PROXY
@@ -204,6 +206,7 @@ Resources:
 
   ApplicationsAdminIntegration:
     Type: AWS::ApiGatewayV2::Integration
+    DeletionPolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       IntegrationType: AWS_PROXY
@@ -236,6 +239,7 @@ Resources:
 
   RouteCareersPresignPost:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "POST /api/careers/presigned-upload"
@@ -244,6 +248,7 @@ Resources:
 
   RouteCareersPresignOptions:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "OPTIONS /api/careers/presigned-upload"
@@ -252,6 +257,7 @@ Resources:
 
   RouteCareersApplyPost:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "POST /api/careers/apply"
@@ -260,6 +266,7 @@ Resources:
 
   RouteCareersApplyOptions:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "OPTIONS /api/careers/apply"
@@ -268,6 +275,7 @@ Resources:
 
   RouteApplicationsList:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "GET /api/rc-admin/applications"
@@ -277,6 +285,7 @@ Resources:
 
   RouteApplicationGet:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "GET /api/rc-admin/applications/{applicationId}"
@@ -286,6 +295,7 @@ Resources:
 
   RouteApplicationPut:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "PUT /api/rc-admin/applications/{applicationId}"
@@ -295,6 +305,7 @@ Resources:
 
   RouteApplicationPatch:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "PATCH /api/rc-admin/applications/{applicationId}"
@@ -304,6 +315,7 @@ Resources:
 
   RouteApplicationNotes:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "POST /api/rc-admin/applications/{applicationId}/notes"
@@ -313,6 +325,7 @@ Resources:
 
   RouteApplicationResumeUrl:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "GET /api/rc-admin/applications/{applicationId}/resume-url"
@@ -355,6 +368,7 @@ Resources:
 
   CareersPostingsIntegration:
     Type: AWS::ApiGatewayV2::Integration
+    DeletionPolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       IntegrationType: AWS_PROXY
@@ -363,6 +377,7 @@ Resources:
 
   JobPostingsAdminIntegration:
     Type: AWS::ApiGatewayV2::Integration
+    DeletionPolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       IntegrationType: AWS_PROXY
@@ -371,6 +386,7 @@ Resources:
 
   HiringBookingsAdminIntegration:
     Type: AWS::ApiGatewayV2::Integration
+    DeletionPolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       IntegrationType: AWS_PROXY
@@ -403,6 +419,7 @@ Resources:
 
   RouteCareersPostingsList:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "GET /api/careers/postings"
@@ -411,6 +428,7 @@ Resources:
 
   RouteCareersPostingsListOptions:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "OPTIONS /api/careers/postings"
@@ -419,6 +437,7 @@ Resources:
 
   RouteCareersPostingBySlug:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "GET /api/careers/postings/{slug}"
@@ -427,6 +446,7 @@ Resources:
 
   RouteCareersPostingBySlugOptions:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "OPTIONS /api/careers/postings/{slug}"
@@ -435,6 +455,7 @@ Resources:
 
   RouteJobPostingsList:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "GET /api/rc-admin/job-postings"
@@ -444,6 +465,7 @@ Resources:
 
   RouteJobPostingsCreate:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "POST /api/rc-admin/job-postings"
@@ -453,6 +475,7 @@ Resources:
 
   RouteJobPostingGet:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "GET /api/rc-admin/job-postings/{postingId}"
@@ -462,6 +485,7 @@ Resources:
 
   RouteJobPostingPut:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "PUT /api/rc-admin/job-postings/{postingId}"
@@ -471,6 +495,7 @@ Resources:
 
   RouteJobPostingPatch:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "PATCH /api/rc-admin/job-postings/{postingId}"
@@ -480,6 +505,7 @@ Resources:
 
   RouteHiringBookingsGet:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "GET /api/rc-admin/settings/hiring-bookings"
@@ -489,6 +515,7 @@ Resources:
 
   RouteHiringBookingsPut:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "PUT /api/rc-admin/settings/hiring-bookings"

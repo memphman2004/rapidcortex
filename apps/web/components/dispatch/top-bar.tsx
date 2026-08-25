@@ -16,7 +16,13 @@ import { getRoleHeaderBadgeLabel } from "@/lib/dashboards/role-header-badge";
 import { resolvePsapRole } from "@/lib/dashboards/psap-role-nav";
 import { useJurisdictionLink } from "@/lib/jurisdiction-context";
 
-export function TopBar({ user: serverUser }: { user?: UserContext | null }) {
+export function TopBar({
+  user: serverUser,
+  compact = false,
+}: {
+  user?: UserContext | null;
+  compact?: boolean;
+}) {
   const to = useJurisdictionLink();
   const { user: sessionUser, isLoading } = useSession();
   const user = serverUser ?? sessionUser;
@@ -30,17 +36,25 @@ export function TopBar({ user: serverUser }: { user?: UserContext | null }) {
 
   return (
     <header
-      className="rc-sticky-toolbar flex h-36 shrink-0 items-center justify-between border-b-0 px-3 sm:h-40 sm:px-4 lg:px-6 2xl:px-8"
-      style={{
-        background: "var(--rc-surface)",
-        borderBottom: "1px solid rgba(255,255,255,0.07)",
-      }}
+      className={
+        compact
+          ? "dispatcher-topbar flex shrink-0 items-center justify-between px-3"
+          : "rc-sticky-toolbar flex h-36 shrink-0 items-center justify-between border-b-0 px-3 sm:h-40 sm:px-4 lg:px-6 2xl:px-8"
+      }
+      style={
+        compact
+          ? undefined
+          : {
+              background: "var(--rc-surface)",
+              borderBottom: "1px solid rgba(255,255,255,0.07)",
+            }
+      }
     >
       <div className="flex min-w-0 items-center gap-2 sm:gap-3 lg:gap-4">
         <Link href={to("/dashboard")} className="flex shrink-0 items-center gap-2">
-          <SiteLogoMark heightClass="h-24 sm:h-28" priority />
+          <SiteLogoMark heightClass={compact ? "h-10" : "h-24 sm:h-28"} priority />
         </Link>
-        <div className="hidden h-6 w-px bg-slate-700 sm:block" aria-hidden />
+        <div className="hidden h-6 w-px bg-[var(--rc-border)] sm:block" aria-hidden />
         <div className="hidden min-w-0 flex-col sm:flex">
           <span className="text-[10px] font-medium uppercase leading-none tracking-wider text-slate-500">
             Agency

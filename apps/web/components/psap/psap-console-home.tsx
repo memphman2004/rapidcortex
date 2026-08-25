@@ -595,7 +595,7 @@ function PsapConsoleHomeInner({
   const [selectedMapIncident, setSelectedMapIncident] = useState<string | null>(null);
   const [mapTheme, setMapTheme] = useState<"dark" | "light">("dark");
   const fileRef = useRef<HTMLInputElement>(null);
-  const { rootRef } = useThemeRoot<HTMLDivElement>();
+  const { theme, rootRef } = useThemeRoot<HTMLDivElement>();
 
   useEffect(() => {
     const id = window.setInterval(() => setNow(new Date()), 30_000);
@@ -961,7 +961,7 @@ function PsapConsoleHomeInner({
     <HelpChrome role={userRole ?? "supervisor"}>
       <div
         ref={rootRef}
-        data-theme="dark"
+        data-theme={theme}
         style={{
           display: "flex",
           height: "100vh",
@@ -969,6 +969,7 @@ function PsapConsoleHomeInner({
           background: C.bg,
           fontFamily: FONT,
           color: C.text,
+          colorScheme: theme,
           fontSize: "14px",
           position: "relative",
         }}
@@ -1266,7 +1267,7 @@ function PsapConsoleHomeInner({
                         top: "calc(100% + 6px)",
                         left: 0,
                         width: 170,
-                        background: "#080c18",
+                        background: C.surface,
                         border: `1px solid ${C.borderHard}`,
                         borderRadius: 8,
                         overflow: "hidden",

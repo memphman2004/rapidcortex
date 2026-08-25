@@ -121,7 +121,6 @@ Resources:
   AppManagedPolicyNg911Dynamo:
     Type: AWS::IAM::ManagedPolicy
     Properties:
-      ManagedPolicyName: !Sub "${ManagedPolicyNamePrefix}-sam2-ng911-ddb-${DeploymentStage}"
       PolicyDocument:
         Version: "2012-10-17"
         Statement:

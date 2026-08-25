@@ -7,30 +7,31 @@ import type {
   Incident,
   TranscriptSegment,
 } from "rapid-cortex-shared";
-import { IntelligencePanelContent } from "@/components/dispatch/ai-panel";
 import {
   CallerCardLocationPanel,
   CallerCardPremiseNotesPanel,
 } from "@/components/dispatch/caller-card-panel";
 import { IncidentContextMap } from "@/components/dispatch/incident-context-map";
 import { IncidentMediaPanel } from "@/components/dispatch/incident-media-panel";
+import { IntelligenceWorkstation } from "@/components/dispatch/intelligence-workstation";
 import { LiveVideoPanel } from "@/components/dispatch/live-video-panel";
-import { Ng911AssistPanel } from "@/components/dispatch/ng911-assist-panel";
 import { PinpointPanel } from "@/components/dispatch/pinpoint-panel";
 import { SilentTextPanel } from "@/components/dispatch/silent-text-panel";
 import { TranscriptPanel } from "@/components/dispatch/transcript-panel";
 import { VideoAssistPanel } from "@/components/dispatch/video-assist-panel";
-import { DispatcherPanelGrid } from "@/components/dispatcher/dispatcher-panel-grid";
+import { WorkstationPanel } from "@/components/dispatch/workstation-panel";
+import { ModuleDock } from "@/components/dispatch/module-dock";
+import type { DockState } from "@/lib/dispatcher/module-dock";
+import type { WorkstationPanelName } from "@/lib/dispatcher/workstation-prefs";
 import {
   isIncidentMediaEnabled,
   isLiveVideoEnabled,
-  isNg911AssistEnabled,
   isPinpointEnabled,
   isSilentTextEnabled,
 } from "@/lib/runtime-flags";
 
 function PanelUnavailable({ message }: { message: string }) {
-  return <p className="p-3 text-xs text-slate-500">{message}</p>;
+  return <p className="text-[12px] text-[var(--rc-text-muted)]">{message}</p>;
 }
 
 function resolveIncidentMapPin(incident: Incident | null): {
@@ -55,8 +56,33 @@ function resolveIncidentMapPin(incident: Incident | null): {
   return { lat, lng, label };
 }
 
-export function DispatcherIncidentPanelGrid({
-  userId,
+export function DispatcherIncidentMapPanel({
+  incidentId,
+  incident,
+}: {
+  incidentId: string | null;
+  incident: Incident | null;
+}) {
+  const mapPin = useMemo(() => resolveIncidentMapPin(incident), [incident]);
+  if (!mapPin) {
+    return (
+      <PanelUnavailable
+        message={
+          incidentId
+            ? "No map coordinates yet — Pinpoint GPS or CAD location will appear here."
+            : "Select an incident to load the map."
+        }
+      />
+    );
+  }
+  return (
+    <div className="h-full min-h-0 w-full">
+      <IncidentContextMap latitude={mapPin.lat} longitude={mapPin.lng} label={mapPin.label} fill />
+    </div>
+  );
+}
+
+export function DispatcherIncidentWorkstationBody({
   incidentId,
   incident,
   analysis,
@@ -73,8 +99,17 @@ export function DispatcherIncidentPanelGrid({
   onTranscriptAutoScrollChange,
   transcriptStreaming = false,
   transcriptLoading = false,
+  collapsed,
+  maximized,
+  onToggleCollapse,
+  onToggleMaximize,
+  languageBar,
+  dock,
+  onToggleDockSplit,
+  onSwapDockSlots,
+  onFocusDockSlot,
+  onCloseDockSlot,
 }: {
-  userId: string;
   incidentId: string | null;
   incident: Incident | null;
   analysis: AIAnalysis | null;
@@ -91,119 +126,184 @@ export function DispatcherIncidentPanelGrid({
   onTranscriptAutoScrollChange?: (v: boolean) => void;
   transcriptStreaming?: boolean;
   transcriptLoading?: boolean;
+  collapsed: Record<WorkstationPanelName, boolean>;
+  maximized: WorkstationPanelName | null;
+  onToggleCollapse: (name: WorkstationPanelName) => void;
+  onToggleMaximize: (name: WorkstationPanelName) => void;
+  languageBar?: ReactNode;
+  dock: DockState;
+  onToggleDockSplit: () => void;
+  onSwapDockSlots: () => void;
+  onFocusDockSlot: (slot: "left" | "right") => void;
+  onCloseDockSlot: (slot: "left" | "right") => void;
 }) {
-  const mapPin = useMemo(() => resolveIncidentMapPin(incident), [incident]);
+  const callerMobile =
+    !incidentId ? (
+      <PanelUnavailable message="Select an incident in the queue." />
+    ) : isLiveVideoEnabled() ? (
+      <LiveVideoPanel incidentId={incidentId} ani={incident?.callerCallback} embedded />
+    ) : isIncidentMediaEnabled() ? (
+      <IncidentMediaPanel incidentId={incidentId} ani={incident?.callerCallback} embedded />
+    ) : (
+      <VideoAssistPanel incidentId={incidentId} ani={incident?.callerCallback} />
+    );
 
-  const panels = useMemo(() => {
-    const callerMobile =
-      !incidentId ? (
-        <PanelUnavailable message="Select an incident in the queue." />
-      ) : isLiveVideoEnabled() ? (
-        <LiveVideoPanel incidentId={incidentId} ani={incident?.callerCallback} embedded />
-      ) : isIncidentMediaEnabled() ? (
-        <IncidentMediaPanel incidentId={incidentId} ani={incident?.callerCallback} embedded />
-      ) : (
-        <VideoAssistPanel incidentId={incidentId} ani={incident?.callerCallback} />
-      );
+  const panel = (
+    name: WorkstationPanelName,
+    title: string,
+    body: ReactNode,
+    extra?: { badge?: string; secondary?: boolean; className?: string; bodyClassName?: string },
+  ) => (
+    <WorkstationPanel
+      name={name}
+      title={title}
+      badge={extra?.badge}
+      secondary={extra?.secondary}
+      collapsed={collapsed[name]}
+      maximized={maximized === name}
+      onToggleCollapse={() => onToggleCollapse(name)}
+      onToggleMaximize={() => onToggleMaximize(name)}
+      className={extra?.className}
+      bodyClassName={extra?.bodyClassName}
+    >
+      {body}
+    </WorkstationPanel>
+  );
 
-    return {
-      transcript: (
-        <div id="cad-transcript" className="flex h-[min(36vh,320px)] min-h-[12rem] flex-col">
-          <TranscriptPanel
-            segments={transcriptSegments}
-            autoScroll={transcriptAutoScroll}
-            onAutoScrollChange={onTranscriptAutoScrollChange ?? (() => {})}
-            isStreaming={transcriptStreaming}
-            isLoading={Boolean(incidentId) && transcriptLoading}
-            toolbar={transcriptToolbar}
-            className="!min-h-0 !flex-1 !border-r-0 !bg-transparent !border-0"
-          />
-        </div>
-      ),
-      map: mapPin ? (
-        <div className="p-2">
-          <IncidentContextMap
-            latitude={mapPin.lat}
-            longitude={mapPin.lng}
-            label={mapPin.label}
-          />
-        </div>
-      ) : (
-        <PanelUnavailable
-          message={
-            incidentId
-              ? "No map coordinates yet — Pinpoint GPS or CAD location will appear here."
-              : "Select an incident to load the map."
-          }
-        />
-      ),
-      intelligence: (
-        <IntelligencePanelContent
-          incidentId={incidentId}
-          incident={incident}
-          analysis={analysis}
-          fieldConfidence={fieldConfidence}
-          fieldConfidenceLoading={fieldConfidenceLoading}
-          analysisError={analysisError}
-          analysisLoading={analysisLoading}
-          onRefresh={onRefreshAi}
-          isRefreshing={isRefreshingAi}
-          variant="grid"
-        />
-      ),
-      caller_mobile: callerMobile,
-      silent_text: isSilentTextEnabled() ? (
-        <SilentTextPanel
-          incidentId={incidentId}
-          callerLanguage={incident?.callerLanguage}
-          ani={incident?.callerCallback}
-          embedded
-        />
-      ) : (
-        <PanelUnavailable message="Silent text is not enabled for this agency." />
-      ),
-      pinpoint: isPinpointEnabled() ? (
-        <PinpointPanel incidentId={incidentId} ani={incident?.callerCallback} embedded />
-      ) : (
-        <PanelUnavailable message="Pinpoint is not enabled for this agency." />
-      ),
-      location:
-        incidentId && showCallerCard ? (
-          <CallerCardLocationPanel incidentId={incidentId} />
-        ) : (
-          <PanelUnavailable message="Caller card / location context is not available." />
-        ),
-      premise_notes:
-        incidentId && showCallerCard ? (
-          <CallerCardPremiseNotesPanel incidentId={incidentId} />
-        ) : (
-          <PanelUnavailable message="Premise notes require caller card access." />
-        ),
-      ng911_assist: isNg911AssistEnabled() ? (
-        <Ng911AssistPanel incidentId={incidentId} />
-      ) : (
-        <PanelUnavailable message="NG9-1-1 assist is not enabled for this agency." />
-      ),
-    };
-  }, [
-    analysis,
-    analysisError,
-    analysisLoading,
-    fieldConfidence,
-    fieldConfidenceLoading,
-    incident,
-    incidentId,
-    isRefreshingAi,
-    mapPin,
-    onRefreshAi,
-    onTranscriptAutoScrollChange,
-    showCallerCard,
-    transcriptAutoScroll,
-    transcriptLoading,
-    transcriptSegments,
-    transcriptStreaming,
-    transcriptToolbar,
-  ]);
-
-  return <DispatcherPanelGrid userId={userId} panels={panels} className="p-2" />;
+  return (
+    <div className="module-dock-host">
+      <ModuleDock
+        dock={dock}
+        onToggleSplit={onToggleDockSplit}
+        onSwap={onSwapDockSlots}
+        onFocusSlot={onFocusDockSlot}
+        onCloseSlot={onCloseDockSlot}
+        items={[
+          {
+            key: "transcript",
+            label: "Transcript",
+            body: (
+              <div id="cad-transcript" className="flex h-full min-h-0 flex-col">
+                {panel(
+                  "transcript",
+                  "Transcript",
+                  <div className="flex h-full min-h-0 flex-col">
+                    {languageBar ? <div className="shrink-0">{languageBar}</div> : null}
+                    <TranscriptPanel
+                      segments={transcriptSegments}
+                      autoScroll={transcriptAutoScroll}
+                      onAutoScrollChange={onTranscriptAutoScrollChange ?? (() => {})}
+                      isStreaming={transcriptStreaming}
+                      isLoading={Boolean(incidentId) && transcriptLoading}
+                      toolbar={transcriptToolbar}
+                      className="!min-h-0 !flex-1 !border-0 !border-r-0 !bg-transparent"
+                    />
+                  </div>,
+                  { bodyClassName: "!p-0 flex flex-col min-h-0" },
+                )}
+              </div>
+            ),
+          },
+          {
+            key: "incident_picture",
+            label: "Incident Picture",
+            body: (
+              <div id="cad-intelligence" className="flex h-full min-h-0 flex-col">
+                {panel(
+                  "intelligence",
+                  "Incident picture",
+                  <IntelligenceWorkstation
+                    incidentId={incidentId}
+                    incident={incident}
+                    analysis={analysis}
+                    fieldConfidence={fieldConfidence}
+                    fieldConfidenceLoading={fieldConfidenceLoading}
+                    analysisError={analysisError}
+                    analysisLoading={analysisLoading}
+                    isRefreshingAi={isRefreshingAi}
+                    onRefreshAi={onRefreshAi}
+                  />,
+                  { badge: "AI", bodyClassName: "flex min-h-0 flex-col" },
+                )}
+              </div>
+            ),
+          },
+          { key: "caller_mobile", label: "Caller Mobile", body: panel("caller_mobile", "Caller mobile", callerMobile) },
+          {
+            key: "silent_text",
+            label: "Silent Text Link",
+            body: panel(
+              "silent_text",
+              "Silent text link",
+              isSilentTextEnabled() ? (
+                <SilentTextPanel
+                  incidentId={incidentId}
+                  callerLanguage={incident?.callerLanguage}
+                  ani={incident?.callerCallback}
+                  embedded
+                />
+              ) : (
+                <PanelUnavailable message="Silent text is not enabled for this agency." />
+              ),
+            ),
+          },
+          {
+            key: "pinpoint",
+            label: "Rapid Cortex Pinpoint",
+            body: panel(
+              "pinpoint",
+              "Rapid Cortex Pinpoint",
+              isPinpointEnabled() ? (
+                <PinpointPanel incidentId={incidentId} ani={incident?.callerCallback} embedded />
+              ) : (
+                <PanelUnavailable message="Pinpoint is not enabled for this agency." />
+              ),
+            ),
+          },
+          {
+            key: "location",
+            label: "Location",
+            body: panel(
+              "location",
+              "Location",
+              incidentId && showCallerCard ? (
+                <CallerCardLocationPanel incidentId={incidentId} />
+              ) : (
+                <PanelUnavailable message="Caller card / location context is not available." />
+              ),
+              { secondary: true },
+            ),
+          },
+          {
+            key: "premise_notes",
+            label: "Premise Notice",
+            body: panel(
+              "premise_notes",
+              "Premise notice",
+              incidentId && showCallerCard ? (
+                <CallerCardPremiseNotesPanel incidentId={incidentId} />
+              ) : (
+                <PanelUnavailable message="Premise notice requires caller card access." />
+              ),
+              { secondary: true },
+            ),
+          },
+          {
+            key: "map",
+            label: "Map",
+            body: (
+              <section className="ws-panel h-full min-h-0 w-full" data-panel="map-module">
+                <header className="ws-panel-header">
+                  <span className="min-w-0 flex-1 truncate">Map</span>
+                </header>
+                <div className="ws-panel-body flex min-h-0 flex-1 flex-col !overflow-hidden !p-0">
+                  <DispatcherIncidentMapPanel incidentId={incidentId} incident={incident} />
+                </div>
+              </section>
+            ),
+          },
+        ]}
+      />
+    </div>
+  );
 }

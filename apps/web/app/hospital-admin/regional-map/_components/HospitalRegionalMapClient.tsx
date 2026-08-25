@@ -33,7 +33,7 @@ export function HospitalRegionalMapClient({ agencyId }: { agencyId: string }) {
   };
 
   return (
-    <div className="min-h-screen bg-slate-950 text-white">
+    <div className="min-h-screen bg-[var(--rc-bg)] text-[var(--rc-text-primary)]">
       <div className="px-6 py-8">
         <div className="mb-6">
           <p className="text-xs font-medium uppercase tracking-widest text-teal-600">Hospital Portal</p>

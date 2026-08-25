@@ -9,6 +9,7 @@ import {
   marketingContactPath,
   marketingDemoPath,
   marketingDemoRequestPath,
+  marketingGrantsPath,
   marketingHomePath,
   marketingPricingPath,
   marketingSolutionsAgenciesPath,
@@ -45,6 +46,7 @@ describe("marketing mobile drawer link definitions", () => {
     const hrefs = links.map((l) => l.href);
     expect(links.some((l) => l.label === "Home")).toBe(true);
     expect(links.some((l) => l.label === "Features")).toBe(true);
+    expect(links.some((l) => l.label === "Grants")).toBe(true);
     expect(links.some((l) => l.label === "Pricing")).toBe(true);
     expect(links.some((l) => l.label === "Demo")).toBe(true);
     expect(links.some((l) => l.label === "Contact")).toBe(true);
@@ -118,6 +120,9 @@ describe("MarketingHeader", () => {
     expect(within(dialog).getByRole("link", { name: /^Home$/ }).getAttribute("href")).toBe(marketingHomePath());
     expect(within(dialog).getByRole("link", { name: /^Features$/ }).getAttribute("href")).toBe(
       marketingSolutionsAgenciesPath(),
+    );
+    expect(within(dialog).getByRole("link", { name: /^Grants$/ }).getAttribute("href")).toBe(
+      marketingGrantsPath(),
     );
     expect(within(dialog).getByRole("link", { name: /^Pricing$/ }).getAttribute("href")).toBe(marketingPricingPath());
     expect(within(dialog).getByRole("link", { name: /^Demo$/ }).getAttribute("href")).toBe(marketingDemoPath());

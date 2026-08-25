@@ -11,8 +11,8 @@ export type IntegrationStatusRow = {
 };
 
 /**
- * Dispatch shell integration strip — pilot framing: API reflects real config; external CAD/radio
- * remain explicit non-goals for first-agency launch (see docs/NON_GOALS.md).
+ * Dispatch shell integration strip — API reflects real config; CAD read-only
+ * webhook/poll adapters are available in Admin → CAD (write-back stays fail-closed).
  */
 export function getIntegrationStatusRows(): IntegrationStatusRow[] {
   const apiLive = isApiConfigured();
@@ -36,8 +36,8 @@ export function getIntegrationStatusRows(): IntegrationStatusRow[] {
     {
       id: "cad",
       label: "CAD / RMS",
-      detail: "Configure CAD connectors in Admin → Integrations",
-      health: "planned",
+      detail: "Read-only PremierOne, CentralSquare, and Tyler — configure in Admin → CAD",
+      health: apiLive ? "live" : "offline",
     },
     {
       id: "audio",

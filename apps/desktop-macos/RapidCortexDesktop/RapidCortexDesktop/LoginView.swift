@@ -225,7 +225,7 @@ struct LoginView: View {
                                     .foregroundStyle(Color.orange.opacity(0.95))
                                     .fixedSize(horizontal: false, vertical: true)
                             } else if !session.configuration.canSignInWithWeb {
-                                Text("Add WEB_APP_BASE_URL or NEXT_PUBLIC_SITE_URL to Secrets.plist (your Rapid Cortex website URL, e.g. https://www.rapidcortex.us) so the app can open web sign-in.")
+                                Text("Add WEB_APP_BASE_URL or NEXT_PUBLIC_SITE_URL to Secrets.plist (your Rapid Cortex website URL, e.g. https://app.rapidcortex.us) so the app can open web sign-in.")
                                     .font(.caption)
                                     .foregroundStyle(Color.orange.opacity(0.95))
                                     .fixedSize(horizontal: false, vertical: true)

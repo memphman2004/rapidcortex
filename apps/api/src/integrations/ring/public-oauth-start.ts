@@ -63,7 +63,26 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
       }
     }
 
-    const ringReturnUrl = normalizeRingReturnUrl(qs.ring_return_url ?? null);
+    const rawReturnUrl = qs.ring_return_url ?? qs.return_url ?? qs.app_redirect_url ?? null;
+    const ringReturnUrl = normalizeRingReturnUrl(rawReturnUrl);
+    let rawScheme: string | null = null;
+    if (rawReturnUrl?.trim()) {
+      try {
+        rawScheme = new URL(rawReturnUrl.trim()).protocol;
+      } catch {
+        rawScheme = "unparseable";
+      }
+    }
+    console.info(
+      JSON.stringify({
+        msg: "ring_public_oauth_return_url",
+        rawReturnUrl,
+        rawScheme,
+        normalizedReturnUrl: ringReturnUrl,
+        accepted: Boolean(ringReturnUrl),
+        ringEnabled: isRingEnabled(),
+      }),
+    );
     const homeownerId = `hw:${randomUUID()}`;
 
     const { url, state } = await oauth.buildAuthorizationUrl(

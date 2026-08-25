@@ -341,7 +341,7 @@ extension CognitoWebAuthCoordinator.CognitoAuthError: LocalizedError {
         case .missingConfiguration:
             return "Missing API or Cognito settings. Add Secrets.plist to the app target and reload."
         case .missingWebAppBaseURL:
-            return "Add WEB_APP_BASE_URL or NEXT_PUBLIC_SITE_URL to Secrets.plist (your Rapid Cortex website origin, e.g. https://www.rapidcortex.us). Sign-in opens that site in your browser, then returns to the app."
+            return "Add WEB_APP_BASE_URL or NEXT_PUBLIC_SITE_URL to Secrets.plist (your Rapid Cortex website origin, e.g. https://app.rapidcortex.us). Sign-in opens that site in your browser, then returns to the app."
         case .badAuthorizeURL:
             return "Could not build Cognito authorize URL. Check COGNITO_DOMAIN and COGNITO_CLIENT_ID."
         case .noCallback:

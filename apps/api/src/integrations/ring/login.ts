@@ -29,7 +29,29 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
     }
 
     const qs = event.queryStringParameters ?? {};
-    const ringReturnUrl = normalizeRingReturnUrl(qs.return_url ?? qs.app_redirect_url);
+    const rawReturnUrl = qs.return_url ?? qs.app_redirect_url ?? qs.ring_return_url ?? null;
+    const ringReturnUrl = normalizeRingReturnUrl(rawReturnUrl);
+    let rawScheme: string | null = null;
+    if (rawReturnUrl?.trim()) {
+      try {
+        rawScheme = new URL(rawReturnUrl.trim()).protocol;
+      } catch {
+        rawScheme = "unparseable";
+      }
+    }
+    console.info(
+      JSON.stringify({
+        msg: "ring_login_return_url",
+        rawReturnUrl,
+        rawScheme,
+        normalizedReturnUrl: ringReturnUrl,
+        accepted: Boolean(ringReturnUrl),
+        ringEnabled: isRingEnabled(),
+        hasCredentialsArn: Boolean(process.env.RING_CREDENTIALS_SECRET_ARN?.trim()),
+        hasRedirectUri: Boolean(process.env.RING_REDIRECT_URI?.trim()),
+        hasAccountLinkUrl: Boolean(process.env.RING_ACCOUNT_LINK_URL?.trim()),
+      }),
+    );
 
     const { url, state } = await oauth.buildAuthorizationUrl(user.agencyId, user.userId, ringReturnUrl);
     await accounts.saveOAuthState(user.agencyId, user.userId, state, OAUTH_STATE_TTL_SECONDS);
@@ -47,6 +69,9 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
       JSON.stringify({
         msg: "ring_login_error",
         error: err instanceof Error ? err.message : String(err),
+        errorName: err instanceof Error ? err.name : "unknown",
+        ringEnabled: isRingEnabled(),
+        hasCredentialsArn: Boolean(process.env.RING_CREDENTIALS_SECRET_ARN?.trim()),
       }),
     );
     return ringJson({ success: false, error: "Unable to start Ring authorization." }, 500);

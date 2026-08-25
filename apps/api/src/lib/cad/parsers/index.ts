@@ -24,3 +24,5 @@ export function getCadParser(vendor: CadVendor): CadParser {
 export function getParser(vendor: string): CadParser {
   return getCadParser(vendor as CadVendor);
 }
+
+export { extractCadIncidentRecords } from "./parse-helpers.js";

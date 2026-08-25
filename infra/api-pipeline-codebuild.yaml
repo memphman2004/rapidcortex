@@ -1,0 +1,306 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: >-
+  Rapid Cortex — CodeBuild runs the SAM backend deploy (scripts/deploy.sh) remotely.
+  Source ships as an S3 zip (see scripts/package-api-source.sh / upload-api-source.sh),
+  same pattern as infra/web-pipeline-codebuild.yaml. Exists because local `sam build`
+  on the external-volume dev Mac is unreliable for this workload (rsync races on
+  apps/api/node_modules, and background processes have been observed getting killed
+  mid-build) — see scripts/deploy.sh Makefile comments and apps/api/Makefile.
+
+Parameters:
+  Environment:
+    Type: String
+    AllowedValues: [dev, staging, prod, pilot]
+    Default: dev
+  Route53HostedZoneId:
+    Type: String
+    Default: "*"
+    Description: >-
+      Scopes the deploy role's route53:ChangeResourceRecordSets permission. Leave as
+      "*" if this environment's deploy.sh invocation does not manage Route53 records
+      (e.g. staging with no custom domain).
+
+Resources:
+  SourceBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: AES256
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        IgnorePublicAcls: true
+        BlockPublicPolicy: true
+        RestrictPublicBuckets: true
+      VersioningConfiguration:
+        Status: Enabled
+
+  # Trust + permissions mirror infra/iam/sam-deploy-policy.json (the same policy used by
+  # the human/CLI deploy principal via scripts/deploy-iam.sh) so this role can do exactly
+  # what a local `./scripts/deploy.sh <stage>` run does — no more, no less — plus the
+  # source-zip read and build-log permissions CodeBuild itself needs.
+  BuildRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: codebuild.amazonaws.com
+            Action: sts:AssumeRole
+      Policies:
+        - PolicyName: CodeBuildLogsAndSource
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Sid: Logs
+                Effect: Allow
+                Action:
+                  - logs:CreateLogGroup
+                  - logs:CreateLogStream
+                  - logs:PutLogEvents
+                Resource: "*"
+              - Sid: SourceZip
+                Effect: Allow
+                Action:
+                  - s3:GetObject
+                  - s3:GetObjectVersion
+                  - s3:ListBucket
+                Resource:
+                  - !Sub ${SourceBucket.Arn}
+                  - !Sub ${SourceBucket.Arn}/*
+        - PolicyName: SamDeploy
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Sid: CfnStacks
+                Effect: Allow
+                Action:
+                  - cloudformation:CreateChangeSet
+                  - cloudformation:CreateStack
+                  - cloudformation:DeleteChangeSet
+                  - cloudformation:DeleteStack
+                  - cloudformation:DescribeChangeSet
+                  - cloudformation:DescribeStackEvents
+                  - cloudformation:DescribeStackResource
+                  - cloudformation:DescribeStackResources
+                  - cloudformation:DescribeStacks
+                  - cloudformation:ExecuteChangeSet
+                  - cloudformation:GetTemplate
+                  - cloudformation:GetTemplateSummary
+                  - cloudformation:ListChangeSets
+                  - cloudformation:ListStackResources
+                  - cloudformation:UpdateStack
+                  - cloudformation:ValidateTemplate
+                Resource:
+                  - !Sub arn:aws:cloudformation:${AWS::Region}:${AWS::AccountId}:stack/rapid-cortex-*/*
+                  - !Sub arn:aws:cloudformation:${AWS::Region}:aws:transform/Serverless-2016-10-31
+              - Sid: CfnDriftDetect
+                Effect: Allow
+                Action:
+                  - cloudformation:DetectStackDrift
+                  - cloudformation:DetectStackResourceDrift
+                Resource:
+                  - !Sub arn:aws:cloudformation:${AWS::Region}:${AWS::AccountId}:stack/rapid-cortex-*/*
+              - Sid: CfnDiscovery
+                Effect: Allow
+                Action:
+                  - cloudformation:DescribeStacks
+                  - cloudformation:ListStacks
+                  - cloudformation:DescribeStackDriftDetectionStatus
+                  - cloudformation:DescribeStackResourceDrifts
+                Resource: "*"
+              - Sid: SamBuckets
+                Effect: Allow
+                Action:
+                  - s3:CreateBucket
+                  - s3:GetBucketLocation
+                  - s3:GetObject
+                  - s3:PutObject
+                  - s3:ListBucket
+                  - s3:PutBucketPolicy
+                  - s3:PutBucketVersioning
+                  - s3:PutEncryptionConfiguration
+                  - s3:PutLifecycleConfiguration
+                Resource:
+                  - arn:aws:s3:::aws-sam-cli-managed-default-samclisourcebucket-*
+                  - arn:aws:s3:::aws-sam-cli-managed-default-samclisourcebucket-*/*
+                  - arn:aws:s3:::rapid-cortex-sam-artifacts-*
+                  - arn:aws:s3:::rapid-cortex-sam-artifacts-*/*
+              - Sid: CoreServices
+                Effect: Allow
+                Action:
+                  - lambda:*
+                  - apigateway:*
+                  - dynamodb:*
+                  - cognito-idp:*
+                  - sns:*
+                  - sqs:*
+                  - ses:*
+                  - logs:*
+                  - events:*
+                  - scheduler:*
+                  - application-autoscaling:*
+                  - wafv2:*
+                  - cloudwatch:*
+                Resource: "*"
+              - Sid: CloudFrontApiEdge
+                Effect: Allow
+                Action:
+                  - cloudfront:CreateDistribution
+                  - cloudfront:GetDistribution
+                  - cloudfront:GetDistributionConfig
+                  - cloudfront:UpdateDistribution
+                  - cloudfront:DeleteDistribution
+                  - cloudfront:TagResource
+                  - cloudfront:UntagResource
+                  - cloudfront:ListTagsForResource
+                  - cloudfront:ListDistributions
+                  - cloudfront:CreateInvalidation
+                  - cloudfront:GetInvalidation
+                  - cloudfront:ListInvalidations
+                Resource: "*"
+              - Sid: AcmRequest
+                Effect: Allow
+                Action: [acm:RequestCertificate]
+                Resource: "*"
+              - Sid: AcmManage
+                Effect: Allow
+                Action:
+                  - acm:DescribeCertificate
+                  - acm:ListTagsForCertificate
+                  - acm:AddTagsToCertificate
+                  - acm:DeleteCertificate
+                  - acm:RemoveTagsFromCertificate
+                Resource: !Sub arn:aws:acm:${AWS::Region}:${AWS::AccountId}:certificate/*
+              - Sid: Route53Records
+                Effect: Allow
+                Action:
+                  - route53:ChangeResourceRecordSets
+                  - route53:ListResourceRecordSets
+                Resource: !Sub arn:aws:route53:::hostedzone/${Route53HostedZoneId}
+              - Sid: Route53Reads
+                Effect: Allow
+                Action:
+                  - route53:GetChange
+                  - route53:ListHostedZones
+                  - route53:GetHostedZone
+                  - route53:ListHostedZonesByName
+                Resource: "*"
+              - Sid: Ec2NetworkRead
+                Effect: Allow
+                Action:
+                  - ec2:DescribeSubnets
+                  - ec2:DescribeVpcs
+                  - ec2:DescribeSecurityGroups
+                  - ec2:DescribeAvailabilityZones
+                Resource: "*"
+              - Sid: IamRolesLambda
+                Effect: Allow
+                Action:
+                  - iam:CreateRole
+                  - iam:DeleteRole
+                  - iam:GetRole
+                  - iam:PassRole
+                  - iam:AttachRolePolicy
+                  - iam:DetachRolePolicy
+                  - iam:PutRolePolicy
+                  - iam:DeleteRolePolicy
+                  - iam:GetRolePolicy
+                  - iam:TagRole
+                  - iam:UntagRole
+                  - iam:ListRolePolicies
+                  - iam:ListAttachedRolePolicies
+                Resource:
+                  - !Sub arn:aws:iam::${AWS::AccountId}:role/rapid-cortex-*
+              - Sid: IamPolicyLifecycle
+                Effect: Allow
+                Action:
+                  - iam:CreatePolicy
+                  - iam:DeletePolicy
+                  - iam:CreatePolicyVersion
+                  - iam:DeletePolicyVersion
+                  - iam:GetPolicy
+                  - iam:GetPolicyVersion
+                  - iam:ListPolicyVersions
+                  - iam:TagPolicy
+                  - iam:UntagPolicy
+                  - iam:AttachRolePolicy
+                  - iam:DetachRolePolicy
+                Resource:
+                  - !Sub arn:aws:iam::${AWS::AccountId}:policy/rapid-cortex-*
+                  - !Sub arn:aws:iam::${AWS::AccountId}:role/rapid-cortex-*
+              - Sid: S3AssetsBucket
+                Effect: Allow
+                Action: [s3:*]
+                Resource:
+                  - arn:aws:s3:::rapid-cortex-*
+                  - arn:aws:s3:::rapid-cortex-*/*
+              - Sid: BillingSecretsCleanup
+                Effect: Allow
+                Action:
+                  - secretsmanager:DescribeSecret
+                  - secretsmanager:DeleteSecret
+                  - secretsmanager:CreateSecret
+                Resource:
+                  - !Sub arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:rapid-cortex/*/billing/ses-credentials-*
+                  - !Sub arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:rapid-cortex/*/billing/payment-instructions-*
+                  - !Sub arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:rapid-cortex/billing/ses-credentials-*
+                  - !Sub arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:rapid-cortex/billing/payment-instructions-*
+              - Sid: ElbManage
+                Effect: Allow
+                Action:
+                  - elasticloadbalancing:DescribeLoadBalancers
+                  - elasticloadbalancing:DescribeLoadBalancerAttributes
+                  - elasticloadbalancing:ModifyLoadBalancerAttributes
+                  - elasticloadbalancing:DescribeListeners
+                  - elasticloadbalancing:DescribeListenerAttributes
+                  - elasticloadbalancing:ModifyListener
+                  - elasticloadbalancing:DescribeTargetGroups
+                  - elasticloadbalancing:DescribeTargetGroupAttributes
+                  - elasticloadbalancing:ModifyTargetGroup
+                  - elasticloadbalancing:ModifyTargetGroupAttributes
+                  - elasticloadbalancing:DescribeTargetHealth
+                  - elasticloadbalancing:DescribeRules
+                  - elasticloadbalancing:ModifyRule
+                Resource: "*"
+
+  BuildProject:
+    Type: AWS::CodeBuild::Project
+    Properties:
+      Name: !Sub rapid-cortex-api-build-${Environment}
+      ServiceRole: !GetAtt BuildRole.Arn
+      TimeoutInMinutes: 90
+      Artifacts:
+        Type: NO_ARTIFACTS
+      Environment:
+        Type: LINUX_CONTAINER
+        ComputeType: BUILD_GENERAL1_LARGE
+        Image: aws/codebuild/standard:7.0
+        PrivilegedMode: false
+        EnvironmentVariables:
+          - Name: DEPLOYMENT_STAGE
+            Value: !Ref Environment
+          - Name: SKIP_CORS_CHECK
+            Value: "1"
+          - Name: ENABLE_CLOUD_TRAIL
+            Value: "false"
+          - Name: ENABLE_API_WAF
+            Value: "false"
+          - Name: DDB_BILLING_MODE
+            Value: PAY_PER_REQUEST
+          - Name: SAM_NODE_MODULES_HARDLINK
+            Value: "1"
+      Source:
+        Type: S3
+        Location: !Sub ${SourceBucket}/api-source.zip
+        BuildSpec: buildspec.api.yml
+
+Outputs:
+  SourceBucketName:
+    Description: Upload api-source-{env}.zip as s3://{bucket}/api-source.zip before start-build.
+    Value: !Ref SourceBucket
+  BuildProjectName:
+    Value: !Sub rapid-cortex-api-build-${Environment}

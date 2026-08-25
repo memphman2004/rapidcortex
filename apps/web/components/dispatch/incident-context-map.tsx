@@ -2,19 +2,24 @@
 
 /**
  * Compact incident location map for the dispatcher CAD workspace.
- * Uses the Rapid Cortex Dispatch Dark Studio style (911 Core).
+ * Follows the dispatcher shell theme (dark vs light Mapbox Studio style).
  */
 import { RapidCortexMap } from "@/components/maps/RapidCortexMap";
+import { useTheme } from "@/lib/theme/theme-context";
 
 export function IncidentContextMap({
   latitude,
   longitude,
   label = "Incident",
+  fill = false,
 }: {
   latitude: number;
   longitude: number;
   label?: string;
+  /** Fill the parent (dispatcher module pane). Compact preview when false. */
+  fill?: boolean;
 }) {
+  const { theme } = useTheme();
   const mapboxToken = process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN?.trim();
 
   if (!mapboxToken) {
@@ -29,8 +34,16 @@ export function IncidentContextMap({
   }
 
   return (
-    <div className="h-48 overflow-hidden rounded-lg border border-slate-700">
+    <div
+      className={
+        fill
+          ? "h-full min-h-0 w-full overflow-hidden"
+          : "h-48 overflow-hidden rounded-lg border border-slate-700"
+      }
+    >
       <RapidCortexMap
+        key={theme}
+        theme={theme}
         vertical="core"
         centerLat={latitude}
         centerLng={longitude}

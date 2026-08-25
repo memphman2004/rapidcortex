@@ -7,3 +7,9 @@ export async function GET(request: NextRequest) {
   if (denied) return denied;
   return proxyToAuthUpstream(request, "/api/rapid-iq/pipeline/signals");
 }
+
+export async function POST(request: NextRequest) {
+  const denied = await rapidIqPipelineRouteGate();
+  if (denied) return denied;
+  return proxyToAuthUpstream(request, "/api/rapid-iq/pipeline/signals");
+}

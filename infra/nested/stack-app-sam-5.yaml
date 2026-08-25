@@ -1717,8 +1717,8 @@ Resources:
     Type: AWS::Serverless::HttpApi
     Properties:
       DefaultRouteSettings:
-        ThrottlingBurstLimit: 200
-        ThrottlingRateLimit: 100
+        ThrottlingBurstLimit: 1000
+        ThrottlingRateLimit: 500
       CorsConfiguration:
         AllowOrigins: !Split [",", !Ref HttpApiCorsAllowedOrigins]
         AllowHeaders:
@@ -4937,6 +4937,31 @@ Resources:
       ComparisonOperator: GreaterThanThreshold
       TreatMissingData: notBreaching
 
+  HealthFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      Environment:
+        Variables:
+          HEALTH_STACK_ID: "5"
+      CodeUri: ../../apps/api/
+      Handler: dist/handlers/health.handler
+      Timeout: 5
+      MemorySize: 128
+      Description: Public liveness probe for stack 5 HttpApi (no JWT)
+      Policies:
+        - !Ref AppManagedPolicyS3ApplicationBucketsCrud
+      Events:
+        HealthRoute:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/health
+            Method: GET
+            Auth:
+              Authorizer: NONE
 
 Outputs:
   OpsAlertsTopicArn:

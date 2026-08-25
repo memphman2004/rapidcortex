@@ -7,6 +7,7 @@ import type {
   RapidIqPipelineSignal,
 } from "rapid-cortex-shared";
 import { RAPID_IQ_PIPELINE_SOURCE_LABELS } from "rapid-cortex-shared";
+import { ProcurementStageBadge } from "../procurement-stage-badge";
 import {
   patchPipelineSignalStatus,
   PIPELINE_CREDITS_QUERY_KEY,
@@ -21,6 +22,8 @@ type CreditsSnapshot = {
 type Props = {
   signal: RapidIqPipelineSignal;
   credits?: CreditsSnapshot;
+  /** Sit beside the clicked card instead of a full-height right rail. */
+  anchored?: boolean;
   onClose: () => void;
   onSignalUpdated: (signal: RapidIqPipelineSignal) => void;
 };
@@ -35,7 +38,13 @@ function DetailRow({ label, value }: { label: string; value: string | number | n
   );
 }
 
-export function SignalDetailPanel({ signal, credits, onClose, onSignalUpdated }: Props) {
+export function SignalDetailPanel({
+  signal,
+  credits,
+  anchored = false,
+  onClose,
+  onSignalUpdated,
+}: Props) {
   const qc = useQueryClient();
   const [showPushForm, setShowPushForm] = useState(false);
   const [overrideAgency, setOverrideAgency] = useState(signal.agencyName ?? "");
@@ -84,7 +93,13 @@ export function SignalDetailPanel({ signal, credits, onClose, onSignalUpdated }:
   const hunterLow = credits && credits.hunter.remaining < credits.hunter.limit * 0.2;
 
   return (
-    <div className="w-[440px] flex-shrink-0 border-l border-slate-800 bg-slate-900 flex flex-col h-full">
+    <div
+      className={
+        anchored
+          ? "flex max-h-[min(70vh,640px)] w-full flex-col overflow-hidden rounded-lg border border-sky-500/40 bg-slate-900 shadow-xl shadow-black/40"
+          : "flex h-full w-[440px] flex-shrink-0 flex-col border-l border-slate-800 bg-slate-900"
+      }
+    >
       <div className="flex items-center justify-between px-5 py-4 border-b border-slate-800">
         <span className="text-xs font-medium text-slate-400 uppercase tracking-wider">
           Signal Analysis
@@ -129,6 +144,13 @@ export function SignalDetailPanel({ signal, credits, onClose, onSignalUpdated }:
             Signal Details
           </div>
           <DetailRow label="Source" value={RAPID_IQ_PIPELINE_SOURCE_LABELS[signal.sourceId]} />
+          <div className="flex justify-between items-start py-2 border-b border-slate-800">
+            <span className="text-xs text-slate-500 w-32 flex-shrink-0">Stage</span>
+            <ProcurementStageBadge signal={signal} />
+          </div>
+          <DetailRow label="Competitor" value={signal.competitorName} />
+          <DetailRow label="Product" value={signal.competitorProduct} />
+          <DetailRow label="Contract end" value={signal.estimatedContractEnd} />
           <DetailRow label="Signal Date" value={signal.signalDate} />
           <DetailRow label="Agency" value={signal.agencyName} />
           <DetailRow label="Jurisdiction" value={signal.jurisdiction} />

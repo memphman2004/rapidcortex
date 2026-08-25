@@ -6,6 +6,7 @@ import { marketingLoginPath } from "@/lib/marketing-links";
 import { fetchAgency } from "@/lib/api";
 import { getDashboardSessionUser } from "@/lib/dashboards/get-dashboard-session";
 import { AgencyFeaturesClient } from "./agency-features-client";
+import { EscalationSettingsPanel } from "../escalation-settings";
 import { deriveVerticalFromAgencyId, normalizeVertical } from "@/lib/vertical";
 
 export const metadata = {
@@ -82,6 +83,9 @@ export default async function RcAdminAgencyFeaturesPage({ params }: Props) {
         manageAllAddons={manageAllAddons}
         featureFlags={featureFlags}
       />
+      {(agencyVertical === "venue" || agencyVertical === "campus") ? (
+        <EscalationSettingsPanel agencyId={agencyId} />
+      ) : null}
     </div>
   );
 }

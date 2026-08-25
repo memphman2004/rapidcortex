@@ -4,6 +4,7 @@
  */
 
 import type { RapidIqPipelineRawSignal } from "rapid-cortex-shared";
+import { isRelevantSignalText } from "rapid-cortex-shared";
 import { enqueueMockIfEnabled, enqueueRawSignal } from "./queue-raw-signal.js";
 
 interface State911Source {
@@ -326,32 +327,8 @@ const STATE_911_SOURCES: State911Source[] = [
   },
 ];
 
-const RELEVANCE_KEYWORDS = [
-  "dispatch",
-  "CAD",
-  "computer aided dispatch",
-  "PSAP",
-  "911",
-  "grant award",
-  "approved",
-  "contract award",
-  "technology",
-  "Tyler Technologies",
-  "Motorola",
-  "CentralSquare",
-  "Hexagon",
-  "radio upgrade",
-  "NG911",
-  "next generation",
-  "communications center",
-  "ARPA",
-  "broadband",
-  "FirstNet",
-];
-
 function isRelevant(text: string): boolean {
-  const lower = text.toLowerCase();
-  return RELEVANCE_KEYWORDS.some((kw) => lower.includes(kw.toLowerCase()));
+  return isRelevantSignalText(text);
 }
 
 async function fetchPageText(url: string): Promise<string> {

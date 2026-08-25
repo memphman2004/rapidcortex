@@ -39,19 +39,20 @@ function VenueGuestServicesPageFrameInner({
   userId?: string;
   children: ReactNode;
 }) {
-  const { rootRef } = useThemeRoot<HTMLDivElement>();
+  const { theme, rootRef } = useThemeRoot<HTMLDivElement>();
 
   return (
     <HelpChrome role={userRole ?? "VENUE_GUEST_SERVICES"}>
     <div
       ref={rootRef}
-      data-theme="dark"
+      data-theme={theme}
       style={{
         minHeight: "100vh",
         display: "flex",
         flexDirection: "column",
         background: "var(--rc-bg)",
         color: "var(--rc-text-primary)",
+        colorScheme: theme,
         fontFamily: VENUE_DASHBOARD_FONT_FAMILY,
       }}
     >

@@ -15,9 +15,26 @@ import { formatTimeAgo } from "@/lib/rapid-iq/scoring";
 type Props = {
   demo?: boolean;
   refreshStatus?: RefreshStatus;
+  pipelineEnabled?: boolean;
+  pipelineCount?: number;
+  showPipeline?: boolean;
+  onTogglePipeline?: () => void;
+  showAccounts?: boolean;
+  onToggleAccounts?: () => void;
+  onAddSignal?: () => void;
 };
 
-export function RapidIqRefreshButton({ demo = false, refreshStatus: externalStatus }: Props) {
+export function RapidIqRefreshButton({
+  demo = false,
+  refreshStatus: externalStatus,
+  pipelineEnabled = false,
+  pipelineCount = 0,
+  showPipeline = false,
+  onTogglePipeline,
+  showAccounts = false,
+  onToggleAccounts,
+  onAddSignal,
+}: Props) {
   const qc = useQueryClient();
   const prevStatusRef = useRef<RefreshStatus["status"] | undefined>(undefined);
 
@@ -100,6 +117,38 @@ export function RapidIqRefreshButton({ demo = false, refreshStatus: externalStat
       >
         🏅 Check RAMP
       </button>
+      {pipelineEnabled && onTogglePipeline && (
+        <button
+          type="button"
+          className={`pipeline-toggle-btn ${showPipeline ? "active" : ""}`}
+          onClick={() => onTogglePipeline()}
+          aria-pressed={showPipeline}
+        >
+          <span>PIPELINE</span>
+          {pipelineCount > 0 && (
+            <span className="pipeline-count-badge">{pipelineCount}</span>
+          )}
+        </button>
+      )}
+      {pipelineEnabled && onToggleAccounts && (
+        <button
+          type="button"
+          className={`pipeline-toggle-btn ${showAccounts ? "active" : ""}`}
+          onClick={() => onToggleAccounts()}
+          aria-pressed={showAccounts}
+        >
+          <span>ACCOUNTS</span>
+        </button>
+      )}
+      {onAddSignal && (
+        <button
+          type="button"
+          onClick={() => onAddSignal()}
+          className="flex items-center gap-1.5 rounded border border-sky-500/30 bg-sky-500/10 px-3 py-1.5 text-[11px] font-semibold text-sky-300 transition-colors hover:bg-sky-500/20"
+        >
+          + Add Signal
+        </button>
+      )}
       <button
         type="button"
         onClick={() => refreshMutation.mutate()}

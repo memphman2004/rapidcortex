@@ -23,10 +23,14 @@ describe("getMobileOperationalAuthMiddlewareResponse", () => {
     });
   }
 
-  it("redirects /login from iPhone", () => {
+  it("redirects /login from iPhone to venue/campus mobile login", () => {
     const res = getMobileOperationalAuthMiddlewareResponse(req("/login", iphoneUa));
     expect(res?.status).toBe(307);
-    expect(res?.headers.get("location")).toContain("/mobile-access-restricted");
+    expect(res?.headers.get("location")).toContain("/login/mobile");
+  });
+
+  it("allows /login/mobile from iPhone", () => {
+    expect(getMobileOperationalAuthMiddlewareResponse(req("/login/mobile", iphoneUa))).toBeNull();
   });
 
   it("redirects /auth/native-login from Android mobile", () => {
@@ -80,5 +84,9 @@ describe("getMobileOperationalAuthMiddlewareResponse", () => {
 
   it("allows mobile /api/health", () => {
     expect(getMobileOperationalAuthMiddlewareResponse(req("/api/health/web", iphoneUa))).toBeNull();
+  });
+
+  it("allows mobile venue sign-in", () => {
+    expect(getMobileOperationalAuthMiddlewareResponse(req("/api/auth/signin", iphoneUa))).toBeNull();
   });
 });

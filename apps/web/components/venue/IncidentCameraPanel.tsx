@@ -2,6 +2,8 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import type { VenueIncidentCameraSummary } from "rapid-cortex-shared";
+import { EscalateTo911Modal } from "@/components/venue/escalate-to-911-modal";
+import { isEscalationUiEnabled } from "@/lib/runtime-flags";
 import { KVSWebRTCPlayer } from "./KVSWebRTCPlayer";
 import {
   fetchVenueIncidentUpdates,
@@ -66,7 +68,10 @@ export function IncidentCameraPanel({
   const [sending, setSending] = useState(false);
   const [statusBusy, setStatusBusy] = useState(false);
   const [ptzCameraId, setPtzCameraId] = useState<string | null>(null);
+  const [escalateOpen, setEscalateOpen] = useState(false);
   const showDispatch = canDispatch && enableDispatchControls;
+  const showEscalate =
+    isEscalationUiEnabled() && (apiVertical === "venue" || apiVertical === "campus");
 
   useEffect(() => {
     setStreamCameras(incident.cameras.slice(0, 2));
@@ -372,12 +377,43 @@ export function IncidentCameraPanel({
               </div>
             </>
           ) : null}
+          {showEscalate ? (
+            <button
+              type="button"
+              onClick={() => setEscalateOpen(true)}
+              style={{
+                ...statusBtnStyle,
+                marginTop: 8,
+                width: "100%",
+                minHeight: 44,
+                borderColor: "var(--rc-red)",
+                color: "#fecaca",
+                fontWeight: 700,
+              }}
+            >
+              Escalate to 911
+            </button>
+          ) : null}
         </div>
       </div>
   );
 
+  const escalateModal = escalateOpen ? (
+    <EscalateTo911Modal
+      incidentId={incident.incidentId}
+      incidentType={incident.reportType}
+      locationDescription={`${incident.location} · ${locationNoun} ${incident.section}`}
+      onClose={() => setEscalateOpen(false)}
+    />
+  ) : null;
+
   if (embedded) {
-    return <div style={{ padding: 14 }}>{panelBody}</div>;
+    return (
+      <div style={{ padding: 14 }}>
+        {panelBody}
+        {escalateModal}
+      </div>
+    );
   }
 
   return (
@@ -394,6 +430,7 @@ export function IncidentCameraPanel({
       }}
     >
       {panelBody}
+      {escalateModal}
     </div>
   );
 }

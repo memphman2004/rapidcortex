@@ -3,6 +3,7 @@ import { createHash } from "node:crypto";
 import type { RapidIqPipelineRawSignal } from "rapid-cortex-shared";
 import { isCollectorsMockEnabled } from "../../../lib/rapid-iq/agenda-finder.js";
 import { jeffersonCountyMockRawSignal } from "../../../lib/rapid-iq/pipeline/nlp-extract.js";
+import { isDuplicateSource } from "../../../lib/rapid-iq/pipeline/ingest-utils.js";
 
 const sqs = new SQSClient({});
 
@@ -45,7 +46,18 @@ function defaultDedupeKey(signal: RapidIqPipelineRawSignal): string {
 export async function enqueueRawSignal(
   signal: RapidIqPipelineRawSignal,
   opts: EnqueueRawSignalOptions = {},
-): Promise<void> {
+): Promise<boolean> {
+  if (await isDuplicateSource(signal.sourceUrl, signal.rawTitle)) {
+    console.log(
+      JSON.stringify({
+        msg: "rapid_iq_ingest_dedup_skip",
+        sourceId: signal.sourceId,
+        title: signal.rawTitle.slice(0, 80),
+      }),
+    );
+    return false;
+  }
+
   const groupId = (opts.groupId?.trim() || signal.sourceId).slice(0, FIFO_DEDUPE_ID_MAX_LEN);
   const dedupeId = fifoDedupeId(opts.dedupeId?.trim() || defaultDedupeKey(signal));
 
@@ -57,6 +69,7 @@ export async function enqueueRawSignal(
       MessageDeduplicationId: dedupeId,
     }),
   );
+  return true;
 }
 
 /**

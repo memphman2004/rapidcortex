@@ -30,7 +30,8 @@ set -euo pipefail
 #   ECS_ASSIGN_PUBLIC_IP (ENABLED|DISABLED, default ENABLED for default VPC)
 #   ATTACH_CLOUDFRONT_ALIASES (true|false, default true) — apex + www CloudFront aliases. Set false when marketing
 #     owns apex/www; use ATTACH_APP_SUBDOMAIN_ALIAS for app.${ROOT_DOMAIN} instead.
-#   ATTACH_APP_SUBDOMAIN_ALIAS (true|false, default true) — app.${ROOT_DOMAIN} CloudFront alias (e.g. app.rapidcortex.us).
+#   APP_SUBDOMAIN_PREFIX (default app) — CloudFront/Route53 prefix (app vs app-staging).
+#   ATTACH_APP_SUBDOMAIN_ALIAS (true|false, default true) — {prefix}.${ROOT_DOMAIN} CloudFront alias.
 #   CREATE_ROUTE53_ALIAS_RECORDS (true|false, default true) — when Attach… is true: create apex/www A/AAAA in Route53.
 #     Set false if those names already exist until you delete them or repoint DNS manually.
 #   CREATE_ROUTE53_APP_SUBDOMAIN_RECORDS (true|false, default true) — app subdomain A/AAAA in Route53.
@@ -47,7 +48,14 @@ cd "$ROOT"
 STAGE="${STAGE:-prod}"
 APP_NAME="${APP_NAME:-rapid-cortex}"
 ROOT_DOMAIN="${ROOT_DOMAIN:-rapidcortex.us}"
+APP_SUBDOMAIN_PREFIX="${APP_SUBDOMAIN_PREFIX:-app}"
 STACK_NAME="${STACK_NAME:-${APP_NAME}-web-ssr-${STAGE}}"
+
+if [[ "${STAGE}" == "staging" && "${APP_SUBDOMAIN_PREFIX}" == "app" ]]; then
+  echo "ERROR: staging web SSR must not use AppSubdomainPrefix=app (that is live production app.${ROOT_DOMAIN})." >&2
+  echo "  export APP_SUBDOMAIN_PREFIX=app-staging" >&2
+  exit 1
+fi
 
 : "${VPC_ID:?VPC_ID is required}"
 : "${PRIVATE_SUBNET_IDS:?PRIVATE_SUBNET_IDS is required}"
@@ -78,6 +86,7 @@ DEPLOY_OVERRIDES=(
   "PrivateSubnetIds=${PRIVATE_SUBNET_IDS}"
   "PublicSubnetIds=${PUBLIC_SUBNET_IDS}"
   "RootDomainName=${ROOT_DOMAIN}"
+  "AppSubdomainPrefix=${APP_SUBDOMAIN_PREFIX}"
   "AttachCloudFrontAliases=${ATTACH_CLOUDFRONT_ALIASES}"
   "AttachAppSubdomainAlias=${ATTACH_APP_SUBDOMAIN_ALIAS}"
   "AttachReportSubdomainAlias=${ATTACH_REPORT_SUBDOMAIN_ALIAS}"
@@ -137,6 +146,8 @@ if [[ -n "${WAF_LOG_RETENTION_DAYS:-}" ]]; then
 fi
 GRANT_GENERATE_FUNCTION_NAME="${GRANT_GENERATE_FUNCTION_NAME:-}"
 GRANT_GENERATE_FUNCTION_ARN="${GRANT_GENERATE_FUNCTION_ARN:-}"
+GRANT_WRITER_FUNCTION_NAME="${GRANT_WRITER_FUNCTION_NAME:-}"
+GRANT_WRITER_FUNCTION_ARN="${GRANT_WRITER_FUNCTION_ARN:-}"
 if [[ -z "$GRANT_GENERATE_FUNCTION_NAME" || -z "$GRANT_GENERATE_FUNCTION_ARN" ]]; then
   # Prefer root stack outputs when not supplied explicitly.
   ROOT_STACK="rapid-cortex-${STAGE}"
@@ -160,6 +171,32 @@ if [[ -n "$GRANT_GENERATE_FUNCTION_NAME" && "$GRANT_GENERATE_FUNCTION_NAME" != "
 fi
 if [[ -n "$GRANT_GENERATE_FUNCTION_ARN" && "$GRANT_GENERATE_FUNCTION_ARN" != "None" ]]; then
   DEPLOY_OVERRIDES+=( "GrantGenerateFunctionArn=${GRANT_GENERATE_FUNCTION_ARN}" )
+fi
+if [[ -z "$GRANT_WRITER_FUNCTION_NAME" || -z "$GRANT_WRITER_FUNCTION_ARN" ]]; then
+  ROOT_STACK="rapid-cortex-${STAGE}"
+  if [[ -z "$GRANT_WRITER_FUNCTION_NAME" ]]; then
+    GRANT_WRITER_FUNCTION_NAME="$(
+      aws cloudformation describe-stacks --region "$AWS_REGION" --stack-name "$ROOT_STACK" \
+        --query "Stacks[0].Outputs[?OutputKey=='GrantWriterFunctionName'].OutputValue | [0]" \
+        --output text 2>/dev/null || true
+    )"
+  fi
+  if [[ -z "$GRANT_WRITER_FUNCTION_ARN" ]]; then
+    GRANT_WRITER_FUNCTION_ARN="$(
+      aws cloudformation describe-stacks --region "$AWS_REGION" --stack-name "$ROOT_STACK" \
+        --query "Stacks[0].Outputs[?OutputKey=='GrantWriterFunctionArn'].OutputValue | [0]" \
+        --output text 2>/dev/null || true
+    )"
+  fi
+fi
+if [[ -n "$GRANT_WRITER_FUNCTION_NAME" && "$GRANT_WRITER_FUNCTION_NAME" != "None" ]]; then
+  DEPLOY_OVERRIDES+=( "GrantWriterFunctionName=${GRANT_WRITER_FUNCTION_NAME}" )
+fi
+if [[ -n "$GRANT_WRITER_FUNCTION_ARN" && "$GRANT_WRITER_FUNCTION_ARN" != "None" ]]; then
+  DEPLOY_OVERRIDES+=( "GrantWriterFunctionArn=${GRANT_WRITER_FUNCTION_ARN}" )
+fi
+if [[ -n "${ANTHROPIC_API_KEY_SECRET_ARN:-}" ]]; then
+  DEPLOY_OVERRIDES+=( "AnthropicApiKeySecretArn=${ANTHROPIC_API_KEY_SECRET_ARN}" )
 fi
 
 aws cloudformation deploy \

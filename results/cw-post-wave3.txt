@@ -1,0 +1,37 @@
+==== post-wave3  2026-08-17T04:12:59Z  window=600s ====
+-- Lambda Errors (FunctionName contains rapid-cortex-dev) --
+values [2.0, 4.0, 2.0, 3.0, 4.0, 3.0, 3.0, 3.0, 2.0, 4.0]
+timestamps ['2026-08-17T04:11:00+00:00', '2026-08-17T04:10:00+00:00', '2026-08-17T04:09:00+00:00', '2026-08-17T04:08:00+00:00', '2026-08-17T04:07:00+00:00', '2026-08-17T04:06:00+00:00', '2026-08-17T04:05:00+00:00', '2026-08-17T04:04:00+00:00', '2026-08-17T04:03:00+00:00', '2026-08-17T04:02:00+00:00']
+sum 30.0
+-- DynamoDB ThrottledRequests (rapid-cortex tables) --
+ddb_rthrottle values [] sum 0
+ddb_wthrottle values [] sum 0
+ddb_throttle values [] sum 0
+-- API Gateway Latency p99 / 5xx  ApiId=k26yw4o3xk --
+p99 datapoints [('2026-08-17T04:07:00+00:00', 781.0), ('2026-08-17T04:09:00+00:00', 445.79), ('2026-08-17T04:10:00+00:00', 39.23), ('2026-08-17T04:11:00+00:00', 30.26)]
+p99 max 781.0
+5xx datapoints [('2026-08-17T04:07:00+00:00', 0.0), ('2026-08-17T04:09:00+00:00', 0.0), ('2026-08-17T04:10:00+00:00', 0.0), ('2026-08-17T04:11:00+00:00', 0.0)]
+5xx sum 0.0
+-- ECS CPU / Memory  rapid-cortex-v2-web-prod/rapid-cortex-v2-web-prod --
+CPUUtilization last [('2026-08-17T04:07:00+00:00', 0.36, 1.01), ('2026-08-17T04:08:00+00:00', 0.37, 1.05), ('2026-08-17T04:09:00+00:00', 0.34, 0.99), ('2026-08-17T04:10:00+00:00', 0.34, 0.99), ('2026-08-17T04:11:00+00:00', 0.35, 0.98)]
+CPUUtilization peak max 1.1533071994781494
+MemoryUtilization last [('2026-08-17T04:07:00+00:00', 10.2, 10.69), ('2026-08-17T04:08:00+00:00', 10.2, 10.69), ('2026-08-17T04:09:00+00:00', 10.21, 10.69), ('2026-08-17T04:10:00+00:00', 10.2, 10.69), ('2026-08-17T04:11:00+00:00', 10.25, 10.74)]
+MemoryUtilization peak max 10.7421875
+-- CloudFront 5xxErrorRate (all distributions, last window) --
+distribution ids: E8EJMLISQFBC8	E3BCDCAG0L39K	E3IYH5KJC2W487	E3QAAHWMK1KPWV	E25AN3MHZH987C	E2PZ7P3KEGCPZU	E1H06R5JT6XTRP	E1JONOP0VKIM9L	E9H3SP9NJTDCQ	E291VQMYJ94GEI	EAKUX7U7QMWJN	E1MJT809ZFBMV3	EJJFUEEZCXCS3	E1T1KDP4B7PNW7	EWZ286WS69KX1	E22OK65GJG6A2C
+CF E8EJMLISQFBC8 peak_max None avg None n 0
+CF E3BCDCAG0L39K peak_max None avg None n 0
+CF E3IYH5KJC2W487 peak_max None avg None n 0
+CF E3QAAHWMK1KPWV peak_max None avg None n 0
+CF E25AN3MHZH987C peak_max None avg None n 0
+CF E2PZ7P3KEGCPZU peak_max None avg None n 0
+CF E1H06R5JT6XTRP peak_max None avg None n 0
+CF E1JONOP0VKIM9L peak_max None avg None n 0
+CF E9H3SP9NJTDCQ peak_max None avg None n 0
+CF E291VQMYJ94GEI peak_max 0.0 avg 0.0 n 1
+CF EAKUX7U7QMWJN peak_max None avg None n 0
+CF E1MJT809ZFBMV3 peak_max None avg None n 0
+CF EJJFUEEZCXCS3 peak_max None avg None n 0
+CF E1T1KDP4B7PNW7 peak_max None avg None n 0
+CF EWZ286WS69KX1 peak_max 0.0 avg 0.0 n 3
+CF E22OK65GJG6A2C peak_max 0.0 avg 0.0 n 1

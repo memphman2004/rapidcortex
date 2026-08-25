@@ -93,7 +93,7 @@ export const C = {
   bg: V.bg,
   surface: V.surface,
   card: V.card,
-  border: V.borderGlass,
+  border: V.border,
   borderHard: V.borderHard,
   text: V.text,
   textSub: V.textSub,

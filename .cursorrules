@@ -177,9 +177,13 @@ Orphan bridge/ECR/log-group `AlreadyExists` failures on AppSamStackV2 update req
 
 ### Deploying
 ```bash
+# Engineering (isolated Dynamo, app-staging.rapidcortex.us)
+source scripts/env-api-staging.sh && bash scripts/deploy.sh staging
+# Live production (DeploymentStage=dev is app.rapidcortex.us — not a sandbox)
 source scripts/env-api-dev.sh && bash scripts/deploy.sh dev
 ```
 Never commit `.env` files with real credentials. Never hardcode ARNs (use CloudFormation parameters).
+Never attach staging API custom domains to `api.rapidcortex.us`. CAD write-back stays fail-closed.
 
 ---
 
@@ -327,7 +331,8 @@ Agency type drives vertical routing and product feature access. Always keep in s
 
 ```
 Marketing site:  bash scripts/deploy-marketing.sh {stage}
-API backend:     source scripts/env-api-dev.sh && bash scripts/deploy.sh {stage}
+API backend (engineering): source scripts/env-api-staging.sh && bash scripts/deploy.sh staging
+API backend (live):        source scripts/env-api-dev.sh && bash scripts/deploy.sh dev
 Web (ECS):       bash scripts/deploy-web-ecs.sh {stage}
 Web env vars:    bash scripts/print-stack-outputs-for-web.sh {stage}
 Size preflight:  bash scripts/infra-template-size-check.sh

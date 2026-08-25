@@ -3,6 +3,8 @@
 import type { CadAdminIntegration, CadRawIncidentRow } from "@/lib/api";
 import { CadIncidentsTable } from "./CadIncidentsTable";
 import { VendorSetupInstructions } from "./VendorSetupInstructions";
+import { CadNatureCodeMappingEditor } from "./cad-nature-code-mapping-editor";
+import { isCadNatureMappingUiEnabled } from "@/lib/runtime-flags";
 
 export type CadTestResult = { ok: boolean; message: string; latencyMs?: number };
 
@@ -10,8 +12,8 @@ type Props = {
   detail: CadAdminIntegration;
   vendorTitleText: string;
   onClose: () => void;
-  detailTab: "overview" | "incidents" | "troubleshoot";
-  setDetailTab: (t: "overview" | "incidents" | "troubleshoot") => void;
+  detailTab: "overview" | "incidents" | "mappings" | "troubleshoot";
+  setDetailTab: (t: "overview" | "incidents" | "mappings" | "troubleshoot") => void;
   incidents: CadRawIncidentRow[];
   incidentsLoading: boolean;
   incidentsFetching: boolean;
@@ -26,6 +28,7 @@ type Props = {
   regenMessage: string | null;
   onCopy: (s: string) => void;
   troubleshootingBullets: string[];
+  canEditMappings: boolean;
 };
 
 export function IntegrationDetailDrawer({
@@ -48,7 +51,9 @@ export function IntegrationDetailDrawer({
   regenMessage,
   onCopy,
   troubleshootingBullets,
+  canEditMappings,
 }: Props) {
+  const mappingUi = isCadNatureMappingUiEnabled();
   const curl = `curl -sS -X POST "${detail.webhookUrl}" \\\n  -H "Content-Type: application/json" \\\n  -H "X-RC-Token: <your-token>" \\\n  -d '{"cadNumber":"RC-TEST","incidentType":"TEST","priority":"P3","location":"1 Test St","units":[]}'`;
 
   return (
@@ -66,13 +71,12 @@ export function IntegrationDetailDrawer({
           </button>
         </div>
         <div className="flex shrink-0 gap-1 border-b border-slate-800 px-5 py-2 text-sm">
-          {(
-            [
-              ["overview", "Overview"],
-              ["incidents", "Incidents"],
-              ["troubleshoot", "Troubleshooting"],
-            ] as const
-          ).map(([key, label]) => (
+          {([
+            ["overview", "Overview"],
+            ["incidents", "Incidents"],
+            ...(mappingUi ? [["mappings", "Nature codes"] as const] : []),
+            ["troubleshoot", "Troubleshooting"],
+          ] as Array<["overview" | "incidents" | "mappings" | "troubleshoot", string]>).map(([key, label]) => (
             <button
               key={key}
               type="button"
@@ -155,6 +159,10 @@ export function IntegrationDetailDrawer({
               onRefresh={onRefreshIncidents}
               isRefreshing={incidentsFetching}
             />
+          ) : null}
+
+          {detailTab === "mappings" && mappingUi ? (
+            <CadNatureCodeMappingEditor integration={detail} canEdit={canEditMappings} />
           ) : null}
 
           {detailTab === "troubleshoot" ? (

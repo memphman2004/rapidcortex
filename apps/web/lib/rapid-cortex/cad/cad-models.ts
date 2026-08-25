@@ -31,6 +31,10 @@ export type CadUnitRecord = {
   updatedAt: string;
   /** Populated when the adapter echoes vendor lineage (optional for interoperability). */
   sourceVendor?: string;
+  /** Seconds until on-scene when the CAD feed provides ETA (read-only). */
+  etaSeconds?: number;
+  beat?: string;
+  callSign?: string;
 };
 
 export type CadEventPayload = Record<string, unknown>;

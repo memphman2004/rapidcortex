@@ -84,12 +84,12 @@ PARAM_OVERRIDES=(
 if [[ -n "${JWT_AUTHORIZER_ID}" ]]; then
   PARAM_OVERRIDES+=("HttpApiJwtAuthorizerId=${JWT_AUTHORIZER_ID}")
 fi
-if [[ -n "${RAPID_IQ_HUNTER_API_KEY_SECRET_ARN:-}" ]]; then
-  PARAM_OVERRIDES+=("RapidIqHunterApiKeySecretArn=${RAPID_IQ_HUNTER_API_KEY_SECRET_ARN}")
-fi
-if [[ -n "${RAPID_IQ_APOLLO_API_KEY_SECRET_ARN:-}" ]]; then
-  PARAM_OVERRIDES+=("RapidIqApolloApiKeySecretArn=${RAPID_IQ_APOLLO_API_KEY_SECRET_ARN}")
-fi
+# Always pass Hunter/Apollo ARNs. Empty nested-stack defaults skip enrichment
+# (lastEnrichedAt updates with zero contacts).
+RAPID_IQ_HUNTER_API_KEY_SECRET_ARN="${RAPID_IQ_HUNTER_API_KEY_SECRET_ARN:-arn:aws:secretsmanager:us-east-1:158961537080:secret:rapid-cortex/rapid-iq/hunter-api-key-LXEwMX}"
+RAPID_IQ_APOLLO_API_KEY_SECRET_ARN="${RAPID_IQ_APOLLO_API_KEY_SECRET_ARN:-arn:aws:secretsmanager:us-east-1:158961537080:secret:rapid-cortex/rapid-iq/apollo-api-key-BDql0e}"
+PARAM_OVERRIDES+=("RapidIqHunterApiKeySecretArn=${RAPID_IQ_HUNTER_API_KEY_SECRET_ARN}")
+PARAM_OVERRIDES+=("RapidIqApolloApiKeySecretArn=${RAPID_IQ_APOLLO_API_KEY_SECRET_ARN}")
 if [[ -n "${CONTACT_COMPANIES_TABLE:-}" ]]; then
   PARAM_OVERRIDES+=("ContactCompaniesTable=${CONTACT_COMPANIES_TABLE}")
 fi

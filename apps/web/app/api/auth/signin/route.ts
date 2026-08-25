@@ -1,14 +1,28 @@
 import { CognitoIdentityProviderClient } from "@aws-sdk/client-cognito-identity-provider";
 import { NextResponse } from "next/server";
+import { verticalFromRole } from "rapid-cortex-shared";
 import { mapUpstreamAuthFailure } from "@/lib/auth/cognito-route-errors";
 import { applyCognitoAuthCookies } from "@/lib/auth/apply-auth-cookies";
 import { getCognitoClientId, getCognitoRegion } from "@/lib/auth/cognito-config";
 import { exchangeRefreshToken } from "@/lib/auth/cognito-refresh";
 import { initiateUserPasswordAuth } from "@/lib/auth/cognito-user-password-auth";
+import { extractVenueCode } from "@/lib/auth/post-login-redirect";
 import { bootstrapPwdChangedAtIfClaimMissing } from "@/lib/server/cognito-password-metadata-sync";
 import { enforceCsrfProtection } from "@/lib/csrf";
 import { blockMobileAuthRequest } from "@/lib/auth/guards/blockMobileAuth";
+import { isMobileUserAgent, isTabletUserAgent } from "@/lib/device/isMobileRequest";
 import { decodeJwtClaims, getPostAuthRedirect } from "@/lib/post-auth-redirect";
+import { normalizeVerticalRoleToken } from "@/lib/role-routing";
+
+function isMobileClient(request: Request): boolean {
+  const ua = request.headers.get("user-agent");
+  return isMobileUserAgent(ua) || isTabletUserAgent(ua);
+}
+
+function isVenueOrCampusRole(role: string): boolean {
+  const vertical = verticalFromRole(normalizeVerticalRoleToken(role));
+  return vertical === "venue" || vertical === "campus";
+}
 
 export async function POST(request: Request) {
   const mobileBlock = blockMobileAuthRequest(request);
@@ -80,16 +94,31 @@ export async function POST(request: Request) {
     }
 
     const claims = decodeJwtClaims(idToken);
+    const role = claims["custom:role"] ?? "";
+    const agencyId = claims["custom:agencyId"] ?? "";
+    if (isMobileClient(request) && !isVenueOrCampusRole(role)) {
+      return NextResponse.json(
+        { error: "desktop-required", redirectTo: "/login?error=desktop-required" },
+        { status: 403 },
+      );
+    }
     const { searchParams } = new URL(request.url);
-    const destination = getPostAuthRedirect(
+    let destination = getPostAuthRedirect(
       {
-        role: claims["custom:role"] ?? "",
+        role,
         vertical: claims["custom:vertical"] ?? "",
-        agencyId: claims["custom:agencyId"] ?? "",
+        agencyId,
         email: claims.email ?? email,
       },
       searchParams.get("next"),
     );
+    if (
+      isMobileClient(request) &&
+      normalizeVerticalRoleToken(role) === "venue_supervisor" &&
+      agencyId
+    ) {
+      destination = `/app/venue/${extractVenueCode(agencyId)}/supervisor`;
+    }
 
     const res = NextResponse.json({ ok: true, redirectTo: destination });
     applyCognitoAuthCookies(res, {

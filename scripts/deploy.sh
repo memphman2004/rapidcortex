@@ -14,7 +14,10 @@ set -euo pipefail
 #
 # Optional env:
 # - ROOT_DOMAIN (default: rapidcortex.us)
-# - API_SUBDOMAIN_PREFIX (default: api)
+# - API_SUBDOMAIN_PREFIX (default: api; staging defaults to api-staging)
+# - I_UNDERSTAND_DEV_IS_PROD=1 required for `deploy.sh dev` (that stack is live production)
+# - EXISTING_BILLING_PAYMENT_INSTRUCTIONS_SECRET_ARN / EXISTING_BILLING_SES_CREDENTIALS_SECRET_ARN
+#   skip DataLayer secret create when those names already exist (staging recreate)
 # - API_DOMAIN_CERT_ARN (imported ACM ARN; same region as stack)
 # - ROUTE53_HOSTED_ZONE_ID (optional; if set without API_DOMAIN_CERT_ARN, stack requests ACM cert via DNS)
 # - APP_CNAME_TARGET
@@ -80,12 +83,12 @@ if [[ "$STAGE" != "dev" && -z "${HTTP_API_CORS_ORIGINS:-}" && "${SKIP_CORS_CHECK
   exit 1
 fi
 
-if [[ "$STAGE" == "prod" && -n "${HTTP_API_CORS_ORIGINS:-}" ]]; then
+if [[ "$STAGE" == "prod" || "$STAGE" == "staging" ]] && [[ -n "${HTTP_API_CORS_ORIGINS:-}" ]]; then
   if [[ "$(echo "${HTTP_API_CORS_ORIGINS}" | tr '[:upper:]' '[:lower:]')" == *\** ]]; then
-    echo "ERROR: Production HTTP_API_CORS_ORIGINS must not use wildcard '*'. Use explicit https origins." >&2
+    echo "ERROR: ${STAGE} HTTP_API_CORS_ORIGINS must not use wildcard '*'. Use explicit https origins." >&2
     exit 1
   fi
-  if [[ "${HTTP_API_CORS_ORIGINS}" == *localhost* || "${HTTP_API_CORS_ORIGINS}" == *127.0.0.1* ]]; then
+  if [[ "$STAGE" == "prod" ]] && { [[ "${HTTP_API_CORS_ORIGINS}" == *localhost* || "${HTTP_API_CORS_ORIGINS}" == *127.0.0.1* ]]; }; then
     echo "ERROR: Production HTTP_API_CORS_ORIGINS must not include localhost or 127.0.0.1." >&2
     exit 1
   fi
@@ -94,12 +97,17 @@ if [[ "$STAGE" == "prod" && -n "${HTTP_API_CORS_ORIGINS:-}" ]]; then
   for origin in ${HTTP_API_CORS_ORIGINS}; do
     o="$(echo "${origin}" | awk '{$1=$1};1')"
     [[ -z "$o" ]] && continue
-    if [[ "$o" == http:* ]]; then
+    if [[ "$STAGE" == "prod" && "$o" == http:* ]]; then
       echo "ERROR: Production HTTP_API_CORS_ORIGINS must use https:// only. Rejected: ${o}" >&2
       IFS="$ORIG_IFS"
       exit 1
     fi
-    if [[ "$o" != https://* ]]; then
+    if [[ "$o" != https://* && "$o" != http://localhost:* && "$o" != http://127.0.0.1:* ]]; then
+      echo "ERROR: HTTP_API_CORS_ORIGINS must be HTTPS URLs (http://localhost is allowed on staging only). Rejected: ${o}" >&2
+      IFS="$ORIG_IFS"
+      exit 1
+    fi
+    if [[ "$STAGE" == "prod" && "$o" != https://* ]]; then
       echo "ERROR: Production HTTP_API_CORS_ORIGINS must be HTTPS URLs (scheme required). Rejected: ${o}" >&2
       IFS="$ORIG_IFS"
       exit 1
@@ -132,6 +140,38 @@ fi
 if [[ "${INCLUDE_APP_SAM_ALARMS_NESTED_STACK:-true}" == "false" && "$STAGE" != "dev" ]]; then
   echo "ERROR: INCLUDE_APP_SAM_ALARMS_NESTED_STACK=false is dev-only (template Rules require alarms for staging/pilot/prod)." >&2
   exit 1
+fi
+
+# Operational mapping in account 158961537080: DeploymentStage=dev is LIVE (app.rapidcortex.us).
+# Engineering work belongs on DeploymentStage=staging (app-staging.rapidcortex.us).
+if [[ "$STAGE" == "dev" && "${I_UNDERSTAND_DEV_IS_PROD:-}" != "1" ]]; then
+  echo "ERROR: ./scripts/deploy.sh dev updates LIVE production (rapid-cortex-dev / app.rapidcortex.us / api.rapidcortex.us)." >&2
+  echo "  Engineering: source scripts/env-api-staging.sh && $0 staging" >&2
+  echo "  Intentional live deploy: source scripts/env-api-dev.sh (sets I_UNDERSTAND_DEV_IS_PROD=1) then $0 dev" >&2
+  exit 1
+fi
+
+if [[ "$STAGE" == "staging" ]]; then
+  export API_SUBDOMAIN_PREFIX="${API_SUBDOMAIN_PREFIX:-api-staging}"
+  if [[ "${CAD_WRITEBACK_ENABLED:-}" == "true" ]]; then
+    echo "ERROR: CAD_WRITEBACK_ENABLED=true is not allowed on staging (engineering). Keep write-back fail-closed." >&2
+    exit 1
+  fi
+  if [[ "${MANAGE_API_DOMAIN_DNS:-}" != "false" ]]; then
+    echo "ERROR: staging requires MANAGE_API_DOMAIN_DNS=false so this stack cannot steal api.rapidcortex.us / api4 / api5 DNS." >&2
+    echo "  source scripts/env-api-staging.sh before $0 staging" >&2
+    exit 1
+  fi
+  if [[ -n "${ROUTE53_HOSTED_ZONE_ID:-}" || -n "${API_DOMAIN_CERT_ARN:-}" ]]; then
+    echo "ERROR: staging API must not set ROUTE53_HOSTED_ZONE_ID or API_DOMAIN_CERT_ARN (custom domains api/api4/api5 on the live zone)." >&2
+    echo "  Web SSR DNS for app-staging.rapidcortex.us is scripts/deploy-web-ssr.sh, not this API stack." >&2
+    exit 1
+  fi
+  if [[ "${API_SUBDOMAIN_PREFIX}" == "api" ]]; then
+    echo "ERROR: staging ApiSubdomainPrefix=api would collide with live api.rapidcortex.us if a cert is ever attached." >&2
+    echo "  export API_SUBDOMAIN_PREFIX=api-staging" >&2
+    exit 1
+  fi
 fi
 
 echo "SAM validate (nested stacks use --lint; root is nested-stack parent only)..."
@@ -252,7 +292,12 @@ if [[ -n "${TMPDIR:-}" ]]; then
   _SAM_BUILD_ENV+=(TMPDIR="${TMPDIR}")
 fi
 echo "SAM CLI home (build.toml): ${SAM_CLI_HOME}"
-"${_SAM_BUILD_ENV[@]}" "${SAM_BUILD_CLI[@]}" || sam_build_failed=$?
+if [[ "${SKIP_SAM_BUILD:-0}" == "1" ]]; then
+  echo "SKIP_SAM_BUILD=1 — using existing ${SAM_BUILD_DIR}"
+  [[ -f "${SAM_BUILD_DIR}/template.yaml" ]] || { echo "ERROR: SKIP_SAM_BUILD=1 but ${SAM_BUILD_DIR}/template.yaml is missing" >&2; exit 1; }
+else
+  "${_SAM_BUILD_ENV[@]}" "${SAM_BUILD_CLI[@]}" || sam_build_failed=$?
+fi
 unset _ORIG_HOME _SAM_BUILD_ENV
 if [[ "$REVERT_API_PKG" -eq 1 ]]; then
   # The .pre-sam backup can disappear on long builds running on external/USB volumes
@@ -331,6 +376,9 @@ fi
 if [[ -n "$ROUTE53_HOSTED_ZONE_ID" ]]; then
   PARAMS="${PARAMS} Route53HostedZoneId=${ROUTE53_HOSTED_ZONE_ID}"
 fi
+if [[ -n "${MANAGE_API_DOMAIN_DNS:-}" ]]; then
+  PARAMS="${PARAMS} ManageApiDomainDns=${MANAGE_API_DOMAIN_DNS}"
+fi
 if [[ -n "$APP_CNAME_TARGET" ]]; then
   PARAMS="${PARAMS} AppCnameTarget=${APP_CNAME_TARGET}"
 fi
@@ -368,6 +416,15 @@ if [[ -n "${OPENAI_API_KEY_SECRET_ARN:-}" ]]; then
 fi
 if [[ -n "${ANTHROPIC_API_KEY_SECRET_ARN:-}" ]]; then
   PARAMS="${PARAMS} AnthropicApiKeySecretArn=${ANTHROPIC_API_KEY_SECRET_ARN}"
+fi
+if [[ -n "${RAPID_IQ_HUNTER_API_KEY_SECRET_ARN:-}" ]]; then
+  PARAMS="${PARAMS} RapidIqHunterApiKeySecretArn=${RAPID_IQ_HUNTER_API_KEY_SECRET_ARN}"
+fi
+if [[ -n "${RAPID_IQ_APOLLO_API_KEY_SECRET_ARN:-}" ]]; then
+  PARAMS="${PARAMS} RapidIqApolloApiKeySecretArn=${RAPID_IQ_APOLLO_API_KEY_SECRET_ARN}"
+fi
+if [[ -n "${RMS_VENDOR_SECRET_ARN:-}" ]]; then
+  PARAMS="${PARAMS} RmsVendorSecretArn=${RMS_VENDOR_SECRET_ARN}"
 fi
 if [[ -n "${GOOGLE_APPLICATION_CREDENTIALS_SECRET_ARN:-}" ]]; then
   PARAMS="${PARAMS} GoogleApplicationCredentialsSecretArn=${GOOGLE_APPLICATION_CREDENTIALS_SECRET_ARN}"
@@ -416,6 +473,12 @@ if [[ "${INCLUDE_APP_SAM_ALARMS_NESTED_STACK:-true}" == "false" ]]; then
 fi
 if [[ -n "${RING_CREDENTIALS_SECRET_ARN_OVERRIDE:-}" ]]; then
   PARAMS="${PARAMS} RingCredentialsSecretArnOverride=${RING_CREDENTIALS_SECRET_ARN_OVERRIDE}"
+fi
+if [[ -n "${EXISTING_BILLING_PAYMENT_INSTRUCTIONS_SECRET_ARN:-}" ]]; then
+  PARAMS="${PARAMS} ExistingBillingPaymentInstructionsSecretArn=${EXISTING_BILLING_PAYMENT_INSTRUCTIONS_SECRET_ARN}"
+fi
+if [[ -n "${EXISTING_BILLING_SES_CREDENTIALS_SECRET_ARN:-}" ]]; then
+  PARAMS="${PARAMS} ExistingBillingSesCredentialsSecretArn=${EXISTING_BILLING_SES_CREDENTIALS_SECRET_ARN}"
 fi
 if [[ -n "${ENABLE_CONNECT_RING:-}" ]]; then
   PARAMS="${PARAMS} EnableConnectRing=${ENABLE_CONNECT_RING}"
@@ -518,8 +581,9 @@ sam deploy \
   --resolve-s3 \
   --no-confirm-changeset \
   --no-fail-on-empty-changeset \
-  ${DEPLOY_EXTRA_ARGS+"${DEPLOY_EXTRA_ARGS[@]}"} \
-  ${DEPLOY_SUFFIX+"${DEPLOY_SUFFIX[@]}"} || SAM_DEPLOY_EXIT=$?
+  ${DEPLOY_EXTRA_ARGS[@]+"${DEPLOY_EXTRA_ARGS[@]}"} \
+  ${DEPLOY_SUFFIX[@]+"${DEPLOY_SUFFIX[@]}"} \
+  || SAM_DEPLOY_EXIT=$?
 
 if [[ "${SAM_DEPLOY_EXIT}" -ne 0 ]]; then
   rapid_cortex_print_deploy_failure_reason

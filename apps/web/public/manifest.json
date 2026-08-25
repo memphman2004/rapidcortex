@@ -1,0 +1,11 @@
+{
+  "name": "Rapid Cortex Venue Supervisor",
+  "short_name": "RC Venue",
+  "start_url": "/app/venue",
+  "display": "standalone",
+  "background_color": "#020617",
+  "theme_color": "#0a0f1e",
+  "icons": [
+    { "src": "/favicon.ico", "sizes": "48x48", "type": "image/x-icon" }
+  ]
+}

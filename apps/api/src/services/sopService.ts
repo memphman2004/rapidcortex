@@ -113,12 +113,21 @@ export class SopService {
         completedStepIds: overlay?.completedStepIds ?? [],
         segmentCountAtDetection: segs.length,
         detectedAt: new Date().toISOString(),
+        source: "transcript",
       };
     } else {
       const packs = listProtocolPacks().filter(
         (pk) => !pk.agencyIds?.length || pk.agencyIds.includes(user.agencyId),
       );
       const { pack, confidence, label } = pickBestPack(packs, haystack, sopHaystack);
+      if (
+        !opts.manual &&
+        overlay?.source === "cad_nature_code" &&
+        overlay.recommendedProtocolPackId &&
+        confidence < 0.85
+      ) {
+        return overlay;
+      }
       state = {
         recommendedProtocolPackId: pack?.id ?? null,
         incidentTypeLabel: label,
@@ -128,6 +137,7 @@ export class SopService {
         completedStepIds: overlay?.completedStepIds ?? [],
         segmentCountAtDetection: segs.length,
         detectedAt: new Date().toISOString(),
+        source: "transcript",
       };
     }
 

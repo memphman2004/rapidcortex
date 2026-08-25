@@ -6,7 +6,9 @@
 
 import { GetCommand, PutCommand } from "@aws-sdk/lib-dynamodb";
 import type { RapidIqPipelineRawSignal } from "rapid-cortex-shared";
-import { ddb } from "../../../repositories/baseRepository.js";
+import { isRelevantSignalText } from "rapid-cortex-shared";
+import { rapidIqIngestLookbackDays } from "../../../lib/rapid-iq/ingest-window.js";
+import { pipelineDdb } from "../../../lib/rapid-iq/pipeline-ddb.js";
 import { enqueueMockIfEnabled, enqueueRawSignal } from "./queue-raw-signal.js";
 
 const LEGISTAR_BASE = "https://webapi.legistar.com/v1";
@@ -14,28 +16,6 @@ const CURSOR_PK = "LEGISTAR#CURSOR";
 const CURSOR_SK = "META";
 /** ~600 clients / 60 per run ≈ full coverage every ~10 days with daily runs. */
 const BATCH_SIZE = 60;
-
-const RELEVANCE_KEYWORDS = [
-  "dispatch",
-  "911",
-  "computer aided dispatch",
-  "CAD",
-  "PSAP",
-  "Tyler Technologies",
-  "Motorola Solutions",
-  "CentralSquare",
-  "Hexagon Safety",
-  "emergency communications",
-  "dispatch system",
-  "ARPA",
-  "communications center",
-  "public safety software",
-  "radio system",
-  "interoperability",
-  "FirstNet",
-  "NG911",
-  "next generation 911",
-];
 
 interface LegistarClient {
   ClientId: number;
@@ -67,7 +47,7 @@ function signalsTable(): string {
 
 async function readCursor(): Promise<number> {
   try {
-    const res = await ddb.send(
+    const res = await pipelineDdb.send(
       new GetCommand({
         TableName: signalsTable(),
         Key: { pk: CURSOR_PK, sk: CURSOR_SK },
@@ -81,7 +61,7 @@ async function readCursor(): Promise<number> {
 }
 
 async function writeCursor(offset: number, total: number): Promise<void> {
-  await ddb.send(
+  await pipelineDdb.send(
     new PutCommand({
       TableName: signalsTable(),
       Item: {
@@ -148,8 +128,7 @@ async function fetchEventItems(
 }
 
 function isRelevantText(text: string): boolean {
-  const lower = text.toLowerCase();
-  return RELEVANCE_KEYWORDS.some((kw) => lower.includes(kw.toLowerCase()));
+  return isRelevantSignalText(text);
 }
 
 function clientSlugFromUrl(url: string): string | null {
@@ -236,7 +215,7 @@ export async function handler(): Promise<void> {
     if (!slug) continue;
 
     try {
-      const events = await fetchRecentEvents(slug, 45);
+      const events = await fetchRecentEvents(slug, rapidIqIngestLookbackDays());
 
       for (const event of events) {
         const items = await fetchEventItems(slug, event.EventId);

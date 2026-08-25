@@ -1,10 +1,18 @@
 import { resolvePlainOrSecretArn } from "../../../lib/runtimeSecrets.js";
 import { isCollectorsMockEnabled } from "../../../lib/rapid-iq/agenda-finder.js";
 import { classifySignal } from "../../../lib/rapid-iq/claude-classifier.js";
+import { rapidIqIngestSinceSlashDate } from "../../../lib/rapid-iq/ingest-window.js";
 import { UNIVERSITY_SEARCH_TERMS } from "../../../lib/rapid-iq/university-search-terms.js";
 import { upsertSignalAndOpportunity } from "./upsert-signal.js";
 
-const SAM_KEYWORDS = ["911 CAD", UNIVERSITY_SEARCH_TERMS[0], "campus safety software"];
+const SAM_KEYWORDS = [
+  "911 CAD",
+  "NG911",
+  "ESInet",
+  "next generation 911",
+  UNIVERSITY_SEARCH_TERMS[0],
+  "campus safety software",
+];
 
 export async function runSamGovCollector(): Promise<{ signalsFound: number }> {
   if (isCollectorsMockEnabled()) {
@@ -50,7 +58,7 @@ export async function runSamGovCollector(): Promise<{ signalsFound: number }> {
   let total = 0;
   try {
     for (const keyword of SAM_KEYWORDS) {
-      const url = `https://api.sam.gov/opportunities/v2/search?limit=5&postedFrom=01/01/2024&keyword=${encodeURIComponent(keyword)}`;
+      const url = `https://api.sam.gov/opportunities/v2/search?limit=5&postedFrom=${encodeURIComponent(rapidIqIngestSinceSlashDate())}&keyword=${encodeURIComponent(keyword)}`;
       const res = await fetch(url, {
         headers: { "X-Api-Key": apiKey },
         signal: AbortSignal.timeout(20_000),

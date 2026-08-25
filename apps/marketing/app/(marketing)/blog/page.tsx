@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { getPublishedPosts } from "@/lib/blog/utils";
 import { SITE_URL, SITE_NAME } from "@/lib/blog/seo";
 import { PostCard } from "@/components/blog/PostCard";
+import { SoroBlogEmbed } from "@/components/blog/SoroBlogEmbed";
 
 export const metadata: Metadata = {
   title: "Blog | Rapid Cortex",
@@ -50,6 +51,12 @@ export default function BlogIndexPage() {
             for the people who run command centers, campuses, and venues, not
             for marketing.
           </p>
+        </div>
+      </section>
+
+      <section className="px-6 py-12 md:py-16" aria-label="Soro blog">
+        <div className="mx-auto max-w-5xl">
+          <SoroBlogEmbed />
         </div>
       </section>
 

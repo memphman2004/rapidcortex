@@ -7,10 +7,10 @@
   <key>ProgramArguments</key>
   <array>
     <string>/bin/bash</string>
-    <string>/Volumes/Mac Mini/Coding Projects/Hibernation/WebApp/Rapid Cortex/scripts/daily-github-update.sh</string>
+    <string>/Volumes/Mac Mini/Coding Projects/Rapid Cortex/scripts/daily-github-update.sh</string>
   </array>
   <key>WorkingDirectory</key>
-  <string>/Volumes/Mac Mini/Coding Projects/Hibernation/WebApp/Rapid Cortex</string>
+  <string>/Volumes/Mac Mini/Coding Projects/Rapid Cortex</string>
   <key>StartCalendarInterval</key>
   <array>
     <dict>

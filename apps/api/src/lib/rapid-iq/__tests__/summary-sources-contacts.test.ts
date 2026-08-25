@@ -22,6 +22,11 @@ describe("agency contact finder targets", () => {
       expect(j?.contactUrls?.length, id).toBeGreaterThan(0);
     }
   });
+
+  it("includes Macon-Bibb procurement contacts", () => {
+    const bibb = ALL_JURISDICTIONS.find((j) => j.jurisdictionId === "county#GA#bibb");
+    expect(bibb?.contactUrls?.some((u) => u.includes("maconbibb.us"))).toBe(true);
+  });
 });
 
 describe("summary quality prompt", () => {

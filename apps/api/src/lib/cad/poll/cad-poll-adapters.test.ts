@@ -246,6 +246,24 @@ describe("Motorola PremierOne adapter", () => {
     expect(inc.units).toBe("P1,M2");
   });
 
+  it("uses the configured apiUrl as the poll endpoint", async () => {
+    const fetchFn = mockFetch(200, MOTOROLA_PAYLOAD);
+    vi.stubGlobal("fetch", fetchFn);
+    await motorolaPremierOneAdapter.poll(BASE_CONFIG, "2024-01-01T00:00:00Z");
+    const called = String(fetchFn.mock.calls[0]?.[0]);
+    expect(called.startsWith("https://cad.test.local/api/incidents")).toBe(true);
+    expect(called).not.toContain("/api/incidents/api/incidents");
+    expect(called).toContain("since=2024-01-01T00%3A00%3A00Z");
+  });
+
+  it("unwraps nested data.incidents envelopes", async () => {
+    vi.stubGlobal("fetch", mockFetch(200, { data: { incidents: MOTOROLA_PAYLOAD.incidents } }));
+    const result = await motorolaPremierOneAdapter.poll(BASE_CONFIG, "2024-01-01T00:00:00Z");
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    expect(result.incidents[0]?.cadEventId).toBe("EVT-001");
+  });
+
   it("returns auth_error on 401", async () => {
     vi.stubGlobal("fetch", mockFetch(401, { error: "Unauthorized" }));
     const result = await motorolaPremierOneAdapter.poll(BASE_CONFIG, "2024-01-01T00:00:00Z");

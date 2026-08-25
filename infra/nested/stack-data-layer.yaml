@@ -176,6 +176,16 @@
       "Default": "arn:aws:secretsmanager:us-east-1:158961537080:secret:rapid-cortex/connect/ring-credentials",
       "Description": "When set, skip creating RingCredentialsSecret (secret already exists outside this stack) and emit this ARN from RingCredentialsSecretArn output."
     },
+    "ExistingBillingPaymentInstructionsSecretArn": {
+      "Type": "String",
+      "Default": "",
+      "Description": "When set, skip creating BillingPaymentInstructionsSecret and emit this ARN. Use when rapid-cortex/${stage}/billing/payment-instructions already exists."
+    },
+    "ExistingBillingSesCredentialsSecretArn": {
+      "Type": "String",
+      "Default": "",
+      "Description": "When set, skip creating BillingSesCredentialsSecret and emit this ARN. Use when rapid-cortex/${stage}/billing/ses-credentials already exists."
+    },
     "AppName": {
       "Type": "String",
       "Default": "rapid-cortex",
@@ -454,6 +464,66 @@
       "Type": "String",
       "Default": "rapid-cortex-resumes-dev-158961537080",
       "Description": "Pre-existing bucket: ResumesBucket (careers resumes; created by hiring surgical deploy)"
+    },
+    "ExistingMarketingLeadsTableName": {
+      "Type": "String",
+      "Default": "rapid-cortex-marketing-leads-dev",
+      "Description": "Pre-existing DynamoDB table name for MarketingLeadsTable (parameter workaround; do not create)."
+    },
+    "ExistingPsapProspectsTableName": {
+      "Type": "String",
+      "Default": "rapid-cortex-psap-prospects-dev",
+      "Description": "Pre-existing DynamoDB table name for PsapProspectsTable (parameter workaround; do not create)."
+    },
+    "ExistingRapidIqOpportunitiesTableName": {
+      "Type": "String",
+      "Default": "rapid-cortex-rapid-iq-opportunities-dev",
+      "Description": "Pre-existing DynamoDB table name for RapidIqOpportunitiesTable (parameter workaround; do not create)."
+    },
+    "ExistingRapidIqSignalsTableName": {
+      "Type": "String",
+      "Default": "rapid-cortex-rapid-iq-signals-dev",
+      "Description": "Pre-existing DynamoDB table name for RapidIqSignalsTable (parameter workaround; do not create)."
+    },
+    "ExistingRapidIqPipelineSignalsTableName": {
+      "Type": "String",
+      "Default": "rapid-cortex-rapid-iq-pipeline-signals-dev",
+      "Description": "Pre-existing DynamoDB table name for RapidIqPipelineSignalsTable (parameter workaround; do not create)."
+    },
+    "ExistingRapidIqContactsTableName": {
+      "Type": "String",
+      "Default": "rapid-cortex-rapid-iq-contacts-dev",
+      "Description": "Pre-existing DynamoDB table name for RapidIqContactsTable (parameter workaround; do not create)."
+    },
+    "ExistingRapidIqSourcesTableName": {
+      "Type": "String",
+      "Default": "rapid-cortex-rapid-iq-sources-dev",
+      "Description": "Pre-existing DynamoDB table name for RapidIqSourcesTable (parameter workaround; do not create)."
+    },
+    "ExistingRapidIqJurisdictionsTableName": {
+      "Type": "String",
+      "Default": "rapid-cortex-rapid-iq-jurisdictions-dev",
+      "Description": "Pre-existing DynamoDB table name for RapidIqJurisdictionsTable (parameter workaround; do not create)."
+    },
+    "ExistingRapidIqStateCoverageTableName": {
+      "Type": "String",
+      "Default": "rapid-cortex-rapid-iq-state-coverage-dev",
+      "Description": "Pre-existing DynamoDB table name for RapidIqStateCoverageTable (parameter workaround; do not create)."
+    },
+    "ExistingRcsCallsTableName": {
+      "Type": "String",
+      "Default": "rapid-cortex-rcs-calls-dev",
+      "Description": "Pre-existing DynamoDB table name for RcsCallsTable (parameter workaround; do not create)."
+    },
+    "ExistingRcsUnitsTableName": {
+      "Type": "String",
+      "Default": "rapid-cortex-rcs-units-dev",
+      "Description": "Pre-existing DynamoDB table name for RcsUnitsTable (parameter workaround; do not create)."
+    },
+    "ExistingRcsEscalationTableName": {
+      "Type": "String",
+      "Default": "rapid-cortex-rcs-escalation-dev",
+      "Description": "Pre-existing DynamoDB table name for RcsEscalationTable (parameter workaround; do not create)."
     }
   },
   "Rules": {
@@ -695,6 +765,22 @@
       "Fn::Equals": [
         {
           "Ref": "ExistingRingCredentialsSecretArn"
+        },
+        ""
+      ]
+    },
+    "CreateBillingPaymentInstructionsSecret": {
+      "Fn::Equals": [
+        {
+          "Ref": "ExistingBillingPaymentInstructionsSecretArn"
+        },
+        ""
+      ]
+    },
+    "CreateBillingSesCredentialsSecret": {
+      "Fn::Equals": [
+        {
+          "Ref": "ExistingBillingSesCredentialsSecretArn"
         },
         ""
       ]
@@ -1179,16 +1265,22 @@
     },
     "BillingPaymentInstructionsSecret": {
       "Type": "AWS::SecretsManager::Secret",
+      "Condition": "CreateBillingPaymentInstructionsSecret",
+      "DeletionPolicy": "Retain",
+      "UpdateReplacePolicy": "Retain",
       "Properties": {
-        "Name": "rapid-cortex/billing/payment-instructions",
+        "Name": { "Fn::Sub": "rapid-cortex/${DeploymentStage}/billing/payment-instructions" },
         "Description": "Billing payment instructions for ACH/wire/check workflows. Replace placeholders post-deploy.",
         "SecretString": "{\"achRoutingNumber\":\"REPLACE_ME\",\"achAccountNumber\":\"REPLACE_ME\",\"wireInstructions\":\"REPLACE_ME\",\"checkMailingAddress\":\"REPLACE_ME\",\"bankName\":\"REPLACE_ME\",\"bankContact\":\"REPLACE_ME\"}"
       }
     },
     "BillingSesCredentialsSecret": {
       "Type": "AWS::SecretsManager::Secret",
+      "Condition": "CreateBillingSesCredentialsSecret",
+      "DeletionPolicy": "Retain",
+      "UpdateReplacePolicy": "Retain",
       "Properties": {
-        "Name": "rapid-cortex/billing/ses-credentials",
+        "Name": { "Fn::Sub": "rapid-cortex/${DeploymentStage}/billing/ses-credentials" },
         "Description": "SES SMTP credentials (when used) plus billing notification recipients. Replace placeholders post-deploy.",
         "SecretString": "{\"smtpUsername\":\"REPLACE_ME\",\"smtpPassword\":\"REPLACE_ME\",\"billingNotificationEmails\":[\"billing@rapidcortex.us\",\"finance@rapidcortex.us\"]}"
       }
@@ -1235,10 +1327,6 @@
           {
             "AttributeName": "createdAt",
             "AttributeType": "S"
-          },
-          {
-            "AttributeName": "publicState",
-            "AttributeType": "S"
           }
         ],
         "KeySchema": [
@@ -1278,23 +1366,6 @@
             ],
             "Projection": {
               "ProjectionType": "ALL"
-            }
-          },
-          {
-            "IndexName": "publicState-index",
-            "KeySchema": [
-              {
-                "AttributeName": "publicState",
-                "KeyType": "HASH"
-              }
-            ],
-            "Projection": {
-              "ProjectionType": "INCLUDE",
-              "NonKeyAttributes": [
-                "publicDisplayName",
-                "publicCity",
-                "publicDirectoryOptIn"
-              ]
             }
           }
         ]
@@ -2670,14 +2741,6 @@
           {
             "AttributeName": "leadId",
             "AttributeType": "S"
-          },
-          {
-            "AttributeName": "pipelineStage",
-            "AttributeType": "S"
-          },
-          {
-            "AttributeName": "createdAt",
-            "AttributeType": "S"
           }
         ],
         "KeySchema": [
@@ -2685,28 +2748,10 @@
             "AttributeName": "leadId",
             "KeyType": "HASH"
           }
-        ],
-        "GlobalSecondaryIndexes": [
-          {
-            "IndexName": "PipelineStageIndex",
-            "KeySchema": [
-              {
-                "AttributeName": "pipelineStage",
-                "KeyType": "HASH"
-              },
-              {
-                "AttributeName": "createdAt",
-                "KeyType": "RANGE"
-              }
-            ],
-            "Projection": {
-              "ProjectionType": "ALL"
-            }
-          }
         ]
       }
     },
-    "PsapProspectsTable": {
+    "AgencyRelationshipsTable": {
       "Type": "AWS::DynamoDB::Table",
       "DeletionPolicy": "Retain",
       "UpdateReplacePolicy": "Retain",
@@ -2718,7 +2763,54 @@
           "Fn::If": [
             "HasDynamoTablePrefix",
             {
-              "Fn::Sub": "${DynamoTableNamePrefix}-psap-prospects-${DeploymentStage}"
+              "Fn::Sub": "${DynamoTableNamePrefix}-agency-relationships-${DeploymentStage}"
+            },
+            {
+              "Ref": "AWS::NoValue"
+            }
+          ]
+        },
+        "AttributeDefinitions": [
+          {
+            "AttributeName": "pk",
+            "AttributeType": "S"
+          },
+          {
+            "AttributeName": "sk",
+            "AttributeType": "S"
+          }
+        ],
+        "KeySchema": [
+          {
+            "AttributeName": "pk",
+            "KeyType": "HASH"
+          },
+          {
+            "AttributeName": "sk",
+            "KeyType": "RANGE"
+          }
+        ],
+        "Tags": [
+          {
+            "Key": "Component",
+            "Value": "escalation"
+          }
+        ]
+      }
+    },
+    "EscalationsTable": {
+      "Type": "AWS::DynamoDB::Table",
+      "DeletionPolicy": "Retain",
+      "UpdateReplacePolicy": "Retain",
+      "Properties": {
+        "BillingMode": {
+          "Ref": "DynamoBillingMode"
+        },
+        "TableName": {
+          "Fn::If": [
+            "HasDynamoTablePrefix",
+            {
+              "Fn::Sub": "${DynamoTableNamePrefix}-escalations-${DeploymentStage}"
             },
             {
               "Ref": "AWS::NoValue"
@@ -2733,270 +2825,6 @@
               false
             ]
           }
-        },
-        "AttributeDefinitions": [
-          {
-            "AttributeName": "psapId",
-            "AttributeType": "S"
-          },
-          {
-            "AttributeName": "state",
-            "AttributeType": "S"
-          },
-          {
-            "AttributeName": "outreachStatus",
-            "AttributeType": "S"
-          },
-          {
-            "AttributeName": "updatedAt",
-            "AttributeType": "S"
-          },
-          {
-            "AttributeName": "phone",
-            "AttributeType": "S"
-          }
-        ],
-        "KeySchema": [
-          {
-            "AttributeName": "psapId",
-            "KeyType": "HASH"
-          }
-        ],
-        "GlobalSecondaryIndexes": [
-          {
-            "IndexName": "StateUpdatedIndex",
-            "KeySchema": [
-              {
-                "AttributeName": "state",
-                "KeyType": "HASH"
-              },
-              {
-                "AttributeName": "updatedAt",
-                "KeyType": "RANGE"
-              }
-            ],
-            "Projection": {
-              "ProjectionType": "ALL"
-            }
-          },
-          {
-            "IndexName": "StatusUpdatedIndex",
-            "KeySchema": [
-              {
-                "AttributeName": "outreachStatus",
-                "KeyType": "HASH"
-              },
-              {
-                "AttributeName": "updatedAt",
-                "KeyType": "RANGE"
-              }
-            ],
-            "Projection": {
-              "ProjectionType": "ALL"
-            }
-          },
-          {
-            "IndexName": "PhoneIndex",
-            "KeySchema": [
-              {
-                "AttributeName": "phone",
-                "KeyType": "HASH"
-              }
-            ],
-            "Projection": {
-              "ProjectionType": "KEYS_ONLY"
-            }
-          }
-        ],
-        "Tags": [
-          {
-            "Key": "Component",
-            "Value": "psap-crm"
-          }
-        ]
-      }
-    },
-    "RapidIqOpportunitiesTable": {
-      "Type": "AWS::DynamoDB::Table",
-      "DeletionPolicy": "Retain",
-      "UpdateReplacePolicy": "Retain",
-      "Properties": {
-        "BillingMode": {
-          "Ref": "DynamoBillingMode"
-        },
-        "TableName": {
-          "Fn::If": [
-            "HasDynamoTablePrefix",
-            {
-              "Fn::Sub": "${DynamoTableNamePrefix}-rapid-iq-opportunities-${DeploymentStage}"
-            },
-            {
-              "Ref": "AWS::NoValue"
-            }
-          ]
-        },
-        "AttributeDefinitions": [
-          {
-            "AttributeName": "opportunityId",
-            "AttributeType": "S"
-          },
-          {
-            "AttributeName": "vertical",
-            "AttributeType": "S"
-          },
-          {
-            "AttributeName": "opportunityScore",
-            "AttributeType": "N"
-          },
-          {
-            "AttributeName": "status",
-            "AttributeType": "S"
-          },
-          {
-            "AttributeName": "detectedAt",
-            "AttributeType": "S"
-          }
-        ],
-        "KeySchema": [
-          {
-            "AttributeName": "opportunityId",
-            "KeyType": "HASH"
-          }
-        ],
-        "Tags": [
-          {
-            "Key": "Component",
-            "Value": "rapid-iq"
-          }
-        ],
-        "PointInTimeRecoverySpecification": {
-          "PointInTimeRecoveryEnabled": {
-            "Fn::If": [
-              "DynamoPitrOn",
-              true,
-              false
-            ]
-          }
-        },
-        "GlobalSecondaryIndexes": [
-          {
-            "IndexName": "vertical-score-index",
-            "KeySchema": [
-              {
-                "AttributeName": "vertical",
-                "KeyType": "HASH"
-              },
-              {
-                "AttributeName": "opportunityScore",
-                "KeyType": "RANGE"
-              }
-            ],
-            "Projection": {
-              "ProjectionType": "ALL"
-            }
-          },
-          {
-            "IndexName": "status-detected-index",
-            "KeySchema": [
-              {
-                "AttributeName": "status",
-                "KeyType": "HASH"
-              },
-              {
-                "AttributeName": "detectedAt",
-                "KeyType": "RANGE"
-              }
-            ],
-            "Projection": {
-              "ProjectionType": "ALL"
-            }
-          }
-        ]
-      }
-    },
-    "RapidIqSignalsTable": {
-      "Type": "AWS::DynamoDB::Table",
-      "DeletionPolicy": "Retain",
-      "UpdateReplacePolicy": "Retain",
-      "Properties": {
-        "BillingMode": {
-          "Ref": "DynamoBillingMode"
-        },
-        "TableName": {
-          "Fn::If": [
-            "HasDynamoTablePrefix",
-            {
-              "Fn::Sub": "${DynamoTableNamePrefix}-rapid-iq-signals-${DeploymentStage}"
-            },
-            {
-              "Ref": "AWS::NoValue"
-            }
-          ]
-        },
-        "AttributeDefinitions": [
-          {
-            "AttributeName": "signalId",
-            "AttributeType": "S"
-          },
-          {
-            "AttributeName": "opportunityId",
-            "AttributeType": "S"
-          },
-          {
-            "AttributeName": "publishedAt",
-            "AttributeType": "S"
-          }
-        ],
-        "KeySchema": [
-          {
-            "AttributeName": "signalId",
-            "KeyType": "HASH"
-          }
-        ],
-        "Tags": [
-          {
-            "Key": "Component",
-            "Value": "rapid-iq"
-          }
-        ],
-        "GlobalSecondaryIndexes": [
-          {
-            "IndexName": "opportunityId-published-index",
-            "KeySchema": [
-              {
-                "AttributeName": "opportunityId",
-                "KeyType": "HASH"
-              },
-              {
-                "AttributeName": "publishedAt",
-                "KeyType": "RANGE"
-              }
-            ],
-            "Projection": {
-              "ProjectionType": "ALL"
-            }
-          }
-        ]
-      }
-    },
-    "RapidIqPipelineSignalsTable": {
-      "Type": "AWS::DynamoDB::Table",
-      "DeletionPolicy": "Retain",
-      "UpdateReplacePolicy": "Retain",
-      "Properties": {
-        "BillingMode": {
-          "Ref": "DynamoBillingMode"
-        },
-        "TableName": {
-          "Fn::If": [
-            "HasDynamoTablePrefix",
-            {
-              "Fn::Sub": "${DynamoTableNamePrefix}-rapid-iq-pipeline-signals-${DeploymentStage}"
-            },
-            {
-              "Ref": "AWS::NoValue"
-            }
-          ]
         },
         "AttributeDefinitions": [
           {
@@ -3034,15 +2862,9 @@
             "KeyType": "RANGE"
           }
         ],
-        "Tags": [
-          {
-            "Key": "Component",
-            "Value": "rapid-iq-pipeline"
-          }
-        ],
         "GlobalSecondaryIndexes": [
           {
-            "IndexName": "gsi1-status-score",
+            "IndexName": "gsi1-source-time",
             "KeySchema": [
               {
                 "AttributeName": "gsi1pk",
@@ -3058,7 +2880,7 @@
             }
           },
           {
-            "IndexName": "gsi2-source-date",
+            "IndexName": "gsi2-target-status",
             "KeySchema": [
               {
                 "AttributeName": "gsi2pk",
@@ -3073,67 +2895,16 @@
               "ProjectionType": "ALL"
             }
           }
-        ]
-      }
-    },
-    "RapidIqContactsTable": {
-      "Type": "AWS::DynamoDB::Table",
-      "DeletionPolicy": "Retain",
-      "UpdateReplacePolicy": "Retain",
-      "Properties": {
-        "BillingMode": {
-          "Ref": "DynamoBillingMode"
-        },
-        "TableName": {
-          "Fn::If": [
-            "HasDynamoTablePrefix",
-            {
-              "Fn::Sub": "${DynamoTableNamePrefix}-rapid-iq-contacts-${DeploymentStage}"
-            },
-            {
-              "Ref": "AWS::NoValue"
-            }
-          ]
-        },
-        "AttributeDefinitions": [
-          {
-            "AttributeName": "contactId",
-            "AttributeType": "S"
-          },
-          {
-            "AttributeName": "opportunityId",
-            "AttributeType": "S"
-          }
-        ],
-        "KeySchema": [
-          {
-            "AttributeName": "contactId",
-            "KeyType": "HASH"
-          }
         ],
         "Tags": [
           {
             "Key": "Component",
-            "Value": "rapid-iq"
-          }
-        ],
-        "GlobalSecondaryIndexes": [
-          {
-            "IndexName": "opportunityId-index",
-            "KeySchema": [
-              {
-                "AttributeName": "opportunityId",
-                "KeyType": "HASH"
-              }
-            ],
-            "Projection": {
-              "ProjectionType": "ALL"
-            }
+            "Value": "escalation"
           }
         ]
       }
     },
-    "RapidIqSourcesTable": {
+    "EscalationAuditTable": {
       "Type": "AWS::DynamoDB::Table",
       "DeletionPolicy": "Retain",
       "UpdateReplacePolicy": "Retain",
@@ -3145,197 +2916,7 @@
           "Fn::If": [
             "HasDynamoTablePrefix",
             {
-              "Fn::Sub": "${DynamoTableNamePrefix}-rapid-iq-sources-${DeploymentStage}"
-            },
-            {
-              "Ref": "AWS::NoValue"
-            }
-          ]
-        },
-        "AttributeDefinitions": [
-          {
-            "AttributeName": "sourceId",
-            "AttributeType": "S"
-          },
-          {
-            "AttributeName": "opportunityId",
-            "AttributeType": "S"
-          }
-        ],
-        "KeySchema": [
-          {
-            "AttributeName": "sourceId",
-            "KeyType": "HASH"
-          }
-        ],
-        "Tags": [
-          {
-            "Key": "Component",
-            "Value": "rapid-iq"
-          }
-        ],
-        "GlobalSecondaryIndexes": [
-          {
-            "IndexName": "opportunityId-index",
-            "KeySchema": [
-              {
-                "AttributeName": "opportunityId",
-                "KeyType": "HASH"
-              }
-            ],
-            "Projection": {
-              "ProjectionType": "ALL"
-            }
-          }
-        ]
-      }
-    },
-    "RapidIqJurisdictionsTable": {
-      "Type": "AWS::DynamoDB::Table",
-      "DeletionPolicy": "Retain",
-      "UpdateReplacePolicy": "Retain",
-      "Properties": {
-        "BillingMode": {
-          "Ref": "DynamoBillingMode"
-        },
-        "TableName": {
-          "Fn::If": [
-            "HasDynamoTablePrefix",
-            {
-              "Fn::Sub": "${DynamoTableNamePrefix}-rapid-iq-jurisdictions-${DeploymentStage}"
-            },
-            {
-              "Ref": "AWS::NoValue"
-            }
-          ]
-        },
-        "AttributeDefinitions": [
-          {
-            "AttributeName": "jurisdictionId",
-            "AttributeType": "S"
-          },
-          {
-            "AttributeName": "stateCode",
-            "AttributeType": "S"
-          },
-          {
-            "AttributeName": "tier",
-            "AttributeType": "N"
-          },
-          {
-            "AttributeName": "lastScannedAt",
-            "AttributeType": "S"
-          }
-        ],
-        "KeySchema": [
-          {
-            "AttributeName": "jurisdictionId",
-            "KeyType": "HASH"
-          }
-        ],
-        "Tags": [
-          {
-            "Key": "Component",
-            "Value": "rapid-iq"
-          }
-        ],
-        "PointInTimeRecoverySpecification": {
-          "PointInTimeRecoveryEnabled": {
-            "Fn::If": [
-              "DynamoPitrOn",
-              true,
-              false
-            ]
-          }
-        },
-        "GlobalSecondaryIndexes": [
-          {
-            "IndexName": "state-tier-index",
-            "KeySchema": [
-              {
-                "AttributeName": "stateCode",
-                "KeyType": "HASH"
-              },
-              {
-                "AttributeName": "tier",
-                "KeyType": "RANGE"
-              }
-            ],
-            "Projection": {
-              "ProjectionType": "ALL"
-            }
-          },
-          {
-            "IndexName": "tier-lastScanned-index",
-            "KeySchema": [
-              {
-                "AttributeName": "tier",
-                "KeyType": "HASH"
-              },
-              {
-                "AttributeName": "lastScannedAt",
-                "KeyType": "RANGE"
-              }
-            ],
-            "Projection": {
-              "ProjectionType": "ALL"
-            }
-          }
-        ]
-      }
-    },
-    "RapidIqStateCoverageTable": {
-      "Type": "AWS::DynamoDB::Table",
-      "DeletionPolicy": "Retain",
-      "UpdateReplacePolicy": "Retain",
-      "Properties": {
-        "BillingMode": {
-          "Ref": "DynamoBillingMode"
-        },
-        "TableName": {
-          "Fn::If": [
-            "HasDynamoTablePrefix",
-            {
-              "Fn::Sub": "${DynamoTableNamePrefix}-rapid-iq-state-coverage-${DeploymentStage}"
-            },
-            {
-              "Ref": "AWS::NoValue"
-            }
-          ]
-        },
-        "AttributeDefinitions": [
-          {
-            "AttributeName": "stateCode",
-            "AttributeType": "S"
-          }
-        ],
-        "KeySchema": [
-          {
-            "AttributeName": "stateCode",
-            "KeyType": "HASH"
-          }
-        ],
-        "Tags": [
-          {
-            "Key": "Component",
-            "Value": "rapid-iq"
-          }
-        ]
-      }
-    },
-    "MarketingLeadsTable": {
-      "Type": "AWS::DynamoDB::Table",
-      "DeletionPolicy": "Retain",
-      "UpdateReplacePolicy": "Retain",
-      "Properties": {
-        "BillingMode": {
-          "Ref": "DynamoBillingMode"
-        },
-        "TableName": {
-          "Fn::If": [
-            "HasDynamoTablePrefix",
-            {
-              "Fn::Sub": "${DynamoTableNamePrefix}-marketing-leads-${DeploymentStage}"
+              "Fn::Sub": "${DynamoTableNamePrefix}-escalation-audit-${DeploymentStage}"
             },
             {
               "Ref": "AWS::NoValue"
@@ -3371,10 +2952,157 @@
             "KeyType": "RANGE"
           }
         ],
+        "Tags": [
+          {
+            "Key": "Component",
+            "Value": "escalation"
+          }
+        ]
+      }
+    },
+    "PushSubscriptionsTable": {
+      "Type": "AWS::DynamoDB::Table",
+      "DeletionPolicy": "Retain",
+      "UpdateReplacePolicy": "Retain",
+      "Properties": {
+        "BillingMode": {
+          "Ref": "DynamoBillingMode"
+        },
+        "TableName": {
+          "Fn::If": [
+            "HasDynamoTablePrefix",
+            {
+              "Fn::Sub": "${DynamoTableNamePrefix}-push-subscriptions-${DeploymentStage}"
+            },
+            {
+              "Ref": "AWS::NoValue"
+            }
+          ]
+        },
+        "AttributeDefinitions": [
+          {
+            "AttributeName": "pk",
+            "AttributeType": "S"
+          },
+          {
+            "AttributeName": "sk",
+            "AttributeType": "S"
+          }
+        ],
+        "KeySchema": [
+          {
+            "AttributeName": "pk",
+            "KeyType": "HASH"
+          },
+          {
+            "AttributeName": "sk",
+            "KeyType": "RANGE"
+          }
+        ],
         "TimeToLiveSpecification": {
           "AttributeName": "ttl",
           "Enabled": true
-        }
+        },
+        "Tags": [
+          {
+            "Key": "Component",
+            "Value": "escalation"
+          }
+        ]
+      }
+    },
+    "IncidentReportsTable": {
+      "Type": "AWS::DynamoDB::Table",
+      "DeletionPolicy": "Retain",
+      "UpdateReplacePolicy": "Retain",
+      "Properties": {
+        "BillingMode": {
+          "Ref": "DynamoBillingMode"
+        },
+        "TableName": {
+          "Fn::If": [
+            "HasDynamoTablePrefix",
+            {
+              "Fn::Sub": "${DynamoTableNamePrefix}-incident-reports-${DeploymentStage}"
+            },
+            {
+              "Ref": "AWS::NoValue"
+            }
+          ]
+        },
+        "PointInTimeRecoverySpecification": {
+          "PointInTimeRecoveryEnabled": {
+            "Fn::If": [
+              "DynamoPitrOn",
+              true,
+              false
+            ]
+          }
+        },
+        "AttributeDefinitions": [
+          {
+            "AttributeName": "pk",
+            "AttributeType": "S"
+          },
+          {
+            "AttributeName": "sk",
+            "AttributeType": "S"
+          },
+          {
+            "AttributeName": "gsi1pk",
+            "AttributeType": "S"
+          },
+          {
+            "AttributeName": "gsi1sk",
+            "AttributeType": "S"
+          }
+        ],
+        "KeySchema": [
+          {
+            "AttributeName": "pk",
+            "KeyType": "HASH"
+          },
+          {
+            "AttributeName": "sk",
+            "KeyType": "RANGE"
+          }
+        ],
+        "GlobalSecondaryIndexes": [
+          {
+            "IndexName": "gsi1-incident-date",
+            "KeySchema": [
+              {
+                "AttributeName": "gsi1pk",
+                "KeyType": "HASH"
+              },
+              {
+                "AttributeName": "gsi1sk",
+                "KeyType": "RANGE"
+              }
+            ],
+            "Projection": {
+              "ProjectionType": "ALL"
+            }
+          }
+        ],
+        "TimeToLiveSpecification": {
+          "AttributeName": "ttl",
+          "Enabled": true
+        },
+        "Tags": [
+          {
+            "Key": "Component",
+            "Value": "rms"
+          },
+          {
+            "Key": "Feature",
+            "Value": "rms"
+          },
+          {
+            "Key": "Retention",
+            "Value": "7-years"
+          }
+        ]
       }
     },
     "SeoIntelligenceTable": {
@@ -4786,174 +4514,6 @@
         "TimeToLiveSpecification": {
           "AttributeName": "ttl",
           "Enabled": true
-        },
-        "AttributeDefinitions": [
-          {
-            "AttributeName": "pk",
-            "AttributeType": "S"
-          },
-          {
-            "AttributeName": "sk",
-            "AttributeType": "S"
-          }
-        ],
-        "KeySchema": [
-          {
-            "AttributeName": "pk",
-            "KeyType": "HASH"
-          },
-          {
-            "AttributeName": "sk",
-            "KeyType": "RANGE"
-          }
-        ]
-      }
-    },
-    "RcsCallsTable": {
-      "Type": "AWS::DynamoDB::Table",
-      "DeletionPolicy": "Retain",
-      "UpdateReplacePolicy": "Retain",
-      "Properties": {
-        "BillingMode": {
-          "Ref": "DynamoBillingMode"
-        },
-        "TableName": {
-          "Fn::If": [
-            "HasDynamoTablePrefix",
-            {
-              "Fn::Sub": "${DynamoTableNamePrefix}-rcs-calls-${DeploymentStage}"
-            },
-            {
-              "Ref": "AWS::NoValue"
-            }
-          ]
-        },
-        "PointInTimeRecoverySpecification": {
-          "PointInTimeRecoveryEnabled": {
-            "Fn::If": [
-              "DynamoPitrOn",
-              true,
-              false
-            ]
-          }
-        },
-        "AttributeDefinitions": [
-          {
-            "AttributeName": "callId",
-            "AttributeType": "S"
-          },
-          {
-            "AttributeName": "agencyId",
-            "AttributeType": "S"
-          },
-          {
-            "AttributeName": "updatedAt",
-            "AttributeType": "S"
-          }
-        ],
-        "KeySchema": [
-          {
-            "AttributeName": "callId",
-            "KeyType": "HASH"
-          }
-        ],
-        "GlobalSecondaryIndexes": [
-          {
-            "IndexName": "agencyId-updatedAt-index",
-            "KeySchema": [
-              {
-                "AttributeName": "agencyId",
-                "KeyType": "HASH"
-              },
-              {
-                "AttributeName": "updatedAt",
-                "KeyType": "RANGE"
-              }
-            ],
-            "Projection": {
-              "ProjectionType": "ALL"
-            }
-          }
-        ]
-      }
-    },
-    "RcsUnitsTable": {
-      "Type": "AWS::DynamoDB::Table",
-      "DeletionPolicy": "Retain",
-      "UpdateReplacePolicy": "Retain",
-      "Properties": {
-        "BillingMode": {
-          "Ref": "DynamoBillingMode"
-        },
-        "TableName": {
-          "Fn::If": [
-            "HasDynamoTablePrefix",
-            {
-              "Fn::Sub": "${DynamoTableNamePrefix}-rcs-units-${DeploymentStage}"
-            },
-            {
-              "Ref": "AWS::NoValue"
-            }
-          ]
-        },
-        "PointInTimeRecoverySpecification": {
-          "PointInTimeRecoveryEnabled": {
-            "Fn::If": [
-              "DynamoPitrOn",
-              true,
-              false
-            ]
-          }
-        },
-        "AttributeDefinitions": [
-          {
-            "AttributeName": "pk",
-            "AttributeType": "S"
-          },
-          {
-            "AttributeName": "sk",
-            "AttributeType": "S"
-          }
-        ],
-        "KeySchema": [
-          {
-            "AttributeName": "pk",
-            "KeyType": "HASH"
-          },
-          {
-            "AttributeName": "sk",
-            "KeyType": "RANGE"
-          }
-        ]
-      }
-    },
-    "RcsEscalationTable": {
-      "Type": "AWS::DynamoDB::Table",
-      "DeletionPolicy": "Retain",
-      "UpdateReplacePolicy": "Retain",
-      "Properties": {
-        "BillingMode": {
-          "Ref": "DynamoBillingMode"
-        },
-        "TableName": {
-          "Fn::If": [
-            "HasDynamoTablePrefix",
-            {
-              "Fn::Sub": "${DynamoTableNamePrefix}-rcs-escalation-${DeploymentStage}"
-            },
-            {
-              "Ref": "AWS::NoValue"
-            }
-          ]
-        },
-        "PointInTimeRecoverySpecification": {
-          "PointInTimeRecoveryEnabled": {
-            "Fn::If": [
-              "DynamoPitrOn",
-              true,
-              false
-            ]
-          }
         },
         "AttributeDefinitions": [
           {
@@ -6667,55 +6227,85 @@
     "PsapProspectsTable": {
       "Description": "Physical table name for PsapProspectsTable (RC Admin outbound PSAP CRM)",
       "Value": {
-        "Ref": "PsapProspectsTable"
+        "Ref": "ExistingPsapProspectsTableName"
       }
     },
     "RapidIqOpportunitiesTable": {
       "Description": "Rapid IQ opportunities",
       "Value": {
-        "Ref": "RapidIqOpportunitiesTable"
+        "Ref": "ExistingRapidIqOpportunitiesTableName"
       }
     },
     "RapidIqSignalsTable": {
       "Description": "Rapid IQ signals",
       "Value": {
-        "Ref": "RapidIqSignalsTable"
+        "Ref": "ExistingRapidIqSignalsTableName"
       }
     },
     "RapidIqPipelineSignalsTable": {
       "Description": "Rapid IQ pipeline procurement signals",
       "Value": {
-        "Ref": "RapidIqPipelineSignalsTable"
+        "Ref": "ExistingRapidIqPipelineSignalsTableName"
       }
     },
     "RapidIqContactsTable": {
       "Description": "Rapid IQ contacts",
       "Value": {
-        "Ref": "RapidIqContactsTable"
+        "Ref": "ExistingRapidIqContactsTableName"
       }
     },
     "RapidIqSourcesTable": {
       "Description": "Rapid IQ sources",
       "Value": {
-        "Ref": "RapidIqSourcesTable"
+        "Ref": "ExistingRapidIqSourcesTableName"
       }
     },
     "RapidIqJurisdictionsTable": {
       "Description": "Rapid IQ jurisdiction registry",
       "Value": {
-        "Ref": "RapidIqJurisdictionsTable"
+        "Ref": "ExistingRapidIqJurisdictionsTableName"
       }
     },
     "RapidIqStateCoverageTable": {
       "Description": "Rapid IQ state coverage",
       "Value": {
-        "Ref": "RapidIqStateCoverageTable"
+        "Ref": "ExistingRapidIqStateCoverageTableName"
+      }
+    },
+    "AgencyRelationshipsTable": {
+      "Description": "Venue/campus \u2192 PSAP escalation relationships",
+      "Value": {
+        "Ref": "AgencyRelationshipsTable"
+      }
+    },
+    "EscalationsTable": {
+      "Description": "911 escalation records (7-year retention, no TTL)",
+      "Value": {
+        "Ref": "EscalationsTable"
+      }
+    },
+    "EscalationAuditTable": {
+      "Description": "Append-only escalation audit trail",
+      "Value": {
+        "Ref": "EscalationAuditTable"
+      }
+    },
+    "PushSubscriptionsTable": {
+      "Description": "Web Push subscriptions for venue staff (90-day TTL)",
+      "Value": {
+        "Ref": "PushSubscriptionsTable"
+      }
+    },
+    "IncidentReportsTable": {
+      "Description": "AI incident reports / RMS (7-year retention; TTL only on RMSCACHE# keys)",
+      "Value": {
+        "Ref": "IncidentReportsTable"
       }
     },
     "MarketingLeadsTable": {
       "Description": "Physical table name for MarketingLeadsTable (Inside the Cortex; pk/sk + TTL)",
       "Value": {
-        "Ref": "MarketingLeadsTable"
+        "Ref": "ExistingMarketingLeadsTableName"
       }
     },
     "JobApplicationsTable": {
@@ -6877,19 +6467,19 @@
     "RcsCallsTable": {
       "Description": "Physical table name for RcsCallsTable",
       "Value": {
-        "Ref": "RcsCallsTable"
+        "Ref": "ExistingRcsCallsTableName"
       }
     },
     "RcsUnitsTable": {
       "Description": "Physical table name for RcsUnitsTable",
       "Value": {
-        "Ref": "RcsUnitsTable"
+        "Ref": "ExistingRcsUnitsTableName"
       }
     },
     "RcsEscalationTable": {
       "Description": "Physical table name for RcsEscalationTable",
       "Value": {
-        "Ref": "RcsEscalationTable"
+        "Ref": "ExistingRcsEscalationTableName"
       }
     },
     "AnalysesTable": {
@@ -7015,7 +6605,15 @@
     "BillingPaymentInstructionsSecretArn": {
       "Description": "Billing payment instructions secret ARN",
       "Value": {
-        "Ref": "BillingPaymentInstructionsSecret"
+        "Fn::If": [
+          "CreateBillingPaymentInstructionsSecret",
+          {
+            "Ref": "BillingPaymentInstructionsSecret"
+          },
+          {
+            "Ref": "ExistingBillingPaymentInstructionsSecretArn"
+          }
+        ]
       }
     },
     "RingCredentialsSecretArn": {
@@ -7035,7 +6633,15 @@
     "BillingSesCredentialsSecretArn": {
       "Description": "Billing SES credentials secret ARN",
       "Value": {
-        "Ref": "BillingSesCredentialsSecret"
+        "Fn::If": [
+          "CreateBillingSesCredentialsSecret",
+          {
+            "Ref": "BillingSesCredentialsSecret"
+          },
+          {
+            "Ref": "ExistingBillingSesCredentialsSecretArn"
+          }
+        ]
       }
     }
   }

@@ -544,7 +544,7 @@ function RcAdminConsoleHomeInner({
   const [urlInput, setUrlInput] = useState("");
   const [envOpen, setEnvOpen] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
-  const { rootRef } = useThemeRoot<HTMLDivElement>();
+  const { theme, rootRef } = useThemeRoot<HTMLDivElement>();
 
   useEffect(() => {
     const id = window.setInterval(() => setNow(new Date()), 30_000);
@@ -885,7 +885,7 @@ function RcAdminConsoleHomeInner({
     <HelpChrome role={userRole}>
       <div
         ref={rootRef}
-        data-theme="dark"
+        data-theme={theme}
         style={{
           display: "flex",
           height: "100vh",
@@ -893,6 +893,7 @@ function RcAdminConsoleHomeInner({
           background: C.bg,
           fontFamily: FONT,
           color: C.text,
+          colorScheme: theme,
           fontSize: "14px",
           position: "relative",
         }}
@@ -1033,7 +1034,7 @@ function RcAdminConsoleHomeInner({
                   bottom: "100%",
                   left: 0,
                   right: 0,
-                  background: "#060610",
+                  background: C.surface,
                   border: `1px solid ${C.borderHard}`,
                   borderRadius: "8px 8px 0 0",
                   overflow: "hidden",

@@ -1,4 +1,5 @@
 import { z } from "zod";
+import type { CadAlert, CadAniAliSource, CadLocationSource, CadUnitAssignment } from "./cad.js";
 import type { ProtocolGuidance } from "./protocol/types.js";
 import type { ConfidenceAnalysis } from "./confidence/types.js";
 import type { TriageResult } from "./triage/triage.js";
@@ -109,12 +110,26 @@ export interface Incident {
   cadStatus?: string;
   /** CAD priority code or label as received from the vendor. */
   cadPriority?: string;
+  /** CAD priority modifier (e.g. Echo, Charlie) — display only; CAD remains source of record. */
+  cadPriorityModifier?: string | null;
   /** CAD nature / type code. */
   cadNatureCode?: string;
+  /** Agency mapping: Rapid Cortex incident type id when a nature-code mapping hits. */
+  cadMappedIncidentTypeId?: string | null;
+  /** CAD-owned close / disposition code (Rapid Cortex does not own CFS closure). */
+  cadDisposition?: string | null;
   /** CAD-formatted location string from the vendor. */
   cadLocation?: string;
+  cadIntersection?: string | null;
+  cadBeat?: string | null;
+  cadZone?: string | null;
+  cadJurisdiction?: string | null;
+  cadLocationConfidence?: string | null;
+  cadLocationSource?: CadLocationSource | null;
   /** Assigned unit IDs from CAD. */
   cadUnits?: string[];
+  /** Richer unit rows (ETA / beat / call-sign) when the vendor payload includes them. */
+  cadUnitDetails?: CadUnitAssignment[];
   /** CAD-reported coordinates when provided. */
   cadCoordinates?: { lat: number; lng: number };
   /** Idempotency key for CAD ingest (`integrationId:cadNumber:revision`). */
@@ -123,6 +138,16 @@ export interface Incident {
   cadCallerName?: string | null;
   /** Masked callback number for CAD-sourced incidents (never store full E.164 in clear text here). */
   cadCallerCallbackMasked?: string | null;
+  /** Caller/ALI address when distinct from the incident location. */
+  cadCallerAddressLine?: string | null;
+  cadAniAliSource?: CadAniAliSource | null;
+  /** Related CAD call numbers (parent / linked CFS). */
+  cadRelatedCadNumbers?: string[];
+  /** CAD-declared duplicate of another CAD number. */
+  cadDuplicateOfCadNumber?: string | null;
+  /** Rapid Cortex incident ids resolved from related CAD numbers (same agency). */
+  cadLinkedIncidentIds?: string[];
+  cadAlerts?: CadAlert[];
   /** Model-estimated confidence for latest triage; normalized 0–1 (UI may display as %). */
   confidence: number | null;
   escalationFlag: boolean;
@@ -169,6 +194,8 @@ export type SopProtocolOverlayState = {
   completedStepIds: string[];
   segmentCountAtDetection: number;
   detectedAt: string;
+  /** How the recommendation was produced. Transcript detection must not clobber CAD mapping unless higher confidence. */
+  source?: "transcript" | "cad_nature_code" | "manual";
 };
 
 /**
@@ -373,7 +400,11 @@ export type AuditResourceType =
   | "sales_lead"
   | "psap_prospect"
   | "rapid_iq_opportunity"
+  | "rapid_iq_pipeline_signal"
   | "rapid_iq_refresh"
+  | "conference"
+  | "escalation"
+  | "incident_report"
   | "contact_company"
   | "contact_person"
   | "job_application"

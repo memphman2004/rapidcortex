@@ -3,36 +3,23 @@
  */
 
 import type { RapidIqPipelineRawSignal } from "rapid-cortex-shared";
+import { isRelevantSignalText } from "rapid-cortex-shared";
 import { enqueueMockIfEnabled, enqueueRawSignal } from "./queue-raw-signal.js";
 
 const RSS_SOURCES: Array<{ id: string; url: string; label: string }> = [
-  { id: "govtech", url: "https://www.govtech.com/rss/all", label: "Government Technology" },
+  { id: "govtech", url: "https://www.govtech.com/rss", label: "Government Technology" },
   { id: "route-fifty", url: "https://www.route-fifty.com/rss/all", label: "Route Fifty" },
   {
     id: "tyler-press",
-    url: "https://www.tylertech.com/press-releases.rss",
+    url: "https://www.prnewswire.com/rss/computer-electronics/tyler-technologies-inc-list.rss",
     label: "Tyler Technologies Press",
   },
+  {
+    id: "motorola-news",
+    url: "https://newsroom.motorolasolutions.com/rss",
+    label: "Motorola Solutions Newsroom",
+  },
   { id: "apco-news", url: "https://www.apcointl.org/feed/", label: "APCO International" },
-  { id: "nena-news", url: "https://www.nena.org/feed/", label: "NENA" },
-];
-
-const RELEVANCE_KEYWORDS = [
-  "dispatch",
-  "911",
-  "computer aided dispatch",
-  "cad system",
-  "emergency communications",
-  "psap",
-  "public safety software",
-  "tyler technologies",
-  "motorola solutions",
-  "centralsquare",
-  "hexagon",
-  "arpa",
-  "cops grant",
-  "dispatch system",
-  "communications center",
 ];
 
 interface RssItem {
@@ -68,8 +55,7 @@ function parseRssItems(xml: string): RssItem[] {
 }
 
 function isRelevant(item: RssItem): boolean {
-  const text = `${item.title} ${item.description}`.toLowerCase();
-  return RELEVANCE_KEYWORDS.some((kw) => text.includes(kw));
+  return isRelevantSignalText(`${item.title} ${item.description}`);
 }
 
 function parseDate(pubDate: string): string {
@@ -93,7 +79,11 @@ export async function handler(): Promise<void> {
   for (const source of RSS_SOURCES) {
     try {
       const res = await fetch(source.url, {
-        headers: { "User-Agent": "RapidCortex-IQ/1.0 (signal-monitor)" },
+        headers: {
+          "User-Agent":
+            "Mozilla/5.0 (compatible; RapidCortex-IQ/1.0; +https://rapidcortex.us)",
+          Accept: "application/rss+xml, application/xml, text/xml, */*",
+        },
         signal: AbortSignal.timeout(15_000),
       });
 

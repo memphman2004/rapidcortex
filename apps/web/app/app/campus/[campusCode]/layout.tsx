@@ -9,7 +9,7 @@ import { getDashboardSessionUser } from "@/lib/dashboards/get-dashboard-session"
 /** Matches campus console mockup tokens (bg / surface). */
 const SHELL = {
   surface: "var(--rc-surface)",
-  border: "rgba(255,255,255,0.07)",
+  border: "var(--rc-border)",
 } as const;
 
 export default async function CampusShellLayout({

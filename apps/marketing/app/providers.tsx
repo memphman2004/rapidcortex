@@ -1,23 +1,8 @@
 "use client";
 
 import { SessionProvider } from "@/components/auth/session-context";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { useState } from "react";
 
-/** Minimal client providers for static marketing — no live auth session. */
+/** Static marketing — no React Query (unused on these pages; saves initial JS). */
 export function Providers({ children }: { children: React.ReactNode }) {
-  const [queryClient] = useState(
-    () =>
-      new QueryClient({
-        defaultOptions: {
-          queries: { staleTime: 60_000, retry: 1 },
-        },
-      }),
-  );
-
-  return (
-    <QueryClientProvider client={queryClient}>
-      <SessionProvider>{children}</SessionProvider>
-    </QueryClientProvider>
-  );
+  return <SessionProvider>{children}</SessionProvider>;
 }

@@ -56,7 +56,7 @@ export function RapidCortexMap(props: RCMapProps) {
         height:       props.height ?? "100%",
         borderRadius: 8,
         overflow:     "hidden",
-        background:   T.surface,
+        background:   props.theme === "light" ? "#ffffff" : T.surface,
       }}
     >
       <RapidCortexMapCore {...props} />

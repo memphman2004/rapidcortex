@@ -95,6 +95,7 @@ export const CAMPUS_ROLE_PERMISSIONS: Record<CampusRole, string[]> = {
     "campus.incidents.update",
     "campus.incidents.assign",
     "campus.incidents.resolve",
+    "campus.incidents.escalate",
     "campus.reports.view",
     "campus.buildings.view",
     "locations.qrcodes.view",
@@ -105,6 +106,7 @@ export const CAMPUS_ROLE_PERMISSIONS: Record<CampusRole, string[]> = {
     "campus.incidents.view",
     "campus.incidents.create",
     "campus.incidents.update",
+    "campus.incidents.escalate",
     "campus.reports.view",
     "campus.buildings.view",
   ],
@@ -140,6 +142,7 @@ export const VENUE_ROLE_PERMISSIONS: Record<VenueRole, string[]> = {
   VENUE_ADMIN: [
     "venue.dashboard.view",
     "venue.incidents.view",
+    "venue.incidents.escalate",
     "venue.sections.view",
     "venue.sections.manage",
     "venue.sections.status",
@@ -151,6 +154,7 @@ export const VENUE_ROLE_PERMISSIONS: Record<VenueRole, string[]> = {
   VENUE_SUPERVISOR: [
     "venue.dashboard.view",
     "venue.incidents.view",
+    "venue.incidents.escalate",
     "venue.sections.view",
     "venue.sections.status",
     "venue.settings.view",
@@ -160,6 +164,7 @@ export const VENUE_ROLE_PERMISSIONS: Record<VenueRole, string[]> = {
   VENUE_SECURITY: [
     "venue.dashboard.view",
     "venue.incidents.view",
+    "venue.incidents.escalate",
     "venue.sections.view",
     "venue.sections.status",
     "venue.settings.view",
@@ -167,6 +172,7 @@ export const VENUE_ROLE_PERMISSIONS: Record<VenueRole, string[]> = {
   VENUE_OPERATOR: [
     "venue.dashboard.view",
     "venue.incidents.view",
+    "venue.incidents.escalate",
     "venue.sections.view",
     "venue.sections.status",
     "venue.settings.view",
@@ -239,6 +245,45 @@ const RCS_DISPATCHER: readonly Permission[] = [
 
 /** Read-only AI summary for QA/audit. */
 const RCS_SUMMARY_VIEW: readonly Permission[] = ["rcs.summary.view"] as const;
+
+/** RMS / AI Report Writer — dispatcher generate & edit (no finalize/push). */
+const RMS_DISPATCHER: readonly Permission[] = [
+  "rms.generate_report",
+  "rms.view_report",
+  "rms.edit_report",
+  "rms.export_report",
+  "rms.view_nibrs",
+  "rms.confirm_nibrs",
+  "rms.view_context",
+] as const;
+
+/** RMS — supervisor finalize / push / records list. */
+const RMS_SUPERVISOR: readonly Permission[] = [
+  ...RMS_DISPATCHER,
+  "rms.finalize_report",
+  "rms.push_to_rms",
+  "rms.view_records_list",
+] as const;
+
+/** RMS — agency admin full including legal hold. */
+const RMS_AGENCY_ADMIN: readonly Permission[] = [
+  ...RMS_SUPERVISOR,
+  "rms.legal_hold",
+] as const;
+
+/** RMS — analyst/auditor read + export (+ nibrs for analyst). */
+const RMS_ANALYST: readonly Permission[] = [
+  "rms.view_report",
+  "rms.export_report",
+  "rms.view_nibrs",
+  "rms.view_records_list",
+] as const;
+
+const RMS_AUDITOR: readonly Permission[] = [
+  "rms.view_report",
+  "rms.export_report",
+  "rms.view_records_list",
+] as const;
 
 /** Core PSAP matrix roles from the v2.0 PDF (vertical product roles inherit below). */
 const CORE_ROLE_ACCESS_MATRIX_V2 = {
@@ -343,6 +388,7 @@ const CORE_ROLE_ACCESS_MATRIX_V2 = {
     ...EMERGENCY_CONNECT_VIEW,
     ...HOSPITAL_ROUTING_FULL,
     ...RCS_ALL,
+    ...RMS_AGENCY_ADMIN,
   ],
   agencyit: [
     "users.view",
@@ -414,6 +460,7 @@ const CORE_ROLE_ACCESS_MATRIX_V2 = {
     ...EMERGENCY_CONNECT_OPERATIONS,
     ...HOSPITAL_ROUTING_VIEW_ANALYTICS,
     ...RCS_ALL,
+    ...RMS_SUPERVISOR,
   ],
   dispatcher: [
     "incidents.view",
@@ -441,6 +488,7 @@ const CORE_ROLE_ACCESS_MATRIX_V2 = {
     ...EMERGENCY_CONNECT_OPERATIONS,
     ...HOSPITAL_ROUTING_VIEW,
     ...RCS_DISPATCHER,
+    ...RMS_DISPATCHER,
   ],
   analyst: [
     "incidents.view",
@@ -459,6 +507,7 @@ const CORE_ROLE_ACCESS_MATRIX_V2 = {
     "audit.view",
     ...HOSPITAL_ROUTING_VIEW_ANALYTICS,
     ...RCS_SUMMARY_VIEW,
+    ...RMS_ANALYST,
   ],
   auditor: [
     "users.view",
@@ -476,6 +525,7 @@ const CORE_ROLE_ACCESS_MATRIX_V2 = {
     "audit.access_reports",
     ...HOSPITAL_ROUTING_VIEW_ANALYTICS,
     ...RCS_SUMMARY_VIEW,
+    ...RMS_AUDITOR,
   ],
 } as const satisfies Record<
   "rcadmin" | "rcitadmin" | "agencyadmin" | "agencyit" | "supervisor" | "dispatcher" | "analyst" | "auditor",

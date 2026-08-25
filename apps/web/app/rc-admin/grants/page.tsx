@@ -22,7 +22,7 @@ export default async function RcAdminGrantsPage() {
       <div>
         <h1 className="text-2xl font-semibold text-white">Grants</h1>
         <p className="mt-2 max-w-3xl text-sm text-slate-400">
-          Issue access overrides, review active grants, and generate school safety grant packages.
+          Issue access overrides, review active grants, and generate Rapid Cortex procurement grant packages.
         </p>
       </div>
       <RcAdminGrantsTabsClient initialUser={user} showGrantSuccessProgram={isGrantSuccessProgramUiEnabled()} />

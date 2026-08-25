@@ -95,6 +95,16 @@ export async function enrichPsapContacts(psapId: string): Promise<{
   prospect: PsapProspect;
   contacts: PsapProspectContact[];
   count: number;
+  hunterCount?: number;
+  apolloCount?: number;
+  domains?: string[];
+  changed?: boolean;
+  changeLog?: {
+    changed: boolean;
+    reason: string;
+    fieldsChanged: string[];
+    domains: string[];
+  };
 }> {
   const res = await fetch(`${BASE}/${encodeURIComponent(psapId)}/enrich-contacts`, {
     method: "POST",
@@ -103,12 +113,30 @@ export async function enrichPsapContacts(psapId: string): Promise<{
     body: "{}",
   });
   const body = await parseJson<
-    ApiEnvelope<PsapProspect> & { contacts?: PsapProspectContact[]; count?: number }
+    ApiEnvelope<PsapProspect> & {
+      contacts?: PsapProspectContact[];
+      count?: number;
+      hunterCount?: number;
+      apolloCount?: number;
+      domains?: string[];
+      changed?: boolean;
+      changeLog?: {
+        changed: boolean;
+        reason: string;
+        fieldsChanged: string[];
+        domains: string[];
+      };
+    }
   >(res);
   return {
     prospect: unwrapProspect(body),
     contacts: body.contacts ?? [],
     count: body.count ?? body.contacts?.length ?? 0,
+    hunterCount: body.hunterCount,
+    apolloCount: body.apolloCount,
+    domains: body.domains,
+    changed: body.changed,
+    changeLog: body.changeLog,
   };
 }
 

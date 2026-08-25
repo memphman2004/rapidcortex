@@ -4,6 +4,7 @@ import type { ReactNode } from "react";
 import { usePathname } from "next/navigation";
 import { VenueHeader } from "@/app/venue/[venueCode]/_components/VenueHeader";
 import { VenueNav } from "@/app/venue/[venueCode]/_components/VenueNav";
+import { ThemeProvider, useThemeRoot } from "@/lib/theme/theme-context";
 import { VenueGuestServicesDisclaimer } from "./venue-guest-services-disclaimer";
 
 /**
@@ -17,6 +18,32 @@ function isVenueConsoleHomePath(pathname: string, venueCode: string): boolean {
     new RegExp(`^/app/venue/${code}/?$`, "i"),
   ];
   return patterns.some((re) => re.test(pathname));
+}
+
+export function VenueShellThemeRoot({ children }: { children: ReactNode }) {
+  return (
+    <ThemeProvider storageKey="rc-theme-venue">
+      <VenueShellThemeRootInner>{children}</VenueShellThemeRootInner>
+    </ThemeProvider>
+  );
+}
+
+function VenueShellThemeRootInner({ children }: { children: ReactNode }) {
+  const { theme, rootRef } = useThemeRoot<HTMLDivElement>();
+  return (
+    <div
+      ref={rootRef}
+      data-theme={theme}
+      className="min-h-screen"
+      style={{
+        background: "var(--rc-bg)",
+        color: "var(--rc-text-primary)",
+        colorScheme: theme,
+      }}
+    >
+      {children}
+    </div>
+  );
 }
 
 export function VenueShellChrome({

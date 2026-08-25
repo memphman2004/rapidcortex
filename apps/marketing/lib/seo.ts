@@ -6,9 +6,9 @@ const DEFAULT_SITE_URL = "https://www.rapidcortex.us";
 /**
  * Stable link-preview entry URL.
  * Production meta points at the marketing API rotator (302 → one of {@link OG_SHARE_ROTATION_PATHS}).
- * Local/static fallback file: `public/og-share.png`.
+ * Local/static fallback file: `public/og-share.jpg` (1200×630).
  */
-export const SEO_IMAGE_PATH = "/og-share.png";
+export const SEO_IMAGE_PATH = "/og-share.jpg";
 
 /** AppSam3 marketing HttpApi (same host as Inside-the-Cortex lead capture). */
 const DEFAULT_OG_SHARE_API_URL =

@@ -45,11 +45,11 @@ export function RoleSidebar({
 
   return (
     <aside
-      className={`fixed inset-y-0 left-0 z-40 w-60 transform border-r border-slate-800/90 bg-[#050b14] pt-14 transition-transform md:static md:z-0 md:translate-x-0 md:pt-0 ${
+      className={`fixed inset-y-0 left-0 z-40 w-60 transform border-r bg-[var(--rc-surface)] pt-14 transition-transform md:static md:z-0 md:translate-x-0 md:pt-0 ${
         mobileOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"
       }`}
       style={{
-        borderRightColor: "color-mix(in srgb, var(--role-accent) 22%, rgb(30 41 59))",
+        borderRightColor: "var(--rc-border)",
         borderTop: "3px solid var(--role-accent)",
       }}
     >

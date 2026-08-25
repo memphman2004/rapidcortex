@@ -18,8 +18,9 @@ parameter_overrides = "DeploymentStage=dev RootDomainName=rapidcortex.us ApiSubd
 [staging.deploy.parameters]
 stack_name = "rapid-cortex-staging"
 resolve_s3 = true
-# Append HttpApiCorsAllowedOrigins=https://www.example.org,https://app.example.org (comma, no spaces) for real browsers.
-parameter_overrides = "DeploymentStage=staging RootDomainName=rapidcortex.us ApiSubdomainPrefix=api CognitoGenerateSecret=false CognitoCallbackUrls=rapidcortex://oauth/callback,rapidcortex-desktop://oauth/callback,rapidcortex-ios://oauth/callback,rapidcortex-windows://oauth/callback CognitoLogoutUrls=rapidcortex://logout/callback,rapidcortex-desktop://logout/callback,rapidcortex-ios://logout/callback,rapidcortex-windows://logout/callback"
+# Engineering stack. Do not use ApiSubdomainPrefix=api (live api.rapidcortex.us). Prefer scripts/deploy.sh
+# after sourcing env-api-staging.sh (ManageApiDomainDns=false, no Route53 on the API stack).
+parameter_overrides = "DeploymentStage=staging RootDomainName=rapidcortex.us ApiSubdomainPrefix=api-staging ManageApiDomainDns=false CognitoGenerateSecret=false CognitoCallbackUrls=rapidcortex://oauth/callback,rapidcortex-desktop://oauth/callback,rapidcortex-ios://oauth/callback,rapidcortex-windows://oauth/callback CognitoLogoutUrls=rapidcortex://logout/callback,rapidcortex-desktop://logout/callback,rapidcortex-ios://logout/callback,rapidcortex-windows://logout/callback"
 
 [prod]
 [prod.deploy.parameters]

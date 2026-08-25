@@ -6,8 +6,34 @@
 **Privacy:** https://www.rapidcortex.us/legal/privacy/  
 **Terms:** https://www.rapidcortex.us/legal/terms/  
 **Website:** https://www.rapidcortex.us  
+**Sub-processors:** https://www.rapidcortex.us/legal/sub-processors/  
 
 Use these answers in the Certify → **Privacy & Legal questionnaire** tabs. Adjust free-text if your counsel prefers different entity naming. Mark radio options to match the intent notes.
+
+---
+
+## Ring-flagged answers — paste these (replace any “Rapid Cortex should add…” placeholders)
+
+### Use of customer data for AI model training
+
+Rapid Cortex does not use customer data, incident data, call recordings, transcripts, or any personally identifiable information to train, fine-tune, or develop AI or machine learning models. AI functionality within Rapid Cortex is provided by third-party AI providers operating under data processing agreements that explicitly prohibit the use of customer data for model training purposes.
+
+### Data retention
+
+Incident and call data is retained for the duration of the agency's active subscription plus 90 days following contract termination, after which it is permanently deleted. Ring camera access tokens are deleted immediately upon account unlinking or subscription termination. Audit logs are retained for 7 years in compliance with public safety recordkeeping requirements. Users may request data deletion by contacting privacy@rapidcortex.us.
+
+Ring video from Connect is not stored by Rapid Cortex (0-day retention).
+
+### Data sharing with third parties and sub-processors
+
+Rapid Cortex shares data with the following categories of sub-processors to deliver the service:
+
+- Infrastructure: Amazon Web Services (AWS) — hosting, storage, compute
+- Communications: Twilio Inc. — SMS and voice messaging
+- Camera Integration: Ring LLC (Amazon) — device authorization and live video streaming, solely pursuant to user consent
+- AI Processing: Anthropic PBC — natural language processing and transcription analysis under a data processing agreement
+
+Rapid Cortex does not sell, rent, or share personal data with third parties for advertising, marketing, or any purpose other than delivering the contracted services. A complete list of sub-processors is available at https://www.rapidcortex.us/legal/sub-processors/.
 
 ---
 
@@ -59,7 +85,7 @@ Live video is streamed only after the owner taps **Allow** on that request. Rapi
 - Tokens stored in AWS Secrets Manager; agency-scoped DynamoDB records  
 
 **AI training on Ring data?**  
-No. Ring video/metadata from Connect is not used to train third-party or Rapid Cortex foundation models.
+No. Rapid Cortex does not use customer data, incident data, call recordings, transcripts, Ring video/metadata, or any personally identifiable information to train, fine-tune, or develop AI or machine learning models. AI features are provided by third-party providers (see sub-processors) under DPAs that prohibit using customer data for model training. Public policy: https://www.rapidcortex.us/legal/privacy/
 
 **Secondary uses**  
 None beyond providing Connect, security, audit, and support. No advertising, no sale of Ring data.
@@ -109,7 +135,7 @@ CloudWatch + DynamoDB audit records for Ring Connect actions.
 
 **Rights management**  
 - Consent: per-request SMS Allow  
-- Retention: Ring video not stored (0-day)  
+- Retention: Incident/call data for the active subscription plus 90 days after termination, then permanent deletion. Ring camera access tokens deleted immediately on unlink or termination. Audit logs retained 7 years. Ring video not stored (0-day). Deletion requests: privacy@rapidcortex.us  
 - DSAR / deletion: privacy@rapidcortex.us; owner disconnect via Ring My Apps; in-app Connect privacy section documents deletion  
 - Revocation: Stop Sharing SMS, dispatcher End Access, Ring My Apps remove app  
 
@@ -124,8 +150,12 @@ Privacy policy + terms published; support contact on listing and site.
 | Party | Why |
 |-------|-----|
 | AWS (infrastructure) | Hosting, secrets, live stream transport |
+| Twilio Inc. | SMS Allow/Decline/Stop Sharing messages to device owners |
+| Anthropic PBC | Agency telephony NLP/transcription (separate from Ring video; DPA prohibits training on customer data) |
 | Ring / Amazon Vision API | Device list, streaming after consent |
 | Participating public-safety agency (customer) | Only after owner Allow for that request; live view only |
+
+Public sub-processor list: https://www.rapidcortex.us/legal/sub-processors/
 
 **Vetting**  
 AWS as primary cloud; Ring as partner platform; agencies under MSA/pilot agreements.

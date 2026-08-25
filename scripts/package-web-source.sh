@@ -36,16 +36,17 @@ rm -f "${OUT_TMP}" "${OUT_FINAL}"
   done
 
   # Do not exclude apps/api/vendor-packs/*.tgz — workspace lockfile uses file: entries for npm ci in Docker.
-  zip -rq "${OUT_TMP}" "${INCLUDES[@]}" \
-    -x '*/node_modules/*' \
-    -x '*/*/.next/*' \
-    -x '*/dist/*' \
-    -x '*/coverage/*' \
-    -x '*/.git/*' \
-    -x '*.log' \
-    -x '*.dmg' \
-    -x '*.exe' \
-    -x '*.msi'
+  # Info-ZIP '*' never crosses '/'; -x '*node_modules*' will not prune trees. Use find -prune.
+  find packages apps \
+    \( -path '*/node_modules' -o -path '*/.war-room-staging' -o -path '*/.aws-sam' \
+       -o -path '*/.next' -o -path '*/coverage' -o -path '*/.git' \
+       -o -path '*/dist' -o -path 'results' \) -prune -o \
+    -type f ! -name '*.log' ! -name '*.dmg' ! -name '*.exe' ! -name '*.msi' -print \
+    | zip -rq "${OUT_TMP}" \
+      package.json package-lock.json tsconfig.base.json \
+      .web-docker-cache-bust Dockerfile.web buildspec.web.yml .dockerignore \
+      scripts/verify-host-routing.sh \
+      -@
 )
 
 mv -f "${OUT_TMP}" "${OUT_FINAL}"

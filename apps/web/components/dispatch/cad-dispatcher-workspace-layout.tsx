@@ -1,67 +1,58 @@
 "use client";
 
 import Link from "next/link";
-import { useCallback, useEffect, useMemo, useState, type ReactNode } from "react";
+import { useEffect, useMemo, useState, type ReactNode } from "react";
 import { useQuery } from "@tanstack/react-query";
 import type { AIAnalysis, AggregateConfidence, ConfidenceAnalysis, Incident, TranscriptSegment } from "rapid-cortex-shared";
 import { SlaStatusBar } from "@/components/dashboards/sla-status-bar";
-import { DispatcherIncidentPanelGrid } from "@/components/dispatch/dispatcher-incident-panel-grid";
+import { DispatcherIncidentWorkstationBody, DispatcherIncidentMapPanel } from "@/components/dispatch/dispatcher-incident-panel-grid";
+import { DispatcherQueueTable } from "@/components/dispatch/dispatcher-queue-table";
+import { WorkstationPanel } from "@/components/dispatch/workstation-panel";
+import {
+  startHorizontalResize,
+  useWorkstationPrefs,
+} from "@/lib/dispatcher/workstation-prefs";
 import { ConfidenceMiniBar } from "@/components/confidence/confidence-mini-bar";
-import { ChannelMonitorPanel } from "@/components/dispatch/channel-monitor-panel";
-import { IncidentJurisdictionSharePanel } from "@/components/dispatch/incident-jurisdiction-share-panel";
-import { IncidentQueue } from "@/components/dispatch/incident-queue";
 import { IncidentTimelineStrip } from "@/components/dispatch/incident-timeline-strip";
-import { TranscriptChunkPlayer } from "@/components/dispatch/transcript-chunk-player";
-import { DispatchActionPanel } from "@/components/dispatch/dispatch-action-panel";
-import { ManualModeButton } from "@/components/dashboards/dispatcher-workspace-panels";
-import { SupervisorAssistPanel } from "@/components/dashboards/dispatcher-workspace-panels";
 import { CadReadyPanel } from "@/components/dashboards/dispatcher-workspace-panels";
-import { CadWritebackButton } from "@/components/cad/cad-writeback-slide-over";
 import { NonEmergencyQueuePanel } from "@/components/triage/non-emergency-queue-panel";
-import { incidentToWritebackContext } from "@/lib/cad/writeback-ui";
-import { isCadWritebackUiEnabled } from "@/lib/runtime-flags";
 import { useSession } from "@/components/auth/session-context";
 import { isApiConfigured, fetchTriage } from "@/lib/api";
+import {
+  fetchCadUnitBoard,
+  formatEta,
+  formatStatusTimer,
+  mergeUnitBoard,
+  UNIT_STATUS_LABEL,
+  unitsFromCadRecords,
+  unitsFromIncidents,
+  type UnitBoardStatus,
+} from "@/lib/dispatcher/unit-board";
 import { formatRelativeOpened } from "@/lib/format";
 import { useJurisdictionLink } from "@/lib/jurisdiction-context";
 import { TriageBadge } from "@/components/triage/triage-badge";
 import { isFieldConfidenceEnabled, isNonEmergencyTriageEnabled, isRcsEnabled } from "@/lib/runtime-flags";
 import { canManageRcsCall, canViewRcsMonitor } from "@/lib/rcs/rcs-authz";
 import { RcsSilentMonitorTrigger } from "@/components/rcs/RcsSilentMonitorTrigger";
+import { EscalationInbox } from "@/components/dispatcher/escalation-inbox";
+import { PreCallRmsContext } from "@/components/dispatcher/pre-call-rms-context";
+import { useRegisterDispatcherModuleRail } from "@/components/dispatch/dispatcher-module-rail-context";
 
 const CAD = {
-  bg: "#0a0f1a",
-  panel: "#111827",
-  border: "#1f2937",
-  text: "#f9fafb",
-  muted: "#6b7280",
-  p1: "#ef4444",
-  p2: "#f59e0b",
-  p3: "#3b82f6",
-  avail: "#10b981",
-  busy: "#ef4444",
-  enroute: "#f97316",
-  onscene: "#3b82f6",
-  offduty: "#6b7280",
+  bg: "var(--rc-workstation-bg)",
+  panel: "var(--rc-panel-bg)",
+  border: "var(--rc-border)",
+  text: "var(--rc-text)",
+  muted: "var(--rc-text-muted)",
+  p1: "var(--p1-color)",
+  p2: "var(--p2-color)",
+  p3: "var(--p3-color)",
+  avail: "var(--rc-green)",
+  busy: "var(--rc-red)",
+  enroute: "var(--rc-amber)",
+  onscene: "var(--rc-blue)",
+  offduty: "var(--rc-text-muted)",
 } as const;
-
-type UnitRow = { id: string; status: keyof typeof unitStatusLabel; beat: string; updated: string };
-
-const unitStatusLabel = {
-  AVAILABLE: "AVAILABLE",
-  BUSY: "BUSY",
-  EN_ROUTE: "EN ROUTE",
-  ON_SCENE: "ON SCENE",
-  OFF_DUTY: "OFF DUTY",
-} as const;
-
-const DEMO_UNITS: UnitRow[] = [
-  { id: "101", status: "AVAILABLE", beat: "4A", updated: "00:12" },
-  { id: "204", status: "EN_ROUTE", beat: "2C", updated: "01:03" },
-  { id: "312", status: "ON_SCENE", beat: "7B", updated: "03:41" },
-  { id: "415", status: "BUSY", beat: "1D", updated: "00:45" },
-  { id: "502", status: "OFF_DUTY", beat: "—", updated: "—" },
-];
 
 function priorityFromUrgency(u: Incident["urgency"]): { label: string; color: string } {
   if (u === "critical") return { label: "P1", color: CAD.p1 };
@@ -69,18 +60,16 @@ function priorityFromUrgency(u: Incident["urgency"]): { label: string; color: st
   return { label: "P3", color: CAD.p3 };
 }
 
-function unitBadgeColor(s: UnitRow["status"]): string {
+function unitDotColor(s: UnitBoardStatus): string {
   switch (s) {
     case "AVAILABLE":
-      return CAD.avail;
-    case "BUSY":
-      return CAD.busy;
-    case "EN_ROUTE":
-      return CAD.enroute;
+      return "var(--rc-green)";
     case "ON_SCENE":
-      return CAD.onscene;
+      return "var(--rc-blue)";
+    case "OFF_DUTY":
+      return "var(--rc-text-dim)";
     default:
-      return CAD.offduty;
+      return "var(--rc-amber)";
   }
 }
 
@@ -145,7 +134,7 @@ function CadActionBarButton({
   title?: string;
 }) {
   const cls =
-    "inline-flex shrink-0 items-center justify-center rounded border border-[#1f2937] bg-[#111827] px-2.5 py-1.5 font-mono text-[11px] font-semibold uppercase tracking-wide text-[#f9fafb] hover:border-[#374151] hover:bg-[#1f2937] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-sky-500";
+    "ws-toolbar-btn inline-flex shrink-0 items-center justify-center focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-sky-500";
   if (href) {
     return (
       <Link href={href} className={cls} title={title}>
@@ -169,6 +158,8 @@ function CadActiveIncidentCard({
   analysis: AIAnalysis | null;
   fieldConfidenceAggregate?: AggregateConfidence | null;
 }) {
+  const clock = useLiveClock();
+  void clock;
   const triageEnabled = Boolean(incident) && isNonEmergencyTriageEnabled() && isApiConfigured();
   const triageQuery = useQuery({
     queryKey: ["triage", incident?.incidentId ?? "none"],
@@ -190,24 +181,21 @@ function CadActiveIncidentCard({
     );
   }
   const pr = priorityFromUrgency(analysis?.urgency ?? incident.urgency);
+  const elapsed = elapsedSince(incident.createdAt);
+  const priClass = pr.label === "P1" ? "p1" : pr.label === "P2" ? "p2" : "p3";
 
   return (
     <div
-      className="shrink-0 border-b px-3 py-3"
+      className="shrink-0 border-b px-3 py-2"
       style={{ borderColor: CAD.border, background: CAD.panel }}
     >
       <div className="flex flex-wrap items-start justify-between gap-2">
-        <div className="min-w-0 space-y-1">
+        <div className="min-w-0 space-y-0.5">
           <div className="flex flex-wrap items-center gap-2">
             <span className="font-mono text-sm font-bold tracking-tight" style={{ color: CAD.text }}>
-              CAD #{incident.incidentId}
+              INC #{incident.incidentId}
             </span>
-            <span
-              className="rounded px-1.5 py-0.5 font-mono text-[10px] font-bold"
-              style={{ backgroundColor: `${pr.color}22`, color: pr.color, border: `1px solid ${pr.color}55` }}
-            >
-              {pr.label}
-            </span>
+            <span className={`ws-priority ${priClass}`}>{pr.label}</span>
             {triageEnabled ? (
               <TriageBadge
                 incidentId={incident.incidentId}
@@ -232,11 +220,13 @@ function CadActiveIncidentCard({
         <dl className="shrink-0 space-y-1 text-right font-mono text-[11px]" style={{ color: CAD.muted }}>
           <div>
             <dt className="text-[9px] uppercase tracking-wide">Elapsed</dt>
-            <dd className="text-[#f9fafb]">{elapsedSince(incident.createdAt)}</dd>
+            <dd className="font-mono text-base font-bold tabular-nums" style={{ color: "var(--rc-red)" }}>
+              {elapsed}
+            </dd>
           </div>
           <div>
             <dt className="text-[9px] uppercase tracking-wide">Callback</dt>
-            <dd className="text-[#f9fafb]">—</dd>
+            <dd style={{ color: "var(--rc-text)" }}>—</dd>
           </div>
         </dl>
       </div>
@@ -353,69 +343,6 @@ function CadIncidentsTable({
   );
 }
 
-function CadCollapsibleCadForm({ incident }: { incident: Incident | null }) {
-  const [open, setOpen] = useState(true);
-  const [nature, setNature] = useState("");
-  const [location, setLocation] = useState("");
-  const [notes, setNotes] = useState("");
-
-  useEffect(() => {
-    if (!incident) return;
-    setNature(incident.category.replace(/_/g, " "));
-    setLocation(incident.callerAddressLine ?? "");
-    setNotes("");
-  }, [incident?.incidentId, incident]);
-
-  return (
-    <div className="shrink-0 border-t" style={{ borderColor: CAD.border, background: CAD.panel }}>
-      <button
-        type="button"
-        onClick={() => setOpen((o) => !o)}
-        className="flex w-full items-center justify-between px-3 py-2 font-mono text-[11px] font-bold uppercase tracking-wide"
-        style={{ color: CAD.text }}
-      >
-        <span>CAD entry</span>
-        <span style={{ color: CAD.muted }}>{open ? "−" : "+"}</span>
-      </button>
-      {open ? (
-        <div className="space-y-2 border-t px-3 pb-3 pt-2" style={{ borderColor: CAD.border }}>
-          <label className="block font-mono text-[9px] font-semibold uppercase" style={{ color: CAD.muted }}>
-            Nature code
-            <input
-              value={nature}
-              onChange={(e) => setNature(e.target.value)}
-              disabled={!incident}
-              className="mt-1 w-full rounded border px-2 py-1.5 font-mono text-xs outline-none focus:ring-1 focus:ring-sky-500"
-              style={{ borderColor: CAD.border, background: CAD.bg, color: CAD.text }}
-            />
-          </label>
-          <label className="block font-mono text-[9px] font-semibold uppercase" style={{ color: CAD.muted }}>
-            Location
-            <input
-              value={location}
-              onChange={(e) => setLocation(e.target.value)}
-              disabled={!incident}
-              className="mt-1 w-full rounded border px-2 py-1.5 font-mono text-xs outline-none focus:ring-1 focus:ring-sky-500"
-              style={{ borderColor: CAD.border, background: CAD.bg, color: CAD.text }}
-            />
-          </label>
-          <label className="block font-mono text-[9px] font-semibold uppercase" style={{ color: CAD.muted }}>
-            Notes
-            <textarea
-              value={notes}
-              onChange={(e) => setNotes(e.target.value)}
-              disabled={!incident}
-              rows={3}
-              className="mt-1 w-full resize-y rounded border px-2 py-1.5 font-mono text-xs outline-none focus:ring-1 focus:ring-sky-500"
-              style={{ borderColor: CAD.border, background: CAD.bg, color: CAD.text }}
-            />
-          </label>
-        </div>
-      ) : null}
-    </div>
-  );
-}
-
 export function CadDispatcherWorkspaceLayout({
   trainingBanner,
   liveEmptyBanner,
@@ -441,9 +368,6 @@ export function CadDispatcherWorkspaceLayout({
   detailLoading,
   selectedIdForPanels,
   showCallerCard,
-  showChannelMonitor = false,
-  showSharePanel,
-  shareOwnerAgencyId,
   analysisError,
   analysisLoading,
   isRefreshingAi,
@@ -494,7 +418,6 @@ export function CadDispatcherWorkspaceLayout({
   const clock = useLiveClock();
   const shift = useShiftElapsedLabel();
   const { user } = useSession();
-  const writebackUi = isCadWritebackUiEnabled();
 
   const activeTable = useMemo(() => queueIncidents.filter((i) => i.status === "active"), [queueIncidents]);
   const pendingTable = useMemo(
@@ -502,42 +425,83 @@ export function CadDispatcherWorkspaceLayout({
     [queueIncidents],
   );
 
-  const scrollTo = useCallback((id: string) => {
-    document.getElementById(id)?.scrollIntoView({ behavior: "smooth", block: "start" });
-  }, []);
-
   const apiLive = isApiConfigured();
+  const prefs = useWorkstationPrefs();
+  useRegisterDispatcherModuleRail(prefs.dock, prefs.openDockModule);
+
+  const cadUnitsQuery = useQuery({
+    queryKey: ["cad-units"],
+    queryFn: fetchCadUnitBoard,
+    enabled: apiLive,
+    refetchInterval: 15_000,
+    retry: false,
+  });
+
+  const unitBoard = useMemo(() => {
+    const fromIncidents = unitsFromIncidents(queueIncidents);
+    const fromCad = unitsFromCadRecords(cadUnitsQuery.data ?? [], queueIncidents);
+    return mergeUnitBoard(fromCad, fromIncidents);
+  }, [queueIncidents, cadUnitsQuery.data]);
+
+  const unitBoardSource =
+    (cadUnitsQuery.data?.length ?? 0) > 0 ? "CAD" : unitBoard.length > 0 ? "LIVE" : null;
+
+  const cadEntryHref = incidentForUi
+    ? `${to("/cad")}?incident=${encodeURIComponent(incidentForUi.incidentId)}`
+    : to("/cad");
+
+  useEffect(() => {
+    const applyHash = () => {
+      const hash = window.location.hash.replace(/^#/, "");
+      if (hash === "cad-transcript") prefs.openDockModule("transcript");
+      if (hash === "cad-intelligence") prefs.openDockModule("incident_picture");
+    };
+    applyHash();
+    window.addEventListener("hashchange", applyHash);
+    return () => window.removeEventListener("hashchange", applyHash);
+  }, [prefs.openDockModule]);
+
+  const p1 = queueIncidents.filter((i) => i.urgency === "critical").length;
+  const p2 = queueIncidents.filter((i) => i.urgency === "high").length;
+  const p3 = queueIncidents.length - p1 - p2;
 
   return (
-    <div className="dispatcher-workspace flex h-full min-h-0 w-full flex-col" style={{ background: CAD.bg, color: CAD.text }}>
+    <div className="dispatcher-workspace flex h-full min-h-0 w-full flex-col overflow-hidden" style={{ background: "var(--rc-workstation-bg)", color: "var(--rc-text)" }}>
+      <EscalationInbox agencyId={user?.agencyId} />
+      {incidentForUi ? (
+        <div className="shrink-0 px-2 pt-1">
+          <PreCallRmsContext
+            address={incidentForUi.callerAddressLine ?? incidentForUi.cadLocation}
+            phone={incidentForUi.callerCallback}
+          />
+        </div>
+      ) : null}
       {trainingBanner}
       {liveEmptyBanner}
       {loadErrorBanner}
 
-      {/* Top action bar */}
-      <header
-        className="flex shrink-0 flex-wrap items-center justify-between gap-2 border-b px-2 py-1.5"
-        style={{ borderColor: CAD.border, background: CAD.panel }}
-      >
+      <header className="ws-toolbar shrink-0">
         <div className="flex min-w-0 flex-1 flex-wrap items-center gap-1.5">
           {createIncidentAction ?? (
-            <CadActionBarButton href={to("/command")} title="Open command workspace (⌘ shortcut TBD)">
-              New incident
+            <CadActionBarButton href={to("/command")} title="Open command workspace">
+              + New incident
             </CadActionBarButton>
           )}
-          <CadActionBarButton onClick={() => scrollTo("cad-intelligence")} title="Scroll to transcript & movable panels">
+          <CadActionBarButton onClick={() => prefs.openDockModule("transcript")} title="Focus transcript">
             Take call
           </CadActionBarButton>
-          <CadActionBarButton href={to("/cad")} title="CAD entry workspace">
+          <span className="ws-toolbar-sep" aria-hidden />
+          <CadActionBarButton href={cadEntryHref} title="CAD entry — assign units and nature code">
             CAD entry
           </CadActionBarButton>
-          <CadActionBarButton onClick={() => scrollTo("cad-intelligence")} title="Review AI / BOLO context">
+          <CadActionBarButton onClick={() => prefs.openDockModule("incident_picture")} title="Review AI / BOLO context">
             BOLO
           </CadActionBarButton>
-          <CadActionBarButton href={to("/dispatcher")} title="Unit-centric dispatcher console">
+          <CadActionBarButton href={cadEntryHref} title="Assign units on the selected incident (CAD entry)">
             Unit status
           </CadActionBarButton>
-          <CadActionBarButton onClick={() => scrollTo("cad-intelligence")} title="Notifications & intelligence">
+          <span className="ws-toolbar-sep" aria-hidden />
+          <CadActionBarButton onClick={() => prefs.openDockModule("incident_picture")} title="Notifications & intelligence">
             Notifications
           </CadActionBarButton>
           {isRcsEnabled() && user && canViewRcsMonitor(user, user.agencyId) ? (
@@ -601,73 +565,74 @@ export function CadDispatcherWorkspaceLayout({
           <NonEmergencyQueuePanel enabled />
         </div>
       ) : (
-      <div className="flex min-h-0 min-h-[20rem] flex-1 flex-col overflow-hidden lg:flex-row">
-        {/* Left 25% — units + my queue */}
-        <div
-          className="flex h-[min(32vh,18rem)] shrink-0 flex-col border-b lg:h-auto lg:w-[25%] lg:min-w-[220px] lg:max-w-[320px] lg:shrink-0 lg:border-b-0 lg:border-r"
-          style={{ borderColor: CAD.border, background: CAD.panel }}
-        >
-          <div className="border-b px-2 py-1.5" style={{ borderColor: CAD.border }}>
-            <h3 className="font-mono text-[10px] font-bold uppercase tracking-wider" style={{ color: CAD.muted }}>
-              Available units
-            </h3>
+      <div
+        className="dispatcher-cad-body min-h-0 flex-1"
+        data-max={prefs.maximized ?? ""}
+        style={{
+          gridTemplateColumns:
+            prefs.maximized === "map"
+              ? "0px 0px 0px 0px minmax(0, 1fr)"
+              : `${prefs.queueWidth}px 4px minmax(0, 1fr) 4px ${prefs.contextWidth}px`,
+        }}
+      >
+        <div className="flex min-h-0 flex-col overflow-hidden" style={{ background: "var(--rc-panel-bg)", borderRight: "1px solid var(--rc-border)" }}>
+          <div className="ws-panel-header secondary shrink-0">
+            Unit board
+            <span className="ml-auto font-mono text-[9px]">
+              {unitBoardSource ? `${unitBoardSource} · ` : null}
+              {unitBoard.length} units
+            </span>
           </div>
-          <div className="max-h-40 overflow-y-auto border-b lg:max-h-none lg:flex-none" style={{ borderColor: CAD.border }}>
-            <table className="w-full border-collapse font-mono text-[10px]">
-              <thead>
-                <tr style={{ color: CAD.muted }}>
-                  <th className="border-b px-1.5 py-1 text-left font-semibold" style={{ borderColor: CAD.border }}>
-                    Unit
-                  </th>
-                  <th className="border-b px-1 py-1 text-left font-semibold" style={{ borderColor: CAD.border }}>
-                    Status
-                  </th>
-                  <th className="border-b px-1 py-1 text-left font-semibold" style={{ borderColor: CAD.border }}>
-                    Beat
-                  </th>
-                  <th className="border-b px-1 py-1 text-left font-semibold" style={{ borderColor: CAD.border }}>
-                    Upd
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                {DEMO_UNITS.map((u) => (
-                  <tr key={u.id} className="border-b" style={{ borderColor: CAD.border }}>
-                    <td className="px-1.5 py-1 font-mono font-bold" style={{ color: CAD.text }}>
-                      {u.id}
-                    </td>
-                    <td className="px-1 py-1">
-                      <span
-                        className="inline-block rounded px-1 py-0.5 text-[8px] font-bold"
-                        style={{
-                          color: unitBadgeColor(u.status),
-                          border: `1px solid ${unitBadgeColor(u.status)}55`,
-                          background: `${unitBadgeColor(u.status)}12`,
-                        }}
-                      >
-                        {unitStatusLabel[u.status]}
-                      </span>
-                    </td>
-                    <td className="px-1 py-1 text-xs text-slate-300 tabular-nums">
-                      {u.beat}
-                    </td>
-                    <td className="px-1 py-1 text-xs text-slate-300 tabular-nums">
-                      {u.updated}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+          <div className="max-h-[28%] min-h-[72px] overflow-y-auto border-b" style={{ borderColor: "var(--rc-border)" }}>
+            {unitBoard.length === 0 ? (
+              <p className="px-2 py-2 font-mono text-[10px] leading-relaxed text-[var(--rc-text-muted)]">
+                No units on live calls. Select an incident, open <span className="text-[var(--rc-text)]">CAD entry</span>,
+                add unit IDs, and save. CAD unit feed (when connected) updates this board automatically.
+              </p>
+            ) : (
+              unitBoard.map((u) => {
+                const selected = Boolean(u.incidentId && u.incidentId === selectedId);
+                return (
+                  <button
+                    key={`${u.source}-${u.id}`}
+                    type="button"
+                    className={`ws-unit-row w-full text-left ${selected ? "selected" : ""}`}
+                    title={u.incidentId ? "Open assigned incident" : undefined}
+                    onClick={() => {
+                      if (u.incidentId) onSelectIncident(u.incidentId);
+                    }}
+                  >
+                    <span className="truncate font-bold">{u.id}</span>
+                    <span className="flex items-center gap-1.5 truncate text-[11px] text-[var(--rc-text-muted)]">
+                      <span className="status-dot" style={{ background: unitDotColor(u.status) }} />
+                      {UNIT_STATUS_LABEL[u.status]}
+                    </span>
+                    <span className="truncate tabular-nums text-[var(--rc-text-muted)]">{u.beat}</span>
+                    <span className="tabular-nums text-[var(--rc-text-muted)]">{formatEta(u.etaSeconds)}</span>
+                    <span className="tabular-nums text-[var(--rc-text-muted)]">
+                      {formatStatusTimer(u.updatedAt, clock.getTime())}
+                    </span>
+                  </button>
+                );
+              })
+            )}
+          </div>
+          <div className="ws-panel-header secondary shrink-0">
+            Queue
+            <span className="ml-auto font-mono text-[9px]">
+              P1:{p1} P2:{p2} P3:{p3}
+            </span>
           </div>
           {showNonEmergencyTabs ? (
-            <div className="flex border-b" style={{ borderColor: CAD.border }}>
+            <div className="flex shrink-0 border-b" style={{ borderColor: "var(--rc-border)" }}>
               <button
                 type="button"
                 onClick={() => onQueueTabChange("all")}
-                className="flex-1 px-2 py-1.5 font-mono text-[10px] font-bold uppercase"
+                className="flex-1 border-r px-2 py-1 font-mono text-[10px] font-bold uppercase"
                 style={{
-                  background: queueTab === "all" ? CAD.bg : "transparent",
-                  color: queueTab === "all" ? CAD.text : CAD.muted,
+                  borderColor: "var(--rc-border)",
+                  background: queueTab === "all" ? "var(--rc-panel-selected)" : "transparent",
+                  color: queueTab === "all" ? "var(--rc-text)" : "var(--rc-text-muted)",
                 }}
               >
                 All
@@ -675,53 +640,48 @@ export function CadDispatcherWorkspaceLayout({
               <button
                 type="button"
                 onClick={() => onQueueTabChange("non_emergency")}
-                className="flex-1 px-2 py-1.5 font-mono text-[10px] font-bold uppercase"
+                className="flex-1 px-2 py-1 font-mono text-[10px] font-bold uppercase"
                 style={{
-                  background: queueTab === "non_emergency" ? CAD.bg : "transparent",
-                  color: queueTab === "non_emergency" ? CAD.text : CAD.muted,
+                  background: queueTab === "non_emergency" ? "var(--rc-panel-selected)" : "transparent",
+                  color: queueTab === "non_emergency" ? "var(--rc-text)" : "var(--rc-text-muted)",
                 }}
               >
                 Non-emergency
               </button>
             </div>
           ) : null}
-          <IncidentQueue
-            incidents={queueIncidents}
-            selectedId={selectedId}
-            onSelect={onSelectIncident}
-            isLoading={incidentsLoading}
-            compact
-            emptyHint={queueEmptyHint}
-            sectionTitle="My queue"
-            outerClassName="flex min-h-0 min-h-0 flex-1 flex-col bg-transparent"
-            selectedFieldConfidenceAggregate={
-              isFieldConfidenceEnabled() ? fieldConfidenceAggregate : null
-            }
-          />
+          <div className="min-h-0 flex-1 overflow-y-auto">
+            <DispatcherQueueTable
+              incidents={queueIncidents}
+              selectedId={selectedId}
+              onSelect={onSelectIncident}
+              isLoading={incidentsLoading}
+              emptyHint={queueEmptyHint}
+              selectedFieldConfidenceAggregate={
+                isFieldConfidenceEnabled() ? fieldConfidenceAggregate : null
+              }
+            />
+          </div>
         </div>
 
-        {/* Center 50% */}
         <div
-          id="cad-center"
-          className="flex min-h-0 min-w-0 flex-1 flex-col overflow-y-auto border-b lg:min-w-0 lg:max-w-none lg:flex-1 lg:border-b-0 lg:border-r"
-          style={{ borderColor: CAD.border, background: CAD.bg }}
-        >
-          <CadActiveIncidentCard
-            incident={incidentForUi}
-            analysis={analysisForUi}
-            fieldConfidenceAggregate={fieldConfidenceAggregate}
-          />
-          <div className="shrink-0 [&>div]:border-[#1f2937] [&>div]:bg-[#111827]">
-            <IncidentTimelineStrip incident={incidentForUi ?? undefined} segments={transcriptSegments} analysis={analysisForUi ?? undefined} />
-          </div>
-          {languageBar}
-          <div
-            id="cad-intelligence"
-            className="min-h-0 shrink-0 scroll-mt-2 border-b"
-            style={{ borderColor: CAD.border, background: CAD.bg }}
-          >
-            <DispatcherIncidentPanelGrid
-              userId={user?.userId ?? ""}
+          className="ws-resize-x hidden lg:block"
+          role="separator"
+          aria-orientation="vertical"
+          onMouseDown={(e) => startHorizontalResize(e.clientX, prefs.queueWidth, false, prefs.setQueueWidth)}
+        />
+
+        <div id="cad-center" className="relative flex min-h-0 min-w-0 flex-col overflow-hidden">
+          <div className="incident-workspace min-h-0 flex-1" style={{ gridTemplateRows: "auto minmax(0, 1fr)" }}>
+            <div className="shrink-0">
+              <CadActiveIncidentCard
+                incident={incidentForUi}
+                analysis={analysisForUi}
+                fieldConfidenceAggregate={fieldConfidenceAggregate}
+              />
+              <IncidentTimelineStrip incident={incidentForUi ?? undefined} segments={transcriptSegments} analysis={analysisForUi ?? undefined} />
+            </div>
+            <DispatcherIncidentWorkstationBody
               incidentId={selectedIdForPanels}
               incident={incidentForUi}
               analysis={analysisForUi}
@@ -738,69 +698,43 @@ export function CadDispatcherWorkspaceLayout({
               onTranscriptAutoScrollChange={onTranscriptAutoScrollChange}
               transcriptStreaming={transcriptStreaming}
               transcriptLoading={detailLoading && transcriptLoading}
-            />
-          </div>
-          {showChannelMonitor && selectedIdForPanels ? (
-            <div className="shrink-0 border-b p-2" style={{ borderColor: CAD.border, background: CAD.panel }}>
-              <ChannelMonitorPanel incidentId={selectedIdForPanels} />
-            </div>
-          ) : null}
-          {showSharePanel && selectedIdForPanels && shareOwnerAgencyId ? (
-            <div className="shrink-0 border-b p-2" style={{ borderColor: CAD.border, background: CAD.panel }}>
-              <IncidentJurisdictionSharePanel incidentId={selectedIdForPanels} ownerAgencyId={shareOwnerAgencyId} />
-            </div>
-          ) : null}
-          <CadCollapsibleCadForm incident={incidentForUi} />
-          <div
-            className="flex shrink-0 flex-wrap items-center gap-2 border-t px-2 py-2"
-            style={{ borderColor: CAD.border, background: CAD.panel }}
-          >
-            {writebackUi && incidentForUi ? (
-              <CadWritebackButton
-                incidentId={incidentForUi.incidentId}
-                incident={incidentToWritebackContext(incidentForUi)}
-                userRole={user?.role}
-                pictureStatus={fieldConfidenceAggregate?.pictureStatus ?? null}
-              />
-            ) : (
-              <Link
-                href={to("/admin/cad")}
-                className="inline-flex items-center rounded border border-[#2563eb] bg-[#2563eb] px-3 py-1.5 font-mono text-[11px] font-bold uppercase text-white hover:bg-[#3b82f6]"
-              >
-                Submit to CAD
-              </Link>
-            )}
-            <ManualModeButton />
-            <button
-              type="button"
-              onClick={() => scrollTo("dispatch-actions")}
-              className="inline-flex items-center rounded border border-[#1f2937] bg-[#111827] px-3 py-1.5 font-mono text-[11px] font-bold uppercase text-[#f9fafb] hover:border-amber-500/50 hover:text-amber-200"
-            >
-              Flag
-            </button>
-          </div>
-          <div className="min-h-0 shrink-0 overflow-y-auto border-t p-2" style={{ borderColor: CAD.border, background: CAD.panel }}>
-            <SupervisorAssistPanel />
-          </div>
-          <div id="dispatch-actions" className="min-h-0 shrink-0 overflow-y-auto border-t p-2" style={{ borderColor: CAD.border, background: CAD.panel }}>
-            <DispatchActionPanel
-              incidentId={selectedIdForPanels}
-              incident={incidentForUi}
-              analysis={analysisForUi}
-              disabled={analysisLoading}
+              collapsed={prefs.collapsed}
+              maximized={prefs.maximized}
+              onToggleCollapse={prefs.toggleCollapsed}
+              onToggleMaximize={prefs.toggleMaximize}
+              languageBar={languageBar}
+              dock={prefs.dock}
+              onToggleDockSplit={prefs.toggleDockSplit}
+              onSwapDockSlots={prefs.swapDockSlots}
+              onFocusDockSlot={prefs.focusDockSlot}
+              onCloseDockSlot={prefs.closeDockSlot}
             />
           </div>
         </div>
 
-        {/* Right 25% — incident queues only */}
         <div
-          className="flex min-h-0 w-full flex-col overflow-hidden lg:w-[25%] lg:min-w-[240px] lg:max-w-[380px]"
-          style={{ background: CAD.panel, borderColor: CAD.border }}
-        >
-          <div className="shrink-0 border-b p-2" style={{ borderColor: CAD.border }}>
+          className="ws-resize-x hidden lg:block"
+          role="separator"
+          aria-orientation="vertical"
+          onMouseDown={(e) => startHorizontalResize(e.clientX, prefs.contextWidth, true, prefs.setContextWidth)}
+        />
+
+        <div className="flex min-h-0 flex-col overflow-hidden" style={{ background: "var(--rc-panel-bg)", borderLeft: "1px solid var(--rc-border)" }}>
+          <WorkstationPanel
+            name="map"
+            title="Map"
+            collapsed={prefs.collapsed.map}
+            maximized={prefs.maximized === "map"}
+            onToggleCollapse={() => prefs.toggleCollapsed("map")}
+            onToggleMaximize={() => prefs.toggleMaximize("map")}
+            bodyClassName="!p-0 min-h-[220px] h-[280px]"
+          >
+            <DispatcherIncidentMapPanel incidentId={selectedIdForPanels} incident={incidentForUi} />
+          </WorkstationPanel>
+          <div className="shrink-0 border-b p-2" style={{ borderColor: "var(--rc-border)" }}>
             <CadReadyPanel incident={incidentForUi} />
           </div>
-          <div className="grid min-h-0 min-h-[12rem] flex-1 grid-rows-2 gap-0 border-t lg:border-t-0" style={{ borderColor: CAD.border }}>
+          <div className="grid min-h-0 flex-1 grid-rows-2 overflow-hidden">
             <CadIncidentsTable
               title="Active incidents"
               incidents={activeTable.length ? activeTable : queueIncidents}

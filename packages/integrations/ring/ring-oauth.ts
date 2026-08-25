@@ -35,13 +35,25 @@ export function decodeRingOAuthState(encoded: string): RingOAuthState {
   return parseOAuthState(encoded);
 }
 
-/** Allow only Ring-owned HTTPS return URLs (Appstore OAuth completion). */
+/** Custom schemes Ring Appstore / Alexa use to complete OAuth in the native app. */
+const RING_APPSTORE_RETURN_PROTOCOLS = new Set(["ring:", "amazonstores:", "alexa:"]);
+const RING_RETURN_URL_MAX_LENGTH = 2048;
+
+/**
+ * Allow Ring-owned HTTPS return URLs and native Appstore callback schemes.
+ * Rejecting `ring://` here drops `ringReturnUrl` from OAuth state, so callback
+ * never redirects back to Ring and the Appstore stays on "Sign In".
+ */
 export function normalizeRingReturnUrl(raw: string | null | undefined): string | null {
   const trimmed = raw?.trim();
-  if (!trimmed) return null;
+  if (!trimmed || trimmed.length > RING_RETURN_URL_MAX_LENGTH) return null;
   try {
     const url = new URL(trimmed);
-    if (url.protocol !== "https:") return null;
+    const protocol = url.protocol.toLowerCase();
+    if (RING_APPSTORE_RETURN_PROTOCOLS.has(protocol)) {
+      return trimmed;
+    }
+    if (protocol !== "https:") return null;
     const host = url.hostname.toLowerCase();
     if (host !== "ring.com" && !host.endsWith(".ring.com")) return null;
     return url.toString();

@@ -17,8 +17,9 @@ describe("runtime feature flags", () => {
   it("keeps CAD write-back off unless explicitly enabled", async () => {
     vi.stubEnv("NEXT_PUBLIC_ENABLE_PILOT_TEST_MODE", "1");
     vi.stubEnv("NEXT_PUBLIC_ENABLE_CAD_WRITEBACK", "");
-    const { isCadWritebackUiEnabled } = await import("./runtime-flags");
+    const { isCadWritebackUiEnabled, isCadNatureMappingUiEnabled } = await import("./runtime-flags");
     expect(isCadWritebackUiEnabled()).toBe(false);
+    expect(isCadNatureMappingUiEnabled()).toBe(true);
   });
 
   it("enables CAD write-back only when explicitly set", async () => {

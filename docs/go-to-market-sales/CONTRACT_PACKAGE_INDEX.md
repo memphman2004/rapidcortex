@@ -72,6 +72,7 @@ Send as a zip or secure link when security/legal asks before signature:
 
 | Artifact | Location | Status |
 |----------|----------|--------|
+| RFP cybersecurity & implementation pack | [rfp/README.md](../rfp/README.md) | Complete procedures — **not** certification |
 | Security questionnaire responses (draft) | [SECURITY_QUESTIONNAIRE_RESPONSES.md](../security-compliance/SECURITY_QUESTIONNAIRE_RESPONSES.md) | Draft — customize per RFP |
 | Subprocessor list | [SUBPROCESSOR_LIST.md](../security-compliance/SUBPROCESSOR_LIST.md) | Draft — review quarterly |
 | Security model (technical) | [SECURITY_MODEL.md](../security-compliance/SECURITY_MODEL.md) | Product |

@@ -7,13 +7,20 @@ build-function:
 	mkdir -p "$(ARTIFACTS_DIR)"
 	COPYFILE_DISABLE=1 cp -R dist package.json "$(ARTIFACTS_DIR)/"
 	if [ -d assets ]; then COPYFILE_DISABLE=1 cp -R assets "$(ARTIFACTS_DIR)/"; fi
+	if [ -d src ]; then \
+	  find src -name '*.json' | while read -r f; do \
+	    rel="$${f#src/}"; \
+	    mkdir -p "$(ARTIFACTS_DIR)/dist/$$(dirname "$$rel")"; \
+	    COPYFILE_DISABLE=1 cp "$$f" "$(ARTIFACTS_DIR)/dist/$$rel"; \
+	  done; \
+	fi
 	if [ -z "$${SAM4_LEAN_BUILD}$${SAM_LEAN_BUILD}" ]; then \
 	  _src="$${SAM_NODE_MODULES_SRC:-node_modules}"; \
 	  mkdir -p "$(ARTIFACTS_DIR)/node_modules"; \
 	  if [ -n "$${SAM_NODE_MODULES_HARDLINK}" ]; then \
 	    COPYFILE_DISABLE=1 cp -al "$${_src}/." "$(ARTIFACTS_DIR)/node_modules/"; \
 	  else \
-	    COPYFILE_DISABLE=1 rsync -a "$${_src}/" "$(ARTIFACTS_DIR)/node_modules/"; \
+	    COPYFILE_DISABLE=1 rsync -aL "$${_src}/" "$(ARTIFACTS_DIR)/node_modules/"; \
 	  fi; \
 	fi
 
@@ -21,12 +28,19 @@ build-function:
 	mkdir -p "$(ARTIFACTS_DIR)"
 	COPYFILE_DISABLE=1 cp -R dist package.json "$(ARTIFACTS_DIR)/"
 	if [ -d assets ]; then COPYFILE_DISABLE=1 cp -R assets "$(ARTIFACTS_DIR)/"; fi
+	if [ -d src ]; then \
+	  find src -name '*.json' | while read -r f; do \
+	    rel="$${f#src/}"; \
+	    mkdir -p "$(ARTIFACTS_DIR)/dist/$$(dirname "$$rel")"; \
+	    COPYFILE_DISABLE=1 cp "$$f" "$(ARTIFACTS_DIR)/dist/$$rel"; \
+	  done; \
+	fi
 	if [ -z "$${SAM4_LEAN_BUILD}$${SAM_LEAN_BUILD}" ]; then \
 	  _src="$${SAM_NODE_MODULES_SRC:-node_modules}"; \
 	  mkdir -p "$(ARTIFACTS_DIR)/node_modules"; \
 	  if [ -n "$${SAM_NODE_MODULES_HARDLINK}" ]; then \
 	    COPYFILE_DISABLE=1 cp -al "$${_src}/." "$(ARTIFACTS_DIR)/node_modules/"; \
 	  else \
-	    COPYFILE_DISABLE=1 rsync -a "$${_src}/" "$(ARTIFACTS_DIR)/node_modules/"; \
+	    COPYFILE_DISABLE=1 rsync -aL "$${_src}/" "$(ARTIFACTS_DIR)/node_modules/"; \
 	  fi; \
 	fi

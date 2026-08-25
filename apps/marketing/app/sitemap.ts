@@ -5,7 +5,7 @@ import { absoluteUrl } from "@/lib/seo";
 export const dynamic = "force-static";
 
 /** Bumped when the public route set changes (forces crawlers to re-fetch). */
-const STABLE_LAST_MODIFIED = new Date("2026-08-11T00:00:00.000Z");
+const STABLE_LAST_MODIFIED = new Date("2026-08-17T00:00:00.000Z");
 
 type RouteEntry = {
   path: string;
@@ -25,6 +25,7 @@ const PUBLIC_ROUTES: RouteEntry[] = [
   { path: "/about", changeFrequency: "monthly", priority: 0.65 },
   { path: "/careers", changeFrequency: "weekly", priority: 0.7 },
   { path: "/pricing", changeFrequency: "weekly", priority: 0.9 },
+  { path: "/grants", changeFrequency: "weekly", priority: 0.9 },
   { path: "/security", changeFrequency: "monthly", priority: 0.7 },
   { path: "/trust", changeFrequency: "monthly", priority: 0.65 },
   { path: "/press", changeFrequency: "monthly", priority: 0.5 },
@@ -79,8 +80,11 @@ const PUBLIC_ROUTES: RouteEntry[] = [
   { path: "/developers/roi", changeFrequency: "monthly", priority: 0.5 },
   { path: "/developers/status", changeFrequency: "weekly", priority: 0.45 },
 
-  // Legal / compliance (canonical privacy/terms — not /legal/* stubs)
+  // Legal / compliance
   { path: "/legal/dpa", changeFrequency: "monthly", priority: 0.4 },
+  { path: "/legal/privacy", changeFrequency: "monthly", priority: 0.55 },
+  { path: "/legal/terms", changeFrequency: "monthly", priority: 0.55 },
+  { path: "/legal/sub-processors", changeFrequency: "monthly", priority: 0.5 },
   { path: "/privacy", changeFrequency: "monthly", priority: 0.55 },
   { path: "/terms", changeFrequency: "monthly", priority: 0.55 },
   { path: "/cookies", changeFrequency: "monthly", priority: 0.35 },

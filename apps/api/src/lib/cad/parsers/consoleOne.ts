@@ -23,7 +23,7 @@ export const consoleOneCadParser: CadParser = {
       `X-RC-Token: …${tp}`,
       "Optional integrity: X-RC-Signature: sha256=<hex> (HMAC-SHA256 of raw body, key=plaintext token).",
       "",
-      "Use JSON incident payloads with incident_id, nature, address, priority, and assigned_units when available.",
+      "Use JSON incident payloads with id / displayId / incident_id, type / nature, address, priority, and units / assigned_units when available.",
     ].join("\n");
   },
 };

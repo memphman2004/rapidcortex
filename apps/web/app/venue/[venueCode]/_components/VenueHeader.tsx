@@ -1,6 +1,7 @@
 "use client";
 
 import { CampusDashboardHeaderUtilities } from "@/components/campus/campus-dashboard-header-utilities";
+import { ThemeToggle } from "@/components/ui/ThemeToggle";
 
 const roleLabelMap: Record<string, string> = {
   VENUE_ADMIN: "VENUE ADMIN",
@@ -27,34 +28,34 @@ export function VenueHeader({
     <header
       className="rounded-lg px-4 py-3"
       style={{
-        background: "#0e0c1a",
-        border: "1px solid rgba(245,158,11,0.28)",
+        background: "var(--rc-surface)",
+        border: "1px solid var(--rc-border)",
       }}
     >
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <p
             className="text-xs uppercase tracking-wide"
-            style={{ color: "rgba(245,158,11,0.85)" }}
+            style={{ color: "var(--rc-amber)" }}
           >
             Rapid Cortex Venue
           </p>
           <div className="mt-1 flex flex-wrap items-center gap-2">
-            <h1 className="text-xl font-bold" style={{ color: "#e4dff5" }}>
+            <h1 className="text-xl font-bold" style={{ color: "var(--rc-text-primary)" }}>
               {venueCode}
             </h1>
             <span
               className="rounded-full px-2.5 py-1 text-xs font-semibold"
               style={{
-                border: "1px solid rgba(245,158,11,0.4)",
-                background: "rgba(245,158,11,0.15)",
-                color: "#fcd34d",
+                border: "1px solid var(--rc-amber-border)",
+                background: "var(--rc-amber-dim)",
+                color: "var(--rc-amber)",
               }}
             >
               {roleLabel}
             </span>
           </div>
-          <p className="mt-1 text-sm" style={{ color: "#7c6fa0" }}>
+          <p className="mt-1 text-sm" style={{ color: "var(--rc-text-muted)" }}>
             {role === "VENUE_GUEST_SERVICES"
               ? "Guest services inbox"
               : role === "VENUE_OPERATOR"
@@ -62,7 +63,12 @@ export function VenueHeader({
                 : "Game day operations console"}
           </p>
         </div>
-        <CampusDashboardHeaderUtilities email={userEmail} role={role} agencyId={agencyId} />
+        <CampusDashboardHeaderUtilities
+          email={userEmail}
+          role={role}
+          agencyId={agencyId}
+          leadingSlot={<ThemeToggle variant="inline" />}
+        />
       </div>
     </header>
   );

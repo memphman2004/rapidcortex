@@ -47,6 +47,22 @@ export const PERSON_TITLES_BY_VERTICAL: Record<RapidIqVertical, string[]> = {
 
 export const MAX_CONTACTS = 5;
 
+export type ContactProviderTrace = {
+  provider: "hunter" | "apollo";
+  domain: string;
+  httpStatus: number;
+  rawHits: number;
+  kept: number;
+  droppedByTitle?: number;
+  droppedByConfidence?: number;
+  error?: string;
+};
+
+export type ContactProviderResult = {
+  contacts: Omit<RapidIqContact, "opportunityId">[];
+  traces: ContactProviderTrace[];
+};
+
 export type ContactEnrichInput = {
   agencyName: string;
   city: string;
@@ -94,7 +110,7 @@ export function collectAgencyDomains(candidateUrls: string[] = []): string[] {
     }
   }
 
-  return [...govEdu, ...other].slice(0, 3);
+  return [...govEdu.slice(0, 3), ...other.slice(0, 2)];
 }
 
 /** @deprecated alias — prefer collectAgencyDomains */

@@ -23,6 +23,14 @@ Parameters:
   RootDomainName:
     Type: String
     Default: rapidcortex.us
+  AppSubdomainPrefix:
+    Type: String
+    Default: app
+    AllowedPattern: "^[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?$"
+    Description: >-
+      CloudFront / Route53 hostname prefix for SSR (app.rapidcortex.us in live, app-staging.rapidcortex.us
+      for the engineering stack). ViewerCertificateArn must include this FQDN. Never point a staging stack at `app`
+      — that alias is live production.
   AttachCloudFrontAliases:
     Type: String
     Default: "true"
@@ -35,7 +43,8 @@ Parameters:
     Default: "true"
     AllowedValues: ["true", "false"]
     Description: >-
-      When true, CloudFront alias app subdomain (e.g. app.rapidcortex.us for SSR while marketing owns apex/www).
+      When true, CloudFront alias {AppSubdomainPrefix}.{RootDomainName} (e.g. app.rapidcortex.us live, or
+      app-staging.rapidcortex.us for engineering).
   AttachReportSubdomainAlias:
     Type: String
     Default: "false"
@@ -144,6 +153,22 @@ Parameters:
     Type: String
     Default: ""
     Description: GenerateGrantPackage Lambda ARN for ECS task-role invoke permission.
+  GrantWriterFunctionName:
+    Type: String
+    Default: ""
+    Description: >-
+      GrantWriterHttp Lambda name. When set, web BFF invokes it directly
+      (bypasses API Gateway 30s limit). Anthropic key stays in Secrets Manager on the Lambda.
+  GrantWriterFunctionArn:
+    Type: String
+    Default: ""
+    Description: GrantWriterHttp Lambda ARN for ECS task-role invoke permission.
+  AnthropicApiKeySecretArn:
+    Type: String
+    Default: ""
+    Description: >-
+      Unused on ECS after grant writer moved to Lambda. Kept so existing parameter overrides do not fail.
+      Anthropic is loaded in GrantWriterHttp / GenerateGrantPackage via Secrets Manager ARN.
   CognitoUserPoolId:
     Type: String
   CognitoClientId:
@@ -229,6 +254,8 @@ Conditions:
   HasApiBaseUrl5: !Not [!Equals [!Ref ApiBaseUrl5, ""]]
   HasGrantGenerateFunction: !Not [!Equals [!Ref GrantGenerateFunctionName, ""]]
   HasGrantGenerateFunctionArn: !Not [!Equals [!Ref GrantGenerateFunctionArn, ""]]
+  HasGrantWriterFunction: !Not [!Equals [!Ref GrantWriterFunctionName, ""]]
+  HasGrantWriterFunctionArn: !Not [!Equals [!Ref GrantWriterFunctionArn, ""]]
   ManageRoute53AliasRecords:
     Fn::And:
       - !Condition AttachApexWwwAliases
@@ -366,9 +393,9 @@ Resources:
           Value: "true"
         - Key: deletion_protection.enabled
           Value: !Ref AlbDeletionProtectionEnabled
-        # Grant PDF BFF→Lambda can take ~60s; keep ALB idle above that.
+        # Grant Success Program SSE + Claude can take 30–70s; 300s idle avoids ALB drops.
         - Key: idle_timeout.timeout_seconds
-          Value: "90"
+          Value: "300"
 
   WebTargetGroup:
     Type: AWS::ElasticLoadBalancingV2::TargetGroup
@@ -383,6 +410,9 @@ Resources:
       HealthCheckProtocol: HTTP
       Matcher:
         HttpCode: 200-499
+      TargetGroupAttributes:
+        - Key: deregistration_delay.timeout_seconds
+          Value: "30"
 
   WebAlbHttpsListener:
     Type: AWS::ElasticLoadBalancingV2::Listener
@@ -445,6 +475,14 @@ Resources:
                   Action:
                     - lambda:InvokeFunction
                   Resource: !Ref GrantGenerateFunctionArn
+                - !Ref AWS::NoValue
+              - !If
+                - HasGrantWriterFunctionArn
+                - Sid: GrantWriterInvoke
+                  Effect: Allow
+                  Action:
+                    - lambda:InvokeFunction
+                  Resource: !Ref GrantWriterFunctionArn
                 - !Ref AWS::NoValue
               # ECS Exec (SSM Session Manager) — these ssmmessages actions do not support resource-level
               # restriction (AWS requires Resource: "*"); this is the minimum AWS-documented policy for
@@ -540,6 +578,11 @@ Resources:
               - Name: GRANT_GENERATE_FUNCTION_NAME
                 Value: !Ref GrantGenerateFunctionName
               - !Ref AWS::NoValue
+            - !If
+              - HasGrantWriterFunction
+              - Name: GRANT_WRITER_FUNCTION_NAME
+                Value: !Ref GrantWriterFunctionName
+              - !Ref AWS::NoValue
             - Name: NEXT_PUBLIC_API_BASE
               Value: !Ref ApiBaseUrl
             - Name: NEXT_PUBLIC_SITE_URL
@@ -609,146 +652,54 @@ Resources:
             ModeBlock: true
             Override: true
 
-  # Agency IP allowlist — CLOUDFRONT scope (must live in us-east-1 with the CDN ACL).
-  AgencyAllowlistIPSetCdn:
-    Type: AWS::WAFv2::IPSet
-    Properties:
-      Name: !Sub ${AppName}-agency-allowlist-cdn-${DeploymentStage}
-      Scope: CLOUDFRONT
-      IPAddressVersion: IPV4
-      Addresses: !Ref AgencyAllowlistCIDRs
-      Tags:
-        - Key: App
-          Value: !Ref AppName
-        - Key: Stage
-          Value: !Ref DeploymentStage
-        - Key: Purpose
-          Value: AgencyNetworkAllowlist
-
   CdnWebAcl:
     Type: AWS::WAFv2::WebACL
     Properties:
       Name: !Sub ${AppName}-web-cdn-${DeploymentStage}
       Scope: CLOUDFRONT
-      Description: >-
-        RC CDN WAF: agency allowlist, US/CA geo (block), anonymous/VPN monitor (count),
-        managed rules, rate limit. Site access is not VPN-gated; VPN only where agencies need it.
       DefaultAction:
         Allow: {}
       VisibilityConfig:
         CloudWatchMetricsEnabled: true
         MetricName: !Sub ${AppName}-web-cdn-${DeploymentStage}
         SampledRequestsEnabled: true
-      CustomResponseBodies:
-        GeoBlockedBody:
-          ContentType: APPLICATION_JSON
-          Content: '{"error":"ACCESS_RESTRICTED","message":"This service is only available in authorized regions."}'
-        RateLimitedBody:
-          ContentType: APPLICATION_JSON
-          Content: '{"error":"RATE_LIMITED","message":"Too many requests. Please slow down."}'
       Rules:
-        # Priority 0: known agency networks bypass subsequent blocks
-        - Name: AllowKnownAgencyIPs
-          Priority: 0
-          Action:
-            Allow: {}
-          Statement:
-            IPSetReferenceStatement:
-              ARN: !GetAtt AgencyAllowlistIPSetCdn.Arn
-          VisibilityConfig:
-            CloudWatchMetricsEnabled: true
-            MetricName: !Sub ${AppName}AllowedAgencyIPs
-            SampledRequestsEnabled: true
-
-        # Priority 1: North America only (US + CA)
-        - Name: GeoRestrictToNorthAmerica
-          Priority: 1
-          Action:
-            Block:
-              CustomResponse:
-                ResponseCode: 403
-                CustomResponseBodyKey: GeoBlockedBody
-          Statement:
-            NotStatement:
-              Statement:
-                GeoMatchStatement:
-                  CountryCodes:
-                    - US
-                    - CA
-          VisibilityConfig:
-            CloudWatchMetricsEnabled: true
-            MetricName: !Sub ${AppName}GeoBlocked
-            SampledRequestsEnabled: true
-
-        # Priority 2: VPN / Tor / anonymizers — Count only (do not gate site on VPN).
-        # Geo US/CA is the access boundary; agency IP allowlist is the "VPN/network as needed" bypass.
-        - Name: MonitorAnonymousIPs
-          Priority: 2
-          OverrideAction:
-            Count: {}
-          Statement:
-            ManagedRuleGroupStatement:
-              VendorName: AWS
-              Name: AWSManagedRulesAnonymousIpList
-          VisibilityConfig:
-            CloudWatchMetricsEnabled: true
-            MetricName: !Sub ${AppName}AnonymousIPBlocked
-            SampledRequestsEnabled: true
-
-        # Priority 3: Core OWASP-ish rules (large SSR/upload bodies → Count)
         - Name: AWSManagedRulesCommonRuleSet
-          Priority: 3
-          OverrideAction:
-            None: {}
+          Priority: 1
           Statement:
             ManagedRuleGroupStatement:
               VendorName: AWS
               Name: AWSManagedRulesCommonRuleSet
-              RuleActionOverrides:
-                - Name: SizeRestrictions_BODY
-                  ActionToUse:
-                    Count: {}
+          OverrideAction: { None: {} }
           VisibilityConfig:
             CloudWatchMetricsEnabled: true
             MetricName: common-rules
             SampledRequestsEnabled: true
-
-        # Priority 4: Known bad inputs (Log4j, SSRF, …)
         - Name: AWSManagedRulesKnownBadInputsRuleSet
-          Priority: 4
-          OverrideAction:
-            None: {}
+          Priority: 2
           Statement:
             ManagedRuleGroupStatement:
               VendorName: AWS
               Name: AWSManagedRulesKnownBadInputsRuleSet
+          OverrideAction: { None: {} }
           VisibilityConfig:
             CloudWatchMetricsEnabled: true
             MetricName: known-bad-inputs
             SampledRequestsEnabled: true
-
-        # Priority 5: Amazon IP reputation
         - Name: AWSManagedRulesAmazonIpReputationList
-          Priority: 5
-          OverrideAction:
-            None: {}
+          Priority: 3
           Statement:
             ManagedRuleGroupStatement:
               VendorName: AWS
               Name: AWSManagedRulesAmazonIpReputationList
+          OverrideAction: { None: {} }
           VisibilityConfig:
             CloudWatchMetricsEnabled: true
             MetricName: ip-reputation
             SampledRequestsEnabled: true
-
-        # Priority 6: Per-IP rate limit
         - Name: PerIpRateLimit
-          Priority: 6
-          Action:
-            Block:
-              CustomResponse:
-                ResponseCode: 429
-                CustomResponseBodyKey: RateLimitedBody
+          Priority: 4
+          Action: { Block: {} }
           Statement:
             RateBasedStatement:
               AggregateKeyType: IP
@@ -757,112 +708,6 @@ Resources:
             CloudWatchMetricsEnabled: true
             MetricName: rate-limit
             SampledRequestsEnabled: true
-
-  WafCdnLogGroup:
-    Type: AWS::Logs::LogGroup
-    Properties:
-      LogGroupName: !Sub aws-waf-logs-${AppName}-cdn-${DeploymentStage}
-      RetentionInDays: !Ref WafLogRetentionDays
-
-  CdnWebAclLoggingConfiguration:
-    Type: AWS::WAFv2::LoggingConfiguration
-    Properties:
-      ResourceArn: !GetAtt CdnWebAcl.Arn
-      LogDestinationConfigs:
-        - !GetAtt WafCdnLogGroup.Arn
-      LoggingFilter:
-        DefaultBehavior: DROP
-        Filters:
-          - Behavior: KEEP
-            Requirement: MEETS_ANY
-            Conditions:
-              - ActionCondition:
-                  Action: BLOCK
-              - ActionCondition:
-                  Action: COUNT
-
-  WafSecurityAlertsTopic:
-    Type: AWS::SNS::Topic
-    Properties:
-      TopicName: !Sub ${AppName}-waf-security-alerts-${DeploymentStage}
-      DisplayName: Rapid Cortex WAF Security Alerts
-
-  WafSecurityAlertsEmailSubscription:
-    Type: AWS::SNS::Subscription
-    Condition: HasWafSecurityAlertEmail
-    Properties:
-      TopicArn: !Ref WafSecurityAlertsTopic
-      Protocol: email
-      Endpoint: !Ref WafSecurityAlertEmail
-
-  AlarmWafAnonymousIpBlocks:
-    Type: AWS::CloudWatch::Alarm
-    Properties:
-      AlarmName: !Sub ${AppName}-waf-vpn-proxy-blocks-${DeploymentStage}
-      AlarmDescription: High volume of VPN/proxy matches on CDN WAF (count mode — not site-blocking)
-      Namespace: AWS/WAFV2
-      MetricName: BlockedRequests
-      Dimensions:
-        - Name: WebACL
-          Value: !Sub ${AppName}-web-cdn-${DeploymentStage}
-        - Name: Region
-          Value: CloudFront
-        - Name: Rule
-          Value: !Sub ${AppName}AnonymousIPBlocked
-      Statistic: Sum
-      Period: 300
-      EvaluationPeriods: 1
-      Threshold: 50
-      ComparisonOperator: GreaterThanThreshold
-      TreatMissingData: notBreaching
-      AlarmActions:
-        - !Ref WafSecurityAlertsTopic
-
-  AlarmWafRateLimit:
-    Type: AWS::CloudWatch::Alarm
-    Properties:
-      AlarmName: !Sub ${AppName}-waf-rate-limit-${DeploymentStage}
-      AlarmDescription: CDN WAF per-IP rate limit triggered
-      Namespace: AWS/WAFV2
-      MetricName: BlockedRequests
-      Dimensions:
-        - Name: WebACL
-          Value: !Sub ${AppName}-web-cdn-${DeploymentStage}
-        - Name: Region
-          Value: CloudFront
-        - Name: Rule
-          Value: rate-limit
-      Statistic: Sum
-      Period: 300
-      EvaluationPeriods: 1
-      Threshold: 100
-      ComparisonOperator: GreaterThanThreshold
-      TreatMissingData: notBreaching
-      AlarmActions:
-        - !Ref WafSecurityAlertsTopic
-
-  AlarmWafGeoBlocks:
-    Type: AWS::CloudWatch::Alarm
-    Properties:
-      AlarmName: !Sub ${AppName}-waf-geo-blocks-${DeploymentStage}
-      AlarmDescription: High volume of geo-blocked requests on CDN WAF
-      Namespace: AWS/WAFV2
-      MetricName: BlockedRequests
-      Dimensions:
-        - Name: WebACL
-          Value: !Sub ${AppName}-web-cdn-${DeploymentStage}
-        - Name: Region
-          Value: CloudFront
-        - Name: Rule
-          Value: !Sub ${AppName}GeoBlocked
-      Statistic: Sum
-      Period: 300
-      EvaluationPeriods: 1
-      Threshold: 25
-      ComparisonOperator: GreaterThanThreshold
-      TreatMissingData: notBreaching
-      AlarmActions:
-        - !Ref WafSecurityAlertsTopic
 
   WebCdnDistribution:
     Type: AWS::CloudFront::Distribution
@@ -875,18 +720,18 @@ Resources:
             - UseApexWwwAndAppAliases
             - - !Ref RootDomainName
               - !Sub www.${RootDomainName}
-              - !Sub app.${RootDomainName}
+              - !Sub ${AppSubdomainPrefix}.${RootDomainName}
             - Fn::If:
               - UseApexWwwOnly
               - - !Ref RootDomainName
                 - !Sub www.${RootDomainName}
               - Fn::If:
                 - UseAppOnlyWithReport
-                - - !Sub app.${RootDomainName}
+                - - !Sub ${AppSubdomainPrefix}.${RootDomainName}
                   - !Sub report.${RootDomainName}
                 - Fn::If:
                   - UseAppOnly
-                  - - !Sub app.${RootDomainName}
+                  - - !Sub ${AppSubdomainPrefix}.${RootDomainName}
                   - Fn::If:
                     - AttachReportSubdomain
                     - - !Sub report.${RootDomainName}
@@ -898,7 +743,8 @@ Resources:
             CustomOriginConfig:
               HTTPPort: 80
               OriginProtocolPolicy: http-only
-              OriginReadTimeout: 90
+              # CloudFront custom origin read timeout max is 60s without a quota increase (180 was rejected).
+              OriginReadTimeout: 60
               OriginKeepaliveTimeout: 5
         # Prefer not to cache authenticated/sensitive `/api/*` at the CDN (avoid stale 404/JSON).
         CacheBehaviors:
@@ -909,6 +755,86 @@ Resources:
             CachedMethods: [GET, HEAD]
             Compress: true
             CachePolicyId: 4135ea2d-6df8-44a3-9df3-4b5a84be39ad
+            OriginRequestPolicyId: 216adef6-5c7f-47e4-b989-5492eafa07d3
+            ResponseHeadersPolicyId: !Ref CdnResponseHeadersPolicy
+          # Next.js content-hashes every filename under /_next/static/* on each build, so a cached
+          # response can never go stale — a changed file always gets a new URL. Safe to cache at the edge.
+          - PathPattern: "/_next/static/*"
+            TargetOriginId: AlbOrigin
+            ViewerProtocolPolicy: redirect-to-https
+            AllowedMethods: [GET, HEAD]
+            CachedMethods: [GET, HEAD]
+            Compress: true
+            CachePolicyId: 658327ea-f89d-4fab-a63d-7e88639e58f6 # AWS managed: CachingOptimized
+            OriginRequestPolicyId: 216adef6-5c7f-47e4-b989-5492eafa07d3
+            ResponseHeadersPolicyId: !Ref CdnResponseHeadersPolicy
+          - PathPattern: "/favicon.ico"
+            TargetOriginId: AlbOrigin
+            ViewerProtocolPolicy: redirect-to-https
+            AllowedMethods: [GET, HEAD]
+            CachedMethods: [GET, HEAD]
+            Compress: true
+            CachePolicyId: 658327ea-f89d-4fab-a63d-7e88639e58f6 # AWS managed: CachingOptimized
+            OriginRequestPolicyId: 216adef6-5c7f-47e4-b989-5492eafa07d3
+            ResponseHeadersPolicyId: !Ref CdnResponseHeadersPolicy
+          # Static brand/marketing assets under public/Logo — not content-hashed, but CachingOptimized
+          # respects origin Cache-Control and otherwise caps at its own DefaultTTL (1 day), so a
+          # same-day update at worst serves stale for the remainder of that day, not indefinitely.
+          - PathPattern: "/Logo/*"
+            TargetOriginId: AlbOrigin
+            ViewerProtocolPolicy: redirect-to-https
+            AllowedMethods: [GET, HEAD]
+            CachedMethods: [GET, HEAD]
+            Compress: true
+            CachePolicyId: 658327ea-f89d-4fab-a63d-7e88639e58f6 # AWS managed: CachingOptimized
+            OriginRequestPolicyId: 216adef6-5c7f-47e4-b989-5492eafa07d3
+            ResponseHeadersPolicyId: !Ref CdnResponseHeadersPolicy
+          # Root-level static public/ image assets (marketing hero/OG images etc.). Same staleness
+          # bound as above. Deliberately excludes manifest.json and sw.js — a cached stale service
+          # worker file would block future deploys from reaching clients.
+          - PathPattern: "*.png"
+            TargetOriginId: AlbOrigin
+            ViewerProtocolPolicy: redirect-to-https
+            AllowedMethods: [GET, HEAD]
+            CachedMethods: [GET, HEAD]
+            Compress: true
+            CachePolicyId: 658327ea-f89d-4fab-a63d-7e88639e58f6 # AWS managed: CachingOptimized
+            OriginRequestPolicyId: 216adef6-5c7f-47e4-b989-5492eafa07d3
+            ResponseHeadersPolicyId: !Ref CdnResponseHeadersPolicy
+          - PathPattern: "*.webp"
+            TargetOriginId: AlbOrigin
+            ViewerProtocolPolicy: redirect-to-https
+            AllowedMethods: [GET, HEAD]
+            CachedMethods: [GET, HEAD]
+            Compress: true
+            CachePolicyId: 658327ea-f89d-4fab-a63d-7e88639e58f6 # AWS managed: CachingOptimized
+            OriginRequestPolicyId: 216adef6-5c7f-47e4-b989-5492eafa07d3
+            ResponseHeadersPolicyId: !Ref CdnResponseHeadersPolicy
+          - PathPattern: "*.jpg"
+            TargetOriginId: AlbOrigin
+            ViewerProtocolPolicy: redirect-to-https
+            AllowedMethods: [GET, HEAD]
+            CachedMethods: [GET, HEAD]
+            Compress: true
+            CachePolicyId: 658327ea-f89d-4fab-a63d-7e88639e58f6 # AWS managed: CachingOptimized
+            OriginRequestPolicyId: 216adef6-5c7f-47e4-b989-5492eafa07d3
+            ResponseHeadersPolicyId: !Ref CdnResponseHeadersPolicy
+          - PathPattern: "*.jpeg"
+            TargetOriginId: AlbOrigin
+            ViewerProtocolPolicy: redirect-to-https
+            AllowedMethods: [GET, HEAD]
+            CachedMethods: [GET, HEAD]
+            Compress: true
+            CachePolicyId: 658327ea-f89d-4fab-a63d-7e88639e58f6 # AWS managed: CachingOptimized
+            OriginRequestPolicyId: 216adef6-5c7f-47e4-b989-5492eafa07d3
+            ResponseHeadersPolicyId: !Ref CdnResponseHeadersPolicy
+          - PathPattern: "*.svg"
+            TargetOriginId: AlbOrigin
+            ViewerProtocolPolicy: redirect-to-https
+            AllowedMethods: [GET, HEAD]
+            CachedMethods: [GET, HEAD]
+            Compress: true
+            CachePolicyId: 658327ea-f89d-4fab-a63d-7e88639e58f6 # AWS managed: CachingOptimized
             OriginRequestPolicyId: 216adef6-5c7f-47e4-b989-5492eafa07d3
             ResponseHeadersPolicyId: !Ref CdnResponseHeadersPolicy
         DefaultCacheBehavior:
@@ -982,7 +908,7 @@ Resources:
     Type: AWS::Route53::RecordSet
     Properties:
       HostedZoneId: !Ref Route53HostedZoneId
-      Name: !Sub app.${RootDomainName}.
+      Name: !Sub ${AppSubdomainPrefix}.${RootDomainName}.
       Type: A
       AliasTarget:
         DNSName: !GetAtt WebCdnDistribution.DomainName
@@ -994,7 +920,7 @@ Resources:
     Type: AWS::Route53::RecordSet
     Properties:
       HostedZoneId: !Ref Route53HostedZoneId
-      Name: !Sub app.${RootDomainName}.
+      Name: !Sub ${AppSubdomainPrefix}.${RootDomainName}.
       Type: AAAA
       AliasTarget:
         DNSName: !GetAtt WebCdnDistribution.DomainName
@@ -1090,12 +1016,3 @@ Outputs:
   CdnWebAclArn:
     Description: CloudFront WAF WebACL ARN attached to the SSR distribution
     Value: !GetAtt CdnWebAcl.Arn
-  AgencyAllowlistIPSetCdnArn:
-    Description: CDN-scope agency allowlist IP set (update CIDRs via stack parameter)
-    Value: !GetAtt AgencyAllowlistIPSetCdn.Arn
-  WafSecurityAlertsTopicArn:
-    Description: SNS topic for CDN WAF CloudWatch alarms
-    Value: !Ref WafSecurityAlertsTopic
-  WafCdnLogGroupName:
-    Description: CloudWatch log group for CDN WAF BLOCK/COUNT samples
-    Value: !Ref WafCdnLogGroup

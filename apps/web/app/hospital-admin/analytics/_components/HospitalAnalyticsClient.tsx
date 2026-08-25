@@ -24,7 +24,7 @@ export function HospitalAnalyticsClient({
   ];
 
   return (
-    <div className="min-h-screen bg-slate-950 text-white">
+    <div className="min-h-screen bg-[var(--rc-bg)] text-[var(--rc-text-primary)]">
       <div className="px-6 py-8">
         <div className="mb-6 flex items-start justify-between">
           <div>

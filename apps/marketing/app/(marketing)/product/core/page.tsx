@@ -4,7 +4,7 @@ import Link from "next/link";
 import { absoluteUrl, buildOrganizationJsonLd } from "@/lib/seo";
 
 const CORE_HERO = {
-  src: "/911Marketing.png",
+  src: "/images/911-hero.webp",
   width: 1672,
   height: 941,
   alt: "Rapid Cortex Core — 911 dispatch floor, live transcription, and emergency response coordination",

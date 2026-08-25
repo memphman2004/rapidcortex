@@ -100,12 +100,12 @@ export function HospitalRoutingClient({ agencyId, canEdit }: { agencyId: string;
   });
 
   if (isLoading) return (
-    <div className="flex min-h-screen items-center justify-center bg-slate-950">
+    <div className="flex min-h-screen items-center justify-center bg-[var(--rc-bg)]">
       <Loader2 className="h-5 w-5 animate-spin text-slate-600" />
     </div>
   );
   if (isError) return (
-    <div className="flex min-h-screen items-center justify-center bg-slate-950">
+    <div className="flex min-h-screen items-center justify-center bg-[var(--rc-bg)]">
       <p className="text-sm text-rose-400">Failed to load routing configuration.</p>
     </div>
   );
@@ -113,7 +113,7 @@ export function HospitalRoutingClient({ agencyId, canEdit }: { agencyId: string;
   const fieldClass = `w-full rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 text-sm text-white focus:border-teal-500 focus:outline-none ${!canEdit ? "cursor-not-allowed opacity-50" : ""}`;
 
   return (
-    <div className="min-h-screen bg-slate-950 text-white">
+    <div className="min-h-screen bg-[var(--rc-bg)] text-[var(--rc-text-primary)]">
       <div className="mx-auto max-w-2xl px-6 py-8">
         <div className="mb-6">
           <p className="text-xs font-medium uppercase tracking-widest text-teal-600">Hospital Portal</p>

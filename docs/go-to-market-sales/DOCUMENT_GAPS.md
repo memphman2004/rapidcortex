@@ -16,7 +16,8 @@
 | LEG-009 | Per-vendor CAD SOW | P1 | GAP | NEEDS OWNER | GA-013 |
 | LEG-010 | Pen-test SOW / report | P2 | GAP | NEEDS OWNER | Acceptable-use references pen-test SOW |
 | LEG-011 | SOC 2 report | P2 | N/A | — | Third-party audit only |
-| OPS-001 | Security questionnaire pack | P1 | **DRAFT** | SE / security | [SECURITY_QUESTIONNAIRE_RESPONSES.md](../security-compliance/SECURITY_QUESTIONNAIRE_RESPONSES.md) |
+| OPS-001 | Security questionnaire pack | P1 | **DRAFT** | SE / security | [SECURITY_QUESTIONNAIRE_RESPONSES.md](../security-compliance/SECURITY_QUESTIONNAIRE_RESPONSES.md) — customize per RFP |
+| OPS-013 | RFP cybersecurity + implementation pack | P1 | **DONE** | — | [rfp/README.md](../rfp/README.md); still not CJIS/SOC2 certification |
 | OPS-002 | Subprocessor list | P1 | **DRAFT** | SE / security | [SUBPROCESSOR_LIST.md](../security-compliance/SUBPROCESSOR_LIST.md) |
 | OPS-003 | Supervisor pilot checklist | P2 | **DONE** | — | [PILOT_SUPERVISOR_CHECKLIST.md](../training/PILOT_SUPERVISOR_CHECKLIST.md) |
 | OPS-004 | Contract package index | P2 | **DONE** | — | [CONTRACT_PACKAGE_INDEX.md](./CONTRACT_PACKAGE_INDEX.md) |

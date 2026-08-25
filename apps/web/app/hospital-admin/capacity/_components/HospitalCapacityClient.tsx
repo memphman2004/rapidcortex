@@ -189,7 +189,7 @@ export function HospitalCapacityClient({
 
   if (isLoading) {
     return (
-      <div className="flex h-full min-h-screen items-center justify-center bg-slate-950">
+      <div className="flex h-full min-h-screen items-center justify-center bg-[var(--rc-bg)]">
         <Loader2 className="h-6 w-6 animate-spin text-slate-500" />
       </div>
     );
@@ -197,14 +197,14 @@ export function HospitalCapacityClient({
 
   if (isError || !data) {
     return (
-      <div className="flex h-full min-h-screen items-center justify-center bg-slate-950">
+      <div className="flex h-full min-h-screen items-center justify-center bg-[var(--rc-bg)]">
         <p className="text-sm text-rose-400">Failed to load capacity data.</p>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-slate-950 text-white">
+    <div className="min-h-screen bg-[var(--rc-bg)] text-[var(--rc-text-primary)]">
       <div className="mx-auto max-w-4xl px-6 py-8">
         <div className="mb-8">
           <p className="text-xs font-medium uppercase tracking-widest text-teal-600">

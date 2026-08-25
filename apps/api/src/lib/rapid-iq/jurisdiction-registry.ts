@@ -26,6 +26,8 @@ export interface Jurisdiction {
   intervalHours: number;
   agendaBaseUrl: string;
   agendaPathHints: string[];
+  /** Optional purchasing / bid-board paths. County/city crawls also merge DEFAULT_PROCUREMENT_PATHS. */
+  procurementPathHints?: string[];
   lastScannedAt: string;
   lastSignalAt: string | null;
   totalSignalsFound: number;
@@ -1775,6 +1777,32 @@ export const ALL_JURISDICTIONS: JurisdictionSeed[] = [
     agendaPathHints: ["/commission/agendas", "/meetings"],
     isActive: true,
     notes: null,
+  },
+  {
+    jurisdictionId: "county#GA#bibb",
+    type: "county",
+    name: "Macon-Bibb County",
+    stateCode: "GA",
+    stateName: "Georgia",
+    population: 153159,
+    tier: 2 as ScanTier,
+    tierWeight: 2.0,
+    intervalHours: 48,
+    agendaBaseUrl: "https://www.maconbibb.us",
+    agendaPathHints: [
+      "/bids",
+      "/27-006-lh-next-generation-9-1-1-esinet-and-public-safety-communications-modernization-8-27-26",
+      "/commission/agendas",
+      "/agendas-minutes",
+    ],
+    isActive: true,
+    notes:
+      "Consolidated city-county. NG911 ESInet RFP 27-006-LH (due 2026-08-27). Harris P25 + Symphony consoles + Tyler CAD.",
+    contactUrls: [
+      "https://www.maconbibb.us/911-communications-center/",
+      "https://www.maconbibb.us/procurement/",
+      "https://www.maconbibb.us/bids/",
+    ],
   },
   {
     jurisdictionId: "county#AL#jefferson",

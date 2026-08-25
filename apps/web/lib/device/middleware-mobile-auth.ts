@@ -20,6 +20,12 @@ export function getMobileOperationalAuthMiddlewareResponse(request: NextRequest)
 
   if (!shouldBlockAuthOnDevice(ua)) return null;
 
+  if (pathname === "/login") {
+    const to = request.nextUrl.clone();
+    to.pathname = "/login/mobile";
+    return NextResponse.redirect(to);
+  }
+
   if (pathname.startsWith("/api/")) {
     if (isMobilePublicApiPath(pathname)) return null;
     logMobileAuthBlocked(pathname, request.headers as unknown as Headers, ua);

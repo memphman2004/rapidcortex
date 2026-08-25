@@ -1,6 +1,6 @@
-import { MarketingFooter } from "@/components/marketing/marketing-footer";
 import { MarketingHeader } from "@/components/marketing/marketing-header";
-import { MarketingMobileStickyDemoCta } from "@/components/marketing/marketing-mobile-sticky-demo-cta";
+import { DeferredMarketingWidgets } from "@/components/marketing/deferred-marketing-widgets";
+import { MarketingFooter } from "@/components/marketing/marketing-footer";
 import { buildOrganizationJsonLd, buildWebsiteJsonLd } from "@/lib/seo";
 
 /** Avoid right-edge FABs at ~60–75% viewport height (iPhone 16/17 Camera Control). */
@@ -23,7 +23,7 @@ export default function MarketingLayout({
       <main className="relative z-0 w-full pb-[max(6rem,calc(5rem+env(safe-area-inset-bottom)))] pt-0 sm:pb-10 md:pb-12">
         {children}
       </main>
-      <MarketingMobileStickyDemoCta />
+      <DeferredMarketingWidgets />
       <MarketingFooter />
     </div>
   );

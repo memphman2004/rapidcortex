@@ -126,6 +126,13 @@ function motorolaUnitToRecord(
     ...(typeof payload.assignedIncidentId === "string" ? { currentIncidentId: payload.assignedIncidentId } : {}),
     ...(Number.isFinite(latitude) ? { latitude: latitude as number } : {}),
     ...(Number.isFinite(longitude) ? { longitude: longitude as number } : {}),
+    ...(typeof payload.beat === "string" && payload.beat.trim() ? { beat: payload.beat.trim() } : {}),
+    ...(typeof payload.callSign === "string" && payload.callSign.trim() ? { callSign: payload.callSign.trim() } : {}),
+    ...(typeof payload.etaSeconds === "number" && Number.isFinite(payload.etaSeconds)
+      ? { etaSeconds: payload.etaSeconds }
+      : typeof payload.etaMinutes === "number" && Number.isFinite(payload.etaMinutes)
+        ? { etaSeconds: Math.round(payload.etaMinutes * 60) }
+        : {}),
     updatedAt:
       typeof payload.updatedAt === "string"
         ? payload.updatedAt

@@ -15,6 +15,13 @@ const TABS: { id: FeedTab; label: string; activeClass: string }[] = [
   },
 ];
 
+export const FEED_TAB_LABELS: Record<FeedTab, string> = {
+  "911": "911 / PSAP",
+  campus: "Campus",
+  venue: "Venue",
+  competitor: "Competitors",
+};
+
 type Props = {
   value: FeedTab;
   onChange: (tab: FeedTab) => void;

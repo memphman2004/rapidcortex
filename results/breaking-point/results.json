@@ -1,0 +1,87 @@
+{
+  "api_url": "https://k26yw4o3xk.execute-api.us-east-1.amazonaws.com",
+  "health_url": "https://k26yw4o3xk.execute-api.us-east-1.amazonaws.com/api/health",
+  "levels": [
+    {
+      "level": 1,
+      "concurrency": 10,
+      "requests": 500,
+      "rps": 183.5301,
+      "statuses": {
+        "200": 500
+      },
+      "completed": 500,
+      "success_pct": 100.0,
+      "err_rate_pct": 0.0,
+      "err5_rate_pct": 0.0,
+      "n2xx": 500,
+      "n4xx": 0,
+      "n429": 0,
+      "n5xx": 0,
+      "p50_ms": 50.4,
+      "p90_ms": 61.0,
+      "p95_ms": 66.5,
+      "p99_ms": 138.8,
+      "timeout_mentions": 0,
+      "error_lines": [],
+      "exit_code": 0,
+      "raw_path": "/Volumes/Mac Mini/Coding Projects/Rapid Cortex/results/breaking-point/level-01-c10.hey.txt",
+      "lambda_conc_account": 3.0,
+      "lambda_conc_health": 2.0,
+      "ddb_throttles": 0.0,
+      "lambda_errors_non_camera": 2.0,
+      "lambda_errors_detail": [
+        {
+          "label": "rapid-cortex-dev-AppSamRapid-ProcessSignalFunction-xA961hgu1Hq4",
+          "sum": 2.0
+        }
+      ],
+      "status": "FAIL",
+      "fail_reasons": [
+        "Lambda errors (excl CameraHeartbeat) 2.0 > 0"
+      ],
+      "ts": "2026-08-17T10:53:25.808318+00:00"
+    }
+  ],
+  "last_pass": null,
+  "breaking": {
+    "level": 1,
+    "concurrency": 10,
+    "requests": 500,
+    "rps": 183.5301,
+    "statuses": {
+      "200": 500
+    },
+    "completed": 500,
+    "success_pct": 100.0,
+    "err_rate_pct": 0.0,
+    "err5_rate_pct": 0.0,
+    "n2xx": 500,
+    "n4xx": 0,
+    "n429": 0,
+    "n5xx": 0,
+    "p50_ms": 50.4,
+    "p90_ms": 61.0,
+    "p95_ms": 66.5,
+    "p99_ms": 138.8,
+    "timeout_mentions": 0,
+    "error_lines": [],
+    "exit_code": 0,
+    "raw_path": "/Volumes/Mac Mini/Coding Projects/Rapid Cortex/results/breaking-point/level-01-c10.hey.txt",
+    "lambda_conc_account": 3.0,
+    "lambda_conc_health": 2.0,
+    "ddb_throttles": 0.0,
+    "lambda_errors_non_camera": 2.0,
+    "lambda_errors_detail": [
+      {
+        "label": "rapid-cortex-dev-AppSamRapid-ProcessSignalFunction-xA961hgu1Hq4",
+        "sum": 2.0
+      }
+    ],
+    "status": "FAIL",
+    "fail_reasons": [
+      "Lambda errors (excl CameraHeartbeat) 2.0 > 0"
+    ],
+    "ts": "2026-08-17T10:53:25.808318+00:00"
+  }
+}

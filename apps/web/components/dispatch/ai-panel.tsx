@@ -42,7 +42,7 @@ export function IntelligencePanelContent({
   isRefreshing?: boolean;
   assistiveLabel?: string;
   /** `grid` omits auxiliary panels bundled in the legacy aside layout. */
-  variant?: "aside" | "grid";
+  variant?: "aside" | "grid" | "workstation-summary";
 }) {
   const liveVideoEnabled = isLiveVideoEnabled();
   const silentTextEnabled = isSilentTextEnabled();
@@ -50,7 +50,8 @@ export function IntelligencePanelContent({
   const fieldConfidenceEnabled = isFieldConfidenceEnabled();
   const showFieldConfidence =
     fieldConfidenceEnabled && (fieldConfidence != null || fieldConfidenceLoading);
-  const isGrid = variant === "grid";
+  const isGrid = variant === "grid" || variant === "workstation-summary";
+  const summaryOnly = variant === "workstation-summary";
 
   return (
     <div className={isGrid ? "p-3" : "min-h-0 flex-1 overflow-y-auto p-3"}>
@@ -82,7 +83,7 @@ export function IntelligencePanelContent({
           {analysisError}
         </div>
       ) : null}
-      {incidentId && incident ? (
+      {incidentId && incident && !summaryOnly ? (
         <div className="mb-4 flex flex-col gap-3">
           <SopProtocolSurface incidentId={incidentId} incident={incident} />
           <NonEmergencyTriageStrip incidentId={incidentId} />
@@ -129,7 +130,7 @@ export function IntelligencePanelContent({
           ) : null}
           <Block label="Recommended action" value={analysis.recommendedAction} />
           <SummaryCard summary={analysis.summary} />
-          <Block label="Rationale" value={analysis.rationale} muted />
+          {summaryOnly ? null : <Block label="Rationale" value={analysis.rationale} muted />}
           <div className="border-t border-slate-800 pt-2 text-[11px] text-slate-500">
             Provider: {analysis.provider} · {new Date(analysis.createdAt).toLocaleString()}
           </div>

@@ -19,6 +19,11 @@ export function isMobilePublicApiPath(pathname: string): boolean {
     (p) => p === "/api/status" || p.startsWith("/api/status/"),
     (p) => p === "/api/readiness" || p.startsWith("/api/readiness/"),
     (p) => p === "/api/features" || p.startsWith("/api/features/"),
+    (p) => p === "/api/auth/signin" || p.startsWith("/api/auth/signin/"),
+    (p) => p.startsWith("/api/escalations/viewer/"),
+    (p) => p === "/api/escalations" || p.startsWith("/api/escalations/"),
+    (p) => p.startsWith("/api/venue/"),
+    (p) => p.startsWith("/api/campus/"),
   ];
   return checks.some((f) => f(pathname));
 }
@@ -91,6 +96,15 @@ function hasOperationalRootPrefix(pathname: string): boolean {
 /** HTML navigations / RSC loads that must redirect on mobile when blocking is active. */
 export function pathnameIsMobileOperationalBlockedPage(pathname: string): boolean {
   if (pathname === "/mobile-access-restricted" || pathname.startsWith("/mobile-access-restricted/")) {
+    return false;
+  }
+  if (pathname === "/login/mobile" || pathname.startsWith("/login/mobile/")) {
+    return false;
+  }
+  if (pathname === "/e" || pathname.startsWith("/e/")) {
+    return false;
+  }
+  if (pathname.startsWith("/app/venue") || pathname.startsWith("/app/campus")) {
     return false;
   }
 

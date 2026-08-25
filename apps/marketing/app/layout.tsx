@@ -3,7 +3,7 @@ import { Inter } from "next/font/google";
 import Script from "next/script";
 import { SITE_DESCRIPTION, SITE_NAME, SITE_PUBLIC_ICON_PATHS } from "@/lib/site";
 import { buildOgShareImage, getSiteUrl } from "@/lib/seo";
-import { InsideTheCortexPopup } from "@/components/InsideTheCortexPopup";
+import { DeferredInsideTheCortex } from "../components/deferred-inside-the-cortex";
 import { Providers } from "./providers";
 import "./globals.css";
 
@@ -27,11 +27,9 @@ export const metadata: Metadata = {
   description: SITE_DESCRIPTION,
   icons: {
     icon: [
-      { url: SITE_PUBLIC_ICON_PATHS.tab, type: "image/png", sizes: "192x192" },
       { url: SITE_PUBLIC_ICON_PATHS.pwa192, type: "image/png", sizes: "192x192" },
-      { url: SITE_PUBLIC_ICON_PATHS.pwa512, type: "image/png", sizes: "512x512" },
     ],
-    shortcut: [{ url: SITE_PUBLIC_ICON_PATHS.tab, type: "image/png", sizes: "192x192" }],
+    shortcut: [{ url: SITE_PUBLIC_ICON_PATHS.pwa192, type: "image/png", sizes: "192x192" }],
     apple: [{ url: SITE_PUBLIC_ICON_PATHS.appleIcon, type: "image/png", sizes: "180x180" }],
     other: [
       {
@@ -97,9 +95,9 @@ export default function RootLayout({
         </Script>
         <Script
           src={`https://www.googletagmanager.com/gtag/js?id=${GA_MEASUREMENT_ID}`}
-          strategy="beforeInteractive"
+          strategy="lazyOnload"
         />
-        <Script id="google-analytics" strategy="beforeInteractive">
+        <Script id="google-analytics" strategy="lazyOnload">
           {`
             window.dataLayer = window.dataLayer || [];
             function gtag(){dataLayer.push(arguments);}
@@ -107,10 +105,13 @@ export default function RootLayout({
             gtag('config', '${GA_MEASUREMENT_ID}');
           `}
         </Script>
+        <Script id="apollo-website-tracker" strategy="lazyOnload">
+          {`function initApollo(){var o=document.createElement("script");o.src="https://assets.apollo.io/micro/website-tracker/tracker.iife.js";o.async=!0;o.defer=!0;o.onload=function(){window.trackingFunctions.onLoad({appId:"6a79214cacb3420018db7ea1"})};document.head.appendChild(o)}if("requestIdleCallback"in window){requestIdleCallback(initApollo,{timeout:4000})}else{window.addEventListener("load",function(){setTimeout(initApollo,1)})}`}
+        </Script>
       </head>
       <body className="min-h-full min-h-dvh font-sans text-slate-100 antialiased">
         <Providers>{children}</Providers>
-        <InsideTheCortexPopup />
+        <DeferredInsideTheCortex />
       </body>
     </html>
   );

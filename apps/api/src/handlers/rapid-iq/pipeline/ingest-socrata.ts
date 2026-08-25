@@ -4,6 +4,7 @@
  */
 
 import type { RapidIqPipelineRawSignal } from "rapid-cortex-shared";
+import { rapidIqIngestSinceDate } from "../../../lib/rapid-iq/ingest-window.js";
 import { enqueueMockIfEnabled, enqueueRawSignal } from "./queue-raw-signal.js";
 
 interface SocrataSource {
@@ -220,9 +221,7 @@ const DESCRIPTION_KEYWORDS = [
 ];
 
 async function queryDataset(source: SocrataSource): Promise<void> {
-  const thirtyDaysAgo = new Date();
-  thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-  const fromDate = thirtyDaysAgo.toISOString().slice(0, 10);
+  const fromDate = rapidIqIngestSinceDate();
 
   const vendorConditions = VENDOR_KEYWORDS.map(
     (kw) => `upper(${source.vendorField}) like upper('%${kw}%')`,

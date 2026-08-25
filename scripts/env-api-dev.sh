@@ -3,7 +3,8 @@
 # Usage: source scripts/env-api-dev.sh
 #
 # NOTE: "dev" here is the production SAM stack name (rapid-cortex-dev / DeploymentStage=dev)
-# in account 158961537080 — not a separate non-prod environment.
+# in account 158961537080 — not a separate non-prod environment. Engineering uses staging.
+export I_UNDERSTAND_DEV_IS_PROD=1
 #
 # Clear overrides from other env scripts (e.g. scripts/env-web-ssr-prod.sh sets STACK_NAME for ECS/CloudFront).
 # Otherwise `deploy.sh dev` would update the wrong CloudFormation stack.
@@ -125,6 +126,15 @@ export RING_ACCOUNT_LINK_URL="https://www.rapidcortex.us/connect/ring/link"
 # direct OpenAI text/completion path can read the same ARN.
 export OPENAI_API_KEY_SECRET_ARN="arn:aws:secretsmanager:us-east-1:158961537080:secret:rapid-cortex/ai/openai-kqZQ3D"
 export ANTHROPIC_API_KEY_SECRET_ARN="arn:aws:secretsmanager:us-east-1:158961537080:secret:rapid-cortex/ai/anthropic-fHk4y2"
+# Venue/campus → 911 bridge and Records Intelligence. Default ON when unset; set explicitly for deploys.
+export ENABLE_ESCALATION=true
+export ENABLE_RMS=true
+# api.rapidcortex.us A/AAAA already exist in Route53 and are not owned by AppSamStackV2.
+# Creating them again fails with AlreadyExists (same failure as 2026-08-07).
+export MANAGE_API_DOMAIN_DNS=false
+# RMS vendor keys (Tyler / Mark43). JSON: TYLER_API_KEY, TYLER_API_URL, MARK43_API_KEY, MARK43_API_URL.
+# Empty strings keep adapters in pending_vendor. Never put raw vendor keys in Lambda env.
+# export RMS_VENDOR_SECRET_ARN="arn:aws:secretsmanager:us-east-1:158961537080:secret:rapid-cortex/rms/vendor-keys"
 
 # Multilingual — Translate + TTS (Google) and STT/Translator (Azure). The same Azure ARN is
 # referenced from both AzureSpeechKey and AzureTranslationKey SAM params (one rotation surface);
@@ -174,6 +184,16 @@ export ENABLE_RAPID_IQ=true
 export NEXT_PUBLIC_ENABLE_RAPID_IQ="${NEXT_PUBLIC_ENABLE_RAPID_IQ:-1}"
 export ENABLE_RAPID_IQ_PIPELINE=true
 export NEXT_PUBLIC_ENABLE_RAPID_IQ_PIPELINE="${NEXT_PUBLIC_ENABLE_RAPID_IQ_PIPELINE:-1}"
+export ENABLE_CONFERENCES=true
+export NEXT_PUBLIC_ENABLE_CONFERENCES="${NEXT_PUBLIC_ENABLE_CONFERENCES:-1}"
+export CONFERENCES_TABLE="${CONFERENCES_TABLE:-rapid-cortex-conferences-dev}"
+# Rapid IQ ingest lookback (SAM.gov postedFrom, Socrata, USASpending, agendas)
+export RAPID_IQ_INGEST_SINCE="${RAPID_IQ_INGEST_SINCE:-2026-01-01}"
+# Escalation Bridge + RMS (default ON when unset; explicit for deploy parity with UI flags)
+export ENABLE_ESCALATION=true
+export NEXT_PUBLIC_ENABLE_ESCALATION="${NEXT_PUBLIC_ENABLE_ESCALATION:-1}"
+export ENABLE_RMS=true
+export NEXT_PUBLIC_ENABLE_RMS="${NEXT_PUBLIC_ENABLE_RMS:-1}"
 export RAPID_IQ_COLLECTORS_MOCK="${RAPID_IQ_COLLECTORS_MOCK:-1}"
 # Microsoft Teams — Rapid IQ Alerts channel (Power Automate webhook; channel+flow already complete)
 export RAPID_IQ_TEAMS_WEBHOOK_SECRET_ARN="${RAPID_IQ_TEAMS_WEBHOOK_SECRET_ARN:-arn:aws:secretsmanager:us-east-1:158961537080:secret:rapid-cortex/rapid-iq/teams-webhook-url-JjTaCF}"
@@ -187,6 +207,8 @@ export RAPID_IQ_COLLECTORS_MOCK="${RAPID_IQ_COLLECTORS_MOCK:-0}"
 export RAPID_IQ_LEGISCAN_API_KEY_SECRET_ARN="${RAPID_IQ_LEGISCAN_API_KEY_SECRET_ARN:-arn:aws:secretsmanager:us-east-1:158961537080:secret:rapid-cortex/rapid-iq/legiscan-api-key-iwBcKv}"
 # Optional plain override for local dry-runs (prefer the secret ARN above)
 export RAPID_IQ_LEGISCAN_API_KEY="${RAPID_IQ_LEGISCAN_API_KEY:-}"
+# OpenStates — pipeline legislative ingest (bills / PSAP appropriations)
+export RAPID_IQ_OPENSTATES_API_KEY_SECRET_ARN="${RAPID_IQ_OPENSTATES_API_KEY_SECRET_ARN:-arn:aws:secretsmanager:us-east-1:158961537080:secret:rapid-cortex/rapid-iq/openstates-api-key-5uj0lA}"
 # RunSignUp — venue collector race search (registration already complete; do not recreate)
 export RAPID_IQ_RUNSIGNUP_CREDENTIALS_SECRET_ARN="${RAPID_IQ_RUNSIGNUP_CREDENTIALS_SECRET_ARN:-arn:aws:secretsmanager:us-east-1:158961537080:secret:rapid-cortex/rapid-iq/runsignup-credentials-NgWGzS}"
 export APP_BASE_URL="${APP_BASE_URL:-https://app.rapidcortex.us}"
@@ -256,3 +278,5 @@ export QR_NFC_CODES_TABLE="rapid-cortex-qr-nfc-codes-dev"
 
 # --- Web feature flags (NEXT_PUBLIC_*) — source scripts/env-web-pilot-test.sh for full UI surface ---
 # Or rely on runtime-flags.ts defaults (features on when unset; CAD write-back off).
+# ENABLE_RMS / NEXT_PUBLIC_ENABLE_RMS and ENABLE_ESCALATION default ON when unset.
+# RMS vendor keys: set RmsVendorSecretArn (Secrets Manager JSON TYLER_API_KEY / MARK43_API_KEY), never Lambda env.

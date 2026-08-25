@@ -4,6 +4,7 @@
  */
 
 import type { RapidIqPipelineRawSignal } from "rapid-cortex-shared";
+import { isRelevantSignalText } from "rapid-cortex-shared";
 import { enqueueMockIfEnabled, enqueueRawSignal } from "./queue-raw-signal.js";
 
 interface ArpaSource {
@@ -87,32 +88,8 @@ const ARPA_SOURCES: ArpaSource[] = [
   },
 ];
 
-const PSAP_CATEGORY_KEYWORDS = [
-  "public safety",
-  "emergency communications",
-  "911",
-  "dispatch",
-  "PSAP",
-  "law enforcement technology",
-  "first responder",
-  "communications infrastructure",
-  "broadband",
-];
-
-const VENDOR_MENTIONS = [
-  "Tyler Technologies",
-  "Motorola",
-  "CentralSquare",
-  "Hexagon",
-  "L3Harris",
-  "Zetron",
-];
-
 function isRelevant(text: string): boolean {
-  const lower = text.toLowerCase();
-  return [...PSAP_CATEGORY_KEYWORDS, ...VENDOR_MENTIONS].some((kw) =>
-    lower.includes(kw.toLowerCase()),
-  );
+  return isRelevantSignalText(text);
 }
 
 async function fetchTreasurySlfrf(): Promise<void> {

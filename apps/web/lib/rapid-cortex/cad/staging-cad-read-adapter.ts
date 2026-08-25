@@ -69,6 +69,8 @@ const BASE_UNITS: readonly Omit<CadUnitRecord, "updatedAt">[] = [
     latitude: 37.785991,
     longitude: -122.406612,
     sourceVendor: SOURCE,
+    beat: "4A",
+    etaSeconds: 0,
   },
   {
     unitId: "unit-m3",
@@ -80,6 +82,8 @@ const BASE_UNITS: readonly Omit<CadUnitRecord, "updatedAt">[] = [
     latitude: 37.7842,
     longitude: -122.3988,
     sourceVendor: SOURCE,
+    beat: "4A",
+    etaSeconds: 180,
   },
   {
     unitId: "unit-e7",

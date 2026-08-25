@@ -10,6 +10,7 @@ import { isPublicSignupUiEnabled } from "@/lib/auth/public-signup";
 import { isAuthConfigured } from "@/lib/auth/roles";
 import {
   marketingContactPath,
+  marketingDemoRequestPath,
   marketingHomePath,
   marketingPricingPath,
   marketingRingCustomersPath,
@@ -74,6 +75,7 @@ export function LoginForm({
   const jurisdictionSlug = useJurisdictionSlug();
   const { user, isLoading, refresh } = useSession();
   const signupEnabled = isPublicSignupUiEnabled();
+  const requestAccessHref = marketingDemoRequestPath("ring_connect");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -560,6 +562,10 @@ export function LoginForm({
             <span className="rc-login-card__links-sep" aria-hidden>
               ·
             </span>
+            <a href={requestAccessHref}>Request Access</a>
+            <span className="rc-login-card__links-sep" aria-hidden>
+              ·
+            </span>
             {signupEnabled ? <Link href={marketingSignupPath()}>Sign up</Link> : null}
             {signupEnabled ? (
               <span className="rc-login-card__links-sep" aria-hidden>
@@ -948,13 +954,21 @@ export function LoginForm({
         {!activeChallenge && !inForgotRequest && !inForgotConfirm ? (
           <div className="rc-login-card__footer">
             <p className="rc-login-card__account-note">
-              Need an account?{" "}
-              {signupEnabled ? (
-                <Link href={marketingSignupPath()}>Sign up</Link>
-              ) : (
-                <Link href={marketingContactPath()}>Contact your admin</Link>
-              )}
+              Already a Rapid Cortex customer? Sign in with the form above.
             </p>
+            <div className="rc-login-card__request-access">
+              <h2>New to Rapid Cortex?</h2>
+              <p>
+                Rapid Cortex is an AI-powered platform for verified 911 dispatch centers and public
+                safety agencies.
+              </p>
+              <a href={requestAccessHref}>Request Access for Your Agency</a>
+            </div>
+            {signupEnabled ? (
+              <p className="rc-login-card__account-note">
+                Have a provisioning link? <Link href={marketingSignupPath()}>Sign up</Link>
+              </p>
+            ) : null}
             <div className="rc-login-card__links">
               <Link href={marketingPricingPath()}>Plans</Link>
               <span className="rc-login-card__links-sep" aria-hidden>

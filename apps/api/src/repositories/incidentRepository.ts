@@ -553,61 +553,123 @@ export class IncidentRepository {
       cadSystem?: Incident["cadSystem"];
       cadIncidentId?: string;
       source?: Incident["source"];
+      cadPriorityModifier?: string | null;
+      cadMappedIncidentTypeId?: string | null;
+      cadDisposition?: string | null;
+      cadIntersection?: string | null;
+      cadBeat?: string | null;
+      cadZone?: string | null;
+      cadJurisdiction?: string | null;
+      cadLocationConfidence?: string | null;
+      cadLocationSource?: Incident["cadLocationSource"];
+      cadUnitDetails?: Incident["cadUnitDetails"];
+      cadCallerAddressLine?: string | null;
+      cadAniAliSource?: Incident["cadAniAliSource"];
+      cadRelatedCadNumbers?: string[];
+      cadDuplicateOfCadNumber?: string | null;
+      cadLinkedIncidentIds?: string[];
+      cadAlerts?: Incident["cadAlerts"];
+      category?: Incident["category"];
+      escalationFlag?: boolean;
     },
   ): Promise<void> {
     const now = fields.cadLastSyncAt;
+    const names: Record<string, string> = { "#src": "source" };
+    const values: Record<string, unknown> = {
+      ":cr": fields.cadRevision,
+      ":ls": fields.cadLastSyncAt,
+      ":u": now,
+      ":ur": fields.urgency,
+      ":ti": fields.title,
+      ":cstat": fields.cadStatus ?? null,
+      ":cu": fields.cadUnits ?? [],
+      ":cal": fields.callerAddressLine ?? null,
+      ":can": fields.callerAddressNormalized ?? null,
+      ":cn": fields.cadNatureCode ?? null,
+      ":cp": fields.cadPriority ?? null,
+      ":cl": fields.cadLocation ?? null,
+      ":cco": fields.cadCoordinates ?? null,
+      ":crp": fields.cadRawPayload ?? null,
+      ":ccn": fields.cadCallerName ?? null,
+      ":ccb": fields.cadCallerCallbackMasked ?? null,
+      ":su": fields.summary ?? "",
+      ":cdk": fields.cadDedupeKey ?? null,
+      ":csy": fields.cadSystem ?? null,
+      ":cii": fields.cadIncidentId ?? null,
+      ":src": fields.source ?? "cad",
+      ":cvr": fields.cadVendorRevisionLast ?? null,
+      ":cpm": fields.cadPriorityModifier ?? null,
+      ":cmt": fields.cadMappedIncidentTypeId ?? null,
+      ":cdisp": fields.cadDisposition ?? null,
+      ":cint": fields.cadIntersection ?? null,
+      ":cbeat": fields.cadBeat ?? null,
+      ":czone": fields.cadZone ?? null,
+      ":cjur": fields.cadJurisdiction ?? null,
+      ":cloc": fields.cadLocationConfidence ?? null,
+      ":clsrc": fields.cadLocationSource ?? null,
+      ":cud": fields.cadUnitDetails ?? [],
+      ":ccal": fields.cadCallerAddressLine ?? null,
+      ":cani": fields.cadAniAliSource ?? null,
+      ":crel": fields.cadRelatedCadNumbers ?? [],
+      ":cdup": fields.cadDuplicateOfCadNumber ?? null,
+      ":clnk": fields.cadLinkedIncidentIds ?? [],
+      ":calt": fields.cadAlerts ?? [],
+    };
+    const sets = [
+      "cadRevision = :cr",
+      "cadLastSyncAt = :ls",
+      "updatedAt = :u",
+      "urgency = :ur",
+      "title = :ti",
+      "cadStatus = :cstat",
+      "cadUnits = :cu",
+      "callerAddressLine = :cal",
+      "callerAddressNormalized = :can",
+      "cadNatureCode = :cn",
+      "cadPriority = :cp",
+      "cadLocation = :cl",
+      "cadCoordinates = :cco",
+      "cadRawPayload = :crp",
+      "cadCallerName = :ccn",
+      "cadCallerCallbackMasked = :ccb",
+      "summary = :su",
+      "cadDedupeKey = :cdk",
+      "cadSystem = :csy",
+      "cadIncidentId = :cii",
+      "#src = :src",
+      "cadVendorRevisionLast = :cvr",
+      "cadPriorityModifier = :cpm",
+      "cadMappedIncidentTypeId = :cmt",
+      "cadDisposition = :cdisp",
+      "cadIntersection = :cint",
+      "cadBeat = :cbeat",
+      "cadZone = :czone",
+      "cadJurisdiction = :cjur",
+      "cadLocationConfidence = :cloc",
+      "cadLocationSource = :clsrc",
+      "cadUnitDetails = :cud",
+      "cadCallerAddressLine = :ccal",
+      "cadAniAliSource = :cani",
+      "cadRelatedCadNumbers = :crel",
+      "cadDuplicateOfCadNumber = :cdup",
+      "cadLinkedIncidentIds = :clnk",
+      "cadAlerts = :calt",
+    ];
+    if (fields.category) {
+      sets.push("category = :cat");
+      values[":cat"] = fields.category;
+    }
+    if (fields.escalationFlag === true) {
+      sets.push("escalationFlag = :esc");
+      values[":esc"] = true;
+    }
     await ddb.send(
       new UpdateCommand({
         TableName: env.incidentsTable,
         Key: { incidentId },
-        UpdateExpression: [
-          "SET cadRevision = :cr",
-          "cadLastSyncAt = :ls",
-          "updatedAt = :u",
-          "urgency = :ur",
-          "title = :ti",
-          "cadStatus = :cstat",
-          "cadUnits = :cu",
-          "callerAddressLine = :cal",
-          "callerAddressNormalized = :can",
-          "cadNatureCode = :cn",
-          "cadPriority = :cp",
-          "cadLocation = :cl",
-          "cadCoordinates = :cco",
-          "cadRawPayload = :crp",
-          "cadCallerName = :ccn",
-          "cadCallerCallbackMasked = :ccb",
-          "summary = :su",
-          "cadDedupeKey = :cdk",
-          "cadSystem = :csy",
-          "cadIncidentId = :cii",
-          "source = :src",
-          "cadVendorRevisionLast = :cvr",
-        ].join(", "),
-        ExpressionAttributeValues: {
-          ":cr": fields.cadRevision,
-          ":ls": fields.cadLastSyncAt,
-          ":u": now,
-          ":ur": fields.urgency,
-          ":ti": fields.title,
-          ":cstat": fields.cadStatus ?? null,
-          ":cu": fields.cadUnits ?? [],
-          ":cal": fields.callerAddressLine ?? null,
-          ":can": fields.callerAddressNormalized ?? null,
-          ":cn": fields.cadNatureCode ?? null,
-          ":cp": fields.cadPriority ?? null,
-          ":cl": fields.cadLocation ?? null,
-          ":cco": fields.cadCoordinates ?? null,
-          ":crp": fields.cadRawPayload ?? null,
-          ":ccn": fields.cadCallerName ?? null,
-          ":ccb": fields.cadCallerCallbackMasked ?? null,
-          ":su": fields.summary ?? "",
-          ":cdk": fields.cadDedupeKey ?? null,
-          ":csy": fields.cadSystem ?? null,
-          ":cii": fields.cadIncidentId ?? null,
-          ":src": fields.source ?? "cad",
-          ":cvr": fields.cadVendorRevisionLast ?? null,
-        },
+        UpdateExpression: `SET ${sets.join(", ")}`,
+        ExpressionAttributeNames: names,
+        ExpressionAttributeValues: values,
       }),
     );
   }

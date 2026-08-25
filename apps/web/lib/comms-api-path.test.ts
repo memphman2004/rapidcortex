@@ -60,6 +60,13 @@ describe("resolveUpstreamApiBase", () => {
     expect(resolveUpstreamApiBase("/api/incidents")).toBe("https://stack1.example.com");
   });
 
+  it("strips a trailing /api from upstream bases so BFF paths do not double", () => {
+    process.env.API_UPSTREAM_BASE = "https://stack1.example.com/api";
+    process.env.API_UPSTREAM_BASE_3 = "https://stack3.example.com/api/";
+    expect(resolveUpstreamApiBase("/api/agencies")).toBe("https://stack1.example.com");
+    expect(resolveUpstreamApiBase("/api/platform/summary")).toBe("https://stack3.example.com");
+  });
+
   it("routes qr-nfc to stack 1 (AppSamQrStack on primary HttpApi)", () => {
     process.env.API_UPSTREAM_BASE = "https://stack1.example.com";
     process.env.API_UPSTREAM_BASE_2 = "https://stack2.example.com";
@@ -144,15 +151,50 @@ describe("isCommsPlatformApiPath", () => {
     );
   });
 
-  it("routes NG9-1-1 assist paths to stack 2", () => {
+  it("routes hiring ATS paths to stack 3", () => {
     process.env.API_UPSTREAM_BASE = "https://stack1.example.com";
-    process.env.API_UPSTREAM_BASE_2 = "https://stack2.example.com";
-    expect(isStack2ApiPath("/api/ng911/metrics")).toBe(true);
-    expect(isStack2ApiPath("/api/public/diversion/agency-1/start")).toBe(true);
-    expect(isStack2ApiPath("/api/incidents/inc-1/eido")).toBe(true);
-    expect(isStack2ApiPath("/api/incidents/inc-1/additional-data")).toBe(true);
-    expect(resolveUpstreamApiBase("/api/ng911/diversion/workflows")).toBe(
-      "https://stack2.example.com",
+    process.env.API_UPSTREAM_BASE_3 = "https://stack3.example.com";
+    expect(isSam3ApiPath("/api/rc-admin/job-postings")).toBe(true);
+    expect(isSam3ApiPath("/api/rc-admin/applications")).toBe(true);
+    expect(isSam3ApiPath("/api/rc-admin/applications/abc/notes")).toBe(true);
+    expect(isSam3ApiPath("/api/rc-admin/settings/hiring-bookings")).toBe(true);
+    expect(resolveUpstreamApiBase("/api/rc-admin/applications")).toBe("https://stack3.example.com");
+  });
+
+  it("routes grant-writer to stack 3", () => {
+    process.env.API_UPSTREAM_BASE = "https://stack1.example.com";
+    process.env.API_UPSTREAM_BASE_3 = "https://stack3.example.com";
+    expect(isSam3ApiPath("/api/rc-admin/grant-writer/generate")).toBe(true);
+    expect(resolveUpstreamApiBase("/api/rc-admin/grant-writer/generate")).toBe(
+      "https://stack3.example.com",
     );
+  });
+
+  it("routes conferences to stack 3", () => {
+    process.env.API_UPSTREAM_BASE = "https://stack1.example.com";
+    process.env.API_UPSTREAM_BASE_3 = "https://stack3.example.com";
+    expect(isSam3ApiPath("/api/rc-admin/conferences")).toBe(true);
+    expect(isSam3ApiPath("/api/rc-admin/conferences/conf-apco-2026")).toBe(true);
+    expect(resolveUpstreamApiBase("/api/rc-admin/conferences")).toBe("https://stack3.example.com");
+  });
+
+  it("routes venue push-subscription to stack 3 (escalation), not stack 5", () => {
+    process.env.API_UPSTREAM_BASE = "https://stack1.example.com";
+    process.env.API_UPSTREAM_BASE_3 = "https://stack3.example.com";
+    process.env.API_UPSTREAM_BASE_5 = "https://stack5.example.com";
+    expect(isSam5ApiPath("/api/venue/push-subscription")).toBe(false);
+    expect(isSam3ApiPath("/api/venue/push-subscription")).toBe(true);
+    expect(resolveUpstreamApiBase("/api/venue/push-subscription")).toBe(
+      "https://stack3.example.com",
+    );
+    expect(resolveUpstreamApiBase("/api/venue/incidents")).toBe("https://stack5.example.com");
+  });
+
+  it("routes RMS paths to stack 3", () => {
+    process.env.API_UPSTREAM_BASE = "https://stack1.example.com";
+    process.env.API_UPSTREAM_BASE_3 = "https://stack3.example.com";
+    expect(isSam3ApiPath("/api/rms/reports")).toBe(true);
+    expect(resolveUpstreamApiBase("/api/rms/reports/generate")).toBe("https://stack3.example.com");
+    expect(resolveUpstreamApiBase("/api/rms/context")).toBe("https://stack3.example.com");
   });
 });
