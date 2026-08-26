@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { qrNfcSetupGuidePath } from "@/lib/marketing-links";
 
 type Props = {
   url: string;
@@ -27,7 +28,7 @@ export function NFCInstructions({ url }: Props) {
       <ol className="mt-3 list-decimal space-y-2 pl-5">
         <li>Order NTAG213 NFC stickers (about $15–20 per 100 tags).</li>
         <li>Open the Rapid Cortex mobile app (Campus or Venue).</li>
-        <li>Open this code, then tap Program NFC Tag.</li>
+        <li>Open this location code, then tap Program NFC Tag. (Booth / marketing signs use Trade show signs instead — Home or Demo on www.rapidcortex.us.)</li>
         <li>Hold an NTAG213 to the back of your mobile device until the write succeeds.</li>
         <li>Stick the programmed tag to the back of your sign.</li>
       </ol>
@@ -49,6 +50,15 @@ export function NFCInstructions({ url }: Props) {
       ) : null}
       <p className="mt-3 text-xs text-slate-500">
         Any modern iPhone (7+) or Android can read the tag. No app download needed for the person reporting.
+        {" "}
+        <a
+          href={qrNfcSetupGuidePath()}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-sky-400 hover:text-sky-300"
+        >
+          QR &amp; NFC setup guide (PDF)
+        </a>
       </p>
     </section>
   );

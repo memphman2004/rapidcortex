@@ -52,6 +52,24 @@ export const trackEngagementSchema = z.object({
   medium: z.enum(["qr", "nfc", "direct", "url"]),
 });
 
+export const tradeShowSiteUsageItemSchema = z.object({
+  qrId: z.enum(["site-home", "site-demo"]),
+  destinationId: z.enum(["home", "demo"]),
+  name: z.string(),
+  url: z.string(),
+  scanCount: z.number().nonnegative(),
+  nfcTapCount: z.number().nonnegative(),
+  totalEngagements: z.number().nonnegative(),
+  lastEngagementAt: z.string().optional(),
+});
+
+export const tradeShowSiteUsageResponseSchema = z.object({
+  items: z.array(tradeShowSiteUsageItemSchema),
+});
+
+export type TradeShowSiteUsageItem = z.infer<typeof tradeShowSiteUsageItemSchema>;
+export type TradeShowSiteUsageResponse = z.infer<typeof tradeShowSiteUsageResponseSchema>;
+
 export const publicReportSubmitSchema = z.object({
   qrId: z.string().min(1).max(64),
   message: z.string().min(1).max(1000),

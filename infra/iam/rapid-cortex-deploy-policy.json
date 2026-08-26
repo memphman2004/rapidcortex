@@ -46,10 +46,14 @@
       ]
     },
     {
-      "Sid": "MapboxTokenSsmRead",
+      "Sid": "MapboxSsmRead",
       "Effect": "Allow",
       "Action": ["ssm:GetParameter"],
-      "Resource": "arn:aws:ssm:REPLACE_REGION:REPLACE_ACCOUNT_ID:parameter/rapidcortex/prod/mapbox/public-token"
+      "Resource": [
+        "arn:aws:ssm:REPLACE_REGION:REPLACE_ACCOUNT_ID:parameter/rapidcortex/prod/mapbox/public-token",
+        "arn:aws:ssm:REPLACE_REGION:REPLACE_ACCOUNT_ID:parameter/rapidcortex/prod/mapbox/style-dark",
+        "arn:aws:ssm:REPLACE_REGION:REPLACE_ACCOUNT_ID:parameter/rapidcortex/prod/mapbox/style-light"
+      ]
     },
     {
       "Sid": "BillingSecretsCleanup",

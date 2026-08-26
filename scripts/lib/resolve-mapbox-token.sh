@@ -55,3 +55,42 @@ resolve_mapbox_token() {
 
   return 1
 }
+
+# Resolve Mapbox Studio style URLs from SSM.
+# Paths: /rapidcortex/prod/mapbox/style-dark and style-light
+# SSM wins when readable so production builds bake the stored Studio URLs.
+resolve_mapbox_styles() {
+  local region="${AWS_REGION:-${AWS_DEFAULT_REGION:-us-east-1}}"
+  local dark_ssm="${MAPBOX_STYLE_DARK_SSM_PARAMETER:-/rapidcortex/prod/mapbox/style-dark}"
+  local light_ssm="${MAPBOX_STYLE_LIGHT_SSM_PARAMETER:-/rapidcortex/prod/mapbox/style-light}"
+  local from_ssm=""
+
+  from_ssm="$(
+    aws ssm get-parameter \
+      --name "${dark_ssm}" \
+      --query 'Parameter.Value' \
+      --output text \
+      --region "${region}" 2>/dev/null || true
+  )"
+  if [[ -n "${from_ssm}" && "${from_ssm}" != "None" ]]; then
+    export NEXT_PUBLIC_MAPBOX_STYLE_URL_DARK="${from_ssm}"
+    export NEXT_PUBLIC_MAPBOX_STYLE_DARK="${from_ssm}"
+  elif [[ -z "${NEXT_PUBLIC_MAPBOX_STYLE_URL_DARK:-}" && -n "${NEXT_PUBLIC_MAPBOX_STYLE_DARK:-}" ]]; then
+    export NEXT_PUBLIC_MAPBOX_STYLE_URL_DARK="${NEXT_PUBLIC_MAPBOX_STYLE_DARK}"
+  fi
+
+  from_ssm="$(
+    aws ssm get-parameter \
+      --name "${light_ssm}" \
+      --query 'Parameter.Value' \
+      --output text \
+      --region "${region}" 2>/dev/null || true
+  )"
+  if [[ -n "${from_ssm}" && "${from_ssm}" != "None" ]]; then
+    export NEXT_PUBLIC_MAPBOX_STYLE_URL_LIGHT="${from_ssm}"
+    export NEXT_PUBLIC_MAPBOX_STYLE_LIGHT="${from_ssm}"
+  elif [[ -z "${NEXT_PUBLIC_MAPBOX_STYLE_URL_LIGHT:-}" && -n "${NEXT_PUBLIC_MAPBOX_STYLE_LIGHT:-}" ]]; then
+    export NEXT_PUBLIC_MAPBOX_STYLE_URL_LIGHT="${NEXT_PUBLIC_MAPBOX_STYLE_LIGHT}"
+  fi
+  unset from_ssm
+}

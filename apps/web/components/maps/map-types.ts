@@ -121,4 +121,79 @@ export interface RCMapProps {
    * for this Cognito user id + {@link vertical} across logout/login.
    */
   persistUserId?: string | null;
+
+  /**
+   * Extra operational overlays (cameras, gates, staging) that are not incidents.
+   * Used by the Venue Operational Awareness exterior map.
+   */
+  operationalOverlays?: RCOperationalOverlay[];
+
+  onOverlayClick?: (overlay: RCOperationalOverlay) => void;
+
+  /** Increment `id` to run a one-shot camera command without remounting Mapbox. */
+  mapCommand?: RCMapCommand | null;
+
+  /** Hide Mapbox NavigationControl when the host provides its own zoom buttons. */
+  showZoomControl?: boolean;
+
+  /** Initial pitch (0 = top-down, 55 = isometric). Applied on Mapbox init. */
+  pitch?: number;
+
+  /** Initial bearing in degrees. Applied on Mapbox init. */
+  bearing?: number;
+
+  /**
+   * Venue section polygons (WGS84). Colored by feature.properties.status and
+   * extruded when {@link sectionExtrusion} is true.
+   */
+  sectionPolygons?: GeoJSON.FeatureCollection | null;
+
+  /** Use fill-extrusion instead of flat fill (Mapbox 3D / isometric). */
+  sectionExtrusion?: boolean;
+
+  /** Fired when a section/building polygon is clicked. */
+  onPolygonFeatureClick?: (properties: GeoJSON.GeoJsonProperties) => void;
 }
+
+export type RCOperationalOverlayKind =
+  | "camera"
+  | "entrance"
+  | "staging"
+  | "security"
+  | "ems"
+  | "police"
+  | "fire"
+  | "roadClosure"
+  | "aed"
+  | "emergencyPhone"
+  | "parking";
+
+export interface RCOperationalOverlay {
+  id: string;
+  longitude: number;
+  latitude: number;
+  kind: RCOperationalOverlayKind;
+  label: string;
+}
+
+/** Body of a one-shot map camera command (id is assigned when dispatched). */
+export type RCMapCommandBody =
+  | { type: "zoom-in" }
+  | { type: "zoom-out" }
+  | {
+      type: "fit";
+      center?: [number, number];
+      zoom?: number;
+      bounds?: [[number, number], [number, number]];
+      pitch?: number;
+      bearing?: number;
+    }
+  | {
+      type: "camera";
+      center?: [number, number];
+      zoom?: number;
+      pitch?: number;
+      bearing?: number;
+    };
+
+export type RCMapCommand = RCMapCommandBody & { id: number };

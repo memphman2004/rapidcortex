@@ -21,6 +21,11 @@ describe("app-host-routing — public status", () => {
     expect(maybeRedirectAppHostAwayFromMarketing(appRequest("/status"))).toBeNull();
   });
 
+  it("keeps tracked site QR click-through on the app host", () => {
+    expect(isMarketingPublicPath("/go/site/home")).toBe(false);
+    expect(maybeRedirectAppHostAwayFromMarketing(appRequest("/go/site/demo?medium=qr"))).toBeNull();
+  });
+
   it("still redirects true marketing paths to www", () => {
     const res = maybeRedirectAppHostAwayFromMarketing(appRequest("/about"));
     expect(res?.status).toBe(307);

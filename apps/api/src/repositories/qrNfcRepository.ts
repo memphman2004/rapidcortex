@@ -173,6 +173,44 @@ export class QrNfcRepository {
     );
   }
 
+  /**
+   * Upsert + increment a Rapid Cortex site (booth) click.
+   * `name` is a Dynamo reserved word — use an expression attribute name.
+   */
+  async incrementSiteEngagement(
+    agencyId: string,
+    qrId: string,
+    medium: "qr" | "nfc" | "direct" | "url",
+    meta: { name: string; url: string },
+  ): Promise<void> {
+    const field = medium === "nfc" ? "nfcTapCount" : "scanCount";
+    const now = new Date().toISOString();
+    await ddb.send(
+      new UpdateCommand({
+        TableName: tableName(),
+        Key: { agencyId, qrId },
+        UpdateExpression: `SET ${field} = if_not_exists(${field}, :zero) + :one, totalEngagements = if_not_exists(totalEngagements, :zero) + :one, lastEngagementAt = :now, updatedAt = :now, #kind = if_not_exists(#kind, :kind), #name = if_not_exists(#name, :name), #url = if_not_exists(#url, :url), active = if_not_exists(active, :true), nfcEnabled = if_not_exists(nfcEnabled, :true), vertical = if_not_exists(vertical, :vertical), reportType = if_not_exists(reportType, :reportType), createdAt = if_not_exists(createdAt, :now), createdBy = if_not_exists(createdBy, :createdBy)`,
+        ExpressionAttributeNames: {
+          "#kind": "kind",
+          "#name": "name",
+          "#url": "url",
+        },
+        ExpressionAttributeValues: {
+          ":one": 1,
+          ":zero": 0,
+          ":now": now,
+          ":kind": "marketing_site",
+          ":name": meta.name,
+          ":url": meta.url,
+          ":true": true,
+          ":vertical": "911",
+          ":reportType": "anonymous",
+          ":createdBy": "system",
+        },
+      }),
+    );
+  }
+
   /** Append a field NFC programming event; creates `nfcWriteLog` if missing. */
   async appendNfcWriteLog(
     agencyId: string,

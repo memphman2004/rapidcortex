@@ -33,6 +33,8 @@ export {
   type VenueIncidentStatusPatch,
 } from "./camera-registry-schemas.js";
 
+export * from "./operational-map-types.js";
+
 export {
   venueSectionLevelSchema,
   venueSectionStatusSchema,

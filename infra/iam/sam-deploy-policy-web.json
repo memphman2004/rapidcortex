@@ -197,10 +197,14 @@
       "Resource": "arn:aws:logs:REPLACE_REGION:REPLACE_ACCOUNT_ID:log-group:/ecs/rapid-cortex-v2-web-*:*"
     },
     {
-      "Sid": "MapboxTokenSsmRead",
+      "Sid": "MapboxSsmReadWrite",
       "Effect": "Allow",
       "Action": ["ssm:GetParameter", "ssm:PutParameter"],
-      "Resource": "arn:aws:ssm:REPLACE_REGION:REPLACE_ACCOUNT_ID:parameter/rapidcortex/prod/mapbox/public-token"
+      "Resource": [
+        "arn:aws:ssm:REPLACE_REGION:REPLACE_ACCOUNT_ID:parameter/rapidcortex/prod/mapbox/public-token",
+        "arn:aws:ssm:REPLACE_REGION:REPLACE_ACCOUNT_ID:parameter/rapidcortex/prod/mapbox/style-dark",
+        "arn:aws:ssm:REPLACE_REGION:REPLACE_ACCOUNT_ID:parameter/rapidcortex/prod/mapbox/style-light"
+      ]
     }
   ]
 }

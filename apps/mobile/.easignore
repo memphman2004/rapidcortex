@@ -18,6 +18,20 @@
 /.sam-lean-build/
 /prod
 /agent-transcripts/
+/Rapid Cortex Internal Docs/
+/web-source-prod.zip
+/web-source-*.zip
+**/*.mov
+**/*.mp4
+**/*.mp3
+/.sam-build-*/
+/.sam-build-riq-pipeline-*/
+/packages/security/
+/packages/integrations/
+/packages/protocols/
+/packages/maps/
+/packages/api/
+/packages/desktop/
 
 # Dependencies & build artifacts (reinstalled/built on EAS workers)
 **/node_modules/

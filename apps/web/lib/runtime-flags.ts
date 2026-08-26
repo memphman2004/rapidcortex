@@ -51,6 +51,8 @@ const NEXT_PUBLIC_FLAG_VALUES: Record<string, string | undefined> = {
   NEXT_PUBLIC_ENABLE_GRANT_SUCCESS_PROGRAM: process.env.NEXT_PUBLIC_ENABLE_GRANT_SUCCESS_PROGRAM,
   NEXT_PUBLIC_ENABLE_LOCATION_MAP: process.env.NEXT_PUBLIC_ENABLE_LOCATION_MAP,
   NEXT_PUBLIC_ENABLE_DEPLOYMENTS_MAP: process.env.NEXT_PUBLIC_ENABLE_DEPLOYMENTS_MAP,
+  NEXT_PUBLIC_ENABLE_VENUE_OPERATIONAL_AWARENESS: process.env.NEXT_PUBLIC_ENABLE_VENUE_OPERATIONAL_AWARENESS,
+  NEXT_PUBLIC_ENABLE_CAMPUS_OPERATIONAL_MAP: process.env.NEXT_PUBLIC_ENABLE_CAMPUS_OPERATIONAL_MAP,
   NEXT_PUBLIC_ENABLE_RCS: process.env.NEXT_PUBLIC_ENABLE_RCS,
   NEXT_PUBLIC_ENABLE_CONNECT_NEST: process.env.NEXT_PUBLIC_ENABLE_CONNECT_NEST,
   NEXT_PUBLIC_ENABLE_RAPID_IQ: process.env.NEXT_PUBLIC_ENABLE_RAPID_IQ,
@@ -377,6 +379,16 @@ export function isLocationMapEnabled(): boolean {
 /** RC Admin national cross-agency deployments map. Default on when unset. */
 export function isDeploymentsMapEnabled(): boolean {
   return envFlag("NEXT_PUBLIC_ENABLE_DEPLOYMENTS_MAP");
+}
+
+/** Venue Operational Awareness workspace (split area/facility maps). Default on when unset. */
+export function isVenueOperationalAwarenessEnabled(): boolean {
+  return envFlag("NEXT_PUBLIC_ENABLE_VENUE_OPERATIONAL_AWARENESS");
+}
+
+/** Campus 3D OSM building map on the safety console. Default on when unset. */
+export function isCampusOperationalMapEnabled(): boolean {
+  return envFlag("NEXT_PUBLIC_ENABLE_CAMPUS_OPERATIONAL_MAP");
 }
 
 /**

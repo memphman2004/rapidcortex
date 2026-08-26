@@ -6,6 +6,7 @@ Outputs:
   Rapid Cortex Internal Docs/Product Usage/RC_NFC_QR_Setup_Guide.pdf
   Rapid Cortex Internal Docs/RC_NFC_Tag_Installation_Guide.pdf
   Rapid Cortex Internal Docs/Product Usage/RC_NFC_Tag_Installation_Guide.pdf
+  apps/web/public/docs/RC_NFC_QR_Setup_Guide.pdf  (signed-in /docs on app.rapidcortex.us)
 
 Also patches RC_NFC_Tag_Installation_Guide.docx to remove NFC Tools.
 """
@@ -253,8 +254,8 @@ def draw_setup_page1(c):
     c.drawString(right_x + 16, col_top - col_h + 30, "Bonus")
     c.setFillColor(colors.HexColor("#CBD5E1"))
     c.setFont("Helvetica", 6.6)
-    c.drawString(right_x + 16, col_top - col_h + 18, "The RC app can also scan and verify QR codes.")
-    c.drawString(right_x + 16, col_top - col_h + 9, "Confirm a printed code works before mounting.")
+    c.drawString(right_x + 16, col_top - col_h + 18, "Booth signs: Trade show signs → Home or Demo.")
+    c.drawString(right_x + 16, col_top - col_h + 9, "Opens www.rapidcortex.us — not a report form.")
 
     c.setFillColor(WHITE)
     c.setFont("Helvetica-Bold", 9)
@@ -384,7 +385,7 @@ def draw_setup_page2(c):
         ("Label NFC tags before sticking", "Write the location name on the tag back with a marker before peeling."),
         ("Test before mounting", "Always tap the NFC tag and scan the QR code before attaching to a sign."),
         ("QR codes work on all phones", "NFC needs a newer phone. Put both QR and NFC on the same sign for full coverage."),
-        ("RC app scans QR codes too", "Use the RC mobile app to verify any printed QR code before you mount it."),
+        ("Booth signs are not location codes", "Trade show signs → Home (www.rapidcortex.us) or Demo (/demo/). Location tags open a report form."),
     ]
     y = tips_top - 36
     for title, body in tips:
@@ -405,7 +406,7 @@ def draw_setup_page2(c):
     c.drawString(MARGIN + col_w + 22, tips_top - 18, "Troubleshooting")
     issues = [
         ("NFC tag not detected", "Turn NFC on (Settings → Connected devices → NFC). Move the tag slowly around the phone back to find the antenna."),
-        ("Wrong page opens", "The tag has an old URL. Open the location in the RC app and tap Program NFC Tag again. NTAG213 tags can be overwritten."),
+        ("Wrong page opens", "Location tags open a report form. Booth signs: Trade show signs → Home or Demo, then Program NFC Tag. Location tags can be overwritten."),
         ("QR code won’t scan", "Check print size (min 1.5″). Clean smudges. Do not stretch or distort the PNG."),
         ("NFC works but QR doesn’t", "Re-download the QR PNG from the RC dashboard. Print larger or at higher quality."),
         ("App says “Write failed”", "Enable NFC in phone settings. Hold the tag still — movement during write causes failures."),
@@ -452,12 +453,12 @@ def draw_setup_page2(c):
             ],
         ),
         (
-            "VERIFY (RC Mobile App)",
+            "TRADE SHOW (RC Mobile App)",
             [
-                "Open the RC app",
-                "Tap Scan QR Code",
-                "Point at the printed QR code",
-                "Confirm the report form opens",
+                "Campus or Venue app → Trade show signs",
+                "Choose Home or Demo (not a location)",
+                "Save / print the QR · Program NFC Tag",
+                "Tap test → www.rapidcortex.us or /demo/",
             ],
         ),
     ]
@@ -644,6 +645,29 @@ def write_nfc_install_guide(path: Path) -> None:
         )
     )
     story.append(callout("NOTE", "NFC tags and QR codes on the same sign point to the same location. They work identically — NFC is faster for newer phones; QR covers every camera.", S))
+
+    story.append(Paragraph("Trade show and Rapid Cortex booth signs", S["h2"]))
+    story.append(
+        Paragraph(
+            "Booth visitors should open the public Rapid Cortex site — not a campus or venue report form. "
+            "Do not create a location code for a trade-show sign. In the RC Mobile App (Campus or Venue), tap "
+            "<b>Trade show signs</b>, choose <b>Home</b> or <b>Demo</b>, print the QR, then tap <b>Program NFC Tag</b>.",
+            S["body"],
+        )
+    )
+    for n, title, body in [
+        (1, "Home", "https://www.rapidcortex.us — company homepage."),
+        (2, "Demo", "https://www.rapidcortex.us/demo/ — product demo page."),
+    ]:
+        story.append(step_row(n, title, body, S))
+    story.append(Spacer(1, 6))
+    story.append(
+        callout(
+            "WARNING",
+            "A location tag on a booth sign opens a safety report form. Always use Trade show signs for Rapid Cortex marketing URLs. Stay in the RC app — do not use NFC Tools or another writer.",
+            S,
+        )
+    )
     story.append(Paragraph("What You Need", S["h2"]))
     story.append(Paragraph("The Rapid Cortex browser and mobile app do the programming. You only buy blank NTAG213 stickers.", S["body"]))
 
@@ -942,6 +966,7 @@ def main() -> None:
 
     copy_to(setup, USAGE / "RC_NFC_QR_Setup_Guide.pdf")
     copy_to(nfc_pdf, USAGE / "RC_NFC_Tag_Installation_Guide.pdf")
+    copy_to(setup, ROOT / "apps/web/public/docs/RC_NFC_QR_Setup_Guide.pdf")
 
     downloads = Path.home() / "Downloads" / "RC_NFC_QR_Setup_Guide.pdf"
     try:

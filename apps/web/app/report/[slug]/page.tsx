@@ -84,7 +84,7 @@ export default async function ReportSlugPage({
   const medium: ReportMedium =
     mediumRaw === "nfc" || mediumRaw === "qr" || mediumRaw === "url" || mediumRaw === "direct"
       ? mediumRaw
-      : "direct";
+      : "qr";
 
   const engaged = await engageQrCode(slug, medium);
   if (!engaged) return inactiveReportMessage();

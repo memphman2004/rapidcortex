@@ -42,6 +42,8 @@ export const RESERVED_PUBLIC_ROUTE_FIRST_SEGMENTS: readonly string[] = [
   "media",
   /** Public QR/NFC citizen intake — no auth (`/report/{qrId}`). */
   "report",
+  /** Tracked Rapid Cortex site QR / NFC click-through (`/go/site/{home|demo}`). */
+  "go",
   /** Public SMS GPS location share — no auth (`/locate/{token}`). */
   "locate",
   /** Public non-emergency diversion IVR/web flow (`/diversion/{agencyId}`). */

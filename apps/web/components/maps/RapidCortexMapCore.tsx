@@ -31,13 +31,27 @@ import {
   LIVE_RESOLVED_LAYER,
   LIVE_SOURCE_ID,
   MAP_TOKENS as T,
+  OPS_LABEL_LAYER,
+  OPS_LAYER,
+  OPS_SOURCE_ID,
+  SECTION_EXTRUSION_LAYER,
+  SECTION_FILL_LAYER,
+  SECTION_LABEL_LAYER,
+  SECTION_LINE_LAYER,
+  SECTION_SOURCE_ID,
+  SECTION_STATUS_COLOR_EXPRESSION,
   resolveMapStyleUrl,
   SEVERITY_COLOR_EXPRESSION,
   SEVERITY_RADIUS_EXPRESSION,
   STUDIO_LAYER_GROUPS,
   STUDIO_LAYER_IDS,
 } from "./map-constants";
-import type { RCIncident, RCMapLayerVisibility, RCMapProps } from "./map-types";
+import type {
+  RCIncident,
+  RCMapLayerVisibility,
+  RCMapProps,
+  RCOperationalOverlay,
+} from "./map-types";
 import { DEFAULT_LAYER_VISIBILITY } from "./map-types";
 import { buildCallerPopupHTML, buildIncidentPopupHTML, incidentsToGeoJSON } from "./map-utils";
 import { MapLayerControl } from "./MapLayerControl";
@@ -51,6 +65,8 @@ import {
 type MapClickHandler = (
   e: mapboxgl.MapMouseEvent & { features?: mapboxgl.MapboxGeoJSONFeature[] }
 ) => void;
+
+const EMPTY_SECTION_FC: GeoJSON.FeatureCollection = { type: "FeatureCollection", features: [] };
 
 // ─── Component ────────────────────────────────────────────────────────────────
 
@@ -71,6 +87,15 @@ export default function RapidCortexMapCore({
   theme: themeProp = "dark",
   onThemeChange,
   persistUserId,
+  operationalOverlays = [],
+  onOverlayClick,
+  mapCommand,
+  showZoomControl = true,
+  pitch: pitchProp = 0,
+  bearing: bearingProp = 0,
+  sectionPolygons = null,
+  sectionExtrusion = false,
+  onPolygonFeatureClick,
 }: RCMapProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const mapRef       = useRef<mapboxgl.Map | null>(null);
@@ -80,8 +105,16 @@ export default function RapidCortexMapCore({
     ...defaultLayers,
   });
   const incidentsRef = useRef<RCIncident[]>(incidents);
+  const overlaysRef = useRef<RCOperationalOverlay[]>(operationalOverlays);
+  const overlayClickRef = useRef(onOverlayClick);
+  const polygonClickRef = useRef(onPolygonFeatureClick);
+  const sectionsRef = useRef<GeoJSON.FeatureCollection>(sectionPolygons ?? EMPTY_SECTION_FC);
+  const extrusionRef = useRef(sectionExtrusion);
+  const pitchRef = useRef(pitchProp);
+  const bearingRef = useRef(bearingProp);
   const appliedThemeRef = useRef<"dark" | "light" | null>(null);
   const clickHandlerRef = useRef<MapClickHandler>(() => undefined);
+  const lastCommandIdRef = useRef<number | null>(null);
 
   const [mapReady,  setMapReady]  = useState(false);
   const [mapError,  setMapError]  = useState<string | null>(null);
@@ -100,6 +133,31 @@ export default function RapidCortexMapCore({
   useEffect(() => {
     incidentsRef.current = incidents;
   }, [incidents]);
+
+  useEffect(() => {
+    overlaysRef.current = operationalOverlays;
+  }, [operationalOverlays]);
+
+  useEffect(() => {
+    overlayClickRef.current = onOverlayClick;
+  }, [onOverlayClick]);
+
+  useEffect(() => {
+    polygonClickRef.current = onPolygonFeatureClick;
+  }, [onPolygonFeatureClick]);
+
+  useEffect(() => {
+    sectionsRef.current = sectionPolygons ?? EMPTY_SECTION_FC;
+  }, [sectionPolygons]);
+
+  useEffect(() => {
+    extrusionRef.current = sectionExtrusion;
+  }, [sectionExtrusion]);
+
+  useEffect(() => {
+    pitchRef.current = pitchProp;
+    bearingRef.current = bearingProp;
+  }, [pitchProp, bearingProp]);
 
   useEffect(() => {
     if (onThemeChange) setLocalTheme(themeProp);
@@ -138,6 +196,9 @@ export default function RapidCortexMapCore({
       style:              resolveMapStyleUrl(initialTheme),
       center:             [centerLng ?? DEFAULT_CENTER[0], centerLat ?? DEFAULT_CENTER[1]],
       zoom:               zoom ?? DEFAULT_ZOOM,
+      pitch:              pitchProp,
+      bearing:            bearingProp,
+      maxPitch:           60,
       attributionControl: false,
       logoPosition:       "bottom-left",
       trackResize:        true,
@@ -146,10 +207,12 @@ export default function RapidCortexMapCore({
     mapRef.current = map;
 
     // Controls
-    map.addControl(
-      new mapboxgl.NavigationControl({ showCompass: false }),
-      "bottom-right"
-    );
+    if (showZoomControl) {
+      map.addControl(
+        new mapboxgl.NavigationControl({ showCompass: false }),
+        "bottom-right"
+      );
+    }
     map.addControl(
       new mapboxgl.AttributionControl({ compact: true }),
       "bottom-left"
@@ -161,10 +224,22 @@ export default function RapidCortexMapCore({
 
     // ── After style loads ────────────────────────────────────────────────────
     map.on("load", () => {
-      ensureLiveLayers(map, layersRef.current, incidentsRef.current);
+      ensureLiveLayers(
+        map,
+        layersRef.current,
+        incidentsRef.current,
+        overlaysRef.current,
+        sectionsRef.current,
+        extrusionRef.current,
+      );
       promoteStudioOverlays(map);
       applyStudioVisibility(map, layersRef.current);
       bindIncidentInteractions(map, onIncidentLayerClick);
+      bindOverlayInteractions(map, (id) => {
+        const overlay = overlaysRef.current.find((item) => item.id === id);
+        if (overlay) overlayClickRef.current?.(overlay);
+      });
+      bindPolygonInteractions(map, (props) => polygonClickRef.current?.(props));
       // Dock modules mount hidden (`display: none`); canvas is ~300px until shown.
       map.resize();
       setMapReady(true);
@@ -215,10 +290,22 @@ export default function RapidCortexMapCore({
     popupRef.current?.remove();
 
     const onStyleLoad = () => {
-      ensureLiveLayers(map, layersRef.current, incidentsRef.current);
+      ensureLiveLayers(
+        map,
+        layersRef.current,
+        incidentsRef.current,
+        overlaysRef.current,
+        sectionsRef.current,
+        extrusionRef.current,
+      );
       promoteStudioOverlays(map);
       applyStudioVisibility(map, layersRef.current);
       bindIncidentInteractions(map, (e) => clickHandlerRef.current(e));
+      bindOverlayInteractions(map, (id) => {
+        const overlay = overlaysRef.current.find((item) => item.id === id);
+        if (overlay) overlayClickRef.current?.(overlay);
+      });
+      bindPolygonInteractions(map, (props) => polygonClickRef.current?.(props));
       map.resize();
       setMapReady(true);
     };
@@ -235,6 +322,69 @@ export default function RapidCortexMapCore({
     source?.setData(incidentsToGeoJSON(incidents));
   }, [incidents, mapReady]);
 
+  useEffect(() => {
+    if (!mapReady || !mapRef.current) return;
+    const source = mapRef.current.getSource(OPS_SOURCE_ID) as mapboxgl.GeoJSONSource | undefined;
+    source?.setData(overlaysToGeoJSON(operationalOverlays));
+  }, [operationalOverlays, mapReady]);
+
+  useEffect(() => {
+    if (!mapReady || !mapRef.current) return;
+    const source = mapRef.current.getSource(SECTION_SOURCE_ID) as mapboxgl.GeoJSONSource | undefined;
+    source?.setData(sectionPolygons ?? EMPTY_SECTION_FC);
+    applySectionLayerVisibility(mapRef.current, sectionPolygons, sectionExtrusion);
+  }, [sectionPolygons, sectionExtrusion, mapReady]);
+
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!mapReady || !map || !mapCommand) return;
+    if (lastCommandIdRef.current === mapCommand.id) return;
+    lastCommandIdRef.current = mapCommand.id;
+    if (mapCommand.type === "zoom-in") {
+      map.zoomIn({ duration: 240 });
+      return;
+    }
+    if (mapCommand.type === "zoom-out") {
+      map.zoomOut({ duration: 240 });
+      return;
+    }
+    if (mapCommand.type === "fit") {
+      const pitch = mapCommand.pitch ?? pitchRef.current;
+      const bearing = mapCommand.bearing ?? bearingRef.current;
+      if (mapCommand.bounds) {
+        map.fitBounds(mapCommand.bounds, {
+          padding: 48,
+          duration: 400,
+          maxZoom: 17,
+          pitch,
+          bearing,
+        });
+        return;
+      }
+      if (mapCommand.center) {
+        map.flyTo({
+          center: mapCommand.center,
+          zoom: mapCommand.zoom ?? INCIDENT_ZOOM,
+          pitch,
+          bearing,
+          duration: 400,
+          essential: true,
+        });
+      }
+      return;
+    }
+    if (mapCommand.type === "camera") {
+      map.easeTo({
+        ...(mapCommand.center ? { center: mapCommand.center } : {}),
+        ...(mapCommand.zoom !== undefined ? { zoom: mapCommand.zoom } : {}),
+        ...(mapCommand.pitch !== undefined ? { pitch: mapCommand.pitch } : {}),
+        ...(mapCommand.bearing !== undefined ? { bearing: mapCommand.bearing } : {}),
+        duration: 500,
+        essential: true,
+      });
+    }
+  }, [mapCommand, mapReady]);
+
   // ─── Fly to selected incident ────────────────────────────────────────────
 
   useEffect(() => {
@@ -245,6 +395,8 @@ export default function RapidCortexMapCore({
     mapRef.current.flyTo({
       center:    [incident.longitude, incident.latitude],
       zoom:      INCIDENT_ZOOM,
+      pitch:     pitchRef.current,
+      bearing:   bearingRef.current,
       duration:  FLY_DURATION_MS,
       essential: true,
     });
@@ -531,8 +683,81 @@ export default function RapidCortexMapCore({
 function ensureLiveLayers(
   map: mapboxgl.Map,
   layers: RCMapLayerVisibility,
-  incidents: RCIncident[]
+  incidents: RCIncident[],
+  overlays: RCOperationalOverlay[] = [],
+  sections: GeoJSON.FeatureCollection = EMPTY_SECTION_FC,
+  extrude = false,
 ): void {
+  if (!map.getSource(SECTION_SOURCE_ID)) {
+    map.addSource(SECTION_SOURCE_ID, {
+      type: "geojson",
+      data: sections,
+    });
+  } else {
+    (map.getSource(SECTION_SOURCE_ID) as mapboxgl.GeoJSONSource).setData(sections);
+  }
+
+  if (!map.getLayer(SECTION_FILL_LAYER)) {
+    map.addLayer({
+      id: SECTION_FILL_LAYER,
+      type: "fill",
+      source: SECTION_SOURCE_ID,
+      paint: {
+        "fill-color": SECTION_STATUS_COLOR_EXPRESSION,
+        "fill-opacity": 0.45,
+      },
+    });
+  }
+
+  if (!map.getLayer(SECTION_EXTRUSION_LAYER)) {
+    map.addLayer({
+      id: SECTION_EXTRUSION_LAYER,
+      type: "fill-extrusion",
+      source: SECTION_SOURCE_ID,
+      paint: {
+        "fill-extrusion-color": SECTION_STATUS_COLOR_EXPRESSION,
+        "fill-extrusion-height": ["to-number", ["get", "extrusionHeight"]],
+        "fill-extrusion-base": ["to-number", ["get", "extrusionBase"]],
+        "fill-extrusion-opacity": 0.7,
+      },
+    });
+  }
+
+  if (!map.getLayer(SECTION_LINE_LAYER)) {
+    map.addLayer({
+      id: SECTION_LINE_LAYER,
+      type: "line",
+      source: SECTION_SOURCE_ID,
+      paint: {
+        "line-color": SECTION_STATUS_COLOR_EXPRESSION,
+        "line-width": 1.5,
+        "line-opacity": 0.9,
+      },
+    });
+  }
+
+  if (!map.getLayer(SECTION_LABEL_LAYER)) {
+    map.addLayer({
+      id: SECTION_LABEL_LAYER,
+      type: "symbol",
+      source: SECTION_SOURCE_ID,
+      layout: {
+        "text-field": ["get", "label"],
+        "text-size": 11,
+        "text-font": ["DIN Offc Pro Medium", "Arial Unicode MS Regular"],
+        "text-anchor": "center",
+        "text-max-width": 6,
+      },
+      paint: {
+        "text-color": "#e2e8f0",
+        "text-halo-color": "#0f1117",
+        "text-halo-width": 1.2,
+      },
+    });
+  }
+
+  applySectionLayerVisibility(map, sections, extrude);
+
   if (!map.getSource(LIVE_SOURCE_ID)) {
     map.addSource(LIVE_SOURCE_ID, {
       type: "geojson",
@@ -638,11 +863,83 @@ function ensureLiveLayers(
     });
   }
 
+  if (!map.getSource(OPS_SOURCE_ID)) {
+    map.addSource(OPS_SOURCE_ID, {
+      type: "geojson",
+      data: overlaysToGeoJSON(overlays),
+    });
+  } else {
+    (map.getSource(OPS_SOURCE_ID) as mapboxgl.GeoJSONSource).setData(overlaysToGeoJSON(overlays));
+  }
+
+  if (!map.getLayer(OPS_LAYER)) {
+    map.addLayer({
+      id: OPS_LAYER,
+      type: "circle",
+      source: OPS_SOURCE_ID,
+      paint: {
+        "circle-radius": 8,
+        "circle-color": [
+          "match",
+          ["get", "kind"],
+          "camera", "#3b82f6",
+          "entrance", "#22c55e",
+          "staging", "#f59e0b",
+          "security", "#a78bfa",
+          "ems", "#ef4444",
+          "police", "#60a5fa",
+          "fire", "#f97316",
+          "roadClosure", "#fbbf24",
+          "aed", "#ef4444",
+          "emergencyPhone", "#f87171",
+          "parking", "#94a3b8",
+          "#94a3b8",
+        ],
+        "circle-opacity": 0.92,
+        "circle-stroke-width": 2,
+        "circle-stroke-color": "#ffffff",
+      },
+    });
+  }
+
+  if (!map.getLayer(OPS_LABEL_LAYER)) {
+    map.addLayer({
+      id: OPS_LABEL_LAYER,
+      type: "symbol",
+      source: OPS_SOURCE_ID,
+      layout: {
+        "text-field": ["get", "label"],
+        "text-size": 10,
+        "text-offset": [0, 1.4],
+        "text-anchor": "top",
+        "text-font": ["DIN Offc Pro Medium", "Arial Unicode MS Regular"],
+        "text-max-width": 8,
+      },
+      paint: {
+        "text-color": "#e2e8f0",
+        "text-halo-color": "#0f1117",
+        "text-halo-width": 1.2,
+      },
+    });
+  }
+
   safeSetVisibility(map, LIVE_ACTIVE_LAYER, layers.activeIncidents);
   safeSetVisibility(map, LIVE_PULSE_LAYER, layers.activeIncidents);
   safeSetVisibility(map, LIVE_RESOLVED_LAYER, layers.resolvedIncidents);
   safeSetVisibility(map, CALLER_LAYER, layers.callerPin);
   safeSetVisibility(map, CALLER_LABEL_LAYER, layers.callerPin);
+}
+
+function applySectionLayerVisibility(
+  map: mapboxgl.Map,
+  sections: GeoJSON.FeatureCollection | null | undefined,
+  extrude: boolean,
+): void {
+  const hasFeatures = Boolean(sections?.features?.length);
+  safeSetVisibility(map, SECTION_FILL_LAYER, hasFeatures && !extrude);
+  safeSetVisibility(map, SECTION_EXTRUSION_LAYER, hasFeatures && extrude);
+  safeSetVisibility(map, SECTION_LINE_LAYER, hasFeatures);
+  safeSetVisibility(map, SECTION_LABEL_LAYER, hasFeatures);
 }
 
 const incidentCursorEnterByMap = new WeakMap<mapboxgl.Map, () => void>();
@@ -674,6 +971,78 @@ function bindIncidentInteractions(map: mapboxgl.Map, handler: MapClickHandler): 
     map.off("mouseleave", layerId, onLeave);
     map.on("mouseenter", layerId, onEnter);
     map.on("mouseleave", layerId, onLeave);
+  }
+}
+
+function overlaysToGeoJSON(overlays: RCOperationalOverlay[]): GeoJSON.FeatureCollection {
+  return {
+    type: "FeatureCollection",
+    features: overlays.map((overlay) => ({
+      type: "Feature",
+      geometry: {
+        type: "Point",
+        coordinates: [overlay.longitude, overlay.latitude],
+      },
+      properties: {
+        id: overlay.id,
+        kind: overlay.kind,
+        label: overlay.label,
+      },
+    })),
+  };
+}
+
+const overlayClickByMap = new WeakMap<mapboxgl.Map, MapClickHandler>();
+
+function bindOverlayInteractions(
+  map: mapboxgl.Map,
+  onSelect: (id: string) => void,
+): void {
+  const previous = overlayClickByMap.get(map);
+  if (previous) {
+    map.off("click", OPS_LAYER, previous);
+  }
+  const handler: MapClickHandler = (event) => {
+    const id = String(event.features?.[0]?.properties?.id ?? "");
+    if (id) onSelect(id);
+  };
+  overlayClickByMap.set(map, handler);
+  map.on("click", OPS_LAYER, handler);
+  map.on("mouseenter", OPS_LAYER, () => {
+    map.getCanvas().style.cursor = "pointer";
+  });
+  map.on("mouseleave", OPS_LAYER, () => {
+    map.getCanvas().style.cursor = "";
+  });
+}
+
+const polygonClickByMap = new WeakMap<mapboxgl.Map, MapClickHandler>();
+
+function bindPolygonInteractions(
+  map: mapboxgl.Map,
+  onSelect: (properties: GeoJSON.GeoJsonProperties) => void,
+): void {
+  const previous = polygonClickByMap.get(map);
+  const layers = [SECTION_FILL_LAYER, SECTION_EXTRUSION_LAYER];
+  if (previous) {
+    for (const layerId of layers) {
+      map.off("click", layerId, previous);
+    }
+  }
+  const handler: MapClickHandler = (event) => {
+    const props = event.features?.[0]?.properties ?? null;
+    if (props) onSelect(props);
+  };
+  polygonClickByMap.set(map, handler);
+  for (const layerId of layers) {
+    if (!map.getLayer(layerId)) continue;
+    map.on("click", layerId, handler);
+    map.on("mouseenter", layerId, () => {
+      map.getCanvas().style.cursor = "pointer";
+    });
+    map.on("mouseleave", layerId, () => {
+      map.getCanvas().style.cursor = "";
+    });
   }
 }
 

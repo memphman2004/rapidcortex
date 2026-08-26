@@ -20,6 +20,10 @@ function isVenueConsoleHomePath(pathname: string, venueCode: string): boolean {
   return patterns.some((re) => re.test(pathname));
 }
 
+function isVenueOperationsPopoutPath(pathname: string): boolean {
+  return /\/venue\/[^/]+\/operations\//i.test(pathname);
+}
+
 export function VenueShellThemeRoot({ children }: { children: ReactNode }) {
   return (
     <ThemeProvider storageKey="rc-theme-venue">
@@ -65,8 +69,9 @@ export function VenueShellChrome({
 }) {
   const pathname = usePathname() ?? "";
   const consoleHome = isVenueConsoleHomePath(pathname, venueCode);
+  const operationsPopout = isVenueOperationsPopoutPath(pathname);
 
-  if (consoleHome) {
+  if (consoleHome || operationsPopout) {
     return <>{children}</>;
   }
 

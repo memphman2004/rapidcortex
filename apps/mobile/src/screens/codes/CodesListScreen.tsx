@@ -109,6 +109,31 @@ export default function CodesListScreen() {
         >
           Tap a code for QR details, or Program NFC Tag on the card.
         </Text>
+        <Pressable
+          onPress={() => router.push(href("/trade-show-nfc") as never)}
+          accessibilityRole="button"
+          accessibilityLabel={Strings.venue.tradeShowNfc.cta}
+          style={{
+            marginTop: spacing["3"],
+            borderWidth: 1,
+            borderColor: palette.amber,
+            borderRadius: 10,
+            paddingVertical: 10,
+            paddingHorizontal: 12,
+          }}
+        >
+          <Text style={[typography.bodyMedium, { color: palette.amber }]}>
+            {Strings.venue.tradeShowNfc.cta}
+          </Text>
+          <Text
+            style={[
+              typography.caption,
+              { color: palette.textSecondary, marginTop: 2 },
+            ]}
+          >
+            Writes www.rapidcortex.us or /demo/ for booth visitors
+          </Text>
+        </Pressable>
 
         <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginTop: spacing['3'] }}>
           {STATUS_FILTERS.map((filter) => (

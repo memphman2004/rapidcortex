@@ -17,6 +17,11 @@ export interface QRNFCRecord {
   nfcEnabled: boolean;
   nfcTagId?: string;
   active: boolean;
+  /**
+   * `marketing_site` = Rapid Cortex homepage/demo booth codes (not a location report).
+   * Omitted on location report codes.
+   */
+  kind?: "location" | "marketing_site";
   url: string;
   qrImageBase64?: string;
   scanCount: number;

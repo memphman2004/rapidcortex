@@ -1,6 +1,5 @@
 import { ulid } from "ulid";
 import type {
-  CreateQRNFCInput,
   QRNFCRecord,
   QRNFCPublicRecord,
   QRNFCWriteEvent,
@@ -9,8 +8,14 @@ import type {
 } from "rapid-cortex-shared";
 import {
   createQRNFCSchema,
+  isMarketingSiteQrRecord,
   migrateLegacyRapidCortexRoleTokenValue,
+  TRADE_SHOW_SITE_AGENCY_ID,
+  tradeShowDestFromQrId,
+  tradeShowSiteDisplayName,
+  tradeShowUrlFor,
   updateQRNFCSchema,
+  isTradeShowSiteQrId,
 } from "rapid-cortex-shared";
 import {
   AUDIT_EVENT_TYPES,
@@ -138,7 +143,8 @@ export class QrNfcService {
   ) {
     const agencyId = resolveQrNfcAgencyId(user, opts.agencyId);
     assertView(user, agencyId);
-    return repo.listByAgency(agencyId, opts);
+    const items = await repo.listByAgency(agencyId, opts);
+    return items.filter((row) => !isMarketingSiteQrRecord(row));
   }
 
   async listGlobal(
@@ -151,7 +157,31 @@ export class QrNfcService {
       (err as Error & { statusCode?: number }).statusCode = 403;
       throw err;
     }
-    return repo.listGlobal(opts);
+    const items = await repo.listGlobal(opts);
+    return items.filter((row) => !isMarketingSiteQrRecord(row));
+  }
+
+  async listSiteUsage(user: UserContext) {
+    assertView(user, user.agencyId);
+    const ids = ["site-home", "site-demo"] as const;
+    const items = await Promise.all(
+      ids.map(async (qrId) => {
+        const dest = tradeShowDestFromQrId(qrId);
+        if (!dest) return null;
+        const record = await repo.get(TRADE_SHOW_SITE_AGENCY_ID, qrId);
+        return {
+          qrId,
+          destinationId: dest,
+          name: record?.name ?? tradeShowSiteDisplayName(dest),
+          url: record?.url ?? tradeShowUrlFor(dest),
+          scanCount: record?.scanCount ?? 0,
+          nfcTapCount: record?.nfcTapCount ?? 0,
+          totalEngagements: record?.totalEngagements ?? 0,
+          ...(record?.lastEngagementAt ? { lastEngagementAt: record.lastEngagementAt } : {}),
+        };
+      }),
+    );
+    return items.filter((row): row is NonNullable<typeof row> => row !== null);
   }
 
   async get(user: UserContext, qrId: string, requestedAgencyId?: string): Promise<QRNFCRecord | null> {
@@ -171,6 +201,11 @@ export class QrNfcService {
   }
 
   async update(user: UserContext, qrId: string, input: unknown): Promise<QRNFCRecord | null> {
+    if (isTradeShowSiteQrId(qrId)) {
+      const err = new Error("FORBIDDEN");
+      (err as Error & { statusCode?: number }).statusCode = 403;
+      throw err;
+    }
     const parsed = updateQRNFCSchema.safeParse(input);
     if (!parsed.success) {
       const err = new Error("VALIDATION");
@@ -205,6 +240,11 @@ export class QrNfcService {
   }
 
   async deactivate(user: UserContext, qrId: string): Promise<QRNFCRecord | null> {
+    if (isTradeShowSiteQrId(qrId)) {
+      const err = new Error("FORBIDDEN");
+      (err as Error & { statusCode?: number }).statusCode = 403;
+      throw err;
+    }
     const existing = await repo.getByQrId(qrId);
     if (!existing) return null;
     assertManage(user, existing.agencyId);
@@ -286,6 +326,22 @@ export class QrNfcService {
   }
 
   async engage(qrId: string, medium: "qr" | "nfc" | "direct" | "url"): Promise<QRNFCPublicRecord | { active: false; vertical: QRNFCRecord["vertical"] }> {
+    const dest = tradeShowDestFromQrId(qrId);
+    if (dest) {
+      await repo.incrementSiteEngagement(TRADE_SHOW_SITE_AGENCY_ID, qrId, medium, {
+        name: tradeShowSiteDisplayName(dest),
+        url: tradeShowUrlFor(dest),
+      });
+      return {
+        active: true,
+        qrId,
+        agencyId: TRADE_SHOW_SITE_AGENCY_ID,
+        agencyName: "Rapid Cortex",
+        vertical: "911",
+        reportType: "anonymous",
+        medium,
+      };
+    }
     const record = await repo.getByQrId(qrId);
     if (!record) {
       const err = new Error("NOT_FOUND");

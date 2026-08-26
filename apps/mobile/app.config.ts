@@ -33,6 +33,7 @@ const apiBase4 =
 const wsBase =
   process.env.EXPO_PUBLIC_WS_BASE?.trim() ||
   'wss://g0wzu18e2k.execute-api.us-east-1.amazonaws.com/dev';
+const appOrigin = process.env.EXPO_PUBLIC_APP_ORIGIN?.trim() || 'https://app.rapidcortex.us';
 
 const config: ExpoConfig = {
   name: 'Rapid Cortex',
@@ -112,6 +113,7 @@ const config: ExpoConfig = {
     EXPO_PUBLIC_API_BASE_3: apiBase3,
     EXPO_PUBLIC_API_BASE_4: apiBase4,
     EXPO_PUBLIC_WS_BASE: wsBase,
+    EXPO_PUBLIC_APP_ORIGIN: appOrigin,
   },
   owner: 'rapid-cortex',
 };

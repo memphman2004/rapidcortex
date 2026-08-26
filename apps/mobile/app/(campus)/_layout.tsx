@@ -52,6 +52,13 @@ function CampusTabs() {
           headerShown: false,
         }}
       />
+      <Tabs.Screen
+        name="trade-show-nfc"
+        options={{
+          href: null,
+          headerShown: false,
+        }}
+      />
     </Tabs>
   );
 }

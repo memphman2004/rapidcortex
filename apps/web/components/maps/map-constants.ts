@@ -20,11 +20,14 @@ import type { ExpressionSpecification } from "mapbox-gl";
 export const RC_STYLE_URL_DARK =
   (typeof process !== "undefined" &&
     (process.env.NEXT_PUBLIC_MAPBOX_STYLE_URL_DARK ||
+      process.env.NEXT_PUBLIC_MAPBOX_STYLE_DARK ||
       process.env.NEXT_PUBLIC_MAPBOX_STYLE_URL)) ||
   "mapbox://styles/memphman2004/cmr3afd69002401qq1uywfk5p";
 
 export const RC_STYLE_URL_LIGHT =
-  (typeof process !== "undefined" && process.env.NEXT_PUBLIC_MAPBOX_STYLE_URL_LIGHT) ||
+  (typeof process !== "undefined" &&
+    (process.env.NEXT_PUBLIC_MAPBOX_STYLE_URL_LIGHT ||
+      process.env.NEXT_PUBLIC_MAPBOX_STYLE_LIGHT)) ||
   "mapbox://styles/memphman2004/cmsfheap9009w01s96hcr95b1";
 
 /** @deprecated Prefer RC_STYLE_URL_DARK / resolveMapStyleUrl — kept for older callers */
@@ -127,6 +130,38 @@ export const DEFAULT_CENTER: [number, number] = [-84.387982, 33.748995];
 export const DEFAULT_ZOOM = 10;
 export const INCIDENT_ZOOM = 15;    // Zoom level when flying to a selected incident
 export const FLY_DURATION_MS = 1200;
+
+export const OPS_SOURCE_ID = "rc-operational-overlays";
+export const OPS_LAYER = "rc-operational-overlays-circle";
+export const OPS_LABEL_LAYER = "rc-operational-overlays-label";
+
+export const SECTION_SOURCE_ID = "rc-venue-sections";
+export const SECTION_FILL_LAYER = "rc-venue-sections-fill";
+export const SECTION_EXTRUSION_LAYER = "rc-venue-sections-extrusion";
+export const SECTION_LINE_LAYER = "rc-venue-sections-line";
+export const SECTION_LABEL_LAYER = "rc-venue-sections-label";
+
+export const SECTION_STATUS_COLOR_EXPRESSION = [
+  "match",
+  ["get", "status"],
+  "clear",
+  "#10b981",
+  "normal",
+  "#10b981",
+  "elevated",
+  "#f59e0b",
+  "attention",
+  "#f59e0b",
+  "incident",
+  "#ef4444",
+  "nominal",
+  "#10b981",
+  "alert",
+  "#f59e0b",
+  "closed",
+  "#64748b",
+  "#10b981",
+] as ExpressionSpecification;
 
 // ─── Mapbox expression helpers ────────────────────────────────────────────────
 

@@ -271,6 +271,18 @@ export const Strings = {
         cancelled: 'NFC write cancelled.',
       },
     },
+    tradeShowNfc: {
+      title: 'Trade show signs',
+      cta: 'Trade show signs',
+      program: 'Program NFC tag',
+      blurb:
+        'Print the QR and program an NTAG213 so a booth tap or scan opens the Rapid Cortex site — not a location report form. Each tap is counted.',
+      homeLabel: 'Home',
+      demoLabel: 'Demo',
+      ready: 'Hold an NTAG213 tag to the back of your phone',
+      writing: 'Writing marketing URL…',
+      success: 'Tag opens the Rapid Cortex website',
+    },
     accountDetails: {
       role: 'Role',
       agency: 'Agency',

@@ -2,9 +2,12 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import type { CreateQRNFCInput, QRNFCRecord, ReportVertical } from "rapid-cortex-shared";
-import { formatPhoneDisplay, normalizePhoneE164 } from "rapid-cortex-shared";
+import { formatPhoneDisplay, isMarketingSiteQrRecord, normalizePhoneE164 } from "rapid-cortex-shared";
 import { features } from "@/lib/features";
+import { qrNfcSetupGuidePath } from "@/lib/marketing-links";
 import { NFCInstructions } from "./nfc-instructions";
+import { QrNfcUsagePanel } from "./qr-nfc-usage-panel";
+import { TradeShowMarketingQrPanel } from "./trade-show-marketing-qr";
 import { SmsRoutingManager } from "@/components/sms-routing/sms-routing-manager";
 
 type ListItem = Omit<QRNFCRecord, "qrImageBase64">;
@@ -90,7 +93,7 @@ export function QRNFCManager({
       const res = await fetch(path, { credentials: "include" });
       const body = (await res.json()) as { items?: ListItem[]; error?: string };
       if (!res.ok) throw new Error(body.error ?? "Failed to load codes");
-      setItems(body.items ?? []);
+      setItems((body.items ?? []).filter((row) => !isMarketingSiteQrRecord(row)));
     } catch (e) {
       setError(e instanceof Error ? e.message : "Failed to load");
     } finally {
@@ -270,6 +273,27 @@ export function QRNFCManager({
     <div className="space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <h2 className="text-lg font-semibold text-slate-100">{title}</h2>
+        <div className="flex flex-wrap items-center gap-2">
+          <a
+            href={qrNfcSetupGuidePath()}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="rounded-md border border-slate-600 px-3 py-1.5 text-sm font-medium text-slate-200 hover:border-sky-500/60 hover:text-sky-200"
+          >
+            Setup guide (PDF)
+          </a>
+          <a
+            href="#qr-nfc-usage"
+            className="rounded-md border border-slate-600 px-3 py-1.5 text-sm font-medium text-slate-200 hover:border-sky-500/60 hover:text-sky-200"
+          >
+            Usage
+          </a>
+          <a
+            href="#rc-marketing-qr"
+            className="rounded-md border border-amber-700/70 px-3 py-1.5 text-sm font-medium text-amber-200 hover:border-amber-500/80 hover:text-amber-100"
+          >
+            + Rapid Cortex site QR
+          </a>
         {canCreate ? (
           <button
             type="button"
@@ -283,6 +307,7 @@ export function QRNFCManager({
             + New QR / NFC Code
           </button>
         ) : null}
+        </div>
       </div>
 
       <div
@@ -314,13 +339,27 @@ export function QRNFCManager({
         ))}
       </div>
 
+      <QrNfcUsagePanel
+        items={items}
+        loading={loading}
+        mediumView={mediumView}
+        globalView={globalView}
+        agencyId={agencyId}
+      />
+
+      <TradeShowMarketingQrPanel
+        onCopied={(label) => flash("ok", `${label} copied.`)}
+        onDownloaded={(fileName) => flash("ok", `${fileName} download started.`)}
+        onError={(message) => flash("err", message)}
+      />
+
       <div className="rounded-lg border border-slate-800 bg-slate-950/50 p-4">
         <h3 className="text-xs font-semibold uppercase tracking-wide text-slate-500">
           {mediumView === "nfc" ? "Program NFC tags" : "Print on your sign"}
         </h3>
         <p className="mt-1 text-xs text-slate-500">
           {mediumView === "nfc"
-            ? "Open each code in the Rapid Cortex mobile app, tap Program NFC Tag, hold an NTAG213 to your phone, then stick the tag behind the sign."
+            ? "Open each location code in the Rapid Cortex mobile app, tap Program NFC Tag, hold an NTAG213 to your phone, then stick the tag behind the sign. Browser for QR PNGs; RC app for NFC write and QR verify — no other apps."
             : "Signs only need the QR code and NFC tag. When someone scans, they can tap to call or submit a report."}
         </p>
         {mediumView !== "nfc" ? (
@@ -416,7 +455,12 @@ export function QRNFCManager({
         <p className="rounded-lg border border-dashed border-slate-800 px-4 py-8 text-center text-sm text-slate-500">
           {mediumView === "nfc"
             ? "No NFC-enabled codes match these filters."
-            : "No codes match these filters."}
+            : "No codes match these filters."}{" "}
+          Scan and tap totals are in{" "}
+          <a href="#qr-nfc-usage" className="text-sky-400 hover:text-sky-300">
+            Usage
+          </a>{" "}
+          above.
         </p>
       ) : null}
 
@@ -541,6 +585,13 @@ export function QRNFCManager({
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
           <form onSubmit={(e) => void onCreate(e)} className="w-full max-w-md rounded-lg border border-slate-700 bg-slate-900 p-5">
             <h3 className="text-lg font-semibold text-slate-100">New QR / NFC code</h3>
+            <p className="mt-2 rounded border border-amber-900/40 bg-amber-950/30 px-3 py-2 text-xs text-slate-400">
+              This creates a <span className="text-slate-200">location report</span> code. For{" "}
+              <a href="#rc-marketing-qr" className="text-amber-300 hover:text-amber-200" onClick={() => setModalOpen(false)}>
+                www.rapidcortex.us
+              </a>{" "}
+              booth signs, close this and use <span className="text-slate-200">Rapid Cortex site QR</span>.
+            </p>
             <label className="mt-4 block text-sm text-slate-300">
               Name *
               <input

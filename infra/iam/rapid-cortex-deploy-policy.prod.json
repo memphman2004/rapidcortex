@@ -89,10 +89,14 @@
       "Resource": "arn:aws:cloudfront::158961537080:distribution/*"
     },
     {
-      "Sid": "MapboxTokenSsmRead",
+      "Sid": "MapboxSsmRead",
       "Effect": "Allow",
       "Action": ["ssm:GetParameter"],
-      "Resource": "arn:aws:ssm:us-east-1:158961537080:parameter/rapidcortex/prod/mapbox/public-token"
+      "Resource": [
+        "arn:aws:ssm:us-east-1:158961537080:parameter/rapidcortex/prod/mapbox/public-token",
+        "arn:aws:ssm:us-east-1:158961537080:parameter/rapidcortex/prod/mapbox/style-dark",
+        "arn:aws:ssm:us-east-1:158961537080:parameter/rapidcortex/prod/mapbox/style-light"
+      ]
     },
     {
       "Sid": "BillingSecretsCleanup",

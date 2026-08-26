@@ -44,6 +44,9 @@ import { ThemeToggle } from "@/components/ui/ThemeToggle";
 import { RapidCortexMap } from "@/components/maps/RapidCortexMap";
 import { loadMapTheme, saveMapTheme } from "@/lib/maps/persisted-map-prefs";
 import { venueIncidentsToMap } from "@/components/maps/map-incident-adapters";
+import { isVenueOperationalAwarenessEnabled } from "@/lib/runtime-flags";
+import { OperationalAwarenessWorkspace } from "@/components/venue/operational-awareness/OperationalAwarenessWorkspace";
+import { resolveVenueOperationalMap } from "@/lib/venue/operational-awareness/resolve-operational-map";
 import { useAgencyWebSocket } from "@/hooks/use-agency-websocket";
 import { buildNavContext } from "@/lib/navigation/nav-context";
 import { filterRoleNavByFeatures } from "@/lib/navigation/filter-role-nav";
@@ -876,6 +879,16 @@ function VenueConsoleHomeInner({
         ? `${sections.length} / ${sections.length}`
         : "—";
   const kpiGuestReports = stats?.guestReportsToday ?? 0;
+  const operationalMap = useMemo(
+    () => resolveVenueOperationalMap(venueCode, venueName),
+    [venueCode, venueName],
+  );
+  const oaMedicalResources = operationalMap.assets.filter(
+    (asset) => asset.type === "aed" || asset.type === "firstAid",
+  ).length;
+  const oaCamerasOnline = operationalMap.assets.filter(
+    (asset) => asset.type === "camera" && asset.status !== "offline",
+  ).length;
 
   const incidentsHref = findNavHref(navItems, "incidents");
   const zonesHref = findNavHref(navItems, "zones");
@@ -2030,56 +2043,76 @@ function VenueConsoleHomeInner({
                 </div>
               </div>
 
-              {/* Operational Map */}
+              {/* Operational Awareness */}
               <div style={{ padding: "0 16px 12px" }}>
-                <div
-                  style={{
-                    ...card(),
-                    overflow: "hidden",
-                    height: 400,
-                  }}
-                >
+                {isVenueOperationalAwarenessEnabled() ? (
+                  <OperationalAwarenessWorkspace
+                    venueCode={venueCode}
+                    venueName={venueName}
+                    persistUserId={userId || null}
+                    mapTheme={mapTheme}
+                    onMapThemeChange={onMapThemeChange}
+                    liveIncidents={mapIncidents}
+                    selectedIncidentId={selectedMapIncident}
+                    onIncidentSelect={setSelectedMapIncident}
+                    activeIncidents={kpiIncidents}
+                    staffOnDuty={kpiStaff}
+                    camerasOnline={oaCamerasOnline}
+                    medicalResources={oaMedicalResources}
+                    facilityAlerts={openIncidents.length}
+                    onRefresh={() => void refreshAll()}
+                    onNotifyStaff={() => setNotifyOpen(true)}
+                  />
+                ) : (
                   <div
                     style={{
-                      padding: "10px 14px",
-                      borderBottom: `1px solid ${C.border}`,
-                      display: "flex",
-                      alignItems: "center",
-                      gap: 6,
+                      ...card(),
+                      overflow: "hidden",
+                      height: 400,
                     }}
                   >
-                    <MapPin size={13} color={C.textSub} />
-                    <span
+                    <div
                       style={{
-                        fontSize: 12,
-                        fontWeight: 700,
-                        color: C.textSub,
-                        letterSpacing: "0.05em",
+                        padding: "10px 14px",
+                        borderBottom: `1px solid ${C.border}`,
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 6,
                       }}
                     >
-                      OPERATIONAL MAP
-                    </span>
+                      <MapPin size={13} color={C.textSub} />
+                      <span
+                        style={{
+                          fontSize: 12,
+                          fontWeight: 700,
+                          color: C.textSub,
+                          letterSpacing: "0.05em",
+                        }}
+                      >
+                        OPERATIONAL MAP
+                      </span>
+                    </div>
+                    <div style={{ height: 420, borderRadius: 8, overflow: "hidden" }}>
+                      <RapidCortexMap
+                        theme={mapTheme}
+                        onThemeChange={onMapThemeChange}
+                        persistUserId={userId || null}
+                        incidents={mapIncidents}
+                        selectedIncidentId={selectedMapIncident}
+                        onIncidentClick={(inc) => setSelectedMapIncident(inc.id)}
+                        vertical="venue"
+                        height="420px"
+                        showLayerControl
+                        defaultLayers={{
+                          venueZones: true,
+                          agencyZones: false,
+                          counties: false,
+                          activeIncidents: true,
+                        }}
+                      />
+                    </div>
                   </div>
-                  <div style={{ height: 420, borderRadius: 8, overflow: "hidden" }}>
-                    <RapidCortexMap
-                      theme={mapTheme}
-                      onThemeChange={onMapThemeChange}
-                      persistUserId={userId || null}
-                      incidents={mapIncidents}
-                      selectedIncidentId={selectedMapIncident}
-                      onIncidentClick={(inc) => setSelectedMapIncident(inc.id)}
-                      vertical="venue"
-                      height="420px"
-                      showLayerControl
-                      defaultLayers={{
-                        venueZones: true,
-                        agencyZones: false,
-                        counties: false,
-                        activeIncidents: true,
-                      }}
-                    />
-                  </div>
-                </div>
+                )}
               </div>
 
               {/* Quick actions + utilities */}
@@ -2412,7 +2445,12 @@ function VenueConsoleHomeInner({
                     color: "inherit",
                   };
                   return n.href ? (
-                    <Link key={n.id} href={n.href} style={style}>
+                    <Link
+                      key={n.id}
+                      href={n.href}
+                      style={style}
+                      onClick={() => setSelectedMapIncident(n.id)}
+                    >
                       {body}
                     </Link>
                   ) : (

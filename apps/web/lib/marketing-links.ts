@@ -212,3 +212,8 @@ export function marketingDevelopersDocsPath(suffix = ""): string {
 export function marketingCompleteManualPath(): string {
   return "/docs/rapidcortex-complete-manual.html";
 }
+
+/** QR & NFC field setup PDF (`public/docs/`) — signed-in dashboard access (middleware). */
+export function qrNfcSetupGuidePath(): string {
+  return "/docs/RC_NFC_QR_Setup_Guide.pdf";
+}

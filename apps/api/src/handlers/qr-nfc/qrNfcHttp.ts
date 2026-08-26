@@ -42,7 +42,11 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
   try {
     const path = event.rawPath ?? "";
     const qrId = event.pathParameters?.qrId?.trim();
-    const isGlobal = path.endsWith("/global") || path.includes("/qr-nfc/global");
+    // Dedicated route OR {qrId}=global when AppSamQrStack has not registered GET /global yet.
+    const isGlobal =
+      qrId === "global" || path.endsWith("/global") || path.includes("/qr-nfc/global");
+    const isSiteUsage =
+      qrId === "site-usage" || path.endsWith("/site-usage") || path.includes("/qr-nfc/site-usage");
     const m = method(event);
 
     if (path.includes("/engage")) {
@@ -59,6 +63,11 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
       const activeParam = event.queryStringParameters?.active;
       const active = activeParam === undefined ? undefined : activeParam === "true";
       const items = await service.listGlobal(user, { agencyId, vertical, active });
+      return withCorrelationHeaders(event, ok({ items }));
+    }
+
+    if (isSiteUsage && m === "GET") {
+      const items = await service.listSiteUsage(user);
       return withCorrelationHeaders(event, ok({ items }));
     }
 

@@ -38,6 +38,8 @@ import { HelpChrome } from "@/components/help/help-chrome";
 import { IncidentCameraPanel } from "@/components/venue/IncidentCameraPanel";
 import { SiteSquareMark } from "@/components/brand/site-logo-link";
 import { RapidCortexMap } from "@/components/maps/RapidCortexMap";
+import { CampusOperationalMap } from "@/components/campus/operational-map/CampusOperationalMap";
+import { isCampusOperationalMapEnabled } from "@/lib/runtime-flags";
 import { loadMapTheme, saveMapTheme } from "@/lib/maps/persisted-map-prefs";
 import { campusIncidentsToMap } from "@/components/maps/map-incident-adapters";
 import { buildNavContext } from "@/lib/navigation/nav-context";
@@ -1609,23 +1611,38 @@ function CampusConsoleHomeInner({
                       OPERATIONAL MAP
                     </span>
                   </div>
-                  <RapidCortexMap
-                    theme={mapTheme}
-                    onThemeChange={onMapThemeChange}
-                    persistUserId={userId || null}
-                    incidents={mapIncidents}
-                    selectedIncidentId={selectedMapIncident}
-                    onIncidentClick={(inc) => setSelectedMapIncident(inc.id)}
-                    vertical="campus"
-                    height="372px"
-                    showLayerControl
-                    defaultLayers={{
-                      campusZones: true,
-                      agencyZones: false,
-                      counties: false,
-                      activeIncidents: true,
-                    }}
-                  />
+                  {isCampusOperationalMapEnabled() ? (
+                    <CampusOperationalMap
+                      campusCode={codeUpper}
+                      campusName={agencyName}
+                      buildings={buildings}
+                      incidents={mapIncidents}
+                      selectedIncidentId={selectedMapIncident}
+                      persistUserId={userId || null}
+                      theme={mapTheme}
+                      onThemeChange={onMapThemeChange}
+                      onIncidentClick={(inc) => setSelectedMapIncident(inc.id)}
+                      height="372px"
+                    />
+                  ) : (
+                    <RapidCortexMap
+                      theme={mapTheme}
+                      onThemeChange={onMapThemeChange}
+                      persistUserId={userId || null}
+                      incidents={mapIncidents}
+                      selectedIncidentId={selectedMapIncident}
+                      onIncidentClick={(inc) => setSelectedMapIncident(inc.id)}
+                      vertical="campus"
+                      height="372px"
+                      showLayerControl
+                      defaultLayers={{
+                        campusZones: true,
+                        agencyZones: false,
+                        counties: false,
+                        activeIncidents: true,
+                      }}
+                    />
+                  )}
                 </div>
               </div>
 

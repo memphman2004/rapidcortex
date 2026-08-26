@@ -113,6 +113,7 @@ export function isMarketingPublicPath(pathname: string): boolean {
   // Public intake / tooling routes (also in RESERVED_PUBLIC_ROUTE_FIRST_SEGMENTS for jurisdiction slug guards).
   if (
     first === "report" ||
+    first === "go" ||
     first === "locate" ||
     first === "r" ||
     first === "diversion" ||
