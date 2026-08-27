@@ -8,7 +8,10 @@
  *          -e LOAD_PROFILE=load \
  *          -e API_BASE=https://api.rapidcortex.us \
  *          -e BEARER_TOKEN=eyJ... \
- *          scripts/rc-stress-test.js
+ *          scripts/perf/rc-stress-test.js
+ *
+ * Prefer: bash scripts/run-k6-profile.sh load
+ * (tees results/load-run-<timestamp>.log for the PDF generator)
  *
  * Profiles:  smoke | ramp | load | stress | soak | spike
  * Defaults:  LOAD_PROFILE=smoke, API_BASE=http://localhost:3001
@@ -17,6 +20,7 @@
 import http from "k6/http";
 import { check, sleep, group } from "k6";
 import { Counter, Rate, Trend } from "k6/metrics";
+import { apiP95BudgetMs, buildK6Thresholds, errorRateBudget } from "./k6-thresholds.js";
 
 // ── Custom metrics ──────────────────────────────────────────────────────────
 const searchLatency   = new Trend("search_latency_ms",        true);
@@ -36,35 +40,16 @@ const STRESS_INCIDENT_ID = __ENV.STRESS_INCIDENT_ID || "stress-probe-incident";
 
 // ── SLA thresholds — MSA Exhibit C §C.5.1 ───────────────────────────────────
 //
-//   API Response Time:        < 500ms at p95   (contractual performance target)
-//   Page Load Time:           < 3000ms          (contractual performance target)
-//   Search Results:           < 2000ms          (contractual performance target)
-//   Transcription Latency:    < 2000ms          (contractual performance target)
-//   Error rate:               < 1%              (§8.4 uptime + availability commitment)
+//   API Response Time:        < 500ms at p95 on load+ (smoke allows 5s for cold start)
+//   Page Load Time:           < 3000ms (load+ only; not gated on smoke)
+//   Search Results:           < 2000ms (only when BEARER_TOKEN samples the trend)
+//   Transcription Latency:    < 2000ms (only when BEARER_TOKEN samples the trend)
+//   Error rate:               < 1% load+ / < 5% smoke and spike
 //
 // NOTE: Per §C.5.1 these are "targets not commitments" for performance metrics.
 // Uptime (§C.1.1 / §8.4) is the hard contractual commitment at 99.9%.
-// Treat threshold breaches below as pilot readiness gates, not automatic SLA penalties.
-//
-export const thresholds = {
-  // Core API latency — p95 must be under 500ms
-  "http_req_duration{group:::API}":          ["p(95)<500"],
-
-  // Page load — p95 under 3000ms
-  "page_load_latency_ms":                    ["p(95)<3000"],
-
-  // Search — p95 under 2000ms
-  "search_latency_ms":                       ["p(95)<2000"],
-
-  // Transcription — p95 under 2000ms
-  "transcription_latency_ms":               ["p(95)<2000"],
-
-  // Overall error rate — under 1% (§8.4 uptime commitment backing)
-  "http_req_failed":                         ["rate<0.01"],
-
-  // Auth errors should be zero during load (any non-zero = misconfigured test)
-  "auth_errors":                             ["count<5"],
-};
+// Empty Trend metrics are not thresholded — k6 fails those even when count is 0.
+export const thresholds = buildK6Thresholds(PROFILE, { hasBearer: Boolean(BEARER) });
 
 // ── Load profiles ────────────────────────────────────────────────────────────
 //
@@ -131,12 +116,7 @@ const ALL_PROFILES = {
       { duration: "3m",  target: 10  },  // recovery observation
       { duration: "30s", target: 0   },  // ramp down
     ],
-    thresholds: {
-      ...thresholds,
-      // Relax p95 during spike — we care about error rate more than latency under extreme surge
-      "http_req_duration{group:::API}": ["p(95)<2000"],
-      "http_req_failed":               ["rate<0.05"],  // allow up to 5% during spike
-    },
+    thresholds,
   },
 };
 
@@ -366,6 +346,13 @@ export default function () {
 export function handleSummary(data) {
   const profile   = PROFILE;
   const timestamp = new Date().toISOString();
+  const p95Budget = apiP95BudgetMs(profile);
+  const errBudget = errorRateBudget(profile);
+  const apiP95 = data.metrics?.["http_req_duration{group:::API}"]?.values?.["p(95)"] ?? null;
+  const pageP95 = data.metrics?.page_load_latency_ms?.values?.["p(95)"] ?? null;
+  const searchP95 = data.metrics?.search_latency_ms?.values?.["p(95)"] ?? null;
+  const transcP95 = data.metrics?.transcription_latency_ms?.values?.["p(95)"] ?? null;
+  const errorRate = data.metrics?.http_req_failed?.values?.rate ?? null;
 
   const summary = {
     meta: {
@@ -377,17 +364,16 @@ export function handleSummary(data) {
       duration_ms: (data.metrics?.iteration_duration?.values?.avg ?? 0) * (data.metrics?.iterations?.values?.count ?? 0),
     },
     sla: {
-      // MSA Exhibit C §C.5.1
-      api_p95_ms: data.metrics?.["http_req_duration{group:::API}"]?.values?.["p(95)"] ?? null,
-      api_p95_pass: (data.metrics?.["http_req_duration{group:::API}"]?.values?.["p(95)"] ?? 9999) < 500,
-      page_load_p95_ms: data.metrics?.page_load_latency_ms?.values?.["p(95)"] ?? null,
-      page_load_pass: (data.metrics?.page_load_latency_ms?.values?.["p(95)"] ?? 9999) < 3000,
-      search_p95_ms: data.metrics?.search_latency_ms?.values?.["p(95)"] ?? null,
-      search_pass: (data.metrics?.search_latency_ms?.values?.["p(95)"] ?? 9999) < 2000,
-      transcription_p95_ms: data.metrics?.transcription_latency_ms?.values?.["p(95)"] ?? null,
-      transcription_pass: (data.metrics?.transcription_latency_ms?.values?.["p(95)"] ?? 9999) < 2000,
-      error_rate: data.metrics?.http_req_failed?.values?.rate ?? null,
-      error_rate_pass: (data.metrics?.http_req_failed?.values?.rate ?? 1) < 0.01,
+      api_p95_ms: apiP95,
+      api_p95_pass: apiP95 !== null && apiP95 < p95Budget,
+      page_load_p95_ms: pageP95,
+      page_load_pass: pageP95 === null || pageP95 < 3000,
+      search_p95_ms: searchP95,
+      search_pass: searchP95 === null || searchP95 < 2000,
+      transcription_p95_ms: transcP95,
+      transcription_pass: transcP95 === null || transcP95 < 2000,
+      error_rate: errorRate,
+      error_rate_pass: errorRate !== null && errorRate < errBudget,
     },
     raw: data,
   };

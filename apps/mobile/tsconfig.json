@@ -19,9 +19,6 @@
     "paths": {
       "@/*": [
         "src/*"
-      ],
-      "rapid-cortex-shared": [
-        "../../packages/shared/src/index.ts"
       ]
     }
   },

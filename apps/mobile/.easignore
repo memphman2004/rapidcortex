@@ -19,13 +19,21 @@
 /prod
 /agent-transcripts/
 /Rapid Cortex Internal Docs/
+Rapid Cortex Internal Docs/
 /web-source-prod.zip
 /web-source-*.zip
-**/*.mov
-**/*.mp4
-**/*.mp3
+*.zip
+*.mov
+*.mp4
+*.mp3
+*.pptx
+*.docx
 /.sam-build-*/
 /.sam-build-riq-pipeline-*/
+.sam-build-*/
+.sam-build-riq-pipeline-*/
+/ziicMOdT
+/ziKUSoeO
 /packages/security/
 /packages/integrations/
 /packages/protocols/
@@ -37,6 +45,8 @@
 **/node_modules/
 **/.expo/
 **/dist/
+!/packages/shared/dist/
+!/packages/shared/dist/**
 **/build/
 **/.next/
 **/coverage/

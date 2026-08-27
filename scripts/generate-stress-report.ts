@@ -18,8 +18,9 @@
  */
 
 import { readFileSync, writeFileSync, mkdirSync } from "node:fs";
-import { join, dirname } from "node:path";
+import { join } from "node:path";
 import { parseArgs } from "node:util";
+import { apiP95BudgetMs, errorRateBudget } from "./perf/k6-thresholds.js";
 
 // ── CLI ──────────────────────────────────────────────────────────────────────
 
@@ -111,67 +112,90 @@ function gate(
   limit: number,
   unit: string,
   note?: string,
+  optional = false,
 ): SLAGate {
+  if (optional && actual === null) {
+    return pass(id, label, ref, threshold, actual, unit, note ?? "Not sampled in this profile");
+  }
   const passed = actual !== null && actual < limit;
   const fn = passed ? pass : fail;
   return fn(id, label, ref, threshold, actual, unit, note);
 }
 
 function buildSLAGates(summary: K6Summary): SLAGate[] {
-  const { sla } = summary;
+  const { sla, meta } = summary;
+  const profile = meta.profile || "load";
+  const apiBudget = apiP95BudgetMs(profile);
+  const errorLimitPct = errorRateBudget(profile) * 100;
+  const isSmoke = profile === "smoke";
 
-  return [
+  const gates: SLAGate[] = [
     gate(
       "api_p95",
       "API Response Time (p95)",
       "MSA Exhibit C §C.5.1",
-      "< 500 ms",
+      `< ${apiBudget.toLocaleString()} ms`,
       sla.api_p95_ms,
-      500,
+      apiBudget,
       "ms",
-      "95th-percentile latency across all API group requests",
+      isSmoke
+        ? "Smoke connectivity gate (5s budget allows Lambda cold start)"
+        : "95th-percentile latency across all API group requests",
     ),
-    gate(
-      "page_load",
-      "Page Load Time (p95)",
-      "MSA Exhibit C §C.5.1",
-      "< 3,000 ms",
-      sla.page_load_p95_ms,
-      3000,
-      "ms",
-      "Measured at Web group requests (Next.js SSR shell)",
-    ),
-    gate(
-      "search",
-      "Search Results Latency (p95)",
-      "MSA Exhibit C §C.5.1",
-      "< 2,000 ms",
-      sla.search_p95_ms,
-      2000,
-      "ms",
-      "Proxied via active-incidents list endpoint (DynamoDB scan path)",
-    ),
-    gate(
-      "transcription",
-      "Transcription Latency (p95)",
-      "MSA Exhibit C §C.5.1",
-      "< 2,000 ms",
-      sla.transcription_p95_ms,
-      2000,
-      "ms",
-      "Translation + transcription/start endpoints combined",
-    ),
+  ];
+
+  if (!isSmoke) {
+    gates.push(
+      gate(
+        "page_load",
+        "Page Load Time (p95)",
+        "MSA Exhibit C §C.5.1",
+        "< 3,000 ms",
+        sla.page_load_p95_ms,
+        3000,
+        "ms",
+        "Measured at Web group requests (Next.js SSR shell)",
+        true,
+      ),
+      gate(
+        "search",
+        "Search Results Latency (p95)",
+        "MSA Exhibit C §C.5.1",
+        "< 2,000 ms",
+        sla.search_p95_ms,
+        2000,
+        "ms",
+        "Proxied via active-incidents list endpoint (DynamoDB scan path)",
+        true,
+      ),
+      gate(
+        "transcription",
+        "Transcription Latency (p95)",
+        "MSA Exhibit C §C.5.1",
+        "< 2,000 ms",
+        sla.transcription_p95_ms,
+        2000,
+        "ms",
+        "Translation + transcription/start endpoints combined",
+        true,
+      ),
+    );
+  }
+
+  gates.push(
     gate(
       "error_rate",
       "HTTP Error Rate",
       "MSA Exhibit C §8.4 / §C.4",
-      "< 1%",
+      `< ${errorLimitPct}%`,
       sla.error_rate !== null ? sla.error_rate * 100 : null,
-      1,
+      errorLimitPct,
       "%",
       "All non-2xx/3xx responses across all groups",
     ),
-  ];
+  );
+
+  return gates;
 }
 
 // ── AI-assisted findings generator ───────────────────────────────────────────
@@ -197,16 +221,17 @@ function generateFindings(summary: K6Summary, gates: SLAGate[]): string[] {
 
   // API latency analysis
   const apiP95 = sla.api_p95_ms;
+  const apiBudget = apiP95BudgetMs(meta.profile);
   const apiP99 = metrics["http_req_duration{group:::API}"]?.values?.["p(99)"] ?? null;
   if (apiP95 !== null) {
-    if (apiP95 < 200) {
-      findings.push(`API p95 latency (${apiP95.toFixed(0)}ms) is well within the 500ms contractual target — headroom exists for further load increases.`);
-    } else if (apiP95 < 400) {
-      findings.push(`API p95 latency (${apiP95.toFixed(0)}ms) is within the 500ms target but within 25% of the threshold. Monitor closely under the stress and spike profiles.`);
-    } else if (apiP95 >= 400 && apiP95 < 500) {
-      findings.push(`API p95 latency (${apiP95.toFixed(0)}ms) is approaching the 500ms SLA ceiling. Investigate Lambda cold start frequency, DynamoDB RCU allocation, and API Gateway timeout settings before production.`);
+    if (apiP95 < apiBudget * 0.4) {
+      findings.push(`API p95 latency (${apiP95.toFixed(0)}ms) is well within the ${apiBudget}ms ${meta.profile} budget — headroom exists for further load increases.`);
+    } else if (apiP95 < apiBudget * 0.8) {
+      findings.push(`API p95 latency (${apiP95.toFixed(0)}ms) is within the ${apiBudget}ms ${meta.profile} budget. Monitor closely under heavier profiles.`);
+    } else if (apiP95 < apiBudget) {
+      findings.push(`API p95 latency (${apiP95.toFixed(0)}ms) is approaching the ${apiBudget}ms ${meta.profile} ceiling. Investigate Lambda cold start frequency, DynamoDB RCU allocation, and API Gateway timeout settings before production.`);
     } else {
-      findings.push(`API p95 latency (${apiP95.toFixed(0)}ms) EXCEEDS the 500ms MSA target. This is a production readiness blocker. Investigate Lambda memory allocation, DynamoDB provisioned capacity, and connection pooling.`);
+      findings.push(`API p95 latency (${apiP95.toFixed(0)}ms) EXCEEDS the ${apiBudget}ms ${meta.profile} budget. This is a production readiness blocker. Investigate Lambda memory allocation, DynamoDB provisioned capacity, and connection pooling.`);
     }
     if (apiP99 !== null) {
       findings.push(`API p99 latency is ${apiP99.toFixed(0)}ms — the ${(apiP99 - (apiP95 ?? 0)).toFixed(0)}ms tail spread between p95 and p99 ${apiP99 - (apiP95 ?? 0) > 300 ? "indicates Lambda cold starts or DynamoDB throttling spikes affecting the tail" : "is within acceptable bounds"}.`);
@@ -215,13 +240,14 @@ function generateFindings(summary: K6Summary, gates: SLAGate[]): string[] {
 
   // Error rate analysis
   const errRate = sla.error_rate;
+  const errBudget = errorRateBudget(meta.profile);
   if (errRate !== null) {
     if (errRate === 0) {
       findings.push("Zero HTTP errors recorded. All endpoints returned expected status codes across the full test duration.");
-    } else if (errRate < 0.001) {
-      findings.push(`Error rate is ${(errRate * 100).toFixed(4)}% — effectively zero. Within SLA with significant margin.`);
-    } else if (errRate >= 0.01) {
-      findings.push(`Error rate of ${(errRate * 100).toFixed(2)}% EXCEEDS the 1% SLA threshold. Review CloudWatch Lambda error logs and API Gateway 5xx metrics to identify the failing routes.`);
+    } else if (errRate < errBudget / 10) {
+      findings.push(`Error rate is ${(errRate * 100).toFixed(4)}% — effectively zero. Within the ${meta.profile} budget with significant margin.`);
+    } else if (errRate >= errBudget) {
+      findings.push(`Error rate of ${(errRate * 100).toFixed(2)}% EXCEEDS the ${errBudget * 100}% ${meta.profile} threshold. Review CloudWatch Lambda error logs and API Gateway 5xx metrics to identify the failing routes.`);
     }
   }
 

@@ -7,6 +7,7 @@
   ],
   "scripts": {
     "test": "vitest run",
+    "eas-build-post-install": "node \"apps/mobile/scripts/eas-ensure-expo-pods.js\"",
     "test:ci": "npm run test:security && npx vitest run --exclude 'apps/api/src/__tests__/security/**'",
     "test:security": "npx vitest run apps/api/src/__tests__/security",
     "security:scan-secrets": "node scripts/check-repo-secrets.mjs",
@@ -57,8 +58,8 @@
     "validate:report": "bash scripts/generate-validation-report.sh",
     "pilot:smoke": "tsx scripts/pilot-smoke-test.ts",
     "perf:stress": "tsx scripts/perf/stress-test.ts",
-    "stress:smoke": "LOAD_PROFILE=smoke k6 run --out json=results/k6-summary.json scripts/perf/rc-stress-test.js",
-    "stress:load": "LOAD_PROFILE=load k6 run --out json=results/k6-summary.json scripts/perf/rc-stress-test.js",
+    "stress:smoke": "bash scripts/run-k6-profile.sh smoke",
+    "stress:load": "bash scripts/run-k6-profile.sh load",
     "stress:report": "npx tsx scripts/generate-stress-report.ts",
     "stress:full": "RC_SKIP_SOAK=1 bash scripts/run-stress-test.sh staging",
     "security:g3": "tsx scripts/g3-security-smoke-test.ts",

@@ -100,6 +100,8 @@ const config: ExpoConfig = {
     ],
     // Runs after nfc-manager plugin — force TAG-only (strips any injected NDEF).
     './plugins/with-nfc-tag-only.js',
+    // Pin ExpoModulesCore to RN 0.76 before pod install (hoisted RN 0.80 peer).
+    './plugins/with-pin-expo-modules-core-rn.js',
     // Required for App Store (iOS 26 SDK / Xcode 26) on Expo SDK 52.
     './plugins/with-xcode26-fmt-fix.js',
   ],

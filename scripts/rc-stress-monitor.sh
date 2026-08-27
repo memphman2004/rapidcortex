@@ -4,6 +4,10 @@ set -euo pipefail
 #
 # Watch ECS memory, Lambda duration, and DynamoDB consumed capacity during a stress run.
 #
+# This script polls CloudWatch only. It does not run k6 and does not write
+# results/smoke-run-*.log or results/load-run-*.log — those come from
+# bash scripts/run-k6-profile.sh (npm run stress:smoke / stress:load).
+#
 # Usage:
 #   STAGE=dev ./scripts/rc-stress-monitor.sh
 #   STAGE=dev CLUSTER=rapid-cortex-v2-web-prod SERVICE=rapid-cortex-v2-web-prod ./scripts/rc-stress-monitor.sh
@@ -18,7 +22,8 @@ STAGE="${STAGE:-dev}"
 REGION="${AWS_REGION:-us-east-1}"
 CLUSTER="${CLUSTER:-rapid-cortex-v2-web-prod}"
 SERVICE="${SERVICE:-rapid-cortex-v2-web-prod}"
-WINDOW="${WINDOW:-300}"
+# POLL_SECONDS is accepted as an alias used in some runbooks.
+WINDOW="${POLL_SECONDS:-${WINDOW:-300}}"
 
 echo "Rapid Cortex stress monitor  stage=${STAGE}  cluster=${CLUSTER}  window=${WINDOW}s"
 echo "Press Ctrl-C to stop."

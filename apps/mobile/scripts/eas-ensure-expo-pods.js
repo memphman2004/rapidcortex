@@ -15,13 +15,48 @@ const {
   patchExpoModulesCorePodspec,
 } = require('./pin-expo-modules-core-rn.js');
 
-const mobileRoot = process.cwd();
+const mobileRoot = path.resolve(__dirname, '..');
 const workspaceRoot = path.resolve(mobileRoot, '../..');
 const mobileNm = path.join(mobileRoot, 'node_modules');
 const rootNm = path.join(workspaceRoot, 'node_modules');
 
 function ensureDir(dir) {
   fs.mkdirSync(dir, { recursive: true });
+}
+
+/** Copy a nested mobile package up to the workspace root so hoisted Expo tooling can resolve it. */
+function hoistToRoot(pkg) {
+  const dest = path.join(rootNm, pkg);
+  const src = path.join(mobileNm, pkg);
+  if (fs.existsSync(dest)) {
+    console.log(`[eas-pods] ${pkg} already hoisted at ${dest}`);
+    return dest;
+  }
+  if (!fs.existsSync(src)) {
+    console.warn(`[eas-pods] cannot hoist ${pkg}, missing ${src}`);
+    return null;
+  }
+  ensureDir(rootNm);
+  console.log(`[eas-pods] hoisting ${pkg} → workspace node_modules`);
+  execSync(`cp -R "${src}" "${dest}"`, { stdio: 'inherit' });
+  return dest;
+}
+
+function buildSharedPackage() {
+  const sharedPkg = path.join(workspaceRoot, 'packages/shared/package.json');
+  if (!fs.existsSync(sharedPkg)) {
+    console.warn('[eas-pods] packages/shared missing; skip build');
+    return;
+  }
+  const distIndex = path.join(workspaceRoot, 'packages/shared/dist/index.js');
+  console.log('[eas-pods] building rapid-cortex-shared for Metro');
+  execSync('npm run build -w rapid-cortex-shared', {
+    cwd: workspaceRoot,
+    stdio: 'inherit',
+  });
+  console.log(
+    `[eas-pods] rapid-cortex-shared dist ${fs.existsSync(distIndex) ? 'OK' : 'MISSING'}`,
+  );
 }
 
 function readPkgVersion(pkgDir) {
@@ -113,6 +148,116 @@ for (const pkg of ['expo', 'expo-modules-core']) {
   materialize(pkg);
 }
 materialize('react-native', { requireSdk52Rn: true });
+pinHoistedReactNativeToSdk52();
+pinExpoModulesAutolinkingToSdk52();
+// babel-preset-expo (hoisted) uses require.resolve('expo-router'); that fails
+// when the package only exists under apps/mobile/node_modules.
+hoistToRoot('expo-router');
+buildSharedPackage();
+
+const { materializeNestedPolyfills } = require('./metro-resolve-nested.js');
+const nestedCopied = materializeNestedPolyfills(mobileRoot, workspaceRoot);
+if (nestedCopied.length > 0) {
+  console.log(`[eas-pods] materialized Metro polyfills:\n  ${nestedCopied.join('\n  ')}`);
+}
+
+function replacePackageTree(src, dest) {
+  fs.rmSync(dest, { recursive: true, force: true });
+  ensureDir(path.dirname(dest));
+  execSync(`cp -R "${src}" "${dest}"`, { stdio: 'inherit' });
+}
+
+function pinHoistedReactNativeToSdk52() {
+  const mobileRn = path.join(mobileNm, 'react-native');
+  const rootRn = path.join(rootNm, 'react-native');
+  const mobileVer = readPkgVersion(mobileRn);
+  const rootVer = readPkgVersion(rootRn);
+  if (!mobileVer || !isSdk52ReactNative(mobileVer)) {
+    console.warn(
+      `[eas-pods] apps/mobile react-native@${mobileVer ?? 'missing'} (need 0.76.x)`,
+    );
+    return;
+  }
+  if (rootVer && isSdk52ReactNative(rootVer)) {
+    console.log(`[eas-pods] hoisted react-native@${rootVer} is SDK 52`);
+    return;
+  }
+  if (!rootVer) {
+    console.log(`[eas-pods] hoisting react-native@${mobileVer} to workspace root`);
+  } else {
+    console.log(
+      `[eas-pods] replacing hoisted react-native@${rootVer} with ${mobileVer} (Android Gradle resolves the root tree)`,
+    );
+  }
+  replacePackageTree(mobileRn, rootRn);
+}
+
+function pinExpoModulesAutolinkingToSdk52() {
+  const srcCandidates = [
+    path.join(mobileNm, 'expo', 'node_modules', 'expo-modules-autolinking'),
+    path.join(rootNm, 'expo', 'node_modules', 'expo-modules-autolinking'),
+  ];
+  let src = null;
+  for (const candidate of srcCandidates) {
+    const version = readPkgVersion(candidate);
+    if (version && version.startsWith('2.')) {
+      src = candidate;
+      break;
+    }
+  }
+  if (!src) {
+    console.warn('[eas-pods] expo-modules-autolinking 2.x not found under expo');
+    return;
+  }
+  const srcVer = readPkgVersion(src);
+  for (const dest of [
+    path.join(rootNm, 'expo-modules-autolinking'),
+    path.join(mobileNm, 'expo-modules-autolinking'),
+  ]) {
+    if (path.resolve(dest) === path.resolve(src)) {
+      continue;
+    }
+    const destVer = readPkgVersion(dest);
+    if (destVer === srcVer) {
+      continue;
+    }
+    console.log(
+      `[eas-pods] pinning expo-modules-autolinking@${srcVer} → ${dest} (was ${destVer ?? 'missing'})`,
+    );
+    replacePackageTree(src, dest);
+  }
+}
+
+function pinReactNativeScreensToSdk52() {
+  const mobileScreens = path.join(mobileNm, 'react-native-screens');
+  const rootScreens = path.join(rootNm, 'react-native-screens');
+  const mobileVer = readPkgVersion(mobileScreens);
+  const rootVer = readPkgVersion(rootScreens);
+  if (!mobileVer || !mobileVer.startsWith('4.4.')) {
+    console.warn(
+      `[eas-pods] apps/mobile react-native-screens@${mobileVer ?? 'missing'} (need 4.4.x)`,
+    );
+    return;
+  }
+  if (rootVer && !rootVer.startsWith('4.4.')) {
+    console.log(
+      `[eas-pods] replacing hoisted react-native-screens@${rootVer} with ${mobileVer}`,
+    );
+    fs.rmSync(rootScreens, { recursive: true, force: true });
+    execSync(`cp -R "${mobileScreens}" "${rootScreens}"`, { stdio: 'inherit' });
+  }
+}
+
+pinReactNativeScreensToSdk52();
+
+const { patchExpoRouterPackage } = require('./patch-expo-router-ctx.js');
+const appDir = path.join(mobileRoot, 'app');
+for (const dir of [path.join(mobileNm, 'expo-router'), path.join(rootNm, 'expo-router')]) {
+  const n = patchExpoRouterPackage(dir, appDir);
+  if (n > 0) {
+    console.log(`[eas-pods] patched ${n} expo-router ctx file(s) in ${dir}`);
+  }
+}
 
 const rnPackageJson = resolveMobileReactNativePackageJson();
 if (rnPackageJson) {

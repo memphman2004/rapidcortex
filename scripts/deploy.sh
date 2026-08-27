@@ -44,6 +44,9 @@ set -euo pipefail
 # - SAM_BUILD_USE_CACHE=0 force full rebuild (--no-cached). Default: 1 (cached incremental).
 # - SAM_PARALLEL=0 disables sam build --parallel (default 1).
 # - SAM_BUILD_IN_SOURCE=1 builds in source (reuses prepared node_modules); default 1.
+# - SAM_NODE_MODULES_SRC absolute path to apps/api/node_modules for NodeDepsLayer / function
+#   Makefiles. Default: $ROOT/apps/api/node_modules. Required when SAM_BUILD_IN_SOURCE=0
+#   because the copied layer cwd has no ../node_modules (rsync exit 23).
 # - NODE_OPTIONS defaults to --max-old-space-size=8192 for SAM/npm memory headroom (override per-run if needed).
 # - SAM_BUILD_DIR explicit sam build output directory (mkdir -p before build). If unset, defaults to a
 #   per-run repo-root path under .rapid-cortex-sam-build/ (not $TMPDIR) so we avoid fragile recursive cleanup
@@ -208,6 +211,7 @@ SAM_PARALLEL="${SAM_PARALLEL:-0}"
 SAM_BUILD_IN_SOURCE="${SAM_BUILD_IN_SOURCE:-1}"
 NODE_OPTIONS="${NODE_OPTIONS:---max-old-space-size=8192}"
 export NODE_OPTIONS
+export SAM_NODE_MODULES_SRC="${SAM_NODE_MODULES_SRC:-${ROOT}/apps/api/node_modules}"
 
 echo "═══════════════════════════════════════════════════════"
 echo " Rapid Cortex SAM backend deployment"
@@ -218,6 +222,7 @@ echo " BUILD_WEB_BEFORE_SAM: ${BUILD_WEB_BEFORE_SAM:-0}"
 echo " SAM_BUILD_USE_CACHE:  ${SAM_BUILD_USE_CACHE}"
 echo " SAM_PARALLEL:          ${SAM_PARALLEL}"
 echo " SAM_BUILD_IN_SOURCE:   ${SAM_BUILD_IN_SOURCE}"
+echo " SAM_NODE_MODULES_SRC:  ${SAM_NODE_MODULES_SRC}"
 echo " NODE_OPTIONS:          ${NODE_OPTIONS}"
 echo " SAM_BUILD_DIR:         ${SAM_BUILD_DIR:-${ROOT}/.rapid-cortex-sam-build}"
 echo "═══════════════════════════════════════════════════════"
@@ -281,7 +286,7 @@ if [[ -z "${SAM_CLI_HOME:-}" ]]; then
   fi
 fi
 mkdir -p "${SAM_CLI_HOME}"
-_SAM_BUILD_ENV=(env HOME="${SAM_CLI_HOME}")
+_SAM_BUILD_ENV=(env HOME="${SAM_CLI_HOME}" SAM_NODE_MODULES_SRC="${SAM_NODE_MODULES_SRC}")
 if [[ -n "${_ORIG_HOME}" && -f "${_ORIG_HOME}/.aws/credentials" ]]; then
   _SAM_BUILD_ENV+=(AWS_SHARED_CREDENTIALS_FILE="${_ORIG_HOME}/.aws/credentials")
 fi
@@ -292,6 +297,11 @@ if [[ -n "${TMPDIR:-}" ]]; then
   _SAM_BUILD_ENV+=(TMPDIR="${TMPDIR}")
 fi
 echo "SAM CLI home (build.toml): ${SAM_CLI_HOME}"
+if [[ ! -d "${SAM_NODE_MODULES_SRC}" ]]; then
+  echo "ERROR: SAM_NODE_MODULES_SRC is missing: ${SAM_NODE_MODULES_SRC}" >&2
+  echo "  NodeDepsLayer rsyncs this tree. Run npm install at the repo root." >&2
+  exit 1
+fi
 if [[ "${SKIP_SAM_BUILD:-0}" == "1" ]]; then
   echo "SKIP_SAM_BUILD=1 — using existing ${SAM_BUILD_DIR}"
   [[ -f "${SAM_BUILD_DIR}/template.yaml" ]] || { echo "ERROR: SKIP_SAM_BUILD=1 but ${SAM_BUILD_DIR}/template.yaml is missing" >&2; exit 1; }

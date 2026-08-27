@@ -41,7 +41,6 @@ BEARER_TOKEN="${BEARER_TOKEN:-${RC_BEARER:-${STRESS_BEARER_TOKEN:-}}}"
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 RESULTS_DIR="${ROOT}/results"
-K6_SCRIPT="${ROOT}/scripts/perf/rc-stress-test.js"
 REPORT_SCRIPT="${ROOT}/scripts/generate-stress-report.ts"
 
 cd "$ROOT"
@@ -93,23 +92,18 @@ for profile in "${PROFILES[@]}"; do
 
   profile_dir="${RESULTS_DIR}/${profile}"
   mkdir -p "$profile_dir"
-  rm -f "${RESULTS_DIR}/k6-summary.json"
 
   set +e
-  LOAD_PROFILE="$profile" API_BASE="$API_BASE" WEB_BASE="$WEB_BASE" BEARER_TOKEN="${BEARER_TOKEN:-}" \
-    ALLOW_WRITES="${STRESS_ALLOW_WRITES:-${ALLOW_WRITES:-0}}" \
-    k6 run --out "json=${profile_dir}/k6-raw.json" "$K6_SCRIPT"
+  bash "$ROOT/scripts/run-k6-profile.sh" "$profile"
   k6_status=$?
   set -e
 
-  if [[ ! -f "${RESULTS_DIR}/k6-summary.json" ]]; then
+  if [[ ! -f "${profile_dir}/k6-summary.json" ]]; then
     echo "No summary produced for ${profile} (k6 exit ${k6_status}) — skipping report." >&2
     OVERALL_PASS=0
     SUMMARY_LINES+=("${profile}: NO SUMMARY (k6 exit ${k6_status})")
     continue
   fi
-
-  mv "${RESULTS_DIR}/k6-summary.json" "${profile_dir}/k6-summary.json"
 
   set +e
   npx tsx "$REPORT_SCRIPT" --input "${profile_dir}/k6-summary.json" --out "$profile_dir"

@@ -10,9 +10,7 @@ Usage:
 """
 
 import argparse
-import json
 import os
-import re
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -155,61 +153,7 @@ def colored_cell(text, result):
                      ParagraphStyle("RC", fontName="Helvetica-Bold", fontSize=8,
                                     alignment=TA_CENTER))
 
-# ── Log parsers ───────────────────────────────────────────────────────────────
-def parse_k6_log(txt):
-    m = {}
-    pats = {
-        "avg":  r"http_req_duration.*?avg=([\d.]+\w+)",
-        "p90":  r"http_req_duration.*?p\(90\)=([\d.]+\w+)",
-        "p95":  r"http_req_duration.*?p\(95\)=([\d.]+\w+)",
-        "p99":  r"http_req_duration.*?p\(99\)=([\d.]+\w+)",
-        "err":  r"http_req_failed.*?([\d.]+)%",
-        "rps":  r"http_reqs.*?\s([\d.]+)/s",
-        "vus":  r"vus_max\s+[\d]+\s+([\d]+)",
-        "iter": r"iterations.*?\s([\d.]+)/s",
-    }
-    for k, p in pats.items():
-        found = re.search(p, txt, re.MULTILINE | re.IGNORECASE)
-        if found:
-            m[k] = found.group(1)
-    m["thresholds"] = re.findall(r"(✓|✗)\s+([\w_ ()]+)", txt)
-    m["failed"] = bool(re.search(r"FAILED|threshold.*breach|failed.*threshold", txt, re.IGNORECASE))
-    return m
-
-def parse_cw(txt):
-    cw = {}
-    pats = {
-        "gw_5xx":    r"5xx errors:\s*([\d.]+)",
-        "gw_4xx":    r"4xx errors:\s*([\d.]+)",
-        "gw_lat":    r"Latency p99:\s*([\d.]+)",
-        "gw_req":    r"Total requests.*?:\s*([\d.]+)",
-        "ecs_cpu":   r"CPU utilization:\s*([\d.]+)",
-        "ecs_mem":   r"Memory utilization:\s*([\d.]+)",
-        "cf_5xx":    r"5xx error rate:\s*([\d.]+)",
-        "cf_req":    r"Requests.*?:\s*([\d.]+)",
-    }
-    for k, p in pats.items():
-        found = re.search(p, txt, re.MULTILINE | re.IGNORECASE)
-        if found:
-            cw[k] = found.group(1)
-    errs = re.findall(r"Errors:\s*([\d.]+)\s*\|", txt)
-    cw["lambda_errors"] = str(sum(int(float(e)) for e in errs if e not in ("N/A", "")))
-    cw["dyn_throttles"] = "0" if "No throttles" in txt else "DETECTED"
-    return cw
-
-def load_results(rdir):
-    p = Path(rdir)
-    d = {"sm": {}, "lm": {}, "cw": {}}
-    sl = sorted(p.glob("smoke-run-*.log"))
-    if sl:
-        d["sm"] = parse_k6_log(sl[-1].read_text(errors="replace"))
-    ll = sorted(p.glob("load-run-*.log"))
-    if ll:
-        d["lm"] = parse_k6_log(ll[-1].read_text(errors="replace"))
-    cl = sorted(p.glob("cloudwatch-snapshot-*.txt"))
-    if cl:
-        d["cw"] = parse_cw(cl[-1].read_text(errors="replace"))
-    return d
+from k6_result_parse import load_results
 
 def verdict(d):
     sm, lm, cw = d["sm"], d["lm"], d["cw"]
@@ -329,7 +273,7 @@ def build(args):
         ["Environment / Stage",         args.stage.upper()],
         ["API Base URL",                args.api_url],
         ["Test Profiles",               "Smoke → Load (sequential)"],
-        ["Monitor",                     "rc-stress-monitor.sh (CloudWatch, 30s poll)"],
+        ["Monitor",                     "k6 logs: run-k6-profile.sh; CloudWatch: rc-stress-monitor.sh"],
         ["SLA: API GW 5xx",             "Must be 0"],
         ["SLA: Lambda Errors",          "Must be 0"],
         ["SLA: DynamoDB Throttles",     "Must be 0"],
