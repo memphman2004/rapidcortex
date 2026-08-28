@@ -71,6 +71,19 @@ def _latest_glob(directory: Path, pattern: str) -> Path | None:
     return latest if latest.is_file() else None
 
 
+def _overlay_summary_json(parsed: dict, json_path: Path) -> dict:
+    """Fill p95/error from handleSummary JSON when the k6 log has no metric table."""
+    if not json_path.is_file():
+        return parsed
+    js = parse_k6_summary_json(json_path)
+    out = dict(parsed)
+    for key in ("p95", "err", "avg", "p90", "p99", "rps"):
+        if not out.get(key) and js.get(key):
+            out[key] = js[key]
+    out["failed"] = bool(parsed.get("failed") or js.get("failed"))
+    return out
+
+
 def load_results(rdir: str | Path) -> dict:
     p = Path(rdir)
     d: dict = {"sm": {}, "lm": {}, "cw": {}}
@@ -78,18 +91,16 @@ def load_results(rdir: str | Path) -> dict:
     smoke_log = _latest_glob(p, "smoke-run-*.log")
     if smoke_log:
         d["sm"] = parse_k6_log(smoke_log.read_text(errors="replace"))
-    else:
-        smoke_json = p / "smoke" / "k6-summary.json"
-        if smoke_json.is_file():
-            d["sm"] = parse_k6_summary_json(smoke_json)
+    smoke_json = p / "smoke" / "k6-summary.json"
+    if smoke_json.is_file():
+        d["sm"] = _overlay_summary_json(d["sm"], smoke_json)
 
     load_log = _latest_glob(p, "load-run-*.log")
     if load_log:
         d["lm"] = parse_k6_log(load_log.read_text(errors="replace"))
-    else:
-        load_json = p / "load" / "k6-summary.json"
-        if load_json.is_file():
-            d["lm"] = parse_k6_summary_json(load_json)
+    load_json = p / "load" / "k6-summary.json"
+    if load_json.is_file():
+        d["lm"] = _overlay_summary_json(d["lm"], load_json)
 
     cl = _latest_glob(p, "cloudwatch-snapshot-*.txt")
     if cl:

@@ -144,5 +144,6 @@ scripts/aws-10dlc/*.json
 results/*.json
 results/*.log
 results/stress-report.html
+results/stress-v2/
 !results/.gitkeep
 

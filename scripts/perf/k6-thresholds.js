@@ -15,35 +15,39 @@ export const LOAD_ERROR_RATE = 0.01;
 export const SPIKE_ERROR_RATE = 0.05;
 
 /**
+ * Use api_latency_ms (explicit Trend) rather than http_req_duration{group:::API}.
+ * k6's reserved `group` tag is overwritten by group() names, so Health + Auth
+ * probes never land in group:::API — and without a bearer the API group is empty.
+ *
  * @param {string} profile
- * @param {{ hasBearer?: boolean }} [opts]
+ * @param {{ hasBearer?: boolean, hasWeb?: boolean }} [opts]
  * @returns {Record<string, string[]>}
  */
 export function buildK6Thresholds(profile, opts = {}) {
   const hasBearer = Boolean(opts.hasBearer);
+  const hasWeb = Boolean(opts.hasWeb);
   const isSmoke = profile === "smoke";
   const isSpike = profile === "spike";
 
   /** @type {Record<string, string[]>} */
   const thresholds = {
     http_req_failed: [`rate<${errorRateBudget(profile)}`],
+    api_latency_ms: [`p(95)<${apiP95BudgetMs(profile)}`],
   };
 
   if (isSmoke) {
-    thresholds["http_req_duration{group:::API}"] = [`p(95)<${SMOKE_API_P95_MS}`];
     return thresholds;
   }
 
   if (isSpike) {
-    thresholds["http_req_duration{group:::API}"] = ["p(95)<2000"];
     thresholds.auth_errors = ["count<5"];
     return thresholds;
   }
 
-  thresholds["http_req_duration{group:::API}"] = [`p(95)<${LOAD_API_P95_MS}`];
   thresholds.auth_errors = ["count<5"];
-  // probeCADHealth always records this trend.
-  thresholds.page_load_latency_ms = ["p(95)<3000"];
+  if (hasWeb) {
+    thresholds.page_load_latency_ms = ["p(95)<3000"];
+  }
   if (hasBearer) {
     thresholds.search_latency_ms = ["p(95)<2000"];
     thresholds.transcription_latency_ms = ["p(95)<2000"];

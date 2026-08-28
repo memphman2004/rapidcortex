@@ -78,16 +78,22 @@ async function countGuestReportsToday(agencyId: string): Promise<number> {
   const table = process.env.VENUE_NOTIFICATION_LOG_TABLE?.trim();
   if (!table) return 0;
   const today = new Date().toISOString().slice(0, 10);
-  const result = await ddb.send(
-    new QueryCommand({
-      TableName: table,
-      KeyConditionExpression: "agencyId = :aid",
-      FilterExpression: "begins_with(createdAt, :day) AND audience = :guest",
-      ExpressionAttributeValues: { ":aid": agencyId, ":day": today, ":guest": "guest_report" },
-      Select: "COUNT",
-    }),
-  );
-  return result.Count ?? 0;
+  try {
+    const result = await ddb.send(
+      new QueryCommand({
+        TableName: table,
+        KeyConditionExpression: "agencyId = :aid",
+        FilterExpression: "begins_with(createdAt, :day) AND audience = :guest",
+        ExpressionAttributeValues: { ":aid": agencyId, ":day": today, ":guest": "guest_report" },
+        Select: "COUNT",
+      }),
+    );
+    return result.Count ?? 0;
+  } catch (error) {
+    // KPI only — missing/mis-keyed log table must not 500 the venue dashboard.
+    console.warn("[venue-stats] guest report count skipped", error);
+    return 0;
+  }
 }
 
 export async function getVenueStats(agencyId: string): Promise<VenueStatsResponse> {

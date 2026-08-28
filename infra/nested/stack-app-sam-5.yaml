@@ -2566,6 +2566,7 @@ Resources:
             Path: /api/venue/{agencyId}/stats
             Method: GET
 
+  # Unique path: GET /api/venue/{venueCode}/sections is CRUD. Duplicate {agencyId}/sections never bound on HttpApi.
   GetVenueSectionsDashboardFunction:
     Type: AWS::Serverless::Function
     Condition: HasVenueConfigTable
@@ -2584,7 +2585,7 @@ Resources:
           Type: HttpApi
           Properties:
             ApiId: !Ref Api
-            Path: /api/venue/{agencyId}/sections
+            Path: /api/venue/{agencyId}/section-summaries
             Method: GET
 
   GetVenueEventsFunction:

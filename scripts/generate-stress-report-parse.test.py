@@ -57,6 +57,23 @@ ERRO[0030] thresholds on metrics 'http_req_duration{group:::API}' have been cros
             self.assertTrue(data["lm"])
             self.assertEqual(data["lm"].get("p95"), "80ms")
 
+    def test_load_results_overlays_json_p95_when_log_has_no_metric_table(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            p = Path(tmp)
+            (p / "load-run-20260826.log").write_text(
+                "[RC Stress] Profile: load | API p95: 55ms | Error rate: 0.00%\n",
+                encoding="utf-8",
+            )
+            load_dir = p / "load"
+            load_dir.mkdir()
+            (load_dir / "k6-summary.json").write_text(
+                '{"sla":{"api_p95_ms":55,"api_p95_pass":true,"error_rate":0,"error_rate_pass":true}}',
+                encoding="utf-8",
+            )
+            data = load_results(tmp)
+            self.assertEqual(data["lm"].get("p95"), "55ms")
+            self.assertFalse(data["lm"].get("failed"))
+
     def test_load_results_falls_back_to_profile_summary_json(self):
         with tempfile.TemporaryDirectory() as tmp:
             load_dir = Path(tmp) / "load"

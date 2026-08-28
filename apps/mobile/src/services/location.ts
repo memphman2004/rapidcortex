@@ -24,7 +24,8 @@ export interface CurrentLocationResult {
   };
 }
 
-TaskManager.defineTask(BACKGROUND_LOCATION_TASK, async ({ data, error }) => {
+try {
+  TaskManager.defineTask(BACKGROUND_LOCATION_TASK, async ({ data, error }) => {
   if (error) {
     console.error('Background location error:', error.message);
     return;
@@ -64,7 +65,10 @@ TaskManager.defineTask(BACKGROUND_LOCATION_TASK, async ({ data, error }) => {
   } catch (postError) {
     console.error('Failed to post background location:', postError);
   }
-});
+  });
+} catch (err) {
+  console.warn('[location] defineTask failed', err);
+}
 
 export async function requestForegroundLocationPermission(): Promise<LocationPermissionState> {
   const servicesEnabled = await Location.hasServicesEnabledAsync();

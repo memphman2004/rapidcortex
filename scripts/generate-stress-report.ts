@@ -222,7 +222,10 @@ function generateFindings(summary: K6Summary, gates: SLAGate[]): string[] {
   // API latency analysis
   const apiP95 = sla.api_p95_ms;
   const apiBudget = apiP95BudgetMs(meta.profile);
-  const apiP99 = metrics["http_req_duration{group:::API}"]?.values?.["p(99)"] ?? null;
+  const apiP99 =
+    metrics.api_latency_ms?.values?.["p(99)"] ??
+    metrics["http_req_duration{group:::API}"]?.values?.["p(99)"] ??
+    null;
   if (apiP95 !== null) {
     if (apiP95 < apiBudget * 0.4) {
       findings.push(`API p95 latency (${apiP95.toFixed(0)}ms) is well within the ${apiBudget}ms ${meta.profile} budget — headroom exists for further load increases.`);

@@ -2,6 +2,7 @@ import { Redirect, useRouter } from 'expo-router';
 import { useCallback, useEffect, useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { ScreenErrorBoundary } from '@/components/common/ScreenErrorBoundary';
 import { EnterTheCortex } from '@/components/splash/EnterTheCortex';
 import { useAuth } from '@/hooks/useAuth';
 import { hasEnteredCortexRecently, markCortexEntered } from '@/services/splash';
@@ -38,7 +39,11 @@ export default function ProductSelectionScreen() {
   }, []);
 
   if (gate === 'enter') {
-    return <EnterTheCortex onEnterComplete={onEnterComplete} />;
+    return (
+      <ScreenErrorBoundary>
+        <EnterTheCortex onEnterComplete={onEnterComplete} />
+      </ScreenErrorBoundary>
+    );
   }
 
   // Only auto-route when session + product + role all agree.

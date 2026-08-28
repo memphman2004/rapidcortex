@@ -168,6 +168,10 @@ export function NeuralField() {
     };
   }, [tick]);
 
+  if (W < 1 || H < 1) {
+    return <View style={StyleSheet.absoluteFill} pointerEvents="none" />;
+  }
+
   return (
     <View style={StyleSheet.absoluteFill} pointerEvents="none">
       <Svg width={W} height={H}>

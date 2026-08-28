@@ -63,6 +63,19 @@ ORPHAN_BUCKET_SLUGS = [
     "resumes",
 ]
 
+# Dashboard notification logs: HASH agencyId / RANGE notificationId (see venue-dashboard-service).
+NOTIFICATION_LOG_FALLBACK: dict[str, Any] = {
+    "AttributeDefinitions": [
+        {"AttributeName": "agencyId", "AttributeType": "S"},
+        {"AttributeName": "notificationId", "AttributeType": "S"},
+    ],
+    "KeySchema": [
+        {"AttributeName": "agencyId", "KeyType": "HASH"},
+        {"AttributeName": "notificationId", "KeyType": "RANGE"},
+    ],
+}
+NOTIFICATION_LOG_SLUGS = {"venue-notification-log", "campus-notification-log"}
+
 # Used only when the source conferences table does not exist yet.
 CONFERENCES_FALLBACK: dict[str, Any] = {
     "AttributeDefinitions": [
@@ -174,13 +187,23 @@ def ensure_table(
     except ClientError as exc:
         if exc.response["Error"]["Code"] != "ResourceNotFoundException":
             raise
-        if slug != "conferences":
+        if slug in NOTIFICATION_LOG_SLUGS:
+            desc = NOTIFICATION_LOG_FALLBACK
+        elif slug != "conferences":
             return f"SKIP missing source {source}"
-        desc = CONFERENCES_FALLBACK
+        else:
+            desc = CONFERENCES_FALLBACK
 
     params = create_params_from_description(dest, desc)
     if dry_run:
-        return f"would-create {dest} from {source if desc is not CONFERENCES_FALLBACK else 'conferences-fallback'}"
+        fallback_label = (
+            "notification-log-fallback"
+            if desc is NOTIFICATION_LOG_FALLBACK
+            else "conferences-fallback"
+            if desc is CONFERENCES_FALLBACK
+            else source
+        )
+        return f"would-create {dest} from {fallback_label}"
 
     ddb.create_table(**params)
     wait_active(ddb, dest)
@@ -192,10 +215,17 @@ def ensure_table(
         except ClientError:
             ttl_src = None
     ttl_spec = (ttl_src or {}).get("TimeToLiveDescription") or {}
-    if ttl_spec.get("TimeToLiveStatus") in ("ENABLED", "ENABLING") and ttl_spec.get("AttributeName"):
+    ttl_attr = (
+        ttl_spec.get("AttributeName")
+        if ttl_spec.get("TimeToLiveStatus") in ("ENABLED", "ENABLING")
+        else None
+    )
+    if not ttl_attr and slug in NOTIFICATION_LOG_SLUGS:
+        ttl_attr = "ttl"
+    if ttl_attr:
         ddb.update_time_to_live(
             TableName=dest,
-            TimeToLiveSpecification={"Enabled": True, "AttributeName": ttl_spec["AttributeName"]},
+            TimeToLiveSpecification={"Enabled": True, "AttributeName": ttl_attr},
         )
 
     if enable_pitr:

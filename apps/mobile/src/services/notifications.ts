@@ -3,6 +3,7 @@ import * as Notifications from 'expo-notifications';
 import { router } from 'expo-router';
 import { Platform } from 'react-native';
 import { useAuthStore } from '@/stores/auth.store';
+import { notificationHandlerBehavior } from './notification-handler-behavior';
 import { post } from './api/client';
 
 export type NotificationRouteType =
@@ -16,13 +17,15 @@ export interface PushRegistrationResult {
   expoPushToken: string | null;
 }
 
-Notifications.setNotificationHandler({
-  handleNotification: async () => ({
-    shouldShowAlert: true,
-    shouldPlaySound: true,
-    shouldSetBadge: true,
-  }),
-});
+export { notificationHandlerBehavior };
+
+try {
+  Notifications.setNotificationHandler({
+    handleNotification: async () => notificationHandlerBehavior(),
+  });
+} catch (err) {
+  console.warn('[notifications] setNotificationHandler failed', err);
+}
 
 function getEasProjectId(): string | undefined {
   const extra = Constants.expoConfig?.extra as
@@ -110,18 +113,24 @@ let receivedSubscription: Notifications.Subscription | null = null;
 export function setupNotificationHandlers(): void {
   if (responseSubscription || receivedSubscription) return;
 
-  responseSubscription = Notifications.addNotificationResponseReceivedListener(
-    (response) => {
-      const data = response.notification.request.content.data;
-      if (data && typeof data === 'object') {
-        routeFromNotificationData(data as Record<string, unknown>);
-      }
-    },
-  );
+  try {
+    responseSubscription = Notifications.addNotificationResponseReceivedListener(
+      (response) => {
+        const data = response.notification.request.content.data;
+        if (data && typeof data === 'object') {
+          routeFromNotificationData(data as Record<string, unknown>);
+        }
+      },
+    );
 
-  receivedSubscription = Notifications.addNotificationReceivedListener(() => {
-    // Foreground notifications are rendered by the OS handler above.
-  });
+    receivedSubscription = Notifications.addNotificationReceivedListener(() => {
+      // Foreground notifications are rendered by the OS handler above.
+    });
+  } catch (err) {
+    console.warn('[notifications] handler setup failed', err);
+    responseSubscription = null;
+    receivedSubscription = null;
+  }
 }
 
 export function teardownNotificationHandlers(): void {

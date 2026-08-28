@@ -26,6 +26,21 @@ RC_PROFILE=soak API_BASE=... WEB_BASE=... BEARER_TOKEN=... \
   bash scripts/run-stress-test.sh staging
 ```
 
+**API Gateway capacity (v2)** — calibrated to live `ThrottlingRateLimit: 500` / burst `1000` (not the stale 100 RPS backup-template value). Sustained 400 RPS + spike 700 RPS (429s expected on spike; 5xx must stay 0).
+
+```bash
+DRY_RUN=1 python3 scripts/rc-stress-runner.py \
+  --api-url https://<staging-id>.execute-api.us-east-1.amazonaws.com
+
+python3 scripts/rc-stress-runner.py \
+  --api-url https://<staging-id>.execute-api.us-east-1.amazonaws.com \
+  --bearer-token "$BEARER_TOKEN" \
+  --stack-name rapid-cortex-staging \
+  --stage staging
+```
+
+Refuses `api.rapidcortex.us` / `app.rapidcortex.us` unless `RC_ALLOW_PROD_STRESS=1`. CloudWatch abort: any API GW 5xx, DynamoDB throttle, Lambda error, or p99 > 2s for two intervals. MSA VU profiles remain `npm run stress:smoke` / `stress:load`.
+
 **Guardrails**
 - CAD writeback is never exercised.
 - `STRESS_ALLOW_WRITES=1` is refused against `app.` / `api.rapidcortex.us`.

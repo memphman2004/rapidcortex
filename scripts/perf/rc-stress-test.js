@@ -19,10 +19,15 @@
 
 import http from "k6/http";
 import { check, sleep, group } from "k6";
-import { Counter, Rate, Trend } from "k6/metrics";
+import { Counter, Trend } from "k6/metrics";
 import { apiP95BudgetMs, buildK6Thresholds, errorRateBudget } from "./k6-thresholds.js";
 
+// 401/403 on the anonymous auth gate (and 429 from stage throttle) are expected,
+// not SLA failures. 5xx and network errors still count as http_req_failed.
+http.setResponseCallback(http.expectedStatuses({ min: 200, max: 399 }, 401, 403, 429));
+
 // ── Custom metrics ──────────────────────────────────────────────────────────
+const apiLatency      = new Trend("api_latency_ms",            true);
 const searchLatency   = new Trend("search_latency_ms",        true);
 const transcriptLatency = new Trend("transcription_latency_ms", true);
 const pageLoadLatency = new Trend("page_load_latency_ms",      true);
@@ -31,12 +36,13 @@ const slaBreaches     = new Counter("sla_breaches");
 
 // ── Environment ─────────────────────────────────────────────────────────────
 const API_BASE    = (__ENV.API_BASE    ?? "http://localhost:3001").replace(/\/$/, "");
-const WEB_BASE    = (__ENV.WEB_BASE    ?? "http://localhost:3000").replace(/\/$/, "");
+const WEB_BASE    = (__ENV.WEB_BASE    ?? "").replace(/\/$/, "");
 const BEARER      = __ENV.BEARER_TOKEN ?? "";
 const PROFILE     = __ENV.LOAD_PROFILE ?? "smoke";
 const ALLOW_WRITES = __ENV.ALLOW_WRITES === "1" || __ENV.STRESS_ALLOW_WRITES === "1";
 const SOAK_HOLD   = __ENV.SOAK_HOLD || "45m";
 const STRESS_INCIDENT_ID = __ENV.STRESS_INCIDENT_ID || "stress-probe-incident";
+const probeWeb = Boolean(WEB_BASE) && !/localhost|127\.0\.0\.1/i.test(WEB_BASE);
 
 // ── SLA thresholds — MSA Exhibit C §C.5.1 ───────────────────────────────────
 //
@@ -49,7 +55,10 @@ const STRESS_INCIDENT_ID = __ENV.STRESS_INCIDENT_ID || "stress-probe-incident";
 // NOTE: Per §C.5.1 these are "targets not commitments" for performance metrics.
 // Uptime (§C.1.1 / §8.4) is the hard contractual commitment at 99.9%.
 // Empty Trend metrics are not thresholded — k6 fails those even when count is 0.
-export const thresholds = buildK6Thresholds(PROFILE, { hasBearer: Boolean(BEARER) });
+export const thresholds = buildK6Thresholds(PROFILE, {
+  hasBearer: Boolean(BEARER),
+  hasWeb: probeWeb,
+});
 
 // ── Load profiles ────────────────────────────────────────────────────────────
 //
@@ -132,9 +141,14 @@ function authHeaders() {
 
 // ── Scenario functions ────────────────────────────────────────────────────────
 
+function recordApi(res) {
+  apiLatency.add(res.timings.duration);
+  return res;
+}
+
 /** Health endpoint — no auth, fastest possible check */
 function probeHealth() {
-  const res = http.get(`${API_BASE}/api/health`, { tags: { group: "API" } });
+  const res = recordApi(http.get(`${API_BASE}/api/health`, { tags: { sla: "api" } }));
   check(res, {
     "health 200": (r) => r.status === 200,
     "health has status field": (r) => {
@@ -146,7 +160,7 @@ function probeHealth() {
 
 /** Auth gate — unauthenticated GET /api/me must return 401 */
 function probeAuthGate() {
-  const res = http.get(`${API_BASE}/api/me`, { tags: { group: "API" } });
+  const res = recordApi(http.get(`${API_BASE}/api/me`, { tags: { sla: "api" } }));
   const ok = check(res, { "anon /api/me → 401": (r) => r.status === 401 });
   if (!ok) authErrors.add(1);
 }
@@ -154,10 +168,10 @@ function probeAuthGate() {
 /** Authenticated /api/me — validates token is accepted */
 function probeAuthMe() {
   if (!BEARER) return;
-  const res = http.get(`${API_BASE}/api/me`, {
+  const res = recordApi(http.get(`${API_BASE}/api/me`, {
     headers: authHeaders(),
-    tags: { group: "API" },
-  });
+    tags: { sla: "api" },
+  }));
   const ok = check(res, {
     "auth /api/me → 200": (r) => r.status === 200,
     "me has userId":      (r) => {
@@ -175,10 +189,10 @@ function probeAuthMe() {
 function probeActiveIncidents() {
   if (!BEARER) return;
   const start = Date.now();
-  const res = http.get(`${API_BASE}/api/cad/active-incidents`, {
+  const res = recordApi(http.get(`${API_BASE}/api/cad/active-incidents`, {
     headers: authHeaders(),
-    tags: { group: "API" },
-  });
+    tags: { sla: "api" },
+  }));
   searchLatency.add(Date.now() - start);
 
   const ok = check(res, {
@@ -195,6 +209,7 @@ function probeActiveIncidents() {
 
 /** CAD health shell — tests Next.js → Lambda adapter path */
 function probeCADHealth() {
+  if (!probeWeb) return;
   const res = http.get(`${WEB_BASE}/api/cad/health`, { tags: { group: "Web" } });
   pageLoadLatency.add(res.timings.duration);
   check(res, { "cad/health 200 or 401": (r) => r.status === 200 || r.status === 401 });
@@ -206,7 +221,7 @@ function probeCADHealth() {
  * (§C.5.1 Transcription Latency: <2000ms).
  */
 function probeTranslation() {
-  if (!BEARER) return;
+  if (!BEARER || !probeWeb) return;
   const start = Date.now();
   const res = http.post(
     `${WEB_BASE}/api/language/translate`,
@@ -221,7 +236,7 @@ function probeTranslation() {
 
 /** Transcription start — validates Lambda cold start + connection handling */
 function probeTranscriptionStart() {
-  if (!BEARER) return;
+  if (!BEARER || !probeWeb) return;
   const start = Date.now();
   const res = http.post(
     `${WEB_BASE}/api/transcription/start`,
@@ -238,7 +253,7 @@ function writeOk(res) {
 }
 
 function probeIntakeSession() {
-  if (!BEARER || !ALLOW_WRITES) return;
+  if (!BEARER || !ALLOW_WRITES || !probeWeb) return;
   const res = http.post(
     `${WEB_BASE}/api/intake/session`,
     JSON.stringify({ mode: "stress" }),
@@ -250,17 +265,17 @@ function probeIntakeSession() {
 
 function probeTranscriptPush() {
   if (!BEARER || !ALLOW_WRITES) return;
-  const res = http.post(
+  const res = recordApi(http.post(
     `${API_BASE}/api/incidents/${STRESS_INCIDENT_ID}/transcript`,
     JSON.stringify({ text: "stress-probe", speaker: "caller" }),
-    { headers: authHeaders(), tags: { group: "API" } },
-  );
+    { headers: authHeaders(), tags: { sla: "api" } },
+  ));
   check(res, { "incident_transcript_push non-5xx": writeOk });
   if (res.status >= 500) slaBreaches.add(1);
 }
 
 function probeEscalationCreate() {
-  if (!BEARER || !ALLOW_WRITES) return;
+  if (!BEARER || !ALLOW_WRITES || !probeWeb) return;
   const res = http.post(
     `${WEB_BASE}/api/escalations`,
     JSON.stringify({
@@ -278,17 +293,17 @@ function probeEscalationCreate() {
 
 function probeCadWritebackBlocked() {
   if (!BEARER || !ALLOW_WRITES) return;
-  const res = http.post(
+  const res = recordApi(http.post(
     `${API_BASE}/api/security/cad-writeback-blocked`,
     JSON.stringify({ action: "stress-probe" }),
-    { headers: authHeaders(), tags: { group: "API" } },
-  );
+    { headers: authHeaders(), tags: { sla: "api" } },
+  ));
   check(res, { "cad_writeback_blocked non-5xx": writeOk });
   if (res.status >= 500) slaBreaches.add(1);
 }
 
 function probeRmsGenerate() {
-  if (!BEARER || !ALLOW_WRITES || __ENV.STRESS_ALLOW_AI !== "1") return;
+  if (!BEARER || !ALLOW_WRITES || !probeWeb || __ENV.STRESS_ALLOW_AI !== "1") return;
   const res = http.post(
     `${WEB_BASE}/api/rms/reports/generate`,
     JSON.stringify({
@@ -333,9 +348,11 @@ export default function () {
 
   sleep(0.5);
 
-  group("Web", () => {
-    probeCADHealth();
-  });
+  if (probeWeb) {
+    group("Web", () => {
+      probeCADHealth();
+    });
+  }
 
   // Simulate dispatcher think-time between actions
   sleep(Math.random() * 2 + 1); // 1–3 seconds
@@ -343,12 +360,23 @@ export default function () {
 
 // ── Teardown — summary output for report generator ──────────────────────────
 
+/** k6 reports 0/0/0 on unsampled Trends; treat that as "no sample" not 0ms pass. */
+function sampledTrendP95(metric) {
+  const values = metric?.values;
+  if (!values) return null;
+  const p95 = values["p(95)"];
+  if (p95 == null || Number.isNaN(p95)) return null;
+  if (typeof values.count === "number" && values.count === 0) return null;
+  if (p95 === 0 && (values.max ?? 0) === 0 && (values.avg ?? 0) === 0) return null;
+  return p95;
+}
+
 export function handleSummary(data) {
   const profile   = PROFILE;
   const timestamp = new Date().toISOString();
   const p95Budget = apiP95BudgetMs(profile);
   const errBudget = errorRateBudget(profile);
-  const apiP95 = data.metrics?.["http_req_duration{group:::API}"]?.values?.["p(95)"] ?? null;
+  const apiP95 = sampledTrendP95(data.metrics?.api_latency_ms);
   const pageP95 = data.metrics?.page_load_latency_ms?.values?.["p(95)"] ?? null;
   const searchP95 = data.metrics?.search_latency_ms?.values?.["p(95)"] ?? null;
   const transcP95 = data.metrics?.transcription_latency_ms?.values?.["p(95)"] ?? null;
@@ -379,9 +407,17 @@ export function handleSummary(data) {
   };
 
   const json = JSON.stringify(summary, null, 2);
+  const dur = data.metrics?.http_req_duration?.values ?? {};
+  const failed = data.metrics?.http_req_failed?.values ?? {};
+  const reqs = data.metrics?.http_reqs?.values ?? {};
 
   return {
     "results/k6-summary.json": json,
-    stdout: `\n[RC Stress] Profile: ${profile} | API p95: ${summary.sla.api_p95_ms?.toFixed(0) ?? "—"}ms | Error rate: ${((summary.sla.error_rate ?? 0) * 100).toFixed(2)}%\n`,
+    stdout:
+      `\nhttp_req_duration..............: avg=${Number(dur.avg ?? 0).toFixed(2)}ms` +
+      ` p(95)=${Number(dur["p(95)"] ?? 0).toFixed(2)}ms p(99)=${Number(dur["p(99)"] ?? dur["p(95)"] ?? 0).toFixed(2)}ms` +
+      `\nhttp_req_failed................: ${((failed.rate ?? 0) * 100).toFixed(2)}%` +
+      `\nhttp_reqs......................: ${reqs.count ?? 0}  ${(reqs.rate ?? 0).toFixed(2)}/s` +
+      `\n[RC Stress] Profile: ${profile} | API p95: ${summary.sla.api_p95_ms?.toFixed(0) ?? "—"}ms | Error rate: ${((summary.sla.error_rate ?? 0) * 100).toFixed(2)}%\n`,
   };
 }

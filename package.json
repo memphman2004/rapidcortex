@@ -60,6 +60,7 @@
     "perf:stress": "tsx scripts/perf/stress-test.ts",
     "stress:smoke": "bash scripts/run-k6-profile.sh smoke",
     "stress:load": "bash scripts/run-k6-profile.sh load",
+    "stress:v2": "python3 scripts/rc-stress-runner.py",
     "stress:report": "npx tsx scripts/generate-stress-report.ts",
     "stress:full": "RC_SKIP_SOAK=1 bash scripts/run-stress-test.sh staging",
     "security:g3": "tsx scripts/g3-security-smoke-test.ts",

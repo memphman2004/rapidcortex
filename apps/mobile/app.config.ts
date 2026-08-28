@@ -4,8 +4,9 @@ import { join } from 'node:path';
 
 /**
  * First App Store / TestFlight submission: QR/NFC field tool for Venue + Campus staff.
- * Guardian / Safe & Sound (BLE + background location) permissions are intentionally omitted —
- * reintroduce those strings, UIBackgroundModes, and related plugins in a later release.
+ * Safe & Sound UI stays flag-gated. react-native-ble-plx is still linked, so iOS
+ * requires NSBluetoothAlwaysUsageDescription (ITMS-90683) even when BLE is unused.
+ * Do not add bluetooth-central UIBackgroundModes until Guardian ships.
  */
 const googleServicesPath = join(__dirname, 'google-services.json');
 const hasGoogleServices = existsSync(googleServicesPath);
@@ -41,7 +42,10 @@ const config: ExpoConfig = {
   version: '1.0.0',
   orientation: 'portrait',
   icon: './assets/icon.png',
-  userInterfaceStyle: 'automatic',
+  // Light-mode "automatic" makes the RCT root white the instant native splash hides
+  // (TestFlight 24: branded splash, then blank white). This app is dark-only.
+  userInterfaceStyle: 'dark',
+  backgroundColor: '#00040e',
   scheme: 'rapidcortex',
   splash: {
     image: './assets/splash.png',
@@ -52,6 +56,7 @@ const config: ExpoConfig = {
   ios: {
     supportsTablet: true,
     bundleIdentifier: 'us.rapidcortex.app',
+    userInterfaceStyle: 'dark',
     infoPlist: {
       NSCameraUsageDescription:
         'Rapid Cortex uses the camera to scan QR codes for sign location setup.',
@@ -59,6 +64,25 @@ const config: ExpoConfig = {
         'Rapid Cortex uses NFC to program safety reporting tags for campus and venue locations.',
       NSFaceIDUsageDescription:
         'Allow Rapid Cortex to use Face ID for secure login.',
+      // ITMS-90683: ble-plx links CoreBluetooth; purpose string required even if unused.
+      NSBluetoothAlwaysUsageDescription:
+        'Rapid Cortex uses Bluetooth to pair optional Guardian safety devices. QR and NFC location setup do not require Bluetooth.',
+      NSBluetoothPeripheralUsageDescription:
+        'Rapid Cortex uses Bluetooth to pair optional Guardian safety devices. QR and NFC location setup do not require Bluetooth.',
+      // Linked expo-location / react-native-maps initialize Core Location at process start.
+      // Missing these strings SIGABRT as soon as the native splash appears.
+      NSLocationWhenInUseUsageDescription:
+        'Rapid Cortex uses your location to place safety codes and optional Guardian device maps.',
+      NSLocationAlwaysAndWhenInUseUsageDescription:
+        'Rapid Cortex can use location in the background only when you enable Guardian device tracking.',
+      NSLocationAlwaysUsageDescription:
+        'Rapid Cortex can use location in the background only when you enable Guardian device tracking.',
+      NSMicrophoneUsageDescription:
+        'Rapid Cortex may use the microphone when you record video while scanning a QR code.',
+      NSPhotoLibraryUsageDescription:
+        'Rapid Cortex saves QR code images to your photo library when you choose Save.',
+      NSPhotoLibraryAddUsageDescription:
+        'Rapid Cortex saves QR code images to your photo library when you choose Save.',
       ITSAppUsesNonExemptEncryption: false,
     },
     entitlements: {
@@ -69,6 +93,7 @@ const config: ExpoConfig = {
   android: {
     package: 'us.rapidcortex.app',
     versionCode: 1,
+    userInterfaceStyle: 'dark',
     adaptiveIcon: {
       foregroundImage: './assets/adaptive-icon.png',
       backgroundColor: '#00040e',
@@ -77,6 +102,8 @@ const config: ExpoConfig = {
       'android.permission.NFC',
       'android.permission.CAMERA',
       'android.permission.VIBRATE',
+      'android.permission.ACCESS_COARSE_LOCATION',
+      'android.permission.ACCESS_FINE_LOCATION',
     ],
     ...(hasGoogleServices ? { googleServicesFile: './google-services.json' } : {}),
   },
@@ -84,9 +111,53 @@ const config: ExpoConfig = {
     'expo-router',
     'expo-asset',
     'expo-font',
+    'expo-secure-store',
+    [
+      'expo-notifications',
+      {
+        enableBackgroundRemoteNotifications: false,
+      },
+    ],
+    [
+      'expo-location',
+      {
+        locationWhenInUsePermission:
+          'Rapid Cortex uses your location to place safety codes and optional Guardian device maps.',
+        locationAlwaysAndWhenInUsePermission:
+          'Rapid Cortex can use location in the background only when you enable Guardian device tracking.',
+        isIosBackgroundLocationEnabled: false,
+      },
+    ],
+    [
+      'expo-camera',
+      {
+        cameraPermission:
+          'Rapid Cortex uses the camera to scan QR codes for sign location setup.',
+        microphonePermission:
+          'Rapid Cortex may use the microphone when you record video while scanning a QR code.',
+        recordAudioAndroid: false,
+      },
+    ],
+    [
+      'expo-media-library',
+      {
+        photosPermission:
+          'Rapid Cortex saves QR code images to your photo library when you choose Save.',
+        savePhotosPermission:
+          'Rapid Cortex saves QR code images to your photo library when you choose Save.',
+      },
+    ],
     [
       'expo-local-authentication',
       { faceIDPermission: 'Allow Rapid Cortex to use Face ID for secure login.' },
+    ],
+    [
+      'react-native-ble-plx',
+      {
+        isBackgroundEnabled: false,
+        bluetoothAlwaysPermission:
+          'Rapid Cortex uses Bluetooth to pair optional Guardian safety devices. QR and NFC location setup do not require Bluetooth.',
+      },
     ],
     [
       'react-native-nfc-manager',
@@ -102,6 +173,8 @@ const config: ExpoConfig = {
     './plugins/with-nfc-tag-only.js',
     // Pin ExpoModulesCore to RN 0.76 before pod install (hoisted RN 0.80 peer).
     './plugins/with-pin-expo-modules-core-rn.js',
+    // Nest commander 7.x under expo-modules-autolinking (RN 0.76 hoists commander 12).
+    './plugins/with-pin-autolinking-commander.js',
     // Required for App Store (iOS 26 SDK / Xcode 26) on Expo SDK 52.
     './plugins/with-xcode26-fmt-fix.js',
   ],

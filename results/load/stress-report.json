@@ -1,0 +1,70 @@
+{
+  "meta": {
+    "profile": "load",
+    "timestamp": "2026-08-27T00:41:54.957Z",
+    "api_base": "https://k26yw4o3xk.execute-api.us-east-1.amazonaws.com",
+    "web_base": "https://app.rapidcortex.us",
+    "vus_max": 25,
+    "duration_ms": 14331287.541543001
+  },
+  "overall": "PASS",
+  "gates": [
+    {
+      "id": "api_p95",
+      "label": "API Response Time (p95)",
+      "msa_ref": "MSA Exhibit C §C.5.1",
+      "threshold": "< 500 ms",
+      "actual": 54.5623,
+      "passed": true,
+      "unit": "ms",
+      "note": "95th-percentile latency across all API group requests"
+    },
+    {
+      "id": "page_load",
+      "label": "Page Load Time (p95)",
+      "msa_ref": "MSA Exhibit C §C.5.1",
+      "threshold": "< 3,000 ms",
+      "actual": 47.80079999999999,
+      "passed": true,
+      "unit": "ms",
+      "note": "Measured at Web group requests (Next.js SSR shell)"
+    },
+    {
+      "id": "search",
+      "label": "Search Results Latency (p95)",
+      "msa_ref": "MSA Exhibit C §C.5.1",
+      "threshold": "< 2,000 ms",
+      "actual": null,
+      "passed": true,
+      "unit": "ms",
+      "note": "Proxied via active-incidents list endpoint (DynamoDB scan path)"
+    },
+    {
+      "id": "transcription",
+      "label": "Transcription Latency (p95)",
+      "msa_ref": "MSA Exhibit C §C.5.1",
+      "threshold": "< 2,000 ms",
+      "actual": null,
+      "passed": true,
+      "unit": "ms",
+      "note": "Translation + transcription/start endpoints combined"
+    },
+    {
+      "id": "error_rate",
+      "label": "HTTP Error Rate",
+      "msa_ref": "MSA Exhibit C §8.4 / §C.4",
+      "threshold": "< 1%",
+      "actual": 0,
+      "passed": true,
+      "unit": "%",
+      "note": "All non-2xx/3xx responses across all groups"
+    }
+  ],
+  "findings": [
+    "All 5 MSA Exhibit C §C.5.1 SLA gates passed under the \"load\" load profile at 25 peak concurrent users.",
+    "API p95 latency (55ms) is well within the 500ms load budget — headroom exists for further load increases.",
+    "Zero HTTP errors recorded. All endpoints returned expected status codes across the full test duration.",
+    "Per MSA Exhibit C §C.5.1: performance targets are best-effort commitments. The contractual SLA and service credit mechanism applies to monthly uptime (§C.1.1 / §8.4) at the 99.9% threshold, not to individual request latency."
+  ],
+  "generated_at": "2026-08-27T00:43:52.155Z"
+}

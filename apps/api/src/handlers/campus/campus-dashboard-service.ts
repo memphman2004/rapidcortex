@@ -61,16 +61,22 @@ async function countAlertsToday(agencyId: string): Promise<number> {
   const table = process.env.CAMPUS_NOTIFICATION_LOG_TABLE?.trim();
   if (!table) return 0;
   const today = new Date().toISOString().slice(0, 10);
-  const result = await ddb.send(
-    new QueryCommand({
-      TableName: table,
-      KeyConditionExpression: "agencyId = :aid",
-      FilterExpression: "begins_with(createdAt, :day)",
-      ExpressionAttributeValues: { ":aid": agencyId, ":day": today },
-      Select: "COUNT",
-    }),
-  );
-  return result.Count ?? 0;
+  try {
+    const result = await ddb.send(
+      new QueryCommand({
+        TableName: table,
+        KeyConditionExpression: "agencyId = :aid",
+        FilterExpression: "begins_with(createdAt, :day)",
+        ExpressionAttributeValues: { ":aid": agencyId, ":day": today },
+        Select: "COUNT",
+      }),
+    );
+    return result.Count ?? 0;
+  } catch (error) {
+    // KPI only — missing/mis-keyed log table must not 500 the campus dashboard.
+    console.warn("[campus-stats] alert count skipped", error);
+    return 0;
+  }
 }
 
 async function listOnDutyStaff(campusCode: string, _agencyId: string): Promise<CampusOnDutyStaff[]> {

@@ -8,12 +8,13 @@ import {
 } from '@expo-google-fonts/inter';
 import { Stack, useRouter } from 'expo-router';
 import { useEffect, useRef } from 'react';
-import { ActivityIndicator, View } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
+import { ScreenErrorBoundary } from '@/components/common/ScreenErrorBoundary';
 import { useAuth } from '@/hooks/useAuth';
 import { useLanguage } from '@/hooks/useLanguage';
+import { NATIVE_BOOT_BACKGROUND } from '@/services/native-splash';
 import {
   getInitialNotificationRoute,
   registerForPushNotifications,
@@ -22,7 +23,19 @@ import {
 } from '@/services/notifications';
 
 export default function RootLayout() {
-  const [fontsLoaded] = useFonts({
+  return (
+    <GestureHandlerRootView style={{ flex: 1, backgroundColor: NATIVE_BOOT_BACKGROUND }}>
+      <SafeAreaProvider>
+        <ScreenErrorBoundary>
+          <RootLayoutNav />
+        </ScreenErrorBoundary>
+      </SafeAreaProvider>
+    </GestureHandlerRootView>
+  );
+}
+
+function RootLayoutNav() {
+  useFonts({
     Inter_400Regular,
     Inter_500Medium,
     Inter_600SemiBold,
@@ -47,38 +60,37 @@ export default function RootLayout() {
     if (!isAuthenticated || !user || hasHandledInitialRoute.current) return;
     hasHandledInitialRoute.current = true;
 
-    void registerForPushNotifications(user.sub);
-    void getInitialNotificationRoute().then((route) => {
-      if (route) {
-        router.push(route as never);
-      }
+    void registerForPushNotifications(user.sub).catch((err) => {
+      console.warn('[notifications] register failed', err);
     });
+    void getInitialNotificationRoute()
+      .then((route) => {
+        if (route) {
+          router.push(route as never);
+        }
+      })
+      .catch(() => undefined);
   }, [isAuthenticated, user, router]);
 
-  if (!fontsLoaded) {
-    return (
-      <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: '#00040e' }}>
-        <ActivityIndicator size="large" color="#3b82f6" />
-      </View>
-    );
-  }
-
   return (
-    <GestureHandlerRootView style={{ flex: 1 }}>
-      <SafeAreaProvider>
-        <StatusBar style="light" />
-        <Stack screenOptions={{ headerShown: false }}>
-          <Stack.Screen name="index" />
-          <Stack.Screen name="(auth)" />
-          <Stack.Screen name="(safe-sound)" />
-          <Stack.Screen name="(venue)" />
-          <Stack.Screen name="(campus)" />
-          <Stack.Screen
-            name="emergency/[eventId]"
-            options={{ presentation: 'fullScreenModal', gestureEnabled: false, animation: 'fade' }}
-          />
-        </Stack>
-      </SafeAreaProvider>
-    </GestureHandlerRootView>
+    <>
+      <StatusBar style="light" />
+      <Stack
+        screenOptions={{
+          headerShown: false,
+          contentStyle: { backgroundColor: NATIVE_BOOT_BACKGROUND },
+        }}
+      >
+        <Stack.Screen name="index" />
+        <Stack.Screen name="(auth)" />
+        <Stack.Screen name="(safe-sound)" />
+        <Stack.Screen name="(venue)" />
+        <Stack.Screen name="(campus)" />
+        <Stack.Screen
+          name="emergency/[eventId]"
+          options={{ presentation: 'fullScreenModal', gestureEnabled: false, animation: 'fade' }}
+        />
+      </Stack>
+    </>
   );
 }

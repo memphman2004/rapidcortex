@@ -25,18 +25,28 @@ export function useVenueDashboard(agencyId: string) {
 
   const refresh = useCallback(async () => {
     if (!agencyId) return;
-    setError(null);
     try {
-      const [statsRes, sectionsRes, eventsRes, onDutyRes] = await Promise.all([
+      const results = await Promise.allSettled([
         fetchVenueStats(agencyId),
         fetchVenueSections(agencyId),
         fetchVenueEvents(agencyId),
         fetchVenueOnDuty(agencyId),
       ]);
-      setStats(statsRes);
-      setSections(sectionsRes);
-      setEvents(eventsRes);
-      setOnDuty(onDutyRes);
+      const [statsRes, sectionsRes, eventsRes, onDutyRes] = results;
+      if (statsRes.status === "fulfilled") setStats(statsRes.value);
+      if (sectionsRes.status === "fulfilled") setSections(sectionsRes.value);
+      if (eventsRes.status === "fulfilled") setEvents(eventsRes.value);
+      if (onDutyRes.status === "fulfilled") setOnDuty(onDutyRes.value);
+      const firstRejected = results.find(
+        (row): row is PromiseRejectedResult => row.status === "rejected",
+      );
+      if (!firstRejected) {
+        setError(null);
+      } else if (firstRejected.reason instanceof Error) {
+        setError(firstRejected.reason.message);
+      } else {
+        setError("Failed to load venue dashboard");
+      }
     } catch (e) {
       setError(e instanceof Error ? e.message : "Failed to load venue dashboard");
     } finally {

@@ -1,0 +1,40 @@
+{
+  "meta": {
+    "profile": "smoke",
+    "timestamp": "2026-08-27T00:30:39.359Z",
+    "api_base": "https://k26yw4o3xk.execute-api.us-east-1.amazonaws.com",
+    "web_base": "https://app.rapidcortex.us",
+    "vus_max": 1,
+    "duration_ms": 32043.712749
+  },
+  "overall": "PASS",
+  "gates": [
+    {
+      "id": "api_p95",
+      "label": "API Response Time (p95)",
+      "msa_ref": "MSA Exhibit C §C.5.1",
+      "threshold": "< 5,000 ms",
+      "actual": 76.55125,
+      "passed": true,
+      "unit": "ms",
+      "note": "Smoke connectivity gate (5s budget allows Lambda cold start)"
+    },
+    {
+      "id": "error_rate",
+      "label": "HTTP Error Rate",
+      "msa_ref": "MSA Exhibit C §8.4 / §C.4",
+      "threshold": "< 5%",
+      "actual": 0,
+      "passed": true,
+      "unit": "%",
+      "note": "All non-2xx/3xx responses across all groups"
+    }
+  ],
+  "findings": [
+    "All 2 MSA Exhibit C §C.5.1 SLA gates passed under the \"smoke\" load profile at 1 peak concurrent users.",
+    "API p95 latency (77ms) is well within the 5000ms smoke budget — headroom exists for further load increases.",
+    "Zero HTTP errors recorded. All endpoints returned expected status codes across the full test duration.",
+    "Per MSA Exhibit C §C.5.1: performance targets are best-effort commitments. The contractual SLA and service credit mechanism applies to monthly uptime (§C.1.1 / §8.4) at the 99.9% threshold, not to individual request latency."
+  ],
+  "generated_at": "2026-08-27T00:31:17.159Z"
+}

@@ -6,6 +6,9 @@
  * Also pin ExpoModulesCore's React Native version probe to the mobile app's
  * 0.76.9 — a hoisted RN 0.80 peer at the repo root makes pod install fail
  * looking for ReactAppDependencyProvider.
+ *
+ * Nest commander 7.x under expo-modules-autolinking so Xcode Configure project
+ * does not load RN's commander 12 (`commander_1.default.command is not a function`).
  */
 const fs = require('fs');
 const path = require('path');
@@ -150,6 +153,7 @@ for (const pkg of ['expo', 'expo-modules-core']) {
 materialize('react-native', { requireSdk52Rn: true });
 pinHoistedReactNativeToSdk52();
 pinExpoModulesAutolinkingToSdk52();
+pinCommanderForExpoAutolinking();
 // babel-preset-expo (hoisted) uses require.resolve('expo-router'); that fails
 // when the package only exists under apps/mobile/node_modules.
 hoistToRoot('expo-router');
@@ -226,6 +230,17 @@ function pinExpoModulesAutolinkingToSdk52() {
     );
     replacePackageTree(src, dest);
   }
+}
+
+function pinCommanderForExpoAutolinking() {
+  const {
+    pinCommanderUnderExpoAutolinking,
+  } = require('./pin-expo-autolinking-commander.js');
+  pinCommanderUnderExpoAutolinking({
+    mobileRoot,
+    workspaceRoot,
+    installIfMissing: true,
+  });
 }
 
 function pinReactNativeScreensToSdk52() {
