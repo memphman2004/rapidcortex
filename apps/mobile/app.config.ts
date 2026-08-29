@@ -113,6 +113,16 @@ const config: ExpoConfig = {
     'expo-font',
     'expo-secure-store',
     [
+      'expo-build-properties',
+      {
+        android: {
+          compileSdkVersion: 35,
+          targetSdkVersion: 35,
+          buildToolsVersion: '35.0.0',
+        },
+      },
+    ],
+    [
       'expo-notifications',
       {
         enableBackgroundRemoteNotifications: false,

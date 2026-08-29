@@ -84,7 +84,8 @@
       "android": {
         // Google Play Console developer account ID: 7807903929046926180 (Rapid Cortex org)
         "serviceAccountKeyPath": "./google-play-key.json",
-        "track": "production"
+        // Play Console is using Internal testing until the store listing can ship.
+        "track": "internal"
       }
     }
   }
