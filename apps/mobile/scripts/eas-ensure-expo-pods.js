@@ -27,6 +27,18 @@ function ensureDir(dir) {
   fs.mkdirSync(dir, { recursive: true });
 }
 
+/**
+ * A silently-failed version pin here does not fail the EAS build — it ships a
+ * native binary whose react-native/react-native-screens/expo-modules-core
+ * version disagrees with the JS bundle Metro produced. That mismatch is a
+ * known cause of native-stack screens mounting but rendering nothing (black
+ * screen after splash), with no crash and no error to point at. Fail loud
+ * instead of warning and continuing.
+ */
+function fail(message) {
+  throw new Error(`[eas-pods] FATAL: ${message}`);
+}
+
 /** Copy a nested mobile package up to the workspace root so hoisted Expo tooling can resolve it. */
 function hoistToRoot(pkg) {
   const dest = path.join(rootNm, pkg);
@@ -138,7 +150,10 @@ function pinExpoModulesCorePodspecs(rnPackageJson) {
     const before = fs.readFileSync(podspecPath, 'utf8');
     const after = patchExpoModulesCorePodspec(before, rnPackageJson);
     if (after === before) {
-      console.warn(`[eas-pods] did not patch ${podspecPath} (pattern mismatch)`);
+      console.error(
+        `[eas-pods] did not patch ${podspecPath} (pattern mismatch) — ` +
+          'ExpoModulesCore may probe a hoisted, non-0.76 react-native during pod install.',
+      );
       continue;
     }
     fs.writeFileSync(podspecPath, after);
@@ -151,12 +166,23 @@ for (const pkg of ['expo', 'expo-modules-core']) {
   materialize(pkg);
 }
 materialize('react-native', { requireSdk52Rn: true });
+{
+  const mobileRnVersion = readPkgVersion(path.join(mobileNm, 'react-native'));
+  if (!mobileRnVersion || !isSdk52ReactNative(mobileRnVersion)) {
+    fail(
+      `apps/mobile/node_modules/react-native is ${mobileRnVersion ?? 'missing'}, need 0.76.x. ` +
+        'Metro will bundle against a different react-native than the native binary was built with.',
+    );
+  }
+}
 pinHoistedReactNativeToSdk52();
 pinExpoModulesAutolinkingToSdk52();
 pinCommanderForExpoAutolinking();
 // babel-preset-expo (hoisted) uses require.resolve('expo-router'); that fails
 // when the package only exists under apps/mobile/node_modules.
-hoistToRoot('expo-router');
+if (!hoistToRoot('expo-router')) {
+  fail('could not hoist expo-router to the workspace root — export:embed will fail.');
+}
 buildSharedPackage();
 
 const { materializeNestedPolyfills } = require('./metro-resolve-nested.js');
@@ -210,8 +236,7 @@ function pinExpoModulesAutolinkingToSdk52() {
     }
   }
   if (!src) {
-    console.warn('[eas-pods] expo-modules-autolinking 2.x not found under expo');
-    return;
+    fail('expo-modules-autolinking 2.x not found under expo — autolinking may pick a mismatched version.');
   }
   const srcVer = readPkgVersion(src);
   for (const dest of [
@@ -249,10 +274,10 @@ function pinReactNativeScreensToSdk52() {
   const mobileVer = readPkgVersion(mobileScreens);
   const rootVer = readPkgVersion(rootScreens);
   if (!mobileVer || !mobileVer.startsWith('4.4.')) {
-    console.warn(
-      `[eas-pods] apps/mobile react-native-screens@${mobileVer ?? 'missing'} (need 4.4.x)`,
+    fail(
+      `apps/mobile/node_modules/react-native-screens is ${mobileVer ?? 'missing'}, need 4.4.x. ` +
+        'A version mismatch here is a known cause of native-stack screens rendering nothing.',
     );
-    return;
   }
   if (rootVer && !rootVer.startsWith('4.4.')) {
     console.log(
@@ -279,7 +304,7 @@ if (rnPackageJson) {
   console.log(`[eas-pods] mobile React Native is ${readPkgVersion(path.dirname(rnPackageJson))} at ${rnPackageJson}`);
   pinExpoModulesCorePodspecs(rnPackageJson);
 } else {
-  console.warn('[eas-pods] no React Native 0.76.x found; ExpoModulesCore may pick a hoisted 0.80 peer');
+  fail('no React Native 0.76.x found; ExpoModulesCore may pick a hoisted 0.80 peer.');
 }
 
 const corePodspec = path.join(mobileNm, 'expo-modules-core', 'ExpoModulesCore.podspec');
@@ -289,3 +314,16 @@ console.log(
 
 // SDK 52 + Xcode 26: exhaustive Calendar.Identifier switch
 require('./patch-expo-localization-xcode26.js');
+
+const {
+  patchReactNativeXcodeSpacePaths,
+} = require('./patch-rn-xcode-space-paths.js');
+const spacePathPatched = patchReactNativeXcodeSpacePaths({
+  mobileRoot,
+  workspaceRoot,
+});
+if (spacePathPatched.length > 0) {
+  console.log(
+    `[eas-pods] quoted RN Xcode scripts for paths with spaces:\n  ${spacePathPatched.join('\n  ')}`,
+  );
+}

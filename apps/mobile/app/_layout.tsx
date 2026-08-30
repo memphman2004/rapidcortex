@@ -35,6 +35,8 @@ export default function RootLayout() {
 }
 
 function RootLayoutNav() {
+  // Do not block first paint on Inter — a hung font load must not keep a black
+  // native splash up. Native splash auto-hides when this tree paints.
   useFonts({
     Inter_400Regular,
     Inter_500Medium,

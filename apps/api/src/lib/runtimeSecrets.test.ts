@@ -19,6 +19,7 @@ beforeEach(async () => {
 
 afterEach(() => {
   clearRuntimeSecretsCacheForTests();
+  vi.useRealTimers();
 });
 
 describe("resolvePlainOrSecretArn", () => {
@@ -118,16 +119,42 @@ describe("resolvePlainOrSecretArn", () => {
     expect(v).toBe("binary-key");
   });
 
-  it("ignores empty-string fields and falls through to non-empty ones", async () => {
+  it("picks apiKey from rapid-cortex/ai/anthropic JSON shape", async () => {
     sendMock.mockResolvedValue({
-      SecretString: JSON.stringify({
-        azureTranslationKey: "  ",
-        azureSpeechKey: "real-speech",
-      }),
+      SecretString: JSON.stringify({ apiKey: "sk-ant-platform" }),
     });
-    const v = await resolvePlainOrSecretArn("", "arn:aws:secretsmanager:::secret:emptyfield", {
-      preferredField: "azureTranslationKey",
+    const v = await resolvePlainOrSecretArn("", "arn:aws:secretsmanager:::secret:rapid-cortex/ai/anthropic", {
+      preferredField: "apiKey",
     });
-    expect(v).toBe("real-speech");
+    expect(v).toBe("sk-ant-platform");
+  });
+
+  it("re-fetches from Secrets Manager after the 5-minute cache TTL", async () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date("2026-08-28T00:00:00.000Z"));
+    sendMock
+      .mockResolvedValueOnce({ SecretString: JSON.stringify({ apiKey: "v1" }) })
+      .mockResolvedValueOnce({ SecretString: JSON.stringify({ apiKey: "v2-rotated" }) });
+    const arn = "arn:aws:secretsmanager:::secret:rapid-cortex/ai/anthropic";
+    expect(await resolvePlainOrSecretArn("", arn, { preferredField: "apiKey" })).toBe("v1");
+    vi.setSystemTime(new Date("2026-08-28T00:04:59.000Z"));
+    expect(await resolvePlainOrSecretArn("", arn, { preferredField: "apiKey" })).toBe("v1");
+    expect(sendMock).toHaveBeenCalledTimes(1);
+    vi.setSystemTime(new Date("2026-08-28T00:05:00.000Z"));
+    expect(await resolvePlainOrSecretArn("", arn, { preferredField: "apiKey" })).toBe("v2-rotated");
+    expect(sendMock).toHaveBeenCalledTimes(2);
+    vi.useRealTimers();
+  });
+
+  it("forceRefresh bypasses cache so a rotated secret is used immediately", async () => {
+    sendMock
+      .mockResolvedValueOnce({ SecretString: JSON.stringify({ apiKey: "v1" }) })
+      .mockResolvedValueOnce({ SecretString: JSON.stringify({ apiKey: "v2-rotated" }) });
+    const arn = "arn:aws:secretsmanager:::secret:anthropic-refresh";
+    expect(await resolvePlainOrSecretArn("", arn, { preferredField: "apiKey" })).toBe("v1");
+    expect(
+      await resolvePlainOrSecretArn("", arn, { preferredField: "apiKey", forceRefresh: true }),
+    ).toBe("v2-rotated");
+    expect(sendMock).toHaveBeenCalledTimes(2);
   });
 });

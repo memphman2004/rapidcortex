@@ -2,5 +2,9 @@
 .expo/
 node_modules/
 dist/
+ios/
+android/
 google-services.json
 google-play-key.json
+# Pulled from a connected iPhone (device IDs / crash dumps). Do not commit.
+.crash-pull/

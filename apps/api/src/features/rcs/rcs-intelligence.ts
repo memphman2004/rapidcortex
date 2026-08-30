@@ -116,6 +116,7 @@ async function invokeAnthropic(prompt: string): Promise<string | null> {
   const apiKey = await resolvePlainOrSecretArn(
     process.env.ANTHROPIC_API_KEY,
     cfg.anthropic.apiKeySecretArn || undefined,
+    { preferredField: "apiKey" },
   );
   if (!apiKey) return null;
   const model =

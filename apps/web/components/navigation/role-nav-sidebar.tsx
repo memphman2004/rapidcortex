@@ -41,17 +41,25 @@ function navItemIsActive(pathname: string, item: NavItem): boolean {
 }
 
 /** Section label with extending rule — visual boundary without competing with items. */
-function NavSectionHeader({ label, compact }: { label: string; compact?: boolean }) {
+function NavSectionHeader({
+  label,
+  compact,
+  first,
+}: {
+  label: string;
+  compact?: boolean;
+  first?: boolean;
+}) {
   if (compact) {
     return (
-      <p className="mb-2 text-[10px] font-semibold uppercase tracking-[0.16em] text-slate-500">
+      <p className="mb-2 text-[10px] font-semibold uppercase tracking-[0.16em] text-slate-400">
         {label}
       </p>
     );
   }
   return (
-    <div className="flex items-center gap-2.5 px-2 pt-5 pb-1">
-      <span className="shrink-0 whitespace-nowrap text-[9px] font-bold uppercase tracking-widest text-[var(--rc-text-muted)]">
+    <div className={`flex items-center gap-2.5 px-2 pb-1 ${first ? "pt-1" : "pt-5"}`}>
+      <span className="shrink-0 whitespace-nowrap text-[9px] font-bold uppercase tracking-widest text-[color:var(--role-accent,#c084fc)] opacity-80">
         {label}
       </span>
       <div className="h-px flex-1 bg-[var(--rc-border)]" aria-hidden />
@@ -109,10 +117,14 @@ export function RoleNavSections({
 
   return (
     <div className={variant === "compact" ? "space-y-3" : "space-y-0"}>
-      {nav.sections.map((section) => (
+      {nav.sections.map((section, sectionIndex) => (
         <div key={section.id}>
           {section.label ? (
-            <NavSectionHeader label={section.label} compact={variant === "compact"} />
+            <NavSectionHeader
+              label={section.label}
+              compact={variant === "compact"}
+              first={sectionIndex === 0}
+            />
           ) : null}
           <ul className={variant === "compact" ? "flex flex-wrap gap-2" : "flex flex-col gap-0.5"}>
             {section.items.map((item) => {

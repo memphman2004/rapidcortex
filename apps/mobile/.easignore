@@ -57,6 +57,15 @@ Rapid Cortex Internal Docs/
 **/android/.gradle/
 **/android/app/build/
 
+# Generated native trees — EAS must run prebuild from app.config so SDK 52
+# plugins (UIScene, ExpoModulesCore RN 0.76 pin, Xcode 26 fmt) apply. Uploading
+# a local ios/ made iOS 28 compile ExpoModulesCore against a hoisted RN 0.80
+# CallInvoker and fail on Xcode 26 (`TestingSyncJSCallInvoker` / invokeAsync).
+/apps/mobile/ios/
+/apps/mobile/android/
+ios/
+android/
+
 # Env / secrets / local
 **/.env
 **/.env.*

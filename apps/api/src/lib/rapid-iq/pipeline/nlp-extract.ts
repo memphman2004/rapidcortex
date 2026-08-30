@@ -13,7 +13,7 @@ async function resolveAnthropicKey(): Promise<string> {
   return resolvePlainOrSecretArn(
     process.env.ANTHROPIC_API_KEY,
     process.env.ANTHROPIC_API_KEY_SECRET_ARN,
-    { preferredField: "ANTHROPIC_API_KEY" },
+    { preferredField: "apiKey" },
   );
 }
 

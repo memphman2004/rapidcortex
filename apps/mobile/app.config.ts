@@ -35,6 +35,8 @@ const wsBase =
   process.env.EXPO_PUBLIC_WS_BASE?.trim() ||
   'wss://g0wzu18e2k.execute-api.us-east-1.amazonaws.com/dev';
 const appOrigin = process.env.EXPO_PUBLIC_APP_ORIGIN?.trim() || 'https://app.rapidcortex.us';
+/** Unset until a Sentry project exists — crash-reporting.ts no-ops without a DSN. */
+const sentryDsn = process.env.EXPO_PUBLIC_SENTRY_DSN?.trim() || '';
 
 const config: ExpoConfig = {
   name: 'Rapid Cortex',
@@ -84,6 +86,9 @@ const config: ExpoConfig = {
       NSPhotoLibraryAddUsageDescription:
         'Rapid Cortex saves QR code images to your photo library when you choose Save.',
       ITSAppUsesNonExemptEncryption: false,
+      // Expo AppDelegate implements didReceiveRemoteNotification:fetchCompletionHandler:.
+      // Without this key iOS logs a launch warning (not the TestFlight 32 abort).
+      UIBackgroundModes: ['remote-notification', 'fetch'],
     },
     entitlements: {
       // Apple rejects listing "NDEF" here (ITMS-90778). Use TAG only; NDEF R/W still works.
@@ -187,6 +192,11 @@ const config: ExpoConfig = {
     './plugins/with-pin-autolinking-commander.js',
     // Required for App Store (iOS 26 SDK / Xcode 26) on Expo SDK 52.
     './plugins/with-xcode26-fmt-fix.js',
+    // Quote RN codegen scripts so Xcode works when the repo path has spaces.
+    './plugins/with-rn-codegen-space-paths.js',
+    // Xcode 26 refuses to launch without UIScene (TN3187). SceneDelegate must
+    // be its own class — UIKit instantiates it. TestFlight 27 died at splash.
+    './plugins/with-uiscene-lifecycle.js',
   ],
   extra: {
     eas: { projectId: '2d1ae3e1-5867-48f0-8ed8-a8eb53d920dc' },
@@ -199,6 +209,7 @@ const config: ExpoConfig = {
     EXPO_PUBLIC_API_BASE_4: apiBase4,
     EXPO_PUBLIC_WS_BASE: wsBase,
     EXPO_PUBLIC_APP_ORIGIN: appOrigin,
+    EXPO_PUBLIC_SENTRY_DSN: sentryDsn,
   },
   owner: 'rapid-cortex',
 };

@@ -5,9 +5,10 @@ export const NATIVE_BOOT_BACKGROUND = '#00040e';
 export const FONT_READY_TIMEOUT_MS = 4000;
 
 /**
- * Native splash stays up until fonts are usable, font load errors, or the timeout.
- * Returning true means JS may call hideAsync — the branded splash.png should already
- * cover the window until then.
+ * Ready-to-hide predicate for a future JS splash gate.
+ * Do not call expo-splash-screen hideAsync/preventAutoHideAsync from JS —
+ * that combination crashed TestFlight 25 (native abort). Native splash
+ * auto-dismisses when the first React frame paints.
  */
 export function isNativeSplashReadyToHide(options: {
   fontsLoaded: boolean;

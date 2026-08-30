@@ -53,10 +53,16 @@ export const RC_SUPERADMIN_NAV: RoleNav = {
   roleBadge: "SUPERADMIN",
   sections: [
     {
-      id: "platform",
-      label: "PLATFORM",
+      id: "home",
+      label: "OVERVIEW",
       items: [
         { id: "overview",  label: "Overview",         href: "/rc-admin/dashboard",     icon: "LayoutDashboard", exact: true },
+      ],
+    },
+    {
+      id: "tenants",
+      label: "TENANTS",
+      items: [
         { id: "agencies",  label: "Agencies",          href: "/rc-admin/agencies",      icon: "Building2" },
         {
           id: "deployments-map",
@@ -141,10 +147,16 @@ export const RC_ADMIN_NAV: RoleNav = {
   roleBadge: "RC ADMIN",
   sections: [
     {
-      id: "platform",
-      label: "PLATFORM",
+      id: "home",
+      label: "OVERVIEW",
       items: [
         { id: "overview",  label: "Overview",         href: "/rc-admin/dashboard",     icon: "LayoutDashboard", exact: true },
+      ],
+    },
+    {
+      id: "tenants",
+      label: "TENANTS",
+      items: [
         { id: "agencies",  label: "Agencies",          href: "/rc-admin/agencies",      icon: "Building2" },
         {
           id: "deployments-map",
@@ -200,6 +212,7 @@ export const RC_ADMIN_NAV: RoleNav = {
         { id: "notices",   label: "Platform Notices",  href: "/rc-admin/support",       icon: "Megaphone" },
         { id: "grants",    label: "Grants",            href: "/rc-admin/grants",        icon: "ShieldCheck" },
         { id: "dev-portal",label: "Developer Portal",  href: "/rc-admin/api-clients",   icon: "Code2" },
+        { id: "reports",   label: "Reports",           href: "/rc-admin/usage",         icon: "BarChart3" },
         // Feature flags: superadmin only (see RC_SUPERADMIN_NAV)
       ],
     },
@@ -212,15 +225,8 @@ export const RC_ADMIN_NAV: RoleNav = {
       ],
     },
     {
-      id: "reports",
-      label: "REPORTS",
-      items: [
-        { id: "reports",   label: "Reports",           href: "/rc-admin/usage",         icon: "BarChart3" },
-      ],
-    },
-    {
-      id: "settings",
-      label: "SETTINGS",
+      id: "onboarding",
+      label: "ONBOARDING",
       items: [
         {
           id: "onboarding-campus-intake",
@@ -263,23 +269,6 @@ export const RC_IT_ADMIN_NAV: RoleNav = {
       ],
     },
     {
-      id: "sales-crm",
-      label: "SALES & CRM",
-      items: [
-        { id: "leads",     label: "Leads",             href: "/rc-admin/leads",         icon: "Inbox", feature: "salesLeads" },
-        { id: "psap-prospects", label: "PSAP Prospects", href: "/rc-admin/psap-prospects", icon: "RadioTower", feature: "psapProspects" },
-      ],
-    },
-    {
-      id: "talent",
-      label: "TALENT",
-      items: [
-        { id: "hiring",         label: "Hiring ATS",      href: "/rc-admin/hiring",          icon: "Users", feature: "hiring" },
-        { id: "hiringPostings", label: "Job Postings",    href: "/rc-admin/hiring/postings", icon: "Briefcase", feature: "hiring" },
-        { id: "hiringSettings", label: "Hiring Settings", href: "/rc-admin/hiring/settings", icon: "Settings", feature: "hiring" },
-      ],
-    },
-    {
       id: "tenants",
       label: "TENANTS",
       items: [
@@ -303,6 +292,23 @@ export const RC_IT_ADMIN_NAV: RoleNav = {
       ],
     },
     {
+      id: "sales-crm",
+      label: "SALES & CRM",
+      items: [
+        { id: "leads",     label: "Leads",             href: "/rc-admin/leads",         icon: "Inbox", feature: "salesLeads" },
+        { id: "psap-prospects", label: "PSAP Prospects", href: "/rc-admin/psap-prospects", icon: "RadioTower", feature: "psapProspects" },
+      ],
+    },
+    {
+      id: "talent",
+      label: "TALENT",
+      items: [
+        { id: "hiring",         label: "Hiring ATS",      href: "/rc-admin/hiring",          icon: "Users", feature: "hiring" },
+        { id: "hiringPostings", label: "Job Postings",    href: "/rc-admin/hiring/postings", icon: "Briefcase", feature: "hiring" },
+        { id: "hiringSettings", label: "Hiring Settings", href: "/rc-admin/hiring/settings", icon: "Settings", feature: "hiring" },
+      ],
+    },
+    {
       id: "locations",
       label: "LOCATIONS",
       items: [
@@ -311,8 +317,8 @@ export const RC_IT_ADMIN_NAV: RoleNav = {
       ],
     },
     {
-      id: "platform",
-      label: "PLATFORM",
+      id: "audit-settings",
+      label: "AUDIT & SETTINGS",
       items: [
         { id: "audit",     label: "Audit Log",         href: "/rc-admin/audit",         icon: "ScrollText" },
         { id: "settings",  label: "System Settings",   href: "/rc-admin/system-settings", icon: "Settings" },

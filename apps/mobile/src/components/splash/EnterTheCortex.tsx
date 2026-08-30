@@ -32,12 +32,18 @@ export function EnterTheCortex({ onEnterComplete }: EnterTheCortexProps) {
   const [accessing, setAccessing] = useState(false);
   const [statusIndex, setStatusIndex] = useState(0);
   const [reduceMotion, setReduceMotion] = useState(false);
+  const [fieldReady, setFieldReady] = useState(false);
   const ringA = useRef(new Animated.Value(1)).current;
   const ringB = useRef(new Animated.Value(1)).current;
   const blink = useRef(new Animated.Value(1)).current;
 
   useEffect(() => {
     void AccessibilityInfo.isReduceMotionEnabled().then(setReduceMotion);
+  }, []);
+
+  useEffect(() => {
+    const id = requestAnimationFrame(() => setFieldReady(true));
+    return () => cancelAnimationFrame(id);
   }, []);
 
   useEffect(() => {
@@ -111,7 +117,7 @@ export function EnterTheCortex({ onEnterComplete }: EnterTheCortexProps) {
 
   return (
     <View style={styles.root} accessibilityViewIsModal>
-      {!reduceMotion ? <NeuralField /> : null}
+      {!reduceMotion && fieldReady ? <NeuralField /> : null}
 
       <View style={styles.content}>
         <Text style={styles.eyebrow}>{Strings.enterSplash.eyebrow}</Text>
@@ -195,7 +201,6 @@ const styles = StyleSheet.create({
     color: SplashColors.eyebrow,
     marginBottom: 18,
     fontWeight: '500',
-    fontFamily: 'Inter_500Medium',
   },
   title: {
     fontSize: 42,
@@ -204,7 +209,6 @@ const styles = StyleSheet.create({
     lineHeight: 46,
     color: SplashColors.title,
     textAlign: 'center',
-    fontFamily: 'Inter_700Bold',
   },
   cortex: {
     color: SplashColors.cortex,
@@ -216,7 +220,6 @@ const styles = StyleSheet.create({
     color: SplashColors.tagline,
     marginTop: 16,
     textAlign: 'center',
-    fontFamily: 'Inter_400Regular',
   },
   buttonWrap: {
     marginTop: 42,
@@ -266,7 +269,6 @@ const styles = StyleSheet.create({
     fontWeight: '500',
     letterSpacing: 3.1,
     textTransform: 'uppercase',
-    fontFamily: 'Inter_500Medium',
   },
   buttonTextAccessing: {
     color: SplashColors.accessing,
@@ -316,7 +318,6 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     letterSpacing: 3.5,
     textTransform: 'uppercase',
-    fontFamily: 'Inter_600SemiBold',
     textAlign: 'center',
     paddingHorizontal: 24,
   },

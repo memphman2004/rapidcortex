@@ -29,10 +29,10 @@ const DEFAULT_KEY_FALLBACK_CHAIN = [
   "key",
 ] as const;
 
-async function readCachedSecret(arn: string): Promise<CachedSecret> {
+async function readCachedSecret(arn: string, forceRefresh = false): Promise<CachedSecret> {
   const now = Date.now();
   const hit = cache.get(arn);
-  if (hit && now - hit.fetchedAt < TTL_MS) return hit;
+  if (!forceRefresh && hit && now - hit.fetchedAt < TTL_MS) return hit;
 
   const out = await client.send(new GetSecretValueCommand({ SecretId: arn }));
   const raw = out.SecretString ?? "";
@@ -68,7 +68,10 @@ function pickFromObject(obj: Record<string, unknown>, preferredField: string | u
 }
 
 /**
- * Prefer inline env; otherwise fetch from Secrets Manager when ARN is set.
+ * Prefer inline env (local/mock); otherwise fetch from Secrets Manager when ARN is set.
+ * Production Lambdas must pass only the ARN so rotated values are read at runtime.
+ * Cached GetSecretValue results expire after {@link TTL_MS} (5 minutes); pass
+ * `forceRefresh: true` to bypass the cache (secret rotation / explicit refresh).
  *
  * For JSON secrets, `preferredField` selects the intended JSON field (recommended
  * whenever the secret may contain multiple keys, e.g. shared Azure multilingual
@@ -85,17 +88,22 @@ function pickFromObject(obj: Record<string, unknown>, preferredField: string | u
 export async function resolvePlainOrSecretArn(
   plain: string | undefined,
   secretArn: string | undefined,
-  opts?: { preferredField?: string },
+  opts?: { preferredField?: string; forceRefresh?: boolean },
 ): Promise<string> {
   const p = plain?.trim() ?? "";
   if (p) return p;
   const arn = secretArn?.trim() ?? "";
   if (!arn) return "";
-  const entry = await readCachedSecret(arn);
+  const entry = await readCachedSecret(arn, opts?.forceRefresh === true);
   if (entry.kind === "string") return entry.value;
   return pickFromObject(entry.value, opts?.preferredField);
 }
 
 export function clearRuntimeSecretsCacheForTests(): void {
+  invalidateRuntimeSecretsCache();
+}
+
+/** Drop cached GetSecretValue results so the next resolve hits Secrets Manager. */
+export function invalidateRuntimeSecretsCache(): void {
   cache.clear();
 }

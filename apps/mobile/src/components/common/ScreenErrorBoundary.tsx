@@ -1,5 +1,6 @@
 import { Component, type ErrorInfo, type ReactNode } from 'react';
 import { Pressable, Text, View } from 'react-native';
+import { captureException } from '@/services/crash-reporting';
 
 interface Props {
   children: ReactNode;
@@ -20,6 +21,7 @@ export class ScreenErrorBoundary extends Component<Props, State> {
 
   componentDidCatch(error: Error, info: ErrorInfo): void {
     console.error('ScreenErrorBoundary', error, info.componentStack);
+    captureException(error, { componentStack: info.componentStack ?? undefined });
   }
 
   render() {

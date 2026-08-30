@@ -939,14 +939,47 @@ function RcAdminConsoleHomeInner({
                     marginTop: 2,
                   }}
                 >
-                  RC ADMIN
+                  {nav.roleBadge}
                 </div>
               </div>
             </div>
           </div>
 
           <nav style={{ flex: 1, padding: 7, overflowY: "auto" }} aria-label="RC Admin navigation">
-            {navItems.map((item) => {
+            {nav.sections.map((section, sectionIndex) => (
+              <div key={section.id}>
+                {section.label ? (
+                  <div
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 8,
+                      padding: sectionIndex === 0 ? "6px 9px 4px" : "12px 9px 4px",
+                    }}
+                  >
+                    <span
+                      style={{
+                        fontSize: 9,
+                        fontWeight: 800,
+                        letterSpacing: "1.6px",
+                        textTransform: "uppercase",
+                        color: C.purple,
+                        whiteSpace: "nowrap",
+                      }}
+                    >
+                      {section.label}
+                    </span>
+                    <div
+                      style={{
+                        height: 1,
+                        flex: 1,
+                        background: C.border,
+                      }}
+                      aria-hidden
+                    />
+                  </div>
+                ) : null}
+                {section.items.map((item) => {
               const Icon = navIconByName(item.icon);
               const active = navItemActive(pathname, item);
               const count = badgeForItem(item);
@@ -1022,7 +1055,9 @@ function RcAdminConsoleHomeInner({
                   {content}
                 </Link>
               );
-            })}
+                })}
+              </div>
+            ))}
           </nav>
 
           {/* Environment switcher + user */}

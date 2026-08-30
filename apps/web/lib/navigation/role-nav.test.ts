@@ -76,31 +76,50 @@ describe("getRoleNav", () => {
     }
   });
 
-  it("splits RC superadmin BUSINESS into Sales & CRM, Business, and Talent", () => {
-    const nav = getRoleNav("rcsuperadmin", {});
-    const byId = Object.fromEntries(nav.sections.map((s) => [s.id, s]));
-    expect(byId["sales-crm"]?.label).toBe("SALES & CRM");
-    expect(byId["sales-crm"]?.items.map((i) => i.id)).toEqual([
-      "leads",
-      "psap-prospects",
-      "contacts",
-      "rapid-iq",
-      "conferences",
+  it("groups all RC internal sidebars under labeled major headings", () => {
+    const expectedSuperadmin = [
+      "home",
+      "tenants",
+      "sales-crm",
+      "business",
+      "talent",
+      "ops",
+      "locations",
+      "infra",
+    ];
+    const superadmin = getRoleNav("rcsuperadmin", {});
+    expect(superadmin.sections.map((s) => s.id)).toEqual(expectedSuperadmin);
+    expect(superadmin.sections.every((s) => Boolean(s.label))).toBe(true);
+    expect(superadmin.sections.find((s) => s.id === "tenants")?.label).toBe("TENANTS");
+    expect(superadmin.sections.find((s) => s.id === "home")?.items.map((i) => i.id)).toEqual([
+      "overview",
     ]);
-    expect(byId.business?.label).toBe("BUSINESS");
-    expect(byId.business?.items.map((i) => i.id)).toEqual([
-      "billing",
-      "pricing",
-      "invoices",
-      "agreements",
-      "catalog",
+
+    const admin = getRoleNav("rcadmin", {});
+    expect(admin.sections.map((s) => s.id)).toEqual([
+      "home",
+      "tenants",
+      "sales-crm",
+      "business",
+      "talent",
+      "ops",
+      "locations",
+      "onboarding",
     ]);
-    expect(byId.talent?.label).toBe("TALENT");
-    expect(byId.talent?.items.map((i) => i.id)).toEqual([
-      "hiring",
-      "hiringPostings",
-      "hiringSettings",
+    expect(admin.sections.find((s) => s.id === "ops")?.items.map((i) => i.id)).toContain("reports");
+    expect(admin.sections.every((s) => Boolean(s.label))).toBe(true);
+
+    const it = getRoleNav("rcitadmin", {});
+    expect(it.sections.map((s) => s.id)).toEqual([
+      "infra",
+      "tenants",
+      "sales-crm",
+      "talent",
+      "locations",
+      "audit-settings",
     ]);
+    expect(it.sections.every((s) => Boolean(s.label))).toBe(true);
+    expect(it.sections.find((s) => s.id === "audit-settings")?.label).toBe("AUDIT & SETTINGS");
   });
 
   it("dispatcher Intake/Transcription/Incidents land on live dispatcher workspace", () => {

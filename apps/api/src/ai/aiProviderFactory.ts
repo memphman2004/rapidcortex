@@ -20,6 +20,7 @@ export async function resolveAiSecrets(cfg: AiRuntimeConfig): Promise<ResolvedAi
   const anthropicApiKey = await resolvePlainOrSecretArn(
     process.env.ANTHROPIC_API_KEY,
     cfg.anthropic.apiKeySecretArn || undefined,
+    { preferredField: "apiKey" },
   );
   return { openaiApiKey, anthropicApiKey };
 }

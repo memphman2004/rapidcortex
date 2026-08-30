@@ -6,7 +6,7 @@
  *
  * **Never** import this module from browser bundles. Next.js must not reference these exports.
  */
-export { clearRuntimeSecretsCacheForTests, resolvePlainOrSecretArn } from "../lib/runtimeSecrets.js";
+export { clearRuntimeSecretsCacheForTests, invalidateRuntimeSecretsCache, resolvePlainOrSecretArn } from "../lib/runtimeSecrets.js";
 
 /** Documented env → purpose (no values). See `docs/security/g3-secrets-manager-proof.md`. */
 export const DOCUMENTED_SECRET_ARNS = [

@@ -102,7 +102,7 @@ export async function extractConferenceData(
   const apiKey = await resolvePlainOrSecretArn(
     process.env.ANTHROPIC_API_KEY,
     process.env.ANTHROPIC_API_KEY_SECRET_ARN,
-    { preferredField: "ANTHROPIC_API_KEY" },
+    { preferredField: "apiKey" },
   );
   if (!apiKey) {
     console.warn(JSON.stringify({ msg: "conference_extract_skipped_no_anthropic", sourceUrl }));
