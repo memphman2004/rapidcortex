@@ -7,9 +7,13 @@
  *   bash -l -c "$PODS_TARGET_SRCROOT/../scripts/get-app-config-ios.sh"
  * which bash -c then splits on spaces.
  *
+ * Expo's "Bundle React Native code and images" phase runs the path to
+ * react-native-xcode.sh via unquoted backticks, so the same split happens
+ * on the app target (Script-00DD… line 40: `/Volumes/Mac: No such file`).
+ *
  * Repo paths with spaces (e.g. `/Volumes/Mac Mini/Coding Projects/...`)
  * become `/Volumes/Mac` → Xcode "Command PhaseScriptExecution failed"
- * on ReactCodegen and EXConstants.
+ * on ReactCodegen, EXConstants, and Bundle React Native.
  */
 const fs = require('node:fs');
 const path = require('node:path');
@@ -34,6 +38,23 @@ const QUOTED_EXCONSTANTS_PBX =
 
 const UNQUOTED_BASENAME = 'PROJECT_DIR_BASENAME=$(basename $PROJECT_DIR)';
 const QUOTED_BASENAME = 'PROJECT_DIR_BASENAME=$(basename "$PROJECT_DIR")';
+
+const NODE_PRINT_RN_XCODE =
+  '"$NODE_BINARY" --print "require(\'path\').dirname(require.resolve(\'react-native/package.json\')) + \'/scripts/react-native-xcode.sh\'"';
+const NODE_PRINT_RN_XCODE_PBX =
+  '\\"$NODE_BINARY\\" --print \\"require(\'path\').dirname(require.resolve(\'react-native/package.json\')) + \'/scripts/react-native-xcode.sh\'\\"';
+
+/** Raw shell (Xcode Script-*.sh, tests, xcode npm if it unescapes). */
+const UNQUOTED_BUNDLE_RN = '`' + NODE_PRINT_RN_XCODE + '`';
+const QUOTED_BUNDLE_RN =
+  'REACT_NATIVE_XCODE="$(' + NODE_PRINT_RN_XCODE + ')"\n/bin/sh "$REACT_NATIVE_XCODE"';
+
+/** pbxproj stores the same line with escaped double quotes. */
+const UNQUOTED_BUNDLE_RN_PBX = '`' + NODE_PRINT_RN_XCODE_PBX + '`';
+const QUOTED_BUNDLE_RN_PBX =
+  'REACT_NATIVE_XCODE=\\"$(' +
+  NODE_PRINT_RN_XCODE_PBX +
+  ')\\"\\n/bin/sh \\"$REACT_NATIVE_XCODE\\"';
 
 /**
  * @param {string} contents
@@ -117,6 +138,26 @@ function patchGetAppConfigIosSh(contents) {
 }
 
 /**
+ * Quote the Expo "Bundle React Native code and images" invocation so
+ * `/Volumes/Mac Mini/.../react-native-xcode.sh` is not executed as `/Volumes/Mac`.
+ * Handles raw shell and pbxproj-escaped forms.
+ * @param {string} contents
+ */
+function patchBundleReactNativeScript(contents) {
+  let next = contents;
+  let changed = false;
+  if (next.includes(UNQUOTED_BUNDLE_RN_PBX)) {
+    next = next.split(UNQUOTED_BUNDLE_RN_PBX).join(QUOTED_BUNDLE_RN_PBX);
+    changed = true;
+  }
+  if (next.includes(UNQUOTED_BUNDLE_RN)) {
+    next = next.split(UNQUOTED_BUNDLE_RN).join(QUOTED_BUNDLE_RN);
+    changed = true;
+  }
+  return { contents: next, changed };
+}
+
+/**
  * @param {string} filePath
  * @param {(contents: string) => { contents: string, changed: boolean }} patcher
  */
@@ -165,6 +206,12 @@ function patchReactNativeXcodeSpacePaths({ mobileRoot, workspaceRoot }) {
   );
   if (patchFile(pbx, patchPodsPbxproj)) patched.push(pbx);
 
+  const appPbx = path.join(
+    mobileRoot,
+    'ios/RapidCortex.xcodeproj/project.pbxproj',
+  );
+  if (patchFile(appPbx, patchBundleReactNativeScript)) patched.push(appPbx);
+
   const expoRoots = [
     path.join(mobileRoot, 'node_modules', 'expo-constants'),
   ];
@@ -192,10 +239,15 @@ module.exports = {
   QUOTED_CODEGEN,
   UNQUOTED_EXCONSTANTS,
   QUOTED_EXCONSTANTS,
+  UNQUOTED_BUNDLE_RN,
+  QUOTED_BUNDLE_RN,
+  UNQUOTED_BUNDLE_RN_PBX,
+  QUOTED_BUNDLE_RN_PBX,
   patchScriptPhasesRb,
   patchWithEnvironmentSh,
   patchPodsPbxproj,
   patchExConstantsScript,
   patchGetAppConfigIosSh,
+  patchBundleReactNativeScript,
   patchReactNativeXcodeSpacePaths,
 };

@@ -192,10 +192,15 @@ const config: ExpoConfig = {
     './plugins/with-pin-autolinking-commander.js',
     // Required for App Store (iOS 26 SDK / Xcode 26) on Expo SDK 52.
     './plugins/with-xcode26-fmt-fix.js',
-    // Quote RN codegen scripts so Xcode works when the repo path has spaces.
+    // Quote RN codegen / Bundle RN scripts so Xcode works when the repo path has spaces.
     './plugins/with-rn-codegen-space-paths.js',
+    // Xcode 15+ script sandbox blocks Expo configure on this volume/path.
+    './plugins/with-disable-user-script-sandboxing.js',
+    // TestFlight 34 still linked expo-dev-launcher in Release (keyWindow fatal).
+    './plugins/with-store-skip-dev-client.js',
     // Xcode 26 refuses to launch without UIScene (TN3187). SceneDelegate must
     // be its own class — UIKit instantiates it. TestFlight 27 died at splash.
+    // V6 starts Expo Dev Launcher only in DEBUG after the scene window exists.
     './plugins/with-uiscene-lifecycle.js',
   ],
   extra: {

@@ -1,10 +1,16 @@
 /**
  * After pod install, quote Xcode script phases so a project path that contains
  * spaces does not split in /bin/sh -c or bash -l -c.
+ *
+ * Also quote the app target's "Bundle React Native code and images" phase
+ * (unquoted backticks → `/Volumes/Mac: No such file or directory`).
  */
-const { withDangerousMod } = require('@expo/config-plugins');
+const { withDangerousMod, withXcodeProject } = require('@expo/config-plugins');
 const fs = require('node:fs');
 const path = require('node:path');
+const {
+  patchBundleReactNativeScript,
+} = require('../scripts/patch-rn-xcode-space-paths.js');
 
 const MARKER = 'RAPID_CORTEX_RN_CODEGEN_SPACE_PATHS';
 const EX_MARKER = 'RAPID_CORTEX_EXCONSTANTS_SPACE_PATHS';
@@ -54,6 +60,23 @@ function injectPostInstallHook(contents, marker, hook) {
 }
 
 function withRnCodegenSpacePaths(config) {
+  config = withXcodeProject(config, (cfg) => {
+    const phases =
+      cfg.modResults.hash.project.objects.PBXShellScriptBuildPhase || {};
+    for (const key of Object.keys(phases)) {
+      if (key.endsWith('_comment')) continue;
+      const phase = phases[key];
+      if (typeof phase.shellScript !== 'string') continue;
+      const { contents, changed } = patchBundleReactNativeScript(
+        phase.shellScript,
+      );
+      if (changed) {
+        phase.shellScript = contents;
+      }
+    }
+    return cfg;
+  });
+
   return withDangerousMod(config, [
     'ios',
     async (cfg) => {
@@ -62,6 +85,18 @@ function withRnCodegenSpacePaths(config) {
       contents = injectPostInstallHook(contents, MARKER, HOOK);
       contents = injectPostInstallHook(contents, EX_MARKER, EX_HOOK);
       fs.writeFileSync(podfilePath, contents);
+
+      const appPbx = path.join(
+        cfg.modRequest.platformProjectRoot,
+        'RapidCortex.xcodeproj/project.pbxproj',
+      );
+      if (fs.existsSync(appPbx)) {
+        const original = fs.readFileSync(appPbx, 'utf8');
+        const { contents: next, changed } = patchBundleReactNativeScript(original);
+        if (changed) {
+          fs.writeFileSync(appPbx, next);
+        }
+      }
       return cfg;
     },
   ]);

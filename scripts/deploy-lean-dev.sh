@@ -137,7 +137,11 @@ source "${ROOT}/scripts/lib/api-vendor-lock.sh"
 source "${ROOT}/scripts/lib/prepare-api-vendor-for-sam.sh"
 rc_acquire_api_vendor_lock
 
-npm install
+if [[ "${SKIP_NPM_INSTALL:-}" == "1" ]]; then
+  echo "Skipping root npm install (SKIP_NPM_INSTALL=1)"
+else
+  npm install
+fi
 RC_API_PKG_BACKUP_SUFFIX=pre-lean rc_prepare_api_vendor_for_sam
 npm run build -w rapid-cortex-api
 

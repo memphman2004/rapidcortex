@@ -316,6 +316,21 @@ console.log(
 require('./patch-expo-localization-xcode26.js');
 
 const {
+  assertExpoDevLauncherUiScenePatched,
+  patchExpoDevLauncherUiScene,
+} = require('./patch-expo-dev-launcher-uiscene.js');
+const devLauncherPatched = patchExpoDevLauncherUiScene({
+  mobileRoot,
+  workspaceRoot,
+});
+if (devLauncherPatched.length > 0) {
+  console.log(
+    `[eas-pods] deferred Expo Dev Launcher until UIScene window exists:\n  ${devLauncherPatched.join('\n  ')}`,
+  );
+}
+assertExpoDevLauncherUiScenePatched({ mobileRoot, workspaceRoot });
+
+const {
   patchReactNativeXcodeSpacePaths,
 } = require('./patch-rn-xcode-space-paths.js');
 const spacePathPatched = patchReactNativeXcodeSpacePaths({

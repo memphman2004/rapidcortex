@@ -15,14 +15,21 @@
  * 2. Adds SceneDelegate.h/.m and compiles them
  * 3. Stops RCTAppDelegate from auto-creating a non-scene window
  * 4. Creates UIWindow via initWithWindowScene: on the shared AppDelegate
+ * 5. Starts Expo Dev Launcher only in DEBUG, after the scene window exists
+ *    (SDK 52 fatals in didFinishLaunching when UIScene has no key window yet).
+ *    TestFlight must not link that pod (with-store-skip-dev-client).
  *
  * Do not install expo-splash-screen JS APIs as part of this fix.
  */
 const fs = require('node:fs');
 const path = require('node:path');
 const { withAppDelegate, withDangerousMod, withInfoPlist } = require('@expo/config-plugins');
+const {
+  assertExpoDevLauncherUiScenePatched,
+  patchExpoDevLauncherUiScene,
+} = require('../scripts/patch-expo-dev-launcher-uiscene.js');
 
-const MARKER = 'RAPID_CORTEX_UISCENE_V4';
+const MARKER = 'RAPID_CORTEX_UISCENE_V6';
 const LEGACY_MARKER = 'RAPID_CORTEX_UISCENE_BEGIN';
 const SCENE_DELEGATE_CLASS = 'SceneDelegate';
 
@@ -170,6 +177,40 @@ const START_METHOD = `
   });
 }
 
+- (BOOL)rc_tryStartDevLauncherWithWindow:(UIWindow *)window
+{
+  Class controllerClass = NSClassFromString(@"EXDevLauncherController");
+  if (controllerClass == nil || window == nil || self.rootViewFactory == nil) {
+    return NO;
+  }
+  NSDictionary *launchOptions = RCLaunchOptions ?: @{};
+  (void)[self.rootViewFactory viewWithModuleName:self.moduleName
+                               initialProperties:self.initialProps
+                                   launchOptions:launchOptions];
+  SEL sharedSel = NSSelectorFromString(@"sharedInstance");
+  if (![controllerClass respondsToSelector:sharedSel]) {
+    return NO;
+  }
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Warc-performSelector-leaks"
+  id controller = [controllerClass performSelector:sharedSel];
+#pragma clang diagnostic pop
+  SEL start = NSSelectorFromString(@"autoSetupStart:");
+  if (controller == nil || ![controller respondsToSelector:start]) {
+    return NO;
+  }
+  @try {
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Warc-performSelector-leaks"
+    [controller performSelector:start withObject:window];
+#pragma clang diagnostic pop
+    return YES;
+  } @catch (NSException *exception) {
+    NSLog(@"[RapidCortex] DevLauncher autoSetupStart: %@", exception.reason);
+    return NO;
+  }
+}
+
 - (void)rc_attachReactNativeRoot
 {
   if (RCReactNativeAttached) {
@@ -188,6 +229,20 @@ const START_METHOD = `
     self.window = window;
   }
 
+  id<UIWindowSceneDelegate> sceneDelegate = (id<UIWindowSceneDelegate>)windowScene.delegate;
+  if ([sceneDelegate respondsToSelector:@selector(setWindow:)]) {
+    sceneDelegate.window = window;
+  }
+  [window makeKeyAndVisible];
+
+#if DEBUG
+  if ([self rc_tryStartDevLauncherWithWindow:window]) {
+    RCPendingWindowScene = nil;
+    RCReactNativeAttached = YES;
+    return;
+  }
+#endif
+
   NSDictionary *launchOptions = RCLaunchOptions ?: @{};
   UIView *rootView = [self.rootViewFactory viewWithModuleName:self.moduleName
                                             initialProperties:self.initialProps
@@ -197,7 +252,6 @@ const START_METHOD = `
   [self setRootView:rootView toRootViewController:rootViewController];
   window.rootViewController = rootViewController;
   self.window = window;
-  id<UIWindowSceneDelegate> sceneDelegate = (id<UIWindowSceneDelegate>)windowScene.delegate;
   if ([sceneDelegate respondsToSelector:@selector(setWindow:)]) {
     sceneDelegate.window = window;
   }
@@ -251,11 +305,15 @@ function stripLegacyUiScenePatch(contents) {
 
   let next = contents;
   next = next.replace(
+    /\nstatic void RCUncaughtExceptionHandler\(NSException \*exception\)\n\{[\s\S]*?\nstatic void RCInstallFatalGuards\(void\)\n\{[\s\S]*?\n\}\n\n/m,
+    '\n',
+  );
+  next = next.replace(
     /\nstatic NSDictionary \*RCLaunchOptions;\nstatic UIWindowScene \*RCPendingWindowScene;\n(?:static BOOL RCReactNativeAttached;\n)?\n*/g,
     '\n',
   );
   next = next.replace(
-    /\n  \/\/ RAPID_CORTEX_UISCENE[^\n]*\n  self\.automaticallyLoadReactNativeWindow = NO;\n  RCLaunchOptions = \[launchOptions copy\];\n/g,
+    /\n  \/\/ RAPID_CORTEX_UISCENE[^\n]*\n(?:  RCInstallFatalGuards\(\);\n)?  self\.automaticallyLoadReactNativeWindow = NO;\n  RCLaunchOptions = \[launchOptions copy\];\n/g,
     '\n',
   );
   next = next.replace(
@@ -463,6 +521,13 @@ function withUiSceneLifecycle(config) {
     'ios',
     async (cfg) => {
       applyUiSceneToIosProject(cfg.modRequest.platformProjectRoot, cfg.modRequest.projectName);
+      const workspaceRoot = path.resolve(cfg.modRequest.projectRoot, '../..');
+      const dirs = {
+        mobileRoot: cfg.modRequest.projectRoot,
+        workspaceRoot,
+      };
+      patchExpoDevLauncherUiScene(dirs);
+      assertExpoDevLauncherUiScenePatched(dirs);
       return cfg;
     },
   ]);

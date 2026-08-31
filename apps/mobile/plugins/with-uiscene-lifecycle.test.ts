@@ -94,6 +94,9 @@ describe("with-uiscene-lifecycle", () => {
     expect(patched).toContain("initWithWindowScene:");
     expect(patched).toContain("rc_startReactNativeInWindowScene:");
     expect(patched).toContain("rc_attachReactNativeRoot");
+    expect(patched).toContain("rc_tryStartDevLauncherWithWindow");
+    expect(patched).toContain("#if DEBUG");
+    expect(patched).toContain('NSClassFromString(@"EXDevLauncherController")');
     expect(patched).toContain("RCTSetFatalHandler");
     expect(patched).toContain("RCTSetFatalExceptionHandler");
     expect(patched).toContain("dispatch_async(dispatch_get_main_queue()");
@@ -119,6 +122,7 @@ describe("with-uiscene-lifecycle", () => {
     expect(patched.split("automaticallyLoadReactNativeWindow = NO").length).toBe(2);
     expect(patched.split("rc_startReactNativeInWindowScene:").length).toBe(3);
     expect(patched).toContain("rc_attachReactNativeRoot");
+    expect(patched).toContain("rc_tryStartDevLauncherWithWindow");
   });
 
   it("upgrades the v2 empty-window patch", () => {
@@ -151,6 +155,97 @@ static UIWindowScene *RCPendingWindowScene;
     expect(patched).toContain(MARKER);
     expect(patched).toContain("sceneDelegate.window = window");
     expect(patched).not.toContain("if (self.window != nil || windowScene == nil)");
+  });
+
+  it("upgrades the v4 AppDelegate to start Dev Launcher after the scene window", () => {
+    const v4 = `#import "AppDelegate.h"
+#import <React/RCTAssert.h>
+
+static void RCUncaughtExceptionHandler(NSException *exception)
+{
+  NSLog(@"[RapidCortex] uncaught %@: %@", exception.name, exception.reason);
+}
+
+static void RCInstallFatalGuards(void)
+{
+  static dispatch_once_t onceToken;
+  dispatch_once(&onceToken, ^{
+    NSSetUncaughtExceptionHandler(&RCUncaughtExceptionHandler);
+    RCTSetFatalHandler(^(NSError *error) {
+      NSLog(@"[RapidCortex] RCTFatal: %@", error.localizedDescription);
+    });
+    RCTSetFatalExceptionHandler(^(NSException *exception) {
+      NSLog(@"[RapidCortex] RCTFatalException %@: %@", exception.name, exception.reason);
+    });
+  });
+}
+
+@implementation AppDelegate
+
+static NSDictionary *RCLaunchOptions;
+static UIWindowScene *RCPendingWindowScene;
+static BOOL RCReactNativeAttached;
+
+- (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
+{
+  // RAPID_CORTEX_UISCENE_V4
+  RCInstallFatalGuards();
+  self.automaticallyLoadReactNativeWindow = NO;
+  RCLaunchOptions = [launchOptions copy];
+  self.moduleName = @"main";
+  BOOL rcLaunchOk = [super application:application didFinishLaunchingWithOptions:launchOptions];
+  if (RCPendingWindowScene != nil) {
+    [self rc_startReactNativeInWindowScene:RCPendingWindowScene];
+  }
+  return rcLaunchOk;
+}
+
+// RAPID_CORTEX_UISCENE_V4: placeholder window immediately
+- (void)rc_startReactNativeInWindowScene:(UIWindowScene *)windowScene
+{
+}
+
+@end
+`;
+    const patched = patchObjcAppDelegate(v4);
+    expect(patched).toContain("RAPID_CORTEX_UISCENE_V6");
+    expect(patched).not.toContain("RAPID_CORTEX_UISCENE_V4");
+    expect(patched).toContain("rc_tryStartDevLauncherWithWindow");
+    expect(patched.split("static void RCInstallFatalGuards").length).toBe(2);
+    expect(patched.split("automaticallyLoadReactNativeWindow = NO").length).toBe(2);
+  });
+
+  it("upgrades v5 so TestFlight Release never starts Dev Launcher", () => {
+    const v5 = `#import "AppDelegate.h"
+@implementation AppDelegate
+- (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
+{
+  // RAPID_CORTEX_UISCENE_V5
+  self.automaticallyLoadReactNativeWindow = NO;
+  RCLaunchOptions = [launchOptions copy];
+  self.moduleName = @"main";
+  BOOL rcLaunchOk = [super application:application didFinishLaunchingWithOptions:launchOptions];
+  if (RCPendingWindowScene != nil) {
+    [self rc_startReactNativeInWindowScene:RCPendingWindowScene];
+  }
+  return rcLaunchOk;
+}
+// RAPID_CORTEX_UISCENE_V5: placeholder window immediately
+- (void)rc_startReactNativeInWindowScene:(UIWindowScene *)windowScene
+{
+}
+- (void)rc_attachReactNativeRoot
+{
+  if ([self rc_tryStartDevLauncherWithWindow:window]) {
+    return;
+  }
+}
+@end
+`;
+    const patched = patchObjcAppDelegate(v5);
+    expect(patched).toContain("RAPID_CORTEX_UISCENE_V6");
+    expect(patched).not.toContain("RAPID_CORTEX_UISCENE_V5");
+    expect(patched).toContain("#if DEBUG");
   });
 
   it("is idempotent", () => {

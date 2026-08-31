@@ -1,12 +1,17 @@
 import { describe, expect, it } from "vitest";
 import {
+  patchBundleReactNativeScript,
   patchExConstantsScript,
   patchGetAppConfigIosSh,
   patchPodsPbxproj,
   patchScriptPhasesRb,
   patchWithEnvironmentSh,
+  QUOTED_BUNDLE_RN,
+  QUOTED_BUNDLE_RN_PBX,
   QUOTED_CODEGEN,
   QUOTED_EXCONSTANTS,
+  UNQUOTED_BUNDLE_RN,
+  UNQUOTED_BUNDLE_RN_PBX,
   UNQUOTED_CODEGEN,
   UNQUOTED_EXCONSTANTS,
 } from "./patch-rn-xcode-space-paths.js";
@@ -68,5 +73,25 @@ describe("patch-rn-xcode-space-paths", () => {
       'PROJECT_DIR_BASENAME=$(basename "$PROJECT_DIR")\n',
     );
     expect(patchGetAppConfigIosSh(once.contents).changed).toBe(false);
+  });
+
+  it("quotes Bundle React Native backticks so paths with spaces survive", () => {
+    const src = `export BUNDLE_COMMAND="export:embed"\n\n${UNQUOTED_BUNDLE_RN}\n\n`;
+    const once = patchBundleReactNativeScript(src);
+    expect(once.changed).toBe(true);
+    expect(once.contents).toContain(QUOTED_BUNDLE_RN);
+    expect(once.contents).not.toContain(UNQUOTED_BUNDLE_RN);
+    expect(once.contents).toContain('/bin/sh "$REACT_NATIVE_XCODE"');
+    expect(patchBundleReactNativeScript(once.contents).changed).toBe(false);
+  });
+
+  it("quotes Bundle React Native in pbxproj-escaped shellScript", () => {
+    const src = `shellScript = "...\\n${UNQUOTED_BUNDLE_RN_PBX}\\n\\n";`;
+    const once = patchBundleReactNativeScript(src);
+    expect(once.changed).toBe(true);
+    expect(once.contents).toContain(QUOTED_BUNDLE_RN_PBX);
+    expect(once.contents).not.toContain(UNQUOTED_BUNDLE_RN_PBX);
+    expect(once.contents).toContain('\\n/bin/sh \\"$REACT_NATIVE_XCODE\\"');
+    expect(patchBundleReactNativeScript(once.contents).changed).toBe(false);
   });
 });
