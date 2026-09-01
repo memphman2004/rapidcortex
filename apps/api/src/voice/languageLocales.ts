@@ -19,6 +19,29 @@ export function toAzureSttLocale(canonical: string | undefined): string {
   return map[c] ?? "en-US";
 }
 
+/** Azure Neural TTS voice for supported call languages. */
+export function toAzureTtsVoice(
+  canonical: string | undefined,
+  preferredGender?: "FEMALE" | "MALE" | "NEUTRAL",
+): { locale: string; voiceName: string } {
+  const locale = toAzureSttLocale(canonical);
+  const male = preferredGender === "MALE";
+  const table: Record<string, { female: string; male: string }> = {
+    "en-US": { female: "en-US-JennyNeural", male: "en-US-GuyNeural" },
+    "es-US": { female: "es-US-PalomaNeural", male: "es-US-AlonsoNeural" },
+    "zh-CN": { female: "zh-CN-XiaoxiaoNeural", male: "zh-CN-YunxiNeural" },
+    "fil-PH": { female: "fil-PH-BlessicaNeural", male: "fil-PH-AngeloNeural" },
+    "vi-VN": { female: "vi-VN-HoaiMyNeural", male: "vi-VN-NamMinhNeural" },
+    "ar-SA": { female: "ar-SA-ZariyahNeural", male: "ar-SA-HamedNeural" },
+    "fr-FR": { female: "fr-FR-DeniseNeural", male: "fr-FR-HenriNeural" },
+    "ko-KR": { female: "ko-KR-SunHiNeural", male: "ko-KR-InJoonNeural" },
+    "ru-RU": { female: "ru-RU-SvetlanaNeural", male: "ru-RU-DmitryNeural" },
+    "pt-BR": { female: "pt-BR-FranciscaNeural", male: "pt-BR-AntonioNeural" },
+  };
+  const row = table[locale] ?? table["en-US"]!;
+  return { locale, voiceName: male ? row.male : row.female };
+}
+
 export function toGoogleSttLanguageCode(canonical: string | undefined): string {
   const c = normalizeCallLanguageCode(canonical);
   const map: Record<string, string> = {

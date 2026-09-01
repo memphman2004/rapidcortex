@@ -34,7 +34,13 @@ export default function ProductSelectionScreen() {
   }, []);
 
   const onEnterComplete = useCallback(async () => {
-    await markCortexEntered();
+    // Persisting "entered recently" is a nice-to-have (skips this screen next
+    // launch) — it must never block the actual transition to product selection.
+    try {
+      await markCortexEntered();
+    } catch (err) {
+      console.warn('[splash] markCortexEntered failed', err);
+    }
     setGate('products');
   }, []);
 
