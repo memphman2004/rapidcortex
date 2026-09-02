@@ -150,6 +150,91 @@ function resolveSdk52ReactNativeDir(projectRoot, workspaceRoot) {
   return null;
 }
 
+function sameRealpath(a, b) {
+  try {
+    return fs.realpathSync(a) === fs.realpathSync(b);
+  } catch {
+    return path.resolve(a) === path.resolve(b);
+  }
+}
+
+/**
+ * Metro will evaluate BatchedBridge.js once per physical react-native copy.
+ * A second copy overwrites global.__fbBatchedBridge with an empty MessageQueue,
+ * and Android then calls AppRegistry.runApplication on n=0 callable modules.
+ *
+ * @param {string | null} chosenDir
+ * @param {string} projectRoot
+ * @param {string} workspaceRoot
+ * @returns {string[]}
+ */
+function duplicateReactNativeDirs(chosenDir, projectRoot, workspaceRoot) {
+  if (!chosenDir) {
+    return [];
+  }
+  const candidates = [
+    path.join(projectRoot, 'node_modules', 'react-native'),
+    path.join(workspaceRoot, 'node_modules', 'react-native'),
+  ];
+  /** @type {string[]} */
+  const extras = [];
+  for (const dir of candidates) {
+    if (!fs.existsSync(path.join(dir, 'package.json'))) {
+      continue;
+    }
+    if (sameRealpath(dir, chosenDir)) {
+      continue;
+    }
+    extras.push(dir);
+  }
+  return extras;
+}
+
+/**
+ * @param {string} value
+ * @returns {string}
+ */
+function escapeRegExp(value) {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+/**
+ * @param {string | null} chosenDir
+ * @param {string} projectRoot
+ * @param {string} workspaceRoot
+ * @returns {RegExp[]}
+ */
+function duplicateReactNativeBlockList(chosenDir, projectRoot, workspaceRoot) {
+  return duplicateReactNativeDirs(chosenDir, projectRoot, workspaceRoot).map(
+    (dir) => new RegExp(`${escapeRegExp(dir)}[/\\\\].*`),
+  );
+}
+
+/**
+ * Force every `react-native` / `react-native/...` import onto the SDK 52 tree.
+ *
+ * @param {string} moduleName
+ * @param {string | null} rnDir
+ * @returns {{ type: 'sourceFile', filePath: string } | null}
+ */
+function resolveReactNativeModule(moduleName, rnDir) {
+  if (!rnDir) {
+    return null;
+  }
+  if (moduleName !== 'react-native' && !moduleName.startsWith('react-native/')) {
+    return null;
+  }
+  try {
+    const filePath =
+      moduleName === 'react-native'
+        ? require.resolve(rnDir)
+        : require.resolve(path.join(rnDir, moduleName.slice('react-native/'.length)));
+    return { type: 'sourceFile', filePath };
+  } catch {
+    return null;
+  }
+}
+
 /**
  * Expo Metro applies tsconfig paths, which map `rapid-cortex-shared` to
  * packages/shared/src/index.ts. That file uses TypeScript ESM `.js` specifiers
@@ -191,4 +276,7 @@ module.exports = {
   readPackageVersion,
   resolveSdk52ScreensDir,
   resolveSdk52ReactNativeDir,
+  duplicateReactNativeDirs,
+  duplicateReactNativeBlockList,
+  resolveReactNativeModule,
 };

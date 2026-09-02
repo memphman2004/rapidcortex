@@ -1,27 +1,32 @@
-import { Redirect, useRouter } from 'expo-router';
+import { useRouter } from 'expo-router';
 import { useCallback, useEffect, useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { ScreenErrorBoundary } from '@/components/common/ScreenErrorBoundary';
 import { EnterTheCortex } from '@/components/splash/EnterTheCortex';
 import { useAuth } from '@/hooks/useAuth';
 import { hasEnteredCortexRecently, markCortexEntered } from '@/services/splash';
 import type { ProductPath } from '@/stores/auth.store';
-import { Colors, Spacing, Typography, BorderRadius } from '@/theme';
-import { isSafeSoundPublicEnabled } from '@/utils/feature-flags';
-import { isCampusRole, isVenueRole } from '@/utils/roles';
+import { Colors, Spacing, BorderRadius } from '@/theme';
+import { isEnterSplashEnabled, isSafeSoundPublicEnabled } from '@/utils/feature-flags';
 import { Strings } from '@/utils/strings';
 
 type Gate = 'enter' | 'products';
 
+/**
+ * Product picker after the native launch image.
+ * System fonts only (no custom fontFamily) so labels paint on first frame.
+ * Navigate with the router after a tap — do not swap this tree for a redirect
+ * component on the first render (that left an empty stack in TestFlight 37).
+ */
 export default function ProductSelectionScreen() {
   const router = useRouter();
-  const { isAuthenticated, productPath, setProductPath, role } = useAuth();
-  const [gate, setGate] = useState<Gate>('enter');
+  const { setProductPath } = useAuth();
+  const [gate, setGate] = useState<Gate>(isEnterSplashEnabled() ? 'enter' : 'products');
   const [choosing, setChoosing] = useState(false);
   const safeSoundPublic = isSafeSoundPublicEnabled();
 
   useEffect(() => {
+    if (!isEnterSplashEnabled()) return;
     let cancelled = false;
     void hasEnteredCortexRecently()
       .then((entered) => {
@@ -33,14 +38,10 @@ export default function ProductSelectionScreen() {
     };
   }, []);
 
-  const onEnterComplete = useCallback(async () => {
-    // Persisting "entered recently" is a nice-to-have (skips this screen next
-    // launch) — it must never block the actual transition to product selection.
-    try {
-      await markCortexEntered();
-    } catch (err) {
+  const onEnterComplete = useCallback(() => {
+    void markCortexEntered().catch((err) => {
       console.warn('[splash] markCortexEntered failed', err);
-    }
+    });
     setGate('products');
   }, []);
 
@@ -50,17 +51,6 @@ export default function ProductSelectionScreen() {
         <EnterTheCortex onEnterComplete={onEnterComplete} />
       </ScreenErrorBoundary>
     );
-  }
-
-  // Only auto-route when session + product + role all agree.
-  if (isAuthenticated && productPath === 'safe-sound' && safeSoundPublic) {
-    return <Redirect href="/(safe-sound)" />;
-  }
-  if (isAuthenticated && productPath === 'venue' && isVenueRole(role)) {
-    return <Redirect href="/(venue)" />;
-  }
-  if (isAuthenticated && productPath === 'campus' && isCampusRole(role)) {
-    return <Redirect href="/(campus)" />;
   }
 
   const choose = async (path: ProductPath) => {
@@ -80,29 +70,19 @@ export default function ProductSelectionScreen() {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
-      <View style={styles.header}>
+    <ScreenErrorBoundary>
+      <View style={styles.container}>
         <Text style={styles.appName}>{Strings.app.name}</Text>
         <Text style={styles.tagline}>{Strings.app.tagline}</Text>
-      </View>
 
-      <View style={styles.cards}>
         <Pressable
           onPress={() => void choose('venue')}
           disabled={choosing}
           accessibilityRole="button"
           accessibilityLabel={Strings.productSelection.venueTitle}
-          style={({ pressed }) => [
-            styles.card,
-            {
-              opacity: pressed || choosing ? 0.9 : 1,
-              borderColor: Colors.venue.amber,
-            },
-          ]}
+          style={({ pressed }) => [styles.card, { opacity: pressed || choosing ? 0.85 : 1 }]}
         >
-          <View style={[styles.iconCircle, { backgroundColor: Colors.venue.amber }]}>
-            <Text style={styles.iconText}>VN</Text>
-          </View>
+          <Text style={styles.cardKicker}>VN</Text>
           <Text style={styles.cardTitle}>{Strings.productSelection.venueTitle}</Text>
           <Text style={styles.cardSubtitle}>{Strings.productSelection.venueSubtitle}</Text>
         </Pressable>
@@ -112,17 +92,9 @@ export default function ProductSelectionScreen() {
           disabled={choosing}
           accessibilityRole="button"
           accessibilityLabel={Strings.productSelection.campusTitle}
-          style={({ pressed }) => [
-            styles.card,
-            {
-              opacity: pressed || choosing ? 0.9 : 1,
-              borderColor: Colors.campus.amber,
-            },
-          ]}
+          style={({ pressed }) => [styles.card, { opacity: pressed || choosing ? 0.85 : 1 }]}
         >
-          <View style={[styles.iconCircle, { backgroundColor: Colors.campus.amber }]}>
-            <Text style={styles.iconText}>CP</Text>
-          </View>
+          <Text style={styles.cardKicker}>CP</Text>
           <Text style={styles.cardTitle}>{Strings.productSelection.campusTitle}</Text>
           <Text style={styles.cardSubtitle}>{Strings.productSelection.campusSubtitle}</Text>
         </Pressable>
@@ -133,23 +105,15 @@ export default function ProductSelectionScreen() {
             disabled={choosing}
             accessibilityRole="button"
             accessibilityLabel={Strings.productSelection.safeSoundTitle}
-            style={({ pressed }) => [
-              styles.card,
-              {
-                opacity: pressed || choosing ? 0.9 : 1,
-                borderColor: Colors.venue.blue,
-              },
-            ]}
+            style={({ pressed }) => [styles.card, { opacity: pressed || choosing ? 0.85 : 1 }]}
           >
-            <View style={[styles.iconCircle, { backgroundColor: Colors.venue.blue }]}>
-              <Text style={styles.iconText}>RC</Text>
-            </View>
+            <Text style={styles.cardKicker}>RC</Text>
             <Text style={styles.cardTitle}>{Strings.productSelection.safeSoundTitle}</Text>
             <Text style={styles.cardSubtitle}>{Strings.productSelection.safeSoundSubtitle}</Text>
           </Pressable>
         ) : null}
       </View>
-    </SafeAreaView>
+    </ScreenErrorBoundary>
   );
 }
 
@@ -158,55 +122,47 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: Colors.venue.background,
     paddingHorizontal: Spacing['5'],
-  },
-  header: {
-    marginTop: Spacing['12'],
-    marginBottom: Spacing['10'],
-    alignItems: 'center',
+    paddingTop: 72,
   },
   appName: {
-    fontFamily: Typography.fontFamily.extraBold,
-    fontSize: Typography.fontSize['3xl'],
-    color: Colors.venue.textPrimary,
-  },
-  tagline: {
-    fontFamily: Typography.fontFamily.regular,
-    fontSize: Typography.fontSize.sm,
-    color: Colors.venue.textSecondary,
-    marginTop: Spacing['2'],
+    fontSize: 28,
+    fontWeight: '800',
+    color: '#F8FAFC',
     textAlign: 'center',
   },
-  cards: {
-    gap: Spacing['4'],
+  tagline: {
+    fontSize: 14,
+    fontWeight: '400',
+    color: '#94A3B8',
+    marginTop: 8,
+    marginBottom: 32,
+    textAlign: 'center',
   },
   card: {
     borderRadius: BorderRadius.xl,
     padding: Spacing['6'],
-    borderWidth: 1,
-    backgroundColor: Colors.venue.surface,
-  },
-  iconCircle: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    alignItems: 'center',
-    justifyContent: 'center',
+    borderWidth: 2,
+    borderColor: '#F59E0B',
+    backgroundColor: '#1E293B',
     marginBottom: Spacing['4'],
+    minHeight: 96,
   },
-  iconText: {
-    fontSize: 16,
-    fontFamily: Typography.fontFamily.bold,
-    color: Colors.venue.textPrimary,
+  cardKicker: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: '#F59E0B',
+    marginBottom: 8,
+    letterSpacing: 1.2,
   },
   cardTitle: {
-    fontFamily: Typography.fontFamily.bold,
-    fontSize: Typography.fontSize.xl,
-    color: Colors.venue.textPrimary,
+    fontSize: 22,
+    fontWeight: '700',
+    color: '#F8FAFC',
   },
   cardSubtitle: {
-    fontFamily: Typography.fontFamily.regular,
-    fontSize: Typography.fontSize.sm,
-    marginTop: Spacing['2'],
-    color: Colors.venue.textSecondary,
+    fontSize: 14,
+    fontWeight: '400',
+    marginTop: 6,
+    color: '#CBD5E1',
   },
 });

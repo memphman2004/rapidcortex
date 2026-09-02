@@ -13,6 +13,8 @@ const {
   sharedPackageNodeModuleDir,
   resolveSdk52ScreensDir,
   resolveSdk52ReactNativeDir,
+  duplicateReactNativeBlockList,
+  resolveReactNativeModule,
 } = require('./scripts/metro-resolve-nested.js');
 
 const projectRoot = __dirname;
@@ -66,6 +68,10 @@ config.resolver.resolveRequest = (context, moduleName, platform) => {
   if (shared) {
     return shared;
   }
+  const rn = resolveReactNativeModule(moduleName, sdk52ReactNative);
+  if (rn) {
+    return rn;
+  }
   if (upstreamResolveRequest) {
     return upstreamResolveRequest(context, moduleName, platform);
   }
@@ -76,7 +82,22 @@ config.resolver.resolveRequest = (context, moduleName, platform) => {
 config.resolver.useWatchman = false;
 config.maxWorkers = 2;
 
+const localVolumeCrawlSkip =
+  process.env.EAS_BUILD === 'true'
+    ? []
+    : [
+        // Local Xcode Debug only. EAS export:embed must still see node_modules.
+        // Match the directory itself so the Node crawler does not readdir() it.
+        new RegExp(`${escapeRegExp(projectRoot)}[/\\\\]ios[/\\\\]Pods(?:[/\\\\].*)?`),
+        new RegExp(`${escapeRegExp(projectRoot)}[/\\\\]ios[/\\\\]build(?:[/\\\\].*)?`),
+        new RegExp(`${escapeRegExp(projectRoot)}[/\\\\]android(?:[/\\\\].*)?`),
+        new RegExp(`${escapeRegExp(projectRoot)}[/\\\\]node_modules(?:[/\\\\].*)?`),
+      ];
+
 config.resolver.blockList = exclusionList([
+  // Vitest files under app/ are picked up by expo-router require.context
+  // (EAS 38: node:fs from app/index.boot.test.ts failed export:embed).
+  /[/\\][^/\\]+\.(test|spec)\.(ts|tsx|js|jsx)$/,
   new RegExp(
     `${escapeRegExp(workspaceRoot)}[/\\\\]apps[/\\\\](?!mobile(?:[/\\\\]|$)).*`
   ),
@@ -88,6 +109,11 @@ config.resolver.blockList = exclusionList([
   new RegExp(`${escapeRegExp(workspaceRoot)}[/\\\\]infra[/\\\\].*`),
   new RegExp(`${escapeRegExp(workspaceRoot)}[/\\\\]scripts[/\\\\].*`),
   new RegExp(`${escapeRegExp(workspaceRoot)}[/\\\\]docs[/\\\\].*`),
+  ...duplicateReactNativeBlockList(sdk52ReactNative, projectRoot, workspaceRoot),
+  // Local Xcode Debug: Metro crawls watchFolders before it emits index.bundle.
+  // ios/Pods on this volume never finished, so the phone timed out on
+  // http://192.168.68.54:8081/index.bundle with 0 bytes.
+  ...localVolumeCrawlSkip,
 ]);
 
 module.exports = config;

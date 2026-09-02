@@ -3,13 +3,11 @@
  *
  * Do not `import 'expo-router/entry'`. That file calls registerRootComponent
  * inside React.startTransition, so AppRegistry.registerComponent('main') is
- * deferred. UIScene creates the RCT root in scene:willConnectTo on the same
- * tick the bundle finishes evaluating, which produces:
+ * deferred. Native then runs "main" before it exists:
  *   Invariant Violation: "main" has not been registered
- * (TestFlight 30 black screen).
- *
- * Register with AppRegistry directly (not expo's registerRootComponent) so
- * Expo.fx cannot run before 'main' exists.
+ * iOS TestFlight 30 and Android preview 6cb5155c (moto g 2025 logcat) both
+ * hit this. Register with AppRegistry directly (not expo's
+ * registerRootComponent) so Expo.fx cannot run before 'main' exists.
  *
  * Release RCTFatal throws an uncaught NSException (DEBUG swallows it). That is
  * TestFlight 32's SIGABRT on com.facebook.react.ExceptionsManagerQueue.
@@ -34,6 +32,12 @@ function installJsFatalGuard() {
     const message = error && error.message ? error.message : String(error);
     const stack = error && error.stack ? error.stack : '';
     console.error('[RapidCortex] js-fatal', isFatal, message, stack);
+    try {
+      // eslint-disable-next-line @typescript-eslint/no-require-imports
+      require('./src/services/crash-reporting').captureException(error, { isFatal });
+    } catch (err) {
+      console.warn('[entry] captureException failed', err);
+    }
   });
 }
 
@@ -93,6 +97,14 @@ class BootBoundary extends Component {
 
   componentDidCatch(error, info) {
     console.error('[RapidCortex] boot-boundary', error, info && info.componentStack);
+    try {
+      // eslint-disable-next-line @typescript-eslint/no-require-imports
+      require('./src/services/crash-reporting').captureException(error, {
+        componentStack: info && info.componentStack,
+      });
+    } catch (err) {
+      console.warn('[entry] captureException failed', err);
+    }
   }
 
   render() {
@@ -115,4 +127,53 @@ function Root() {
 }
 
 AppRegistry.registerComponent('main', () => Root);
+pinBatchedBridge(AppRegistry);
 console.log('[RapidCortex] registered component main');
+
+/**
+ * Android preview APKs died after splash with:
+ *   AppRegistry.runApplication() … Registered callable JavaScript modules (n = 0)
+ * Native JSIExecutor.bindBridge() call_once's the current global.__fbBatchedBridge.
+ * A second Metro copy of react-native evaluates BatchedBridge.js again, overwrites
+ * that global with an empty MessageQueue, and native talks to the empty one.
+ * Re-pin the queue AppRegistry actually registered on, and copy modules onto any
+ * other queue already sitting on global.
+ */
+function pinBatchedBridge(registry) {
+  try {
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    const BatchedBridge = require('react-native/Libraries/BatchedBridge/BatchedBridge');
+    const current = global.__fbBatchedBridge;
+    if (current && current !== BatchedBridge) {
+      copyCallableModules(BatchedBridge, current);
+      if (typeof current.registerCallableModule === 'function') {
+        current.registerCallableModule('AppRegistry', registry);
+      }
+    }
+    Object.defineProperty(global, '__fbBatchedBridge', {
+      configurable: true,
+      value: BatchedBridge,
+    });
+    if (typeof BatchedBridge.registerCallableModule === 'function') {
+      BatchedBridge.registerCallableModule('AppRegistry', registry);
+    }
+    const names =
+      BatchedBridge._lazyCallableModules &&
+      typeof BatchedBridge._lazyCallableModules === 'object'
+        ? Object.keys(BatchedBridge._lazyCallableModules)
+        : [];
+    console.log('[RapidCortex] batched-bridge modules', names.join(',') || '(none)');
+  } catch (err) {
+    console.warn('[RapidCortex] batched-bridge pin failed', err);
+  }
+}
+
+function copyCallableModules(fromQueue, toQueue) {
+  const source = fromQueue && fromQueue._lazyCallableModules;
+  if (!source || typeof toQueue.registerLazyCallableModule !== 'function') {
+    return;
+  }
+  for (const name of Object.keys(source)) {
+    toQueue.registerLazyCallableModule(name, source[name]);
+  }
+}

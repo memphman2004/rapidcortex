@@ -10,6 +10,9 @@ describe("mobile entry registers main synchronously", () => {
     expect(source).not.toMatch(/from ['"]expo['"]/);
     expect(source).toContain("AppRegistry.registerComponent('main'");
     expect(source).toContain("expo-router/build/qualified-entry");
+    expect(source).toContain("pinBatchedBridge");
+    expect(source).toContain("__fbBatchedBridge");
+    expect(source).toContain("react-native/Libraries/BatchedBridge/BatchedBridge");
   });
 
   it("installs an ErrorUtils guard so release RCTFatal cannot SIGABRT", () => {

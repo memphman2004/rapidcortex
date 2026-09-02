@@ -10,10 +10,12 @@ import {
   type CreateIncidentResult,
 } from "@/components/dispatcher/create-incident-slide-over";
 import { TranscriptChunkPlayer } from "@/components/dispatch/transcript-chunk-player";
+import { LiveCallSttCapture } from "@/components/dispatch/live-call-stt-capture";
 import { AnalyzeIncidentError, isApiConfigured, postTranscriptSegment } from "@/lib/api";
 import { isAddonNotEnabledError } from "@/lib/addon-gate-errors";
 import { CallerTranslationSection } from "@/components/dispatch/caller-translation-section";
-import { isCallerTranslationReplyEnabled } from "@/lib/runtime-flags";
+import { resolveIncidentCallerLanguage } from "@/lib/dispatch/caller-language";
+import { isCallerTranslationReplyEnabled, isLiveSttCaptureEnabled } from "@/lib/runtime-flags";
 import {
   isCallerCardEnabled,
   isChannelMonitoringEnabled,
@@ -50,6 +52,7 @@ export function DashboardWorkspace() {
   const [autoScroll, setAutoScroll] = useState(true);
   const [isRefreshingAi, setIsRefreshingAi] = useState(false);
   const [simulatedStreamActive, setSimulatedStreamActive] = useState(false);
+  const [liveSttActive, setLiveSttActive] = useState(false);
   const [analysisError, setAnalysisError] = useState<string | null>(null);
   const [queueTab, setQueueTab] = useState<"all" | "non_emergency">("all");
 
@@ -313,19 +316,41 @@ export function DashboardWorkspace() {
     (incidentsQuery.data?.length ?? 0) === 0 &&
     !incidentsQuery.isFetching;
 
-  const transcriptToolbar = isTrainingTranscriptToolbarEnabled() ? (
-    <TranscriptChunkPlayer
-      disabled={
-        !selectedId ||
-        !incidentForUi ||
-        (detailLoading && (transcriptQuery.isLoading || incidentQuery.isLoading))
-      }
-      resetKey={selectedId}
-      onEmit={onSimulatedEmit}
-      onAnalysis={onSimulatedAnalysis}
-      onStreamState={onStreamState}
-    />
-  ) : null;
+  const showLiveSttToolbar = isLiveSttCaptureEnabled() && isApiConfigured();
+  const showTrainingToolbar = isTrainingTranscriptToolbarEnabled();
+  const transcriptToolbar =
+    showLiveSttToolbar || showTrainingToolbar ? (
+      <div className="flex flex-col gap-3">
+        {showLiveSttToolbar ? (
+          <LiveCallSttCapture
+            incidentId={selectedId}
+            preferredLanguageHint={resolveIncidentCallerLanguage(
+              incidentForUi,
+              transcriptQuery.data ?? [],
+            )}
+            disabled={
+              !selectedId ||
+              !incidentForUi ||
+              (detailLoading && (transcriptQuery.isLoading || incidentQuery.isLoading))
+            }
+            onStreamingChange={setLiveSttActive}
+          />
+        ) : null}
+        {showTrainingToolbar ? (
+          <TranscriptChunkPlayer
+            disabled={
+              !selectedId ||
+              !incidentForUi ||
+              (detailLoading && (transcriptQuery.isLoading || incidentQuery.isLoading))
+            }
+            resetKey={selectedId}
+            onEmit={onSimulatedEmit}
+            onAnalysis={onSimulatedAnalysis}
+            onStreamState={onStreamState}
+          />
+        ) : null}
+      </div>
+    ) : null;
 
   return (
     <CadDispatcherWorkspaceLayout
@@ -376,7 +401,7 @@ export function DashboardWorkspace() {
       transcriptToolbar={transcriptToolbar}
       transcriptAutoScroll={autoScroll}
       onTranscriptAutoScrollChange={setAutoScroll}
-      transcriptStreaming={simulatedStreamActive}
+      transcriptStreaming={simulatedStreamActive || liveSttActive}
       transcriptLoading={transcriptQuery.isLoading || incidentQuery.isLoading}
       selectedId={selectedId}
       queueIncidents={queueIncidents}

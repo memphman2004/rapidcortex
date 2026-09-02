@@ -4,7 +4,7 @@
  */
 
 import type { RapidIqPipelineRawSignal } from "rapid-cortex-shared";
-import { isRelevantSignalText } from "rapid-cortex-shared";
+import { isCivicDocumentIngestText } from "rapid-cortex-shared";
 import { enqueueMockIfEnabled, enqueueRawSignal } from "./queue-raw-signal.js";
 
 interface ArpaSource {
@@ -89,7 +89,7 @@ const ARPA_SOURCES: ArpaSource[] = [
 ];
 
 function isRelevant(text: string): boolean {
-  return isRelevantSignalText(text);
+  return isCivicDocumentIngestText(text);
 }
 
 async function fetchTreasurySlfrf(): Promise<void> {

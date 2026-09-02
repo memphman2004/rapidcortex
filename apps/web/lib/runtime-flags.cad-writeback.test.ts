@@ -33,4 +33,11 @@ describe("runtime feature flags", () => {
     const { isReportsEnabled } = await import("./runtime-flags");
     expect(isReportsEnabled()).toBe(false);
   });
+
+  it("defaults live STT capture on when unset", async () => {
+    vi.stubEnv("NEXT_PUBLIC_ENABLE_PILOT_TEST_MODE", "0");
+    vi.stubEnv("NEXT_PUBLIC_ENABLE_LIVE_STT", "");
+    const { isLiveSttCaptureEnabled } = await import("./runtime-flags");
+    expect(isLiveSttCaptureEnabled()).toBe(true);
+  });
 });

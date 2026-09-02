@@ -197,4 +197,18 @@ describe("isCommsPlatformApiPath", () => {
     expect(resolveUpstreamApiBase("/api/rms/reports/generate")).toBe("https://stack3.example.com");
     expect(resolveUpstreamApiBase("/api/rms/context")).toBe("https://stack3.example.com");
   });
+
+  it("routes language-session to stack 2 and audio-chunks to stack 1", () => {
+    process.env.API_UPSTREAM_BASE = "https://stack1.example.com";
+    process.env.API_UPSTREAM_BASE_2 = "https://stack2.example.com";
+    expect(resolveUpstreamApiBase("/api/incidents/inc-1/language-session/start")).toBe(
+      "https://stack2.example.com",
+    );
+    expect(resolveUpstreamApiBase("/api/incidents/inc-1/voice-bridge/outbound")).toBe(
+      "https://stack2.example.com",
+    );
+    expect(resolveUpstreamApiBase("/api/incidents/inc-1/audio-chunks")).toBe(
+      "https://stack1.example.com",
+    );
+  });
 });

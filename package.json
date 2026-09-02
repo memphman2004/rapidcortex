@@ -79,7 +79,9 @@
     "test:hospital:prod": "./scripts/hospital/test-hospital-api.sh prod",
     "create:hospital-user": "./scripts/hospital/create-hospital-user.sh",
     "aggregate:metrics": "./scripts/hospital/aggregate-daily-metrics.sh",
-    "test:hl7": "./scripts/hospital/test-hl7-listener.sh dev localhost"
+    "test:hl7": "./scripts/hospital/test-hl7-listener.sh dev localhost",
+    "android": "npm run android -w rapid-cortex-mobile",
+    "ios": "npm run ios -w rapid-cortex-mobile"
   },
   "devDependencies": {
     "@anthropic-ai/sdk": "^0.117.1",
@@ -104,5 +106,6 @@
   "dependencies": {
     "@smithy/core": "^3.29.0",
     "@types/node": "^22.20.1"
-  }
+  },
+  "version": "1.0.0"
 }

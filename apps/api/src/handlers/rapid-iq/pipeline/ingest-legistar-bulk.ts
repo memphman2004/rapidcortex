@@ -6,7 +6,7 @@
 
 import { GetCommand, PutCommand } from "@aws-sdk/lib-dynamodb";
 import type { RapidIqPipelineRawSignal } from "rapid-cortex-shared";
-import { isRelevantSignalText } from "rapid-cortex-shared";
+import { isCivicDocumentIngestText } from "rapid-cortex-shared";
 import { rapidIqIngestLookbackDays } from "../../../lib/rapid-iq/ingest-window.js";
 import { pipelineDdb } from "../../../lib/rapid-iq/pipeline-ddb.js";
 import { enqueueMockIfEnabled, enqueueRawSignal } from "./queue-raw-signal.js";
@@ -128,7 +128,7 @@ async function fetchEventItems(
 }
 
 function isRelevantText(text: string): boolean {
-  return isRelevantSignalText(text);
+  return isCivicDocumentIngestText(text);
 }
 
 function clientSlugFromUrl(url: string): string | null {

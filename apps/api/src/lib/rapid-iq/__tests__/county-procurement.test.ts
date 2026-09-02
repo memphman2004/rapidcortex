@@ -68,13 +68,16 @@ describe("county procurement registry merge", () => {
 });
 
 describe("county procurement relevance", () => {
-  it("accepts NG911 / ESInet bid text and rejects unrelated debris RFPs", () => {
+  it("accepts civic procurement notices and 911 bids; still rejects non-solicitation debris", () => {
     expect(
       isCountyProcurementRelevant(
         "RFP 27-006 Next Generation 9-1-1 ESInet and Public Safety Communications",
       ),
     ).toBe(true);
-    expect(isCountyProcurementRelevant("Debris Removal Services invitation to bid")).toBe(false);
-    expect(isCountyProcurementRelevant("Cascade County facilities maintenance cascade")).toBe(false);
+    expect(isCountyProcurementRelevant("Debris Removal Services invitation to bid")).toBe(true);
+    expect(isCountyProcurementRelevant("Sole source justification posted")).toBe(true);
+    expect(isCountyProcurementRelevant("Cascade County facilities maintenance cascade")).toBe(
+      false,
+    );
   });
 });

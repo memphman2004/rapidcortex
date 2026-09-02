@@ -10,6 +10,9 @@ import {
   resolveSharedPackageModule,
   sharedPackageNodeModuleDir,
   resolveSdk52ScreensDir,
+  resolveSdk52ReactNativeDir,
+  duplicateReactNativeDirs,
+  resolveReactNativeModule,
 } from "./metro-resolve-nested.js";
 
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../../..");
@@ -89,5 +92,51 @@ describe("metro nested polyfill resolution", () => {
       JSON.stringify({ name: "react-native-screens", version: "4.26.1" }),
     );
     expect(resolveSdk52ScreensDir(projectRoot, workspaceRoot)).toBe(mobileScreens);
+  });
+
+  it("blocks a second physical react-native tree so BatchedBridge is not evaluated twice", () => {
+    const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "metro-rn-dup-"));
+    const projectRoot = path.join(tmp, "mobile");
+    const workspaceRoot = path.join(tmp, "workspace");
+    const mobileRn = path.join(projectRoot, "node_modules", "react-native");
+    const rootRn = path.join(workspaceRoot, "node_modules", "react-native");
+    fs.mkdirSync(mobileRn, { recursive: true });
+    fs.mkdirSync(rootRn, { recursive: true });
+    fs.writeFileSync(
+      path.join(mobileRn, "package.json"),
+      JSON.stringify({ name: "react-native", version: "0.76.9" }),
+    );
+    fs.writeFileSync(
+      path.join(rootRn, "package.json"),
+      JSON.stringify({ name: "react-native", version: "0.76.9" }),
+    );
+    expect(resolveSdk52ReactNativeDir(projectRoot, workspaceRoot)).toBe(mobileRn);
+    expect(duplicateReactNativeDirs(mobileRn, projectRoot, workspaceRoot)).toEqual([
+      rootRn,
+    ]);
+  });
+
+  it("resolves react-native subpaths from the SDK 52 tree", () => {
+    const rnDir = path.join(mobileRoot, "node_modules", "react-native");
+    const root = resolveReactNativeModule("react-native", rnDir);
+    const bridge = resolveReactNativeModule(
+      "react-native/Libraries/BatchedBridge/BatchedBridge",
+      rnDir,
+    );
+    expect(root?.filePath).toBeTruthy();
+    expect(bridge?.filePath).toContain(`${path.sep}BatchedBridge`);
+    expect(resolveReactNativeModule("react-native-gesture-handler", rnDir)).toBeNull();
+  });
+});
+
+describe("metro watch crawl exclusions", () => {
+  it("does not crawl ios/Pods so Debug index.bundle can start", () => {
+    const source = fs.readFileSync(
+      path.join(mobileRoot, "metro.config.js"),
+      "utf8",
+    );
+    expect(source).toContain("ios/Pods on this volume never finished");
+    expect(source).toContain("Match the directory itself so the Node crawler");
+    expect(source).toContain("EAS_BUILD === 'true'");
   });
 });

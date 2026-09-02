@@ -922,8 +922,8 @@ Mappings:
       TertiaryAi: "off"
       AiFallback: mock
       AiSecondaryFallback: mock
-      Lid1: mock
-      Lid2: mock
+      Lid1: azure
+      Lid2: aws
       Lid3: "off"
       # STT chain enabled on dev 2026-05-26 (per Jeff) to verify OpenAI Whisper
       # end-to-end. Azure Speech (primary) and OpenAI Whisper (secondary) cost
@@ -933,14 +933,13 @@ Mappings:
       Stt1: "azure"
       Stt2: "openai"
       Stt3: "aws"
-      # Translation chain still on mock for dev (Deploy #6 = STT verification
-      # only). Deploy #7 will flip to Tr1=azure / Tr2=google / Tr3=aws across
-      # all stages. multilingualConfig normalizeVendorKind accepts: azure,
-      # google, aws, mock, off (NOT azure-translator / google-translate / aws-
-      # translate). NOTE: bare YAML "off" is parsed as boolean false, so quote
-      # it as "off" — otherwise CFN deploys TERTIARY_TRANSLATION_PROVIDER="false".
-      Tr1: "mock"
-      Tr2: "mock"
+      # Translation + LID: Azure primary with AWS fallback (Deploy #7). Google is
+      # not in this chain (secret exists but stack param is optional).
+      # multilingualConfig normalizeVendorKind accepts: azure, google, aws, mock,
+      # off (NOT azure-translator / google-translate / aws-translate). NOTE: bare
+      # YAML "off" is parsed as boolean false, so quote it as "off".
+      Tr1: "azure"
+      Tr2: "aws"
       Tr3: "off"
     staging:
       PrimaryAi: anthropic
@@ -948,14 +947,14 @@ Mappings:
       TertiaryAi: bedrock
       AiFallback: openai
       AiSecondaryFallback: bedrock
-      Lid1: aws
-      Lid2: mock
+      Lid1: azure
+      Lid2: aws
       Lid3: "off"
       Stt1: azure
       Stt2: openai
       Stt3: aws
-      Tr1: "aws"
-      Tr2: "mock"
+      Tr1: "azure"
+      Tr2: "aws"
       Tr3: "off"
     prod:
       PrimaryAi: anthropic
@@ -963,14 +962,14 @@ Mappings:
       TertiaryAi: bedrock
       AiFallback: openai
       AiSecondaryFallback: bedrock
-      Lid1: aws
-      Lid2: mock
+      Lid1: azure
+      Lid2: aws
       Lid3: "off"
       Stt1: azure
       Stt2: openai
       Stt3: aws
-      Tr1: "aws"
-      Tr2: "mock"
+      Tr1: "azure"
+      Tr2: "aws"
       Tr3: "off"
     pilot:
       PrimaryAi: anthropic
@@ -978,14 +977,14 @@ Mappings:
       TertiaryAi: bedrock
       AiFallback: openai
       AiSecondaryFallback: bedrock
-      Lid1: aws
-      Lid2: mock
+      Lid1: azure
+      Lid2: aws
       Lid3: "off"
       Stt1: azure
       Stt2: openai
       Stt3: aws
-      Tr1: "aws"
-      Tr2: "mock"
+      Tr1: "azure"
+      Tr2: "aws"
       Tr3: "off"
   SmsEnvironmentDefaults:
     dev:

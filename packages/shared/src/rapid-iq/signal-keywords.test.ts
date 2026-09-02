@@ -3,6 +3,8 @@ import {
   classifyProcurementStage,
   classifyTaxonomy,
   extractExcerpt,
+  isCivicDocumentIngestText,
+  isCivicIqSignalText,
   isRelevantSignalText,
   keywordMatches,
   matchesProcurementStageFilter,
@@ -21,6 +23,35 @@ describe("isRelevantSignalText", () => {
   it("treats standalone dispatch and Axon as relevant", () => {
     expect(isRelevantSignalText("County dispatch modernization plan")).toBe(true);
     expect(isRelevantSignalText("Axon body-worn camera award")).toBe(true);
+  });
+
+  it("does not treat generic civic records as product-relevant", () => {
+    expect(isRelevantSignalText("City Council adopted FY2027 budget")).toBe(false);
+    expect(isRelevantSignalText("Debris Removal Services invitation to bid")).toBe(false);
+  });
+});
+
+describe("isCivicIqSignalText / isCivicDocumentIngestText", () => {
+  it("accepts meeting records, budget documents, and procurement notices", () => {
+    expect(isCivicIqSignalText("City Council minutes for the September regular meeting")).toBe(
+      true,
+    );
+    expect(isCivicIqSignalText("School board agenda — capital improvement plan")).toBe(true);
+    expect(isCivicIqSignalText("County commission session on the adopted budget")).toBe(true);
+    expect(isCivicIqSignalText("Utility board meeting minutes")).toBe(true);
+    expect(isCivicIqSignalText("IT strategic plan and department budget request")).toBe(true);
+    expect(isCivicIqSignalText("Sole source justification for radio maintenance")).toBe(true);
+    expect(isCivicIqSignalText("Cooperative purchasing agreement via Sourcewell")).toBe(true);
+    expect(isCivicIqSignalText("Notice of award and contract expiration")).toBe(true);
+    expect(isCivicDocumentIngestText("Debris Removal Services invitation to bid")).toBe(true);
+    expect(isCivicDocumentIngestText("County dispatch modernization plan")).toBe(true);
+  });
+
+  it("rejects text with no civic document or public-safety language", () => {
+    expect(isCivicIqSignalText("Cascade County facilities maintenance cascade")).toBe(false);
+    expect(isCivicDocumentIngestText("Cascade County facilities maintenance cascade")).toBe(
+      false,
+    );
   });
 });
 

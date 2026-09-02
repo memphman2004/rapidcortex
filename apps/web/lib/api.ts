@@ -34,6 +34,7 @@ import type {
   TranslateLanguageSessionBody,
   VoiceBridgeOutboundBody,
   VoiceBridgeOutboundResponse,
+  LanguageCallSession,
   TakeoverCallBody,
   TransferCallBody,
   TransferCallResponse,
@@ -1041,6 +1042,54 @@ export async function postSilentTextHighRisk(
     `/api/incidents/${encodeURIComponent(incidentId)}/silent-text/sessions/${encodeURIComponent(sessionId)}/high-risk`,
     { method: "POST", body: JSON.stringify({}) },
   );
+}
+
+export async function postLanguageSessionStart(
+  incidentId: string,
+  body: { preferredLanguageHint?: string } = {},
+): Promise<LanguageCallSession> {
+  return request(`/api/incidents/${encodeURIComponent(incidentId)}/language-session/start`, {
+    method: "POST",
+    body: JSON.stringify(body),
+  });
+}
+
+export async function postLanguageSessionFinalize(
+  incidentId: string,
+  sessionId: string,
+): Promise<LanguageCallSession> {
+  return request(`/api/incidents/${encodeURIComponent(incidentId)}/language-session/finalize`, {
+    method: "POST",
+    body: JSON.stringify({ sessionId }),
+  });
+}
+
+export type LiveAudioChunkResult = {
+  outcome: "created" | "replayed";
+  segment: TranscriptSegment;
+  sttProvider: string;
+  languageCode: string;
+  sttFallbackUsed: boolean;
+  sttLatencyMs: number;
+  lowConfidence: boolean;
+  needsInterpreterReview?: boolean;
+};
+
+export async function postIncidentAudioChunk(
+  incidentId: string,
+  body: {
+    sessionId: string;
+    sequence: number;
+    audioBase64: string;
+    format: "pcm16le" | "wav" | "webm" | "opaque";
+    durationMs?: number;
+    speaker?: "caller" | "dispatcher" | "system" | "unknown";
+  },
+): Promise<LiveAudioChunkResult> {
+  return request(`/api/incidents/${encodeURIComponent(incidentId)}/audio-chunks`, {
+    method: "POST",
+    body: JSON.stringify(body),
+  });
 }
 
 export async function postLanguageSessionTranslate(

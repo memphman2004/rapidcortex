@@ -1,8 +1,9 @@
-import type {
-  RapidIqOpportunity,
-  RapidIqSignal,
-  RapidIqSource,
-  SignalChatMessage,
+import {
+  isCivicIqSignalText,
+  type RapidIqOpportunity,
+  type RapidIqSignal,
+  type RapidIqSource,
+  type SignalChatMessage,
 } from "rapid-cortex-shared";
 import { resolvePlainOrSecretArn } from "../runtimeSecrets.js";
 import { isCollectorsMockEnabled } from "./agenda-finder.js";
@@ -129,8 +130,10 @@ function classifySignalHeuristic(
     lower.includes("cad") ||
     lower.includes("emergency communications") ||
     lower.includes("psap");
-  // Heuristic path must not invent buyer agencies from collector source labels
-  const relevant = keywordHit && hasSpecificDetail;
+  const civicHit = isCivicIqSignalText(rawText);
+  // Heuristic path must not invent buyer agencies from collector source labels.
+  // Civic IQ still accepts official meeting / budget / procurement records.
+  const relevant = (keywordHit && hasSpecificDetail) || civicHit;
 
   const excerpt = rawText.replace(/\s+/g, " ").trim().slice(0, 180);
   const dollarValue = dollarMatch
@@ -227,10 +230,14 @@ export async function classifySignal(
   }
 
   const text = await callClaude(
-    `You are a public safety technology sales intelligence analyst for Rapid Cortex.
-Cover PSAP/911 (Core), campus/university safety (Campus), and venue operations (Venue).
+    `You are a public safety and civic-document intelligence analyst for Rapid Cortex Civic IQ.
+Cover three official public-source categories in addition to PSAP/911 (Core), campus safety, and venue operations:
+1. Government meeting records — city council minutes, school board agendas, county commission sessions, utility board meetings.
+2. Budget and planning documents — adopted budgets, capital improvement plans, IT strategic plans, department budget requests.
+3. Procurement notices — RFPs, RFIs, contract awards, expirations, cooperative purchasing, sole source justifications.
 University signals often involve Board of Trustees, campus police, Clery Act, Title IX, or student safety fees.
 Extract only factual information present in the document. Never invent information. Respond ONLY with valid JSON.
+Civic meeting, budget, and procurement records are relevant even when they do not mention 911, CAD, or Rapid Cortex. Do not reject those documents solely for lacking a public-safety product keyword.
 
 SUMMARY QUALITY RULES:
 - aiSummary must be 3-4 complete sentences. A single sentence is a FAILURE.
@@ -246,7 +253,7 @@ ANTI-TEMPLATE RULES — CRITICAL:
 - NEVER write "AI-assisted dispatch tooling" unless those exact words appear in the source.
 - NEVER set agencyName to the data source label (e.g. Grants.gov, SAM.gov, FEMA, a state 911 program office). agencyName must be the buying agency / recipient (county, city, PSAP, campus, venue).
 - The summary MUST include at least one SPECIFIC detail that only exists in THIS document: a dollar amount, date, vendor name, vote outcome, named technology, or quoted statement.
-- If you cannot find a specific detail in the source text, set "isRelevant": false.
+- If the document is not a civic meeting, budget/planning, or procurement record AND has no specific public-safety, campus, or venue detail, set "isRelevant": false.
 - The summary must read differently for every signal.
 
 COMPETITOR INTELLIGENCE:
@@ -283,7 +290,7 @@ For higher-ed / campus safety set vertical="campus" and rcProduct="campus".
 agencyName MUST be the purchasing agency or grant recipient named in the text — never "${sourceName}" unless that string is clearly a county/city/campus buyer.
 aiSummary REQUIRED: 3-4 sentences that MUST include:
 1. The SPECIFIC document title and date when present (not "meeting materials").
-2. A SPECIFIC dollar amount, vendor name, vote outcome, or technology named in the source. If none exist, set isRelevant: false.
+2. A SPECIFIC dollar amount, vendor name, vote outcome, technology, or identifiable civic document type (meeting minutes, adopted budget, CIP, RFP/RFI, contract award, sole source, cooperative purchasing). If none exist, set isRelevant: false.
 3. Why this is a direct Rapid Cortex Core/Campus/Venue opportunity.
 4. Time-sensitive action or decision window.
 NO TEMPLATES. NO GENERIC LANGUAGE.`,

@@ -3,7 +3,7 @@
  */
 
 import type { RapidIqPipelineRawSignal } from "rapid-cortex-shared";
-import { classifyProcurementStage, isRelevantSignalText } from "rapid-cortex-shared";
+import { classifyProcurementStage, isCivicDocumentIngestText } from "rapid-cortex-shared";
 import registryJson from "../../../lib/rapid-iq/university-procurement-registry.json";
 import { fetchIngestText, parseIsoDate, sleep, stripHtml } from "../../../lib/rapid-iq/pipeline/ingest-fetch.js";
 import { enqueueRelevantPage } from "./enqueue-crawled.js";
@@ -60,7 +60,10 @@ export async function handler(): Promise<void> {
       const page = await fetchIngestText(bonfireUrl);
       if (page.ok) {
         const text = stripHtml(page.body);
-        if (isRelevantSignalText(text) || CAMPUS_TERMS.some((t) => text.toLowerCase().includes(t))) {
+        if (
+          isCivicDocumentIngestText(text) ||
+          CAMPUS_TERMS.some((t) => text.toLowerCase().includes(t))
+        ) {
           const signal: RapidIqPipelineRawSignal = {
             sourceId: "university-procurement",
             sourceUrl: bonfireUrl,

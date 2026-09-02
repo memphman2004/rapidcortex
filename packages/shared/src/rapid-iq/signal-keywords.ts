@@ -206,6 +206,60 @@ export const EXTRA_RELEVANCE_KEYWORDS = [
   "Axon",
 ] as const;
 
+/**
+ * Civic IQ Signals — official public records across agencies, not only 911/CAD language.
+ * Used by meeting / budget / procurement collectors. News and federal SAM stay on
+ * `isRelevantSignalText` so national RSS does not ingest every council recap.
+ */
+export const CIVIC_IQ_MEETING_KEYWORDS = [
+  "city council minutes",
+  "city council agenda",
+  "city council meeting",
+  "school board agenda",
+  "school board minutes",
+  "school board meeting",
+  "county commission",
+  "board of county commissioners",
+  "utility board",
+  "water board",
+  "public utility commission",
+  "regular meeting agenda",
+  "regular meeting minutes",
+  "work session agenda",
+  "budget workshop",
+] as const;
+
+export const CIVIC_IQ_BUDGET_KEYWORDS = [
+  "adopted budget",
+  "proposed budget",
+  "annual budget",
+  "operating budget",
+  "capital improvement plan",
+  "capital improvement program",
+  "IT strategic plan",
+  "information technology strategic plan",
+  "technology strategic plan",
+  "department budget request",
+  "budget request",
+  "budget presentation",
+] as const;
+
+export const CIVIC_IQ_PROCUREMENT_KEYWORDS = [
+  "contract award",
+  "contract awarded",
+  "notice of award",
+  "expiration record",
+  "contract expiration",
+  "contract expires",
+  "cooperative purchasing",
+  "cooperative contract",
+  "cooperative procurement",
+  "sole source",
+  "sole-source",
+  "sole source justification",
+  "piggyback contract",
+] as const;
+
 export type KeywordCategory = keyof typeof KEYWORDS;
 
 /** Grants.gov search2 keyword queries (911 / PSAP / CAD vertical). */
@@ -337,6 +391,26 @@ export function isRelevantSignalText(text: string): boolean {
     countKeywordHits(text, KEYWORDS.competitors) > 0 ||
     countKeywordHits(text, EXTRA_RELEVANCE_KEYWORDS) > 0
   );
+}
+
+/** Official civic document types Civic IQ is supposed to surface. */
+export function isCivicIqSignalText(text: string): boolean {
+  return (
+    countKeywordHits(text, CIVIC_IQ_MEETING_KEYWORDS) > 0 ||
+    countKeywordHits(text, CIVIC_IQ_BUDGET_KEYWORDS) > 0 ||
+    countKeywordHits(text, CIVIC_IQ_PROCUREMENT_KEYWORDS) > 0 ||
+    countKeywordHits(text, KEYWORDS.rfp) > 0 ||
+    countKeywordHits(text, KEYWORDS.funding) > 0 ||
+    countKeywordHits(text, KEYWORDS.planning) > 0
+  );
+}
+
+/**
+ * Ingest gate for civic collectors (meetings, budgets, local procurement portals).
+ * Product-only collectors (news, SAM.gov, grants) should keep `isRelevantSignalText`.
+ */
+export function isCivicDocumentIngestText(text: string): boolean {
+  return isRelevantSignalText(text) || isCivicIqSignalText(text);
 }
 
 export function classifyProcurementStage(text: string): RapidIqProcurementStage {

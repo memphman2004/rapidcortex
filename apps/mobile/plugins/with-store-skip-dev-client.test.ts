@@ -4,6 +4,7 @@ import {
   MARKER,
   patchPackageJsonAutolinking,
   patchPodfileUseExpoModules,
+  patchSettingsGradleUseExpoModules,
 } from "./with-store-skip-dev-client.js";
 
 const EXPO_52_PODFILE = `target 'RapidCortex' do
@@ -18,7 +19,7 @@ describe("with-store-skip-dev-client", () => {
     const once = patchPodfileUseExpoModules(EXPO_52_PODFILE);
     expect(once.changed).toBe(true);
     expect(once.contents).toContain(MARKER);
-    expect(once.contents).toContain("ENV['EAS_BUILD_PROFILE'] == 'production'");
+    expect(once.contents).toContain("ENV['EAS_BUILD_PROFILE'] != 'development'");
     for (const name of EXCLUDE) {
       expect(once.contents).toContain(`'${name}'`);
     }
@@ -39,5 +40,29 @@ describe("with-store-skip-dev-client", () => {
       expo: { autolinking: { exclude: ["unrelated"] } },
     });
     expect(next.expo.autolinking.exclude).toEqual(["unrelated", ...EXCLUDE]);
+  });
+
+  it("wraps useExpoModules() so Android preview/production exclude Dev Launcher", () => {
+    const src = `apply from: new File(expoDir, "../scripts/autolinking.gradle");
+useExpoModules()
+
+include ':app'
+`;
+    const once = patchSettingsGradleUseExpoModules(src);
+    expect(once.changed).toBe(true);
+    expect(once.contents).toContain(MARKER);
+    expect(once.contents).toContain('System.getenv("EAS_BUILD_PROFILE") != "development"');
+    expect(once.contents).toContain("useExpoModules([exclude:");
+    for (const name of EXCLUDE) {
+      expect(once.contents).toContain(`"${name}"`);
+    }
+    expect(patchSettingsGradleUseExpoModules(once.contents).changed).toBe(false);
+  });
+
+  it("leaves settings.gradle without useExpoModules() unchanged", () => {
+    const src = "include ':app'\n";
+    const once = patchSettingsGradleUseExpoModules(src);
+    expect(once.changed).toBe(false);
+    expect(once.contents).toBe(src);
   });
 });

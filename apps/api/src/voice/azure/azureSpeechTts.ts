@@ -46,10 +46,12 @@ export async function azureSpeechSynthesize(args: {
     ? { locale: toAzureTtsVoice(args.request.languageBcp).locale, voiceName: args.request.voiceName.trim() }
     : toAzureTtsVoice(args.request.languageBcp, args.request.preferredGender);
   const rate = args.request.speakingRate;
-  const prosodyOpen =
-    typeof rate === "number" && Number.isFinite(rate) && rate !== 1
-      ? `<prosody rate="${Math.round((rate - 1) * 100)}%">`
-      : "";
+  let prosodyOpen = "";
+  if (typeof rate === "number" && Number.isFinite(rate) && rate > 0 && rate !== 1) {
+    const pct = Math.round((rate - 1) * 100);
+    const signed = pct >= 0 ? `+${pct}%` : `${pct}%`;
+    prosodyOpen = `<prosody rate="${signed}">`;
+  }
   const prosodyClose = prosodyOpen ? "</prosody>" : "";
   const ssml =
     `<speak version="1.0" xmlns="http://www.w3.org/2001/10/synthesis" xml:lang="${picked.locale}">` +

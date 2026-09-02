@@ -503,8 +503,8 @@ Mappings:
       TertiaryAi: "off"
       AiFallback: mock
       AiSecondaryFallback: mock
-      Lid1: mock
-      Lid2: mock
+      Lid1: azure
+      Lid2: aws
       Lid3: "off"
       # STT chain enabled on dev 2026-05-26 (per Jeff) to verify OpenAI Whisper
       # end-to-end (matches stack-app-sam.yaml). Azure Speech (primary) and
@@ -516,12 +516,11 @@ Mappings:
       Stt1: "azure"
       Stt2: "openai"
       Stt3: "aws"
-      # Translation chain still on mock for dev (Deploy #6 = STT verification
-      # only). Deploy #7 will flip to Tr1=azure / Tr2=google / Tr3=aws across
-      # all stages. NOTE: bare YAML "off" is parsed as boolean false, so quote
-      # it as "off" — otherwise CFN deploys TERTIARY_TRANSLATION_PROVIDER="false".
-      Tr1: "mock"
-      Tr2: "mock"
+      # Translation + LID: Azure primary with AWS fallback (Deploy #7). Google
+      # is optional. NOTE: bare YAML "off" is parsed as boolean false, so quote
+      # it as "off".
+      Tr1: "azure"
+      Tr2: "aws"
       Tr3: "off"
     staging:
       PrimaryAi: anthropic
@@ -529,14 +528,14 @@ Mappings:
       TertiaryAi: bedrock
       AiFallback: openai
       AiSecondaryFallback: bedrock
-      Lid1: aws
-      Lid2: mock
+      Lid1: azure
+      Lid2: aws
       Lid3: "off"
       Stt1: azure
       Stt2: openai
       Stt3: aws
-      Tr1: "aws"
-      Tr2: "mock"
+      Tr1: "azure"
+      Tr2: "aws"
       Tr3: "off"
     prod:
       PrimaryAi: anthropic
@@ -544,14 +543,14 @@ Mappings:
       TertiaryAi: bedrock
       AiFallback: openai
       AiSecondaryFallback: bedrock
-      Lid1: aws
-      Lid2: mock
+      Lid1: azure
+      Lid2: aws
       Lid3: "off"
       Stt1: azure
       Stt2: openai
       Stt3: aws
-      Tr1: "aws"
-      Tr2: "mock"
+      Tr1: "azure"
+      Tr2: "aws"
       Tr3: "off"
     pilot:
       PrimaryAi: anthropic
@@ -559,14 +558,14 @@ Mappings:
       TertiaryAi: bedrock
       AiFallback: openai
       AiSecondaryFallback: bedrock
-      Lid1: aws
-      Lid2: mock
+      Lid1: azure
+      Lid2: aws
       Lid3: "off"
       Stt1: azure
       Stt2: openai
       Stt3: aws
-      Tr1: "aws"
-      Tr2: "mock"
+      Tr1: "azure"
+      Tr2: "aws"
       Tr3: "off"
   SmsEnvironmentDefaults:
     dev:
@@ -1657,7 +1656,7 @@ Resources:
           GOOGLE_CLOUD_PROJECT_ID: !Ref GoogleCloudProjectId
           GOOGLE_TRANSLATE_LOCATION: "global"
           GOOGLE_TTS_LOCATION: "global"
-          SILENT_TEXT_TTS_ENABLED: "false"
+          SILENT_TEXT_TTS_ENABLED: "true"
           VOICE_BRIDGE_ENABLED: "true"
           VOICE_BRIDGE_TELEPHONY_WEBHOOK_URL: ""
           AZURE_SPEECH_KEY_SECRET_ARN: !If
@@ -1668,6 +1667,10 @@ Resources:
             - UseManagedMultilingualSecrets
             - !Ref NestedMultilingualAzureApiKeysSecretArn
             - !Ref AzureTranslationKeySecretArn
+          OPENAI_API_KEY_SECRET_ARN: !If
+            - HasOpenAiApiKeySecretArn
+            - !Ref OpenAiApiKeySecretArn
+            - !Ref AWS::NoValue
           GOOGLE_APPLICATION_CREDENTIALS_SECRET_ARN: !If
             - UseManagedMultilingualSecrets
             - !Ref NestedMultilingualGoogleServiceAccountSecretArn
@@ -1678,6 +1681,7 @@ Resources:
         - !Ref AppManagedPolicyDynamoLambdaCrudShardC
         - !Ref AppManagedPolicyS3ApplicationBucketsCrud
         - !Ref AppManagedPolicySecretsMultilingualScopedRead
+        - !Ref AppManagedPolicySecretsAnalyzeProvidersRead
       Events:
         Route:
           Type: HttpApi

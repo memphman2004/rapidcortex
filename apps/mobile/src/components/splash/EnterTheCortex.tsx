@@ -105,7 +105,13 @@ export function EnterTheCortex({ onEnterComplete }: EnterTheCortexProps) {
     let step = 0;
     const advance = () => {
       if (step >= STATUS_MESSAGES.length - 1) {
-        setTimeout(onEnterComplete, 650);
+        setTimeout(() => {
+          try {
+            onEnterComplete();
+          } catch (err) {
+            console.warn('[splash] onEnterComplete failed', err);
+          }
+        }, 650);
         return;
       }
       step += 1;

@@ -27,6 +27,7 @@
     },
     "preview": {
       "distribution": "internal",
+      "autoIncrement": true,
       "ios": {
         "simulator": false
       },
@@ -36,6 +37,7 @@
       "env": {
         "APP_ENV": "staging",
         "EXPO_NO_METRO_WORKSPACE_ROOT": "1",
+        "EXPO_PUBLIC_ENABLE_ENTER_SPLASH": "1",
         "EXPO_PUBLIC_COGNITO_USER_POOL_ID": "us-east-1_0z6tA6WBs",
         "EXPO_PUBLIC_COGNITO_REGION": "us-east-1",
         "EXPO_PUBLIC_COGNITO_MOBILE_CLIENT_ID": "3nkemnrffspnaa0ikp2un6koh0",

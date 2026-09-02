@@ -11,6 +11,8 @@ export {
   scoreFit,
   scoreSourceType,
   isRelevantSignalText,
+  isCivicIqSignalText,
+  isCivicDocumentIngestText,
   keywordMatches,
   inferCompetitorName,
   PROCUREMENT_STAGE_LABELS,

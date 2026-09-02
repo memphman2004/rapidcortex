@@ -6,15 +6,21 @@ import {
   Inter_800ExtraBold,
   useFonts,
 } from '@expo-google-fonts/inter';
+import { DarkTheme, ThemeProvider as NavigationThemeProvider } from '@react-navigation/native';
 import { Stack, useRouter } from 'expo-router';
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import { ActivityIndicator, View } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 import { ScreenErrorBoundary } from '@/components/common/ScreenErrorBoundary';
 import { useAuth } from '@/hooks/useAuth';
 import { useLanguage } from '@/hooks/useLanguage';
-import { NATIVE_BOOT_BACKGROUND } from '@/services/native-splash';
+import {
+  FONT_READY_TIMEOUT_MS,
+  isNativeSplashReadyToHide,
+  NATIVE_BOOT_BACKGROUND,
+} from '@/services/native-splash';
 import {
   getInitialNotificationRoute,
   registerForPushNotifications,
@@ -22,27 +28,51 @@ import {
   teardownNotificationHandlers,
 } from '@/services/notifications';
 
+/** React Navigation's default theme is light gray. Without this, Xcode/TestFlight
+ *  hide the native splash onto a white native screen (TestFlight 24). */
+const bootNavigationTheme = {
+  ...DarkTheme,
+  colors: {
+    ...DarkTheme.colors,
+    background: NATIVE_BOOT_BACKGROUND,
+    card: NATIVE_BOOT_BACKGROUND,
+  },
+};
+
 export default function RootLayout() {
   return (
     <GestureHandlerRootView style={{ flex: 1, backgroundColor: NATIVE_BOOT_BACKGROUND }}>
-      <SafeAreaProvider>
-        <ScreenErrorBoundary>
-          <RootLayoutNav />
-        </ScreenErrorBoundary>
-      </SafeAreaProvider>
+      <NavigationThemeProvider value={bootNavigationTheme}>
+        <SafeAreaProvider>
+          <ScreenErrorBoundary>
+            <RootLayoutNav />
+          </ScreenErrorBoundary>
+        </SafeAreaProvider>
+      </NavigationThemeProvider>
     </GestureHandlerRootView>
   );
 }
 
 function RootLayoutNav() {
-  // Do not block first paint on Inter — a hung font load must not keep a black
-  // native splash up. Native splash auto-hides when this tree paints.
-  useFonts({
+  // July 22 Android: wait for Inter with a visible spinner so the native
+  // splash is not replaced by an empty dark window. Time out so a hung
+  // font load cannot block forever (iOS TestFlight).
+  const [fontsLoaded, fontError] = useFonts({
     Inter_400Regular,
     Inter_500Medium,
     Inter_600SemiBold,
     Inter_700Bold,
     Inter_800ExtraBold,
+  });
+  const [waitExpired, setWaitExpired] = useState(false);
+  useEffect(() => {
+    const id = setTimeout(() => setWaitExpired(true), FONT_READY_TIMEOUT_MS);
+    return () => clearTimeout(id);
+  }, []);
+  const fontsReady = isNativeSplashReadyToHide({
+    fontsLoaded,
+    fontError,
+    waitExpired,
   });
 
   const router = useRouter();
@@ -73,6 +103,21 @@ function RootLayoutNav() {
       })
       .catch(() => undefined);
   }, [isAuthenticated, user, router]);
+
+  if (!fontsReady) {
+    return (
+      <View
+        style={{
+          flex: 1,
+          alignItems: 'center',
+          justifyContent: 'center',
+          backgroundColor: NATIVE_BOOT_BACKGROUND,
+        }}
+      >
+        <ActivityIndicator size="large" color="#3b82f6" />
+      </View>
+    );
+  }
 
   return (
     <>

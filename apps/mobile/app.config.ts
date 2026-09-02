@@ -86,6 +86,13 @@ const config: ExpoConfig = {
       NSPhotoLibraryAddUsageDescription:
         'Rapid Cortex saves QR code images to your photo library when you choose Save.',
       ITSAppUsesNonExemptEncryption: false,
+      // Debug Dev Client loads Metro over http://LAN:8081. Expo's default
+      // NSAllowsArbitraryLoads=false makes iOS ATS reject that URL even when
+      // the phone and Mac are on the same Wi-Fi.
+      NSAppTransportSecurity: {
+        NSAllowsArbitraryLoads: true,
+        NSAllowsLocalNetworking: true,
+      },
       // Expo AppDelegate implements didReceiveRemoteNotification:fetchCompletionHandler:.
       // Without this key iOS logs a launch warning (not the TestFlight 32 abort).
       UIBackgroundModes: ['remote-notification', 'fetch'],

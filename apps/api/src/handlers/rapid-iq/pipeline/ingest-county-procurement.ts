@@ -7,7 +7,7 @@
 
 import { GetCommand, PutCommand } from "@aws-sdk/lib-dynamodb";
 import type { RapidIqPipelineRawSignal } from "rapid-cortex-shared";
-import { isRelevantSignalText } from "rapid-cortex-shared";
+import { isCivicDocumentIngestText } from "rapid-cortex-shared";
 import {
   crawlableCountyProcurementEntries,
   type CountyProcurementEntry,
@@ -25,7 +25,7 @@ const FETCH_HEADERS = {
 };
 
 export function isCountyProcurementRelevant(text: string): boolean {
-  return isRelevantSignalText(text);
+  return isCivicDocumentIngestText(text);
 }
 
 function signalsTable(): string {

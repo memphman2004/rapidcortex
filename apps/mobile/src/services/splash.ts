@@ -17,7 +17,11 @@ export async function hasEnteredCortexRecently(): Promise<boolean> {
 }
 
 export async function markCortexEntered(): Promise<void> {
-  await AsyncStorage.setItem(ENTER_KEY, String(Date.now()));
+  try {
+    await AsyncStorage.setItem(ENTER_KEY, String(Date.now()));
+  } catch {
+    /* optional skip-next-launch hint — never fail the enter transition */
+  }
 }
 
 export async function clearCortexEntered(): Promise<void> {

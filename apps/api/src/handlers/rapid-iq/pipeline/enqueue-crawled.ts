@@ -1,5 +1,5 @@
 import type { RapidIqPipelineRawSignal, RapidIqPipelineSourceId } from "rapid-cortex-shared";
-import { classifyProcurementStage, isRelevantSignalText } from "rapid-cortex-shared";
+import { classifyProcurementStage, isCivicDocumentIngestText } from "rapid-cortex-shared";
 import {
   extractLinks,
   parseIsoDate,
@@ -17,7 +17,7 @@ export async function enqueueRelevantPage(
 ): Promise<number> {
   let queued = 0;
   const pageText = stripHtml(html).slice(0, 4000);
-  if (isRelevantSignalText(`${pageName} ${pageText}`)) {
+  if (isCivicDocumentIngestText(`${pageName} ${pageText}`)) {
     const signal: RapidIqPipelineRawSignal = {
       sourceId,
       sourceUrl: pageUrl,
@@ -40,7 +40,7 @@ export async function enqueueRelevantPage(
     if (queued >= limit) break;
     if (seen.has(link.href)) continue;
     const hay = `${link.text} ${link.href}`;
-    if (!isRelevantSignalText(hay)) continue;
+    if (!isCivicDocumentIngestText(hay)) continue;
     seen.add(link.href);
     const signal: RapidIqPipelineRawSignal = {
       sourceId,

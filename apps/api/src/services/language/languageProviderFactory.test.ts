@@ -4,9 +4,12 @@ import { runLanguageDetectionChain } from "../../voice/languageDetection/languag
 import { buildLanguageDetectorChain } from "../../voice/languageDetection/languageDetectorFactory.js";
 import * as google from "./googleTranslateClient.js";
 import * as azure from "./azureTranslatorText.js";
+import * as azureTts from "../../voice/azure/azureSpeechTts.js";
+import * as openaiTts from "../../voice/openai/openaiTts.js";
 import {
   detectLanguage,
   resolveTextTranslationBackend,
+  synthesizeTextWithConfiguredProvider,
   translateFromEnglish,
   translateToEnglish,
 } from "./languageProviderFactory.js";
@@ -24,6 +27,11 @@ vi.mock("../../voice/languageDetection/languageDetectionOrchestrator.js", () => 
   runLanguageDetectionChain: vi.fn(),
 }));
 vi.mock("../../voice/languageDetection/languageDetectorFactory.js", () => ({ buildLanguageDetectorChain: vi.fn() }));
+vi.mock("../../voice/azure/azureSpeechTts.js", () => ({ azureSpeechSynthesize: vi.fn() }));
+vi.mock("../../voice/openai/openaiTts.js", () => ({ openaiTtsSynthesize: vi.fn() }));
+vi.mock("../../voice/google/googleTextToSpeechRest.js", () => ({ googleTextToSpeechSynthesize: vi.fn() }));
+vi.mock("../../voice/google/googleAccessToken.js", () => ({ getGoogleAccessToken: vi.fn() }));
+vi.mock("../../voice/google/googleCredentials.js", () => ({ resolveGoogleServiceAccountCredentials: vi.fn() }));
 
 const base = () => {
   process.env.SUPPORTED_CALL_LANGUAGES = "en,es,zh,tl,vi,ar,fr,ko,ru,pt";
@@ -162,5 +170,66 @@ describe("detectLanguage", () => {
     });
     const d = await detectLanguage("Hola there");
     expect(d.provider).toBe("comprehend");
+  });
+});
+
+describe("synthesizeTextWithConfiguredProvider", () => {
+  beforeEach(() => {
+    resetMultilingualVoiceConfigForTests();
+    base();
+    process.env.SILENT_TEXT_TTS_ENABLED = "true";
+    process.env.PROVIDER_ENABLE_FALLBACKS = "true";
+    process.env.ASSETS_BUCKET = "";
+    process.env.AZURE_SPEECH_KEY = "k";
+    process.env.OPENAI_API_KEY = "";
+    process.env.GOOGLE_APPLICATION_CREDENTIALS_JSON = "";
+    vi.mocked(azureTts.azureSpeechSynthesize).mockReset();
+    vi.mocked(openaiTts.openaiTtsSynthesize).mockReset();
+  });
+
+  it("uses Azure Neural TTS when Speech credentials are set", async () => {
+    resetMultilingualVoiceConfigForTests();
+    vi.mocked(azureTts.azureSpeechSynthesize).mockResolvedValue({
+      audioContent: new Uint8Array([1, 2, 3, 4]),
+      mimeType: "audio/mpeg",
+      voiceName: "en-US-JennyNeural",
+      languageCode: "en-US",
+      encoding: "MP3",
+    });
+    const r = await synthesizeTextWithConfiguredProvider(
+      { text: "Hello", languageBcp: "en" },
+      { agencyId: "a1", sessionId: "s1", messageId: "m1" },
+    );
+    expect(r.voiceName).toBe("en-US-JennyNeural");
+    expect(azureTts.azureSpeechSynthesize).toHaveBeenCalledOnce();
+  });
+
+  it("falls back to OpenAI TTS when Azure fails", async () => {
+    process.env.OPENAI_API_KEY = "sk-test";
+    resetMultilingualVoiceConfigForTests();
+    vi.mocked(azureTts.azureSpeechSynthesize).mockRejectedValue(new Error("Azure TTS HTTP 429"));
+    vi.mocked(openaiTts.openaiTtsSynthesize).mockResolvedValue({
+      audioContent: new Uint8Array(48).fill(9),
+      mimeType: "audio/mpeg",
+      voiceName: "nova",
+      languageCode: "es",
+      encoding: "MP3",
+    });
+    const r = await synthesizeTextWithConfiguredProvider(
+      { text: "Hola", languageBcp: "es" },
+      { agencyId: "a1", sessionId: "s1", messageId: "m1" },
+    );
+    expect(r.voiceName).toBe("nova");
+  });
+
+  it("throws when TTS is disabled", async () => {
+    process.env.SILENT_TEXT_TTS_ENABLED = "false";
+    resetMultilingualVoiceConfigForTests();
+    await expect(
+      synthesizeTextWithConfiguredProvider(
+        { text: "Hi", languageBcp: "en" },
+        { agencyId: "a1", sessionId: "s1", messageId: "m1" },
+      ),
+    ).rejects.toThrow(/TTS disabled/);
   });
 });

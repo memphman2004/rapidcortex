@@ -14,6 +14,8 @@ import {
 import { googleTextToSpeechSynthesize } from "../../voice/google/googleTextToSpeechRest.js";
 import { getGoogleAccessToken } from "../../voice/google/googleAccessToken.js";
 import { resolveGoogleServiceAccountCredentials } from "../../voice/google/googleCredentials.js";
+import { azureSpeechSynthesize } from "../../voice/azure/azureSpeechTts.js";
+import { openaiTtsSynthesize } from "../../voice/openai/openaiTts.js";
 import { VoiceProviderError } from "../../voice/providerErrors.js";
 import { VOICE_ERROR_CODES } from "../../voice/voiceErrorCodes.js";
 import { translateFromEnglishOrchestrated, translateToEnglishOrchestrated } from "./textTranslationOrchestrator.js";
@@ -132,9 +134,31 @@ export async function detectLanguage(
   };
 }
 
+async function persistSynthesizedUtterance(
+  cfg: MultilingualVoiceConfig,
+  context: { agencyId: string; sessionId: string; messageId: string },
+  utter: SynthesizedUtterance,
+): Promise<SynthesizedUtterance> {
+  const bucket = cfg.googleTtsOutputBucket || cfg.assetsBucket;
+  if (!bucket) return utter;
+  const key = `multilingual-tts/${context.agencyId}/${context.sessionId}/${context.messageId}.mp3`;
+  await s3.send(
+    new PutObjectCommand({
+      Bucket: bucket,
+      Key: key,
+      Body: Buffer.from(utter.audioContent),
+      ContentType: utter.mimeType,
+    }),
+  );
+  return { ...utter, storageObjectKey: key };
+}
+
+function ttsErrorMessage(e: unknown): string {
+  return e instanceof Error ? e.message : String(e);
+}
+
 /**
- * Synthesize with Google TTS. AWS Polly is not implemented; returns a clear error for `aws` text backend
- * if this is ever called without Google.
+ * Synthesize dispatcher→caller audio. Chain: Azure Neural TTS → OpenAI TTS → Google Cloud TTS.
  */
 export async function synthesizeTextWithConfiguredProvider(
   request: SynthesizeTextRequest,
@@ -147,29 +171,48 @@ export async function synthesizeTextWithConfiguredProvider(
       retryable: false,
     });
   }
-  const back = resolveTextTranslationBackend(cfg);
-  if (back !== "google") {
-    throw new VoiceProviderError(
-      "Text-to-speech is only available when the text backend is Google. Set LANGUAGE_PROVIDER=google|auto with Google credentials, or add AWS Polly in a future release.",
-      VOICE_ERROR_CODES.PROVIDER_CONFIG_ERROR,
-      { retryable: false },
-    );
+
+  const errors: string[] = [];
+  const tryAzure = Boolean(cfg.azureSpeechKey.trim() || cfg.azureSpeechKeySecretArn.trim());
+  const tryOpenAi = Boolean(cfg.openAiApiKey.trim() || cfg.openAiApiKeySecretArn.trim());
+  const tryGoogle = Boolean(cfg.googleCredentialsSecretArn || cfg.googleApplicationCredentialsJson);
+
+  if (tryAzure) {
+    try {
+      const utter = await azureSpeechSynthesize({ cfg, request, signal: options?.signal });
+      return persistSynthesizedUtterance(cfg, context, utter);
+    } catch (e) {
+      errors.push(`azure: ${ttsErrorMessage(e)}`);
+      if (!cfg.providerEnableFallbacks) throw e;
+    }
   }
-  const creds = await resolveGoogleServiceAccountCredentials(cfg);
-  const accessToken = await getGoogleAccessToken(creds, ["https://www.googleapis.com/auth/cloud-platform"]);
-  const utter = await googleTextToSpeechSynthesize({ accessToken, request, signal: options?.signal });
-  const bucket = cfg.googleTtsOutputBucket || cfg.assetsBucket;
-  if (!bucket) {
-    return utter;
+
+  if (tryOpenAi) {
+    try {
+      const utter = await openaiTtsSynthesize({ cfg, request, signal: options?.signal });
+      return persistSynthesizedUtterance(cfg, context, utter);
+    } catch (e) {
+      errors.push(`openai: ${ttsErrorMessage(e)}`);
+      if (!cfg.providerEnableFallbacks) throw e;
+    }
   }
-  const key = `multilingual-tts/${context.agencyId}/${context.sessionId}/${context.messageId}.mp3`;
-  await s3.send(
-    new PutObjectCommand({
-      Bucket: bucket,
-      Key: key,
-      Body: Buffer.from(utter.audioContent),
-      ContentType: utter.mimeType,
-    }),
+
+  if (tryGoogle) {
+    try {
+      const creds = await resolveGoogleServiceAccountCredentials(cfg);
+      const accessToken = await getGoogleAccessToken(creds, ["https://www.googleapis.com/auth/cloud-platform"]);
+      const utter = await googleTextToSpeechSynthesize({ accessToken, request, signal: options?.signal });
+      return persistSynthesizedUtterance(cfg, context, utter);
+    } catch (e) {
+      errors.push(`google: ${ttsErrorMessage(e)}`);
+    }
+  }
+
+  throw new VoiceProviderError(
+    errors.length
+      ? `TTS failed (${errors.join("; ")})`
+      : "No TTS provider configured (set Azure Speech, OpenAI, or Google credentials)",
+    VOICE_ERROR_CODES.PROVIDER_CONFIG_ERROR,
+    { retryable: false },
   );
-  return { ...utter, storageObjectKey: key };
 }
