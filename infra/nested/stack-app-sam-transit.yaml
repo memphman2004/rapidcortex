@@ -1,0 +1,323 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Transform: AWS::Serverless-2016-10-31
+Description: Rapid Cortex — RC Transit ops API (routes attach to stack 2 HttpApi)
+
+Parameters:
+  DeploymentStage:
+    Type: String
+    AllowedValues: [dev, staging, prod, pilot]
+  HttpApiId:
+    Type: String
+  ImportedCognitoUserPoolId:
+    Type: String
+  ImportedCognitoWebClientId:
+    Type: String
+  ImportedCognitoIssuer:
+    Type: String
+  AuditTable:
+    Type: String
+  AgenciesTable:
+    Type: String
+  ManagedPolicyNamePrefix:
+    Type: String
+    Default: rapid-cortex
+
+Globals:
+  Function:
+    Runtime: nodejs20.x
+    Timeout: 30
+    MemorySize: 512
+    Environment:
+      Variables:
+        DEPLOYMENT_STAGE: !Ref DeploymentStage
+        AUDIT_TABLE: !Ref AuditTable
+        AGENCIES_TABLE: !Ref AgenciesTable
+        COGNITO_USER_POOL_ID: !Ref ImportedCognitoUserPoolId
+        COGNITO_CLIENT_ID: !Ref ImportedCognitoWebClientId
+        COGNITO_REGION: !Ref AWS::Region
+        ALLOW_UNAUTHENTICATED_API: "false"
+        TRANSIT_GPS_MOCK: "false"
+
+Resources:
+  TransitVehiclesTable:
+    Type: AWS::DynamoDB::Table
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      TableName: !Sub "rapid-cortex-transit-vehicles-${DeploymentStage}"
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - { AttributeName: agencyId, AttributeType: S }
+        - { AttributeName: vehicleId, AttributeType: S }
+        - { AttributeName: status, AttributeType: S }
+        - { AttributeName: routeId, AttributeType: S }
+      KeySchema:
+        - { AttributeName: agencyId, KeyType: HASH }
+        - { AttributeName: vehicleId, KeyType: RANGE }
+      GlobalSecondaryIndexes:
+        - IndexName: agencyId-status-index
+          KeySchema:
+            - { AttributeName: agencyId, KeyType: HASH }
+            - { AttributeName: status, KeyType: RANGE }
+          Projection: { ProjectionType: ALL }
+        - IndexName: agencyId-routeId-index
+          KeySchema:
+            - { AttributeName: agencyId, KeyType: HASH }
+            - { AttributeName: routeId, KeyType: RANGE }
+          Projection: { ProjectionType: ALL }
+
+  TransitRoutesTable:
+    Type: AWS::DynamoDB::Table
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      TableName: !Sub "rapid-cortex-transit-routes-${DeploymentStage}"
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - { AttributeName: agencyId, AttributeType: S }
+        - { AttributeName: routeId, AttributeType: S }
+      KeySchema:
+        - { AttributeName: agencyId, KeyType: HASH }
+        - { AttributeName: routeId, KeyType: RANGE }
+
+  TransitStationsTable:
+    Type: AWS::DynamoDB::Table
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      TableName: !Sub "rapid-cortex-transit-stations-${DeploymentStage}"
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - { AttributeName: agencyId, AttributeType: S }
+        - { AttributeName: stationId, AttributeType: S }
+      KeySchema:
+        - { AttributeName: agencyId, KeyType: HASH }
+        - { AttributeName: stationId, KeyType: RANGE }
+
+  TransitOperatorsTable:
+    Type: AWS::DynamoDB::Table
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      TableName: !Sub "rapid-cortex-transit-operators-${DeploymentStage}"
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - { AttributeName: agencyId, AttributeType: S }
+        - { AttributeName: operatorId, AttributeType: S }
+        - { AttributeName: vehicleId, AttributeType: S }
+      KeySchema:
+        - { AttributeName: agencyId, KeyType: HASH }
+        - { AttributeName: operatorId, KeyType: RANGE }
+      GlobalSecondaryIndexes:
+        - IndexName: agencyId-vehicleId-index
+          KeySchema:
+            - { AttributeName: agencyId, KeyType: HASH }
+            - { AttributeName: vehicleId, KeyType: RANGE }
+          Projection: { ProjectionType: ALL }
+
+  TransitIncidentsTable:
+    Type: AWS::DynamoDB::Table
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      TableName: !Sub "rapid-cortex-transit-incidents-${DeploymentStage}"
+      BillingMode: PAY_PER_REQUEST
+      TimeToLiveSpecification:
+        AttributeName: archivedAt
+        Enabled: true
+      AttributeDefinitions:
+        - { AttributeName: agencyId, AttributeType: S }
+        - { AttributeName: incidentId, AttributeType: S }
+        - { AttributeName: status, AttributeType: S }
+        - { AttributeName: vehicleId, AttributeType: S }
+      KeySchema:
+        - { AttributeName: agencyId, KeyType: HASH }
+        - { AttributeName: incidentId, KeyType: RANGE }
+      GlobalSecondaryIndexes:
+        - IndexName: agencyId-status-index
+          KeySchema:
+            - { AttributeName: agencyId, KeyType: HASH }
+            - { AttributeName: status, KeyType: RANGE }
+          Projection: { ProjectionType: ALL }
+        - IndexName: agencyId-vehicleId-index
+          KeySchema:
+            - { AttributeName: agencyId, KeyType: HASH }
+            - { AttributeName: vehicleId, KeyType: RANGE }
+          Projection: { ProjectionType: ALL }
+
+  TransitReportsTable:
+    Type: AWS::DynamoDB::Table
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      TableName: !Sub "rapid-cortex-transit-reports-${DeploymentStage}"
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - { AttributeName: agencyId, AttributeType: S }
+        - { AttributeName: reportId, AttributeType: S }
+      KeySchema:
+        - { AttributeName: agencyId, KeyType: HASH }
+        - { AttributeName: reportId, KeyType: RANGE }
+
+  TransitConfigTable:
+    Type: AWS::DynamoDB::Table
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      TableName: !Sub "rapid-cortex-transit-config-${DeploymentStage}"
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - { AttributeName: agencyId, AttributeType: S }
+        - { AttributeName: sk, AttributeType: S }
+      KeySchema:
+        - { AttributeName: agencyId, KeyType: HASH }
+        - { AttributeName: sk, KeyType: RANGE }
+
+  AppManagedPolicyTransitDynamo:
+    Type: AWS::IAM::ManagedPolicy
+    Properties:
+      ManagedPolicyName: !Sub "${ManagedPolicyNamePrefix}-sam-transit-ddb-${DeploymentStage}"
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Sid: TransitAndSharedTables
+            Effect: Allow
+            Action:
+              - dynamodb:GetItem
+              - dynamodb:BatchGetItem
+              - dynamodb:BatchWriteItem
+              - dynamodb:PutItem
+              - dynamodb:DeleteItem
+              - dynamodb:UpdateItem
+              - dynamodb:Query
+              - dynamodb:Scan
+              - dynamodb:DescribeTable
+              - dynamodb:ConditionCheckItem
+            Resource:
+              - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${TransitVehiclesTable}
+              - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${TransitVehiclesTable}/index/*
+              - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${TransitRoutesTable}
+              - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${TransitRoutesTable}/index/*
+              - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${TransitStationsTable}
+              - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${TransitStationsTable}/index/*
+              - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${TransitOperatorsTable}
+              - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${TransitOperatorsTable}/index/*
+              - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${TransitIncidentsTable}
+              - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${TransitIncidentsTable}/index/*
+              - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${TransitReportsTable}
+              - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${TransitReportsTable}/index/*
+              - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${TransitConfigTable}
+              - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${TransitConfigTable}/index/*
+              - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${AuditTable}
+              - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${AuditTable}/index/*
+              - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${AgenciesTable}
+              - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${AgenciesTable}/index/*
+
+  TransitHttpFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/handlers/transit/transitHttp.handler
+      Environment:
+        Variables:
+          TRANSIT_VEHICLES_TABLE: !Ref TransitVehiclesTable
+          TRANSIT_ROUTES_TABLE: !Ref TransitRoutesTable
+          TRANSIT_STATIONS_TABLE: !Ref TransitStationsTable
+          TRANSIT_OPERATORS_TABLE: !Ref TransitOperatorsTable
+          TRANSIT_INCIDENTS_TABLE: !Ref TransitIncidentsTable
+          TRANSIT_REPORTS_TABLE: !Ref TransitReportsTable
+          TRANSIT_CONFIG_TABLE: !Ref TransitConfigTable
+      Policies:
+        - !Ref AppManagedPolicyTransitDynamo
+
+  TransitHttpIntegration:
+    Type: AWS::ApiGatewayV2::Integration
+    Properties:
+      ApiId: !Ref HttpApiId
+      IntegrationType: AWS_PROXY
+      IntegrationUri: !Sub arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${TransitHttpFunction.Arn}/invocations
+      PayloadFormatVersion: "2.0"
+
+  TransitHttpInvokePermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !Ref TransitHttpFunction
+      Principal: apigateway.amazonaws.com
+      SourceArn: !Sub arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${HttpApiId}/*
+
+  RouteTransitDashboard:
+    Type: AWS::ApiGatewayV2::Route
+    Properties: { ApiId: !Ref HttpApiId, RouteKey: "GET /api/transit/{agencyId}/dashboard", Target: !Sub "integrations/${TransitHttpIntegration}" }
+  RouteTransitVehiclesGet:
+    Type: AWS::ApiGatewayV2::Route
+    Properties: { ApiId: !Ref HttpApiId, RouteKey: "GET /api/transit/{agencyId}/vehicles", Target: !Sub "integrations/${TransitHttpIntegration}" }
+  RouteTransitVehiclesPost:
+    Type: AWS::ApiGatewayV2::Route
+    Properties: { ApiId: !Ref HttpApiId, RouteKey: "POST /api/transit/{agencyId}/vehicles", Target: !Sub "integrations/${TransitHttpIntegration}" }
+  RouteTransitVehicleGet:
+    Type: AWS::ApiGatewayV2::Route
+    Properties: { ApiId: !Ref HttpApiId, RouteKey: "GET /api/transit/{agencyId}/vehicles/{vehicleId}", Target: !Sub "integrations/${TransitHttpIntegration}" }
+  RouteTransitVehiclePut:
+    Type: AWS::ApiGatewayV2::Route
+    Properties: { ApiId: !Ref HttpApiId, RouteKey: "PUT /api/transit/{agencyId}/vehicles/{vehicleId}", Target: !Sub "integrations/${TransitHttpIntegration}" }
+  RouteTransitVehicleGps:
+    Type: AWS::ApiGatewayV2::Route
+    Properties: { ApiId: !Ref HttpApiId, RouteKey: "POST /api/transit/{agencyId}/vehicles/{vehicleId}/gps", Target: !Sub "integrations/${TransitHttpIntegration}" }
+  RouteTransitRoutesGet:
+    Type: AWS::ApiGatewayV2::Route
+    Properties: { ApiId: !Ref HttpApiId, RouteKey: "GET /api/transit/{agencyId}/routes", Target: !Sub "integrations/${TransitHttpIntegration}" }
+  RouteTransitRoutesPost:
+    Type: AWS::ApiGatewayV2::Route
+    Properties: { ApiId: !Ref HttpApiId, RouteKey: "POST /api/transit/{agencyId}/routes", Target: !Sub "integrations/${TransitHttpIntegration}" }
+  RouteTransitRoutePut:
+    Type: AWS::ApiGatewayV2::Route
+    Properties: { ApiId: !Ref HttpApiId, RouteKey: "PUT /api/transit/{agencyId}/routes/{routeId}", Target: !Sub "integrations/${TransitHttpIntegration}" }
+  RouteTransitStationsGet:
+    Type: AWS::ApiGatewayV2::Route
+    Properties: { ApiId: !Ref HttpApiId, RouteKey: "GET /api/transit/{agencyId}/stations", Target: !Sub "integrations/${TransitHttpIntegration}" }
+  RouteTransitStationsPost:
+    Type: AWS::ApiGatewayV2::Route
+    Properties: { ApiId: !Ref HttpApiId, RouteKey: "POST /api/transit/{agencyId}/stations", Target: !Sub "integrations/${TransitHttpIntegration}" }
+  RouteTransitStationPut:
+    Type: AWS::ApiGatewayV2::Route
+    Properties: { ApiId: !Ref HttpApiId, RouteKey: "PUT /api/transit/{agencyId}/stations/{stationId}", Target: !Sub "integrations/${TransitHttpIntegration}" }
+  RouteTransitOperatorsGet:
+    Type: AWS::ApiGatewayV2::Route
+    Properties: { ApiId: !Ref HttpApiId, RouteKey: "GET /api/transit/{agencyId}/operators", Target: !Sub "integrations/${TransitHttpIntegration}" }
+  RouteTransitOperatorsPost:
+    Type: AWS::ApiGatewayV2::Route
+    Properties: { ApiId: !Ref HttpApiId, RouteKey: "POST /api/transit/{agencyId}/operators", Target: !Sub "integrations/${TransitHttpIntegration}" }
+  RouteTransitOperatorPut:
+    Type: AWS::ApiGatewayV2::Route
+    Properties: { ApiId: !Ref HttpApiId, RouteKey: "PUT /api/transit/{agencyId}/operators/{operatorId}", Target: !Sub "integrations/${TransitHttpIntegration}" }
+  RouteTransitIncidentsGet:
+    Type: AWS::ApiGatewayV2::Route
+    Properties: { ApiId: !Ref HttpApiId, RouteKey: "GET /api/transit/{agencyId}/incidents", Target: !Sub "integrations/${TransitHttpIntegration}" }
+  RouteTransitIncidentsPost:
+    Type: AWS::ApiGatewayV2::Route
+    Properties: { ApiId: !Ref HttpApiId, RouteKey: "POST /api/transit/{agencyId}/incidents", Target: !Sub "integrations/${TransitHttpIntegration}" }
+  RouteTransitIncidentPut:
+    Type: AWS::ApiGatewayV2::Route
+    Properties: { ApiId: !Ref HttpApiId, RouteKey: "PUT /api/transit/{agencyId}/incidents/{incidentId}", Target: !Sub "integrations/${TransitHttpIntegration}" }
+  RouteTransitReportsGet:
+    Type: AWS::ApiGatewayV2::Route
+    Properties: { ApiId: !Ref HttpApiId, RouteKey: "GET /api/transit/{agencyId}/reports", Target: !Sub "integrations/${TransitHttpIntegration}" }
+  RouteTransitBroadcast:
+    Type: AWS::ApiGatewayV2::Route
+    Properties: { ApiId: !Ref HttpApiId, RouteKey: "POST /api/transit/{agencyId}/broadcast", Target: !Sub "integrations/${TransitHttpIntegration}" }
+  RouteTransitAlertGet:
+    Type: AWS::ApiGatewayV2::Route
+    Properties: { ApiId: !Ref HttpApiId, RouteKey: "GET /api/transit/{agencyId}/alert-level", Target: !Sub "integrations/${TransitHttpIntegration}" }
+  RouteTransitAlertPut:
+    Type: AWS::ApiGatewayV2::Route
+    Properties: { ApiId: !Ref HttpApiId, RouteKey: "PUT /api/transit/{agencyId}/alert-level", Target: !Sub "integrations/${TransitHttpIntegration}" }
+
+Outputs:
+  TransitHttpFunctionArn:
+    Value: !GetAtt TransitHttpFunction.Arn
+  TransitVehiclesTable:
+    Value: !Ref TransitVehiclesTable

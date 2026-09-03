@@ -72,7 +72,7 @@ export const createAgencyBodySchema = z.object({
     "cad_read_only",
     "bidirectional",
   ]),
-  vertical: z.enum(["core", "campus", "venue", "hospital"]).default("core"),
+  vertical: z.enum(["core", "campus", "venue", "hospital", "transit"]).default("core"),
   planTier: z.enum(["starter", "professional", "command", "enterprise"]).default("starter"),
   pilotMode: z.boolean().default(false),
   addons: z.array(z.string().min(1).max(120)).max(200).default([]),
@@ -111,7 +111,7 @@ export const patchAgencyBodySchema = z
     campus: campusAgencyConfigPatchSchema.optional(),
     platformOnboarding: platformOnboardingPatchSchema.optional(),
     retentionOverrideDays: retentionOverrideDaysSchema.optional(),
-    vertical: z.enum(["core", "campus", "venue", "hospital"]).optional(),
+    vertical: z.enum(["core", "campus", "venue", "hospital", "transit"]).optional(),
     planTier: z.enum(["starter", "professional", "command", "enterprise"]).optional(),
     pilotMode: z.boolean().optional(),
     addons: z.array(z.string().min(1).max(120)).max(200).optional(),
@@ -134,9 +134,9 @@ export const agencyProfileResponseSchema = z.object({
   id: z.string(),
   name: z.string(),
   /** Dashboard routing bucket — derived from tenant vertical. */
-  agencyType: z.enum(["psap", "campus", "venue", "hospital"]),
+  agencyType: z.enum(["psap", "campus", "venue", "hospital", "transit"]),
   type: z.enum(AGENCY_TYPE_VALUES),
-  vertical: z.enum(["core", "campus", "venue", "hospital"]).optional(),
+  vertical: z.enum(["core", "campus", "venue", "hospital", "transit"]).optional(),
   capacity: z.number().int().nonnegative().optional(),
 });
 

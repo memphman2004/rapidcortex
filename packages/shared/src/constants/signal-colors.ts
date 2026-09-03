@@ -33,10 +33,10 @@ export const ROLE_BAND_COLORS = {
   hospital_coord: { color: "#EF4444", label: "Hospital Coordinator", vertical: "hospital" },
 
   // ── RC Transit ────────────────────────────────────────
-  transit_admin: { color: "#6366F1", label: "Transit Admin", vertical: "transit" },
-  transit_supervisor: { color: "#6366F1", label: "Transit Supervisor", vertical: "transit" },
-  transit_security: { color: "#6366F1", label: "Transit Console", vertical: "transit" },
-  transit_operator: { color: "#6366F1", label: "Transit Operator", vertical: "transit" },
+  transit_admin: { color: "#3b82f6", label: "Transit Admin", vertical: "transit" },
+  transit_supervisor: { color: "#3b82f6", label: "Transit Supervisor", vertical: "transit" },
+  transit_security: { color: "#3b82f6", label: "Transit Console", vertical: "transit" },
+  transit_operator: { color: "#3b82f6", label: "Transit Operator", vertical: "transit" },
 } as const;
 
 export function roleBand(role: string) {

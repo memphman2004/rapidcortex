@@ -9,13 +9,13 @@ Rapid Cortex is a production public safety intelligence platform for:
 - Emergency communications centers
 - Law enforcement, fire, EMS
 - Emergency management agencies
-- Product verticals: Campus Safety, Venue Operations, Hospital Routing
+- Product verticals: Campus Safety, Venue Operations, Hospital Routing, Transit Operations
 
 It enhances operations but does NOT replace CAD, telephony, dispatchers, or medical direction.
 
-**Role dashboard UI/UX (navigation, widgets, visual themes, "cannot" lists):** see `docs/role-dashboard-spec.md` — canonical spec for all 21 active roles. Implement absent UI for forbidden actions; never gray out permanent RBAC denials.
+**Role dashboard UI/UX (navigation, widgets, visual themes, "cannot" lists):** see `docs/role-dashboard-spec.md` — canonical spec for all 25 active roles. Implement absent UI for forbidden actions; never gray out permanent RBAC denials.
 
-**Sidebar navigation (all 21 roles):** single source of truth in `apps/web/lib/navigation/role-nav.ts`. Resolve with `getRoleNav(role, buildNavContext(user, jurisdictionSlug))`, filter features via `filterRoleNavByFeatures`, render with `RoleNavSidebar` / `RoleNavSections`. VIEW ONLY label badges stay visible; feature-gated items omit when flag is off.
+**Sidebar navigation (all 25 roles):** single source of truth in `apps/web/lib/navigation/role-nav.ts`. Resolve with `getRoleNav(role, buildNavContext(user, jurisdictionSlug))`, filter features via `filterRoleNavByFeatures`, render with `RoleNavSidebar` / `RoleNavSections`. VIEW ONLY label badges stay visible; feature-gated items omit when flag is off.
 
 ---
 
@@ -78,7 +78,8 @@ Roles are stored as `custom:role` in Cognito JWT tokens. Always use the canonica
 **Venue:** `VENUE_ADMIN` | `VENUE_SUPERVISOR` | `VENUE_SECURITY` | `VENUE_OPERATOR` | `VENUE_GUEST_SERVICES`
 
 **Transit:** `TRANSIT_ADMIN` | `TRANSIT_SUPERVISOR` | `TRANSIT_SECURITY` | `TRANSIT_OPERATOR`
-- NOTE: Transit vertical has no UI pages yet. Define role constants but do not route users to product pages.
+- Canonical JWT values are snake_case (`transit_admin`, …); Cognito groups are `TRANSIT_*`.
+- Ops console: `/app/transit/{admin|supervisor|security|operator}` and `/transit/{code}`.
 
 ### Role routing (post-login destinations):
 ```
@@ -94,6 +95,10 @@ VENUE_*            → /app/venue/{code}
 CAMPUS_*           → /app/campus/{code}
 HOSPITAL_ADMIN     → /hospital-admin/dashboard
 HOSPITAL_STAFF     → /hospital-staff/dashboard
+TRANSIT_ADMIN      → /app/transit/admin
+TRANSIT_SUPERVISOR → /app/transit/supervisor
+TRANSIT_SECURITY   → /app/transit/security
+TRANSIT_OPERATOR   → /app/transit/operator
 ```
 
 ### Authorization rules:
@@ -239,6 +244,7 @@ Each role must only see tools relevant to their function:
 - `/app/venue/*` and `/venue/*` → VENUE_* roles + rcsuperadmin only
 - `/app/campus/*` → CAMPUS_* roles + rcsuperadmin only
 - `/app/hospital/*`, `/hospital-admin/*`, `/hospital-staff/*` → HOSPITAL_* roles + rcsuperadmin only
+- `/app/transit/*` and `/transit/*` → TRANSIT_* roles + rcsuperadmin only
 - PSAP jurisdiction routes (`/{jurisdiction}/*`) → PSAP roles only, redirect product-vertical users to their home
 
 ### Session normalization (CRITICAL)
@@ -246,7 +252,7 @@ Always call `normalizeSessionRole()` before `migrateLegacyRapidCortexRoleTokenVa
 
 ```typescript
 // CORRECT
-const role = normalizeSessionRole(raw);       // preserves VENUE_*, CAMPUS_*, HOSPITAL_*
+const role = normalizeSessionRole(raw);       // preserves VENUE_*, CAMPUS_*, HOSPITAL_*, TRANSIT_*
 
 // WRONG — collapses product roles to PSAP dispatcher
 const role = normalizeRole(raw);              // deprecated, do not use
@@ -260,7 +266,7 @@ const role = normalizeRole(raw);              // deprecated, do not use
 - All admin actions must emit an audit event via `AuditLogger`
 - Supervisor monitoring of dispatcher sessions must be logged with `SUPERVISOR_WATCHING` indicator
 - No CAD writeback without dispatcher review and approval
-- QR code creation/deletion: `CAMPUS_ADMIN`, `CAMPUS_SUPERVISOR`, `VENUE_ADMIN`, `VENUE_SUPERVISOR`, `VENUE_OPERATOR` — PSAP roles explicitly excluded
+- QR code creation/deletion: `CAMPUS_ADMIN`, `CAMPUS_SUPERVISOR`, `VENUE_ADMIN`, `VENUE_SUPERVISOR`, `VENUE_OPERATOR`, `TRANSIT_ADMIN`, `TRANSIT_SUPERVISOR` — PSAP roles explicitly excluded
 - Never log JWT tokens, PII, or CAD data in CloudWatch
 - CORS: only approved origins, never `*` in production
 
@@ -305,7 +311,8 @@ type AgencyType =
   | "city" | "county" | "municipality" | "regional_center"
   | "pilot" | "state_agency"
   | "venue"    // Venue product vertical
-  | "campus";  // Campus product vertical
+  | "campus"   // Campus product vertical
+  | "transit"; // Transit product vertical
 ```
 Agency type drives vertical routing and product feature access. Always keep in sync across: `packages/shared`, API Zod schemas, and the Create Agency form UI.
 
@@ -322,8 +329,7 @@ Agency type drives vertical routing and product feature access. Always keep in s
 7. **Never use `images: { unoptimized: true }` and skip actual PNG dimension verification**
 8. **Never create DynamoDB tables in a CloudFormation update if they already exist** — use the parameter workaround or resource import
 9. **Never bypass `AuthorizationService.canPerform()`** — inline role string comparisons miss agencyId scoping
-10. **Never add TRANSIT_* role pages** — transit vertical is not yet built
-11. **Never default new feature flags to off** — operational flags default ON when unset; only CAD write-back is fail-closed. Do not gate live product surfaces behind unset env vars.
+10. **Never default new feature flags to off** — operational flags default ON when unset; only CAD write-back is fail-closed. Do not gate live product surfaces behind unset env vars.
 
 ---
 
@@ -342,9 +348,10 @@ Stack deploy order (automatic via CloudFormation dependencies):
 1. DataLayerStack (DynamoDB, S3, Secrets)
 2. AppSamStackV2 (primary Lambdas — incidents, CAD, QA, campus, venue, stream)
 3. AppSam2Stack (language, analytics, retention, comms)
-4. AppSam3Stack (video/media, agency admin, RC admin/desktop)
-5. AppSam4Stack (billing/payments, Ring Connect)
-6. AppSamQrStack (QR location management)
+4. AppSamHospital2Stack + AppSamTransitStack (hospital + transit APIs on stack 2 HttpApi)
+5. AppSam3Stack (video/media, agency admin, RC admin/desktop)
+6. AppSam4Stack (billing/payments, Ring Connect)
+7. AppSamQrStack (QR location management)
 
 ---
 
@@ -363,7 +370,7 @@ Stack deploy order (automatic via CloudFormation dependencies):
 ```bash
 # API endpoints
 API_UPSTREAM_BASE          # Stack 1 API (incidents, CAD, QA, campus, venue)
-API_UPSTREAM_BASE_2        # Stack 2 API (language, analytics)
+API_UPSTREAM_BASE_2        # Stack 2 API (language, analytics, hospital, transit)
 API_UPSTREAM_BASE_3        # Stack 3 API (media/video, agency admin)
 API_UPSTREAM_BASE_4        # Stack 4 API (billing, Ring Connect)
 
@@ -371,6 +378,7 @@ API_UPSTREAM_BASE_4        # Stack 4 API (billing, Ring Connect)
 /api/billing/*             → API_UPSTREAM_BASE_4
 /api/integrations/ring/*   → API_UPSTREAM_BASE_4
 /api/languages/*           → API_UPSTREAM_BASE_2
+/api/transit/*             → API_UPSTREAM_BASE_2
 /api/video-assist/*        → API_UPSTREAM_BASE_3
 /api/admin/users/*         → API_UPSTREAM_BASE (stack 1)
 /api/incidents/*           → API_UPSTREAM_BASE (stack 1)
@@ -380,7 +388,6 @@ API_UPSTREAM_BASE_4        # Stack 4 API (billing, Ring Connect)
 
 ## MAINTENANCE — update this file when shipping
 
-- **Transit vertical:** Remove "not yet built" notes for `TRANSIT_*`; add routing entry when `/app/transit` exists.
 - **HOSPITAL_COORDINATOR:** Add permission set to the Hospital role description when defined in `packages/security`.
 - **Stack 4 (`API_UPSTREAM_BASE_4`):** After deploy lands, confirm the BFF routing prefix table above matches `scripts/print-stack-outputs-for-web.sh` output.
 - **OG images:** Add verified `og:image` dimension guidance once logo/OG asset dimensions are confirmed in production builds (open item from logo fix).

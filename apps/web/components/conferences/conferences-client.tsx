@@ -18,7 +18,10 @@ import {
 import {
   conferencePriorityCounts,
   conferencePriorityLabel,
+  ensureUsdFeeInput,
+  feeForSave,
   filterConferencesByPriority,
+  USD_FEE_DEFAULT,
   type ConferencePriorityFilter,
 } from "@/lib/conferences/format";
 import { ConferenceEditModal } from "./conference-edit-modal";
@@ -243,8 +246,8 @@ function AddConferenceModal({
   const [endDate, setEndDate] = useState("");
   const [location, setLocation] = useState("");
   const [venue, setVenue] = useState("");
-  const [registrationFee, setRegistrationFee] = useState("");
-  const [boothFee, setBoothFee] = useState("");
+  const [registrationFee, setRegistrationFee] = useState(USD_FEE_DEFAULT);
+  const [boothFee, setBoothFee] = useState(USD_FEE_DEFAULT);
   const [priority, setPriority] = useState<ConferencePriority>("amber");
 
   return (
@@ -264,8 +267,8 @@ function AddConferenceModal({
             endDate: endDate.trim() || undefined,
             location: location.trim(),
             venue: venue.trim() || undefined,
-            registrationFee: registrationFee.trim() || undefined,
-            boothFee: boothFee.trim() || undefined,
+            registrationFee: feeForSave(registrationFee) || undefined,
+            boothFee: feeForSave(boothFee) || undefined,
             priority,
             autoUpdateEnabled: true,
           });
@@ -345,7 +348,9 @@ function AddConferenceModal({
             Registration fee
             <input
               value={registrationFee}
-              onChange={(e) => setRegistrationFee(e.target.value)}
+              onChange={(e) => setRegistrationFee(ensureUsdFeeInput(e.target.value))}
+              inputMode="decimal"
+              placeholder="$"
               className="mt-1 w-full rounded-md border border-white/10 bg-[#050c1a] px-3 py-2 text-sm text-white"
             />
           </label>
@@ -353,7 +358,9 @@ function AddConferenceModal({
             Booth fee
             <input
               value={boothFee}
-              onChange={(e) => setBoothFee(e.target.value)}
+              onChange={(e) => setBoothFee(ensureUsdFeeInput(e.target.value))}
+              inputMode="decimal"
+              placeholder="$"
               className="mt-1 w-full rounded-md border border-white/10 bg-[#050c1a] px-3 py-2 text-sm text-white"
             />
           </label>

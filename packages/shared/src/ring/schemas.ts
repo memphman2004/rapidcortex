@@ -36,6 +36,8 @@ export const ringHomeownerLinkBodySchema = z.object({
   mode: z.enum(["signin", "signup"]).default("signin"),
   nonce: z.string().min(8).max(256),
   time: z.string().regex(/^\d{13}$/, "time must be Unix epoch milliseconds"),
+  /** Optional dispatcher consent SMS token. Signup also accepts a live Appstore nonce. */
+  consentToken: z.string().min(16).max(512).optional(),
 });
 
 export type RingHomeownerLinkBody = z.infer<typeof ringHomeownerLinkBodySchema>;
@@ -57,3 +59,9 @@ export const ringHomeownerConfirmForgotPasswordBodySchema = z.object({
 export type RingHomeownerConfirmForgotPasswordBody = z.infer<
   typeof ringHomeownerConfirmForgotPasswordBodySchema
 >;
+
+export const ringHomeownerVerifyQuerySchema = z.object({
+  token: z.string().min(16).max(128),
+});
+
+export type RingHomeownerVerifyQuery = z.infer<typeof ringHomeownerVerifyQuerySchema>;

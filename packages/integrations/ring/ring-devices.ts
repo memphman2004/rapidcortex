@@ -1,6 +1,7 @@
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import {
   DynamoDBDocumentClient,
+  DeleteCommand,
   GetCommand,
   PutCommand,
   QueryCommand,
@@ -269,6 +270,32 @@ export class RingDeviceService {
       matched.push({ ...device, isEnabledForConnect: false, updatedAt: nowIso() });
     }
     return matched;
+  }
+
+  /** Hard-delete all device rows for one agency user (account deletion). */
+  async deleteLinkedDevices(agencyId: string, userId: string): Promise<number> {
+    const devices = await this.getLinkedDevices(agencyId, userId);
+    for (const device of devices) {
+      try {
+        await docSend(
+          this.ddb,
+          new DeleteCommand({
+            TableName: RING_TABLE_NAMES.DEVICES,
+            Key: {
+              agencyUserKey: agencyUserKey(agencyId, userId),
+              deviceId: device.deviceId,
+            },
+            ConditionExpression: "agencyId = :agencyId",
+            ExpressionAttributeValues: { ":agencyId": agencyId },
+          }),
+        );
+      } catch (err) {
+        const name = err instanceof Error ? err.name : "";
+        if (name === "ConditionalCheckFailedException") continue;
+        throw err;
+      }
+    }
+    return devices.length;
   }
 
   private async getDeviceRecord(

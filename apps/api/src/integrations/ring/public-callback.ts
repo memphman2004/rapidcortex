@@ -92,6 +92,7 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
       incomingState,
       stored.state,
       createdAtMs,
+      stored.codeVerifier,
     );
 
     const client = new RingApiClient(tokens.accessToken);

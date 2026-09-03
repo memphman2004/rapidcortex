@@ -4,6 +4,7 @@ import {
   jurisdictionFromAgencyId,
   normalizeRole,
   allowedRoutePrefixesForRole,
+  transitCodeFromAgencyId,
 } from "./vertical-routing.js";
 
 describe("jurisdictionFromAgencyId", () => {
@@ -15,6 +16,12 @@ describe("jurisdictionFromAgencyId", () => {
 
   it("uses single segment when only one part", () => {
     expect(jurisdictionFromAgencyId("test")).toBe("test");
+  });
+});
+
+describe("transitCodeFromAgencyId", () => {
+  it("extracts HVT from test-transit-hvt", () => {
+    expect(transitCodeFromAgencyId("test-transit-hvt")).toBe("HVT");
   });
 });
 
@@ -46,6 +53,16 @@ describe("dashboardRouteFromRole", () => {
     expect(dashboardRouteFromRole("supervisor", "test-agency")).toBe("/test-agency/supervisor");
   });
 
+  it("routes Ring homeowners to the media console for in-app account deletion", () => {
+    expect(dashboardRouteFromRole("homeowner", "test-agency")).toBe("/test-agency/media");
+  });
+
+  it("routes transit security to transit console", () => {
+    expect(dashboardRouteFromRole("transit_security", "test-transit-hvt")).toBe(
+      "/app/transit/security",
+    );
+  });
+
   it("routes rcsuperadmin to rc-admin", () => {
     expect(dashboardRouteFromRole("rcsuperadmin", "platform")).toBe("/rc-admin");
   });
@@ -66,6 +83,10 @@ describe("dashboardRouteFromRole", () => {
 describe("allowedRoutePrefixesForRole", () => {
   it("scopes campus roles to campus shell", () => {
     expect(allowedRoutePrefixesForRole("campus_security")).toEqual(["/app/campus"]);
+  });
+
+  it("scopes transit roles to transit shells", () => {
+    expect(allowedRoutePrefixesForRole("transit_admin")).toEqual(["/app/transit", "/transit"]);
   });
 
   it("allows 911 roles broad jurisdiction access", () => {
@@ -99,5 +120,15 @@ describe("pathMatchesRoleDashboard", () => {
     expect(
       pathMatchesRoleDashboard("/venue/MBS/reports", "venue_guest", "test-venue-mbs"),
     ).toBe(false);
+  });
+
+  it("allows transit security on code-based fleet routes", async () => {
+    const { pathMatchesRoleDashboard } = await import("./vertical-routing.js");
+    expect(
+      pathMatchesRoleDashboard("/app/transit/security", "transit_security", "test-transit-hvt"),
+    ).toBe(true);
+    expect(pathMatchesRoleDashboard("/transit/HVT/fleet", "transit_security", "test-transit-hvt")).toBe(
+      true,
+    );
   });
 });

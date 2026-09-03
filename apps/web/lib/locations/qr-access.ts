@@ -37,5 +37,8 @@ export function roleMayAccessQrNav(role: string | undefined | null): boolean {
   ) {
     return true;
   }
+  if (upper === "TRANSIT_ADMIN" || upper === "TRANSIT_SUPERVISOR") {
+    return true;
+  }
   return false;
 }

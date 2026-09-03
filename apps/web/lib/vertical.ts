@@ -15,7 +15,7 @@ export const VERTICAL_CONFIG: Record<
   campus: { label: "RC Campus", color: "#34D399", bg: "rgba(52,211,153,0.15)" },
   venue: { label: "RC Venue", color: "#FB923C", bg: "rgba(251,146,60,0.15)" },
   hospital: { label: "RC Hospital", color: "#F9A8D4", bg: "rgba(249,168,212,0.15)" },
-  transit: { label: "RC Transit", color: "#6366F1", bg: "rgba(99,102,241,0.15)" },
+  transit: { label: "RC Transit", color: "#3b82f6", bg: "rgba(59,130,246,0.15)" },
 };
 
 export function normalizeVertical(value: string | null | undefined): Vertical {

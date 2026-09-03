@@ -1,5 +1,5 @@
-import { VerticalRoleStub } from "@/components/dashboards/vertical-role-stub";
+import { TransitOperationsDashboardPage } from "@/components/transit/transit-operations-dashboard-page";
 
 export default function TransitAdminPage() {
-  return <VerticalRoleStub consoleTitle="Transit Admin" vertical="transit" />;
+  return <TransitOperationsDashboardPage />;
 }

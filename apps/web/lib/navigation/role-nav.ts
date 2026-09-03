@@ -1,7 +1,7 @@
 /**
  * apps/web/lib/navigation/role-nav.ts
  *
- * Single source of truth for every sidebar across all 21 active roles.
+ * Single source of truth for every sidebar across all 25 active roles.
  *
  * Usage:
  *   const nav = getRoleNav(session.role, { jurisdiction, venueCode, campusCode });
@@ -999,6 +999,98 @@ export function getVenueGuestServicesNav(code: string): RoleNav {
   };
 }
 
+export function getTransitAdminNav(code: string): RoleNav {
+  const base = `/transit/${code}`;
+  return {
+    accent: "sky",
+    roleBadge: "TRANSIT ADMIN",
+    sections: [
+      {
+        id: "ops",
+        label: "TRANSIT OPS",
+        items: [
+          { id: "dashboard", label: "Dashboard", href: `${base}`, icon: "LayoutDashboard", exact: true, feature: "verticalTransit" },
+          { id: "fleet", label: "Fleet", href: `${base}/fleet`, icon: "Bus", feature: "verticalTransit" },
+          { id: "routes", label: "Routes", href: `${base}/routes`, icon: "Map", feature: "verticalTransit" },
+          { id: "incidents", label: "Incidents", href: `${base}/incidents`, icon: "AlertTriangle", feature: "verticalTransit" },
+          { id: "reports", label: "Reports", href: `${base}/reports`, icon: "FileText", feature: "verticalTransit" },
+          { id: "operators", label: "Operators", href: `${base}/operators`, icon: "Users", feature: "verticalTransit" },
+        ],
+      },
+      {
+        id: "config",
+        label: "CONFIG",
+        items: [
+          { id: "vehicles", label: "Vehicles", href: `${base}/settings/vehicles`, icon: "Wrench", feature: "verticalTransit" },
+          { id: "routes", label: "Routes", href: `${base}/settings/routes`, icon: "Map", feature: "verticalTransit" },
+          { id: "cameras", label: "Cameras", href: `${base}/settings/cameras`, icon: "Video", feature: "verticalTransit" },
+        ],
+      },
+    ],
+  };
+}
+
+export function getTransitSupervisorNav(code: string): RoleNav {
+  const base = `/transit/${code}`;
+  return {
+    accent: "sky",
+    roleBadge: "TRANSIT SUPERVISOR",
+    sections: [
+      {
+        id: "ops",
+        label: "TRANSIT OPS",
+        items: [
+          { id: "dashboard", label: "Dashboard", href: `${base}`, icon: "LayoutDashboard", exact: true, feature: "verticalTransit" },
+          { id: "fleet", label: "Fleet", href: `${base}/fleet`, icon: "Bus", feature: "verticalTransit" },
+          { id: "routes", label: "Routes", href: `${base}/routes`, icon: "Map", feature: "verticalTransit" },
+          { id: "incidents", label: "Incidents", href: `${base}/incidents`, icon: "AlertTriangle", feature: "verticalTransit" },
+          { id: "reports", label: "Reports", href: `${base}/reports`, icon: "FileText", feature: "verticalTransit" },
+          { id: "operators", label: "Operators", href: `${base}/operators`, icon: "Users", feature: "verticalTransit" },
+        ],
+      },
+    ],
+  };
+}
+
+export function getTransitSecurityNav(code: string): RoleNav {
+  const base = `/transit/${code}`;
+  return {
+    accent: "sky",
+    roleBadge: "TRANSIT SECURITY",
+    sections: [
+      {
+        id: "ops",
+        label: "TRANSIT OPS",
+        items: [
+          { id: "dashboard", label: "Dashboard", href: `/app/transit/security`, icon: "LayoutDashboard", exact: true, feature: "verticalTransit" },
+          { id: "fleet", label: "Fleet", href: `${base}/fleet`, icon: "Bus", feature: "verticalTransit" },
+          { id: "incidents", label: "Incidents", href: `${base}/incidents`, icon: "AlertTriangle", feature: "verticalTransit" },
+          { id: "reports", label: "Reports", href: `${base}/reports`, icon: "FileText", feature: "verticalTransit" },
+        ],
+      },
+    ],
+  };
+}
+
+export function getTransitOperatorNav(code: string): RoleNav {
+  const base = `/transit/${code}`;
+  return {
+    accent: "sky",
+    roleBadge: "TRANSIT OPERATOR",
+    sections: [
+      {
+        id: "ops",
+        items: [
+          { id: "dashboard", label: "My vehicle", href: `/app/transit/operator`, icon: "LayoutDashboard", exact: true, feature: "verticalTransit" },
+          { id: "fleet", label: "Fleet", href: `${base}/fleet`, icon: "Bus", feature: "verticalTransit" },
+          { id: "incidents", label: "Incidents", href: `${base}/incidents`, icon: "AlertTriangle",
+            badge: { type: "label", text: "REPORT", color: "blue" }, feature: "verticalTransit" },
+        ],
+      },
+    ],
+  };
+}
+
 // ─── Resolver ─────────────────────────────────────────────────────────────────
 
 function resolveNavRole(raw: string): string {
@@ -1006,6 +1098,7 @@ function resolveNavRole(raw: string): string {
   const upper = token.toUpperCase();
   if (upper.startsWith("VENUE_")) return upper;
   if (upper.startsWith("CAMPUS_")) return upper;
+  if (upper.startsWith("TRANSIT_")) return upper;
   if (upper === "HOSPITAL_COORDINATOR") return "HOSPITAL_COORDINATOR";
   if (upper === "HOSPITAL_ADMIN") return "HOSPITAL_ADMIN";
   if (upper === "HOSPITAL_STAFF") return "HOSPITAL_STAFF";
@@ -1015,6 +1108,7 @@ function resolveNavRole(raw: string): string {
   if (migrated.startsWith("venue_")) return migrated.toUpperCase();
   if (upper === "VENUE_GUEST") return "VENUE_GUEST_SERVICES";
   if (migrated.startsWith("campus_")) return migrated.toUpperCase();
+  if (migrated.startsWith("transit_")) return migrated.toUpperCase();
   if (migrated === "hospitaladmin") return "HOSPITAL_ADMIN";
   if (migrated === "hospitalstaff") return "HOSPITAL_STAFF";
   return migrated;
@@ -1024,12 +1118,14 @@ export type NavContext = {
   jurisdiction?: string;   // PSAP slug
   venueCode?: string;
   campusCode?: string;
+  transitCode?: string;
 };
 
 export function getRoleNav(role: string, ctx: NavContext): RoleNav {
   const j = ctx.jurisdiction ?? "jurisdiction";
   const v = ctx.venueCode ?? "venue";
   const c = ctx.campusCode ?? "campus";
+  const t = ctx.transitCode ?? "transit";
   const resolved = resolveNavRole(role);
 
   switch (resolved) {
@@ -1059,6 +1155,10 @@ export function getRoleNav(role: string, ctx: NavContext): RoleNav {
     case "VENUE_SECURITY":      return getVenueSecurityNav(v);
     case "VENUE_OPERATOR":      return getVenueOperatorNav(v);
     case "VENUE_GUEST_SERVICES":return getVenueGuestServicesNav(v);
+    case "TRANSIT_ADMIN":       return getTransitAdminNav(t);
+    case "TRANSIT_SUPERVISOR":  return getTransitSupervisorNav(t);
+    case "TRANSIT_SECURITY":    return getTransitSecurityNav(t);
+    case "TRANSIT_OPERATOR":    return getTransitOperatorNav(t);
 
     default:
       // Unknown role — return a minimal safe nav that redirects to sign-out

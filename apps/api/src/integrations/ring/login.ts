@@ -53,8 +53,8 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
       }),
     );
 
-    const { url, state } = await oauth.buildAuthorizationUrl(user.agencyId, user.userId, ringReturnUrl);
-    await accounts.saveOAuthState(user.agencyId, user.userId, state, OAUTH_STATE_TTL_SECONDS);
+    const { url, state, codeVerifier } = await oauth.buildAuthorizationUrl(user.agencyId, user.userId, ringReturnUrl);
+    await accounts.saveOAuthState(user.agencyId, user.userId, state, OAUTH_STATE_TTL_SECONDS, codeVerifier);
 
     await auditRingEvent({
       type: AUDIT_EVENT_TYPES.RING_OAUTH_INITIATED,

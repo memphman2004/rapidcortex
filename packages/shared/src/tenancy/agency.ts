@@ -9,7 +9,8 @@ export type AgencyType =
   | "pilot"
   | "state_agency"
   | "venue"
-  | "campus";
+  | "campus"
+  | "transit";
 
 /** Product agency-type values (PSAP governance / billing segmentation). */
 export const AGENCY_TYPE_VALUES = [
@@ -21,6 +22,7 @@ export const AGENCY_TYPE_VALUES = [
   "state_agency",
   "venue",
   "campus",
+  "transit",
 ] as const satisfies readonly AgencyType[];
 
 export const AGENCY_TYPE_LABELS: Record<AgencyType, string> = {
@@ -32,6 +34,7 @@ export const AGENCY_TYPE_LABELS: Record<AgencyType, string> = {
   state_agency: "State Agency",
   venue: "Venue",
   campus: "Campus",
+  transit: "Transit",
 };
 
 export function formatAgencyType(type: AgencyType | string): string {
@@ -42,7 +45,7 @@ export function formatAgencyType(type: AgencyType | string): string {
 export type AgencyLifecycleStatus = "draft" | "pilot" | "active" | "suspended" | "archived";
 
 export type AgencyDeploymentMode = "side_by_side" | "partially_integrated" | "integrated";
-export type AgencyVertical = "core" | "campus" | "venue" | "hospital";
+export type AgencyVertical = "core" | "campus" | "venue" | "hospital" | "transit";
 export type AgencyPlanTier = "starter" | "professional" | "command" | "enterprise";
 
 /**
@@ -140,14 +143,18 @@ export function resolveAgencyVerticalFromTenant(
 ): AgencyVertical {
   if (agency.vertical) {
     const token = String(agency.vertical).trim().toLowerCase();
-    if (token === "campus" || token === "venue" || token === "hospital") return token;
+    if (token === "campus" || token === "venue" || token === "hospital" || token === "transit") {
+      return token;
+    }
     return "core";
   }
   if (agency.type === "venue") return "venue";
   if (agency.type === "campus") return "campus";
+  if (agency.type === "transit") return "transit";
   const token = agency.agencyId.trim().toLowerCase();
   if (token.includes("campus-")) return "campus";
   if (token.includes("venue-")) return "venue";
   if (token.includes("hospital")) return "hospital";
+  if (token.includes("transit-")) return "transit";
   return "core";
 }

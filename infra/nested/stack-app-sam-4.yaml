@@ -1744,8 +1744,25 @@ Resources:
             CloudWatchMetricsEnabled: true
             MetricName: !Sub "${AppName}AllowedAgencyIPs"
             SampledRequestsEnabled: true
-        - Name: GeoRestrictToNorthAmerica
+        - Name: HomeownerSignupRateLimit
           Priority: 1
+          Action: { Block: {} }
+          Statement:
+            RateBasedStatement:
+              Limit: 10
+              AggregateKeyType: IP
+              ScopeDownStatement:
+                ByteMatchStatement:
+                  SearchString: "/api/public/ring/homeowner"
+                  FieldToMatch: { UriPath: {} }
+                  TextTransformations: [{ Priority: 0, Type: LOWERCASE }]
+                  PositionalConstraint: STARTS_WITH
+          VisibilityConfig:
+            SampledRequestsEnabled: true
+            CloudWatchMetricsEnabled: true
+            MetricName: HomeownerSignupRateLimit
+        - Name: GeoRestrictToNorthAmerica
+          Priority: 2
           Action:
             Block:
               CustomResponse:
@@ -1763,7 +1780,7 @@ Resources:
             MetricName: !Sub "${AppName}GeoBlocked"
             SampledRequestsEnabled: true
         - Name: MonitorAnonymousIPs
-          Priority: 2
+          Priority: 3
           OverrideAction:
             Count: {}
           Statement:
@@ -1775,7 +1792,7 @@ Resources:
             MetricName: !Sub "${AppName}AnonymousIPBlocked"
             SampledRequestsEnabled: true
         - Name: AWSManagedCommon
-          Priority: 3
+          Priority: 4
           OverrideAction:
             None: {}
           Statement:
@@ -1791,7 +1808,7 @@ Resources:
             MetricName: !Sub "${AppName}WafCommon"
             SampledRequestsEnabled: true
         - Name: AWSManagedBadInputs
-          Priority: 4
+          Priority: 5
           OverrideAction:
             None: {}
           Statement:
@@ -1803,7 +1820,7 @@ Resources:
             MetricName: !Sub "${AppName}WafBadInputs"
             SampledRequestsEnabled: true
         - Name: AWSManagedIpReputation
-          Priority: 5
+          Priority: 6
           OverrideAction:
             None: {}
           Statement:
@@ -1815,7 +1832,7 @@ Resources:
             MetricName: !Sub "${AppName}WafIpRep"
             SampledRequestsEnabled: true
         - Name: PerIpRateLimit
-          Priority: 6
+          Priority: 7
           Action:
             Block:
               CustomResponse:
@@ -2861,6 +2878,9 @@ Resources:
               - cognito-idp:AdminCreateUser
               - cognito-idp:AdminSetUserPassword
               - cognito-idp:AdminUpdateUserAttributes
+              - cognito-idp:AdminAddUserToGroup
+              - cognito-idp:AdminDisableUser
+              - cognito-idp:AdminEnableUser
             Resource: !Sub "arn:aws:cognito-idp:${AWS::Region}:${AWS::AccountId}:userpool/${ImportedCognitoUserPoolId}"
           - Sid: CognitoInitiateAuth
             Effect: Allow
@@ -2876,11 +2896,16 @@ Resources:
               - dynamodb:PutItem
               - dynamodb:UpdateItem
               - dynamodb:DeleteItem
+              - dynamodb:Query
             Resource:
               - !If
                 - HasRingRequestsTable
                 - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${RingRequestsTable}
                 - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/RingEmergencyCameraRequests-${DeploymentStage}
+              - !If
+                - HasRingRequestsTable
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${RingRequestsTable}/index/requestStatus-index
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/RingEmergencyCameraRequests-${DeploymentStage}/index/requestStatus-index
           - Sid: UnclaimedTokensIndex
             Effect: Allow
             Action:
@@ -3082,7 +3107,7 @@ Resources:
       BuildTarget: build-function
     Properties:
       CodeUri: ../../apps/api/
-      Handler: dist/integrations/ring/homeowner-link.handler
+      Handler: dist/integrations/ring/homeowner-public.handler
       Timeout: 60
       Environment:
         Variables:
@@ -3110,6 +3135,7 @@ Resources:
             - HasRingRequestsTable
             - !Ref RingRequestsTable
             - !Sub "RingEmergencyCameraRequests-${DeploymentStage}"
+          RING_CAMERA_REQUESTS_TABLE: !If [HasRingRequestsTable, !Ref RingRequestsTable, !Sub "RingEmergencyCameraRequests-${DeploymentStage}"]
           RING_TABLE_UNCLAIMED_TOKENS: !If
             - HasRingUnclaimedTokensTable
             - !Ref RingUnclaimedTokensTable
@@ -3130,8 +3156,11 @@ Resources:
             - HasRingHomeownerParticipantsTable
             - !Ref RingHomeownerParticipantsTable
             - !Sub "RapidCortexRingHomeownerParticipants-${DeploymentStage}"
+          RING_REDIRECT_URI: !Ref RingRedirectUri
+          RING_ACCOUNT_LINK_URL: !Ref RingAccountLinkUrl
       Policies:
         - !Ref AppManagedPolicyRingHomeownerLink
+        - !Ref AppManagedPolicySesBillingSenderIdentityEmails
       Events:
         Route:
           Type: HttpApi
@@ -3141,6 +3170,34 @@ Resources:
             Method: POST
             Auth:
               Authorizer: NONE
+        Verify:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/public/ring/homeowner/verify
+            Method: GET
+            Auth: { Authorizer: NONE }
+
+  CleanupOrphanedHomeownersFunction:
+    Type: AWS::Serverless::Function
+    Metadata: { BuildMethod: makefile, BuildTarget: build-function }
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/integrations/ring/cleanup-orphaned-homeowners.handler
+      Timeout: 60
+      Environment:
+        Variables:
+          COGNITO_USER_POOL_ID: !Ref ImportedCognitoUserPoolId
+          RING_HOMEOWNER_DEFAULT_AGENCY_ID: !Ref RingHomeownerDefaultAgencyId
+          RING_TABLE_HOMEOWNER_PARTICIPANTS: !If [HasRingHomeownerParticipantsTable, !Ref RingHomeownerParticipantsTable, !Sub "RapidCortexRingHomeownerParticipants-${DeploymentStage}"]
+      Policies:
+        - !Ref AppManagedPolicyRingHomeownerLink
+      Events:
+        Schedule:
+          Type: Schedule
+          Properties:
+            Schedule: rate(6 hours)
+            Name: !Sub "${AppName}-homeowner-cleanup-${DeploymentStage}"
 
   RingHomeownerPasswordResetFunction:
     Type: AWS::Serverless::Function
@@ -3212,6 +3269,52 @@ Resources:
             ApiId: !Ref Api
             Path: /api/integrations/ring/devices
             Method: GET
+
+  DeleteAccountFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      Description: Delete authenticated Ring Device Owner account and revoke Ring tokens
+      CodeUri: ../../apps/api/
+      Handler: dist/integrations/ring/delete-account.handler
+      Timeout: 30
+      Environment:
+        Variables:
+          RING_CREDENTIALS_SECRET_ARN: !Ref RingCredentialsSecretArn
+          RING_PARTNERSHIP_ENABLED: !Ref RingPartnershipEnabled
+          COGNITO_USER_POOL_ID: !Ref ImportedCognitoUserPoolId
+          COGNITO_CLIENT_ID: !Ref ImportedCognitoWebClientId
+          ENABLE_CONNECT_RING: !Ref EnableConnectRing
+          RING_SECRETS_PREFIX: !Ref RingSecretsPrefix
+          RING_TABLE_ACCOUNTS: !If
+            - HasRingAccountsTable
+            - !Ref RingAccountsTable
+            - !Sub "RapidCortexRingAccounts-${DeploymentStage}"
+          RING_TABLE_DEVICES: !If
+            - HasRingDevicesTable
+            - !Ref RingDevicesTable
+            - !Sub "RapidCortexRingDevices-${DeploymentStage}"
+      Policies:
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardA
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardC
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardD
+        - !Ref AppManagedPolicyRingConnectSecrets
+        - Statement:
+            Effect: Allow
+            Action:
+              - cognito-idp:AdminGetUser
+              - cognito-idp:AdminDisableUser
+              - cognito-idp:AdminDeleteUser
+            Resource: !Sub "arn:aws:cognito-idp:${AWS::Region}:${AWS::AccountId}:userpool/${ImportedCognitoUserPoolId}"
+      Events:
+        Route:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/user/account
+            Method: DELETE
 
   RingConnectDeviceToggleFunction:
     Type: AWS::Serverless::Function

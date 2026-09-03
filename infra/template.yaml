@@ -3008,6 +3008,35 @@ Resources:
         HospitalProfilesTable: !Sub "rapid-cortex-hospital-profiles-${DeploymentStage}"
         ManagedPolicyNamePrefix: !Ref AWS::StackName
 
+  AppSamTransitStack:
+    Type: AWS::CloudFormation::Stack
+    Metadata:
+      cfn-lint:
+        config:
+          ignore_checks:
+            - W3005
+    DependsOn: AppSam2Stack
+    Properties:
+      TimeoutInMinutes: 60
+      TemplateURL: nested/stack-app-sam-transit.yaml
+      Parameters:
+        DeploymentStage: !Ref DeploymentStage
+        HttpApiId: !GetAtt AppSam2Stack.Outputs.HttpApiId
+        ImportedCognitoUserPoolId: !GetAtt AppSamStackV2.Outputs.UserPoolId
+        ImportedCognitoWebClientId: !GetAtt AppSamStackV2.Outputs.UserPoolClientId
+        ImportedCognitoIssuer: !GetAtt AppSamStackV2.Outputs.CognitoIssuer
+        AuditTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.AuditTable
+            - !Sub "${DynamoTableNamePrefix}-audit-${DeploymentStage}"
+        AgenciesTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.AgenciesTable
+            - !Sub "${DynamoTableNamePrefix}-agencies-${DeploymentStage}"
+        ManagedPolicyNamePrefix: !Ref AWS::StackName
+
   AppSamRcsStack2:
     Type: AWS::CloudFormation::Stack
     Metadata:

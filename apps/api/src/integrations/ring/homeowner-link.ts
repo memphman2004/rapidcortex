@@ -27,6 +27,7 @@ import {
 } from "../../repositories/ringCitizenOwnerRepository.js";
 import { RingHomeownerParticipantRepository } from "../../repositories/ringHomeownerParticipantRepository.js";
 import { authenticateHomeowner } from "./homeowner-cognito.js";
+import { isDisposableEmail, validateConsentToken } from "./homeowner-signup-guards.js";
 import { deriveCitizenRingAccountId } from "./ring-citizen-id.js";
 import { homeownerIdFromPartnerAccount } from "./ring-homeowner-id.js";
 import { auditRingEvent, AUDIT_EVENT_TYPES } from "./ring-audit.js";
@@ -96,13 +97,25 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
       return ringPublicJson(event, 400, { success: false, error: "Invalid request body." });
     }
 
-    const { email, password, mode, nonce, time } = parsed.data;
+    const { email, password, mode, nonce, time, consentToken } = parsed.data;
+    if (isDisposableEmail(email)) {
+      return ringPublicJson(event, 400, { error: "Invalid email address." });
+    }
+
     const freshness = validateRingLinkTimestamp(time);
     if (!freshness.ok) {
       return ringPublicJson(event, 400, {
         success: false,
         error: freshness.reason === "expired" ? "Link request expired." : "Invalid link timestamp.",
       });
+    }
+
+    if (mode === "signup") {
+      const consentOk = consentToken ? await validateConsentToken(consentToken) : false;
+      const nonceOk = Boolean(await unclaimedService.matchNonce(nonce, time));
+      if (!consentOk && !nonceOk) {
+        return ringPublicJson(event, 403, { error: "Forbidden" });
+      }
     }
 
     let auth;
@@ -288,6 +301,8 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
       consentGiven: true,
       registeredAt: existingParticipant?.registeredAt ?? now,
       updatedAt: now,
+      status: deviceIds.length > 0 ? "ACTIVE" : "PENDING",
+      cognitoUsername: auth.email,
       ...(displayName ? { name: displayName } : {}),
       ...(profile.phoneNumber ? { phone: profile.phoneNumber } : {}),
       email: auth.email,

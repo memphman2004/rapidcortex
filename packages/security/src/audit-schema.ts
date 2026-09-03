@@ -161,6 +161,13 @@ export const AUDIT_EVENT_TYPES = {
   VENUE_CAMERA_REGISTRY_UPDATED: "venue.camera_registry.updated",
   VENUE_INCIDENT_UPDATE_POSTED: "venue.incident.update_posted",
   VENUE_INCIDENT_STATUS_CHANGED: "venue.incident.status_changed",
+  TRANSIT_INCIDENT_CREATED: "transit.incident.created",
+  TRANSIT_INCIDENT_UPDATED: "transit.incident.updated",
+  TRANSIT_INCIDENT_ESCALATED: "transit.incident.escalated_911",
+  TRANSIT_ALERT_CHANGED: "transit.alert.changed",
+  TRANSIT_BROADCAST_SENT: "transit.broadcast.sent",
+  TRANSIT_VEHICLE_UPDATED: "transit.vehicle.updated",
+  TRANSIT_GPS_INGESTED: "transit.vehicle.gps",
   // ── Silent text ────────────────────────────────────────────────────────────
   SILENT_TEXT_SESSION_CREATED: "silent_text.session.created",
   SILENT_TEXT_SMS_SENT: "silent_text.sms.sent",

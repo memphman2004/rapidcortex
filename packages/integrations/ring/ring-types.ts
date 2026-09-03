@@ -151,6 +151,10 @@ export interface RingHomeownerParticipantRecord {
   email?: string;
   registeredAt: string;
   updatedAt: string;
+  /** ACTIVE after a completed device link; PENDING until then; EXPIRED by cleanup. */
+  status?: "ACTIVE" | "PENDING" | "EXPIRED";
+  cognitoUsername?: string;
+  expiredAt?: string;
   /** Optional TTL epoch seconds (unused for active enrollments). */
   ttl?: number;
 }

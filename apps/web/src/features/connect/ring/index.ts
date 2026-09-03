@@ -3,6 +3,7 @@ export * from "./RingCameraRequestStatusBadge";
 export * from "./RingIntegrationStatus";
 export * from "./RingConnectButton";
 export * from "./RingLinkedDevicesPanel";
+export * from "./RingDeleteAccountSection";
 export * from "./RingCameraRequestCard";
 export * from "./ViewAvailableRingCamerasButton";
 export * from "./AvailableRingCamerasModal";

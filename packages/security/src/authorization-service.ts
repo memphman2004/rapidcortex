@@ -15,10 +15,13 @@ import {
   CAMPUS_ROLE_BASE_MAP,
   canCampusRolePerform,
   canVenueRolePerform,
+  canTransitRolePerform,
   isCampusRole,
   isVenueRole,
+  isTransitRole,
   type CampusRole,
   type VenueRole,
+  type TransitRole,
 } from "./role-access-matrix-v2.js";
 
 function resolveVenueMatrixRole(role: string): VenueRole | null {
@@ -27,6 +30,23 @@ function resolveVenueMatrixRole(role: string): VenueRole | null {
   const migrated = migrateLegacyRapidCortexRoleTokenValue(role);
   if (migrated === "venue_guest") return "VENUE_GUEST_SERVICES";
   return null;
+}
+
+function resolveTransitMatrixRole(role: string): TransitRole | null {
+  const upper = role.trim().toUpperCase();
+  if (isTransitRole(upper)) return upper;
+  const migrated = migrateLegacyRapidCortexRoleTokenValue(role);
+  const mapped =
+    migrated === "transit_admin"
+      ? "TRANSIT_ADMIN"
+      : migrated === "transit_supervisor"
+        ? "TRANSIT_SUPERVISOR"
+        : migrated === "transit_security"
+          ? "TRANSIT_SECURITY"
+          : migrated === "transit_operator"
+            ? "TRANSIT_OPERATOR"
+            : null;
+  return mapped && isTransitRole(mapped) ? mapped : null;
 }
 
 /** Session tokens are often `campus_admin`; matrix keys are `CAMPUS_ADMIN`. */
@@ -84,6 +104,7 @@ export class AuthorizationService {
     // Campus / venue admins manage staff invites inside their own tenant.
     if (resolveCampusMatrixRole(String(user.role)) === "CAMPUS_ADMIN") return true;
     if (resolveVenueMatrixRole(String(user.role)) === "VENUE_ADMIN") return true;
+    if (resolveTransitMatrixRole(String(user.role)) === "TRANSIT_ADMIN") return true;
     return false;
   }
 
@@ -165,6 +186,13 @@ export class AuthorizationService {
       (permissionKey.startsWith("venue.") || permissionKey.startsWith("locations."))
     ) {
       return canVenueRolePerform(venueRole, permissionKey);
+    }
+    const transitRole = resolveTransitMatrixRole(rawRole);
+    if (
+      transitRole &&
+      (permissionKey.startsWith("transit.") || permissionKey.startsWith("locations."))
+    ) {
+      return canTransitRolePerform(transitRole, permissionKey);
     }
     if (!(ALL_PERMISSIONS as readonly string[]).includes(permissionKey)) return false;
     const typedPermission = permissionKey as Permission;

@@ -38,8 +38,8 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
       return ringJson({ success: false, error: "Invalid request." }, 400);
     }
 
-    const { url, state } = await oauth.buildCitizenAuthorizationUrl(agencyId);
-    await oauthStates.saveState(state, agencyId, "manage");
+    const { url, state, codeVerifier } = await oauth.buildCitizenAuthorizationUrl(agencyId);
+    await oauthStates.saveState(state, agencyId, "manage", undefined, undefined, codeVerifier);
 
     await auditRingEvent({
       type: AUDIT_EVENT_TYPES.RING_CITIZEN_MANAGE_INITIATED,

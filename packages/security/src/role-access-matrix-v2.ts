@@ -186,6 +186,74 @@ export function canVenueRolePerform(role: VenueRole, permission: string): boolea
   return VENUE_ROLE_PERMISSIONS[role]?.includes(permission) ?? false;
 }
 
+// ── TRANSIT ROLES ─────────────────────────────────────────────────────────
+export const TRANSIT_ROLES = [
+  "TRANSIT_ADMIN",
+  "TRANSIT_SUPERVISOR",
+  "TRANSIT_SECURITY",
+  "TRANSIT_OPERATOR",
+] as const;
+
+export type TransitRole = (typeof TRANSIT_ROLES)[number];
+
+export function isTransitRole(role: string): role is TransitRole {
+  return (TRANSIT_ROLES as readonly string[]).includes(role);
+}
+
+const TRANSIT_OPS_VIEW: readonly string[] = [
+  "transit.dashboard.view",
+  "transit.fleet.view",
+  "transit.incidents.view",
+  "transit.reports.view",
+  "transit.operators.view",
+  "transit.routes.view",
+];
+
+export const TRANSIT_ROLE_PERMISSIONS: Record<TransitRole, string[]> = {
+  TRANSIT_ADMIN: [
+    ...TRANSIT_OPS_VIEW,
+    "transit.fleet.manage",
+    "transit.incidents.create",
+    "transit.incidents.update",
+    "transit.incidents.escalate",
+    "transit.operators.manage",
+    "transit.routes.manage",
+    "transit.settings.view",
+    "transit.settings.manage",
+    "transit.alert.manage",
+    "transit.broadcast.send",
+    "locations.qrcodes.view",
+    "locations.qrcodes.manage",
+  ],
+  TRANSIT_SUPERVISOR: [
+    ...TRANSIT_OPS_VIEW,
+    "transit.incidents.create",
+    "transit.incidents.update",
+    "transit.incidents.escalate",
+    "transit.settings.view",
+    "transit.alert.manage",
+    "transit.broadcast.send",
+    "locations.qrcodes.view",
+    "locations.qrcodes.manage",
+  ],
+  TRANSIT_SECURITY: [
+    ...TRANSIT_OPS_VIEW,
+    "transit.incidents.create",
+    "transit.incidents.update",
+  ],
+  TRANSIT_OPERATOR: [
+    "transit.dashboard.view",
+    "transit.fleet.view",
+    "transit.incidents.view",
+    "transit.incidents.create",
+    "transit.reports.view",
+  ],
+};
+
+export function canTransitRolePerform(role: TransitRole, permission: string): boolean {
+  return TRANSIT_ROLE_PERMISSIONS[role]?.includes(permission) ?? false;
+}
+
 /** Hospital + emergency-connect grants (product modules outside the PDF matrix). */
 const EMERGENCY_CONNECT_VIEW: readonly Permission[] = ["emergency_connect.view"] as const;
 

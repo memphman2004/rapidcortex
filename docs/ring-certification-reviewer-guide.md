@@ -34,9 +34,9 @@ video access from Ring camera owners near an active emergency incident.
 
 ## Part 1 — Link a Ring account (Appstore one-way — required)
 
-> **Do not use** Media → **Connect Ring Account** for Appstore cert. That path
-> calls `oauth.ring.com` with `scope=client` and fails with
-> `error on validating client scope`. Appstore linking is started from the **Ring app**.
+> **Do not use** Media → **Connect Ring Account** for Appstore cert unless Stack 4
+> with partner-initiated OAuth (`scope=ava.v1:read` + PKCE) is already deployed.
+> Appstore linking is started from the **Ring app** (one-way Get App flow).
 
 ### Step 0 — Portal URLs (once)
 

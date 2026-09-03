@@ -19,6 +19,7 @@ import {
   type UserRole,
 } from "rapid-cortex-shared";
 import { env } from "../lib/env.js";
+import { assignCognitoVerticalGroup } from "../lib/assign-cognito-vertical-group.js";
 import { normalizeRole } from "../lib/authz.js";
 
 const assignableAgencyRoles: AgencyRole[] = [...AGENCY_ASSIGNABLE_ROLES];
@@ -158,6 +159,13 @@ export class AdminUserService {
         MessageAction: "SUPPRESS",
       }),
     );
+
+    await assignCognitoVerticalGroup({
+      username: input.email,
+      agencyId: input.agencyId,
+      role: input.role,
+      email: input.email,
+    });
 
     return {
       username: input.email,

@@ -16,6 +16,7 @@ import {
   GetGroupCommand,
   type UserType,
 } from "@aws-sdk/client-cognito-identity-provider";
+import { cognitoVerticalGroupFromUser, COGNITO_VERTICAL_GROUP_DESCRIPTIONS } from "rapid-cortex-shared";
 
 const TEST_AGENCY = "test-agency";
 /** Product tenant id for platform (see `packages/shared`); not the literal "platform" string. */
@@ -220,6 +221,10 @@ const VERTICAL_COGNITO_GROUPS: { name: string; description: string }[] = [
   { name: "venue_admin", description: "Venue safety administrator" },
   { name: "venue_security", description: "Venue security officer" },
   { name: "venue_operator", description: "Venue operator" },
+  ...Object.entries(COGNITO_VERTICAL_GROUP_DESCRIPTIONS).map(([name, description]) => ({
+    name,
+    description,
+  })),
 ];
 
 async function ensureVerticalGroups(
@@ -377,13 +382,27 @@ async function main() {
             UserPoolId: pool,
             Username: username,
             GroupName: row.cognitoGroup,
-          })
+          }),
         );
         // eslint-disable-next-line no-console
-        console.log(
-          `[seed-role-test-users] Added ${row.email} to group ${row.cognitoGroup}.`
-        );
+        console.log(`[seed-role-test-users] Added ${row.email} to group ${row.cognitoGroup}.`);
       }
+    }
+    const verticalGroup = cognitoVerticalGroupFromUser({
+      agencyId: row.agencyId,
+      role: row.customRole,
+      email: row.email,
+    });
+    if (verticalGroup && !(await inGroup(client, pool, username, verticalGroup))) {
+      await client.send(
+        new AdminAddUserToGroupCommand({
+          UserPoolId: pool,
+          Username: username,
+          GroupName: verticalGroup,
+        }),
+      );
+      // eslint-disable-next-line no-console
+      console.log(`[seed-role-test-users] Added ${row.email} to group ${verticalGroup}.`);
     }
   }
 

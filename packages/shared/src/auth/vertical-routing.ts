@@ -48,6 +48,13 @@ export function venueCodeFromAgencyId(agencyId: string): string {
   return (match?.[1] ?? raw).toUpperCase().replace(/-/g, "");
 }
 
+/** Transit code segment for `/transit/{code}` routes (matches web `extractTransitCode`). */
+export function transitCodeFromAgencyId(agencyId: string): string {
+  const raw = agencyId.trim();
+  const match = raw.match(/(?:test-)?transit-(.+)$/i);
+  return (match?.[1] ?? raw).toUpperCase().replace(/-/g, "");
+}
+
 function venueCodeDashboardPath(agencyId: string): string {
   return `/app/venue/${venueCodeFromAgencyId(agencyId)}`;
 }
@@ -74,6 +81,8 @@ export function dashboardRouteFromRole(role: UserRole | string, agencyId: string
       return `/${jurisdiction}/supervisor`;
     case "dispatcher":
       return `/${jurisdiction}/dashboard`;
+    case "homeowner":
+      return `/${jurisdiction}/media`;
     case "analyst":
       return `/${jurisdiction}/analytics`;
     case "auditor":
@@ -133,7 +142,7 @@ export function allowedRoutePrefixesForRole(rawRole: string): string[] {
   if (role.startsWith("hospital_") || role === "hospitaladmin" || role === "hospitalstaff") {
     return ["/app/hospital", "/hospital-admin", "/hospital-staff"];
   }
-  if (role.startsWith("transit_")) return ["/app/transit"];
+  if (role.startsWith("transit_")) return ["/app/transit", "/transit"];
   return ["/"];
 }
 
@@ -199,6 +208,8 @@ export function pathMatchesRoleDashboard(
     return true;
   }
   if (vertical === "transit") {
+    if (path === "/app/transit" || path === "/app/transit/") return false;
+    if (path.startsWith("/transit/")) return true;
     if (!path.startsWith("/app/transit/")) return false;
     const segment = path.split("/")[3] ?? "";
     const roleSegments = new Set(["admin", "supervisor", "security", "operator"]);

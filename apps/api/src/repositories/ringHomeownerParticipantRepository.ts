@@ -1,4 +1,4 @@
-import { GetCommand, PutCommand, QueryCommand } from "@aws-sdk/lib-dynamodb";
+import { GetCommand, PutCommand, QueryCommand, UpdateCommand } from "@aws-sdk/lib-dynamodb";
 import type { RingHomeownerParticipantRecord } from "rapid-cortex-integrations/ring";
 import { ddb } from "./baseRepository.js";
 import { env } from "../lib/env.js";
@@ -41,6 +41,9 @@ export class RingHomeownerParticipantRepository {
     if (record.name) item.name = record.name;
     if (record.phone) item.phone = record.phone;
     if (record.email) item.email = record.email;
+    if (record.status) item.status = record.status;
+    if (record.cognitoUsername) item.cognitoUsername = record.cognitoUsername;
+    if (record.expiredAt) item.expiredAt = record.expiredAt;
     if (typeof record.ttl === "number") item.ttl = record.ttl;
 
     await ddb.send(
@@ -52,15 +55,40 @@ export class RingHomeownerParticipantRepository {
   }
 
   async listByAgencyId(agencyId: string): Promise<RingHomeownerParticipantRecord[]> {
-    const out = await ddb.send(
-      new QueryCommand({
+    const items: RingHomeownerParticipantRecord[] = [];
+    let exclusiveStartKey: Record<string, unknown> | undefined;
+    do {
+      const out = await ddb.send(
+        new QueryCommand({
+          TableName: participantsTable(),
+          IndexName: AGENCY_INDEX,
+          KeyConditionExpression: "agencyId = :agencyId",
+          ExpressionAttributeValues: { ":agencyId": agencyId },
+          ExclusiveStartKey: exclusiveStartKey,
+        }),
+      );
+      items.push(...((out.Items ?? []) as RingHomeownerParticipantRecord[]));
+      exclusiveStartKey = out.LastEvaluatedKey as Record<string, unknown> | undefined;
+    } while (exclusiveStartKey);
+    return items;
+  }
+
+  async markExpired(agencyId: string, homeownerId: string): Promise<void> {
+    const now = new Date().toISOString();
+    await ddb.send(
+      new UpdateCommand({
         TableName: participantsTable(),
-        IndexName: AGENCY_INDEX,
-        KeyConditionExpression: "agencyId = :agencyId",
-        ExpressionAttributeValues: { ":agencyId": agencyId },
+        Key: { homeownerId },
+        UpdateExpression: "SET #s = :expired, expiredAt = :now, updatedAt = :now",
+        ExpressionAttributeNames: { "#s": "status" },
+        ExpressionAttributeValues: {
+          ":expired": "EXPIRED",
+          ":now": now,
+          ":agencyId": agencyId,
+        },
+        ConditionExpression: "agencyId = :agencyId",
       }),
     );
-    return (out.Items ?? []) as RingHomeownerParticipantRecord[];
   }
 
   async listByState(state: string): Promise<RingHomeownerParticipantRecord[]> {

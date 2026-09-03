@@ -17,6 +17,11 @@ export function isRingOAuthStateUserId(userId: string): boolean {
   return userId.startsWith("ring-oauth-state#");
 }
 
+export type RingOAuthStateItem = {
+  state: string;
+  codeVerifier: string | null;
+};
+
 export class RingAccountRepository {
   async getLinkedAccount(agencyId: string, userId: string): Promise<LinkedRingAccount | null> {
     const out = await ddb.send(
@@ -71,8 +76,15 @@ export class RingAccountRepository {
     );
   }
 
-  async saveOAuthState(agencyId: string, userId: string, state: string, ttlSeconds: number): Promise<void> {
+  async saveOAuthState(
+    agencyId: string,
+    userId: string,
+    state: string,
+    ttlSeconds: number,
+    codeVerifier?: string | null,
+  ): Promise<void> {
     const ttl = Math.floor(Date.now() / 1000) + ttlSeconds;
+    const verifier = codeVerifier?.trim() || undefined;
     await ddb.send(
       new PutCommand({
         TableName: accountsTable(),
@@ -82,12 +94,13 @@ export class RingAccountRepository {
           state,
           ttl,
           itemType: "ring_oauth_state",
+          ...(verifier ? { codeVerifier: verifier } : {}),
         },
       }),
     );
   }
 
-  async getOAuthState(agencyId: string, userId: string): Promise<string | null> {
+  async getOAuthState(agencyId: string, userId: string): Promise<RingOAuthStateItem | null> {
     const out = await ddb.send(
       new GetCommand({
         TableName: accountsTable(),
@@ -96,7 +109,10 @@ export class RingAccountRepository {
     );
     if (!out.Item) return null;
     const state = out.Item.state;
-    return typeof state === "string" ? state : null;
+    if (typeof state !== "string") return null;
+    const rawVerifier = out.Item.codeVerifier;
+    const codeVerifier = typeof rawVerifier === "string" && rawVerifier.trim() ? rawVerifier : null;
+    return { state, codeVerifier };
   }
 
   async deleteOAuthState(agencyId: string, userId: string): Promise<void> {
@@ -106,5 +122,22 @@ export class RingAccountRepository {
         Key: { agencyId, userId: ringOAuthStateUserId(userId) },
       }),
     );
+  }
+
+  async deleteLinkedAccount(agencyId: string, userId: string): Promise<void> {
+    try {
+      await ddb.send(
+        new DeleteCommand({
+          TableName: accountsTable(),
+          Key: { agencyId, userId },
+          ConditionExpression: "agencyId = :agencyId",
+          ExpressionAttributeValues: { ":agencyId": agencyId },
+        }),
+      );
+    } catch (err) {
+      const name = err instanceof Error ? err.name : "";
+      if (name === "ConditionalCheckFailedException") return;
+      throw err;
+    }
   }
 }

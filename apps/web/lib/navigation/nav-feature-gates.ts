@@ -18,6 +18,7 @@ import {
   isVerticalOnboardingEnabled,
   isWarRoomsEnabled,
 } from "@/lib/runtime-flags";
+import { isVerticalEnabled } from "@/lib/features";
 
 /** Runtime feature gates for `NavItem.feature` keys in role-nav.ts. */
 export function isNavFeatureEnabled(feature: string): boolean {
@@ -58,6 +59,8 @@ export function isNavFeatureEnabled(feature: string): boolean {
       return isCampusCleryEnabled();
     case "warRooms":
       return isWarRoomsEnabled();
+    case "verticalTransit":
+      return isVerticalEnabled("transit");
     default:
       return true;
   }

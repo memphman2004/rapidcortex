@@ -99,7 +99,17 @@ describe("isCommsPlatformApiPath", () => {
   it("matches billing prefix (stack 4)", () => {
     expect(isSam4ApiPath("/api/billing/plans")).toBe(true);
     expect(isSam4ApiPath("/api/public/ring/oauth/start")).toBe(true);
+    expect(isSam4ApiPath("/api/user/account")).toBe(true);
     expect(isStack2ApiPath("/api/billing/plans")).toBe(false);
+  });
+
+  it("matches hospitals prefix (stack 2)", () => {
+    expect(isStack2ApiPath("/api/hospitals/prealerts")).toBe(true);
+  });
+
+  it("matches transit prefix (stack 2)", () => {
+    expect(isStack2ApiPath("/api/transit/test-transit-hvt/dashboard")).toBe(true);
+    expect(isSam5ApiPath("/api/transit/test-transit-hvt/dashboard")).toBe(false);
   });
 
   it("matches campus prefix (stack 5)", () => {

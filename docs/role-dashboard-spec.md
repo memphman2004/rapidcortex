@@ -14,6 +14,7 @@ Sections are ordered by risk and frequency of change:
 3. **Campus** — school safety vertical (not PSAP)
 4. **Hospital** — capacity/routing portal
 5. **Venue** — event/arena operations vertical
+6. **Transit** — bus / rail / ferry operations vertical
 
 ### Design decisions that matter most
 
@@ -30,7 +31,7 @@ Sections are ordered by risk and frequency of change:
 
 ### Maintenance
 
-- When **transit** vertical ships, add `TRANSIT_*` sections and remove "not built" notes from `.cursorrules`.
+- Transit vertical (`TRANSIT_*`) is live: `/app/transit/{role}` and `/transit/{code}`.
 - When **HOSPITAL_COORDINATOR** gets a defined permission set in `packages/security`, align its "Permissions" block here.
 - When **Stack 4** (`API_UPSTREAM_BASE_4`) is live, keep BFF routing table in `.cursorrules` aligned with `scripts/print-stack-outputs-for-web.sh`.
 - After **og:image** dimensions are verified in production, add asset dimension rules here and in `.cursorrules`.
@@ -914,8 +915,52 @@ This role is the most restricted. The UI should feel like a customer service inb
 | 19 | VENUE_SECURITY | Venue |
 | 20 | VENUE_OPERATOR | Venue |
 | 21 | VENUE_GUEST_SERVICES | Venue |
+| 22 | transit_admin | Transit |
+| 23 | transit_supervisor | Transit |
+| 24 | transit_security | Transit |
+| 25 | transit_operator | Transit |
 
-**Deprecated (removed from Cognito):** `commsupervisor`, `CAMPUS_COUNSELOR`, `CAMPUS_FACULTY`, `TRANSIT_*`
+**Deprecated (removed from Cognito):** `commsupervisor`, `CAMPUS_COUNSELOR`, `CAMPUS_FACULTY`
+
+---
+
+# SECTION 6 — TRANSIT ROLES
+
+Transit is a product vertical, not a PSAP. Electric-blue ops chrome (`#3b82f6`). Copy: “Connected operations for every vehicle, every route, every run.” Every page: **not a 911 PSAP console**.
+
+**Dashboards:** `/app/transit/admin|supervisor|security|operator` and `/transit/{code}` (e.g. `test-transit-hvt` → `HVT`).
+
+## transit_admin — Transit Admin
+
+**Home:** `/app/transit/admin`
+
+**Can:** full fleet/route/station/operator config, incidents, reports, alert level, broadcast.
+
+**Cannot:** PSAP CAD, telephony, CAD write-back.
+
+## transit_supervisor — Transit Supervisor
+
+**Home:** `/app/transit/supervisor`
+
+**Can:** ops dashboard, incidents, 911 escalate flag (audit only — no CAD write-back), alert level, broadcast.
+
+**Cannot:** vehicle/route registry writes (`transit.fleet.manage`).
+
+## transit_security — Transit Security
+
+**Home:** `/app/transit/security`
+
+**Can:** dashboard, fleet, create/update incidents, reports.
+
+**Cannot:** alert-level change, broadcast, settings.
+
+## transit_operator — Transit Operator
+
+**Home:** `/app/transit/operator`
+
+**Can:** view assigned vehicle, report incidents.
+
+**Cannot:** alert strip control, broadcast, other operators’ vehicles.
 
 ---
 

@@ -17,6 +17,7 @@ import { isHospitalPortalRole } from "rapid-cortex-shared";
 import { AUDIT_EVENT_TYPES, AuthorizationService, defaultPermissionForRole } from "rapid-cortex-security";
 import { env } from "../lib/env.js";
 import { makeId } from "../lib/ids.js";
+import { assignCognitoVerticalGroup } from "../lib/assign-cognito-vertical-group.js";
 import { AuditRepository } from "../repositories/auditRepository.js";
 import { HospitalCapacityRepository } from "../repositories/hospitalCapacityRepository.js";
 import { HospitalProfileRepository } from "../repositories/hospitalProfileRepository.js";
@@ -252,6 +253,12 @@ export class HospitalPortalService {
           DesiredDeliveryMediums: ["EMAIL"],
         }),
       );
+      await assignCognitoVerticalGroup({
+        username: parsed.email.toLowerCase(),
+        agencyId: user.agencyId,
+        role: parsed.role,
+        email: parsed.email.toLowerCase(),
+      });
     }
 
     const now = new Date().toISOString();

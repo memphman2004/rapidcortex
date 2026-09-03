@@ -31,6 +31,18 @@ export const RING_REDIRECT_URI =
   process.env.RING_REDIRECT_URI?.trim() ??
   "https://7c70vqd1p5.execute-api.us-east-1.amazonaws.com/api/integrations/ring/callback";
 
+/**
+ * Partner-initiated authorize endpoint (Ring Appstore).
+ * `oauth.ring.com/oauth/authorize` + `scope=client` is the unofficial consumer API
+ * and is rejected for Rapid Cortex Connect (`invalid_scope` / client-scope validation).
+ */
+export const RING_OAUTH_AUTHORIZE_URL =
+  process.env.RING_OAUTH_AUTHORIZE_URL?.trim() ||
+  "https://account.ring.com/account/integrations/partner-link/authorize";
+
+/** Only `ava.v1:read` is supported for partner-initiated linking. */
+export const RING_OAUTH_SCOPE = process.env.RING_OAUTH_SCOPE?.trim() || "ava.v1:read";
+
 /** OAuth redirect for citizen (non-staff) Ring linking — separate callback route. */
 export const RING_CITIZEN_REDIRECT_URI =
   process.env.RING_CITIZEN_REDIRECT_URI?.trim() ??

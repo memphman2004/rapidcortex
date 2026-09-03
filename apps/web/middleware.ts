@@ -204,7 +204,12 @@ function isHospitalDashboardPath(pathname: string): boolean {
 }
 
 function isTransitDashboardPath(pathname: string): boolean {
-  return pathname === "/app/transit" || pathname.startsWith("/app/transit/");
+  return (
+    pathname === "/app/transit" ||
+    pathname.startsWith("/app/transit/") ||
+    pathname === "/transit" ||
+    pathname.startsWith("/transit/")
+  );
 }
 
 function isAppVerticalDashboardPath(pathname: string): boolean {
@@ -809,7 +814,7 @@ async function guardTransitDashboard(request: NextRequest): Promise<NextResponse
     return redirectToRoleAwareHome(request, user, defaultJurisdictionSlug());
   }
 
-  if (pathname === "/app/transit" || pathname === "/app/transit/") {
+  if (pathname === "/app/transit" || pathname === "/app/transit/" || pathname === "/transit" || pathname === "/transit/") {
     return redirectToRoleDashboard(request, user);
   }
 

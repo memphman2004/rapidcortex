@@ -3,6 +3,7 @@
 import { CheckCircle2, AlertTriangle } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { RingLinkedDevicesPanel } from "./RingLinkedDevicesPanel";
+import { RingDeleteAccountSection } from "./RingDeleteAccountSection";
 import { isRingEnabled } from "./ring-feature-flags";
 import type { RingDevicesResponse } from "./ring-types";
 import { RING_TM } from "@/lib/brand-marks";
@@ -128,6 +129,7 @@ export function RingConnectButton({
       )}
 
       {showPanel ? <RingLinkedDevicesPanel agencyId={agencyId} userId={userId} onClose={() => setShowPanel(false)} /> : null}
+      <RingDeleteAccountSection />
     </div>
   );
 }

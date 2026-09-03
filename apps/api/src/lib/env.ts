@@ -229,10 +229,12 @@ export const env = {
   enableConnectNest: featureEnabled("ENABLE_CONNECT_NEST"),
   ringAccountsTable: process.env.RING_TABLE_ACCOUNTS?.trim() ?? "",
   ringDevicesTable: process.env.RING_TABLE_DEVICES?.trim() ?? "",
-  ringRequestsTable: process.env.RING_TABLE_REQUESTS?.trim() ?? "",
+  ringRequestsTable:
+    process.env.RING_TABLE_REQUESTS?.trim() || process.env.RING_CAMERA_REQUESTS_TABLE?.trim() || "",
   ringSessionsTable: process.env.RING_TABLE_SESSIONS?.trim() ?? "",
   ringCitizenOwnersTable: process.env.RING_TABLE_CITIZEN_OWNERS?.trim() ?? "",
-  ringHomeownerParticipantsTable: process.env.RING_TABLE_HOMEOWNER_PARTICIPANTS?.trim() ?? "",
+  ringHomeownerParticipantsTable:
+    process.env.RING_TABLE_HOMEOWNER_PARTICIPANTS?.trim() || process.env.HOMEOWNER_TABLE?.trim() || "",
   ringUnclaimedTokensTable: process.env.RING_TABLE_UNCLAIMED_TOKENS?.trim() ?? "",
   ringCredentialsSecretArn:
     process.env.RING_CREDENTIALS_SECRET_ARN?.trim() ||
@@ -258,6 +260,14 @@ export const env = {
   hospitalCapacityTable: process.env.HOSPITAL_CAPACITY_TABLE?.trim() ?? "",
   hospitalRoutingMock: process.env.HOSPITAL_ROUTING_MOCK === "true",
   hospitalRoutingSeedDemo: process.env.HOSPITAL_ROUTING_SEED_DEMO === "true",
+  transitVehiclesTable: process.env.TRANSIT_VEHICLES_TABLE?.trim() ?? "",
+  transitRoutesTable: process.env.TRANSIT_ROUTES_TABLE?.trim() ?? "",
+  transitStationsTable: process.env.TRANSIT_STATIONS_TABLE?.trim() ?? "",
+  transitOperatorsTable: process.env.TRANSIT_OPERATORS_TABLE?.trim() ?? "",
+  transitIncidentsTable: process.env.TRANSIT_INCIDENTS_TABLE?.trim() ?? "",
+  transitReportsTable: process.env.TRANSIT_REPORTS_TABLE?.trim() ?? "",
+  transitConfigTable: process.env.TRANSIT_CONFIG_TABLE?.trim() ?? "",
+  transitGpsMock: process.env.TRANSIT_GPS_MOCK === "true" || process.env.TRANSIT_GPS_MOCK === "1",
   slaBacklogSnapshotsTable: process.env.SLA_BACKLOG_SNAPSHOTS_TABLE?.trim() ?? "",
   warRoomsTable: process.env.WAR_ROOMS_TABLE?.trim() ?? "",
   warRoomMessagesTable: process.env.WAR_ROOM_MESSAGES_TABLE?.trim() ?? "",

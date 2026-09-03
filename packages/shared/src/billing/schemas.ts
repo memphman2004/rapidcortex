@@ -269,7 +269,7 @@ export const adminInvoicesListQuerySchema = z.object({
     .optional()
     .default("all"),
   agencyId: z.string().min(1).max(120).optional(),
-  vertical: z.enum(["all", "core", "campus", "venue", "hospital"]).optional().default("all"),
+  vertical: z.enum(["all", "core", "campus", "venue", "hospital", "transit"]).optional().default("all"),
   search: z.string().max(120).optional(),
   from: z.string().max(40).optional(),
   to: z.string().max(40).optional(),

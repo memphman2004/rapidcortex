@@ -167,6 +167,35 @@ describe("AuthorizationService.canPerform / assertCanPerform", () => {
     });
   });
 
+  describe("transit roles", () => {
+    it("grants transit_security incident create and denies alert.manage", () => {
+      const security = makeUser("transit_security");
+      expect(auth.canPerform(security, "transit.incidents.create")).toBe(true);
+      expect(auth.canPerform(security, "transit.alert.manage")).toBe(false);
+      expect(auth.canPerform(security, "transit.incidents.escalate")).toBe(false);
+      expect(() => auth.assertCanPerform(security, "transit.alert.manage")).toThrow(
+        "FORBIDDEN_PERMISSION",
+      );
+    });
+
+    it("grants transit_supervisor alert.manage and denies fleet.manage", () => {
+      const supervisor = makeUser("transit_supervisor");
+      expect(auth.canPerform(supervisor, "transit.alert.manage")).toBe(true);
+      expect(auth.canPerform(supervisor, "transit.fleet.manage")).toBe(false);
+    });
+
+    it("denies PSAP dispatcher transit.dashboard.view", () => {
+      const dispatcher = makeUser("dispatcher");
+      expect(auth.canPerform(dispatcher, "transit.dashboard.view")).toBe(false);
+    });
+
+    it("maps TRANSIT_ADMIN alias to transit.admin grants", () => {
+      const admin = makeUser("TRANSIT_ADMIN" as UserRole);
+      expect(auth.canPerform(admin, "transit.settings.manage")).toBe(true);
+      expect(auth.canPerform(admin, "transit.broadcast.send")).toBe(true);
+    });
+  });
+
   describe("hospital roles", () => {
     it("grants hospitalstaff hospital_portal.view but not capacity_manage", () => {
       const staff = makeUser("hospitalstaff");

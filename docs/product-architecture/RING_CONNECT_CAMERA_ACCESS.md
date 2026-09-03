@@ -4,7 +4,7 @@
 **Product path:** `/<slug>/media` (dispatcher Media workspace) · **Admin:** `/<slug>/admin/integrations`  
 **Also in:** [Complete Operations Manual](/docs/rapidcortex-complete-manual.html) (Chapter 10B) · [COMMON_TASKS.md](../operations-runbooks/COMMON_TASKS.md)
 
-> **Ring Appstore certification:** Device-owner enrollment is **Ring Appstore → Rapid Cortex Connect → Get App**, then account link at `/connect/ring/link`. Do **not** use Media → **Connect Ring Account** for Appstore cert (wrong OAuth scope). See [ring-certification-reviewer-guide.md](../ring-certification-reviewer-guide.md) and [ring-certification/SUBMIT_RUNBOOK.md](../ring-certification/SUBMIT_RUNBOOK.md).
+> **Ring Appstore certification:** Device-owner enrollment is **Ring Appstore → Rapid Cortex Connect → Get App**, then account link at `/connect/ring/link`. Do **not** use Media → **Connect Ring Account** for Appstore cert (one-way Appstore flow). See [ring-certification-reviewer-guide.md](../ring-certification-reviewer-guide.md) and [ring-certification/SUBMIT_RUNBOOK.md](../ring-certification/SUBMIT_RUNBOOK.md).
 
 ## What this feature does
 

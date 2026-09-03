@@ -4,6 +4,9 @@ import {
   compareConferences,
   conferencePriorityCounts,
   conferencePriorityLabel,
+  displayFee,
+  ensureUsdFeeInput,
+  feeForSave,
   filterConferencesByPriority,
   formatCheckedAgo,
   formatConferenceDates,
@@ -24,6 +27,37 @@ describe("conference format helpers", () => {
     expect(formatCheckedAgo("2026-08-18T09:00:00.000Z", now)).toBe("Checked 3 days ago");
     expect(formatCheckedAgo("2026-08-21T08:00:00.000Z", now)).toBe("Checked today");
     expect(formatCheckedAgo(undefined, now)).toBe("Never checked");
+  });
+});
+
+describe("USD fee fields", () => {
+  it("defaults empty registration/booth input to $", () => {
+    expect(ensureUsdFeeInput("")).toBe("$");
+    expect(ensureUsdFeeInput("   ")).toBe("$");
+  });
+
+  it("prefixes a typed amount with $", () => {
+    expect(ensureUsdFeeInput("2950")).toBe("$2950");
+    expect(ensureUsdFeeInput("2,250")).toBe("$2,250");
+  });
+
+  it("leaves TBD and existing $ amounts alone", () => {
+    expect(ensureUsdFeeInput("TBD — not yet published")).toBe("TBD — not yet published");
+    expect(ensureUsdFeeInput("$2,950 per 10×10")).toBe("$2,950 per 10×10");
+  });
+
+  it("does not persist a lone dollar sign", () => {
+    expect(feeForSave("$")).toBe("");
+    expect(feeForSave(" $ ")).toBe("");
+    expect(feeForSave("$2,250 per 8×6 tabletop")).toBe("$2,250 per 8×6 tabletop");
+  });
+
+  it("displays numeric fees as dollars and blanks as em dash", () => {
+    expect(displayFee(undefined)).toBe("—");
+    expect(displayFee("$")).toBe("—");
+    expect(displayFee("2950")).toBe("$2950");
+    expect(displayFee("$2,950 per 10×10; +$200 corner")).toBe("$2,950 per 10×10; +$200 corner");
+    expect(displayFee("TBD — not yet published")).toBe("TBD — not yet published");
   });
 });
 

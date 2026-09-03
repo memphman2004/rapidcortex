@@ -1,6 +1,7 @@
 import type {
   AgencyConfig,
   AgencyTenant,
+  AgencyVertical,
   CreateAgencyInput,
   PatchAgencyInput,
   UserContext,
@@ -95,9 +96,11 @@ export class AgencyService {
       row.type = "campus";
     } else if (vertical === "venue") {
       row.type = "venue";
+    } else if (vertical === "transit") {
+      row.type = "transit";
     }
     const rowWithTenantFields = row as AgencyTenant & {
-      vertical?: "core" | "campus" | "venue" | "hospital";
+      vertical?: AgencyVertical;
       addons?: string[];
       planTier?: "starter" | "professional" | "command" | "enterprise";
       pilotMode?: boolean;

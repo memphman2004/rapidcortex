@@ -8,6 +8,7 @@ import {
   changeTypeTitle,
   compareConferences,
   conferencePriorityLabel,
+  displayFee,
   formatCheckedAgo,
   formatConferenceDates,
   formatDetectedAt,
@@ -50,11 +51,6 @@ function hostname(url: string): string {
   } catch {
     return url;
   }
-}
-
-function displayFee(value?: string): string {
-  const t = value?.trim();
-  return t ? t : "—";
 }
 
 function verticalLabel(vertical?: Conference["vertical"]): string | null {

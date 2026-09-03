@@ -32,6 +32,12 @@ export function extractVenueCode(agencyId: string): string {
   return (match?.[1] ?? raw).toUpperCase().replace(/-/g, "");
 }
 
+export function extractTransitCode(agencyId: string): string {
+  const raw = agencyId.trim();
+  const match = raw.match(/(?:test-)?transit-(.+)$/i);
+  return (match?.[1] ?? raw).toUpperCase().replace(/-/g, "");
+}
+
 export function extractCampusCode(agencyId: string): string {
   const raw = agencyId.trim();
   const match = raw.match(/(?:test-)?campus-(.+)$/i);

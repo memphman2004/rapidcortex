@@ -1,13 +1,49 @@
-import { randomBytes, timingSafeEqual } from "node:crypto";
+import { createHash, randomBytes, timingSafeEqual } from "node:crypto";
 import type { RingCitizenOAuthState, RingOAuthState, RingOAuthTokens } from "./ring-types.js";
 import { RingAuthError, RingTokenExpiredError } from "./ring-errors.js";
 import { getRingCredentials } from "./ring-credentials.js";
-import { RING_CITIZEN_REDIRECT_URI, RING_REDIRECT_URI } from "./ring-env.js";
+import {
+  RING_CITIZEN_REDIRECT_URI,
+  RING_OAUTH_AUTHORIZE_URL,
+  RING_OAUTH_SCOPE,
+  RING_REDIRECT_URI,
+} from "./ring-env.js";
 import { RingTokenStore } from "./ring-token-store.js";
 
-const RING_AUTHORIZE_URL = "https://oauth.ring.com/oauth/authorize";
 const RING_TOKEN_URL = "https://oauth.ring.com/oauth/token";
 const STATE_MAX_AGE_MS = 10 * 60 * 1000;
+
+export type RingAuthorizeStart = {
+  url: string;
+  state: string;
+  /** PKCE code_verifier — store server-side; never put this on the authorize URL. */
+  codeVerifier: string;
+};
+
+function generatePkce(): { verifier: string; challenge: string } {
+  const verifier = randomBytes(32).toString("base64url");
+  const challenge = createHash("sha256").update(verifier).digest("base64url");
+  return { verifier, challenge };
+}
+
+function partnerAuthorizeUrl(args: {
+  clientId: string;
+  redirectUri: string;
+  state: string;
+  codeChallenge: string;
+}): string {
+  // Do not send `scope`. Rapid Cortex Connect is rejected for `scope=client`,
+  // and Ring applies the app-level scopes from the developer portal instead.
+  const params = new URLSearchParams({
+    client_id: args.clientId,
+    redirect_uri: args.redirectUri,
+    response_type: "code",
+    state: args.state,
+    code_challenge: args.codeChallenge,
+    code_challenge_method: "S256",
+  });
+  return `${RING_OAUTH_AUTHORIZE_URL}?${params.toString()}`;
+}
 
 function toBase64Url(value: string): string {
   return Buffer.from(value, "utf8")
@@ -108,7 +144,7 @@ function mapTokenResponse(body: RingTokenResponse): RingOAuthTokens {
   const accessToken = String(body.access_token ?? "");
   const refreshToken = String(body.refresh_token ?? "");
   const expiresIn = Number(body.expires_in ?? 0);
-  const scope = String(body.scope ?? "client");
+  const scope = String(body.scope ?? RING_OAUTH_SCOPE);
   if (!accessToken || !Number.isFinite(expiresIn) || expiresIn <= 0) {
     throw new RingAuthError("Ring token response is missing access_token or expires_in");
   }
@@ -128,7 +164,7 @@ export class RingOAuthService {
     userId: string,
     ringReturnUrl?: string | null,
     usState?: string | null,
-  ): Promise<{ url: string; state: string }> {
+  ): Promise<RingAuthorizeStart> {
     const { clientId } = await getRingCredentials();
     const normalizedState = usState?.trim().toUpperCase() || null;
     const statePayload: RingOAuthState = {
@@ -140,20 +176,20 @@ export class RingOAuthService {
       ...(normalizedState ? { usState: normalizedState } : {}),
     };
     const state = toBase64Url(JSON.stringify(statePayload));
-    const params = new URLSearchParams({
-      client_id: clientId,
-      redirect_uri: RING_REDIRECT_URI,
-      response_type: "code",
-      scope: "client",
-      state,
-    });
+    const pkce = generatePkce();
     return {
-      url: `${RING_AUTHORIZE_URL}?${params.toString()}`,
+      url: partnerAuthorizeUrl({
+        clientId,
+        redirectUri: RING_REDIRECT_URI,
+        state,
+        codeChallenge: pkce.challenge,
+      }),
       state,
+      codeVerifier: pkce.verifier,
     };
   }
 
-  async buildCitizenAuthorizationUrl(agencyId: string): Promise<{ url: string; state: string }> {
+  async buildCitizenAuthorizationUrl(agencyId: string): Promise<RingAuthorizeStart> {
     const { clientId } = await getRingCredentials();
     const statePayload: RingCitizenOAuthState = {
       agencyId,
@@ -162,16 +198,16 @@ export class RingOAuthService {
       flow: "citizen",
     };
     const state = toBase64Url(JSON.stringify(statePayload));
-    const params = new URLSearchParams({
-      client_id: clientId,
-      redirect_uri: RING_CITIZEN_REDIRECT_URI,
-      response_type: "code",
-      scope: "client",
-      state,
-    });
+    const pkce = generatePkce();
     return {
-      url: `${RING_AUTHORIZE_URL}?${params.toString()}`,
+      url: partnerAuthorizeUrl({
+        clientId,
+        redirectUri: RING_CITIZEN_REDIRECT_URI,
+        state,
+        codeChallenge: pkce.challenge,
+      }),
       state,
+      codeVerifier: pkce.verifier,
     };
   }
 
@@ -179,6 +215,7 @@ export class RingOAuthService {
     code: string,
     incomingState: string,
     storedState: string,
+    codeVerifier?: string | null,
   ): Promise<RingOAuthTokens> {
     if (!statesMatch(incomingState, storedState)) {
       throw new RingAuthError("Ring OAuth state mismatch");
@@ -197,6 +234,10 @@ export class RingOAuthService {
       client_id: clientId,
       client_secret: clientSecret,
     });
+    const verifier = codeVerifier?.trim();
+    if (verifier) {
+      body.set("code_verifier", verifier);
+    }
 
     return this.postTokenEndpoint(body);
   }
@@ -206,6 +247,7 @@ export class RingOAuthService {
     incomingState: string,
     storedState: string,
     createdAt: number,
+    codeVerifier?: string | null,
   ): Promise<RingOAuthTokens> {
     if (!statesMatch(incomingState, storedState)) {
       throw new RingAuthError("Ring OAuth state mismatch");
@@ -220,6 +262,10 @@ export class RingOAuthService {
       client_id: clientId,
       client_secret: clientSecret,
     });
+    const verifier = codeVerifier?.trim();
+    if (verifier) {
+      body.set("code_verifier", verifier);
+    }
 
     return this.postTokenEndpoint(body);
   }

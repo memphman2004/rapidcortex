@@ -32,6 +32,7 @@ export {
 
 // Services
 export { RingOAuthService, decodeRingOAuthState, normalizeRingReturnUrl } from "./ring-oauth.js";
+export type { RingAuthorizeStart } from "./ring-oauth.js";
 export { RingApiClient } from "./ring-client.js";
 export { RingTokenStore } from "./ring-token-store.js";
 export { RingDeviceService } from "./ring-devices.js";
@@ -57,6 +58,8 @@ export {
   ENABLE_CONNECT_RING_EMERGENCY_REQUESTS,
   RING_ACCOUNT_LINK_URL,
   RING_CITIZEN_REDIRECT_URI,
+  RING_OAUTH_AUTHORIZE_URL,
+  RING_OAUTH_SCOPE,
   RING_REDIRECT_URI,
   RING_SECRETS_PREFIX,
   RING_WEBHOOK_URL,

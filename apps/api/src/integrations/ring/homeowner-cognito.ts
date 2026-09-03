@@ -1,6 +1,8 @@
 import {
   AdminCreateUserCommand,
+  AdminDisableUserCommand,
   AdminSetUserPasswordCommand,
+  AdminUpdateUserAttributesCommand,
   CognitoIdentityProviderClient,
   ConfirmForgotPasswordCommand,
   ForgotPasswordCommand,
@@ -11,6 +13,12 @@ import {
 import { createHmac } from "node:crypto";
 import { env } from "../../lib/env.js";
 import { RING_HOMEOWNER_DEFAULT_AGENCY_ID } from "../../lib/ring-integration.js";
+import { assignCognitoVerticalGroup } from "../../lib/assign-cognito-vertical-group.js";
+import {
+  newHomeownerVerificationToken,
+  sendHomeownerVerificationEmail,
+  storeHomeownerVerificationToken,
+} from "./homeowner-email-verify.js";
 
 const HOMEOWNER_ROLE = "homeowner";
 
@@ -79,7 +87,7 @@ export async function authenticateHomeowner(input: {
           Username: email,
           UserAttributes: [
             { Name: "email", Value: email },
-            { Name: "email_verified", Value: "true" },
+            { Name: "email_verified", Value: "false" },
             { Name: "custom:agencyId", Value: agencyId },
             { Name: "custom:role", Value: HOMEOWNER_ROLE },
             { Name: "custom:pwdChangeReq", Value: "false" },
@@ -97,6 +105,12 @@ export async function authenticateHomeowner(input: {
         }),
       );
       created = true;
+      await assignCognitoVerticalGroup({
+        username: email,
+        agencyId,
+        role: HOMEOWNER_ROLE,
+        email,
+      });
     } catch (err) {
       if (!(err instanceof UsernameExistsException)) {
         throw err;
@@ -118,7 +132,53 @@ export async function authenticateHomeowner(input: {
     }
   }
 
-  return signInHomeowner({ email, password: input.password, agencyId, created });
+  try {
+    return await signInHomeowner({ email, password: input.password, agencyId, created });
+  } finally {
+    if (created) {
+      await lockNewHomeownerUntilEmailVerified(email, agencyId, poolId);
+    }
+  }
+}
+
+async function lockNewHomeownerUntilEmailVerified(
+  email: string,
+  agencyId: string,
+  poolId: string,
+): Promise<void> {
+  const token = newHomeownerVerificationToken();
+  try {
+    await cip().send(
+      new AdminUpdateUserAttributesCommand({
+        UserPoolId: poolId,
+        Username: email,
+        UserAttributes: [{ Name: "email_verified", Value: "false" }],
+      }),
+    );
+    await storeHomeownerVerificationToken({
+      token,
+      email,
+      cognitoUsername: email,
+      agencyId,
+    });
+    try {
+      await sendHomeownerVerificationEmail(email, token);
+    } catch (err) {
+      console.error(
+        JSON.stringify({
+          msg: "homeowner_verify_email_failed",
+          error: err instanceof Error ? err.message : String(err),
+        }),
+      );
+    }
+  } finally {
+    await cip().send(
+      new AdminDisableUserCommand({
+        UserPoolId: poolId,
+        Username: email,
+      }),
+    );
+  }
 }
 
 /** Start Cognito forgot-password for a Ring device-owner RC account (enumeration-safe). */

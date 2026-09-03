@@ -21,6 +21,7 @@ export type RingPublicOAuthStateRecord = {
   ringReturnUrl?: string | null;
   /** Optional US state / DC abbreviation for unmatched / pre-registration matching. */
   usState?: string | null;
+  codeVerifier?: string | null;
 };
 
 export type RingManageTokenRecord = {
@@ -42,9 +43,11 @@ export class RingPublicOAuthStateRepository {
     mode: RingOAuthMode = "link",
     ringReturnUrl?: string | null,
     usState?: string | null,
+    codeVerifier?: string | null,
   ): Promise<void> {
     const now = new Date();
     const ttl = Math.floor(now.getTime() / 1000) + TTL_SECONDS;
+    const verifier = codeVerifier?.trim() || undefined;
     await ddb.send(
       new PutCommand({
         TableName: requestsTable(),
@@ -59,6 +62,7 @@ export class RingPublicOAuthStateRepository {
           ttl,
           ...(ringReturnUrl ? { ringReturnUrl } : {}),
           ...(usState ? { usState } : {}),
+          ...(verifier ? { codeVerifier: verifier } : {}),
         },
       }),
     );
@@ -87,8 +91,10 @@ export class RingPublicOAuthStateRepository {
     const mode: RingOAuthMode = rawMode === "manage" ? "manage" : "link";
     const ringReturnUrl = typeof out.Item.ringReturnUrl === "string" ? out.Item.ringReturnUrl : null;
     const usState = typeof out.Item.usState === "string" ? out.Item.usState : null;
+    const rawVerifier = out.Item.codeVerifier;
+    const codeVerifier = typeof rawVerifier === "string" && rawVerifier.trim() ? rawVerifier : null;
     if (!agencyId || !createdAt) return null;
-    return { state, agencyId, createdAt, mode, ringReturnUrl, usState };
+    return { state, agencyId, createdAt, mode, ringReturnUrl, usState, codeVerifier };
   }
 
   /** Persist a short-lived manage token after a successful manage OAuth round trip. */

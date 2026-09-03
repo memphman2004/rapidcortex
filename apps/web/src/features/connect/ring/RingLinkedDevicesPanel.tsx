@@ -4,6 +4,7 @@ import { Bell, Camera, RefreshCw, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import { RING_TM } from "@/lib/brand-marks";
 import { isRingEnabled } from "./ring-feature-flags";
+import { RingDeleteAccountSection } from "./RingDeleteAccountSection";
 import type { RingDeviceListItem, RingDevicesResponse } from "./ring-types";
 
 type Toast = { tone: "ok" | "err"; text: string } | null;
@@ -212,6 +213,7 @@ export function RingLinkedDevicesPanel({
         <RefreshCw size={14} className={refreshing ? "animate-spin" : ""} />
         Refresh Devices
       </button>
+      <RingDeleteAccountSection />
     </div>
   );
 }

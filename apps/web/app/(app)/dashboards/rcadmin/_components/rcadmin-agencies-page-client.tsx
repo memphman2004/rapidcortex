@@ -20,6 +20,7 @@ const VERTICAL_TABS: Array<{ id: "all" | TenantVertical; label: string }> = [
   { id: "campus", label: "Campus" },
   { id: "venue", label: "Venue" },
   { id: "hospital", label: "Hospital" },
+  { id: "transit", label: "Transit" },
 ];
 
 function resolveAgencyVertical(agency: AgencyTenant): TenantVertical {

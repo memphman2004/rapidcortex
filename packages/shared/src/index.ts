@@ -21,6 +21,7 @@ export {
 export * from "./tenancy/index.js";
 export * from "./auth/rapid-cortex-roles.js";
 export * from "./auth/vertical-routing.js";
+export * from "./auth/cognito-vertical-group.js";
 export * from "./auth/password-policy.js";
 export * from "./qa/index.js";
 export * from "./qa-types.js";
@@ -69,6 +70,7 @@ export * from "./call-control/index.js";
 export * from "./voice-bridge/schemas.js";
 export * from "./ring/index.js";
 export * from "./venue/index.js";
+export * from "./transit/index.js";
 export * from "./locations/index.js";
 export * from "./onboarding/index.js";
 export * from "./campus/dashboard-schemas.js";

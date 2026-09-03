@@ -85,13 +85,13 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
     );
     const homeownerId = `hw:${randomUUID()}`;
 
-    const { url, state } = await oauth.buildAuthorizationUrl(
+    const { url, state, codeVerifier } = await oauth.buildAuthorizationUrl(
       agencyId,
       homeownerId,
       ringReturnUrl,
       usState,
     );
-    await accounts.saveOAuthState(agencyId, homeownerId, state, 600);
+    await accounts.saveOAuthState(agencyId, homeownerId, state, 600, codeVerifier);
 
     await auditRingEvent({
       type: AUDIT_EVENT_TYPES.RING_CITIZEN_OAUTH_INITIATED,

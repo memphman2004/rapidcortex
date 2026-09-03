@@ -41,6 +41,9 @@ export const RING_AUDIT_EVENT_TYPES = {
   RING_APPSTORE_ACCOUNT_LINKED: "ring.appstore.account.linked",
   RING_HOMEOWNER_SIGNED_IN: "ring.homeowner.signed_in",
   RING_HOMEOWNER_SIGNED_UP: "ring.homeowner.signed_up",
+  RING_HOMEOWNER_EMAIL_VERIFIED: "ring.homeowner.email_verified",
+  RING_HOMEOWNER_EXPIRED: "ring.homeowner.expired",
+  RING_USER_ACCOUNT_DELETED: "ring.user.account_deleted",
 
   // Ring Connect — inbound Appstore webhooks
   RING_WEBHOOK_RECEIVED: "ring.webhook.received",

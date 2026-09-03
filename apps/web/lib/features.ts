@@ -12,6 +12,7 @@ export const features = {
   qrNfc: productFlag("NEXT_PUBLIC_ENABLE_QR_NFC"),
   verticalCampus: productFlag("NEXT_PUBLIC_ENABLE_VERTICAL_CAMPUS"),
   verticalVenue: productFlag("NEXT_PUBLIC_ENABLE_VERTICAL_VENUE"),
+  verticalTransit: productFlag("NEXT_PUBLIC_ENABLE_VERTICAL_TRANSIT"),
   hospitalRouting: productFlag("NEXT_PUBLIC_ENABLE_HOSPITAL_ROUTING"),
   hospitalPortal: productFlag("NEXT_PUBLIC_ENABLE_HOSPITAL_PORTAL"),
   addonManagement: productFlag("NEXT_PUBLIC_ENABLE_ADDON_MANAGEMENT"),
@@ -24,6 +25,6 @@ export function isVerticalEnabled(vertical: FeatureVertical): boolean {
   if (vertical === "core") return true;
   if (vertical === "campus") return features.verticalCampus;
   if (vertical === "venue") return features.verticalVenue;
-  if (vertical === "transit") return true;
+  if (vertical === "transit") return features.verticalTransit;
   return features.hospitalRouting || features.hospitalPortal;
 }

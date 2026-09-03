@@ -44,7 +44,7 @@ export function PlatformNoticeTargetPanel() {
   const [error, setError] = useState<string | null>(null);
 
   const enabledVerticals = useMemo(
-    () => (["core", "campus", "venue", "hospital"] as const).filter((v) => isVerticalEnabled(v)),
+    () => (["core", "campus", "venue", "hospital", "transit"] as const).filter((v) => isVerticalEnabled(v)),
     [],
   );
 

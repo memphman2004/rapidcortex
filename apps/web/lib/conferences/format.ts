@@ -136,7 +136,35 @@ function dateSortValue(iso?: string | null): number {
 
 function feeSortValue(value?: string | null): string {
   const t = sortText(value);
-  if (!t || t === "—" || t.startsWith("tbd")) return "\uffff";
+  if (!t || t === "—" || t === "$" || t.startsWith("tbd")) return "\uffff";
+  return t;
+}
+
+/** Empty registration/booth inputs start as USD so operators type the amount, not the currency. */
+export const USD_FEE_DEFAULT = "$";
+
+const NARRATIVE_FEE = /^(tbd\b|n\/a\b|na\b|included\b|free\b|—|-)/i;
+
+export function ensureUsdFeeInput(value: string): string {
+  if (value.trim() === "") return USD_FEE_DEFAULT;
+  const trimmed = value.trimStart();
+  if (NARRATIVE_FEE.test(trimmed) || trimmed.startsWith("$")) return value;
+  if (/^[\d,.]/.test(trimmed)) return `$${trimmed}`;
+  return value;
+}
+
+/** Persist nothing when the field is still just the dollar default. */
+export function feeForSave(value: string): string {
+  const t = value.trim();
+  if (t === "" || t === USD_FEE_DEFAULT) return "";
+  return t;
+}
+
+export function displayFee(value?: string): string {
+  const t = value?.trim();
+  if (!t || t === USD_FEE_DEFAULT) return "—";
+  if (NARRATIVE_FEE.test(t) || t.includes("$")) return t;
+  if (/^[\d,.]/.test(t)) return `$${t}`;
   return t;
 }
 

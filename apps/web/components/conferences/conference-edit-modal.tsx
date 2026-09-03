@@ -3,7 +3,13 @@
 import { useState } from "react";
 import type { Conference, ConferencePriority } from "rapid-cortex-shared";
 import { conferencePriority, conferenceSourceUrl } from "rapid-cortex-shared";
-import { conferencePriorityLabel, formatCheckedExact } from "@/lib/conferences/format";
+import {
+  conferencePriorityLabel,
+  ensureUsdFeeInput,
+  feeForSave,
+  formatCheckedExact,
+  USD_FEE_DEFAULT,
+} from "@/lib/conferences/format";
 
 type Props = {
   conference: Conference;
@@ -35,8 +41,10 @@ export function ConferenceEditModal({ conference, busy, error, onClose, onSave }
   const [endDate, setEndDate] = useState(conference.endDate ?? "");
   const [location, setLocation] = useState(conference.location);
   const [venue, setVenue] = useState(conference.venue ?? "");
-  const [registrationFee, setRegistrationFee] = useState(conference.registrationFee ?? "");
-  const [boothFee, setBoothFee] = useState(conference.boothFee ?? "");
+  const [registrationFee, setRegistrationFee] = useState(
+    ensureUsdFeeInput(conference.registrationFee ?? USD_FEE_DEFAULT),
+  );
+  const [boothFee, setBoothFee] = useState(ensureUsdFeeInput(conference.boothFee ?? USD_FEE_DEFAULT));
   const [registrationDeadline, setRegistrationDeadline] = useState(
     conference.registrationDeadline ?? "",
   );
@@ -68,8 +76,8 @@ export function ConferenceEditModal({ conference, busy, error, onClose, onSave }
               endDate: endDate.trim(),
               location: location.trim(),
               venue: venue.trim(),
-              registrationFee: registrationFee.trim(),
-              boothFee: boothFee.trim(),
+              registrationFee: feeForSave(registrationFee),
+              boothFee: feeForSave(boothFee),
               registrationDeadline: registrationDeadline.trim(),
               priority,
             });
@@ -125,8 +133,9 @@ export function ConferenceEditModal({ conference, busy, error, onClose, onSave }
               Registration fee
               <input
                 value={registrationFee}
-                onChange={(e) => setRegistrationFee(e.target.value)}
-                placeholder="e.g. $425 member"
+                onChange={(e) => setRegistrationFee(ensureUsdFeeInput(e.target.value))}
+                inputMode="decimal"
+                placeholder="$"
                 className="mt-1 w-full rounded-md border border-white/10 bg-[#050c1a] px-3 py-2 text-sm text-white"
               />
             </label>
@@ -134,8 +143,9 @@ export function ConferenceEditModal({ conference, busy, error, onClose, onSave }
               Booth fee
               <input
                 value={boothFee}
-                onChange={(e) => setBoothFee(e.target.value)}
-                placeholder="e.g. $1,200 10x10"
+                onChange={(e) => setBoothFee(ensureUsdFeeInput(e.target.value))}
+                inputMode="decimal"
+                placeholder="$"
                 className="mt-1 w-full rounded-md border border-white/10 bg-[#050c1a] px-3 py-2 text-sm text-white"
               />
             </label>

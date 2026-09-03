@@ -11,7 +11,7 @@ import {
 } from "../../lib/ring-integration.js";
 import type { LinkedRingAccount } from "../../lib/ring-integration.js";
 import { env } from "../../lib/env.js";
-import { RingAccountRepository } from "../../repositories/ringAccountRepository.js";
+import { RingAccountRepository, type RingOAuthStateItem } from "../../repositories/ringAccountRepository.js";
 import {
   RingCitizenOwnerRepository,
   ringCitizenOwnerPk,
@@ -70,7 +70,7 @@ function configureRingTables(): void {
 async function handleHomeownerLink(args: {
   code: string;
   incomingState: string;
-  storedState: string;
+  storedState: RingOAuthStateItem;
   agencyId: string;
   oauthUserId: string;
   ringReturnUrl: string | null;
@@ -99,7 +99,12 @@ async function handleHomeownerLink(args: {
   };
 
   try {
-    const tokens = await oauth.exchangeCode(code, incomingState, storedState);
+    const tokens = await oauth.exchangeCode(
+      code,
+      incomingState,
+      storedState.state,
+      storedState.codeVerifier,
+    );
     const client = new RingApiClient(tokens.accessToken);
     const profile = await client.getPartnerUserProfile();
     const ringAccountId = deriveCitizenRingAccountId(agencyId, profile.accountId);
@@ -275,7 +280,12 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
   }
 
   try {
-    const tokens = await oauth.exchangeCode(code, incomingState, storedState);
+    const tokens = await oauth.exchangeCode(
+      code,
+      incomingState,
+      storedState.state,
+      storedState.codeVerifier,
+    );
     const client = new RingApiClient(tokens.accessToken);
     let profilePhone: string | undefined;
     let profileEmail: string | undefined;

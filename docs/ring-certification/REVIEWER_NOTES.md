@@ -34,7 +34,7 @@ Terms: https://www.rapidcortex.us/legal/terms/
 ## Field 2 — How can a Ring reviewer perform account linking?
 
 ```
-IMPORTANT: Use the Ring Appstore one-way flow only. Do NOT use Media → “Connect Ring Account” inside Rapid Cortex for certification — that path uses a different OAuth scope and fails with “error on validating client scope.”
+IMPORTANT: Use the Ring Appstore one-way flow only. Do NOT use Media → “Connect Ring Account” inside Rapid Cortex for certification.
 
 Portal production settings (must match):
 • Account Link: https://www.rapidcortex.us/connect/ring/link

@@ -246,7 +246,9 @@ export default function NewAgencyPage() {
                     ? "campus"
                     : vertical === "venue"
                       ? "venue"
-                      : f.type,
+                      : vertical === "transit"
+                        ? "transit"
+                        : f.type,
               }));
             }}
             className="mt-1 w-full rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-slate-100"
@@ -255,6 +257,7 @@ export default function NewAgencyPage() {
             <option value="campus">Campus</option>
             <option value="venue">Venue</option>
             <option value="hospital">Hospital</option>
+            <option value="transit">Transit</option>
           </select>
         </label>
         <label className="block text-sm">
