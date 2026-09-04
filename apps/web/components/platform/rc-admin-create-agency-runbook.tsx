@@ -9,6 +9,7 @@ const AGENCY_TYPE_GUIDE: Record<CreateAgencyInput["type"], string> = {
   state_agency: "State-level department or statewide program.",
   venue: "Stadium, arena, or large event venue security / operations tenant.",
   campus: "College, university, or K–12 campus safety tenant.",
+  transit: "Bus, rail, or ferry operations tenant (fleet, stations, and transit security).",
 };
 
 /**
@@ -95,8 +96,8 @@ export function RcAdminCreateAgencyRunbook() {
           should appear in the product.
         </li>
         <li>
-          Select <span className="text-slate-200">Product vertical</span> — PSAP / RC Core for dispatch centers; Campus
-          or Venue for those tenant types (sets dashboard routing at{" "}
+          Select <span className="text-slate-200">Product vertical</span> — PSAP / RC Core for dispatch centers; Campus,
+          Venue, Hospital, or Transit for those tenant types (sets dashboard routing at{" "}
           <span className="font-mono text-slate-200">/{`{agencyId}`}</span>).
         </li>
         <li>

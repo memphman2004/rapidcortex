@@ -58,6 +58,7 @@ const NEXT_PUBLIC_FLAG_VALUES: Record<string, string | undefined> = {
   NEXT_PUBLIC_ENABLE_CONNECT_NEST: process.env.NEXT_PUBLIC_ENABLE_CONNECT_NEST,
   NEXT_PUBLIC_ENABLE_RAPID_IQ: process.env.NEXT_PUBLIC_ENABLE_RAPID_IQ,
   NEXT_PUBLIC_ENABLE_RAPID_IQ_PIPELINE: process.env.NEXT_PUBLIC_ENABLE_RAPID_IQ_PIPELINE,
+  NEXT_PUBLIC_ENABLE_RAPID_IQ_INTEL: process.env.NEXT_PUBLIC_ENABLE_RAPID_IQ_INTEL,
   NEXT_PUBLIC_ENABLE_CONFERENCES: process.env.NEXT_PUBLIC_ENABLE_CONFERENCES,
   NEXT_PUBLIC_ENABLE_ESCALATION: process.env.NEXT_PUBLIC_ENABLE_ESCALATION,
   NEXT_PUBLIC_ENABLE_RMS: process.env.NEXT_PUBLIC_ENABLE_RMS,
@@ -421,6 +422,11 @@ export function isRapidIqUiEnabled(): boolean {
 /** RC Admin Rapid IQ Signal Intelligence Pipeline. Default on when unset. */
 export function isRapidIqPipelineUiEnabled(): boolean {
   return envFlag("NEXT_PUBLIC_ENABLE_RAPID_IQ_PIPELINE");
+}
+
+/** Rapid IQ Opportunity Intelligence (OpenAI). Default on when unset. */
+export function isRapidIqIntelUiEnabled(): boolean {
+  return envFlag("NEXT_PUBLIC_ENABLE_RAPID_IQ_INTEL");
 }
 
 /** RC Admin conference tracker (weekly website refresh). Default on when unset. */

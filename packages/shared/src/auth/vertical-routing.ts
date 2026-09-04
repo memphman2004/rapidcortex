@@ -1,5 +1,8 @@
 import type { UserRole } from "../types.js";
-import { migrateLegacyRapidCortexRoleTokenValue } from "./rapid-cortex-roles.js";
+import {
+  migrateLegacyRapidCortexRoleTokenValue,
+  resolveHospitalPortalDashboardHref,
+} from "./rapid-cortex-roles.js";
 
 export type RCVertical = "platform" | "911" | "campus" | "venue" | "hospital" | "transit";
 
@@ -111,14 +114,12 @@ export function dashboardRouteFromRole(role: UserRole | string, agencyId: string
       return venueCodeDashboardPath(agencyId);
     case "hospital_admin":
     case "hospitaladmin":
-      return "/app/hospital/admin";
     case "hospital_supervisor":
-      return "/app/hospital/supervisor";
     case "hospital_staff":
     case "hospitalstaff":
-      return "/app/hospital/staff";
     case "hospital_coord":
-      return "/app/hospital/coordinator";
+    case "hospital_coordinator":
+      return resolveHospitalPortalDashboardHref(r) ?? "/hospital-admin/dashboard";
     case "transit_admin":
       return "/app/transit/admin";
     case "transit_supervisor":
@@ -198,7 +199,14 @@ export function pathMatchesRoleDashboard(
     return true;
   }
   if (vertical === "hospital") {
-    if (path.startsWith("/hospital-admin/") || path.startsWith("/hospital-staff/")) return true;
+    if (
+      path === "/hospital-admin" ||
+      path.startsWith("/hospital-admin/") ||
+      path === "/hospital-staff" ||
+      path.startsWith("/hospital-staff/")
+    ) {
+      return true;
+    }
     if (!path.startsWith("/app/hospital/")) return false;
     const segment = path.split("/")[3] ?? "";
     const roleSegments = new Set(["admin", "supervisor", "staff", "coordinator"]);

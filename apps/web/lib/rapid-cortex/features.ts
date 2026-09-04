@@ -618,8 +618,8 @@ const RAPID_CORTEX_FEATURES_BASE: RapidCortexFeatureBase[] = [
     requiresCadVendor: false,
     requiresAuditLog: true,
     defaultEnabled: false,
-    routePath: "/[jurisdiction]/supervisor/coaching",
-    apiEndpoints: ["/api/qa/coaching-note"],
+    routePath: "/[jurisdiction]/qa",
+    apiEndpoints: ["/api/qa/coaching-notes"],
     rolloutNotes: "Requires supervisor role.",
   },
   {

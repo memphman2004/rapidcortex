@@ -46,7 +46,8 @@ describe("rapid-cortex-roles", () => {
     expect(migrateLegacyRapidCortexRoleTokenValue("CAMPUS_SECURITY")).toBe("campus_security");
     expect(migrateLegacyRapidCortexRoleTokenValue("CAMPUS_DISPATCH")).toBe("campus_security");
     expect(migrateLegacyRapidCortexRoleTokenValue("CAMPUS_COUNSELOR")).toBe("campus_counselor");
-    expect(migrateLegacyRapidCortexRoleTokenValue("CAMPUS_FACULTY")).toBe("campus_faculty");
+    expect(migrateLegacyRapidCortexRoleTokenValue("HOSPITAL_ADMIN")).toBe("hospital_admin");
+    expect(migrateLegacyRapidCortexRoleTokenValue("HOSPITAL_COORDINATOR")).toBe("hospital_coord");
     expect(migrateLegacyRapidCortexRoleTokenValue(undefined)).toBeUndefined();
   });
 
@@ -74,6 +75,7 @@ describe("rapid-cortex-roles", () => {
     expect(isHospitalStaffPortalRole("HOSPITAL_STAFF")).toBe(true);
     expect(resolveHospitalPortalDashboardHref("HOSPITAL_ADMIN")).toBe("/hospital-admin/dashboard");
     expect(resolveHospitalPortalDashboardHref("HOSPITAL_STAFF")).toBe("/hospital-staff/dashboard");
+    expect(resolveHospitalPortalDashboardHref("HOSPITAL_COORDINATOR")).toBe("/hospital-admin/dashboard");
     expect(resolveHospitalPortalDashboardHref("hospitaladmin")).toBe("/hospital-admin/dashboard");
   });
 

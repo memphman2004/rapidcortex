@@ -401,6 +401,7 @@ export type AuditResourceType =
   | "psap_prospect"
   | "rapid_iq_opportunity"
   | "rapid_iq_pipeline_signal"
+  | "rapid_iq_intel"
   | "rapid_iq_refresh"
   | "conference"
   | "escalation"

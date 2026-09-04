@@ -46,7 +46,7 @@ export async function syncContactToAddressBook(
     agencyName: string;
     opportunityId?: string;
     prospectId?: string;
-    vertical?: "911" | "campus" | "venue";
+    vertical?: "911" | "campus" | "venue" | "transit";
     source?: ContactPerson["source"];
   },
 ): Promise<void> {

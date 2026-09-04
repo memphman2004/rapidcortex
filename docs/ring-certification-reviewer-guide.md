@@ -110,7 +110,8 @@ Rate limits: max 5 requests/incident/hour; one active request per camera/inciden
 | Sign-in | https://app.rapidcortex.us/login |
 | App Homepage | https://www.rapidcortex.us/connect/ring/start |
 | Post-OAuth landing | https://www.rapidcortex.us/connect/ring/link |
-| Privacy & data deletion (in-app) | https://www.rapidcortex.us/connect/ring/start#privacy-data |
+| Privacy & data deletion | https://www.rapidcortex.us/connect/ring/start#privacy-data |
+| Delete Rapid Cortex account | https://www.rapidcortex.us/connect/ring/link |
 
 ---
 
@@ -146,7 +147,7 @@ Consent links are **GET** (tappable from SMS). No Rapid Cortex login required.
 - Time-limited; auto-expires  
 - Owner can decline or STOP mid-session  
 - Owner can remove the app in Ring My Apps  
-- Data deletion: Ring My Apps disconnect + privacy@rapidcortex.us + in-app Privacy & data section  
+- Data deletion: Ring My Apps disconnect + Account Link **Disconnect & delete** (`/connect/ring/link#delete-account`, email) + support@rapidcortex.us  
 
 ---
 

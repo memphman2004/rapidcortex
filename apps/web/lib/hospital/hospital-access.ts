@@ -13,15 +13,35 @@ import { isRcInternalOperator } from "rapid-cortex-shared/tenancy/principal";
 // ─── Role predicates ──────────────────────────────────────────────────────────
 
 export function isHospitalAdminRole(role: string): boolean {
-  return role === "HOSPITAL_ADMIN" || role === "hospitaladmin";
+  const upper = role.trim().toUpperCase();
+  return (
+    upper === "HOSPITAL_ADMIN" ||
+    role === "hospitaladmin" ||
+    role === "hospital_admin"
+  );
 }
 
 export function isHospitalCoordinatorRole(role: string): boolean {
-  return role === "HOSPITAL_COORDINATOR";
+  const upper = role.trim().toUpperCase();
+  return (
+    upper === "HOSPITAL_COORDINATOR" ||
+    upper === "HOSPITAL_COORD" ||
+    role === "hospital_coord"
+  );
+}
+
+export function isHospitalSupervisorRole(role: string): boolean {
+  const upper = role.trim().toUpperCase();
+  return upper === "HOSPITAL_SUPERVISOR" || role === "hospital_supervisor";
 }
 
 export function isHospitalStaffRole(role: string): boolean {
-  return role === "HOSPITAL_STAFF" || role === "hospitalstaff";
+  const upper = role.trim().toUpperCase();
+  return (
+    upper === "HOSPITAL_STAFF" ||
+    role === "hospitalstaff" ||
+    role === "hospital_staff"
+  );
 }
 
 export function isAnyHospitalRole(role: string): boolean {
@@ -37,7 +57,11 @@ export function isAnyHospitalRole(role: string): boolean {
  */
 export function canAccessHospitalAdminPortal(user: UserContext): boolean {
   if (isRcInternalOperator(user.role)) return true;
-  return isHospitalAdminRole(user.role) || isHospitalCoordinatorRole(user.role);
+  return (
+    isHospitalAdminRole(user.role) ||
+    isHospitalCoordinatorRole(user.role) ||
+    isHospitalSupervisorRole(user.role)
+  );
 }
 
 /**
@@ -79,7 +103,11 @@ export function canExportHospitalAnalytics(user: UserContext): boolean {
 // ─── Redirect targets ─────────────────────────────────────────────────────────
 
 export function hospitalPostAuthRedirect(role: string): string {
-  if (isHospitalAdminRole(role) || isHospitalCoordinatorRole(role)) {
+  if (
+    isHospitalAdminRole(role) ||
+    isHospitalCoordinatorRole(role) ||
+    isHospitalSupervisorRole(role)
+  ) {
     return "/hospital-admin/dashboard";
   }
   if (isHospitalStaffRole(role)) {

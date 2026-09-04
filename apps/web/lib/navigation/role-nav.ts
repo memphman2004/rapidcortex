@@ -383,7 +383,7 @@ export function getSupervisorNav(jurisdiction: string): RoleNav {
         id: "supervisor",
         label: "SUPERVISOR",
         items: [
-          { id: "qa",            label: "QA & Coaching",   href: `${j}/supervisor/coaching`, icon: "ClipboardCheck",
+          { id: "qa",            label: "QA & Coaching",   href: `${j}/qa`, icon: "ClipboardCheck",
             feature: "qaScoringEnabled" },
           { id: "team",          label: "Team Performance",href: `${j}/supervisor/team-performance`, icon: "Users" },
           { id: "reports",       label: "Reports",         href: `${j}/supervisor/reports`, icon: "BarChart3" },
@@ -437,7 +437,6 @@ export function getAgencyAdminNav(jurisdiction: string): RoleNav {
         items: [
           { id: "integrations",  label: "Integrations",    href: `${j}/admin/integrations`, icon: "Plug" },
           { id: "compliance",    label: "Compliance",      href: `${j}/admin/retention`,   icon: "Scale" },
-          { id: "notifications", label: "Notifications",   href: `${j}/admin/notifications`, icon: "Bell" },
           { id: "settings",      label: "Settings",        href: `${j}/admin/settings`,     icon: "Settings" },
           { id: "sla",           label: "SLA Thresholds",  href: `${j}/admin/settings/sla`, icon: "BarChart3",
             feature: "slaBacklog" },
@@ -566,7 +565,7 @@ export function getAnalystNav(jurisdiction: string): RoleNav {
             feature: "qaScoringEnabled" },
           { id: "scorecards",    label: "Scorecards",      href: `${j}/supervisor/scorecards`, icon: "ClipboardCheck",
             feature: "qaScoringEnabled" },
-          { id: "coaching",      label: "Coaching Notes",  href: `${j}/supervisor/coaching`, icon: "MessageSquare",
+          { id: "coaching",      label: "Coaching Notes",  href: `${j}/qa`, icon: "MessageSquare",
             feature: "qaScoringEnabled" },
         ],
       },
@@ -1099,9 +1098,10 @@ function resolveNavRole(raw: string): string {
   if (upper.startsWith("VENUE_")) return upper;
   if (upper.startsWith("CAMPUS_")) return upper;
   if (upper.startsWith("TRANSIT_")) return upper;
-  if (upper === "HOSPITAL_COORDINATOR") return "HOSPITAL_COORDINATOR";
+  if (upper === "HOSPITAL_COORDINATOR" || upper === "HOSPITAL_COORD") return "HOSPITAL_COORDINATOR";
   if (upper === "HOSPITAL_ADMIN") return "HOSPITAL_ADMIN";
   if (upper === "HOSPITAL_STAFF") return "HOSPITAL_STAFF";
+  if (upper === "HOSPITAL_SUPERVISOR") return "HOSPITAL_COORDINATOR";
 
   const migrated = migrateLegacyRapidCortexRoleTokenValue(token) ?? token;
   if (migrated === "venue_guest") return "VENUE_GUEST_SERVICES";
@@ -1109,8 +1109,9 @@ function resolveNavRole(raw: string): string {
   if (upper === "VENUE_GUEST") return "VENUE_GUEST_SERVICES";
   if (migrated.startsWith("campus_")) return migrated.toUpperCase();
   if (migrated.startsWith("transit_")) return migrated.toUpperCase();
-  if (migrated === "hospitaladmin") return "HOSPITAL_ADMIN";
-  if (migrated === "hospitalstaff") return "HOSPITAL_STAFF";
+  if (migrated === "hospitaladmin" || migrated === "hospital_admin") return "HOSPITAL_ADMIN";
+  if (migrated === "hospitalstaff" || migrated === "hospital_staff") return "HOSPITAL_STAFF";
+  if (migrated === "hospital_coord" || migrated === "hospital_supervisor") return "HOSPITAL_COORDINATOR";
   return migrated;
 }
 

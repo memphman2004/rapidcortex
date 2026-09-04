@@ -49,9 +49,10 @@ describe("classifyPipelineFeedTab", () => {
     ).toBe("911");
   });
 
-  it("classifies campus and venue keywords", () => {
+  it("classifies campus, venue, and transit keywords", () => {
     expect(classifyPipelineFeedTab({ rawTitle: "University campus safety RFP" })).toBe("campus");
     expect(classifyPipelineFeedTab({ rawTitle: "Stadium venue operations contract" })).toBe("venue");
+    expect(classifyPipelineFeedTab({ rawTitle: "WMATA transit police CAD overlay" })).toBe("transit");
   });
 
   it("honors explicit vertical", () => {

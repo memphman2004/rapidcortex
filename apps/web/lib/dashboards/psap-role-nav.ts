@@ -23,7 +23,7 @@ export const SUPERVISOR_OPS_NAV: readonly PsapNavItem[] = [
   { path: "/supervisor", label: "Supervisor dashboard" },
   { path: "/supervisor/monitor", label: "Active calls" },
   { path: "/incidents", label: "Incidents" },
-  { path: "/supervisor/coaching", label: "QA / Coaching" },
+  { path: "/qa", label: "QA / Coaching" },
   { path: "/supervisor/team-performance", label: "Team performance" },
   { path: "/supervisor/reports", label: "Reports" },
   { path: "/review", label: "CAD writeback queue" },

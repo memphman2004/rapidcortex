@@ -154,6 +154,29 @@ export const KEYWORDS = {
     "venue communications",
   ],
 
+  // ── Transit vertical keywords ────────────────────────────
+  transit: [
+    "transit police",
+    "transit security",
+    "bus operations",
+    "rail operations",
+    "light rail",
+    "commuter rail",
+    "subway",
+    "ferry operations",
+    "rider reporting",
+    "passenger reporting",
+    "control center",
+    "operations control center",
+    "OCC",
+    "transit CAD",
+    "bus CAD",
+    "rail CAD",
+    "paratransit",
+    "fare evasion",
+    "station security",
+  ],
+
   // ── Competitor monitoring ────────────────────────────────
   competitors: [
     "Motorola Solutions",
@@ -388,6 +411,7 @@ export function isRelevantSignalText(text: string): boolean {
     countKeywordHits(text, KEYWORDS.product911) > 0 ||
     countKeywordHits(text, KEYWORDS.campus) > 0 ||
     countKeywordHits(text, KEYWORDS.venue) > 0 ||
+    countKeywordHits(text, KEYWORDS.transit) > 0 ||
     countKeywordHits(text, KEYWORDS.competitors) > 0 ||
     countKeywordHits(text, EXTRA_RELEVANCE_KEYWORDS) > 0
   );
@@ -458,7 +482,8 @@ export function scoreFit(text: string, sourceType: string): number {
 
   const campusHits = countKeywordHits(text, KEYWORDS.campus);
   const venueHits = countKeywordHits(text, KEYWORDS.venue);
-  score += Math.min((campusHits + venueHits) * 4, 12);
+  const transitHits = countKeywordHits(text, KEYWORDS.transit);
+  score += Math.min((campusHits + venueHits + transitHits) * 4, 16);
 
   const stage = classifyProcurementStage(text);
   const stageBonus: Record<string, number> = {
@@ -529,6 +554,7 @@ export const FIT_FACTORS = {
   isFireEms: 15,
   isCampus: 20,
   isVenue: 15,
+  isTransit: 20,
   mentionsTranscription: 15,
   mentionsTranslation: 15,
   mentionsNg911: 15,
@@ -881,6 +907,9 @@ function computeProductFitScore(
   const fire = /\b(fire rescue|fire department|\bems\b|emergency medical)\b/i.test(typeHay);
   const campus = countKeywordHits(text, KEYWORDS.campus) > 0 || /\bcampus\b/i.test(agencyType ?? "");
   const venue = countKeywordHits(text, KEYWORDS.venue) > 0 || /\bvenue\b/i.test(agencyType ?? "");
+  const transit =
+    countKeywordHits(text, KEYWORDS.transit) > 0 ||
+    /\b(transit|metro|subway|rail)\b/i.test(agencyType ?? "");
 
   if (psap) {
     score += FIT_FACTORS.isPsap911;
@@ -910,6 +939,10 @@ function computeProductFitScore(
   if (venue) {
     score += FIT_FACTORS.isVenue;
     ev.push(evidence("Venue operations", FIT_FACTORS.isVenue, text, KEYWORDS.venue, sourceUrl));
+  }
+  if (transit) {
+    score += FIT_FACTORS.isTransit;
+    ev.push(evidence("Transit operations", FIT_FACTORS.isTransit, text, KEYWORDS.transit, sourceUrl));
   }
 
   if (anyHit(text, TRANSCRIPTION_KEYWORDS)) {

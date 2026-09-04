@@ -23,7 +23,7 @@ export function resolveRoleRoute(role: string, agencyId = ""): string {
 const VERTICAL_DASHBOARD_FALLBACK: Record<string, string> = {
   campus: "/app/campus/admin",
   venue: "/app/venue/admin",
-  hospital: "/app/hospital/admin",
+  hospital: "/hospital-admin/dashboard",
   transit: "/app/transit/admin",
 };
 

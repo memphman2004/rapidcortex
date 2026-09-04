@@ -89,12 +89,14 @@ describe("hospital role predicates", () => {
   it("isHospitalAdminRole: canonical and product token", () => {
     expect(isHospitalAdminRole("HOSPITAL_ADMIN")).toBe(true);
     expect(isHospitalAdminRole("hospitaladmin")).toBe(true);
+    expect(isHospitalAdminRole("hospital_admin")).toBe(true);
     expect(isHospitalAdminRole("HOSPITAL_COORDINATOR")).toBe(false);
     expect(isHospitalAdminRole("dispatcher")).toBe(false);
   });
 
   it("isHospitalCoordinatorRole", () => {
     expect(isHospitalCoordinatorRole("HOSPITAL_COORDINATOR")).toBe(true);
+    expect(isHospitalCoordinatorRole("hospital_coord")).toBe(true);
     expect(isHospitalCoordinatorRole("HOSPITAL_ADMIN")).toBe(false);
     expect(isHospitalCoordinatorRole("HOSPITAL_STAFF")).toBe(false);
   });
@@ -102,6 +104,7 @@ describe("hospital role predicates", () => {
   it("isHospitalStaffRole: canonical and product token", () => {
     expect(isHospitalStaffRole("HOSPITAL_STAFF")).toBe(true);
     expect(isHospitalStaffRole("hospitalstaff")).toBe(true);
+    expect(isHospitalStaffRole("hospital_staff")).toBe(true);
     expect(isHospitalStaffRole("HOSPITAL_ADMIN")).toBe(false);
   });
 });

@@ -28,11 +28,15 @@ export const RAPID_IQ_PIPELINE_SOURCE_IDS = [
   "university-procurement",
   "fcc-reports",
   "manual",
+  "openai-web-search",
+  "watch-page",
+  "watch-rss",
+  "manual-url",
 ] as const;
 export type RapidIqPipelineSourceId = (typeof RAPID_IQ_PIPELINE_SOURCE_IDS)[number];
 
 /** Rapid IQ inbox + pipeline slice (matches the dashboard tabs). */
-export const RAPID_IQ_PIPELINE_FEED_TABS = ["911", "campus", "venue", "competitor"] as const;
+export const RAPID_IQ_PIPELINE_FEED_TABS = ["911", "campus", "venue", "transit", "competitor"] as const;
 export type RapidIqPipelineFeedTab = (typeof RAPID_IQ_PIPELINE_FEED_TABS)[number];
 
 export const RAPID_IQ_PIPELINE_SIGNAL_STATUSES = [
@@ -389,6 +393,10 @@ export const RAPID_IQ_PIPELINE_SOURCE_LABELS: Record<RapidIqPipelineSourceId, st
   "university-procurement": "University Procurement",
   "fcc-reports": "FCC 911",
   manual: "Manual Entry",
+  "openai-web-search": "OpenAI Web Search",
+  "watch-page": "Agency Watch Page",
+  "watch-rss": "Agency Watch RSS",
+  "manual-url": "Manual URL",
 };
 
 export const enqueueRapidIqPipelineFromOpportunityBodySchema = z.object({
@@ -424,6 +432,8 @@ const CAMPUS_RE =
   /\b(university|college|campus|school district|k-12|higher education|student safety|dormitory)\b/i;
 const VENUE_RE =
   /\b(stadium|arena|amphitheatre|amphitheater|venue|concert|festival|racetrack|ballpark|convention center)\b/i;
+const TRANSIT_RE =
+  /\b(transit|metro|subway|light rail|commuter rail|bus rapid|ferry|paratransit|ridership|mta|wmata|mbta|bart|trimet)\b/i;
 
 /**
  * Map a pipeline / collector signal onto the Rapid IQ category tabs.
@@ -442,6 +452,7 @@ export function classifyPipelineFeedTab(input: {
     input.vertical === "911" ||
     input.vertical === "campus" ||
     input.vertical === "venue" ||
+    input.vertical === "transit" ||
     input.vertical === "competitor"
   ) {
     return input.vertical;
@@ -465,6 +476,7 @@ export function classifyPipelineFeedTab(input: {
   if (/\bcompetitor\b|displacement/i.test(hay)) return "competitor";
   if (CAMPUS_RE.test(hay)) return "campus";
   if (VENUE_RE.test(hay)) return "venue";
+  if (TRANSIT_RE.test(hay)) return "transit";
   return "911";
 }
 

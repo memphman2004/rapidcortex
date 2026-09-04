@@ -1,10 +1,8 @@
 import type { UserContext } from "rapid-cortex-shared/types";
-import { getDashboardSummaryForUser } from "@/lib/dashboards/get-dashboard-summary";
 import { DashboardLiveDataHint } from "./dashboard-live-data-hint";
 import { ActivityFeed } from "./activity-feed";
 import { IncidentTable } from "@/components/dispatch/incident-table";
 import { SlaStatusBar } from "./sla-status-bar";
-import { StatCard } from "./stat-card";
 import { DispatcherActiveCallsPanel } from "@/components/call-control/dispatcher-active-calls-panel";
 import {
   AiSummaryPanel,
@@ -19,8 +17,7 @@ import {
 } from "./dispatcher-workspace-panels";
 
 export function DispatcherDashboardContent({ user }: { user: UserContext }) {
-  const data = getDashboardSummaryForUser("dispatcher", user);
-  const activeIncidentId = data.incidents[0]?.id ?? null;
+  void user;
 
   return (
     <div className="space-y-6">
@@ -37,16 +34,10 @@ export function DispatcherDashboardContent({ user }: { user: UserContext }) {
 
       <DispatcherActiveCallsPanel />
 
-      <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-        {data.stats.map((s) => (
-          <StatCard key={s.id} label={s.label} value={s.value} hint={s.hint} />
-        ))}
-      </section>
-
       <LiveCallWorkspace>
         <div className="grid gap-4 xl:grid-cols-12">
           <div className="space-y-4 xl:col-span-3">
-            <IncidentTable rows={data.incidents} emptyHint="No active calls in your queue." />
+            <IncidentTable rows={[]} emptyHint="No active calls in your queue." />
           </div>
           <div className="space-y-4 xl:col-span-6">
             <TranscriptionPanel />
@@ -55,7 +46,7 @@ export function DispatcherDashboardContent({ user }: { user: UserContext }) {
           </div>
           <div className="space-y-4 xl:col-span-3">
             <CallerInfoPanel />
-            <CallerMediaPanel incidentId={activeIncidentId} />
+            <CallerMediaPanel incidentId={null} />
             <CadReadyPanel incident={null} />
           </div>
         </div>
@@ -75,7 +66,7 @@ export function DispatcherDashboardContent({ user }: { user: UserContext }) {
       </LiveCallWorkspace>
 
       <section id="recent-calls">
-        <ActivityFeed items={data.activities} />
+        <ActivityFeed items={[]} />
       </section>
     </div>
   );

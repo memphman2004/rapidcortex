@@ -1,6 +1,7 @@
 import {
   AdminCreateUserCommand,
   AdminDisableUserCommand,
+  AdminGetUserCommand,
   AdminSetUserPasswordCommand,
   AdminUpdateUserAttributesCommand,
   CognitoIdentityProviderClient,
@@ -8,6 +9,8 @@ import {
   ForgotPasswordCommand,
   InitiateAuthCommand,
   UsernameExistsException,
+  UserNotFoundException,
+  type AdminGetUserCommandOutput,
   type AuthenticationResultType,
 } from "@aws-sdk/client-cognito-identity-provider";
 import { createHmac } from "node:crypto";
@@ -269,6 +272,53 @@ async function signInHomeowner(input: {
     created: input.created,
     authenticationResult: result,
   };
+}
+
+function cognitoAttr(
+  attrs: AdminGetUserCommandOutput["UserAttributes"],
+  name: string,
+): string {
+  return attrs?.find((a) => a.Name === name)?.Value?.trim() ?? "";
+}
+
+function isCognitoUserNotFound(err: unknown): boolean {
+  if (err instanceof UserNotFoundException) return true;
+  return err instanceof Error && err.name === "UserNotFoundException";
+}
+
+/**
+ * Look up a Ring Device Owner for Account Link URL deletion (email only).
+ * Returns null for unknown users and non-homeowner roles — never deletes agency operators.
+ */
+export async function resolveHomeownerForDeletion(
+  emailRaw: string,
+): Promise<{ userId: string; email: string; agencyId: string } | null> {
+  const poolId = env.cognitoUserPoolId;
+  if (!poolId) {
+    throw new Error("COGNITO_NOT_CONFIGURED");
+  }
+
+  const email = emailRaw.trim().toLowerCase();
+  let user: AdminGetUserCommandOutput;
+  try {
+    user = await cip().send(new AdminGetUserCommand({ UserPoolId: poolId, Username: email }));
+  } catch (err) {
+    if (isCognitoUserNotFound(err)) {
+      return null;
+    }
+    throw err;
+  }
+
+  const role = cognitoAttr(user.UserAttributes, "custom:role").toLowerCase();
+  if (role !== HOMEOWNER_ROLE) {
+    return null;
+  }
+
+  const username = user.Username?.trim() || email;
+  const userId = cognitoAttr(user.UserAttributes, "sub") || username;
+  const agencyId =
+    cognitoAttr(user.UserAttributes, "custom:agencyId") || RING_HOMEOWNER_DEFAULT_AGENCY_ID;
+  return { userId, email, agencyId };
 }
 
 function decodeJwtSub(idToken: string): string | null {

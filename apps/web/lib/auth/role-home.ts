@@ -22,11 +22,6 @@ export function jurisdictionRoleHomeHref(
     typeof role === "string" ? role : role,
   ) ?? role) as string;
 
-  const vertical = verticalFromRole(effective);
-  if (vertical !== "911") {
-    return dashboardRouteFromRole(effective, agencyId ?? jurisdictionSlug);
-  }
-
   if (effective === "rcsuperadmin") {
     return "/rc-admin/dashboard";
   }
@@ -35,6 +30,11 @@ export function jurisdictionRoleHomeHref(
   }
   if (isRcInternalOperator(effective)) {
     return "/rc-admin/dashboard";
+  }
+
+  const vertical = verticalFromRole(effective);
+  if (vertical !== "911") {
+    return dashboardRouteFromRole(effective, agencyId ?? jurisdictionSlug);
   }
 
   return dashboardRouteFromRole(effective, agencyId ?? jurisdictionSlug);

@@ -29,7 +29,7 @@ type ReportFormProps = {
   submitting: boolean;
   error: string | null;
   onSubmit: (e: React.FormEvent) => void;
-  /** When true, show optional media / geolocation UI placeholders (no backend). */
+  /** When true, show optional media / geolocation UI (not wired for public report). */
   showOptionalActions?: boolean;
 };
 
@@ -49,7 +49,7 @@ export function ReportForm({
   submitting,
   error,
   onSubmit,
-  showOptionalActions = true,
+  showOptionalActions = false,
 }: ReportFormProps) {
   const { t } = useReportLanguage();
 

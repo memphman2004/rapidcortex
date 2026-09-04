@@ -8,6 +8,7 @@ const TABS: { id: FeedTab; label: string; activeClass: string }[] = [
   { id: "911", label: "911 / PSAP", activeClass: "bg-sky-600 text-white shadow-sm" },
   { id: "campus", label: "Campus", activeClass: "bg-sky-600 text-white shadow-sm" },
   { id: "venue", label: "Venue", activeClass: "bg-sky-600 text-white shadow-sm" },
+  { id: "transit", label: "Transit", activeClass: "bg-sky-600 text-white shadow-sm" },
   {
     id: "competitor",
     label: "Competitors",
@@ -19,6 +20,7 @@ export const FEED_TAB_LABELS: Record<FeedTab, string> = {
   "911": "911 / PSAP",
   campus: "Campus",
   venue: "Venue",
+  transit: "Transit",
   competitor: "Competitors",
 };
 

@@ -74,6 +74,107 @@ type LinkedDeviceSummary = {
   hasCoordinates?: boolean;
 };
 
+function HomeownerDeleteAccount() {
+  const [email, setEmail] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [doneMessage, setDoneMessage] = useState<string | null>(null);
+
+  async function onDelete(e: FormEvent) {
+    e.preventDefault();
+    setError(null);
+    if (!API_BASE) {
+      setError("Connect API is not configured. Email support@rapidcortex.us to request deletion.");
+      return;
+    }
+    const api = API_BASE.replace(/\/$/, "");
+    setBusy(true);
+    try {
+      const res = await fetch(`${api}/api/public/ring/homeowner/delete-account`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Accept: "application/json" },
+        body: JSON.stringify({ email }),
+      });
+      const data = (await res.json().catch(() => ({}))) as {
+        success?: boolean;
+        error?: string;
+        data?: { message?: string };
+      };
+      if (!res.ok || data.success === false) {
+        setError(data.error || "Unable to delete account.");
+        return;
+      }
+      setDoneMessage(data.data?.message || "Account deleted.");
+    } catch {
+      setError("Network error. Check your connection and try again.");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  if (doneMessage) {
+    return (
+      <section id="delete-account" className="mt-4 scroll-mt-24 text-sm">
+        <p className="text-sm text-slate-300">{doneMessage}</p>
+      </section>
+    );
+  }
+
+  return (
+    <section id="delete-account" className="mt-4 scroll-mt-24 text-sm">
+      <form className="flex flex-col gap-2 sm:flex-row sm:items-end" onSubmit={(e) => void onDelete(e)}>
+        <label className="block min-w-0 flex-1">
+          <span className="text-xs font-medium uppercase tracking-wide text-slate-400">
+            Delete my account
+          </span>
+          <input
+            type="email"
+            required
+            autoComplete="email"
+            placeholder="Email used to create your Rapid Cortex account"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            className="mt-1.5 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2.5 text-sm text-white outline-none focus:border-sky-500"
+          />
+        </label>
+        <button
+          type="submit"
+          disabled={busy}
+          className="inline-flex min-h-11 shrink-0 items-center justify-center rounded-lg border border-rose-700 bg-rose-900/60 px-4 text-sm font-semibold text-rose-100 disabled:opacity-60"
+        >
+          {busy ? "Deleting…" : "Delete"}
+        </button>
+      </form>
+      {error ? <p className="mt-2 text-sm text-rose-400">{error}</p> : null}
+    </section>
+  );
+}
+
+function PrivacyDeletionFooter() {
+  return (
+    <>
+      <p>
+        Privacy &amp; data deletion:{" "}
+        <Link href="/privacy/" className="text-sky-400 hover:text-sky-300">
+          Privacy policy
+        </Link>{" "}
+        ·{" "}
+        <a href="#delete-account" className="text-sky-400 hover:text-sky-300">
+          Disconnect &amp; delete
+        </a>{" "}
+        ·{" "}
+        <a
+          href="mailto:support@rapidcortex.us?subject=Ring%20Connect%20data%20deletion"
+          className="text-sky-400 hover:text-sky-300"
+        >
+          support@rapidcortex.us
+        </a>
+      </p>
+      <HomeownerDeleteAccount />
+    </>
+  );
+}
+
 function HomeownerAppstoreSignIn({ nonce, time }: { nonce: string; time: string }) {
   // Ring™ UX guide: emphasize Create Account over Sign In for first-time linking.
   const [mode, setMode] = useState<"signin" | "signup" | "forgot" | "forgotConfirm">("signup");
@@ -196,6 +297,7 @@ function HomeownerAppstoreSignIn({ nonce, time }: { nonce: string; time: string 
 
   if (done) {
     return (
+      <>
       <div className="mt-8 rounded-xl border border-emerald-500/40 bg-emerald-950/30 p-6">
         <h2 className="text-lg font-semibold text-emerald-200">Account linked</h2>
         <p className="mt-3 text-sm leading-relaxed text-slate-300">
@@ -238,6 +340,7 @@ function HomeownerAppstoreSignIn({ nonce, time }: { nonce: string; time: string 
           .
         </p>
       </div>
+      </>
     );
   }
 
@@ -534,20 +637,7 @@ export function RingLinkClient() {
             </Link>
             , not this page.
           </p>
-          <p>
-            Privacy &amp; data deletion:{" "}
-            <Link href="/privacy/" className="text-sky-400 hover:text-sky-300">
-              Privacy policy
-            </Link>{" "}
-            ·{" "}
-            <Link href="/connect/ring/start#privacy-data" className="text-sky-400 hover:text-sky-300">
-              Disconnect &amp; delete
-            </Link>{" "}
-            ·{" "}
-            <a href="mailto:privacy@rapidcortex.us" className="text-sky-400 hover:text-sky-300">
-              privacy@rapidcortex.us
-            </a>
-          </p>
+          <PrivacyDeletionFooter />
           <p>
             Need help?{" "}
             <a href="mailto:support@rapidcortex.us" className="text-sky-400 hover:text-sky-300">
@@ -583,6 +673,7 @@ export function RingLinkClient() {
             , not this page.
           </p>
         ) : null}
+        <PrivacyDeletionFooter />
         <p>
           Need help?{" "}
           <Link href="/contact-sales?interest=demo" className="text-sky-400 hover:text-sky-300">

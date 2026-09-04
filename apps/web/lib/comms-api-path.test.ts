@@ -99,6 +99,7 @@ describe("isCommsPlatformApiPath", () => {
   it("matches billing prefix (stack 4)", () => {
     expect(isSam4ApiPath("/api/billing/plans")).toBe(true);
     expect(isSam4ApiPath("/api/public/ring/oauth/start")).toBe(true);
+    expect(isSam4ApiPath("/api/public/ring/homeowner/delete-account")).toBe(true);
     expect(isSam4ApiPath("/api/user/account")).toBe(true);
     expect(isStack2ApiPath("/api/billing/plans")).toBe(false);
   });

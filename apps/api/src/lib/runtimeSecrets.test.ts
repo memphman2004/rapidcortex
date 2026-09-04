@@ -119,6 +119,16 @@ describe("resolvePlainOrSecretArn", () => {
     expect(v).toBe("binary-key");
   });
 
+  it("picks OPENAI_API_KEY from JSON secret (rapid-cortex/ai/openai shape)", async () => {
+    sendMock.mockResolvedValue({
+      SecretString: JSON.stringify({ OPENAI_API_KEY: "sk-openai-from-json" }),
+    });
+    const v = await resolvePlainOrSecretArn("", "arn:aws:secretsmanager:::secret:rapid-cortex/ai/openai", {
+      preferredField: "OPENAI_API_KEY",
+    });
+    expect(v).toBe("sk-openai-from-json");
+  });
+
   it("picks apiKey from rapid-cortex/ai/anthropic JSON shape", async () => {
     sendMock.mockResolvedValue({
       SecretString: JSON.stringify({ apiKey: "sk-ant-platform" }),

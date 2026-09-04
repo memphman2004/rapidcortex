@@ -5,7 +5,6 @@ import { QRNfcIntakeClient } from "@/components/qr-nfc/qr-nfc-intake-client";
 import { resolveUpstreamApiBase } from "@/lib/comms-api-path";
 import { isQrNfcSlug } from "@/lib/qr-nfc/is-qr-nfc-slug";
 import { LegacyReportShell } from "../_components/LegacyReportShell";
-import { ReportWizard } from "../_components/ReportWizard";
 
 type PageParams = { slug: string };
 
@@ -68,15 +67,7 @@ export default async function ReportSlugPage({
   const { slug } = await params;
 
   if (!isQrNfcSlug(slug)) {
-    return (
-      <LegacyReportShell>
-        <ReportWizard
-          initialVenueCode={slug.toUpperCase()}
-          initialZoneCode=""
-          initialZoneLabel=""
-        />
-      </LegacyReportShell>
-    );
+    return inactiveReportMessage();
   }
 
   const sp = await searchParams;

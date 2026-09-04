@@ -451,6 +451,8 @@ export const env = {
   rapidIqOrchestratorFunctionName: process.env.RAPID_IQ_ORCHESTRATOR_FUNCTION_NAME?.trim() ?? "",
   rapidIqCollectorsMock:
     process.env.RAPID_IQ_COLLECTORS_MOCK === "true" || process.env.RAPID_IQ_COLLECTORS_MOCK === "1",
+  openAiApiKeySecretArn: process.env.OPENAI_API_KEY_SECRET_ARN?.trim() ?? "",
+  intelWatchQueueUrl: process.env.INTEL_WATCH_QUEUE_URL?.trim() ?? "",
 
   /** GSI name for pipeline queries (Scan-first until ~1K leads) [CR-7]. */
   pipelineStageGsiName: process.env.PIPELINE_STAGE_GSI?.trim() || "PipelineStageIndex",

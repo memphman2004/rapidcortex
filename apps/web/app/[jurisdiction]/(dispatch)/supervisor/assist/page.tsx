@@ -29,13 +29,10 @@ export default function SupervisorAssistPage() {
       <div className="flex flex-col items-center justify-center rounded-lg border border-slate-800 bg-slate-950/40 py-16 text-center">
         <UserCheck className="mb-4 h-10 w-10 text-slate-600" />
         <h2 className="text-lg font-semibold text-slate-300">No active sessions available to assist.</h2>
-        <button
-          type="button"
-          className="mt-4 rounded-md bg-slate-800 px-3 py-1.5 text-xs font-medium text-sky-300 ring-1 ring-slate-700 hover:bg-slate-700"
-          onClick={() => console.log("TODO: join assist", "session-placeholder")}
-        >
-          Join
-        </button>
+        <p className="mt-2 max-w-md text-sm text-slate-500">
+          Live join is not available. Use Active Calls to monitor dispatchers. Assist sessions are
+          audit-logged when enabled for your agency.
+        </p>
       </div>
     </div>
   );

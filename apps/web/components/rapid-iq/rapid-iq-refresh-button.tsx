@@ -21,6 +21,8 @@ type Props = {
   onTogglePipeline?: () => void;
   showAccounts?: boolean;
   onToggleAccounts?: () => void;
+  showIntel?: boolean;
+  onToggleIntel?: () => void;
   onAddSignal?: () => void;
 };
 
@@ -33,6 +35,8 @@ export function RapidIqRefreshButton({
   onTogglePipeline,
   showAccounts = false,
   onToggleAccounts,
+  showIntel = false,
+  onToggleIntel,
   onAddSignal,
 }: Props) {
   const qc = useQueryClient();
@@ -138,6 +142,16 @@ export function RapidIqRefreshButton({
           aria-pressed={showAccounts}
         >
           <span>ACCOUNTS</span>
+        </button>
+      )}
+      {pipelineEnabled && onToggleIntel && (
+        <button
+          type="button"
+          className={`pipeline-toggle-btn ${showIntel ? "active" : ""}`}
+          onClick={() => onToggleIntel()}
+          aria-pressed={showIntel}
+        >
+          <span>INTEL</span>
         </button>
       )}
       {onAddSignal && (

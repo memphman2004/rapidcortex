@@ -65,3 +65,12 @@ export const ringHomeownerVerifyQuerySchema = z.object({
 });
 
 export type RingHomeownerVerifyQuery = z.infer<typeof ringHomeownerVerifyQuerySchema>;
+
+/**
+ * Public Account Link URL deletion — email of the Rapid Cortex device-owner account.
+ */
+export const ringHomeownerDeleteAccountBodySchema = z.object({
+  email: z.string().email().max(320),
+});
+
+export type RingHomeownerDeleteAccountBody = z.infer<typeof ringHomeownerDeleteAccountBodySchema>;

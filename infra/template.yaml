@@ -2033,6 +2033,7 @@ Resources:
         RapidIqApolloApiKeySecretArn: !Ref RapidIqApolloApiKeySecretArn
         RapidIqOpenstatesApiKeySecretArn: ""
         RapidIqLegiscanApiKeySecretArn: ""
+        OpenAiApiKeySecretArn: !Ref OpenAiApiKeySecretArn
         ImportedCognitoUserPoolId: !GetAtt AppSamStackV2.Outputs.UserPoolId
         ImportedCognitoWebClientId: !GetAtt AppSamStackV2.Outputs.UserPoolClientId
         ManagedPolicyNamePrefix: !Ref AWS::StackName

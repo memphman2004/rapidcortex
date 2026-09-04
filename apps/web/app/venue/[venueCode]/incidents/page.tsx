@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { use, useMemo, useState } from "react";
 import { AlertTriangle } from "lucide-react";
 import type { IncidentStatus, IncidentType } from "../_lib/venue-types";
@@ -10,6 +10,8 @@ import { IncidentStatusBadge } from "../_components/IncidentStatusBadge";
 import { IncidentTypeIcon, incidentTypeLabel } from "../_components/IncidentTypeIcon";
 import { RelativeTime } from "../_components/RelativeTime";
 import { fetchVenueIncidents } from "@/lib/venue/venue-incidents-api";
+import { patchVenueIncidentStatus } from "@/lib/venue/venue-camera-api";
+import { CreateVenueIncidentModal } from "@/components/venue/venue-ops-modals";
 
 const statusFilters: Array<IncidentStatus | "all"> = [
   "all",
@@ -39,9 +41,13 @@ export default function VenueIncidentsPage({
 }) {
   const { venueCode } = use(params);
   const normalizedVenue = venueCode.toUpperCase();
+  const queryClient = useQueryClient();
   const [statusFilter, setStatusFilter] = useState<IncidentStatus | "all">("all");
   const [typeFilter, setTypeFilter] = useState<IncidentType | "all">("all");
   const [searchQuery, setSearchQuery] = useState("");
+  const [showCreate, setShowCreate] = useState(false);
+  const [busyId, setBusyId] = useState<string | null>(null);
+  const [actionError, setActionError] = useState<string | null>(null);
 
   const incidentsQuery = useQuery({
     queryKey: ["venue-incidents", normalizedVenue],
@@ -63,18 +69,33 @@ export default function VenueIncidentsPage({
     });
   }, [incidentsQuery.data, searchQuery, statusFilter, typeFilter]);
 
+  async function updateStatus(incidentId: string, status: "resolved" | "escalated") {
+    setActionError(null);
+    setBusyId(incidentId);
+    try {
+      await patchVenueIncidentStatus(incidentId, status);
+      await queryClient.invalidateQueries({ queryKey: ["venue-incidents", normalizedVenue] });
+    } catch (error) {
+      setActionError(error instanceof Error ? error.message : "Unable to update incident status.");
+    } finally {
+      setBusyId(null);
+    }
+  }
+
   return (
     <div className="space-y-6 p-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <h1 className="text-2xl font-bold text-white">Active Incidents</h1>
         <button
           type="button"
-          onClick={() => console.log("TODO: create incident")}
+          onClick={() => setShowCreate(true)}
           className="rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-sm font-semibold text-slate-100 hover:bg-slate-800"
         >
           New Incident
         </button>
       </div>
+
+      {actionError ? <p className="text-sm text-red-400">{actionError}</p> : null}
 
       <div className="rounded-lg border border-slate-700/60 bg-slate-900/40 p-4">
         <div className="mb-4 flex flex-wrap gap-2">
@@ -172,27 +193,22 @@ export default function VenueIncidentsPage({
                           >
                             View
                           </Link>
-                          <button
-                            type="button"
-                            onClick={() => console.log("TODO: assign", incident.id)}
-                            className="rounded-md border border-slate-700 bg-slate-900 px-2.5 py-1 text-xs font-medium text-slate-100 hover:bg-slate-800"
-                          >
-                            Assign
-                          </button>
                           {incident.status !== "resolved" ? (
                             <button
                               type="button"
-                              onClick={() => console.log("TODO: resolve", incident.id)}
-                              className="rounded-md border border-slate-700 bg-slate-900 px-2.5 py-1 text-xs font-medium text-slate-100 hover:bg-slate-800"
+                              disabled={busyId === incident.id}
+                              onClick={() => void updateStatus(incident.id, "resolved")}
+                              className="rounded-md border border-slate-700 bg-slate-900 px-2.5 py-1 text-xs font-medium text-slate-100 hover:bg-slate-800 disabled:opacity-60"
                             >
-                              Resolve
+                              {busyId === incident.id ? "Saving…" : "Resolve"}
                             </button>
                           ) : null}
                           {incident.status !== "escalated" && incident.status !== "resolved" ? (
                             <button
                               type="button"
-                              onClick={() => console.log("TODO: escalate to Core", incident.id)}
-                              className="rounded-md border border-violet-500/50 bg-violet-500/10 px-2.5 py-1 text-xs font-medium text-violet-300 hover:bg-violet-500/20"
+                              disabled={busyId === incident.id}
+                              onClick={() => void updateStatus(incident.id, "escalated")}
+                              className="rounded-md border border-violet-500/50 bg-violet-500/10 px-2.5 py-1 text-xs font-medium text-violet-300 hover:bg-violet-500/20 disabled:opacity-60"
                             >
                               Escalate
                             </button>
@@ -213,6 +229,16 @@ export default function VenueIncidentsPage({
           )}
         </>
       )}
+
+      {showCreate ? (
+        <CreateVenueIncidentModal
+          venueCode={normalizedVenue}
+          onClose={() => setShowCreate(false)}
+          onCreated={() => {
+            void queryClient.invalidateQueries({ queryKey: ["venue-incidents", normalizedVenue] });
+          }}
+        />
+      ) : null}
     </div>
   );
 }

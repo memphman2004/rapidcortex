@@ -4,7 +4,8 @@ import { useState } from "react";
 import { useSession } from "@/components/auth/session-context";
 
 /**
- * Ring certification: in-app account deletion for Ring Device Owner accounts.
+ * JWT fallback: in-app deletion for a homeowner session.
+ * Device owners normally delete from the Account Link URL (no dashboard access).
  * Agency operator roles are not deleted from this control.
  */
 export function RingDeleteAccountSection() {
@@ -14,6 +15,9 @@ export function RingDeleteAccountSection() {
   const [deleteError, setDeleteError] = useState<string | null>(null);
 
   if (!user) {
+    return null;
+  }
+  if (String(user.role).trim().toLowerCase() !== "homeowner") {
     return null;
   }
 

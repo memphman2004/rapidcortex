@@ -20,7 +20,7 @@ Rapid Cortex does not use customer data, incident data, call recordings, transcr
 
 ### Data retention
 
-Incident and call data is retained for the duration of the agency's active subscription plus 90 days following contract termination, after which it is permanently deleted. Ring camera access tokens are deleted immediately upon account unlinking or subscription termination. Audit logs are retained for 7 years in compliance with public safety recordkeeping requirements. Users may request data deletion by contacting privacy@rapidcortex.us.
+Incident and call data is retained for the duration of the agency's active subscription plus 90 days following contract termination, after which it is permanently deleted. Ring camera access tokens are deleted immediately upon account unlinking or subscription termination. Audit logs are retained for 7 years in compliance with public safety recordkeeping requirements. Users may request data deletion by contacting support@rapidcortex.us, or Ring Device Owners may delete their Rapid Cortex account on the Account Link page (https://www.rapidcortex.us/connect/ring/link).
 
 Ring video from Connect is not stored by Rapid Cortex (0-day retention).
 
@@ -135,8 +135,8 @@ CloudWatch + DynamoDB audit records for Ring Connect actions.
 
 **Rights management**  
 - Consent: per-request SMS Allow  
-- Retention: Incident/call data for the active subscription plus 90 days after termination, then permanent deletion. Ring camera access tokens deleted immediately on unlink or termination. Audit logs retained 7 years. Ring video not stored (0-day). Deletion requests: privacy@rapidcortex.us  
-- DSAR / deletion: privacy@rapidcortex.us; owner disconnect via Ring My Apps; in-app Connect privacy section documents deletion  
+- Retention: Incident/call data for the active subscription plus 90 days after termination, then permanent deletion. Ring camera access tokens deleted immediately on unlink or termination. Audit logs retained 7 years. Ring video not stored (0-day). Deletion requests: support@rapidcortex.us; self-serve at https://www.rapidcortex.us/connect/ring/link  
+- DSAR / deletion: support@rapidcortex.us; owner disconnect via Ring My Apps; Account Link page self-serve delete; Connect privacy section documents deletion  
 - Revocation: Stop Sharing SMS, dispatcher End Access, Ring My Apps remove app  
 
 **Privacy governance**  

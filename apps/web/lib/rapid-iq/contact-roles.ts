@@ -33,6 +33,13 @@ export const CONTACT_ROLES_BY_VERTICAL: Record<RapidIqVertical, ContactRoleDefin
     { tier: "executive", label: "Race Series Owner / CEO", matchedOn: "Race Series Owner" },
     { tier: "executive", label: "General Manager", matchedOn: "GM" },
   ],
+  transit: [
+    { tier: "primary", label: "Transit Police Chief", matchedOn: "Transit Police" },
+    { tier: "primary", label: "Director of Security", matchedOn: "Security Director" },
+    { tier: "executive", label: "CIO / IT Director", matchedOn: "CIO" },
+    { tier: "procurement", label: "Procurement Officer", matchedOn: "Procurement" },
+    { tier: "secondary", label: "Emergency Management", matchedOn: "Emergency Management" },
+  ],
 };
 
 export function personaChipsForVertical(vertical: RapidIqVertical): string[] {

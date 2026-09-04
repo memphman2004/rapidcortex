@@ -43,6 +43,14 @@ export const PERSON_TITLES_BY_VERTICAL: Record<RapidIqVertical, string[]> = {
     "procurement officer",
   ],
   venue: ["director of security", "security director", "venue operations director", "procurement"],
+  transit: [
+    "transit police chief",
+    "director of security",
+    "chief of police",
+    "emergency management",
+    "procurement officer",
+    "CIO",
+  ],
 };
 
 export const MAX_CONTACTS = 5;

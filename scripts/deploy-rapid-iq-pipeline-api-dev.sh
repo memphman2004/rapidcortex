@@ -94,9 +94,21 @@ export RAPID_IQ_APOLLO_API_KEY_SECRET_ARN="${RAPID_IQ_APOLLO_API_KEY_SECRET_ARN:
 export RAPID_IQ_HUNTER_API_KEY_SECRET_ARN="${RAPID_IQ_HUNTER_API_KEY_SECRET_ARN:-arn:aws:secretsmanager:us-east-1:158961537080:secret:rapid-cortex/rapid-iq/hunter-api-key-LXEwMX}"
 export ANTHROPIC_API_KEY_SECRET_ARN="${ANTHROPIC_API_KEY_SECRET_ARN:-arn:aws:secretsmanager:us-east-1:158961537080:secret:rapid-cortex/ai/anthropic-fHk4y2}"
 
+if [[ -z "${OPENAI_API_KEY_SECRET_ARN:-}" ]]; then
+  OPENAI_API_KEY_SECRET_ARN="$(
+    aws secretsmanager describe-secret \
+      --secret-id rapid-cortex/ai/openai \
+      --query ARN --output text 2>/dev/null || true
+  )"
+fi
+if [[ -z "${OPENAI_API_KEY_SECRET_ARN}" || "${OPENAI_API_KEY_SECRET_ARN}" == "None" ]]; then
+  OPENAI_API_KEY_SECRET_ARN=""
+fi
+
 echo "Apollo ARN: ${RAPID_IQ_APOLLO_API_KEY_SECRET_ARN}"
 echo "Hunter ARN: ${RAPID_IQ_HUNTER_API_KEY_SECRET_ARN}"
 echo "Anthropic ARN: ${ANTHROPIC_API_KEY_SECRET_ARN}"
+echo "OpenAI ARN: ${OPENAI_API_KEY_SECRET_ARN:-<unset — intel falls back to heuristics>}"
 
 # shellcheck source=scripts/lib/api-vendor-lock.sh
 source "${ROOT}/scripts/lib/api-vendor-lock.sh"
@@ -171,6 +183,9 @@ fi
 if [[ -n "${RAPID_IQ_LEGISCAN_API_KEY_SECRET_ARN:-}" ]]; then
   PARAM_OVERRIDES+=("RapidIqLegiscanApiKeySecretArn=${RAPID_IQ_LEGISCAN_API_KEY_SECRET_ARN}")
 fi
+if [[ -n "${OPENAI_API_KEY_SECRET_ARN:-}" ]]; then
+  PARAM_OVERRIDES+=("OpenAiApiKeySecretArn=${OPENAI_API_KEY_SECRET_ARN}")
+fi
 
 sam deploy \
   --template-file "${SAM_BUILD_DIR}/template.yaml" \
@@ -186,9 +201,9 @@ echo "Rapid IQ Pipeline stack status:"
 aws cloudformation describe-stacks --stack-name "${STACK_NAME}" \
   --query 'Stacks[0].StackStatus' --output text
 
-echo "Pipeline routes on ${HTTP_API_ID}:"
+echo "Pipeline + intel routes on ${HTTP_API_ID}:"
 aws apigatewayv2 get-routes --api-id "${HTTP_API_ID}" \
-  --query 'Items[?contains(RouteKey, `rapid-iq/pipeline`)].[RouteKey,AuthorizationType]' \
+  --query 'Items[?contains(RouteKey, `rapid-iq/pipeline`) || contains(RouteKey, `rapid-iq/intel`)].[RouteKey,AuthorizationType]' \
   --output table
 
 echo "DONE: ${STACK_NAME}"

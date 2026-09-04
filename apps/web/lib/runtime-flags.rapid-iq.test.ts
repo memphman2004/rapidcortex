@@ -12,15 +12,15 @@ describe("Rapid IQ UI flag", () => {
     expect(mod.isRapidIqUiEnabled()).toBe(false);
   });
 
-  it("pipeline UI defaults on when unset and honors explicit disable", async () => {
+  it("intel UI defaults on when unset and honors explicit disable", async () => {
     vi.resetModules();
-    vi.stubEnv("NEXT_PUBLIC_ENABLE_RAPID_IQ_PIPELINE", "");
+    vi.stubEnv("NEXT_PUBLIC_ENABLE_RAPID_IQ_INTEL", "");
     let mod = await import("./runtime-flags.js");
-    expect(mod.isRapidIqPipelineUiEnabled()).toBe(true);
+    expect(mod.isRapidIqIntelUiEnabled()).toBe(true);
     vi.resetModules();
-    vi.stubEnv("NEXT_PUBLIC_ENABLE_RAPID_IQ_PIPELINE", "0");
+    vi.stubEnv("NEXT_PUBLIC_ENABLE_RAPID_IQ_INTEL", "0");
     mod = await import("./runtime-flags.js");
-    expect(mod.isRapidIqPipelineUiEnabled()).toBe(false);
+    expect(mod.isRapidIqIntelUiEnabled()).toBe(false);
   });
 
   it("conferences UI defaults on when unset and honors explicit disable", async () => {

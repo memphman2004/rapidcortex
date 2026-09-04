@@ -27,7 +27,7 @@ import {
   PIPELINE_SIGNALS_QUERY_KEY,
   pipelineOpportunityIdSet as pipelineOppIds,
 } from "@/lib/rapid-iq/pipeline-api";
-import { isRapidIqPipelineUiEnabled } from "@/lib/runtime-flags";
+import { isRapidIqIntelUiEnabled, isRapidIqPipelineUiEnabled } from "@/lib/runtime-flags";
 import { IncomingSignalDetail } from "./incoming-signal-detail";
 import { OpportunityDetailPanel } from "./opportunity-detail-panel";
 import { OpportunityFeed } from "./opportunity-feed";
@@ -37,6 +37,7 @@ import { RapidIqStatsBar } from "./rapid-iq-stats-bar";
 import { RapidIqAccountsView } from "./accounts-view";
 import { RapidIqResearchPanel } from "./research-panel";
 import { ManualSignalForm } from "./manual-signal-form";
+import { OpportunityIntelView } from "./opportunity-intel-view";
 import { FEED_TAB_LABELS, VerticalTabs, type FeedTab } from "./vertical-tabs";
 import { ProcurementStageTabs } from "./procurement-stage-tabs";
 
@@ -51,6 +52,7 @@ export function RapidIqClient() {
   const searchRef = useRef<HTMLInputElement>(null);
   const qc = useQueryClient();
   const pipelineEnabled = isRapidIqPipelineUiEnabled();
+  const intelEnabled = pipelineEnabled && isRapidIqIntelUiEnabled();
   const [feedTab, setFeedTab] = useState<FeedTab>("911");
   const [procurementStageFilter, setProcurementStageFilter] =
     useState<RapidIqProcurementStageFilterId>("all");
@@ -61,6 +63,7 @@ export function RapidIqClient() {
   const [selectedSignalId, setSelectedSignalId] = useState<string | null>(null);
   const [showPipeline, setShowPipeline] = useState(false);
   const [showAccounts, setShowAccounts] = useState(false);
+  const [showIntel, setShowIntel] = useState(false);
   const [addSignalOpen, setAddSignalOpen] = useState(false);
   const [taxonomyFilter, setTaxonomyFilter] = useState<string | null>(null);
   const [addingPipelineId, setAddingPipelineId] = useState<string | null>(null);
@@ -391,12 +394,24 @@ export function RapidIqClient() {
             onTogglePipeline={() => {
               setShowPipeline((p) => !p);
               setShowAccounts(false);
+              setShowIntel(false);
             }}
             showAccounts={showAccounts}
             onToggleAccounts={() => {
               setShowAccounts((p) => !p);
               setShowPipeline(false);
+              setShowIntel(false);
             }}
+            showIntel={showIntel}
+            onToggleIntel={
+              intelEnabled
+                ? () => {
+                    setShowIntel((p) => !p);
+                    setShowPipeline(false);
+                    setShowAccounts(false);
+                  }
+                : undefined
+            }
             onAddSignal={() => setAddSignalOpen(true)}
           />
         </div>
@@ -426,7 +441,11 @@ export function RapidIqClient() {
         </div>
       )}
 
-      {showAccounts ? (
+      {showIntel ? (
+        <div className="flex min-h-0 flex-1 flex-col">
+          <OpportunityIntelView />
+        </div>
+      ) : showAccounts ? (
         <div className="flex min-h-0 flex-1 flex-col">
           <RapidIqAccountsView />
         </div>

@@ -72,8 +72,9 @@ E2E emergency video request:
 
 Owner disconnect / data controls:
 • Ring → My Apps → remove Rapid Cortex Connect (webhook disables devices).
-• Privacy + deletion: https://www.rapidcortex.us/connect/ring/start (Privacy & data section) and https://www.rapidcortex.us/legal/privacy/
-• Email DSAR/deletion: privacy@rapidcortex.us
+• Self-serve account deletion: https://www.rapidcortex.us/connect/ring/link#delete-account (email used during linking)
+• Privacy: https://www.rapidcortex.us/connect/ring/start#privacy-data and https://www.rapidcortex.us/privacy/
+• Email DSAR/deletion: support@rapidcortex.us
 
 Expected guarantees: no video without per-request Allow; time-limited access; owner can stop anytime; no standing law-enforcement feed.
 

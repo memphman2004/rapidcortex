@@ -2881,6 +2881,8 @@ Resources:
               - cognito-idp:AdminAddUserToGroup
               - cognito-idp:AdminDisableUser
               - cognito-idp:AdminEnableUser
+              - cognito-idp:AdminGetUser
+              - cognito-idp:AdminDeleteUser
             Resource: !Sub "arn:aws:cognito-idp:${AWS::Region}:${AWS::AccountId}:userpool/${ImportedCognitoUserPoolId}"
           - Sid: CognitoInitiateAuth
             Effect: Allow
@@ -2925,6 +2927,7 @@ Resources:
               - dynamodb:GetItem
               - dynamodb:PutItem
               - dynamodb:UpdateItem
+              - dynamodb:DeleteItem
               - dynamodb:Query
             Resource:
               - !If
@@ -2945,6 +2948,7 @@ Resources:
               - dynamodb:GetItem
               - dynamodb:PutItem
               - dynamodb:UpdateItem
+              - dynamodb:DeleteItem
               - dynamodb:Query
             Resource:
               - !If
@@ -3177,6 +3181,14 @@ Resources:
             Path: /api/public/ring/homeowner/verify
             Method: GET
             Auth: { Authorizer: NONE }
+        DeleteAccount:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/public/ring/homeowner/delete-account
+            Method: POST
+            Auth:
+              Authorizer: NONE
 
   CleanupOrphanedHomeownersFunction:
     Type: AWS::Serverless::Function

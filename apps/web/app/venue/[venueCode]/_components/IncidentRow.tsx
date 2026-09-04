@@ -9,8 +9,6 @@ import { RelativeTime } from "./RelativeTime";
 import type { VenueIncident } from "../_lib/venue-types";
 
 export function IncidentRow({ incident }: { incident: VenueIncident }) {
-  const canAssign = incident.status === "open" || !incident.assignedTo;
-
   return (
     <tr className="border-b border-slate-800/70 bg-slate-900/20 even:bg-slate-900/40">
       <td className="px-4 py-3 text-sm font-medium text-sky-300">{incident.id}</td>
@@ -40,23 +38,12 @@ export function IncidentRow({ incident }: { incident: VenueIncident }) {
         <RelativeTime iso={incident.createdAt} />
       </td>
       <td className="px-4 py-3">
-        <div className="flex items-center gap-2">
-          <Link
-            href={`/app/venue/${incident.venueCode}/incidents/${incident.id}`}
-            className="rounded-md border border-slate-700 bg-slate-900 px-2.5 py-1 text-xs font-medium text-slate-100 hover:bg-slate-800"
-          >
-            View
-          </Link>
-          {canAssign ? (
-            <button
-              type="button"
-              onClick={() => console.log("TODO: assign", incident.id)}
-              className="rounded-md border border-slate-700 bg-slate-900 px-2.5 py-1 text-xs font-medium text-slate-100 hover:bg-slate-800"
-            >
-              Assign
-            </button>
-          ) : null}
-        </div>
+        <Link
+          href={`/app/venue/${incident.venueCode}/incidents/${incident.id}`}
+          className="rounded-md border border-slate-700 bg-slate-900 px-2.5 py-1 text-xs font-medium text-slate-100 hover:bg-slate-800"
+        >
+          View
+        </Link>
       </td>
     </tr>
   );

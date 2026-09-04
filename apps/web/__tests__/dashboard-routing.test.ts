@@ -20,7 +20,8 @@ const cases = [
   ["venue_admin", "test-venue-mbs", "/app/venue/MBS"],
   ["venue_guest", "test-venue-mbs", "/app/venue/MBS"],
   // Hospital
-  ["hospital_staff", "test-hospital", "/app/hospital/staff"],
+  ["hospital_staff", "test-hospital", "/hospital-staff/dashboard"],
+  ["hospital_admin", "test-hospital", "/hospital-admin/dashboard"],
   // Transit
   ["transit_security", "test-transit", "/app/transit/security"],
   // Legacy

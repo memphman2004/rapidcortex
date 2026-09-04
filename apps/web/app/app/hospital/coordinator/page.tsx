@@ -1,5 +1,5 @@
-import { VerticalRoleStub } from "@/components/dashboards/vertical-role-stub";
+import { redirectToHospitalPortal } from "../_lib/redirect-to-hospital-portal";
 
-export default function HospitalCoordinatorPage() {
-  return <VerticalRoleStub consoleTitle="Hospital Coordinator" vertical="hospital" />;
+export default async function HospitalCoordinatorLegacyPage() {
+  await redirectToHospitalPortal("/hospital-admin/dashboard");
 }

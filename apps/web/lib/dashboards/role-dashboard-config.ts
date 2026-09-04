@@ -45,9 +45,7 @@ export const ROLE_DASHBOARD_NAV: Record<DashboardPrefix, NavTab[]> = {
     { id: "overview", label: "Ops dashboard", href: "/dashboard" },
     { id: "live-workspace", label: "Live call workspace", href: "/dispatcher" },
     { id: "active-incident", label: "Active incident", href: "/incidents" },
-    // BACKLOG (before 2026-09-02): /caller redirect stub is temporary — update href to the
-    // canonical caller-info route when that page ships (see apps/web/app/.../caller/page.tsx).
-    { id: "caller-information", label: "Caller information", href: "/caller" },
+    { id: "caller-information", label: "Caller information", href: "/calls" },
     { id: "ai-summary", label: "AI summary", href: "/ai-summary" },
     { id: "transcription", label: "Transcription", href: "/transcription" },
     { id: "translation", label: "Translation", href: "/translation" },
@@ -62,7 +60,7 @@ export const ROLE_DASHBOARD_NAV: Record<DashboardPrefix, NavTab[]> = {
     { id: "overview", label: "Supervisor dashboard", href: "/supervisor" },
     { id: "active-calls", label: "Active calls", href: "/supervisor/monitor" },
     { id: "active", label: "Incidents", href: "/incidents" },
-    { id: "coaching", label: "QA / Coaching", href: "/supervisor/coaching" },
+    { id: "coaching", label: "QA / Coaching", href: "/qa" },
     { id: "team", label: "Team performance", href: "/supervisor/team-performance" },
     { id: "reports", label: "Reports", href: "/supervisor/reports" },
     { id: "writeback", label: "CAD writeback queue", href: "/review" },

@@ -40,6 +40,7 @@
     "jose": "^4.15.9",
     "mnemonist": "0.38.3",
     "node-onvif": "^0.1.7",
+    "openai": "^4.104.0",
     "pdfkit": "^0.18.0",
     "qrcode": "^1.5.4",
     "rapid-cortex-integrations": "file:vendor-packs/rapid-cortex-integrations-1.0.0.tgz",

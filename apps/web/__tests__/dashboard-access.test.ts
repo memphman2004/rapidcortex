@@ -30,6 +30,7 @@ const DASHBOARD_ROLES = RAPID_CORTEX_ROLES.filter(
   (role) =>
     role !== "hospitaladmin" &&
     role !== "hospitalstaff" &&
+    role !== "homeowner" &&
     !role.startsWith("campus_") &&
     !role.startsWith("venue_") &&
     !role.startsWith("hospital_") &&

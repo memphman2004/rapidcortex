@@ -38,6 +38,7 @@ const VERTICAL_BORDER: Record<RapidIqVertical, string> = {
   "911": "border-l-sky-500",
   campus: "border-l-emerald-500",
   venue: "border-l-violet-500",
+  transit: "border-l-amber-500",
 };
 
 export function ScoreBadge({ score }: { score: number }) {

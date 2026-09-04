@@ -47,6 +47,7 @@ import {
   unauthorized,
 } from "../../../lib/response.js";
 import { AuditRepository } from "../../../repositories/auditRepository.js";
+import { handleIntelHttp } from "./intelHttp.js";
 import { createCrmLeadFromPipelineSignal } from "./push-to-crm.js";
 
 const auditRepo = new AuditRepository();
@@ -139,6 +140,11 @@ export async function handler(event: APIGatewayProxyEventV2): Promise<APIGateway
 
     const method = (event.requestContext.http?.method ?? "GET").toUpperCase();
     const path = event.rawPath ?? event.requestContext.http?.path ?? "";
+
+    if (path.includes("/rapid-iq/intel")) {
+      return withCorrelationHeaders(event, await handleIntelHttp(event, user));
+    }
+
     const signalId = signalIdFromPath(path, event.pathParameters);
     const agencyId = agencyIdFromPath(path, event.pathParameters);
 

@@ -50,6 +50,12 @@ vi.mock("@aws-sdk/client-cognito-identity-provider", () => {
     AdminDisableUserCommand: class {
       constructor(public input: unknown) {}
     },
+    AdminEnableUserCommand: class {
+      constructor(public input: unknown) {}
+    },
+    AdminGetUserCommand: class {
+      constructor(public input: unknown) {}
+    },
     InitiateAuthCommand: class {
       constructor(public input: unknown) {}
     },
@@ -60,6 +66,9 @@ vi.mock("@aws-sdk/client-cognito-identity-provider", () => {
       constructor(public input: unknown) {}
     },
     UsernameExistsException,
+    UserNotFoundException: class extends Error {
+      name = "UserNotFoundException";
+    },
   };
 });
 
@@ -111,3 +120,55 @@ describe("authenticateHomeowner signup lock", () => {
     expect(disabled).toHaveLength(1);
   });
 });
+
+describe("resolveHomeownerForDeletion", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    process.env.COGNITO_CLIENT_ID = "test-client";
+  });
+
+  it("returns identity for a homeowner without signing in", async () => {
+    cognitoSend.mockImplementation(async (cmd: { constructor: { name: string } }) => {
+      if (cmd.constructor.name === "AdminGetUserCommand") {
+        return {
+          Username: "owner@example.com",
+          Enabled: false,
+          UserAttributes: [
+            { Name: "custom:role", Value: "homeowner" },
+            { Name: "custom:agencyId", Value: "test-agency" },
+            { Name: "sub", Value: "user-sub-1" },
+          ],
+        };
+      }
+      return {};
+    });
+
+    const { resolveHomeownerForDeletion } = await import("./homeowner-cognito.js");
+    const result = await resolveHomeownerForDeletion("owner@example.com");
+
+    expect(result).toEqual({
+      userId: "user-sub-1",
+      email: "owner@example.com",
+      agencyId: "test-agency",
+    });
+    const names = cognitoSend.mock.calls.map((c) => (c[0] as { constructor: { name: string } }).constructor.name);
+    expect(names).toEqual(["AdminGetUserCommand"]);
+  });
+
+  it("returns null for non-homeowner accounts", async () => {
+    cognitoSend.mockImplementation(async (cmd: { constructor: { name: string } }) => {
+      if (cmd.constructor.name === "AdminGetUserCommand") {
+        return {
+          Username: "dispatcher@appsondemand.net",
+          Enabled: true,
+          UserAttributes: [{ Name: "custom:role", Value: "dispatcher" }],
+        };
+      }
+      return {};
+    });
+
+    const { resolveHomeownerForDeletion } = await import("./homeowner-cognito.js");
+    await expect(resolveHomeownerForDeletion("dispatcher@appsondemand.net")).resolves.toBeNull();
+  });
+});
+

@@ -335,7 +335,6 @@ These roles operate inside a specific agency's jurisdiction workspace. Agency co
 - Audit Log (own agency — view and export)
 - System Settings (own agency)
 - History
-- Notifications
 
 ### Home dashboard widgets
 1. **Quick stats** — total active users, dispatchers online now, incidents this week, SLA score this month

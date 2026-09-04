@@ -3,10 +3,10 @@
 #
 # Usage:
 #   source scripts/env-api-dev.sh
-#   ./scripts/deploy-lean-dev.sh [dev] [--sam1-only|--sam2-only|--sam3-only|--qr-only|--sam4-only|--sam5-only]
+#   ./scripts/deploy-lean-dev.sh [dev] [--sam1-only|--sam2-only|--sam3-only|--qr-only|--sam4-only|--sam5-only|--transit-only]
 #
 # Env (optional):
-#   LEAN_DEPLOY_STACKS=sam1,sam2,sam3,qr,sam4,sam5   default qr + sam5
+#   LEAN_DEPLOY_STACKS=sam1,sam2,sam3,qr,sam4,sam5,transit   default qr + sam5
 #   ROUTE53_HOSTED_ZONE_ID       when set, passed to AppSam4 deploy (api4.rapidcortex.us ACM + alias)
 #   SAM_BUILD_DIR                default /Volumes/Mac Mini/.sam-lean-build (or repo .sam-lean-build)
 #   SAM_BUILD_USE_CACHE=0        default 0 (fresh build, no stale rsync cache)
@@ -23,6 +23,7 @@ DEPLOY_SAM3=0
 DEPLOY_QR=0
 DEPLOY_SAM4=0
 DEPLOY_SAM5=0
+DEPLOY_TRANSIT=0
 LEAN_STACKS="${LEAN_DEPLOY_STACKS:-qr,sam5}"
 if [[ -n "${LEAN_STACKS}" ]]; then
   DEPLOY_SAM1=0
@@ -31,6 +32,7 @@ if [[ -n "${LEAN_STACKS}" ]]; then
   DEPLOY_QR=0
   DEPLOY_SAM4=0
   DEPLOY_SAM5=0
+  DEPLOY_TRANSIT=0
   IFS=',' read -ra _LEAN_PARTS <<< "${LEAN_STACKS}"
   for _part in "${_LEAN_PARTS[@]}"; do
     case "${_part// /}" in
@@ -40,8 +42,9 @@ if [[ -n "${LEAN_STACKS}" ]]; then
       qr) DEPLOY_QR=1 ;;
       sam4) DEPLOY_SAM4=1 ;;
       sam5) DEPLOY_SAM5=1 ;;
+      transit) DEPLOY_TRANSIT=1 ;;
       *)
-        echo "Unknown LEAN_DEPLOY_STACKS entry: ${_part} (use sam1, sam2, sam3, qr, sam4, sam5)" >&2
+        echo "Unknown LEAN_DEPLOY_STACKS entry: ${_part} (use sam1, sam2, sam3, qr, sam4, sam5, transit)" >&2
         exit 1
         ;;
     esac
@@ -50,21 +53,22 @@ fi
 for arg in "$@"; do
   case "$arg" in
     dev | staging | prod | pilot) STAGE="$arg" ;;
-    --sam1-only) DEPLOY_SAM1=1; DEPLOY_SAM2=0; DEPLOY_SAM3=0; DEPLOY_QR=0; DEPLOY_SAM4=0; DEPLOY_SAM5=0 ;;
-    --sam2-only) DEPLOY_SAM1=0; DEPLOY_SAM2=1; DEPLOY_SAM3=0; DEPLOY_QR=0; DEPLOY_SAM4=0; DEPLOY_SAM5=0 ;;
-    --sam3-only) DEPLOY_SAM1=0; DEPLOY_SAM2=0; DEPLOY_SAM3=1; DEPLOY_QR=0; DEPLOY_SAM4=0; DEPLOY_SAM5=0 ;;
-    --qr-only) DEPLOY_SAM1=0; DEPLOY_SAM2=0; DEPLOY_SAM3=0; DEPLOY_QR=1; DEPLOY_SAM4=0; DEPLOY_SAM5=0 ;;
-    --sam4-only) DEPLOY_SAM1=0; DEPLOY_SAM2=0; DEPLOY_SAM3=0; DEPLOY_QR=0; DEPLOY_SAM4=1; DEPLOY_SAM5=0 ;;
-    --sam5-only) DEPLOY_SAM1=0; DEPLOY_SAM2=0; DEPLOY_SAM3=0; DEPLOY_QR=0; DEPLOY_SAM4=0; DEPLOY_SAM5=1 ;;
+    --sam1-only) DEPLOY_SAM1=1; DEPLOY_SAM2=0; DEPLOY_SAM3=0; DEPLOY_QR=0; DEPLOY_SAM4=0; DEPLOY_SAM5=0; DEPLOY_TRANSIT=0 ;;
+    --sam2-only) DEPLOY_SAM1=0; DEPLOY_SAM2=1; DEPLOY_SAM3=0; DEPLOY_QR=0; DEPLOY_SAM4=0; DEPLOY_SAM5=0; DEPLOY_TRANSIT=0 ;;
+    --sam3-only) DEPLOY_SAM1=0; DEPLOY_SAM2=0; DEPLOY_SAM3=1; DEPLOY_QR=0; DEPLOY_SAM4=0; DEPLOY_SAM5=0; DEPLOY_TRANSIT=0 ;;
+    --qr-only) DEPLOY_SAM1=0; DEPLOY_SAM2=0; DEPLOY_SAM3=0; DEPLOY_QR=1; DEPLOY_SAM4=0; DEPLOY_SAM5=0; DEPLOY_TRANSIT=0 ;;
+    --sam4-only) DEPLOY_SAM1=0; DEPLOY_SAM2=0; DEPLOY_SAM3=0; DEPLOY_QR=0; DEPLOY_SAM4=1; DEPLOY_SAM5=0; DEPLOY_TRANSIT=0 ;;
+    --sam5-only) DEPLOY_SAM1=0; DEPLOY_SAM2=0; DEPLOY_SAM3=0; DEPLOY_QR=0; DEPLOY_SAM4=0; DEPLOY_SAM5=1; DEPLOY_TRANSIT=0 ;;
+    --transit-only) DEPLOY_SAM1=0; DEPLOY_SAM2=0; DEPLOY_SAM3=0; DEPLOY_QR=0; DEPLOY_SAM4=0; DEPLOY_SAM5=0; DEPLOY_TRANSIT=1 ;;
     *)
       echo "Unknown argument: $arg" >&2
-      echo "Usage: $0 [dev] [--sam1-only|--sam2-only|--sam3-only|--qr-only|--sam4-only|--sam5-only]" >&2
+      echo "Usage: $0 [dev] [--sam1-only|--sam2-only|--sam3-only|--qr-only|--sam4-only|--sam5-only|--transit-only]" >&2
       exit 1
       ;;
   esac
 done
-if [[ "${DEPLOY_SAM1}" -eq 0 && "${DEPLOY_SAM2}" -eq 0 && "${DEPLOY_SAM3}" -eq 0 && "${DEPLOY_QR}" -eq 0 && "${DEPLOY_SAM4}" -eq 0 && "${DEPLOY_SAM5}" -eq 0 ]]; then
-  echo "ERROR: no nested stack selected (use --sam1-only, --sam2-only, --sam3-only, --sam4-only, --qr-only, --sam5-only, or LEAN_DEPLOY_STACKS)" >&2
+if [[ "${DEPLOY_SAM1}" -eq 0 && "${DEPLOY_SAM2}" -eq 0 && "${DEPLOY_SAM3}" -eq 0 && "${DEPLOY_QR}" -eq 0 && "${DEPLOY_SAM4}" -eq 0 && "${DEPLOY_SAM5}" -eq 0 && "${DEPLOY_TRANSIT}" -eq 0 ]]; then
+  echo "ERROR: no nested stack selected (use --sam1-only, --sam2-only, --sam3-only, --sam4-only, --qr-only, --sam5-only, --transit-only, or LEAN_DEPLOY_STACKS)" >&2
   exit 1
 fi
 
@@ -106,6 +110,7 @@ echo " SAM3 stack:          $([[ "${DEPLOY_SAM3}" -eq 1 ]] && echo yes || echo n
 echo " QR stack:            $([[ "${DEPLOY_QR}" -eq 1 ]] && echo yes || echo no)"
 echo " SAM4 stack:          $([[ "${DEPLOY_SAM4}" -eq 1 ]] && echo yes || echo no)"
 echo " SAM5 stack:          $([[ "${DEPLOY_SAM5}" -eq 1 ]] && echo yes || echo no)"
+echo " Transit stack:       $([[ "${DEPLOY_TRANSIT}" -eq 1 ]] && echo yes || echo no)"
 echo " SAM_BUILD_DIR:       ${SAM_BUILD_DIR}"
 echo " SAM_BUILD_USE_CACHE: ${SAM_BUILD_USE_CACHE}"
 echo " SAM_PARALLEL:        ${SAM_PARALLEL}"
@@ -128,6 +133,9 @@ if [[ "${DEPLOY_SAM4}" -eq 1 ]]; then
 fi
 if [[ "${DEPLOY_SAM5}" -eq 1 ]]; then
   sam validate --lint --template-file "${ROOT}/infra/nested/stack-app-sam-5.yaml"
+fi
+if [[ "${DEPLOY_TRANSIT}" -eq 1 ]]; then
+  sam validate --lint --template-file "${ROOT}/infra/nested/stack-app-sam-transit.yaml"
 fi
 
 # --- Vendor prep — refresh-api-vendor-packs.sh + SAM wiring (exclusive lock vs web packaging) ---
@@ -401,7 +409,56 @@ if [[ "${DEPLOY_SAM5}" -eq 1 ]]; then
   echo "✅ AppSam5Stack deploy complete"
 fi
 
+if [[ "${DEPLOY_TRANSIT}" -eq 1 ]]; then
+  TRANSIT_STACK="$(nested_stack_name AppSamTransitStack 2>/dev/null || true)"
+  if [[ -z "${TRANSIT_STACK}" || "${TRANSIT_STACK}" == "None" ]]; then
+    TRANSIT_STACK="${STACK_NAME}-AppSamTransitStack"
+    if aws cloudformation describe-stacks --stack-name "${TRANSIT_STACK}" --region "${AWS_REGION}" >/dev/null 2>&1; then
+      echo ""
+      echo "▶ AppSamTransitStack (${TRANSIT_STACK}) — existing sibling stack"
+    else
+      echo ""
+      echo "▶ AppSamTransitStack (${TRANSIT_STACK}) — creating sibling stack on stack-2 HttpApi"
+    fi
+  else
+    echo ""
+    echo "▶ AppSamTransitStack (${TRANSIT_STACK})"
+  fi
+  lean_sam_build "${ROOT}/infra/nested/stack-app-sam-transit.yaml" "transit"
+  if aws cloudformation describe-stacks --stack-name "${TRANSIT_STACK}" --region "${AWS_REGION}" >/dev/null 2>&1; then
+    lean_sam_deploy_nested "${SAM_BUILD_DIR}/transit/template.yaml" "${TRANSIT_STACK}"
+  else
+    HOSP_STACK="$(nested_stack_name AppSamHospital2Stack)"
+    _hosp_http="$(aws cloudformation describe-stacks --stack-name "${HOSP_STACK}" --region "${AWS_REGION}" --query "Stacks[0].Parameters[?ParameterKey=='HttpApiId'].ParameterValue" --output text)"
+    _hosp_pool="$(aws cloudformation describe-stacks --stack-name "${HOSP_STACK}" --region "${AWS_REGION}" --query "Stacks[0].Parameters[?ParameterKey=='ImportedCognitoUserPoolId'].ParameterValue" --output text)"
+    _hosp_client="$(aws cloudformation describe-stacks --stack-name "${HOSP_STACK}" --region "${AWS_REGION}" --query "Stacks[0].Parameters[?ParameterKey=='ImportedCognitoWebClientId'].ParameterValue" --output text)"
+    _hosp_issuer="$(aws cloudformation describe-stacks --stack-name "${HOSP_STACK}" --region "${AWS_REGION}" --query "Stacks[0].Parameters[?ParameterKey=='ImportedCognitoIssuer'].ParameterValue" --output text)"
+    _hosp_audit="$(aws cloudformation describe-stacks --stack-name "${HOSP_STACK}" --region "${AWS_REGION}" --query "Stacks[0].Parameters[?ParameterKey=='AuditTable'].ParameterValue" --output text)"
+    _hosp_agencies="$(aws cloudformation describe-stacks --stack-name "${HOSP_STACK}" --region "${AWS_REGION}" --query "Stacks[0].Parameters[?ParameterKey=='AgenciesTable'].ParameterValue" --output text)"
+    _hosp_prefix="$(aws cloudformation describe-stacks --stack-name "${HOSP_STACK}" --region "${AWS_REGION}" --query "Stacks[0].Parameters[?ParameterKey=='ManagedPolicyNamePrefix'].ParameterValue" --output text)"
+    echo "  HttpApiId=${_hosp_http} AgenciesTable=${_hosp_agencies}"
+    sam deploy \
+      --template-file "${SAM_BUILD_DIR}/transit/template.yaml" \
+      --stack-name "${TRANSIT_STACK}" \
+      --capabilities CAPABILITY_IAM CAPABILITY_NAMED_IAM CAPABILITY_AUTO_EXPAND \
+      --parameter-overrides \
+        "DeploymentStage=${STAGE}" \
+        "HttpApiId=${_hosp_http}" \
+        "ImportedCognitoUserPoolId=${_hosp_pool}" \
+        "ImportedCognitoWebClientId=${_hosp_client}" \
+        "ImportedCognitoIssuer=${_hosp_issuer}" \
+        "AuditTable=${_hosp_audit}" \
+        "AgenciesTable=${_hosp_agencies}" \
+        "ManagedPolicyNamePrefix=${_hosp_prefix}" \
+      --resolve-s3 \
+      --no-confirm-changeset \
+      --no-fail-on-empty-changeset \
+      --region "${AWS_REGION}"
+  fi
+  echo "✅ AppSamTransitStack deploy complete"
+fi
+
 echo ""
-echo "✅ Lean deploy finished (SAM1=${DEPLOY_SAM1}, SAM2=${DEPLOY_SAM2}, SAM3=${DEPLOY_SAM3}, QR=${DEPLOY_QR}, SAM4=${DEPLOY_SAM4}, SAM5=${DEPLOY_SAM5})."
+echo "✅ Lean deploy finished (SAM1=${DEPLOY_SAM1}, SAM2=${DEPLOY_SAM2}, SAM3=${DEPLOY_SAM3}, QR=${DEPLOY_QR}, SAM4=${DEPLOY_SAM4}, SAM5=${DEPLOY_SAM5}, TRANSIT=${DEPLOY_TRANSIT})."
 echo "   Verify LocationIntakeFunction env:"
 echo "   aws lambda get-function-configuration --function-name \$(aws cloudformation describe-stack-resources --stack-name ${STACK_NAME} --query \"StackResources[?contains(LogicalResourceId,'LocationIntake')].PhysicalResourceId\" --output text | head -1 | xargs basename) --query Environment.Variables"

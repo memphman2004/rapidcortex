@@ -10,7 +10,7 @@ export const relationshipTypeSchema = z.enum([
 ]);
 export type RelationshipType = z.infer<typeof relationshipTypeSchema>;
 
-export const contactVerticalSchema = z.enum(["911", "campus", "venue", "all"]);
+export const contactVerticalSchema = z.enum(["911", "campus", "venue", "transit", "all"]);
 export type ContactVertical = z.infer<typeof contactVerticalSchema>;
 
 export const contactSourceSchema = z.enum([

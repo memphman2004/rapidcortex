@@ -5,7 +5,7 @@ import { StepAddDetails } from "./StepAddDetails";
 import { StepConfirmLocation } from "./StepConfirmLocation";
 import { StepConfirmed } from "./StepConfirmed";
 import { StepSelectType } from "./StepSelectType";
-import { generateReferenceId, type ReportFormState } from "../_lib/report-types";
+import type { ReportFormState } from "../_lib/report-types";
 
 export function ReportWizard({
   initialVenueCode,
@@ -17,6 +17,7 @@ export function ReportWizard({
   initialZoneLabel: string;
 }) {
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
   const [state, setState] = useState<ReportFormState>({
     step: 1,
     helpType: null,
@@ -36,15 +37,9 @@ export function ReportWizard({
   const handleSubmit = async () => {
     if (!state.helpType) return;
     setIsSubmitting(true);
-    await new Promise((resolve) => setTimeout(resolve, 800));
-    const generatedReferenceId = generateReferenceId(state.venueCode);
-    console.log("TODO: POST /api/venue/report", { ...state, referenceId: generatedReferenceId });
-    setState((current) => ({
-      ...current,
-      step: 4,
-      submitted: true,
-      referenceId: generatedReferenceId,
-    }));
+    setSubmitError(
+      "This reporting link is not a QR location code. Scan the posted QR code, or call 911 for emergencies.",
+    );
     setIsSubmitting(false);
   };
 
@@ -78,20 +73,25 @@ export function ReportWizard({
 
   if (state.step === 3) {
     return (
-      <StepAddDetails
-        details={state.details}
-        phoneNumber={state.phoneNumber}
-        photoPreviewUrl={state.photoPreviewUrl}
-        onDetailsChange={(value) => setState((current) => ({ ...current, details: value }))}
-        onPhoneChange={(value) => setState((current) => ({ ...current, phoneNumber: value }))}
-        onPhotoChange={(file, previewUrl) =>
-          setState((current) => ({ ...current, photoFile: file, photoPreviewUrl: previewUrl }))
-        }
-        onPhotoClear={() => setState((current) => ({ ...current, photoFile: null, photoPreviewUrl: null }))}
-        onBack={() => setState((current) => ({ ...current, step: 2 }))}
-        onSubmit={handleSubmit}
-        isSubmitting={isSubmitting}
-      />
+      <div>
+        <StepAddDetails
+          details={state.details}
+          phoneNumber={state.phoneNumber}
+          photoPreviewUrl={state.photoPreviewUrl}
+          onDetailsChange={(value) => setState((current) => ({ ...current, details: value }))}
+          onPhoneChange={(value) => setState((current) => ({ ...current, phoneNumber: value }))}
+          onPhotoChange={(file, previewUrl) =>
+            setState((current) => ({ ...current, photoFile: file, photoPreviewUrl: previewUrl }))
+          }
+          onPhotoClear={() => setState((current) => ({ ...current, photoFile: null, photoPreviewUrl: null }))}
+          onBack={() => setState((current) => ({ ...current, step: 2 }))}
+          onSubmit={handleSubmit}
+          isSubmitting={isSubmitting}
+        />
+        {submitError ? (
+          <p className="mx-auto max-w-md px-4 pb-8 text-center text-sm text-red-600">{submitError}</p>
+        ) : null}
+      </div>
     );
   }
 

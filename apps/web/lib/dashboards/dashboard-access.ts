@@ -42,10 +42,10 @@ export const DASHBOARD_PREFIX_BY_ROLE: Record<UserRole, DashboardPrefix | null> 
   venue_security: null,
   venue_operator: null,
   venue_guest: null,
-  hospital_admin: null,
-  hospital_supervisor: null,
-  hospital_staff: null,
-  hospital_coord: null,
+  hospital_admin: "hospital-admin",
+  hospital_supervisor: "hospital-admin",
+  hospital_staff: "hospital-staff",
+  hospital_coord: "hospital-admin",
   transit_admin: null,
   transit_supervisor: null,
   transit_security: null,
@@ -61,8 +61,8 @@ export const ROLES_BY_DASHBOARD_PREFIX: Record<DashboardPrefix, readonly UserRol
   qa: ["analyst"],
   "it-security": ["agencyit"],
   executive: ["auditor"],
-  "hospital-admin": ["hospitaladmin", "rcsuperadmin", "rcadmin", "rcitadmin"],
-  "hospital-staff": ["hospitalstaff", "rcsuperadmin", "rcadmin", "rcitadmin"],
+  "hospital-admin": ["hospitaladmin", "hospital_admin", "hospital_coord", "hospital_supervisor", "rcsuperadmin", "rcadmin", "rcitadmin"],
+  "hospital-staff": ["hospitalstaff", "hospital_staff", "rcsuperadmin", "rcadmin", "rcitadmin"],
 };
 
 export function dashboardPrefixFromPathname(pathname: string): DashboardPrefix | null {

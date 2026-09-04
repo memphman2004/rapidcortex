@@ -302,6 +302,11 @@ export const VERTICAL_ROLE_TOKEN_ALIASES: Record<string, RapidCortexRole> = {
   "venue-guest-services": "venue_guest",
   "hospital-admin": "hospitaladmin",
   "hospital-staff": "hospitalstaff",
+  "hospital-coordinator": "hospital_coord",
+  hospitalcoordinator: "hospital_coord",
+  hospitalcoord: "hospital_coord",
+  "hospital-supervisor": "hospital_supervisor",
+  hospitalsupervisor: "hospital_supervisor",
   transitadmin: "transit_admin",
   transitsecurity: "transit_security",
   "transit-admin": "transit_admin",
@@ -351,7 +356,7 @@ export function migrateLegacyRapidCortexRoleTokenValue(raw: string | undefined):
   if (t === "HOSPITAL_ADMIN") return "hospital_admin";
   if (t === "HOSPITAL_SUPERVISOR") return "hospital_supervisor";
   if (t === "HOSPITAL_STAFF") return "hospital_staff";
-  if (t === "HOSPITAL_COORD") return "hospital_coord";
+  if (t === "HOSPITAL_COORDINATOR" || t === "HOSPITAL_COORD") return "hospital_coord";
   if (t === "TRANSIT_ADMIN") return "transit_admin";
   if (t === "TRANSIT_SUPERVISOR") return "transit_supervisor";
   if (t === "TRANSIT_SECURITY") return "transit_security";

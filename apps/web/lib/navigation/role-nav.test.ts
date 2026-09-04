@@ -53,6 +53,12 @@ describe("getRoleNav", () => {
     expect(nav.sections[0]?.items[0]?.href).toBe("/hospital-admin/dashboard");
   });
 
+  it("maps hospital_coord JWT to coordinator nav", () => {
+    const nav = getRoleNav("hospital_coord", {});
+    expect(nav.roleBadge).toBe("COORDINATOR");
+    expect(nav.sections[0]?.items[0]?.href).toBe("/hospital-admin/dashboard");
+  });
+
   it("campus admin users and settings use /app/campus/{code} paths", () => {
     const nav = getRoleNav("CAMPUS_ADMIN", { campusCode: "LINCOLNHIGH" });
     const hrefs = nav.sections.flatMap((s) => s.items.map((i) => i.href));

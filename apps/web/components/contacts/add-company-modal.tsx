@@ -96,7 +96,7 @@ export function AddCompanyModal({ open, onClose, onSubmit }: Props) {
           <div>
             <span className="text-slate-400">Verticals</span>
             <div className="mt-1 flex flex-wrap gap-2">
-              {(["911", "campus", "venue", "all"] as const).map((v) => (
+              {(["911", "campus", "venue", "transit", "all"] as const).map((v) => (
                 <button
                   key={v}
                   type="button"

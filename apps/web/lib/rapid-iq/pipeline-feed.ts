@@ -2,12 +2,14 @@ import type { RapidIqOpportunity } from "@/lib/rapid-iq/types";
 import type { RapidIqPipelineSignal, RapidIqPipelineSignalStatus } from "rapid-cortex-shared";
 import { isCompetitorOpportunity, isKnownCompetitor } from "./competitor-registry";
 
-export type PipelineFeedTab = "911" | "campus" | "venue" | "competitor";
+export type PipelineFeedTab = "911" | "campus" | "venue" | "transit" | "competitor";
 
 const CAMPUS_RE =
   /\b(university|college|campus|school district|k-12|higher education|student safety|dormitory)\b/i;
 const VENUE_RE =
   /\b(stadium|arena|amphitheatre|amphitheater|venue|concert|festival|racetrack|ballpark|convention center)\b/i;
+const TRANSIT_RE =
+  /\b(transit|metro|subway|light rail|commuter rail|bus rapid|ferry|paratransit|ridership|mta|wmata|mbta|bart|trimet)\b/i;
 
 /** Map a collector / pipeline signal onto 911, Campus, Venue, or Competitors. */
 export function classifyPipelineFeedTab(input: {
@@ -23,6 +25,7 @@ export function classifyPipelineFeedTab(input: {
     input.vertical === "911" ||
     input.vertical === "campus" ||
     input.vertical === "venue" ||
+    input.vertical === "transit" ||
     input.vertical === "competitor"
   ) {
     return input.vertical;
@@ -46,6 +49,7 @@ export function classifyPipelineFeedTab(input: {
   if (/\bcompetitor\b|displacement/i.test(hay)) return "competitor";
   if (CAMPUS_RE.test(hay)) return "campus";
   if (VENUE_RE.test(hay)) return "venue";
+  if (TRANSIT_RE.test(hay)) return "transit";
   return "911";
 }
 

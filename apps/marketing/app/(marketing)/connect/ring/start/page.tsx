@@ -89,15 +89,20 @@ export default function RingCustomerStartPage() {
             future requests.
           </li>
           <li>
-            <strong className="text-slate-100">Delete Rapid Cortex account data:</strong> email{" "}
+            <strong className="text-slate-100">Delete Rapid Cortex account data:</strong> on the{" "}
+            <Link href="/connect/ring/link#delete-account" className="text-sky-400 underline hover:text-sky-300">
+              Account Link page
+            </Link>
+            , use <strong className="text-slate-100">Disconnect &amp; delete</strong> and enter the
+            email used during linking. Or email{" "}
             <a
-              href="mailto:privacy@rapidcortex.us?subject=Ring%20Connect%20data%20deletion"
+              href="mailto:support@rapidcortex.us?subject=Ring%20Connect%20data%20deletion"
               className="text-sky-400 underline hover:text-sky-300"
             >
-              privacy@rapidcortex.us
+              support@rapidcortex.us
             </a>{" "}
-            with the email used for linking. We process deletion requests for Connect profile,
-            device enrollment records, and related tokens.
+            with that email. We process deletion of Connect profile, device enrollment records, and
+            related tokens.
           </li>
         </ul>
         <p className="text-xs text-slate-500">

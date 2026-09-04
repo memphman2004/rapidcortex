@@ -1,9 +1,9 @@
 import { z } from "zod";
 
-export const rapidIqVerticalSchema = z.enum(["911", "campus", "venue"]);
+export const rapidIqVerticalSchema = z.enum(["911", "campus", "venue", "transit"]);
 export type RapidIqVertical = z.infer<typeof rapidIqVerticalSchema>;
 
-export const rcProductSchema = z.enum(["core", "campus", "venue", "connect"]);
+export const rcProductSchema = z.enum(["core", "campus", "venue", "connect", "transit"]);
 export type RcProduct = z.infer<typeof rcProductSchema>;
 
 export const intentStageSchema = z.enum([

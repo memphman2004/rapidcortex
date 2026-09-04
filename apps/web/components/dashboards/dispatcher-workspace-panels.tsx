@@ -42,9 +42,8 @@ export function AiSummaryPanel() {
         <h3 className="text-sm font-medium text-white">AI summary</h3>
         <StatusBadge tone="ai_suggested" />
       </div>
-      <p className="text-xs text-slate-300">
-        Suggestion only: Two-vehicle collision with possible injuries. Caller reports one occupant
-        trapped. Dispatcher must verify key facts before CAD submission.
+      <p className="text-xs text-slate-400">
+        Assistive only. A summary appears here after analysis of the selected incident.
       </p>
     </article>
   );
@@ -54,11 +53,8 @@ export function TranscriptionPanel() {
   return (
     <article id="transcription" className="rounded-lg border border-slate-800 bg-slate-950/50 p-3">
       <h3 className="mb-2 text-sm font-medium text-white">Live transcription</h3>
-      <p className="text-xs text-slate-300">
-        Caller: &ldquo;We spun out near the bridge. I think someone is hurt.&rdquo;
-      </p>
-      <p className="mt-1 text-xs text-slate-400">
-        Dispatcher: &ldquo;Stay calm. Confirm your exact location and if anyone is trapped.&rdquo;
+      <p className="text-xs text-slate-400">
+        Transcript chunks appear when a live language session is connected for the current incident.
       </p>
     </article>
   );
@@ -85,15 +81,15 @@ export function CallerInfoPanel() {
       <dl className="space-y-1 text-xs text-slate-300">
         <div className="flex justify-between gap-2">
           <dt className="text-slate-400">Location</dt>
-          <dd>Bridge approach, mile 14</dd>
+          <dd className="text-slate-500">No incident selected</dd>
         </div>
         <div className="flex justify-between gap-2">
           <dt className="text-slate-400">Callback</dt>
-          <dd>(555) 013-4491</dd>
+          <dd className="text-slate-500">—</dd>
         </div>
         <div className="flex justify-between gap-2">
           <dt className="text-slate-400">Priority</dt>
-          <dd>P1</dd>
+          <dd className="text-slate-500">—</dd>
         </div>
       </dl>
     </article>
@@ -345,8 +341,9 @@ export function SupervisorAssistPanel() {
         <h3 className="text-sm font-medium text-white">Supervisor assist</h3>
         <StatusBadge tone="supervisor_watching" />
       </div>
-      <p className="text-xs text-slate-300">
-        Silent monitor available. Supervisor entry and assist actions must be audit logged.
+      <p className="text-xs text-slate-400">
+        Supervisor assist does not transfer dispatch authority. Join is available from Active Calls
+        when a live monitor session exists.
       </p>
     </article>
   );

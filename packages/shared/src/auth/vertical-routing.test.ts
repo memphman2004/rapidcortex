@@ -78,6 +78,15 @@ describe("dashboardRouteFromRole", () => {
   it("routes unknown roles to not-authorized", () => {
     expect(dashboardRouteFromRole("unknown_role", "test-agency")).toBe("/not-authorized");
   });
+
+  it("routes hospital roles to live facility portals", () => {
+    expect(dashboardRouteFromRole("hospital_admin", "test-hospital")).toBe("/hospital-admin/dashboard");
+    expect(dashboardRouteFromRole("HOSPITAL_ADMIN", "test-hospital")).toBe("/hospital-admin/dashboard");
+    expect(dashboardRouteFromRole("hospital_staff", "test-hospital")).toBe("/hospital-staff/dashboard");
+    expect(dashboardRouteFromRole("HOSPITAL_COORDINATOR", "test-hospital")).toBe(
+      "/hospital-admin/dashboard",
+    );
+  });
 });
 
 describe("allowedRoutePrefixesForRole", () => {

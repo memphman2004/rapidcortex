@@ -53,10 +53,11 @@ describe("role → dashboard routing", () => {
 
   describe("Hospital roles (facility portal)", () => {
     it.each([
-      ["hospital_admin", "/app/hospital/admin"],
-      ["hospital_staff", "/app/hospital/staff"],
-      ["HOSPITAL_ADMIN", "/app/hospital/admin"],
-      ["HOSPITAL_STAFF", "/app/hospital/staff"],
+      ["hospital_admin", "/hospital-admin/dashboard"],
+      ["hospital_staff", "/hospital-staff/dashboard"],
+      ["HOSPITAL_ADMIN", "/hospital-admin/dashboard"],
+      ["HOSPITAL_STAFF", "/hospital-staff/dashboard"],
+      ["HOSPITAL_COORDINATOR", "/hospital-admin/dashboard"],
     ] as const)("maps %s to %s", (role, expected) => {
       expect(jurisdictionRoleHomeHref(role, slug, "test-hospital")).toBe(expected);
       expect(resolveProductDashboardFromRoleAndAgency(role, "test-hospital")).toBe(expected);
