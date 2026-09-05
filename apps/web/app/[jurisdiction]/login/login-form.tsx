@@ -30,6 +30,7 @@ import { ensureCsrfCookie, jsonHeadersWithCsrf } from "@/lib/csrf-client";
 import { COGNITO_PASSWORD_REQUIREMENTS, isValidCognitoPassword } from "@/lib/auth/cognito-password-policy";
 import { useJurisdictionSlug } from "@/lib/jurisdiction-context";
 import { isHostedUiSsoEnabled } from "@/lib/runtime-flags";
+import { Eye, EyeOff } from "lucide-react";
 
 type AuthChallenge =
   | "NEW_PASSWORD_REQUIRED"
