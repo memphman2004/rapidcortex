@@ -124,6 +124,8 @@ export const rapidIqIntelSupportingSourceSchema = z.object({
   url: z.string().min(1),
   title: z.string().optional(),
   sourceType: z.enum(RAPID_IQ_INTEL_SOURCE_TYPES).optional(),
+  /** Attribution id. Discovered-URL rows use "openai-web-search". */
+  sourceId: z.string().optional(),
   retrievedAt: z.string().optional(),
 });
 export type RapidIqIntelSupportingSource = z.infer<typeof rapidIqIntelSupportingSourceSchema>;

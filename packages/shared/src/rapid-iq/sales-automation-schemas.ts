@@ -83,6 +83,7 @@ const VERTICAL_ALIASES: Record<string, RapidIqSalesVertical> = {
   venue: "VENUE",
   hospital: "HOSPITAL",
   transit: "TRANSIT",
+  airport: "TRANSIT",
   all: "ALL",
 };
 

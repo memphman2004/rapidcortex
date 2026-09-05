@@ -6,9 +6,9 @@
 import { randomBytes } from "node:crypto";
 import { GetCommand } from "@aws-sdk/lib-dynamodb";
 import {
-  RAPID_IQ_SALES_STEP_DELAYS,
   normalizeSalesAutomationVertical,
   type CreateRapidIqSalesSequenceBody,
+  type RapidIqSalesCampaignCard,
   type RapidIqSalesContentDraft,
   type RapidIqSalesMetrics,
   type RapidIqSalesOutreachStep,
@@ -30,13 +30,17 @@ import {
   putSalesSequence,
 } from "./sales-automation-db.js";
 
+const STEP_DELAY_DAYS: Record<RapidIqSalesStepLabel, number> = {
+  initial: 0,
+  followup_1: 5,
+  followup_2: 12,
+};
+
 function newId(prefix: string): string {
   return `${prefix}_${randomBytes(6).toString("hex")}`;
 }
 
 export type SuppressionResult = { suppressed: boolean; reason?: string };
-
-const CONTACT_WINDOW_MS = 30 * 86_400_000;
 
 export function daysAgoIso(days: number): string {
   return new Date(Date.now() - days * 86_400_000).toISOString();
@@ -134,7 +138,7 @@ export function heuristicThreeTouch(input: {
       stepId: newId("step"),
       stepNumber: (i + 1) as 1 | 2 | 3,
       label,
-      delayDays: RAPID_IQ_SALES_STEP_DELAYS[label],
+      delayDays: STEP_DELAY_DAYS[label],
       status: "pending" as const,
       email: {
         subject: d.subject,
@@ -211,7 +215,7 @@ async function generateThreeTouch(input: {
         stepId: newId("step"),
         stepNumber: (i + 1) as 1 | 2 | 3,
         label,
-        delayDays: RAPID_IQ_SALES_STEP_DELAYS[label],
+        delayDays: STEP_DELAY_DAYS[label],
         status: "pending" as const,
         email: { subject, bodyText, bodyHtml: buildHtmlEmail(subject, bodyText) },
       };
@@ -390,6 +394,59 @@ export function campaignGoal(type: string): string {
     return "Light-touch re-engagement after 90 days of silence.";
   }
   return "Relevant Rapid Cortex outreach for this campaign.";
+}
+
+export function listCampaignCards(
+  conferences: Array<{
+    conferenceId: string;
+    name: string;
+    startDate: string;
+    location: string;
+    vertical?: string;
+    isCancelled?: boolean;
+  }>,
+): RapidIqSalesCampaignCard[] {
+  const now = Date.now();
+  const cards: RapidIqSalesCampaignCard[] = [
+    {
+      id: "budget-season",
+      name: "Budget Season",
+      description:
+        "CONTACTED + QUALIFIED leads. Composer fires 1 Oct and 1 Nov UTC. Sequences still require approval.",
+      next: "Oct 1 / Nov 1",
+      status: "scheduled",
+    },
+    {
+      id: "newsletter",
+      name: "Weekly Newsletter",
+      description: "Inside the Cortex draft every Monday 08:00 UTC. Approval required before any send.",
+      next: "Mondays 08:00 UTC",
+      status: "active",
+    },
+    {
+      id: "re-engagement",
+      name: "Re-Engagement Sweep",
+      description: "Sunday scan of leads with no activity for 90+ days. Queues light-touch drafts.",
+      next: "Sundays 06:15 UTC",
+      status: "active",
+    },
+  ];
+  for (const conf of conferences) {
+    if (conf.isCancelled) continue;
+    const start = Date.parse(conf.startDate);
+    if (!Number.isFinite(start)) continue;
+    const days = (start - now) / 86_400_000;
+    if (days < 0 || days > 120) continue;
+    const inWindow = days >= 28 && days <= 33;
+    cards.push({
+      id: `conf-${conf.conferenceId}`,
+      name: conf.name,
+      description: `Pre-outreach ~30 days before ${conf.location}. ${conf.vertical ?? "911"} vertical.`,
+      next: conf.startDate,
+      status: inWindow ? "active" : "scheduled",
+    });
+  }
+  return cards;
 }
 
 export function emptyDraft(partial: Omit<RapidIqSalesContentDraft, "createdAt" | "updatedAt" | "status" | "generatedBy" | "draftId"> & { draftId?: string }): RapidIqSalesContentDraft {

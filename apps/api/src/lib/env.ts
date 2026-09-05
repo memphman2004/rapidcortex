@@ -426,6 +426,8 @@ export const env = {
   enableRapidIq: featureEnabled("ENABLE_RAPID_IQ"),
   /** Rapid IQ Signal Intelligence Pipeline (procurement signals → CRM). Default on when unset. */
   enableRapidIqPipeline: featureEnabled("ENABLE_RAPID_IQ_PIPELINE"),
+  /** Rapid IQ sales automation (sequence drafts + approved SES). Default on when unset; sends still require approval. */
+  enableSalesAutomation: featureEnabled("ENABLE_SALES_AUTOMATION"),
   /** RC Admin conference catalog + weekly website refresh. Default on when unset. */
   enableConferences: featureEnabled("ENABLE_CONFERENCES"),
   conferencesTable: process.env.CONFERENCES_TABLE?.trim() ?? "",

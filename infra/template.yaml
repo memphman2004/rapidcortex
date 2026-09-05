@@ -2047,6 +2047,12 @@ Resources:
             - HasDataLayerNestedStack
             - !GetAtt DataLayerStack.Outputs.RapidIqOpportunitiesTable
             - !Sub "${DynamoTableNamePrefix}-rapid-iq-opportunities-${DeploymentStage}"
+        ConferencesTable: !Sub "${DynamoTableNamePrefix}-conferences-${DeploymentStage}"
+        MarketingLeadsTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.MarketingLeadsTable
+            - !Sub "${DynamoTableNamePrefix}-marketing-leads-${DeploymentStage}"
         ImportedCognitoUserPoolId: !GetAtt AppSamStackV2.Outputs.UserPoolId
         ImportedCognitoWebClientId: !GetAtt AppSamStackV2.Outputs.UserPoolClientId
         ManagedPolicyNamePrefix: !Ref AWS::StackName
@@ -3284,6 +3290,15 @@ Outputs:
   HttpApi3Id:
     Description: Tertiary HTTP API ID (stack-app-sam-3)
     Value: !GetAtt AppSam3Stack.Outputs.HttpApiId
+  RapidIqIntelWatchWorkerFunctionName:
+    Description: Opportunity Intelligence watch worker (web search + collect)
+    Value: !GetAtt AppSamRapidIqPipelineStack.Outputs.IntelWatchWorkerFunctionName
+  RapidIqRfpUnifiedCounterFunctionName:
+    Description: Unified RFP count snapshot Lambda
+    Value: !GetAtt AppSamRapidIqPipelineStack.Outputs.RfpUnifiedCounterFunctionName
+  RapidIqPipelineSignalsTableName:
+    Description: Pipeline + intel + watches + RFP snapshot table
+    Value: !GetAtt AppSamRapidIqPipelineStack.Outputs.RapidIqPipelineSignalsTableName
   GenerateGrantPackageFunctionName:
     Description: Grant generate Lambda name (web BFF direct Invoke for ~60s Anthropic budget)
     Value: !GetAtt AppSam3Stack.Outputs.GenerateGrantPackageFunctionName

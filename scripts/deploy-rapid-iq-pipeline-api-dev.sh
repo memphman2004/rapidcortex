@@ -57,6 +57,8 @@ PIPE_TABLE="${RAPID_IQ_PIPELINE_SIGNALS_TABLE:-rapid-cortex-rapid-iq-pipeline-si
 OPP_TABLE="${RAPID_IQ_OPPORTUNITIES_TABLE:-rapid-cortex-rapid-iq-opportunities-dev}"
 SALES_LEADS_TABLE="${SALES_LEADS_TABLE:-rapid-cortex-sales-leads-dev}"
 AUDIT_TABLE="${AUDIT_TABLE:-rapid-cortex-audit-dev}"
+CONFERENCES_TABLE="${CONFERENCES_TABLE:-rapid-cortex-conferences-dev}"
+MARKETING_LEADS_TABLE="${MARKETING_LEADS_TABLE:-rapid-cortex-marketing-leads-dev}"
 
 ensure_pipeline_table "${PIPE_TABLE}"
 
@@ -171,6 +173,8 @@ PARAM_OVERRIDES=(
   "RapidIqOpportunitiesTable=${OPP_TABLE}"
   "SalesLeadsTable=${SALES_LEADS_TABLE}"
   "AuditTable=${AUDIT_TABLE}"
+  "ConferencesTable=${CONFERENCES_TABLE}"
+  "MarketingLeadsTable=${MARKETING_LEADS_TABLE}"
   ImportedCognitoUserPoolId=us-east-1_0z6tA6WBs
   ImportedCognitoWebClientId=7moi6sgc2uf4o31omgvo77h3v5
   ManagedPolicyNamePrefix=rapid-cortex-dev
@@ -206,9 +210,9 @@ echo "Rapid IQ Pipeline stack status:"
 aws cloudformation describe-stacks --stack-name "${STACK_NAME}" \
   --query 'Stacks[0].StackStatus' --output text
 
-echo "Pipeline + intel routes on ${HTTP_API_ID}:"
+echo "Pipeline + intel + sales-automation routes on ${HTTP_API_ID}:"
 aws apigatewayv2 get-routes --api-id "${HTTP_API_ID}" \
-  --query 'Items[?contains(RouteKey, `rapid-iq/pipeline`) || contains(RouteKey, `rapid-iq/intel`)].[RouteKey,AuthorizationType]' \
+  --query 'Items[?contains(RouteKey, `rapid-iq/pipeline`) || contains(RouteKey, `rapid-iq/intel`) || contains(RouteKey, `rapid-iq/sales-automation`)].[RouteKey,AuthorizationType]' \
   --output table
 
 echo "DONE: ${STACK_NAME}"

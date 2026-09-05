@@ -78,6 +78,7 @@ export function mergeIntelExtraction(input: {
     url: doc.url,
     title: doc.title,
     sourceType: doc.sourceType,
+    sourceId: doc.sourceType === "openai_web_search" ? "openai-web-search" : doc.sourceId,
     retrievedAt: doc.retrievedAt,
   };
   const sources = mergeSources(existing?.sources, source);

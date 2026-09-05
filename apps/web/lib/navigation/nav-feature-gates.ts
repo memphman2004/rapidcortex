@@ -13,6 +13,7 @@ import {
   isContactsModuleUiEnabled,
   isRapidIqUiEnabled,
   isRapidIqPipelineUiEnabled,
+  isSalesAutomationUiEnabled,
   isConferencesUiEnabled,
   isSalesLeadsUiEnabled,
   isSlaBacklogEnabled,
@@ -46,6 +47,8 @@ export function isNavFeatureEnabled(feature: string): boolean {
       return isRapidIqUiEnabled();
     case "rapidIqPipeline":
       return isRapidIqPipelineUiEnabled();
+    case "salesAutomation":
+      return isSalesAutomationUiEnabled();
     case "conferences":
       return isConferencesUiEnabled();
     case "contactsModule":

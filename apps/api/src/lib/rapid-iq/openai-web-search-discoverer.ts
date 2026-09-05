@@ -120,6 +120,7 @@ export type WatchDiscoveryResult = {
   discoveredUrls: string[];
   errors: string[];
   skipped: boolean;
+  skipReason?: string;
 };
 
 function urlsFromModelText(text: string): string[] {
@@ -149,10 +150,44 @@ export async function discoverUrlsForWatch(watch: RapidIqIntelWatch): Promise<Wa
 
   if (watch.webSearchEnabled !== true) {
     result.skipped = true;
+    result.skipReason = "watch_web_search_disabled";
+    console.log(
+      JSON.stringify({
+        msg: "rapid_iq_web_search_discover",
+        watchId: watch.id,
+        skipped: true,
+        reason: result.skipReason,
+        discovered: 0,
+      }),
+    );
     return result;
   }
-  if (!isRapidIqWebSearchEnabled() || isCollectorsMockEnabled()) {
+  if (isCollectorsMockEnabled()) {
     result.skipped = true;
+    result.skipReason = "collectors_mock";
+    console.log(
+      JSON.stringify({
+        msg: "rapid_iq_web_search_discover",
+        watchId: watch.id,
+        skipped: true,
+        reason: result.skipReason,
+        discovered: 0,
+      }),
+    );
+    return result;
+  }
+  if (!isRapidIqWebSearchEnabled()) {
+    result.skipped = true;
+    result.skipReason = "OPENAI_WEB_SEARCH_ENABLED not true";
+    console.log(
+      JSON.stringify({
+        msg: "rapid_iq_web_search_discover",
+        watchId: watch.id,
+        skipped: true,
+        reason: result.skipReason,
+        discovered: 0,
+      }),
+    );
     return result;
   }
 

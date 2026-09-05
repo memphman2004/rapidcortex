@@ -81,24 +81,49 @@ export async function processSourceDocument(input: {
   return opportunity;
 }
 
-export async function processWatch(watchId: string): Promise<{
+export type ProcessWatchResult = {
   watchId: string;
   agency: string;
   processed: number;
   upserted: number;
-}> {
+  urls_fetched: number;
+  intel_rows_written: number;
+  web_search_urls_discovered: number;
+  web_search_source_ids: string[];
+  web_search_skipped: boolean;
+  web_search_skip_reason?: string;
+};
+
+export async function processWatch(watchId: string): Promise<ProcessWatchResult> {
   const watch = await getIntelWatch(watchId);
   if (!watch) throw new Error(`Watch ${watchId} not found`);
   if (!watch.enabled) {
-    return { watchId, agency: watch.agency, processed: 0, upserted: 0 };
+    return {
+      watchId,
+      agency: watch.agency,
+      processed: 0,
+      upserted: 0,
+      urls_fetched: 0,
+      intel_rows_written: 0,
+      web_search_urls_discovered: 0,
+      web_search_source_ids: [],
+      web_search_skipped: true,
+      web_search_skip_reason: "watch_disabled",
+    };
   }
 
   const extraUrls: Array<{ url: string; sourceType: "openai_web_search" }> = [];
+  let discoverySkipped = true;
+  let discoverySkipReason: string | undefined = "not_run";
   if (!isCollectorsMockEnabled()) {
     const discovery = await discoverUrlsForWatch(watch);
+    discoverySkipped = discovery.skipped;
+    discoverySkipReason = discovery.skipReason;
     for (const url of discovery.discoveredUrls) {
       extraUrls.push({ url, sourceType: "openai_web_search" });
     }
+  } else {
+    discoverySkipReason = "collectors_mock";
   }
   const docs = isCollectorsMockEnabled()
     ? mockWatchDocuments(watch)
@@ -120,5 +145,16 @@ export async function processWatch(watchId: string): Promise<{
       );
     }
   }
-  return { watchId, agency: watch.agency, processed: docs.length, upserted };
+  return {
+    watchId,
+    agency: watch.agency,
+    processed: docs.length,
+    upserted,
+    urls_fetched: docs.length,
+    intel_rows_written: upserted,
+    web_search_urls_discovered: extraUrls.length,
+    web_search_source_ids: extraUrls.length ? (["openai-web-search"] as string[]) : [],
+    web_search_skipped: discoverySkipped,
+    web_search_skip_reason: discoverySkipReason,
+  };
 }

@@ -13,7 +13,9 @@ vi.mock("../../../lib/auth.js", () => ({
 
 vi.mock("../../../lib/rapid-iq/intel-db.js", () => ({
   listIntelOpportunities: vi.fn(async () => []),
-  listIntelWatches: vi.fn(async () => []),
+  listIntelWatches: vi.fn(async () =>
+    Array.from({ length: 68 }, (_, i) => ({ id: `watch-${i}`, market: i < 25 ? "TRANSIT" : "PSAP" })),
+  ),
   seedDefaultIntelWatches: vi.fn(async () => 0),
   seedDefaultTransitWatches: vi.fn(async () => 0),
   getIntelOpportunity: vi.fn(async () => null),
@@ -141,5 +143,18 @@ describe("intel HTTP RBAC", () => {
       snapshot: { total: { open: number } };
     };
     expect(body.snapshot.total.open).toBe(4);
+  });
+
+  it("lists watches with defaultMarket all and an uncapped total", async () => {
+    const result = await handler(makeEvent("GET", "/api/rapid-iq/intel/watches", admin));
+    expect((result as { statusCode: number }).statusCode).toBe(200);
+    const body = JSON.parse((result as { body: string }).body) as {
+      watches: unknown[];
+      defaultMarket: string;
+      total: number;
+    };
+    expect(body.defaultMarket).toBe("all");
+    expect(body.total).toBe(68);
+    expect(body.watches).toHaveLength(68);
   });
 });

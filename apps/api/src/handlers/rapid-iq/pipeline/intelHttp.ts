@@ -205,7 +205,7 @@ export async function handleIntelHttp(
   if (method === "GET" && (path.endsWith("/intel/watches") || path.endsWith("/intel/watches/"))) {
     await seedDefaultIntelWatches();
     const watches = await listIntelWatches();
-    return ok({ watches });
+    return ok({ watches, defaultMarket: "all", total: watches.length });
   }
 
   if (method === "POST" && (path.endsWith("/intel/watches") || path.endsWith("/intel/watches/"))) {

@@ -61,7 +61,43 @@ describe("discoverUrlsForWatch", () => {
       updatedAt: "2026-09-04T00:00:00.000Z",
     });
     expect(result.skipped).toBe(true);
+    expect(result.skipReason).toBe("watch_web_search_disabled");
     expect(result.queriesRun).toBe(0);
     expect(result.discoveredUrls).toEqual([]);
+  });
+
+  it("skips with OPENAI_WEB_SEARCH_ENABLED not true when the watch flag is on", async () => {
+    const prevMock = process.env.RAPID_IQ_COLLECTORS_MOCK;
+    const prevFlag = process.env.OPENAI_WEB_SEARCH_ENABLED;
+    const prevArn = process.env.ANTHROPIC_API_KEY_SECRET_ARN;
+    process.env.RAPID_IQ_COLLECTORS_MOCK = "false";
+    process.env.ANTHROPIC_API_KEY_SECRET_ARN = "arn:aws:secretsmanager:us-east-1:1:secret:x";
+    delete process.env.OPENAI_WEB_SEARCH_ENABLED;
+    try {
+      const result = await discoverUrlsForWatch({
+        id: "psap-fulton-county-ga",
+        name: "Fulton County 911",
+        agency: "Fulton County Emergency Communications",
+        market: "PSAP",
+        enabled: true,
+        keywords: ["911"],
+        sourceDomains: ["fultoncountyga.gov"],
+        sourceUrls: ["https://www.fultoncountyga.gov/"],
+        minimumFitScore: 7,
+        webSearchEnabled: true,
+        createdAt: "2026-09-04T00:00:00.000Z",
+        updatedAt: "2026-09-04T00:00:00.000Z",
+      });
+      expect(result.skipped).toBe(true);
+      expect(result.skipReason).toBe("OPENAI_WEB_SEARCH_ENABLED not true");
+      expect(result.queriesRun).toBe(0);
+    } finally {
+      if (prevMock === undefined) delete process.env.RAPID_IQ_COLLECTORS_MOCK;
+      else process.env.RAPID_IQ_COLLECTORS_MOCK = prevMock;
+      if (prevFlag === undefined) delete process.env.OPENAI_WEB_SEARCH_ENABLED;
+      else process.env.OPENAI_WEB_SEARCH_ENABLED = prevFlag;
+      if (prevArn === undefined) delete process.env.ANTHROPIC_API_KEY_SECRET_ARN;
+      else process.env.ANTHROPIC_API_KEY_SECRET_ARN = prevArn;
+    }
   });
 });

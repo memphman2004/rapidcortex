@@ -33,4 +33,15 @@ describe("Rapid IQ UI flag", () => {
     mod = await import("./runtime-flags.js");
     expect(mod.isConferencesUiEnabled()).toBe(false);
   });
+
+  it("sales automation UI defaults on when unset and honors explicit disable", async () => {
+    vi.resetModules();
+    vi.stubEnv("NEXT_PUBLIC_ENABLE_SALES_AUTOMATION", "");
+    let mod = await import("./runtime-flags.js");
+    expect(mod.isSalesAutomationUiEnabled()).toBe(true);
+    vi.resetModules();
+    vi.stubEnv("NEXT_PUBLIC_ENABLE_SALES_AUTOMATION", "0");
+    mod = await import("./runtime-flags.js");
+    expect(mod.isSalesAutomationUiEnabled()).toBe(false);
+  });
 });

@@ -57,6 +57,7 @@ process.env.AGENCY_RELATIONSHIPS_TABLE ??= "test-agency-relationships";
 process.env.PUSH_SUBSCRIPTIONS_TABLE ??= "test-push-subscriptions";
 process.env.CONFERENCES_TABLE ??= "test-conferences";
 process.env.ENABLE_RAPID_IQ_PIPELINE ??= "true";
+process.env.ENABLE_SALES_AUTOMATION ??= "true";
 process.env.RAPID_IQ_PIPELINE_SIGNALS_TABLE ??= "test-rapid-iq-pipeline";
 process.env.RAPID_IQ_AI_ENABLED ??= "true";
 process.env.RING_TABLE_REQUESTS ??= "RingEmergencyCameraRequests-test";

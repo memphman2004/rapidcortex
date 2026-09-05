@@ -48,6 +48,7 @@ import {
 } from "../../../lib/response.js";
 import { AuditRepository } from "../../../repositories/auditRepository.js";
 import { handleIntelHttp } from "./intelHttp.js";
+import { handleSalesAutomationHttp } from "./salesHttp.js";
 import { createCrmLeadFromPipelineSignal } from "./push-to-crm.js";
 
 const auditRepo = new AuditRepository();
@@ -143,6 +144,9 @@ export async function handler(event: APIGatewayProxyEventV2): Promise<APIGateway
 
     if (path.includes("/rapid-iq/intel")) {
       return withCorrelationHeaders(event, await handleIntelHttp(event, user));
+    }
+    if (path.includes("/rapid-iq/sales-automation")) {
+      return withCorrelationHeaders(event, await handleSalesAutomationHttp(event, user));
     }
 
     const signalId = signalIdFromPath(path, event.pathParameters);

@@ -38,6 +38,7 @@ export async function collectWatchSourceDocuments(
     titleHint: string,
   ) => {
     if (docs.length >= limit) return;
+    const sourceId = sourceType === "openai_web_search" ? "openai-web-search" : newSourceId();
     const fetched = await fetchIngestText(url);
     if (!fetched.ok || !fetched.body) return;
     const text = stripHtml(fetched.body).slice(0, 20_000);
@@ -47,7 +48,7 @@ export async function collectWatchSourceDocuments(
       for (const item of items) {
         if (!keywordHit(`${item.title} ${item.description}`, watch.keywords)) continue;
         enqueue({
-          sourceId: newSourceId(),
+          sourceId,
           agencyId: watch.id,
           url: item.link || url,
           title: item.title || watch.agency,
@@ -63,7 +64,7 @@ export async function collectWatchSourceDocuments(
     }
 
     enqueue({
-      sourceId: newSourceId(),
+      sourceId,
       agencyId: watch.id,
       url,
       title: titleHint,
@@ -82,7 +83,7 @@ export async function collectWatchSourceDocuments(
       const page = await fetchIngestText(link.href);
       if (!page.ok) continue;
       enqueue({
-        sourceId: newSourceId(),
+        sourceId: sourceType === "openai_web_search" ? "openai-web-search" : newSourceId(),
         agencyId: watch.id,
         url: link.href,
         title: link.text || watch.name,

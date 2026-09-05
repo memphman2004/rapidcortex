@@ -166,11 +166,13 @@ describe("getRoleNav", () => {
       const rapidIq = items.find((i) => i.id === "rapid-iq");
       expect(rapidIq?.href).toBe("/rc-admin/rapid-iq");
       expect(items.find((i) => i.id === "conferences")?.href).toBe("/rc-admin/conferences");
+      expect(items.find((i) => i.id === "sales-automation")?.href).toBe("/rc-admin/sales-automation");
       expect(items.find((i) => i.id === "rapid-iq-pipeline")).toBeUndefined();
     }
     const itNav = getRoleNav("rcitadmin", {});
     const itItems = itNav.sections.flatMap((s) => s.items);
     expect(itItems.find((i) => i.id === "rapid-iq-pipeline")).toBeUndefined();
     expect(itItems.find((i) => i.id === "conferences")).toBeUndefined();
+    expect(itItems.find((i) => i.id === "sales-automation")).toBeUndefined();
   });
 });
