@@ -16,7 +16,7 @@ import {
   type RapidIqRfpCountSnapshot,
   type RapidIqRfpVerticalCounts,
 } from "rapid-cortex-shared";
-import { pipelineDdb } from "../../lib/rapid-iq/pipeline-ddb.js";
+import { pipelineDdb } from "../../../lib/rapid-iq/pipeline-ddb.js";
 
 function pipelineTable(): string {
   const t = process.env.RAPID_IQ_PIPELINE_SIGNALS_TABLE?.trim();
