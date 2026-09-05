@@ -122,9 +122,10 @@ describe("isCommsPlatformApiPath", () => {
     expect(isCommsPlatformApiPath("/api/call-intelligence/languages")).toBe(true);
   });
 
-  it("matches agency-admin (stack 3)", () => {
-    expect(isSam3ApiPath("/api/agency-admin/clients")).toBe(true);
-    expect(isStack2ApiPath("/api/agency-admin/clients")).toBe(false);
+  it("matches onboarding packets on stack 3", () => {
+    expect(isSam3ApiPath("/api/admin/onboarding-packets")).toBe(true);
+    expect(isSam3ApiPath("/api/admin/onboarding-packets/download")).toBe(true);
+    expect(isSam5ApiPath("/api/admin/onboarding-packets")).toBe(false);
   });
 
   it("matches marketing lead + unsubscribe (stack 3)", () => {

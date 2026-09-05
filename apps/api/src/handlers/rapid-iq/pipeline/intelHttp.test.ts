@@ -14,12 +14,66 @@ vi.mock("../../../lib/auth.js", () => ({
 vi.mock("../../../lib/rapid-iq/intel-db.js", () => ({
   listIntelOpportunities: vi.fn(async () => []),
   listIntelWatches: vi.fn(async () => []),
+  seedDefaultIntelWatches: vi.fn(async () => 0),
   seedDefaultTransitWatches: vi.fn(async () => 0),
   getIntelOpportunity: vi.fn(async () => null),
   getIntelWatch: vi.fn(async () => null),
   putIntelWatch: vi.fn(),
   updateIntelOpportunityFields: vi.fn(),
   updateIntelWatchFields: vi.fn(),
+}));
+
+vi.mock("./rfp-unified-counter.js", () => ({
+  getRfpCountSnapshot: vi.fn(async () => ({
+    pk: "RFP_COUNTS",
+    sk: "LATEST",
+    entityType: "rfp_count",
+    updatedAt: "2026-09-04T00:00:00.000Z",
+    opportunityFeed: {
+      all: 2,
+      open: 2,
+      psap: 2,
+      campus: 0,
+      venue: 0,
+      hospital: 0,
+      transit: 0,
+      unknown: 0,
+      byStatus: { new: 2, reviewed: 0, inPipeline: 0, dismissed: 0, other: 0 },
+    },
+    pipeline: {
+      all: 1,
+      open: 1,
+      psap: 0,
+      campus: 0,
+      venue: 0,
+      hospital: 0,
+      transit: 1,
+      unknown: 0,
+      byStatus: { new: 1, reviewed: 0, inPipeline: 0, dismissed: 0, other: 0 },
+    },
+    intel: {
+      all: 1,
+      open: 1,
+      psap: 0,
+      campus: 1,
+      venue: 0,
+      hospital: 0,
+      transit: 0,
+      unknown: 0,
+      byStatus: { new: 1, reviewed: 0, inPipeline: 0, dismissed: 0, other: 0 },
+    },
+    total: {
+      all: 4,
+      open: 4,
+      psap: 2,
+      campus: 1,
+      venue: 0,
+      hospital: 0,
+      transit: 1,
+      unknown: 0,
+      byStatus: { new: 4, reviewed: 0, inPipeline: 0, dismissed: 0, other: 0 },
+    },
+  })),
 }));
 
 vi.mock("../../../repositories/auditRepository.js", () => ({
@@ -78,5 +132,14 @@ describe("intel HTTP RBAC", () => {
   it("allows rcadmin to list intel opportunities", async () => {
     const result = await handler(makeEvent("GET", "/api/rapid-iq/intel/opportunities", admin));
     expect((result as { statusCode: number }).statusCode).toBe(200);
+  });
+
+  it("allows rcadmin to read the unified RFP count snapshot", async () => {
+    const result = await handler(makeEvent("GET", "/api/rapid-iq/intel/rfp-counts", admin));
+    expect((result as { statusCode: number }).statusCode).toBe(200);
+    const body = JSON.parse((result as { body: string }).body) as {
+      snapshot: { total: { open: number } };
+    };
+    expect(body.snapshot.total.open).toBe(4);
   });
 });

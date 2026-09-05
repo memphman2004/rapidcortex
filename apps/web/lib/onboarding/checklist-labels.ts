@@ -10,7 +10,11 @@ export const ONBOARDING_CHECKLIST_STEP_LABELS: Record<string, string> = {
   audit_log_confirmed: "Audit log confirmed for test incident",
   staff_dashboard_walkthrough: "Staff dashboard walkthrough completed",
   campus_map_uploaded: "Campus map uploaded or zones entered in admin",
+  integration_discovery_completed:
+    "Integration questionnaire completed (campuses, VMS, SSO, CAD, access control)",
   rcli_locations_created: "RCLI locations created for all buildings in scope",
+  cameras_mapped_to_qr_locations:
+    "Each QR / RCLI location assigned to the covering camera(s); a test scan opens that camera",
   qr_codes_downloaded: "QR codes downloaded for each location",
   signs_printed: "Signs printed and installation plan confirmed",
   nfc_tags_programmed: "NFC tags programmed with matching URLs (if applicable)",

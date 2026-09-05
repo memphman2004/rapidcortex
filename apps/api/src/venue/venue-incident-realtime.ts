@@ -8,6 +8,7 @@ export type IncidentCreatedBroadcastPayload = {
   type: string;
   source: string;
   status: string;
+  qrRcli?: string;
 };
 
 export async function broadcastVenueIncidentCreated(params: {
@@ -26,6 +27,7 @@ export async function broadcastVenueIncidentCreated(params: {
         location: params.incident.zoneLabel,
         source: params.incident.source,
         status: params.incident.status,
+        qrRcli: params.incident.qrRcli,
         cameras: params.cameras,
       },
     },

@@ -23,17 +23,28 @@ function statusBadge(status: WarRoom["status"]): string {
 
 function canCloseWarRoom(role: string | null | undefined): boolean {
   const r = (role ?? "").trim().toLowerCase();
+  const upper = (role ?? "").trim().toUpperCase();
   return (
     r === "supervisor" ||
     r === "agencyadmin" ||
     r === "rcadmin" ||
     r === "rcsuperadmin" ||
     r === "rcitadmin" ||
-    r === "commsupervisor"
+    r === "commsupervisor" ||
+    upper === "CAMPUS_ADMIN" ||
+    upper === "CAMPUS_SUPERVISOR" ||
+    r === "campus_admin" ||
+    r === "campus_supervisor"
   );
 }
 
-export function WarRoomPanel({ roomId }: { roomId: string }) {
+export function WarRoomPanel({
+  roomId,
+  incidentHref,
+}: {
+  roomId: string;
+  incidentHref?: string;
+}) {
   const { user } = useSession();
   const qc = useQueryClient();
   const to = useJurisdictionLink();
@@ -141,7 +152,7 @@ export function WarRoomPanel({ roomId }: { roomId: string }) {
           <div>
             <h2 className="text-sm font-semibold text-white">{room.name}</h2>
             <Link
-              href={to(`/incidents/${encodeURIComponent(room.incidentId)}/timeline`)}
+              href={incidentHref ?? to(`/incidents/${encodeURIComponent(room.incidentId)}/timeline`)}
               className="text-xs text-sky-400 hover:underline"
             >
               Incident {room.incidentId}

@@ -10,6 +10,8 @@ export interface QRLocation {
   floor?: string;
   zone?: string;
   zoneCode: string;
+  /** Physical campus for multi-campus tenants. */
+  siteCode?: string;
   lat?: number;
   lng?: number;
   active: boolean;

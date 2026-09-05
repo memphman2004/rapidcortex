@@ -109,6 +109,7 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
           confidential: false,
           phoneNumber: payload.reporterPhone ?? null,
           photoDataUrl: null,
+          siteCode: location.siteCode,
         },
         location.agencyId,
         undefined,

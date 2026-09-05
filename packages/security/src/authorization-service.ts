@@ -111,6 +111,9 @@ export class AuthorizationService {
   assertAgencyAdminManagingSameAgency(user: UserContext, targetAgencyId: string): void {
     if (isRcsuperadmin(user)) return;
     if (user.role === "agencyadmin" && user.agencyId === targetAgencyId) return;
+    if (resolveCampusMatrixRole(String(user.role)) === "CAMPUS_ADMIN" && user.agencyId === targetAgencyId) {
+      return;
+    }
     const err = new Error("FORBIDDEN");
     (err as Error & { statusCode?: number }).statusCode = 403;
     throw err;

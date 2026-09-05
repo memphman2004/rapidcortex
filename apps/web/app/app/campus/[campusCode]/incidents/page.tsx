@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { getDashboardSessionUser } from "@/lib/dashboards/get-dashboard-session";
 import { canViewCampusNavItem } from "@/lib/venue/venue-nav-access";
+import { CampusIncidentQueueHome } from "../_components/campus-incident-queue-home";
 
 export default async function CampusIncidentsPage({
   params,
@@ -13,14 +14,21 @@ export default async function CampusIncidentsPage({
   if (!canViewCampusNavItem("incidents", role)) {
     redirect(`/app/campus/${campusCode}`);
   }
+  const counselor = role.trim().toUpperCase() === "CAMPUS_COUNSELOR";
 
   return (
     <section className="rounded-lg border border-slate-700/50 bg-slate-900/40 p-5">
-      <h2 className="text-lg font-semibold text-white">Campus incidents</h2>
+      <h2 className="text-lg font-semibold text-white">
+        {counselor ? "Counseling / wellness queue" : "Campus incidents"}
+      </h2>
       <p className="mt-2 text-sm text-slate-400">
-        Open and resolved campus safety reports scoped to {campusCode.toUpperCase()}. Assign,
-        escalate, and close from this queue — not a 911 dispatch console.
+        {counselor
+          ? "Anonymous QR welfare and mental-health reports routed to counseling — not a 911 dispatch console."
+          : `Open and resolved campus safety reports scoped to ${campusCode.toUpperCase()}. Assign, escalate, and close from this queue — not a 911 dispatch console.`}
       </p>
+      <div className="mt-5">
+        <CampusIncidentQueueHome campusCode={campusCode} />
+      </div>
     </section>
   );
 }

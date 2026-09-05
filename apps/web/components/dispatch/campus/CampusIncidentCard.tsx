@@ -4,6 +4,7 @@ import { ImageIcon, MapPin, Radio } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { QrIncidentLocation } from "@/components/incidents/qr-incident-location";
 import { SmsLocationPanel } from "@/components/dispatch/campus/sms-location-panel";
+import { CampusWarRoomLauncher } from "@/components/campus/campus-war-room-launcher";
 import { isSmsLocationEnabled } from "@/lib/runtime-flags";
 import type { CampusIncident, CampusIncidentStatus } from "@/lib/campus/types";
 
@@ -51,6 +52,11 @@ function originLabel(source: CampusIncident["source"]): string {
   if (source === "qr") return "QR Scan";
   if (source === "sms") return "SMS";
   if (source === "phone") return "Phone";
+  if (source === "vms") return "VMS";
+  if (source === "alpr") return "ALPR";
+  if (source === "alarm") return "Alarm";
+  if (source === "sensor") return "Sensor";
+  if (source === "webhook") return "Webhook";
   return "Direct";
 }
 
@@ -67,11 +73,13 @@ function typeLabel(type: CampusIncident["type"]): string {
 
 export function CampusIncidentCard({
   incident,
+  campusCode,
   onAcknowledge,
   onEscalate,
   onClose,
 }: {
   incident: CampusIncident;
+  campusCode?: string;
   onAcknowledge: (id: string) => void;
   onEscalate: (id: string) => void;
   onClose: (id: string) => void;
@@ -97,6 +105,11 @@ export function CampusIncidentCard({
       <header className="flex flex-wrap items-center justify-between gap-2">
         <div className="flex flex-wrap items-center gap-2 text-xs text-slate-400">
           <span className="font-mono text-slate-300">{incident.id}</span>
+          {incident.siteCode ? (
+            <span className="rounded-full border border-slate-700 px-2 py-0.5 font-semibold text-slate-200">
+              {incident.siteCode}
+            </span>
+          ) : null}
           <span>{elapsed}</span>
           <span className="rounded-full border border-slate-700 px-2 py-0.5 font-semibold text-slate-200">
             {statusLabel(incident.status)}
@@ -143,7 +156,42 @@ export function CampusIncidentCard({
             Media attached
           </span>
         ) : null}
+        {incident.cleryCategorySuggested ? (
+          <span className="rounded-full border border-amber-700/50 bg-amber-950/40 px-2 py-0.5 text-[10px] font-semibold uppercase text-amber-200">
+            Clery suggested: {incident.cleryCategorySuggested} (not filed)
+          </span>
+        ) : null}
       </div>
+
+      {incident.eapChecklist?.steps?.length ? (
+        <div className="mt-3 rounded-md border border-sky-900/50 bg-sky-950/20 px-3 py-2">
+          <div className="text-[10px] font-semibold uppercase tracking-wide text-sky-300">
+            EAP / checklist — {incident.eapChecklist.title}
+          </div>
+          <ol className="mt-1 list-decimal pl-4 text-xs text-slate-300">
+            {incident.eapChecklist.steps.slice(0, 6).map((step) => (
+              <li key={step}>{step}</li>
+            ))}
+          </ol>
+        </div>
+      ) : null}
+
+      {incident.cameraRefs && incident.cameraRefs.length > 0 ? (
+        <p className="mt-2 text-xs text-slate-400">
+          Mapped cameras: {incident.cameraRefs.join(", ")}
+          {campusCode ? (
+            <>
+              {" · "}
+              <a
+                href={`/app/campus/${encodeURIComponent(campusCode)}/cameras`}
+                className="text-sky-400 hover:underline"
+              >
+                Live view
+              </a>
+            </>
+          ) : null}
+        </p>
+      ) : null}
 
       {descriptionPreview ? (
         <p className="mt-2 text-sm leading-relaxed text-slate-300">
@@ -204,6 +252,22 @@ export function CampusIncidentCard({
           >
             Close
           </button>
+        ) : null}
+        {campusCode ? (
+          <CampusWarRoomLauncher
+            campusCode={campusCode}
+            incidentId={incident.id}
+            incidentType={incident.type}
+            openWarRoom={incident.suggestedActions?.openWarRoom}
+          />
+        ) : null}
+        {campusCode ? (
+          <a
+            href={`/api/campus/incidents/${encodeURIComponent(incident.id)}?campusCode=${encodeURIComponent(campusCode)}&format=pdf`}
+            className="rounded-md border border-slate-700 px-3 py-1.5 text-xs text-slate-300 hover:bg-slate-800"
+          >
+            After-action PDF
+          </a>
         ) : null}
         <span className="inline-flex items-center gap-1 self-center text-[10px] text-slate-500">
           <MapPin className="h-3 w-3" />

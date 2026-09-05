@@ -2,13 +2,17 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import type { CreateQRNFCInput, QRNFCRecord, ReportVertical } from "rapid-cortex-shared";
-import { formatPhoneDisplay, isMarketingSiteQrRecord, normalizePhoneE164 } from "rapid-cortex-shared";
+import { formatPhoneDisplay, isMarketingSiteQrRecord, matchesCampusSiteScope, normalizePhoneE164 } from "rapid-cortex-shared";
 import { features } from "@/lib/features";
 import { qrNfcSetupGuidePath } from "@/lib/marketing-links";
 import { NFCInstructions } from "./nfc-instructions";
 import { QrNfcUsagePanel } from "./qr-nfc-usage-panel";
 import { TradeShowMarketingQrPanel } from "./trade-show-marketing-qr";
 import { SmsRoutingManager } from "@/components/sms-routing/sms-routing-manager";
+import { fetchVenueCameraRegistry, type CameraApiVertical } from "@/lib/venue/venue-camera-api";
+import type { VenueCamera } from "rapid-cortex-shared";
+import { CampusSiteSwitcher } from "@/components/campus/campus-site-switcher";
+import { useCampusSiteScope } from "@/lib/campus/use-campus-site-scope";
 
 type ListItem = Omit<QRNFCRecord, "qrImageBase64">;
 type MediumView = "qr" | "nfc" | "all";
@@ -71,11 +75,29 @@ export function QRNFCManager({
     name: "",
     description: "",
     zoneName: "",
+    buildingId: "",
+    floor: "",
+    cameraIds: [],
+    siteCode: "",
     vertical,
     reportType: "anonymous",
     nfcEnabled: true,
     callNumber: "",
   });
+  const [registryCameras, setRegistryCameras] = useState<VenueCamera[]>([]);
+  const [assigningQrId, setAssigningQrId] = useState<string | null>(null);
+  const [assignDraft, setAssignDraft] = useState<{
+    buildingId: string;
+    floor: string;
+    cameraIds: string[];
+    siteCode: string;
+  }>({ buildingId: "", floor: "", cameraIds: [], siteCode: "" });
+
+  const locationCamerasEnabled = vertical === "campus" || vertical === "venue";
+  const cameraApiVertical: CameraApiVertical = vertical === "campus" ? "campus" : "venue";
+  const { scope, setScope, sites, primarySiteCode } = useCampusSiteScope(
+    vertical === "campus" ? agencyId : "",
+  );
 
   const flash = useCallback((tone: "ok" | "err", text: string) => {
     setActionMsg({ tone, text });
@@ -106,11 +128,21 @@ export function QRNFCManager({
     void load();
   }, [load]);
 
+  useEffect(() => {
+    if (!features.qrNfc || !locationCamerasEnabled) return;
+    void fetchVenueCameraRegistry(agencyId, cameraApiVertical)
+      .then(setRegistryCameras)
+      .catch(() => setRegistryCameras([]));
+  }, [agencyId, cameraApiVertical, locationCamerasEnabled]);
+
   const visibleItems = useMemo(() => {
-    if (mediumView === "nfc") return items.filter((row) => row.nfcEnabled);
-    if (mediumView === "qr") return items;
-    return items;
-  }, [items, mediumView]);
+    const byMedium =
+      mediumView === "nfc" ? items.filter((row) => row.nfcEnabled) : items;
+    if (vertical !== "campus") return byMedium;
+    return byMedium.filter((row) =>
+      matchesCampusSiteScope(row.siteCode, scope, primarySiteCode),
+    );
+  }, [items, mediumView, vertical, scope, primarySiteCode]);
 
   if (!features.qrNfc) {
     return <p className="text-sm text-slate-400">QR & NFC management is disabled for this environment.</p>;
@@ -139,6 +171,10 @@ export function QRNFCManager({
           ...form,
           agencyId,
           callNumber,
+          buildingId: form.buildingId?.trim() || undefined,
+          floor: form.floor?.trim() || undefined,
+          cameraIds: locationCamerasEnabled ? form.cameraIds ?? [] : undefined,
+          siteCode: form.siteCode?.trim() || undefined,
         }),
       });
       const body = (await res.json().catch(() => ({}))) as { record?: QRNFCRecord; error?: string };
@@ -152,6 +188,10 @@ export function QRNFCManager({
         name: "",
         description: "",
         zoneName: "",
+        buildingId: "",
+        floor: "",
+        cameraIds: [],
+        siteCode: "",
         vertical,
         reportType: "anonymous",
         nfcEnabled: true,
@@ -211,6 +251,40 @@ export function QRNFCManager({
     } finally {
       setBusyId(null);
     }
+  }
+
+  async function saveCameraAssignment(row: ListItem) {
+    setBusyId(row.qrId);
+    try {
+      const res = await fetch(`${apiBase}/${encodeURIComponent(row.qrId)}`, {
+        method: "PATCH",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          buildingId: assignDraft.buildingId.trim() || undefined,
+          floor: assignDraft.floor.trim() || undefined,
+          cameraIds: assignDraft.cameraIds,
+          siteCode: assignDraft.siteCode.trim() || undefined,
+        }),
+      });
+      const body = (await res.json().catch(() => ({}))) as { error?: string };
+      if (!res.ok) {
+        flash("err", body.error ?? `Could not assign cameras (${res.status})`);
+        return;
+      }
+      flash("ok", "Area cameras saved. A scan of this code opens these cameras.");
+      setAssigningQrId(null);
+      void load();
+    } catch {
+      flash("err", "Network error assigning cameras.");
+    } finally {
+      setBusyId(null);
+    }
+  }
+
+  function cameraLabel(id: string): string {
+    const cam = registryCameras.find((c) => c.cameraId === id);
+    return cam ? `${cam.displayName} (${cam.cameraId})` : id;
   }
 
   function downloadPng(record: QRNFCRecord | ListItem, image?: string) {
@@ -404,6 +478,9 @@ export function QRNFCManager({
           <option value="active">Active</option>
           <option value="inactive">Inactive</option>
         </select>
+        {vertical === "campus" ? (
+          <CampusSiteSwitcher sites={sites} value={scope} onChange={setScope} />
+        ) : null}
       </div>
 
       {error ? <p className="text-sm text-rose-400">{error}</p> : null}
@@ -489,6 +566,16 @@ export function QRNFCManager({
                       No call button — add an SMS routing number or set a call number on this code
                     </p>
                   )}
+                  {locationCamerasEnabled ? (
+                    <p className="mt-1 text-xs text-slate-400">
+                      {row.cameraIds?.length
+                        ? `Cameras: ${row.cameraIds.map((id) => cameraLabel(id)).join(", ")}`
+                        : "No cameras assigned — a scan will not open a specific camera"}
+                      {row.buildingId ? ` · Building ${row.buildingId}` : ""}
+                      {row.siteCode ? ` · Campus ${row.siteCode}` : ""}
+                      {row.floor ? ` · Floor ${row.floor}` : ""}
+                    </p>
+                  ) : null}
                 </div>
                 {canDeactivate ? (
                   <label className="flex items-center gap-1.5 text-xs text-slate-400">
@@ -563,9 +650,113 @@ export function QRNFCManager({
                     Deactivate
                   </button>
                 ) : null}
+                {locationCamerasEnabled && canCreate ? (
+                  <button
+                    type="button"
+                    disabled={busy}
+                    onClick={() => {
+                      setAssigningQrId((id) => (id === row.qrId ? null : row.qrId));
+                      setAssignDraft({
+                        buildingId: row.buildingId ?? "",
+                        floor: row.floor ?? "",
+                        cameraIds: row.cameraIds ?? [],
+                        siteCode: row.siteCode ?? "",
+                      });
+                    }}
+                    className="rounded border border-sky-700 px-2 py-1 text-xs text-sky-200 hover:bg-sky-950/40 disabled:opacity-50"
+                  >
+                    {assigningQrId === row.qrId ? "Hide cameras" : "Assign cameras"}
+                  </button>
+                ) : null}
               </div>
               {expandedNfcId === row.qrId && row.nfcEnabled ? (
                 <NFCInstructions url={nfcUrl} />
+              ) : null}
+              {assigningQrId === row.qrId && locationCamerasEnabled ? (
+                <div className="rounded border border-slate-700 bg-slate-950/50 p-3">
+                  <p className="text-xs text-slate-300">
+                    Cameras assigned here open live when this code is scanned.
+                  </p>
+                  <div className="mt-2 grid gap-2 sm:grid-cols-2">
+                    <label className="text-xs text-slate-400">
+                      Building
+                      <input
+                        value={assignDraft.buildingId}
+                        onChange={(e) =>
+                          setAssignDraft((d) => ({ ...d, buildingId: e.target.value }))
+                        }
+                        className="mt-1 w-full rounded border border-slate-600 bg-slate-950 px-2 py-1 text-sm text-slate-100"
+                      />
+                    </label>
+                    <label className="text-xs text-slate-400">
+                      Floor
+                      <input
+                        value={assignDraft.floor}
+                        onChange={(e) => setAssignDraft((d) => ({ ...d, floor: e.target.value }))}
+                        className="mt-1 w-full rounded border border-slate-600 bg-slate-950 px-2 py-1 text-sm text-slate-100"
+                      />
+                    </label>
+                    {vertical === "campus" && sites.length > 0 ? (
+                      <label className="text-xs text-slate-400 sm:col-span-2">
+                        Campus
+                        <select
+                          value={assignDraft.siteCode}
+                          onChange={(e) =>
+                            setAssignDraft((d) => ({ ...d, siteCode: e.target.value }))
+                          }
+                          className="mt-1 w-full rounded border border-slate-600 bg-slate-950 px-2 py-1 text-sm text-slate-100"
+                        >
+                          <option value="">Tenant primary</option>
+                          {sites.map((site) => (
+                            <option key={site.code} value={site.code}>
+                              {site.name}
+                            </option>
+                          ))}
+                        </select>
+                      </label>
+                    ) : null}
+                  </div>
+                  <div className="mt-2 max-h-40 space-y-1 overflow-y-auto">
+                    {registryCameras.length === 0 ? (
+                      <p className="text-xs text-amber-300">
+                        No cameras in the registry yet. Add cameras first, then assign them here.
+                      </p>
+                    ) : (
+                      registryCameras.map((cam) => {
+                        const checked = assignDraft.cameraIds.includes(cam.cameraId);
+                        return (
+                          <label key={cam.cameraId} className="flex items-center gap-2 text-xs text-slate-300">
+                            <input
+                              type="checkbox"
+                              checked={checked}
+                              onChange={() =>
+                                setAssignDraft((d) => ({
+                                  ...d,
+                                  cameraIds: checked
+                                    ? d.cameraIds.filter((id) => id !== cam.cameraId)
+                                    : [...d.cameraIds, cam.cameraId].slice(0, 8),
+                                }))
+                              }
+                            />
+                            {cam.displayName}
+                            <span className="text-slate-500">
+                              {cam.buildingId ?? cam.sections[0]}
+                              {cam.floor ? ` · ${cam.floor}` : ""}
+                            </span>
+                          </label>
+                        );
+                      })
+                    )}
+                  </div>
+                  <button
+                    type="button"
+                    disabled={busy}
+                    onClick={() => void saveCameraAssignment(row)}
+                    className="mt-2 rounded bg-sky-600 px-3 py-1 text-xs text-white disabled:opacity-50"
+                  >
+                    Save camera assignment
+                  </button>
+                </div>
               ) : null}
               {mediumView === "nfc" && row.nfcWriteLog && row.nfcWriteLog.length > 0 ? (
                 <p className="text-xs text-slate-500">
@@ -617,6 +808,88 @@ export function QRNFCManager({
                 className="mt-1 w-full rounded border border-slate-600 bg-slate-950 px-2 py-1.5"
               />
             </label>
+            {locationCamerasEnabled ? (
+              <>
+                <div className="mt-3 grid gap-2 sm:grid-cols-2">
+                  <label className="block text-sm text-slate-300">
+                    Building
+                    <input
+                      value={form.buildingId ?? ""}
+                      onChange={(e) => setForm((f) => ({ ...f, buildingId: e.target.value }))}
+                      className="mt-1 w-full rounded border border-slate-600 bg-slate-950 px-2 py-1.5"
+                    />
+                  </label>
+                  <label className="block text-sm text-slate-300">
+                    Floor
+                    <input
+                      value={form.floor ?? ""}
+                      onChange={(e) => setForm((f) => ({ ...f, floor: e.target.value }))}
+                      className="mt-1 w-full rounded border border-slate-600 bg-slate-950 px-2 py-1.5"
+                    />
+                  </label>
+                  {vertical === "campus" && sites.length > 0 ? (
+                    <label className="block text-sm text-slate-300 sm:col-span-2">
+                      Campus
+                      <select
+                        value={form.siteCode ?? ""}
+                        onChange={(e) => setForm((f) => ({ ...f, siteCode: e.target.value }))}
+                        className="mt-1 w-full rounded border border-slate-600 bg-slate-950 px-2 py-1.5"
+                      >
+                        <option value="">Tenant primary</option>
+                        {sites.map((site) => (
+                          <option key={site.code} value={site.code}>
+                            {site.name}
+                          </option>
+                        ))}
+                      </select>
+                    </label>
+                  ) : null}
+                </div>
+                <fieldset className="mt-3">
+                  <legend className="text-sm text-slate-300">Assigned cameras</legend>
+                  <p className="mt-1 text-xs text-slate-500">
+                    Required for inprocessing. When this code is scanned, operators get live video
+                    from these cameras.
+                  </p>
+                  <div className="mt-2 max-h-40 space-y-1 overflow-y-auto rounded border border-slate-700 p-2">
+                    {registryCameras.length === 0 ? (
+                      <p className="text-xs text-amber-300">
+                        No cameras registered yet. Create cameras first, then assign them to this
+                        location.
+                      </p>
+                    ) : (
+                      registryCameras.map((cam) => {
+                        const checked = (form.cameraIds ?? []).includes(cam.cameraId);
+                        return (
+                          <label key={cam.cameraId} className="flex items-center gap-2 text-xs text-slate-300">
+                            <input
+                              type="checkbox"
+                              checked={checked}
+                              onChange={() =>
+                                setForm((f) => {
+                                  const current = f.cameraIds ?? [];
+                                  return {
+                                    ...f,
+                                    cameraIds: checked
+                                      ? current.filter((id) => id !== cam.cameraId)
+                                      : [...current, cam.cameraId].slice(0, 8),
+                                  };
+                                })
+                              }
+                            />
+                            {cam.displayName}
+                            <span className="text-slate-500">
+                              {cam.buildingId ?? cam.sections[0]}
+                              {cam.floor ? ` · ${cam.floor}` : ""}
+                            </span>
+                          </label>
+                        );
+                      })
+                    )}
+                  </div>
+                </fieldset>
+              </>
+            ) : null}
             <label className="mt-3 block text-sm text-slate-300">
               Call number (optional)
               <input

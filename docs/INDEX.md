@@ -123,6 +123,8 @@ Paths below are **canonical** — prefer these over flat `docs/FOO.md` links in 
 |----------|------|
 | API surface | [product-architecture/API_SURFACE.md](./product-architecture/API_SURFACE.md) |
 | Auth operations | [product-architecture/AUTH_OPERATIONS.md](./product-architecture/AUTH_OPERATIONS.md) |
+| Campus Hosted UI SSO | [product-architecture/CAMPUS_SSO_HOSTED_UI.md](./product-architecture/CAMPUS_SSO_HOSTED_UI.md) |
+| Campus inbound security events | [product-architecture/CAMPUS_SECURITY_EVENTS.md](./product-architecture/CAMPUS_SECURITY_EVENTS.md) |
 | Core user flows | [product-architecture/CORE_USER_FLOWS.md](./product-architecture/CORE_USER_FLOWS.md) |
 | Feature flags | [product-architecture/FEATURE_FLAGS.md](./product-architecture/FEATURE_FLAGS.md) |
 | CAD integrations | [product-architecture/INTEGRATIONS_CAD_AND_MOTOROLA.md](./product-architecture/INTEGRATIONS_CAD_AND_MOTOROLA.md) |

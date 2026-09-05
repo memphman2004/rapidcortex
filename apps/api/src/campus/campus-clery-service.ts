@@ -7,6 +7,7 @@ import {
   QueryCommand,
   UpdateCommand,
 } from "@aws-sdk/lib-dynamodb";
+import PDFDocument from "pdfkit";
 import {
   AUDIT_EVENT_TYPES,
 } from "rapid-cortex-security";
@@ -487,6 +488,38 @@ export function exportCleryReportCsv(report: CleryReport): string {
   );
 
   return [...header, ...rows, ...matrixHeader, ...matrixRows].join("\n");
+}
+
+export function exportCleryReportPdf(report: CleryReport): Promise<Buffer> {
+  return new Promise((resolve, reject) => {
+    const doc = new PDFDocument({ size: "LETTER", margin: 48 });
+    const chunks: Buffer[] = [];
+    doc.on("data", (c: Buffer) => chunks.push(Buffer.isBuffer(c) ? c : Buffer.from(c)));
+    doc.on("end", () => resolve(Buffer.concat(chunks)));
+    doc.on("error", reject);
+
+    doc.font("Helvetica-Bold").fontSize(16).text(`Clery extract — ${report.campusCode}`);
+    doc.font("Helvetica").fontSize(9).text(`Academic year ${report.academicYear} · ${report.generatedAt}`);
+    doc.moveDown(0.4);
+    doc.fontSize(8).fillColor("#64748B").text(report.disclaimer);
+    doc.moveDown(0.6).fillColor("#0F172A").fontSize(10);
+    doc.text(
+      `Entries: ${report.totals.entries} · Included in ASR: ${report.totals.includedInAsr} · Unfounded: ${report.totals.unfounded}`,
+    );
+    doc.moveDown(0.5);
+    for (const entry of report.entries.slice(0, 80)) {
+      doc
+        .font("Helvetica-Bold")
+        .fontSize(9)
+        .text(`${entry.occurredAt.slice(0, 10)} · ${entry.category} · ${CLERY_GEOGRAPHY_LABELS[entry.geography]}`);
+      doc
+        .font("Helvetica")
+        .fontSize(8)
+        .text(`${entry.building} — ${entry.location}${entry.notes ? ` — ${entry.notes.slice(0, 160)}` : ""}`);
+      doc.moveDown(0.25);
+    }
+    doc.end();
+  });
 }
 
 /** @deprecated Prefer buildCleryReport + exportCleryReportCsv — kept for older call sites. */

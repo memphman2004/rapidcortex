@@ -4,8 +4,10 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Download, MapPin, Plus, Upload } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import type { QRLocation, QRLocationVertical } from "rapid-cortex-shared";
-import { qrReportUrl } from "rapid-cortex-shared";
+import { matchesCampusSiteScope, qrReportUrl } from "rapid-cortex-shared";
 import { useSession } from "@/components/auth/session-context";
+import { CampusSiteSwitcher } from "@/components/campus/campus-site-switcher";
+import { useCampusSiteScope } from "@/lib/campus/use-campus-site-scope";
 import { isApiConfigured } from "@/lib/api";
 import {
   bulkImportLocations,
@@ -37,6 +39,7 @@ export function LocationsQrAdminPanel({
   const queryClient = useQueryClient();
   const { user } = useSession();
   const agencyId = (scopedAgencyId ?? user?.agencyId)?.trim() ?? "";
+  const { scope, setScope, sites, primarySiteCode } = useCampusSiteScope(agencyId);
   const [vertical, setVertical] = useState<QRLocationVertical>(defaultVertical);
   const [orgCode, setOrgCode] = useState(defaultOrgCode);
   const [search, setSearch] = useState("");
@@ -51,6 +54,7 @@ export function LocationsQrAdminPanel({
     zoneCode: "",
     orgCode: defaultOrgCode,
     vertical: defaultVertical,
+    siteCode: "",
     active: true,
   });
   const [bulkPreview, setBulkPreview] = useState<Array<Record<string, string>>>([]);
@@ -69,16 +73,23 @@ export function LocationsQrAdminPanel({
 
   const filtered = useMemo(() => {
     const rows = locationsQuery.data ?? [];
+    const scoped =
+      vertical === "campus"
+        ? rows.filter((row) =>
+            matchesCampusSiteScope(row.siteCode, scope, primarySiteCode || orgCode),
+          )
+        : rows;
     const q = search.trim().toLowerCase();
-    if (!q) return rows;
-    return rows.filter(
+    if (!q) return scoped;
+    return scoped.filter(
       (row) =>
         row.locationName.toLowerCase().includes(q) ||
         row.building?.toLowerCase().includes(q) ||
         row.zoneCode.toLowerCase().includes(q) ||
-        row.rcli.toLowerCase().includes(q),
+        row.rcli.toLowerCase().includes(q) ||
+        (row.siteCode ?? "").toLowerCase().includes(q),
     );
-  }, [locationsQuery.data, search]);
+  }, [locationsQuery.data, search, vertical, scope, primarySiteCode, orgCode]);
 
   const createMut = useMutation({
     mutationFn: () =>
@@ -86,6 +97,7 @@ export function LocationsQrAdminPanel({
         ...form,
         orgCode: form.orgCode || orgCode,
         vertical,
+        siteCode: form.siteCode?.trim() || undefined,
       }),
     onSuccess: () => {
       setShowAdd(false);
@@ -150,6 +162,9 @@ export function LocationsQrAdminPanel({
             placeholder="CSU"
           />
         </label>
+        {vertical === "campus" ? (
+          <CampusSiteSwitcher sites={sites} value={scope} onChange={setScope} />
+        ) : null}
         <label className="text-sm text-slate-300">
           Search
           <input
@@ -236,7 +251,7 @@ export function LocationsQrAdminPanel({
           <div className="w-full max-w-lg rounded-xl border border-slate-700 bg-slate-950 p-5">
             <h2 className="text-lg font-semibold text-white">Add location</h2>
             <div className="mt-4 grid gap-3">
-              {(["locationName", "building", "floor", "zone", "zoneCode", "orgCode"] as const).map((field) => (
+              {(["locationName", "building", "floor", "zone", "zoneCode", "orgCode", "siteCode"] as const).map((field) => (
                 <label key={field} className="text-sm text-slate-300">
                   {field}
                   <input
@@ -244,7 +259,10 @@ export function LocationsQrAdminPanel({
                     onChange={(e) =>
                       setForm((current) => ({
                         ...current,
-                        [field]: field === "zoneCode" || field === "orgCode" ? e.target.value.toUpperCase() : e.target.value,
+                        [field]:
+                          field === "zoneCode" || field === "orgCode" || field === "siteCode"
+                            ? e.target.value.toUpperCase()
+                            : e.target.value,
                       }))
                     }
                     className="mt-1 block w-full rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-white"
@@ -275,7 +293,7 @@ export function LocationsQrAdminPanel({
           <div className="w-full max-w-2xl rounded-xl border border-slate-700 bg-slate-950 p-5">
             <h2 className="text-lg font-semibold text-white">Bulk import CSV</h2>
             <p className="mt-2 text-xs text-slate-400">
-              Columns: locationName, building, floor, zone, zoneCode, lat, lng
+              Columns: locationName, building, floor, zone, zoneCode, siteCode, lat, lng
             </p>
             <input
               type="file"

@@ -204,3 +204,13 @@ describe("AuthorizationService.canPerform / assertCanPerform", () => {
     });
   });
 });
+
+describe("AuthorizationService.assertAgencyAdminManagingSameAgency", () => {
+  const auth = new AuthorizationService();
+
+  it("allows CAMPUS_ADMIN for the same agency (mutual-aid demo)", () => {
+    const admin = makeUser("CAMPUS_ADMIN" as UserRole);
+    expect(() => auth.assertAgencyAdminManagingSameAgency(admin, "agency-a")).not.toThrow();
+    expect(() => auth.assertAgencyAdminManagingSameAgency(admin, "other-agency")).toThrow("FORBIDDEN");
+  });
+});

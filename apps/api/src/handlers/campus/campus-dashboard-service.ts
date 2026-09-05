@@ -13,6 +13,7 @@ import {
 import { AUDIT_EVENT_TYPES } from "rapid-cortex-security";
 import { CAMPUS_KEYS, type CampusIncident } from "../../campus/campus-types.js";
 import { getCampusBuildings } from "../../campus/campus-config-service.js";
+import { getResolvedCampusSites } from "../../campus/campus-sites-service.js";
 import { campusCodeFromAgencyId, initialsFromName } from "../vertical/agency-id.js";
 import { makeId } from "../../lib/ids.js";
 import { AuditRepository } from "../../repositories/auditRepository.js";
@@ -120,11 +121,12 @@ function buildingStatus(activeIncidents: number, closed?: boolean): CampusBuildi
 
 export async function getCampusStats(agencyId: string): Promise<CampusStatsResponse> {
   const campusCode = campusCodeFromAgencyId(agencyId);
-  const [incidents, buildings, staff, alertsSentToday] = await Promise.all([
+  const [incidents, buildings, staff, alertsSentToday, sitesResolved] = await Promise.all([
     listOpenIncidents(campusCode),
     getCampusBuildings(campusCode),
     listOnDutyStaff(campusCode, agencyId),
     countAlertsToday(agencyId),
+    getResolvedCampusSites(campusCode, agencyId),
   ]);
 
   return {
@@ -132,6 +134,8 @@ export async function getCampusStats(agencyId: string): Promise<CampusStatsRespo
     respondersOnDuty: staff.length,
     buildingsMonitored: buildings.length,
     alertsSentToday,
+    sites: sitesResolved.sites,
+    primarySiteCode: sitesResolved.primarySiteCode,
   };
 }
 
@@ -155,6 +159,7 @@ export async function getCampusZonesSummary(agencyId: string): Promise<CampusZon
           incidentCount: 0,
           responderCount: 0,
           status: "clear",
+          siteCode: building.siteCode,
         });
       }
     }
@@ -168,6 +173,7 @@ export async function getCampusZonesSummary(agencyId: string): Promise<CampusZon
       incidentCount: 0,
       responderCount: 0,
       status: "clear" as const,
+      siteCode: inc.siteCode,
     };
     entry.incidentCount += 1;
     zoneMap.set(key, entry);
@@ -207,6 +213,7 @@ export async function getCampusBuildingsSummary(agencyId: string): Promise<Campu
       occupancy: b.capacity ?? null,
       status: buildingStatus(activeIncidents, false),
       activeIncidents,
+      siteCode: b.siteCode,
     };
   });
 }

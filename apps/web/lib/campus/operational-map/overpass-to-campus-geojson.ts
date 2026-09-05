@@ -15,7 +15,7 @@ export interface OverpassResponse {
 
 export interface CampusMapMarker {
   id: string;
-  type: "aed" | "emergencyPhone" | "parking";
+  type: "aed" | "emergencyPhone" | "parking" | "camera" | "gis";
   label: string;
   lat: number;
   lng: number;

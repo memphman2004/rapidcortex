@@ -1,6 +1,8 @@
 import type {
   CampusIntake,
   CampusIntakeRecord,
+  CampusIntegrationQuestionnaire,
+  CampusIntegrationQuestionnaireRecord,
   OnboardingChecklistPatch,
   OnboardingChecklistState,
   VenueIntake,
@@ -44,6 +46,40 @@ export async function saveCampusIntake(
   }
   const data = (await res.json()) as { intake: CampusIntakeRecord };
   return data.intake;
+}
+
+export async function fetchCampusIntegrations(
+  query: Query,
+): Promise<CampusIntegrationQuestionnaireRecord | null> {
+  const res = await fetch(
+    `/api/onboarding/campus/${encodeURIComponent(query.orgCode)}/integrations${querySuffix(query.agencyId)}`,
+    { credentials: "include" },
+  );
+  if (res.status === 404) return null;
+  if (!res.ok) throw new Error(`Failed to load integration questionnaire (${res.status})`);
+  const data = (await res.json()) as { questionnaire: CampusIntegrationQuestionnaireRecord | null };
+  return data.questionnaire ?? null;
+}
+
+export async function saveCampusIntegrations(
+  query: Query,
+  body: CampusIntegrationQuestionnaire,
+): Promise<CampusIntegrationQuestionnaireRecord> {
+  const res = await fetch(
+    `/api/onboarding/campus/${encodeURIComponent(query.orgCode)}/integrations${querySuffix(query.agencyId)}`,
+    {
+      method: "PUT",
+      credentials: "include",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    },
+  );
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error((err as { error?: string }).error ?? `Save failed (${res.status})`);
+  }
+  const data = (await res.json()) as { questionnaire: CampusIntegrationQuestionnaireRecord };
+  return data.questionnaire;
 }
 
 export async function fetchCampusChecklist(query: Query): Promise<OnboardingChecklistState | null> {
@@ -135,3 +171,60 @@ export async function patchVenueChecklist(
   const data = (await res.json()) as { checklist: OnboardingChecklistState };
   return data.checklist;
 }
+
+export type OnboardingPacketFile = {
+  fileName: string;
+  title: string;
+  key: string;
+  source: "s3" | "bundled";
+  contentType: string;
+  sizeBytes?: number;
+  updatedAt?: string;
+};
+
+export type OnboardingPacketFolder = {
+  vertical: "campus" | "venue" | "hospital" | "transit" | "psap";
+  title: string;
+  summary: string;
+  files: OnboardingPacketFile[];
+};
+
+export async function fetchOnboardingPackets(): Promise<{
+  folders: OnboardingPacketFolder[];
+  storage: "s3" | "bundled";
+}> {
+  const res = await fetch("/api/admin/onboarding-packets", { credentials: "include" });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error((err as { error?: string }).error ?? `Failed to load packets (${res.status})`);
+  }
+  return res.json() as Promise<{ folders: OnboardingPacketFolder[]; storage: "s3" | "bundled" }>;
+}
+
+export async function downloadOnboardingPacket(body: {
+  vertical: OnboardingPacketFolder["vertical"];
+  key: string;
+}): Promise<{
+  fileName: string;
+  contentType: string;
+  downloadUrl?: string;
+  markdown?: string;
+}> {
+  const res = await fetch("/api/admin/onboarding-packets/download", {
+    method: "POST",
+    credentials: "include",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error((err as { error?: string }).error ?? `Download failed (${res.status})`);
+  }
+  return res.json() as Promise<{
+    fileName: string;
+    contentType: string;
+    downloadUrl?: string;
+    markdown?: string;
+  }>;
+}
+

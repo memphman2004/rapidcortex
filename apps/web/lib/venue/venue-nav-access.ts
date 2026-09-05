@@ -61,6 +61,8 @@ const CAMPUS_NAV_BY_ROLE: Record<string, readonly string[]> = {
     "cameras",
     "reports",
     "clery",
+    "eap",
+    "war-rooms",
     "analytics",
     "zones",
     "buildings",
@@ -74,6 +76,8 @@ const CAMPUS_NAV_BY_ROLE: Record<string, readonly string[]> = {
     "cameras",
     "reports",
     "clery",
+    "eap",
+    "war-rooms",
     "analytics",
     "zones",
     "buildings",
@@ -81,7 +85,7 @@ const CAMPUS_NAV_BY_ROLE: Record<string, readonly string[]> = {
   ],
   CAMPUS_SECURITY: ["dashboard", "incidents", "cameras", "qr-codes", "zones", "buildings"],
   CAMPUS_DISPATCH: ["dashboard", "incidents", "zones", "buildings", "reports", "analytics"],
-  CAMPUS_COUNSELOR: ["dashboard", "reports", "analytics"],
+  CAMPUS_COUNSELOR: ["dashboard", "incidents", "reports"],
   CAMPUS_FACULTY: ["dashboard", "reports"],
 };
 

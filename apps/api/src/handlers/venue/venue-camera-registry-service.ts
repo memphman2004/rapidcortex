@@ -9,6 +9,7 @@ import type {
 } from "rapid-cortex-shared";
 import {
   isRtspProducerVendor,
+  selectCamerasForAreaScan,
   venueKvsChannelName,
 } from "rapid-cortex-shared";
 import { AUDIT_EVENT_TYPES } from "rapid-cortex-security";
@@ -48,18 +49,46 @@ export async function getCamerasForSection(
   agencyId: string,
   sectionId: string,
   limit = 2,
+  place?: { assignedCameraIds?: string[] | null; qrRcli?: string | null },
 ): Promise<VenueIncidentCameraSummary[]> {
-  const section = sectionId.trim();
   const cameras = await repo.listByAgency(agencyId);
-  return cameras
-    .filter(
-      (c) =>
-        isCameraProducerOnline(c) &&
-        c.sections.some((s) => s.trim() === section || s.trim() === section.replace(/^section\s*/i, "")),
-    )
-    .sort((a, b) => a.priorityRank - b.priorityRank)
-    .slice(0, limit)
-    .map(toSummary);
+  const selected = selectCamerasForAreaScan(cameras, {
+    assignedCameraIds: place?.assignedCameraIds,
+    place: {
+      buildingId: sectionId,
+      qrRcli: place?.qrRcli,
+    },
+    limit,
+    isEligibleFallback: (camera) => isCameraProducerOnline(camera),
+  });
+  return selected.map(toSummary);
+}
+
+export async function bindVenueCamerasToQrRcli(opts: {
+  agencyId: string;
+  qrId: string;
+  nextCameraIds: string[];
+  previousCameraIds?: string[];
+}): Promise<void> {
+  const next = new Set(opts.nextCameraIds.map((id) => id.trim()).filter(Boolean));
+  const previous = new Set((opts.previousCameraIds ?? []).map((id) => id.trim()).filter(Boolean));
+  const toClear = [...previous].filter((id) => !next.has(id));
+
+  for (const cameraId of toClear) {
+    const camera = await repo.get(opts.agencyId, cameraId);
+    if (!camera) continue;
+    if ((camera.qrRcli ?? "").trim().toUpperCase() !== opts.qrId.trim().toUpperCase()) continue;
+    const { qrRcli: _removed, ...rest } = camera;
+    await repo.put(rest as VenueCamera);
+  }
+
+  for (const cameraId of next) {
+    const camera = await repo.get(opts.agencyId, cameraId);
+    if (!camera) continue;
+    const existing = camera.qrRcli?.trim();
+    if (existing && existing.toUpperCase() !== opts.qrId.trim().toUpperCase()) continue;
+    await repo.put({ ...camera, qrRcli: opts.qrId });
+  }
 }
 
 export async function listVenueCameras(agencyId: string, sectionId?: string): Promise<VenueCamera[]> {

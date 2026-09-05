@@ -18,7 +18,11 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
     const pwd = operationalPasswordBlock(user);
     if (pwd) return withCorrelationHeaders(event, pwd);
 
-    authz.assertCanPerform(user, "campus.incidents.view" as never);
+    const canViewIncidents = authz.canPerform(user, "campus.incidents.view" as never);
+    const canViewWellness = authz.canPerform(user, "campus.wellness.view" as never);
+    if (!canViewIncidents && !canViewWellness) {
+      return withCorrelationHeaders(event, forbidden());
+    }
     const campusCode = event.queryStringParameters?.campusCode;
     if (!campusCode) {
       return withCorrelationHeaders(event, badRequest("campusCode is required"));
@@ -33,6 +37,8 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
     const status = event.queryStringParameters?.status?.split(",") as string[] | undefined;
     const type = event.queryStringParameters?.type?.split(",") as string[] | undefined;
     const confidentialOnly = event.queryStringParameters?.confidential === "true";
+    const counselorQueue =
+      event.queryStringParameters?.queue === "counselor" || (!canViewIncidents && canViewWellness);
     const cursor = event.queryStringParameters?.cursor;
     const limit = parseInt(event.queryStringParameters?.limit ?? "25", 10);
 
@@ -41,6 +47,7 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
       status: status as never,
       type: type as never,
       confidentialOnly,
+      counselorQueue,
       limit: Math.min(limit, 100),
       cursor,
     });

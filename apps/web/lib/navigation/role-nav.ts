@@ -130,6 +130,47 @@ export const RC_SUPERADMIN_NAV: RoleNav = {
       ],
     },
     {
+      id: "onboarding",
+      label: "ONBOARDING",
+      items: [
+        {
+          id: "onboarding-packets",
+          label: "Onboarding packets",
+          href: "/rc-admin/onboarding/packets",
+          icon: "FolderOpen",
+          feature: "verticalOnboarding",
+        },
+        {
+          id: "onboarding-campus-intake",
+          label: "Campus Intake",
+          href: "/onboarding/campus/intake",
+          icon: "ClipboardList",
+          feature: "verticalOnboarding",
+        },
+        {
+          id: "onboarding-campus-integrations",
+          label: "Campus Integrations",
+          href: "/onboarding/campus/integrations",
+          icon: "Plug",
+          feature: "verticalOnboarding",
+        },
+        {
+          id: "onboarding-venue-intake",
+          label: "Venue Intake",
+          href: "/onboarding/venue/intake",
+          icon: "ClipboardList",
+          feature: "verticalOnboarding",
+        },
+        {
+          id: "onboarding-checklist",
+          label: "Onboarding Checklist",
+          href: "/onboarding/checklist/campus",
+          icon: "ListChecks",
+          feature: "verticalOnboarding",
+        },
+      ],
+    },
+    {
       id: "infra",
       label: "INFRASTRUCTURE",
       items: [
@@ -228,13 +269,27 @@ export const RC_ADMIN_NAV: RoleNav = {
       id: "onboarding",
       label: "ONBOARDING",
       items: [
-        {
-          id: "onboarding-campus-intake",
-          label: "Campus Intake",
-          href: "/onboarding/campus/intake",
-          icon: "ClipboardList",
-          feature: "verticalOnboarding",
-        },
+          {
+            id: "onboarding-packets",
+            label: "Onboarding packets",
+            href: "/rc-admin/onboarding/packets",
+            icon: "FolderOpen",
+            feature: "verticalOnboarding",
+          },
+          {
+            id: "onboarding-campus-intake",
+            label: "Campus Intake",
+            href: "/onboarding/campus/intake",
+            icon: "ClipboardList",
+            feature: "verticalOnboarding",
+          },
+          {
+            id: "onboarding-campus-integrations",
+            label: "Campus Integrations",
+            href: "/onboarding/campus/integrations",
+            icon: "Plug",
+            feature: "verticalOnboarding",
+          },
         {
           id: "onboarding-venue-intake",
           label: "Venue Intake",
@@ -264,6 +319,13 @@ export const RC_IT_ADMIN_NAV: RoleNav = {
       items: [
         { id: "health",    label: "System Health",     href: "/rc-admin/infrastructure",icon: "Activity", exact: true },
         { id: "integrations",label:"Integrations",     href: "/rc-admin/integrations",  icon: "Plug" },
+        {
+          id: "onboarding-packets",
+          label: "Onboarding packets",
+          href: "/rc-admin/onboarding/packets",
+          icon: "FolderOpen",
+          feature: "verticalOnboarding",
+        },
         { id: "cad",       label: "CAD Admin",         href: "/rc-admin/integrations",  icon: "Radio" },
         { id: "security",  label: "Security",          href: "/rc-admin/security",      icon: "ShieldAlert" },
       ],
@@ -436,6 +498,13 @@ export function getAgencyAdminNav(jurisdiction: string): RoleNav {
         label: "CONFIGURATION",
         items: [
           { id: "integrations",  label: "Integrations",    href: `${j}/admin/integrations`, icon: "Plug" },
+          {
+            id: "onboarding-packets",
+            label: "Onboarding packet",
+            href: `${j}/admin/onboarding/packets`,
+            icon: "FolderOpen",
+            feature: "verticalOnboarding",
+          },
           { id: "compliance",    label: "Compliance",      href: `${j}/admin/retention`,   icon: "Scale" },
           { id: "settings",      label: "Settings",        href: `${j}/admin/settings`,     icon: "Settings" },
           { id: "sla",           label: "SLA Thresholds",  href: `${j}/admin/settings/sla`, icon: "BarChart3",
@@ -490,6 +559,13 @@ export function getAgencyItNav(jurisdiction: string): RoleNav {
         items: [
           { id: "overview",      label: "Overview",        href: `${j}/admin/it`,           icon: "LayoutDashboard", exact: true },
           { id: "integrations",  label: "Integrations",    href: `${j}/admin/integrations`, icon: "Plug" },
+          {
+            id: "onboarding-packets",
+            label: "Onboarding packet",
+            href: `${j}/admin/onboarding/packets`,
+            icon: "FolderOpen",
+            feature: "verticalOnboarding",
+          },
           { id: "cad",           label: "CAD",             href: `${j}/admin/cad`,          icon: "Radio" },
           { id: "channels",      label: "Channels & Talk Groups", href: `${j}/admin/settings/channels`, icon: "Radio",
             feature: "channelMonitoring" },
@@ -519,6 +595,13 @@ export function getAgencyItNav(jurisdiction: string): RoleNav {
             label: "Campus Onboarding",
             href: "/onboarding/campus/intake",
             icon: "ClipboardList",
+            feature: "verticalOnboarding",
+          },
+          {
+            id: "onboarding-integrations-campus",
+            label: "Campus Integrations",
+            href: "/onboarding/campus/integrations",
+            icon: "Plug",
             feature: "verticalOnboarding",
           },
           {
@@ -643,6 +726,20 @@ export function getCampusAdminNav(code: string): RoleNav {
           { id: "qr",          label: "QR Codes",          href: `${base}/qr-codes`,        icon: "QrCode" },
           { id: "zones",       label: "Zones",             href: `${base}/zones`,           icon: "Map" },
           { id: "buildings",   label: "Buildings",         href: `${base}/buildings`,       icon: "Building" },
+          {
+            id: "eap",
+            label: "EAP / Checklists",
+            href: `${base}/eap`,
+            icon: "ClipboardList",
+            feature: "campusEap",
+          },
+          {
+            id: "war-rooms",
+            label: "War Rooms",
+            href: `${base}/war-rooms`,
+            icon: "Siren",
+            feature: "warRooms",
+          },
         ],
       },
       {
@@ -667,10 +764,24 @@ export function getCampusAdminNav(code: string): RoleNav {
         items: [
           { id: "settings",    label: "Settings",          href: `${base}/settings`,        icon: "Settings" },
           {
+            id: "onboarding-packets",
+            label: "Onboarding packet",
+            href: `${base}/onboarding/packets`,
+            icon: "FolderOpen",
+            feature: "verticalOnboarding",
+          },
+          {
             id: "onboarding-intake",
             label: "Onboarding Intake",
             href: `/onboarding/campus/intake?orgCode=${encodeURIComponent(code)}`,
             icon: "ClipboardList",
+            feature: "verticalOnboarding",
+          },
+          {
+            id: "onboarding-integrations",
+            label: "Integration Questionnaire",
+            href: `/onboarding/campus/integrations?orgCode=${encodeURIComponent(code)}`,
+            icon: "Plug",
             feature: "verticalOnboarding",
           },
           {
@@ -702,6 +813,20 @@ export function getCampusSupervisorNav(code: string): RoleNav {
           { id: "cameras",     label: "Cameras",           href: `${base}/cameras`,         icon: "Camera" },
           { id: "qr",          label: "QR Codes",          href: `${base}/qr-codes`,        icon: "QrCode" },
           { id: "zones",       label: "Zones",             href: `${base}/zones`,           icon: "Map" },
+          {
+            id: "eap",
+            label: "EAP / Checklists",
+            href: `${base}/eap`,
+            icon: "ClipboardList",
+            feature: "campusEap",
+          },
+          {
+            id: "war-rooms",
+            label: "War Rooms",
+            href: `${base}/war-rooms`,
+            icon: "Siren",
+            feature: "warRooms",
+          },
         ],
       },
       {
@@ -774,6 +899,49 @@ export function getCampusDispatchNav(code: string): RoleNav {
   };
 }
 
+export function getCampusCounselorNav(code: string): RoleNav {
+  const base = `/app/campus/${code}`;
+  return {
+    accent: "slate",
+    roleBadge: "CAMPUS COUNSELOR",
+    sections: [
+      {
+        id: "wellness",
+        label: "COUNSELING",
+        items: [
+          { id: "dashboard", label: "Dashboard", href: base, icon: "LayoutDashboard", exact: true },
+          {
+            id: "incidents",
+            label: "Wellness Queue",
+            href: `${base}/incidents`,
+            icon: "Heart",
+            badge: { type: "count", key: "openIncidents" },
+          },
+          { id: "reports", label: "Reports", href: `${base}/reports`, icon: "FileBarChart" },
+        ],
+      },
+    ],
+  };
+}
+
+export function getCampusFacultyNav(code: string): RoleNav {
+  const base = `/app/campus/${code}`;
+  return {
+    accent: "slate",
+    roleBadge: "CAMPUS FACULTY",
+    sections: [
+      {
+        id: "safety",
+        label: "CAMPUS SAFETY",
+        items: [
+          { id: "dashboard", label: "Dashboard", href: base, icon: "LayoutDashboard", exact: true },
+          { id: "reports", label: "Reports", href: `${base}/reports`, icon: "FileBarChart" },
+        ],
+      },
+    ],
+  };
+}
+
 // ─── HOSPITAL ─────────────────────────────────────────────────────────────────
 
 export const HOSPITAL_ADMIN_NAV: RoleNav = {
@@ -804,6 +972,13 @@ export const HOSPITAL_ADMIN_NAV: RoleNav = {
       label: "CONFIGURATION",
       items: [
         { id: "settings",    label: "Settings",          href: "/hospital-admin/settings",   icon: "Settings" },
+        {
+          id: "onboarding-packets",
+          label: "Onboarding packet",
+          href: "/hospital-admin/onboarding/packets",
+          icon: "FolderOpen",
+          feature: "verticalOnboarding",
+        },
       ],
     },
   ],
@@ -887,6 +1062,13 @@ export function getVenueAdminNav(code: string): RoleNav {
         label: "CONFIGURATION",
         items: [
           { id: "settings",    label: "Settings",          href: `${base}/settings`,         icon: "Settings" },
+          {
+            id: "onboarding-packets",
+            label: "Onboarding packet",
+            href: "/onboarding/packets",
+            icon: "FolderOpen",
+            feature: "verticalOnboarding",
+          },
           {
             id: "onboarding-intake",
             label: "Onboarding Intake",
@@ -1023,6 +1205,13 @@ export function getTransitAdminNav(code: string): RoleNav {
           { id: "vehicles", label: "Vehicles", href: `${base}/settings/vehicles`, icon: "Wrench", feature: "verticalTransit" },
           { id: "routes", label: "Routes", href: `${base}/settings/routes`, icon: "Map", feature: "verticalTransit" },
           { id: "cameras", label: "Cameras", href: `${base}/settings/cameras`, icon: "Video", feature: "verticalTransit" },
+          {
+            id: "onboarding-packets",
+            label: "Onboarding packet",
+            href: "/onboarding/packets",
+            icon: "FolderOpen",
+            feature: "verticalOnboarding",
+          },
         ],
       },
     ],
@@ -1146,6 +1335,8 @@ export function getRoleNav(role: string, ctx: NavContext): RoleNav {
     case "CAMPUS_SUPERVISOR":   return getCampusSupervisorNav(c);
     case "CAMPUS_SECURITY":     return getCampusSecurityNav(c);
     case "CAMPUS_DISPATCH":     return getCampusDispatchNav(c);
+    case "CAMPUS_COUNSELOR":    return getCampusCounselorNav(c);
+    case "CAMPUS_FACULTY":      return getCampusFacultyNav(c);
     // Hospital
     case "HOSPITAL_ADMIN":      return HOSPITAL_ADMIN_NAV;
     case "HOSPITAL_COORDINATOR":return HOSPITAL_COORDINATOR_NAV;

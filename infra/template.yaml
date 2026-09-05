@@ -49,6 +49,13 @@ Parameters:
     Type: String
     Default: ""
     Description: Optional Secrets Manager secret ARN for OpenAI (plain string or JSON with apiKey).
+  OpenAiWebSearchEnabled:
+    Type: String
+    Default: "false"
+    AllowedValues: ["true", "false"]
+    Description: >
+      Rapid IQ Opportunity Intelligence OpenAI web-search URL discovery (pipeline nested stack).
+      Default false. When true, watches with webSearchEnabled run two queries per daily worker (~$2/day).
   AnthropicApiKeySecretArn:
     Type: String
     Default: ""
@@ -2034,6 +2041,12 @@ Resources:
         RapidIqOpenstatesApiKeySecretArn: ""
         RapidIqLegiscanApiKeySecretArn: ""
         OpenAiApiKeySecretArn: !Ref OpenAiApiKeySecretArn
+        OpenAiWebSearchEnabled: !Ref OpenAiWebSearchEnabled
+        RapidIqOpportunitiesTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.RapidIqOpportunitiesTable
+            - !Sub "${DynamoTableNamePrefix}-rapid-iq-opportunities-${DeploymentStage}"
         ImportedCognitoUserPoolId: !GetAtt AppSamStackV2.Outputs.UserPoolId
         ImportedCognitoWebClientId: !GetAtt AppSamStackV2.Outputs.UserPoolClientId
         ManagedPolicyNamePrefix: !Ref AWS::StackName

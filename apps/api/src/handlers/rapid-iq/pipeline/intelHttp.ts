@@ -24,10 +24,11 @@ import {
   listIntelOpportunities,
   listIntelWatches,
   putIntelWatch,
-  seedDefaultTransitWatches,
+  seedDefaultIntelWatches,
   updateIntelOpportunityFields,
   updateIntelWatchFields,
 } from "../../../lib/rapid-iq/intel-db.js";
+import { getRfpCountSnapshot } from "./rfp-unified-counter.js";
 import { processSourceDocument, processWatch } from "../../../lib/rapid-iq/intel-process.js";
 import { enqueueIntelWatchJob } from "../../../lib/rapid-iq/intel-queue.js";
 import { sourceDocumentFromManual } from "../../../lib/rapid-iq/intel-sources.js";
@@ -196,8 +197,13 @@ export async function handleIntelHttp(
     return ok({ opportunity });
   }
 
+  if (method === "GET" && (path.endsWith("/intel/rfp-counts") || path.endsWith("/intel/rfp-counts/"))) {
+    const snapshot = await getRfpCountSnapshot();
+    return ok({ snapshot });
+  }
+
   if (method === "GET" && (path.endsWith("/intel/watches") || path.endsWith("/intel/watches/"))) {
-    await seedDefaultTransitWatches();
+    await seedDefaultIntelWatches();
     const watches = await listIntelWatches();
     return ok({ watches });
   }
@@ -218,6 +224,10 @@ export async function handleIntelHttp(
       sourceDomains: parsed.data.sourceDomains ?? [],
       sourceUrls: parsed.data.sourceUrls ?? [],
       minimumFitScore: parsed.data.minimumFitScore ?? 7,
+      preRfpFloor: parsed.data.preRfpFloor,
+      webSearchEnabled: parsed.data.webSearchEnabled,
+      region: parsed.data.region,
+      notes: parsed.data.notes,
       createdAt: now,
       updatedAt: now,
     };

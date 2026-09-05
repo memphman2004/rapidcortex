@@ -7,12 +7,17 @@ import {
   Bell,
   AlertTriangle,
   QrCode,
+  Map,
+  Share2,
   Save,
   Loader2,
   Check,
   ChevronDown,
 } from "lucide-react";
 import type { CampusSettingsView } from "@/lib/campus/campus-settings-mapper";
+import { postAgencySharePartner } from "@/lib/api";
+import { isCrossJurisdictionSharesUiEnabled } from "@/lib/runtime-flags";
+import { CampusSitesEditor } from "./CampusSitesEditor";
 
 async function fetchCampusSettings(agencyId: string): Promise<CampusSettingsView> {
   const res = await fetch(`/api/campus/${encodeURIComponent(agencyId)}/settings`, {
@@ -250,6 +255,11 @@ export function CampusSettingsClient({
       ...(data?.publicForm ?? {}),
       ...(draft.publicForm ?? {}),
     },
+    mapOverlay: {
+      geojsonOverlayUrl: "",
+      ...(data?.mapOverlay ?? {}),
+      ...(draft.mapOverlay ?? {}),
+    },
   };
 
   const mutation = useMutation({
@@ -296,6 +306,8 @@ export function CampusSettingsClient({
       </div>
 
       <div className="mx-auto max-w-3xl space-y-10 pb-16">
+        <CampusSitesEditor agencyId={agencyId} />
+
         <section className="rounded-xl border border-slate-700/60 bg-slate-900 p-6">
           <SectionHeader
             icon={Settings}
@@ -542,6 +554,28 @@ export function CampusSettingsClient({
             </Field>
           </div>
         </section>
+
+        <section className="rounded-xl border border-slate-700/60 bg-slate-900 p-6">
+          <SectionHeader
+            icon={Map}
+            title="Command map overlay"
+            description="HTTPS GeoJSON or ArcGIS FeatureServer drawn on the campus Mapbox map. Does not replace Mapbox."
+          />
+          <Field
+            label="Overlay URL"
+            hint="Example: https://gis.iu.edu/arcgis/rest/services/campus/FeatureServer/0"
+          >
+            <TextInput
+              value={merged.mapOverlay.geojsonOverlayUrl}
+              onChange={(v) => update("mapOverlay", { geojsonOverlayUrl: v })}
+              placeholder="https://…"
+            />
+          </Field>
+        </section>
+
+        {isCrossJurisdictionSharesUiEnabled() ? (
+          <CampusMutualAidCard agencyId={agencyId} />
+        ) : null}
       </div>
 
       <SaveBar
@@ -551,5 +585,60 @@ export function CampusSettingsClient({
         onSave={() => mutation.mutate()}
       />
     </div>
+  );
+}
+
+function CampusMutualAidCard({ agencyId }: { agencyId: string }) {
+  const [partnerId, setPartnerId] = useState("");
+  const [notice, setNotice] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [busy, setBusy] = useState(false);
+
+  const save = async () => {
+    const id = partnerId.trim();
+    if (!id) return;
+    setBusy(true);
+    setError(null);
+    setNotice(null);
+    try {
+      await postAgencySharePartner(agencyId, id);
+      setNotice(`Trusted partner ${id} added. Incident sharing stays agency-scoped.`);
+      setPartnerId("");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to add share partner");
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  return (
+    <section className="rounded-xl border border-slate-700/60 bg-slate-900 p-6">
+      <SectionHeader
+        icon={Share2}
+        title="Mutual aid share partner"
+        description="Demo CROSS_JURISDICTION_SHARES with a second campus tenant (for example IUPD / ISU). Not a live CAD handoff."
+      />
+      <Field label="Partner agency ID" hint="Physical agencyId of the trusted partner tenant.">
+        <div className="flex flex-wrap gap-2">
+          <div className="min-w-[16rem] flex-1">
+            <TextInput
+              value={partnerId}
+              onChange={setPartnerId}
+              placeholder="test-campus-isu"
+            />
+          </div>
+          <button
+            type="button"
+            disabled={busy || !partnerId.trim()}
+            onClick={() => void save()}
+            className="rounded-lg bg-slate-600 px-4 py-2 text-sm font-medium text-white disabled:opacity-50"
+          >
+            {busy ? "Saving…" : "Add partner"}
+          </button>
+        </div>
+      </Field>
+      {notice ? <p className="mt-3 text-xs text-emerald-300">{notice}</p> : null}
+      {error ? <p className="mt-3 text-xs text-rose-300">{error}</p> : null}
+    </section>
   );
 }

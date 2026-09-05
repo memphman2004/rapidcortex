@@ -1,8 +1,6 @@
 import { randomBytes } from "node:crypto";
 import type { RapidIqIntelSourceDocument, RapidIqIntelSourceType, RapidIqIntelWatch } from "rapid-cortex-shared";
 import { extractLinks, fetchIngestText, parseRssOrAtomItems, stripHtml } from "./pipeline/ingest-fetch.js";
-import { createJsonResponse } from "./openai-client.js";
-import { isRapidIqWebSearchEnabled } from "./openai-config.js";
 
 function newSourceId(): string {
   return `isrc_${randomBytes(6).toString("hex")}`;
@@ -22,6 +20,7 @@ function keywordHit(text: string, keywords: string[]): boolean {
 export async function collectWatchSourceDocuments(
   watch: RapidIqIntelWatch,
   limit = 8,
+  extraUrls: Array<{ url: string; sourceType: RapidIqIntelSourceType }> = [],
 ): Promise<RapidIqIntelSourceDocument[]> {
   const now = new Date().toISOString();
   const docs: RapidIqIntelSourceDocument[] = [];
@@ -33,10 +32,14 @@ export async function collectWatchSourceDocuments(
     docs.push(doc);
   };
 
-  for (const url of watch.sourceUrls) {
-    if (docs.length >= limit) break;
+  const fetchPage = async (
+    url: string,
+    sourceType: RapidIqIntelSourceType,
+    titleHint: string,
+  ) => {
+    if (docs.length >= limit) return;
     const fetched = await fetchIngestText(url);
-    if (!fetched.ok || !fetched.body) continue;
+    if (!fetched.ok || !fetched.body) return;
     const text = stripHtml(fetched.body).slice(0, 20_000);
     const rss = looksLikeRss(url, "", fetched.body);
     if (rss) {
@@ -51,22 +54,22 @@ export async function collectWatchSourceDocuments(
           text: stripHtml(item.description || item.title).slice(0, 12_000),
           publishedAt: item.pubDate || undefined,
           retrievedAt: now,
-          sourceType: "rss",
+          sourceType: sourceType === "openai_web_search" ? "openai_web_search" : "rss",
           sourceName: watch.agency,
           metadata: { watchId: watch.id, agency: watch.agency },
         });
       }
-      continue;
+      return;
     }
 
     enqueue({
       sourceId: newSourceId(),
       agencyId: watch.id,
       url,
-      title: watch.name,
+      title: titleHint,
       text,
       retrievedAt: now,
-      sourceType: "web_page",
+      sourceType,
       sourceName: watch.agency,
       metadata: { watchId: watch.id, agency: watch.agency },
     });
@@ -85,81 +88,24 @@ export async function collectWatchSourceDocuments(
         title: link.text || watch.name,
         text: stripHtml(page.body).slice(0, 16_000),
         retrievedAt: now,
-        sourceType: "web_page",
+        sourceType: sourceType === "openai_web_search" ? "openai_web_search" : "web_page",
         sourceName: watch.agency,
         metadata: { watchId: watch.id, agency: watch.agency },
       });
     }
+  };
+
+  for (const url of watch.sourceUrls) {
+    if (docs.length >= limit) break;
+    await fetchPage(url, "web_page", watch.name);
   }
 
-  if (isRapidIqWebSearchEnabled() && docs.length < limit) {
-    const extra = await discoverWatchUrlsViaWebSearch(watch, 3);
-    for (const url of extra) {
-      if (docs.length >= limit) break;
-      const page = await fetchIngestText(url);
-      if (!page.ok) continue;
-      enqueue({
-        sourceId: newSourceId(),
-        agencyId: watch.id,
-        url,
-        title: watch.name,
-        text: stripHtml(page.body).slice(0, 16_000),
-        retrievedAt: now,
-        sourceType: "openai_web_search",
-        sourceName: watch.agency,
-        metadata: { watchId: watch.id, agency: watch.agency },
-      });
-    }
+  for (const extra of extraUrls) {
+    if (docs.length >= limit) break;
+    await fetchPage(extra.url, extra.sourceType, watch.name);
   }
 
   return docs;
-}
-
-async function discoverWatchUrlsViaWebSearch(
-  watch: RapidIqIntelWatch,
-  limit: number,
-): Promise<string[]> {
-  const topics = watch.keywords.slice(0, 8).join(", ");
-  const raw = await createJsonResponse({
-    model: process.env.RAPIDIQ_MODEL_CLASSIFICATION?.trim() || "gpt-4o-mini",
-    system:
-      "Return JSON only. Find public procurement or board/budget URLs for the named transit agency.",
-    jsonSchemaName: "rapid_iq_web_search_urls",
-    jsonSchema: {
-      type: "object",
-      additionalProperties: false,
-      properties: { urls: { type: "array", items: { type: "string" } } },
-      required: ["urls"],
-    },
-    user: JSON.stringify({
-      agency: watch.agency,
-      domains: watch.sourceDomains,
-      topics,
-    }),
-    webSearch: true,
-  });
-  if (!raw) return [];
-  try {
-    const parsed = JSON.parse(raw.text) as { urls?: unknown };
-    const urls = Array.isArray(parsed.urls)
-      ? parsed.urls.filter((u): u is string => typeof u === "string")
-      : [];
-    return urls
-      .filter((u) => {
-        try {
-          const host = new URL(u).hostname.replace(/^www\./i, "").toLowerCase();
-          return (
-            watch.sourceDomains.some((d) => host === d || host.endsWith(`.${d}`)) ||
-            host.includes("sam.gov")
-          );
-        } catch {
-          return false;
-        }
-      })
-      .slice(0, limit);
-  } catch {
-    return [];
-  }
 }
 
 export function mockWatchDocuments(watch: RapidIqIntelWatch): RapidIqIntelSourceDocument[] {

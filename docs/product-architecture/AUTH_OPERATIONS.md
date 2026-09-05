@@ -7,6 +7,8 @@ Canonical architecture notes: [phase-4/AUTH_AND_TENANCY.md](./phase-4/AUTH_AND_T
 | Flow | Where implemented | Notes |
 |------|-------------------|-------|
 | Email + password sign-in | `POST /api/auth/signin` | `USER_PASSWORD_AUTH`; tokens in **httpOnly** cookies when using cookie auth helpers. |
+| MFA (TOTP / SMS) | `POST /api/auth/mfa/*` | Software TOTP setup and login challenges on custom `/api/auth/*` routes. SMS MFA is supported when Cognito returns `SMS_MFA`. |
+| Campus / university SSO (Shibboleth, Azure AD, Duo) | `GET /api/auth/hosted-ui/start` → Cognito Hosted UI → `GET /api/auth/hosted-ui/callback` | **IU / federated login path.** MFA is enforced at the IdP. JIT uses Cognito `custom:agencyId` + `custom:role`. See [CAMPUS_SSO_HOSTED_UI.md](./CAMPUS_SSO_HOSTED_UI.md). SCIM is Roadmap. |
 | Refresh | `GET /api/auth/session`, `GET /api/auth/refresh-cookies` | Session route rotates ID/access tokens when refresh cookie is valid. **Middleware** redirects to **`/api/auth/refresh-cookies`** when the ID JWT is expired but refresh remains (cold navigation to protected routes). |
 | New password (invite / temp password) | `POST /api/auth/complete-new-password` | Handles `NEW_PASSWORD_REQUIRED` challenge from Cognito. |
 | Self-sign-up + confirm | `POST /api/auth/signup`, `POST /api/auth/confirm-signup` | Requires app client configuration and optional client secret in env. |
@@ -39,8 +41,9 @@ These actions write **`admin.user.*`** audit events (agency-scoped, actor id):
 
 | Topic | Status |
 |-------|--------|
-| **MFA (TOTP / SMS)** | Not implemented in custom `/api/auth/*` routes. If MFA is required on the pool, sign-in may fail until MFA is disabled for pilot users or Hosted UI flows are adopted. |
-| **Social / SAML IdP** | Not in custom routes; use Cognito Hosted UI / federation project if required. |
+| **MFA (TOTP / SMS)** | Implemented on custom `/api/auth/mfa/*` routes. Campus / university federation should still enforce MFA at the IdP via Hosted UI. |
+| **Social / SAML IdP** | Not in custom password routes. Use Cognito Hosted UI federation ([CAMPUS_SSO_HOSTED_UI.md](./CAMPUS_SSO_HOSTED_UI.md)). Do not add a SAML IdP name to the app client until the IdP resource exists. |
+| **SCIM (UM-016)** | Roadmap. Use JIT claims + admin disable until SCIM is delivered. |
 | **Password reset email** | Use Cognito console / `ForgotPassword` API — no dedicated Next route in-repo; add if product requires self-serve reset. |
 | **Machine-to-machine** | API is **JWT-first** (browser BFF or bearer); no API-key auth in template. |
 

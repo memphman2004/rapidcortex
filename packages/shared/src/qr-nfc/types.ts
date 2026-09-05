@@ -12,6 +12,20 @@ export interface QRNFCRecord {
   description?: string;
   zoneId?: string;
   zoneName?: string;
+  /** Building / site code used for camera ranking when a scan creates an incident. */
+  buildingId?: string;
+  /** Floor label used for camera ranking (matches camera registry `floor`). */
+  floor?: string;
+  /**
+   * Cameras assigned to this location during inprocessing.
+   * On scan, intake opens these cameras first — not a nearest-building guess.
+   */
+  cameraIds?: string[];
+  /**
+   * Physical campus this location belongs to (multi-campus tenant).
+   * Untagged records remain visible on All campuses and the tenant primary site.
+   */
+  siteCode?: string;
   vertical: ReportVertical;
   reportType: QrNfcReportType;
   nfcEnabled: boolean;
@@ -60,6 +74,10 @@ export interface CreateQRNFCInput {
   description?: string;
   zoneId?: string;
   zoneName?: string;
+  buildingId?: string;
+  floor?: string;
+  cameraIds?: string[];
+  siteCode?: string;
   vertical: ReportVertical;
   reportType: QrNfcReportType;
   nfcEnabled?: boolean;
@@ -73,6 +91,10 @@ export interface UpdateQRNFCInput {
   description?: string;
   zoneId?: string;
   zoneName?: string;
+  buildingId?: string;
+  floor?: string;
+  cameraIds?: string[];
+  siteCode?: string;
   nfcEnabled?: boolean;
   nfcTagId?: string;
   active?: boolean;

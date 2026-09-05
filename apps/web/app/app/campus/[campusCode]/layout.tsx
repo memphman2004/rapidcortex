@@ -4,6 +4,7 @@ import { CampusShellHeader } from "./_components/CampusShellHeader";
 import { CampusShellThemeRoot } from "./_components/CampusShellThemeRoot";
 import { HelpChrome } from "@/components/help/help-chrome";
 import { ThemeToggle } from "@/components/ui/ThemeToggle";
+import { CampusSiteScopeProvider } from "@/lib/campus/use-campus-site-scope";
 import { getDashboardSessionUser } from "@/lib/dashboards/get-dashboard-session";
 
 /** Matches campus console mockup tokens (bg / surface). */
@@ -26,25 +27,27 @@ export default async function CampusShellLayout({
   return (
     <HelpChrome role={role}>
       <CampusShellThemeRoot>
-        <div className="mx-auto flex min-h-screen max-w-[1600px] flex-col px-4 py-5">
-          <CampusShellHeader
-            campusCode={campusCode.toUpperCase()}
-            role={role}
-            userEmail={user?.email}
-            agencyId={user?.agencyId}
-            leadingSlot={<ThemeToggle variant="inline" />}
-          />
-          <CampusNav campusCode={campusCode} role={role} />
-          <div
-            className="mt-4 flex-1 rounded-[10px] p-4"
-            style={{
-              background: SHELL.surface,
-              border: `1px solid ${SHELL.border}`,
-            }}
-          >
-            {children}
+        <CampusSiteScopeProvider agencyId={user?.agencyId ?? ""}>
+          <div className="mx-auto flex min-h-screen max-w-[1600px] flex-col px-4 py-5">
+            <CampusShellHeader
+              campusCode={campusCode.toUpperCase()}
+              role={role}
+              userEmail={user?.email}
+              agencyId={user?.agencyId}
+              leadingSlot={<ThemeToggle variant="inline" />}
+            />
+            <CampusNav campusCode={campusCode} role={role} />
+            <div
+              className="mt-4 flex-1 rounded-[10px] p-4"
+              style={{
+                background: SHELL.surface,
+                border: `1px solid ${SHELL.border}`,
+              }}
+            >
+              {children}
+            </div>
           </div>
-        </div>
+        </CampusSiteScopeProvider>
       </CampusShellThemeRoot>
     </HelpChrome>
   );

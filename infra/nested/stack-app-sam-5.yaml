@@ -2386,6 +2386,33 @@ Resources:
             Path: /api/campus/{agencyId}/stats
             Method: GET
 
+  CampusSitesFunction:
+    Type: AWS::Serverless::Function
+    Condition: HasCampusConfigTable
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/handlers/campus/campus-sites-handlers.handler
+      Timeout: 30
+      Policies:
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardC
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardD
+      Events:
+        Get:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/campus/{agencyId}/sites
+            Method: GET
+        Put:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/campus/{agencyId}/sites
+            Method: PUT
+
   GetCampusZonesFunction:
     Type: AWS::Serverless::Function
     Condition: HasCampusConfigTable
@@ -3199,6 +3226,48 @@ Resources:
             Path: /api/campus/{campusCode}/onboarding/intake
             Method: PUT
 
+  GetCampusOnboardingIntegrationsFunction:
+    Type: AWS::Serverless::Function
+    Condition: HasCampusConfigTable
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/campus/handlers/campus-onboarding-integrations.getHandler
+      Timeout: 30
+      Policies:
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardC
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardD
+      Events:
+        Route:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/campus/{campusCode}/onboarding/integrations
+            Method: GET
+
+  PutCampusOnboardingIntegrationsFunction:
+    Type: AWS::Serverless::Function
+    Condition: HasCampusConfigTable
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/campus/handlers/campus-onboarding-integrations.putHandler
+      Timeout: 30
+      Policies:
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardC
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardD
+      Events:
+        Route:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/campus/{campusCode}/onboarding/integrations
+            Method: PUT
+
   GetCampusOnboardingChecklistFunction:
     Type: AWS::Serverless::Function
     Condition: HasCampusConfigTable
@@ -3844,6 +3913,93 @@ Resources:
           Properties:
             ApiId: !Ref Api
             Path: /api/public/campus/report
+            Method: POST
+            Auth:
+              Authorizer: NONE
+
+  CampusEapHttpFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/campus/handlers/campus-eap-http.handler
+      Timeout: 30
+      Environment:
+        Variables:
+          ENABLE_CAMPUS_EAP: ""
+      Policies:
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardA
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardC
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardD
+      Events:
+        GetEap:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/campus/eap
+            Method: GET
+        PostEap:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/campus/eap
+            Method: POST
+        PatchEap:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/campus/eap/{eapId}
+            Method: PATCH
+        DeleteEap:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/campus/eap/{eapId}
+            Method: DELETE
+        GetEapMatch:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/campus/eap/match
+            Method: GET
+        GetAutomationRules:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/campus/automation-rules
+            Method: GET
+        PutAutomationRules:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/campus/automation-rules
+            Method: PUT
+
+  PostCampusSecurityEventFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/campus/handlers/post-campus-security-event.handler
+      Timeout: 30
+      Environment:
+        Variables:
+          ENABLE_CAMPUS_SECURITY_EVENTS: ""
+          ENABLE_CAMPUS_SECURITY_EVENTS_MOCK: ""
+      Policies:
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardA
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardC
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardD
+      Events:
+        Route:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/public/campus/{campusCode}/security-events
             Method: POST
             Auth:
               Authorizer: NONE

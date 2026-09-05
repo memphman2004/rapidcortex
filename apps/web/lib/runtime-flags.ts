@@ -49,6 +49,8 @@ const NEXT_PUBLIC_FLAG_VALUES: Record<string, string | undefined> = {
   NEXT_PUBLIC_ENABLE_PSAP_PROSPECTS: process.env.NEXT_PUBLIC_ENABLE_PSAP_PROSPECTS,
   NEXT_PUBLIC_ENABLE_INSIDE_THE_CORTEX: process.env.NEXT_PUBLIC_ENABLE_INSIDE_THE_CORTEX,
   NEXT_PUBLIC_ENABLE_CAMPUS_CLERY: process.env.NEXT_PUBLIC_ENABLE_CAMPUS_CLERY,
+  NEXT_PUBLIC_ENABLE_CAMPUS_EAP: process.env.NEXT_PUBLIC_ENABLE_CAMPUS_EAP,
+  NEXT_PUBLIC_ENABLE_HOSTED_UI_SSO: process.env.NEXT_PUBLIC_ENABLE_HOSTED_UI_SSO,
   NEXT_PUBLIC_ENABLE_GRANT_SUCCESS_PROGRAM: process.env.NEXT_PUBLIC_ENABLE_GRANT_SUCCESS_PROGRAM,
   NEXT_PUBLIC_ENABLE_LOCATION_MAP: process.env.NEXT_PUBLIC_ENABLE_LOCATION_MAP,
   NEXT_PUBLIC_ENABLE_DEPLOYMENTS_MAP: process.env.NEXT_PUBLIC_ENABLE_DEPLOYMENTS_MAP,
@@ -366,6 +368,19 @@ export function isHiringUiEnabled(): boolean {
 /** Campus Clery ASR workspace (manual entry, CSV import, report). Default on when unset. */
 export function isCampusCleryEnabled(): boolean {
   return envFlag("NEXT_PUBLIC_ENABLE_CAMPUS_CLERY");
+}
+
+/** Campus EAP / building checklist library. Default on when unset. */
+export function isCampusEapEnabled(): boolean {
+  return envFlag("NEXT_PUBLIC_ENABLE_CAMPUS_EAP");
+}
+
+/** Cognito Hosted UI SSO (Shibboleth / Azure AD / Duo). Default on when unset; button hidden without a Cognito domain. */
+export function isHostedUiSsoEnabled(): boolean {
+  if (!envFlag("NEXT_PUBLIC_ENABLE_HOSTED_UI_SSO")) return false;
+  const domain =
+    process.env.NEXT_PUBLIC_COGNITO_DOMAIN?.trim() || process.env.COGNITO_DOMAIN?.trim();
+  return Boolean(domain);
 }
 
 /** Inside the Cortex marketing lead popup (marketing site). Default on when unset. */

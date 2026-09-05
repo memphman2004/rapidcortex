@@ -1803,6 +1803,32 @@ Resources:
             Path: /api/admin/desktop-releases/signed-url
             Method: POST
 
+  OnboardingPacketsFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/handlers/admin/onboardingPacketsHttp.handler
+      Timeout: 20
+      Policies:
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardA
+        - !Ref AppManagedPolicyS3ApplicationBucketsCrud
+      Events:
+        ListPackets:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/admin/onboarding-packets
+            Method: GET
+        DownloadPacket:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/admin/onboarding-packets/download
+            Method: POST
+
   GetPlatformSummaryFunction:
     Type: AWS::Serverless::Function
     Metadata:

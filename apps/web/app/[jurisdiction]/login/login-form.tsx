@@ -29,7 +29,7 @@ import {
 import { ensureCsrfCookie, jsonHeadersWithCsrf } from "@/lib/csrf-client";
 import { COGNITO_PASSWORD_REQUIREMENTS, isValidCognitoPassword } from "@/lib/auth/cognito-password-policy";
 import { useJurisdictionSlug } from "@/lib/jurisdiction-context";
-import { Eye, EyeOff } from "lucide-react";
+import { isHostedUiSsoEnabled } from "@/lib/runtime-flags";
 
 type AuthChallenge =
   | "NEW_PASSWORD_REQUIRED"
@@ -150,6 +150,14 @@ export function LoginForm({
     if (!loginQuery.passwordReset) return;
     router.replace(`/${jurisdictionSlug}/login`);
   }, [jurisdictionSlug, loginQuery.passwordReset, router]);
+
+  useEffect(() => {
+    const err = loginQuery.error;
+    if (!err) return;
+    if (err === "sso_state") setError("Campus SSO session expired. Try Sign in with campus SSO again.");
+    else if (err === "sso_token") setError("Campus SSO token exchange failed. Confirm the Cognito callback URL.");
+    else if (err !== "desktop-required") setError(`Sign-in error: ${err}`);
+  }, [loginQuery.error]);
 
   function navigatePostAuth(
     sessionUser: UserContext | null,
@@ -925,6 +933,15 @@ export function LoginForm({
                       ? "Send verification code"
                       : "Sign in"}
         </button>
+
+        {!activeChallenge && !inForgotRequest && !inForgotConfirm && isHostedUiSsoEnabled() ? (
+          <a
+            href={`/api/auth/hosted-ui/start?next=${encodeURIComponent(loginQuery.from || "/")}`}
+            className="rc-login-sso"
+          >
+            Sign in with campus SSO
+          </a>
+        ) : null}
 
         {activeChallenge || inForgotRequest || inForgotConfirm ? (
           <button

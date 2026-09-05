@@ -282,6 +282,9 @@ fi
 if [[ -n "${CAD_WRITEBACK_ENABLED:-}" ]]; then
   PARAMS="${PARAMS} CadWritebackEnabled=${CAD_WRITEBACK_ENABLED}"
 fi
+if [[ -n "${OPENAI_WEB_SEARCH_ENABLED:-}" ]]; then
+  PARAMS="${PARAMS} OpenAiWebSearchEnabled=${OPENAI_WEB_SEARCH_ENABLED}"
+fi
 if [[ -n "${CAD_WRITEBACK_REQUIRES_APPROVAL:-}" ]]; then
   PARAMS="${PARAMS} CadWritebackRequiresApproval=${CAD_WRITEBACK_REQUIRES_APPROVAL}"
 fi

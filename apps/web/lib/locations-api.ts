@@ -9,6 +9,7 @@ export type CreateLocationInput = {
   zoneCode: string;
   orgCode: string;
   vertical: QRLocationVertical;
+  siteCode?: string;
   lat?: number;
   lng?: number;
   active?: boolean;
@@ -109,6 +110,7 @@ export function csvRowsToBulkPayload(rows: Array<Record<string, string>>) {
     floor: row.floor || "",
     zone: row.zone || row.area || "",
     zoneCode: (row.zonecode || row["zone code"] || "").toUpperCase(),
+    siteCode: (row.sitecode || row["site code"] || row.campus || "").toUpperCase() || undefined,
     lat: row.lat ? Number(row.lat) : undefined,
     lng: row.lng ? Number(row.lng) : undefined,
   }));

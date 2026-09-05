@@ -15,6 +15,8 @@ const ALL_ROLES = [
   "CAMPUS_SUPERVISOR",
   "CAMPUS_SECURITY",
   "CAMPUS_DISPATCH",
+  "CAMPUS_COUNSELOR",
+  "CAMPUS_FACULTY",
   "HOSPITAL_ADMIN",
   "HOSPITAL_COORDINATOR",
   "HOSPITAL_STAFF",
@@ -26,7 +28,7 @@ const ALL_ROLES = [
 ] as const;
 
 describe("getRoleNav", () => {
-  it("returns non-empty sections for all 21 active roles", () => {
+  it("returns non-empty sections for all active roles in the nav matrix", () => {
     for (const role of ALL_ROLES) {
       const nav = getRoleNav(role, {
         jurisdiction: "test-psap",
@@ -64,6 +66,17 @@ describe("getRoleNav", () => {
     const hrefs = nav.sections.flatMap((s) => s.items.map((i) => i.href));
     expect(hrefs).toContain("/app/campus/LINCOLNHIGH/users");
     expect(hrefs).toContain("/app/campus/LINCOLNHIGH/settings");
+    expect(hrefs).toContain("/onboarding/campus/integrations?orgCode=LINCOLNHIGH");
+    expect(hrefs).toContain("/app/campus/LINCOLNHIGH/onboarding/packets");
+  });
+
+  it("campus counselor nav is a wellness queue, not a 911 dispatch console", () => {
+    const nav = getRoleNav("CAMPUS_COUNSELOR", { campusCode: "IU" });
+    const items = nav.sections.flatMap((s) => s.items);
+    expect(items.find((i) => i.id === "incidents")?.label).toBe("Wellness Queue");
+    expect(items.find((i) => i.id === "incidents")?.href).toBe("/app/campus/IU/incidents");
+    expect(items.find((i) => i.id === "cameras")).toBeUndefined();
+    expect(items.find((i) => i.id === "eap")).toBeUndefined();
   });
 
   it("maps hyphenated venue-admin Cognito token to venue console nav", () => {
@@ -82,6 +95,13 @@ describe("getRoleNav", () => {
     }
   });
 
+  it("puts onboarding packets on RC superadmin and RC admin nav", () => {
+    for (const role of ["rcsuperadmin", "rcadmin"] as const) {
+      const hrefs = getRoleNav(role, {}).sections.flatMap((s) => s.items.map((i) => i.href));
+      expect(hrefs).toContain("/rc-admin/onboarding/packets");
+    }
+  });
+
   it("groups all RC internal sidebars under labeled major headings", () => {
     const expectedSuperadmin = [
       "home",
@@ -91,6 +111,7 @@ describe("getRoleNav", () => {
       "talent",
       "ops",
       "locations",
+      "onboarding",
       "infra",
     ];
     const superadmin = getRoleNav("rcsuperadmin", {});

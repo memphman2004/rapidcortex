@@ -483,6 +483,10 @@ export const env = {
   enableInsideTheCortex: featureEnabled("ENABLE_INSIDE_THE_CORTEX"),
   /** Campus Clery ASR workspace (manual entry, import, report). Default on when unset. */
   enableCampusClery: featureEnabled("ENABLE_CAMPUS_CLERY"),
+  /** Campus EAP / building checklist library. Default on when unset. */
+  enableCampusEap: featureEnabled("ENABLE_CAMPUS_EAP"),
+  /** Signed inbound campus security-event webhook. Default on when unset. */
+  enableCampusSecurityEvents: featureEnabled("ENABLE_CAMPUS_SECURITY_EVENTS"),
   /**
    * When true/1, `sourceSystem=mock` external sync returns sample Clery rows for local/CI.
    * Real third-party connectors still require credentials (not wired here).
@@ -592,6 +596,7 @@ export const env = {
   cadPublicApiBaseUrl: process.env.CAD_PUBLIC_API_BASE_URL?.trim() ?? "",
   /** When true, CAD write-back HTTP routes accept submissions (otherwise 400). */
   cadWritebackEnabled: featureEnabled("CAD_WRITEBACK_ENABLED", false),
+  enableVerticalOnboarding: featureEnabled("ENABLE_VERTICAL_ONBOARDING"),
   /**
    * When true (default), write-backs require supervisor/admin approval before vendor HTTP.
    * Set CAD_WRITEBACK_REQUIRES_APPROVAL=false for direct submit.

@@ -239,6 +239,12 @@ export const rapidIqIntelWatchSchema = z.object({
   sourceDomains: z.array(z.string()),
   sourceUrls: z.array(z.string()),
   minimumFitScore: z.number().min(0).max(10),
+  /** Min fit for pre-solicitation / sources-sought (defaults to 5 when omitted). */
+  preRfpFloor: z.number().min(0).max(10).optional(),
+  /** Per-watch OpenAI web-search discovery. Global flag must also be on. */
+  webSearchEnabled: z.boolean().optional(),
+  region: z.string().optional(),
+  notes: z.string().optional(),
   createdAt: z.string(),
   updatedAt: z.string(),
 });
@@ -253,6 +259,10 @@ export const createRapidIqIntelWatchBodySchema = z.object({
   sourceDomains: z.array(z.string()).optional(),
   sourceUrls: z.array(z.string()).optional(),
   minimumFitScore: z.number().min(0).max(10).optional(),
+  preRfpFloor: z.number().min(0).max(10).optional(),
+  webSearchEnabled: z.boolean().optional(),
+  region: z.string().optional(),
+  notes: z.string().optional(),
 });
 export type CreateRapidIqIntelWatchBody = z.infer<typeof createRapidIqIntelWatchBodySchema>;
 

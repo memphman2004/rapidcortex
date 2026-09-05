@@ -1,6 +1,9 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import { CAMPUS_SITE_SCOPE_ALL } from "rapid-cortex-shared";
+import { useSession } from "@/components/auth/session-context";
+import { useCampusSiteScope } from "@/lib/campus/use-campus-site-scope";
 
 type DateRange = "today" | "week" | "month";
 
@@ -35,6 +38,8 @@ function emptyAnalytics(): CampusAnalytics {
 }
 
 export function CampusAnalyticsClient({ campusCode }: { campusCode: string }) {
+  const { user } = useSession();
+  const { scope } = useCampusSiteScope(user?.agencyId ?? "");
   const [range, setRange] = useState<DateRange>("today");
   const [data, setData] = useState<CampusAnalytics | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -48,6 +53,9 @@ export function CampusAnalyticsClient({ campusCode }: { campusCode: string }) {
         campusCode: campusCode.toUpperCase(),
         range,
       });
+      if (scope && scope !== CAMPUS_SITE_SCOPE_ALL) {
+        qs.set("site", scope);
+      }
       const res = await fetch(`/api/campus/analytics?${qs}`, { cache: "no-store" });
       const json = (await res.json().catch(() => ({}))) as {
         error?: string;
@@ -69,7 +77,7 @@ export function CampusAnalyticsClient({ campusCode }: { campusCode: string }) {
     } finally {
       setLoading(false);
     }
-  }, [campusCode, range]);
+  }, [campusCode, range, scope]);
 
   useEffect(() => {
     void load();
@@ -86,7 +94,8 @@ export function CampusAnalyticsClient({ campusCode }: { campusCode: string }) {
         <div>
           <h2 className="text-lg font-semibold text-white">Campus analytics</h2>
           <p className="mt-1 text-sm text-slate-400">
-            Incident volume, response, and source mix for {campusCode.toUpperCase()}.
+            Incident volume, response, and source mix for every campus in this tenant.
+            Use the campus filter in the header to focus one location.
           </p>
         </div>
         <div className="flex flex-wrap gap-2">

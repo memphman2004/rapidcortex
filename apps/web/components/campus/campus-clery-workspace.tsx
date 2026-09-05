@@ -258,6 +258,15 @@ export function CampusCleryWorkspace({
           >
             Download CSV
           </button>
+          <button
+            type="button"
+            onClick={() =>
+              window.open(`/api/campus/clery/report?${qs}&format=pdf`, "_blank", "noopener,noreferrer")
+            }
+            className="rounded bg-sky-800 px-3 py-2 text-sm text-white hover:bg-sky-700"
+          >
+            Download PDF
+          </button>
           {canManage && (
             <button
               type="button"

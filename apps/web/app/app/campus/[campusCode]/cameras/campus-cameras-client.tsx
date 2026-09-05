@@ -8,6 +8,9 @@ import { CameraProviderSetup } from "@/components/cameras/CameraProviderSetup";
 import { NestCameraPanel } from "@/components/cameras/NestCameraPanel";
 import { GOOGLE_NEST_TM, NEST_TM, RING_TM } from "@/lib/brand-marks";
 import { isNestEnabled } from "@/lib/nest-feature-flags";
+import { matchesCampusSiteScope } from "rapid-cortex-shared";
+import { CampusSiteSwitcher } from "@/components/campus/campus-site-switcher";
+import { useCampusSiteScope } from "@/lib/campus/use-campus-site-scope";
 import { RingConnectButton, ViewAvailableRingCamerasButton, isRingEnabled } from "@/src/features/connect/ring";
 import type { RingDevicesResponse, RingRole } from "@/src/features/connect/ring/ring-types";
 
@@ -29,6 +32,7 @@ export function CampusCamerasClient({ campusCode }: { campusCode: string }) {
   const ringEnabled = isRingEnabled();
   const nestEnabled = isNestEnabled();
   const [selectedIncidentId, setSelectedIncidentId] = useState<string | null>(null);
+  const { scope, setScope, sites, primarySiteCode } = useCampusSiteScope(user?.agencyId ?? "");
 
   useEffect(() => {
     const qp = new URLSearchParams(window.location.search);
@@ -55,16 +59,18 @@ export function CampusCamerasClient({ campusCode }: { campusCode: string }) {
     enabled: Boolean(user),
     queryFn: async () => {
       const res = await fetch(`/api/campus/incidents?limit=25`, { credentials: "include" });
-      if (!res.ok) return [] as Array<{ incidentId: string; title?: string; callerLocationLat?: number; callerLocationLng?: number }>;
+      if (!res.ok) return [] as Array<{ incidentId: string; title?: string; callerLocationLat?: number; callerLocationLng?: number; siteCode?: string }>;
       const json = (await res.json()) as {
-        incidents?: Array<{ incidentId: string; title?: string; callerLocationLat?: number; callerLocationLng?: number }>;
-        data?: Array<{ incidentId: string; title?: string; callerLocationLat?: number; callerLocationLng?: number }>;
+        incidents?: Array<{ incidentId: string; title?: string; callerLocationLat?: number; callerLocationLng?: number; siteCode?: string }>;
+        data?: Array<{ incidentId: string; title?: string; callerLocationLat?: number; callerLocationLng?: number; siteCode?: string }>;
       };
       return json.incidents ?? json.data ?? [];
     },
   });
 
-  const incidents = incidentsQuery.data ?? [];
+  const incidents = (incidentsQuery.data ?? []).filter((incident) =>
+    matchesCampusSiteScope(incident.siteCode, scope, primarySiteCode || campusCode),
+  );
   useEffect(() => {
     if (!incidents.length) {
       setSelectedIncidentId(null);
@@ -97,6 +103,9 @@ export function CampusCamerasClient({ campusCode }: { campusCode: string }) {
           Link dorm {RING_TM} and {GOOGLE_NEST_TM} cameras for consent-based live video during campus
           incidents. Agency-owned {NEST_TM} streams are available after admin OAuth.
         </p>
+        <div className="mt-3 max-w-xs">
+          <CampusSiteSwitcher sites={sites} value={scope} onChange={setScope} />
+        </div>
       </div>
 
       <label className="block max-w-md text-[10px] font-semibold uppercase tracking-widest text-slate-400">

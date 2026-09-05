@@ -79,10 +79,49 @@ export function mergeCampusBuildingStatus(
   };
 }
 
+export function polygonCentroid(geometry: GeoJSON.Geometry | undefined): { lat: number; lng: number } | null {
+  if (!geometry) return null;
+  const rings =
+    geometry.type === "Polygon"
+      ? geometry.coordinates[0]
+      : geometry.type === "MultiPolygon"
+        ? geometry.coordinates[0]?.[0]
+        : null;
+  if (!rings?.length) return null;
+  let lng = 0;
+  let lat = 0;
+  let n = 0;
+  for (const pair of rings) {
+    const x = pair[0];
+    const y = pair[1];
+    if (typeof x !== "number" || typeof y !== "number") continue;
+    lng += x;
+    lat += y;
+    n += 1;
+  }
+  if (!n) return null;
+  return { lng: lng / n, lat: lat / n };
+}
+
 export function osmConfigOrThrow(campusCode: string): CampusOsmConfig {
   const osm = resolveCampusOsmConfig(campusCode);
   if (!osm) {
     throw new Error(`No OSM registry entry for campus ${campusCode}`);
   }
   return osm;
+}
+
+export function mergeCampusMapPolygons(
+  base: GeoJSON.FeatureCollection | null,
+  overlay: GeoJSON.FeatureCollection | null,
+): GeoJSON.FeatureCollection | null {
+  const polygons = (fc: GeoJSON.FeatureCollection | null): GeoJSON.Feature[] => {
+    if (!fc) return [];
+    return fc.features.filter(
+      (feature) => feature.geometry?.type === "Polygon" || feature.geometry?.type === "MultiPolygon",
+    );
+  };
+  const features = [...polygons(base), ...polygons(overlay)];
+  if (features.length === 0) return base ?? overlay;
+  return { type: "FeatureCollection", features };
 }

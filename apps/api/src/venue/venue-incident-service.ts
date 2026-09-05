@@ -49,6 +49,7 @@ export type CreateVenueQrIncidentInput = {
   lat?: number | null;
   lng?: number | null;
   mediaKeys?: string[];
+  cameraIds?: string[];
 };
 
 export type CreateVenueQrIncidentResult = {
@@ -75,6 +76,7 @@ type CreateVenueIntakeIncidentInput = {
   lat?: number | null;
   lng?: number | null;
   mediaKeys?: string[];
+  cameraIds?: string[];
 };
 
 /** Normalize SMS zone hints like "Section 124" → "124" for camera registry lookup. */
@@ -158,7 +160,10 @@ async function createVenueIntakeIncident(
 
   let cameras: VenueIncidentCameraSummary[] = [];
   try {
-    cameras = await getCamerasForSection(input.agencyId, input.zoneCode, 2);
+    cameras = await getCamerasForSection(input.agencyId, input.zoneCode, 2, {
+      assignedCameraIds: input.cameraIds,
+      qrRcli: input.rcli,
+    });
   } catch (err) {
     console.warn("[createVenueIntakeIncident] camera lookup failed", err);
   }
@@ -194,6 +199,7 @@ export async function createVenueQrIncident(
     lat: input.lat,
     lng: input.lng,
     mediaKeys: input.mediaKeys,
+    cameraIds: input.cameraIds,
   });
 }
 

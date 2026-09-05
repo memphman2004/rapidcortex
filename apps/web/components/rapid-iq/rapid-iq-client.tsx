@@ -27,6 +27,7 @@ import {
   PIPELINE_SIGNALS_QUERY_KEY,
   pipelineOpportunityIdSet as pipelineOppIds,
 } from "@/lib/rapid-iq/pipeline-api";
+import { fetchRfpCounts, RFP_COUNTS_QUERY_KEY } from "@/lib/rapid-iq/intel-api";
 import { isRapidIqIntelUiEnabled, isRapidIqPipelineUiEnabled } from "@/lib/runtime-flags";
 import { IncomingSignalDetail } from "./incoming-signal-detail";
 import { OpportunityDetailPanel } from "./opportunity-detail-panel";
@@ -158,7 +159,22 @@ export function RapidIqClient() {
     return oppCount + inboxPipelineSignals(pipelineItems, "competitor").length;
   }, [competitorCountQ.data, inPipelineIds, pipelineItems]);
 
-  const stats = useMemo(() => computeStats(opportunities), [opportunities]);
+  const rfpCountsQ = useQuery({
+    queryKey: RFP_COUNTS_QUERY_KEY,
+    queryFn: fetchRfpCounts,
+    staleTime: 60_000,
+    refetchInterval: 60_000,
+    enabled: pipelineEnabled && !demo,
+    retry: 1,
+  });
+
+  const stats = useMemo(() => {
+    const base = computeStats(opportunities);
+    if (demo) return base;
+    const open = rfpCountsQ.data?.snapshot?.total.open;
+    if (typeof open === "number") return { ...base, rfps: open };
+    return base;
+  }, [opportunities, demo, rfpCountsQ.data]);
 
   const selectedOpp = useMemo(
     () => opportunities.find((o) => o.opportunityId === selectedId) ?? null,
@@ -307,7 +323,11 @@ export function RapidIqClient() {
     <div className="flex min-h-[calc(100vh-6rem)] flex-col overflow-hidden rounded-2xl border border-[rgba(255,255,255,0.06)] bg-[#050c1a]">
       <RapidIqStatsBar
         stats={stats}
-        lastUpdated={panelOpp?.lastRefreshedAt ?? opportunities[0]?.lastRefreshedAt}
+        lastUpdated={
+          rfpCountsQ.data?.snapshot?.updatedAt ??
+          panelOpp?.lastRefreshedAt ??
+          opportunities[0]?.lastRefreshedAt
+        }
         demo={demo}
       />
 

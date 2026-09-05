@@ -26,6 +26,7 @@ describe("campus settings mapper", () => {
     expect(view.general.displayName).toBe("Columbus State Safety");
     expect(view.publicForm.title).toBe("Report a concern");
     expect(view.publicForm.disclaimerText).toContain("911");
+    expect(view.mapOverlay.geojsonOverlayUrl).toBe("");
   });
 
   it("maps settings view patch back to agency campus config", () => {
@@ -46,6 +47,13 @@ describe("campus settings mapper", () => {
     expect(patch.campus.escalation?.enabled).toBe(true);
     expect(patch.campus.escalation?.unacknowledgedMinutes).toBe(20);
     expect(patch.campus.escalation?.contacts?.[0]?.name).toBe("Director");
+  });
+
+  it("maps GeoJSON overlay URL for INT-026", () => {
+    const patch = campusPatchFromSettingsView({
+      mapOverlay: { geojsonOverlayUrl: "https://gis.iu.edu/overlay.json" },
+    });
+    expect(patch.campus.geojsonOverlayUrl).toBe("https://gis.iu.edu/overlay.json");
   });
 
   it("round-trips campusType, timezone, escalation, and disclaimer without data loss", () => {

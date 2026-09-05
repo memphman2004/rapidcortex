@@ -209,6 +209,11 @@ export function CampusIntakeForm({ orgCode, agencyId }: Props) {
                 onChange={(v) => setForm({ ...form, estimatedSignLocations: v })}
               />
             </Field>
+            <p className="sm:col-span-2 rounded-md border border-slate-800 bg-slate-950/60 px-3 py-2 text-xs text-slate-400">
+              After intake, map every QR/RCLI location to the camera that covers that area (Cameras
+              admin, then QR &amp; NFC). A scan must open the assigned camera — not a building-wide
+              guess. This is a required inprocessing checklist step.
+            </p>
             <Field label="NFC tags needed">
               <SelectInput
                 value={form.nfcTagsNeeded}
@@ -285,10 +290,10 @@ export function CampusIntakeForm({ orgCode, agencyId }: Props) {
           Saved to campus config for org code <span className="font-mono text-slate-200">{orgCode}</span>.
         </p>
         <Link
-          href={`/onboarding/checklist/campus?orgCode=${encodeURIComponent(orgCode)}`}
+          href={`/onboarding/campus/integrations?orgCode=${encodeURIComponent(orgCode)}`}
           className="mt-6 inline-block text-sm text-violet-400 hover:underline"
         >
-          Continue to onboarding checklist →
+          Continue to integration questionnaire →
         </Link>
       </div>
     );

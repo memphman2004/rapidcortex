@@ -3,6 +3,8 @@
 import type { ReactNode } from "react";
 import { VerticalDisclaimerBanner } from "@/components/vertical/vertical-disclaimer-banner";
 import { CampusDashboardHeaderUtilities } from "@/components/campus/campus-dashboard-header-utilities";
+import { CampusSiteSwitcher } from "@/components/campus/campus-site-switcher";
+import { useCampusSiteScope } from "@/lib/campus/use-campus-site-scope";
 
 const C = {
   surface: "var(--rc-surface)",
@@ -45,6 +47,7 @@ export function CampusShellHeader({
 }) {
   const badge = roleBadgeMap[role.trim().toUpperCase()] ?? role;
   const abbr = crestAbbr(campusCode);
+  const { scope, setScope, sites } = useCampusSiteScope(agencyId ?? "");
 
   return (
     <header
@@ -92,12 +95,17 @@ export function CampusShellHeader({
             </p>
           </div>
         </div>
-        <CampusDashboardHeaderUtilities
-          email={userEmail}
-          role={role}
-          agencyId={agencyId}
-          leadingSlot={leadingSlot}
-        />
+        <div className="flex flex-wrap items-start justify-end gap-3">
+          <div className="min-w-[11rem]">
+            <CampusSiteSwitcher sites={sites} value={scope} onChange={setScope} variant="console" />
+          </div>
+          <CampusDashboardHeaderUtilities
+            email={userEmail}
+            role={role}
+            agencyId={agencyId}
+            leadingSlot={leadingSlot}
+          />
+        </div>
       </div>
       <div className="mt-3">
         <VerticalDisclaimerBanner

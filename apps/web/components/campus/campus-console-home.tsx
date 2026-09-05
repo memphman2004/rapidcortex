@@ -34,6 +34,7 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import { isRcInternalOperator } from "rapid-cortex-shared/tenancy/principal";
+import { matchesCampusSiteScope } from "rapid-cortex-shared";
 import { HelpChrome } from "@/components/help/help-chrome";
 import { IncidentCameraPanel } from "@/components/venue/IncidentCameraPanel";
 import { SiteSquareMark } from "@/components/brand/site-logo-link";
@@ -61,6 +62,8 @@ import {
   mapIncidentType,
   useCampusDashboard,
 } from "./use-campus-dashboard";
+import { CampusSiteSwitcher } from "./campus-site-switcher";
+import { CampusSiteScopeProvider, useCampusSiteScope } from "@/lib/campus/use-campus-site-scope";
 import {
   consoleBgStorageKey,
   loadConsoleBg,
@@ -411,7 +414,9 @@ type QuickActionDef = {
 export function CampusConsoleHome(props: CampusConsoleHomeProps) {
   return (
     <ThemeProvider storageKey="rc-theme-campus">
-      <CampusConsoleHomeInner {...props} />
+      <CampusSiteScopeProvider agencyId={props.agencyId}>
+        <CampusConsoleHomeInner {...props} />
+      </CampusSiteScopeProvider>
     </ThemeProvider>
   );
 }
@@ -457,6 +462,31 @@ function CampusConsoleHomeInner({
     activeCameraIncident,
     clearActiveCameraIncident,
   } = useCampusDashboard(agencyId, codeUpper);
+
+  const { scope, setScope, sites, primarySiteCode } = useCampusSiteScope(agencyId, {
+    sites: stats?.sites,
+    primarySiteCode: stats?.primarySiteCode,
+  });
+
+  const scopedIncidents = useMemo(
+    () =>
+      incidents.filter((incident) =>
+        matchesCampusSiteScope(incident.siteCode, scope, primarySiteCode || codeUpper),
+      ),
+    [incidents, scope, primarySiteCode, codeUpper],
+  );
+  const scopedBuildings = useMemo(
+    () =>
+      buildings.filter((building) =>
+        matchesCampusSiteScope(building.siteCode, scope, primarySiteCode || codeUpper),
+      ),
+    [buildings, scope, primarySiteCode, codeUpper],
+  );
+  const scopedZones = useMemo(
+    () =>
+      zones.filter((zone) => matchesCampusSiteScope(zone.siteCode, scope, primarySiteCode || codeUpper)),
+    [zones, scope, primarySiteCode, codeUpper],
+  );
 
   const [now, setNow] = useState(() => new Date());
   const [customBg, setCustomBg] = useState<string | null>(null);
@@ -540,25 +570,25 @@ function CampusConsoleHomeInner({
 
   const openIncidents = useMemo(
     () =>
-      incidents.filter(
+      scopedIncidents.filter(
         (i) => i.status === "open" || i.status === "assigned" || i.status === "responding",
       ),
-    [incidents],
+    [scopedIncidents],
   );
 
   const mapIncidents = useMemo(() => campusIncidentsToMap(openIncidents), [openIncidents]);
 
   const buildingsOnline = useMemo(() => {
-    if (buildings.length === 0) {
+    if (scopedBuildings.length === 0) {
       return stats ? String(stats.buildingsMonitored) : "—";
     }
-    const online = buildings.filter((b) => b.status !== "closed").length;
-    return `${online} / ${buildings.length}`;
-  }, [buildings, stats]);
+    const online = scopedBuildings.filter((b) => b.status !== "closed").length;
+    return `${online} / ${scopedBuildings.length}`;
+  }, [scopedBuildings, stats]);
 
-  const kpiIncidents = stats?.activeIncidents ?? openIncidents.length;
+  const kpiIncidents = openIncidents.length;
   const kpiResponders = stats?.respondersOnDuty ?? onDuty.length;
-  const kpiZones = zones.length > 0 ? zones.length : "—";
+  const kpiZones = scopedZones.length > 0 ? scopedZones.length : "—";
 
   const incidentsHref = findNavHref(navItems, "incidents");
   const buildingsHref = findNavHref(navItems, "buildings");
@@ -1036,6 +1066,13 @@ function CampusConsoleHomeInner({
                 </div>
               </div>
 
+              <CampusSiteSwitcher
+                sites={sites}
+                value={scope}
+                onChange={setScope}
+                variant="console"
+              />
+
               <div style={{ display: "flex", alignItems: "center", gap: 18 }}>
                 <div style={{ textAlign: "right" }}>
                   <div style={{ fontSize: 10.5, color: C.textMuted }}>{clock.dateLine}</div>
@@ -1421,6 +1458,9 @@ function CampusConsoleHomeInner({
                               >
                                 {inc.buildingLabel}
                                 {inc.roomCode ? `, ${inc.roomCode}` : ""}
+                                {inc.cleryCategorySuggested ? " · Clery suggested (not filed)" : ""}
+                                {inc.eapChecklist?.title ? ` · EAP: ${inc.eapChecklist.title}` : ""}
+                                {inc.assignedTo === "campus_counselor" ? " · Counseling queue" : ""}
                               </div>
                               <div
                                 style={{
@@ -1615,7 +1655,8 @@ function CampusConsoleHomeInner({
                     <CampusOperationalMap
                       campusCode={codeUpper}
                       campusName={agencyName}
-                      buildings={buildings}
+                      agencyId={agencyId}
+                      buildings={scopedBuildings}
                       incidents={mapIncidents}
                       selectedIncidentId={selectedMapIncident}
                       persistUserId={userId || null}

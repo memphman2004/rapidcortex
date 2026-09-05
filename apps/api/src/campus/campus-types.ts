@@ -17,7 +17,16 @@ export type CampusIncidentType =
   | "active_threat"
   | "other";
 
-export type CampusIncidentSource = "qr" | "sms" | "manual" | "phone";
+export type CampusIncidentSource =
+  | "qr"
+  | "sms"
+  | "manual"
+  | "phone"
+  | "vms"
+  | "alpr"
+  | "alarm"
+  | "sensor"
+  | "webhook";
 
 export type CampusLocationSource = "GPS" | "CELL_TOWER" | "MANUAL";
 
@@ -62,6 +71,8 @@ export interface CampusIncident {
   sk: string; // INCIDENT#{incidentId}
   id: string;
   campusCode: string;
+  /** Physical campus within a multi-campus tenant. */
+  siteCode?: string;
   /** Optional agency tenant id when present on older/newer records. */
   agencyId?: string;
   buildingCode: string;
@@ -87,6 +98,19 @@ export interface CampusIncident {
   updatedAt: string;
   resolvedAt: string | null;
   cleryCategory: string | null;
+  /** Keyword suggestion only — never auto-filed as a Clery determination. */
+  cleryCategorySuggested?: string | null;
+  /** Building + type EAP / checklist surfaced at intake. */
+  eapChecklist?: {
+    eapId: string;
+    title: string;
+    steps: string[];
+    documentUrl?: string;
+  } | null;
+  suggestedActions?: {
+    openWarRoom?: boolean;
+    assignRole?: string;
+  };
   /** Optional Clery geography when CSA classifies the incident. */
   cleryGeography?: CleryGeography | null;
   /** SHA-256 hash of reporter phone — never plain text. */
@@ -132,6 +156,8 @@ export interface CampusBuilding {
   floors: number;
   capacity?: number;
   cameraIds: string[];
+  /** Physical campus within a multi-campus tenant. */
+  siteCode?: string;
   activeIncidents: number;
   zones: CampusZone[];
 }
@@ -144,7 +170,7 @@ export interface CampusAnalytics {
   confidentialReports: number;
   byType: Record<CampusIncidentType, number>;
   byBuilding: { buildingLabel: string; count: number }[];
-  bySource: { qr: number; sms: number; manual: number; phone: number };
+  bySource: { qr: number; sms: number; manual: number; phone: number; webhook: number };
   avgResponseMinutes: number;
   escalatedToCore: number;
   referredToCounseling: number;
@@ -178,6 +204,9 @@ export const CAMPUS_KEYS = {
   zoneSk: (code: string) => `ZONE#${code}`,
   staffSk: (userId: string) => `STAFF#${userId}`,
   settingsSk: () => "SETTINGS",
+  sitesSk: () => "SITES",
+  eapSk: (eapId: string) => `EAP#${eapId}`,
+  automationRulesSk: () => "AUTOMATION_RULES",
   anonTokenPk: (hashedToken: string) => `ANON_TOKEN#${hashedToken}`,
   anonTokenSk: () => "TOKEN",
   noteSk: (noteId: string) => `NOTE#${noteId}`,

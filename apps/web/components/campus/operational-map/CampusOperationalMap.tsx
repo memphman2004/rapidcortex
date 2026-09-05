@@ -2,13 +2,19 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Box, Building2 } from "lucide-react";
-import type { CampusBuildingSummary } from "rapid-cortex-shared";
+import type { CampusBuildingSummary, VenueCamera } from "rapid-cortex-shared";
 import { RapidCortexMap } from "@/components/maps/RapidCortexMap";
 import type { RCIncident, RCMapCommand, RCMapCommandBody, RCOperationalOverlay } from "@/components/maps/map-types";
 import { C } from "@/lib/theme/rc-theme-tokens";
 import type { CampusMapConfig } from "@/lib/campus/operational-map/campus-map-config";
-import { buildCampusMapConfig, mergeCampusBuildingStatus } from "@/lib/campus/operational-map/campus-map-config";
+import {
+  buildCampusMapConfig,
+  mergeCampusBuildingStatus,
+  mergeCampusMapPolygons,
+} from "@/lib/campus/operational-map/campus-map-config";
+import { campusCameraMapMarkers, overlayPointMarkers } from "@/lib/campus/operational-map/campus-camera-map-markers";
 import type { CampusMapMarker } from "@/lib/campus/operational-map/overpass-to-campus-geojson";
+import { fetchVenueCameraRegistry } from "@/lib/venue/venue-camera-api";
 
 function markerToOverlay(marker: CampusMapMarker): RCOperationalOverlay | null {
   if (marker.type === "aed") {
@@ -26,12 +32,19 @@ function markerToOverlay(marker: CampusMapMarker): RCOperationalOverlay | null {
   if (marker.type === "parking") {
     return { id: marker.id, longitude: marker.lng, latitude: marker.lat, kind: "parking", label: marker.label };
   }
+  if (marker.type === "camera") {
+    return { id: marker.id, longitude: marker.lng, latitude: marker.lat, kind: "camera", label: marker.label };
+  }
+  if (marker.type === "gis") {
+    return { id: marker.id, longitude: marker.lng, latitude: marker.lat, kind: "security", label: marker.label };
+  }
   return null;
 }
 
 export function CampusOperationalMap({
   campusCode,
   campusName,
+  agencyId,
   buildings,
   incidents,
   selectedIncidentId,
@@ -43,6 +56,7 @@ export function CampusOperationalMap({
 }: {
   campusCode: string;
   campusName: string;
+  agencyId?: string;
   buildings: CampusBuildingSummary[];
   incidents: RCIncident[];
   selectedIncidentId: string | null;
@@ -54,7 +68,9 @@ export function CampusOperationalMap({
 }) {
   const [config, setConfig] = useState<CampusMapConfig>(() => buildCampusMapConfig(campusCode, campusName));
   const [geojson, setGeojson] = useState<GeoJSON.FeatureCollection | null>(null);
+  const [overlay, setOverlay] = useState<GeoJSON.FeatureCollection | null>(null);
   const [markers, setMarkers] = useState<CampusMapMarker[]>([]);
+  const [registryCameras, setRegistryCameras] = useState<VenueCamera[]>([]);
   const [is3d, setIs3d] = useState(true);
   const [command, setCommand] = useState<RCMapCommand | null>(null);
   const [selectedBuilding, setSelectedBuilding] = useState<string | null>(null);
@@ -62,7 +78,9 @@ export function CampusOperationalMap({
   useEffect(() => {
     setConfig(buildCampusMapConfig(campusCode, campusName));
     setGeojson(null);
+    setOverlay(null);
     setMarkers([]);
+    setRegistryCameras([]);
   }, [campusCode, campusName]);
 
   useEffect(() => {
@@ -70,10 +88,11 @@ export function CampusOperationalMap({
     const code = encodeURIComponent(campusCode);
     void (async () => {
       try {
-        const [configRes, buildingsRes, markersRes] = await Promise.all([
+        const [configRes, buildingsRes, markersRes, overlayRes] = await Promise.all([
           fetch(`/api/campus/code/${code}/map-config`, { credentials: "include" }),
           fetch(`/api/campus/code/${code}/map/buildings`, { credentials: "include" }),
           fetch(`/api/campus/code/${code}/map/markers`, { credentials: "include" }),
+          fetch(`/api/campus/code/${code}/map/overlay`, { credentials: "include" }),
         ]);
         if (cancelled) return;
         if (configRes.ok) setConfig((await configRes.json()) as CampusMapConfig);
@@ -81,6 +100,10 @@ export function CampusOperationalMap({
         if (markersRes.ok) {
           const body = (await markersRes.json()) as { items?: CampusMapMarker[] };
           setMarkers(body.items ?? []);
+        }
+        if (overlayRes.ok) {
+          const body = (await overlayRes.json()) as GeoJSON.FeatureCollection;
+          if (body?.type === "FeatureCollection") setOverlay(body);
         }
       } catch {
         /* keep client-side config + empty buildings */
@@ -91,15 +114,36 @@ export function CampusOperationalMap({
     };
   }, [campusCode, campusName]);
 
-  const merged = useMemo(
-    () => (geojson ? mergeCampusBuildingStatus(geojson, buildings) : null),
-    [geojson, buildings],
-  );
+  useEffect(() => {
+    if (!agencyId) return;
+    let cancelled = false;
+    void fetchVenueCameraRegistry(agencyId, "campus")
+      .then((rows) => {
+        if (!cancelled) setRegistryCameras(rows);
+      })
+      .catch(() => {
+        if (!cancelled) setRegistryCameras([]);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [agencyId]);
 
-  const overlays = useMemo(
-    () => markers.map(markerToOverlay).filter((row): row is RCOperationalOverlay => Boolean(row)),
-    [markers],
-  );
+  const merged = useMemo(() => {
+    const withStatus = geojson ? mergeCampusBuildingStatus(geojson, buildings) : null;
+    return mergeCampusMapPolygons(withStatus, overlay);
+  }, [geojson, overlay, buildings]);
+
+  const overlays = useMemo(() => {
+    const osm = markers.map(markerToOverlay).filter((row): row is RCOperationalOverlay => Boolean(row));
+    const cameras = campusCameraMapMarkers(registryCameras, geojson)
+      .map(markerToOverlay)
+      .filter((row): row is RCOperationalOverlay => Boolean(row));
+    const gis = overlayPointMarkers(overlay)
+      .map(markerToOverlay)
+      .filter((row): row is RCOperationalOverlay => Boolean(row));
+    return [...osm, ...cameras, ...gis];
+  }, [markers, registryCameras, geojson, overlay]);
 
   const issueCommand = useCallback((next: RCMapCommandBody) => {
     setCommand({ ...next, id: Date.now() });
@@ -116,6 +160,8 @@ export function CampusOperationalMap({
         <div className="text-[10px] font-bold uppercase tracking-[0.12em] text-slate-400">{campusName}</div>
         <div className="text-[10px] text-slate-500">
           {config?.hasOsmCoverage ? "OSM building footprints — heights from floor count" : "Campus map"}
+          {registryCameras.length ? " · mapped cameras" : ""}
+          {overlay?.features.length ? " · GIS overlay" : ""}
         </div>
       </div>
       <button

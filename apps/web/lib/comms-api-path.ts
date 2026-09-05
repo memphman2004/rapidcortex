@@ -107,6 +107,7 @@ const STACK3_PATH_TESTS: RegExp[] = [
   /^\/api\/rc-admin\/pricing\//,
   /^\/api\/superadmin\/api-clients(\/|$)/,
   /^\/api\/admin\/desktop-releases/,
+  /^\/api\/admin\/onboarding-packets/,
   /^\/api\/platform\//,
   /^\/api\/video-assist\//,
   /^\/api\/incidents\/[^/]+\/video-assist/,

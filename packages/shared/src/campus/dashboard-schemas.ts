@@ -1,4 +1,5 @@
 import { z } from "zod";
+import type { CampusSite } from "./campus-sites.js";
 
 export const campusThreatLevelSchema = z.enum(["secure", "elevated", "high_alert", "lockdown"]);
 export type CampusThreatLevel = z.infer<typeof campusThreatLevelSchema>;
@@ -51,6 +52,9 @@ export type CampusStatsResponse = {
   respondersOnDuty: number;
   buildingsMonitored: number;
   alertsSentToday: number;
+  /** Every campus this tenant operates. Always includes the system campus code. */
+  sites: CampusSite[];
+  primarySiteCode: string;
 };
 
 export type CampusZoneSummary = {
@@ -59,6 +63,7 @@ export type CampusZoneSummary = {
   incidentCount: number;
   responderCount: number;
   status: z.infer<typeof campusZoneStatusSchema>;
+  siteCode?: string;
 };
 
 export type CampusBuildingSummary = {
@@ -68,6 +73,7 @@ export type CampusBuildingSummary = {
   occupancy: number | null;
   status: z.infer<typeof campusBuildingStatusSchema>;
   activeIncidents: number;
+  siteCode?: string;
 };
 
 export type CampusThreatLevelState = {

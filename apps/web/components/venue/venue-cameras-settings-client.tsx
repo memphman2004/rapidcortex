@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import type { VenueCamera, VenueCameraUpsertBody } from "rapid-cortex-shared";
-import { venueKvsChannelName } from "rapid-cortex-shared";
+import { matchesCampusSiteScope, venueKvsChannelName } from "rapid-cortex-shared";
 import {
   createVenueCameraRegistryEntry,
   deleteVenueCameraRegistryEntry,
@@ -12,6 +12,8 @@ import {
   updateVenueCameraRegistryEntry,
   type CameraApiVertical,
 } from "@/lib/venue/venue-camera-api";
+import { CampusSiteSwitcher } from "@/components/campus/campus-site-switcher";
+import { useCampusSiteScope } from "@/lib/campus/use-campus-site-scope";
 
 const VENDOR_OPTIONS: Array<{ value: VenueCameraUpsertBody["vendor"]; label: string }> = [
   { value: "onvif", label: "ONVIF (auto-discover)" },
@@ -43,6 +45,7 @@ function emptyForm(agencyId: string): VenueCameraUpsertBody {
     priorityRank: 1,
     ptzCapable: false,
     floor: undefined,
+    siteCode: undefined,
   };
 }
 
@@ -65,6 +68,13 @@ export function VenueCamerasSettingsClient({
   const [discoverUser, setDiscoverUser] = useState("");
   const [discoverPass, setDiscoverPass] = useState("");
   const [discovering, setDiscovering] = useState(false);
+  const { scope, setScope, sites, primarySiteCode } = useCampusSiteScope(isCampus ? agencyId : "");
+  const visibleCameras = useMemo(() => {
+    if (!isCampus) return cameras;
+    return cameras.filter((cam) =>
+      matchesCampusSiteScope(cam.siteCode, scope, primarySiteCode),
+    );
+  }, [cameras, isCampus, primarySiteCode, scope]);
 
   const refresh = useCallback(async () => {
     setLoading(true);
@@ -106,9 +116,15 @@ export function VenueCamerasSettingsClient({
       priorityRank: camera.priorityRank,
       ptzCapable: camera.ptzCapable,
       status: camera.status,
-      buildingId: camera.buildingId,
-      floor: camera.floor,
-    });
+          buildingId: camera.buildingId,
+          floor: camera.floor,
+          zoneCode: camera.zoneCode,
+          qrRcli: camera.qrRcli,
+          siteCode: camera.siteCode,
+          assetKind: camera.assetKind,
+          latitude: camera.latitude,
+          longitude: camera.longitude,
+        });
   };
 
   const runDiscover = async () => {
@@ -162,6 +178,13 @@ export function VenueCamerasSettingsClient({
         payload.buildingId = payload.sections[0];
         const floor = form.floor?.trim();
         payload.floor = floor || undefined;
+        payload.zoneCode = form.zoneCode?.trim() || undefined;
+        payload.qrRcli = form.qrRcli?.trim() || undefined;
+        payload.assetKind = form.assetKind;
+        const lat = form.latitude;
+        const lng = form.longitude;
+        payload.latitude = typeof lat === "number" && Number.isFinite(lat) ? lat : undefined;
+        payload.longitude = typeof lng === "number" && Number.isFinite(lng) ? lng : undefined;
       }
       if (editingId === "new") {
         await createVenueCameraRegistryEntry(agencyId, payload, apiVertical);
@@ -210,6 +233,11 @@ export function VenueCamerasSettingsClient({
           </button>
         </div>
       </div>
+      {isCampus ? (
+        <div style={{ marginBottom: 12, maxWidth: 240 }}>
+          <CampusSiteSwitcher sites={sites} value={scope} onChange={setScope} />
+        </div>
+      ) : null}
 
       <div
         style={{
@@ -255,11 +283,11 @@ export function VenueCamerasSettingsClient({
       {error ? <p style={{ color: "var(--rc-amber)", fontSize: 12 }}>{error}</p> : null}
       {loading ? <p style={{ color: "var(--rc-text-secondary)", fontSize: 12 }}>Loading cameras…</p> : null}
 
-      {!loading && cameras.length === 0 ? (
+      {!loading && visibleCameras.length === 0 ? (
         <p style={{ color: "var(--rc-text-secondary)", fontSize: 12 }}>No cameras registered yet.</p>
       ) : (
         <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-          {cameras.map((cam) => (
+          {visibleCameras.map((cam) => (
             <div
               key={cam.cameraId}
               style={{
@@ -286,7 +314,11 @@ export function VenueCamerasSettingsClient({
                 </div>
                 <div style={{ fontSize: 11, color: "var(--rc-text-secondary)", marginTop: 4 }}>
                   {locationLabel}: {isCampus ? (cam.buildingId ?? cam.sections[0] ?? "—") : cam.sections.join(", ")}
-                  {isCampus && cam.floor ? ` · Floor ${cam.floor}` : ""} · Rank {cam.priorityRank} · {cam.vendor}
+                  {isCampus && cam.floor ? ` · Floor ${cam.floor}` : ""}
+                  {isCampus && cam.zoneCode ? ` · Zone ${cam.zoneCode}` : ""}
+                  {isCampus && cam.qrRcli ? ` · QR ${cam.qrRcli}` : ""}
+                  {isCampus && cam.siteCode ? ` · Campus ${cam.siteCode}` : ""}
+                  {" "}· Rank {cam.priorityRank} · {cam.vendor}
                 </div>
                 <div style={{ fontSize: 10, color: "var(--rc-text-muted)", marginTop: 2 }}>
                   KVS: {cam.kvsChannelName}
@@ -362,12 +394,82 @@ export function VenueCamerasSettingsClient({
               }
             />
             {isCampus ? (
-              <Field
-                label="Floor (optional)"
-                value={form.floor ?? ""}
-                onChange={(v) => setForm({ ...form, floor: v || undefined })}
-                hint="Match intake floor when set — leave blank for whole-building cameras"
-              />
+              <>
+                <Field
+                  label="Floor (optional)"
+                  value={form.floor ?? ""}
+                  onChange={(v) => setForm({ ...form, floor: v || undefined })}
+                  hint="Match intake floor when set — leave blank for whole-building cameras"
+                />
+                <Field
+                  label="Zone code (optional)"
+                  value={form.zoneCode ?? ""}
+                  onChange={(v) => setForm({ ...form, zoneCode: v || undefined })}
+                  hint="Nearest-camera ranking: zone beats floor"
+                />
+                {sites.length > 0 ? (
+                  <label style={{ display: "block" }}>
+                    <span style={labelStyle}>Campus</span>
+                    <select
+                      value={form.siteCode ?? ""}
+                      onChange={(e) => setForm({ ...form, siteCode: e.target.value || undefined })}
+                      style={inputStyle}
+                    >
+                      <option value="">Tenant primary</option>
+                      {sites.map((site) => (
+                        <option key={site.code} value={site.code}>
+                          {site.name}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                ) : null}
+                <Field
+                  label="QR / RCLI (optional)"
+                  value={form.qrRcli ?? ""}
+                  onChange={(v) => setForm({ ...form, qrRcli: v || undefined })}
+                  hint="Prefer assigning this camera on the QR/NFC location. Set here only as a fallback tag."
+                />
+                <label style={{ display: "block" }}>
+                  <span style={labelStyle}>Place asset (optional)</span>
+                  <select
+                    value={form.assetKind ?? "camera"}
+                    onChange={(e) =>
+                      setForm({
+                        ...form,
+                        assetKind: e.target.value as VenueCameraUpsertBody["assetKind"],
+                      })
+                    }
+                    style={inputStyle}
+                  >
+                    <option value="camera">Camera</option>
+                    <option value="blue_light">Blue light / emergency phone</option>
+                    <option value="door">Door / access point</option>
+                    <option value="emergency_phone">Emergency phone</option>
+                  </select>
+                </label>
+                <Field
+                  label="Latitude (optional)"
+                  value={form.latitude != null ? String(form.latitude) : ""}
+                  onChange={(v) =>
+                    setForm({
+                      ...form,
+                      latitude: v.trim() ? Number(v) : undefined,
+                    })
+                  }
+                  hint="Command map marker. Leave blank to use the building footprint."
+                />
+                <Field
+                  label="Longitude (optional)"
+                  value={form.longitude != null ? String(form.longitude) : ""}
+                  onChange={(v) =>
+                    setForm({
+                      ...form,
+                      longitude: v.trim() ? Number(v) : undefined,
+                    })
+                  }
+                />
+              </>
             ) : null}
             <Field
               label="Priority rank (1 = best view)"

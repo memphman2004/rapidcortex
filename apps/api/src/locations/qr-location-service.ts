@@ -67,6 +67,7 @@ export async function createLocation(
     floor: parsed.floor,
     zone: parsed.zone,
     zoneCode: parsed.zoneCode,
+    siteCode: parsed.siteCode?.trim() || undefined,
     lat: parsed.lat,
     lng: parsed.lng,
     active: parsed.active ?? true,

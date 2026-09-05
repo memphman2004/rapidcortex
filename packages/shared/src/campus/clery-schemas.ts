@@ -167,7 +167,7 @@ export type ClerySyncFromPlatformBody = z.infer<typeof clerySyncFromPlatformBody
 export const cleryReportQuerySchema = z.object({
   campusCode: z.string().trim().min(2).max(32),
   academicYear: cleryAcademicYearSchema,
-  format: z.enum(["json", "csv"]).optional().default("json"),
+  format: z.enum(["json", "csv", "pdf"]).optional().default("json"),
 });
 
 export type CleryReportQuery = z.infer<typeof cleryReportQuerySchema>;

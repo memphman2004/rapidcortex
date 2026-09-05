@@ -5,8 +5,7 @@
 
 import { GetCommand, PutCommand, QueryCommand } from "@aws-sdk/lib-dynamodb";
 import {
-  RAPID_IQ_TRANSIT_WATCH_SEEDS,
-  defaultTransitWatchKeywords,
+  allIntelWatchRecords,
   normalizeIntelUrl,
   rapidIqIntelOpportunitySchema,
   rapidIqIntelWatchSchema,
@@ -228,45 +227,45 @@ export async function getIntelWatch(id: string): Promise<RapidIqIntelWatch | nul
 }
 
 export async function listIntelWatches(): Promise<RapidIqIntelWatch[]> {
-  const res = await ddb.send(
-    new QueryCommand({
-      TableName: table(),
-      IndexName: "gsi2-source-date",
-      KeyConditionExpression: "gsi2pk = :pk",
-      ExpressionAttributeValues: { ":pk": "WATCH#ALL" },
-      ScanIndexForward: false,
-      Limit: 200,
-    }),
-  );
-  return (res.Items ?? [])
-    .map((item) => rapidIqIntelWatchSchema.safeParse(stripKeys(item as Record<string, unknown>)))
-    .filter((p) => p.success)
-    .map((p) => p.data);
+  const items: RapidIqIntelWatch[] = [];
+  let ExclusiveStartKey: Record<string, unknown> | undefined;
+  do {
+    const res = await ddb.send(
+      new QueryCommand({
+        TableName: table(),
+        IndexName: "gsi2-source-date",
+        KeyConditionExpression: "gsi2pk = :pk",
+        ExpressionAttributeValues: { ":pk": "WATCH#ALL" },
+        ScanIndexForward: false,
+        ExclusiveStartKey,
+      }),
+    );
+    for (const item of res.Items ?? []) {
+      const parsed = rapidIqIntelWatchSchema.safeParse(stripKeys(item as Record<string, unknown>));
+      if (parsed.success) items.push(parsed.data);
+    }
+    ExclusiveStartKey = res.LastEvaluatedKey as Record<string, unknown> | undefined;
+  } while (ExclusiveStartKey);
+  return items;
 }
 
-export async function seedDefaultTransitWatches(): Promise<number> {
+export async function seedDefaultIntelWatches(): Promise<number> {
   const existing = await listIntelWatches();
-  if (existing.length > 0) return 0;
+  const have = new Set(existing.map((w) => w.id));
   const now = new Date().toISOString();
-  const keywords = defaultTransitWatchKeywords();
   let created = 0;
-  for (const seed of RAPID_IQ_TRANSIT_WATCH_SEEDS) {
-    await putIntelWatch({
-      id: seed.id,
-      name: seed.name,
-      agency: seed.agency,
-      market: "TRANSIT",
-      enabled: true,
-      keywords,
-      sourceDomains: [...seed.sourceDomains],
-      sourceUrls: [...seed.sourceUrls],
-      minimumFitScore: 7,
-      createdAt: now,
-      updatedAt: now,
-    });
+  for (const watch of allIntelWatchRecords(now)) {
+    if (have.has(watch.id)) continue;
+    await putIntelWatch(watch);
+    have.add(watch.id);
     created += 1;
   }
   return created;
+}
+
+/** @deprecated Use seedDefaultIntelWatches (transit + PSAP/campus/venue). */
+export async function seedDefaultTransitWatches(): Promise<number> {
+  return seedDefaultIntelWatches();
 }
 
 export async function updateIntelOpportunityFields(

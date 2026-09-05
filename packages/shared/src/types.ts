@@ -402,6 +402,7 @@ export type AuditResourceType =
   | "rapid_iq_opportunity"
   | "rapid_iq_pipeline_signal"
   | "rapid_iq_intel"
+  | "rapid_iq_sales_seq"
   | "rapid_iq_refresh"
   | "conference"
   | "escalation"

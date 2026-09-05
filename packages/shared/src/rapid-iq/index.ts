@@ -6,3 +6,6 @@ export * from "./conference-schemas.js";
 export * from "./conference-change.js";
 export * from "./opportunity-intel-schemas.js";
 export * from "./transit-watches.js";
+export * from "./intel-watch-seeds.js";
+export * from "./rfp-unified-count.js";
+export * from "./sales-automation-schemas.js";

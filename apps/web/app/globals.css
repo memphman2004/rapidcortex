@@ -1624,6 +1624,30 @@ textarea {
   opacity: 0.55;
 }
 
+.rc-login-sso {
+  display: block;
+  width: 100%;
+  margin-top: 12px;
+  border: 1px solid rgba(226, 236, 248, 0.22);
+  border-radius: 10px;
+  background: transparent;
+  padding: 13px 20px;
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 0.025em;
+  color: #e2ecf8;
+  text-align: center;
+  text-decoration: none;
+  transition:
+    background 0.18s,
+    border-color 0.18s;
+}
+
+.rc-login-sso:hover {
+  background: rgba(226, 236, 248, 0.08);
+  border-color: rgba(226, 236, 248, 0.4);
+}
+
 .rc-login-card__footer {
   margin-top: 20px;
   border-top: 1px solid rgba(255, 255, 255, 0.07);

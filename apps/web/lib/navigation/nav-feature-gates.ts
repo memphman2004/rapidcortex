@@ -1,6 +1,7 @@
 import {
   isCadWritebackUiEnabled,
   isCampusCleryEnabled,
+  isCampusEapEnabled,
   isChannelMonitoringEnabled,
   isDeploymentsMapEnabled,
   isNonEmergencyTriageEnabled,
@@ -57,6 +58,8 @@ export function isNavFeatureEnabled(feature: string): boolean {
       return isRcsEnabled();
     case "campusClery":
       return isCampusCleryEnabled();
+    case "campusEap":
+      return isCampusEapEnabled();
     case "warRooms":
       return isWarRoomsEnabled();
     case "verticalTransit":

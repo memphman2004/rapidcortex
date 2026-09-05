@@ -19,9 +19,17 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
       return withCorrelationHeaders(event, badRequest("Invalid query parameters"));
     }
 
-    const { building, floor, limit = 2 } = parsed.data;
+    const { building, floor, zone, qrRcli, cameraIds, limit = 2 } = parsed.data;
+    const assignedCameraIds = cameraIds
+      ?.split(",")
+      .map((id) => id.trim())
+      .filter(Boolean);
     const cameras = building
-      ? await getCamerasForBuildingFloor(ctx.agencyId, building, floor, limit)
+      ? await getCamerasForBuildingFloor(ctx.agencyId, building, floor, limit, {
+          zoneCode: zone,
+          qrRcli,
+          assignedCameraIds,
+        })
       : (await listCampusCameras(ctx.agencyId)).map((c) => ({
           cameraId: c.cameraId,
           displayName: c.displayName,
@@ -31,6 +39,10 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
           status: c.status,
           buildingId: c.buildingId,
           floor: c.floor,
+          latitude: c.latitude,
+          longitude: c.longitude,
+          zoneCode: c.zoneCode,
+          qrRcli: c.qrRcli,
         }));
 
     return withCorrelationHeaders(event, ok({ cameras }));

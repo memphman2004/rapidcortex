@@ -12,6 +12,8 @@ export function buildCognitoAuthorizeUrl(input: {
   responseType: "code";
   /** e.g. `none` for silent SSO when the Cognito domain already has an active browser session */
   prompt?: string;
+  /** Cognito IdP name (e.g. IU Shibboleth / Azure AD). Omit to show the Hosted UI IdP picker. */
+  identityProvider?: string;
 }): string {
   const u = new URL(input.authorizeEndpoint);
   u.searchParams.set("client_id", input.clientId);
@@ -23,6 +25,9 @@ export function buildCognitoAuthorizeUrl(input: {
   u.searchParams.set("state", input.state);
   if (input.prompt?.trim()) {
     u.searchParams.set("prompt", input.prompt.trim());
+  }
+  if (input.identityProvider?.trim()) {
+    u.searchParams.set("identity_provider", input.identityProvider.trim());
   }
   return u.toString();
 }

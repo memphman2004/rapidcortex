@@ -61,6 +61,8 @@ export const campusAgencyConfigSchema = z.object({
       emergencyDisclaimer: z.string().max(1000).optional(),
     })
     .optional(),
+  /** HTTPS GeoJSON or ArcGIS FeatureServer URL drawn as a Mapbox overlay (INT-026). */
+  geojsonOverlayUrl: z.string().url().max(2000).optional().or(z.literal("")),
 });
 
 export type CampusAgencyConfig = z.infer<typeof campusAgencyConfigSchema>;

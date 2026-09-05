@@ -3,7 +3,12 @@ import type {
   VenueCameraUpsertBody,
   VenueIncidentCameraSummary,
 } from "rapid-cortex-shared";
-import { isRtspProducerVendor, venueKvsChannelName } from "rapid-cortex-shared";
+import {
+  isRtspProducerVendor,
+  selectCamerasForAreaScan,
+  toCampusCameraSummary,
+  venueKvsChannelName,
+} from "rapid-cortex-shared";
 import { AUDIT_EVENT_TYPES } from "rapid-cortex-security";
 import { makeId } from "../../../lib/ids.js";
 import { AuditRepository } from "../../../repositories/auditRepository.js";
@@ -22,13 +27,7 @@ const auditRepo = new AuditRepository();
 const kvsChannels = new KvsChannelService();
 
 function toSummary(camera: VenueCamera): VenueIncidentCameraSummary {
-  return {
-    cameraId: camera.cameraId,
-    displayName: camera.displayName,
-    kvsChannelName: camera.kvsChannelName,
-    vendor: camera.vendor,
-    ptzCapable: camera.ptzCapable,
-  };
+  return toCampusCameraSummary(camera);
 }
 
 function cameraBuildingId(camera: VenueCamera): string {
@@ -44,23 +43,57 @@ export async function getCamerasForBuildingFloor(
   buildingId: string,
   floor: string | null | undefined,
   limit = 2,
+  place?: { zoneCode?: string | null; qrRcli?: string | null; assignedCameraIds?: string[] | null },
 ): Promise<VenueIncidentCameraSummary[]> {
-  const building = buildingId.trim().toUpperCase();
-  const floorNorm = floor?.trim().toUpperCase() ?? "";
   const cameras = await repo.listByAgency(agencyId);
-  return cameras
-    .filter((c) => {
-      if (!isCameraProducerOnline(c)) return false;
-      if (cameraBuildingId(c) !== building) return false;
-      if (floorNorm) {
-        const camFloor = cameraFloor(c);
-        if (camFloor && camFloor !== floorNorm) return false;
-      }
-      return true;
-    })
-    .sort((a, b) => a.priorityRank - b.priorityRank)
-    .slice(0, limit)
-    .map(toSummary);
+  const selected = selectCamerasForAreaScan(cameras, {
+    assignedCameraIds: place?.assignedCameraIds,
+    place: {
+      buildingId,
+      floor,
+      zoneCode: place?.zoneCode,
+      qrRcli: place?.qrRcli,
+    },
+    limit,
+    isEligibleFallback: (camera) => isCameraProducerOnline(camera),
+  });
+  return selected.map(toSummary);
+}
+
+/**
+ * Bidirectional inprocessing bind: QR record owns `cameraIds`; matching cameras
+ * receive `qrRcli` when they are not already tagged to a different code.
+ */
+export async function bindCampusCamerasToQrRcli(opts: {
+  agencyId: string;
+  qrId: string;
+  nextCameraIds: string[];
+  previousCameraIds?: string[];
+}): Promise<void> {
+  const next = new Set(opts.nextCameraIds.map((id) => id.trim()).filter(Boolean));
+  const previous = new Set((opts.previousCameraIds ?? []).map((id) => id.trim()).filter(Boolean));
+  const toClear = [...previous].filter((id) => !next.has(id));
+  const toSet = [...next];
+
+  for (const cameraId of toClear) {
+    const camera = await repo.get(opts.agencyId, cameraId);
+    if (!camera) continue;
+    if (normQr(camera.qrRcli) !== normQr(opts.qrId)) continue;
+    const { qrRcli: _removed, ...rest } = camera;
+    await repo.put(rest as VenueCamera);
+  }
+
+  for (const cameraId of toSet) {
+    const camera = await repo.get(opts.agencyId, cameraId);
+    if (!camera) continue;
+    const existing = camera.qrRcli?.trim();
+    if (existing && normQr(existing) !== normQr(opts.qrId)) continue;
+    await repo.put({ ...camera, qrRcli: opts.qrId });
+  }
+}
+
+function normQr(value: string | null | undefined): string {
+  return (value ?? "").trim().toUpperCase();
 }
 
 export async function listCampusCameras(
@@ -120,6 +153,12 @@ export async function createCampusCamera(
     sections: body.sections.map((s) => s.trim()),
     buildingId: body.buildingId?.trim() || body.sections[0]?.trim(),
     floor: body.floor?.trim(),
+    zoneCode: body.zoneCode?.trim(),
+    qrRcli: body.qrRcli?.trim(),
+    siteCode: body.siteCode?.trim(),
+    assetKind: body.assetKind,
+    latitude: body.latitude,
+    longitude: body.longitude,
     priorityRank: body.priorityRank,
     ptzCapable: body.ptzCapable,
     status: body.status ?? "unknown",
@@ -164,6 +203,12 @@ export async function updateCampusCamera(
     sections: body.sections.map((s) => s.trim()),
     buildingId: body.buildingId?.trim() || body.sections[0]?.trim(),
     floor: body.floor?.trim(),
+    zoneCode: body.zoneCode?.trim(),
+    qrRcli: body.qrRcli?.trim(),
+    siteCode: body.siteCode?.trim(),
+    assetKind: body.assetKind,
+    latitude: body.latitude,
+    longitude: body.longitude,
     priorityRank: body.priorityRank,
     ptzCapable: body.ptzCapable,
     status: body.status ?? existing.status,

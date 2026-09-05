@@ -2,12 +2,16 @@
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
+import { matchesCampusSiteScope } from "rapid-cortex-shared";
+import { useSession } from "@/components/auth/session-context";
 import { CampusIncidentCard } from "@/components/dispatch/campus/CampusIncidentCard";
+import { CampusSiteSwitcher } from "@/components/campus/campus-site-switcher";
 import {
   escalateCampusIncident,
   fetchCampusIncidents,
   patchCampusIncident,
 } from "@/lib/campus/campus-incidents-api";
+import { useCampusSiteScope } from "@/lib/campus/use-campus-site-scope";
 import type { CampusIncidentStatus } from "@/lib/campus/types";
 
 type FilterStatus = "all" | CampusIncidentStatus;
@@ -15,12 +19,15 @@ type FilterStatus = "all" | CampusIncidentStatus;
 /** Legacy campus dispatch incident queue — wire into `campus-incident-queue` widget when ready. */
 export function CampusIncidentQueueHome({ campusCode }: { campusCode: string }) {
   const queryClient = useQueryClient();
+  const { user } = useSession();
+  const counselorQueue = (user?.role ?? "").trim().toUpperCase() === "CAMPUS_COUNSELOR";
   const [statusFilter, setStatusFilter] = useState<FilterStatus>("all");
   const [zoneFilter, setZoneFilter] = useState("");
+  const { scope, setScope, sites, primarySiteCode } = useCampusSiteScope(user?.agencyId ?? "");
 
   const incidentsQuery = useQuery({
-    queryKey: ["campus-incidents", campusCode],
-    queryFn: () => fetchCampusIncidents(campusCode),
+    queryKey: ["campus-incidents", campusCode, counselorQueue],
+    queryFn: () => fetchCampusIncidents(campusCode, { counselorQueue }),
     refetchInterval: 15_000,
   });
 
@@ -35,6 +42,7 @@ export function CampusIncidentQueueHome({ campusCode }: { campusCode: string }) 
 
   const filtered = useMemo(() => {
     let rows = incidentsQuery.data ?? [];
+    rows = rows.filter((r) => matchesCampusSiteScope(r.siteCode, scope, primarySiteCode || campusCode));
     if (statusFilter !== "all") rows = rows.filter((r) => r.status === statusFilter);
     if (zoneFilter) rows = rows.filter((r) => (r.zoneCode ?? r.roomCode) === zoneFilter);
     return [...rows].sort((a, b) => {
@@ -42,7 +50,7 @@ export function CampusIncidentQueueHome({ campusCode }: { campusCode: string }) 
       if (b.status === "open" && a.status !== "open") return 1;
       return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
     });
-  }, [incidentsQuery.data, statusFilter, zoneFilter]);
+  }, [incidentsQuery.data, statusFilter, zoneFilter, scope, primarySiteCode, campusCode]);
 
   const mutate = useMutation({
     mutationFn: async (action: { type: "ack" | "close" | "escalate"; id: string }) => {
@@ -62,6 +70,7 @@ export function CampusIncidentQueueHome({ campusCode }: { campusCode: string }) 
   return (
     <div className="space-y-5">
       <div className="flex flex-wrap items-center gap-3">
+        <CampusSiteSwitcher sites={sites} value={scope} onChange={setScope} />
         <label className="text-sm text-slate-300">
           Status
           <select
@@ -106,6 +115,7 @@ export function CampusIncidentQueueHome({ campusCode }: { campusCode: string }) 
             <CampusIncidentCard
               key={incident.id}
               incident={incident}
+              campusCode={campusCode}
               onAcknowledge={(id) => mutate.mutate({ type: "ack", id })}
               onEscalate={(id) => mutate.mutate({ type: "escalate", id })}
               onClose={(id) => mutate.mutate({ type: "close", id })}

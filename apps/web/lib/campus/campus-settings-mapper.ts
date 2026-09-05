@@ -26,6 +26,9 @@ export type CampusSettingsView = {
     customFields: Array<{ label: string; required: boolean }>;
     disclaimerText: string;
   };
+  mapOverlay: {
+    geojsonOverlayUrl: string;
+  };
 };
 
 const DEFAULT_SETTINGS: CampusSettingsView = {
@@ -54,6 +57,9 @@ const DEFAULT_SETTINGS: CampusSettingsView = {
     customFields: [],
     disclaimerText:
       "This form is not monitored 24/7 and is not a substitute for calling 911 in an emergency.",
+  },
+  mapOverlay: {
+    geojsonOverlayUrl: "",
   },
 };
 
@@ -96,6 +102,9 @@ export function campusSettingsFromAgency(agency: AgencyTenant): CampusSettingsVi
       disclaimerText:
         campus?.publicReportForm?.emergencyDisclaimer ?? DEFAULT_SETTINGS.publicForm.disclaimerText,
     },
+    mapOverlay: {
+      geojsonOverlayUrl: campus?.geojsonOverlayUrl ?? "",
+    },
   };
 }
 
@@ -107,6 +116,7 @@ export function campusPatchFromSettingsView(
   const notifications = patch.notifications;
   const escalation = patch.escalation;
   const publicForm = patch.publicForm;
+  const mapOverlay = patch.mapOverlay;
 
   if (general?.displayName !== undefined) {
     const trimmed = general.displayName.trim();
@@ -151,6 +161,10 @@ export function campusPatchFromSettingsView(
       customFields: publicForm.customFields,
       emergencyDisclaimer: publicForm.disclaimerText,
     };
+  }
+
+  if (mapOverlay) {
+    campus.geojsonOverlayUrl = mapOverlay.geojsonOverlayUrl.trim();
   }
 
   return {

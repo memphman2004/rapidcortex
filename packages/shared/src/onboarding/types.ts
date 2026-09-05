@@ -12,8 +12,10 @@ export const ONBOARDING_CHECKLIST_SHARED_STEP_IDS = [
 ] as const;
 
 export const ONBOARDING_CHECKLIST_CAMPUS_STEP_IDS = [
+  "integration_discovery_completed",
   "campus_map_uploaded",
   "rcli_locations_created",
+  "cameras_mapped_to_qr_locations",
   "qr_codes_downloaded",
   "signs_printed",
   "nfc_tags_programmed",
@@ -25,6 +27,7 @@ export const ONBOARDING_CHECKLIST_CAMPUS_STEP_IDS = [
 export const ONBOARDING_CHECKLIST_VENUE_STEP_IDS = [
   "section_map_uploaded",
   "rcli_locations_created",
+  "cameras_mapped_to_qr_locations",
   "qr_codes_downloaded",
   "signs_printed",
   "nfc_tags_programmed",

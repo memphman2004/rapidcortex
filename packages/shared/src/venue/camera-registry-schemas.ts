@@ -27,6 +27,15 @@ export const venueCameraSchema = z.object({
   buildingId: z.string().min(1).optional(),
   /** Campus vertical: floor label/number for intake camera lookup. */
   floor: z.string().min(1).optional(),
+  /** Campus vertical: zone / room code for nearest-camera ranking. */
+  zoneCode: z.string().min(1).max(32).optional(),
+  /** Campus vertical: QR / RCLI of a blue-light, door, or emergency phone this camera covers. */
+  qrRcli: z.string().min(1).max(32).optional(),
+  /** Physical campus for multi-campus tenants. */
+  siteCode: z.string().min(2).max(20).optional(),
+  assetKind: z.enum(["camera", "blue_light", "door", "emergency_phone"]).optional(),
+  latitude: z.number().min(-90).max(90).optional(),
+  longitude: z.number().min(-180).max(180).optional(),
   priorityRank: z.number().int().min(1).max(999),
   ptzCapable: z.boolean(),
   status: venueCameraStatusSchema,
@@ -46,6 +55,12 @@ export const venueCameraUpsertBodySchema = z.object({
   buildingId: z.string().min(1).optional(),
   /** Campus vertical: floor label/number for intake camera lookup. */
   floor: z.string().min(1).optional(),
+  zoneCode: z.string().min(1).max(32).optional(),
+  qrRcli: z.string().min(1).max(32).optional(),
+  siteCode: z.string().min(2).max(20).optional(),
+  assetKind: z.enum(["camera", "blue_light", "door", "emergency_phone"]).optional(),
+  latitude: z.number().min(-90).max(90).optional(),
+  longitude: z.number().min(-180).max(180).optional(),
   priorityRank: z.number().int().min(1).max(999),
   ptzCapable: z.boolean().default(false),
   status: venueCameraStatusSchema.optional(),
@@ -59,6 +74,10 @@ export const venueCamerasQuerySchema = z.object({
 export const campusCamerasQuerySchema = z.object({
   building: z.string().min(1).optional(),
   floor: z.string().min(1).optional(),
+  zone: z.string().min(1).optional(),
+  qrRcli: z.string().min(1).optional(),
+  /** Comma-separated camera IDs assigned to the scanned QR / area. */
+  cameraIds: z.string().min(1).optional(),
   limit: z.coerce.number().int().min(1).max(20).optional(),
 });
 

@@ -32,6 +32,7 @@ import { AuditRepository } from "../repositories/auditRepository.js";
 import { AgencyRepository } from "../repositories/agencyRepository.js";
 import { QrNfcRepository } from "../repositories/qrNfcRepository.js";
 import { resolveAgencyCallNumber } from "./resolve-call-number.js";
+import { bindQrLocationCameras } from "./qr-nfc-camera-bind.js";
 import { formatPhoneDisplay } from "rapid-cortex-shared";
 
 const repo = new QrNfcRepository();
@@ -96,6 +97,10 @@ export class QrNfcService {
       description: parsed.data.description,
       zoneId: parsed.data.zoneId,
       zoneName: parsed.data.zoneName,
+      ...(parsed.data.buildingId?.trim() ? { buildingId: parsed.data.buildingId.trim() } : {}),
+      ...(parsed.data.floor?.trim() ? { floor: parsed.data.floor.trim() } : {}),
+      ...(parsed.data.cameraIds?.length ? { cameraIds: parsed.data.cameraIds } : {}),
+      ...(parsed.data.siteCode?.trim() ? { siteCode: parsed.data.siteCode.trim().toUpperCase() } : {}),
       vertical: parsed.data.vertical,
       reportType: parsed.data.reportType,
       nfcEnabled: parsed.data.nfcEnabled ?? true,
@@ -116,6 +121,21 @@ export class QrNfcService {
     };
 
     await repo.put(record);
+    if (
+      (record.vertical === "campus" || record.vertical === "venue") &&
+      (record.cameraIds?.length ?? 0) > 0
+    ) {
+      try {
+        await bindQrLocationCameras({
+          agencyId,
+          vertical: record.vertical,
+          qrId,
+          nextCameraIds: record.cameraIds ?? [],
+        });
+      } catch (err) {
+        console.warn("[qr-nfc] camera bind on create failed", qrId, err);
+      }
+    }
     await auditRepo.create({
       eventId: makeId("audit"),
       agencyId,
@@ -224,6 +244,19 @@ export class QrNfcService {
       }
     }
     const updated = await repo.update(existing.agencyId, qrId, parsed.data as UpdateQRNFCInput);
+    if (updated && parsed.data.cameraIds && (existing.vertical === "campus" || existing.vertical === "venue")) {
+      try {
+        await bindQrLocationCameras({
+          agencyId: existing.agencyId,
+          vertical: existing.vertical,
+          qrId,
+          nextCameraIds: parsed.data.cameraIds,
+          previousCameraIds: existing.cameraIds,
+        });
+      } catch (err) {
+        console.warn("[qr-nfc] camera bind on update failed", qrId, err);
+      }
+    }
     if (updated) {
       await auditRepo.create({
         eventId: makeId("audit"),

@@ -6,7 +6,16 @@ export type CampusIncidentStatus =
   | "referred"
   | "escalated";
 
-export type CampusIncidentSource = "qr" | "sms" | "manual" | "phone";
+export type CampusIncidentSource =
+  | "qr"
+  | "sms"
+  | "manual"
+  | "phone"
+  | "vms"
+  | "alpr"
+  | "alarm"
+  | "sensor"
+  | "webhook";
 
 export type CampusIncidentType =
   | "medical"
@@ -37,6 +46,7 @@ export interface CampusIncidentLocationEntry {
 export interface CampusIncident {
   id: string;
   campusCode: string;
+  siteCode?: string;
   buildingCode: string;
   buildingLabel: string;
   floor: number | null;
@@ -61,4 +71,18 @@ export interface CampusIncident {
   reporterLast4?: string;
   locationData?: CampusIncidentLocationEntry[];
   locationLinkSent?: boolean;
+  cameraRefs?: string[];
+  cleryCategory?: string | null;
+  /** Keyword suggestion only — never auto-filed as a Clery determination. */
+  cleryCategorySuggested?: string | null;
+  eapChecklist?: {
+    eapId: string;
+    title: string;
+    steps: string[];
+    documentUrl?: string;
+  } | null;
+  suggestedActions?: {
+    openWarRoom?: boolean;
+    assignRole?: string;
+  };
 }

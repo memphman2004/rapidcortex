@@ -57,6 +57,17 @@ export async function proxyToAuthUpstream(
   const incomingCt = request.headers.get("content-type");
   if (incomingCt) headers.set("content-type", incomingCt);
   if (auth.token) headers.set("authorization", `Bearer ${auth.token}`);
+  for (const name of [
+    "x-rapidcortex-timestamp",
+    "x-rapidcortex-signature",
+    "x-rapidcortex-token",
+    "x-rc-token",
+    "x-rc-timestamp",
+    "x-rc-signature",
+  ]) {
+    const value = request.headers.get(name);
+    if (value) headers.set(name, value);
+  }
 
   const method = request.method;
   const body =
@@ -72,6 +83,8 @@ export async function proxyToAuthUpstream(
   const responseHeaders = new Headers();
   const contentType = upstream.headers.get("content-type");
   if (contentType) responseHeaders.set("content-type", contentType);
+  const contentDisposition = upstream.headers.get("content-disposition");
+  if (contentDisposition) responseHeaders.set("content-disposition", contentDisposition);
 
   const response = new NextResponse(upstream.body, {
     status: upstream.status,

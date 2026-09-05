@@ -2,10 +2,11 @@ import type { CampusIncident, CampusIncidentStatus } from "./types";
 
 export async function fetchCampusIncidents(
   campusCode: string,
-  opts?: { status?: CampusIncidentStatus[]; zoneCode?: string },
+  opts?: { status?: CampusIncidentStatus[]; zoneCode?: string; counselorQueue?: boolean },
 ): Promise<CampusIncident[]> {
   const params = new URLSearchParams({ campusCode, limit: "50" });
   if (opts?.status?.length) params.set("status", opts.status.join(","));
+  if (opts?.counselorQueue) params.set("queue", "counselor");
   const res = await fetch(`/api/campus/incidents?${params}`, { cache: "no-store" });
   if (!res.ok) throw new Error(`Failed to load incidents (${res.status})`);
   const data = (await res.json()) as { incidents?: CampusIncident[] };

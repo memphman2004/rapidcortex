@@ -5,6 +5,8 @@ import { withCorrelationHeaders } from "../../lib/correlation.js";
 import { operationalPasswordBlock } from "../../lib/operationalPasswordGate.js";
 import { forbidden, notFound, ok, serverError, unauthorized } from "../../lib/response.js";
 import { getCampusIncident } from "../campus-incident-service.js";
+import { exportCampusAfterActionPdf } from "../campus-after-action-pdf.js";
+import { isCampusCounselorQueueType } from "rapid-cortex-shared";
 
 const authz = new AuthorizationService();
 
@@ -17,7 +19,11 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
     }
     const pwd = operationalPasswordBlock(user);
     if (pwd) return withCorrelationHeaders(event, pwd);
-    authz.assertCanPerform(user, "campus.incidents.view" as never);
+    const canViewIncidents = authz.canPerform(user, "campus.incidents.view" as never);
+    const canViewWellness = authz.canPerform(user, "campus.wellness.view" as never);
+    if (!canViewIncidents && !canViewWellness) {
+      return withCorrelationHeaders(event, forbidden());
+    }
 
     const incidentId = event.pathParameters?.incidentId;
     const campusCode = event.queryStringParameters?.campusCode;
@@ -28,24 +34,40 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
     const incident = await getCampusIncident(campusCode, incidentId);
     if (!incident) return withCorrelationHeaders(event, notFound("Incident not found"));
 
-    if (incident.confidential) {
-      try {
-        authz.assertCanPerform(user, "campus.wellness.view" as never);
-      } catch {
-        return withCorrelationHeaders(
-          event,
-          ok({
-            incident: {
-              id: incident.id,
-              status: incident.status,
-              buildingLabel: incident.buildingLabel,
-              createdAt: incident.createdAt,
-              confidential: true,
-              _restricted: true,
-            },
-          }),
-        );
-      }
+    const counselorOnly = !canViewIncidents && canViewWellness;
+    if (counselorOnly) {
+      const allowed =
+        isCampusCounselorQueueType(incident.type) || incident.assignedTo === "campus_counselor";
+      if (!allowed) return withCorrelationHeaders(event, forbidden());
+    }
+
+    if (incident.confidential && !canViewWellness && canViewIncidents) {
+      return withCorrelationHeaders(
+        event,
+        ok({
+          incident: {
+            id: incident.id,
+            status: incident.status,
+            buildingLabel: incident.buildingLabel,
+            createdAt: incident.createdAt,
+            confidential: true,
+            _restricted: true,
+          },
+        }),
+      );
+    }
+
+    if (event.queryStringParameters?.format === "pdf") {
+      const pdf = await exportCampusAfterActionPdf(incident);
+      return withCorrelationHeaders(event, {
+        statusCode: 200,
+        headers: {
+          "content-type": "application/pdf",
+          "content-disposition": `attachment; filename="campus-aar-${incident.id}.pdf"`,
+        },
+        body: pdf.toString("base64"),
+        isBase64Encoded: true,
+      });
     }
 
     return withCorrelationHeaders(event, ok({ incident }));

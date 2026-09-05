@@ -8,6 +8,7 @@ import {
 } from "@aws-sdk/lib-dynamodb";
 import type { z } from "zod";
 import type { VenueIncidentCameraSummary } from "rapid-cortex-shared";
+import { campusAutomationRuleMatches, isCampusCounselorQueueType } from "rapid-cortex-shared";
 import { makeId } from "../lib/ids.js";
 import { AuditRepository } from "../repositories/auditRepository.js";
 import { getCamerasForBuildingFloor } from "../handlers/campus/cameras/campus-camera-registry-service.js";
@@ -21,6 +22,8 @@ import type {
 import { CAMPUS_KEYS } from "./campus-types.js";
 import type { createIncidentSchema, updateIncidentSchema } from "./campus-schemas.js";
 import { isConfidentialType, legalStatusTransition } from "./campus-schemas.js";
+import { suggestCleryCategory } from "./campus-clery-service.js";
+import { listCampusAutomationRules, matchCampusEapForIncident } from "./campus-eap-service.js";
 
 const ddb = DynamoDBDocumentClient.from(new DynamoDBClient({}));
 const auditRepo = new AuditRepository();
@@ -41,6 +44,16 @@ export function makeIncidentId(campusCode: string): string {
   return `${campusCode}-${year}-${seq}`;
 }
 
+function defaultCounselorAssignment(type: CampusIncidentType): {
+  assignedTo: string | null;
+  assignedToName: string | null;
+} {
+  if (isCampusCounselorQueueType(type)) {
+    return { assignedTo: "campus_counselor", assignedToName: "Counseling queue" };
+  }
+  return { assignedTo: null, assignedToName: null };
+}
+
 export async function createCampusIncident(
   input: z.infer<typeof createIncidentSchema>,
   agencyId: string,
@@ -49,6 +62,8 @@ export async function createCampusIncident(
   const id = makeIncidentId(input.campusCode);
   const now = new Date().toISOString();
   const confidential = input.confidential ?? isConfidentialType(input.type);
+  const assignee = defaultCounselorAssignment(input.type);
+  const cleryCategorySuggested = suggestCleryCategory(input.type, input.description);
 
   const item: CampusIncident = {
     pk: CAMPUS_KEYS.incidentPk(input.campusCode),
@@ -56,6 +71,7 @@ export async function createCampusIncident(
     id,
     campusCode: input.campusCode,
     agencyId,
+    siteCode: input.siteCode?.trim() || undefined,
     buildingCode: input.buildingCode,
     buildingLabel: input.buildingCode,
     floor: input.floor ?? null,
@@ -72,16 +88,39 @@ export async function createCampusIncident(
     description: input.description,
     isAnonymous: input.isAnonymous,
     confidential,
-    assignedTo: null,
-    assignedToName: null,
-    cameraRefs: [],
+    assignedTo: assignee.assignedTo,
+    assignedToName: assignee.assignedToName,
+    cameraRefs: input.cameraIds ?? [],
     hasMedia: false,
     mediaUrls: [],
     createdAt: now,
     updatedAt: now,
     resolvedAt: null,
     cleryCategory: null,
+    cleryCategorySuggested,
+    eapChecklist: null,
+    suggestedActions: assignee.assignedTo
+      ? { assignRole: assignee.assignedTo }
+      : undefined,
   };
+
+  try {
+    const rules = await listCampusAutomationRules(input.campusCode);
+    for (const rule of rules) {
+      if (!campusAutomationRuleMatches(rule, { type: item.type, zoneCode: item.zoneCode })) continue;
+      // SOC-043: notify role / attach checklist / open war room. Never CAD write-back or lockdown.
+      if (rule.actions.assignRole) {
+        item.assignedTo = rule.actions.assignRole;
+        item.assignedToName = `${rule.actions.assignRole} queue`;
+        item.suggestedActions = { ...item.suggestedActions, assignRole: rule.actions.assignRole };
+      }
+      if (rule.actions.openWarRoom) {
+        item.suggestedActions = { ...item.suggestedActions, openWarRoom: true };
+      }
+    }
+  } catch (err) {
+    console.warn("[createCampusIncident] automation rules skipped", err);
+  }
 
   await ddb.send(
     new PutCommand({
@@ -122,9 +161,57 @@ export async function finalizeCampusIntakeIncident(
       incident.buildingCode,
       incident.floor != null ? String(incident.floor) : undefined,
       2,
+      {
+        zoneCode: incident.zoneCode,
+        qrRcli: incident.qrRcli,
+        assignedCameraIds: incident.cameraRefs,
+      },
     );
   } catch (err) {
     console.warn("[finalizeCampusIntakeIncident] camera lookup failed", err);
+  }
+
+  let eapChecklist = incident.eapChecklist ?? null;
+  try {
+    eapChecklist = await matchCampusEapForIncident(
+      incident.campusCode,
+      incident.buildingCode,
+      incident.type,
+    );
+  } catch (err) {
+    console.warn("[finalizeCampusIntakeIncident] EAP lookup failed", err);
+  }
+
+  const now = new Date().toISOString();
+  const updates: string[] = [];
+  const values: Record<string, unknown> = { ":now": now };
+  if (cameras.length > 0) {
+    updates.push("cameraRefs = :refs");
+    values[":refs"] = cameras.map((c) => c.cameraId);
+  }
+  if (eapChecklist) {
+    updates.push("eapChecklist = :eap");
+    values[":eap"] = eapChecklist;
+  }
+  if (updates.length > 0) {
+    try {
+      await ddb.send(
+        new UpdateCommand({
+          TableName: campusIncidentsTable(),
+          Key: { pk: incident.pk, sk: incident.sk },
+          UpdateExpression: `SET ${updates.join(", ")}, updatedAt = :now`,
+          ExpressionAttributeValues: values,
+        }),
+      );
+      incident = {
+        ...incident,
+        cameraRefs: cameras.length ? cameras.map((c) => c.cameraId) : incident.cameraRefs,
+        eapChecklist: eapChecklist ?? incident.eapChecklist,
+        updatedAt: now,
+      };
+    } catch (err) {
+      console.warn("[finalizeCampusIntakeIncident] persist cameras/EAP failed", err);
+    }
   }
 
   await broadcastVenueIncidentCreated({
@@ -136,6 +223,7 @@ export async function finalizeCampusIntakeIncident(
       type: incident.type,
       source: incident.source,
       status: incident.status,
+      qrRcli: incident.qrRcli,
     },
     cameras,
   });
@@ -173,6 +261,7 @@ export async function listCampusIncidents(opts: {
   status?: CampusIncidentStatus[];
   type?: CampusIncidentType[];
   confidentialOnly?: boolean;
+  counselorQueue?: boolean;
   limit?: number;
   cursor?: string;
 }): Promise<{ incidents: CampusIncident[]; cursor?: string; total: number }> {
@@ -202,6 +291,11 @@ export async function listCampusIncidents(opts: {
   }
   if (opts.confidentialOnly) {
     items = items.filter((i) => i.confidential);
+  }
+  if (opts.counselorQueue) {
+    items = items.filter(
+      (i) => isCampusCounselorQueueType(i.type) || i.assignedTo === "campus_counselor",
+    );
   }
 
   const hasMore = items.length > limit;

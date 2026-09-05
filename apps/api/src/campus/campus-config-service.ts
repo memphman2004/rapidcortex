@@ -1,5 +1,6 @@
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import { DynamoDBDocumentClient, GetCommand, QueryCommand } from "@aws-sdk/lib-dynamodb";
+import { CAMPUS_SITE_SCOPE_ALL, matchesCampusSiteScope } from "rapid-cortex-shared";
 import type { CampusAnalytics, CampusBuilding, CampusConfig, CampusZone } from "./campus-types.js";
 import { CAMPUS_KEYS } from "./campus-types.js";
 
@@ -76,6 +77,7 @@ export async function getCampusZone(campusCode: string, zoneCode: string): Promi
 export async function getCampusAnalytics(
   campusCode: string,
   range: "today" | "week" | "month",
+  siteScope: string = CAMPUS_SITE_SCOPE_ALL,
 ): Promise<CampusAnalytics> {
   const result = await ddb.send(
     new QueryCommand({
@@ -91,7 +93,14 @@ export async function getCampusAnalytics(
 
   const all = ((result.Items ?? []).filter(
     (i) => typeof (i as { sk?: string }).sk === "string" && String((i as { sk: string }).sk).startsWith("INCIDENT#"),
-  ) ?? []) as Array<{
+  ) ?? [])
+    .filter((i) =>
+      matchesCampusSiteScope(
+        (i as { siteCode?: string }).siteCode,
+        siteScope,
+        campusCode,
+      ),
+    ) as Array<{
     type: string;
     status: string;
     confidential: boolean;
@@ -99,6 +108,7 @@ export async function getCampusAnalytics(
     createdAt: string;
     resolvedAt?: string;
     buildingLabel: string;
+    siteCode?: string;
   }>;
 
   const now = new Date();
@@ -144,6 +154,9 @@ export async function getCampusAnalytics(
       sms: inRange.filter((i) => i.source === "sms").length,
       manual: inRange.filter((i) => i.source === "manual").length,
       phone: inRange.filter((i) => i.source === "phone").length,
+      webhook: inRange.filter((i) =>
+        ["vms", "alpr", "alarm", "sensor", "webhook"].includes(i.source),
+      ).length,
     },
     avgResponseMinutes: 0,
     escalatedToCore: inRange.filter((i) => i.status === "escalated").length,

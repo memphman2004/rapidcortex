@@ -3,7 +3,13 @@ import { getIntelWatch } from "./intel-db.js";
 import { collectWatchSourceDocuments, mockWatchDocuments } from "./intel-sources.js";
 import { upsertIntelOpportunity } from "./intel-upsert.js";
 import { analyzeOpportunity, classifyProcurementSignal } from "./openai-service.js";
+import { discoverUrlsForWatch } from "./openai-web-search-discoverer.js";
 import type { RapidIqIntelOpportunity, RapidIqIntelSourceDocument, RapidIqIntelWatch } from "rapid-cortex-shared";
+
+function watchFitFloor(watch: RapidIqIntelWatch, preRfp: boolean): number {
+  if (preRfp) return watch.preRfpFloor ?? Math.min(5, watch.minimumFitScore);
+  return watch.minimumFitScore;
+}
 
 export async function processSourceDocument(input: {
   doc: RapidIqIntelSourceDocument;
@@ -11,7 +17,8 @@ export async function processSourceDocument(input: {
 }): Promise<RapidIqIntelOpportunity | null> {
   const started = Date.now();
   const classified = await classifyProcurementSignal(input.doc, input.watch.market);
-  if (!classified.result.relevant && classified.result.estimatedFit < input.watch.minimumFitScore) {
+  const classifyFloor = watchFitFloor(input.watch, classified.result.preRfpSignal);
+  if (!classified.result.relevant && classified.result.estimatedFit < classifyFloor) {
     console.log(
       JSON.stringify({
         msg: "rapid_iq_intel_skip_low_fit",
@@ -30,7 +37,8 @@ export async function processSourceDocument(input: {
 
   const analyzed = await analyzeOpportunity(input.doc, input.watch.market, classified.result);
   const effectiveFit = analyzed.result.fitScore;
-  if (effectiveFit < input.watch.minimumFitScore && !analyzed.result.preRfpSignal) {
+  const analyzeFloor = watchFitFloor(input.watch, analyzed.result.preRfpSignal);
+  if (effectiveFit < analyzeFloor) {
     console.log(
       JSON.stringify({
         msg: "rapid_iq_intel_below_watch_threshold",
@@ -85,7 +93,16 @@ export async function processWatch(watchId: string): Promise<{
     return { watchId, agency: watch.agency, processed: 0, upserted: 0 };
   }
 
-  const docs = isCollectorsMockEnabled() ? mockWatchDocuments(watch) : await collectWatchSourceDocuments(watch);
+  const extraUrls: Array<{ url: string; sourceType: "openai_web_search" }> = [];
+  if (!isCollectorsMockEnabled()) {
+    const discovery = await discoverUrlsForWatch(watch);
+    for (const url of discovery.discoveredUrls) {
+      extraUrls.push({ url, sourceType: "openai_web_search" });
+    }
+  }
+  const docs = isCollectorsMockEnabled()
+    ? mockWatchDocuments(watch)
+    : await collectWatchSourceDocuments(watch, 8, extraUrls);
   let upserted = 0;
   for (const doc of docs) {
     try {

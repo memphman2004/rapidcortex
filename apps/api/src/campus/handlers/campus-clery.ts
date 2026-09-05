@@ -27,6 +27,7 @@ import {
   createManualCleryEntry,
   deleteCleryEntry,
   exportCleryReportCsv,
+  exportCleryReportPdf,
   fetchExternalCleryRows,
   importCleryRows,
   listCleryEntries,
@@ -113,6 +114,19 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
             "content-disposition": `attachment; filename="clery-${parsed.data.campusCode}-${parsed.data.academicYear}.csv"`,
           },
           body: csv,
+        });
+      }
+
+      if (parsed.data.format === "pdf") {
+        const pdf = await exportCleryReportPdf(report);
+        return withCorrelationHeaders(event, {
+          statusCode: 200,
+          headers: {
+            "content-type": "application/pdf",
+            "content-disposition": `attachment; filename="clery-${parsed.data.campusCode}-${parsed.data.academicYear}.pdf"`,
+          },
+          body: pdf.toString("base64"),
+          isBase64Encoded: true,
         });
       }
 

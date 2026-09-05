@@ -25,3 +25,12 @@ describe("Campus operational map UI flag", () => {
     expect(mod.isCampusOperationalMapEnabled()).toBe(false);
   });
 });
+
+describe("Campus EAP UI flag", () => {
+  it("defaults on when unset", async () => {
+    vi.resetModules();
+    vi.stubEnv("NEXT_PUBLIC_ENABLE_CAMPUS_EAP", "");
+    const mod = await import("./runtime-flags.js");
+    expect(mod.isCampusEapEnabled()).toBe(true);
+  });
+});

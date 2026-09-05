@@ -17,6 +17,10 @@ Split by **who sets** and **visibility** to avoid treating marketing toggles as 
 | `NEXT_PUBLIC_ENABLE_SOP_PROTOCOL_AI` | F4 SOP card + admin SOP | Shown |
 | `NEXT_PUBLIC_ENABLE_NON_EMERGENCY_TRIAGE` | F3 triage strip + queue tab | Shown |
 | `NEXT_PUBLIC_ENABLE_DISPATCHER_WELLNESS` | F5 supervisor wellness (never enable for dispatcher-only builds) | Shown |
+| `NEXT_PUBLIC_ENABLE_CAMPUS_CLERY` | Campus Clery ASR workspace | Shown |
+| `NEXT_PUBLIC_ENABLE_CAMPUS_EAP` | Campus EAP / checklist library | Shown |
+| `NEXT_PUBLIC_ENABLE_HOSTED_UI_SSO` | Cognito Hosted UI campus SSO button | Shown |
+| `NEXT_PUBLIC_ENABLE_CROSS_JURISDICTION_SHARES` | Mutual-aid share partners | Shown |
 
 **Not visible in browser (server-only on web):** `API_UPSTREAM_BASE`, `COGNITO_CLIENT_SECRET` — see [INSTALLATION.md](./INSTALLATION.md).
 

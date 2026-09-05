@@ -54,6 +54,7 @@ ensure_pipeline_table() {
 }
 
 PIPE_TABLE="${RAPID_IQ_PIPELINE_SIGNALS_TABLE:-rapid-cortex-rapid-iq-pipeline-signals-dev}"
+OPP_TABLE="${RAPID_IQ_OPPORTUNITIES_TABLE:-rapid-cortex-rapid-iq-opportunities-dev}"
 SALES_LEADS_TABLE="${SALES_LEADS_TABLE:-rapid-cortex-sales-leads-dev}"
 AUDIT_TABLE="${AUDIT_TABLE:-rapid-cortex-audit-dev}"
 
@@ -109,6 +110,8 @@ echo "Apollo ARN: ${RAPID_IQ_APOLLO_API_KEY_SECRET_ARN}"
 echo "Hunter ARN: ${RAPID_IQ_HUNTER_API_KEY_SECRET_ARN}"
 echo "Anthropic ARN: ${ANTHROPIC_API_KEY_SECRET_ARN}"
 echo "OpenAI ARN: ${OPENAI_API_KEY_SECRET_ARN:-<unset — intel falls back to heuristics>}"
+echo "OpenAI web search: ${OPENAI_WEB_SEARCH_ENABLED:-false}"
+echo "Opportunities table: ${OPP_TABLE}"
 
 # shellcheck source=scripts/lib/api-vendor-lock.sh
 source "${ROOT}/scripts/lib/api-vendor-lock.sh"
@@ -165,6 +168,7 @@ PARAM_OVERRIDES=(
   DeploymentStage=dev
   "HttpApiId=${HTTP_API_ID}"
   "RapidIqPipelineSignalsTable=${PIPE_TABLE}"
+  "RapidIqOpportunitiesTable=${OPP_TABLE}"
   "SalesLeadsTable=${SALES_LEADS_TABLE}"
   "AuditTable=${AUDIT_TABLE}"
   ImportedCognitoUserPoolId=us-east-1_0z6tA6WBs
@@ -173,6 +177,7 @@ PARAM_OVERRIDES=(
   "AnthropicApiKeySecretArn=${ANTHROPIC_API_KEY_SECRET_ARN}"
   "RapidIqApolloApiKeySecretArn=${RAPID_IQ_APOLLO_API_KEY_SECRET_ARN}"
   "RapidIqHunterApiKeySecretArn=${RAPID_IQ_HUNTER_API_KEY_SECRET_ARN}"
+  "OpenAiWebSearchEnabled=${OPENAI_WEB_SEARCH_ENABLED:-false}"
 )
 if [[ -n "${RAPID_IQ_SAM_GOV_API_KEY_SECRET_ARN:-}" ]]; then
   PARAM_OVERRIDES+=("RapidIqSamGovApiKeySecretArn=${RAPID_IQ_SAM_GOV_API_KEY_SECRET_ARN}")

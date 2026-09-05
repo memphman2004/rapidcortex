@@ -19,6 +19,7 @@ import {
   patchCampusThreatLevel,
 } from "@/lib/campus/campus-dashboard-api";
 import type { CampusIncident } from "@/lib/campus/types";
+import { useSession } from "@/components/auth/session-context";
 import { useAgencyWebSocket } from "@/hooks/use-agency-websocket";
 import { fetchVenueSectionCameras } from "@/lib/venue/venue-camera-api";
 import type { VenueActiveIncidentPanel } from "@/components/venue/IncidentCameraPanel";
@@ -80,6 +81,8 @@ export type CampusDashboardState = {
 };
 
 export function useCampusDashboard(agencyId: string, campusCode: string): CampusDashboardState {
+  const { user } = useSession();
+  const counselorQueue = (user?.role ?? "").trim().toUpperCase() === "CAMPUS_COUNSELOR";
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [stats, setStats] = useState<CampusStatsResponse | null>(null);
@@ -102,7 +105,7 @@ export function useCampusDashboard(agencyId: string, campusCode: string): Campus
           fetchCampusZones(agencyId),
           fetchCampusBuildings(agencyId),
           fetchCampusOnDuty(agencyId),
-          fetchCampusOpenIncidents(campusCode, 20),
+          fetchCampusOpenIncidents(campusCode, 20, { counselorQueue }),
           fetchCampusThreatLevel(agencyId),
         ]);
       setStats(statsRes);
@@ -116,7 +119,7 @@ export function useCampusDashboard(agencyId: string, campusCode: string): Campus
     } finally {
       setLoading(false);
     }
-  }, [agencyId, campusCode]);
+  }, [agencyId, campusCode, counselorQueue]);
 
   useEffect(() => {
     void refresh();
@@ -126,22 +129,26 @@ export function useCampusDashboard(agencyId: string, campusCode: string): Campus
     async (data: Record<string, unknown>) => {
       const incidentId = String(data.incidentId ?? "");
       const section = String(data.section ?? "");
-      if (!incidentId || !section) return;
+      const qrRcli = String(data.qrRcli ?? "");
+      if (!incidentId) return;
 
       let cameras = (data.cameras as VenueIncidentCameraSummary[] | undefined) ?? [];
-      if (cameras.length === 0) {
+      if (cameras.length === 0 && (section || qrRcli)) {
         try {
-          cameras = await fetchVenueSectionCameras(agencyId, section, 2, "campus");
+          cameras = await fetchVenueSectionCameras(agencyId, section || "UNKNOWN", 2, "campus", {
+            qrRcli: qrRcli || undefined,
+          });
         } catch {
           cameras = [];
         }
       }
+      if (!section && cameras.length === 0) return;
 
       setActiveCameraIncident({
         incidentId,
-        section,
+        section: section || "QR",
         reportType: String(data.reportType ?? "incident"),
-        location: String(data.location ?? `Building ${section}`),
+        location: String(data.location ?? (section ? `Building ${section}` : "QR location")),
         cameras,
         createdAt: String(data.createdAt ?? new Date().toISOString()),
       });

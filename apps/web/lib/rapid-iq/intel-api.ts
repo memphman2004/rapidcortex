@@ -4,12 +4,14 @@ import type {
   RapidIqIntelOutreachAudience,
   RapidIqIntelPursuitBrief,
   RapidIqIntelWatch,
+  RapidIqRfpCountSnapshot,
 } from "rapid-cortex-shared";
 
 const BASE = "/api/rapid-iq/intel";
 
 export const INTEL_OPPORTUNITIES_QUERY_KEY = ["rapid-iq-intel-opportunities"] as const;
 export const INTEL_WATCHES_QUERY_KEY = ["rapid-iq-intel-watches"] as const;
+export const RFP_COUNTS_QUERY_KEY = ["rapid-iq-rfp-counts"] as const;
 
 export type IntelKpis = {
   newOpportunities: number;
@@ -139,5 +141,10 @@ export async function runIntelWatch(id: string): Promise<unknown> {
     method: "POST",
     credentials: "include",
   });
+  return parseJson(res);
+}
+
+export async function fetchRfpCounts(): Promise<{ snapshot: RapidIqRfpCountSnapshot | null }> {
+  const res = await fetch(`${BASE}/rfp-counts`, { credentials: "include", cache: "no-store" });
   return parseJson(res);
 }

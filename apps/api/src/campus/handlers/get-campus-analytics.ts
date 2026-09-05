@@ -29,7 +29,8 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
     }
 
     const range = (event.queryStringParameters?.range ?? "today") as "today" | "week" | "month";
-    const analytics = await getCampusAnalytics(campusCode, range);
+    const siteScope = event.queryStringParameters?.site ?? event.queryStringParameters?.siteCode;
+    const analytics = await getCampusAnalytics(campusCode, range, siteScope);
     return withCorrelationHeaders(event, ok(analytics));
   } catch (error) {
     if (error instanceof Error && error.message === "FORBIDDEN_PERMISSION") {

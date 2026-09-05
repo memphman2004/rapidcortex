@@ -21,6 +21,7 @@ export const createQRLocationSchema = z.object({
     .regex(/^[A-Za-z0-9]+$/)
     .transform((s) => s.toUpperCase()),
   vertical: qrLocationVerticalSchema,
+  siteCode: z.string().trim().max(20).optional(),
   lat: z.number().finite().optional(),
   lng: z.number().finite().optional(),
   active: z.boolean().optional().default(true),
@@ -44,6 +45,7 @@ export const qrLocationBulkRowSchema = z.object({
     .max(16)
     .regex(/^RC\d{3,}$/i)
     .transform((s) => s.toUpperCase()),
+  siteCode: z.string().trim().max(20).optional(),
   lat: z.coerce.number().finite().optional(),
   lng: z.coerce.number().finite().optional(),
 });

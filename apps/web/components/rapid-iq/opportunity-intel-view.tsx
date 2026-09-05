@@ -65,7 +65,7 @@ const emptyKpis: IntelKpis = {
 export function OpportunityIntelView() {
   const qc = useQueryClient();
   const [selectedId, setSelectedId] = useState<string | null>(null);
-  const [market, setMarket] = useState("TRANSIT");
+  const [market, setMarket] = useState("");
   const [recommendation, setRecommendation] = useState("");
   const [status, setStatus] = useState("");
   const [preRfp, setPreRfp] = useState("");
@@ -492,20 +492,22 @@ export function IntelWatchesStrip() {
   const watches = watchesQ.data ?? [];
   if (watches.length === 0) return null;
   return (
-    <div className="flex flex-wrap gap-1 border-t border-[rgba(255,255,255,0.04)] px-5 py-2">
-      {watches.slice(0, 25).map((w) => (
-        <button
-          key={w.id}
-          type="button"
-          title={`Run ${w.agency}`}
-          onClick={() => runM.mutate(w.id)}
-          className={`rounded-full px-2 py-0.5 text-[9px] ${
-            w.enabled ? "border border-slate-700 text-slate-400 hover:text-slate-200" : "text-slate-700"
-          }`}
-        >
-          {w.name}
-        </button>
-      ))}
+    <div className="max-h-24 overflow-y-auto border-t border-[rgba(255,255,255,0.04)] px-5 py-2">
+      <div className="flex flex-wrap gap-1">
+        {watches.map((w) => (
+          <button
+            key={w.id}
+            type="button"
+            title={`${w.market} · Run ${w.agency}`}
+            onClick={() => runM.mutate(w.id)}
+            className={`rounded-full px-2 py-0.5 text-[9px] ${
+              w.enabled ? "border border-slate-700 text-slate-400 hover:text-slate-200" : "text-slate-700"
+            }`}
+          >
+            {w.name}
+          </button>
+        ))}
+      </div>
     </div>
   );
 }

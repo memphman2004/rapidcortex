@@ -2,6 +2,7 @@ import type {
   CampusBuildingSummary,
   CampusNotificationBody,
   CampusOnDutyStaff,
+  CampusSite,
   CampusStatsResponse,
   CampusThreatLevel,
   CampusThreatLevelState,
@@ -24,6 +25,25 @@ function campusPath(agencyId: string, suffix: string): string {
 
 export async function fetchCampusStats(agencyId: string): Promise<CampusStatsResponse> {
   return readJson(await fetch(campusPath(agencyId, "/stats"), { cache: "no-store" }));
+}
+
+export async function fetchCampusSites(
+  agencyId: string,
+): Promise<{ sites: CampusSite[]; primarySiteCode: string }> {
+  return readJson(await fetch(campusPath(agencyId, "/sites"), { cache: "no-store" }));
+}
+
+export async function saveCampusSites(
+  agencyId: string,
+  body: { sites: CampusSite[]; buildingAssignments?: Array<{ buildingId: string; siteCode: string }> },
+): Promise<{ sites: CampusSite[]; primarySiteCode: string }> {
+  return readJson(
+    await fetch(campusPath(agencyId, "/sites"), {
+      method: "PUT",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify(body),
+    }),
+  );
 }
 
 export async function fetchCampusZones(agencyId: string): Promise<CampusZoneSummary[]> {
@@ -95,12 +115,14 @@ export async function postCampusBroadcast(
 export async function fetchCampusOpenIncidents(
   campusCode: string,
   limit = 20,
+  opts?: { counselorQueue?: boolean },
 ): Promise<CampusIncident[]> {
   const params = new URLSearchParams({
     campusCode,
     status: "open,assigned,responding",
     limit: String(limit),
   });
+  if (opts?.counselorQueue) params.set("queue", "counselor");
   const res = await fetch(`/api/campus/incidents?${params}`, { cache: "no-store" });
   if (!res.ok) throw new Error(`Failed to load incidents (${res.status})`);
   const data = (await res.json()) as { incidents?: CampusIncident[] };

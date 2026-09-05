@@ -11,13 +11,15 @@ import type {
   WarRoomMessage,
   WarRoomParticipant,
 } from "rapid-cortex-shared";
-import { isRcsuperadmin } from "rapid-cortex-shared";
+import { isRcsuperadmin, migrateLegacyRapidCortexRoleTokenValue } from "rapid-cortex-shared";
 import { resolveIncidentRead } from "../lib/incidentReadAccess.js";
 import { env } from "../lib/env.js";
 import { makeId } from "../lib/ids.js";
 import { AuditRepository } from "../repositories/auditRepository.js";
 import { WarRoomMessageRepository } from "../repositories/warRoomMessageRepository.js";
 import { WarRoomRepository } from "../repositories/warRoomRepository.js";
+import { campusCodeFromAgencyId } from "../campus/campus-access.js";
+import { getCampusIncident } from "../campus/campus-incident-service.js";
 
 const rooms = new WarRoomRepository();
 const messages = new WarRoomMessageRepository();
@@ -35,12 +37,30 @@ function assertInfra(): void {
   }
 }
 
+function campusRoleToken(role: string): string {
+  return (migrateLegacyRapidCortexRoleTokenValue(role) ?? role).trim().toUpperCase();
+}
+
+function canCreateCampusWarRoom(role: string): boolean {
+  const token = campusRoleToken(role);
+  return token === "CAMPUS_ADMIN" || token === "CAMPUS_SUPERVISOR";
+}
+
+function isCampusCommandRole(role: string): boolean {
+  const token = campusRoleToken(role);
+  return (
+    token === "CAMPUS_ADMIN" ||
+    token === "CAMPUS_SUPERVISOR" ||
+    token === "CAMPUS_SECURITY" ||
+    token === "CAMPUS_DISPATCH"
+  );
+}
+
 function assertSupervisor(user: UserContext): void {
-  if (!isSupervisorOrAdmin(user.role)) {
-    const err = new Error("FORBIDDEN");
-    (err as Error & { statusCode?: number }).statusCode = 403;
-    throw err;
-  }
+  if (isSupervisorOrAdmin(user.role) || canCreateCampusWarRoom(user.role)) return;
+  const err = new Error("FORBIDDEN");
+  (err as Error & { statusCode?: number }).statusCode = 403;
+  throw err;
 }
 
 function assertAgency(user: UserContext, agencyId: string): void {
@@ -54,14 +74,25 @@ function assertAgency(user: UserContext, agencyId: string): void {
 
 async function assertIncidentInAgency(user: UserContext, incidentId: string): Promise<string> {
   const resolved = await resolveIncidentRead(incidentId, user);
-  if (!resolved) {
+  if (resolved) {
+    const agencyId = resolved.incident.agencyId;
+    assertAgency(user, agencyId);
+    return agencyId;
+  }
+  if (!user.agencyId || !isCampusCommandRole(user.role)) {
     const err = new Error("NOT_FOUND");
     (err as Error & { statusCode?: number }).statusCode = 404;
     throw err;
   }
-  const agencyId = resolved.incident.agencyId;
-  assertAgency(user, agencyId);
-  return agencyId;
+  const campusCode = campusCodeFromAgencyId(user.agencyId);
+  const campusIncident = await getCampusIncident(campusCode, incidentId);
+  if (!campusIncident) {
+    const err = new Error("NOT_FOUND");
+    (err as Error & { statusCode?: number }).statusCode = 404;
+    throw err;
+  }
+  assertAgency(user, user.agencyId);
+  return user.agencyId;
 }
 
 function activeParticipantCount(room: WarRoom): number {

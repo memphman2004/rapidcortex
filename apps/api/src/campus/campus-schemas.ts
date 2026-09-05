@@ -16,7 +16,7 @@ export const createIncidentSchema = z.object({
     "active_threat",
     "other",
   ]),
-  source: z.enum(["qr", "sms", "manual", "phone"]),
+  source: z.enum(["qr", "sms", "manual", "phone", "vms", "alpr", "alarm", "sensor", "webhook"]),
   description: z.string().min(1).max(2000),
   isAnonymous: z.boolean().default(true),
   confidential: z.boolean().optional(),
@@ -25,6 +25,9 @@ export const createIncidentSchema = z.object({
   zoneCode: z.string().max(16).optional(),
   qrRcli: z.string().max(32).optional(),
   qrLocationName: z.string().max(200).optional(),
+  /** Cameras assigned to the scanned QR / area during inprocessing. */
+  cameraIds: z.array(z.string().min(1).max(64)).max(8).optional(),
+  siteCode: z.string().trim().max(20).optional(),
 });
 
 export const updateIncidentSchema = z.object({

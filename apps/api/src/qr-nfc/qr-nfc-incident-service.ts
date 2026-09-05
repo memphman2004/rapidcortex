@@ -27,6 +27,12 @@ function extractOrgCode(agencyId: string, vertical: QRNFCRecord["vertical"]): st
   return raw.split("-").slice(1).join("-").toUpperCase() || raw.toUpperCase();
 }
 
+function parseIncidentFloor(floor?: string): number | null {
+  if (!floor?.trim()) return null;
+  const n = Number.parseInt(floor.trim(), 10);
+  return Number.isFinite(n) ? n : null;
+}
+
 async function create911Incident(
   record: QRNFCRecord,
   input: PublicReportSubmitInput,
@@ -94,9 +100,10 @@ export async function createIncidentFromQrNfcReport(
     const { incident } = await createCampusQrIncident(
       {
         campusCode,
-        buildingCode: record.zoneId ?? "UNKNOWN",
+        buildingCode: record.buildingId?.trim() || record.zoneId?.trim() || "UNKNOWN",
+        floor: parseIncidentFloor(record.floor),
         roomCode: record.zoneId ?? "QR",
-        zoneCode: record.zoneId ?? "QR",
+        zoneCode: (record.zoneId ?? "QR").slice(0, 16),
         qrRcli: record.qrId,
         qrLocationName: record.name,
         type: "security",
@@ -106,6 +113,8 @@ export async function createIncidentFromQrNfcReport(
         confidential: false,
         phoneNumber: reporterPhone ?? null,
         photoDataUrl: null,
+        cameraIds: record.cameraIds,
+        siteCode: record.siteCode,
       },
       record.agencyId,
       "qr-nfc-intake",
@@ -120,15 +129,16 @@ export async function createIncidentFromQrNfcReport(
       agencyId: record.agencyId,
       rcli: record.qrId,
       locationName: record.name,
-      zoneCode: record.zoneId ?? "QR",
-      building: record.zoneName,
-      floor: undefined,
+      zoneCode: record.zoneId ?? record.buildingId ?? "QR",
+      building: record.buildingId ?? record.zoneName,
+      floor: record.floor,
       helpType: "safety",
       description: description || `Report at ${zone}`,
       isAnonymous,
       reporterName,
       reporterPhone,
       mediaKeys: input.mediaKeys ?? [],
+      cameraIds: record.cameraIds,
     });
     return incident.incidentId;
   }

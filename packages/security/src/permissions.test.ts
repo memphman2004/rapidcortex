@@ -65,4 +65,10 @@ describe("DEFAULT_ROLE_PERMISSIONS", () => {
     expect(isRcitadminCrossTenantPermission("analysis.view")).toBe(false);
     expect(isRcitadminCrossTenantPermission("transcripts.view")).toBe(false);
   });
+
+  it("grants onboarding packet view to rcadmin and agencyadmin, not dispatcher", () => {
+    expect(defaultPermissionForRole("rcadmin", "onboarding.packets.view")).toBe(true);
+    expect(defaultPermissionForRole("agencyadmin", "onboarding.packets.view")).toBe(true);
+    expect(defaultPermissionForRole("dispatcher", "onboarding.packets.view")).toBe(false);
+  });
 });
