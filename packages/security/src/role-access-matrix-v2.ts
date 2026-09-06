@@ -213,6 +213,7 @@ const TRANSIT_OPS_VIEW: readonly string[] = [
   "transit.reports.view",
   "transit.operators.view",
   "transit.routes.view",
+  "transit.cameras.view",
 ];
 
 export const TRANSIT_ROLE_PERMISSIONS: Record<TransitRole, string[]> = {
@@ -226,6 +227,7 @@ export const TRANSIT_ROLE_PERMISSIONS: Record<TransitRole, string[]> = {
     "transit.routes.manage",
     "transit.settings.view",
     "transit.settings.manage",
+    "transit.cameras.manage",
     "transit.alert.manage",
     "transit.broadcast.send",
     "locations.qrcodes.view",
@@ -237,6 +239,7 @@ export const TRANSIT_ROLE_PERMISSIONS: Record<TransitRole, string[]> = {
     "transit.incidents.update",
     "transit.incidents.escalate",
     "transit.settings.view",
+    "transit.cameras.manage",
     "transit.alert.manage",
     "transit.broadcast.send",
     "locations.qrcodes.view",
@@ -253,6 +256,7 @@ export const TRANSIT_ROLE_PERMISSIONS: Record<TransitRole, string[]> = {
     "transit.incidents.view",
     "transit.incidents.create",
     "transit.reports.view",
+    "transit.cameras.view",
   ],
 };
 
@@ -317,8 +321,46 @@ const RCS_DISPATCHER: readonly Permission[] = [
   "rcs.handoff.accept",
 ] as const;
 
-/** Read-only AI summary for QA/audit. */
+/** Analyst/auditor RCS read of summaries (no call manage). */
 const RCS_SUMMARY_VIEW: readonly Permission[] = ["rcs.summary.view"] as const;
+
+/** Multi-CAD Connector — dispatcher feed + submit write-back. */
+const CAD_CONNECTOR_DISPATCHER: readonly Permission[] = [
+  "cad.incidents.view",
+  "cad.writeback.submit",
+  "cad.writeback.view_queue",
+] as const;
+
+/** Supervisor: approve/reject write-back, health, audit. */
+const CAD_CONNECTOR_SUPERVISOR: readonly Permission[] = [
+  ...CAD_CONNECTOR_DISPATCHER,
+  "cad.writeback.approve",
+  "cad.writeback.reject",
+  "cad.health.view",
+  "cad.audit.view",
+] as const;
+
+/** Agency admin: connector + mapping + routing (no delete). */
+const CAD_CONNECTOR_ADMIN: readonly Permission[] = [
+  ...CAD_CONNECTOR_SUPERVISOR,
+  "cad.connector.view",
+  "cad.connector.manage",
+  "cad.fieldmapping.manage",
+  "cad.routing.manage",
+] as const;
+
+/** Agency IT: admin + connector delete. */
+const CAD_CONNECTOR_IT: readonly Permission[] = [
+  ...CAD_CONNECTOR_ADMIN,
+  "cad.connector.delete",
+] as const;
+
+/** Analyst / auditor read of unified feed and audit. */
+const CAD_CONNECTOR_AUDIT: readonly Permission[] = [
+  "cad.incidents.view",
+  "cad.audit.view",
+  "cad.writeback.view_queue",
+] as const;
 
 /** RMS / AI Report Writer — dispatcher generate & edit (no finalize/push). */
 const RMS_DISPATCHER: readonly Permission[] = [
@@ -382,6 +424,7 @@ const CORE_ROLE_ACCESS_MATRIX_V2 = {
     "users.view_activity",
     ...HOSPITAL_ROUTING_VIEW_ANALYTICS,
     ...RCS_ALL,
+    ...CAD_CONNECTOR_IT,
   ],
   rcitadmin: [
     "system.tenant_mgmt",
@@ -466,6 +509,7 @@ const CORE_ROLE_ACCESS_MATRIX_V2 = {
     ...HOSPITAL_ROUTING_FULL,
     ...RCS_ALL,
     ...RMS_AGENCY_ADMIN,
+    ...CAD_CONNECTOR_ADMIN,
   ],
   agencyit: [
     "users.view",
@@ -485,6 +529,7 @@ const CORE_ROLE_ACCESS_MATRIX_V2 = {
     ...HOSPITAL_ROUTING_VIEW_ANALYTICS,
     ...EMERGENCY_CONNECT_VIEW,
     ...RCS_DISPATCHER,
+    ...CAD_CONNECTOR_IT,
   ],
   supervisor: [
     "users.view",
@@ -539,6 +584,7 @@ const CORE_ROLE_ACCESS_MATRIX_V2 = {
     ...HOSPITAL_ROUTING_VIEW_ANALYTICS,
     ...RCS_ALL,
     ...RMS_SUPERVISOR,
+    ...CAD_CONNECTOR_SUPERVISOR,
   ],
   dispatcher: [
     "incidents.view",
@@ -567,6 +613,7 @@ const CORE_ROLE_ACCESS_MATRIX_V2 = {
     ...HOSPITAL_ROUTING_VIEW,
     ...RCS_DISPATCHER,
     ...RMS_DISPATCHER,
+    ...CAD_CONNECTOR_DISPATCHER,
   ],
   analyst: [
     "incidents.view",
@@ -586,6 +633,7 @@ const CORE_ROLE_ACCESS_MATRIX_V2 = {
     ...HOSPITAL_ROUTING_VIEW_ANALYTICS,
     ...RCS_SUMMARY_VIEW,
     ...RMS_ANALYST,
+    ...CAD_CONNECTOR_AUDIT,
   ],
   auditor: [
     "users.view",
@@ -604,6 +652,7 @@ const CORE_ROLE_ACCESS_MATRIX_V2 = {
     ...HOSPITAL_ROUTING_VIEW_ANALYTICS,
     ...RCS_SUMMARY_VIEW,
     ...RMS_AUDITOR,
+    ...CAD_CONNECTOR_AUDIT,
   ],
 } as const satisfies Record<
   "rcadmin" | "rcitadmin" | "agencyadmin" | "agencyit" | "supervisor" | "dispatcher" | "analyst" | "auditor",

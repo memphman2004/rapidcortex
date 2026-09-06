@@ -15,6 +15,10 @@ vi.mock("../../lib/operationalPasswordGate.js", () => ({
   operationalPasswordBlock: () => null,
 }));
 
+vi.mock("./cameras/transit-camera-http.js", () => ({
+  tryHandleTransitCameraHttp: vi.fn(async () => null),
+}));
+
 vi.mock("../../transit/transit-service.js", () => ({
   getDashboard: vi.fn(async () => ({ stats: { vehiclesInService: 1 } })),
   listVehicles: vi.fn(async () => []),

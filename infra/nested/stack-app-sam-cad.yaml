@@ -1,0 +1,456 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Transform: AWS::Serverless-2016-10-31
+Description: >
+  Rapid Cortex — Multi-CAD Connector (addon cad.connector). Routes attach to stack 2 HttpApi.
+  Fail-closed: ENABLE_CAD_CONNECTOR defaults false. Do not use /api/cad/* (legacy CAD).
+
+Parameters:
+  DeploymentStage:
+    Type: String
+    AllowedValues: [dev, staging, prod, pilot]
+  HttpApiId:
+    Type: String
+  ImportedCognitoUserPoolId:
+    Type: String
+  ImportedCognitoWebClientId:
+    Type: String
+  ImportedCognitoIssuer:
+    Type: String
+  AuditTable:
+    Type: String
+  AgenciesTable:
+    Type: String
+  ManagedPolicyNamePrefix:
+    Type: String
+    Default: rapid-cortex
+  OpsAlertsTopicArn:
+    Type: String
+    Default: ""
+  CadConnectorEnabled:
+    Type: String
+    Default: "false"
+    AllowedValues: ["true", "false"]
+    Description: ENABLE_CAD_CONNECTOR — fail-closed unless explicitly true
+  CadConnectorMock:
+    Type: String
+    Default: "false"
+    AllowedValues: ["true", "false"]
+
+Conditions:
+  HasOpsAlertsTopic: !Not [!Equals [!Ref OpsAlertsTopicArn, ""]]
+
+Globals:
+  Function:
+    Runtime: nodejs20.x
+    Timeout: 15
+    MemorySize: 256
+    Environment:
+      Variables:
+        DEPLOYMENT_STAGE: !Ref DeploymentStage
+        AUDIT_TABLE: !Ref AuditTable
+        AGENCIES_TABLE: !Ref AgenciesTable
+        COGNITO_USER_POOL_ID: !Ref ImportedCognitoUserPoolId
+        COGNITO_CLIENT_ID: !Ref ImportedCognitoWebClientId
+        COGNITO_REGION: !Ref AWS::Region
+        ALLOW_UNAUTHENTICATED_API: "false"
+        ENABLE_CAD_CONNECTOR: !Ref CadConnectorEnabled
+        CAD_CONNECTOR_MOCK: !Ref CadConnectorMock
+        CAD_CONNECTORS_TABLE: !Ref CadConnectorsTable
+        CAD_UNIFIED_INCIDENTS_TABLE: !Ref CadUnifiedIncidentsTable
+        CAD_CONNECTOR_WRITEBACKS_TABLE: !Ref CadConnectorWritebacksTable
+        CAD_CONNECTOR_AUDIT_TABLE: !Ref CadConnectorAuditTable
+        CAD_CONNECTOR_KMS_KEY_ID: !Ref CadConnectorKmsKey
+        CAD_CONNECTOR_OPS_TOPIC_ARN: !If [HasOpsAlertsTopic, !Ref OpsAlertsTopicArn, ""]
+
+Resources:
+  CadConnectorKmsKey:
+    Type: AWS::KMS::Key
+    Properties:
+      Description: Encrypts CAD connector base URLs at rest
+      EnableKeyRotation: true
+      KeyPolicy:
+        Version: "2012-10-17"
+        Statement:
+          - Sid: EnableRoot
+            Effect: Allow
+            Principal:
+              AWS: !Sub arn:aws:iam::${AWS::AccountId}:root
+            Action: kms:*
+            Resource: "*"
+
+  CadConnectorKmsAlias:
+    Type: AWS::KMS::Alias
+    Properties:
+      AliasName: !Sub alias/rapid-cortex-cad-connector-${DeploymentStage}
+      TargetKeyId: !Ref CadConnectorKmsKey
+
+  CadConnectorsTable:
+    Type: AWS::DynamoDB::Table
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      TableName: !Sub "rapid-cortex-cad-connectors-${DeploymentStage}"
+      BillingMode: PAY_PER_REQUEST
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: true
+      SSESpecification:
+        SSEEnabled: true
+      AttributeDefinitions:
+        - { AttributeName: agencyId, AttributeType: S }
+        - { AttributeName: connectorId, AttributeType: S }
+        - { AttributeName: vendorId, AttributeType: S }
+      KeySchema:
+        - { AttributeName: agencyId, KeyType: HASH }
+        - { AttributeName: connectorId, KeyType: RANGE }
+      GlobalSecondaryIndexes:
+        - IndexName: vendorId-index
+          KeySchema:
+            - { AttributeName: vendorId, KeyType: HASH }
+            - { AttributeName: agencyId, KeyType: RANGE }
+          Projection: { ProjectionType: ALL }
+
+  CadUnifiedIncidentsTable:
+    Type: AWS::DynamoDB::Table
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      TableName: !Sub "rapid-cortex-cad-unified-incidents-${DeploymentStage}"
+      BillingMode: PAY_PER_REQUEST
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: true
+      SSESpecification:
+        SSEEnabled: true
+      TimeToLiveSpecification:
+        AttributeName: ttlEpoch
+        Enabled: true
+      AttributeDefinitions:
+        - { AttributeName: agencyId, AttributeType: S }
+        - { AttributeName: unifiedId, AttributeType: S }
+        - { AttributeName: vendorKey, AttributeType: S }
+        - { AttributeName: dedupeKey, AttributeType: S }
+        - { AttributeName: status, AttributeType: S }
+      KeySchema:
+        - { AttributeName: agencyId, KeyType: HASH }
+        - { AttributeName: unifiedId, KeyType: RANGE }
+      GlobalSecondaryIndexes:
+        - IndexName: agencyId-vendorKey-index
+          KeySchema:
+            - { AttributeName: agencyId, KeyType: HASH }
+            - { AttributeName: vendorKey, KeyType: RANGE }
+          Projection: { ProjectionType: ALL }
+        - IndexName: agencyId-dedupeKey-index
+          KeySchema:
+            - { AttributeName: agencyId, KeyType: HASH }
+            - { AttributeName: dedupeKey, KeyType: RANGE }
+          Projection: { ProjectionType: ALL }
+        - IndexName: agencyId-status-index
+          KeySchema:
+            - { AttributeName: agencyId, KeyType: HASH }
+            - { AttributeName: status, KeyType: RANGE }
+          Projection: { ProjectionType: ALL }
+
+  CadConnectorWritebacksTable:
+    Type: AWS::DynamoDB::Table
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      TableName: !Sub "rapid-cortex-cad-connector-writebacks-${DeploymentStage}"
+      BillingMode: PAY_PER_REQUEST
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: true
+      SSESpecification:
+        SSEEnabled: true
+      TimeToLiveSpecification:
+        AttributeName: ttlEpoch
+        Enabled: true
+      AttributeDefinitions:
+        - { AttributeName: agencyId, AttributeType: S }
+        - { AttributeName: writeBackId, AttributeType: S }
+        - { AttributeName: status, AttributeType: S }
+        - { AttributeName: unifiedId, AttributeType: S }
+      KeySchema:
+        - { AttributeName: agencyId, KeyType: HASH }
+        - { AttributeName: writeBackId, KeyType: RANGE }
+      GlobalSecondaryIndexes:
+        - IndexName: agencyId-status-index
+          KeySchema:
+            - { AttributeName: agencyId, KeyType: HASH }
+            - { AttributeName: status, KeyType: RANGE }
+          Projection: { ProjectionType: ALL }
+        - IndexName: agencyId-unifiedId-index
+          KeySchema:
+            - { AttributeName: agencyId, KeyType: HASH }
+            - { AttributeName: unifiedId, KeyType: RANGE }
+          Projection: { ProjectionType: ALL }
+
+  CadConnectorAuditTable:
+    Type: AWS::DynamoDB::Table
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      TableName: !Sub "rapid-cortex-cad-connector-audit-${DeploymentStage}"
+      BillingMode: PAY_PER_REQUEST
+      DeletionProtectionEnabled: true
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: true
+      SSESpecification:
+        SSEEnabled: true
+      AttributeDefinitions:
+        - { AttributeName: agencyId, AttributeType: S }
+        - { AttributeName: eventId, AttributeType: S }
+        - { AttributeName: connectorId, AttributeType: S }
+        - { AttributeName: createdAt, AttributeType: S }
+      KeySchema:
+        - { AttributeName: agencyId, KeyType: HASH }
+        - { AttributeName: eventId, KeyType: RANGE }
+      GlobalSecondaryIndexes:
+        - IndexName: connectorId-index
+          KeySchema:
+            - { AttributeName: connectorId, KeyType: HASH }
+            - { AttributeName: createdAt, KeyType: RANGE }
+          Projection: { ProjectionType: ALL }
+
+  AppManagedPolicyCadConnector:
+    Type: AWS::IAM::ManagedPolicy
+    Properties:
+      ManagedPolicyName: !Sub "${ManagedPolicyNamePrefix}-sam-cad-connector-${DeploymentStage}"
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Sid: CadConnectorTables
+            Effect: Allow
+            Action:
+              - dynamodb:GetItem
+              - dynamodb:PutItem
+              - dynamodb:UpdateItem
+              - dynamodb:DeleteItem
+              - dynamodb:Query
+              - dynamodb:BatchGetItem
+              - dynamodb:BatchWriteItem
+              - dynamodb:DescribeTable
+              - dynamodb:ConditionCheckItem
+            Resource:
+              - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${CadConnectorsTable}
+              - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${CadConnectorsTable}/index/*
+              - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${CadUnifiedIncidentsTable}
+              - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${CadUnifiedIncidentsTable}/index/*
+              - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${CadConnectorWritebacksTable}
+              - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${CadConnectorWritebacksTable}/index/*
+              - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${AuditTable}
+              - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${AuditTable}/index/*
+              - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${AgenciesTable}
+              - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${AgenciesTable}/index/*
+          - Sid: CadConnectorEnabledScan
+            Effect: Allow
+            Action:
+              - dynamodb:Scan
+            Resource:
+              - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${CadConnectorsTable}
+          - Sid: CadConnectorAuditAppend
+            Effect: Allow
+            Action:
+              - dynamodb:GetItem
+              - dynamodb:PutItem
+              - dynamodb:Query
+              - dynamodb:DescribeTable
+              - dynamodb:ConditionCheckItem
+            Resource:
+              - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${CadConnectorAuditTable}
+              - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${CadConnectorAuditTable}/index/*
+          - Sid: CadConnectorKms
+            Effect: Allow
+            Action:
+              - kms:Encrypt
+              - kms:Decrypt
+              - kms:GenerateDataKey
+              - kms:DescribeKey
+            Resource: !GetAtt CadConnectorKmsKey.Arn
+          - Sid: CadConnectorSecrets
+            Effect: Allow
+            Action:
+              - secretsmanager:CreateSecret
+              - secretsmanager:PutSecretValue
+              - secretsmanager:GetSecretValue
+              - secretsmanager:DescribeSecret
+            Resource: !Sub arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:rapid-cortex/${DeploymentStage}/cad/*
+          - Sid: CadConnectorSns
+            Effect: Allow
+            Action:
+              - sns:Publish
+            Resource: !If
+              - HasOpsAlertsTopic
+              - !Ref OpsAlertsTopicArn
+              - !Sub arn:aws:sns:${AWS::Region}:${AWS::AccountId}:rapid-cortex-placeholder-cad-sns
+
+  CadConnectorHttpFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/handlers/cad-connector/cadConnectorHttp.handler
+      Timeout: 15
+      MemorySize: 256
+      Policies:
+        - !Ref AppManagedPolicyCadConnector
+
+  CadIngestionPollingFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/handlers/cad-connector/cadIngestionPolling.handler
+      Timeout: 60
+      MemorySize: 512
+      Policies:
+        - !Ref AppManagedPolicyCadConnector
+
+  CadHealthMonitorFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/handlers/cad-connector/cadHealthMonitor.handler
+      Timeout: 10
+      MemorySize: 256
+      Policies:
+        - !Ref AppManagedPolicyCadConnector
+
+  CadConnectorHttpIntegration:
+    Type: AWS::ApiGatewayV2::Integration
+    Properties:
+      ApiId: !Ref HttpApiId
+      IntegrationType: AWS_PROXY
+      IntegrationUri: !Sub arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${CadConnectorHttpFunction.Arn}/invocations
+      PayloadFormatVersion: "2.0"
+
+  CadConnectorHttpInvokePermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !Ref CadConnectorHttpFunction
+      Principal: apigateway.amazonaws.com
+      SourceArn: !Sub arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${HttpApiId}/*
+
+  CadIngestionSchedule:
+    Type: AWS::Events::Rule
+    Properties:
+      Description: CAD connector polling loop (per-connector interval enforced in code, min 30s)
+      ScheduleExpression: rate(1 minute)
+      State: ENABLED
+      Targets:
+        - Id: CadIngest
+          Arn: !GetAtt CadIngestionPollingFunction.Arn
+
+  CadIngestionInvokePermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !Ref CadIngestionPollingFunction
+      Principal: events.amazonaws.com
+      SourceArn: !GetAtt CadIngestionSchedule.Arn
+
+  CadHealthMonitorSchedule:
+    Type: AWS::Events::Rule
+    Properties:
+      Description: CAD connector health sweep
+      ScheduleExpression: rate(5 minutes)
+      State: ENABLED
+      Targets:
+        - Id: CadHealth
+          Arn: !GetAtt CadHealthMonitorFunction.Arn
+
+  CadHealthMonitorInvokePermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !Ref CadHealthMonitorFunction
+      Principal: events.amazonaws.com
+      SourceArn: !GetAtt CadHealthMonitorSchedule.Arn
+
+  RouteCadConnectorsGet:
+    Type: AWS::ApiGatewayV2::Route
+    Properties: { ApiId: !Ref HttpApiId, RouteKey: "GET /api/cad-connector/connectors", Target: !Sub "integrations/${CadConnectorHttpIntegration}" }
+  RouteCadConnectorsPost:
+    Type: AWS::ApiGatewayV2::Route
+    Properties: { ApiId: !Ref HttpApiId, RouteKey: "POST /api/cad-connector/connectors", Target: !Sub "integrations/${CadConnectorHttpIntegration}" }
+  RouteCadConnectorGet:
+    Type: AWS::ApiGatewayV2::Route
+    Properties: { ApiId: !Ref HttpApiId, RouteKey: "GET /api/cad-connector/connectors/{connectorId}", Target: !Sub "integrations/${CadConnectorHttpIntegration}" }
+  RouteCadConnectorPut:
+    Type: AWS::ApiGatewayV2::Route
+    Properties: { ApiId: !Ref HttpApiId, RouteKey: "PUT /api/cad-connector/connectors/{connectorId}", Target: !Sub "integrations/${CadConnectorHttpIntegration}" }
+  RouteCadConnectorDelete:
+    Type: AWS::ApiGatewayV2::Route
+    Properties: { ApiId: !Ref HttpApiId, RouteKey: "DELETE /api/cad-connector/connectors/{connectorId}", Target: !Sub "integrations/${CadConnectorHttpIntegration}" }
+  RouteCadConnectorEnable:
+    Type: AWS::ApiGatewayV2::Route
+    Properties: { ApiId: !Ref HttpApiId, RouteKey: "POST /api/cad-connector/connectors/{connectorId}/enable", Target: !Sub "integrations/${CadConnectorHttpIntegration}" }
+  RouteCadConnectorDisable:
+    Type: AWS::ApiGatewayV2::Route
+    Properties: { ApiId: !Ref HttpApiId, RouteKey: "POST /api/cad-connector/connectors/{connectorId}/disable", Target: !Sub "integrations/${CadConnectorHttpIntegration}" }
+  RouteCadConnectorHealthCheck:
+    Type: AWS::ApiGatewayV2::Route
+    Properties: { ApiId: !Ref HttpApiId, RouteKey: "POST /api/cad-connector/connectors/{connectorId}/health-check", Target: !Sub "integrations/${CadConnectorHttpIntegration}" }
+  RouteCadConnectorTestFetch:
+    Type: AWS::ApiGatewayV2::Route
+    Properties: { ApiId: !Ref HttpApiId, RouteKey: "POST /api/cad-connector/connectors/{connectorId}/test-fetch", Target: !Sub "integrations/${CadConnectorHttpIntegration}" }
+  RouteCadMappingsGet:
+    Type: AWS::ApiGatewayV2::Route
+    Properties: { ApiId: !Ref HttpApiId, RouteKey: "GET /api/cad-connector/connectors/{connectorId}/mappings", Target: !Sub "integrations/${CadConnectorHttpIntegration}" }
+  RouteCadMappingsPut:
+    Type: AWS::ApiGatewayV2::Route
+    Properties: { ApiId: !Ref HttpApiId, RouteKey: "PUT /api/cad-connector/connectors/{connectorId}/mappings", Target: !Sub "integrations/${CadConnectorHttpIntegration}" }
+  RouteCadRoutingGet:
+    Type: AWS::ApiGatewayV2::Route
+    Properties: { ApiId: !Ref HttpApiId, RouteKey: "GET /api/cad-connector/routing-rules", Target: !Sub "integrations/${CadConnectorHttpIntegration}" }
+  RouteCadRoutingPut:
+    Type: AWS::ApiGatewayV2::Route
+    Properties: { ApiId: !Ref HttpApiId, RouteKey: "PUT /api/cad-connector/routing-rules", Target: !Sub "integrations/${CadConnectorHttpIntegration}" }
+  RouteCadIncidentsGet:
+    Type: AWS::ApiGatewayV2::Route
+    Properties: { ApiId: !Ref HttpApiId, RouteKey: "GET /api/cad-connector/incidents", Target: !Sub "integrations/${CadConnectorHttpIntegration}" }
+  RouteCadIncidentGet:
+    Type: AWS::ApiGatewayV2::Route
+    Properties: { ApiId: !Ref HttpApiId, RouteKey: "GET /api/cad-connector/incidents/{unifiedId}", Target: !Sub "integrations/${CadConnectorHttpIntegration}" }
+  RouteCadIncidentDuplicates:
+    Type: AWS::ApiGatewayV2::Route
+    Properties: { ApiId: !Ref HttpApiId, RouteKey: "GET /api/cad-connector/incidents/{unifiedId}/duplicates", Target: !Sub "integrations/${CadConnectorHttpIntegration}" }
+  RouteCadWriteBackPost:
+    Type: AWS::ApiGatewayV2::Route
+    Properties: { ApiId: !Ref HttpApiId, RouteKey: "POST /api/cad-connector/write-back", Target: !Sub "integrations/${CadConnectorHttpIntegration}" }
+  RouteCadWriteBackList:
+    Type: AWS::ApiGatewayV2::Route
+    Properties: { ApiId: !Ref HttpApiId, RouteKey: "GET /api/cad-connector/write-back", Target: !Sub "integrations/${CadConnectorHttpIntegration}" }
+  RouteCadWriteBackGet:
+    Type: AWS::ApiGatewayV2::Route
+    Properties: { ApiId: !Ref HttpApiId, RouteKey: "GET /api/cad-connector/write-back/{writeBackId}", Target: !Sub "integrations/${CadConnectorHttpIntegration}" }
+  RouteCadWriteBackApprove:
+    Type: AWS::ApiGatewayV2::Route
+    Properties: { ApiId: !Ref HttpApiId, RouteKey: "POST /api/cad-connector/write-back/{writeBackId}/approve", Target: !Sub "integrations/${CadConnectorHttpIntegration}" }
+  RouteCadWriteBackReject:
+    Type: AWS::ApiGatewayV2::Route
+    Properties: { ApiId: !Ref HttpApiId, RouteKey: "POST /api/cad-connector/write-back/{writeBackId}/reject", Target: !Sub "integrations/${CadConnectorHttpIntegration}" }
+  RouteCadStatusGet:
+    Type: AWS::ApiGatewayV2::Route
+    Properties: { ApiId: !Ref HttpApiId, RouteKey: "GET /api/cad-connector/status", Target: !Sub "integrations/${CadConnectorHttpIntegration}" }
+  RouteCadAuditGet:
+    Type: AWS::ApiGatewayV2::Route
+    Properties: { ApiId: !Ref HttpApiId, RouteKey: "GET /api/cad-connector/audit", Target: !Sub "integrations/${CadConnectorHttpIntegration}" }
+
+Outputs:
+  CadConnectorHttpFunctionArn:
+    Value: !GetAtt CadConnectorHttpFunction.Arn
+  CadConnectorsTable:
+    Value: !Ref CadConnectorsTable
+  CadUnifiedIncidentsTable:
+    Value: !Ref CadUnifiedIncidentsTable
+  CadConnectorWritebacksTable:
+    Value: !Ref CadConnectorWritebacksTable
+  CadConnectorAuditTable:
+    Value: !Ref CadConnectorAuditTable

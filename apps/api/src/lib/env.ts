@@ -489,6 +489,7 @@ export const env = {
   enableCampusEap: featureEnabled("ENABLE_CAMPUS_EAP"),
   /** Signed inbound campus security-event webhook. Default on when unset. */
   enableCampusSecurityEvents: featureEnabled("ENABLE_CAMPUS_SECURITY_EVENTS"),
+  enableTransitCameras: featureEnabled("ENABLE_TRANSIT_CAMERAS"),
   /**
    * When true/1, `sourceSystem=mock` external sync returns sample Clery rows for local/CI.
    * Real third-party connectors still require credentials (not wired here).
@@ -598,6 +599,18 @@ export const env = {
   cadPublicApiBaseUrl: process.env.CAD_PUBLIC_API_BASE_URL?.trim() ?? "",
   /** When true, CAD write-back HTTP routes accept submissions (otherwise 400). */
   cadWritebackEnabled: featureEnabled("CAD_WRITEBACK_ENABLED", false),
+  /**
+   * Multi-CAD Connector aggregation layer (`/api/cad-connector/*`). Fail-closed:
+   * unset or any value other than true/1 disables the feature.
+   */
+  enableCadConnector: featureEnabled("ENABLE_CAD_CONNECTOR", false),
+  cadConnectorMock:
+    process.env.CAD_CONNECTOR_MOCK === "1" || process.env.CAD_CONNECTOR_MOCK === "true",
+  cadConnectorsTable: process.env.CAD_CONNECTORS_TABLE?.trim() ?? "",
+  cadUnifiedIncidentsTable: process.env.CAD_UNIFIED_INCIDENTS_TABLE?.trim() ?? "",
+  cadConnectorWritebacksTable: process.env.CAD_CONNECTOR_WRITEBACKS_TABLE?.trim() ?? "",
+  cadConnectorAuditTable: process.env.CAD_CONNECTOR_AUDIT_TABLE?.trim() ?? "",
+  cadConnectorKmsKeyId: process.env.CAD_CONNECTOR_KMS_KEY_ID?.trim() ?? "",
   enableVerticalOnboarding: featureEnabled("ENABLE_VERTICAL_ONBOARDING"),
   /**
    * When true (default), write-backs require supervisor/admin approval before vendor HTTP.

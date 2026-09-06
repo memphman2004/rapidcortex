@@ -2,13 +2,16 @@
 
 import type { TransitIncident, TransitOperator, TransitVehicle } from "rapid-cortex-shared";
 import { TransitVehicleModeIcon } from "./transit-vehicle-mode-icon";
+import { TransitVehicleCamerasPanel } from "./transit-vehicle-cameras-panel";
 import { T } from "./transit-theme";
 
 export function TransitVehicleDetailClient({
+  agencyId,
   vehicle,
   operator,
   incidents,
 }: {
+  agencyId: string;
   vehicle: TransitVehicle;
   operator?: TransitOperator;
   incidents: TransitIncident[];
@@ -48,9 +51,10 @@ export function TransitVehicleDetailClient({
           <dt style={{ color: T.textSecondary }}>Last GPS</dt>
           <dd style={{ margin: 0 }}>{vehicle.gpsAt ?? "—"}</dd>
           <dt style={{ color: T.textSecondary }}>Cameras</dt>
-          <dd style={{ margin: 0 }}>{vehicle.cameraIds?.join(", ") || "None registered"}</dd>
+          <dd style={{ margin: 0 }}>{vehicle.cameraIds?.join(", ") || "None assigned on vehicle record"}</dd>
         </dl>
       </div>
+      <TransitVehicleCamerasPanel agencyId={agencyId} vehicle={vehicle} />
       <div>
         <h2
           style={{

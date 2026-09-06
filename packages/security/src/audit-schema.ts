@@ -187,6 +187,8 @@ export const AUDIT_EVENT_TYPES = {
   TRANSIT_BROADCAST_SENT: "transit.broadcast.sent",
   TRANSIT_VEHICLE_UPDATED: "transit.vehicle.updated",
   TRANSIT_GPS_INGESTED: "transit.vehicle.gps",
+  TRANSIT_CAMERA_REGISTRY_UPDATED: "transit.camera_registry.updated",
+  TRANSIT_CAMERA_SESSION_STARTED: "transit.camera.session_started",
   // ── Silent text ────────────────────────────────────────────────────────────
   SILENT_TEXT_SESSION_CREATED: "silent_text.session.created",
   SILENT_TEXT_SMS_SENT: "silent_text.sms.sent",
@@ -362,6 +364,20 @@ export const AUDIT_EVENT_TYPES = {
   RCS_HANDOFF_REQUESTED: "rcs.handoff.requested",
   RCS_HANDOFF_ACCEPTED: "rcs.handoff.accepted",
   RCS_ESCALATION_WATCHDOG: "rcs.escalation.watchdog",
+
+  CAD_CONNECTOR_CREATED: "cad.connector.created",
+  CAD_CONNECTOR_UPDATED: "cad.connector.updated",
+  CAD_CONNECTOR_DELETED: "cad.connector.deleted",
+  CAD_CONNECTOR_ENABLED: "cad.connector.enabled",
+  CAD_CONNECTOR_DISABLED: "cad.connector.disabled",
+  CAD_CONNECTOR_HEALTH_CHECK: "cad.connector.health_check",
+  CAD_CONNECTOR_TEST_FETCH: "cad.connector.test_fetch",
+  CAD_INGESTION_RUN: "cad.ingestion.run",
+  CAD_INGESTION_DEDUPLICATED: "cad.ingestion.deduplicated",
+  CAD_FIELDMAPPING_UPDATED: "cad.fieldmapping.updated",
+  CAD_ROUTING_UPDATED: "cad.routing.updated",
+  CAD_WRITEBACK_DELIVERED: "cad.writeback.delivered",
+  CAD_WRITEBACK_NO_ROUTE: "cad.writeback.no_route",
 
   /** Supervisor opened Silent Monitor / presence on a dispatcher session. */
   SUPERVISOR_WATCHING: "supervisor.watching",

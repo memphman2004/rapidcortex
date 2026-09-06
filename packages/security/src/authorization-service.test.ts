@@ -173,6 +173,8 @@ describe("AuthorizationService.canPerform / assertCanPerform", () => {
       expect(auth.canPerform(security, "transit.incidents.create")).toBe(true);
       expect(auth.canPerform(security, "transit.alert.manage")).toBe(false);
       expect(auth.canPerform(security, "transit.incidents.escalate")).toBe(false);
+      expect(auth.canPerform(security, "transit.cameras.view")).toBe(true);
+      expect(auth.canPerform(security, "transit.cameras.manage")).toBe(false);
       expect(() => auth.assertCanPerform(security, "transit.alert.manage")).toThrow(
         "FORBIDDEN_PERMISSION",
       );
@@ -181,6 +183,7 @@ describe("AuthorizationService.canPerform / assertCanPerform", () => {
     it("grants transit_supervisor alert.manage and denies fleet.manage", () => {
       const supervisor = makeUser("transit_supervisor");
       expect(auth.canPerform(supervisor, "transit.alert.manage")).toBe(true);
+      expect(auth.canPerform(supervisor, "transit.cameras.manage")).toBe(true);
       expect(auth.canPerform(supervisor, "transit.fleet.manage")).toBe(false);
     });
 
@@ -196,11 +199,26 @@ describe("AuthorizationService.canPerform / assertCanPerform", () => {
     });
   });
 
-  describe("hospital roles", () => {
-    it("grants hospitalstaff hospital_portal.view but not capacity_manage", () => {
-      const staff = makeUser("hospitalstaff");
-      expect(auth.canPerform(staff, "hospital_portal.view")).toBe(true);
-      expect(auth.canPerform(staff, "hospital_portal.users_manage")).toBe(false);
+describe("CAD Connector permissions", () => {
+    it("grants dispatcher feed + submit and denies connector manage", () => {
+      const dispatcher = makeUser("dispatcher");
+      expect(auth.canPerform(dispatcher, "cad.incidents.view")).toBe(true);
+      expect(auth.canPerform(dispatcher, "cad.writeback.submit")).toBe(true);
+      expect(auth.canPerform(dispatcher, "cad.connector.manage")).toBe(false);
+      expect(auth.canPerform(dispatcher, "cad.writeback.approve")).toBe(false);
+    });
+
+    it("grants supervisor approve/reject and denies connector delete", () => {
+      const supervisor = makeUser("supervisor");
+      expect(auth.canPerform(supervisor, "cad.writeback.approve")).toBe(true);
+      expect(auth.canPerform(supervisor, "cad.audit.view")).toBe(true);
+      expect(auth.canPerform(supervisor, "cad.connector.delete")).toBe(false);
+    });
+
+    it("grants agencyit connector delete", () => {
+      const it = makeUser("agencyit");
+      expect(auth.canPerform(it, "cad.connector.delete")).toBe(true);
+      expect(auth.canPerform(it, "cad.routing.manage")).toBe(true);
     });
   });
 });

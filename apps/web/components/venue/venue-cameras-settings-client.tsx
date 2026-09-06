@@ -46,6 +46,9 @@ function emptyForm(agencyId: string): VenueCameraUpsertBody {
     ptzCapable: false,
     floor: undefined,
     siteCode: undefined,
+    vehicleId: undefined,
+    stationId: undefined,
+    routeId: undefined,
   };
 }
 
@@ -57,7 +60,8 @@ export function VenueCamerasSettingsClient({
   apiVertical?: CameraApiVertical;
 }) {
   const isCampus = apiVertical === "campus";
-  const locationLabel = isCampus ? "Building" : "Sections";
+  const isTransit = apiVertical === "transit";
+  const locationLabel = isCampus ? "Building" : isTransit ? "Vehicle / station" : "Sections";
   const [cameras, setCameras] = useState<VenueCamera[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -124,6 +128,9 @@ export function VenueCamerasSettingsClient({
           assetKind: camera.assetKind,
           latitude: camera.latitude,
           longitude: camera.longitude,
+          vehicleId: camera.vehicleId,
+          stationId: camera.stationId,
+          routeId: camera.routeId,
         });
   };
 
@@ -168,12 +175,6 @@ export function VenueCamerasSettingsClient({
       if (!payload.cameraId?.trim() && editingId === "new") {
         throw new Error("Camera ID is required");
       }
-      if (payload.sections.length === 0) {
-        throw new Error(isCampus ? "Building code is required" : "At least one section is required");
-      }
-      if (!payload.rtspUrl?.trim()) {
-        throw new Error("RTSP URL is required — use ONVIF discovery or paste from your VMS");
-      }
       if (isCampus) {
         payload.buildingId = payload.sections[0];
         const floor = form.floor?.trim();
@@ -185,6 +186,31 @@ export function VenueCamerasSettingsClient({
         const lng = form.longitude;
         payload.latitude = typeof lat === "number" && Number.isFinite(lat) ? lat : undefined;
         payload.longitude = typeof lng === "number" && Number.isFinite(lng) ? lng : undefined;
+      }
+      if (isTransit) {
+        payload.vehicleId = form.vehicleId?.trim() || payload.sections[0];
+        payload.stationId = form.stationId?.trim() || undefined;
+        payload.routeId = form.routeId?.trim() || undefined;
+        if (payload.sections.length === 0) {
+          const loc = payload.vehicleId || payload.stationId || payload.routeId;
+          if (loc) payload.sections = [loc];
+        }
+        const lat = form.latitude;
+        const lng = form.longitude;
+        payload.latitude = typeof lat === "number" && Number.isFinite(lat) ? lat : undefined;
+        payload.longitude = typeof lng === "number" && Number.isFinite(lng) ? lng : undefined;
+      }
+      if (payload.sections.length === 0) {
+        throw new Error(
+          isCampus
+            ? "Building code is required"
+            : isTransit
+              ? "Vehicle or station ID is required"
+              : "At least one section is required",
+        );
+      }
+      if (!payload.rtspUrl?.trim()) {
+        throw new Error("RTSP URL is required — use ONVIF discovery or paste from your VMS");
       }
       if (editingId === "new") {
         await createVenueCameraRegistryEntry(agencyId, payload, apiVertical);
@@ -313,11 +339,13 @@ export function VenueCamerasSettingsClient({
                   <div style={{ fontWeight: 700, color: "var(--rc-text-primary)", fontSize: 13 }}>{cam.displayName}</div>
                 </div>
                 <div style={{ fontSize: 11, color: "var(--rc-text-secondary)", marginTop: 4 }}>
-                  {locationLabel}: {isCampus ? (cam.buildingId ?? cam.sections[0] ?? "—") : cam.sections.join(", ")}
+                  {locationLabel}: {isCampus ? (cam.buildingId ?? cam.sections[0] ?? "—") : isTransit ? (cam.vehicleId ?? cam.stationId ?? cam.sections[0] ?? "—") : cam.sections.join(", ")}
                   {isCampus && cam.floor ? ` · Floor ${cam.floor}` : ""}
                   {isCampus && cam.zoneCode ? ` · Zone ${cam.zoneCode}` : ""}
                   {isCampus && cam.qrRcli ? ` · QR ${cam.qrRcli}` : ""}
                   {isCampus && cam.siteCode ? ` · Campus ${cam.siteCode}` : ""}
+                  {isTransit && cam.stationId ? ` · Station ${cam.stationId}` : ""}
+                  {isTransit && cam.routeId ? ` · Route ${cam.routeId}` : ""}
                   {" "}· Rank {cam.priorityRank} · {cam.vendor}
                 </div>
                 <div style={{ fontSize: 10, color: "var(--rc-text-muted)", marginTop: 2 }}>
@@ -384,15 +412,51 @@ export function VenueCamerasSettingsClient({
               hint={`Convention: rc-${agencyId}-{cameraId}`}
             />
             <Field
-              label={isCampus ? "Building code" : "Sections (comma-separated)"}
+              label={isCampus ? "Building code" : isTransit ? "Vehicle ID" : "Sections (comma-separated)"}
               value={form.sections.join(", ")}
               onChange={(v) =>
                 setForm({
                   ...form,
                   sections: v.split(",").map((s) => s.trim()).filter(Boolean),
+                  vehicleId: isTransit ? v.split(",")[0]?.trim() || undefined : form.vehicleId,
                 })
               }
             />
+            {isTransit ? (
+              <>
+                <Field
+                  label="Station ID (optional)"
+                  value={form.stationId ?? ""}
+                  onChange={(v) => setForm({ ...form, stationId: v || undefined })}
+                  hint="Platform / station cameras. Leave blank for onboard-only cameras."
+                />
+                <Field
+                  label="Route ID (optional)"
+                  value={form.routeId ?? ""}
+                  onChange={(v) => setForm({ ...form, routeId: v || undefined })}
+                />
+                <Field
+                  label="Latitude (optional)"
+                  value={form.latitude != null ? String(form.latitude) : ""}
+                  onChange={(v) =>
+                    setForm({
+                      ...form,
+                      latitude: v.trim() ? Number(v) : undefined,
+                    })
+                  }
+                />
+                <Field
+                  label="Longitude (optional)"
+                  value={form.longitude != null ? String(form.longitude) : ""}
+                  onChange={(v) =>
+                    setForm({
+                      ...form,
+                      longitude: v.trim() ? Number(v) : undefined,
+                    })
+                  }
+                />
+              </>
+            ) : null}
             {isCampus ? (
               <>
                 <Field

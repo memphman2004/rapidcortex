@@ -13,12 +13,14 @@ import {
   Radio,
   Settings,
   Users,
+  Video,
 } from "lucide-react";
 import {
   canTransitAdminOps,
   canTransitDispatchOps,
   canTransitSupervisorOps,
 } from "@/lib/vertical/supervisor-access";
+import { isTransitCamerasUiEnabled } from "@/lib/runtime-flags";
 import { T } from "./transit-theme";
 
 type NavItem = {
@@ -64,9 +66,9 @@ function navItems(base: string): NavItem[] {
     {
       id: "cameras",
       label: "Cameras",
-      href: `${base}/settings/cameras`,
-      icon: Radio,
-      adminOnly: true,
+      href: `${base}/cameras`,
+      icon: Video,
+      dispatchOnly: true,
     },
   ];
 }
@@ -79,7 +81,9 @@ export function TransitNav({
   userRole?: string;
 }) {
   const pathname = usePathname();
+  const camerasUi = isTransitCamerasUiEnabled();
   const items = navItems(linkBase).filter((item) => {
+    if (item.id === "cameras" && !camerasUi) return false;
     if (item.supervisorOnly && !canTransitSupervisorOps(userRole)) return false;
     if (item.adminOnly && !canTransitAdminOps(userRole)) return false;
     if (item.dispatchOnly && !canTransitDispatchOps(userRole)) return false;

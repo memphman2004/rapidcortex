@@ -10,6 +10,7 @@ import {
   serverError,
 } from "../../lib/response.js";
 import { requireTransitRouteContext } from "./transit-route-context.js";
+import { tryHandleTransitCameraHttp } from "./cameras/transit-camera-http.js";
 import * as transit from "../../transit/transit-service.js";
 
 function methodOf(event: Parameters<APIGatewayProxyHandlerV2>[0]): string {
@@ -38,6 +39,9 @@ function parseJson(event: Parameters<APIGatewayProxyHandlerV2>[0]): unknown {
 
 export const handler: APIGatewayProxyHandlerV2 = async (event) => {
   try {
+    const camera = await tryHandleTransitCameraHttp(event);
+    if (camera) return camera;
+
     const dash = match(event, "GET", /^\/api\/transit\/[^/]+\/dashboard\/?$/);
     if (dash) {
       const ctx = await requireTransitRouteContext(event, "transit.dashboard.view");

@@ -65,11 +65,14 @@ const NEXT_PUBLIC_FLAG_VALUES: Record<string, string | undefined> = {
   NEXT_PUBLIC_ENABLE_CONFERENCES: process.env.NEXT_PUBLIC_ENABLE_CONFERENCES,
   NEXT_PUBLIC_ENABLE_ESCALATION: process.env.NEXT_PUBLIC_ENABLE_ESCALATION,
   NEXT_PUBLIC_ENABLE_RMS: process.env.NEXT_PUBLIC_ENABLE_RMS,
+  NEXT_PUBLIC_ENABLE_TRANSIT_CAMERAS: process.env.NEXT_PUBLIC_ENABLE_TRANSIT_CAMERAS,
+  NEXT_PUBLIC_ENABLE_CAD_CONNECTOR: process.env.NEXT_PUBLIC_ENABLE_CAD_CONNECTOR,
   NEXT_PUBLIC_ENABLE_CONTACTS_MODULE: process.env.NEXT_PUBLIC_ENABLE_CONTACTS_MODULE,
   NEXT_PUBLIC_WEBSOCKET_URL: process.env.NEXT_PUBLIC_WEBSOCKET_URL,
 };
 
 const CAD_WRITEBACK_FLAG = "NEXT_PUBLIC_ENABLE_CAD_WRITEBACK";
+const CAD_CONNECTOR_FLAG = "NEXT_PUBLIC_ENABLE_CAD_CONNECTOR";
 const CHANNEL_MONITORING_FLAG = "NEXT_PUBLIC_ENABLE_CHANNEL_MONITORING";
 
 function isEnabledValue(value: string | undefined): boolean {
@@ -86,12 +89,12 @@ function isDisabledValue(value: string | undefined): boolean {
 
 /**
  * Operational feature gates default **on** when unset (live product surface).
- * CAD write-back defaults **off** unless explicitly enabled.
+ * CAD write-back and Multi-CAD Connector default **off** unless explicitly enabled.
  */
 function envFlag(name: string): boolean {
   if (typeof process === "undefined") return false;
   const value = NEXT_PUBLIC_FLAG_VALUES[name] ?? process.env[name];
-  if (name === CAD_WRITEBACK_FLAG) {
+  if (name === CAD_WRITEBACK_FLAG || name === CAD_CONNECTOR_FLAG) {
     if (isEnabledValue(value)) return true;
     return false;
   }
@@ -215,6 +218,16 @@ export function isCadNatureMappingUiEnabled(): boolean {
 /** CAD vendor write-back from dispatcher workspace (requires API Step 7). Off by default. */
 export function isCadWritebackUiEnabled(): boolean {
   return envFlag("NEXT_PUBLIC_ENABLE_CAD_WRITEBACK");
+}
+
+/** Multi-CAD Connector unified feed and connector admin. Off by default (fail-closed). */
+export function isCadConnectorUiEnabled(): boolean {
+  return envFlag("NEXT_PUBLIC_ENABLE_CAD_CONNECTOR");
+}
+
+/** Alias used by CAD Connector nav/pages. */
+export function isCadConnectorEnabled(): boolean {
+  return isCadConnectorUiEnabled();
 }
 
 /** Call queue backlog + SLA monitoring (dispatcher/supervisor dashboards). */
@@ -468,4 +481,9 @@ export function isEscalationUiEnabled(): boolean {
 /** AI Report Writer / NIBRS / RMS push / pre-call context. Default ON when unset. */
 export function isRmsUiEnabled(): boolean {
   return envFlag("NEXT_PUBLIC_ENABLE_RMS");
+}
+
+/** Transit ONVIF/RTSP registry + Ring/Nest cameras (campus/venue parity). Default on when unset. */
+export function isTransitCamerasUiEnabled(): boolean {
+  return envFlag("NEXT_PUBLIC_ENABLE_TRANSIT_CAMERAS");
 }

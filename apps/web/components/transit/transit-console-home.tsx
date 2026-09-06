@@ -49,7 +49,7 @@ export function TransitConsoleHome(props: {
   }, [pathname]);
 
   const view = useMemo(() => {
-    if (pathname.includes("/settings/cameras")) return "cameras";
+    if (pathname.includes("/cameras")) return "cameras";
     if (pathname.includes("/settings/vehicles")) return "settings-vehicles";
     if (pathname.includes("/settings/routes")) return "settings-routes";
     if (pathname.includes("/settings")) return "settings";
@@ -121,6 +121,7 @@ export function TransitConsoleHome(props: {
             ) : null}
             {view === "vehicle" && selectedVehicle ? (
               <TransitVehicleDetailClient
+                agencyId={props.agencyId}
                 vehicle={selectedVehicle}
                 operator={data.operators.find((o) => o.operatorId === selectedVehicle.operatorId)}
                 incidents={data.incidents.filter((i) => i.vehicleId === selectedVehicle.vehicleId)}
@@ -177,11 +178,19 @@ export function TransitConsoleHome(props: {
               <TransitSettingsVehiclesPanel vehicles={data.vehicles} />
             ) : null}
             {view === "settings-routes" ? <TransitSettingsRoutesPanel routes={data.routes} /> : null}
-            {view === "cameras" ? <TransitSettingsCamerasPanel vehicles={data.vehicles} /> : null}
+            {view === "cameras" ? (
+              <TransitSettingsCamerasPanel
+                agencyId={props.agencyId}
+                transitCode={props.transitCode}
+                userId={props.userId}
+                userRole={props.userRole}
+                vehicles={data.vehicles}
+              />
+            ) : null}
             {view === "settings" ? (
               <p style={{ color: T.textSecondary, fontSize: 13 }}>
-                Vehicle and route registries are managed from this agency’s seed/config APIs. Camera IDs
-                appear on each vehicle detail (registry list only — no PTZ).
+                Vehicle and route registries are managed from this agency’s seed/config APIs. Live
+                cameras are on the Cameras page (ONVIF/RTSP → KVS, plus Ring/Nest Connect).
               </p>
             ) : null}
           </>

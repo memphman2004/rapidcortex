@@ -6,7 +6,7 @@ import type {
 } from "rapid-cortex-shared";
 import { venueKvsChannelName } from "rapid-cortex-shared";
 
-export type CameraApiVertical = "venue" | "campus";
+export type CameraApiVertical = "venue" | "campus" | "transit";
 
 function camerasBase(vertical: CameraApiVertical, agencyId: string): string {
   return `/api/${vertical}/${encodeURIComponent(agencyId)}/cameras`;
@@ -17,16 +17,30 @@ export async function fetchVenueSectionCameras(
   sectionId: string,
   limit = 10,
   vertical: CameraApiVertical = "venue",
-  place?: { floor?: string; zone?: string; qrRcli?: string; cameraIds?: string[] },
+  place?: {
+    floor?: string;
+    zone?: string;
+    qrRcli?: string;
+    cameraIds?: string[];
+    stationId?: string;
+    routeId?: string;
+  },
 ): Promise<VenueIncidentCameraSummary[]> {
   const qs =
     vertical === "campus"
       ? new URLSearchParams({ building: sectionId, limit: String(limit) })
-      : new URLSearchParams({ section: sectionId, limit: String(limit) });
+      : vertical === "transit"
+        ? new URLSearchParams({ vehicle: sectionId, limit: String(limit) })
+        : new URLSearchParams({ section: sectionId, limit: String(limit) });
   if (vertical === "campus") {
     if (place?.floor) qs.set("floor", place.floor);
     if (place?.zone) qs.set("zone", place.zone);
     if (place?.qrRcli) qs.set("qrRcli", place.qrRcli);
+    if (place?.cameraIds?.length) qs.set("cameraIds", place.cameraIds.join(","));
+  }
+  if (vertical === "transit") {
+    if (place?.stationId) qs.set("station", place.stationId);
+    if (place?.routeId) qs.set("route", place.routeId);
     if (place?.cameraIds?.length) qs.set("cameraIds", place.cameraIds.join(","));
   }
   const res = await fetch(`${camerasBase(vertical, agencyId)}?${qs}`, {

@@ -18,6 +18,7 @@ export const ADDON_KEYS = [
   "cad.audit_logging",
   "cad.rollback_planning",
   "cad.additional_connector",
+  "cad.connector",
   "ai.triage.basic",
   "ai.triage.standard",
   "ai.triage.premium",

@@ -157,6 +157,8 @@ export const ALL_PERMISSIONS = [
   "venue.settings.view",
   "transit.alert.manage",
   "transit.broadcast.send",
+  "transit.cameras.manage",
+  "transit.cameras.view",
   "transit.dashboard.view",
   "transit.fleet.manage",
   "transit.fleet.view",
@@ -186,6 +188,18 @@ export const ALL_PERMISSIONS = [
   "rcs.handoff.accept",
   "rcs.floor.view",
   "rcs.rules.manage",
+  "cad.connector.view",
+  "cad.connector.manage",
+  "cad.connector.delete",
+  "cad.incidents.view",
+  "cad.writeback.submit",
+  "cad.writeback.approve",
+  "cad.writeback.reject",
+  "cad.writeback.view_queue",
+  "cad.audit.view",
+  "cad.fieldmapping.manage",
+  "cad.routing.manage",
+  "cad.health.view",
 ] as const;
 
 export type Permission = (typeof ALL_PERMISSIONS)[number];

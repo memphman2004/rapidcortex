@@ -17,13 +17,19 @@
       "types": "./dist/ring/index.d.ts",
       "import": "./dist/ring/index.js",
       "require": "./dist/ring/index.js"
+    },
+    "./cad": {
+      "types": "./dist/cad/index.d.ts",
+      "import": "./dist/cad/index.js",
+      "require": "./dist/cad/index.js"
     }
   },
   "scripts": {
-    "build": "tsc -p tsconfig.json && tsc -p ring/tsconfig.json"
+    "build": "tsc -p tsconfig.json && tsc -p ring/tsconfig.json && tsc -p cad/tsconfig.json"
   },
   "dependencies": {
     "@aws-sdk/client-dynamodb": "^3.699.0",
+    "@aws-sdk/client-kms": "^3.1127.0",
     "@aws-sdk/client-secrets-manager": "^3.699.0",
     "@aws-sdk/lib-dynamodb": "^3.699.0",
     "rapid-cortex-shared": "1.0.0"

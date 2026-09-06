@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-/** RTSP / VMS vendors for venue & campus fixed cameras (no Ring). */
+/** RTSP / VMS vendors for venue, campus, and transit fixed cameras (no Ring). */
 export const venueCameraVendorSchema = z.enum([
   "axis_rtsp",
   "hanwha_rtsp",
@@ -33,6 +33,12 @@ export const venueCameraSchema = z.object({
   qrRcli: z.string().min(1).max(32).optional(),
   /** Physical campus for multi-campus tenants. */
   siteCode: z.string().min(2).max(20).optional(),
+  /** Transit vertical: onboard camera on a vehicle. */
+  vehicleId: z.string().min(1).max(64).optional(),
+  /** Transit vertical: platform / station camera. */
+  stationId: z.string().min(1).max(64).optional(),
+  /** Transit vertical: route this camera covers. */
+  routeId: z.string().min(1).max(64).optional(),
   assetKind: z.enum(["camera", "blue_light", "door", "emergency_phone"]).optional(),
   latitude: z.number().min(-90).max(90).optional(),
   longitude: z.number().min(-180).max(180).optional(),
@@ -58,6 +64,9 @@ export const venueCameraUpsertBodySchema = z.object({
   zoneCode: z.string().min(1).max(32).optional(),
   qrRcli: z.string().min(1).max(32).optional(),
   siteCode: z.string().min(2).max(20).optional(),
+  vehicleId: z.string().min(1).max(64).optional(),
+  stationId: z.string().min(1).max(64).optional(),
+  routeId: z.string().min(1).max(64).optional(),
   assetKind: z.enum(["camera", "blue_light", "door", "emergency_phone"]).optional(),
   latitude: z.number().min(-90).max(90).optional(),
   longitude: z.number().min(-180).max(180).optional(),
@@ -81,12 +90,25 @@ export const campusCamerasQuerySchema = z.object({
   limit: z.coerce.number().int().min(1).max(20).optional(),
 });
 
+export const transitCamerasQuerySchema = z.object({
+  vehicle: z.string().min(1).optional(),
+  station: z.string().min(1).optional(),
+  route: z.string().min(1).optional(),
+  /** Comma-separated camera IDs assigned on the vehicle record. */
+  cameraIds: z.string().min(1).optional(),
+  limit: z.coerce.number().int().min(1).max(20).optional(),
+});
+
 export const venueIncidentCameraSummarySchema = z.object({
   cameraId: z.string(),
   displayName: z.string(),
   kvsChannelName: z.string(),
   vendor: venueCameraVendorSchema,
   ptzCapable: z.boolean(),
+  status: venueCameraStatusSchema.optional(),
+  vehicleId: z.string().optional(),
+  stationId: z.string().optional(),
+  routeId: z.string().optional(),
 });
 
 export const venueIncidentUpdateBodySchema = z.object({

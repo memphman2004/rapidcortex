@@ -47,6 +47,7 @@ process.env.OPS_ALERTS_TOPIC_ARN ??= "";
 process.env.CAD_INTEGRATIONS_TABLE ??= "test-cad-integrations";
 process.env.CAD_WRITEBACK_AUDIT_TABLE ??= "test-cad-writeback-audit";
 process.env.CAD_WRITEBACK_ENABLED ??= "false";
+process.env.ENABLE_CAD_CONNECTOR ??= "false";
 process.env.CAD_WRITEBACK_REQUIRES_APPROVAL ??= "true";
 process.env.ENABLE_RMS ??= "true";
 process.env.ENABLE_ESCALATION ??= "true";

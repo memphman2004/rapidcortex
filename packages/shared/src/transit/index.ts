@@ -43,3 +43,12 @@ export {
   type TransitAlertState,
   type TransitDashboardStats,
 } from "./schemas.js";
+
+export {
+  scoreTransitCameraForPlace,
+  toTransitCameraSummary,
+  rankTransitCamerasForPlace,
+  selectCamerasForTransitPlace,
+  type TransitCameraPlace,
+  type SelectTransitCamerasOpts,
+} from "./place-cameras.js";

@@ -1,0 +1,11 @@
+{
+  "extends": "../../../tsconfig.base.json",
+  "compilerOptions": {
+    "outDir": "../dist/cad",
+    "rootDir": ".",
+    "declaration": true,
+    "declarationMap": true
+  },
+  "include": ["./**/*.ts"],
+  "exclude": ["tsconfig.json", "__tests__", "**/*.test.ts"]
+}

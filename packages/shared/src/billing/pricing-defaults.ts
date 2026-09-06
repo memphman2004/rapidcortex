@@ -161,6 +161,8 @@ export const PRICING_DEFAULTS = {
 
   /** Response Continuity System module add-on ($/agency/month). */
   "rcs.module": 3500,
+  /** Multi-CAD Connector base ($/agency/month). Additional vendor connectors billed separately. */
+  "cad.connector": 3500,
 } as const;
 
 export type PricingKey = keyof typeof PRICING_DEFAULTS;

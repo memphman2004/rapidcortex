@@ -390,6 +390,7 @@ export type AuditResourceType =
   | "venue_camera_session"
   | "venue_camera"
   | "campus_camera"
+  | "transit_camera"
   | "venue_section"
   | "venue_profile"
   | "platform_notice"
@@ -414,6 +415,9 @@ export type AuditResourceType =
   | "hiring_bookings"
   | "grant_package"
   | "rcs_call"
+  | "cad_connector"
+  | "cad_unified_incident"
+  | "cad_writeback"
   | "clery_entry"
   | "clery_report"
   | "unknown";

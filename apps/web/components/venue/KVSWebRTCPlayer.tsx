@@ -23,7 +23,7 @@ type ViewerToken = {
 
 type ConnectionState = "idle" | "fetching" | "connecting" | "live" | "reconnecting" | "ended" | "error";
 
-/** KVS WebRTC viewer for venue/campus registry cameras (fixed channel name). */
+/** KVS WebRTC viewer for venue/campus/transit registry cameras (fixed channel name). */
 export function KVSWebRTCPlayer({
   agencyId,
   kvsChannelName,
@@ -35,7 +35,7 @@ export function KVSWebRTCPlayer({
   kvsChannelName: string;
   displayName: string;
   onClose?: () => void;
-  apiVertical?: "venue" | "campus";
+  apiVertical?: "venue" | "campus" | "transit";
 }) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const peerRef = useRef<RTCPeerConnection | null>(null);

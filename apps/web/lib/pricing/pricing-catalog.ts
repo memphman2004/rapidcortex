@@ -116,6 +116,11 @@ export const CAD_SECTIONS = [
     })),
   },
   {
+    id: "connector",
+    label: "Multi-CAD Connector",
+    rows: [{ key: "cad.connector", label: "Multi-CAD Connector (base)" }],
+  },
+  {
     id: "auto",
     label: "Automated Write-Back",
     rows: [

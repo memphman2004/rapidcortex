@@ -14,6 +14,7 @@ export {
   venueCameraUpsertBodySchema,
   venueCamerasQuerySchema,
   campusCamerasQuerySchema,
+  transitCamerasQuerySchema,
   venueIncidentCameraSummarySchema,
   venueIncidentUpdateBodySchema,
   venueIncidentStatusPatchSchema,

@@ -199,6 +199,18 @@ export const ADDON_CATALOG: AddonDefinition[] = [
     planAvailability: commandPlus,
   }),
   withLegacyIncludedInPlans({
+    key: "cad.connector",
+    name: "Multi-CAD Connector",
+    category: "CAD Integration",
+    description:
+      "Connect multiple CAD systems under a single agency tenant with unified incident intelligence.",
+    billingType: "monthly",
+    monthlyPrice: 3500,
+    oneTimePrice: 0,
+    planAvailability: commandPlus,
+    featureFlag: "cadConnector",
+  }),
+  withLegacyIncludedInPlans({
     key: "cad.additional_connector",
     name: "Additional CAD Vendor Connector",
     category: "CAD Integration",

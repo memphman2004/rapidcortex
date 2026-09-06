@@ -37,4 +37,10 @@ export type RingRole =
   | "CAMPUS_ADMIN"
   | "CAMPUS_SUPERVISOR"
   | "CAMPUS_SECURITY"
-  | "CAMPUS_DISPATCH";
+  | "CAMPUS_DISPATCH"
+  | "TRANSIT_ADMIN"
+  | "TRANSIT_SUPERVISOR"
+  | "TRANSIT_SECURITY"
+  | "transit_admin"
+  | "transit_supervisor"
+  | "transit_security";

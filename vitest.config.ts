@@ -10,6 +10,7 @@ export default defineConfig({
   resolve: {
     alias: {
       "@": path.resolve(repoRoot, "apps/web"),
+      "rapid-cortex-integrations/cad": path.resolve(repoRoot, "packages/integrations/cad/index.ts"),
     },
   },
   test: {

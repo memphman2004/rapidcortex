@@ -21,6 +21,10 @@ Parameters:
   ManagedPolicyNamePrefix:
     Type: String
     Default: rapid-cortex
+  AppPublicApiBase:
+    Type: String
+    Default: ""
+    Description: Stack 2 HttpApi execute-api URL for transit camera producer heartbeats
 
 Globals:
   Function:
@@ -173,6 +177,59 @@ Resources:
         - { AttributeName: agencyId, KeyType: HASH }
         - { AttributeName: sk, KeyType: RANGE }
 
+  TransitCameraRegistryTable:
+    Type: AWS::DynamoDB::Table
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      TableName: !Sub "rapid-cortex-transit-camera-registry-${DeploymentStage}"
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - { AttributeName: agencyId, AttributeType: S }
+        - { AttributeName: cameraId, AttributeType: S }
+      KeySchema:
+        - { AttributeName: agencyId, KeyType: HASH }
+        - { AttributeName: cameraId, KeyType: RANGE }
+
+  TransitCameraProducerSecret:
+    Type: AWS::SecretsManager::Secret
+    Properties:
+      Name: !Sub "rapid-cortex/${DeploymentStage}/transit/camera-producer-key"
+      Description: Producer-agent key for transit camera heartbeats (not a browser secret)
+      GenerateSecretString:
+        PasswordLength: 48
+        ExcludePunctuation: true
+
+  TransitKvsBrowserTokenRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Action: sts:AssumeRole
+            Principal:
+              AWS: !Sub "arn:aws:iam::${AWS::AccountId}:root"
+            Condition:
+              StringEquals:
+                aws:SourceAccount: !Ref AWS::AccountId
+              StringLike:
+                aws:PrincipalArn: !Sub "arn:aws:iam::${AWS::AccountId}:role/*TransitHttpFunction*"
+      Policies:
+        - PolicyName: TransitKvsWebrtcDataPlane
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Sid: TransitKvsDataPlane
+                Effect: Allow
+                Action:
+                  - kinesisvideo:ConnectAsMaster
+                  - kinesisvideo:ConnectAsViewer
+                  - kinesisvideo:DescribeSignalingChannel
+                  - kinesisvideo:GetSignalingChannelEndpoint
+                  - kinesisvideo:GetIceServerConfig
+                Resource: !Sub "arn:${AWS::Partition}:kinesisvideo:${AWS::Region}:${AWS::AccountId}:channel/rc-*/*"
+
   AppManagedPolicyTransitDynamo:
     Type: AWS::IAM::ManagedPolicy
     Properties:
@@ -208,6 +265,8 @@ Resources:
               - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${TransitReportsTable}/index/*
               - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${TransitConfigTable}
               - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${TransitConfigTable}/index/*
+              - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${TransitCameraRegistryTable}
+              - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${TransitCameraRegistryTable}/index/*
               - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${AuditTable}
               - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${AuditTable}/index/*
               - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${AgenciesTable}
@@ -230,8 +289,32 @@ Resources:
           TRANSIT_INCIDENTS_TABLE: !Ref TransitIncidentsTable
           TRANSIT_REPORTS_TABLE: !Ref TransitReportsTable
           TRANSIT_CONFIG_TABLE: !Ref TransitConfigTable
+          TRANSIT_CAMERA_REGISTRY_TABLE: !Ref TransitCameraRegistryTable
+          TRANSIT_CAMERA_PRODUCER_KEY_ARN: !Ref TransitCameraProducerSecret
+          KVS_BROWSER_TOKEN_ROLE_ARN: !GetAtt TransitKvsBrowserTokenRole.Arn
+          VENUE_KVS_PRODUCER_ROLE_ARN: !GetAtt TransitKvsBrowserTokenRole.Arn
+          APP_PUBLIC_API_BASE: !Ref AppPublicApiBase
+          TRANSIT_CAMERA_PRODUCER_API_BASE: !Ref AppPublicApiBase
       Policies:
         - !Ref AppManagedPolicyTransitDynamo
+        - Statement:
+            - Sid: TransitCameraKvs
+              Effect: Allow
+              Action:
+                - kinesisvideo:CreateSignalingChannel
+                - kinesisvideo:DescribeSignalingChannel
+                - kinesisvideo:GetSignalingChannelEndpoint
+                - kinesisvideo:GetIceServerConfig
+              Resource:
+                - !Sub arn:${AWS::Partition}:kinesisvideo:${AWS::Region}:${AWS::AccountId}:channel/rc-*/*
+            - Sid: TransitCameraAssumeBrowserRole
+              Effect: Allow
+              Action: sts:AssumeRole
+              Resource: !GetAtt TransitKvsBrowserTokenRole.Arn
+            - Sid: TransitCameraProducerSecretRead
+              Effect: Allow
+              Action: secretsmanager:GetSecretValue
+              Resource: !Ref TransitCameraProducerSecret
 
   TransitHttpIntegration:
     Type: AWS::ApiGatewayV2::Integration
@@ -315,6 +398,36 @@ Resources:
   RouteTransitAlertPut:
     Type: AWS::ApiGatewayV2::Route
     Properties: { ApiId: !Ref HttpApiId, RouteKey: "PUT /api/transit/{agencyId}/alert-level", Target: !Sub "integrations/${TransitHttpIntegration}" }
+  RouteTransitCamerasGet:
+    Type: AWS::ApiGatewayV2::Route
+    Properties: { ApiId: !Ref HttpApiId, RouteKey: "GET /api/transit/{agencyId}/cameras", Target: !Sub "integrations/${TransitHttpIntegration}" }
+  RouteTransitCameraRegistryGet:
+    Type: AWS::ApiGatewayV2::Route
+    Properties: { ApiId: !Ref HttpApiId, RouteKey: "GET /api/transit/{agencyId}/cameras/registry", Target: !Sub "integrations/${TransitHttpIntegration}" }
+  RouteTransitCameraRegistryPost:
+    Type: AWS::ApiGatewayV2::Route
+    Properties: { ApiId: !Ref HttpApiId, RouteKey: "POST /api/transit/{agencyId}/cameras/registry", Target: !Sub "integrations/${TransitHttpIntegration}" }
+  RouteTransitCameraRegistryPut:
+    Type: AWS::ApiGatewayV2::Route
+    Properties: { ApiId: !Ref HttpApiId, RouteKey: "PUT /api/transit/{agencyId}/cameras/registry/{cameraId}", Target: !Sub "integrations/${TransitHttpIntegration}" }
+  RouteTransitCameraRegistryDelete:
+    Type: AWS::ApiGatewayV2::Route
+    Properties: { ApiId: !Ref HttpApiId, RouteKey: "DELETE /api/transit/{agencyId}/cameras/registry/{cameraId}", Target: !Sub "integrations/${TransitHttpIntegration}" }
+  RouteTransitCameraViewerToken:
+    Type: AWS::ApiGatewayV2::Route
+    Properties: { ApiId: !Ref HttpApiId, RouteKey: "GET /api/transit/{agencyId}/cameras/viewer-token", Target: !Sub "integrations/${TransitHttpIntegration}" }
+  RouteTransitCameraPtz:
+    Type: AWS::ApiGatewayV2::Route
+    Properties: { ApiId: !Ref HttpApiId, RouteKey: "POST /api/transit/{agencyId}/cameras/{cameraId}/ptz", Target: !Sub "integrations/${TransitHttpIntegration}" }
+  RouteTransitCameraProducerConfig:
+    Type: AWS::ApiGatewayV2::Route
+    Properties: { ApiId: !Ref HttpApiId, RouteKey: "GET /api/transit/{agencyId}/cameras/producer-config", Target: !Sub "integrations/${TransitHttpIntegration}" }
+  RouteTransitCameraDiscover:
+    Type: AWS::ApiGatewayV2::Route
+    Properties: { ApiId: !Ref HttpApiId, RouteKey: "POST /api/transit/{agencyId}/cameras/discover", Target: !Sub "integrations/${TransitHttpIntegration}" }
+  RouteTransitCameraHeartbeat:
+    Type: AWS::ApiGatewayV2::Route
+    Properties: { ApiId: !Ref HttpApiId, RouteKey: "POST /api/transit/{agencyId}/cameras/{cameraId}/heartbeat", Target: !Sub "integrations/${TransitHttpIntegration}" }
 
 Outputs:
   TransitHttpFunctionArn:

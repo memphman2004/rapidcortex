@@ -1,5 +1,6 @@
 import {
   isCadWritebackUiEnabled,
+  isCadConnectorUiEnabled,
   isCampusCleryEnabled,
   isCampusEapEnabled,
   isChannelMonitoringEnabled,
@@ -17,6 +18,7 @@ import {
   isConferencesUiEnabled,
   isSalesLeadsUiEnabled,
   isSlaBacklogEnabled,
+  isTransitCamerasUiEnabled,
   isVerticalOnboardingEnabled,
   isWarRoomsEnabled,
 } from "@/lib/runtime-flags";
@@ -27,6 +29,8 @@ export function isNavFeatureEnabled(feature: string): boolean {
   switch (feature) {
     case "cadWriteback":
       return isCadWritebackUiEnabled();
+    case "cadConnector":
+      return isCadConnectorUiEnabled();
     case "qaScoringEnabled":
       return isQaScoringEnabled();
     case "slaBacklog":
@@ -67,6 +71,8 @@ export function isNavFeatureEnabled(feature: string): boolean {
       return isWarRoomsEnabled();
     case "verticalTransit":
       return isVerticalEnabled("transit");
+    case "transitCameras":
+      return isVerticalEnabled("transit") && isTransitCamerasUiEnabled();
     default:
       return true;
   }

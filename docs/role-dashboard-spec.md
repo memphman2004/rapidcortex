@@ -933,7 +933,7 @@ Transit is a product vertical, not a PSAP. Electric-blue ops chrome (`#3b82f6`).
 
 **Home:** `/app/transit/admin`
 
-**Can:** full fleet/route/station/operator config, incidents, reports, alert level, broadcast.
+**Can:** full fleet/route/station/operator config, incidents, reports, alert level, broadcast, camera registry (ONVIF/RTSP → KVS), Ring/Nest Connect.
 
 **Cannot:** PSAP CAD, telephony, CAD write-back.
 
@@ -941,7 +941,7 @@ Transit is a product vertical, not a PSAP. Electric-blue ops chrome (`#3b82f6`).
 
 **Home:** `/app/transit/supervisor`
 
-**Can:** ops dashboard, incidents, 911 escalate flag (audit only — no CAD write-back), alert level, broadcast.
+**Can:** ops dashboard, incidents, 911 escalate flag (audit only — no CAD write-back), alert level, broadcast, camera registry, Ring/Nest Connect.
 
 **Cannot:** vehicle/route registry writes (`transit.fleet.manage`).
 
@@ -949,17 +949,17 @@ Transit is a product vertical, not a PSAP. Electric-blue ops chrome (`#3b82f6`).
 
 **Home:** `/app/transit/security`
 
-**Can:** dashboard, fleet, create/update incidents, reports.
+**Can:** dashboard, fleet, create/update incidents, reports, view live cameras (registry streams + Ring/Nest).
 
-**Cannot:** alert-level change, broadcast, settings.
+**Cannot:** alert-level change, broadcast, settings, camera registry writes (`transit.cameras.manage`).
 
 ## transit_operator — Transit Operator
 
 **Home:** `/app/transit/operator`
 
-**Can:** view assigned vehicle, report incidents.
+**Can:** view assigned vehicle, report incidents, view cameras on assigned vehicle.
 
-**Cannot:** alert strip control, broadcast, other operators’ vehicles.
+**Cannot:** alert strip control, broadcast, other operators’ vehicles, camera registry writes.
 
 ---
 

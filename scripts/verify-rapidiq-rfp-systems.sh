@@ -5,18 +5,32 @@
 # RFP snapshot) without browser access. Resolves table names, function names,
 # and API URLs from CloudFormation so nothing is hard-coded.
 #
-# Usage (from repo root):
+# Usage (from repo root — either form):
+#   STAGE=staging bash verify-rapidiq-rfp-systems.sh
 #   STAGE=staging bash scripts/verify-rapidiq-rfp-systems.sh
+#
+# Optional authenticated CHECK 6 (Intel UI contract) when TOKEN is already set,
+# or when RC_ADMIN_EMAIL + RC_ADMIN_PASS are exported:
+#   TOKEN=… STAGE=staging bash verify-rapidiq-rfp-systems.sh
 #
 # Prerequisites: AWS CLI, python3, jq (jq only needed for the printed curl recipes).
 # Region: AWS_REGION / AWS_DEFAULT_REGION (default us-east-1).
 #
-# Five checks:
+# Implementation corrections (do not regress):
+#   - Discoverer lives in the watch worker, not the orchestrator (88 sequential
+#     OpenAI calls would time out enqueue).
+#   - Snapshot is on the existing pipeline table (pk=RFP_COUNTS, sk=LATEST) —
+#     no new Dynamo table.
+#   - Transit watches stay webSearchEnabled: false (true would double cost on
+#     the largest watch group).
+#
+# Checks:
 #   1. OPENAI_WEB_SEARCH_ENABLED stack parameter vs worker Lambda env
 #   2. Watch count by market + transit cost guard (webSearchEnabled=true must be 0)
 #   3. RFP_COUNTS / LATEST snapshot existence and staleness vs 15-minute schedule
 #   4. GET /api/rapid-iq/intel/rfp-counts — 404 vs 401/403 vs 200
 #   5. CloudWatch sampling for web-search discovery + snapshot writes
+#   6. (optional) Authenticated GET watches + rfp-counts — defaultMarket=all, total>=68
 #
 # Then prints a pre-filled cognito-idp initiate-auth command for authenticated checks.
 #
@@ -726,6 +740,15 @@ else
       info "  body: $(head -c 200 "$HTTP_FILE" 2>/dev/null || true)"
       ;;
   esac
+  WATCHES_STATUS="$(curl -sS -o /dev/null -w "%{http_code}" \
+    "${API_URL}/api/rapid-iq/intel/watches" \
+    --max-time 15 2>/dev/null || echo "000")"
+  case "$WATCHES_STATUS" in
+    401|403) pass "GET /api/rapid-iq/intel/watches → $WATCHES_STATUS (route deployed)" ;;
+    200) warn "GET /api/rapid-iq/intel/watches → 200 unauthenticated — check authorizer" ;;
+    404) fail "GET /api/rapid-iq/intel/watches → 404 — list route not on HttpApi3" ;;
+    *) info "GET /api/rapid-iq/intel/watches → $WATCHES_STATUS" ;;
+  esac
   rm -f "$HTTP_FILE"
 fi
 
@@ -810,6 +833,151 @@ CLIENT_ID="$(first \
 
 if nz "$USER_POOL_ID"; then info "User Pool: $USER_POOL_ID"; else warn "UserPoolId not in root outputs"; fi
 if nz "$CLIENT_ID"; then info "Client:    $CLIENT_ID"; else warn "UserPoolClientId not in root outputs"; fi
+
+TOKEN="${TOKEN:-}"
+if ! nz "$TOKEN" && nz "${RC_ADMIN_EMAIL:-}" && nz "${RC_ADMIN_PASS:-}" && nz "$CLIENT_ID"; then
+  info "RC_ADMIN_EMAIL set — requesting Cognito token (no browser)"
+  AUTH_OUT="$(mktemp -t rc-riq-auth.XXXXXX)"
+  if nz "$USER_POOL_ID"; then
+    aws cognito-idp admin-initiate-auth \
+      --user-pool-id "$USER_POOL_ID" \
+      --client-id "$CLIENT_ID" \
+      --auth-flow ADMIN_USER_PASSWORD_AUTH \
+      --auth-parameters "USERNAME=${RC_ADMIN_EMAIL},PASSWORD=${RC_ADMIN_PASS}" \
+      --region "$REGION" \
+      --query 'AuthenticationResult.IdToken' --output text >"$AUTH_OUT" 2>/dev/null || true
+  fi
+  TOKEN="$(clean "$(cat "$AUTH_OUT" 2>/dev/null || true)")"
+  if ! nz "$TOKEN"; then
+    aws cognito-idp initiate-auth \
+      --auth-flow USER_PASSWORD_AUTH \
+      --client-id "$CLIENT_ID" \
+      --auth-parameters "USERNAME=${RC_ADMIN_EMAIL},PASSWORD=${RC_ADMIN_PASS}" \
+      --region "$REGION" \
+      --query 'AuthenticationResult.IdToken' --output text >"$AUTH_OUT" 2>/dev/null || true
+    TOKEN="$(clean "$(cat "$AUTH_OUT" 2>/dev/null || true)")"
+  fi
+  rm -f "$AUTH_OUT"
+  if nz "$TOKEN"; then pass "Cognito IdToken acquired"
+  else warn "Cognito auth failed — CHECK 6 skipped. Copy the initiate-auth command below (comma in password requires TOKEN= instead)."; fi
+fi
+
+# ─── CHECK 6: Authenticated Intel contract ────────────────────────────────────
+
+section "CHECK 6 — Authenticated Intel API (defaultMarket=all, total>=68)"
+
+if ! nz "$TOKEN"; then
+  info "No TOKEN / RC_ADMIN_* — skipping authenticated Intel checks"
+  info "  Export TOKEN or RC_ADMIN_EMAIL + RC_ADMIN_PASS and re-run, or use the command below"
+elif ! nz "$API_URL"; then
+  warn "No API URL — skipping authenticated Intel checks"
+else
+  AUTH_WATCHES="$(mktemp -t rc-riq-aw.XXXXXX)"
+  AUTH_COUNTS="$(mktemp -t rc-riq-ac.XXXXXX)"
+  AUTH_FULTON="$(mktemp -t rc-riq-af.XXXXXX)"
+  W_STATUS="$(curl -sS -o "$AUTH_WATCHES" -w "%{http_code}" \
+    -H "Authorization: Bearer $TOKEN" \
+    "${API_URL}/api/rapid-iq/intel/watches" --max-time 20 2>/dev/null || echo "000")"
+  C_STATUS="$(curl -sS -o "$AUTH_COUNTS" -w "%{http_code}" \
+    -H "Authorization: Bearer $TOKEN" \
+    "${API_URL}/api/rapid-iq/intel/rfp-counts" --max-time 20 2>/dev/null || echo "000")"
+  F_STATUS="$(curl -sS -o "$AUTH_FULTON" -w "%{http_code}" \
+    -H "Authorization: Bearer $TOKEN" \
+    "${API_URL}/api/rapid-iq/intel/watches/psap-fulton-county-ga" --max-time 20 2>/dev/null || echo "000")"
+
+  if [[ "$W_STATUS" != "200" ]]; then
+    fail "GET /api/rapid-iq/intel/watches → $W_STATUS (expected 200 with token)"
+    info "  body: $(head -c 240 "$AUTH_WATCHES" 2>/dev/null || true)"
+  else
+    eval "$(python3 - "$AUTH_WATCHES" <<'PY'
+import json, sys
+body = json.load(open(sys.argv[1]))
+# Live shape is { watches, defaultMarket, total } — not { data: … }
+data = body.get("data") if isinstance(body.get("data"), dict) else body
+watches = data.get("watches") or []
+dm = data.get("defaultMarket")
+total = data.get("total")
+if total is None:
+    total = len(watches)
+try:
+    total_n = int(total)
+except (TypeError, ValueError):
+    total_n = 0
+markets = {}
+for w in watches:
+    m = str(w.get("market") or w.get("vertical") or "UNKNOWN")
+    markets[m] = markets.get(m, 0) + 1
+print("AUTH_DM=%s" % json.dumps(str(dm) if dm is not None else ""))
+print("AUTH_TOTAL=%s" % total_n)
+print("AUTH_MARKETS=%s" % json.dumps(json.dumps(markets, separators=(",", ":"), sort_keys=True)))
+PY
+)"
+    info "  defaultMarket=${AUTH_DM:-}  total=${AUTH_TOTAL:-}  markets=${AUTH_MARKETS:-}"
+    if [[ "${AUTH_DM:-}" == "all" ]]; then pass 'defaultMarket === "all"'
+    else fail "defaultMarket is '${AUTH_DM:-}' — Intel UI would hide non-PSAP watches if this is PSAP/rc911"; fi
+    if [[ "${AUTH_TOTAL:-0}" -ge 68 ]]; then pass "watches total >= 68 (${AUTH_TOTAL})"
+    else fail "watches total is ${AUTH_TOTAL:-0} — 25-item transit cap or missing seeds"; fi
+  fi
+
+  if [[ "$C_STATUS" != "200" ]]; then
+    fail "GET /api/rapid-iq/intel/rfp-counts → $C_STATUS (expected 200 with token)"
+    info "  body: $(head -c 240 "$AUTH_COUNTS" 2>/dev/null || true)"
+  else
+    eval "$(python3 - "$AUTH_COUNTS" <<'PY'
+import json, sys
+body = json.load(open(sys.argv[1]))
+snap = body.get("snapshot") if isinstance(body.get("snapshot"), dict) else {}
+total = snap.get("total") if isinstance(snap.get("total"), dict) else {}
+print("AUTH_SNAP_AT=%s" % json.dumps(str(snap.get("updatedAt") or "")))
+print("AUTH_SNAP_OPEN=%s" % (total.get("open") if total.get("open") is not None else "''"))
+print("AUTH_SNAP_PSAP=%s" % (total.get("psap") if total.get("psap") is not None else "''"))
+print("AUTH_SNAP_RC911=%s" % (1 if "rc911" in total else 0))
+PY
+)"
+    if [[ -n "${AUTH_SNAP_AT:-}" && "${AUTH_SNAP_AT}" != '""' ]]; then
+      pass "rfp-counts snapshot.updatedAt=${AUTH_SNAP_AT}  open=${AUTH_SNAP_OPEN}  psap=${AUTH_SNAP_PSAP}"
+    else
+      warn "rfp-counts 200 but snapshot is empty — tile falls back to RFP LIVE tags"
+    fi
+    if [[ "${AUTH_SNAP_RC911:-0}" == "1" ]]; then
+      fail "rfp-counts snapshot still has rc911 — live key is psap"
+    fi
+  fi
+
+  case "$F_STATUS" in
+    200)
+      eval "$(python3 - "$AUTH_FULTON" <<'PY'
+import json, sys
+body = json.load(open(sys.argv[1]))
+watch = body.get("watch") if isinstance(body.get("watch"), dict) else (body.get("data") if isinstance(body.get("data"), dict) else body)
+print("FULTON_ID=%s" % json.dumps(str(watch.get("id") or "")))
+print("FULTON_MARKET=%s" % json.dumps(str(watch.get("market") or watch.get("vertical") or "")))
+print("FULTON_WEB=%s" % json.dumps(str(watch.get("webSearchEnabled"))))
+urls = watch.get("sourceUrls") or []
+print("FULTON_URLS=%s" % (len(urls) if isinstance(urls, list) else 0))
+PY
+)"
+      pass "GET watches/psap-fulton-county-ga → 200  market=${FULTON_MARKET}  webSearchEnabled=${FULTON_WEB}  sourceUrls=${FULTON_URLS}"
+      if [[ "${FULTON_MARKET}" != "PSAP" ]]; then
+        fail "Fulton watch market is ${FULTON_MARKET} — expected PSAP (not rc911)"
+      fi
+      case "${FULTON_WEB}" in
+        True|true) ;;
+        *) warn "Fulton watch webSearchEnabled=${FULTON_WEB} — expected true for the one-shot web-search test" ;;
+      esac
+      ;;
+    404)
+      fail "GET /api/rapid-iq/intel/watches/{watchId} → 404 — APIGW route missing (list/PATCH exist; GET one watch must be deployed)"
+      ;;
+    401|403)
+      fail "GET watches/psap-fulton-county-ga → $F_STATUS — token not authorized for this route"
+      ;;
+    *)
+      warn "GET watches/psap-fulton-county-ga → $F_STATUS"
+      ;;
+  esac
+  rm -f "$AUTH_WATCHES" "$AUTH_COUNTS" "$AUTH_FULTON"
+fi
 
 API_PRINT="${API_URL:-https://YOUR_HTTPAPI3_URL}"
 CLIENT_PRINT="${CLIENT_ID:-YOUR_CLIENT_ID}"

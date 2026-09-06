@@ -5,8 +5,12 @@
 **Order:** run the CLI verifier first, then this checklist.
 
 ```bash
+STAGE=staging bash verify-rapidiq-rfp-systems.sh
+# equivalent:
 STAGE=staging bash scripts/verify-rapidiq-rfp-systems.sh
 ```
+
+Authenticated Intel checks (CHECK 6) run in the same script when `TOKEN` or `RC_ADMIN_EMAIL` + `RC_ADMIN_PASS` are set. Otherwise the script prints a pre-filled `aws cognito-idp initiate-auth` command.
 
 `DeploymentStage=dev` is live production (`app.rapidcortex.us`), not a sandbox. Staging is engineering (`app-staging.rapidcortex.us`). Do not use `scripts/deploy-rapid-iq-pipeline-api-dev.sh` to toggle flags in staging.
 
@@ -36,7 +40,7 @@ Three corrections already in code, worth confirming they stayed that way:
 
 ## Pre-flight
 
-- [ ] `STAGE=staging bash scripts/verify-rapidiq-rfp-systems.sh` exits 0 (warnings about a missing first snapshot are OK)
+- [ ] `STAGE=staging bash verify-rapidiq-rfp-systems.sh` exits 0 (warnings about a missing first snapshot are OK)
 - [ ] Watch count ≥ 68 on the pipeline table (`WATCH#` prefix; GSI `gsi2pk=WATCH#ALL`)
 - [ ] `webSearchEnabled=false` on all 25 transit watches (`webSearchEnabled=true` count is **0**)
 - [ ] `webSearchEnabled=true` on PSAP (17), campus (13), venue (13) — ~43 total. Seed does **not** overwrite existing `WATCH#` rows
@@ -232,6 +236,7 @@ Also:
 
 - [ ] All four markets present
 - [ ] `WATCH#psap-fulton-county-ga` exists
+- [ ] `GET /api/rapid-iq/intel/watches/{watchId}` is on HttpApi3 (added as `RouteIntelWatchGet`; 404 here means the pipeline stack has not been redeployed since that route landed)
 
 ```bash
 curl -sS -H "Authorization: Bearer $TOKEN" \

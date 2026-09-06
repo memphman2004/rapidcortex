@@ -25,6 +25,10 @@ const ALL_ROLES = [
   "VENUE_SECURITY",
   "VENUE_OPERATOR",
   "VENUE_GUEST_SERVICES",
+  "TRANSIT_ADMIN",
+  "TRANSIT_SUPERVISOR",
+  "TRANSIT_SECURITY",
+  "TRANSIT_OPERATOR",
 ] as const;
 
 describe("getRoleNav", () => {
@@ -34,6 +38,7 @@ describe("getRoleNav", () => {
         jurisdiction: "test-psap",
         venueCode: "MBS",
         campusCode: "LINCOLNHIGH",
+        transitCode: "HVT",
       });
       expect(nav.sections.length).toBeGreaterThan(0);
       expect(nav.sections.some((s) => s.items.length > 0)).toBe(true);
@@ -174,5 +179,37 @@ describe("getRoleNav", () => {
     expect(itItems.find((i) => i.id === "rapid-iq-pipeline")).toBeUndefined();
     expect(itItems.find((i) => i.id === "conferences")).toBeUndefined();
     expect(itItems.find((i) => i.id === "sales-automation")).toBeUndefined();
+  });
+
+  it("transit admin/supervisor/security expose cameras at /transit/{code}/cameras", () => {
+    const code = "HVT";
+    const admin = getRoleNav("TRANSIT_ADMIN", { transitCode: code });
+    const supervisor = getRoleNav("TRANSIT_SUPERVISOR", { transitCode: code });
+    const security = getRoleNav("TRANSIT_SECURITY", { transitCode: code });
+    const operator = getRoleNav("TRANSIT_OPERATOR", { transitCode: code });
+    expect(admin.sections.flatMap((s) => s.items).find((i) => i.id === "cameras")?.href).toBe(
+      "/transit/HVT/cameras",
+    );
+    expect(supervisor.sections.flatMap((s) => s.items).find((i) => i.id === "cameras")?.href).toBe(
+      "/transit/HVT/cameras",
+    );
+    expect(security.sections.flatMap((s) => s.items).find((i) => i.id === "cameras")?.href).toBe(
+      "/transit/HVT/cameras",
+    );
+    expect(operator.sections.flatMap((s) => s.items).find((i) => i.id === "cameras")).toBeUndefined();
+  });
+
+  it("feature-gates Multi-CAD Connector nav for PSAP roles", () => {
+    const dispatcher = getRoleNav("dispatcher", { jurisdiction: "test-psap" })
+      .sections.flatMap((s) => s.items)
+      .find((i) => i.id === "cad-connector");
+    expect(dispatcher?.href).toBe("/test-psap/cad/incidents");
+    expect(dispatcher?.feature).toBe("cadConnector");
+
+    const admin = getRoleNav("agencyadmin", { jurisdiction: "test-psap" })
+      .sections.flatMap((s) => s.items)
+      .find((i) => i.id === "cad-connector");
+    expect(admin?.href).toBe("/test-psap/cad/connectors");
+    expect(admin?.feature).toBe("cadConnector");
   });
 });
