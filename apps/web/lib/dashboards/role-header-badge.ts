@@ -52,6 +52,18 @@ export function getRoleHeaderBadgeLabel(role: string | undefined | null): string
       return "SECURITY";
     case "CAMPUS_DISPATCH":
       return "DISPATCH";
+    case "transit_admin":
+    case "TRANSIT_ADMIN":
+      return "TRANSIT ADMIN";
+    case "transit_supervisor":
+    case "TRANSIT_SUPERVISOR":
+      return "TRANSIT SUPERVISOR";
+    case "transit_security":
+    case "TRANSIT_SECURITY":
+      return "TRANSIT SECURITY";
+    case "transit_operator":
+    case "TRANSIT_OPERATOR":
+      return "TRANSIT OPERATOR";
     default:
       return null;
   }

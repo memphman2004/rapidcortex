@@ -199,6 +199,22 @@ describe("getRoleNav", () => {
     expect(operator.sections.flatMap((s) => s.items).find((i) => i.id === "cameras")).toBeUndefined();
   });
 
+  it("transit admin and supervisor expose QR codes; only admin exposes users", () => {
+    const code = "HVT";
+    const admin = getRoleNav("TRANSIT_ADMIN", { transitCode: code }).sections.flatMap((s) => s.items);
+    const supervisor = getRoleNav("TRANSIT_SUPERVISOR", { transitCode: code }).sections.flatMap(
+      (s) => s.items,
+    );
+    const operator = getRoleNav("TRANSIT_OPERATOR", { transitCode: code }).sections.flatMap(
+      (s) => s.items,
+    );
+    expect(admin.find((i) => i.id === "qr")?.href).toBe("/transit/HVT/qr-codes");
+    expect(supervisor.find((i) => i.id === "qr")?.href).toBe("/transit/HVT/qr-codes");
+    expect(admin.find((i) => i.id === "users")?.href).toBe("/transit/HVT/users");
+    expect(supervisor.find((i) => i.id === "users")).toBeUndefined();
+    expect(operator.find((i) => i.id === "qr")).toBeUndefined();
+  });
+
   it("feature-gates Multi-CAD Connector nav for PSAP roles", () => {
     const dispatcher = getRoleNav("dispatcher", { jurisdiction: "test-psap" })
       .sections.flatMap((s) => s.items)

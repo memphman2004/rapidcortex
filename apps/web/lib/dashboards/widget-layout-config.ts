@@ -2,7 +2,7 @@
  * apps/web/lib/dashboards/widget-layout-config.ts
  *
  * Single source of truth for every dashboard home widget layout.
- * All 21 active roles defined. No role is missing. No widget appears
+ * All 25 active roles defined. No role is missing. No widget appears
  * on a role that shouldn't see it.
  *
  * Layout system:
@@ -418,6 +418,49 @@ export const VENUE_GUEST_SERVICES_LAYOUT: RoleWidgetLayout = {
   ],
 };
 
+export const TRANSIT_ADMIN_LAYOUT: RoleWidgetLayout = {
+  accent: "sky",
+  greeting: "Transit Admin",
+  description: "Fleet, routes, incidents, cameras, and QR codes for this transit agency.",
+  widgets: [
+    { id: "stat-open-incidents", span: 4, height: "xs", queryKey: "transit-incidents", priority: 1, showCount: true },
+    { id: "stat-qr-scans-today", span: 4, height: "xs", queryKey: "qr-activity", priority: 1 },
+    { id: "stat-staff-on-duty", span: 4, height: "xs", queryKey: "transit-operators", priority: 1 },
+    { id: "incident-queue", span: 8, height: "xl", queryKey: "transit-incidents", priority: 2, showCount: true },
+    { id: "qr-scan-activity", span: 4, height: "xl", queryKey: "qr-activity", priority: 2 },
+  ],
+};
+
+export const TRANSIT_SUPERVISOR_LAYOUT: RoleWidgetLayout = {
+  accent: "sky",
+  greeting: "Transit Supervisor",
+  description: "Live ops, incidents, broadcasts, cameras, and QR codes.",
+  widgets: [
+    { id: "stat-open-incidents", span: 6, height: "xs", queryKey: "transit-incidents", priority: 1, showCount: true },
+    { id: "incident-queue", span: 12, height: "xl", queryKey: "transit-incidents", priority: 2, showCount: true },
+    { id: "qr-scan-activity", span: 12, height: "sm", queryKey: "qr-activity", priority: 3 },
+  ],
+};
+
+export const TRANSIT_SECURITY_LAYOUT: RoleWidgetLayout = {
+  accent: "sky",
+  greeting: "Transit Security",
+  description: "Incidents, fleet, and live cameras. Not a 911 PSAP console.",
+  widgets: [
+    { id: "incident-queue", span: 8, height: "xl", queryKey: "transit-incidents", priority: 1 },
+    { id: "camera-grid", span: 4, height: "xl", queryKey: "transit-cameras", priority: 1 },
+  ],
+};
+
+export const TRANSIT_OPERATOR_LAYOUT: RoleWidgetLayout = {
+  accent: "sky",
+  greeting: "Transit Operator",
+  description: "Your assigned vehicle, incident reporting, and onboard cameras.",
+  widgets: [
+    { id: "incident-queue", span: 12, height: "xl", queryKey: "transit-incidents", priority: 1 },
+  ],
+};
+
 // ─── Resolver ─────────────────────────────────────────────────────────────────
 
 /** Normalize JWT / legacy role tokens to layout config keys. */
@@ -426,6 +469,7 @@ export function resolveWidgetLayoutRole(raw: string): string {
   const upper = trimmed.toUpperCase();
 
   if (upper.startsWith("CAMPUS_")) return upper;
+  if (upper.startsWith("TRANSIT_")) return upper;
   if (upper === "VENUE_GUEST") return "VENUE_GUEST_SERVICES";
   if (upper.startsWith("VENUE_")) return upper;
   if (upper === "HOSPITAL_ADMIN" || upper === "HOSPITAL_COORDINATOR" || upper === "HOSPITAL_STAFF") {
@@ -441,6 +485,10 @@ export function resolveWidgetLayoutRole(raw: string): string {
   if (migrated === "venue_security") return "VENUE_SECURITY";
   if (migrated === "venue_operator") return "VENUE_OPERATOR";
   if (migrated === "venue_guest") return "VENUE_GUEST_SERVICES";
+  if (migrated === "transit_admin") return "TRANSIT_ADMIN";
+  if (migrated === "transit_supervisor") return "TRANSIT_SUPERVISOR";
+  if (migrated === "transit_security") return "TRANSIT_SECURITY";
+  if (migrated === "transit_operator") return "TRANSIT_OPERATOR";
 
   return migrated;
 }
@@ -467,6 +515,10 @@ export const ROLE_WIDGET_LAYOUTS: Record<string, RoleWidgetLayout> = {
   VENUE_SECURITY:        VENUE_SECURITY_LAYOUT,
   VENUE_OPERATOR:        VENUE_OPERATOR_LAYOUT,
   VENUE_GUEST_SERVICES:  VENUE_GUEST_SERVICES_LAYOUT,
+  TRANSIT_ADMIN:         TRANSIT_ADMIN_LAYOUT,
+  TRANSIT_SUPERVISOR:    TRANSIT_SUPERVISOR_LAYOUT,
+  TRANSIT_SECURITY:      TRANSIT_SECURITY_LAYOUT,
+  TRANSIT_OPERATOR:      TRANSIT_OPERATOR_LAYOUT,
 };
 
 export function getWidgetLayout(role: string): RoleWidgetLayout | null {

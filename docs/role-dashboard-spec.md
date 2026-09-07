@@ -933,7 +933,7 @@ Transit is a product vertical, not a PSAP. Electric-blue ops chrome (`#3b82f6`).
 
 **Home:** `/app/transit/admin`
 
-**Can:** full fleet/route/station/operator config, incidents, reports, alert level, broadcast, camera registry (ONVIF/RTSP → KVS), Ring/Nest Connect.
+**Can:** full fleet/route/station/operator config, incidents, reports, alert level, broadcast, camera registry (ONVIF/RTSP → KVS), Ring/Nest Connect, named QR/NFC codes (create/delete), location QR, invite/deactivate transit users.
 
 **Cannot:** PSAP CAD, telephony, CAD write-back.
 
@@ -941,9 +941,9 @@ Transit is a product vertical, not a PSAP. Electric-blue ops chrome (`#3b82f6`).
 
 **Home:** `/app/transit/supervisor`
 
-**Can:** ops dashboard, incidents, 911 escalate flag (audit only — no CAD write-back), alert level, broadcast, camera registry, Ring/Nest Connect.
+**Can:** ops dashboard, incidents, 911 escalate flag (audit only — no CAD write-back), alert level, broadcast, camera registry, Ring/Nest Connect, named QR/NFC codes (create/delete), location QR.
 
-**Cannot:** vehicle/route registry writes (`transit.fleet.manage`).
+**Cannot:** vehicle/route registry writes (`transit.fleet.manage`), invite/deactivate users.
 
 ## transit_security — Transit Security
 
@@ -967,9 +967,9 @@ Transit is a product vertical, not a PSAP. Electric-blue ops chrome (`#3b82f6`).
 
 RC internal roles manage QR codes cross-tenant via `packages/security/src/qr-locations-access.ts` and `locations.qrcodes.manage` / `locations.qrcodes.view` in the Role Access Matrix v2.
 
-| Permission | rcsuperadmin | rcadmin | rcitadmin | CAMPUS_ADMIN | VENUE_ADMIN |
-|---|---|---|---|---|---|
-| `locations.qrcodes.manage` | **o** (immutable) | Y | Y | Y | Y |
+| Permission | rcsuperadmin | rcadmin | rcitadmin | CAMPUS_ADMIN | VENUE_ADMIN | TRANSIT_ADMIN | TRANSIT_SUPERVISOR |
+|---|---|---|---|---|---|---|---|
+| `locations.qrcodes.manage` | **o** (immutable) | Y | Y | Y | Y | Y | Y |
 
 **RC Admin UI:** `/rc-admin/location-qr-codes` — agency picker (venue/campus tenants only) scopes all API calls. Empty state: "Select an agency" until a tenant is chosen.
 

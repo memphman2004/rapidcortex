@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
-# Create transit Cognito groups (TRANSIT_ADMIN / SUPERVISOR / SECURITY / OPERATOR).
+# Create transit Cognito groups and optional QA users (TRANSIT_* roles).
+# Fleet/agency seed is separate: bash scripts/seed-transit-agencies.sh
 set -euo pipefail
 
 POOL_ID="${COGNITO_USER_POOL_ID:-us-east-1_0z6tA6WBs}"
@@ -62,16 +63,41 @@ create_transit_user() {
       --region "$REGION"
     echo "✅ Created $EMAIL ($ROLE)"
   fi
+
+  aws cognito-idp admin-update-user-attributes \
+    --user-pool-id "$POOL_ID" \
+    --username "$EMAIL" \
+    --user-attributes Name="custom:vertical",Value=transit \
+    --region "$REGION" 2>/dev/null || true
+
+  aws cognito-idp admin-set-user-password \
+    --user-pool-id "$POOL_ID" \
+    --username "$EMAIL" \
+    --password "$PASSWORD" \
+    --permanent \
+    --region "$REGION"
+
   aws cognito-idp admin-add-user-to-group \
     --user-pool-id "$POOL_ID" \
     --username "$EMAIL" \
     --group-name "$ROLE" \
-    --region "$REGION" >/dev/null
+    --region "$REGION" 2>/dev/null || true
+
+  aws cognito-idp admin-add-user-to-group \
+    --user-pool-id "$POOL_ID" \
+    --username "$EMAIL" \
+    --group-name "vertical_transit" \
+    --region "$REGION" 2>/dev/null || true
 }
 
-if [[ "${CREATE_TRANSIT_QA_USERS:-0}" == "1" ]]; then
-  create_transit_user "transit-admin@rapidcortex.us" "TRANSIT_ADMIN"
-  create_transit_user "transit-supervisor@rapidcortex.us" "TRANSIT_SUPERVISOR"
-  create_transit_user "transit-security@rapidcortex.us" "TRANSIT_SECURITY"
-  create_transit_user "transit-operator@rapidcortex.us" "TRANSIT_OPERATOR"
+if [[ "${CREATE_TRANSIT_TEST_USERS:-${CREATE_TRANSIT_QA_USERS:-0}}" == "1" ]]; then
+  create_transit_user "transit-admin@appsondemand.net" "TRANSIT_ADMIN"
+  create_transit_user "transit-supervisor@appsondemand.net" "TRANSIT_SUPERVISOR"
+  create_transit_user "transit-security@appsondemand.net" "TRANSIT_SECURITY"
+  create_transit_user "transit-operator@appsondemand.net" "TRANSIT_OPERATOR"
 fi
+
+echo ""
+echo "Done. Transit groups provisioned in pool $POOL_ID (agencyId=$AGENCY_ID → transit code HVT)."
+echo "Set CREATE_TRANSIT_TEST_USERS=1 to provision test accounts at appsondemand.net."
+echo "Seed fleet tables: bash scripts/seed-transit-agencies.sh"

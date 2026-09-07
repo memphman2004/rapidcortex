@@ -28,7 +28,7 @@ export function NFCInstructions({ url }: Props) {
       <ol className="mt-3 list-decimal space-y-2 pl-5">
         <li>Order NTAG213 NFC stickers (about $15–20 per 100 tags).</li>
         <li>Open the Rapid Cortex mobile app (Campus or Venue).</li>
-        <li>Open this location code, then tap Program NFC Tag. (Booth / marketing signs use Trade show signs instead — Home or Demo on www.rapidcortex.us.)</li>
+        <li>Open this location code, then tap Program NFC Tag.</li>
         <li>Hold an NTAG213 to the back of your mobile device until the write succeeds.</li>
         <li>Stick the programmed tag to the back of your sign.</li>
       </ol>

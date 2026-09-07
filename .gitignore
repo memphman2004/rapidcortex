@@ -123,6 +123,13 @@ ziKUSoeO
 # Office temp files
 ~$*
 
+# Xcode / iOS Field
+apps/ios-mobile/**/xcuserdata/
+apps/ios-mobile/**/xcshareddata/WorkspaceSettings.xcsettings
+apps/ios-mobile/DerivedData/
+apps/ios-mobile/*.xcuserstate
+*.xcuserstate
+
 # compiled/published desktop output
 apps/desktop-windows/src/RapidCortexDesktop.Wpf/publish/
 

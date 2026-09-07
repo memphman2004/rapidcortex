@@ -14,6 +14,7 @@ import {
   canAdminForcePasswordReset,
   isRcInternalOperator,
   isRcsuperadmin,
+  isTransitAssignableRole,
   type AgencyRole,
   type UserContext,
   type UserRole,
@@ -40,6 +41,10 @@ function isCampusAdminActor(role: UserRole): boolean {
   return String(role ?? "").trim().toUpperCase() === "CAMPUS_ADMIN";
 }
 
+function isTransitAdminActor(role: UserRole): boolean {
+  return String(role ?? "").trim().toUpperCase() === "TRANSIT_ADMIN";
+}
+
 export type AdminUserRow = {
   username: string;
   email: string;
@@ -61,6 +66,7 @@ export class AdminUserService {
       user.role === "agencyadmin" ||
       user.role === "agencyit" ||
       isCampusAdminActor(user.role) ||
+      isTransitAdminActor(user.role) ||
       isRcInternalOperator(user.role);
     if (!allowed) {
       throw new Error("FORBIDDEN");
@@ -95,7 +101,7 @@ export class AdminUserService {
     }
   }
 
-  private assertAssignableRoleByActor(user: UserContext, role: UserRole) {
+  private assertAssignableRoleByActor(user: UserContext, role: string) {
     if (assignableAgencyRoles.includes(role as AgencyRole)) return;
     if (
       (CAMPUS_ASSIGNABLE_ROLES as readonly string[]).includes(role) &&
@@ -103,7 +109,15 @@ export class AdminUserService {
     ) {
       return;
     }
-    if (RC_INTERNAL_ASSIGNABLE_ROLES.includes(role) && isRcsuperadmin(user)) return;
+    if (
+      isTransitAssignableRole(String(role)) &&
+      (isTransitAdminActor(user.role) || isRcInternalOperator(user.role))
+    ) {
+      return;
+    }
+    if ((RC_INTERNAL_ASSIGNABLE_ROLES as readonly string[]).includes(role) && isRcsuperadmin(user)) {
+      return;
+    }
     throw new Error("INVALID_ROLE");
   }
 
@@ -133,12 +147,15 @@ export class AdminUserService {
 
   async create(
     user: UserContext,
-    input: { email: string; agencyId: string; role: UserRole; temporaryPassword: string },
+    input: { email: string; agencyId: string; role: string; temporaryPassword: string },
   ): Promise<AdminUserRow> {
     this.assertUserManagement(user);
     this.assertAssignableRoleByActor(user, input.role);
     if (
-      (user.role === "agencyadmin" || user.role === "agencyit" || isCampusAdminActor(user.role)) &&
+      (user.role === "agencyadmin" ||
+        user.role === "agencyit" ||
+        isCampusAdminActor(user.role) ||
+        isTransitAdminActor(user.role)) &&
       input.agencyId !== user.agencyId
     ) {
       throw new Error("FORBIDDEN");
@@ -171,7 +188,7 @@ export class AdminUserService {
       username: input.email,
       email: input.email,
       agencyId: input.agencyId,
-      role: input.role,
+      role: input.role as UserRole,
       enabled: true,
       status: "FORCE_CHANGE_PASSWORD",
     };
@@ -183,7 +200,7 @@ export class AdminUserService {
     input: {
       username: string;
       agencyId?: string;
-      role?: UserRole;
+      role?: string;
       passwordChangeRequired?: boolean;
     },
   ): Promise<{
@@ -202,7 +219,10 @@ export class AdminUserService {
     const attrs: AttributeType[] = [];
     if (input.agencyId != null) {
       if (
-        (user.role === "agencyadmin" || user.role === "agencyit" || isCampusAdminActor(user.role)) &&
+        (user.role === "agencyadmin" ||
+          user.role === "agencyit" ||
+          isCampusAdminActor(user.role) ||
+          isTransitAdminActor(user.role)) &&
         input.agencyId !== user.agencyId
       ) {
         throw new Error("FORBIDDEN");

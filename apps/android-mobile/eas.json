@@ -1,0 +1,85 @@
+{
+  "cli": {
+    "version": ">= 10.0.0",
+    "appVersionSource": "remote",
+    "promptToConfigurePushNotifications": false
+  },
+  "build": {
+    "development": {
+      "developmentClient": true,
+      "distribution": "internal",
+      "ios": {
+        "simulator": false
+      },
+      "env": {
+        "APP_ENV": "development",
+        "EXPO_NO_METRO_WORKSPACE_ROOT": "1",
+        "EXPO_PUBLIC_COGNITO_USER_POOL_ID": "us-east-1_0z6tA6WBs",
+        "EXPO_PUBLIC_COGNITO_REGION": "us-east-1",
+        "EXPO_PUBLIC_COGNITO_MOBILE_CLIENT_ID": "3nkemnrffspnaa0ikp2un6koh0",
+        "EXPO_PUBLIC_API_BASE": "https://k26yw4o3xk.execute-api.us-east-1.amazonaws.com",
+        "EXPO_PUBLIC_API_BASE_2": "https://t4bdwpjfs5.execute-api.us-east-1.amazonaws.com",
+        "EXPO_PUBLIC_API_BASE_3": "https://tbr4zvjlk5.execute-api.us-east-1.amazonaws.com",
+        "EXPO_PUBLIC_API_BASE_4": "https://7c70vqd1p5.execute-api.us-east-1.amazonaws.com",
+        "EXPO_PUBLIC_WS_BASE": "wss://g0wzu18e2k.execute-api.us-east-1.amazonaws.com/dev",
+        "EXPO_PUBLIC_APP_ORIGIN": "https://app.rapidcortex.us"
+      }
+    },
+    "preview": {
+      "distribution": "internal",
+      "autoIncrement": true,
+      "ios": {
+        "simulator": false
+      },
+      "android": {
+        "buildType": "apk"
+      },
+      "env": {
+        "APP_ENV": "staging",
+        "EXPO_NO_METRO_WORKSPACE_ROOT": "1",
+        "EXPO_PUBLIC_ENABLE_ENTER_SPLASH": "1",
+        "EXPO_PUBLIC_COGNITO_USER_POOL_ID": "us-east-1_0z6tA6WBs",
+        "EXPO_PUBLIC_COGNITO_REGION": "us-east-1",
+        "EXPO_PUBLIC_COGNITO_MOBILE_CLIENT_ID": "3nkemnrffspnaa0ikp2un6koh0",
+        "EXPO_PUBLIC_API_BASE": "https://k26yw4o3xk.execute-api.us-east-1.amazonaws.com",
+        "EXPO_PUBLIC_API_BASE_2": "https://t4bdwpjfs5.execute-api.us-east-1.amazonaws.com",
+        "EXPO_PUBLIC_API_BASE_3": "https://tbr4zvjlk5.execute-api.us-east-1.amazonaws.com",
+        "EXPO_PUBLIC_API_BASE_4": "https://7c70vqd1p5.execute-api.us-east-1.amazonaws.com",
+        "EXPO_PUBLIC_WS_BASE": "wss://g0wzu18e2k.execute-api.us-east-1.amazonaws.com/dev",
+        "EXPO_PUBLIC_APP_ORIGIN": "https://app.rapidcortex.us"
+      }
+    },
+    "production": {
+      "autoIncrement": true,
+      // Native iOS Rapid Cortex Mobile is apps/ios-mobile (us.rapidcortex.field). Use:
+      //   eas build --platform android --profile production
+      "android": {
+        "buildType": "app-bundle",
+        "credentialsSource": "remote"
+      },
+      "env": {
+        "APP_ENV": "production",
+        "EXPO_NO_METRO_WORKSPACE_ROOT": "1",
+        "EXPO_PUBLIC_COGNITO_USER_POOL_ID": "us-east-1_0z6tA6WBs",
+        "EXPO_PUBLIC_COGNITO_REGION": "us-east-1",
+        "EXPO_PUBLIC_COGNITO_MOBILE_CLIENT_ID": "3nkemnrffspnaa0ikp2un6koh0",
+        "EXPO_PUBLIC_API_BASE": "https://k26yw4o3xk.execute-api.us-east-1.amazonaws.com",
+        "EXPO_PUBLIC_API_BASE_2": "https://t4bdwpjfs5.execute-api.us-east-1.amazonaws.com",
+        "EXPO_PUBLIC_API_BASE_3": "https://tbr4zvjlk5.execute-api.us-east-1.amazonaws.com",
+        "EXPO_PUBLIC_API_BASE_4": "https://7c70vqd1p5.execute-api.us-east-1.amazonaws.com",
+        "EXPO_PUBLIC_WS_BASE": "wss://g0wzu18e2k.execute-api.us-east-1.amazonaws.com/dev",
+        "EXPO_PUBLIC_APP_ORIGIN": "https://app.rapidcortex.us"
+      }
+    }
+  },
+  "submit": {
+    "production": {
+      "android": {
+        // Google Play Console developer account ID: 7807903929046926180 (Rapid Cortex org)
+        "serviceAccountKeyPath": "./google-play-key.json",
+        // Play Console is using Internal testing until the store listing can ship.
+        "track": "internal"
+      }
+    }
+  }
+}

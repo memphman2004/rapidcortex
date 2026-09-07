@@ -130,6 +130,24 @@ const ACCOUNTS: TestRow[] = [
     agencyId: "test-venue-mbs",
     cognitoGroup: "venue_operator",
   },
+  {
+    email: "transit-admin@appsondemand.net",
+    customRole: "transit_admin",
+    agencyId: "test-transit-hvt",
+    cognitoGroup: "TRANSIT_ADMIN",
+  },
+  {
+    email: "transit-supervisor@appsondemand.net",
+    customRole: "transit_supervisor",
+    agencyId: "test-transit-hvt",
+    cognitoGroup: "TRANSIT_SUPERVISOR",
+  },
+  {
+    email: "transit-operator@appsondemand.net",
+    customRole: "transit_operator",
+    agencyId: "test-transit-hvt",
+    cognitoGroup: "TRANSIT_OPERATOR",
+  },
 ];
 
 function requireEnv(name: string): string {

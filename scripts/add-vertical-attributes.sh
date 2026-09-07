@@ -28,7 +28,9 @@ USERS=(
   "hospital-admin@appsondemand.net|hospital"
   "hospital-staff@appsondemand.net|hospital"
   "transit-admin@appsondemand.net|transit"
+  "transit-supervisor@appsondemand.net|transit"
   "transit-security@appsondemand.net|transit"
+  "transit-operator@appsondemand.net|transit"
 )
 
 echo ""

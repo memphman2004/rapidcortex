@@ -10,6 +10,7 @@ import {
   FileText,
   Map,
   MapPin,
+  QrCode,
   Radio,
   Settings,
   Users,
@@ -69,6 +70,20 @@ function navItems(base: string): NavItem[] {
       href: `${base}/cameras`,
       icon: Video,
       dispatchOnly: true,
+    },
+    {
+      id: "qr-codes",
+      label: "QR Codes",
+      href: `${base}/qr-codes`,
+      icon: QrCode,
+      supervisorOnly: true,
+    },
+    {
+      id: "users",
+      label: "Users",
+      href: `${base}/users`,
+      icon: Users,
+      adminOnly: true,
     },
   ];
 }

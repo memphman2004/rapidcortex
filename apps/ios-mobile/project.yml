@@ -1,0 +1,66 @@
+name: RapidCortexField
+options:
+  bundleIdPrefix: us.rapidcortex
+  deploymentTarget:
+    iOS: "16.0"
+  createIntermediateGroups: true
+  developmentLanguage: en
+  xcodeVersion: "15.0"
+configs:
+  Debug: debug
+  Release: release
+configFiles:
+  Debug: Config/Config.xcconfig
+  Release: Config/Config.xcconfig
+settings:
+  base:
+    PRODUCT_BUNDLE_IDENTIFIER: us.rapidcortex.field
+    MARKETING_VERSION: "1.0.0"
+    CURRENT_PROJECT_VERSION: 1
+    SWIFT_VERSION: "5.9"
+    TARGETED_DEVICE_FAMILY: "1"
+    SUPPORTS_MACCATALYST: NO
+    DEVELOPMENT_TEAM: 6D7D94PU3M
+    CODE_SIGN_STYLE: Automatic
+    IPHONEOS_DEPLOYMENT_TARGET: "16.0"
+    ENABLE_USER_SCRIPT_SANDBOXING: YES
+packages:
+  BigInt:
+    url: https://github.com/attaswift/BigInt
+    from: "5.5.0"
+targets:
+  RapidCortexField:
+    type: application
+    platform: iOS
+    sources:
+      - RapidCortexField
+    settings:
+      base:
+        INFOPLIST_FILE: RapidCortexField/Info.plist
+        GENERATE_INFOPLIST_FILE: NO
+        CODE_SIGN_ENTITLEMENTS: RapidCortexField/RapidCortexField.entitlements
+        PRODUCT_NAME: Rapid Cortex Mobile
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+        ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME: AccentColor
+        INFOPLIST_KEY_CFBundleDisplayName: Rapid Cortex Mobile
+        INFOPLIST_KEY_LSApplicationCategoryType: public.app-category.business
+        INFOPLIST_KEY_UIRequiresFullScreen: YES
+        SWIFT_EMIT_LOC_STRINGS: YES
+    dependencies:
+      - package: BigInt
+        product: BigInt
+      - sdk: CoreNFC.framework
+    entitlements:
+      path: RapidCortexField/RapidCortexField.entitlements
+      properties:
+        com.apple.developer.nfc.readersession.formats:
+          - TAG
+schemes:
+  RapidCortexField:
+    build:
+      targets:
+        RapidCortexField: all
+    run:
+      config: Debug
+    archive:
+      config: Release

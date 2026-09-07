@@ -21,6 +21,10 @@ type Props = {
   mediumView: QrNfcUsageMedium;
   globalView: boolean;
   agencyId: string;
+  /** Platform marketing signs (www.rapidcortex.us). Off on campus/venue consoles. */
+  showSiteUsage?: boolean;
+  /** Location QR (RCLI) scan points. Off on tenant consoles that use named report codes. */
+  showLocationUsage?: boolean;
 };
 
 function StatCard({ label, value, hint }: { label: string; value: string; hint?: string }) {
@@ -33,15 +37,27 @@ function StatCard({ label, value, hint }: { label: string; value: string; hint?:
   );
 }
 
-export function QrNfcUsagePanel({ items, loading, mediumView, globalView, agencyId }: Props) {
+export function QrNfcUsagePanel({
+  items,
+  loading,
+  mediumView,
+  globalView,
+  agencyId,
+  showSiteUsage = true,
+  showLocationUsage = true,
+}: Props) {
   const summary = useMemo(() => summarizeQrNfcUsage(items, mediumView), [items, mediumView]);
-  const showLocationQr = isLocationsQrAdminEnabled() && mediumView !== "nfc";
+  const showLocationQr = showLocationUsage && isLocationsQrAdminEnabled() && mediumView !== "nfc";
   const [locations, setLocations] = useState<QRLocation[]>([]);
   const [locationsLoading, setLocationsLoading] = useState(showLocationQr);
   const [locationsError, setLocationsError] = useState<string | null>(null);
   const [siteItems, setSiteItems] = useState<TradeShowSiteUsageItem[]>([]);
 
   useEffect(() => {
+    if (!showSiteUsage) {
+      setSiteItems([]);
+      return;
+    }
     let cancelled = false;
     void fetch("/api/qr-nfc/site-usage", { credentials: "include", cache: "no-store" })
       .then(async (res) => {
@@ -57,7 +73,7 @@ export function QrNfcUsagePanel({ items, loading, mediumView, globalView, agency
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [showSiteUsage]);
 
   useEffect(() => {
     if (!showLocationQr) {
@@ -128,10 +144,9 @@ export function QrNfcUsagePanel({ items, loading, mediumView, globalView, agency
       <div>
         <h3 className="text-sm font-semibold uppercase tracking-wide text-slate-300">Usage</h3>
         <p className="mt-1 text-xs text-slate-500">
-          Counts every QR-initiated website open: location report codes, Location QR (RCLI) scan
-          points, and Rapid Cortex site signs (www.rapidcortex.us). NFC taps are counted separately
-          when a programmed tag opens the same pages. Re-download the site QR (or reprogram the
-          booth tag) so new scans use the tracked link.
+          {showSiteUsage
+            ? "Counts every QR-initiated website open: location report codes, Location QR (RCLI) scan points, and Rapid Cortex site signs (www.rapidcortex.us). NFC taps are counted separately when a programmed tag opens the same pages."
+            : "QR scans and NFC taps on this campus’s named report codes. Same codes as the Rapid Cortex Field app."}
         </p>
       </div>
 
@@ -144,7 +159,7 @@ export function QrNfcUsagePanel({ items, loading, mediumView, globalView, agency
               <StatCard
                 label="QR website clicks"
                 value={formatUsageCount(combined.qrClicks)}
-                hint="Report + site + RCLI"
+                hint={showSiteUsage ? "Report + site + RCLI" : "Report codes"}
               />
             ) : null}
             {mediumView !== "qr" ? (
@@ -172,6 +187,7 @@ export function QrNfcUsagePanel({ items, loading, mediumView, globalView, agency
             />
           </div>
 
+          {showSiteUsage ? (
           <div className="overflow-x-auto rounded-lg border border-amber-900/40 bg-amber-950/10 px-3 py-3">
             <h4 className="text-xs font-semibold uppercase tracking-wide text-amber-400/90">
               Rapid Cortex site QR
@@ -226,6 +242,7 @@ export function QrNfcUsagePanel({ items, loading, mediumView, globalView, agency
               </tbody>
             </table>
           </div>
+          ) : null}
 
           <div className="overflow-x-auto">
             <table className="w-full min-w-[36rem] text-left text-sm">

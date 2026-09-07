@@ -1211,12 +1211,14 @@ export function getTransitAdminNav(code: string): RoleNav {
           { id: "reports", label: "Reports", href: `${base}/reports`, icon: "FileText", feature: "verticalTransit" },
           { id: "operators", label: "Operators", href: `${base}/operators`, icon: "Users", feature: "verticalTransit" },
           { id: "cameras", label: "Cameras", href: `${base}/cameras`, icon: "Camera", feature: "transitCameras" },
+          { id: "qr", label: "QR Codes", href: `${base}/qr-codes`, icon: "QrCode" },
         ],
       },
       {
         id: "config",
         label: "CONFIG",
         items: [
+          { id: "users", label: "Users", href: `${base}/users`, icon: "Users" },
           { id: "vehicles", label: "Vehicles", href: `${base}/settings/vehicles`, icon: "Wrench", feature: "verticalTransit" },
           { id: "routes", label: "Routes", href: `${base}/settings/routes`, icon: "Map", feature: "verticalTransit" },
           {
@@ -1249,6 +1251,7 @@ export function getTransitSupervisorNav(code: string): RoleNav {
           { id: "reports", label: "Reports", href: `${base}/reports`, icon: "FileText", feature: "verticalTransit" },
           { id: "operators", label: "Operators", href: `${base}/operators`, icon: "Users", feature: "verticalTransit" },
           { id: "cameras", label: "Cameras", href: `${base}/cameras`, icon: "Camera", feature: "transitCameras" },
+          { id: "qr", label: "QR Codes", href: `${base}/qr-codes`, icon: "QrCode" },
         ],
       },
     ],

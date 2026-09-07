@@ -269,7 +269,9 @@ export async function getUserContextWithoutNetwork(
       }
       return ctx;
     }
-    return null;
+    // Native app ID tokens are accepted by HttpApi JWT authorizer (web + native audiences)
+    // but jose verify here fails when this Lambda only has COGNITO_CLIENT_ID (web).
+    // Do not return null — fall through to authorizer claims.
   }
 
   const claims = (

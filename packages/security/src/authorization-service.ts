@@ -114,6 +114,9 @@ export class AuthorizationService {
     if (resolveCampusMatrixRole(String(user.role)) === "CAMPUS_ADMIN" && user.agencyId === targetAgencyId) {
       return;
     }
+    if (resolveTransitMatrixRole(String(user.role)) === "TRANSIT_ADMIN" && user.agencyId === targetAgencyId) {
+      return;
+    }
     const err = new Error("FORBIDDEN");
     (err as Error & { statusCode?: number }).statusCode = 403;
     throw err;

@@ -1,4 +1,4 @@
-import type { APIGatewayProxyHandlerV2 } from "aws-lambda";
+import type { APIGatewayProxyEventV2, APIGatewayProxyHandlerV2 } from "aws-lambda";
 import { ZodError } from "zod";
 import { withCorrelationHeaders } from "../../lib/correlation.js";
 import { badRequest, badRequestFromZod, forbidden, ok, serverError } from "../../lib/response.js";
@@ -9,7 +9,7 @@ import {
   saveCampusSites,
 } from "../../campus/campus-sites-service.js";
 
-export const getHandler: APIGatewayProxyHandlerV2 = async (event) => {
+async function getHandler(event: APIGatewayProxyEventV2) {
   try {
     const ctx = await requireAgencyRoute(event, "campus.dashboard.view");
     if ("response" in ctx) return ctx.response;
@@ -19,9 +19,9 @@ export const getHandler: APIGatewayProxyHandlerV2 = async (event) => {
     console.error("[campus-sites-get]", error);
     return withCorrelationHeaders(event, serverError());
   }
-};
+}
 
-export const putHandler: APIGatewayProxyHandlerV2 = async (event) => {
+async function putHandler(event: APIGatewayProxyEventV2) {
   try {
     const ctx = await requireAgencyRoute(event, "campus.settings.manage");
     if ("response" in ctx) return ctx.response;
@@ -54,7 +54,7 @@ export const putHandler: APIGatewayProxyHandlerV2 = async (event) => {
     console.error("[campus-sites-put]", error);
     return withCorrelationHeaders(event, serverError());
   }
-};
+}
 
 export const handler: APIGatewayProxyHandlerV2 = async (event) => {
   const method = event.requestContext.http.method.toUpperCase();

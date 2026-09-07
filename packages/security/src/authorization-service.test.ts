@@ -196,6 +196,13 @@ describe("AuthorizationService.canPerform / assertCanPerform", () => {
       const admin = makeUser("TRANSIT_ADMIN" as UserRole);
       expect(auth.canPerform(admin, "transit.settings.manage")).toBe(true);
       expect(auth.canPerform(admin, "transit.broadcast.send")).toBe(true);
+      expect(auth.canPerform(admin, "locations.qrcodes.manage")).toBe(true);
+    });
+
+    it("lets transit_admin create invites for the same agency", () => {
+      const admin = makeUser("transit_admin");
+      expect(auth.canCreateInvite(admin, "agency-a")).toBe(true);
+      expect(auth.canCreateInvite(admin, "other-agency")).toBe(false);
     });
   });
 
@@ -228,6 +235,12 @@ describe("AuthorizationService.assertAgencyAdminManagingSameAgency", () => {
 
   it("allows CAMPUS_ADMIN for the same agency (mutual-aid demo)", () => {
     const admin = makeUser("CAMPUS_ADMIN" as UserRole);
+    expect(() => auth.assertAgencyAdminManagingSameAgency(admin, "agency-a")).not.toThrow();
+    expect(() => auth.assertAgencyAdminManagingSameAgency(admin, "other-agency")).toThrow("FORBIDDEN");
+  });
+
+  it("allows TRANSIT_ADMIN for the same agency", () => {
+    const admin = makeUser("transit_admin");
     expect(() => auth.assertAgencyAdminManagingSameAgency(admin, "agency-a")).not.toThrow();
     expect(() => auth.assertAgencyAdminManagingSameAgency(admin, "other-agency")).toThrow("FORBIDDEN");
   });

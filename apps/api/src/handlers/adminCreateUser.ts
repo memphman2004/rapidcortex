@@ -12,7 +12,7 @@ import {
   unauthorized,
   badRequestFromZod,
 } from "../lib/response.js";
-import { AGENCY_ROLE_SCHEMA } from "rapid-cortex-shared";
+import { ADMIN_PROVISION_ROLE_SCHEMA } from "rapid-cortex-shared";
 import { AdminUserService } from "../services/adminUserService.js";
 
 const service = new AdminUserService();
@@ -20,7 +20,7 @@ const service = new AdminUserService();
 const bodySchema = z.object({
   email: z.string().email(),
   agencyId: z.string().min(1),
-  role: AGENCY_ROLE_SCHEMA,
+  role: ADMIN_PROVISION_ROLE_SCHEMA,
   temporaryPassword: z.string().min(12),
 });
 

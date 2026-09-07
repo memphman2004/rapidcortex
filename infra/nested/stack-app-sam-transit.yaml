@@ -25,6 +25,16 @@ Parameters:
     Type: String
     Default: ""
     Description: Stack 2 HttpApi execute-api URL for transit camera producer heartbeats
+  TransitCameraProducerKey:
+    Type: String
+    Default: ""
+    NoEcho: true
+    Description: >
+      If set, used as the producer-key SecretString (avoids secretsmanager:GetRandomPassword,
+      which the deploy IAM user may not have). Leave empty to generate a random secret.
+
+Conditions:
+  HasTransitCameraProducerKey: !Not [!Equals [!Ref TransitCameraProducerKey, ""]]
 
 Globals:
   Function:
@@ -196,9 +206,12 @@ Resources:
     Properties:
       Name: !Sub "rapid-cortex/${DeploymentStage}/transit/camera-producer-key"
       Description: Producer-agent key for transit camera heartbeats (not a browser secret)
-      GenerateSecretString:
-        PasswordLength: 48
-        ExcludePunctuation: true
+      SecretString: !If [HasTransitCameraProducerKey, !Ref TransitCameraProducerKey, !Ref AWS::NoValue]
+      GenerateSecretString: !If
+        - HasTransitCameraProducerKey
+        - !Ref AWS::NoValue
+        - PasswordLength: 48
+          ExcludePunctuation: true
 
   TransitKvsBrowserTokenRole:
     Type: AWS::IAM::Role

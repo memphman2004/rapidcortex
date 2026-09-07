@@ -4,8 +4,8 @@ import { getWidgetLayout, resolveWidgetLayoutRole, ROLE_WIDGET_LAYOUTS } from ".
 const ALL_LAYOUT_ROLES = Object.keys(ROLE_WIDGET_LAYOUTS);
 
 describe("widget-layout-config", () => {
-  it("defines layouts for all 21 active roles", () => {
-    expect(ALL_LAYOUT_ROLES).toHaveLength(21);
+  it("defines layouts for all 25 active roles", () => {
+    expect(ALL_LAYOUT_ROLES).toHaveLength(25);
   });
 
   it.each(ALL_LAYOUT_ROLES)("resolves layout for %s", (role) => {
@@ -27,5 +27,7 @@ describe("widget-layout-config", () => {
     expect(resolveWidgetLayoutRole("CAMPUS_ADMIN")).toBe("CAMPUS_ADMIN");
     expect(resolveWidgetLayoutRole("venue_operator")).toBe("VENUE_OPERATOR");
     expect(resolveWidgetLayoutRole("VENUE_OPERATOR")).toBe("VENUE_OPERATOR");
+    expect(resolveWidgetLayoutRole("transit_admin")).toBe("TRANSIT_ADMIN");
+    expect(resolveWidgetLayoutRole("TRANSIT_SUPERVISOR")).toBe("TRANSIT_SUPERVISOR");
   });
 });

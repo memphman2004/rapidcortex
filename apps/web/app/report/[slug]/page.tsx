@@ -4,7 +4,11 @@ import Link from "next/link";
 import { QRNfcIntakeClient } from "@/components/qr-nfc/qr-nfc-intake-client";
 import { resolveUpstreamApiBase } from "@/lib/comms-api-path";
 import { isQrNfcSlug } from "@/lib/qr-nfc/is-qr-nfc-slug";
+import { joinUpstreamApiUrl } from "@/lib/upstream-url";
 import { LegacyReportShell } from "../_components/LegacyReportShell";
+
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
 
 type PageParams = { slug: string };
 
@@ -28,18 +32,26 @@ export async function generateMetadata({
 }
 
 async function engageQrCode(qrId: string, medium: ReportMedium): Promise<QRNFCPublicRecord | { active: false } | null> {
-  const base = resolveUpstreamApiBase(`/api/qr-nfc/${qrId}/engage`);
-  if (!base) return null;
+  const path = `/api/qr-nfc/${encodeURIComponent(qrId)}/engage`;
+  const base = resolveUpstreamApiBase(path);
+  if (!base) {
+    console.error("[report] qr-nfc engage skipped: API_UPSTREAM_BASE is not configured");
+    return null;
+  }
   try {
-    const res = await fetch(`${base}/api/qr-nfc/${encodeURIComponent(qrId)}/engage`, {
+    const res = await fetch(joinUpstreamApiUrl(base, path), {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ medium }),
       cache: "no-store",
     });
-    if (!res.ok) return null;
+    if (!res.ok) {
+      console.error("[report] qr-nfc engage failed", qrId, res.status);
+      return null;
+    }
     return (await res.json()) as QRNFCPublicRecord | { active: false };
-  } catch {
+  } catch (err) {
+    console.error("[report] qr-nfc engage error", qrId, err);
     return null;
   }
 }

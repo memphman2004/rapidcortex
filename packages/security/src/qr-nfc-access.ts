@@ -14,6 +14,8 @@ const MANAGE_ROLES = new Set([
   "venue_admin",
   "venue_supervisor",
   "venue_operator",
+  "transit_admin",
+  "transit_supervisor",
 ]);
 
 /**
@@ -24,6 +26,7 @@ const NFC_PROGRAM_ROLES = new Set([
   ...MANAGE_ROLES,
   "campus_security",
   "venue_security",
+  "transit_security",
 ]);
 
 /** Roles that may list, view, and download QR assets. */

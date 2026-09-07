@@ -45,6 +45,9 @@ describe("rapid-cortex-roles", () => {
     expect(migrateLegacyRapidCortexRoleTokenValue("CAMPUS_SUPERVISOR")).toBe("campus_supervisor");
     expect(migrateLegacyRapidCortexRoleTokenValue("CAMPUS_SECURITY")).toBe("campus_security");
     expect(migrateLegacyRapidCortexRoleTokenValue("CAMPUS_DISPATCH")).toBe("campus_security");
+    expect(migrateLegacyRapidCortexRoleTokenValue("TRANSIT_ADMIN")).toBe("transit_admin");
+    expect(migrateLegacyRapidCortexRoleTokenValue("transit-supervisor")).toBe("transit_supervisor");
+    expect(migrateLegacyRapidCortexRoleTokenValue("TRANSIT_OPERATOR")).toBe("transit_operator");
     expect(migrateLegacyRapidCortexRoleTokenValue("CAMPUS_COUNSELOR")).toBe("campus_counselor");
     expect(migrateLegacyRapidCortexRoleTokenValue("HOSPITAL_ADMIN")).toBe("hospital_admin");
     expect(migrateLegacyRapidCortexRoleTokenValue("HOSPITAL_COORDINATOR")).toBe("hospital_coord");
@@ -59,6 +62,8 @@ describe("rapid-cortex-roles", () => {
     expect(normalizeSessionRole("HOSPITAL_STAFF")).toBe("hospital_staff");
     expect(normalizeSessionRole("CAMPUS_ADMIN")).not.toBe("agencyadmin");
     expect(normalizeSessionRole("venue-admin")).not.toBe("dispatcher");
+    expect(normalizeSessionRole("TRANSIT_ADMIN")).toBe("transit_admin");
+    expect(normalizeSessionRole("transit-supervisor")).toBe("transit_supervisor");
   });
 
   it("isHospitalPortalRole accepts canonical and legacy hospital roles", () => {

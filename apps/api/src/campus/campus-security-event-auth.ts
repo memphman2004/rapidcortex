@@ -2,7 +2,7 @@ import { createHash, timingSafeEqual } from "node:crypto";
 import {
   parseWebhookSignatureVariants,
   verifyRcLiteWebhookSignature,
-} from "rapid-cortex-shared/rc-lite/webhook-signing";
+} from "rapid-cortex-shared/dist/rc-lite/webhook-signing";
 
 export function campusSecurityEventMockEnabled(): boolean {
   const v = process.env.ENABLE_CAMPUS_SECURITY_EVENTS_MOCK?.trim();

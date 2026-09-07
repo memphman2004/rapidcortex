@@ -1,9 +1,9 @@
 import type { APIGatewayProxyHandlerV2 } from "aws-lambda";
 import { ZodError } from "zod";
-import { ACCOUNT_INACTIVE_MESSAGE, getUserContext, isUserAccountActive } from "../lib/auth.js";
-import { withCorrelationHeaders } from "../lib/correlation.js";
-import { env } from "../lib/env.js";
-import { operationalPasswordBlock } from "../lib/operationalPasswordGate.js";
+import { ACCOUNT_INACTIVE_MESSAGE, getUserContext, isUserAccountActive } from "../../lib/auth.js";
+import { withCorrelationHeaders } from "../../lib/correlation.js";
+import { env } from "../../lib/env.js";
+import { operationalPasswordBlock } from "../../lib/operationalPasswordGate.js";
 import {
   badRequest,
   badRequestFromZod,
@@ -12,11 +12,11 @@ import {
   ok,
   serverError,
   unauthorized,
-} from "../lib/response.js";
+} from "../../lib/response.js";
 import {
   issueOnboardingPacketDownload,
   listOnboardingPackets,
-} from "../onboarding/onboarding-packets-service.js";
+} from "../../onboarding/onboarding-packets-service.js";
 
 export const handler: APIGatewayProxyHandlerV2 = async (event) => {
   try {

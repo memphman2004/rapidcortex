@@ -98,8 +98,8 @@ export function TradeShowMarketingQrPanel({ onCopied, onDownloaded, onError }: P
       <p className="mt-1 text-xs text-slate-400">
         Booth and Rapid Cortex marketing signs. Choose Home or Demo, download the PNG, and print it.
         Scans are counted, then the visitor lands on the public site. Do not use + New QR / NFC Code —
-        that opens a location report form. Program the matching NFC tag in the Rapid Cortex mobile app
-        (Campus or Venue → Trade show signs).
+        that opens a location report form. Program the matching NFC tag in Rapid Cortex Mobile while
+        signed in with an RC account (Codes → globe, or Settings → Rapid Cortex site QR & NFC).
       </p>
 
       <div className="mt-3 flex gap-2" role="tablist" aria-label="Rapid Cortex site destination">

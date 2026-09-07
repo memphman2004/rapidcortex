@@ -76,6 +76,14 @@ describe("QR locations access (locations.qrcodes.*)", () => {
     expect(canViewQrLocations(admin, "agency-b")).toBe(false);
   });
 
+  it("grants TRANSIT_ADMIN and TRANSIT_SUPERVISOR location QR manage", () => {
+    const admin = makeUser("transit_admin", "test-transit-hvt");
+    const supervisor = makeUser("TRANSIT_SUPERVISOR", "test-transit-hvt");
+    expect(canManageQrLocations(admin, "test-transit-hvt")).toBe(true);
+    expect(canManageQrLocations(supervisor, "test-transit-hvt")).toBe(true);
+    expect(canManageQrLocations(admin, "other-agency")).toBe(false);
+  });
+
   it("allows rcsuperadmin cross-tenant", () => {
     const su = makeUser("rcsuperadmin", "platform");
     expect(canManageQrLocations(su, "any-agency")).toBe(true);

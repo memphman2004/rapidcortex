@@ -13,7 +13,7 @@ import {
   unauthorized,
   badRequestFromZod,
 } from "../lib/response.js";
-import { AGENCY_ROLE_SCHEMA } from "rapid-cortex-shared";
+import { ADMIN_PROVISION_ROLE_SCHEMA } from "rapid-cortex-shared";
 import { AdminUserService } from "../services/adminUserService.js";
 
 const service = new AdminUserService();
@@ -22,7 +22,7 @@ const bodySchema = z
   .object({
     username: z.string().min(1),
     agencyId: z.string().min(1).optional(),
-    role: z.union([AGENCY_ROLE_SCHEMA, z.literal("rcsuperadmin"), z.literal("rcadmin"), z.literal("rcitadmin")]).optional(),
+    role: z.union([ADMIN_PROVISION_ROLE_SCHEMA, z.literal("rcsuperadmin"), z.literal("rcadmin"), z.literal("rcitadmin")]).optional(),
     passwordChangeRequired: z.boolean().optional(),
   })
   .refine((d) => d.agencyId != null || d.role != null || d.passwordChangeRequired != null, {

@@ -70,6 +70,33 @@ export async function resolveCampusDisplayName(campusCodeParam: string): Promise
   return displayName || agency.name?.trim() || campusCode;
 }
 
+/**
+ * Session + agency for `/app/campus/{code}` console pages (QR, incidents, etc.).
+ * Campus users must match the URL code; RC operators may open any campus.
+ */
+export async function loadCampusConsolePageContext(campusCodeParam: string) {
+  const campusCode = normalizeCampusCode(campusCodeParam);
+  const user = await getDashboardSessionUser();
+  if (!user) {
+    redirect("/login");
+  }
+
+  const isInternal = isRcInternalOperator(user.role);
+  const userCode = userCampusCode(user);
+  if (!isInternal && userCode !== campusCode) {
+    redirect("/unauthorized");
+  }
+
+  const agencies = await fetchAgenciesForSession();
+  const agencyId = resolveAgencyIdForCampusPage(user, campusCode, agencies);
+  const agency = agencyId ? agencies.find((row) => row.agencyId === agencyId) : undefined;
+  const displayName = agency
+    ? campusSettingsFromAgency(agency).general.displayName.trim() || agency.name?.trim() || campusCode
+    : campusCode;
+
+  return { campusCode, user, agencyId, displayName };
+}
+
 export async function loadCampusAdminPageContext(campusCodeParam: string) {
   const campusCode = normalizeCampusCode(campusCodeParam);
   const user = await getDashboardSessionUser();

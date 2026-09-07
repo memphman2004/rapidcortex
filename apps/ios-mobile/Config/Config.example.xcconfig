@@ -1,0 +1,9 @@
+// Copy to Config.xcconfig (gitignored) if you need local overrides.
+// These IDs are the production native/public Cognito app client (no secret).
+// Same pool and passwords as the Android app and web console.
+
+RC_COGNITO_REGION = us-east-1
+RC_COGNITO_USER_POOL_ID = us-east-1_0z6tA6WBs
+RC_COGNITO_CLIENT_ID = 3nkemnrffspnaa0ikp2un6koh0
+// xcconfig treats // as a comment — $() is an empty expansion so the URL keeps both slashes.
+RC_API_BASE_URL = https:/$()/api.rapidcortex.us

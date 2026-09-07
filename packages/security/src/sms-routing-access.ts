@@ -9,6 +9,7 @@ const MANAGE_ROLES = new Set([
   "agencyadmin",
   "campus_admin",
   "venue_admin",
+  "transit_admin",
 ]);
 
 function effectiveRole(user: UserContext): string {

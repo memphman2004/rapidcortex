@@ -32,6 +32,33 @@ describe("auth runtime hardening", () => {
     expect(user?.userId).toBe("demo-user");
   });
 
+  it("falls back to HttpApi JWT authorizer claims when Bearer jose verify fails", async () => {
+    const user = await getUserContext({
+      version: "2.0",
+      routeKey: "GET /api/agencies/{id}",
+      rawPath: "/api/agencies/test-campus-uga",
+      rawQueryString: "",
+      headers: { authorization: "Bearer not-a-valid-jwt" },
+      requestContext: {
+        authorizer: {
+          jwt: {
+            claims: {
+              sub: "campus-admin-1",
+              "custom:role": "CAMPUS_ADMIN",
+              "custom:agencyId": "test-campus-uga",
+              email: "campusadmin@uga.edu",
+            },
+          },
+        },
+      } as APIGatewayProxyEventV2["requestContext"],
+      isBase64Encoded: false,
+    } as APIGatewayProxyEventV2);
+
+    expect(user).not.toBeNull();
+    expect(user?.userId).toBe("campus-admin-1");
+    expect(user?.agencyId).toBe("test-campus-uga");
+  });
+
   it("treats missing custom:status as active; blocks explicit inactive statuses", async () => {
     const noStatus = await getUserContext(
       makeEvent({

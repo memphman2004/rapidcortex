@@ -321,8 +321,21 @@ const TRANSIT_ADMIN_HELP: HelpIndex = [
   {
     section: "Transit Admin",
     articles: [
-      { topic: "index",            title: "Transit Admin Overview",          description: "Transit dashboard, routes, and admin configuration." },
-      { topic: "incidents",        title: "Transit Incident Management",     description: "Creating and managing incidents on routes and at stations." },
+      { topic: "index", title: "Transit Admin Overview", description: "Fleet, routes, QR codes, users, and admin configuration." },
+      { topic: "qr-codes", title: "QR and NFC Codes", description: "Create, print, and deactivate passenger report codes for vehicles and stations." },
+      { topic: "users", title: "Transit Users", description: "Invite Transit Admin, Supervisor, Security, and Operator accounts." },
+      { topic: "incidents", title: "Transit Incident Management", description: "Creating and managing incidents on routes and at stations." },
+    ],
+  },
+];
+
+const TRANSIT_SUPERVISOR_HELP: HelpIndex = [
+  {
+    section: "Transit Supervisor",
+    articles: [
+      { topic: "index", title: "Transit Supervisor Overview", description: "Ops dashboard, incidents, alert level, and broadcasts." },
+      { topic: "qr-codes", title: "QR and NFC Codes", description: "Create and deactivate passenger report QR / NFC codes for vehicles and stations." },
+      { topic: "incidents", title: "Incidents and 911 escalate", description: "Manage transit incidents and flag 911 escalation (audit only — no CAD write-back)." },
     ],
   },
 ];
@@ -396,8 +409,8 @@ export function normalizeHelpRole(role: string): string {
     hospitalstaff: "hospital_staff",
     hospital_coordinator: "hospital_staff",
     transit_admin: "transit_admin",
+    transit_supervisor: "transit_supervisor",
     transit_security: "transit_security",
-    transit_supervisor: "transit_admin",
     transit_operator: "transit_security",
   };
   return map[r] ?? r;
@@ -421,6 +434,7 @@ const HELP_INDEX: Record<string, HelpIndex> = {
   hospital_admin:    HOSPITAL_ADMIN_HELP,
   hospital_staff:    HOSPITAL_STAFF_HELP,
   transit_admin:     TRANSIT_ADMIN_HELP,
+  transit_supervisor: TRANSIT_SUPERVISOR_HELP,
   transit_security:  TRANSIT_SECURITY_HELP,
   rcadmin:           RC_ADMIN_HELP,
   rcitadmin:         RC_IT_ADMIN_HELP,

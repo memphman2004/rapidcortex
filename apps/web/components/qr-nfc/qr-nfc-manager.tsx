@@ -26,6 +26,12 @@ type Props = {
   canDownload?: boolean;
   zoneLabel?: string;
   globalView?: boolean;
+  /** Rapid Cortex site QR/NFC (www.rapidcortex.us). RC internal logins only. */
+  showSiteQr?: boolean;
+  /** Hide the manager H2 when the page already has a campus/venue heading. */
+  hideHeading?: boolean;
+  /** Tenant consoles: omit platform site QR and Location QR (RCLI) usage. */
+  tenantConsole?: boolean;
   apiBase?: string;
 };
 
@@ -55,6 +61,9 @@ export function QRNFCManager({
   canDownload = true,
   zoneLabel = "Zone / Location",
   globalView = false,
+  showSiteQr = false,
+  hideHeading = false,
+  tenantConsole = false,
   apiBase = "/api/qr-nfc",
 }: Props) {
   const [items, setItems] = useState<ListItem[]>([]);
@@ -345,8 +354,8 @@ export function QRNFCManager({
 
   return (
     <div className="space-y-4">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <h2 className="text-lg font-semibold text-slate-100">{title}</h2>
+      <div className={`flex flex-wrap items-center gap-3 ${hideHeading ? "justify-end" : "justify-between"}`}>
+        {hideHeading ? <span className="sr-only">{title}</span> : <h2 className="text-lg font-semibold text-slate-100">{title}</h2>}
         <div className="flex flex-wrap items-center gap-2">
           <a
             href={qrNfcSetupGuidePath()}
@@ -362,12 +371,14 @@ export function QRNFCManager({
           >
             Usage
           </a>
+          {showSiteQr ? (
           <a
             href="#rc-marketing-qr"
             className="rounded-md border border-amber-700/70 px-3 py-1.5 text-sm font-medium text-amber-200 hover:border-amber-500/80 hover:text-amber-100"
           >
             + Rapid Cortex site QR
           </a>
+          ) : null}
         {canCreate ? (
           <button
             type="button"
@@ -419,13 +430,17 @@ export function QRNFCManager({
         mediumView={mediumView}
         globalView={globalView}
         agencyId={agencyId}
+        showSiteUsage={!tenantConsole}
+        showLocationUsage={!tenantConsole}
       />
 
+      {showSiteQr ? (
       <TradeShowMarketingQrPanel
         onCopied={(label) => flash("ok", `${label} copied.`)}
         onDownloaded={(fileName) => flash("ok", `${fileName} download started.`)}
         onError={(message) => flash("err", message)}
       />
+      ) : null}
 
       <div className="rounded-lg border border-slate-800 bg-slate-950/50 p-4">
         <h3 className="text-xs font-semibold uppercase tracking-wide text-slate-500">
@@ -777,11 +792,17 @@ export function QRNFCManager({
           <form onSubmit={(e) => void onCreate(e)} className="w-full max-w-md rounded-lg border border-slate-700 bg-slate-900 p-5">
             <h3 className="text-lg font-semibold text-slate-100">New QR / NFC code</h3>
             <p className="mt-2 rounded border border-amber-900/40 bg-amber-950/30 px-3 py-2 text-xs text-slate-400">
-              This creates a <span className="text-slate-200">location report</span> code. For{" "}
-              <a href="#rc-marketing-qr" className="text-amber-300 hover:text-amber-200" onClick={() => setModalOpen(false)}>
-                www.rapidcortex.us
-              </a>{" "}
-              booth signs, close this and use <span className="text-slate-200">Rapid Cortex site QR</span>.
+              This creates a <span className="text-slate-200">location report</span> code.
+              {showSiteQr ? (
+                <>
+                  {" "}
+                  For{" "}
+                  <a href="#rc-marketing-qr" className="text-amber-300 hover:text-amber-200" onClick={() => setModalOpen(false)}>
+                    www.rapidcortex.us
+                  </a>{" "}
+                  booth signs, close this and use <span className="text-slate-200">Rapid Cortex site QR</span>.
+                </>
+              ) : null}
             </p>
             <label className="mt-4 block text-sm text-slate-300">
               Name *

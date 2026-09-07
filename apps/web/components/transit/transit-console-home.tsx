@@ -5,6 +5,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { Plus } from "lucide-react";
 import type { TransitAlertLevel, TransitOperator } from "rapid-cortex-shared";
 import {
+  canTransitAdminOps,
   canTransitDispatchOps,
   canTransitSupervisorOps,
 } from "@/lib/vertical/supervisor-access";
@@ -25,6 +26,8 @@ import {
 import { CreateTransitIncidentModal, TransitBroadcastModal } from "./transit-ops-modals";
 import { useTransitOpsData } from "./use-transit-ops-data";
 import { T } from "./transit-theme";
+import { QRNFCManager } from "@/components/qr-nfc/qr-nfc-manager";
+import { TransitUsersClient } from "./transit-users-client";
 
 export function TransitConsoleHome(props: {
   agencyId: string;
@@ -42,6 +45,7 @@ export function TransitConsoleHome(props: {
   const [broadcastOpen, setBroadcastOpen] = useState(false);
   const canSupervisor = canTransitSupervisorOps(props.userRole);
   const canDispatch = canTransitDispatchOps(props.userRole);
+  const canAdmin = canTransitAdminOps(props.userRole);
 
   const vehicleId = useMemo(() => {
     const match = pathname.match(/\/fleet\/([^/]+)/);
@@ -50,6 +54,8 @@ export function TransitConsoleHome(props: {
 
   const view = useMemo(() => {
     if (pathname.includes("/cameras")) return "cameras";
+    if (pathname.includes("/qr-codes")) return "qr-codes";
+    if (pathname.includes("/users")) return "users";
     if (pathname.includes("/settings/vehicles")) return "settings-vehicles";
     if (pathname.includes("/settings/routes")) return "settings-routes";
     if (pathname.includes("/settings")) return "settings";
@@ -89,7 +95,31 @@ export function TransitConsoleHome(props: {
         <p style={{ fontSize: 11, color: T.textSecondary, margin: "0 0 12px" }}>
           Not a 911 PSAP console. Transit operations only.
         </p>
-        {ops.isLoading && !data ? (
+        {view === "qr-codes" ? (
+          canSupervisor ? (
+            <QRNFCManager
+              agencyId={props.agencyId}
+              agencyName={props.transitName}
+              vertical="transit"
+              canCreate={canSupervisor}
+              canDeactivate={canSupervisor}
+              canDownload={canSupervisor}
+              zoneLabel="Route / Vehicle / Station"
+            />
+          ) : (
+            <p style={{ color: T.textSecondary, fontSize: 13 }}>
+              Your role cannot manage transit QR / NFC codes.
+            </p>
+          )
+        ) : view === "users" ? (
+          canAdmin ? (
+            <TransitUsersClient transitCode={props.transitCode} agencyId={props.agencyId} />
+          ) : (
+            <p style={{ color: T.textSecondary, fontSize: 13 }}>
+              Only Transit Admin can invite or deactivate transit users.
+            </p>
+          )
+        ) : ops.isLoading && !data ? (
           <div style={{ color: T.textSecondary }}>Loading fleet…</div>
         ) : ops.error && !data ? (
           <div style={{ color: T.red }}>{ops.error}</div>

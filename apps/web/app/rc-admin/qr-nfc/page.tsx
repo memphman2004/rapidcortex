@@ -35,6 +35,7 @@ export default async function RcAdminQrNfcPage() {
         canDeactivate={perms.canDeactivate}
         canDownload={perms.canDownload}
         globalView
+        showSiteQr
       />
     </div>
   );

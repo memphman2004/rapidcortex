@@ -1,0 +1,3 @@
+// Copy this file to Config.xcconfig for local overrides. Checked-in defaults
+// match the public native Cognito client already used by Android / desktop.
+#include "Config.example.xcconfig"

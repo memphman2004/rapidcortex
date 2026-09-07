@@ -150,8 +150,9 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
         await deleteCampusEap(campusCode, eapId, agencyId, user.userId);
         return withCorrelationHeaders(event, ok({ deleted: true }));
       }
+      const rawBody = parseJson(event.body);
       const parsed = campusEapUpsertBodySchema.safeParse({
-        ...parseJson(event.body),
+        ...(typeof rawBody === "object" && rawBody !== null ? rawBody : {}),
         eapId,
         campusCode,
       });

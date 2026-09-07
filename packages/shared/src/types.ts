@@ -5,7 +5,11 @@ import type { ConfidenceAnalysis } from "./confidence/types.js";
 import type { TriageResult } from "./triage/triage.js";
 import {
   AGENCY_ASSIGNABLE_ROLES,
+  CAMPUS_ASSIGNABLE_ROLES,
+  TRANSIT_ASSIGNABLE_ROLES,
   type AgencyAssignableRole,
+  type CampusAssignableRole,
+  type TransitAssignableRole,
   RAPID_CORTEX_ROLES,
   type RapidCortexRole,
 } from "./auth/rapid-cortex-roles.js";
@@ -29,6 +33,25 @@ export const AGENCY_ROLE_SCHEMA = z.enum(
 
 /** Validates any known product role including RC-internal roles. */
 export const USER_ROLE_SCHEMA = z.enum(RAPID_CORTEX_ROLES as unknown as [RapidCortexRole, ...RapidCortexRole[]]);
+
+const CAMPUS_ASSIGNABLE_ROLE_SCHEMA = z.enum(
+  CAMPUS_ASSIGNABLE_ROLES as unknown as [CampusAssignableRole, ...CampusAssignableRole[]],
+);
+
+const TRANSIT_ASSIGNABLE_ROLE_SCHEMA = z.enum(
+  TRANSIT_ASSIGNABLE_ROLES as unknown as [TransitAssignableRole, ...TransitAssignableRole[]],
+);
+
+/**
+ * Roles accepted by admin create/update user APIs.
+ * Includes PSAP assignable roles, campus/transit Cognito group tokens, and canonical JWT roles.
+ */
+export const ADMIN_PROVISION_ROLE_SCHEMA = z.union([
+  AGENCY_ROLE_SCHEMA,
+  CAMPUS_ASSIGNABLE_ROLE_SCHEMA,
+  TRANSIT_ASSIGNABLE_ROLE_SCHEMA,
+  USER_ROLE_SCHEMA,
+]);
 
 export type IncidentCategory =
   | "medical"
@@ -390,6 +413,8 @@ export type AuditResourceType =
   | "venue_camera_session"
   | "venue_camera"
   | "campus_camera"
+  | "campus_eap"
+  | "campus_automation"
   | "transit_camera"
   | "venue_section"
   | "venue_profile"

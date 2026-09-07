@@ -99,7 +99,6 @@ export async function upsertCampusEap(
       Item: {
         pk: CAMPUS_KEYS.configPk(body.campusCode),
         sk: CAMPUS_KEYS.eapSk(eapId),
-        agencyId,
         ...item,
       },
       ConditionExpression: "attribute_not_exists(pk) OR agencyId = :agencyId",

@@ -67,6 +67,22 @@ export const CAMPUS_ASSIGNABLE_ROLES = [
 
 export type CampusAssignableRole = (typeof CAMPUS_ASSIGNABLE_ROLES)[number];
 
+/** Transit ops roles assignable by TRANSIT_ADMIN (and RC internal operators). */
+export const TRANSIT_ASSIGNABLE_ROLES = [
+  "TRANSIT_ADMIN",
+  "TRANSIT_SUPERVISOR",
+  "TRANSIT_SECURITY",
+  "TRANSIT_OPERATOR",
+] as const;
+
+export type TransitAssignableRole = (typeof TRANSIT_ASSIGNABLE_ROLES)[number];
+
+/** Cognito group / picker token or snake_case JWT for a transit-assignable role. */
+export function isTransitAssignableRole(role: string): boolean {
+  const upper = role.trim().toUpperCase().replace(/-/g, "_");
+  return (TRANSIT_ASSIGNABLE_ROLES as readonly string[]).includes(upper);
+}
+
 export type HospitalAssignableRole = (typeof HOSPITAL_ASSIGNABLE_ROLES)[number];
 
 export type AgencyAssignableRole = (typeof AGENCY_ASSIGNABLE_ROLES)[number];
@@ -308,9 +324,13 @@ export const VERTICAL_ROLE_TOKEN_ALIASES: Record<string, RapidCortexRole> = {
   "hospital-supervisor": "hospital_supervisor",
   hospitalsupervisor: "hospital_supervisor",
   transitadmin: "transit_admin",
+  transitsupervisor: "transit_supervisor",
   transitsecurity: "transit_security",
+  transitoperator: "transit_operator",
   "transit-admin": "transit_admin",
+  "transit-supervisor": "transit_supervisor",
   "transit-security": "transit_security",
+  "transit-operator": "transit_operator",
 };
 
 export function resolveVerticalRoleTokenAlias(raw: string | undefined | null): RapidCortexRole | undefined {

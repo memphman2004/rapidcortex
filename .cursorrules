@@ -27,6 +27,8 @@ It enhances operations but does NOT replace CAD, telephony, dispatchers, or medi
 │   ├── api/              # AWS Lambda backend (TypeScript, SAM)
 │   ├── web/              # Next.js 14 App Router (TypeScript, Tailwind)
 │   ├── marketing/        # Next.js static marketing site
+│   ├── android-mobile/   # Expo/React Native Android (Play)
+│   ├── ios-mobile/       # Native Swift Rapid Cortex Mobile (Xcode / TestFlight)
 │   ├── desktop-macos/    # Swift WKWebView wrapper
 │   └── desktop-windows/  # WPF WebView2 wrapper (C#)
 ├── packages/
