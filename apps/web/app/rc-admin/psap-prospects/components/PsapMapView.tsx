@@ -119,8 +119,8 @@ export function PsapMapView({ pins, statusFilter, onSelectProspect, isLoading }:
       const clusterId = features[0]?.properties?.cluster_id;
       const source = map.getSource(SOURCE_ID) as maplibregl.GeoJSONSource;
       if (clusterId == null) return;
-      source.getClusterExpansionZoom(clusterId, (err, zoom) => {
-        if (err || zoom == null) return;
+      void source.getClusterExpansionZoom(clusterId).then((zoom) => {
+        if (zoom == null) return;
         const coords = (features[0]!.geometry as GeoJSON.Point).coordinates as [number, number];
         map.easeTo({ center: coords, zoom });
       });

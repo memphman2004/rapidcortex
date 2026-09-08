@@ -90,7 +90,7 @@ type SessionDto = {
     jurisdictionMatch?: boolean;
     jurisdictionLabel?: string;
     summary?: string;
-    locationSource?: string;
+    locationSource?: "CALLER" | "ANI_ALI" | "RAPIDSOS" | "GIS" | "UNKNOWN";
   };
   triage?: { primaryClassification?: string; confidence?: number };
   rmsDraftStatus?: string;

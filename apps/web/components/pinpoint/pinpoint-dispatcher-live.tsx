@@ -80,11 +80,6 @@ export function PinpointDispatcherLive({ detail }: { detail: PinpointLinkDispatc
             />
           </RapidCortexMap>
         </div>
-      ) : active ? (
-        <p className="font-mono text-[11px] text-slate-400">
-          {active.lat.toFixed(5)}, {active.lng.toFixed(5)}
-          {active.accuracyM != null ? ` ±${Math.round(active.accuracyM)}m` : ""}
-        </p>
       ) : null}
       {pings.length > 1 ? (
         <div className="max-h-36 overflow-hidden rounded-md border border-slate-800">

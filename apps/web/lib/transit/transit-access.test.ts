@@ -1,12 +1,13 @@
 import { describe, expect, it } from "vitest";
+import type { UserContext } from "rapid-cortex-shared/types";
 import {
   TRANSIT_ASSIGNABLE_ROLES,
   canAccessTransitAdminRoutes,
   isTransitAssignableRole,
 } from "./transit-access";
 
-function makeUser(role: string, agencyId = "test-transit-hvt") {
-  return { role, agencyId };
+function makeUser(role: string, agencyId = "test-transit-hvt"): Pick<UserContext, "role" | "agencyId"> {
+  return { role: role as UserContext["role"], agencyId };
 }
 
 describe("canAccessTransitAdminRoutes", () => {

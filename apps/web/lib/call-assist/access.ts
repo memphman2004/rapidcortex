@@ -25,6 +25,11 @@ export function canSetupCallAssist(role: string | undefined): boolean {
   return canAdminCallAssist(role);
 }
 
+/** Current-shift label on Call Assist chrome — same gate as admin config. */
+export function canSetCallAssistShift(role: string | undefined): boolean {
+  return canAdminCallAssist(role);
+}
+
 /** Operational profile (911 / campus / venue) — Rapid Cortex operators only. */
 export function canSetCallAssistVertical(role: string | undefined): boolean {
   if (!role) return false;

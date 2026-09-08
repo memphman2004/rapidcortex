@@ -263,10 +263,7 @@ function QRIntakeClientInner({
       dir={dir}
       lang={langCode.toLowerCase()}
       data-vertical={
-        location.vertical === "campus" ||
-        location.vertical === "venue" ||
-        location.vertical === "hospital" ||
-        location.vertical === "transit"
+        ["campus", "venue", "hospital", "transit"].includes(String(location.vertical))
           ? location.vertical
           : undefined
       }
