@@ -25,13 +25,19 @@ phases:
       - set -eu
       - export DOCKER_BUILDKIT=1
       - IMAGE_TAG="$(echo "${CODEBUILD_RESOLVED_SOURCE_VERSION:-manual}" | cut -c1-7)"
-      # Fail fast — NEXT_PUBLIC_* is baked into the client bundle at docker build time.
+      # Fail fast on prod — NEXT_PUBLIC_* is baked into the client bundle at docker build time.
+      # Dev/staging may bake before AppSamLocationStack2 exists (identity pool is a stack output).
       - |
         if [ -z "${NEXT_PUBLIC_ALS_MAP_NAME:-}" ] || [ -z "${NEXT_PUBLIC_ALS_IDENTITY_POOL_ID:-}" ]; then
-          echo "ERROR: NEXT_PUBLIC_ALS_MAP_NAME and NEXT_PUBLIC_ALS_IDENTITY_POOL_ID missing in CodeBuild env — maps will break in production."
-          exit 1
+          echo "ALS map env missing (map='${NEXT_PUBLIC_ALS_MAP_NAME:-}' pool='${NEXT_PUBLIC_ALS_IDENTITY_POOL_ID:-}')."
+          if echo "${ECR_REGISTRY:-}" | grep -q 'rapid-cortex-web-prod'; then
+            echo "ERROR: NEXT_PUBLIC_ALS_MAP_NAME and NEXT_PUBLIC_ALS_IDENTITY_POOL_ID required for prod image bake."
+            exit 1
+          fi
+          echo "WARN: continuing without ALS identity pool — map tiles will not authenticate until Location stack outputs are baked."
+        else
+          echo "ALS map config present for image bake (map=${NEXT_PUBLIC_ALS_MAP_NAME})"
         fi
-        echo "ALS map config present for image bake (map=${NEXT_PUBLIC_ALS_MAP_NAME})"
       # Must match ECS task runtimePlatform: use rapid-cortex-web-prod task definition with X86_64 + this amd64 image.
       - >-
         docker build --platform linux/amd64 -f Dockerfile.web -t "${ECR_REGISTRY}:${IMAGE_TAG}"
