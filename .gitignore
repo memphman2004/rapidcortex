@@ -154,3 +154,8 @@ results/stress-report.html
 results/stress-v2/
 !results/.gitkeep
 
+# Lex Lambda bundles (scripts/deploy-lex.sh runs esbuild)
+infra/lex-lambda/dialog-hook.js
+infra/lex-lambda/fulfillment-hook.js
+infra/lex-lambda/get-agency-for-number.js
+

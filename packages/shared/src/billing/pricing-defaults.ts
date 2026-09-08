@@ -161,6 +161,13 @@ export const PRICING_DEFAULTS = {
 
   /** Response Continuity System module add-on ($/agency/month). */
   "rcs.module": 3500,
+  /** Call Assist — non-emergency AI call management ($/agency/month). */
+  "call_assist.module": 4500,
+  "call_assist.cad_integration": 1500,
+  "call_assist.rms_integration": 1500,
+  "call_assist.tty_accommodation": 500,
+  "call_assist.external_routing": 750,
+  "call_assist.demo_runner": 0,
   /** Multi-CAD Connector base ($/agency/month). Additional vendor connectors billed separately. */
   "cad.connector": 3500,
 } as const;

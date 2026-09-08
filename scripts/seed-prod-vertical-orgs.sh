@@ -11,8 +11,12 @@ export CAMPUS_CONFIG_TABLE="${CAMPUS_CONFIG_TABLE:-rapid-cortex-campus-config-${
 export VENUE_CONFIG_TABLE="${VENUE_CONFIG_TABLE:-rapid-cortex-venue-config-${STAGE}}"
 export QR_LOCATIONS_TABLE="${QR_LOCATIONS_TABLE:-rapid-cortex-qr-locations-${STAGE}}"
 
-echo "Seeding campus config (UGA) → ${CAMPUS_CONFIG_TABLE}"
-CAMPUS_CONFIG_TABLE="${CAMPUS_CONFIG_TABLE}" npx tsx "${ROOT}/apps/api/src/scripts/seed-campus-test-agency.ts" UGA
+echo "Syncing campus buildings from live QR/NFC codes (not demo Miller/Myers/Tate catalog) → ${CAMPUS_CONFIG_TABLE}"
+CAMPUS_CONFIG_TABLE="${CAMPUS_CONFIG_TABLE}" \
+QR_NFC_CODES_TABLE="${QR_NFC_CODES_TABLE:-rapid-cortex-qr-nfc-codes-${STAGE}}" \
+QR_LOCATIONS_TABLE="${QR_LOCATIONS_TABLE}" \
+AGENCY_ID="${CAMPUS_AGENCY_ID:-test-campus-uga}" \
+npx tsx "${ROOT}/scripts/sync-campus-buildings-from-qr.ts"
 
 echo "Seeding venue config (MBS) → ${VENUE_CONFIG_TABLE}"
 VENUE_CONFIG_TABLE="${VENUE_CONFIG_TABLE}" npx tsx "${ROOT}/scripts/seed-venue-config-mbs.ts"

@@ -49,12 +49,12 @@ final class RCAPIClient: ObservableObject {
         return Agency(from: dto)
     }
 
-    private func get<T: Decodable>(path: String) async throws -> T {
+    func get<T: Decodable>(path: String) async throws -> T {
         let req = try await buildRequest(method: "GET", path: path)
         return try await execute(req)
     }
 
-    private func post<T: Decodable, B: Encodable>(path: String, body: B) async throws -> T {
+    func post<T: Decodable, B: Encodable>(path: String, body: B) async throws -> T {
         var req = try await buildRequest(method: "POST", path: path)
         req.httpBody = try JSONEncoder().encode(body)
         return try await execute(req)

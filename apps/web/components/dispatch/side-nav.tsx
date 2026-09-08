@@ -37,7 +37,9 @@ export function SideNav({ compactRail = false }: { compactRail?: boolean }) {
           ? { accent: "#14B8A6", dim: "#134E4A" }
           : nav?.accent === "slate"
             ? { accent: "#94A3B8", dim: "#1E293B" }
-            : { accent: "#3b82f6", dim: "#1e3a5f" };
+            : nav?.accent === "indigo"
+              ? { accent: "#818CF8", dim: "#312E81" }
+              : { accent: "#0284C7", dim: "#0C4A6E" };
 
   return (
     <nav

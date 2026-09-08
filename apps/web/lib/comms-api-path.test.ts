@@ -163,6 +163,13 @@ describe("isCommsPlatformApiPath", () => {
     );
   });
 
+  it("routes Call Assist to stack 2 only", () => {
+    process.env.API_UPSTREAM_BASE = "https://stack1.example.com";
+    process.env.API_UPSTREAM_BASE_2 = "https://stack2.example.com";
+    expect(isStack2ApiPath("/api/call-assist/sessions")).toBe(true);
+    expect(resolveUpstreamApiBase("/api/call-assist/sessions")).toBe("https://stack2.example.com");
+  });
+
   it("routes hiring ATS paths to stack 3", () => {
     process.env.API_UPSTREAM_BASE = "https://stack1.example.com";
     process.env.API_UPSTREAM_BASE_3 = "https://stack3.example.com";

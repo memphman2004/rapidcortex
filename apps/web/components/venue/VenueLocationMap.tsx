@@ -15,8 +15,8 @@ const PANEL = {
 };
 
 const VERTICAL_THEME: Record<"venue" | "campus", { theme: "dark" | "satellite"; accent: string }> = {
-  venue: { theme: "dark", accent: "#f59e0b" },
-  campus: { theme: "satellite", accent: "#10b981" },
+  venue: { theme: "dark", accent: "#f97316" },
+  campus: { theme: "satellite", accent: "#64748b" },
 };
 
 export interface VenueLocationMapProps {

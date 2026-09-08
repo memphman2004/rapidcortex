@@ -10,6 +10,8 @@ const NEXT_PUBLIC_FLAG_VALUES: Record<string, string | undefined> = {
   NEXT_PUBLIC_ENABLE_SOP_PROTOCOL_AI: process.env.NEXT_PUBLIC_ENABLE_SOP_PROTOCOL_AI,
   NEXT_PUBLIC_ENABLE_NON_EMERGENCY_TRIAGE: process.env.NEXT_PUBLIC_ENABLE_NON_EMERGENCY_TRIAGE,
   NEXT_PUBLIC_ENABLE_NG911_ASSIST: process.env.NEXT_PUBLIC_ENABLE_NG911_ASSIST,
+  NEXT_PUBLIC_ENABLE_CALL_ASSIST: process.env.NEXT_PUBLIC_ENABLE_CALL_ASSIST,
+  NEXT_PUBLIC_ENABLE_FIELD_COMMAND: process.env.NEXT_PUBLIC_ENABLE_FIELD_COMMAND,
   NEXT_PUBLIC_ENABLE_FIELD_CONFIDENCE: process.env.NEXT_PUBLIC_ENABLE_FIELD_CONFIDENCE,
   NEXT_PUBLIC_ENABLE_PREDICTIVE_STAFFING: process.env.NEXT_PUBLIC_ENABLE_PREDICTIVE_STAFFING,
   NEXT_PUBLIC_ENABLE_DISPATCHER_WELLNESS: process.env.NEXT_PUBLIC_ENABLE_DISPATCHER_WELLNESS,
@@ -158,6 +160,16 @@ export function isNonEmergencyTriageEnabled(): boolean {
 /** NG911 assist: diversion, EIDO, Additional Data, metrics (ENABLE_NG911_ASSIST). */
 export function isNg911AssistEnabled(): boolean {
   return envFlag("NEXT_PUBLIC_ENABLE_NG911_ASSIST");
+}
+
+/** Call Assist — non-emergency AI call management (ENABLE_CALL_ASSIST). */
+export function isCallAssistEnabled(): boolean {
+  return envFlag("NEXT_PUBLIC_ENABLE_CALL_ASSIST");
+}
+
+/** Field app 911 Dispatch module (supervisor awareness). Default on when unset. */
+export function isFieldCommandEnabled(): boolean {
+  return envFlag("NEXT_PUBLIC_ENABLE_FIELD_COMMAND");
 }
 
 /** F6 predictive staffing intelligence (must match API ENABLE_PREDICTIVE_STAFFING). */

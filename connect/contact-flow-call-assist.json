@@ -1,0 +1,309 @@
+{
+  "Version": "2019-10-30",
+  "StartAction": "invoke-did-lookup",
+  "Metadata": {
+    "entryPointPosition": { "x": 20, "y": 20 },
+    "ActionMetadata": {
+      "invoke-did-lookup": { "position": { "x": 160, "y": 20 } },
+      "check-language": { "position": { "x": 400, "y": 20 } },
+      "set-voice-en": {
+        "position": { "x": 640, "y": 20 },
+        "overrideConsoleVoice": true,
+        "overrideLanguageAttribute": true,
+        "fragments": { "SetContactData": "set-lang-en" }
+      },
+      "set-lang-en": { "position": { "x": 640, "y": 20 }, "dynamicParams": [] },
+      "set-voice-es": {
+        "position": { "x": 640, "y": 220 },
+        "overrideConsoleVoice": true,
+        "overrideLanguageAttribute": true,
+        "fragments": { "SetContactData": "set-lang-es" }
+      },
+      "set-lang-es": { "position": { "x": 640, "y": 220 }, "dynamicParams": [] },
+      "play-disclosure": { "position": { "x": 880, "y": 20 } },
+      "lex-intake": { "position": { "x": 1120, "y": 20 } },
+      "play-emergency": { "position": { "x": 1360, "y": 20 } },
+      "set-emergency-attrs": { "position": { "x": 1600, "y": 20 } },
+      "play-fallback": { "position": { "x": 1360, "y": 220 } },
+      "set-fallback-attrs": { "position": { "x": 1600, "y": 220 } },
+      "set-demo-queue": {
+        "position": { "x": 1840, "y": 120 },
+        "parameters": { "QueueId": { "displayName": "Demo Dispatcher" } },
+        "queue": { "text": "Demo Dispatcher" }
+      },
+      "transfer-queue": { "position": { "x": 2080, "y": 120 } },
+      "play-complete": { "position": { "x": 1360, "y": 400 } },
+      "disconnect": { "position": { "x": 1600, "y": 400 } },
+      "error-prompt": { "position": { "x": 1120, "y": 400 } },
+      "transfer-error-prompt": { "position": { "x": 2080, "y": 280 } }
+    }
+  },
+  "Actions": [
+    {
+      "Identifier": "invoke-did-lookup",
+      "Type": "InvokeLambdaFunction",
+      "Parameters": {
+        "LambdaFunctionARN": "arn:aws:lambda:us-east-1:158961537080:function:rapid-cortex-lex-agency-for-number-dev",
+        "InvocationTimeLimitSeconds": "8",
+        "LambdaInvocationAttributes": {
+          "phoneNumber": "$.SystemEndpoint.Address"
+        },
+        "ResponseValidation": {
+          "ResponseType": "STRING_MAP"
+        }
+      },
+      "Transitions": {
+        "NextAction": "check-language",
+        "Errors": [
+          { "NextAction": "error-prompt", "ErrorType": "NoMatchingError" }
+        ]
+      }
+    },
+    {
+      "Identifier": "check-language",
+      "Type": "Compare",
+      "Parameters": {
+        "ComparisonValue": "$.External.language"
+      },
+      "Transitions": {
+        "NextAction": "set-voice-en",
+        "Conditions": [
+          {
+            "NextAction": "set-voice-es",
+            "Condition": { "Operator": "Equals", "Operands": ["es"] }
+          },
+          {
+            "NextAction": "set-voice-es",
+            "Condition": { "Operator": "Equals", "Operands": ["es-US"] }
+          },
+          {
+            "NextAction": "set-voice-es",
+            "Condition": { "Operator": "Equals", "Operands": ["es_US"] }
+          }
+        ],
+        "Errors": [
+          { "NextAction": "set-voice-en", "ErrorType": "NoMatchingCondition" }
+        ]
+      }
+    },
+    {
+      "Identifier": "set-voice-en",
+      "Type": "UpdateContactTextToSpeechVoice",
+      "Parameters": {
+        "TextToSpeechVoice": "Ruth",
+        "TextToSpeechEngine": "Neural",
+        "TextToSpeechStyle": "None"
+      },
+      "Transitions": {
+        "NextAction": "set-lang-en",
+        "Errors": [{ "NextAction": "set-lang-en", "ErrorType": "NoMatchingError" }],
+        "Conditions": []
+      }
+    },
+    {
+      "Identifier": "set-lang-en",
+      "Type": "UpdateContactData",
+      "Parameters": {
+        "LanguageCode": "en-US"
+      },
+      "Transitions": {
+        "NextAction": "play-disclosure",
+        "Errors": [{ "NextAction": "play-disclosure", "ErrorType": "NoMatchingError" }],
+        "Conditions": []
+      }
+    },
+    {
+      "Identifier": "set-voice-es",
+      "Type": "UpdateContactTextToSpeechVoice",
+      "Parameters": {
+        "TextToSpeechVoice": "Lupe",
+        "TextToSpeechEngine": "Neural",
+        "TextToSpeechStyle": "None"
+      },
+      "Transitions": {
+        "NextAction": "set-lang-es",
+        "Errors": [{ "NextAction": "set-lang-es", "ErrorType": "NoMatchingError" }],
+        "Conditions": []
+      }
+    },
+    {
+      "Identifier": "set-lang-es",
+      "Type": "UpdateContactData",
+      "Parameters": {
+        "LanguageCode": "es-US"
+      },
+      "Transitions": {
+        "NextAction": "play-disclosure",
+        "Errors": [{ "NextAction": "play-disclosure", "ErrorType": "NoMatchingError" }],
+        "Conditions": []
+      }
+    },
+    {
+      "Identifier": "play-disclosure",
+      "Type": "MessageParticipant",
+      "Parameters": {
+        "Text": "$.External.disclosureText How can I help you today?"
+      },
+      "Transitions": {
+        "NextAction": "lex-intake",
+        "Errors": [{ "NextAction": "error-prompt", "ErrorType": "NoMatchingError" }],
+        "Conditions": []
+      }
+    },
+    {
+      "Identifier": "lex-intake",
+      "Type": "ConnectParticipantWithLexBot",
+      "Parameters": {
+        "Text": "Go ahead.",
+        "LexV2Bot": {
+          "AliasArn": "arn:aws:lex:us-east-1:158961537080:bot-alias/IJIBJOJG2L/0CNPVSCF4V"
+        },
+        "LexSessionAttributes": {
+          "agencyId": "$.External.agencyId",
+          "callId": "$.ContactId",
+          "language": "$.External.language"
+        },
+        "LexTimeoutSeconds": { "Text": "300" }
+      },
+      "Transitions": {
+        "NextAction": "play-complete",
+        "Conditions": [
+          {
+            "NextAction": "play-emergency",
+            "Condition": { "Operator": "Equals", "Operands": ["EmergencyEscalation"] }
+          },
+          {
+            "NextAction": "play-fallback",
+            "Condition": { "Operator": "Equals", "Operands": ["FallbackIntent"] }
+          }
+        ],
+        "Errors": [
+          { "NextAction": "error-prompt", "ErrorType": "InputTimeLimitExceeded" },
+          { "NextAction": "error-prompt", "ErrorType": "NoMatchingCondition" },
+          { "NextAction": "error-prompt", "ErrorType": "NoMatchingError" }
+        ]
+      }
+    },
+    {
+      "Identifier": "play-emergency",
+      "Type": "MessageParticipant",
+      "Parameters": {
+        "Text": "I'm connecting you to a dispatcher right now. Please stay on the line."
+      },
+      "Transitions": {
+        "NextAction": "set-emergency-attrs",
+        "Errors": [{ "NextAction": "set-emergency-attrs", "ErrorType": "NoMatchingError" }],
+        "Conditions": []
+      }
+    },
+    {
+      "Identifier": "set-emergency-attrs",
+      "Type": "UpdateContactAttributes",
+      "Parameters": {
+        "Attributes": {
+          "transferReason": "EMERGENCY",
+          "transferSummary": "$.Lex.SessionAttributes.transferSummary",
+          "transcript": "$.Lex.SessionAttributes.transcript"
+        }
+      },
+      "Transitions": {
+        "NextAction": "set-demo-queue",
+        "Errors": [{ "NextAction": "set-demo-queue", "ErrorType": "NoMatchingError" }],
+        "Conditions": []
+      }
+    },
+    {
+      "Identifier": "play-fallback",
+      "Type": "MessageParticipant",
+      "Parameters": {
+        "Text": "I'm transferring you to someone who can help. Please hold."
+      },
+      "Transitions": {
+        "NextAction": "set-fallback-attrs",
+        "Errors": [{ "NextAction": "set-fallback-attrs", "ErrorType": "NoMatchingError" }],
+        "Conditions": []
+      }
+    },
+    {
+      "Identifier": "set-fallback-attrs",
+      "Type": "UpdateContactAttributes",
+      "Parameters": {
+        "Attributes": {
+          "transferReason": "LOW_CONFIDENCE",
+          "transcript": "$.Lex.SessionAttributes.transcript"
+        }
+      },
+      "Transitions": {
+        "NextAction": "set-demo-queue",
+        "Errors": [{ "NextAction": "set-demo-queue", "ErrorType": "NoMatchingError" }],
+        "Conditions": []
+      }
+    },
+    {
+      "Identifier": "set-demo-queue",
+      "Type": "UpdateContactTargetQueue",
+      "Parameters": {
+        "QueueId": "__DEMO_QUEUE_ARN__"
+      },
+      "Transitions": {
+        "NextAction": "transfer-queue",
+        "Errors": [{ "NextAction": "transfer-error-prompt", "ErrorType": "NoMatchingError" }],
+        "Conditions": []
+      }
+    },
+    {
+      "Identifier": "transfer-queue",
+      "Type": "TransferContactToQueue",
+      "Parameters": {},
+      "Transitions": {
+        "NextAction": "disconnect",
+        "Errors": [
+          { "NextAction": "transfer-error-prompt", "ErrorType": "QueueAtCapacity" },
+          { "NextAction": "transfer-error-prompt", "ErrorType": "NoMatchingError" }
+        ]
+      }
+    },
+    {
+      "Identifier": "play-complete",
+      "Type": "MessageParticipant",
+      "Parameters": {
+        "Text": "$.Lex.SessionAttributes.closingMessage"
+      },
+      "Transitions": {
+        "NextAction": "disconnect",
+        "Errors": [{ "NextAction": "disconnect", "ErrorType": "NoMatchingError" }],
+        "Conditions": []
+      }
+    },
+    {
+      "Identifier": "disconnect",
+      "Type": "DisconnectParticipant",
+      "Parameters": {},
+      "Transitions": {}
+    },
+    {
+      "Identifier": "error-prompt",
+      "Type": "MessageParticipant",
+      "Parameters": {
+        "Text": "I'm having trouble right now. Connecting you to someone who can help."
+      },
+      "Transitions": {
+        "NextAction": "set-demo-queue",
+        "Errors": [{ "NextAction": "set-demo-queue", "ErrorType": "NoMatchingError" }],
+        "Conditions": []
+      }
+    },
+    {
+      "Identifier": "transfer-error-prompt",
+      "Type": "MessageParticipant",
+      "Parameters": {
+        "Text": "I'm sorry, I wasn't able to connect you. Please try again."
+      },
+      "Transitions": {
+        "NextAction": "disconnect",
+        "Errors": [{ "NextAction": "disconnect", "ErrorType": "NoMatchingError" }],
+        "Conditions": []
+      }
+    }
+  ]
+}

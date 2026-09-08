@@ -1,8 +1,13 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { matchesCampusSiteScope, type CampusBuildingSummary } from "rapid-cortex-shared";
-import { fetchCampusBuildings } from "@/lib/campus/campus-dashboard-api";
+import {
+  campusBuildingSummariesFromQrCodes,
+  matchesCampusSiteScope,
+  overlayCampusBuildingIncidents,
+  type CampusBuildingSummary,
+} from "rapid-cortex-shared";
+import { fetchCampusBuildings, fetchCampusQrNfcCodes } from "@/lib/campus/campus-dashboard-api";
 import { CampusSiteSwitcher } from "@/components/campus/campus-site-switcher";
 import { useCampusSiteScope } from "@/lib/campus/use-campus-site-scope";
 
@@ -30,7 +35,20 @@ export function CampusBuildingsClient({
     setLoading(true);
     setError(null);
     try {
-      setBuildings(await fetchCampusBuildings(agencyId));
+      const [apiBuildings, qrCodes] = await Promise.all([
+        fetchCampusBuildings(agencyId).catch(() => [] as CampusBuildingSummary[]),
+        fetchCampusQrNfcCodes(agencyId).catch(() => []),
+      ]);
+      if (qrCodes.length > 0) {
+        setBuildings(
+          overlayCampusBuildingIncidents(campusBuildingSummariesFromQrCodes(qrCodes), apiBuildings),
+        );
+      } else {
+        setBuildings(apiBuildings);
+      }
+      if (qrCodes.length === 0 && apiBuildings.length === 0) {
+        setError(null);
+      }
     } catch (err) {
       setBuildings([]);
       setError(err instanceof Error ? err.message : "Failed to load buildings");
@@ -49,8 +67,8 @@ export function CampusBuildingsClient({
         <div>
           <h2 className="text-lg font-semibold text-white">Buildings</h2>
           <p className="mt-1 text-sm text-slate-400">
-            Buildings and zones across every campus in this tenant. Use the campus filter to focus
-            one location.
+            Same live report locations as the QR Codes tab and the Field app — not the demo campus
+            catalog.
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-3">

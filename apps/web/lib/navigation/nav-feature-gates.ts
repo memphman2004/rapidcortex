@@ -7,6 +7,7 @@ import {
   isDeploymentsMapEnabled,
   isNonEmergencyTriageEnabled,
   isNg911AssistEnabled,
+  isCallAssistEnabled,
   isQaScoringEnabled,
   isRcsEnabled,
   isHiringUiEnabled,
@@ -39,6 +40,8 @@ export function isNavFeatureEnabled(feature: string): boolean {
       return isNonEmergencyTriageEnabled();
     case "ng911Assist":
       return isNg911AssistEnabled();
+    case "callAssist":
+      return isCallAssistEnabled();
     case "channelMonitoring":
       return isChannelMonitoringEnabled();
     case "verticalOnboarding":

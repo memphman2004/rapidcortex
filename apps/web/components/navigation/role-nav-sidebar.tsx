@@ -26,6 +26,7 @@ const ACCENT_STYLES: Record<
   teal: { accent: "#14B8A6", dim: "#134E4A", text: "#CCFBF1" },
   slate: { accent: "#94A3B8", dim: "#1E293B", text: "#E2E8F0" },
   rose: { accent: "#F43F5E", dim: "#881337", text: "#FFE4E6" },
+  indigo: { accent: "#818CF8", dim: "#312E81", text: "#E0E7FF" },
 };
 
 const LABEL_BADGE_CLASS: Record<"red" | "yellow" | "blue" | "slate", string> = {
@@ -114,9 +115,19 @@ export function RoleNavSections({
 }) {
   const pathname = usePathname();
   const badgeCounts = counts ?? {};
+  const palette = ACCENT_STYLES[nav.accent];
 
   return (
-    <div className={variant === "compact" ? "space-y-3" : "space-y-0"}>
+    <div
+      className={variant === "compact" ? "space-y-3" : "space-y-0"}
+      style={
+        {
+          "--role-accent": palette.accent,
+          "--role-accent-dim": palette.dim,
+          "--role-text-accent": palette.text,
+        } as CSSProperties
+      }
+    >
       {nav.sections.map((section, sectionIndex) => (
         <div key={section.id}>
           {section.label ? (
@@ -134,7 +145,7 @@ export function RoleNavSections({
                 variant === "compact"
                   ? `block rounded-md border px-3 py-2 text-sm font-semibold transition-colors ${
                       active
-                        ? "border-orange-500/40 bg-slate-800 text-white"
+                        ? "bg-slate-800 text-white"
                         : "border-slate-700 bg-slate-900/70 text-slate-200 hover:border-slate-600 hover:bg-slate-800"
                     }`
                   : `flex items-center gap-2.5 rounded-md px-2 py-2 text-sm transition-colors ${
@@ -151,7 +162,11 @@ export function RoleNavSections({
                     aria-current={active ? "page" : undefined}
                     className={linkClass}
                     style={
-                      variant === "sidebar" && active
+                      variant === "compact" && active
+                        ? {
+                            borderColor: "color-mix(in srgb, var(--role-accent) 40%, transparent)",
+                          }
+                        : variant === "sidebar" && active
                         ? {
                             borderLeft: "3px solid var(--role-accent)",
                             paddingLeft: "calc(0.5rem - 3px)",

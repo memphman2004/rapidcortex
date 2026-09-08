@@ -353,7 +353,10 @@ export function QRNFCManager({
     mediumView === "nfc" ? "NFC Tags" : mediumView === "qr" ? "QR Codes" : "QR & NFC Codes";
 
   return (
-    <div className="space-y-4">
+    <div
+      className="space-y-4"
+      {...(globalView || vertical === "911" ? {} : { "data-vertical": vertical })}
+    >
       <div className={`flex flex-wrap items-center gap-3 ${hideHeading ? "justify-end" : "justify-between"}`}>
         {hideHeading ? <span className="sr-only">{title}</span> : <h2 className="text-lg font-semibold text-slate-100">{title}</h2>}
         <div className="flex flex-wrap items-center gap-2">

@@ -7,6 +7,7 @@ import type {
   CampusThreatLevel,
   CampusThreatLevelState,
   CampusZoneSummary,
+  QRNFCRecord,
 } from "rapid-cortex-shared";
 import type { CampusBroadcastBody } from "rapid-cortex-shared";
 import type { CampusIncident } from "./types";
@@ -52,6 +53,19 @@ export async function fetchCampusZones(agencyId: string): Promise<CampusZoneSumm
 
 export async function fetchCampusBuildings(agencyId: string): Promise<CampusBuildingSummary[]> {
   return readJson(await fetch(campusPath(agencyId, "/buildings"), { cache: "no-store" }));
+}
+
+export async function fetchCampusQrNfcCodes(
+  agencyId: string,
+): Promise<Array<Omit<QRNFCRecord, "qrImageBase64">>> {
+  const params = new URLSearchParams({ agencyId, vertical: "campus" });
+  const res = await fetch(`/api/qr-nfc?${params}`, { cache: "no-store", credentials: "include" });
+  if (!res.ok) {
+    const err = (await res.json().catch(() => ({}))) as { error?: string };
+    throw new Error(err.error ?? `Request failed (${res.status})`);
+  }
+  const data = (await res.json()) as { items?: Array<Omit<QRNFCRecord, "qrImageBase64">> };
+  return data.items ?? [];
 }
 
 export async function fetchCampusThreatLevel(agencyId: string): Promise<CampusThreatLevelState> {

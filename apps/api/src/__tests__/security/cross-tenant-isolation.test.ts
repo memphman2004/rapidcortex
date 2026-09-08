@@ -98,7 +98,7 @@ describe("cross-tenant isolation", () => {
     const res = await invokeHttpHandler(
       getIncidentHandler,
       makeAuthenticatedEvent({
-        role: "commsupervisor",
+        role: "supervisor",
         agencyId: TEST_AGENCY_A,
         pathParameters: { id: "inc_guessed" },
         rawPath: "/api/incidents/inc_guessed",

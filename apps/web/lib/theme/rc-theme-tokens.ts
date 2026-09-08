@@ -77,6 +77,11 @@ export const V = {
   blueBorder: "var(--rc-blue-border)",
   sky: "var(--rc-sky)",
   cyan: "var(--rc-cyan)",
+  vertical: "var(--rc-vertical-accent)",
+  verticalHover: "var(--rc-vertical-accent-hover)",
+  verticalDim: "var(--rc-vertical-accent-dim)",
+  verticalSoft: "var(--rc-vertical-accent-soft)",
+  verticalBorder: "var(--rc-vertical-accent-border)",
 
   // Misc
   handle: "var(--rc-border-strong)",
@@ -105,4 +110,8 @@ export const C = {
   purple: V.purple,
   orange: V.orange,
   cyan: V.cyan,
+  vertical: V.vertical,
+  verticalDim: V.verticalDim,
+  verticalSoft: V.verticalSoft,
+  verticalBorder: V.verticalBorder,
 } as const;

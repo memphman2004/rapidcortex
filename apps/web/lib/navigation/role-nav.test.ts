@@ -91,6 +91,16 @@ describe("getRoleNav", () => {
     expect(nav.sections[0]?.items[0]?.href).toBe("/app/venue/MBS");
   });
 
+  it("uses indigo accent for transit so it does not match PSAP sky", () => {
+    const nav = getRoleNav("TRANSIT_ADMIN", { transitCode: "MARTA" });
+    expect(nav.accent).toBe("indigo");
+  });
+
+  it("uses slate accent for campus and orange for venue", () => {
+    expect(getRoleNav("CAMPUS_ADMIN", { campusCode: "UGA" }).accent).toBe("slate");
+    expect(getRoleNav("VENUE_ADMIN", { venueCode: "MBS" }).accent).toBe("orange");
+  });
+
   it("exposes Leads for all RC internal roles", () => {
     for (const role of ["rcsuperadmin", "rcadmin", "rcitadmin"] as const) {
       const nav = getRoleNav(role, {});
@@ -162,6 +172,7 @@ describe("getRoleNav", () => {
     expect(byId.transcription).toBe("/test-psap/dispatcher#cad-transcript");
     expect(byId.incidents).toBe("/test-psap/dispatcher");
     expect(byId.triage).toBe("/test-psap/dispatcher/non-emergency");
+    expect(byId["call-assist"]).toBe("/test-psap/call-assist");
   });
 
   it("keeps Rapid IQ in SALES & CRM and does not expose a separate Pipeline nav item", () => {

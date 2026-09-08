@@ -30,6 +30,14 @@
 		E4576C96109EB52ABF768449 /* RCAPIClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = E6593C4876F9DDEB383A5424 /* RCAPIClient.swift */; };
 		F3D826B2EFF4C7268A211B14 /* NFCTagWriter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7822122D60E0CE42710DB109 /* NFCTagWriter.swift */; };
 		F733E58FB3465919C9AAEF52 /* Models.swift in Sources */ = {isa = PBXBuildFile; fileRef = B8538AB9AA07AFFCE1B642AE /* Models.swift */; };
+		A11F10000000000000000005 /* RCAPIClient+AccessRequest.swift in Sources */ = {isa = PBXBuildFile; fileRef = A11F10000000000000000006 /* RCAPIClient+AccessRequest.swift */; };
+		A11F10000000000000000007 /* RCAPIClient+FieldCommand.swift in Sources */ = {isa = PBXBuildFile; fileRef = A11F10000000000000000008 /* RCAPIClient+FieldCommand.swift */; };
+		A11F10000000000000000009 /* CommandHomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A11F1000000000000000000A /* CommandHomeView.swift */; };
+		A11F1000000000000000000B /* IncidentDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A11F1000000000000000000C /* IncidentDetailView.swift */; };
+		A11F1000000000000000000D /* ContinuityLogView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A11F1000000000000000000E /* ContinuityLogView.swift */; };
+		A11F1000000000000000000F /* DispatcherStatusView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A11F10000000000000000010 /* DispatcherStatusView.swift */; };
+		A11F10000000000000000011 /* RCRouter.swift in Sources */ = {isa = PBXBuildFile; fileRef = A11F10000000000000000012 /* RCRouter.swift */; };
+		A11F10000000000000000013 /* AgencySelectView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A11F10000000000000000014 /* AgencySelectView.swift */; };
 		F9397BE94CFBF1FC2C216C24 /* BigInt in Frameworks */ = {isa = PBXBuildFile; productRef = F9A46F04A315A71390FF0FF5 /* BigInt */; };
 /* End PBXBuildFile section */
 
@@ -60,6 +68,14 @@
 		E6593C4876F9DDEB383A5424 /* RCAPIClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RCAPIClient.swift; sourceTree = "<group>"; };
 		E87EB121463FCBE16D183EF3 /* Config.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Config.xcconfig; sourceTree = "<group>"; };
 		EE074FA881BD0A28AEEE4F4B /* LoginView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoginView.swift; sourceTree = "<group>"; };
+		A11F10000000000000000006 /* RCAPIClient+AccessRequest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "RCAPIClient+AccessRequest.swift"; sourceTree = "<group>"; };
+		A11F10000000000000000008 /* RCAPIClient+FieldCommand.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "RCAPIClient+FieldCommand.swift"; sourceTree = "<group>"; };
+		A11F1000000000000000000A /* CommandHomeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CommandHomeView.swift; sourceTree = "<group>"; };
+		A11F1000000000000000000C /* IncidentDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IncidentDetailView.swift; sourceTree = "<group>"; };
+		A11F1000000000000000000E /* ContinuityLogView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContinuityLogView.swift; sourceTree = "<group>"; };
+		A11F10000000000000000010 /* DispatcherStatusView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DispatcherStatusView.swift; sourceTree = "<group>"; };
+		A11F10000000000000000012 /* RCRouter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RCRouter.swift; sourceTree = "<group>"; };
+		A11F10000000000000000014 /* AgencySelectView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AgencySelectView.swift; sourceTree = "<group>"; };
 		FF6E82D55A05DC4330AF5F57 /* KeychainManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeychainManager.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -89,9 +105,13 @@
 				E4CD77DA86F68AE37FE18105 /* AgenciesView.swift */,
 				1D67F9C6BA25D2460EB0B39F /* Assets.xcassets */,
 				19837D545796E0FFCAA37A0D /* CodeDetailView.swift */,
+				A11F1000000000000000000C /* IncidentDetailView.swift */,
 				B252404851C891A2616CAD4E /* CodesListView.swift */,
+				A11F1000000000000000000A /* CommandHomeView.swift */,
+				A11F1000000000000000000E /* ContinuityLogView.swift */,
 				5A518817267A64322DA4A72A /* CognitoAuthManager.swift */,
 				81ADA5F5FDE82F22CBF15AE8 /* CognitoSRPHelper.swift */,
+				A11F10000000000000000010 /* DispatcherStatusView.swift */,
 				B435077A0EF9220C61909040 /* EnterTheCortexView.swift */,
 				5995D754E41066DE1F4B2B8E /* Info.plist */,
 				FF6E82D55A05DC4330AF5F57 /* KeychainManager.swift */,
@@ -106,11 +126,15 @@
 				19DC816E5E5EEF1C0889A61E /* RapidCortexField.entitlements */,
 				603AF2D2575FFC8F8DD842EF /* RapidCortexFieldApp.swift */,
 				E6593C4876F9DDEB383A5424 /* RCAPIClient.swift */,
+				A11F10000000000000000006 /* RCAPIClient+AccessRequest.swift */,
+				A11F10000000000000000008 /* RCAPIClient+FieldCommand.swift */,
 				96D3566610236B84B3A54FBA /* RCConfig.swift */,
+				A11F10000000000000000012 /* RCRouter.swift */,
 				1C7EF1CC5076A69563443CFC /* RCTheme.swift */,
 				654A542785A3A65C131D6BA0 /* SettingsView.swift */,
 				CBCD7A49737FBDFF668306B5 /* SiteQrNfcView.swift */,
 				D8AB2BDE52E6C56177C9F254 /* TradeShowSite.swift */,
+				A11F10000000000000000014 /* AgencySelectView.swift */,
 			);
 			path = RapidCortexField;
 			sourceTree = "<group>";
@@ -210,11 +234,15 @@
 			buildActionMask = 2147483647;
 			files = (
 				7C22EA801C6233053CC8120A /* AgenciesView.swift in Sources */,
+				A11F1000000000000000000F /* DispatcherStatusView.swift in Sources */,
 				956CF0F79134636ECD405A33 /* CodeDetailView.swift in Sources */,
 				BDDAD1193D99921A2859FE0F /* CodesListView.swift in Sources */,
+				A11F10000000000000000009 /* CommandHomeView.swift in Sources */,
+				A11F1000000000000000000D /* ContinuityLogView.swift in Sources */,
 				755F8DBDC69D6B82496648E6 /* CognitoAuthManager.swift in Sources */,
 				69D1E716FFCE352A17B00483 /* CognitoSRPHelper.swift in Sources */,
 				837EF0FF5D55556F8AB3D82E /* EnterTheCortexView.swift in Sources */,
+				A11F1000000000000000000B /* IncidentDetailView.swift in Sources */,
 				D7D7EEA370C670E73E551DF0 /* KeychainManager.swift in Sources */,
 				D4CCF1652C24E923DD8F9E2D /* LoginView.swift in Sources */,
 				F733E58FB3465919C9AAEF52 /* Models.swift in Sources */,
@@ -224,8 +252,12 @@
 				ABA864AB6F8D9678FAAE2FED /* NewCodeView.swift in Sources */,
 				AC8233B06BC7DE757AC2A884 /* QRCodeGenerator.swift in Sources */,
 				E4576C96109EB52ABF768449 /* RCAPIClient.swift in Sources */,
+				A11F10000000000000000005 /* RCAPIClient+AccessRequest.swift in Sources */,
+				A11F10000000000000000007 /* RCAPIClient+FieldCommand.swift in Sources */,
 				C422E7E461F419277457F844 /* RCConfig.swift in Sources */,
 				589DFCFDE03A55F472904DAC /* RCTheme.swift in Sources */,
+				A11F10000000000000000011 /* RCRouter.swift in Sources */,
+				A11F10000000000000000013 /* AgencySelectView.swift in Sources */,
 				7E1906EF5074FB17C815BBAA /* RapidCortexFieldApp.swift in Sources */,
 				16180FBD3683BFA383D624B3 /* SettingsView.swift in Sources */,
 				549C3397BB4147D7114D9784 /* SiteQrNfcView.swift in Sources */,

@@ -55,6 +55,7 @@ function VenueOperationsShellInner({
     <div
       ref={rootRef}
       data-theme={theme}
+      data-vertical="venue"
       style={{
         minHeight: "100vh",
         display: "flex",
@@ -90,7 +91,7 @@ function VenueOperationsShellInner({
               justifyContent: "center",
             }}
           >
-            <Ticket size={16} color="var(--rc-amber)" />
+            <Ticket size={16} color="var(--rc-vertical-accent)" />
           </div>
           <div>
             <div style={{ fontSize: 13, fontWeight: 700 }}>Rapid Cortex</div>
@@ -147,7 +148,7 @@ function VenueOperationsShellInner({
         {/(supervisor)/i.test(userRole ?? "") ? (
           <a
             href={`/app/venue/${extractVenueCode(agencyId)}/supervisor`}
-            style={{ fontSize: 12, color: "var(--rc-amber)", fontWeight: 600, marginRight: 8 }}
+            style={{ fontSize: 12, color: "var(--rc-vertical-accent)", fontWeight: 600, marginRight: 8 }}
           >
             📱 Mobile view
           </a>

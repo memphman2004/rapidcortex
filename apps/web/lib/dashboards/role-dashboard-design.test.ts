@@ -22,8 +22,8 @@ const SPEC_PRIMARY: Record<string, string> = {
   auditor: "#F87171",
   hospitaladmin: "#0D9488",
   hospitalstaff: "#0D9488",
-  venue: "#FB923C",
-  campus: "#34D399",
+  venue: "#F97316",
+  campus: "#64748B",
 };
 
 describe("ROLE_DASHBOARD_IDENTITY accents", () => {
@@ -44,9 +44,9 @@ describe("ROLE_DASHBOARD_IDENTITY accents", () => {
 
   it("includes dim, badge, and text colors for every role", () => {
     for (const palette of Object.values(ROLE_DASHBOARD_PALETTE_BY_ROLE)) {
-      expect(palette.dim).toMatch(/^#/);
-      expect(palette.badgeBg).toMatch(/^#/);
-      expect(palette.textColor).toMatch(/^#/);
+      expect(palette.dim).toMatch(/^(#|color-mix)/);
+      expect(palette.badgeBg).toMatch(/^(#|color-mix)/);
+      expect(palette.textColor).toMatch(/^(#|color-mix)/);
     }
   });
 

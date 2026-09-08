@@ -20,6 +20,7 @@ function CampusShellThemeRootInner({ children }: { children: ReactNode }) {
     <div
       ref={rootRef}
       data-theme={theme}
+      data-vertical="campus"
       className="min-h-screen"
       style={{
         background: "var(--rc-bg)",

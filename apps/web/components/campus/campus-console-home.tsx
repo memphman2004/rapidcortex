@@ -117,7 +117,7 @@ const AVATAR_COLORS = ["#4f46e5", "#0891b2", "#7c3aed", "#0f766e", "#b45309", "#
 
 const nColors = {
   error: { dot: C.red, bg: "rgba(239,68,68,0.1)", border: "rgba(239,68,68,0.25)" },
-  info: { dot: C.blue, bg: "rgba(59,130,246,0.1)", border: "rgba(59,130,246,0.25)" },
+  info: { dot: C.blue, bg: C.verticalDim, border: C.verticalBorder },
   warning: { dot: C.amber, bg: "rgba(245,158,11,0.1)", border: "rgba(245,158,11,0.25)" },
   success: { dot: C.green, bg: "rgba(16,185,129,0.1)", border: "rgba(16,185,129,0.25)" },
 } as const;
@@ -291,8 +291,8 @@ function ZoneMap({ zoneLabels }: { zoneLabels: string[] }) {
 
       <polygon
         points="55,12 185,12 192,64 48,64"
-        fill="rgba(59,130,246,0.13)"
-        stroke="#3b82f6"
+        fill="var(--rc-vertical-accent-dim)"
+        stroke="var(--rc-vertical-accent)"
         strokeWidth="1.5"
         strokeDasharray="4,2"
       />
@@ -300,7 +300,7 @@ function ZoneMap({ zoneLabels }: { zoneLabels: string[] }) {
         x="120"
         y="42"
         textAnchor="middle"
-        fill="#93c5fd"
+        fill="var(--rc-sky)"
         fontSize="11"
         fontWeight="700"
         fontFamily="inherit"
@@ -370,7 +370,7 @@ function ZoneMap({ zoneLabels }: { zoneLabels: string[] }) {
       </text>
 
       {[
-        { x: 96, y: 28, c: "#3b82f6" },
+        { x: 96, y: 28, c: "var(--rc-vertical-accent)" },
         { x: 120, y: 96, c: "#10b981" },
         { x: 42, y: 154, c: "#a855f7" },
         { x: 188, y: 156, c: "#f59e0b" },
@@ -767,7 +767,7 @@ function CampusConsoleHomeInner({
       value: loading ? "…" : kpiResponders,
       color: C.text,
       icon: <Users size={17} color={C.blue} strokeWidth={1.7} />,
-      iconBg: "rgba(59,130,246,0.15)",
+      iconBg: "var(--rc-vertical-accent-dim)",
       linkLabel: "View responders",
       href: usersHref ?? settingsHref,
     },
@@ -785,7 +785,7 @@ function CampusConsoleHomeInner({
       value: loading ? "…" : kpiZones,
       color: C.text,
       icon: <Shield size={17} color={C.blue} strokeWidth={1.7} />,
-      iconBg: "rgba(59,130,246,0.15)",
+      iconBg: "var(--rc-vertical-accent-dim)",
       linkLabel: "View all zones",
       href: zonesHref,
     },
@@ -798,6 +798,7 @@ function CampusConsoleHomeInner({
       <div
         ref={rootRef}
         data-theme={theme}
+        data-vertical="campus"
         style={{
           display: "flex",
           height: "100vh",
@@ -905,7 +906,7 @@ function CampusConsoleHomeInner({
                 padding: "7px 9px",
                 borderRadius: 6,
                 cursor: "pointer",
-                background: active ? "rgba(59,130,246,0.13)" : "transparent",
+                background: active ? "var(--rc-vertical-accent-dim)" : "transparent",
                 borderLeft: active ? `2px solid ${C.blue}` : "2px solid transparent",
                 marginBottom: 1,
                 textDecoration: "none",
@@ -1769,7 +1770,7 @@ function CampusConsoleHomeInner({
                         desc: "Get help from our team or access knowledge resources.",
                         link: "Get Support",
                         color: C.blue,
-                        rgb: "59,130,246",
+                        rgb: "100,116,139",
                         href: "mailto:support@rapidcortex.us",
                       },
                       {
@@ -2070,8 +2071,8 @@ function CampusConsoleHomeInner({
                         justifyContent: "center",
                         padding: "7px",
                         borderRadius: 6,
-                        background: "rgba(59,130,246,0.1)",
-                        border: "1px solid rgba(59,130,246,0.2)",
+                        background: "var(--rc-vertical-accent-dim)",
+                        border: "1px solid var(--rc-vertical-accent-border)",
                         fontSize: 12,
                         fontWeight: 600,
                         color: C.blue,
@@ -2335,12 +2336,12 @@ function CampusConsoleHomeInner({
                       type="button"
                       onClick={() => fileRef.current?.click()}
                       style={{
-                        border: "2px dashed rgba(59,130,246,0.3)",
+                        border: "2px dashed var(--rc-vertical-accent-border)",
                         borderRadius: 10,
                         padding: "38px 20px",
                         textAlign: "center",
                         cursor: "pointer",
-                        background: "rgba(59,130,246,0.04)",
+                        background: "var(--rc-vertical-accent-dim)",
                         width: "100%",
                         fontFamily: "inherit",
                         color: "inherit",

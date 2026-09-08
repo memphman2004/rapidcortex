@@ -18,6 +18,8 @@ set -euo pipefail
 # - I_UNDERSTAND_DEV_IS_PROD=1 required for `deploy.sh dev` (that stack is live production)
 # - EXISTING_BILLING_PAYMENT_INSTRUCTIONS_SECRET_ARN / EXISTING_BILLING_SES_CREDENTIALS_SECRET_ARN
 #   skip DataLayer secret create when those names already exist (staging recreate)
+# - EXISTING_CALL_ASSIST_TABLE_NAME skip AppSamCallAssistStack2 table create when the table
+#   was pre-created for Lex (rapid-cortex-call-assist-${stage})
 # - API_DOMAIN_CERT_ARN (imported ACM ARN; same region as stack)
 # - ROUTE53_HOSTED_ZONE_ID (optional; if set without API_DOMAIN_CERT_ARN, stack requests ACM cert via DNS)
 # - APP_CNAME_TARGET
@@ -494,6 +496,9 @@ if [[ -n "${EXISTING_BILLING_PAYMENT_INSTRUCTIONS_SECRET_ARN:-}" ]]; then
 fi
 if [[ -n "${EXISTING_BILLING_SES_CREDENTIALS_SECRET_ARN:-}" ]]; then
   PARAMS="${PARAMS} ExistingBillingSesCredentialsSecretArn=${EXISTING_BILLING_SES_CREDENTIALS_SECRET_ARN}"
+fi
+if [[ -n "${EXISTING_CALL_ASSIST_TABLE_NAME:-}" ]]; then
+  PARAMS="${PARAMS} ExistingCallAssistTableName=${EXISTING_CALL_ASSIST_TABLE_NAME}"
 fi
 if [[ -n "${ENABLE_CONNECT_RING:-}" ]]; then
   PARAMS="${PARAMS} EnableConnectRing=${ENABLE_CONNECT_RING}"

@@ -37,6 +37,8 @@ const STACK2_PATH_TESTS: RegExp[] = [
   /^\/api\/rcs\//,
   /^\/api\/cad-connector\//,
   /^\/api\/ng911\//,
+  /^\/api\/call-assist\//,
+  /^\/api\/public\/call-assist\//,
   /^\/api\/public\/diversion\//,
   /^\/api\/incidents\/[^/]+\/eido$/,
   /^\/api\/incidents\/[^/]+\/additional-data/,

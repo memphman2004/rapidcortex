@@ -74,7 +74,7 @@ struct AgenciesView: View {
                     Section {
                         ForEach(vm.filtered) { agency in
                             Button {
-                                auth.selectAgency(agency.agencyId)
+                                auth.setActiveAgency(agency)
                             } label: {
                                 AgencyRow(
                                     agency: agency,
@@ -112,14 +112,6 @@ struct AgenciesView: View {
     }
 }
 
-struct VerticalBadge: View {
-    let vertical: String
-
-    var body: some View {
-        RCBadge(label: vertical.uppercased(), tone: .accent, small: true)
-    }
-}
-
 struct AgencyRow: View {
     let agency: Agency
     let isSelected: Bool
@@ -131,10 +123,7 @@ struct AgencyRow: View {
                     .font(.system(size: 15, weight: .semibold))
                     .foregroundColor(RCTheme.textPrimary)
                 HStack(spacing: 8) {
-                    if !agency.vertical.isEmpty {
-                        VerticalBadge(vertical: agency.vertical)
-                    }
-                    if let tier = agency.planTier {
+                    if let tier = agency.planTier, !tier.isEmpty {
                         Text(tier.uppercased())
                             .font(.system(size: 10, weight: .semibold))
                             .foregroundColor(RCTheme.textMuted)

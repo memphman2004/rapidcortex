@@ -14,7 +14,7 @@ import { isRcAdminConsoleHomePath } from "@/components/rc-admin/rc-admin-shell-c
 import { TopNav } from "./top-nav";
 import { RoleDashboardHeaderStrip } from "./role-dashboard-header-strip";
 import { RoleDashboardHomeLayout } from "./role-dashboard-home-layout";
-import { VERTICAL_CONFIG, normalizeVertical } from "@/lib/vertical";
+import { VERTICAL_CONFIG, normalizeVertical, verticalThemeAttrFromDashboardPrefix } from "@/lib/vertical";
 import { VerticalBadge } from "@/components/ui/VerticalBadge";
 import { ActiveNoticesBanner } from "@/components/notices/ActiveNoticesBanner";
 import { HelpChrome } from "@/components/help/help-chrome";
@@ -110,6 +110,7 @@ function DashboardShellInner({
     <div
       ref={rootRef}
       data-theme={theme}
+      data-vertical={verticalThemeAttrFromDashboardPrefix(prefix)}
       className="min-h-screen bg-[var(--rc-bg)] text-[var(--rc-text-primary)]"
       style={{
         ...shellVars,

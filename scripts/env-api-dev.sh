@@ -251,6 +251,8 @@ export NEST_REDIRECT_URI="https://7c70vqd1p5.execute-api.us-east-1.amazonaws.com
 export QR_NFC_CODES_TABLE="rapid-cortex-qr-nfc-codes-dev"
 
 # --- CAD write-back pilot onboarding (per agency) ---
+# Call Assist CAD push additionally requires ENABLE_CALL_ASSIST_CAD_PUSH=true (fail-closed).
+# Do not set either flag until the CAD addendum is signed.
 # UI does NOT expose writeBackEnabled / agencyApprovedCadWriteBack toggles yet.
 # RC ops MUST run this PATCH once per pilot agency before enabling CAD_WRITEBACK_ENABLED.
 #
@@ -282,4 +284,20 @@ export QR_NFC_CODES_TABLE="rapid-cortex-qr-nfc-codes-dev"
 # --- Web feature flags (NEXT_PUBLIC_*) — source scripts/env-web-pilot-test.sh for full UI surface ---
 # Or rely on runtime-flags.ts defaults (features on when unset; CAD write-back off).
 # ENABLE_RMS / NEXT_PUBLIC_ENABLE_RMS and ENABLE_ESCALATION default ON when unset.
+# ENABLE_FIELD_COMMAND / NEXT_PUBLIC_ENABLE_FIELD_COMMAND default ON when unset (iOS 911 Dispatch).
+export ENABLE_FIELD_COMMAND=true
+
+# Call Assist DynamoDB was pre-created for Lex (GetAgencyConfigForNumber + fulfillment hook).
+# Must pass this on the next deploy.sh so AppSamCallAssistStack2 does not try to create
+# rapid-cortex-call-assist-dev and fail with AlreadyExists.
+export EXISTING_CALL_ASSIST_TABLE_NAME="rapid-cortex-call-assist-dev"
+# Connect claimed test DID (instance rapid-cortex). Never a live 911 / PSAP number.
+export KCPD_TEST_DID="+18168395256"
+export CONNECT_INSTANCE_ID="${CONNECT_INSTANCE_ID:-20772ba7-98e6-4afd-94cc-19e03c0619df}"
+export LEX_BOT_ID="${LEX_BOT_ID:-IJIBJOJG2L}"
+export LEX_BOT_ALIAS_ID="${LEX_BOT_ALIAS_ID:-0CNPVSCF4V}"
+export CALL_ASSIST_TABLE="${CALL_ASSIST_TABLE:-rapid-cortex-call-assist-dev}"
+# After Connect IAM is effective (permissions boundary / SCP), import flow + associate Lambdas + claim DID:
+#   bash scripts/configure-call-assist-connect.sh
+
 # RMS vendor keys: set RmsVendorSecretArn (Secrets Manager JSON TYLER_API_KEY / MARK43_API_KEY), never Lambda env.

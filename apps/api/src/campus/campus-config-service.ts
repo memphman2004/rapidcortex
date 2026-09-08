@@ -1,15 +1,47 @@
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
-import { DynamoDBDocumentClient, GetCommand, QueryCommand } from "@aws-sdk/lib-dynamodb";
+import {
+  DeleteCommand,
+  DynamoDBDocumentClient,
+  GetCommand,
+  PutCommand,
+  QueryCommand,
+} from "@aws-sdk/lib-dynamodb";
 import { CAMPUS_SITE_SCOPE_ALL, matchesCampusSiteScope } from "rapid-cortex-shared";
 import type { CampusAnalytics, CampusBuilding, CampusConfig, CampusZone } from "./campus-types.js";
 import { CAMPUS_KEYS } from "./campus-types.js";
 
 const ddb = DynamoDBDocumentClient.from(new DynamoDBClient({}));
 
+export function isCampusConfigTableConfigured(): boolean {
+  return Boolean(process.env.CAMPUS_CONFIG_TABLE?.trim());
+}
+
 function campusConfigTable(): string {
   const t = process.env.CAMPUS_CONFIG_TABLE?.trim();
   if (!t) throw new Error("CAMPUS_CONFIG_TABLE not set");
   return t;
+}
+
+export async function putCampusConfigItem(item: Record<string, unknown>): Promise<void> {
+  await ddb.send(new PutCommand({ TableName: campusConfigTable(), Item: item }));
+}
+
+export async function deleteCampusConfigItem(pk: string, sk: string): Promise<void> {
+  await ddb.send(new DeleteCommand({ TableName: campusConfigTable(), Key: { pk, sk } }));
+}
+
+export async function queryCampusConfigBySkPrefix(
+  pk: string,
+  skPrefix: string,
+): Promise<Record<string, unknown>[]> {
+  const result = await ddb.send(
+    new QueryCommand({
+      TableName: campusConfigTable(),
+      KeyConditionExpression: "pk = :pk AND begins_with(sk, :prefix)",
+      ExpressionAttributeValues: { ":pk": pk, ":prefix": skPrefix },
+    }),
+  );
+  return (result.Items ?? []) as Record<string, unknown>[];
 }
 
 function campusIncidentsTable(): string {

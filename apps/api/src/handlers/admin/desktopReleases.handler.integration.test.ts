@@ -88,7 +88,7 @@ describe("desktop releases handlers", () => {
     const res = await invokeHttpHandler(
       postSignedUrlHandler,
       makeAuthenticatedEvent({
-        role: "commsupervisor",
+        role: "supervisor",
         agencyId: "agency-a",
         rawPath: "/api/admin/desktop-releases/signed-url",
         routeKey: "POST /api/admin/desktop-releases/signed-url",

@@ -135,7 +135,7 @@ const AVATAR_COLORS = ["#b45309", "#0891b2", "#7c3aed", "#0f766e", "#92400e", "#
 
 const nColors = {
   error: { dot: C.red, bg: "rgba(239,68,68,0.1)", border: "rgba(239,68,68,0.22)" },
-  info: { dot: C.blue, bg: "rgba(59,130,246,0.1)", border: "rgba(59,130,246,0.22)" },
+  info: { dot: C.blue, bg: C.verticalDim, border: C.verticalBorder },
   warning: { dot: C.amber, bg: "rgba(245,158,11,0.1)", border: "rgba(245,158,11,0.22)" },
   success: { dot: C.green, bg: "rgba(16,185,129,0.1)", border: "rgba(16,185,129,0.22)" },
 } as const;
@@ -1032,7 +1032,7 @@ function VenueConsoleHomeInner({
       label: "SECURITY ON DUTY",
       value: loading ? "…" : kpiStaff,
       color: C.text,
-      icon: <Users size={17} color={C.amber} strokeWidth={1.7} />,
+      icon: <Users size={17} color={C.orange} strokeWidth={1.7} />,
       iconBg: "rgba(245,158,11,0.15)",
       linkLabel: "View staff roster",
       href: staffHref,
@@ -1050,8 +1050,8 @@ function VenueConsoleHomeInner({
       label: "GUEST REPORTS TODAY",
       value: loading ? "…" : kpiGuestReports,
       color: kpiGuestReports > 5 ? C.amber : C.text,
-      icon: <MessageSquare size={17} color={C.blue} strokeWidth={1.7} />,
-      iconBg: "rgba(59,130,246,0.15)",
+      icon: <MessageSquare size={17} color={C.orange} strokeWidth={1.7} />,
+      iconBg: "var(--rc-vertical-accent-dim)",
       linkLabel: "View guest reports",
       href: guestHref,
     },
@@ -1062,6 +1062,7 @@ function VenueConsoleHomeInner({
       <div
         ref={rootRef}
         data-theme={theme}
+        data-vertical="venue"
         style={{
           display: "flex",
           height: "100vh",
@@ -1099,13 +1100,13 @@ function VenueConsoleHomeInner({
                     lineHeight: 1,
                   }}
                 >
-                  RAPID <span style={{ color: C.amber }}>CORTEX</span>
+                  RAPID <span style={{ color: C.orange }}>CORTEX</span>
                 </div>
                 <div
                   style={{
                     fontSize: 9,
                     fontWeight: 700,
-                    color: C.amber,
+                    color: C.orange,
                     letterSpacing: "2.5px",
                     marginTop: 2,
                   }}
@@ -1123,7 +1124,7 @@ function VenueConsoleHomeInner({
               const count = badgeForItem(item);
               const content = (
                 <>
-                  <Icon size={15} color={active ? C.amber : C.textSub} strokeWidth={1.7} />
+                  <Icon size={15} color={active ? C.orange : C.textSub} strokeWidth={1.7} />
                   <span
                     style={{
                       flex: 1,
@@ -1169,8 +1170,8 @@ function VenueConsoleHomeInner({
                 padding: "7px 9px",
                 borderRadius: 6,
                 cursor: "pointer",
-                background: active ? "rgba(245,158,11,0.1)" : "transparent",
-                borderLeft: active ? `2px solid ${C.amber}` : "2px solid transparent",
+                background: active ? "var(--rc-vertical-accent-dim)" : "transparent",
+                borderLeft: active ? `2px solid ${C.orange}` : "2px solid transparent",
                 marginBottom: 1,
                 textDecoration: "none",
                 color: "inherit",
@@ -2235,8 +2236,8 @@ function VenueConsoleHomeInner({
                         label: "SUPPORT",
                         desc: "Get help from our team or access the knowledge base.",
                         link: "Get Support",
-                        color: C.blue,
-                        rgb: "59,130,246",
+                        color: C.orange,
+                        rgb: "249,115,22",
                         href: "mailto:support@rapidcortex.us",
                       },
                     ] as const

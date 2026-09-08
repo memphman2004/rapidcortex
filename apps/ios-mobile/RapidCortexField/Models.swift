@@ -104,20 +104,11 @@ struct Agency: Identifiable, Codable, Equatable, Hashable {
         self.logoUrl = dto.config?.branding?.logoUrl
     }
 
-    /// Tenant users (campus/venue) — avoid GET /api/agencies/{id}, which 401s native tokens on the primary API.
+    /// Tenant users — avoid GET /api/agencies/{id}, which 401s native tokens on the primary API.
     init(from claims: RCUserClaims) {
         self.agencyId = claims.agencyId
         self.name = claims.agencyId
-        let role = claims.canonicalRole
-        if role.contains("campus") {
-            self.vertical = "campus"
-        } else if role.contains("venue") {
-            self.vertical = "venue"
-        } else if role.contains("transit") {
-            self.vertical = "transit"
-        } else {
-            self.vertical = ""
-        }
+        self.vertical = claims.agencyVertical ?? claims.qrCodeVertical
         self.active = true
         self.codeCount = nil
         self.planTier = nil
@@ -130,8 +121,19 @@ struct RCUserClaims {
     let role: String
     let agencyId: String
     let sub: String
+    /// Cognito `custom:agencyVertical` (falls back to `custom:vertical`). Never shown in UI.
+    let agencyVertical: String?
 
     var canonicalRole: String { RoleNormalization.canonicalize(role) }
+
+    /// Value sent to the codes API — not a user-facing label.
+    var qrCodeVertical: String {
+        let v = (agencyVertical ?? "").trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+        if v == "campus" || v == "venue" || v == "transit" { return v }
+        if canonicalRole.contains("campus") { return "campus" }
+        if canonicalRole.contains("transit") { return "transit" }
+        return "venue"
+    }
 
     var isPlatformAdmin: Bool {
         ["rcsuperadmin", "rcadmin", "rcitadmin"].contains(canonicalRole)
@@ -153,8 +155,22 @@ struct RCUserClaims {
 
     var canManageCodes: Bool { isPlatformAdmin || isAgencyAdmin }
 
+    /// Supervisor-tier actions in 911 Dispatch (message, coach, flag, follow, log). View-only roles omit these.
+    var canActInDispatch911: Bool {
+        ["supervisor", "agencyadmin", "rcsuperadmin", "rcadmin"].contains(canonicalRole)
+    }
+
     var roleLabel: String {
-        canonicalRole.replacingOccurrences(of: "_", with: " ").uppercased()
+        switch canonicalRole {
+        case "supervisor": return "Supervisor"
+        case "dispatcher": return "Dispatcher"
+        case "agencyadmin": return "Agency Admin"
+        case "agencyit": return "Agency IT"
+        case "analyst": return "Analyst"
+        case "auditor": return "Auditor"
+        default:
+            return canonicalRole.replacingOccurrences(of: "_", with: " ").capitalized
+        }
     }
 }
 
@@ -176,8 +192,11 @@ enum RoleNormalization {
             "TRANSIT_SECURITY": "transit_security",
             "TRANSIT_OPERATOR": "transit_operator"
         ]
+        let normalized = raw.lowercased().replacingOccurrences(of: "-", with: "_")
+        // Legacy Cognito value — not a product role. Always treat as supervisor.
+        if normalized == "commsupervisor" { return "supervisor" }
         if let mapped = screaming[raw.uppercased()] { return mapped }
-        return raw.lowercased().replacingOccurrences(of: "-", with: "_")
+        return normalized
     }
 }
 

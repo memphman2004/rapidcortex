@@ -1,0 +1,78 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "LexV2Models",
+      "Effect": "Allow",
+      "Action": [
+        "lex:ListBots",
+        "lex:CreateBot",
+        "lex:UpdateBot",
+        "lex:DeleteBot",
+        "lex:DescribeBot",
+        "lex:CreateBotLocale",
+        "lex:UpdateBotLocale",
+        "lex:DeleteBotLocale",
+        "lex:DescribeBotLocale",
+        "lex:ListBotLocales",
+        "lex:BuildBotLocale",
+        "lex:CreateIntent",
+        "lex:UpdateIntent",
+        "lex:DeleteIntent",
+        "lex:DescribeIntent",
+        "lex:ListIntents",
+        "lex:CreateSlot",
+        "lex:UpdateSlot",
+        "lex:DeleteSlot",
+        "lex:DescribeSlot",
+        "lex:ListSlots",
+        "lex:CreateSlotType",
+        "lex:UpdateSlotType",
+        "lex:DeleteSlotType",
+        "lex:DescribeSlotType",
+        "lex:ListSlotTypes",
+        "lex:CreateBotVersion",
+        "lex:DescribeBotVersion",
+        "lex:ListBotVersions",
+        "lex:CreateBotAlias",
+        "lex:UpdateBotAlias",
+        "lex:DeleteBotAlias",
+        "lex:DescribeBotAlias",
+        "lex:ListBotAliases",
+        "lex:TagResource",
+        "lex:UntagResource",
+        "lex:ListTagsForResource",
+        "lex:CreateUploadUrl",
+        "lex:StartImport",
+        "lex:DescribeImport",
+        "lex:CreateCustomVocabulary",
+        "lex:UpdateCustomVocabulary",
+        "lex:DeleteCustomVocabulary",
+        "lex:DescribeCustomVocabulary"
+      ],
+      "Resource": "*"
+    },
+    {
+      "Sid": "PassLexServiceRole",
+      "Effect": "Allow",
+      "Action": "iam:PassRole",
+      "Resource": "arn:aws:iam::158961537080:role/rapid-cortex-lex-service-role-*",
+      "Condition": {
+        "StringEquals": {
+          "iam:PassedToService": "lexv2.amazonaws.com"
+        }
+      }
+    },
+    {
+      "Sid": "LexV2ServiceLinkedRole",
+      "Effect": "Allow",
+      "Action": "iam:CreateServiceLinkedRole",
+      "Resource": "arn:aws:iam::*:role/aws-service-role/lexv2.amazonaws.com/*",
+      "Condition": {
+        "StringEquals": {
+          "iam:AWSServiceName": "lexv2.amazonaws.com"
+        }
+      }
+    }
+  ]
+}

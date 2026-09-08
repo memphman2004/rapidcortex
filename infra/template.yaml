@@ -412,6 +412,12 @@ Parameters:
     Description: >-
       When set, nested DataLayer skips creating rapid-cortex/${stage}/billing/ses-credentials and emits this ARN.
       Required on staging recreate if that secret already exists.
+  ExistingCallAssistTableName:
+    Type: String
+    Default: ""
+    Description: >-
+      When set, AppSamCallAssistStack2 uses this existing DynamoDB table instead of creating
+      rapid-cortex-call-assist-${stage} (required if the table was pre-created for Lex).
   FlatDataLayerRingCredentialsSecretArn:
     Type: String
     Default: ""
@@ -1102,6 +1108,59 @@ Resources:
         # Lean deploy auto-detects; root passes names so nested updates do not recreate them.
         ExistingSafeSoundDevicesTableName: !Sub "${AppName}-safe-sound-devices-${DeploymentStage}"
         ExistingGuardianEventsTableName: !Sub "${AppName}-guardian-events-${DeploymentStage}"
+
+  AppSamFieldStack:
+    Type: AWS::CloudFormation::Stack
+    Metadata:
+      cfn-lint:
+        config:
+          ignore_checks:
+            - W3005
+    DependsOn: AppSamStackV2
+    Properties:
+      TimeoutInMinutes: 60
+      TemplateURL: nested/stack-app-sam-field.yaml
+      Parameters:
+        DeploymentStage: !Ref DeploymentStage
+        HttpApiId: !GetAtt AppSamStackV2.Outputs.HttpApiId
+        ImportedCognitoUserPoolId: !GetAtt AppSamStackV2.Outputs.UserPoolId
+        ImportedCognitoWebClientId: !GetAtt AppSamStackV2.Outputs.UserPoolClientId
+        ImportedCognitoNativeClientId: !GetAtt AppSamStackV2.Outputs.NativeUserPoolClientId
+        ImportedCognitoIssuer: !GetAtt AppSamStackV2.Outputs.CognitoIssuer
+        AuditTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.AuditTable
+            - !Sub "${DynamoTableNamePrefix}-audit-${DeploymentStage}"
+        AgenciesTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.AgenciesTable
+            - !Sub "${DynamoTableNamePrefix}-agencies-${DeploymentStage}"
+        IncidentsTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.IncidentsTable
+            - !Sub "${DynamoTableNamePrefix}-incidents-${DeploymentStage}"
+        TranscriptsTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.TranscriptsTable
+            - !Sub "${DynamoTableNamePrefix}-transcripts-${DeploymentStage}"
+        IncidentTimelineTable: !Sub "rapid-cortex-incident-timeline-${DeploymentStage}"
+        ActiveCallsTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.ActiveCallsTable
+            - !Sub "${DynamoTableNamePrefix}-active-calls-${DeploymentStage}"
+        WebSocketConnectionsTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.WebSocketConnectionsTable
+            - !Sub "${DynamoTableNamePrefix}-websocket-connections-${DeploymentStage}"
+        OpsAlertsTopicArn: !GetAtt AppSamStackV2.Outputs.OpsAlertsTopicArn
+        ExistingFieldCommandTableName: ""
+        ManagedPolicyNamePrefix: !Ref AWS::StackName
 
   AppSam2Stack:
     Type: AWS::CloudFormation::Stack
@@ -3231,6 +3290,38 @@ Resources:
         PremiseNotesTable: !Sub "rapid-cortex-premise-notes-${DeploymentStage}"
         IncidentMediaTable: !Sub "rapid-cortex-incident-media-${DeploymentStage}"
         NonEmergencyQueueTable: !Sub "rapid-cortex-non-emergency-queue-${DeploymentStage}"
+        ManagedPolicyNamePrefix: !Ref AWS::StackName
+
+  AppSamCallAssistStack2:
+    Type: AWS::CloudFormation::Stack
+    Metadata:
+      cfn-lint:
+        config:
+          ignore_checks:
+            - W3005
+    DependsOn: AppSam2Stack
+    Properties:
+      TimeoutInMinutes: 60
+      TemplateURL: nested/stack-app-sam-call-assist.yaml
+      Parameters:
+        DeploymentStage: !Ref DeploymentStage
+        HttpApiId: !GetAtt AppSam2Stack.Outputs.HttpApiId
+        HttpApiJwtAuthorizerId: "3ui9q4"
+        ImportedCognitoUserPoolId: !GetAtt AppSamStackV2.Outputs.UserPoolId
+        ImportedCognitoWebClientId: !GetAtt AppSamStackV2.Outputs.UserPoolClientId
+        ImportedCognitoIssuer: !GetAtt AppSamStackV2.Outputs.CognitoIssuer
+        AuditTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.AuditTable
+            - !Sub "${DynamoTableNamePrefix}-audit-${DeploymentStage}"
+        AgenciesTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.AgenciesTable
+            - !Sub "${DynamoTableNamePrefix}-agencies-${DeploymentStage}"
+        ExistingCallAssistTableName: !Ref ExistingCallAssistTableName
+        CallAssistConnectWebhookSecretArn: ""
         ManagedPolicyNamePrefix: !Ref AWS::StackName
 
   AppSamRealtime2Stack:

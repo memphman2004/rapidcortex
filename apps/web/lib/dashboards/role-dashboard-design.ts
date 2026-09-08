@@ -131,18 +131,18 @@ export const ROLE_DASHBOARD_PALETTE_BY_ROLE: Record<UserRole, RoleDashboardIdent
   hospitaladmin: withAccents({
     identityTitle: "Hospital Safety & Operations",
     identitySubtitle: "MCI routing",
-    accent: "#EF4444",
-    dim: "#7F1D1D",
-    badgeBg: "#B91C1C",
-    textColor: "#FEE2E2",
+    accent: "#0D9488",
+    dim: "#134E4A",
+    badgeBg: "#0F766E",
+    textColor: "#CCFBF1",
   }),
   hospitalstaff: withAccents({
     identityTitle: "Hospital Capacity",
     identitySubtitle: "Live bed status · diversion updates",
-    accent: "#EF4444",
-    dim: "#7F1D1D",
-    badgeBg: "#B91C1C",
-    textColor: "#FEE2E2",
+    accent: "#0D9488",
+    dim: "#134E4A",
+    badgeBg: "#0F766E",
+    textColor: "#CCFBF1",
   }),
   campus_admin: verticalRolePalette("campus_admin", "Campus Admin", "Users & Clery", roleBandColor("campus_admin")),
   campus_supervisor: verticalRolePalette(
@@ -250,7 +250,7 @@ export const VERTICAL_DASHBOARD_PALETTE = {
   venue: withAccents({
     identityTitle: "Venue Security Command",
     identitySubtitle: "Crowd & events",
-    accent: "#FB923C",
+    accent: "#F97316",
     dim: "#7C2D12",
     badgeBg: "#C2410C",
     textColor: "#FFEDD5",
@@ -258,10 +258,10 @@ export const VERTICAL_DASHBOARD_PALETTE = {
   campus: withAccents({
     identityTitle: "Campus Safety Operations",
     identitySubtitle: "K-12 & university",
-    accent: "#34D399",
-    dim: "#064E3B",
-    badgeBg: "#059669",
-    textColor: "#D1FAE5",
+    accent: "#64748B",
+    dim: "#1E293B",
+    badgeBg: "#475569",
+    textColor: "#E2E8F0",
   }),
 } as const;
 

@@ -84,7 +84,9 @@
         "scheduler:*",
         "application-autoscaling:*",
         "wafv2:*",
-        "cloudwatch:*"
+        "cloudwatch:*",
+        "lex:*",
+        "connect:*"
       ],
       "Resource": "*"
     },

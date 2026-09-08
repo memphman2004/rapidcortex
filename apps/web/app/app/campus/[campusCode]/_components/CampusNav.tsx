@@ -60,7 +60,7 @@ export function CampusNav({
               href={item.href}
               className="inline-flex items-center gap-2 rounded-md px-2.5 py-1.5 text-[12.5px] no-underline transition-colors"
               style={{
-                background: active ? "rgba(59,130,246,0.13)" : "transparent",
+                background: active ? "var(--rc-vertical-accent-dim)" : "transparent",
                 borderLeft: active ? `2px solid ${C.blue}` : "2px solid transparent",
                 color: active ? C.text : C.textSub,
                 fontWeight: active ? 600 : 400,

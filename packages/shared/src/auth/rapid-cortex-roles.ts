@@ -381,6 +381,8 @@ export function migrateLegacyRapidCortexRoleTokenValue(raw: string | undefined):
   if (t === "TRANSIT_SUPERVISOR") return "transit_supervisor";
   if (t === "TRANSIT_SECURITY") return "transit_security";
   if (t === "TRANSIT_OPERATOR") return "transit_operator";
+  const lower = t.toLowerCase().replace(/-/g, "_");
+  if (lower === "commsupervisor") return "supervisor";
   if (
     t === "platform_superadmin" ||
     t === "superadmin" ||
@@ -390,7 +392,6 @@ export function migrateLegacyRapidCortexRoleTokenValue(raw: string | undefined):
     return "rcsuperadmin";
   if (t === "admin") return "agencyadmin";
   if (t === "it_admin") return "agencyit";
-  if (t === "commsupervisor") return "supervisor";
   if (t === "readonly_auditor") return "auditor";
   if (t === "staff") return "staff";
   if (t === "hospital_admin") return "hospitaladmin";

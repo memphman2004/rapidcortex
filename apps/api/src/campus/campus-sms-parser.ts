@@ -31,6 +31,8 @@ const BUILDING_NAMES: Record<string, string> = {
   ramsey: "Ramsey Student Center",
   mlc: "Miller Learning Center",
   "miller learning": "Miller Learning Center",
+  "rapid hall": "Rapid Hall",
+  wabash: "Wabash Hall",
   reed: "Reed Hall",
   arch: "The Arch",
   parking: "North Deck Parking",

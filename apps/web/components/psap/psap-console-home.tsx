@@ -290,7 +290,7 @@ function navItemActive(pathname: string, item: NavItem): boolean {
 
 function canEditCadPhase(role?: string): boolean {
   const r = (role ?? "").trim().toLowerCase();
-  return r === "supervisor" || r === "agencyadmin" || r === "commsupervisor";
+  return r === "supervisor" || r === "agencyadmin";
 }
 
 function mapCallType(category: Incident["category"]): CallTypeKey {

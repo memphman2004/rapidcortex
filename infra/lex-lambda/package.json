@@ -1,0 +1,6 @@
+{
+  "name": "rapid-cortex-lex-hooks",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Call Assist Lex V2 code-hook stubs (replaced by compiled TypeScript)"
+}

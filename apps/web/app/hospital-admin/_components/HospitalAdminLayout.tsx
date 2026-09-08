@@ -73,6 +73,7 @@ function HospitalAdminLayoutInner({ children, role, facilityName }: Props) {
     <div
       ref={rootRef}
       data-theme={theme}
+      data-vertical="hospital"
       className="flex min-h-screen bg-[var(--rc-bg)] text-[var(--rc-text-primary)]"
       style={{ colorScheme: theme }}
     >

@@ -39,6 +39,18 @@ describe("mapJwtToUser (ID token parsing)", () => {
     expect(u!.role).toBe("dispatcher");
   });
 
+  it("prefers custom:agencyVertical over custom:vertical", () => {
+    const u = mapJwtToUser({
+      ...BASE,
+      "custom:role": "agencyadmin",
+      "custom:agencyId": "agency-123",
+      "custom:vertical": "campus",
+      "custom:agencyVertical": "911",
+    } as JWTPayload);
+    expect(u).not.toBeNull();
+    expect(u!.vertical).toBe("911");
+  });
+
   it("maps superadmin legacy group to rcsuperadmin routing role", () => {
     const u = mapJwtToUser({
       ...BASE,

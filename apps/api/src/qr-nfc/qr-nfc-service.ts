@@ -34,6 +34,7 @@ import { QrNfcRepository } from "../repositories/qrNfcRepository.js";
 import { resolveAgencyCallNumber } from "./resolve-call-number.js";
 import { bindQrLocationCameras } from "./qr-nfc-camera-bind.js";
 import { formatPhoneDisplay } from "rapid-cortex-shared";
+import { upsertCampusBuildingFromQr } from "../campus/campus-building-from-qr.js";
 
 const repo = new QrNfcRepository();
 const auditRepo = new AuditRepository();
@@ -121,6 +122,13 @@ export class QrNfcService {
     };
 
     await repo.put(record);
+    if (record.vertical === "campus") {
+      try {
+        await upsertCampusBuildingFromQr(record);
+      } catch (err) {
+        console.warn("[qr-nfc] campus building sync on create failed", qrId, err);
+      }
+    }
     if (
       (record.vertical === "campus" || record.vertical === "venue") &&
       (record.cameraIds?.length ?? 0) > 0
@@ -244,6 +252,13 @@ export class QrNfcService {
       }
     }
     const updated = await repo.update(existing.agencyId, qrId, parsed.data as UpdateQRNFCInput);
+    if (updated?.vertical === "campus") {
+      try {
+        await upsertCampusBuildingFromQr(updated);
+      } catch (err) {
+        console.warn("[qr-nfc] campus building sync on update failed", qrId, err);
+      }
+    }
     if (updated && parsed.data.cameraIds && (existing.vertical === "campus" || existing.vertical === "venue")) {
       try {
         await bindQrLocationCameras({

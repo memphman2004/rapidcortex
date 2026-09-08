@@ -1,6 +1,10 @@
 /**
  * Seed RCLI locations for live UGA campus + MBS venue tenants.
  *
+ * Campus Miller/Myers/Tate rows are demo catalog. Live campus locations come from
+ * Field QR/NFC (`scripts/sync-campus-buildings-from-qr.ts`). Set
+ * ALLOW_DEMO_CAMPUS_RCLI=1 only when you intentionally want those fixtures.
+ *
  * Usage:
  *   QR_LOCATIONS_TABLE=rapid-cortex-qr-locations-dev \
  *   npx tsx scripts/seed-prod-rcli-uga-mbs.ts
@@ -77,7 +81,12 @@ const LOCATIONS = [
 
 async function main(): Promise<void> {
   const now = new Date().toISOString();
-  for (const row of LOCATIONS) {
+  const allowDemoCampus = process.env.ALLOW_DEMO_CAMPUS_RCLI === "1";
+  const rows = allowDemoCampus ? LOCATIONS : LOCATIONS.filter((row) => row.vertical !== "campus");
+  if (!allowDemoCampus) {
+    console.log("Skipping campus demo RCLI (Miller/Myers/Tate). Set ALLOW_DEMO_CAMPUS_RCLI=1 to seed them.");
+  }
+  for (const row of rows) {
     const rcli = generateRCLI(row.orgCode, row.sequence);
     const item: QRLocation = {
       rcli,

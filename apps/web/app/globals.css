@@ -78,6 +78,12 @@
   --rc-input-bg: #0f0d1a;
   --rc-input-border: #2d2845;
   --rc-shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.5);
+  --rc-vertical-accent: #3b82f6;
+  --rc-vertical-accent-hover: #2563eb;
+  --rc-vertical-accent-dim: color-mix(in srgb, var(--rc-vertical-accent) 16%, transparent);
+  --rc-vertical-accent-soft: color-mix(in srgb, var(--rc-vertical-accent) 22%, transparent);
+  --rc-vertical-accent-border: color-mix(in srgb, var(--rc-vertical-accent) 45%, var(--rc-border));
+  --rc-vertical-on-accent: #ffffff;
   --rc-shadow-md: 0 4px 16px rgba(0, 0, 0, 0.6);
   --rc-scrollbar: #1e1a30;
   --rc-scrollbar-track: #0d0c18;
@@ -294,6 +300,143 @@
   --color-rc-sky: var(--rc-sky);
   --color-rc-cyan: var(--rc-cyan);
   --color-rc-orange: var(--rc-orange);
+}
+
+/* Product vertical accents — campus slate, venue orange, hospital teal, transit indigo */
+[data-vertical="campus"] {
+  --rc-vertical-accent: #64748b;
+  --rc-vertical-accent-hover: #475569;
+  --rc-blue: #64748b;
+  --rc-blue-dim: #1e293b;
+  --rc-blue-border: #475569;
+  --rc-sky: #94a3b8;
+  --rc-crest: #334155;
+  --role-accent: #94a3b8;
+  --role-accent-dim: #1e293b;
+  --role-accent-muted: rgba(148, 163, 184, 0.4);
+  --color-sky-200: #e2e8f0;
+  --color-sky-300: #cbd5e1;
+  --color-sky-400: #94a3b8;
+  --color-sky-500: #64748b;
+  --color-sky-600: #475569;
+  --color-sky-700: #334155;
+  --color-sky-800: #1e293b;
+  --color-sky-900: #0f172a;
+  --color-sky-950: #020617;
+  --color-blue-300: #cbd5e1;
+  --color-blue-400: #94a3b8;
+  --color-blue-500: #64748b;
+  --color-blue-600: #475569;
+  --color-blue-700: #334155;
+}
+
+[data-vertical="venue"] {
+  --rc-vertical-accent: #f97316;
+  --rc-vertical-accent-hover: #ea580c;
+  --rc-blue: #f97316;
+  --rc-blue-dim: #431407;
+  --rc-blue-border: #9a3412;
+  --rc-sky: #fb923c;
+  --rc-crest: #9a3412;
+  --role-accent: #f97316;
+  --role-accent-dim: #7c2d12;
+  --role-accent-muted: rgba(249, 115, 22, 0.4);
+  --color-sky-200: #fed7aa;
+  --color-sky-300: #fdba74;
+  --color-sky-400: #fb923c;
+  --color-sky-500: #f97316;
+  --color-sky-600: #ea580c;
+  --color-sky-700: #c2410c;
+  --color-sky-800: #9a3412;
+  --color-sky-900: #7c2d12;
+  --color-sky-950: #431407;
+  --color-blue-300: #fdba74;
+  --color-blue-400: #fb923c;
+  --color-blue-500: #f97316;
+  --color-blue-600: #ea580c;
+  --color-blue-700: #c2410c;
+}
+
+[data-vertical="hospital"] {
+  --rc-vertical-accent: #14b8a6;
+  --rc-vertical-accent-hover: #0d9488;
+  --rc-blue: #14b8a6;
+  --rc-blue-dim: #042f2e;
+  --rc-blue-border: #0f766e;
+  --rc-sky: #2dd4bf;
+  --rc-crest: #115e59;
+  --role-accent: #14b8a6;
+  --role-accent-dim: #134e4a;
+  --role-accent-muted: rgba(20, 184, 166, 0.4);
+  --color-sky-200: #99f6e4;
+  --color-sky-300: #5eead4;
+  --color-sky-400: #2dd4bf;
+  --color-sky-500: #14b8a6;
+  --color-sky-600: #0d9488;
+  --color-sky-700: #0f766e;
+  --color-sky-800: #115e59;
+  --color-sky-900: #134e4a;
+  --color-sky-950: #042f2e;
+  --color-blue-300: #5eead4;
+  --color-blue-400: #2dd4bf;
+  --color-blue-500: #14b8a6;
+  --color-blue-600: #0d9488;
+  --color-blue-700: #0f766e;
+}
+
+[data-vertical="transit"] {
+  --rc-vertical-accent: #818cf8;
+  --rc-vertical-accent-hover: #6366f1;
+  --rc-blue: #818cf8;
+  --rc-blue-dim: #1e1b4b;
+  --rc-blue-border: #4338ca;
+  --rc-sky: #818cf8;
+  --rc-crest: #3730a3;
+  --role-accent: #818cf8;
+  --role-accent-dim: #312e81;
+  --role-accent-muted: rgba(129, 140, 248, 0.4);
+  --color-sky-200: #c7d2fe;
+  --color-sky-300: #a5b4fc;
+  --color-sky-400: #818cf8;
+  --color-sky-500: #6366f1;
+  --color-sky-600: #4f46e5;
+  --color-sky-700: #4338ca;
+  --color-sky-800: #3730a3;
+  --color-sky-900: #312e81;
+  --color-sky-950: #1e1b4b;
+  --color-blue-300: #a5b4fc;
+  --color-blue-400: #818cf8;
+  --color-blue-500: #6366f1;
+  --color-blue-600: #4f46e5;
+  --color-blue-700: #4338ca;
+}
+
+[data-vertical="psap"] {
+  --rc-vertical-accent: #0284c7;
+  --rc-vertical-accent-hover: #0369a1;
+  --role-accent: #0284c7;
+  --role-accent-dim: #0c4a6e;
+}
+
+[data-vertical="rc-admin"] {
+  --rc-vertical-accent: #a78bfa;
+  --rc-vertical-accent-hover: #8b5cf6;
+  --role-accent: #c084fc;
+  --role-accent-dim: #3b1157;
+}
+
+.rc-v-text {
+  color: var(--rc-vertical-accent);
+}
+.rc-v-text:hover {
+  color: var(--rc-vertical-accent-hover);
+}
+.rc-v-btn {
+  background-color: var(--rc-vertical-accent);
+  color: var(--rc-vertical-on-accent, #fff);
+}
+.rc-v-btn:hover {
+  background-color: var(--rc-vertical-accent-hover);
 }
 
 html {

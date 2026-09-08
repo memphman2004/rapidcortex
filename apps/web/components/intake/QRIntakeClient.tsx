@@ -262,6 +262,14 @@ function QRIntakeClientInner({
       className="flex min-h-[100dvh] flex-col"
       dir={dir}
       lang={langCode.toLowerCase()}
+      data-vertical={
+        location.vertical === "campus" ||
+        location.vertical === "venue" ||
+        location.vertical === "hospital" ||
+        location.vertical === "transit"
+          ? location.vertical
+          : undefined
+      }
       style={{
         ...(pageBackground ?? { background: theme.pageBg }),
         fontFamily: "system-ui, -apple-system, sans-serif",

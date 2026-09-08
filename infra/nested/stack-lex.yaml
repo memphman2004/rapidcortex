@@ -1,0 +1,3476 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Transform: AWS::Serverless-2016-10-31
+Description: >
+  Rapid Cortex Call Assist — Amazon Lex V2 bot + dialog/fulfillment Lambdas.
+  Standalone stack (not nested in stack-app-sam.yaml). One bot serves all tenants.
+  CAD write-back stays off. Safety TRANSFER_911 is enforced in the dialog hook, not by Lex NLU.
+
+Parameters:
+  AppName:
+    Type: String
+    Default: rapid-cortex
+  DeploymentStage:
+    Type: String
+    AllowedValues: [dev, staging, prod, pilot]
+  CallAssistTableName:
+    Type: String
+    Default: ""
+    Description: Existing Call Assist DynamoDB table. Empty = rapid-cortex-call-assist-${stage}.
+
+Conditions:
+  HasCallAssistTableName: !Not [!Equals [!Ref CallAssistTableName, ""]]
+
+Globals:
+  Function:
+    Runtime: nodejs20.x
+    Architectures: [x86_64]
+    MemorySize: 512
+    Tracing: Active
+    Environment:
+      Variables:
+        DEPLOYMENT_STAGE: !Ref DeploymentStage
+        CALL_ASSIST_TABLE: !If
+          - HasCallAssistTableName
+          - !Ref CallAssistTableName
+          - !Sub "rapid-cortex-call-assist-${DeploymentStage}"
+        ENABLE_CALL_ASSIST_CAD_PUSH: "false"
+        CAD_WRITEBACK_ENABLED: "false"
+        BEDROCK_MODEL_ID: anthropic.claude-3-haiku-20240307-v1:0
+
+Resources:
+  LexLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub "/aws/lex/RCCallAssistBot-${DeploymentStage}"
+      RetentionInDays: 90
+
+  LexServiceRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Sub "${AppName}-lex-service-role-${DeploymentStage}"
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - lexv2.amazonaws.com
+                - channels.lexv2.amazonaws.com
+            Action: sts:AssumeRole
+      Policies:
+        - PolicyName: LexRuntime
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Sid: PollySpeech
+                Effect: Allow
+                Action:
+                  - polly:SynthesizeSpeech
+                Resource: "*"
+              - Sid: ConversationTextLogs
+                Effect: Allow
+                Action:
+                  - logs:CreateLogStream
+                  - logs:PutLogEvents
+                  - logs:DescribeLogStreams
+                Resource:
+                  - !GetAtt LexLogGroup.Arn
+                  - !Sub "${LexLogGroup.Arn}:*"
+
+  LexHookManagedPolicy:
+    Type: AWS::IAM::ManagedPolicy
+    Properties:
+      Description: Call Assist Lex hooks — tenant-scoped DynamoDB + Bedrock Haiku
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Sid: CallAssistTable
+            Effect: Allow
+            Action:
+              - dynamodb:GetItem
+              - dynamodb:PutItem
+              - dynamodb:UpdateItem
+              - dynamodb:Query
+              - dynamodb:DescribeTable
+              - dynamodb:ConditionCheckItem
+            Resource:
+              - !Sub
+                - "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${Table}"
+                - Table: !If
+                    - HasCallAssistTableName
+                    - !Ref CallAssistTableName
+                    - !Sub "rapid-cortex-call-assist-${DeploymentStage}"
+              - !Sub
+                - "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${Table}/index/*"
+                - Table: !If
+                    - HasCallAssistTableName
+                    - !Ref CallAssistTableName
+                    - !Sub "rapid-cortex-call-assist-${DeploymentStage}"
+          - Sid: BedrockHaiku
+            Effect: Allow
+            Action:
+              - bedrock:InvokeModel
+            Resource:
+              - !Sub "arn:aws:bedrock:${AWS::Region}::foundation-model/anthropic.claude-3-haiku-20240307-v1:0"
+              - !Sub "arn:aws:bedrock:${AWS::Region}:${AWS::AccountId}:inference-profile/us.anthropic.claude-3-haiku-20240307-v1:0"
+
+  LexDialogHookFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub "${AppName}-lex-dialog-hook-${DeploymentStage}"
+      CodeUri: ../lex-lambda/
+      Handler: dialog-hook.handler
+      Timeout: 8
+      Policies:
+        - !Ref LexHookManagedPolicy
+
+  LexFulfillmentHookFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub "${AppName}-lex-fulfillment-hook-${DeploymentStage}"
+      CodeUri: ../lex-lambda/
+      Handler: fulfillment-hook.handler
+      Timeout: 10
+      Policies:
+        - !Ref LexHookManagedPolicy
+
+  GetAgencyConfigForNumberFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub "${AppName}-lex-agency-for-number-${DeploymentStage}"
+      CodeUri: ../lex-lambda/
+      Handler: get-agency-for-number.handler
+      Timeout: 8
+      Policies:
+        - !Ref LexHookManagedPolicy
+
+  ConnectGetAgencyPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      FunctionName: !GetAtt GetAgencyConfigForNumberFunction.Arn
+      Action: lambda:InvokeFunction
+      Principal: connect.amazonaws.com
+      SourceAccount: !Ref AWS::AccountId
+
+  ConnectDialogHookPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      FunctionName: !GetAtt LexDialogHookFunction.Arn
+      Action: lambda:InvokeFunction
+      Principal: connect.amazonaws.com
+      SourceAccount: !Ref AWS::AccountId
+
+  ConnectFulfillmentHookPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      FunctionName: !GetAtt LexFulfillmentHookFunction.Arn
+      Action: lambda:InvokeFunction
+      Principal: connect.amazonaws.com
+      SourceAccount: !Ref AWS::AccountId
+
+  RCCallAssistBot:
+    Type: AWS::Lex::Bot
+    DependsOn:
+      - LexDialogHookFunction
+      - LexFulfillmentHookFunction
+    Properties:
+      Name: !Sub "RCCallAssistBot-${DeploymentStage}"
+      Description: Rapid Cortex non-emergency conversational AI. Multi-tenant. Safety gate is Lambda, not NLU.
+      RoleArn: !GetAtt LexServiceRole.Arn
+      DataPrivacy:
+        ChildDirected: false
+      IdleSessionTTLInSeconds: 300
+      AutoBuildBotLocales: true
+      BotLocales:
+        - LocaleId: en_US
+          NluConfidenceThreshold: 0.7
+          VoiceSettings:
+            VoiceId: Ruth
+            Engine: neural
+          SlotTypes:
+            - Name: FreeText
+              Description: Original caller phrasing (location, vehicle, descriptions)
+              SlotTypeValues:
+                - SampleValue:
+                    Value: unknown
+                - SampleValue:
+                    Value: none
+              ValueSelectionSetting:
+                ResolutionStrategy: ORIGINAL_VALUE
+            - Name: LocationAddress
+              Description: Address, intersection, landmark, or business name
+              SlotTypeValues:
+                - SampleValue:
+                    Value: address
+                - SampleValue:
+                    Value: intersection
+                - SampleValue:
+                    Value: landmark
+              ValueSelectionSetting:
+                ResolutionStrategy: ORIGINAL_VALUE
+            - Name: VehicleColor
+              Description: Vehicle color with synonyms
+              SlotTypeValues:
+                - SampleValue:
+                    Value: Red
+                  Synonyms:
+                    - Value: red
+                    - Value: crimson
+                    - Value: maroon
+                    - Value: dark red
+                    - Value: bright red
+                - SampleValue:
+                    Value: Blue
+                  Synonyms:
+                    - Value: blue
+                    - Value: navy
+                    - Value: dark blue
+                    - Value: light blue
+                    - Value: sky blue
+                    - Value: royal blue
+                - SampleValue:
+                    Value: Black
+                  Synonyms:
+                    - Value: black
+                    - Value: dark
+                    - Value: jet black
+                - SampleValue:
+                    Value: White
+                  Synonyms:
+                    - Value: white
+                    - Value: cream
+                    - Value: off-white
+                    - Value: pearl
+                - SampleValue:
+                    Value: Silver
+                  Synonyms:
+                    - Value: silver
+                    - Value: gray
+                    - Value: grey
+                    - Value: metallic
+                - SampleValue:
+                    Value: Green
+                  Synonyms:
+                    - Value: green
+                    - Value: olive
+                    - Value: dark green
+                    - Value: forest green
+                - SampleValue:
+                    Value: Gold
+                  Synonyms:
+                    - Value: gold
+                    - Value: tan
+                    - Value: beige
+                    - Value: champagne
+                - SampleValue:
+                    Value: Brown
+                  Synonyms:
+                    - Value: brown
+                    - Value: bronze
+                    - Value: copper
+                    - Value: rust
+              ValueSelectionSetting:
+                ResolutionStrategy: TOP_RESOLUTION
+            - Name: VehicleType
+              Description: Vehicle body type
+              SlotTypeValues:
+                - SampleValue:
+                    Value: car
+                  Synonyms:
+                    - Value: sedan
+                    - Value: coupe
+                    - Value: convertible
+                - SampleValue:
+                    Value: truck
+                  Synonyms:
+                    - Value: pickup
+                    - Value: pickup truck
+                - SampleValue:
+                    Value: SUV
+                  Synonyms:
+                    - Value: crossover
+                    - Value: van
+                    - Value: minivan
+                - SampleValue:
+                    Value: motorcycle
+                  Synonyms:
+                    - Value: bike
+                    - Value: moped
+                    - Value: scooter
+                - SampleValue:
+                    Value: semi
+                  Synonyms:
+                    - Value: eighteen-wheeler
+                    - Value: box truck
+                    - Value: delivery truck
+              ValueSelectionSetting:
+                ResolutionStrategy: TOP_RESOLUTION
+            - Name: IncidentTimeframe
+              Description: When the incident occurred
+              SlotTypeValues:
+                - SampleValue:
+                    Value: right now
+                  Synonyms:
+                    - Value: happening now
+                    - Value: currently
+                    - Value: still going on
+                - SampleValue:
+                    Value: just happened
+                  Synonyms:
+                    - Value: a few minutes ago
+                    - Value: minutes ago
+                    - Value: just now
+                - SampleValue:
+                    Value: earlier today
+                  Synonyms:
+                    - Value: about an hour ago
+                    - Value: this morning
+                    - Value: this afternoon
+                    - Value: tonight
+                - SampleValue:
+                    Value: yesterday
+                  Synonyms:
+                    - Value: last night
+                    - Value: a while ago
+                - SampleValue:
+                    Value: not sure
+                  Synonyms:
+                    - Value: I don't know
+                    - Value: unknown
+              ValueSelectionSetting:
+                ResolutionStrategy: TOP_RESOLUTION
+            - Name: NoiseType
+              Description: Kind of noise
+              SlotTypeValues:
+                - SampleValue:
+                    Value: music
+                - SampleValue:
+                    Value: yelling
+                - SampleValue:
+                    Value: party
+                - SampleValue:
+                    Value: fireworks
+                - SampleValue:
+                    Value: barking
+                - SampleValue:
+                    Value: engine
+                - SampleValue:
+                    Value: alarm
+                - SampleValue:
+                    Value: other
+              ValueSelectionSetting:
+                ResolutionStrategy: ORIGINAL_VALUE
+            - Name: ParkingViolationType
+              Description: Parking violation type
+              SlotTypeValues:
+                - SampleValue:
+                    Value: driveway
+                - SampleValue:
+                    Value: fire hydrant
+                - SampleValue:
+                    Value: handicap
+                - SampleValue:
+                    Value: no parking
+                - SampleValue:
+                    Value: fire lane
+                - SampleValue:
+                    Value: sidewalk
+                - SampleValue:
+                    Value: other
+              ValueSelectionSetting:
+                ResolutionStrategy: ORIGINAL_VALUE
+            - Name: AnimalThreatLevel
+              Description: Animal situation severity
+              SlotTypeValues:
+                - SampleValue:
+                    Value: aggressive
+                  Synonyms:
+                    - Value: attacking
+                    - Value: vicious
+                    - Value: biting
+                - SampleValue:
+                    Value: injured
+                - SampleValue:
+                    Value: stray
+                  Synonyms:
+                    - Value: loose
+                    - Value: loose/stray
+                - SampleValue:
+                    Value: cruelty
+                  Synonyms:
+                    - Value: neglect
+                    - Value: cruelty/neglect
+                - SampleValue:
+                    Value: nuisance
+              ValueSelectionSetting:
+                ResolutionStrategy: TOP_RESOLUTION
+            - Name: YesNoConfirmation
+              Description: Yes/no confirmation (WeaponVisible, injuries, still happening)
+              SlotTypeValues:
+                - SampleValue:
+                    Value: Yes
+                  Synonyms:
+                    - Value: yes
+                    - Value: yeah
+                    - Value: yep
+                    - Value: "y"
+                    - Value: "true"
+                    - Value: "sí"
+                    - Value: si
+                    - Value: affirmative
+                - SampleValue:
+                    Value: No
+                  Synonyms:
+                    - Value: "no"
+                    - Value: nope
+                    - Value: "n"
+                    - Value: "false"
+                    - Value: negative
+              ValueSelectionSetting:
+                ResolutionStrategy: TOP_RESOLUTION
+          Intents:
+            - Name: EmergencyEscalation
+              Description: Call Assist intent EmergencyEscalation
+              SampleUtterances:
+                - Utterance: "someone is shooting"
+                - Utterance: "there's a shooter"
+                - Utterance: "shots fired"
+                - Utterance: "active shooter"
+                - Utterance: "he has a gun"
+                - Utterance: "she has a gun"
+                - Utterance: "they have a gun"
+                - Utterance: "there's a gun"
+                - Utterance: "he's pointing a gun at me"
+                - Utterance: "help me"
+                - Utterance: "I need help right now"
+                - Utterance: "there's a stabbing"
+                - Utterance: "he stabbed someone"
+                - Utterance: "she's not breathing"
+                - Utterance: "he's not breathing"
+                - Utterance: "someone is unconscious"
+                - Utterance: "there's a fire"
+                - Utterance: "call 911"
+                - Utterance: "this is an emergency"
+                - Utterance: "send police right now"
+                - Utterance: "there's a dead body"
+                - Utterance: "someone is being attacked"
+                - Utterance: "they're trying to kill me"
+                - Utterance: "I'm being robbed right now"
+                - Utterance: "he's going to hurt me"
+                - Utterance: "domestic violence happening right now"
+                - Utterance: "he's hitting her"
+                - Utterance: "someone is drowning"
+                - Utterance: "there's been an explosion"
+                - Utterance: "I can smell gas"
+                - Utterance: "gas leak"
+                - Utterance: "she just collapsed"
+                - Utterance: "he just collapsed"
+                - Utterance: "they're breaking in right now"
+                - Utterance: "someone is breaking into my house"
+                - Utterance: "home invasion"
+                - Utterance: "car crash with injuries"
+                - Utterance: "the car is on fire"
+                - Utterance: "I need an ambulance right now"
+                - Utterance: "medical emergency"
+                - Utterance: "heart attack"
+                - Utterance: "someone is having a seizure"
+                - Utterance: "I think he has a weapon"
+                - Utterance: "she threatened to kill me"
+                - Utterance: "he threatened to shoot"
+                - Utterance: "they have a knife"
+              DialogCodeHook:
+                Enabled: true
+              FulfillmentCodeHook:
+                Enabled: true
+                IsActive: true
+            - Name: RequestHuman
+              Description: Call Assist intent RequestHuman
+              SampleUtterances:
+                - Utterance: "let me talk to someone"
+                - Utterance: "I want to speak to an officer"
+                - Utterance: "can I talk to a real person"
+                - Utterance: "transfer me to a dispatcher"
+                - Utterance: "I need a dispatcher"
+                - Utterance: "give me a human"
+                - Utterance: "I don't want to talk to a machine"
+                - Utterance: "I need to talk to someone"
+                - Utterance: "can you transfer me"
+                - Utterance: "connect me to dispatch"
+                - Utterance: "operator"
+                - Utterance: "talk to someone real"
+                - Utterance: "I'd rather talk to a person"
+              DialogCodeHook:
+                Enabled: true
+              FulfillmentCodeHook:
+                Enabled: true
+                IsActive: true
+            - Name: NoiseComplaint
+              Description: Call Assist intent NoiseComplaint
+              SampleUtterances:
+                - Utterance: "my neighbor is being too loud"
+                - Utterance: "there's too much noise"
+                - Utterance: "noise complaint"
+                - Utterance: "it's really loud outside"
+                - Utterance: "there's a loud party"
+                - Utterance: "my neighbor won't turn down the music"
+                - Utterance: "someone is playing loud music"
+                - Utterance: "there's a party going on"
+                - Utterance: "people are being loud"
+                - Utterance: "there's a loud gathering"
+                - Utterance: "someone is making a lot of noise"
+                - Utterance: "neighbors are loud"
+                - Utterance: "the music is too loud"
+                - Utterance: "the bass is shaking my walls"
+                - Utterance: "people are yelling outside"
+                - Utterance: "there's screaming outside"
+                - Utterance: "they've been loud for hours"
+                - Utterance: "this has been going on all night"
+                - Utterance: "fireworks in the neighborhood"
+                - Utterance: "someone is setting off fireworks"
+                - Utterance: "loud engine running outside"
+                - Utterance: "car alarm going off"
+                - Utterance: "dog won't stop barking"
+                - Utterance: "there's a dog barking constantly"
+                - Utterance: "there's noise outside my apartment"
+                - Utterance: "loud motorcycle"
+              DialogCodeHook:
+                Enabled: true
+              FulfillmentCodeHook:
+                Enabled: true
+                IsActive: true
+              IntentConfirmationSetting:
+                IsActive: true
+                PromptSpecification:
+                  MaxRetries: 2
+                  AllowInterrupt: true
+                  MessageGroupsList:
+                    - Message:
+                        SSMLMessage:
+                          Value: "<speak>Just to confirm — I have a noise complaint at <break time=\"300ms\"/> {NoiseLocation}, <break time=\"200ms\"/> {NoiseType}, <break time=\"200ms\"/> and it's {NoiseStillHappening, values: [\"Yes\": \"still happening\", \"No\": \"no longer happening\"]}. Is that right?</speak>"
+                DeclinationResponse:
+                  MessageGroupsList:
+                    - Message:
+                        PlainTextMessage:
+                          Value: "I'm sorry about that. Let me start over. What would you like to correct?"
+              SlotPriorities:
+                - Priority: 1
+                  SlotName: NoiseLocation
+                - Priority: 2
+                  SlotName: NoiseType
+                - Priority: 3
+                  SlotName: NoiseStillHappening
+                - Priority: 4
+                  SlotName: CallbackNumber
+              Slots:
+                - Name: NoiseLocation
+                  SlotTypeName: LocationAddress
+                  ValueElicitationSetting:
+                    SlotConstraint: Required
+                    PromptSpecification:
+                      MaxRetries: 2
+                      AllowInterrupt: true
+                      MessageGroupsList:
+                        - Message:
+                            PlainTextMessage:
+                              Value: "What's the address or location of the noise?"
+                - Name: NoiseType
+                  SlotTypeName: NoiseType
+                  ValueElicitationSetting:
+                    SlotConstraint: Required
+                    PromptSpecification:
+                      MaxRetries: 2
+                      AllowInterrupt: true
+                      MessageGroupsList:
+                        - Message:
+                            PlainTextMessage:
+                              Value: "What kind of noise is it — music, people yelling, a party, something else?"
+                - Name: NoiseStillHappening
+                  SlotTypeName: YesNoConfirmation
+                  ValueElicitationSetting:
+                    SlotConstraint: Required
+                    PromptSpecification:
+                      MaxRetries: 2
+                      AllowInterrupt: true
+                      MessageGroupsList:
+                        - Message:
+                            PlainTextMessage:
+                              Value: "Is the noise still happening right now?"
+                - Name: CallbackNumber
+                  SlotTypeName: AMAZON.PhoneNumber
+                  ValueElicitationSetting:
+                    SlotConstraint: Optional
+                    PromptSpecification:
+                      MaxRetries: 2
+                      AllowInterrupt: true
+                      MessageGroupsList:
+                        - Message:
+                            PlainTextMessage:
+                              Value: "And what's a good callback number in case we need to reach you?"
+            - Name: SuspiciousPerson
+              Description: Call Assist intent SuspiciousPerson
+              SampleUtterances:
+                - Utterance: "there's a suspicious person"
+                - Utterance: "someone looks suspicious"
+                - Utterance: "there's a guy acting weird"
+                - Utterance: "there's a strange person"
+                - Utterance: "someone is lurking"
+                - Utterance: "suspicious male"
+                - Utterance: "suspicious female"
+                - Utterance: "there's someone walking around looking in cars"
+                - Utterance: "a person is peering into windows"
+                - Utterance: "someone is casing houses"
+                - Utterance: "there's a man watching kids"
+                - Utterance: "suspicious activity"
+                - Utterance: "someone doesn't belong here"
+                - Utterance: "there's a person who looks out of place"
+                - Utterance: "someone is hanging around"
+                - Utterance: "someone is just sitting there watching"
+                - Utterance: "there's a sketchy person"
+                - Utterance: "person acting strangely"
+                - Utterance: "someone is following me"
+                - Utterance: "I think someone is following my car"
+                - Utterance: "there's a person I don't recognize acting oddly"
+                - Utterance: "someone is trying to break into a car"
+                - Utterance: "person looks like they're on drugs"
+                - Utterance: "someone is wandering around confused"
+                - Utterance: "there's a man yelling at people"
+                - Utterance: "a person is making people uncomfortable"
+              DialogCodeHook:
+                Enabled: true
+              FulfillmentCodeHook:
+                Enabled: true
+                IsActive: true
+              IntentConfirmationSetting:
+                IsActive: true
+                PromptSpecification:
+                  MaxRetries: 2
+                  AllowInterrupt: true
+                  MessageGroupsList:
+                    - Message:
+                        SSMLMessage:
+                          Value: "<speak>I have a suspicious person at <break time=\"300ms\"/> {SuspiciousLocation}. <break time=\"200ms\"/> Description: {PersonDescription}. <break time=\"200ms\"/> Direction: {PersonDirection}. <break time=\"200ms\"/> Does that sound right?</speak>"
+                DeclinationResponse:
+                  MessageGroupsList:
+                    - Message:
+                        PlainTextMessage:
+                          Value: "I'm sorry about that. Let me start over. What would you like to correct?"
+              SlotPriorities:
+                - Priority: 1
+                  SlotName: SuspiciousLocation
+                - Priority: 2
+                  SlotName: PersonDescription
+                - Priority: 3
+                  SlotName: PersonDirection
+                - Priority: 4
+                  SlotName: WeaponVisible
+                - Priority: 5
+                  SlotName: CallbackNumber
+                - Priority: 6
+                  SlotName: CallerSafeLocation
+              Slots:
+                - Name: SuspiciousLocation
+                  SlotTypeName: LocationAddress
+                  ValueElicitationSetting:
+                    SlotConstraint: Required
+                    PromptSpecification:
+                      MaxRetries: 2
+                      AllowInterrupt: true
+                      MessageGroupsList:
+                        - Message:
+                            PlainTextMessage:
+                              Value: "Where is this person right now — what's the address or nearest intersection?"
+                - Name: PersonDescription
+                  SlotTypeName: FreeText
+                  ValueElicitationSetting:
+                    SlotConstraint: Required
+                    PromptSpecification:
+                      MaxRetries: 2
+                      AllowInterrupt: true
+                      MessageGroupsList:
+                        - Message:
+                            PlainTextMessage:
+                              Value: "Can you describe the person? Things like what they're wearing, their approximate age, height, or anything that stands out."
+                - Name: PersonDirection
+                  SlotTypeName: FreeText
+                  ValueElicitationSetting:
+                    SlotConstraint: Required
+                    PromptSpecification:
+                      MaxRetries: 2
+                      AllowInterrupt: true
+                      MessageGroupsList:
+                        - Message:
+                            PlainTextMessage:
+                              Value: "Do you know which direction they're heading, or are they still in the same spot?"
+                - Name: WeaponVisible
+                  SlotTypeName: YesNoConfirmation
+                  ValueElicitationSetting:
+                    SlotConstraint: Required
+                    PromptSpecification:
+                      MaxRetries: 2
+                      AllowInterrupt: true
+                      MessageGroupsList:
+                        - Message:
+                            PlainTextMessage:
+                              Value: "Have you seen any weapons — anything in their hands or visible on them?"
+                - Name: CallbackNumber
+                  SlotTypeName: AMAZON.PhoneNumber
+                  ValueElicitationSetting:
+                    SlotConstraint: Required
+                    PromptSpecification:
+                      MaxRetries: 2
+                      AllowInterrupt: true
+                      MessageGroupsList:
+                        - Message:
+                            PlainTextMessage:
+                              Value: "What's your callback number in case an officer needs to reach you?"
+                - Name: CallerSafeLocation
+                  SlotTypeName: YesNoConfirmation
+                  ValueElicitationSetting:
+                    SlotConstraint: Required
+                    PromptSpecification:
+                      MaxRetries: 2
+                      AllowInterrupt: true
+                      MessageGroupsList:
+                        - Message:
+                            PlainTextMessage:
+                              Value: "Are you in a safe location right now?"
+            - Name: AbandonedVehicle
+              Description: Call Assist intent AbandonedVehicle
+              SampleUtterances:
+                - Utterance: "there's an abandoned car"
+                - Utterance: "abandoned vehicle"
+                - Utterance: "a car has been sitting here for days"
+                - Utterance: "this car hasn't moved in a week"
+                - Utterance: "there's a car that's been parked here forever"
+                - Utterance: "I want to report an abandoned vehicle"
+                - Utterance: "there's a car with no plates"
+                - Utterance: "a car has flat tires and looks abandoned"
+                - Utterance: "someone left their car here"
+                - Utterance: "there's a car that's been here for over 24 hours"
+                - Utterance: "abandoned truck"
+                - Utterance: "abandoned motorcycle"
+                - Utterance: "this vehicle looks like nobody owns it"
+                - Utterance: "car has been here for three days"
+                - Utterance: "junk car sitting on the street"
+                - Utterance: "can you tow this abandoned car"
+              DialogCodeHook:
+                Enabled: true
+              FulfillmentCodeHook:
+                Enabled: true
+                IsActive: true
+              IntentConfirmationSetting:
+                IsActive: true
+                PromptSpecification:
+                  MaxRetries: 2
+                  AllowInterrupt: true
+                  MessageGroupsList:
+                    - Message:
+                        SSMLMessage:
+                          Value: "<speak>I have an abandoned vehicle at <break time=\"300ms\"/> {VehicleLocation}. <break time=\"200ms\"/> {VehicleDescription}, <break time=\"200ms\"/> there approximately {HowLongAbandoned}. Is that correct?</speak>"
+                DeclinationResponse:
+                  MessageGroupsList:
+                    - Message:
+                        PlainTextMessage:
+                          Value: "I'm sorry about that. Let me start over. What would you like to correct?"
+              SlotPriorities:
+                - Priority: 1
+                  SlotName: VehicleLocation
+                - Priority: 2
+                  SlotName: VehicleDescription
+                - Priority: 3
+                  SlotName: HowLongAbandoned
+                - Priority: 4
+                  SlotName: AbandonedVehicleHazard
+              Slots:
+                - Name: VehicleLocation
+                  SlotTypeName: LocationAddress
+                  ValueElicitationSetting:
+                    SlotConstraint: Required
+                    PromptSpecification:
+                      MaxRetries: 2
+                      AllowInterrupt: true
+                      MessageGroupsList:
+                        - Message:
+                            PlainTextMessage:
+                              Value: "What's the address or nearest intersection where the vehicle is located?"
+                - Name: VehicleDescription
+                  SlotTypeName: FreeText
+                  ValueElicitationSetting:
+                    SlotConstraint: Required
+                    PromptSpecification:
+                      MaxRetries: 2
+                      AllowInterrupt: true
+                      MessageGroupsList:
+                        - Message:
+                            PlainTextMessage:
+                              Value: "Can you describe the vehicle? Color, make or model if you know it, and any license plate?"
+                - Name: HowLongAbandoned
+                  SlotTypeName: IncidentTimeframe
+                  ValueElicitationSetting:
+                    SlotConstraint: Required
+                    PromptSpecification:
+                      MaxRetries: 2
+                      AllowInterrupt: true
+                      MessageGroupsList:
+                        - Message:
+                            PlainTextMessage:
+                              Value: "About how long has the vehicle been there?"
+                - Name: AbandonedVehicleHazard
+                  SlotTypeName: YesNoConfirmation
+                  ValueElicitationSetting:
+                    SlotConstraint: Required
+                    PromptSpecification:
+                      MaxRetries: 2
+                      AllowInterrupt: true
+                      MessageGroupsList:
+                        - Message:
+                            PlainTextMessage:
+                              Value: "Is the vehicle blocking traffic, a driveway, or a fire hydrant?"
+            - Name: VehicleBurglary
+              Description: Call Assist intent VehicleBurglary
+              SampleUtterances:
+                - Utterance: "someone broke into my car"
+                - Utterance: "my car was broken into"
+                - Utterance: "car break-in"
+                - Utterance: "my window was smashed"
+                - Utterance: "someone smashed my car window"
+                - Utterance: "stuff was stolen from my car"
+                - Utterance: "my car was burglarized"
+                - Utterance: "items were taken from my vehicle"
+                - Utterance: "someone went through my car"
+                - Utterance: "my car got broken into last night"
+                - Utterance: "car burglary"
+                - Utterance: "theft from vehicle"
+                - Utterance: "they broke my car window"
+                - Utterance: "my car was vandalized and stuff was taken"
+                - Utterance: "someone stole things from my car"
+                - Utterance: "my radio was stolen"
+                - Utterance: "my laptop was stolen from my car"
+                - Utterance: "my car was ransacked"
+              DialogCodeHook:
+                Enabled: true
+              FulfillmentCodeHook:
+                Enabled: true
+                IsActive: true
+              IntentConfirmationSetting:
+                IsActive: true
+                PromptSpecification:
+                  MaxRetries: 2
+                  AllowInterrupt: true
+                  MessageGroupsList:
+                    - Message:
+                        SSMLMessage:
+                          Value: "<speak>I have a vehicle burglary. Your {BurglaryVehicleDescription} at <break time=\"300ms\"/> {BurglaryVehicleLocation}. <break time=\"200ms\"/> Items taken: {ItemsStolen}. <break time=\"200ms\"/> Is that right?</speak>"
+                DeclinationResponse:
+                  MessageGroupsList:
+                    - Message:
+                        PlainTextMessage:
+                          Value: "I'm sorry about that. Let me start over. What would you like to correct?"
+              SlotPriorities:
+                - Priority: 1
+                  SlotName: BurglaryVehicleLocation
+                - Priority: 2
+                  SlotName: BurglaryVehicleDescription
+                - Priority: 3
+                  SlotName: BurglaryVehiclePlate
+                - Priority: 4
+                  SlotName: ItemsStolen
+                - Priority: 5
+                  SlotName: WhenOccurred
+                - Priority: 6
+                  SlotName: SuspectSeen
+                - Priority: 7
+                  SlotName: CallbackNumber
+              Slots:
+                - Name: BurglaryVehicleLocation
+                  SlotTypeName: LocationAddress
+                  ValueElicitationSetting:
+                    SlotConstraint: Required
+                    PromptSpecification:
+                      MaxRetries: 2
+                      AllowInterrupt: true
+                      MessageGroupsList:
+                        - Message:
+                            PlainTextMessage:
+                              Value: "Where is your vehicle right now — what's the address?"
+                - Name: BurglaryVehicleDescription
+                  SlotTypeName: FreeText
+                  ValueElicitationSetting:
+                    SlotConstraint: Required
+                    PromptSpecification:
+                      MaxRetries: 2
+                      AllowInterrupt: true
+                      MessageGroupsList:
+                        - Message:
+                            PlainTextMessage:
+                              Value: "What's the year, make, model, and color of your vehicle?"
+                - Name: BurglaryVehiclePlate
+                  SlotTypeName: FreeText
+                  ValueElicitationSetting:
+                    SlotConstraint: Required
+                    PromptSpecification:
+                      MaxRetries: 2
+                      AllowInterrupt: true
+                      MessageGroupsList:
+                        - Message:
+                            PlainTextMessage:
+                              Value: "And the license plate number if you have it?"
+                - Name: ItemsStolen
+                  SlotTypeName: FreeText
+                  ValueElicitationSetting:
+                    SlotConstraint: Required
+                    PromptSpecification:
+                      MaxRetries: 2
+                      AllowInterrupt: true
+                      MessageGroupsList:
+                        - Message:
+                            PlainTextMessage:
+                              Value: "What was taken or what damage was done?"
+                - Name: WhenOccurred
+                  SlotTypeName: IncidentTimeframe
+                  ValueElicitationSetting:
+                    SlotConstraint: Required
+                    PromptSpecification:
+                      MaxRetries: 2
+                      AllowInterrupt: true
+                      MessageGroupsList:
+                        - Message:
+                            PlainTextMessage:
+                              Value: "Do you know approximately when this happened?"
+                - Name: SuspectSeen
+                  SlotTypeName: YesNoConfirmation
+                  ValueElicitationSetting:
+                    SlotConstraint: Required
+                    PromptSpecification:
+                      MaxRetries: 2
+                      AllowInterrupt: true
+                      MessageGroupsList:
+                        - Message:
+                            PlainTextMessage:
+                              Value: "Did you see anyone in or near your vehicle?"
+                - Name: CallbackNumber
+                  SlotTypeName: AMAZON.PhoneNumber
+                  ValueElicitationSetting:
+                    SlotConstraint: Required
+                    PromptSpecification:
+                      MaxRetries: 2
+                      AllowInterrupt: true
+                      MessageGroupsList:
+                        - Message:
+                            PlainTextMessage:
+                              Value: "What's the best number to reach you?"
+            - Name: TheftReport
+              Description: Call Assist intent TheftReport
+              SampleUtterances:
+                - Utterance: "I want to report a theft"
+                - Utterance: "someone stole from me"
+                - Utterance: "I was robbed"
+                - Utterance: "my property was stolen"
+                - Utterance: "someone stole my package"
+                - Utterance: "package was stolen from my porch"
+                - Utterance: "porch pirate"
+                - Utterance: "someone took my bike"
+                - Utterance: "my bicycle was stolen"
+                - Utterance: "shoplifting"
+                - Utterance: "someone shoplifted from my store"
+                - Utterance: "employee theft"
+                - Utterance: "theft at a business"
+                - Utterance: "my purse was snatched"
+                - Utterance: "my wallet was stolen"
+                - Utterance: "something was taken from me"
+                - Utterance: "I'd like to file a theft report"
+                - Utterance: "can I report stolen property"
+                - Utterance: "someone took my phone"
+                - Utterance: "my phone was stolen"
+                - Utterance: "theft of services"
+              DialogCodeHook:
+                Enabled: true
+              FulfillmentCodeHook:
+                Enabled: true
+                IsActive: true
+              IntentConfirmationSetting:
+                IsActive: true
+                PromptSpecification:
+                  MaxRetries: 2
+                  AllowInterrupt: true
+                  MessageGroupsList:
+                    - Message:
+                        SSMLMessage:
+                          Value: "<speak>I have a theft report. Location: <break time=\"300ms\"/> {TheftLocation}. <break time=\"200ms\"/> Items taken: {TheftItemDescription}. <break time=\"200ms\"/> Occurred: {TheftWhenOccurred}. <break time=\"200ms\"/> Is that all correct?</speak>"
+                DeclinationResponse:
+                  MessageGroupsList:
+                    - Message:
+                        PlainTextMessage:
+                          Value: "I'm sorry about that. Let me start over. What would you like to correct?"
+              SlotPriorities:
+                - Priority: 1
+                  SlotName: TheftLocation
+                - Priority: 2
+                  SlotName: TheftItemDescription
+                - Priority: 3
+                  SlotName: TheftWhenOccurred
+                - Priority: 4
+                  SlotName: TheftSuspectInfo
+                - Priority: 5
+                  SlotName: TheftCallbackNumber
+              Slots:
+                - Name: TheftLocation
+                  SlotTypeName: LocationAddress
+                  ValueElicitationSetting:
+                    SlotConstraint: Required
+                    PromptSpecification:
+                      MaxRetries: 2
+                      AllowInterrupt: true
+                      MessageGroupsList:
+                        - Message:
+                            PlainTextMessage:
+                              Value: "Where did the theft occur?"
+                - Name: TheftItemDescription
+                  SlotTypeName: FreeText
+                  ValueElicitationSetting:
+                    SlotConstraint: Required
+                    PromptSpecification:
+                      MaxRetries: 2
+                      AllowInterrupt: true
+                      MessageGroupsList:
+                        - Message:
+                            PlainTextMessage:
+                              Value: "What was taken? Can you describe the items and their approximate value?"
+                - Name: TheftWhenOccurred
+                  SlotTypeName: IncidentTimeframe
+                  ValueElicitationSetting:
+                    SlotConstraint: Required
+                    PromptSpecification:
+                      MaxRetries: 2
+                      AllowInterrupt: true
+                      MessageGroupsList:
+                        - Message:
+                            PlainTextMessage:
+                              Value: "When did this happen?"
+                - Name: TheftSuspectInfo
+                  SlotTypeName: FreeText
+                  ValueElicitationSetting:
+                    SlotConstraint: Optional
+                    PromptSpecification:
+                      MaxRetries: 2
+                      AllowInterrupt: true
+                      MessageGroupsList:
+                        - Message:
+                            PlainTextMessage:
+                              Value: "Do you have any description of the person who took it, or did you see how they left?"
+                - Name: TheftCallbackNumber
+                  SlotTypeName: AMAZON.PhoneNumber
+                  ValueElicitationSetting:
+                    SlotConstraint: Required
+                    PromptSpecification:
+                      MaxRetries: 2
+                      AllowInterrupt: true
+                      MessageGroupsList:
+                        - Message:
+                            PlainTextMessage:
+                              Value: "What's the best number to reach you?"
+            - Name: ParkingComplaint
+              Description: Call Assist intent ParkingComplaint
+              SampleUtterances:
+                - Utterance: "there's a parking violation"
+                - Utterance: "someone is illegally parked"
+                - Utterance: "car parked in a handicap spot without a placard"
+                - Utterance: "blocking my driveway"
+                - Utterance: "someone is blocking the fire hydrant"
+                - Utterance: "car is double parked"
+                - Utterance: "someone parked in a no parking zone"
+                - Utterance: "parking complaint"
+                - Utterance: "illegally parked vehicle"
+                - Utterance: "car blocking the alley"
+                - Utterance: "someone parked in a fire lane"
+                - Utterance: "car parked on the sidewalk"
+                - Utterance: "they parked on my lawn"
+                - Utterance: "someone keeps parking in my spot"
+                - Utterance: "car blocking my mailbox"
+                - Utterance: "wrong way parking"
+                - Utterance: "expired tags parked on street"
+              DialogCodeHook:
+                Enabled: true
+              FulfillmentCodeHook:
+                Enabled: true
+                IsActive: true
+              IntentConfirmationSetting:
+                IsActive: true
+                PromptSpecification:
+                  MaxRetries: 2
+                  AllowInterrupt: true
+                  MessageGroupsList:
+                    - Message:
+                        SSMLMessage:
+                          Value: "<speak>Got it — parking complaint at {ParkingLocation}, {ParkingVehicleDescription}, violation: {ParkingViolationType}. Is that correct?</speak>"
+                DeclinationResponse:
+                  MessageGroupsList:
+                    - Message:
+                        PlainTextMessage:
+                          Value: "I'm sorry about that. Let me start over. What would you like to correct?"
+              SlotPriorities:
+                - Priority: 1
+                  SlotName: ParkingLocation
+                - Priority: 2
+                  SlotName: ParkingVehicleDescription
+                - Priority: 3
+                  SlotName: ParkingViolationType
+              Slots:
+                - Name: ParkingLocation
+                  SlotTypeName: LocationAddress
+                  ValueElicitationSetting:
+                    SlotConstraint: Required
+                    PromptSpecification:
+                      MaxRetries: 2
+                      AllowInterrupt: true
+                      MessageGroupsList:
+                        - Message:
+                            PlainTextMessage:
+                              Value: "What's the address where the vehicle is illegally parked?"
+                - Name: ParkingVehicleDescription
+                  SlotTypeName: FreeText
+                  ValueElicitationSetting:
+                    SlotConstraint: Required
+                    PromptSpecification:
+                      MaxRetries: 2
+                      AllowInterrupt: true
+                      MessageGroupsList:
+                        - Message:
+                            PlainTextMessage:
+                              Value: "Can you describe the vehicle — color, make, model, and license plate if you have it?"
+                - Name: ParkingViolationType
+                  SlotTypeName: ParkingViolationType
+                  ValueElicitationSetting:
+                    SlotConstraint: Required
+                    PromptSpecification:
+                      MaxRetries: 2
+                      AllowInterrupt: true
+                      MessageGroupsList:
+                        - Message:
+                            PlainTextMessage:
+                              Value: "What's the violation — blocking a driveway, fire hydrant, handicap spot, no parking zone, or something else?"
+            - Name: WelfareCheck
+              Description: Call Assist intent WelfareCheck
+              SampleUtterances:
+                - Utterance: "I need a welfare check"
+                - Utterance: "can you check on someone"
+                - Utterance: "I'm worried about my neighbor"
+                - Utterance: "I haven't seen my neighbor in days"
+                - Utterance: "I'm concerned about someone"
+                - Utterance: "can you send someone to check on a person"
+                - Utterance: "welfare check on my elderly neighbor"
+                - Utterance: "I think someone might be in trouble"
+                - Utterance: "I can't get in touch with my family member"
+                - Utterance: "my friend isn't answering the door"
+                - Utterance: "can someone go check on my roommate"
+                - Utterance: "I'm worried something happened to someone"
+                - Utterance: "my elderly parent isn't answering"
+                - Utterance: "haven't heard from my friend"
+                - Utterance: "someone isn't responding"
+                - Utterance: "I need someone checked on"
+                - Utterance: "can you do a wellness check"
+                - Utterance: "check on elderly person"
+                - Utterance: "check on my mom"
+                - Utterance: "check on my dad"
+              DialogCodeHook:
+                Enabled: true
+              FulfillmentCodeHook:
+                Enabled: true
+                IsActive: true
+              IntentConfirmationSetting:
+                IsActive: true
+                PromptSpecification:
+                  MaxRetries: 2
+                  AllowInterrupt: true
+                  MessageGroupsList:
+                    - Message:
+                        SSMLMessage:
+                          Value: "<speak>I'm going to send officers to check on {WelfareCheckPersonName} at <break time=\"300ms\"/> {WelfareCheckAddress}. <break time=\"200ms\"/> Last contact was {WelfareCheckLastContact}. <break time=\"200ms\"/> Is that correct?</speak>"
+                DeclinationResponse:
+                  MessageGroupsList:
+                    - Message:
+                        PlainTextMessage:
+                          Value: "I'm sorry about that. Let me start over. What would you like to correct?"
+              SlotPriorities:
+                - Priority: 1
+                  SlotName: WelfareCheckAddress
+                - Priority: 2
+                  SlotName: WelfareCheckPersonName
+                - Priority: 3
+                  SlotName: WelfareCheckRelationship
+                - Priority: 4
+                  SlotName: WelfareCheckLastContact
+                - Priority: 5
+                  SlotName: WelfareCheckWhyConcerned
+                - Priority: 6
+                  SlotName: WelfareCheckCallerCallback
+              Slots:
+                - Name: WelfareCheckAddress
+                  SlotTypeName: LocationAddress
+                  ValueElicitationSetting:
+                    SlotConstraint: Required
+                    PromptSpecification:
+                      MaxRetries: 2
+                      AllowInterrupt: true
+                      MessageGroupsList:
+                        - Message:
+                            PlainTextMessage:
+                              Value: "What's the address of the person you're concerned about?"
+                - Name: WelfareCheckPersonName
+                  SlotTypeName: FreeText
+                  ValueElicitationSetting:
+                    SlotConstraint: Optional
+                    PromptSpecification:
+                      MaxRetries: 2
+                      AllowInterrupt: true
+                      MessageGroupsList:
+                        - Message:
+                            PlainTextMessage:
+                              Value: "What's the name of the person, if you know it?"
+                - Name: WelfareCheckRelationship
+                  SlotTypeName: FreeText
+                  ValueElicitationSetting:
+                    SlotConstraint: Required
+                    PromptSpecification:
+                      MaxRetries: 2
+                      AllowInterrupt: true
+                      MessageGroupsList:
+                        - Message:
+                            PlainTextMessage:
+                              Value: "What's your relationship to this person — neighbor, family member, friend?"
+                - Name: WelfareCheckLastContact
+                  SlotTypeName: IncidentTimeframe
+                  ValueElicitationSetting:
+                    SlotConstraint: Required
+                    PromptSpecification:
+                      MaxRetries: 2
+                      AllowInterrupt: true
+                      MessageGroupsList:
+                        - Message:
+                            PlainTextMessage:
+                              Value: "When did you last have contact with them?"
+                - Name: WelfareCheckWhyConcerned
+                  SlotTypeName: FreeText
+                  ValueElicitationSetting:
+                    SlotConstraint: Required
+                    PromptSpecification:
+                      MaxRetries: 2
+                      AllowInterrupt: true
+                      MessageGroupsList:
+                        - Message:
+                            PlainTextMessage:
+                              Value: "Can you tell me why you're concerned? Is there anything specific that made you call today?"
+                - Name: WelfareCheckCallerCallback
+                  SlotTypeName: AMAZON.PhoneNumber
+                  ValueElicitationSetting:
+                    SlotConstraint: Required
+                    PromptSpecification:
+                      MaxRetries: 2
+                      AllowInterrupt: true
+                      MessageGroupsList:
+                        - Message:
+                            PlainTextMessage:
+                              Value: "And what's the best number to reach you?"
+            - Name: AnimalComplaint
+              Description: Call Assist intent AnimalComplaint
+              SampleUtterances:
+                - Utterance: "there's an animal complaint"
+                - Utterance: "stray dog"
+                - Utterance: "loose dog"
+                - Utterance: "aggressive dog"
+                - Utterance: "dog attacked me"
+                - Utterance: "dog bit someone"
+                - Utterance: "vicious dog"
+                - Utterance: "dog running loose"
+                - Utterance: "dog off leash"
+                - Utterance: "there's a dog in the road"
+                - Utterance: "animal cruelty"
+                - Utterance: "someone is hurting an animal"
+                - Utterance: "neglected animal"
+                - Utterance: "dog left in a hot car"
+                - Utterance: "stray cat"
+                - Utterance: "injured animal"
+                - Utterance: "there's a raccoon in my house"
+                - Utterance: "animal in my yard"
+                - Utterance: "coyote sighting"
+                - Utterance: "stray animal"
+              DialogCodeHook:
+                Enabled: true
+              FulfillmentCodeHook:
+                Enabled: true
+                IsActive: true
+              IntentConfirmationSetting:
+                IsActive: true
+                PromptSpecification:
+                  MaxRetries: 2
+                  AllowInterrupt: true
+                  MessageGroupsList:
+                    - Message:
+                        SSMLMessage:
+                          Value: "<speak>I have an animal call — {AnimalType} at {AnimalLocation}, situation: {AnimalThreatLevel}. Is that right?</speak>"
+                DeclinationResponse:
+                  MessageGroupsList:
+                    - Message:
+                        PlainTextMessage:
+                          Value: "I'm sorry about that. Let me start over. What would you like to correct?"
+              SlotPriorities:
+                - Priority: 1
+                  SlotName: AnimalLocation
+                - Priority: 2
+                  SlotName: AnimalType
+                - Priority: 3
+                  SlotName: AnimalThreatLevel
+              Slots:
+                - Name: AnimalLocation
+                  SlotTypeName: LocationAddress
+                  ValueElicitationSetting:
+                    SlotConstraint: Required
+                    PromptSpecification:
+                      MaxRetries: 2
+                      AllowInterrupt: true
+                      MessageGroupsList:
+                        - Message:
+                            PlainTextMessage:
+                              Value: "Where is the animal right now?"
+                - Name: AnimalType
+                  SlotTypeName: FreeText
+                  ValueElicitationSetting:
+                    SlotConstraint: Required
+                    PromptSpecification:
+                      MaxRetries: 2
+                      AllowInterrupt: true
+                      MessageGroupsList:
+                        - Message:
+                            PlainTextMessage:
+                              Value: "What kind of animal is it — a dog, cat, or something else?"
+                - Name: AnimalThreatLevel
+                  SlotTypeName: AnimalThreatLevel
+                  ValueElicitationSetting:
+                    SlotConstraint: Required
+                    PromptSpecification:
+                      MaxRetries: 2
+                      AllowInterrupt: true
+                      MessageGroupsList:
+                        - Message:
+                            PlainTextMessage:
+                              Value: "Is the animal injured, aggressive, or acting threatening? Or is it more of a stray or nuisance situation?"
+            - Name: TowComplaint
+              Description: Call Assist intent TowComplaint
+              SampleUtterances:
+                - Utterance: "I need a tow complaint"
+                - Utterance: "my car was towed illegally"
+                - Utterance: "my car was towed without notice"
+                - Utterance: "they towed my car"
+                - Utterance: "I want to report an illegal tow"
+                - Utterance: "my vehicle was towed and I don't know why"
+                - Utterance: "my car was towed from private property"
+                - Utterance: "tow truck scam"
+                - Utterance: "I think my car was towed wrongfully"
+                - Utterance: "towing complaint"
+                - Utterance: "predatory towing"
+                - Utterance: "my car was booted"
+                - Utterance: "someone put a boot on my car"
+              DialogCodeHook:
+                Enabled: true
+              FulfillmentCodeHook:
+                Enabled: true
+                IsActive: true
+              IntentConfirmationSetting:
+                IsActive: true
+                PromptSpecification:
+                  MaxRetries: 2
+                  AllowInterrupt: true
+                  MessageGroupsList:
+                    - Message:
+                        SSMLMessage:
+                          Value: "<speak>I have a tow complaint. Your {TowVehicleDescription} was towed from {TowLocation}. Is that correct?</speak>"
+                DeclinationResponse:
+                  MessageGroupsList:
+                    - Message:
+                        PlainTextMessage:
+                          Value: "I'm sorry about that. Let me start over. What would you like to correct?"
+              SlotPriorities:
+                - Priority: 1
+                  SlotName: TowLocation
+                - Priority: 2
+                  SlotName: TowVehicleDescription
+                - Priority: 3
+                  SlotName: TowCompanyInfo
+                - Priority: 4
+                  SlotName: TowCallbackNumber
+              Slots:
+                - Name: TowLocation
+                  SlotTypeName: LocationAddress
+                  ValueElicitationSetting:
+                    SlotConstraint: Required
+                    PromptSpecification:
+                      MaxRetries: 2
+                      AllowInterrupt: true
+                      MessageGroupsList:
+                        - Message:
+                            PlainTextMessage:
+                              Value: "Where was your vehicle when it was towed from?"
+                - Name: TowVehicleDescription
+                  SlotTypeName: FreeText
+                  ValueElicitationSetting:
+                    SlotConstraint: Required
+                    PromptSpecification:
+                      MaxRetries: 2
+                      AllowInterrupt: true
+                      MessageGroupsList:
+                        - Message:
+                            PlainTextMessage:
+                              Value: "What's the year, make, model, color, and license plate of your vehicle?"
+                - Name: TowCompanyInfo
+                  SlotTypeName: FreeText
+                  ValueElicitationSetting:
+                    SlotConstraint: Optional
+                    PromptSpecification:
+                      MaxRetries: 2
+                      AllowInterrupt: true
+                      MessageGroupsList:
+                        - Message:
+                            PlainTextMessage:
+                              Value: "Do you know the name of the tow company, or did you see the truck?"
+                - Name: TowCallbackNumber
+                  SlotTypeName: AMAZON.PhoneNumber
+                  ValueElicitationSetting:
+                    SlotConstraint: Required
+                    PromptSpecification:
+                      MaxRetries: 2
+                      AllowInterrupt: true
+                      MessageGroupsList:
+                        - Message:
+                            PlainTextMessage:
+                              Value: "What's the best number to reach you?"
+            - Name: VandalismDamage
+              Description: Call Assist intent VandalismDamage
+              SampleUtterances:
+                - Utterance: "vandalism"
+                - Utterance: "someone vandalized my property"
+                - Utterance: "graffiti"
+                - Utterance: "someone tagged my building"
+                - Utterance: "my fence was damaged"
+                - Utterance: "someone keyed my car"
+                - Utterance: "my car was keyed"
+                - Utterance: "someone broke my window"
+                - Utterance: "property damage"
+                - Utterance: "someone spray painted my wall"
+                - Utterance: "they broke my mailbox"
+                - Utterance: "someone smashed my sign"
+                - Utterance: "damage to my property"
+                - Utterance: "eggs on my car"
+                - Utterance: "someone threw rocks through my window"
+                - Utterance: "my fence was knocked over"
+              DialogCodeHook:
+                Enabled: true
+              FulfillmentCodeHook:
+                Enabled: true
+                IsActive: true
+              IntentConfirmationSetting:
+                IsActive: true
+                PromptSpecification:
+                  MaxRetries: 2
+                  AllowInterrupt: true
+                  MessageGroupsList:
+                    - Message:
+                        SSMLMessage:
+                          Value: "<speak>I have a vandalism report at {VandalismLocation}. Damage: {VandalismDescription}. Discovered: {VandalismWhenOccurred}. Is that correct?</speak>"
+                DeclinationResponse:
+                  MessageGroupsList:
+                    - Message:
+                        PlainTextMessage:
+                          Value: "I'm sorry about that. Let me start over. What would you like to correct?"
+              SlotPriorities:
+                - Priority: 1
+                  SlotName: VandalismLocation
+                - Priority: 2
+                  SlotName: VandalismDescription
+                - Priority: 3
+                  SlotName: VandalismWhenOccurred
+                - Priority: 4
+                  SlotName: VandalismSuspectInfo
+              Slots:
+                - Name: VandalismLocation
+                  SlotTypeName: LocationAddress
+                  ValueElicitationSetting:
+                    SlotConstraint: Required
+                    PromptSpecification:
+                      MaxRetries: 2
+                      AllowInterrupt: true
+                      MessageGroupsList:
+                        - Message:
+                            PlainTextMessage:
+                              Value: "What's the address of the property that was damaged?"
+                - Name: VandalismDescription
+                  SlotTypeName: FreeText
+                  ValueElicitationSetting:
+                    SlotConstraint: Required
+                    PromptSpecification:
+                      MaxRetries: 2
+                      AllowInterrupt: true
+                      MessageGroupsList:
+                        - Message:
+                            PlainTextMessage:
+                              Value: "What was damaged and how?"
+                - Name: VandalismWhenOccurred
+                  SlotTypeName: IncidentTimeframe
+                  ValueElicitationSetting:
+                    SlotConstraint: Required
+                    PromptSpecification:
+                      MaxRetries: 2
+                      AllowInterrupt: true
+                      MessageGroupsList:
+                        - Message:
+                            PlainTextMessage:
+                              Value: "When did you discover the damage?"
+                - Name: VandalismSuspectInfo
+                  SlotTypeName: FreeText
+                  ValueElicitationSetting:
+                    SlotConstraint: Optional
+                    PromptSpecification:
+                      MaxRetries: 2
+                      AllowInterrupt: true
+                      MessageGroupsList:
+                        - Message:
+                            PlainTextMessage:
+                              Value: "Did you see anyone do this or do you have any idea who's responsible?"
+            - Name: CodeEnforcementComplaint
+              Description: Call Assist intent CodeEnforcementComplaint
+              SampleUtterances:
+                - Utterance: "code enforcement complaint"
+                - Utterance: "property violation"
+                - Utterance: "there's trash piled up at a house"
+                - Utterance: "overgrown grass"
+                - Utterance: "high grass"
+                - Utterance: "tall weeds"
+                - Utterance: "junk cars in the yard"
+                - Utterance: "abandoned property"
+                - Utterance: "condemned building"
+                - Utterance: "illegal business operating"
+                - Utterance: "someone is running a business out of their house"
+                - Utterance: "illegal construction"
+                - Utterance: "building without a permit"
+                - Utterance: "health hazard"
+                - Utterance: "property is a mess"
+                - Utterance: "nuisance property"
+              DialogCodeHook:
+                Enabled: true
+              FulfillmentCodeHook:
+                Enabled: true
+                IsActive: true
+              IntentConfirmationSetting:
+                IsActive: true
+                PromptSpecification:
+                  MaxRetries: 2
+                  AllowInterrupt: true
+                  MessageGroupsList:
+                    - Message:
+                        SSMLMessage:
+                          Value: "<speak>I have a code enforcement complaint at {CodeEnforcementAddress} — {CodeViolationDescription}. Is that right?</speak>"
+                DeclinationResponse:
+                  MessageGroupsList:
+                    - Message:
+                        PlainTextMessage:
+                          Value: "I'm sorry about that. Let me start over. What would you like to correct?"
+              SlotPriorities:
+                - Priority: 1
+                  SlotName: CodeEnforcementAddress
+                - Priority: 2
+                  SlotName: CodeViolationDescription
+              Slots:
+                - Name: CodeEnforcementAddress
+                  SlotTypeName: LocationAddress
+                  ValueElicitationSetting:
+                    SlotConstraint: Required
+                    PromptSpecification:
+                      MaxRetries: 2
+                      AllowInterrupt: true
+                      MessageGroupsList:
+                        - Message:
+                            PlainTextMessage:
+                              Value: "What's the address of the property?"
+                - Name: CodeViolationDescription
+                  SlotTypeName: FreeText
+                  ValueElicitationSetting:
+                    SlotConstraint: Required
+                    PromptSpecification:
+                      MaxRetries: 2
+                      AllowInterrupt: true
+                      MessageGroupsList:
+                        - Message:
+                            PlainTextMessage:
+                              Value: "What's the violation? For example, high grass, trash, junk cars, or something else?"
+            - Name: PublicWorksIssue
+              Description: Call Assist intent PublicWorksIssue
+              SampleUtterances:
+                - Utterance: "public works issue"
+                - Utterance: "water main break"
+                - Utterance: "water is flooding the street"
+                - Utterance: "the street is flooded"
+                - Utterance: "pothole"
+                - Utterance: "there's a big pothole"
+                - Utterance: "streetlight is out"
+                - Utterance: "the stoplight is broken"
+                - Utterance: "the traffic light isn't working"
+                - Utterance: "water leak in the street"
+                - Utterance: "sewer backup"
+                - Utterance: "manhole cover is missing"
+                - Utterance: "road is damaged"
+                - Utterance: "sign is knocked down"
+                - Utterance: "tree fell in the road"
+                - Utterance: "there's a sinkhole"
+                - Utterance: "a pipe burst"
+                - Utterance: "water coming up from the street"
+                - Utterance: "water is gushing from the ground"
+                - Utterance: "the street caved in"
+              DialogCodeHook:
+                Enabled: true
+              FulfillmentCodeHook:
+                Enabled: true
+                IsActive: true
+              SlotPriorities:
+                - Priority: 1
+                  SlotName: PublicWorksLocation
+                - Priority: 2
+                  SlotName: PublicWorksIssueType
+              Slots:
+                - Name: PublicWorksLocation
+                  SlotTypeName: LocationAddress
+                  ValueElicitationSetting:
+                    SlotConstraint: Required
+                    PromptSpecification:
+                      MaxRetries: 2
+                      AllowInterrupt: true
+                      MessageGroupsList:
+                        - Message:
+                            PlainTextMessage:
+                              Value: "What's the location — address or nearest intersection?"
+                - Name: PublicWorksIssueType
+                  SlotTypeName: FreeText
+                  ValueElicitationSetting:
+                    SlotConstraint: Required
+                    PromptSpecification:
+                      MaxRetries: 2
+                      AllowInterrupt: true
+                      MessageGroupsList:
+                        - Message:
+                            PlainTextMessage:
+                              Value: "What's the issue — a water main, pothole, traffic light, streetlight, or something else?"
+            - Name: TrafficAccidentReportOnly
+              Description: Call Assist intent TrafficAccidentReportOnly
+              SampleUtterances:
+                - Utterance: "I was in an accident"
+                - Utterance: "fender bender"
+                - Utterance: "minor car accident"
+                - Utterance: "I need to file an accident report"
+                - Utterance: "hit and run"
+                - Utterance: "someone hit my car and drove off"
+                - Utterance: "my parked car was hit"
+                - Utterance: "someone backed into my car"
+                - Utterance: "car accident to report"
+                - Utterance: "accident with no injuries"
+                - Utterance: "car crash no one was hurt"
+                - Utterance: "accident report"
+                - Utterance: "I need a report number for insurance"
+                - Utterance: "vehicle accident report"
+              DialogCodeHook:
+                Enabled: true
+              FulfillmentCodeHook:
+                Enabled: true
+                IsActive: true
+              IntentConfirmationSetting:
+                IsActive: true
+                PromptSpecification:
+                  MaxRetries: 2
+                  AllowInterrupt: true
+                  MessageGroupsList:
+                    - Message:
+                        SSMLMessage:
+                          Value: "<speak>I have a traffic accident to report at {AccidentLocation}, {AccidentWhen}, no injuries. Is that correct?</speak>"
+                DeclinationResponse:
+                  MessageGroupsList:
+                    - Message:
+                        PlainTextMessage:
+                          Value: "I'm sorry about that. Let me start over. What would you like to correct?"
+              SlotPriorities:
+                - Priority: 1
+                  SlotName: AccidentLocation
+                - Priority: 2
+                  SlotName: AccidentWhen
+                - Priority: 3
+                  SlotName: AccidentInjuries
+                - Priority: 4
+                  SlotName: OtherVehicleDescription
+                - Priority: 5
+                  SlotName: AccidentCallbackNumber
+              Slots:
+                - Name: AccidentLocation
+                  SlotTypeName: LocationAddress
+                  ValueElicitationSetting:
+                    SlotConstraint: Required
+                    PromptSpecification:
+                      MaxRetries: 2
+                      AllowInterrupt: true
+                      MessageGroupsList:
+                        - Message:
+                            PlainTextMessage:
+                              Value: "Where did the accident happen?"
+                - Name: AccidentWhen
+                  SlotTypeName: IncidentTimeframe
+                  ValueElicitationSetting:
+                    SlotConstraint: Required
+                    PromptSpecification:
+                      MaxRetries: 2
+                      AllowInterrupt: true
+                      MessageGroupsList:
+                        - Message:
+                            PlainTextMessage:
+                              Value: "When did it happen?"
+                - Name: AccidentInjuries
+                  SlotTypeName: YesNoConfirmation
+                  ValueElicitationSetting:
+                    SlotConstraint: Required
+                    PromptSpecification:
+                      MaxRetries: 2
+                      AllowInterrupt: true
+                      MessageGroupsList:
+                        - Message:
+                            PlainTextMessage:
+                              Value: "Were there any injuries?"
+                - Name: OtherVehicleDescription
+                  SlotTypeName: FreeText
+                  ValueElicitationSetting:
+                    SlotConstraint: Optional
+                    PromptSpecification:
+                      MaxRetries: 2
+                      AllowInterrupt: true
+                      MessageGroupsList:
+                        - Message:
+                            PlainTextMessage:
+                              Value: "Can you describe the other vehicle involved, if there was one?"
+                - Name: AccidentCallbackNumber
+                  SlotTypeName: AMAZON.PhoneNumber
+                  ValueElicitationSetting:
+                    SlotConstraint: Required
+                    PromptSpecification:
+                      MaxRetries: 2
+                      AllowInterrupt: true
+                      MessageGroupsList:
+                        - Message:
+                            PlainTextMessage:
+                              Value: "What's the best number to reach you?"
+            - Name: OnlineReportEligibility
+              Description: Call Assist intent OnlineReportEligibility
+              SampleUtterances:
+                - Utterance: "can I file a report online"
+                - Utterance: "where can I file a report"
+                - Utterance: "how do I report something online"
+                - Utterance: "can I do this on the website"
+                - Utterance: "I want to file a report online"
+                - Utterance: "can I fill out a report myself"
+                - Utterance: "do I need to talk to someone or can I do it online"
+                - Utterance: "where do I report vandalism online"
+                - Utterance: "can this be done online"
+                - Utterance: "I'd rather file this online"
+                - Utterance: "how do I make a report without calling"
+              DialogCodeHook:
+                Enabled: true
+              FulfillmentCodeHook:
+                Enabled: true
+                IsActive: true
+            - Name: RepeatCallCheck
+              Description: Call Assist intent RepeatCallCheck
+              SampleUtterances:
+                - Utterance: "I already called about this"
+                - Utterance: "I called earlier"
+                - Utterance: "I reported this already"
+                - Utterance: "I've been calling for hours"
+                - Utterance: "no one came"
+                - Utterance: "I called last night"
+                - Utterance: "I made a report but nothing happened"
+                - Utterance: "I called and no one showed up"
+                - Utterance: "I was told someone would come"
+                - Utterance: "following up on my earlier call"
+                - Utterance: "I have a reference number"
+                - Utterance: "checking on my report"
+              DialogCodeHook:
+                Enabled: true
+              FulfillmentCodeHook:
+                Enabled: true
+                IsActive: true
+              SlotPriorities:
+                - Priority: 1
+                  SlotName: PriorReferenceNumber
+                - Priority: 2
+                  SlotName: PriorCallbackNumber
+              Slots:
+                - Name: PriorReferenceNumber
+                  SlotTypeName: FreeText
+                  ValueElicitationSetting:
+                    SlotConstraint: Optional
+                    PromptSpecification:
+                      MaxRetries: 2
+                      AllowInterrupt: true
+                      MessageGroupsList:
+                        - Message:
+                            PlainTextMessage:
+                              Value: "Do you have a reference number from your earlier call?"
+                - Name: PriorCallbackNumber
+                  SlotTypeName: AMAZON.PhoneNumber
+                  ValueElicitationSetting:
+                    SlotConstraint: Optional
+                    PromptSpecification:
+                      MaxRetries: 2
+                      AllowInterrupt: true
+                      MessageGroupsList:
+                        - Message:
+                            PlainTextMessage:
+                              Value: "What phone number did you call from before, so we can look up your report?"
+            - Name: InformationRequest
+              Description: Call Assist intent InformationRequest
+              SampleUtterances:
+                - Utterance: "I have a question"
+                - Utterance: "I need information"
+                - Utterance: "where is the police station"
+                - Utterance: "what are the police station hours"
+                - Utterance: "how do I get a police report copy"
+                - Utterance: "how do I get a copy of an incident report"
+                - Utterance: "how do I contest a parking ticket"
+                - Utterance: "how do I get a restraining order"
+                - Utterance: "how do I file a complaint against an officer"
+                - Utterance: "what's the non-emergency number"
+                - Utterance: "can I get a fingerprint done"
+                - Utterance: "sex offender registry"
+                - Utterance: "how do I register my alarm"
+                - Utterance: "are there sex offenders in my area"
+                - Utterance: "who do I call for noise complaints"
+                - Utterance: "how do I get a gun permit"
+              DialogCodeHook:
+                Enabled: true
+              FulfillmentCodeHook:
+                Enabled: true
+                IsActive: true
+              SlotPriorities:
+                - Priority: 1
+                  SlotName: InformationTopic
+              Slots:
+                - Name: InformationTopic
+                  SlotTypeName: FreeText
+                  ValueElicitationSetting:
+                    SlotConstraint: Required
+                    PromptSpecification:
+                      MaxRetries: 2
+                      AllowInterrupt: true
+                      MessageGroupsList:
+                        - Message:
+                            PlainTextMessage:
+                              Value: "Sure — what do you need information about?"
+            - Name: FallbackIntent
+              Description: Call Assist intent FallbackIntent
+              ParentIntentSignature: AMAZON.FallbackIntent
+              DialogCodeHook:
+                Enabled: true
+              FulfillmentCodeHook:
+                Enabled: true
+                IsActive: true
+        - LocaleId: es_US
+          NluConfidenceThreshold: 0.7
+          VoiceSettings:
+            VoiceId: Lupe
+            Engine: neural
+          SlotTypes:
+            - Name: FreeText
+              Description: Original caller phrasing (location, vehicle, descriptions)
+              SlotTypeValues:
+                - SampleValue:
+                    Value: unknown
+                - SampleValue:
+                    Value: none
+              ValueSelectionSetting:
+                ResolutionStrategy: ORIGINAL_VALUE
+            - Name: LocationAddress
+              Description: Address, intersection, landmark, or business name
+              SlotTypeValues:
+                - SampleValue:
+                    Value: address
+                - SampleValue:
+                    Value: intersection
+                - SampleValue:
+                    Value: landmark
+              ValueSelectionSetting:
+                ResolutionStrategy: ORIGINAL_VALUE
+            - Name: VehicleColor
+              Description: Vehicle color with synonyms
+              SlotTypeValues:
+                - SampleValue:
+                    Value: Red
+                  Synonyms:
+                    - Value: red
+                    - Value: crimson
+                    - Value: maroon
+                    - Value: dark red
+                    - Value: bright red
+                - SampleValue:
+                    Value: Blue
+                  Synonyms:
+                    - Value: blue
+                    - Value: navy
+                    - Value: dark blue
+                    - Value: light blue
+                    - Value: sky blue
+                    - Value: royal blue
+                - SampleValue:
+                    Value: Black
+                  Synonyms:
+                    - Value: black
+                    - Value: dark
+                    - Value: jet black
+                - SampleValue:
+                    Value: White
+                  Synonyms:
+                    - Value: white
+                    - Value: cream
+                    - Value: off-white
+                    - Value: pearl
+                - SampleValue:
+                    Value: Silver
+                  Synonyms:
+                    - Value: silver
+                    - Value: gray
+                    - Value: grey
+                    - Value: metallic
+                - SampleValue:
+                    Value: Green
+                  Synonyms:
+                    - Value: green
+                    - Value: olive
+                    - Value: dark green
+                    - Value: forest green
+                - SampleValue:
+                    Value: Gold
+                  Synonyms:
+                    - Value: gold
+                    - Value: tan
+                    - Value: beige
+                    - Value: champagne
+                - SampleValue:
+                    Value: Brown
+                  Synonyms:
+                    - Value: brown
+                    - Value: bronze
+                    - Value: copper
+                    - Value: rust
+              ValueSelectionSetting:
+                ResolutionStrategy: TOP_RESOLUTION
+            - Name: VehicleType
+              Description: Vehicle body type
+              SlotTypeValues:
+                - SampleValue:
+                    Value: car
+                  Synonyms:
+                    - Value: sedan
+                    - Value: coupe
+                    - Value: convertible
+                - SampleValue:
+                    Value: truck
+                  Synonyms:
+                    - Value: pickup
+                    - Value: pickup truck
+                - SampleValue:
+                    Value: SUV
+                  Synonyms:
+                    - Value: crossover
+                    - Value: van
+                    - Value: minivan
+                - SampleValue:
+                    Value: motorcycle
+                  Synonyms:
+                    - Value: bike
+                    - Value: moped
+                    - Value: scooter
+                - SampleValue:
+                    Value: semi
+                  Synonyms:
+                    - Value: eighteen-wheeler
+                    - Value: box truck
+                    - Value: delivery truck
+              ValueSelectionSetting:
+                ResolutionStrategy: TOP_RESOLUTION
+            - Name: IncidentTimeframe
+              Description: When the incident occurred
+              SlotTypeValues:
+                - SampleValue:
+                    Value: right now
+                  Synonyms:
+                    - Value: happening now
+                    - Value: currently
+                    - Value: still going on
+                - SampleValue:
+                    Value: just happened
+                  Synonyms:
+                    - Value: a few minutes ago
+                    - Value: minutes ago
+                    - Value: just now
+                - SampleValue:
+                    Value: earlier today
+                  Synonyms:
+                    - Value: about an hour ago
+                    - Value: this morning
+                    - Value: this afternoon
+                    - Value: tonight
+                - SampleValue:
+                    Value: yesterday
+                  Synonyms:
+                    - Value: last night
+                    - Value: a while ago
+                - SampleValue:
+                    Value: not sure
+                  Synonyms:
+                    - Value: I don't know
+                    - Value: unknown
+              ValueSelectionSetting:
+                ResolutionStrategy: TOP_RESOLUTION
+            - Name: NoiseType
+              Description: Kind of noise
+              SlotTypeValues:
+                - SampleValue:
+                    Value: music
+                - SampleValue:
+                    Value: yelling
+                - SampleValue:
+                    Value: party
+                - SampleValue:
+                    Value: fireworks
+                - SampleValue:
+                    Value: barking
+                - SampleValue:
+                    Value: engine
+                - SampleValue:
+                    Value: alarm
+                - SampleValue:
+                    Value: other
+              ValueSelectionSetting:
+                ResolutionStrategy: ORIGINAL_VALUE
+            - Name: ParkingViolationType
+              Description: Parking violation type
+              SlotTypeValues:
+                - SampleValue:
+                    Value: driveway
+                - SampleValue:
+                    Value: fire hydrant
+                - SampleValue:
+                    Value: handicap
+                - SampleValue:
+                    Value: no parking
+                - SampleValue:
+                    Value: fire lane
+                - SampleValue:
+                    Value: sidewalk
+                - SampleValue:
+                    Value: other
+              ValueSelectionSetting:
+                ResolutionStrategy: ORIGINAL_VALUE
+            - Name: AnimalThreatLevel
+              Description: Animal situation severity
+              SlotTypeValues:
+                - SampleValue:
+                    Value: aggressive
+                  Synonyms:
+                    - Value: attacking
+                    - Value: vicious
+                    - Value: biting
+                - SampleValue:
+                    Value: injured
+                - SampleValue:
+                    Value: stray
+                  Synonyms:
+                    - Value: loose
+                    - Value: loose/stray
+                - SampleValue:
+                    Value: cruelty
+                  Synonyms:
+                    - Value: neglect
+                    - Value: cruelty/neglect
+                - SampleValue:
+                    Value: nuisance
+              ValueSelectionSetting:
+                ResolutionStrategy: TOP_RESOLUTION
+            - Name: YesNoConfirmation
+              Description: Yes/no confirmation (WeaponVisible, injuries, still happening)
+              SlotTypeValues:
+                - SampleValue:
+                    Value: Yes
+                  Synonyms:
+                    - Value: yes
+                    - Value: yeah
+                    - Value: yep
+                    - Value: "y"
+                    - Value: "true"
+                    - Value: "sí"
+                    - Value: si
+                    - Value: affirmative
+                - SampleValue:
+                    Value: No
+                  Synonyms:
+                    - Value: "no"
+                    - Value: nope
+                    - Value: "n"
+                    - Value: "false"
+                    - Value: negative
+              ValueSelectionSetting:
+                ResolutionStrategy: TOP_RESOLUTION
+          Intents:
+            - Name: EmergencyEscalation
+              Description: Call Assist intent EmergencyEscalation
+              SampleUtterances:
+                - Utterance: "hay un tiroteo"
+                - Utterance: "alguien está disparando"
+                - Utterance: "disparos"
+                - Utterance: "hay una pistola"
+                - Utterance: "él tiene un arma"
+                - Utterance: "me está atacando"
+                - Utterance: "ayuda"
+                - Utterance: "necesito ayuda ahora"
+                - Utterance: "hay un incendio"
+                - Utterance: "alguien está inconsciente"
+                - Utterance: "no está respirando"
+                - Utterance: "llamen al novecientos once"
+                - Utterance: "es una emergencia"
+                - Utterance: "hay un cuerpo"
+                - Utterance: "me están robando"
+                - Utterance: "violencia doméstica"
+                - Utterance: "me está golpeando"
+                - Utterance: "se está ahogando"
+                - Utterance: "huele a gas"
+                - Utterance: "accidente con heridos"
+                - Utterance: "infarto"
+                - Utterance: "está convulsionando"
+                - Utterance: "me amenazó con matarme"
+                - Utterance: "tiene un cuchillo"
+              DialogCodeHook:
+                Enabled: true
+              FulfillmentCodeHook:
+                Enabled: true
+                IsActive: true
+            - Name: RequestHuman
+              Description: Call Assist intent RequestHuman
+              SampleUtterances:
+                - Utterance: "quiero hablar con alguien"
+                - Utterance: "pásame con una persona"
+                - Utterance: "quiero hablar con un oficial"
+                - Utterance: "necesito un despachador"
+                - Utterance: "transfiérame"
+                - Utterance: "con una persona real"
+                - Utterance: "no quiero hablar con una máquina"
+              DialogCodeHook:
+                Enabled: true
+              FulfillmentCodeHook:
+                Enabled: true
+                IsActive: true
+            - Name: NoiseComplaint
+              Description: Call Assist intent NoiseComplaint
+              SampleUtterances:
+                - Utterance: "mis vecinos hacen mucho ruido"
+                - Utterance: "hay una fiesta muy ruidosa"
+                - Utterance: "queja de ruido"
+                - Utterance: "la música está muy alta"
+                - Utterance: "están haciendo mucho escándalo"
+                - Utterance: "hay gritos afuera"
+                - Utterance: "la fiesta sigue y no para"
+                - Utterance: "los vecinos tienen el estéreo muy alto"
+                - Utterance: "el perro no deja de ladrar"
+                - Utterance: "hay cohetes en el vecindario"
+                - Utterance: "alguien tiene el carro con la música muy fuerte"
+              DialogCodeHook:
+                Enabled: true
+              FulfillmentCodeHook:
+                Enabled: true
+                IsActive: true
+              IntentConfirmationSetting:
+                IsActive: true
+                PromptSpecification:
+                  MaxRetries: 2
+                  AllowInterrupt: true
+                  MessageGroupsList:
+                    - Message:
+                        SSMLMessage:
+                          Value: "<speak>Para confirmar — tengo una queja de ruido en <break time=\"300ms\"/> {NoiseLocation}, <break time=\"200ms\"/> {NoiseType}, <break time=\"200ms\"/> y {NoiseStillHappening, values: [\"Yes\": \"todavía está ocurriendo\", \"No\": \"ya no está ocurriendo\"]}. ¿Es correcto?</speak>"
+                DeclinationResponse:
+                  MessageGroupsList:
+                    - Message:
+                        PlainTextMessage:
+                          Value: "Disculpe. Empecemos de nuevo. ¿Qué quisiera corregir?"
+              SlotPriorities:
+                - Priority: 1
+                  SlotName: NoiseLocation
+                - Priority: 2
+                  SlotName: NoiseType
+                - Priority: 3
+                  SlotName: NoiseStillHappening
+                - Priority: 4
+                  SlotName: CallbackNumber
+              Slots:
+                - Name: NoiseLocation
+                  SlotTypeName: LocationAddress
+                  ValueElicitationSetting:
+                    SlotConstraint: Required
+                    PromptSpecification:
+                      MaxRetries: 2
+                      AllowInterrupt: true
+                      MessageGroupsList:
+                        - Message:
+                            PlainTextMessage:
+                              Value: "¿Cuál es la dirección o el lugar donde está el ruido?"
+                - Name: NoiseType
+                  SlotTypeName: NoiseType
+                  ValueElicitationSetting:
+                    SlotConstraint: Required
+                    PromptSpecification:
+                      MaxRetries: 2
+                      AllowInterrupt: true
+                      MessageGroupsList:
+                        - Message:
+                            PlainTextMessage:
+                              Value: "¿Qué tipo de ruido es — música, gritos, una fiesta, o algo más?"
+                - Name: NoiseStillHappening
+                  SlotTypeName: YesNoConfirmation
+                  ValueElicitationSetting:
+                    SlotConstraint: Required
+                    PromptSpecification:
+                      MaxRetries: 2
+                      AllowInterrupt: true
+                      MessageGroupsList:
+                        - Message:
+                            PlainTextMessage:
+                              Value: "¿El ruido todavía está ocurriendo ahora mismo?"
+                - Name: CallbackNumber
+                  SlotTypeName: AMAZON.PhoneNumber
+                  ValueElicitationSetting:
+                    SlotConstraint: Optional
+                    PromptSpecification:
+                      MaxRetries: 2
+                      AllowInterrupt: true
+                      MessageGroupsList:
+                        - Message:
+                            PlainTextMessage:
+                              Value: "¿Y cuál es un número de teléfono para contactarle si es necesario?"
+            - Name: SuspiciousPerson
+              Description: Call Assist intent SuspiciousPerson
+              SampleUtterances:
+                - Utterance: "hay una persona sospechosa"
+                - Utterance: "alguien actúa de manera extraña"
+                - Utterance: "hay un hombre mirando por las ventanas"
+                - Utterance: "una persona sospechosa merodeando"
+                - Utterance: "alguien que no pertenece aquí"
+                - Utterance: "hay alguien muy raro afuera"
+                - Utterance: "me están siguiendo"
+                - Utterance: "un hombre está siguiendo a los niños"
+                - Utterance: "alguien está viendo los carros"
+                - Utterance: "comportamiento sospechoso"
+                - Utterance: "hay alguien acechando"
+              DialogCodeHook:
+                Enabled: true
+              FulfillmentCodeHook:
+                Enabled: true
+                IsActive: true
+              IntentConfirmationSetting:
+                IsActive: true
+                PromptSpecification:
+                  MaxRetries: 2
+                  AllowInterrupt: true
+                  MessageGroupsList:
+                    - Message:
+                        SSMLMessage:
+                          Value: "<speak>I have a suspicious person at <break time=\"300ms\"/> {SuspiciousLocation}. <break time=\"200ms\"/> Description: {PersonDescription}. <break time=\"200ms\"/> Direction: {PersonDirection}. <break time=\"200ms\"/> Does that sound right?</speak>"
+                DeclinationResponse:
+                  MessageGroupsList:
+                    - Message:
+                        PlainTextMessage:
+                          Value: "Disculpe. Empecemos de nuevo. ¿Qué quisiera corregir?"
+              SlotPriorities:
+                - Priority: 1
+                  SlotName: SuspiciousLocation
+                - Priority: 2
+                  SlotName: PersonDescription
+                - Priority: 3
+                  SlotName: PersonDirection
+                - Priority: 4
+                  SlotName: WeaponVisible
+                - Priority: 5
+                  SlotName: CallbackNumber
+                - Priority: 6
+                  SlotName: CallerSafeLocation
+              Slots:
+                - Name: SuspiciousLocation
+                  SlotTypeName: LocationAddress
+                  ValueElicitationSetting:
+                    SlotConstraint: Required
+                    PromptSpecification:
+                      MaxRetries: 2
+                      AllowInterrupt: true
+                      MessageGroupsList:
+                        - Message:
+                            PlainTextMessage:
+                              Value: "¿Dónde está esta persona ahora — cuál es la dirección o la intersección más cercana?"
+                - Name: PersonDescription
+                  SlotTypeName: FreeText
+                  ValueElicitationSetting:
+                    SlotConstraint: Required
+                    PromptSpecification:
+                      MaxRetries: 2
+                      AllowInterrupt: true
+                      MessageGroupsList:
+                        - Message:
+                            PlainTextMessage:
+                              Value: "¿Puede describir a la persona? Por ejemplo, qué ropa lleva, su edad aproximada, estatura, o algo que llame la atención."
+                - Name: PersonDirection
+                  SlotTypeName: FreeText
+                  ValueElicitationSetting:
+                    SlotConstraint: Required
+                    PromptSpecification:
+                      MaxRetries: 2
+                      AllowInterrupt: true
+                      MessageGroupsList:
+                        - Message:
+                            PlainTextMessage:
+                              Value: "¿Sabe hacia dónde se dirigen, o siguen en el mismo lugar?"
+                - Name: WeaponVisible
+                  SlotTypeName: YesNoConfirmation
+                  ValueElicitationSetting:
+                    SlotConstraint: Required
+                    PromptSpecification:
+                      MaxRetries: 2
+                      AllowInterrupt: true
+                      MessageGroupsList:
+                        - Message:
+                            PlainTextMessage:
+                              Value: "¿Ha visto algún arma — algo en sus manos o visible en ellos?"
+                - Name: CallbackNumber
+                  SlotTypeName: AMAZON.PhoneNumber
+                  ValueElicitationSetting:
+                    SlotConstraint: Required
+                    PromptSpecification:
+                      MaxRetries: 2
+                      AllowInterrupt: true
+                      MessageGroupsList:
+                        - Message:
+                            PlainTextMessage:
+                              Value: "¿Cuál es su número de teléfono para que un oficial pueda contactarle?"
+                - Name: CallerSafeLocation
+                  SlotTypeName: YesNoConfirmation
+                  ValueElicitationSetting:
+                    SlotConstraint: Required
+                    PromptSpecification:
+                      MaxRetries: 2
+                      AllowInterrupt: true
+                      MessageGroupsList:
+                        - Message:
+                            PlainTextMessage:
+                              Value: "¿Está en un lugar seguro ahora mismo?"
+            - Name: AbandonedVehicle
+              Description: Call Assist intent AbandonedVehicle
+              SampleUtterances:
+                - Utterance: "hay un carro abandonado"
+                - Utterance: "quiero reportar un vehículo abandonado"
+                - Utterance: "un carro lleva días aquí"
+                - Utterance: "este carro no se ha movido"
+                - Utterance: "hay un carro sin placas"
+                - Utterance: "alguien dejó su carro aquí"
+                - Utterance: "un carro abandonado en la calle"
+              DialogCodeHook:
+                Enabled: true
+              FulfillmentCodeHook:
+                Enabled: true
+                IsActive: true
+              IntentConfirmationSetting:
+                IsActive: true
+                PromptSpecification:
+                  MaxRetries: 2
+                  AllowInterrupt: true
+                  MessageGroupsList:
+                    - Message:
+                        SSMLMessage:
+                          Value: "<speak>I have an abandoned vehicle at <break time=\"300ms\"/> {VehicleLocation}. <break time=\"200ms\"/> {VehicleDescription}, <break time=\"200ms\"/> there approximately {HowLongAbandoned}. Is that correct?</speak>"
+                DeclinationResponse:
+                  MessageGroupsList:
+                    - Message:
+                        PlainTextMessage:
+                          Value: "Disculpe. Empecemos de nuevo. ¿Qué quisiera corregir?"
+              SlotPriorities:
+                - Priority: 1
+                  SlotName: VehicleLocation
+                - Priority: 2
+                  SlotName: VehicleDescription
+                - Priority: 3
+                  SlotName: HowLongAbandoned
+                - Priority: 4
+                  SlotName: AbandonedVehicleHazard
+              Slots:
+                - Name: VehicleLocation
+                  SlotTypeName: LocationAddress
+                  ValueElicitationSetting:
+                    SlotConstraint: Required
+                    PromptSpecification:
+                      MaxRetries: 2
+                      AllowInterrupt: true
+                      MessageGroupsList:
+                        - Message:
+                            PlainTextMessage:
+                              Value: "¿Cuál es la dirección o la intersección más cercana donde está el vehículo?"
+                - Name: VehicleDescription
+                  SlotTypeName: FreeText
+                  ValueElicitationSetting:
+                    SlotConstraint: Required
+                    PromptSpecification:
+                      MaxRetries: 2
+                      AllowInterrupt: true
+                      MessageGroupsList:
+                        - Message:
+                            PlainTextMessage:
+                              Value: "¿Puede describir el vehículo? Color, marca o modelo si lo sabe, y placa si es posible."
+                - Name: HowLongAbandoned
+                  SlotTypeName: IncidentTimeframe
+                  ValueElicitationSetting:
+                    SlotConstraint: Required
+                    PromptSpecification:
+                      MaxRetries: 2
+                      AllowInterrupt: true
+                      MessageGroupsList:
+                        - Message:
+                            PlainTextMessage:
+                              Value: "¿Aproximadamente cuánto tiempo lleva el vehículo ahí?"
+                - Name: AbandonedVehicleHazard
+                  SlotTypeName: YesNoConfirmation
+                  ValueElicitationSetting:
+                    SlotConstraint: Required
+                    PromptSpecification:
+                      MaxRetries: 2
+                      AllowInterrupt: true
+                      MessageGroupsList:
+                        - Message:
+                            PlainTextMessage:
+                              Value: "¿El vehículo está bloqueando el tráfico, una entrada, o un hidrante?"
+            - Name: VehicleBurglary
+              Description: Call Assist intent VehicleBurglary
+              SampleUtterances:
+                - Utterance: "rompieron el vidrio de mi carro"
+                - Utterance: "me entraron al carro"
+                - Utterance: "me robaron cosas del carro"
+                - Utterance: "mi carro fue robado"
+                - Utterance: "alguien abrió mi carro"
+                - Utterance: "me rompieron la ventana del carro"
+                - Utterance: "me robaron del carro"
+                - Utterance: "entraron a mi vehículo"
+              DialogCodeHook:
+                Enabled: true
+              FulfillmentCodeHook:
+                Enabled: true
+                IsActive: true
+              IntentConfirmationSetting:
+                IsActive: true
+                PromptSpecification:
+                  MaxRetries: 2
+                  AllowInterrupt: true
+                  MessageGroupsList:
+                    - Message:
+                        SSMLMessage:
+                          Value: "<speak>I have a vehicle burglary. Your {BurglaryVehicleDescription} at <break time=\"300ms\"/> {BurglaryVehicleLocation}. <break time=\"200ms\"/> Items taken: {ItemsStolen}. <break time=\"200ms\"/> Is that right?</speak>"
+                DeclinationResponse:
+                  MessageGroupsList:
+                    - Message:
+                        PlainTextMessage:
+                          Value: "Disculpe. Empecemos de nuevo. ¿Qué quisiera corregir?"
+              SlotPriorities:
+                - Priority: 1
+                  SlotName: BurglaryVehicleLocation
+                - Priority: 2
+                  SlotName: BurglaryVehicleDescription
+                - Priority: 3
+                  SlotName: BurglaryVehiclePlate
+                - Priority: 4
+                  SlotName: ItemsStolen
+                - Priority: 5
+                  SlotName: WhenOccurred
+                - Priority: 6
+                  SlotName: SuspectSeen
+                - Priority: 7
+                  SlotName: CallbackNumber
+              Slots:
+                - Name: BurglaryVehicleLocation
+                  SlotTypeName: LocationAddress
+                  ValueElicitationSetting:
+                    SlotConstraint: Required
+                    PromptSpecification:
+                      MaxRetries: 2
+                      AllowInterrupt: true
+                      MessageGroupsList:
+                        - Message:
+                            PlainTextMessage:
+                              Value: "¿Dónde está su vehículo ahora — cuál es la dirección?"
+                - Name: BurglaryVehicleDescription
+                  SlotTypeName: FreeText
+                  ValueElicitationSetting:
+                    SlotConstraint: Required
+                    PromptSpecification:
+                      MaxRetries: 2
+                      AllowInterrupt: true
+                      MessageGroupsList:
+                        - Message:
+                            PlainTextMessage:
+                              Value: "¿Cuál es el año, marca, modelo y color de su vehículo?"
+                - Name: BurglaryVehiclePlate
+                  SlotTypeName: FreeText
+                  ValueElicitationSetting:
+                    SlotConstraint: Required
+                    PromptSpecification:
+                      MaxRetries: 2
+                      AllowInterrupt: true
+                      MessageGroupsList:
+                        - Message:
+                            PlainTextMessage:
+                              Value: "¿Y el número de placa si lo tiene?"
+                - Name: ItemsStolen
+                  SlotTypeName: FreeText
+                  ValueElicitationSetting:
+                    SlotConstraint: Required
+                    PromptSpecification:
+                      MaxRetries: 2
+                      AllowInterrupt: true
+                      MessageGroupsList:
+                        - Message:
+                            PlainTextMessage:
+                              Value: "¿Qué le robaron o qué daños hubo?"
+                - Name: WhenOccurred
+                  SlotTypeName: IncidentTimeframe
+                  ValueElicitationSetting:
+                    SlotConstraint: Required
+                    PromptSpecification:
+                      MaxRetries: 2
+                      AllowInterrupt: true
+                      MessageGroupsList:
+                        - Message:
+                            PlainTextMessage:
+                              Value: "¿Sabe aproximadamente cuándo ocurrió esto?"
+                - Name: SuspectSeen
+                  SlotTypeName: YesNoConfirmation
+                  ValueElicitationSetting:
+                    SlotConstraint: Required
+                    PromptSpecification:
+                      MaxRetries: 2
+                      AllowInterrupt: true
+                      MessageGroupsList:
+                        - Message:
+                            PlainTextMessage:
+                              Value: "¿Vio a alguien dentro o cerca de su vehículo?"
+                - Name: CallbackNumber
+                  SlotTypeName: AMAZON.PhoneNumber
+                  ValueElicitationSetting:
+                    SlotConstraint: Required
+                    PromptSpecification:
+                      MaxRetries: 2
+                      AllowInterrupt: true
+                      MessageGroupsList:
+                        - Message:
+                            PlainTextMessage:
+                              Value: "¿Cuál es el mejor número para contactarle?"
+            - Name: TheftReport
+              Description: Call Assist intent TheftReport
+              SampleUtterances:
+                - Utterance: "quiero reportar un robo"
+                - Utterance: "me robaron"
+                - Utterance: "alguien me robó"
+                - Utterance: "me robaron el paquete"
+                - Utterance: "me robaron la bicicleta"
+                - Utterance: "robo en una tienda"
+                - Utterance: "alguien me robó la bolsa"
+                - Utterance: "me robaron el teléfono"
+                - Utterance: "me robaron la cartera"
+                - Utterance: "quiero hacer un reporte de robo"
+              DialogCodeHook:
+                Enabled: true
+              FulfillmentCodeHook:
+                Enabled: true
+                IsActive: true
+              IntentConfirmationSetting:
+                IsActive: true
+                PromptSpecification:
+                  MaxRetries: 2
+                  AllowInterrupt: true
+                  MessageGroupsList:
+                    - Message:
+                        SSMLMessage:
+                          Value: "<speak>I have a theft report. Location: <break time=\"300ms\"/> {TheftLocation}. <break time=\"200ms\"/> Items taken: {TheftItemDescription}. <break time=\"200ms\"/> Occurred: {TheftWhenOccurred}. <break time=\"200ms\"/> Is that all correct?</speak>"
+                DeclinationResponse:
+                  MessageGroupsList:
+                    - Message:
+                        PlainTextMessage:
+                          Value: "Disculpe. Empecemos de nuevo. ¿Qué quisiera corregir?"
+              SlotPriorities:
+                - Priority: 1
+                  SlotName: TheftLocation
+                - Priority: 2
+                  SlotName: TheftItemDescription
+                - Priority: 3
+                  SlotName: TheftWhenOccurred
+                - Priority: 4
+                  SlotName: TheftSuspectInfo
+                - Priority: 5
+                  SlotName: TheftCallbackNumber
+              Slots:
+                - Name: TheftLocation
+                  SlotTypeName: LocationAddress
+                  ValueElicitationSetting:
+                    SlotConstraint: Required
+                    PromptSpecification:
+                      MaxRetries: 2
+                      AllowInterrupt: true
+                      MessageGroupsList:
+                        - Message:
+                            PlainTextMessage:
+                              Value: "¿Dónde ocurrió el robo?"
+                - Name: TheftItemDescription
+                  SlotTypeName: FreeText
+                  ValueElicitationSetting:
+                    SlotConstraint: Required
+                    PromptSpecification:
+                      MaxRetries: 2
+                      AllowInterrupt: true
+                      MessageGroupsList:
+                        - Message:
+                            PlainTextMessage:
+                              Value: "¿Qué le robaron? ¿Puede describir los artículos y su valor aproximado?"
+                - Name: TheftWhenOccurred
+                  SlotTypeName: IncidentTimeframe
+                  ValueElicitationSetting:
+                    SlotConstraint: Required
+                    PromptSpecification:
+                      MaxRetries: 2
+                      AllowInterrupt: true
+                      MessageGroupsList:
+                        - Message:
+                            PlainTextMessage:
+                              Value: "¿Cuándo ocurrió?"
+                - Name: TheftSuspectInfo
+                  SlotTypeName: FreeText
+                  ValueElicitationSetting:
+                    SlotConstraint: Optional
+                    PromptSpecification:
+                      MaxRetries: 2
+                      AllowInterrupt: true
+                      MessageGroupsList:
+                        - Message:
+                            PlainTextMessage:
+                              Value: "¿Tiene alguna descripción de la persona que lo tomó, o vio cómo se fueron?"
+                - Name: TheftCallbackNumber
+                  SlotTypeName: AMAZON.PhoneNumber
+                  ValueElicitationSetting:
+                    SlotConstraint: Required
+                    PromptSpecification:
+                      MaxRetries: 2
+                      AllowInterrupt: true
+                      MessageGroupsList:
+                        - Message:
+                            PlainTextMessage:
+                              Value: "¿Cuál es el mejor número para contactarle?"
+            - Name: ParkingComplaint
+              Description: Call Assist intent ParkingComplaint
+              SampleUtterances:
+                - Utterance: "un carro estacionado ilegalmente"
+                - Utterance: "están bloqueando mi entrada"
+                - Utterance: "un carro en zona de no estacionamiento"
+                - Utterance: "queja de estacionamiento"
+                - Utterance: "carro bloqueando la salida de incendio"
+                - Utterance: "están estacionados en el pavimento"
+                - Utterance: "alguien se estacionó en mi espacio"
+                - Utterance: "carro bloqueando el hidrante"
+                - Utterance: "estacionado en zona de discapacitados sin placa"
+              DialogCodeHook:
+                Enabled: true
+              FulfillmentCodeHook:
+                Enabled: true
+                IsActive: true
+              IntentConfirmationSetting:
+                IsActive: true
+                PromptSpecification:
+                  MaxRetries: 2
+                  AllowInterrupt: true
+                  MessageGroupsList:
+                    - Message:
+                        SSMLMessage:
+                          Value: "<speak>Got it — parking complaint at {ParkingLocation}, {ParkingVehicleDescription}, violation: {ParkingViolationType}. Is that correct?</speak>"
+                DeclinationResponse:
+                  MessageGroupsList:
+                    - Message:
+                        PlainTextMessage:
+                          Value: "Disculpe. Empecemos de nuevo. ¿Qué quisiera corregir?"
+              SlotPriorities:
+                - Priority: 1
+                  SlotName: ParkingLocation
+                - Priority: 2
+                  SlotName: ParkingVehicleDescription
+                - Priority: 3
+                  SlotName: ParkingViolationType
+              Slots:
+                - Name: ParkingLocation
+                  SlotTypeName: LocationAddress
+                  ValueElicitationSetting:
+                    SlotConstraint: Required
+                    PromptSpecification:
+                      MaxRetries: 2
+                      AllowInterrupt: true
+                      MessageGroupsList:
+                        - Message:
+                            PlainTextMessage:
+                              Value: "¿Cuál es la dirección donde el vehículo está estacionado ilegalmente?"
+                - Name: ParkingVehicleDescription
+                  SlotTypeName: FreeText
+                  ValueElicitationSetting:
+                    SlotConstraint: Required
+                    PromptSpecification:
+                      MaxRetries: 2
+                      AllowInterrupt: true
+                      MessageGroupsList:
+                        - Message:
+                            PlainTextMessage:
+                              Value: "¿Puede describir el vehículo — color, marca, modelo y placa si la tiene?"
+                - Name: ParkingViolationType
+                  SlotTypeName: ParkingViolationType
+                  ValueElicitationSetting:
+                    SlotConstraint: Required
+                    PromptSpecification:
+                      MaxRetries: 2
+                      AllowInterrupt: true
+                      MessageGroupsList:
+                        - Message:
+                            PlainTextMessage:
+                              Value: "¿Cuál es la infracción — bloqueando una entrada, un hidrante, zona de discapacitados, zona de no estacionamiento, u otra?"
+            - Name: WelfareCheck
+              Description: Call Assist intent WelfareCheck
+              SampleUtterances:
+                - Utterance: "quiero un chequeo de bienestar"
+                - Utterance: "estoy preocupado por mi vecino"
+                - Utterance: "no he visto a mi vecino en días"
+                - Utterance: "no contesta la puerta"
+                - Utterance: "quiero que vayan a ver a alguien"
+                - Utterance: "estoy preocupado por un familiar"
+                - Utterance: "chequeo de bienestar para persona mayor"
+                - Utterance: "mi mamá no contesta"
+                - Utterance: "no he sabido nada de mi amigo"
+              DialogCodeHook:
+                Enabled: true
+              FulfillmentCodeHook:
+                Enabled: true
+                IsActive: true
+              IntentConfirmationSetting:
+                IsActive: true
+                PromptSpecification:
+                  MaxRetries: 2
+                  AllowInterrupt: true
+                  MessageGroupsList:
+                    - Message:
+                        SSMLMessage:
+                          Value: "<speak>I'm going to send officers to check on {WelfareCheckPersonName} at <break time=\"300ms\"/> {WelfareCheckAddress}. <break time=\"200ms\"/> Last contact was {WelfareCheckLastContact}. <break time=\"200ms\"/> Is that correct?</speak>"
+                DeclinationResponse:
+                  MessageGroupsList:
+                    - Message:
+                        PlainTextMessage:
+                          Value: "Disculpe. Empecemos de nuevo. ¿Qué quisiera corregir?"
+              SlotPriorities:
+                - Priority: 1
+                  SlotName: WelfareCheckAddress
+                - Priority: 2
+                  SlotName: WelfareCheckPersonName
+                - Priority: 3
+                  SlotName: WelfareCheckRelationship
+                - Priority: 4
+                  SlotName: WelfareCheckLastContact
+                - Priority: 5
+                  SlotName: WelfareCheckWhyConcerned
+                - Priority: 6
+                  SlotName: WelfareCheckCallerCallback
+              Slots:
+                - Name: WelfareCheckAddress
+                  SlotTypeName: LocationAddress
+                  ValueElicitationSetting:
+                    SlotConstraint: Required
+                    PromptSpecification:
+                      MaxRetries: 2
+                      AllowInterrupt: true
+                      MessageGroupsList:
+                        - Message:
+                            PlainTextMessage:
+                              Value: "¿Cuál es la dirección de la persona por la que está preocupado?"
+                - Name: WelfareCheckPersonName
+                  SlotTypeName: FreeText
+                  ValueElicitationSetting:
+                    SlotConstraint: Optional
+                    PromptSpecification:
+                      MaxRetries: 2
+                      AllowInterrupt: true
+                      MessageGroupsList:
+                        - Message:
+                            PlainTextMessage:
+                              Value: "¿Cuál es el nombre de la persona, si lo sabe?"
+                - Name: WelfareCheckRelationship
+                  SlotTypeName: FreeText
+                  ValueElicitationSetting:
+                    SlotConstraint: Required
+                    PromptSpecification:
+                      MaxRetries: 2
+                      AllowInterrupt: true
+                      MessageGroupsList:
+                        - Message:
+                            PlainTextMessage:
+                              Value: "¿Cuál es su relación con esta persona — vecino, familiar, amigo?"
+                - Name: WelfareCheckLastContact
+                  SlotTypeName: IncidentTimeframe
+                  ValueElicitationSetting:
+                    SlotConstraint: Required
+                    PromptSpecification:
+                      MaxRetries: 2
+                      AllowInterrupt: true
+                      MessageGroupsList:
+                        - Message:
+                            PlainTextMessage:
+                              Value: "¿Cuándo fue la última vez que tuvo contacto con ellos?"
+                - Name: WelfareCheckWhyConcerned
+                  SlotTypeName: FreeText
+                  ValueElicitationSetting:
+                    SlotConstraint: Required
+                    PromptSpecification:
+                      MaxRetries: 2
+                      AllowInterrupt: true
+                      MessageGroupsList:
+                        - Message:
+                            PlainTextMessage:
+                              Value: "¿Puede decirme por qué está preocupado? ¿Hay algo específico que le hizo llamar hoy?"
+                - Name: WelfareCheckCallerCallback
+                  SlotTypeName: AMAZON.PhoneNumber
+                  ValueElicitationSetting:
+                    SlotConstraint: Required
+                    PromptSpecification:
+                      MaxRetries: 2
+                      AllowInterrupt: true
+                      MessageGroupsList:
+                        - Message:
+                            PlainTextMessage:
+                              Value: "¿Y cuál es el mejor número para contactarle?"
+            - Name: AnimalComplaint
+              Description: Call Assist intent AnimalComplaint
+              SampleUtterances:
+                - Utterance: "hay un perro suelto"
+                - Utterance: "perro agresivo"
+                - Utterance: "el perro me mordió"
+                - Utterance: "alguien lastima a un animal"
+                - Utterance: "animal callejero"
+                - Utterance: "crueldad animal"
+                - Utterance: "animal en la calle"
+                - Utterance: "coyote suelto"
+                - Utterance: "un animal abandonado"
+                - Utterance: "gato callejero"
+                - Utterance: "perro en el carro caliente"
+              DialogCodeHook:
+                Enabled: true
+              FulfillmentCodeHook:
+                Enabled: true
+                IsActive: true
+              IntentConfirmationSetting:
+                IsActive: true
+                PromptSpecification:
+                  MaxRetries: 2
+                  AllowInterrupt: true
+                  MessageGroupsList:
+                    - Message:
+                        SSMLMessage:
+                          Value: "<speak>I have an animal call — {AnimalType} at {AnimalLocation}, situation: {AnimalThreatLevel}. Is that right?</speak>"
+                DeclinationResponse:
+                  MessageGroupsList:
+                    - Message:
+                        PlainTextMessage:
+                          Value: "Disculpe. Empecemos de nuevo. ¿Qué quisiera corregir?"
+              SlotPriorities:
+                - Priority: 1
+                  SlotName: AnimalLocation
+                - Priority: 2
+                  SlotName: AnimalType
+                - Priority: 3
+                  SlotName: AnimalThreatLevel
+              Slots:
+                - Name: AnimalLocation
+                  SlotTypeName: LocationAddress
+                  ValueElicitationSetting:
+                    SlotConstraint: Required
+                    PromptSpecification:
+                      MaxRetries: 2
+                      AllowInterrupt: true
+                      MessageGroupsList:
+                        - Message:
+                            PlainTextMessage:
+                              Value: "¿Dónde está el animal ahora mismo?"
+                - Name: AnimalType
+                  SlotTypeName: FreeText
+                  ValueElicitationSetting:
+                    SlotConstraint: Required
+                    PromptSpecification:
+                      MaxRetries: 2
+                      AllowInterrupt: true
+                      MessageGroupsList:
+                        - Message:
+                            PlainTextMessage:
+                              Value: "¿Qué tipo de animal es — un perro, gato, u otro?"
+                - Name: AnimalThreatLevel
+                  SlotTypeName: AnimalThreatLevel
+                  ValueElicitationSetting:
+                    SlotConstraint: Required
+                    PromptSpecification:
+                      MaxRetries: 2
+                      AllowInterrupt: true
+                      MessageGroupsList:
+                        - Message:
+                            PlainTextMessage:
+                              Value: "¿El animal está herido, es agresivo, o amenazante? ¿O es más un animal callejero o una molestia?"
+            - Name: TowComplaint
+              Description: Call Assist intent TowComplaint
+              SampleUtterances:
+                - Utterance: "me grúaron el carro"
+                - Utterance: "se llevaron mi carro sin aviso"
+                - Utterance: "queja de grúa"
+                - Utterance: "me grúaron ilegalmente"
+                - Utterance: "pusieron una bota en mi carro"
+              DialogCodeHook:
+                Enabled: true
+              FulfillmentCodeHook:
+                Enabled: true
+                IsActive: true
+              IntentConfirmationSetting:
+                IsActive: true
+                PromptSpecification:
+                  MaxRetries: 2
+                  AllowInterrupt: true
+                  MessageGroupsList:
+                    - Message:
+                        SSMLMessage:
+                          Value: "<speak>I have a tow complaint. Your {TowVehicleDescription} was towed from {TowLocation}. Is that correct?</speak>"
+                DeclinationResponse:
+                  MessageGroupsList:
+                    - Message:
+                        PlainTextMessage:
+                          Value: "Disculpe. Empecemos de nuevo. ¿Qué quisiera corregir?"
+              SlotPriorities:
+                - Priority: 1
+                  SlotName: TowLocation
+                - Priority: 2
+                  SlotName: TowVehicleDescription
+                - Priority: 3
+                  SlotName: TowCompanyInfo
+                - Priority: 4
+                  SlotName: TowCallbackNumber
+              Slots:
+                - Name: TowLocation
+                  SlotTypeName: LocationAddress
+                  ValueElicitationSetting:
+                    SlotConstraint: Required
+                    PromptSpecification:
+                      MaxRetries: 2
+                      AllowInterrupt: true
+                      MessageGroupsList:
+                        - Message:
+                            PlainTextMessage:
+                              Value: "¿De dónde se llevaron su vehículo?"
+                - Name: TowVehicleDescription
+                  SlotTypeName: FreeText
+                  ValueElicitationSetting:
+                    SlotConstraint: Required
+                    PromptSpecification:
+                      MaxRetries: 2
+                      AllowInterrupt: true
+                      MessageGroupsList:
+                        - Message:
+                            PlainTextMessage:
+                              Value: "¿Cuál es el año, marca, modelo, color y placa de su vehículo?"
+                - Name: TowCompanyInfo
+                  SlotTypeName: FreeText
+                  ValueElicitationSetting:
+                    SlotConstraint: Optional
+                    PromptSpecification:
+                      MaxRetries: 2
+                      AllowInterrupt: true
+                      MessageGroupsList:
+                        - Message:
+                            PlainTextMessage:
+                              Value: "¿Sabe el nombre de la empresa de grúa, o vio el camión?"
+                - Name: TowCallbackNumber
+                  SlotTypeName: AMAZON.PhoneNumber
+                  ValueElicitationSetting:
+                    SlotConstraint: Required
+                    PromptSpecification:
+                      MaxRetries: 2
+                      AllowInterrupt: true
+                      MessageGroupsList:
+                        - Message:
+                            PlainTextMessage:
+                              Value: "¿Cuál es el mejor número para contactarle?"
+            - Name: VandalismDamage
+              Description: Call Assist intent VandalismDamage
+              SampleUtterances:
+                - Utterance: "vandalismo"
+                - Utterance: "pintaron grafiti en mi propiedad"
+                - Utterance: "dañaron mi propiedad"
+                - Utterance: "le rayaron mi carro"
+                - Utterance: "rompieron mi ventana"
+                - Utterance: "tiraron huevos a mi carro"
+                - Utterance: "me rompieron el buzón"
+                - Utterance: "pintaron mi barda"
+                - Utterance: "daños a la propiedad"
+              DialogCodeHook:
+                Enabled: true
+              FulfillmentCodeHook:
+                Enabled: true
+                IsActive: true
+              IntentConfirmationSetting:
+                IsActive: true
+                PromptSpecification:
+                  MaxRetries: 2
+                  AllowInterrupt: true
+                  MessageGroupsList:
+                    - Message:
+                        SSMLMessage:
+                          Value: "<speak>I have a vandalism report at {VandalismLocation}. Damage: {VandalismDescription}. Discovered: {VandalismWhenOccurred}. Is that correct?</speak>"
+                DeclinationResponse:
+                  MessageGroupsList:
+                    - Message:
+                        PlainTextMessage:
+                          Value: "Disculpe. Empecemos de nuevo. ¿Qué quisiera corregir?"
+              SlotPriorities:
+                - Priority: 1
+                  SlotName: VandalismLocation
+                - Priority: 2
+                  SlotName: VandalismDescription
+                - Priority: 3
+                  SlotName: VandalismWhenOccurred
+                - Priority: 4
+                  SlotName: VandalismSuspectInfo
+              Slots:
+                - Name: VandalismLocation
+                  SlotTypeName: LocationAddress
+                  ValueElicitationSetting:
+                    SlotConstraint: Required
+                    PromptSpecification:
+                      MaxRetries: 2
+                      AllowInterrupt: true
+                      MessageGroupsList:
+                        - Message:
+                            PlainTextMessage:
+                              Value: "¿Cuál es la dirección de la propiedad que fue dañada?"
+                - Name: VandalismDescription
+                  SlotTypeName: FreeText
+                  ValueElicitationSetting:
+                    SlotConstraint: Required
+                    PromptSpecification:
+                      MaxRetries: 2
+                      AllowInterrupt: true
+                      MessageGroupsList:
+                        - Message:
+                            PlainTextMessage:
+                              Value: "¿Qué fue dañado y cómo?"
+                - Name: VandalismWhenOccurred
+                  SlotTypeName: IncidentTimeframe
+                  ValueElicitationSetting:
+                    SlotConstraint: Required
+                    PromptSpecification:
+                      MaxRetries: 2
+                      AllowInterrupt: true
+                      MessageGroupsList:
+                        - Message:
+                            PlainTextMessage:
+                              Value: "¿Cuándo descubrió el daño?"
+                - Name: VandalismSuspectInfo
+                  SlotTypeName: FreeText
+                  ValueElicitationSetting:
+                    SlotConstraint: Optional
+                    PromptSpecification:
+                      MaxRetries: 2
+                      AllowInterrupt: true
+                      MessageGroupsList:
+                        - Message:
+                            PlainTextMessage:
+                              Value: "¿Vio a alguien hacerlo o sabe quién pudo ser responsable?"
+            - Name: CodeEnforcementComplaint
+              Description: Call Assist intent CodeEnforcementComplaint
+              SampleUtterances:
+                - Utterance: "queja de código de construcción"
+                - Utterance: "hay basura acumulada en una casa"
+                - Utterance: "pasto muy alto"
+                - Utterance: "carros en el patio"
+                - Utterance: "propiedad abandonada"
+                - Utterance: "negocio ilegal en casa"
+                - Utterance: "construcción sin permiso"
+              DialogCodeHook:
+                Enabled: true
+              FulfillmentCodeHook:
+                Enabled: true
+                IsActive: true
+              IntentConfirmationSetting:
+                IsActive: true
+                PromptSpecification:
+                  MaxRetries: 2
+                  AllowInterrupt: true
+                  MessageGroupsList:
+                    - Message:
+                        SSMLMessage:
+                          Value: "<speak>I have a code enforcement complaint at {CodeEnforcementAddress} — {CodeViolationDescription}. Is that right?</speak>"
+                DeclinationResponse:
+                  MessageGroupsList:
+                    - Message:
+                        PlainTextMessage:
+                          Value: "Disculpe. Empecemos de nuevo. ¿Qué quisiera corregir?"
+              SlotPriorities:
+                - Priority: 1
+                  SlotName: CodeEnforcementAddress
+                - Priority: 2
+                  SlotName: CodeViolationDescription
+              Slots:
+                - Name: CodeEnforcementAddress
+                  SlotTypeName: LocationAddress
+                  ValueElicitationSetting:
+                    SlotConstraint: Required
+                    PromptSpecification:
+                      MaxRetries: 2
+                      AllowInterrupt: true
+                      MessageGroupsList:
+                        - Message:
+                            PlainTextMessage:
+                              Value: "¿Cuál es la dirección de la propiedad?"
+                - Name: CodeViolationDescription
+                  SlotTypeName: FreeText
+                  ValueElicitationSetting:
+                    SlotConstraint: Required
+                    PromptSpecification:
+                      MaxRetries: 2
+                      AllowInterrupt: true
+                      MessageGroupsList:
+                        - Message:
+                            PlainTextMessage:
+                              Value: "¿Cuál es la infracción? Por ejemplo, pasto alto, basura, carros en desuso, u otra cosa?"
+            - Name: PublicWorksIssue
+              Description: Call Assist intent PublicWorksIssue
+              SampleUtterances:
+                - Utterance: "problema de obras públicas"
+                - Utterance: "se rompió una tubería"
+                - Utterance: "hay agua en la calle"
+                - Utterance: "el semáforo no funciona"
+                - Utterance: "la luz de la calle está apagada"
+                - Utterance: "hay un hoyo en el camino"
+                - Utterance: "drenaje bloqueado"
+                - Utterance: "se cayó un árbol en la calle"
+                - Utterance: "la coladera no tiene tapa"
+                - Utterance: "está saliendo agua del suelo"
+              DialogCodeHook:
+                Enabled: true
+              FulfillmentCodeHook:
+                Enabled: true
+                IsActive: true
+              SlotPriorities:
+                - Priority: 1
+                  SlotName: PublicWorksLocation
+                - Priority: 2
+                  SlotName: PublicWorksIssueType
+              Slots:
+                - Name: PublicWorksLocation
+                  SlotTypeName: LocationAddress
+                  ValueElicitationSetting:
+                    SlotConstraint: Required
+                    PromptSpecification:
+                      MaxRetries: 2
+                      AllowInterrupt: true
+                      MessageGroupsList:
+                        - Message:
+                            PlainTextMessage:
+                              Value: "¿Cuál es la ubicación — dirección o intersección más cercana?"
+                - Name: PublicWorksIssueType
+                  SlotTypeName: FreeText
+                  ValueElicitationSetting:
+                    SlotConstraint: Required
+                    PromptSpecification:
+                      MaxRetries: 2
+                      AllowInterrupt: true
+                      MessageGroupsList:
+                        - Message:
+                            PlainTextMessage:
+                              Value: "¿Cuál es el problema — tubería, bache, semáforo, luz de calle, u otra cosa?"
+            - Name: TrafficAccidentReportOnly
+              Description: Call Assist intent TrafficAccidentReportOnly
+              SampleUtterances:
+                - Utterance: "estuve en un accidente"
+                - Utterance: "choque menor"
+                - Utterance: "me golpearon el carro y se fueron"
+                - Utterance: "necesito un reporte de accidente"
+                - Utterance: "choque y fuga"
+                - Utterance: "alguien me golpeó el carro estacionado"
+                - Utterance: "accidente sin heridos"
+                - Utterance: "necesito el número de reporte para el seguro"
+              DialogCodeHook:
+                Enabled: true
+              FulfillmentCodeHook:
+                Enabled: true
+                IsActive: true
+              IntentConfirmationSetting:
+                IsActive: true
+                PromptSpecification:
+                  MaxRetries: 2
+                  AllowInterrupt: true
+                  MessageGroupsList:
+                    - Message:
+                        SSMLMessage:
+                          Value: "<speak>I have a traffic accident to report at {AccidentLocation}, {AccidentWhen}, no injuries. Is that correct?</speak>"
+                DeclinationResponse:
+                  MessageGroupsList:
+                    - Message:
+                        PlainTextMessage:
+                          Value: "Disculpe. Empecemos de nuevo. ¿Qué quisiera corregir?"
+              SlotPriorities:
+                - Priority: 1
+                  SlotName: AccidentLocation
+                - Priority: 2
+                  SlotName: AccidentWhen
+                - Priority: 3
+                  SlotName: AccidentInjuries
+                - Priority: 4
+                  SlotName: OtherVehicleDescription
+                - Priority: 5
+                  SlotName: AccidentCallbackNumber
+              Slots:
+                - Name: AccidentLocation
+                  SlotTypeName: LocationAddress
+                  ValueElicitationSetting:
+                    SlotConstraint: Required
+                    PromptSpecification:
+                      MaxRetries: 2
+                      AllowInterrupt: true
+                      MessageGroupsList:
+                        - Message:
+                            PlainTextMessage:
+                              Value: "¿Dónde ocurrió el accidente?"
+                - Name: AccidentWhen
+                  SlotTypeName: IncidentTimeframe
+                  ValueElicitationSetting:
+                    SlotConstraint: Required
+                    PromptSpecification:
+                      MaxRetries: 2
+                      AllowInterrupt: true
+                      MessageGroupsList:
+                        - Message:
+                            PlainTextMessage:
+                              Value: "¿Cuándo ocurrió?"
+                - Name: AccidentInjuries
+                  SlotTypeName: YesNoConfirmation
+                  ValueElicitationSetting:
+                    SlotConstraint: Required
+                    PromptSpecification:
+                      MaxRetries: 2
+                      AllowInterrupt: true
+                      MessageGroupsList:
+                        - Message:
+                            PlainTextMessage:
+                              Value: "¿Hubo heridos?"
+                - Name: OtherVehicleDescription
+                  SlotTypeName: FreeText
+                  ValueElicitationSetting:
+                    SlotConstraint: Optional
+                    PromptSpecification:
+                      MaxRetries: 2
+                      AllowInterrupt: true
+                      MessageGroupsList:
+                        - Message:
+                            PlainTextMessage:
+                              Value: "¿Puede describir el otro vehículo involucrado, si hubo alguno?"
+                - Name: AccidentCallbackNumber
+                  SlotTypeName: AMAZON.PhoneNumber
+                  ValueElicitationSetting:
+                    SlotConstraint: Required
+                    PromptSpecification:
+                      MaxRetries: 2
+                      AllowInterrupt: true
+                      MessageGroupsList:
+                        - Message:
+                            PlainTextMessage:
+                              Value: "¿Cuál es el mejor número para contactarle?"
+            - Name: OnlineReportEligibility
+              Description: Call Assist intent OnlineReportEligibility
+              SampleUtterances:
+                - Utterance: "¿puedo hacer un reporte en línea?"
+                - Utterance: "¿dónde puedo reportar esto?"
+                - Utterance: "¿puedo hacerlo en el sitio web?"
+                - Utterance: "quiero hacer un reporte por internet"
+                - Utterance: "¿cómo hago un reporte sin llamar?"
+              DialogCodeHook:
+                Enabled: true
+              FulfillmentCodeHook:
+                Enabled: true
+                IsActive: true
+            - Name: RepeatCallCheck
+              Description: Call Assist intent RepeatCallCheck
+              SampleUtterances:
+                - Utterance: "ya llamé antes sobre esto"
+                - Utterance: "llamé más temprano"
+                - Utterance: "ya reporté esto"
+                - Utterance: "nadie llegó"
+                - Utterance: "llamé anoche"
+                - Utterance: "tengo un número de referencia"
+                - Utterance: "quiero saber qué pasó con mi reporte"
+                - Utterance: "nadie vino"
+              DialogCodeHook:
+                Enabled: true
+              FulfillmentCodeHook:
+                Enabled: true
+                IsActive: true
+              SlotPriorities:
+                - Priority: 1
+                  SlotName: PriorReferenceNumber
+                - Priority: 2
+                  SlotName: PriorCallbackNumber
+              Slots:
+                - Name: PriorReferenceNumber
+                  SlotTypeName: FreeText
+                  ValueElicitationSetting:
+                    SlotConstraint: Optional
+                    PromptSpecification:
+                      MaxRetries: 2
+                      AllowInterrupt: true
+                      MessageGroupsList:
+                        - Message:
+                            PlainTextMessage:
+                              Value: "¿Tiene un número de referencia de su llamada anterior?"
+                - Name: PriorCallbackNumber
+                  SlotTypeName: AMAZON.PhoneNumber
+                  ValueElicitationSetting:
+                    SlotConstraint: Optional
+                    PromptSpecification:
+                      MaxRetries: 2
+                      AllowInterrupt: true
+                      MessageGroupsList:
+                        - Message:
+                            PlainTextMessage:
+                              Value: "¿Desde qué número llamó antes para que podamos buscar su reporte?"
+            - Name: InformationRequest
+              Description: Call Assist intent InformationRequest
+              SampleUtterances:
+                - Utterance: "tengo una pregunta"
+                - Utterance: "necesito información"
+                - Utterance: "¿dónde está la estación de policía?"
+                - Utterance: "¿cuáles son las horas de la estación?"
+                - Utterance: "¿cómo obtengo una copia del reporte?"
+                - Utterance: "¿cómo contesto una multa de estacionamiento?"
+                - Utterance: "¿cómo solicito una orden de restricción?"
+                - Utterance: "número de teléfono no emergencias"
+                - Utterance: "¿cómo registro mi alarma?"
+                - Utterance: "¿cómo obtengo un permiso de arma?"
+              DialogCodeHook:
+                Enabled: true
+              FulfillmentCodeHook:
+                Enabled: true
+                IsActive: true
+              SlotPriorities:
+                - Priority: 1
+                  SlotName: InformationTopic
+              Slots:
+                - Name: InformationTopic
+                  SlotTypeName: FreeText
+                  ValueElicitationSetting:
+                    SlotConstraint: Required
+                    PromptSpecification:
+                      MaxRetries: 2
+                      AllowInterrupt: true
+                      MessageGroupsList:
+                        - Message:
+                            PlainTextMessage:
+                              Value: "Claro — ¿sobre qué necesita información?"
+            - Name: FallbackIntent
+              Description: Call Assist intent FallbackIntent
+              ParentIntentSignature: AMAZON.FallbackIntent
+              DialogCodeHook:
+                Enabled: true
+              FulfillmentCodeHook:
+                Enabled: true
+                IsActive: true
+  RCCallAssistBotVersion:
+    Type: AWS::Lex::BotVersion
+    Properties:
+      BotId: !Ref RCCallAssistBot
+      Description: !Sub "Call Assist numbered version for live-${DeploymentStage} alias"
+      BotVersionLocaleSpecification:
+        - LocaleId: en_US
+          BotVersionLocaleDetails:
+            SourceBotVersion: DRAFT
+        - LocaleId: es_US
+          BotVersionLocaleDetails:
+            SourceBotVersion: DRAFT
+
+  RCCallAssistBotAlias:
+    Type: AWS::Lex::BotAlias
+    Properties:
+      BotId: !Ref RCCallAssistBot
+      BotAliasName: !Sub "live-${DeploymentStage}"
+      BotVersion: !GetAtt RCCallAssistBotVersion.BotVersion
+      Description: Live alias for Call Assist Connect. Locale Lambda is the dialog hook (handles both hook types).
+      BotAliasLocaleSettings:
+        - LocaleId: en_US
+          BotAliasLocaleSetting:
+            Enabled: true
+            CodeHookSpecification:
+              LambdaCodeHook:
+                CodeHookInterfaceVersion: "1.0"
+                LambdaArn: !GetAtt LexDialogHookFunction.Arn
+        - LocaleId: es_US
+          BotAliasLocaleSetting:
+            Enabled: true
+            CodeHookSpecification:
+              LambdaCodeHook:
+                CodeHookInterfaceVersion: "1.0"
+                LambdaArn: !GetAtt LexDialogHookFunction.Arn
+      ConversationLogSettings:
+        TextLogSettings:
+          - Enabled: true
+            Destination:
+              CloudWatch:
+                CloudWatchLogGroupArn: !GetAtt LexLogGroup.Arn
+                LogPrefix: !Sub "call-assist/${DeploymentStage}/"
+
+  LexDialogHookPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      FunctionName: !GetAtt LexDialogHookFunction.Arn
+      Action: lambda:InvokeFunction
+      Principal: lexv2.amazonaws.com
+      SourceArn: !GetAtt RCCallAssistBotAlias.Arn
+
+  LexFulfillmentHookPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      FunctionName: !GetAtt LexFulfillmentHookFunction.Arn
+      Action: lambda:InvokeFunction
+      Principal: lexv2.amazonaws.com
+      SourceArn: !GetAtt RCCallAssistBotAlias.Arn
+
+Outputs:
+  BotId:
+    Description: Lex V2 bot ID
+    Value: !Ref RCCallAssistBot
+  BotAliasId:
+    Description: Lex V2 bot alias ID
+    Value: !GetAtt RCCallAssistBotAlias.BotAliasId
+  BotAliasArn:
+    Description: Lex V2 bot alias ARN (Connect Get customer input)
+    Value: !GetAtt RCCallAssistBotAlias.Arn
+  DialogHookFunctionArn:
+    Value: !GetAtt LexDialogHookFunction.Arn
+  FulfillmentHookFunctionArn:
+    Value: !GetAtt LexFulfillmentHookFunction.Arn
+  GetAgencyConfigFunctionArn:
+    Description: Connect call-start DID lookup
+    Value: !GetAtt GetAgencyConfigForNumberFunction.Arn
+  BotName:
+    Value: !Sub "RCCallAssistBot-${DeploymentStage}"
+  BotAliasName:
+    Value: !Sub "live-${DeploymentStage}"

@@ -54,6 +54,7 @@ function TransitOperationsShellInner({
       <div
         ref={rootRef}
         data-theme={theme}
+        data-vertical="transit"
         style={{
           minHeight: "100vh",
           display: "flex",

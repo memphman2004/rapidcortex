@@ -110,7 +110,7 @@ export type WidgetSlot = {
 
 export type RoleWidgetLayout = {
   /** Accent color drives section headers and stat card highlights */
-  accent: "violet" | "sky" | "orange" | "teal" | "slate" | "rose";
+  accent: "violet" | "sky" | "orange" | "teal" | "slate" | "rose" | "indigo";
   /** Greeting shown at top of dashboard e.g. "Good morning, {name}" */
   greeting: string;
   /** Subline shown under greeting */
@@ -419,7 +419,7 @@ export const VENUE_GUEST_SERVICES_LAYOUT: RoleWidgetLayout = {
 };
 
 export const TRANSIT_ADMIN_LAYOUT: RoleWidgetLayout = {
-  accent: "sky",
+  accent: "indigo",
   greeting: "Transit Admin",
   description: "Fleet, routes, incidents, cameras, and QR codes for this transit agency.",
   widgets: [
@@ -432,7 +432,7 @@ export const TRANSIT_ADMIN_LAYOUT: RoleWidgetLayout = {
 };
 
 export const TRANSIT_SUPERVISOR_LAYOUT: RoleWidgetLayout = {
-  accent: "sky",
+  accent: "indigo",
   greeting: "Transit Supervisor",
   description: "Live ops, incidents, broadcasts, cameras, and QR codes.",
   widgets: [
@@ -443,7 +443,7 @@ export const TRANSIT_SUPERVISOR_LAYOUT: RoleWidgetLayout = {
 };
 
 export const TRANSIT_SECURITY_LAYOUT: RoleWidgetLayout = {
-  accent: "sky",
+  accent: "indigo",
   greeting: "Transit Security",
   description: "Incidents, fleet, and live cameras. Not a 911 PSAP console.",
   widgets: [
@@ -453,7 +453,7 @@ export const TRANSIT_SECURITY_LAYOUT: RoleWidgetLayout = {
 };
 
 export const TRANSIT_OPERATOR_LAYOUT: RoleWidgetLayout = {
-  accent: "sky",
+  accent: "indigo",
   greeting: "Transit Operator",
   description: "Your assigned vehicle, incident reporting, and onboard cameras.",
   widgets: [

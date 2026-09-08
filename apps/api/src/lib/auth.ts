@@ -90,6 +90,7 @@ function mapPayload(payload: JWTPayload): UserContext | null {
   const firstName = String(payload["custom:firstName"] ?? "").trim();
   const lastName = String(payload["custom:lastName"] ?? "").trim();
   const displayName = [firstName, lastName].filter(Boolean).join(" ").trim();
+  const agencyVertical = String(payload["custom:agencyVertical"] ?? payload["custom:vertical"] ?? "").trim();
   return {
     userId: String(sub),
     agencyId,
@@ -101,6 +102,7 @@ function mapPayload(payload: JWTPayload): UserContext | null {
     ...(passwordChangeRequired !== undefined ? { passwordChangeRequired } : {}),
     ...(hospitalId ? { hospitalId } : {}),
     ...(displayName ? { displayName } : {}),
+    ...(agencyVertical ? { vertical: agencyVertical } : {}),
   };
 }
 

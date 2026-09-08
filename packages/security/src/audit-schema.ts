@@ -379,6 +379,28 @@ export const AUDIT_EVENT_TYPES = {
   CAD_WRITEBACK_DELIVERED: "cad.writeback.delivered",
   CAD_WRITEBACK_NO_ROUTE: "cad.writeback.no_route",
 
+  CALL_ASSIST_SESSION_STARTED: "call_assist.session.started",
+  CALL_ASSIST_DISCLOSURE_DELIVERED: "call_assist.disclosure.delivered",
+  CALL_ASSIST_UTTERANCE_PROCESSED: "call_assist.utterance.processed",
+  CALL_ASSIST_EMERGENCY_TRANSFER: "call_assist.emergency_transfer",
+  CALL_ASSIST_HUMAN_TRANSFER: "call_assist.human_transfer",
+  CALL_ASSIST_EXTERNAL_TRANSFER: "call_assist.external_transfer",
+  CALL_ASSIST_SESSION_COMPLETED: "call_assist.session.completed",
+  CALL_ASSIST_CAD_PUSH_BLOCKED: "call_assist.cad_push.blocked",
+  CALL_ASSIST_CAD_PUSH_SUBMITTED: "call_assist.cad_push.submitted",
+  CALL_ASSIST_LEGAL_HOLD: "call_assist.legal_hold",
+  CALL_ASSIST_RECORDS_REQUEST: "call_assist.records_request",
+  CALL_ASSIST_DEMO_RUN: "call_assist.demo.run",
+  CALL_ASSIST_SURVEY_RECORDED: "call_assist.survey.recorded",
+  CALL_ASSIST_CONFIG_UPDATED: "call_assist.config.updated",
+
+  FIELD_ACCESS_REQUEST_CREATED: "field.access_request.created",
+  FIELD_COMMAND_MESSAGE_SENT: "field.command.message_sent",
+  FIELD_COMMAND_QA_FLAGGED: "field.command.qa_flagged",
+  FIELD_COMMAND_FOLLOWED: "field.command.followed",
+  FIELD_COMMAND_COACHING_NOTE: "field.command.coaching_note",
+  FIELD_COMMAND_CONTINUITY_LOG: "field.command.continuity_log",
+
   /** Supervisor opened Silent Monitor / presence on a dispatcher session. */
   SUPERVISOR_WATCHING: "supervisor.watching",
   /** Supervisor loaded the live operator presence list. */

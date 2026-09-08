@@ -13,12 +13,12 @@ describe("RBAC helpers (production readiness)", () => {
     expect(canViewSensitiveData("auditor")).toBe(false);
     expect(canViewSensitiveData("dispatcher")).toBe(false);
     expect(canViewSensitiveData("agencyadmin")).toBe(true);
-    expect(canViewSensitiveData("commsupervisor")).toBe(true);
+    expect(canViewSensitiveData("supervisor")).toBe(true);
     expect(canViewSensitiveData("agencyit")).toBe(true);
   });
 
   it("isSupervisorOrAdmin excludes agencyit (operational supervisory surface only)", () => {
-    expect(isSupervisorOrAdmin("commsupervisor")).toBe(true);
+    expect(isSupervisorOrAdmin("supervisor")).toBe(true);
     expect(isSupervisorOrAdmin("agencyadmin")).toBe(true);
     expect(isSupervisorOrAdmin("agencyit")).toBe(false);
   });

@@ -30,7 +30,6 @@ function canCloseWarRoom(role: string | null | undefined): boolean {
     r === "rcadmin" ||
     r === "rcsuperadmin" ||
     r === "rcitadmin" ||
-    r === "commsupervisor" ||
     upper === "CAMPUS_ADMIN" ||
     upper === "CAMPUS_SUPERVISOR" ||
     r === "campus_admin" ||

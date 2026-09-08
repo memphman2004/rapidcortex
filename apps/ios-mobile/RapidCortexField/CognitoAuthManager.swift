@@ -6,6 +6,7 @@ final class CognitoAuthManager: ObservableObject {
     static let shared = CognitoAuthManager()
 
     private static let selectedAgencyKey = "rc_selected_agency_id"
+    private static let selectedAgencyVerticalKey = "rc_selected_agency_vertical"
 
     @Published private(set) var isAuthenticated = false
     @Published private(set) var claims: RCUserClaims?
@@ -16,6 +17,16 @@ final class CognitoAuthManager: ObservableObject {
     @Published var mfaCode = ""
     /// Agency used for `/api/codes` (platform admins may switch).
     @Published var selectedAgencyId = ""
+    /// Operational profile of the selected agency. Internal only — never displayed.
+    @Published private(set) var activeAgencyVertical = ""
+
+    var qrCodeVertical: String {
+        let selected = activeAgencyVertical.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+        if selected == "campus" || selected == "venue" || selected == "transit" {
+            return selected
+        }
+        return claims?.qrCodeVertical ?? "venue"
+    }
 
     private var pendingSession: String?
     private var pendingUsername: String?
@@ -147,13 +158,29 @@ final class CognitoAuthManager: ObservableObject {
         pendingSession = nil
         pendingUsername = nil
         selectedAgencyId = ""
+        activeAgencyVertical = ""
         UserDefaults.standard.removeObject(forKey: Self.selectedAgencyKey)
+        UserDefaults.standard.removeObject(forKey: Self.selectedAgencyVerticalKey)
         KeychainManager.deleteAll()
     }
 
     func selectAgency(_ agencyId: String) {
         selectedAgencyId = agencyId
         UserDefaults.standard.set(agencyId, forKey: Self.selectedAgencyKey)
+    }
+
+    func setActiveAgency(_ agency: Agency) {
+        selectAgency(agency.agencyId)
+        activeAgencyVertical = agency.vertical
+        UserDefaults.standard.set(agency.vertical, forKey: Self.selectedAgencyVerticalKey)
+    }
+
+    func clearActiveAgencySelection() {
+        guard claims?.isPlatformAdmin == true else { return }
+        selectedAgencyId = ""
+        activeAgencyVertical = ""
+        UserDefaults.standard.removeObject(forKey: Self.selectedAgencyKey)
+        UserDefaults.standard.removeObject(forKey: Self.selectedAgencyVerticalKey)
     }
 
     /// ID token — Lambdas read `custom:role` / `custom:agencyId` from it.
@@ -212,10 +239,13 @@ final class CognitoAuthManager: ObservableObject {
 
     private func applySelectedAgency() {
         let stored = UserDefaults.standard.string(forKey: Self.selectedAgencyKey) ?? ""
+        let storedVertical = UserDefaults.standard.string(forKey: Self.selectedAgencyVerticalKey) ?? ""
         if claims?.isPlatformAdmin == true, !stored.isEmpty {
             selectedAgencyId = stored
+            activeAgencyVertical = storedVertical
         } else {
             selectedAgencyId = claims?.agencyId ?? stored
+            activeAgencyVertical = claims?.agencyVertical ?? ""
         }
     }
 
@@ -311,11 +341,20 @@ enum JWTDecoder {
               let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any]
         else { throw AuthError.invalidResponse }
 
+        let agencyVertical = Self.nonEmptyClaim(json["custom:agencyVertical"])
+            ?? Self.nonEmptyClaim(json["custom:vertical"])
         return RCUserClaims(
             email: json["email"] as? String ?? "",
             role: json["custom:role"] as? String ?? "",
             agencyId: json["custom:agencyId"] as? String ?? "",
-            sub: json["sub"] as? String ?? ""
+            sub: json["sub"] as? String ?? "",
+            agencyVertical: agencyVertical
         )
+    }
+
+    private static func nonEmptyClaim(_ raw: Any?) -> String? {
+        guard let s = raw as? String else { return nil }
+        let trimmed = s.trimmingCharacters(in: .whitespacesAndNewlines)
+        return trimmed.isEmpty ? nil : trimmed
     }
 }

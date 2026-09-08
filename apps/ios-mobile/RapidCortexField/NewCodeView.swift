@@ -62,11 +62,11 @@ struct NewCodeView: View {
     @State private var nfcCode: QRNFCCode?
 
     private var namePlaceholder: String {
-        defaultVertical == "campus" ? "e.g. McKinley Hall — 3rd Floor" : "e.g. Gate B Concourse"
+        "e.g. Building — Floor 3"
     }
 
     private var zonePlaceholder: String {
-        defaultVertical == "campus" ? "e.g. Building C, Floor 3" : "e.g. Section 112, Row A"
+        "e.g. Zone or area"
     }
 
     var body: some View {

@@ -347,6 +347,30 @@ export const env = {
   enableNg911Assist: featureEnabled("ENABLE_NG911_ASSIST"),
   ng911AssistTable: process.env.NG911_ASSIST_TABLE?.trim() ?? "",
   ng911DiversionMockSms: process.env.NG911_DIVERSION_MOCK_SMS === "true",
+  /**
+   * Call Assist — non-emergency AI call management. Operational default on when unset.
+   * CAD push / RMS draft / demo mode / recording remain fail-closed.
+   */
+  enableCallAssist: featureEnabled("ENABLE_CALL_ASSIST"),
+  callAssistTable: process.env.CALL_ASSIST_TABLE?.trim() ?? "",
+  enableCallAssistCadPush: featureEnabled("ENABLE_CALL_ASSIST_CAD_PUSH", false),
+  enableCallAssistRmsDraft: featureEnabled("ENABLE_CALL_ASSIST_RMS_DRAFT", false),
+  enableCallAssistDemoMode: featureEnabled("ENABLE_CALL_ASSIST_DEMO_MODE", false),
+  enableCallAssistRecording: featureEnabled("ENABLE_CALL_ASSIST_RECORDING", false),
+  callAssistConnectMock:
+    process.env.CALL_ASSIST_CONNECT_MOCK === "true" || process.env.CALL_ASSIST_CONNECT_MOCK === "1",
+  callAssistConnectWebhookSecretArn: process.env.CALL_ASSIST_CONNECT_WEBHOOK_SECRET_ARN?.trim() ?? "",
+  /** Local/dev only. Production must use CALL_ASSIST_CONNECT_WEBHOOK_SECRET_ARN. */
+  callAssistConnectWebhookSecret: process.env.CALL_ASSIST_CONNECT_WEBHOOK_SECRET?.trim() ?? "",
+  callAssistSeedProfile: process.env.CALL_ASSIST_SEED_PROFILE?.trim().toLowerCase() ?? "",
+  callAssistRapidSosMock: process.env.CALL_ASSIST_RAPIDSOS_MOCK !== "false",
+  callAssistRapidSosSecretArn: process.env.CALL_ASSIST_RAPIDSOS_SECRET_ARN?.trim() ?? "",
+  /**
+   * Field app — 911 Dispatch (view/coach/log) + workspace access requests.
+   * Operational default on when unset.
+   */
+  enableFieldCommand: featureEnabled("ENABLE_FIELD_COMMAND"),
+  fieldCommandTable: process.env.FIELD_COMMAND_TABLE?.trim() ?? "",
   /** Per-field incident picture confidence (F-confidence). */
   enableFieldConfidence: featureEnabled("ENABLE_FIELD_CONFIDENCE"),
   /** Live auto-rescoring interval; 0 disables. Unset → 5 (operational default). */

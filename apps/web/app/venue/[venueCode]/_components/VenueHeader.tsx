@@ -36,7 +36,7 @@ export function VenueHeader({
         <div>
           <p
             className="text-xs uppercase tracking-wide"
-            style={{ color: "var(--rc-amber)" }}
+            style={{ color: "var(--rc-vertical-accent)" }}
           >
             Rapid Cortex Venue
           </p>
@@ -47,9 +47,9 @@ export function VenueHeader({
             <span
               className="rounded-full px-2.5 py-1 text-xs font-semibold"
               style={{
-                border: "1px solid var(--rc-amber-border)",
-                background: "var(--rc-amber-dim)",
-                color: "var(--rc-amber)",
+                border: "1px solid var(--rc-vertical-accent-border)",
+                background: "var(--rc-vertical-accent-dim)",
+                color: "var(--rc-vertical-accent)",
               }}
             >
               {roleLabel}

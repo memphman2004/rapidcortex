@@ -387,6 +387,47 @@ const RMS_AGENCY_ADMIN: readonly Permission[] = [
   "rms.legal_hold",
 ] as const;
 
+const CALL_ASSIST_DISPATCHER: readonly Permission[] = [
+  "call_assist.session.view",
+  "call_assist.cad.push",
+] as const;
+
+const CALL_ASSIST_SUPERVISOR: readonly Permission[] = [
+  ...CALL_ASSIST_DISPATCHER,
+  "call_assist.session.takeover",
+  "call_assist.transfer.force",
+  "call_assist.qa.view",
+  "call_assist.qa.review",
+  "call_assist.analytics.view",
+] as const;
+
+const CALL_ASSIST_ADMIN: readonly Permission[] = [
+  ...CALL_ASSIST_SUPERVISOR,
+  "call_assist.knowledge.manage",
+  "call_assist.prompts.manage",
+  "call_assist.admin.config",
+  "call_assist.retention.manage",
+  "call_assist.legal_hold.manage",
+  "call_assist.records.request",
+  "call_assist.demo.run",
+] as const;
+
+const CALL_ASSIST_ANALYST: readonly Permission[] = [
+  "call_assist.session.view",
+  "call_assist.qa.view",
+  "call_assist.analytics.view",
+] as const;
+
+const CALL_ASSIST_AUDITOR: readonly Permission[] = [
+  "call_assist.session.view",
+  "call_assist.qa.view",
+  "call_assist.legal_hold.manage",
+  "call_assist.records.request",
+] as const;
+
+const FIELD_COMMAND_VIEW: readonly Permission[] = ["field.command.view"];
+const FIELD_COMMAND_ACT: readonly Permission[] = ["field.command.view", "field.command.act"];
+
 /** RMS — analyst/auditor read + export (+ nibrs for analyst). */
 const RMS_ANALYST: readonly Permission[] = [
   "rms.view_report",
@@ -425,6 +466,8 @@ const CORE_ROLE_ACCESS_MATRIX_V2 = {
     ...HOSPITAL_ROUTING_VIEW_ANALYTICS,
     ...RCS_ALL,
     ...CAD_CONNECTOR_IT,
+    ...CALL_ASSIST_ADMIN,
+    ...FIELD_COMMAND_ACT,
   ],
   rcitadmin: [
     "system.tenant_mgmt",
@@ -456,6 +499,8 @@ const CORE_ROLE_ACCESS_MATRIX_V2 = {
     "audit.view",
     "audit.export",
     "transcripts.redact",
+    ...CALL_ASSIST_ADMIN,
+    ...FIELD_COMMAND_VIEW,
   ],
   agencyadmin: [
     "users.view",
@@ -510,6 +555,8 @@ const CORE_ROLE_ACCESS_MATRIX_V2 = {
     ...RCS_ALL,
     ...RMS_AGENCY_ADMIN,
     ...CAD_CONNECTOR_ADMIN,
+    ...CALL_ASSIST_ADMIN,
+    ...FIELD_COMMAND_ACT,
   ],
   agencyit: [
     "users.view",
@@ -530,6 +577,8 @@ const CORE_ROLE_ACCESS_MATRIX_V2 = {
     ...EMERGENCY_CONNECT_VIEW,
     ...RCS_DISPATCHER,
     ...CAD_CONNECTOR_IT,
+    ...CALL_ASSIST_ADMIN,
+    ...FIELD_COMMAND_VIEW,
   ],
   supervisor: [
     "users.view",
@@ -585,6 +634,8 @@ const CORE_ROLE_ACCESS_MATRIX_V2 = {
     ...RCS_ALL,
     ...RMS_SUPERVISOR,
     ...CAD_CONNECTOR_SUPERVISOR,
+    ...CALL_ASSIST_SUPERVISOR,
+    ...FIELD_COMMAND_ACT,
   ],
   dispatcher: [
     "incidents.view",
@@ -614,6 +665,8 @@ const CORE_ROLE_ACCESS_MATRIX_V2 = {
     ...RCS_DISPATCHER,
     ...RMS_DISPATCHER,
     ...CAD_CONNECTOR_DISPATCHER,
+    ...CALL_ASSIST_DISPATCHER,
+    ...FIELD_COMMAND_VIEW,
   ],
   analyst: [
     "incidents.view",
@@ -634,6 +687,8 @@ const CORE_ROLE_ACCESS_MATRIX_V2 = {
     ...RCS_SUMMARY_VIEW,
     ...RMS_ANALYST,
     ...CAD_CONNECTOR_AUDIT,
+    ...CALL_ASSIST_ANALYST,
+    ...FIELD_COMMAND_VIEW,
   ],
   auditor: [
     "users.view",
@@ -653,6 +708,8 @@ const CORE_ROLE_ACCESS_MATRIX_V2 = {
     ...RCS_SUMMARY_VIEW,
     ...RMS_AUDITOR,
     ...CAD_CONNECTOR_AUDIT,
+    ...CALL_ASSIST_AUDITOR,
+    ...FIELD_COMMAND_VIEW,
   ],
 } as const satisfies Record<
   "rcadmin" | "rcitadmin" | "agencyadmin" | "agencyit" | "supervisor" | "dispatcher" | "analyst" | "auditor",

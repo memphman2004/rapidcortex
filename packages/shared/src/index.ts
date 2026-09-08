@@ -75,6 +75,7 @@ export * from "./transit/index.js";
 export * from "./locations/index.js";
 export * from "./onboarding/index.js";
 export * from "./campus/dashboard-schemas.js";
+export * from "./campus/campus-buildings-from-qr.js";
 export * from "./campus/campus-sites.js";
 export * from "./campus/clery-schemas.js";
 export * from "./campus/eap-schemas.js";
@@ -92,6 +93,8 @@ export * from "./pricing/index.js";
 export * from "./safe-sound/index.js";
 export * from "./rcs/index.js";
 export * from "./ng911/index.js";
+export * from "./call-assist/index.js";
+export * from "./field/index.js";
 
 export * from "./marketing/index.js";
 export * from "./hiring/index.js";

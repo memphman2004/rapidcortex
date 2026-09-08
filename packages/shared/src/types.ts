@@ -92,7 +92,8 @@ export interface UserContext {
   hospitalId?: string;
   /** Display name from `custom:firstName` / `custom:lastName` when present. */
   displayName?: string;
-  /** Cognito `custom:vertical` — campus, venue, hospital, transit product routing. */
+  /** Cognito `custom:vertical` — campus, venue, hospital, transit product routing.
+   *  Also populated from `custom:agencyVertical` (911|campus|venue) for Field routing. */
   vertical?: string;
 }
 

@@ -12,7 +12,6 @@ const activeCalls = new ActiveCallRepository();
 const DISPATCH_ROLES = new Set([
   "dispatcher",
   "supervisor",
-  "commsupervisor",
   "CAMPUS_DISPATCH",
   "CAMPUS_SUPERVISOR",
   "VENUE_OPERATOR",

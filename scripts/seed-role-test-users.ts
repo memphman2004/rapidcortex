@@ -60,9 +60,9 @@ const ACCOUNTS: TestRow[] = [
   },
   {
     email: "supervisor@appsondemand.net",
-    customRole: "commsupervisor",
+    customRole: "supervisor",
     agencyId: TEST_AGENCY,
-    cognitoGroup: "commsupervisor",
+    cognitoGroup: "supervisor",
   },
   {
     email: "dispatcher@appsondemand.net",
@@ -230,6 +230,7 @@ const POOL_CUSTOM_ATTRS: { addName: string; poolName: string }[] = [
   { addName: "status", poolName: "custom:status" },
   { addName: "planId", poolName: "custom:planId" },
   { addName: "subStatus", poolName: "custom:subStatus" },
+  { addName: "agencyVertical", poolName: "custom:agencyVertical" },
 ];
 
 const VERTICAL_COGNITO_GROUPS: { name: string; description: string }[] = [

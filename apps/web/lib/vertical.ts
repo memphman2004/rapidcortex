@@ -11,12 +11,23 @@ export const VERTICAL_CONFIG: Record<
   Vertical,
   { label: string; color: string; bg: string }
 > = {
-  core: { label: "RC Core", color: "#3B82F6", bg: "rgba(59,130,246,0.15)" },
-  campus: { label: "RC Campus", color: "#34D399", bg: "rgba(52,211,153,0.15)" },
-  venue: { label: "RC Venue", color: "#FB923C", bg: "rgba(251,146,60,0.15)" },
-  hospital: { label: "RC Hospital", color: "#F9A8D4", bg: "rgba(249,168,212,0.15)" },
-  transit: { label: "RC Transit", color: "#3b82f6", bg: "rgba(59,130,246,0.15)" },
+  core: { label: "RC Core", color: "#0284C7", bg: "rgba(2,132,199,0.15)" },
+  campus: { label: "RC Campus", color: "#64748B", bg: "rgba(100,116,139,0.15)" },
+  venue: { label: "RC Venue", color: "#F97316", bg: "rgba(249,115,22,0.15)" },
+  hospital: { label: "RC Hospital", color: "#14B8A6", bg: "rgba(20,184,166,0.15)" },
+  transit: { label: "RC Transit", color: "#818CF8", bg: "rgba(129,140,248,0.15)" },
 };
+
+/** `data-vertical` attribute values that remap shell accents in `globals.css`. */
+export type VerticalThemeAttr = "campus" | "venue" | "hospital" | "transit" | "psap" | "rc-admin";
+
+export function verticalThemeAttrFromDashboardPrefix(
+  prefix: string,
+): VerticalThemeAttr {
+  if (prefix.startsWith("hospital")) return "hospital";
+  if (prefix === "rc-admin") return "rc-admin";
+  return "psap";
+}
 
 export function normalizeVertical(value: string | null | undefined): Vertical {
   const token = (value ?? "").trim().toLowerCase();

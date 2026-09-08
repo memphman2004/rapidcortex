@@ -38,6 +38,7 @@ function VenueShellThemeRootInner({ children }: { children: ReactNode }) {
     <div
       ref={rootRef}
       data-theme={theme}
+      data-vertical="venue"
       className="min-h-screen"
       style={{
         background: "var(--rc-bg)",

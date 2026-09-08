@@ -1,5 +1,10 @@
 /**
  * Seeds UGA campus config/buildings/zones into CAMPUS_CONFIG_TABLE.
+ *
+ * Demo catalog only (Miller Learning Center, Myers Hall, Tate Student Center).
+ * Do not run against a live tenant that already has Field QR/NFC codes —
+ * use `scripts/sync-campus-buildings-from-qr.ts` instead.
+ *
  * Usage:
  *   npx tsx apps/api/src/scripts/seed-campus-test-agency.ts
  */

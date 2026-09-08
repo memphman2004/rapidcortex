@@ -1,18 +1,21 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import type {
-  CampusBuildingSummary,
-  CampusOnDutyStaff,
-  CampusStatsResponse,
-  CampusThreatLevel,
-  CampusZoneSummary,
-  VenueIncidentCameraSummary,
+import {
+  campusBuildingSummariesFromQrCodes,
+  overlayCampusBuildingIncidents,
+  type CampusBuildingSummary,
+  type CampusOnDutyStaff,
+  type CampusStatsResponse,
+  type CampusThreatLevel,
+  type CampusZoneSummary,
+  type VenueIncidentCameraSummary,
 } from "rapid-cortex-shared";
 import {
   fetchCampusBuildings,
   fetchCampusOnDuty,
   fetchCampusOpenIncidents,
+  fetchCampusQrNfcCodes,
   fetchCampusStats,
   fetchCampusThreatLevel,
   fetchCampusZones,
@@ -99,7 +102,7 @@ export function useCampusDashboard(agencyId: string, campusCode: string): Campus
     if (!agencyId) return;
     setError(null);
     try {
-      const [statsRes, zonesRes, buildingsRes, onDutyRes, incidentsRes, threatRes] =
+      const [statsRes, zonesRes, buildingsRes, onDutyRes, incidentsRes, threatRes, qrCodes] =
         await Promise.all([
           fetchCampusStats(agencyId),
           fetchCampusZones(agencyId),
@@ -107,10 +110,22 @@ export function useCampusDashboard(agencyId: string, campusCode: string): Campus
           fetchCampusOnDuty(agencyId),
           fetchCampusOpenIncidents(campusCode, 20, { counselorQueue }),
           fetchCampusThreatLevel(agencyId),
+          fetchCampusQrNfcCodes(agencyId).catch(() => []),
         ]);
-      setStats(statsRes);
+      const buildings =
+        qrCodes.length > 0
+          ? overlayCampusBuildingIncidents(
+              campusBuildingSummariesFromQrCodes(qrCodes),
+              buildingsRes,
+            )
+          : buildingsRes;
+      setStats(
+        qrCodes.length > 0
+          ? { ...statsRes, buildingsMonitored: buildings.length }
+          : statsRes,
+      );
       setZones(zonesRes);
-      setBuildings(buildingsRes);
+      setBuildings(buildings);
       setOnDuty(onDutyRes);
       setIncidents(incidentsRes);
       setThreatLevelState(apiThreatToUi(threatRes.level));

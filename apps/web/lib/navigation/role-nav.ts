@@ -41,7 +41,7 @@ export type NavSection = {
 export type RoleNav = {
   sections: NavSection[];
   /** Accent color for the sidebar — drives active item highlight, section label color */
-  accent: "violet" | "sky" | "orange" | "teal" | "slate" | "rose";
+  accent: "violet" | "sky" | "orange" | "teal" | "slate" | "rose" | "indigo";
   /** Badge shown next to role name in sidebar header */
   roleBadge: string;
 };
@@ -409,6 +409,8 @@ export function getDispatcherNav(jurisdiction: string): RoleNav {
           { id: "intake",        label: "Intake",          href: `${j}/dispatcher`, icon: "PhoneIncoming" },
           { id: "triage",        label: "Triage",          href: `${j}/dispatcher/non-emergency`, icon: "ScanLine",
             feature: "nonEmergencyTriage" },
+          { id: "call-assist",   label: "Call Assist",     href: `${j}/call-assist`, icon: "PhoneIncoming",
+            feature: "callAssist" },
           { id: "transcription", label: "Transcription",   href: `${j}/dispatcher#cad-transcript`, icon: "FileText" },
           { id: "incidents",     label: "Incidents",       href: `${j}/dispatcher`, icon: "AlertCircle",
             badge: { type: "count", key: "openIncidents" } },
@@ -440,6 +442,8 @@ export function getSupervisorNav(jurisdiction: string): RoleNav {
           { id: "incidents",     label: "Incidents",       href: `${j}/dispatcher`, icon: "AlertCircle" },
           { id: "non-emergency", label: "Non-Emergency",   href: `${j}/dispatcher/non-emergency`, icon: "ScanLine",
             feature: "nonEmergencyTriage" },
+          { id: "call-assist",   label: "Call Assist",     href: `${j}/call-assist`, icon: "PhoneIncoming",
+            feature: "callAssist" },
           { id: "cad-queue",     label: "CAD Queue",       href: `${j}/review`,             icon: "Radio",
             badge: { type: "count", key: "pendingCadApprovals" },
             feature: "cadWriteback" },
@@ -523,6 +527,8 @@ export function getAgencyAdminNav(jurisdiction: string): RoleNav {
             feature: "ng911Assist" },
           { id: "ng911-metrics", label: "NG9-1-1 Metrics", href: `${j}/admin/ng911/metrics`, icon: "BarChart3",
             feature: "ng911Assist" },
+          { id: "call-assist-admin", label: "Call Assist", href: `${j}/call-assist/admin`, icon: "PhoneIncoming",
+            feature: "callAssist" },
         ],
       },
       {
@@ -585,6 +591,8 @@ export function getAgencyItNav(jurisdiction: string): RoleNav {
             feature: "ng911Assist" },
           { id: "ng911-metrics", label: "NG9-1-1 Metrics", href: `${j}/admin/ng911/metrics`, icon: "BarChart3",
             feature: "ng911Assist" },
+          { id: "call-assist-admin", label: "Call Assist", href: `${j}/call-assist/admin`, icon: "PhoneIncoming",
+            feature: "callAssist" },
         ],
       },
       {
@@ -671,6 +679,8 @@ export function getAnalystNav(jurisdiction: string): RoleNav {
           { id: "history",       label: "History",         href: `${j}/history`,            icon: "Clock" },
           { id: "cad-connector", label: "CAD Connector",   href: `${j}/cad/incidents`,      icon: "Radio",
             feature: "cadConnector" },
+          { id: "call-assist",   label: "Call Assist",     href: `${j}/call-assist`,        icon: "PhoneIncoming",
+            feature: "callAssist" },
         ],
       },
       {
@@ -702,6 +712,8 @@ export function getAuditorNav(jurisdiction: string): RoleNav {
             feature: "cadWriteback" },
           { id: "cad-connector", label: "CAD Connector",   href: `${j}/cad/audit`,          icon: "Radio",
             feature: "cadConnector" },
+          { id: "call-assist-records", label: "Call Assist Records", href: `${j}/call-assist/records`, icon: "Scale",
+            feature: "callAssist" },
           { id: "access",        label: "Access Reports",  href: `${j}/reports`,            icon: "UserCheck",
             badge: { type: "label", text: "VIEW ONLY", color: "slate" } },
         ],
@@ -1197,7 +1209,7 @@ export function getVenueGuestServicesNav(code: string): RoleNav {
 export function getTransitAdminNav(code: string): RoleNav {
   const base = `/transit/${code}`;
   return {
-    accent: "sky",
+    accent: "indigo",
     roleBadge: "TRANSIT ADMIN",
     sections: [
       {
@@ -1237,7 +1249,7 @@ export function getTransitAdminNav(code: string): RoleNav {
 export function getTransitSupervisorNav(code: string): RoleNav {
   const base = `/transit/${code}`;
   return {
-    accent: "sky",
+    accent: "indigo",
     roleBadge: "TRANSIT SUPERVISOR",
     sections: [
       {
@@ -1261,7 +1273,7 @@ export function getTransitSupervisorNav(code: string): RoleNav {
 export function getTransitSecurityNav(code: string): RoleNav {
   const base = `/transit/${code}`;
   return {
-    accent: "sky",
+    accent: "indigo",
     roleBadge: "TRANSIT SECURITY",
     sections: [
       {
@@ -1282,7 +1294,7 @@ export function getTransitSecurityNav(code: string): RoleNav {
 export function getTransitOperatorNav(code: string): RoleNav {
   const base = `/transit/${code}`;
   return {
-    accent: "sky",
+    accent: "indigo",
     roleBadge: "TRANSIT OPERATOR",
     sections: [
       {

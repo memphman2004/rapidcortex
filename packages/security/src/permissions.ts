@@ -200,6 +200,22 @@ export const ALL_PERMISSIONS = [
   "cad.fieldmapping.manage",
   "cad.routing.manage",
   "cad.health.view",
+  "call_assist.session.view",
+  "call_assist.session.takeover",
+  "call_assist.transfer.force",
+  "call_assist.qa.view",
+  "call_assist.qa.review",
+  "call_assist.knowledge.manage",
+  "call_assist.prompts.manage",
+  "call_assist.admin.config",
+  "call_assist.analytics.view",
+  "call_assist.retention.manage",
+  "call_assist.legal_hold.manage",
+  "call_assist.records.request",
+  "call_assist.demo.run",
+  "call_assist.cad.push",
+  "field.command.view",
+  "field.command.act",
 ] as const;
 
 export type Permission = (typeof ALL_PERMISSIONS)[number];

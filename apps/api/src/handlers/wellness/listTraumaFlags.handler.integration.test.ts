@@ -35,7 +35,7 @@ describe("listTraumaFlags handler", () => {
     const res = await invokeHttpHandler(
       handler,
       makeAuthenticatedEvent({
-        role: "commsupervisor",
+        role: "supervisor",
         agencyId: "agency-a",
         rawPath: "/api/wellness/trauma-flags",
         routeKey: "GET /api/wellness/trauma-flags",
@@ -73,7 +73,7 @@ describe("listTraumaFlags handler", () => {
     const res = await invokeHttpHandler(
       handler,
       makeAuthenticatedEvent({
-        role: "commsupervisor",
+        role: "supervisor",
         agencyId: "agency-a",
         rawPath: "/api/wellness/trauma-flags",
         routeKey: "GET /api/wellness/trauma-flags",

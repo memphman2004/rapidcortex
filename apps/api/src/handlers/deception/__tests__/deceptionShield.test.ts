@@ -252,7 +252,7 @@ describe("Deception Shield", () => {
   });
 
   it("GET deception-events returns 403 for dispatcher, supervisor, and staff roles", async () => {
-    for (const role of ["dispatcher", "commsupervisor", "auditor"] as const) {
+    for (const role of ["dispatcher", "supervisor", "auditor"] as const) {
       const ev = makeAuthenticatedEvent({
         role,
         agencyId: "agency-a",

@@ -1,0 +1,1149 @@
+{
+  "botName": "RCCallAssistBot",
+  "locales": [
+    "en_US",
+    "es_US"
+  ],
+  "priority": [
+    "EmergencyEscalation",
+    "RequestHuman",
+    "NoiseComplaint",
+    "SuspiciousPerson",
+    "AbandonedVehicle",
+    "VehicleBurglary",
+    "TheftReport",
+    "ParkingComplaint",
+    "WelfareCheck",
+    "AnimalComplaint",
+    "TowComplaint",
+    "VandalismDamage",
+    "CodeEnforcementComplaint",
+    "PublicWorksIssue",
+    "TrafficAccidentReportOnly",
+    "OnlineReportEligibility",
+    "RepeatCallCheck",
+    "InformationRequest",
+    "FallbackIntent"
+  ],
+  "intents": [
+    {
+      "name": "EmergencyEscalation",
+      "utterancesEn": [
+        "someone is shooting",
+        "there's a shooter",
+        "shots fired",
+        "active shooter",
+        "he has a gun",
+        "she has a gun",
+        "they have a gun",
+        "there's a gun",
+        "he's pointing a gun at me",
+        "help me",
+        "I need help right now",
+        "there's a stabbing",
+        "he stabbed someone",
+        "she's not breathing",
+        "he's not breathing",
+        "someone is unconscious",
+        "there's a fire",
+        "call 911",
+        "this is an emergency",
+        "send police right now",
+        "there's a dead body",
+        "someone is being attacked",
+        "they're trying to kill me",
+        "I'm being robbed right now",
+        "he's going to hurt me",
+        "domestic violence happening right now",
+        "he's hitting her",
+        "someone is drowning",
+        "there's been an explosion",
+        "I can smell gas",
+        "gas leak",
+        "she just collapsed",
+        "he just collapsed",
+        "they're breaking in right now",
+        "someone is breaking into my house",
+        "home invasion",
+        "car crash with injuries",
+        "the car is on fire",
+        "I need an ambulance right now",
+        "medical emergency",
+        "heart attack",
+        "someone is having a seizure",
+        "I think he has a weapon",
+        "she threatened to kill me",
+        "he threatened to shoot",
+        "they have a knife"
+      ],
+      "utterancesEs": [
+        "hay un tiroteo",
+        "alguien está disparando",
+        "disparos",
+        "hay una pistola",
+        "él tiene un arma",
+        "me está atacando",
+        "ayuda",
+        "necesito ayuda ahora",
+        "hay un incendio",
+        "alguien está inconsciente",
+        "no está respirando",
+        "llamen al novecientos once",
+        "es una emergencia",
+        "hay un cuerpo",
+        "me están robando",
+        "violencia doméstica",
+        "me está golpeando",
+        "se está ahogando",
+        "huele a gas",
+        "accidente con heridos",
+        "infarto",
+        "está convulsionando",
+        "me amenazó con matarme",
+        "tiene un cuchillo"
+      ],
+      "slots": [],
+      "confirmationEn": null,
+      "confirmationEs": null
+    },
+    {
+      "name": "RequestHuman",
+      "utterancesEn": [
+        "let me talk to someone",
+        "I want to speak to an officer",
+        "can I talk to a real person",
+        "transfer me to a dispatcher",
+        "I need a dispatcher",
+        "give me a human",
+        "I don't want to talk to a machine",
+        "I need to talk to someone",
+        "can you transfer me",
+        "connect me to dispatch",
+        "operator",
+        "talk to someone real",
+        "I'd rather talk to a person"
+      ],
+      "utterancesEs": [
+        "quiero hablar con alguien",
+        "pásame con una persona",
+        "quiero hablar con un oficial",
+        "necesito un despachador",
+        "transfiérame",
+        "con una persona real",
+        "no quiero hablar con una máquina"
+      ],
+      "slots": [],
+      "confirmationEn": null,
+      "confirmationEs": null
+    },
+    {
+      "name": "NoiseComplaint",
+      "utterancesEn": [
+        "my neighbor is being too loud",
+        "there's too much noise",
+        "noise complaint",
+        "it's really loud outside",
+        "there's a loud party",
+        "my neighbor won't turn down the music",
+        "someone is playing loud music",
+        "there's a party going on",
+        "people are being loud",
+        "there's a loud gathering",
+        "someone is making a lot of noise",
+        "neighbors are loud",
+        "the music is too loud",
+        "the bass is shaking my walls",
+        "people are yelling outside",
+        "there's screaming outside",
+        "they've been loud for hours",
+        "this has been going on all night",
+        "fireworks in the neighborhood",
+        "someone is setting off fireworks",
+        "loud engine running outside",
+        "car alarm going off",
+        "dog won't stop barking",
+        "there's a dog barking constantly",
+        "there's noise outside my apartment",
+        "loud motorcycle"
+      ],
+      "utterancesEs": [
+        "mis vecinos hacen mucho ruido",
+        "hay una fiesta muy ruidosa",
+        "queja de ruido",
+        "la música está muy alta",
+        "están haciendo mucho escándalo",
+        "hay gritos afuera",
+        "la fiesta sigue y no para",
+        "los vecinos tienen el estéreo muy alto",
+        "el perro no deja de ladrar",
+        "hay cohetes en el vecindario",
+        "alguien tiene el carro con la música muy fuerte"
+      ],
+      "slots": [
+        {
+          "name": "NoiseLocation",
+          "slotType": "LocationAddress",
+          "required": true,
+          "promptEn": "What's the address or location of the noise?",
+          "promptEs": "¿Cuál es la dirección o el lugar donde está el ruido?"
+        },
+        {
+          "name": "NoiseType",
+          "slotType": "NoiseType",
+          "required": true,
+          "promptEn": "What kind of noise is it — music, people yelling, a party, something else?",
+          "promptEs": "¿Qué tipo de ruido es — música, gritos, una fiesta, o algo más?"
+        },
+        {
+          "name": "NoiseStillHappening",
+          "slotType": "YesNoConfirmation",
+          "required": true,
+          "promptEn": "Is the noise still happening right now?",
+          "promptEs": "¿El ruido todavía está ocurriendo ahora mismo?"
+        },
+        {
+          "name": "CallbackNumber",
+          "slotType": "AMAZON.PhoneNumber",
+          "required": false,
+          "promptEn": "And what's a good callback number in case we need to reach you?",
+          "promptEs": "¿Y cuál es un número de teléfono para contactarle si es necesario?"
+        }
+      ],
+      "confirmationEn": "Just to confirm — I have a noise complaint at <break time=\"300ms\"/> {NoiseLocation}, <break time=\"200ms\"/> {NoiseType}, <break time=\"200ms\"/> and it's {NoiseStillHappening, values: [\"Yes\": \"still happening\", \"No\": \"no longer happening\"]}. Is that right?",
+      "confirmationEs": "Para confirmar — tengo una queja de ruido en <break time=\"300ms\"/> {NoiseLocation}, <break time=\"200ms\"/> {NoiseType}, <break time=\"200ms\"/> y {NoiseStillHappening, values: [\"Yes\": \"todavía está ocurriendo\", \"No\": \"ya no está ocurriendo\"]}. ¿Es correcto?"
+    },
+    {
+      "name": "SuspiciousPerson",
+      "utterancesEn": [
+        "there's a suspicious person",
+        "someone looks suspicious",
+        "there's a guy acting weird",
+        "there's a strange person",
+        "someone is lurking",
+        "suspicious male",
+        "suspicious female",
+        "there's someone walking around looking in cars",
+        "a person is peering into windows",
+        "someone is casing houses",
+        "there's a man watching kids",
+        "suspicious activity",
+        "someone doesn't belong here",
+        "there's a person who looks out of place",
+        "someone is hanging around",
+        "someone is just sitting there watching",
+        "there's a sketchy person",
+        "person acting strangely",
+        "someone is following me",
+        "I think someone is following my car",
+        "there's a person I don't recognize acting oddly",
+        "someone is trying to break into a car",
+        "person looks like they're on drugs",
+        "someone is wandering around confused",
+        "there's a man yelling at people",
+        "a person is making people uncomfortable"
+      ],
+      "utterancesEs": [
+        "hay una persona sospechosa",
+        "alguien actúa de manera extraña",
+        "hay un hombre mirando por las ventanas",
+        "una persona sospechosa merodeando",
+        "alguien que no pertenece aquí",
+        "hay alguien muy raro afuera",
+        "me están siguiendo",
+        "un hombre está siguiendo a los niños",
+        "alguien está viendo los carros",
+        "comportamiento sospechoso",
+        "hay alguien acechando"
+      ],
+      "slots": [
+        {
+          "name": "SuspiciousLocation",
+          "slotType": "LocationAddress",
+          "required": true,
+          "promptEn": "Where is this person right now — what's the address or nearest intersection?",
+          "promptEs": "¿Dónde está esta persona ahora — cuál es la dirección o la intersección más cercana?"
+        },
+        {
+          "name": "PersonDescription",
+          "slotType": "FreeText",
+          "required": true,
+          "promptEn": "Can you describe the person? Things like what they're wearing, their approximate age, height, or anything that stands out.",
+          "promptEs": "¿Puede describir a la persona? Por ejemplo, qué ropa lleva, su edad aproximada, estatura, o algo que llame la atención."
+        },
+        {
+          "name": "PersonDirection",
+          "slotType": "FreeText",
+          "required": true,
+          "promptEn": "Do you know which direction they're heading, or are they still in the same spot?",
+          "promptEs": "¿Sabe hacia dónde se dirigen, o siguen en el mismo lugar?"
+        },
+        {
+          "name": "WeaponVisible",
+          "slotType": "YesNoConfirmation",
+          "required": true,
+          "promptEn": "Have you seen any weapons — anything in their hands or visible on them?",
+          "promptEs": "¿Ha visto algún arma — algo en sus manos o visible en ellos?"
+        },
+        {
+          "name": "CallbackNumber",
+          "slotType": "AMAZON.PhoneNumber",
+          "required": true,
+          "promptEn": "What's your callback number in case an officer needs to reach you?",
+          "promptEs": "¿Cuál es su número de teléfono para que un oficial pueda contactarle?"
+        },
+        {
+          "name": "CallerSafeLocation",
+          "slotType": "YesNoConfirmation",
+          "required": true,
+          "promptEn": "Are you in a safe location right now?",
+          "promptEs": "¿Está en un lugar seguro ahora mismo?"
+        }
+      ],
+      "confirmationEn": "I have a suspicious person at <break time=\"300ms\"/> {SuspiciousLocation}. <break time=\"200ms\"/> Description: {PersonDescription}. <break time=\"200ms\"/> Direction: {PersonDirection}. <break time=\"200ms\"/> Does that sound right?",
+      "confirmationEs": null
+    },
+    {
+      "name": "AbandonedVehicle",
+      "utterancesEn": [
+        "there's an abandoned car",
+        "abandoned vehicle",
+        "a car has been sitting here for days",
+        "this car hasn't moved in a week",
+        "there's a car that's been parked here forever",
+        "I want to report an abandoned vehicle",
+        "there's a car with no plates",
+        "a car has flat tires and looks abandoned",
+        "someone left their car here",
+        "there's a car that's been here for over 24 hours",
+        "abandoned truck",
+        "abandoned motorcycle",
+        "this vehicle looks like nobody owns it",
+        "car has been here for three days",
+        "junk car sitting on the street",
+        "can you tow this abandoned car"
+      ],
+      "utterancesEs": [
+        "hay un carro abandonado",
+        "quiero reportar un vehículo abandonado",
+        "un carro lleva días aquí",
+        "este carro no se ha movido",
+        "hay un carro sin placas",
+        "alguien dejó su carro aquí",
+        "un carro abandonado en la calle"
+      ],
+      "slots": [
+        {
+          "name": "VehicleLocation",
+          "slotType": "LocationAddress",
+          "required": true,
+          "promptEn": "What's the address or nearest intersection where the vehicle is located?",
+          "promptEs": "¿Cuál es la dirección o la intersección más cercana donde está el vehículo?"
+        },
+        {
+          "name": "VehicleDescription",
+          "slotType": "FreeText",
+          "required": true,
+          "promptEn": "Can you describe the vehicle? Color, make or model if you know it, and any license plate?",
+          "promptEs": "¿Puede describir el vehículo? Color, marca o modelo si lo sabe, y placa si es posible."
+        },
+        {
+          "name": "HowLongAbandoned",
+          "slotType": "IncidentTimeframe",
+          "required": true,
+          "promptEn": "About how long has the vehicle been there?",
+          "promptEs": "¿Aproximadamente cuánto tiempo lleva el vehículo ahí?"
+        },
+        {
+          "name": "AbandonedVehicleHazard",
+          "slotType": "YesNoConfirmation",
+          "required": true,
+          "promptEn": "Is the vehicle blocking traffic, a driveway, or a fire hydrant?",
+          "promptEs": "¿El vehículo está bloqueando el tráfico, una entrada, o un hidrante?"
+        }
+      ],
+      "confirmationEn": "I have an abandoned vehicle at <break time=\"300ms\"/> {VehicleLocation}. <break time=\"200ms\"/> {VehicleDescription}, <break time=\"200ms\"/> there approximately {HowLongAbandoned}. Is that correct?",
+      "confirmationEs": null
+    },
+    {
+      "name": "VehicleBurglary",
+      "utterancesEn": [
+        "someone broke into my car",
+        "my car was broken into",
+        "car break-in",
+        "my window was smashed",
+        "someone smashed my car window",
+        "stuff was stolen from my car",
+        "my car was burglarized",
+        "items were taken from my vehicle",
+        "someone went through my car",
+        "my car got broken into last night",
+        "car burglary",
+        "theft from vehicle",
+        "they broke my car window",
+        "my car was vandalized and stuff was taken",
+        "someone stole things from my car",
+        "my radio was stolen",
+        "my laptop was stolen from my car",
+        "my car was ransacked"
+      ],
+      "utterancesEs": [
+        "rompieron el vidrio de mi carro",
+        "me entraron al carro",
+        "me robaron cosas del carro",
+        "mi carro fue robado",
+        "alguien abrió mi carro",
+        "me rompieron la ventana del carro",
+        "me robaron del carro",
+        "entraron a mi vehículo"
+      ],
+      "slots": [
+        {
+          "name": "BurglaryVehicleLocation",
+          "slotType": "LocationAddress",
+          "required": true,
+          "promptEn": "Where is your vehicle right now — what's the address?",
+          "promptEs": "¿Dónde está su vehículo ahora — cuál es la dirección?"
+        },
+        {
+          "name": "BurglaryVehicleDescription",
+          "slotType": "FreeText",
+          "required": true,
+          "promptEn": "What's the year, make, model, and color of your vehicle?",
+          "promptEs": "¿Cuál es el año, marca, modelo y color de su vehículo?"
+        },
+        {
+          "name": "BurglaryVehiclePlate",
+          "slotType": "FreeText",
+          "required": true,
+          "promptEn": "And the license plate number if you have it?",
+          "promptEs": "¿Y el número de placa si lo tiene?"
+        },
+        {
+          "name": "ItemsStolen",
+          "slotType": "FreeText",
+          "required": true,
+          "promptEn": "What was taken or what damage was done?",
+          "promptEs": "¿Qué le robaron o qué daños hubo?"
+        },
+        {
+          "name": "WhenOccurred",
+          "slotType": "IncidentTimeframe",
+          "required": true,
+          "promptEn": "Do you know approximately when this happened?",
+          "promptEs": "¿Sabe aproximadamente cuándo ocurrió esto?"
+        },
+        {
+          "name": "SuspectSeen",
+          "slotType": "YesNoConfirmation",
+          "required": true,
+          "promptEn": "Did you see anyone in or near your vehicle?",
+          "promptEs": "¿Vio a alguien dentro o cerca de su vehículo?"
+        },
+        {
+          "name": "CallbackNumber",
+          "slotType": "AMAZON.PhoneNumber",
+          "required": true,
+          "promptEn": "What's the best number to reach you?",
+          "promptEs": "¿Cuál es el mejor número para contactarle?"
+        }
+      ],
+      "confirmationEn": "I have a vehicle burglary. Your {BurglaryVehicleDescription} at <break time=\"300ms\"/> {BurglaryVehicleLocation}. <break time=\"200ms\"/> Items taken: {ItemsStolen}. <break time=\"200ms\"/> Is that right?",
+      "confirmationEs": null
+    },
+    {
+      "name": "TheftReport",
+      "utterancesEn": [
+        "I want to report a theft",
+        "someone stole from me",
+        "I was robbed",
+        "my property was stolen",
+        "someone stole my package",
+        "package was stolen from my porch",
+        "porch pirate",
+        "someone took my bike",
+        "my bicycle was stolen",
+        "shoplifting",
+        "someone shoplifted from my store",
+        "employee theft",
+        "theft at a business",
+        "my purse was snatched",
+        "my wallet was stolen",
+        "something was taken from me",
+        "I'd like to file a theft report",
+        "can I report stolen property",
+        "someone took my phone",
+        "my phone was stolen",
+        "theft of services"
+      ],
+      "utterancesEs": [
+        "quiero reportar un robo",
+        "me robaron",
+        "alguien me robó",
+        "me robaron el paquete",
+        "me robaron la bicicleta",
+        "robo en una tienda",
+        "alguien me robó la bolsa",
+        "me robaron el teléfono",
+        "me robaron la cartera",
+        "quiero hacer un reporte de robo"
+      ],
+      "slots": [
+        {
+          "name": "TheftLocation",
+          "slotType": "LocationAddress",
+          "required": true,
+          "promptEn": "Where did the theft occur?",
+          "promptEs": "¿Dónde ocurrió el robo?"
+        },
+        {
+          "name": "TheftItemDescription",
+          "slotType": "FreeText",
+          "required": true,
+          "promptEn": "What was taken? Can you describe the items and their approximate value?",
+          "promptEs": "¿Qué le robaron? ¿Puede describir los artículos y su valor aproximado?"
+        },
+        {
+          "name": "TheftWhenOccurred",
+          "slotType": "IncidentTimeframe",
+          "required": true,
+          "promptEn": "When did this happen?",
+          "promptEs": "¿Cuándo ocurrió?"
+        },
+        {
+          "name": "TheftSuspectInfo",
+          "slotType": "FreeText",
+          "required": false,
+          "promptEn": "Do you have any description of the person who took it, or did you see how they left?",
+          "promptEs": "¿Tiene alguna descripción de la persona que lo tomó, o vio cómo se fueron?"
+        },
+        {
+          "name": "TheftCallbackNumber",
+          "slotType": "AMAZON.PhoneNumber",
+          "required": true,
+          "promptEn": "What's the best number to reach you?",
+          "promptEs": "¿Cuál es el mejor número para contactarle?"
+        }
+      ],
+      "confirmationEn": "I have a theft report. Location: <break time=\"300ms\"/> {TheftLocation}. <break time=\"200ms\"/> Items taken: {TheftItemDescription}. <break time=\"200ms\"/> Occurred: {TheftWhenOccurred}. <break time=\"200ms\"/> Is that all correct?",
+      "confirmationEs": null
+    },
+    {
+      "name": "ParkingComplaint",
+      "utterancesEn": [
+        "there's a parking violation",
+        "someone is illegally parked",
+        "car parked in a handicap spot without a placard",
+        "blocking my driveway",
+        "someone is blocking the fire hydrant",
+        "car is double parked",
+        "someone parked in a no parking zone",
+        "parking complaint",
+        "illegally parked vehicle",
+        "car blocking the alley",
+        "someone parked in a fire lane",
+        "car parked on the sidewalk",
+        "they parked on my lawn",
+        "someone keeps parking in my spot",
+        "car blocking my mailbox",
+        "wrong way parking",
+        "expired tags parked on street"
+      ],
+      "utterancesEs": [
+        "un carro estacionado ilegalmente",
+        "están bloqueando mi entrada",
+        "un carro en zona de no estacionamiento",
+        "queja de estacionamiento",
+        "carro bloqueando la salida de incendio",
+        "están estacionados en el pavimento",
+        "alguien se estacionó en mi espacio",
+        "carro bloqueando el hidrante",
+        "estacionado en zona de discapacitados sin placa"
+      ],
+      "slots": [
+        {
+          "name": "ParkingLocation",
+          "slotType": "LocationAddress",
+          "required": true,
+          "promptEn": "What's the address where the vehicle is illegally parked?",
+          "promptEs": "¿Cuál es la dirección donde el vehículo está estacionado ilegalmente?"
+        },
+        {
+          "name": "ParkingVehicleDescription",
+          "slotType": "FreeText",
+          "required": true,
+          "promptEn": "Can you describe the vehicle — color, make, model, and license plate if you have it?",
+          "promptEs": "¿Puede describir el vehículo — color, marca, modelo y placa si la tiene?"
+        },
+        {
+          "name": "ParkingViolationType",
+          "slotType": "ParkingViolationType",
+          "required": true,
+          "promptEn": "What's the violation — blocking a driveway, fire hydrant, handicap spot, no parking zone, or something else?",
+          "promptEs": "¿Cuál es la infracción — bloqueando una entrada, un hidrante, zona de discapacitados, zona de no estacionamiento, u otra?"
+        }
+      ],
+      "confirmationEn": "Got it — parking complaint at {ParkingLocation}, {ParkingVehicleDescription}, violation: {ParkingViolationType}. Is that correct?",
+      "confirmationEs": null
+    },
+    {
+      "name": "WelfareCheck",
+      "utterancesEn": [
+        "I need a welfare check",
+        "can you check on someone",
+        "I'm worried about my neighbor",
+        "I haven't seen my neighbor in days",
+        "I'm concerned about someone",
+        "can you send someone to check on a person",
+        "welfare check on my elderly neighbor",
+        "I think someone might be in trouble",
+        "I can't get in touch with my family member",
+        "my friend isn't answering the door",
+        "can someone go check on my roommate",
+        "I'm worried something happened to someone",
+        "my elderly parent isn't answering",
+        "haven't heard from my friend",
+        "someone isn't responding",
+        "I need someone checked on",
+        "can you do a wellness check",
+        "check on elderly person",
+        "check on my mom",
+        "check on my dad"
+      ],
+      "utterancesEs": [
+        "quiero un chequeo de bienestar",
+        "estoy preocupado por mi vecino",
+        "no he visto a mi vecino en días",
+        "no contesta la puerta",
+        "quiero que vayan a ver a alguien",
+        "estoy preocupado por un familiar",
+        "chequeo de bienestar para persona mayor",
+        "mi mamá no contesta",
+        "no he sabido nada de mi amigo"
+      ],
+      "slots": [
+        {
+          "name": "WelfareCheckAddress",
+          "slotType": "LocationAddress",
+          "required": true,
+          "promptEn": "What's the address of the person you're concerned about?",
+          "promptEs": "¿Cuál es la dirección de la persona por la que está preocupado?"
+        },
+        {
+          "name": "WelfareCheckPersonName",
+          "slotType": "FreeText",
+          "required": false,
+          "promptEn": "What's the name of the person, if you know it?",
+          "promptEs": "¿Cuál es el nombre de la persona, si lo sabe?"
+        },
+        {
+          "name": "WelfareCheckRelationship",
+          "slotType": "FreeText",
+          "required": true,
+          "promptEn": "What's your relationship to this person — neighbor, family member, friend?",
+          "promptEs": "¿Cuál es su relación con esta persona — vecino, familiar, amigo?"
+        },
+        {
+          "name": "WelfareCheckLastContact",
+          "slotType": "IncidentTimeframe",
+          "required": true,
+          "promptEn": "When did you last have contact with them?",
+          "promptEs": "¿Cuándo fue la última vez que tuvo contacto con ellos?"
+        },
+        {
+          "name": "WelfareCheckWhyConcerned",
+          "slotType": "FreeText",
+          "required": true,
+          "promptEn": "Can you tell me why you're concerned? Is there anything specific that made you call today?",
+          "promptEs": "¿Puede decirme por qué está preocupado? ¿Hay algo específico que le hizo llamar hoy?"
+        },
+        {
+          "name": "WelfareCheckCallerCallback",
+          "slotType": "AMAZON.PhoneNumber",
+          "required": true,
+          "promptEn": "And what's the best number to reach you?",
+          "promptEs": "¿Y cuál es el mejor número para contactarle?"
+        }
+      ],
+      "confirmationEn": "I'm going to send officers to check on {WelfareCheckPersonName} at <break time=\"300ms\"/> {WelfareCheckAddress}. <break time=\"200ms\"/> Last contact was {WelfareCheckLastContact}. <break time=\"200ms\"/> Is that correct?",
+      "confirmationEs": null
+    },
+    {
+      "name": "AnimalComplaint",
+      "utterancesEn": [
+        "there's an animal complaint",
+        "stray dog",
+        "loose dog",
+        "aggressive dog",
+        "dog attacked me",
+        "dog bit someone",
+        "vicious dog",
+        "dog running loose",
+        "dog off leash",
+        "there's a dog in the road",
+        "animal cruelty",
+        "someone is hurting an animal",
+        "neglected animal",
+        "dog left in a hot car",
+        "stray cat",
+        "injured animal",
+        "there's a raccoon in my house",
+        "animal in my yard",
+        "coyote sighting",
+        "stray animal"
+      ],
+      "utterancesEs": [
+        "hay un perro suelto",
+        "perro agresivo",
+        "el perro me mordió",
+        "alguien lastima a un animal",
+        "animal callejero",
+        "crueldad animal",
+        "animal en la calle",
+        "coyote suelto",
+        "un animal abandonado",
+        "gato callejero",
+        "perro en el carro caliente"
+      ],
+      "slots": [
+        {
+          "name": "AnimalLocation",
+          "slotType": "LocationAddress",
+          "required": true,
+          "promptEn": "Where is the animal right now?",
+          "promptEs": "¿Dónde está el animal ahora mismo?"
+        },
+        {
+          "name": "AnimalType",
+          "slotType": "FreeText",
+          "required": true,
+          "promptEn": "What kind of animal is it — a dog, cat, or something else?",
+          "promptEs": "¿Qué tipo de animal es — un perro, gato, u otro?"
+        },
+        {
+          "name": "AnimalThreatLevel",
+          "slotType": "AnimalThreatLevel",
+          "required": true,
+          "promptEn": "Is the animal injured, aggressive, or acting threatening? Or is it more of a stray or nuisance situation?",
+          "promptEs": "¿El animal está herido, es agresivo, o amenazante? ¿O es más un animal callejero o una molestia?"
+        }
+      ],
+      "confirmationEn": "I have an animal call — {AnimalType} at {AnimalLocation}, situation: {AnimalThreatLevel}. Is that right?",
+      "confirmationEs": null
+    },
+    {
+      "name": "TowComplaint",
+      "utterancesEn": [
+        "I need a tow complaint",
+        "my car was towed illegally",
+        "my car was towed without notice",
+        "they towed my car",
+        "I want to report an illegal tow",
+        "my vehicle was towed and I don't know why",
+        "my car was towed from private property",
+        "tow truck scam",
+        "I think my car was towed wrongfully",
+        "towing complaint",
+        "predatory towing",
+        "my car was booted",
+        "someone put a boot on my car"
+      ],
+      "utterancesEs": [
+        "me grúaron el carro",
+        "se llevaron mi carro sin aviso",
+        "queja de grúa",
+        "me grúaron ilegalmente",
+        "pusieron una bota en mi carro"
+      ],
+      "slots": [
+        {
+          "name": "TowLocation",
+          "slotType": "LocationAddress",
+          "required": true,
+          "promptEn": "Where was your vehicle when it was towed from?",
+          "promptEs": "¿De dónde se llevaron su vehículo?"
+        },
+        {
+          "name": "TowVehicleDescription",
+          "slotType": "FreeText",
+          "required": true,
+          "promptEn": "What's the year, make, model, color, and license plate of your vehicle?",
+          "promptEs": "¿Cuál es el año, marca, modelo, color y placa de su vehículo?"
+        },
+        {
+          "name": "TowCompanyInfo",
+          "slotType": "FreeText",
+          "required": false,
+          "promptEn": "Do you know the name of the tow company, or did you see the truck?",
+          "promptEs": "¿Sabe el nombre de la empresa de grúa, o vio el camión?"
+        },
+        {
+          "name": "TowCallbackNumber",
+          "slotType": "AMAZON.PhoneNumber",
+          "required": true,
+          "promptEn": "What's the best number to reach you?",
+          "promptEs": "¿Cuál es el mejor número para contactarle?"
+        }
+      ],
+      "confirmationEn": "I have a tow complaint. Your {TowVehicleDescription} was towed from {TowLocation}. Is that correct?",
+      "confirmationEs": null
+    },
+    {
+      "name": "VandalismDamage",
+      "utterancesEn": [
+        "vandalism",
+        "someone vandalized my property",
+        "graffiti",
+        "someone tagged my building",
+        "my fence was damaged",
+        "someone keyed my car",
+        "my car was keyed",
+        "someone broke my window",
+        "property damage",
+        "someone spray painted my wall",
+        "they broke my mailbox",
+        "someone smashed my sign",
+        "damage to my property",
+        "eggs on my car",
+        "someone threw rocks through my window",
+        "my fence was knocked over"
+      ],
+      "utterancesEs": [
+        "vandalismo",
+        "pintaron grafiti en mi propiedad",
+        "dañaron mi propiedad",
+        "le rayaron mi carro",
+        "rompieron mi ventana",
+        "tiraron huevos a mi carro",
+        "me rompieron el buzón",
+        "pintaron mi barda",
+        "daños a la propiedad"
+      ],
+      "slots": [
+        {
+          "name": "VandalismLocation",
+          "slotType": "LocationAddress",
+          "required": true,
+          "promptEn": "What's the address of the property that was damaged?",
+          "promptEs": "¿Cuál es la dirección de la propiedad que fue dañada?"
+        },
+        {
+          "name": "VandalismDescription",
+          "slotType": "FreeText",
+          "required": true,
+          "promptEn": "What was damaged and how?",
+          "promptEs": "¿Qué fue dañado y cómo?"
+        },
+        {
+          "name": "VandalismWhenOccurred",
+          "slotType": "IncidentTimeframe",
+          "required": true,
+          "promptEn": "When did you discover the damage?",
+          "promptEs": "¿Cuándo descubrió el daño?"
+        },
+        {
+          "name": "VandalismSuspectInfo",
+          "slotType": "FreeText",
+          "required": false,
+          "promptEn": "Did you see anyone do this or do you have any idea who's responsible?",
+          "promptEs": "¿Vio a alguien hacerlo o sabe quién pudo ser responsable?"
+        }
+      ],
+      "confirmationEn": "I have a vandalism report at {VandalismLocation}. Damage: {VandalismDescription}. Discovered: {VandalismWhenOccurred}. Is that correct?",
+      "confirmationEs": null
+    },
+    {
+      "name": "CodeEnforcementComplaint",
+      "utterancesEn": [
+        "code enforcement complaint",
+        "property violation",
+        "there's trash piled up at a house",
+        "overgrown grass",
+        "high grass",
+        "tall weeds",
+        "junk cars in the yard",
+        "abandoned property",
+        "condemned building",
+        "illegal business operating",
+        "someone is running a business out of their house",
+        "illegal construction",
+        "building without a permit",
+        "health hazard",
+        "property is a mess",
+        "nuisance property"
+      ],
+      "utterancesEs": [
+        "queja de código de construcción",
+        "hay basura acumulada en una casa",
+        "pasto muy alto",
+        "carros en el patio",
+        "propiedad abandonada",
+        "negocio ilegal en casa",
+        "construcción sin permiso"
+      ],
+      "slots": [
+        {
+          "name": "CodeEnforcementAddress",
+          "slotType": "LocationAddress",
+          "required": true,
+          "promptEn": "What's the address of the property?",
+          "promptEs": "¿Cuál es la dirección de la propiedad?"
+        },
+        {
+          "name": "CodeViolationDescription",
+          "slotType": "FreeText",
+          "required": true,
+          "promptEn": "What's the violation? For example, high grass, trash, junk cars, or something else?",
+          "promptEs": "¿Cuál es la infracción? Por ejemplo, pasto alto, basura, carros en desuso, u otra cosa?"
+        }
+      ],
+      "confirmationEn": "I have a code enforcement complaint at {CodeEnforcementAddress} — {CodeViolationDescription}. Is that right?",
+      "confirmationEs": null
+    },
+    {
+      "name": "PublicWorksIssue",
+      "utterancesEn": [
+        "public works issue",
+        "water main break",
+        "water is flooding the street",
+        "the street is flooded",
+        "pothole",
+        "there's a big pothole",
+        "streetlight is out",
+        "the stoplight is broken",
+        "the traffic light isn't working",
+        "water leak in the street",
+        "sewer backup",
+        "manhole cover is missing",
+        "road is damaged",
+        "sign is knocked down",
+        "tree fell in the road",
+        "there's a sinkhole",
+        "a pipe burst",
+        "water coming up from the street",
+        "water is gushing from the ground",
+        "the street caved in"
+      ],
+      "utterancesEs": [
+        "problema de obras públicas",
+        "se rompió una tubería",
+        "hay agua en la calle",
+        "el semáforo no funciona",
+        "la luz de la calle está apagada",
+        "hay un hoyo en el camino",
+        "drenaje bloqueado",
+        "se cayó un árbol en la calle",
+        "la coladera no tiene tapa",
+        "está saliendo agua del suelo"
+      ],
+      "slots": [
+        {
+          "name": "PublicWorksLocation",
+          "slotType": "LocationAddress",
+          "required": true,
+          "promptEn": "What's the location — address or nearest intersection?",
+          "promptEs": "¿Cuál es la ubicación — dirección o intersección más cercana?"
+        },
+        {
+          "name": "PublicWorksIssueType",
+          "slotType": "FreeText",
+          "required": true,
+          "promptEn": "What's the issue — a water main, pothole, traffic light, streetlight, or something else?",
+          "promptEs": "¿Cuál es el problema — tubería, bache, semáforo, luz de calle, u otra cosa?"
+        }
+      ],
+      "confirmationEn": null,
+      "confirmationEs": null
+    },
+    {
+      "name": "TrafficAccidentReportOnly",
+      "utterancesEn": [
+        "I was in an accident",
+        "fender bender",
+        "minor car accident",
+        "I need to file an accident report",
+        "hit and run",
+        "someone hit my car and drove off",
+        "my parked car was hit",
+        "someone backed into my car",
+        "car accident to report",
+        "accident with no injuries",
+        "car crash no one was hurt",
+        "accident report",
+        "I need a report number for insurance",
+        "vehicle accident report"
+      ],
+      "utterancesEs": [
+        "estuve en un accidente",
+        "choque menor",
+        "me golpearon el carro y se fueron",
+        "necesito un reporte de accidente",
+        "choque y fuga",
+        "alguien me golpeó el carro estacionado",
+        "accidente sin heridos",
+        "necesito el número de reporte para el seguro"
+      ],
+      "slots": [
+        {
+          "name": "AccidentLocation",
+          "slotType": "LocationAddress",
+          "required": true,
+          "promptEn": "Where did the accident happen?",
+          "promptEs": "¿Dónde ocurrió el accidente?"
+        },
+        {
+          "name": "AccidentWhen",
+          "slotType": "IncidentTimeframe",
+          "required": true,
+          "promptEn": "When did it happen?",
+          "promptEs": "¿Cuándo ocurrió?"
+        },
+        {
+          "name": "AccidentInjuries",
+          "slotType": "YesNoConfirmation",
+          "required": true,
+          "promptEn": "Were there any injuries?",
+          "promptEs": "¿Hubo heridos?"
+        },
+        {
+          "name": "OtherVehicleDescription",
+          "slotType": "FreeText",
+          "required": false,
+          "promptEn": "Can you describe the other vehicle involved, if there was one?",
+          "promptEs": "¿Puede describir el otro vehículo involucrado, si hubo alguno?"
+        },
+        {
+          "name": "AccidentCallbackNumber",
+          "slotType": "AMAZON.PhoneNumber",
+          "required": true,
+          "promptEn": "What's the best number to reach you?",
+          "promptEs": "¿Cuál es el mejor número para contactarle?"
+        }
+      ],
+      "confirmationEn": "I have a traffic accident to report at {AccidentLocation}, {AccidentWhen}, no injuries. Is that correct?",
+      "confirmationEs": null
+    },
+    {
+      "name": "OnlineReportEligibility",
+      "utterancesEn": [
+        "can I file a report online",
+        "where can I file a report",
+        "how do I report something online",
+        "can I do this on the website",
+        "I want to file a report online",
+        "can I fill out a report myself",
+        "do I need to talk to someone or can I do it online",
+        "where do I report vandalism online",
+        "can this be done online",
+        "I'd rather file this online",
+        "how do I make a report without calling"
+      ],
+      "utterancesEs": [
+        "¿puedo hacer un reporte en línea?",
+        "¿dónde puedo reportar esto?",
+        "¿puedo hacerlo en el sitio web?",
+        "quiero hacer un reporte por internet",
+        "¿cómo hago un reporte sin llamar?"
+      ],
+      "slots": [],
+      "confirmationEn": null,
+      "confirmationEs": null
+    },
+    {
+      "name": "RepeatCallCheck",
+      "utterancesEn": [
+        "I already called about this",
+        "I called earlier",
+        "I reported this already",
+        "I've been calling for hours",
+        "no one came",
+        "I called last night",
+        "I made a report but nothing happened",
+        "I called and no one showed up",
+        "I was told someone would come",
+        "following up on my earlier call",
+        "I have a reference number",
+        "checking on my report"
+      ],
+      "utterancesEs": [
+        "ya llamé antes sobre esto",
+        "llamé más temprano",
+        "ya reporté esto",
+        "nadie llegó",
+        "llamé anoche",
+        "tengo un número de referencia",
+        "quiero saber qué pasó con mi reporte",
+        "nadie vino"
+      ],
+      "slots": [
+        {
+          "name": "PriorReferenceNumber",
+          "slotType": "FreeText",
+          "required": false,
+          "promptEn": "Do you have a reference number from your earlier call?",
+          "promptEs": "¿Tiene un número de referencia de su llamada anterior?"
+        },
+        {
+          "name": "PriorCallbackNumber",
+          "slotType": "AMAZON.PhoneNumber",
+          "required": false,
+          "promptEn": "What phone number did you call from before, so we can look up your report?",
+          "promptEs": "¿Desde qué número llamó antes para que podamos buscar su reporte?"
+        }
+      ],
+      "confirmationEn": null,
+      "confirmationEs": null
+    },
+    {
+      "name": "InformationRequest",
+      "utterancesEn": [
+        "I have a question",
+        "I need information",
+        "where is the police station",
+        "what are the police station hours",
+        "how do I get a police report copy",
+        "how do I get a copy of an incident report",
+        "how do I contest a parking ticket",
+        "how do I get a restraining order",
+        "how do I file a complaint against an officer",
+        "what's the non-emergency number",
+        "can I get a fingerprint done",
+        "sex offender registry",
+        "how do I register my alarm",
+        "are there sex offenders in my area",
+        "who do I call for noise complaints",
+        "how do I get a gun permit"
+      ],
+      "utterancesEs": [
+        "tengo una pregunta",
+        "necesito información",
+        "¿dónde está la estación de policía?",
+        "¿cuáles son las horas de la estación?",
+        "¿cómo obtengo una copia del reporte?",
+        "¿cómo contesto una multa de estacionamiento?",
+        "¿cómo solicito una orden de restricción?",
+        "número de teléfono no emergencias",
+        "¿cómo registro mi alarma?",
+        "¿cómo obtengo un permiso de arma?"
+      ],
+      "slots": [
+        {
+          "name": "InformationTopic",
+          "slotType": "FreeText",
+          "required": true,
+          "promptEn": "Sure — what do you need information about?",
+          "promptEs": "Claro — ¿sobre qué necesita información?"
+        }
+      ],
+      "confirmationEn": null,
+      "confirmationEs": null
+    },
+    {
+      "name": "FallbackIntent",
+      "utterancesEn": [],
+      "utterancesEs": [],
+      "slots": [],
+      "confirmationEn": null,
+      "confirmationEs": null
+    }
+  ]
+}

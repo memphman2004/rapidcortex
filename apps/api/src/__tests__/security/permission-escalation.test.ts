@@ -94,7 +94,7 @@ describe("permission escalation (RBAC)", () => {
     const res = await invokeHttpHandler(
       patchIncidentHandler,
       makeAuthenticatedEvent({
-        role: "commsupervisor",
+        role: "supervisor",
         agencyId: "harris-tx",
         userId: "sup-a",
         pathParameters: { id: "inc-s" },
