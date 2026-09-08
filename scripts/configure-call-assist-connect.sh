@@ -1,4 +1,9 @@
 #!/usr/bin/env bash
+# MANUAL EXAMPLE — used for first-tenant Connect wiring.
+# Production onboarding uses POST /api/call-assist/onboarding (then POST .../did).
+# This script was used for KCPD manual onboarding and still defaults LEX_BOT_ID to that
+# first-tenant bot. Set LEX_BOT_ID / LEX_BOT_ALIAS_ID / CALL_ASSIST_AGENCY_ID for agency #2+.
+#
 # Configure Amazon Connect for RC Call Assist (same order as the console runbook).
 # Does not claim a DID until the flow is imported and all three Lambda associations exist.
 #
@@ -10,7 +15,8 @@
 #   CONNECT_INSTANCE_ID   skip instance create/lookup
 #   CONNECT_INSTANCE_ALIAS default rapid-cortex
 #   CLAIM_DID=0           import + associate only (no phone number)
-#   PHONE_NUMBER_PREFIX   default +1816 (Kansas City); falls back to any US DID
+#   PHONE_NUMBER_PREFIX   optional NPA (e.g. +1816 for first-tenant KC). Empty = any US DID.
+#   CALL_ASSIST_AGENCY_ID first-tenant default kcpd; set this for agency #2+
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
@@ -29,14 +35,15 @@ STAGE="${1:-dev}"
 ALIAS="${CONNECT_INSTANCE_ALIAS:-rapid-cortex}"
 FLOW_NAME="Call Assist"
 QUEUE_NAME="Demo Dispatcher"
-BOT_ALIAS_ARN="arn:aws:lex:${REGION}:${ACCOUNT}:bot-alias/IJIBJOJG2L/0CNPVSCF4V"
+BOT_ALIAS_ARN="arn:aws:lex:${REGION}:${ACCOUNT}:bot-alias/${LEX_BOT_ID:-IJIBJOJG2L}/${LEX_BOT_ALIAS_ID:-0CNPVSCF4V}"
 LAMBDAS=(
   "arn:aws:lambda:${REGION}:${ACCOUNT}:function:rapid-cortex-lex-dialog-hook-${STAGE}"
   "arn:aws:lambda:${REGION}:${ACCOUNT}:function:rapid-cortex-lex-fulfillment-hook-${STAGE}"
   "arn:aws:lambda:${REGION}:${ACCOUNT}:function:rapid-cortex-lex-agency-for-number-${STAGE}"
 )
 CLAIM_DID="${CLAIM_DID:-1}"
-PHONE_NUMBER_PREFIX="${PHONE_NUMBER_PREFIX:-+1816}"
+PHONE_NUMBER_PREFIX="${PHONE_NUMBER_PREFIX:-}"
+CALL_ASSIST_AGENCY_ID="${CALL_ASSIST_AGENCY_ID:-kcpd}"
 
 aws_ok() {
   aws "$@" --region "${REGION}"
@@ -143,10 +150,15 @@ fi
 
 FLOW_SRC="${ROOT}/connect/contact-flow-call-assist.json"
 FLOW_TMP="$(mktemp)"
-python3 - "${FLOW_SRC}" "${FLOW_TMP}" "${QUEUE_ARN}" <<'PY'
+python3 - "${FLOW_SRC}" "${FLOW_TMP}" "${QUEUE_ARN}" "${BOT_ALIAS_ARN}" <<'PY'
 import json, sys
-src, dest, queue_arn = sys.argv[1], sys.argv[2], sys.argv[3]
-raw = open(src, encoding="utf-8").read().replace("__DEMO_QUEUE_ARN__", queue_arn)
+src, dest, queue_arn, bot_alias_arn = sys.argv[1], sys.argv[2], sys.argv[3], sys.argv[4]
+raw = (
+    open(src, encoding="utf-8")
+    .read()
+    .replace("__DEMO_QUEUE_ARN__", queue_arn)
+    .replace("{{lexBotAliasArn}}", bot_alias_arn)
+)
 data = json.loads(raw)
 open(dest, "w", encoding="utf-8").write(json.dumps(data, separators=(",", ":")))
 PY
@@ -224,16 +236,19 @@ if [[ -n "${EXISTING_DID}" && "${EXISTING_DID}" != "None" ]]; then
     --query "ListPhoneNumbersSummaryList[?PhoneNumber==\`${PHONE}\`].PhoneNumberId | [0]" --output text)"
   echo "→ Reusing claimed DID ${PHONE}"
 else
-  echo "→ Searching available US DIDs (prefix ${PHONE_NUMBER_PREFIX}, never 911)"
-  CANDIDATE="$(aws_ok connect search-available-phone-numbers \
-    --target-arn "${INSTANCE_ARN}" \
-    --phone-number-country-code US \
-    --phone-number-type DID \
-    --phone-number-prefix "${PHONE_NUMBER_PREFIX}" \
-    --max-results 5 \
-    --query 'AvailableNumbersList[0].PhoneNumber' --output text 2>/dev/null || true)"
+  echo "→ Searching available US DIDs${PHONE_NUMBER_PREFIX:+ (prefix ${PHONE_NUMBER_PREFIX})}, never 911"
+  CANDIDATE=""
+  if [[ -n "${PHONE_NUMBER_PREFIX}" ]]; then
+    CANDIDATE="$(aws_ok connect search-available-phone-numbers \
+      --target-arn "${INSTANCE_ARN}" \
+      --phone-number-country-code US \
+      --phone-number-type DID \
+      --phone-number-prefix "${PHONE_NUMBER_PREFIX}" \
+      --max-results 5 \
+      --query 'AvailableNumbersList[0].PhoneNumber' --output text 2>/dev/null || true)"
+  fi
   if [[ -z "${CANDIDATE}" || "${CANDIDATE}" == "None" ]]; then
-    echo "   no ${PHONE_NUMBER_PREFIX} numbers; searching any US DID"
+    echo "   searching any US DID"
     CANDIDATE="$(aws_ok connect search-available-phone-numbers \
       --target-arn "${INSTANCE_ARN}" \
       --phone-number-country-code US \
@@ -266,12 +281,15 @@ aws_ok connect associate-phone-number-contact-flow \
   --contact-flow-id "${FLOW_ID}"
 
 echo "→ Updating DID lookup (CONFIG#tenant + __did_index__/PHONE#) to the claimed Connect number"
+export AGENCY_ID="${CALL_ASSIST_AGENCY_ID}"
+export CALL_ASSIST_TEST_DID="${PHONE}"
 export KCPD_TEST_DID="${PHONE}"
 export LEX_BOT_ID="${LEX_BOT_ID:-IJIBJOJG2L}"
 export LEX_BOT_ALIAS_ID="${LEX_BOT_ALIAS_ID:-0CNPVSCF4V}"
 export CALL_ASSIST_TABLE="${CALL_ASSIST_TABLE:-rapid-cortex-call-assist-${STAGE}}"
-export CALL_ASSIST_SEED_PROFILE=kcpd
-bash "${ROOT}/scripts/seed-kcpd-connect.sh"
+# First-tenant bootstrap still defaults to the kcpd overlay; set CALL_ASSIST_SEED_PROFILE= for agency #2+.
+export CALL_ASSIST_SEED_PROFILE="${CALL_ASSIST_SEED_PROFILE:-kcpd}"
+bash "${ROOT}/scripts/seed-call-assist-tenant.sh"
 
 echo
 echo "CONNECT_INSTANCE_ID=${INSTANCE_ID}"

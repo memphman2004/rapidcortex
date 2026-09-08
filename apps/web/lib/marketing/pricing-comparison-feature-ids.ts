@@ -55,7 +55,7 @@ export const PRICING_COMPARISON_ROW_FEATURE_IDS: Record<string, string> = {
   "Custom security / compliance review": "custom_security_compliance_review",
   "LiveLocation caller location (SMS GPS link)": "livelocation_secure_caller_share",
   "Surge View duplicate-call clustering": "surge_view_related_calls",
-  "Operational maps (Mapbox workspace)": "operational_maps_mapbox",
+  "Operational maps (ALS workspace)": "operational_maps_als",
   "Multi-vendor CAD adapter framework": "cad_vendor_adapter",
   "Low-latency CAD delivery (vendor + deployment)": "cad_delivery_latency_profiles",
   "Unit overlays on maps (when AVL / CAD exposes positions)": "cad_map_unit_overlay",

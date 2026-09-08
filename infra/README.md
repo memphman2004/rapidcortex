@@ -50,7 +50,7 @@ Runtime access for Lambdas is defined in the SAM template: **per-function** Dyna
 | Policy | File | Scope |
 | --- | --- | --- |
 | `rapid-cortex-deploy-policy` | [`infra/iam/sam-deploy-policy.prod.json`](iam/sam-deploy-policy.prod.json) | CFN/SAM, Lambda, API GW, DynamoDB, Cognito, IAM roles, Route53, ACM, S3 assets, **drift detect**, **EventBridge Scheduler** (`scheduler:*` — needed for SAM2 retention schedule / `RetentionExecutorInvokePermission`) |
-| `rapid-cortex-deploy-policy-web` | [`infra/iam/sam-deploy-policy-web.prod.json`](iam/sam-deploy-policy-web.prod.json) | ECR, CodeBuild, ECS, web CFN read, CloudFront invalidation, Mapbox SSM |
+| `rapid-cortex-deploy-policy-web` | [`infra/iam/sam-deploy-policy-web.prod.json`](iam/sam-deploy-policy-web.prod.json) | ECR, CodeBuild, ECS, web CFN read, CloudFront invalidation, ALS Identity Pool SSM |
 
 Templates with `REPLACE_*` placeholders: [`sam-deploy-policy.json`](iam/sam-deploy-policy.json) + [`sam-deploy-policy-web.json`](iam/sam-deploy-policy-web.json). Apply prod policies (admin, account **158961537080**):
 
@@ -81,7 +81,7 @@ aws cloudfront create-invalidation \
   --paths "/*"
 ```
 
-Until IAM is applied, web prod deploy can use `scripts/.deploy-secrets.local.sh` (copy from `.deploy-secrets.local.example.sh`) with `NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN`.
+Until IAM is applied, web prod deploy can use `scripts/.deploy-secrets.local.sh` (copy from `.deploy-secrets.local.example.sh`) with `NEXT_PUBLIC_ALS_IDENTITY_POOL_ID`.
 
 For reproducible artifact buckets (tighter S3 IAM), create a bucket (for example `rapid-cortex-sam-artifacts-prod`) and pass `sam deploy --s3-bucket ...` instead of only `--resolve-s3`.
 

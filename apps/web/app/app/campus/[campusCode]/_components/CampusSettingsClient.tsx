@@ -559,7 +559,7 @@ export function CampusSettingsClient({
           <SectionHeader
             icon={Map}
             title="Command map overlay"
-            description="HTTPS GeoJSON or ArcGIS FeatureServer drawn on the campus Mapbox map. Does not replace Mapbox."
+            description="HTTPS GeoJSON or ArcGIS FeatureServer drawn on the campus operational map. Does not replace Amazon Location Service tiles."
           />
           <Field
             label="Overlay URL"

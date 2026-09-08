@@ -2122,7 +2122,8 @@ Resources:
         Variables:
           COGNITO_USER_POOL_ID: !Ref CognitoUserPool
           COGNITO_CLIENT_ID: !Ref CognitoUserPoolClient
-          MAPBOX_SSM_PARAMETER: /rapidcortex/prod/mapbox/public-token
+          ALS_PLACE_INDEX_NAME: !Sub "rc-places-${DeploymentStage}"
+          ALS_LOCATION_MOCK: "false"
       CodeUri: ../../apps/api/
       Handler: dist/handlers/createIncident.handler
       Policies:
@@ -2134,8 +2135,8 @@ Resources:
         - Statement:
             - Effect: Allow
               Action:
-                - ssm:GetParameter
-              Resource: !Sub arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/rapidcortex/prod/mapbox/public-token
+                - geo:SearchPlaceIndexForText
+              Resource: !Sub arn:aws:geo:${AWS::Region}:${AWS::AccountId}:place-index/rc-places-${DeploymentStage}
 
       Events:
         Route:
@@ -2209,7 +2210,8 @@ Resources:
         Variables:
           COGNITO_USER_POOL_ID: !Ref CognitoUserPool
           COGNITO_CLIENT_ID: !Ref CognitoUserPoolClient
-          MAPBOX_SSM_PARAMETER: /rapidcortex/prod/mapbox/public-token
+          ALS_PLACE_INDEX_NAME: !Sub "rc-places-${DeploymentStage}"
+          ALS_LOCATION_MOCK: "false"
       CodeUri: ../../apps/api/
       Handler: dist/handlers/patchIncident.handler
       Policies:
@@ -2221,8 +2223,8 @@ Resources:
         - Statement:
             - Effect: Allow
               Action:
-                - ssm:GetParameter
-              Resource: !Sub arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/rapidcortex/prod/mapbox/public-token
+                - geo:SearchPlaceIndexForText
+              Resource: !Sub arn:aws:geo:${AWS::Region}:${AWS::AccountId}:place-index/rc-places-${DeploymentStage}
 
       Events:
         Route:

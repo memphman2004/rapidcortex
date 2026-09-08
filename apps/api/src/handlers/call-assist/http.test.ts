@@ -14,6 +14,10 @@ vi.mock("../../call-assist/store.js", () => ({
     putSession: vi.fn(),
     putSurvey: vi.fn(),
     listSurveys: vi.fn(async () => []),
+    listTenantConfigs: vi.fn(async () => []),
+    getConfig: vi.fn(async () => null),
+    putConfig: vi.fn(),
+    enqueueRebuild: vi.fn(),
     listExternal: vi.fn(async () => []),
     putExternal: vi.fn(),
     deleteExternal: vi.fn(),
@@ -128,5 +132,34 @@ describe("call-assist tenant override", () => {
     );
     expect(res.statusCode).toBe(400);
     expect(listSessions).not.toHaveBeenCalled();
+  });
+
+  it("lets RC operators list the Lex bot fleet without selecting an agency", async () => {
+    const res = await invokeHttpHandler(
+      handler,
+      makeAuthenticatedEvent({
+        role: "rcsuperadmin",
+        agencyId: "__platform__",
+        routeKey: "GET /api/call-assist/bots",
+        rawPath: "/api/call-assist/bots",
+      }),
+    );
+    expect(res.statusCode).toBe(200);
+    const body = JSON.parse(String(res.body ?? "{}")) as { templateVersion?: string; quota?: { limit?: number } };
+    expect(body.templateVersion).toBeTruthy();
+    expect(body.quota?.limit).toBeGreaterThan(0);
+  });
+
+  it("forbids agencyadmin from Lex bot fleet management", async () => {
+    const res = await invokeHttpHandler(
+      handler,
+      makeAuthenticatedEvent({
+        role: "agencyadmin",
+        agencyId: "kcpd",
+        routeKey: "GET /api/call-assist/bots",
+        rawPath: "/api/call-assist/bots",
+      }),
+    );
+    expect(res.statusCode).toBe(403);
   });
 });

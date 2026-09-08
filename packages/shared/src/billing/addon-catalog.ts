@@ -1239,6 +1239,56 @@ export const ADDON_CATALOG: AddonDefinition[] = [
     featureFlag: "callAssist",
   }),
 
+  withLegacyIncludedInPlans({
+    key: "vertical.alerts.module",
+    name: "Emergency Alert Broadcast",
+    category: "Vertical Operations",
+    description:
+      "Occupant mass notification from campus, venue, and transit consoles. Delivery is initiated within 3 seconds (web dashboard is sub-3s for open sessions). SMS requires a dedicated short code — not the inbound 10DLC reporting number.",
+    billingType: "monthly",
+    monthlyPrice: 1500,
+    oneTimePrice: 0,
+    planAvailability: professionalPlus,
+    featureFlag: "verticalAlerts",
+  }),
+  withLegacyIncludedInPlans({
+    key: "vertical.alerts.short_code",
+    name: "Emergency Alert Short Code (pass-through)",
+    category: "Vertical Operations",
+    description:
+      "Dedicated short-code pass-through for mass outbound SMS. Procurement typically takes 8–12 weeks. Carrier delivery for 50,000 phones is typically 8–15 minutes — not 3 seconds.",
+    billingType: "monthly",
+    monthlyPrice: 750,
+    oneTimePrice: 0,
+    planAvailability: commandPlus,
+    featureFlag: "verticalAlerts",
+  }),
+  withLegacyIncludedInPlans({
+    key: "campus.clery.module",
+    name: "Clery Act Compliance Module",
+    category: "Vertical Operations",
+    description:
+      "Statutory Clery Act workflow: CSA registry, human classification, Daily Crime Log (2 business days), public crime log, and ASR statistics. Does not constitute legal advice.",
+    billingType: "monthly",
+    monthlyPrice: 417,
+    oneTimePrice: 0,
+    planAvailability: commandPlus,
+    featureFlag: "cleryModule",
+    verticalRequired: "campus",
+  }),
+  withLegacyIncludedInPlans({
+    key: "physical.security.module",
+    name: "Physical Security Ingest",
+    category: "Vertical Operations",
+    description:
+      "Fire panel and access-control event ingest. Outbound lock/unlock commands are a separate fail-closed flag and require human approval.",
+    billingType: "monthly",
+    monthlyPrice: 2500,
+    oneTimePrice: 0,
+    planAvailability: commandPlus,
+    featureFlag: "physicalSecurityIngest",
+  }),
+
   // Platform Security & Administration
   withLegacyIncludedInPlans({
     key: "platform_security.deception_shield",

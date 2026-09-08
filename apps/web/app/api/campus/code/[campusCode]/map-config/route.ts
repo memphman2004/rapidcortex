@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { getDashboardSessionUser } from "@/lib/dashboards/get-dashboard-session";
 import { buildCampusMapConfig } from "@/lib/campus/operational-map/campus-map-config";
 
-/** Always 200 for authenticated users — missing OSM coverage is mapbox2d, never 404. */
+/** Always 200 for authenticated users — missing OSM coverage is als2d, never 404. */
 export async function GET(
   _request: Request,
   { params }: { params: Promise<{ campusCode: string }> },

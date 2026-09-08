@@ -35,16 +35,41 @@ export function buildCadPayload(
     agencyId,
     natureCode: callType?.cadNatureCode ?? config.cadNatureMapping[callTypeId] ?? null,
     priority: callType?.defaultPriority ?? 3,
-    location: slots.location ?? slots.building ?? slots.section ?? null,
-    crossStreets: slots.crossStreets ?? null,
+    location:
+      slots.location ??
+      slots.building ??
+      slots.section ??
+      slots.NoiseLocation ??
+      slots.SuspiciousLocation ??
+      slots.VehicleLocation ??
+      slots.ParkingLocation ??
+      slots.TheftLocation ??
+      slots.WelfareCheckAddress ??
+      slots.AnimalLocation ??
+      slots.AccidentLocation ??
+      slots.VandalismLocation ??
+      slots.CodeEnforcementAddress ??
+      slots.PublicWorksLocation ??
+      slots.BurglaryVehicleLocation ??
+      slots.TowLocation ??
+      null,
+    crossStreets: slots.crossStreets ?? slots.PersonDirection ?? null,
     aptBusiness: slots.aptBusiness ?? null,
     callerName: slots.callerName ?? null,
-    callbackNumber: slots.callbackNumber ?? null,
+    callbackNumber:
+      slots.callbackNumber ??
+      slots.CallbackNumber ??
+      slots.TheftCallbackNumber ??
+      slots.TowCallbackNumber ??
+      slots.WelfareCheckCallerCallback ??
+      slots.AccidentCallbackNumber ??
+      null,
     vehicleDesc: buildVehicleDesc(slots),
     licensePlate: slots.licensePlate ?? null,
-    suspectDesc: slots.suspectDesc ?? null,
-    weaponsPresent: toBoolean(slots.weapons),
-    injuriesPresent: toBoolean(slots.injuries) || toBoolean(slots.medicalNeeded),
+    suspectDesc: slots.suspectDesc ?? slots.PersonDescription ?? slots.TheftSuspectInfo ?? slots.VandalismSuspectInfo ?? null,
+    weaponsPresent: toBoolean(slots.weapons) || toBoolean(slots.WeaponVisible),
+    injuriesPresent:
+      toBoolean(slots.injuries) || toBoolean(slots.medicalNeeded) || toBoolean(slots.AccidentInjuries),
     notes: buildNotes(slots),
     aiGenerated: true,
     requiresHumanReview: true,

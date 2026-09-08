@@ -1,12 +1,12 @@
 'use client';
 
 import { useEffect, useRef } from "react";
-import mapboxgl from "mapbox-gl";
+import maplibregl from "maplibre-gl";
 
 export type ResponderType = "police" | "fire" | "ems" | "supervisor";
 
 export interface ResponderMarkerProps {
-  map: mapboxgl.Map | null;
+  map: maplibregl.Map | null;
   unitId: string;
   latitude: number;
   longitude: number;
@@ -40,7 +40,7 @@ export function ResponderMarker({
   status,
   heading = 0,
 }: ResponderMarkerProps) {
-  const markerRef = useRef<mapboxgl.Marker | null>(null);
+  const markerRef = useRef<maplibregl.Marker | null>(null);
 
   useEffect(() => {
     if (!map) return;
@@ -64,7 +64,7 @@ export function ResponderMarker({
     `;
       el.textContent = RESPONDER_ICONS[type];
 
-      const popup = new mapboxgl.Popup({ offset: 25 }).setHTML(`
+      const popup = new maplibregl.Popup({ offset: 25 }).setHTML(`
       <div style="font-family: system-ui; padding: 10px; color: #111;">
         <div style="font-size: 16px; font-weight: bold; margin-bottom: 6px;">
           ${RESPONDER_ICONS[type]} ${escapeHtml(callsign)}
@@ -77,7 +77,7 @@ export function ResponderMarker({
     `);
 
       const lngLat: [number, number] = [longitude, latitude];
-      const next = new mapboxgl.Marker({ element: el, rotation: heading })
+      const next = new maplibregl.Marker({ element: el, rotation: heading })
         .setLngLat(lngLat)
         .setPopup(popup)
         .addTo(map);

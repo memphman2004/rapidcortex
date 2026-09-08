@@ -142,6 +142,7 @@ export const transitIncidentSchema = z.object({
   lat: z.number().min(-90).max(90).optional(),
   lng: z.number().min(-180).max(180).optional(),
   escalatedTo911: z.boolean().optional(),
+  source: z.enum(["qr", "sms", "ops", "physical_security"]).optional(),
   createdByUserId: z.string().trim().max(128).optional(),
   createdAt: z.string().datetime(),
   updatedAt: z.string().datetime(),

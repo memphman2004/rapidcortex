@@ -1,10 +1,8 @@
-import type mapboxgl from "mapbox-gl";
-
 export type MapKitTokenProvider = () => Promise<string>;
 
 export type MapKitMapInstance = mapkit.Map;
 
-export type MapboxMapInstance = mapboxgl.Map;
+export type AlsMapInstance = import("maplibre-gl").Map;
 
 export interface LatLng {
   lat: number;

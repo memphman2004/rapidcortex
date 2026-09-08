@@ -50,6 +50,7 @@ export function CampusCleryWorkspace({
   const [building, setBuilding] = useState("");
   const [notes, setNotes] = useState("");
   const [unfounded, setUnfounded] = useState(false);
+  const [canUnfound, setCanUnfound] = useState(false);
 
   const [csvText, setCsvText] = useState(
     "occurredAt,category,geography,location,building,notes,externalRecordId,unfounded\n",
@@ -84,6 +85,15 @@ export function CampusCleryWorkspace({
     void refresh();
   }, [refresh]);
 
+  useEffect(() => {
+    void (async () => {
+      const res = await fetch("/api/campus/clery/csa/me", { cache: "no-store" });
+      if (!res.ok) return;
+      const data = (await res.json()) as { canUnfound?: boolean };
+      setCanUnfound(Boolean(data.canUnfound));
+    })();
+  }, []);
+
   async function onCreateManual(e: React.FormEvent) {
     e.preventDefault();
     if (!canManage) return;
@@ -104,7 +114,7 @@ export function CampusCleryWorkspace({
             location,
             building,
             notes,
-            unfounded,
+            unfounded: canUnfound && unfounded,
             includedInAsr: true,
           }),
         }),
@@ -508,14 +518,21 @@ export function CampusCleryWorkspace({
                   onChange={(e) => setNotes(e.target.value)}
                 />
               </label>
-              <label className="flex items-center gap-2 text-sm text-slate-300">
-                <input
-                  type="checkbox"
-                  checked={unfounded}
-                  onChange={(e) => setUnfounded(e.target.checked)}
-                />
-                Unfounded
-              </label>
+              {canUnfound ? (
+                <label className="flex items-center gap-2 text-sm text-slate-300">
+                  <input
+                    type="checkbox"
+                    checked={unfounded}
+                    onChange={(e) => setUnfounded(e.target.checked)}
+                  />
+                  Unfounded (sworn officer only)
+                </label>
+              ) : (
+                <p className="text-xs text-slate-500">
+                  Unfounding is disabled unless you are a sworn CSA with a badge number on file. Campus
+                  administrators cannot unfound crimes.
+                </p>
+              )}
               <button
                 type="submit"
                 disabled={busy}

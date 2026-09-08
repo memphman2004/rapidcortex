@@ -203,6 +203,29 @@ export async function createVenueQrIncident(
   });
 }
 
+export async function createVenuePhysicalIncident(input: {
+  venueCode: string;
+  agencyId: string;
+  zoneCode: string;
+  locationName: string;
+  description: string;
+  building?: string;
+}): Promise<CreateVenueQrIncidentResult> {
+  return createVenueIntakeIncident({
+    venueCode: input.venueCode,
+    agencyId: input.agencyId,
+    zoneCode: input.zoneCode,
+    locationName: input.locationName,
+    helpType: "security",
+    description: input.description,
+    source: "physical_security",
+    origin: "physical_security_ingest",
+    actorId: "physical-security-ingest",
+    isAnonymous: true,
+    building: input.building,
+  });
+}
+
 export async function createVenueSmsIncident(input: {
   agencyId: string;
   parsed: ParsedVenueSms;

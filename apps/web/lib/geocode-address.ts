@@ -1,6 +1,6 @@
 /**
- * Mapbox forward geocode for incident addresses.
- * Uses the public Mapbox token already baked into the web app.
+ * Browser geocode via authenticated Lambda. ALS credentials never leave the API.
+ * The unused second argument is kept so older callers still compile.
  */
 
 export type GeocodeResult = {
@@ -11,28 +11,26 @@ export type GeocodeResult = {
 
 export async function geocodeAddress(
   address: string,
-  mapboxToken: string,
-  opts?: { types?: string },
+  _unusedToken?: string,
+  _opts?: { types?: string },
 ): Promise<GeocodeResult | null> {
   const query = address.trim();
-  const token = mapboxToken.trim();
-  if (!query || !token) return null;
+  if (!query) return null;
 
-  const types = opts?.types ?? "address,place,poi";
-  const url = `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(query)}.json?access_token=${encodeURIComponent(token)}&types=${encodeURIComponent(types)}&limit=1`;
-  const res = await fetch(url);
+  const qs = new URLSearchParams({ address: query });
+  const res = await fetch(`/api/location/geocode?${qs.toString()}`, {
+    credentials: "include",
+  });
   if (!res.ok) return null;
 
   const data = (await res.json()) as {
-    features?: { center?: [number, number]; place_name?: string }[];
+    results?: Array<{ latitude?: number; longitude?: number; formattedAddress?: string }>;
   };
-  const feature = data.features?.[0];
-  if (!feature?.center || feature.center.length < 2) return null;
-  const [lng, lat] = feature.center;
-  if (!Number.isFinite(lat) || !Number.isFinite(lng)) return null;
+  const first = data.results?.[0];
+  if (!first || !Number.isFinite(first.latitude) || !Number.isFinite(first.longitude)) return null;
   return {
-    lat,
-    lng,
-    placeName: feature.place_name?.trim() || query,
+    lat: first.latitude!,
+    lng: first.longitude!,
+    placeName: first.formattedAddress?.trim() || query,
   };
 }

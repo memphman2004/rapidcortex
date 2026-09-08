@@ -181,6 +181,9 @@ Resources:
         ChildDirected: false
       IdleSessionTTLInSeconds: 300
       AutoBuildBotLocales: true
+      # BotLocales generated from connect/lex-bot-complete-spec.md via
+      # scripts/generate-lex-bot-locales.py. Live DRAFT is synced with
+      # scripts/sync-lex-bot-draft.py (does not update live-* alias).
       BotLocales:
         - LocaleId: en_US
           NluConfidenceThreshold: 0.7

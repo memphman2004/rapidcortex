@@ -103,9 +103,10 @@ describe("intake, CARFAX, questioning", () => {
 });
 
 describe("demo library", () => {
-  it("seeds all 10 KCPD evaluation scenarios", () => {
+  it("ships 10 base evaluation templates and keeps the first-tenant overlay ids", () => {
     expect(KCPD_RFP_DEMO_SCENARIOS).toHaveLength(10);
     expect(getDemoScenarioById("kcpd-s07")?.expectedTransferTrigger).toBe("EMERGENCY");
+    expect(getDemoScenarioById("demo-non-emergency-reveals-emergency")?.expectedTransferTrigger).toBe("EMERGENCY");
   });
 });
 

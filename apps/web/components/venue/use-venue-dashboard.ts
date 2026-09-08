@@ -63,7 +63,8 @@ export function useVenueDashboard(agencyId: string) {
       msg.type === "incident:created" ||
       msg.type === "incident:updated" ||
       msg.type === "staff:status-changed" ||
-      msg.type === "venue:notification-sent"
+      msg.type === "venue:notification-sent" ||
+      msg.type === "PHYSICAL_SECURITY_EVENT"
     ) {
       void refresh();
     }

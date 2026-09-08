@@ -26,7 +26,8 @@ export type CampusIncidentSource =
   | "alpr"
   | "alarm"
   | "sensor"
-  | "webhook";
+  | "webhook"
+  | "physical_security";
 
 export type CampusLocationSource = "GPS" | "CELL_TOWER" | "MANUAL";
 

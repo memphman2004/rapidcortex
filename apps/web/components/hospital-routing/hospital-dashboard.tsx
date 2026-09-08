@@ -2,11 +2,12 @@
 
 import { useCallback, useEffect, useState } from "react";
 import type { HospitalPatientNeeds, HospitalRecommendation } from "rapid-cortex-shared";
-import { RapidCortexMap } from "rapid-cortex-maps";
-import type mapboxgl from "mapbox-gl";
-import mapboxglLib from "mapbox-gl";
+import { RapidCortexMap, RouteLayer } from "rapid-cortex-maps";
+import type maplibregl from "maplibre-gl";
+import maplibreglLib from "maplibre-gl";
 
 import { fetchHospitalRecommendations } from "@/lib/hospital-routing/api";
+import { fetchAlsRoute } from "@/lib/location/fetch-route";
 import { HospitalDetailModal } from "./hospital-detail-modal";
 import { HospitalMarker } from "./hospital-marker";
 import { HospitalTable } from "./hospital-table";
@@ -22,14 +23,14 @@ function IncidentLocationMarker({
   latitude,
   longitude,
 }: {
-  map: mapboxgl.Map;
+  map: maplibregl.Map;
   latitude: number;
   longitude: number;
 }) {
   useEffect(() => {
-    const marker = new mapboxglLib.Marker({ color: "#DC2626", scale: 1.2 })
+    const marker = new maplibreglLib.Marker({ color: "#DC2626", scale: 1.2 })
       .setLngLat([longitude, latitude])
-      .setPopup(new mapboxglLib.Popup().setHTML("<strong>Incident location</strong>"))
+      .setPopup(new maplibreglLib.Popup().setHTML("<strong>Incident location</strong>"))
       .addTo(map);
     return () => {
       marker.remove();
@@ -43,12 +44,14 @@ export function HospitalDashboard({
   patientNeeds,
   onSelectForTransport,
 }: HospitalDashboardProps) {
-  const [map, setMap] = useState<mapboxgl.Map | null>(null);
+  const [map, setMap] = useState<maplibregl.Map | null>(null);
   const [recommendations, setRecommendations] = useState<HospitalRecommendation[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [selectedHospital, setSelectedHospital] = useState<string | null>(null);
   const [detailHospitalId, setDetailHospitalId] = useState<string | null>(null);
+  const [routeGeometry, setRouteGeometry] = useState<[number, number][]>([]);
+  const [routeSummary, setRouteSummary] = useState<{ miles: number; minutes: number } | null>(null);
 
   const loadRecommendations = useCallback(async () => {
     if (!incidentLocation) {
@@ -75,6 +78,31 @@ export function HospitalDashboard({
     const interval = setInterval(() => void loadRecommendations(), 60_000);
     return () => clearInterval(interval);
   }, [loadRecommendations]);
+
+  const routeTarget =
+    recommendations.find((r) => r.hospitalId === selectedHospital) ?? recommendations[0];
+
+  useEffect(() => {
+    if (!incidentLocation || !routeTarget?.hospital.coordinates) {
+      setRouteGeometry([]);
+      setRouteSummary(null);
+      return;
+    }
+    let cancelled = false;
+    void fetchAlsRoute({
+      fromLng: incidentLocation.lon,
+      fromLat: incidentLocation.lat,
+      toLng: routeTarget.hospital.coordinates.longitude,
+      toLat: routeTarget.hospital.coordinates.latitude,
+    }).then((route) => {
+      if (cancelled || !route) return;
+      setRouteGeometry(route.geometry);
+      setRouteSummary({ miles: route.distanceMiles, minutes: route.durationMinutes });
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [incidentLocation, routeTarget?.hospitalId]);
 
   if (loading) {
     return (
@@ -112,6 +140,9 @@ export function HospitalDashboard({
             theme="dark"
             onMapLoad={setMap}
           >
+            {map && routeGeometry.length >= 2 ? (
+              <RouteLayer map={map} coordinates={routeGeometry} color="#3B82F6" width={3} />
+            ) : null}
             {map && (
               <IncidentLocationMarker
                 map={map}
@@ -138,6 +169,11 @@ export function HospitalDashboard({
             <p className="mt-1 text-emerald-400">Green — optimal</p>
             <p className="text-amber-400">Amber — acceptable</p>
             <p className="text-red-400">Red — limited / diversion</p>
+            {routeSummary ? (
+              <p className="mt-1 text-sky-300">
+                Route · {routeSummary.miles.toFixed(1)} mi · {routeSummary.minutes} min
+              </p>
+            ) : null}
           </div>
         </div>
 

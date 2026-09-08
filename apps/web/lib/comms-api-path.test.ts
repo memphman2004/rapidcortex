@@ -116,6 +116,9 @@ describe("isCommsPlatformApiPath", () => {
   it("matches campus prefix (stack 5)", () => {
     expect(isSam5ApiPath("/api/campus/analytics")).toBe(true);
     expect(isSam3ApiPath("/api/campus/analytics")).toBe(false);
+    expect(isSam5ApiPath("/api/public/crime-log/uga")).toBe(true);
+    expect(isSam5ApiPath("/api/physical-security/events")).toBe(true);
+    expect(isStack2ApiPath("/api/physical-security/events")).toBe(false);
   });
 
   it("matches call-intelligence prefix", () => {
@@ -168,6 +171,21 @@ describe("isCommsPlatformApiPath", () => {
     process.env.API_UPSTREAM_BASE_2 = "https://stack2.example.com";
     expect(isStack2ApiPath("/api/call-assist/sessions")).toBe(true);
     expect(resolveUpstreamApiBase("/api/call-assist/sessions")).toBe("https://stack2.example.com");
+  });
+
+  it("routes location geocode/route to stack 2 only", () => {
+    process.env.API_UPSTREAM_BASE = "https://stack1.example.com";
+    process.env.API_UPSTREAM_BASE_2 = "https://stack2.example.com";
+    expect(isStack2ApiPath("/api/location/geocode")).toBe(true);
+    expect(resolveUpstreamApiBase("/api/location/geocode")).toBe("https://stack2.example.com");
+    expect(resolveUpstreamApiBase("/api/location/route")).toBe("https://stack2.example.com");
+  });
+
+  it("routes vertical occupant alerts to stack 2", () => {
+    process.env.API_UPSTREAM_BASE = "https://stack1.example.com";
+    process.env.API_UPSTREAM_BASE_2 = "https://stack2.example.com";
+    expect(isStack2ApiPath("/api/alerts/dispatch")).toBe(true);
+    expect(resolveUpstreamApiBase("/api/alerts/dispatch")).toBe("https://stack2.example.com");
   });
 
   it("routes hiring ATS paths to stack 3", () => {

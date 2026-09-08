@@ -5,6 +5,7 @@ import { getDashboardSessionUser } from "@/lib/dashboards/get-dashboard-session"
 import { normalizeVenueRole } from "@/lib/venue/venue-dashboard-sections";
 import { isVenueGuestServicesRole } from "@/lib/venue/venue-guest-services";
 import { venueNavKeysForRole } from "@/lib/venue/venue-nav-access";
+import { VerticalAlertOverlay } from "@/components/alerts/vertical-alert-overlay";
 
 export default async function VenueLayout({
   children,
@@ -22,6 +23,7 @@ export default async function VenueLayout({
   return (
     <HelpChrome role={role}>
       <VenueShellThemeRoot>
+        <VerticalAlertOverlay />
         <div className="min-h-screen" style={{ fontFamily: VENUE_DASHBOARD_FONT_FAMILY }}>
           <VenueShellChrome
             venueCode={venueCode}

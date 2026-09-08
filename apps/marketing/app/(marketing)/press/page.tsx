@@ -102,7 +102,7 @@ const productFeatures = [
   },
   {
     title: "Live Command Maps",
-    body: "Command-center dark-theme Mapbox views for situational overlays—caller-shared pins live alongside unit markers where your CAD or AVL integration exposes positions.",
+    body: "Command-center dark-theme Amazon Location Service views for situational overlays—caller-shared pins live alongside unit markers where your CAD or AVL integration exposes positions.",
     Icon: Map,
   },
   {

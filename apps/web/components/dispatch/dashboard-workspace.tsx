@@ -440,7 +440,6 @@ export function DashboardWorkspace() {
         isApiConfigured() ? (
           <CreateIncidentButton
             userRole={user?.role}
-            mapboxToken={process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN}
             onCreated={handleIncidentCreated}
           />
         ) : undefined

@@ -1,22 +1,30 @@
 import type { APIGatewayProxyHandlerV2 } from "aws-lambda";
 import {
+  BOT_TEMPLATE_VERSION,
+  callAssistBotNeedsRebuild,
   CALL_ASSIST_BID_LINE_MATRIX,
+  CALL_ASSIST_VERTICAL_LABELS,
   callAssistAdminConfigPatchSchema,
   callAssistCadPushBodySchema,
+  callAssistDidClaimSchema,
   callAssistDemoRunSchema,
   callAssistExternalAgencyUpsertSchema,
   callAssistForceTransferBodySchema,
   callAssistKnowledgeUpsertSchema,
   callAssistLegalHoldBodySchema,
+  callAssistOnboardingInputSchema,
   callAssistRecordsRequestSchema,
   callAssistShiftPatchSchema,
   callAssistSurveySubmitSchema,
   callAssistUtteranceBodySchema,
+  callAssistVoiceConfigPatchSchema,
+  callAssistUiVerticalFromAgency,
+  estimatedLexBotRebuildMinutes,
   initiateCallAssistSessionSchema,
   isCallAssistOnboardingComplete,
+  isLexBotQuotaBlocking,
+  LEX_BOT_QUOTA_CONSOLE_URL,
   isRcInternalOperator,
-  CALL_ASSIST_VERTICAL_LABELS,
-  callAssistUiVerticalFromAgency,
   resolveAgencyTaxonomy,
   resolveCadPushLabel,
 } from "rapid-cortex-shared";
@@ -45,6 +53,10 @@ import {
   processUtterance,
 } from "../../call-assist/session-pipeline.js";
 import { listDemoScenariosForAgency, runDemoScenario } from "../../call-assist/demo-runner.js";
+import { callAssistOnboardingService } from "../../call-assist/onboarding/call-assist-onboarding-service.js";
+import { enqueueAllAgencyRebuilds, enqueueBotRebuild } from "../../call-assist/lex/bot-rebuild-queue.js";
+import { checkLexBotQuota, LexBotQuotaExhaustedError, readLexBotQuota } from "../../call-assist/lex/lex-quota.js";
+import { tenantToVoiceConfig } from "../../call-assist/voice-config-map.js";
 import { resolveCadProvider } from "../../call-assist/cad/resolve-provider.js";
 import { evaluateRmsDraftGate } from "../../call-assist/rms/rms-draft.js";
 import { loadCallAssistUiProfile } from "../../call-assist/build-ui-profile.js";
@@ -113,6 +125,183 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
     if (method === "GET" && parts[0] === "bid-matrix") {
       requirePerm(user, "call_assist.session.view");
       return withCorrelationHeaders(event, ok({ items: CALL_ASSIST_BID_LINE_MATRIX }));
+    }
+
+    if (method === "GET" && parts[0] === "bots" && parts[1] === "quota") {
+      requirePerm(user, "call_assist.bots.manage");
+      const quota = await readLexBotQuota();
+      return withCorrelationHeaders(
+        event,
+        ok({
+          quota,
+          templateVersion: BOT_TEMPLATE_VERSION,
+          quotaBlocking: isLexBotQuotaBlocking(quota.currentBotCount, quota.limit),
+          quotaConsoleUrl: LEX_BOT_QUOTA_CONSOLE_URL,
+        }),
+      );
+    }
+
+    if (method === "GET" && parts[0] === "bots" && parts.length === 1) {
+      requirePerm(user, "call_assist.bots.manage");
+      const [configs, quota] = await Promise.all([callAssistStore.listTenantConfigs(), readLexBotQuota()]);
+      const bots = configs.map((config) => ({
+        agencyId: config.agencyId,
+        agencyDisplayName: config.agencyDisplayName || config.agencyName || config.agencyId,
+        botName: config.lexBotName || null,
+        status: config.lexBotStatus || "NOT_CREATED",
+        templateVersion: config.lexBotTemplateVersion || null,
+        current: config.lexBotTemplateVersion === BOT_TEMPLATE_VERSION,
+        onboardingStatus: config.onboardingStatus || null,
+      }));
+      const provisioned = bots.filter((bot) => bot.botName || bot.status !== "NOT_CREATED").length;
+      const currentBotCount = Math.max(quota.currentBotCount, provisioned);
+      const fleetQuota = {
+        ...quota,
+        currentBotCount,
+        headroom: Math.max(0, quota.limit - currentBotCount),
+      };
+      const pendingRebuilds = bots.filter((bot) => callAssistBotNeedsRebuild(bot)).length;
+      return withCorrelationHeaders(
+        event,
+        ok({
+          bots,
+          quota: fleetQuota,
+          templateVersion: BOT_TEMPLATE_VERSION,
+          outdatedCount: bots.filter((bot) => bot.current === false && bot.status !== "NOT_CREATED").length,
+          pendingRebuilds,
+          estimatedRebuildMinutes: estimatedLexBotRebuildMinutes(pendingRebuilds),
+          quotaBlocking: isLexBotQuotaBlocking(currentBotCount, quota.limit),
+          quotaConsoleUrl: LEX_BOT_QUOTA_CONSOLE_URL,
+        }),
+      );
+    }
+
+    if (method === "POST" && parts[0] === "bots" && parts[1] === "rebuild-all-outdated") {
+      requirePerm(user, "call_assist.bots.manage");
+      const enqueued = await enqueueAllAgencyRebuilds();
+      await auditRepo.create({
+        eventId: makeId("audit"),
+        agencyId: user.agencyId,
+        actorId: user.userId,
+        type: AUDIT_EVENT_TYPES.CALL_ASSIST_BOTS_REBUILD_ENQUEUED,
+        details: { enqueued },
+        createdAt: new Date().toISOString(),
+        resourceType: "call_assist",
+        resourceId: "fleet",
+      });
+      return withCorrelationHeaders(event, ok({ enqueued }));
+    }
+
+    if (method === "POST" && parts[0] === "bots" && parts[2] === "rebuild" && parts[1]) {
+      requirePerm(user, "call_assist.bots.manage");
+      await enqueueBotRebuild(parts[1], BOT_TEMPLATE_VERSION, "MANUAL");
+      await auditRepo.create({
+        eventId: makeId("audit"),
+        agencyId: parts[1],
+        actorId: user.userId,
+        type: AUDIT_EVENT_TYPES.CALL_ASSIST_BOTS_REBUILD_ENQUEUED,
+        details: { agencyId: parts[1], reason: "MANUAL" },
+        createdAt: new Date().toISOString(),
+        resourceType: "call_assist",
+        resourceId: parts[1],
+      });
+      return withCorrelationHeaders(event, ok({ queued: true, agencyId: parts[1] }));
+    }
+
+    if (method === "POST" && parts[0] === "onboarding" && parts.length === 1) {
+      requirePerm(user, "call_assist.bots.manage");
+      const parsed = callAssistOnboardingInputSchema.safeParse(body);
+      if (!parsed.success) return withCorrelationHeaders(event, badRequestFromZod(parsed.error));
+      try {
+        await checkLexBotQuota();
+        await callAssistOnboardingService.onboardAgency({ ...parsed.data, createdBy: user.userId });
+      } catch (err) {
+        if (err instanceof LexBotQuotaExhaustedError) {
+          return withCorrelationHeaders(event, serviceUnavailable(err.message));
+        }
+        throw err;
+      }
+      await auditRepo.create({
+        eventId: makeId("audit"),
+        agencyId: parsed.data.agencyId,
+        actorId: user.userId,
+        type: AUDIT_EVENT_TYPES.CALL_ASSIST_ONBOARDING_STARTED,
+        details: { agencyDisplayName: parsed.data.agencyDisplayName },
+        createdAt: new Date().toISOString(),
+        resourceType: "call_assist",
+        resourceId: parsed.data.agencyId,
+      });
+      return withCorrelationHeaders(event, ok({ agencyId: parsed.data.agencyId, status: "DID_PENDING" }));
+    }
+
+    if (method === "GET" && parts[0] === "onboarding" && parts[1] && parts.length === 2) {
+      requirePerm(user, "call_assist.bots.manage");
+      const config = await callAssistStore.getConfig(parts[1]);
+      if (!config) return withCorrelationHeaders(event, notFound("Onboarding not found"));
+      return withCorrelationHeaders(
+        event,
+        ok({
+          agencyId: parts[1],
+          onboardingStatus: config.onboardingStatus ?? "PENDING",
+          onboardingSteps: config.onboardingSteps ?? [],
+          lexBotStatus: config.lexBotStatus ?? "NOT_CREATED",
+          templateVersion: config.lexBotTemplateVersion ?? null,
+        }),
+      );
+    }
+
+    if (method === "POST" && parts[0] === "onboarding" && parts[2] === "did" && parts[1]) {
+      requirePerm(user, "call_assist.bots.manage");
+      const parsed = callAssistDidClaimSchema.safeParse(body);
+      if (!parsed.success) return withCorrelationHeaders(event, badRequestFromZod(parsed.error));
+      await callAssistOnboardingService.claimDid(parts[1], parsed.data.phoneNumber);
+      return withCorrelationHeaders(event, ok({ agencyId: parts[1], onboardingStatus: "SMOKE_TEST_PENDING" }));
+    }
+
+    if (method === "POST" && parts[0] === "onboarding" && parts[2] === "retry" && parts[1]) {
+      requirePerm(user, "call_assist.bots.manage");
+      await callAssistOnboardingService.retry(parts[1], user.userId);
+      return withCorrelationHeaders(event, ok({ agencyId: parts[1] }));
+    }
+
+    if (method === "GET" && parts[0] === "voice-config" && parts[1]) {
+      requirePerm(user, "call_assist.admin.config");
+      const config = await callAssistStore.getConfig(parts[1]);
+      if (!config) return withCorrelationHeaders(event, notFound("Voice config not found"));
+      if (!isRcInternalOperator(user.role) && user.agencyId !== parts[1]) {
+        return withCorrelationHeaders(event, forbidden());
+      }
+      return withCorrelationHeaders(event, ok({ config: tenantToVoiceConfig(config) }));
+    }
+
+    if (method === "PATCH" && parts[0] === "voice-config" && parts[1]) {
+      requirePerm(user, "call_assist.admin.config");
+      if (!isRcInternalOperator(user.role) && user.agencyId !== parts[1]) {
+        return withCorrelationHeaders(event, forbidden());
+      }
+      const parsed = callAssistVoiceConfigPatchSchema.safeParse(body);
+      if (!parsed.success) return withCorrelationHeaders(event, badRequestFromZod(parsed.error));
+      const current = await getOrCreateConfig(parts[1]);
+      const localesChanged = Boolean(parsed.data.supportedLocales);
+      await callAssistStore.putConfig({
+        ...current,
+        agencyDisplayName: parsed.data.agencyDisplayName ?? current.agencyDisplayName,
+        agencyName: parsed.data.agencyDisplayName ?? current.agencyName,
+        agencyShortName: parsed.data.agencyShortName ?? current.agencyShortName,
+        shortName: parsed.data.agencyShortName ?? current.shortName,
+        agencyTypeLabel: parsed.data.agencyTypeLabel ?? current.agencyTypeLabel,
+        officerLabel: parsed.data.officerLabel ?? current.officerLabel,
+        nonEmergencyWebsite: parsed.data.nonEmergencyWebsite ?? current.nonEmergencyWebsite,
+        onlineReportUrl: parsed.data.onlineReportPortalUrl ?? current.onlineReportUrl,
+        carfaxPortalUrl: parsed.data.carfaxPortalUrl ?? current.carfaxPortalUrl,
+        disclosureText: parsed.data.disclosureText ?? current.disclosureText,
+        supportedLocales: parsed.data.supportedLocales ?? current.supportedLocales,
+        updatedAt: new Date().toISOString(),
+      });
+      if (localesChanged) {
+        await enqueueBotRebuild(parts[1], BOT_TEMPLATE_VERSION, "LOCALE_ADDED");
+      }
+      return withCorrelationHeaders(event, ok({ updated: true, rebuildQueued: localesChanged }));
     }
 
     if (isPlatformCallAssistTenant(agencyId)) {
@@ -618,6 +807,9 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
     if (message === "FORBIDDEN") return withCorrelationHeaders(event, forbidden());
+    if (error instanceof LexBotQuotaExhaustedError) {
+      return withCorrelationHeaders(event, serviceUnavailable(error.message));
+    }
     if (message === "SESSION_NOT_FOUND") return withCorrelationHeaders(event, notFound("Session not found"));
     if (message === "DEMO_MODE_DISABLED") {
       return withCorrelationHeaders(event, serviceUnavailable("Call Assist demo mode is not enabled"));

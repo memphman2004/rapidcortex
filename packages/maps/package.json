@@ -25,14 +25,13 @@
     "build": "tsc -p tsconfig.json"
   },
   "dependencies": {
-    "mapbox-gl": "^3.9.4"
+    "maplibre-gl": "^4.7.1"
   },
   "peerDependencies": {
     "react": ">=18.0.0",
     "react-dom": ">=18.0.0"
   },
   "devDependencies": {
-    "@types/mapbox-gl": "^3.4.1",
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",
     "typescript": "^5.7.2"

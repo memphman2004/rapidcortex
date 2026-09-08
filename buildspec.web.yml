@@ -27,11 +27,11 @@ phases:
       - IMAGE_TAG="$(echo "${CODEBUILD_RESOLVED_SOURCE_VERSION:-manual}" | cut -c1-7)"
       # Fail fast — NEXT_PUBLIC_* is baked into the client bundle at docker build time.
       - |
-        if [ -z "${NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN:-}" ] || [ "${NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN}" = "pk.REPLACE_WITH_REAL_TOKEN" ]; then
-          echo "ERROR: NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN missing/placeholder in CodeBuild env — maps will break in production."
+        if [ -z "${NEXT_PUBLIC_ALS_MAP_NAME:-}" ] || [ -z "${NEXT_PUBLIC_ALS_IDENTITY_POOL_ID:-}" ]; then
+          echo "ERROR: NEXT_PUBLIC_ALS_MAP_NAME and NEXT_PUBLIC_ALS_IDENTITY_POOL_ID missing in CodeBuild env — maps will break in production."
           exit 1
         fi
-        echo "Mapbox token present for image bake (len=${#NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN})"
+        echo "ALS map config present for image bake (map=${NEXT_PUBLIC_ALS_MAP_NAME})"
       # Must match ECS task runtimePlatform: use rapid-cortex-web-prod task definition with X86_64 + this amd64 image.
       - >-
         docker build --platform linux/amd64 -f Dockerfile.web -t "${ECR_REGISTRY}:${IMAGE_TAG}"
@@ -70,12 +70,14 @@ phases:
         --build-arg "NEXT_PUBLIC_ENABLE_FIELD_CONFIDENCE=${NEXT_PUBLIC_ENABLE_FIELD_CONFIDENCE:-}"
         --build-arg "NEXT_PUBLIC_ENABLE_SOP_PROTOCOL_AI=${NEXT_PUBLIC_ENABLE_SOP_PROTOCOL_AI:-}"
         --build-arg "NEXT_PUBLIC_ENABLE_PINPOINT=${NEXT_PUBLIC_ENABLE_PINPOINT:-}"
-        --build-arg "NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN=${NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN:-}"
-        --build-arg "NEXT_PUBLIC_MAPBOX_STYLE_URL=${NEXT_PUBLIC_MAPBOX_STYLE_URL:-}"
-        --build-arg "NEXT_PUBLIC_MAPBOX_STYLE_URL_DARK=${NEXT_PUBLIC_MAPBOX_STYLE_URL_DARK:-}"
-        --build-arg "NEXT_PUBLIC_MAPBOX_STYLE_URL_LIGHT=${NEXT_PUBLIC_MAPBOX_STYLE_URL_LIGHT:-}"
-        --build-arg "NEXT_PUBLIC_MAPBOX_STYLE_DARK=${NEXT_PUBLIC_MAPBOX_STYLE_DARK:-}"
-        --build-arg "NEXT_PUBLIC_MAPBOX_STYLE_LIGHT=${NEXT_PUBLIC_MAPBOX_STYLE_LIGHT:-}"
+        --build-arg "NEXT_PUBLIC_ALS_REGION=${NEXT_PUBLIC_ALS_REGION:-us-east-1}"
+        --build-arg "NEXT_PUBLIC_ALS_MAP_NAME=${NEXT_PUBLIC_ALS_MAP_NAME:-}"
+        --build-arg "NEXT_PUBLIC_ALS_MAP_NAME_DARK=${NEXT_PUBLIC_ALS_MAP_NAME_DARK:-}"
+        --build-arg "NEXT_PUBLIC_ALS_IDENTITY_POOL_ID=${NEXT_PUBLIC_ALS_IDENTITY_POOL_ID:-}"
+        --build-arg "NEXT_PUBLIC_ALS_PLACE_INDEX_NAME=${NEXT_PUBLIC_ALS_PLACE_INDEX_NAME:-}"
+        --build-arg "NEXT_PUBLIC_ALS_ROUTE_CALCULATOR_NAME=${NEXT_PUBLIC_ALS_ROUTE_CALCULATOR_NAME:-}"
+        --build-arg "NEXT_PUBLIC_ALS_GEOFENCE_COLLECTION=${NEXT_PUBLIC_ALS_GEOFENCE_COLLECTION:-}"
+        --build-arg "NEXT_PUBLIC_ALS_TRACKER_NAME=${NEXT_PUBLIC_ALS_TRACKER_NAME:-}"
         --build-arg "NEXT_PUBLIC_ENABLE_LOCATION_MAP=${NEXT_PUBLIC_ENABLE_LOCATION_MAP:-}"
         --build-arg "NEXT_PUBLIC_AUTH_PROXY=${NEXT_PUBLIC_AUTH_PROXY:-}"
         --build-arg "NEXT_PUBLIC_ENABLE_QR_NFC=${NEXT_PUBLIC_ENABLE_QR_NFC:-}"

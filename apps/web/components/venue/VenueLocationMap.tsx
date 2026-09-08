@@ -1,8 +1,8 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
-import mapboxgl from "mapbox-gl";
-import "mapbox-gl/dist/mapbox-gl.css";
+import maplibregl from "maplibre-gl";
+import "maplibre-gl/dist/maplibre-gl.css";
 import type { QRLocation } from "rapid-cortex-shared";
 import { Map as MapIcon } from "lucide-react";
 import { RapidCortexMap } from "rapid-cortex-maps";
@@ -52,12 +52,12 @@ function LocationPin({
   accent,
   linkBase,
 }: {
-  map: mapboxgl.Map | null;
+  map: maplibregl.Map | null;
   location: QRLocation & { lat: number; lng: number };
   accent: string;
   linkBase: string;
 }) {
-  const markerRef = useRef<mapboxgl.Marker | null>(null);
+  const markerRef = useRef<maplibregl.Marker | null>(null);
 
   useEffect(() => {
     if (!map) return;
@@ -81,7 +81,7 @@ function LocationPin({
         el.style.transform = "scale(1)";
       });
 
-      const popup = new mapboxgl.Popup({
+      const popup = new maplibregl.Popup({
         offset: 12,
         closeButton: false,
         maxWidth: "220px",
@@ -95,7 +95,7 @@ function LocationPin({
         </div>
       `);
 
-      const next = new mapboxgl.Marker({ element: el })
+      const next = new maplibregl.Marker({ element: el })
         .setLngLat([location.lng, location.lat])
         .setPopup(popup)
         .addTo(map);
@@ -117,21 +117,21 @@ function LocationPin({
 }
 
 /** Fits the map to all mappable locations once both the map and data are ready. */
-function useFitBounds(map: mapboxgl.Map | null, points: Array<{ lat: number; lng: number }>) {
+function useFitBounds(map: maplibregl.Map | null, points: Array<{ lat: number; lng: number }>) {
   useEffect(() => {
     if (!map || points.length === 0) return;
     if (points.length === 1) {
       map.flyTo({ center: [points[0].lng, points[0].lat], zoom: 17, duration: 600 });
       return;
     }
-    const bounds = new mapboxgl.LngLatBounds();
+    const bounds = new maplibregl.LngLatBounds();
     points.forEach((p) => bounds.extend([p.lng, p.lat]));
     map.fitBounds(bounds, { padding: 32, maxZoom: 18, duration: 600 });
   }, [map, points]);
 }
 
 export function VenueLocationMap({ locations, isLoading, vertical, linkBase }: VenueLocationMapProps) {
-  const [map, setMap] = useState<mapboxgl.Map | null>(null);
+  const [map, setMap] = useState<maplibregl.Map | null>(null);
   const [mapError, setMapError] = useState<string | null>(null);
   const { theme, accent } = VERTICAL_THEME[vertical];
 
@@ -144,8 +144,7 @@ export function VenueLocationMap({ locations, isLoading, vertical, linkBase }: V
     };
   }, [map]);
 
-  const token = process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN;
-  const tokenMissing = !token || token === "pk.REPLACE_WITH_REAL_TOKEN";
+  const tokenMissing = false;
 
   const mappable = useMemo(() => locations.filter(isMappable), [locations]);
   const unmappedCount = locations.length - mappable.length;

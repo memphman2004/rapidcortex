@@ -12,7 +12,7 @@ export function clampSplitRatio(ratio: number): number {
 }
 
 /**
- * Split layout that keeps both panes mounted (Mapbox must not remount).
+ * Split layout that keeps both panes mounted (MapLibre must not remount).
  * Hidden panes use `display: none` so ResizeObserver refits the canvas when shown.
  */
 export function ResizableMapSplit({

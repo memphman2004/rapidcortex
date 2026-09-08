@@ -1,6 +1,9 @@
-# RCCallAssistBot — Complete Lex V2 Build Specification
-## `RCCallAssistBot-dev` · `IJIBJOJG2L` · alias `live-dev` / `0CNPVSCF4V`
+# RCCallAssistBot — Complete Lex V2 Build Specification (shared template)
+## Instantiated per agency as `RCCallAssistBot-{agencySlug}-{stage}`
+## `RCCallAssistBot-dev` is the first tenant's bot, not a global product bot.
 ## Locales: `en_US` (Ruth, neural) · `es_US` (Lupe, neural)
+
+**Multi-agency:** Every agency name, city, street, phone, website, CAD code, and queue is a runtime or provision-time variable (`{{agencyShortName}}`, `{{agencyName}}`, `{{agencyWebsite}}`, `{{emergencyLine}}`). Lambda interpolates from `CallAssistAgencyVoiceConfig`. Do not hardcode a city into this spec.
 
 ---
 
@@ -215,7 +218,7 @@ no quiero hablar con una máquina
 
 ### Prompt (no slots needed)
 ```
-Of course. I'm connecting you to a Kansas City Police officer now. Stay on the line.
+Of course. I'm connecting you to {{agencyShortName}} now. Stay on the line.
 ```
 
 ### Fulfillment
@@ -295,8 +298,8 @@ EN: `Just to confirm — I have a noise complaint at <break time="300ms"/> {Nois
 ES: `Para confirmar — tengo una queja de ruido en <break time="300ms"/> {NoiseLocation}, <break time="200ms"/> {NoiseType}, <break time="200ms"/> y {NoiseStillHappening, values: ["Yes": "todavía está ocurriendo", "No": "ya no está ocurriendo"]}. ¿Es correcto?`
 
 ### Closing Response (after Lambda)
-EN: `I've created a report for Kansas City Police. An officer will follow up. Your reference number is {referenceNumber}. Is there anything else I can help you with?`
-ES: `He creado un reporte para la Policía de Kansas City. Un oficial hará seguimiento. Su número de referencia es {referenceNumber}. ¿Hay algo más en que pueda ayudarle?`
+EN: `I've created a report for {{agencyShortName}}. An officer will follow up. Your reference number is {referenceNumber}. Is there anything else I can help you with?`
+ES: `He creado un reporte para {{agencyShortName}}. Un oficial hará seguimiento. Su número de referencia es {referenceNumber}. ¿Hay algo más en que pueda ayudarle?`
 
 ---
 
@@ -380,7 +383,7 @@ Prompt ES: `¿Está en un lugar seguro ahora mismo?`
 EN: `I have a suspicious person at <break time="300ms"/> {SuspiciousLocation}. <break time="200ms"/> Description: {PersonDescription}. <break time="200ms"/> Direction: {PersonDirection}. <break time="200ms"/> Does that sound right?`
 
 ### Closing Response
-EN: `I've sent this to Kansas City Police. Officers will be looking out for this person. Please stay in a safe location and call back if anything changes. Your reference number is {referenceNumber}.`
+EN: `I've sent this to {{agencyShortName}}. Officers will be looking out for this person. Please stay in a safe location and call back if anything changes. Your reference number is {referenceNumber}.`
 
 ---
 
@@ -439,7 +442,7 @@ Prompt ES: `¿El vehículo está bloqueando el tráfico, una entrada, o un hidra
 EN: `I have an abandoned vehicle at <break time="300ms"/> {VehicleLocation}. <break time="200ms"/> {VehicleDescription}, <break time="200ms"/> there approximately {HowLongAbandoned}. Is that correct?`
 
 ### Closing Response
-EN: `I've reported this to Kansas City Police. Depending on how long the vehicle has been there, an officer may be able to arrange a tow. Your reference number is {referenceNumber}.`
+EN: `I've reported this to {{agencyShortName}}. Depending on how long the vehicle has been there, an officer may be able to arrange a tow. Your reference number is {referenceNumber}.`
 
 ---
 
@@ -840,7 +843,7 @@ Prompt ES: `¿Cuál es el mejor número para contactarle?`
 EN: `I have a tow complaint. Your {TowVehicleDescription} was towed from {TowLocation}. Is that correct?`
 
 ### Closing Response
-EN: `I've filed a tow complaint. An officer will follow up. If you need to find your vehicle right now, Kansas City maintains a tow database at kcpd.org. Your reference number is {referenceNumber}.`
+EN: `I've filed a tow complaint. An officer will follow up. If you need to find your vehicle right now, {{agencyShortName}} maintains a tow database at {{agencyWebsite}}. Your reference number is {referenceNumber}.`
 
 ---
 
@@ -1008,8 +1011,8 @@ Prompt EN: `What's the issue — a water main, pothole, traffic light, streetlig
 Prompt ES: `¿Cuál es el problema — tubería, bache, semáforo, luz de calle, u otra cosa?`
 
 ### Closing Response
-EN: `This sounds like a public works issue handled by Kansas City's 311 service. I'm going to transfer you to 311 now, and I'll share a summary of what you've told me. One moment.`
-ES: `Este parece ser un problema de obras públicas manejado por el servicio 311 de Kansas City. Voy a transferirle a 311 ahora y compartiré un resumen de lo que me ha dicho. Un momento.`
+EN: `This sounds like a public works issue handled by this city's 311 service. I'm going to transfer you to 311 now, and I'll share a summary of what you've told me. One moment.`
+ES: `Este parece ser un problema de obras públicas manejado por el servicio 311 de la ciudad. Voy a transferirle a 311 ahora y compartiré un resumen de lo que me ha dicho. Un momento.`
 
 *Lambda: fires external transfer to 311 queue with warm transfer summary.*
 
@@ -1108,9 +1111,9 @@ quiero hacer un reporte por internet
 ```
 
 ### Closing Response
-EN: `Kansas City Police offers online reporting for certain non-emergency incidents like theft, vandalism, lost property, and vehicle burglary. I can send you a link to the online reporting portal right now. Would you like that sent to your phone?`
+EN: `{{agencyShortName}} offers online reporting for certain non-emergency incidents like theft, vandalism, lost property, and vehicle burglary. I can send you a link to the online reporting portal right now. Would you like that sent to your phone?`
 
-*Lambda: if caller agrees, send SMS with KCPD online report portal link.*
+*Lambda: if caller agrees, send SMS with the agency online report portal link.*
 
 ---
 
@@ -1163,7 +1166,7 @@ EN: `I'm connecting you to a dispatcher who can look up your previous report and
 ---
 
 ## INTENT 18: `InformationRequest`
-**General questions about KCPD services, hours, policies, contact numbers.**
+**General questions about this agency's services, hours, policies, contact numbers.**
 
 ### Sample Utterances — English
 ```
@@ -1210,7 +1213,7 @@ Prompt ES: `Claro — ¿sobre qué necesita información?`
 EN: `{groundedAnswer} Is there anything else I can help you with?`
 
 *If no grounded answer:*
-EN: `I don't have specific information about that available right now. I can connect you to the KCPD non-emergency line, or you can visit kcpd.org for more information. Would you like me to transfer you?`
+EN: `I don't have specific information about that available right now. I can connect you to the {{agencyShortName}} non-emergency line, or you can visit {{agencyWebsite}} for more information. Would you like me to transfer you?`
 
 ---
 
@@ -1218,8 +1221,8 @@ EN: `I don't have specific information about that available right now. I can con
 **Fires after 3 failed recognition attempts. Always transfers to human.**
 
 ### Fallback Response
-EN: `I'm sorry, I'm having trouble understanding. Let me connect you to a Kansas City Police officer who can help. Stay on the line.`
-ES: `Disculpe, tengo dificultad para entenderle. Voy a conectarle con un oficial de la Policía de Kansas City que le puede ayudar. Por favor no cuelgue.`
+EN: `I'm sorry, I'm having trouble understanding. Let me connect you to {{agencyShortName}} who can help. Stay on the line.`
+ES: `Disculpe, tengo dificultad para entenderle. Voy a conectarle con {{agencyShortName}} que le puede ayudar. Por favor no cuelgue.`
 
 *Lambda: transfer to dispatcher queue. Set contact attribute `fallbackTransfer: true`.*
 
@@ -1228,9 +1231,9 @@ ES: `Disculpe, tengo dificultad para entenderle. Voy a conectarle con un oficial
 ## GLOBAL BOT PROMPTS
 
 ### Opening Greeting
-EN: `Thank you for calling Kansas City Police non-emergency. I'm an automated assistant that will gather your information and get you to the right place. This call may be recorded. If this is a life-threatening emergency, please hang up and dial 9-1-1, or say emergency now. How can I help you today?`
+EN: `Thank you for calling {{agencyShortName}} non-emergency. I'm an automated assistant that will gather your information and get you to the right place. This call may be recorded. If this is a life-threatening emergency, please hang up and dial 9-1-1, or say emergency now. How can I help you today?`
 
-ES: `Gracias por llamar a la línea de no emergencias de la Policía de Kansas City. Soy un asistente automatizado que recopilará su información y le dirigirá al lugar correcto. Esta llamada puede ser grabada. Si esto es una emergencia que pone en riesgo la vida, por favor cuelgue y marque nueve-uno-uno, o diga emergencia ahora. ¿En qué le puedo ayudar hoy?`
+ES: `Gracias por llamar a la línea de no emergencias de {{agencyShortName}}. Soy un asistente automatizado que recopilará su información y le dirigirá al lugar correcto. Esta llamada puede ser grabada. Si esto es una emergencia que pone en riesgo la vida, por favor cuelgue y marque nueve-uno-uno, o diga emergencia ahora. ¿En qué le puedo ayudar hoy?`
 
 ### No Input (first timeout)
 EN: `I didn't hear anything. How can I help you today?`
@@ -1253,8 +1256,8 @@ EN: `I'm still having a little trouble understanding. Try saying just the main t
 ES: `Todavía tengo dificultad para entender. Intente decir solo lo principal — por ejemplo, queja de ruido, persona sospechosa, o carro robado.`
 
 ### DTMF 0 Pressed (any point)
-EN: `Connecting you to a Kansas City Police officer now. Stay on the line.`
-ES: `Conectándole con un oficial de la Policía de Kansas City ahora. No cuelgue.`
+EN: `Connecting you to {{agencyShortName}} now. Stay on the line.`
+ES: `Conectándole con {{agencyShortName}} ahora. No cuelgue.`
 
 ### After Confirmation — Denied (caller says no/incorrect)
 EN: `I'm sorry about that. Let me start over. What would you like to correct?`
@@ -1291,5 +1294,5 @@ After entering all intents in the Lex V2 Console:
 
 ---
 
-*RCCallAssistBot — KCPD Non-Emergency Call Handling*
+*RCCallAssistBot — multi-agency non-emergency call handling template*
 *Rapid Cortex — Intelligence at the speed of response.*

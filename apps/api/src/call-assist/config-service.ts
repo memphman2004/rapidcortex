@@ -4,10 +4,12 @@ import {
   KCPD_LEX_DEMO_SCENARIOS,
   KCPD_LEX_DISCLOSURE_TEXT,
   KCPD_TENANT_SEED,
+  KCPD_VOICE_CONFIG,
   kcpdExternalAgencySeed,
   MISSOURI_SUNSHINE_RETENTION_POLICY,
   normalizeConfidenceThresholds,
   resolveAgencyTaxonomy,
+  shouldApplyCallAssistReferenceSeed,
   validateTaxonomyEmergencyLocks,
   type CallAssistAdminConfigPatch,
   type RetentionPolicy,
@@ -16,16 +18,25 @@ import { env } from "../lib/env.js";
 import { makeId } from "../lib/ids.js";
 import { callAssistStore, type CallAssistTenantConfig } from "./store.js";
 
-const GENERIC_HOURS = { timezone: "America/Chicago", openMinutes: 0, closeMinutes: 24 * 60, allDay: true };
+const GENERIC_HOURS = { timezone: "UTC", openMinutes: 0, closeMinutes: 24 * 60, allDay: true };
+const KCPD_HOURS = { timezone: "America/Chicago", openMinutes: 0, closeMinutes: 24 * 60, allDay: true };
 
-export function defaultTenantConfig(agencyId: string): CallAssistTenantConfig {
-  const kcpd = env.callAssistSeedProfile === "kcpd";
-  const seed = kcpd ? KCPD_TENANT_SEED : null;
+export function isCallAssistReferenceSeedAgency(agencyId: string): boolean {
+  return shouldApplyCallAssistReferenceSeed(agencyId, env.callAssistSeedProfile, env.callAssistSeedAgencyId);
+}
+
+export function buildDefaultTenantConfig(
+  agencyId: string,
+  seedProfile: string,
+  seedAgencyId: string,
+): CallAssistTenantConfig {
+  const seed = shouldApplyCallAssistReferenceSeed(agencyId, seedProfile, seedAgencyId) ? KCPD_TENANT_SEED : null;
   return {
     agencyId,
     disclosureEnabled: true,
     disclosureText: seed?.disclosureText ?? GENERIC_DISCLOSURE_TEXT,
     emergencyDestination: seed?.emergencyDestination ?? "911",
+    emergencyLine: seed ? KCPD_VOICE_CONFIG.emergencyLine : "911",
     demoEmergencyDestination: seed?.demoEmergencyDestination ?? "+15555550111",
     cadProviderId: seed?.cadProviderId ?? "mock",
     cadProviderLabel: seed?.cadProviderId === "motorola-premierone" ? "PremierOne" : null,
@@ -33,6 +44,10 @@ export function defaultTenantConfig(agencyId: string): CallAssistTenantConfig {
     cadNatureMapping: seed?.natureMapping ?? {},
     carfaxPortalUrl: seed?.carfaxPortalUrl ?? "",
     onlineReportUrl: seed?.onlineReportUrl ?? "",
+    nonEmergencyWebsite: seed ? KCPD_VOICE_CONFIG.nonEmergencyWebsite : undefined,
+    openingGreeting: seed ? KCPD_VOICE_CONFIG.openingGreeting : undefined,
+    defaultLanguageCode: seed ? (KCPD_VOICE_CONFIG.defaultLanguageCode ?? "en-US") : "en-US",
+    supportedLanguages: seed ? [...(KCPD_VOICE_CONFIG.supportedLanguages ?? ["en-US"])] : ["en-US"],
     retention: seed?.retention ?? ({
       ...MISSOURI_SUNSHINE_RETENTION_POLICY,
       policyId: "generic-default",
@@ -42,17 +57,17 @@ export function defaultTenantConfig(agencyId: string): CallAssistTenantConfig {
       policyName: undefined,
       governingLaw: null,
     } satisfies RetentionPolicy),
-    operatingHours: GENERIC_HOURS,
+    operatingHours: seed ? { ...KCPD_HOURS } : { ...GENERIC_HOURS },
     videoAssistEnabled: true,
     confidenceThresholds: DEFAULT_CALL_ASSIST_CONFIDENCE_THRESHOLDS,
     taxonomy: null,
     vertical: seed ? "911" : undefined,
     uiVertical: seed ? "911" : undefined,
-    agencyShortName: seed ? "KCPD" : undefined,
-    agencyName: seed ? "Kansas City Missouri Police Department" : undefined,
-    shortName: seed ? "KCPD" : undefined,
+    agencyShortName: seed ? KCPD_VOICE_CONFIG.agencyShortName : undefined,
+    agencyName: seed ? KCPD_VOICE_CONFIG.agencyName : undefined,
+    shortName: seed ? KCPD_VOICE_CONFIG.agencyShortName : undefined,
     demoScenarios: seed ? KCPD_LEX_DEMO_SCENARIOS.map((row) => ({ ...row, utterances: [...row.utterances] })) : undefined,
-    testDID: seed ? process.env.KCPD_TEST_DID?.trim() || undefined : undefined,
+    testDID: seed ? process.env.KCPD_TEST_DID?.trim() || process.env.CALL_ASSIST_TEST_DID?.trim() || undefined : undefined,
     lexBotId: seed ? process.env.LEX_BOT_ID?.trim() || undefined : undefined,
     lexBotAliasId: seed ? process.env.LEX_BOT_ALIAS_ID?.trim() || undefined : undefined,
     onboardingComplete: Boolean(seed),
@@ -60,6 +75,10 @@ export function defaultTenantConfig(agencyId: string): CallAssistTenantConfig {
     seededProfile: seed?.profileId,
     updatedAt: new Date().toISOString(),
   };
+}
+
+export function defaultTenantConfig(agencyId: string): CallAssistTenantConfig {
+  return buildDefaultTenantConfig(agencyId, env.callAssistSeedProfile, env.callAssistSeedAgencyId);
 }
 
 export async function getOrCreateConfig(agencyId: string): Promise<CallAssistTenantConfig> {
@@ -70,7 +89,7 @@ export async function getOrCreateConfig(agencyId: string): Promise<CallAssistTen
   if (created.testDID) {
     await callAssistStore.putDidLookup(created.testDID, agencyId);
   }
-  if (env.callAssistSeedProfile === "kcpd") {
+  if (isCallAssistReferenceSeedAgency(agencyId)) {
     const agencies = kcpdExternalAgencySeed(agencyId);
     for (const row of agencies) {
       await callAssistStore.putExternal(row);
@@ -81,7 +100,7 @@ export async function getOrCreateConfig(agencyId: string): Promise<CallAssistTen
 
 /** Writes KCPD tenant config + test DID lookup. Required before Connect test calls. */
 export async function seedKcpdLexTenant(agencyId: string, testDID?: string): Promise<CallAssistTenantConfig> {
-  const did = (testDID ?? process.env.KCPD_TEST_DID ?? "").trim();
+  const did = (testDID ?? process.env.CALL_ASSIST_TEST_DID ?? process.env.KCPD_TEST_DID ?? "").trim();
   const existing = await callAssistStore.getConfig(agencyId);
   const created: CallAssistTenantConfig = {
     ...(existing ?? defaultTenantConfig(agencyId)),
@@ -96,9 +115,15 @@ export async function seedKcpdLexTenant(agencyId: string, testDID?: string): Pro
     carfaxPortalUrl: KCPD_TENANT_SEED.carfaxPortalUrl,
     onlineReportUrl: KCPD_TENANT_SEED.onlineReportUrl,
     retention: KCPD_TENANT_SEED.retention,
-    agencyShortName: "KCPD",
-    shortName: "KCPD",
-    agencyName: "Kansas City Missouri Police Department",
+    agencyShortName: KCPD_VOICE_CONFIG.agencyShortName,
+    shortName: KCPD_VOICE_CONFIG.agencyShortName,
+    agencyName: KCPD_VOICE_CONFIG.agencyName,
+    emergencyLine: KCPD_VOICE_CONFIG.emergencyLine,
+    nonEmergencyWebsite: KCPD_VOICE_CONFIG.nonEmergencyWebsite,
+    openingGreeting: KCPD_VOICE_CONFIG.openingGreeting,
+    defaultLanguageCode: KCPD_VOICE_CONFIG.defaultLanguageCode ?? "en-US",
+    supportedLanguages: [...(KCPD_VOICE_CONFIG.supportedLanguages ?? ["en-US"])],
+    operatingHours: { ...KCPD_HOURS },
     vertical: "911",
     uiVertical: "911",
     seededProfile: "kcpd",
@@ -140,6 +165,18 @@ export async function patchConfig(
   if (patch.cadProviderLabel !== undefined) next.cadProviderLabel = patch.cadProviderLabel;
   if (patch.carfaxPortalUrl !== undefined) next.carfaxPortalUrl = patch.carfaxPortalUrl;
   if (patch.onlineReportUrl !== undefined) next.onlineReportUrl = patch.onlineReportUrl;
+  if (patch.emergencyLine !== undefined) next.emergencyLine = patch.emergencyLine;
+  if (patch.nonEmergencyWebsite !== undefined) next.nonEmergencyWebsite = patch.nonEmergencyWebsite;
+  if (patch.openingGreeting !== undefined) next.openingGreeting = patch.openingGreeting;
+  if (patch.afterHoursMessage !== undefined) next.afterHoursMessage = patch.afterHoursMessage;
+  if (patch.defaultLanguageCode !== undefined) next.defaultLanguageCode = patch.defaultLanguageCode;
+  if (patch.supportedLanguages !== undefined) next.supportedLanguages = patch.supportedLanguages;
+  if (patch.lexBotId !== undefined) next.lexBotId = patch.lexBotId;
+  if (patch.lexBotAliasId !== undefined) next.lexBotAliasId = patch.lexBotAliasId;
+  if (patch.lexBotName !== undefined) next.lexBotName = patch.lexBotName;
+  if (patch.connectContactFlowId !== undefined) next.connectContactFlowId = patch.connectContactFlowId;
+  if (patch.connectQueueArn !== undefined) next.connectQueueArn = patch.connectQueueArn;
+  if (patch.connectEmergencyQueueArn !== undefined) next.connectEmergencyQueueArn = patch.connectEmergencyQueueArn;
   if (patch.videoAssistEnabled !== undefined) next.videoAssistEnabled = patch.videoAssistEnabled;
   if (patch.alertPickupLine !== undefined) next.alertPickupLine = patch.alertPickupLine;
   if (patch.agencyName !== undefined) next.agencyName = patch.agencyName;

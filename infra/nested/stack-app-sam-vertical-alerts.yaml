@@ -1,0 +1,250 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Transform: AWS::Serverless-2016-10-31
+Description: >
+  Rapid Cortex — Vertical mass notification (campus / venue / transit occupant alerts).
+  Routes attach to stack 2 HttpApi. Mass SMS uses a dedicated short code from SSM only;
+  never TWILIO_PHONE_NUMBER / 10DLC inbound reporting numbers.
+
+Parameters:
+  DeploymentStage:
+    Type: String
+    AllowedValues: [dev, staging, prod, pilot]
+  HttpApiId:
+    Type: String
+  HttpApiJwtAuthorizerId:
+    Type: String
+    Default: ""
+  ImportedCognitoUserPoolId:
+    Type: String
+  ImportedCognitoWebClientId:
+    Type: String
+  ImportedCognitoIssuer:
+    Type: String
+  AuditTable:
+    Type: String
+  AgenciesTable:
+    Type: String
+  IncidentsTable:
+    Type: String
+    Default: ""
+  TranscriptsTable:
+    Type: String
+    Default: ""
+  AnalysesTable:
+    Type: String
+    Default: ""
+  InvitesTable:
+    Type: String
+    Default: ""
+  AssetsBucket:
+    Type: String
+    Default: ""
+  ExistingVerticalAlertsTableName:
+    Type: String
+    Default: ""
+    Description: When set, use this existing DynamoDB table instead of creating VerticalAlertsTable.
+  ManagedPolicyNamePrefix:
+    Type: String
+    Default: rapid-cortex
+  WebSocketConnectionsTable:
+    Type: String
+    Default: ""
+  WebSocketApiEndpoint:
+    Type: String
+    Default: ""
+  WebSocketApiId:
+    Type: String
+    Default: ""
+  AlertShortCodeSsmPrefix:
+    Type: String
+    Default: /rc/alerts/short-code
+
+Conditions:
+  HasHttpApiJwtAuthorizer: !Not [!Equals [!Ref HttpApiJwtAuthorizerId, ""]]
+  CreateVerticalAlertsTable: !Equals [!Ref ExistingVerticalAlertsTableName, ""]
+  HasWebSocketConnectionsTable: !Not [!Equals [!Ref WebSocketConnectionsTable, ""]]
+  HasWebSocketApiId: !Not [!Equals [!Ref WebSocketApiId, ""]]
+  HasWebSocketBroadcast: !And
+    - !Condition HasWebSocketConnectionsTable
+    - !Not [!Equals [!Ref WebSocketApiEndpoint, ""]]
+
+Globals:
+  Function:
+    Runtime: nodejs20.x
+    Timeout: 30
+    MemorySize: 512
+    Environment:
+      Variables:
+        DEPLOYMENT_STAGE: !Ref DeploymentStage
+        ALLOW_UNAUTHENTICATED_API: "false"
+        ENABLE_VERTICAL_ALERTS: "true"
+        PHYSICAL_SECURITY_COMMANDS_ENABLED: "false"
+        CAD_WRITEBACK_ENABLED: "false"
+        VERTICAL_ALERTS_TABLE: !If
+          - CreateVerticalAlertsTable
+          - !Ref VerticalAlertsTable
+          - !Ref ExistingVerticalAlertsTableName
+        ALERT_SHORT_CODE_SSM_PREFIX: !Ref AlertShortCodeSsmPrefix
+        ALERT_EMAIL_SENDER: "alerts@alerts.rapidcortex.us"
+        ALERT_SES_MOCK: "true"
+        AUDIT_TABLE: !Ref AuditTable
+        AGENCIES_TABLE: !Ref AgenciesTable
+        INCIDENTS_TABLE: !Ref IncidentsTable
+        TRANSCRIPTS_TABLE: !Ref TranscriptsTable
+        ANALYSES_TABLE: !Ref AnalysesTable
+        INVITES_TABLE: !Ref InvitesTable
+        ASSETS_BUCKET: !Ref AssetsBucket
+        COGNITO_USER_POOL_ID: !Ref ImportedCognitoUserPoolId
+        COGNITO_CLIENT_ID: !Ref ImportedCognitoWebClientId
+        COGNITO_REGION: !Ref AWS::Region
+        WEBSOCKET_CONNECTIONS_TABLE: !If
+          - HasWebSocketBroadcast
+          - !Ref WebSocketConnectionsTable
+          - ""
+        WEBSOCKET_API_ENDPOINT: !If
+          - HasWebSocketBroadcast
+          - !Ref WebSocketApiEndpoint
+          - ""
+
+Resources:
+  VerticalAlertsTable:
+    Type: AWS::DynamoDB::Table
+    Condition: CreateVerticalAlertsTable
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      TableName: !Sub "rapid-cortex-vertical-alerts-${DeploymentStage}"
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: agencyId
+          AttributeType: S
+        - AttributeName: sk
+          AttributeType: S
+        - AttributeName: gsi1pk
+          AttributeType: S
+        - AttributeName: gsi1sk
+          AttributeType: S
+      KeySchema:
+        - AttributeName: agencyId
+          KeyType: HASH
+        - AttributeName: sk
+          KeyType: RANGE
+      GlobalSecondaryIndexes:
+        - IndexName: gsi1
+          KeySchema:
+            - AttributeName: gsi1pk
+              KeyType: HASH
+            - AttributeName: gsi1sk
+              KeyType: RANGE
+          Projection:
+            ProjectionType: ALL
+
+  AppManagedPolicyVerticalAlerts:
+    Type: AWS::IAM::ManagedPolicy
+    Properties:
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Sid: VerticalAlertsAndAuditTables
+            Effect: Allow
+            Action:
+              - dynamodb:GetItem
+              - dynamodb:PutItem
+              - dynamodb:UpdateItem
+              - dynamodb:DeleteItem
+              - dynamodb:Query
+              - dynamodb:BatchGetItem
+              - dynamodb:BatchWriteItem
+              - dynamodb:DescribeTable
+              - dynamodb:ConditionCheckItem
+            Resource:
+              - !If
+                  - CreateVerticalAlertsTable
+                  - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${VerticalAlertsTable}"
+                  - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${ExistingVerticalAlertsTableName}"
+              - !If
+                  - CreateVerticalAlertsTable
+                  - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${VerticalAlertsTable}/index/*"
+                  - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${ExistingVerticalAlertsTableName}/index/*"
+              - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${AuditTable}"
+              - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${AuditTable}/index/*"
+              - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${AgenciesTable}"
+              - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${AgenciesTable}/index/*"
+              - !If
+                - HasWebSocketConnectionsTable
+                - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${WebSocketConnectionsTable}"
+                - !Ref AWS::NoValue
+              - !If
+                - HasWebSocketConnectionsTable
+                - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${WebSocketConnectionsTable}/index/*"
+                - !Ref AWS::NoValue
+          - Sid: AlertShortCodeSsm
+            Effect: Allow
+            Action:
+              - ssm:GetParameter
+            Resource:
+              - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter${AlertShortCodeSsmPrefix}/*"
+
+  AppManagedPolicyVerticalAlertsWebSocket:
+    Type: AWS::IAM::ManagedPolicy
+    Condition: HasWebSocketApiId
+    Properties:
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Sid: WebSocketPostToConnection
+            Effect: Allow
+            Action:
+              - execute-api:ManageConnections
+            Resource: !Sub arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${WebSocketApiId}/${DeploymentStage}/POST/@connections/*
+
+  VerticalAlertsHttpFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/handlers/alerts/http.handler
+      Timeout: 60
+      Policies:
+        - !Ref AppManagedPolicyVerticalAlerts
+        - !If
+          - HasWebSocketApiId
+          - !Ref AppManagedPolicyVerticalAlertsWebSocket
+          - !Ref AWS::NoValue
+
+  VerticalAlertsHttpIntegration:
+    Type: AWS::ApiGatewayV2::Integration
+    Properties:
+      ApiId: !Ref HttpApiId
+      IntegrationType: AWS_PROXY
+      IntegrationUri: !Sub arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${VerticalAlertsHttpFunction.Arn}/invocations
+      PayloadFormatVersion: "2.0"
+
+  VerticalAlertsHttpInvokePermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !Ref VerticalAlertsHttpFunction
+      Principal: apigateway.amazonaws.com
+      SourceArn: !Sub arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${HttpApiId}/*
+
+  RouteVerticalAlertsProxy:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref HttpApiId
+      RouteKey: "ANY /api/alerts/{proxy+}"
+      Target: !Sub "integrations/${VerticalAlertsHttpIntegration}"
+      AuthorizationType: !If [HasHttpApiJwtAuthorizer, JWT, NONE]
+      AuthorizerId: !If [HasHttpApiJwtAuthorizer, !Ref HttpApiJwtAuthorizerId, !Ref AWS::NoValue]
+
+Outputs:
+  VerticalAlertsTableName:
+    Description: Vertical alerts DynamoDB table
+    Value: !If
+      - CreateVerticalAlertsTable
+      - !Ref VerticalAlertsTable
+      - !Ref ExistingVerticalAlertsTableName
+  VerticalAlertsHttpFunctionArn:
+    Value: !GetAtt VerticalAlertsHttpFunction.Arn

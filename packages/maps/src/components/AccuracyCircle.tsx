@@ -1,13 +1,13 @@
 'use client';
 
 import { useEffect, useMemo } from "react";
-import mapboxgl from "mapbox-gl";
+import maplibregl from "maplibre-gl";
 
 import type { LocationConfidence } from "../types/map-types";
 import { createAccuracyCirclePolygon } from "../utils/geojson-helpers";
 
 export interface AccuracyCircleProps {
-  map: mapboxgl.Map | null;
+  map: maplibregl.Map | null;
   latitude: number;
   longitude: number;
   radiusMeters: number;
@@ -47,7 +47,7 @@ export function AccuracyCircle({
       const data = createAccuracyCirclePolygon(latitude, longitude, radiusMeters);
       const color = COLORS[confidence];
       if (map.getSource(sourceId)) {
-        (map.getSource(sourceId) as mapboxgl.GeoJSONSource).setData(data);
+        (map.getSource(sourceId) as maplibregl.GeoJSONSource).setData(data);
         if (map.getLayer(fillId))
           map.setPaintProperty(fillId, "fill-color", color);
         if (map.getLayer(outlineId))

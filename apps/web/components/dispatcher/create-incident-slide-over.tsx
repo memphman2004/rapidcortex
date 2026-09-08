@@ -77,7 +77,6 @@ interface Props {
   onClose: () => void;
   onCreated?: (result: CreateIncidentResult) => void;
   userRole?: string;
-  mapboxToken?: string;
 }
 
 function buildIncidentTitle(typeLabel: string, locationLine: string): string {
@@ -242,7 +241,6 @@ export function CreateIncidentSlideOver({
   onClose,
   onCreated,
   userRole,
-  mapboxToken,
 }: Props) {
   const [incidentTypeId, setIncidentTypeId] = useState("");
   const [priority, setPriority] = useState<IncidentPriority>("P2");
@@ -294,12 +292,12 @@ export function CreateIncidentSlideOver({
   useKeyboardShortcut({ key: "Escape", enabled: open, preventDefault: false }, handleEscape);
 
   async function geocodeLocation(): Promise<{ lat: number; lng: number; placeName: string } | null> {
-    if (!location.trim() || !mapboxToken) return null;
+    if (!location.trim()) return null;
     setGeocoding(true);
     setGeocodeError(null);
 
     try {
-      const hit = await geocodeAddress(location.trim(), mapboxToken);
+      const hit = await geocodeAddress(location.trim());
       if (!hit) {
         setGeocodeError("Address not found — verify and retry");
         return null;
@@ -339,7 +337,7 @@ export function CreateIncidentSlideOver({
     // Always attempt auto-geocode so Ring nearby search / maps get lat-lng without a separate pin step.
     let resolvedLat = lat;
     let resolvedLng = lng;
-    if ((resolvedLat == null || resolvedLng == null) && mapboxToken?.trim()) {
+    if ((resolvedLat == null || resolvedLng == null) && location.trim()) {
       const hit = await geocodeLocation();
       if (hit) {
         resolvedLat = hit.lat;
@@ -392,7 +390,7 @@ export function CreateIncidentSlideOver({
     [search, disciplineTab],
   );
 
-  const canGeocode = !!mapboxToken?.trim() && !!location.trim();
+  const canGeocode = !!location.trim();
   const selectedType = incidentTypeId ? getIncidentType(incidentTypeId) : null;
   const isSupervisor = isSupervisorCreateRole(userRole);
   const priorityBorder = selectedType ? PRIORITY_META[priority].border : V.border;
@@ -637,7 +635,7 @@ export function CreateIncidentSlideOver({
                   style={inputStyle}
                   aria-required="true"
                 />
-                {mapboxToken?.trim() ? (
+                {location.trim() ? (
                   <button
                     type="button"
                     disabled={!canGeocode || geocoding}
@@ -821,13 +819,11 @@ export function CreateIncidentSlideOver({
 
 export function CreateIncidentButton({
   userRole,
-  mapboxToken,
   onCreated,
   className,
   disabled,
 }: {
   userRole?: string;
-  mapboxToken?: string;
   onCreated?: (result: CreateIncidentResult) => void;
   className?: string;
   disabled?: boolean;
@@ -886,7 +882,6 @@ export function CreateIncidentButton({
         onClose={() => setOpen(false)}
         onCreated={onCreated}
         userRole={userRole}
-        mapboxToken={mapboxToken}
       />
     </>
   );

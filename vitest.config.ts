@@ -11,6 +11,15 @@ export default defineConfig({
     alias: {
       "@": path.resolve(repoRoot, "apps/web"),
       "rapid-cortex-integrations/cad": path.resolve(repoRoot, "packages/integrations/cad/index.ts"),
+      "rapid-cortex-shared/auth/rapid-cortex-roles": path.resolve(
+        repoRoot,
+        "packages/shared/src/auth/rapid-cortex-roles.ts",
+      ),
+      "rapid-cortex-shared/tenancy/principal": path.resolve(
+        repoRoot,
+        "packages/shared/src/tenancy/principal.ts",
+      ),
+      "rapid-cortex-shared/types": path.resolve(repoRoot, "packages/shared/src/types.ts"),
       "rapid-cortex-shared": path.resolve(repoRoot, "packages/shared/src/index.ts"),
     },
   },

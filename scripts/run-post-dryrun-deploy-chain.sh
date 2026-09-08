@@ -98,9 +98,9 @@ load_web_prod_env() {
   export NEXT_PUBLIC_MARKETING_SITE_URL="${NEXT_PUBLIC_MARKETING_SITE_URL:-https://www.rapidcortex.us}"
   export NEXT_PUBLIC_AUTH_PROXY="${NEXT_PUBLIC_AUTH_PROXY:-1}"
   export API_UPSTREAM_BASE="${API_UPSTREAM_BASE:-https://api.rapidcortex.us}"
-  # shellcheck source=scripts/lib/resolve-mapbox-token.sh
-  source "${ROOT}/scripts/lib/resolve-mapbox-token.sh"
-  resolve_mapbox_token || echo "WARN: Mapbox token not resolved — web deploy may fail."
+  # shellcheck source=scripts/lib/resolve-als-map-env.sh
+  source "${ROOT}/scripts/lib/resolve-als-map-env.sh"
+  resolve_als_map_env || echo "WARN: ALS identity pool not resolved — web deploy may fail."
 }
 
 echo ""

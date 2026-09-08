@@ -161,6 +161,21 @@ if [[ -n "${GRANT_GENERATE_FUNCTION_NAME:-}" && "$GRANT_GENERATE_FUNCTION_NAME" 
   echo "GRANT_GENERATE_FUNCTION_NAME=${GRANT_GENERATE_FUNCTION_NAME}"
 fi
 echo ""
+echo "# --- Amazon Location Service (MapLibre tiles; Cognito Identity Pool) ---"
+echo "NEXT_PUBLIC_ALS_REGION=${REGION}"
+echo "NEXT_PUBLIC_ALS_MAP_NAME=rc-map-${STAGE}"
+echo "NEXT_PUBLIC_ALS_MAP_NAME_DARK=rc-map-dark-${STAGE}"
+MAP_IDENTITY_POOL_ID="$(get_output MapIdentityPoolId)"
+if [[ -n "${MAP_IDENTITY_POOL_ID}" && "$MAP_IDENTITY_POOL_ID" != "None" ]]; then
+  echo "NEXT_PUBLIC_ALS_IDENTITY_POOL_ID=${MAP_IDENTITY_POOL_ID}"
+else
+  echo "# NEXT_PUBLIC_ALS_IDENTITY_POOL_ID=(not in stack outputs yet — deploy AppSamLocationStack2)"
+fi
+echo "NEXT_PUBLIC_ALS_PLACE_INDEX_NAME=rc-places-${STAGE}"
+echo "NEXT_PUBLIC_ALS_ROUTE_CALCULATOR_NAME=rc-routes-${STAGE}"
+echo "NEXT_PUBLIC_ALS_GEOFENCE_COLLECTION=rc-geofences-${STAGE}"
+echo "NEXT_PUBLIC_ALS_TRACKER_NAME=rc-tracker-${STAGE}"
+echo ""
 echo "# --- Environment badge (matches stack DeploymentStage) ---"
 echo "NEXT_PUBLIC_APP_ENV=${APP_ENV}"
 echo ""

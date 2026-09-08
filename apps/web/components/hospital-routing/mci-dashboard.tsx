@@ -3,8 +3,8 @@
 import { useCallback, useEffect, useState } from "react";
 import type { MciDistributionPlan, MciHospitalAllocation, MciPatient } from "rapid-cortex-shared";
 import { RapidCortexMap } from "rapid-cortex-maps";
-import type mapboxgl from "mapbox-gl";
-import mapboxglLib from "mapbox-gl";
+import type maplibregl from "maplibre-gl";
+import maplibreglLib from "maplibre-gl";
 
 import { activateMciPlan } from "@/lib/hospital-routing/api";
 import { formatTraumaLevel } from "./hospital-utils";
@@ -36,7 +36,7 @@ export function MciDashboard({
   incidentLocation,
   onUpdatePlan,
 }: MciDashboardProps) {
-  const [map, setMap] = useState<mapboxgl.Map | null>(null);
+  const [map, setMap] = useState<maplibregl.Map | null>(null);
   const [selectedHospital, setSelectedHospital] = useState<string | null>(null);
   const [plan, setPlan] = useState(distributionPlan);
   const [activating, setActivating] = useState(false);
@@ -200,9 +200,9 @@ function StatCard({ label, value }: { label: string; value: string | number }) {
   );
 }
 
-function IncidentMarker({ map, lat, lon }: { map: mapboxgl.Map; lat: number; lon: number }) {
+function IncidentMarker({ map, lat, lon }: { map: maplibregl.Map; lat: number; lon: number }) {
   useEffect(() => {
-    const marker = new mapboxglLib.Marker({ color: "#DC2626" })
+    const marker = new maplibreglLib.Marker({ color: "#DC2626" })
       .setLngLat([lon, lat])
       .addTo(map);
     return () => {
@@ -287,7 +287,7 @@ function MciHospitalMarker({
   isSelected,
   onClick,
 }: {
-  map: mapboxgl.Map;
+  map: maplibregl.Map;
   allocation: MciHospitalAllocation;
   isSelected: boolean;
   onClick: () => void;
@@ -306,7 +306,7 @@ function MciHospitalMarker({
     `;
     el.innerHTML = `<div style="font-size:22px">🏥</div><div style="font-size:13px;font-weight:700;color:#fff">${count}</div>`;
     el.addEventListener("click", onClick);
-    const marker = new mapboxglLib.Marker({ element: el })
+    const marker = new maplibreglLib.Marker({ element: el })
       .setLngLat([allocation.longitude, allocation.latitude])
       .addTo(map);
     return () => {

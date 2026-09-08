@@ -1,4 +1,8 @@
-import { GENERIC_DISCLOSURE_TEXT } from "rapid-cortex-shared";
+import {
+  GENERIC_CALL_ASSIST_DISCLOSURE_TEMPLATE,
+  callAssistVoiceVarsFromTenant,
+  interpolateCallAssistVoice,
+} from "rapid-cortex-shared";
 import { getAgencyIdByDid, getLexTenantConfig } from "./runtime-store.js";
 
 export type ConnectStartEvent = {
@@ -23,7 +27,7 @@ function phoneFromEvent(event: ConnectStartEvent): string {
 
 /**
  * Amazon Connect Lambda: resolve tenant config from the called DID.
- * Nothing here is hardcoded to KCPD — the seed writes the DID lookup row.
+ * Voice copy is interpolated from that tenant — nothing is hardcoded to a city or agency.
  */
 export async function handler(event: ConnectStartEvent): Promise<{
   agencyId: string;
@@ -34,18 +38,23 @@ export async function handler(event: ConnectStartEvent): Promise<{
   const phoneNumber = phoneFromEvent(event);
   const agencyId = phoneNumber ? await getAgencyIdByDid(phoneNumber) : null;
   if (!agencyId) {
+    const agencyShortName = "this agency";
     return {
       agencyId: "default",
-      disclosureText: GENERIC_DISCLOSURE_TEXT,
+      disclosureText: interpolateCallAssistVoice(GENERIC_CALL_ASSIST_DISCLOSURE_TEMPLATE, { agencyShortName }),
       language: "en",
-      agencyShortName: "this agency",
+      agencyShortName,
     };
   }
   const config = await getLexTenantConfig(agencyId);
+  const agencyShortName = config.agencyShortName ?? config.shortName ?? "this agency";
   return {
     agencyId,
-    disclosureText: config.disclosureText,
-    language: "en",
-    agencyShortName: config.agencyShortName ?? config.shortName ?? "this agency",
+    disclosureText: interpolateCallAssistVoice(
+      config.disclosureText || GENERIC_CALL_ASSIST_DISCLOSURE_TEMPLATE,
+      callAssistVoiceVarsFromTenant(config),
+    ),
+    language: config.defaultLanguageCode?.startsWith("es") ? "es" : "en",
+    agencyShortName,
   };
 }

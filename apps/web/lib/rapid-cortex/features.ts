@@ -349,21 +349,21 @@ const RAPID_CORTEX_FEATURES_BASE: RapidCortexFeatureBase[] = [
     rolloutNotes: "Expose gradually in pilot environments; gated by ENABLE_SURGE.",
   },
   {
-    id: "operational_maps_mapbox",
-    label: "Operational Mapbox workspaces",
+    id: "operational_maps_als",
+    label: "Operational ALS workspaces",
     category: "cad_integration",
     description:
-      "Embedded Mapbox views that mirror Rapid Cortex’s dark command aesthetic for overlays such as caller-shared pins or incident markers.",
+      "Embedded Amazon Location Service maps that mirror Rapid Cortex’s dark command aesthetic for overlays such as caller-shared pins or incident markers.",
     planAvailability: fromPricing("add_on", "included", "included", "included"),
-    requiresBackend: false,
+    requiresBackend: true,
     requiresSecrets: false,
     requiresAgencyApproval: false,
     requiresCadVendor: false,
     requiresAuditLog: false,
     defaultEnabled: false,
-    envVars: ["NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN"],
+    envVars: ["NEXT_PUBLIC_ALS_IDENTITY_POOL_ID", "NEXT_PUBLIC_ALS_MAP_NAME"],
     rolloutNotes:
-      "Public Mapbox access tokens are constrained in production; disabling the env var degrades previews without breaking consoles.",
+      "Map tiles use Cognito Identity Pool credentials; geocoding stays on Lambda. Disabling ALS env vars degrades previews without breaking consoles.",
   },
   {
     id: "channel_talk_group_monitoring",

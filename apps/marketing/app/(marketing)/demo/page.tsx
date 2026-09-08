@@ -43,7 +43,7 @@ const seeItems = [
   },
   {
     title: "Operational maps",
-    body: "Dark-theme Mapbox views for caller pins and command surfaces—aligned with the same mapping stack used across the platform.",
+    body: "Dark-theme Amazon Location Service views for caller pins and command surfaces—aligned with the same mapping stack used across the platform.",
   },
 ] as const;
 

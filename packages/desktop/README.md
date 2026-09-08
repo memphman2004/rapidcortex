@@ -1,6 +1,6 @@
 # Rapid Cortex Desktop (Electron + MapKit JS)
 
-Experimental **Electron** shell for **Apple MapKit JS** on macOS with **Mapbox GL** fallback via `rapid-cortex-maps`.
+Experimental **Electron** shell for **Apple MapKit JS** on macOS with **MapLibre GL** fallback via `rapid-cortex-maps`.
 
 > **Production macOS app:** [`apps/desktop-macos`](../../apps/desktop-macos) is the shipped SwiftUI + WKWebView shell. Use this package when you want MapKit JS in a Chromium renderer or to prototype hybrid maps outside the web app.
 

@@ -56,6 +56,7 @@ Globals:
         ENABLE_CALL_ASSIST_RECORDING: "false"
         CAD_WRITEBACK_ENABLED: "false"
         CALL_ASSIST_CONNECT_MOCK: "true"
+        CALL_ASSIST_LEX_MOCK: "true"
         CALL_ASSIST_RAPIDSOS_MOCK: "true"
         CALL_ASSIST_TABLE: !If
           - CreateCallAssistTable
@@ -172,6 +173,28 @@ Resources:
       Handler: dist/handlers/call-assist/connectWebhook.handler
       Policies:
         - !Ref AppManagedPolicyCallAssistDynamo
+
+  # One rebuild per tick, 5-minute build window. Old aliases keep serving until switched.
+  CallAssistBotRebuildFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/call-assist/lex/bot-rebuild-queue.handler
+      Timeout: 360
+      MemorySize: 512
+      Policies:
+        - !Ref AppManagedPolicyCallAssistDynamo
+      Events:
+        EveryFiveMinutes:
+          Type: Schedule
+          Properties:
+            Schedule: rate(5 minutes)
+            Name: !Sub "${ManagedPolicyNamePrefix}-ca-bot-rebuild-${DeploymentStage}"
+            Enabled: true
+            Description: Process one Call Assist Lex bot rebuild per tick
 
   CallAssistHttpIntegration:
     Type: AWS::ApiGatewayV2::Integration

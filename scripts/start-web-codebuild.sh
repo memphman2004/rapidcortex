@@ -7,27 +7,26 @@ ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 
 echo "Starting CodeBuild project ${PROJECT_NAME}…"
 
-# Mapbox public token must be baked into the Next.js image (NEXT_PUBLIC_*).
-# Without it, MapPreviewButton falls back to Google Maps and shows "(Google)".
-# Prefer existing env / .deploy-secrets.local.sh / SSM / CodeBuild project env.
-# shellcheck source=scripts/lib/resolve-mapbox-token.sh
-source "${ROOT}/scripts/lib/resolve-mapbox-token.sh"
-if resolve_mapbox_token; then
-  echo "✓ Mapbox token resolved for web image bake (value not printed)"
+# Amazon Location Service map tiles (Cognito Identity Pool). No public token.
+# shellcheck source=scripts/lib/resolve-als-map-env.sh
+source "${ROOT}/scripts/lib/resolve-als-map-env.sh"
+if resolve_als_map_env; then
+  echo "✓ ALS map env resolved for web image bake"
 else
-  echo "WARN: NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN unresolved — maps will fall back to Google." >&2
-  echo "  Put token in SSM /rapidcortex/prod/mapbox/public-token or export before deploy." >&2
+  echo "WARN: NEXT_PUBLIC_ALS_IDENTITY_POOL_ID unresolved — maps will not authenticate until stack outputs are set." >&2
 fi
 
 # Optional: pass stack API bases into the Docker build (NEXT_PUBLIC_API_BASE_*).
 CB_ENV_OVERRIDES=()
 for key in \
-  NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN \
-  NEXT_PUBLIC_MAPBOX_STYLE_URL \
-  NEXT_PUBLIC_MAPBOX_STYLE_URL_DARK \
-  NEXT_PUBLIC_MAPBOX_STYLE_URL_LIGHT \
-  NEXT_PUBLIC_MAPBOX_STYLE_DARK \
-  NEXT_PUBLIC_MAPBOX_STYLE_LIGHT \
+  NEXT_PUBLIC_ALS_REGION \
+  NEXT_PUBLIC_ALS_MAP_NAME \
+  NEXT_PUBLIC_ALS_MAP_NAME_DARK \
+  NEXT_PUBLIC_ALS_IDENTITY_POOL_ID \
+  NEXT_PUBLIC_ALS_PLACE_INDEX_NAME \
+  NEXT_PUBLIC_ALS_ROUTE_CALCULATOR_NAME \
+  NEXT_PUBLIC_ALS_GEOFENCE_COLLECTION \
+  NEXT_PUBLIC_ALS_TRACKER_NAME \
   NEXT_PUBLIC_API_BASE_3 NEXT_PUBLIC_API_BASE_4 NEXT_PUBLIC_API_BASE_5 \
   NEXT_PUBLIC_SITE_URL NEXT_PUBLIC_APP_ORIGIN \
   NEXT_PUBLIC_COGNITO_USER_POOL_ID NEXT_PUBLIC_COGNITO_CLIENT_ID NEXT_PUBLIC_COGNITO_REGION NEXT_PUBLIC_COGNITO_DOMAIN \

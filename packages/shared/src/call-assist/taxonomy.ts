@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { interpolateCallAssistVoice } from "./voice-config.js";
 
 /** Agency operational context. Each vertical has a default taxonomy agencies can customize. */
 export const CALL_ASSIST_TAXONOMY_VERTICALS = ["911", "campus", "venue"] as const;
@@ -189,8 +190,7 @@ export function normalizeConfidenceThresholds(
 }
 
 export function substituteAgencyShortName(template: string, shortName: string): string {
-  const name = shortName.trim() || "this agency";
-  return template.replaceAll("{agencyShortName}", name);
+  return interpolateCallAssistVoice(template, { agencyShortName: shortName });
 }
 
 export function isCallAssistOnboardingComplete(config: { onboardingComplete?: boolean }): boolean {

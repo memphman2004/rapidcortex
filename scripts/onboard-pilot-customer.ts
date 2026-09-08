@@ -351,6 +351,10 @@ async function main() {
       throw new Error("Could not resolve agencyId from create response.");
     }
 
+    // Call Assist Lex bots are not created here. After the voice-config form is filled,
+    // RC ops runs POST /api/call-assist/onboarding (then POST .../did). Agency create
+    // only stores addons.
+
     if (agencyPatch) {
       const patchRes = await apiRequest(apiUrl, `/api/agencies/${resolvedAgencyId}`, superadminToken, {
         method: "PATCH",

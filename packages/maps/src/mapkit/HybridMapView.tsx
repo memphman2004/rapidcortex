@@ -16,7 +16,7 @@ export interface HybridMapViewProps {
   isMac?: boolean;
   isMapKitAvailable?: () => Promise<boolean>;
   getMapKitToken?: MapKitTokenProvider;
-  onMapLoad?: (map: MapKitMapInstance | import("mapbox-gl").Map) => void;
+  onMapLoad?: (map: MapKitMapInstance | import("maplibre-gl").Map) => void;
 }
 
 export function HybridMapView({

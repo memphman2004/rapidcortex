@@ -45,9 +45,9 @@ export interface RCMapLayerVisibility {
   activeIncidents:     boolean;
   resolvedIncidents:   boolean;
   callerPin:           boolean;
-  /** Mapbox live traffic flow — Studio layer ID: rc-live-traffic */
+  /** Live traffic flow overlay when present in the style */
   liveTraffic:         boolean;
-  /** Mapbox live traffic closures — Studio layer ID: rc-live-traffic-closures */
+  /** Live traffic closures overlay when present in the style */
   liveTrafficClosures: boolean;
 }
 
@@ -110,7 +110,7 @@ export interface RCMapProps {
    */
   vertical?: "core" | "campus" | "venue" | "airport";
 
-  /** Mapbox Studio style theme — dark (dispatch) vs light */
+  /** ALS dark (dispatch) vs light street theme */
   theme?: "dark" | "light";
 
   /** Called when the in-map theme toggle is clicked */
@@ -130,16 +130,16 @@ export interface RCMapProps {
 
   onOverlayClick?: (overlay: RCOperationalOverlay) => void;
 
-  /** Increment `id` to run a one-shot camera command without remounting Mapbox. */
+  /** Increment `id` to run a one-shot camera command without remounting MapLibre. */
   mapCommand?: RCMapCommand | null;
 
-  /** Hide Mapbox NavigationControl when the host provides its own zoom buttons. */
+  /** Hide MapLibre NavigationControl when the host provides its own zoom buttons. */
   showZoomControl?: boolean;
 
-  /** Initial pitch (0 = top-down, 55 = isometric). Applied on Mapbox init. */
+  /** Initial pitch (0 = top-down, 55 = isometric). Applied on MapLibre init. */
   pitch?: number;
 
-  /** Initial bearing in degrees. Applied on Mapbox init. */
+  /** Initial bearing in degrees. Applied on MapLibre init. */
   bearing?: number;
 
   /**
@@ -148,7 +148,7 @@ export interface RCMapProps {
    */
   sectionPolygons?: GeoJSON.FeatureCollection | null;
 
-  /** Use fill-extrusion instead of flat fill (Mapbox 3D / isometric). */
+  /** Use fill-extrusion instead of flat fill (isometric 3D). */
   sectionExtrusion?: boolean;
 
   /** Fired when a section/building polygon is clicked. */

@@ -21,6 +21,9 @@ export function TransitIncidentList({
       {incidents.map((incident) => (
         <li key={incident.incidentId} style={rowStyle}>
           <strong>{incident.type}</strong> · {incident.status}
+          {incident.source === "physical_security" || incident.summary.startsWith("[Physical Security")
+            ? " · Physical Security"
+            : ""}
           {incident.escalatedTo911 ? " · 911" : ""} — {incident.summary}
           {canEscalate && !incident.escalatedTo911 ? (
             <button

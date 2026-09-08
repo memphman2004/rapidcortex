@@ -1,7 +1,7 @@
 /**
- * Per-campus OSM bounding boxes for Mapbox 3D building extrusion.
+ * Per-campus OSM bounding boxes for ALS 3D building extrusion.
  * Bbox format: [minLat, minLng, maxLat, maxLng] (Overpass).
- * Center is [lng, lat] (Mapbox).
+ * Center is [lng, lat] (MapLibre).
  */
 export interface CampusOsmConfig {
   campusId: string;
@@ -67,7 +67,7 @@ export function listCampusOsmKeys(): string[] {
   return Object.keys(CAMPUS_OSM_REGISTRY);
 }
 
-export const CAMPUS_MAPBOX_ISO = {
+export const CAMPUS_ALS_ISO = {
   pitch: 45,
   bearing: 0,
   zoom: 15.5,

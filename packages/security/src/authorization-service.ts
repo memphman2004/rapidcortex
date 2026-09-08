@@ -182,21 +182,31 @@ export class AuthorizationService {
     const campusRole = resolveCampusMatrixRole(rawRole);
     if (
       campusRole &&
-      (permissionKey.startsWith("campus.") || permissionKey.startsWith("locations."))
+      (permissionKey.startsWith("campus.") ||
+        permissionKey.startsWith("locations.") ||
+        permissionKey.startsWith("alerts.") ||
+        permissionKey.startsWith("clery.") ||
+        permissionKey.startsWith("physical."))
     ) {
       return canCampusRolePerform(campusRole, permissionKey);
     }
     const venueRole = resolveVenueMatrixRole(rawRole);
     if (
       venueRole &&
-      (permissionKey.startsWith("venue.") || permissionKey.startsWith("locations."))
+      (permissionKey.startsWith("venue.") ||
+        permissionKey.startsWith("locations.") ||
+        permissionKey.startsWith("alerts.") ||
+        permissionKey.startsWith("physical."))
     ) {
       return canVenueRolePerform(venueRole, permissionKey);
     }
     const transitRole = resolveTransitMatrixRole(rawRole);
     if (
       transitRole &&
-      (permissionKey.startsWith("transit.") || permissionKey.startsWith("locations."))
+      (permissionKey.startsWith("transit.") ||
+        permissionKey.startsWith("locations.") ||
+        permissionKey.startsWith("alerts.") ||
+        permissionKey.startsWith("physical."))
     ) {
       return canTransitRolePerform(transitRole, permissionKey);
     }

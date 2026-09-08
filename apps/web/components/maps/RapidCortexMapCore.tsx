@@ -5,7 +5,7 @@
  *
  * NEVER import this file directly in pages or server components.
  * It is loaded exclusively via Next.js dynamic import with ssr: false
- * from RapidCortexMap.tsx to prevent SSR crashes from mapbox-gl's
+ * from RapidCortexMap.tsx to prevent SSR crashes from MapLibre GL's
  * reliance on browser globals (window, navigator, WebGL).
  *
  * Architecture:
@@ -14,9 +14,11 @@
  *                                       This file
  */
 
-import mapboxgl from "mapbox-gl";
-import "mapbox-gl/dist/mapbox-gl.css";
+import maplibregl from "maplibre-gl";
+import "maplibre-gl/dist/maplibre-gl.css";
 import { useCallback, useEffect, useRef, useState } from "react";
+import { getMapAuthenticationOptions } from "rapid-cortex-maps";
+import { useALSMap } from "@/lib/map/als-map-context";
 
 import {
   CALLER_LABEL_LAYER,
@@ -40,7 +42,6 @@ import {
   SECTION_LINE_LAYER,
   SECTION_SOURCE_ID,
   SECTION_STATUS_COLOR_EXPRESSION,
-  resolveMapStyleUrl,
   SEVERITY_COLOR_EXPRESSION,
   SEVERITY_RADIUS_EXPRESSION,
   STUDIO_LAYER_GROUPS,
@@ -63,7 +64,7 @@ import {
 } from "@/lib/maps/persisted-map-prefs";
 
 type MapClickHandler = (
-  e: mapboxgl.MapMouseEvent & { features?: mapboxgl.MapboxGeoJSONFeature[] }
+  e: maplibregl.MapMouseEvent & { features?: maplibregl.MapGeoJSONFeature[] }
 ) => void;
 
 const EMPTY_SECTION_FC: GeoJSON.FeatureCollection = { type: "FeatureCollection", features: [] };
@@ -98,8 +99,8 @@ export default function RapidCortexMapCore({
   onPolygonFeatureClick,
 }: RCMapProps) {
   const containerRef = useRef<HTMLDivElement>(null);
-  const mapRef       = useRef<mapboxgl.Map | null>(null);
-  const popupRef     = useRef<mapboxgl.Popup | null>(null);
+  const mapRef       = useRef<maplibregl.Map | null>(null);
+  const popupRef     = useRef<maplibregl.Popup | null>(null);
   const layersRef    = useRef<RCMapLayerVisibility>({
     ...DEFAULT_LAYER_VISIBILITY,
     ...defaultLayers,
@@ -125,6 +126,8 @@ export default function RapidCortexMapCore({
   });
 
   const theme = onThemeChange ? themeProp : localTheme;
+  const { ready: alsReady, mapStyleUrl, mapStyleDarkUrl } = useALSMap();
+  const alsStyleFor = (t: "dark" | "light") => (t === "light" ? mapStyleUrl : mapStyleDarkUrl);
 
   useEffect(() => {
     layersRef.current = layers;
@@ -177,31 +180,22 @@ export default function RapidCortexMapCore({
   // ─── Initialize map (runs once) ─────────────────────────────────────────────
 
   useEffect(() => {
-    if (!containerRef.current) return;
-
-    const token = process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN;
-
-    if (!token || token === "pk.REPLACE_WITH_REAL_TOKEN") {
-      setMapError("Map isn’t configured for this environment. Contact Rapid Cortex support.");
-      return;
-    }
-
-    mapboxgl.accessToken = token;
+    if (!containerRef.current || !alsReady) return;
 
     const initialTheme = themeProp;
     appliedThemeRef.current = initialTheme;
 
-    const map = new mapboxgl.Map({
+    const map = new maplibregl.Map({
       container:          containerRef.current,
-      style:              resolveMapStyleUrl(initialTheme),
+      style:              alsStyleFor(initialTheme),
       center:             [centerLng ?? DEFAULT_CENTER[0], centerLat ?? DEFAULT_CENTER[1]],
       zoom:               zoom ?? DEFAULT_ZOOM,
       pitch:              pitchProp,
       bearing:            bearingProp,
       maxPitch:           60,
-      attributionControl: false,
-      logoPosition:       "bottom-left",
+      attributionControl: {},
       trackResize:        true,
+      ...getMapAuthenticationOptions(),
     });
 
     mapRef.current = map;
@@ -209,14 +203,10 @@ export default function RapidCortexMapCore({
     // Controls
     if (showZoomControl) {
       map.addControl(
-        new mapboxgl.NavigationControl({ showCompass: false }),
+        new maplibregl.NavigationControl({ showCompass: false }),
         "bottom-right"
       );
     }
-    map.addControl(
-      new mapboxgl.AttributionControl({ compact: true }),
-      "bottom-left"
-    );
 
     const onIncidentLayerClick: MapClickHandler = (e) => {
       clickHandlerRef.current(e);
@@ -249,7 +239,7 @@ export default function RapidCortexMapCore({
     // Handle style load errors
     map.on("error", (e) => {
       if (process.env.NODE_ENV === "development") {
-        console.error("[RapidCortexMap] Mapbox error:", e);
+        console.error("[RapidCortexMap] MapLibre error:", e);
       }
     });
 
@@ -276,9 +266,9 @@ export default function RapidCortexMapCore({
       mapRef.current = null;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []); // Only runs on mount — intentional
+  }, [alsReady]); // Wait for ALS auth, then mount once
 
-  // ─── Swap Mapbox Studio style when theme changes ─────────────────────────
+  // ─── Swap ALS style when theme changes ───────────────────────────────────
 
   useEffect(() => {
     const map = mapRef.current;
@@ -311,26 +301,26 @@ export default function RapidCortexMapCore({
     };
 
     map.once("style.load", onStyleLoad);
-    map.setStyle(resolveMapStyleUrl(theme));
+    map.setStyle(alsStyleFor(theme));
   }, [theme, mapReady]);
 
   // ─── Update live incidents when prop changes ─────────────────────────────
 
   useEffect(() => {
     if (!mapReady || !mapRef.current) return;
-    const source = mapRef.current.getSource(LIVE_SOURCE_ID) as mapboxgl.GeoJSONSource | undefined;
+    const source = mapRef.current.getSource(LIVE_SOURCE_ID) as maplibregl.GeoJSONSource | undefined;
     source?.setData(incidentsToGeoJSON(incidents));
   }, [incidents, mapReady]);
 
   useEffect(() => {
     if (!mapReady || !mapRef.current) return;
-    const source = mapRef.current.getSource(OPS_SOURCE_ID) as mapboxgl.GeoJSONSource | undefined;
+    const source = mapRef.current.getSource(OPS_SOURCE_ID) as maplibregl.GeoJSONSource | undefined;
     source?.setData(overlaysToGeoJSON(operationalOverlays));
   }, [operationalOverlays, mapReady]);
 
   useEffect(() => {
     if (!mapReady || !mapRef.current) return;
-    const source = mapRef.current.getSource(SECTION_SOURCE_ID) as mapboxgl.GeoJSONSource | undefined;
+    const source = mapRef.current.getSource(SECTION_SOURCE_ID) as maplibregl.GeoJSONSource | undefined;
     source?.setData(sectionPolygons ?? EMPTY_SECTION_FC);
     applySectionLayerVisibility(mapRef.current, sectionPolygons, sectionExtrusion);
   }, [sectionPolygons, sectionExtrusion, mapReady]);
@@ -403,7 +393,7 @@ export default function RapidCortexMapCore({
 
     // Open popup for the selected incident
     popupRef.current?.remove();
-    popupRef.current = new mapboxgl.Popup({
+    popupRef.current = new maplibregl.Popup({
       closeButton:  true,
       closeOnClick: true,
       maxWidth:     "260px",
@@ -428,7 +418,7 @@ export default function RapidCortexMapCore({
 
   useEffect(() => {
     if (!mapReady || !mapRef.current) return;
-    const source = mapRef.current.getSource(CALLER_SOURCE_ID) as mapboxgl.GeoJSONSource | undefined;
+    const source = mapRef.current.getSource(CALLER_SOURCE_ID) as maplibregl.GeoJSONSource | undefined;
 
     if (!callerLocation) {
       source?.setData({ type: "FeatureCollection", features: [] });
@@ -501,7 +491,7 @@ export default function RapidCortexMapCore({
     const [lng, lat] = geometry.coordinates;
 
     popupRef.current?.remove();
-    popupRef.current = new mapboxgl.Popup({
+    popupRef.current = new maplibregl.Popup({
       closeButton:  true,
       closeOnClick: true,
       maxWidth:     "260px",
@@ -577,7 +567,7 @@ export default function RapidCortexMapCore({
         />
       )}
 
-      {/* Dark / light Studio style toggle — above Mapbox +/- (bottom-right) */}
+      {/* Dark / light ALS style toggle — above MapLibre +/- (bottom-right) */}
       {mapReady && (
         <button
           type="button"
@@ -628,16 +618,16 @@ export default function RapidCortexMapCore({
 
       {/* Inline CSS for popup styles + loading animation */}
       <style>{`
-        .mapboxgl-popup-content {
+        .maplibregl-popup-content {
           background: transparent !important;
           padding: 0 !important;
           border-radius: 0 !important;
           box-shadow: none !important;
         }
-        .mapboxgl-popup-tip {
+        .maplibregl-popup-tip {
           display: none !important;
         }
-        .mapboxgl-popup-close-button {
+        .maplibregl-popup-close-button {
           color: #5a4d7a !important;
           font-size: 16px !important;
           padding: 4px 8px !important;
@@ -645,27 +635,27 @@ export default function RapidCortexMapCore({
           top: 2px !important;
           background: transparent !important;
         }
-        .mapboxgl-popup-close-button:hover {
+        .maplibregl-popup-close-button:hover {
           color: #e4dff5 !important;
           background: transparent !important;
         }
-        .mapboxgl-ctrl-bottom-right {
+        .maplibregl-ctrl-bottom-right {
           bottom: 8px !important;
           right: 8px !important;
         }
-        .mapboxgl-ctrl-group {
+        .maplibregl-ctrl-group {
           background: #100e1a !important;
           border: 1px solid #1e1a30 !important;
           box-shadow: 0 2px 6px rgba(0,0,0,.5) !important;
         }
-        .mapboxgl-ctrl-group button {
+        .maplibregl-ctrl-group button {
           background-color: #100e1a !important;
           border-color: #1e1a30 !important;
         }
-        .mapboxgl-ctrl-group button:hover {
+        .maplibregl-ctrl-group button:hover {
           background-color: #1e1a30 !important;
         }
-        .mapboxgl-ctrl-icon {
+        .maplibregl-ctrl-icon {
           filter: invert(0.7) !important;
         }
         @keyframes rc-map-pulse {
@@ -681,7 +671,7 @@ export default function RapidCortexMapCore({
 
 /** Re-add app-managed GeoJSON sources/layers after initial load or setStyle. */
 function ensureLiveLayers(
-  map: mapboxgl.Map,
+  map: maplibregl.Map,
   layers: RCMapLayerVisibility,
   incidents: RCIncident[],
   overlays: RCOperationalOverlay[] = [],
@@ -694,7 +684,7 @@ function ensureLiveLayers(
       data: sections,
     });
   } else {
-    (map.getSource(SECTION_SOURCE_ID) as mapboxgl.GeoJSONSource).setData(sections);
+    (map.getSource(SECTION_SOURCE_ID) as maplibregl.GeoJSONSource).setData(sections);
   }
 
   if (!map.getLayer(SECTION_FILL_LAYER)) {
@@ -764,7 +754,7 @@ function ensureLiveLayers(
       data: incidentsToGeoJSON(incidents),
     });
   } else {
-    (map.getSource(LIVE_SOURCE_ID) as mapboxgl.GeoJSONSource).setData(
+    (map.getSource(LIVE_SOURCE_ID) as maplibregl.GeoJSONSource).setData(
       incidentsToGeoJSON(incidents)
     );
   }
@@ -869,7 +859,7 @@ function ensureLiveLayers(
       data: overlaysToGeoJSON(overlays),
     });
   } else {
-    (map.getSource(OPS_SOURCE_ID) as mapboxgl.GeoJSONSource).setData(overlaysToGeoJSON(overlays));
+    (map.getSource(OPS_SOURCE_ID) as maplibregl.GeoJSONSource).setData(overlaysToGeoJSON(overlays));
   }
 
   if (!map.getLayer(OPS_LAYER)) {
@@ -931,7 +921,7 @@ function ensureLiveLayers(
 }
 
 function applySectionLayerVisibility(
-  map: mapboxgl.Map,
+  map: maplibregl.Map,
   sections: GeoJSON.FeatureCollection | null | undefined,
   extrude: boolean,
 ): void {
@@ -942,10 +932,10 @@ function applySectionLayerVisibility(
   safeSetVisibility(map, SECTION_LABEL_LAYER, hasFeatures);
 }
 
-const incidentCursorEnterByMap = new WeakMap<mapboxgl.Map, () => void>();
-const incidentCursorLeaveByMap = new WeakMap<mapboxgl.Map, () => void>();
+const incidentCursorEnterByMap = new WeakMap<maplibregl.Map, () => void>();
+const incidentCursorLeaveByMap = new WeakMap<maplibregl.Map, () => void>();
 
-function bindIncidentInteractions(map: mapboxgl.Map, handler: MapClickHandler): void {
+function bindIncidentInteractions(map: maplibregl.Map, handler: MapClickHandler): void {
   map.off("click", LIVE_ACTIVE_LAYER, handler);
   map.off("click", LIVE_RESOLVED_LAYER, handler);
   map.on("click", LIVE_ACTIVE_LAYER, handler);
@@ -992,10 +982,10 @@ function overlaysToGeoJSON(overlays: RCOperationalOverlay[]): GeoJSON.FeatureCol
   };
 }
 
-const overlayClickByMap = new WeakMap<mapboxgl.Map, MapClickHandler>();
+const overlayClickByMap = new WeakMap<maplibregl.Map, MapClickHandler>();
 
 function bindOverlayInteractions(
-  map: mapboxgl.Map,
+  map: maplibregl.Map,
   onSelect: (id: string) => void,
 ): void {
   const previous = overlayClickByMap.get(map);
@@ -1016,10 +1006,10 @@ function bindOverlayInteractions(
   });
 }
 
-const polygonClickByMap = new WeakMap<mapboxgl.Map, MapClickHandler>();
+const polygonClickByMap = new WeakMap<maplibregl.Map, MapClickHandler>();
 
 function bindPolygonInteractions(
-  map: mapboxgl.Map,
+  map: maplibregl.Map,
   onSelect: (properties: GeoJSON.GeoJsonProperties) => void,
 ): void {
   const previous = polygonClickByMap.get(map);
@@ -1047,12 +1037,12 @@ function bindPolygonInteractions(
 }
 
 /**
- * Safely toggle a single Mapbox layer's visibility.
+ * Safely toggle a single MapLibre layer's visibility.
  * Guards against layers that don't exist in the current style — logs a dev
  * warning and continues rather than throwing.
  */
 function safeSetVisibility(
-  map: mapboxgl.Map,
+  map: maplibregl.Map,
   layerId: string,
   visible: boolean
 ): void {
@@ -1066,14 +1056,13 @@ function safeSetVisibility(
 }
 
 /**
- * Mapbox Standard (imported basemap) requires custom layers to declare a slot
- * or they can fail to paint. Force known RC overlays into the top slot.
+ * ALS Esri styles ignore unknown slots; keep this no-op-safe for leftover overlay IDs.
  */
-function promoteStudioOverlays(map: mapboxgl.Map): void {
+function promoteStudioOverlays(map: maplibregl.Map): void {
   for (const layerId of STUDIO_LAYER_IDS) {
     if (!map.getLayer(layerId)) continue;
     try {
-      const withSlot = map as mapboxgl.Map & {
+      const withSlot = map as maplibregl.Map & {
         setSlot?: (id: string, slot: string) => void;
       };
       if (typeof withSlot.setSlot === "function") {
@@ -1086,11 +1075,11 @@ function promoteStudioOverlays(map: mapboxgl.Map): void {
 }
 
 /**
- * Applies the current RCMapLayerVisibility state to all Mapbox Studio layer groups.
+ * Applies the current RCMapLayerVisibility state to overlay layer groups.
  * Studio layers that aren't published yet are silently skipped.
  */
 function applyStudioVisibility(
-  map: mapboxgl.Map,
+  map: maplibregl.Map,
   layers: RCMapLayerVisibility
 ): void {
   const groupMap: Array<{ group: keyof typeof STUDIO_LAYER_GROUPS; key: keyof RCMapLayerVisibility }> = [

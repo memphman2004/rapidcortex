@@ -52,10 +52,10 @@ describe("campus OSM registry", () => {
 });
 
 describe("campus map config", () => {
-  it("selects Mapbox 3D for registered campuses and never uses a CDN host", () => {
+  it("selects ALS 3D for registered campuses and never uses a CDN host", () => {
     const config = buildCampusMapConfig("CSU");
     expect(config.mapType).toBe("campus");
-    expect(config.renderer).toBe("mapbox3d");
+    expect(config.renderer).toBe("als3d");
     expect(config.pitch).toBe(45);
     expect(config.geojsonBase).toBe("/api/campus/code/CSU/map");
     expect(config.hasOsmCoverage).toBe(true);
@@ -63,7 +63,7 @@ describe("campus map config", () => {
 
   it("falls back to 2D without OSM coverage instead of 404", () => {
     const config = buildCampusMapConfig("LINCOLNHIGH");
-    expect(config.renderer).toBe("mapbox2d");
+    expect(config.renderer).toBe("als2d");
     expect(config.hasOsmCoverage).toBe(false);
   });
 });

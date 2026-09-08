@@ -158,4 +158,8 @@ results/stress-v2/
 infra/lex-lambda/dialog-hook.js
 infra/lex-lambda/fulfillment-hook.js
 infra/lex-lambda/get-agency-for-number.js
+infra/lex-lambda/.lex-hooks.zip
+infra/lex/import/
+infra/lex/RCCallAssistBot-import.zip
+vocabs/generated/
 

@@ -4,7 +4,9 @@
 #
 # Usage:
 #   source scripts/env-api-dev.sh && bash scripts/deploy-lex.sh dev
-#   bash scripts/deploy-lex.sh staging
+#   LEX_LAMBDA_ONLY=1 bash scripts/deploy-lex.sh dev   # hooks only; DRAFT/alias unchanged
+#   bash scripts/import-lex-bot-draft.sh dev           # 19-intent spec → DRAFT
+#   bash scripts/publish-lex-alias.sh dev              # after TSTALIASID smoke tests
 #
 # Dev (DeploymentStage=dev) is the live account 158961537080.
 set -euo pipefail
@@ -74,8 +76,24 @@ npx esbuild "${ROOT}/apps/api/src/call-assist/lex/get-agency-for-number.ts" \
   --alias:rapid-cortex-shared="${ROOT}/packages/shared/src/index.ts" \
   --external:aws-sdk
 
+if [[ "${LEX_LAMBDA_ONLY:-}" == "1" ]]; then
+  echo "→ LEX_LAMBDA_ONLY=1 — updating hook function code only (DRAFT bot / live-dev alias unchanged)."
+  ZIP="${ROOT}/infra/lex-lambda/.lex-hooks.zip"
+  rm -f "${ZIP}"
+  (cd "${ROOT}/infra/lex-lambda" && zip -q "${ZIP}" dialog-hook.js fulfillment-hook.js get-agency-for-number.js)
+  for fn in dialog-hook fulfillment-hook agency-for-number; do
+    name="${APP_NAME}-lex-${fn}-${STAGE}"
+    echo "   update-function-code ${name}"
+    aws lambda update-function-code --function-name "${name}" --zip-file "fileb://${ZIP}" --region "${REGION}" >/dev/null
+  done
+  echo "✅ Lex Lambdas updated. Intents stay on DRAFT until you deploy the bot or import infra/lex/bot-spec.json."
+  echo "   Test DRAFT with alias TSTALIASID. Do not update live-${STAGE} until both locales pass RecognizeText."
+  exit 0
+fi
+
 echo "→ Deploying Lex stack ${STACK} (${STAGE}, table ${TABLE})…"
-echo "   Bot locale build takes 3–5 minutes after CloudFormation creates AWS::Lex::Bot."
+echo "   WARNING: this publishes live-${STAGE} via AWS::Lex::BotVersion."
+echo "   To update hooks only: LEX_LAMBDA_ONLY=1. To update DRAFT only: bash scripts/import-lex-bot-draft.sh ${STAGE}."
 sam deploy \
   --template-file "${TEMPLATE}" \
   --stack-name "${STACK}" \
@@ -114,4 +132,5 @@ echo "   DID lookup:    ${APP_NAME}-lex-agency-for-number-${STAGE}"
 echo ""
 echo "→ Next: import connect/contact-flow-call-assist.json into Amazon Connect"
 echo "   and set LEX_BOT_ID=${BOT_ID} LEX_BOT_ALIAS_ID=${ALIAS_ID}"
-echo "   Seed KCPD before test calls: CALL_ASSIST_SEED_PROFILE=kcpd"
+echo "   Seed the tenant before test calls: AGENCY_ID=… CALL_ASSIST_TEST_DID=… bash scripts/seed-call-assist-tenant.sh"
+echo "   First tenant (KCPD overlay): CALL_ASSIST_SEED_PROFILE=kcpd AGENCY_ID=kcpd"

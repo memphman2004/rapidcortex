@@ -76,20 +76,22 @@ export COGNITO_DOMAIN="${NEXT_PUBLIC_COGNITO_DOMAIN}"
 
 export ANTHROPIC_API_KEY_SECRET_ARN="${ANTHROPIC_API_KEY_SECRET_ARN:-arn:aws:secretsmanager:us-east-1:158961537080:secret:rapid-cortex/ai/anthropic-fHk4y2}"
 
-# shellcheck source=scripts/lib/resolve-mapbox-token.sh
+# Amazon Location Service (MapLibre tiles)
+# shellcheck source=scripts/lib/resolve-als-map-env.sh
 _ENV_SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]:-${(%):-%x}}")" && pwd)"
-if [[ -f "${_ENV_SCRIPT_DIR}/lib/resolve-mapbox-token.sh" ]]; then
+if [[ -f "${_ENV_SCRIPT_DIR}/lib/resolve-als-map-env.sh" ]]; then
   # shellcheck disable=SC1091
-  source "${_ENV_SCRIPT_DIR}/lib/resolve-mapbox-token.sh"
-  resolve_mapbox_token || true
-  resolve_mapbox_styles || true
+  source "${_ENV_SCRIPT_DIR}/lib/resolve-als-map-env.sh"
+  resolve_als_map_env || true
 fi
 unset _ENV_SCRIPT_DIR
-export NEXT_PUBLIC_MAPBOX_STYLE_URL_DARK="${NEXT_PUBLIC_MAPBOX_STYLE_URL_DARK:-mapbox://styles/memphman2004/cmr3afd69002401qq1uywfk5p}"
-export NEXT_PUBLIC_MAPBOX_STYLE_URL_LIGHT="${NEXT_PUBLIC_MAPBOX_STYLE_URL_LIGHT:-mapbox://styles/memphman2004/cmsfheap9009w01s96hcr95b1}"
-export NEXT_PUBLIC_MAPBOX_STYLE_URL="${NEXT_PUBLIC_MAPBOX_STYLE_URL:-${NEXT_PUBLIC_MAPBOX_STYLE_URL_DARK}}"
-export NEXT_PUBLIC_MAPBOX_STYLE_DARK="${NEXT_PUBLIC_MAPBOX_STYLE_DARK:-${NEXT_PUBLIC_MAPBOX_STYLE_URL_DARK}}"
-export NEXT_PUBLIC_MAPBOX_STYLE_LIGHT="${NEXT_PUBLIC_MAPBOX_STYLE_LIGHT:-${NEXT_PUBLIC_MAPBOX_STYLE_URL_LIGHT}}"
+export NEXT_PUBLIC_ALS_REGION="${NEXT_PUBLIC_ALS_REGION:-us-east-1}"
+export NEXT_PUBLIC_ALS_MAP_NAME="${NEXT_PUBLIC_ALS_MAP_NAME:-rc-map-staging}"
+export NEXT_PUBLIC_ALS_MAP_NAME_DARK="${NEXT_PUBLIC_ALS_MAP_NAME_DARK:-rc-map-dark-staging}"
+export NEXT_PUBLIC_ALS_PLACE_INDEX_NAME="${NEXT_PUBLIC_ALS_PLACE_INDEX_NAME:-rc-places-staging}"
+export NEXT_PUBLIC_ALS_ROUTE_CALCULATOR_NAME="${NEXT_PUBLIC_ALS_ROUTE_CALCULATOR_NAME:-rc-routes-staging}"
+export NEXT_PUBLIC_ALS_GEOFENCE_COLLECTION="${NEXT_PUBLIC_ALS_GEOFENCE_COLLECTION:-rc-geofences-staging}"
+export NEXT_PUBLIC_ALS_TRACKER_NAME="${NEXT_PUBLIC_ALS_TRACKER_NAME:-rc-tracker-staging}"
 
 echo "✅ Staging SSR env ready — STACK_NAME=${STACK_NAME} APP_SUBDOMAIN_PREFIX=${APP_SUBDOMAIN_PREFIX} ATTACH_CLOUDFRONT_ALIASES=${ATTACH_CLOUDFRONT_ALIASES}"
 if [[ -z "${CLOUDFRONT_CERT_ARN}" ]]; then

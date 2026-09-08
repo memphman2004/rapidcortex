@@ -6,7 +6,7 @@ import type { RCIncident, RCMapCommand, RCMapCommandBody } from "@/components/ma
 import { C } from "@/lib/theme/rc-theme-tokens";
 import { defaultFacilityLevelId, resolveVenueOperationalMap } from "@/lib/venue/operational-awareness/resolve-operational-map";
 import { buildDemoVenueSectionGeoJSON } from "@/lib/venue/operational-awareness/demo-section-geojson";
-import { VENUE_MAPBOX_ISO } from "@/lib/venue/operational-awareness/venue-map-config";
+import { VENUE_ALS_ISO } from "@/lib/venue/operational-awareness/venue-map-config";
 import { buildExteriorOverlays } from "@/lib/venue/operational-awareness/layers";
 import { demoIncidentsToMap, resolveIncidentFocus } from "@/lib/venue/operational-awareness/focus";
 import { openOperationalMapWindow } from "@/lib/venue/operational-awareness/pop-out";
@@ -103,9 +103,9 @@ export function OperationalAwarenessWorkspace({
   );
 
   const sectionPolygons = useMemo(() => buildDemoVenueSectionGeoJSON(map), [map]);
-  const areaZoom = Math.max(map.exterior.zoom, VENUE_MAPBOX_ISO.zoom);
-  const areaPitch = is3d ? VENUE_MAPBOX_ISO.pitch : 0;
-  const areaBearing = VENUE_MAPBOX_ISO.bearing;
+  const areaZoom = Math.max(map.exterior.zoom, VENUE_ALS_ISO.zoom);
+  const areaPitch = is3d ? VENUE_ALS_ISO.pitch : 0;
+  const areaBearing = VENUE_ALS_ISO.bearing;
 
   const issueCommand = useCallback((next: RCMapCommandBody) => {
     setCommand({ ...next, id: Date.now() });
@@ -246,8 +246,8 @@ export function OperationalAwarenessWorkspace({
                 setIs3d(next);
                 issueCommand({
                   type: "camera",
-                  pitch: next ? VENUE_MAPBOX_ISO.pitch : 0,
-                  bearing: VENUE_MAPBOX_ISO.bearing,
+                  pitch: next ? VENUE_ALS_ISO.pitch : 0,
+                  bearing: VENUE_ALS_ISO.bearing,
                   center: map.exterior.center,
                   zoom: areaZoom,
                 });

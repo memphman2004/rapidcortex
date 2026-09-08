@@ -1,14 +1,8 @@
 "use client";
 
 import { useState, useCallback } from "react";
-import { MapModal, openMapPreviewWindow } from "@/components/maps/mapbox-incident-map";
-
-// ─── Config ───────────────────────────────────────────────────────────────────
-
-const MAPBOX_TOKEN = process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN ?? "";
-const TOKEN_OK = MAPBOX_TOKEN.startsWith("pk.") && !MAPBOX_TOKEN.includes("REPLACE");
-
-const GEOCODE_BASE = "https://api.mapbox.com/geocoding/v5/mapbox.places";
+import { MapModal, openMapPreviewWindow } from "@/components/maps/incident-map";
+import { geocodeAddress } from "@/lib/geocode-address";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -42,29 +36,12 @@ type GeoState =
 
 // ─── Geocoding ────────────────────────────────────────────────────────────────
 
-async function geocodeAddress(
+async function geocodeForPreview(
   address: string,
 ): Promise<{ lat: number; lng: number } | null> {
-  if (!TOKEN_OK) return null;
-
-  const encoded = encodeURIComponent(address.trim());
-  const url = `${GEOCODE_BASE}/${encoded}.json?access_token=${MAPBOX_TOKEN}&limit=1&types=address,place,poi`;
-
-  try {
-    const res = await fetch(url, { signal: AbortSignal.timeout(6000) });
-    if (!res.ok) return null;
-
-    const data = (await res.json()) as {
-      features?: Array<{ center: [number, number] }>;
-    };
-
-    const center = data.features?.[0]?.center;
-    if (!center || center.length < 2) return null;
-
-    return { lat: center[1], lng: center[0] };
-  } catch {
-    return null;
-  }
+  const hit = await geocodeAddress(address);
+  if (!hit) return null;
+  return { lat: hit.lat, lng: hit.lng };
 }
 
 function googleMapsUrl(address: string, lat?: number | null, lng?: number | null): string {
@@ -129,15 +106,10 @@ export function MapPreviewButton({
       return;
     }
 
-    if (!TOKEN_OK) {
-      window.open(googleMapsUrl(address, lat, lng), "_blank", "noopener,noreferrer");
-      return;
-    }
-
     if (geoState.status === "loading") return;
 
     setGeoState({ status: "loading" });
-    const result = await geocodeAddress(address);
+    const result = await geocodeForPreview(address);
 
     if (result) {
       setGeoState({ status: "ready", lat: result.lat, lng: result.lng });
@@ -177,11 +149,9 @@ export function MapPreviewButton({
           onClick={handleClick}
           disabled={isLoading}
           title={
-            !TOKEN_OK
-              ? "Mapbox not configured — will open Google Maps"
-              : openMode === "window"
-                ? "Open map in a window you can move to another monitor"
-                : `Open map for ${address}`
+            openMode === "window"
+              ? "Open map in a window you can move to another monitor"
+              : `Open map for ${address}`
           }
           style={{
             background: "transparent",
@@ -205,11 +175,8 @@ export function MapPreviewButton({
             </>
           ) : (
             <>
-              <MapPinIcon color={!TOKEN_OK ? "#f59e0b" : "#3b82f6"} />
+              <MapPinIcon color="#3b82f6" />
               Open map preview
-              {!TOKEN_OK && (
-                <span style={{ fontSize: 10, color: "#f59e0b", marginLeft: 2 }}>(Google)</span>
-              )}
             </>
           )}
         </button>
@@ -250,14 +217,11 @@ export function MapPreviewButton({
       >
         {isLoading ? <SpinnerIcon /> : <MapPinIcon color="#3b82f6" />}
         {isLoading ? "Locating address…" : "Open map preview"}
-        {!TOKEN_OK && !isLoading && (
-          <span style={{ fontSize: 10, color: "#f59e0b", opacity: 0.8 }}>(Google)</span>
-        )}
       </button>
 
       {geoState.status === "error" && (
         <div style={{ fontSize: 11, color: "#f59e0b", marginTop: 4 }}>
-          ⚠ Mapbox geocoding failed — opened Google Maps instead
+          ⚠ Geocoding failed — opened Google Maps instead
         </div>
       )}
 

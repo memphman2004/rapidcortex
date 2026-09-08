@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import type { Map } from "mapbox-gl";
+import type { Map } from "maplibre-gl";
 import { LocationMarker } from "rapid-cortex-maps/components/LocationMarker";
 import { RapidCortexMap } from "rapid-cortex-maps/components/RapidCortexMap";
 import type { PinpointLinkPublicView } from "rapid-cortex-shared/pinpoint-surge";
@@ -137,7 +137,6 @@ export function PinpointCallerClient({ token }: { token: string }) {
   }
 
   const last = data?.pings?.length ? data.pings[data.pings.length - 1] : null;
-  const mapboxToken = process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN?.trim();
   const confidence = last?.accuracyM != null ? calculateLocationConfidence(last.accuracyM) : null;
 
   return (
@@ -205,8 +204,7 @@ export function PinpointCallerClient({ token }: { token: string }) {
               {last.accuracyM != null ? ` (±${Math.round(last.accuracyM)} m)` : ""}
             </p>
             <p className="mt-2 text-xs text-slate-500">{new Date(last.capturedAt).toLocaleString()}</p>
-            {mapboxToken ? (
-              <div className="mt-3 h-[220px] w-full overflow-hidden rounded-md border border-slate-800">
+            <div className="mt-3 h-[220px] w-full overflow-hidden rounded-md border border-slate-800">
                 <RapidCortexMap
                   theme="dark"
                   center={[last.lng, last.lat]}
@@ -223,9 +221,6 @@ export function PinpointCallerClient({ token }: { token: string }) {
                   />
                 </RapidCortexMap>
               </div>
-            ) : (
-              <p className="mt-3 text-xs text-slate-500">Map preview requires Mapbox on this host.</p>
-            )}
           </div>
         ) : null}
       </div>

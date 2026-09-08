@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef } from "react";
-import type mapboxgl from "mapbox-gl";
+import type maplibregl from "maplibre-gl";
 import {
   COVERAGE_BORDER_LAYER_ID,
   COVERAGE_FILL_LAYER_ID,
@@ -60,7 +60,7 @@ async function loadUsCountiesGeoJson(): Promise<GeoJSON.FeatureCollection | null
   return countiesGeoJsonPromise;
 }
 
-function ensureCoverageLayers(map: mapboxgl.Map): void {
+function ensureCoverageLayers(map: maplibregl.Map): void {
   if (!map.getSource(COVERAGE_SOURCE_ID)) {
     map.addSource(COVERAGE_SOURCE_ID, {
       type: "geojson",
@@ -101,7 +101,7 @@ export function DeploymentsCoverageLayer({
   markers,
   enabled = true,
 }: {
-  map: mapboxgl.Map | null;
+  map: maplibregl.Map | null;
   markers: CoverageMarker[];
   enabled?: boolean;
 }) {
@@ -157,7 +157,7 @@ export function DeploymentsCoverageLayer({
         );
 
         ensureCoverageLayers(map);
-        const source = map.getSource(COVERAGE_SOURCE_ID) as mapboxgl.GeoJSONSource | undefined;
+        const source = map.getSource(COVERAGE_SOURCE_ID) as maplibregl.GeoJSONSource | undefined;
         source?.setData(stamped);
       } catch (err) {
         if (process.env.NODE_ENV === "development") {

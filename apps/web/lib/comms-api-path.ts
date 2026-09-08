@@ -38,6 +38,8 @@ const STACK2_PATH_TESTS: RegExp[] = [
   /^\/api\/cad-connector\//,
   /^\/api\/ng911\//,
   /^\/api\/call-assist\//,
+  /^\/api\/location\//,
+  /^\/api\/alerts\//,
   /^\/api\/public\/call-assist\//,
   /^\/api\/public\/diversion\//,
   /^\/api\/incidents\/[^/]+\/eido$/,
@@ -80,6 +82,8 @@ const STACK5_PATH_TESTS: RegExp[] = [
   /^\/api\/stream\//,
   /^\/api\/public\/incident-media\//,
   /^\/api\/public\/campus\//,
+  /^\/api\/public\/crime-log\//,
+  /^\/api\/physical-security\//,
   /^\/api\/public\/locate\//,
   /^\/api\/sms-routing/,
 ];

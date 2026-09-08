@@ -18,8 +18,9 @@ function websocketBaseUrl(): string {
 /** Subscribe to agency-scoped WebSocket events (incidents, threat level, staff status). */
 export function useAgencyWebSocket(
   onMessage: (message: AgencyWebSocketMessage) => void,
+  options?: { enabled?: boolean },
 ): { connected: boolean } {
-  const enabled = isCallControlWebSocketEnabled();
+  const enabled = options?.enabled ?? isCallControlWebSocketEnabled();
   const [connected, setConnected] = useState(false);
   const onMessageRef = useRef(onMessage);
   useEffect(() => {

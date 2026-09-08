@@ -2,7 +2,7 @@
   "name": "rapid-cortex-desktop",
   "version": "1.0.0",
   "private": true,
-  "description": "Rapid Cortex Electron shell (MapKit JS on macOS, Mapbox fallback)",
+  "description": "Rapid Cortex Electron shell (MapKit JS on macOS, MapLibre fallback)",
   "main": "dist-main/main.js",
   "scripts": {
     "build:main": "tsc -p tsconfig.main.json && tsc -p tsconfig.preload.json",

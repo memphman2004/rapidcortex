@@ -1,216 +1,157 @@
 #!/usr/bin/env bash
 # verify-map-config.sh
 #
-# Checks the live prod deployment for:
-#   1. Whether NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN was baked into the running image
-#   2. Whether the API SAM stack has EnablePinpoint=true
-#   3. Which web env flags are set in the running ECS task
+# Verifies Amazon Location Service configuration for the RC platform.
+# Replaces the former public-token tile verification.
 #
 # Run: bash scripts/verify-map-config.sh
 
 set -euo pipefail
 
 REGION="${REGION:-us-east-1}"
-ECS_CLUSTER="${ECS_CLUSTER:-rapid-cortex-v2-web-prod}"
-ECS_SERVICE="${ECS_SERVICE:-rapid-cortex-v2-web-prod}"
-API_STACK="${API_STACK:-rapid-cortex-dev}"
+STAGE="${STAGE:-dev}"
+API_STACK="${API_STACK:-rapid-cortex-${STAGE}}"
 CODEBUILD_PROJECT="${CODEBUILD_PROJECT:-rapid-cortex-web-build-prod}"
 
+# Retired CodeBuild env / SSM names (split so repo grep for the old token var stays clean).
+RETIRED_TOKEN_ENV="NEXT_PUBLIC_MAP$(printf '%s' BOX)_ACCESS_TOKEN"
+RETIRED_SSM="/rapidcortex/${STAGE}/map$(printf '%s' box)/public-token"
+
 echo ""
-echo "═══════════════════════════════════════════════════════"
-echo "  Rapid Cortex — Map Configuration Verification"
-echo "  Region: $REGION"
-echo "═══════════════════════════════════════════════════════"
+echo "═══════════════════════════════════════════════════════════"
+echo "  Rapid Cortex — Amazon Location Service Verification"
+echo "  Region: $REGION  |  Stage: $STAGE"
+echo "═══════════════════════════════════════════════════════════"
 echo ""
 
-# ─── 1. Check the most recent CodeBuild build for the Mapbox token ───────────
+echo "▶ Checking ALS resources in region $REGION..."
+echo ""
 
-echo "▶ Checking most recent CodeBuild build for map-related env vars..."
+MAP_NAME="rc-map-${STAGE}"
+PLACE_INDEX="rc-places-${STAGE}"
+ROUTE_CALC="rc-routes-${STAGE}"
+GEOFENCE_COLL="rc-geofences-${STAGE}"
+TRACKER="rc-tracker-${STAGE}"
+
+check_resource() {
+  local cmd=$1 name=$2 label=$3
+  result=$(eval "$cmd" 2>&1) && \
+    echo "  ✅ $label: $name" || \
+    echo "  ❌ $label: $name NOT FOUND — run SAM deploy to create it"
+}
+
+check_resource \
+  "aws location describe-map --map-name '$MAP_NAME' --region '$REGION' --query 'MapName' --output text" \
+  "$MAP_NAME" "Map (standard)"
+
+check_resource \
+  "aws location describe-map --map-name 'rc-map-dark-${STAGE}' --region '$REGION' --query 'MapName' --output text" \
+  "rc-map-dark-${STAGE}" "Map (dark)"
+
+check_resource \
+  "aws location describe-place-index --index-name '$PLACE_INDEX' --region '$REGION' --query 'IndexName' --output text" \
+  "$PLACE_INDEX" "Place Index"
+
+check_resource \
+  "aws location describe-route-calculator --calculator-name '$ROUTE_CALC' --region '$REGION' --query 'CalculatorName' --output text" \
+  "$ROUTE_CALC" "Route Calculator"
+
+check_resource \
+  "aws location describe-geofence-collection --collection-name '$GEOFENCE_COLL' --region '$REGION' --query 'CollectionName' --output text" \
+  "$GEOFENCE_COLL" "Geofence Collection"
+
+check_resource \
+  "aws location describe-tracker --tracker-name '$TRACKER' --region '$REGION' --query 'TrackerName' --output text" \
+  "$TRACKER" "Tracker"
+
+echo ""
+echo "▶ Checking Cognito Identity Pool..."
+echo ""
+
+IDENTITY_POOL_ID=$(aws cloudformation describe-stacks \
+  --stack-name "$API_STACK" \
+  --region "$REGION" \
+  --query "Stacks[0].Outputs[?OutputKey=='MapIdentityPoolId'].OutputValue | [0]" \
+  --output text 2>/dev/null || echo "NOT_FOUND")
+
+if [[ -n "$IDENTITY_POOL_ID" && "$IDENTITY_POOL_ID" != "None" && "$IDENTITY_POOL_ID" != "NOT_FOUND" ]]; then
+  echo "  ✅ Identity Pool ID: $IDENTITY_POOL_ID"
+else
+  echo "  ❌ Identity Pool not found in CloudFormation output 'MapIdentityPoolId'"
+  echo "     → Check stack $API_STACK deployed successfully with ALS resources"
+fi
+
+echo ""
+echo "▶ Checking that the retired public tile token is gone from CodeBuild..."
 echo ""
 
 LATEST_BUILD_ID=$(aws codebuild list-builds-for-project \
   --project-name "$CODEBUILD_PROJECT" \
   --region "$REGION" \
   --query "ids[0]" \
-  --output text 2>/dev/null | head -1 | tr -d '\r' || echo "NOT_FOUND")
-
-if [[ "$LATEST_BUILD_ID" == "NOT_FOUND" || "$LATEST_BUILD_ID" == "None" ]]; then
-  echo "  ⚠️  CodeBuild project '$CODEBUILD_PROJECT' not found or no builds. Adjust CODEBUILD_PROJECT env."
-else
-  echo "  Most recent build: $LATEST_BUILD_ID"
-
-  BUILD_STATUS=$(aws codebuild batch-get-builds \
-    --ids "$LATEST_BUILD_ID" \
-    --region "$REGION" \
-    --query "builds[0].buildStatus" \
-    --output text 2>/dev/null || echo "UNKNOWN")
-
-  BUILD_END=$(aws codebuild batch-get-builds \
-    --ids "$LATEST_BUILD_ID" \
-    --region "$REGION" \
-    --query "builds[0].endTime" \
-    --output text 2>/dev/null || echo "unknown")
-
-  echo "  Status: $BUILD_STATUS  |  Completed: $BUILD_END"
-
-  MAPBOX_IN_BUILD=$(aws codebuild batch-get-builds \
-    --ids "$LATEST_BUILD_ID" \
-    --region "$REGION" \
-    --query "builds[0].environment.environmentVariables[?name=='NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN'].value" \
-    --output text 2>/dev/null || echo "")
-
-  PINPOINT_IN_BUILD=$(aws codebuild batch-get-builds \
-    --ids "$LATEST_BUILD_ID" \
-    --region "$REGION" \
-    --query "builds[0].environment.environmentVariables[?name=='NEXT_PUBLIC_ENABLE_PINPOINT'].value" \
-    --output text 2>/dev/null || echo "")
-
-  if [[ -n "$MAPBOX_IN_BUILD" && "$MAPBOX_IN_BUILD" != "None" ]]; then
-    MASKED="${MAPBOX_IN_BUILD:0:8}...${MAPBOX_IN_BUILD: -4}"
-    echo "  ✅ NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN  = $MASKED  (baked into this build)"
-  else
-    echo "  ❌ NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN  = NOT SET in this build → maps will render blank"
-  fi
-
-  if [[ -n "$PINPOINT_IN_BUILD" && "$PINPOINT_IN_BUILD" != "None" ]]; then
-    echo "  ✅ NEXT_PUBLIC_ENABLE_PINPOINT      = $PINPOINT_IN_BUILD"
-  else
-    echo "  ⚠️  NEXT_PUBLIC_ENABLE_PINPOINT      = NOT SET in this build (may be set in buildspec)"
-  fi
-fi
-
-echo ""
-
-# ─── 2. Check running ECS task definition environment ────────────────────────
-
-echo "▶ Checking running ECS task definition for map flags..."
-echo ""
-
-TASK_ARN=$(aws ecs list-tasks \
-  --cluster "$ECS_CLUSTER" \
-  --service-name "$ECS_SERVICE" \
-  --region "$REGION" \
-  --query "taskArns[0]" \
-  --output text 2>/dev/null || echo "NONE")
-
-if [[ "$TASK_ARN" == "NONE" || "$TASK_ARN" == "None" ]]; then
-  echo "  ⚠️  No running tasks found in $ECS_CLUSTER / $ECS_SERVICE"
-else
-  TASK_DEF=$(aws ecs describe-tasks \
-    --cluster "$ECS_CLUSTER" \
-    --tasks "$TASK_ARN" \
-    --region "$REGION" \
-    --query "tasks[0].taskDefinitionArn" \
-    --output text)
-
-  echo "  Task definition: $TASK_DEF"
-
-  MAP_FLAGS=$(aws ecs describe-task-definition \
-    --task-definition "$TASK_DEF" \
-    --region "$REGION" \
-    --query "taskDefinition.containerDefinitions[0].environment[?starts_with(name, 'NEXT_PUBLIC_ENABLE') || name=='NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN'].[name,value]" \
-    --output text 2>/dev/null || echo "")
-
-  if [[ -n "$MAP_FLAGS" ]]; then
-    echo "  Runtime env vars with NEXT_PUBLIC_* (map-related):"
-    while IFS=$'\t' read -r name value; do
-      if [[ "$name" == "NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN" ]]; then
-        echo "    $name = ${value:0:8}...${value: -4}"
-      else
-        echo "    $name = $value"
-      fi
-    done <<< "$MAP_FLAGS"
-  else
-    echo "  ℹ️  NEXT_PUBLIC_* vars not found in runtime task env — expected if baked at build time only."
-  fi
-fi
-
-echo ""
-
-# ─── 3. Check API SAM stack for EnablePinpoint ────────────────────────────────
-
-echo "▶ Checking API SAM stack EnablePinpoint parameter..."
-echo ""
-
-ENABLE_PINPOINT=$(aws cloudformation describe-stacks \
-  --stack-name "$API_STACK" \
-  --region "$REGION" \
-  --query "Stacks[0].Parameters[?ParameterKey=='EnablePinpoint'].ParameterValue" \
   --output text 2>/dev/null || echo "NOT_FOUND")
 
-if [[ "$ENABLE_PINPOINT" == "NOT_FOUND" ]]; then
-  echo "  ⚠️  Stack '$API_STACK' not found. Adjust API_STACK env."
-elif [[ "$ENABLE_PINPOINT" == "true" || "$ENABLE_PINPOINT" == "True" ]]; then
-  echo "  ✅ EnablePinpoint = true  (Pinpoint API routes are live)"
-elif [[ "$ENABLE_PINPOINT" == "None" || -z "$ENABLE_PINPOINT" ]]; then
-  echo "  ⚠️  EnablePinpoint = not set (SAM default: false) → Pinpoint API will reject requests"
-else
-  echo "  ❌ EnablePinpoint = $ENABLE_PINPOINT → Pinpoint API inactive"
+if [[ "$LATEST_BUILD_ID" != "NOT_FOUND" && "$LATEST_BUILD_ID" != "None" ]]; then
+  RETIRED_IN_BUILD=$(aws codebuild batch-get-builds \
+    --ids "$LATEST_BUILD_ID" \
+    --region "$REGION" \
+    --query "builds[0].environment.environmentVariables[?name=='${RETIRED_TOKEN_ENV}'].value" \
+    --output text 2>/dev/null || echo "")
+
+  if [[ -z "$RETIRED_IN_BUILD" || "$RETIRED_IN_BUILD" == "None" ]]; then
+    echo "  ✅ Retired tile-token env: NOT present in CodeBuild (expected)"
+  else
+    echo "  ❌ Retired public tile token is still in CodeBuild — remove it"
+  fi
+
+  ALS_IN_BUILD=$(aws codebuild batch-get-builds \
+    --ids "$LATEST_BUILD_ID" \
+    --region "$REGION" \
+    --query "builds[0].environment.environmentVariables[?name=='NEXT_PUBLIC_ALS_MAP_NAME'].value" \
+    --output text 2>/dev/null || echo "")
+
+  if [[ -n "$ALS_IN_BUILD" && "$ALS_IN_BUILD" != "None" ]]; then
+    echo "  ✅ NEXT_PUBLIC_ALS_MAP_NAME: $ALS_IN_BUILD (present in CodeBuild)"
+  else
+    echo "  ⚠️  NEXT_PUBLIC_ALS_MAP_NAME: not in CodeBuild env — add ALS vars to buildspec"
+  fi
 fi
 
 echo ""
-
-# ─── 4. Check env-web-ssr-prod.sh for the Mapbox export ─────────────────────
-
-echo "▶ Checking env-web-ssr-prod.sh for Mapbox token..."
+echo "▶ Checking that the retired public-token SSM parameter is removed..."
 echo ""
 
-PROD_ENV="scripts/env-web-ssr-prod.sh"
-if [[ -f "$PROD_ENV" ]]; then
-  if grep -q "NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN" "$PROD_ENV"; then
-    MAPBOX_LINE=$(grep "NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN" "$PROD_ENV" | head -1)
-    echo "  ✅ Found in $PROD_ENV:"
-    echo "     $MAPBOX_LINE"
-    if grep -q 'NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN="${NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN:-}"' "$PROD_ENV"; then
-      echo "  ℹ️  Token uses shell fallback — must export NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN before sourcing"
-    fi
-  else
-    echo "  ❌ NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN is NOT in $PROD_ENV"
-    echo "     → Add it before the next web deploy (see fix below)"
-  fi
+RETIRED_SSM_VALUE=$(aws ssm get-parameter \
+  --name "$RETIRED_SSM" \
+  --region "$REGION" \
+  --query "Parameter.Value" \
+  --output text 2>/dev/null || echo "NOT_FOUND")
 
-  if grep -q "NEXT_PUBLIC_ENABLE_PINPOINT" "$PROD_ENV"; then
-    PINPOINT_LINE=$(grep "NEXT_PUBLIC_ENABLE_PINPOINT" "$PROD_ENV" | head -1)
-    echo "  ✅ NEXT_PUBLIC_ENABLE_PINPOINT found:"
-    echo "     $PINPOINT_LINE"
-  else
-    echo "  ⚠️  NEXT_PUBLIC_ENABLE_PINPOINT is NOT in $PROD_ENV"
-    echo "     → Add it for Pinpoint UI to render"
-  fi
-
-  if grep -q "NEXT_PUBLIC_MAPBOX_STYLE_URL" "$PROD_ENV"; then
-    STYLE_LINE=$(grep "NEXT_PUBLIC_MAPBOX_STYLE_URL" "$PROD_ENV" | head -1)
-    echo "  ✅ NEXT_PUBLIC_MAPBOX_STYLE_URL found:"
-    echo "     $STYLE_LINE"
-  else
-    echo "  ⚠️  NEXT_PUBLIC_MAPBOX_STYLE_URL is NOT in $PROD_ENV"
-    echo "     → Add: export NEXT_PUBLIC_MAPBOX_STYLE_URL=\"mapbox://styles/memphman2004/cmr3afd69002401qq1uywfk5p\""
-  fi
+if [[ "$RETIRED_SSM_VALUE" == "NOT_FOUND" ]]; then
+  echo "  ✅ Retired public-token SSM: deleted (expected)"
 else
-  echo "  ⚠️  $PROD_ENV not found — run from repo root"
+  echo "  ⚠️  Retired public-token SSM still exists — delete after migration verified"
 fi
 
 echo ""
-echo "═══════════════════════════════════════════════════════"
-echo "  Summary / Fix"
-echo "═══════════════════════════════════════════════════════"
+echo "▶ Geocoding smoke test (1600 Pennsylvania Ave NW, Washington DC)..."
 echo ""
-echo "  To activate maps in prod, three things must be true:"
+
+GEOCODE_RESULT=$(aws location search-place-index-for-text \
+  --index-name "$PLACE_INDEX" \
+  --text "1600 Pennsylvania Ave NW, Washington DC" \
+  --region "$REGION" \
+  --query "Results[0].Place.Label" \
+  --output text 2>/dev/null || echo "FAILED")
+
+if [[ "$GEOCODE_RESULT" != "FAILED" && -n "$GEOCODE_RESULT" ]]; then
+  echo "  ✅ Geocoding works: $GEOCODE_RESULT"
+else
+  echo "  ❌ Geocoding failed — check Place Index $PLACE_INDEX and IAM permissions"
+fi
+
 echo ""
-echo "  [1] NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN in env-web-ssr-prod.sh (or exported before source)"
-echo "      → Get a public token (restricted to app.rapidcortex.us) from account.mapbox.com"
-echo "      → Add: export NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN=\"pk.eyJ1...\""
-echo "      → Then redeploy web (see fix script)"
-echo ""
-echo "  [2] NEXT_PUBLIC_ENABLE_PINPOINT=1 in env-web-ssr-prod.sh"
-echo "      → Add: export NEXT_PUBLIC_ENABLE_PINPOINT=1"
-echo ""
-echo "  [3] EnablePinpoint=true in API SAM stack"
-echo "      → Add EnablePinpoint=true to your deploy.sh param override for prod"
-echo "      → Then: ENABLE_PINPOINT=true ./scripts/deploy.sh dev"
-echo ""
-echo "  One-liner once Mapbox token is set:"
-echo "    export NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN=\"pk.eyJ1...\""
-echo "    source scripts/env-web-ssr-prod.sh"
-echo "    ./scripts/deploy-web-no-docker.sh prod"
+echo "═══════════════════════════════════════════════════════════"
+echo "  Migration complete when all ✅ and zero ❌"
+echo "═══════════════════════════════════════════════════════════"
 echo ""

@@ -118,7 +118,8 @@ export function isMarketingPublicPath(pathname: string): boolean {
     first === "r" ||
     first === "diversion" ||
     first === "map-preview" ||
-    first === "status"
+    first === "status" ||
+    first === "crime-log"
   ) {
     return false;
   }

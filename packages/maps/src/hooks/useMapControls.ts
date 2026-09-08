@@ -1,5 +1,5 @@
 import { useCallback } from "react";
-import type { LngLatBoundsLike, Map } from "mapbox-gl";
+import type { LngLatBoundsLike, Map } from "maplibre-gl";
 
 /** Imperative helpers for parent components (timeline fly-to, etc.). */
 type FlyToOptions = Parameters<Map["flyTo"]>[0];

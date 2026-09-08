@@ -65,7 +65,7 @@ export function useTransitOpsData(agencyId: string) {
   }, [refresh]);
 
   useAgencyWebSocket((message) => {
-    if (message.type.startsWith("transit.")) {
+    if (message.type.startsWith("transit.") || message.type === "PHYSICAL_SECURITY_EVENT") {
       void refresh();
     }
   });

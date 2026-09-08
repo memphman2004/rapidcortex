@@ -1,5 +1,5 @@
 @import "tailwindcss";
-@import "mapbox-gl/dist/mapbox-gl.css";
+@import "maplibre-gl/dist/maplibre-gl.css";
 
 :root {
   /* Role dashboards: accent + font (FontPreferenceProvider updates --rc-dashboard-font-family on mount). */
@@ -1018,8 +1018,8 @@ body {
   height: 100%;
 }
 
-.dispatcher-shell .workspace-slot .mapboxgl-map,
-.dispatcher-shell .workspace-slot .mapboxgl-canvas-container {
+.dispatcher-shell .workspace-slot .maplibregl-map,
+.dispatcher-shell .workspace-slot .maplibregl-canvas-container {
   width: 100%;
   height: 100%;
 }

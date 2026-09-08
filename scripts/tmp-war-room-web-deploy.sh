@@ -8,6 +8,6 @@ set -a
 source scripts/env-web-ssr-prod.sh
 set +a
 # shellcheck disable=SC1091
-source scripts/lib/resolve-mapbox-token.sh
-resolve_mapbox_token
+source scripts/lib/resolve-als-map-env.sh
+resolve_als_map_env
 bash scripts/deploy-web-prod.sh

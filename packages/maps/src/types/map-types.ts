@@ -1,4 +1,4 @@
-import type mapboxgl from "mapbox-gl";
+import type maplibregl from "maplibre-gl";
 
 export type MapTheme = "dark" | "light" | "satellite" | "streets";
 
@@ -9,7 +9,7 @@ export type LocationConfidence = "high" | "medium" | "low";
 
 export type SurgeSuggestedPriority = "critical" | "high" | "medium" | "low";
 
-export type MapInitializedCallback = (map: mapboxgl.Map) => void;
+export type MapInitializedCallback = (map: maplibregl.Map) => void;
 
 export type LocationSample = {
   lat: number;

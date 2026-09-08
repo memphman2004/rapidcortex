@@ -18,9 +18,13 @@ Split by **who sets** and **visibility** to avoid treating marketing toggles as 
 | `NEXT_PUBLIC_ENABLE_NON_EMERGENCY_TRIAGE` | F3 triage strip + queue tab | Shown |
 | `NEXT_PUBLIC_ENABLE_DISPATCHER_WELLNESS` | F5 supervisor wellness (never enable for dispatcher-only builds) | Shown |
 | `NEXT_PUBLIC_ENABLE_CAMPUS_CLERY` | Campus Clery ASR workspace | Shown |
+| `NEXT_PUBLIC_ENABLE_CLERY_MODULE` | Statutory Clery Act module (DCL, CSA, ASR engine) | Shown |
 | `NEXT_PUBLIC_ENABLE_CAMPUS_EAP` | Campus EAP / checklist library | Shown |
 | `NEXT_PUBLIC_ENABLE_HOSTED_UI_SSO` | Cognito Hosted UI campus SSO button | Shown |
 | `NEXT_PUBLIC_ENABLE_CROSS_JURISDICTION_SHARES` | Mutual-aid share partners | Shown |
+| `NEXT_PUBLIC_ENABLE_VERTICAL_ALERTS` | Occupant emergency broadcast (campus/venue/transit). Default on when unset. | Shown |
+| `NEXT_PUBLIC_ENABLE_PHYSICAL_SECURITY_INGEST` | Physical security inbound events. Default on when unset. | Shown |
+| `NEXT_PUBLIC_ENABLE_PHYSICAL_SECURITY_COMMANDS` | Door lock/unlock write-back. **Default off** (CAD-style fail-closed). | Shown |
 
 **Not visible in browser (server-only on web):** `API_UPSTREAM_BASE`, `COGNITO_CLIENT_SECRET` — see [INSTALLATION.md](./INSTALLATION.md).
 
@@ -37,6 +41,9 @@ Split by **who sets** and **visibility** to avoid treating marketing toggles as 
 | F4 SOP | `ENABLE_SOP_PROTOCOL_AI`, `SOP_DETECT_EVERY_N_SEGMENTS`, `SOP_DETECTION_MOCK`, `SOP_UPLOAD_URL_TTL_SECONDS` | SAM Globals; agency `config.sop` |
 | F3 triage | `ENABLE_NON_EMERGENCY_TRIAGE`, `TRIAGE_DETECT_EVERY_N_SEGMENTS`, `TRIAGE_MOCK` | SAM Globals; agency `config.triage` |
 | F5 wellness | `ENABLE_DISPATCHER_WELLNESS`, `TRAUMA_FLAGS_TABLE` | SAM Globals; agency `config.wellness` |
+| Vertical MNS | `ENABLE_VERTICAL_ALERTS`, `VERTICAL_ALERTS_TABLE`, `ALERT_SHORT_CODE_SSM_PREFIX` | Nested `stack-app-sam-vertical-alerts.yaml` (stack 2). SMS skipped with `NO_SHORT_CODE` until a dedicated short code exists. Never use 10DLC. |
+| Call Assist Lex | `CALL_ASSIST_LEX_MOCK` (default mock), `CALL_ASSIST_LEX_BOT_COUNT` / `CALL_ASSIST_LEX_BOT_LIMIT` for quota tests | Nested `stack-app-sam-call-assist.yaml`. Live CreateBot is not called in CI. Quota code `L-C38B0AF9`; request 1,000+ before ~90 agencies. |
+| Physical security ingest | `ENABLE_PHYSICAL_SECURITY_INGEST` (default on), `PHYSICAL_SECURITY_TABLE`, `PHYSICAL_SECURITY_WEBHOOK_SECRET` | Nested `stack-app-sam-physical-security.yaml` (stack 5). Commands: `PHYSICAL_SECURITY_COMMANDS_ENABLED` **default off**; command routes return 501. |
 
 **Agency admin visibility:** summarized via **`GET /api/integration/status`** (strict mode on/off, issue count, primary tier labels) — not per-secret values.
 

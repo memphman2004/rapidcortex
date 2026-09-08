@@ -156,7 +156,7 @@
       "Parameters": {
         "Text": "Go ahead.",
         "LexV2Bot": {
-          "AliasArn": "arn:aws:lex:us-east-1:158961537080:bot-alias/IJIBJOJG2L/0CNPVSCF4V"
+          "AliasArn": "{{lexBotAliasArn}}"
         },
         "LexSessionAttributes": {
           "agencyId": "$.External.agencyId",
@@ -175,6 +175,18 @@
           {
             "NextAction": "play-fallback",
             "Condition": { "Operator": "Equals", "Operands": ["FallbackIntent"] }
+          },
+          {
+            "NextAction": "play-fallback",
+            "Condition": { "Operator": "Equals", "Operands": ["RequestHuman"] }
+          },
+          {
+            "NextAction": "play-fallback",
+            "Condition": { "Operator": "Equals", "Operands": ["RepeatCallCheck"] }
+          },
+          {
+            "NextAction": "play-fallback",
+            "Condition": { "Operator": "Equals", "Operands": ["PublicWorksIssue"] }
           }
         ],
         "Errors": [

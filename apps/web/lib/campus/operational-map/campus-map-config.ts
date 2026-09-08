@@ -1,8 +1,8 @@
 import type { CampusBuildingSummary } from "rapid-cortex-shared";
 import type { CampusOsmConfig } from "./campus-osm-registry";
-import { CAMPUS_MAPBOX_ISO, resolveCampusOsmConfig } from "./campus-osm-registry";
+import { CAMPUS_ALS_ISO, resolveCampusOsmConfig } from "./campus-osm-registry";
 
-export type CampusMapRenderer = "svg" | "mapbox2d" | "mapbox3d";
+export type CampusMapRenderer = "svg" | "als2d" | "als3d";
 
 export interface CampusMapConfig {
   campusId: string;
@@ -26,11 +26,11 @@ export function buildCampusMapConfig(campusCode: string, campusName?: string): C
     campusId: id,
     campusName: campusName?.trim() || osm?.campusName || id,
     mapType: "campus",
-    renderer: osm ? "mapbox3d" : "mapbox2d",
+    renderer: osm ? "als3d" : "als2d",
     center: osm?.center ?? [-84.387982, 33.748995],
-    zoom: osm?.zoom ?? CAMPUS_MAPBOX_ISO.zoom,
-    bearing: osm?.bearing ?? CAMPUS_MAPBOX_ISO.bearing,
-    pitch: osm?.pitch ?? CAMPUS_MAPBOX_ISO.pitch,
+    zoom: osm?.zoom ?? CAMPUS_ALS_ISO.zoom,
+    bearing: osm?.bearing ?? CAMPUS_ALS_ISO.bearing,
+    pitch: osm?.pitch ?? CAMPUS_ALS_ISO.pitch,
     geojsonBase: `/api/campus/code/${encodeURIComponent(id)}/map`,
     levels: [{ id: "exterior", label: "Campus", order: 0 }],
     source: osm ? "osm" : "none",
@@ -59,12 +59,15 @@ export function mergeCampusBuildingStatus(
   const byName = new Map<string, CampusBuildingSummary>();
   for (const building of buildings) {
     byName.set(normalizeName(building.buildingName), building);
+    byName.set(normalizeName(building.buildingId), building);
+    byName.set(normalizeName(building.zone), building);
   }
   return {
     ...geojson,
     features: geojson.features.map((feature) => {
       const label = String(feature.properties?.label ?? "");
-      const match = byName.get(normalizeName(label));
+      const id = String(feature.properties?.rcBuildingId ?? feature.properties?.buildingId ?? "");
+      const match = byName.get(normalizeName(label)) ?? (id ? byName.get(normalizeName(id)) : undefined);
       if (!match) return feature;
       return {
         ...feature,

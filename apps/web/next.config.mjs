@@ -147,9 +147,9 @@ function buildCspHeader(extraConnectOrigins) {
     ...extraConnectOrigins,
     ...FORM_EMBED_CONNECT_HOSTS,
     ...YOUTUBE_CONNECT_HOSTS,
-    ...(process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN?.trim()
-      ? ["https://api.mapbox.com", "https://events.mapbox.com"]
-      : []),
+    `https://maps.geo.${process.env.NEXT_PUBLIC_ALS_REGION?.trim() || "us-east-1"}.amazonaws.com`,
+    `https://cognito-identity.${process.env.NEXT_PUBLIC_ALS_REGION?.trim() || "us-east-1"}.amazonaws.com`,
+    `https://sts.${process.env.NEXT_PUBLIC_ALS_REGION?.trim() || "us-east-1"}.amazonaws.com`,
   ].join(" ");
   // Next injects inline boot/RSC payloads; without per-request script nonces production CSP blocks those scripts and hydration fails (broken sign-in UX).
   // TODO: switch to nonce + `strict-dynamic` and drop `'unsafe-inline'`.
@@ -162,8 +162,7 @@ function buildCspHeader(extraConnectOrigins) {
     .filter(Boolean)
     .join(" ");
 
-  const imgSrcExtras =
-    process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN?.trim() ? " https://api.mapbox.com" : "";
+  const imgSrcExtras = ` https://maps.geo.${process.env.NEXT_PUBLIC_ALS_REGION?.trim() || "us-east-1"}.amazonaws.com`;
   const imgSrc =
     process.env.NODE_ENV === "production"
       ? `'self' blob: data: https://rapidcortex.us https://www.rapidcortex.us https://img.youtube.com https://i.ytimg.com${imgSrcExtras}`

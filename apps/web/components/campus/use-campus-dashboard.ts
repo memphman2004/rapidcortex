@@ -175,7 +175,8 @@ export function useCampusDashboard(agencyId: string, campusCode: string): Campus
     if (
       msg.type === "incident:created" ||
       msg.type === "incident:updated" ||
-      msg.type === "staff:status-changed"
+      msg.type === "staff:status-changed" ||
+      msg.type === "PHYSICAL_SECURITY_EVENT"
     ) {
       void refresh();
       if (msg.type === "incident:created") {

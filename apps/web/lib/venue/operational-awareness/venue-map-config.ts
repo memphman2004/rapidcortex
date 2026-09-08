@@ -1,9 +1,9 @@
 import type { VenueLevel, VenueOperationalMap, VenueZoneStatus } from "rapid-cortex-shared";
 
-export type VenueMapRenderer = "svg" | "mapbox2d" | "mapbox3d";
+export type VenueMapRenderer = "svg" | "als2d" | "als3d";
 
-/** Camera used for the Mapbox isometric (ChatGPT mockup) look. */
-export const VENUE_MAPBOX_ISO = {
+/** Camera used for the isometric operational map look. */
+export const VENUE_ALS_ISO = {
   pitch: 55,
   bearing: 335,
   zoom: 16.5,
@@ -28,7 +28,7 @@ function levelLabel(level: VenueLevel): string {
 }
 
 /**
- * Self-selects renderer for a venue. Demo catalogs use Mapbox 3D (fill-extrusion).
+ * Self-selects renderer for a venue. Demo catalogs use ALS 3D (fill-extrusion).
  * Venues without GeoJSON stay on SVG until floor plans are processed.
  */
 export function buildVenueMapConfig(map: VenueOperationalMap): VenueMapConfig {
@@ -36,11 +36,11 @@ export function buildVenueMapConfig(map: VenueOperationalMap): VenueMapConfig {
   return {
     venueId: map.venueId,
     venueName: map.name,
-    renderer: hasDemoGeometry ? "mapbox3d" : "svg",
+    renderer: hasDemoGeometry ? "als3d" : "svg",
     center: map.exterior.center,
-    zoom: Math.max(map.exterior.zoom, VENUE_MAPBOX_ISO.zoom),
-    bearing: VENUE_MAPBOX_ISO.bearing,
-    pitch: VENUE_MAPBOX_ISO.pitch,
+    zoom: Math.max(map.exterior.zoom, VENUE_ALS_ISO.zoom),
+    bearing: VENUE_ALS_ISO.bearing,
+    pitch: VENUE_ALS_ISO.pitch,
     levels: map.levels
       .filter((level) => level.enabled)
       .map((level) => ({ id: level.id, label: levelLabel(level), order: level.order })),
@@ -49,7 +49,7 @@ export function buildVenueMapConfig(map: VenueOperationalMap): VenueMapConfig {
   };
 }
 
-export function statusForMapbox(status: VenueZoneStatus | undefined): string {
+export function statusForAlsMap(status: VenueZoneStatus | undefined): string {
   if (status === "incident") return "incident";
   if (status === "attention") return "elevated";
   return "clear";

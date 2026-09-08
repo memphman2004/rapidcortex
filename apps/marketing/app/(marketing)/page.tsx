@@ -174,7 +174,7 @@ export default function MarketingHomePage() {
               },
               {
                 title: "Live Command Maps",
-                body: "Mapbox-backed command-center maps align with Rapid Cortex workstations—carry caller-shared pins and situational context alongside CAD-driven unit markers when your feed supports them.",
+                body: "Amazon Location Service command-center maps align with Rapid Cortex workstations—carry caller-shared pins and situational context alongside CAD-driven unit markers when your feed supports them.",
                 Icon: Map,
               },
               {

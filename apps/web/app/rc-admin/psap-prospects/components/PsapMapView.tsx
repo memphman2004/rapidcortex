@@ -1,8 +1,8 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import mapboxgl from "mapbox-gl";
-import "mapbox-gl/dist/mapbox-gl.css";
+import maplibregl from "maplibre-gl";
+import "maplibre-gl/dist/maplibre-gl.css";
 import {
   PSAP_OUTREACH_STATUS_CONFIG,
   PSAP_OUTREACH_STATUSES,
@@ -27,7 +27,7 @@ type Props = {
 };
 
 export function PsapMapView({ pins, statusFilter, onSelectProspect, isLoading }: Props) {
-  const [map, setMap] = useState<mapboxgl.Map | null>(null);
+  const [map, setMap] = useState<maplibregl.Map | null>(null);
   const [error, setError] = useState<string | null>(null);
   const selectingRef = useRef(false);
 
@@ -106,7 +106,7 @@ export function PsapMapView({ pins, statusFilter, onSelectProspect, isLoading }:
           },
         });
       } else {
-        const src = map.getSource(SOURCE_ID) as mapboxgl.GeoJSONSource;
+        const src = map.getSource(SOURCE_ID) as maplibregl.GeoJSONSource;
         src.setData(geojson);
       }
     };
@@ -114,10 +114,10 @@ export function PsapMapView({ pins, statusFilter, onSelectProspect, isLoading }:
     if (map.isStyleLoaded()) ensure();
     else map.once("load", ensure);
 
-    const onClusterClick = (e: mapboxgl.MapLayerMouseEvent) => {
+    const onClusterClick = (e: maplibregl.MapLayerMouseEvent) => {
       const features = map.queryRenderedFeatures(e.point, { layers: [CLUSTER_LAYER] });
       const clusterId = features[0]?.properties?.cluster_id;
-      const source = map.getSource(SOURCE_ID) as mapboxgl.GeoJSONSource;
+      const source = map.getSource(SOURCE_ID) as maplibregl.GeoJSONSource;
       if (clusterId == null) return;
       source.getClusterExpansionZoom(clusterId, (err, zoom) => {
         if (err || zoom == null) return;
@@ -126,7 +126,7 @@ export function PsapMapView({ pins, statusFilter, onSelectProspect, isLoading }:
       });
     };
 
-    const onPinClick = async (e: mapboxgl.MapLayerMouseEvent) => {
+    const onPinClick = async (e: maplibregl.MapLayerMouseEvent) => {
       const feature = e.features?.[0];
       const psapId = feature?.properties?.psapId as string | undefined;
       if (!psapId || selectingRef.current) return;
@@ -157,8 +157,7 @@ export function PsapMapView({ pins, statusFilter, onSelectProspect, isLoading }:
     };
   }, [map, geojson, onSelectProspect]);
 
-  const token = process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN?.trim();
-  const tokenMissing = !token || token === "pk.REPLACE_WITH_REAL_TOKEN";
+  const tokenMissing = false;
 
   if (tokenMissing) {
     return (

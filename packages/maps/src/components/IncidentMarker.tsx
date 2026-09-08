@@ -1,10 +1,10 @@
 'use client';
 
 import { useEffect, useRef } from "react";
-import mapboxgl from "mapbox-gl";
+import maplibregl from "maplibre-gl";
 
 export interface IncidentMarkerProps {
-  map: mapboxgl.Map | null;
+  map: maplibregl.Map | null;
   incidentId: string;
   latitude: number;
   longitude: number;
@@ -20,7 +20,7 @@ export function IncidentMarker({
   label = "Incident",
   subtitle,
 }: IncidentMarkerProps) {
-  const markerRef = useRef<mapboxgl.Marker | null>(null);
+  const markerRef = useRef<maplibregl.Marker | null>(null);
 
   useEffect(() => {
     if (!map) return;
@@ -46,7 +46,7 @@ export function IncidentMarker({
     `;
       el.textContent = "i";
 
-      const popup = new mapboxgl.Popup({ offset: 28 }).setHTML(`
+      const popup = new maplibregl.Popup({ offset: 28 }).setHTML(`
       <div style="font-family:system-ui,sans-serif;padding:8px;color:#111;min-width:160px;">
         <div style="font-weight:700;">${escapeHtml(label)}</div>
         ${
@@ -58,7 +58,7 @@ export function IncidentMarker({
       </div>
     `);
 
-      const next = new mapboxgl.Marker({ element: el })
+      const next = new maplibregl.Marker({ element: el })
         .setLngLat([longitude, latitude])
         .setPopup(popup)
         .addTo(map);

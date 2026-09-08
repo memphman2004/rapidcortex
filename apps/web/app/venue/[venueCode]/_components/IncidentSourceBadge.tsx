@@ -1,4 +1,4 @@
-import { AlertTriangle, MessageSquare, Plus, QrCode } from "lucide-react";
+import { AlertTriangle, MessageSquare, Plus, QrCode, Shield } from "lucide-react";
 import type { IncidentSource } from "../_lib/venue-types";
 
 const sourceConfig: Record<IncidentSource, { label: string; icon: React.ComponentType<{ className?: string }> }> = {
@@ -6,6 +6,7 @@ const sourceConfig: Record<IncidentSource, { label: string; icon: React.Componen
   sms: { label: "SMS", icon: MessageSquare },
   manual: { label: "Manual", icon: Plus },
   escalated_from_core: { label: "Escalated", icon: AlertTriangle },
+  physical_security: { label: "Physical Security", icon: Shield },
 };
 
 export function IncidentSourceBadge({
@@ -15,7 +16,7 @@ export function IncidentSourceBadge({
   source: IncidentSource;
   className?: string;
 }) {
-  const config = sourceConfig[source];
+  const config = sourceConfig[source] ?? sourceConfig.manual;
   const Icon = config.icon;
 
   return (

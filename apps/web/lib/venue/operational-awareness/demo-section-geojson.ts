@@ -1,6 +1,6 @@
 import type { VenueOperationalMap } from "rapid-cortex-shared";
 import { STADIUM_VIEWBOX } from "./demo-stadium-geometry";
-import { statusForMapbox } from "./venue-map-config";
+import { statusForAlsMap } from "./venue-map-config";
 
 const METERS_PER_DEG_LAT = 111_320;
 const STADIUM_WIDTH_M = 280;
@@ -100,7 +100,7 @@ function feature(
 
 /**
  * Illustrative WGS84 section polygons around the venue centroid.
- * Not a surveyed floor plan — used for Mapbox fill-extrusion until CAD GeoJSON exists.
+ * Not a surveyed floor plan — used for MapLibre fill-extrusion until CAD GeoJSON exists.
  */
 export function buildDemoVenueSectionGeoJSON(
   map: VenueOperationalMap,
@@ -112,7 +112,7 @@ export function buildDemoVenueSectionGeoJSON(
   const field = map.zones.find((zone) => zone.id === "field");
   if (field && (!levelId || levelId === field.levelId || levelId === "exterior")) {
     features.push(
-      feature("field", "Field", field.levelId, ellipseRing(center, 118, 72), statusForMapbox(field.status), {
+      feature("field", "Field", field.levelId, ellipseRing(center, 118, 72), statusForAlsMap(field.status), {
         zone: "Field",
       }),
     );
@@ -133,7 +133,7 @@ export function buildDemoVenueSectionGeoJSON(
         zone.section ?? zone.name,
         zone.levelId,
         wedgeRing(center, inner[0]!, inner[1]!, inner[2]!, inner[3]!, a0, a1),
-        statusForMapbox(zone.status),
+        statusForAlsMap(zone.status),
         { zone: zone.name },
       ),
     );

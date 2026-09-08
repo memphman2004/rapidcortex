@@ -33,6 +33,7 @@ import { makeId } from "../lib/ids.js";
 import { AuditRepository } from "../repositories/auditRepository.js";
 import type { CampusIncident, CampusIncidentType } from "./campus-types.js";
 import { CAMPUS_KEYS } from "./campus-types.js";
+import { assertSwornOfficerMayUnfound } from "./clery-act/store.js";
 
 export {
   CLERY_CATEGORIES,
@@ -224,6 +225,9 @@ export async function createManualCleryEntry(
   actorId: string,
 ): Promise<CleryEntry> {
   if (!env.enableCampusClery) throw new Error("FEATURE_DISABLED");
+  if (input.unfounded) {
+    await assertSwornOfficerMayUnfound(agencyId, actorId);
+  }
   const now = new Date().toISOString();
   const entryId = makeId("clery");
   const entry: CleryEntry = {
@@ -269,6 +273,9 @@ export async function updateCleryEntry(
   if (!env.enableCampusClery) throw new Error("FEATURE_DISABLED");
   const existing = await getCleryEntry(campusCode, academicYear, entryId, agencyId);
   if (!existing) throw new Error("NOT_FOUND");
+  if (update.unfounded === true && existing.unfounded !== true) {
+    await assertSwornOfficerMayUnfound(agencyId, actorId);
+  }
 
   const now = new Date().toISOString();
   const names: string[] = ["#updatedAt"];
@@ -565,6 +572,9 @@ export async function importCleryRows(opts: {
   auditType: string;
 }): Promise<{ created: number; skipped: number; entries: CleryEntry[] }> {
   if (!env.enableCampusClery) throw new Error("FEATURE_DISABLED");
+  if (opts.rows.some((row) => row.unfounded)) {
+    await assertSwornOfficerMayUnfound(opts.agencyId, opts.actorId);
+  }
   const existing = await listCleryEntries({
     agencyId: opts.agencyId,
     campusCode: opts.campusCode,

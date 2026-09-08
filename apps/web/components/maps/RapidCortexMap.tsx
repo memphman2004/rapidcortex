@@ -3,25 +3,15 @@
  *
  * This is the file to import everywhere in the app.
  * It wraps RapidCortexMapCore via Next.js dynamic import with ssr: false,
- * preventing mapbox-gl from crashing during server-side rendering.
+ * preventing MapLibre GL from crashing during server-side rendering.
  *
  * Usage:
  *   import { RapidCortexMap } from "@/components/maps/RapidCortexMap";
  *
- *   <RapidCortexMap
- *     incidents={activeIncidents}
- *     selectedIncidentId={openIncidentId}
- *     onIncidentClick={(inc) => setOpenIncident(inc.id)}
- *     callerLocation={callerGPS}
- *     vertical="venue"
- *     height="420px"
- *   />
- *
  * Required env vars (set in .env.local or env-web-*.sh):
- *   NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN      — public token, URL-referrer restricted
- *   NEXT_PUBLIC_MAPBOX_STYLE_URL_DARK    — dark dispatch Studio style
- *   NEXT_PUBLIC_MAPBOX_STYLE_URL_LIGHT   — light Studio style
- *   NEXT_PUBLIC_MAPBOX_STYLE_URL         — legacy dark fallback
+ *   NEXT_PUBLIC_ALS_REGION
+ *   NEXT_PUBLIC_ALS_MAP_NAME / NEXT_PUBLIC_ALS_MAP_NAME_DARK
+ *   NEXT_PUBLIC_ALS_IDENTITY_POOL_ID
  */
 
 "use client";
@@ -29,8 +19,6 @@
 import dynamic from "next/dynamic";
 import type { RCMapProps } from "./map-types";
 import { MAP_TOKENS as T } from "./map-constants";
-
-// ─── Dynamic import — prevents SSR crash ─────────────────────────────────────
 
 const RapidCortexMapCore = dynamic(
   () => import("./RapidCortexMapCore"),
@@ -40,11 +28,9 @@ const RapidCortexMapCore = dynamic(
   }
 );
 
-// ─── Public export ────────────────────────────────────────────────────────────
-
 /**
- * Drop-in map component. SSR-safe. Renders a skeleton while the Mapbox bundle
- * and style load. All props are forwarded to RapidCortexMapCore.
+ * Drop-in map component. SSR-safe. Renders a skeleton while the MapLibre bundle
+ * and ALS style load. All props are forwarded to RapidCortexMapCore.
  */
 export function RapidCortexMap(props: RCMapProps) {
   return (
@@ -63,8 +49,6 @@ export function RapidCortexMap(props: RCMapProps) {
     </div>
   );
 }
-
-// ─── Loading skeleton ─────────────────────────────────────────────────────────
 
 function MapSkeleton() {
   return (
@@ -120,8 +104,7 @@ function MapPinIcon() {
   );
 }
 
-// ─── Named re-exports for convenience ────────────────────────────────────────
-
 export type { RCMapProps, RCIncident, RCCallerLocation, RCMapLayerVisibility } from "./map-types";
 export { DEFAULT_LAYER_VISIBILITY } from "./map-types";
 export { MOCK_INCIDENTS } from "./map-utils";
+

@@ -49,4 +49,13 @@ export NEXT_PUBLIC_ENABLE_CONNECT_RING=true
 export NEXT_PUBLIC_ENABLE_CONNECT_RING_AVAILABLE_CAMERAS=true
 export NEXT_PUBLIC_ENABLE_CONNECT_RING_EMERGENCY_REQUESTS=true
 
+# Amazon Location Service — local MapLibre tiles (unsigned if identity pool is unset)
+export NEXT_PUBLIC_ALS_REGION="${NEXT_PUBLIC_ALS_REGION:-us-east-1}"
+export NEXT_PUBLIC_ALS_MAP_NAME="${NEXT_PUBLIC_ALS_MAP_NAME:-rc-map-dev}"
+export NEXT_PUBLIC_ALS_MAP_NAME_DARK="${NEXT_PUBLIC_ALS_MAP_NAME_DARK:-rc-map-dark-dev}"
+export NEXT_PUBLIC_ALS_PLACE_INDEX_NAME="${NEXT_PUBLIC_ALS_PLACE_INDEX_NAME:-rc-places-dev}"
+export NEXT_PUBLIC_ALS_ROUTE_CALCULATOR_NAME="${NEXT_PUBLIC_ALS_ROUTE_CALCULATOR_NAME:-rc-routes-dev}"
+export NEXT_PUBLIC_ALS_GEOFENCE_COLLECTION="${NEXT_PUBLIC_ALS_GEOFENCE_COLLECTION:-rc-geofences-dev}"
+export NEXT_PUBLIC_ALS_TRACKER_NAME="${NEXT_PUBLIC_ALS_TRACKER_NAME:-rc-tracker-dev}"
+
 echo "[env-web-pilot-test] Pilot test mode + feature flags exported (CAD write-back OFF)."

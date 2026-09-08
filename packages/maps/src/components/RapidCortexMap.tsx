@@ -1,10 +1,10 @@
 'use client';
 
 import { useEffect, useRef, type ReactNode } from "react";
-import mapboxgl from "mapbox-gl";
+import maplibregl from "maplibre-gl";
 
 import type { MapTheme } from "../types/map-types";
-import { ensureMapboxAccessToken } from "../utils/mapbox-env";
+import { getMapAuthenticationOptions, isMapAuthReady, subscribeMapAuthReady } from "../utils/map-auth";
 import { RAPID_CORTEX_MAP_STYLES } from "../utils/map-styles";
 
 export type { MapTheme } from "../types/map-types";
@@ -20,11 +20,11 @@ export interface RapidCortexMapProps {
   showScale?: boolean;
   className?: string;
   children?: ReactNode;
-  onMapLoad?: (map: mapboxgl.Map) => void;
-  onMapClick?: (e: mapboxgl.MapMouseEvent) => void;
+  onMapLoad?: (map: maplibregl.Map) => void;
+  onMapClick?: (e: maplibregl.MapMouseEvent) => void;
 }
 
-function safeResize(map: mapboxgl.Map | null) {
+function safeResize(map: maplibregl.Map | null) {
   if (!map) return;
   try {
     map.resize();
@@ -53,92 +53,99 @@ export function RapidCortexMap({
 }: RapidCortexMapProps) {
   const rootRef = useRef<HTMLDivElement | null>(null);
   const mapContainer = useRef<HTMLDivElement | null>(null);
-  const map = useRef<mapboxgl.Map | null>(null);
+  const map = useRef<maplibregl.Map | null>(null);
   const skippedThemeEffect = useRef(true);
   const skippedCenterEffect = useRef(true);
   const skippedZoomEffect = useRef(true);
-  const clickHandler = useRef<((e: mapboxgl.MapMouseEvent) => void) | undefined>(undefined);
+  const clickHandler = useRef<((e: maplibregl.MapMouseEvent) => void) | undefined>(undefined);
 
   useEffect(() => {
     clickHandler.current = onMapClick;
   }, [onMapClick]);
 
   useEffect(() => {
-    if (!mapContainer.current || map.current) return;
-    ensureMapboxAccessToken();
-
-    map.current = new mapboxgl.Map({
-      container: mapContainer.current,
-      style: RAPID_CORTEX_MAP_STYLES[theme],
-      center,
-      zoom,
-      pitch,
-      bearing,
-      interactive,
-      attributionControl: false,
-    });
-
-    if (showControls) {
-      map.current.addControl(
-        new mapboxgl.NavigationControl({ visualizePitch: true }),
-        "top-right",
-      );
-      map.current.addControl(new mapboxgl.FullscreenControl(), "top-right");
-    }
-
-    if (showScale) {
-      map.current.addControl(
-        new mapboxgl.ScaleControl({ maxWidth: 100, unit: "imperial" }),
-        "bottom-left",
-      );
-    }
-
-    map.current.addControl(
-      new mapboxgl.AttributionControl({
-        compact: true,
-        customAttribution: "© Rapid Cortex · © Mapbox",
-      }),
-      "bottom-right",
-    );
-
-    const instance = map.current;
-
-    const handler = (e: mapboxgl.MapMouseEvent) => clickHandler.current?.(e);
-    instance.on("click", handler);
-
-    // Layout often settles after first paint (flex/modal/panel). Resize aggressively.
-    const kickResize = () => safeResize(instance);
-    instance.once("load", () => {
-      kickResize();
-      if (onMapLoad) onMapLoad(instance);
-    });
-
-    const raf = window.requestAnimationFrame(() => {
-      kickResize();
-      window.requestAnimationFrame(kickResize);
-    });
-    const t1 = window.setTimeout(kickResize, 50);
-    const t2 = window.setTimeout(kickResize, 250);
-    const t3 = window.setTimeout(kickResize, 600);
-
+    let cancelled = false;
+    let instance: maplibregl.Map | null = null;
     let observer: ResizeObserver | null = null;
-    const observeTarget = rootRef.current ?? mapContainer.current;
-    if (typeof ResizeObserver !== "undefined" && observeTarget) {
-      observer = new ResizeObserver(() => kickResize());
-      observer.observe(observeTarget);
-    }
+    let raf = 0;
+    let t1 = 0;
+    let t2 = 0;
+    let t3 = 0;
+    let clickBound: ((e: maplibregl.MapMouseEvent) => void) | null = null;
+    let kickResize: (() => void) | null = null;
 
-    window.addEventListener("resize", kickResize);
+    const start = () => {
+      if (cancelled || !mapContainer.current || map.current) return;
+
+      instance = new maplibregl.Map({
+        container: mapContainer.current,
+        style: RAPID_CORTEX_MAP_STYLES[theme],
+        center,
+        zoom,
+        pitch,
+        bearing,
+        interactive,
+        attributionControl: {},
+        ...getMapAuthenticationOptions(),
+      });
+
+      map.current = instance;
+
+      if (showControls) {
+        instance.addControl(
+          new maplibregl.NavigationControl({ visualizePitch: true }),
+          "top-right",
+        );
+        instance.addControl(new maplibregl.FullscreenControl(), "top-right");
+      }
+
+      if (showScale) {
+        instance.addControl(
+          new maplibregl.ScaleControl({ maxWidth: 100, unit: "imperial" }),
+          "bottom-left",
+        );
+      }
+
+      clickBound = (e: maplibregl.MapMouseEvent) => clickHandler.current?.(e);
+      instance.on("click", clickBound);
+
+      kickResize = () => safeResize(instance);
+      instance.once("load", () => {
+        kickResize?.();
+        if (onMapLoad && instance) onMapLoad(instance);
+      });
+
+      raf = window.requestAnimationFrame(() => {
+        kickResize?.();
+        window.requestAnimationFrame(() => kickResize?.());
+      });
+      t1 = window.setTimeout(() => kickResize?.(), 50);
+      t2 = window.setTimeout(() => kickResize?.(), 250);
+      t3 = window.setTimeout(() => kickResize?.(), 600);
+
+      const observeTarget = rootRef.current ?? mapContainer.current;
+      if (typeof ResizeObserver !== "undefined" && observeTarget && kickResize) {
+        observer = new ResizeObserver(() => kickResize?.());
+        observer.observe(observeTarget);
+      }
+
+      window.addEventListener("resize", kickResize);
+    };
+
+    if (isMapAuthReady()) start();
+    const unsub = subscribeMapAuthReady(start);
 
     return () => {
+      cancelled = true;
+      unsub();
       window.cancelAnimationFrame(raf);
       window.clearTimeout(t1);
       window.clearTimeout(t2);
       window.clearTimeout(t3);
-      window.removeEventListener("resize", kickResize);
+      if (kickResize) window.removeEventListener("resize", kickResize);
       observer?.disconnect();
-      instance.off("click", handler);
-      instance.remove();
+      if (instance && clickBound) instance.off("click", clickBound);
+      instance?.remove();
       map.current = null;
     };
     // Intentionally mount once — prop changes handled below.
@@ -190,7 +197,6 @@ export function RapidCortexMap({
       className={`relative h-full w-full min-h-0 ${className}`.trim()}
       style={{ height: "100%", width: "100%" }}
     >
-      {/* Explicit 100% box — avoid min-height-only hosts that leave Mapbox canvas as a strip. */}
       <div
         ref={mapContainer}
         className="absolute inset-0"

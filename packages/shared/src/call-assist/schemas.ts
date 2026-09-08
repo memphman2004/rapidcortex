@@ -142,8 +142,23 @@ export const callAssistAdminConfigPatchSchema = z.object({
   retention: retentionPolicySchema.partial().optional(),
   videoAssistEnabled: z.boolean().optional(),
   shortName: z.string().max(80).optional(),
-  agencyShortName: z.string().max(20).optional(),
+  agencyShortName: z.string().max(80).optional(),
   agencyName: z.string().max(200).optional(),
+  agencyDisplayName: z.string().max(200).optional(),
+  agencyTypeLabel: z.string().max(80).optional(),
+  officerLabel: z.string().max(40).optional(),
+  emergencyLine: z.string().max(32).optional(),
+  nonEmergencyWebsite: z.string().max(200).optional(),
+  openingGreeting: z.string().max(2000).optional(),
+  afterHoursMessage: z.string().max(2000).optional(),
+  defaultLanguageCode: z.string().max(16).optional(),
+  supportedLanguages: z.array(z.string().max(16)).max(12).optional(),
+  lexBotId: z.string().max(64).optional(),
+  lexBotAliasId: z.string().max(64).optional(),
+  lexBotName: z.string().max(100).optional(),
+  connectContactFlowId: z.string().max(128).optional(),
+  connectQueueArn: z.string().max(512).optional(),
+  connectEmergencyQueueArn: z.string().max(512).optional(),
   shiftLabel: z.string().max(80).optional(),
   vertical: z.enum(CALL_ASSIST_TAXONOMY_VERTICALS).optional(),
   uiVertical: z.enum(CALL_ASSIST_TAXONOMY_VERTICALS).optional(),
@@ -161,6 +176,36 @@ export const callAssistShiftPatchSchema = z.object({
 });
 
 export type CallAssistAdminConfigPatch = z.infer<typeof callAssistAdminConfigPatchSchema>;
+
+export const callAssistOnboardingInputSchema = z.object({
+  agencyId: z.string().min(1).max(128),
+  agencyDisplayName: z.string().trim().min(1).max(200),
+  agencyShortName: z.string().trim().min(1).max(80),
+  agencyTypeLabel: z.string().trim().min(1).max(80),
+  officerLabel: z.string().trim().min(1).max(40),
+  nonEmergencyWebsite: z.string().trim().max(200).optional(),
+  onlineReportPortalUrl: z.string().trim().max(500).optional(),
+  carfaxPortalUrl: z.string().trim().max(500).optional(),
+  supportedLocales: z.array(z.enum(["en_US", "es_US", "zh_CN", "fr_CA"])).min(1).max(4),
+  aiDisclosureRequired: z.boolean(),
+  customVocabularyPhrases: z.array(z.string().min(1).max(100)).max(500).optional(),
+});
+
+export const callAssistDidClaimSchema = z.object({
+  phoneNumber: z.string().min(8).max(20),
+});
+
+export const callAssistVoiceConfigPatchSchema = z.object({
+  agencyDisplayName: z.string().trim().min(1).max(200).optional(),
+  agencyShortName: z.string().trim().min(1).max(80).optional(),
+  agencyTypeLabel: z.string().trim().max(80).optional(),
+  officerLabel: z.string().trim().max(40).optional(),
+  nonEmergencyWebsite: z.string().trim().max(200).optional(),
+  onlineReportPortalUrl: z.string().trim().max(500).optional(),
+  carfaxPortalUrl: z.string().trim().max(500).optional(),
+  disclosureText: z.string().trim().min(1).max(2000).optional(),
+  supportedLocales: z.array(z.enum(["en_US", "es_US", "zh_CN", "fr_CA"])).min(1).max(4).optional(),
+});
 
 export const callAssistConnectWebhookSchema = z.object({
   agencyId: z.string().min(1).max(128),

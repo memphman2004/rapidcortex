@@ -2,10 +2,16 @@ import { MISSOURI_SUNSHINE_RETENTION_POLICY, type RetentionPolicy } from "./rete
 import type { ExternalAgencyRoute } from "./routing.js";
 import type { CadNatureMapping, CadProviderId } from "./cad-types.js";
 import type { CallAssistDemoScenarioConfig } from "./taxonomy.js";
+import {
+  GENERIC_CALL_ASSIST_DISCLOSURE_TEMPLATE,
+  interpolateDemoUtterance,
+  type AgencyDemoCustomizations,
+  type CallAssistAgencyVoiceConfig,
+} from "./voice-config.js";
 
 /**
- * KCPD reference tenant configuration.
- * Apply only when CALL_ASSIST_SEED_PROFILE=kcpd (or an explicit admin seed).
+ * KCPD reference tenant — first agency in the system, not the product.
+ * Apply only when CALL_ASSIST_SEED_PROFILE=kcpd AND agencyId matches CALL_ASSIST_SEED_AGENCY_ID.
  * Do not import this from Safety / Triage / Intake engines.
  */
 export const KCPD_DISCLOSURE_TEXT =
@@ -14,117 +20,183 @@ export const KCPD_DISCLOSURE_TEXT =
   "information and route your call. If this is an emergency, say 'emergency' " +
   "or hang up and dial 9-1-1.";
 
-/** Spoken on the Lex/Connect non-emergency test DID. Not hardcoded in the bot. */
+/** Spoken on the first-tenant Lex/Connect test DID. Stored on that tenant only. */
 export const KCPD_LEX_DISCLOSURE_TEXT =
   "You are speaking with an AI assistant for the Kansas City Missouri Police Department. " +
   "This is a non-emergency line. This call is recorded.";
 
-export const KCPD_LEX_DEMO_SCENARIOS: CallAssistDemoScenarioConfig[] = [
+export const GENERIC_DISCLOSURE_TEXT = GENERIC_CALL_ASSIST_DISCLOSURE_TEMPLATE;
+
+const LEX_DEMO_VERTICAL = { vertical: "911" as const, source: "preset" as const, enabled: true };
+
+/** Universal Lex smoke-test shapes. Streets are placeholders, not Kansas City. */
+export const CALL_ASSIST_LEX_DEMO_TEMPLATES: CallAssistDemoScenarioConfig[] = [
   {
-    id: "kcpd-01",
+    id: "abandoned-vehicle",
     label: "Abandoned vehicle",
     utterances: [
       "There's an abandoned vehicle on my street",
       "It's been there for three days",
-      "1847 Troost Avenue",
+      "{{localStreetExample}}",
       "I don't know",
-      "555-0142",
+      "{{callbackExample}}",
     ],
     expectedClass: "NonEmergencyPolice",
-    vertical: "911",
-    source: "preset",
-    enabled: true,
+    ...LEX_DEMO_VERTICAL,
   },
   {
-    id: "kcpd-02",
+    id: "noise-complaint",
     label: "Noise complaint",
-    utterances: ["My neighbors are having a loud party", "4200 Main Street apartment 3B", "555-0199"],
+    utterances: ["My neighbors are having a loud party", "{{localStreetExample}}", "{{callbackExample}}"],
     expectedClass: "NoiseComplaint",
-    vertical: "911",
-    source: "preset",
-    enabled: true,
+    ...LEX_DEMO_VERTICAL,
   },
   {
-    id: "kcpd-03",
+    id: "welfare-check",
     label: "Welfare check",
     utterances: [
       "I'm worried about my elderly neighbor",
       "She hasn't answered the door in two days",
-      "300 West 39th Street",
+      "{{localStreetExample}}",
     ],
     expectedClass: "NonEmergencyPolice",
-    vertical: "911",
-    source: "preset",
-    enabled: true,
+    ...LEX_DEMO_VERTICAL,
   },
   {
-    id: "kcpd-04",
+    id: "parking-complaint",
     label: "Parking complaint",
-    utterances: ["Someone is blocking my driveway", "742 Elm Street", "It's a silver sedan", "I don't have the plate"],
+    utterances: [
+      "Someone is blocking my driveway",
+      "{{localStreetExample}}",
+      "It's a silver sedan",
+      "I don't have the plate",
+    ],
     expectedClass: "ParkingComplaint",
-    vertical: "911",
-    source: "preset",
-    enabled: true,
+    ...LEX_DEMO_VERTICAL,
   },
   {
-    id: "kcpd-05",
+    id: "non-emergency-theft",
     label: "Non-emergency theft",
-    utterances: ["I want to report a theft", "My package was stolen off my porch", "1200 Grand Boulevard"],
+    utterances: ["I want to report a theft", "My package was stolen off my porch", "{{localStreetExample}}"],
     expectedClass: "ReportOnly",
-    vertical: "911",
-    source: "preset",
-    enabled: true,
+    ...LEX_DEMO_VERTICAL,
   },
   {
-    id: "kcpd-06",
+    id: "mid-call-emergency",
     label: "Mid-call emergency",
     utterances: ["There's a suspicious person outside", "Actually he just pulled out a gun", "I need help now"],
     expectedClass: "EmergencyEscalation",
-    vertical: "911",
-    source: "preset",
-    enabled: true,
+    ...LEX_DEMO_VERTICAL,
   },
   {
-    id: "kcpd-07",
+    id: "parking-no-plate",
     label: "Parking — no plate",
-    utterances: ["Car blocking fire hydrant", "Oak and 31st Street", "Red pickup truck", "No I can't see the plate"],
+    utterances: ["Car blocking fire hydrant", "{{localStreetExample}}", "Red pickup truck", "No I can't see the plate"],
     expectedClass: "ParkingComplaint",
-    vertical: "911",
-    source: "preset",
-    enabled: true,
+    ...LEX_DEMO_VERTICAL,
   },
   {
-    id: "kcpd-08",
+    id: "spanish-noise",
     label: "Spanish noise",
-    utterances: ["Hay mucho ruido en mi vecindario", "4500 Calle Broadway"],
+    utterances: ["Hay mucho ruido en mi vecindario", "{{localStreetExample}}"],
     expectedClass: "NoiseComplaint",
-    vertical: "911",
-    source: "preset",
-    enabled: true,
+    ...LEX_DEMO_VERTICAL,
   },
   {
-    id: "kcpd-09",
+    id: "carfax-eligible",
     label: "CarFax eligible",
-    utterances: ["I was in a fender bender", "I need a report for insurance", "I-70 and Woodland Avenue"],
+    utterances: ["I was in a fender bender", "I need a report for insurance", "{{localStreetExample}}"],
     expectedClass: "CarfaxReportingEligible",
-    vertical: "911",
-    source: "preset",
-    enabled: true,
+    ...LEX_DEMO_VERTICAL,
   },
   {
-    id: "kcpd-10",
+    id: "code-enforcement",
     label: "Code enforcement",
-    utterances: ["My neighbor has junk cars in their yard", "It's been months", "1900 Troost Avenue"],
+    utterances: ["My neighbor has junk cars in their yard", "It's been months", "{{localStreetExample}}"],
     expectedClass: "CodeEnforcement",
-    vertical: "911",
-    source: "preset",
-    enabled: true,
+    ...LEX_DEMO_VERTICAL,
   },
 ];
 
+const GENERIC_LEX_DEMO_CUSTOMIZATIONS: Record<string, AgencyDemoCustomizations> = {
+  "abandoned-vehicle": { streetExample: "1200 Main Street", callbackExample: "555-0142" },
+  "noise-complaint": { streetExample: "400 Oak Street apartment 3B", callbackExample: "555-0199" },
+  "welfare-check": { streetExample: "12 Elm Street" },
+  "parking-complaint": { streetExample: "55 Pine Street" },
+  "non-emergency-theft": { streetExample: "800 Walnut Street" },
+  "parking-no-plate": { streetExample: "Oak and First Street" },
+  "spanish-noise": { streetExample: "4500 Calle Principal" },
+  "carfax-eligible": { streetExample: "Main Street and First Avenue" },
+  "code-enforcement": { streetExample: "1900 Oak Street" },
+};
+
+/** Local streets for the first tenant. Other agencies supply their own overlay. */
+export const KCPD_LEX_DEMO_CUSTOMIZATIONS: Record<string, { id: string; customizations: AgencyDemoCustomizations }> = {
+  "abandoned-vehicle": { id: "kcpd-01", customizations: { streetExample: "1847 Troost Avenue", callbackExample: "555-0142" } },
+  "noise-complaint": {
+    id: "kcpd-02",
+    customizations: { streetExample: "4200 Main Street apartment 3B", callbackExample: "555-0199" },
+  },
+  "welfare-check": { id: "kcpd-03", customizations: { streetExample: "300 West 39th Street" } },
+  "parking-complaint": { id: "kcpd-04", customizations: { streetExample: "742 Elm Street" } },
+  "non-emergency-theft": { id: "kcpd-05", customizations: { streetExample: "1200 Grand Boulevard" } },
+  "mid-call-emergency": { id: "kcpd-06", customizations: {} },
+  "parking-no-plate": { id: "kcpd-07", customizations: { streetExample: "Oak and 31st Street" } },
+  "spanish-noise": { id: "kcpd-08", customizations: { streetExample: "4500 Calle Broadway" } },
+  "carfax-eligible": { id: "kcpd-09", customizations: { streetExample: "I-70 and Woodland Avenue" } },
+  "code-enforcement": { id: "kcpd-10", customizations: { streetExample: "1900 Troost Avenue" } },
+};
+
+export function instantiateLexDemoScenarios(
+  templates: CallAssistDemoScenarioConfig[],
+  overlay: Record<string, { id?: string; customizations?: AgencyDemoCustomizations }>,
+): CallAssistDemoScenarioConfig[] {
+  return templates.map((template) => {
+    const row = overlay[template.id];
+    return {
+      ...template,
+      id: row?.id ?? template.id,
+      utterances: template.utterances.map((u) => interpolateDemoUtterance(u, row?.customizations ?? {})),
+    };
+  });
+}
+
+export const CALL_ASSIST_LEX_DEMO_SCENARIOS = instantiateLexDemoScenarios(
+  CALL_ASSIST_LEX_DEMO_TEMPLATES,
+  Object.fromEntries(
+    Object.entries(GENERIC_LEX_DEMO_CUSTOMIZATIONS).map(([id, customizations]) => [id, { customizations }]),
+  ),
+);
+
+/** First-tenant Lex smoke tests (kcpd-01 … kcpd-10). */
+export const KCPD_LEX_DEMO_SCENARIOS = instantiateLexDemoScenarios(
+  CALL_ASSIST_LEX_DEMO_TEMPLATES,
+  KCPD_LEX_DEMO_CUSTOMIZATIONS,
+);
+
 export const KCPD_CARFAX_PORTAL_URL = "https://www.kcpd.org/online-reporting";
 
-/** Placeholder numbers — replace with agency-validated DIDs before go-live. */
+export const KCPD_VOICE_CONFIG: CallAssistAgencyVoiceConfig = {
+  agencyId: "kcpd",
+  agencyName: "Kansas City Missouri Police Department",
+  agencyDisplayName: "Kansas City Police",
+  agencyShortName: "KCPD",
+  agencyTypeLabel: "Police Department",
+  officerLabel: "officer",
+  emergencyLine: "911",
+  nonEmergencyWebsite: "kcpd.org",
+  onlineReportPortalUrl: KCPD_CARFAX_PORTAL_URL,
+  carfaxPortalUrl: KCPD_CARFAX_PORTAL_URL,
+  defaultLanguageCode: "en-US",
+  supportedLanguages: ["en-US", "es-US"],
+  defaultLocale: "en_US",
+  supportedLocales: ["en_US", "es_US"],
+  disclosureText: KCPD_LEX_DISCLOSURE_TEXT,
+  openingGreeting:
+    "Thank you for calling KCPD non-emergency. I'm an automated assistant that will gather your information and get you to the right place. This call may be recorded. If this is a life-threatening emergency, please hang up and dial 911, or say emergency now. How can I help you today?",
+};
+
+/** First-tenant city-services directory. Other agencies seed their own 311/parks/water entries. */
 export function kcpdExternalAgencySeed(agencyId: string): ExternalAgencyRoute[] {
   return [
     {
@@ -212,7 +284,3 @@ export const KCPD_TENANT_SEED: CallAssistTenantSeed = {
   emergencyDestination: "911",
   demoEmergencyDestination: "+18165550111",
 };
-
-export const GENERIC_DISCLOSURE_TEXT =
-  "You have reached the non-emergency line. An automated assistant may gather information " +
-  "to route your call. If this is an emergency, say emergency or hang up and dial 9-1-1.";

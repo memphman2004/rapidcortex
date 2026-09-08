@@ -4,9 +4,9 @@ import { resolveVenueOperationalMap } from "./resolve-operational-map";
 import { buildVenueMapConfig } from "./venue-map-config";
 
 describe("venue map config", () => {
-  it("selects Mapbox 3D for demo catalogs and never leaves geojsonBase on a CDN host", () => {
+  it("selects ALS 3D for demo catalogs and never leaves geojsonBase on a CDN host", () => {
     const config = buildVenueMapConfig(resolveVenueOperationalMap("MBS"));
-    expect(config.renderer).toBe("mapbox3d");
+    expect(config.renderer).toBe("als3d");
     expect(config.pitch).toBe(55);
     expect(config.bearing).toBe(335);
     expect(config.geojsonBase).toBe("/api/venue/code/MBS/map");

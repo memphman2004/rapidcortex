@@ -35,8 +35,23 @@ const LEX_INTENT_ALIASES: Record<string, string> = {
   SecurityIncident: "security",
   LostPerson: "lost_person",
   CarfaxReportingEligible: "CARFAX_REPORTING_ELIGIBLE",
+  VehicleBurglary: "CARFAX_REPORTING_ELIGIBLE",
   CodeEnforcement: "CODE_ENFORCEMENT",
+  CodeEnforcementComplaint: "CODE_ENFORCEMENT",
   PublicWorks: "PUBLIC_WORKS",
+  PublicWorksIssue: "PUBLIC_WORKS",
+  AnimalControl: "ANIMAL_CONTROL",
+  AnimalComplaint: "ANIMAL_CONTROL",
+  TowComplaint: "TOW_COMPLAINT",
+  TheftReport: "REPORT_ONLY",
+  ReportOnly: "REPORT_ONLY",
+  OnlineReportEligibility: "ONLINE_REPORTING_ELIGIBLE",
+  SuspiciousPerson: "NON_EMERGENCY_POLICE",
+  NonEmergencyPolice: "NON_EMERGENCY_POLICE",
+  AbandonedVehicle: "NON_EMERGENCY_POLICE",
+  WelfareCheck: "NON_EMERGENCY_POLICE",
+  VandalismDamage: "REPORT_ONLY",
+  TrafficAccidentReportOnly: "CARFAX_REPORTING_ELIGIBLE",
 };
 
 export function findCallTypeForIntent(taxonomy: AgencyTaxonomy, intent: string): CallType | undefined {

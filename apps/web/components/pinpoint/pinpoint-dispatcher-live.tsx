@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import type { Map } from "mapbox-gl";
+import type { Map } from "maplibre-gl";
 import { LocationMarker } from "rapid-cortex-maps/components/LocationMarker";
 import { RapidCortexMap } from "rapid-cortex-maps/components/RapidCortexMap";
 import type { PinpointLinkDispatcherDetail, PinpointPing } from "rapid-cortex-shared/pinpoint-surge";
@@ -37,7 +37,6 @@ export function PinpointDispatcherLive({ detail }: { detail: PinpointLinkDispatc
   const last = pings.length ? pings[pings.length - 1]! : null;
   const prev = pings.length > 1 ? pings[pings.length - 2]! : null;
   const active = focusPing ?? last;
-  const mapboxToken = process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN?.trim();
 
   useEffect(() => {
     if (last) setFocusPing(last);
@@ -63,7 +62,7 @@ export function PinpointDispatcherLive({ detail }: { detail: PinpointLinkDispatc
           Updated {new Date(active!.capturedAt).toLocaleTimeString()}
         </span>
       </div>
-      {mapboxToken && active ? (
+      {active ? (
         <div className="h-[200px] overflow-hidden rounded-md border border-slate-800">
           <RapidCortexMap
             theme="dark"

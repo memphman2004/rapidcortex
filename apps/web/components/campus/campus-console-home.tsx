@@ -1432,20 +1432,36 @@ function CampusConsoleHomeInner({
                                 >
                                   {mapIncidentType(inc.type)}
                                 </div>
-                                <span
-                                  style={{
-                                    fontSize: 9.5,
-                                    fontWeight: 700,
-                                    padding: "2px 6px",
-                                    borderRadius: 4,
-                                    background: "rgba(239,68,68,0.2)",
-                                    color: "#fca5a5",
-                                    border: "1px solid rgba(239,68,68,0.3)",
-                                    flexShrink: 0,
-                                  }}
-                                >
-                                  {severity}
-                                </span>
+                                <div style={{ display: "flex", alignItems: "center", gap: 4, flexShrink: 0 }}>
+                                  {inc.source === "physical_security" ? (
+                                    <span
+                                      style={{
+                                        fontSize: 9.5,
+                                        fontWeight: 700,
+                                        padding: "2px 6px",
+                                        borderRadius: 4,
+                                        background: "rgba(14,165,233,0.18)",
+                                        color: "#7dd3fc",
+                                        border: "1px solid rgba(14,165,233,0.35)",
+                                      }}
+                                    >
+                                      Physical Security
+                                    </span>
+                                  ) : null}
+                                  <span
+                                    style={{
+                                      fontSize: 9.5,
+                                      fontWeight: 700,
+                                      padding: "2px 6px",
+                                      borderRadius: 4,
+                                      background: "rgba(239,68,68,0.2)",
+                                      color: "#fca5a5",
+                                      border: "1px solid rgba(239,68,68,0.3)",
+                                    }}
+                                  >
+                                    {severity}
+                                  </span>
+                                </div>
                               </div>
                               <div
                                 style={{

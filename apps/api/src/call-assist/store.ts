@@ -20,6 +20,8 @@ import type {
   CallAssistConfidenceThresholds,
   CallAssistDemoScenarioConfig,
   CallAssistTaxonomyVertical,
+  BotRebuildQueueEntry,
+  LexBotRecord,
 } from "rapid-cortex-shared";
 import { ddb } from "../repositories/baseRepository.js";
 import { env } from "../lib/env.js";
@@ -70,6 +72,37 @@ export type CallAssistTenantConfig = {
   testDID?: string;
   lexBotId?: string;
   lexBotAliasId?: string;
+  lexBotName?: string;
+  emergencyLine?: string;
+  nonEmergencyWebsite?: string;
+  openingGreeting?: string;
+  afterHoursMessage?: string;
+  defaultLanguageCode?: string;
+  supportedLanguages?: string[];
+  connectContactFlowId?: string;
+  connectQueueArn?: string;
+  connectEmergencyQueueArn?: string;
+  agencyDisplayName?: string;
+  agencyTypeLabel?: string;
+  officerLabel?: string;
+  defaultLocale?: "en_US" | "es_US" | "zh_CN" | "fr_CA";
+  supportedLocales?: Array<"en_US" | "es_US" | "zh_CN" | "fr_CA">;
+  lexBotTemplateVersion?: string;
+  lexBotStatus?: string;
+  connectInstanceId?: string;
+  connectContactFlowArn?: string;
+  connectNonEmergencyDID?: string;
+  transcribeVocabularyName?: string;
+  transcribeVocabularyStatus?: string;
+  aiDisclosureRequired?: boolean;
+  onboardingStatus?: string;
+  onboardingSteps?: Array<{
+    step: string;
+    status: string;
+    startedAt?: string;
+    completedAt?: string;
+    error?: string;
+  }>;
   updatedAt: string;
 };
 
@@ -171,6 +204,8 @@ const sk = {
   demoRun: (id: string) => `DEMO#${id}`,
   shift: () => "SHIFT#current",
   did: (e164: string) => `PHONE#${e164}`,
+  lexBot: (locale: string) => `LEXBOT#${locale}`,
+  rebuild: (queuedAt: string) => `REBUILD#${queuedAt}`,
 };
 
 export function normalizeCallAssistDid(phone: string): string {
@@ -191,7 +226,13 @@ export class CallAssistStore {
     await ddb.send(
       new PutCommand({
         TableName: table(),
-        Item: { ...config, sk: sk.config(), entityType: "call_assist_config" },
+        Item: {
+          ...config,
+          sk: sk.config(),
+          entityType: "call_assist_config",
+          gsi1pk: "CALLASSIST#CONFIG",
+          gsi1sk: config.agencyId,
+        },
       }),
     );
   }
@@ -467,6 +508,112 @@ export class CallAssistStore {
     );
     const row = out.Item as { targetAgencyId?: string } | undefined;
     return row?.targetAgencyId?.trim() || null;
+  }
+
+  async listTenantConfigs(limit = 200): Promise<CallAssistTenantConfig[]> {
+    const out = await ddb.send(
+      new QueryCommand({
+        TableName: table(),
+        IndexName: "gsi1",
+        KeyConditionExpression: "gsi1pk = :pk",
+        ExpressionAttributeValues: { ":pk": "CALLASSIST#CONFIG" },
+        Limit: limit,
+      }),
+    );
+    return ((out.Items ?? []) as CallAssistTenantConfig[]).filter((row) => row.agencyId);
+  }
+
+  async putLexBot(record: LexBotRecord): Promise<void> {
+    await ddb.send(
+      new PutCommand({
+        TableName: table(),
+        Item: {
+          ...record,
+          sk: sk.lexBot(record.locale),
+          entityType: "call_assist_lex_bot",
+          gsi1pk: "CALLASSIST#LEXBOT",
+          gsi1sk: `${record.status}#${record.updatedAt}`,
+        },
+      }),
+    );
+  }
+
+  async listLexBots(limit = 200): Promise<LexBotRecord[]> {
+    const out = await ddb.send(
+      new QueryCommand({
+        TableName: table(),
+        IndexName: "gsi1",
+        KeyConditionExpression: "gsi1pk = :pk",
+        ExpressionAttributeValues: { ":pk": "CALLASSIST#LEXBOT" },
+        Limit: limit,
+      }),
+    );
+    return (out.Items ?? []) as LexBotRecord[];
+  }
+
+  async enqueueRebuild(entry: BotRebuildQueueEntry): Promise<void> {
+    await ddb.send(
+      new PutCommand({
+        TableName: table(),
+        Item: {
+          ...entry,
+          sk: sk.rebuild(entry.queuedAt),
+          entityType: "call_assist_bot_rebuild",
+          gsi1pk: `CALLASSIST#REBUILD#${entry.status}`,
+          gsi1sk: entry.queuedAt,
+        },
+      }),
+    );
+  }
+
+  async dequeueNextRebuild(depth = 0): Promise<BotRebuildQueueEntry | null> {
+    if (depth > 8) return null;
+    const out = await ddb.send(
+      new QueryCommand({
+        TableName: table(),
+        IndexName: "gsi1",
+        KeyConditionExpression: "gsi1pk = :pk",
+        ExpressionAttributeValues: { ":pk": "CALLASSIST#REBUILD#QUEUED" },
+        Limit: 1,
+        ScanIndexForward: true,
+      }),
+    );
+    const row = (out.Items?.[0] as BotRebuildQueueEntry | undefined) ?? null;
+    if (!row) return null;
+    const next: BotRebuildQueueEntry = { ...row, status: "IN_PROGRESS", attempts: row.attempts + 1 };
+    try {
+      await ddb.send(
+        new PutCommand({
+          TableName: table(),
+          Item: {
+            ...next,
+            sk: sk.rebuild(next.queuedAt),
+            entityType: "call_assist_bot_rebuild",
+            gsi1pk: `CALLASSIST#REBUILD#${next.status}`,
+            gsi1sk: next.queuedAt,
+          },
+          ConditionExpression: "#s = :queued",
+          ExpressionAttributeNames: { "#s": "status" },
+          ExpressionAttributeValues: { ":queued": "QUEUED" },
+        }),
+      );
+    } catch (err) {
+      const name = err instanceof Error ? err.name : "";
+      if (name === "ConditionalCheckFailedException") {
+        return this.dequeueNextRebuild(depth + 1);
+      }
+      throw err;
+    }
+    return next;
+  }
+
+  async completeRebuild(entry: BotRebuildQueueEntry, status: "COMPLETE" | "FAILED", error?: string): Promise<void> {
+    await this.enqueueRebuild({
+      ...entry,
+      status,
+      processedAt: new Date().toISOString(),
+      lastError: error,
+    });
   }
 }
 

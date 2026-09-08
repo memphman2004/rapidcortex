@@ -245,3 +245,23 @@ describe("AuthorizationService.assertAgencyAdminManagingSameAgency", () => {
     expect(() => auth.assertAgencyAdminManagingSameAgency(admin, "other-agency")).toThrow("FORBIDDEN");
   });
 });
+
+describe("AuthorizationService occupant mass-notification (alerts.*)", () => {
+  const auth = new AuthorizationService();
+
+  it("grants campus admin dispatch and denies guest services and PSAP dispatcher", () => {
+    expect(auth.canPerform(makeUser("CAMPUS_ADMIN" as UserRole), "alerts.dispatch")).toBe(true);
+    expect(auth.canPerform(makeUser("CAMPUS_ADMIN" as UserRole), "alerts.dispatch.critical")).toBe(true);
+    expect(auth.canPerform(makeUser("CAMPUS_SUPERVISOR" as UserRole), "alerts.dispatch")).toBe(true);
+    expect(auth.canPerform(makeUser("CAMPUS_SUPERVISOR" as UserRole), "alerts.dispatch.critical")).toBe(
+      false,
+    );
+    expect(auth.canPerform(makeUser("CAMPUS_SECURITY" as UserRole), "alerts.dispatch")).toBe(false);
+    expect(auth.canPerform(makeUser("VENUE_GUEST_SERVICES" as UserRole), "alerts.dispatch")).toBe(false);
+    expect(auth.canPerform(makeUser("VENUE_GUEST_SERVICES" as UserRole), "physical.command.approve")).toBe(
+      false,
+    );
+    expect(auth.canPerform(makeUser("VENUE_GUEST_SERVICES" as UserRole), "physical.event.view")).toBe(false);
+    expect(auth.canPerform(makeUser("dispatcher"), "alerts.dispatch")).toBe(false);
+  });
+});

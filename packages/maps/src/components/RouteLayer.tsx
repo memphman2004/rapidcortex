@@ -1,12 +1,12 @@
 'use client';
 
 import { useEffect, useMemo } from "react";
-import mapboxgl from "mapbox-gl";
+import maplibregl from "maplibre-gl";
 
 import { lineStringFeature } from "../utils/geojson-helpers";
 
 export interface RouteLayerProps {
-  map: mapboxgl.Map | null;
+  map: maplibregl.Map | null;
   /** [lng, lat][] in order */
   coordinates: [number, number][];
   color?: string;
@@ -42,7 +42,7 @@ export function RouteLayer({
       }
       const data = lineStringFeature(coordinates);
       if (map.getSource(sourceId)) {
-        (map.getSource(sourceId) as mapboxgl.GeoJSONSource).setData(data);
+        (map.getSource(sourceId) as maplibregl.GeoJSONSource).setData(data);
       } else {
         map.addSource(sourceId, { type: "geojson", data });
         map.addLayer({

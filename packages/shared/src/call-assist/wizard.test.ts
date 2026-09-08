@@ -31,6 +31,7 @@ describe("Call Assist onboarding helpers", () => {
     const text = substituteAgencyShortName(DEFAULT_DISCLOSURE_BY_VERTICAL.campus, "State U");
     expect(text).toContain("State U");
     expect(text).not.toContain("{agencyShortName}");
+    expect(text).not.toContain("{{agencyShortName}}");
   });
 
   it("confidence thresholds reject values outside 0.50–0.90 for emergency", () => {

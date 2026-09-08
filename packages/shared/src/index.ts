@@ -78,6 +78,7 @@ export * from "./campus/dashboard-schemas.js";
 export * from "./campus/campus-buildings-from-qr.js";
 export * from "./campus/campus-sites.js";
 export * from "./campus/clery-schemas.js";
+export * from "./campus/clery-act/index.js";
 export * from "./campus/eap-schemas.js";
 export * from "./campus/security-event-schemas.js";
 export * from "./campus/automation-rule-schemas.js";
@@ -94,6 +95,9 @@ export * from "./safe-sound/index.js";
 export * from "./rcs/index.js";
 export * from "./ng911/index.js";
 export * from "./call-assist/index.js";
+export * from "./alerts/index.js";
+export * from "./physical-security/index.js";
+export * from "./location/index.js";
 export * from "./field/index.js";
 
 export * from "./marketing/index.js";

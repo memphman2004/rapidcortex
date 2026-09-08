@@ -1,0 +1,236 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Transform: AWS::Serverless-2016-10-31
+Description: >
+  Rapid Cortex — Physical security ingest (one-way). Commands stay 501 / fail-closed.
+  Nested so stack-app-sam-5.yaml stays under size limits.
+
+Parameters:
+  DeploymentStage:
+    Type: String
+    AllowedValues: [dev, staging, prod, pilot]
+  HttpApiId:
+    Type: String
+  HttpApiJwtAuthorizerId:
+    Type: String
+    Default: ""
+  ImportedCognitoUserPoolId:
+    Type: String
+  ImportedCognitoWebClientId:
+    Type: String
+  ImportedCognitoIssuer:
+    Type: String
+  AuditTable:
+    Type: String
+  AgenciesTable:
+    Type: String
+  CampusIncidentsTable:
+    Type: String
+  VenueConfigTable:
+    Type: String
+  TransitIncidentsTable:
+    Type: String
+    Default: ""
+  ExistingPhysicalSecurityTableName:
+    Type: String
+    Default: ""
+  PhysicalSecurityWebhookSecret:
+    Type: String
+    Default: ""
+    NoEcho: true
+  WebSocketConnectionsTable:
+    Type: String
+    Default: ""
+  WebSocketApiEndpoint:
+    Type: String
+    Default: ""
+  WebSocketApiId:
+    Type: String
+    Default: ""
+  ManagedPolicyNamePrefix:
+    Type: String
+    Default: rapid-cortex
+
+Conditions:
+  HasHttpApiJwtAuthorizer: !Not [!Equals [!Ref HttpApiJwtAuthorizerId, ""]]
+  CreatePhysicalSecurityTable: !Equals [!Ref ExistingPhysicalSecurityTableName, ""]
+  HasTransitIncidentsTable: !Not [!Equals [!Ref TransitIncidentsTable, ""]]
+  HasWebSocketConnectionsTable: !Not [!Equals [!Ref WebSocketConnectionsTable, ""]]
+  HasWebSocketApiId: !Not [!Equals [!Ref WebSocketApiId, ""]]
+  HasWebSocketBroadcast: !And
+    - !Condition HasWebSocketConnectionsTable
+    - !Not [!Equals [!Ref WebSocketApiEndpoint, ""]]
+
+Globals:
+  Function:
+    Runtime: nodejs20.x
+    Timeout: 30
+    MemorySize: 512
+    Environment:
+      Variables:
+        DEPLOYMENT_STAGE: !Ref DeploymentStage
+        ALLOW_UNAUTHENTICATED_API: "false"
+        ENABLE_PHYSICAL_SECURITY_INGEST: "true"
+        PHYSICAL_SECURITY_COMMANDS_ENABLED: "false"
+        ENABLE_PHYSICAL_SECURITY_COMMANDS: "false"
+        ENABLE_PHYSICAL_SECURITY_INGEST_MOCK: ""
+        PHYSICAL_SECURITY_WEBHOOK_SECRET: !Ref PhysicalSecurityWebhookSecret
+        CAD_WRITEBACK_ENABLED: "false"
+        PHYSICAL_SECURITY_TABLE: !If
+          - CreatePhysicalSecurityTable
+          - !Ref PhysicalSecurityTable
+          - !Ref ExistingPhysicalSecurityTableName
+        CAMPUS_INCIDENTS_TABLE: !Ref CampusIncidentsTable
+        VENUE_CONFIG_TABLE: !Ref VenueConfigTable
+        TRANSIT_INCIDENTS_TABLE: !Ref TransitIncidentsTable
+        AUDIT_TABLE: !Ref AuditTable
+        AGENCIES_TABLE: !Ref AgenciesTable
+        COGNITO_USER_POOL_ID: !Ref ImportedCognitoUserPoolId
+        COGNITO_CLIENT_ID: !Ref ImportedCognitoWebClientId
+        COGNITO_REGION: !Ref AWS::Region
+        WEBSOCKET_CONNECTIONS_TABLE: !If
+          - HasWebSocketBroadcast
+          - !Ref WebSocketConnectionsTable
+          - ""
+        WEBSOCKET_API_ENDPOINT: !If
+          - HasWebSocketBroadcast
+          - !Ref WebSocketApiEndpoint
+          - ""
+
+Resources:
+  PhysicalSecurityTable:
+    Type: AWS::DynamoDB::Table
+    Condition: CreatePhysicalSecurityTable
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      TableName: !Sub "rapid-cortex-physical-security-${DeploymentStage}"
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: agencyId
+          AttributeType: S
+        - AttributeName: sk
+          AttributeType: S
+      KeySchema:
+        - AttributeName: agencyId
+          KeyType: HASH
+        - AttributeName: sk
+          KeyType: RANGE
+
+  AppManagedPolicyPhysicalSecurity:
+    Type: AWS::IAM::ManagedPolicy
+    Properties:
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Sid: PhysicalSecurityTables
+            Effect: Allow
+            Action:
+              - dynamodb:GetItem
+              - dynamodb:PutItem
+              - dynamodb:UpdateItem
+              - dynamodb:Query
+              - dynamodb:DescribeTable
+            Resource:
+              - !If
+                  - CreatePhysicalSecurityTable
+                  - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${PhysicalSecurityTable}"
+                  - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${ExistingPhysicalSecurityTableName}"
+              - !If
+                  - CreatePhysicalSecurityTable
+                  - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${PhysicalSecurityTable}/index/*"
+                  - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${ExistingPhysicalSecurityTableName}/index/*"
+              - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${AuditTable}"
+              - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${AuditTable}/index/*"
+              - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${AgenciesTable}"
+              - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${AgenciesTable}/index/*"
+              - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${CampusIncidentsTable}"
+              - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${CampusIncidentsTable}/index/*"
+              - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${VenueConfigTable}"
+              - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${VenueConfigTable}/index/*"
+              - !If
+                - HasTransitIncidentsTable
+                - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${TransitIncidentsTable}"
+                - !Ref AWS::NoValue
+              - !If
+                - HasTransitIncidentsTable
+                - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${TransitIncidentsTable}/index/*"
+                - !Ref AWS::NoValue
+              - !If
+                - HasWebSocketConnectionsTable
+                - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${WebSocketConnectionsTable}"
+                - !Ref AWS::NoValue
+              - !If
+                - HasWebSocketConnectionsTable
+                - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${WebSocketConnectionsTable}/index/*"
+                - !Ref AWS::NoValue
+
+  AppManagedPolicyPhysicalSecurityWebSocket:
+    Type: AWS::IAM::ManagedPolicy
+    Condition: HasWebSocketApiId
+    Properties:
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Sid: WebSocketPostToConnection
+            Effect: Allow
+            Action:
+              - execute-api:ManageConnections
+            Resource: !Sub arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${WebSocketApiId}/${DeploymentStage}/POST/@connections/*
+
+  PhysicalSecurityHttpFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/handlers/physical-security/http.handler
+      Timeout: 30
+      Policies:
+        - !Ref AppManagedPolicyPhysicalSecurity
+        - !If
+          - HasWebSocketApiId
+          - !Ref AppManagedPolicyPhysicalSecurityWebSocket
+          - !Ref AWS::NoValue
+
+  PhysicalSecurityHttpIntegration:
+    Type: AWS::ApiGatewayV2::Integration
+    Properties:
+      ApiId: !Ref HttpApiId
+      IntegrationType: AWS_PROXY
+      IntegrationUri: !Sub arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${PhysicalSecurityHttpFunction.Arn}/invocations
+      PayloadFormatVersion: "2.0"
+
+  PhysicalSecurityHttpInvokePermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !Ref PhysicalSecurityHttpFunction
+      Principal: apigateway.amazonaws.com
+      SourceArn: !Sub arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${HttpApiId}/*
+
+  RoutePhysicalSecurityEvents:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref HttpApiId
+      RouteKey: "POST /api/physical-security/events"
+      Target: !Sub "integrations/${PhysicalSecurityHttpIntegration}"
+      AuthorizationType: NONE
+
+  RoutePhysicalSecurityProxy:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref HttpApiId
+      RouteKey: "ANY /api/physical-security/{proxy+}"
+      Target: !Sub "integrations/${PhysicalSecurityHttpIntegration}"
+      AuthorizationType: !If [HasHttpApiJwtAuthorizer, JWT, NONE]
+      AuthorizerId: !If [HasHttpApiJwtAuthorizer, !Ref HttpApiJwtAuthorizerId, !Ref AWS::NoValue]
+
+Outputs:
+  PhysicalSecurityTableName:
+    Value: !If
+      - CreatePhysicalSecurityTable
+      - !Ref PhysicalSecurityTable
+      - !Ref ExistingPhysicalSecurityTableName
+  PhysicalSecurityHttpFunctionArn:
+    Value: !GetAtt PhysicalSecurityHttpFunction.Arn

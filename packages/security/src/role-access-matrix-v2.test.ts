@@ -46,11 +46,14 @@ describe("Role Access Matrix v2.0 (PDF)", () => {
     }
   });
 
-  it("agencyadmin cannot access live workspace or cross-tenant platform flags", () => {
+  it("agencyadmin cannot access live workspace, cross-tenant platform flags, or Lex bot fleet", () => {
     expect(defaultPermissionForRole("agencyadmin", "workspace.live_call")).toBe(false);
     expect(defaultPermissionForRole("agencyadmin", "system.tenant_mgmt")).toBe(false);
     expect(defaultPermissionForRole("agencyadmin", "billing.manage")).toBe(false);
     expect(defaultPermissionForRole("agencyadmin", "transcripts.view")).toBe(false);
+    expect(defaultPermissionForRole("agencyadmin", "call_assist.bots.manage")).toBe(false);
+    expect(defaultPermissionForRole("rcadmin", "call_assist.bots.manage")).toBe(true);
+    expect(defaultPermissionForRole("rcitadmin", "call_assist.bots.manage")).toBe(true);
   });
 
   it("agencyadmin can create and join war rooms", () => {

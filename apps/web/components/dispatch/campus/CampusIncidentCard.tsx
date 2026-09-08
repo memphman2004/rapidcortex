@@ -57,6 +57,7 @@ function originLabel(source: CampusIncident["source"]): string {
   if (source === "alarm") return "Alarm";
   if (source === "sensor") return "Sensor";
   if (source === "webhook") return "Webhook";
+  if (source === "physical_security") return "Physical Security";
   return "Direct";
 }
 
@@ -120,7 +121,9 @@ export function CampusIncidentCard({
                 ? "bg-sky-950/60 text-sky-200"
                 : incident.source === "sms"
                   ? "bg-emerald-950/60 text-emerald-200"
-                  : "bg-slate-800 text-slate-300"
+                  : incident.source === "physical_security"
+                    ? "bg-cyan-950/60 text-cyan-200"
+                    : "bg-slate-800 text-slate-300"
             }`}
           >
             {originLabel(incident.source)}

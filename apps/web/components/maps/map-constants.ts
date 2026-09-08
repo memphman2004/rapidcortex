@@ -1,46 +1,43 @@
 /**
  * Rapid Cortex — Map Constants
  *
- * Single source of truth for Mapbox Studio layer IDs, severity colors,
- * default coordinates, and layer-group→toggle mappings.
- *
- * IMPORTANT: Layer IDs must match exactly what is published in Mapbox Studio.
- * If a layer ID does not exist in the loaded style, RapidCortexMapCore will
- * log a dev warning and skip it — it will NOT crash.
+ * Overlay layer IDs, severity colors, defaults, and toggle mappings.
+ * ALS Esri styles do not include the former Studio overlay IDs; RapidCortexMapCore
+ * skips missing layers and will not crash.
  */
 
-import type { ExpressionSpecification } from "mapbox-gl";
+import type { ExpressionSpecification } from "maplibre-gl";
 
-// ─── Mapbox style URL ─────────────────────────────────────────────────────────
+function alsMapStyleDescriptor(kind: "dark" | "light"): string {
+  const region =
+    (typeof process !== "undefined" && process.env.NEXT_PUBLIC_ALS_REGION?.trim()) || "us-east-1";
+  const mapName =
+    kind === "dark"
+      ? (typeof process !== "undefined" && process.env.NEXT_PUBLIC_ALS_MAP_NAME_DARK?.trim()) ||
+        "rc-map-dark-dev"
+      : (typeof process !== "undefined" && process.env.NEXT_PUBLIC_ALS_MAP_NAME?.trim()) ||
+        "rc-map-dev";
+  return `https://maps.geo.${region}.amazonaws.com/maps/v0/maps/${mapName}/style-descriptor`;
+}
 
-/**
- * Resolved at runtime from env — never hard-code a token in source.
- * Prefer theme-specific URLs; fall back to NEXT_PUBLIC_MAPBOX_STYLE_URL (legacy).
- */
-export const RC_STYLE_URL_DARK =
-  (typeof process !== "undefined" &&
-    (process.env.NEXT_PUBLIC_MAPBOX_STYLE_URL_DARK ||
-      process.env.NEXT_PUBLIC_MAPBOX_STYLE_DARK ||
-      process.env.NEXT_PUBLIC_MAPBOX_STYLE_URL)) ||
-  "mapbox://styles/memphman2004/cmr3afd69002401qq1uywfk5p";
-
-export const RC_STYLE_URL_LIGHT =
-  (typeof process !== "undefined" &&
-    (process.env.NEXT_PUBLIC_MAPBOX_STYLE_URL_LIGHT ||
-      process.env.NEXT_PUBLIC_MAPBOX_STYLE_LIGHT)) ||
-  "mapbox://styles/memphman2004/cmsfheap9009w01s96hcr95b1";
-
-/** @deprecated Prefer RC_STYLE_URL_DARK / resolveMapStyleUrl — kept for older callers */
+export const RC_STYLE_URL_DARK = alsMapStyleDescriptor("dark");
+export const RC_STYLE_URL_LIGHT = alsMapStyleDescriptor("light");
 export const RC_STYLE_URL = RC_STYLE_URL_DARK;
 
-export function resolveMapStyleUrl(theme: "dark" | "light" = "dark"): string {
+export function alsMapStyleUrl(theme: "dark" | "light" = "dark"): string {
   return theme === "light" ? RC_STYLE_URL_LIGHT : RC_STYLE_URL_DARK;
 }
-// ─── Mapbox Studio layer IDs ──────────────────────────────────────────────────
+
+/** @deprecated Use alsMapStyleUrl */
+export function resolveMapStyleUrl(theme: "dark" | "light" = "dark"): string {
+  return alsMapStyleUrl(theme);
+}
+
+// ─── Optional overlay layer IDs (skipped when absent from ALS styles) ──────
 
 /**
- * These are the canonical layer IDs that must be set in Mapbox Studio.
- * Rename layers to match exactly before publishing.
+ * These IDs were used with a custom Studio style. ALS Esri maps omit them;
+ * RapidCortexMapCore skips missing layers.
  */
 export const STUDIO_LAYER_IDS = [
   "rc-agency-zones-fill",
@@ -67,8 +64,8 @@ export type StudioLayerId = (typeof STUDIO_LAYER_IDS)[number];
 // ─── Layer groups → toggle keys ───────────────────────────────────────────────
 
 /**
- * Maps each UI toggle in MapLayerControl to one or more Mapbox layer IDs.
- * Studio layers that don't exist in the style are silently skipped.
+ * Maps each UI toggle in MapLayerControl to one or more overlay layer IDs.
+ * Layers that don't exist in the ALS style are silently skipped.
  */
 export const STUDIO_LAYER_GROUPS = {
   agencyZones:         ["rc-agency-zones-fill", "rc-agency-zones-line"] as StudioLayerId[],
@@ -85,7 +82,7 @@ export type StudioLayerGroupKey = keyof typeof STUDIO_LAYER_GROUPS;
 
 // ─── Programmatic (GeoJSON) layer IDs ────────────────────────────────────────
 
-// Source and layer IDs added by the app at runtime — NOT in Mapbox Studio.
+// Source and layer IDs added by the app at runtime — not in the ALS base style.
 export const LIVE_SOURCE_ID       = "rc-live-incidents";
 export const LIVE_ACTIVE_LAYER    = "rc-live-incidents-circle";
 export const LIVE_PULSE_LAYER     = "rc-live-incidents-pulse";
@@ -163,10 +160,10 @@ export const SECTION_STATUS_COLOR_EXPRESSION = [
   "#10b981",
 ] as ExpressionSpecification;
 
-// ─── Mapbox expression helpers ────────────────────────────────────────────────
+// ─── MapLibre expression helpers ────────────────────────────────────────────────
 
 /**
- * Mapbox GL match expression that maps severity property to circle color.
+ * GL match expression that maps severity property to circle color.
  * Used in addLayer() paint properties.
  */
 export const SEVERITY_COLOR_EXPRESSION = [

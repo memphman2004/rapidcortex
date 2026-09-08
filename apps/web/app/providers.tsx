@@ -5,6 +5,9 @@ import { AgencyProvider } from "@/contexts/agency-context";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { useState } from "react";
 
+import { ALSMapProvider } from "@/lib/map/als-map-context";
+import "maplibre-gl/dist/maplibre-gl.css";
+
 export function Providers({ children }: { children: React.ReactNode }) {
   const [queryClient] = useState(
     () =>
@@ -21,7 +24,9 @@ export function Providers({ children }: { children: React.ReactNode }) {
   return (
     <QueryClientProvider client={queryClient}>
       <SessionProvider>
-        <AgencyProvider>{children}</AgencyProvider>
+        <AgencyProvider>
+          <ALSMapProvider>{children}</ALSMapProvider>
+        </AgencyProvider>
       </SessionProvider>
     </QueryClientProvider>
   );

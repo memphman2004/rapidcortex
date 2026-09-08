@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Apply deploy-gap IAM for rapid-cortex-deploy (ECS, CodeBuild, ECR, Mapbox SSM).
+# Apply deploy-gap IAM for rapid-cortex-deploy (ECS, CodeBuild, ECR, ALS SSM).
 # Prefer split managed policies: scripts/apply-sam-deploy-managed-policies.sh
 #   (infra/iam/sam-deploy-policy.prod.json + sam-deploy-policy-web.prod.json)
 # This inline policy is legacy overlap — attach managed policies first.

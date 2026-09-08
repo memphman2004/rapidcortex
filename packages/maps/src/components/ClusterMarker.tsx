@@ -1,12 +1,12 @@
 'use client';
 
 import { useEffect, useRef } from "react";
-import mapboxgl from "mapbox-gl";
+import maplibregl from "maplibre-gl";
 
 import type { SurgeSuggestedPriority } from "../types/map-types";
 
 export interface ClusterMarkerProps {
-  map: mapboxgl.Map | null;
+  map: maplibregl.Map | null;
   clusterId: string;
   latitude: number;
   longitude: number;
@@ -40,7 +40,7 @@ export function ClusterMarker({
   priority,
   onClick,
 }: ClusterMarkerProps) {
-  const markerRef = useRef<mapboxgl.Marker | null>(null);
+  const markerRef = useRef<maplibregl.Marker | null>(null);
   const clickRef = useRef(onClick);
   clickRef.current = onClick;
 
@@ -83,7 +83,7 @@ export function ClusterMarker({
       el.addEventListener("mouseenter", onEnter);
       el.addEventListener("mouseleave", onLeave);
 
-      const popup = new mapboxgl.Popup({ offset: 35 }).setHTML(`
+      const popup = new maplibregl.Popup({ offset: 35 }).setHTML(`
       <div style="font-family: system-ui; padding: 12px; min-width: 200px; color: #111;">
         <div style="font-size: 16px; font-weight: bold; margin-bottom: 8px;">
           ${PRIORITY_ICONS[priority]} Surge cluster
@@ -97,7 +97,7 @@ export function ClusterMarker({
       const onElClick = () => clickRef.current?.(clusterId);
       el.addEventListener("click", onElClick);
 
-      markerRef.current = new mapboxgl.Marker({ element: el })
+      markerRef.current = new maplibregl.Marker({ element: el })
         .setLngLat([longitude, latitude])
         .setPopup(popup)
         .addTo(map);

@@ -1,5 +1,5 @@
 /**
- * Four-color palette for adjacent map regions (dark Mapbox base).
+ * Four-color palette for adjacent map regions (dark ALS base).
  * Opacity is baked into the rgba strings — keep fill-opacity at 1 in paint.
  */
 

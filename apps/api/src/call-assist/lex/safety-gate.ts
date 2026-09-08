@@ -4,6 +4,7 @@
  * No config flag, intent, or model can suppress TRANSFER_911.
  */
 import { evaluateSafety, isImmutableEmergency } from "rapid-cortex-shared";
+import { locationFromSlotMap } from "./dialog-intercept.js";
 
 export type SafetyResult = {
   isEmergency: boolean;
@@ -28,7 +29,7 @@ export function buildTransferSummary(
   slots: Record<string, string | null>,
   agencyShortName: string,
 ): string {
-  const location = slots.location ?? slots.building ?? slots.section ?? "unknown location";
+  const location = locationFromSlotMap(slots);
   const type = slots.incidentType ?? "emergency";
   const clipped = utterance.slice(0, 120);
   return (

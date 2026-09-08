@@ -17,6 +17,11 @@ describe("app-host-routing — public status", () => {
     expect(isMarketingPublicPath("/status/agency-slug")).toBe(false);
   });
 
+  it("keeps public Clery crime log on the app host", () => {
+    expect(isMarketingPublicPath("/crime-log/uga")).toBe(false);
+    expect(maybeRedirectAppHostAwayFromMarketing(appRequest("/crime-log/uga"))).toBeNull();
+  });
+
   it("does not redirect app /status to www", () => {
     expect(maybeRedirectAppHostAwayFromMarketing(appRequest("/status"))).toBeNull();
   });

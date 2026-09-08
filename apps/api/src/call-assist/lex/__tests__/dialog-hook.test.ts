@@ -99,8 +99,18 @@ describe("Dialog hook — Safety gate", () => {
 });
 
 describe("Dialog hook — Slot elicitation", () => {
-  it("elicits location first for noise complaint", async () => {
+  it("elicits NoiseLocation first for noise complaint", async () => {
     const event = buildLexEvent({ utterance: "noisy neighbors", intent: "NoiseComplaint", slots: {} });
+    const result = await handleDialog(event, testDeps());
+    expect(result.sessionState.dialogAction).toMatchObject({ type: "ElicitSlot", slotToElicit: "NoiseLocation" });
+  });
+
+  it("still elicits legacy location when that slot name is present", async () => {
+    const event = buildLexEvent({
+      utterance: "noisy neighbors",
+      intent: "NoiseComplaint",
+      slots: { location: null, callbackNumber: null },
+    });
     const result = await handleDialog(event, testDeps());
     expect(result.sessionState.dialogAction).toMatchObject({ type: "ElicitSlot", slotToElicit: "location" });
   });
@@ -138,7 +148,7 @@ describe("Dialog hook — Bedrock fallback", () => {
   });
 });
 
-describe("KCPD demo scenarios — all 10 must pass", () => {
+describe("First-tenant demo scenarios (KCPD overlay) — all 10 must pass", () => {
   it.each(KCPD_LEX_DEMO_SCENARIOS)("Scenario $id: $label", async (scenario) => {
     let sessionAttrs: Record<string, string> = { agencyId: "kcpd", callId: `test-${scenario.id}` };
     const deps = testDeps({ classify: classifyWithBedrock });
@@ -156,6 +166,61 @@ describe("KCPD demo scenarios — all 10 must pass", () => {
     }
 
     expect(sessionAttrs.classification).toBe(scenario.expectedClass);
+  });
+});
+
+describe("Dialog hook — WeaponVisible intercept", () => {
+  it("closes EmergencyEscalation when WeaponVisible is Yes without collecting more slots", async () => {
+    const event = buildLexEvent({
+      utterance: "yes",
+      intent: "SuspiciousPerson",
+      slots: {
+        SuspiciousLocation: slot("12th and Main"),
+        PersonDescription: slot("male in a dark hoodie"),
+        PersonDirection: slot("still there"),
+        WeaponVisible: slot("Yes"),
+        CallbackNumber: null,
+        CallerSafeLocation: null,
+      },
+    });
+    const result = await handleDialog(event, testDeps());
+    expect(result.sessionState.intent.name).toBe("EmergencyEscalation");
+    expect(result.sessionState.dialogAction.type).toBe("Close");
+    expect(result.sessionState.sessionAttributes?.transferReason).toBe("EMERGENCY");
+    expect(result.sessionState.sessionAttributes?.emergency).toBe("true");
+    expect(result.sessionState.dialogAction).not.toMatchObject({ slotToElicit: "CallbackNumber" });
+  });
+
+  it("does not escalate when WeaponVisible is No", async () => {
+    const event = buildLexEvent({
+      utterance: "no",
+      intent: "SuspiciousPerson",
+      slots: {
+        SuspiciousLocation: slot("12th and Main"),
+        PersonDescription: slot("male in a dark hoodie"),
+        PersonDirection: slot("still there"),
+        WeaponVisible: slot("No"),
+        CallbackNumber: null,
+        CallerSafeLocation: null,
+      },
+    });
+    const result = await handleDialog(event, testDeps());
+    expect(result.sessionState.intent.name).toBe("SuspiciousPerson");
+    expect(result.sessionState.dialogAction).toMatchObject({ type: "ElicitSlot", slotToElicit: "CallbackNumber" });
+  });
+});
+
+describe("Dialog hook — RequestHuman", () => {
+  it("transfers to a person before continuing slot collection", async () => {
+    const event = buildLexEvent({
+      utterance: "I want to speak to an officer",
+      intent: "NoiseComplaint",
+      slots: { NoiseLocation: null },
+    });
+    const result = await handleDialog(event, testDeps());
+    expect(result.sessionState.intent.name).toBe("RequestHuman");
+    expect(result.sessionState.dialogAction.type).toBe("Close");
+    expect(result.sessionState.sessionAttributes?.transferReason).toBe("HUMAN_REQUEST");
   });
 });
 

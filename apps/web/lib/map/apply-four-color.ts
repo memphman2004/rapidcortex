@@ -1,4 +1,4 @@
-import type { ExpressionSpecification } from "mapbox-gl";
+import type { ExpressionSpecification } from "maplibre-gl";
 import { buildAdjacencyFromGeoJSON, greedyColor } from "./graph-color";
 import { REGION_COLORS, type RegionColorIndex } from "./region-colors";
 import {

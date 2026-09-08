@@ -353,6 +353,22 @@ export const env = {
    */
   enableCallAssist: featureEnabled("ENABLE_CALL_ASSIST"),
   callAssistTable: process.env.CALL_ASSIST_TABLE?.trim() ?? "",
+  enableVerticalAlerts: featureEnabled("ENABLE_VERTICAL_ALERTS"),
+  verticalAlertsTable: process.env.VERTICAL_ALERTS_TABLE?.trim() ?? "",
+  alertShortCodeSsmPrefix: process.env.ALERT_SHORT_CODE_SSM_PREFIX?.trim() || "/rc/alerts/short-code/",
+  alertEmailSender: process.env.ALERT_EMAIL_SENDER?.trim() || "alerts@alerts.rapidcortex.us",
+  alertSesMock: process.env.ALERT_SES_MOCK === "true" || process.env.ALERT_SES_MOCK === "1",
+  enablePhysicalSecurityIngest: featureEnabled("ENABLE_PHYSICAL_SECURITY_INGEST"),
+  physicalSecurityTable: process.env.PHYSICAL_SECURITY_TABLE?.trim() ?? "",
+  physicalSecurityWebhookSecret: process.env.PHYSICAL_SECURITY_WEBHOOK_SECRET?.trim() ?? "",
+  physicalSecurityIngestMock:
+    process.env.ENABLE_PHYSICAL_SECURITY_INGEST_MOCK === "true" ||
+    process.env.ENABLE_PHYSICAL_SECURITY_INGEST_MOCK === "1",
+  physicalSecurityCommandsEnabled:
+    process.env.PHYSICAL_SECURITY_COMMANDS_ENABLED === "true" ||
+    process.env.PHYSICAL_SECURITY_COMMANDS_ENABLED === "1" ||
+    process.env.ENABLE_PHYSICAL_SECURITY_COMMANDS === "true" ||
+    process.env.ENABLE_PHYSICAL_SECURITY_COMMANDS === "1",
   enableCallAssistCadPush: featureEnabled("ENABLE_CALL_ASSIST_CAD_PUSH", false),
   enableCallAssistRmsDraft: featureEnabled("ENABLE_CALL_ASSIST_RMS_DRAFT", false),
   enableCallAssistDemoMode: featureEnabled("ENABLE_CALL_ASSIST_DEMO_MODE", false),
@@ -363,6 +379,11 @@ export const env = {
   /** Local/dev only. Production must use CALL_ASSIST_CONNECT_WEBHOOK_SECRET_ARN. */
   callAssistConnectWebhookSecret: process.env.CALL_ASSIST_CONNECT_WEBHOOK_SECRET?.trim() ?? "",
   callAssistSeedProfile: process.env.CALL_ASSIST_SEED_PROFILE?.trim().toLowerCase() ?? "",
+  /** First-tenant overlay agencyId. Default kcpd. Never applied to other agencies. */
+  callAssistSeedAgencyId: process.env.CALL_ASSIST_SEED_AGENCY_ID?.trim() || "kcpd",
+  /** Lex CreateBot / rebuild. Default mock so CI never calls AWS Lex. */
+  callAssistLexMock:
+    process.env.CALL_ASSIST_LEX_MOCK !== "false" && process.env.CALL_ASSIST_LEX_MOCK !== "0",
   callAssistRapidSosMock: process.env.CALL_ASSIST_RAPIDSOS_MOCK !== "false",
   callAssistRapidSosSecretArn: process.env.CALL_ASSIST_RAPIDSOS_SECRET_ARN?.trim() ?? "",
   /**
@@ -509,6 +530,13 @@ export const env = {
   enableInsideTheCortex: featureEnabled("ENABLE_INSIDE_THE_CORTEX"),
   /** Campus Clery ASR workspace (manual entry, import, report). Default on when unset. */
   enableCampusClery: featureEnabled("ENABLE_CAMPUS_CLERY"),
+  /** Statutory Clery Act module. Default on when unset. */
+  enableCleryModule: featureEnabled("ENABLE_CLERY_MODULE"),
+  cleryActTable: process.env.CLERY_ACT_TABLE?.trim() ?? "",
+  cleryClassificationMock:
+    process.env.CLERY_CLASSIFICATION_MOCK === "true" ||
+    process.env.CLERY_CLASSIFICATION_MOCK === "1" ||
+    !process.env.ANTHROPIC_API_KEY_SECRET_ARN,
   /** Campus EAP / building checklist library. Default on when unset. */
   enableCampusEap: featureEnabled("ENABLE_CAMPUS_EAP"),
   /** Signed inbound campus security-event webhook. Default on when unset. */
@@ -699,4 +727,11 @@ export const env = {
     10,
     Number.parseInt(process.env.RCS_ARRIVAL_RADIUS_METERS ?? "150", 10) || 150,
   ),
+  alsPlaceIndexName: process.env.ALS_PLACE_INDEX_NAME?.trim() ?? "",
+  alsRouteCalculatorName: process.env.ALS_ROUTE_CALCULATOR_NAME?.trim() ?? "",
+  alsGeofenceCollectionName: process.env.ALS_GEOFENCE_COLLECTION_NAME?.trim() ?? "",
+  alsTrackerName: process.env.ALS_TRACKER_NAME?.trim() ?? "",
+  /** Default ON (mock) when unset so local/CI never call ALS. Deployed stack sets false. */
+  alsLocationMock:
+    process.env.ALS_LOCATION_MOCK !== "false" && process.env.ALS_LOCATION_MOCK !== "0",
 };

@@ -1,4 +1,4 @@
-/** Shared Mapbox GL building blocks for Rapid Cortex (web / future desktop shell). */
+/** Shared MapLibre GL building blocks for Rapid Cortex (web / future desktop shell). */
 
 export type {
   LocationConfidence,
@@ -23,11 +23,17 @@ export { RouteLayer, type RouteLayerProps } from "./components/RouteLayer";
 export { EventZones, type EventZonesProps } from "./components/EventZones";
 export { HeatMap, type HeatMapProps } from "./components/HeatMap";
 
-export { useMapbox, type UseMapboxOptions } from "./hooks/useMapbox";
+export { useMapLibre, type UseMapLibreOptions } from "./hooks/useMapLibre";
 export { useMapControls } from "./hooks/useMapControls";
 export { useLocationTracking } from "./hooks/useLocationTracking";
 
-export { ensureMapboxAccessToken } from "./utils/mapbox-env";
+export {
+  getMapAuthenticationOptions,
+  isMapAuthReady,
+  markMapAuthReady,
+  setMapTransformRequest,
+  subscribeMapAuthReady,
+} from "./utils/map-auth";
 export { RAPID_CORTEX_MAP_STYLES } from "./utils/map-styles";
 export {
   createAccuracyCirclePolygon,
@@ -36,7 +42,7 @@ export {
 } from "./utils/geojson-helpers";
 export { offsetMeters } from "./utils/coordinate-utils";
 
-export type { Map, MapMouseEvent, Marker, Popup } from "mapbox-gl";
+export type { Map, MapMouseEvent, Marker, Popup } from "maplibre-gl";
 
 export { AppleMapView, type AppleMapViewProps } from "./mapkit/AppleMapView";
 export {

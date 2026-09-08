@@ -6,6 +6,7 @@ import { HelpChrome } from "@/components/help/help-chrome";
 import { ThemeToggle } from "@/components/ui/ThemeToggle";
 import { CampusSiteScopeProvider } from "@/lib/campus/use-campus-site-scope";
 import { getDashboardSessionUser } from "@/lib/dashboards/get-dashboard-session";
+import { VerticalAlertOverlay } from "@/components/alerts/vertical-alert-overlay";
 
 /** Matches campus console mockup tokens (bg / surface). */
 const SHELL = {
@@ -28,6 +29,7 @@ export default async function CampusShellLayout({
     <HelpChrome role={role}>
       <CampusShellThemeRoot>
         <CampusSiteScopeProvider agencyId={user?.agencyId ?? ""}>
+          <VerticalAlertOverlay />
           <div className="mx-auto flex min-h-screen max-w-[1600px] flex-col px-4 py-5">
             <CampusShellHeader
               campusCode={campusCode.toUpperCase()}

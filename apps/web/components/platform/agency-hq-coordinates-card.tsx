@@ -76,11 +76,6 @@ export function AgencyHqCoordinatesCard({ agency }: Props) {
 
   async function geocodeFromCityState() {
     setMessage(null);
-    const token = process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN?.trim() ?? "";
-    if (!token) {
-      setMessage("Mapbox token is not configured.");
-      return;
-    }
     const query = [agency.city, agency.state, "USA"].filter(Boolean).join(", ");
     if (!query.trim()) {
       setMessage("City and state are required to geocode.");
@@ -88,7 +83,7 @@ export function AgencyHqCoordinatesCard({ agency }: Props) {
     }
     setGeocodeBusy(true);
     try {
-      const hit = await geocodeAddress(query, token, { types: "place,region,locality" });
+      const hit = await geocodeAddress(query);
       if (!hit) {
         setMessage("No geocode result for this city/state.");
         return;

@@ -294,7 +294,7 @@ export type VenueIncidentStatus =
   | "resolved"
   | "escalated";
 
-export type VenueIncidentSource = "sms" | "qr" | "manual";
+export type VenueIncidentSource = "sms" | "qr" | "manual" | "physical_security";
 
 export type VenueIncidentType =
   | "medical"

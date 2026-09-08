@@ -1,5 +1,6 @@
 import type { UserContext } from "rapid-cortex-shared";
 import { isRcInternalOperator } from "rapid-cortex-shared";
+import { AgencyRepository } from "../repositories/agencyRepository.js";
 
 export function normalizeVenueCode(code: string): string {
   return code.trim().toUpperCase().replace(/-/g, "");
@@ -19,4 +20,18 @@ export function canAccessVenueTenant(user: UserContext, venueCode: string): bool
   if (user.role.trim().toLowerCase() === "agencyit") return true;
   if (!agencyId) return false;
   return venueCodeFromAgencyId(agencyId) === normalizeVenueCode(venueCode);
+}
+
+export async function resolveVenueAgencyId(venueCode: string): Promise<string | null> {
+  const code = normalizeVenueCode(venueCode);
+  if (!code) return null;
+  const lower = code.toLowerCase();
+  const agencies = new AgencyRepository();
+  const candidates = [`test-venue-${lower}`, `venue-${lower}`, `last-venue-${lower}`];
+  for (const id of candidates) {
+    const hit = await agencies.get(id);
+    if (hit) return id;
+  }
+  const ids = await agencies.listAgencyIds();
+  return ids.find((id) => venueCodeFromAgencyId(id) === code) ?? null;
 }

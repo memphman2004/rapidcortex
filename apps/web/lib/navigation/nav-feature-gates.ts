@@ -2,12 +2,14 @@ import {
   isCadWritebackUiEnabled,
   isCadConnectorUiEnabled,
   isCampusCleryEnabled,
+  isCleryModuleEnabled,
   isCampusEapEnabled,
   isChannelMonitoringEnabled,
   isDeploymentsMapEnabled,
   isNonEmergencyTriageEnabled,
   isNg911AssistEnabled,
   isCallAssistEnabled,
+  isVerticalAlertsEnabled,
   isQaScoringEnabled,
   isRcsEnabled,
   isHiringUiEnabled,
@@ -42,6 +44,8 @@ export function isNavFeatureEnabled(feature: string): boolean {
       return isNg911AssistEnabled();
     case "callAssist":
       return isCallAssistEnabled();
+    case "verticalAlerts":
+      return isVerticalAlertsEnabled();
     case "channelMonitoring":
       return isChannelMonitoringEnabled();
     case "verticalOnboarding":
@@ -68,6 +72,8 @@ export function isNavFeatureEnabled(feature: string): boolean {
       return isRcsEnabled();
     case "campusClery":
       return isCampusCleryEnabled();
+    case "cleryModule":
+      return isCleryModuleEnabled();
     case "campusEap":
       return isCampusEapEnabled();
     case "warRooms":

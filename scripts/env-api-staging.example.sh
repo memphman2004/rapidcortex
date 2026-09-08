@@ -70,6 +70,12 @@ export ENABLE_PINPOINT=true
 export APP_PUBLIC_BASE_URL="https://app-staging.rapidcortex.us"
 export APP_BASE_URL="https://app-staging.rapidcortex.us"
 
+# Amazon Location Service (server-side geocode/route/geofence). Nested stack sets ALS_LOCATION_MOCK=false.
+export ALS_PLACE_INDEX_NAME="${ALS_PLACE_INDEX_NAME:-rc-places-staging}"
+export ALS_ROUTE_CALCULATOR_NAME="${ALS_ROUTE_CALCULATOR_NAME:-rc-routes-staging}"
+export ALS_GEOFENCE_COLLECTION_NAME="${ALS_GEOFENCE_COLLECTION_NAME:-rc-geofences-staging}"
+export ALS_TRACKER_NAME="${ALS_TRACKER_NAME:-rc-tracker-staging}"
+
 # Shared account secrets (same ARNs as live). Isolation is Dynamo/S3/Cognito, not these keys.
 export INCIDENT_MEDIA_TWILIO_SECRET_ARN="${INCIDENT_MEDIA_TWILIO_SECRET_ARN:-arn:aws:secretsmanager:us-east-1:158961537080:secret:rapid-cortex/incident-media/twilio-az6LeK}"
 export RING_CREDENTIALS_SECRET_ARN_OVERRIDE="${RING_CREDENTIALS_SECRET_ARN_OVERRIDE:-arn:aws:secretsmanager:us-east-1:158961537080:secret:rapid-cortex/connect/ring-credentials-D3f1sN}"
@@ -100,9 +106,17 @@ export ENABLE_CALL_ASSIST_CAD_PUSH=false
 export ENABLE_CALL_ASSIST_RMS_DRAFT=false
 export ENABLE_CALL_ASSIST_DEMO_MODE=false
 export CALL_ASSIST_CONNECT_MOCK=true
+export CALL_ASSIST_LEX_MOCK=true
 # Optional: seed Missouri Sunshine + 311/Parks/Water directory on first config write.
 # export CALL_ASSIST_SEED_PROFILE=kcpd
+# export CALL_ASSIST_SEED_AGENCY_ID=kcpd
 export NEXT_PUBLIC_ENABLE_CALL_ASSIST="${NEXT_PUBLIC_ENABLE_CALL_ASSIST:-1}"
+export ENABLE_VERTICAL_ALERTS=true
+export NEXT_PUBLIC_ENABLE_VERTICAL_ALERTS="${NEXT_PUBLIC_ENABLE_VERTICAL_ALERTS:-1}"
+export ENABLE_PHYSICAL_SECURITY_INGEST=true
+export NEXT_PUBLIC_ENABLE_PHYSICAL_SECURITY_INGEST="${NEXT_PUBLIC_ENABLE_PHYSICAL_SECURITY_INGEST:-1}"
+export PHYSICAL_SECURITY_COMMANDS_ENABLED=false
+export ENABLE_PHYSICAL_SECURITY_COMMANDS=false
 export ENABLE_FIELD_COMMAND=true
 export NEXT_PUBLIC_ENABLE_FIELD_COMMAND="${NEXT_PUBLIC_ENABLE_FIELD_COMMAND:-1}"
 export ENABLE_FIELD_CONFIDENCE=true

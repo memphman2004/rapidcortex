@@ -367,6 +367,14 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
       if (error.message === "FEATURE_DISABLED") {
         return withCorrelationHeaders(event, featureOff());
       }
+      if ((error as { code?: string }).code === "UNFOUND_NOT_SWORN") {
+        return withCorrelationHeaders(
+          event,
+          forbidden(
+            "Only a sworn law enforcement officer with a badge number on file in the CSA registry may unfound a Clery crime. Campus administrators and non-sworn security cannot unfound records.",
+          ),
+        );
+      }
     }
     console.error("[campus-clery]", error);
     return withCorrelationHeaders(event, serverError());

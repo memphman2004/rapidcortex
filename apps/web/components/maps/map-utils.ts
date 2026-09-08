@@ -1,7 +1,8 @@
 /**
  * Rapid Cortex — Map Utilities
  *
- * Pure helper functions — no React, no Mapbox imports.
+ * Pure helper functions — no React, no MapLibre imports.
+ * Safe to import anywhere including server components.
  * Safe to import anywhere including server components.
  */
 
@@ -11,7 +12,7 @@ import { SEVERITY_COLOR } from "./map-constants";
 // ─── GeoJSON conversion ───────────────────────────────────────────────────────
 
 /**
- * Converts an RCIncident array to a Mapbox-compatible GeoJSON FeatureCollection.
+ * Converts an RCIncident array to a GeoJSON FeatureCollection for MapLibre.
  *
  * IMPORTANT: Only incidents with BOTH latitude and longitude are mapped.
  * Incidents with only a locationLabel (zone/section text) are excluded from
@@ -44,7 +45,7 @@ export function incidentsToGeoJSON(
           locationLabel: inc.locationLabel,
           createdAt:     inc.createdAt,
           description:   inc.description ?? "",
-          // Pre-compute color so Mapbox expressions are simpler
+          // Pre-compute color so paint expressions are simpler
           color:         SEVERITY_COLOR[inc.severity ?? "high"] ?? SEVERITY_COLOR.default,
         },
       })),
@@ -54,7 +55,7 @@ export function incidentsToGeoJSON(
 // ─── Popup HTML ───────────────────────────────────────────────────────────────
 
 /**
- * Returns the HTML string for a Mapbox popup shown when clicking an incident marker.
+ * Returns the HTML string for a MapLibre popup shown when clicking an incident marker.
  * Inline styles are used since the popup renders outside React's tree.
  *
  * Keep content minimal — dispatchers are under cognitive load.

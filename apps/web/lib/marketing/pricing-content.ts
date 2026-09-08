@@ -71,7 +71,7 @@ export const PRICING_PLANS: PricingPlanCardContent[] = [
       "Everything in Essential, plus QA / Training and Executive / Reporting dashboards",
       "IT / Security Admin dashboard and advanced supervisor monitoring",
       "Translation, caller text/photo/video links, and advanced incident reporting",
-      "Operational Mapbox surfaces, LiveLocation (SMS GPS link), and Surge View related-call grouping when enabled for your rollout",
+      "Operational maps (Amazon Location Service), LiveLocation (SMS GPS link), and Surge View related-call grouping when enabled for your rollout",
       "Shift reports, compliance-ready audit logs, expanded usage, optional priority support",
     ],
     ctaKind: "request_demo",
@@ -282,7 +282,7 @@ export const PRICING_COMPARISON: ComparisonCategoryDef[] = [
         rc_lite: "none",
       },
       {
-        label: "Operational maps (Mapbox workspace)",
+        label: "Operational maps (ALS workspace)",
         essential: "addon",
         professional: "full",
         command: "full",

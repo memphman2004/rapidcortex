@@ -3,7 +3,7 @@ import { getDashboardSessionUser } from "@/lib/dashboards/get-dashboard-session"
 import { buildDemoVenueSectionGeoJSON } from "@/lib/venue/operational-awareness/demo-section-geojson";
 import { resolveVenueOperationalMap } from "@/lib/venue/operational-awareness/resolve-operational-map";
 
-/** Same-origin GeoJSON for Mapbox section polygons. Never 404s. */
+/** Same-origin GeoJSON for MapLibre section polygons. Never 404s. */
 export async function GET(
   _request: Request,
   { params }: { params: Promise<{ venueCode: string; level: string }> },

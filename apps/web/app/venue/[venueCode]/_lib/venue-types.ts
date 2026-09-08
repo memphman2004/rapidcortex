@@ -1,6 +1,6 @@
 export type IncidentStatus = "open" | "assigned" | "responding" | "resolved" | "escalated";
 
-export type IncidentSource = "qr" | "sms" | "manual" | "escalated_from_core";
+export type IncidentSource = "qr" | "sms" | "manual" | "escalated_from_core" | "physical_security";
 
 export type IncidentType =
   | "medical"

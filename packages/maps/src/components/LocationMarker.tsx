@@ -1,13 +1,13 @@
 'use client';
 
 import { useEffect, useMemo, useRef } from "react";
-import mapboxgl from "mapbox-gl";
+import maplibregl from "maplibre-gl";
 
 import type { LocationConfidence } from "../types/map-types";
 import { createAccuracyCirclePolygon } from "../utils/geojson-helpers";
 
 export interface LocationMarkerProps {
-  map: mapboxgl.Map | null;
+  map: maplibregl.Map | null;
   latitude: number;
   longitude: number;
   accuracy: number;
@@ -23,13 +23,13 @@ const CONFIDENCE_COLORS: Record<LocationConfidence, string> = {
   low: "#DC2626",
 };
 
-function removeAccuracyLayers(map: mapboxgl.Map, fillId: string, outlineId: string, sourceId: string) {
+function removeAccuracyLayers(map: maplibregl.Map, fillId: string, outlineId: string, sourceId: string) {
   if (map.getLayer(fillId)) map.removeLayer(fillId);
   if (map.getLayer(outlineId)) map.removeLayer(outlineId);
   if (map.getSource(sourceId)) map.removeSource(sourceId);
 }
 
-function removeLayerSource(map: mapboxgl.Map, layerId: string, sourceId: string) {
+function removeLayerSource(map: maplibregl.Map, layerId: string, sourceId: string) {
   if (map.getLayer(layerId)) map.removeLayer(layerId);
   if (map.getSource(sourceId)) map.removeSource(sourceId);
 }
@@ -44,7 +44,7 @@ export function LocationMarker({
   speed,
   label = "Caller",
 }: LocationMarkerProps) {
-  const markerRef = useRef<mapboxgl.Marker | null>(null);
+  const markerRef = useRef<maplibregl.Marker | null>(null);
   const instancePrefix = useMemo(
     () => `rc-lm-${typeof crypto !== "undefined" && crypto.randomUUID ? crypto.randomUUID().replace(/-/g, "") : String(Math.random()).slice(2)}`,
     [],
@@ -70,7 +70,7 @@ export function LocationMarker({
           ${heading != null ? `Heading: ${Math.round(heading)}°` : ""}
         </small>
       </div>`;
-    const popup = new mapboxgl.Popup({ offset: 25 }).setHTML(popupHtml);
+    const popup = new maplibregl.Popup({ offset: 25 }).setHTML(popupHtml);
 
     if (!markerRef.current) {
       const el = document.createElement("div");
@@ -82,7 +82,7 @@ export function LocationMarker({
       el.style.border = "3px solid white";
       el.style.boxShadow = "0 0 10px rgba(0,0,0,0.3)";
       el.style.cursor = "pointer";
-      markerRef.current = new mapboxgl.Marker({ element: el }).setLngLat(lngLat).setPopup(popup).addTo(map);
+      markerRef.current = new maplibregl.Marker({ element: el }).setLngLat(lngLat).setPopup(popup).addTo(map);
     } else {
       markerRef.current.setLngLat(lngLat);
       const node = markerRef.current.getElement();
@@ -93,7 +93,7 @@ export function LocationMarker({
       if (!map.isStyleLoaded()) return;
       const circleData = createAccuracyCirclePolygon(latitude, longitude, accuracy);
       if (map.getSource(sourceId)) {
-        (map.getSource(sourceId) as mapboxgl.GeoJSONSource).setData(circleData);
+        (map.getSource(sourceId) as maplibregl.GeoJSONSource).setData(circleData);
       } else {
         map.addSource(sourceId, { type: "geojson", data: circleData });
         map.addLayer({
@@ -141,7 +141,7 @@ export function LocationMarker({
       };
 
       if (map.getSource(movementSourceId)) {
-        (map.getSource(movementSourceId) as mapboxgl.GeoJSONSource).setData(line);
+        (map.getSource(movementSourceId) as maplibregl.GeoJSONSource).setData(line);
       } else {
         map.addSource(movementSourceId, {
           type: "geojson",

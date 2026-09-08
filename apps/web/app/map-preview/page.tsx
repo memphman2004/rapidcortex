@@ -2,7 +2,7 @@
 
 import { Suspense, useMemo } from "react";
 import { useSearchParams } from "next/navigation";
-import { MapboxIncidentMap } from "@/components/maps/mapbox-incident-map";
+import { IncidentMap } from "@/components/maps/incident-map";
 
 function MapPreviewContent() {
   const params = useSearchParams();
@@ -51,7 +51,7 @@ function MapPreviewContent() {
       </header>
       <main className="relative min-h-0 flex-1">
         <div className="absolute inset-0">
-          <MapboxIncidentMap
+          <IncidentMap
             lat={lat}
             lng={lng}
             label={label}

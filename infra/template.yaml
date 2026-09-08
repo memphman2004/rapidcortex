@@ -418,6 +418,31 @@ Parameters:
     Description: >-
       When set, AppSamCallAssistStack2 uses this existing DynamoDB table instead of creating
       rapid-cortex-call-assist-${stage} (required if the table was pre-created for Lex).
+  ExistingVerticalAlertsTableName:
+    Type: String
+    Default: ""
+    Description: >-
+      When set, AppSamVerticalAlertsStack2 uses this existing DynamoDB table instead of creating
+      rapid-cortex-vertical-alerts-${stage}.
+  ExistingCleryActTableName:
+    Type: String
+    Default: ""
+    Description: >-
+      When set, AppSamCleryActStack5 uses this existing DynamoDB table instead of creating
+      rapid-cortex-clery-act-${stage}.
+  ExistingPhysicalSecurityTableName:
+    Type: String
+    Default: ""
+    Description: >-
+      When set, AppSamPhysicalSecurityStack5 uses this existing DynamoDB table instead of creating
+      rapid-cortex-physical-security-${stage}.
+  PhysicalSecurityWebhookSecret:
+    Type: String
+    Default: ""
+    NoEcho: true
+    Description: >-
+      Shared secret for POST /api/physical-security/events (X-RC-Token or HMAC). Empty with mock off returns 503.
+      Do not commit the value. Commands remain 501 regardless of this secret.
   FlatDataLayerRingCredentialsSecretArn:
     Type: String
     Default: ""
@@ -3324,6 +3349,198 @@ Resources:
         CallAssistConnectWebhookSecretArn: ""
         ManagedPolicyNamePrefix: !Ref AWS::StackName
 
+  AppSamLocationStack2:
+    Type: AWS::CloudFormation::Stack
+    Metadata:
+      cfn-lint:
+        config:
+          ignore_checks:
+            - W3005
+    DependsOn: AppSam2Stack
+    Properties:
+      TimeoutInMinutes: 60
+      TemplateURL: nested/stack-app-sam-location.yaml
+      Parameters:
+        DeploymentStage: !Ref DeploymentStage
+        HttpApiId: !GetAtt AppSam2Stack.Outputs.HttpApiId
+        HttpApiJwtAuthorizerId: "3ui9q4"
+        ImportedCognitoUserPoolId: !GetAtt AppSamStackV2.Outputs.UserPoolId
+        ImportedCognitoWebClientId: !GetAtt AppSamStackV2.Outputs.UserPoolClientId
+        ImportedCognitoIssuer: !GetAtt AppSamStackV2.Outputs.CognitoIssuer
+        AuditTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.AuditTable
+            - !Sub "${DynamoTableNamePrefix}-audit-${DeploymentStage}"
+        AgenciesTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.AgenciesTable
+            - !Sub "${DynamoTableNamePrefix}-agencies-${DeploymentStage}"
+        ManagedPolicyNamePrefix: !Ref AWS::StackName
+
+  AppSamVerticalAlertsStack2:
+    Type: AWS::CloudFormation::Stack
+    Metadata:
+      cfn-lint:
+        config:
+          ignore_checks:
+            - W3005
+    DependsOn:
+      - AppSam2Stack
+      - AppSamRealtime2Stack
+    Properties:
+      TimeoutInMinutes: 60
+      TemplateURL: nested/stack-app-sam-vertical-alerts.yaml
+      Parameters:
+        DeploymentStage: !Ref DeploymentStage
+        HttpApiId: !GetAtt AppSam2Stack.Outputs.HttpApiId
+        HttpApiJwtAuthorizerId: "3ui9q4"
+        ImportedCognitoUserPoolId: !GetAtt AppSamStackV2.Outputs.UserPoolId
+        ImportedCognitoWebClientId: !GetAtt AppSamStackV2.Outputs.UserPoolClientId
+        ImportedCognitoIssuer: !GetAtt AppSamStackV2.Outputs.CognitoIssuer
+        AuditTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.AuditTable
+            - !Sub "${DynamoTableNamePrefix}-audit-${DeploymentStage}"
+        AgenciesTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.AgenciesTable
+            - !Sub "${DynamoTableNamePrefix}-agencies-${DeploymentStage}"
+        IncidentsTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.IncidentsTable
+            - !Sub "${DynamoTableNamePrefix}-incidents-${DeploymentStage}"
+        TranscriptsTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.TranscriptsTable
+            - !Sub "${DynamoTableNamePrefix}-transcripts-${DeploymentStage}"
+        AnalysesTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.AnalysesTable
+            - !Sub "${DynamoTableNamePrefix}-analyses-${DeploymentStage}"
+        InvitesTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.InvitesTable
+            - !Sub "${DynamoTableNamePrefix}-invites-${DeploymentStage}"
+        AssetsBucket:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.AssetsBucket
+            - !Sub "${DynamoTableNamePrefix}-assets-${DeploymentStage}-${AWS::AccountId}"
+        ExistingVerticalAlertsTableName: !Ref ExistingVerticalAlertsTableName
+        ManagedPolicyNamePrefix: !Ref AWS::StackName
+        WebSocketConnectionsTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.WebSocketConnectionsTable
+            - !Sub "${DynamoTableNamePrefix}-websocket-connections-${DeploymentStage}"
+        WebSocketApiEndpoint: !Sub
+          - "https://${ApiId}.execute-api.${AWS::Region}.amazonaws.com/${DeploymentStage}"
+          - ApiId: !GetAtt AppSamRealtime2Stack.Outputs.WebSocketApiId
+        WebSocketApiId: !GetAtt AppSamRealtime2Stack.Outputs.WebSocketApiId
+
+  AppSamCleryActStack5:
+    Type: AWS::CloudFormation::Stack
+    Metadata:
+      cfn-lint:
+        config:
+          ignore_checks:
+            - W3005
+    DependsOn: AppSam5Stack
+    Properties:
+      TimeoutInMinutes: 60
+      TemplateURL: nested/stack-app-sam-clery-act.yaml
+      Parameters:
+        DeploymentStage: !Ref DeploymentStage
+        HttpApiId: !GetAtt AppSam5Stack.Outputs.HttpApiId
+        HttpApiJwtAuthorizerId: ""
+        ImportedCognitoUserPoolId: !GetAtt AppSamStackV2.Outputs.UserPoolId
+        ImportedCognitoWebClientId: !GetAtt AppSamStackV2.Outputs.UserPoolClientId
+        ImportedCognitoIssuer: !GetAtt AppSamStackV2.Outputs.CognitoIssuer
+        AuditTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.AuditTable
+            - !Sub "${DynamoTableNamePrefix}-audit-${DeploymentStage}"
+        AgenciesTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.AgenciesTable
+            - !Sub "${DynamoTableNamePrefix}-agencies-${DeploymentStage}"
+        CampusIncidentsTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.CampusIncidentsTable
+            - !Sub "${DynamoTableNamePrefix}-campus-incidents-${DeploymentStage}"
+        QRLocationsTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.QRLocationsTable
+            - !Sub "${DynamoTableNamePrefix}-qr-locations-${DeploymentStage}"
+        ExistingCleryActTableName: !Ref ExistingCleryActTableName
+        ManagedPolicyNamePrefix: !Ref AWS::StackName
+
+  AppSamPhysicalSecurityStack5:
+    Type: AWS::CloudFormation::Stack
+    Metadata:
+      cfn-lint:
+        config:
+          ignore_checks:
+            - W3005
+    DependsOn:
+      - AppSam5Stack
+      - AppSamRealtime2Stack
+    Properties:
+      TimeoutInMinutes: 60
+      TemplateURL: nested/stack-app-sam-physical-security.yaml
+      Parameters:
+        DeploymentStage: !Ref DeploymentStage
+        HttpApiId: !GetAtt AppSam5Stack.Outputs.HttpApiId
+        HttpApiJwtAuthorizerId: ""
+        ImportedCognitoUserPoolId: !GetAtt AppSamStackV2.Outputs.UserPoolId
+        ImportedCognitoWebClientId: !GetAtt AppSamStackV2.Outputs.UserPoolClientId
+        ImportedCognitoIssuer: !GetAtt AppSamStackV2.Outputs.CognitoIssuer
+        AuditTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.AuditTable
+            - !Sub "${DynamoTableNamePrefix}-audit-${DeploymentStage}"
+        AgenciesTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.AgenciesTable
+            - !Sub "${DynamoTableNamePrefix}-agencies-${DeploymentStage}"
+        CampusIncidentsTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.CampusIncidentsTable
+            - !Sub "${DynamoTableNamePrefix}-campus-incidents-${DeploymentStage}"
+        VenueConfigTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.VenueConfigTable
+            - !Sub "${DynamoTableNamePrefix}-venue-config-${DeploymentStage}"
+        TransitIncidentsTable: !Sub "rapid-cortex-transit-incidents-${DeploymentStage}"
+        ExistingPhysicalSecurityTableName: !Ref ExistingPhysicalSecurityTableName
+        PhysicalSecurityWebhookSecret: !Ref PhysicalSecurityWebhookSecret
+        ManagedPolicyNamePrefix: !Ref AWS::StackName
+        WebSocketConnectionsTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.WebSocketConnectionsTable
+            - !Sub "${DynamoTableNamePrefix}-websocket-connections-${DeploymentStage}"
+        WebSocketApiEndpoint: !Sub
+          - "https://${ApiId}.execute-api.${AWS::Region}.amazonaws.com/${DeploymentStage}"
+          - ApiId: !GetAtt AppSamRealtime2Stack.Outputs.WebSocketApiId
+        WebSocketApiId: !GetAtt AppSamRealtime2Stack.Outputs.WebSocketApiId
+
   AppSamRealtime2Stack:
     Type: AWS::CloudFormation::Stack
     Properties:
@@ -3458,6 +3675,21 @@ Outputs:
   UserPoolClientId:
     Description: Cognito web client id
     Value: !GetAtt AppSamStackV2.Outputs.UserPoolClientId
+  MapIdentityPoolId:
+    Description: Cognito Identity Pool for ALS map tile auth
+    Value: !GetAtt AppSamLocationStack2.Outputs.MapIdentityPoolId
+  AlsMapName:
+    Value: !GetAtt AppSamLocationStack2.Outputs.MapName
+  AlsMapNameDark:
+    Value: !GetAtt AppSamLocationStack2.Outputs.MapNameDark
+  AlsPlaceIndexName:
+    Value: !GetAtt AppSamLocationStack2.Outputs.PlaceIndexName
+  AlsRouteCalculatorName:
+    Value: !GetAtt AppSamLocationStack2.Outputs.RouteCalculatorName
+  AlsGeofenceCollectionName:
+    Value: !GetAtt AppSamLocationStack2.Outputs.GeofenceCollectionName
+  AlsTrackerName:
+    Value: !GetAtt AppSamLocationStack2.Outputs.TrackerName
   NativeUserPoolClientId:
     Description: Cognito native client id
     Value: !GetAtt AppSamStackV2.Outputs.NativeUserPoolClientId

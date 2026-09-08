@@ -173,4 +173,59 @@ export function getCallAssistBidMatrix(agencyId?: string | null) {
   );
 }
 
+export type CallAssistFleetBot = {
+  agencyId: string;
+  agencyDisplayName: string;
+  botName: string | null;
+  status: string;
+  templateVersion: string | null;
+  current: boolean;
+  onboardingStatus: string | null;
+};
+
+export type CallAssistLexQuota = {
+  currentBotCount: number;
+  limit: number;
+  headroom: number;
+  quotaCode: string;
+};
+
+export type CallAssistBotFleetResponse = {
+  bots: CallAssistFleetBot[];
+  quota: CallAssistLexQuota;
+  templateVersion: string;
+  outdatedCount: number;
+  pendingRebuilds: number;
+  estimatedRebuildMinutes: number;
+  quotaBlocking: boolean;
+  quotaConsoleUrl: string;
+};
+
+export function getCallAssistBotFleet() {
+  return callAssistRequest<CallAssistBotFleetResponse>("/api/call-assist/bots");
+}
+
+export function postCallAssistBotRebuild(agencyId: string) {
+  return callAssistRequest<{ queued: boolean; agencyId: string }>(
+    `/api/call-assist/bots/${encodeURIComponent(agencyId)}/rebuild`,
+    { method: "POST", body: "{}" },
+  );
+}
+
+export function postCallAssistRebuildAllOutdated() {
+  return callAssistRequest<{ enqueued: number }>("/api/call-assist/bots/rebuild-all-outdated", {
+    method: "POST",
+    body: "{}",
+  });
+}
+
+export function getCallAssistBotQuota() {
+  return callAssistRequest<{
+    quota: CallAssistLexQuota;
+    templateVersion: string;
+    quotaBlocking: boolean;
+    quotaConsoleUrl: string;
+  }>("/api/call-assist/bots/quota");
+}
+
 export { CallAssistApiError };

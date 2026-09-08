@@ -117,6 +117,13 @@ describe("getRoleNav", () => {
     }
   });
 
+  it("puts Call Assist bot fleet management on all RC internal navs", () => {
+    for (const role of ["rcsuperadmin", "rcadmin", "rcitadmin"] as const) {
+      const hrefs = getRoleNav(role, {}).sections.flatMap((s) => s.items.map((i) => i.href));
+      expect(hrefs).toContain("/rc-admin/call-assist/bots");
+    }
+  });
+
   it("groups all RC internal sidebars under labeled major headings", () => {
     const expectedSuperadmin = [
       "home",
@@ -238,5 +245,36 @@ describe("getRoleNav", () => {
       .find((i) => i.id === "cad-connector");
     expect(admin?.href).toBe("/test-psap/cad/connectors");
     expect(admin?.feature).toBe("cadConnector");
+  });
+
+  it("adds occupant alerts for campus/venue/transit admin and supervisor, not guest services", () => {
+    const campus = getRoleNav("CAMPUS_ADMIN", { campusCode: "IU" })
+      .sections.flatMap((s) => s.items)
+      .find((i) => i.id === "alerts");
+    expect(campus?.href).toBe("/app/campus/IU/alerts");
+    expect(campus?.feature).toBe("verticalAlerts");
+
+    const guest = getRoleNav("VENUE_GUEST_SERVICES", { venueCode: "MBS" })
+      .sections.flatMap((s) => s.items)
+      .find((i) => i.id === "alerts");
+    expect(guest).toBeUndefined();
+
+    const dispatcher = getRoleNav("dispatcher", { jurisdiction: "test-psap" })
+      .sections.flatMap((s) => s.items)
+      .find((i) => i.id === "alerts");
+    expect(dispatcher).toBeUndefined();
+  });
+
+  it("adds Clery Act compliance nav for campus admin, not dispatcher", () => {
+    const campus = getRoleNav("CAMPUS_ADMIN", { campusCode: "IU" })
+      .sections.flatMap((s) => s.items)
+      .find((i) => i.id === "clery-review");
+    expect(campus?.href).toBe("/app/campus/IU/clery/review");
+    expect(campus?.feature).toBe("cleryModule");
+
+    const dispatcher = getRoleNav("dispatcher", { jurisdiction: "test-psap" })
+      .sections.flatMap((s) => s.items)
+      .find((i) => i.id === "clery-review");
+    expect(dispatcher).toBeUndefined();
   });
 });

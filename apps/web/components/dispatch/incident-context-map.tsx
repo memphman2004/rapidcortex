@@ -2,7 +2,7 @@
 
 /**
  * Compact incident location map for the dispatcher CAD workspace.
- * Follows the dispatcher shell theme (dark vs light Mapbox Studio style).
+ * Follows the dispatcher shell theme (dark vs light ALS Esri style).
  */
 import { RapidCortexMap } from "@/components/maps/RapidCortexMap";
 import { useTheme } from "@/lib/theme/theme-context";
@@ -20,19 +20,6 @@ export function IncidentContextMap({
   fill?: boolean;
 }) {
   const { theme } = useTheme();
-  const mapboxToken = process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN?.trim();
-
-  if (!mapboxToken) {
-    return (
-      <div className="rounded-lg border border-amber-500/30 bg-amber-950/20 px-3 py-2 text-xs text-amber-100">
-        Map tiles are unavailable — Mapbox token is not configured for this environment.
-        <p className="mt-1 font-mono text-[11px] text-amber-200/80">
-          {latitude.toFixed(5)}, {longitude.toFixed(5)}
-        </p>
-      </div>
-    );
-  }
-
   return (
     <div
       className={
@@ -50,8 +37,7 @@ export function IncidentContextMap({
         zoom={15}
         height="100%"
         showLayerControl
-        // Street-level ops: traffic is the Studio overlay that actually paints here.
-        // Counties/states in the published style max out at zoom 10 / 8.
+        // Street-level ops: ALS Esri tiles plus GeoJSON overlays.
         defaultLayers={{
           liveTraffic: true,
           liveTrafficClosures: true,

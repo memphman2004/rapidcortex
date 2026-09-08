@@ -1,10 +1,10 @@
 'use client';
 
 import { useEffect, useMemo } from "react";
-import mapboxgl from "mapbox-gl";
+import maplibregl from "maplibre-gl";
 
 export interface EventZonesProps {
-  map: mapboxgl.Map | null;
+  map: maplibregl.Map | null;
   zones: GeoJSON.FeatureCollection<GeoJSON.Polygon | GeoJSON.MultiPolygon>;
   fillColor?: string;
   fillOpacity?: number;
@@ -36,7 +36,7 @@ export function EventZones({
     const apply = () => {
       if (!map.isStyleLoaded()) return;
       if (map.getSource(sourceId)) {
-        (map.getSource(sourceId) as mapboxgl.GeoJSONSource).setData(zones);
+        (map.getSource(sourceId) as maplibregl.GeoJSONSource).setData(zones);
       } else {
         map.addSource(sourceId, { type: "geojson", data: zones });
         map.addLayer({

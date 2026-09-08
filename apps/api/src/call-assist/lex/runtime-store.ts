@@ -46,8 +46,11 @@ export function genericLexConfig(agencyId: string): CallAssistTenantConfig {
       policyName: undefined,
       governingLaw: null,
     },
-    operatingHours: { timezone: "America/Chicago", openMinutes: 0, closeMinutes: 24 * 60, allDay: true },
+    operatingHours: { timezone: "UTC", openMinutes: 0, closeMinutes: 24 * 60, allDay: true },
     videoAssistEnabled: true,
+    emergencyLine: "911",
+    defaultLanguageCode: "en-US",
+    supportedLanguages: ["en-US"],
     updatedAt: new Date().toISOString(),
   };
 }

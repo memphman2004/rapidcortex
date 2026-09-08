@@ -197,15 +197,27 @@ export async function getCampusBuildingsSummary(agencyId: string): Promise<Campu
     listOpenIncidents(campusCode),
   ]);
 
-  const byBuilding = new Map<string, number>();
+  const byKey = new Map<string, Set<string>>();
+  const add = (key: string | undefined, id: string) => {
+    const k = key?.trim();
+    if (!k) return;
+    const set = byKey.get(k) ?? new Set<string>();
+    set.add(id);
+    byKey.set(k, set);
+  };
   for (const inc of incidents) {
-    const key = inc.buildingCode ?? inc.buildingLabel;
-    byBuilding.set(key, (byBuilding.get(key) ?? 0) + 1);
+    add(inc.buildingCode, inc.id);
+    add(inc.buildingLabel, inc.id);
+    add(inc.zoneCode, inc.id);
   }
 
   return buildings.map((b) => {
-    const activeIncidents = byBuilding.get(b.code) ?? byBuilding.get(b.label) ?? b.activeIncidents ?? 0;
+    const ids = new Set<string>();
     const primaryZone = b.zones?.[0]?.label ?? b.zones?.[0]?.code ?? "CAMPUS";
+    for (const key of [b.code, b.label, primaryZone, ...(b.zones ?? []).flatMap((z) => [z.code, z.label])]) {
+      for (const id of byKey.get(key) ?? []) ids.add(id);
+    }
+    const activeIncidents = ids.size || b.activeIncidents || 0;
     return {
       buildingId: b.code,
       buildingName: b.label,

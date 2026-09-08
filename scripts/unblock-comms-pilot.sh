@@ -2,7 +2,7 @@
 # Operational runbook: unblock Silent Text, Pinpoint SMS, Live Video invite SMS, and map UI for pilot QA.
 # Run sections manually in order. Requires AWS CLI + prod/dev credentials.
 #
-# Priority: Blocker 1 (Twilio) → Blocker 2 (web flags + Mapbox) → Blocker 3 (API redeploy) → E2E test
+# Priority: Blocker 1 (Twilio) → Blocker 2 (web flags + ALS maps) → Blocker 3 (API redeploy) → E2E test
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
@@ -90,17 +90,16 @@ PY
 }
 
 cmd_deploy_web_prod() {
-  section "Blocker 2 — deploy web with Pinpoint + Live Video + Mapbox flags"
-  if [[ -z "${NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN:-}" ]]; then
-    echo "WARN: NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN is unset — map tiles will not render until you export a pk. token." >&2
-    echo "  export NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN=\"pk....\"  # account.mapbox.com → Tokens" >&2
+  section "Blocker 2 — deploy web with Pinpoint + Live Video + ALS map flags"
+  if [[ -z "${NEXT_PUBLIC_ALS_IDENTITY_POOL_ID:-}" ]]; then
+    echo "WARN: NEXT_PUBLIC_ALS_IDENTITY_POOL_ID is unset — map tiles will not authenticate until AppSamLocationStack2 is deployed." >&2
   fi
   # shellcheck source=scripts/env-web-ssr-prod.sh
   source "${ROOT}/scripts/env-web-ssr-prod.sh"
   echo "NEXT_PUBLIC_ENABLE_PINPOINT=${NEXT_PUBLIC_ENABLE_PINPOINT:-?}"
   echo "NEXT_PUBLIC_ENABLE_LIVE_VIDEO=${NEXT_PUBLIC_ENABLE_LIVE_VIDEO:-?}"
   echo "NEXT_PUBLIC_ENABLE_SILENT_TEXT=${NEXT_PUBLIC_ENABLE_SILENT_TEXT:-?}"
-  echo "NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN set: $([[ -n "${NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN:-}" ]] && echo yes || echo no)"
+  echo "NEXT_PUBLIC_ALS_IDENTITY_POOL_ID set: $([[ -n "${NEXT_PUBLIC_ALS_IDENTITY_POOL_ID:-}" ]] && echo yes || echo no)"
   "${ROOT}/scripts/deploy-web-no-docker.sh" prod
 }
 

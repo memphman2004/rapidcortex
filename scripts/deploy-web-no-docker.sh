@@ -70,18 +70,15 @@ if [[ "${ENVIRONMENT}" == "prod" && "${NEXT_PUBLIC_ENABLE_CAD_WRITEBACK:-}" == "
 fi
 
 if [[ "${ENVIRONMENT}" == "prod" ]]; then
-  # shellcheck source=scripts/lib/resolve-mapbox-token.sh
-  source "${ROOT}/scripts/lib/resolve-mapbox-token.sh"
-  resolve_mapbox_token || true
-  _mapbox="${NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN:-}"
-  if [[ -z "${_mapbox}" || "${_mapbox}" == "pk.REPLACE_WITH_REAL_TOKEN" ]]; then
-    echo "ERROR: NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN must be set to a real Mapbox public token before prod deploy." >&2
-    echo "       1) ADMIN_AWS_PROFILE=admin ./scripts/apply-rapid-cortex-deploy-iam.sh  # then source env-web-ssr-prod.sh" >&2
-    echo "       2) cp scripts/.deploy-secrets.local.example.sh scripts/.deploy-secrets.local.sh  # add pk. token" >&2
-    echo "       3) export NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN=\"pk....\"" >&2
+  # shellcheck source=scripts/lib/resolve-als-map-env.sh
+  source "${ROOT}/scripts/lib/resolve-als-map-env.sh"
+  resolve_als_map_env || true
+  if [[ -z "${NEXT_PUBLIC_ALS_IDENTITY_POOL_ID:-}" ]]; then
+    echo "ERROR: NEXT_PUBLIC_ALS_IDENTITY_POOL_ID must be set before prod web deploy." >&2
+    echo "       Deploy AppSamLocationStack2 then: source scripts/print-stack-outputs-for-web.sh prod" >&2
+    echo "       or: STAGE=prod IDENTITY_POOL_ID=us-east-1:... ./scripts/put-als-ssm-parameters.sh" >&2
     exit 1
   fi
-  unset _mapbox
 fi
 
 AWS_REGION="${AWS_REGION:-${AWS_DEFAULT_REGION:-us-east-1}}"
@@ -216,12 +213,14 @@ for _var_name in \
   NEXT_PUBLIC_ENABLE_LIVE_VIDEO \
   NEXT_PUBLIC_ENABLE_SILENT_TEXT \
   NEXT_PUBLIC_ENABLE_PINPOINT \
-  NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN \
-  NEXT_PUBLIC_MAPBOX_STYLE_URL \
-  NEXT_PUBLIC_MAPBOX_STYLE_URL_DARK \
-  NEXT_PUBLIC_MAPBOX_STYLE_URL_LIGHT \
-  NEXT_PUBLIC_MAPBOX_STYLE_DARK \
-  NEXT_PUBLIC_MAPBOX_STYLE_LIGHT \
+  NEXT_PUBLIC_ALS_REGION \
+  NEXT_PUBLIC_ALS_MAP_NAME \
+  NEXT_PUBLIC_ALS_MAP_NAME_DARK \
+  NEXT_PUBLIC_ALS_IDENTITY_POOL_ID \
+  NEXT_PUBLIC_ALS_PLACE_INDEX_NAME \
+  NEXT_PUBLIC_ALS_ROUTE_CALCULATOR_NAME \
+  NEXT_PUBLIC_ALS_GEOFENCE_COLLECTION \
+  NEXT_PUBLIC_ALS_TRACKER_NAME \
   NEXT_PUBLIC_ENABLE_LOCATION_MAP \
   NEXT_PUBLIC_ENABLE_CONNECT_RING \
   NEXT_PUBLIC_ENABLE_CONNECT_RING_AVAILABLE_CAMERAS \

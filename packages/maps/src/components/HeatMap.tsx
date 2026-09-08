@@ -1,12 +1,12 @@
 'use client';
 
 import { useEffect, useMemo } from "react";
-import mapboxgl from "mapbox-gl";
+import maplibregl from "maplibre-gl";
 
 import { emptyFeatureCollection } from "../utils/geojson-helpers";
 
 export interface HeatMapProps {
-  map: mapboxgl.Map | null;
+  map: maplibregl.Map | null;
   points: GeoJSON.FeatureCollection<GeoJSON.Point>;
   layerIdPrefix?: string;
   intensity?: number;
@@ -38,7 +38,7 @@ export function HeatMap({
       if (!map.isStyleLoaded()) return;
       const data = points.features.length ? points : emptyFeatureCollection();
       if (map.getSource(sourceId)) {
-        (map.getSource(sourceId) as mapboxgl.GeoJSONSource).setData(data);
+        (map.getSource(sourceId) as maplibregl.GeoJSONSource).setData(data);
       } else {
         map.addSource(sourceId, { type: "geojson", data });
         map.addLayer({

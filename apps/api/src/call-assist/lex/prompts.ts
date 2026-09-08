@@ -1,19 +1,37 @@
 import type { CallAssistTenantConfig } from "../store.js";
-import { CALL_ASSIST_VERTICAL_LABELS, callAssistUiVerticalFromAgency, resolveAgencyTaxonomy } from "rapid-cortex-shared";
+import { ResponseGenerator, resolveAgencyTaxonomy, responseVoiceFromConfig } from "rapid-cortex-shared";
+import { LEX_SPEC_SLOTS } from "./lex-spec-slots.js";
 
 export function agencyShortName(config: CallAssistTenantConfig): string {
   return config.agencyShortName?.trim() || config.shortName?.trim() || "this agency";
 }
 
+export function responsesFor(config: CallAssistTenantConfig): ResponseGenerator {
+  return new ResponseGenerator(responseVoiceFromConfig(config));
+}
+
 export function disclosurePrompt(config: CallAssistTenantConfig): string {
-  return config.disclosureText;
+  return responsesFor(config).opening();
 }
 
 export function openingPrompt(config: CallAssistTenantConfig): string {
-  return `Thank you for calling ${agencyShortName(config)}. ${config.disclosureText} How can I help you today?`;
+  return responsesFor(config).opening();
 }
 
-export function slotPrompt(config: CallAssistTenantConfig, slotId: string): string {
+export function slotPrompt(
+  config: CallAssistTenantConfig,
+  slotId: string,
+  localeId = "en_US",
+  intentName?: string,
+): string {
+  if (intentName) {
+    const forIntent = LEX_SPEC_SLOTS[intentName]?.find((field) => field.name === slotId);
+    if (forIntent) return localeId.startsWith("es") ? forIntent.promptEs : forIntent.promptEn;
+  }
+  for (const slots of Object.values(LEX_SPEC_SLOTS)) {
+    const spec = slots.find((field) => field.name === slotId);
+    if (spec) return localeId.startsWith("es") ? spec.promptEs : spec.promptEn;
+  }
   const taxonomy = resolveAgencyTaxonomy(config);
   for (const tpl of taxonomy.intakeTemplates) {
     const field = tpl.fields.find((f) => f.id === slotId);
@@ -45,27 +63,18 @@ function defaultSlotPrompt(slotId: string): string {
   return defaults[slotId] ?? `Can you tell me more about the ${slotId}?`;
 }
 
-export function closingPrompt(config: CallAssistTenantConfig, callTypeId: string, caseNumber: string): string {
-  const label = callTypeId.replace(/_/g, " ").toLowerCase();
-  return (
-    `I've created a report for your ${label}. ` +
-    `Your case number is ${caseNumber}. ` +
-    `Someone from ${agencyShortName(config)} will follow up if needed. ` +
-    `Is there anything else I can help with?`
-  );
+export function closingPrompt(config: CallAssistTenantConfig, _callTypeId: string, caseNumber: string): string {
+  return responsesFor(config).incidentCreated(caseNumber);
 }
 
-export function transferPrompt(config: CallAssistTenantConfig, reason: "EMERGENCY" | "LOW_CONFIDENCE"): string {
-  if (reason === "EMERGENCY") {
-    return "I'm connecting you to a dispatcher right now. Please stay on the line.";
-  }
-  const vertical = callAssistUiVerticalFromAgency({
-    vertical: config.vertical ?? config.uiVertical,
-    uiVertical: config.uiVertical,
-    agencyId: config.agencyId,
-  });
-  const target = CALL_ASSIST_VERTICAL_LABELS[vertical].transferTarget;
-  return `I'm transferring you to ${target} who can better assist you. Please hold.`;
+export function transferPrompt(
+  config: CallAssistTenantConfig,
+  reason: "EMERGENCY" | "LOW_CONFIDENCE" | "HUMAN_REQUEST",
+): string {
+  const spoken = responsesFor(config);
+  if (reason === "EMERGENCY") return spoken.emergencyTransfer();
+  if (reason === "HUMAN_REQUEST") return spoken.humanTransfer();
+  return spoken.fallbackTransfer();
 }
 
 export function languageDetectionPrompt(): string {

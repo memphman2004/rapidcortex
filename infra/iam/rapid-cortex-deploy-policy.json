@@ -46,13 +46,13 @@
       ]
     },
     {
-      "Sid": "MapboxSsmRead",
+      "Sid": "AlsSsmRead",
       "Effect": "Allow",
       "Action": ["ssm:GetParameter"],
       "Resource": [
-        "arn:aws:ssm:REPLACE_REGION:REPLACE_ACCOUNT_ID:parameter/rapidcortex/prod/mapbox/public-token",
-        "arn:aws:ssm:REPLACE_REGION:REPLACE_ACCOUNT_ID:parameter/rapidcortex/prod/mapbox/style-dark",
-        "arn:aws:ssm:REPLACE_REGION:REPLACE_ACCOUNT_ID:parameter/rapidcortex/prod/mapbox/style-light"
+        "arn:aws:ssm:REPLACE_REGION:REPLACE_ACCOUNT_ID:parameter/rapidcortex/prod/als/identity-pool-id",
+        "arn:aws:ssm:REPLACE_REGION:REPLACE_ACCOUNT_ID:parameter/rapidcortex/staging/als/identity-pool-id",
+        "arn:aws:ssm:REPLACE_REGION:REPLACE_ACCOUNT_ID:parameter/rapidcortex/dev/als/identity-pool-id"
       ]
     },
     {

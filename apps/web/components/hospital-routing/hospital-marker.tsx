@@ -2,7 +2,7 @@
 
 import { useEffect, useRef } from "react";
 import type { HospitalCapacity, HospitalProfile, HospitalRecommendationLevel } from "rapid-cortex-shared";
-import mapboxgl from "mapbox-gl";
+import maplibregl from "maplibre-gl";
 
 import {
   formatTraumaLevel,
@@ -13,7 +13,7 @@ import {
 } from "./hospital-utils";
 
 export interface HospitalMarkerProps {
-  map: mapboxgl.Map;
+  map: maplibregl.Map;
   hospital: HospitalProfile;
   capacity: HospitalCapacity;
   recommendation: HospitalRecommendationLevel;
@@ -29,7 +29,7 @@ export function HospitalMarker({
   isSelected = false,
   onClick,
 }: HospitalMarkerProps) {
-  const markerRef = useRef<mapboxgl.Marker | null>(null);
+  const markerRef = useRef<maplibregl.Marker | null>(null);
 
   useEffect(() => {
     if (!map) return;
@@ -135,8 +135,8 @@ export function HospitalMarker({
       </div>
     `;
 
-    const popup = new mapboxgl.Popup({ offset: 30, maxWidth: "320px" }).setHTML(popupContent);
-    const marker = new mapboxgl.Marker({ element: el })
+    const popup = new maplibregl.Popup({ offset: 30, maxWidth: "320px" }).setHTML(popupContent);
+    const marker = new maplibregl.Marker({ element: el })
       .setLngLat([hospital.coordinates.longitude, hospital.coordinates.latitude])
       .setPopup(popup)
       .addTo(map);

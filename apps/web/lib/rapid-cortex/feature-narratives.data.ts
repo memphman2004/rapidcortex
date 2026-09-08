@@ -555,12 +555,12 @@ export const FEATURE_NARRATIVES: Record<string, RapidCortexFeatureExplanations> 
     salesExplanation:
       "Honest story: heuristic duplicate-call grouping for situational clarity, not mystical predictive hotspots unless your agency later layers analytics.",
   },
-  operational_maps_mapbox: {
-    shortDescription: "Dark-theme embedded Mapbox views aligned with Rapid Cortex command surfaces.",
+  operational_maps_als: {
+    shortDescription: "Dark-theme embedded Amazon Location Service maps aligned with Rapid Cortex command surfaces.",
     operatorExplanation:
       "Caller-shared pins or incident overlays render on workspace maps alongside future CAD overlays when integrations feed data.",
     adminExplanation:
-      "Provision Mapbox tokens with least-priv scopes, audit what layers are toggled externally, and plan offline fallbacks.",
+      "Tiles authenticate via Cognito Identity Pool (map tiles only). Geocoding and routing stay on Lambda.",
     salesExplanation:
       "Shows visual parity with legacy blue-light GIS expectations while keeping renders inside hardened web shells.",
   },

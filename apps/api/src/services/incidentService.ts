@@ -15,7 +15,7 @@ import { normalizeAddressForIndex } from "rapid-cortex-shared";
 import { AUDIT_EVENT_TYPES, AgencyScopeResolver, TenantAccessGuard, isAdminRole } from "rapid-cortex-security";
 import { resolveIncidentRead } from "../lib/incidentReadAccess.js";
 import { LegalHoldRepository } from "../repositories/legalHoldRepository.js";
-import { forwardGeocodeAddress } from "../lib/geocode/mapboxForward.js";
+import { forwardGeocodeAddress } from "../lib/geocode/alsForward.js";
 
 const incidentRepo = new IncidentRepository();
 const auditRepo = new AuditRepository();
@@ -52,7 +52,7 @@ export class IncidentService {
       const geo = await forwardGeocodeAddress(callerAddressLine);
       if (geo) {
         cadCoordinates = { lat: geo.lat, lng: geo.lng };
-        callerLocationMapLabel = `mapbox:${geo.placeName}`;
+        callerLocationMapLabel = `als:${geo.placeName}`;
       }
     }
 
@@ -292,7 +292,7 @@ export class IncidentService {
       if (geo) {
         lat = geo.lat;
         lng = geo.lng;
-        mapLabel = `mapbox:${geo.placeName}`;
+        mapLabel = `als:${geo.placeName}`;
       }
       await incidentRepo.updateCallerAddress(incidentId, {
         callerAddressLine: line,

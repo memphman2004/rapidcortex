@@ -66,11 +66,6 @@ export default function NewAgencyPage() {
 
   async function geocodeHq() {
     setGeocodeHint(null);
-    const token = process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN?.trim() ?? "";
-    if (!token) {
-      setGeocodeHint("Mapbox token is not configured.");
-      return;
-    }
     const query = [form.city, form.state, "USA"].filter(Boolean).join(", ");
     if (!form.city.trim() || !form.state.trim()) {
       setGeocodeHint("Enter city and state first.");
@@ -78,7 +73,7 @@ export default function NewAgencyPage() {
     }
     setGeocodeBusy(true);
     try {
-      const hit = await geocodeAddress(query, token, { types: "place,region,locality" });
+      const hit = await geocodeAddress(query);
       if (!hit) {
         setGeocodeHint("No geocode result.");
         return;

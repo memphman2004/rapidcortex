@@ -2,6 +2,7 @@ import {
   assertGroundedReply,
   buildTransferPackage,
   callerRequestedHuman,
+  callAssistVoiceVarsFromTenant,
   classifyCallTriage,
   detectCallAssistLanguage,
   detectTtyMode,
@@ -9,6 +10,7 @@ import {
   evaluateSafety,
   extractIntakeFields,
   EMERGENCY_TRANSFER_ACTION,
+  interpolateCallAssistVoice,
   isImmutableEmergency,
   nextIntakeQuestion,
   recommendRoute,
@@ -82,7 +84,7 @@ export async function initiateSession(opts: {
     connectContactId: opts.connectContactId,
     disclosureDelivered: config.disclosureEnabled,
     utterances: config.disclosureEnabled
-      ? [{ sequence: 0, speaker: "assistant", text: config.disclosureText, at: now }]
+      ? [{ sequence: 0, speaker: "assistant", text: interpolateCallAssistVoice(config.disclosureText, callAssistVoiceVarsFromTenant(config)), at: now }]
       : [],
     intake: {},
     continueAiConversation: true,

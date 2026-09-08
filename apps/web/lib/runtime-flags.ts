@@ -11,6 +11,9 @@ const NEXT_PUBLIC_FLAG_VALUES: Record<string, string | undefined> = {
   NEXT_PUBLIC_ENABLE_NON_EMERGENCY_TRIAGE: process.env.NEXT_PUBLIC_ENABLE_NON_EMERGENCY_TRIAGE,
   NEXT_PUBLIC_ENABLE_NG911_ASSIST: process.env.NEXT_PUBLIC_ENABLE_NG911_ASSIST,
   NEXT_PUBLIC_ENABLE_CALL_ASSIST: process.env.NEXT_PUBLIC_ENABLE_CALL_ASSIST,
+  NEXT_PUBLIC_ENABLE_VERTICAL_ALERTS: process.env.NEXT_PUBLIC_ENABLE_VERTICAL_ALERTS,
+  NEXT_PUBLIC_ENABLE_PHYSICAL_SECURITY_INGEST: process.env.NEXT_PUBLIC_ENABLE_PHYSICAL_SECURITY_INGEST,
+  NEXT_PUBLIC_ENABLE_PHYSICAL_SECURITY_COMMANDS: process.env.NEXT_PUBLIC_ENABLE_PHYSICAL_SECURITY_COMMANDS,
   NEXT_PUBLIC_ENABLE_FIELD_COMMAND: process.env.NEXT_PUBLIC_ENABLE_FIELD_COMMAND,
   NEXT_PUBLIC_ENABLE_FIELD_CONFIDENCE: process.env.NEXT_PUBLIC_ENABLE_FIELD_CONFIDENCE,
   NEXT_PUBLIC_ENABLE_PREDICTIVE_STAFFING: process.env.NEXT_PUBLIC_ENABLE_PREDICTIVE_STAFFING,
@@ -51,6 +54,7 @@ const NEXT_PUBLIC_FLAG_VALUES: Record<string, string | undefined> = {
   NEXT_PUBLIC_ENABLE_PSAP_PROSPECTS: process.env.NEXT_PUBLIC_ENABLE_PSAP_PROSPECTS,
   NEXT_PUBLIC_ENABLE_INSIDE_THE_CORTEX: process.env.NEXT_PUBLIC_ENABLE_INSIDE_THE_CORTEX,
   NEXT_PUBLIC_ENABLE_CAMPUS_CLERY: process.env.NEXT_PUBLIC_ENABLE_CAMPUS_CLERY,
+  NEXT_PUBLIC_ENABLE_CLERY_MODULE: process.env.NEXT_PUBLIC_ENABLE_CLERY_MODULE,
   NEXT_PUBLIC_ENABLE_CAMPUS_EAP: process.env.NEXT_PUBLIC_ENABLE_CAMPUS_EAP,
   NEXT_PUBLIC_ENABLE_HOSTED_UI_SSO: process.env.NEXT_PUBLIC_ENABLE_HOSTED_UI_SSO,
   NEXT_PUBLIC_ENABLE_GRANT_SUCCESS_PROGRAM: process.env.NEXT_PUBLIC_ENABLE_GRANT_SUCCESS_PROGRAM,
@@ -76,6 +80,7 @@ const NEXT_PUBLIC_FLAG_VALUES: Record<string, string | undefined> = {
 const CAD_WRITEBACK_FLAG = "NEXT_PUBLIC_ENABLE_CAD_WRITEBACK";
 const CAD_CONNECTOR_FLAG = "NEXT_PUBLIC_ENABLE_CAD_CONNECTOR";
 const CHANNEL_MONITORING_FLAG = "NEXT_PUBLIC_ENABLE_CHANNEL_MONITORING";
+const PHYSICAL_SECURITY_COMMANDS_FLAG = "NEXT_PUBLIC_ENABLE_PHYSICAL_SECURITY_COMMANDS";
 
 function isEnabledValue(value: string | undefined): boolean {
   if (!value) return false;
@@ -96,7 +101,7 @@ function isDisabledValue(value: string | undefined): boolean {
 function envFlag(name: string): boolean {
   if (typeof process === "undefined") return false;
   const value = NEXT_PUBLIC_FLAG_VALUES[name] ?? process.env[name];
-  if (name === CAD_WRITEBACK_FLAG || name === CAD_CONNECTOR_FLAG) {
+  if (name === CAD_WRITEBACK_FLAG || name === CAD_CONNECTOR_FLAG || name === PHYSICAL_SECURITY_COMMANDS_FLAG) {
     if (isEnabledValue(value)) return true;
     return false;
   }
@@ -165,6 +170,24 @@ export function isNg911AssistEnabled(): boolean {
 /** Call Assist — non-emergency AI call management (ENABLE_CALL_ASSIST). */
 export function isCallAssistEnabled(): boolean {
   return envFlag("NEXT_PUBLIC_ENABLE_CALL_ASSIST");
+}
+
+/**
+ * Occupant mass notification (campus / venue / transit). Default on when unset.
+ * Copy must say delivery is *initiated* within 3 seconds — SMS receipt at scale is not 3 seconds.
+ */
+export function isVerticalAlertsEnabled(): boolean {
+  return envFlag("NEXT_PUBLIC_ENABLE_VERTICAL_ALERTS");
+}
+
+/** Fire/access event ingest. Default on when unset. */
+export function isPhysicalSecurityIngestEnabled(): boolean {
+  return envFlag("NEXT_PUBLIC_ENABLE_PHYSICAL_SECURITY_INGEST");
+}
+
+/** Outbound lock/unlock commands — fail-closed like CAD write-back. */
+export function isPhysicalSecurityCommandsEnabled(): boolean {
+  return envFlag("NEXT_PUBLIC_ENABLE_PHYSICAL_SECURITY_COMMANDS");
 }
 
 /** Field app 911 Dispatch module (supervisor awareness). Default on when unset. */
@@ -396,6 +419,14 @@ export function isCampusCleryEnabled(): boolean {
   return envFlag("NEXT_PUBLIC_ENABLE_CAMPUS_CLERY");
 }
 
+/**
+ * Statutory Clery Act compliance module (review queue, Daily Crime Log, ASR engine, CSA registry).
+ * Default on when unset. Distinct from the legacy ASR tally workspace.
+ */
+export function isCleryModuleEnabled(): boolean {
+  return envFlag("NEXT_PUBLIC_ENABLE_CLERY_MODULE");
+}
+
 /** Campus EAP / building checklist library. Default on when unset. */
 export function isCampusEapEnabled(): boolean {
   return envFlag("NEXT_PUBLIC_ENABLE_CAMPUS_EAP");
@@ -419,7 +450,7 @@ export function isGrantSuccessProgramUiEnabled(): boolean {
   return envFlag("NEXT_PUBLIC_ENABLE_GRANT_SUCCESS_PROGRAM");
 }
 
-/** Venue/campus QR location map panel (requires NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN). Default on when unset. */
+/** Venue/campus QR location map panel. Default on when unset. */
 export function isLocationMapEnabled(): boolean {
   return envFlag("NEXT_PUBLIC_ENABLE_LOCATION_MAP");
 }

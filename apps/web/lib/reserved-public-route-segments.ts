@@ -38,6 +38,8 @@ export const RESERVED_PUBLIC_ROUTE_FIRST_SEGMENTS: readonly string[] = [
   "billing",
   /** Public tooling root (`/status`, etc.). */
   "status",
+  /** Public Clery Act Daily Crime Log (`/crime-log/{agencySlug}`) — no auth. */
+  "crime-log",
   /** CDN-backed public media entrypoints at site root (not `{jurisdiction}/media`). */
   "media",
   /** Public QR/NFC citizen intake — no auth (`/report/{qrId}`). */

@@ -2,8 +2,8 @@
 
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import mapboxgl from "mapbox-gl";
-import "mapbox-gl/dist/mapbox-gl.css";
+import maplibregl from "maplibre-gl";
+import "maplibre-gl/dist/maplibre-gl.css";
 import { useQuery } from "@tanstack/react-query";
 import { ArrowUpDown, Map as MapIcon, X } from "lucide-react";
 import {
@@ -90,14 +90,14 @@ function AgencyPin({
   onHover,
   onSelect,
 }: {
-  map: mapboxgl.Map | null;
+  map: maplibregl.Map | null;
   marker: Marker;
   selected: boolean;
   onHover: (id: string | null) => void;
   onSelect: (id: string) => void;
 }) {
-  const markerRef = useRef<mapboxgl.Marker | null>(null);
-  const popupRef = useRef<mapboxgl.Popup | null>(null);
+  const markerRef = useRef<maplibregl.Marker | null>(null);
+  const popupRef = useRef<maplibregl.Popup | null>(null);
 
   useEffect(() => {
     if (!map) return;
@@ -118,7 +118,7 @@ function AgencyPin({
         transition: transform 0.15s ease, width 0.15s ease, height 0.15s ease;
       `;
 
-      const popup = new mapboxgl.Popup({
+      const popup = new maplibregl.Popup({
         offset: 14,
         closeButton: false,
         closeOnClick: false,
@@ -141,7 +141,7 @@ function AgencyPin({
         onSelect(marker.agencyId);
       });
 
-      const next = new mapboxgl.Marker({ element: el })
+      const next = new maplibregl.Marker({ element: el })
         .setLngLat([marker.longitude, marker.latitude])
         .addTo(map);
 
@@ -167,7 +167,7 @@ function AgencyPin({
 }
 
 function useFitBounds(
-  map: mapboxgl.Map | null,
+  map: maplibregl.Map | null,
   points: Array<{ latitude: number; longitude: number }>,
 ) {
   useEffect(() => {
@@ -180,7 +180,7 @@ function useFitBounds(
       });
       return;
     }
-    const bounds = new mapboxgl.LngLatBounds();
+    const bounds = new maplibregl.LngLatBounds();
     for (const p of points) bounds.extend([p.longitude, p.latitude]);
     map.fitBounds(bounds, { padding: 48, maxZoom: 8, duration: 700 });
   }, [map, points]);
@@ -198,11 +198,11 @@ function PsapProspectPin({
   map,
   pin,
 }: {
-  map: mapboxgl.Map | null;
+  map: maplibregl.Map | null;
   pin: PsapMapPin;
 }) {
-  const markerRef = useRef<mapboxgl.Marker | null>(null);
-  const popupRef = useRef<mapboxgl.Popup | null>(null);
+  const markerRef = useRef<maplibregl.Marker | null>(null);
+  const popupRef = useRef<maplibregl.Popup | null>(null);
 
   useEffect(() => {
     if (!map) return;
@@ -220,7 +220,7 @@ function PsapProspectPin({
         opacity: 0.9;
         cursor: default;
       `;
-      const popup = new mapboxgl.Popup({
+      const popup = new maplibregl.Popup({
         offset: 10,
         closeButton: false,
         closeOnClick: false,
@@ -236,7 +236,7 @@ function PsapProspectPin({
         popup.setLngLat([pin.lon, pin.lat]).addTo(map);
       });
       el.addEventListener("mouseleave", () => popup.remove());
-      const next = new mapboxgl.Marker({ element: el })
+      const next = new maplibregl.Marker({ element: el })
         .setLngLat([pin.lon, pin.lat])
         .addTo(map);
       markerRef.current?.remove();
@@ -267,7 +267,7 @@ export function DeploymentsMapPanel({
 }: DeploymentsMapPanelProps) {
   const enabled = isDeploymentsMapEnabled();
   const psapLayerAllowed = showPsapProspectsLayer && isPsapProspectsUiEnabled();
-  const [map, setMap] = useState<mapboxgl.Map | null>(null);
+  const [map, setMap] = useState<maplibregl.Map | null>(null);
   const [mapError, setMapError] = useState<string | null>(null);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [hoveredId, setHoveredId] = useState<string | null>(null);
@@ -352,8 +352,7 @@ export function DeploymentsMapPanel({
     }
   };
 
-  const token = process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN?.trim();
-  const tokenMissing = !token || token === "pk.REPLACE_WITH_REAL_TOKEN";
+  const tokenMissing = false;
   const mapHeight = compact ? 220 : 560;
 
   const legend = useMemo(
@@ -690,12 +689,12 @@ export function DeploymentsMapPanel({
       </div>
 
       <style>{`
-        .rc-map-popup .mapboxgl-popup-content {
+        .rc-map-popup .maplibregl-popup-content {
           background: transparent !important;
           padding: 0 !important;
           box-shadow: none !important;
         }
-        .rc-map-popup .mapboxgl-popup-tip {
+        .rc-map-popup .maplibregl-popup-tip {
           display: none !important;
         }
       `}</style>
