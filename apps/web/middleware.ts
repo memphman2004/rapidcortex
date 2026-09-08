@@ -172,6 +172,8 @@ const protectedSubpaths = [
   "/incidents",
   "/calls",
   "/console",
+  "/call-assist",
+  "/qa",
 ] as const;
 
 function jurisdictionSubpathIsPasswordChangeAllowed(subpath: string): boolean {

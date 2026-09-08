@@ -1,23 +1,39 @@
 import {
-  assertGroundedReply,
   buildTransferPackage,
+  callTakerConfidenceRows,
   callerRequestedHuman,
   callAssistVoiceVarsFromTenant,
   classifyCallTriage,
   detectCallAssistLanguage,
   detectTtyMode,
   evaluateCarfaxEligibility,
+  evaluateConfidenceDecision,
   evaluateSafety,
   extractIntakeFields,
   EMERGENCY_TRANSFER_ACTION,
+  findCallType,
+  formatTtySms,
   interpolateCallAssistVoice,
   isImmutableEmergency,
   nextIntakeQuestion,
+  normalizePreferredLanguage,
   recommendRoute,
+  recordAskedQuestion,
   resolveAgencyTaxonomy,
+  groundedKnowledgeReply,
+  spokenIntakePrompt,
+  topKnowledgeHit,
+  mergeVoiceDistressIntoSafety,
+  withExternalRouteDefaults,
+  evaluateExternalRoute,
+  mapConnectParticipantRole,
+  mapTranscribeSpeakerLabel,
   type CallAssistMode,
   type CallAssistSource,
+  type CallAssistSpeaker,
+  type CallAssistSentiment,
   type CallIntakeData,
+  type KnowledgeArticleLike,
 } from "rapid-cortex-shared";
 import { AUDIT_EVENT_TYPES } from "rapid-cortex-security";
 import { env } from "../lib/env.js";
@@ -25,10 +41,15 @@ import { makeId } from "../lib/ids.js";
 import { AuditRepository } from "../repositories/auditRepository.js";
 import { aniLast4, hashAni, locationKey } from "./identity.js";
 import { callAssistStore, type CallAssistSessionRecord } from "./store.js";
-import { getOrCreateConfig } from "./config-service.js";
+import { getOrCreateConfig, isWithinOperatingHours } from "./config-service.js";
+import { applyCallAssistCampaigns } from "./campaign-hooks.js";
 import { resolveCadProvider } from "./cad/resolve-provider.js";
 import { AmazonConnectProvider } from "./telephony/amazon-connect.js";
+import { ingestConnectCallerIdentity, intakeFromCallerIdentity } from "./telephony/ani-ali.js";
 import { lookupRapidSosLocation } from "./rapidsos/adapter.js";
+import { enrichIntakeWithGis } from "./gis-enrichment.js";
+import { analyzeCallAssistSentiment, analyzeVoiceEmotion } from "./voice-emotion.js";
+import { closeOpenTransferAttempts, recordTransferAttempt } from "./transfer-ledger.js";
 
 const auditRepo = new AuditRepository();
 const telephony = new AmazonConnectProvider();
@@ -52,6 +73,10 @@ async function audit(
   });
 }
 
+async function mockOrInitiated(demo: boolean): Promise<"ANSWERED" | "INITIATED"> {
+  return demo || env.callAssistConnectMock ? "ANSWERED" : "INITIATED";
+}
+
 export async function initiateSession(opts: {
   agencyId: string;
   actorId: string;
@@ -65,30 +90,43 @@ export async function initiateSession(opts: {
   mediaType?: string;
 }): Promise<CallAssistSessionRecord> {
   const config = await getOrCreateConfig(opts.agencyId);
+  const shift = await callAssistStore.getShift(opts.agencyId);
   const now = new Date().toISOString();
   const tty = detectTtyMode({
     connectAttributes: opts.connectAttributes,
     mediaType: opts.mediaType,
     manualTty: opts.ttyMode,
   });
+  const identity = ingestConnectCallerIdentity({ ani: opts.ani, attributes: opts.connectAttributes });
+  const ani = identity.ani ?? opts.ani;
+  const preferred = normalizePreferredLanguage(opts.language);
+  const intake = {
+    ...intakeFromCallerIdentity(identity),
+    language: preferred !== "und" ? preferred : opts.language,
+    preferredLanguage: preferred !== "und" ? preferred : undefined,
+  };
   const session: CallAssistSessionRecord = {
     agencyId: opts.agencyId,
     sessionId: makeId("cas"),
     state: "DISCLOSURE",
     mode: opts.mode ?? "NON_EMERGENCY",
     source: opts.source ?? "LIVE",
-    aniHash: hashAni(opts.ani),
-    aniLast4: aniLast4(opts.ani),
-    language: opts.language ?? "und",
+    aniHash: hashAni(ani),
+    aniLast4: aniLast4(ani),
+    language: preferred !== "und" ? preferred : opts.language ?? "und",
     ttyMode: tty.ttyMode,
+    smsFallbackRecommended: tty.smsFallbackRecommended,
+    ttySource: tty.source,
     connectContactId: opts.connectContactId,
     disclosureDelivered: config.disclosureEnabled,
     utterances: config.disclosureEnabled
       ? [{ sequence: 0, speaker: "assistant", text: interpolateCallAssistVoice(config.disclosureText, callAssistVoiceVarsFromTenant(config)), at: now }]
       : [],
-    intake: {},
+    intake,
+    aliAddress: identity.aliAddress,
     continueAiConversation: true,
     legalHold: false,
+    shiftLabel: shift?.currentShift ?? config.shiftLabel,
     createdAt: now,
     updatedAt: now,
   };
@@ -113,7 +151,11 @@ export async function processUtterance(opts: {
   actorId: string;
   sessionId: string;
   text: string;
-  speaker?: "caller" | "assistant" | "system";
+  speaker?: CallAssistSpeaker;
+  speakerId?: string;
+  participantRole?: string;
+  contactLensTone?: string;
+  lexSentiment?: CallAssistSentiment | null;
 }): Promise<UtteranceResult> {
   const session = await callAssistStore.getSession(opts.agencyId, opts.sessionId);
   if (!session) {
@@ -125,17 +167,34 @@ export async function processUtterance(opts: {
   }
 
   const now = new Date().toISOString();
+  let speaker: CallAssistSpeaker = opts.speaker ?? "caller";
+  let speakerId = opts.speakerId;
+  let channel: "CUSTOMER" | "AGENT" | "UNKNOWN" | undefined;
+  if (env.enableCallAssistDiarization) {
+    if (opts.participantRole) {
+      const mapped = mapConnectParticipantRole(opts.participantRole);
+      speaker = mapped.speaker;
+      speakerId = mapped.speakerId;
+      channel = mapped.channel;
+    } else if (opts.speakerId) {
+      const mapped = mapTranscribeSpeakerLabel(opts.speakerId);
+      speaker = mapped.speaker;
+      speakerId = mapped.speakerId;
+    }
+  }
   session.utterances = [
     ...session.utterances,
     {
       sequence: session.utterances.length,
-      speaker: opts.speaker ?? "caller",
+      speaker,
       text: opts.text,
       at: now,
+      ...(speakerId ? { speakerId } : {}),
+      ...(channel ? { channel } : {}),
     },
   ];
 
-  if ((opts.speaker ?? "caller") !== "caller") {
+  if (speaker !== "caller") {
     session.updatedAt = now;
     await callAssistStore.putSession(session);
     return { session };
@@ -143,10 +202,28 @@ export async function processUtterance(opts: {
 
   const config = await getOrCreateConfig(opts.agencyId);
   const taxonomy = resolveAgencyTaxonomy(config);
-  const safety = evaluateSafety(opts.text);
+  let safety = evaluateSafety(opts.text);
+  if (env.enableCallAssistVoiceEmotion) {
+    const sentiment = await analyzeCallAssistSentiment({ text: opts.text, lex: opts.lexSentiment });
+    const emotion = await analyzeVoiceEmotion({
+      text: opts.text,
+      lexSentiment: sentiment,
+      contactLensTone: opts.contactLensTone,
+    });
+    session.sentiment = sentiment;
+    session.voiceEmotion = emotion;
+    safety = mergeVoiceDistressIntoSafety(safety, emotion);
+  }
   session.safety = safety;
   const lang = detectCallAssistLanguage(opts.text);
-  if (lang !== "und") session.language = lang;
+  if (lang !== "und") {
+    session.language = lang;
+    session.intake = {
+      ...session.intake,
+      language: lang,
+      preferredLanguage: lang,
+    };
+  }
 
   if (isImmutableEmergency(safety)) {
     session.triage = classifyCallTriage(opts.text, {
@@ -185,6 +262,17 @@ export async function processUtterance(opts: {
       { demo: session.source === "DEMO", spokenCallerScript: routing.spokenCallerScript },
     );
     session.updatedAt = now;
+    const xfer = await recordTransferAttempt({
+      agencyId: opts.agencyId,
+      sessionId: session.sessionId,
+      actorId: opts.actorId,
+      destinationType: "EMERGENCY_911",
+      destinationId: "emergency-911",
+      destinationDisplay: "Emergency 911",
+      channel: "QUEUE",
+      outcome: await mockOrInitiated(session.source === "DEMO"),
+    });
+    session.lastTransferOutcome = xfer.outcome;
     await callAssistStore.putSession(session);
     await audit(
       opts.agencyId,
@@ -223,11 +311,36 @@ export async function processUtterance(opts: {
     session.routing = routing;
     session.updatedAt = now;
     await callAssistStore.putSession(session);
+    const humanXfer = await recordTransferAttempt({
+      agencyId: opts.agencyId,
+      sessionId: session.sessionId,
+      actorId: opts.actorId,
+      destinationType: "CALL_TAKER",
+      destinationId: "queue-call-taker",
+      destinationDisplay: "Live call taker",
+      channel: "QUEUE",
+      outcome: session.source === "DEMO" || env.callAssistConnectMock ? "ANSWERED" : "INITIATED",
+    });
+    session.lastTransferOutcome = humanXfer.outcome;
+    await callAssistStore.putSession(session);
     await audit(opts.agencyId, opts.actorId, AUDIT_EVENT_TYPES.CALL_ASSIST_HUMAN_TRANSFER, {}, session.sessionId);
     return { session };
   }
 
   session.intake = extractIntakeFields(opts.text, session.intake);
+  if (session.intake.locationText?.trim()) {
+    session.intake = await enrichIntakeWithGis({
+      intake: session.intake,
+      zones: config.gisZones,
+      tenantCity: config.tenantCity,
+      tenantState: config.tenantState,
+    });
+  }
+  const articles = await callAssistStore.listKnowledge(opts.agencyId);
+  const kbHit = topKnowledgeHit(opts.text, articles as KnowledgeArticleLike[]);
+  session.knowledgeHit = Boolean(kbHit);
+  session.knowledgeArticleId = kbHit?.articleId;
+  session.knowledgeExcerpt = kbHit?.excerpt;
   const rapid = await lookupRapidSosLocation({
     agencyId: opts.agencyId,
     mock: env.callAssistRapidSosMock,
@@ -255,6 +368,101 @@ export async function processUtterance(opts: {
     confidenceThresholds: config.confidenceThresholds,
   });
   session.triage = triage;
+  const matchedType = findCallType(taxonomy, triage.primaryClassification);
+  session.cadTypeLabel = matchedType?.label;
+  session.cadNatureCode =
+    matchedType?.cadNatureCode ?? config.cadNatureMapping[triage.primaryClassification] ?? undefined;
+  session.cadPriority = matchedType?.defaultPriority;
+  const confidence = evaluateConfidenceDecision({
+    score: triage.confidence,
+    source: "triage",
+    thresholds: config.confidenceThresholds,
+  });
+  session.lastConfidence = confidence.score;
+  session.confidenceSource = confidence.source;
+  session.confidenceAction = confidence.action;
+  session.confidenceBelowThreshold = confidence.belowEscalate;
+  const confidenceRows = callTakerConfidenceRows({
+    intentScore: confidence.score,
+    classificationScore: triage.confidence,
+    addressConfidence: session.intake.addressConfidence,
+    locationSource: session.intake.locationSource,
+    locationText: session.intake.locationText,
+    routingDestinationType: session.routing?.destinationType,
+    classification: triage.primaryClassification,
+    thresholds: config.confidenceThresholds,
+  });
+  session.intentConfidence = confidenceRows.find((r) => r.id === "intent")?.score;
+  session.classificationConfidence = confidenceRows.find((r) => r.id === "classification")?.score;
+  session.locationConfidence = confidenceRows.find((r) => r.id === "location")?.score;
+  session.routingConfidence = confidenceRows.find((r) => r.id === "routing")?.score;
+  if (confidence.belowSelfService) {
+    session.qaLowConfidence = true;
+    session.lastConfidenceUtterance = opts.text.slice(0, 120);
+    await audit(
+      opts.agencyId,
+      opts.actorId,
+      AUDIT_EVENT_TYPES.CALL_ASSIST_LOW_CONFIDENCE,
+      {
+        score: confidence.score,
+        action: confidence.action,
+        threshold: confidence.thresholds.escalate,
+        selfService: confidence.thresholds.selfService,
+        classification: triage.primaryClassification,
+        transferred: confidence.action === "escalate_human",
+      },
+      session.sessionId,
+    );
+  }
+
+  const infoClass = triage.primaryClassification === "INFORMATION_REQUEST" || triage.matchedCallTypeId === "INFORMATION_REQUEST";
+  if (infoClass) {
+    const spoken = groundedKnowledgeReply({
+      proposedText: kbHit ? `${kbHit.title}. ${kbHit.excerpt}` : "",
+      knowledgeHit: Boolean(kbHit),
+      requiresKnowledge: true,
+    });
+    if (!kbHit) {
+      await audit(
+        opts.agencyId,
+        opts.actorId,
+        AUDIT_EVENT_TYPES.CALL_ASSIST_KNOWLEDGE_MISS,
+        { query: opts.text.slice(0, 120) },
+        session.sessionId,
+      );
+      session.state = "TRANSFERRING_HUMAN";
+      session.continueAiConversation = false;
+      session.nextQuestion = spoken;
+      session.updatedAt = now;
+      await callAssistStore.putSession(session);
+      await audit(opts.agencyId, opts.actorId, AUDIT_EVENT_TYPES.CALL_ASSIST_HUMAN_TRANSFER, { reason: "ungrounded_information" }, session.sessionId);
+      return { session };
+    }
+    session.utterances = [
+      ...session.utterances,
+      { sequence: session.utterances.length, speaker: "assistant", text: spoken, at: now },
+    ];
+  }
+
+  if (confidence.action === "escalate_human" && !triage.emergencyDetected && !infoClass) {
+    session.state = "TRANSFERRING_HUMAN";
+    session.continueAiConversation = false;
+    session.updatedAt = now;
+    const lowXfer = await recordTransferAttempt({
+      agencyId: opts.agencyId,
+      sessionId: session.sessionId,
+      actorId: opts.actorId,
+      destinationType: "CALL_TAKER",
+      destinationId: "queue-call-taker",
+      destinationDisplay: "Live call taker",
+      channel: "QUEUE",
+      outcome: await mockOrInitiated(session.source === "DEMO"),
+    });
+    session.lastTransferOutcome = lowXfer.outcome;
+    await callAssistStore.putSession(session);
+    await audit(opts.agencyId, opts.actorId, AUDIT_EVENT_TYPES.CALL_ASSIST_HUMAN_TRANSFER, { reason: "low_confidence" }, session.sessionId);
+    return { session };
+  }
 
   if (triage.emergencyDetected) {
     session.state = "TRANSFERRING_911";
@@ -288,6 +496,17 @@ export async function processUtterance(opts: {
       { demo: session.source === "DEMO", spokenCallerScript: routing.spokenCallerScript },
     );
     session.updatedAt = now;
+    const xfer911 = await recordTransferAttempt({
+      agencyId: opts.agencyId,
+      sessionId: session.sessionId,
+      actorId: opts.actorId,
+      destinationType: "EMERGENCY_911",
+      destinationId: "emergency-911",
+      destinationDisplay: "Emergency 911",
+      channel: "QUEUE",
+      outcome: await mockOrInitiated(session.source === "DEMO"),
+    });
+    session.lastTransferOutcome = xfer911.outcome;
     await callAssistStore.putSession(session);
     await audit(
       opts.agencyId,
@@ -315,6 +534,20 @@ export async function processUtterance(opts: {
     taxonomy,
   });
   session.routing = routing;
+  const routedConfidence = callTakerConfidenceRows({
+    intentScore: confidence.score,
+    classificationScore: triage.confidence,
+    addressConfidence: session.intake.addressConfidence,
+    locationSource: session.intake.locationSource,
+    locationText: session.intake.locationText,
+    routingDestinationType: routing.destinationType,
+    classification: triage.primaryClassification,
+    thresholds: config.confidenceThresholds,
+  });
+  session.intentConfidence = routedConfidence.find((r) => r.id === "intent")?.score;
+  session.classificationConfidence = routedConfidence.find((r) => r.id === "classification")?.score;
+  session.locationConfidence = routedConfidence.find((r) => r.id === "location")?.score;
+  session.routingConfidence = routedConfidence.find((r) => r.id === "routing")?.score;
 
   const cad = resolveCadProvider(config.cadProviderId, config.cadNatureMapping);
   const hazards = await cad.getPremiseHazards(opts.agencyId, {
@@ -356,8 +589,23 @@ export async function processUtterance(opts: {
   }
 
   const carfax = evaluateCarfaxEligibility(session.intake, { portalUrl: config.carfaxPortalUrl });
-  const question = nextIntakeQuestion(triage.primaryClassification, session.intake, taxonomy);
-  session.nextQuestion = question?.prompt;
+  const question = nextIntakeQuestion(triage.primaryClassification, session.intake, taxonomy, {
+    lastUtterance: opts.text,
+    askedQuestionIds: session.askedQuestionIds,
+    lastQuestionId: session.lastQuestionId,
+    language: session.language,
+  });
+  if (question) {
+    session.askedQuestionIds = recordAskedQuestion(session.askedQuestionIds, question.id);
+    session.lastQuestionId = question.id;
+    const spoken = spokenIntakePrompt(question, session.language);
+    session.nextQuestion = session.ttyMode ? formatTtySms(spoken) : spoken;
+    if (session.ttyMode || session.smsFallbackRecommended) {
+      session.ttySmsScript = formatTtySms(spoken);
+    }
+  } else {
+    session.nextQuestion = undefined;
+  }
   session.state = question ? "INTAKE" : routing.destinationType === "EXTERNAL_AGENCY" ? "TRANSFERRING_EXTERNAL" : "TRIAGED";
   session.continueAiConversation = Boolean(question) && triage.continueIntake;
 
@@ -365,6 +613,11 @@ export async function processUtterance(opts: {
     ? await callAssistStore.getCaller(opts.agencyId, session.aniHash)
     : null;
   const chronic = loc ? await callAssistStore.getChronic(opts.agencyId, loc) : null;
+  const uniqueDupes = [...new Set(duplicateCadIds)];
+  session.premiseHazards = hazards;
+  session.duplicateCadIds = uniqueDupes;
+  session.chronicLocation = (chronic?.hitCount ?? 0) >= 3;
+  session.repeatCaller = (callerHistory?.callCount ?? 0) >= 3;
 
   session.transfer = buildTransferPackage({
     sessionId: session.sessionId,
@@ -375,33 +628,110 @@ export async function processUtterance(opts: {
     routing,
     utterances: session.utterances.map((u) => u.text),
     premiseHazards: hazards,
-    duplicateCadIds,
-    chronicLocation: (chronic?.hitCount ?? 0) >= 3,
-    repeatCaller: (callerHistory?.callCount ?? 0) >= 3,
+    duplicateCadIds: uniqueDupes,
+    chronicLocation: session.chronicLocation,
+    repeatCaller: session.repeatCaller,
     ttyMode: session.ttyMode,
     language: session.language,
   });
 
+  if (
+    !question &&
+    routing.destinationType === "CALL_TAKER" &&
+    (routing.runtimeDisposition === "incomplete_config" || routing.runtimeDisposition === "after_hours")
+  ) {
+    session.state = "TRANSFERRING_HUMAN";
+    session.continueAiConversation = false;
+    session.nextQuestion = routing.spokenCallerScript;
+    const blocked = await recordTransferAttempt({
+      agencyId: opts.agencyId,
+      sessionId: session.sessionId,
+      actorId: opts.actorId,
+      destinationType: "EXTERNAL_AGENCY",
+      destinationId: routing.destinationId,
+      destinationDisplay: routing.displayName,
+      channel: "QUEUE",
+      outcome: "CONFIG_BLOCKED",
+      failureReason: (routing.configIssues ?? [routing.runtimeDisposition]).join(","),
+      fallbackTo: "queue-call-taker",
+    });
+    session.lastTransferOutcome = blocked.outcome;
+  }
+
   if (routing.destinationType === "EXTERNAL_AGENCY") {
-    const dest = externals.find((e) => e.externalAgencyId === routing.destinationId);
-    if (dest) {
-      await telephony.warmTransfer({
-        destinationNumber: dest.phoneNumber,
-        spokenCallerScript: routing.spokenCallerScript,
-        spokenReceiverSummary: session.transfer.spokenReceiverSummary,
+    const destRaw = externals.find((e) => e.externalAgencyId === routing.destinationId);
+    if (destRaw) {
+      const dest = withExternalRouteDefaults(destRaw);
+      const decision = evaluateExternalRoute({
+        route: dest,
+        classification: triage.primaryClassification,
+        at: new Date(now),
       });
-      await audit(
-        opts.agencyId,
-        opts.actorId,
-        AUDIT_EVENT_TYPES.CALL_ASSIST_EXTERNAL_TRANSFER,
-        { destinationId: dest.externalAgencyId },
-        session.sessionId,
-      );
+      if (decision.disposition === "incomplete_config" || decision.disposition === "after_hours") {
+        session.state = "TRANSFERRING_HUMAN";
+        session.continueAiConversation = false;
+        session.nextQuestion = decision.spokenCallerScript;
+        const blocked = await recordTransferAttempt({
+          agencyId: opts.agencyId,
+          sessionId: session.sessionId,
+          actorId: opts.actorId,
+          destinationType: "EXTERNAL_AGENCY",
+          destinationId: dest.externalAgencyId,
+          destinationDisplay: dest.externalAgencyName,
+          channel: decision.channel,
+          outcome: "CONFIG_BLOCKED",
+          failureReason: decision.issues.join(","),
+          fallbackTo: "queue-call-taker",
+        });
+        session.lastTransferOutcome = blocked.outcome;
+      } else {
+        const number = decision.destinationNumber || dest.phoneNumber;
+        const sip = decision.sipUri || dest.sipUri;
+        await telephony.warmTransfer({
+          destinationNumber: sip || number,
+          spokenCallerScript: decision.spokenCallerScript,
+          spokenReceiverSummary: session.transfer.spokenReceiverSummary,
+        });
+        const extXfer = await recordTransferAttempt({
+          agencyId: opts.agencyId,
+          sessionId: session.sessionId,
+          actorId: opts.actorId,
+          destinationType: "EXTERNAL_AGENCY",
+          destinationId: dest.externalAgencyId,
+          destinationDisplay: dest.externalAgencyName,
+          channel: decision.channel,
+          outcome: await mockOrInitiated(session.source === "DEMO"),
+          fallbackTo: dest.fallbackPhoneNumber,
+        });
+        session.lastTransferOutcome = extXfer.outcome;
+        await audit(
+          opts.agencyId,
+          opts.actorId,
+          AUDIT_EVENT_TYPES.CALL_ASSIST_EXTERNAL_TRANSFER,
+          {
+            destinationId: dest.externalAgencyId,
+            channel: decision.channel,
+            disposition: decision.disposition,
+            sipConfigured: Boolean(sip),
+          },
+          session.sessionId,
+        );
+      }
     }
   }
 
-  session.updatedAt = now;
-  await callAssistStore.putSession(session);
+  session.humanTakeover = session.state === "TRANSFERRING_HUMAN" || session.humanTakeover;
+  const next = await applyCallAssistCampaigns({
+    session,
+    config,
+    actorId: opts.actorId,
+    utterance: opts.text,
+    hoursOpen: isWithinOperatingHours(config),
+    nowIso: now,
+  });
+
+  next.updatedAt = now;
+  await callAssistStore.putSession(next);
   await audit(
     opts.agencyId,
     opts.actorId,
@@ -409,11 +739,11 @@ export async function processUtterance(opts: {
     {
       classification: triage.primaryClassification,
       carfaxEligible: carfax.eligible,
-      continueAiConversation: session.continueAiConversation,
+      continueAiConversation: next.continueAiConversation,
     },
-    session.sessionId,
+    next.sessionId,
   );
-  return { session };
+  return { session: next };
 }
 
 export async function completeSession(agencyId: string, sessionId: string, actorId: string): Promise<CallAssistSessionRecord> {
@@ -423,21 +753,23 @@ export async function completeSession(agencyId: string, sessionId: string, actor
   session.completedAt = new Date().toISOString();
   session.updatedAt = session.completedAt;
   session.continueAiConversation = false;
+  await closeOpenTransferAttempts({
+    agencyId,
+    sessionId,
+    actorId,
+    outcome: "COMPLETED",
+  });
   await callAssistStore.putSession(session);
   await audit(agencyId, actorId, AUDIT_EVENT_TYPES.CALL_ASSIST_SESSION_COMPLETED, {}, sessionId);
   return session;
 }
 
 export function groundedAssistantReply(text: string, knowledgeHit: boolean, emergency: boolean): string {
-  const check = assertGroundedReply({
+  return groundedKnowledgeReply({
     proposedText: text,
     knowledgeHit,
     isEmergencyTransfer: emergency,
   });
-  if (!check.allowed) {
-    return "I don't have that in the department knowledge base. I can connect you with a call taker.";
-  }
-  return text;
 }
 
 export type { CallIntakeData };

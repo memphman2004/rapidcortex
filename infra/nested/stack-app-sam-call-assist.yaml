@@ -31,6 +31,10 @@ Parameters:
     Type: String
     Default: ""
     Description: Secrets Manager ARN for Amazon Connect webhook shared secret. Empty = mock-only webhooks.
+  AppPublicBaseUrl:
+    Type: String
+    Default: ""
+    Description: Public origin (no trailing slash) for SMS self-service token pages.
   ManagedPolicyNamePrefix:
     Type: String
     Default: rapid-cortex
@@ -58,11 +62,16 @@ Globals:
         CALL_ASSIST_CONNECT_MOCK: "true"
         CALL_ASSIST_LEX_MOCK: "true"
         CALL_ASSIST_RAPIDSOS_MOCK: "true"
+        CALL_ASSIST_VOICE_EMOTION_MOCK: "true"
+        ENABLE_CALL_ASSIST_VOICE_EMOTION: "true"
+        ENABLE_CALL_ASSIST_DIARIZATION: "true"
         CALL_ASSIST_TABLE: !If
           - CreateCallAssistTable
           - !Ref CallAssistTable
           - !Ref ExistingCallAssistTableName
         CALL_ASSIST_CONNECT_WEBHOOK_SECRET_ARN: !Ref CallAssistConnectWebhookSecretArn
+        APP_PUBLIC_BASE_URL: !Ref AppPublicBaseUrl
+        CALL_ASSIST_PUBLIC_BASE_URL: !Ref AppPublicBaseUrl
         AUDIT_TABLE: !Ref AuditTable
         AGENCIES_TABLE: !Ref AgenciesTable
         COGNITO_USER_POOL_ID: !Ref ImportedCognitoUserPoolId
@@ -101,6 +110,9 @@ Resources:
               KeyType: RANGE
           Projection:
             ProjectionType: ALL
+      TimeToLiveSpecification:
+        AttributeName: expiresAt
+        Enabled: true
 
   AppManagedPolicyCallAssistDynamo:
     Type: AWS::IAM::ManagedPolicy
@@ -142,6 +154,14 @@ Resources:
               - cognito-idp:DescribeUserPool
             Resource:
               - !Sub "arn:aws:cognito-idp:${AWS::Region}:${AWS::AccountId}:userpool/${ImportedCognitoUserPoolId}"
+          - Sid: CallAssistComprehendSentiment
+            Effect: Allow
+            Action:
+              - comprehend:DetectSentiment
+            Resource: "*"
+            Condition:
+              StringEquals:
+                aws:RequestedRegion: !Ref AWS::Region
           - !If
               - HasConnectWebhookSecret
               - Sid: CallAssistConnectWebhookSecret
@@ -195,6 +215,48 @@ Resources:
             Name: !Sub "${ManagedPolicyNamePrefix}-ca-bot-rebuild-${DeploymentStage}"
             Enabled: true
             Description: Process one Call Assist Lex bot rebuild per tick
+
+  CallAssistRetentionFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/lambdas/callAssistRetention.handler
+      Timeout: 300
+      MemorySize: 512
+      Policies:
+        - !Ref AppManagedPolicyCallAssistDynamo
+      Events:
+        DailyRetention:
+          Type: Schedule
+          Properties:
+            Schedule: cron(30 6 * * ? *)
+            Name: !Sub "${ManagedPolicyNamePrefix}-ca-retention-${DeploymentStage}"
+            Enabled: true
+            Description: Purge Call Assist sessions past tenant retention that are not on legal hold
+
+  CallAssistCallbackWorkerFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/lambdas/callAssistCallbackWorker.handler
+      Timeout: 120
+      MemorySize: 512
+      Policies:
+        - !Ref AppManagedPolicyCallAssistDynamo
+      Events:
+        EveryMinute:
+          Type: Schedule
+          Properties:
+            Schedule: rate(1 minute)
+            Name: !Sub "${ManagedPolicyNamePrefix}-ca-callback-${DeploymentStage}"
+            Enabled: true
+            Description: Process due Call Assist callback queue attempts
 
   CallAssistHttpIntegration:
     Type: AWS::ApiGatewayV2::Integration
@@ -250,6 +312,22 @@ Resources:
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "GET /api/public/call-assist/schedule"
+      Target: !Sub "integrations/${CallAssistConnectWebhookIntegration}"
+      AuthorizationType: NONE
+
+  RouteCallAssistSelfServiceGet:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref HttpApiId
+      RouteKey: "GET /api/public/call-assist/self-service/{token}"
+      Target: !Sub "integrations/${CallAssistConnectWebhookIntegration}"
+      AuthorizationType: NONE
+
+  RouteCallAssistSelfServicePost:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref HttpApiId
+      RouteKey: "POST /api/public/call-assist/self-service/{token}"
       Target: !Sub "integrations/${CallAssistConnectWebhookIntegration}"
       AuthorizationType: NONE
 

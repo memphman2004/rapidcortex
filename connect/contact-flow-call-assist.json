@@ -46,7 +46,10 @@
         "LambdaFunctionARN": "arn:aws:lambda:us-east-1:158961537080:function:rapid-cortex-lex-agency-for-number-dev",
         "InvocationTimeLimitSeconds": "8",
         "LambdaInvocationAttributes": {
-          "phoneNumber": "$.SystemEndpoint.Address"
+          "phoneNumber": "$.SystemEndpoint.Address",
+          "ani": "$.CustomerEndpoint.Address",
+          "ALI": "$.Attributes.ALI",
+          "RapidSOSAddress": "$.Attributes.RapidSOSAddress"
         },
         "ResponseValidation": {
           "ResponseType": "STRING_MAP"
@@ -161,7 +164,13 @@
         "LexSessionAttributes": {
           "agencyId": "$.External.agencyId",
           "callId": "$.ContactId",
-          "language": "$.External.language"
+          "language": "$.External.language",
+          "bargeInEnabled": "true",
+          "ani": "$.CustomerEndpoint.Address",
+          "aliAddress": "$.External.aliAddress",
+          "ALI": "$.Attributes.ALI",
+          "RapidSOSAddress": "$.Attributes.RapidSOSAddress",
+          "apartmentSuite": "$.External.apartmentSuite"
         },
         "LexTimeoutSeconds": { "Text": "300" }
       },

@@ -20,8 +20,20 @@ import type {
   CallAssistConfidenceThresholds,
   CallAssistDemoScenarioConfig,
   CallAssistTaxonomyVertical,
+  CallAssistGisZone,
+  CallAssistPremiseHazard,
   BotRebuildQueueEntry,
   LexBotRecord,
+  CallAssistCallbackCampaign,
+  CallAssistCallbackSettings,
+  CallAssistSmsSelfService,
+  CallAssistQaReview,
+  CallAssistPromptRecord,
+  CallAssistPromptKey,
+  CallAssistPromptProposal,
+  CallAssistTransferLedgerEntry,
+  CallAssistSentiment,
+  VoiceEmotionAssessment,
 } from "rapid-cortex-shared";
 import { ddb } from "../repositories/baseRepository.js";
 import { env } from "../lib/env.js";
@@ -67,7 +79,22 @@ export type CallAssistTenantConfig = {
   demoScenarios?: CallAssistDemoScenarioConfig[];
   onboardingComplete?: boolean;
   onboardingCompletedAt?: string | null;
+  tenantCity?: string;
+  tenantState?: string;
+  gisZones?: CallAssistGisZone[];
   seededProfile?: string;
+  callback?: CallAssistCallbackSettings;
+  selfServiceSmsEnabled?: boolean;
+  promptOverrides?: Partial<Record<string, string>>;
+  promptPackVersion?: string;
+  retentionLastRun?: {
+    at: string;
+    sessionsDeleted: number;
+    transcriptsRedacted: number;
+    audioRedacted: number;
+    surveysDeleted: number;
+    skippedLegalHold: number;
+  };
   /** Tenant test DID (E.164). Never a live PSAP/911 number. */
   testDID?: string;
   lexBotId?: string;
@@ -116,6 +143,13 @@ export type CallAssistShiftRecord = {
   expiresAt: string;
 };
 
+export type CallAssistKnowledgeVersion = {
+  version: number;
+  title: string;
+  body: string;
+  updatedAt: string;
+};
+
 export type CallAssistKnowledgeArticle = {
   agencyId: string;
   articleId: string;
@@ -124,6 +158,10 @@ export type CallAssistKnowledgeArticle = {
   tags: string[];
   enabled: boolean;
   updatedAt: string;
+  source?: string;
+  sourceType?: "manual" | "url" | "policy" | "import";
+  version?: number;
+  previousBodies?: CallAssistKnowledgeVersion[];
 };
 
 export type CallAssistRecordsRequest = {
@@ -172,6 +210,48 @@ export type CallAssistSessionRecord = {
   completedAt?: string;
   caseNumber?: string;
   cadPayload?: Record<string, unknown>;
+  lastConfidence?: number;
+  confidenceSource?: string;
+  confidenceAction?: string;
+  confidenceBelowThreshold?: boolean;
+  qaLowConfidence?: boolean;
+  lastConfidenceUtterance?: string;
+  bargeInCount?: number;
+  lastBargeInAt?: string;
+  knowledgeHit?: boolean;
+  knowledgeArticleId?: string;
+  knowledgeExcerpt?: string;
+  aliAddress?: string;
+  askedQuestionIds?: string[];
+  lastQuestionId?: string;
+  intentConfidence?: number;
+  classificationConfidence?: number;
+  locationConfidence?: number;
+  routingConfidence?: number;
+  cadNatureCode?: string;
+  cadPriority?: 1 | 2 | 3 | 4;
+  cadTypeLabel?: string;
+  smsFallbackRecommended?: boolean;
+  ttySmsScript?: string;
+  ttySource?: string;
+  premiseHazards?: CallAssistPremiseHazard[];
+  duplicateCadIds?: string[];
+  chronicLocation?: boolean;
+  repeatCaller?: boolean;
+  callback?: CallAssistCallbackCampaign;
+  smsSelfService?: CallAssistSmsSelfService;
+  shiftLabel?: string;
+  dispatcherId?: string;
+  humanTakeover?: boolean;
+  falseTransferSuspected?: boolean;
+  rmsReportNumber?: string;
+  rmsExternalId?: string;
+  rmsTarget?: string;
+  audioPurgedAt?: string;
+  transcriptPurgedAt?: string;
+  sentiment?: CallAssistSentiment;
+  voiceEmotion?: VoiceEmotionAssessment;
+  lastTransferOutcome?: string;
 };
 
 export type CallerHistoryRecord = {
@@ -206,7 +286,15 @@ const sk = {
   did: (e164: string) => `PHONE#${e164}`,
   lexBot: (locale: string) => `LEXBOT#${locale}`,
   rebuild: (queuedAt: string) => `REBUILD#${queuedAt}`,
+  callback: (id: string) => `CALLBACK#${id}`,
+  qa: (sessionId: string) => `QA#${sessionId}`,
+  prompt: (id: string) => `PROMPT#${id}`,
+  token: (token: string) => `TOKEN#${token}`,
+  xfer: (sessionId: string, ledgerId: string) => `XFER#${sessionId}#${ledgerId}`,
+  proposal: (id: string) => `PROPOSAL#${id}`,
 };
+
+export const CALL_ASSIST_SELF_SERVICE_INDEX_PK = "__self_service__";
 
 export function normalizeCallAssistDid(phone: string): string {
   const digits = phone.replace(/\D/g, "");
@@ -239,6 +327,11 @@ export class CallAssistStore {
 
   async putSession(session: CallAssistSessionRecord): Promise<void> {
     const open = !session.completedAt && session.state !== "COMPLETED" && session.state !== "FAILED";
+    const createdMs = Date.parse(session.createdAt);
+    const safetyTtl =
+      !session.legalHold && !open && Number.isFinite(createdMs)
+        ? Math.floor(createdMs / 1000) + 365 * 8 * 86_400
+        : undefined;
     await ddb.send(
       new PutCommand({
         TableName: table(),
@@ -248,6 +341,7 @@ export class CallAssistStore {
           entityType: "call_assist_session",
           gsi1pk: `${session.agencyId}#${open ? "OPEN" : "DONE"}`,
           gsi1sk: session.createdAt,
+          ...(safetyTtl ? { expiresAt: safetyTtl } : {}),
         },
       }),
     );
@@ -274,6 +368,24 @@ export class CallAssistStore {
       new GetCommand({ TableName: table(), Key: { agencyId, sk: sk.session(sessionId) } }),
     );
     return (out.Item as CallAssistSessionRecord | undefined) ?? null;
+  }
+
+  async deleteSessionIfNotOnLegalHold(agencyId: string, sessionId: string): Promise<boolean> {
+    try {
+      await ddb.send(
+        new DeleteCommand({
+          TableName: table(),
+          Key: { agencyId, sk: sk.session(sessionId) },
+          ConditionExpression: "attribute_not_exists(legalHold) OR legalHold = :f",
+          ExpressionAttributeValues: { ":f": false },
+        }),
+      );
+      return true;
+    } catch (e: unknown) {
+      const name = e && typeof e === "object" && "name" in e ? String((e as { name?: string }).name) : "";
+      if (name === "ConditionalCheckFailedException") return false;
+      throw e;
+    }
   }
 
   async listSessions(agencyId: string, openOnly: boolean, limit = 100): Promise<CallAssistSessionRecord[]> {
@@ -371,7 +483,7 @@ export class CallAssistStore {
     );
   }
 
-  async listKnowledge(agencyId: string): Promise<CallAssistKnowledgeArticle[]> {
+  async listAllKnowledge(agencyId: string): Promise<CallAssistKnowledgeArticle[]> {
     const out = await ddb.send(
       new QueryCommand({
         TableName: table(),
@@ -379,16 +491,52 @@ export class CallAssistStore {
         ExpressionAttributeValues: { ":a": agencyId, ":p": "KB#" },
       }),
     );
-    return (out.Items as CallAssistKnowledgeArticle[]) ?? [];
+    return ((out.Items as CallAssistKnowledgeArticle[]) ?? []).filter((row) => row.agencyId === agencyId);
   }
 
-  async putKnowledge(row: CallAssistKnowledgeArticle): Promise<void> {
+  async listKnowledge(agencyId: string): Promise<CallAssistKnowledgeArticle[]> {
+    return (await this.listAllKnowledge(agencyId)).filter((row) => row.enabled !== false);
+  }
+
+  async getKnowledge(agencyId: string, articleId: string): Promise<CallAssistKnowledgeArticle | null> {
+    const out = await ddb.send(
+      new GetCommand({ TableName: table(), Key: { agencyId, sk: sk.knowledge(articleId) } }),
+    );
+    const row = out.Item as CallAssistKnowledgeArticle | undefined;
+    return row?.agencyId === agencyId ? row : null;
+  }
+
+  async putKnowledge(row: CallAssistKnowledgeArticle): Promise<CallAssistKnowledgeArticle> {
+    const existing = await this.getKnowledge(row.agencyId, row.articleId);
+    let version = existing?.version ?? 1;
+    let previousBodies = existing?.previousBodies ?? [];
+    if (existing && (existing.body !== row.body || existing.title !== row.title)) {
+      previousBodies = [
+        {
+          version,
+          title: existing.title,
+          body: existing.body,
+          updatedAt: existing.updatedAt,
+        },
+        ...previousBodies,
+      ].slice(0, 10);
+      version += 1;
+    }
+    const next: CallAssistKnowledgeArticle = {
+      ...existing,
+      ...row,
+      source: row.source ?? existing?.source,
+      sourceType: row.sourceType ?? existing?.sourceType ?? "manual",
+      version,
+      previousBodies,
+    };
     await ddb.send(
       new PutCommand({
         TableName: table(),
-        Item: { ...row, sk: sk.knowledge(row.articleId), entityType: "call_assist_kb" },
+        Item: { ...next, sk: sk.knowledge(next.articleId), entityType: "call_assist_kb" },
       }),
     );
+    return next;
   }
 
   async deleteKnowledge(agencyId: string, articleId: string): Promise<void> {
@@ -614,6 +762,244 @@ export class CallAssistStore {
       processedAt: new Date().toISOString(),
       lastError: error,
     });
+  }
+
+  async putCallback(row: CallAssistCallbackCampaign): Promise<void> {
+    await ddb.send(
+      new PutCommand({
+        TableName: table(),
+        Item: {
+          ...row,
+          sk: sk.callback(row.callbackId),
+          entityType: "call_assist_callback",
+          gsi1pk: `${row.agencyId}#CALLBACK#${row.status}`,
+          gsi1sk: row.dueAt,
+        },
+      }),
+    );
+  }
+
+  async getCallback(agencyId: string, callbackId: string): Promise<CallAssistCallbackCampaign | null> {
+    const out = await ddb.send(
+      new GetCommand({ TableName: table(), Key: { agencyId, sk: sk.callback(callbackId) } }),
+    );
+    const row = out.Item as CallAssistCallbackCampaign | undefined;
+    return row?.agencyId === agencyId ? row : null;
+  }
+
+  async listCallbacks(agencyId: string, status?: string, limit = 100): Promise<CallAssistCallbackCampaign[]> {
+    if (status) {
+      const out = await ddb.send(
+        new QueryCommand({
+          TableName: table(),
+          IndexName: "gsi1",
+          KeyConditionExpression: "gsi1pk = :p",
+          ExpressionAttributeValues: { ":p": `${agencyId}#CALLBACK#${status}` },
+          ScanIndexForward: true,
+          Limit: Math.min(200, Math.max(1, limit)),
+        }),
+      );
+      return ((out.Items as CallAssistCallbackCampaign[]) ?? []).filter((row) => row.agencyId === agencyId);
+    }
+    const out = await ddb.send(
+      new QueryCommand({
+        TableName: table(),
+        KeyConditionExpression: "agencyId = :a AND begins_with(sk, :p)",
+        ExpressionAttributeValues: { ":a": agencyId, ":p": "CALLBACK#" },
+        Limit: Math.min(200, Math.max(1, limit)),
+      }),
+    );
+    return ((out.Items as CallAssistCallbackCampaign[]) ?? []).filter((row) => row.agencyId === agencyId);
+  }
+
+  async listDueCallbacks(agencyId: string, nowIso: string, limit = 50): Promise<CallAssistCallbackCampaign[]> {
+    const out = await ddb.send(
+      new QueryCommand({
+        TableName: table(),
+        IndexName: "gsi1",
+        KeyConditionExpression: "gsi1pk = :p AND gsi1sk <= :due",
+        ExpressionAttributeValues: { ":p": `${agencyId}#CALLBACK#QUEUED`, ":due": nowIso },
+        Limit: Math.min(100, Math.max(1, limit)),
+      }),
+    );
+    return ((out.Items as CallAssistCallbackCampaign[]) ?? []).filter((row) => row.agencyId === agencyId);
+  }
+
+  async putSelfServiceToken(row: {
+    token: string;
+    agencyId: string;
+    sessionId: string;
+    portalUrl: string;
+    expiresAt: number;
+  }): Promise<void> {
+    await ddb.send(
+      new PutCommand({
+        TableName: table(),
+        Item: {
+          agencyId: CALL_ASSIST_SELF_SERVICE_INDEX_PK,
+          sk: sk.token(row.token),
+          entityType: "call_assist_self_service_token",
+          targetAgencyId: row.agencyId,
+          sessionId: row.sessionId,
+          portalUrl: row.portalUrl,
+          expiresAt: row.expiresAt,
+        },
+      }),
+    );
+  }
+
+  async getSelfServiceToken(token: string): Promise<{
+    agencyId: string;
+    sessionId: string;
+    portalUrl: string;
+  } | null> {
+    const out = await ddb.send(
+      new GetCommand({
+        TableName: table(),
+        Key: { agencyId: CALL_ASSIST_SELF_SERVICE_INDEX_PK, sk: sk.token(token) },
+      }),
+    );
+    const row = out.Item as { targetAgencyId?: string; sessionId?: string; portalUrl?: string; expiresAt?: number } | undefined;
+    if (!row?.targetAgencyId || !row.sessionId) return null;
+    if (typeof row.expiresAt === "number" && row.expiresAt * 1000 < Date.now() && row.expiresAt < 4_000_000_000) {
+      if (row.expiresAt < Date.now() / 1000) return null;
+    }
+    return { agencyId: row.targetAgencyId, sessionId: row.sessionId, portalUrl: row.portalUrl ?? "" };
+  }
+
+  async putQaReview(row: CallAssistQaReview): Promise<void> {
+    await ddb.send(
+      new PutCommand({
+        TableName: table(),
+        Item: {
+          ...row,
+          sk: sk.qa(row.sessionId),
+          entityType: "call_assist_qa",
+          gsi1pk: `${row.agencyId}#QA`,
+          gsi1sk: row.createdAt,
+        },
+      }),
+    );
+  }
+
+  async getQaReview(agencyId: string, sessionId: string): Promise<CallAssistQaReview | null> {
+    const out = await ddb.send(
+      new GetCommand({ TableName: table(), Key: { agencyId, sk: sk.qa(sessionId) } }),
+    );
+    const row = out.Item as CallAssistQaReview | undefined;
+    return row?.agencyId === agencyId ? row : null;
+  }
+
+  async listQaReviews(agencyId: string, limit = 200): Promise<CallAssistQaReview[]> {
+    const out = await ddb.send(
+      new QueryCommand({
+        TableName: table(),
+        IndexName: "gsi1",
+        KeyConditionExpression: "gsi1pk = :p",
+        ExpressionAttributeValues: { ":p": `${agencyId}#QA` },
+        ScanIndexForward: false,
+        Limit: Math.min(400, Math.max(1, limit)),
+      }),
+    );
+    return ((out.Items as CallAssistQaReview[]) ?? []).filter((row) => row.agencyId === agencyId);
+  }
+
+  async putPrompt(row: CallAssistPromptRecord): Promise<void> {
+    await ddb.send(
+      new PutCommand({
+        TableName: table(),
+        Item: { ...row, sk: sk.prompt(row.promptId), entityType: "call_assist_prompt" },
+      }),
+    );
+  }
+
+  async getPrompt(agencyId: string, promptId: CallAssistPromptKey): Promise<CallAssistPromptRecord | null> {
+    const out = await ddb.send(
+      new GetCommand({ TableName: table(), Key: { agencyId, sk: sk.prompt(promptId) } }),
+    );
+    const row = out.Item as CallAssistPromptRecord | undefined;
+    return row?.agencyId === agencyId ? row : null;
+  }
+
+  async listPrompts(agencyId: string): Promise<CallAssistPromptRecord[]> {
+    const out = await ddb.send(
+      new QueryCommand({
+        TableName: table(),
+        KeyConditionExpression: "agencyId = :a AND begins_with(sk, :p)",
+        ExpressionAttributeValues: { ":a": agencyId, ":p": "PROMPT#" },
+      }),
+    );
+    return ((out.Items as CallAssistPromptRecord[]) ?? []).filter((row) => row.agencyId === agencyId);
+  }
+
+  async deleteSurvey(agencyId: string, sessionId: string): Promise<void> {
+    await ddb.send(
+      new DeleteCommand({ TableName: table(), Key: { agencyId, sk: sk.survey(sessionId) } }),
+    );
+  }
+
+  async putTransfer(row: CallAssistTransferLedgerEntry): Promise<void> {
+    await ddb.send(
+      new PutCommand({
+        TableName: table(),
+        Item: {
+          ...row,
+          sk: sk.xfer(row.sessionId, row.ledgerId),
+          entityType: "call_assist_transfer",
+          gsi1pk: `${row.agencyId}#XFER#${row.sessionId}`,
+          gsi1sk: row.startedAt,
+        },
+      }),
+    );
+  }
+
+  async listTransfers(agencyId: string, sessionId: string): Promise<CallAssistTransferLedgerEntry[]> {
+    const out = await ddb.send(
+      new QueryCommand({
+        TableName: table(),
+        KeyConditionExpression: "agencyId = :a AND begins_with(sk, :p)",
+        ExpressionAttributeValues: { ":a": agencyId, ":p": `XFER#${sessionId}#` },
+      }),
+    );
+    const rows = ((out.Items as CallAssistTransferLedgerEntry[]) ?? []).filter((row) => row.agencyId === agencyId);
+    return rows.sort((a, b) => a.attempt - b.attempt);
+  }
+
+  async putPromptProposal(row: CallAssistPromptProposal): Promise<void> {
+    await ddb.send(
+      new PutCommand({
+        TableName: table(),
+        Item: {
+          ...row,
+          sk: sk.proposal(row.proposalId),
+          entityType: "call_assist_prompt_proposal",
+          gsi1pk: `${row.agencyId}#PROPOSAL`,
+          gsi1sk: row.submittedAt,
+        },
+      }),
+    );
+  }
+
+  async getPromptProposal(agencyId: string, proposalId: string): Promise<CallAssistPromptProposal | null> {
+    const out = await ddb.send(
+      new GetCommand({ TableName: table(), Key: { agencyId, sk: sk.proposal(proposalId) } }),
+    );
+    const row = out.Item as CallAssistPromptProposal | undefined;
+    return row?.agencyId === agencyId ? row : null;
+  }
+
+  async listPromptProposals(agencyId: string, limit = 100): Promise<CallAssistPromptProposal[]> {
+    const out = await ddb.send(
+      new QueryCommand({
+        TableName: table(),
+        IndexName: "gsi1",
+        KeyConditionExpression: "gsi1pk = :p",
+        ExpressionAttributeValues: { ":p": `${agencyId}#PROPOSAL` },
+        ScanIndexForward: false,
+        Limit: Math.min(200, Math.max(1, limit)),
+      }),
+    );
+    return ((out.Items as CallAssistPromptProposal[]) ?? []).filter((row) => row.agencyId === agencyId);
   }
 }
 

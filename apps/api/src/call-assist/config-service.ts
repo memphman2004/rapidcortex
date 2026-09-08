@@ -231,6 +231,20 @@ export async function patchConfig(
     });
   }
 
+  if (patch.tenantCity !== undefined) next.tenantCity = patch.tenantCity;
+  if (patch.tenantState !== undefined) next.tenantState = patch.tenantState;
+  if (patch.gisZones !== undefined) next.gisZones = patch.gisZones;
+  if (patch.callback) {
+    next.callback = {
+      enabled: patch.callback.enabled ?? current.callback?.enabled ?? true,
+      maxAttempts: patch.callback.maxAttempts ?? current.callback?.maxAttempts ?? 3,
+      retryMinutes: patch.callback.retryMinutes ?? current.callback?.retryMinutes ?? 15,
+      offerAfterHours: patch.callback.offerAfterHours ?? current.callback?.offerAfterHours ?? true,
+      offerOnOverflow: patch.callback.offerOnOverflow ?? current.callback?.offerOnOverflow ?? true,
+    };
+  }
+  if (patch.selfServiceSmsEnabled !== undefined) next.selfServiceSmsEnabled = patch.selfServiceSmsEnabled;
+
   if (patch.taxonomy !== undefined) {
     if (patch.taxonomy) {
       const baseline = resolveAgencyTaxonomy(current);

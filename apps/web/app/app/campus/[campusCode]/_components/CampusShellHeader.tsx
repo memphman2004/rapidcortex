@@ -1,10 +1,11 @@
 "use client";
 
 import type { ReactNode } from "react";
-import { VerticalDisclaimerBanner } from "@/components/vertical/vertical-disclaimer-banner";
 import { CampusDashboardHeaderUtilities } from "@/components/campus/campus-dashboard-header-utilities";
 import { CampusSiteSwitcher } from "@/components/campus/campus-site-switcher";
 import { useCampusSiteScope } from "@/lib/campus/use-campus-site-scope";
+import { PSAPAvailabilityNotice } from "@/components/psap/psap-availability-notice";
+import { buildPsapAvailabilityNotice } from "rapid-cortex-shared";
 
 const C = {
   surface: "var(--rc-surface)",
@@ -108,9 +109,9 @@ export function CampusShellHeader({
         </div>
       </div>
       <div className="mt-3">
-        <VerticalDisclaimerBanner
-          tone="slate"
-          message="Campus safety reporting only — escalate to your public safety agency for emergencies."
+        <PSAPAvailabilityNotice
+          notice={buildPsapAvailabilityNotice({ product: "campus", agencyName: campusCode })}
+          compact
         />
       </div>
     </header>

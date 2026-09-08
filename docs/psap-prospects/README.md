@@ -44,7 +44,8 @@ Uses **AWS Location Service (Esri)** — reverse geocode when `latitude`/`longit
 aws cloudformation deploy \
   --template-file infra/nested/psap-enrichment-place-index.yaml \
   --stack-name rapid-cortex-psap-enrichment-dev \
-  --parameter-overrides Stage=dev
+  --parameter-overrides Stage=dev \
+  --capabilities CAPABILITY_NAMED_IAM
 
 # Dry run (no writes; still needs DescribePlaceIndex if index exists)
 STAGE=dev npx tsx scripts/enrich-psap-addresses.ts --dry-run
@@ -56,7 +57,7 @@ STAGE=dev npx tsx scripts/enrich-psap-addresses.ts --state=GA --limit=50
 STAGE=dev npx tsx scripts/enrich-psap-addresses.ts
 ```
 
-Env overrides: `PSAP_PROSPECTS_TABLE`, `PSAP_PLACE_INDEX`, `AWS_REGION`. IAM needs DynamoDB Scan/Query/UpdateItem on the prospects table and `geo:SearchPlaceIndexFor*` / `DescribePlaceIndex` (plus `CreatePlaceIndex` if not deploying the nested template first).
+Env overrides: `PSAP_PROSPECTS_TABLE`, `PSAP_PLACE_INDEX`, `AWS_REGION`. The place-index stack also creates managed policy `rapid-cortex-psap-enrichment-geo-{stage}` (Scan/Query/UpdateItem on the prospects table + `geo:SearchPlaceIndexFor*` / `DescribePlaceIndex` on that index). Attach it to the principal that runs the script. `rapid-cortex-deploy` already has Location create/search via `sam-deploy-policy.prod.json`. Do **not** attach this policy to AppSam5 Lambdas — they do not call Amazon Location.
 
 **Deploy IAM:** `rapid-cortex-deploy` needs Location (`geo:*`) actions — added to [`infra/iam/sam-deploy-policy.prod.json`](../../infra/iam/sam-deploy-policy.prod.json) as `PsapAddressEnrichmentLocation*`. Apply with an admin profile:
 

@@ -70,7 +70,14 @@ export function LiveVideoPanel({
     queryFn: () => fetchLiveVideoPlayback(incidentId!),
     staleTime: 10_000,
     refetchIntervalInBackground: false,
-    refetchInterval: (q) => (q.state.data?.status === "processing" ? 10_000 : false),
+    refetchInterval: (q) => {
+      const d = q.state.data;
+      if (d?.status === "processing") return 10_000;
+      if (d?.status === "ready" && !d.recordingDownloadUrl && (q.state.dataUpdateCount ?? 0) < 12) {
+        return 15_000;
+      }
+      return false;
+    },
   });
 
   const playback = playbackQuery.data;
@@ -251,9 +258,13 @@ export function LiveVideoPanel({
             {session.storageMode === "kvs-ingestion" ? (
               <span
                 className="rounded bg-amber-950/80 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-amber-100 ring-1 ring-amber-800/80"
-                title={session.channelMediaStorageAttached ? "Signaling channel mapped to Kinesis stream" : "Kinesis stream reserved; live path unchanged"}
+                title={
+                  session.channelMediaStorageAttached
+                    ? "Caller WebRTC is ingested to Kinesis Video Streams (JoinStorageSession)"
+                    : "Kinesis stream reserved; live path is peer-to-peer"
+                }
               >
-                {session.channelMediaStorageAttached ? "Cloud storage (ingest)" : "Recording stream reserved"}
+                {session.channelMediaStorageAttached ? "Cloud ingest on" : "Recording stream reserved"}
               </span>
             ) : null}
           </div>
@@ -276,24 +287,50 @@ export function LiveVideoPanel({
               <h4 className="text-[10px] font-semibold uppercase tracking-wide text-slate-500">Stored recording</h4>
               {playbackQuery.isLoading ? (
                 <p className="mt-1 text-[11px] text-slate-500">Loading playback…</p>
-              ) : playback?.status === "ready" && playback.hlsPlaybackUrl ? (
+              ) : playback?.status === "ready" && (playback.recordingDownloadUrl || playback.hlsPlaybackUrl) ? (
                 <div className="mt-2 space-y-2">
-                  <p className="text-[10px] text-slate-500">Short-lived HLS URL (refreshes from API).</p>
-                  <video
-                    key={playback.hlsUrlExpiresAt}
-                    src={playback.hlsPlaybackUrl}
-                    controls
-                    playsInline
-                    className="w-full max-h-48 rounded border border-slate-800 bg-black"
-                  />
-                  <a
-                    href={playback.hlsPlaybackUrl}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="inline-block text-[11px] text-sky-400 underline"
-                  >
-                    Open stream in new tab
-                  </a>
+                  {playback.recordingDownloadUrl ? (
+                    <>
+                      <p className="text-[10px] text-slate-500">Exported MP4 (agency-scoped; short-lived link).</p>
+                      <video
+                        key={playback.recordingDownloadExpiresAt ?? playback.recordingS3Key}
+                        src={playback.recordingDownloadUrl}
+                        controls
+                        playsInline
+                        className="w-full max-h-48 rounded border border-slate-800 bg-black"
+                      />
+                      <a
+                        href={playback.recordingDownloadUrl}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="inline-block text-[11px] text-sky-400 underline"
+                      >
+                        Download recording
+                      </a>
+                    </>
+                  ) : null}
+                  {!playback.recordingDownloadUrl && playback.hlsPlaybackUrl ? (
+                    <>
+                      <p className="text-[10px] text-slate-500">
+                        Short-lived HLS from Kinesis (file export still processing).
+                      </p>
+                      <video
+                        key={playback.hlsUrlExpiresAt}
+                        src={playback.hlsPlaybackUrl}
+                        controls
+                        playsInline
+                        className="w-full max-h-48 rounded border border-slate-800 bg-black"
+                      />
+                      <a
+                        href={playback.hlsPlaybackUrl}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="inline-block text-[11px] text-sky-400 underline"
+                      >
+                        Open stream in new tab
+                      </a>
+                    </>
+                  ) : null}
                 </div>
               ) : (
                 <p className="mt-1 text-[11px] text-slate-400">

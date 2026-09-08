@@ -182,7 +182,9 @@ export function CallAssistSetupWizard() {
     return <p className="p-6 text-sm text-rose-300">Only agency or platform administrators can configure Call Assist.</p>;
   }
 
-  const cad = CALL_ASSIST_CAD_WIZARD_OPTIONS.find((o) => o.id === state.cadOptionId) ?? CALL_ASSIST_CAD_WIZARD_OPTIONS[6];
+  const cad =
+    CALL_ASSIST_CAD_WIZARD_OPTIONS.find((o) => o.id === state.cadOptionId) ??
+    CALL_ASSIST_CAD_WIZARD_OPTIONS.find((o) => o.id === "none")!;
   const cadLabel = state.cadOptionId === "other" ? state.cadOtherLabel.trim() || "CAD" : cad.cadProviderLabel;
   const taxonomyPreview = presetTaxonomy(state.vertical);
 
@@ -200,7 +202,7 @@ export function CallAssistSetupWizard() {
         cadProviderId: cad.cadProviderId,
         cadProviderLabel: state.cadOptionId === "none" ? null : cadLabel,
       },
-      { externalTransferList: state.directory },
+      { externalTransferList: state.directory.filter((r) => r.name.trim() && (r.number.trim() || Boolean(r.sipUri?.trim()))) },
       { disclosureText: state.disclosureText.trim() },
       {
         retention: {
@@ -532,6 +534,7 @@ function DirectoryEditor({
         <div key={row.id} className="grid gap-2 rounded border border-slate-800 p-2 sm:grid-cols-3">
           <input
             className="rounded border border-slate-700 bg-slate-950 px-2 py-1 text-sm"
+            placeholder="Name"
             value={row.name}
             onChange={(e) => {
               const next = [...directory];
@@ -541,6 +544,7 @@ function DirectoryEditor({
           />
           <input
             className="rounded border border-slate-700 bg-slate-950 px-2 py-1 text-sm"
+            placeholder="PSTN number"
             value={row.number}
             onChange={(e) => {
               const next = [...directory];
@@ -551,6 +555,42 @@ function DirectoryEditor({
           <button type="button" className="text-[11px] text-rose-300" onClick={() => onChange(directory.filter((d) => d.id !== row.id))}>
             Remove
           </button>
+          <input
+            className="rounded border border-slate-700 bg-slate-950 px-2 py-1 font-mono text-sm"
+            placeholder="SIP URI (optional)"
+            value={row.sipUri ?? ""}
+            onChange={(e) => {
+              const next = [...directory];
+              next[i] = { ...row, sipUri: e.target.value || null };
+              onChange(next);
+            }}
+          />
+          <input
+            className="rounded border border-slate-700 bg-slate-950 px-2 py-1 text-sm sm:col-span-2"
+            placeholder="Accepted call types (comma-separated)"
+            value={(row.acceptedCallTypes ?? []).join(", ")}
+            onChange={(e) => {
+              const next = [...directory];
+              next[i] = {
+                ...row,
+                acceptedCallTypes: e.target.value
+                  .split(",")
+                  .map((s) => s.trim())
+                  .filter(Boolean),
+              };
+              onChange(next);
+            }}
+          />
+          <input
+            className="rounded border border-slate-700 bg-slate-950 px-2 py-1 font-mono text-sm sm:col-span-3"
+            placeholder="Fallback number"
+            value={row.fallbackNumber ?? ""}
+            onChange={(e) => {
+              const next = [...directory];
+              next[i] = { ...row, fallbackNumber: e.target.value || null };
+              onChange(next);
+            }}
+          />
         </div>
       ))}
       <button
@@ -559,7 +599,7 @@ function DirectoryEditor({
         onClick={() =>
           onChange([
             ...directory,
-            { id: `ext-${directory.length + 1}`, name: "", number: "", warmTransferScript: null },
+            { id: `ext-${directory.length + 1}`, name: "", number: "", sipUri: null, fallbackNumber: null, acceptedCallTypes: [], warmTransferScript: null },
           ])
         }
       >

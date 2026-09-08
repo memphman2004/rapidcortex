@@ -15,6 +15,7 @@ export type ReportStatus = (typeof REPORT_STATUSES)[number];
 export const RMS_PUSH_TARGETS = [
   "tyler-new-world",
   "mark43",
+  "motorola-records",
   "axon-records",
   "centralsquare",
 ] as const;

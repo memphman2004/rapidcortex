@@ -66,6 +66,17 @@ export function buildTransferPackage(input: {
       "Rapid Cortex Call Assist transfer.",
       `Classification: ${input.triage.primaryClassification}.`,
       input.intake.locationText ? `Location: ${input.intake.locationText}.` : "",
+      input.intake.apartmentSuite ? `Apt/suite: ${input.intake.apartmentSuite}.` : "",
+      input.intake.crossStreets ? `Cross streets: ${input.intake.crossStreets}.` : "",
+      input.intake.directionOfTravel ? `Direction of travel: ${input.intake.directionOfTravel}.` : "",
+      [input.intake.vehicleColor, input.intake.vehicleYear, input.intake.vehicleMake, input.intake.vehicleModel, input.intake.vehiclePlate]
+        .filter(Boolean)
+        .length
+        ? `Vehicle: ${[input.intake.vehicleColor, input.intake.vehicleYear, input.intake.vehicleMake, input.intake.vehicleModel, input.intake.vehiclePlate].filter(Boolean).join(" ")}.`
+        : "",
+      input.intake.suspectDescription ? `Suspect: ${input.intake.suspectDescription}.` : "",
+      input.intake.weaponsMentioned ? `Weapons: ${input.intake.weaponsDetail ?? "mentioned"}.` : "",
+      input.intake.injuries === true ? `Injuries: ${input.intake.injuriesDetail ?? "reported"}.` : "",
       input.intake.callbackNumber ? `Callback: ${input.intake.callbackNumber}.` : "",
       input.intake.summary ? `Summary: ${input.intake.summary}.` : `Caller said: ${transcriptSummary.slice(0, 280)}.`,
     ]

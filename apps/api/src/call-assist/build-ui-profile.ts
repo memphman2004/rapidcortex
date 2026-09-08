@@ -35,7 +35,7 @@ export async function loadCallAssistUiProfile(
     .map((row) => ({
       externalAgencyId: row.externalAgencyId,
       name: row.externalAgencyName,
-      number: row.phoneNumber,
+      number: row.phoneNumber?.trim() || row.sipUri?.trim() || "unconfigured",
     }));
 
   return buildCallAssistUiProfile({

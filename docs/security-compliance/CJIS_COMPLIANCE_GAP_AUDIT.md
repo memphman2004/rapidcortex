@@ -35,13 +35,13 @@ Rationale: core controls exist, but P0 blockers remain for CJIS-sensitive usage 
 | Secrets handling | PARTIAL | Secrets loaded via `apps/api/src/lib/runtimeSecrets.ts`; secret parameters in `infra/template.yaml` | Optional wildcard secrets access mode exists | Remove wildcard secrets mode outside local/dev | P0 |
 | Media/video/transcript protections | PARTIAL | Token-hash storage + presigned URL flows in `apps/api/src/services/mediaService.ts`; media repositories | No malware scanning pipeline evidence; lifecycle retention not complete | Add object scanning workflow + retention lifecycle controls | P0 |
 | Audit log redaction | PARTIAL | Redaction helper in `apps/api/src/lib/auditDisplay.ts` | Key-name-based redaction can miss sensitive free text | Add schema allowlist and sensitive field classifier | P1 |
-| Immutable logging / SIEM readiness | NOT FOUND | No in-repo CloudTrail immutable sink/IaC evidence | Cannot demonstrate tamper-evident retention from repo alone | Establish immutable audit export to locked store/SIEM and document controls | P0 |
-| CloudTrail coverage | NOT FOUND | No CloudTrail IaC in reviewed templates | Accountability and forensic baseline unverifiable | Configure org/account trails with log integrity and retention lock | P0 |
+| Immutable logging / SIEM readiness | PASS (repo) | `infra/nested/stack-app-sam.yaml` CloudTrail bucket: versioning, SSE, Object Lock COMPLIANCE 2555 days, log-file validation, Deny DeleteObject / BypassGovernanceRetention, TLS-only | Account must keep `EnableCloudTrail=true` on prod; collect trail ARN evidence after deploy | Validate deployed trail + lock in AWS | NEEDS AWS VALIDATION |
+| CloudTrail coverage | PASS (repo) | Multi-region trail `rapid-cortex-audit-{stage}` with management events; optional S3/Lambda data events | Data events default off (cost). Enable for CJI object-access forensics | Confirm `IsLogging` on the live account | NEEDS AWS VALIDATION |
 | CloudWatch retention posture | PARTIAL | `infra/template.yaml` includes explicit `RetentionInDays` for some log groups | Not guaranteed for all groups/functions/environments | Standardize retention per log class via IaC | P1 |
 | CJI-like data map | PARTIAL | Incident/transcript/media/silent-text flows in `apps/api/src/services/*`, repositories, AI prompts in `apps/api/src/ai/prompts.ts` | Data classification labels and handling tiers not fully enforced end-to-end | Add formal data classification matrix + policy-based controls in code | P0 |
 | AI provider data exposure | FAIL | `apps/api/src/ai/prompts.ts` sends full transcript + incident/agency IDs; providers in `apps/api/src/ai/providers/{openaiAdapter,anthropicAdapter,bedrockAdapter}.ts` | Sensitive content may flow to third-party AI services without enforced minimization/redaction | Implement pre-provider de-identification and agency provider policy gates | P0 |
 | STT/translation provider risk | PARTIAL | Multi-provider orchestration in `apps/api/src/voice/*`; provider factories include AWS/Google/Azure | Fallback can spread data across multiple providers; per-agency hard controls unclear | Add provider allowlists + single-provider high-sensitivity mode | P0 |
-| Retention/disposal | FAIL | `docs/TRANSCRIPT_RETENTION_POLICY.md`, `docs/PRIVACY_RETENTION_DECISIONS.md`, comments in `apps/api/src/lib/env.ts` indicate non-enforced transcript deletion | No fully enforced automated retention/deletion for core CJI-bearing records | Build retention executor + legal hold support + deletion audit events | P0 |
+| Retention/disposal | PASS (code) | `retentionExecutor.ts` purges incident/transcript/analysis/media with legal-hold skip + `deleteIfNotOnLegalHold`; Call Assist `callAssistRetention.ts` purges sessions with the same ConditionExpression; deletion audit events | Silent Text / some media classes still need AWS validation of TTL | Keep legal hold on before any purge | P1 |
 | DynamoDB TTL scope | PARTIAL | TTL for some tables (e.g., share/media paths) in `infra/template.yaml` | Core incident/transcript/analysis/audit retention controls incomplete | Expand retention policy implementation across all data stores | P0 |
 | WAF and rate limiting | PARTIAL | WAF resources + rate limit params in `infra/template.yaml`; guidance in `docs/PILOT_AWS_DEFENSE.md` | Enabled state per environment not guaranteed | Enforce WAF-on for pilot/prod in deployment policy checks | P1 |
 | Public bucket / edge config | NEEDS AWS VALIDATION | Empty-bucket and hosting state observed operationally; web hosting template exists | Runtime bucket policies/OAC/public access block posture unverifiable from repo snapshot | Validate CloudFront OAC + S3 BlockPublicAccess + access logs | NEEDS AWS VALIDATION |
@@ -55,14 +55,29 @@ Rationale: core controls exist, but P0 blockers remain for CJIS-sensitive usage 
 | Vulnerability/dependency scanning | PARTIAL | Recommended gates in `docs/deployment-infrastructure/CI_RELEASE_PIPELINE.md` (CI owned outside repo) | Dedicated SAST/DAST/dependency scanning integration not clearly present | Add CodeQL/SCA scanning and policy gating in your pipeline | P0 |
 | Vendor/policy/contract readiness | PARTIAL | Governance docs (`docs/PILOT_GOVERNANCE.md`, `docs/SALES_BOUNDARIES.md`, `docs/PILOT_READINESS_CHECKLIST.md`) | Executed legal artifacts and personnel controls are not code-verifiable | Complete CJIS Security Addendum, agency contracts, training/background workflows | P0 |
 
+## Closed engineering findings (2026-09-08)
+
+The following items named as production blockers are implemented in repo. **This is not FBI CJIS certification.**
+
+| Finding | Evidence |
+| --- | --- |
+| CloudTrail immutability | `CloudTrailLogsBucket` Object Lock COMPLIANCE 2555d, versioning, `EnableLogFileValidation`, Deny DeleteObject / insecure transport in `infra/nested/stack-app-sam.yaml` |
+| Retention on core CJI types | Daily `retentionExecutor` (incident, transcript, analysis, media) + Call Assist session retention; both skip `legalHold=true` |
+| Legal-hold-proof deletion | Dynamo `ConditionExpression` on incident and Call Assist session deletes; TTL `expiresAt` omitted while held |
+| AI subprocessor documentation | [SUBPROCESSOR_LIST.md](./SUBPROCESSOR_LIST.md) current as of 2026-09-08 (Connect, Lex, Bedrock, Transcribe, Translate, optional non-AWS providers off unless ARNs set) |
+
+Remaining before a CJIS-sensitive agency onboard: executed CJIS Security Addendum, personnel screening, AWS account validation of the trail, and agency-signed residual-risk acceptance.
+
 ## Top 10 CJIS Blockers
 
-1. No verifiable immutable audit/forensic logging baseline in repo (CloudTrail + locked retention not evidenced).
-2. Retention/deletion for transcript/incident/analysis data is not fully enforceable by code today.
-3. AI pipeline sends sensitive transcript context and identifiers without mandatory minimization/redaction.
-4. Web security hardening lacks explicit CSP and full header baseline.
-5. CSRF protections are not explicitly enforced beyond SameSite cookies.
-6. Optional insecure runtime mode (`ALLOW_UNAUTHENTICATED_API`) is warning-only outside dev.
+Engineering findings named in the production P0 list (CloudTrail immutability, retention/deletion with legal hold, AI subprocessors) are implemented in repo — see **Closed engineering findings** above. Remaining blockers are AWS account validation, contracts, and residual product controls:
+
+1. **AWS validation:** confirm the deployed CloudTrail `IsLogging=true`, Object Lock COMPLIANCE, and destination bucket deny-delete (not certifiable from git alone).
+2. **Contracts / personnel:** executed CJIS Security Addendum, screening, and agency residual-risk acceptance before CJI onboarding.
+3. AI pipeline sends sensitive transcript context and identifiers without mandatory minimization/redaction (mitigated by `sanitizeForProvider` + AWS-only allowlist; residual risk).
+4. Web security hardening CSP/headers — implemented in Next.js; confirm production CloudFront forwards them.
+5. CSRF protections beyond SameSite — origin checks exist for cookie-auth writes; confirm coverage of all BFF mutations.
+6. Optional insecure runtime mode (`ALLOW_UNAUTHENTICATED_API`) is fail-closed outside local/dev.
 7. IAM and secrets policies include broad/wildcard options that are not least-privilege CJIS posture.
 8. Public/media/tokenized endpoints need stronger abuse-control test coverage and validation evidence.
 9. Environment-level controls (WAF enabled, CORS strictness, encryption/KMS posture) require AWS verification.

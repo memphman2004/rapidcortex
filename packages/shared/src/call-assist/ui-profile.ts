@@ -23,6 +23,8 @@ export const CAD_PROVIDER_UI_LABELS: Record<CadProviderId, string | null> = {
   mark43: "Mark43",
   "hexagon-intergraph": "Hexagon",
   versaterm: "Versaterm",
+  centralsquare: "CentralSquare",
+  zetron: "Zetron",
 };
 
 export type CallAssistVerticalLabels = {
@@ -208,7 +210,14 @@ export function formatRetentionPolicyLabel(policy: RetentionPolicy | null | unde
 
 export function mapCallAssistMonitorState(state: string): CallAssistMonitorState {
   if (state === "TRANSFERRING_911") return "transfer_911";
-  if (state === "TRANSFERRING_EXTERNAL" || state === "TRANSFERRING_HUMAN") return "external";
+  if (
+    state === "TRANSFERRING_EXTERNAL" ||
+    state === "TRANSFERRING_HUMAN" ||
+    state === "CALLBACK_IN_PROGRESS" ||
+    state === "CALLBACK_QUEUED"
+  ) {
+    return "external";
+  }
   if (state === "COMPLETED" || state === "FAILED" || state === "SURVEY") return "done";
   return "ai_active";
 }
@@ -274,17 +283,26 @@ export function callAssistIntakeRows(
   const type = data.incidentTypeHint?.trim() || humanizeCallAssistToken(classification);
   const injuries =
     data.injuries === true ? "Yes" : data.injuries === false ? "No" : "Unknown";
-  const vehicle = [data.vehicleColor, data.vehicleMake, data.vehicleModel, data.vehiclePlate]
+  const vehicle = [data.vehicleColor, data.vehicleYear, data.vehicleMake, data.vehicleModel, data.vehiclePlate]
     .filter(Boolean)
     .join(" ");
-  const lang = data.language?.trim() || "—";
+  const locParts = [data.locationText, data.apartmentSuite ? `Apt ${data.apartmentSuite}` : "", data.crossStreets]
+    .filter(Boolean)
+    .join(" · ");
+  const weapons =
+    data.weaponsMentioned === true ? data.weaponsDetail || "Yes" : data.weaponsMentioned === false ? "No" : "Unknown";
+  const lang = (data.preferredLanguage ?? data.language)?.trim() || "—";
+  const zone = [data.zoneName, data.jurisdictionLabel].filter(Boolean).join(" · ");
+  const addrConf =
+    typeof data.addressConfidence === "number" ? `${Math.round(data.addressConfidence * 100)}%` : "—";
 
   if (vertical === "campus") {
     return [
       { key: "type", label: "Concern type", value: type },
       { key: "loc", label: "Location", value: data.locationText?.trim() || "—" },
       { key: "medical", label: "Medical needed", value: injuries, alert: data.injuries === true },
-      { key: "lang", label: "Language", value: lang },
+      { key: "lang", label: "Preferred language", value: lang },
+      { key: "zone", label: "Zone", value: zone || "—" },
     ];
   }
   if (vertical === "venue") {
@@ -294,12 +312,16 @@ export function callAssistIntakeRows(
       { key: "desc", label: "Description", value: data.suspectDescription?.trim() || data.summary?.trim() || "—" },
       { key: "medical", label: "Medical needed", value: injuries, alert: data.injuries === true },
       { key: "contact", label: "Guest contact", value: data.callbackNumber?.trim() || data.callerName?.trim() || "—" },
+      { key: "lang", label: "Preferred language", value: lang },
     ];
   }
   return [
     { key: "type", label: "Incident type", value: type },
-    { key: "loc", label: "Location", value: data.locationText?.trim() || "—" },
+    { key: "loc", label: "Location", value: locParts || "—" },
+    { key: "dir", label: "Direction of travel", value: data.directionOfTravel?.trim() || "—" },
     { key: "injuries", label: "Injuries reported", value: injuries, alert: data.injuries === true },
+    { key: "weapons", label: "Weapons", value: weapons, alert: data.weaponsMentioned === true },
+    { key: "suspect", label: "Suspect", value: data.suspectDescription?.trim() || "—" },
     { key: "vehicle", label: "Vehicle", value: vehicle || "—" },
     {
       key: "callback",
@@ -308,8 +330,42 @@ export function callAssistIntakeRows(
         ? formatMaskedAni(data.callbackNumber.replace(/\D/g, "").slice(-4))
         : `${CALL_ASSIST_VERTICAL_LABELS[vertical].callerIdLabel} on record`,
     },
-    { key: "lang", label: "Language", value: lang },
+    { key: "lang", label: "Preferred language", value: lang },
+    { key: "zone", label: "Zone", value: zone || "—" },
+    { key: "addrConf", label: "Address confidence", value: addrConf },
   ];
+}
+
+export const CAD_PRIORITY_LABELS: Record<1 | 2 | 3 | 4, string> = {
+  1: "1 — Emergency",
+  2: "2 — Urgent",
+  3: "3 — Routine",
+  4: "4 — Low",
+};
+
+export type CallAssistCadClassification = {
+  typeLabel: string;
+  natureCode: string;
+  priority: 1 | 2 | 3 | 4;
+};
+
+export function resolveCallAssistCadClassification(opts: {
+  classification?: string | null;
+  taxonomyLabel?: string | null;
+  natureCode?: string | null;
+  mappedNature?: string | null;
+  priority?: number | null;
+}): CallAssistCadClassification {
+  const emergency = opts.classification === "EMERGENCY";
+  const nature =
+    opts.natureCode?.trim() ||
+    opts.mappedNature?.trim() ||
+    humanizeCallAssistToken(opts.classification);
+  const typeLabel = opts.taxonomyLabel?.trim() || humanizeCallAssistToken(opts.classification);
+  const raw = opts.priority;
+  const priority: 1 | 2 | 3 | 4 =
+    raw === 1 || raw === 2 || raw === 3 || raw === 4 ? raw : emergency ? 1 : 3;
+  return { typeLabel, natureCode: nature, priority };
 }
 
 export type CallAssistCadReviewField = { k: string; v: string; highlight?: boolean };
@@ -317,17 +373,20 @@ export type CallAssistCadReviewField = { k: string; v: string; highlight?: boole
 export function callAssistCadReviewFields(opts: {
   classification?: string | null;
   natureCode?: string | null;
+  mappedNature?: string | null;
+  taxonomyLabel?: string | null;
+  priority?: number | null;
   location?: string | null;
   callerId: string;
   callerIdLabel?: string;
   locationLabel?: string;
 }): CallAssistCadReviewField[] {
-  const emergency = opts.classification === "EMERGENCY";
-  const nature = opts.natureCode?.trim() || humanizeCallAssistToken(opts.classification);
+  const cad = resolveCallAssistCadClassification(opts);
   return [
-    { k: "Nature code", v: nature },
+    { k: "CAD type", v: cad.typeLabel },
+    { k: "Nature code", v: cad.natureCode },
     { k: opts.locationLabel?.trim() || "Location", v: opts.location?.trim() || "—" },
-    { k: "Priority", v: emergency ? "1 — Emergency" : "Non-emergency", highlight: emergency },
+    { k: "Priority", v: CAD_PRIORITY_LABELS[cad.priority], highlight: cad.priority === 1 },
     { k: opts.callerIdLabel?.trim() || "Caller", v: opts.callerId },
   ];
 }
@@ -341,6 +400,8 @@ export function callAssistFlagChips(opts: {
   repeatCaller?: boolean;
   ttyMode?: boolean;
   language?: string | null;
+  duplicateCount?: number;
+  smsFallbackRecommended?: boolean;
 }): CallAssistFlagChip[] {
   const labels = CALL_ASSIST_VERTICAL_LABELS[opts.vertical];
   const chips: CallAssistFlagChip[] = [];
@@ -353,8 +414,12 @@ export function callAssistFlagChips(opts: {
     }
   }
   if (opts.chronicLocation) chips.push({ tone: "w", text: "Repeat location" });
+  if ((opts.duplicateCount ?? 0) > 0) {
+    chips.push({ tone: "w", text: `${opts.duplicateCount} possible duplicate${opts.duplicateCount === 1 ? "" : "s"}` });
+  }
   if (opts.repeatCaller) chips.push({ tone: "w", text: "Repeat caller" });
   chips.push({ tone: "i", text: opts.ttyMode ? "TTY detected" : "TTY not detected" });
+  if (opts.smsFallbackRecommended) chips.push({ tone: "i", text: "TTY SMS fallback" });
   const lang = opts.language?.trim().toLowerCase();
   if (lang && lang !== "en" && lang !== "und" && lang !== "english") {
     chips.push({ tone: "i", text: "Translation available" });

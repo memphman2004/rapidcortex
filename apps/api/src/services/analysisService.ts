@@ -53,7 +53,7 @@ export class AnalysisService {
     user: UserContext,
     ctx: AnalysisTriggerContext = { triggerType: "manual" },
   ): Promise<AIAnalysis> {
-    const cfg = getAiRuntimeConfig();
+    let cfg = getAiRuntimeConfig();
     const incident = await incidentRepo.get(incidentId);
     if (!incident || incident.agencyId !== user.agencyId) {
       throw new Error("FORBIDDEN");
@@ -160,7 +160,18 @@ export class AnalysisService {
       incidentId,
       agencyId: user.agencyId,
       transcript,
+      systemPrompt: undefined as string | undefined,
     };
+    if (env.callAssistTable) {
+      try {
+        const { resolveDispatchTriagePrompt } = await import("../call-assist/prompt-cms.js");
+        const pack = await resolveDispatchTriagePrompt(user.agencyId);
+        input.systemPrompt = pack.body;
+        if (pack.versionLabel) cfg = { ...cfg, promptVersion: pack.versionLabel };
+      } catch {
+        // Call Assist CMS is optional on analysis Lambdas without CALL_ASSIST_TABLE.
+      }
+    }
 
     try {
       const orch = await runAiAnalysisOrchestrator(input, { config: cfg });

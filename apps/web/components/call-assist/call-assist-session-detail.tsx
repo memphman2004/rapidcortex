@@ -9,10 +9,13 @@ import {
   callAssistEmergencyAlertTitle,
   callAssistFlagChips,
   callAssistIntakeRows,
+  callTakerConfidenceRows,
+  confidenceActionLabel,
   formatElapsedMs,
   humanizeCallAssistToken,
   mapCallAssistMonitorState,
   shortCallAssistSessionId,
+  type CallAssistTransferLedgerEntry,
   type CallAssistUiProfile,
 } from "rapid-cortex-shared";
 import { isApiConfigured } from "@/lib/api";
@@ -20,13 +23,16 @@ import { useCallAssistConfig } from "@/contexts/call-assist-config-context";
 import { useJurisdictionLink } from "@/lib/jurisdiction-context";
 import {
   getCallAssistSession,
+  getCallAssistSessionTransfers,
   postCallAssistCadPush,
   postCallAssistTransfer,
+  postCallAssistTransferOutcome,
 } from "@/lib/call-assist/call-assist-api";
 import { isCallAssistEnabled } from "@/lib/runtime-flags";
 import { CadPushBlock } from "./cad-push-block";
 import { ExternalTransferDirectory } from "./external-transfer-directory";
 import { CallAssistChrome, CallAssistWave } from "./call-assist-chrome";
+import { CallAssistCampaignActions } from "./call-assist-campaign-actions";
 
 type SessionDto = {
   sessionId: string;
@@ -39,10 +45,36 @@ type SessionDto = {
   nextQuestion?: string;
   cadPushStatus?: string;
   cadIncidentId?: string;
+  lastConfidence?: number;
+  confidenceAction?: string;
+  confidenceSource?: string;
+  qaLowConfidence?: boolean;
+  intentConfidence?: number;
+  classificationConfidence?: number;
+  locationConfidence?: number;
+  routingConfidence?: number;
+  cadNatureCode?: string;
+  cadPriority?: 1 | 2 | 3 | 4;
+  cadTypeLabel?: string;
+  smsFallbackRecommended?: boolean;
+  ttySmsScript?: string;
+  premiseHazards?: Array<{ code?: string; summary?: string; officerSafety?: boolean }>;
+  duplicateCadIds?: string[];
+  chronicLocation?: boolean;
+  repeatCaller?: boolean;
+  knowledgeHit?: boolean;
+  bargeInCount?: number;
   intake?: {
     locationText?: string;
+    apartmentSuite?: string;
+    crossStreets?: string;
+    directionOfTravel?: string;
     incidentTypeHint?: string;
     injuries?: boolean;
+    injuriesDetail?: string;
+    weaponsMentioned?: boolean;
+    weaponsDetail?: string;
+    vehicleYear?: string;
     vehicleMake?: string;
     vehicleModel?: string;
     vehicleColor?: string;
@@ -51,10 +83,24 @@ type SessionDto = {
     callbackNumber?: string;
     callerName?: string;
     language?: string;
+    preferredLanguage?: string;
+    addressConfidence?: number;
+    zoneId?: string;
+    zoneName?: string;
+    jurisdictionMatch?: boolean;
+    jurisdictionLabel?: string;
     summary?: string;
+    locationSource?: string;
   };
-  triage?: { primaryClassification?: string };
-  utterances?: Array<{ sequence: number; speaker: string; text: string }>;
+  triage?: { primaryClassification?: string; confidence?: number };
+  rmsDraftStatus?: string;
+  rmsReportNumber?: string;
+  callback?: { status?: string; phoneE164?: string; lastError?: string; attempts?: unknown[] };
+  smsSelfService?: { status?: string; portalUrl?: string; lastError?: string };
+  lastTransferOutcome?: string;
+  sentiment?: { label?: string; scores?: { negative?: number }; source?: string };
+  voiceEmotion?: { label?: string; distressLevel?: string; escalateToEmergency?: boolean; source?: string };
+  utterances?: Array<{ sequence: number; speaker: string; text: string; speakerId?: string }>;
 };
 
 type HandoffDto = {
@@ -80,6 +126,12 @@ export function CallAssistSessionDetail({ sessionId }: { sessionId: string }) {
     queryKey: ["call-assist-session", sessionId, agencyId],
     queryFn: () => getCallAssistSession(sessionId, requestAgencyId),
     refetchInterval: 3000,
+    enabled,
+  });
+  const transfersQuery = useQuery({
+    queryKey: ["call-assist-session-transfers", sessionId, agencyId],
+    queryFn: () => getCallAssistSessionTransfers(sessionId, requestAgencyId),
+    refetchInterval: 5000,
     enabled,
   });
 
@@ -121,6 +173,17 @@ export function CallAssistSessionDetail({ sessionId }: { sessionId: string }) {
     onError: (err) => setActionMsg(err instanceof Error ? err.message : "Transfer failed"),
   });
 
+  const transferOutcome = useMutation({
+    mutationFn: (outcome: "ANSWERED" | "FAILED" | "NO_ANSWER" | "FALLBACK" | "COMPLETED") =>
+      postCallAssistTransferOutcome(sessionId, { outcome }, requestAgencyId),
+    onSuccess: (_data, outcome) => {
+      setActionMsg(`Transfer outcome recorded: ${outcome}.`);
+      void qc.invalidateQueries({ queryKey: ["call-assist-session", sessionId] });
+      void qc.invalidateQueries({ queryKey: ["call-assist-session-transfers", sessionId] });
+    },
+    onError: (err) => setActionMsg(err instanceof Error ? err.message : "Outcome update failed"),
+  });
+
   const elapsed = useMemo(() => {
     const created = session?.createdAt ? Date.parse(session.createdAt) : NaN;
     if (!Number.isFinite(created)) return "—";
@@ -156,6 +219,14 @@ export function CallAssistSessionDetail({ sessionId }: { sessionId: string }) {
           cadPending={cadPush.isPending}
           onExternal={(name) => extTransfer.mutate(name)}
           extPending={extTransfer.isPending}
+          transfers={transfersQuery.data?.items ?? []}
+          onTransferOutcome={(outcome) => transferOutcome.mutate(outcome)}
+          outcomePending={transferOutcome.isPending}
+          agencyId={requestAgencyId}
+          onCampaignMsg={(m) => {
+            setActionMsg(m);
+            void qc.invalidateQueries({ queryKey: ["call-assist-session", sessionId] });
+          }}
         />
       )}
     </div>
@@ -178,6 +249,11 @@ function SessionBody({
   cadPending,
   onExternal,
   extPending,
+  transfers,
+  onTransferOutcome,
+  outcomePending,
+  agencyId,
+  onCampaignMsg,
 }: {
   profile: CallAssistUiProfile;
   session: SessionDto;
@@ -194,6 +270,11 @@ function SessionBody({
   cadPending: boolean;
   onExternal: (name: string) => void;
   extPending: boolean;
+  transfers: CallAssistTransferLedgerEntry[];
+  onTransferOutcome: (outcome: "ANSWERED" | "FAILED" | "NO_ANSWER" | "FALLBACK" | "COMPLETED") => void;
+  outcomePending: boolean;
+  agencyId?: string | null;
+  onCampaignMsg: (msg: string) => void;
 }) {
   const classification = session.triage?.primaryClassification;
   const type =
@@ -209,7 +290,9 @@ function SessionBody({
     "";
   const cadFields = callAssistCadReviewFields({
     classification,
-    natureCode: classification ? profile.cadNatureMapping[classification] : undefined,
+    natureCode: session.cadNatureCode ?? (classification ? profile.cadNatureMapping[classification] : undefined),
+    taxonomyLabel: session.cadTypeLabel,
+    priority: session.cadPriority,
     location: session.intake?.locationText,
     callerId: cid,
     callerIdLabel: profile.callerIdLabel,
@@ -218,14 +301,25 @@ function SessionBody({
   const intakeRows = callAssistIntakeRows(profile.vertical, session.intake, classification);
   const flags = callAssistFlagChips({
     vertical: profile.vertical,
-    premiseHazards: handoff?.premiseHazards,
-    chronicLocation: handoff?.chronicLocation,
-    repeatCaller: handoff?.repeatCaller,
+    premiseHazards: handoff?.premiseHazards ?? session.premiseHazards,
+    chronicLocation: handoff?.chronicLocation ?? session.chronicLocation,
+    repeatCaller: handoff?.repeatCaller ?? session.repeatCaller,
     ttyMode: handoff?.ttyMode ?? session.ttyMode,
-    language: handoff?.language ?? session.language ?? session.intake?.language,
+    language: handoff?.language ?? session.language ?? session.intake?.preferredLanguage ?? session.intake?.language,
+    duplicateCount: session.duplicateCadIds?.length,
+    smsFallbackRecommended: session.smsFallbackRecommended,
+  });
+  const confidenceRows = callTakerConfidenceRows({
+    intentScore: session.intentConfidence ?? session.lastConfidence ?? session.triage?.confidence,
+    classificationScore: session.classificationConfidence ?? session.triage?.confidence,
+    addressConfidence: session.locationConfidence ?? session.intake?.addressConfidence,
+    locationSource: session.intake?.locationSource,
+    locationText: session.intake?.locationText,
+    routingDestinationType: undefined,
+    classification,
   });
   const alertTitle = callAssistEmergencyAlertTitle(profile.vertical, profile.alertPickupLine);
-  const showCad = Boolean(isTr && profile.cadProvider);
+  const showCad = Boolean(profile.cadProvider);
   const showDir = Boolean(isTr && !profile.cadProvider);
 
   return (
@@ -241,6 +335,50 @@ function SessionBody({
           <span className={`rounded px-2 py-0.5 text-[11px] font-semibold ${isTr ? "bg-rose-500/15 text-rose-300" : "bg-sky-500/15 text-sky-400"}`}>
             {isTr ? profile.escalationLabel : "AI handling"}
           </span>
+          {session.lastConfidence != null || session.triage?.confidence != null ? (
+            <span
+              className={`rounded px-2 py-0.5 text-[11px] font-mono ${
+                session.qaLowConfidence || session.confidenceAction === "escalate_human"
+                  ? "bg-amber-500/15 text-amber-300"
+                  : "bg-slate-800 text-slate-300"
+              }`}
+            >
+              NLU {(session.lastConfidence ?? session.triage?.confidence ?? 0).toFixed(2)}
+            </span>
+          ) : null}
+          {session.knowledgeHit === false ? (
+            <span className="rounded px-2 py-0.5 text-[11px] text-amber-300">Ungrounded</span>
+          ) : null}
+          {session.sentiment?.label ? (
+            <span
+              className={`rounded px-2 py-0.5 text-[11px] ${
+                session.sentiment.label === "NEGATIVE" ? "bg-amber-500/15 text-amber-300" : "bg-slate-800 text-slate-300"
+              }`}
+            >
+              Sentiment {session.sentiment.label.toLowerCase()}
+            </span>
+          ) : null}
+          {session.voiceEmotion?.label ? (
+            <span
+              className={`rounded px-2 py-0.5 text-[11px] ${
+                session.voiceEmotion.escalateToEmergency || session.voiceEmotion.distressLevel === "CRITICAL"
+                  ? "bg-rose-500/15 text-rose-300"
+                  : session.voiceEmotion.distressLevel === "HIGH"
+                    ? "bg-amber-500/15 text-amber-300"
+                    : "bg-slate-800 text-slate-300"
+              }`}
+            >
+              {session.voiceEmotion.label.toLowerCase()}
+              {session.voiceEmotion.distressLevel && session.voiceEmotion.distressLevel !== "NONE"
+                ? ` · ${session.voiceEmotion.distressLevel.toLowerCase()}`
+                : ""}
+            </span>
+          ) : null}
+          {session.lastTransferOutcome ? (
+            <span className="rounded px-2 py-0.5 text-[11px] text-slate-300">
+              Transfer {session.lastTransferOutcome.replaceAll("_", " ").toLowerCase()}
+            </span>
+          ) : null}
           <span className="font-mono text-[13px] text-slate-400">{elapsed}</span>
         </div>
       </div>
@@ -297,11 +435,23 @@ function SessionBody({
           fields={cadFields}
           lastStatus={session.cadPushStatus}
           cadIncidentId={session.cadIncidentId}
-          canPush={profile.capabilities.cadPush}
+          canPush={profile.capabilities.cadPush && isTr}
           pending={cadPending}
           onPush={onCadPush}
         />
-      ) : null}
+      ) : (
+        <div className="mb-3 overflow-hidden rounded-lg border border-slate-800">
+          <div className="border-b border-slate-800 px-3 py-2 text-[11px] text-slate-400">Recommended CAD classification</div>
+          <div className="px-3 py-2">
+            {cadFields.map((f) => (
+              <div key={f.k} className="flex justify-between gap-3 border-b border-slate-800 py-1.5 last:border-0">
+                <span className="text-[11px] text-slate-500">{f.k}</span>
+                <span className={`text-[12px] font-medium ${f.highlight ? "text-rose-300" : "text-slate-200"}`}>{f.v}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {showDir ? (
         <ExternalTransferDirectory
@@ -318,6 +468,47 @@ function SessionBody({
 
       {actionMsg ? <p className="mb-3 text-[12px] text-amber-300">{actionMsg}</p> : null}
 
+      {transfers.length || profile.capabilities.forceTransfer ? (
+        <div className="mb-3 overflow-hidden rounded-lg border border-slate-800">
+          <div className="border-b border-slate-800 px-3 py-2 text-[11px] text-slate-400">Transfer outcome ledger</div>
+          <div className="px-3 py-2">
+            {transfers.length === 0 ? (
+              <p className="text-[11px] text-slate-500">No transfer attempts yet.</p>
+            ) : (
+              <ul className="space-y-1 text-[12px] text-slate-300">
+                {transfers.map((row) => (
+                  <li key={row.ledgerId} className="flex flex-wrap justify-between gap-2 border-b border-slate-800 py-1 last:border-0">
+                    <span>
+                      #{row.attempt} {row.destinationDisplay} · {row.channel} · {row.outcome.replaceAll("_", " ")}
+                    </span>
+                    <span className="text-[11px] text-slate-500">
+                      {row.failureReason ?? row.fallbackTo ?? ""}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            )}
+            {profile.capabilities.forceTransfer ? (
+              <div className="mt-2 flex flex-wrap gap-1">
+                {(["ANSWERED", "NO_ANSWER", "FAILED", "FALLBACK", "COMPLETED"] as const).map((outcome) => (
+                  <button
+                    key={outcome}
+                    type="button"
+                    className="rounded border border-slate-700 px-2 py-0.5 text-[10px] text-slate-300"
+                    disabled={outcomePending}
+                    onClick={() => onTransferOutcome(outcome)}
+                  >
+                    {outcome.replaceAll("_", " ")}
+                  </button>
+                ))}
+              </div>
+            ) : null}
+          </div>
+        </div>
+      ) : null}
+
+      <CallAssistCampaignActions session={session} agencyId={agencyId} onDone={onCampaignMsg} />
+
       <div className="grid gap-3 lg:grid-cols-2">
         <div className="overflow-hidden rounded-lg border border-slate-800">
           <div className="flex items-center justify-between border-b border-slate-800 px-3 py-2 text-[11px] text-slate-400">
@@ -327,8 +518,8 @@ function SessionBody({
           <div className="space-y-3 px-3 py-3">
             {(session.utterances ?? []).map((u) => (
               <div key={u.sequence}>
-                <p className={`text-[9px] font-semibold uppercase tracking-wide ${u.speaker === "assistant" || u.speaker === "system" ? "text-sky-400" : "text-slate-400"}`}>
-                  {u.speaker === "assistant" || u.speaker === "system" ? "Rapid Cortex" : "Caller"}
+                <p className={`text-[9px] font-semibold uppercase tracking-wide ${u.speaker === "assistant" || u.speaker === "system" ? "text-sky-400" : u.speaker === "other" ? "text-violet-300" : "text-slate-400"}`}>
+                  {utteranceSpeakerLabel(u)}
                 </p>
                 <p className="text-[12px] leading-relaxed text-slate-200">{u.text}</p>
               </div>
@@ -375,6 +566,43 @@ function SessionBody({
               ))}
             </div>
           </div>
+          <div className="overflow-hidden rounded-lg border border-slate-800">
+            <div className="border-b border-slate-800 px-3 py-2 text-[11px] text-slate-400">Confidence</div>
+            <div className="px-3 py-2">
+              {confidenceRows.map((row) => (
+                <div key={row.id} className="flex justify-between gap-3 border-b border-slate-800 py-1.5 last:border-0">
+                  <span className="text-[11px] text-slate-500">{row.label}</span>
+                  <span
+                    className={`font-mono text-[12px] ${
+                      row.action === "escalate_human"
+                        ? "text-amber-300"
+                        : row.action === "continue_review"
+                          ? "text-sky-300"
+                          : "text-slate-200"
+                    }`}
+                  >
+                    {row.score.toFixed(2)} · {confidenceActionLabel(row.action)}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
+          {(session.duplicateCadIds?.length ?? 0) > 0 ? (
+            <div className="overflow-hidden rounded-lg border border-slate-800">
+              <div className="border-b border-slate-800 px-3 py-2 text-[11px] text-slate-400">Possible duplicates</div>
+              <ul className="space-y-1 px-3 py-2 font-mono text-[11px] text-slate-300">
+                {session.duplicateCadIds?.map((id) => (
+                  <li key={id}>{id}</li>
+                ))}
+              </ul>
+            </div>
+          ) : null}
+          {session.ttySmsScript ? (
+            <div className="overflow-hidden rounded-lg border border-slate-800">
+              <div className="border-b border-slate-800 px-3 py-2 text-[11px] text-slate-400">TTY / SMS script</div>
+              <p className="px-3 py-2 font-mono text-[11px] leading-relaxed text-slate-200">{session.ttySmsScript}</p>
+            </div>
+          ) : null}
         </div>
       </div>
 
@@ -392,4 +620,10 @@ function SessionBody({
       ) : null}
     </>
   );
+}
+
+function utteranceSpeakerLabel(u: { speaker: string; speakerId?: string }): string {
+  if (u.speaker === "assistant" || u.speaker === "system") return "Rapid Cortex";
+  if (u.speaker === "other") return u.speakerId ? `Speaker ${u.speakerId}` : "Other speaker";
+  return u.speakerId && u.speakerId !== "spk_caller" ? `Caller (${u.speakerId})` : "Caller";
 }

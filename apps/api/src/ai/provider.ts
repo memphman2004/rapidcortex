@@ -5,6 +5,7 @@ export interface AnalysisInput {
   incidentId: string;
   agencyId: string;
   transcript: TranscriptSegment[];
+  systemPrompt?: string;
 }
 
 /** Validated triage fields before persistence metadata is attached. */

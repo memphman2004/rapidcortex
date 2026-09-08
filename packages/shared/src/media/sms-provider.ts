@@ -17,6 +17,7 @@ export const smsMessageTypeSchema = z.enum([
   "pinpoint_location",
   "silent_text",
   "sms_location",
+  "call_assist_self_service",
 ]);
 export type SmsMessageType = z.infer<typeof smsMessageTypeSchema>;
 

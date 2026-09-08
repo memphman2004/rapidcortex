@@ -29,7 +29,10 @@ import {
   createStorageStreamForSession,
   deleteVideoStream,
   enableStorageForChannel,
+  enqueueRecordingExport,
+  exportSessionClipToS3,
   getPlaybackInfo,
+  presignRecordingDownload,
 } from "./kvsStorageService.js";
 import { sendIncidentMediaLinkSms } from "./sms/smsProviderFactory.js";
 
@@ -121,10 +124,62 @@ function readIceServers(): { urls: string | string[]; username?: string; credent
 
 async function cleanupKinesisLiveVideoResources(session: {
   signalingChannelArn?: string | null;
-  kvsVideoStreamArn?: string | null;
 }): Promise<void> {
+  // Keep the Kinesis **video** stream: fragments live for LIVE_VIDEO_KVS_DATA_RETENTION_HOURS
+  // and may be exported to S3. Deleting the stream on hang-up discarded recordings.
   await deleteKinesisSignalingChannel(session.signalingChannelArn);
-  await deleteVideoStream(session.kvsVideoStreamArn);
+}
+
+async function scheduleRecordingExport(sessionId: string): Promise<void> {
+  try {
+    await enqueueRecordingExport(sessionId);
+  } catch {
+    // Playback GET retries GetClip if the async worker is missing or delayed.
+  }
+}
+
+async function maybeExportRecording(session: LiveVideoSession): Promise<LiveVideoSession> {
+  if (!env.liveVideoExportToS3) return session;
+  if (session.recordingS3Key) {
+    await deleteVideoStream(session.kvsVideoStreamArn);
+    return session;
+  }
+  if (session.storageMode !== "kvs-ingestion" || !session.kvsVideoStreamName) return session;
+  const startIso = session.activatedAt ?? session.createdAt;
+  const endIso = session.endedAt ?? nowIso();
+  const exported = await exportSessionClipToS3({
+    agencyId: session.agencyId,
+    incidentId: session.incidentId,
+    sessionId: session.sessionId,
+    streamName: session.kvsVideoStreamName,
+    startIso,
+    endIso,
+  });
+  if (exported.ok) {
+    await deleteVideoStream(session.kvsVideoStreamArn);
+    const next = await repo.mergeSession({
+      sessionId: session.sessionId,
+      recordingS3Key: exported.key,
+      recordingExportedAt: nowIso(),
+      recordingExportErrorCode: undefined,
+    });
+    await auditRepo.create({
+      eventId: makeId("audit"),
+      agencyId: session.agencyId,
+      incidentId: session.incidentId,
+      actorId: "system",
+      type: AUDIT_EVENT_TYPES.LIVE_VIDEO_RECORDING_EXPORTED ?? "live_video.recording.exported",
+      details: { sessionId: session.sessionId, objectKey: exported.key },
+      createdAt: nowIso(),
+      resourceType: "incident",
+      resourceId: session.incidentId,
+    });
+    return next;
+  }
+  return repo.mergeSession({
+    sessionId: session.sessionId,
+    recordingExportErrorCode: exported.errorCode,
+  });
 }
 
 export class LiveVideoService {
@@ -320,12 +375,13 @@ export class LiveVideoService {
     if (!session) throw new Error("NOT_FOUND");
     if (Date.parse(session.expiresAt) < Date.now() && session.status !== "ended") {
       await cleanupKinesisLiveVideoResources(session);
-      await repo.endSession({
+      const expired = await repo.endSession({
         sessionId: session.sessionId,
         endedAt: nowIso(),
         endedBy: "system",
         endReason: "timeout",
       });
+      await scheduleRecordingExport(expired.sessionId);
       await auditRepo.create({
         eventId: makeId("audit"),
         agencyId: session.agencyId,
@@ -360,8 +416,9 @@ export class LiveVideoService {
       kvsVideoStreamName: session.kvsVideoStreamName,
       storageConfiguredAt: session.storageConfiguredAt,
       playbackReadyAt: session.playbackReadyAt,
+      recordingS3Key: session.recordingS3Key,
       iceServers: readIceServers(),
-    } satisfies GetLiveSessionResponse;
+    } as GetLiveSessionResponse;
     if (!isKvsSession(session) || (session.status !== "pending" && session.status !== "active")) {
       return base;
     }
@@ -370,6 +427,7 @@ export class LiveVideoService {
       sessionId: session.sessionId,
       role: "VIEWER",
       viewerClientId: session.kinesisViewerClientId!,
+      mediaStorageEnabled: Boolean(session.channelMediaStorageAttached),
     });
     if (!session.kvsDispatcherJoinAudited) {
       await repo.mergeSession({ sessionId: session.sessionId, kvsDispatcherJoinAudited: true });
@@ -434,6 +492,7 @@ export class LiveVideoService {
         channelArn: session.signalingChannelArn!,
         sessionId: session.sessionId,
         role: "MASTER",
+        mediaStorageEnabled: Boolean(session.channelMediaStorageAttached),
       });
     }
     return toJoinResponse(latest, "caller", readIceServers(), kvs);
@@ -452,6 +511,7 @@ export class LiveVideoService {
         endReason: "manual",
       });
       await cleanupKinesisLiveVideoResources(ended);
+      await scheduleRecordingExport(ended.sessionId);
       await auditRepo.create({
         eventId: makeId("audit"),
         agencyId: ended.agencyId,
@@ -497,6 +557,7 @@ export class LiveVideoService {
         endReason: "manual",
       });
       await cleanupKinesisLiveVideoResources(ended);
+      await scheduleRecordingExport(ended.sessionId);
       await auditRepo.create({
         eventId: makeId("audit"),
         agencyId: ended.agencyId,
@@ -565,27 +626,42 @@ export class LiveVideoService {
     const incident = TenantAccessGuard.assertIncidentAccess(await incidentRepo.get(incidentId), user);
     const session = await repo.getByIncidentId(incident.agencyId, incidentId);
     if (!session) throw new Error("NOT_FOUND");
+    const latest = await maybeExportRecording(session);
+    const download = latest.recordingS3Key ? await presignRecordingDownload(latest.recordingS3Key) : null;
     const out = await getPlaybackInfo({
-      sessionId: session.sessionId,
+      sessionId: latest.sessionId,
       incidentId,
-      storageMode: session.storageMode ?? "off",
-      streamName: session.kvsVideoStreamName,
-      streamArn: session.kvsVideoStreamArn,
+      storageMode: latest.storageMode ?? "off",
+      streamName: latest.kvsVideoStreamName,
+      streamArn: latest.kvsVideoStreamArn,
+      recordingS3Key: latest.recordingS3Key,
+      recordingDownloadUrl: download?.url,
+      recordingDownloadExpiresAt: download?.expiresAt,
     });
-    if (out.status === "ready" && !session.playbackReadyAt) {
-      await repo.mergeSession({ sessionId: session.sessionId, playbackReadyAt: nowIso() });
+    if (out.status === "ready" && !latest.playbackReadyAt) {
+      await repo.mergeSession({ sessionId: latest.sessionId, playbackReadyAt: nowIso() });
     }
     await auditRepo.create({
       eventId: makeId("audit"),
-      agencyId: session.agencyId,
+      agencyId: latest.agencyId,
       incidentId,
       actorId: user.userId,
       type: AUDIT_EVENT_TYPES.LIVE_VIDEO_PLAYBACK_ACCESSED,
-      details: { sessionId: session.sessionId, playbackStatus: out.status },
+      details: { sessionId: latest.sessionId, playbackStatus: out.status },
       createdAt: nowIso(),
       resourceType: "incident",
       resourceId: incidentId,
     });
     return out;
+  }
+
+  /** Trusted worker path — no HTTP caller. Agency scope is the session row. */
+  async exportRecordingBySessionId(sessionId: string): Promise<{ ok: boolean; errorCode?: string }> {
+    assertConfigured();
+    const session = await repo.getBySessionId(sessionId);
+    if (!session) return { ok: false, errorCode: "NOT_FOUND" };
+    const next = await maybeExportRecording(session);
+    if (next.recordingS3Key) return { ok: true };
+    return { ok: false, errorCode: next.recordingExportErrorCode ?? "EXPORT_PENDING" };
   }
 }

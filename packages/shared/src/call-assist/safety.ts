@@ -16,7 +16,8 @@ export type SafetyTriggerId =
   | "IN_PROGRESS_CRIME"
   | "SELF_HARM_IMMINENT"
   | "CALLER_SAYS_EMERGENCY"
-  | "DISTRESS_KEYWORD";
+  | "DISTRESS_KEYWORD"
+  | "VOICE_DISTRESS";
 
 export type SafetyDecision = {
   classification: "EMERGENCY" | "CONTINUE";

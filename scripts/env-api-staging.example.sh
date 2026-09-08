@@ -111,6 +111,15 @@ export CALL_ASSIST_LEX_MOCK=true
 # export CALL_ASSIST_SEED_PROFILE=kcpd
 # export CALL_ASSIST_SEED_AGENCY_ID=kcpd
 export NEXT_PUBLIC_ENABLE_CALL_ASSIST="${NEXT_PUBLIC_ENABLE_CALL_ASSIST:-1}"
+export ENABLE_CAD_BRIDGE=true
+export CAD_BRIDGE_MOCK=true
+export NEXT_PUBLIC_ENABLE_CAD_BRIDGE="${NEXT_PUBLIC_ENABLE_CAD_BRIDGE:-1}"
+# Per-agency CAD API keys and webhook signing secrets (create before enabling a bridge):
+#   rapid-cortex/cad-bridge/{agencyId}/cad-a-api-key
+#   rapid-cortex/cad-bridge/{agencyId}/cad-b-api-key
+#   (rc-cad-bridge/{agencyId}/... is also allowed)
+# On-prem CAD over VPN: deploy.sh --vpc with CAD_BRIDGE_VPC_ID, CAD_BRIDGE_VPC_SUBNET_IDS,
+# CAD_BRIDGE_VPC_SECURITY_GROUP_ID. Lambdas need NAT or VPC endpoints for SQS and Secrets Manager.
 export ENABLE_VERTICAL_ALERTS=true
 export NEXT_PUBLIC_ENABLE_VERTICAL_ALERTS="${NEXT_PUBLIC_ENABLE_VERTICAL_ALERTS:-1}"
 export ENABLE_PHYSICAL_SECURITY_INGEST=true

@@ -28,6 +28,7 @@ Use alongside [AGENCY_ONBOARDING_RUNBOOK.md](./AGENCY_ONBOARDING_RUNBOOK.md). Ch
 - [ ] `NEXT_PUBLIC_OFFLINE_DEMO_MODE` **not** set on pilot web host unless sandbox-only (R).
 - [ ] CORS origins correct for pilot web origin (R).
 - [ ] Integration status endpoint healthy for admin test user (R).
+- [ ] **ANI/ALI source confirmed:** Rapid Cortex resolves ANI automatically from the Connect contact flow. ALI (caller location) must be written into Connect contact attributes (`callerAddress`, `callerCity`, `callerState`) by the agency's CPE, ALI database feed, or RapidSOS integration before go-live. Rapid Cortex does not operate a SIP switch or carrier ALI database. Confirm ALI source and test with a sample call before dispatcher training (A/IT).
 
 ## D. Provisioning (R or agency admin)
 

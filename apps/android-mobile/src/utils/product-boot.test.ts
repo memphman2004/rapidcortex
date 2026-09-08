@@ -42,4 +42,23 @@ describe('authenticatedProductHref', () => {
       }),
     ).toBe('/(venue)');
   });
+
+  it('routes Field Command when the role is a dispatch workspace role', () => {
+    expect(
+      authenticatedProductHref({
+        isAuthenticated: true,
+        productPath: 'command',
+        role: 'dispatcher',
+        safeSoundPublic: false,
+      }),
+    ).toBe('/(command)');
+    expect(
+      authenticatedProductHref({
+        isAuthenticated: true,
+        productPath: 'command',
+        role: 'VENUE_OPERATOR',
+        safeSoundPublic: false,
+      }),
+    ).toBeNull();
+  });
 });

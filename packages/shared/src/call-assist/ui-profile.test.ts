@@ -107,21 +107,45 @@ describe("Call Assist UI profile", () => {
   it("maps session states and classification badges", () => {
     expect(mapCallAssistMonitorState("TRANSFERRING_911")).toBe("transfer_911");
     expect(mapCallAssistMonitorState("INTAKE")).toBe("ai_active");
+    expect(mapCallAssistMonitorState("CALLBACK_QUEUED")).toBe("external");
+    expect(mapCallAssistMonitorState("CALLBACK_IN_PROGRESS")).toBe("external");
     expect(mapCallAssistClassBadge("EMERGENCY")).toBe("EMERGENCY");
     expect(mapCallAssistClassBadge("INFORMATION_REQUEST")).toBe("SELF_SERVICE");
     expect(mapCallAssistClassBadge("NOISE_COMPLAINT")).toBe("NON_EMERGENCY");
   });
 
   it("labels intake by vertical and CAD review without vendor-specific nature invention", () => {
-    const rows = callAssistIntakeRows("911", { locationText: "Main St", injuries: true }, "EMERGENCY");
+    const rows = callAssistIntakeRows(
+      "911",
+      {
+        locationText: "Main St",
+        apartmentSuite: "2A",
+        crossStreets: "Main and Oak",
+        directionOfTravel: "north",
+        injuries: true,
+        weaponsMentioned: true,
+        weaponsDetail: "knife",
+        suspectDescription: "male in a hoodie",
+        vehicleMake: "Honda",
+        vehicleModel: "Civic",
+        vehicleColor: "white",
+        vehiclePlate: "XYZ999",
+      },
+      "EMERGENCY",
+    );
     expect(rows.find((r) => r.key === "injuries")?.alert).toBe(true);
+    expect(rows.find((r) => r.key === "loc")?.value).toMatch(/2A/);
+    expect(rows.find((r) => r.key === "dir")?.value).toBe("north");
+    expect(rows.find((r) => r.key === "weapons")?.value).toMatch(/knife/i);
+    expect(rows.find((r) => r.key === "vehicle")?.value).toMatch(/Honda/);
     const cad = callAssistCadReviewFields({
       classification: "EMERGENCY",
       natureCode: "ACC-PI",
       location: "I-70",
       callerId: "●●●● 3390",
     });
-    expect(cad[0]?.v).toBe("ACC-PI");
+    expect(cad.find((f) => f.k === "Nature code")?.v).toBe("ACC-PI");
+    expect(cad.find((f) => f.k === "CAD type")?.v).toBe("Emergency");
     expect(cad.find((f) => f.k === "Priority")?.highlight).toBe(true);
   });
 

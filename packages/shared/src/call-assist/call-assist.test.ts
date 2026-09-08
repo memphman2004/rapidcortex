@@ -2,15 +2,15 @@ import { describe, expect, it } from "vitest";
 import { evaluateSafety, isImmutableEmergency } from "./safety.js";
 import { classifyCallTriage } from "./triage.js";
 import { recommendRoute } from "./routing.js";
-import { extractIntakeFields } from "./intake.js";
+import { extractIntakeFields, mergeIntakeFromLexSlots, intakeCompleteness } from "./intake.js";
 import { evaluateCarfaxEligibility } from "./carfax.js";
 import { nextIntakeQuestion } from "./questioning.js";
 import { KCPD_RFP_DEMO_SCENARIOS, getDemoScenarioById } from "./demo-scenarios.js";
 import { kcpdExternalAgencySeed } from "./kcpd-tenant-seed.js";
-import { isRetentionDue, MISSOURI_SUNSHINE_RETENTION_POLICY } from "./retention.js";
+import { isRetentionDue, MISSOURI_SUNSHINE_RETENTION_POLICY, planCallAssistRetentionActions } from "./retention.js";
 import { detectCallAssistLanguage } from "./language.js";
 import { callerRequestedHuman } from "./human-request.js";
-import { detectTtyMode } from "./tty.js";
+import { detectTtyMode, formatTtySms } from "./tty.js";
 import { assertGroundedReply } from "./grounding.js";
 import { CALL_ASSIST_BID_LINE_MATRIX } from "./bid-matrix.js";
 
@@ -77,6 +77,73 @@ describe("intake, CARFAX, questioning", () => {
     expect(intake.locationText?.toLowerCase()).toContain("1200 main");
     expect(intake.vehiclePlate).toBe("ABC123");
     expect(intake.vehicleMake?.toLowerCase()).toBe("ford");
+    expect(intake.vehicleColor?.toLowerCase()).toBe("white");
+  });
+
+  it("stores apartment, cross streets, direction, vehicle set, suspect, weapons, and injuries", () => {
+    const intake = extractIntakeFields(
+      "Suspicious person at 4200 Oak Street apartment 3B heading north, white Honda Civic plate XYZ999, young male in a hoodie, he has a knife, someone is bleeding",
+    );
+    expect(intake.apartmentSuite).toBe("3B");
+    expect(intake.directionOfTravel).toBe("north");
+    expect(intake.vehicleMake?.toLowerCase()).toBe("honda");
+    expect(intake.vehicleModel?.toLowerCase()).toBe("civic");
+    expect(intake.vehicleColor?.toLowerCase()).toBe("white");
+    expect(intake.vehiclePlate).toBe("XYZ999");
+    expect(intake.suspectDescription?.toLowerCase()).toMatch(/male/);
+    expect(intake.weaponsMentioned).toBe(true);
+    expect(intake.weaponsDetail?.toLowerCase()).toBe("knife");
+    expect(intake.injuries).toBe(true);
+    expect(intake.crossStreets).toBeUndefined();
+  });
+
+  it("extracts cross streets from intersection phrasing", () => {
+    const intake = extractIntakeFields("It's at the corner of Oak and Main Street");
+    expect(intake.crossStreets?.toLowerCase()).toMatch(/oak/);
+  });
+
+  it("maps Lex slots onto structured intake fields", () => {
+    const intake = mergeIntakeFromLexSlots(
+      {
+        NoiseLocation: "4200 Main",
+        AptBusiness: "3B",
+        CrossStreets: "Main and Oak",
+        VehicleMake: "Honda",
+        VehicleModel: "Civic",
+        VehicleColor: "white",
+        VehiclePlate: "xyz999",
+        PersonDescription: "male in a hoodie",
+        PersonDirection: "north",
+        WeaponVisible: "Yes",
+        AccidentInjuries: "Yes",
+      },
+      {},
+    );
+    expect(intake.locationText).toBe("4200 Main");
+    expect(intake.apartmentSuite).toBe("3B");
+    expect(intake.crossStreets).toBe("Main and Oak");
+    expect(intake.vehicleMake).toBe("Honda");
+    expect(intake.vehicleModel).toBe("Civic");
+    expect(intake.vehicleColor).toBe("white");
+    expect(intake.vehiclePlate).toBe("XYZ999");
+    expect(intake.suspectDescription).toMatch(/hoodie/);
+    expect(intake.directionOfTravel).toBe("north");
+    expect(intake.weaponsMentioned).toBe(true);
+    expect(intake.injuries).toBe(true);
+    expect(intakeCompleteness(intake).filled).toEqual(
+      expect.arrayContaining([
+        "locationText",
+        "apartmentSuite",
+        "crossStreets",
+        "vehicleMake",
+        "vehicleModel",
+        "vehicleColor",
+        "vehiclePlate",
+        "suspectDescription",
+        "weaponsMentioned",
+        "injuries",
+      ]),
+    );
   });
 
   it("CARFAX is eligible only when historical vehicle crime with no injury", () => {
@@ -132,6 +199,7 @@ describe("retention, language, TTY, grounding", () => {
     const d = detectTtyMode({ connectAttributes: { MediaDetection: "TTY" } });
     expect(d.ttyMode).toBe(true);
     expect(d.smsFallbackRecommended).toBe(true);
+    expect(formatTtySms("<speak>What is the address?</speak>")).toBe("WHAT IS THE ADDRESS?");
   });
 
   it("blocks ungrounded medical advice", () => {
@@ -142,11 +210,51 @@ describe("retention, language, TTY, grounding", () => {
     });
     expect(g.allowed).toBe(false);
   });
+
+  it("blocks information answers when the knowledge base was not queried or missed", () => {
+    const g = assertGroundedReply({
+      proposedText: "The records window is 8 to 5.",
+      knowledgeHit: false,
+      isEmergencyTransfer: false,
+      requiresKnowledge: true,
+    });
+    expect(g.allowed).toBe(false);
+    expect(g.reason).toBe("no_knowledge_base_hit");
+  });
 });
 
 describe("bid matrix", () => {
   it("covers 26 bid lines including deleted line 12", () => {
     expect(CALL_ASSIST_BID_LINE_MATRIX).toHaveLength(26);
     expect(CALL_ASSIST_BID_LINE_MATRIX.map((r) => r.line)).toEqual([...Array(26).keys()].map((n) => n + 1));
+  });
+});
+
+describe("Call Assist retention by data type", () => {
+  it("plans transcript redaction before full session delete", () => {
+    const plan = planCallAssistRetentionActions({
+      createdAtIso: "2020-01-01T00:00:00.000Z",
+      policy: {
+        audioRetentionDays: 1,
+        transcriptRetentionDays: 1,
+        intakeDataRetentionDays: 3650,
+        analyticsRetentionDays: 1,
+      },
+      legalHold: false,
+      nowMs: Date.parse("2020-01-10T00:00:00.000Z"),
+    });
+    expect(plan.redactTranscript).toBe(true);
+    expect(plan.deleteSession).toBe(false);
+    expect(plan.deleteSurvey).toBe(true);
+  });
+
+  it("skips purge on legal hold", () => {
+    const plan = planCallAssistRetentionActions({
+      createdAtIso: "2000-01-01T00:00:00.000Z",
+      policy: MISSOURI_SUNSHINE_RETENTION_POLICY,
+      legalHold: true,
+    });
+    expect(plan.deleteSession).toBe(false);
+    expect(plan.redactTranscript).toBe(false);
   });
 });

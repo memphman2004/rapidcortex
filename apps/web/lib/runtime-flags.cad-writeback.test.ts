@@ -28,6 +28,13 @@ describe("runtime feature flags", () => {
     expect(isCadWritebackUiEnabled()).toBe(true);
   });
 
+  it("defaults CAD Bridge admin on when unset", async () => {
+    vi.stubEnv("NEXT_PUBLIC_ENABLE_PILOT_TEST_MODE", "0");
+    vi.stubEnv("NEXT_PUBLIC_ENABLE_CAD_BRIDGE", "");
+    const { isCadBridgeUiEnabled } = await import("./runtime-flags");
+    expect(isCadBridgeUiEnabled()).toBe(true);
+  });
+
   it("honors explicit disable for operational flags", async () => {
     vi.stubEnv("NEXT_PUBLIC_ENABLE_REPORTS", "0");
     const { isReportsEnabled } = await import("./runtime-flags");
@@ -39,5 +46,12 @@ describe("runtime feature flags", () => {
     vi.stubEnv("NEXT_PUBLIC_ENABLE_LIVE_STT", "");
     const { isLiveSttCaptureEnabled } = await import("./runtime-flags");
     expect(isLiveSttCaptureEnabled()).toBe(true);
+  });
+
+  it("defaults live video UI on when unset", async () => {
+    vi.stubEnv("NEXT_PUBLIC_ENABLE_PILOT_TEST_MODE", "0");
+    vi.stubEnv("NEXT_PUBLIC_ENABLE_LIVE_VIDEO", "");
+    const { isLiveVideoEnabled } = await import("./runtime-flags");
+    expect(isLiveVideoEnabled()).toBe(true);
   });
 });

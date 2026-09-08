@@ -18,17 +18,22 @@ import { useSession } from "@/components/auth/session-context";
 import { CallAssistChrome } from "@/components/call-assist/call-assist-chrome";
 import { useCallAssistConfig } from "@/contexts/call-assist-config-context";
 import { isApiConfigured } from "@/lib/api";
-import { canAdminCallAssist } from "@/lib/call-assist/access";
+import { canAdminCallAssist, canManageCallAssistPrompts } from "@/lib/call-assist/access";
 import {
   getCallAssistConfig,
   getCallAssistExternalAgencies,
   patchCallAssistConfig,
+  listCallAssistKnowledge,
+  upsertCallAssistKnowledge,
+  deleteCallAssistKnowledge,
+  type CallAssistKnowledgeArticleDto,
 } from "@/lib/call-assist/call-assist-api";
 import { useJurisdictionLink } from "@/lib/jurisdiction-context";
 import Link from "next/link";
 import { isCallAssistEnabled } from "@/lib/runtime-flags";
+import { CallAssistPromptCms } from "./call-assist-prompt-cms";
 
-type Tab = "settings" | "types" | "demos";
+type Tab = "settings" | "types" | "knowledge" | "demos" | "prompts";
 
 const DAY_LABELS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
@@ -68,6 +73,7 @@ export function CallAssistAdminEditor() {
   const { requestAgencyId, agencyId, ready, runtime, refresh } = useCallAssistConfig();
   const to = useJurisdictionLink();
   const allowed = canAdminCallAssist(user?.role);
+  const canPrompts = canManageCallAssistPrompts(user?.role);
   const enabled = Boolean(user && isApiConfigured() && isCallAssistEnabled() && allowed && ready);
   const [tab, setTab] = useState<Tab>("settings");
   const [msg, setMsg] = useState<string | null>(null);
@@ -85,6 +91,13 @@ export function CallAssistAdminEditor() {
   const [governingLaw, setGoverningLaw] = useState<string | null>(null);
   const [allDay, setAllDay] = useState<boolean | null>(null);
   const [hoursDays, setHoursDays] = useState<HoursDay[] | null>(null);
+  const [tenantCity, setTenantCity] = useState<string | null>(null);
+  const [tenantState, setTenantState] = useState<string | null>(null);
+  const [gisZonesText, setGisZonesText] = useState<string | null>(null);
+  const [callbackEnabled, setCallbackEnabled] = useState<boolean | null>(null);
+  const [callbackMax, setCallbackMax] = useState<number | null>(null);
+  const [callbackRetry, setCallbackRetry] = useState<number | null>(null);
+  const [smsEnabled, setSmsEnabled] = useState<boolean | null>(null);
 
   const configQuery = useQuery({
     queryKey: ["call-assist-config", agencyId],
@@ -133,12 +146,20 @@ export function CallAssistAdminEditor() {
         externalAgencyId: string;
         externalAgencyName: string;
         phoneNumber: string;
+        sipUri?: string;
+        acceptedCallTypes?: string[];
+        fallbackPhoneNumber?: string;
+        afterHoursMessage?: string;
         callerExperienceScript?: string;
       };
       return {
         id: r.externalAgencyId,
         name: r.externalAgencyName,
-        number: r.phoneNumber,
+        number: r.phoneNumber ?? "",
+        sipUri: r.sipUri ?? null,
+        acceptedCallTypes: r.acceptedCallTypes ?? [],
+        fallbackNumber: r.fallbackPhoneNumber ?? null,
+        afterHoursMessage: r.afterHoursMessage ?? null,
         warmTransferScript: r.callerExperienceScript ?? null,
       };
     });
@@ -172,14 +193,22 @@ export function CallAssistAdminEditor() {
         </Link>
       </div>
       <div className="flex gap-2 text-[12px]">
-        {(["settings", "types", "demos"] as const).map((t) => (
+        {(["settings", "types", "knowledge", "demos", "prompts"] as const).map((t) => (
           <button
             key={t}
             type="button"
             className={`rounded px-2 py-1 ${tab === t ? "bg-sky-500/15 text-sky-300" : "text-slate-400"}`}
             onClick={() => setTab(t)}
           >
-            {t === "settings" ? "Settings" : t === "types" ? "Call types" : "Demo scenarios"}
+            {t === "settings"
+              ? "Settings"
+              : t === "types"
+                ? "Call types"
+                : t === "knowledge"
+                  ? "Knowledge"
+                  : t === "demos"
+                    ? "Demo scenarios"
+                    : "Prompts"}
           </button>
         ))}
       </div>
@@ -275,7 +304,9 @@ export function CallAssistAdminEditor() {
               className="mt-2 rounded bg-sky-700 px-3 py-1 text-[12px] text-white"
               onClick={() =>
                 save.mutate({
-                  externalTransferList: mappedDirectory.filter((r) => r.name.trim() && r.number.trim()),
+                  externalTransferList: mappedDirectory.filter(
+                    (r) => r.name.trim() && (r.number.trim() || Boolean(r.sipUri?.trim())),
+                  ),
                 })
               }
             >
@@ -284,23 +315,27 @@ export function CallAssistAdminEditor() {
           </section>
           <section className="rounded-lg border border-slate-800 p-4 lg:col-span-2">
             <h2 className="text-sm font-semibold text-white">Confidence thresholds</h2>
-            <p className="mt-1 text-[12px] text-slate-500">Below this score, the AI transfers to a human.</p>
+            <p className="mt-1 text-[12px] text-slate-500">
+              Agency control plane. Below escalate, the AI auto-transfers to a person. Between escalate and
+              self-service, intake continues with human review. Self-service is required to close without a
+              person. Emergency is the floor to treat a taxonomy emergency match as 911.
+            </p>
             <ThresholdSlider
-              label="Emergency"
+              label="Emergency (911 match floor)"
               value={emergency ?? Number(thresh.emergency ?? 0.7)}
               min={0.5}
               max={0.9}
               onChange={setEmergency}
             />
             <ThresholdSlider
-              label="Escalation"
+              label="Escalate to a person"
               value={escalate ?? Number(thresh.escalate ?? 0.55)}
               min={0.4}
               max={0.8}
               onChange={setEscalate}
             />
             <ThresholdSlider
-              label="Self-service"
+              label="Self-service close"
               value={selfService ?? Number(thresh.selfService ?? 0.8)}
               min={0.6}
               max={0.95}
@@ -377,6 +412,69 @@ export function CallAssistAdminEditor() {
             </button>
           </section>
           <section className="rounded-lg border border-slate-800 p-4">
+            <h2 className="text-sm font-semibold text-white">Callback campaign & SMS</h2>
+            <p className="mt-1 text-[12px] text-slate-500">
+              After-hours and overflow callbacks queue for the worker. Live PSTN outbound stays mock until Connect
+              outbound is configured. SMS uses Twilio/SNS when those secrets are present; otherwise it mocks.
+            </p>
+            <label className="mt-2 flex items-center gap-2 text-sm text-slate-200">
+              <input
+                type="checkbox"
+                checked={callbackEnabled ?? Boolean((config.callback as { enabled?: boolean } | undefined)?.enabled ?? true)}
+                onChange={(e) => setCallbackEnabled(e.target.checked)}
+              />
+              Enable callback offers
+            </label>
+            <label className="mt-2 flex items-center gap-2 text-sm text-slate-200">
+              <input
+                type="checkbox"
+                checked={smsEnabled ?? config.selfServiceSmsEnabled !== false}
+                onChange={(e) => setSmsEnabled(e.target.checked)}
+              />
+              Enable SMS self-service links
+            </label>
+            <label className="mt-2 block text-[12px] text-slate-400">
+              Max attempts
+              <input
+                type="number"
+                min={1}
+                max={10}
+                className="mt-1 w-full rounded border border-slate-700 bg-slate-950 px-2 py-1.5 text-sm text-slate-100"
+                value={callbackMax ?? Number((config.callback as { maxAttempts?: number } | undefined)?.maxAttempts ?? 3)}
+                onChange={(e) => setCallbackMax(Number(e.target.value))}
+              />
+            </label>
+            <label className="mt-2 block text-[12px] text-slate-400">
+              Retry minutes
+              <input
+                type="number"
+                min={1}
+                max={240}
+                className="mt-1 w-full rounded border border-slate-700 bg-slate-950 px-2 py-1.5 text-sm text-slate-100"
+                value={callbackRetry ?? Number((config.callback as { retryMinutes?: number } | undefined)?.retryMinutes ?? 15)}
+                onChange={(e) => setCallbackRetry(Number(e.target.value))}
+              />
+            </label>
+            <button
+              type="button"
+              className="mt-2 rounded bg-sky-700 px-3 py-1 text-[12px] text-white"
+              onClick={() =>
+                save.mutate({
+                  selfServiceSmsEnabled: smsEnabled ?? config.selfServiceSmsEnabled !== false,
+                  callback: {
+                    enabled: callbackEnabled ?? true,
+                    maxAttempts: callbackMax ?? 3,
+                    retryMinutes: callbackRetry ?? 15,
+                    offerAfterHours: true,
+                    offerOnOverflow: true,
+                  },
+                })
+              }
+            >
+              Save callback / SMS
+            </button>
+          </section>
+          <section className="rounded-lg border border-slate-800 p-4">
             <h2 className="text-sm font-semibold text-white">Operating hours</h2>
             <label className="mt-2 flex items-center gap-2 text-sm text-slate-200">
               <input
@@ -450,6 +548,52 @@ export function CallAssistAdminEditor() {
               Save hours
             </button>
           </section>
+          <section className="rounded-lg border border-slate-800 p-4 lg:col-span-2">
+            <h2 className="text-sm font-semibold text-white">Jurisdiction / GIS</h2>
+            <p className="mt-1 text-[11px] text-slate-500">
+              City and state hint PSAP polygon routing. Zones are GeoJSON-like rings of [lng, lat].
+            </p>
+            <div className="mt-2 grid gap-2 sm:grid-cols-2">
+              <input
+                className="rounded border border-slate-700 bg-slate-950 px-2 py-1.5 text-sm"
+                defaultValue={String(config.tenantCity ?? "")}
+                onChange={(e) => setTenantCity(e.target.value)}
+                placeholder="Tenant city"
+              />
+              <input
+                className="rounded border border-slate-700 bg-slate-950 px-2 py-1.5 text-sm"
+                defaultValue={String(config.tenantState ?? "")}
+                onChange={(e) => setTenantState(e.target.value)}
+                placeholder="Tenant state"
+              />
+            </div>
+            <textarea
+              className="mt-2 h-28 w-full rounded border border-slate-700 bg-slate-950 px-2 py-1.5 font-mono text-[11px]"
+              defaultValue={
+                gisZonesText ??
+                JSON.stringify((config.gisZones as unknown) ?? [], null, 2)
+              }
+              onChange={(e) => setGisZonesText(e.target.value)}
+            />
+            <button
+              type="button"
+              className="mt-2 rounded bg-sky-700 px-3 py-1 text-[12px] text-white"
+              onClick={() => {
+                try {
+                  const parsed = JSON.parse(gisZonesText ?? JSON.stringify(config.gisZones ?? []));
+                  save.mutate({
+                    tenantCity: tenantCity ?? config.tenantCity,
+                    tenantState: tenantState ?? config.tenantState,
+                    gisZones: parsed,
+                  });
+                } catch {
+                  setMsg("GIS zones must be valid JSON");
+                }
+              }}
+            >
+              Save GIS
+            </button>
+          </section>
         </div>
       ) : null}
 
@@ -461,6 +605,10 @@ export function CallAssistAdminEditor() {
         />
       ) : null}
 
+      {tab === "knowledge" ? (
+        <KnowledgeAdmin agencyId={requestAgencyId} enabled={enabled} />
+      ) : null}
+
       {tab === "demos" ? (
         <DemoScenariosEditor
           vertical={(taxonomy.vertical ?? "911") as CallAssistTaxonomyVertical}
@@ -468,6 +616,14 @@ export function CallAssistAdminEditor() {
           onSave={(demos) => save.mutate({ demoScenarios: demos })}
           pending={save.isPending}
         />
+      ) : null}
+
+      {tab === "prompts" ? (
+        canPrompts ? (
+          <CallAssistPromptCms />
+        ) : (
+          <p className="text-sm text-rose-300">Prompt CMS is limited to agency administrators.</p>
+        )
       ) : null}
     </div>
   );
@@ -533,6 +689,42 @@ function DirectoryEditor({
               onChange(next);
             }}
           />
+          <input
+            className="rounded border border-slate-700 bg-slate-950 px-2 py-1 font-mono text-sm"
+            value={row.sipUri ?? ""}
+            placeholder="SIP URI (optional)"
+            onChange={(e) => {
+              const next = [...rows];
+              next[i] = { ...row, sipUri: e.target.value || null };
+              onChange(next);
+            }}
+          />
+          <input
+            className="rounded border border-slate-700 bg-slate-950 px-2 py-1 font-mono text-sm md:col-span-2"
+            value={(row.acceptedCallTypes ?? []).join(", ")}
+            placeholder="Accepted call types (comma-separated)"
+            onChange={(e) => {
+              const next = [...rows];
+              next[i] = {
+                ...row,
+                acceptedCallTypes: e.target.value
+                  .split(",")
+                  .map((s) => s.trim())
+                  .filter(Boolean),
+              };
+              onChange(next);
+            }}
+          />
+          <input
+            className="rounded border border-slate-700 bg-slate-950 px-2 py-1 font-mono text-sm"
+            value={row.fallbackNumber ?? ""}
+            placeholder="Fallback number"
+            onChange={(e) => {
+              const next = [...rows];
+              next[i] = { ...row, fallbackNumber: e.target.value || null };
+              onChange(next);
+            }}
+          />
           <button
             type="button"
             className="text-left text-[11px] text-rose-300"
@@ -550,8 +742,19 @@ function DirectoryEditor({
               onChange(next);
             }}
           />
+          <textarea
+            className="h-12 rounded border border-slate-700 bg-slate-950 px-2 py-1 text-sm md:col-span-3"
+            placeholder="After-hours message (used when hours are closed and policy is message)"
+            value={row.afterHoursMessage ?? ""}
+            onChange={(e) => {
+              const next = [...rows];
+              next[i] = { ...row, afterHoursMessage: e.target.value || null };
+              onChange(next);
+            }}
+          />
           <p className="text-[11px] italic text-slate-500 md:col-span-3">
-            Preview: “{row.warmTransferScript?.trim() || `I'm transferring you to ${row.name || "this team"} now.`}”
+            Runtime requires PSTN or SIP plus accepted call types. Transfer failure without a fallback number routes
+            to a human call taker. Incomplete destinations never place a live SIP/PSTN transfer.
           </p>
         </div>
       ))}
@@ -565,6 +768,10 @@ function DirectoryEditor({
               id: `ext-${Date.now()}`,
               name: "",
               number: "",
+              sipUri: null,
+              fallbackNumber: null,
+              acceptedCallTypes: [],
+              afterHoursMessage: null,
               warmTransferScript: null,
             },
           ])
@@ -848,6 +1055,163 @@ function DemoScenariosEditor({
       >
         Save scenarios
       </button>
+    </div>
+  );
+}
+
+function KnowledgeAdmin({ agencyId, enabled }: { agencyId?: string | null; enabled: boolean }) {
+  const [title, setTitle] = useState("");
+  const [body, setBody] = useState("");
+  const [source, setSource] = useState("");
+  const [sourceType, setSourceType] = useState<"manual" | "url" | "policy" | "import">("manual");
+  const [editingId, setEditingId] = useState<string | undefined>();
+  const [msg, setMsg] = useState<string | null>(null);
+  const query = useQuery({
+    queryKey: ["call-assist-knowledge", agencyId],
+    queryFn: () => listCallAssistKnowledge(agencyId),
+    enabled,
+  });
+  const save = useMutation({
+    mutationFn: () =>
+      upsertCallAssistKnowledge(
+        {
+          articleId: editingId,
+          title,
+          body,
+          tags: [],
+          enabled: true,
+          source: source || undefined,
+          sourceType,
+        },
+        agencyId,
+      ),
+    onSuccess: async () => {
+      setMsg("Saved");
+      setTitle("");
+      setBody("");
+      setSource("");
+      setEditingId(undefined);
+      await query.refetch();
+    },
+    onError: (err) => setMsg(err instanceof Error ? err.message : "Save failed"),
+  });
+  const remove = useMutation({
+    mutationFn: (id: string) => deleteCallAssistKnowledge(id, agencyId),
+    onSuccess: () => void query.refetch(),
+  });
+  const items = (query.data?.items ?? []) as CallAssistKnowledgeArticleDto[];
+
+  return (
+    <div className="space-y-4">
+      <section className="rounded-lg border border-slate-800 p-4">
+        <h2 className="text-sm font-semibold text-white">{editingId ? "Edit article" : "New article"}</h2>
+        <p className="mt-1 text-[11px] text-slate-500">
+          Retrieval uses the current version only. Prior bodies stay on the article for audit.
+        </p>
+        <input
+          className="mt-2 w-full rounded border border-slate-700 bg-slate-950 px-2 py-1.5 text-sm"
+          value={title}
+          onChange={(e) => setTitle(e.target.value)}
+          placeholder="Title"
+        />
+        <textarea
+          className="mt-2 h-28 w-full rounded border border-slate-700 bg-slate-950 px-2 py-1.5 text-sm"
+          value={body}
+          onChange={(e) => setBody(e.target.value)}
+          placeholder="Body"
+        />
+        <div className="mt-2 grid gap-2 sm:grid-cols-2">
+          <input
+            className="rounded border border-slate-700 bg-slate-950 px-2 py-1.5 text-sm"
+            value={source}
+            onChange={(e) => setSource(e.target.value)}
+            placeholder="Source (URL, policy name, or note)"
+          />
+          <select
+            className="rounded border border-slate-700 bg-slate-950 px-2 py-1.5 text-sm"
+            value={sourceType}
+            onChange={(e) => setSourceType(e.target.value as typeof sourceType)}
+          >
+            <option value="manual">manual</option>
+            <option value="url">url</option>
+            <option value="policy">policy</option>
+            <option value="import">import</option>
+          </select>
+        </div>
+        <button
+          type="button"
+          className="mt-2 rounded bg-sky-700 px-3 py-1 text-[12px] text-white disabled:opacity-50"
+          disabled={!title.trim() || !body.trim() || save.isPending}
+          onClick={() => save.mutate()}
+        >
+          {editingId ? "Save version" : "Create article"}
+        </button>
+        {msg ? <p className="mt-2 text-[12px] text-emerald-400">{msg}</p> : null}
+      </section>
+      <div className="overflow-hidden rounded-lg border border-slate-800">
+        <table className="w-full text-left text-[12px]">
+          <thead className="text-[10px] uppercase tracking-wide text-slate-500">
+            <tr>
+              <th className="px-3 py-2">Title</th>
+              <th className="px-3 py-2">Source</th>
+              <th className="px-3 py-2">Version</th>
+              <th className="px-3 py-2">Updated</th>
+              <th className="px-3 py-2" />
+            </tr>
+          </thead>
+          <tbody>
+            {items.length === 0 ? (
+              <tr>
+                <td className="px-3 py-4 text-slate-500" colSpan={5}>
+                  {query.isLoading ? "Loading…" : "No knowledge articles yet."}
+                </td>
+              </tr>
+            ) : (
+              items.map((row) => (
+                <tr key={row.articleId} className="border-t border-slate-800 align-top">
+                  <td className="px-3 py-2">
+                    <p className="font-medium text-slate-100">{row.title}</p>
+                    <p className="mt-0.5 max-w-md text-[11px] text-slate-500">{row.body.slice(0, 140)}</p>
+                    {row.previousBodies?.length ? (
+                      <p className="mt-1 text-[10px] text-slate-600">
+                        {row.previousBodies.length} prior version{row.previousBodies.length === 1 ? "" : "s"}
+                      </p>
+                    ) : null}
+                  </td>
+                  <td className="px-3 py-2 text-slate-400">
+                    {row.sourceType ?? "manual"}
+                    {row.source ? ` · ${row.source}` : ""}
+                  </td>
+                  <td className="px-3 py-2 font-mono text-slate-300">v{row.version ?? 1}</td>
+                  <td className="px-3 py-2 text-slate-500">{row.updatedAt?.slice(0, 19) ?? "—"}</td>
+                  <td className="px-3 py-2 text-right">
+                    <button
+                      type="button"
+                      className="mr-2 text-sky-400"
+                      onClick={() => {
+                        setEditingId(row.articleId);
+                        setTitle(row.title);
+                        setBody(row.body);
+                        setSource(row.source ?? "");
+                        setSourceType((row.sourceType as typeof sourceType) || "manual");
+                      }}
+                    >
+                      Edit
+                    </button>
+                    <button
+                      type="button"
+                      className="text-rose-300"
+                      onClick={() => remove.mutate(row.articleId)}
+                    >
+                      Delete
+                    </button>
+                  </td>
+                </tr>
+              ))
+            )}
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 }

@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 # One-command deploy: build workspaces and deploy SAM backend with optional domain parameters.
-# Usage: ./scripts/deploy.sh [dev|staging|prod|pilot] [--changeset-only|--no-execute-changeset]
+# Usage: ./scripts/deploy.sh [dev|staging|prod|pilot] [--changeset-only|--no-execute-changeset] [--vpc]
 # Requires: AWS CLI, SAM CLI, npm, credentials for the target account.
 # Nested stacks require CAPABILITY_AUTO_EXPAND (applied below).
 #
@@ -18,8 +18,8 @@ set -euo pipefail
 # - I_UNDERSTAND_DEV_IS_PROD=1 required for `deploy.sh dev` (that stack is live production)
 # - EXISTING_BILLING_PAYMENT_INSTRUCTIONS_SECRET_ARN / EXISTING_BILLING_SES_CREDENTIALS_SECRET_ARN
 #   skip DataLayer secret create when those names already exist (staging recreate)
-# - EXISTING_CALL_ASSIST_TABLE_NAME skip AppSamCallAssistStack2 table create when the table
-#   was pre-created for Lex (rapid-cortex-call-assist-${stage})
+# - CAD_BRIDGE_VPC_ID / CAD_BRIDGE_VPC_SUBNET_IDS / CAD_BRIDGE_VPC_SECURITY_GROUP_ID
+#   optional VPC for CAD Bridge Lambdas (on-prem CAD). Pass --vpc to require all three.
 # - API_DOMAIN_CERT_ARN (imported ACM ARN; same region as stack)
 # - ROUTE53_HOSTED_ZONE_ID (optional; if set without API_DOMAIN_CERT_ARN, stack requests ACM cert via DNS)
 # - APP_CNAME_TARGET
@@ -64,20 +64,22 @@ cd "$ROOT"
 
 STAGE=""
 CHANGESET_ONLY=0
+USE_CAD_BRIDGE_VPC=0
 for arg in "$@"; do
   case "$arg" in
     dev | staging | prod | pilot) STAGE="$arg" ;;
     --changeset-only | --no-execute-changeset) CHANGESET_ONLY=1 ;;
+    --vpc) USE_CAD_BRIDGE_VPC=1 ;;
     *)
       echo "Unknown argument: $arg" >&2
-      echo "Usage: $0 [dev|staging|prod|pilot] [--changeset-only|--no-execute-changeset]" >&2
+      echo "Usage: $0 [dev|staging|prod|pilot] [--changeset-only|--no-execute-changeset] [--vpc]" >&2
       exit 1
       ;;
   esac
 done
 
 if [[ -z "$STAGE" ]]; then
-  echo "Usage: $0 [dev|staging|prod|pilot] [--changeset-only|--no-execute-changeset]" >&2
+  echo "Usage: $0 [dev|staging|prod|pilot] [--changeset-only|--no-execute-changeset] [--vpc]" >&2
   exit 1
 fi
 
@@ -499,6 +501,21 @@ if [[ -n "${EXISTING_BILLING_SES_CREDENTIALS_SECRET_ARN:-}" ]]; then
 fi
 if [[ -n "${EXISTING_CALL_ASSIST_TABLE_NAME:-}" ]]; then
   PARAMS="${PARAMS} ExistingCallAssistTableName=${EXISTING_CALL_ASSIST_TABLE_NAME}"
+fi
+if [[ "${USE_CAD_BRIDGE_VPC}" == "1" ]]; then
+  if [[ -z "${CAD_BRIDGE_VPC_ID:-}" || -z "${CAD_BRIDGE_VPC_SUBNET_IDS:-}" || -z "${CAD_BRIDGE_VPC_SECURITY_GROUP_ID:-}" ]]; then
+    echo "ERROR: --vpc requires CAD_BRIDGE_VPC_ID, CAD_BRIDGE_VPC_SUBNET_IDS, and CAD_BRIDGE_VPC_SECURITY_GROUP_ID." >&2
+    exit 1
+  fi
+fi
+if [[ -n "${CAD_BRIDGE_VPC_ID:-}" ]]; then
+  PARAMS="${PARAMS} CadBridgeVpcId=${CAD_BRIDGE_VPC_ID}"
+fi
+if [[ -n "${CAD_BRIDGE_VPC_SUBNET_IDS:-}" ]]; then
+  PARAMS="${PARAMS} CadBridgeVpcSubnetIds=${CAD_BRIDGE_VPC_SUBNET_IDS}"
+fi
+if [[ -n "${CAD_BRIDGE_VPC_SECURITY_GROUP_ID:-}" ]]; then
+  PARAMS="${PARAMS} CadBridgeVpcSecurityGroupId=${CAD_BRIDGE_VPC_SECURITY_GROUP_ID}"
 fi
 if [[ -n "${ENABLE_CONNECT_RING:-}" ]]; then
   PARAMS="${PARAMS} EnableConnectRing=${ENABLE_CONNECT_RING}"

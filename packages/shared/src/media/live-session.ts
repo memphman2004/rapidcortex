@@ -51,6 +51,10 @@ export const liveVideoSessionSchema = z.object({
   kvsVideoStreamName: z.string().max(300).optional(),
   storageConfiguredAt: z.string().min(1).optional(),
   playbackReadyAt: z.string().min(1).optional(),
+  /** Agency-scoped MP4 in the assets bucket after GetClip export (`live-video/{agencyId}/...`). */
+  recordingS3Key: z.string().max(500).optional(),
+  recordingExportedAt: z.string().min(1).optional(),
+  recordingExportErrorCode: z.string().max(64).optional(),
   roomId: z.string().max(120).optional(),
   turnConfigRef: z.string().max(300).optional(),
   auditVersion: z.number().int().positive().optional(),
@@ -112,6 +116,10 @@ export const kvsBrowserBundleSchema = z.object({
     sessionToken: z.string(),
     expiration: z.string(),
   }),
+  /** When true, clients must JoinStorageSession / JoinStorageSessionAsViewer (channel media storage ENABLED). */
+  mediaStorageEnabled: z.boolean().optional(),
+  /** HTTPS WEBRTC data-plane endpoint from GetSignalingChannelEndpoint (Protocol=WEBRTC). */
+  webrtcStorageEndpoint: z.string().min(1).optional(),
 });
 export type KvsBrowserBundle = z.infer<typeof kvsBrowserBundleSchema>;
 
@@ -162,6 +170,7 @@ export const getLiveSessionResponseSchema = z.object({
   kvsVideoStreamName: z.string().optional(),
   storageConfiguredAt: z.string().optional(),
   playbackReadyAt: z.string().optional(),
+  recordingS3Key: z.string().optional(),
   kvs: kvsBrowserBundleSchema.optional(),
   iceServers: z
     .array(

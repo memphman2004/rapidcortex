@@ -111,6 +111,20 @@ export function isVenueCampusRole(role: string): boolean {
   return isVenueRole(role) || isCampusRole(role) || isTransitRole(role);
 }
 
+export function isCommandRole(role: string): boolean {
+  const c = canonicalizeMobileRole(role);
+  if (!c) return false;
+  if (isRcInternalRole(role)) return true;
+  return (
+    c === 'dispatcher' ||
+    c === 'supervisor' ||
+    c === 'agencyadmin' ||
+    c === 'agencyit' ||
+    c === 'analyst' ||
+    c === 'auditor'
+  );
+}
+
 /** Prefer the role's vertical; RC admins keep the product they selected. */
 export function resolveFieldHome(
   role: string,

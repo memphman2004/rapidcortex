@@ -54,6 +54,8 @@ export const Strings = {
     /** @deprecated Prefer venueTitle / campusTitle */
     venueCampusTitle: 'RC Venue / Campus',
     venueCampusSubtitle: 'Sign management and field deployment tools',
+    commandTitle: 'RC Command',
+    commandSubtitle: 'View, communicate, and coach. Not a CAD dispatch console.',
   },
 
   auth: {
@@ -71,6 +73,7 @@ export const Strings = {
     verificationCode: 'Verification Code',
     venueTools: 'Venue Tools',
     campusTools: 'Campus Tools',
+    commandTools: 'Field Command',
     venueCampusTools: 'Venue & Campus Tools',
     noAccountContactAdmin: "Don't have an account? Contact your Rapid Cortex administrator.",
     faceIdPrompt: 'Allow Rapid Cortex to use Face ID for secure login.',
@@ -87,6 +90,8 @@ export const Strings = {
         'Your account does not have access to venue tools. Contact your administrator.',
       campusAccessDenied:
         'Your account does not have access to campus tools. Contact your administrator.',
+      commandAccessDenied:
+        'Your account does not have access to Field Command. Contact your administrator.',
     },
   },
 
@@ -299,6 +304,20 @@ export const Strings = {
     codes: 'QR & NFC Codes',
     create: 'Create',
     account: 'Account',
+  },
+
+  command: {
+    home: 'Home',
+    staff: 'Staff',
+    account: 'Account',
+    notDispatch: 'View, communicate, and coach. This is not a dispatch console — no CAD write or close actions.',
+    activeCalls: 'Active calls',
+    queue: 'Queue',
+    online: 'Online',
+    assist: 'Supervisor assist',
+    incidents: 'Open incidents',
+    empty: 'No open incidents.',
+    staffEmpty: 'No operators online.',
   },
 
   emergency: {

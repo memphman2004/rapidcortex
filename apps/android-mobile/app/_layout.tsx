@@ -133,6 +133,7 @@ function RootLayoutNav() {
         <Stack.Screen name="(safe-sound)" />
         <Stack.Screen name="(venue)" />
         <Stack.Screen name="(campus)" />
+        <Stack.Screen name="(command)" />
         <Stack.Screen
           name="emergency/[eventId]"
           options={{ presentation: 'fullScreenModal', gestureEnabled: false, animation: 'fade' }}

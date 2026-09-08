@@ -9,14 +9,17 @@ import {
   mapCallAssistClassBadge,
   mapCallAssistMonitorState,
   callAssistCallerIdValue,
+  callTakerConfidenceRows,
   type CallAssistUiProfile,
 } from "rapid-cortex-shared";
 import { useCallAssistConfig } from "@/contexts/call-assist-config-context";
 import { isApiConfigured } from "@/lib/api";
 import { useJurisdictionLink } from "@/lib/jurisdiction-context";
-import { getCallAssistAnalytics, listCallAssistSessions } from "@/lib/call-assist/call-assist-api";
+import { getCallAssistAnalytics, getCallAssistSchedule, listCallAssistSessions } from "@/lib/call-assist/call-assist-api";
 import { isCallAssistEnabled } from "@/lib/runtime-flags";
 import { CallAssistChrome } from "./call-assist-chrome";
+import { CallAssistCallbackQueue } from "./call-assist-callback-queue";
+import { PSAPAvailabilityNotice } from "@/components/psap/psap-availability-notice";
 
 type SessionRow = {
   sessionId: string;
@@ -25,8 +28,17 @@ type SessionRow = {
   language?: string;
   createdAt?: string;
   continueAiConversation?: boolean;
-  intake?: { locationText?: string; incidentTypeHint?: string };
-  triage?: { primaryClassification?: string };
+  lastConfidence?: number;
+  confidenceAction?: string;
+  qaLowConfidence?: boolean;
+  intentConfidence?: number;
+  classificationConfidence?: number;
+  locationConfidence?: number;
+  routingConfidence?: number;
+  cadTypeLabel?: string;
+  cadPriority?: number;
+  intake?: { locationText?: string; incidentTypeHint?: string; addressConfidence?: number; locationSource?: string };
+  triage?: { primaryClassification?: string; confidence?: number };
 };
 
 const CLASS_STYLE: Record<string, string> = {
@@ -67,6 +79,11 @@ export function CallAssistMonitor({ canView }: { canView: boolean }) {
     queryFn: () => getCallAssistAnalytics(requestAgencyId),
     enabled: enabled && (profile?.capabilities.analytics ?? true),
   });
+  const scheduleQuery = useQuery({
+    queryKey: ["call-assist-schedule", agencyId],
+    queryFn: () => getCallAssistSchedule(requestAgencyId),
+    enabled,
+  });
   const items = (sessionsQuery.data?.items ?? []) as SessionRow[];
 
   const stats = useMemo(() => {
@@ -93,6 +110,11 @@ export function CallAssistMonitor({ canView }: { canView: boolean }) {
   return (
     <div className="p-4 md:p-6">
       <CallAssistChrome title="Call Assist" />
+      {scheduleQuery.data?.notice ? (
+        <div className="mb-3">
+          <PSAPAvailabilityNotice notice={scheduleQuery.data.notice} compact />
+        </div>
+      ) : null}
       <p className="mb-4 max-w-2xl text-[12px] text-slate-500">
         Non-emergency AI answering and intake. Emergencies always warm-transfer — the AI never continues those
         calls. This is not a CPE or telephony replacement.
@@ -122,7 +144,16 @@ export function CallAssistMonitor({ canView }: { canView: boolean }) {
             Records requests
           </Link>
         ) : null}
+        {profile?.capabilities.analytics ? (
+          <Link className="text-sky-400 hover:underline" href={to("/call-assist/analytics")}>
+            Analytics
+          </Link>
+        ) : null}
+        <Link className="text-sky-400 hover:underline" href={to("/call-assist/qa")}>
+          QA
+        </Link>
       </div>
+      <CallAssistCallbackQueue />
       <div className="overflow-hidden rounded-lg border border-slate-800 bg-slate-950/40">
         <div className="flex items-center justify-between border-b border-slate-800 px-3 py-2 text-[11px] text-slate-500">
           <span>
@@ -138,6 +169,7 @@ export function CallAssistMonitor({ canView }: { canView: boolean }) {
               <th className="px-3 py-2">{profile?.locationLabel ?? "Location"}</th>
               <th className="px-3 py-2">Type</th>
               <th className="px-3 py-2">Classification</th>
+              <th className="px-3 py-2">Confidence I/C/L/R</th>
               <th className="px-3 py-2">Elapsed</th>
               <th className="px-3 py-2" />
             </tr>
@@ -145,7 +177,7 @@ export function CallAssistMonitor({ canView }: { canView: boolean }) {
           <tbody>
             {!profile || items.length === 0 ? (
               <tr>
-                <td className="px-3 py-6 text-sm text-slate-500" colSpan={7}>
+                <td className="px-3 py-6 text-sm text-slate-500" colSpan={8}>
                   {sessionsQuery.isLoading ? "Loading sessions…" : "No open Call Assist sessions."}
                 </td>
               </tr>
@@ -161,6 +193,15 @@ export function CallAssistMonitor({ canView }: { canView: boolean }) {
                   profile.classificationLabels?.[row.triage?.primaryClassification ?? ""] ||
                   row.intake?.incidentTypeHint?.trim() ||
                   humanizeCallAssistToken(row.triage?.primaryClassification);
+                const scores = callTakerConfidenceRows({
+                  intentScore: row.intentConfidence ?? row.lastConfidence ?? row.triage?.confidence,
+                  classificationScore: row.classificationConfidence ?? row.triage?.confidence,
+                  addressConfidence: row.locationConfidence ?? row.intake?.addressConfidence,
+                  locationSource: row.intake?.locationSource,
+                  locationText: row.intake?.locationText,
+                  classification: row.triage?.primaryClassification,
+                });
+                const confLabel = scores.map((s) => s.score.toFixed(2)).join(" / ");
                 const lang = row.language && row.language !== "en" && row.language !== "und" ? row.language : null;
                 return (
                   <tr key={row.sessionId} className="cursor-pointer border-t border-slate-800 hover:bg-slate-900/60">
@@ -177,6 +218,9 @@ export function CallAssistMonitor({ canView }: { canView: boolean }) {
                       <span className={`rounded px-1.5 py-0.5 text-[10px] font-semibold ${CLASS_STYLE[badge]}`}>
                         {badge === "EMERGENCY" ? "Emergency" : badge === "SELF_SERVICE" ? "Self-service" : "Non-emergency"}
                       </span>
+                    </td>
+                    <td className={`px-3 py-2.5 font-mono text-[10px] ${row.qaLowConfidence ? "text-amber-300" : "text-slate-400"}`}>
+                      {confLabel}
                     </td>
                     <td className="px-3 py-2.5 font-mono text-[11px] text-slate-400">
                       {elapsed}

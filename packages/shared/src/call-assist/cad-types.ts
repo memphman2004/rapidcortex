@@ -8,6 +8,8 @@ export const CAD_PROVIDER_IDS = [
   "mark43",
   "hexagon-intergraph",
   "versaterm",
+  "centralsquare",
+  "zetron",
 ] as const;
 export type CadProviderId = (typeof CAD_PROVIDER_IDS)[number];
 

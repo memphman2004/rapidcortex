@@ -27,6 +27,8 @@ import {
   isRcInternalOperator,
   resolveAgencyTaxonomy,
   resolveCadPushLabel,
+  buildPsapAvailabilityNotice,
+  withExternalRouteDefaults,
 } from "rapid-cortex-shared";
 import { AuthorizationService, AUDIT_EVENT_TYPES, type Permission } from "rapid-cortex-security";
 import { ACCOUNT_INACTIVE_MESSAGE, getUserContext, isUserAccountActive } from "../../lib/auth.js";
@@ -47,11 +49,13 @@ import {
 import { AuditRepository } from "../../repositories/auditRepository.js";
 import { callAssistStore } from "../../call-assist/store.js";
 import { getOrCreateConfig, isWithinOperatingHours, patchConfig, CALL_ASSIST_SHIFT_TTL_MS } from "../../call-assist/config-service.js";
+import { buildCallAssistAnalyticsDashboard } from "../../call-assist/analytics.js";
 import {
   completeSession,
   initiateSession,
   processUtterance,
 } from "../../call-assist/session-pipeline.js";
+import { recordTransferAttempt } from "../../call-assist/transfer-ledger.js";
 import { listDemoScenariosForAgency, runDemoScenario } from "../../call-assist/demo-runner.js";
 import { callAssistOnboardingService } from "../../call-assist/onboarding/call-assist-onboarding-service.js";
 import { enqueueAllAgencyRebuilds, enqueueBotRebuild } from "../../call-assist/lex/bot-rebuild-queue.js";
@@ -66,7 +70,8 @@ import {
   requestedCallAssistAgencyId,
   resolveCallAssistTenantAgencyId,
 } from "../../call-assist/tenant-agency.js";
-import { syncAgencyVerticalClaims } from "../../lib/cognito.js";
+import { handleCallAssistP2 } from "./p2.js";
+import { handleCallAssistP3 } from "./p3.js";
 
 const authz = new AuthorizationService();
 const auditRepo = new AuditRepository();
@@ -369,9 +374,21 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
     if (method === "GET" && parts[0] === "schedule") {
       requirePerm(user, "call_assist.session.view");
       const config = await getOrCreateConfig(agencyId);
+      const open = isWithinOperatingHours(config);
+      const onboarded = config.onboardingComplete !== false;
       return withCorrelationHeaders(
         event,
-        ok({ open: isWithinOperatingHours(config), hours: config.operatingHours }),
+        ok({
+          open,
+          hours: config.operatingHours,
+          onboardingComplete: onboarded,
+          notice: buildPsapAvailabilityNotice({
+            product: "psap",
+            callAssistOnboarded: onboarded,
+            withinHours: open,
+            agencyName: config.agencyDisplayName ?? config.agencyName ?? config.shortName,
+          }),
+        }),
       );
     }
 
@@ -394,7 +411,7 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
       return withCorrelationHeaders(event, ok({ session }));
     }
 
-    if (method === "GET" && parts[0] === "sessions" && parts[1]) {
+    if (method === "GET" && parts[0] === "sessions" && parts.length === 2 && parts[1]) {
       requirePerm(user, "call_assist.session.view");
       const session = await callAssistStore.getSession(agencyId, parts[1]);
       if (!session) return withCorrelationHeaders(event, notFound("Session not found"));
@@ -414,6 +431,8 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
         sessionId: parsed.data.sessionId,
         text: parsed.data.text,
         speaker: parsed.data.speaker,
+        speakerId: parsed.data.speakerId,
+        participantRole: parsed.data.participantRole,
       });
       return withCorrelationHeaders(event, ok(result));
     }
@@ -439,6 +458,19 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
       else session.state = "TRANSFERRING_HUMAN";
       session.continueAiConversation = false;
       session.updatedAt = new Date().toISOString();
+      const destType = dest ?? "CALL_TAKER";
+      const xfer = await recordTransferAttempt({
+        agencyId,
+        sessionId: session.sessionId,
+        actorId: user.userId,
+        destinationType: destType,
+        destinationId: destType,
+        destinationDisplay: destType,
+        channel: destType === "PHONE_NUMBER" ? "PSTN" : "QUEUE",
+        outcome: "INITIATED",
+        failureReason: parsed.data.reason,
+      });
+      session.lastTransferOutcome = xfer.outcome;
       await callAssistStore.putSession(session);
       await auditRepo.create({
         eventId: makeId("audit"),
@@ -618,20 +650,30 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
           }
         }
         for (const entry of externalTransferList) {
-          await callAssistStore.putExternal({
-            agencyId: agencyId,
-            externalAgencyId: entry.id,
-            externalAgencyName: entry.name,
-            phoneNumber: entry.number,
-            description: "",
-            transferType: "WARM",
-            callerExperienceScript:
-              entry.warmTransferScript?.trim() || `I'm transferring you to ${entry.name} now.`,
-            transferSummaryTemplate:
-              "Warm transfer. Issue: {issue}. Callback: {callback}. Location: {location}.",
-            enabled: true,
-            triageClassifications: [],
-          });
+          await callAssistStore.putExternal(
+            withExternalRouteDefaults({
+              agencyId: agencyId,
+              externalAgencyId: entry.id,
+              externalAgencyName: entry.name,
+              phoneNumber: entry.number ?? "",
+              sipUri: entry.sipUri ?? undefined,
+              description: "",
+              transferType: "WARM",
+              afterHoursMessage: entry.afterHoursMessage ?? undefined,
+              callerExperienceScript:
+                entry.warmTransferScript?.trim() || `I'm transferring you to ${entry.name} now.`,
+              transferSummaryTemplate:
+                "Warm transfer. Issue: {issue}. Callback: {callback}. Location: {location}.",
+              enabled: true,
+              triageClassifications: entry.acceptedCallTypes ?? [],
+              acceptedCallTypes: entry.acceptedCallTypes,
+              fallbackPhoneNumber: entry.fallbackNumber ?? undefined,
+              hoursAllDay: true,
+              afterHoursPolicy: "human",
+              transferFailurePolicy: entry.fallbackNumber?.trim() ? "fallback" : "human",
+              maxAttempts: 2,
+            }),
+          );
         }
       }
       let cognitoSynced = 0;
@@ -670,19 +712,29 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
       requirePerm(user, "call_assist.admin.config");
       const parsed = callAssistExternalAgencyUpsertSchema.safeParse(body ?? {});
       if (!parsed.success) return withCorrelationHeaders(event, badRequestFromZod(parsed.error));
-      const row = {
+      const row = withExternalRouteDefaults({
         agencyId: agencyId,
         externalAgencyId: parsed.data.externalAgencyId ?? makeId("ext"),
         externalAgencyName: parsed.data.externalAgencyName,
         phoneNumber: parsed.data.phoneNumber,
+        sipUri: parsed.data.sipUri,
         description: parsed.data.description,
         transferType: parsed.data.transferType,
         afterHoursMessage: parsed.data.afterHoursMessage,
+        afterHoursAlternative: parsed.data.afterHoursAlternative,
         callerExperienceScript: parsed.data.callerExperienceScript,
         transferSummaryTemplate: parsed.data.transferSummaryTemplate,
         enabled: parsed.data.enabled,
         triageClassifications: parsed.data.triageClassifications,
-      };
+        acceptedCallTypes: parsed.data.acceptedCallTypes ?? parsed.data.triageClassifications,
+        hoursTimezone: parsed.data.hoursTimezone,
+        hoursAllDay: parsed.data.hoursAllDay,
+        afterHoursPolicy: parsed.data.afterHoursPolicy,
+        fallbackPhoneNumber: parsed.data.fallbackPhoneNumber,
+        fallbackSipUri: parsed.data.fallbackSipUri,
+        transferFailurePolicy: parsed.data.transferFailurePolicy,
+        maxAttempts: parsed.data.maxAttempts,
+      });
       await callAssistStore.putExternal(row);
       return withCorrelationHeaders(event, ok({ agency: row }));
     }
@@ -695,7 +747,7 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
 
     if (method === "GET" && parts[0] === "knowledge") {
       requirePerm(user, "call_assist.knowledge.manage");
-      const items = await callAssistStore.listKnowledge(agencyId);
+      const items = await callAssistStore.listAllKnowledge(agencyId);
       return withCorrelationHeaders(event, ok({ items }));
     }
 
@@ -703,16 +755,17 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
       requirePerm(user, "call_assist.knowledge.manage");
       const parsed = callAssistKnowledgeUpsertSchema.safeParse(body ?? {});
       if (!parsed.success) return withCorrelationHeaders(event, badRequestFromZod(parsed.error));
-      const row = {
+      const row = await callAssistStore.putKnowledge({
         agencyId: agencyId,
         articleId: parsed.data.articleId ?? makeId("kb"),
         title: parsed.data.title,
         body: parsed.data.body,
         tags: parsed.data.tags,
         enabled: parsed.data.enabled,
+        source: parsed.data.source,
+        sourceType: parsed.data.sourceType ?? "manual",
         updatedAt: new Date().toISOString(),
-      };
-      await callAssistStore.putKnowledge(row);
+      });
       return withCorrelationHeaders(event, ok({ article: row }));
     }
 
@@ -725,7 +778,10 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
     if (method === "GET" && parts[0] === "retention") {
       requirePerm(user, "call_assist.retention.manage");
       const config = await getOrCreateConfig(agencyId);
-      return withCorrelationHeaders(event, ok({ retention: config.retention }));
+      return withCorrelationHeaders(
+        event,
+        ok({ retention: config.retention, lastRun: config.retentionLastRun ?? null }),
+      );
     }
 
     if (method === "GET" && parts[0] === "records-requests") {
@@ -785,13 +841,14 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
       return withCorrelationHeaders(event, ok({ result }));
     }
 
-    if (method === "GET" && parts[0] === "analytics") {
+    if (method === "GET" && parts[0] === "analytics" && parts.length === 1) {
       requirePerm(user, "call_assist.analytics.view");
       const open = await callAssistStore.listSessions(agencyId, true, 200);
       const surveys = await callAssistStore.listSurveys(agencyId, 200);
       const avg =
         surveys.length === 0 ? null : surveys.reduce((sum, s) => sum + s.score, 0) / surveys.length;
       const emergencyTransfers = open.filter((s) => s.state === "TRANSFERRING_911").length;
+      const dashboard = await buildCallAssistAnalyticsDashboard(agencyId, {});
       return withCorrelationHeaders(
         event,
         ok({
@@ -799,9 +856,15 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
           emergencyTransfers,
           surveyCount: surveys.length,
           surveyAverage: avg,
+          dashboard,
         }),
       );
     }
+
+    const p3 = await handleCallAssistP3(event, { user, agencyId, method, parts, body });
+    if (p3) return p3;
+    const p2 = await handleCallAssistP2(event, { user, agencyId, method, parts, body });
+    if (p2) return p2;
 
     return withCorrelationHeaders(event, notFound("Unknown route"));
   } catch (error) {
@@ -811,6 +874,8 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
       return withCorrelationHeaders(event, serviceUnavailable(error.message));
     }
     if (message === "SESSION_NOT_FOUND") return withCorrelationHeaders(event, notFound("Session not found"));
+    if (message === "PROPOSAL_NOT_FOUND") return withCorrelationHeaders(event, notFound("Proposal not found"));
+    if (message === "PROPOSAL_NOT_ACTIONABLE") return withCorrelationHeaders(event, badRequest("Proposal cannot be decided in its current status"));
     if (message === "DEMO_MODE_DISABLED") {
       return withCorrelationHeaders(event, serviceUnavailable("Call Assist demo mode is not enabled"));
     }

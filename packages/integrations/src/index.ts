@@ -25,7 +25,10 @@ export {
 
 export { WebhookEventIngressPlaceholder } from "./placeholders/webhook-ingress-placeholder.js";
 export { CadSummaryPushPlaceholder } from "./placeholders/cad-summary-push-placeholder.js";
-export { TelephonyInputPlaceholder } from "./placeholders/telephony-input-placeholder.js";
+export {
+  AmazonConnectAudioInputAdapter,
+  TelephonyInputPlaceholder,
+} from "./placeholders/telephony-input-placeholder.js";
 export {
   resolveTranscriptConnectorRollout,
   type TranscriptConnectorMode,

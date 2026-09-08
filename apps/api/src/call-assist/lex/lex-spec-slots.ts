@@ -40,6 +40,18 @@ export const LEX_SPEC_SLOTS: Record<string, LexSpecSlot[]> = {
       "promptEs": "¿Cuál es la dirección o el lugar donde está el ruido?"
     },
     {
+      "name": "AptBusiness",
+      "required": false,
+      "promptEn": "Is there an apartment, suite, or unit number?",
+      "promptEs": "¿Hay número de apartamento, suite o unidad?"
+    },
+    {
+      "name": "CrossStreets",
+      "required": false,
+      "promptEn": "What are the nearest cross streets?",
+      "promptEs": "¿Cuáles son las calles transversales más cercanas?"
+    },
+    {
       "name": "NoiseType",
       "required": true,
       "promptEn": "What kind of noise is it — music, people yelling, a party, something else?",
@@ -64,6 +76,18 @@ export const LEX_SPEC_SLOTS: Record<string, LexSpecSlot[]> = {
       "required": true,
       "promptEn": "Where is this person right now — what's the address or nearest intersection?",
       "promptEs": "¿Dónde está esta persona ahora — cuál es la dirección o la intersección más cercana?"
+    },
+    {
+      "name": "AptBusiness",
+      "required": false,
+      "promptEn": "Is there an apartment, suite, or unit number?",
+      "promptEs": "¿Hay número de apartamento, suite o unidad?"
+    },
+    {
+      "name": "CrossStreets",
+      "required": false,
+      "promptEn": "What are the nearest cross streets?",
+      "promptEs": "¿Cuáles son las calles transversales más cercanas?"
     },
     {
       "name": "PersonDescription",
@@ -104,10 +128,46 @@ export const LEX_SPEC_SLOTS: Record<string, LexSpecSlot[]> = {
       "promptEs": "¿Cuál es la dirección o la intersección más cercana donde está el vehículo?"
     },
     {
+      "name": "AptBusiness",
+      "required": false,
+      "promptEn": "Is there an apartment, suite, or unit number?",
+      "promptEs": "¿Hay número de apartamento, suite o unidad?"
+    },
+    {
+      "name": "CrossStreets",
+      "required": false,
+      "promptEn": "What are the nearest cross streets?",
+      "promptEs": "¿Cuáles son las calles transversales más cercanas?"
+    },
+    {
       "name": "VehicleDescription",
       "required": true,
       "promptEn": "Can you describe the vehicle? Color, make or model if you know it, and any license plate?",
       "promptEs": "¿Puede describir el vehículo? Color, marca o modelo si lo sabe, y placa si es posible."
+    },
+    {
+      "name": "VehicleColor",
+      "required": false,
+      "promptEn": "What color is the vehicle?",
+      "promptEs": "¿De qué color es el vehículo?"
+    },
+    {
+      "name": "VehicleMake",
+      "required": false,
+      "promptEn": "Do you know the make of the vehicle — Ford, Toyota, Honda?",
+      "promptEs": "¿Sabe la marca del vehículo — Ford, Toyota, Honda?"
+    },
+    {
+      "name": "VehicleModel",
+      "required": false,
+      "promptEn": "Do you know the model?",
+      "promptEs": "¿Sabe el modelo?"
+    },
+    {
+      "name": "VehiclePlate",
+      "required": false,
+      "promptEn": "Do you have a license plate number?",
+      "promptEs": "¿Tiene el número de placa?"
     },
     {
       "name": "HowLongAbandoned",
@@ -130,10 +190,40 @@ export const LEX_SPEC_SLOTS: Record<string, LexSpecSlot[]> = {
       "promptEs": "¿Dónde está su vehículo ahora — cuál es la dirección?"
     },
     {
+      "name": "AptBusiness",
+      "required": false,
+      "promptEn": "Is there an apartment, suite, or unit number?",
+      "promptEs": "¿Hay número de apartamento, suite o unidad?"
+    },
+    {
+      "name": "CrossStreets",
+      "required": false,
+      "promptEn": "What are the nearest cross streets?",
+      "promptEs": "¿Cuáles son las calles transversales más cercanas?"
+    },
+    {
       "name": "BurglaryVehicleDescription",
       "required": true,
       "promptEn": "What's the year, make, model, and color of your vehicle?",
       "promptEs": "¿Cuál es el año, marca, modelo y color de su vehículo?"
+    },
+    {
+      "name": "VehicleColor",
+      "required": false,
+      "promptEn": "What color is the vehicle?",
+      "promptEs": "¿De qué color es el vehículo?"
+    },
+    {
+      "name": "VehicleMake",
+      "required": false,
+      "promptEn": "Do you know the make of the vehicle — Ford, Toyota, Honda?",
+      "promptEs": "¿Sabe la marca del vehículo — Ford, Toyota, Honda?"
+    },
+    {
+      "name": "VehicleModel",
+      "required": false,
+      "promptEn": "Do you know the model?",
+      "promptEs": "¿Sabe el modelo?"
     },
     {
       "name": "BurglaryVehiclePlate",
@@ -174,6 +264,18 @@ export const LEX_SPEC_SLOTS: Record<string, LexSpecSlot[]> = {
       "promptEs": "¿Dónde ocurrió el robo?"
     },
     {
+      "name": "AptBusiness",
+      "required": false,
+      "promptEn": "Is there an apartment, suite, or unit number?",
+      "promptEs": "¿Hay número de apartamento, suite o unidad?"
+    },
+    {
+      "name": "CrossStreets",
+      "required": false,
+      "promptEn": "What are the nearest cross streets?",
+      "promptEs": "¿Cuáles son las calles transversales más cercanas?"
+    },
+    {
       "name": "TheftItemDescription",
       "required": true,
       "promptEn": "What was taken? Can you describe the items and their approximate value?",
@@ -206,10 +308,46 @@ export const LEX_SPEC_SLOTS: Record<string, LexSpecSlot[]> = {
       "promptEs": "¿Cuál es la dirección donde el vehículo está estacionado ilegalmente?"
     },
     {
+      "name": "AptBusiness",
+      "required": false,
+      "promptEn": "Is there an apartment, suite, or unit number?",
+      "promptEs": "¿Hay número de apartamento, suite o unidad?"
+    },
+    {
+      "name": "CrossStreets",
+      "required": false,
+      "promptEn": "What are the nearest cross streets?",
+      "promptEs": "¿Cuáles son las calles transversales más cercanas?"
+    },
+    {
       "name": "ParkingVehicleDescription",
       "required": true,
       "promptEn": "Can you describe the vehicle — color, make, model, and license plate if you have it?",
       "promptEs": "¿Puede describir el vehículo — color, marca, modelo y placa si la tiene?"
+    },
+    {
+      "name": "VehicleColor",
+      "required": false,
+      "promptEn": "What color is the vehicle?",
+      "promptEs": "¿De qué color es el vehículo?"
+    },
+    {
+      "name": "VehicleMake",
+      "required": false,
+      "promptEn": "Do you know the make of the vehicle — Ford, Toyota, Honda?",
+      "promptEs": "¿Sabe la marca del vehículo — Ford, Toyota, Honda?"
+    },
+    {
+      "name": "VehicleModel",
+      "required": false,
+      "promptEn": "Do you know the model?",
+      "promptEs": "¿Sabe el modelo?"
+    },
+    {
+      "name": "VehiclePlate",
+      "required": false,
+      "promptEn": "Do you have a license plate number?",
+      "promptEs": "¿Tiene el número de placa?"
     },
     {
       "name": "ParkingViolationType",
@@ -224,6 +362,18 @@ export const LEX_SPEC_SLOTS: Record<string, LexSpecSlot[]> = {
       "required": true,
       "promptEn": "What's the address of the person you're concerned about?",
       "promptEs": "¿Cuál es la dirección de la persona por la que está preocupado?"
+    },
+    {
+      "name": "AptBusiness",
+      "required": false,
+      "promptEn": "Is there an apartment, suite, or unit number?",
+      "promptEs": "¿Hay número de apartamento, suite o unidad?"
+    },
+    {
+      "name": "CrossStreets",
+      "required": false,
+      "promptEn": "What are the nearest cross streets?",
+      "promptEs": "¿Cuáles son las calles transversales más cercanas?"
     },
     {
       "name": "WelfareCheckPersonName",
@@ -264,6 +414,18 @@ export const LEX_SPEC_SLOTS: Record<string, LexSpecSlot[]> = {
       "promptEs": "¿Dónde está el animal ahora mismo?"
     },
     {
+      "name": "AptBusiness",
+      "required": false,
+      "promptEn": "Is there an apartment, suite, or unit number?",
+      "promptEs": "¿Hay número de apartamento, suite o unidad?"
+    },
+    {
+      "name": "CrossStreets",
+      "required": false,
+      "promptEn": "What are the nearest cross streets?",
+      "promptEs": "¿Cuáles son las calles transversales más cercanas?"
+    },
+    {
       "name": "AnimalType",
       "required": true,
       "promptEn": "What kind of animal is it — a dog, cat, or something else?",
@@ -284,10 +446,46 @@ export const LEX_SPEC_SLOTS: Record<string, LexSpecSlot[]> = {
       "promptEs": "¿De dónde se llevaron su vehículo?"
     },
     {
+      "name": "AptBusiness",
+      "required": false,
+      "promptEn": "Is there an apartment, suite, or unit number?",
+      "promptEs": "¿Hay número de apartamento, suite o unidad?"
+    },
+    {
+      "name": "CrossStreets",
+      "required": false,
+      "promptEn": "What are the nearest cross streets?",
+      "promptEs": "¿Cuáles son las calles transversales más cercanas?"
+    },
+    {
       "name": "TowVehicleDescription",
       "required": true,
       "promptEn": "What's the year, make, model, color, and license plate of your vehicle?",
       "promptEs": "¿Cuál es el año, marca, modelo, color y placa de su vehículo?"
+    },
+    {
+      "name": "VehicleColor",
+      "required": false,
+      "promptEn": "What color is the vehicle?",
+      "promptEs": "¿De qué color es el vehículo?"
+    },
+    {
+      "name": "VehicleMake",
+      "required": false,
+      "promptEn": "Do you know the make of the vehicle — Ford, Toyota, Honda?",
+      "promptEs": "¿Sabe la marca del vehículo — Ford, Toyota, Honda?"
+    },
+    {
+      "name": "VehicleModel",
+      "required": false,
+      "promptEn": "Do you know the model?",
+      "promptEs": "¿Sabe el modelo?"
+    },
+    {
+      "name": "VehiclePlate",
+      "required": false,
+      "promptEn": "Do you have a license plate number?",
+      "promptEs": "¿Tiene el número de placa?"
     },
     {
       "name": "TowCompanyInfo",
@@ -308,6 +506,18 @@ export const LEX_SPEC_SLOTS: Record<string, LexSpecSlot[]> = {
       "required": true,
       "promptEn": "What's the address of the property that was damaged?",
       "promptEs": "¿Cuál es la dirección de la propiedad que fue dañada?"
+    },
+    {
+      "name": "AptBusiness",
+      "required": false,
+      "promptEn": "Is there an apartment, suite, or unit number?",
+      "promptEs": "¿Hay número de apartamento, suite o unidad?"
+    },
+    {
+      "name": "CrossStreets",
+      "required": false,
+      "promptEn": "What are the nearest cross streets?",
+      "promptEs": "¿Cuáles son las calles transversales más cercanas?"
     },
     {
       "name": "VandalismDescription",
@@ -336,6 +546,18 @@ export const LEX_SPEC_SLOTS: Record<string, LexSpecSlot[]> = {
       "promptEs": "¿Cuál es la dirección de la propiedad?"
     },
     {
+      "name": "AptBusiness",
+      "required": false,
+      "promptEn": "Is there an apartment, suite, or unit number?",
+      "promptEs": "¿Hay número de apartamento, suite o unidad?"
+    },
+    {
+      "name": "CrossStreets",
+      "required": false,
+      "promptEn": "What are the nearest cross streets?",
+      "promptEs": "¿Cuáles son las calles transversales más cercanas?"
+    },
+    {
       "name": "CodeViolationDescription",
       "required": true,
       "promptEn": "What's the violation? For example, high grass, trash, junk cars, or something else?",
@@ -350,6 +572,18 @@ export const LEX_SPEC_SLOTS: Record<string, LexSpecSlot[]> = {
       "promptEs": "¿Cuál es la ubicación — dirección o intersección más cercana?"
     },
     {
+      "name": "AptBusiness",
+      "required": false,
+      "promptEn": "Is there an apartment, suite, or unit number?",
+      "promptEs": "¿Hay número de apartamento, suite o unidad?"
+    },
+    {
+      "name": "CrossStreets",
+      "required": false,
+      "promptEn": "What are the nearest cross streets?",
+      "promptEs": "¿Cuáles son las calles transversales más cercanas?"
+    },
+    {
       "name": "PublicWorksIssueType",
       "required": true,
       "promptEn": "What's the issue — a water main, pothole, traffic light, streetlight, or something else?",
@@ -362,6 +596,18 @@ export const LEX_SPEC_SLOTS: Record<string, LexSpecSlot[]> = {
       "required": true,
       "promptEn": "Where did the accident happen?",
       "promptEs": "¿Dónde ocurrió el accidente?"
+    },
+    {
+      "name": "AptBusiness",
+      "required": false,
+      "promptEn": "Is there an apartment, suite, or unit number?",
+      "promptEs": "¿Hay número de apartamento, suite o unidad?"
+    },
+    {
+      "name": "CrossStreets",
+      "required": false,
+      "promptEn": "What are the nearest cross streets?",
+      "promptEs": "¿Cuáles son las calles transversales más cercanas?"
     },
     {
       "name": "AccidentWhen",
@@ -380,6 +626,30 @@ export const LEX_SPEC_SLOTS: Record<string, LexSpecSlot[]> = {
       "required": false,
       "promptEn": "Can you describe the other vehicle involved, if there was one?",
       "promptEs": "¿Puede describir el otro vehículo involucrado, si hubo alguno?"
+    },
+    {
+      "name": "VehicleColor",
+      "required": false,
+      "promptEn": "What color is the vehicle?",
+      "promptEs": "¿De qué color es el vehículo?"
+    },
+    {
+      "name": "VehicleMake",
+      "required": false,
+      "promptEn": "Do you know the make of the vehicle — Ford, Toyota, Honda?",
+      "promptEs": "¿Sabe la marca del vehículo — Ford, Toyota, Honda?"
+    },
+    {
+      "name": "VehicleModel",
+      "required": false,
+      "promptEn": "Do you know the model?",
+      "promptEs": "¿Sabe el modelo?"
+    },
+    {
+      "name": "VehiclePlate",
+      "required": false,
+      "promptEn": "Do you have a license plate number?",
+      "promptEs": "¿Tiene el número de placa?"
     },
     {
       "name": "AccidentCallbackNumber",

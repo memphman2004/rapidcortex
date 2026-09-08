@@ -16,7 +16,7 @@ Rapid Cortex live video can use **Amazon Kinesis Video Streams (KVS)** for WebRT
   `LIVE_VIDEO_STORAGE_MODE=off` (or `LIVE_VIDEO_STORAGE_MODE=off` in the request payload override). **Direct** WebRTC (single-master) connections use `ConnectAsMaster` / `ConnectAsViewer` style clients.
 
 - **Storage enabled (live + Kinesis ingestion)**  
-  `LIVE_VIDEO_STORAGE_MODE` set to `kvs` or `kvs-ingestion` (or request override). In AWS, after **storage is ENABLED** on a channel, **plain peer-to-peer master/viewer on that channel is not used**; clients must use **Join storage session** flows (the app’s WebRTC path is designed for this when `LIVE_VIDEO_KVS_STORAGE_ATTACH_TO_CHANNEL=true`).
+  `LIVE_VIDEO_STORAGE_MODE` set to `kvs` or `kvs-ingestion` (or request override). **Attach is on by default.** After storage is ENABLED on a channel, **plain peer-to-peer master/viewer on that channel is not used**; clients must `JoinStorageSession` / `JoinStorageSessionAsViewer`. Set `LIVE_VIDEO_KVS_STORAGE_ATTACH_TO_CHANNEL=false` only for live P2P without ingest.
 
 See AWS documentation for the exact `JoinStorageSession` / storage viewer APIs.
 
@@ -72,7 +72,8 @@ Or in the **AWS console**: Kinesis Video Streams → your signaling channel → 
 | `LIVE_VIDEO_KVS_TOKEN_ROLE_ARN` | IAM role assumed for **scoped** browser credentials (required for the KVS WebRTC path). |
 | `LIVE_VIDEO_STORAGE_MODE` | `off` = no `CreateStream` / no ingestion; `kvs` or `kvs-ingestion` = optional stream + mapping when the feature flags align. |
 | `LIVE_VIDEO_KVS_DATA_RETENTION_HOURS` | Retention for *API-created* per-session Kinesis **video** streams. |
-| `LIVE_VIDEO_KVS_STORAGE_ATTACH_TO_CHANNEL` | `true` to call `UpdateMediaStorageConfiguration` and enable AWS storage on the per-session channel (changes WebRTC mode). |
+| `LIVE_VIDEO_KVS_STORAGE_ATTACH_TO_CHANNEL` | Default **on**. `true` calls `UpdateMediaStorageConfiguration` (JoinStorageSession clients). Set `false` for live-only P2P. |
+| `LIVE_VIDEO_EXPORT_TO_S3` | Default **on**. GetClip → `ASSETS_BUCKET` prefix `live-video/{agencyId}/...`. |
 | `NEXT_PUBLIC_ENABLE_LIVE_VIDEO` | Web: enable UI surfaces. |
 
 `SMS_PROVIDER` and `TWILIO_SECRET_ARN` / `INCIDENT_MEDIA_TWILIO_SECRET_ARN` are unchanged; SMS uses the existing factory.

@@ -26,9 +26,9 @@ describe("app-host-routing — public status", () => {
     expect(maybeRedirectAppHostAwayFromMarketing(appRequest("/status"))).toBeNull();
   });
 
-  it("keeps tracked site QR click-through on the app host", () => {
-    expect(isMarketingPublicPath("/go/site/home")).toBe(false);
-    expect(maybeRedirectAppHostAwayFromMarketing(appRequest("/go/site/demo?medium=qr"))).toBeNull();
+  it("keeps Call Assist SMS self-service on the app host", () => {
+    expect(isMarketingPublicPath("/call-assist/report/tok")).toBe(false);
+    expect(maybeRedirectAppHostAwayFromMarketing(appRequest("/call-assist/report/tok"))).toBeNull();
   });
 
   it("still redirects true marketing paths to www", () => {

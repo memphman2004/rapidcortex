@@ -32,7 +32,8 @@ export const CALL_ASSIST_BID_LINE_MATRIX: readonly CallAssistBidLine[] = [
     line: 5,
     requirement: "Advanced AI Capabilities",
     position: "PARTIAL",
-    notes: "Deterministic NLP + optional Bedrock later. Sentiment/voice-emotion models are not live in v1.",
+    notes:
+      "Comprehend sentiment + lexical/Contact Lens distress. Distress may escalate to 911 and never suppresses keyword safety. Not a custom acoustic CNN.",
   },
   {
     line: 6,
@@ -68,7 +69,8 @@ export const CALL_ASSIST_BID_LINE_MATRIX: readonly CallAssistBidLine[] = [
     line: 11,
     requirement: "Motorola CAD Integration",
     position: "PARTIAL",
-    notes: "CADProvider + MotorolaPremierOneAdapter. Live push is dual fail-closed until write-back is authorized.",
+    notes:
+      "PremierOne, Tyler, CentralSquare, Hexagon, Zetron, Mark43, Versaterm adapters share dual fail-closed CAD gates. Live HTTP still requires write-back flags + agency UAT.",
   },
   { line: 12, requirement: "(Deleted in Addendum)", position: "N_A", notes: "Line removed per addendum." },
   {

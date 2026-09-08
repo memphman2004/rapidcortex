@@ -41,7 +41,9 @@ const INTAKE_911 = tpl("intake_911_standard", "Standard municipal intake", [
   { id: "crossStreets", label: "Cross streets", type: "text", required: false },
   { id: "aptBusiness", label: "Apt / business name", type: "text", required: false },
   { id: "directionTravel", label: "Direction of travel", type: "text", required: false },
-  { id: "vehicleMake", label: "Vehicle make / color", type: "text", required: false },
+  { id: "vehicleMake", label: "Vehicle make", type: "text", required: false },
+  { id: "vehicleModel", label: "Vehicle model", type: "text", required: false },
+  { id: "vehicleColor", label: "Vehicle color", type: "text", required: false },
   { id: "licensePlate", label: "License plate", type: "text", required: false },
   { id: "suspectDesc", label: "Suspect description", type: "text", required: false },
   { id: "weapons", label: "Weapons present", type: "boolean", required: false, alertOnValue: "true" },
@@ -561,16 +563,19 @@ export function defaultRetentionForVertical(vertical: CallAssistTaxonomyVertical
 export type CallAssistCadWizardOption = {
   id: string;
   label: string;
-  cadProviderId: "mock" | "motorola-premierone" | "tyler-new-world" | "mark43" | "hexagon-intergraph" | "versaterm";
+  cadProviderId: import("./cad-types.js").CadProviderId;
   cadProviderLabel: string | null;
 };
 
 export const CALL_ASSIST_CAD_WIZARD_OPTIONS: readonly CallAssistCadWizardOption[] = [
   { id: "motorola-premierone", label: "Motorola PremierOne", cadProviderId: "motorola-premierone", cadProviderLabel: "PremierOne" },
-  { id: "tritech-inform", label: "TriTech Inform", cadProviderId: "mock", cadProviderLabel: "TriTech Inform" },
-  { id: "mark43", label: "Mark43", cadProviderId: "mark43", cadProviderLabel: "Mark43" },
-  { id: "centralsquare", label: "CentralSquare", cadProviderId: "mock", cadProviderLabel: "CentralSquare" },
+  { id: "centralsquare", label: "CentralSquare", cadProviderId: "centralsquare", cadProviderLabel: "CentralSquare" },
   { id: "tyler-new-world", label: "Tyler Technologies", cadProviderId: "tyler-new-world", cadProviderLabel: "New World CAD" },
+  { id: "hexagon-intergraph", label: "Hexagon I/CAD", cadProviderId: "hexagon-intergraph", cadProviderLabel: "Hexagon" },
+  { id: "zetron", label: "Zetron", cadProviderId: "zetron", cadProviderLabel: "Zetron" },
+  { id: "mark43", label: "Mark43", cadProviderId: "mark43", cadProviderLabel: "Mark43" },
+  { id: "versaterm", label: "Versaterm", cadProviderId: "versaterm", cadProviderLabel: "Versaterm" },
+  { id: "tritech-inform", label: "TriTech Inform", cadProviderId: "mock", cadProviderLabel: "TriTech Inform" },
   { id: "other", label: "Other", cadProviderId: "mock", cadProviderLabel: "CAD" },
   { id: "none", label: "No CAD system", cadProviderId: "mock", cadProviderLabel: null },
 ];

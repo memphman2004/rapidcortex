@@ -6,11 +6,24 @@ import {
   KinesisVideoClient,
   UpdateMediaStorageConfigurationCommand,
 } from "@aws-sdk/client-kinesis-video";
-import { GetHLSStreamingSessionURLCommand, KinesisVideoArchivedMediaClient } from "@aws-sdk/client-kinesis-video-archived-media";
+import {
+  GetClipCommand,
+  GetHLSStreamingSessionURLCommand,
+  KinesisVideoArchivedMediaClient,
+} from "@aws-sdk/client-kinesis-video-archived-media";
+import { InvokeCommand, LambdaClient } from "@aws-sdk/client-lambda";
+import { GetObjectCommand, PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
+import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import type { RecordedPlaybackResponse } from "rapid-cortex-shared";
 import { env } from "../lib/env.js";
 
 const kv = new KinesisVideoClient({ region: env.region });
+const s3 = new S3Client({ region: env.region });
+const lambda = new LambdaClient({ region: env.region });
+
+export function liveVideoRecordingObjectKey(agencyId: string, incidentId: string, sessionId: string): string {
+  return `live-video/${agencyId}/${incidentId}/${sessionId}.mp4`;
+}
 
 function normalizeStreamName(sessionId: string): string {
   const safe = sessionId.replace(/[^a-zA-Z0-9_.-]/g, "-");
@@ -110,8 +123,28 @@ export async function getPlaybackInfo(args: {
   storageMode: "off" | "kvs-ingestion";
   streamName: string | undefined;
   streamArn: string | undefined;
+  recordingS3Key?: string;
+  recordingDownloadUrl?: string;
+  recordingDownloadExpiresAt?: string;
 }): Promise<RecordedPlaybackResponse> {
+  const recordingFields = args.recordingS3Key
+    ? {
+        recordingS3Key: args.recordingS3Key,
+        recordingDownloadUrl: args.recordingDownloadUrl,
+        recordingDownloadExpiresAt: args.recordingDownloadExpiresAt,
+      }
+    : {};
   if (args.storageMode === "off" || !args.streamName) {
+    if (args.recordingS3Key) {
+      return {
+        sessionId: args.sessionId,
+        incidentId: args.incidentId,
+        status: "ready",
+        storageMode: "kvs-ingestion",
+        message: "Recording exported from Kinesis Video Streams.",
+        ...recordingFields,
+      };
+    }
     return {
       sessionId: args.sessionId,
       incidentId: args.incidentId,
@@ -131,9 +164,22 @@ export async function getPlaybackInfo(args: {
       kinesisVideoStreamName: args.streamName,
       hlsPlaybackUrl: url,
       hlsUrlExpiresAt: expiresAt,
+      ...recordingFields,
     };
   } catch (e) {
     const msg = e instanceof Error ? e.message : "Playback error";
+    if (args.recordingS3Key) {
+      return {
+        sessionId: args.sessionId,
+        incidentId: args.incidentId,
+        status: "ready",
+        storageMode: "kvs-ingestion",
+        kinesisVideoStreamArn: args.streamArn,
+        kinesisVideoStreamName: args.streamName,
+        message: "HLS from Kinesis is not ready; using exported recording.",
+        ...recordingFields,
+      };
+    }
     if (msg.includes("ResourceNotFound") || msg.includes("not found") || msg.includes("No data")) {
       return {
         sessionId: args.sessionId,
@@ -154,5 +200,116 @@ export async function getPlaybackInfo(args: {
       kinesisVideoStreamName: args.streamName,
       message: msg,
     };
+  }
+}
+
+async function readClipPayloadBytes(payload: unknown): Promise<Uint8Array> {
+  if (!payload) return new Uint8Array();
+  if (payload instanceof Uint8Array) return payload;
+  if (typeof payload === "object" && payload !== null && "transformToByteArray" in payload) {
+    const fn = (payload as { transformToByteArray?: () => Promise<Uint8Array> }).transformToByteArray;
+    if (typeof fn === "function") return fn.call(payload);
+  }
+  return new Uint8Array();
+}
+
+function clipErrorCode(err: unknown): string {
+  const name = err && typeof err === "object" && "name" in err ? String((err as { name: unknown }).name) : "";
+  const msg = err instanceof Error ? err.message : "export failed";
+  const lower = msg.toLowerCase();
+  if (
+    name === "ResourceNotFoundException" ||
+    lower.includes("no fragment") ||
+    lower.includes("resourcenotfound") ||
+    lower.includes("not found")
+  ) {
+    return "NO_FRAGMENTS";
+  }
+  return "EXPORT_FAILED";
+}
+
+export async function exportSessionClipToS3(args: {
+  agencyId: string;
+  incidentId: string;
+  sessionId: string;
+  streamName: string;
+  startIso: string;
+  endIso: string;
+}): Promise<{ ok: true; key: string } | { ok: false; errorCode: string }> {
+  const bucket = process.env.ASSETS_BUCKET?.trim();
+  if (!bucket) return { ok: false, errorCode: "ASSETS_BUCKET_MISSING" };
+  const start = new Date(args.startIso);
+  let end = new Date(args.endIso);
+  if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime())) {
+    return { ok: false, errorCode: "INVALID_CLIP_WINDOW" };
+  }
+  // Include trailing fragments that land just after hang-up; GetClip requires End > Start.
+  if (end.getTime() <= start.getTime()) {
+    end = new Date(start.getTime() + 2_000);
+  } else {
+    end = new Date(end.getTime() + 2_000);
+  }
+  try {
+    const epOut = await kv.send(
+      new GetDataEndpointCommand({
+        StreamName: args.streamName,
+        APIName: "GET_CLIP",
+      }),
+    );
+    if (!epOut.DataEndpoint) return { ok: false, errorCode: "KVS_NO_CLIP_ENDPOINT" };
+    const archived = new KinesisVideoArchivedMediaClient({ region: env.region, endpoint: epOut.DataEndpoint });
+    const clip = await archived.send(
+      new GetClipCommand({
+        StreamName: args.streamName,
+        ClipFragmentSelector: {
+          FragmentSelectorType: "SERVER_TIMESTAMP",
+          TimestampRange: { StartTimestamp: start, EndTimestamp: end },
+        },
+      }),
+    );
+    if (!clip.Payload) return { ok: false, errorCode: "KVS_EMPTY_CLIP" };
+    const body = await readClipPayloadBytes(clip.Payload);
+    if (!body.byteLength) return { ok: false, errorCode: "KVS_EMPTY_CLIP" };
+    const key = liveVideoRecordingObjectKey(args.agencyId, args.incidentId, args.sessionId);
+    await s3.send(
+      new PutObjectCommand({
+        Bucket: bucket,
+        Key: key,
+        Body: body,
+        ContentType: clip.ContentType || "video/mp4",
+        ServerSideEncryption: "AES256",
+      }),
+    );
+    return { ok: true, key };
+  } catch (err) {
+    return { ok: false, errorCode: clipErrorCode(err) };
+  }
+}
+
+/** Fire-and-forget GetClip worker. No-op when LIVE_VIDEO_EXPORT_FUNCTION_NAME is unset. */
+export async function enqueueRecordingExport(sessionId: string): Promise<void> {
+  const functionName = process.env.LIVE_VIDEO_EXPORT_FUNCTION_NAME?.trim();
+  if (!functionName || !sessionId) return;
+  await lambda.send(
+    new InvokeCommand({
+      FunctionName: functionName,
+      InvocationType: "Event",
+      Payload: Buffer.from(JSON.stringify({ sessionId })),
+    }),
+  );
+}
+
+export async function presignRecordingDownload(key: string): Promise<{ url: string; expiresAt: string } | null> {
+  const bucket = process.env.ASSETS_BUCKET?.trim();
+  if (!bucket || !key) return null;
+  try {
+    const url = await getSignedUrl(
+      s3,
+      new GetObjectCommand({ Bucket: bucket, Key: key }),
+      { expiresIn: 900 },
+    );
+    return { url, expiresAt: new Date(Date.now() + 900_000).toISOString() };
+  } catch {
+    return null;
   }
 }

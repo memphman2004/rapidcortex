@@ -37,7 +37,40 @@ export function canSeeAgencySwitcher(role: string | undefined): boolean {
   return isRcInternalOperator(role);
 }
 
-export function canSetCallAssistShift(role: string | undefined): boolean {
+export function canViewCallAssistQa(role: string | undefined): boolean {
   if (!role) return false;
-  return defaultPermissionForRole(role as UserRole, "call_assist.session.takeover");
+  return defaultPermissionForRole(role as UserRole, "call_assist.qa.view");
+}
+
+export function canReviewCallAssistQa(role: string | undefined): boolean {
+  if (!role) return false;
+  return defaultPermissionForRole(role as UserRole, "call_assist.qa.review");
+}
+
+export function canViewCallAssistAnalytics(role: string | undefined): boolean {
+  if (!role) return false;
+  return defaultPermissionForRole(role as UserRole, "call_assist.analytics.view");
+}
+
+export function canManageCallAssistRetention(role: string | undefined): boolean {
+  if (!role) return false;
+  return defaultPermissionForRole(role as UserRole, "call_assist.retention.manage");
+}
+
+export function canManageCallAssistPrompts(role: string | undefined): boolean {
+  if (!role) return false;
+  return defaultPermissionForRole(role as UserRole, "call_assist.prompts.manage");
+}
+
+export function canTakeOverCallAssistCallback(role: string | undefined): boolean {
+  if (!role) return false;
+  return (
+    defaultPermissionForRole(role as UserRole, "call_assist.session.takeover") ||
+    defaultPermissionForRole(role as UserRole, "call_assist.cad.push")
+  );
+}
+
+export function canFileCallAssistRms(role: string | undefined): boolean {
+  if (!role) return false;
+  return defaultPermissionForRole(role as UserRole, "call_assist.cad.push");
 }

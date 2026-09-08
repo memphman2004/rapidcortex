@@ -1,7 +1,7 @@
 import type { ProductPath } from '../stores/auth.store';
-import { isCampusRole, isTransitRole, isVenueRole } from './roles';
+import { isCampusRole, isCommandRole, isTransitRole, isVenueRole } from './roles';
 
-export type ProductBootHref = '/(venue)' | '/(campus)' | '/(safe-sound)';
+export type ProductBootHref = '/(venue)' | '/(campus)' | '/(safe-sound)' | '/(command)';
 
 /**
  * Where a restored session would go after product selection.
@@ -24,6 +24,9 @@ export function authenticatedProductHref(input: {
   }
   if (input.productPath === 'campus' && isCampusRole(input.role)) {
     return '/(campus)';
+  }
+  if (input.productPath === 'command' && isCommandRole(input.role)) {
+    return '/(command)';
   }
   return null;
 }

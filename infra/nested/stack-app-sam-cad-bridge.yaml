@@ -1,0 +1,772 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Transform: AWS::Serverless-2016-10-31
+Description: >
+  Rapid Cortex — CAD Bridge event broker (CAD A ↔ CAD B).
+  Routes attach to stack 2 HttpApi. Live partner CAD HTTP remains fail-closed
+  (CAD_WRITEBACK_ENABLED=false). Mock outbound is default on.
+  Six DynamoDB tables (distinct access/TTL/retention). Optional VPC for on-prem CAD.
+
+Metadata:
+  cfn-lint:
+    config:
+      ignore_checks:
+        - W1030
+
+Parameters:
+  DeploymentStage:
+    Type: String
+    AllowedValues: [dev, staging, prod, pilot]
+  HttpApiId:
+    Type: String
+  HttpApiJwtAuthorizerId:
+    Type: String
+    Default: ""
+  ImportedCognitoUserPoolId:
+    Type: String
+  ImportedCognitoWebClientId:
+    Type: String
+  ImportedCognitoIssuer:
+    Type: String
+  AuditTable:
+    Type: String
+  AgenciesTable:
+    Type: String
+  ManagedPolicyNamePrefix:
+    Type: String
+    Default: rapid-cortex
+  OpsAlertsTopicArn:
+    Type: String
+    Default: ""
+    Description: SNS topic ARN for operational alerts (from AppSam2Stack)
+  VpcId:
+    Type: String
+    Default: ""
+    Description: VPC ID for Lambda functions when CAD is reachable only via VPN. Leave blank for public HTTPS CAD APIs.
+  VpcSubnetIds:
+    Type: CommaDelimitedList
+    Default: ""
+    Description: Private subnet IDs (comma-separated) used when VpcId is set
+  VpcSecurityGroupId:
+    Type: String
+    Default: ""
+    Description: Security group ID used when VpcId is set
+
+Conditions:
+  HasHttpApiJwtAuthorizer: !Not [!Equals [!Ref HttpApiJwtAuthorizerId, ""]]
+  HasOpsAlertsTopic: !Not [!Equals [!Ref OpsAlertsTopicArn, ""]]
+  UseVpc: !Not [!Equals [!Ref VpcId, ""]]
+  IsProd: !Equals [!Ref DeploymentStage, prod]
+
+Globals:
+  Function:
+    Runtime: nodejs20.x
+    Timeout: 30
+    MemorySize: 256
+    VpcConfig: !If
+      - UseVpc
+      - SubnetIds: !Ref VpcSubnetIds
+        SecurityGroupIds:
+          - !Ref VpcSecurityGroupId
+      - !Ref AWS::NoValue
+    Environment:
+      Variables:
+        DEPLOYMENT_STAGE: !Ref DeploymentStage
+        ALLOW_UNAUTHENTICATED_API: "false"
+        ENABLE_CAD_BRIDGE: "true"
+        CAD_BRIDGE_MOCK: "true"
+        CAD_WRITEBACK_ENABLED: "false"
+        CAD_BRIDGE_CONFIG_TABLE: !Ref CadBridgeConfigTable
+        CAD_BRIDGE_SYNC_TABLE: !Ref CadBridgeSyncTable
+        CAD_BRIDGE_LOOP_GUARD_TABLE: !Ref CadBridgeLoopGuardTable
+        CAD_BRIDGE_CB_TABLE: !Ref CadBridgeCircuitBreakerTable
+        CAD_BRIDGE_BUFFER_TABLE: !Ref CadBridgeBufferTable
+        CAD_BRIDGE_AUDIT_TABLE: !Ref CadBridgeAuditTable
+        CAD_BRIDGE_QUEUE_URL: !Ref CadBridgeEventsQueue
+        AUDIT_TABLE: !Ref AuditTable
+        AGENCIES_TABLE: !Ref AgenciesTable
+        COGNITO_USER_POOL_ID: !Ref ImportedCognitoUserPoolId
+        COGNITO_CLIENT_ID: !Ref ImportedCognitoWebClientId
+        COGNITO_REGION: !Ref AWS::Region
+
+Resources:
+  CadBridgeConfigTable:
+    Type: AWS::DynamoDB::Table
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      TableName: !Sub "rapid-cortex-cad-bridge-config-${DeploymentStage}"
+      BillingMode: PAY_PER_REQUEST
+      TableClass: STANDARD
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: true
+      SSESpecification:
+        SSEEnabled: true
+      AttributeDefinitions:
+        - AttributeName: agencyId
+          AttributeType: S
+      KeySchema:
+        - AttributeName: agencyId
+          KeyType: HASH
+
+  CadBridgeSyncTable:
+    Type: AWS::DynamoDB::Table
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      TableName: !Sub "rapid-cortex-cad-bridge-sync-${DeploymentStage}"
+      BillingMode: PAY_PER_REQUEST
+      TableClass: STANDARD
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: true
+      SSESpecification:
+        SSEEnabled: true
+      AttributeDefinitions:
+        - AttributeName: pk
+          AttributeType: S
+        - AttributeName: sk
+          AttributeType: S
+        - AttributeName: gsi1pk
+          AttributeType: S
+        - AttributeName: gsi1sk
+          AttributeType: S
+      KeySchema:
+        - AttributeName: pk
+          KeyType: HASH
+        - AttributeName: sk
+          KeyType: RANGE
+      GlobalSecondaryIndexes:
+        - IndexName: gsi1
+          KeySchema:
+            - AttributeName: gsi1pk
+              KeyType: HASH
+            - AttributeName: gsi1sk
+              KeyType: RANGE
+          Projection:
+            ProjectionType: ALL
+
+  CadBridgeLoopGuardTable:
+    Type: AWS::DynamoDB::Table
+    DeletionPolicy: Delete
+    UpdateReplacePolicy: Delete
+    Properties:
+      TableName: !Sub "rapid-cortex-cad-bridge-loop-guard-${DeploymentStage}"
+      BillingMode: PAY_PER_REQUEST
+      TableClass: STANDARD_INFREQUENT_ACCESS
+      SSESpecification:
+        SSEEnabled: true
+      AttributeDefinitions:
+        - AttributeName: pk
+          AttributeType: S
+        - AttributeName: sk
+          AttributeType: S
+      KeySchema:
+        - AttributeName: pk
+          KeyType: HASH
+        - AttributeName: sk
+          KeyType: RANGE
+      TimeToLiveSpecification:
+        AttributeName: ttl
+        Enabled: true
+
+  CadBridgeCircuitBreakerTable:
+    Type: AWS::DynamoDB::Table
+    DeletionPolicy: Delete
+    UpdateReplacePolicy: Delete
+    Properties:
+      TableName: !Sub "rapid-cortex-cad-bridge-circuit-breaker-${DeploymentStage}"
+      BillingMode: PAY_PER_REQUEST
+      TableClass: STANDARD_INFREQUENT_ACCESS
+      SSESpecification:
+        SSEEnabled: true
+      AttributeDefinitions:
+        - AttributeName: pk
+          AttributeType: S
+      KeySchema:
+        - AttributeName: pk
+          KeyType: HASH
+      TimeToLiveSpecification:
+        AttributeName: ttl
+        Enabled: true
+
+  CadBridgeBufferTable:
+    Type: AWS::DynamoDB::Table
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      TableName: !Sub "rapid-cortex-cad-bridge-buffer-${DeploymentStage}"
+      BillingMode: PAY_PER_REQUEST
+      TableClass: STANDARD
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: !If [IsProd, true, false]
+      SSESpecification:
+        SSEEnabled: true
+      AttributeDefinitions:
+        - AttributeName: pk
+          AttributeType: S
+        - AttributeName: sk
+          AttributeType: S
+        - AttributeName: agencyId
+          AttributeType: S
+      KeySchema:
+        - AttributeName: pk
+          KeyType: HASH
+        - AttributeName: sk
+          KeyType: RANGE
+      TimeToLiveSpecification:
+        AttributeName: ttl
+        Enabled: true
+      GlobalSecondaryIndexes:
+        - IndexName: agencyId-index
+          KeySchema:
+            - AttributeName: agencyId
+              KeyType: HASH
+            - AttributeName: sk
+              KeyType: RANGE
+          Projection:
+            ProjectionType: KEYS_ONLY
+
+  CadBridgeAuditTable:
+    Type: AWS::DynamoDB::Table
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      TableName: !Sub "rapid-cortex-cad-bridge-audit-${DeploymentStage}"
+      BillingMode: PAY_PER_REQUEST
+      TableClass: STANDARD_INFREQUENT_ACCESS
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: true
+      SSESpecification:
+        SSEEnabled: true
+      AttributeDefinitions:
+        - AttributeName: pk
+          AttributeType: S
+        - AttributeName: sk
+          AttributeType: S
+      KeySchema:
+        - AttributeName: pk
+          KeyType: HASH
+        - AttributeName: sk
+          KeyType: RANGE
+
+  CadBridgeEventsDlq:
+    Type: AWS::SQS::Queue
+    Properties:
+      QueueName: !Sub "${ManagedPolicyNamePrefix}-cad-bridge-events-dlq-${DeploymentStage}.fifo"
+      FifoQueue: true
+      ContentBasedDeduplication: false
+      MessageRetentionPeriod: 1209600
+
+  CadBridgeEventsQueue:
+    Type: AWS::SQS::Queue
+    Properties:
+      QueueName: !Sub "${ManagedPolicyNamePrefix}-cad-bridge-events-${DeploymentStage}.fifo"
+      FifoQueue: true
+      ContentBasedDeduplication: false
+      DeduplicationScope: messageGroup
+      FifoThroughputLimit: perMessageGroupId
+      VisibilityTimeout: 90
+      MessageRetentionPeriod: 86400
+      RedrivePolicy:
+        deadLetterTargetArn: !GetAtt CadBridgeEventsDlq.Arn
+        maxReceiveCount: 3
+
+  AppManagedPolicyCadBridge:
+    Type: AWS::IAM::ManagedPolicy
+    Properties:
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Sid: CadBridgeTables
+            Effect: Allow
+            Action:
+              - dynamodb:GetItem
+              - dynamodb:PutItem
+              - dynamodb:UpdateItem
+              - dynamodb:DeleteItem
+              - dynamodb:Query
+              - dynamodb:BatchGetItem
+              - dynamodb:BatchWriteItem
+              - dynamodb:DescribeTable
+              - dynamodb:ConditionCheckItem
+            Resource:
+              - !GetAtt CadBridgeConfigTable.Arn
+              - !GetAtt CadBridgeSyncTable.Arn
+              - !Sub "${CadBridgeSyncTable.Arn}/index/*"
+              - !GetAtt CadBridgeLoopGuardTable.Arn
+              - !GetAtt CadBridgeCircuitBreakerTable.Arn
+              - !GetAtt CadBridgeBufferTable.Arn
+              - !Sub "${CadBridgeBufferTable.Arn}/index/*"
+              - !GetAtt CadBridgeAuditTable.Arn
+              - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${AuditTable}"
+              - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${AuditTable}/index/*"
+              - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${AgenciesTable}"
+              - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${AgenciesTable}/index/*"
+          - Sid: CadBridgeConfigScan
+            Effect: Allow
+            Action:
+              - dynamodb:Scan
+            Resource:
+              - !GetAtt CadBridgeConfigTable.Arn
+          - Sid: CadBridgeQueue
+            Effect: Allow
+            Action:
+              - sqs:SendMessage
+              - sqs:ReceiveMessage
+              - sqs:DeleteMessage
+              - sqs:GetQueueAttributes
+              - sqs:ChangeMessageVisibility
+            Resource:
+              - !GetAtt CadBridgeEventsQueue.Arn
+              - !GetAtt CadBridgeEventsDlq.Arn
+          - Sid: CadBridgeSecrets
+            Effect: Allow
+            Action:
+              - secretsmanager:GetSecretValue
+            Resource:
+              - !Sub "arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:rapid-cortex/cad-bridge/*"
+              - !Sub "arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:rc-cad-bridge/*"
+          - Sid: CadBridgeMetrics
+            Effect: Allow
+            Action:
+              - cloudwatch:PutMetricData
+            Resource: "*"
+            Condition:
+              StringEquals:
+                cloudwatch:namespace: RapidCortex/CADBridge
+
+  CadBridgeHttpFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/handlers/cad-bridge/http.handler
+      Timeout: 30
+      Policies:
+        - !Ref AppManagedPolicyCadBridge
+
+  CadBridgeWebhookFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/handlers/cad-bridge/webhook.handler
+      Timeout: 10
+      MemorySize: 256
+      ReservedConcurrentExecutions: 100
+      Policies:
+        - !Ref AppManagedPolicyCadBridge
+
+  CadBridgeRouterFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/lambdas/cadBridgeRouter.handler
+      Timeout: 29
+      MemorySize: 512
+      ReservedConcurrentExecutions: 50
+      Policies:
+        - !Ref AppManagedPolicyCadBridge
+      Events:
+        BridgeQueue:
+          Type: SQS
+          Properties:
+            Queue: !GetAtt CadBridgeEventsQueue.Arn
+            BatchSize: 1
+            FunctionResponseTypes:
+              - ReportBatchItemFailures
+
+  CadBridgeBufferReplayFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/lambdas/cadBridgeBufferReplay.handler
+      Timeout: 300
+      MemorySize: 256
+      ReservedConcurrentExecutions: 5
+      Policies:
+        - !Ref AppManagedPolicyCadBridge
+      Events:
+        EveryFiveMinutes:
+          Type: Schedule
+          Properties:
+            Schedule: rate(5 minutes)
+            Name: !Sub "${ManagedPolicyNamePrefix}-cad-bridge-replay-${DeploymentStage}"
+            Enabled: true
+            Description: Replay buffered CAD bridge events oldest-first when the destination circuit allows
+
+  CadBridgePollerFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/lambdas/cadBridgePoller.handler
+      Timeout: 60
+      Policies:
+        - !Ref AppManagedPolicyCadBridge
+      Events:
+        EveryMinute:
+          Type: Schedule
+          Properties:
+            Schedule: rate(1 minute)
+            Name: !Sub "${ManagedPolicyNamePrefix}-cad-bridge-poller-${DeploymentStage}"
+            Enabled: true
+            Description: Poll CAD vendors that do not support inbound webhooks
+
+  CadBridgeTransferTimeoutFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/lambdas/cadBridgeTransferTimeout.handler
+      Timeout: 30
+      Policies:
+        - !Ref AppManagedPolicyCadBridge
+      Events:
+        EveryMinute:
+          Type: Schedule
+          Properties:
+            Schedule: rate(1 minute)
+            Name: !Sub "${ManagedPolicyNamePrefix}-cad-bridge-xfer-${DeploymentStage}"
+            Enabled: true
+            Description: Auto-cancel CAD bridge transfers past the configured timeout
+
+  CadBridgeHttpIntegration:
+    Type: AWS::ApiGatewayV2::Integration
+    Properties:
+      ApiId: !Ref HttpApiId
+      IntegrationType: AWS_PROXY
+      IntegrationUri: !Sub arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${CadBridgeHttpFunction.Arn}/invocations
+      PayloadFormatVersion: "2.0"
+
+  CadBridgeWebhookIntegration:
+    Type: AWS::ApiGatewayV2::Integration
+    Properties:
+      ApiId: !Ref HttpApiId
+      IntegrationType: AWS_PROXY
+      IntegrationUri: !Sub arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${CadBridgeWebhookFunction.Arn}/invocations
+      PayloadFormatVersion: "2.0"
+
+  CadBridgeHttpInvokePermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !Ref CadBridgeHttpFunction
+      Principal: apigateway.amazonaws.com
+      SourceArn: !Sub arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${HttpApiId}/*
+
+  CadBridgeWebhookInvokePermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !Ref CadBridgeWebhookFunction
+      Principal: apigateway.amazonaws.com
+      SourceArn: !Sub arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${HttpApiId}/*
+
+  RouteCadBridgeProxy:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref HttpApiId
+      RouteKey: "ANY /api/cad-bridge/{proxy+}"
+      Target: !Sub "integrations/${CadBridgeHttpIntegration}"
+      AuthorizationType: !If [HasHttpApiJwtAuthorizer, JWT, NONE]
+      AuthorizerId: !If [HasHttpApiJwtAuthorizer, !Ref HttpApiJwtAuthorizerId, !Ref AWS::NoValue]
+
+  RouteCadBridgeWebhookA:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref HttpApiId
+      RouteKey: "POST /api/public/cad-bridge/{agencyId}/cad-a/events"
+      Target: !Sub "integrations/${CadBridgeWebhookIntegration}"
+      AuthorizationType: NONE
+
+  RouteCadBridgeWebhookB:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref HttpApiId
+      RouteKey: "POST /api/public/cad-bridge/{agencyId}/cad-b/events"
+      Target: !Sub "integrations/${CadBridgeWebhookIntegration}"
+      AuthorizationType: NONE
+
+  AlarmCadBridgeDlq:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: !Sub "${ManagedPolicyNamePrefix}-cad-bridge-dlq-${DeploymentStage}"
+      AlarmDescription: CAD Bridge DLQ has messages. Router failed after 3 receive attempts (unhandled exception).
+      Namespace: AWS/SQS
+      MetricName: ApproximateNumberOfMessagesVisible
+      Dimensions:
+        - Name: QueueName
+          Value: !GetAtt CadBridgeEventsDlq.QueueName
+      Statistic: Maximum
+      Period: 60
+      EvaluationPeriods: 1
+      Threshold: 1
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      TreatMissingData: notBreaching
+      AlarmActions: !If
+        - HasOpsAlertsTopic
+        - [!Ref OpsAlertsTopicArn]
+        - !Ref AWS::NoValue
+      OKActions: !If
+        - HasOpsAlertsTopic
+        - [!Ref OpsAlertsTopicArn]
+        - !Ref AWS::NoValue
+
+  AlarmCadBridgeQueueBacklog:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: !Sub "${ManagedPolicyNamePrefix}-cad-bridge-queue-backlog-${DeploymentStage}"
+      AlarmDescription: CAD Bridge event queue has >100 visible messages. Router may be stalled or throttled.
+      Namespace: AWS/SQS
+      MetricName: ApproximateNumberOfMessagesVisible
+      Dimensions:
+        - Name: QueueName
+          Value: !GetAtt CadBridgeEventsQueue.QueueName
+      Statistic: Maximum
+      Period: 60
+      EvaluationPeriods: 2
+      Threshold: 100
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      TreatMissingData: notBreaching
+      AlarmActions: !If
+        - HasOpsAlertsTopic
+        - [!Ref OpsAlertsTopicArn]
+        - !Ref AWS::NoValue
+
+  AlarmCadBridgeWebhookErrors:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: !Sub "${ManagedPolicyNamePrefix}-cad-bridge-webhook-errors-${DeploymentStage}"
+      AlarmDescription: CAD Bridge webhook handler Lambda errors (unhandled exceptions).
+      Namespace: AWS/Lambda
+      MetricName: Errors
+      Dimensions:
+        - Name: FunctionName
+          Value: !Ref CadBridgeWebhookFunction
+      Statistic: Sum
+      Period: 60
+      EvaluationPeriods: 2
+      Threshold: 5
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      TreatMissingData: notBreaching
+      AlarmActions: !If
+        - HasOpsAlertsTopic
+        - [!Ref OpsAlertsTopicArn]
+        - !Ref AWS::NoValue
+
+  AlarmCadBridgeRouterErrors:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: !Sub "${ManagedPolicyNamePrefix}-cad-bridge-router-errors-${DeploymentStage}"
+      AlarmDescription: CAD Bridge event router Lambda errors. Check logs for unhandled exceptions.
+      Namespace: AWS/Lambda
+      MetricName: Errors
+      Dimensions:
+        - Name: FunctionName
+          Value: !Ref CadBridgeRouterFunction
+      Statistic: Sum
+      Period: 60
+      EvaluationPeriods: 2
+      Threshold: 5
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      TreatMissingData: notBreaching
+      AlarmActions: !If
+        - HasOpsAlertsTopic
+        - [!Ref OpsAlertsTopicArn]
+        - !Ref AWS::NoValue
+
+  AlarmCadBridgeSyncLag:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: !Sub "${ManagedPolicyNamePrefix}-cad-bridge-sync-lag-${DeploymentStage}"
+      AlarmDescription: CAD bridge sync lag exceeded 5 seconds
+      Namespace: RapidCortex/CADBridge
+      MetricName: SyncLagMs
+      Statistic: Average
+      Period: 60
+      EvaluationPeriods: 1
+      Threshold: 5000
+      ComparisonOperator: GreaterThanThreshold
+      TreatMissingData: notBreaching
+      AlarmActions: !If
+        - HasOpsAlertsTopic
+        - [!Ref OpsAlertsTopicArn]
+        - !Ref AWS::NoValue
+
+  AlarmCadBridgeFailedPublish:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: !Sub "${ManagedPolicyNamePrefix}-cad-bridge-failed-publish-${DeploymentStage}"
+      AlarmDescription: CAD bridge failed publishes exceeded 5 in 60 seconds
+      Namespace: RapidCortex/CADBridge
+      MetricName: FailedPublishCount
+      Statistic: Sum
+      Period: 60
+      EvaluationPeriods: 1
+      Threshold: 5
+      ComparisonOperator: GreaterThanThreshold
+      TreatMissingData: notBreaching
+      AlarmActions: !If
+        - HasOpsAlertsTopic
+        - [!Ref OpsAlertsTopicArn]
+        - !Ref AWS::NoValue
+
+  AlarmCadBridgePendingBuffer:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: !Sub "${ManagedPolicyNamePrefix}-cad-bridge-pending-buffer-${DeploymentStage}"
+      AlarmDescription: CAD bridge pending buffer exceeded 50 events
+      Namespace: RapidCortex/CADBridge
+      MetricName: PendingBufferSize
+      Statistic: Maximum
+      Period: 60
+      EvaluationPeriods: 1
+      Threshold: 50
+      ComparisonOperator: GreaterThanThreshold
+      TreatMissingData: notBreaching
+      AlarmActions: !If
+        - HasOpsAlertsTopic
+        - [!Ref OpsAlertsTopicArn]
+        - !Ref AWS::NoValue
+
+  AlarmCadBridgeBufferDepth:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: !Sub "${ManagedPolicyNamePrefix}-cad-bridge-buffer-depth-${DeploymentStage}"
+      AlarmDescription: CAD Bridge buffer has >500 events. Partner CAD may be down for an extended period.
+      Namespace: RapidCortex/CADBridge
+      MetricName: BufferDepth
+      Statistic: Maximum
+      Period: 300
+      EvaluationPeriods: 1
+      Threshold: 500
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      TreatMissingData: notBreaching
+      AlarmActions: !If
+        - HasOpsAlertsTopic
+        - [!Ref OpsAlertsTopicArn]
+        - !Ref AWS::NoValue
+      OKActions: !If
+        - HasOpsAlertsTopic
+        - [!Ref OpsAlertsTopicArn]
+        - !Ref AWS::NoValue
+
+  AlarmCadBridgeConflicts:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: !Sub "${ManagedPolicyNamePrefix}-cad-bridge-conflicts-${DeploymentStage}"
+      AlarmDescription: CAD bridge unresolved conflicts exceeded 10 in 5 minutes
+      Namespace: RapidCortex/CADBridge
+      MetricName: UnresolvedConflicts
+      Statistic: Sum
+      Period: 300
+      EvaluationPeriods: 1
+      Threshold: 10
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      TreatMissingData: notBreaching
+      AlarmActions: !If
+        - HasOpsAlertsTopic
+        - [!Ref OpsAlertsTopicArn]
+        - !Ref AWS::NoValue
+
+  CadBridgeDashboard:
+    Type: AWS::CloudWatch::Dashboard
+    Properties:
+      DashboardName: !Sub "${ManagedPolicyNamePrefix}-cad-bridge-${DeploymentStage}"
+      DashboardBody: !Sub |
+        {
+          "widgets": [
+            {
+              "type": "metric",
+              "properties": {
+                "title": "Event Queue Depth",
+                "metrics": [
+                  ["AWS/SQS", "ApproximateNumberOfMessagesVisible", "QueueName", "${CadBridgeEventsQueue.QueueName}", {"label": "Pending"}],
+                  ["AWS/SQS", "ApproximateNumberOfMessagesVisible", "QueueName", "${CadBridgeEventsDlq.QueueName}", {"label": "DLQ", "color": "#d62728"}]
+                ],
+                "period": 60,
+                "stat": "Maximum",
+                "view": "timeSeries",
+                "region": "${AWS::Region}"
+              }
+            },
+            {
+              "type": "metric",
+              "properties": {
+                "title": "Lambda Errors",
+                "metrics": [
+                  ["AWS/Lambda", "Errors", "FunctionName", "${CadBridgeWebhookFunction}", {"label": "Webhook"}],
+                  ["AWS/Lambda", "Errors", "FunctionName", "${CadBridgeRouterFunction}", {"label": "Router"}],
+                  ["AWS/Lambda", "Errors", "FunctionName", "${CadBridgeBufferReplayFunction}", {"label": "Replay"}]
+                ],
+                "period": 60,
+                "stat": "Sum",
+                "view": "timeSeries",
+                "region": "${AWS::Region}"
+              }
+            },
+            {
+              "type": "metric",
+              "properties": {
+                "title": "Buffer Depth",
+                "metrics": [
+                  ["RapidCortex/CADBridge", "BufferDepth", {"label": "Buffered Events"}]
+                ],
+                "period": 300,
+                "stat": "Maximum",
+                "view": "timeSeries",
+                "region": "${AWS::Region}"
+              }
+            },
+            {
+              "type": "metric",
+              "properties": {
+                "title": "Bridge Outcomes",
+                "metrics": [
+                  ["RapidCortex/CADBridge", "ReplaySuccess", {"label": "Replayed OK", "color": "#2ca02c"}],
+                  ["RapidCortex/CADBridge", "ReplayFailed", {"label": "Replay Failed", "color": "#d62728"}],
+                  ["RapidCortex/CADBridge", "UnresolvedConflicts", {"label": "Conflicts", "color": "#ff7f0e"}],
+                  ["RapidCortex/CADBridge", "LoopDetected", {"label": "Loops Detected", "color": "#9467bd"}]
+                ],
+                "period": 300,
+                "stat": "Sum",
+                "view": "timeSeries",
+                "region": "${AWS::Region}"
+              }
+            }
+          ]
+        }
+
+Outputs:
+  CadBridgeConfigTableName:
+    Value: !Ref CadBridgeConfigTable
+  CadBridgeSyncTableName:
+    Value: !Ref CadBridgeSyncTable
+  CadBridgeLoopGuardTableName:
+    Value: !Ref CadBridgeLoopGuardTable
+  CadBridgeCircuitBreakerTableName:
+    Value: !Ref CadBridgeCircuitBreakerTable
+  CadBridgeBufferTableName:
+    Value: !Ref CadBridgeBufferTable
+  CadBridgeAuditTableName:
+    Value: !Ref CadBridgeAuditTable
+  CadBridgeEventsQueueUrl:
+    Value: !Ref CadBridgeEventsQueue
+  CadBridgeHttpFunctionArn:
+    Value: !GetAtt CadBridgeHttpFunction.Arn
+  CadBridgeWebhookFunctionArn:
+    Value: !GetAtt CadBridgeWebhookFunction.Arn

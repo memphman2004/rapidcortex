@@ -10,7 +10,12 @@ describe("Call Assist RBAC", () => {
   it("does not let dispatcher manage retention or run demos", () => {
     expect(defaultPermissionForRole("dispatcher", "call_assist.retention.manage")).toBe(false);
     expect(defaultPermissionForRole("dispatcher", "call_assist.demo.run")).toBe(false);
+    expect(defaultPermissionForRole("dispatcher", "call_assist.qa.view")).toBe(false);
+    expect(defaultPermissionForRole("dispatcher", "call_assist.prompts.manage")).toBe(false);
     expect(defaultPermissionForRole("agencyadmin", "call_assist.demo.run")).toBe(true);
+    expect(defaultPermissionForRole("agencyadmin", "call_assist.prompts.manage")).toBe(true);
+    expect(defaultPermissionForRole("supervisor", "call_assist.qa.view")).toBe(true);
+    expect(defaultPermissionForRole("analyst", "call_assist.analytics.view")).toBe(true);
     expect(defaultPermissionForRole("rcitadmin", "call_assist.admin.config")).toBe(true);
   });
 });

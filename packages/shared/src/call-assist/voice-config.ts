@@ -76,6 +76,7 @@ export type CallAssistVoiceVars = {
   nonEmergencyWebsite?: string | null;
   onlineReportPortalUrl?: string | null;
   carfaxPortalUrl?: string | null;
+  referenceNumber?: string | null;
 };
 
 export const GENERIC_CALL_ASSIST_DISCLOSURE_TEMPLATE =
@@ -125,6 +126,7 @@ export function resolveCallAssistVoiceVars(vars: CallAssistVoiceVars): Record<st
     nonEmergencyWebsite: website,
     onlineReportPortalUrl: vars.onlineReportPortalUrl?.trim() || "",
     carfaxPortalUrl: vars.carfaxPortalUrl?.trim() || "",
+    referenceNumber: vars.referenceNumber?.trim() || "",
   };
 }
 

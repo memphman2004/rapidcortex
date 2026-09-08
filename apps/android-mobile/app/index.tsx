@@ -63,7 +63,7 @@ export default function ProductSelectionScreen() {
         router.push('/(auth)/safe-sound-login');
         return;
       }
-      router.push(path === 'campus' ? '/(auth)/campus-login' : '/(auth)/venue-login');
+      router.push(path === 'campus' ? '/(auth)/campus-login' : path === 'command' ? '/(auth)/command-login' : '/(auth)/venue-login');
     } finally {
       setChoosing(false);
     }
@@ -97,6 +97,18 @@ export default function ProductSelectionScreen() {
           <Text style={styles.cardKicker}>CP</Text>
           <Text style={styles.cardTitle}>{Strings.productSelection.campusTitle}</Text>
           <Text style={styles.cardSubtitle}>{Strings.productSelection.campusSubtitle}</Text>
+        </Pressable>
+
+        <Pressable
+          onPress={() => void choose('command')}
+          disabled={choosing}
+          accessibilityRole="button"
+          accessibilityLabel={Strings.productSelection.commandTitle}
+          style={({ pressed }) => [styles.card, styles.commandCard, { opacity: pressed || choosing ? 0.85 : 1 }]}
+        >
+          <Text style={[styles.cardKicker, styles.commandKicker]}>FC</Text>
+          <Text style={styles.cardTitle}>{Strings.productSelection.commandTitle}</Text>
+          <Text style={styles.cardSubtitle}>{Strings.productSelection.commandSubtitle}</Text>
         </Pressable>
 
         {safeSoundPublic ? (
@@ -164,5 +176,11 @@ const styles = StyleSheet.create({
     fontWeight: '400',
     marginTop: 6,
     color: '#CBD5E1',
+  },
+  commandCard: {
+    borderColor: '#38BDF8',
+  },
+  commandKicker: {
+    color: '#38BDF8',
   },
 });

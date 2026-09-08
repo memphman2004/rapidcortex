@@ -12,6 +12,7 @@ import type {
 import { makeId } from "../../lib/ids.js";
 import type { CADProvider } from "./provider.js";
 import { evaluateCadPushGate } from "./provider.js";
+import { mockNearbyIncidents, mockPremiseHazards } from "./mock-cad-context.js";
 
 export class MockCadAdapter implements CADProvider {
   getProviderInfo(): CadProviderInfo {
@@ -67,12 +68,12 @@ export class MockCadAdapter implements CADProvider {
     return { ok: true, blocked: false, pendingReview: false, cadIncidentId, reason: "mock_updated", vendor: "mock" };
   }
 
-  async findNearbyIncidents(): Promise<CadNearbyIncident[]> {
-    return [];
+  async findNearbyIncidents(_agencyId: string, location: CadIncidentLocation): Promise<CadNearbyIncident[]> {
+    return mockNearbyIncidents(location);
   }
 
-  async getPremiseHazards(): Promise<CallAssistPremiseHazard[]> {
-    return [];
+  async getPremiseHazards(_agencyId: string, location: CadIncidentLocation): Promise<CallAssistPremiseHazard[]> {
+    return mockPremiseHazards(location);
   }
 
   async getUnitStatus(): Promise<CadUnitStatus[]> {

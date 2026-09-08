@@ -2,7 +2,7 @@ import { PutCommand } from "@aws-sdk/lib-dynamodb";
 import { ddb } from "./baseRepository.js";
 import { env } from "../lib/env.js";
 
-export type DataDeletionResourceType = "incident" | "transcript" | "analysis" | "incident_media";
+export type DataDeletionResourceType = "incident" | "transcript" | "analysis" | "incident_media" | "call_assist_session";
 
 /** Immutable append-only row — only the retention Lambda should write. */
 export type DataDeletionAuditRecord = {

@@ -53,8 +53,8 @@ export function buildCadPayload(
       slots.BurglaryVehicleLocation ??
       slots.TowLocation ??
       null,
-    crossStreets: slots.crossStreets ?? slots.PersonDirection ?? null,
-    aptBusiness: slots.aptBusiness ?? null,
+    crossStreets: slots.crossStreets ?? slots.CrossStreets ?? slots.PersonDirection ?? null,
+    aptBusiness: slots.aptBusiness ?? slots.AptBusiness ?? slots.apartmentSuite ?? null,
     callerName: slots.callerName ?? null,
     callbackNumber:
       slots.callbackNumber ??
@@ -65,7 +65,7 @@ export function buildCadPayload(
       slots.AccidentCallbackNumber ??
       null,
     vehicleDesc: buildVehicleDesc(slots),
-    licensePlate: slots.licensePlate ?? null,
+    licensePlate: slots.licensePlate ?? slots.BurglaryVehiclePlate ?? slots.VehiclePlate ?? null,
     suspectDesc: slots.suspectDesc ?? slots.PersonDescription ?? slots.TheftSuspectInfo ?? slots.VandalismSuspectInfo ?? null,
     weaponsPresent: toBoolean(slots.weapons) || toBoolean(slots.WeaponVisible),
     injuriesPresent:
@@ -77,7 +77,20 @@ export function buildCadPayload(
 }
 
 function buildVehicleDesc(slots: Record<string, string | null>): string | null {
-  const parts = [slots.vehicleColor, slots.vehicleMake, slots.vehicleModel].filter(Boolean);
+  const blob =
+    slots.VehicleDescription ??
+    slots.BurglaryVehicleDescription ??
+    slots.ParkingVehicleDescription ??
+    slots.TowVehicleDescription ??
+    slots.OtherVehicleDescription ??
+    "";
+  const parts = [
+    slots.VehicleColor ?? slots.vehicleColor,
+    slots.VehicleYear ?? slots.vehicleYear,
+    slots.VehicleMake ?? slots.vehicleMake,
+    slots.VehicleModel ?? slots.vehicleModel,
+    blob,
+  ].filter(Boolean);
   return parts.length > 0 ? parts.join(" ") : null;
 }
 

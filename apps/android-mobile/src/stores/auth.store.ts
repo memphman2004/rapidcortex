@@ -20,7 +20,7 @@ import {
 } from '../services/api/auth';
 import { isSafeSoundPublicEnabled } from '../utils/feature-flags';
 
-export type ProductPath = 'safe-sound' | 'venue' | 'campus';
+export type ProductPath = 'safe-sound' | 'venue' | 'campus' | 'command';
 
 const SECURE_PRODUCT_PATH_KEY = 'rc_mobile_product_path';
 const SECURE_BIOMETRIC_ENABLED_KEY = 'rc_mobile_biometric_enabled';
@@ -31,7 +31,7 @@ function normalizeStoredProductPath(raw: string | null): ProductPath | null {
   if (raw === 'safe-sound') {
     return isSafeSoundPublicEnabled() ? 'safe-sound' : null;
   }
-  if (raw === 'venue' || raw === 'campus') return raw;
+  if (raw === 'venue' || raw === 'campus' || raw === 'command') return raw;
   return null;
 }
 

@@ -66,7 +66,7 @@ export class OpenAiAdapter implements IAIProvider {
         max_tokens: 900,
         response_format: { type: "json_object" },
         messages: [
-          { role: "system", content: DISPATCH_ANALYSIS_SYSTEM_PROMPT },
+          { role: "system", content: input.systemPrompt?.trim() || DISPATCH_ANALYSIS_SYSTEM_PROMPT },
           { role: "user", content: prompt.message },
         ],
       }),

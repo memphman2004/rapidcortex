@@ -234,7 +234,7 @@ export async function processRetentionPass(): Promise<{
       const { items, lastKey } = await incidentRepo.listRetentionDue(pageSize(), startKey);
       for (const inc of items) {
         if (inc.retGsiPk !== RETENTION_GSI_PK) continue;
-        if (inc.legalHold === true) continue;
+        if (inc.legalHold === true) continue; // legal-hold-proof: skip; deleteIfNotOnLegalHold is a second gate
         const policy = inc.retentionPolicyId ?? env.defaultRetentionPolicyId;
         try {
           const okDel = await withRetry("incident.delete", () => incidentRepo.deleteIfNotOnLegalHold(inc.incidentId));

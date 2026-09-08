@@ -30,6 +30,10 @@ export const recordedPlaybackResponseSchema = z.object({
   /** Short-lived HLS master URL from Kinesis Video Archived Media (treat as sensitive). */
   hlsPlaybackUrl: z.string().url().optional(),
   hlsUrlExpiresAt: z.string().optional(),
+  /** Presigned GET for the exported MP4 in the assets bucket (not logged). */
+  recordingDownloadUrl: z.string().optional(),
+  recordingDownloadExpiresAt: z.string().optional(),
+  recordingS3Key: z.string().optional(),
   message: z.string().optional(),
 });
 export type RecordedPlaybackResponse = z.infer<typeof recordedPlaybackResponseSchema>;

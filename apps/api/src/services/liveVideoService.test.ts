@@ -9,9 +9,16 @@ const {
   mergeSessionMock,
   updateHeartbeatMock,
   markActiveMock,
+  endSessionMock,
   auditCreateMock,
   sendSmsMock,
   getPlaybackInfoMock,
+  deleteVideoStreamMock,
+  enableStorageForChannelMock,
+  enqueueRecordingExportMock,
+  exportSessionClipToS3Mock,
+  presignRecordingDownloadMock,
+  createStorageStreamForSessionMock,
 } = vi.hoisted(() => ({
   getIncidentMock: vi.fn(),
   createSessionMock: vi.fn(),
@@ -21,9 +28,16 @@ const {
   mergeSessionMock: vi.fn(),
   updateHeartbeatMock: vi.fn(),
   markActiveMock: vi.fn(),
+  endSessionMock: vi.fn(),
   auditCreateMock: vi.fn(),
   sendSmsMock: vi.fn(),
   getPlaybackInfoMock: vi.fn(),
+  deleteVideoStreamMock: vi.fn(),
+  enableStorageForChannelMock: vi.fn(),
+  enqueueRecordingExportMock: vi.fn(),
+  exportSessionClipToS3Mock: vi.fn(),
+  presignRecordingDownloadMock: vi.fn(),
+  createStorageStreamForSessionMock: vi.fn(),
 }));
 
 vi.mock("../repositories/incidentRepository.js", () => ({
@@ -41,6 +55,7 @@ vi.mock("../repositories/liveVideoRepository.js", () => ({
     mergeSession = mergeSessionMock;
     updateHeartbeat = updateHeartbeatMock;
     markActive = markActiveMock;
+    endSession = endSessionMock;
   },
 }));
 
@@ -55,10 +70,13 @@ vi.mock("./sms/smsProviderFactory.js", () => ({
 }));
 
 vi.mock("./kvsStorageService.js", () => ({
-  createStorageStreamForSession: vi.fn(),
-  deleteVideoStream: vi.fn(),
-  enableStorageForChannel: vi.fn(),
+  createStorageStreamForSession: (...a: unknown[]) => createStorageStreamForSessionMock(...a),
+  deleteVideoStream: (...a: unknown[]) => deleteVideoStreamMock(...a),
+  enableStorageForChannel: (...a: unknown[]) => enableStorageForChannelMock(...a),
   getPlaybackInfo: (...a: unknown[]) => getPlaybackInfoMock(...a),
+  enqueueRecordingExport: (...a: unknown[]) => enqueueRecordingExportMock(...a),
+  exportSessionClipToS3: (...a: unknown[]) => exportSessionClipToS3Mock(...a),
+  presignRecordingDownload: (...a: unknown[]) => presignRecordingDownloadMock(...a),
 }));
 
 import { env } from "../lib/env.js";
@@ -78,6 +96,26 @@ describe("LiveVideoService", () => {
     markActiveMock.mockReset();
     auditCreateMock.mockReset();
     sendSmsMock.mockReset();
+    getByIncidentIdMock.mockReset();
+    mergeSessionMock.mockReset();
+    endSessionMock.mockReset();
+    getPlaybackInfoMock.mockReset();
+    deleteVideoStreamMock.mockReset();
+    enableStorageForChannelMock.mockReset();
+    enqueueRecordingExportMock.mockReset();
+    exportSessionClipToS3Mock.mockReset();
+    presignRecordingDownloadMock.mockReset();
+    createStorageStreamForSessionMock.mockReset();
+    exportSessionClipToS3Mock.mockResolvedValue({ ok: false, errorCode: "NO_FRAGMENTS" });
+    presignRecordingDownloadMock.mockResolvedValue(null);
+    enqueueRecordingExportMock.mockResolvedValue(undefined);
+    deleteVideoStreamMock.mockResolvedValue(undefined);
+    mergeSessionMock.mockImplementation(async (p: { sessionId: string } & Record<string, unknown>) => ({
+      sessionId: p.sessionId,
+      incidentId: "inc-1",
+      agencyId: "agency-a",
+      ...p,
+    }));
   });
 
   it("creates a session and sends SMS", async () => {
@@ -230,8 +268,72 @@ describe("LiveVideoService", () => {
     } as never);
     expect(out.status).toBe("ready");
     expect(getPlaybackInfoMock).toHaveBeenCalled();
+    expect(exportSessionClipToS3Mock).toHaveBeenCalled();
     expect(auditCreateMock).toHaveBeenCalledWith(
       expect.objectContaining({ type: "live_video.playback_accessed" as const }),
+    );
+  });
+
+  it("ends a session without deleting the Kinesis video stream and enqueues export", async () => {
+    getIncidentMock.mockResolvedValue({ incidentId: "inc-1", agencyId: "agency-a" });
+    getBySessionIdMock.mockResolvedValue({
+      sessionId: "lvs-1",
+      incidentId: "inc-1",
+      agencyId: "agency-a",
+      requestedBy: "u-1",
+      callerPhone: "+15555550100",
+      callerTokenHash: "x".repeat(64),
+      dispatcherJoinAllowed: true,
+      status: "active",
+      createdAt: new Date().toISOString(),
+      expiresAt: new Date(Date.now() + 60_000).toISOString(),
+      storageMode: "kvs-ingestion",
+      kvsVideoStreamName: "rc-lvsv-lvs-1",
+      kvsVideoStreamArn: "arn:aws:kinesisvideo:us-east-1:123:stream/foo/1",
+    });
+    endSessionMock.mockResolvedValue({
+      sessionId: "lvs-1",
+      incidentId: "inc-1",
+      agencyId: "agency-a",
+      status: "ended",
+      storageMode: "kvs-ingestion",
+      kvsVideoStreamName: "rc-lvsv-lvs-1",
+      kvsVideoStreamArn: "arn:aws:kinesisvideo:us-east-1:123:stream/foo/1",
+    });
+    const svc = new LiveVideoService();
+    await svc.endLiveSession(
+      "inc-1",
+      { userId: "u-1", role: "dispatcher", agencyId: "agency-a" } as never,
+      { sessionId: "lvs-1", reason: "manual" },
+    );
+    expect(deleteVideoStreamMock).not.toHaveBeenCalled();
+    expect(enqueueRecordingExportMock).toHaveBeenCalledWith("lvs-1");
+  });
+
+  it("deletes the video stream only after a successful GetClip export", async () => {
+    getBySessionIdMock.mockResolvedValue({
+      sessionId: "lvs-1",
+      incidentId: "inc-1",
+      agencyId: "agency-a",
+      storageMode: "kvs-ingestion",
+      kvsVideoStreamName: "rc-lvsv-lvs-1",
+      kvsVideoStreamArn: "arn:aws:kinesisvideo:us-east-1:123:stream/foo/1",
+      createdAt: new Date(Date.now() - 60_000).toISOString(),
+      endedAt: new Date().toISOString(),
+    });
+    exportSessionClipToS3Mock.mockResolvedValue({ ok: true, key: "live-video/agency-a/inc-1/lvs-1.mp4" });
+    mergeSessionMock.mockResolvedValue({
+      sessionId: "lvs-1",
+      incidentId: "inc-1",
+      agencyId: "agency-a",
+      recordingS3Key: "live-video/agency-a/inc-1/lvs-1.mp4",
+    });
+    const svc = new LiveVideoService();
+    const out = await svc.exportRecordingBySessionId("lvs-1");
+    expect(out).toEqual({ ok: true });
+    expect(deleteVideoStreamMock).toHaveBeenCalledWith("arn:aws:kinesisvideo:us-east-1:123:stream/foo/1");
+    expect(auditCreateMock).toHaveBeenCalledWith(
+      expect.objectContaining({ type: "live_video.recording.exported" as const }),
     );
   });
 });

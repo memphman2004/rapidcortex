@@ -12,8 +12,8 @@ For **optional cloud ingestion/recording**, AWS documents a flow where you also 
 
 | Product mode | What the API creates per session |
 | --- | --- |
-| **Live-only WebRTC** | **Signaling channel** only (`CreateSignalingChannel` in `kvsWebRtcService`). Caller = master, dispatcher = viewer. |
-| **Live + optional storage** | **Signaling channel** plus, when `LIVE_VIDEO_STORAGE_MODE` / per-request `storageMode` is **`kvs-ingestion`**, a **video stream** (`CreateStream` in `kvsStorageService`). Channel→stream attach is **off by default** (`LIVE_VIDEO_KVS_STORAGE_ATTACH_TO_CHANNEL=false`) so standard master/viewer live mode is preserved; turn attach on only when you are ready for AWS’s storage-session client model. |
+| **Live-only WebRTC** | **Signaling channel** only. Set `LIVE_VIDEO_STORAGE_MODE=off`. Caller = master, dispatcher = viewer (plain peer connection). |
+| **Live + cloud ingest (production default)** | Signaling channel **and** a Kinesis **video** stream (`CreateStream`). `LIVE_VIDEO_KVS_STORAGE_ATTACH_TO_CHANNEL` defaults **on**: `UpdateMediaStorageConfiguration` maps the channel to the stream. Browsers **must** call `JoinStorageSession` (caller) / `JoinStorageSessionAsViewer` (dispatcher). |
 
 **Console vs app:** In production, Rapid Cortex **creates and deletes** resources **via the API** when a dispatcher requests live video—you do **not** need to click **Create signaling channel** or **Create video stream** in the console for each incident. Manual resources in the console are **not** wired into sessions unless you change the product to use a fixed pool of names.
 
@@ -48,31 +48,37 @@ If your console is open in **us-east-2 (Ohio)** but the stack runs in **us-east-
 ## Signaling channel behavior
 
 - Each live session creates a **Signaling channel** via `CreateSignalingChannel` (see `kvsWebRtcService`).
-- **Product default (live-only)**: Caller connects as KVS **master**; dispatcher as **viewer** (see `kvsChannelRoleMode` / pipeline `aws_kinesis_webrtc`).
+- **Product default**: Caller connects as KVS **master**; dispatcher as **viewer**. With ingest attached, both sides join the **storage session** (AWS storage peer sends the SDP offer). The signaling channel is **deleted on hang-up**; the **video stream is kept** until GetClip export succeeds (or KVS data retention expires).
 
 ## Storage mode (`LIVE_VIDEO_STORAGE_MODE`)
 
-- **Default (unset)**: **`kvs-ingestion`** — **live + storage** setup: each session gets a signaling channel **and** a Kinesis **video** stream (`CreateStream`). Set `LIVE_VIDEO_STORAGE_MODE=off` for live-only and no stream.
-- **`off`**: No Kinesis **video** stream for the session. Standard master/viewer live path only.
-- **`kvs` or `kvs-ingestion`**: Same as default — stream is created for ingest/record.  
-- **`LIVE_VIDEO_KVS_STORAGE_ATTACH_TO_CHANNEL`**: When `true`, the API calls `UpdateMediaStorageConfiguration` to map the stream to the signaling channel. **AWS then expects storage-session style clients** (`JoinStorageSession` / related), not the default master/viewer used today. **Default is `false`** so live master/viewer keeps working; the stream can still be created and used for metadata/playback experiments when media is present.
+- **Default (unset)**: **`kvs-ingestion`** — live + storage: signaling channel **and** a Kinesis **video** stream (`CreateStream`). Set `LIVE_VIDEO_STORAGE_MODE=off` for live-only (no stream, no ingest).
+- **`off`**: No Kinesis **video** stream. Standard master/viewer live path only.
+- **`kvs` or `kvs-ingestion`**: Stream is created for ingest/record.
+- **`LIVE_VIDEO_KVS_STORAGE_ATTACH_TO_CHANNEL`**: Default **on** when unset. The API calls `UpdateMediaStorageConfiguration` so WebRTC media is ingested to the stream. Clients use `JoinStorageSession` / `JoinStorageSessionAsViewer` and the **WEBRTC** signaling endpoint. Set to `false` only for live P2P with an unused reserved stream (not production ingest).
+- **Browser STS** already includes `kinesisvideo:JoinStorageSession` and `JoinStorageSessionAsViewer` on the per-session channel.
 
-## Where completed / recorded video lives (no dedicated S3 bucket today)
+## Where completed / recorded video lives
 
-- **Kinesis Video Streams** (the **video stream** created in `kvs-ingestion` mode) holds retained media for the stream’s **data retention** window. Rapid Cortex does **not** copy that recording into **S3** when a session ends.
-- **S3** is used elsewhere for **caller incident media uploads** (`ASSETS_BUCKET`, prefix `incident-media/...`) — that is a different feature (SMS upload link), not automatic export of live WebRTC.
-- **Playback** in the dispatcher UI uses **short-lived HLS** URLs from the archived-media API, not a stable `s3://` object.
-- **Future option:** an explicit **KVS → S3** export pipeline (e.g. fragment / session archival + Lambda + optional MediaConvert) is not implemented; add it if you need long-term files in a bucket.
+Kinesis Video Streams is **not** S3. Two retention layers:
+
+1. **KVS data retention** (`LIVE_VIDEO_KVS_DATA_RETENTION_HOURS`, default 24) — fragments stay on the per-session stream (`rc-lvsv-*`). The stream is **not** deleted on hang-up.
+2. **S3 export** (`LIVE_VIDEO_EXPORT_TO_S3`, default on) — after the session ends, a worker (and playback GET as fallback) calls **GetClip** and writes `live-video/{agencyId}/{incidentId}/{sessionId}.mp4` to `ASSETS_BUCKET`. After a successful export the KVS stream is deleted. Dispatcher playback prefers the presigned MP4; HLS from archived media is the fallback while fragments exist.
+
+Place-camera / on-prem producers are **out of scope** (YAML + local producer only).
 
 ## Playback
 
-- **HLS** URLs come from `GetDataEndpoint` + `GetHLSStreamingSessionURL` (archived media). URLs are **short-lived**; the dispatcher UI may open a new tab or refresh metadata from `GET /api/incidents/{id}/live-video/playback`.
-- Safari often plays HLS in `<video>`; Chrome may need a player library or use “open in new tab” (native support varies).
+- **MP4**: short-lived presigned GET from `GET /api/incidents/{id}/live-video/playback` (`recordingDownloadUrl`). Do not log the URL.
+- **HLS**: `GetDataEndpoint` + `GetHLSStreamingSessionURL` while the KVS stream still exists. URLs are **short-lived**. Safari often plays HLS in `<video>`; Chrome may need “open in new tab”.
+- GetClip immediately after hang-up may return no fragments; the UI polls `processing` / HLS until export succeeds.
 
 ## Environment / feature flags
 
 - **`ENABLE_LIVE_VIDEO`**: API must be `"true"` for live video routes.
-- **`NEXT_PUBLIC_ENABLE_LIVE_VIDEO`**: Web UI feature gate (if used in the app).
+- **`NEXT_PUBLIC_ENABLE_LIVE_VIDEO`**: Web UI feature gate (default on when unset).
+- **`LIVE_VIDEO_KVS_STORAGE_ATTACH_TO_CHANNEL`**: Default on. Set `false` to skip `UpdateMediaStorageConfiguration`.
+- **`LIVE_VIDEO_EXPORT_TO_S3`**: Default on. Set `false` to keep fragments in KVS only.
 - **TTL / limits**: `LIVE_VIDEO_SESSION_TTL_SECONDS`, `LIVE_VIDEO_MAX_DURATION_SECONDS`, `LIVE_VIDEO_HEARTBEAT_TIMEOUT_SECONDS`.
 - **Tagging (`KVS_WEBRTC_TAG_APP`, `KVS_WEBRTC_TAG_ENV`)**: Applied to created video streams for cost/ownership.
 
@@ -83,7 +89,7 @@ If your console is open in **us-east-2 (Ohio)** but the stack runs in **us-east-
 
 ## Auditing
 
-Key audit types include `live_video.requested`, `live_video.sms.sent`, `live_video.activated`, `live_video.storage_configured`, `live_video.ended`, `live_video.playback_accessed` (see `rapid-cortex-security` audit schema).
+Key audit types include `live_video.requested`, `live_video.sms.sent`, `live_video.activated`, `live_video.storage_configured`, `live_video.ended`, `live_video.recording.exported`, `live_video.playback_accessed` (see `rapid-cortex-security` audit schema).
 
 ## Future extension points (not in current scope)
 

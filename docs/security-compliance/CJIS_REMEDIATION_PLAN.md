@@ -6,6 +6,10 @@ This plan translates the CJIS gap audit into implementation workstreams. It is a
 
 - **Implemented:** fail-closed unauthenticated API bypass (`ALLOW_UNAUTHENTICATED_API` throws outside local/dev).
 - **Implemented:** backend active-status enforcement for authenticated API users (`custom:status=active` required by handlers; inactive/missing returns `403` with `User account is not active.`).
+- **Implemented:** CloudTrail multi-region trail with S3 Object Lock COMPLIANCE, log-file validation, and Deny-delete bucket policy (`infra/nested/stack-app-sam.yaml`).
+- **Implemented:** retention executor for incident/transcript/analysis/media plus Call Assist session purge; legal-hold ConditionExpression on deletes.
+- **Implemented:** AI/comms subprocessor inventory (Connect, Lex, Bedrock, Transcribe) in `docs/security-compliance/SUBPROCESSOR_LIST.md`.
+- **Implemented:** backend active-status enforcement for authenticated API users (`custom:status=active` required by handlers; inactive/missing returns `403` with `User account is not active.`).
 - **Implemented:** strict web security headers in Next.js (`CSP`, `X-Frame-Options`, `X-Content-Type-Options`, `Referrer-Policy`, `Permissions-Policy`, `COOP`, production `HSTS`).
 - **Implemented:** CSRF/origin checks for cookie-auth write routes under `apps/web/app/api/auth` via shared origin enforcement helper and `APP_ALLOWED_ORIGINS`.
 - **Implemented:** AI/STT provider data minimization and policy controls (`sanitizeForProvider`, provider allowlist/single-provider enforcement, and prompt/provider sanitization logging).
@@ -62,11 +66,9 @@ This plan translates the CJIS gap audit into implementation workstreams. It is a
 
 ## Remaining Gaps After This Iteration
 
-- Retention/disposal automation for incidents/transcripts/analysis (legal hold + deletion evidence) remains open.
-- Immutable audit/forensic pipeline and CloudTrail evidence remains open.
-- AI/STT provider data minimization and agency provider policy enforcement remains open.
 - Upload malware scanning/quarantine pipeline remains open.
-- IAM wildcard reduction and AWS account-level validation tasks remain open.
+- IAM wildcard reduction and AWS account-level validation of the CloudTrail trail remain open.
+- CJIS legal addendum / personnel screening are operational, not code.
 
 ## P0 Fixes Required Before Any CJIS-Sensitive Pilot
 

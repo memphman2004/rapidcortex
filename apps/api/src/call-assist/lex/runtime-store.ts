@@ -3,9 +3,9 @@
  * Does not import apps/api env.ts (AUDIT_TABLE and other API-required vars).
  */
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
-import { DynamoDBDocumentClient, GetCommand, PutCommand } from "@aws-sdk/lib-dynamodb";
+import { DynamoDBDocumentClient, GetCommand, PutCommand, QueryCommand } from "@aws-sdk/lib-dynamodb";
 import { GENERIC_DISCLOSURE_TEXT, MISSOURI_SUNSHINE_RETENTION_POLICY } from "rapid-cortex-shared";
-import type { CallAssistSessionRecord, CallAssistTenantConfig } from "../store.js";
+import type { CallAssistKnowledgeArticle, CallAssistSessionRecord, CallAssistTenantConfig } from "../store.js";
 
 export const CALL_ASSIST_DID_INDEX_PK = "__did_index__";
 
@@ -73,6 +73,11 @@ export async function getLexSession(agencyId: string, callId: string): Promise<C
 
 export async function putLexSession(session: CallAssistSessionRecord): Promise<void> {
   const open = !session.completedAt && session.state !== "COMPLETED" && session.state !== "FAILED";
+  const createdMs = Date.parse(session.createdAt);
+  const safetyTtl =
+    !session.legalHold && !open && Number.isFinite(createdMs)
+      ? Math.floor(createdMs / 1000) + 365 * 8 * 86_400
+      : undefined;
   await doc.send(
     new PutCommand({
       TableName: tableName(),
@@ -82,9 +87,30 @@ export async function putLexSession(session: CallAssistSessionRecord): Promise<v
         entityType: "call_assist_session",
         gsi1pk: `${session.agencyId}#${open ? "OPEN" : "DONE"}`,
         gsi1sk: session.createdAt,
+        ...(safetyTtl ? { expiresAt: safetyTtl } : {}),
       },
     }),
   );
+}
+
+function stubLexSession(agencyId: string, callId: string, now: string): CallAssistSessionRecord {
+  return {
+    agencyId,
+    sessionId: callId,
+    state: "INTAKE",
+    mode: "NON_EMERGENCY",
+    source: "LIVE",
+    language: "en",
+    ttyMode: false,
+    connectContactId: callId,
+    disclosureDelivered: true,
+    utterances: [],
+    intake: {},
+    continueAiConversation: true,
+    legalHold: false,
+    createdAt: now,
+    updatedAt: now,
+  };
 }
 
 export async function updateLexSession(
@@ -92,16 +118,17 @@ export async function updateLexSession(
   callId: string,
   updates: Partial<CallAssistSessionRecord> & Record<string, unknown>,
 ): Promise<void> {
+  if (!agencyId || !callId) return;
   const existing = await getLexSession(agencyId, callId);
-  if (!existing) return;
+  const now = new Date().toISOString();
   const { state, ...rest } = updates;
   await putLexSession({
-    ...existing,
+    ...(existing ?? stubLexSession(agencyId, callId, now)),
     ...rest,
     ...(state ? { state } : {}),
     agencyId,
     sessionId: callId,
-    updatedAt: new Date().toISOString(),
+    updatedAt: now,
   });
 }
 
@@ -116,4 +143,18 @@ export async function getAgencyIdByDid(phoneNumber: string): Promise<string | nu
   );
   const row = out.Item as { targetAgencyId?: string } | undefined;
   return row?.targetAgencyId?.trim() || null;
+}
+
+export async function listLexKnowledge(agencyId: string): Promise<CallAssistKnowledgeArticle[]> {
+  if (!agencyId) return [];
+  const out = await doc.send(
+    new QueryCommand({
+      TableName: tableName(),
+      KeyConditionExpression: "agencyId = :a AND begins_with(sk, :p)",
+      ExpressionAttributeValues: { ":a": agencyId, ":p": "KB#" },
+    }),
+  );
+  return ((out.Items as CallAssistKnowledgeArticle[]) ?? []).filter(
+    (row) => row.agencyId === agencyId && row.enabled !== false,
+  );
 }

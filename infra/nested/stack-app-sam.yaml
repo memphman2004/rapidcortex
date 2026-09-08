@@ -4535,6 +4535,24 @@ Resources:
                 "aws:SourceAccount": !Ref "AWS::AccountId"
               StringLike:
                 "aws:SourceArn": !Sub "arn:${AWS::Partition}:cloudtrail:${AWS::Region}:${AWS::AccountId}:trail/${AppName}-audit-${DeploymentStage}"
+          - Sid: DenyInsecureTransport
+            Effect: Deny
+            Principal: "*"
+            Action: s3:*
+            Resource:
+              - !GetAtt CloudTrailLogsBucket.Arn
+              - !Sub "${CloudTrailLogsBucket.Arn}/*"
+            Condition:
+              Bool:
+                aws:SecureTransport: "false"
+          - Sid: DenyObjectDeletesDuringLock
+            Effect: Deny
+            Principal: "*"
+            Action:
+              - s3:DeleteObject
+              - s3:DeleteObjectVersion
+              - s3:BypassGovernanceRetention
+            Resource: !Sub "${CloudTrailLogsBucket.Arn}/*"
 
   CloudTrailAuditingTrail:
     Type: AWS::CloudTrail::Trail

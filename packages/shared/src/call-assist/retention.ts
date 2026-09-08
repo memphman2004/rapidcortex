@@ -39,6 +39,27 @@ export const MISSOURI_SUNSHINE_RETENTION_POLICY: RetentionPolicy = {
   legalHoldSupported: true,
 };
 
+export const CALL_ASSIST_RETENTION_DATA_TYPES = [
+  "audio",
+  "transcript",
+  "intake",
+  "analytics",
+] as const;
+export type CallAssistRetentionDataType = (typeof CALL_ASSIST_RETENTION_DATA_TYPES)[number];
+
+export function retentionDaysForType(
+  policy: Pick<
+    RetentionPolicy,
+    "audioRetentionDays" | "transcriptRetentionDays" | "intakeDataRetentionDays" | "analyticsRetentionDays"
+  >,
+  dataType: CallAssistRetentionDataType,
+): number {
+  if (dataType === "audio") return policy.audioRetentionDays;
+  if (dataType === "transcript") return policy.transcriptRetentionDays;
+  if (dataType === "intake") return policy.intakeDataRetentionDays;
+  return policy.analyticsRetentionDays;
+}
+
 export function isRetentionDue(opts: {
   createdAtIso: string;
   retentionDays: number;
@@ -50,4 +71,32 @@ export function isRetentionDue(opts: {
   if (!Number.isFinite(created)) return false;
   const now = opts.nowMs ?? Date.now();
   return now - created >= opts.retentionDays * 86_400_000;
+}
+
+export const callAssistRetentionPatchSchema = retentionPolicySchema.partial();
+export type CallAssistRetentionPatch = z.infer<typeof callAssistRetentionPatchSchema>;
+
+export type CallAssistRetentionPurgePlan = {
+  redactAudio: boolean;
+  redactTranscript: boolean;
+  deleteSession: boolean;
+  deleteSurvey: boolean;
+};
+
+export function planCallAssistRetentionActions(opts: {
+  createdAtIso: string;
+  policy: Pick<
+    RetentionPolicy,
+    "audioRetentionDays" | "transcriptRetentionDays" | "intakeDataRetentionDays" | "analyticsRetentionDays"
+  >;
+  legalHold: boolean;
+  nowMs?: number;
+}): CallAssistRetentionPurgePlan {
+  const due = (days: number) => isRetentionDue({ createdAtIso: opts.createdAtIso, retentionDays: days, legalHold: opts.legalHold, nowMs: opts.nowMs });
+  return {
+    redactAudio: due(opts.policy.audioRetentionDays),
+    redactTranscript: due(opts.policy.transcriptRetentionDays),
+    deleteSession: due(opts.policy.intakeDataRetentionDays),
+    deleteSurvey: due(opts.policy.analyticsRetentionDays),
+  };
 }

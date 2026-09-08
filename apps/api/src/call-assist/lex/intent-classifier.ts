@@ -1,5 +1,5 @@
-import type { AgencyTaxonomy, CallType } from "rapid-cortex-shared";
-import { classifyCallTriage } from "rapid-cortex-shared";
+import type { AgencyTaxonomy, CallAssistConfidenceThresholds, CallType } from "rapid-cortex-shared";
+import { classifyCallTriage, resolveCallAssistThresholds } from "rapid-cortex-shared";
 
 export type ClassificationResult = {
   intentName: string;
@@ -72,14 +72,16 @@ export async function classifyWithBedrock(
   utterance: string,
   _history: string[],
   taxonomy: AgencyTaxonomy,
+  thresholds?: Partial<CallAssistConfidenceThresholds> | null,
 ): Promise<ClassificationResult> {
-  const triage = classifyCallTriage(utterance, { taxonomy });
+  const triage = classifyCallTriage(utterance, { taxonomy, confidenceThresholds: thresholds });
   const id = triage.matchedCallTypeId ?? triage.primaryClassification;
   const name = intentName(id);
   if (triage.emergencyDetected) {
     return { intentName: "EmergencyEscalation", confidence: 1, reasoning: "safety_in_classifier", slots: {} };
   }
-  if (id && id !== "UNKNOWN" && id !== "unknown" && triage.confidence >= 0.7) {
+  const acceptFloor = resolveCallAssistThresholds(thresholds).emergency;
+  if (id && id !== "UNKNOWN" && id !== "unknown" && triage.confidence >= acceptFloor) {
     return { intentName: name, confidence: triage.confidence, reasoning: "taxonomy", slots: {} };
   }
 

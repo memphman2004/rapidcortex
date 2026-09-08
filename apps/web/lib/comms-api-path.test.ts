@@ -170,7 +170,17 @@ describe("isCommsPlatformApiPath", () => {
     process.env.API_UPSTREAM_BASE = "https://stack1.example.com";
     process.env.API_UPSTREAM_BASE_2 = "https://stack2.example.com";
     expect(isStack2ApiPath("/api/call-assist/sessions")).toBe(true);
+    expect(isStack2ApiPath("/api/public/call-assist/self-service/tok")).toBe(true);
     expect(resolveUpstreamApiBase("/api/call-assist/sessions")).toBe("https://stack2.example.com");
+    expect(resolveUpstreamApiBase("/api/public/call-assist/self-service/tok")).toBe("https://stack2.example.com");
+  });
+
+  it("routes CAD Bridge to stack 2 only", () => {
+    process.env.API_UPSTREAM_BASE = "https://stack1.example.com";
+    process.env.API_UPSTREAM_BASE_2 = "https://stack2.example.com";
+    expect(isStack2ApiPath("/api/cad-bridge/config")).toBe(true);
+    expect(isStack2ApiPath("/api/public/cad-bridge/kcpd/cad-a/events")).toBe(true);
+    expect(resolveUpstreamApiBase("/api/cad-bridge/health")).toBe("https://stack2.example.com");
   });
 
   it("routes location geocode/route to stack 2 only", () => {

@@ -19,7 +19,9 @@ export type CallAssistIntakeFieldType = (typeof CALL_ASSIST_INTAKE_FIELD_TYPES)[
 export const callAssistFollowUpQuestionSchema = z.object({
   id: z.string().min(1).max(64),
   prompt: z.string().min(1).max(500),
+  promptEs: z.string().min(1).max(500).optional(),
   fieldId: z.string().min(1).max(64),
+  policy: z.enum(["ask", "clarify", "skip", "never_repeat"]).optional(),
   condition: z
     .object({
       fieldId: z.string().min(1).max(64),
@@ -85,12 +87,21 @@ export const DEFAULT_CALL_ASSIST_CONFIDENCE_THRESHOLDS: CallAssistConfidenceThre
   selfService: 0.8,
 };
 
-export const callAssistExternalTransferEntrySchema = z.object({
-  id: z.string().min(1).max(64),
-  name: z.string().min(1).max(200),
-  number: z.string().min(1).max(32),
-  warmTransferScript: z.string().max(1000).nullable().optional(),
-});
+export const callAssistExternalTransferEntrySchema = z
+  .object({
+    id: z.string().min(1).max(64),
+    name: z.string().min(1).max(200),
+    number: z.string().max(32).default(""),
+    sipUri: z.string().max(256).nullable().optional(),
+    acceptedCallTypes: z.array(z.string().min(1).max(64)).max(40).optional(),
+    fallbackNumber: z.string().max(32).nullable().optional(),
+    afterHoursMessage: z.string().max(500).nullable().optional(),
+    warmTransferScript: z.string().max(1000).nullable().optional(),
+  })
+  .refine((row) => Boolean(row.number?.trim() || row.sipUri?.trim()), {
+    message: "PSTN number or SIP URI is required",
+    path: ["number"],
+  });
 export type CallAssistExternalTransferEntry = z.infer<typeof callAssistExternalTransferEntrySchema>;
 
 export const callAssistDemoScenarioConfigSchema = z.object({

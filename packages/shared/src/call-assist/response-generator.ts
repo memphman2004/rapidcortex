@@ -12,6 +12,7 @@ export type ResponseVoice = {
   disclosureText?: string;
   onlineReportPortalUrl?: string;
   carfaxPortalUrl?: string;
+  promptOverrides?: Partial<Record<string, string>>;
 };
 
 export function responseVoiceFromConfig(config: {
@@ -26,6 +27,7 @@ export function responseVoiceFromConfig(config: {
   onlineReportPortalUrl?: string | null;
   onlineReportUrl?: string | null;
   carfaxPortalUrl?: string | null;
+  promptOverrides?: Partial<Record<string, string>> | null;
 }): ResponseVoice {
   const short =
     config.agencyShortName?.trim() || config.shortName?.trim() || config.agencyName?.trim() || "this agency";
@@ -37,6 +39,7 @@ export function responseVoiceFromConfig(config: {
     disclosureText: config.disclosureText?.trim() || undefined,
     onlineReportPortalUrl: config.onlineReportPortalUrl?.trim() || config.onlineReportUrl?.trim() || undefined,
     carfaxPortalUrl: config.carfaxPortalUrl?.trim() || undefined,
+    promptOverrides: config.promptOverrides ?? undefined,
   };
 }
 
@@ -51,33 +54,45 @@ export class ResponseGenerator {
     return new ResponseGenerator(responseVoiceFromConfig(config));
   }
 
+  private override(key: string, fallback: string): string {
+    const raw = this.config.promptOverrides?.[key]?.trim();
+    if (!raw) return fallback;
+    return interpolateCallAssistVoice(raw, { ...this.config, referenceNumber: "{referenceNumber}" });
+  }
+
   emergencyTransfer(): string {
     const { agencyShortName, officerLabel, emergencyLine } = this.config;
-    return (
+    return this.override(
+      "emergencyTransfer",
       `This is the non-emergency line. For life-threatening emergencies, ` +
-      `please hang up and dial ${emergencyLine} now. ` +
-      `I'm also alerting ${articleFor(agencyShortName)} ${agencyShortName} ${officerLabel}.`
+        `please hang up and dial ${emergencyLine} now. ` +
+        `I'm also alerting ${articleFor(agencyShortName)} ${agencyShortName} ${officerLabel}.`,
     );
   }
 
   humanTransfer(): string {
     const { agencyShortName, officerLabel } = this.config;
-    return (
+    return this.override(
+      "humanTransfer",
       `Of course. I'm connecting you to ${articleFor(agencyShortName)} ` +
-      `${agencyShortName} ${officerLabel} now. Stay on the line.`
+        `${agencyShortName} ${officerLabel} now. Stay on the line.`,
     );
   }
 
   incidentCreated(referenceNumber: string): string {
     const { agencyDisplayName, officerLabel } = this.config;
-    return (
+    const fallback =
       `I've created a report for ${agencyDisplayName}. ` +
       `Your reference number is ${referenceNumber}. ` +
-      `${articleFor(officerLabel) === "an" ? "An" : "A"} ${officerLabel} will follow up.`
-    );
+      `${articleFor(officerLabel) === "an" ? "An" : "A"} ${officerLabel} will follow up.`;
+    const raw = this.config.promptOverrides?.incidentCreated?.trim();
+    if (!raw) return fallback;
+    return interpolateCallAssistVoice(raw, { ...this.config, referenceNumber });
   }
 
   onlineReportEligible(portalUrl?: string): string {
+    const override = this.config.promptOverrides?.onlineReportEligible?.trim();
+    if (override) return interpolateCallAssistVoice(override, this.config);
     if (portalUrl ?? this.config.onlineReportPortalUrl) {
       return (
         `This incident may be eligible for online reporting. ` +
@@ -85,6 +100,17 @@ export class ResponseGenerator {
       );
     }
     return "";
+  }
+
+  callbackOffer(): string {
+    return this.override(
+      "callbackOffer",
+      "If you prefer, we can schedule a callback instead of holding. Would you like us to call you back at this number?",
+    );
+  }
+
+  smsOffer(): string {
+    return this.override("smsOffer", this.onlineReportEligible() || "Would you like me to text you a secure link to finish this report online?");
   }
 
   carfaxEligible(portalUrl?: string): string {
@@ -98,6 +124,8 @@ export class ResponseGenerator {
   }
 
   opening(): string {
+    const override = this.config.promptOverrides?.opening?.trim();
+    if (override) return interpolateCallAssistVoice(override, this.config);
     const raw =
       this.config.disclosureText ||
       `Thank you for calling ${this.config.agencyDisplayName} non-emergency. ` +
@@ -110,10 +138,11 @@ export class ResponseGenerator {
 
   fallbackTransfer(): string {
     const { agencyDisplayName, officerLabel } = this.config;
-    return (
+    return this.override(
+      "fallbackTransfer",
       `I'm sorry, I'm having trouble understanding. ` +
-      `Let me connect you to ${articleFor(agencyDisplayName)} ${agencyDisplayName} ${officerLabel} ` +
-      `who can help. Stay on the line.`
+        `Let me connect you to ${articleFor(agencyDisplayName)} ${agencyDisplayName} ${officerLabel} ` +
+        `who can help. Stay on the line.`,
     );
   }
 }

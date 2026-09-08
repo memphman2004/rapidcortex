@@ -66,7 +66,7 @@ export class AnthropicAdapter implements IAIProvider {
         model: this.model,
         max_tokens: 1024,
         temperature: 0.15,
-        system: DISPATCH_ANALYSIS_SYSTEM_PROMPT,
+        system: input.systemPrompt?.trim() || DISPATCH_ANALYSIS_SYSTEM_PROMPT,
         messages: [
           {
             role: "user",

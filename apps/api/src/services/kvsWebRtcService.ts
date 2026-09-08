@@ -18,6 +18,8 @@ export type KvsBrowserBundle = {
   viewerClientId?: string;
   wssUrl: string;
   iceServers: { urls: string | string[]; username?: string; credential?: string }[];
+  mediaStorageEnabled?: boolean;
+  webrtcStorageEndpoint?: string;
   credentials: {
     accessKeyId: string;
     secretAccessKey: string;
@@ -98,24 +100,47 @@ export async function deleteKinesisSignalingChannel(channelArn: string | undefin
 async function getEndpointsAndIce(
   channelArn: string,
   kvsRole: "MASTER" | "VIEWER",
+  opts?: { mediaStorageEnabled?: boolean },
 ): Promise<{
   wssUrl: string;
   httpsUrl: string;
+  webrtcStorageEndpoint?: string;
   iceServers: { urls: string | string[]; username?: string; credential?: string }[];
 }> {
-  const ep = await kvClient.send(
-    new GetSignalingChannelEndpointCommand({
-      ChannelARN: channelArn,
-      SingleMasterChannelEndpointConfiguration: {
-        Protocols: ["WSS", "HTTPS"],
-        Role: kvsRole,
-      },
-    }),
-  );
-  const byProto = (ep.ResourceEndpointList ?? []).reduce<Record<string, string>>((acc, cur) => {
-    if (cur.Protocol && cur.ResourceEndpoint) acc[cur.Protocol] = cur.ResourceEndpoint;
-    return acc;
-  }, {});
+  const protocols: Array<"WSS" | "HTTPS" | "WEBRTC"> = opts?.mediaStorageEnabled
+    ? ["WSS", "HTTPS", "WEBRTC"]
+    : ["WSS", "HTTPS"];
+  let byProto: Record<string, string> = {};
+  try {
+    const ep = await kvClient.send(
+      new GetSignalingChannelEndpointCommand({
+        ChannelARN: channelArn,
+        SingleMasterChannelEndpointConfiguration: {
+          Protocols: protocols,
+          Role: kvsRole,
+        },
+      }),
+    );
+    byProto = (ep.ResourceEndpointList ?? []).reduce<Record<string, string>>((acc, cur) => {
+      if (cur.Protocol && cur.ResourceEndpoint) acc[cur.Protocol] = cur.ResourceEndpoint;
+      return acc;
+    }, {});
+  } catch (err) {
+    if (!opts?.mediaStorageEnabled) throw err;
+    const ep = await kvClient.send(
+      new GetSignalingChannelEndpointCommand({
+        ChannelARN: channelArn,
+        SingleMasterChannelEndpointConfiguration: {
+          Protocols: ["WSS", "HTTPS"],
+          Role: kvsRole,
+        },
+      }),
+    );
+    byProto = (ep.ResourceEndpointList ?? []).reduce<Record<string, string>>((acc, cur) => {
+      if (cur.Protocol && cur.ResourceEndpoint) acc[cur.Protocol] = cur.ResourceEndpoint;
+      return acc;
+    }, {});
+  }
   const wssUrl = byProto.WSS;
   const httpsUrl = byProto.HTTPS;
   if (!wssUrl || !httpsUrl) {
@@ -137,7 +162,7 @@ async function getEndpointsAndIce(
       credential: s.Password,
     });
   }
-  return { wssUrl, httpsUrl, iceServers };
+  return { wssUrl, httpsUrl, webrtcStorageEndpoint: byProto.WEBRTC, iceServers };
 }
 
 /**
@@ -148,14 +173,16 @@ export async function buildKvsBrowserBundle(args: {
   sessionId: string;
   role: KvsRole;
   viewerClientId?: string;
+  mediaStorageEnabled?: boolean;
 }): Promise<KvsBrowserBundle> {
   assertKvsEnabled();
   if (args.role === "VIEWER" && !args.viewerClientId) {
     throw new Error("KVS_VIEWER_CLIENT_ID_REQUIRED");
   }
-  const { wssUrl, iceServers } = await getEndpointsAndIce(
+  const { wssUrl, iceServers, webrtcStorageEndpoint } = await getEndpointsAndIce(
     args.channelArn,
     args.role === "MASTER" ? "MASTER" : "VIEWER",
+    { mediaStorageEnabled: args.mediaStorageEnabled },
   );
   const roleSession = `kvs-${args.sessionId}`.replace(/[^a-zA-Z0-9=,.@-]/g, "-").slice(0, 64);
   const assumed = await stsClient.send(
@@ -177,6 +204,8 @@ export async function buildKvsBrowserBundle(args: {
     viewerClientId: args.viewerClientId,
     wssUrl,
     iceServers,
+    mediaStorageEnabled: Boolean(args.mediaStorageEnabled),
+    webrtcStorageEndpoint,
     credentials: {
       accessKeyId: c.AccessKeyId,
       secretAccessKey: c.SecretAccessKey,

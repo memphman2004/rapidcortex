@@ -418,6 +418,20 @@ Parameters:
     Description: >-
       When set, AppSamCallAssistStack2 uses this existing DynamoDB table instead of creating
       rapid-cortex-call-assist-${stage} (required if the table was pre-created for Lex).
+  CadBridgeVpcId:
+    Type: String
+    Default: ""
+    Description: >-
+      Optional VPC for CAD Bridge Lambdas when partner CAD is on-prem / VPN-only.
+      Leave blank for public HTTPS CAD APIs. Set with CadBridgeVpcSubnetIds and CadBridgeVpcSecurityGroupId.
+  CadBridgeVpcSubnetIds:
+    Type: String
+    Default: ""
+    Description: Comma-separated private subnet IDs for CAD Bridge Lambdas (used when CadBridgeVpcId is set).
+  CadBridgeVpcSecurityGroupId:
+    Type: String
+    Default: ""
+    Description: Security group ID for CAD Bridge Lambdas (used when CadBridgeVpcId is set).
   ExistingVerticalAlertsTableName:
     Type: String
     Default: ""
@@ -3347,7 +3361,42 @@ Resources:
             - !Sub "${DynamoTableNamePrefix}-agencies-${DeploymentStage}"
         ExistingCallAssistTableName: !Ref ExistingCallAssistTableName
         CallAssistConnectWebhookSecretArn: ""
+        AppPublicBaseUrl: !Ref AppPublicBaseUrl
         ManagedPolicyNamePrefix: !Ref AWS::StackName
+
+  AppSamCadBridgeStack2:
+    Type: AWS::CloudFormation::Stack
+    Metadata:
+      cfn-lint:
+        config:
+          ignore_checks:
+            - W3005
+    DependsOn: AppSam2Stack
+    Properties:
+      TimeoutInMinutes: 60
+      TemplateURL: nested/stack-app-sam-cad-bridge.yaml
+      Parameters:
+        DeploymentStage: !Ref DeploymentStage
+        HttpApiId: !GetAtt AppSam2Stack.Outputs.HttpApiId
+        HttpApiJwtAuthorizerId: "3ui9q4"
+        ImportedCognitoUserPoolId: !GetAtt AppSamStackV2.Outputs.UserPoolId
+        ImportedCognitoWebClientId: !GetAtt AppSamStackV2.Outputs.UserPoolClientId
+        ImportedCognitoIssuer: !GetAtt AppSamStackV2.Outputs.CognitoIssuer
+        AuditTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.AuditTable
+            - !Sub "${DynamoTableNamePrefix}-audit-${DeploymentStage}"
+        AgenciesTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.AgenciesTable
+            - !Sub "${DynamoTableNamePrefix}-agencies-${DeploymentStage}"
+        ManagedPolicyNamePrefix: !Ref AWS::StackName
+        OpsAlertsTopicArn: !GetAtt AppSam2Stack.Outputs.OpsAlertsTopicArn
+        VpcId: !Ref CadBridgeVpcId
+        VpcSubnetIds: !Ref CadBridgeVpcSubnetIds
+        VpcSecurityGroupId: !Ref CadBridgeVpcSecurityGroupId
 
   AppSamLocationStack2:
     Type: AWS::CloudFormation::Stack

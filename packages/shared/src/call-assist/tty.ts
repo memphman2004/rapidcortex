@@ -30,3 +30,20 @@ export function detectTtyMode(input: {
   }
   return { ttyMode: false, source: "CONNECT_ATTRIBUTE", smsFallbackRecommended: false };
 }
+
+const BAUDOT_UNSAFE = /[^A-Za-z0-9 .,?'\n-]/g;
+
+/**
+ * TTY/TDD compatible prompt. Baudot has no SSML, mixed case, or emoji.
+ * SMS fallback uses the same text when Connect cannot carry Baudot media.
+ */
+export function formatTtySms(text: string, maxLen = 160): string {
+  const cleaned = text
+    .replace(/<[^>]+>/g, " ")
+    .replace(BAUDOT_UNSAFE, " ")
+    .replace(/\s+/g, " ")
+    .trim()
+    .toUpperCase();
+  if (cleaned.length <= maxLen) return cleaned;
+  return `${cleaned.slice(0, Math.max(1, maxLen - 3)).trim()}...`;
+}

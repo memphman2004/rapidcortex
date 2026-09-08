@@ -73,6 +73,7 @@ const NEXT_PUBLIC_FLAG_VALUES: Record<string, string | undefined> = {
   NEXT_PUBLIC_ENABLE_RMS: process.env.NEXT_PUBLIC_ENABLE_RMS,
   NEXT_PUBLIC_ENABLE_TRANSIT_CAMERAS: process.env.NEXT_PUBLIC_ENABLE_TRANSIT_CAMERAS,
   NEXT_PUBLIC_ENABLE_CAD_CONNECTOR: process.env.NEXT_PUBLIC_ENABLE_CAD_CONNECTOR,
+  NEXT_PUBLIC_ENABLE_CAD_BRIDGE: process.env.NEXT_PUBLIC_ENABLE_CAD_BRIDGE,
   NEXT_PUBLIC_ENABLE_CONTACTS_MODULE: process.env.NEXT_PUBLIC_ENABLE_CONTACTS_MODULE,
   NEXT_PUBLIC_WEBSOCKET_URL: process.env.NEXT_PUBLIC_WEBSOCKET_URL,
 };
@@ -263,6 +264,11 @@ export function isCadConnectorUiEnabled(): boolean {
 /** Alias used by CAD Connector nav/pages. */
 export function isCadConnectorEnabled(): boolean {
   return isCadConnectorUiEnabled();
+}
+
+/** CAD-to-CAD event broker admin. Default on when unset. Live outbound still follows write-back. */
+export function isCadBridgeUiEnabled(): boolean {
+  return envFlag("NEXT_PUBLIC_ENABLE_CAD_BRIDGE");
 }
 
 /** Call queue backlog + SLA monitoring (dispatcher/supervisor dashboards). */

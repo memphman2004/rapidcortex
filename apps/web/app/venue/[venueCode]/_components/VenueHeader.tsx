@@ -2,6 +2,8 @@
 
 import { CampusDashboardHeaderUtilities } from "@/components/campus/campus-dashboard-header-utilities";
 import { ThemeToggle } from "@/components/ui/ThemeToggle";
+import { PSAPAvailabilityNotice } from "@/components/psap/psap-availability-notice";
+import { buildPsapAvailabilityNotice } from "rapid-cortex-shared";
 
 const roleLabelMap: Record<string, string> = {
   VENUE_ADMIN: "VENUE ADMIN",
@@ -69,6 +71,9 @@ export function VenueHeader({
           agencyId={agencyId}
           leadingSlot={<ThemeToggle variant="inline" />}
         />
+      </div>
+      <div className="mt-3">
+        <PSAPAvailabilityNotice notice={buildPsapAvailabilityNotice({ product: "venue", agencyName: venueCode })} compact />
       </div>
     </header>
   );

@@ -182,6 +182,20 @@ describe("getRoleNav", () => {
     expect(byId["call-assist"]).toBe("/test-psap/call-assist");
   });
 
+  it("exposes Call Assist QA, analytics, and retention to the roles that can use them", () => {
+    const supervisor = getRoleNav("supervisor", { jurisdiction: "test-psap" });
+    const hrefs = Object.fromEntries(supervisor.sections.flatMap((s) => s.items).map((i) => [i.id, i.href]));
+    expect(hrefs["call-assist-qa"]).toBe("/test-psap/call-assist/qa");
+    expect(hrefs["call-assist-analytics"]).toBe("/test-psap/call-assist/analytics");
+    const admin = getRoleNav("agencyadmin", { jurisdiction: "test-psap" });
+    const adminHrefs = Object.fromEntries(admin.sections.flatMap((s) => s.items).map((i) => [i.id, i.href]));
+    expect(adminHrefs.compliance).toBe("/test-psap/admin/retention");
+    expect(adminHrefs["call-assist-analytics"]).toBe("/test-psap/call-assist/analytics");
+    expect(adminHrefs["cad-bridge"]).toBe("/test-psap/admin/cad/bridge");
+    const dispatcher = getRoleNav("dispatcher", { jurisdiction: "test-psap" });
+    expect(dispatcher.sections.flatMap((s) => s.items).find((i) => i.id === "call-assist-qa")).toBeUndefined();
+  });
+
   it("keeps Rapid IQ in SALES & CRM and does not expose a separate Pipeline nav item", () => {
     for (const role of ["rcsuperadmin", "rcadmin"] as const) {
       const nav = getRoleNav(role, {});

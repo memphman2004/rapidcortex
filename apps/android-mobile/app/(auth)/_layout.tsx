@@ -1,7 +1,7 @@
 import { Redirect, Stack } from 'expo-router';
 import { useAuth } from '@/hooks/useAuth';
 import { isSafeSoundPublicEnabled } from '@/utils/feature-flags';
-import { isCampusRole, isTransitRole, isVenueRole } from '@/utils/roles';
+import { isCampusRole, isCommandRole, isTransitRole, isVenueRole } from '@/utils/roles';
 
 export default function AuthLayout() {
   const { isAuthenticated, productPath, role } = useAuth();
@@ -20,12 +20,16 @@ export default function AuthLayout() {
   if (isAuthenticated && productPath === 'campus' && isCampusRole(role)) {
     return <Redirect href="/(campus)" />;
   }
+  if (isAuthenticated && productPath === 'command' && isCommandRole(role)) {
+    return <Redirect href="/(command)" />;
+  }
 
   return (
     <Stack screenOptions={{ headerShown: false }}>
       <Stack.Screen name="safe-sound-login" />
       <Stack.Screen name="venue-login" />
       <Stack.Screen name="campus-login" />
+      <Stack.Screen name="command-login" />
     </Stack>
   );
 }

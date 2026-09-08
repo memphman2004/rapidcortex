@@ -51,7 +51,7 @@ export class BedrockAdapter implements IAIProvider {
       const out = await this.client.send(
         new ConverseCommand({
           modelId: this.modelId,
-          system: [{ text: DISPATCH_ANALYSIS_SYSTEM_PROMPT }],
+          system: [{ text: input.systemPrompt?.trim() || DISPATCH_ANALYSIS_SYSTEM_PROMPT }],
           messages: [{ role: "user", content: [{ text: userText }] }],
           inferenceConfig: {
             maxTokens: 900,

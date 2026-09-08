@@ -1,11 +1,7 @@
-import { FeatureRoutePlaceholder } from "@/components/rapid-cortex/feature-route-placeholder";
+"use client";
+
+import { CallAssistRetentionAdmin } from "@/components/call-assist/call-assist-retention-admin";
 
 export default function AdminRetentionPage() {
-  return (
-    <FeatureRoutePlaceholder
-      title="Retention Controls"
-      featureId="data_retention_policy_controls"
-      summary="Retention policy controls for transcripts, media, and related incident artifacts."
-    />
-  );
+  return <CallAssistRetentionAdmin />;
 }

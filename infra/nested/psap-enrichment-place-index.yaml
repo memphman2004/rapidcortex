@@ -27,6 +27,36 @@ Resources:
         - Key: Purpose
           Value: psap-enrichment
 
+  # Operator policy for scripts/enrich-psap-addresses.ts — attach to the principal
+  # that runs enrichment. Not used by AppSam5 Lambdas (they do not call Location).
+  # Named with a stage suffix so it does not collide with a hand-created
+  # rapid-cortex-psap-enrichment-geo policy if one already exists in the account.
+  PsapEnrichmentGeoPolicy:
+    Type: AWS::IAM::ManagedPolicy
+    Properties:
+      ManagedPolicyName: !Sub "rapid-cortex-psap-enrichment-geo-${Stage}"
+      Description: !Sub "PSAP prospect address enrichment (Amazon Location) — ${Stage}"
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Sid: SearchPlaceIndex
+            Effect: Allow
+            Action:
+              - geo:SearchPlaceIndexForPosition
+              - geo:SearchPlaceIndexForText
+              - geo:DescribePlaceIndex
+            Resource:
+              - !GetAtt PsapEnrichmentPlaceIndex.Arn
+          - Sid: ProspectsTable
+            Effect: Allow
+            Action:
+              - dynamodb:Scan
+              - dynamodb:Query
+              - dynamodb:UpdateItem
+            Resource:
+              - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/rapid-cortex-psap-prospects-${Stage}"
+              - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/rapid-cortex-psap-prospects-${Stage}/index/*"
+
 Outputs:
   PsapEnrichmentPlaceIndexName:
     Description: Place index name for enrich-psap-addresses.ts
@@ -38,3 +68,8 @@ Outputs:
     Value: !GetAtt PsapEnrichmentPlaceIndex.Arn
     Export:
       Name: !Sub "rapid-cortex-psap-place-index-arn-${Stage}"
+  PsapEnrichmentGeoPolicyArn:
+    Description: Attach to the IAM user/role that runs scripts/enrich-psap-addresses.ts
+    Value: !Ref PsapEnrichmentGeoPolicy
+    Export:
+      Name: !Sub "rapid-cortex-psap-enrichment-geo-policy-arn-${Stage}"

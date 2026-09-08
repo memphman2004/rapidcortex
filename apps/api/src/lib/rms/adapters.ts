@@ -89,14 +89,52 @@ export class Mark43Adapter implements RmsAdapter {
   }
 }
 
+/** Motorola Records — live HTTP when URL/key exist; otherwise pending_vendor. */
+export class MotorolaRecordsAdapter implements RmsAdapter {
+  constructor(
+    private apiUrl: string,
+    private apiKey: string,
+  ) {}
+
+  async push(report: IncidentReport): Promise<RmsPushResult> {
+    if (isRmsMockMode() || !this.apiUrl || !this.apiKey) {
+      return pendingVendor(report, "motorola-records");
+    }
+    const payload = {
+      AgencyId: report.agencyId,
+      IncidentNumber: report.cadIncidentNumber ?? report.incidentId,
+      IncidentDate: report.incidentDate,
+      IncidentTime: report.incidentTime,
+      IncidentType: report.incidentType,
+      Location: report.incidentAddress,
+      NarrativeText: report.narrative.officerNarrative,
+      NIBRSCode: report.nibrsClassification?.offenseCode,
+      Source: "rapid-cortex",
+    };
+    const res = await fetch(`${this.apiUrl.replace(/\/$/, "")}/api/v1/reports`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "X-API-Key": this.apiKey,
+      },
+      body: JSON.stringify(payload),
+    });
+    if (!res.ok) throw new Error(`Motorola Records API error ${res.status}`);
+    const data = (await res.json()) as { ReportNumber?: string; id?: string };
+    return { externalId: String(data.ReportNumber ?? data.id ?? ""), status: "pushed" };
+  }
+}
+
 export function getRmsAdapter(target: string, config: Record<string, string>): RmsAdapter {
   switch (target) {
     case "tyler-new-world":
       return new TylerNewWorldAdapter(config.apiUrl ?? "", config.apiKey ?? "");
     case "mark43":
       return new Mark43Adapter(config.apiUrl ?? "", config.token ?? "");
+    case "motorola-records":
+      return new MotorolaRecordsAdapter(config.apiUrl ?? "", config.apiKey ?? "");
     default:
-      throw new Error(`Unsupported RMS target: ${target}. Supported: tyler-new-world, mark43`);
+      throw new Error(`Unsupported RMS target: ${target}. Supported: tyler-new-world, mark43, motorola-records`);
   }
 }
 
@@ -109,6 +147,8 @@ type VendorSecret = {
   tylerApiUrl: string;
   mark43Token: string;
   mark43ApiUrl: string;
+  motorolaRecordsApiKey: string;
+  motorolaRecordsApiUrl: string;
 };
 
 let vendorSecretCache: { value: VendorSecret; fetchedAt: number } | null = null;
@@ -120,7 +160,7 @@ async function loadRmsVendorSecret(): Promise<VendorSecret> {
     return vendorSecretCache.value;
   }
   const arn = process.env.RMS_VENDOR_SECRET_ARN?.trim() ?? "";
-  const [tylerApiKey, tylerApiUrl, mark43Token, mark43ApiUrl] = await Promise.all([
+  const [tylerApiKey, tylerApiUrl, mark43Token, mark43ApiUrl, motorolaRecordsApiKey, motorolaRecordsApiUrl] = await Promise.all([
     resolvePlainOrSecretArn("", arn, { preferredField: "TYLER_API_KEY" }),
     resolvePlainOrSecretArn("", arn, { preferredField: "TYLER_API_URL" }),
     resolvePlainOrSecretArn(
@@ -132,12 +172,16 @@ async function loadRmsVendorSecret(): Promise<VendorSecret> {
       return resolvePlainOrSecretArn("", arn, { preferredField: "MARK43_TOKEN" });
     }),
     resolvePlainOrSecretArn("", arn, { preferredField: "MARK43_API_URL" }),
+    resolvePlainOrSecretArn("", arn, { preferredField: "MOTOROLA_RECORDS_API_KEY" }),
+    resolvePlainOrSecretArn("", arn, { preferredField: "MOTOROLA_RECORDS_API_URL" }),
   ]);
   const value: VendorSecret = {
     tylerApiKey: tylerApiKey.trim(),
     tylerApiUrl: tylerApiUrl.trim(),
     mark43Token: mark43Token.trim(),
     mark43ApiUrl: mark43ApiUrl.trim(),
+    motorolaRecordsApiKey: motorolaRecordsApiKey.trim(),
+    motorolaRecordsApiUrl: motorolaRecordsApiUrl.trim(),
   };
   vendorSecretCache = { value, fetchedAt: now };
   return value;
@@ -157,8 +201,12 @@ export async function resolveAgencyRmsConfig(agencyId: string): Promise<{
     config: {
       apiUrl:
         apiUrlFromEnv ||
-        (target === "mark43" ? vendor.mark43ApiUrl : vendor.tylerApiUrl),
-      apiKey: vendor.tylerApiKey,
+        (target === "mark43"
+          ? vendor.mark43ApiUrl
+          : target === "motorola-records"
+            ? vendor.motorolaRecordsApiUrl
+            : vendor.tylerApiUrl),
+      apiKey: target === "motorola-records" ? vendor.motorolaRecordsApiKey : vendor.tylerApiKey,
       token: vendor.mark43Token,
     },
   };

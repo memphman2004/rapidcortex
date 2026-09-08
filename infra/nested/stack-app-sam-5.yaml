@@ -1047,6 +1047,7 @@ Globals:
     Runtime: nodejs20.x
     Timeout: 10
     MemorySize: 512
+    # SAM Globals.Function does not support Policies (transform rejects it).
     # Shared deps layer — lean SAM builds skip per-function node_modules rsync (see SAM4_LEAN_BUILD).
     Layers:
       - !Ref NodeDepsLayer
@@ -4227,11 +4228,18 @@ Resources:
                   - kinesisvideo:DeleteStream
                   - kinesisvideo:DescribeStream
                   - kinesisvideo:GetDataEndpoint
+                  - kinesisvideo:GetClip
                 Resource: !Sub "arn:${AWS::Partition}:kinesisvideo:${AWS::Region}:${AWS::AccountId}:stream/*/*"
               - Effect: Allow
                 Action:
                   - kinesisvideo:GetHLSStreamingSessionURL
                 Resource: !Sub "arn:${AWS::Partition}:kinesisvideo:${AWS::Region}:${AWS::AccountId}:stream/*/*"
+              - Effect: Allow
+                Action:
+                  - s3:PutObject
+                  - s3:GetObject
+                  - s3:HeadObject
+                Resource: !Sub "arn:${AWS::Partition}:s3:::${AssetsBucket}/live-video/*"
               - Effect: Allow
                 Action:
                   - kinesisvideo:UpdateMediaStorageConfiguration
@@ -4484,6 +4492,7 @@ Resources:
       CodeUri: ../../apps/api/
       Handler: dist/handlers/media/liveVideoIncidentHttp.handler
       Role: !GetAtt LiveVideoIncidentsExecutionRole.Arn
+      Timeout: 29
       Environment:
         Variables:
           COGNITO_USER_POOL_ID: !Ref ImportedCognitoUserPoolId
@@ -4506,7 +4515,9 @@ Resources:
           LIVE_VIDEO_STORAGE_MODE: kvs
           WEBRTC_TURN_SECRET_ARN: ""
           LIVE_VIDEO_KVS_DATA_RETENTION_HOURS: "24"
-          LIVE_VIDEO_KVS_STORAGE_ATTACH_TO_CHANNEL: "false"
+          LIVE_VIDEO_KVS_STORAGE_ATTACH_TO_CHANNEL: "true"
+          LIVE_VIDEO_EXPORT_TO_S3: "true"
+          LIVE_VIDEO_EXPORT_FUNCTION_NAME: !Ref LiveVideoExportFunction
           KVS_WEBRTC_TAG_APP: !Ref AppName
           KVS_WEBRTC_TAG_ENV: !Ref DeploymentStage
       Events:
@@ -4567,6 +4578,7 @@ Resources:
           LIVE_VIDEO_PUBLIC_BASE_URL: !Sub "https://www.${RootDomainName}"
           LIVE_VIDEO_KVS_TOKEN_ROLE_ARN: !GetAtt KvsWebRtcBrowserTokenRole.Arn
           LIVE_VIDEO_STORAGE_MODE: kvs
+          LIVE_VIDEO_EXPORT_FUNCTION_NAME: !Ref LiveVideoExportFunction
           WEBRTC_TURN_SECRET_ARN: ""
       Events:
         JoinLiveVideo:
@@ -4585,6 +4597,52 @@ Resources:
             Method: POST
             Auth:
               Authorizer: NONE
+
+  LiveVideoExportLogGroup:
+    Type: AWS::Logs::LogGroup
+    Condition: CreateLiveVideoResources
+    Properties:
+      LogGroupName: !Sub /aws/lambda/${LiveVideoExportFunction}
+      RetentionInDays: 30
+
+  LiveVideoExportFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Condition: CreateLiveVideoResources
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/lambdas/liveVideoExport.handler
+      Role: !GetAtt LiveVideoIncidentsExecutionRole.Arn
+      Timeout: 300
+      MemorySize: 1024
+      ReservedConcurrentExecutions: 5
+      Description: GetClip export of ended caller live-video sessions to the assets bucket.
+      Environment:
+        Variables:
+          <<: *APP_SAM1_HEAVY_LAMBDAS_GLOBALS_SLIM_OVERRIDES
+          ENABLE_LIVE_VIDEO: "true"
+          LIVE_VIDEO_SESSIONS_TABLE: !Ref LiveVideoSessionsTable
+          ASSETS_BUCKET: !Ref AssetsBucket
+          LIVE_VIDEO_STORAGE_MODE: kvs
+          LIVE_VIDEO_EXPORT_TO_S3: "true"
+          LIVE_VIDEO_KVS_DATA_RETENTION_HOURS: "24"
+
+  LiveVideoExportInvokePolicy:
+    Type: AWS::IAM::Policy
+    Condition: CreateLiveVideoResources
+    Properties:
+      PolicyName: !Sub "${AppName}-live-video-export-invoke-${DeploymentStage}"
+      Roles:
+        - !Ref LiveVideoIncidentsExecutionRole
+        - !Ref LiveVideoPublicExecutionRole
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Action: lambda:InvokeFunction
+            Resource: !GetAtt LiveVideoExportFunction.Arn
 
   # ---------------------------------------------------------------------------------------------
   # Silent Text + Pinpoint (LiveLocation)
@@ -5091,6 +5149,25 @@ Resources:
       Period: 300
       EvaluationPeriods: 1
       Threshold: 5
+      ComparisonOperator: GreaterThanThreshold
+      TreatMissingData: notBreaching
+
+  LiveVideoExportErrorsAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Condition: CreateLiveVideoResources
+    Properties:
+      AlarmActions:
+        - !Ref OpsAlertsTopic
+      AlarmDescription: Live video KVS GetClip export worker errors.
+      Namespace: AWS/Lambda
+      MetricName: Errors
+      Dimensions:
+        - Name: FunctionName
+          Value: !Ref LiveVideoExportFunction
+      Statistic: Sum
+      Period: 300
+      EvaluationPeriods: 1
+      Threshold: 1
       ComparisonOperator: GreaterThanThreshold
       TreatMissingData: notBreaching
 

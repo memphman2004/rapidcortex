@@ -198,10 +198,17 @@ export const env = {
   ),
   /**
    * When true, calls UpdateMediaStorageConfiguration to attach the stream to the signaling channel.
-   * AWS: this disables direct master/viewer on that channel; requires JoinStorageSession clients.
-   * Default false so standard WebRTC master/viewer live video keeps working.
+   * Requires JoinStorageSession browser clients. Default on when unset (with kvs-ingestion).
+   * Set LIVE_VIDEO_KVS_STORAGE_ATTACH_TO_CHANNEL=false for live-only P2P on a reserved unused stream.
    */
-  liveVideoKvsStorageAttachToChannel: process.env.LIVE_VIDEO_KVS_STORAGE_ATTACH_TO_CHANNEL === "true",
+  liveVideoKvsStorageAttachToChannel: featureEnabled("LIVE_VIDEO_KVS_STORAGE_ATTACH_TO_CHANNEL"),
+  /**
+   * Export ended-session clips from KVS to the assets bucket via GetClip.
+   * KVS retention is not S3; this is the long-lived copy. Default on when unset.
+   */
+  liveVideoExportToS3: featureEnabled("LIVE_VIDEO_EXPORT_TO_S3"),
+  /** Async GetClip worker (InvocationType=Event). Empty in local/unit tests. */
+  liveVideoExportFunctionName: process.env.LIVE_VIDEO_EXPORT_FUNCTION_NAME?.trim() ?? "",
   kvsWebrtcTagApp: process.env.KVS_WEBRTC_TAG_APP?.trim() || "rapid-cortex",
   kvsWebrtcTagEnvironment: process.env.KVS_WEBRTC_TAG_ENV?.trim() || process.env.DEPLOYMENT_STAGE?.trim() || "dev",
   /** Silent Text (SMS + web chat) — empty disables silent-text HTTP handlers at runtime. */
@@ -386,6 +393,11 @@ export const env = {
     process.env.CALL_ASSIST_LEX_MOCK !== "false" && process.env.CALL_ASSIST_LEX_MOCK !== "0",
   callAssistRapidSosMock: process.env.CALL_ASSIST_RAPIDSOS_MOCK !== "false",
   callAssistRapidSosSecretArn: process.env.CALL_ASSIST_RAPIDSOS_SECRET_ARN?.trim() ?? "",
+  /** Default mock so CI never calls Comprehend. Set CALL_ASSIST_VOICE_EMOTION_MOCK=false for live DetectSentiment. */
+  callAssistVoiceEmotionMock:
+    process.env.CALL_ASSIST_VOICE_EMOTION_MOCK !== "false" && process.env.CALL_ASSIST_VOICE_EMOTION_MOCK !== "0",
+  enableCallAssistVoiceEmotion: featureEnabled("ENABLE_CALL_ASSIST_VOICE_EMOTION"),
+  enableCallAssistDiarization: featureEnabled("ENABLE_CALL_ASSIST_DIARIZATION"),
   /**
    * Field app — 911 Dispatch (view/coach/log) + workspace access requests.
    * Operational default on when unset.
@@ -651,6 +663,20 @@ export const env = {
   cadPublicApiBaseUrl: process.env.CAD_PUBLIC_API_BASE_URL?.trim() ?? "",
   /** When true, CAD write-back HTTP routes accept submissions (otherwise 400). */
   cadWritebackEnabled: featureEnabled("CAD_WRITEBACK_ENABLED", false),
+  /**
+   * CAD-to-CAD event broker. Operational default on when unset.
+   * Live vendor HTTP still requires CAD_WRITEBACK_ENABLED; mock is default on.
+   */
+  enableCadBridge: featureEnabled("ENABLE_CAD_BRIDGE"),
+  cadBridgeConfigTable: process.env.CAD_BRIDGE_CONFIG_TABLE?.trim() ?? "",
+  cadBridgeSyncTable: process.env.CAD_BRIDGE_SYNC_TABLE?.trim() ?? "",
+  cadBridgeLoopGuardTable: process.env.CAD_BRIDGE_LOOP_GUARD_TABLE?.trim() ?? "",
+  cadBridgeCircuitBreakerTable: process.env.CAD_BRIDGE_CB_TABLE?.trim() ?? "",
+  cadBridgeBufferTable: process.env.CAD_BRIDGE_BUFFER_TABLE?.trim() ?? "",
+  cadBridgeAuditTable: process.env.CAD_BRIDGE_AUDIT_TABLE?.trim() ?? "",
+  cadBridgeQueueUrl: process.env.CAD_BRIDGE_QUEUE_URL?.trim() ?? "",
+  /** Default mock so CI never calls partner CAD APIs. Set CAD_BRIDGE_MOCK=false for live UAT. */
+  cadBridgeMock: process.env.CAD_BRIDGE_MOCK !== "false" && process.env.CAD_BRIDGE_MOCK !== "0",
   /**
    * Multi-CAD Connector aggregation layer (`/api/cad-connector/*`). Fail-closed:
    * unset or any value other than true/1 disables the feature.

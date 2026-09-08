@@ -18,6 +18,7 @@ function buildLexEvent(opts: {
   slots?: Record<string, LexSlotValue | null>;
   sessionAttrs?: Record<string, string>;
   nluConfidence?: number;
+  sentiment?: { sentiment: "POSITIVE" | "NEGATIVE" | "NEUTRAL" | "MIXED"; negative: number };
 }): LexV2Event {
   const intentName = opts.intent;
   const slots = opts.slots ?? {};
@@ -31,6 +32,19 @@ function buildLexEvent(opts: {
       {
         intent: { name: intentName, slots, state: "InProgress", confirmationState: "None" },
         nluConfidence,
+        ...(opts.sentiment
+          ? {
+              sentimentResponse: {
+                sentiment: opts.sentiment.sentiment,
+                sentimentScore: {
+                  positive: 0.05,
+                  negative: opts.sentiment.negative,
+                  mixed: 0.05,
+                  neutral: 0.1,
+                },
+              },
+            }
+          : {}),
       },
     ],
     sessionState: {
@@ -227,5 +241,130 @@ describe("Dialog hook — RequestHuman", () => {
 describe("Dialog hook handler export", () => {
   it("exposes a Lambda handler", () => {
     expect(handler).toEqual(expect.any(Function));
+  });
+});
+
+describe("Dialog hook — confidence control plane", () => {
+  it("auto-escalates when agency escalate threshold is not met", async () => {
+    const config = {
+      ...defaultTenantConfig("kcpd"),
+      agencyId: "kcpd",
+      confidenceThresholds: { emergency: 0.7, escalate: 0.9, selfService: 0.95 },
+    };
+    const event = buildLexEvent({
+      utterance: "something vague",
+      intent: "NoiseComplaint",
+      nluConfidence: 0.4,
+    });
+    const result = await handleDialog(
+      event,
+      testDeps({
+        getConfig: async () => config,
+        classify: async () => ({ intentName: "FallbackIntent", confidence: 0.2, reasoning: "low", slots: {} }),
+      }),
+    );
+    expect(result.sessionState.intent.name).toBe("FallbackIntent");
+    expect(result.sessionState.sessionAttributes?.confidenceAction).toBe("escalate_human");
+    expect(result.sessionState.sessionAttributes?.transferReason).toBe("LOW_CONFIDENCE");
+  });
+});
+
+describe("Dialog hook — barge-in resume", () => {
+  it("keeps collected slots and resumes the next missing field after interrupt", async () => {
+    const event = buildLexEvent({
+      utterance: "music",
+      intent: "NoiseComplaint",
+      slots: { NoiseLocation: slot("4200 Main"), NoiseType: null, NoiseStillHappening: null },
+      sessionAttrs: { agencyId: "kcpd", callId: "test-call", promptSlot: "NoiseType", bargeInCount: "0" },
+    });
+    const result = await handleDialog(event, testDeps());
+    expect(result.sessionState.intent.name).toBe("NoiseComplaint");
+    expect(result.sessionState.dialogAction).toMatchObject({ type: "ElicitSlot" });
+    expect(Number(result.sessionState.sessionAttributes?.bargeInCount)).toBeGreaterThanOrEqual(1);
+    expect(result.sessionState.sessionAttributes?.bargeInEnabled).toBe("true");
+  });
+
+  it("does not count a normal slot answer as barge-in", async () => {
+    const event = buildLexEvent({
+      utterance: "music",
+      intent: "NoiseComplaint",
+      slots: { NoiseLocation: slot("4200 Main"), NoiseType: slot("music"), NoiseStillHappening: null },
+      sessionAttrs: { agencyId: "kcpd", callId: "test-call", promptSlot: "NoiseType", bargeInCount: "0" },
+    });
+    const result = await handleDialog(event, testDeps());
+    expect(Number(result.sessionState.sessionAttributes?.bargeInCount ?? "0")).toBe(0);
+    expect(result.sessionState.dialogAction).toMatchObject({ type: "ElicitSlot", slotToElicit: "NoiseStillHappening" });
+  });
+});
+
+describe("Dialog hook — knowledge grounding", () => {
+  it("answers InformationRequest only from the agency knowledge base", async () => {
+    const event = buildLexEvent({
+      utterance: "what are your hours",
+      intent: "InformationRequest",
+      slots: { InformationTopic: slot("hours") },
+    });
+    const result = await handleDialog(
+      event,
+      testDeps({
+        listKnowledge: async () => [
+          {
+            agencyId: "kcpd",
+            articleId: "hours",
+            title: "Non-emergency hours",
+            body: "The non-emergency line is open 24 hours.",
+            tags: ["hours"],
+            enabled: true,
+            updatedAt: "2026-09-08T00:00:00.000Z",
+          },
+        ],
+      }),
+    );
+    expect(result.sessionState.dialogAction.type).toBe("Close");
+    expect(result.messages?.[0]?.content).toMatch(/24 hours/);
+    expect(result.sessionState.sessionAttributes?.knowledgeHit).toBe("true");
+  });
+
+  it("transfers when the knowledge base has no hit", async () => {
+    const event = buildLexEvent({
+      utterance: "what is the fine for jaywalking",
+      intent: "InformationRequest",
+      slots: { InformationTopic: slot("jaywalking fine") },
+    });
+    const result = await handleDialog(event, testDeps({ listKnowledge: async () => [] }));
+    expect(result.sessionState.intent.name).toBe("FallbackIntent");
+    expect(result.sessionState.sessionAttributes?.transferReason).toBe("LOW_CONFIDENCE");
+  });
+});
+
+describe("Dialog hook — structured intake follow-up", () => {
+  it("elicits apartment after required noise slots", async () => {
+    const event = buildLexEvent({
+      utterance: "no callback",
+      intent: "NoiseComplaint",
+      slots: {
+        NoiseLocation: slot("4200 Main"),
+        NoiseType: slot("music"),
+        NoiseStillHappening: slot("Yes"),
+        CallbackNumber: slot("555-0142"),
+        AptBusiness: null,
+        CrossStreets: null,
+      },
+    });
+    const result = await handleDialog(event, testDeps());
+    expect(result.sessionState.dialogAction).toMatchObject({ type: "ElicitSlot", slotToElicit: "AptBusiness" });
+  });
+});
+
+describe("Dialog hook — Lex sentiment", () => {
+  it("copies Lex sentiment onto session attributes", async () => {
+    const event = buildLexEvent({
+      utterance: "this is ridiculous",
+      intent: "NoiseComplaint",
+      sentiment: { sentiment: "NEGATIVE", negative: 0.91 },
+    });
+    const result = await handleDialog(event, testDeps());
+    expect(result.sessionState.sessionAttributes?.sentiment).toBe("NEGATIVE");
+    expect(result.sessionState.sessionAttributes?.sentimentNegative).toBe("0.91");
   });
 });

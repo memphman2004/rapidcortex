@@ -197,9 +197,22 @@ export const KCPD_VOICE_CONFIG: CallAssistAgencyVoiceConfig = {
 };
 
 /** First-tenant city-services directory. Other agencies seed their own 311/parks/water entries. */
+function withSeedRouting(route: Omit<ExternalAgencyRoute, "acceptedCallTypes" | "configurationStatus">): ExternalAgencyRoute {
+  return {
+    ...route,
+    acceptedCallTypes: route.triageClassifications,
+    hoursAllDay: true,
+    hoursTimezone: "America/Chicago",
+    afterHoursPolicy: "human",
+    transferFailurePolicy: "human",
+    maxAttempts: 2,
+    configurationStatus: "ready",
+  };
+}
+
 export function kcpdExternalAgencySeed(agencyId: string): ExternalAgencyRoute[] {
   return [
-    {
+    withSeedRouting({
       agencyId,
       externalAgencyId: "kc-311",
       externalAgencyName: "311 Kansas City",
@@ -211,8 +224,8 @@ export function kcpdExternalAgencySeed(agencyId: string): ExternalAgencyRoute[] 
         "Warm transfer from police non-emergency assist. Issue: {issue}. Callback: {callback}. Location: {location}.",
       enabled: true,
       triageClassifications: ["PARKING", "CODE_ENFORCEMENT", "INFORMATION_REQUEST"],
-    },
-    {
+    }),
+    withSeedRouting({
       agencyId,
       externalAgencyId: "kc-parks",
       externalAgencyName: "Kansas City Parks and Recreation",
@@ -224,8 +237,8 @@ export function kcpdExternalAgencySeed(agencyId: string): ExternalAgencyRoute[] 
         "Warm transfer from police non-emergency assist. Issue: {issue}. Callback: {callback}. Location: {location}.",
       enabled: true,
       triageClassifications: ["NOISE_COMPLAINT"],
-    },
-    {
+    }),
+    withSeedRouting({
       agencyId,
       externalAgencyId: "kc-water",
       externalAgencyName: "Kansas City Water Services",
@@ -237,7 +250,7 @@ export function kcpdExternalAgencySeed(agencyId: string): ExternalAgencyRoute[] 
         "Warm transfer from police non-emergency assist. Issue: {issue}. Callback: {callback}. Location: {location}.",
       enabled: true,
       triageClassifications: ["PUBLIC_WORKS"],
-    },
+    }),
   ];
 }
 

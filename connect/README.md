@@ -37,7 +37,16 @@ The JSON template uses `{{lexBotAliasArn}}`. `scripts/configure-call-assist-conn
 1. Invoke Lambda `GetAgencyConfigForNumber` with `phoneNumber = $.SystemEndpoint.Address`
 2. Play disclosure from the Lambda result (Polly Ruth / Lupe)
 3. Get customer input → Amazon Lex bot `RCCallAssistBot-{stage}` alias `live-{stage}`
-   - Session attributes: `agencyId`, `callId = $.ContactId`, `callStartedAt`
+   - Session attributes: `agencyId`, `callId = $.ContactId`, `bargeInEnabled=true`, `ani` (customer endpoint), `aliAddress` / `ALI` when the PSAP or RapidSOS set contact attributes
+   - Barge-in: Lex slot prompts use `allowInterrupt: true`. The dialog hook keeps filled slots and resumes the next missing field. A turn is barge-in only when `promptSlot` is set and that slot is still empty (caller spoke over the prompt). KVS StartMediaStreaming is an optional recording fork, not required to interrupt Lex.
+
+## Live telephony ingest
+
+Rapid Cortex does not operate PSAP SIP/CPE or a carrier ALI database. Live ingest is Amazon Connect:
+- ANI = `$.CustomerEndpoint.Address` (passed into Lex session attributes and the DID-lookup Lambda)
+- ALI = Connect contact attributes (`ALI`, RapidSOS address) when the agency's CPE/ALI or RapidSOS integration writes them
+- Transcripts arrive via Lex (`inputTranscript`) and the Connect webhook (`INITIATED` / `UTTERANCE`)
+
 ## Lex bot specification
 
 Canonical 19-intent build (both locales, copy-paste or CLI): [`lex-bot-complete-spec.md`](./lex-bot-complete-spec.md).

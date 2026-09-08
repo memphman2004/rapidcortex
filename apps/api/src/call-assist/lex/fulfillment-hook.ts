@@ -1,6 +1,12 @@
+import {
+  assertGroundedReply,
+  mergeIntakeFromLexSlots,
+  topKnowledgeHit,
+  type KnowledgeArticleLike,
+} from "rapid-cortex-shared";
 import { makeId } from "../../lib/ids.js";
 import type { CallAssistSessionRecord } from "../store.js";
-import { getLexTenantConfig, putLexSession } from "./runtime-store.js";
+import { getLexTenantConfig, listLexKnowledge, putLexSession } from "./runtime-store.js";
 import { buildCadPayload } from "./cad-payload-builder.js";
 import { agencyShortName, closingPrompt, transferPrompt } from "./prompts.js";
 import { extractCurrentSlots } from "./slot-extractor.js";
@@ -44,6 +50,9 @@ export function resolveFulfillmentAction(event: LexV2Event): FulfillmentAction {
   }
   if (intent === PUBLIC_WORKS_INTENT) {
     return { type: "human", intentName: PUBLIC_WORKS_INTENT, reason: "EXTERNAL_311" };
+  }
+  if (intent === "InformationRequest") {
+    return { type: "complete" };
   }
   return { type: "complete" };
 }
@@ -90,8 +99,47 @@ export async function handleFulfillment(event: LexV2Event): Promise<LexV2Respons
   const caseNumber = `RC-${makeId("case").slice(-8).toUpperCase()}`;
   const classification = sessionAttrs.classification ?? event.sessionState.intent.name;
   const now = new Date().toISOString();
-
   const cadPayload = buildCadPayload(agencyId, classification, slots, config);
+  const intake = mergeIntakeFromLexSlots(slots, {
+    locationText: cadPayload.location ?? undefined,
+    apartmentSuite: cadPayload.aptBusiness ?? undefined,
+    crossStreets: cadPayload.crossStreets ?? undefined,
+    callbackNumber: cadPayload.callbackNumber ?? undefined,
+    callerName: cadPayload.callerName ?? undefined,
+    vehiclePlate: cadPayload.licensePlate ?? undefined,
+    suspectDescription: cadPayload.suspectDesc ?? undefined,
+    weaponsMentioned: cadPayload.weaponsPresent || undefined,
+    injuries: cadPayload.injuriesPresent || undefined,
+    summary: cadPayload.notes || undefined,
+    language: sessionAttrs.language,
+    preferredLanguage: sessionAttrs.preferredLanguage ?? sessionAttrs.language,
+  });
+
+  let knowledgeHit = false;
+  let knowledgeArticleId: string | undefined;
+  if (event.sessionState.intent.name === "InformationRequest") {
+    const articles = await listLexKnowledge(agencyId || "unknown").catch(() => []);
+    const query = slots.InformationTopic || utterance || "";
+    const hit = topKnowledgeHit(query, articles as KnowledgeArticleLike[]);
+    knowledgeHit = Boolean(hit);
+    knowledgeArticleId = hit?.articleId;
+    const grounded = assertGroundedReply({
+      proposedText: hit ? `${hit.title}. ${hit.excerpt}` : closingPrompt(config, classification, caseNumber),
+      knowledgeHit: Boolean(hit),
+      isEmergencyTransfer: false,
+      requiresKnowledge: true,
+    });
+    if (!grounded.allowed) {
+      return closeTransferResponse(
+        FALLBACK_INTENT,
+        utterance || "ungrounded information request",
+        { ...sessionAttrs, agencyId, callId, classification: FALLBACK_INTENT, knowledgeHit: "false" },
+        [ssml(transferPrompt(config, "LOW_CONFIDENCE"))],
+        "LOW_CONFIDENCE",
+      );
+    }
+  }
+
   const session: CallAssistSessionRecord = {
     agencyId,
     sessionId: callId,
@@ -99,19 +147,15 @@ export async function handleFulfillment(event: LexV2Event): Promise<LexV2Respons
     mode: "NON_EMERGENCY",
     source: "LIVE",
     language: sessionAttrs.language ?? "en",
-    ttyMode: false,
+    ttyMode: sessionAttrs.ttyMode === "1" || sessionAttrs.ttyMode === "true",
+    smsFallbackRecommended: sessionAttrs.smsFallbackRecommended === "1",
     connectContactId: callId,
     disclosureDelivered: true,
     utterances: (sessionAttrs.transcript ?? "")
       .split("|")
       .filter(Boolean)
       .map((text, i) => ({ sequence: i, speaker: "caller", text: text.replace(/^Caller:\s*/, ""), at: now })),
-    intake: {
-      locationText: cadPayload.location ?? undefined,
-      callbackNumber: cadPayload.callbackNumber ?? undefined,
-      callerName: cadPayload.callerName ?? undefined,
-      summary: cadPayload.notes || undefined,
-    },
+    intake,
     continueAiConversation: false,
     legalHold: false,
     createdAt: sessionAttrs.callStartedAt ?? now,
@@ -120,6 +164,12 @@ export async function handleFulfillment(event: LexV2Event): Promise<LexV2Respons
     cadPushStatus: "not_pushed",
     caseNumber,
     cadPayload: { ...cadPayload },
+    knowledgeHit,
+    knowledgeArticleId,
+    lastConfidence: Number.parseFloat(sessionAttrs.lastConfidence ?? "") || undefined,
+    qaLowConfidence: sessionAttrs.confidenceAction === "escalate_human",
+    aliAddress: sessionAttrs.aliAddress,
+    bargeInCount: Number.parseInt(sessionAttrs.bargeInCount ?? "0", 10) || undefined,
   };
 
   await putLexSession(session);
