@@ -139,7 +139,7 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
         type: AUDIT_EVENT_TYPES.CAD_BRIDGE_CONFIG_UPDATED,
         details: { enabled: next.enabled, primaryCAD: next.primaryCAD },
         createdAt: now,
-        resourceType: "cad_bridge",
+        resourceType: "cad_connector",
         resourceId: next.bridgeId,
       });
       return withCorrelationHeaders(event, ok({ config: next }));
@@ -229,7 +229,7 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
         type: AUDIT_EVENT_TYPES.CAD_BRIDGE_CONFLICT_RESOLVED,
         details: { conflictId: found.conflictId, resolution: parsed.data.resolution, rcIncidentId: incident.rcIncidentId },
         createdAt: new Date().toISOString(),
-        resourceType: "cad_bridge_incident",
+        resourceType: "cad_unified_incident",
         resourceId: incident.rcIncidentId,
       });
       return withCorrelationHeaders(event, ok({ incident: nextIncident }));
@@ -272,7 +272,7 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
         type: AUDIT_EVENT_TYPES.CAD_BRIDGE_TRANSFER,
         details: { action: "REQUESTED", rcIncidentId: next.rcIncidentId, toSlot },
         createdAt: next.updatedAt,
-        resourceType: "cad_bridge_incident",
+        resourceType: "cad_unified_incident",
         resourceId: next.rcIncidentId,
       });
       return withCorrelationHeaders(event, ok({ incident: next }));
@@ -295,7 +295,7 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
         type: AUDIT_EVENT_TYPES.CAD_BRIDGE_TRANSFER,
         details: { action: "ACCEPTED", rcIncidentId: next.rcIncidentId, owner: next.owner },
         createdAt: next.updatedAt,
-        resourceType: "cad_bridge_incident",
+        resourceType: "cad_unified_incident",
         resourceId: next.rcIncidentId,
       });
       return withCorrelationHeaders(event, ok({ incident: next }));
@@ -344,7 +344,7 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
         type: AUDIT_EVENT_TYPES.CAD_BRIDGE_TEST_CONNECTION,
         details: { slot, vendor: slotConfig.vendor, mock: env.cadBridgeMock, live },
         createdAt: new Date().toISOString(),
-        resourceType: "cad_bridge",
+        resourceType: "cad_connector",
         resourceId: config.bridgeId,
       });
       return withCorrelationHeaders(

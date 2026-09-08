@@ -72,11 +72,11 @@ export async function scoreCallAssistSession(opts: {
         checklist: bedrock.checklist.map((row) => ({
           id: row.id,
           score: row.score,
-          passed: row.passed,
-          rationale: row.rationale,
+          passed: row.passed ?? false,
+          rationale: row.rationale ?? "",
           evidenceQuote: row.evidenceQuote,
         })),
-        aggregateScore: bedrock.aggregateScore,
+        aggregateScore: bedrock.aggregateScore ?? 0,
       };
     } catch {
       scored = scoreCallAssistTranscriptMock(opts.session.utterances);

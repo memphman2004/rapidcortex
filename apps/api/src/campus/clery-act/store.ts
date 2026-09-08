@@ -209,7 +209,7 @@ export async function assertSwornOfficerMayUnfound(
     throw Object.assign(new Error(UNFOUND_FORBIDDEN_MESSAGE), { code: "UNFOUND_NOT_SWORN" });
   }
   const csa = await cleryActStore.getCsa(agencyId, userId);
-  if (!canUnfoundCrime(csa)) {
+  if (!csa || !canUnfoundCrime(csa)) {
     throw Object.assign(new Error(UNFOUND_FORBIDDEN_MESSAGE), { code: "UNFOUND_NOT_SWORN" });
   }
   return csa;

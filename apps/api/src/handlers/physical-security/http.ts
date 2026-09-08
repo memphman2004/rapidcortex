@@ -17,9 +17,9 @@ import {
   serverError,
   unauthorized,
 } from "../../lib/response.js";
-import { verifyPhysicalSecurityWebhookAuth } from "../physical-security/auth.js";
-import { getPhysicalSecurityProvider } from "../physical-security/providers.js";
-import { ingestPhysicalSecurityEvent, listPhysicalSecurityStatus } from "../physical-security/service.js";
+import { verifyPhysicalSecurityWebhookAuth } from "../../physical-security/auth.js";
+import { getPhysicalSecurityProvider } from "../../physical-security/providers.js";
+import { ingestPhysicalSecurityEvent, listPhysicalSecurityStatus } from "../../physical-security/service.js";
 
 const authz = new AuthorizationService();
 

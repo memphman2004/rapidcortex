@@ -434,7 +434,6 @@ export const cadBridgeStore = {
         Item: {
           pk: bufferPk(event.agencyId, event.destinationSlot),
           sk: bufferSk(event.queuedAt, event.eventId),
-          agencyId: event.agencyId,
           ttl: event.expiresAt || ttlEpochFromSeconds(BUFFER_TTL_SECONDS),
           ...event,
         },

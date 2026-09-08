@@ -67,7 +67,7 @@ async function audit(params: {
     type: params.type,
     details: params.details,
     createdAt: new Date().toISOString(),
-    resourceType: "clery_record",
+    resourceType: "clery_report",
     resourceId: params.resourceId,
   });
 }

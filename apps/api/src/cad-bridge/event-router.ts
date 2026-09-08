@@ -69,9 +69,9 @@ async function processRecord(record: SQSRecord): Promise<void> {
       bridgeEvent.sourceSlot,
       bridgeEvent.sourceIncidentId,
     );
-    const isNewIncident = !incident;
+    const isNewIncident = incident == null;
 
-    if (isNewIncident) {
+    if (!incident) {
       if (bridgeEvent.eventType !== "INCIDENT_CREATED") {
         audit.outcome = "SKIPPED";
         return;
@@ -149,15 +149,21 @@ async function processRecord(record: SQSRecord): Promise<void> {
       incident = mergeCanonicalIncident(incident, canonicalChanges, bridgeEvent.sourceSlot, nowIso);
     }
 
+    if (!incident) {
+      audit.outcome = "SKIPPED";
+      return;
+    }
+    const resolved = incident;
+
     if (
       bridgeEvent.eventType === "UNIT_STATUS_CHANGED" &&
       canonicalChanges.units?.length &&
-      !canonicalChanges.units.some((u) => incident!.units.some((existing) => existing.unitId === u.unitId))
+      !canonicalChanges.units.some((u) => resolved.units.some((existing) => existing.unitId === u.unitId))
     ) {
-      audit.rcIncidentId = incident.rcIncidentId;
+      audit.rcIncidentId = resolved.rcIncidentId;
       audit.outcome = "SKIPPED";
       audit.errorDetail = "Unit is not assigned to a shared incident";
-      await cadBridgeStore.saveIncident(incident);
+      await cadBridgeStore.saveIncident(resolved);
       return;
     }
 
@@ -166,7 +172,9 @@ async function processRecord(record: SQSRecord): Promise<void> {
       bridgeEvent.eventType === "TRANSFER_ACCEPTED" ||
       bridgeEvent.eventType === "TRANSFER_CANCELLED"
     ) {
-      incident = applyTransferEvent(incident, bridgeEvent, config);
+      incident = applyTransferEvent(resolved, bridgeEvent, config);
+    } else {
+      incident = resolved;
     }
 
     audit.rcIncidentId = incident.rcIncidentId;

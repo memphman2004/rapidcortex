@@ -64,7 +64,7 @@ function requirePerm(user: { role: string; agencyId: string; userId: string }, p
 
 export const handler: APIGatewayProxyHandlerV2 = async (event) => {
   try {
-    const user = getUserContext(event);
+    const user = await getUserContext(event);
     if (!user) return withCorrelationHeaders(event, unauthorized());
     if (!isUserAccountActive(user)) {
       return withCorrelationHeaders(event, forbidden(ACCOUNT_INACTIVE_MESSAGE));
@@ -175,6 +175,6 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
   } catch (err) {
     const status = (err as { statusCode?: number }).statusCode;
     if (status === 403) return withCorrelationHeaders(event, forbidden());
-    return withCorrelationHeaders(event, serverError(err));
+    return withCorrelationHeaders(event, serverError());
   }
 };

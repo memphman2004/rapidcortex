@@ -60,6 +60,7 @@ import { listDemoScenariosForAgency, runDemoScenario } from "../../call-assist/d
 import { callAssistOnboardingService } from "../../call-assist/onboarding/call-assist-onboarding-service.js";
 import { enqueueAllAgencyRebuilds, enqueueBotRebuild } from "../../call-assist/lex/bot-rebuild-queue.js";
 import { checkLexBotQuota, LexBotQuotaExhaustedError, readLexBotQuota } from "../../call-assist/lex/lex-quota.js";
+import { syncAgencyVerticalClaims } from "../../lib/cognito.js";
 import { tenantToVoiceConfig } from "../../call-assist/voice-config-map.js";
 import { resolveCadProvider } from "../../call-assist/cad/resolve-provider.js";
 import { evaluateRmsDraftGate } from "../../call-assist/rms/rms-draft.js";
@@ -191,7 +192,7 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
         type: AUDIT_EVENT_TYPES.CALL_ASSIST_BOTS_REBUILD_ENQUEUED,
         details: { enqueued },
         createdAt: new Date().toISOString(),
-        resourceType: "call_assist",
+        resourceType: "session",
         resourceId: "fleet",
       });
       return withCorrelationHeaders(event, ok({ enqueued }));
@@ -207,7 +208,7 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
         type: AUDIT_EVENT_TYPES.CALL_ASSIST_BOTS_REBUILD_ENQUEUED,
         details: { agencyId: parts[1], reason: "MANUAL" },
         createdAt: new Date().toISOString(),
-        resourceType: "call_assist",
+        resourceType: "session",
         resourceId: parts[1],
       });
       return withCorrelationHeaders(event, ok({ queued: true, agencyId: parts[1] }));
@@ -233,7 +234,7 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
         type: AUDIT_EVENT_TYPES.CALL_ASSIST_ONBOARDING_STARTED,
         details: { agencyDisplayName: parsed.data.agencyDisplayName },
         createdAt: new Date().toISOString(),
-        resourceType: "call_assist",
+        resourceType: "session",
         resourceId: parsed.data.agencyId,
       });
       return withCorrelationHeaders(event, ok({ agencyId: parsed.data.agencyId, status: "DID_PENDING" }));

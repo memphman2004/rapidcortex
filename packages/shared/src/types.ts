@@ -444,6 +444,9 @@ export type AuditResourceType =
   | "cad_connector"
   | "cad_unified_incident"
   | "cad_writeback"
+  | "cad_bridge"
+  | "cad_bridge_incident"
+  | "call_assist"
   | "clery_entry"
   | "clery_report"
   | "unknown";
