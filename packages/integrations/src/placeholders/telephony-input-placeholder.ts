@@ -56,6 +56,4 @@ export class AmazonConnectAudioInputAdapter implements AudioInputAdapter {
 }
 
 /** @deprecated Use AmazonConnectAudioInputAdapter. Kept so existing imports compile. */
-export class TelephonyInputPlaceholder extends AmazonConnectAudioInputAdapter {
-  readonly adapterId = "telephony-input-placeholder";
-}
+export class TelephonyInputPlaceholder extends AmazonConnectAudioInputAdapter {}
