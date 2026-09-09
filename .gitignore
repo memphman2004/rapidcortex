@@ -162,4 +162,5 @@ infra/lex-lambda/.lex-hooks.zip
 infra/lex/import/
 infra/lex/RCCallAssistBot-import.zip
 vocabs/generated/
+vocabs/.cache/
 

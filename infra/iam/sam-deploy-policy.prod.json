@@ -86,7 +86,9 @@
         "wafv2:*",
         "cloudwatch:*",
         "lex:*",
-        "connect:*"
+        "connect:*",
+        "geo:*",
+        "cognito-identity:*"
       ],
       "Resource": "*"
     },

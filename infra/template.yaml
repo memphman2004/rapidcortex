@@ -3413,6 +3413,7 @@ Resources:
         DeploymentStage: !Ref DeploymentStage
         HttpApiId: !GetAtt AppSam2Stack.Outputs.HttpApiId
         HttpApiJwtAuthorizerId: "3ui9q4"
+        # CognitoUserPool / CognitoUserPoolClient are in AppSamStackV2, not the parent template.
         ImportedCognitoUserPoolId: !GetAtt AppSamStackV2.Outputs.UserPoolId
         ImportedCognitoWebClientId: !GetAtt AppSamStackV2.Outputs.UserPoolClientId
         ImportedCognitoIssuer: !GetAtt AppSamStackV2.Outputs.CognitoIssuer

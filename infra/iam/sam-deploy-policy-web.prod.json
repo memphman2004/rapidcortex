@@ -205,6 +205,14 @@
         "arn:aws:ssm:us-east-1:158961537080:parameter/rapidcortex/staging/als/identity-pool-id",
         "arn:aws:ssm:us-east-1:158961537080:parameter/rapidcortex/dev/als/identity-pool-id"
       ]
+    },
+    {
+      "Sid": "RetiredMapboxSsmDelete",
+      "Effect": "Allow",
+      "Action": ["ssm:DeleteParameter", "ssm:GetParameter"],
+      "Resource": [
+        "arn:aws:ssm:us-east-1:158961537080:parameter/rapidcortex/*/mapbox/public-token"
+      ]
     }
   ]
 }

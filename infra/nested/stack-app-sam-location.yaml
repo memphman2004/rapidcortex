@@ -13,6 +13,8 @@ Parameters:
   HttpApiJwtAuthorizerId:
     Type: String
     Default: ""
+  # CognitoUserPool / CognitoUserPoolClient live in AppSamStackV2 (stack-app-sam.yaml),
+  # not this nested stack. Parent passes their outputs as these parameters.
   ImportedCognitoUserPoolId:
     Type: String
   ImportedCognitoWebClientId:
@@ -129,6 +131,7 @@ Resources:
   RCMapIdentityPoolUnauthedRole:
     Type: AWS::IAM::Role
     Properties:
+      RoleName: !Sub "${ManagedPolicyNamePrefix}-als-map-unauth-${DeploymentStage}"
       AssumeRolePolicyDocument:
         Version: "2012-10-17"
         Statement:
@@ -159,6 +162,7 @@ Resources:
   RCMapIdentityPoolAuthedRole:
     Type: AWS::IAM::Role
     Properties:
+      RoleName: !Sub "${ManagedPolicyNamePrefix}-als-map-auth-${DeploymentStage}"
       AssumeRolePolicyDocument:
         Version: "2012-10-17"
         Statement:
@@ -197,6 +201,7 @@ Resources:
   AppManagedPolicyLocation:
     Type: AWS::IAM::ManagedPolicy
     Properties:
+      ManagedPolicyName: !Sub "${ManagedPolicyNamePrefix}-als-lambda-${DeploymentStage}"
       PolicyDocument:
         Version: "2012-10-17"
         Statement:

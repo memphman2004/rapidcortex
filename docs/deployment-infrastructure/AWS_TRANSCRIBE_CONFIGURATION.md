@@ -112,6 +112,19 @@ JSON lines with `"type":"voice.metric"`:
 
 ---
 
+## 9. Agency custom vocabulary (Call Assist)
+
+At onboarding, generate a county street-name CSV (TIGER/Line + OSM) and merge the public-safety baseline:
+
+```bash
+COUNTY_FIPS=29095 AGENCY_ID=kcpd npx tsx scripts/generate-transcribe-vocab.ts
+AGENCY_ID=kcpd VOCAB_FILE=./vocabs/generated/kcpd-en-US.csv npx tsx scripts/seed-agency-transcribe-vocab.ts
+```
+
+Details and env flags: [vocabs/README.md](../../vocabs/README.md). This path does **not** use Amazon Location API keys.
+
+---
+
 ## Related
 
 - [MULTILINGUAL_CALL_PIPELINE.md](./MULTILINGUAL_CALL_PIPELINE.md)  

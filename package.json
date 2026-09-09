@@ -49,6 +49,7 @@
     "seed:psap-prospects": "tsx scripts/seed-psap-prospects.ts",
     "enrich:psap-addresses": "tsx scripts/enrich-psap-addresses.ts",
     "onboard:pilot-customer": "tsx scripts/onboard-pilot-customer.ts",
+    "vocab:generate": "tsx scripts/generate-transcribe-vocab.ts",
     "typecheck": "npm run build -w rapid-cortex-shared && npm run build -w rapid-cortex-security && tsc -p apps/web/tsconfig.json --noEmit",
     "sam:validate": "sam validate --template-file infra/template.yaml --lint",
     "sam:build": "sam build --template-file infra/template.yaml",

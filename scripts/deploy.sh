@@ -194,6 +194,7 @@ sam validate --lint --template-file "${ROOT}/infra/nested/stack-app-sam-transit.
 sam validate --lint --template-file "${ROOT}/infra/nested/stack-app-sam-3.yaml"
 sam validate --lint --template-file "${ROOT}/infra/nested/stack-app-sam-4.yaml"
 sam validate --lint --template-file "${ROOT}/infra/nested/stack-app-sam-5.yaml"
+sam validate --lint --template-file "${ROOT}/infra/nested/stack-app-sam-location.yaml"
 sam validate --lint --template-file "${ROOT}/infra/nested/stack-app-alarms-2.yaml"
 
 echo "IAM managed policy size preflight (6,144-byte cap)..."

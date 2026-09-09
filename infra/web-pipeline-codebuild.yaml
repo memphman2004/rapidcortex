@@ -69,6 +69,30 @@ Parameters:
     Type: String
     Default: ""
     Description: If set (https://status.…), marketing footer prefers this over /status.
+  NextPublicAlsRegion:
+    Type: String
+    Default: us-east-1
+  NextPublicAlsMapName:
+    Type: String
+    Default: ""
+  NextPublicAlsMapNameDark:
+    Type: String
+    Default: ""
+  NextPublicAlsIdentityPoolId:
+    Type: String
+    Default: ""
+  NextPublicAlsPlaceIndexName:
+    Type: String
+    Default: ""
+  NextPublicAlsRouteCalculatorName:
+    Type: String
+    Default: ""
+  NextPublicAlsGeofenceCollection:
+    Type: String
+    Default: ""
+  NextPublicAlsTrackerName:
+    Type: String
+    Default: ""
   AppVersion:
     Type: String
     Default: "1.0.0"
@@ -180,6 +204,22 @@ Resources:
             Value: !Ref NextPublicEnableSilentText
           - Name: NEXT_PUBLIC_EXTERNAL_STATUS_PAGE_URL
             Value: !Ref NextPublicExternalStatusPageUrl
+          - Name: NEXT_PUBLIC_ALS_REGION
+            Value: !Ref NextPublicAlsRegion
+          - Name: NEXT_PUBLIC_ALS_MAP_NAME
+            Value: !Ref NextPublicAlsMapName
+          - Name: NEXT_PUBLIC_ALS_MAP_NAME_DARK
+            Value: !Ref NextPublicAlsMapNameDark
+          - Name: NEXT_PUBLIC_ALS_IDENTITY_POOL_ID
+            Value: !Ref NextPublicAlsIdentityPoolId
+          - Name: NEXT_PUBLIC_ALS_PLACE_INDEX_NAME
+            Value: !Ref NextPublicAlsPlaceIndexName
+          - Name: NEXT_PUBLIC_ALS_ROUTE_CALCULATOR_NAME
+            Value: !Ref NextPublicAlsRouteCalculatorName
+          - Name: NEXT_PUBLIC_ALS_GEOFENCE_COLLECTION
+            Value: !Ref NextPublicAlsGeofenceCollection
+          - Name: NEXT_PUBLIC_ALS_TRACKER_NAME
+            Value: !Ref NextPublicAlsTrackerName
           - Name: NEXT_PUBLIC_GA_MEASUREMENT_ID
             Value: G-S83NHMBHRD
       Source:
