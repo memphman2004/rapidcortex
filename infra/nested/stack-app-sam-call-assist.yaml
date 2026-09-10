@@ -54,6 +54,7 @@ Globals:
         DEPLOYMENT_STAGE: !Ref DeploymentStage
         ALLOW_UNAUTHENTICATED_API: "false"
         ENABLE_CALL_ASSIST: "true"
+        ENABLE_CALL_ASSIST_GREETING_CONFIG: "true"
         ENABLE_CALL_ASSIST_CAD_PUSH: "false"
         ENABLE_CALL_ASSIST_RMS_DRAFT: "false"
         ENABLE_CALL_ASSIST_DEMO_MODE: "false"

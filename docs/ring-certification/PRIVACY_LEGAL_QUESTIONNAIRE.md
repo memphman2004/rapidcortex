@@ -1,6 +1,6 @@
 # Ring Developer Portal — Privacy & Legal Questionnaire (paste pack)
 
-**App:** Rapid Cortex Connect  
+**App:** Rapid Vision™  
 **Entity:** Apps on Demand LLC d/b/a Rapid Cortex  
 **Support:** support@rapidcortex.us · Privacy: privacy@rapidcortex.us  
 **Privacy:** https://www.rapidcortex.us/legal/privacy/  
@@ -40,7 +40,7 @@ Rapid Cortex does not sell, rent, or share personal data with third parties for 
 ## Tab 1 — General
 
 **Business description**  
-Rapid Cortex provides decision-support software for emergency communications (911 / PSAP), campus safety, and venue security. Rapid Cortex Connect is a Ring Appstore integration that lets Ring Device Owners voluntarily enroll so nearby public-safety agencies can request temporary, consent-gated live video during an active emergency near the device address. Video is never shared without a per-request Allow from the owner.
+Rapid Cortex provides decision-support software for emergency communications (911 / PSAP), campus safety, and venue security. Rapid Vision™ is a Ring Appstore integration that lets Ring Device Owners voluntarily enroll so nearby public-safety agencies can request temporary, consent-gated live video during an active emergency near the device address. Video is never shared without a per-request Allow from the owner.
 
 **Headquarters / primary location**  
 United States (US operations; customer agencies are US public-safety and campus/venue operators).

@@ -191,10 +191,14 @@ sam validate --lint --template-file "${ROOT}/infra/nested/stack-app-sam-qr.yaml"
 sam validate --lint --template-file "${ROOT}/infra/nested/stack-app-sam-2.yaml"
 sam validate --lint --template-file "${ROOT}/infra/nested/stack-app-sam-2-hospital.yaml"
 sam validate --lint --template-file "${ROOT}/infra/nested/stack-app-sam-transit.yaml"
+sam validate --lint --template-file "${ROOT}/infra/nested/stack-app-sam-cad.yaml"
 sam validate --lint --template-file "${ROOT}/infra/nested/stack-app-sam-3.yaml"
 sam validate --lint --template-file "${ROOT}/infra/nested/stack-app-sam-4.yaml"
 sam validate --lint --template-file "${ROOT}/infra/nested/stack-app-sam-5.yaml"
 sam validate --lint --template-file "${ROOT}/infra/nested/stack-app-sam-location.yaml"
+sam validate --lint --template-file "${ROOT}/infra/nested/stack-app-sam-call-assist.yaml"
+sam validate --lint --template-file "${ROOT}/infra/nested/stack-app-sam-translate.yaml"
+sam validate --lint --template-file "${ROOT}/infra/nested/stack-app-sam-6.yaml"
 sam validate --lint --template-file "${ROOT}/infra/nested/stack-app-alarms-2.yaml"
 
 echo "IAM managed policy size preflight (6,144-byte cap)..."
@@ -269,6 +273,20 @@ if [[ -d "${SAM_BUILD_DIR}" ]] && avail_k="$(df -Pk "${SAM_BUILD_DIR}" 2>/dev/nu
   echo "WARN: SAM build filesystem has ~$((avail_k / 1048576)) GiB free (under ~$((SAM_BUILD_MIN_FREE_KIB / 1048576)) GiB heuristic)." >&2
   echo "      sam build may fail with 'No space left on device'. Free space or set SAM_BUILD_DIR on a roomy volume." >&2
   echo "========================================================" >&2
+fi
+# cp -al cannot hardlink across volumes (repo on USB, SAM_BUILD_DIR on internal SSD).
+# Freeze node_modules once onto the build filesystem, then hardlink from that snapshot.
+if [[ -n "${SAM_NODE_MODULES_HARDLINK:-}" && -d "${SAM_NODE_MODULES_SRC}" ]]; then
+  _src_dev="$(stat -f '%d' "${SAM_NODE_MODULES_SRC}" 2>/dev/null || true)"
+  _dst_dev="$(stat -f '%d' "${SAM_BUILD_DIR}" 2>/dev/null || true)"
+  if [[ -n "${_src_dev}" && -n "${_dst_dev}" && "${_src_dev}" != "${_dst_dev}" ]]; then
+    _freeze="${HOME}/.rapid-cortex-api-node-modules"
+    echo "SAM_NODE_MODULES_HARDLINK: freezing ${SAM_NODE_MODULES_SRC} → ${_freeze} (cross-device cp -al is impossible)"
+    mkdir -p "${_freeze}"
+    rsync -a --delete "${SAM_NODE_MODULES_SRC}/" "${_freeze}/"
+    export SAM_NODE_MODULES_SRC="${_freeze}"
+  fi
+  unset _src_dev _dst_dev _freeze
 fi
 sam_build_failed=0
 SAM_BUILD_CLI=(sam build --template-file infra/template.yaml --build-dir "${SAM_BUILD_DIR}")
@@ -502,6 +520,42 @@ if [[ -n "${EXISTING_BILLING_SES_CREDENTIALS_SECRET_ARN:-}" ]]; then
 fi
 if [[ -n "${EXISTING_CALL_ASSIST_TABLE_NAME:-}" ]]; then
   PARAMS="${PARAMS} ExistingCallAssistTableName=${EXISTING_CALL_ASSIST_TABLE_NAME}"
+fi
+if [[ -n "${EXISTING_TRANSLATE_SESSIONS_TABLE_NAME:-}" ]]; then
+  PARAMS="${PARAMS} ExistingTranslateSessionsTableName=${EXISTING_TRANSLATE_SESSIONS_TABLE_NAME}"
+fi
+if [[ -n "${EXISTING_TRANSLATE_SEGMENTS_TABLE_NAME:-}" ]]; then
+  PARAMS="${PARAMS} ExistingTranslateSegmentsTableName=${EXISTING_TRANSLATE_SEGMENTS_TABLE_NAME}"
+fi
+if [[ -n "${EXISTING_TRANSLATE_CONNECTIONS_TABLE_NAME:-}" ]]; then
+  PARAMS="${PARAMS} ExistingTranslateConnectionsTableName=${EXISTING_TRANSLATE_CONNECTIONS_TABLE_NAME}"
+fi
+if [[ -n "${EXISTING_TRANSLATE_AUDIO_BUCKET_NAME:-}" ]]; then
+  PARAMS="${PARAMS} ExistingTranslateAudioBucketName=${EXISTING_TRANSLATE_AUDIO_BUCKET_NAME}"
+fi
+if [[ -n "${EXISTING_TRANSLATE_WS_SECRET_ARN:-}" ]]; then
+  PARAMS="${PARAMS} ExistingTranslateWsSecretArn=${EXISTING_TRANSLATE_WS_SECRET_ARN}"
+fi
+# Hex only — --parameter-overrides ${PARAMS} is word-split. Never call
+# secretsmanager:GetRandomPassword (deploy IAM deny).
+if [[ -z "${TRANSLATE_WS_SIGNING_SECRET:-}" ]]; then
+  TRANSLATE_WS_SIGNING_SECRET="$(openssl rand -hex 32)"
+  echo "Generated TRANSLATE_WS_SIGNING_SECRET for this deploy (value not printed)." >&2
+fi
+if [[ -z "${TRANSIT_CAMERA_PRODUCER_KEY:-}" ]]; then
+  TRANSIT_CAMERA_PRODUCER_KEY="$(openssl rand -hex 32)"
+  echo "Generated TRANSIT_CAMERA_PRODUCER_KEY for this deploy (value not printed)." >&2
+fi
+PARAMS="${PARAMS} TranslateWsSigningSecret=${TRANSLATE_WS_SIGNING_SECRET}"
+PARAMS="${PARAMS} TransitCameraProducerKey=${TRANSIT_CAMERA_PRODUCER_KEY}"
+if [[ -n "${EXISTING_TRANSIT_CAMERA_PRODUCER_SECRET_ARN:-}" ]]; then
+  PARAMS="${PARAMS} ExistingTransitCameraProducerSecretArn=${EXISTING_TRANSIT_CAMERA_PRODUCER_SECRET_ARN}"
+fi
+if [[ "${REUSE_EXISTING_TRANSIT_TABLES:-}" == "true" ]]; then
+  PARAMS="${PARAMS} ReuseExistingTransitTables=true"
+fi
+if [[ "${REUSE_EXISTING_CAD_CONNECTOR_TABLES:-}" == "true" ]]; then
+  PARAMS="${PARAMS} ReuseExistingCadConnectorTables=true"
 fi
 if [[ "${USE_CAD_BRIDGE_VPC}" == "1" ]]; then
   if [[ -z "${CAD_BRIDGE_VPC_ID:-}" || -z "${CAD_BRIDGE_VPC_SUBNET_IDS:-}" || -z "${CAD_BRIDGE_VPC_SECURITY_GROUP_ID:-}" ]]; then

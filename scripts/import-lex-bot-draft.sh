@@ -17,7 +17,8 @@ if [[ "$STAGE" == "dev" && "${I_UNDERSTAND_DEV_IS_PROD:-}" != "1" ]]; then
 fi
 rapid_cortex_assert_aws_account
 
-python3 "${ROOT}/scripts/parse-lex-bot-spec.py"
+# bot-spec.json is the source of truth (includes Welcome). Do not regenerate from
+# connect/lex-bot-complete-spec.md — that markdown has no Welcome intent.
 python3 "${ROOT}/scripts/sync-lex-bot-draft.py"
 
 echo "✅ DRAFT locales Built. Test with bot alias TSTALIASID — live-${STAGE} is unchanged."

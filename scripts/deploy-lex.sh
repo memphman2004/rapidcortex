@@ -5,7 +5,7 @@
 # Usage:
 #   source scripts/env-api-dev.sh && bash scripts/deploy-lex.sh dev
 #   LEX_LAMBDA_ONLY=1 bash scripts/deploy-lex.sh dev   # hooks only; DRAFT/alias unchanged
-#   bash scripts/import-lex-bot-draft.sh dev           # 19-intent spec → DRAFT
+#   bash scripts/import-lex-bot-draft.sh dev           # 20-intent spec → DRAFT
 #   bash scripts/publish-lex-alias.sh dev              # after TSTALIASID smoke tests
 #
 # Dev (DeploymentStage=dev) is the live account 158961537080.
@@ -75,13 +75,18 @@ npx esbuild "${ROOT}/apps/api/src/call-assist/lex/get-agency-for-number.ts" \
   --outfile="${ROOT}/infra/lex-lambda/get-agency-for-number.js" \
   --alias:rapid-cortex-shared="${ROOT}/packages/shared/src/index.ts" \
   --external:aws-sdk
+npx esbuild "${ROOT}/apps/api/src/call-assist/lex/session-start.ts" \
+  --bundle --platform=node --target=node20 --format=cjs \
+  --outfile="${ROOT}/infra/lex-lambda/session-start.js" \
+  --alias:rapid-cortex-shared="${ROOT}/packages/shared/src/index.ts" \
+  --external:aws-sdk
 
 if [[ "${LEX_LAMBDA_ONLY:-}" == "1" ]]; then
   echo "→ LEX_LAMBDA_ONLY=1 — updating hook function code only (DRAFT bot / live-dev alias unchanged)."
   ZIP="${ROOT}/infra/lex-lambda/.lex-hooks.zip"
   rm -f "${ZIP}"
-  (cd "${ROOT}/infra/lex-lambda" && zip -q "${ZIP}" dialog-hook.js fulfillment-hook.js get-agency-for-number.js)
-  for fn in dialog-hook fulfillment-hook agency-for-number; do
+  (cd "${ROOT}/infra/lex-lambda" && zip -q "${ZIP}" dialog-hook.js fulfillment-hook.js get-agency-for-number.js session-start.js)
+  for fn in dialog-hook fulfillment-hook agency-for-number session-start; do
     name="${APP_NAME}-lex-${fn}-${STAGE}"
     echo "   update-function-code ${name}"
     aws lambda update-function-code --function-name "${name}" --zip-file "fileb://${ZIP}" --region "${REGION}" >/dev/null

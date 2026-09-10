@@ -54,6 +54,7 @@ type WizardState = {
   vertical: CallAssistTaxonomyVertical;
   agencyName: string;
   agencyShortName: string;
+  cityName: string;
   timezone: string;
   cadOptionId: string;
   cadOtherLabel: string;
@@ -103,6 +104,7 @@ export function CallAssistSetupWizard() {
     vertical: "911",
     agencyName: "",
     agencyShortName: "",
+    cityName: "",
     timezone: "America/Chicago",
     cadOptionId: "none",
     cadOtherLabel: "",
@@ -152,6 +154,9 @@ export function CallAssistSetupWizard() {
       vertical,
       agencyName: String(cfg.agencyName ?? s.agencyName),
       agencyShortName: String(cfg.agencyShortName ?? cfg.shortName ?? s.agencyShortName),
+      cityName: String(
+        (cfg.callAssistGreeting as { cityName?: string } | undefined)?.cityName ?? cfg.tenantCity ?? s.cityName,
+      ),
       timezone: String(hours.timezone ?? s.timezone),
       cadOptionId: cadSel.id,
       cadOtherLabel: cadSel.id === "other" ? String(cadSel.cadProviderLabel ?? "") : "",
@@ -196,7 +201,12 @@ export function CallAssistSetupWizard() {
         agencyName: state.agencyName.trim(),
         agencyShortName: state.agencyShortName.trim(),
         shortName: state.agencyShortName.trim(),
+        tenantCity: state.cityName.trim(),
         operatingHours: { timezone: state.timezone },
+        callAssistGreeting: {
+          cityName: state.cityName.trim(),
+          agencyName: state.agencyName.trim(),
+        },
       },
       {
         cadProviderId: cad.cadProviderId,
@@ -229,7 +239,15 @@ export function CallAssistSetupWizard() {
         },
       },
       { demoScenarios: state.demos },
-      { onboardingComplete: true, onboardingCompletedAt: new Date().toISOString() },
+      {
+        callAssistGreeting: {
+          cityName: state.cityName.trim(),
+          agencyName: state.agencyName.trim(),
+          greetingPreviewConfirmed: true,
+        },
+        onboardingComplete: true,
+        onboardingCompletedAt: new Date().toISOString(),
+      },
     ];
     try {
       if (step === 0) {
@@ -239,8 +257,8 @@ export function CallAssistSetupWizard() {
         }
         if (!state.vertical) throw new Error("Select an operational profile");
       }
-      if (step === 1 && (!state.agencyName.trim() || !state.agencyShortName.trim())) {
-        throw new Error("Agency name and short name are required");
+      if (step === 1 && (!state.agencyName.trim() || !state.agencyShortName.trim() || !state.cityName.trim())) {
+        throw new Error("Agency name, short name, and city name are required");
       }
       await save.mutateAsync(payloads[step] ?? {});
       if (step === 9) {
@@ -310,6 +328,12 @@ export function CallAssistSetupWizard() {
                 placeholder="Agency full name"
                 value={state.agencyName}
                 onChange={(e) => setState((s) => ({ ...s, agencyName: e.target.value }))}
+              />
+              <input
+                className="rounded border border-slate-700 bg-slate-950 px-2 py-1.5 text-sm"
+                placeholder="City name (spoken on every call)"
+                value={state.cityName}
+                onChange={(e) => setState((s) => ({ ...s, cityName: e.target.value }))}
               />
               <input
                 className="rounded border border-slate-700 bg-slate-950 px-2 py-1.5 text-sm"

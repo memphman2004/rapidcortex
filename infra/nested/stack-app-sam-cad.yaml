@@ -35,9 +35,16 @@ Parameters:
     Type: String
     Default: "false"
     AllowedValues: ["true", "false"]
+  ReuseExistingCadConnectorTables:
+    Type: String
+    Default: "false"
+    AllowedValues: ["true", "false"]
+    Description: When true, skip creating retained CAD connector DynamoDB tables (AlreadyExists after rollback).
 
 Conditions:
   HasOpsAlertsTopic: !Not [!Equals [!Ref OpsAlertsTopicArn, ""]]
+  CadConnectorOn: !Equals [!Ref CadConnectorEnabled, "true"]
+  CreateCadConnectorTables: !Equals [!Ref ReuseExistingCadConnectorTables, "false"]
 
 Globals:
   Function:
@@ -55,16 +62,17 @@ Globals:
         ALLOW_UNAUTHENTICATED_API: "false"
         ENABLE_CAD_CONNECTOR: !Ref CadConnectorEnabled
         CAD_CONNECTOR_MOCK: !Ref CadConnectorMock
-        CAD_CONNECTORS_TABLE: !Ref CadConnectorsTable
-        CAD_UNIFIED_INCIDENTS_TABLE: !Ref CadUnifiedIncidentsTable
-        CAD_CONNECTOR_WRITEBACKS_TABLE: !Ref CadConnectorWritebacksTable
-        CAD_CONNECTOR_AUDIT_TABLE: !Ref CadConnectorAuditTable
-        CAD_CONNECTOR_KMS_KEY_ID: !Ref CadConnectorKmsKey
+        CAD_CONNECTORS_TABLE: !Sub "rapid-cortex-cad-connectors-${DeploymentStage}"
+        CAD_UNIFIED_INCIDENTS_TABLE: !Sub "rapid-cortex-cad-unified-incidents-${DeploymentStage}"
+        CAD_CONNECTOR_WRITEBACKS_TABLE: !Sub "rapid-cortex-cad-connector-writebacks-${DeploymentStage}"
+        CAD_CONNECTOR_AUDIT_TABLE: !Sub "rapid-cortex-cad-connector-audit-${DeploymentStage}"
+        CAD_CONNECTOR_KMS_KEY_ID: !If [CadConnectorOn, !Ref CadConnectorKmsKey, ""]
         CAD_CONNECTOR_OPS_TOPIC_ARN: !If [HasOpsAlertsTopic, !Ref OpsAlertsTopicArn, ""]
 
 Resources:
   CadConnectorKmsKey:
     Type: AWS::KMS::Key
+    Condition: CadConnectorOn
     Properties:
       Description: Encrypts CAD connector base URLs at rest
       EnableKeyRotation: true
@@ -80,12 +88,14 @@ Resources:
 
   CadConnectorKmsAlias:
     Type: AWS::KMS::Alias
+    Condition: CadConnectorOn
     Properties:
       AliasName: !Sub alias/rapid-cortex-cad-connector-${DeploymentStage}
       TargetKeyId: !Ref CadConnectorKmsKey
 
   CadConnectorsTable:
     Type: AWS::DynamoDB::Table
+    Condition: CreateCadConnectorTables
     DeletionPolicy: Retain
     UpdateReplacePolicy: Retain
     Properties:
@@ -111,6 +121,7 @@ Resources:
 
   CadUnifiedIncidentsTable:
     Type: AWS::DynamoDB::Table
+    Condition: CreateCadConnectorTables
     DeletionPolicy: Retain
     UpdateReplacePolicy: Retain
     Properties:
@@ -151,6 +162,7 @@ Resources:
 
   CadConnectorWritebacksTable:
     Type: AWS::DynamoDB::Table
+    Condition: CreateCadConnectorTables
     DeletionPolicy: Retain
     UpdateReplacePolicy: Retain
     Properties:
@@ -185,6 +197,7 @@ Resources:
 
   CadConnectorAuditTable:
     Type: AWS::DynamoDB::Table
+    Condition: CreateCadConnectorTables
     DeletionPolicy: Retain
     UpdateReplacePolicy: Retain
     Properties:
@@ -230,12 +243,12 @@ Resources:
               - dynamodb:DescribeTable
               - dynamodb:ConditionCheckItem
             Resource:
-              - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${CadConnectorsTable}
-              - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${CadConnectorsTable}/index/*
-              - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${CadUnifiedIncidentsTable}
-              - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${CadUnifiedIncidentsTable}/index/*
-              - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${CadConnectorWritebacksTable}
-              - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${CadConnectorWritebacksTable}/index/*
+              - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/rapid-cortex-cad-connectors-${DeploymentStage}
+              - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/rapid-cortex-cad-connectors-${DeploymentStage}/index/*
+              - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/rapid-cortex-cad-unified-incidents-${DeploymentStage}
+              - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/rapid-cortex-cad-unified-incidents-${DeploymentStage}/index/*
+              - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/rapid-cortex-cad-connector-writebacks-${DeploymentStage}
+              - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/rapid-cortex-cad-connector-writebacks-${DeploymentStage}/index/*
               - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${AuditTable}
               - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${AuditTable}/index/*
               - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${AgenciesTable}
@@ -245,7 +258,7 @@ Resources:
             Action:
               - dynamodb:Scan
             Resource:
-              - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${CadConnectorsTable}
+              - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/rapid-cortex-cad-connectors-${DeploymentStage}
           - Sid: CadConnectorAuditAppend
             Effect: Allow
             Action:
@@ -255,8 +268,8 @@ Resources:
               - dynamodb:DescribeTable
               - dynamodb:ConditionCheckItem
             Resource:
-              - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${CadConnectorAuditTable}
-              - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${CadConnectorAuditTable}/index/*
+              - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/rapid-cortex-cad-connector-audit-${DeploymentStage}
+              - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/rapid-cortex-cad-connector-audit-${DeploymentStage}/index/*
           - Sid: CadConnectorKms
             Effect: Allow
             Action:
@@ -264,7 +277,10 @@ Resources:
               - kms:Decrypt
               - kms:GenerateDataKey
               - kms:DescribeKey
-            Resource: !GetAtt CadConnectorKmsKey.Arn
+            Resource: !If
+              - CadConnectorOn
+              - !GetAtt CadConnectorKmsKey.Arn
+              - !Sub arn:${AWS::Partition}:kms:${AWS::Region}:${AWS::AccountId}:alias/aws/dynamodb
           - Sid: CadConnectorSecrets
             Effect: Allow
             Action:
@@ -447,10 +463,22 @@ Outputs:
   CadConnectorHttpFunctionArn:
     Value: !GetAtt CadConnectorHttpFunction.Arn
   CadConnectorsTable:
-    Value: !Ref CadConnectorsTable
+    Value: !If
+      - CreateCadConnectorTables
+      - !Ref CadConnectorsTable
+      - !Sub "rapid-cortex-cad-connectors-${DeploymentStage}"
   CadUnifiedIncidentsTable:
-    Value: !Ref CadUnifiedIncidentsTable
+    Value: !If
+      - CreateCadConnectorTables
+      - !Ref CadUnifiedIncidentsTable
+      - !Sub "rapid-cortex-cad-unified-incidents-${DeploymentStage}"
   CadConnectorWritebacksTable:
-    Value: !Ref CadConnectorWritebacksTable
+    Value: !If
+      - CreateCadConnectorTables
+      - !Ref CadConnectorWritebacksTable
+      - !Sub "rapid-cortex-cad-connector-writebacks-${DeploymentStage}"
   CadConnectorAuditTable:
-    Value: !Ref CadConnectorAuditTable
+    Value: !If
+      - CreateCadConnectorTables
+      - !Ref CadConnectorAuditTable
+      - !Sub "rapid-cortex-cad-connector-audit-${DeploymentStage}"

@@ -6,16 +6,16 @@ import { absoluteUrl } from "@/lib/seo";
 import { RingConnectFlow } from "./ring-connect-flow";
 
 export const metadata: Metadata = {
-  title: "Ring™ Device Owners | Rapid Cortex Connect",
+  title: "Ring™ Device Owners | Rapid Vision™",
   description:
-    "Ring™ Device Owners: enable Rapid Cortex Connect in the Ring™ Appstore for voluntary, consent-gated emergency video sharing with local 911 agencies. Every request requires your approval.",
+    "Ring™ Device Owners: enable Rapid Vision™ in the Ring™ Appstore for voluntary, consent-gated emergency video sharing with local 911 agencies. Every request requires your approval.",
   alternates: { canonical: absoluteUrl("/connect/ring/start") },
 };
 
 export default function RingCustomerStartPage() {
   return (
     <MarketingArticleShell
-      eyebrow="Rapid Cortex Connect"
+      eyebrow="Rapid Vision™"
       title="Ring™ Device Owners"
       sectionLabel="Connect"
     >
@@ -30,7 +30,7 @@ export default function RingCustomerStartPage() {
         <ul className="list-disc space-y-2 pl-5">
           <li>
             <strong className="text-slate-100">Enable in the Ring™ Appstore.</strong> Open Ring™ →
-            Appstore → search <strong className="text-slate-100">Rapid Cortex Connect</strong>{" "}
+            Appstore → search <strong className="text-slate-100">Rapid Vision™</strong>{" "}
             → Get App, or use the{" "}
             <a
               href="https://ring.com/pages/appstore/rapid-cortex-connect"
@@ -38,7 +38,7 @@ export default function RingCustomerStartPage() {
               rel="noopener noreferrer"
               className="text-sky-400 underline hover:text-sky-300"
             >
-              Rapid Cortex Connect listing
+              Rapid Vision™ listing
             </a>
             . Select which devices to share, then finish Rapid Cortex sign-in if Ring™ shows{" "}
             <em>Pending — App sign-in required</em>.
@@ -55,7 +55,7 @@ export default function RingCustomerStartPage() {
           </li>
           <li>
             <strong className="text-slate-100">Disconnect anytime</strong> from Ring™ → My Apps, or by
-            removing Rapid Cortex Connect. See{" "}
+            removing Rapid Vision™. See{" "}
             <a href="#privacy-data" className="text-sky-400 underline hover:text-sky-300">
               Privacy &amp; data deletion
             </a>{" "}
@@ -80,7 +80,7 @@ export default function RingCustomerStartPage() {
         <ul className="list-disc space-y-2 pl-5">
           <li>
             <strong className="text-slate-100">Disconnect in Ring™:</strong> Ring™ app → My Apps →
-            remove <strong className="text-slate-100">Rapid Cortex Connect</strong>. This stops new
+            remove <strong className="text-slate-100">Rapid Vision™</strong>. This stops new
             requests and disables linked devices.
           </li>
           <li>

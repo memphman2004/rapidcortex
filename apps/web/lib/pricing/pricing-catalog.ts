@@ -154,6 +154,10 @@ export const ADDON_SECTIONS = [
       { label: "Accuracy T1 / T2 / T3", loKey: "trans.acc.t1", hiKey: "trans.acc.t3", midKey: "trans.acc.t2" },
       { label: "Diarization T1 / T2 / T3", loKey: "trans.diar.t1", hiKey: "trans.diar.t3", midKey: "trans.diar.t2" },
       { label: "Translation T1–T4", keys: ["xlat.t1", "xlat.t2", "xlat.t3", "xlat.t4"] },
+      { label: "RC Translate (field / LE)", key: "rc.translate" },
+      { label: "RC Translate — Venue", key: "rc.translate.venue" },
+      { label: "RC Translate — Campus", key: "rc.translate.campus" },
+      { label: "RC Translate — Clinical", key: "rc.translate.hospital" },
     ],
   },
   {

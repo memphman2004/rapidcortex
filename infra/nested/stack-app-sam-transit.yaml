@@ -27,14 +27,25 @@ Parameters:
     Description: Stack 2 HttpApi execute-api URL for transit camera producer heartbeats
   TransitCameraProducerKey:
     Type: String
-    Default: ""
+    Default: "pending-override-by-deploy-sh"
+    MinLength: 16
     NoEcho: true
     Description: >
-      If set, used as the producer-key SecretString (avoids secretsmanager:GetRandomPassword,
-      which the deploy IAM user may not have). Leave empty to generate a random secret.
+      Producer-key SecretString. deploy.sh always overrides this (openssl locally)
+      so CloudFormation never calls secretsmanager:GetRandomPassword.
+  ReuseExistingTransitTables:
+    Type: String
+    Default: "false"
+    AllowedValues: ["true", "false"]
+    Description: When true, skip creating retained transit DynamoDB tables (AlreadyExists after rollback).
+  ExistingTransitCameraProducerSecretArn:
+    Type: String
+    Default: ""
+    Description: When set, skip creating rapid-cortex/${stage}/transit/camera-producer-key.
 
 Conditions:
-  HasTransitCameraProducerKey: !Not [!Equals [!Ref TransitCameraProducerKey, ""]]
+  CreateTransitTables: !Equals [!Ref ReuseExistingTransitTables, "false"]
+  CreateTransitProducerSecret: !Equals [!Ref ExistingTransitCameraProducerSecretArn, ""]
 
 Globals:
   Function:
@@ -55,6 +66,7 @@ Globals:
 Resources:
   TransitVehiclesTable:
     Type: AWS::DynamoDB::Table
+    Condition: CreateTransitTables
     DeletionPolicy: Retain
     UpdateReplacePolicy: Retain
     Properties:
@@ -82,6 +94,7 @@ Resources:
 
   TransitRoutesTable:
     Type: AWS::DynamoDB::Table
+    Condition: CreateTransitTables
     DeletionPolicy: Retain
     UpdateReplacePolicy: Retain
     Properties:
@@ -96,6 +109,7 @@ Resources:
 
   TransitStationsTable:
     Type: AWS::DynamoDB::Table
+    Condition: CreateTransitTables
     DeletionPolicy: Retain
     UpdateReplacePolicy: Retain
     Properties:
@@ -110,6 +124,7 @@ Resources:
 
   TransitOperatorsTable:
     Type: AWS::DynamoDB::Table
+    Condition: CreateTransitTables
     DeletionPolicy: Retain
     UpdateReplacePolicy: Retain
     Properties:
@@ -131,6 +146,7 @@ Resources:
 
   TransitIncidentsTable:
     Type: AWS::DynamoDB::Table
+    Condition: CreateTransitTables
     DeletionPolicy: Retain
     UpdateReplacePolicy: Retain
     Properties:
@@ -161,6 +177,7 @@ Resources:
 
   TransitReportsTable:
     Type: AWS::DynamoDB::Table
+    Condition: CreateTransitTables
     DeletionPolicy: Retain
     UpdateReplacePolicy: Retain
     Properties:
@@ -175,6 +192,7 @@ Resources:
 
   TransitConfigTable:
     Type: AWS::DynamoDB::Table
+    Condition: CreateTransitTables
     DeletionPolicy: Retain
     UpdateReplacePolicy: Retain
     Properties:
@@ -189,6 +207,7 @@ Resources:
 
   TransitCameraRegistryTable:
     Type: AWS::DynamoDB::Table
+    Condition: CreateTransitTables
     DeletionPolicy: Retain
     UpdateReplacePolicy: Retain
     Properties:
@@ -203,15 +222,11 @@ Resources:
 
   TransitCameraProducerSecret:
     Type: AWS::SecretsManager::Secret
+    Condition: CreateTransitProducerSecret
     Properties:
       Name: !Sub "rapid-cortex/${DeploymentStage}/transit/camera-producer-key"
       Description: Producer-agent key for transit camera heartbeats (not a browser secret)
-      SecretString: !If [HasTransitCameraProducerKey, !Ref TransitCameraProducerKey, !Ref AWS::NoValue]
-      GenerateSecretString: !If
-        - HasTransitCameraProducerKey
-        - !Ref AWS::NoValue
-        - PasswordLength: 48
-          ExcludePunctuation: true
+      SecretString: !Ref TransitCameraProducerKey
 
   TransitKvsBrowserTokenRole:
     Type: AWS::IAM::Role
@@ -264,22 +279,22 @@ Resources:
               - dynamodb:DescribeTable
               - dynamodb:ConditionCheckItem
             Resource:
-              - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${TransitVehiclesTable}
-              - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${TransitVehiclesTable}/index/*
-              - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${TransitRoutesTable}
-              - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${TransitRoutesTable}/index/*
-              - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${TransitStationsTable}
-              - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${TransitStationsTable}/index/*
-              - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${TransitOperatorsTable}
-              - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${TransitOperatorsTable}/index/*
-              - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${TransitIncidentsTable}
-              - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${TransitIncidentsTable}/index/*
-              - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${TransitReportsTable}
-              - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${TransitReportsTable}/index/*
-              - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${TransitConfigTable}
-              - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${TransitConfigTable}/index/*
-              - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${TransitCameraRegistryTable}
-              - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${TransitCameraRegistryTable}/index/*
+              - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/rapid-cortex-transit-vehicles-${DeploymentStage}
+              - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/rapid-cortex-transit-vehicles-${DeploymentStage}/index/*
+              - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/rapid-cortex-transit-routes-${DeploymentStage}
+              - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/rapid-cortex-transit-routes-${DeploymentStage}/index/*
+              - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/rapid-cortex-transit-stations-${DeploymentStage}
+              - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/rapid-cortex-transit-stations-${DeploymentStage}/index/*
+              - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/rapid-cortex-transit-operators-${DeploymentStage}
+              - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/rapid-cortex-transit-operators-${DeploymentStage}/index/*
+              - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/rapid-cortex-transit-incidents-${DeploymentStage}
+              - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/rapid-cortex-transit-incidents-${DeploymentStage}/index/*
+              - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/rapid-cortex-transit-reports-${DeploymentStage}
+              - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/rapid-cortex-transit-reports-${DeploymentStage}/index/*
+              - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/rapid-cortex-transit-config-${DeploymentStage}
+              - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/rapid-cortex-transit-config-${DeploymentStage}/index/*
+              - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/rapid-cortex-transit-camera-registry-${DeploymentStage}
+              - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/rapid-cortex-transit-camera-registry-${DeploymentStage}/index/*
               - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${AuditTable}
               - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${AuditTable}/index/*
               - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${AgenciesTable}
@@ -295,15 +310,18 @@ Resources:
       Handler: dist/handlers/transit/transitHttp.handler
       Environment:
         Variables:
-          TRANSIT_VEHICLES_TABLE: !Ref TransitVehiclesTable
-          TRANSIT_ROUTES_TABLE: !Ref TransitRoutesTable
-          TRANSIT_STATIONS_TABLE: !Ref TransitStationsTable
-          TRANSIT_OPERATORS_TABLE: !Ref TransitOperatorsTable
-          TRANSIT_INCIDENTS_TABLE: !Ref TransitIncidentsTable
-          TRANSIT_REPORTS_TABLE: !Ref TransitReportsTable
-          TRANSIT_CONFIG_TABLE: !Ref TransitConfigTable
-          TRANSIT_CAMERA_REGISTRY_TABLE: !Ref TransitCameraRegistryTable
-          TRANSIT_CAMERA_PRODUCER_KEY_ARN: !Ref TransitCameraProducerSecret
+          TRANSIT_VEHICLES_TABLE: !Sub "rapid-cortex-transit-vehicles-${DeploymentStage}"
+          TRANSIT_ROUTES_TABLE: !Sub "rapid-cortex-transit-routes-${DeploymentStage}"
+          TRANSIT_STATIONS_TABLE: !Sub "rapid-cortex-transit-stations-${DeploymentStage}"
+          TRANSIT_OPERATORS_TABLE: !Sub "rapid-cortex-transit-operators-${DeploymentStage}"
+          TRANSIT_INCIDENTS_TABLE: !Sub "rapid-cortex-transit-incidents-${DeploymentStage}"
+          TRANSIT_REPORTS_TABLE: !Sub "rapid-cortex-transit-reports-${DeploymentStage}"
+          TRANSIT_CONFIG_TABLE: !Sub "rapid-cortex-transit-config-${DeploymentStage}"
+          TRANSIT_CAMERA_REGISTRY_TABLE: !Sub "rapid-cortex-transit-camera-registry-${DeploymentStage}"
+          TRANSIT_CAMERA_PRODUCER_KEY_ARN: !If
+            - CreateTransitProducerSecret
+            - !Ref TransitCameraProducerSecret
+            - !Ref ExistingTransitCameraProducerSecretArn
           KVS_BROWSER_TOKEN_ROLE_ARN: !GetAtt TransitKvsBrowserTokenRole.Arn
           VENUE_KVS_PRODUCER_ROLE_ARN: !GetAtt TransitKvsBrowserTokenRole.Arn
           APP_PUBLIC_API_BASE: !Ref AppPublicApiBase
@@ -327,7 +345,10 @@ Resources:
             - Sid: TransitCameraProducerSecretRead
               Effect: Allow
               Action: secretsmanager:GetSecretValue
-              Resource: !Ref TransitCameraProducerSecret
+              Resource: !If
+                - CreateTransitProducerSecret
+                - !Ref TransitCameraProducerSecret
+                - !Ref ExistingTransitCameraProducerSecretArn
 
   TransitHttpIntegration:
     Type: AWS::ApiGatewayV2::Integration
@@ -446,4 +467,7 @@ Outputs:
   TransitHttpFunctionArn:
     Value: !GetAtt TransitHttpFunction.Arn
   TransitVehiclesTable:
-    Value: !Ref TransitVehiclesTable
+    Value: !If
+      - CreateTransitTables
+      - !Ref TransitVehiclesTable
+      - !Sub "rapid-cortex-transit-vehicles-${DeploymentStage}"

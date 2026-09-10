@@ -4,7 +4,7 @@ import { absoluteUrl } from "@/lib/seo";
 import { RingLinkClient } from "./ring-link-client";
 
 export const metadata: Metadata = {
-  title: "Finish connecting Ring™ | Rapid Cortex Connect",
+  title: "Finish connecting Ring™ | Rapid Vision™",
   description:
     "Ring™ Device Owners: sign in with your Rapid Cortex device-owner account to finish Appstore linking. Not dispatcher login.",
   robots: { index: false, follow: false },

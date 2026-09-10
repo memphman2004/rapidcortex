@@ -30,20 +30,20 @@ function statusMessage(
       return {
         tone: "ok",
         title: "You're connected",
-        body: "Thanks for enabling Rapid Cortex Connect. Dispatchers at participating agencies can request video only for qualifying incidents near your address — and only when you tap Allow on each SMS request.",
+        body: "Thanks for enabling Rapid Vision™. Dispatchers at participating agencies can request video only for qualifying incidents near your address — and only when you tap Allow on each SMS request.",
       };
     }
     if (status === "error") {
       return {
         tone: "err",
         title: "Complete setup in the Ring™ app",
-        body: "Ring™ Device Owners enroll in the Ring™ Appstore (Ring™ → Appstore → Rapid Cortex Connect → Get App). If Ring™ shows Pending — App sign-in required, use Sign in on this site with your device-owner email and password — not dispatcher login.",
+        body: "Ring™ Device Owners enroll in the Ring™ Appstore (Ring™ → Appstore → Rapid Vision™ → Get App). If Ring™ shows Pending — App sign-in required, use Sign in on this site with your device-owner email and password — not dispatcher login.",
       };
     }
     return {
       tone: "neutral",
-      title: "Rapid Cortex Connect · Ring™",
-      body: "Enable Rapid Cortex Connect in the Ring™ Appstore to participate. Every camera request requires your individual approval by SMS (Allow or Decline).",
+      title: "Rapid Vision™ · Ring™",
+      body: "Enable Rapid Vision™ in the Ring™ Appstore to participate. Every camera request requires your individual approval by SMS (Allow or Decline).",
     };
   }
 
@@ -51,7 +51,7 @@ function statusMessage(
     return {
       tone: "ok",
       title: "Ring™ account linked",
-      body: "Your Ring™ devices are connected to Rapid Cortex Connect. Sign in to manage cameras from the dispatcher Media workspace.",
+      body: "Your Ring™ devices are connected to Rapid Vision™. Sign in to manage cameras from the dispatcher Media workspace.",
     };
   }
   if (status === "error") {
@@ -63,7 +63,7 @@ function statusMessage(
   }
   return {
     tone: "neutral",
-    title: "Rapid Cortex Connect · Ring™",
+    title: "Rapid Vision™ · Ring™",
     body: "Link your Ring™ account from the Rapid Cortex app, then return here after authorization completes.",
   };
 }
@@ -332,7 +332,7 @@ function HomeownerAppstoreSignIn({ nonce, time }: { nonce: string; time: string 
         )}
         <p className="mt-4 text-xs text-slate-500">
           Dispatchers may request video only for nearby emergencies, and only after you tap Allow on
-          each SMS. You can Decline, Stop Sharing, or remove Rapid Cortex Connect in Ring™ → My Apps
+          each SMS. You can Decline, Stop Sharing, or remove Rapid Vision™ in Ring™ → My Apps
           anytime. Privacy &amp; deletion:{" "}
           <Link href="/privacy/" className="text-sky-400 hover:text-sky-300">
             Privacy policy
@@ -539,7 +539,7 @@ function CitizenLinkActions({ status }: { status: string | null }) {
       </Link>
       {status === "error" ? (
         <p className="w-full text-xs text-slate-500">
-          In the Ring™ app: Appstore → search Rapid Cortex Connect → Get App. If Pending,
+          In the Ring™ app: Appstore → search Rapid Vision™ → Get App. If Pending,
           return here from Sign in in Ring™.
         </p>
       ) : null}
@@ -652,7 +652,7 @@ export function RingLinkClient() {
   return (
     <article className="mx-auto max-w-lg px-4 py-16 sm:px-6">
       <p className="text-xs font-semibold uppercase tracking-[0.2em] text-sky-400/90">
-        {audience === "citizen" ? "Ring™ Device Owners" : "Rapid Cortex Connect"}
+        {audience === "citizen" ? "Ring™ Device Owners" : "Rapid Vision™"}
       </p>
       <h1 className="mt-3 text-2xl font-semibold text-white sm:text-3xl">{msg.title}</h1>
       <p className="mt-4 text-sm leading-relaxed text-slate-300">{msg.body}</p>

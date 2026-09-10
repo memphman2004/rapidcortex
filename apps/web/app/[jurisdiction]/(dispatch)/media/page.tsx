@@ -1,16 +1,18 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import { IncidentContextMap } from "@/components/dispatch/incident-context-map";
 import { LiveVideoPanel } from "@/components/dispatch/live-video-panel";
 import { SilentTextPanel } from "@/components/dispatch/silent-text-panel";
 import { VideoAssistPanel } from "@/components/dispatch/video-assist-panel";
 import { NestCameraPanel } from "@/components/cameras/NestCameraPanel";
+import { RapidVisionPanel } from "@/components/rapid-vision/RapidVisionPanel";
 import { useSession } from "@/components/auth/session-context";
 import { GOOGLE_NEST_TM, NEST_TM, RING_TM } from "@/lib/brand-marks";
 import { loadIncidents } from "@/lib/queries";
-import { isLiveVideoEnabled } from "@/lib/runtime-flags";
+import { isLiveVideoEnabled, isRapidVisionEnabled } from "@/lib/runtime-flags";
 import { isNestEnabled } from "@/lib/nest-feature-flags";
 import {
   RingConnectButton,
@@ -19,12 +21,25 @@ import {
 } from "@/src/features/connect/ring";
 import type { RingRole } from "@/src/features/connect/ring/ring-types";
 
+function canVerifyRapidVision(role: string | undefined): boolean {
+  const normalized = (role ?? "").toLowerCase();
+  return (
+    normalized === "dispatcher" ||
+    normalized === "supervisor" ||
+    normalized === "agencyadmin" ||
+    normalized === "command"
+  );
+}
+
 export default function MediaPage() {
   const { user } = useSession();
+  const searchParams = useSearchParams();
+  const focusVision = searchParams.get("vision") === "1";
   const ringEnabled = isRingEnabled();
   const nestEnabled = isNestEnabled();
   const liveVideoEnabled = isLiveVideoEnabled();
-  const mediaEnabled = ringEnabled || nestEnabled || liveVideoEnabled;
+  const rapidVisionEnabled = isRapidVisionEnabled();
+  const mediaEnabled = ringEnabled || nestEnabled || liveVideoEnabled || rapidVisionEnabled;
 
   const [showRing, setShowRing] = useState(ringEnabled);
   const [showNest, setShowNest] = useState(nestEnabled);
@@ -58,6 +73,11 @@ export default function MediaPage() {
     }
     setSelectedIncidentId(incidents[0]!.incidentId);
   }, [incidents, selectedIncidentId]);
+
+  useEffect(() => {
+    if (!focusVision) return;
+    document.getElementById("rapid-vision-panel")?.scrollIntoView({ behavior: "smooth", block: "start" });
+  }, [focusVision, selectedIncidentId]);
 
   const selectedIncident = useMemo(
     () => incidents.find((i) => i.incidentId === selectedIncidentId) ?? null,
@@ -247,6 +267,17 @@ export default function MediaPage() {
           </div>
         </div>
       </div>
+
+      {rapidVisionEnabled && user && selectedIncidentId && selectedIncident ? (
+        <div id="rapid-vision-panel" className="min-h-[420px]">
+          <RapidVisionPanel
+            incidentId={selectedIncidentId}
+            incidentLat={selectedIncident.callerLocationLat ?? 0}
+            incidentLng={selectedIncident.callerLocationLng ?? 0}
+            canVerify={canVerifyRapidVision(user.role)}
+          />
+        </div>
+      ) : null}
 
       <div className="flex h-64 min-h-0 flex-col overflow-hidden rounded-lg border border-slate-700 bg-slate-900">
         <div className="flex items-center justify-between border-b border-slate-700 px-4 py-2">

@@ -23,6 +23,7 @@
       "play-disclosure": { "position": { "x": 880, "y": 20 } },
       "lex-intake": { "position": { "x": 1120, "y": 20 } },
       "play-emergency": { "position": { "x": 1360, "y": 20 } },
+      "check-escalation-mode": { "position": { "x": 1480, "y": 20 } },
       "set-emergency-attrs": { "position": { "x": 1600, "y": 20 } },
       "play-fallback": { "position": { "x": 1360, "y": 220 } },
       "set-fallback-attrs": { "position": { "x": 1600, "y": 220 } },
@@ -145,7 +146,7 @@
       "Identifier": "play-disclosure",
       "Type": "MessageParticipant",
       "Parameters": {
-        "Text": "$.External.disclosureText How can I help you today?"
+        "Text": "$.External.greetingText"
       },
       "Transitions": {
         "NextAction": "lex-intake",
@@ -170,7 +171,14 @@
           "aliAddress": "$.External.aliAddress",
           "ALI": "$.Attributes.ALI",
           "RapidSOSAddress": "$.Attributes.RapidSOSAddress",
-          "apartmentSuite": "$.External.apartmentSuite"
+          "apartmentSuite": "$.External.apartmentSuite",
+          "greetingDelivered": "true",
+          "greetingMode": "$.External.greetingMode",
+          "escalationMode": "$.External.escalationMode",
+          "emergencyTransferNumber": "$.External.emergencyTransferNumber",
+          "emergencyTransferQueue": "$.External.emergencyTransferQueue",
+          "enableColdClimate": "$.External.enableColdClimate",
+          "enableLiveAgentHandoff": "$.External.enableLiveAgentHandoff"
         },
         "LexTimeoutSeconds": { "Text": "300" }
       },
@@ -209,12 +217,31 @@
       "Identifier": "play-emergency",
       "Type": "MessageParticipant",
       "Parameters": {
-        "Text": "I'm connecting you to a dispatcher right now. Please stay on the line."
+        "Text": "$.Lex.SessionAttributes.escalationAnnouncement"
+      },
+      "Transitions": {
+        "NextAction": "check-escalation-mode",
+        "Errors": [{ "NextAction": "check-escalation-mode", "ErrorType": "NoMatchingError" }],
+        "Conditions": []
+      }
+    },
+    {
+      "Identifier": "check-escalation-mode",
+      "Type": "Compare",
+      "Parameters": {
+        "ComparisonValue": "$.Lex.SessionAttributes.escalationMode"
       },
       "Transitions": {
         "NextAction": "set-emergency-attrs",
-        "Errors": [{ "NextAction": "set-emergency-attrs", "ErrorType": "NoMatchingError" }],
-        "Conditions": []
+        "Conditions": [
+          {
+            "NextAction": "disconnect",
+            "Condition": { "Operator": "Equals", "Operands": ["announce_and_end"] }
+          }
+        ],
+        "Errors": [
+          { "NextAction": "set-emergency-attrs", "ErrorType": "NoMatchingCondition" }
+        ]
       }
     },
     {

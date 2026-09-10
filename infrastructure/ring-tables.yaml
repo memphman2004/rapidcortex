@@ -1,6 +1,6 @@
 AWSTemplateFormatVersion: "2010-09-09"
 Description: >-
-  Rapid Cortex Connect — Ring integration DynamoDB tables.
+  Rapid Vision™ — Ring integration DynamoDB tables.
   Nest via AWS::CloudFormation::Stack or merge Resources into stack-data-layer.yaml.
 
 Parameters:

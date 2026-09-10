@@ -11,6 +11,16 @@ const NEXT_PUBLIC_FLAG_VALUES: Record<string, string | undefined> = {
   NEXT_PUBLIC_ENABLE_NON_EMERGENCY_TRIAGE: process.env.NEXT_PUBLIC_ENABLE_NON_EMERGENCY_TRIAGE,
   NEXT_PUBLIC_ENABLE_NG911_ASSIST: process.env.NEXT_PUBLIC_ENABLE_NG911_ASSIST,
   NEXT_PUBLIC_ENABLE_CALL_ASSIST: process.env.NEXT_PUBLIC_ENABLE_CALL_ASSIST,
+  NEXT_PUBLIC_ENABLE_CALL_ASSIST_GREETING_CONFIG: process.env.NEXT_PUBLIC_ENABLE_CALL_ASSIST_GREETING_CONFIG,
+  NEXT_PUBLIC_ENABLE_RC_TRANSLATE: process.env.NEXT_PUBLIC_ENABLE_RC_TRANSLATE,
+  NEXT_PUBLIC_ENABLE_RC_TRANSLATE_VENUE: process.env.NEXT_PUBLIC_ENABLE_RC_TRANSLATE_VENUE,
+  NEXT_PUBLIC_ENABLE_RC_TRANSLATE_CAMPUS: process.env.NEXT_PUBLIC_ENABLE_RC_TRANSLATE_CAMPUS,
+  NEXT_PUBLIC_ENABLE_RC_TRANSLATE_HOSPITAL: process.env.NEXT_PUBLIC_ENABLE_RC_TRANSLATE_HOSPITAL,
+  NEXT_PUBLIC_ENABLE_RAPID_VISION: process.env.NEXT_PUBLIC_ENABLE_RAPID_VISION,
+  NEXT_PUBLIC_ENABLE_RAPID_VISION_RING: process.env.NEXT_PUBLIC_ENABLE_RAPID_VISION_RING,
+  NEXT_PUBLIC_ENABLE_RAPID_VISION_CALLER_VIDEO: process.env.NEXT_PUBLIC_ENABLE_RAPID_VISION_CALLER_VIDEO,
+  NEXT_PUBLIC_ENABLE_RAPID_VISION_DEMO: process.env.NEXT_PUBLIC_ENABLE_RAPID_VISION_DEMO,
+  NEXT_PUBLIC_ENABLE_RAPID_VISION_AI_WRITER: process.env.NEXT_PUBLIC_ENABLE_RAPID_VISION_AI_WRITER,
   NEXT_PUBLIC_ENABLE_VERTICAL_ALERTS: process.env.NEXT_PUBLIC_ENABLE_VERTICAL_ALERTS,
   NEXT_PUBLIC_ENABLE_PHYSICAL_SECURITY_INGEST: process.env.NEXT_PUBLIC_ENABLE_PHYSICAL_SECURITY_INGEST,
   NEXT_PUBLIC_ENABLE_PHYSICAL_SECURITY_COMMANDS: process.env.NEXT_PUBLIC_ENABLE_PHYSICAL_SECURITY_COMMANDS,
@@ -171,6 +181,49 @@ export function isNg911AssistEnabled(): boolean {
 /** Call Assist — non-emergency AI call management (ENABLE_CALL_ASSIST). */
 export function isCallAssistEnabled(): boolean {
   return envFlag("NEXT_PUBLIC_ENABLE_CALL_ASSIST");
+}
+
+/** Per-agency greeting / escalation mode config. Default on when unset. */
+export function isCallAssistGreetingConfigEnabled(): boolean {
+  return envFlag("NEXT_PUBLIC_ENABLE_CALL_ASSIST_GREETING_CONFIG");
+}
+
+/** RC Translate — field / venue / campus / clinical voice translation. Default on when unset. */
+export function isRcTranslateEnabled(): boolean {
+  return envFlag("NEXT_PUBLIC_ENABLE_RC_TRANSLATE");
+}
+
+export function isRcTranslateVenueEnabled(): boolean {
+  return envFlag("NEXT_PUBLIC_ENABLE_RC_TRANSLATE_VENUE");
+}
+
+export function isRcTranslateCampusEnabled(): boolean {
+  return envFlag("NEXT_PUBLIC_ENABLE_RC_TRANSLATE_CAMPUS");
+}
+
+export function isRcTranslateHospitalEnabled(): boolean {
+  return envFlag("NEXT_PUBLIC_ENABLE_RC_TRANSLATE_HOSPITAL");
+}
+
+/** Rapid Vision™ — AI visual intelligence. Default on when unset. */
+export function isRapidVisionEnabled(): boolean {
+  return envFlag("NEXT_PUBLIC_ENABLE_RAPID_VISION");
+}
+
+export function isRapidVisionRingEnabled(): boolean {
+  return isRapidVisionEnabled() && envFlag("NEXT_PUBLIC_ENABLE_RAPID_VISION_RING");
+}
+
+export function isRapidVisionCallerVideoEnabled(): boolean {
+  return isRapidVisionEnabled() && envFlag("NEXT_PUBLIC_ENABLE_RAPID_VISION_CALLER_VIDEO");
+}
+
+export function isRapidVisionDemoEnabled(): boolean {
+  return isRapidVisionEnabled() && envFlag("NEXT_PUBLIC_ENABLE_RAPID_VISION_DEMO");
+}
+
+export function isRapidVisionAiWriterEnabled(): boolean {
+  return isRapidVisionEnabled() && envFlag("NEXT_PUBLIC_ENABLE_RAPID_VISION_AI_WRITER");
 }
 
 /**

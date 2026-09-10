@@ -180,6 +180,22 @@ describe("getRoleNav", () => {
     expect(byId.incidents).toBe("/test-psap/dispatcher");
     expect(byId.triage).toBe("/test-psap/dispatcher/non-emergency");
     expect(byId["call-assist"]).toBe("/test-psap/call-assist");
+    expect(byId.translate).toBe("/test-psap/translate");
+  });
+
+  it("adds RC Translate to venue and campus navs and hides it from guest services", () => {
+    const venue = getRoleNav("VENUE_OPERATOR", { venueCode: "MBS" });
+    const venueHrefs = venue.sections.flatMap((s) => s.items).map((i) => i.id);
+    expect(venueHrefs).toContain("translate");
+    const guest = getRoleNav("VENUE_GUEST_SERVICES", { venueCode: "MBS" });
+    expect(guest.sections.flatMap((s) => s.items).map((i) => i.id)).not.toContain("translate");
+    const campus = getRoleNav("CAMPUS_SECURITY", { campusCode: "LINCOLNHIGH" });
+    expect(campus.sections.flatMap((s) => s.items).find((i) => i.id === "translate")?.href).toBe(
+      "/app/campus/LINCOLNHIGH/translate",
+    );
+    const faculty = getRoleNav("CAMPUS_FACULTY", { campusCode: "LINCOLNHIGH" });
+    const facultyItem = faculty.sections.flatMap((s) => s.items).find((i) => i.id === "translate");
+    expect(facultyItem?.badge).toEqual({ type: "label", text: "VIEW ONLY", color: "slate" });
   });
 
   it("exposes Call Assist QA, analytics, and retention to the roles that can use them", () => {
@@ -290,5 +306,24 @@ describe("getRoleNav", () => {
       .sections.flatMap((s) => s.items)
       .find((i) => i.id === "clery-review");
     expect(dispatcher).toBeUndefined();
+  });
+
+  it("exposes Rapid Vision™ on dispatcher and supervisor media, not guest services", () => {
+    const dispatcher = getRoleNav("dispatcher", { jurisdiction: "test-psap" })
+      .sections.flatMap((s) => s.items)
+      .find((i) => i.id === "rapid-vision");
+    expect(dispatcher?.label).toBe("Rapid Vision™");
+    expect(dispatcher?.href).toBe("/test-psap/media?vision=1");
+    expect(dispatcher?.feature).toBe("rapidVision");
+
+    const supervisor = getRoleNav("supervisor", { jurisdiction: "test-psap" })
+      .sections.flatMap((s) => s.items)
+      .find((i) => i.id === "rapid-vision");
+    expect(supervisor?.href).toBe("/test-psap/media?vision=1");
+
+    const guest = getRoleNav("VENUE_GUEST_SERVICES", { venueCode: "MBS" })
+      .sections.flatMap((s) => s.items)
+      .find((i) => i.id === "rapid-vision");
+    expect(guest).toBeUndefined();
   });
 });

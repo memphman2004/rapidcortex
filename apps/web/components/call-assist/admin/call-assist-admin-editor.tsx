@@ -30,10 +30,11 @@ import {
 } from "@/lib/call-assist/call-assist-api";
 import { useJurisdictionLink } from "@/lib/jurisdiction-context";
 import Link from "next/link";
-import { isCallAssistEnabled } from "@/lib/runtime-flags";
+import { isCallAssistEnabled, isCallAssistGreetingConfigEnabled } from "@/lib/runtime-flags";
 import { CallAssistPromptCms } from "./call-assist-prompt-cms";
+import { CallAssistGreetingEditor } from "./call-assist-greeting-editor";
 
-type Tab = "settings" | "types" | "knowledge" | "demos" | "prompts";
+type Tab = "settings" | "greeting" | "types" | "knowledge" | "demos" | "prompts";
 
 const DAY_LABELS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
@@ -75,6 +76,7 @@ export function CallAssistAdminEditor() {
   const allowed = canAdminCallAssist(user?.role);
   const canPrompts = canManageCallAssistPrompts(user?.role);
   const enabled = Boolean(user && isApiConfigured() && isCallAssistEnabled() && allowed && ready);
+  const greetingEnabled = isCallAssistGreetingConfigEnabled();
   const [tab, setTab] = useState<Tab>("settings");
   const [msg, setMsg] = useState<string | null>(null);
   const [disclosure, setDisclosure] = useState<string | null>(null);
@@ -193,7 +195,11 @@ export function CallAssistAdminEditor() {
         </Link>
       </div>
       <div className="flex gap-2 text-[12px]">
-        {(["settings", "types", "knowledge", "demos", "prompts"] as const).map((t) => (
+        {(
+          (greetingEnabled
+            ? ["settings", "greeting", "types", "knowledge", "demos", "prompts"]
+            : ["settings", "types", "knowledge", "demos", "prompts"]) as Tab[]
+        ).map((t) => (
           <button
             key={t}
             type="button"
@@ -202,13 +208,15 @@ export function CallAssistAdminEditor() {
           >
             {t === "settings"
               ? "Settings"
-              : t === "types"
-                ? "Call types"
-                : t === "knowledge"
-                  ? "Knowledge"
-                  : t === "demos"
-                    ? "Demo scenarios"
-                    : "Prompts"}
+              : t === "greeting"
+                ? "Greeting"
+                : t === "types"
+                  ? "Call types"
+                  : t === "knowledge"
+                    ? "Knowledge"
+                    : t === "demos"
+                      ? "Demo scenarios"
+                      : "Prompts"}
           </button>
         ))}
       </div>
@@ -595,6 +603,20 @@ export function CallAssistAdminEditor() {
             </button>
           </section>
         </div>
+      ) : null}
+
+      {tab === "greeting" && greetingEnabled ? (
+        <CallAssistGreetingEditor
+          config={config}
+          pending={save.isPending}
+          onSave={(callAssistGreeting) =>
+            save.mutate({
+              callAssistGreeting,
+              agencyName: callAssistGreeting.agencyName,
+              tenantCity: callAssistGreeting.cityName,
+            })
+          }
+        />
       ) : null}
 
       {tab === "types" ? (

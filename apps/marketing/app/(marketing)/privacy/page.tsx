@@ -53,7 +53,7 @@ export default function PrivacyPolicyPage() {
         </p>
         <p className="text-slate-400">
           Mobile phone numbers and SMS opt-in/consent data collected for the Rapid Cortex SMS messaging
-          program (including Rapid Cortex Connect camera-consent texts and dispatcher-initiated incident
+          program (including Rapid Vision™ camera-consent texts and dispatcher-initiated incident
           texts) are used only to deliver those transactional messages, honor STOP/HELP requests, and
           operate, secure, and audit the service. Message frequency varies.{" "}
           <strong className="font-medium text-slate-200">Message and data rates may apply.</strong> Reply{" "}
@@ -67,7 +67,7 @@ export default function PrivacyPolicyPage() {
         <h2 className="text-base font-semibold text-white">Who this applies to</h2>
         <p>
           Visitors to our public website, account holders, agency personnel who access the operational application on
-          behalf of a municipality, PSAP, or regional center, and Ring™ Device Owners who enroll in Rapid Cortex Connect
+          behalf of a municipality, PSAP, or regional center, and Ring™ Device Owners who enroll in Rapid Vision™
           through the Ring™ Appstore.
         </p>
       </section>
@@ -82,7 +82,7 @@ export default function PrivacyPolicyPage() {
           <li>
             <span className="text-slate-300">Mobile and SMS data:</span> mobile phone numbers, SMS
             opt-in/opt-out status, message delivery metadata, and consent records related to Rapid Cortex
-            SMS programs (including Rapid Cortex Connect camera-consent texts and dispatcher-initiated
+            SMS programs (including Rapid Vision™ camera-consent texts and dispatcher-initiated
             incident texts).
           </li>
           <li>
@@ -163,7 +163,7 @@ export default function PrivacyPolicyPage() {
         <p>
           Rapid Cortex (operated by Apps on Demand LLC) may send transactional SMS under the{" "}
           <strong className="font-medium text-slate-200">Rapid Cortex SMS</strong> messaging program,
-          including Rapid Cortex Connect camera-consent requests to enrolled Ring™ or Nest™ device owners
+          including Rapid Vision™ camera-consent requests to enrolled Ring™ or Nest™ device owners
           and dispatcher-initiated, incident-specific texts authorized by a participating public safety
           agency. Message frequency varies based on incident activity and enrolled-device proximity; many
           recipients will receive no messages unless a nearby emergency or authorized workflow requires
@@ -182,10 +182,10 @@ export default function PrivacyPolicyPage() {
       <section id="ring" className="space-y-3">
         <h2 className="text-base font-semibold text-white">Ring™ integration and live video handling</h2>
         <p>
-          For Ring™-connected workflows (Rapid Cortex Connect), Rapid Cortex is designed for live operational viewing
+          For Ring™-connected workflows (Rapid Vision™), Rapid Cortex is designed for live operational viewing
           only. We do not record, retain, or store Ring™ video in Rapid Cortex systems (retention period: 0 days).{" "}
-          <strong className="font-medium text-slate-200">Ring™ Device Owners</strong> enroll by enabling Rapid Cortex
-          Connect in the Ring™ Appstore and completing device-owner sign-in when Ring™ shows Pending. Linking uses
+          <strong className="font-medium text-slate-200">Ring™ Device Owners</strong> enroll by enabling Rapid
+          Vision™ in the Ring™ Appstore and completing device-owner sign-in when Ring™ shows Pending. Linking uses
           Ring™&apos;s Appstore / OAuth authorization and can be revoked anytime in Ring™ (for example My Apps). When a
           participating agency requests temporary camera access for a nearby incident, the Ring™ Device Owner is
           contacted by SMS and must tap Allow before any live view begins; Decline and Stop Sharing remain available.
@@ -233,7 +233,7 @@ export default function PrivacyPolicyPage() {
       <section className="space-y-3">
         <h2 className="text-base font-semibold text-white">Consent, opt-out, and withdrawal</h2>
         <p>
-          Ring™ Device Owners manage enrollment through the Ring™ Appstore and may disconnect Rapid Cortex Connect in
+          Ring™ Device Owners manage enrollment through the Ring™ Appstore and may disconnect Rapid Vision™ in
           Ring™ at any time. Per-incident video sharing requires a separate Allow on each SMS request; owners may
           Decline or Stop Sharing without disconnecting the app. Agency users provide consent through account
           onboarding terms and can opt out of non-essential data processing through account settings or support

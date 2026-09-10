@@ -61,6 +61,11 @@ export const CAMPUS_ROLE_PERMISSIONS: Record<CampusRole, string[]> = {
     "locations.qrcodes.view",
     "locations.qrcodes.manage",
     "campus.cameras.view",
+    "vision.cameras_view",
+    "vision.request_access",
+    "vision.observations_view",
+    "vision.observations_verify",
+    "vision.admin",
     "campus.settings.view",
     "campus.settings.manage",
     "campus.clery.view",
@@ -107,6 +112,10 @@ export const CAMPUS_ROLE_PERMISSIONS: Record<CampusRole, string[]> = {
     "locations.qrcodes.view",
     "locations.qrcodes.manage",
     "campus.cameras.view",
+    "vision.cameras_view",
+    "vision.request_access",
+    "vision.observations_view",
+    "vision.observations_verify",
     "campus.settings.view",
     "campus.clery.view",
     "clery.record.view",
@@ -134,6 +143,9 @@ export const CAMPUS_ROLE_PERMISSIONS: Record<CampusRole, string[]> = {
     "campus.buildings.view",
     "locations.qrcodes.view",
     "campus.cameras.view",
+    "vision.cameras_view",
+    "vision.request_access",
+    "vision.observations_view",
     "campus.eap.view",
     "clery.record.create",
     "alerts.history.view",
@@ -150,6 +162,10 @@ export const CAMPUS_ROLE_PERMISSIONS: Record<CampusRole, string[]> = {
     "campus.eap.view",
     "alerts.history.view",
     "physical.event.view",
+    "vision.cameras_view",
+    "vision.request_access",
+    "vision.observations_view",
+    "vision.observations_verify",
   ],
   CAMPUS_COUNSELOR: [
     "campus.dashboard.view",
@@ -200,6 +216,11 @@ export const VENUE_ROLE_PERMISSIONS: Record<VenueRole, string[]> = {
     "physical.event.view",
     "physical.command.propose",
     "physical.command.approve",
+    "vision.cameras_view",
+    "vision.request_access",
+    "vision.observations_view",
+    "vision.observations_verify",
+    "vision.admin",
   ],
   VENUE_SUPERVISOR: [
     "venue.dashboard.view",
@@ -215,6 +236,10 @@ export const VENUE_ROLE_PERMISSIONS: Record<VenueRole, string[]> = {
     "physical.event.view",
     "physical.command.propose",
     "physical.command.approve",
+    "vision.cameras_view",
+    "vision.request_access",
+    "vision.observations_view",
+    "vision.observations_verify",
   ],
   VENUE_SECURITY: [
     "venue.dashboard.view",
@@ -225,6 +250,9 @@ export const VENUE_ROLE_PERMISSIONS: Record<VenueRole, string[]> = {
     "venue.settings.view",
     "alerts.history.view",
     "physical.event.view",
+    "vision.cameras_view",
+    "vision.request_access",
+    "vision.observations_view",
   ],
   VENUE_OPERATOR: [
     "venue.dashboard.view",
@@ -236,6 +264,8 @@ export const VENUE_ROLE_PERMISSIONS: Record<VenueRole, string[]> = {
     "locations.qrcodes.view",
     "locations.qrcodes.manage",
     "alerts.history.view",
+    "vision.cameras_view",
+    "vision.observations_view",
   ],
   VENUE_GUEST_SERVICES: ["venue.dashboard.view"],
 };
@@ -266,6 +296,8 @@ const TRANSIT_OPS_VIEW: readonly string[] = [
   "transit.operators.view",
   "transit.routes.view",
   "transit.cameras.view",
+  "vision.cameras_view",
+  "vision.observations_view",
 ];
 
 export const TRANSIT_ROLE_PERMISSIONS: Record<TransitRole, string[]> = {
@@ -282,6 +314,9 @@ export const TRANSIT_ROLE_PERMISSIONS: Record<TransitRole, string[]> = {
     "transit.cameras.manage",
     "transit.alert.manage",
     "transit.broadcast.send",
+    "vision.request_access",
+    "vision.observations_verify",
+    "vision.admin",
     "locations.qrcodes.view",
     "locations.qrcodes.manage",
     "alerts.recipients.manage",
@@ -493,6 +528,22 @@ const CALL_ASSIST_AUDITOR: readonly Permission[] = [
   "call_assist.records.request",
 ] as const;
 
+const VISION_VIEW: readonly Permission[] = [
+  "vision.cameras_view",
+  "vision.observations_view",
+] as const;
+
+const VISION_OPERATE: readonly Permission[] = [
+  ...VISION_VIEW,
+  "vision.request_access",
+  "vision.observations_verify",
+] as const;
+
+const VISION_ADMIN: readonly Permission[] = [
+  ...VISION_OPERATE,
+  "vision.admin",
+] as const;
+
 const FIELD_COMMAND_VIEW: readonly Permission[] = ["field.command.view"];
 const FIELD_COMMAND_ACT: readonly Permission[] = ["field.command.view", "field.command.act"];
 
@@ -626,6 +677,7 @@ const CORE_ROLE_ACCESS_MATRIX_V2 = {
     ...RMS_AGENCY_ADMIN,
     ...CAD_CONNECTOR_ADMIN,
     ...CALL_ASSIST_ADMIN,
+    ...VISION_ADMIN,
     ...FIELD_COMMAND_ACT,
   ],
   agencyit: [
@@ -648,6 +700,7 @@ const CORE_ROLE_ACCESS_MATRIX_V2 = {
     ...RCS_DISPATCHER,
     ...CAD_CONNECTOR_IT,
     ...CALL_ASSIST_ADMIN,
+    ...VISION_ADMIN,
     ...FIELD_COMMAND_VIEW,
   ],
   supervisor: [
@@ -705,6 +758,7 @@ const CORE_ROLE_ACCESS_MATRIX_V2 = {
     ...RMS_SUPERVISOR,
     ...CAD_CONNECTOR_SUPERVISOR,
     ...CALL_ASSIST_SUPERVISOR,
+    ...VISION_OPERATE,
     ...FIELD_COMMAND_ACT,
   ],
   dispatcher: [
@@ -736,6 +790,7 @@ const CORE_ROLE_ACCESS_MATRIX_V2 = {
     ...RMS_DISPATCHER,
     ...CAD_CONNECTOR_DISPATCHER,
     ...CALL_ASSIST_DISPATCHER,
+    ...VISION_OPERATE,
     ...FIELD_COMMAND_VIEW,
   ],
   analyst: [
@@ -758,6 +813,7 @@ const CORE_ROLE_ACCESS_MATRIX_V2 = {
     ...RMS_ANALYST,
     ...CAD_CONNECTOR_AUDIT,
     ...CALL_ASSIST_ANALYST,
+    ...VISION_VIEW,
     ...FIELD_COMMAND_VIEW,
   ],
   auditor: [
@@ -779,6 +835,7 @@ const CORE_ROLE_ACCESS_MATRIX_V2 = {
     ...RMS_AUDITOR,
     ...CAD_CONNECTOR_AUDIT,
     ...CALL_ASSIST_AUDITOR,
+    ...VISION_VIEW,
     ...FIELD_COMMAND_VIEW,
   ],
 } as const satisfies Record<

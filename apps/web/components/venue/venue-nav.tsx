@@ -8,6 +8,7 @@ import {
   Bell,
   FileText,
   Home,
+  Languages,
   MapPin,
   MessageSquare,
   Settings,
@@ -15,6 +16,7 @@ import {
   Video,
 } from "lucide-react";
 import { canVenueAgencyIt, canVenueNotifications } from "@/lib/venue/venue-access";
+import { isVenueGuestServicesRole } from "@/lib/venue/venue-guest-services";
 
 type NavItem = {
   id: string;
@@ -24,6 +26,7 @@ type NavItem = {
   supervisorOnly?: boolean;
   agencyItOnly?: boolean;
   supervisorOrAgencyIt?: boolean;
+  hideForGuest?: boolean;
 };
 
 function navItems(base: string): NavItem[] {
@@ -33,6 +36,13 @@ function navItems(base: string): NavItem[] {
     { id: "reports", label: "Reports", href: `${base}/reports`, icon: FileText },
     { id: "sections", label: "Sections", href: `${base}/sections`, icon: MapPin },
     { id: "staff", label: "Staff", href: `${base}/staff`, icon: Users },
+    {
+      id: "translate",
+      label: "RC Translate",
+      href: `${base}/translate`,
+      icon: Languages,
+      hideForGuest: true,
+    },
     {
       id: "guest",
       label: "Guest Reports",
@@ -82,6 +92,7 @@ export function VenueNav({
     ) {
       return false;
     }
+    if (item.hideForGuest && isVenueGuestServicesRole(userRole)) return false;
     return true;
   });
 

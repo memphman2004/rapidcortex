@@ -109,14 +109,14 @@ export default function TermsOfUsePage() {
         <h2 className="text-base font-semibold text-white">Rapid Cortex SMS messaging program</h2>
         <p>
           <strong className="font-medium text-slate-200">Program name:</strong> Rapid Cortex SMS
-          (including Rapid Cortex Connect), operated by {SITE_OPERATOR_NAME} LLC d/b/a {SITE_NAME} (
+          (including Rapid Vision™), operated by {SITE_OPERATOR_NAME} LLC d/b/a {SITE_NAME} (
           <a href="https://www.rapidcortex.us">https://www.rapidcortex.us</a>).
         </p>
         <p>
           <strong className="font-medium text-slate-200">Program description:</strong> {SITE_NAME}{" "}
           sends transactional SMS related to public-safety workflows. This includes (1) one-time camera
           consent requests to property owners who enrolled an eligible Ring™ or Nest™ device in Rapid
-          Cortex Connect, when a participating agency requests temporary live camera access for a nearby
+          Vision™, when a participating agency requests temporary live camera access for a nearby
           active emergency; and (2) dispatcher-initiated, incident-specific texts to individuals who
           contacted 911 or another public safety communications center and agreed on that call to receive
           a text for the active incident (for example, a secure media upload, location clarification, or

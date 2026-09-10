@@ -3,7 +3,7 @@
  * A bump enqueues a rolling rebuild of every agency bot. Old aliases keep serving until switched.
  * Format: YYYY-MM-DD.N
  */
-export const BOT_TEMPLATE_VERSION = "2026-09-08.1";
+export const BOT_TEMPLATE_VERSION = "2026-09-09.1";
 
 export const BOT_TEMPLATE_INTENT_NAMES = [
   "EmergencyEscalation",
@@ -24,6 +24,7 @@ export const BOT_TEMPLATE_INTENT_NAMES = [
   "OnlineReportEligibility",
   "RepeatCallCheck",
   "InformationRequest",
+  "Welcome",
   "FallbackIntent",
 ] as const;
 
@@ -93,6 +94,7 @@ const INTENT_DESCRIPTIONS: Record<string, string> = {
   OnlineReportEligibility: "Caller asks whether an incident can be reported online",
   RepeatCallCheck: "Caller is asking about a prior report",
   InformationRequest: "General questions about agency services, hours, or contact numbers",
+  Welcome: "Session start — Lambda returns the DynamoDB greeting; no city name lives in the bot",
   FallbackIntent: "Low-confidence or unrecognized speech — transfer to a human",
 };
 

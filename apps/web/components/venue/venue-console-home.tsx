@@ -45,6 +45,7 @@ import { RapidCortexMap } from "@/components/maps/RapidCortexMap";
 import { loadMapTheme, saveMapTheme } from "@/lib/maps/persisted-map-prefs";
 import { venueIncidentsToMap } from "@/components/maps/map-incident-adapters";
 import { isVenueOperationalAwarenessEnabled } from "@/lib/runtime-flags";
+import { VenueTranslateMonitorStrip } from "@/components/translate/VenueTranslateMonitorStrip";
 import { OperationalAwarenessWorkspace } from "@/components/venue/operational-awareness/OperationalAwarenessWorkspace";
 import { resolveVenueOperationalMap } from "@/lib/venue/operational-awareness/resolve-operational-map";
 import { useAgencyWebSocket } from "@/hooks/use-agency-websocket";
@@ -2115,6 +2116,10 @@ function VenueConsoleHomeInner({
                   </div>
                 )}
               </div>
+
+              {!isGuestServices ? (
+                <VenueTranslateMonitorStrip venueCode={venueCode} linkBase={`/venue/${venueCode}`} />
+              ) : null}
 
               {/* Quick actions + utilities */}
               <div style={{ padding: "4px 16px 20px" }}>

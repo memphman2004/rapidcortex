@@ -5,7 +5,7 @@ import { absoluteUrl } from "@/lib/seo";
 import { GOOGLE_NEST_TM, NEST_TM, RING_TM } from "@/lib/brand-marks";
 
 export const metadata: Metadata = {
-  title: `${GOOGLE_NEST_TM} cameras | Rapid Cortex Connect`,
+  title: `${GOOGLE_NEST_TM} cameras | Rapid Vision™`,
   description: `${GOOGLE_NEST_TM} SDM cameras in Rapid Cortex: agency-linked streams plus nearby citizen ${NEST_TM} devices with consent-gated emergency video for dispatch, campus, and venue teams.`,
   alternates: { canonical: absoluteUrl("/connect/nest") },
 };
@@ -13,12 +13,12 @@ export const metadata: Metadata = {
 export default function NestConnectPage() {
   return (
     <MarketingArticleShell
-      eyebrow="Rapid Cortex Connect"
+      eyebrow="Rapid Vision™"
       title={`${GOOGLE_NEST_TM} cameras`}
       sectionLabel="Connect"
     >
       <p className="leading-relaxed text-slate-200">
-        Rapid Cortex Connect supports{" "}
+        Rapid Vision™ supports{" "}
         <strong className="text-white">{GOOGLE_NEST_TM}</strong> alongside {RING_TM}: agency-owned
         cameras via Google SDM OAuth, and nearby citizen {NEST_TM} devices with the same
         consent-first request pattern used for {RING_TM} doorbells.

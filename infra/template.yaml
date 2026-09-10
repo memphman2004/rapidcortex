@@ -418,6 +418,70 @@ Parameters:
     Description: >-
       When set, AppSamCallAssistStack2 uses this existing DynamoDB table instead of creating
       rapid-cortex-call-assist-${stage} (required if the table was pre-created for Lex).
+  ExistingTranslateSessionsTableName:
+    Type: String
+    Default: ""
+    Description: When set, AppSamTranslateStack2 uses this existing sessions table instead of creating it.
+  ExistingTranslateSegmentsTableName:
+    Type: String
+    Default: ""
+    Description: When set, AppSamTranslateStack2 uses this existing segments table instead of creating it.
+  ExistingTranslateConnectionsTableName:
+    Type: String
+    Default: ""
+    Description: When set, AppSamTranslateStack2 uses this existing connections table instead of creating it.
+  ExistingTranslateAudioBucketName:
+    Type: String
+    Default: ""
+    Description: When set, AppSamTranslateStack2 uses this existing audio bucket instead of creating it.
+  TranslateWsSigningSecret:
+    Type: String
+    Default: ""
+    NoEcho: true
+    Description: HS256 secret for Translate WebSocket tokens. deploy.sh always passes a local openssl value (never secretsmanager:GetRandomPassword).
+  ExistingTranslateWsSecretArn:
+    Type: String
+    Default: ""
+    Description: When set, AppSamTranslateStack2 uses this existing Translate WS signing secret.
+  ExistingVisionCamerasTableName:
+    Type: String
+    Default: ""
+    Description: When set, AppSam6Stack uses this existing Rapid Vision™ cameras table.
+  ExistingVisionSessionsTableName:
+    Type: String
+    Default: ""
+    Description: When set, AppSam6Stack uses this existing Rapid Vision™ sessions table.
+  ExistingVisionObservationsTableName:
+    Type: String
+    Default: ""
+    Description: When set, AppSam6Stack uses this existing Rapid Vision™ observations table.
+  ExistingVisionOwnerConsentTableName:
+    Type: String
+    Default: ""
+    Description: When set, AppSam6Stack uses this existing Rapid Vision™ owner-consent table.
+  ExistingVisionArtifactsBucketName:
+    Type: String
+    Default: ""
+    Description: When set, AppSam6Stack uses this existing Rapid Vision™ artifacts bucket.
+  TransitCameraProducerKey:
+    Type: String
+    Default: ""
+    NoEcho: true
+    Description: Transit camera producer-agent key. deploy.sh always passes a local openssl value (never secretsmanager:GetRandomPassword).
+  ReuseExistingTransitTables:
+    Type: String
+    Default: "false"
+    AllowedValues: ["true", "false"]
+    Description: When true, AppSamTransitStack skips creating retained transit DynamoDB tables.
+  ExistingTransitCameraProducerSecretArn:
+    Type: String
+    Default: ""
+    Description: When set, AppSamTransitStack reuses this Secrets Manager ARN instead of creating the producer key.
+  ReuseExistingCadConnectorTables:
+    Type: String
+    Default: "false"
+    AllowedValues: ["true", "false"]
+    Description: When true, AppSamCadStack skips creating retained CAD connector DynamoDB tables.
   CadBridgeVpcId:
     Type: String
     Default: ""
@@ -3155,6 +3219,9 @@ Resources:
             - !Sub "${DynamoTableNamePrefix}-agencies-${DeploymentStage}"
         ManagedPolicyNamePrefix: !Ref AWS::StackName
         AppPublicApiBase: !GetAtt AppSam2Stack.Outputs.HttpApiUrl
+        TransitCameraProducerKey: !Ref TransitCameraProducerKey
+        ReuseExistingTransitTables: !Ref ReuseExistingTransitTables
+        ExistingTransitCameraProducerSecretArn: !Ref ExistingTransitCameraProducerSecretArn
 
   AppSamCadStack:
     Type: AWS::CloudFormation::Stack
@@ -3187,6 +3254,7 @@ Resources:
         OpsAlertsTopicArn: !GetAtt AppSam2Stack.Outputs.OpsAlertsTopicArn
         CadConnectorEnabled: "false"
         CadConnectorMock: "false"
+        ReuseExistingCadConnectorTables: !Ref ReuseExistingCadConnectorTables
 
   AppSamRcsStack2:
     Type: AWS::CloudFormation::Stack
@@ -3362,6 +3430,92 @@ Resources:
         ExistingCallAssistTableName: !Ref ExistingCallAssistTableName
         CallAssistConnectWebhookSecretArn: ""
         AppPublicBaseUrl: !Ref AppPublicBaseUrl
+        ManagedPolicyNamePrefix: !Ref AWS::StackName
+
+  AppSamTranslateStack2:
+    Type: AWS::CloudFormation::Stack
+    Metadata:
+      cfn-lint:
+        config:
+          ignore_checks:
+            - W3005
+    DependsOn: AppSam2Stack
+    Properties:
+      TimeoutInMinutes: 60
+      TemplateURL: nested/stack-app-sam-translate.yaml
+      Parameters:
+        DeploymentStage: !Ref DeploymentStage
+        HttpApiId: !GetAtt AppSam2Stack.Outputs.HttpApiId
+        HttpApiJwtAuthorizerId: "3ui9q4"
+        ImportedCognitoUserPoolId: !GetAtt AppSamStackV2.Outputs.UserPoolId
+        ImportedCognitoWebClientId: !GetAtt AppSamStackV2.Outputs.UserPoolClientId
+        ImportedCognitoIssuer: !GetAtt AppSamStackV2.Outputs.CognitoIssuer
+        AuditTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.AuditTable
+            - !Sub "${DynamoTableNamePrefix}-audit-${DeploymentStage}"
+        AgenciesTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.AgenciesTable
+            - !Sub "${DynamoTableNamePrefix}-agencies-${DeploymentStage}"
+        AppPublicBaseUrl: !Ref AppPublicBaseUrl
+        ExistingTranslateSessionsTableName: !Ref ExistingTranslateSessionsTableName
+        ExistingTranslateSegmentsTableName: !Ref ExistingTranslateSegmentsTableName
+        ExistingTranslateConnectionsTableName: !Ref ExistingTranslateConnectionsTableName
+        ExistingTranslateAudioBucketName: !Ref ExistingTranslateAudioBucketName
+        TranslateWsSigningSecret: !Ref TranslateWsSigningSecret
+        ExistingTranslateWsSecretArn: !Ref ExistingTranslateWsSecretArn
+        ManagedPolicyNamePrefix: !Ref AWS::StackName
+
+  AppSam6Stack:
+    Type: AWS::CloudFormation::Stack
+    Metadata:
+      cfn-lint:
+        config:
+          ignore_checks:
+            - W3005
+    DependsOn:
+      - AppSam2Stack
+      - AppSamRealtime2Stack
+    Properties:
+      TimeoutInMinutes: 60
+      TemplateURL: nested/stack-app-sam-6.yaml
+      Parameters:
+        DeploymentStage: !Ref DeploymentStage
+        HttpApiId: !GetAtt AppSam2Stack.Outputs.HttpApiId
+        HttpApiJwtAuthorizerId: "3ui9q4"
+        ImportedCognitoUserPoolId: !GetAtt AppSamStackV2.Outputs.UserPoolId
+        ImportedCognitoWebClientId: !GetAtt AppSamStackV2.Outputs.UserPoolClientId
+        ImportedCognitoIssuer: !GetAtt AppSamStackV2.Outputs.CognitoIssuer
+        AuditTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.AuditTable
+            - !Sub "${DynamoTableNamePrefix}-audit-${DeploymentStage}"
+        AgenciesTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.AgenciesTable
+            - !Sub "${DynamoTableNamePrefix}-agencies-${DeploymentStage}"
+        IncidentsTable: !Sub "${DynamoTableNamePrefix}-incidents-${DeploymentStage}"
+        TranscriptsTable: !Sub "${DynamoTableNamePrefix}-transcripts-${DeploymentStage}"
+        WebSocketConnectionsTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.WebSocketConnectionsTable
+            - !Sub "${DynamoTableNamePrefix}-websocket-connections-${DeploymentStage}"
+        WebSocketApiEndpoint: !Sub
+          - "https://${ApiId}.execute-api.${AWS::Region}.amazonaws.com/${DeploymentStage}"
+          - ApiId: !GetAtt AppSamRealtime2Stack.Outputs.WebSocketApiId
+        AnthropicApiKeySecretArn: !Ref AnthropicApiKeySecretArn
+        AppPublicBaseUrl: !Ref AppPublicBaseUrl
+        ExistingVisionCamerasTableName: !Ref ExistingVisionCamerasTableName
+        ExistingVisionSessionsTableName: !Ref ExistingVisionSessionsTableName
+        ExistingVisionObservationsTableName: !Ref ExistingVisionObservationsTableName
+        ExistingVisionOwnerConsentTableName: !Ref ExistingVisionOwnerConsentTableName
+        ExistingVisionArtifactsBucketName: !Ref ExistingVisionArtifactsBucketName
         ManagedPolicyNamePrefix: !Ref AWS::StackName
 
   AppSamCadBridgeStack2:

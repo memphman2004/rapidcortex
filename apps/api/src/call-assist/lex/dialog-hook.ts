@@ -25,6 +25,7 @@ import {
   PUBLIC_WORKS_INTENT,
   REPEAT_CALL_INTENT,
   REQUEST_HUMAN_INTENT,
+  WELCOME_INTENT,
   weaponVisibleYes,
 } from "./dialog-intercept.js";
 import { LEX_SPEC_CONFIRMATION_INTENTS, LEX_SPEC_SLOTS } from "./lex-spec-slots.js";
@@ -47,6 +48,12 @@ import {
   detectBargeIn,
   readBargeInState,
 } from "../telephony/barge-in.js";
+import {
+  escalationCloseParts,
+  isCallAssistGreetingConfigEnabled,
+  lexWelcomeResponse,
+  startCallAssistSession,
+} from "./session-start.js";
 
 export { EMERGENCY_INTENT, FALLBACK_INTENT };
 /** @deprecated Agency thresholds from tenant config are the control plane. */
@@ -101,6 +108,22 @@ export async function handleDialog(
   const shortName = config ? agencyShortName(config) : "Call Assist";
   const thresholds = config?.confidenceThresholds;
 
+  let greetingPrefix: string | null = null;
+  let welcomeStart: ReturnType<typeof startCallAssistSession> | null = null;
+  if (isCallAssistGreetingConfigEnabled()) {
+    welcomeStart = startCallAssistSession({
+      agencyId,
+      locale: localeId,
+      existingAttributes: sessionAttrs,
+      config,
+    });
+    Object.assign(sessionAttrs, welcomeStart.sessionAttributes);
+    if (sessionAttrs.intakeStarted !== "true" && event.sessionState.intent.name !== WELCOME_INTENT) {
+      greetingPrefix = welcomeStart.greeting;
+      sessionAttrs.intakeStarted = "true";
+    }
+  }
+
   const emergencySpoken = config
     ? transferPrompt(config, "EMERGENCY")
     : "I'm connecting you to a dispatcher right now. Please stay on the line.";
@@ -128,7 +151,7 @@ export async function handleDialog(
       slots,
       shortName,
     );
-    return persistAndCloseEmergency(deps, agencyId, callId, summary, sessionAttrs, emergencySpoken, transcript, slots);
+    return persistAndCloseEmergency(deps, agencyId, callId, summary, sessionAttrs, emergencySpoken, transcript, slots, config, localeId);
   }
 
   if (event.sessionState.intent.name === EMERGENCY_INTENT) {
@@ -138,6 +161,18 @@ export async function handleDialog(
       callId,
       transcript,
     });
+  }
+
+  if (event.sessionState.intent.name === WELCOME_INTENT) {
+    return lexWelcomeResponse(
+      welcomeStart ??
+        startCallAssistSession({
+          agencyId,
+          locale: localeId,
+          existingAttributes: sessionAttrs,
+          config,
+        }),
+    );
   }
 
   const tenant = config ?? (await deps.getConfig(agencyId || "unknown"));
@@ -155,13 +190,15 @@ export async function handleDialog(
   let effectiveScore = lexConfidence;
 
   if (callerRequestedHuman(utterance) || activeIntent === REQUEST_HUMAN_INTENT) {
-    return closeTransferResponse(
-      REQUEST_HUMAN_INTENT,
-      utterance || "caller requested a person",
-      { ...sessionAttrs, agencyId, callId, classification: REQUEST_HUMAN_INTENT, transcript },
-      [ssml(transferPrompt(tenant, "HUMAN_REQUEST"))],
-      "HUMAN_REQUEST",
-    );
+    if (sessionAttrs.enableLiveAgentHandoff !== "false") {
+      return closeTransferResponse(
+        REQUEST_HUMAN_INTENT,
+        utterance || "caller requested a person",
+        { ...sessionAttrs, agencyId, callId, classification: REQUEST_HUMAN_INTENT, transcript },
+        [ssml(transferPrompt(tenant, "HUMAN_REQUEST"))],
+        "HUMAN_REQUEST",
+      );
+    }
   }
 
   if (
@@ -318,9 +355,9 @@ export async function handleDialog(
     const prompt = slotPrompt(tenant, missingSlotId, localeId, activeIntent);
     const spoken = tty.ttyMode ? formatTtySms(prompt) : prompt;
     if (tty.smsFallbackRecommended) updatedAttrs.ttySmsScript = formatTtySms(prompt);
-    return elicitSlotResponse(activeIntent, missingSlotId, currentSlots, updatedAttrs, [
-      tty.ttyMode ? plain(spoken) : plain(prompt),
-    ]);
+    const slotMessage = tty.ttyMode ? plain(spoken) : plain(prompt);
+    const messages = greetingPrefix ? [plain(greetingPrefix), slotMessage] : [slotMessage];
+    return elicitSlotResponse(activeIntent, missingSlotId, currentSlots, updatedAttrs, messages);
   }
 
   if (activeIntent === REPEAT_CALL_INTENT || activeIntent === PUBLIC_WORKS_INTENT) {
@@ -422,6 +459,8 @@ async function emergencyClose(
     spoken,
     sessionAttrs.transcript ?? "",
     slots,
+    config,
+    event.bot?.localeId ?? sessionAttrs.locale,
   );
 }
 
@@ -434,6 +473,8 @@ async function persistAndCloseEmergency(
   spoken: string,
   transcript: string,
   slots: Record<string, string | null> = {},
+  config: CallAssistTenantConfig | null = null,
+  locale = "en-US",
 ): Promise<LexV2Response> {
   const utterance = summary;
   const identity = ingestConnectCallerIdentity({
@@ -450,12 +491,14 @@ async function persistAndCloseEmergency(
   } catch {
     /* transfer anyway */
   }
+  const parts = escalationCloseParts(config, locale, { ...sessionAttrs, agencyId, callId, classification: EMERGENCY_INTENT, transcript }, spoken, sessionAttrs.transcript ?? utterance);
   return closeTransferResponse(
     EMERGENCY_INTENT,
     summary,
-    { ...sessionAttrs, agencyId, callId, classification: EMERGENCY_INTENT, transcript },
-    [ssml(spoken)],
+    parts.sessionAttributes,
+    parts.messages,
     "EMERGENCY",
+    { endSession: parts.endSession },
   );
 }
 

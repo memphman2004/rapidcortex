@@ -13,10 +13,10 @@ import { estimatedLexBotRebuildMinutes, isLexBotQuotaBlocking } from "./provisio
 const repoRoot = join(dirname(fileURLToPath(import.meta.url)), "../../../../..");
 
 describe("Call Assist universal bot template", () => {
-  it("maps all 19 canonical intents and contains no agency copy", () => {
+  it("maps all 20 canonical intents and contains no agency copy", () => {
     const spec = JSON.parse(readFileSync(join(repoRoot, "infra/lex/bot-spec.json"), "utf8")) as CanonicalBotSpec;
     const intents = intentsFromCanonicalSpec(spec);
-    expect(intents).toHaveLength(19);
+    expect(intents).toHaveLength(20);
     expect(intents.map((intent) => intent.intentName)).toEqual([...BOT_TEMPLATE_INTENT_NAMES]);
     expect(assertBotTemplateHasNoAgencyCopy(intents)).toEqual([]);
   });

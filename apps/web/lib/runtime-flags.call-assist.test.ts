@@ -10,5 +10,13 @@ describe("Call Assist UI flag", () => {
     vi.stubEnv("NEXT_PUBLIC_ENABLE_CALL_ASSIST", "0");
     mod = await import("./runtime-flags.js");
     expect(mod.isCallAssistEnabled()).toBe(false);
+    vi.resetModules();
+    vi.stubEnv("NEXT_PUBLIC_ENABLE_CALL_ASSIST_GREETING_CONFIG", "");
+    mod = await import("./runtime-flags.js");
+    expect(mod.isCallAssistGreetingConfigEnabled()).toBe(true);
+    vi.resetModules();
+    vi.stubEnv("NEXT_PUBLIC_ENABLE_CALL_ASSIST_GREETING_CONFIG", "0");
+    mod = await import("./runtime-flags.js");
+    expect(mod.isCallAssistGreetingConfigEnabled()).toBe(false);
   });
 });

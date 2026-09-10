@@ -368,3 +368,62 @@ describe("Dialog hook — Lex sentiment", () => {
     expect(result.sessionState.sessionAttributes?.sentimentNegative).toBe("0.91");
   });
 });
+
+describe("Dialog hook — greeting session start", () => {
+  it("Welcome intent returns the Dynamo greeting and does not hardcode a city in Lex", async () => {
+    const config = {
+      ...defaultTenantConfig("springfield"),
+      agencyId: "springfield",
+      agencyName: "Springfield Police Department",
+      tenantCity: "City of Springfield",
+      callAssistGreeting: {
+        mode: "stay_on_line" as const,
+        cityName: "City of Springfield",
+        agencyName: "Springfield Police Department",
+        lineDescription: "non-emergency service line",
+        escalationMode: "announce_and_transfer" as const,
+        speakEscalationAnnouncement: true,
+        enableColdClimateIntents: false,
+        enableLiveAgentHandoff: true,
+        greetingPreviewConfirmed: true,
+      },
+    };
+    const event = buildLexEvent({
+      utterance: "hello",
+      intent: "Welcome",
+      sessionAttrs: { agencyId: "springfield", callId: "test-call" },
+    });
+    const result = await handleDialog(event, testDeps({ getConfig: async () => config }));
+    expect(result.sessionState.dialogAction.type).toBe("ElicitIntent");
+    expect(result.messages?.[0]?.content).toContain("City of Springfield");
+    expect(result.messages?.[0]?.content).not.toMatch(/Kansas City|KCPD/i);
+    expect(result.sessionState.sessionAttributes?.greetingDelivered).toBe("true");
+  });
+
+  it("silent_transfer emergency close speaks nothing", async () => {
+    const config = {
+      ...defaultTenantConfig("springfield"),
+      agencyId: "springfield",
+      callAssistGreeting: {
+        mode: "stay_on_line" as const,
+        cityName: "City of Springfield",
+        agencyName: "Springfield PD",
+        lineDescription: "non-emergency service line",
+        escalationMode: "silent_transfer" as const,
+        speakEscalationAnnouncement: false,
+        enableColdClimateIntents: false,
+        enableLiveAgentHandoff: true,
+        greetingPreviewConfirmed: true,
+      },
+    };
+    const event = buildLexEvent({
+      utterance: "he has a gun",
+      intent: "NoiseComplaint",
+      sessionAttrs: { agencyId: "springfield", callId: "test-call", greetingDelivered: "true" },
+    });
+    const result = await handleDialog(event, testDeps({ getConfig: async () => config }));
+    expect(result.sessionState.intent.name).toBe("EmergencyEscalation");
+    expect(result.sessionState.sessionAttributes?.escalationMode).toBe("silent_transfer");
+    expect(result.messages ?? []).toHaveLength(0);
+  });
+});

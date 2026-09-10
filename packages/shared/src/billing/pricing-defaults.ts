@@ -129,6 +129,10 @@ export const PRICING_DEFAULTS = {
   "xlat.t2": 5500,
   "xlat.t3": 8000,
   "xlat.t4": 10000,
+  "rc.translate": 5000,
+  "rc.translate.venue": 2500,
+  "rc.translate.campus": 2000,
+  "rc.translate.hospital": 7500,
 
   "media.photo.lo": 500,
   "media.photo.hi": 1500,

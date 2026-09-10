@@ -45,6 +45,7 @@ const APP_OPERATIONAL_ROOT_SEGMENTS = new Set<string>([
   "sitemap.xml",
   "video-assist",
   "silent-text",
+  "translate",
 ]);
 
 export function getConfiguredAppHostname(): string {
@@ -116,6 +117,7 @@ export function isMarketingPublicPath(pathname: string): boolean {
     first === "call-assist" ||
     first === "go" ||
     first === "locate" ||
+    first === "translate" ||
     first === "r" ||
     first === "diversion" ||
     first === "map-preview" ||

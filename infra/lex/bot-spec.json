@@ -5,6 +5,7 @@
     "es_US"
   ],
   "priority": [
+    "Welcome",
     "EmergencyEscalation",
     "RequestHuman",
     "NoiseComplaint",
@@ -26,6 +27,36 @@
     "FallbackIntent"
   ],
   "intents": [
+    {
+      "name": "Welcome",
+      "utterancesEn": [
+        "hello",
+        "hi",
+        "yes",
+        "i need help",
+        "i need to report something",
+        "i have a question",
+        "i want to report",
+        "can i get some help",
+        "i have a non-emergency",
+        "i need to make a report",
+        "i want to file a report"
+      ],
+      "utterancesEs": [
+        "hola",
+        "sí",
+        "necesito ayuda",
+        "necesito reportar algo",
+        "quiero reportar",
+        "puedo recibir ayuda",
+        "tengo una llamada que no es de emergencia",
+        "necesito hacer un reporte",
+        "quiero presentar un reporte"
+      ],
+      "slots": [],
+      "confirmationEn": "",
+      "confirmationEs": ""
+    },
     {
       "name": "EmergencyEscalation",
       "utterancesEn": [
@@ -188,20 +219,6 @@
           "promptEs": "¿Cuál es la dirección o el lugar donde está el ruido?"
         },
         {
-          "name": "AptBusiness",
-          "slotType": "FreeText",
-          "required": false,
-          "promptEn": "Is there an apartment, suite, or unit number?",
-          "promptEs": "¿Hay número de apartamento, suite o unidad?"
-        },
-        {
-          "name": "CrossStreets",
-          "slotType": "FreeText",
-          "required": false,
-          "promptEn": "What are the nearest cross streets?",
-          "promptEs": "¿Cuáles son las calles transversales más cercanas?"
-        },
-        {
           "name": "NoiseType",
           "slotType": "NoiseType",
           "required": true,
@@ -276,20 +293,6 @@
           "required": true,
           "promptEn": "Where is this person right now — what's the address or nearest intersection?",
           "promptEs": "¿Dónde está esta persona ahora — cuál es la dirección o la intersección más cercana?"
-        },
-        {
-          "name": "AptBusiness",
-          "slotType": "FreeText",
-          "required": false,
-          "promptEn": "Is there an apartment, suite, or unit number?",
-          "promptEs": "¿Hay número de apartamento, suite o unidad?"
-        },
-        {
-          "name": "CrossStreets",
-          "slotType": "FreeText",
-          "required": false,
-          "promptEn": "What are the nearest cross streets?",
-          "promptEs": "¿Cuáles son las calles transversales más cercanas?"
         },
         {
           "name": "PersonDescription",
@@ -368,53 +371,11 @@
           "promptEs": "¿Cuál es la dirección o la intersección más cercana donde está el vehículo?"
         },
         {
-          "name": "AptBusiness",
-          "slotType": "FreeText",
-          "required": false,
-          "promptEn": "Is there an apartment, suite, or unit number?",
-          "promptEs": "¿Hay número de apartamento, suite o unidad?"
-        },
-        {
-          "name": "CrossStreets",
-          "slotType": "FreeText",
-          "required": false,
-          "promptEn": "What are the nearest cross streets?",
-          "promptEs": "¿Cuáles son las calles transversales más cercanas?"
-        },
-        {
           "name": "VehicleDescription",
           "slotType": "FreeText",
           "required": true,
           "promptEn": "Can you describe the vehicle? Color, make or model if you know it, and any license plate?",
           "promptEs": "¿Puede describir el vehículo? Color, marca o modelo si lo sabe, y placa si es posible."
-        },
-        {
-          "name": "VehicleColor",
-          "slotType": "VehicleColor",
-          "required": false,
-          "promptEn": "What color is the vehicle?",
-          "promptEs": "¿De qué color es el vehículo?"
-        },
-        {
-          "name": "VehicleMake",
-          "slotType": "FreeText",
-          "required": false,
-          "promptEn": "Do you know the make of the vehicle — Ford, Toyota, Honda?",
-          "promptEs": "¿Sabe la marca del vehículo — Ford, Toyota, Honda?"
-        },
-        {
-          "name": "VehicleModel",
-          "slotType": "FreeText",
-          "required": false,
-          "promptEn": "Do you know the model?",
-          "promptEs": "¿Sabe el modelo?"
-        },
-        {
-          "name": "VehiclePlate",
-          "slotType": "FreeText",
-          "required": false,
-          "promptEn": "Do you have a license plate number?",
-          "promptEs": "¿Tiene el número de placa?"
         },
         {
           "name": "HowLongAbandoned",
@@ -475,46 +436,11 @@
           "promptEs": "¿Dónde está su vehículo ahora — cuál es la dirección?"
         },
         {
-          "name": "AptBusiness",
-          "slotType": "FreeText",
-          "required": false,
-          "promptEn": "Is there an apartment, suite, or unit number?",
-          "promptEs": "¿Hay número de apartamento, suite o unidad?"
-        },
-        {
-          "name": "CrossStreets",
-          "slotType": "FreeText",
-          "required": false,
-          "promptEn": "What are the nearest cross streets?",
-          "promptEs": "¿Cuáles son las calles transversales más cercanas?"
-        },
-        {
           "name": "BurglaryVehicleDescription",
           "slotType": "FreeText",
           "required": true,
           "promptEn": "What's the year, make, model, and color of your vehicle?",
           "promptEs": "¿Cuál es el año, marca, modelo y color de su vehículo?"
-        },
-        {
-          "name": "VehicleColor",
-          "slotType": "VehicleColor",
-          "required": false,
-          "promptEn": "What color is the vehicle?",
-          "promptEs": "¿De qué color es el vehículo?"
-        },
-        {
-          "name": "VehicleMake",
-          "slotType": "FreeText",
-          "required": false,
-          "promptEn": "Do you know the make of the vehicle — Ford, Toyota, Honda?",
-          "promptEs": "¿Sabe la marca del vehículo — Ford, Toyota, Honda?"
-        },
-        {
-          "name": "VehicleModel",
-          "slotType": "FreeText",
-          "required": false,
-          "promptEn": "Do you know the model?",
-          "promptEs": "¿Sabe el modelo?"
         },
         {
           "name": "BurglaryVehiclePlate",
@@ -601,20 +527,6 @@
           "promptEs": "¿Dónde ocurrió el robo?"
         },
         {
-          "name": "AptBusiness",
-          "slotType": "FreeText",
-          "required": false,
-          "promptEn": "Is there an apartment, suite, or unit number?",
-          "promptEs": "¿Hay número de apartamento, suite o unidad?"
-        },
-        {
-          "name": "CrossStreets",
-          "slotType": "FreeText",
-          "required": false,
-          "promptEn": "What are the nearest cross streets?",
-          "promptEs": "¿Cuáles son las calles transversales más cercanas?"
-        },
-        {
           "name": "TheftItemDescription",
           "slotType": "FreeText",
           "required": true,
@@ -687,53 +599,11 @@
           "promptEs": "¿Cuál es la dirección donde el vehículo está estacionado ilegalmente?"
         },
         {
-          "name": "AptBusiness",
-          "slotType": "FreeText",
-          "required": false,
-          "promptEn": "Is there an apartment, suite, or unit number?",
-          "promptEs": "¿Hay número de apartamento, suite o unidad?"
-        },
-        {
-          "name": "CrossStreets",
-          "slotType": "FreeText",
-          "required": false,
-          "promptEn": "What are the nearest cross streets?",
-          "promptEs": "¿Cuáles son las calles transversales más cercanas?"
-        },
-        {
           "name": "ParkingVehicleDescription",
           "slotType": "FreeText",
           "required": true,
           "promptEn": "Can you describe the vehicle — color, make, model, and license plate if you have it?",
           "promptEs": "¿Puede describir el vehículo — color, marca, modelo y placa si la tiene?"
-        },
-        {
-          "name": "VehicleColor",
-          "slotType": "VehicleColor",
-          "required": false,
-          "promptEn": "What color is the vehicle?",
-          "promptEs": "¿De qué color es el vehículo?"
-        },
-        {
-          "name": "VehicleMake",
-          "slotType": "FreeText",
-          "required": false,
-          "promptEn": "Do you know the make of the vehicle — Ford, Toyota, Honda?",
-          "promptEs": "¿Sabe la marca del vehículo — Ford, Toyota, Honda?"
-        },
-        {
-          "name": "VehicleModel",
-          "slotType": "FreeText",
-          "required": false,
-          "promptEn": "Do you know the model?",
-          "promptEs": "¿Sabe el modelo?"
-        },
-        {
-          "name": "VehiclePlate",
-          "slotType": "FreeText",
-          "required": false,
-          "promptEn": "Do you have a license plate number?",
-          "promptEs": "¿Tiene el número de placa?"
         },
         {
           "name": "ParkingViolationType",
@@ -788,20 +658,6 @@
           "required": true,
           "promptEn": "What's the address of the person you're concerned about?",
           "promptEs": "¿Cuál es la dirección de la persona por la que está preocupado?"
-        },
-        {
-          "name": "AptBusiness",
-          "slotType": "FreeText",
-          "required": false,
-          "promptEn": "Is there an apartment, suite, or unit number?",
-          "promptEs": "¿Hay número de apartamento, suite o unidad?"
-        },
-        {
-          "name": "CrossStreets",
-          "slotType": "FreeText",
-          "required": false,
-          "promptEn": "What are the nearest cross streets?",
-          "promptEs": "¿Cuáles son las calles transversales más cercanas?"
         },
         {
           "name": "WelfareCheckPersonName",
@@ -888,20 +744,6 @@
           "promptEs": "¿Dónde está el animal ahora mismo?"
         },
         {
-          "name": "AptBusiness",
-          "slotType": "FreeText",
-          "required": false,
-          "promptEn": "Is there an apartment, suite, or unit number?",
-          "promptEs": "¿Hay número de apartamento, suite o unidad?"
-        },
-        {
-          "name": "CrossStreets",
-          "slotType": "FreeText",
-          "required": false,
-          "promptEn": "What are the nearest cross streets?",
-          "promptEs": "¿Cuáles son las calles transversales más cercanas?"
-        },
-        {
           "name": "AnimalType",
           "slotType": "FreeText",
           "required": true,
@@ -952,53 +794,11 @@
           "promptEs": "¿De dónde se llevaron su vehículo?"
         },
         {
-          "name": "AptBusiness",
-          "slotType": "FreeText",
-          "required": false,
-          "promptEn": "Is there an apartment, suite, or unit number?",
-          "promptEs": "¿Hay número de apartamento, suite o unidad?"
-        },
-        {
-          "name": "CrossStreets",
-          "slotType": "FreeText",
-          "required": false,
-          "promptEn": "What are the nearest cross streets?",
-          "promptEs": "¿Cuáles son las calles transversales más cercanas?"
-        },
-        {
           "name": "TowVehicleDescription",
           "slotType": "FreeText",
           "required": true,
           "promptEn": "What's the year, make, model, color, and license plate of your vehicle?",
           "promptEs": "¿Cuál es el año, marca, modelo, color y placa de su vehículo?"
-        },
-        {
-          "name": "VehicleColor",
-          "slotType": "VehicleColor",
-          "required": false,
-          "promptEn": "What color is the vehicle?",
-          "promptEs": "¿De qué color es el vehículo?"
-        },
-        {
-          "name": "VehicleMake",
-          "slotType": "FreeText",
-          "required": false,
-          "promptEn": "Do you know the make of the vehicle — Ford, Toyota, Honda?",
-          "promptEs": "¿Sabe la marca del vehículo — Ford, Toyota, Honda?"
-        },
-        {
-          "name": "VehicleModel",
-          "slotType": "FreeText",
-          "required": false,
-          "promptEn": "Do you know the model?",
-          "promptEs": "¿Sabe el modelo?"
-        },
-        {
-          "name": "VehiclePlate",
-          "slotType": "FreeText",
-          "required": false,
-          "promptEn": "Do you have a license plate number?",
-          "promptEs": "¿Tiene el número de placa?"
         },
         {
           "name": "TowCompanyInfo",
@@ -1056,20 +856,6 @@
           "required": true,
           "promptEn": "What's the address of the property that was damaged?",
           "promptEs": "¿Cuál es la dirección de la propiedad que fue dañada?"
-        },
-        {
-          "name": "AptBusiness",
-          "slotType": "FreeText",
-          "required": false,
-          "promptEn": "Is there an apartment, suite, or unit number?",
-          "promptEs": "¿Hay número de apartamento, suite o unidad?"
-        },
-        {
-          "name": "CrossStreets",
-          "slotType": "FreeText",
-          "required": false,
-          "promptEn": "What are the nearest cross streets?",
-          "promptEs": "¿Cuáles son las calles transversales más cercanas?"
         },
         {
           "name": "VandalismDescription",
@@ -1134,20 +920,6 @@
           "promptEs": "¿Cuál es la dirección de la propiedad?"
         },
         {
-          "name": "AptBusiness",
-          "slotType": "FreeText",
-          "required": false,
-          "promptEn": "Is there an apartment, suite, or unit number?",
-          "promptEs": "¿Hay número de apartamento, suite o unidad?"
-        },
-        {
-          "name": "CrossStreets",
-          "slotType": "FreeText",
-          "required": false,
-          "promptEn": "What are the nearest cross streets?",
-          "promptEs": "¿Cuáles son las calles transversales más cercanas?"
-        },
-        {
           "name": "CodeViolationDescription",
           "slotType": "FreeText",
           "required": true,
@@ -1203,20 +975,6 @@
           "promptEs": "¿Cuál es la ubicación — dirección o intersección más cercana?"
         },
         {
-          "name": "AptBusiness",
-          "slotType": "FreeText",
-          "required": false,
-          "promptEn": "Is there an apartment, suite, or unit number?",
-          "promptEs": "¿Hay número de apartamento, suite o unidad?"
-        },
-        {
-          "name": "CrossStreets",
-          "slotType": "FreeText",
-          "required": false,
-          "promptEn": "What are the nearest cross streets?",
-          "promptEs": "¿Cuáles son las calles transversales más cercanas?"
-        },
-        {
           "name": "PublicWorksIssueType",
           "slotType": "FreeText",
           "required": true,
@@ -1264,20 +1022,6 @@
           "promptEs": "¿Dónde ocurrió el accidente?"
         },
         {
-          "name": "AptBusiness",
-          "slotType": "FreeText",
-          "required": false,
-          "promptEn": "Is there an apartment, suite, or unit number?",
-          "promptEs": "¿Hay número de apartamento, suite o unidad?"
-        },
-        {
-          "name": "CrossStreets",
-          "slotType": "FreeText",
-          "required": false,
-          "promptEn": "What are the nearest cross streets?",
-          "promptEs": "¿Cuáles son las calles transversales más cercanas?"
-        },
-        {
           "name": "AccidentWhen",
           "slotType": "IncidentTimeframe",
           "required": true,
@@ -1297,34 +1041,6 @@
           "required": false,
           "promptEn": "Can you describe the other vehicle involved, if there was one?",
           "promptEs": "¿Puede describir el otro vehículo involucrado, si hubo alguno?"
-        },
-        {
-          "name": "VehicleColor",
-          "slotType": "VehicleColor",
-          "required": false,
-          "promptEn": "What color is the vehicle?",
-          "promptEs": "¿De qué color es el vehículo?"
-        },
-        {
-          "name": "VehicleMake",
-          "slotType": "FreeText",
-          "required": false,
-          "promptEn": "Do you know the make of the vehicle — Ford, Toyota, Honda?",
-          "promptEs": "¿Sabe la marca del vehículo — Ford, Toyota, Honda?"
-        },
-        {
-          "name": "VehicleModel",
-          "slotType": "FreeText",
-          "required": false,
-          "promptEn": "Do you know the model?",
-          "promptEs": "¿Sabe el modelo?"
-        },
-        {
-          "name": "VehiclePlate",
-          "slotType": "FreeText",
-          "required": false,
-          "promptEn": "Do you have a license plate number?",
-          "promptEs": "¿Tiene el número de placa?"
         },
         {
           "name": "AccidentCallbackNumber",

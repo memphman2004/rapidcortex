@@ -174,6 +174,7 @@ const protectedSubpaths = [
   "/console",
   "/call-assist",
   "/qa",
+  "/translate",
 ] as const;
 
 function jurisdictionSubpathIsPasswordChangeAllowed(subpath: string): boolean {
@@ -945,6 +946,9 @@ async function runMiddleware(request: NextRequest) {
   }
   if (pathname === "/docs" || pathname.startsWith("/docs/")) {
     return guardAuthenticatedDocs(request);
+  }
+  if (pathname === "/translate" || pathname.startsWith("/translate/")) {
+    return guardDashboardHub(request);
   }
   if (pathname === "/developers/docs" || pathname.startsWith("/developers/docs/")) {
     return guardAuthenticatedDocs(request);

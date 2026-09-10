@@ -8,6 +8,7 @@ export const FALLBACK_INTENT = "FallbackIntent";
 export const REPEAT_CALL_INTENT = "RepeatCallCheck";
 export const PUBLIC_WORKS_INTENT = "PublicWorksIssue";
 export const SUSPICIOUS_PERSON_INTENT = "SuspiciousPerson";
+export const WELCOME_INTENT = "Welcome";
 
 const YES_VALUES = new Set([
   "yes",

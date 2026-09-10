@@ -26,6 +26,7 @@ export const LEX_SPEC_INTENT_ORDER = [
   "OnlineReportEligibility",
   "RepeatCallCheck",
   "InformationRequest",
+  "Welcome",
   "FallbackIntent"
 ] as const;
 
@@ -681,6 +682,7 @@ export const LEX_SPEC_SLOTS: Record<string, LexSpecSlot[]> = {
       "promptEs": "Claro — ¿sobre qué necesita información?"
     }
   ],
+  "Welcome": [],
   "FallbackIntent": []
 };
 

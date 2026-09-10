@@ -5,6 +5,7 @@ import {
 } from "rapid-cortex-shared";
 import { ingestConnectCallerIdentity } from "../telephony/ani-ali.js";
 import { getAgencyIdByDid, getLexTenantConfig } from "./runtime-store.js";
+import { isCallAssistGreetingConfigEnabled, startCallAssistSession } from "./session-start.js";
 
 export type ConnectStartEvent = {
   Details?: {
@@ -21,6 +22,14 @@ export type ConnectStartEvent = {
 export type ConnectStartResult = {
   agencyId: string;
   disclosureText: string;
+  greetingText: string;
+  greetingMode: string;
+  escalationMode: string;
+  greetingDelivered: string;
+  emergencyTransferNumber: string;
+  emergencyTransferQueue: string;
+  enableColdClimate: string;
+  enableLiveAgentHandoff: string;
   language: string;
   agencyShortName: string;
   ani: string;
@@ -56,11 +65,25 @@ export async function handler(event: ConnectStartEvent): Promise<ConnectStartRes
   const identity = identityFromConnectStart(event);
   const phoneNumber = phoneFromEvent(event);
   const agencyId = phoneNumber ? await getAgencyIdByDid(phoneNumber) : null;
+  const locale = event.Details?.Parameters?.locale ?? event.Details?.ContactData?.Attributes?.language ?? "en-US";
   if (!agencyId) {
     const agencyShortName = "this agency";
+    const start = startCallAssistSession({
+      agencyId: "default",
+      locale,
+      config: null,
+    });
     return {
       agencyId: "default",
       disclosureText: interpolateCallAssistVoice(GENERIC_CALL_ASSIST_DISCLOSURE_TEMPLATE, { agencyShortName }),
+      greetingText: start.greeting,
+      greetingMode: start.sessionAttributes.greetingMode ?? "stay_on_line",
+      escalationMode: start.sessionAttributes.escalationMode ?? "announce_and_transfer",
+      greetingDelivered: "true",
+      emergencyTransferNumber: "",
+      emergencyTransferQueue: "",
+      enableColdClimate: "false",
+      enableLiveAgentHandoff: "true",
       language: "en",
       agencyShortName,
       ani: identity.ani ?? "",
@@ -70,12 +93,24 @@ export async function handler(event: ConnectStartEvent): Promise<ConnectStartRes
   }
   const config = await getLexTenantConfig(agencyId);
   const agencyShortName = config.agencyShortName ?? config.shortName ?? "this agency";
+  const start = isCallAssistGreetingConfigEnabled()
+    ? startCallAssistSession({ agencyId, locale, config })
+    : null;
+  const disclosureText = interpolateCallAssistVoice(
+    config.disclosureText || GENERIC_CALL_ASSIST_DISCLOSURE_TEMPLATE,
+    callAssistVoiceVarsFromTenant(config),
+  );
   return {
     agencyId,
-    disclosureText: interpolateCallAssistVoice(
-      config.disclosureText || GENERIC_CALL_ASSIST_DISCLOSURE_TEMPLATE,
-      callAssistVoiceVarsFromTenant(config),
-    ),
+    disclosureText,
+    greetingText: start?.greeting ?? disclosureText,
+    greetingMode: start?.sessionAttributes.greetingMode ?? "stay_on_line",
+    escalationMode: start?.sessionAttributes.escalationMode ?? "announce_and_transfer",
+    greetingDelivered: "true",
+    emergencyTransferNumber: start?.sessionAttributes.emergencyTransferNumber ?? config.emergencyDestination ?? "",
+    emergencyTransferQueue: start?.sessionAttributes.emergencyTransferQueue ?? config.connectEmergencyQueueArn ?? "",
+    enableColdClimate: start?.sessionAttributes.enableColdClimate ?? "false",
+    enableLiveAgentHandoff: start?.sessionAttributes.enableLiveAgentHandoff ?? "true",
     language: config.defaultLanguageCode?.startsWith("es") ? "es" : "en",
     agencyShortName,
     ani: identity.ani ?? "",

@@ -46,6 +46,17 @@ export type RoleNav = {
   roleBadge: string;
 };
 
+function rcTranslateNavItem(href: string, feature: string, badge?: NavBadge): NavItem {
+  return {
+    id: "translate",
+    label: "RC Translate",
+    href,
+    icon: "Languages",
+    feature,
+    ...(badge ? { badge } : {}),
+  };
+}
+
 // ─── RC INTERNAL ──────────────────────────────────────────────────────────────
 
 export const RC_SUPERADMIN_NAV: RoleNav = {
@@ -432,6 +443,7 @@ export function getDispatcherNav(jurisdiction: string): RoleNav {
             feature: "nonEmergencyTriage" },
           { id: "call-assist",   label: "Call Assist",     href: `${j}/call-assist`, icon: "PhoneIncoming",
             feature: "callAssist" },
+          rcTranslateNavItem(`${j}/translate`, "rcTranslate"),
           { id: "transcription", label: "Transcription",   href: `${j}/dispatcher#cad-transcript`, icon: "FileText" },
           { id: "incidents",     label: "Incidents",       href: `${j}/dispatcher`, icon: "AlertCircle",
             badge: { type: "count", key: "openIncidents" } },
@@ -443,6 +455,8 @@ export function getDispatcherNav(jurisdiction: string): RoleNav {
             feature: "cadBridge" },
           { id: "history",       label: "History",         href: `${j}/history`,        icon: "Clock" },
           { id: "media",         label: "Media",           href: `${j}/media`,          icon: "Video" },
+          { id: "rapid-vision",  label: "Rapid Vision™",   href: `${j}/media?vision=1`, icon: "Eye",
+            feature: "rapidVision" },
         ],
       },
     ],
@@ -467,6 +481,7 @@ export function getSupervisorNav(jurisdiction: string): RoleNav {
             feature: "nonEmergencyTriage" },
           { id: "call-assist",   label: "Call Assist",     href: `${j}/call-assist`, icon: "PhoneIncoming",
             feature: "callAssist" },
+          rcTranslateNavItem(`${j}/translate`, "rcTranslate"),
           { id: "cad-queue",     label: "CAD Queue",       href: `${j}/review`,             icon: "Radio",
             badge: { type: "count", key: "pendingCadApprovals" },
             feature: "cadWriteback" },
@@ -510,6 +525,8 @@ export function getSupervisorNav(jurisdiction: string): RoleNav {
           { id: "audit",         label: "Audit Log",       href: `${j}/admin/audit-logs`,   icon: "ScrollText" },
           { id: "history",       label: "History",         href: `${j}/history`,            icon: "Clock" },
           { id: "media",         label: "Media",           href: `${j}/media`,              icon: "Video" },
+          { id: "rapid-vision",  label: "Rapid Vision™",   href: `${j}/media?vision=1`,     icon: "Eye",
+            feature: "rapidVision" },
         ],
       },
     ],
@@ -560,6 +577,7 @@ export function getAgencyAdminNav(jurisdiction: string): RoleNav {
             feature: "ng911Assist" },
           { id: "call-assist-admin", label: "Call Assist", href: `${j}/call-assist/admin`, icon: "PhoneIncoming",
             feature: "callAssist" },
+          rcTranslateNavItem(`${j}/translate`, "rcTranslate"),
           { id: "call-assist-analytics", label: "Call Assist Analytics", href: `${j}/call-assist/analytics`, icon: "BarChart3",
             feature: "callAssist" },
         ],
@@ -716,6 +734,7 @@ export function getAnalystNav(jurisdiction: string): RoleNav {
             feature: "cadConnector" },
           { id: "call-assist",   label: "Call Assist",     href: `${j}/call-assist`,        icon: "PhoneIncoming",
             feature: "callAssist" },
+          rcTranslateNavItem(`${j}/translate`, "rcTranslate"),
           { id: "call-assist-qa", label: "Call Assist QA", href: `${j}/call-assist/qa`, icon: "ClipboardCheck",
             feature: "callAssist" },
           { id: "call-assist-analytics", label: "Call Assist Analytics", href: `${j}/call-assist/analytics`, icon: "BarChart3",
@@ -753,6 +772,7 @@ export function getAuditorNav(jurisdiction: string): RoleNav {
             feature: "cadConnector" },
           { id: "call-assist-records", label: "Call Assist Records", href: `${j}/call-assist/records`, icon: "Scale",
             feature: "callAssist" },
+          rcTranslateNavItem(`${j}/translate`, "rcTranslate"),
           { id: "call-assist-qa", label: "Call Assist QA", href: `${j}/call-assist/qa`, icon: "ClipboardCheck",
             feature: "callAssist" },
           { id: "access",        label: "Access Reports",  href: `${j}/reports`,            icon: "UserCheck",
@@ -789,6 +809,7 @@ export function getCampusAdminNav(code: string): RoleNav {
           { id: "dashboard",   label: "Dashboard",         href: base,                      icon: "LayoutDashboard", exact: true },
           { id: "incidents",   label: "Incidents",         href: `${base}/incidents`,       icon: "AlertCircle",
             badge: { type: "count", key: "openIncidents" } },
+          rcTranslateNavItem(`${base}/translate`, "rcTranslateCampus"),
           {
             id: "alerts",
             label: "Occupant Alerts",
@@ -932,6 +953,7 @@ export function getCampusSupervisorNav(code: string): RoleNav {
           { id: "dashboard",   label: "Dashboard",         href: base,                      icon: "LayoutDashboard", exact: true },
           { id: "incidents",   label: "Incidents",         href: `${base}/incidents`,       icon: "AlertCircle",
             badge: { type: "count", key: "openIncidents" } },
+          rcTranslateNavItem(`${base}/translate`, "rcTranslateCampus"),
           {
             id: "alerts",
             label: "Occupant Alerts",
@@ -1017,6 +1039,7 @@ export function getCampusSecurityNav(code: string): RoleNav {
         items: [
           { id: "dashboard",   label: "Dashboard",         href: base,                      icon: "LayoutDashboard", exact: true },
           { id: "incidents",   label: "Incidents",         href: `${base}/incidents`,       icon: "AlertCircle" },
+          rcTranslateNavItem(`${base}/translate`, "rcTranslateCampus"),
           { id: "cameras",     label: "Cameras",           href: `${base}/cameras`,         icon: "Camera" },
           { id: "qr",          label: "QR Codes",          href: `${base}/qr-codes`,        icon: "QrCode",
             badge: { type: "label", text: "VIEW ONLY", color: "slate" } },
@@ -1040,6 +1063,7 @@ export function getCampusDispatchNav(code: string): RoleNav {
           { id: "dashboard",   label: "Dashboard",         href: base,                      icon: "LayoutDashboard", exact: true },
           { id: "incidents",   label: "Incident Queue",    href: `${base}/incidents`,       icon: "ClipboardList",
             badge: { type: "count", key: "openIncidents" } },
+          rcTranslateNavItem(`${base}/translate`, "rcTranslateCampus"),
           { id: "cameras",     label: "Cameras",           href: `${base}/cameras`,         icon: "Camera" },
           { id: "zones",       label: "Zones",             href: `${base}/zones`,           icon: "Map" },
         ],
@@ -1074,6 +1098,7 @@ export function getCampusCounselorNav(code: string): RoleNav {
             icon: "Heart",
             badge: { type: "count", key: "openIncidents" },
           },
+          rcTranslateNavItem(`${base}/translate`, "rcTranslateCampus"),
           { id: "reports", label: "Reports", href: `${base}/reports`, icon: "FileBarChart" },
         ],
       },
@@ -1092,6 +1117,11 @@ export function getCampusFacultyNav(code: string): RoleNav {
         label: "CAMPUS SAFETY",
         items: [
           { id: "dashboard", label: "Dashboard", href: base, icon: "LayoutDashboard", exact: true },
+          rcTranslateNavItem(`${base}/translate`, "rcTranslateCampus", {
+            type: "label",
+            text: "VIEW ONLY",
+            color: "slate",
+          }),
           { id: "reports", label: "Reports", href: `${base}/reports`, icon: "FileBarChart" },
         ],
       },
@@ -1111,6 +1141,7 @@ export const HOSPITAL_ADMIN_NAV: RoleNav = {
       items: [
         { id: "dashboard",   label: "Dashboard",         href: "/hospital-admin/dashboard",  icon: "LayoutDashboard", exact: true },
         { id: "capacity",    label: "Capacity",          href: "/hospital-admin/capacity",   icon: "BedDouble" },
+        rcTranslateNavItem("/hospital-admin/translate", "rcTranslateHospital"),
         { id: "routing",     label: "Routing Config",    href: "/hospital-admin/routing",    icon: "Route" },
         { id: "regional",    label: "Regional Map",      href: "/hospital-admin/regional-map", icon: "Map" },
       ],
@@ -1151,6 +1182,7 @@ export const HOSPITAL_COORDINATOR_NAV: RoleNav = {
       items: [
         { id: "dashboard",   label: "Dashboard",         href: "/hospital-admin/dashboard",  icon: "LayoutDashboard", exact: true },
         { id: "capacity",    label: "Capacity",          href: "/hospital-admin/capacity",   icon: "BedDouble" },
+        rcTranslateNavItem("/hospital-admin/translate", "rcTranslateHospital"),
         { id: "regional",    label: "Regional Map",      href: "/hospital-admin/regional-map", icon: "Map" },
       ],
     },
@@ -1176,6 +1208,7 @@ export const HOSPITAL_STAFF_NAV: RoleNav = {
       label: "CAPACITY",
       items: [
         { id: "update",      label: "Update Capacity",   href: "/hospital-staff/dashboard",  icon: "BedDouble", exact: true },
+        rcTranslateNavItem("/hospital-staff/translate", "rcTranslateHospital"),
         { id: "history",     label: "My History",        href: "/hospital-staff/history",    icon: "Clock" },
       ],
     },
@@ -1198,6 +1231,7 @@ export function getVenueAdminNav(code: string): RoleNav {
           { id: "dashboard",   label: "Dashboard",         href: base,                       icon: "LayoutDashboard", exact: true },
           { id: "incidents",   label: "Incidents",         href: `${base}/incidents`,        icon: "AlertCircle",
             badge: { type: "count", key: "openIncidents" } },
+          rcTranslateNavItem(`${base}/translate`, "rcTranslateVenue"),
           {
             id: "alerts",
             label: "Occupant Alerts",
@@ -1266,6 +1300,7 @@ export function getVenueSupervisorNav(code: string): RoleNav {
           { id: "dashboard",   label: "Dashboard",         href: base,                       icon: "LayoutDashboard", exact: true },
           { id: "incidents",   label: "Incidents",         href: `${base}/incidents`,        icon: "AlertCircle",
             badge: { type: "count", key: "openIncidents" } },
+          rcTranslateNavItem(`${base}/translate`, "rcTranslateVenue"),
           {
             id: "alerts",
             label: "Occupant Alerts",
@@ -1305,6 +1340,7 @@ export function getVenueSecurityNav(code: string): RoleNav {
         items: [
           { id: "dashboard",   label: "Dashboard",         href: base,                       icon: "LayoutDashboard", exact: true },
           { id: "incidents",   label: "Incidents",         href: `${base}/incidents`,        icon: "AlertCircle" },
+          rcTranslateNavItem(`${base}/translate`, "rcTranslateVenue"),
           { id: "guest",       label: "Guest Reports",     href: `${base}/reports`,          icon: "MessageSquare" },
           { id: "cameras",     label: "Cameras",           href: `${base}/cameras`,          icon: "Camera" },
           { id: "zones",       label: "Zones",             href: `${base}/zones`,            icon: "Map" },
@@ -1327,6 +1363,7 @@ export function getVenueOperatorNav(code: string): RoleNav {
           { id: "dashboard",   label: "Dashboard",         href: base,                       icon: "LayoutDashboard", exact: true },
           { id: "incidents",   label: "Incidents",         href: `${base}/incidents`,        icon: "AlertCircle",
             badge: { type: "label", text: "VIEW ONLY", color: "slate" } },
+          rcTranslateNavItem(`${base}/translate`, "rcTranslateVenue"),
           { id: "qr",          label: "QR Codes",          href: `${base}/qr-codes`,         icon: "QrCode" },
         ],
       },

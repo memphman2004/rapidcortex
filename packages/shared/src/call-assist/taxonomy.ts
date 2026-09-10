@@ -208,6 +208,17 @@ export function isCallAssistOnboardingComplete(config: { onboardingComplete?: bo
   return config.onboardingComplete !== false;
 }
 
+export function isCallAssistActivationReady(config: {
+  onboardingComplete?: boolean;
+  greetingReady?: boolean;
+  greetingActivationBlocked?: string | null;
+}): boolean {
+  if (!isCallAssistOnboardingComplete(config)) return false;
+  if (config.greetingReady === false) return false;
+  if (config.greetingActivationBlocked) return false;
+  return true;
+}
+
 export function classificationLabel(taxonomy: AgencyTaxonomy | null | undefined, id: string | null | undefined): string {
   if (!id) return "Unknown";
   const row = taxonomy ? findCallType(taxonomy, id) : undefined;

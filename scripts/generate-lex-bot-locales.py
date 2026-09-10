@@ -22,6 +22,7 @@ NO_CONFIRM = {
     "OnlineReportEligibility",
     "RepeatCallCheck",
     "InformationRequest",
+    "Welcome",
     "FallbackIntent",
 }
 

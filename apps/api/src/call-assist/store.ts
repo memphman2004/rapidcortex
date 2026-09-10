@@ -34,6 +34,7 @@ import type {
   CallAssistTransferLedgerEntry,
   CallAssistSentiment,
   VoiceEmotionAssessment,
+  CallAssistGreetingConfig,
 } from "rapid-cortex-shared";
 import { ddb } from "../repositories/baseRepository.js";
 import { env } from "../lib/env.js";
@@ -123,6 +124,7 @@ export type CallAssistTenantConfig = {
   transcribeVocabularyStatus?: string;
   aiDisclosureRequired?: boolean;
   onboardingStatus?: string;
+  callAssistGreeting?: CallAssistGreetingConfig;
   onboardingSteps?: Array<{
     step: string;
     status: string;

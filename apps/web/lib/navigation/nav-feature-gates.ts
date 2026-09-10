@@ -10,6 +10,11 @@ import {
   isNonEmergencyTriageEnabled,
   isNg911AssistEnabled,
   isCallAssistEnabled,
+  isRcTranslateCampusEnabled,
+  isRcTranslateEnabled,
+  isRcTranslateHospitalEnabled,
+  isRapidVisionEnabled,
+  isRcTranslateVenueEnabled,
   isVerticalAlertsEnabled,
   isQaScoringEnabled,
   isRcsEnabled,
@@ -47,6 +52,16 @@ export function isNavFeatureEnabled(feature: string): boolean {
       return isNg911AssistEnabled();
     case "callAssist":
       return isCallAssistEnabled();
+    case "rcTranslate":
+      return isRcTranslateEnabled();
+    case "rcTranslateVenue":
+      return isRcTranslateEnabled() && isRcTranslateVenueEnabled();
+    case "rcTranslateCampus":
+      return isRcTranslateEnabled() && isRcTranslateCampusEnabled();
+    case "rcTranslateHospital":
+      return isRcTranslateEnabled() && isRcTranslateHospitalEnabled();
+    case "rapidVision":
+      return isRapidVisionEnabled();
     case "verticalAlerts":
       return isVerticalAlertsEnabled();
     case "channelMonitoring":

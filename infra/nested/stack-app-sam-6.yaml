@@ -1,0 +1,526 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Transform: AWS::Serverless-2016-10-31
+Description: >
+  Rapid Cortex — Rapid Vision™ (AI visual intelligence).
+  HTTP routes attach to stack 2 HttpApi. Scheduled AI Writer streams Claude tokens to dispatchers.
+
+Parameters:
+  DeploymentStage:
+    Type: String
+    AllowedValues: [dev, staging, prod, pilot]
+  HttpApiId:
+    Type: String
+  HttpApiJwtAuthorizerId:
+    Type: String
+    Default: ""
+  ImportedCognitoUserPoolId:
+    Type: String
+  ImportedCognitoWebClientId:
+    Type: String
+  ImportedCognitoIssuer:
+    Type: String
+  AuditTable:
+    Type: String
+  AgenciesTable:
+    Type: String
+  IncidentsTable:
+    Type: String
+  TranscriptsTable:
+    Type: String
+    Default: ""
+  WebSocketConnectionsTable:
+    Type: String
+    Default: ""
+  WebSocketApiEndpoint:
+    Type: String
+    Default: ""
+  AnthropicApiKeySecretArn:
+    Type: String
+    Default: ""
+  AppPublicBaseUrl:
+    Type: String
+    Default: ""
+  ExistingVisionCamerasTableName:
+    Type: String
+    Default: ""
+  ExistingVisionSessionsTableName:
+    Type: String
+    Default: ""
+  ExistingVisionObservationsTableName:
+    Type: String
+    Default: ""
+  ExistingVisionOwnerConsentTableName:
+    Type: String
+    Default: ""
+  ExistingVisionArtifactsBucketName:
+    Type: String
+    Default: ""
+  ManagedPolicyNamePrefix:
+    Type: String
+    Default: rapid-cortex
+
+Conditions:
+  HasHttpApiJwtAuthorizer: !Not [!Equals [!Ref HttpApiJwtAuthorizerId, ""]]
+  CreateCamerasTable: !Equals [!Ref ExistingVisionCamerasTableName, ""]
+  CreateSessionsTable: !Equals [!Ref ExistingVisionSessionsTableName, ""]
+  CreateObservationsTable: !Equals [!Ref ExistingVisionObservationsTableName, ""]
+  CreateConsentTable: !Equals [!Ref ExistingVisionOwnerConsentTableName, ""]
+  CreateArtifactsBucket: !Equals [!Ref ExistingVisionArtifactsBucketName, ""]
+  HasAnthropicSecret: !Not [!Equals [!Ref AnthropicApiKeySecretArn, ""]]
+  HasTranscriptsTable: !Not [!Equals [!Ref TranscriptsTable, ""]]
+  HasWebSocket: !Not [!Equals [!Ref WebSocketConnectionsTable, ""]]
+
+Globals:
+  Function:
+    Runtime: nodejs20.x
+    Timeout: 30
+    MemorySize: 512
+    Environment:
+      Variables:
+        DEPLOYMENT_STAGE: !Ref DeploymentStage
+        ALLOW_UNAUTHENTICATED_API: "false"
+        ENABLE_RAPID_VISION: "true"
+        ENABLE_RAPID_VISION_RING: "true"
+        ENABLE_RAPID_VISION_CALLER_VIDEO: "true"
+        ENABLE_RAPID_VISION_DEMO: "true"
+        ENABLE_RAPID_VISION_AI_WRITER: "true"
+        VISION_AI_MOCK: "true"
+        CAD_WRITEBACK_ENABLED: "false"
+        VISION_CAMERAS_TABLE: !If
+          - CreateCamerasTable
+          - !Ref VisionCamerasTable
+          - !Ref ExistingVisionCamerasTableName
+        VISION_SESSIONS_TABLE: !If
+          - CreateSessionsTable
+          - !Ref VisionSessionsTable
+          - !Ref ExistingVisionSessionsTableName
+        VISION_OBSERVATIONS_TABLE: !If
+          - CreateObservationsTable
+          - !Ref VisionObservationsTable
+          - !Ref ExistingVisionObservationsTableName
+        VISION_OWNER_CONSENT_TABLE: !If
+          - CreateConsentTable
+          - !Ref VisionOwnerConsentTable
+          - !Ref ExistingVisionOwnerConsentTableName
+        VISION_ARTIFACTS_BUCKET: !If
+          - CreateArtifactsBucket
+          - !Ref VisionArtifactsBucket
+          - !Ref ExistingVisionArtifactsBucketName
+        AUDIT_TABLE: !Ref AuditTable
+        AGENCIES_TABLE: !Ref AgenciesTable
+        INCIDENTS_TABLE: !Ref IncidentsTable
+        TRANSCRIPTS_TABLE: !Ref TranscriptsTable
+        WEBSOCKET_CONNECTIONS_TABLE: !Ref WebSocketConnectionsTable
+        WEBSOCKET_API_ENDPOINT: !Ref WebSocketApiEndpoint
+        APP_PUBLIC_BASE_URL: !Ref AppPublicBaseUrl
+        ANTHROPIC_API_KEY_SECRET_ARN: !Ref AnthropicApiKeySecretArn
+        VISION_AI_WRITER_INTERVAL_SECONDS: "30"
+        VISION_MAX_ACTIVE_ANALYSES_PER_AGENCY: "10"
+        COGNITO_USER_POOL_ID: !Ref ImportedCognitoUserPoolId
+        COGNITO_CLIENT_ID: !Ref ImportedCognitoWebClientId
+        COGNITO_REGION: !Ref AWS::Region
+
+Resources:
+  VisionCamerasTable:
+    Type: AWS::DynamoDB::Table
+    Condition: CreateCamerasTable
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      TableName: !Sub "rapid-cortex-vision-cameras-${DeploymentStage}"
+      BillingMode: PAY_PER_REQUEST
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: true
+      SSESpecification:
+        SSEEnabled: true
+      AttributeDefinitions:
+        - AttributeName: pk
+          AttributeType: S
+        - AttributeName: sk
+          AttributeType: S
+      KeySchema:
+        - AttributeName: pk
+          KeyType: HASH
+        - AttributeName: sk
+          KeyType: RANGE
+      TimeToLiveSpecification:
+        AttributeName: ttl
+        Enabled: true
+
+  VisionSessionsTable:
+    Type: AWS::DynamoDB::Table
+    Condition: CreateSessionsTable
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      TableName: !Sub "rapid-cortex-vision-sessions-${DeploymentStage}"
+      BillingMode: PAY_PER_REQUEST
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: true
+      SSESpecification:
+        SSEEnabled: true
+      AttributeDefinitions:
+        - AttributeName: pk
+          AttributeType: S
+        - AttributeName: sk
+          AttributeType: S
+        - AttributeName: aiAnalysisStatus
+          AttributeType: S
+      KeySchema:
+        - AttributeName: pk
+          KeyType: HASH
+        - AttributeName: sk
+          KeyType: RANGE
+      GlobalSecondaryIndexes:
+        - IndexName: ByAiStatus
+          KeySchema:
+            - AttributeName: aiAnalysisStatus
+              KeyType: HASH
+          Projection:
+            ProjectionType: ALL
+      TimeToLiveSpecification:
+        AttributeName: ttl
+        Enabled: true
+
+  VisionObservationsTable:
+    Type: AWS::DynamoDB::Table
+    Condition: CreateObservationsTable
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      TableName: !Sub "rapid-cortex-vision-observations-${DeploymentStage}"
+      BillingMode: PAY_PER_REQUEST
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: true
+      SSESpecification:
+        SSEEnabled: true
+      AttributeDefinitions:
+        - AttributeName: pk
+          AttributeType: S
+        - AttributeName: sk
+          AttributeType: S
+        - AttributeName: agencyId
+          AttributeType: S
+        - AttributeName: verificationStatus
+          AttributeType: S
+      KeySchema:
+        - AttributeName: pk
+          KeyType: HASH
+        - AttributeName: sk
+          KeyType: RANGE
+      GlobalSecondaryIndexes:
+        - IndexName: ByAgencyAndStatus
+          KeySchema:
+            - AttributeName: agencyId
+              KeyType: HASH
+            - AttributeName: verificationStatus
+              KeyType: RANGE
+          Projection:
+            ProjectionType: ALL
+      TimeToLiveSpecification:
+        AttributeName: ttl
+        Enabled: true
+
+  VisionOwnerConsentTable:
+    Type: AWS::DynamoDB::Table
+    Condition: CreateConsentTable
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      TableName: !Sub "rapid-cortex-vision-owner-consent-${DeploymentStage}"
+      BillingMode: PAY_PER_REQUEST
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: true
+      SSESpecification:
+        SSEEnabled: true
+      AttributeDefinitions:
+        - AttributeName: pk
+          AttributeType: S
+        - AttributeName: sk
+          AttributeType: S
+      KeySchema:
+        - AttributeName: pk
+          KeyType: HASH
+        - AttributeName: sk
+          KeyType: RANGE
+      TimeToLiveSpecification:
+        AttributeName: ttl
+        Enabled: true
+
+  VisionArtifactsBucket:
+    Type: AWS::S3::Bucket
+    Condition: CreateArtifactsBucket
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      BucketName: !Sub "rapid-cortex-vision-artifacts-${DeploymentStage}-${AWS::AccountId}"
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: AES256
+      LifecycleConfiguration:
+        Rules:
+          - Id: ExpireUnverifiedFrames
+            Status: Enabled
+            Prefix: "frames/unverified/"
+            ExpirationInDays: 1
+          - Id: RetainVerifiedArtifacts
+            Status: Enabled
+            Prefix: "frames/verified/"
+            ExpirationInDays: 90
+
+  AppManagedPolicyVision:
+    Type: AWS::IAM::ManagedPolicy
+    Properties:
+      ManagedPolicyName: !Sub "${ManagedPolicyNamePrefix}-vision-${DeploymentStage}"
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Sid: VisionTables
+            Effect: Allow
+            Action:
+              - dynamodb:GetItem
+              - dynamodb:PutItem
+              - dynamodb:UpdateItem
+              - dynamodb:DeleteItem
+              - dynamodb:Query
+              - dynamodb:DescribeTable
+              - dynamodb:ConditionCheckItem
+            Resource:
+              - !If
+                  - CreateCamerasTable
+                  - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${VisionCamerasTable}"
+                  - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${ExistingVisionCamerasTableName}"
+              - !If
+                  - CreateCamerasTable
+                  - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${VisionCamerasTable}/index/*"
+                  - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${ExistingVisionCamerasTableName}/index/*"
+              - !If
+                  - CreateSessionsTable
+                  - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${VisionSessionsTable}"
+                  - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${ExistingVisionSessionsTableName}"
+              - !If
+                  - CreateSessionsTable
+                  - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${VisionSessionsTable}/index/*"
+                  - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${ExistingVisionSessionsTableName}/index/*"
+              - !If
+                  - CreateObservationsTable
+                  - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${VisionObservationsTable}"
+                  - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${ExistingVisionObservationsTableName}"
+              - !If
+                  - CreateObservationsTable
+                  - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${VisionObservationsTable}/index/*"
+                  - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${ExistingVisionObservationsTableName}/index/*"
+              - !If
+                  - CreateConsentTable
+                  - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${VisionOwnerConsentTable}"
+                  - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${ExistingVisionOwnerConsentTableName}"
+              - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${AuditTable}"
+              - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${AuditTable}/index/*"
+              - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${AgenciesTable}"
+              - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${AgenciesTable}/index/*"
+              - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${IncidentsTable}"
+              - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${IncidentsTable}/index/*"
+          - Sid: VisionKvsRead
+            Effect: Allow
+            Action:
+              - kinesisvideo:GetDataEndpoint
+              - kinesisvideo:GetHLSStreamingSessionURL
+              - kinesisvideo:ListFragments
+              - kinesisvideo:GetMediaForFragmentList
+            Resource: "*"
+            Condition:
+              StringEquals:
+                aws:RequestedRegion: !Ref AWS::Region
+          - Sid: VisionArtifacts
+            Effect: Allow
+            Action:
+              - s3:PutObject
+              - s3:GetObject
+            Resource: !If
+              - CreateArtifactsBucket
+              - !Sub "${VisionArtifactsBucket.Arn}/*"
+              - !Sub "arn:aws:s3:::${ExistingVisionArtifactsBucketName}/*"
+
+  AppManagedPolicyVisionAnthropic:
+    Type: AWS::IAM::ManagedPolicy
+    Condition: HasAnthropicSecret
+    Properties:
+      ManagedPolicyName: !Sub "${ManagedPolicyNamePrefix}-vision-anthropic-${DeploymentStage}"
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Sid: VisionAnthropicSecret
+            Effect: Allow
+            Action:
+              - secretsmanager:GetSecretValue
+            Resource: !Ref AnthropicApiKeySecretArn
+
+  AppManagedPolicyVisionWs:
+    Type: AWS::IAM::ManagedPolicy
+    Condition: HasWebSocket
+    Properties:
+      ManagedPolicyName: !Sub "${ManagedPolicyNamePrefix}-vision-ws-${DeploymentStage}"
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Sid: VisionWsConnectionsTable
+            Effect: Allow
+            Action:
+              - dynamodb:Query
+              - dynamodb:GetItem
+              - dynamodb:DeleteItem
+            Resource:
+              - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${WebSocketConnectionsTable}"
+              - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${WebSocketConnectionsTable}/index/*"
+          - Sid: VisionWsPost
+            Effect: Allow
+            Action:
+              - execute-api:ManageConnections
+            Resource: !Sub "arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:*/${DeploymentStage}/POST/@connections/*"
+
+  AppManagedPolicyVisionTranscripts:
+    Type: AWS::IAM::ManagedPolicy
+    Condition: HasTranscriptsTable
+    Properties:
+      ManagedPolicyName: !Sub "${ManagedPolicyNamePrefix}-vision-transcripts-${DeploymentStage}"
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Sid: VisionTranscriptsRead
+            Effect: Allow
+            Action:
+              - dynamodb:Query
+              - dynamodb:GetItem
+            Resource:
+              - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${TranscriptsTable}"
+              - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${TranscriptsTable}/index/*"
+
+  VisionHttpFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/handlers/rapid-vision/http.handler
+      Timeout: 30
+      Policies:
+        - !Ref AppManagedPolicyVision
+        - !If [HasAnthropicSecret, !Ref AppManagedPolicyVisionAnthropic, !Ref AWS::NoValue]
+        - !If [HasWebSocket, !Ref AppManagedPolicyVisionWs, !Ref AWS::NoValue]
+        - !If [HasTranscriptsTable, !Ref AppManagedPolicyVisionTranscripts, !Ref AWS::NoValue]
+
+  VisionConsentFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/handlers/rapid-vision/consent.handler
+      Timeout: 15
+      Policies:
+        - !Ref AppManagedPolicyVision
+
+  VisionAiWriterFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/rapid-vision/ai-writer.handler
+      Timeout: 120
+      MemorySize: 1024
+      Policies:
+        - !Ref AppManagedPolicyVision
+        - !If [HasAnthropicSecret, !Ref AppManagedPolicyVisionAnthropic, !Ref AWS::NoValue]
+        - !If [HasWebSocket, !Ref AppManagedPolicyVisionWs, !Ref AWS::NoValue]
+        - !If [HasTranscriptsTable, !Ref AppManagedPolicyVisionTranscripts, !Ref AWS::NoValue]
+      Events:
+        Schedule:
+          Type: Schedule
+          Properties:
+            Schedule: rate(1 minute)
+            Enabled: true
+
+  VisionHttpIntegration:
+    Type: AWS::ApiGatewayV2::Integration
+    Properties:
+      ApiId: !Ref HttpApiId
+      IntegrationType: AWS_PROXY
+      IntegrationUri: !Sub arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${VisionHttpFunction.Arn}/invocations
+      PayloadFormatVersion: "2.0"
+
+  VisionConsentIntegration:
+    Type: AWS::ApiGatewayV2::Integration
+    Properties:
+      ApiId: !Ref HttpApiId
+      IntegrationType: AWS_PROXY
+      IntegrationUri: !Sub arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${VisionConsentFunction.Arn}/invocations
+      PayloadFormatVersion: "2.0"
+
+  VisionHttpInvokePermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !Ref VisionHttpFunction
+      Principal: apigateway.amazonaws.com
+      SourceArn: !Sub arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${HttpApiId}/*
+
+  VisionConsentInvokePermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !Ref VisionConsentFunction
+      Principal: apigateway.amazonaws.com
+      SourceArn: !Sub arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${HttpApiId}/*
+
+  RouteVisionProxy:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref HttpApiId
+      RouteKey: "ANY /api/vision/{proxy+}"
+      Target: !Sub "integrations/${VisionHttpIntegration}"
+      AuthorizationType: !If [HasHttpApiJwtAuthorizer, JWT, NONE]
+      AuthorizerId: !If [HasHttpApiJwtAuthorizer, !Ref HttpApiJwtAuthorizerId, !Ref AWS::NoValue]
+
+  RouteVisionIncidentProxy:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref HttpApiId
+      RouteKey: "ANY /api/incidents/{id}/vision/{proxy+}"
+      Target: !Sub "integrations/${VisionHttpIntegration}"
+      AuthorizationType: !If [HasHttpApiJwtAuthorizer, JWT, NONE]
+      AuthorizerId: !If [HasHttpApiJwtAuthorizer, !Ref HttpApiJwtAuthorizerId, !Ref AWS::NoValue]
+
+  RouteVisionConsent:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref HttpApiId
+      RouteKey: "GET /api/public/vision/consent/{token}/{action}"
+      Target: !Sub "integrations/${VisionConsentIntegration}"
+      AuthorizationType: NONE
+
+Outputs:
+  VisionCamerasTableName:
+    Value: !If
+      - CreateCamerasTable
+      - !Ref VisionCamerasTable
+      - !Ref ExistingVisionCamerasTableName
+  VisionSessionsTableName:
+    Value: !If
+      - CreateSessionsTable
+      - !Ref VisionSessionsTable
+      - !Ref ExistingVisionSessionsTableName
+  VisionObservationsTableName:
+    Value: !If
+      - CreateObservationsTable
+      - !Ref VisionObservationsTable
+      - !Ref ExistingVisionObservationsTableName

@@ -32,7 +32,7 @@ function partnerAuthorizeUrl(args: {
   state: string;
   codeChallenge: string;
 }): string {
-  // Do not send `scope`. Rapid Cortex Connect is rejected for `scope=client`,
+  // Do not send `scope`. Rapid Vision™ is rejected for `scope=client`,
   // and Ring applies the app-level scopes from the developer portal instead.
   const params = new URLSearchParams({
     client_id: args.clientId,

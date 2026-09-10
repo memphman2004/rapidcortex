@@ -25,7 +25,7 @@ VERSION="$(aws lexv2-models create-bot-version \
     "en_US": {"sourceBotVersion": "DRAFT"},
     "es_US": {"sourceBotVersion": "DRAFT"}
   }' \
-  --description "Call Assist 19-intent spec" \
+  --description "Call Assist 20-intent spec" \
   --region "${REGION}" \
   --query 'botVersion' --output text)"
 

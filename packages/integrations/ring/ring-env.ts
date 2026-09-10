@@ -34,7 +34,7 @@ export const RING_REDIRECT_URI =
 /**
  * Partner-initiated authorize endpoint (Ring Appstore).
  * `oauth.ring.com/oauth/authorize` + `scope=client` is the unofficial consumer API
- * and is rejected for Rapid Cortex Connect (`invalid_scope` / client-scope validation).
+ * and is rejected for Rapid Vision™ (`invalid_scope` / client-scope validation).
  */
 export const RING_OAUTH_AUTHORIZE_URL =
   process.env.RING_OAUTH_AUTHORIZE_URL?.trim() ||

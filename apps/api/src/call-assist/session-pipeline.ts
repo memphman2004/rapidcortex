@@ -20,6 +20,10 @@ import {
   recommendRoute,
   recordAskedQuestion,
   resolveAgencyTaxonomy,
+  resolveGreetingConfig,
+  checkEscalation,
+  buildGreeting,
+  isCallAssistGreetingReady,
   groundedKnowledgeReply,
   spokenIntakePrompt,
   topKnowledgeHit,
@@ -105,6 +109,11 @@ export async function initiateSession(opts: {
     language: preferred !== "und" ? preferred : opts.language,
     preferredLanguage: preferred !== "und" ? preferred : undefined,
   };
+  const greeting = resolveGreetingConfig(config);
+  const greetingReady = isCallAssistGreetingReady(greeting);
+  const openingText = greetingReady
+    ? buildGreeting(greeting, preferred !== "und" ? preferred : opts.language ?? "en-US")
+    : interpolateCallAssistVoice(config.disclosureText, callAssistVoiceVarsFromTenant(config));
   const session: CallAssistSessionRecord = {
     agencyId: opts.agencyId,
     sessionId: makeId("cas"),
@@ -120,7 +129,7 @@ export async function initiateSession(opts: {
     connectContactId: opts.connectContactId,
     disclosureDelivered: config.disclosureEnabled,
     utterances: config.disclosureEnabled
-      ? [{ sequence: 0, speaker: "assistant", text: interpolateCallAssistVoice(config.disclosureText, callAssistVoiceVarsFromTenant(config)), at: now }]
+      ? [{ sequence: 0, speaker: "assistant", text: openingText, at: now }]
       : [],
     intake,
     aliAddress: identity.aliAddress,
@@ -254,13 +263,17 @@ export async function processUtterance(opts: {
       ttyMode: session.ttyMode,
       language: session.language,
     });
-    const tel = await telephony.emergencyTransfer(
-      {
-        liveEmergencyNumber: config.emergencyDestination,
-        demoEmergencyNumber: config.demoEmergencyDestination,
-      },
-      { demo: session.source === "DEMO", spokenCallerScript: routing.spokenCallerScript },
-    );
+    const escalation = checkEscalation(opts.text, resolveGreetingConfig(config), session.language ?? "en-US");
+    const tel =
+      escalation.action === "announce_and_end"
+        ? { action: "CONTINUE" as const, spokenCallerScript: escalation.announcement, continueAiConversation: false }
+        : await telephony.emergencyTransfer(
+            {
+              liveEmergencyNumber: config.emergencyDestination,
+              demoEmergencyNumber: config.demoEmergencyDestination,
+            },
+            { demo: session.source === "DEMO", spokenCallerScript: escalation.announcement },
+          );
     session.updatedAt = now;
     const xfer = await recordTransferAttempt({
       agencyId: opts.agencyId,
@@ -488,13 +501,17 @@ export async function processUtterance(opts: {
       ttyMode: session.ttyMode,
       language: session.language,
     });
-    const tel = await telephony.emergencyTransfer(
-      {
-        liveEmergencyNumber: config.emergencyDestination,
-        demoEmergencyNumber: config.demoEmergencyDestination,
-      },
-      { demo: session.source === "DEMO", spokenCallerScript: routing.spokenCallerScript },
-    );
+    const escalation = checkEscalation(opts.text, resolveGreetingConfig(config), session.language ?? "en-US");
+    const tel =
+      escalation.action === "announce_and_end"
+        ? { action: "CONTINUE" as const, spokenCallerScript: escalation.announcement, continueAiConversation: false }
+        : await telephony.emergencyTransfer(
+            {
+              liveEmergencyNumber: config.emergencyDestination,
+              demoEmergencyNumber: config.demoEmergencyDestination,
+            },
+            { demo: session.source === "DEMO", spokenCallerScript: escalation.announcement },
+          );
     session.updatedAt = now;
     const xfer911 = await recordTransferAttempt({
       agencyId: opts.agencyId,

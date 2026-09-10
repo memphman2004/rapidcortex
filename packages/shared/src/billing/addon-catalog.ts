@@ -479,6 +479,55 @@ export const ADDON_CATALOG: AddonDefinition[] = [
     planAvailability: enterpriseOnly,
   }),
   withLegacyIncludedInPlans({
+    key: "rc.translate",
+    name: "RC Translate",
+    category: "Transcription & Translation",
+    description:
+      "Bidirectional real-time AI voice translation for field officers. 40+ languages.",
+    billingType: "monthly",
+    monthlyPrice: 5000,
+    oneTimePrice: 0,
+    planAvailability: professionalPlus,
+    featureFlag: "rc_translate",
+  }),
+  withLegacyIncludedInPlans({
+    key: "rc.translate.venue",
+    name: "RC Translate — Venue",
+    category: "Transcription & Translation",
+    description: "Real-time AI translation for venue staff and guest communications.",
+    billingType: "monthly",
+    monthlyPrice: 2500,
+    oneTimePrice: 0,
+    planAvailability: professionalPlus,
+    featureFlag: "rc_translate",
+    verticalRequired: "venue",
+  }),
+  withLegacyIncludedInPlans({
+    key: "rc.translate.campus",
+    name: "RC Translate — Campus",
+    category: "Transcription & Translation",
+    description: "Real-time AI translation for campus safety officers and counselors.",
+    billingType: "monthly",
+    monthlyPrice: 2000,
+    oneTimePrice: 0,
+    planAvailability: professionalPlus,
+    featureFlag: "rc_translate",
+    verticalRequired: "campus",
+  }),
+  withLegacyIncludedInPlans({
+    key: "rc.translate.hospital",
+    name: "RC Translate — Clinical",
+    category: "Transcription & Translation",
+    description:
+      "HIPAA-aware real-time translation for patient-provider communication. 40+ languages.",
+    billingType: "monthly",
+    monthlyPrice: 7500,
+    oneTimePrice: 0,
+    planAvailability: commandPlus,
+    featureFlag: "rc_translate",
+    verticalRequired: "hospital",
+  }),
+  withLegacyIncludedInPlans({
     key: "translation.text_to_voice",
     name: "Text-to-Voice Support",
     category: "Transcription & Translation",
@@ -1360,7 +1409,7 @@ export const ADDON_CATALOG: AddonDefinition[] = [
   }),
   withLegacyIncludedInPlans({
     key: "feature_addons.rc_connect_standard",
-    name: "Rapid Cortex Connect - Standard",
+    name: "Rapid Vision™ - Standard",
     category: "Feature Add-Ons",
     description:
       "ONVIF/RTSP camera integration linking up to 10 existing facility cameras to active incidents in the dispatcher or venue console.",
@@ -1371,7 +1420,7 @@ export const ADDON_CATALOG: AddonDefinition[] = [
   }),
   withLegacyIncludedInPlans({
     key: "feature_addons.rc_connect_professional",
-    name: "Rapid Cortex Connect - Professional",
+    name: "Rapid Vision™ - Professional",
     category: "Feature Add-Ons",
     description:
       "Multi-zone camera management for larger facilities, up to 50 cameras. Feeds are surfaced contextually when an incident is created in the associated zone.",
@@ -1382,7 +1431,7 @@ export const ADDON_CATALOG: AddonDefinition[] = [
   }),
   withLegacyIncludedInPlans({
     key: "feature_addons.rc_connect_enterprise",
-    name: "Rapid Cortex Connect - Enterprise",
+    name: "Rapid Vision™ - Enterprise",
     category: "Feature Add-Ons",
     description:
       "Unlimited camera deployments with dedicated KVS streaming infrastructure and advanced camera routing for large multi-site deployments.",
@@ -1393,7 +1442,7 @@ export const ADDON_CATALOG: AddonDefinition[] = [
   }),
   withLegacyIncludedInPlans({
     key: "feature_addons.ring_connect",
-    name: "Ring Connect",
+    name: "Rapid Vision™ — Ring Source",
     category: "Feature Add-Ons",
     description:
       "Request Ring doorbell and camera footage in proximity to active incidents. Access is granted only through prior homeowner enrollment and consent, with a full audit log of every access event.",

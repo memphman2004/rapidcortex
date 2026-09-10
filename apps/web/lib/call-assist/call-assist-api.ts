@@ -60,6 +60,22 @@ export function postCallAssistUtterance(sessionId: string, text: string, agencyI
   );
 }
 
+export function getCallAssistGreetingPreview(
+  locale = "en-US",
+  draft?: Record<string, string>,
+  agencyId?: string | null,
+) {
+  const params = new URLSearchParams({ locale, ...(draft ?? {}) });
+  return callAssistRequest<{
+    locale: string;
+    greeting: string;
+    greetings: Record<string, string>;
+    escalationAnnouncement: string;
+    greetingReady: boolean;
+    greetingActivationBlocked: string | null;
+  }>(withCallAssistAgencyQuery(`/api/call-assist/admin/greeting/preview?${params.toString()}`, agencyId));
+}
+
 export function getCallAssistConfig(agencyId?: string | null) {
   return callAssistRequest<{ config: Record<string, unknown> }>(
     withCallAssistAgencyQuery("/api/call-assist/admin/config", agencyId),

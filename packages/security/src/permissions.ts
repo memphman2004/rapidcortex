@@ -238,6 +238,11 @@ export const ALL_PERMISSIONS = [
   "physical.event.view",
   "physical.command.propose",
   "physical.command.approve",
+  "vision.cameras_view",
+  "vision.request_access",
+  "vision.observations_view",
+  "vision.observations_verify",
+  "vision.admin",
 ] as const;
 
 export type Permission = (typeof ALL_PERMISSIONS)[number];

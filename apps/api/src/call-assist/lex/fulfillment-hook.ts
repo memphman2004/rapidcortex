@@ -17,12 +17,14 @@ import {
   PUBLIC_WORKS_INTENT,
   REPEAT_CALL_INTENT,
   REQUEST_HUMAN_INTENT,
+  WELCOME_INTENT,
   weaponVisibleYes,
   type TransferReason,
 } from "./dialog-intercept.js";
 import { closeTransferResponse, ssml } from "./lex-responses.js";
 import { buildTransferSummary } from "./safety-gate.js";
 import type { LexV2Event, LexV2Response } from "./types.js";
+import { escalationCloseParts, handleSessionStart } from "./session-start.js";
 
 export type FulfillmentAction =
   | { type: "emergency"; reason: Extract<TransferReason, "EMERGENCY" | "INJURY_PRIORITY"> }
@@ -54,6 +56,9 @@ export function resolveFulfillmentAction(event: LexV2Event): FulfillmentAction {
   if (intent === "InformationRequest") {
     return { type: "complete" };
   }
+  if (intent === WELCOME_INTENT) {
+    return { type: "complete" };
+  }
   return { type: "complete" };
 }
 
@@ -63,6 +68,12 @@ export async function handleFulfillment(event: LexV2Event): Promise<LexV2Respons
   const callId = sessionAttrs.callId ?? event.sessionId;
   const config = await getLexTenantConfig(agencyId || "unknown");
   const slots = extractCurrentSlots(event);
+  const locale = event.bot?.localeId ?? sessionAttrs.locale ?? "en-US";
+
+  if (event.sessionState.intent.name === WELCOME_INTENT) {
+    return handleSessionStart(event);
+  }
+
   const action = resolveFulfillmentAction(event);
   const shortName = agencyShortName(config);
   const utterance = event.inputTranscript ?? "";
@@ -73,12 +84,20 @@ export async function handleFulfillment(event: LexV2Event): Promise<LexV2Respons
       slots,
       shortName,
     );
+    const parts = escalationCloseParts(
+      config,
+      locale,
+      { ...sessionAttrs, agencyId, callId, classification: EMERGENCY_INTENT },
+      transferPrompt(config, "EMERGENCY"),
+      utterance,
+    );
     return closeTransferResponse(
       EMERGENCY_INTENT,
       summary,
-      { ...sessionAttrs, agencyId, callId, classification: EMERGENCY_INTENT },
-      [ssml(transferPrompt(config, "EMERGENCY"))],
+      parts.sessionAttributes,
+      parts.messages,
       action.reason,
+      { endSession: parts.endSession },
     );
   }
 

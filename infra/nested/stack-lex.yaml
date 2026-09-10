@@ -34,6 +34,7 @@ Globals:
           - !Ref CallAssistTableName
           - !Sub "rapid-cortex-call-assist-${DeploymentStage}"
         ENABLE_CALL_ASSIST_CAD_PUSH: "false"
+        ENABLE_CALL_ASSIST_GREETING_CONFIG: "true"
         CAD_WRITEBACK_ENABLED: "false"
         BEDROCK_MODEL_ID: anthropic.claude-3-haiku-20240307-v1:0
 
@@ -144,10 +145,28 @@ Resources:
       Policies:
         - !Ref LexHookManagedPolicy
 
+  LexSessionStartFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub "${AppName}-lex-session-start-${DeploymentStage}"
+      CodeUri: ../lex-lambda/
+      Handler: session-start.handler
+      Timeout: 8
+      Policies:
+        - !Ref LexHookManagedPolicy
+
   ConnectGetAgencyPermission:
     Type: AWS::Lambda::Permission
     Properties:
       FunctionName: !GetAtt GetAgencyConfigForNumberFunction.Arn
+      Action: lambda:InvokeFunction
+      Principal: connect.amazonaws.com
+      SourceAccount: !Ref AWS::AccountId
+
+  ConnectSessionStartPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      FunctionName: !GetAtt LexSessionStartFunction.Arn
       Action: lambda:InvokeFunction
       Principal: connect.amazonaws.com
       SourceAccount: !Ref AWS::AccountId
@@ -2454,6 +2473,25 @@ Resources:
                         - Message:
                             PlainTextMessage:
                               Value: "Sure — what do you need information about?"
+            - Name: Welcome
+              Description: Call Assist intent Welcome
+              SampleUtterances:
+                - Utterance: "hello"
+                - Utterance: "hi"
+                - Utterance: "yes"
+                - Utterance: "i need help"
+                - Utterance: "i need to report something"
+                - Utterance: "i have a question"
+                - Utterance: "i want to report"
+                - Utterance: "can i get some help"
+                - Utterance: "i have a non-emergency"
+                - Utterance: "i need to make a report"
+                - Utterance: "i want to file a report"
+              DialogCodeHook:
+                Enabled: true
+              FulfillmentCodeHook:
+                Enabled: true
+                IsActive: true
             - Name: FallbackIntent
               Description: Call Assist intent FallbackIntent
               ParentIntentSignature: AMAZON.FallbackIntent
@@ -4559,6 +4597,24 @@ Resources:
                         - Message:
                             PlainTextMessage:
                               Value: "Claro — ¿sobre qué necesita información?"
+            - Name: Welcome
+              Description: Call Assist intent Welcome
+              SampleUtterances:
+                - Utterance: "hola"
+                - Utterance: "sí"
+                - Utterance: "necesito ayuda"
+                - Utterance: "necesito reportar algo"
+                - Utterance: "tengo una pregunta"
+                - Utterance: "quiero reportar"
+                - Utterance: "puedo recibir ayuda"
+                - Utterance: "tengo una llamada que no es de emergencia"
+                - Utterance: "necesito hacer un reporte"
+                - Utterance: "quiero presentar un reporte"
+              DialogCodeHook:
+                Enabled: true
+              FulfillmentCodeHook:
+                Enabled: true
+                IsActive: true
             - Name: FallbackIntent
               Description: Call Assist intent FallbackIntent
               ParentIntentSignature: AMAZON.FallbackIntent

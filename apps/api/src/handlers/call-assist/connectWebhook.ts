@@ -1,6 +1,6 @@
 import { createHash, timingSafeEqual } from "node:crypto";
 import type { APIGatewayProxyHandlerV2 } from "aws-lambda";
-import { callAssistConnectWebhookSchema, callAssistSelfServiceCompleteBodySchema, sentimentFromLex } from "rapid-cortex-shared";
+import { callAssistConnectWebhookSchema, callAssistSelfServiceCompleteBodySchema, sentimentFromLex, resolveGreetingConfig, isCallAssistGreetingReady, buildGreeting } from "rapid-cortex-shared";
 import { withCorrelationHeaders } from "../../lib/correlation.js";
 import { env } from "../../lib/env.js";
 import { resolvePlainOrSecretArn } from "../../lib/runtimeSecrets.js";
@@ -144,6 +144,11 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
         mediaType: msg.mediaType,
       });
       const config = await getOrCreateConfig(msg.agencyId);
+      const greeting = resolveGreetingConfig(config);
+      const locale = msg.attributes?.language ?? config.defaultLanguageCode ?? "en-US";
+      const spoken = isCallAssistGreetingReady(greeting)
+        ? buildGreeting(greeting, locale)
+        : config.disclosureText;
       return withCorrelationHeaders(
         event,
         ok({
@@ -151,7 +156,10 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
           telephony: {
             action: "CONTINUE",
             continueAiConversation: true,
-            spokenCallerScript: config.disclosureText,
+            spokenCallerScript: spoken,
+            greetingDelivered: true,
+            greetingMode: greeting.mode,
+            escalationMode: greeting.escalationMode,
           },
         }),
       );

@@ -95,7 +95,7 @@ function EmailWaitlist({ stateCode }: { stateCode: string }) {
     return (
       <p className="mt-3 text-sm text-emerald-400">
         You&apos;re on the list — we&apos;ll reach out when enrollment opens in your area. You can
-        still enable Rapid Cortex Connect in the Ring™ Appstore anytime.
+        still enable Rapid Vision™ in the Ring™ Appstore anytime.
       </p>
     );
   }
@@ -189,7 +189,7 @@ export function RingConnectFlow() {
         <h2 className="text-base font-semibold text-white">Ready to help your community?</h2>
         <p className="mt-1 text-xs text-slate-400">Takes about a minute in the Ring™ app.</p>
         <p className="mt-4 leading-relaxed">
-          Rapid Cortex Connect lets local emergency agencies request temporary, consent-gated access
+          Rapid Vision™ lets local emergency agencies request temporary, consent-gated access
           to your Ring™ devices during active nearby incidents. Ring™ Device Owners enroll through the{" "}
           <strong className="text-white">Ring™ Appstore</strong> — not agency dispatcher login. Your
           devices, your choice — every request requires your approval.
@@ -197,7 +197,7 @@ export function RingConnectFlow() {
       </div>
 
       <div className="space-y-4 rounded-xl border border-sky-500/25 bg-sky-950/30 p-5">
-        <h3 className="text-sm font-semibold text-white">Enable Rapid Cortex Connect</h3>
+        <h3 className="text-sm font-semibold text-white">Enable Rapid Vision™</h3>
         {selectedAgencyName ? (
           <p className="text-xs text-slate-400">
             When prompted for your local agency, select{" "}
@@ -212,7 +212,7 @@ export function RingConnectFlow() {
             Go to the <strong className="text-white">Ring™ Appstore</strong>
           </li>
           <li>
-            Search for <strong className="text-white">Rapid Cortex Connect</strong>
+            Search for <strong className="text-white">Rapid Vision™</strong>
           </li>
           <li>
             Tap <strong className="text-white">Get App</strong>, choose your devices, and confirm
@@ -230,7 +230,7 @@ export function RingConnectFlow() {
             rel="noopener noreferrer"
             className="inline-flex min-h-11 items-center justify-center rounded-lg bg-gradient-to-r from-sky-500 to-cyan-400 px-5 text-sm font-semibold text-slate-950"
           >
-            Open Rapid Cortex Connect in Ring™
+            Open Rapid Vision™ in Ring™
           </a>
           <a
             href="https://ring.com/app"
@@ -313,7 +313,7 @@ export function RingConnectFlow() {
           <div className="rounded-lg border border-sky-500/20 bg-sky-950/30 px-4 py-3">
             <p className="text-sm leading-relaxed text-slate-300">
               No agencies in {stateName || "your area"} have enrolled yet — you can still enable
-              Rapid Cortex Connect in Ring™ now, and join the waitlist below.
+              Rapid Vision™ in Ring™ now, and join the waitlist below.
             </p>
             <EmailWaitlist stateCode={selectedState} />
           </div>
@@ -335,7 +335,7 @@ export function RingConnectFlow() {
           >
             Create one at ring.com
           </a>
-          , then enable Rapid Cortex Connect in the Ring™ Appstore.
+          , then enable Rapid Vision™ in the Ring™ Appstore.
         </p>
       </div>
 

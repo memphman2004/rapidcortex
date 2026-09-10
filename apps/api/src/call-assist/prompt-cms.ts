@@ -1,6 +1,7 @@
 import {
   applyPromptUpsert,
   applyProposalDecision,
+  CALL_ASSIST_OPENING_SEQUENCE_PROMPT,
   CALL_ASSIST_PROMPT_KEYS,
   DEFAULT_CALL_ASSIST_PROMPTS,
   diffPromptText,
@@ -21,7 +22,9 @@ import { callAssistStore } from "./store.js";
 const auditRepo = new AuditRepository();
 
 function defaultBody(promptId: CallAssistPromptKey): string {
-  if (promptId === "dispatchTriage") return DISPATCH_ANALYSIS_SYSTEM_PROMPT;
+  if (promptId === "dispatchTriage") {
+    return `${CALL_ASSIST_OPENING_SEQUENCE_PROMPT}\n\n${DISPATCH_ANALYSIS_SYSTEM_PROMPT}`;
+  }
   return DEFAULT_CALL_ASSIST_PROMPTS[promptId];
 }
 

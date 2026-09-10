@@ -7,10 +7,10 @@ Each field must be **20–4000 characters**. Paste one section per portal field.
 ## Field 1 — How can a Ring reviewer create an account on your platform?
 
 ```
-Rapid Cortex Connect uses two account types. For Appstore certification, use BOTH as described.
+Rapid Vision™ uses two account types. For Appstore certification, use BOTH as described.
 
 A) Ring Device Owner (homeowner) account — created during Appstore account linking
-1. In the Ring app (US account that owns at least one camera), open Appstore → search “Rapid Cortex Connect” → Get App.
+1. In the Ring app (US account that owns at least one camera), open Appstore → search “Rapid Vision™” → Get App.
 2. Select device(s) and confirm scopes. Ring redirects the browser to:
    https://www.rapidcortex.us/connect/ring/link?nonce=…&time=…
 3. On that page, choose Create account (preferred for first-time owners) or Sign in.
@@ -44,7 +44,7 @@ Portal production settings (must match):
 (Optional) Copy the same four URLs into Staging settings so portal Test mode hits the same backends.
 
 Linking steps:
-1. On a phone signed into a Ring account that owns a US camera, open Ring → Appstore → Rapid Cortex Connect → Get App.
+1. On a phone signed into a Ring account that owns a US camera, open Ring → Appstore → Rapid Vision™ → Get App.
 2. Select devices + confirm. Ring POSTs the OAuth code to Token Exchange (background).
 3. Browser opens Account Link with nonce + time query params.
 4. Create account or Sign in on Rapid Cortex (device-owner account — not dispatcher login).
@@ -71,7 +71,7 @@ E2E emergency video request:
 7. Decline path: send a second request and tap DECLINE — no stream.
 
 Owner disconnect / data controls:
-• Ring → My Apps → remove Rapid Cortex Connect (webhook disables devices).
+• Ring → My Apps → remove Rapid Vision™ (webhook disables devices).
 • Self-serve account deletion: https://www.rapidcortex.us/connect/ring/link#delete-account (email used during linking)
 • Privacy: https://www.rapidcortex.us/connect/ring/start#privacy-data and https://www.rapidcortex.us/privacy/
 • Email DSAR/deletion: support@rapidcortex.us

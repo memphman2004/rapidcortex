@@ -58,6 +58,8 @@ export const RESERVED_PUBLIC_ROUTE_FIRST_SEGMENTS: readonly string[] = [
   "r",
   /** Public escalation viewer (`/e/{token}`). */
   "e",
+  /** RC Translate officer SMS deep link (`/translate/{sessionId}`) — not a jurisdiction slug. */
+  "translate",
 ];
 
 export function isReservedPublicJurisdictionSlug(slug: string): boolean {

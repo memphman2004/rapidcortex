@@ -2,6 +2,8 @@ import type { APIGatewayProxyEventV2, APIGatewayProxyResultV2 } from "aws-lambda
 import {
   ADDON_CATALOG,
   isAddonIncludedInPlan,
+  matchesTranslateAddon,
+  type TranslateVertical,
   type UserContext,
 } from "rapid-cortex-shared";
 import { AuditRepository } from "../repositories/auditRepository.js";
@@ -175,5 +177,50 @@ export function requireAddon(familyPrefix: string): LambdaMiddleware {
       // Do not mask 403 with audit write errors.
     }
     return jsonStatus({ error: "addon_not_enabled", family: familyPrefix }, 403);
+  };
+}
+
+/**
+ * Exact-key addon gate for RC Translate verticals.
+ * Prefix-matching `rc.translate` would also unlock `rc.translate.venue`.
+ */
+export function requireTranslateAddon(vertical: TranslateVertical): LambdaMiddleware {
+  const family = vertical === "law_enforcement" ? "rc.translate" : `rc.translate.${vertical}`;
+  return async (event, user) => {
+    const claims = await getVerifiedJwtClaims(event);
+    const jwtAddons = parseClaimAddons(claims?.["custom:addons"]);
+    let agencyAddons: string[] = [];
+    let planId: string | null = null;
+    try {
+      const agency = await agencies.get(user.agencyId);
+      agencyAddons = (agency?.addons ?? []).map((k) => k.trim()).filter(Boolean);
+      planId = agency?.monetizationPlanId ?? agency?.planId ?? null;
+    } catch (error) {
+      console.warn(
+        JSON.stringify({
+          type: "addon_gate.agency_lookup_failed",
+          agencyId: user.agencyId,
+          family,
+          error: error instanceof Error ? error.message : String(error),
+        }),
+      );
+    }
+
+    const listed = [...jwtAddons, ...agencyAddons];
+    if (matchesTranslateAddon(listed, vertical)) return null;
+
+    if (planId) {
+      for (const def of ADDON_CATALOG) {
+        if (!matchesTranslateAddon([def.key], vertical)) continue;
+        if (isAddonIncludedInPlan(def, planId)) return null;
+      }
+    }
+
+    try {
+      await writeAddonRejectionAudit(event, user, family);
+    } catch {
+      // Do not mask 403 with audit write errors.
+    }
+    return jsonStatus({ error: "addon_not_enabled", family }, 403);
   };
 }

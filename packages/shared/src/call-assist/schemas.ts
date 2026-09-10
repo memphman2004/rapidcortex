@@ -17,6 +17,7 @@ import {
   callAssistExternalTransferEntrySchema,
   callAssistOperatingDaySchema,
 } from "./taxonomy.js";
+import { callAssistGreetingConfigPatchSchema } from "./greeting.js";
 
 export const callAssistUtteranceSchema = z.object({
   sequence: z.number().int().min(0),
@@ -213,6 +214,7 @@ export const callAssistAdminConfigPatchSchema = z.object({
   externalTransferList: z.array(callAssistExternalTransferEntrySchema).max(40).optional(),
   onboardingComplete: z.boolean().optional(),
   onboardingCompletedAt: z.string().max(40).nullable().optional(),
+  callAssistGreeting: callAssistGreetingConfigPatchSchema.optional(),
 });
 
 export const callAssistShiftPatchSchema = z.object({

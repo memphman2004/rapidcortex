@@ -1,6 +1,6 @@
-# Rapid Cortex Connect — Ring Certification Reviewer Guide (v4)
+# Rapid Vision™ — Ring Certification Reviewer Guide (v4)
 
-**App name:** Rapid Cortex Connect  
+**App name:** Rapid Vision™  
 **Reviewer test account:** ring-reviewer@rapidcortex.us  
 **Temp password:** RapidTest2026! (change on first login if prompted)  
 **Direct login path:** https://app.rapidcortex.us/test-agency/media  
@@ -20,7 +20,7 @@
 
 ## What this integration does
 
-Rapid Cortex Connect allows 911 dispatchers to request temporary, consent-gated live
+Rapid Vision™ allows 911 dispatchers to request temporary, consent-gated live
 video access from Ring camera owners near an active emergency incident.
 
 **Key principles:**
@@ -54,7 +54,7 @@ Optional: copy the same URLs into **Staging settings** so portal Test mode hits 
 ### Step 1 — Install from Ring Appstore (device-owner phone)
 
 1. Open the **Ring** app on a phone signed into a Ring account that owns a US camera
-2. Appstore → search **Rapid Cortex Connect** → **Get App**
+2. Appstore → search **Rapid Vision™** → **Get App**
 3. Select device(s) + confirm scopes
 4. Ring POSTs the OAuth code to Token Exchange (background — you won't see this)
 5. Browser opens Account Link:  
@@ -119,7 +119,7 @@ Rate limits: max 5 requests/incident/hour; one active request per camera/inciden
 
 ### Opt-in
 
-- Ring Appstore → Rapid Cortex Connect → enable devices  
+- Ring Appstore → Rapid Vision™ → enable devices  
 - Or https://www.rapidcortex.us/connect/ring/start  
 - Appstore account link: https://www.rapidcortex.us/connect/ring/link?nonce=…&time=…
 

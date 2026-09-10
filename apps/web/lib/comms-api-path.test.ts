@@ -173,6 +173,12 @@ describe("isCommsPlatformApiPath", () => {
     expect(isStack2ApiPath("/api/public/call-assist/self-service/tok")).toBe(true);
     expect(resolveUpstreamApiBase("/api/call-assist/sessions")).toBe("https://stack2.example.com");
     expect(resolveUpstreamApiBase("/api/public/call-assist/self-service/tok")).toBe("https://stack2.example.com");
+    expect(isStack2ApiPath("/api/translate/sessions")).toBe(true);
+    expect(resolveUpstreamApiBase("/api/translate/sessions")).toBe("https://stack2.example.com");
+    expect(isStack2ApiPath("/api/vision/settings")).toBe(true);
+    expect(isStack2ApiPath("/api/incidents/abc/vision/intelligence")).toBe(true);
+    expect(isStack2ApiPath("/api/public/vision/consent/tok/approve")).toBe(true);
+    expect(resolveUpstreamApiBase("/api/vision/settings")).toBe("https://stack2.example.com");
   });
 
   it("routes CAD Bridge to stack 2 only", () => {

@@ -22,6 +22,12 @@ import {
   estimatedLexBotRebuildMinutes,
   initiateCallAssistSessionSchema,
   isCallAssistOnboardingComplete,
+  greetingActivationBlockedReason,
+  resolveGreetingConfig,
+  buildGreeting,
+  buildEscalationAnnouncement,
+  mergeGreetingConfig,
+  isCallAssistGreetingReady,
   isLexBotQuotaBlocking,
   LEX_BOT_QUOTA_CONSOLE_URL,
   isRcInternalOperator,
@@ -338,6 +344,8 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
           taxonomy: resolveAgencyTaxonomy(config),
           currentShift: shift?.currentShift ?? null,
           onboardingComplete: isCallAssistOnboardingComplete(config),
+          greetingReady: isCallAssistGreetingReady(resolveGreetingConfig(config)),
+          greetingActivationBlocked: greetingActivationBlockedReason(resolveGreetingConfig(config)),
           agencyName: config.agencyName ?? null,
           agencyShortName: config.agencyShortName ?? config.shortName ?? null,
           callerIdLabel: labels.callerIdLabel,
@@ -610,6 +618,51 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
       return withCorrelationHeaders(event, ok({ handoff: session.transfer, session }));
     }
 
+    if (method === "GET" && parts[0] === "admin" && parts[1] === "greeting" && parts[2] === "preview") {
+      requirePerm(user, "call_assist.admin.config");
+      const config = await getOrCreateConfig(agencyId);
+      const qs = event.queryStringParameters ?? {};
+      const stored = resolveGreetingConfig(config);
+      const draft = mergeGreetingConfig(stored, {
+        ...(qs.mode === "hang_up" || qs.mode === "stay_on_line" || qs.mode === "custom" ? { mode: qs.mode } : {}),
+        ...(qs.cityName !== undefined ? { cityName: qs.cityName } : {}),
+        ...(qs.agencyName !== undefined ? { agencyName: qs.agencyName } : {}),
+        ...(qs.lineDescription !== undefined ? { lineDescription: qs.lineDescription } : {}),
+        ...(qs.customGreetingText !== undefined ? { customGreetingText: qs.customGreetingText } : {}),
+        ...(qs.escalationMode === "announce_and_transfer" ||
+        qs.escalationMode === "announce_and_end" ||
+        qs.escalationMode === "silent_transfer"
+          ? { escalationMode: qs.escalationMode }
+          : {}),
+        ...(qs.escalationAnnouncementText !== undefined
+          ? { escalationAnnouncementText: qs.escalationAnnouncementText }
+          : {}),
+        ...(qs.spanishGreeting !== undefined
+          ? { localizedGreetings: { ...(stored.localizedGreetings ?? {}), "es-US": qs.spanishGreeting } }
+          : {}),
+      });
+      const locale = qs.locale ?? "en-US";
+      return withCorrelationHeaders(
+        event,
+        ok({
+          locale,
+          greeting: buildGreeting(draft, locale),
+          greetings: {
+            "en-US": buildGreeting(draft, "en-US"),
+            "es-US": buildGreeting(draft, "es-US"),
+          },
+          escalationAnnouncement: buildEscalationAnnouncement(draft, locale),
+          escalationAnnouncements: {
+            "en-US": buildEscalationAnnouncement(draft, "en-US"),
+            "es-US": buildEscalationAnnouncement(draft, "es-US"),
+          },
+          greetingReady: isCallAssistGreetingReady(draft),
+          greetingActivationBlocked: greetingActivationBlockedReason(draft),
+          config: draft,
+        }),
+      );
+    }
+
     if (method === "GET" && parts[0] === "admin" && parts[1] === "config") {
       requirePerm(user, "call_assist.admin.config");
       const config = await getOrCreateConfig(agencyId);
@@ -639,6 +692,9 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
         const message = err instanceof Error ? err.message : String(err);
         if (message.startsWith("TAXONOMY_LOCK:")) {
           return withCorrelationHeaders(event, badRequest(message.replace("TAXONOMY_LOCK:", "")));
+        }
+        if (message.startsWith("GREETING_REQUIRED:")) {
+          return withCorrelationHeaders(event, badRequest(message.replace("GREETING_REQUIRED:", "")));
         }
         throw err;
       }

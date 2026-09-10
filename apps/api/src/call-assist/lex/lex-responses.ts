@@ -1,6 +1,20 @@
 import type { LexMessage, LexSlotValue, LexV2Response } from "./types.js";
 import { EMERGENCY_INTENT, type TransferReason } from "./dialog-intercept.js";
 
+export function elicitIntentResponse(
+  name: string,
+  sessionAttributes: Record<string, string>,
+  messages: LexMessage[],
+): LexV2Response {
+  return {
+    sessionState: {
+      sessionAttributes,
+      dialogAction: { type: "ElicitIntent" },
+      intent: { name, state: "Fulfilled" },
+    },
+    messages,
+  };
+}
 export function elicitSlotResponse(
   name: string,
   slotToElicit: string,
@@ -43,15 +57,19 @@ export function closeTransferResponse(
   sessionAttributes: Record<string, string>,
   messages: LexMessage[],
   transferReason: TransferReason,
+  opts?: { endSession?: boolean },
 ): LexV2Response {
   const emergency = transferReason === "EMERGENCY" || transferReason === "INJURY_PRIORITY";
+  const endSession = Boolean(opts?.endSession);
   return {
     sessionState: {
       sessionAttributes: {
         ...sessionAttributes,
         transferSummary: summary,
         transferReason,
-        emergency: emergency ? "true" : "false",
+        emergency: emergency && !endSession ? "true" : "false",
+        endSession: endSession ? "true" : "false",
+        escalationTriggered: emergency ? "true" : sessionAttributes.escalationTriggered ?? "false",
         ...(transferReason === "REPEAT_CALL" ? { priorCallFlag: "true" } : {}),
         ...(transferReason === "LOW_CONFIDENCE" ? { fallbackTransfer: "true" } : {}),
       },

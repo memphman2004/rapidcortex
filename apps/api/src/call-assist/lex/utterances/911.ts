@@ -377,6 +377,19 @@ export const UTTERANCES_911 = {
     "are there sex offenders in my area",
     "who do I call for noise complaints",
     "how do I get a gun permit"
+  ],
+  "Welcome": [
+    "hello",
+    "hi",
+    "yes",
+    "i need help",
+    "i need to report something",
+    "i have a question",
+    "i want to report",
+    "can i get some help",
+    "i have a non-emergency",
+    "i need to make a report",
+    "i want to file a report"
   ]
 } as const;
 
@@ -585,5 +598,16 @@ export const UTTERANCES_911_ES = {
     "número de teléfono no emergencias",
     "¿cómo registro mi alarma?",
     "¿cómo obtengo un permiso de arma?"
+  ],
+  "Welcome": [
+    "hola",
+    "sí",
+    "necesito ayuda",
+    "necesito reportar algo",
+    "quiero reportar",
+    "puedo recibir ayuda",
+    "tengo una llamada que no es de emergencia",
+    "necesito hacer un reporte",
+    "quiero presentar un reporte"
   ]
 } as const;

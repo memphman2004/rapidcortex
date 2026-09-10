@@ -415,6 +415,11 @@ export const AUDIT_EVENT_TYPES = {
   CALL_ASSIST_QA_SCORED: "call_assist.qa.scored",
   CALL_ASSIST_PROMPT_UPDATED: "call_assist.prompt.updated",
   CALL_ASSIST_PROMPT_ROLLED_BACK: "call_assist.prompt.rolled_back",
+  TRANSLATE_SESSION_CREATED: "translate.session.created",
+  TRANSLATE_SESSION_CLOSED: "translate.session.closed",
+  TRANSLATE_LINK_SENT: "translate.link.sent",
+  TRANSLATE_MONITOR_JOINED: "translate.monitor.joined",
+  TRANSLATE_WRITEBACK_QUEUED: "translate.writeback.queued",
   CALL_ASSIST_PROMPT_PROPOSAL: "call_assist.prompt.proposal",
   CALL_ASSIST_TRANSFER_OUTCOME: "call_assist.transfer.outcome",
   CALL_ASSIST_RETENTION_UPDATED: "call_assist.retention.updated",
@@ -473,6 +478,16 @@ export const AUDIT_EVENT_TYPES = {
   SUPERVISOR_OPERATORS_VIEWED: "supervisor.operators.viewed",
 
   ...RING_AUDIT_EVENT_TYPES,
+
+  VISION_CAMERA_DISCOVERED: "vision.camera.discovered",
+  VISION_CONSENT_REQUESTED: "vision.consent.requested",
+  VISION_CONSENT_GRANTED: "vision.consent.granted",
+  VISION_CONSENT_DECLINED: "vision.consent.declined",
+  VISION_SESSION_STARTED: "vision.session.started",
+  VISION_OBSERVATION_CREATED: "vision.observation.created",
+  VISION_OBSERVATION_VERIFIED: "vision.observation.verified",
+  VISION_OBSERVATION_REJECTED: "vision.observation.rejected",
+  VISION_OBSERVATION_SHARED: "vision.observation.shared",
 } as const;
 
 export type AuditEventTypeName = (typeof AUDIT_EVENT_TYPES)[keyof typeof AUDIT_EVENT_TYPES];

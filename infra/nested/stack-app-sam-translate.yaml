@@ -1,0 +1,495 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Transform: AWS::Serverless-2016-10-31
+Description: >
+  Rapid Cortex — RC Translate (Transcribe → Translate → Polly).
+  HTTP routes attach to stack 2 HttpApi. Dedicated WebSocket API for session audio.
+
+Parameters:
+  DeploymentStage:
+    Type: String
+    AllowedValues: [dev, staging, prod, pilot]
+  HttpApiId:
+    Type: String
+  HttpApiJwtAuthorizerId:
+    Type: String
+    Default: ""
+  ImportedCognitoUserPoolId:
+    Type: String
+  ImportedCognitoWebClientId:
+    Type: String
+  ImportedCognitoIssuer:
+    Type: String
+  AuditTable:
+    Type: String
+  AgenciesTable:
+    Type: String
+  AppPublicBaseUrl:
+    Type: String
+    Default: ""
+  ExistingTranslateSessionsTableName:
+    Type: String
+    Default: ""
+  ExistingTranslateSegmentsTableName:
+    Type: String
+    Default: ""
+  ExistingTranslateConnectionsTableName:
+    Type: String
+    Default: ""
+  ExistingTranslateAudioBucketName:
+    Type: String
+    Default: ""
+  TranslateWsSigningSecret:
+    Type: String
+    Default: "pending-override-by-deploy-sh"
+    MinLength: 16
+    NoEcho: true
+    Description: >
+      HS256 signing secret for Translate WebSocket tokens. deploy.sh always overrides this
+      (openssl locally) so CloudFormation never calls secretsmanager:GetRandomPassword.
+  ExistingTranslateWsSecretArn:
+    Type: String
+    Default: ""
+    Description: When set, skip creating rapid-cortex/${stage}/translate/ws-signing.
+  ManagedPolicyNamePrefix:
+    Type: String
+    Default: rapid-cortex
+
+Conditions:
+  HasHttpApiJwtAuthorizer: !Not [!Equals [!Ref HttpApiJwtAuthorizerId, ""]]
+  CreateSessionsTable: !Equals [!Ref ExistingTranslateSessionsTableName, ""]
+  CreateSegmentsTable: !Equals [!Ref ExistingTranslateSegmentsTableName, ""]
+  CreateConnectionsTable: !Equals [!Ref ExistingTranslateConnectionsTableName, ""]
+  CreateAudioBucket: !Equals [!Ref ExistingTranslateAudioBucketName, ""]
+  CreateTranslateWsSecret: !Equals [!Ref ExistingTranslateWsSecretArn, ""]
+
+Globals:
+  Function:
+    Runtime: nodejs20.x
+    Timeout: 30
+    MemorySize: 512
+    Environment:
+      Variables:
+        DEPLOYMENT_STAGE: !Ref DeploymentStage
+        ALLOW_UNAUTHENTICATED_API: "false"
+        ENABLE_RC_TRANSLATE: "true"
+        TRANSLATE_MOCK: "true"
+        CAD_WRITEBACK_ENABLED: "false"
+        TRANSLATE_SESSIONS_TABLE: !If
+          - CreateSessionsTable
+          - !Ref TranslateSessionsTable
+          - !Ref ExistingTranslateSessionsTableName
+        TRANSLATE_SEGMENTS_TABLE: !If
+          - CreateSegmentsTable
+          - !Ref TranslateSegmentsTable
+          - !Ref ExistingTranslateSegmentsTableName
+        TRANSLATE_CONNECTIONS_TABLE: !If
+          - CreateConnectionsTable
+          - !Ref TranslateConnectionsTable
+          - !Ref ExistingTranslateConnectionsTableName
+        TRANSLATE_AUDIO_BUCKET: !If
+          - CreateAudioBucket
+          - !Ref TranslateAudioBucket
+          - !Ref ExistingTranslateAudioBucketName
+        TRANSLATE_WS_SECRET_ARN: !If
+          - CreateTranslateWsSecret
+          - !Ref TranslateWsSecret
+          - !Ref ExistingTranslateWsSecretArn
+        APP_PUBLIC_BASE_URL: !Ref AppPublicBaseUrl
+        AUDIT_TABLE: !Ref AuditTable
+        AGENCIES_TABLE: !Ref AgenciesTable
+        COGNITO_USER_POOL_ID: !Ref ImportedCognitoUserPoolId
+        COGNITO_CLIENT_ID: !Ref ImportedCognitoWebClientId
+        COGNITO_REGION: !Ref AWS::Region
+
+Resources:
+  TranslateWsSecret:
+    Type: AWS::SecretsManager::Secret
+    Condition: CreateTranslateWsSecret
+    Properties:
+      Name: !Sub "rapid-cortex/${DeploymentStage}/translate/ws-signing"
+      Description: HS256 signing secret for RC Translate WebSocket tokens
+      SecretString: !Ref TranslateWsSigningSecret
+
+  TranslateSessionsTable:
+    Type: AWS::DynamoDB::Table
+    Condition: CreateSessionsTable
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      TableName: !Sub "rapid-cortex-translate-sessions-${DeploymentStage}"
+      BillingMode: PAY_PER_REQUEST
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: true
+      SSESpecification:
+        SSEEnabled: true
+      AttributeDefinitions:
+        - AttributeName: pk
+          AttributeType: S
+        - AttributeName: sk
+          AttributeType: S
+        - AttributeName: agencyId
+          AttributeType: S
+        - AttributeName: status
+          AttributeType: S
+        - AttributeName: incidentId
+          AttributeType: S
+        - AttributeName: officerId
+          AttributeType: S
+        - AttributeName: startedAt
+          AttributeType: S
+      KeySchema:
+        - AttributeName: pk
+          KeyType: HASH
+        - AttributeName: sk
+          KeyType: RANGE
+      GlobalSecondaryIndexes:
+        - IndexName: byAgencyStatus
+          KeySchema:
+            - AttributeName: agencyId
+              KeyType: HASH
+            - AttributeName: status
+              KeyType: RANGE
+          Projection:
+            ProjectionType: ALL
+        - IndexName: byIncident
+          KeySchema:
+            - AttributeName: incidentId
+              KeyType: HASH
+            - AttributeName: startedAt
+              KeyType: RANGE
+          Projection:
+            ProjectionType: ALL
+        - IndexName: byOfficer
+          KeySchema:
+            - AttributeName: officerId
+              KeyType: HASH
+            - AttributeName: startedAt
+              KeyType: RANGE
+          Projection:
+            ProjectionType: ALL
+
+  TranslateSegmentsTable:
+    Type: AWS::DynamoDB::Table
+    Condition: CreateSegmentsTable
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      TableName: !Sub "rapid-cortex-translate-segments-${DeploymentStage}"
+      BillingMode: PAY_PER_REQUEST
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: true
+      SSESpecification:
+        SSEEnabled: true
+      AttributeDefinitions:
+        - AttributeName: sessionId
+          AttributeType: S
+        - AttributeName: sk
+          AttributeType: S
+      KeySchema:
+        - AttributeName: sessionId
+          KeyType: HASH
+        - AttributeName: sk
+          KeyType: RANGE
+
+  TranslateConnectionsTable:
+    Type: AWS::DynamoDB::Table
+    Condition: CreateConnectionsTable
+    DeletionPolicy: Delete
+    UpdateReplacePolicy: Delete
+    Properties:
+      TableName: !Sub "rapid-cortex-translate-connections-${DeploymentStage}"
+      BillingMode: PAY_PER_REQUEST
+      TimeToLiveSpecification:
+        AttributeName: ttl
+        Enabled: true
+      AttributeDefinitions:
+        - AttributeName: connectionId
+          AttributeType: S
+        - AttributeName: sessionId
+          AttributeType: S
+      KeySchema:
+        - AttributeName: connectionId
+          KeyType: HASH
+      GlobalSecondaryIndexes:
+        - IndexName: bySession
+          KeySchema:
+            - AttributeName: sessionId
+              KeyType: HASH
+          Projection:
+            ProjectionType: ALL
+
+  TranslateAudioBucket:
+    Type: AWS::S3::Bucket
+    Condition: CreateAudioBucket
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      BucketName: !Sub "rapid-cortex-translate-audio-${DeploymentStage}-${AWS::AccountId}"
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: AES256
+      LifecycleConfiguration:
+        Rules:
+          - Id: StandardAudio90Days
+            Status: Enabled
+            Prefix: audio/standard/
+            ExpirationInDays: 90
+          - Id: HospitalAudio7Years
+            Status: Enabled
+            Prefix: audio/hospital/
+            ExpirationInDays: 2555
+
+  AppManagedPolicyTranslate:
+    Type: AWS::IAM::ManagedPolicy
+    Properties:
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Sid: TranslateTables
+            Effect: Allow
+            Action:
+              - dynamodb:GetItem
+              - dynamodb:PutItem
+              - dynamodb:UpdateItem
+              - dynamodb:DeleteItem
+              - dynamodb:Query
+              - dynamodb:BatchGetItem
+              - dynamodb:DescribeTable
+              - dynamodb:ConditionCheckItem
+            Resource:
+              - !If
+                  - CreateSessionsTable
+                  - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${TranslateSessionsTable}"
+                  - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${ExistingTranslateSessionsTableName}"
+              - !If
+                  - CreateSessionsTable
+                  - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${TranslateSessionsTable}/index/*"
+                  - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${ExistingTranslateSessionsTableName}/index/*"
+              - !If
+                  - CreateSegmentsTable
+                  - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${TranslateSegmentsTable}"
+                  - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${ExistingTranslateSegmentsTableName}"
+              - !If
+                  - CreateSegmentsTable
+                  - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${TranslateSegmentsTable}/index/*"
+                  - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${ExistingTranslateSegmentsTableName}/index/*"
+              - !If
+                  - CreateConnectionsTable
+                  - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${TranslateConnectionsTable}"
+                  - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${ExistingTranslateConnectionsTableName}"
+              - !If
+                  - CreateConnectionsTable
+                  - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${TranslateConnectionsTable}/index/*"
+                  - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${ExistingTranslateConnectionsTableName}/index/*"
+              - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${AuditTable}"
+              - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${AuditTable}/index/*"
+              - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${AgenciesTable}"
+              - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${AgenciesTable}/index/*"
+          - Sid: TranslateAudioBucket
+            Effect: Allow
+            Action:
+              - s3:PutObject
+              - s3:GetObject
+              - s3:DeleteObject
+              - s3:PutObjectTagging
+              - s3:GetObjectTagging
+            Resource:
+              - !If
+                  - CreateAudioBucket
+                  - !Sub "arn:aws:s3:::${TranslateAudioBucket}/*"
+                  - !Sub "arn:aws:s3:::${ExistingTranslateAudioBucketName}/*"
+          - Sid: TranslateWsSecret
+            Effect: Allow
+            Action:
+              - secretsmanager:GetSecretValue
+            Resource: !If
+              - CreateTranslateWsSecret
+              - !Ref TranslateWsSecret
+              - !Ref ExistingTranslateWsSecretArn
+          - Sid: TranslateSpeechApis
+            Effect: Allow
+            Action:
+              - transcribe:StartStreamTranscription
+              - transcribe:StartTranscriptionJob
+              - transcribe:GetTranscriptionJob
+              - translate:TranslateText
+              - polly:SynthesizeSpeech
+            Resource: "*"
+            Condition:
+              StringEquals:
+                aws:RequestedRegion: !Ref AWS::Region
+          - Sid: TranslateSummaryBedrock
+            Effect: Allow
+            Action:
+              - bedrock:InvokeModel
+            Resource:
+              - !Sub "arn:aws:bedrock:${AWS::Region}::foundation-model/anthropic.claude-3-haiku-20240307-v1:0"
+          - Sid: TranslateSmsPublish
+            Effect: Allow
+            Action:
+              - sns:Publish
+            Resource: "*"
+            Condition:
+              StringEquals:
+                aws:RequestedRegion: !Ref AWS::Region
+
+  TranslateWebSocketApi:
+    Type: AWS::ApiGatewayV2::Api
+    Properties:
+      Name: !Sub "rc-translate-ws-${DeploymentStage}"
+      ProtocolType: WEBSOCKET
+      RouteSelectionExpression: $request.body.type
+      Description: RC Translate bidirectional audio sessions
+
+  TranslateWebSocketStage:
+    Type: AWS::ApiGatewayV2::Stage
+    Properties:
+      ApiId: !Ref TranslateWebSocketApi
+      StageName: !Ref DeploymentStage
+      AutoDeploy: true
+      DefaultRouteSettings:
+        ThrottlingBurstLimit: 2000
+        ThrottlingRateLimit: 1000
+
+  AppManagedPolicyTranslateWsManage:
+    Type: AWS::IAM::ManagedPolicy
+    Properties:
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Sid: TranslateWsPostToConnection
+            Effect: Allow
+            Action:
+              - execute-api:ManageConnections
+            Resource: !Sub "arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${TranslateWebSocketApi}/${DeploymentStage}/POST/@connections/*"
+
+  TranslateHttpFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/handlers/translate/http.handler
+      Timeout: 60
+      Environment:
+        Variables:
+          TRANSLATE_WS_ENDPOINT: !Sub "wss://${TranslateWebSocketApi}.execute-api.${AWS::Region}.amazonaws.com/${DeploymentStage}"
+          TRANSLATE_WS_API_ENDPOINT: !Sub "https://${TranslateWebSocketApi}.execute-api.${AWS::Region}.amazonaws.com/${DeploymentStage}"
+      Policies:
+        - !Ref AppManagedPolicyTranslate
+        - !Ref AppManagedPolicyTranslateWsManage
+
+  TranslateWsFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/handlers/translate/ws.handler
+      Timeout: 29
+      MemorySize: 1024
+      Environment:
+        Variables:
+          TRANSLATE_WS_ENDPOINT: !Sub "wss://${TranslateWebSocketApi}.execute-api.${AWS::Region}.amazonaws.com/${DeploymentStage}"
+          TRANSLATE_WS_API_ENDPOINT: !Sub "https://${TranslateWebSocketApi}.execute-api.${AWS::Region}.amazonaws.com/${DeploymentStage}"
+      Policies:
+        - !Ref AppManagedPolicyTranslate
+        - !Ref AppManagedPolicyTranslateWsManage
+
+  TranslateHttpIntegration:
+    Type: AWS::ApiGatewayV2::Integration
+    Properties:
+      ApiId: !Ref HttpApiId
+      IntegrationType: AWS_PROXY
+      IntegrationUri: !Sub arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${TranslateHttpFunction.Arn}/invocations
+      PayloadFormatVersion: "2.0"
+
+  TranslateHttpInvokePermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !Ref TranslateHttpFunction
+      Principal: apigateway.amazonaws.com
+      SourceArn: !Sub arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${HttpApiId}/*
+
+  RouteTranslateProxy:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref HttpApiId
+      RouteKey: "ANY /api/translate/{proxy+}"
+      Target: !Sub "integrations/${TranslateHttpIntegration}"
+      AuthorizationType: !If [HasHttpApiJwtAuthorizer, JWT, NONE]
+      AuthorizerId: !If [HasHttpApiJwtAuthorizer, !Ref HttpApiJwtAuthorizerId, !Ref AWS::NoValue]
+
+  TranslateWsInvokePermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !Ref TranslateWsFunction
+      Principal: apigateway.amazonaws.com
+      SourceArn: !Sub arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${TranslateWebSocketApi}/*
+
+  TranslateWsIntegration:
+    Type: AWS::ApiGatewayV2::Integration
+    Properties:
+      ApiId: !Ref TranslateWebSocketApi
+      IntegrationType: AWS_PROXY
+      IntegrationUri: !Sub arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${TranslateWsFunction.Arn}/invocations
+
+  TranslateWsConnectRoute:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref TranslateWebSocketApi
+      RouteKey: $connect
+      AuthorizationType: NONE
+      Target: !Sub integrations/${TranslateWsIntegration}
+
+  TranslateWsDisconnectRoute:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref TranslateWebSocketApi
+      RouteKey: $disconnect
+      AuthorizationType: NONE
+      Target: !Sub integrations/${TranslateWsIntegration}
+
+  TranslateWsDefaultRoute:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref TranslateWebSocketApi
+      RouteKey: $default
+      AuthorizationType: NONE
+      Target: !Sub integrations/${TranslateWsIntegration}
+
+Outputs:
+  TranslateSessionsTableName:
+    Value: !If
+      - CreateSessionsTable
+      - !Ref TranslateSessionsTable
+      - !Ref ExistingTranslateSessionsTableName
+  TranslateSegmentsTableName:
+    Value: !If
+      - CreateSegmentsTable
+      - !Ref TranslateSegmentsTable
+      - !Ref ExistingTranslateSegmentsTableName
+  TranslateConnectionsTableName:
+    Value: !If
+      - CreateConnectionsTable
+      - !Ref TranslateConnectionsTable
+      - !Ref ExistingTranslateConnectionsTableName
+  TranslateAudioBucketName:
+    Value: !If
+      - CreateAudioBucket
+      - !Ref TranslateAudioBucket
+      - !Ref ExistingTranslateAudioBucketName
+  TranslateWsEndpoint:
+    Value: !Sub "wss://${TranslateWebSocketApi}.execute-api.${AWS::Region}.amazonaws.com/${DeploymentStage}"
+  TranslateHttpFunctionArn:
+    Value: !GetAtt TranslateHttpFunction.Arn

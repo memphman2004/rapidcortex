@@ -14,7 +14,7 @@ Complete in order. This closes the portal + ops gaps for **Start review process*
 
 ## A. Portal configuration (once)
 
-In Amazon / Ring Developer Portal → Rapid Cortex Connect → Account linking:
+In Amazon / Ring Developer Portal → Rapid Vision™ → Account linking:
 
 **Production settings**
 

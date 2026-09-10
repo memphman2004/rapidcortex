@@ -231,7 +231,7 @@ export const env = {
   /** Surge — duplicate-call clusters; empty table disables handlers. */
   surgeClustersTable: process.env.SURGE_CLUSTERS_TABLE?.trim() ?? "",
   enableSurge: featureEnabled("ENABLE_SURGE"),
-  /** Rapid Cortex Connect — Ring integration (empty table names disable Ring HTTP handlers). */
+  /** Rapid Vision™ — Ring Source (ENABLE_CONNECT_RING preserved for Stack 4 Ring Lambdas). */
   enableConnectRing: featureEnabled("ENABLE_CONNECT_RING"),
   enableConnectNest: featureEnabled("ENABLE_CONNECT_NEST"),
   ringAccountsTable: process.env.RING_TABLE_ACCOUNTS?.trim() ?? "",
@@ -359,6 +359,7 @@ export const env = {
    * CAD push / RMS draft / demo mode / recording remain fail-closed.
    */
   enableCallAssist: featureEnabled("ENABLE_CALL_ASSIST"),
+  enableCallAssistGreetingConfig: featureEnabled("ENABLE_CALL_ASSIST_GREETING_CONFIG"),
   callAssistTable: process.env.CALL_ASSIST_TABLE?.trim() ?? "",
   enableVerticalAlerts: featureEnabled("ENABLE_VERTICAL_ALERTS"),
   verticalAlertsTable: process.env.VERTICAL_ALERTS_TABLE?.trim() ?? "",
@@ -392,6 +393,48 @@ export const env = {
   callAssistLexMock:
     process.env.CALL_ASSIST_LEX_MOCK !== "false" && process.env.CALL_ASSIST_LEX_MOCK !== "0",
   callAssistRapidSosMock: process.env.CALL_ASSIST_RAPIDSOS_MOCK !== "false",
+  /**
+   * RC Translate — bidirectional Transcribe → Translate → Polly. Operational default on when unset.
+   * Live AWS speech APIs stay mock unless TRANSLATE_MOCK is explicitly false.
+   */
+  enableRcTranslate: featureEnabled("ENABLE_RC_TRANSLATE"),
+  /** Rapid Vision™ — AI visual intelligence. Default on when unset. */
+  enableRapidVision: featureEnabled("ENABLE_RAPID_VISION"),
+  enableRapidVisionRing: featureEnabled("ENABLE_RAPID_VISION_RING"),
+  enableRapidVisionCallerVideo: featureEnabled("ENABLE_RAPID_VISION_CALLER_VIDEO"),
+  enableRapidVisionDemo: featureEnabled("ENABLE_RAPID_VISION_DEMO"),
+  enableRapidVisionAiWriter: featureEnabled("ENABLE_RAPID_VISION_AI_WRITER"),
+  enableRapidVisionRekognition: featureEnabled("ENABLE_RAPID_VISION_REKOGNITION"),
+  visionCamerasTable: process.env.VISION_CAMERAS_TABLE?.trim() ?? "",
+  visionSessionsTable: process.env.VISION_SESSIONS_TABLE?.trim() ?? "",
+  visionObservationsTable: process.env.VISION_OBSERVATIONS_TABLE?.trim() ?? "",
+  visionOwnerConsentTable: process.env.VISION_OWNER_CONSENT_TABLE?.trim() ?? "",
+  visionArtifactsBucket: process.env.VISION_ARTIFACTS_BUCKET?.trim() ?? "",
+  visionAiWriterIntervalSeconds: Number(process.env.VISION_AI_WRITER_INTERVAL_SECONDS ?? "30"),
+  visionMaxActiveAnalysesPerAgency: Number(process.env.VISION_MAX_ACTIVE_ANALYSES_PER_AGENCY ?? "10"),
+  /** Default mock so CI never calls Claude. Set VISION_AI_MOCK=false for live Vision. */
+  visionAiMock: process.env.VISION_AI_MOCK !== "false" && process.env.VISION_AI_MOCK !== "0",
+  anthropicApiKey: process.env.ANTHROPIC_API_KEY?.trim() ?? "",
+  anthropicApiKeySecretArn: process.env.ANTHROPIC_API_KEY_SECRET_ARN?.trim() ?? "",
+
+  translateSessionsTable: process.env.TRANSLATE_SESSIONS_TABLE?.trim() ?? "",
+  translateSegmentsTable: process.env.TRANSLATE_SEGMENTS_TABLE?.trim() ?? "",
+  translateConnectionsTable: process.env.TRANSLATE_CONNECTIONS_TABLE?.trim() ?? "",
+  translateAudioBucket: process.env.TRANSLATE_AUDIO_BUCKET?.trim() ?? "",
+  /** wss:// endpoint returned to clients (includes stage). */
+  translateWsEndpoint: process.env.TRANSLATE_WS_ENDPOINT?.trim() ?? "",
+  /** https:// management API for PostToConnection (no trailing slash). */
+  translateWsApiEndpoint: process.env.TRANSLATE_WS_API_ENDPOINT?.trim() ?? "",
+  translateWsSecretArn: process.env.TRANSLATE_WS_SECRET_ARN?.trim() ?? "",
+  /** Tests / local only. Production must use TRANSLATE_WS_SECRET_ARN. */
+  translateWsSecret: process.env.TRANSLATE_WS_SECRET?.trim() ?? "",
+  /** Default mock so CI never calls Transcribe / Translate / Polly / Bedrock. */
+  translateMock: process.env.TRANSLATE_MOCK !== "false" && process.env.TRANSLATE_MOCK !== "0",
+  /** Internal write-back to campus/venue/hospital note APIs. Empty = mock write-back. */
+  internalApiKey: process.env.INTERNAL_API_KEY?.trim() ?? "",
+  venueApiUrl: process.env.VENUE_API_URL?.trim() ?? "",
+  campusApiUrl: process.env.CAMPUS_API_URL?.trim() ?? "",
+  hospitalApiUrl: process.env.HOSPITAL_API_URL?.trim() ?? "",
   callAssistRapidSosSecretArn: process.env.CALL_ASSIST_RAPIDSOS_SECRET_ARN?.trim() ?? "",
   /** Default mock so CI never calls Comprehend. Set CALL_ASSIST_VOICE_EMOTION_MOCK=false for live DetectSentiment. */
   callAssistVoiceEmotionMock:
@@ -493,7 +536,6 @@ export const env = {
   /** Records Intelligence — AI report writer, NIBRS, RMS push, pre-call context. Default ON when unset. */
   enableRms: featureEnabled("ENABLE_RMS"),
   incidentReportsTable: process.env.INCIDENT_REPORTS_TABLE ?? "",
-  anthropicApiKeySecretArn: process.env.ANTHROPIC_API_KEY_SECRET_ARN ?? "",
   rmsVendorSecretArn: process.env.RMS_VENDOR_SECRET_ARN?.trim() ?? "",
   escalationsTable: process.env.ESCALATIONS_TABLE?.trim() ?? "",
   escalationAuditTable: process.env.ESCALATION_AUDIT_TABLE?.trim() ?? "",

@@ -62,5 +62,10 @@ describe("Call Assist onboarding helpers", () => {
         onboardingCompletedAt: new Date().toISOString(),
       }).success,
     ).toBe(true);
+    expect(
+      callAssistAdminConfigPatchSchema.safeParse({
+        callAssistGreeting: { cityName: "Springfield", agencyName: "SPD" },
+      }).success,
+    ).toBe(true);
   });
 });

@@ -12,6 +12,11 @@ import {
   shouldApplyCallAssistReferenceSeed,
   validateTaxonomyEmergencyLocks,
   type CallAssistAdminConfigPatch,
+  defaultGreetingConfig,
+  greetingActivationBlockedReason,
+  mergeGreetingConfig,
+  resolveGreetingConfig,
+  buildGreeting,
   type RetentionPolicy,
 } from "rapid-cortex-shared";
 import { env } from "../lib/env.js";
@@ -20,6 +25,15 @@ import { callAssistStore, type CallAssistTenantConfig } from "./store.js";
 
 const GENERIC_HOURS = { timezone: "UTC", openMinutes: 0, closeMinutes: 24 * 60, allDay: true };
 const KCPD_HOURS = { timezone: "America/Chicago", openMinutes: 0, closeMinutes: 24 * 60, allDay: true };
+
+function kcpdGreetingConfig() {
+  return defaultGreetingConfig({
+    cityName: "Kansas City",
+    agencyName: KCPD_VOICE_CONFIG.agencyName,
+    previewConfirmed: true,
+    emergencyTransferNumber: KCPD_VOICE_CONFIG.emergencyLine ?? "911",
+  });
+}
 
 export function isCallAssistReferenceSeedAgency(agencyId: string): boolean {
   return shouldApplyCallAssistReferenceSeed(agencyId, env.callAssistSeedProfile, env.callAssistSeedAgencyId);
@@ -45,7 +59,9 @@ export function buildDefaultTenantConfig(
     carfaxPortalUrl: seed?.carfaxPortalUrl ?? "",
     onlineReportUrl: seed?.onlineReportUrl ?? "",
     nonEmergencyWebsite: seed ? KCPD_VOICE_CONFIG.nonEmergencyWebsite : undefined,
-    openingGreeting: seed ? KCPD_VOICE_CONFIG.openingGreeting : undefined,
+    openingGreeting: seed ? buildGreeting(kcpdGreetingConfig()) : undefined,
+    callAssistGreeting: seed ? kcpdGreetingConfig() : defaultGreetingConfig(),
+    tenantCity: seed ? "Kansas City" : undefined,
     defaultLanguageCode: seed ? (KCPD_VOICE_CONFIG.defaultLanguageCode ?? "en-US") : "en-US",
     supportedLanguages: seed ? [...(KCPD_VOICE_CONFIG.supportedLanguages ?? ["en-US"])] : ["en-US"],
     retention: seed?.retention ?? ({
@@ -83,7 +99,28 @@ export function defaultTenantConfig(agencyId: string): CallAssistTenantConfig {
 
 export async function getOrCreateConfig(agencyId: string): Promise<CallAssistTenantConfig> {
   const existing = await callAssistStore.getConfig(agencyId);
-  if (existing) return existing;
+  if (existing) {
+    if (!existing.callAssistGreeting) {
+      const backfilled: CallAssistTenantConfig = {
+        ...existing,
+        callAssistGreeting: isCallAssistReferenceSeedAgency(agencyId)
+          ? kcpdGreetingConfig()
+          : defaultGreetingConfig({
+              cityName: existing.tenantCity,
+              agencyName: existing.agencyName ?? existing.agencyDisplayName,
+              previewConfirmed:
+                existing.onboardingComplete !== false &&
+                Boolean((existing.tenantCity ?? "").trim() && (existing.agencyName ?? existing.agencyDisplayName ?? "").trim()),
+              emergencyTransferNumber: existing.emergencyDestination,
+              emergencyTransferQueue: existing.connectEmergencyQueueArn,
+            }),
+        updatedAt: new Date().toISOString(),
+      };
+      await callAssistStore.putConfig(backfilled);
+      return backfilled;
+    }
+    return existing;
+  }
   const created = defaultTenantConfig(agencyId);
   await callAssistStore.putConfig(created);
   if (created.testDID) {
@@ -120,7 +157,9 @@ export async function seedKcpdLexTenant(agencyId: string, testDID?: string): Pro
     agencyName: KCPD_VOICE_CONFIG.agencyName,
     emergencyLine: KCPD_VOICE_CONFIG.emergencyLine,
     nonEmergencyWebsite: KCPD_VOICE_CONFIG.nonEmergencyWebsite,
-    openingGreeting: KCPD_VOICE_CONFIG.openingGreeting,
+    openingGreeting: buildGreeting(kcpdGreetingConfig()),
+    callAssistGreeting: kcpdGreetingConfig(),
+    tenantCity: "Kansas City",
     defaultLanguageCode: KCPD_VOICE_CONFIG.defaultLanguageCode ?? "en-US",
     supportedLanguages: [...(KCPD_VOICE_CONFIG.supportedLanguages ?? ["en-US"])],
     operatingHours: { ...KCPD_HOURS },
@@ -259,7 +298,28 @@ export async function patchConfig(
 
   if (patch.demoScenarios !== undefined) next.demoScenarios = patch.demoScenarios;
 
+  if (patch.callAssistGreeting !== undefined) {
+    next.callAssistGreeting = mergeGreetingConfig(
+      resolveGreetingConfig(current),
+      patch.callAssistGreeting,
+    );
+    next.openingGreeting = buildGreeting(next.callAssistGreeting, next.defaultLanguageCode ?? "en-US");
+    if (next.callAssistGreeting.cityName.trim() && !next.tenantCity) {
+      next.tenantCity = next.callAssistGreeting.cityName.trim();
+    }
+    if (next.callAssistGreeting.agencyName.trim() && !patch.agencyName) {
+      next.agencyName = next.callAssistGreeting.agencyName.trim();
+    }
+  }
+
   if (patch.onboardingComplete === true) {
+    const greeting = resolveGreetingConfig(next);
+    const blocked = greetingActivationBlockedReason(greeting);
+    if (blocked) {
+      const err = new Error(`GREETING_REQUIRED:${blocked}`);
+      throw err;
+    }
+    next.callAssistGreeting = { ...greeting, greetingPreviewConfirmed: true };
     next.onboardingComplete = true;
     next.onboardingCompletedAt = patch.onboardingCompletedAt ?? new Date().toISOString();
   } else if (patch.onboardingComplete === false) {

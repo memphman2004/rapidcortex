@@ -188,7 +188,7 @@ export const ROLE_DESCRIPTIONS: Record<string, string> = {
   transit_operator:
     "Transit operator. Read-only vehicle status and active incidents on their route.",
   homeowner:
-    "Ring device owner. Lightweight account for Rapid Cortex Connect Appstore linking and camera consent — no dispatch workspace.",
+    "Ring device owner. Lightweight account for Rapid Vision™ Appstore linking and camera consent — no dispatch workspace.",
 };
 
 export const ROLE_DISPLAY_LABELS: Record<RapidCortexRole, string> = {

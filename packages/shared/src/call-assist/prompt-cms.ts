@@ -141,7 +141,7 @@ export function rollbackPrompt(
 
 export const DEFAULT_CALL_ASSIST_PROMPTS: Record<Exclude<CallAssistPromptKey, "dispatchTriage">, string> = {
   opening:
-    "Thank you for calling {agencyDisplayName} non-emergency. I'm an automated assistant that will gather your information and route your call. This call may be recorded. If this is a life-threatening emergency, please hang up and dial {emergencyLine}, or say emergency now. How can I help you today?",
+    "How can I help you today?",
   emergencyTransfer:
     "This is the non-emergency line. For life-threatening emergencies, please hang up and dial {emergencyLine} now. I'm also alerting a {agencyShortName} {officerLabel}.",
   humanTransfer: "Of course. I'm connecting you to a {agencyShortName} {officerLabel} now. Stay on the line.",
