@@ -55,6 +55,13 @@ Parameters:
   ExistingVisionArtifactsBucketName:
     Type: String
     Default: ""
+  ExistingVisionTranscriptsTableName:
+    Type: String
+    Default: ""
+  FfmpegLayerArn:
+    Type: String
+    Default: "arn:aws:lambda:us-east-1:016851027864:layer:ffmpeg:2"
+    Description: Public ffmpeg Lambda layer (x86_64). Empty skips the layer (mock transcript only).
   ManagedPolicyNamePrefix:
     Type: String
     Default: rapid-cortex
@@ -66,9 +73,11 @@ Conditions:
   CreateObservationsTable: !Equals [!Ref ExistingVisionObservationsTableName, ""]
   CreateConsentTable: !Equals [!Ref ExistingVisionOwnerConsentTableName, ""]
   CreateArtifactsBucket: !Equals [!Ref ExistingVisionArtifactsBucketName, ""]
+  CreateVisionTranscriptsTable: !Equals [!Ref ExistingVisionTranscriptsTableName, ""]
   HasAnthropicSecret: !Not [!Equals [!Ref AnthropicApiKeySecretArn, ""]]
   HasTranscriptsTable: !Not [!Equals [!Ref TranscriptsTable, ""]]
   HasWebSocket: !Not [!Equals [!Ref WebSocketConnectionsTable, ""]]
+  HasFfmpegLayer: !Not [!Equals [!Ref FfmpegLayerArn, ""]]
 
 Globals:
   Function:
@@ -84,7 +93,17 @@ Globals:
         ENABLE_RAPID_VISION_CALLER_VIDEO: "true"
         ENABLE_RAPID_VISION_DEMO: "true"
         ENABLE_RAPID_VISION_AI_WRITER: "true"
+        ENABLE_RAPID_VISION_TRANSCRIPT: "true"
         VISION_AI_MOCK: "true"
+        VISION_TRANSCRIPT_MOCK: "true"
+        VISION_TRANSCRIPT_LANGUAGE: "en-US"
+        VISION_TRANSCRIPT_WORKER_DURATION_S: "780"
+        VISION_TRANSCRIPT_STOP_POLL_S: "60"
+        VISION_TRANSCRIPT_WORKER_FUNCTION: !Sub "rapid-cortex-vision-transcript-worker-${DeploymentStage}"
+        VISION_TRANSCRIPTS_TABLE: !If
+          - CreateVisionTranscriptsTable
+          - !Ref VisionLiveTranscriptsTable
+          - !Ref ExistingVisionTranscriptsTableName
         CAD_WRITEBACK_ENABLED: "false"
         VISION_CAMERAS_TABLE: !If
           - CreateCamerasTable
@@ -247,6 +266,45 @@ Resources:
         AttributeName: ttl
         Enabled: true
 
+  VisionLiveTranscriptsTable:
+    Type: AWS::DynamoDB::Table
+    Condition: CreateVisionTranscriptsTable
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      TableName: !Sub "rapid-cortex-vision-transcripts-${DeploymentStage}"
+      BillingMode: PAY_PER_REQUEST
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: true
+      SSESpecification:
+        SSEEnabled: true
+      AttributeDefinitions:
+        - AttributeName: pk
+          AttributeType: S
+        - AttributeName: sk
+          AttributeType: S
+        - AttributeName: sessionId
+          AttributeType: S
+        - AttributeName: timestamp
+          AttributeType: S
+      KeySchema:
+        - AttributeName: pk
+          KeyType: HASH
+        - AttributeName: sk
+          KeyType: RANGE
+      GlobalSecondaryIndexes:
+        - IndexName: BySession
+          KeySchema:
+            - AttributeName: sessionId
+              KeyType: HASH
+            - AttributeName: timestamp
+              KeyType: RANGE
+          Projection:
+            ProjectionType: ALL
+      TimeToLiveSpecification:
+        AttributeName: ttl
+        Enabled: true
+
   VisionArtifactsBucket:
     Type: AWS::S3::Bucket
     Condition: CreateArtifactsBucket
@@ -401,6 +459,73 @@ Resources:
               - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${TranscriptsTable}"
               - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${TranscriptsTable}/index/*"
 
+  AppManagedPolicyVisionLiveTranscript:
+    Type: AWS::IAM::ManagedPolicy
+    Properties:
+      ManagedPolicyName: !Sub "${ManagedPolicyNamePrefix}-vision-scenetx-${DeploymentStage}"
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Sid: VisionLiveTranscriptsTable
+            Effect: Allow
+            Action:
+              - dynamodb:GetItem
+              - dynamodb:PutItem
+              - dynamodb:UpdateItem
+              - dynamodb:Query
+            Resource:
+              - !If
+                  - CreateVisionTranscriptsTable
+                  - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${VisionLiveTranscriptsTable}"
+                  - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${ExistingVisionTranscriptsTableName}"
+              - !If
+                  - CreateVisionTranscriptsTable
+                  - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${VisionLiveTranscriptsTable}/index/*"
+                  - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${ExistingVisionTranscriptsTableName}/index/*"
+          - Sid: TranscribeStreaming
+            Effect: Allow
+            Action:
+              - transcribe:StartStreamTranscription
+            # Streaming sessions are not resource-ARN scoped by Transcribe.
+            Resource: "*"
+            Condition:
+              StringEquals:
+                aws:RequestedRegion: !Ref AWS::Region
+          - Sid: InvokeTranscriptWorker
+            Effect: Allow
+            Action:
+              - lambda:InvokeFunction
+            Resource: !Sub "arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:rapid-cortex-vision-transcript-worker-${DeploymentStage}"
+
+  VisionKvsBrowserTokenRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Action: sts:AssumeRole
+            Principal:
+              AWS: !Sub "arn:aws:iam::${AWS::AccountId}:root"
+            Condition:
+              StringEquals:
+                aws:SourceAccount: !Ref AWS::AccountId
+              StringLike:
+                aws:PrincipalArn: !Sub "arn:aws:iam::${AWS::AccountId}:role/*VisionHttpFunction*"
+      Policies:
+        - PolicyName: VisionKvsWebrtcDataPlane
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Sid: VisionKvsDataPlane
+                Effect: Allow
+                Action:
+                  - kinesisvideo:ConnectAsViewer
+                  - kinesisvideo:DescribeSignalingChannel
+                  - kinesisvideo:GetSignalingChannelEndpoint
+                  - kinesisvideo:GetIceServerConfig
+                Resource: !Sub "arn:${AWS::Partition}:kinesisvideo:${AWS::Region}:${AWS::AccountId}:channel/*/*"
+
   VisionHttpFunction:
     Type: AWS::Serverless::Function
     Metadata:
@@ -410,11 +535,29 @@ Resources:
       CodeUri: ../../apps/api/
       Handler: dist/handlers/rapid-vision/http.handler
       Timeout: 30
+      Environment:
+        Variables:
+          KVS_BROWSER_TOKEN_ROLE_ARN: !GetAtt VisionKvsBrowserTokenRole.Arn
       Policies:
         - !Ref AppManagedPolicyVision
+        - !Ref AppManagedPolicyVisionLiveTranscript
         - !If [HasAnthropicSecret, !Ref AppManagedPolicyVisionAnthropic, !Ref AWS::NoValue]
         - !If [HasWebSocket, !Ref AppManagedPolicyVisionWs, !Ref AWS::NoValue]
         - !If [HasTranscriptsTable, !Ref AppManagedPolicyVisionTranscripts, !Ref AWS::NoValue]
+        - Statement:
+            - Sid: VisionKvsSignalingViewer
+              Effect: Allow
+              Action:
+                - kinesisvideo:DescribeSignalingChannel
+                - kinesisvideo:GetSignalingChannelEndpoint
+              Resource: "*"
+              Condition:
+                StringEquals:
+                  aws:RequestedRegion: !Ref AWS::Region
+            - Sid: VisionAssumeKvsBrowserRole
+              Effect: Allow
+              Action: sts:AssumeRole
+              Resource: !GetAtt VisionKvsBrowserTokenRole.Arn
 
   VisionConsentFunction:
     Type: AWS::Serverless::Function
@@ -449,6 +592,29 @@ Resources:
           Properties:
             Schedule: rate(1 minute)
             Enabled: true
+
+  VisionTranscriptWorkerFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-python-worker
+    Properties:
+      FunctionName: !Sub "rapid-cortex-vision-transcript-worker-${DeploymentStage}"
+      CodeUri: ../../apps/api/src/rapid-vision/transcript-worker/
+      Handler: lambda_function.handler
+      Runtime: python3.11
+      Timeout: 840
+      MemorySize: 512
+      Architectures:
+        - x86_64
+      Layers: !If
+        - HasFfmpegLayer
+        - - !Ref FfmpegLayerArn
+        - !Ref AWS::NoValue
+      Policies:
+        - !Ref AppManagedPolicyVision
+        - !Ref AppManagedPolicyVisionLiveTranscript
+        - !If [HasWebSocket, !Ref AppManagedPolicyVisionWs, !Ref AWS::NoValue]
 
   VisionHttpIntegration:
     Type: AWS::ApiGatewayV2::Integration
@@ -524,3 +690,10 @@ Outputs:
       - CreateObservationsTable
       - !Ref VisionObservationsTable
       - !Ref ExistingVisionObservationsTableName
+  VisionLiveTranscriptsTableName:
+    Value: !If
+      - CreateVisionTranscriptsTable
+      - !Ref VisionLiveTranscriptsTable
+      - !Ref ExistingVisionTranscriptsTableName
+  VisionTranscriptWorkerFunctionName:
+    Value: !Ref VisionTranscriptWorkerFunction

@@ -405,10 +405,20 @@ export const env = {
   enableRapidVisionDemo: featureEnabled("ENABLE_RAPID_VISION_DEMO"),
   enableRapidVisionAiWriter: featureEnabled("ENABLE_RAPID_VISION_AI_WRITER"),
   enableRapidVisionRekognition: featureEnabled("ENABLE_RAPID_VISION_REKOGNITION"),
+  enableRapidVisionTranscript: featureEnabled("ENABLE_RAPID_VISION_TRANSCRIPT"),
   visionCamerasTable: process.env.VISION_CAMERAS_TABLE?.trim() ?? "",
   visionSessionsTable: process.env.VISION_SESSIONS_TABLE?.trim() ?? "",
   visionObservationsTable: process.env.VISION_OBSERVATIONS_TABLE?.trim() ?? "",
   visionOwnerConsentTable: process.env.VISION_OWNER_CONSENT_TABLE?.trim() ?? "",
+  visionTranscriptsTable: process.env.VISION_TRANSCRIPTS_TABLE?.trim() ?? "",
+  visionTranscriptWorkerFunction: process.env.VISION_TRANSCRIPT_WORKER_FUNCTION?.trim() ?? "",
+  visionTranscriptLanguage: process.env.VISION_TRANSCRIPT_LANGUAGE?.trim() || "en-US",
+  /**
+   * Default mock so CI never calls ffmpeg/Transcribe Streaming.
+   * Set VISION_TRANSCRIPT_MOCK=false for live scene audio.
+   */
+  visionTranscriptMock:
+    process.env.VISION_TRANSCRIPT_MOCK !== "false" && process.env.VISION_TRANSCRIPT_MOCK !== "0",
   visionArtifactsBucket: process.env.VISION_ARTIFACTS_BUCKET?.trim() ?? "",
   visionAiWriterIntervalSeconds: Number(process.env.VISION_AI_WRITER_INTERVAL_SECONDS ?? "30"),
   visionMaxActiveAnalysesPerAgency: Number(process.env.VISION_MAX_ACTIVE_ANALYSES_PER_AGENCY ?? "10"),

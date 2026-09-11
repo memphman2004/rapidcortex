@@ -19,6 +19,33 @@ export const visionSettingsPatchSchema = z.object({
   retentionDays: z.number().int().min(1).max(365).optional(),
 });
 
+export const visionTranscriptQuerySchema = z.object({
+  sessionId: z.string().min(1).max(128).optional(),
+  limit: z.coerce.number().int().min(1).max(200).optional(),
+});
+
+export const visionTranscriptSessionBodySchema = z.object({
+  incidentId: z.string().min(1).max(128),
+});
+
+export const visionTranscriptSegmentSchema = z.object({
+  resultId: z.string().min(1),
+  incidentId: z.string().min(1),
+  agencyId: z.string().min(1),
+  sessionId: z.string().min(1),
+  cameraId: z.string().min(1),
+  speakerLabel: z.string().min(1),
+  transcript: z.string(),
+  isPartial: z.boolean(),
+  startTime: z.number(),
+  endTime: z.number(),
+  confidence: z.number().min(0).max(1),
+  language: z.string().min(2),
+  timestamp: z.string().min(1),
+});
+
 export type VisionCameraSearchRequest = z.infer<typeof visionCameraSearchRequestSchema>;
 export type VisionRequestAccessBody = z.infer<typeof visionRequestAccessBodySchema>;
 export type VisionSettingsPatch = z.infer<typeof visionSettingsPatchSchema>;
+export type VisionTranscriptQuery = z.infer<typeof visionTranscriptQuerySchema>;
+export type VisionTranscriptSessionBody = z.infer<typeof visionTranscriptSessionBodySchema>;

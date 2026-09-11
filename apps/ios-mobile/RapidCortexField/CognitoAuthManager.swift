@@ -15,10 +15,15 @@ final class CognitoAuthManager: ObservableObject {
 
     @Published var requiresMFA = false
     @Published var mfaCode = ""
-    /// Agency used for `/api/codes` (platform admins may switch).
+    /// Agency used for `/api/codes` and operational dashboard (platform admins may switch).
     @Published var selectedAgencyId = ""
     /// Operational profile of the selected agency. Internal only — never displayed.
     @Published private(set) var activeAgencyVertical = ""
+
+    /// Tenant id for API calls. Never `__platform__`; defaults to the App Store test agency.
+    var operationalAgencyId: String {
+        RCConfig.resolvedAgencyId(selected: selectedAgencyId, jwt: claims?.agencyId)
+    }
 
     var qrCodeVertical: String {
         let selected = activeAgencyVertical.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
@@ -240,13 +245,36 @@ final class CognitoAuthManager: ObservableObject {
     private func applySelectedAgency() {
         let stored = UserDefaults.standard.string(forKey: Self.selectedAgencyKey) ?? ""
         let storedVertical = UserDefaults.standard.string(forKey: Self.selectedAgencyVerticalKey) ?? ""
-        if claims?.isPlatformAdmin == true, !stored.isEmpty {
+        if claims?.isPlatformAdmin == true {
+            if RCConfig.isTenantAgencyId(stored) {
+                selectedAgencyId = stored
+                activeAgencyVertical = storedVertical.isEmpty && stored == RCConfig.testAgencyId
+                    ? RCConfig.testAgencyVertical
+                    : storedVertical
+                return
+            }
+            bindDefaultTestAgency()
+            return
+        }
+        let jwtAgency = claims?.agencyId ?? ""
+        if RCConfig.isTenantAgencyId(jwtAgency) {
+            selectedAgencyId = jwtAgency
+            activeAgencyVertical = claims?.agencyVertical ?? ""
+            return
+        }
+        if RCConfig.isTenantAgencyId(stored) {
             selectedAgencyId = stored
             activeAgencyVertical = storedVertical
-        } else {
-            selectedAgencyId = claims?.agencyId ?? stored
-            activeAgencyVertical = claims?.agencyVertical ?? ""
+            return
         }
+        bindDefaultTestAgency()
+    }
+
+    private func bindDefaultTestAgency() {
+        selectedAgencyId = RCConfig.testAgencyId
+        activeAgencyVertical = RCConfig.testAgencyVertical
+        UserDefaults.standard.set(selectedAgencyId, forKey: Self.selectedAgencyKey)
+        UserDefaults.standard.set(activeAgencyVertical, forKey: Self.selectedAgencyVerticalKey)
     }
 
     private func restoreSession() {

@@ -12,7 +12,11 @@ final class AgencySelectViewModel: ObservableObject {
         error = nil
         defer { isLoading = false }
         do {
-            agencies = try await RCAPIClient.shared.listAgencies()
+            agencies = try await RCAPIClient.shared.listAgencies().sorted { a, b in
+                if a.agencyId == RCConfig.testAgencyId { return true }
+                if b.agencyId == RCConfig.testAgencyId { return false }
+                return a.name.localizedCaseInsensitiveCompare(b.name) == .orderedAscending
+            }
         } catch {
             self.error = error.localizedDescription
         }

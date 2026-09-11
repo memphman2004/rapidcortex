@@ -28,9 +28,18 @@ Parameters:
   ManagedPolicyNamePrefix:
     Type: String
     Default: rapid-cortex
+  ReuseExistingLocationAls:
+    Type: String
+    Default: "false"
+    AllowedValues: ["true", "false"]
+    Description: >
+      When true, skip creating retained ALS maps/places/routes/geofences/tracker
+      (AlreadyExists after nested-stack rollback). Still creates the Cognito
+      identity pool, IAM map roles, and tracker consumer.
 
 Conditions:
   HasHttpApiJwtAuthorizer: !Not [!Equals [!Ref HttpApiJwtAuthorizerId, ""]]
+  CreateLocationAls: !Equals [!Ref ReuseExistingLocationAls, "false"]
 
 Globals:
   Function:
@@ -56,6 +65,7 @@ Globals:
 Resources:
   RCLocationMap:
     Type: AWS::Location::Map
+    Condition: CreateLocationAls
     DeletionPolicy: Retain
     UpdateReplacePolicy: Retain
     Properties:
@@ -66,6 +76,7 @@ Resources:
 
   RCLocationMapDark:
     Type: AWS::Location::Map
+    Condition: CreateLocationAls
     DeletionPolicy: Retain
     UpdateReplacePolicy: Retain
     Properties:
@@ -76,6 +87,7 @@ Resources:
 
   RCPlaceIndex:
     Type: AWS::Location::PlaceIndex
+    Condition: CreateLocationAls
     DeletionPolicy: Retain
     UpdateReplacePolicy: Retain
     Properties:
@@ -87,6 +99,7 @@ Resources:
 
   RCRouteCalculator:
     Type: AWS::Location::RouteCalculator
+    Condition: CreateLocationAls
     DeletionPolicy: Retain
     UpdateReplacePolicy: Retain
     Properties:
@@ -96,6 +109,7 @@ Resources:
 
   RCGeofenceCollection:
     Type: AWS::Location::GeofenceCollection
+    Condition: CreateLocationAls
     DeletionPolicy: Retain
     UpdateReplacePolicy: Retain
     Properties:
@@ -104,6 +118,7 @@ Resources:
 
   RCLocationTracker:
     Type: AWS::Location::Tracker
+    Condition: CreateLocationAls
     DeletionPolicy: Retain
     UpdateReplacePolicy: Retain
     Properties:
@@ -114,8 +129,14 @@ Resources:
   RCGeofenceTrackerConsumer:
     Type: AWS::Location::TrackerConsumer
     Properties:
-      ConsumerArn: !GetAtt RCGeofenceCollection.Arn
-      TrackerName: !Ref RCLocationTracker
+      ConsumerArn: !If
+        - CreateLocationAls
+        - !GetAtt RCGeofenceCollection.Arn
+        - !Sub "arn:${AWS::Partition}:geo:${AWS::Region}:${AWS::AccountId}:geofence-collection/rc-geofences-${DeploymentStage}"
+      TrackerName: !If
+        - CreateLocationAls
+        - !Ref RCLocationTracker
+        - !Sub "rc-tracker-${DeploymentStage}"
 
   RCMapIdentityPool:
     Type: AWS::Cognito::IdentityPool
@@ -156,8 +177,14 @@ Resources:
                   - geo:GetMapSprites
                   - geo:GetMapGlyphs
                 Resource:
-                  - !GetAtt RCLocationMap.Arn
-                  - !GetAtt RCLocationMapDark.Arn
+                  - !If
+                    - CreateLocationAls
+                    - !GetAtt RCLocationMap.Arn
+                    - !Sub "arn:${AWS::Partition}:geo:${AWS::Region}:${AWS::AccountId}:map/rc-map-${DeploymentStage}"
+                  - !If
+                    - CreateLocationAls
+                    - !GetAtt RCLocationMapDark.Arn
+                    - !Sub "arn:${AWS::Partition}:geo:${AWS::Region}:${AWS::AccountId}:map/rc-map-dark-${DeploymentStage}"
 
   RCMapIdentityPoolAuthedRole:
     Type: AWS::IAM::Role
@@ -187,8 +214,14 @@ Resources:
                   - geo:GetMapSprites
                   - geo:GetMapGlyphs
                 Resource:
-                  - !GetAtt RCLocationMap.Arn
-                  - !GetAtt RCLocationMapDark.Arn
+                  - !If
+                    - CreateLocationAls
+                    - !GetAtt RCLocationMap.Arn
+                    - !Sub "arn:${AWS::Partition}:geo:${AWS::Region}:${AWS::AccountId}:map/rc-map-${DeploymentStage}"
+                  - !If
+                    - CreateLocationAls
+                    - !GetAtt RCLocationMapDark.Arn
+                    - !Sub "arn:${AWS::Partition}:geo:${AWS::Region}:${AWS::AccountId}:map/rc-map-dark-${DeploymentStage}"
 
   RCMapIdentityPoolRoleAttachment:
     Type: AWS::Cognito::IdentityPoolRoleAttachment
@@ -234,10 +267,22 @@ Resources:
               - geo:ListDevicePositions
               - geo:BatchGetDevicePosition
             Resource:
-              - !GetAtt RCPlaceIndex.Arn
-              - !GetAtt RCRouteCalculator.Arn
-              - !GetAtt RCGeofenceCollection.Arn
-              - !GetAtt RCLocationTracker.Arn
+              - !If
+                - CreateLocationAls
+                - !GetAtt RCPlaceIndex.Arn
+                - !Sub "arn:${AWS::Partition}:geo:${AWS::Region}:${AWS::AccountId}:place-index/rc-places-${DeploymentStage}"
+              - !If
+                - CreateLocationAls
+                - !GetAtt RCRouteCalculator.Arn
+                - !Sub "arn:${AWS::Partition}:geo:${AWS::Region}:${AWS::AccountId}:route-calculator/rc-routes-${DeploymentStage}"
+              - !If
+                - CreateLocationAls
+                - !GetAtt RCGeofenceCollection.Arn
+                - !Sub "arn:${AWS::Partition}:geo:${AWS::Region}:${AWS::AccountId}:geofence-collection/rc-geofences-${DeploymentStage}"
+              - !If
+                - CreateLocationAls
+                - !GetAtt RCLocationTracker.Arn
+                - !Sub "arn:${AWS::Partition}:geo:${AWS::Region}:${AWS::AccountId}:tracker/rc-tracker-${DeploymentStage}"
 
   LocationHttpFunction:
     Type: AWS::Serverless::Function
@@ -318,27 +363,45 @@ Resources:
 
 Outputs:
   MapName:
-    Value: !Ref RCLocationMap
+    Value: !If
+      - CreateLocationAls
+      - !Ref RCLocationMap
+      - !Sub "rc-map-${DeploymentStage}"
     Export:
       Name: !Sub "${AWS::StackName}-MapName"
   MapNameDark:
-    Value: !Ref RCLocationMapDark
+    Value: !If
+      - CreateLocationAls
+      - !Ref RCLocationMapDark
+      - !Sub "rc-map-dark-${DeploymentStage}"
     Export:
       Name: !Sub "${AWS::StackName}-MapNameDark"
   PlaceIndexName:
-    Value: !Ref RCPlaceIndex
+    Value: !If
+      - CreateLocationAls
+      - !Ref RCPlaceIndex
+      - !Sub "rc-places-${DeploymentStage}"
     Export:
       Name: !Sub "${AWS::StackName}-PlaceIndexName"
   RouteCalculatorName:
-    Value: !Ref RCRouteCalculator
+    Value: !If
+      - CreateLocationAls
+      - !Ref RCRouteCalculator
+      - !Sub "rc-routes-${DeploymentStage}"
     Export:
       Name: !Sub "${AWS::StackName}-RouteCalculatorName"
   GeofenceCollectionName:
-    Value: !Ref RCGeofenceCollection
+    Value: !If
+      - CreateLocationAls
+      - !Ref RCGeofenceCollection
+      - !Sub "rc-geofences-${DeploymentStage}"
     Export:
       Name: !Sub "${AWS::StackName}-GeofenceCollectionName"
   TrackerName:
-    Value: !Ref RCLocationTracker
+    Value: !If
+      - CreateLocationAls
+      - !Ref RCLocationTracker
+      - !Sub "rc-tracker-${DeploymentStage}"
     Export:
       Name: !Sub "${AWS::StackName}-TrackerName"
   MapIdentityPoolId:

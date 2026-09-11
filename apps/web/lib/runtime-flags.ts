@@ -21,6 +21,7 @@ const NEXT_PUBLIC_FLAG_VALUES: Record<string, string | undefined> = {
   NEXT_PUBLIC_ENABLE_RAPID_VISION_CALLER_VIDEO: process.env.NEXT_PUBLIC_ENABLE_RAPID_VISION_CALLER_VIDEO,
   NEXT_PUBLIC_ENABLE_RAPID_VISION_DEMO: process.env.NEXT_PUBLIC_ENABLE_RAPID_VISION_DEMO,
   NEXT_PUBLIC_ENABLE_RAPID_VISION_AI_WRITER: process.env.NEXT_PUBLIC_ENABLE_RAPID_VISION_AI_WRITER,
+  NEXT_PUBLIC_ENABLE_RAPID_VISION_TRANSCRIPT: process.env.NEXT_PUBLIC_ENABLE_RAPID_VISION_TRANSCRIPT,
   NEXT_PUBLIC_ENABLE_VERTICAL_ALERTS: process.env.NEXT_PUBLIC_ENABLE_VERTICAL_ALERTS,
   NEXT_PUBLIC_ENABLE_PHYSICAL_SECURITY_INGEST: process.env.NEXT_PUBLIC_ENABLE_PHYSICAL_SECURITY_INGEST,
   NEXT_PUBLIC_ENABLE_PHYSICAL_SECURITY_COMMANDS: process.env.NEXT_PUBLIC_ENABLE_PHYSICAL_SECURITY_COMMANDS,
@@ -224,6 +225,11 @@ export function isRapidVisionDemoEnabled(): boolean {
 
 export function isRapidVisionAiWriterEnabled(): boolean {
   return isRapidVisionEnabled() && envFlag("NEXT_PUBLIC_ENABLE_RAPID_VISION_AI_WRITER");
+}
+
+/** Live camera audio → Amazon Transcribe beside WebRTC video. Default on when unset. */
+export function isRapidVisionTranscriptEnabled(): boolean {
+  return isRapidVisionEnabled() && envFlag("NEXT_PUBLIC_ENABLE_RAPID_VISION_TRANSCRIPT");
 }
 
 /**

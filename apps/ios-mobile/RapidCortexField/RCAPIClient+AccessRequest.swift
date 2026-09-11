@@ -2,7 +2,14 @@ import Foundation
 
 extension RCAPIClient {
     func submitAccessRequest(request: AccessRequest) async throws {
-        let _: AccessRequestResponse = try await post(path: "/api/access-requests", body: request)
+        do {
+            let _: AccessRequestResponse = try await post(path: "/api/access-requests", body: request)
+        } catch RCAPIError.notFound {
+            throw RCAPIError.serverError(
+                404,
+                "Access requests aren’t available in this release."
+            )
+        }
     }
 }
 

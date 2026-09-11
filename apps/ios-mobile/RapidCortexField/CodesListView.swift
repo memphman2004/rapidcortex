@@ -72,7 +72,7 @@ struct CodesListView: View {
     @State private var nfcCode: QRNFCCode?
     @State private var path = NavigationPath()
 
-    private var agencyId: String { auth.selectedAgencyId }
+    private var agencyId: String { auth.operationalAgencyId }
 
     var body: some View {
         NavigationStack(path: $path) {

@@ -418,6 +418,12 @@ Parameters:
     Description: >-
       When set, AppSamCallAssistStack2 uses this existing DynamoDB table instead of creating
       rapid-cortex-call-assist-${stage} (required if the table was pre-created for Lex).
+  ExistingFieldCommandTableName:
+    Type: String
+    Default: ""
+    Description: >-
+      When set, AppSamFieldStack uses this existing DynamoDB table instead of creating
+      rapid-cortex-field-command-${stage} (required after a retained table from a failed create).
   ExistingTranslateSessionsTableName:
     Type: String
     Default: ""
@@ -463,6 +469,10 @@ Parameters:
     Type: String
     Default: ""
     Description: When set, AppSam6Stack uses this existing Rapid Vision™ artifacts bucket.
+  ExistingVisionTranscriptsTableName:
+    Type: String
+    Default: ""
+    Description: When set, AppSam6Stack uses this existing Rapid Vision™ live-transcript segments table.
   TransitCameraProducerKey:
     Type: String
     Default: ""
@@ -482,6 +492,16 @@ Parameters:
     Default: "false"
     AllowedValues: ["true", "false"]
     Description: When true, AppSamCadStack skips creating retained CAD connector DynamoDB tables.
+  ReuseExistingLocationAls:
+    Type: String
+    Default: "false"
+    AllowedValues: ["true", "false"]
+    Description: When true, AppSamLocationStack2 skips creating retained ALS maps/places/routes/geofences/tracker.
+  ReuseExistingCadBridgeRetainedTables:
+    Type: String
+    Default: "false"
+    AllowedValues: ["true", "false"]
+    Description: When true, AppSamCadBridgeStack2 skips creating retained CAD Bridge DynamoDB tables (config/sync/buffer/audit).
   CadBridgeVpcId:
     Type: String
     Default: ""
@@ -1262,7 +1282,7 @@ Resources:
             - !GetAtt DataLayerStack.Outputs.WebSocketConnectionsTable
             - !Sub "${DynamoTableNamePrefix}-websocket-connections-${DeploymentStage}"
         OpsAlertsTopicArn: !GetAtt AppSamStackV2.Outputs.OpsAlertsTopicArn
-        ExistingFieldCommandTableName: ""
+        ExistingFieldCommandTableName: !Ref ExistingFieldCommandTableName
         ManagedPolicyNamePrefix: !Ref AWS::StackName
 
   AppSam2Stack:
@@ -3516,6 +3536,7 @@ Resources:
         ExistingVisionObservationsTableName: !Ref ExistingVisionObservationsTableName
         ExistingVisionOwnerConsentTableName: !Ref ExistingVisionOwnerConsentTableName
         ExistingVisionArtifactsBucketName: !Ref ExistingVisionArtifactsBucketName
+        ExistingVisionTranscriptsTableName: !Ref ExistingVisionTranscriptsTableName
         ManagedPolicyNamePrefix: !Ref AWS::StackName
 
   AppSamCadBridgeStack2:
@@ -3551,6 +3572,7 @@ Resources:
         VpcId: !Ref CadBridgeVpcId
         VpcSubnetIds: !Ref CadBridgeVpcSubnetIds
         VpcSecurityGroupId: !Ref CadBridgeVpcSecurityGroupId
+        ReuseExistingCadBridgeRetainedTables: !Ref ReuseExistingCadBridgeRetainedTables
 
   AppSamLocationStack2:
     Type: AWS::CloudFormation::Stack
@@ -3582,6 +3604,7 @@ Resources:
             - !GetAtt DataLayerStack.Outputs.AgenciesTable
             - !Sub "${DynamoTableNamePrefix}-agencies-${DeploymentStage}"
         ManagedPolicyNamePrefix: !Ref AWS::StackName
+        ReuseExistingLocationAls: !Ref ReuseExistingLocationAls
 
   AppSamVerticalAlertsStack2:
     Type: AWS::CloudFormation::Stack

@@ -1,4 +1,4 @@
-import type { APIGatewayProxyHandlerV2 } from "aws-lambda";
+import type { APIGatewayProxyEventV2, APIGatewayProxyHandlerV2, APIGatewayProxyResultV2 } from "aws-lambda";
 import { randomBytes, randomUUID } from "node:crypto";
 import {
   calculateDistanceMeters,
@@ -36,6 +36,9 @@ import { AuditRepository } from "../../repositories/auditRepository.js";
 import { requireActiveRingIncident } from "../../integrations/ring/ring-incident.js";
 import { visionStore } from "../../rapid-vision/store.js";
 import { DemoVisionProvider } from "../../rapid-vision/providers/DemoVisionProvider.js";
+import { resolveVisionSessionKvsRef } from "../../rapid-vision/kvs-media-ref.js";
+import { getHandler as handleTranscriptGet, startHandler, stopHandler, withVisionPathParams } from "./transcript-session.js";
+import { handler as handleVisionViewerToken } from "./vision-viewer-token.js";
 
 const auditRepo = new AuditRepository();
 const authz = new AuthorizationService();
@@ -54,7 +57,7 @@ function pathOf(event: { rawPath?: string; requestContext?: { http?: { path?: st
 }
 
 async function gate(
-  event: Parameters<APIGatewayProxyHandlerV2>[0],
+  event: APIGatewayProxyEventV2,
   permission: string,
 ): Promise<{ user: UserContext } | { response: ReturnType<typeof ok> }> {
   const user = await getUserContext(event);
@@ -142,11 +145,11 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
 };
 
 async function handleIncidentVision(
-  event: Parameters<APIGatewayProxyHandlerV2>[0],
+  event: APIGatewayProxyEventV2,
   method: string,
   incidentId: string,
   rest: string[],
-) {
+): Promise<APIGatewayProxyResultV2> {
   if (method === "POST" && rest[0] === "cameras" && rest[1] === "search" && rest.length === 2) {
     const gated = await gate(event, "vision.cameras_view");
     if ("response" in gated) return gated.response;
@@ -248,6 +251,7 @@ async function handleIncidentVision(
     const needsConsent =
       camera.consentPolicy === "ask_every_time" || camera.consentPolicy === "preauthorized_specific_types";
 
+    const kvs = resolveVisionSessionKvsRef(camera);
     const session: VisionSession = {
       sessionId,
       incidentId,
@@ -255,8 +259,8 @@ async function handleIncidentVision(
       cameraId,
       provider: camera.provider,
       providerSessionId: null,
-      kvsChannelName: camera.kvsChannelName ?? null,
-      kvsStreamArn: camera.kvsStreamArn ?? null,
+      kvsChannelName: kvs.kvsChannelName,
+      kvsStreamArn: kvs.kvsStreamArn,
       requestedBy: user.userId,
       authorizedBy: needsConsent ? "owner" : camera.provider === "demo" ? "demo" : "agency_policy",
       status: needsConsent ? "pending" : "active",
@@ -378,14 +382,52 @@ async function handleIncidentVision(
     return ok({ success: true, data: { observations } });
   }
 
+  if (method === "GET" && rest[0] === "transcript" && rest.length === 1) {
+    return handleTranscriptGet(withVisionPathParams(event, { id: incidentId }));
+  }
+
+  if (
+    method === "POST" &&
+    rest[0] === "sessions" &&
+    rest[2] === "transcript" &&
+    rest.length === 4 &&
+    (rest[3] === "start" || rest[3] === "stop")
+  ) {
+    const sessionId = decodeURIComponent(rest[1] ?? "").trim();
+    if (!sessionId) return badRequest("sessionId required");
+    const routed = withVisionPathParams(event, { sessionId, id: incidentId });
+    if (rest[3] === "start") return startHandler(routed);
+    return stopHandler(routed);
+  }
+
   return notFound();
 }
 
 async function handleVisionRoot(
-  event: Parameters<APIGatewayProxyHandlerV2>[0],
+  event: APIGatewayProxyEventV2,
   method: string,
   rest: string[],
-) {
+): Promise<APIGatewayProxyResultV2> {
+  if (method === "GET" && rest[0] === "sessions" && rest[2] === "viewer-token" && rest.length === 3) {
+    const sessionId = decodeURIComponent(rest[1] ?? "").trim();
+    if (!sessionId) return badRequest("sessionId required");
+    return handleVisionViewerToken(withVisionPathParams(event, { sessionId }));
+  }
+
+  if (
+    method === "POST" &&
+    rest[0] === "sessions" &&
+    rest[2] === "transcript" &&
+    rest.length === 4 &&
+    (rest[3] === "start" || rest[3] === "stop")
+  ) {
+    const sessionId = decodeURIComponent(rest[1] ?? "").trim();
+    if (!sessionId) return badRequest("sessionId required");
+    const routed = withVisionPathParams(event, { sessionId });
+    if (rest[3] === "start") return startHandler(routed);
+    return stopHandler(routed);
+  }
+
   if (rest[0] === "observations" && rest.length === 3) {
     const observationId = decodeURIComponent(rest[1] ?? "");
     const action = rest[2];

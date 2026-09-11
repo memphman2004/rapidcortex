@@ -35,7 +35,7 @@ struct SettingsView: View {
                         }
                         settingsRow(
                             label: "Agency",
-                            value: auth.selectedAgencyId.isEmpty ? (claims?.agencyId ?? "—") : auth.selectedAgencyId
+                            value: auth.operationalAgencyId
                         )
                     } header: {
                         sectionHeader("Account")
@@ -159,7 +159,7 @@ struct SettingsView: View {
             .sheet(isPresented: $showingRequestAccess) {
                 RequestAccessView(
                     requestableTools: requestableTools,
-                    agencyId: claims?.agencyId ?? "",
+                    agencyId: auth.operationalAgencyId,
                     userEmail: claims?.email ?? ""
                 )
             }

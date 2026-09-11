@@ -165,7 +165,7 @@ export class RingVisionProvider implements CameraProvider {
       supported: true,
       providerSessionId: session.sessionId,
       kvsChannelName: session.streamReference,
-      kvsStreamArn: null,
+      kvsStreamArn: session.streamReference,
       expiresAt: session.expiresAt,
     };
   }

@@ -23,6 +23,8 @@ export NEXT_PUBLIC_ENABLE_RAPID_VISION_CALLER_VIDEO=1
 export NEXT_PUBLIC_ENABLE_RAPID_VISION_DEMO=1
 # Enable AI Writer (Claude watches video and writes observations)
 export NEXT_PUBLIC_ENABLE_RAPID_VISION_AI_WRITER=1
+# Live camera audio transcript beside WebRTC video
+export NEXT_PUBLIC_ENABLE_RAPID_VISION_TRANSCRIPT=1
 # Enable Rekognition preliminary detection tier
 export NEXT_PUBLIC_ENABLE_RAPID_VISION_REKOGNITION=1
 
@@ -42,6 +44,8 @@ export NEXT_PUBLIC_ENABLE_CONNECT_RING_EMERGENCY_REQUESTS=1
 # REKOGNITION_ROLE_ARN=arn:aws:iam::{account}:role/rc-rekognition-stream-processor-{env}
 # ANTHROPIC_API_KEY=resolved from Secrets Manager: rc/anthropic-api-key
 # VISION_AI_WRITER_INTERVAL_SECONDS=30
+# VISION_TRANSCRIPT_MOCK=true   # set false for live ffmpeg + Amazon Transcribe Streaming
+# VISION_TRANSCRIPTS_TABLE=rapid-cortex-vision-transcripts-{env}
 # VISION_AI_WRITER_ELEVATED_INTERVAL_SECONDS=10
 # VISION_MAX_ACTIVE_ANALYSES_PER_AGENCY=10
 

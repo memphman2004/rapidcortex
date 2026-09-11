@@ -45,13 +45,13 @@ struct CommandHomeView: View {
                 IncidentDetailView(incidentId: incident.incidentId, seed: incident)
             }
             .task {
-                await vm.load(agencyId: auth.selectedAgencyId)
+                await vm.load(agencyId: auth.operationalAgencyId)
                 while !Task.isCancelled {
                     try? await Task.sleep(nanoseconds: 15_000_000_000)
-                    await vm.load(agencyId: auth.selectedAgencyId)
+                    await vm.load(agencyId: auth.operationalAgencyId)
                 }
             }
-            .refreshable { await vm.load(agencyId: auth.selectedAgencyId) }
+            .refreshable { await vm.load(agencyId: auth.operationalAgencyId) }
         }
     }
 

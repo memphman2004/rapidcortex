@@ -57,8 +57,9 @@ struct RapidCortexFieldApp: App {
     /// Platform admins only: vertical of the agency they picked (never shown).
     private var platformSelectedVertical: String? {
         guard auth.claims?.isPlatformAdmin == true else { return nil }
-        guard !auth.selectedAgencyId.isEmpty else { return nil }
-        return auth.activeAgencyVertical
+        guard RCConfig.isTenantAgencyId(auth.selectedAgencyId) else { return nil }
+        let vertical = auth.activeAgencyVertical.trimmingCharacters(in: .whitespacesAndNewlines)
+        return vertical.isEmpty ? RCConfig.testAgencyVertical : vertical
     }
 
     private func configureGlobalAppearance() {
@@ -92,7 +93,7 @@ struct QRNFCRootView: View {
             CodesListView()
                 .tabItem { Label("Codes", systemImage: "qrcode") }
             if auth.claims?.canManageCodes == true {
-                NewCodeView(agencyId: auth.selectedAgencyId, defaultVertical: defaultVertical)
+                NewCodeView(agencyId: auth.operationalAgencyId, defaultVertical: defaultVertical)
                     .tabItem { Label("Create", systemImage: "plus") }
             }
             if auth.claims?.isPlatformAdmin == true {

@@ -261,7 +261,7 @@ Resources:
   AppManagedPolicyTransitDynamo:
     Type: AWS::IAM::ManagedPolicy
     Properties:
-      ManagedPolicyName: !Sub "${ManagedPolicyNamePrefix}-sam-transit-ddb-${DeploymentStage}"
+      ManagedPolicyName: !Sub "${ManagedPolicyNamePrefix}-sam-transit-ddb-${DeploymentStage}-v2"
       PolicyDocument:
         Version: "2012-10-17"
         Statement:

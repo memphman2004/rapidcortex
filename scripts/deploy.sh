@@ -45,6 +45,9 @@ set -euo pipefail
 #   must keep alarms enabled (Rules in template.yaml). Omit or set true after AppSamStack is healthy; default true.
 # - SAM_BUILD_USE_CACHE=0 force full rebuild (--no-cached). Default: 1 (cached incremental).
 # - SAM_PARALLEL=0 disables sam build --parallel (default 1).
+# - SAM_USE_CONTAINER=1 adds `sam build --use-container` for the whole tree (slow). The Rapid Vision
+#   Python transcript worker always compiles amazon-transcribe/aiohttp in a Lambda Python 3.11
+#   container via apps/api/src/rapid-vision/transcript-worker/Makefile (docker required).
 # - SAM_BUILD_IN_SOURCE=1 builds in source (reuses prepared node_modules); default 1.
 # - SAM_NODE_MODULES_SRC absolute path to apps/api/node_modules for NodeDepsLayer / function
 #   Makefiles. Default: $ROOT/apps/api/node_modules. Required when SAM_BUILD_IN_SOURCE=0
@@ -298,6 +301,9 @@ fi
 if [[ "${SAM_PARALLEL}" == "1" ]]; then
   SAM_BUILD_CLI+=(--parallel)
 fi
+if [[ "${SAM_USE_CONTAINER:-0}" == "1" ]]; then
+  SAM_BUILD_CLI+=(--use-container)
+fi
 if [[ "${SAM_BUILD_IN_SOURCE}" == "1" ]]; then
   SAM_BUILD_CLI+=(--build-in-source)
 fi
@@ -521,6 +527,9 @@ fi
 if [[ -n "${EXISTING_CALL_ASSIST_TABLE_NAME:-}" ]]; then
   PARAMS="${PARAMS} ExistingCallAssistTableName=${EXISTING_CALL_ASSIST_TABLE_NAME}"
 fi
+if [[ -n "${EXISTING_FIELD_COMMAND_TABLE_NAME:-}" ]]; then
+  PARAMS="${PARAMS} ExistingFieldCommandTableName=${EXISTING_FIELD_COMMAND_TABLE_NAME}"
+fi
 if [[ -n "${EXISTING_TRANSLATE_SESSIONS_TABLE_NAME:-}" ]]; then
   PARAMS="${PARAMS} ExistingTranslateSessionsTableName=${EXISTING_TRANSLATE_SESSIONS_TABLE_NAME}"
 fi
@@ -556,6 +565,12 @@ if [[ "${REUSE_EXISTING_TRANSIT_TABLES:-}" == "true" ]]; then
 fi
 if [[ "${REUSE_EXISTING_CAD_CONNECTOR_TABLES:-}" == "true" ]]; then
   PARAMS="${PARAMS} ReuseExistingCadConnectorTables=true"
+fi
+if [[ "${REUSE_EXISTING_LOCATION_ALS:-}" == "true" ]]; then
+  PARAMS="${PARAMS} ReuseExistingLocationAls=true"
+fi
+if [[ "${REUSE_EXISTING_CAD_BRIDGE_RETAINED_TABLES:-}" == "true" ]]; then
+  PARAMS="${PARAMS} ReuseExistingCadBridgeRetainedTables=true"
 fi
 if [[ "${USE_CAD_BRIDGE_VPC}" == "1" ]]; then
   if [[ -z "${CAD_BRIDGE_VPC_ID:-}" || -z "${CAD_BRIDGE_VPC_SUBNET_IDS:-}" || -z "${CAD_BRIDGE_VPC_SECURITY_GROUP_ID:-}" ]]; then

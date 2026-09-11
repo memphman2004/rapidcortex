@@ -128,7 +128,7 @@ Resources:
   RawSignalsDLQ:
     Type: AWS::SQS::Queue
     Properties:
-      QueueName: !Sub "${ManagedPolicyNamePrefix}-rapid-iq-pipeline-raw-signals-dlq-${DeploymentStage}.fifo"
+      QueueName: !Sub "${ManagedPolicyNamePrefix}-rapid-iq-pipeline-raw-signals-dlq-${DeploymentStage}-v2.fifo"
       FifoQueue: true
       ContentBasedDeduplication: false
       MessageRetentionPeriod: 604800
@@ -136,7 +136,7 @@ Resources:
   RawSignalsQueue:
     Type: AWS::SQS::Queue
     Properties:
-      QueueName: !Sub "${ManagedPolicyNamePrefix}-rapid-iq-pipeline-raw-signals-${DeploymentStage}.fifo"
+      QueueName: !Sub "${ManagedPolicyNamePrefix}-rapid-iq-pipeline-raw-signals-${DeploymentStage}-v2.fifo"
       FifoQueue: true
       ContentBasedDeduplication: false
       DeduplicationScope: messageGroup
@@ -151,7 +151,7 @@ Resources:
   IntelWatchDLQ:
     Type: AWS::SQS::Queue
     Properties:
-      QueueName: !Sub "${ManagedPolicyNamePrefix}-rapid-iq-intel-watch-dlq-${DeploymentStage}.fifo"
+      QueueName: !Sub "${ManagedPolicyNamePrefix}-rapid-iq-intel-watch-dlq-${DeploymentStage}-v2.fifo"
       FifoQueue: true
       ContentBasedDeduplication: false
       MessageRetentionPeriod: 604800
@@ -159,7 +159,7 @@ Resources:
   IntelWatchQueue:
     Type: AWS::SQS::Queue
     Properties:
-      QueueName: !Sub "${ManagedPolicyNamePrefix}-rapid-iq-intel-watch-${DeploymentStage}.fifo"
+      QueueName: !Sub "${ManagedPolicyNamePrefix}-rapid-iq-intel-watch-${DeploymentStage}-v2.fifo"
       FifoQueue: true
       ContentBasedDeduplication: false
       DeduplicationScope: messageGroup

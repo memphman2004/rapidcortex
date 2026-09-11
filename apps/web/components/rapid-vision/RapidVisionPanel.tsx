@@ -12,6 +12,8 @@ import { useAgencyWebSocket, type AgencyWebSocketMessage } from "@/hooks/use-age
 import { VisionIntelligenceFeed as FeedComponent } from "./VisionIntelligenceFeed";
 import type { StreamingObservationEntry } from "./VisionIntelligenceFeed";
 import { VisionCameraList } from "./VisionCameraList";
+import { LiveStreamWithTranscript } from "./LiveStreamWithTranscript";
+import { isRapidVisionTranscriptEnabled } from "@/lib/runtime-flags";
 
 const V = {
   bg: "#09080f",
@@ -58,6 +60,7 @@ export function RapidVisionPanel({
   const [streamingObs, setStreamingObs] = useState<Map<string, StreamingObservationEntry>>(
     new Map(),
   );
+  const [latestWsEvent, setLatestWsEvent] = useState<VisionWebSocketEvent | null>(null);
 
   const loadFeed = useCallback(async () => {
     try {
@@ -152,6 +155,11 @@ export function RapidVisionPanel({
           next.delete(event.observationId);
           return next;
         });
+        return;
+      }
+      if (event.type === "rapid-vision.transcript.segment") {
+        if (event.incidentId !== incidentId) return;
+        setLatestWsEvent(event);
         return;
       }
       if (event.type === "rapid-vision.observation.created") {
@@ -374,7 +382,13 @@ export function RapidVisionPanel({
           />
         ) : null}
         {tab === "live" ? (
-          <LiveStreamTab sessions={activeSessions} V={V} />
+          <LiveStreamTab
+            sessions={activeSessions}
+            cameras={cameras}
+            incidentId={incidentId}
+            latestWsEvent={latestWsEvent}
+            V={V}
+          />
         ) : null}
         {tab === "verified" ? (
           <VerifiedTab
@@ -390,7 +404,19 @@ export function RapidVisionPanel({
   );
 }
 
-function LiveStreamTab({ sessions, V }: { sessions: VisionSession[]; V: typeof V }) {
+function LiveStreamTab({
+  sessions,
+  cameras,
+  incidentId,
+  latestWsEvent,
+  V,
+}: {
+  sessions: VisionSession[];
+  cameras: VisionCameraSearchResult[];
+  incidentId: string;
+  latestWsEvent: VisionWebSocketEvent | null;
+  V: typeof V;
+}) {
   if (!sessions.length) {
     return (
       <div
@@ -410,6 +436,30 @@ function LiveStreamTab({ sessions, V }: { sessions: VisionSession[]; V: typeof V
       </div>
     );
   }
+
+  const transcriptEnabled = isRapidVisionTranscriptEnabled();
+  const cameraName = (session: VisionSession) =>
+    cameras.find((c) => c.cameraId === session.cameraId)?.friendlyName ??
+    `Camera ${session.cameraId.slice(-6)}`;
+
+  if (transcriptEnabled) {
+    return (
+      <div style={{ flex: 1, overflow: "auto", padding: 12, display: "flex", flexDirection: "column", gap: 12 }}>
+        {sessions.map((session) => (
+          <LiveStreamWithTranscript
+            key={session.sessionId}
+            sessionId={session.sessionId}
+            incidentId={incidentId}
+            agencyId={session.agencyId}
+            cameraName={cameraName(session)}
+            autoStart
+            latestWsEvent={latestWsEvent}
+          />
+        ))}
+      </div>
+    );
+  }
+
   return (
     <div style={{ flex: 1, overflow: "auto", padding: 12 }}>
       <p style={{ fontSize: 10, color: V.muted, marginBottom: 12 }}>

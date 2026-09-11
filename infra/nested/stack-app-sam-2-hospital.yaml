@@ -144,7 +144,7 @@ Resources:
                 - cognito-idp:AdminAddUserToGroup
               Resource: !Sub "arn:aws:cognito-idp:${AWS::Region}:${AWS::AccountId}:userpool/${ImportedCognitoUserPoolId}"
 
-  EmergencyConnectHttpIntegration:
+  EmergencyConnectHttpIntegrationR2:
     Type: AWS::ApiGatewayV2::Integration
     Properties:
       ApiId: !Ref HttpApiId
@@ -152,7 +152,7 @@ Resources:
       IntegrationUri: !Sub arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${EmergencyConnectHttpFunction.Arn}/invocations
       PayloadFormatVersion: "2.0"
 
-  HospitalRoutingHttpIntegration:
+  HospitalRoutingHttpIntegrationR2:
     Type: AWS::ApiGatewayV2::Integration
     Properties:
       ApiId: !Ref HttpApiId
@@ -160,7 +160,7 @@ Resources:
       IntegrationUri: !Sub arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${HospitalRoutingHttpFunction.Arn}/invocations
       PayloadFormatVersion: "2.0"
 
-  HospitalPortalHttpIntegration:
+  HospitalPortalHttpIntegrationR2:
     Type: AWS::ApiGatewayV2::Integration
     Properties:
       ApiId: !Ref HttpApiId
@@ -192,89 +192,91 @@ Resources:
       Principal: apigateway.amazonaws.com
       SourceArn: !Sub arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${HttpApiId}/*
 
-  # Emergency connect + hospital CRUD routes
-  RouteEcGetPrealerts:
+  # Recreate integrations/routes (R2): CFN still holds stale HttpApi physical IDs after
+  # API Gateway drift — GetRoute/GetIntegration return NotFound. Renaming logical IDs
+  # forces CREATE of live routes on stack 2 HttpApi (t4bdwpjfs5).
+  RouteEcGetPrealertsR2:
     Type: AWS::ApiGatewayV2::Route
-    Properties: { ApiId: !Ref HttpApiId, RouteKey: "GET /api/hospitals/prealerts", Target: !Sub "integrations/${EmergencyConnectHttpIntegration}" }
-  RouteEcPostPrealerts:
+    Properties: { ApiId: !Ref HttpApiId, RouteKey: "GET /api/hospitals/prealerts", Target: !Sub "integrations/${EmergencyConnectHttpIntegrationR2}" }
+  RouteEcPostPrealertsR2:
     Type: AWS::ApiGatewayV2::Route
-    Properties: { ApiId: !Ref HttpApiId, RouteKey: "POST /api/hospitals/prealerts", Target: !Sub "integrations/${EmergencyConnectHttpIntegration}" }
-  RouteEcGetPrealertId:
+    Properties: { ApiId: !Ref HttpApiId, RouteKey: "POST /api/hospitals/prealerts", Target: !Sub "integrations/${EmergencyConnectHttpIntegrationR2}" }
+  RouteEcGetPrealertIdR2:
     Type: AWS::ApiGatewayV2::Route
-    Properties: { ApiId: !Ref HttpApiId, RouteKey: "GET /api/hospitals/prealerts/{alertId}", Target: !Sub "integrations/${EmergencyConnectHttpIntegration}" }
-  RouteEcPatchPrealertId:
+    Properties: { ApiId: !Ref HttpApiId, RouteKey: "GET /api/hospitals/prealerts/{alertId}", Target: !Sub "integrations/${EmergencyConnectHttpIntegrationR2}" }
+  RouteEcPatchPrealertIdR2:
     Type: AWS::ApiGatewayV2::Route
-    Properties: { ApiId: !Ref HttpApiId, RouteKey: "PATCH /api/hospitals/prealerts/{alertId}", Target: !Sub "integrations/${EmergencyConnectHttpIntegration}" }
-  RouteEcPostPrealertSend:
+    Properties: { ApiId: !Ref HttpApiId, RouteKey: "PATCH /api/hospitals/prealerts/{alertId}", Target: !Sub "integrations/${EmergencyConnectHttpIntegrationR2}" }
+  RouteEcPostPrealertSendR2:
     Type: AWS::ApiGatewayV2::Route
-    Properties: { ApiId: !Ref HttpApiId, RouteKey: "POST /api/hospitals/prealerts/{alertId}/send", Target: !Sub "integrations/${EmergencyConnectHttpIntegration}" }
-  RouteEcPostPrealertAck:
+    Properties: { ApiId: !Ref HttpApiId, RouteKey: "POST /api/hospitals/prealerts/{alertId}/send", Target: !Sub "integrations/${EmergencyConnectHttpIntegrationR2}" }
+  RouteEcPostPrealertAckR2:
     Type: AWS::ApiGatewayV2::Route
-    Properties: { ApiId: !Ref HttpApiId, RouteKey: "POST /api/hospitals/prealerts/{alertId}/acknowledge", Target: !Sub "integrations/${EmergencyConnectHttpIntegration}" }
-  RouteEcPostPrealertCancel:
+    Properties: { ApiId: !Ref HttpApiId, RouteKey: "POST /api/hospitals/prealerts/{alertId}/acknowledge", Target: !Sub "integrations/${EmergencyConnectHttpIntegrationR2}" }
+  RouteEcPostPrealertCancelR2:
     Type: AWS::ApiGatewayV2::Route
-    Properties: { ApiId: !Ref HttpApiId, RouteKey: "POST /api/hospitals/prealerts/{alertId}/cancel", Target: !Sub "integrations/${EmergencyConnectHttpIntegration}" }
-  RouteEcGetHospitals:
+    Properties: { ApiId: !Ref HttpApiId, RouteKey: "POST /api/hospitals/prealerts/{alertId}/cancel", Target: !Sub "integrations/${EmergencyConnectHttpIntegrationR2}" }
+  RouteEcGetHospitalsR2:
     Type: AWS::ApiGatewayV2::Route
-    Properties: { ApiId: !Ref HttpApiId, RouteKey: "GET /api/hospitals", Target: !Sub "integrations/${EmergencyConnectHttpIntegration}" }
-  RouteEcPostHospitals:
+    Properties: { ApiId: !Ref HttpApiId, RouteKey: "GET /api/hospitals", Target: !Sub "integrations/${EmergencyConnectHttpIntegrationR2}" }
+  RouteEcPostHospitalsR2:
     Type: AWS::ApiGatewayV2::Route
-    Properties: { ApiId: !Ref HttpApiId, RouteKey: "POST /api/hospitals", Target: !Sub "integrations/${EmergencyConnectHttpIntegration}" }
-  RouteEcGetHospitalId:
+    Properties: { ApiId: !Ref HttpApiId, RouteKey: "POST /api/hospitals", Target: !Sub "integrations/${EmergencyConnectHttpIntegrationR2}" }
+  RouteEcGetHospitalIdR2:
     Type: AWS::ApiGatewayV2::Route
-    Properties: { ApiId: !Ref HttpApiId, RouteKey: "GET /api/hospitals/{hospitalId}", Target: !Sub "integrations/${EmergencyConnectHttpIntegration}" }
-  RouteEcPatchHospitalId:
+    Properties: { ApiId: !Ref HttpApiId, RouteKey: "GET /api/hospitals/{hospitalId}", Target: !Sub "integrations/${EmergencyConnectHttpIntegrationR2}" }
+  RouteEcPatchHospitalIdR2:
     Type: AWS::ApiGatewayV2::Route
-    Properties: { ApiId: !Ref HttpApiId, RouteKey: "PATCH /api/hospitals/{hospitalId}", Target: !Sub "integrations/${EmergencyConnectHttpIntegration}" }
+    Properties: { ApiId: !Ref HttpApiId, RouteKey: "PATCH /api/hospitals/{hospitalId}", Target: !Sub "integrations/${EmergencyConnectHttpIntegrationR2}" }
 
   # Hospital routing routes
-  RouteHrGetCapacity:
+  RouteHrGetCapacityR2:
     Type: AWS::ApiGatewayV2::Route
-    Properties: { ApiId: !Ref HttpApiId, RouteKey: "GET /api/hospitals/capacity", Target: !Sub "integrations/${HospitalRoutingHttpIntegration}" }
-  RouteHrGetHospitalCapacity:
+    Properties: { ApiId: !Ref HttpApiId, RouteKey: "GET /api/hospitals/capacity", Target: !Sub "integrations/${HospitalRoutingHttpIntegrationR2}" }
+  RouteHrGetHospitalCapacityR2:
     Type: AWS::ApiGatewayV2::Route
-    Properties: { ApiId: !Ref HttpApiId, RouteKey: "GET /api/hospitals/{hospitalId}/capacity", Target: !Sub "integrations/${HospitalRoutingHttpIntegration}" }
-  RouteHrPutHospitalCapacity:
+    Properties: { ApiId: !Ref HttpApiId, RouteKey: "GET /api/hospitals/{hospitalId}/capacity", Target: !Sub "integrations/${HospitalRoutingHttpIntegrationR2}" }
+  RouteHrPutHospitalCapacityR2:
     Type: AWS::ApiGatewayV2::Route
-    Properties: { ApiId: !Ref HttpApiId, RouteKey: "PUT /api/hospitals/{hospitalId}/capacity", Target: !Sub "integrations/${HospitalRoutingHttpIntegration}" }
-  RouteHrPostRecommendations:
+    Properties: { ApiId: !Ref HttpApiId, RouteKey: "PUT /api/hospitals/{hospitalId}/capacity", Target: !Sub "integrations/${HospitalRoutingHttpIntegrationR2}" }
+  RouteHrPostRecommendationsR2:
     Type: AWS::ApiGatewayV2::Route
-    Properties: { ApiId: !Ref HttpApiId, RouteKey: "POST /api/hospitals/recommendations", Target: !Sub "integrations/${HospitalRoutingHttpIntegration}" }
-  RouteHrPostMciDistribution:
+    Properties: { ApiId: !Ref HttpApiId, RouteKey: "POST /api/hospitals/recommendations", Target: !Sub "integrations/${HospitalRoutingHttpIntegrationR2}" }
+  RouteHrPostMciDistributionR2:
     Type: AWS::ApiGatewayV2::Route
-    Properties: { ApiId: !Ref HttpApiId, RouteKey: "POST /api/hospitals/mci/distribution", Target: !Sub "integrations/${HospitalRoutingHttpIntegration}" }
-  RouteHrGetMciIncident:
+    Properties: { ApiId: !Ref HttpApiId, RouteKey: "POST /api/hospitals/mci/distribution", Target: !Sub "integrations/${HospitalRoutingHttpIntegrationR2}" }
+  RouteHrGetMciIncidentR2:
     Type: AWS::ApiGatewayV2::Route
-    Properties: { ApiId: !Ref HttpApiId, RouteKey: "GET /api/hospitals/mci/{incidentId}", Target: !Sub "integrations/${HospitalRoutingHttpIntegration}" }
-  RouteHrPostMciActivate:
+    Properties: { ApiId: !Ref HttpApiId, RouteKey: "GET /api/hospitals/mci/{incidentId}", Target: !Sub "integrations/${HospitalRoutingHttpIntegrationR2}" }
+  RouteHrPostMciActivateR2:
     Type: AWS::ApiGatewayV2::Route
-    Properties: { ApiId: !Ref HttpApiId, RouteKey: "POST /api/hospitals/mci/{incidentId}/activate", Target: !Sub "integrations/${HospitalRoutingHttpIntegration}" }
-  RouteHrGetMciStatus:
+    Properties: { ApiId: !Ref HttpApiId, RouteKey: "POST /api/hospitals/mci/{incidentId}/activate", Target: !Sub "integrations/${HospitalRoutingHttpIntegrationR2}" }
+  RouteHrGetMciStatusR2:
     Type: AWS::ApiGatewayV2::Route
-    Properties: { ApiId: !Ref HttpApiId, RouteKey: "GET /api/hospitals/mci/{incidentId}/status", Target: !Sub "integrations/${HospitalRoutingHttpIntegration}" }
-  RouteHrGetAnalytics:
+    Properties: { ApiId: !Ref HttpApiId, RouteKey: "GET /api/hospitals/mci/{incidentId}/status", Target: !Sub "integrations/${HospitalRoutingHttpIntegrationR2}" }
+  RouteHrGetAnalyticsR2:
     Type: AWS::ApiGatewayV2::Route
-    Properties: { ApiId: !Ref HttpApiId, RouteKey: "GET /api/hospitals/{hospitalId}/analytics", Target: !Sub "integrations/${HospitalRoutingHttpIntegration}" }
-  RouteHrGetAnalyticsPerf:
+    Properties: { ApiId: !Ref HttpApiId, RouteKey: "GET /api/hospitals/{hospitalId}/analytics", Target: !Sub "integrations/${HospitalRoutingHttpIntegrationR2}" }
+  RouteHrGetAnalyticsPerfR2:
     Type: AWS::ApiGatewayV2::Route
-    Properties: { ApiId: !Ref HttpApiId, RouteKey: "GET /api/hospitals/{hospitalId}/analytics/performance", Target: !Sub "integrations/${HospitalRoutingHttpIntegration}" }
-  RouteHrGetLeaderboard:
+    Properties: { ApiId: !Ref HttpApiId, RouteKey: "GET /api/hospitals/{hospitalId}/analytics/performance", Target: !Sub "integrations/${HospitalRoutingHttpIntegrationR2}" }
+  RouteHrGetLeaderboardR2:
     Type: AWS::ApiGatewayV2::Route
-    Properties: { ApiId: !Ref HttpApiId, RouteKey: "GET /api/hospitals/analytics/leaderboard", Target: !Sub "integrations/${HospitalRoutingHttpIntegration}" }
+    Properties: { ApiId: !Ref HttpApiId, RouteKey: "GET /api/hospitals/analytics/leaderboard", Target: !Sub "integrations/${HospitalRoutingHttpIntegrationR2}" }
 
   # Hospital portal routes
-  RouteHpGetContext:
+  RouteHpGetContextR2:
     Type: AWS::ApiGatewayV2::Route
-    Properties: { ApiId: !Ref HttpApiId, RouteKey: "GET /api/hospital-portal/context", Target: !Sub "integrations/${HospitalPortalHttpIntegration}" }
-  RouteHpPostCapacity:
+    Properties: { ApiId: !Ref HttpApiId, RouteKey: "GET /api/hospital-portal/context", Target: !Sub "integrations/${HospitalPortalHttpIntegrationR2}" }
+  RouteHpPostCapacityR2:
     Type: AWS::ApiGatewayV2::Route
-    Properties: { ApiId: !Ref HttpApiId, RouteKey: "POST /api/hospital-portal/capacity", Target: !Sub "integrations/${HospitalPortalHttpIntegration}" }
-  RouteHpGetCapacityHistory:
+    Properties: { ApiId: !Ref HttpApiId, RouteKey: "POST /api/hospital-portal/capacity", Target: !Sub "integrations/${HospitalPortalHttpIntegrationR2}" }
+  RouteHpGetCapacityHistoryR2:
     Type: AWS::ApiGatewayV2::Route
-    Properties: { ApiId: !Ref HttpApiId, RouteKey: "GET /api/hospital-portal/capacity/history", Target: !Sub "integrations/${HospitalPortalHttpIntegration}" }
-  RouteHpPostUsers:
+    Properties: { ApiId: !Ref HttpApiId, RouteKey: "GET /api/hospital-portal/capacity/history", Target: !Sub "integrations/${HospitalPortalHttpIntegrationR2}" }
+  RouteHpPostUsersR2:
     Type: AWS::ApiGatewayV2::Route
-    Properties: { ApiId: !Ref HttpApiId, RouteKey: "POST /api/hospital-portal/users", Target: !Sub "integrations/${HospitalPortalHttpIntegration}" }
+    Properties: { ApiId: !Ref HttpApiId, RouteKey: "POST /api/hospital-portal/users", Target: !Sub "integrations/${HospitalPortalHttpIntegrationR2}" }
 
 Outputs:
   HospitalCapacityTableName:

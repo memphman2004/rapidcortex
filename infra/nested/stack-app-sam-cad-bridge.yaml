@@ -50,12 +50,18 @@ Parameters:
     Type: String
     Default: ""
     Description: Security group ID used when VpcId is set
+  ReuseExistingCadBridgeRetainedTables:
+    Type: String
+    Default: "false"
+    AllowedValues: ["true", "false"]
+    Description: When true, skip creating retained CAD Bridge tables (config/sync/buffer/audit).
 
 Conditions:
   HasHttpApiJwtAuthorizer: !Not [!Equals [!Ref HttpApiJwtAuthorizerId, ""]]
   HasOpsAlertsTopic: !Not [!Equals [!Ref OpsAlertsTopicArn, ""]]
   UseVpc: !Not [!Equals [!Ref VpcId, ""]]
   IsProd: !Equals [!Ref DeploymentStage, prod]
+  CreateCadBridgeRetainedTables: !Equals [!Ref ReuseExistingCadBridgeRetainedTables, "false"]
 
 Globals:
   Function:
@@ -75,12 +81,12 @@ Globals:
         ENABLE_CAD_BRIDGE: "true"
         CAD_BRIDGE_MOCK: "true"
         CAD_WRITEBACK_ENABLED: "false"
-        CAD_BRIDGE_CONFIG_TABLE: !Ref CadBridgeConfigTable
-        CAD_BRIDGE_SYNC_TABLE: !Ref CadBridgeSyncTable
-        CAD_BRIDGE_LOOP_GUARD_TABLE: !Ref CadBridgeLoopGuardTable
-        CAD_BRIDGE_CB_TABLE: !Ref CadBridgeCircuitBreakerTable
-        CAD_BRIDGE_BUFFER_TABLE: !Ref CadBridgeBufferTable
-        CAD_BRIDGE_AUDIT_TABLE: !Ref CadBridgeAuditTable
+        CAD_BRIDGE_CONFIG_TABLE: !Sub "rapid-cortex-cad-bridge-config-${DeploymentStage}"
+        CAD_BRIDGE_SYNC_TABLE: !Sub "rapid-cortex-cad-bridge-sync-${DeploymentStage}"
+        CAD_BRIDGE_LOOP_GUARD_TABLE: !Sub "rapid-cortex-cad-bridge-loop-guard-${DeploymentStage}"
+        CAD_BRIDGE_CB_TABLE: !Sub "rapid-cortex-cad-bridge-circuit-breaker-${DeploymentStage}"
+        CAD_BRIDGE_BUFFER_TABLE: !Sub "rapid-cortex-cad-bridge-buffer-${DeploymentStage}"
+        CAD_BRIDGE_AUDIT_TABLE: !Sub "rapid-cortex-cad-bridge-audit-${DeploymentStage}"
         CAD_BRIDGE_QUEUE_URL: !Ref CadBridgeEventsQueue
         AUDIT_TABLE: !Ref AuditTable
         AGENCIES_TABLE: !Ref AgenciesTable
@@ -91,6 +97,7 @@ Globals:
 Resources:
   CadBridgeConfigTable:
     Type: AWS::DynamoDB::Table
+    Condition: CreateCadBridgeRetainedTables
     DeletionPolicy: Retain
     UpdateReplacePolicy: Retain
     Properties:
@@ -110,6 +117,7 @@ Resources:
 
   CadBridgeSyncTable:
     Type: AWS::DynamoDB::Table
+    Condition: CreateCadBridgeRetainedTables
     DeletionPolicy: Retain
     UpdateReplacePolicy: Retain
     Properties:
@@ -190,6 +198,7 @@ Resources:
 
   CadBridgeBufferTable:
     Type: AWS::DynamoDB::Table
+    Condition: CreateCadBridgeRetainedTables
     DeletionPolicy: Retain
     UpdateReplacePolicy: Retain
     Properties:
@@ -227,6 +236,7 @@ Resources:
 
   CadBridgeAuditTable:
     Type: AWS::DynamoDB::Table
+    Condition: CreateCadBridgeRetainedTables
     DeletionPolicy: Retain
     UpdateReplacePolicy: Retain
     Properties:
@@ -289,14 +299,14 @@ Resources:
               - dynamodb:DescribeTable
               - dynamodb:ConditionCheckItem
             Resource:
-              - !GetAtt CadBridgeConfigTable.Arn
-              - !GetAtt CadBridgeSyncTable.Arn
-              - !Sub "${CadBridgeSyncTable.Arn}/index/*"
+              - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/rapid-cortex-cad-bridge-config-${DeploymentStage}"
+              - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/rapid-cortex-cad-bridge-sync-${DeploymentStage}"
+              - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/rapid-cortex-cad-bridge-sync-${DeploymentStage}/index/*"
               - !GetAtt CadBridgeLoopGuardTable.Arn
               - !GetAtt CadBridgeCircuitBreakerTable.Arn
-              - !GetAtt CadBridgeBufferTable.Arn
-              - !Sub "${CadBridgeBufferTable.Arn}/index/*"
-              - !GetAtt CadBridgeAuditTable.Arn
+              - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/rapid-cortex-cad-bridge-buffer-${DeploymentStage}"
+              - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/rapid-cortex-cad-bridge-buffer-${DeploymentStage}/index/*"
+              - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/rapid-cortex-cad-bridge-audit-${DeploymentStage}"
               - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${AuditTable}"
               - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${AuditTable}/index/*"
               - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${AgenciesTable}"
@@ -306,7 +316,7 @@ Resources:
             Action:
               - dynamodb:Scan
             Resource:
-              - !GetAtt CadBridgeConfigTable.Arn
+              - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/rapid-cortex-cad-bridge-config-${DeploymentStage}"
           - Sid: CadBridgeQueue
             Effect: Allow
             Action:
@@ -753,17 +763,17 @@ Resources:
 
 Outputs:
   CadBridgeConfigTableName:
-    Value: !Ref CadBridgeConfigTable
+    Value: !Sub "rapid-cortex-cad-bridge-config-${DeploymentStage}"
   CadBridgeSyncTableName:
-    Value: !Ref CadBridgeSyncTable
+    Value: !Sub "rapid-cortex-cad-bridge-sync-${DeploymentStage}"
   CadBridgeLoopGuardTableName:
     Value: !Ref CadBridgeLoopGuardTable
   CadBridgeCircuitBreakerTableName:
     Value: !Ref CadBridgeCircuitBreakerTable
   CadBridgeBufferTableName:
-    Value: !Ref CadBridgeBufferTable
+    Value: !Sub "rapid-cortex-cad-bridge-buffer-${DeploymentStage}"
   CadBridgeAuditTableName:
-    Value: !Ref CadBridgeAuditTable
+    Value: !Sub "rapid-cortex-cad-bridge-audit-${DeploymentStage}"
   CadBridgeEventsQueueUrl:
     Value: !Ref CadBridgeEventsQueue
   CadBridgeHttpFunctionArn:

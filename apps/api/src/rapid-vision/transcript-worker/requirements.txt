@@ -1,0 +1,6 @@
+# amazon-transcribe: AWS Transcribe Streaming SDK (async EventStream)
+# aiohttp: async HTTP transport required by amazon-transcribe
+# boto3 is pre-installed in the Lambda Python 3.11 runtime — do NOT include it.
+
+amazon-transcribe==0.6.2
+aiohttp==3.9.5

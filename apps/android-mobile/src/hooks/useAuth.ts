@@ -1,4 +1,5 @@
 import { useCallback, useEffect } from 'react';
+import { resolveCommandAgencyId } from '../services/api/command';
 import { useAuthStore } from '../stores/auth.store';
 import { isVenueCampusRole } from '../utils/roles';
 
@@ -33,7 +34,7 @@ export function useAuth() {
 
   const isAuthenticated = Boolean(session?.accessToken.jwtToken);
   const role = user?.['custom:role'] ?? '';
-  const agencyId = user?.['custom:agencyId'] ?? '';
+  const agencyId = resolveCommandAgencyId(user?.['custom:agencyId'] ?? '');
   const vertical = user?.['custom:vertical'] ?? null;
 
   const canAccessVenueCampus = useCallback(() => {

@@ -64,6 +64,8 @@ export type VisionSessionStatus = "pending" | "active" | "expired" | "revoked" |
 
 export type AIAnalysisStatus = "not_started" | "active" | "paused" | "stopped";
 
+export type VisionTranscriptStatus = "idle" | "active" | "stopped";
+
 export type ObservationSource = "claude_vision" | "rekognition" | "correlation" | "demo";
 
 export type ObservationConfidence = "LOW" | "MEDIUM" | "HIGH";
@@ -148,6 +150,11 @@ export interface VisionSession {
   expiresAt: string;
   lastAnalyzedAt?: string;
   revokedAt?: string;
+  /** Live scene-audio transcript worker. Unset/idle until dispatcher starts it. */
+  transcriptStatus?: VisionTranscriptStatus;
+  transcriptStartedAt?: string;
+  transcriptStartedBy?: string;
+  transcriptStoppedAt?: string;
 }
 
 export interface VisionObservation {
@@ -183,6 +190,22 @@ export interface VisionIntelligenceFeed {
   verifiedCount: number;
   discoveredCameras: VisionCameraSearchResult[];
   lastUpdated: string;
+}
+
+export interface VisionTranscriptSegment {
+  resultId: string;
+  incidentId: string;
+  agencyId: string;
+  sessionId: string;
+  cameraId: string;
+  speakerLabel: string;
+  transcript: string;
+  isPartial: boolean;
+  startTime: number;
+  endTime: number;
+  confidence: number;
+  language: string;
+  timestamp: string;
 }
 
 export interface VisionAgencySettings {
@@ -268,6 +291,12 @@ export type VisionWebSocketEvent =
       observationId: string;
       sessionId: string;
       incidentId?: string;
+    }
+  | {
+      type: "rapid-vision.transcript.segment";
+      segment: VisionTranscriptSegment;
+      incidentId: string;
+      sessionId: string;
     };
 
 export interface UnsupportedCapabilityResult {
@@ -295,4 +324,6 @@ export type VisionAuditAction =
   | "VISION_OBSERVATION_SHARED"
   | "VISION_CLIP_VIEWED"
   | "VISION_ACCESS_REVOKED"
-  | "VISION_SESSION_EXPIRED";
+  | "VISION_SESSION_EXPIRED"
+  | "VISION_TRANSCRIPT_STARTED"
+  | "VISION_TRANSCRIPT_STOPPED";

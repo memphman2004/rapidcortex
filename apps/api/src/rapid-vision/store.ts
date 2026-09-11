@@ -12,6 +12,8 @@ import type {
   VisionCamera,
   VisionObservation,
   VisionSession,
+  VisionTranscriptSegment,
+  VisionTranscriptStatus,
 } from "rapid-cortex-shared";
 import { env } from "../lib/env.js";
 
@@ -31,6 +33,10 @@ function observationsTable(): string {
 
 function consentTable(): string {
   return env.visionOwnerConsentTable;
+}
+
+function transcriptsTable(): string {
+  return env.visionTranscriptsTable;
 }
 
 export function hashVisionToken(token: string): string {
@@ -358,6 +364,81 @@ export const visionStore = {
         },
       }),
     );
+  },
+
+  async updateTranscriptStatus(params: {
+    incidentId: string;
+    sessionId: string;
+    agencyId: string;
+    status: VisionTranscriptStatus;
+    startedBy?: string;
+  }): Promise<void> {
+    const now = new Date().toISOString();
+    const started = params.status === "active";
+    await ddb.send(
+      new UpdateCommand({
+        TableName: sessionsTable(),
+        Key: { pk: `INCIDENT#${params.incidentId}`, sk: `SESSION#${params.sessionId}` },
+        UpdateExpression: started
+          ? "SET transcriptStatus = :s, transcriptStartedAt = :t, transcriptStartedBy = :u"
+          : "SET transcriptStatus = :s, transcriptStoppedAt = :t",
+        ConditionExpression: "agencyId = :a",
+        ExpressionAttributeValues: started
+          ? {
+              ":s": params.status,
+              ":t": now,
+              ":u": params.startedBy ?? "system",
+              ":a": params.agencyId,
+            }
+          : {
+              ":s": params.status,
+              ":t": now,
+              ":a": params.agencyId,
+            },
+      }),
+    );
+  },
+
+  async listTranscriptSegments(params: {
+    agencyId: string;
+    incidentId: string;
+    sessionId?: string;
+    limit?: number;
+  }): Promise<VisionTranscriptSegment[]> {
+    if (!transcriptsTable()) return [];
+    const limit = params.limit ?? 100;
+    if (params.sessionId) {
+      const result = await ddb.send(
+        new QueryCommand({
+          TableName: transcriptsTable(),
+          IndexName: "BySession",
+          KeyConditionExpression: "sessionId = :s",
+          FilterExpression: "agencyId = :a AND incidentId = :i",
+          ExpressionAttributeValues: {
+            ":s": params.sessionId,
+            ":a": params.agencyId,
+            ":i": params.incidentId,
+          },
+          ScanIndexForward: true,
+          Limit: limit,
+        }),
+      );
+      return (result.Items ?? []) as VisionTranscriptSegment[];
+    }
+    const result = await ddb.send(
+      new QueryCommand({
+        TableName: transcriptsTable(),
+        KeyConditionExpression: "pk = :pk",
+        FilterExpression: "agencyId = :a",
+        ExpressionAttributeValues: {
+          ":pk": `INCIDENT#${params.incidentId}`,
+          ":a": params.agencyId,
+        },
+        ScanIndexForward: true,
+        Limit: limit,
+      }),
+    );
+    return (result.Items ?? []) as VisionTranscriptSegment[];
   },
 };
 

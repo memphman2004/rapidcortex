@@ -38,6 +38,10 @@
 	<string>Rapid Cortex Mobile saves QR code images to your photo library when you choose Save.</string>
 	<key>RC_API_BASE_URL</key>
 	<string>https://api.rapidcortex.us</string>
+	<key>RC_TEST_AGENCY_ID</key>
+	<string>test-agency</string>
+	<key>RC_TEST_AGENCY_VERTICAL</key>
+	<string>pilot</string>
 	<key>RC_COGNITO_CLIENT_ID</key>
 	<string>$(RC_COGNITO_CLIENT_ID)</string>
 	<key>RC_COGNITO_REGION</key>

@@ -25,6 +25,36 @@ enum RCConfig {
         return "https://api.rapidcortex.us"
     }
 
+    /// App Store / QA tenant (`scripts/seed-test-agency-dev.ts`). Not a production PSAP.
+    static var testAgencyId: String {
+        plist("RC_TEST_AGENCY_ID", fallback: "test-agency")
+    }
+
+    /// `test-agency` is seeded as `type: pilot` → 911 operational dashboard.
+    static var testAgencyVertical: String {
+        plist("RC_TEST_AGENCY_VERTICAL", fallback: "pilot")
+    }
+
+    static let platformAgencyId = "__platform__"
+
+    static func isTenantAgencyId(_ raw: String?) -> Bool {
+        let id = (raw ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
+        if id.isEmpty { return false }
+        let lower = id.lowercased()
+        if id == platformAgencyId || lower == "platform" { return false }
+        return true
+    }
+
+    static func resolvedAgencyId(selected: String, jwt: String?) -> String {
+        if isTenantAgencyId(selected) {
+            return selected.trimmingCharacters(in: .whitespacesAndNewlines)
+        }
+        if isTenantAgencyId(jwt) {
+            return (jwt ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
+        }
+        return testAgencyId
+    }
+
     private static func plist(_ key: String, fallback: String) -> String {
         let raw = Bundle.main.object(forInfoDictionaryKey: key) as? String ?? ""
         let trimmed = raw.trimmingCharacters(in: .whitespacesAndNewlines)

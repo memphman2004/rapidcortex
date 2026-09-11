@@ -488,6 +488,8 @@ export const AUDIT_EVENT_TYPES = {
   VISION_OBSERVATION_VERIFIED: "vision.observation.verified",
   VISION_OBSERVATION_REJECTED: "vision.observation.rejected",
   VISION_OBSERVATION_SHARED: "vision.observation.shared",
+  VISION_TRANSCRIPT_STARTED: "vision.transcript.started",
+  VISION_TRANSCRIPT_STOPPED: "vision.transcript.stopped",
 } as const;
 
 export type AuditEventTypeName = (typeof AUDIT_EVENT_TYPES)[keyof typeof AUDIT_EVENT_TYPES];
