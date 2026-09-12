@@ -249,6 +249,18 @@ describe("isCommsPlatformApiPath", () => {
     expect(resolveUpstreamApiBase("/api/venue/incidents")).toBe("https://stack5.example.com");
   });
 
+  it("routes PSAP prospects (rc-admin and short alias) to stack 3", () => {
+    process.env.API_UPSTREAM_BASE = "https://stack1.example.com";
+    process.env.API_UPSTREAM_BASE_3 = "https://stack3.example.com";
+    expect(isSam3ApiPath("/api/rc-admin/psap-prospects")).toBe(true);
+    expect(isSam3ApiPath("/api/rc-admin/psap-prospects/stats")).toBe(true);
+    expect(isSam3ApiPath("/api/psap-prospects")).toBe(true);
+    expect(isSam3ApiPath("/api/psap-prospects/stats")).toBe(true);
+    expect(resolveUpstreamApiBase("/api/psap-prospects/stats")).toBe(
+      "https://stack3.example.com",
+    );
+  });
+
   it("routes RMS paths to stack 3", () => {
     process.env.API_UPSTREAM_BASE = "https://stack1.example.com";
     process.env.API_UPSTREAM_BASE_3 = "https://stack3.example.com";

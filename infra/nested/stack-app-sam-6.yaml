@@ -100,31 +100,16 @@ Globals:
         VISION_TRANSCRIPT_WORKER_DURATION_S: "780"
         VISION_TRANSCRIPT_STOP_POLL_S: "60"
         VISION_TRANSCRIPT_WORKER_FUNCTION: !Sub "rapid-cortex-vision-transcript-worker-${DeploymentStage}"
-        VISION_TRANSCRIPTS_TABLE: !If
-          - CreateVisionTranscriptsTable
-          - !Ref VisionLiveTranscriptsTable
-          - !Ref ExistingVisionTranscriptsTableName
+        # Physical names only — do not !Ref conditional tables inside Fn::If.
+        # CloudFormation validates both branches; unused !Ref / empty Existing* ARNs
+        # fail nested CREATE with "Validation failure detected".
+        VISION_TRANSCRIPTS_TABLE: !Sub "rapid-cortex-vision-transcripts-${DeploymentStage}"
         CAD_WRITEBACK_ENABLED: "false"
-        VISION_CAMERAS_TABLE: !If
-          - CreateCamerasTable
-          - !Ref VisionCamerasTable
-          - !Ref ExistingVisionCamerasTableName
-        VISION_SESSIONS_TABLE: !If
-          - CreateSessionsTable
-          - !Ref VisionSessionsTable
-          - !Ref ExistingVisionSessionsTableName
-        VISION_OBSERVATIONS_TABLE: !If
-          - CreateObservationsTable
-          - !Ref VisionObservationsTable
-          - !Ref ExistingVisionObservationsTableName
-        VISION_OWNER_CONSENT_TABLE: !If
-          - CreateConsentTable
-          - !Ref VisionOwnerConsentTable
-          - !Ref ExistingVisionOwnerConsentTableName
-        VISION_ARTIFACTS_BUCKET: !If
-          - CreateArtifactsBucket
-          - !Ref VisionArtifactsBucket
-          - !Ref ExistingVisionArtifactsBucketName
+        VISION_CAMERAS_TABLE: !Sub "rapid-cortex-vision-cameras-${DeploymentStage}"
+        VISION_SESSIONS_TABLE: !Sub "rapid-cortex-vision-sessions-${DeploymentStage}"
+        VISION_OBSERVATIONS_TABLE: !Sub "rapid-cortex-vision-observations-${DeploymentStage}"
+        VISION_OWNER_CONSENT_TABLE: !Sub "rapid-cortex-vision-owner-consent-${DeploymentStage}"
+        VISION_ARTIFACTS_BUCKET: !Sub "rapid-cortex-vision-artifacts-${DeploymentStage}-${AWS::AccountId}"
         AUDIT_TABLE: !Ref AuditTable
         AGENCIES_TABLE: !Ref AgenciesTable
         INCIDENTS_TABLE: !Ref IncidentsTable
@@ -350,34 +335,13 @@ Resources:
               - dynamodb:DescribeTable
               - dynamodb:ConditionCheckItem
             Resource:
-              - !If
-                  - CreateCamerasTable
-                  - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${VisionCamerasTable}"
-                  - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${ExistingVisionCamerasTableName}"
-              - !If
-                  - CreateCamerasTable
-                  - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${VisionCamerasTable}/index/*"
-                  - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${ExistingVisionCamerasTableName}/index/*"
-              - !If
-                  - CreateSessionsTable
-                  - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${VisionSessionsTable}"
-                  - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${ExistingVisionSessionsTableName}"
-              - !If
-                  - CreateSessionsTable
-                  - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${VisionSessionsTable}/index/*"
-                  - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${ExistingVisionSessionsTableName}/index/*"
-              - !If
-                  - CreateObservationsTable
-                  - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${VisionObservationsTable}"
-                  - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${ExistingVisionObservationsTableName}"
-              - !If
-                  - CreateObservationsTable
-                  - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${VisionObservationsTable}/index/*"
-                  - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${ExistingVisionObservationsTableName}/index/*"
-              - !If
-                  - CreateConsentTable
-                  - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${VisionOwnerConsentTable}"
-                  - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${ExistingVisionOwnerConsentTableName}"
+              - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/rapid-cortex-vision-cameras-${DeploymentStage}"
+              - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/rapid-cortex-vision-cameras-${DeploymentStage}/index/*"
+              - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/rapid-cortex-vision-sessions-${DeploymentStage}"
+              - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/rapid-cortex-vision-sessions-${DeploymentStage}/index/*"
+              - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/rapid-cortex-vision-observations-${DeploymentStage}"
+              - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/rapid-cortex-vision-observations-${DeploymentStage}/index/*"
+              - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/rapid-cortex-vision-owner-consent-${DeploymentStage}"
               - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${AuditTable}"
               - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${AuditTable}/index/*"
               - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${AgenciesTable}"
@@ -400,10 +364,7 @@ Resources:
             Action:
               - s3:PutObject
               - s3:GetObject
-            Resource: !If
-              - CreateArtifactsBucket
-              - !Sub "${VisionArtifactsBucket.Arn}/*"
-              - !Sub "arn:aws:s3:::${ExistingVisionArtifactsBucketName}/*"
+            Resource: !Sub "arn:aws:s3:::rapid-cortex-vision-artifacts-${DeploymentStage}-${AWS::AccountId}/*"
 
   AppManagedPolicyVisionAnthropic:
     Type: AWS::IAM::ManagedPolicy
@@ -474,14 +435,8 @@ Resources:
               - dynamodb:UpdateItem
               - dynamodb:Query
             Resource:
-              - !If
-                  - CreateVisionTranscriptsTable
-                  - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${VisionLiveTranscriptsTable}"
-                  - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${ExistingVisionTranscriptsTableName}"
-              - !If
-                  - CreateVisionTranscriptsTable
-                  - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${VisionLiveTranscriptsTable}/index/*"
-                  - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${ExistingVisionTranscriptsTableName}/index/*"
+              - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/rapid-cortex-vision-transcripts-${DeploymentStage}"
+              - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/rapid-cortex-vision-transcripts-${DeploymentStage}/index/*"
           - Sid: TranscribeStreaming
             Effect: Allow
             Action:
@@ -676,24 +631,12 @@ Resources:
 
 Outputs:
   VisionCamerasTableName:
-    Value: !If
-      - CreateCamerasTable
-      - !Ref VisionCamerasTable
-      - !Ref ExistingVisionCamerasTableName
+    Value: !Sub "rapid-cortex-vision-cameras-${DeploymentStage}"
   VisionSessionsTableName:
-    Value: !If
-      - CreateSessionsTable
-      - !Ref VisionSessionsTable
-      - !Ref ExistingVisionSessionsTableName
+    Value: !Sub "rapid-cortex-vision-sessions-${DeploymentStage}"
   VisionObservationsTableName:
-    Value: !If
-      - CreateObservationsTable
-      - !Ref VisionObservationsTable
-      - !Ref ExistingVisionObservationsTableName
+    Value: !Sub "rapid-cortex-vision-observations-${DeploymentStage}"
   VisionLiveTranscriptsTableName:
-    Value: !If
-      - CreateVisionTranscriptsTable
-      - !Ref VisionLiveTranscriptsTable
-      - !Ref ExistingVisionTranscriptsTableName
+    Value: !Sub "rapid-cortex-vision-transcripts-${DeploymentStage}"
   VisionTranscriptWorkerFunctionName:
     Value: !Ref VisionTranscriptWorkerFunction

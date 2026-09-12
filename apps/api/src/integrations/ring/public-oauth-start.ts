@@ -1,3 +1,11 @@
+/**
+ * RING INTEGRATION — SUSPENDED
+ * Ring camera integration is currently inactive pending Ring developer
+ * program approval. All handlers return 503. Do not remove this code.
+ * To reactivate: set RING_INTEGRATION_ENABLED = true in feature-flags.ts
+ * and remove all RING_DISABLED guards added on 2026-09-11.
+ */
+
 import { randomUUID } from "node:crypto";
 import type { APIGatewayProxyHandlerV2 } from "aws-lambda";
 import { isRingEnabled, normalizeRingReturnUrl, RingOAuthService } from "../../lib/ring-integration.js";
@@ -5,7 +13,7 @@ import { AgencyRepository } from "../../repositories/agencyRepository.js";
 import { RingAccountRepository } from "../../repositories/ringAccountRepository.js";
 import { auditRingEvent, AUDIT_EVENT_TYPES } from "./ring-audit.js";
 import { consumeRingPublicOAuthRateSlot } from "./ring-consent-rate-limit.js";
-import { ringJson, ringRedirect } from "./ring-api-response.js";
+import { ringJson, ringRedirect, RING_INTEGRATION_ENABLED, ringIntegrationDisabledResponse } from "./ring-api-response.js";
 import { configureRingEmergencyTables } from "./ring-tables.js";
 import {
   isUnmatchedHomeownerAgency,
@@ -36,6 +44,10 @@ function clientIp(event: { requestContext?: { http?: { sourceIp?: string } } }):
  * GET /api/public/ring/oauth/start?agencyId={optional}&state={optional US abbr}
  */
 export const handler: APIGatewayProxyHandlerV2 = async (event) => {
+  // RING_DISABLED — integration suspended pending Ring developer program approval
+  if (!RING_INTEGRATION_ENABLED) {
+    return ringIntegrationDisabledResponse(event);
+  }
   try {
     configureRingEmergencyTables();
 

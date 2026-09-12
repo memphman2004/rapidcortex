@@ -1,4 +1,12 @@
 /**
+ * RING INTEGRATION — SUSPENDED
+ * Ring camera integration is currently inactive pending Ring developer
+ * program approval. All handlers return 503. Do not remove this code.
+ * To reactivate: set RING_INTEGRATION_ENABLED = true in feature-flags.ts
+ * and remove all RING_DISABLED guards added on 2026-09-11.
+ */
+
+/**
  * DELETE /api/user/account
  * Permanently deletes the authenticated Ring Device Owner Cognito account and
  * revokes linked Ring OAuth tokens. Required for Ring developer certification.
@@ -10,9 +18,13 @@ import type { APIGatewayProxyHandlerV2 } from "aws-lambda";
 import { ACCOUNT_INACTIVE_MESSAGE, getUserContext, isUserAccountActive } from "../../lib/auth.js";
 import { operationalPasswordBlock } from "../../lib/operationalPasswordGate.js";
 import { deleteHomeownerAccount } from "./homeowner-account-delete.js";
-import { ringJson } from "./ring-api-response.js";
+import { ringJson, RING_INTEGRATION_ENABLED, ringIntegrationDisabledResponse } from "./ring-api-response.js";
 
 export const handler: APIGatewayProxyHandlerV2 = async (event) => {
+  // RING_DISABLED — integration suspended pending Ring developer program approval
+  if (!RING_INTEGRATION_ENABLED) {
+    return ringIntegrationDisabledResponse(event);
+  }
   try {
     const user = await getUserContext(event);
     if (!user) {

@@ -4,7 +4,7 @@ import Link from "next/link";
 import { PilotIntegrationStatusPanel } from "@/components/admin/pilot-integration-status";
 import { useSession } from "@/components/auth/session-context";
 import { useJurisdictionLink } from "@/lib/jurisdiction-context";
-import { RingConnectButton, RingIntegrationStatus, isRingEnabled } from "@/src/features/connect/ring";
+import { RingConnectButton, RingIntegrationStatus, RingIntegrationUnavailableNotice, isRingEnabled } from "@/src/features/connect/ring";
 import { CameraProviderSetup } from "@/components/cameras/CameraProviderSetup";
 import { isNestEnabled } from "@/lib/nest-feature-flags";
 import { GOOGLE_NEST_TM, RING_TM } from "@/lib/brand-marks";
@@ -63,7 +63,14 @@ export function AdminIntegrationsShell({
           <RingIntegrationStatus agencyId={user.agencyId} userId={user.userId} />
           <RingConnectButton agencyId={user.agencyId} userId={user.userId} />
         </section>
-      ) : null}
+      ) : (
+        <section className="space-y-3 rounded-lg border border-zinc-800 bg-slate-900/35 p-4">
+          <h3 className="text-sm font-semibold uppercase tracking-wider text-zinc-300">
+            {RING_TM} Doorbell Integration
+          </h3>
+          <RingIntegrationUnavailableNotice />
+        </section>
+      )}
 
       {isNestEnabled() ? (
         <section className="space-y-3 rounded-lg border border-zinc-800 bg-slate-900/35 p-4">

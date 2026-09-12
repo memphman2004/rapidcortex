@@ -1,4 +1,5 @@
 export * from "./ring-feature-flags";
+export * from "./RingIntegrationUnavailableNotice";
 export * from "./RingCameraRequestStatusBadge";
 export * from "./RingIntegrationStatus";
 export * from "./RingConnectButton";

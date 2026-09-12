@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
+# RING_DISABLED note (2026-09-11): this script is venue/caller KVS WebRTC, not Ring Connect.
+# It is intentionally left enabled. Do not add an exit-0 Ring guard here.
 # Idempotent: Kinesis Video Streams signaling channel + optional video stream and storage mapping.
 # Rapid Cortex production also creates per-session channels via the API; this script is for
 # operator bootstrap, staging defaults, and alignment checks (named resources).

@@ -3,9 +3,12 @@ import { NextResponse } from "next/server";
 import { isSam3ApiPath, isSam4ApiPath, isSam5ApiPath, isStack2ApiPath, resolveUpstreamApiBase } from "@/lib/comms-api-path";
 import { applyRotatedAuthCookies, resolveBffBearerToken } from "@/lib/server/bff-auth-token";
 import { joinUpstreamApiUrl, normalizeUpstreamApiPath } from "@/lib/upstream-url";
+import { ringDisabledBffResponse } from "@/lib/ring-disabled";
 
 async function proxy(request: NextRequest, pathSegments: string[]) {
   const path = normalizeUpstreamApiPath(`/${pathSegments.join("/")}`);
+  const ringDisabled = ringDisabledBffResponse(path);
+  if (ringDisabled) return ringDisabled;
   const base = resolveUpstreamApiBase(path);
   if (!base) {
     const needsStack4 = isSam4ApiPath(path);

@@ -13,83 +13,7 @@ Metadata:
         - W1028
         - W8001
         - W7001
-  # Overrides **only** keys that exist in Globals (see Globals.Function.Environment.Variables) — no extra key names
-  # (adding unused keys inflates the UpdateFunctionConfiguration request and can hit the 5KB API limit).
-  TranscriptChunkLambdasGlobalsSlimYamlAnchorHolder: &TRANSCRIPT_CHUNK_GLOBALS_SLIM_OVERRIDES
-    WEBHOOKS_TABLE: ""
-    API_CLIENTS_TABLE: ""
-    EXTERNAL_API_RATE_LIMITS_TABLE: ""
-    RC_LITE_ENABLED: ""
-    RC_LITE_API_KEYS_TABLE: ""
-    RC_LITE_RATE_LIMIT_TABLE: ""
-    RC_LITE_USAGE_TABLE: ""
-    SEO_INTELLIGENCE_TABLE: ""
-    SEO_TOOL_ENABLED: "false"
-    SEO_AUTO_SCAN_ENABLED: ""
-    SEO_AI_SUGGESTIONS_ENABLED: "false"
-    DECEPTION_EVENTS_TABLE: ""
-    DECEPTION_SHIELD_ENABLED: ""
-    DECEPTION_AUTO_BLOCK_ENABLED: ""
-    DECEPTION_ALERTS_ENABLED: "false"
-    CAD_WRITEBACK_ENABLED: ""
-    CAD_WRITEBACK_REQUIRES_APPROVAL: ""
-    CAD_WRITEBACK_AUDIT_TABLE: ""
-    OPS_ALERTS_TOPIC_ARN: ""
-    DECEPTION_SLACK_WEBHOOK_URL: ""
-    EXTERNAL_API_JWT_SECRET_ARN: ""
-    EXTERNAL_API_ENCRYPTION_KEY_ARN: ""
-    PASSWORD_MAX_AGE_DAYS: ""
-    PASSWORD_EXPIRY_GRACE_DAYS: ""
-    PASSWORD_CHANGE_REQUIRED_ON_FIRST_LOGIN: ""
-    OPENAI_API_KEY_SECRET_ARN: ""
-    ANTHROPIC_API_KEY_SECRET_ARN: ""
-    AUTO_ANALYZE_EVERY_N_SEGMENTS: ""
-    ALLOW_UNAUTHENTICATED_API: ""
-    APPROVED_CORS_ORIGINS: ""
-    ENABLE_QA_SCORING: ""
-    ENABLE_QA_SCORE_AFTER_ANALYSIS: ""
-    QA_SESSIONS_TABLE: ""
-    QA_TEMPLATES_TABLE: ""
-    QA_SCORING_MOCK: ""
-    QA_BEDROCK_MODEL_ID: ""
-    ENABLE_INCIDENT_MEDIA: ""
-    INCIDENT_MEDIA_TABLE: ""
-    INCIDENT_MEDIA_PUBLIC_BASE_URL: ""
-    INCIDENT_MEDIA_TOKEN_TTL_MINUTES: ""
-    INCIDENT_MEDIA_UPLOAD_URL_TTL_SECONDS: ""
-    INCIDENT_MEDIA_MAX_UPLOAD_BYTES: ""
-    MEDIA_UPLOAD_TOKEN_TTL_SECONDS: ""
-    ENABLE_NON_EMERGENCY_TRIAGE: ""
-    AI_ENABLE_FALLBACKS: ""
-    AI_STORE_PROVIDER_METADATA: ""
-    AI_PROMPT_VERSION: ""
-    AI_REQUEST_TIMEOUT_MS: ""
-    AI_MAX_RETRIES_PER_PROVIDER: ""
-    AI_ANALYSIS_DEBOUNCE_SECONDS: ""
-    AI_MAX_ANALYZE_REQUESTS_PER_INCIDENT_PER_HOUR: ""
-    AI_SKIP_IF_TRANSCRIPT_UNCHANGED: ""
-    AI_ANALYSIS_IN_FLIGHT_LEASE_SECONDS: ""
-
-  # SQS workers / minimal CAD ingress: inherit Globals but blank unused keys (4KB Lambda env limit).
-  AppSam1HeavyLambdasGlobalsSlimYamlAnchorHolder: &APP_SAM1_HEAVY_LAMBDAS_GLOBALS_SLIM_OVERRIDES
-    <<: *TRANSCRIPT_CHUNK_GLOBALS_SLIM_OVERRIDES
-    ACCESS_OVERRIDES_TABLE: ""
-    AGENCY_SHARE_PARTNERS_TABLE: ""
-    BEDROCK_REGION: ""
-    COGNITO_CLIENT_ID: ""
-    COGNITO_REGION: ""
-    COGNITO_USER_POOL_ID: ""
-    DATA_DELETION_AUDIT_TABLE: ""
-    DISPATCHER_COACHING_NOTES_TABLE: ""
-    INCIDENT_SHARES_TABLE: ""
-    INCIDENT_TIMELINE_TABLE: ""
-    INTEGRATION_TRANSCRIPT_AGENCY_ALLOWLIST: ""
-    INTEGRATION_TRANSCRIPT_CONNECTOR_MODE: ""
-    LANGUAGE_PROVIDER: ""
-    LANGUAGE_SESSIONS_TABLE: ""
-    PREMISE_NOTES_TABLE: ""
-    TRANSCRIPT_RETENTION_POLICY_DAYS: ""
-    TRAUMA_FLAGS_TABLE: ""
+        - W2531
 
 Parameters:
   DeploymentStage:
@@ -511,7 +435,7 @@ Parameters:
       same SMS provider configuration as Silent Text + incident media (`INCIDENT_MEDIA_TWILIO_SECRET_ARN`).
   EnableConnectRing:
     Type: String
-    Default: "true"
+    Default: "false"
     AllowedValues: ["true", "false"]
     Description: When true, Ring Connect OAuth and device linking routes are active.
   RingPartnershipEnabled:
@@ -4488,11 +4412,17 @@ Resources:
       BuildMethod: makefile
       BuildTarget: build-function
     Condition: CreateLiveVideoResources
+    # Explicit env only — Globals.Function.Environment plus these keys is too close to 4KB.
+    IgnoreGlobals: "*"
     Properties:
+      Runtime: nodejs20.x
+      Layers:
+        - !Ref NodeDepsLayer
       CodeUri: ../../apps/api/
       Handler: dist/handlers/media/liveVideoIncidentHttp.handler
       Role: !GetAtt LiveVideoIncidentsExecutionRole.Arn
       Timeout: 29
+      MemorySize: 512
       Environment:
         Variables:
           COGNITO_USER_POOL_ID: !Ref ImportedCognitoUserPoolId
@@ -4520,6 +4450,13 @@ Resources:
           LIVE_VIDEO_EXPORT_FUNCTION_NAME: !Ref LiveVideoExportFunction
           KVS_WEBRTC_TAG_APP: !Ref AppName
           KVS_WEBRTC_TAG_ENV: !Ref DeploymentStage
+          INCIDENT_MEDIA_TWILIO_SECRET_ARN: !Ref IncidentMediaTwilioSecretArn
+          SMS_PROVIDER: twilio
+          SMS_PRIMARY_PROVIDER: twilio
+          MOCK_SMS_PROVIDER: "false"
+          AWS_SMS_USE_SIMULATOR: "false"
+          AWS_SMS_POOL_ID: !Ref AwsSmsPoolId
+          AWS_SMS_CONFIGURATION_SET_NAME: !Ref AwsSmsConfigurationSetName
       Events:
         RequestLiveVideo:
           Type: HttpApi
@@ -4564,7 +4501,13 @@ Resources:
       BuildMethod: makefile
       BuildTarget: build-function
     Condition: CreateLiveVideoResources
+    IgnoreGlobals: "*"
     Properties:
+      Runtime: nodejs20.x
+      Layers:
+        - !Ref NodeDepsLayer
+      Timeout: 10
+      MemorySize: 512
       CodeUri: ../../apps/api/
       Handler: dist/handlers/media/liveVideoPublicHttp.handler
       Role: !GetAtt LiveVideoPublicExecutionRole.Arn
@@ -4580,6 +4523,8 @@ Resources:
           LIVE_VIDEO_STORAGE_MODE: kvs
           LIVE_VIDEO_EXPORT_FUNCTION_NAME: !Ref LiveVideoExportFunction
           WEBRTC_TURN_SECRET_ARN: ""
+          AUDIT_TABLE: !Ref AuditTable
+          ASSETS_BUCKET: !Ref AssetsBucket
       Events:
         JoinLiveVideo:
           Type: HttpApi
@@ -4611,7 +4556,14 @@ Resources:
       BuildMethod: makefile
       BuildTarget: build-function
     Condition: CreateLiveVideoResources
+    # Do not inherit Globals.Function.Environment. Stack-5 Globals plus the stack-1 slim
+    # overlay (empty keys that are not even in this Globals map) exceeded Lambda's 4KB
+    # env limit (4679 bytes) and rolled back the parent stack.
+    IgnoreGlobals: "*"
     Properties:
+      Runtime: nodejs20.x
+      Layers:
+        - !Ref NodeDepsLayer
       CodeUri: ../../apps/api/
       Handler: dist/lambdas/liveVideoExport.handler
       Role: !GetAtt LiveVideoIncidentsExecutionRole.Arn
@@ -4621,7 +4573,8 @@ Resources:
       Description: GetClip export of ended caller live-video sessions to the assets bucket.
       Environment:
         Variables:
-          <<: *APP_SAM1_HEAVY_LAMBDAS_GLOBALS_SLIM_OVERRIDES
+          DEPLOYMENT_STAGE: !Ref DeploymentStage
+          AUDIT_TABLE: !Ref AuditTable
           ENABLE_LIVE_VIDEO: "true"
           LIVE_VIDEO_SESSIONS_TABLE: !Ref LiveVideoSessionsTable
           ASSETS_BUCKET: !Ref AssetsBucket

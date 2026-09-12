@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useMemo, useState, type FormEvent } from "react";
+import { RING_INTEGRATION_ENABLED } from "rapid-cortex-shared";
 import { demoJurisdictionSlug } from "@/lib/deployment-environment";
 import { marketingDemoRequestPath, marketingLoginPath } from "@/lib/marketing-links";
 
@@ -613,6 +614,22 @@ export function RingLinkClient() {
     () => statusMessage(status, audience, deviceCount),
     [status, audience, deviceCount],
   );
+
+  if (!RING_INTEGRATION_ENABLED) {
+    return (
+      <div
+        style={{
+          padding: "1rem",
+          color: "#888",
+          fontSize: "13px",
+          border: "1px dashed #ddd",
+          borderRadius: "8px",
+        }}
+      >
+        Ring camera integration is temporarily unavailable.
+      </div>
+    );
+  }
 
   if (isAppstoreLink) {
     return (

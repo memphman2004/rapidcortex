@@ -66,10 +66,7 @@ Globals:
         CALL_ASSIST_VOICE_EMOTION_MOCK: "true"
         ENABLE_CALL_ASSIST_VOICE_EMOTION: "true"
         ENABLE_CALL_ASSIST_DIARIZATION: "true"
-        CALL_ASSIST_TABLE: !If
-          - CreateCallAssistTable
-          - !Ref CallAssistTable
-          - !Ref ExistingCallAssistTableName
+        CALL_ASSIST_TABLE: !Sub "rapid-cortex-call-assist-${DeploymentStage}"
         CALL_ASSIST_CONNECT_WEBHOOK_SECRET_ARN: !Ref CallAssistConnectWebhookSecretArn
         APP_PUBLIC_BASE_URL: !Ref AppPublicBaseUrl
         CALL_ASSIST_PUBLIC_BASE_URL: !Ref AppPublicBaseUrl
@@ -134,14 +131,8 @@ Resources:
               - dynamodb:DescribeTable
               - dynamodb:ConditionCheckItem
             Resource:
-              - !If
-                  - CreateCallAssistTable
-                  - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${CallAssistTable}"
-                  - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${ExistingCallAssistTableName}"
-              - !If
-                  - CreateCallAssistTable
-                  - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${CallAssistTable}/index/*"
-                  - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${ExistingCallAssistTableName}/index/*"
+              - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/rapid-cortex-call-assist-${DeploymentStage}"
+              - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/rapid-cortex-call-assist-${DeploymentStage}/index/*"
               - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${AuditTable}"
               - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${AuditTable}/index/*"
               - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${AgenciesTable}"
@@ -335,10 +326,7 @@ Resources:
 Outputs:
   CallAssistTableName:
     Description: Call Assist DynamoDB table
-    Value: !If
-      - CreateCallAssistTable
-      - !Ref CallAssistTable
-      - !Ref ExistingCallAssistTableName
+    Value: !Sub "rapid-cortex-call-assist-${DeploymentStage}"
   CallAssistHttpFunctionArn:
     Value: !GetAtt CallAssistHttpFunction.Arn
   CallAssistConnectWebhookFunctionArn:

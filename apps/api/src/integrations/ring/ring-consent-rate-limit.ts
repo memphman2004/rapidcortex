@@ -1,7 +1,16 @@
+/**
+ * RING INTEGRATION — SUSPENDED
+ * Ring camera integration is currently inactive pending Ring developer
+ * program approval. All handlers return 503. Do not remove this code.
+ * To reactivate: set RING_INTEGRATION_ENABLED = true in feature-flags.ts
+ * and remove all RING_DISABLED guards added on 2026-09-11.
+ */
+
 import { UpdateCommand } from "@aws-sdk/lib-dynamodb";
 import { createHash } from "node:crypto";
 import { ddb } from "../../repositories/baseRepository.js";
 import { env } from "../../lib/env.js";
+import { RING_INTEGRATION_ENABLED } from "./ring-api-response.js";
 
 const CONSENT_WINDOW_MS = 15 * 60 * 1000;
 const CONSENT_MAX_ATTEMPTS = 10;
@@ -9,6 +18,8 @@ const PUBLIC_OAUTH_WINDOW_MS = 15 * 60 * 1000;
 const PUBLIC_OAUTH_MAX_ATTEMPTS = 10;
 
 export async function consumeRingConsentRateSlot(ip: string): Promise<boolean> {
+  // RING_DISABLED — deny rate-limit slots while Ring is suspended
+  if (!RING_INTEGRATION_ENABLED) return false;
   return consumeRingRateSlot(ip, {
     sentinelKey: "__ring_consent_rate__",
     itemType: "ring_consent_rate",
@@ -19,6 +30,7 @@ export async function consumeRingConsentRateSlot(ip: string): Promise<boolean> {
 }
 
 export async function consumeRingPublicOAuthRateSlot(ip: string): Promise<boolean> {
+  if (!RING_INTEGRATION_ENABLED) return false;
   return consumeRingRateSlot(ip, {
     sentinelKey: "__ring_public_oauth_rate__",
     itemType: "ring_public_oauth_rate",

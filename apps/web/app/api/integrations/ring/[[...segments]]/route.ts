@@ -1,8 +1,17 @@
+/**
+ * RING INTEGRATION — SUSPENDED
+ * Ring camera integration is currently inactive pending Ring developer
+ * program approval. All handlers return 503. Do not remove this code.
+ * To reactivate: set RING_INTEGRATION_ENABLED = true in feature-flags.ts
+ * and remove all RING_DISABLED guards added on 2026-09-11.
+ */
+
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 import { COOKIE_ID_TOKEN } from "@/lib/auth/cookies";
 import { resolveUpstreamApiBase } from "@/lib/comms-api-path";
 import { proxyToAuthUpstream } from "@/lib/server/auth-upstream-proxy";
+import { ringDisabledBffResponse } from "@/lib/ring-disabled";
 
 type Ctx = { params: Promise<{ segments?: string[] }> };
 
@@ -13,6 +22,10 @@ function upstreamPath(segments: string[] | undefined): string {
 
 async function proxyRing(request: NextRequest, segments: string[] | undefined) {
   const path = upstreamPath(segments);
+  // RING_DISABLED — routes suspended pending Ring developer program approval
+  // router.post('/integrations/ring/request-camera-access', ringRequestHandler);
+  const disabled = ringDisabledBffResponse(path);
+  if (disabled) return disabled;
   const isOAuthLogin = path === "/api/integrations/ring/login" && request.method === "GET";
   if (!isOAuthLogin) {
     return proxyToAuthUpstream(request, path);

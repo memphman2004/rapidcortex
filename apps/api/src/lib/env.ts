@@ -1,5 +1,5 @@
 import type { SmsPrimaryProvider, SmsProviderMode } from "rapid-cortex-shared";
-import { smsPrimaryProviderSchema, smsProviderModeSchema } from "rapid-cortex-shared";
+import { RING_INTEGRATION_ENABLED, smsPrimaryProviderSchema, smsProviderModeSchema } from "rapid-cortex-shared";
 import { hydrateLambdaEnvFromJson } from "./hydrateLambdaEnv";
 
 hydrateLambdaEnvFromJson();
@@ -232,7 +232,7 @@ export const env = {
   surgeClustersTable: process.env.SURGE_CLUSTERS_TABLE?.trim() ?? "",
   enableSurge: featureEnabled("ENABLE_SURGE"),
   /** Rapid Vision™ — Ring Source (ENABLE_CONNECT_RING preserved for Stack 4 Ring Lambdas). */
-  enableConnectRing: featureEnabled("ENABLE_CONNECT_RING"),
+  enableConnectRing: RING_INTEGRATION_ENABLED && featureEnabled("ENABLE_CONNECT_RING"),
   enableConnectNest: featureEnabled("ENABLE_CONNECT_NEST"),
   ringAccountsTable: process.env.RING_TABLE_ACCOUNTS?.trim() ?? "",
   ringDevicesTable: process.env.RING_TABLE_DEVICES?.trim() ?? "",

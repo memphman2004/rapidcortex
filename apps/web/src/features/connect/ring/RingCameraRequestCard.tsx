@@ -4,6 +4,8 @@ import { Bell, Camera } from "lucide-react";
 import { useState } from "react";
 import type { RingCameraListItem } from "rapid-cortex-integrations/ring";
 import { KvsRingStreamViewer } from "@/components/ring/KvsRingStreamViewer";
+import { isRingEnabled } from "./ring-feature-flags";
+import { RingIntegrationUnavailableNotice } from "./RingIntegrationUnavailableNotice";
 import { formatDistanceImperial } from "./format-distance-imperial";
 import { RingCameraRequestStatusBadge } from "./RingCameraRequestStatusBadge";
 
@@ -24,6 +26,10 @@ export function RingCameraRequestCard({
   const [toast, setToast] = useState<string | null>(null);
   const [showStream, setShowStream] = useState(false);
   const streamSessionId = camera.streamSessionId;
+
+  if (!isRingEnabled()) {
+    return <RingIntegrationUnavailableNotice />;
+  }
 
   const sendRequest = async () => {
     const ok = window.confirm(

@@ -1,16 +1,28 @@
+/**
+ * RING INTEGRATION — SUSPENDED
+ * Ring camera integration is currently inactive pending Ring developer
+ * program approval. All handlers return 503. Do not remove this code.
+ * To reactivate: set RING_INTEGRATION_ENABLED = true in feature-flags.ts
+ * and remove all RING_DISABLED guards added on 2026-09-11.
+ */
+
 import type { APIGatewayProxyHandlerV2 } from "aws-lambda";
 import { isRingEnabled, RingOAuthService, normalizeRingReturnUrl } from "../../lib/ring-integration.js";
 import { ACCOUNT_INACTIVE_MESSAGE, getUserContext, isUserAccountActive } from "../../lib/auth.js";
 import { operationalPasswordBlock } from "../../lib/operationalPasswordGate.js";
 import { RingAccountRepository } from "../../repositories/ringAccountRepository.js";
 import { auditRingEvent, AUDIT_EVENT_TYPES } from "./ring-audit.js";
-import { ringJson, ringRedirect } from "./ring-api-response.js";
+import { ringJson, ringRedirect, RING_INTEGRATION_ENABLED, ringIntegrationDisabledResponse } from "./ring-api-response.js";
 
 const oauth = new RingOAuthService();
 const accounts = new RingAccountRepository();
 const OAUTH_STATE_TTL_SECONDS = 600;
 
 export const handler: APIGatewayProxyHandlerV2 = async (event) => {
+  // RING_DISABLED — integration suspended pending Ring developer program approval
+  if (!RING_INTEGRATION_ENABLED) {
+    return ringIntegrationDisabledResponse(event);
+  }
   try {
     const user = await getUserContext(event);
     if (!user) {

@@ -1,3 +1,15 @@
+/**
+ * RING INTEGRATION — SUSPENDED
+ * Ring camera integration is currently inactive pending Ring developer
+ * program approval. All handlers return 503. Do not remove this code.
+ * To reactivate: set RING_INTEGRATION_ENABLED = true in feature-flags.ts
+ * and remove all RING_DISABLED guards added on 2026-09-11.
+ */
+
+import { RING_INTEGRATION_ENABLED } from "rapid-cortex-shared";
+
+export { RING_INTEGRATION_ENABLED };
+
 function parseBooleanFlag(raw: string | undefined, defaultValue = false): boolean {
   if (raw === undefined || raw === "") return defaultValue;
   const normalized = raw.trim().toLowerCase();
@@ -83,19 +95,21 @@ export const RING_HOMEOWNER_FALLBACK_LONGITUDE = (() => {
 })();
 
 export function isRingEnabled(): boolean {
-  return ENABLE_CONNECT_RING && RING_PARTNERSHIP_ENABLED;
+  // RING_DISABLED — integration suspended pending Ring developer program approval
+  return RING_INTEGRATION_ENABLED && ENABLE_CONNECT_RING && RING_PARTNERSHIP_ENABLED;
 }
 
 export function isRingAvailableCamerasEnabled(): boolean {
-  return ENABLE_CONNECT_RING && ENABLE_CONNECT_RING_AVAILABLE_CAMERAS;
+  return RING_INTEGRATION_ENABLED && ENABLE_CONNECT_RING && ENABLE_CONNECT_RING_AVAILABLE_CAMERAS;
 }
 
 export function isRingEmergencyRequestsEnabled(): boolean {
-  return ENABLE_CONNECT_RING && ENABLE_CONNECT_RING_EMERGENCY_REQUESTS;
+  return RING_INTEGRATION_ENABLED && ENABLE_CONNECT_RING && ENABLE_CONNECT_RING_EMERGENCY_REQUESTS;
 }
 
 function ringCoreEnabled(): boolean {
   return (
+    RING_INTEGRATION_ENABLED &&
     RING_PARTNERSHIP_ENABLED &&
     (ENABLE_CONNECT_RING ||
       ENABLE_CONNECT_RING_AVAILABLE_CAMERAS ||

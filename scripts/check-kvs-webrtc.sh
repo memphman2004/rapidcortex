@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
+# RING_DISABLED note (2026-09-11): this script is venue/caller KVS WebRTC, not Ring Connect.
+# It is intentionally left enabled. Do not add an exit-0 Ring guard here.
 # Readiness: signaling channel, endpoints, media storage, optional Kinesis video stream.
 set -euo pipefail
 

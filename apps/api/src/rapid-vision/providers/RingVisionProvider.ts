@@ -1,3 +1,11 @@
+/**
+ * RING INTEGRATION — SUSPENDED
+ * Ring camera integration is currently inactive pending Ring developer
+ * program approval. All handlers return 503. Do not remove this code.
+ * To reactivate: set RING_INTEGRATION_ENABLED = true in feature-flags.ts
+ * and remove all RING_DISABLED guards added on 2026-09-11.
+ */
+
 import type {
   CameraProvider,
   ConsentRequestParams,
@@ -9,8 +17,9 @@ import type {
   ProviderIdentity,
   RecordedClipParams,
 } from "./CameraProvider.js";
-import { unsupported } from "./CameraProvider.js";
+import { RING_INTEGRATION_ENABLED } from "rapid-cortex-shared";
 import type { ProviderResult } from "rapid-cortex-shared";
+import { unsupported } from "./CameraProvider.js";
 
 type RingDeviceService = {
   getDevicesForAgency: (agencyId: string) => Promise<RingDeviceRecord[]>;
@@ -82,7 +91,19 @@ export class RingVisionProvider implements CameraProvider {
     private readonly ringRepo: RingEmergencyRepository,
   ) {}
 
+  private disabled<T extends string>(capability: T) {
+    return unsupported("ring", capability, "Ring camera integration is temporarily unavailable.");
+  }
+
   async getHealth(agencyId: string): Promise<ProviderHealthResult> {
+    // RING_DISABLED — Rapid Vision Ring source suspended pending developer program approval
+    if (!RING_INTEGRATION_ENABLED) {
+      return {
+        status: "offline",
+        lastChecked: new Date().toISOString(),
+        detail: "Ring camera integration is temporarily unavailable.",
+      };
+    }
     try {
       const devices = await this.ringDevices.getDevicesForAgency(agencyId);
       return {
@@ -102,6 +123,7 @@ export class RingVisionProvider implements CameraProvider {
   async discoverDevices(
     agencyId: string,
   ): Promise<ProviderResult<{ devices: DiscoveredDevice[] }>> {
+    if (!RING_INTEGRATION_ENABLED) return this.disabled("discoverDevices");
     const ringDevices = await this.ringDevices.getDevicesForAgency(agencyId);
     const devices: DiscoveredDevice[] = ringDevices
       .filter((d) => d.isEnabledForConnect && d.latitude !== null && d.longitude !== null)
@@ -121,6 +143,7 @@ export class RingVisionProvider implements CameraProvider {
     agencyId: string,
     providerDeviceId: string,
   ): Promise<ProviderResult<{ online: boolean; lastSeen?: string }>> {
+    if (!RING_INTEGRATION_ENABLED) return this.disabled("getDeviceStatus");
     const device = await this.ringDevices.getDeviceById(agencyId, providerDeviceId);
     if (!device) {
       return unsupported("ring", "getDeviceStatus", "Device not found or not linked to this agency.");
@@ -131,6 +154,7 @@ export class RingVisionProvider implements CameraProvider {
   async requestConsent(
     params: ConsentRequestParams,
   ): Promise<ProviderResult<ConsentRequestResult>> {
+    if (!RING_INTEGRATION_ENABLED) return this.disabled("requestConsent");
     const request = await this.ringRepo.createRequest({
       incidentId: params.incidentId,
       agencyId: params.agencyId,
@@ -153,6 +177,7 @@ export class RingVisionProvider implements CameraProvider {
   async openLiveStream(
     params: OpenStreamParams,
   ): Promise<ProviderResult<OpenStreamResult>> {
+    if (!RING_INTEGRATION_ENABLED) return this.disabled("openLiveStream");
     const session = await this.ringRepo.getSessionById(params.sessionId);
     if (!session || session.streamStatus !== "ACTIVE") {
       return unsupported(
@@ -184,6 +209,9 @@ export class RingVisionProvider implements CameraProvider {
     _agencyId: string,
     providerSessionId: string,
   ): Promise<{ success: boolean; detail?: string }> {
+    if (!RING_INTEGRATION_ENABLED) {
+      return { success: false, detail: "Ring camera integration is temporarily unavailable." };
+    }
     try {
       await this.ringRepo.closeSession(providerSessionId);
       return { success: true };
@@ -199,6 +227,7 @@ export class RingVisionProvider implements CameraProvider {
     agencyId: string,
     incidentId: string,
   ): Promise<{ revokedCount: number }> {
+    if (!RING_INTEGRATION_ENABLED) return { revokedCount: 0 };
     const sessions = await this.ringRepo.listActiveSessionsForIncident(agencyId, incidentId);
     let revokedCount = 0;
     for (const session of sessions) {

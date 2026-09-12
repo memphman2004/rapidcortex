@@ -13,6 +13,7 @@ Metadata:
         - W1028
         - W8001
         - W7001
+        - W2531
   # Overrides **only** keys that exist in Globals (see Globals.Function.Environment.Variables) — no extra key names
   # (adding unused keys inflates the UpdateFunctionConfiguration request and can hit the 5KB API limit).
   TranscriptChunkLambdasGlobalsSlimYamlAnchorHolder: &TRANSCRIPT_CHUNK_GLOBALS_SLIM_OVERRIDES
@@ -523,12 +524,12 @@ Parameters:
       same SMS provider configuration as Silent Text + incident media (`INCIDENT_MEDIA_TWILIO_SECRET_ARN`).
   EnableConnectRing:
     Type: String
-    Default: "true"
+    Default: "false"
     AllowedValues: ["true", "false"]
     Description: When true, Ring Connect OAuth and device linking routes are active.
   RingPartnershipEnabled:
     Type: String
-    Default: "true"
+    Default: "false"
     AllowedValues: ["true", "false"]
     Description: When true, Ring partnership credentials and Connect integration are active.
   RingClientId:

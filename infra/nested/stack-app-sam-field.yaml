@@ -65,10 +65,7 @@ Globals:
         DEPLOYMENT_STAGE: !Ref DeploymentStage
         ALLOW_UNAUTHENTICATED_API: "false"
         ENABLE_FIELD_COMMAND: "true"
-        FIELD_COMMAND_TABLE: !If
-          - CreateFieldCommandTable
-          - !Ref FieldCommandTable
-          - !Ref ExistingFieldCommandTableName
+        FIELD_COMMAND_TABLE: !Sub "rapid-cortex-field-command-${DeploymentStage}"
         AUDIT_TABLE: !Ref AuditTable
         AGENCIES_TABLE: !Ref AgenciesTable
         INCIDENTS_TABLE: !Ref IncidentsTable
@@ -121,14 +118,8 @@ Resources:
               - dynamodb:DescribeTable
               - dynamodb:ConditionCheckItem
             Resource:
-              - !If
-                  - CreateFieldCommandTable
-                  - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${FieldCommandTable}"
-                  - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${ExistingFieldCommandTableName}"
-              - !If
-                  - CreateFieldCommandTable
-                  - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${FieldCommandTable}/index/*"
-                  - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${ExistingFieldCommandTableName}/index/*"
+              - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/rapid-cortex-field-command-${DeploymentStage}"
+              - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/rapid-cortex-field-command-${DeploymentStage}/index/*"
               - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${AuditTable}"
               - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${AuditTable}/index/*"
               - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${AgenciesTable}"
@@ -230,9 +221,6 @@ Resources:
 Outputs:
   FieldCommandTableName:
     Description: Field Command DynamoDB table
-    Value: !If
-      - CreateFieldCommandTable
-      - !Ref FieldCommandTable
-      - !Ref ExistingFieldCommandTableName
+    Value: !Sub "rapid-cortex-field-command-${DeploymentStage}"
   FieldCommandHttpFunctionArn:
     Value: !GetAtt FieldCommandHttpFunction.Arn

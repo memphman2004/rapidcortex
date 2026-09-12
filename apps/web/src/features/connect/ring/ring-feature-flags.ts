@@ -1,5 +1,14 @@
 "use client";
 
+/**
+ * RING INTEGRATION — SUSPENDED
+ * Ring camera integration is currently inactive pending Ring developer
+ * program approval. All handlers return 503. Do not remove this code.
+ * To reactivate: set RING_INTEGRATION_ENABLED = true in feature-flags.ts
+ * and remove all RING_DISABLED guards added on 2026-09-11.
+ */
+
+import { RING_INTEGRATION_ENABLED } from "@/lib/feature-flags";
 import { isPilotTestModeEnabled } from "@/lib/pilot-test-mode";
 
 const RING_FLAG_VALUES = {
@@ -18,13 +27,14 @@ function ringFlag(name: string): boolean {
 }
 
 export function isRingEnabled(): boolean {
-  return ringFlag("NEXT_PUBLIC_ENABLE_CONNECT_RING");
+  // RING_DISABLED — integration suspended pending Ring developer program approval
+  return RING_INTEGRATION_ENABLED && ringFlag("NEXT_PUBLIC_ENABLE_CONNECT_RING");
 }
 
 export function isRingAvailableCamerasEnabled(): boolean {
-  return ringFlag("NEXT_PUBLIC_ENABLE_CONNECT_RING_AVAILABLE_CAMERAS");
+  return RING_INTEGRATION_ENABLED && ringFlag("NEXT_PUBLIC_ENABLE_CONNECT_RING_AVAILABLE_CAMERAS");
 }
 
 export function isRingEmergencyRequestsEnabled(): boolean {
-  return ringFlag("NEXT_PUBLIC_ENABLE_CONNECT_RING_EMERGENCY_REQUESTS");
+  return RING_INTEGRATION_ENABLED && ringFlag("NEXT_PUBLIC_ENABLE_CONNECT_RING_EMERGENCY_REQUESTS");
 }

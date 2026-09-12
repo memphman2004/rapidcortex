@@ -483,6 +483,14 @@ Parameters:
     Default: "false"
     AllowedValues: ["true", "false"]
     Description: When true, AppSamTransitStack skips creating retained transit DynamoDB tables.
+  IncludeAppSamTransitNestedStack:
+    Type: String
+    Default: "true"
+    AllowedValues: ["true", "false"]
+    Description: >-
+      When false, skip nested AppSamTransitStack. Use on live rapid-cortex-dev when
+      standalone stack rapid-cortex-dev-AppSamTransitStack already owns /api/transit/*
+      routes (nested CREATE collides). Surgical-update the standalone stack instead.
   ExistingTransitCameraProducerSecretArn:
     Type: String
     Default: ""
@@ -557,6 +565,23 @@ Parameters:
     Type: String
     Default: "https://7c70vqd1p5.execute-api.us-east-1.amazonaws.com/api/integrations/ring/callback"
     Description: Ring OAuth callback URL (must reach AppSam4Stack HTTP API).
+  RingEnabled:
+    Type: String
+    Default: "false"
+    AllowedValues: ["true", "false"]
+    Description: >-
+      RING_DISABLED 2026-09-11. When false, AppSam4Stack omits Ring Lambdas and HttpApi routes.
+      DynamoDB Ring tables are retained. To reactivate: true plus RING_INTEGRATION_ENABLED=true.
+  EnableConnectRing:
+    Type: String
+    Default: "false"
+    AllowedValues: ["true", "false"]
+    Description: RING_DISABLED 2026-09-11. Env flag passed to AppSam4Stack Ring Lambdas.
+  RingPartnershipEnabled:
+    Type: String
+    Default: "false"
+    AllowedValues: ["true", "false"]
+    Description: RING_DISABLED 2026-09-11. Partnership env flag for AppSam4Stack.
   RingAccountLinkUrl:
     Type: String
     Default: "https://www.rapidcortex.us/connect/ring/link"
@@ -574,6 +599,7 @@ Parameters:
 Conditions:
   HasDataLayerNestedStack: !Equals [!Ref IncludeDataLayerNestedStack, "true"]
   HasAppSamAlarmsNestedStack: !Equals [!Ref IncludeAppSamAlarmsNestedStack, "true"]
+  HasAppSamTransitNestedStack: !Equals [!Ref IncludeAppSamTransitNestedStack, "true"]
   HasRingCredentialsSecretArnOverride: !Not [!Equals [!Ref RingCredentialsSecretArnOverride, ""]]
   PilotTestFeaturesOn:
     Fn::Or:
@@ -2718,8 +2744,9 @@ Resources:
             - !GetAtt DataLayerStack.Outputs.WebhooksTable
             - !Sub "${DynamoTableNamePrefix}-webhooks-${DeploymentStage}"
         WwwCnameTarget: !Ref WwwCnameTarget
-        EnableConnectRing: "true"
-        RingPartnershipEnabled: "true"
+        EnableConnectRing: !Ref EnableConnectRing
+        RingPartnershipEnabled: !Ref RingPartnershipEnabled
+        RingEnabled: !Ref RingEnabled
         RingRedirectUri: !Ref RingRedirectUri
         RingAccountLinkUrl: !Ref RingAccountLinkUrl
         ImportedCognitoUserPoolId: !GetAtt AppSamStackV2.Outputs.UserPoolId
@@ -3212,6 +3239,7 @@ Resources:
 
   AppSamTransitStack:
     Type: AWS::CloudFormation::Stack
+    Condition: HasAppSamTransitNestedStack
     Metadata:
       cfn-lint:
         config:

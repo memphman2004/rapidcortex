@@ -46,8 +46,8 @@ set -euo pipefail
 # - SAM_BUILD_USE_CACHE=0 force full rebuild (--no-cached). Default: 1 (cached incremental).
 # - SAM_PARALLEL=0 disables sam build --parallel (default 1).
 # - SAM_USE_CONTAINER=1 adds `sam build --use-container` for the whole tree (slow). The Rapid Vision
-#   Python transcript worker always compiles amazon-transcribe/aiohttp in a Lambda Python 3.11
-#   container via apps/api/src/rapid-vision/transcript-worker/Makefile (docker required).
+#   Python transcript worker Makefile packages source only by default (no Docker). Set
+#   VISION_DOCKER_BUILD=1 to compile amazon-transcribe/aiohttp in a Lambda Python 3.11 container.
 # - SAM_BUILD_IN_SOURCE=1 builds in source (reuses prepared node_modules); default 1.
 # - SAM_NODE_MODULES_SRC absolute path to apps/api/node_modules for NodeDepsLayer / function
 #   Makefiles. Default: $ROOT/apps/api/node_modules. Required when SAM_BUILD_IN_SOURCE=0
@@ -237,6 +237,7 @@ echo " SAM_BUILD_USE_CACHE:  ${SAM_BUILD_USE_CACHE}"
 echo " SAM_PARALLEL:          ${SAM_PARALLEL}"
 echo " SAM_BUILD_IN_SOURCE:   ${SAM_BUILD_IN_SOURCE}"
 echo " SAM_NODE_MODULES_SRC:  ${SAM_NODE_MODULES_SRC}"
+echo " VISION_DOCKER_BUILD:   ${VISION_DOCKER_BUILD:-0}"
 echo " NODE_OPTIONS:          ${NODE_OPTIONS}"
 echo " SAM_BUILD_DIR:         ${SAM_BUILD_DIR:-${ROOT}/.rapid-cortex-sam-build}"
 echo "═══════════════════════════════════════════════════════"
@@ -317,7 +318,7 @@ if [[ -z "${SAM_CLI_HOME:-}" ]]; then
   fi
 fi
 mkdir -p "${SAM_CLI_HOME}"
-_SAM_BUILD_ENV=(env HOME="${SAM_CLI_HOME}" SAM_NODE_MODULES_SRC="${SAM_NODE_MODULES_SRC}")
+_SAM_BUILD_ENV=(env HOME="${SAM_CLI_HOME}" SAM_NODE_MODULES_SRC="${SAM_NODE_MODULES_SRC}" VISION_DOCKER_BUILD="${VISION_DOCKER_BUILD:-0}")
 if [[ -n "${_ORIG_HOME}" && -f "${_ORIG_HOME}/.aws/credentials" ]]; then
   _SAM_BUILD_ENV+=(AWS_SHARED_CREDENTIALS_FILE="${_ORIG_HOME}/.aws/credentials")
 fi
@@ -515,6 +516,9 @@ fi
 if [[ "${INCLUDE_APP_SAM_ALARMS_NESTED_STACK:-true}" == "false" ]]; then
   PARAMS="${PARAMS} IncludeAppSamAlarmsNestedStack=false"
 fi
+if [[ "${INCLUDE_APP_SAM_TRANSIT_NESTED_STACK:-true}" == "false" ]]; then
+  PARAMS="${PARAMS} IncludeAppSamTransitNestedStack=false"
+fi
 if [[ -n "${RING_CREDENTIALS_SECRET_ARN_OVERRIDE:-}" ]]; then
   PARAMS="${PARAMS} RingCredentialsSecretArnOverride=${RING_CREDENTIALS_SECRET_ARN_OVERRIDE}"
 fi
@@ -529,6 +533,27 @@ if [[ -n "${EXISTING_CALL_ASSIST_TABLE_NAME:-}" ]]; then
 fi
 if [[ -n "${EXISTING_FIELD_COMMAND_TABLE_NAME:-}" ]]; then
   PARAMS="${PARAMS} ExistingFieldCommandTableName=${EXISTING_FIELD_COMMAND_TABLE_NAME}"
+fi
+if [[ -n "${EXISTING_VISION_CAMERAS_TABLE_NAME:-}" ]]; then
+  PARAMS="${PARAMS} ExistingVisionCamerasTableName=${EXISTING_VISION_CAMERAS_TABLE_NAME}"
+fi
+if [[ -n "${EXISTING_VISION_SESSIONS_TABLE_NAME:-}" ]]; then
+  PARAMS="${PARAMS} ExistingVisionSessionsTableName=${EXISTING_VISION_SESSIONS_TABLE_NAME}"
+fi
+if [[ -n "${EXISTING_VISION_OBSERVATIONS_TABLE_NAME:-}" ]]; then
+  PARAMS="${PARAMS} ExistingVisionObservationsTableName=${EXISTING_VISION_OBSERVATIONS_TABLE_NAME}"
+fi
+if [[ -n "${EXISTING_VISION_OWNER_CONSENT_TABLE_NAME:-}" ]]; then
+  PARAMS="${PARAMS} ExistingVisionOwnerConsentTableName=${EXISTING_VISION_OWNER_CONSENT_TABLE_NAME}"
+fi
+if [[ -n "${EXISTING_VISION_TRANSCRIPTS_TABLE_NAME:-}" ]]; then
+  PARAMS="${PARAMS} ExistingVisionTranscriptsTableName=${EXISTING_VISION_TRANSCRIPTS_TABLE_NAME}"
+fi
+if [[ -n "${EXISTING_VISION_ARTIFACTS_BUCKET_NAME:-}" ]]; then
+  PARAMS="${PARAMS} ExistingVisionArtifactsBucketName=${EXISTING_VISION_ARTIFACTS_BUCKET_NAME}"
+fi
+if [[ -n "${EXISTING_VERTICAL_ALERTS_TABLE_NAME:-}" ]]; then
+  PARAMS="${PARAMS} ExistingVerticalAlertsTableName=${EXISTING_VERTICAL_ALERTS_TABLE_NAME}"
 fi
 if [[ -n "${EXISTING_TRANSLATE_SESSIONS_TABLE_NAME:-}" ]]; then
   PARAMS="${PARAMS} ExistingTranslateSessionsTableName=${EXISTING_TRANSLATE_SESSIONS_TABLE_NAME}"
@@ -593,6 +618,8 @@ fi
 if [[ -n "${RING_PARTNERSHIP_ENABLED:-}" ]]; then
   PARAMS="${PARAMS} RingPartnershipEnabled=${RING_PARTNERSHIP_ENABLED}"
 fi
+# RING_DISABLED — 2026-09-11. Default false; set RING_ENABLED=true to recreate Ring Lambdas.
+PARAMS="${PARAMS} RingEnabled=${RING_ENABLED:-false}"
 if [[ -n "${RING_REDIRECT_URI:-}" ]]; then
   PARAMS="${PARAMS} RingRedirectUri=${RING_REDIRECT_URI}"
 fi

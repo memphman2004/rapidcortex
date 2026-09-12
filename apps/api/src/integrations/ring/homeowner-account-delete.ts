@@ -1,4 +1,12 @@
 /**
+ * RING INTEGRATION — SUSPENDED
+ * Ring camera integration is currently inactive pending Ring developer
+ * program approval. All handlers return 503. Do not remove this code.
+ * To reactivate: set RING_INTEGRATION_ENABLED = true in feature-flags.ts
+ * and remove all RING_DISABLED guards added on 2026-09-11.
+ */
+
+/**
  * Shared Ring Device Owner deletion: disable Cognito, revoke Ring tokens/devices, delete user.
  * Used by JWT DELETE /api/user/account and public Account Link POST /homeowner/delete-account.
  */

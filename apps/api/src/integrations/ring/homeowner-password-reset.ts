@@ -1,4 +1,12 @@
 /**
+ * RING INTEGRATION — SUSPENDED
+ * Ring camera integration is currently inactive pending Ring developer
+ * program approval. All handlers return 503. Do not remove this code.
+ * To reactivate: set RING_INTEGRATION_ENABLED = true in feature-flags.ts
+ * and remove all RING_DISABLED guards added on 2026-09-11.
+ */
+
+/**
  * Public Ring homeowner password reset (ForgotPassword / ConfirmForgotPassword).
  * Used by marketing `/connect/ring/link` — not the agency CSRF-protected web BFF.
  *
@@ -15,6 +23,7 @@ import {
   confirmHomeownerPasswordReset,
   requestHomeownerPasswordReset,
 } from "./homeowner-cognito.js";
+import { RING_INTEGRATION_ENABLED, ringIntegrationDisabledResponse } from "./ring-api-response.js";
 
 const forgotBodySchema = z.object({
   email: z.string().email().max(320),
@@ -31,6 +40,10 @@ function rawPath(event: { rawPath?: string; requestContext?: { http?: { path?: s
 }
 
 export const handler: APIGatewayProxyHandlerV2 = async (event) => {
+  // RING_DISABLED — integration suspended pending Ring developer program approval
+  if (!RING_INTEGRATION_ENABLED) {
+    return ringIntegrationDisabledResponse(event);
+  }
   if (event.requestContext?.http?.method === "OPTIONS") {
     return ringPublicJson(event, 204, "");
   }

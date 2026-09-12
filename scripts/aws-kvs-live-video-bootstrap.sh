@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
+# RING_DISABLED note (2026-09-11): this script is venue/caller live video KVS, not Ring Connect.
+# It is intentionally left enabled. Do not add an exit-0 Ring guard here.
 # Optional: create fixed Kinesis Video resources via AWS CLI (sandbox / ops checks).
 #
 # Rapid Cortex production still creates per-session channels (rc-live-*) and streams

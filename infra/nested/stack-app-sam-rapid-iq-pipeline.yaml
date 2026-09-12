@@ -174,7 +174,10 @@ Resources:
   AppManagedPolicyRapidIqPipeline:
     Type: AWS::IAM::ManagedPolicy
     Properties:
-      ManagedPolicyName: !Sub "${ManagedPolicyNamePrefix}-sam-rapidiq-pipeline-${DeploymentStage}"
+      # Do not set ManagedPolicyName. The nested stack already owns
+      # ...AppManagedPolicyRapidIqPipeline-o7F3kArSMh66. Adding a name forces
+      # replacement and collides with standalone stack rapid-cortex-dev-AppSamRapidIqPipelineStack
+      # which already has rapid-cortex-dev-sam-rapidiq-pipeline-dev.
       PolicyDocument:
         Version: "2012-10-17"
         Statement:

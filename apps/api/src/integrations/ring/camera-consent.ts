@@ -1,3 +1,11 @@
+/**
+ * RING INTEGRATION — SUSPENDED
+ * Ring camera integration is currently inactive pending Ring developer
+ * program approval. All handlers return 503. Do not remove this code.
+ * To reactivate: set RING_INTEGRATION_ENABLED = true in feature-flags.ts
+ * and remove all RING_DISABLED guards added on 2026-09-11.
+ */
+
 import type { APIGatewayProxyHandlerV2 } from "aws-lambda";
 import { randomBytes, randomUUID } from "node:crypto";
 import * as bcrypt from "bcryptjs";
@@ -7,7 +15,7 @@ import { RingEmergencyRepository } from "../../repositories/ringEmergencyReposit
 import { provisionRingEmergencyKvsChannel } from "./ring-kvs.js";
 import { consumeRingConsentRateSlot } from "./ring-consent-rate-limit.js";
 import { auditRingEvent, AUDIT_EVENT_TYPES } from "./ring-audit.js";
-import { ringHtml, ringJson } from "./ring-api-response.js";
+import { ringHtml, ringJson, RING_INTEGRATION_ENABLED, ringIntegrationDisabledResponse } from "./ring-api-response.js";
 import { configureRingEmergencyTables } from "./ring-tables.js";
 
 const emergencyRepo = new RingEmergencyRepository();
@@ -80,6 +88,10 @@ async function findRequestByStopToken(
  * behalf.
  */
 export const landingHandler: APIGatewayProxyHandlerV2 = async (event) => {
+  // RING_DISABLED — integration suspended pending Ring developer program approval
+  if (!RING_INTEGRATION_ENABLED) {
+    return ringIntegrationDisabledResponse(event);
+  }
   try {
     configureRingEmergencyTables();
     const plainToken = event.pathParameters?.requestToken?.trim() ?? "";
@@ -162,6 +174,10 @@ async function validateConsentToken(
 }
 
 export const approveHandler: APIGatewayProxyHandlerV2 = async (event) => {
+  // RING_DISABLED — integration suspended pending Ring developer program approval
+  if (!RING_INTEGRATION_ENABLED) {
+    return ringIntegrationDisabledResponse(event);
+  }
   try {
     configureRingEmergencyTables();
     const plainToken = event.pathParameters?.requestToken?.trim() ?? "";
@@ -264,6 +280,10 @@ export const approveHandler: APIGatewayProxyHandlerV2 = async (event) => {
 };
 
 export const declineHandler: APIGatewayProxyHandlerV2 = async (event) => {
+  // RING_DISABLED — integration suspended pending Ring developer program approval
+  if (!RING_INTEGRATION_ENABLED) {
+    return ringIntegrationDisabledResponse(event);
+  }
   try {
     configureRingEmergencyTables();
     const plainToken = event.pathParameters?.requestToken?.trim() ?? "";
@@ -317,6 +337,10 @@ const TERMINAL_SESSION_STATUSES = new Set(["STOPPED", "EXPIRED", "ERROR"]);
  * Owner STOP SHARING from the original SMS — works before approve (cancels) or after (revokes session).
  */
 export const stopHandler: APIGatewayProxyHandlerV2 = async (event) => {
+  // RING_DISABLED — integration suspended pending Ring developer program approval
+  if (!RING_INTEGRATION_ENABLED) {
+    return ringIntegrationDisabledResponse(event);
+  }
   try {
     configureRingEmergencyTables();
     const plainToken = event.pathParameters?.requestToken?.trim() ?? "";

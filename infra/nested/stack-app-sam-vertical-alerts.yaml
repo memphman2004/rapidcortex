@@ -80,10 +80,7 @@ Globals:
         ENABLE_VERTICAL_ALERTS: "true"
         PHYSICAL_SECURITY_COMMANDS_ENABLED: "false"
         CAD_WRITEBACK_ENABLED: "false"
-        VERTICAL_ALERTS_TABLE: !If
-          - CreateVerticalAlertsTable
-          - !Ref VerticalAlertsTable
-          - !Ref ExistingVerticalAlertsTableName
+        VERTICAL_ALERTS_TABLE: !Sub "rapid-cortex-vertical-alerts-${DeploymentStage}"
         ALERT_SHORT_CODE_SSM_PREFIX: !Ref AlertShortCodeSsmPrefix
         ALERT_EMAIL_SENDER: "alerts@alerts.rapidcortex.us"
         ALERT_SES_MOCK: "true"
@@ -158,14 +155,8 @@ Resources:
               - dynamodb:DescribeTable
               - dynamodb:ConditionCheckItem
             Resource:
-              - !If
-                  - CreateVerticalAlertsTable
-                  - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${VerticalAlertsTable}"
-                  - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${ExistingVerticalAlertsTableName}"
-              - !If
-                  - CreateVerticalAlertsTable
-                  - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${VerticalAlertsTable}/index/*"
-                  - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${ExistingVerticalAlertsTableName}/index/*"
+              - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/rapid-cortex-vertical-alerts-${DeploymentStage}"
+              - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/rapid-cortex-vertical-alerts-${DeploymentStage}/index/*"
               - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${AuditTable}"
               - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${AuditTable}/index/*"
               - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${AgenciesTable}"
@@ -242,9 +233,6 @@ Resources:
 Outputs:
   VerticalAlertsTableName:
     Description: Vertical alerts DynamoDB table
-    Value: !If
-      - CreateVerticalAlertsTable
-      - !Ref VerticalAlertsTable
-      - !Ref ExistingVerticalAlertsTableName
+    Value: !Sub "rapid-cortex-vertical-alerts-${DeploymentStage}"
   VerticalAlertsHttpFunctionArn:
     Value: !GetAtt VerticalAlertsHttpFunction.Arn

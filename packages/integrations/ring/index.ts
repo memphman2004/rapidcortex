@@ -71,6 +71,7 @@ export {
   isRingAvailableCamerasEnabled,
   isRingEmergencyRequestsEnabled,
   isRingEnabled,
+  RING_INTEGRATION_ENABLED,
 } from "./ring-env.js";
 
 export {

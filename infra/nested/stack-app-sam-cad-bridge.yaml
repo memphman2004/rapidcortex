@@ -11,6 +11,7 @@ Metadata:
     config:
       ignore_checks:
         - W1030
+        - W2531
 
 Parameters:
   DeploymentStage:

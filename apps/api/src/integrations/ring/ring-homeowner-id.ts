@@ -1,4 +1,12 @@
 /**
+ * RING INTEGRATION — SUSPENDED
+ * Ring camera integration is currently inactive pending Ring developer
+ * program approval. All handlers return 503. Do not remove this code.
+ * To reactivate: set RING_INTEGRATION_ENABLED = true in feature-flags.ts
+ * and remove all RING_DISABLED guards added on 2026-09-11.
+ */
+
+/**
  * Sentinel agencyId for device-owner enrollments before a local PSAP is enrolled.
  * Used in OAuth state + Secrets Manager paths; omitted from participant GSI when unmatched.
  */

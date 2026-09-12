@@ -1,3 +1,4 @@
+import { RING_INTEGRATION_ENABLED } from "rapid-cortex-shared";
 import { isPilotTestModeEnabled } from "./pilot-test-mode";
 
 const NEXT_PUBLIC_FLAG_VALUES: Record<string, string | undefined> = {
@@ -212,7 +213,12 @@ export function isRapidVisionEnabled(): boolean {
 }
 
 export function isRapidVisionRingEnabled(): boolean {
-  return isRapidVisionEnabled() && envFlag("NEXT_PUBLIC_ENABLE_RAPID_VISION_RING");
+  // RING_DISABLED — Rapid Vision Ring source follows the shared kill switch
+  return (
+    RING_INTEGRATION_ENABLED &&
+    isRapidVisionEnabled() &&
+    envFlag("NEXT_PUBLIC_ENABLE_RAPID_VISION_RING")
+  );
 }
 
 export function isRapidVisionCallerVideoEnabled(): boolean {

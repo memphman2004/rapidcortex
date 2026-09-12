@@ -57,6 +57,7 @@ const STACK4_PATH_TESTS: RegExp[] = [
   /^\/api\/billing\//,
   /^\/api\/agencies\/[^/]+\/billing/,
   /^\/api\/rc-admin\/invoices\/bulk-draft$/,
+  // RING_DISABLED — 2026-09-11. Keep path mapping so BFF can return 503; SAM omits the Lambdas.
   /^\/api\/integrations\/ring\//,
   /^\/api\/public\/ring\//,
   /^\/api\/user\/account$/,
@@ -104,6 +105,7 @@ const STACK3_PATH_TESTS: RegExp[] = [
   /^\/api\/rc-admin\/agreements(\/|$)/,
   /^\/api\/rc-admin\/leads(\/|$)/,
   /^\/api\/rc-admin\/psap-prospects(\/|$)/,
+  /^\/api\/psap-prospects(\/|$)/,
   /^\/api\/contacts(\/|$)/,
   /^\/api\/rapid-iq(\/|$)/,
   /^\/api\/rc-admin\/rapid-iq(\/|$)/,

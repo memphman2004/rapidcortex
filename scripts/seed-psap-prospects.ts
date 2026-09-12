@@ -73,6 +73,15 @@ type ProspectRow = {
   [key: string]: unknown;
 };
 
+type SheetContact = {
+  name: string;
+  title: string;
+  email: string;
+  phone: string;
+  roleTier: "primary" | "secondary" | "procurement" | "executive";
+  isPrimary: boolean;
+};
+
 type SheetFields = {
   psapName: string;
   county: string;
@@ -82,6 +91,13 @@ type SheetFields = {
   fips: string;
   latitude?: number;
   longitude?: number;
+  website?: string;
+  streetAddress?: string;
+  addressLine2?: string;
+  zip?: string;
+  sourcePsapId?: string;
+  notes?: string;
+  contacts: SheetContact[];
 };
 
 async function loadXlsx(): Promise<XlsxModule> {
@@ -123,18 +139,40 @@ function fipsNameKey(fips: string, name: string): string {
   return `${normalizeFips(fips)}|${normalizeName(name)}`;
 }
 
+function mapContactRole(raw: string): SheetContact["roleTier"] {
+  const t = raw.trim().toUpperCase();
+  if (t.includes("PRIMARY") || t.includes("DIRECTOR") || t.includes("CHIEF")) return "primary";
+  if (t.includes("PROCURE") || t.includes("FINANCE")) return "procurement";
+  if (t.includes("EXEC") || t.includes("SHERIFF")) return "executive";
+  return "secondary";
+}
+
 function parseSheetRow(row: Record<string, unknown>): SheetFields | null {
   const phone = cell(
     row,
+    "Main_Phone",
+    "main_phone",
     "phone",
     "Phone",
     "PHONE",
     "Phone number",
     "phone number",
     "Phone Number",
+    "Contact_Phone",
   );
-  const psapName = cell(row, "psap_name", "psapName", "PSAP Name", "NAME", "name", "Name");
-  const state = cell(row, "state", "State").toUpperCase().slice(0, 2);
+  const psapName = cell(
+    row,
+    "PSAP_Name",
+    "psap_name",
+    "psapName",
+    "PSAP Name",
+    "NAME",
+    "name",
+    "Name",
+  );
+  const abbrev = cell(row, "State_Abbreviation", "state_abbreviation", "ST", "st").toUpperCase();
+  const stateRaw = cell(row, "state", "State").toUpperCase();
+  const state = (abbrev || (stateRaw.length === 2 ? stateRaw : "")).slice(0, 2);
   if (!psapName || !state) return null;
   if (!phone && !cell(row, "fips", "FIPS", "Fips")) return null;
 
@@ -142,6 +180,35 @@ function parseSheetRow(row: Record<string, unknown>): SheetFields | null {
   const lngRaw = row["longitude"] ?? row["lon"] ?? row["lng"] ?? row["Longitude"];
   const latitude = latRaw === "" || latRaw == null ? undefined : Number(latRaw);
   const longitude = lngRaw === "" || lngRaw == null ? undefined : Number(lngRaw);
+
+  const contactName = cell(row, "Contact_Full_Name", "Contact Name", "primaryContactName");
+  const contactTitle = cell(row, "Contact_Title", "Contact Title", "primaryContactTitle");
+  const contactEmail = cell(row, "Contact_Email", "Contact Email", "primaryContactEmail");
+  const contactPhone = cell(row, "Contact_Phone", "Contact Phone", "primaryContactPhone");
+  const contactType = cell(row, "Contact_Type", "Contact Type");
+  const isPrimaryRaw = row["Is_Primary_Contact"];
+  const isPrimary =
+    isPrimaryRaw === true ||
+    String(isPrimaryRaw ?? "").toLowerCase() === "true" ||
+    String(isPrimaryRaw ?? "") === "1" ||
+    contactType.toUpperCase().includes("PRIMARY");
+
+  const contacts: SheetContact[] = [];
+  if (contactName || contactEmail || contactPhone) {
+    contacts.push({
+      name: contactName,
+      title: contactTitle || "Communications",
+      email: contactEmail,
+      phone: contactPhone || phone,
+      roleTier: mapContactRole(contactType || (isPrimary ? "PRIMARY DECISION MAKER" : "OPERATIONS")),
+      isPrimary,
+    });
+  }
+
+  const street = cell(row, "Street_Address", "streetAddress", "Address", "address");
+  const zip = cell(row, "ZIP_Code", "Zip", "ZIP", "zip");
+  const website = cell(row, "Website", "website", "URL", "url");
+  const notes = cell(row, "Notes", "notes");
 
   return {
     psapName: normalizeName(psapName),
@@ -152,15 +219,28 @@ function parseSheetRow(row: Record<string, unknown>): SheetFields | null {
     fips: normalizeFips(cell(row, "fips", "FIPS", "Fips")),
     latitude: Number.isFinite(latitude) ? latitude : undefined,
     longitude: Number.isFinite(longitude) ? longitude : undefined,
+    website: website || undefined,
+    streetAddress: street || undefined,
+    addressLine2: cell(row, "Address_Line_2", "addressLine2") || undefined,
+    zip: zip || undefined,
+    sourcePsapId: cell(row, "PSAP_ID", "psapId") || undefined,
+    notes: notes || undefined,
+    contacts,
   };
+}
+
+function nameStateKey(name: string, state: string): string {
+  return `${normalizeName(name)}|${state.trim().toUpperCase()}`;
 }
 
 async function loadExisting(): Promise<{
   byPhone: Map<string, ProspectRow>;
   byFipsName: Map<string, ProspectRow>;
+  byNameState: Map<string, ProspectRow>;
 }> {
   const byPhone = new Map<string, ProspectRow>();
   const byFipsName = new Map<string, ProspectRow>();
+  const byNameState = new Map<string, ProspectRow>();
   let ExclusiveStartKey: Record<string, unknown> | undefined;
 
   do {
@@ -169,7 +249,7 @@ async function loadExisting(): Promise<{
         TableName: TABLE,
         ExclusiveStartKey,
         ProjectionExpression:
-          "psapId, psapName, county, #st, city, phone, fips, latitude, longitude, mailingAddress, outreachStatus, activities, createdAt, importedFrom",
+          "psapId, psapName, county, #st, city, phone, fips, latitude, longitude, mailingAddress, outreachStatus, activities, contacts, primaryContactName, primaryContactTitle, primaryContactEmail, primaryContactPhone, website, notes, createdAt, importedFrom",
         ExpressionAttributeNames: { "#st": "state" },
       }),
     );
@@ -183,18 +263,22 @@ async function loadExisting(): Promise<{
       if (p.fips && p.psapName) {
         byFipsName.set(fipsNameKey(p.fips, p.psapName), p);
       }
+      if (p.psapName && p.state) {
+        byNameState.set(nameStateKey(p.psapName, String(p.state)), p);
+      }
     }
     ExclusiveStartKey = r.LastEvaluatedKey as Record<string, unknown> | undefined;
   } while (ExclusiveStartKey);
 
-  return { byPhone, byFipsName };
+  return { byPhone, byFipsName, byNameState };
 }
 
 function findMatch(
   fields: SheetFields,
   byPhone: Map<string, ProspectRow>,
   byFipsName: Map<string, ProspectRow>,
-): { existing: ProspectRow; via: "phone" | "fips+name" } | null {
+  byNameState: Map<string, ProspectRow>,
+): { existing: ProspectRow; via: "phone" | "fips+name" | "name+state" } | null {
   if (fields.phone) {
     const digits = normalizePhone(fields.phone);
     const hit = byPhone.get(digits) ?? byPhone.get(fields.phone);
@@ -204,7 +288,48 @@ function findMatch(
     const hit = byFipsName.get(fipsNameKey(fields.fips, fields.psapName));
     if (hit) return { existing: hit, via: "fips+name" };
   }
+  if (fields.psapName && fields.state) {
+    const hit = byNameState.get(nameStateKey(fields.psapName, fields.state));
+    if (hit) return { existing: hit, via: "name+state" };
+  }
   return null;
+}
+
+function mergeMailingAddress(
+  existing: ProspectRow,
+  fields: SheetFields,
+): Record<string, unknown> | undefined {
+  const street = [fields.streetAddress, fields.addressLine2].filter(Boolean).join(", ").trim();
+  if (!street && !fields.zip) return undefined;
+  const prev = (existing.mailingAddress ?? {}) as Record<string, unknown>;
+  return {
+    ...prev,
+    streetAddress: street || prev.streetAddress,
+    city: fields.city || prev.city || existing.city,
+    county: fields.county || prev.county || existing.county,
+    state: fields.state || prev.state || existing.state,
+    zip: fields.zip || prev.zip,
+    verified: prev.verified === true,
+    source: prev.source ?? "import",
+  };
+}
+
+function sheetContactsToItems(fields: SheetFields): unknown[] {
+  const now = new Date().toISOString();
+  return fields.contacts.slice(0, 5).map((c) => ({
+    contactId: randomUUID(),
+    name: c.name || null,
+    title: c.title,
+    roleTier: c.roleTier,
+    email: c.email || null,
+    emailVerified: false,
+    phone: c.phone || null,
+    linkedInUrl: null,
+    verificationStatus: "unverified",
+    verificationSource: "SafetySource / National Public Safety Information Bureau",
+    source: "directory",
+    addedAt: now,
+  }));
 }
 
 async function updateProspect(existing: ProspectRow, fields: SheetFields): Promise<void> {
@@ -249,6 +374,54 @@ async function updateProspect(existing: ProspectRow, fields: SheetFields): Promi
     sets.push("#latitude = :latitude", "#longitude = :longitude");
   }
 
+  const mailing = mergeMailingAddress(existing, fields);
+  if (mailing) {
+    names["#mailingAddress"] = "mailingAddress";
+    values[":mailingAddress"] = mailing;
+    sets.push("#mailingAddress = :mailingAddress");
+  }
+  if (fields.website) {
+    names["#website"] = "website";
+    values[":website"] = fields.website;
+    sets.push("#website = :website");
+  }
+  if (fields.notes && !existing.notes) {
+    names["#notes"] = "notes";
+    values[":notes"] = fields.notes;
+    sets.push("#notes = :notes");
+  }
+  const primary = fields.contacts.find((c) => c.isPrimary) ?? fields.contacts[0];
+  if (primary && !existing.primaryContactName) {
+    if (primary.name) {
+      names["#primaryContactName"] = "primaryContactName";
+      values[":primaryContactName"] = primary.name;
+      sets.push("#primaryContactName = :primaryContactName");
+    }
+    if (primary.title) {
+      names["#primaryContactTitle"] = "primaryContactTitle";
+      values[":primaryContactTitle"] = primary.title;
+      sets.push("#primaryContactTitle = :primaryContactTitle");
+    }
+    if (primary.email) {
+      names["#primaryContactEmail"] = "primaryContactEmail";
+      values[":primaryContactEmail"] = primary.email;
+      sets.push("#primaryContactEmail = :primaryContactEmail");
+    }
+    if (primary.phone) {
+      names["#primaryContactPhone"] = "primaryContactPhone";
+      values[":primaryContactPhone"] = primary.phone;
+      sets.push("#primaryContactPhone = :primaryContactPhone");
+    }
+  }
+  const existingContacts = Array.isArray(existing.contacts) ? existing.contacts : [];
+  if (fields.contacts.length > 0 && existingContacts.length === 0) {
+    names["#contacts"] = "contacts";
+    names["#contactCount"] = "contactCount";
+    values[":contacts"] = sheetContactsToItems(fields);
+    values[":contactCount"] = fields.contacts.length;
+    sets.push("#contacts = :contacts", "#contactCount = :contactCount");
+  }
+
   await client.send(
     new UpdateCommand({
       TableName: TABLE,
@@ -262,14 +435,15 @@ async function updateProspect(existing: ProspectRow, fields: SheetFields): Promi
 
 async function insertProspect(fields: SheetFields): Promise<void> {
   const now = new Date().toISOString();
-  const item = {
+  const primary = fields.contacts.find((c) => c.isPrimary) ?? fields.contacts[0];
+  const mailing = mergeMailingAddress({} as ProspectRow, fields);
+  const item: Record<string, unknown> = {
     psapId: randomUUID(),
     psapName: fields.psapName,
     county: fields.county,
     state: fields.state,
     city: fields.city,
     phone: fields.phone,
-    fips: fields.fips,
     latitude: fields.latitude ?? 0,
     longitude: fields.longitude ?? 0,
     outreachStatus: "UNCONTACTED" as const,
@@ -278,6 +452,18 @@ async function insertProspect(fields: SheetFields): Promise<void> {
     updatedAt: now,
     importedFrom: BATCH_LABEL,
   };
+  if (fields.fips) item.fips = fields.fips;
+  if (mailing) item.mailingAddress = mailing;
+  if (fields.website) item.website = fields.website;
+  if (fields.notes) item.notes = fields.notes;
+  if (primary?.name) item.primaryContactName = primary.name;
+  if (primary?.title) item.primaryContactTitle = primary.title;
+  if (primary?.email) item.primaryContactEmail = primary.email;
+  if (primary?.phone) item.primaryContactPhone = primary.phone;
+  if (fields.contacts.length > 0) {
+    item.contacts = sheetContactsToItems(fields);
+    item.contactCount = fields.contacts.length;
+  }
 
   await client.send(
     new PutCommand({
@@ -304,19 +490,21 @@ async function seed() {
   console.log(`  File:        ${FILE}`);
   console.log(`  Table:       ${TABLE}`);
   console.log(`  Rows:        ${rows.length}`);
-  console.log(`  Mode:        ${INSERT_ONLY ? "insert-only" : "upsert (phone → FIPS+name)"}`);
+  console.log(`  Mode:        ${INSERT_ONLY ? "insert-only" : "upsert (phone → FIPS+name → name+state)"}`);
   console.log(`  Dry run:     ${DRY_RUN}`);
   console.log(`  Batch label: ${BATCH_LABEL}`);
   console.log("─────────────────────────────────────────────────────────────");
 
-  const { byPhone, byFipsName } = await loadExisting();
-  console.log(`Loaded ${byPhone.size} phone keys, ${byFipsName.size} FIPS+name keys from DynamoDB`);
+  const { byPhone, byFipsName, byNameState } = await loadExisting();
+  console.log(
+    `Loaded ${byPhone.size} phone keys, ${byFipsName.size} FIPS+name keys, ${byNameState.size} name+state keys from DynamoDB`,
+  );
 
   let inserted = 0;
   let updated = 0;
   let skipped = 0;
   let errors = 0;
-  const viaCounts = { phone: 0, "fips+name": 0 };
+  const viaCounts = { phone: 0, "fips+name": 0, "name+state": 0 };
 
   for (const row of rows) {
     const fields = parseSheetRow(row);
@@ -326,7 +514,7 @@ async function seed() {
     }
 
     try {
-      const match = findMatch(fields, byPhone, byFipsName);
+      const match = findMatch(fields, byPhone, byFipsName, byNameState);
 
       if (match) {
         if (INSERT_ONLY) {
@@ -352,6 +540,11 @@ async function seed() {
             psapId: match.existing.psapId,
           });
         }
+        byNameState.set(nameStateKey(fields.psapName, fields.state), {
+          ...match.existing,
+          ...fields,
+          psapId: match.existing.psapId,
+        });
         updated++;
         if (updated % 200 === 0) {
           console.log(`Progress: ${updated} updated, ${inserted} inserted, ${skipped} skipped`);
@@ -379,6 +572,7 @@ async function seed() {
       } as ProspectRow;
       if (digits) byPhone.set(digits, stub);
       if (fields.fips) byFipsName.set(fipsNameKey(fields.fips, fields.psapName), stub);
+      byNameState.set(nameStateKey(fields.psapName, fields.state), stub);
       inserted++;
       if (inserted % 200 === 0) {
         console.log(`Progress: ${updated} updated, ${inserted} inserted, ${skipped} skipped`);
@@ -395,7 +589,9 @@ async function seed() {
   }
 
   console.log("\n─────────────────────────────────────────────────────────────");
-  console.log(`  Updated:   ${updated} (phone=${viaCounts.phone}, fips+name=${viaCounts["fips+name"]})`);
+  console.log(
+    `  Updated:   ${updated} (phone=${viaCounts.phone}, fips+name=${viaCounts["fips+name"]}, name+state=${viaCounts["name+state"]})`,
+  );
   console.log(`  Inserted:  ${inserted}`);
   console.log(`  Skipped:   ${skipped}`);
   console.log(`  Errors:    ${errors}`);

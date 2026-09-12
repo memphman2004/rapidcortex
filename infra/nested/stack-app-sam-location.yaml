@@ -129,14 +129,8 @@ Resources:
   RCGeofenceTrackerConsumer:
     Type: AWS::Location::TrackerConsumer
     Properties:
-      ConsumerArn: !If
-        - CreateLocationAls
-        - !GetAtt RCGeofenceCollection.Arn
-        - !Sub "arn:${AWS::Partition}:geo:${AWS::Region}:${AWS::AccountId}:geofence-collection/rc-geofences-${DeploymentStage}"
-      TrackerName: !If
-        - CreateLocationAls
-        - !Ref RCLocationTracker
-        - !Sub "rc-tracker-${DeploymentStage}"
+      ConsumerArn: !Sub "arn:${AWS::Partition}:geo:${AWS::Region}:${AWS::AccountId}:geofence-collection/rc-geofences-${DeploymentStage}"
+      TrackerName: !Sub "rc-tracker-${DeploymentStage}"
 
   RCMapIdentityPool:
     Type: AWS::Cognito::IdentityPool
@@ -177,14 +171,8 @@ Resources:
                   - geo:GetMapSprites
                   - geo:GetMapGlyphs
                 Resource:
-                  - !If
-                    - CreateLocationAls
-                    - !GetAtt RCLocationMap.Arn
-                    - !Sub "arn:${AWS::Partition}:geo:${AWS::Region}:${AWS::AccountId}:map/rc-map-${DeploymentStage}"
-                  - !If
-                    - CreateLocationAls
-                    - !GetAtt RCLocationMapDark.Arn
-                    - !Sub "arn:${AWS::Partition}:geo:${AWS::Region}:${AWS::AccountId}:map/rc-map-dark-${DeploymentStage}"
+                  - !Sub "arn:${AWS::Partition}:geo:${AWS::Region}:${AWS::AccountId}:map/rc-map-${DeploymentStage}"
+                  - !Sub "arn:${AWS::Partition}:geo:${AWS::Region}:${AWS::AccountId}:map/rc-map-dark-${DeploymentStage}"
 
   RCMapIdentityPoolAuthedRole:
     Type: AWS::IAM::Role
@@ -214,14 +202,8 @@ Resources:
                   - geo:GetMapSprites
                   - geo:GetMapGlyphs
                 Resource:
-                  - !If
-                    - CreateLocationAls
-                    - !GetAtt RCLocationMap.Arn
-                    - !Sub "arn:${AWS::Partition}:geo:${AWS::Region}:${AWS::AccountId}:map/rc-map-${DeploymentStage}"
-                  - !If
-                    - CreateLocationAls
-                    - !GetAtt RCLocationMapDark.Arn
-                    - !Sub "arn:${AWS::Partition}:geo:${AWS::Region}:${AWS::AccountId}:map/rc-map-dark-${DeploymentStage}"
+                  - !Sub "arn:${AWS::Partition}:geo:${AWS::Region}:${AWS::AccountId}:map/rc-map-${DeploymentStage}"
+                  - !Sub "arn:${AWS::Partition}:geo:${AWS::Region}:${AWS::AccountId}:map/rc-map-dark-${DeploymentStage}"
 
   RCMapIdentityPoolRoleAttachment:
     Type: AWS::Cognito::IdentityPoolRoleAttachment
@@ -267,22 +249,10 @@ Resources:
               - geo:ListDevicePositions
               - geo:BatchGetDevicePosition
             Resource:
-              - !If
-                - CreateLocationAls
-                - !GetAtt RCPlaceIndex.Arn
-                - !Sub "arn:${AWS::Partition}:geo:${AWS::Region}:${AWS::AccountId}:place-index/rc-places-${DeploymentStage}"
-              - !If
-                - CreateLocationAls
-                - !GetAtt RCRouteCalculator.Arn
-                - !Sub "arn:${AWS::Partition}:geo:${AWS::Region}:${AWS::AccountId}:route-calculator/rc-routes-${DeploymentStage}"
-              - !If
-                - CreateLocationAls
-                - !GetAtt RCGeofenceCollection.Arn
-                - !Sub "arn:${AWS::Partition}:geo:${AWS::Region}:${AWS::AccountId}:geofence-collection/rc-geofences-${DeploymentStage}"
-              - !If
-                - CreateLocationAls
-                - !GetAtt RCLocationTracker.Arn
-                - !Sub "arn:${AWS::Partition}:geo:${AWS::Region}:${AWS::AccountId}:tracker/rc-tracker-${DeploymentStage}"
+              - !Sub "arn:${AWS::Partition}:geo:${AWS::Region}:${AWS::AccountId}:place-index/rc-places-${DeploymentStage}"
+              - !Sub "arn:${AWS::Partition}:geo:${AWS::Region}:${AWS::AccountId}:route-calculator/rc-routes-${DeploymentStage}"
+              - !Sub "arn:${AWS::Partition}:geo:${AWS::Region}:${AWS::AccountId}:geofence-collection/rc-geofences-${DeploymentStage}"
+              - !Sub "arn:${AWS::Partition}:geo:${AWS::Region}:${AWS::AccountId}:tracker/rc-tracker-${DeploymentStage}"
 
   LocationHttpFunction:
     Type: AWS::Serverless::Function
@@ -363,45 +333,27 @@ Resources:
 
 Outputs:
   MapName:
-    Value: !If
-      - CreateLocationAls
-      - !Ref RCLocationMap
-      - !Sub "rc-map-${DeploymentStage}"
+    Value: !Sub "rc-map-${DeploymentStage}"
     Export:
       Name: !Sub "${AWS::StackName}-MapName"
   MapNameDark:
-    Value: !If
-      - CreateLocationAls
-      - !Ref RCLocationMapDark
-      - !Sub "rc-map-dark-${DeploymentStage}"
+    Value: !Sub "rc-map-dark-${DeploymentStage}"
     Export:
       Name: !Sub "${AWS::StackName}-MapNameDark"
   PlaceIndexName:
-    Value: !If
-      - CreateLocationAls
-      - !Ref RCPlaceIndex
-      - !Sub "rc-places-${DeploymentStage}"
+    Value: !Sub "rc-places-${DeploymentStage}"
     Export:
       Name: !Sub "${AWS::StackName}-PlaceIndexName"
   RouteCalculatorName:
-    Value: !If
-      - CreateLocationAls
-      - !Ref RCRouteCalculator
-      - !Sub "rc-routes-${DeploymentStage}"
+    Value: !Sub "rc-routes-${DeploymentStage}"
     Export:
       Name: !Sub "${AWS::StackName}-RouteCalculatorName"
   GeofenceCollectionName:
-    Value: !If
-      - CreateLocationAls
-      - !Ref RCGeofenceCollection
-      - !Sub "rc-geofences-${DeploymentStage}"
+    Value: !Sub "rc-geofences-${DeploymentStage}"
     Export:
       Name: !Sub "${AWS::StackName}-GeofenceCollectionName"
   TrackerName:
-    Value: !If
-      - CreateLocationAls
-      - !Ref RCLocationTracker
-      - !Sub "rc-tracker-${DeploymentStage}"
+    Value: !Sub "rc-tracker-${DeploymentStage}"
     Export:
       Name: !Sub "${AWS::StackName}-TrackerName"
   MapIdentityPoolId:

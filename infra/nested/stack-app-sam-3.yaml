@@ -8,6 +8,7 @@ Metadata:
         - W1028
         - W8001
         - W7001
+        - W2531
 
 Parameters:
   DeploymentStage:

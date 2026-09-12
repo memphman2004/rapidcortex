@@ -4,7 +4,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect } from "react";
 import { Camera, Link2 } from "lucide-react";
 import { useSession } from "@/components/auth/session-context";
-import { RingConnectButton, isRingEnabled } from "@/src/features/connect/ring";
+import { RingConnectButton, RingIntegrationUnavailableNotice, isRingEnabled } from "@/src/features/connect/ring";
 import { CameraProviderSetup } from "@/components/cameras/CameraProviderSetup";
 import type { RingDevicesResponse } from "@/src/features/connect/ring/ring-types";
 import { NestCameraPanel } from "@/components/cameras/NestCameraPanel";
@@ -47,14 +47,6 @@ export function VenueCamerasClient({ venueCode }: { venueCode: string }) {
   const devices = devicesQuery.data?.data?.devices ?? [];
   const linked = devices.length > 0;
 
-  if (!ringEnabled && !nestEnabled) {
-    return (
-      <div className="rounded-lg border border-slate-700/60 bg-slate-900/40 p-6 text-sm text-slate-300">
-        {RING_TM} / {NEST_TM} Connect is not enabled in this environment.
-      </div>
-    );
-  }
-
   if (!user) {
     return <p className="text-sm text-slate-400">Sign in to manage venue cameras.</p>;
   }
@@ -81,7 +73,12 @@ export function VenueCamerasClient({ venueCode }: { venueCode: string }) {
               }
             />
           </section>
-        ) : null}
+        ) : (
+          <section className="space-y-3 rounded-lg border border-blue-500/30 bg-slate-900/40 p-4">
+            <h2 className="text-sm font-semibold text-blue-200">{RING_TM}</h2>
+            <RingIntegrationUnavailableNotice />
+          </section>
+        )}
 
         {nestEnabled ? (
           <section className="space-y-3 rounded-lg border border-emerald-500/30 bg-slate-900/40 p-4">

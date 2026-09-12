@@ -11,7 +11,7 @@ import { isNestEnabled } from "@/lib/nest-feature-flags";
 import { matchesCampusSiteScope } from "rapid-cortex-shared";
 import { CampusSiteSwitcher } from "@/components/campus/campus-site-switcher";
 import { useCampusSiteScope } from "@/lib/campus/use-campus-site-scope";
-import { RingConnectButton, ViewAvailableRingCamerasButton, isRingEnabled } from "@/src/features/connect/ring";
+import { RingConnectButton, RingIntegrationUnavailableNotice, ViewAvailableRingCamerasButton, isRingEnabled } from "@/src/features/connect/ring";
 import type { RingDevicesResponse, RingRole } from "@/src/features/connect/ring/ring-types";
 
 async function fetchRingDevices(): Promise<RingDevicesResponse> {
@@ -82,14 +82,6 @@ export function CampusCamerasClient({ campusCode }: { campusCode: string }) {
 
   const selectedIncident = incidents.find((i) => i.incidentId === selectedIncidentId) ?? null;
   const devices = devicesQuery.data?.data?.devices ?? [];
-
-  if (!ringEnabled && !nestEnabled) {
-    return (
-      <div className="rounded-lg border border-slate-700/60 bg-slate-900/40 p-6 text-sm text-slate-300">
-        {RING_TM} / {NEST_TM} Connect is not enabled in this environment.
-      </div>
-    );
-  }
 
   if (!user) {
     return <p className="text-sm text-slate-400">Sign in to manage campus cameras.</p>;
@@ -180,7 +172,12 @@ export function CampusCamerasClient({ campusCode }: { campusCode: string }) {
               </p>
             )}
           </section>
-        ) : null}
+        ) : (
+          <section className="space-y-3 rounded-lg border border-blue-500/30 bg-slate-900/40 p-4">
+            <h2 className="text-sm font-semibold text-blue-200">{RING_TM} dorm cameras</h2>
+            <RingIntegrationUnavailableNotice />
+          </section>
+        )}
 
         {nestEnabled ? (
           <section className="space-y-3 rounded-lg border border-emerald-500/30 bg-slate-900/40 p-4">

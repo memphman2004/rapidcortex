@@ -240,6 +240,12 @@ const nextConfig = {
       afterFiles: [
         // Flat alias for aggregated readiness (same handler as `/api/health/chain`); avoids rare CDN/proxy confusion on nested paths.
         { source: "/api/health-chain", destination: "/api/health/chain" },
+        // Live web still requests /api/psap-prospects/*; handlers live under /api/rc-admin/.
+        { source: "/api/psap-prospects", destination: "/api/rc-admin/psap-prospects" },
+        {
+          source: "/api/psap-prospects/:path*",
+          destination: "/api/rc-admin/psap-prospects/:path*",
+        },
         // Product vertical routes — auth/middleware use `/app/venue/*`; pages live under `/venue/*`.
         // afterFiles keeps `/app/venue/{role}` and `/app/transit/{role}` filesystem pages.
         { source: "/app/venue", destination: "/venue" },

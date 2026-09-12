@@ -66,7 +66,10 @@ Globals:
         CAD_UNIFIED_INCIDENTS_TABLE: !Sub "rapid-cortex-cad-unified-incidents-${DeploymentStage}"
         CAD_CONNECTOR_WRITEBACKS_TABLE: !Sub "rapid-cortex-cad-connector-writebacks-${DeploymentStage}"
         CAD_CONNECTOR_AUDIT_TABLE: !Sub "rapid-cortex-cad-connector-audit-${DeploymentStage}"
-        CAD_CONNECTOR_KMS_KEY_ID: !If [CadConnectorOn, !Ref CadConnectorKmsKey, ""]
+        CAD_CONNECTOR_KMS_KEY_ID: !If
+          - CadConnectorOn
+          - !Sub "alias/rapid-cortex-cad-connector-${DeploymentStage}"
+          - ""
         CAD_CONNECTOR_OPS_TOPIC_ARN: !If [HasOpsAlertsTopic, !Ref OpsAlertsTopicArn, ""]
 
 Resources:
@@ -279,7 +282,7 @@ Resources:
               - kms:DescribeKey
             Resource: !If
               - CadConnectorOn
-              - !GetAtt CadConnectorKmsKey.Arn
+              - !Sub arn:${AWS::Partition}:kms:${AWS::Region}:${AWS::AccountId}:alias/rapid-cortex-cad-connector-${DeploymentStage}
               - !Sub arn:${AWS::Partition}:kms:${AWS::Region}:${AWS::AccountId}:alias/aws/dynamodb
           - Sid: CadConnectorSecrets
             Effect: Allow
@@ -463,22 +466,10 @@ Outputs:
   CadConnectorHttpFunctionArn:
     Value: !GetAtt CadConnectorHttpFunction.Arn
   CadConnectorsTable:
-    Value: !If
-      - CreateCadConnectorTables
-      - !Ref CadConnectorsTable
-      - !Sub "rapid-cortex-cad-connectors-${DeploymentStage}"
+    Value: !Sub "rapid-cortex-cad-connectors-${DeploymentStage}"
   CadUnifiedIncidentsTable:
-    Value: !If
-      - CreateCadConnectorTables
-      - !Ref CadUnifiedIncidentsTable
-      - !Sub "rapid-cortex-cad-unified-incidents-${DeploymentStage}"
+    Value: !Sub "rapid-cortex-cad-unified-incidents-${DeploymentStage}"
   CadConnectorWritebacksTable:
-    Value: !If
-      - CreateCadConnectorTables
-      - !Ref CadConnectorWritebacksTable
-      - !Sub "rapid-cortex-cad-connector-writebacks-${DeploymentStage}"
+    Value: !Sub "rapid-cortex-cad-connector-writebacks-${DeploymentStage}"
   CadConnectorAuditTable:
-    Value: !If
-      - CreateCadConnectorTables
-      - !Ref CadConnectorAuditTable
-      - !Sub "rapid-cortex-cad-connector-audit-${DeploymentStage}"
+    Value: !Sub "rapid-cortex-cad-connector-audit-${DeploymentStage}"

@@ -1,3 +1,11 @@
+/**
+ * RING INTEGRATION — SUSPENDED
+ * Ring camera integration is currently inactive pending Ring developer
+ * program approval. All handlers return 503. Do not remove this code.
+ * To reactivate: set RING_INTEGRATION_ENABLED = true in feature-flags.ts
+ * and remove all RING_DISABLED guards added on 2026-09-11.
+ */
+
 import { AdminDisableUserCommand, CognitoIdentityProviderClient } from "@aws-sdk/client-cognito-identity-provider";
 import { RING_HOMEOWNER_DEFAULT_AGENCY_ID } from "../../lib/ring-integration.js";
 import { env } from "../../lib/env.js";
@@ -5,6 +13,7 @@ import { RingHomeownerParticipantRepository } from "../../repositories/ringHomeo
 import { RING_HOMEOWNER_UNMATCHED_AGENCY_ID } from "./ring-homeowner-id.js";
 import { configureRingEmergencyTables } from "./ring-tables.js";
 import { auditRingEvent, AUDIT_EVENT_TYPES } from "./ring-audit.js";
+import { RING_INTEGRATION_ENABLED, ringIntegrationDisabledResponse } from "./ring-api-response.js";
 
 const ORPHAN_AGE_MS = 48 * 60 * 60 * 1000;
 const participants = new RingHomeownerParticipantRepository();
@@ -46,6 +55,10 @@ export async function scanOrphanedHomeowners(cutoffMs = Date.now() - ORPHAN_AGE_
 }
 
 export const handler = async () => {
+  // RING_DISABLED — integration suspended pending Ring developer program approval
+  if (!RING_INTEGRATION_ENABLED) {
+    return ringIntegrationDisabledResponse();
+  }
   configureRingEmergencyTables();
   const poolId = env.cognitoUserPoolId;
   const orphans = await scanOrphanedHomeowners();

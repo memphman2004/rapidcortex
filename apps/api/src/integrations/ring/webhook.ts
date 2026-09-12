@@ -1,3 +1,11 @@
+/**
+ * RING INTEGRATION — SUSPENDED
+ * Ring camera integration is currently inactive pending Ring developer
+ * program approval. All handlers return 503. Do not remove this code.
+ * To reactivate: set RING_INTEGRATION_ENABLED = true in feature-flags.ts
+ * and remove all RING_DISABLED guards added on 2026-09-11.
+ */
+
 import type { APIGatewayProxyHandlerV2, APIGatewayProxyEventV2 } from "aws-lambda";
 import {
   RING_HOMEOWNER_DEFAULT_AGENCY_ID,
@@ -8,6 +16,7 @@ import {
 import { configureRingEmergencyTables } from "./ring-tables.js";
 import { auditRingEvent, AUDIT_EVENT_TYPES } from "./ring-audit.js";
 import { ringPublicJson } from "./ring-public-cors.js";
+import { RING_INTEGRATION_ENABLED, ringIntegrationDisabledResponse } from "./ring-api-response.js";
 
 type RingWebhookPayload = {
   meta?: {
@@ -58,6 +67,10 @@ function parsePayload(body: string): RingWebhookPayload | null {
  * Ring POSTs signed event notifications; respond 200 within 5s after HMAC verify.
  */
 export const handler: APIGatewayProxyHandlerV2 = async (event) => {
+  // RING_DISABLED — integration suspended pending Ring developer program approval
+  if (!RING_INTEGRATION_ENABLED) {
+    return ringIntegrationDisabledResponse(event);
+  }
   configureRingEmergencyTables();
 
   if (event.requestContext?.http?.method === "OPTIONS") {

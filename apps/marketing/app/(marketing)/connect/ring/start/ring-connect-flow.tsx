@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { RING_INTEGRATION_ENABLED } from "rapid-cortex-shared";
 import { useSearchParams } from "next/navigation";
 
 const US_STATES: [string, string][] = [
@@ -147,6 +148,7 @@ export function RingConnectFlow() {
   }, [agencyIdFromUrl]);
 
   useEffect(() => {
+    if (!RING_INTEGRATION_ENABLED) return;
     if (!selectedState) {
       setFetchState({ status: "idle" });
       if (!agencyIdFromUrl) setSelectedAgencyId(null);
@@ -182,6 +184,22 @@ export function RingConnectFlow() {
       ? fetchState.agencies.find((a) => a.agencyId === selectedAgencyId)?.name
       : null;
   const showWaitlist = fetchState.status === "empty" || fetchState.status === "soft_empty";
+
+  if (!RING_INTEGRATION_ENABLED) {
+    return (
+      <div
+        style={{
+          padding: "1rem",
+          color: "#888",
+          fontSize: "13px",
+          border: "1px dashed #ddd",
+          borderRadius: "8px",
+        }}
+      >
+        Ring camera integration is temporarily unavailable.
+      </div>
+    );
+  }
 
   return (
     <section className="mt-8 space-y-6 rounded-2xl border border-white/10 bg-black/40 p-6 text-sm text-slate-300">

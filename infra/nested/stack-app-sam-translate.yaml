@@ -74,25 +74,13 @@ Globals:
         ENABLE_RC_TRANSLATE: "true"
         TRANSLATE_MOCK: "true"
         CAD_WRITEBACK_ENABLED: "false"
-        TRANSLATE_SESSIONS_TABLE: !If
-          - CreateSessionsTable
-          - !Ref TranslateSessionsTable
-          - !Ref ExistingTranslateSessionsTableName
-        TRANSLATE_SEGMENTS_TABLE: !If
-          - CreateSegmentsTable
-          - !Ref TranslateSegmentsTable
-          - !Ref ExistingTranslateSegmentsTableName
-        TRANSLATE_CONNECTIONS_TABLE: !If
-          - CreateConnectionsTable
-          - !Ref TranslateConnectionsTable
-          - !Ref ExistingTranslateConnectionsTableName
-        TRANSLATE_AUDIO_BUCKET: !If
-          - CreateAudioBucket
-          - !Ref TranslateAudioBucket
-          - !Ref ExistingTranslateAudioBucketName
+        TRANSLATE_SESSIONS_TABLE: !Sub "rapid-cortex-translate-sessions-${DeploymentStage}"
+        TRANSLATE_SEGMENTS_TABLE: !Sub "rapid-cortex-translate-segments-${DeploymentStage}"
+        TRANSLATE_CONNECTIONS_TABLE: !Sub "rapid-cortex-translate-connections-${DeploymentStage}"
+        TRANSLATE_AUDIO_BUCKET: !Sub "rapid-cortex-translate-audio-${DeploymentStage}-${AWS::AccountId}"
         TRANSLATE_WS_SECRET_ARN: !If
           - CreateTranslateWsSecret
-          - !Ref TranslateWsSecret
+          - !Sub "rapid-cortex/${DeploymentStage}/translate/ws-signing"
           - !Ref ExistingTranslateWsSecretArn
         APP_PUBLIC_BASE_URL: !Ref AppPublicBaseUrl
         AUDIT_TABLE: !Ref AuditTable
@@ -263,30 +251,12 @@ Resources:
               - dynamodb:DescribeTable
               - dynamodb:ConditionCheckItem
             Resource:
-              - !If
-                  - CreateSessionsTable
-                  - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${TranslateSessionsTable}"
-                  - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${ExistingTranslateSessionsTableName}"
-              - !If
-                  - CreateSessionsTable
-                  - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${TranslateSessionsTable}/index/*"
-                  - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${ExistingTranslateSessionsTableName}/index/*"
-              - !If
-                  - CreateSegmentsTable
-                  - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${TranslateSegmentsTable}"
-                  - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${ExistingTranslateSegmentsTableName}"
-              - !If
-                  - CreateSegmentsTable
-                  - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${TranslateSegmentsTable}/index/*"
-                  - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${ExistingTranslateSegmentsTableName}/index/*"
-              - !If
-                  - CreateConnectionsTable
-                  - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${TranslateConnectionsTable}"
-                  - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${ExistingTranslateConnectionsTableName}"
-              - !If
-                  - CreateConnectionsTable
-                  - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${TranslateConnectionsTable}/index/*"
-                  - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${ExistingTranslateConnectionsTableName}/index/*"
+              - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/rapid-cortex-translate-sessions-${DeploymentStage}"
+              - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/rapid-cortex-translate-sessions-${DeploymentStage}/index/*"
+              - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/rapid-cortex-translate-segments-${DeploymentStage}"
+              - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/rapid-cortex-translate-segments-${DeploymentStage}/index/*"
+              - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/rapid-cortex-translate-connections-${DeploymentStage}"
+              - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/rapid-cortex-translate-connections-${DeploymentStage}/index/*"
               - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${AuditTable}"
               - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${AuditTable}/index/*"
               - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${AgenciesTable}"
@@ -300,18 +270,12 @@ Resources:
               - s3:PutObjectTagging
               - s3:GetObjectTagging
             Resource:
-              - !If
-                  - CreateAudioBucket
-                  - !Sub "arn:aws:s3:::${TranslateAudioBucket}/*"
-                  - !Sub "arn:aws:s3:::${ExistingTranslateAudioBucketName}/*"
+              - !Sub "arn:aws:s3:::rapid-cortex-translate-audio-${DeploymentStage}-${AWS::AccountId}/*"
           - Sid: TranslateWsSecret
             Effect: Allow
             Action:
               - secretsmanager:GetSecretValue
-            Resource: !If
-              - CreateTranslateWsSecret
-              - !Ref TranslateWsSecret
-              - !Ref ExistingTranslateWsSecretArn
+            Resource: !Sub "arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:rapid-cortex/${DeploymentStage}/translate/ws-signing-*"
           - Sid: TranslateSpeechApis
             Effect: Allow
             Action:
@@ -470,25 +434,13 @@ Resources:
 
 Outputs:
   TranslateSessionsTableName:
-    Value: !If
-      - CreateSessionsTable
-      - !Ref TranslateSessionsTable
-      - !Ref ExistingTranslateSessionsTableName
+    Value: !Sub "rapid-cortex-translate-sessions-${DeploymentStage}"
   TranslateSegmentsTableName:
-    Value: !If
-      - CreateSegmentsTable
-      - !Ref TranslateSegmentsTable
-      - !Ref ExistingTranslateSegmentsTableName
+    Value: !Sub "rapid-cortex-translate-segments-${DeploymentStage}"
   TranslateConnectionsTableName:
-    Value: !If
-      - CreateConnectionsTable
-      - !Ref TranslateConnectionsTable
-      - !Ref ExistingTranslateConnectionsTableName
+    Value: !Sub "rapid-cortex-translate-connections-${DeploymentStage}"
   TranslateAudioBucketName:
-    Value: !If
-      - CreateAudioBucket
-      - !Ref TranslateAudioBucket
-      - !Ref ExistingTranslateAudioBucketName
+    Value: !Sub "rapid-cortex-translate-audio-${DeploymentStage}-${AWS::AccountId}"
   TranslateWsEndpoint:
     Value: !Sub "wss://${TranslateWebSocketApi}.execute-api.${AWS::Region}.amazonaws.com/${DeploymentStage}"
   TranslateHttpFunctionArn:

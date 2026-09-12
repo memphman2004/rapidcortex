@@ -1,3 +1,11 @@
+/**
+ * RING INTEGRATION — SUSPENDED
+ * Ring camera integration is currently inactive pending Ring developer
+ * program approval. All handlers return 503. Do not remove this code.
+ * To reactivate: set RING_INTEGRATION_ENABLED = true in feature-flags.ts
+ * and remove all RING_DISABLED guards added on 2026-09-11.
+ */
+
 import type { APIGatewayProxyHandlerV2 } from "aws-lambda";
 import type { RingCameraListItem } from "../../lib/ring-integration.js";
 import { isRingAvailableCamerasEnabled, RingDeviceService } from "../../lib/ring-integration.js";
@@ -6,7 +14,7 @@ import { operationalPasswordBlock } from "../../lib/operationalPasswordGate.js";
 import { RingEmergencyRepository } from "../../repositories/ringEmergencyRepository.js";
 import { isRingAuthorizedRole } from "./ring-auth.js";
 import { auditRingEvent, AUDIT_EVENT_TYPES } from "./ring-audit.js";
-import { ringJson } from "./ring-api-response.js";
+import { ringJson, RING_INTEGRATION_ENABLED, ringIntegrationDisabledResponse } from "./ring-api-response.js";
 import { incidentCoordinates, requireActiveRingIncident } from "./ring-incident.js";
 import { configureRingEmergencyTables } from "./ring-tables.js";
 
@@ -24,6 +32,10 @@ function parseRadiusMeters(raw: string | undefined): number {
 }
 
 export const handler: APIGatewayProxyHandlerV2 = async (event) => {
+  // RING_DISABLED — integration suspended pending Ring developer program approval
+  if (!RING_INTEGRATION_ENABLED) {
+    return ringIntegrationDisabledResponse(event);
+  }
   try {
     configureRingEmergencyTables();
 

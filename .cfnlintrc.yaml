@@ -1,0 +1,5 @@
+# cfn-lint / `sam validate --lint`
+# nodejs20.x is deprecated (W2531) but still supported until 2027-02-01.
+# Live Lambdas stay on 20 until a dedicated Node 24 runtime cutover.
+ignore_checks:
+  - W2531

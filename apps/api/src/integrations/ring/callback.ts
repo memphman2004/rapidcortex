@@ -1,3 +1,11 @@
+/**
+ * RING INTEGRATION — SUSPENDED
+ * Ring camera integration is currently inactive pending Ring developer
+ * program approval. All handlers return 503. Do not remove this code.
+ * To reactivate: set RING_INTEGRATION_ENABLED = true in feature-flags.ts
+ * and remove all RING_DISABLED guards added on 2026-09-11.
+ */
+
 import type { APIGatewayProxyHandlerV2, APIGatewayProxyResultV2 } from "aws-lambda";
 import {
   decodeRingOAuthState,
@@ -23,7 +31,7 @@ import {
   homeownerIdFromPartnerAccount,
   isUnmatchedHomeownerAgency,
 } from "./ring-homeowner-id.js";
-import { ringRedirect } from "./ring-api-response.js";
+import { ringRedirect, RING_INTEGRATION_ENABLED, ringIntegrationDisabledResponse } from "./ring-api-response.js";
 import { syncCognitoPhoneFromRingProfile } from "../../services/ringOwnerNotificationService.js";
 
 const oauth = new RingOAuthService();
@@ -213,6 +221,10 @@ async function handleHomeownerLink(args: {
 }
 
 export const handler: APIGatewayProxyHandlerV2 = async (event) => {
+  // RING_DISABLED — integration suspended pending Ring developer program approval
+  if (!RING_INTEGRATION_ENABLED) {
+    return ringIntegrationDisabledResponse(event);
+  }
   configureRingTables();
 
   const code = event.queryStringParameters?.code?.trim() ?? "";

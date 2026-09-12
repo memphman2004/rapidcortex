@@ -1,7 +1,17 @@
 "use client";
 
+/**
+ * RING INTEGRATION — SUSPENDED
+ * Ring camera integration is currently inactive pending Ring developer
+ * program approval. All handlers return 503. Do not remove this code.
+ * To reactivate: set RING_INTEGRATION_ENABLED = true in feature-flags.ts
+ * and remove all RING_DISABLED guards added on 2026-09-11.
+ */
+
 import { useCallback, useEffect, useRef, useState } from "react";
 import * as KVSWebRTC from "amazon-kinesis-video-streams-webrtc";
+import { RING_INTEGRATION_ENABLED } from "@/lib/feature-flags";
+import { RingIntegrationUnavailableNotice } from "@/src/features/connect/ring/RingIntegrationUnavailableNotice";
 
 type ViewerToken = {
   sessionId: string;
@@ -204,6 +214,7 @@ export function KvsRingStreamViewer({
   }, [connect]);
 
   useEffect(() => {
+    if (!RING_INTEGRATION_ENABLED) return;
     void connect();
     return () => {
       endedRef.current = true;
@@ -223,6 +234,10 @@ export function KvsRingStreamViewer({
             : state === "error"
               ? error ?? "Connection error"
               : "Starting…";
+
+  if (!RING_INTEGRATION_ENABLED) {
+    return <RingIntegrationUnavailableNotice />;
+  }
 
   return (
     <div className="rounded-lg border border-slate-700 bg-slate-950/80 p-3">

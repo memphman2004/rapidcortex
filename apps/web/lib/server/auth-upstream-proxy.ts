@@ -2,6 +2,7 @@ import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 import { isSam3ApiPath, isSam4ApiPath, isSam5ApiPath, isStack2ApiPath, resolveUpstreamApiBase } from "@/lib/comms-api-path";
 import { applyRotatedAuthCookies, resolveBffBearerToken } from "@/lib/server/bff-auth-token";
+import { ringDisabledBffResponse } from "@/lib/ring-disabled";
 import { joinUpstreamApiUrl, normalizeUpstreamApiPath } from "@/lib/upstream-url";
 
 type ProxyOptions = {
@@ -14,6 +15,9 @@ export async function proxyToAuthUpstream(
   options: ProxyOptions = {},
 ): Promise<NextResponse> {
   const path = normalizeUpstreamApiPath(upstreamPath);
+  // RING_DISABLED — routes suspended pending Ring developer program approval
+  const ringDisabled = ringDisabledBffResponse(path);
+  if (ringDisabled) return ringDisabled;
   const base = resolveUpstreamApiBase(path);
   if (!base) {
     const needsStack4 = isSam4ApiPath(path);
