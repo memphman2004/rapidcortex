@@ -6,6 +6,7 @@ import { useMemo, useState, type FormEvent } from "react";
 import { RING_INTEGRATION_ENABLED } from "rapid-cortex-shared";
 import { demoJurisdictionSlug } from "@/lib/deployment-environment";
 import { marketingDemoRequestPath, marketingLoginPath } from "@/lib/marketing-links";
+import { connectPublicApiBase } from "@/lib/connect-public-api";
 
 type LinkAudience = "citizen" | "agency";
 
@@ -15,7 +16,7 @@ type StatusMessage = {
   body: string;
 };
 
-const API_BASE = process.env.NEXT_PUBLIC_RING_PUBLIC_OAUTH_BASE ?? "";
+const API_BASE = connectPublicApiBase();
 
 function parseAudience(raw: string | null): LinkAudience {
   return raw?.trim().toLowerCase() === "citizen" ? "citizen" : "agency";

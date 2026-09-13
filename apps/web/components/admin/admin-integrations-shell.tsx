@@ -5,9 +5,11 @@ import { PilotIntegrationStatusPanel } from "@/components/admin/pilot-integratio
 import { useSession } from "@/components/auth/session-context";
 import { useJurisdictionLink } from "@/lib/jurisdiction-context";
 import { RingConnectButton, RingIntegrationStatus, RingIntegrationUnavailableNotice, isRingEnabled } from "@/src/features/connect/ring";
-import { CameraProviderSetup } from "@/components/cameras/CameraProviderSetup";
+import { NestIntegrationSettings } from "@/components/cameras/NestIntegrationSettings";
 import { isNestEnabled } from "@/lib/nest-feature-flags";
-import { GOOGLE_NEST_TM, RING_TM } from "@/lib/brand-marks";
+import { isWyzeEnabled } from "@/lib/wyze-feature-flags";
+import { GOOGLE_NEST_TM, RING_TM, WYZE_TM } from "@/lib/brand-marks";
+import { marketingWyzeConnectPath } from "@/lib/marketing-links";
 
 type Props = {
   allowedHostSuffixes: string[];
@@ -77,7 +79,25 @@ export function AdminIntegrationsShell({
           <h3 className="text-sm font-semibold uppercase tracking-wider text-zinc-300">
             {GOOGLE_NEST_TM} cameras
           </h3>
-          <CameraProviderSetup />
+          <NestIntegrationSettings />
+        </section>
+      ) : null}
+
+      {isWyzeEnabled() ? (
+        <section className="space-y-3 rounded-lg border border-zinc-800 bg-slate-900/35 p-4">
+          <h3 className="text-sm font-semibold uppercase tracking-wider text-zinc-300">
+            {WYZE_TM} cameras
+          </h3>
+          <p className="text-sm text-slate-400">
+            Homeowners enroll with a Wyze API key. Dispatchers request live video per incident; the
+            owner approves by SMS. API keys stay encrypted in AWS and never leave the Lambda.
+          </p>
+          <a
+            href={marketingWyzeConnectPath()}
+            className="inline-flex text-sm font-semibold text-sky-300 hover:text-sky-200"
+          >
+            Homeowner enrollment →
+          </a>
         </section>
       ) : null}
 

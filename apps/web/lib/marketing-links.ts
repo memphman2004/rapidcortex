@@ -66,6 +66,11 @@ export function marketingNestConnectPath(): string {
   return `${marketingSiteOrigin()}/connect/nest`;
 }
 
+/** Wyze Connect — homeowner camera enrollment. */
+export function marketingWyzeConnectPath(): string {
+  return `${marketingSiteOrigin()}/connect/wyze/start`;
+}
+
 export function marketingSignupPath(): string {
   return withAppOrigin("/signup");
 }

@@ -1,13 +1,13 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { MarketingArticleShell } from "@/components/marketing/marketing-article-shell";
-import { marketingNestConnectPath, marketingRingCustomersPath } from "@/lib/marketing-links";
+import { marketingNestConnectPath, marketingRingCustomersPath, marketingWyzeConnectPath } from "@/lib/marketing-links";
 import { buildPublicPageMetadata } from "@/lib/seo";
 
 export const metadata: Metadata = buildPublicPageMetadata({
   title: "Campus, Venue & Public Safety Integrations | Rapid Cortex",
   description:
-    "Rapid Cortex integrations for campus safety, venue and stadium operations, CAD-friendly public safety adapters, and consent-based Ring and Nest Connect — validated per contract, not a rip-and-replace.",
+    "Rapid Cortex integrations for campus safety, venue and stadium operations, CAD-friendly public safety adapters, and consent-based Ring, Nest, and Wyze Connect — validated per contract, not a rip-and-replace.",
   path: "/integrations",
   keywords: [
     "campus safety integrations",
@@ -16,6 +16,7 @@ export const metadata: Metadata = buildPublicPageMetadata({
     "CAD integration",
     "Ring Connect public safety",
     "Nest camera integration",
+    "Wyze camera integration",
   ],
 });
 
@@ -26,6 +27,7 @@ const CAMPUS_ITEMS = [
   },
   { href: "/connect/ring/start", label: "Ring Connect — consent-based emergency video" },
   { href: "/connect/nest", label: "Google Nest SDM — agency-linked + consent requests" },
+  { href: "/connect/wyze/start", label: "Wyze Connect — homeowner API key + SMS consent" },
   { href: "/campus-safety-software", label: "QR / NFC / SMS campus reporting" },
   { href: "/cad-integration", label: "Optional dispatch / CAD-friendly handoff" },
 ];
@@ -39,6 +41,7 @@ const VENUE_ITEMS = [
   { href: "/stadium-security-software", label: "Stadium SOC dashboard + camera references" },
   { href: "/connect/ring/start", label: "Ring Connect for venue perimeters" },
   { href: "/connect/nest", label: "Nest Connect for facility cameras" },
+  { href: "/connect/wyze/start", label: "Wyze Connect for nearby homeowners" },
 ];
 
 const PUBLIC_SAFETY_ITEMS = [
@@ -118,12 +121,12 @@ export default function IntegrationsLandingPage() {
       </section>
 
       <section className="mt-12 space-y-4">
-        <h2 className="text-xl font-semibold text-white">Ring and Nest Connect</h2>
+        <h2 className="text-xl font-semibold text-white">Ring, Nest, and Wyze Connect</h2>
         <p className="text-sm leading-relaxed text-slate-300">
-          Ring™ and Google Nest™ Connect are consent-based video paths for public safety, campus,
-          and venue teams. Device owners opt in; Rapid Cortex does not silently access residential
-          cameras. Agency-owned Nest devices can be linked; resident devices require an explicit
-          request during an incident.
+          Ring™, Google Nest™, and Wyze™ Connect are consent-based video paths for public safety,
+          campus, and venue teams. Device owners opt in; Rapid Cortex does not silently access
+          residential cameras. Agency-owned Nest devices can be linked; resident Ring, Nest, and
+          Wyze devices require an explicit request during an incident.
         </p>
         <div className="flex flex-wrap gap-6 text-sm">
           <a href={marketingRingCustomersPath()} className="text-sky-300 hover:text-sky-200">
@@ -131,6 +134,9 @@ export default function IntegrationsLandingPage() {
           </a>
           <a href={marketingNestConnectPath()} className="text-sky-300 hover:text-sky-200">
             Nest Connect →
+          </a>
+          <a href={marketingWyzeConnectPath()} className="text-sky-300 hover:text-sky-200">
+            Wyze Connect →
           </a>
           <Link href="/integrations/ring-review" className="text-sky-300 hover:text-sky-200">
             Ring review notes →

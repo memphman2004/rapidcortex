@@ -6,8 +6,10 @@ import { Camera, Link2 } from "lucide-react";
 import { useSession } from "@/components/auth/session-context";
 import { CameraProviderSetup } from "@/components/cameras/CameraProviderSetup";
 import { NestCameraPanel } from "@/components/cameras/NestCameraPanel";
-import { GOOGLE_NEST_TM, NEST_TM, RING_TM } from "@/lib/brand-marks";
+import { WyzeCameraPanel } from "@/components/cameras/WyzeCameraPanel";
+import { GOOGLE_NEST_TM, NEST_TM, RING_TM, WYZE_TM } from "@/lib/brand-marks";
 import { isNestEnabled } from "@/lib/nest-feature-flags";
+import { isWyzeEnabled } from "@/lib/wyze-feature-flags";
 import { matchesCampusSiteScope } from "rapid-cortex-shared";
 import { CampusSiteSwitcher } from "@/components/campus/campus-site-switcher";
 import { useCampusSiteScope } from "@/lib/campus/use-campus-site-scope";
@@ -23,14 +25,15 @@ async function fetchRingDevices(): Promise<RingDevicesResponse> {
 }
 
 /**
- * Campus dorm / residential cameras — Ring™ + Nest™ Connect for student-owned doorbells
- * and agency Nest™ accounts, mirrored from venue cameras UX.
+ * Campus dorm / residential cameras — Ring™ + Nest™ + Wyze™ Connect for student-owned
+ * doorbells and agency Nest™ accounts, mirrored from venue cameras UX.
  */
 export function CampusCamerasClient({ campusCode }: { campusCode: string }) {
   const { user } = useSession();
   const queryClient = useQueryClient();
   const ringEnabled = isRingEnabled();
   const nestEnabled = isNestEnabled();
+  const wyzeEnabled = isWyzeEnabled();
   const [selectedIncidentId, setSelectedIncidentId] = useState<string | null>(null);
   const { scope, setScope, sites, primarySiteCode } = useCampusSiteScope(user?.agencyId ?? "");
 
@@ -92,8 +95,8 @@ export function CampusCamerasClient({ campusCode }: { campusCode: string }) {
       <div>
         <h1 className="text-2xl font-bold text-white">Cameras</h1>
         <p className="mt-1 text-sm text-slate-400">
-          Link dorm {RING_TM} and {GOOGLE_NEST_TM} cameras for consent-based live video during campus
-          incidents. Agency-owned {NEST_TM} streams are available after admin OAuth.
+          Link dorm {RING_TM}, {GOOGLE_NEST_TM}, and {WYZE_TM} cameras for consent-based live video
+          during campus incidents. Agency-owned {NEST_TM} streams are available after admin OAuth.
         </p>
         <div className="mt-3 max-w-xs">
           <CampusSiteSwitcher sites={sites} value={scope} onChange={setScope} />
@@ -189,6 +192,18 @@ export function CampusCamerasClient({ campusCode }: { campusCode: string }) {
               incidentLat={selectedIncident?.callerLocationLat}
               incidentLng={selectedIncident?.callerLocationLng}
               connectSettingsHref={`/app/campus/${campusCode}/cameras`}
+            />
+          </section>
+        ) : null}
+
+        {wyzeEnabled ? (
+          <section className="space-y-3 rounded-lg border border-cyan-500/30 bg-slate-900/40 p-4">
+            <h2 className="text-sm font-semibold text-cyan-200">{WYZE_TM} dorm cameras</h2>
+            <WyzeCameraPanel
+              agencyId={user.agencyId}
+              incidentId={selectedIncidentId}
+              incidentLat={selectedIncident?.callerLocationLat}
+              incidentLng={selectedIncident?.callerLocationLng}
             />
           </section>
         ) : null}

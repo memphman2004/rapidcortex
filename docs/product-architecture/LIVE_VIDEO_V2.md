@@ -12,8 +12,7 @@
 
 ## SMS delivery
 
-- Uses existing `SMS_PROVIDER` routing (`aws|twilio|auto|mock`) via shared factory.
-- Twilio secrets remain in Secrets Manager (`TWILIO_SECRET_ARN` / legacy ARN).
+- Uses `SMS_PROVIDER` (`aws` or `mock`) via the shared AWS End User Messaging factory.
 - SMS content remains transactional and incident-safe.
 
 ## Browser/device expectations

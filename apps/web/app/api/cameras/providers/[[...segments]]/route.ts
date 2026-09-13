@@ -49,6 +49,16 @@ async function proxyProviders(request: NextRequest, segments: string[] | undefin
   if (isNestConnect) {
     return proxyNestConnect(request, segments);
   }
+
+  const isWyzePublic =
+    (request.method === "POST" && path === "/api/cameras/providers/wyze/register") ||
+    (request.method === "GET" && /^\/api\/cameras\/providers\/wyze\/c\/[^/]+$/.test(path)) ||
+    (request.method === "POST" &&
+      /^\/api\/cameras\/providers\/wyze\/consent\/[^/]+\/(approve|decline)$/.test(path));
+  if (isWyzePublic) {
+    return proxyToAuthUpstream(request, path, { allowAnonymous: true });
+  }
+
   return proxyToAuthUpstream(request, path);
 }
 

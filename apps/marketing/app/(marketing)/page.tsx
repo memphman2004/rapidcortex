@@ -12,6 +12,7 @@ import {
   marketingNestConnectPath,
   marketingPricingPath,
   marketingSignupPath,
+  marketingWyzeConnectPath,
 } from "@/lib/marketing-links";
 import { MarketingPilotResourcesStrip } from "@/components/marketing/pilot-resources-strip";
 import { SITE_MISSION, SITE_NAME, SITE_SLOGAN } from "@/lib/site";
@@ -214,7 +215,7 @@ export default function MarketingHomePage() {
           Rapid Vision™ requests temporary live video from citizen and facility cameras during
           active incidents — with owner consent for residential devices.
         </p>
-        <ul className="mt-8 grid gap-4 sm:grid-cols-2">
+        <ul className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           <li className="rounded-lg border border-blue-500/25 bg-slate-900/40 p-5">
             <p className="text-xs font-semibold uppercase tracking-[0.2em] text-blue-300">Partner</p>
             <h3 className="mt-2 text-lg font-semibold text-white">Ring™</h3>
@@ -241,6 +242,20 @@ export default function MarketingHomePage() {
               className="mt-4 inline-flex text-sm font-medium text-sky-400 hover:text-sky-300"
             >
               Nest™ Connect →
+            </a>
+          </li>
+          <li className="rounded-lg border border-cyan-500/25 bg-slate-900/40 p-5">
+            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-cyan-300">Partner</p>
+            <h3 className="mt-2 text-lg font-semibold text-white">Wyze™</h3>
+            <p className="mt-2 text-sm leading-relaxed text-slate-400">
+              Homeowner Wyze™ cameras with encrypted API keys and SMS consent for each emergency
+              live-share request — the same opt-in model used for Ring™ and Nest™.
+            </p>
+            <a
+              href={marketingWyzeConnectPath()}
+              className="mt-4 inline-flex text-sm font-medium text-sky-400 hover:text-sky-300"
+            >
+              Wyze™ Connect →
             </a>
           </li>
         </ul>

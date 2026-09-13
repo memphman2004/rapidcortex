@@ -33,7 +33,10 @@ import {
   unauthorized,
 } from "../../lib/response.js";
 import { AuditRepository } from "../../repositories/auditRepository.js";
-import { requireActiveRingIncident } from "../../integrations/ring/ring-incident.js";
+import {
+  incidentCoordinates,
+  requireActiveIncident,
+} from "../../integrations/incidents/require-active-incident.js";
 import { visionStore } from "../../rapid-vision/store.js";
 import { DemoVisionProvider } from "../../rapid-vision/providers/DemoVisionProvider.js";
 import { resolveVisionSessionKvsRef } from "../../rapid-vision/kvs-media-ref.js";
@@ -156,7 +159,7 @@ async function handleIncidentVision(
     const { user } = gated;
     if (!canViewVision(user, user.agencyId)) return forbidden();
 
-    const incidentResult = await requireActiveRingIncident(incidentId, user);
+    const incidentResult = await requireActiveIncident(incidentId, user);
     if (!incidentResult.ok) {
       return ok({ error: incidentResult.message }, incidentResult.statusCode);
     }
@@ -165,7 +168,7 @@ async function handleIncidentVision(
     if (!parsed.success) return badRequestFromZod(parsed.error);
     const radiusMeters = parsed.data.radiusMeters ?? 500;
     const includeOffline = parsed.data.includeOffline !== false;
-    const { callerLocationLat: lat, callerLocationLng: lng } = incidentResult.incident;
+    const { latitude: lat, longitude: lng } = incidentCoordinates(incidentResult.incident);
 
     let cameras = await visionStore.listCamerasForAgency(user.agencyId);
     if (env.enableRapidVisionDemo && cameras.length === 0) {
@@ -218,7 +221,7 @@ async function handleIncidentVision(
     if (!canRequestVisionAccess(user, user.agencyId)) return forbidden();
 
     const cameraId = decodeURIComponent(rest[1] ?? "").trim();
-    const incidentResult = await requireActiveRingIncident(incidentId, user);
+    const incidentResult = await requireActiveIncident(incidentId, user);
     if (!incidentResult.ok) {
       return ok({ error: incidentResult.message }, incidentResult.statusCode);
     }
@@ -229,10 +232,11 @@ async function handleIncidentVision(
 
     let camera = await visionStore.getCamera(user.agencyId, cameraId);
     if (!camera && env.enableRapidVisionDemo && cameraId.startsWith("demo-")) {
+      const { latitude, longitude } = incidentCoordinates(incidentResult.incident);
       const seeded = seedDemoCameras(
         user.agencyId,
-        incidentResult.incident.callerLocationLat,
-        incidentResult.incident.callerLocationLng,
+        latitude,
+        longitude,
       ).find((c) => c.cameraId === cameraId);
       camera = seeded ?? null;
     }
@@ -348,7 +352,7 @@ async function handleIncidentVision(
     const { user } = gated;
     if (!canViewVision(user, user.agencyId)) return forbidden();
 
-    const incidentResult = await requireActiveRingIncident(incidentId, user);
+    const incidentResult = await requireActiveIncident(incidentId, user);
     if (!incidentResult.ok) {
       return ok({ error: incidentResult.message }, incidentResult.statusCode);
     }

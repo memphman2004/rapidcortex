@@ -3,7 +3,7 @@ import { buildSmsBody, type RingOwnerNotificationInput } from "./ringOwnerNotifi
 
 /**
  * The original consent SMS ran 808 characters over six segments with three long
- * `execute-api.amazonaws.com` links. US carriers dropped it after Twilio had already returned
+ * `execute-api.amazonaws.com` links. US carriers dropped it after the provider had already returned
  * 201, so it looked delivered in CloudWatch. These bounds keep that from regressing.
  */
 

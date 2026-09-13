@@ -17,6 +17,8 @@ export NEXT_PUBLIC_ENABLE_RAPID_VISION=1
 # ── Vision Sub-Feature Flags ──────────────────────────────────────────────────
 # Enable Ring as a Rapid Vision source (wraps existing Stack 4 Ring integration)
 export NEXT_PUBLIC_ENABLE_RAPID_VISION_RING=1
+# Enable Google Nest as a Rapid Vision source (SDM WebRTC)
+export NEXT_PUBLIC_ENABLE_RAPID_VISION_NEST=1
 # Enable caller video as a Rapid Vision source
 export NEXT_PUBLIC_ENABLE_RAPID_VISION_CALLER_VIDEO=1
 # Enable Rapid Vision demo mode (clearly labeled, never real)
@@ -27,6 +29,10 @@ export NEXT_PUBLIC_ENABLE_RAPID_VISION_AI_WRITER=1
 export NEXT_PUBLIC_ENABLE_RAPID_VISION_TRANSCRIPT=1
 # Enable Rekognition preliminary detection tier
 export NEXT_PUBLIC_ENABLE_RAPID_VISION_REKOGNITION=1
+
+# ── Marketing Connect enroll (Ring / Nest / Wyze) ────────────────────────────
+# Canonical name; NEXT_PUBLIC_RING_PUBLIC_OAUTH_BASE is still read as a fallback.
+export NEXT_PUBLIC_CONNECT_PUBLIC_BASE="${NEXT_PUBLIC_CONNECT_PUBLIC_BASE:-https://7c70vqd1p5.execute-api.us-east-1.amazonaws.com}"
 
 # ── Kept for backward compat with Stack 4 Ring Lambdas ───────────────────────
 # These control existing Ring OAuth / consent / stream flow — do NOT remove.

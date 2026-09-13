@@ -88,9 +88,9 @@ export const incidentMediaRecordSchema = z.object({
   mediaType: incidentMediaTypeSchema.nullable().optional(),
   /** Future: server-side blur pipeline flag; reserved for policy. */
   blurApplied: z.boolean().optional(),
-  /** Last successful / attempted outbound SMS channel. */
+  /** Last successful / attempted outbound SMS channel. `twilio` is historical only. */
   smsProvider: z.enum(["aws", "twilio", "mock", "log-only"]).nullable().optional(),
-  /** Provider message id when available (SNS MessageId, Twilio SID). */
+  /** Provider message id when available (End User Messaging MessageId). */
   smsMessageId: z.string().max(128).nullable().optional(),
   /** Last SMS attempt outcome for ops (`queued` used for simulator / deferred). */
   smsDispatchStatus: z.enum(["queued", "sent", "failed"]).nullable().optional(),

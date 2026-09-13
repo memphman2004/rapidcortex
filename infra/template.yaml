@@ -56,6 +56,21 @@ Parameters:
     Description: >
       Rapid IQ Opportunity Intelligence OpenAI web-search URL discovery (pipeline nested stack).
       Default false. When true, watches with webSearchEnabled run two queries per daily worker (~$2/day).
+  EnableRapidIqNewHttpRoutes:
+    Type: String
+    Default: "false"
+    AllowedValues: ["true", "false"]
+    Description: >-
+      Nested Rapid IQ intel/sales HTTP routes on AppSam3 HttpApi. Staging default
+      false. Live rapid-cortex-dev sets true after SignalHttpIntegrationV2 (orphan
+      x30c8uk is gone from the API; leftover standalone route IDs are ghosts).
+  EnableRapidIqNestedExpansion:
+    Type: String
+    Default: "false"
+    AllowedValues: ["true", "false"]
+    Description: >-
+      Extra Rapid IQ ingest/sales/intel-watch Lambdas on the hashed nested pipeline stack.
+      Keep false on live rapid-cortex-dev (leftover standalone already owns them).
   AnthropicApiKeySecretArn:
     Type: String
     Default: ""
@@ -148,9 +163,8 @@ Parameters:
     Type: String
     Default: ""
     Description: >-
-      Optional Secrets Manager ARN for Twilio JSON: preferred shape accountSid + apiKeySid + apiKeySecret +
-      messagingServiceSid; legacy accountSid + authToken + fromE164 (optional messagingServiceSid).
-      Leave empty when using AWS-only SMS_PROVIDER or mock/simulator paths.
+      Deprecated unused. SMS uses AWS End User Messaging only. Kept so existing nested
+      stacks do not fail on a removed CloudFormation parameter. Leave empty.
   HttpApiCorsAllowedOrigins:
     Type: String
     Default: "*"
@@ -473,6 +487,11 @@ Parameters:
     Type: String
     Default: ""
     Description: When set, AppSam6Stack uses this existing Rapid Vision™ live-transcript segments table.
+  EnableRapidVisionNest:
+    Type: String
+    Default: "true"
+    AllowedValues: ["true", "false"]
+    Description: Rapid Vision Google Nest camera source (`ENABLE_RAPID_VISION_NEST`). Default on.
   TransitCameraProducerKey:
     Type: String
     Default: ""
@@ -572,6 +591,24 @@ Parameters:
     Description: >-
       RING_DISABLED 2026-09-11. When false, AppSam4Stack omits Ring Lambdas and HttpApi routes.
       DynamoDB Ring tables are retained. To reactivate: true plus RING_INTEGRATION_ENABLED=true.
+  WyzeEnabled:
+    Type: String
+    Default: "false"
+    AllowedValues: ["true", "false"]
+    Description: >-
+      When true, AppSam4Stack deploys Wyze Connect tables and camera-provider Lambda.
+      Keep false until rapid-cortex/connect/wyze-api-keys is rotated off placeholders.
+  WyzeApiKeysSecretArn:
+    Type: String
+    Default: "arn:aws:secretsmanager:us-east-1:158961537080:secret:rapid-cortex/connect/wyze-api-keys-YIoY3S"
+    Description: Secrets Manager ARN for Rapid Cortex Wyze developer API credentials (RC-owned test devices).
+  NestRcOauthSecretArn:
+    Type: String
+    Default: ""
+    Description: >
+      Secrets Manager ARN for Rapid Cortex's own Google Device Access credentials
+      (JSON clientId, clientSecret, projectId). Empty until Device Access approval;
+      citizen enrollment at /connect/nest then returns 503. Agency Nest OAuth does not need this.
   EnableConnectRing:
     Type: String
     Default: "false"
@@ -2250,6 +2287,8 @@ Resources:
         RapidIqLegiscanApiKeySecretArn: ""
         OpenAiApiKeySecretArn: !Ref OpenAiApiKeySecretArn
         OpenAiWebSearchEnabled: !Ref OpenAiWebSearchEnabled
+        EnableRapidIqNewHttpRoutes: !Ref EnableRapidIqNewHttpRoutes
+        EnableRapidIqNestedExpansion: !Ref EnableRapidIqNestedExpansion
         RapidIqOpportunitiesTable:
           Fn::If:
             - HasDataLayerNestedStack
@@ -2402,6 +2441,9 @@ Resources:
 
   AppSam4Stack:
     Type: AWS::CloudFormation::Stack
+    # Wait for Field Lambda creates to settle before publishing NodeDepsLayer
+    # (AppSam4 layer CREATE_FAILED Lambda Rate exceeded 2026-09-11).
+    DependsOn: AppSamFieldStack
     Properties:
       TimeoutInMinutes: 180
       TemplateURL: nested/stack-app-sam-4.yaml
@@ -2747,6 +2789,9 @@ Resources:
         EnableConnectRing: !Ref EnableConnectRing
         RingPartnershipEnabled: !Ref RingPartnershipEnabled
         RingEnabled: !Ref RingEnabled
+        WyzeEnabled: !Ref WyzeEnabled
+        WyzeApiKeysSecretArn: !Ref WyzeApiKeysSecretArn
+        NestRcOauthSecretArn: !Ref NestRcOauthSecretArn
         RingRedirectUri: !Ref RingRedirectUri
         RingAccountLinkUrl: !Ref RingAccountLinkUrl
         ImportedCognitoUserPoolId: !GetAtt AppSamStackV2.Outputs.UserPoolId
@@ -2756,6 +2801,7 @@ Resources:
 
   AppSam5Stack:
     Type: AWS::CloudFormation::Stack
+    DependsOn: AppSam4Stack
     Properties:
       TimeoutInMinutes: 180
       TemplateURL: nested/stack-app-sam-5.yaml
@@ -3565,6 +3611,7 @@ Resources:
         ExistingVisionOwnerConsentTableName: !Ref ExistingVisionOwnerConsentTableName
         ExistingVisionArtifactsBucketName: !Ref ExistingVisionArtifactsBucketName
         ExistingVisionTranscriptsTableName: !Ref ExistingVisionTranscriptsTableName
+        EnableRapidVisionNest: !Ref EnableRapidVisionNest
         ManagedPolicyNamePrefix: !Ref AWS::StackName
 
   AppSamCadBridgeStack2:

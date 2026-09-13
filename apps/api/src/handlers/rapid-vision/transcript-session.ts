@@ -27,7 +27,7 @@ import { makeId } from "../../lib/ids.js";
 import { operationalPasswordBlock } from "../../lib/operationalPasswordGate.js";
 import { isRingAuthorizedRole } from "../../integrations/ring/ring-auth.js";
 import { ringJson } from "../../integrations/ring/ring-api-response.js";
-import { requireActiveRingIncident } from "../../integrations/ring/ring-incident.js";
+import { requireActiveIncident } from "../../integrations/incidents/require-active-incident.js";
 import { AuditRepository } from "../../repositories/auditRepository.js";
 import { visionStore } from "../../rapid-vision/store.js";
 
@@ -126,7 +126,7 @@ export async function startHandler(event: APIGatewayProxyEventV2): Promise<APIGa
       );
     }
 
-    const incidentResult = await requireActiveRingIncident(incidentId, user);
+    const incidentResult = await requireActiveIncident(incidentId, user);
     if (!incidentResult.ok) {
       return ringJson({ success: false, error: incidentResult.message }, incidentResult.statusCode);
     }

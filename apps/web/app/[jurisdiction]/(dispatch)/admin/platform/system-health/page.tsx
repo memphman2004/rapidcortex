@@ -60,7 +60,7 @@ export default function PlatformSystemHealthPage() {
               title="SMS / comms (readiness only)"
               health="warn"
             >
-              This page does not dial Twilio. Use the integration view + carrier dashboards.
+              This page does not send SMS. Use the integration view and AWS End User Messaging dashboards.
             </ProviderHealthCard>
             <ProviderHealthCard
               title="SES / email"

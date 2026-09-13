@@ -47,8 +47,8 @@ export default function SubProcessorsPage() {
             hosting, storage, and compute
           </li>
           <li>
-            <span className="text-slate-200">Communications:</span> Twilio Inc. — SMS and voice
-            messaging
+            <span className="text-slate-200">Communications:</span> Amazon Web Services — SMS
+            (End User Messaging)
           </li>
           <li>
             <span className="text-slate-200">Camera integration:</span> Ring LLC (Amazon) — device

@@ -21,7 +21,7 @@ You **cannot** request a 10DLC number first. AWS requires an approved brand and 
 3. **Register the campaign** (`US_TEN_DLC_CAMPAIGN_REGISTRATION`), referencing the approved brand. **Budget up to 4 weeks.**
 4. **Request the phone number.** Originator type **10DLC** (not "long code" — a plain long code needs a Support case), associated with the approved campaign. Up to 10 days.
 
-End to end this is realistically six to seven weeks, so keep Twilio running in parallel rather than planning a quick cutover. Note also that 10DLC resources are **per region**: sending from a second region means repeating the whole registration there.
+End to end this is realistically six to seven weeks. Note also that 10DLC resources are **per region**: sending from a second region means repeating the whole registration there.
 
 ### Account and credentials
 
@@ -92,9 +92,9 @@ APPLY=1 AWS_SMS_PHONE_NUMBER_ID=… AWS_SMS_INBOUND_TOPIC_ARN=… \
 
 ### You cannot choose the number
 
-`RequestPhoneNumber` takes only a country, number type, and capabilities. There is **no area-code parameter and no API to search, browse, or reserve a specific number** — AWS assigns one from its inventory, and the console requests through the same API, so clicking does not help. This is a real difference from Twilio, where the Columbus pilot number (+1 470-748-2763) was hand-picked from a search.
+`RequestPhoneNumber` takes only a country, number type, and capabilities. There is **no area-code parameter and no API to search, browse, or reserve a specific number** — AWS assigns one from its inventory, and the console requests through the same API, so clicking does not help.
 
-That matters for the per-agency sender design: agencies are supposed to text residents from a recognizable local number, and on AWS you cannot request an agency's area code. Options are to request numbers and accept whatever area codes come back, keep Twilio for agencies where a local number is contractually promised, or port existing Twilio numbers into AWS (see `RequestPhoneNumber` vs. number porting, which is a separate Support-driven process).
+That matters for the per-agency sender design: agencies are supposed to text residents from a recognizable local number, and on AWS you cannot request an agency's area code. Options are to request numbers and accept whatever area codes come back, or port an existing 10DLC number into AWS (`RequestPhoneNumber` vs. number porting, which is a separate Support-driven process).
 
 ### Post-approval tasks (once the campaign clears and numbers exist)
 
@@ -167,17 +167,13 @@ The same table drives inbound routing, so a number registered to an agency both 
 
 | Variable | Purpose |
 |----------|---------|
-| `SMS_PROVIDER` | `twilio` \| `aws` \| `auto` \| `mock` — routing mode. |
-| `SMS_PRIMARY_PROVIDER` | `twilio` \| `aws` — in `auto`, which to try first; the other is failover on **retryable** errors. |
+| `SMS_PROVIDER` | `aws` \| `mock` — routing mode. Legacy `twilio` / `auto` / `sns` map to `aws`. |
 | `AWS_SMS_REGION` | Region for the End User Messaging client (falls back to `AWS_REGION`). |
 | `AWS_SMS_POOL_ID` | Shared origination pool, used when an agency has no number of its own. |
 | `AWS_SMS_CONFIGURATION_SET_NAME` | Attached to every send; **required for delivery events**. |
 | `SMS_ROUTING_TABLE` | Per-agency number table. Unset means every agency uses the shared sender. |
 | `AWS_SMS_USE_SIMULATOR` | `true` — do not call AWS; return a dry-run success (local/staging). |
-| `MOCK_SMS_PROVIDER` | `true` — force mock provider (no Twilio, no AWS). |
-| `TWILIO_SECRET_ARN` / `INCIDENT_MEDIA_TWILIO_SECRET_ARN` | Secrets Manager ARN for the Twilio credential blob. |
-
-**Secrets:** never put `TWILIO_ACCOUNT_SID`, `TWILIO_AUTH_TOKEN`, `TWILIO_API_KEY_*`, or `TWILIO_MESSAGING_SERVICE_SID` in raw Lambda env vars; they belong only in the JSON behind the secret ARN.
+| `MOCK_SMS_PROVIDER` | `true` — force mock provider (no AWS send). |
 
 ## Account tier: sandbox vs production
 
@@ -197,8 +193,6 @@ Recipient numbers are redacted in every log line; our own sending number is not,
 
 CloudWatch metric `OutboundSmsRoutingFailures` (namespace `RapidCortex/Sms`) is emitted from log metric filters on `routing_complete` lines with `finalStatus: failed`; the alarm lives in `infra/template.yaml`.
 
-## Failover behavior
+## Error handling
 
-In `auto` mode, a **retryable** failure on the primary falls through to the other provider. The agency's sender is carried across both paths — Twilio receives it as `From`, AWS as `OriginationIdentity` — so failover does not silently change which number a resident sees.
-
-Non-retryable AWS errors (`AccessDeniedException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`) fail over rather than retry, since retrying cannot succeed. A missing or unregistered origination identity surfaces this way.
+Non-retryable AWS errors (`AccessDeniedException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, invalid numbers, opt-out) fail the send. Retryable errors (throttling, timeouts) are classified on the result for callers; there is no second-provider failover.

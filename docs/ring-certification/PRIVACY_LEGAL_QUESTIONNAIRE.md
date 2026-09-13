@@ -29,7 +29,7 @@ Ring video from Connect is not stored by Rapid Cortex (0-day retention).
 Rapid Cortex shares data with the following categories of sub-processors to deliver the service:
 
 - Infrastructure: Amazon Web Services (AWS) — hosting, storage, compute
-- Communications: Twilio Inc. — SMS and voice messaging
+- Communications: Amazon Web Services — SMS (End User Messaging)
 - Camera Integration: Ring LLC (Amazon) — device authorization and live video streaming, solely pursuant to user consent
 - AI Processing: Anthropic PBC — natural language processing and transcription analysis under a data processing agreement
 
@@ -150,7 +150,7 @@ Privacy policy + terms published; support contact on listing and site.
 | Party | Why |
 |-------|-----|
 | AWS (infrastructure) | Hosting, secrets, live stream transport |
-| Twilio Inc. | SMS Allow/Decline/Stop Sharing messages to device owners |
+| AWS End User Messaging | SMS Allow/Decline/Stop Sharing messages to device owners |
 | Anthropic PBC | Agency telephony NLP/transcription (separate from Ring video; DPA prohibits training on customer data) |
 | Ring / Amazon Vision API | Device list, streaming after consent |
 | Participating public-safety agency (customer) | Only after owner Allow for that request; live view only |

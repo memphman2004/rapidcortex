@@ -134,7 +134,7 @@ export type RingOwnerNotificationInput = {
 
 /**
  * Kept to two SMS segments with a single link. Multi-segment messages carrying several long
- * links read as spam to US carriers and get dropped after Twilio has already accepted them, so
+ * links read as spam to US carriers and get dropped after the provider has already accepted them, so
  * the device name and incident detail live on the landing page instead of in the text.
  * ASCII only — a single non-GSM-7 character (™, curly quotes) halves the per-segment budget.
  */

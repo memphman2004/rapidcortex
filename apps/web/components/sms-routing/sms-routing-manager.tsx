@@ -132,7 +132,7 @@ export function SmsRoutingManager({
     <div className="space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <p className="text-sm text-slate-400">
-          Each agency needs a dedicated Twilio number. Incoming texts to that number route to this agency
+          Each agency needs a dedicated AWS End User Messaging number. Incoming texts to that number route to this agency
           automatically — no keywords or prefixes required.
         </p>
         {canManage ? (
@@ -208,7 +208,7 @@ export function SmsRoutingManager({
             className="w-full max-w-md rounded-lg border border-slate-700 bg-slate-900 p-5"
           >
             <h3 className="text-lg font-semibold text-white">Register SMS number</h3>
-            <p className="mt-1 text-xs text-slate-500">Twilio number for this agency routing line.</p>
+            <p className="mt-1 text-xs text-slate-500">AWS SMS number for this agency routing line.</p>
             <div className="mt-4">
               <PhoneInput label="Phone number" onChange={setPhoneE164} disabled={busy} />
             </div>

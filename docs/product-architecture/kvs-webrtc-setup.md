@@ -76,7 +76,7 @@ Or in the **AWS console**: Kinesis Video Streams → your signaling channel → 
 | `LIVE_VIDEO_EXPORT_TO_S3` | Default **on**. GetClip → `ASSETS_BUCKET` prefix `live-video/{agencyId}/...`. |
 | `NEXT_PUBLIC_ENABLE_LIVE_VIDEO` | Web: enable UI surfaces. |
 
-`SMS_PROVIDER` and `TWILIO_SECRET_ARN` / `INCIDENT_MEDIA_TWILIO_SECRET_ARN` are unchanged; SMS uses the existing factory.
+`SMS_PROVIDER` is `aws` or `mock`; SMS uses AWS End User Messaging via the shared factory.
 
 **Note:** Production sessions typically create a **new** signaling channel per request; the CLI scripts are for **shared** channel/stream names, staging, and validation—not a substitute for the API’s per-session resources.
 

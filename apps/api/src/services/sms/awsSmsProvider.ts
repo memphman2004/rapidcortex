@@ -58,7 +58,7 @@ export function classifyAwsSmsError(e: unknown): AwsSmsErrorClassification {
     return { retryable: false, errorCode: code, errorMessage: message.slice(0, 500) };
   }
   // v2 API surfaces these for a missing/unregistered origination identity or an exhausted spend
-  // quota. Failing them over to Twilio is right — retrying AWS cannot succeed.
+  // quota. Retrying the same send cannot succeed.
   if (
     name === "AccessDeniedException" ||
     name === "ResourceNotFoundException" ||
@@ -111,8 +111,8 @@ function resolveOriginationIdentity(args: {
 
 /**
  * AWS End User Messaging SMS send. All AWS-specific behavior stays in this module.
- * The configuration set is what routes delivery events, so leaving it unset means the same
- * blind spot Twilio had before delivery receipts: an accepted send and a dropped one look alike.
+ * The configuration set is what routes delivery events, so leaving it unset means an accepted
+ * send and a dropped one look alike.
  */
 export async function sendWithAwsSms(args: {
   toPhoneE164: string;

@@ -11,7 +11,7 @@ const STEP_LABELS: Record<PlatformOnboardingStepId, string> = {
   cognito_ready: "Sign-in ready",
   dns_web: "DNS & web / TLS",
   ses: "SES / email",
-  sms: "SMS (Twilio / AWS)",
+  sms: "SMS (AWS End User Messaging)",
   live_video: "Live video (KVS / WebRTC)",
   cad: "CAD integration",
   training: "Training complete",

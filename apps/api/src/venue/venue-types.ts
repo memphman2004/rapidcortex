@@ -317,7 +317,7 @@ export interface VenueIncidentRecord {
   source: VenueIncidentSource;
   status: VenueIncidentStatus;
   description: string;
-  callerPhone: string; // E.164 - from Twilio From field
+  callerPhone: string; // E.164 — inbound originator
   hasMedia: boolean;
   mediaUrls: string[];
   cameraRefs: string[];

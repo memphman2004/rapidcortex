@@ -5,7 +5,7 @@
  * plus extensionless `{route}` keys. CloudFront+S3 REST does not auto-resolve
  * `/privacy/` → `privacy/index.html`. Without this rewrite, `/privacy/` 404s and
  * CustomErrorResponses maps that to `/index.html` (homepage) with HTTP 200 —
- * which breaks Twilio/TCR policy URL checks that often append a trailing slash.
+ * which breaks A2P 10DLC / TCR policy URL checks that often append a trailing slash.
  */
 function handler(event) {
   var request = event.request;

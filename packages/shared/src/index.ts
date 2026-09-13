@@ -72,6 +72,7 @@ export * from "./pinpoint-surge/index.js";
 export * from "./call-control/index.js";
 export * from "./voice-bridge/schemas.js";
 export * from "./ring/index.js";
+export * from "./cameras/index.js";
 export * from "./venue/index.js";
 export * from "./transit/index.js";
 export * from "./locations/index.js";

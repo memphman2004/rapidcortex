@@ -169,8 +169,8 @@ Lead with Quick-Start Pilot (no CAD required). Target ECC Directors at mid-size 
 | ENS | Rave · Omnilert · Regroup · Everbridge · Blackboard Connect — RC alongside, not instead |
 | VMS | Milestone · Avigilon · Salient · Genetec · ONVIF-compatible |
 | Campus PD CAD | Some run Motorola/Tyler; many rely on city/county 911 — RC layers on campus security ops |
-| RC requirements | Dedicated Twilio number (local) · A2P 10DLC · QR/NFC per building/zone · Campus admin console |
-| Timeline | MSA → Twilio → accounts → QR/NFC → signs → live in **2–4 weeks** |
+| RC requirements | Dedicated AWS End User Messaging number (local) · A2P 10DLC · QR/NFC per building/zone · Campus admin console |
+| Timeline | MSA → AWS 10DLC → accounts → QR/NFC → signs → live in **2–4 weeks** |
 | Privacy | No PII in CloudWatch · Anonymous reporting option · Ephemeral location · FERPA-aware design |
 
 ### Buying process
@@ -197,12 +197,12 @@ Lead with Quick-Start Pilot (no CAD required). Target ECC Directors at mid-size 
 | Large | 25,000–50,000 | $35,000–$70,000/yr | Major state / flagship campuses |
 | Flagship / mega | 50,000–70,000+ | $70,000–$100,000+/yr | Top enrollment / multi-campus |
 
-**Add-ons:** Camera integration for supported VMS often in onboarding · Training $2,500–$7,500 · A2P ~$10 · Twilio number ~$1.15/mo.
+**Add-ons:** Camera integration for supported VMS often in onboarding · Training $2,500–$7,500 · A2P ~$10 · AWS SMS number ~$1.15/mo.
 
 ### Negative ICP (Campus)
 
 - Under ~3,500 enrolled (below ACV floor)
-- No IT capacity for Twilio webhooks / DNS
+- No IT capacity for SMS origination / DNS
 - Recent ENS contract covering similar functionality
 - Legal prohibits SMS-based location collection
 - No dedicated campus security / public safety department
@@ -257,10 +257,10 @@ Lead with 15-minute student QR → live console demo. Target Chief / Director of
 |------|-------------------------|
 | VMS | Genetec (common in major leagues) · Milestone · Avigilon · Salient · ONVIF |
 | Camera path | RTSP → KVS Producer Agent → Kinesis Video Streams → WebRTC in console; no camera replacement |
-| SMS / reporting | Dedicated Twilio + A2P 10DLC · QR/NFC per section, gate, concourse, restroom corridor |
+| SMS / reporting | Dedicated AWS End User Messaging + A2P 10DLC · QR/NFC per section, gate, concourse, restroom corridor |
 | Camera count | Often 100–500+; RC auto-selects top cameras for section — no manual pick |
 | Network | Agent: RTSP:554 on LAN; HTTPS/443 + UDP high ports outbound to AWS; ~5 Mbps/upload per concurrent 1080p stream |
-| Timeline | MSA → Twilio → camera registry → KVS agent → QR/NFC → pre-event test → live; typically **3–6 weeks** |
+| Timeline | MSA → AWS 10DLC → camera registry → KVS agent → QR/NFC → pre-event test → live; typically **3–6 weeks** |
 
 ### Buying process
 

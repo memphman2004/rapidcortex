@@ -1,4 +1,8 @@
-import { RING_AUDIT_EVENT_TYPES } from "rapid-cortex-shared/audit-schema";
+import {
+  NEST_AUDIT_EVENT_TYPES,
+  RING_AUDIT_EVENT_TYPES,
+  WYZE_AUDIT_EVENT_TYPES,
+} from "rapid-cortex-shared/audit-schema";
 
 /**
  * CJIS-aligned audit vocabulary — align API `AuditEvent.type` strings with these constants.
@@ -478,6 +482,8 @@ export const AUDIT_EVENT_TYPES = {
   SUPERVISOR_OPERATORS_VIEWED: "supervisor.operators.viewed",
 
   ...RING_AUDIT_EVENT_TYPES,
+  ...WYZE_AUDIT_EVENT_TYPES,
+  ...NEST_AUDIT_EVENT_TYPES,
 
   VISION_CAMERA_DISCOVERED: "vision.camera.discovered",
   VISION_CONSENT_REQUESTED: "vision.consent.requested",

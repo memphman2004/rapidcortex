@@ -31,7 +31,7 @@ export default async function CampusSmsNumbersPage({ params }: Props) {
           SMS Numbers
         </h1>
         <p className="mt-1 max-w-3xl text-sm" style={{ color: "var(--rc-text-muted)" }}>
-          Register the Twilio number printed on campus signs. Incoming texts are routed by the
+          Register the AWS SMS number printed on campus signs. Incoming texts are routed by the
           destination number — no keywords or prefixes required.
         </p>
         <div className="mt-3">

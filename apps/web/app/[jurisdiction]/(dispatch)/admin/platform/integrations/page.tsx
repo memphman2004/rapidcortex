@@ -48,7 +48,7 @@ export default function PlatformIntegrationsPage() {
             {p ? (
               <>
                 <ProviderHealthCard
-                  title="SMS & voice (Twilio / SNS paths)"
+                  title="SMS (AWS End User Messaging)"
                   health="warn"
                 >
                   Configure per deployment; this screen does not call carrier APIs. Combine with

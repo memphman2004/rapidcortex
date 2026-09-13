@@ -101,6 +101,8 @@ describe("isCommsPlatformApiPath", () => {
     expect(isSam4ApiPath("/api/public/ring/oauth/start")).toBe(true);
     expect(isSam4ApiPath("/api/public/ring/homeowner/delete-account")).toBe(true);
     expect(isSam4ApiPath("/api/user/account")).toBe(true);
+    expect(isSam4ApiPath("/api/cameras/providers/wyze/register")).toBe(true);
+    expect(isSam4ApiPath("/api/cameras/providers/wyze/available-cameras")).toBe(true);
     expect(isStack2ApiPath("/api/billing/plans")).toBe(false);
   });
 

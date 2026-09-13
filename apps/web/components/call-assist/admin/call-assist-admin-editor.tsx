@@ -423,7 +423,7 @@ export function CallAssistAdminEditor() {
             <h2 className="text-sm font-semibold text-white">Callback campaign & SMS</h2>
             <p className="mt-1 text-[12px] text-slate-500">
               After-hours and overflow callbacks queue for the worker. Live PSTN outbound stays mock until Connect
-              outbound is configured. SMS uses Twilio/SNS when those secrets are present; otherwise it mocks.
+              outbound is configured. SMS uses AWS End User Messaging when origination is configured; otherwise it mocks.
             </p>
             <label className="mt-2 flex items-center gap-2 text-sm text-slate-200">
               <input

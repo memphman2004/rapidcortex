@@ -21,7 +21,7 @@ export default async function TransitAdminSmsNumbersPage() {
       <div>
         <h1 className="text-2xl font-semibold text-white">SMS Numbers</h1>
         <p className="mt-2 max-w-3xl text-sm text-slate-400">
-          Register the Twilio number printed on vehicle and station signs. Incoming texts are routed
+          Register the AWS SMS number printed on vehicle and station signs. Incoming texts are routed
           by destination number.
         </p>
         <div className="mt-4 flex flex-wrap gap-4 text-sm">

@@ -40,12 +40,13 @@ export default function CampusSafetyIntegrationsPage() {
             "SMS reporting into the campus safety dashboard",
             "Ring Connect — consent-based emergency video from device owners",
             "Google Nest SDM — agency-linked cameras plus citizen consent requests",
+            "Wyze Connect — homeowner API keys with SMS consent per request",
             "Optional handoff to municipal dispatch / CAD-friendly workflows",
           ],
         },
         {
           title: "Camera consent, not camera takeover",
-          body: "Ring and Nest Connect are consent flows. Rapid Cortex does not silently tap residential cameras. Campus-owned Nest devices can be agency-linked; resident devices require an explicit request during an incident.",
+          body: "Ring, Nest, and Wyze Connect are consent flows. Rapid Cortex does not silently tap residential cameras. Campus-owned Nest devices can be agency-linked; resident devices require an explicit request during an incident.",
         },
         {
           title: "Compliance and operations notes",
@@ -62,6 +63,7 @@ export default function CampusSafetyIntegrationsPage() {
         { href: "/integrations", label: "Integrations overview" },
         { href: "/connect/ring/start", label: "Start Ring Connect" },
         { href: "/connect/nest", label: "Nest Connect" },
+        { href: "/connect/wyze/start", label: "Wyze Connect" },
         { href: "/cad-integration", label: "CAD integration" },
         { href: "/free-60-day-pilot", label: "Free 60-Day Pilot Program" },
         { href: "/blog/rapid-cortex-campus", label: "Blog: Rapid Cortex Campus" },
@@ -76,7 +78,7 @@ export default function CampusSafetyIntegrationsPage() {
         {
           question: "Which cameras can we integrate?",
           answer:
-            "Consent-based Ring Connect and Google Nest SDM are the public Connect paths. Campus-owned Nest devices can be agency-linked. Other CCTV stacks are scoped per contract.",
+            "Consent-based Ring Connect, Google Nest SDM, and Wyze Connect are the public Connect paths. Campus-owned Nest devices can be agency-linked. Other CCTV stacks are scoped per contract.",
         },
         {
           question: "Can we pilot integrations before a campus-wide rollout?",

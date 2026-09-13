@@ -19,6 +19,8 @@ const NEXT_PUBLIC_FLAG_VALUES: Record<string, string | undefined> = {
   NEXT_PUBLIC_ENABLE_RC_TRANSLATE_HOSPITAL: process.env.NEXT_PUBLIC_ENABLE_RC_TRANSLATE_HOSPITAL,
   NEXT_PUBLIC_ENABLE_RAPID_VISION: process.env.NEXT_PUBLIC_ENABLE_RAPID_VISION,
   NEXT_PUBLIC_ENABLE_RAPID_VISION_RING: process.env.NEXT_PUBLIC_ENABLE_RAPID_VISION_RING,
+  NEXT_PUBLIC_ENABLE_RAPID_VISION_NEST: process.env.NEXT_PUBLIC_ENABLE_RAPID_VISION_NEST,
+  NEXT_PUBLIC_ENABLE_RAPID_VISION_WYZE: process.env.NEXT_PUBLIC_ENABLE_RAPID_VISION_WYZE,
   NEXT_PUBLIC_ENABLE_RAPID_VISION_CALLER_VIDEO: process.env.NEXT_PUBLIC_ENABLE_RAPID_VISION_CALLER_VIDEO,
   NEXT_PUBLIC_ENABLE_RAPID_VISION_DEMO: process.env.NEXT_PUBLIC_ENABLE_RAPID_VISION_DEMO,
   NEXT_PUBLIC_ENABLE_RAPID_VISION_AI_WRITER: process.env.NEXT_PUBLIC_ENABLE_RAPID_VISION_AI_WRITER,
@@ -76,6 +78,7 @@ const NEXT_PUBLIC_FLAG_VALUES: Record<string, string | undefined> = {
   NEXT_PUBLIC_ENABLE_CAMPUS_OPERATIONAL_MAP: process.env.NEXT_PUBLIC_ENABLE_CAMPUS_OPERATIONAL_MAP,
   NEXT_PUBLIC_ENABLE_RCS: process.env.NEXT_PUBLIC_ENABLE_RCS,
   NEXT_PUBLIC_ENABLE_CONNECT_NEST: process.env.NEXT_PUBLIC_ENABLE_CONNECT_NEST,
+  NEXT_PUBLIC_ENABLE_CONNECT_WYZE: process.env.NEXT_PUBLIC_ENABLE_CONNECT_WYZE,
   NEXT_PUBLIC_ENABLE_RAPID_IQ: process.env.NEXT_PUBLIC_ENABLE_RAPID_IQ,
   NEXT_PUBLIC_ENABLE_RAPID_IQ_PIPELINE: process.env.NEXT_PUBLIC_ENABLE_RAPID_IQ_PIPELINE,
   NEXT_PUBLIC_ENABLE_RAPID_IQ_INTEL: process.env.NEXT_PUBLIC_ENABLE_RAPID_IQ_INTEL,
@@ -218,6 +221,38 @@ export function isRapidVisionRingEnabled(): boolean {
     RING_INTEGRATION_ENABLED &&
     isRapidVisionEnabled() &&
     envFlag("NEXT_PUBLIC_ENABLE_RAPID_VISION_RING")
+  );
+}
+
+/**
+ * Rapid Vision™ — Google Nest camera source.
+ *
+ * Guards any Rapid Vision UI surface that draws from a Nest WebRTC stream
+ * (dispatcher camera panel, incident media viewer, AI writer frame capture).
+ *
+ * Requires both the top-level Rapid Vision gate and the Nest Connect gate to
+ * be live — disabling either silently disables this sub-flag so no surface
+ * ever shows a Nest stream without a valid SDM token.
+ *
+ * Defaults **on** when unset, matching the pattern of all other Rapid Vision
+ * sub-flags except the (dead) Ring source.
+ *
+ * Env: NEXT_PUBLIC_ENABLE_RAPID_VISION_NEST
+ */
+export function isRapidVisionNestEnabled(): boolean {
+  return (
+    isRapidVisionEnabled() &&
+    isConnectNestEnabled() &&
+    envFlag("NEXT_PUBLIC_ENABLE_RAPID_VISION_NEST")
+  );
+}
+
+/** Rapid Vision™ — Wyze camera source. Requires Vision + Wyze Connect. Default on when unset. */
+export function isRapidVisionWyzeEnabled(): boolean {
+  return (
+    isRapidVisionEnabled() &&
+    isConnectWyzeEnabled() &&
+    envFlag("NEXT_PUBLIC_ENABLE_RAPID_VISION_WYZE")
   );
 }
 
@@ -368,7 +403,7 @@ export function isSmsLocationEnabled(): boolean {
 
 /**
  * Silent Text (SMS → web text chat for unsafe-to-speak callers). Must align with API
- * `ENABLE_SILENT_TEXT` + a configured SMS provider (Twilio secret ARN or AWS SNS) — otherwise
+ * `ENABLE_SILENT_TEXT` + AWS End User Messaging (or mock) — otherwise
  * starting a session will return ok=false and audit `SILENT_TEXT_SMS_FAILED`. Off by default.
  */
 export function isSilentTextEnabled(): boolean {
@@ -555,6 +590,11 @@ export function isRcsEnabled(): boolean {
 /** Google Nest camera connect on dispatcher Media + admin integrations. Default on when unset. */
 export function isConnectNestEnabled(): boolean {
   return envFlag("NEXT_PUBLIC_ENABLE_CONNECT_NEST");
+}
+
+/** Wyze homeowner camera connect (consent-based emergency sharing). Default on when unset. */
+export function isConnectWyzeEnabled(): boolean {
+  return envFlag("NEXT_PUBLIC_ENABLE_CONNECT_WYZE");
 }
 
 /** RC Admin Rapid IQ sales intelligence (procurement signals). Default on when unset. */

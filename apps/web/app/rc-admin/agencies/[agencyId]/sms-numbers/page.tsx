@@ -45,7 +45,7 @@ export default async function RcAdminAgencySmsNumbersPage({ params }: Props) {
       <div>
         <h1 className="text-2xl font-semibold text-white">SMS Numbers — {agencyName}</h1>
         <p className="mt-2 max-w-3xl text-sm text-slate-400">
-          Register the Twilio number printed on signs and QR/NFC collateral. Students text this number;
+          Register the AWS SMS number printed on signs and QR/NFC collateral. Students text this number;
           routing uses the destination number only.
         </p>
         <div className="mt-4 flex flex-wrap gap-4 text-sm">

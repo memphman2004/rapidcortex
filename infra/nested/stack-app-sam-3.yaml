@@ -588,22 +588,22 @@ Mappings:
   SmsEnvironmentDefaults:
     dev:
       SmsProvider: mock
-      SmsPrimaryProvider: twilio
+      SmsPrimaryProvider: aws
       MockSmsProvider: "true"
       AwsSmsUseSimulator: "true"
     staging:
-      SmsProvider: auto
-      SmsPrimaryProvider: twilio
+      SmsProvider: aws
+      SmsPrimaryProvider: aws
       MockSmsProvider: "false"
       AwsSmsUseSimulator: "false"
     prod:
-      SmsProvider: auto
-      SmsPrimaryProvider: twilio
+      SmsProvider: aws
+      SmsPrimaryProvider: aws
       MockSmsProvider: "false"
       AwsSmsUseSimulator: "false"
     pilot:
-      SmsProvider: auto
-      SmsPrimaryProvider: twilio
+      SmsProvider: aws
+      SmsPrimaryProvider: aws
       MockSmsProvider: "false"
       AwsSmsUseSimulator: "false"
 

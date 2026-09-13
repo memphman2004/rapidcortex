@@ -10,18 +10,51 @@ describe("Rapid Vision™ UI flags", () => {
     vi.stubEnv("NEXT_PUBLIC_ENABLE_RAPID_VISION", "0");
     mod = await import("./runtime-flags.js");
     expect(mod.isRapidVisionEnabled()).toBe(false);
+  }, 20_000);
+
+  it("Nest source defaults on when unset and requires Vision + Nest Connect", async () => {
+    vi.resetModules();
+    vi.stubEnv("NEXT_PUBLIC_ENABLE_RAPID_VISION", "1");
+    vi.stubEnv("NEXT_PUBLIC_ENABLE_CONNECT_NEST", "1");
+    vi.stubEnv("NEXT_PUBLIC_ENABLE_RAPID_VISION_NEST", "");
+    let mod = await import("./runtime-flags.js");
+    expect(mod.isRapidVisionNestEnabled()).toBe(true);
+
+    vi.resetModules();
+    vi.stubEnv("NEXT_PUBLIC_ENABLE_RAPID_VISION", "1");
+    vi.stubEnv("NEXT_PUBLIC_ENABLE_CONNECT_NEST", "1");
+    vi.stubEnv("NEXT_PUBLIC_ENABLE_RAPID_VISION_NEST", "0");
+    mod = await import("./runtime-flags.js");
+    expect(mod.isRapidVisionNestEnabled()).toBe(false);
+
+    vi.resetModules();
+    vi.stubEnv("NEXT_PUBLIC_ENABLE_RAPID_VISION", "1");
+    vi.stubEnv("NEXT_PUBLIC_ENABLE_CONNECT_NEST", "0");
+    vi.stubEnv("NEXT_PUBLIC_ENABLE_RAPID_VISION_NEST", "1");
+    mod = await import("./runtime-flags.js");
+    expect(mod.isRapidVisionNestEnabled()).toBe(false);
   });
 
-  it("transcript flag defaults on when unset and honors explicit disable", async () => {
+  it("Wyze source defaults on when unset and requires Vision + Wyze Connect", async () => {
     vi.resetModules();
     vi.stubEnv("NEXT_PUBLIC_ENABLE_RAPID_VISION", "1");
-    vi.stubEnv("NEXT_PUBLIC_ENABLE_RAPID_VISION_TRANSCRIPT", "");
+    vi.stubEnv("NEXT_PUBLIC_ENABLE_CONNECT_WYZE", "1");
+    vi.stubEnv("NEXT_PUBLIC_ENABLE_RAPID_VISION_WYZE", "");
     let mod = await import("./runtime-flags.js");
-    expect(mod.isRapidVisionTranscriptEnabled()).toBe(true);
+    expect(mod.isRapidVisionWyzeEnabled()).toBe(true);
+
     vi.resetModules();
     vi.stubEnv("NEXT_PUBLIC_ENABLE_RAPID_VISION", "1");
-    vi.stubEnv("NEXT_PUBLIC_ENABLE_RAPID_VISION_TRANSCRIPT", "0");
+    vi.stubEnv("NEXT_PUBLIC_ENABLE_CONNECT_WYZE", "1");
+    vi.stubEnv("NEXT_PUBLIC_ENABLE_RAPID_VISION_WYZE", "0");
     mod = await import("./runtime-flags.js");
-    expect(mod.isRapidVisionTranscriptEnabled()).toBe(false);
+    expect(mod.isRapidVisionWyzeEnabled()).toBe(false);
+
+    vi.resetModules();
+    vi.stubEnv("NEXT_PUBLIC_ENABLE_RAPID_VISION", "1");
+    vi.stubEnv("NEXT_PUBLIC_ENABLE_CONNECT_WYZE", "0");
+    vi.stubEnv("NEXT_PUBLIC_ENABLE_RAPID_VISION_WYZE", "1");
+    mod = await import("./runtime-flags.js");
+    expect(mod.isRapidVisionWyzeEnabled()).toBe(false);
   });
 });

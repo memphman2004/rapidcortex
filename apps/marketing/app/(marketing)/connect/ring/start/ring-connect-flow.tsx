@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { RING_INTEGRATION_ENABLED } from "rapid-cortex-shared";
 import { useSearchParams } from "next/navigation";
+import { connectPublicApiBase } from "@/lib/connect-public-api";
 
 const US_STATES: [string, string][] = [
   ["AL", "Alabama"], ["AK", "Alaska"], ["AZ", "Arizona"], ["AR", "Arkansas"],
@@ -35,7 +36,7 @@ type FetchState =
   | { status: "soft_empty" };
 
 // Public agencies + leads APIs live on Stack 4.
-const API_BASE = process.env.NEXT_PUBLIC_RING_PUBLIC_OAUTH_BASE ?? "";
+const API_BASE = connectPublicApiBase();
 
 function parseAgenciesPayload(data: unknown): Agency[] {
   if (Array.isArray(data)) {

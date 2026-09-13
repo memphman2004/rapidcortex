@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { NestConnectEnrollment } from "@/components/connect/nest-connect-enrollment";
 import { MarketingArticleShell } from "@/components/marketing/marketing-article-shell";
 import { absoluteUrl } from "@/lib/seo";
 import { GOOGLE_NEST_TM, NEST_TM, RING_TM } from "@/lib/brand-marks";
@@ -30,7 +31,8 @@ export default function NestConnectPage() {
           <li>
             <strong className="text-slate-100">Link the agency {NEST_TM} account.</strong> An agency
             admin completes Google SDM OAuth from Rapid Cortex Admin → Integrations (or Campus /
-            Venue Cameras). Client secrets stay in AWS Secrets Manager — never in the browser.
+            Venue Cameras). The OAuth client secret is encrypted with KMS before storage — never in
+            the browser.
           </li>
           <li>
             <strong className="text-slate-100">Agency cameras on Media.</strong> Dispatchers and
@@ -49,6 +51,8 @@ export default function NestConnectPage() {
           </li>
         </ul>
       </section>
+
+      <NestConnectEnrollment />
 
       <section className="mt-8 space-y-4 rounded-2xl border border-slate-700/80 bg-slate-950/40 p-6 text-sm leading-relaxed text-slate-300">
         <h2 className="text-base font-semibold text-white">Privacy &amp; consent</h2>

@@ -4,8 +4,8 @@
  *   STAGE=dev AGENCY_ID=test-agency PHONE_NUMBER=+14707482763 \
  *     npx tsx scripts/seed-agency-sms-sender-dev.ts
  *
- * The number must already belong to the Twilio Messaging Service pool, otherwise Twilio
- * rejects the send with 21606.
+ * The number must already exist in AWS End User Messaging (phone number or pool), otherwise
+ * SendTextMessage fails with ResourceNotFoundException.
  *
  * `vertical` is deliberately "911": the same table drives inbound routing, where "campus" and
  * "venue" hand replies to those intake parsers. "911" keeps inbound replies logged as unrouted,

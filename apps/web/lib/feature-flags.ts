@@ -7,4 +7,13 @@
  */
 
 export { RING_INTEGRATION_ENABLED } from "rapid-cortex-shared";
-export { isCadConnectorEnabled, isCadConnectorUiEnabled } from "./runtime-flags";
+export {
+  isCadConnectorEnabled,
+  isCadConnectorUiEnabled,
+  isConnectNestEnabled,
+  isConnectWyzeEnabled,
+  isRapidVisionWyzeEnabled,
+} from "./runtime-flags";
+
+/** Rapid Vision™ Nest stream surfaces (Media / AI writer). Requires Vision + Nest Connect. */
+export { isRapidVisionNestEnabled } from "./runtime-flags";

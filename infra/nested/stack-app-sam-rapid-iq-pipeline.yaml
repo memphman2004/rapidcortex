@@ -73,8 +73,29 @@ Parameters:
   ApprovedCorsOrigins:
     Type: String
     Default: "https://www.rapidcortex.us,https://rapidcortex.us,https://app.rapidcortex.us,https://report.rapidcortex.us"
+  EnableRapidIqNewHttpRoutes:
+    Type: String
+    AllowedValues: ["true", "false"]
+    Default: "false"
+    Description: >-
+      Create nested-stack intel/sales HTTP API routes on AppSam3 HttpApi
+      (tbr4zvjlk5). Live rapid-cortex-dev must recreate SignalHttpIntegrationV2
+      first — leftover standalone route IDs and nested x30c8uk are ghosts
+      (NotFound on the API). Default false for staging; env-api-dev sets true.
+  EnableRapidIqNestedExpansion:
+    Type: String
+    AllowedValues: ["true", "false"]
+    Default: "false"
+    Description: >-
+      Create intel-watch queues plus extra ingest/sales/digest Lambdas on the hashed
+      nested stack (JWN4SGUYZXYF). Keep false on live rapid-cortex-dev: leftover
+      standalone rapid-cortex-dev-AppSamRapidIqPipelineStack already owns those
+      named EventBridge rules, named IAM policy, intel-watch queues, and Lambdas.
+      Enabling this duplicates ingest and collides with AlreadyExists (2026-09-12).
 
 Conditions:
+  RapidIqNewHttpRoutes: !Equals [!Ref EnableRapidIqNewHttpRoutes, "true"]
+  RapidIqNestedExpansion: !Equals [!Ref EnableRapidIqNestedExpansion, "true"]
   HasHttpApiJwtAuthorizer: !Not [!Equals [!Ref HttpApiJwtAuthorizerId, ""]]
   HasAnthropicApiKeySecretArn: !Not [!Equals [!Ref AnthropicApiKeySecretArn, ""]]
   HasSamGovSecretArn: !Not [!Equals [!Ref RapidIqSamGovApiKeySecretArn, ""]]
@@ -150,6 +171,7 @@ Resources:
 
   IntelWatchDLQ:
     Type: AWS::SQS::Queue
+    Condition: RapidIqNestedExpansion
     Properties:
       QueueName: !Sub "${ManagedPolicyNamePrefix}-rapid-iq-intel-watch-dlq-${DeploymentStage}-v2.fifo"
       FifoQueue: true
@@ -158,6 +180,7 @@ Resources:
 
   IntelWatchQueue:
     Type: AWS::SQS::Queue
+    Condition: RapidIqNestedExpansion
     Properties:
       QueueName: !Sub "${ManagedPolicyNamePrefix}-rapid-iq-intel-watch-${DeploymentStage}-v2.fifo"
       FifoQueue: true
@@ -248,7 +271,10 @@ Resources:
               - sqs:GetQueueUrl
             Resource:
               - !GetAtt RawSignalsQueue.Arn
-              - !GetAtt IntelWatchQueue.Arn
+              - !If
+                - RapidIqNestedExpansion
+                - !GetAtt IntelWatchQueue.Arn
+                - !Sub arn:aws:sqs:${AWS::Region}:${AWS::AccountId}:rapid-cortex-unused-riq-intel-watch
           - Sid: SqsConsume
             Effect: Allow
             Action:
@@ -258,7 +284,10 @@ Resources:
               - sqs:ChangeMessageVisibility
             Resource:
               - !GetAtt RawSignalsQueue.Arn
-              - !GetAtt IntelWatchQueue.Arn
+              - !If
+                - RapidIqNestedExpansion
+                - !GetAtt IntelWatchQueue.Arn
+                - !Sub arn:aws:sqs:${AWS::Region}:${AWS::AccountId}:rapid-cortex-unused-riq-intel-watch
           - Sid: ReadAnthropicSecret
             Effect: Allow
             Action:
@@ -342,8 +371,9 @@ Resources:
         Schedule:
           Type: Schedule
           Properties:
+            # Do not set Name: leftover standalone stack rapid-cortex-dev-AppSamRapidIqPipelineStack
+            # already owns rapid-cortex-dev-riq-pipe-*-dev rules (AlreadyExists 2026-09-12).
             Schedule: cron(0 6 * * ? *)
-            Name: !Sub "${ManagedPolicyNamePrefix}-riq-pipe-usa-${DeploymentStage}"
             Enabled: true
             Description: Rapid IQ pipeline USASpending daily ingest
 
@@ -366,7 +396,6 @@ Resources:
           Type: Schedule
           Properties:
             Schedule: cron(30 6 * * ? *)
-            Name: !Sub "${ManagedPolicyNamePrefix}-riq-pipe-sam-${DeploymentStage}"
             Enabled: true
             Description: Rapid IQ pipeline SAM.gov daily ingest
 
@@ -389,7 +418,6 @@ Resources:
           Type: Schedule
           Properties:
             Schedule: rate(4 hours)
-            Name: !Sub "${ManagedPolicyNamePrefix}-riq-pipe-rss-${DeploymentStage}"
             Enabled: true
             Description: Rapid IQ pipeline news RSS ingest
 
@@ -413,7 +441,6 @@ Resources:
           Type: Schedule
           Properties:
             Schedule: cron(30 7 * * ? *)
-            Name: !Sub "${ManagedPolicyNamePrefix}-riq-pipe-legistar-${DeploymentStage}"
             Enabled: true
             Description: Rapid IQ pipeline Legistar bulk daily ingest
 
@@ -437,7 +464,6 @@ Resources:
           Type: Schedule
           Properties:
             Schedule: cron(0 8 * * ? *)
-            Name: !Sub "${ManagedPolicyNamePrefix}-riq-pipe-socrata-${DeploymentStage}"
             Enabled: true
             Description: Rapid IQ pipeline Socrata state contracts daily ingest
 
@@ -461,7 +487,6 @@ Resources:
           Type: Schedule
           Properties:
             Schedule: cron(30 8 * * ? *)
-            Name: !Sub "${ManagedPolicyNamePrefix}-riq-pipe-911boards-${DeploymentStage}"
             Enabled: true
             Description: Rapid IQ pipeline state 911 boards daily ingest
 
@@ -485,7 +510,6 @@ Resources:
           Type: Schedule
           Properties:
             Schedule: cron(0 9 * * ? *)
-            Name: !Sub "${ManagedPolicyNamePrefix}-riq-pipe-arpa-${DeploymentStage}"
             Enabled: true
             Description: Rapid IQ pipeline state ARPA dashboards daily ingest
 
@@ -509,12 +533,12 @@ Resources:
           Type: Schedule
           Properties:
             Schedule: cron(30 9 * * ? *)
-            Name: !Sub "${ManagedPolicyNamePrefix}-riq-pipe-openleg-${DeploymentStage}"
             Enabled: true
             Description: Rapid IQ pipeline OpenStates legislative daily ingest
 
   IngestCountyProcurementFunction:
     Type: AWS::Serverless::Function
+    Condition: RapidIqNestedExpansion
     Metadata:
       BuildMethod: makefile
       BuildTarget: build-function
@@ -533,12 +557,12 @@ Resources:
           Type: Schedule
           Properties:
             Schedule: rate(2 hours)
-            Name: !Sub "${ManagedPolicyNamePrefix}-riq-pipe-county-${DeploymentStage}"
             Enabled: true
             Description: Rapid IQ pipeline county procurement portals every 2 hours
 
   IngestGrantsGovFunction:
     Type: AWS::Serverless::Function
+    Condition: RapidIqNestedExpansion
     Metadata:
       BuildMethod: makefile
       BuildTarget: build-function
@@ -556,12 +580,12 @@ Resources:
           Type: Schedule
           Properties:
             Schedule: cron(0 7 * * ? *)
-            Name: !Sub "${ManagedPolicyNamePrefix}-riq-pipe-grants-${DeploymentStage}"
             Enabled: true
             Description: Rapid IQ pipeline Grants.gov daily ingest
 
   IngestNineOneOneGovFunction:
     Type: AWS::Serverless::Function
+    Condition: RapidIqNestedExpansion
     Metadata:
       BuildMethod: makefile
       BuildTarget: build-function
@@ -579,12 +603,12 @@ Resources:
           Type: Schedule
           Properties:
             Schedule: cron(0 8 * * ? *)
-            Name: !Sub "${ManagedPolicyNamePrefix}-riq-pipe-911gov-${DeploymentStage}"
             Enabled: true
             Description: Rapid IQ pipeline 911.gov and FCC daily ingest
 
   IngestApcoNenaFunction:
     Type: AWS::Serverless::Function
+    Condition: RapidIqNestedExpansion
     Metadata:
       BuildMethod: makefile
       BuildTarget: build-function
@@ -602,12 +626,12 @@ Resources:
           Type: Schedule
           Properties:
             Schedule: cron(0 9 * * ? *)
-            Name: !Sub "${ManagedPolicyNamePrefix}-riq-pipe-apco-${DeploymentStage}"
             Enabled: true
             Description: Rapid IQ pipeline APCO NENA NASNA daily ingest
 
   IngestCompetitorIntelFunction:
     Type: AWS::Serverless::Function
+    Condition: RapidIqNestedExpansion
     Metadata:
       BuildMethod: makefile
       BuildTarget: build-function
@@ -625,12 +649,12 @@ Resources:
           Type: Schedule
           Properties:
             Schedule: cron(0 10 * * ? *)
-            Name: !Sub "${ManagedPolicyNamePrefix}-riq-pipe-comp-${DeploymentStage}"
             Enabled: true
             Description: Rapid IQ pipeline competitor intel daily ingest
 
   IngestBoardDocsFunction:
     Type: AWS::Serverless::Function
+    Condition: RapidIqNestedExpansion
     Metadata:
       BuildMethod: makefile
       BuildTarget: build-function
@@ -648,12 +672,12 @@ Resources:
           Type: Schedule
           Properties:
             Schedule: cron(30 7 * * ? *)
-            Name: !Sub "${ManagedPolicyNamePrefix}-riq-pipe-bdocs-${DeploymentStage}"
             Enabled: true
             Description: Rapid IQ pipeline BoardDocs daily ingest
 
   IngestCivicClerkFunction:
     Type: AWS::Serverless::Function
+    Condition: RapidIqNestedExpansion
     Metadata:
       BuildMethod: makefile
       BuildTarget: build-function
@@ -671,12 +695,12 @@ Resources:
           Type: Schedule
           Properties:
             Schedule: cron(0 8 * * ? *)
-            Name: !Sub "${ManagedPolicyNamePrefix}-riq-pipe-civic-${DeploymentStage}"
             Enabled: true
             Description: Rapid IQ pipeline CivicClerk daily ingest
 
   IngestSourcewellFunction:
     Type: AWS::Serverless::Function
+    Condition: RapidIqNestedExpansion
     Metadata:
       BuildMethod: makefile
       BuildTarget: build-function
@@ -694,12 +718,12 @@ Resources:
           Type: Schedule
           Properties:
             Schedule: cron(0 11 * * ? *)
-            Name: !Sub "${ManagedPolicyNamePrefix}-riq-pipe-coop-${DeploymentStage}"
             Enabled: true
             Description: Rapid IQ pipeline Sourcewell OMNIA NASPO HGAC daily ingest
 
   IngestUniversityProcurementFunction:
     Type: AWS::Serverless::Function
+    Condition: RapidIqNestedExpansion
     Metadata:
       BuildMethod: makefile
       BuildTarget: build-function
@@ -717,7 +741,6 @@ Resources:
           Type: Schedule
           Properties:
             Schedule: cron(0 12 * * ? *)
-            Name: !Sub "${ManagedPolicyNamePrefix}-riq-pipe-univ-${DeploymentStage}"
             Enabled: true
             Description: Rapid IQ pipeline university procurement daily ingest
 
@@ -744,6 +767,7 @@ Resources:
 
   IntelWatchOrchestratorFunction:
     Type: AWS::Serverless::Function
+    Condition: RapidIqNestedExpansion
     Metadata:
       BuildMethod: makefile
       BuildTarget: build-function
@@ -761,12 +785,12 @@ Resources:
           Type: Schedule
           Properties:
             Schedule: cron(15 13 * * ? *)
-            Name: !Sub "${ManagedPolicyNamePrefix}-riq-intel-orch-${DeploymentStage}"
             Enabled: true
             Description: Rapid IQ Opportunity Intelligence watch orchestrator
 
   IntelWatchWorkerFunction:
     Type: AWS::Serverless::Function
+    Condition: RapidIqNestedExpansion
     Metadata:
       BuildMethod: makefile
       BuildTarget: build-function
@@ -791,6 +815,7 @@ Resources:
 
   RfpUnifiedCounterFunction:
     Type: AWS::Serverless::Function
+    Condition: RapidIqNestedExpansion
     Metadata:
       BuildMethod: makefile
       BuildTarget: build-function
@@ -805,12 +830,12 @@ Resources:
           Type: Schedule
           Properties:
             Schedule: rate(15 minutes)
-            Name: !Sub "${ManagedPolicyNamePrefix}-riq-rfp-count-${DeploymentStage}"
             Enabled: true
             Description: Rapid IQ unified RFP count snapshot across feed + pipeline + intel
 
   SalesAutomationComposerFunction:
     Type: AWS::Serverless::Function
+    Condition: RapidIqNestedExpansion
     Metadata:
       BuildMethod: makefile
       BuildTarget: build-function
@@ -825,7 +850,6 @@ Resources:
           Type: Schedule
           Properties:
             Schedule: cron(0 8 ? * MON *)
-            Name: !Sub "${ManagedPolicyNamePrefix}-riq-sales-news-${DeploymentStage}"
             Enabled: true
             Description: Rapid IQ Inside the Cortex newsletter draft
             Input: '{"job":"newsletter"}'
@@ -833,7 +857,6 @@ Resources:
           Type: Schedule
           Properties:
             Schedule: cron(0 12 1 10,11 ? *)
-            Name: !Sub "${ManagedPolicyNamePrefix}-riq-sales-budget-${DeploymentStage}"
             Enabled: true
             Description: Rapid IQ budget-season sequence drafts
             Input: '{"job":"budget_season"}'
@@ -841,7 +864,6 @@ Resources:
           Type: Schedule
           Properties:
             Schedule: cron(0 6 ? * SUN *)
-            Name: !Sub "${ManagedPolicyNamePrefix}-riq-sales-conf-${DeploymentStage}"
             Enabled: true
             Description: Rapid IQ conference pre-outreach window check
             Input: '{"job":"conference_pre"}'
@@ -849,13 +871,13 @@ Resources:
           Type: Schedule
           Properties:
             Schedule: cron(15 6 ? * SUN *)
-            Name: !Sub "${ManagedPolicyNamePrefix}-riq-sales-reeng-${DeploymentStage}"
             Enabled: true
             Description: Rapid IQ 90-day re-engagement drafts
             Input: '{"job":"re_engagement"}'
 
   SalesAutomationSendFunction:
     Type: AWS::Serverless::Function
+    Condition: RapidIqNestedExpansion
     Metadata:
       BuildMethod: makefile
       BuildTarget: build-function
@@ -870,7 +892,6 @@ Resources:
           Type: Schedule
           Properties:
             Schedule: rate(15 minutes)
-            Name: !Sub "${ManagedPolicyNamePrefix}-riq-sales-send-${DeploymentStage}"
             Enabled: true
             Description: Rapid IQ send approved scheduled outreach steps
 
@@ -886,16 +907,19 @@ Resources:
       Timeout: 90
       Environment:
         Variables:
-          INTEL_WATCH_QUEUE_URL: !Ref IntelWatchQueue
+          INTEL_WATCH_QUEUE_URL: !If [RapidIqNestedExpansion, !Ref IntelWatchQueue, ""]
       Policies:
         - !Ref AppManagedPolicyRapidIqPipeline
 
-  SignalHttpIntegration:
+  # Do not reuse logical id SignalHttpIntegration. Nested stack still records
+  # physical id x30c8uk (DeletionPolicy: Retain) but that integration is gone from
+  # HttpApi tbr4zvjlk5 — intel/sales route CREATE failed with BadRequest 2026-09-12.
+  # Dropping the old logical id lets CFN forget x30c8uk without DeleteIntegration.
+  SignalHttpIntegrationV2:
     Type: AWS::ApiGatewayV2::Integration
-    DeletionPolicy: Retain
-    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
+      Description: Rapid IQ SignalHttp (recreated after orphan x30c8uk)
       IntegrationType: AWS_PROXY
       IntegrationUri: !Sub arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${SignalHttpFunction.Arn}/invocations
       PayloadFormatVersion: "2.0"
@@ -923,240 +947,267 @@ Resources:
 
   RoutePipelineResearchPost:
     Type: AWS::ApiGatewayV2::Route
+    Condition: RapidIqNewHttpRoutes
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "POST /api/rapid-iq/pipeline/research"
-      Target: !Sub "integrations/${SignalHttpIntegration}"
+      Target: !Sub "integrations/${SignalHttpIntegrationV2}"
       AuthorizationType: !If [HasHttpApiJwtAuthorizer, JWT, NONE]
       AuthorizerId: !If [HasHttpApiJwtAuthorizer, !Ref HttpApiJwtAuthorizerId, !Ref AWS::NoValue]
 
   RoutePipelineAgenciesGet:
     Type: AWS::ApiGatewayV2::Route
+    Condition: RapidIqNewHttpRoutes
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "GET /api/rapid-iq/pipeline/agencies"
-      Target: !Sub "integrations/${SignalHttpIntegration}"
+      Target: !Sub "integrations/${SignalHttpIntegrationV2}"
       AuthorizationType: !If [HasHttpApiJwtAuthorizer, JWT, NONE]
       AuthorizerId: !If [HasHttpApiJwtAuthorizer, !Ref HttpApiJwtAuthorizerId, !Ref AWS::NoValue]
 
   RoutePipelineAgencyGet:
     Type: AWS::ApiGatewayV2::Route
+    Condition: RapidIqNewHttpRoutes
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "GET /api/rapid-iq/pipeline/agencies/{agencyId}"
-      Target: !Sub "integrations/${SignalHttpIntegration}"
+      Target: !Sub "integrations/${SignalHttpIntegrationV2}"
       AuthorizationType: !If [HasHttpApiJwtAuthorizer, JWT, NONE]
       AuthorizerId: !If [HasHttpApiJwtAuthorizer, !Ref HttpApiJwtAuthorizerId, !Ref AWS::NoValue]
 
   RouteIntelOpportunitiesGet:
     Type: AWS::ApiGatewayV2::Route
+    Condition: RapidIqNewHttpRoutes
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "GET /api/rapid-iq/intel/opportunities"
-      Target: !Sub "integrations/${SignalHttpIntegration}"
+      Target: !Sub "integrations/${SignalHttpIntegrationV2}"
       AuthorizationType: !If [HasHttpApiJwtAuthorizer, JWT, NONE]
       AuthorizerId: !If [HasHttpApiJwtAuthorizer, !Ref HttpApiJwtAuthorizerId, !Ref AWS::NoValue]
 
   RouteIntelOpportunitiesPost:
     Type: AWS::ApiGatewayV2::Route
+    Condition: RapidIqNewHttpRoutes
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "POST /api/rapid-iq/intel/opportunities"
-      Target: !Sub "integrations/${SignalHttpIntegration}"
+      Target: !Sub "integrations/${SignalHttpIntegrationV2}"
       AuthorizationType: !If [HasHttpApiJwtAuthorizer, JWT, NONE]
       AuthorizerId: !If [HasHttpApiJwtAuthorizer, !Ref HttpApiJwtAuthorizerId, !Ref AWS::NoValue]
 
   RouteIntelOpportunityGet:
     Type: AWS::ApiGatewayV2::Route
+    Condition: RapidIqNewHttpRoutes
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "GET /api/rapid-iq/intel/opportunities/{intelId}"
-      Target: !Sub "integrations/${SignalHttpIntegration}"
+      Target: !Sub "integrations/${SignalHttpIntegrationV2}"
       AuthorizationType: !If [HasHttpApiJwtAuthorizer, JWT, NONE]
       AuthorizerId: !If [HasHttpApiJwtAuthorizer, !Ref HttpApiJwtAuthorizerId, !Ref AWS::NoValue]
 
   RouteIntelOpportunityPatch:
     Type: AWS::ApiGatewayV2::Route
+    Condition: RapidIqNewHttpRoutes
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "PATCH /api/rapid-iq/intel/opportunities/{intelId}"
-      Target: !Sub "integrations/${SignalHttpIntegration}"
+      Target: !Sub "integrations/${SignalHttpIntegrationV2}"
       AuthorizationType: !If [HasHttpApiJwtAuthorizer, JWT, NONE]
       AuthorizerId: !If [HasHttpApiJwtAuthorizer, !Ref HttpApiJwtAuthorizerId, !Ref AWS::NoValue]
 
   RouteIntelOpportunityAnalyze:
     Type: AWS::ApiGatewayV2::Route
+    Condition: RapidIqNewHttpRoutes
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "POST /api/rapid-iq/intel/opportunities/{intelId}/analyze"
-      Target: !Sub "integrations/${SignalHttpIntegration}"
+      Target: !Sub "integrations/${SignalHttpIntegrationV2}"
       AuthorizationType: !If [HasHttpApiJwtAuthorizer, JWT, NONE]
       AuthorizerId: !If [HasHttpApiJwtAuthorizer, !Ref HttpApiJwtAuthorizerId, !Ref AWS::NoValue]
 
   RouteIntelPursuitBrief:
     Type: AWS::ApiGatewayV2::Route
+    Condition: RapidIqNewHttpRoutes
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "POST /api/rapid-iq/intel/opportunities/{intelId}/pursuit-brief"
-      Target: !Sub "integrations/${SignalHttpIntegration}"
+      Target: !Sub "integrations/${SignalHttpIntegrationV2}"
       AuthorizationType: !If [HasHttpApiJwtAuthorizer, JWT, NONE]
       AuthorizerId: !If [HasHttpApiJwtAuthorizer, !Ref HttpApiJwtAuthorizerId, !Ref AWS::NoValue]
 
   RouteIntelOutreach:
     Type: AWS::ApiGatewayV2::Route
+    Condition: RapidIqNewHttpRoutes
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "POST /api/rapid-iq/intel/opportunities/{intelId}/outreach"
-      Target: !Sub "integrations/${SignalHttpIntegration}"
+      Target: !Sub "integrations/${SignalHttpIntegrationV2}"
       AuthorizationType: !If [HasHttpApiJwtAuthorizer, JWT, NONE]
       AuthorizerId: !If [HasHttpApiJwtAuthorizer, !Ref HttpApiJwtAuthorizerId, !Ref AWS::NoValue]
 
   RouteIntelBidNoBid:
     Type: AWS::ApiGatewayV2::Route
+    Condition: RapidIqNewHttpRoutes
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "POST /api/rapid-iq/intel/opportunities/{intelId}/bid-no-bid"
-      Target: !Sub "integrations/${SignalHttpIntegration}"
+      Target: !Sub "integrations/${SignalHttpIntegrationV2}"
       AuthorizationType: !If [HasHttpApiJwtAuthorizer, JWT, NONE]
       AuthorizerId: !If [HasHttpApiJwtAuthorizer, !Ref HttpApiJwtAuthorizerId, !Ref AWS::NoValue]
 
   RouteIntelWatchesGet:
     Type: AWS::ApiGatewayV2::Route
+    Condition: RapidIqNewHttpRoutes
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "GET /api/rapid-iq/intel/watches"
-      Target: !Sub "integrations/${SignalHttpIntegration}"
+      Target: !Sub "integrations/${SignalHttpIntegrationV2}"
       AuthorizationType: !If [HasHttpApiJwtAuthorizer, JWT, NONE]
       AuthorizerId: !If [HasHttpApiJwtAuthorizer, !Ref HttpApiJwtAuthorizerId, !Ref AWS::NoValue]
 
   RouteIntelWatchesPost:
     Type: AWS::ApiGatewayV2::Route
+    Condition: RapidIqNewHttpRoutes
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "POST /api/rapid-iq/intel/watches"
-      Target: !Sub "integrations/${SignalHttpIntegration}"
+      Target: !Sub "integrations/${SignalHttpIntegrationV2}"
       AuthorizationType: !If [HasHttpApiJwtAuthorizer, JWT, NONE]
       AuthorizerId: !If [HasHttpApiJwtAuthorizer, !Ref HttpApiJwtAuthorizerId, !Ref AWS::NoValue]
 
   RouteIntelWatchGet:
     Type: AWS::ApiGatewayV2::Route
+    Condition: RapidIqNewHttpRoutes
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "GET /api/rapid-iq/intel/watches/{watchId}"
-      Target: !Sub "integrations/${SignalHttpIntegration}"
+      Target: !Sub "integrations/${SignalHttpIntegrationV2}"
       AuthorizationType: !If [HasHttpApiJwtAuthorizer, JWT, NONE]
       AuthorizerId: !If [HasHttpApiJwtAuthorizer, !Ref HttpApiJwtAuthorizerId, !Ref AWS::NoValue]
 
   RouteIntelWatchPatch:
     Type: AWS::ApiGatewayV2::Route
+    Condition: RapidIqNewHttpRoutes
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "PATCH /api/rapid-iq/intel/watches/{watchId}"
-      Target: !Sub "integrations/${SignalHttpIntegration}"
+      Target: !Sub "integrations/${SignalHttpIntegrationV2}"
       AuthorizationType: !If [HasHttpApiJwtAuthorizer, JWT, NONE]
       AuthorizerId: !If [HasHttpApiJwtAuthorizer, !Ref HttpApiJwtAuthorizerId, !Ref AWS::NoValue]
 
   RouteIntelWatchRun:
     Type: AWS::ApiGatewayV2::Route
+    Condition: RapidIqNewHttpRoutes
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "POST /api/rapid-iq/intel/watches/{watchId}/run"
-      Target: !Sub "integrations/${SignalHttpIntegration}"
+      Target: !Sub "integrations/${SignalHttpIntegrationV2}"
       AuthorizationType: !If [HasHttpApiJwtAuthorizer, JWT, NONE]
       AuthorizerId: !If [HasHttpApiJwtAuthorizer, !Ref HttpApiJwtAuthorizerId, !Ref AWS::NoValue]
 
   RouteIntelRfpCountsGet:
     Type: AWS::ApiGatewayV2::Route
+    Condition: RapidIqNewHttpRoutes
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "GET /api/rapid-iq/intel/rfp-counts"
-      Target: !Sub "integrations/${SignalHttpIntegration}"
+      Target: !Sub "integrations/${SignalHttpIntegrationV2}"
       AuthorizationType: !If [HasHttpApiJwtAuthorizer, JWT, NONE]
       AuthorizerId: !If [HasHttpApiJwtAuthorizer, !Ref HttpApiJwtAuthorizerId, !Ref AWS::NoValue]
 
   RouteSalesAutomationSequencesGet:
     Type: AWS::ApiGatewayV2::Route
+    Condition: RapidIqNewHttpRoutes
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "GET /api/rapid-iq/sales-automation/sequences"
-      Target: !Sub "integrations/${SignalHttpIntegration}"
+      Target: !Sub "integrations/${SignalHttpIntegrationV2}"
       AuthorizationType: !If [HasHttpApiJwtAuthorizer, JWT, NONE]
       AuthorizerId: !If [HasHttpApiJwtAuthorizer, !Ref HttpApiJwtAuthorizerId, !Ref AWS::NoValue]
 
   RouteSalesAutomationSequencesPost:
     Type: AWS::ApiGatewayV2::Route
+    Condition: RapidIqNewHttpRoutes
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "POST /api/rapid-iq/sales-automation/sequences"
-      Target: !Sub "integrations/${SignalHttpIntegration}"
+      Target: !Sub "integrations/${SignalHttpIntegrationV2}"
       AuthorizationType: !If [HasHttpApiJwtAuthorizer, JWT, NONE]
       AuthorizerId: !If [HasHttpApiJwtAuthorizer, !Ref HttpApiJwtAuthorizerId, !Ref AWS::NoValue]
 
   RouteSalesAutomationSequenceGet:
     Type: AWS::ApiGatewayV2::Route
+    Condition: RapidIqNewHttpRoutes
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "GET /api/rapid-iq/sales-automation/sequences/{sequenceId}"
-      Target: !Sub "integrations/${SignalHttpIntegration}"
+      Target: !Sub "integrations/${SignalHttpIntegrationV2}"
       AuthorizationType: !If [HasHttpApiJwtAuthorizer, JWT, NONE]
       AuthorizerId: !If [HasHttpApiJwtAuthorizer, !Ref HttpApiJwtAuthorizerId, !Ref AWS::NoValue]
 
   RouteSalesAutomationSequenceApprove:
     Type: AWS::ApiGatewayV2::Route
+    Condition: RapidIqNewHttpRoutes
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "POST /api/rapid-iq/sales-automation/sequences/{sequenceId}/approve"
-      Target: !Sub "integrations/${SignalHttpIntegration}"
+      Target: !Sub "integrations/${SignalHttpIntegrationV2}"
       AuthorizationType: !If [HasHttpApiJwtAuthorizer, JWT, NONE]
       AuthorizerId: !If [HasHttpApiJwtAuthorizer, !Ref HttpApiJwtAuthorizerId, !Ref AWS::NoValue]
 
   RouteSalesAutomationSequenceSuppress:
     Type: AWS::ApiGatewayV2::Route
+    Condition: RapidIqNewHttpRoutes
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "POST /api/rapid-iq/sales-automation/sequences/{sequenceId}/suppress"
-      Target: !Sub "integrations/${SignalHttpIntegration}"
+      Target: !Sub "integrations/${SignalHttpIntegrationV2}"
       AuthorizationType: !If [HasHttpApiJwtAuthorizer, JWT, NONE]
       AuthorizerId: !If [HasHttpApiJwtAuthorizer, !Ref HttpApiJwtAuthorizerId, !Ref AWS::NoValue]
 
   RouteSalesAutomationDraftsGet:
     Type: AWS::ApiGatewayV2::Route
+    Condition: RapidIqNewHttpRoutes
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "GET /api/rapid-iq/sales-automation/drafts"
-      Target: !Sub "integrations/${SignalHttpIntegration}"
+      Target: !Sub "integrations/${SignalHttpIntegrationV2}"
       AuthorizationType: !If [HasHttpApiJwtAuthorizer, JWT, NONE]
       AuthorizerId: !If [HasHttpApiJwtAuthorizer, !Ref HttpApiJwtAuthorizerId, !Ref AWS::NoValue]
 
   RouteSalesAutomationDraftApprove:
     Type: AWS::ApiGatewayV2::Route
+    Condition: RapidIqNewHttpRoutes
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "POST /api/rapid-iq/sales-automation/drafts/{draftId}/approve"
-      Target: !Sub "integrations/${SignalHttpIntegration}"
+      Target: !Sub "integrations/${SignalHttpIntegrationV2}"
       AuthorizationType: !If [HasHttpApiJwtAuthorizer, JWT, NONE]
       AuthorizerId: !If [HasHttpApiJwtAuthorizer, !Ref HttpApiJwtAuthorizerId, !Ref AWS::NoValue]
 
   RouteSalesAutomationCampaignsGet:
     Type: AWS::ApiGatewayV2::Route
+    Condition: RapidIqNewHttpRoutes
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "GET /api/rapid-iq/sales-automation/campaigns"
-      Target: !Sub "integrations/${SignalHttpIntegration}"
+      Target: !Sub "integrations/${SignalHttpIntegrationV2}"
       AuthorizationType: !If [HasHttpApiJwtAuthorizer, JWT, NONE]
       AuthorizerId: !If [HasHttpApiJwtAuthorizer, !Ref HttpApiJwtAuthorizerId, !Ref AWS::NoValue]
 
   RouteSalesAutomationMetricsGet:
     Type: AWS::ApiGatewayV2::Route
+    Condition: RapidIqNewHttpRoutes
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "GET /api/rapid-iq/sales-automation/metrics"
-      Target: !Sub "integrations/${SignalHttpIntegration}"
+      Target: !Sub "integrations/${SignalHttpIntegrationV2}"
       AuthorizationType: !If [HasHttpApiJwtAuthorizer, JWT, NONE]
       AuthorizerId: !If [HasHttpApiJwtAuthorizer, !Ref HttpApiJwtAuthorizerId, !Ref AWS::NoValue]
 
   RapidIqHighIntentAlertFunction:
     Type: AWS::Serverless::Function
+    Condition: RapidIqNestedExpansion
     Metadata:
       BuildMethod: makefile
       BuildTarget: build-function
@@ -1171,12 +1222,12 @@ Resources:
           Type: Schedule
           Properties:
             Schedule: cron(0 */6 * * ? *)
-            Name: !Sub "${ManagedPolicyNamePrefix}-riq-pipe-alert-${DeploymentStage}"
             Enabled: true
             Description: Rapid IQ high-intent alerts every 6 hours
 
   RapidIqWeeklyDigestFunction:
     Type: AWS::Serverless::Function
+    Condition: RapidIqNestedExpansion
     Metadata:
       BuildMethod: makefile
       BuildTarget: build-function
@@ -1191,7 +1242,6 @@ Resources:
           Type: Schedule
           Properties:
             Schedule: cron(0 8 ? * MON *)
-            Name: !Sub "${ManagedPolicyNamePrefix}-riq-pipe-digest-${DeploymentStage}"
             Enabled: true
             Description: Rapid IQ weekly digest Monday 08:00 UTC
 
@@ -1202,10 +1252,10 @@ Outputs:
     Value: !GetAtt SignalHttpFunction.Arn
   IntelWatchWorkerFunctionName:
     Description: Watch worker Lambda (web search + collect). Direct invoke with {watchId}.
-    Value: !Ref IntelWatchWorkerFunction
+    Value: !If [RapidIqNestedExpansion, !Ref IntelWatchWorkerFunction, "skipped-nested-expansion"]
   RfpUnifiedCounterFunctionName:
     Description: Unified RFP snapshot Lambda (writes pk=RFP_COUNTS sk=LATEST).
-    Value: !Ref RfpUnifiedCounterFunction
+    Value: !If [RapidIqNestedExpansion, !Ref RfpUnifiedCounterFunction, "skipped-nested-expansion"]
   RapidIqPipelineSignalsTableName:
     Description: Pipeline + intel + watches + RFP snapshot table.
     Value: !Ref RapidIqPipelineSignalsTable

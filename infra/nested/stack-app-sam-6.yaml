@@ -60,8 +60,17 @@ Parameters:
     Default: ""
   FfmpegLayerArn:
     Type: String
-    Default: "arn:aws:lambda:us-east-1:016851027864:layer:ffmpeg:2"
-    Description: Public ffmpeg Lambda layer (x86_64). Empty skips the layer (mock transcript only).
+    # Do not default to a third-party public layer. CloudFormation calls
+    # lambda:GetLayerVersion as the deploying principal; arn:aws:lambda:us-east-1:016851027864:layer:ffmpeg:2
+    # returned AccessDenied (2026-09-12) and failed AppSam6 VisionTranscriptWorkerFunction.
+    # Empty skips the layer (mock / VISION_TRANSCRIPT_MOCK). Pass an in-account layer ARN for live HLS.
+    Default: ""
+    Description: Optional in-account ffmpeg Lambda layer ARN (x86_64). Empty skips the layer (mock transcript only).
+  EnableRapidVisionNest:
+    Type: String
+    Default: "true"
+    AllowedValues: ["true", "false"]
+    Description: Rapid Vision Google Nest camera source (`ENABLE_RAPID_VISION_NEST`). Default on.
   ManagedPolicyNamePrefix:
     Type: String
     Default: rapid-cortex
@@ -90,6 +99,7 @@ Globals:
         ALLOW_UNAUTHENTICATED_API: "false"
         ENABLE_RAPID_VISION: "true"
         ENABLE_RAPID_VISION_RING: "true"
+        ENABLE_RAPID_VISION_NEST: !Ref EnableRapidVisionNest
         ENABLE_RAPID_VISION_CALLER_VIDEO: "true"
         ENABLE_RAPID_VISION_DEMO: "true"
         ENABLE_RAPID_VISION_AI_WRITER: "true"

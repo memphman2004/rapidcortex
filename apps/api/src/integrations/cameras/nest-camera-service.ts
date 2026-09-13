@@ -1,142 +1,124 @@
 /**
- * Nest camera provider service — tokens, agency SDM devices, citizen registry, consent requests.
+ * Google Nest SDM — camera service layer.
+ *
+ * Functions imported by cameras-providers-handler.ts:
+ *   getValidNestAccess, loadNestToken, listAgencyNestCameras,
+ *   listCitizenNestNearIncident, createNestConsentRequest,
+ *   peekNestConsentRequest, resolveNestConsentToken
+ *
+ * Consent SMS uses AWS End User Messaging via sendSilentTextSms.
+ *
+ * @module integrations/cameras/nest-camera-service
  */
-import { randomBytes, randomUUID } from "node:crypto";
+
+import { createHmac, randomBytes, randomUUID } from "node:crypto";
 import {
-  DeleteCommand,
-  GetCommand,
-  PutCommand,
-  QueryCommand,
-  UpdateCommand,
-} from "@aws-sdk/lib-dynamodb";
-import { ddb } from "../../repositories/baseRepository.js";
-import { getNestClientSecret, RCError, type NestTokenRecord } from "./nest-oauth.js";
-import { nestSdmClient, type NestDevice } from "./nest-sdm.js";
+  GetSecretValueCommand,
+  SecretsManagerClient,
+} from "@aws-sdk/client-secrets-manager";
+import { calculateDistanceMeters } from "rapid-cortex-shared";
 import { sendSilentTextSms } from "../../lib/silentTextSms.js";
+import { env } from "../../lib/env.js";
+import { nestSdmClient } from "./nest-sdm.js";
+import { getNestRcOauthCredentials, nestRefreshAgencyToken, RCError } from "./nest-oauth.js";
+import {
+  getNestConsentByTokenHash,
+  getNestToken,
+  listCitizenAccountsForAgency,
+  listNestConsentForIncident,
+  nestAgencyIncidentId,
+  putNestConsentRequest,
+  queryCitizenAccountsNear,
+  updateCitizenTokens,
+  updateNestConsentStatus,
+  type NestAgencyToken,
+  type NestCitizenAccount,
+  type NestConsentRequest,
+} from "./nest-tables.js";
 
-export type NestConsentStatus =
-  | "AVAILABLE"
-  | "DRAFT"
-  | "SENT"
-  | "APPROVED"
-  | "DECLINED"
-  | "EXPIRED"
-  | "REVOKED";
+const TOKEN_REFRESH_BUFFER_MS = 5 * 60 * 1000;
 
-export type NestCitizenCamera = {
-  deviceId: string;
-  displayName: string;
-  latitude: number;
-  longitude: number;
-  ownerPhone?: string;
-  distanceMeters: number;
-  ownerStatus: NestConsentStatus;
-  requestId?: string;
+const secrets = new SecretsManagerClient({
+  region: process.env.AWS_REGION ?? "us-east-1",
+});
+
+let cachedHmacSecret: string | undefined;
+
+async function tokenHmacSecret(): Promise<string> {
+  if (cachedHmacSecret) return cachedHmacSecret;
+  const direct = process.env.NEST_CONSENT_TOKEN_SECRET?.trim();
+  if (direct) {
+    cachedHmacSecret = direct;
+    return direct;
+  }
+  const arn = process.env.NEST_CONSENT_HMAC_SECRET_ARN?.trim() || env.nestConsentHmacSecretArn;
+  if (!arn) {
+    throw new RCError("NEST_CONSENT_HMAC_SECRET_ARN not configured", 500);
+  }
+  const out = await secrets.send(new GetSecretValueCommand({ SecretId: arn }));
+  const value = out.SecretString?.trim();
+  if (!value) throw new RCError("Nest consent HMAC secret is empty", 500);
+  cachedHmacSecret = value;
+  return value;
+}
+
+async function generateConsentToken(): Promise<{ plainToken: string; tokenHash: string }> {
+  const secret = await tokenHmacSecret();
+  const plainToken = randomBytes(16).toString("base64url");
+  const tokenHash = createHmac("sha256", secret).update(plainToken).digest("hex");
+  return { plainToken, tokenHash };
+}
+
+async function hashConsentToken(plainToken: string): Promise<string> {
+  const secret = await tokenHmacSecret();
+  return createHmac("sha256", secret).update(plainToken).digest("hex");
+}
+
+function consentLandingUrl(plainToken: string): string {
+  const base =
+    process.env.CONNECT_PUBLIC_API_BASE_URL?.replace(/\/$/, "") ||
+    process.env.RING_PUBLIC_API_BASE_URL?.replace(/\/$/, "") ||
+    env.ringPublicApiBaseUrl.replace(/\/$/, "") ||
+    "https://api.rapidcortex.us";
+  return `${base}/api/cameras/providers/nest/c/${plainToken}`;
+}
+
+export type ValidNestAccess = {
+  token: NestAgencyToken;
+  accessToken: string;
 };
+
+export async function getValidNestAccess(agencyId: string): Promise<ValidNestAccess> {
+  const token = await getNestToken(agencyId);
+  if (!token?.accessToken || !token.projectId) {
+    throw new RCError(
+      "Nest account not linked. Complete OAuth setup in Settings → Integrations.",
+      424,
+    );
+  }
+
+  if (token.expiresAt - Date.now() >= TOKEN_REFRESH_BUFFER_MS) {
+    return { token, accessToken: token.accessToken };
+  }
+
+  const freshAccessToken = await nestRefreshAgencyToken(agencyId);
+  return {
+    token: { ...token, accessToken: freshAccessToken },
+    accessToken: freshAccessToken,
+  };
+}
+
+export async function loadNestToken(agencyId: string): Promise<NestAgencyToken | null> {
+  return getNestToken(agencyId);
+}
 
 export type NestAgencyCamera = {
   deviceId: string;
   displayName: string;
   type: string;
-  status: NestDevice["status"];
+  status: "ONLINE" | "OFFLINE" | "UNKNOWN";
   traits: Record<string, unknown>;
 };
-
-function tokensTable(): string {
-  const n = process.env.DYNAMODB_TABLE_TOKENS?.trim();
-  if (!n) throw new RCError("DYNAMODB_TABLE_TOKENS not configured", 500);
-  return n;
-}
-
-function camerasTable(): string {
-  const n = process.env.CAMERAS_TABLE?.trim();
-  if (!n) throw new RCError("CAMERAS_TABLE not configured", 500);
-  return n;
-}
-
-function haversineMeters(lat1: number, lng1: number, lat2: number, lng2: number): number {
-  const R = 6371000;
-  const toRad = (d: number) => (d * Math.PI) / 180;
-  const dLat = toRad(lat2 - lat1);
-  const dLng = toRad(lng2 - lng1);
-  const a =
-    Math.sin(dLat / 2) ** 2 +
-    Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLng / 2) ** 2;
-  return 2 * R * Math.asin(Math.sqrt(a));
-}
-
-export async function loadNestToken(agencyId: string): Promise<NestTokenRecord | null> {
-  const out = await ddb.send(
-    new GetCommand({
-      TableName: tokensTable(),
-      Key: { pk: `${agencyId}#nest` },
-    }),
-  );
-  return (out.Item as NestTokenRecord | undefined) ?? null;
-}
-
-async function persistAccessToken(
-  agencyId: string,
-  accessToken: string,
-  expiresAt: number,
-  refreshToken?: string,
-): Promise<void> {
-  const names: Record<string, string> = {
-    "#accessToken": "accessToken",
-    "#expiresAt": "expiresAt",
-    "#updatedAt": "updatedAt",
-  };
-  const values: Record<string, unknown> = {
-    ":accessToken": accessToken,
-    ":expiresAt": expiresAt,
-    ":updatedAt": new Date().toISOString(),
-  };
-  let update = "SET #accessToken = :accessToken, #expiresAt = :expiresAt, #updatedAt = :updatedAt";
-  if (refreshToken) {
-    names["#refreshToken"] = "refreshToken";
-    values[":refreshToken"] = refreshToken;
-    update += ", #refreshToken = :refreshToken";
-  }
-  await ddb.send(
-    new UpdateCommand({
-      TableName: tokensTable(),
-      Key: { pk: `${agencyId}#nest` },
-      UpdateExpression: update,
-      ExpressionAttributeNames: names,
-      ExpressionAttributeValues: values,
-    }),
-  );
-}
-
-/** Ensure a valid access token; refresh + persist when expired (60s skew). */
-export async function getValidNestAccess(agencyId: string): Promise<{
-  token: NestTokenRecord;
-  accessToken: string;
-}> {
-  const token = await loadNestToken(agencyId);
-  if (!token?.accessToken || !token.projectId || !token.clientId) {
-    throw new RCError("Nest account is not connected for this agency", 404);
-  }
-  const skewMs = 60_000;
-  if (token.expiresAt > Date.now() + skewMs) {
-    return { token, accessToken: token.accessToken };
-  }
-  if (!token.refreshToken) {
-    throw new RCError("Nest access token expired and no refresh token is available", 401);
-  }
-  const clientSecret = await getNestClientSecret();
-  const refreshed = await nestSdmClient.refreshAccessToken(
-    token.refreshToken,
-    token.clientId,
-    clientSecret,
-  );
-  const expiresAt = Date.now() + refreshed.expiresIn * 1000;
-  await persistAccessToken(agencyId, refreshed.accessToken, expiresAt, refreshed.refreshToken);
-  return {
-    token: { ...token, accessToken: refreshed.accessToken, expiresAt },
-    accessToken: refreshed.accessToken,
-  };
-}
 
 export async function listAgencyNestCameras(agencyId: string): Promise<NestAgencyCamera[]> {
   const { token, accessToken } = await getValidNestAccess(agencyId);
@@ -152,214 +134,206 @@ export async function listAgencyNestCameras(agencyId: string): Promise<NestAgenc
     }));
 }
 
-type NestRequestRecord = {
-  pk: string;
-  itemType: "nest_request";
-  requestId: string;
-  agencyId: string;
-  incidentId: string;
+export type NestConsentStatusUi =
+  | "AVAILABLE"
+  | "DRAFT"
+  | "SENT"
+  | "APPROVED"
+  | "DECLINED"
+  | "EXPIRED"
+  | "REVOKED"
+  | "NO_PHONE";
+
+export type NestCitizenCamera = {
   deviceId: string;
-  deviceName: string;
-  requestStatus: NestConsentStatus;
-  requestedDurationMinutes: number;
+  displayName: string;
+  latitude: number;
+  longitude: number;
   ownerPhone?: string;
-  createdAt: string;
-  expiresAt: string;
-  plainToken?: string;
+  distanceMeters: number;
+  ownerStatus: NestConsentStatusUi;
+  requestId?: string;
+  accountId: string;
+  address: string;
 };
 
-function requestPk(agencyId: string, incidentId: string, deviceId: string): string {
-  return `NESTREQ#${agencyId}#${incidentId}#${deviceId}`;
-}
-
-export async function putNestRequest(record: NestRequestRecord): Promise<void> {
-  await ddb.send(
-    new PutCommand({
-      TableName: tokensTable(),
-      Item: record,
-    }),
-  );
-}
-
-export async function loadNestRequest(
-  agencyId: string,
-  incidentId: string,
-  deviceId: string,
-): Promise<NestRequestRecord | null> {
-  const out = await ddb.send(
-    new GetCommand({
-      TableName: tokensTable(),
-      Key: { pk: requestPk(agencyId, incidentId, deviceId) },
-    }),
-  );
-  return (out.Item as NestRequestRecord | undefined) ?? null;
-}
-
-export async function listNestRequestsForIncident(
-  agencyId: string,
-  incidentId: string,
-): Promise<NestRequestRecord[]> {
-  // Tokens table is pk-only; scan with agency filter is avoided — query citizen cams then Get each request.
-  // Lightweight approach: Query is unavailable without GSI; use begins_with via Scan limited by agency in FilterExpression.
-  const { ScanCommand } = await import("@aws-sdk/lib-dynamodb");
-  const prefix = `NESTREQ#${agencyId}#${incidentId}#`;
-  const out = await ddb.send(
-    new ScanCommand({
-      TableName: tokensTable(),
-      FilterExpression: "begins_with(pk, :prefix)",
-      ExpressionAttributeValues: { ":prefix": prefix },
-    }),
-  );
-  return (out.Items as NestRequestRecord[] | undefined) ?? [];
-}
-
+/**
+ * Nearby citizen Nest cameras for an RC incident.
+ *
+ * `lat`/`lng` must come from `requireActiveIncident` + `incidentCoordinates`
+ * (canonical RC incident geocode). This function must not import Ring incident
+ * helpers — agency isolation is already enforced by the caller.
+ */
 export async function listCitizenNestNearIncident(
   agencyId: string,
-  latitude: number,
-  longitude: number,
+  lat: number,
+  lng: number,
   radiusMeters: number,
   incidentId: string,
 ): Promise<NestCitizenCamera[]> {
-  const out = await ddb.send(
-    new QueryCommand({
-      TableName: camerasTable(),
-      KeyConditionExpression: "agencyId = :agencyId",
-      ExpressionAttributeValues: { ":agencyId": agencyId },
-    }),
-  );
-  const items = (out.Items ?? []) as Array<{
-    cameraId?: string;
-    displayName?: string;
-    provider?: string;
-    ownership?: string;
-    latitude?: number;
-    longitude?: number;
-    lat?: number;
-    lng?: number;
-    ownerPhone?: string;
-    active?: boolean;
-    status?: string;
-  }>;
-
-  const requests = await listNestRequestsForIncident(agencyId, incidentId);
-  const latestByDevice = new Map<string, NestRequestRecord>();
-  for (const r of requests) {
+  const candidates = await queryCitizenAccountsNear(lat, lng, agencyId, radiusMeters);
+  const consents = await listNestConsentForIncident(agencyId, incidentId);
+  const latestByDevice = new Map<string, NestConsentRequest>();
+  for (const r of consents) {
     const prev = latestByDevice.get(r.deviceId);
     if (!prev || r.createdAt > prev.createdAt) latestByDevice.set(r.deviceId, r);
   }
 
-  const cameras: NestCitizenCamera[] = [];
-  for (const item of items) {
-    if (item.provider !== "nest" || item.ownership !== "citizen") continue;
-    if (item.active === false || item.status === "inactive") continue;
-    const lat = Number(item.latitude ?? item.lat);
-    const lng = Number(item.longitude ?? item.lng);
-    if (!Number.isFinite(lat) || !Number.isFinite(lng)) continue;
-    const distanceMeters = haversineMeters(latitude, longitude, lat, lng);
-    if (distanceMeters > radiusMeters) continue;
-    const deviceId = item.cameraId ?? "";
-    if (!deviceId) continue;
-    const latest = latestByDevice.get(deviceId);
-    cameras.push({
-      deviceId,
-      displayName: item.displayName ?? deviceId,
-      latitude: lat,
-      longitude: lng,
-      ownerPhone: item.ownerPhone,
-      distanceMeters: Math.floor(distanceMeters / 10) * 10,
-      ownerStatus: (latest?.requestStatus as NestConsentStatus | undefined) ?? "AVAILABLE",
-      requestId: latest?.requestId,
-    });
+  const results: NestCitizenCamera[] = [];
+
+  for (const account of candidates) {
+    const dist = calculateDistanceMeters(lat, lng, account.lat, account.lng);
+    if (dist > radiusMeters) continue;
+
+    let accessToken = account.accessToken;
+    if (account.tokenExpiresAt - Date.now() < TOKEN_REFRESH_BUFFER_MS) {
+      try {
+        accessToken = await refreshCitizenToken(account);
+      } catch (err) {
+        console.error("[nest/citizen] token refresh skipped", account.accountId, err);
+        continue;
+      }
+    }
+
+    try {
+      const devices = await nestSdmClient.listDevices(account.projectId, accessToken);
+      for (const device of devices.filter((d) => d.hasLiveStream)) {
+        const latest = latestByDevice.get(device.deviceId);
+        results.push({
+          accountId: account.accountId,
+          deviceId: device.deviceId,
+          displayName: device.displayName,
+          latitude: account.lat,
+          longitude: account.lng,
+          address: account.address,
+          ownerPhone: account.phone,
+          distanceMeters: Math.floor(dist / 10) * 10,
+          ownerStatus: (latest?.requestStatus as NestConsentStatusUi | undefined) ?? "AVAILABLE",
+          requestId: latest?.requestId,
+        });
+      }
+    } catch (err) {
+      console.error("[nest/citizen] listDevices skipped", account.accountId, err);
+    }
   }
-  cameras.sort((a, b) => a.distanceMeters - b.distanceMeters);
-  return cameras;
+
+  return results.sort((a, b) => a.distanceMeters - b.distanceMeters);
 }
 
-export async function createNestConsentRequest(params: {
+async function refreshCitizenToken(account: NestCitizenAccount): Promise<string> {
+  const creds = await getNestRcOauthCredentials();
+  const res = await fetch("https://oauth2.googleapis.com/token", {
+    method: "POST",
+    headers: { "content-type": "application/x-www-form-urlencoded" },
+    body: new URLSearchParams({
+      client_id: creds.clientId,
+      client_secret: creds.clientSecret,
+      refresh_token: account.refreshToken,
+      grant_type: "refresh_token",
+    }),
+  });
+  const json = (await res.json()) as {
+    access_token?: string;
+    refresh_token?: string;
+    expires_in?: number;
+    error?: string;
+  };
+  if (!res.ok || !json.access_token) {
+    throw new Error(`Citizen token refresh failed: ${json.error ?? "unknown"}`);
+  }
+  const expiresAt = Date.now() + (json.expires_in ?? 3600) * 1000;
+  await updateCitizenTokens(account.accountId, json.access_token, expiresAt, json.refresh_token);
+  return json.access_token;
+}
+
+export type CreateNestConsentInput = {
   agencyId: string;
   incidentId: string;
   deviceId: string;
-  requestedDurationMinutes: number;
+  requestedDurationMinutes: 10 | 30 | 60 | 120;
   agencyName: string;
-}): Promise<{ requestId: string; status: "SENT" | "DRAFT" }> {
-  const cams = await ddb.send(
-    new GetCommand({
-      TableName: camerasTable(),
-      Key: { agencyId: params.agencyId, cameraId: params.deviceId },
-    }),
-  );
-  const cam = cams.Item as
-    | {
-        displayName?: string;
-        ownerPhone?: string;
-        provider?: string;
-        ownership?: string;
-      }
-    | undefined;
-  if (!cam || cam.provider !== "nest" || cam.ownership !== "citizen") {
-    throw new RCError("Nest citizen camera not found", 404);
+};
+
+export type CreateNestConsentResult = {
+  requestId: string;
+  status: "SENT" | "DRAFT" | "NO_PHONE";
+};
+
+export async function createNestConsentRequest(
+  input: CreateNestConsentInput,
+): Promise<CreateNestConsentResult> {
+  const account = await findCitizenByDeviceId(input.deviceId, input.agencyId);
+  if (!account) {
+    throw new RCError(`No registered citizen account found for device: ${input.deviceId}`, 404);
   }
 
-  const existing = await loadNestRequest(params.agencyId, params.incidentId, params.deviceId);
-  if (existing && (existing.requestStatus === "SENT" || existing.requestStatus === "APPROVED")) {
+  const existing = (await listNestConsentForIncident(input.agencyId, input.incidentId)).filter(
+    (r) => r.deviceId === input.deviceId,
+  );
+  const blocking = existing.find((r) => r.requestStatus === "SENT" || r.requestStatus === "APPROVED");
+  if (blocking) {
     throw new RCError("An active request already exists for this camera", 409);
   }
 
-  const requestId = randomUUID();
-  // 128 bits in 22 characters — hex would add 26 characters to a length-critical consent SMS.
-  const plainToken = randomBytes(16).toString("base64url");
-  const now = new Date();
-  const expiresAt = new Date(
-    now.getTime() + (params.requestedDurationMinutes + 30) * 60 * 1000,
-  ).toISOString();
-
-  const record: NestRequestRecord = {
-    pk: requestPk(params.agencyId, params.incidentId, params.deviceId),
-    itemType: "nest_request",
-    requestId,
-    agencyId: params.agencyId,
-    incidentId: params.incidentId,
-    deviceId: params.deviceId,
-    deviceName: cam.displayName ?? params.deviceId,
-    requestStatus: "DRAFT",
-    requestedDurationMinutes: params.requestedDurationMinutes,
-    ownerPhone: cam.ownerPhone,
-    createdAt: now.toISOString(),
-    expiresAt,
-    plainToken,
-  };
-  await putNestRequest(record);
-
-  const phone = cam.ownerPhone?.trim();
-  if (!phone) {
-    return { requestId, status: "DRAFT" };
+  let deviceName = input.deviceId;
+  try {
+    const devices = await nestSdmClient.listDevices(account.projectId, account.accessToken);
+    const match = devices.find((d) => d.deviceId === input.deviceId);
+    if (match) deviceName = match.displayName;
+  } catch {
+    // Non-fatal — fallback to deviceId as name
   }
 
-  const base =
-    process.env.NEST_PUBLIC_API_BASE_URL?.replace(/\/$/, "") ||
-    process.env.RING_PUBLIC_API_BASE_URL?.replace(/\/$/, "") ||
-    "https://api.rapidcortex.us";
-  // One short link, ASCII only: multi-segment texts carrying several long links are dropped by
-  // US carriers after Twilio has already accepted them.
-  const consentUrl = `${base}/api/cameras/providers/nest/c/${plainToken}`;
+  const { plainToken, tokenHash } = await generateConsentToken();
+  const requestId = randomUUID();
+  const now = new Date();
+  const expiresAt = new Date(
+    now.getTime() + (input.requestedDurationMinutes + 30) * 60 * 1000,
+  ).toISOString();
+  const ttl = Math.floor(Date.parse(expiresAt) / 1000);
 
-  const body = [
-    `Rapid Cortex: ${params.agencyName} requests ${params.requestedDurationMinutes}-min live camera view for an active emergency near you.`,
+  const record: NestConsentRequest = {
+    requestId,
+    tokenHash,
+    agencyId: input.agencyId,
+    incidentId: input.incidentId,
+    agencyIncidentId: nestAgencyIncidentId(input.agencyId, input.incidentId),
+    citizenAccountId: account.accountId,
+    deviceId: input.deviceId,
+    deviceName,
+    requestStatus: "DRAFT",
+    requestedDurationMinutes: input.requestedDurationMinutes,
+    expiresAt,
+    createdAt: now.toISOString(),
+    ttl,
+  };
+  await putNestConsentRequest(record);
+
+  const phone = account.phone?.trim();
+  if (!phone) {
+    await putNestConsentRequest({ ...record, requestStatus: "NO_PHONE" });
+    return { requestId, status: "NO_PHONE" };
+  }
+
+  const consentUrl = consentLandingUrl(plainToken);
+  const message = [
+    `Rapid Cortex: ${input.agencyName} requests ${input.requestedDurationMinutes}-min live camera view for an active emergency near you.`,
     `Approve or decline: ${consentUrl}`,
     "Reply STOP to opt out.",
   ].join("\n");
+
   try {
     const sms = await sendSilentTextSms({
       phoneE164: phone,
-      message: body,
-      agencyId: params.agencyId,
-      incidentId: params.incidentId,
+      message,
+      agencyId: input.agencyId,
+      incidentId: input.incidentId,
     });
     if (!sms.ok) {
       console.error("[nest/request] sms failed", sms.errorMessage ?? sms.errorCode);
       return { requestId, status: "DRAFT" };
     }
-    await putNestRequest({ ...record, requestStatus: "SENT" });
+    await putNestConsentRequest({ ...record, requestStatus: "SENT" });
     return { requestId, status: "SENT" };
   } catch (err) {
     console.error("[nest/request] sms failed", err);
@@ -367,26 +341,14 @@ export async function createNestConsentRequest(params: {
   }
 }
 
-async function findNestRequestByToken(plainToken: string): Promise<NestRequestRecord | null> {
-  const { ScanCommand } = await import("@aws-sdk/lib-dynamodb");
-  const out = await ddb.send(
-    new ScanCommand({
-      TableName: tokensTable(),
-      FilterExpression: "itemType = :t AND plainToken = :tok",
-      ExpressionAttributeValues: { ":t": "nest_request", ":tok": plainToken },
-    }),
-  );
-  return (out.Items?.[0] as NestRequestRecord | undefined) ?? null;
-}
-
-/** Read-only lookup for the consent landing page; does not consume the token. */
 export async function peekNestConsentRequest(plainToken: string): Promise<{
   deviceName: string;
   requestedDurationMinutes: number;
   requestStatus: string;
   expiresAt: string;
 } | null> {
-  const row = await findNestRequestByToken(plainToken);
+  const tokenHash = await hashConsentToken(plainToken);
+  const row = await getNestConsentByTokenHash(tokenHash);
   if (!row) return null;
   return {
     deviceName: row.deviceName ?? "camera",
@@ -400,21 +362,28 @@ export async function resolveNestConsentToken(
   plainToken: string,
   decision: "APPROVED" | "DECLINED",
 ): Promise<{ agencyId: string; incidentId: string } | null> {
-  const row = await findNestRequestByToken(plainToken);
-  if (!row) return null;
-  await putNestRequest({ ...row, requestStatus: decision, plainToken: undefined });
-  return { agencyId: row.agencyId, incidentId: row.incidentId };
+  const tokenHash = await hashConsentToken(plainToken);
+  const request = await getNestConsentByTokenHash(tokenHash);
+  if (!request) return null;
+  if (request.requestStatus !== "SENT") return null;
+  if (new Date(request.expiresAt).getTime() <= Date.now()) return null;
+
+  await updateNestConsentStatus(request.requestId, decision, new Date().toISOString());
+  return { agencyId: request.agencyId, incidentId: request.incidentId };
 }
 
-export async function deleteNestRequest(
-  agencyId: string,
-  incidentId: string,
+async function findCitizenByDeviceId(
   deviceId: string,
-): Promise<void> {
-  await ddb.send(
-    new DeleteCommand({
-      TableName: tokensTable(),
-      Key: { pk: requestPk(agencyId, incidentId, deviceId) },
-    }),
-  );
+  agencyId: string,
+): Promise<NestCitizenAccount | null> {
+  const accounts = await listCitizenAccountsForAgency(agencyId);
+  for (const account of accounts) {
+    try {
+      const devices = await nestSdmClient.listDevices(account.projectId, account.accessToken);
+      if (devices.some((d) => d.deviceId === deviceId)) return account;
+    } catch {
+      // Skip stale token or offline account
+    }
+  }
+  return null;
 }

@@ -29,7 +29,7 @@ export const liveVideoSessionSchema = z.object({
   lastDispatcherHeartbeatAt: z.string().min(1).optional(),
   /** @deprecated use smsDeliveryProvider for SMS; "provider" was historically SMS provider */
   provider: z.string().max(64).optional(),
-  /** Twilio, aws, mock, etc. */
+  /** SMS provider used for the invite (aws, mock, etc.). */
   smsDeliveryProvider: z.string().max(32).optional(),
   /** kinesis WebRTC + signaling channel, or legacy DynamoDB-sourced SDP/ICE. */
   liveVideoPipeline: z.enum(["aws_kinesis_webrtc", "legacy_p2p"]).optional(),

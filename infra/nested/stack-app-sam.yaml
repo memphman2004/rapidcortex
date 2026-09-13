@@ -200,9 +200,8 @@ Parameters:
     Type: String
     Default: ""
     Description: >-
-      Optional Secrets Manager ARN for Twilio JSON: preferred shape accountSid + apiKeySid + apiKeySecret +
-      messagingServiceSid; legacy accountSid + authToken + fromE164 (optional messagingServiceSid).
-      Leave empty when using AWS-only SMS_PROVIDER or mock/simulator paths.
+      Deprecated unused. SMS uses AWS End User Messaging only. Kept so existing nested
+      stacks do not fail on a removed CloudFormation parameter. Leave empty.
   HttpApiCorsAllowedOrigins:
     Type: String
     Default: "*"
@@ -513,7 +512,7 @@ Parameters:
     AllowedValues: ["true", "false"]
     Description: >-
       When true, Silent Text dispatcher + public token routes are active. Must also have a working
-      SMS provider (Twilio secret ARN or AWS SNS/EUM) — without that, session creates audit
+      SMS provider (AWS End User Messaging) — without that, session creates audit
       SILENT_TEXT_SMS_FAILED and return ok=false.
   EnablePinpoint:
     Type: String
@@ -521,7 +520,7 @@ Parameters:
     AllowedValues: ["true", "false"]
     Description: >-
       When true, Pinpoint (LiveLocation) dispatcher + public token routes are active. Requires the
-      same SMS provider configuration as Silent Text + incident media (`INCIDENT_MEDIA_TWILIO_SECRET_ARN`).
+      same AWS End User Messaging SMS configuration as Silent Text + incident media.
   EnableConnectRing:
     Type: String
     Default: "false"
@@ -990,22 +989,22 @@ Mappings:
   SmsEnvironmentDefaults:
     dev:
       SmsProvider: mock
-      SmsPrimaryProvider: twilio
+      SmsPrimaryProvider: aws
       MockSmsProvider: "true"
       AwsSmsUseSimulator: "true"
     staging:
-      SmsProvider: auto
-      SmsPrimaryProvider: twilio
+      SmsProvider: aws
+      SmsPrimaryProvider: aws
       MockSmsProvider: "false"
       AwsSmsUseSimulator: "false"
     prod:
-      SmsProvider: auto
-      SmsPrimaryProvider: twilio
+      SmsProvider: aws
+      SmsPrimaryProvider: aws
       MockSmsProvider: "false"
       AwsSmsUseSimulator: "false"
     pilot:
-      SmsProvider: auto
-      SmsPrimaryProvider: twilio
+      SmsProvider: aws
+      SmsPrimaryProvider: aws
       MockSmsProvider: "false"
       AwsSmsUseSimulator: "false"
 

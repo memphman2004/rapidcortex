@@ -88,11 +88,11 @@ This document **merges** the Feature Build Plan (architecture, order, acceptance
 |------|--------|------|
 | `packages/shared` incident media types + Zod | **✓** | `media/incident-media` |
 | Handlers: request, list, confirm, upload-url (public) | **✓** | Includes `incidentMediaHttp` + `publicIncidentMediaHttp` |
-| `mediaService`, token hash, presign, SNS/Twilio | **✓** | Secret ARN pattern |
+| `mediaService`, token hash, presign, AWS SMS | **✓** | End User Messaging |
 | Web: request modal, gallery, `media/upload/[token]` | **~** | Verify consent UX, pending state, **AI labels** if any AI copy |
 | `IncidentMediaTable`, TTL, IAM SNS/S3 | **✓** | |
 | Audit `media.*` + phone redaction | **~** | Verify redaction on every audit path that logs phone |
-| `SMS_PROVIDER` env name | **~** | Repo uses `INCIDENT_MEDIA_SNS_DIRECT`, Twilio secret ARN — align checklist or add alias env in SAM only if required |
+| `SMS_PROVIDER` env name | **✓** | `aws` or `mock` (legacy `twilio`/`auto` map to `aws`) |
 
 **Do not rebuild:** media table, core public upload flow, presign pattern.
 

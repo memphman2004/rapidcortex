@@ -8,7 +8,7 @@ export type CarrierLocationResult = {
 
 /**
  * Best-effort carrier / network location from inbound SMS metadata.
- * Twilio may attach Latitude/Longitude on some carrier routes; AWS inbound SNS may include geo attributes.
+ * AWS inbound SNS may include geo attributes on some carrier routes.
  * Falls back to mock coordinates in dev when CARRIER_LOCATION_MOCK=true.
  */
 export async function requestCarrierLocation(params: {

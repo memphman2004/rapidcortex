@@ -22,7 +22,6 @@ export function buildIntegrationStatusPayload(agencyId: string) {
   const multilingualIssues = validateMultilingualDeploymentConfig();
   const voiceCfg = getMultilingualVoiceConfig();
 
-  const twilioArn = env.incidentMediaTwilioSecretArn.trim();
   const smsMode = env.smsProvider;
   const mockSmsPath =
     env.incidentMediaSmsMock || env.mockSmsProvider || smsMode === "mock" || env.awsSmsUseSimulator;
@@ -35,9 +34,7 @@ export function buildIntegrationStatusPayload(agencyId: string) {
     deploymentStage: process.env.DEPLOYMENT_STAGE?.trim() || "unknown",
     sms: {
       providerMode: smsMode,
-      twilioConfigured: Boolean(twilioArn),
-      awsSendAttempted: smsMode === "aws" || smsMode === "auto",
-      failoverToTwilioEnabled: smsMode === "auto" && Boolean(twilioArn),
+      awsSendAttempted: smsMode === "aws",
       mockOrSimulatorPath: mockSmsPath,
       nonProdSandboxHint:
         env.deploymentStage !== "prod" && mockSmsPath

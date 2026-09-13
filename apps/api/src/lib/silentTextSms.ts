@@ -2,13 +2,13 @@ import { sendIncidentMediaLinkSms } from "../services/sms/smsProviderFactory.js"
 import { buildSmsFactoryEnvForAgency } from "./smsFactoryEnv.js";
 
 /**
- * Outcome of a Silent Text SMS send. `ok=true` requires a real send by Twilio/AWS/mock —
+ * Outcome of a Silent Text SMS send. `ok=true` requires a real send by AWS/mock —
  * never returns ok on a config error so the caller can mark the session `failed` and audit.
  */
 export type SilentTextSmsResult = {
   ok: boolean;
-  /** Provider that actually attempted the send (twilio | aws | mock | config). */
-  provider: "twilio" | "aws" | "mock" | "config";
+  /** Provider that actually attempted the send. */
+  provider: "aws" | "mock" | "config";
   providerRef?: string;
   /** Always false now — kept only for backwards-compat with the persisted event metadata. */
   logOnly?: false;
@@ -17,14 +17,8 @@ export type SilentTextSmsResult = {
 };
 
 /**
- * SMS for Silent Text safety links. Delegates to the shared SMS provider factory so we get
- * Twilio + AWS SNS + auto-failover for free (same path Pinpoint and incident media use).
- *
- * Routing precedence — see `apps/api/src/lib/env.ts` `resolveSmsProviderMode`:
- *   `SMS_PROVIDER` env > legacy Twilio ARN / `INCIDENT_MEDIA_SNS_DIRECT` heuristics > mock fallback.
- *
- * Never resolves `ok=true` if no provider was actually invoked; a missing Twilio secret in a non-mock
- * stage yields `ok=false` with `errorCode=TWILIO_NOT_CONFIGURED` so the session is marked failed.
+ * SMS for Silent Text safety links. Delegates to the shared SMS provider factory
+ * (AWS End User Messaging, same path as incident media and Pinpoint).
  */
 export async function sendSilentTextSms(params: {
   phoneE164: string;
@@ -41,9 +35,7 @@ export async function sendSilentTextSms(params: {
   });
 
   const provider: SilentTextSmsResult["provider"] =
-    result.provider === "twilio" || result.provider === "aws" || result.provider === "mock"
-      ? result.provider
-      : "config";
+    result.provider === "aws" || result.provider === "mock" ? result.provider : "config";
 
   if (result.status === "sent") {
     console.info(

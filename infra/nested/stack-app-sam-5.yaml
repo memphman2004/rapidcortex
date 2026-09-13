@@ -121,9 +121,8 @@ Parameters:
     Type: String
     Default: ""
     Description: >-
-      Optional Secrets Manager ARN for Twilio JSON: preferred shape accountSid + apiKeySid + apiKeySecret +
-      messagingServiceSid; legacy accountSid + authToken + fromE164 (optional messagingServiceSid).
-      Leave empty when using AWS-only SMS_PROVIDER or mock/simulator paths.
+      Deprecated unused. SMS uses AWS End User Messaging only. Kept so existing nested
+      stacks do not fail on a removed CloudFormation parameter. Leave empty.
   HttpApiCorsAllowedOrigins:
     Type: String
     Default: "*"
@@ -424,7 +423,7 @@ Parameters:
     AllowedValues: ["true", "false"]
     Description: >-
       When true, Silent Text dispatcher + public token routes are active. Must also have a working
-      SMS provider (Twilio secret ARN or AWS SNS/EUM) — without that, session creates audit
+      SMS provider (AWS End User Messaging) — without that, session creates audit
       SILENT_TEXT_SMS_FAILED and return ok=false.
   EnablePinpoint:
     Type: String
@@ -432,7 +431,7 @@ Parameters:
     AllowedValues: ["true", "false"]
     Description: >-
       When true, Pinpoint (LiveLocation) dispatcher + public token routes are active. Requires the
-      same SMS provider configuration as Silent Text + incident media (`INCIDENT_MEDIA_TWILIO_SECRET_ARN`).
+      same AWS End User Messaging SMS configuration as Silent Text + incident media.
   EnableConnectRing:
     Type: String
     Default: "false"
@@ -947,22 +946,22 @@ Mappings:
   SmsEnvironmentDefaults:
     dev:
       SmsProvider: mock
-      SmsPrimaryProvider: twilio
+      SmsPrimaryProvider: aws
       MockSmsProvider: "true"
       AwsSmsUseSimulator: "true"
     staging:
-      SmsProvider: auto
-      SmsPrimaryProvider: twilio
+      SmsProvider: aws
+      SmsPrimaryProvider: aws
       MockSmsProvider: "false"
       AwsSmsUseSimulator: "false"
     prod:
-      SmsProvider: auto
-      SmsPrimaryProvider: twilio
+      SmsProvider: aws
+      SmsPrimaryProvider: aws
       MockSmsProvider: "false"
       AwsSmsUseSimulator: "false"
     pilot:
-      SmsProvider: auto
-      SmsPrimaryProvider: twilio
+      SmsProvider: aws
+      SmsPrimaryProvider: aws
       MockSmsProvider: "false"
       AwsSmsUseSimulator: "false"
 
@@ -1068,7 +1067,7 @@ Resources:
       ContentUri: ../../apps/api/layer/
       CompatibleRuntimes:
         - nodejs20.x
-      RetentionPolicy: Delete
+      RetentionPolicy: Retain
     Metadata:
       BuildMethod: makefile
 
@@ -3399,8 +3398,7 @@ Resources:
       QueueName: !Sub "${AppName}-unrouted-sms-${DeploymentStage}"
       MessageRetentionPeriod: 1209600
 
-  # AWS End User Messaging delivers inbound SMS and delivery events to SNS topics rather than
-  # calling an HTTP webhook the way Twilio does, so both paths are SNS-triggered.
+  # AWS End User Messaging delivers inbound SMS and delivery events to SNS topics.
   AwsSmsInboundTopic:
     Type: AWS::SNS::Topic
     Properties:
@@ -3491,7 +3489,6 @@ Resources:
           AWS_SMS_USE_SIMULATOR: !FindInMap [SmsEnvironmentDefaults, !Ref DeploymentStage, AwsSmsUseSimulator]
           AWS_SMS_POOL_ID: !Ref AwsSmsPoolId
           AWS_SMS_CONFIGURATION_SET_NAME: !Ref AwsSmsConfigurationSetName
-          INCIDENT_MEDIA_TWILIO_SECRET_ARN: !Ref IncidentMediaTwilioSecretArn
           UNROUTED_SMS_DLQ_URL: !Ref UnroutedSmsDlq
       Policies:
         - !Ref AppManagedPolicyDynamoLambdaCrudShardC
@@ -3535,7 +3532,7 @@ Resources:
     Properties:
       CodeUri: ../../apps/api/
       Handler: dist/venue/handlers/post-venue-sms-inbound.handler
-      Description: "Twilio inbound SMS handler for venue + campus routing"
+      Description: "Inbound SMS handler for venue + campus routing"
       MemorySize: 256
       Timeout: 15
       Environment:
@@ -3569,7 +3566,6 @@ Resources:
           SMS_PRIMARY_PROVIDER: !FindInMap [SmsEnvironmentDefaults, !Ref DeploymentStage, SmsPrimaryProvider]
           MOCK_SMS_PROVIDER: !FindInMap [SmsEnvironmentDefaults, !Ref DeploymentStage, MockSmsProvider]
           AWS_SMS_USE_SIMULATOR: !FindInMap [SmsEnvironmentDefaults, !Ref DeploymentStage, AwsSmsUseSimulator]
-          INCIDENT_MEDIA_TWILIO_SECRET_ARN: !Ref IncidentMediaTwilioSecretArn
           UNROUTED_SMS_DLQ_URL: !Ref UnroutedSmsDlq
       Policies:
         - !Ref AppManagedPolicyDynamoLambdaCrudShardC
@@ -3965,14 +3961,6 @@ Resources:
             Condition:
               StringEquals:
                 aws:RequestedRegion: !Ref AWS::Region
-        - Fn::If:
-            - HasIncidentMediaTwilioSecretArn
-            - Statement:
-                Effect: Allow
-                Action:
-                  - secretsmanager:GetSecretValue
-                Resource: !Ref IncidentMediaTwilioSecretArn
-            - !Ref AWS::NoValue
       Events:
         PostIncidentMediaRequest:
           Type: HttpApi
@@ -4178,13 +4166,6 @@ Resources:
                 Condition:
                   StringEquals:
                     aws:RequestedRegion: !Ref AWS::Region
-              - Fn::If:
-                  - HasIncidentMediaTwilioSecretArn
-                  - Effect: Allow
-                    Action:
-                      - secretsmanager:GetSecretValue
-                    Resource: !Ref IncidentMediaTwilioSecretArn
-                  - !Ref AWS::NoValue
 
   LiveVideoPublicExecutionRole:
     Type: AWS::IAM::Role
@@ -4450,9 +4431,8 @@ Resources:
           LIVE_VIDEO_EXPORT_FUNCTION_NAME: !Ref LiveVideoExportFunction
           KVS_WEBRTC_TAG_APP: !Ref AppName
           KVS_WEBRTC_TAG_ENV: !Ref DeploymentStage
-          INCIDENT_MEDIA_TWILIO_SECRET_ARN: !Ref IncidentMediaTwilioSecretArn
-          SMS_PROVIDER: twilio
-          SMS_PRIMARY_PROVIDER: twilio
+          SMS_PROVIDER: aws
+          SMS_PRIMARY_PROVIDER: aws
           MOCK_SMS_PROVIDER: "false"
           AWS_SMS_USE_SIMULATOR: "false"
           AWS_SMS_POOL_ID: !Ref AwsSmsPoolId
@@ -4605,10 +4585,9 @@ Resources:
   # `apps/web` BFF callers expect both surfaces on the custom domain, so the Lambdas + their
   # HttpApi events live here (Option 1 from the 2026-05-25 routing audit).
   #
-  # The SMS-sending paths (dispatcher functions only) reuse `IncidentMediaTwilioSecretArn` so
-  # there is exactly one Twilio secret per stage rather than a parallel `rapid-cortex/silent-text`
-  # entry. AWS SNS publish to E.164 numbers is allowed only with the `sns:Type=Transactional`
-  # condition — see workspace rule `rapid-cortex-global-features.mdc` (no wildcard IAM).
+  # SMS-sending paths use AWS End User Messaging (`sms-voice:SendTextMessage`). AWS SNS publish
+  # to E.164 numbers is allowed only with the `sns:Type=Transactional` condition — see workspace
+  # rule `rapid-cortex-global-features.mdc` (no wildcard IAM).
   # ---------------------------------------------------------------------------------------------
   SilentTextIncidentsHttpFunction:
     Type: AWS::Serverless::Function
@@ -4646,9 +4625,8 @@ Resources:
             - UseManagedMultilingualSecrets
             - !Ref NestedMultilingualGoogleServiceAccountSecretArn
             - !Ref GoogleApplicationCredentialsSecretArn
-          INCIDENT_MEDIA_TWILIO_SECRET_ARN: !Ref IncidentMediaTwilioSecretArn
-          # Live Twilio when Silent Text is enabled; otherwise keep stage SmsEnvironmentDefaults (dev=mock).
-          SMS_PROVIDER: !If [HasSilentText, "twilio", !FindInMap [SmsEnvironmentDefaults, !Ref DeploymentStage, SmsProvider]]
+          # Live AWS SMS when Silent Text is enabled; otherwise keep stage SmsEnvironmentDefaults (dev=mock).
+          SMS_PROVIDER: !If [HasSilentText, "aws", !FindInMap [SmsEnvironmentDefaults, !Ref DeploymentStage, SmsProvider]]
           SMS_PRIMARY_PROVIDER: !FindInMap [SmsEnvironmentDefaults, !Ref DeploymentStage, SmsPrimaryProvider]
           MOCK_SMS_PROVIDER: !If [HasSilentText, "false", !FindInMap [SmsEnvironmentDefaults, !Ref DeploymentStage, MockSmsProvider]]
           AWS_SMS_USE_SIMULATOR: !If [HasSilentText, "false", !FindInMap [SmsEnvironmentDefaults, !Ref DeploymentStage, AwsSmsUseSimulator]]
@@ -4695,15 +4673,6 @@ Resources:
             Condition:
               StringEquals:
                 aws:RequestedRegion: !Ref AWS::Region
-        - Fn::If:
-            - HasIncidentMediaTwilioSecretArn
-            - Statement:
-                Sid: ReadTwilioSecret
-                Effect: Allow
-                Action:
-                  - secretsmanager:GetSecretValue
-                Resource: !Ref IncidentMediaTwilioSecretArn
-            - !Ref AWS::NoValue
       Events:
         PostSession:
           Type: HttpApi
@@ -4871,7 +4840,6 @@ Resources:
           PINPOINT_PUBLIC_BASE_URL: !Ref AppPublicBaseUrl
           SILENT_TEXT_PUBLIC_BASE_URL: !Ref AppPublicBaseUrl
           PINPOINT_SMS_MOCK: "false"
-          INCIDENT_MEDIA_TWILIO_SECRET_ARN: !Ref IncidentMediaTwilioSecretArn
           SMS_PROVIDER: !FindInMap [SmsEnvironmentDefaults, !Ref DeploymentStage, SmsProvider]
           SMS_PRIMARY_PROVIDER: !FindInMap [SmsEnvironmentDefaults, !Ref DeploymentStage, SmsPrimaryProvider]
           MOCK_SMS_PROVIDER: !FindInMap [SmsEnvironmentDefaults, !Ref DeploymentStage, MockSmsProvider]
@@ -4917,15 +4885,6 @@ Resources:
             Condition:
               StringEquals:
                 aws:RequestedRegion: !Ref AWS::Region
-        - Fn::If:
-            - HasIncidentMediaTwilioSecretArn
-            - Statement:
-                Sid: ReadTwilioSecret
-                Effect: Allow
-                Action:
-                  - secretsmanager:GetSecretValue
-                Resource: !Ref IncidentMediaTwilioSecretArn
-            - !Ref AWS::NoValue
       Events:
         PostPinpointLink:
           Type: HttpApi

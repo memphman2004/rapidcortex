@@ -16,17 +16,17 @@ import { RING_INTEGRATION_ENABLED, ringIntegrationDisabledResponse } from "./rin
  * Public homeowner surface: POST /link, GET /verify, POST /delete-account.
  * One Lambda keeps stack-4 template size under the SAM transform proxy.
  */
-export const handler: APIGatewayProxyHandlerV2 = (event, context, callback) => {
+export const handler: APIGatewayProxyHandlerV2 = async (event, context, callback) => {
   // RING_DISABLED — integration suspended pending Ring developer program approval
   if (!RING_INTEGRATION_ENABLED) {
     return ringIntegrationDisabledResponse(event);
   }
   const path = `${event.rawPath ?? ""} ${event.requestContext?.http?.path ?? ""}`;
-  if (path.includes("/homeowner/verify")) {
-    return handleVerify(event, context, callback);
-  }
-  if (path.includes("/homeowner/delete-account")) {
-    return handleDelete(event, context, callback);
-  }
-  return handleLink(event, context, callback);
+  const nested = path.includes("/homeowner/verify")
+    ? handleVerify
+    : path.includes("/homeowner/delete-account")
+      ? handleDelete
+      : handleLink;
+  const result = await Promise.resolve(nested(event, context, callback));
+  return result ?? ringIntegrationDisabledResponse(event);
 };

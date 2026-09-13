@@ -4,9 +4,9 @@ import { routeInboundSms } from "../../services/smsInboundRouter.js";
 /**
  * Inbound (two-way) SMS from AWS End User Messaging.
  *
- * AWS publishes each inbound message to an SNS topic rather than calling an HTTP webhook the way
- * Twilio does, so this is an SNS-triggered handler. Routing is shared with the Twilio path: both
- * resolve the destination number to an agency via the SMS routing table.
+ * AWS publishes each inbound message to an SNS topic rather than calling an HTTP webhook,
+ * so this is an SNS-triggered handler. Routing resolves the destination number to an agency
+ * via the SMS routing table.
  */
 
 type AwsInboundMessage = {
@@ -47,7 +47,7 @@ export const handler: SNSHandler = async (event) => {
         toPhone,
         callerPhone,
         rawBody,
-        // Twilio's parameter names, so downstream intake sees one shape regardless of carrier path.
+        // Canonical inbound field names so downstream intake sees one shape.
         inboundParams: {
           From: callerPhone,
           To: toPhone,

@@ -47,7 +47,7 @@ export const NG_SEC_CONTROL_CATALOG: NgSecControlEvidence[] = [
     category: "System & Communications Protection",
     status: "implemented",
     evidence:
-      "API keys loaded from Secrets Manager ARNs (Anthropic, OpenAI, Twilio); RC_RUNTIME_CONFIG_JSON carries ARNs only.",
+      "API keys loaded from Secrets Manager ARNs (Anthropic, OpenAI); RC_RUNTIME_CONFIG_JSON carries ARNs only.",
     references: ["runtimeSecrets.ts", "Secrets Manager"],
   },
   {

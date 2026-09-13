@@ -134,7 +134,7 @@ static_s3_upload_extensionless_keys() {
       --cache-control "public, max-age=300, must-revalidate" \
       --region "${region}"
     count=$((count + 1))
-    # /privacy/ → key "privacy/" (Next trailingSlash + Twilio/TCR often append /).
+    # /privacy/ → key "privacy/" (Next trailingSlash + A2P/TCR often append /).
     # Without this object, CloudFront 404 CustomErrorResponses serves the homepage.
     aws s3api put-object \
       --bucket "${bucket}" \

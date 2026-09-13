@@ -8,8 +8,10 @@ import { RingConnectButton, RingIntegrationUnavailableNotice, isRingEnabled } fr
 import { CameraProviderSetup } from "@/components/cameras/CameraProviderSetup";
 import type { RingDevicesResponse } from "@/src/features/connect/ring/ring-types";
 import { NestCameraPanel } from "@/components/cameras/NestCameraPanel";
-import { NEST_TM, RING_TM } from "@/lib/brand-marks";
+import { WyzeCameraPanel } from "@/components/cameras/WyzeCameraPanel";
+import { NEST_TM, RING_TM, WYZE_TM } from "@/lib/brand-marks";
 import { isNestEnabled } from "@/lib/nest-feature-flags";
+import { isWyzeEnabled } from "@/lib/wyze-feature-flags";
 
 async function fetchRingDevices(): Promise<RingDevicesResponse> {
   const res = await fetch("/api/integrations/ring/devices", { credentials: "include" });
@@ -25,6 +27,7 @@ export function VenueCamerasClient({ venueCode }: { venueCode: string }) {
   const ringEnabled = isRingEnabled();
 
   const nestEnabled = isNestEnabled();
+  const wyzeEnabled = isWyzeEnabled();
 
   useEffect(() => {
     const qp = new URLSearchParams(window.location.search);
@@ -56,8 +59,8 @@ export function VenueCamerasClient({ venueCode }: { venueCode: string }) {
       <div>
         <h1 className="text-2xl font-bold text-white">Cameras</h1>
         <p className="mt-1 text-sm text-slate-400">
-          Register venue RTSP / ONVIF cameras for KVS streaming above, then link {RING_TM} and{" "}
-          {NEST_TM} accounts for emergency collaboration during incidents.
+          Register venue RTSP / ONVIF cameras for KVS streaming above, then link {RING_TM}, {NEST_TM},
+          and {WYZE_TM} accounts for emergency collaboration during incidents.
         </p>
       </div>
 
@@ -89,6 +92,13 @@ export function VenueCamerasClient({ venueCode }: { venueCode: string }) {
               incidentId={null}
               connectSettingsHref={`/app/venue/${venueCode}/cameras`}
             />
+          </section>
+        ) : null}
+
+        {wyzeEnabled ? (
+          <section className="space-y-3 rounded-lg border border-cyan-500/30 bg-slate-900/40 p-4">
+            <h2 className="text-sm font-semibold text-cyan-200">{WYZE_TM}</h2>
+            <WyzeCameraPanel agencyId={user.agencyId} incidentId={null} />
           </section>
         ) : null}
       </div>

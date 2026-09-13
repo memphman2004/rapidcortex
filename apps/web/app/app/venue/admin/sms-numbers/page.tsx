@@ -21,7 +21,7 @@ export default async function VenueAdminSmsNumbersPage() {
       <div>
         <h1 className="text-2xl font-semibold text-white">SMS Numbers</h1>
         <p className="mt-2 max-w-3xl text-sm text-slate-400">
-          Register the Twilio number printed on venue signs. Incoming texts are routed by the
+          Register the AWS SMS number printed on venue signs. Incoming texts are routed by the
           destination number — no keywords or prefixes required.
         </p>
         <div className="mt-4 flex flex-wrap gap-4 text-sm">

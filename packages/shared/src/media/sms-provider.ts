@@ -1,12 +1,12 @@
 import { z } from "zod";
 
-/** How the API chooses an SMS channel for incident media links (e.g. env `SMS_PROVIDER`). */
-export const smsProviderModeSchema = z.enum(["aws", "twilio", "auto", "mock"]);
+/** How the API chooses an SMS channel (env `SMS_PROVIDER`). Legacy `twilio` / `auto` map to `aws` at runtime. */
+export const smsProviderModeSchema = z.enum(["aws", "mock"]);
 export type SmsProviderMode = z.infer<typeof smsProviderModeSchema>;
 
 /**
  * Name of the effective routing or concrete provider.
- * (Alias for `SmsProviderMode` — `auto` is a routing mode, not a concrete send channel.)
+ * (Alias for `SmsProviderMode`.)
  */
 export type SmsProviderName = SmsProviderMode;
 
@@ -22,24 +22,18 @@ export const smsMessageTypeSchema = z.enum([
 ]);
 export type SmsMessageType = z.infer<typeof smsMessageTypeSchema>;
 
-/** In `auto` mode, which concrete provider to try first; secondary is the other (env `SMS_PRIMARY_PROVIDER`). */
-export const smsPrimaryProviderSchema = z.enum(["twilio", "aws"]);
-export type SmsPrimaryProvider = z.infer<typeof smsPrimaryProviderSchema>;
-
-/** Concrete provider used for a single send attempt (excludes routing mode `auto`). */
+/** Concrete provider used for a single send attempt. `twilio` is retained only for historical Dynamo rows. */
 export const smsSendResultProviderSchema = z.enum(["aws", "twilio", "mock", "log-only"]);
 export type SmsSendResultProvider = z.infer<typeof smsSendResultProviderSchema>;
 
 export const smsSendStatusSchema = z.enum(["queued", "sent", "failed"]);
 export type SmsSendStatus = z.infer<typeof smsSendStatusSchema>;
 
-/** Normalized classification for failover decisions. */
+/** Normalized classification for send errors. */
 export const retryableSmsErrorSchema = z.object({
-  /** Whether `auto` mode may try the other concrete provider. */
   retryable: z.boolean(),
   errorCode: z.string().max(64).optional(),
   errorMessage: z.string().max(500).optional(),
-  /** Which side produced this (first or second attempt in auto). */
   provider: smsSendResultProviderSchema.optional(),
 });
 
@@ -55,11 +49,9 @@ export const smsSendResultSchema = z.object({
   recipientRedacted: z.string().min(1).max(32),
   sentAt: z.string().min(1),
   retryable: z.boolean().optional(),
-  /** True when `auto` mode succeeded on the second concrete provider. */
+  /** Legacy field from dual-provider routing; new sends leave this unset. */
   smsFailoverUsed: z.boolean().optional(),
-  /** Set when a first attempt was made in `auto` and failed. */
   firstAttemptProvider: smsSendResultProviderSchema.optional(),
-  /** Error code from the first attempt in `auto` (not sent on success of first). */
   firstAttemptErrorCode: z.string().max(64).optional(),
 });
 

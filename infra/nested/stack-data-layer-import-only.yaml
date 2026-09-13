@@ -118,9 +118,8 @@ Parameters:
     Type: String
     Default: ""
     Description: >-
-      Optional Secrets Manager ARN for Twilio JSON: preferred shape accountSid + apiKeySid + apiKeySecret +
-      messagingServiceSid; legacy accountSid + authToken + fromE164 (optional messagingServiceSid).
-      Leave empty when using AWS-only SMS_PROVIDER or mock/simulator paths.
+      Deprecated unused. SMS uses AWS End User Messaging only. Kept so existing nested
+      stacks do not fail on a removed CloudFormation parameter. Leave empty.
   HttpApiCorsAllowedOrigins:
     Type: String
     Default: "*"
@@ -451,22 +450,22 @@ Mappings:
   SmsEnvironmentDefaults:
     dev:
       SmsProvider: mock
-      SmsPrimaryProvider: twilio
+      SmsPrimaryProvider: aws
       MockSmsProvider: "true"
       AwsSmsUseSimulator: "true"
     staging:
-      SmsProvider: auto
-      SmsPrimaryProvider: twilio
+      SmsProvider: aws
+      SmsPrimaryProvider: aws
       MockSmsProvider: "false"
       AwsSmsUseSimulator: "false"
     prod:
-      SmsProvider: auto
-      SmsPrimaryProvider: twilio
+      SmsProvider: aws
+      SmsPrimaryProvider: aws
       MockSmsProvider: "false"
       AwsSmsUseSimulator: "false"
     pilot:
-      SmsProvider: auto
-      SmsPrimaryProvider: twilio
+      SmsProvider: aws
+      SmsPrimaryProvider: aws
       MockSmsProvider: "false"
       AwsSmsUseSimulator: "false"
 

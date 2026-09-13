@@ -224,7 +224,7 @@ const PLATFORM_HEALTH = [
   { label: "AI Transcription", uptime: "99.8%" },
   { label: "Translation", uptime: "99.7%" },
   { label: "CAD Integration", uptime: "99.9%" },
-  { label: "SMS / Twilio", uptime: "100%" },
+  { label: "SMS / AWS", uptime: "100%" },
   { label: "Storage (S3)", uptime: "100%" },
   { label: "Database", uptime: "99.99%" },
 ] as const;

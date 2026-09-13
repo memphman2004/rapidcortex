@@ -5,8 +5,10 @@ import { useEffect, useState } from "react";
 import { Camera, Link2 } from "lucide-react";
 import { CameraProviderSetup } from "@/components/cameras/CameraProviderSetup";
 import { NestCameraPanel } from "@/components/cameras/NestCameraPanel";
-import { GOOGLE_NEST_TM, NEST_TM, RING_TM } from "@/lib/brand-marks";
+import { WyzeCameraPanel } from "@/components/cameras/WyzeCameraPanel";
+import { GOOGLE_NEST_TM, NEST_TM, RING_TM, WYZE_TM } from "@/lib/brand-marks";
 import { isNestEnabled } from "@/lib/nest-feature-flags";
+import { isWyzeEnabled } from "@/lib/wyze-feature-flags";
 import { isTransitCamerasUiEnabled } from "@/lib/runtime-flags";
 import { RingConnectButton, RingIntegrationUnavailableNotice, ViewAvailableRingCamerasButton, isRingEnabled } from "@/src/features/connect/ring";
 import type { RingDevicesResponse, RingRole } from "@/src/features/connect/ring/ring-types";
@@ -37,6 +39,7 @@ export function TransitCamerasConnectClient({
   const queryClient = useQueryClient();
   const ringEnabled = isRingEnabled();
   const nestEnabled = isNestEnabled();
+  const wyzeEnabled = isWyzeEnabled();
   const camerasEnabled = isTransitCamerasUiEnabled();
   const [selectedIncidentId, setSelectedIncidentId] = useState<string | null>(null);
 
@@ -93,8 +96,8 @@ export function TransitCamerasConnectClient({
       <div>
         <h2 className="text-lg font-bold text-white">Community cameras</h2>
         <p className="mt-1 text-sm text-slate-400">
-          Link {RING_TM} and {GOOGLE_NEST_TM} accounts for consent-based live video near stations and
-          incidents. Facility / onboard RTSP cameras are registered above.
+          Link {RING_TM}, {GOOGLE_NEST_TM}, and {WYZE_TM} accounts for consent-based live video near
+          stations and incidents. Facility / onboard RTSP cameras are registered above.
         </p>
       </div>
 
@@ -186,6 +189,18 @@ export function TransitCamerasConnectClient({
               incidentLat={selectedIncident?.lat}
               incidentLng={selectedIncident?.lng}
               connectSettingsHref={`/transit/${transitCode}/cameras`}
+            />
+          </section>
+        ) : null}
+
+        {wyzeEnabled ? (
+          <section className="space-y-3 rounded-lg border border-cyan-500/30 bg-slate-900/40 p-4">
+            <h2 className="text-sm font-semibold text-cyan-200">{WYZE_TM}</h2>
+            <WyzeCameraPanel
+              agencyId={agencyId}
+              incidentId={selectedIncidentId}
+              incidentLat={selectedIncident?.lat}
+              incidentLng={selectedIncident?.lng}
             />
           </section>
         ) : null}

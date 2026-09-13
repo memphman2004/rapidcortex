@@ -2,12 +2,11 @@
 # Operational runbook: unblock Silent Text, Pinpoint SMS, Live Video invite SMS, and map UI for pilot QA.
 # Run sections manually in order. Requires AWS CLI + prod/dev credentials.
 #
-# Priority: Blocker 1 (Twilio) → Blocker 2 (web flags + ALS maps) → Blocker 3 (API redeploy) → E2E test
+# Priority: Blocker 1 (web flags + ALS maps) → Blocker 2 (API redeploy) → E2E test
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 REGION="${AWS_REGION:-us-east-1}"
-TWILIO_SECRET_ID="${TWILIO_SECRET_ID:-rapid-cortex/incident-media/twilio}"
 API_STACK="${API_STACK:-rapid-cortex-dev}"
 
 section() {
@@ -21,76 +20,14 @@ usage() {
   sed -n '2,8p' "$0"
   echo ""
   echo "Usage:"
-  echo "  $0 verify-twilio          # read secret (redacted) — Blocker 1 pre-check"
-  echo "  $0 rotate-twilio          # interactive — requires TWILIO_* env vars set"
-  echo "  $0 deploy-web-prod        # Blocker 2 — source env + CodeBuild/ECS deploy"
-  echo "  $0 api-stack-failure      # Blocker 3 — print last UPDATE_FAILED events"
-  echo "  $0 deploy-api-dev         # Blocker 3 — redeploy API after SAM fix"
+  echo "  $0 deploy-web-prod        # Blocker 1 — source env + CodeBuild/ECS deploy"
+  echo "  $0 api-stack-failure      # Blocker 2 — print last UPDATE_FAILED events"
+  echo "  $0 deploy-api-dev         # Blocker 2 — redeploy API after SAM fix"
   echo "  $0 e2e-hints              # print curl/aws commands for manual E2E"
-  echo ""
-  echo "Rotate Twilio (Blocker 1) — set these first, then: $0 rotate-twilio"
-  echo "  TWILIO_ACCOUNT_SID  TWILIO_AUTH_TOKEN  TWILIO_FROM_NUMBER"
-  echo "  TWILIO_MESSAGING_SERVICE_SID (optional MG...)"
-}
-
-cmd_verify_twilio() {
-  section "Blocker 1 — verify Twilio secret (current value)"
-  aws secretsmanager get-secret-value \
-    --secret-id "${TWILIO_SECRET_ID}" \
-    --region "${REGION}" \
-    --query 'SecretString' \
-    --output text \
-    | python3 -c "
-import json, sys
-d = json.load(sys.stdin)
-sid = str(d.get('accountSid', ''))
-print('accountSid:', (sid[:8] + '...') if len(sid) > 8 else sid or '(missing)')
-print('fromNumber:', d.get('fromNumber', '(missing)'))
-print('messagingServiceSid:', d.get('messagingServiceSid', '(none)'))
-print('looksLikePlaceholder:', sid.upper().startswith('ACXXXX') or d.get('authToken') in ('PLACEHOLDER', 'your_auth_token_here', None, ''))
-"
-}
-
-cmd_rotate_twilio() {
-  section "Blocker 1 — rotate Twilio secret"
-  : "${TWILIO_ACCOUNT_SID:?Set TWILIO_ACCOUNT_SID}"
-  : "${TWILIO_AUTH_TOKEN:?Set TWILIO_AUTH_TOKEN}"
-  : "${TWILIO_FROM_NUMBER:?Set TWILIO_FROM_NUMBER}"
-  MSG_SID="${TWILIO_MESSAGING_SERVICE_SID:-}"
-  python3 - <<PY
-import json, os
-payload = {
-  "accountSid": os.environ["TWILIO_ACCOUNT_SID"],
-  "authToken": os.environ["TWILIO_AUTH_TOKEN"],
-  "fromNumber": os.environ["TWILIO_FROM_NUMBER"],
-}
-if os.environ.get("TWILIO_MESSAGING_SERVICE_SID"):
-    payload["messagingServiceSid"] = os.environ["TWILIO_MESSAGING_SERVICE_SID"]
-print(json.dumps(payload))
-PY
-  read -r -p "Put secret ${TWILIO_SECRET_ID}? [y/N] " confirm
-  [[ "${confirm}" == [yY] ]] || exit 0
-  aws secretsmanager put-secret-value \
-    --secret-id "${TWILIO_SECRET_ID}" \
-    --region "${REGION}" \
-    --secret-string "$(python3 - <<PY
-import json, os
-payload = {
-  "accountSid": os.environ["TWILIO_ACCOUNT_SID"],
-  "authToken": os.environ["TWILIO_AUTH_TOKEN"],
-  "fromNumber": os.environ["TWILIO_FROM_NUMBER"],
-}
-if os.environ.get("TWILIO_MESSAGING_SERVICE_SID"):
-    payload["messagingServiceSid"] = os.environ["TWILIO_MESSAGING_SERVICE_SID"]
-print(json.dumps(payload))
-PY
-)"
-  echo "✓ Secret updated (same ARN — Lambdas pick up new version on next cold start)"
-  cmd_verify_twilio
 }
 
 cmd_deploy_web_prod() {
-  section "Blocker 2 — deploy web with Pinpoint + Live Video + ALS map flags"
+  section "Blocker 1 — deploy web with Pinpoint + Live Video + ALS map flags"
   if [[ -z "${NEXT_PUBLIC_ALS_IDENTITY_POOL_ID:-}" ]]; then
     echo "WARN: NEXT_PUBLIC_ALS_IDENTITY_POOL_ID is unset — map tiles will not authenticate until AppSamLocationStack2 is deployed." >&2
   fi
@@ -104,7 +41,7 @@ cmd_deploy_web_prod() {
 }
 
 cmd_api_stack_failure() {
-  section "Blocker 3 — last API stack failures (${API_STACK})"
+  section "Blocker 2 — last API stack failures (${API_STACK})"
   aws cloudformation describe-stacks \
     --stack-name "${API_STACK}" \
     --region "${REGION}" \
@@ -125,7 +62,7 @@ cmd_api_stack_failure() {
 }
 
 cmd_deploy_api_dev() {
-  section "Blocker 3 — redeploy API (dev/prod SAM stack)"
+  section "Blocker 2 — redeploy API (dev/prod SAM stack)"
   # shellcheck source=scripts/env-api-dev.sh
   source "${ROOT}/scripts/env-api-dev.sh"
   "${ROOT}/scripts/deploy.sh" dev
@@ -134,12 +71,8 @@ cmd_deploy_api_dev() {
 cmd_e2e_hints() {
   section "E2E test sequence (manual — use test phone you control)"
   cat <<'EOF'
-# 1. Twilio secret readable (after rotate)
-aws secretsmanager get-secret-value \
-  --secret-id rapid-cortex/incident-media/twilio \
-  --region us-east-1 \
-  --query 'SecretString' --output text \
-  | python3 -c "import json,sys; d=json.load(sys.stdin); print('ok', d['accountSid'][:8]+'...')"
+# 1. AWS SMS origination (End User Messaging)
+./scripts/setup-aws-10dlc.sh status
 
 # 2. Cognito token (set RC_TEST_PASSWORD)
 TOKEN="$(aws cognito-idp initiate-auth \
@@ -176,8 +109,6 @@ EOF
 
 main="${1:-usage}"
 case "${main}" in
-  verify-twilio) cmd_verify_twilio ;;
-  rotate-twilio) cmd_rotate_twilio ;;
   deploy-web-prod) cmd_deploy_web_prod ;;
   api-stack-failure) cmd_api_stack_failure ;;
   deploy-api-dev) cmd_deploy_api_dev ;;

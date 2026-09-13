@@ -52,7 +52,7 @@ Call Assist knowledge answers are grounded on the **agency knowledge base in Dyn
 | **Amazon SES** | Transactional email (invites, billing, notifications) | Email addresses, message content | When email features enabled |
 | **Amazon SNS** | Ops alerts, optional SMS | Phone/email for alerts | Operator-configured |
 | **Amazon Pinpoint** | SMS / messaging links (e.g. caller media intake) | Phone numbers, message metadata | When Pinpoint features enabled |
-| **Twilio** (or adapter) | Telephony / SMS integrations | Call/SMS metadata | Only if integration deployed and configured |
+| **Amazon End User Messaging** | Transactional SMS (incident links, consent, Silent Text) | Phone numbers, message metadata | When SMS features enabled |
 | **Ring** (partner API) | Camera / doorbell integrations | Device metadata, media | Ring Connect module only |
 | **CAD vendor systems** | Read or write adapters | Incident/unit data per agency | Agency-controlled endpoints |
 

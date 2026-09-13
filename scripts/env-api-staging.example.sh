@@ -77,7 +77,6 @@ export ALS_GEOFENCE_COLLECTION_NAME="${ALS_GEOFENCE_COLLECTION_NAME:-rc-geofence
 export ALS_TRACKER_NAME="${ALS_TRACKER_NAME:-rc-tracker-staging}"
 
 # Shared account secrets (same ARNs as live). Isolation is Dynamo/S3/Cognito, not these keys.
-export INCIDENT_MEDIA_TWILIO_SECRET_ARN="${INCIDENT_MEDIA_TWILIO_SECRET_ARN:-arn:aws:secretsmanager:us-east-1:158961537080:secret:rapid-cortex/incident-media/twilio-az6LeK}"
 export RING_CREDENTIALS_SECRET_ARN_OVERRIDE="${RING_CREDENTIALS_SECRET_ARN_OVERRIDE:-arn:aws:secretsmanager:us-east-1:158961537080:secret:rapid-cortex/connect/ring-credentials-D3f1sN}"
 export OPENAI_API_KEY_SECRET_ARN="${OPENAI_API_KEY_SECRET_ARN:-arn:aws:secretsmanager:us-east-1:158961537080:secret:rapid-cortex/ai/openai-kqZQ3D}"
 export ANTHROPIC_API_KEY_SECRET_ARN="${ANTHROPIC_API_KEY_SECRET_ARN:-arn:aws:secretsmanager:us-east-1:158961537080:secret:rapid-cortex/ai/anthropic-fHk4y2}"
@@ -86,11 +85,20 @@ export AZURE_TRANSLATION_KEY_SECRET_ARN="${AZURE_TRANSLATION_KEY_SECRET_ARN:-arn
 
 export ENABLE_CONNECT_RING=true
 export ENABLE_CONNECT_NEST=true
+export ENABLE_CONNECT_WYZE=false
+export ENABLE_RAPID_VISION_WYZE=true
+export WYZE_ENABLED=false
+export WYZE_API_KEYS_SECRET_ARN="${WYZE_API_KEYS_SECRET_ARN:-arn:aws:secretsmanager:us-east-1:158961537080:secret:rapid-cortex/connect/wyze-api-keys-YIoY3S}"
 export RING_PARTNERSHIP_ENABLED=true
 # Staging Ring/Nest callbacks — web host until AppSam4 execute-api URLs exist. Never use live stack 4.
 export RING_REDIRECT_URI="${RING_REDIRECT_URI:-https://app-staging.rapidcortex.us/api/integrations/ring/callback}"
 export RING_ACCOUNT_LINK_URL="${RING_ACCOUNT_LINK_URL:-https://app-staging.rapidcortex.us/connect/ring/link}"
+# Marketing Connect enroll (Ring / Nest / Wyze) — renamed from NEXT_PUBLIC_RING_PUBLIC_OAUTH_BASE
+export NEXT_PUBLIC_CONNECT_PUBLIC_BASE="${NEXT_PUBLIC_CONNECT_PUBLIC_BASE:-https://app-staging.rapidcortex.us}"
 export NEST_REDIRECT_URI="${NEST_REDIRECT_URI:-https://app-staging.rapidcortex.us/api/cameras/providers/nest/callback}"
+# Citizen enrollment at /connect/nest needs RC's own Device Access project secret:
+# JSON { clientId, clientSecret, projectId } — apply at console.nest.google.com/device-access
+# export NEST_RC_OAUTH_SECRET_ARN=""
 
 export ENABLE_ESCALATION=true
 export ENABLE_RMS=true
@@ -107,6 +115,7 @@ export ENABLE_RC_TRANSLATE=true
 export TRANSLATE_MOCK=true
 export ENABLE_RAPID_VISION=true
 export ENABLE_RAPID_VISION_RING=true
+export ENABLE_RAPID_VISION_NEST=true
 export ENABLE_RAPID_VISION_CALLER_VIDEO=true
 export ENABLE_RAPID_VISION_DEMO=true
 export ENABLE_RAPID_VISION_AI_WRITER=true
@@ -128,6 +137,7 @@ export NEXT_PUBLIC_ENABLE_RC_TRANSLATE_CAMPUS="${NEXT_PUBLIC_ENABLE_RC_TRANSLATE
 export NEXT_PUBLIC_ENABLE_RC_TRANSLATE_HOSPITAL="${NEXT_PUBLIC_ENABLE_RC_TRANSLATE_HOSPITAL:-1}"
 export NEXT_PUBLIC_ENABLE_RAPID_VISION="${NEXT_PUBLIC_ENABLE_RAPID_VISION:-1}"
 export NEXT_PUBLIC_ENABLE_RAPID_VISION_RING="${NEXT_PUBLIC_ENABLE_RAPID_VISION_RING:-1}"
+export NEXT_PUBLIC_ENABLE_RAPID_VISION_NEST="${NEXT_PUBLIC_ENABLE_RAPID_VISION_NEST:-1}"
 export NEXT_PUBLIC_ENABLE_RAPID_VISION_CALLER_VIDEO="${NEXT_PUBLIC_ENABLE_RAPID_VISION_CALLER_VIDEO:-1}"
 export NEXT_PUBLIC_ENABLE_RAPID_VISION_DEMO="${NEXT_PUBLIC_ENABLE_RAPID_VISION_DEMO:-1}"
 export NEXT_PUBLIC_ENABLE_RAPID_VISION_AI_WRITER="${NEXT_PUBLIC_ENABLE_RAPID_VISION_AI_WRITER:-1}"

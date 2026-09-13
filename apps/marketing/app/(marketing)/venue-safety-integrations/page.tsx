@@ -64,6 +64,7 @@ export default function VenueSafetyIntegrationsPage() {
         { href: "/integrations", label: "Integrations overview" },
         { href: "/connect/ring/start", label: "Start Ring Connect" },
         { href: "/connect/nest", label: "Nest Connect" },
+        { href: "/connect/wyze/start", label: "Wyze Connect" },
         { href: "/free-60-day-pilot", label: "Free 60-Day Pilot Program" },
         { href: "/blog/rapid-cortex-venue", label: "Blog: Rapid Cortex Venue" },
         { href: "/blog/stadium-fan-safety-without-adding-staff", label: "Blog: Stadium fan safety without adding staff" },
@@ -77,7 +78,7 @@ export default function VenueSafetyIntegrationsPage() {
         {
           question: "What reporting channels can we integrate?",
           answer:
-            "QR/NFC signs, SMS with a venue code, and optional Ring or Nest Connect consent flows. Other camera stacks are scoped per contract.",
+            "QR/NFC signs, SMS with a venue code, and optional Ring, Nest, or Wyze Connect consent flows. Other camera stacks are scoped per contract.",
         },
         {
           question: "Can we pilot venue integrations on a subset of zones?",

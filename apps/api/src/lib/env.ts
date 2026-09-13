@@ -1,5 +1,5 @@
-import type { SmsPrimaryProvider, SmsProviderMode } from "rapid-cortex-shared";
-import { RING_INTEGRATION_ENABLED, smsPrimaryProviderSchema, smsProviderModeSchema } from "rapid-cortex-shared";
+import type { SmsProviderMode } from "rapid-cortex-shared";
+import { RING_INTEGRATION_ENABLED, smsProviderModeSchema } from "rapid-cortex-shared";
 import { hydrateLambdaEnvFromJson } from "./hydrateLambdaEnv";
 
 hydrateLambdaEnvFromJson();
@@ -18,37 +18,19 @@ function required(name: string): string {
   return value;
 }
 
-function resolveTwilioSecretArn(): string {
-  return (process.env.TWILIO_SECRET_ARN?.trim() || process.env.INCIDENT_MEDIA_TWILIO_SECRET_ARN?.trim() || "");
-}
-
 /**
- * SMS_PROVIDER wins when set. Otherwise preserve legacy incident-media toggles
- * (Twilio ARN vs SNS direct) before defaulting to auto-routing.
+ * SMS_PROVIDER wins when set. Legacy `twilio` / `auto` / `sns` values map to AWS
+ * End User Messaging so leftover Lambda env from prior deploys still sends.
  */
 function resolveSmsProviderMode(): SmsProviderMode {
-  const raw = (process.env.SMS_PROVIDER ?? "").trim().toLowerCase();
-  const normalized = raw === "sns" ? "aws" : raw;
-  const parsed = smsProviderModeSchema.safeParse(normalized);
-  if (parsed.success) return parsed.data;
   if (process.env.INCIDENT_MEDIA_SMS_MOCK === "true" || process.env.MOCK_SMS_PROVIDER === "true") {
     return "mock";
   }
-  const twilioArn = resolveTwilioSecretArn();
-  if (twilioArn && process.env.INCIDENT_MEDIA_SNS_DIRECT !== "1") {
-    return "twilio";
-  }
-  if (process.env.INCIDENT_MEDIA_SNS_DIRECT === "1") {
-    return "aws";
-  }
-  return "auto";
-}
-
-function resolveSmsPrimaryProvider(): SmsPrimaryProvider {
-  const raw = (process.env.SMS_PRIMARY_PROVIDER ?? "twilio").trim().toLowerCase();
-  const p = smsPrimaryProviderSchema.safeParse(raw);
-  if (p.success) return p.data;
-  return "twilio";
+  const raw = (process.env.SMS_PROVIDER ?? "").trim().toLowerCase();
+  if (raw === "mock") return "mock";
+  const parsed = smsProviderModeSchema.safeParse(raw === "sns" || raw === "twilio" || raw === "auto" || raw === "" ? "aws" : raw);
+  if (parsed.success) return parsed.data;
+  return "aws";
 }
 
 /**
@@ -234,6 +216,18 @@ export const env = {
   /** Rapid Vision™ — Ring Source (ENABLE_CONNECT_RING preserved for Stack 4 Ring Lambdas). */
   enableConnectRing: RING_INTEGRATION_ENABLED && featureEnabled("ENABLE_CONNECT_RING"),
   enableConnectNest: featureEnabled("ENABLE_CONNECT_NEST"),
+  enableConnectWyze: featureEnabled("ENABLE_CONNECT_WYZE"),
+  nestTokensTableName: process.env.NEST_TOKENS_TABLE?.trim() ?? "",
+  nestOauthStateTableName: process.env.NEST_OAUTH_STATE_TABLE?.trim() ?? "",
+  nestConsentTableName: process.env.NEST_CONSENT_TABLE?.trim() ?? "",
+  nestCitizenAccountsTableName: process.env.NEST_CITIZEN_ACCOUNTS_TABLE?.trim() ?? "",
+  nestKmsKeyArn: process.env.NEST_KMS_KEY_ARN?.trim() ?? "",
+  nestConsentHmacSecretArn: process.env.NEST_CONSENT_HMAC_SECRET_ARN?.trim() ?? "",
+  nestRcOauthSecretArn: process.env.NEST_RC_OAUTH_SECRET_ARN?.trim() ?? "",
+  wyzeRegistrationsTableName: process.env.WYZE_REGISTRATIONS_TABLE?.trim() ?? "",
+  wyzeConsentTableName: process.env.WYZE_CONSENT_TABLE?.trim() ?? "",
+  wyzeKmsKeyArn: process.env.WYZE_KMS_KEY_ARN?.trim() ?? "",
+  wyzeApiKeysSecretArn: process.env.WYZE_API_KEYS_SECRET_ARN?.trim() ?? "",
   ringAccountsTable: process.env.RING_TABLE_ACCOUNTS?.trim() ?? "",
   ringDevicesTable: process.env.RING_TABLE_DEVICES?.trim() ?? "",
   ringRequestsTable:
@@ -308,24 +302,14 @@ export const env = {
       50 * 1024 * 1024,
   ),
   incidentMediaSnsDirect: process.env.INCIDENT_MEDIA_SNS_DIRECT === "1",
-  /** Prefer TWILIO_SECRET_ARN when set (ops naming); falls back to INCIDENT_MEDIA_TWILIO_SECRET_ARN. */
-  incidentMediaTwilioSecretArn: resolveTwilioSecretArn(),
   incidentMediaSmsMock: process.env.INCIDENT_MEDIA_SMS_MOCK === "true",
   smsProvider: resolveSmsProviderMode(),
-  /** In `auto` mode, which provider to try first; secondary is the other. */
-  smsPrimaryProvider: resolveSmsPrimaryProvider(),
   mockSmsProvider: process.env.MOCK_SMS_PROVIDER === "true",
   awsSmsRegion: process.env.AWS_SMS_REGION?.trim() ?? "",
   awsSmsUseSimulator: process.env.AWS_SMS_USE_SIMULATOR === "true",
-  /** Non-secret AWS SMS / Pinpoint config (set in template; not credentials). */
+  /** Non-secret AWS End User Messaging config (set in template; not credentials). */
   awsSmsConfigurationSetName: process.env.AWS_SMS_CONFIGURATION_SET_NAME?.trim() ?? "",
   awsSmsPoolId: process.env.AWS_SMS_POOL_ID?.trim() ?? "",
-  /**
-   * Override for the public Twilio delivery-receipt webhook. Normally left unset and derived
-   * from `ringPublicApiBaseUrl` — these Lambdas sit against the 4KB env-var ceiling, so the
-   * URL is computed rather than stored.
-   */
-  smsStatusCallbackUrl: process.env.SMS_STATUS_CALLBACK_URL?.trim() ?? "",
   /** When >0, overrides INCIDENT_MEDIA_TOKEN_TTL_MINUTES for upload-token expiry. */
   mediaUploadTokenTtlSeconds: Math.max(
     0,
@@ -401,6 +385,7 @@ export const env = {
   /** Rapid Vision™ — AI visual intelligence. Default on when unset. */
   enableRapidVision: featureEnabled("ENABLE_RAPID_VISION"),
   enableRapidVisionRing: featureEnabled("ENABLE_RAPID_VISION_RING"),
+  enableRapidVisionNest: featureEnabled("ENABLE_RAPID_VISION_NEST"),
   enableRapidVisionCallerVideo: featureEnabled("ENABLE_RAPID_VISION_CALLER_VIDEO"),
   enableRapidVisionDemo: featureEnabled("ENABLE_RAPID_VISION_DEMO"),
   enableRapidVisionAiWriter: featureEnabled("ENABLE_RAPID_VISION_AI_WRITER"),

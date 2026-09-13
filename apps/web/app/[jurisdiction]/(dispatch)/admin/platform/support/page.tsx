@@ -54,7 +54,7 @@ export default function PlatformSupportPage() {
       id: "auth-placeholder",
       title: "Auth / SMS / video triage (placeholder)",
       detail:
-        "Centralized support incident indexing is not yet wired. Pull CloudWatch, Cognito, and Twilio logs for production investigations.",
+        "Centralized support incident indexing is not yet wired. Pull CloudWatch, Cognito, and AWS End User Messaging logs for production investigations.",
       severity: "info",
     });
     return out;

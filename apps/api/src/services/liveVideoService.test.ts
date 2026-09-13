@@ -121,7 +121,7 @@ describe("LiveVideoService", () => {
   it("creates a session and sends SMS", async () => {
     getIncidentMock.mockResolvedValue({ incidentId: "inc-1", agencyId: "agency-a" });
     sendSmsMock.mockResolvedValue({
-      provider: "twilio",
+      provider: "aws",
       status: "sent",
       messageId: "SM123",
       recipientRedacted: "***0100",
@@ -141,7 +141,7 @@ describe("LiveVideoService", () => {
       expect.objectContaining({ messageType: "live_video" }),
     );
     expect(out.status).toBe("pending");
-    expect(out.provider).toBe("twilio");
+    expect(out.provider).toBe("aws");
     expect(createSessionMock).toHaveBeenCalledTimes(1);
     expect(auditCreateMock).toHaveBeenCalled();
   });

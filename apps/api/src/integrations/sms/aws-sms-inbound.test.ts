@@ -40,7 +40,7 @@ describe("aws-sms-inbound", () => {
     });
   });
 
-  it("normalizes params to the Twilio shape so intake sees one format", async () => {
+  it("normalizes params so intake sees one format", async () => {
     await handler(snsEvent(inbound), {} as never, () => {});
     expect(routeInboundSms.mock.calls[0]![0].inboundParams).toMatchObject({
       From: "+15555550100",

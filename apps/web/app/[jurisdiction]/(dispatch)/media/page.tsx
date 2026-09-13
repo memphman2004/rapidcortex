@@ -8,12 +8,14 @@ import { LiveVideoPanel } from "@/components/dispatch/live-video-panel";
 import { SilentTextPanel } from "@/components/dispatch/silent-text-panel";
 import { VideoAssistPanel } from "@/components/dispatch/video-assist-panel";
 import { NestCameraPanel } from "@/components/cameras/NestCameraPanel";
+import { WyzeCameraPanel } from "@/components/cameras/WyzeCameraPanel";
 import { RapidVisionPanel } from "@/components/rapid-vision/RapidVisionPanel";
 import { useSession } from "@/components/auth/session-context";
-import { GOOGLE_NEST_TM, NEST_TM, RING_TM } from "@/lib/brand-marks";
+import { GOOGLE_NEST_TM, NEST_TM, RING_TM, WYZE_TM } from "@/lib/brand-marks";
 import { loadIncidents } from "@/lib/queries";
 import { isLiveVideoEnabled, isRapidVisionEnabled } from "@/lib/runtime-flags";
-import { isNestEnabled } from "@/lib/nest-feature-flags";
+import { isRapidVisionNestEnabled } from "@/lib/feature-flags";
+import { isWyzeEnabled } from "@/lib/wyze-feature-flags";
 import {
   RingConnectButton,
   ViewAvailableRingCamerasButton,
@@ -36,16 +38,19 @@ export default function MediaPage() {
   const searchParams = useSearchParams();
   const focusVision = searchParams.get("vision") === "1";
   const ringEnabled = isRingEnabled();
-  const nestEnabled = isNestEnabled();
+  const nestEnabled = isRapidVisionNestEnabled();
+  const wyzeEnabled = isWyzeEnabled();
   const liveVideoEnabled = isLiveVideoEnabled();
   const rapidVisionEnabled = isRapidVisionEnabled();
-  const mediaEnabled = ringEnabled || nestEnabled || liveVideoEnabled || rapidVisionEnabled;
+  const mediaEnabled = ringEnabled || nestEnabled || wyzeEnabled || liveVideoEnabled || rapidVisionEnabled;
 
   const [showRing, setShowRing] = useState(ringEnabled);
   const [showNest, setShowNest] = useState(nestEnabled);
-  const [showFacility, setShowFacility] = useState(!ringEnabled && !nestEnabled);
+  const [showWyze, setShowWyze] = useState(wyzeEnabled);
+  const [showFacility, setShowFacility] = useState(!ringEnabled && !nestEnabled && !wyzeEnabled);
   const [selectedIncidentId, setSelectedIncidentId] = useState<string | null>(null);
   const [nestPendingCount, setNestPendingCount] = useState(0);
+  const [wyzePendingCount, setWyzePendingCount] = useState(0);
 
   const incidentsQuery = useQuery({
     queryKey: ["incidents", "media-page"],
@@ -62,6 +67,10 @@ export default function MediaPage() {
   useEffect(() => {
     if (!nestEnabled) setShowNest(false);
   }, [nestEnabled]);
+
+  useEffect(() => {
+    if (!wyzeEnabled) setShowWyze(false);
+  }, [wyzeEnabled]);
 
   useEffect(() => {
     if (!incidents.length) {
@@ -84,7 +93,7 @@ export default function MediaPage() {
     [incidents, selectedIncidentId],
   );
 
-  const providerCount = (showRing ? 1 : 0) + (showNest ? 1 : 0) + (showFacility ? 1 : 0);
+  const providerCount = (showRing ? 1 : 0) + (showNest ? 1 : 0) + (showWyze ? 1 : 0) + (showFacility ? 1 : 0);
 
   if (!mediaEnabled) {
     return (
@@ -179,6 +188,19 @@ export default function MediaPage() {
                   {nestPendingCount > 0 ? ` (${nestPendingCount})` : ""}
                 </button>
               ) : null}
+              {wyzeEnabled ? (
+                <button
+                  type="button"
+                  aria-pressed={showWyze}
+                  onClick={() => setShowWyze((v) => !v)}
+                  className={`h-6 rounded px-2 text-xs ${
+                    showWyze ? "bg-cyan-600/80 text-white" : "text-slate-300 hover:text-white"
+                  }`}
+                >
+                  {WYZE_TM}
+                  {wyzePendingCount > 0 ? ` (${wyzePendingCount})` : ""}
+                </button>
+              ) : null}
               <button
                 type="button"
                 aria-pressed={showFacility}
@@ -194,7 +216,8 @@ export default function MediaPage() {
           <div className="min-h-0 flex-1 overflow-auto p-3">
             {providerCount === 0 ? (
               <p className="text-sm text-slate-400">
-                Select {RING_TM}, {NEST_TM}, and/or Facility above to view camera workflows side by side.
+                Select {RING_TM}, {NEST_TM}, {WYZE_TM}, and/or Facility above to view camera workflows
+                side by side.
               </p>
             ) : (
               <div
@@ -242,6 +265,27 @@ export default function MediaPage() {
                     ) : (
                       <p className="text-sm text-slate-300">
                         Sign in to manage {NEST_TM} camera workflows.
+                      </p>
+                    )}
+                  </section>
+                ) : null}
+
+                {showWyze && wyzeEnabled ? (
+                  <section className="space-y-3 rounded-lg border border-cyan-500/30 bg-slate-950/40 p-3">
+                    <h3 className="text-[10px] font-semibold uppercase tracking-widest text-cyan-300">
+                      {WYZE_TM}
+                    </h3>
+                    {user ? (
+                      <WyzeCameraPanel
+                        agencyId={user.agencyId}
+                        incidentId={selectedIncidentId}
+                        incidentLat={selectedIncident?.callerLocationLat}
+                        incidentLng={selectedIncident?.callerLocationLng}
+                        onPendingCountChange={setWyzePendingCount}
+                      />
+                    ) : (
+                      <p className="text-sm text-slate-300">
+                        Sign in to manage {WYZE_TM} camera workflows.
                       </p>
                     )}
                   </section>

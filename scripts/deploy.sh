@@ -448,9 +448,6 @@ fi
 if [[ -n "${APP_PUBLIC_BASE_URL:-}" ]]; then
   PARAMS="${PARAMS} AppPublicBaseUrl=${APP_PUBLIC_BASE_URL}"
 fi
-if [[ -n "${INCIDENT_MEDIA_TWILIO_SECRET_ARN:-}" ]]; then
-  PARAMS="${PARAMS} IncidentMediaTwilioSecretArn=${INCIDENT_MEDIA_TWILIO_SECRET_ARN}"
-fi
 # Optional Secrets Manager ARNs — pinned in scripts/env-api-dev.sh, forwarded only when set.
 # Unset values leave the SAM defaults (""), which keep the related feature in mock/disabled mode.
 if [[ -n "${OPENAI_API_KEY_SECRET_ARN:-}" ]]; then
@@ -519,6 +516,11 @@ fi
 if [[ "${INCLUDE_APP_SAM_TRANSIT_NESTED_STACK:-true}" == "false" ]]; then
   PARAMS="${PARAMS} IncludeAppSamTransitNestedStack=false"
 fi
+# Rapid IQ nested hashed stack JWN4SGUYZXYF: intel-watch queues / extra ingest Lambdas
+# collide with leftover standalone rapid-cortex-dev-AppSamRapidIqPipelineStack.
+# HTTP routes are gated separately (recreate via SignalHttpIntegrationV2 on live).
+PARAMS="${PARAMS} EnableRapidIqNewHttpRoutes=${ENABLE_RAPID_IQ_NEW_HTTP_ROUTES:-false}"
+PARAMS="${PARAMS} EnableRapidIqNestedExpansion=${ENABLE_RAPID_IQ_NESTED_EXPANSION:-false}"
 if [[ -n "${RING_CREDENTIALS_SECRET_ARN_OVERRIDE:-}" ]]; then
   PARAMS="${PARAMS} RingCredentialsSecretArnOverride=${RING_CREDENTIALS_SECRET_ARN_OVERRIDE}"
 fi
@@ -554,6 +556,12 @@ if [[ -n "${EXISTING_VISION_ARTIFACTS_BUCKET_NAME:-}" ]]; then
 fi
 if [[ -n "${EXISTING_VERTICAL_ALERTS_TABLE_NAME:-}" ]]; then
   PARAMS="${PARAMS} ExistingVerticalAlertsTableName=${EXISTING_VERTICAL_ALERTS_TABLE_NAME}"
+fi
+if [[ -n "${EXISTING_CLERY_ACT_TABLE_NAME:-}" ]]; then
+  PARAMS="${PARAMS} ExistingCleryActTableName=${EXISTING_CLERY_ACT_TABLE_NAME}"
+fi
+if [[ -n "${EXISTING_PHYSICAL_SECURITY_TABLE_NAME:-}" ]]; then
+  PARAMS="${PARAMS} ExistingPhysicalSecurityTableName=${EXISTING_PHYSICAL_SECURITY_TABLE_NAME}"
 fi
 if [[ -n "${EXISTING_TRANSLATE_SESSIONS_TABLE_NAME:-}" ]]; then
   PARAMS="${PARAMS} ExistingTranslateSessionsTableName=${EXISTING_TRANSLATE_SESSIONS_TABLE_NAME}"
@@ -615,11 +623,21 @@ fi
 if [[ -n "${ENABLE_CONNECT_RING:-}" ]]; then
   PARAMS="${PARAMS} EnableConnectRing=${ENABLE_CONNECT_RING}"
 fi
+if [[ -n "${ENABLE_RAPID_VISION_NEST:-}" ]]; then
+  PARAMS="${PARAMS} EnableRapidVisionNest=${ENABLE_RAPID_VISION_NEST}"
+fi
 if [[ -n "${RING_PARTNERSHIP_ENABLED:-}" ]]; then
   PARAMS="${PARAMS} RingPartnershipEnabled=${RING_PARTNERSHIP_ENABLED}"
 fi
 # RING_DISABLED — 2026-09-11. Default false; set RING_ENABLED=true to recreate Ring Lambdas.
 PARAMS="${PARAMS} RingEnabled=${RING_ENABLED:-false}"
+PARAMS="${PARAMS} WyzeEnabled=${WYZE_ENABLED:-false}"
+if [[ -n "${WYZE_API_KEYS_SECRET_ARN:-}" ]]; then
+  PARAMS="${PARAMS} WyzeApiKeysSecretArn=${WYZE_API_KEYS_SECRET_ARN}"
+fi
+if [[ -n "${NEST_RC_OAUTH_SECRET_ARN:-}" ]]; then
+  PARAMS="${PARAMS} NestRcOauthSecretArn=${NEST_RC_OAUTH_SECRET_ARN}"
+fi
 if [[ -n "${RING_REDIRECT_URI:-}" ]]; then
   PARAMS="${PARAMS} RingRedirectUri=${RING_REDIRECT_URI}"
 fi
@@ -711,10 +729,10 @@ sam deploy \
   --template-file "${SAM_BUILD_DIR}/template.yaml" \
   --stack-name "${STACK_NAME}" \
   --capabilities CAPABILITY_IAM CAPABILITY_NAMED_IAM CAPABILITY_AUTO_EXPAND \
-  --parameter-overrides ${PARAMS} \
   --resolve-s3 \
   --no-confirm-changeset \
   --no-fail-on-empty-changeset \
+  --parameter-overrides ${PARAMS} \
   ${DEPLOY_EXTRA_ARGS[@]+"${DEPLOY_EXTRA_ARGS[@]}"} \
   ${DEPLOY_SUFFIX[@]+"${DEPLOY_SUFFIX[@]}"} \
   || SAM_DEPLOY_EXIT=$?

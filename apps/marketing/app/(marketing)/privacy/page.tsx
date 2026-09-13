@@ -139,7 +139,8 @@ export default function PrivacyPolicyPage() {
             storage, and compute
           </li>
           <li>
-            <span className="text-slate-300">Communications:</span> Twilio Inc. — SMS and voice messaging
+            <span className="text-slate-300">Communications:</span> Amazon Web Services — SMS
+            (End User Messaging)
           </li>
           <li>
             <span className="text-slate-300">Camera integration:</span> Ring LLC (Amazon) — device

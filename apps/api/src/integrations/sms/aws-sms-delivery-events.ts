@@ -2,7 +2,7 @@ import type { SNSHandler } from "aws-lambda";
 import { redactE164Phone } from "rapid-cortex-shared";
 
 /**
- * AWS End User Messaging delivery events, the counterpart to the Twilio status callback.
+ * AWS End User Messaging delivery events.
  *
  * Without these, a successful `SendTextMessage` response is the last signal we get, so a
  * carrier-blocked message looks identical to a delivered one. Events arrive only when the send
