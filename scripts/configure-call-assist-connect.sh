@@ -35,6 +35,7 @@ STAGE="${1:-dev}"
 ALIAS="${CONNECT_INSTANCE_ALIAS:-rapid-cortex}"
 FLOW_NAME="Call Assist"
 QUEUE_NAME="Demo Dispatcher"
+EMERGENCY_QUEUE_NAME="${CONNECT_EMERGENCY_QUEUE_NAME:-Call Assist Emergency}"
 BOT_ALIAS_ARN="arn:aws:lex:${REGION}:${ACCOUNT}:bot-alias/${LEX_BOT_ID:-IJIBJOJG2L}/${LEX_BOT_ALIAS_ID:-0CNPVSCF4V}"
 LAMBDAS=(
   "arn:aws:lambda:${REGION}:${ACCOUNT}:function:rapid-cortex-lex-dialog-hook-${STAGE}"
@@ -132,6 +133,20 @@ fi
 QUEUE_ARN="arn:aws:connect:${REGION}:${ACCOUNT}:instance/${INSTANCE_ID}/queue/${QUEUE_ID}"
 echo "   queue=${QUEUE_NAME} ${QUEUE_ID}"
 
+EMERGENCY_QUEUE_ID="$(aws_ok connect list-queues --instance-id "${INSTANCE_ID}" --queue-types STANDARD \
+  --query "QueueSummaryList[?Name==\`${EMERGENCY_QUEUE_NAME}\`].Id | [0]" --output text)"
+if [[ -z "${EMERGENCY_QUEUE_ID}" || "${EMERGENCY_QUEUE_ID}" == "None" ]]; then
+  echo "→ Creating queue ${EMERGENCY_QUEUE_NAME}"
+  EMERGENCY_QUEUE_ID="$(aws_ok connect create-queue \
+    --instance-id "${INSTANCE_ID}" \
+    --name "${EMERGENCY_QUEUE_NAME}" \
+    --description "Call Assist emergency transfer target for live DID tests. Not a PSAP 911 queue." \
+    --hours-of-operation-id "${HOURS_ID}" \
+    --query 'QueueId' --output text)"
+fi
+EMERGENCY_QUEUE_ARN="arn:aws:connect:${REGION}:${ACCOUNT}:instance/${INSTANCE_ID}/queue/${EMERGENCY_QUEUE_ID}"
+echo "   emergencyQueue=${EMERGENCY_QUEUE_NAME} ${EMERGENCY_QUEUE_ID}"
+
 echo "→ Associating Lambdas (before flow import so CreateContactFlow can resolve ARNs)"
 for arn in "${LAMBDAS[@]}"; do
   if aws_ok connect associate-lambda-function --instance-id "${INSTANCE_ID}" --function-arn "${arn}" 2>/dev/null; then
@@ -150,13 +165,14 @@ fi
 
 FLOW_SRC="${ROOT}/connect/contact-flow-call-assist.json"
 FLOW_TMP="$(mktemp)"
-python3 - "${FLOW_SRC}" "${FLOW_TMP}" "${QUEUE_ARN}" "${BOT_ALIAS_ARN}" <<'PY'
+python3 - "${FLOW_SRC}" "${FLOW_TMP}" "${QUEUE_ARN}" "${BOT_ALIAS_ARN}" "${EMERGENCY_QUEUE_ARN}" <<'PY'
 import json, sys
-src, dest, queue_arn, bot_alias_arn = sys.argv[1], sys.argv[2], sys.argv[3], sys.argv[4]
+src, dest, queue_arn, bot_alias_arn, emergency_queue_arn = sys.argv[1], sys.argv[2], sys.argv[3], sys.argv[4], sys.argv[5]
 raw = (
     open(src, encoding="utf-8")
     .read()
     .replace("__DEMO_QUEUE_ARN__", queue_arn)
+    .replace("__EMERGENCY_QUEUE_ARN__", emergency_queue_arn)
     .replace("{{lexBotAliasArn}}", bot_alias_arn)
 )
 data = json.loads(raw)
@@ -221,6 +237,7 @@ if [[ "${CLAIM_DID}" != "1" ]]; then
   echo "CONNECT_INSTANCE_ID=${INSTANCE_ID}"
   echo "CONTACT_FLOW_ID=${FLOW_ID}"
   echo "QUEUE_ID=${QUEUE_ID}"
+  echo "EMERGENCY_QUEUE_ID=${EMERGENCY_QUEUE_ID}"
   exit 0
 fi
 
@@ -295,5 +312,7 @@ echo
 echo "CONNECT_INSTANCE_ID=${INSTANCE_ID}"
 echo "CONTACT_FLOW_ID=${FLOW_ID}"
 echo "QUEUE_ID=${QUEUE_ID}"
+echo "EMERGENCY_QUEUE_ID=${EMERGENCY_QUEUE_ID}"
 echo "CLAIMED_DID=${PHONE}"
-echo "Dial this number for the three smoke tests. Do not hand it out until those pass."
+echo "Language menu: 1 English, 2 Spanish, 3 Mandarin, 4 Cantonese, 5 Tagalog, 6 Vietnamese, 7 Arabic."
+echo "Dial this number for live Call Assist tests. Do not hand it out as a 911 number."

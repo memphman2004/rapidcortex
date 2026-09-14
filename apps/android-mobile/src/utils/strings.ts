@@ -293,6 +293,13 @@ export const Strings = {
       agency: 'Agency',
       biometricLogin: 'Biometric login',
       notifications: 'Notifications',
+      legalSection: 'LEGAL',
+      privacyPolicy: 'Privacy policy',
+      termsOfUse: 'Terms of use',
+      requestDeletion: 'Request account deletion',
+      requestDeletionBody:
+        'Opens the Rapid Cortex account deletion page. Agency operational records may be retained when required by law. We process requests within 30 days.',
+      continueToRequest: 'Continue',
     },
     vertical: {
       venue: 'VENUE',

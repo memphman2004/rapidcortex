@@ -1,19 +1,35 @@
 #!/usr/bin/env python3
-"""Generate stack-lex.yaml BotLocales + lex-spec-slots.ts from infra/lex/bot-spec.json."""
+"""Generate stack-lex.yaml BotLocales + lex-spec-slots.ts from infra/lex/bot-spec.json.
+
+CloudFormation only emits `cfnLocales` (en_US + es_US) to stay under the SAM size
+proxy. Extra locales live in infra/lex/locale-copy.json and are imported onto
+DRAFT by scripts/sync-lex-bot-draft.py.
+"""
 from __future__ import annotations
 
 import json
+import os
 import re
+import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-SPEC_JSON = ROOT / "infra" / "lex" / "bot-spec.json"
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+
+from lex_bot_locales import (  # noqa: E402
+    DECLINE,
+    TS_PROMPT_FIELDS,
+    VOICES,
+    cfn_locales,
+    confirmation_for,
+    load_merged_spec,
+    prompt_for,
+    utterances_for,
+)
+
 STACK = ROOT / "infra" / "nested" / "stack-lex.yaml"
 SLOTS_TS = ROOT / "apps" / "api" / "src" / "call-assist" / "lex" / "lex-spec-slots.ts"
 UTTERANCES_TS = ROOT / "apps" / "api" / "src" / "call-assist" / "lex" / "utterances" / "911.ts"
-
-DECLINE_EN = "I'm sorry about that. Let me start over. What would you like to correct?"
-DECLINE_ES = "Disculpe. Empecemos de nuevo. ¿Qué quisiera corregir?"
 
 NO_CONFIRM = {
     "EmergencyEscalation",
@@ -257,6 +273,12 @@ SLOT_TYPE_YAML = """\
                     - Value: "true"
                     - Value: "sí"
                     - Value: si
+                    - Value: 是
+                    - Value: 对
+                    - Value: 係
+                    - Value: oo
+                    - Value: vâng
+                    - Value: نعم
                     - Value: affirmative
                 - SampleValue:
                     Value: No
@@ -265,6 +287,12 @@ SLOT_TYPE_YAML = """\
                     - Value: nope
                     - Value: "n"
                     - Value: "false"
+                    - Value: 不
+                    - Value: 不是
+                    - Value: 唔係
+                    - Value: hindi
+                    - Value: không
+                    - Value: لا
                     - Value: negative
               ValueSelectionSetting:
                 ResolutionStrategy: TOP_RESOLUTION
@@ -277,7 +305,7 @@ def q(value: str) -> str:
 
 def emit_intent(intent: dict, locale: str, indent: str = "            ") -> str:
     name = intent["name"]
-    utterances = intent["utterancesEn"] if locale == "en_US" else intent["utterancesEs"]
+    utterances = utterances_for(intent, locale)
     lines = [
         f"{indent}- Name: {name}",
         f"{indent}  Description: Call Assist intent {name}",
@@ -295,8 +323,8 @@ def emit_intent(intent: dict, locale: str, indent: str = "            ") -> str:
         f"{indent}    Enabled: true",
         f"{indent}    IsActive: true",
     ]
-    confirm = intent["confirmationEn"] if locale == "en_US" else (intent["confirmationEs"] or intent["confirmationEn"])
-    decline = DECLINE_EN if locale == "en_US" else DECLINE_ES
+    confirm = confirmation_for(intent, locale)
+    decline = DECLINE.get(locale, DECLINE["en_US"])
     if confirm and name not in NO_CONFIRM:
         ssml = confirm if confirm.strip().startswith("<speak>") else f"<speak>{confirm}</speak>"
         lines += [
@@ -323,7 +351,7 @@ def emit_intent(intent: dict, locale: str, indent: str = "            ") -> str:
             lines.append(f"{indent}      SlotName: {slot['name']}")
         lines.append(f"{indent}  Slots:")
         for slot in slots:
-            prompt = slot["promptEn"] if locale == "en_US" else slot["promptEs"]
+            prompt = prompt_for(slot, locale)
             constraint = "Required" if slot["required"] else "Optional"
             lines += [
                 f"{indent}    - Name: {slot['name']}",
@@ -343,13 +371,13 @@ def emit_intent(intent: dict, locale: str, indent: str = "            ") -> str:
 
 def emit_locales(spec: dict) -> str:
     chunks = ["      BotLocales:"]
-    voices = {"en_US": "Ruth", "es_US": "Lupe"}
-    for locale in spec["locales"]:
+    for locale in cfn_locales(spec):
+        voice = VOICES[locale]
         chunks.append(f"        - LocaleId: {locale}")
         chunks.append("          NluConfidenceThreshold: 0.7")
         chunks.append("          VoiceSettings:")
-        chunks.append(f"            VoiceId: {voices[locale]}")
-        chunks.append("            Engine: neural")
+        chunks.append(f"            VoiceId: {voice['voiceId']}")
+        chunks.append(f"            Engine: {voice['engine']}")
         chunks.append(SLOT_TYPE_YAML.rstrip("\n"))
         chunks.append("          Intents:")
         for intent in spec["intents"]:
@@ -358,13 +386,19 @@ def emit_locales(spec: dict) -> str:
 
 
 def emit_slots_ts(spec: dict) -> str:
+    extra_prompt_keys = [TS_PROMPT_FIELDS[loc] for loc in TS_PROMPT_FIELDS if loc not in {"en_US", "es_US"}]
     payload = {
         intent["name"]: [
             {
                 "name": s["name"],
                 "required": s["required"],
                 "promptEn": s["promptEn"],
-                "promptEs": s["promptEs"],
+                "promptEs": s.get("promptEs") or s["promptEn"],
+                **{
+                    key: s[key]
+                    for key in extra_prompt_keys
+                    if s.get(key)
+                },
             }
             for s in intent["slots"]
         ]
@@ -389,6 +423,11 @@ export type LexSpecSlot = {{
   required: boolean;
   promptEn: string;
   promptEs: string;
+  promptZhCn?: string;
+  promptZhHk?: string;
+  promptTl?: string;
+  promptVi?: string;
+  promptAr?: string;
 }};
 
 export const LEX_SPEC_INTENT_ORDER = {json.dumps(names, indent=2)} as const;
@@ -407,12 +446,26 @@ export const LEX_SPEC_CONFIRMATION_INTENTS = new Set<string>(
 
 def emit_utterances_ts(spec: dict) -> str:
     obj = {i["name"]: i["utterancesEn"] for i in spec["intents"] if i["utterancesEn"]}
-    es = {i["name"]: i["utterancesEs"] for i in spec["intents"] if i["utterancesEs"]}
-    return f"""/** Generated from connect/lex-bot-complete-spec.md — both locales live in infra/lex/bot-spec.json. */
+    es = {i["name"]: i["utterancesEs"] for i in spec["intents"] if i.get("utterancesEs")}
+    extras = []
+    maps = (
+        ("UTTERANCES_911_ZH_CN", "utterancesZhCn"),
+        ("UTTERANCES_911_ZH_HK", "utterancesZhHk"),
+        ("UTTERANCES_911_TL", "utterancesTl"),
+        ("UTTERANCES_911_VI", "utterancesVi"),
+        ("UTTERANCES_911_AR", "utterancesAr"),
+    )
+    for const_name, field in maps:
+        data = {i["name"]: i[field] for i in spec["intents"] if i.get(field)}
+        extras.append(f"export const {const_name} = {json.dumps(data, indent=2, ensure_ascii=False)} as const;")
+    extra_block = "\n\n".join(extras)
+    return f"""/** Generated from infra/lex/bot-spec.json + locale-copy.json. */
 
 export const UTTERANCES_911 = {json.dumps(obj, indent=2, ensure_ascii=False)} as const;
 
 export const UTTERANCES_911_ES = {json.dumps(es, indent=2, ensure_ascii=False)} as const;
+
+{extra_block}
 """
 
 
@@ -429,13 +482,16 @@ def patch_stack(locales_yaml: str) -> None:
 
 
 def main() -> None:
-    spec = json.loads(SPEC_JSON.read_text(encoding="utf-8"))
-    locales_yaml = emit_locales(spec)
-    patch_stack(locales_yaml)
+    spec = load_merged_spec(ROOT)
+    # CFN stays en_US + es_US (`cfnLocales`) so the nested template stays under
+    # the SAM size proxy. Extra locales are imported via sync-lex-bot-draft.py.
+    if os.environ.get("LEX_PATCH_CFN_LOCALES") == "1":
+        patch_stack(emit_locales(spec))
+        print(f"Updated {STACK} ({STACK.stat().st_size} bytes)")
+    else:
+        print(f"Skipped {STACK} (set LEX_PATCH_CFN_LOCALES=1 to rewrite BotLocales)")
     SLOTS_TS.write_text(emit_slots_ts(spec), encoding="utf-8")
     UTTERANCES_TS.write_text(emit_utterances_ts(spec), encoding="utf-8")
-    size = STACK.stat().st_size
-    print(f"Updated {STACK} ({size} bytes)")
     print(f"Wrote {SLOTS_TS}")
     print(f"Wrote {UTTERANCES_TS}")
 

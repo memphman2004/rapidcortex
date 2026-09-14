@@ -47,6 +47,7 @@
                      Text="Unauthenticated health check. When signed in, authorized calls are available from the Incidents tab." />
           <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Margin="0,0,0,12">
             <Button Content="Ping GET /api/health" Width="180" Click="OnPingHealth" />
+            <Button Content="Validate GET /api/me" Width="180" Margin="12,0,0,0" Click="OnFetchMe" />
           </StackPanel>
           <TextBox x:Name="HealthOutput" AcceptsReturn="True" VerticalScrollBarVisibility="Auto" TextWrapping="Wrap" FontFamily="Consolas" />
         </DockPanel>

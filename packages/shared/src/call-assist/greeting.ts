@@ -92,14 +92,147 @@ export const DEFAULT_ES_ESCALATION_ANNOUNCEMENTS: Record<EscalationMode, string>
   silent_transfer: "",
 };
 
+const DEFAULT_ZH_CN_GREETING_TEMPLATES: Record<Exclude<GreetingMode, "custom">, string> = {
+  hang_up: [
+    "这里是{cityName}的非紧急服务热线。",
+    "如果您正在经历紧急情况，或生命安全受到直接威胁，",
+    "请挂断并拨打9-1-1。",
+    "否则请不要挂断，我可以协助处理您的非紧急请求。",
+  ].join(" "),
+  stay_on_line: [
+    "这里是{cityName}的非紧急服务热线。",
+    "如果这是紧急情况，请拨打9-1-1。",
+    "如果不确定，请不要挂断——",
+    "我会帮助判断如何处理。",
+  ].join(" "),
+};
+
+const DEFAULT_ZH_HK_GREETING_TEMPLATES: Record<Exclude<GreetingMode, "custom">, string> = {
+  hang_up: [
+    "呢度係{cityName}嘅非緊急服務熱線。",
+    "如果你正經歷緊急情況，或者生命安全受到即時威脅，",
+    "請掛線並打9-1-1。",
+    "否則請唔好掛線，我可以幫你處理非緊急請求。",
+  ].join(" "),
+  stay_on_line: [
+    "呢度係{cityName}嘅非緊急服務熱線。",
+    "如果呢個係緊急情況，請打9-1-1。",
+    "如果唔肯定，請唔好掛線——",
+    "我會幫你判斷點樣處理。",
+  ].join(" "),
+};
+
+const DEFAULT_TL_GREETING_TEMPLATES: Record<Exclude<GreetingMode, "custom">, string> = {
+  hang_up: [
+    "Nakatawag kayo sa non-emergency na linya ng {cityName}.",
+    "Kung emergency o may agarang banta sa buhay o kaligtasan,",
+    "mangyaring ibaba at tumawag sa 9-1-1.",
+    "Kung hindi, manatili sa linya at matutulungan ko kayo sa non-emergency na request.",
+  ].join(" "),
+  stay_on_line: [
+    "Nakatawag kayo sa non-emergency na linya ng {cityName}.",
+    "Kung emergency ito, tumawag sa 9-1-1.",
+    "Kung hindi kayo sigurado, manatili sa linya —",
+    "tutulungan ko kayong malaman ang tamang tugon.",
+  ].join(" "),
+};
+
+const DEFAULT_VI_GREETING_TEMPLATES: Record<Exclude<GreetingMode, "custom">, string> = {
+  hang_up: [
+    "Bạn đã gọi đến đường dây không khẩn cấp của {cityName}.",
+    "Nếu đây là trường hợp khẩn cấp hoặc có đe dọa tức thời đến tính mạng,",
+    "hãy cúp máy và gọi 9-1-1.",
+    "Nếu không, hãy giữ máy, tôi có thể hỗ trợ yêu cầu không khẩn cấp.",
+  ].join(" "),
+  stay_on_line: [
+    "Bạn đã gọi đến đường dây không khẩn cấp của {cityName}.",
+    "Nếu đây là trường hợp khẩn cấp, hãy gọi 9-1-1.",
+    "Nếu bạn chưa chắc, hãy giữ máy —",
+    "tôi sẽ giúp xác định cách xử lý phù hợp.",
+  ].join(" "),
+};
+
+const DEFAULT_AR_GREETING_TEMPLATES: Record<Exclude<GreetingMode, "custom">, string> = {
+  hang_up: [
+    "لقد اتصلت بخط الخدمة غير الطارئة لـ {cityName}.",
+    "إذا كنتم تواجهون حالة طارئة أو تهديداً فورياً للحياة أو السلامة،",
+    "يرجى إنهاء المكالمة والاتصال بالرقم 9-1-1.",
+    "وإلا فابقوا على الخط ويمكنني مساعدتكم في الطلب غير الطارئ.",
+  ].join(" "),
+  stay_on_line: [
+    "لقد اتصلت بخط الخدمة غير الطارئة لـ {cityName}.",
+    "إذا كان هذا طارئاً، يرجى الاتصال بالرقم 9-1-1.",
+    "إذا لم تكونوا متأكدين، ابقوا على الخط —",
+    "سأساعدكم في تحديد الاستجابة المناسبة.",
+  ].join(" "),
+};
+
+const DEFAULT_ZH_CN_ESCALATION = {
+  announce_and_transfer:
+    "根据您描述的情况，这听起来像紧急情况。我现在为您接通紧急调度员。请不要挂断。",
+  announce_and_end: "根据您描述的情况，这听起来像紧急情况。请立即挂断并拨打9-1-1。紧急调度全天24小时值守。",
+  silent_transfer: "",
+};
+
+const DEFAULT_ZH_HK_ESCALATION = {
+  announce_and_transfer:
+    "根據你講嘅情況，呢個好似緊急。我而家幫你接通緊急調度員。請唔好掛線。",
+  announce_and_end: "根據你講嘅情況，呢個好似緊急。請即刻掛線並打9-1-1。緊急調度全日二十四小時。",
+  silent_transfer: "",
+};
+
+const DEFAULT_TL_ESCALATION = {
+  announce_and_transfer:
+    "Base sa inilarawan ninyo, parang emergency ito. Ikinokonekta ko kayo sa emergency dispatcher ngayon. Manatili po sa linya at huwag ibaba.",
+  announce_and_end:
+    "Base sa inilarawan ninyo, parang emergency ito. Ibaba po agad at tumawag sa 9-1-1. Available ang emergency dispatchers 24 oras.",
+  silent_transfer: "",
+};
+
+const DEFAULT_VI_ESCALATION = {
+  announce_and_transfer:
+    "Dựa trên mô tả của bạn, đây có vẻ là trường hợp khẩn cấp. Tôi đang kết nối bạn với điều phối viên khẩn cấp. Xin giữ máy, đừng cúp.",
+  announce_and_end:
+    "Dựa trên mô tả của bạn, đây có vẻ là trường hợp khẩn cấp. Hãy cúp máy ngay và gọi 9-1-1. Điều phối khẩn cấp trực 24 giờ.",
+  silent_transfer: "",
+};
+
+const DEFAULT_AR_ESCALATION = {
+  announce_and_transfer:
+    "بناءً على ما وصفتم، يبدو أن هذه حالة طارئة. سأوصلكم الآن بمُنسّق الطوارئ. يرجى البقاء على الخط وعدم إنهاء المكالمة.",
+  announce_and_end:
+    "بناءً على ما وصفتم، يبدو أن هذه حالة طارئة. يرجى إنهاء المكالمة فوراً والاتصال بالرقم 9-1-1. منسقو الطوارئ متاحون على مدار الساعة.",
+  silent_transfer: "",
+};
+
 export const FALLBACK_GREETING =
   "You've reached a non-emergency service line. If this is an emergency, please dial 9-1-1. Otherwise, stay on the line and I can assist you.";
 
 export const FALLBACK_GREETING_ES =
   "Ha llamado a una línea de servicio no urgente. Si esto es una emergencia, por favor llame al 9-1-1. De lo contrario, permanezca en la línea y puedo ayudarle.";
 
+export const FALLBACK_GREETING_ZH_CN =
+  "这里是非紧急服务热线。如果这是紧急情况，请拨打9-1-1。否则请不要挂断，我可以协助您。";
+
+export const FALLBACK_GREETING_ZH_HK =
+  "呢度係非緊急服務熱線。如果呢個係緊急情況，請打9-1-1。否則請唔好掛線，我可以幫你。";
+
+export const FALLBACK_GREETING_TL =
+  "Nakatawag kayo sa non-emergency service line. Kung emergency po ito, tumawag sa 9-1-1. Kung hindi, manatili po sa linya at matutulungan kita.";
+
+export const FALLBACK_GREETING_VI =
+  "Bạn đã gọi đến đường dây dịch vụ không khẩn cấp. Nếu đây là trường hợp khẩn cấp, hãy gọi 9-1-1. Nếu không, vui lòng giữ máy, tôi có thể hỗ trợ bạn.";
+
+export const FALLBACK_GREETING_AR =
+  "لقد اتصلتم بخط الخدمة غير الطارئة. إذا كانت هذه حالة طارئة، يرجى الاتصال بالرقم 9-1-1. وإلا فابقوا على الخط ويمكنني مساعدتكم.";
+
 export const INTAKE_PROMPT_EN = "How can I help you today?";
 export const INTAKE_PROMPT_ES = "¿En qué puedo ayudarle hoy?";
+export const INTAKE_PROMPT_ZH_CN = "今天有什么可以帮您？";
+export const INTAKE_PROMPT_ZH_HK = "今日有咩可以幫到你？";
+export const INTAKE_PROMPT_TL = "Paano po kita matutulungan ngayon?";
+export const INTAKE_PROMPT_VI = "Hôm nay tôi có thể giúp gì cho bạn?";
+export const INTAKE_PROMPT_AR = "كيف يمكنني مساعدتكم اليوم؟";
 
 export const DEFAULT_LINE_DESCRIPTION = "non-emergency service line";
 
@@ -175,8 +308,14 @@ export function interpolateGreeting(template: string, config: CallAssistGreeting
 export function normalizeGreetingLocale(locale: string | undefined | null): string {
   const raw = (locale ?? "en-US").trim().replace(/_/g, "-");
   if (!raw) return "en-US";
-  if (raw.toLowerCase().startsWith("es")) return "es-US";
-  if (raw.toLowerCase().startsWith("en")) return "en-US";
+  const lower = raw.toLowerCase();
+  if (lower.startsWith("es")) return "es-US";
+  if (lower.startsWith("zh-hk") || lower.startsWith("yue")) return "zh-HK";
+  if (lower.startsWith("zh")) return "zh-CN";
+  if (lower.startsWith("tl") || lower.startsWith("fil")) return "tl-PH";
+  if (lower.startsWith("vi")) return "vi-VN";
+  if (lower.startsWith("ar")) return "ar-AE";
+  if (lower.startsWith("en")) return "en-US";
   return raw;
 }
 
@@ -205,8 +344,17 @@ export function buildGreeting(config: CallAssistGreetingConfig, locale = "en-US"
   const templateMode: Exclude<GreetingMode, "custom"> =
     config.mode === "hang_up" ? "hang_up" : "stay_on_line";
 
-  if (normalized === "es-US") {
-    return interpolateGreeting(DEFAULT_ES_GREETING_TEMPLATES[templateMode], config);
+  const templates: Record<string, Record<Exclude<GreetingMode, "custom">, string>> = {
+    "es-US": DEFAULT_ES_GREETING_TEMPLATES,
+    "zh-CN": DEFAULT_ZH_CN_GREETING_TEMPLATES,
+    "zh-HK": DEFAULT_ZH_HK_GREETING_TEMPLATES,
+    "tl-PH": DEFAULT_TL_GREETING_TEMPLATES,
+    "vi-VN": DEFAULT_VI_GREETING_TEMPLATES,
+    "ar-AE": DEFAULT_AR_GREETING_TEMPLATES,
+  };
+  const localized = templates[normalized];
+  if (localized) {
+    return interpolateGreeting(localized[templateMode], config);
   }
   return interpolateGreeting(GREETING_TEMPLATES[templateMode], config);
 }
@@ -222,18 +370,55 @@ export function buildEscalationAnnouncement(
     return interpolateGreeting(config.escalationAnnouncementText, config);
   }
   const normalized = normalizeGreetingLocale(locale);
-  if (normalized === "es-US") {
-    return DEFAULT_ES_ESCALATION_ANNOUNCEMENTS[config.escalationMode];
-  }
+  const announcements: Record<string, Record<EscalationMode, string>> = {
+    "es-US": DEFAULT_ES_ESCALATION_ANNOUNCEMENTS,
+    "zh-CN": DEFAULT_ZH_CN_ESCALATION,
+    "zh-HK": DEFAULT_ZH_HK_ESCALATION,
+    "tl-PH": DEFAULT_TL_ESCALATION,
+    "vi-VN": DEFAULT_VI_ESCALATION,
+    "ar-AE": DEFAULT_AR_ESCALATION,
+  };
+  const localized = announcements[normalized];
+  if (localized) return localized[config.escalationMode];
   return DEFAULT_ESCALATION_ANNOUNCEMENTS[config.escalationMode];
 }
 
 export function intakePromptForLocale(locale = "en-US"): string {
-  return normalizeGreetingLocale(locale) === "es-US" ? INTAKE_PROMPT_ES : INTAKE_PROMPT_EN;
+  switch (normalizeGreetingLocale(locale)) {
+    case "es-US":
+      return INTAKE_PROMPT_ES;
+    case "zh-CN":
+      return INTAKE_PROMPT_ZH_CN;
+    case "zh-HK":
+      return INTAKE_PROMPT_ZH_HK;
+    case "tl-PH":
+      return INTAKE_PROMPT_TL;
+    case "vi-VN":
+      return INTAKE_PROMPT_VI;
+    case "ar-AE":
+      return INTAKE_PROMPT_AR;
+    default:
+      return INTAKE_PROMPT_EN;
+  }
 }
 
 export function fallbackGreetingForLocale(locale = "en-US"): string {
-  return normalizeGreetingLocale(locale) === "es-US" ? FALLBACK_GREETING_ES : FALLBACK_GREETING;
+  switch (normalizeGreetingLocale(locale)) {
+    case "es-US":
+      return FALLBACK_GREETING_ES;
+    case "zh-CN":
+      return FALLBACK_GREETING_ZH_CN;
+    case "zh-HK":
+      return FALLBACK_GREETING_ZH_HK;
+    case "tl-PH":
+      return FALLBACK_GREETING_TL;
+    case "vi-VN":
+      return FALLBACK_GREETING_VI;
+    case "ar-AE":
+      return FALLBACK_GREETING_AR;
+    default:
+      return FALLBACK_GREETING;
+  }
 }
 
 export type EscalationCheck = {
@@ -299,8 +484,19 @@ function templateMode(mode: GreetingMode | undefined): Exclude<GreetingMode, "cu
 export function withDefaultLocalizedGreetings(config: CallAssistGreetingConfig): CallAssistGreetingConfig {
   const mode = templateMode(config.mode);
   const existing = { ...(config.localizedGreetings ?? {}) };
-  if (!existing["es-US"]?.trim() && !existing.es_US?.trim()) {
-    existing["es-US"] = interpolateGreeting(DEFAULT_ES_GREETING_TEMPLATES[mode], config);
+  const defaults: Record<string, string> = {
+    "es-US": interpolateGreeting(DEFAULT_ES_GREETING_TEMPLATES[mode], config),
+    "zh-CN": interpolateGreeting(DEFAULT_ZH_CN_GREETING_TEMPLATES[mode], config),
+    "zh-HK": interpolateGreeting(DEFAULT_ZH_HK_GREETING_TEMPLATES[mode], config),
+    "tl-PH": interpolateGreeting(DEFAULT_TL_GREETING_TEMPLATES[mode], config),
+    "vi-VN": interpolateGreeting(DEFAULT_VI_GREETING_TEMPLATES[mode], config),
+    "ar-AE": interpolateGreeting(DEFAULT_AR_GREETING_TEMPLATES[mode], config),
+  };
+  for (const [key, value] of Object.entries(defaults)) {
+    const underscored = key.replace("-", "_");
+    if (!existing[key]?.trim() && !existing[underscored]?.trim()) {
+      existing[key] = value;
+    }
   }
   return { ...config, localizedGreetings: existing };
 }

@@ -5,6 +5,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Badge } from '@/components/common/Badge';
 import { Card } from '@/components/common/Card';
 import { ScreenErrorBoundary } from '@/components/common/ScreenErrorBoundary';
+import { StoreLegalLinks } from '@/components/common/StoreLegalLinks';
 import { useAuth } from '@/hooks/useAuth';
 import { useTheme } from '@/theme';
 import { Strings } from '@/utils/strings';
@@ -144,6 +145,8 @@ function AccountScreenContent() {
             />
           </View>
         </Card>
+
+        <StoreLegalLinks />
 
         <Pressable onPress={handleSignOut} style={{ alignItems: 'center', marginTop: spacing['4'] }}>
           <Text style={[typography.bodyMedium, { color: palette.red }]}>

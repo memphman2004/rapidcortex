@@ -15,13 +15,14 @@ import {
   Settings,
   Users,
   Video,
+  LayoutGrid,
 } from "lucide-react";
 import {
   canTransitAdminOps,
   canTransitDispatchOps,
   canTransitSupervisorOps,
 } from "@/lib/vertical/supervisor-access";
-import { isTransitCamerasUiEnabled } from "@/lib/runtime-flags";
+import { isTransitCamerasUiEnabled, isRcVideoEnabled } from "@/lib/runtime-flags";
 import { T } from "./transit-theme";
 
 type NavItem = {
@@ -72,6 +73,13 @@ function navItems(base: string): NavItem[] {
       dispatchOnly: true,
     },
     {
+      id: "video-wall",
+      label: "Video Wall",
+      href: `${base}/video-wall`,
+      icon: LayoutGrid,
+      dispatchOnly: true,
+    },
+    {
       id: "qr-codes",
       label: "QR Codes",
       href: `${base}/qr-codes`,
@@ -99,6 +107,7 @@ export function TransitNav({
   const camerasUi = isTransitCamerasUiEnabled();
   const items = navItems(linkBase).filter((item) => {
     if (item.id === "cameras" && !camerasUi) return false;
+    if (item.id === "video-wall" && !isRcVideoEnabled()) return false;
     if (item.supervisorOnly && !canTransitSupervisorOps(userRole)) return false;
     if (item.adminOnly && !canTransitAdminOps(userRole)) return false;
     if (item.dispatchOnly && !canTransitDispatchOps(userRole)) return false;

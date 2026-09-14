@@ -1,6 +1,7 @@
 /**
  * Create or update fixed Rapid Cortex test accounts in Cognito (one password from env, never logged).
- * Intended for dev/stage QA — not for production tenant users.
+ * Intended for QA plus the App Store review login (`apple-review@rapidcortex.us`).
+ * Run against the pool the iOS app uses (`us-east-1_0z6tA6WBs` in production).
  */
 import {
   AddCustomAttributesCommand,
@@ -8,6 +9,7 @@ import {
   AdminCreateUserCommand,
   AdminGetUserCommand,
   AdminListGroupsForUserCommand,
+  AdminSetUserMFAPreferenceCommand,
   AdminSetUserPasswordCommand,
   AdminUpdateUserAttributesCommand,
   CognitoIdentityProviderClient,
@@ -31,6 +33,10 @@ type TestRow = {
   agencyId: string;
   /** Optional Cognito group to ensure membership. */
   cognitoGroup?: string;
+  /** Optional `custom:agencyVertical` (campus / venue / transit / pilot). */
+  agencyVertical?: string;
+  /** App Store review accounts must not prompt for TOTP. */
+  disableMfa?: boolean;
 };
 
 const ACCOUNTS: TestRow[] = [
@@ -93,6 +99,14 @@ const ACCOUNTS: TestRow[] = [
     customRole: "dispatcher",
     agencyId: TEST_AGENCY,
     cognitoGroup: "dispatcher",
+  },
+  {
+    email: "apple-review@rapidcortex.us",
+    customRole: "campus_admin",
+    agencyId: "test-campus-uga",
+    cognitoGroup: "campus_admin",
+    agencyVertical: "campus",
+    disableMfa: true,
   },
   {
     email: "campus-admin@appsondemand.net",
@@ -184,6 +198,9 @@ function desiredAttributes(row: TestRow) {
       { Name: "custom:planId", Value: DEV_DASHBOARD_PLAN_ID },
       { Name: "custom:subStatus", Value: DEV_SUBSCRIPTION_STATUS },
     );
+  }
+  if (row.agencyVertical) {
+    base.push({ Name: "custom:agencyVertical", Value: row.agencyVertical });
   }
   return base;
 }
@@ -392,6 +409,19 @@ async function main() {
           `[seed-role-test-users] Password unchanged for ${row.email} (set RESET_RAPID_CORTEX_TEST_PASSWORDS=true to force).`
         );
       }
+    }
+
+    if (row.disableMfa) {
+      await client.send(
+        new AdminSetUserMFAPreferenceCommand({
+          UserPoolId: pool,
+          Username: username,
+          SMSMfaSettings: { Enabled: false, PreferredMfa: false },
+          SoftwareTokenMfaSettings: { Enabled: false, PreferredMfa: false },
+        }),
+      );
+      // eslint-disable-next-line no-console
+      console.log(`[seed-role-test-users] MFA disabled for ${row.email}.`);
     }
 
     if (row.cognitoGroup) {

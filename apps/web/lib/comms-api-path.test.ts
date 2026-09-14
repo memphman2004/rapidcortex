@@ -120,6 +120,9 @@ describe("isCommsPlatformApiPath", () => {
     expect(isSam3ApiPath("/api/campus/analytics")).toBe(false);
     expect(isSam5ApiPath("/api/public/crime-log/uga")).toBe(true);
     expect(isSam5ApiPath("/api/physical-security/events")).toBe(true);
+    expect(isSam5ApiPath("/api/video/agency-1/wall/config")).toBe(true);
+    expect(isSam5ApiPath("/api/video/agency-1/cameras/cam-1/ptz/move")).toBe(true);
+    expect(isSam3ApiPath("/api/video/agency-1/wall/config")).toBe(false);
     expect(isStack2ApiPath("/api/physical-security/events")).toBe(false);
   });
 

@@ -83,15 +83,26 @@ struct LoginView: View {
                     }
                     .padding(.horizontal, 24)
 
-                    HStack(spacing: 8) {
-                        Image(systemName: "checkmark.shield.fill")
+                    VStack(alignment: .leading, spacing: 10) {
+                        Text("Accounts are provisioned by your agency during onboarding. There is no in-app sign-up.")
                             .font(.system(size: 12))
-                            .foregroundColor(RCTheme.accentLight)
-                        Text("MFA via Authenticator required for admin accounts")
+                            .foregroundColor(RCTheme.textSecondary)
+                            .fixedSize(horizontal: false, vertical: true)
+
+                        Text("Some administrator accounts require an authenticator code after sign-in.")
                             .font(.system(size: 11))
                             .foregroundColor(RCTheme.textMuted)
+                            .fixedSize(horizontal: false, vertical: true)
+
+                        HStack(spacing: 16) {
+                            Link("Privacy Policy", destination: RCConfig.privacyPolicyURL)
+                            Link("Terms of Use", destination: RCConfig.termsOfUseURL)
+                        }
+                        .font(.system(size: 12, weight: .medium))
+                        .foregroundColor(RCTheme.accentLight)
                     }
-                    .padding(12)
+                    .padding(14)
+                    .frame(maxWidth: .infinity, alignment: .leading)
                     .background(RCTheme.surface1)
                     .clipShape(RoundedRectangle(cornerRadius: 10))
                     .overlay(RoundedRectangle(cornerRadius: 10).stroke(RCTheme.border, lineWidth: 0.5))

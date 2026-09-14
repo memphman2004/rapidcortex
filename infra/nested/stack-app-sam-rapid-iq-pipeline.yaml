@@ -932,18 +932,10 @@ Resources:
       Principal: apigateway.amazonaws.com
       SourceArn: !Sub arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${HttpApiId}/*
 
-  # Live HttpApi tbr4zvjlk5 already has these pipeline routes (orphan IDs after an
-  # HttpApi replace). Recreating them fails with ConflictException. Same pattern as
-  # POST /api/rapid-iq/pipeline/signals. CloudFormation previously tracked dead IDs
-  # 56oveic / vkk032q / 3jpl1ga / wsz92kd / ac9pu18 / ryli2ca — those are forgotten
-  # via DeletionPolicy: Retain before this stack recreates SignalHttpIntegration.
-  #
-  # GET    /api/rapid-iq/pipeline/signals
-  # GET    /api/rapid-iq/pipeline/credits
-  # GET    /api/rapid-iq/pipeline/signals/{signalId}
-  # PATCH  /api/rapid-iq/pipeline/signals/{signalId}
-  # POST   /api/rapid-iq/pipeline/signals/{signalId}/push-to-crm
-  # POST   /api/rapid-iq/pipeline/signals
+  # Intel/sales routes below are gated by RapidIqNewHttpRoutes and target
+  # SignalHttpIntegrationV2. Older pipeline signal/credits Route* logical ids
+  # (56oveic / 5kihohr / …) were retained then ghosted off tbr4zvjlk5 — they are
+  # not in this template. Recreating those exact RouteKeys is a later import.
 
   RoutePipelineResearchPost:
     Type: AWS::ApiGatewayV2::Route

@@ -38,6 +38,7 @@ export const footerNav: FooterNavItem[] = [
     links: [
       { label: "Privacy policy", href: "/privacy" },
       { label: "Terms of use", href: "/terms" },
+      { label: "Account deletion", href: "/account-deletion" },
       { label: "Sub-processors", href: "/legal/sub-processors" },
     ],
   },

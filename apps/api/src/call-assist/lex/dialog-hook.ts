@@ -1,11 +1,13 @@
 import {
   callerRequestedHuman,
+  callLanguageToLexLocale,
   detectCallAssistLanguage,
   detectTtyMode,
   evaluateConfidenceDecision,
   extractIntakeFields,
   formatTtySms,
   groundedKnowledgeReply,
+  lexLocaleToCallLanguage,
   mergeIntakeFromLexSlots,
   resolveAgencyTaxonomy,
   shouldTryBedrockFallback,
@@ -93,8 +95,8 @@ export async function handleDialog(
   const agencyId = sessionAttrs.agencyId ?? "";
   const callId = sessionAttrs.callId ?? event.sessionId;
   const utterance = event.inputTranscript ?? "";
-  const localeId = event.bot?.localeId ?? (sessionAttrs.language === "es" ? "es_US" : "en_US");
-  const preferredFromLocale = localeId.toLowerCase().startsWith("es") ? "es" : localeId.toLowerCase().startsWith("en") ? "en" : "und";
+  const localeId = event.bot?.localeId ?? callLanguageToLexLocale(sessionAttrs.language);
+  const preferredFromLocale = lexLocaleToCallLanguage(localeId);
   const detectedLang = detectCallAssistLanguage(utterance);
   const language = detectedLang !== "und" ? detectedLang : preferredFromLocale;
   const tty = detectTtyMode({

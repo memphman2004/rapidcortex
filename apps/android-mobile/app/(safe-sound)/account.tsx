@@ -5,6 +5,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Badge } from '@/components/common/Badge';
 import { Card } from '@/components/common/Card';
 import { LanguagePicker } from '@/components/common/LanguagePicker';
+import { StoreLegalLinks } from '@/components/common/StoreLegalLinks';
 import { useAuth } from '@/hooks/useAuth';
 import { useLanguage } from '@/hooks/useLanguage';
 import {
@@ -221,6 +222,8 @@ export default function SafeSoundAccountScreen() {
             <Text style={{ color: palette.textSecondary }}>›</Text>
           </View>
         </Card>
+
+        <StoreLegalLinks />
 
         <Pressable onPress={handleSignOut} style={{ alignItems: 'center', marginTop: spacing['4'] }}>
           <Text style={[typography.bodyMedium, { color: palette.red }]}>{Strings.common.signOut}</Text>

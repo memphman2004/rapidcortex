@@ -28,6 +28,7 @@ import {
   isSalesLeadsUiEnabled,
   isSlaBacklogEnabled,
   isTransitCamerasUiEnabled,
+  isRcVideoEnabled,
   isVerticalOnboardingEnabled,
   isWarRoomsEnabled,
 } from "@/lib/runtime-flags";
@@ -100,6 +101,8 @@ export function isNavFeatureEnabled(feature: string): boolean {
       return isVerticalEnabled("transit");
     case "transitCameras":
       return isVerticalEnabled("transit") && isTransitCamerasUiEnabled();
+    case "rcVideo":
+      return isRcVideoEnabled();
     default:
       return true;
   }

@@ -1,13 +1,26 @@
 import type { CallAssistAgencyVoiceConfig, CallAssistLocale } from "rapid-cortex-shared";
+import {
+  CONNECT_LIVE_LEX_LOCALES,
+  callLanguageToLexLocale,
+  normalizePreferredLanguage,
+} from "rapid-cortex-shared";
 import type { CallAssistTenantConfig } from "./store.js";
 
+function localesFromTenant(config: CallAssistTenantConfig): CallAssistLocale[] {
+  if (config.supportedLocales?.length) return config.supportedLocales;
+  const langs = config.supportedLanguages?.length ? config.supportedLanguages : ["en-US"];
+  const set = new Set<CallAssistLocale>(["en_US"]);
+  for (const lang of langs) {
+    const lex = callLanguageToLexLocale(normalizePreferredLanguage(lang));
+    if ((CONNECT_LIVE_LEX_LOCALES as readonly string[]).includes(lex)) {
+      set.add(lex as CallAssistLocale);
+    }
+  }
+  return [...set];
+}
+
 export function tenantToVoiceConfig(config: CallAssistTenantConfig): CallAssistAgencyVoiceConfig {
-  const locales: CallAssistLocale[] =
-    config.supportedLocales?.length
-      ? config.supportedLocales
-      : config.supportedLanguages?.some((l) => l.toLowerCase().startsWith("es"))
-        ? ["en_US", "es_US"]
-        : ["en_US"];
+  const locales = localesFromTenant(config);
   return {
     agencyId: config.agencyId,
     agencyName: config.agencyName || config.agencyShortName || "this agency",

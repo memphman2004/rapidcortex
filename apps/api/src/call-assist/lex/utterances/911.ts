@@ -1,6 +1,19 @@
-/** Generated from connect/lex-bot-complete-spec.md — both locales live in infra/lex/bot-spec.json. */
+/** Generated from infra/lex/bot-spec.json + locale-copy.json. */
 
 export const UTTERANCES_911 = {
+  "Welcome": [
+    "hello",
+    "hi",
+    "yes",
+    "i need help",
+    "i need to report something",
+    "i have a question",
+    "i want to report",
+    "can i get some help",
+    "i have a non-emergency",
+    "i need to make a report",
+    "i want to file a report"
+  ],
   "EmergencyEscalation": [
     "someone is shooting",
     "there's a shooter",
@@ -377,23 +390,21 @@ export const UTTERANCES_911 = {
     "are there sex offenders in my area",
     "who do I call for noise complaints",
     "how do I get a gun permit"
-  ],
-  "Welcome": [
-    "hello",
-    "hi",
-    "yes",
-    "i need help",
-    "i need to report something",
-    "i have a question",
-    "i want to report",
-    "can i get some help",
-    "i have a non-emergency",
-    "i need to make a report",
-    "i want to file a report"
   ]
 } as const;
 
 export const UTTERANCES_911_ES = {
+  "Welcome": [
+    "hola",
+    "sí",
+    "necesito ayuda",
+    "necesito reportar algo",
+    "quiero reportar",
+    "puedo recibir ayuda",
+    "tengo una llamada que no es de emergencia",
+    "necesito hacer un reporte",
+    "quiero presentar un reporte"
+  ],
   "EmergencyEscalation": [
     "hay un tiroteo",
     "alguien está disparando",
@@ -598,16 +609,758 @@ export const UTTERANCES_911_ES = {
     "número de teléfono no emergencias",
     "¿cómo registro mi alarma?",
     "¿cómo obtengo un permiso de arma?"
-  ],
+  ]
+} as const;
+
+export const UTTERANCES_911_ZH_CN = {
   "Welcome": [
-    "hola",
-    "sí",
-    "necesito ayuda",
-    "necesito reportar algo",
-    "quiero reportar",
-    "puedo recibir ayuda",
-    "tengo una llamada que no es de emergencia",
-    "necesito hacer un reporte",
-    "quiero presentar un reporte"
+    "你好",
+    "您好",
+    "喂",
+    "我需要帮助",
+    "我要报案",
+    "我有问题",
+    "我要报告",
+    "请帮帮我",
+    "我要做笔录",
+    "非紧急"
+  ],
+  "EmergencyEscalation": [
+    "有人开枪",
+    "有枪手",
+    "枪声",
+    "他有枪",
+    "救命",
+    "我现在需要帮助",
+    "有人被刺",
+    "没有呼吸",
+    "有人昏迷",
+    "着火了",
+    "打911",
+    "这是紧急情况",
+    "马上派警察",
+    "有人袭击我",
+    "家庭暴力",
+    "煤气味",
+    "车祸有人受伤",
+    "心脏病发作",
+    "有刀",
+    "有人破门"
+  ],
+  "RequestHuman": [
+    "我要跟真人说话",
+    "转接人工",
+    "我要跟警察说",
+    "给我接调度员",
+    "不要机器人",
+    "转人工",
+    "接线员"
+  ],
+  "NoiseComplaint": [
+    "邻居太吵了",
+    "噪音投诉",
+    "外面太吵",
+    "有人办派对",
+    "音乐太大声",
+    "有人在外面喊",
+    "狗一直叫",
+    "放烟花",
+    "汽车警报响个不停"
+  ],
+  "SuspiciousPerson": [
+    "有可疑的人",
+    "有人行为很奇怪",
+    "有人在窥探车子",
+    "有人跟踪我",
+    "可疑活动",
+    "有人在附近徘徊"
+  ],
+  "AbandonedVehicle": [
+    "有一辆被遗弃的车",
+    "车停了好几天没动",
+    "没有车牌的车",
+    "报废车停在街上",
+    "废弃摩托车"
+  ],
+  "VehicleBurglary": [
+    "有人砸了我的车窗",
+    "车里的东西被偷了",
+    "车被撬了",
+    "车窗碎了",
+    "从车里偷东西"
+  ],
+  "TheftReport": [
+    "我要报失窃",
+    "有人偷了我的东西",
+    "包裹被偷了",
+    "自行车被偷了",
+    "钱包被抢了",
+    "手机被偷了"
+  ],
+  "ParkingComplaint": [
+    "违章停车",
+    "堵住我家车道",
+    "停在消防栓前",
+    "停在禁停区",
+    "无证占用残障车位"
+  ],
+  "WelfareCheck": [
+    "请派人查看一下安全",
+    "我担心邻居",
+    "好几天没见到邻居",
+    "家人联系不上",
+    "请帮我查看长辈"
+  ],
+  "AnimalComplaint": [
+    "流浪狗",
+    "狗咬人",
+    "攻击性的狗",
+    "虐待动物",
+    "车里有狗很热",
+    "街上有动物"
+  ],
+  "TowComplaint": [
+    "车被拖走了",
+    "非法拖车",
+    "车上了锁靴",
+    "拖车投诉"
+  ],
+  "VandalismDamage": [
+    "有人破坏财物",
+    "涂鸦",
+    "车被刮了",
+    "窗户被砸了",
+    "信箱被砸"
+  ],
+  "CodeEnforcementComplaint": [
+    "物业违规",
+    "房子堆满垃圾",
+    "杂草很高",
+    "院子里报废车",
+    "无证施工"
+  ],
+  "PublicWorksIssue": [
+    "水管爆了",
+    "街上积水",
+    "红绿灯坏了",
+    "路灯不亮",
+    "路面有坑",
+    "树上倒在路上"
+  ],
+  "TrafficAccidentReportOnly": [
+    "我出了车祸",
+    "轻微碰撞",
+    "肇事逃逸",
+    "停着的车被撞了",
+    "没有人受伤的事故",
+    "需要事故报告给保险"
+  ],
+  "OnlineReportEligibility": [
+    "可以上网报案吗",
+    "怎么在网上报案",
+    "我想自己填报告",
+    "可以不打电话报案吗"
+  ],
+  "RepeatCallCheck": [
+    "我已经打过电话了",
+    "之前报过了",
+    "没有人来",
+    "我有编号",
+    "跟进之前的报案"
+  ],
+  "InformationRequest": [
+    "我有一个问题",
+    "警察局在哪里",
+    "怎么拿事故报告复印件",
+    "非紧急电话是多少",
+    "怎么申请限制令"
+  ]
+} as const;
+
+export const UTTERANCES_911_ZH_HK = {
+  "Welcome": [
+    "你好",
+    "喂",
+    "我需要幫忙",
+    "我要報案",
+    "我有問題",
+    "我想報告",
+    "請幫我",
+    "我要做紀錄",
+    "非緊急"
+  ],
+  "EmergencyEscalation": [
+    "有人開槍",
+    "有槍手",
+    "槍聲",
+    "佢有槍",
+    "救命",
+    "我而家需要幫忙",
+    "有人被插",
+    "冇呼吸",
+    "有火",
+    "打911",
+    "呢個係緊急",
+    "即刻派警察",
+    "有人襲擊我",
+    "家庭暴力",
+    "煤氣味",
+    "車禍有人受傷",
+    "心臟病發",
+    "有刀",
+    "有人闖入"
+  ],
+  "RequestHuman": [
+    "我要同真人講",
+    "轉去人工",
+    "我要同警察講",
+    "俾我接調度員",
+    "唔要機械人",
+    "轉人工",
+    "接線生"
+  ],
+  "NoiseComplaint": [
+    "隔離好嘈",
+    "噪音投訴",
+    "出面好大聲",
+    "有人開派對",
+    "音樂太大聲",
+    "有人喺出面嗌",
+    "狗唔停吠",
+    "有人放煙花"
+  ],
+  "SuspiciousPerson": [
+    "有可疑嘅人",
+    "有人行為好怪",
+    "有人喺度睇車",
+    "有人跟蹤我",
+    "可疑活動",
+    "有人喺附近蕩"
+  ],
+  "AbandonedVehicle": [
+    "有架被遺棄嘅車",
+    "架車停咗好多日都冇郁",
+    "冇車牌嘅車",
+    "廢車停喺街"
+  ],
+  "VehicleBurglary": [
+    "有人扑咗我車窗",
+    "車入面嘅嘢被偷咗",
+    "架車被撬",
+    "車窗碎咗"
+  ],
+  "TheftReport": [
+    "我要報失竊",
+    "有人偷咗我啲嘢",
+    "包裹被偷咗",
+    "單車被偷咗",
+    "銀包被搶咗",
+    "手機被偷咗"
+  ],
+  "ParkingComplaint": [
+    "違例泊車",
+    "擋住我家車路",
+    "停喺消防栓前面",
+    "停喺不准停車區",
+    "無證停殘障車位"
+  ],
+  "WelfareCheck": [
+    "請派人睇吓安危",
+    "我擔心隔離",
+    "好多日冇見過隔離",
+    "家人聯絡唔到",
+    "請幫我睇吓長者"
+  ],
+  "AnimalComplaint": [
+    "流浪狗",
+    "狗咬人",
+    "攻擊性嘅狗",
+    "虐待動物",
+    "車入面有狗好熱",
+    "街上有動物"
+  ],
+  "TowComplaint": [
+    "架車被拖走咗",
+    "非法拖車",
+    "車上咗鎖靴",
+    "拖車投訴"
+  ],
+  "VandalismDamage": [
+    "有人破壞財物",
+    "塗鴉",
+    "架車被刮花",
+    "窗被扑爆",
+    "信箱被砸"
+  ],
+  "CodeEnforcementComplaint": [
+    "物業違規",
+    "屋企堆滿垃圾",
+    "草好高",
+    "院子有廢車",
+    "無證施工"
+  ],
+  "PublicWorksIssue": [
+    "水管爆咗",
+    "街上浸水",
+    "紅綠燈壞咗",
+    "路燈唔着",
+    "路面有坑",
+    "樹倒咗喺路"
+  ],
+  "TrafficAccidentReportOnly": [
+    "我出咗車禍",
+    "輕微碰撞",
+    "肇事逃逸",
+    "停住嘅車被撞",
+    "冇人受傷嘅意外",
+    "要意外報告俾保險"
+  ],
+  "OnlineReportEligibility": [
+    "可唔可以上網報案",
+    "點樣喺網上報案",
+    "我想自己填報告",
+    "可唔可以唔打電話報案"
+  ],
+  "RepeatCallCheck": [
+    "我已經打過電話",
+    "之前報過",
+    "冇人嚟",
+    "我有編號",
+    "跟進之前嘅報案"
+  ],
+  "InformationRequest": [
+    "我有個問題",
+    "警察局喺邊",
+    "點樣攞意外報告副本",
+    "非緊急電話係幾多",
+    "點樣申請限制令"
+  ]
+} as const;
+
+export const UTTERANCES_911_TL = {
+  "Welcome": [
+    "hello",
+    "hi",
+    "oo",
+    "kailangan ko ng tulong",
+    "gusto kong mag-report",
+    "may tanong ako",
+    "magfa-file ako ng report",
+    "tulong po",
+    "hindi emergency"
+  ],
+  "EmergencyEscalation": [
+    "may nagbabaril",
+    "may baril siya",
+    "tulong",
+    "kailangan ko ng tulong ngayon",
+    "may sunog",
+    "emergency ito",
+    "tawag ng 911",
+    "hindi siya humihinga",
+    "may saksak",
+    "domestic violence",
+    "aksidente may nasugatan",
+    "may kutsilyo",
+    "inaatake ako",
+    "may pumasok sa bahay"
+  ],
+  "RequestHuman": [
+    "gusto kong kausapin ang tao",
+    "i-transfer niyo ako",
+    "kausapin ko ang pulis",
+    "ayaw ko ng robot",
+    "dispatcher naman",
+    "operator"
+  ],
+  "NoiseComplaint": [
+    "maingay ang kapitbahay",
+    "reklamo sa ingay",
+    "malakas ang party",
+    "malakas ang musika",
+    "may sigawan sa labas",
+    "tumatahol ang aso",
+    "may paputok"
+  ],
+  "SuspiciousPerson": [
+    "may kahina-hinalang tao",
+    "may kakaibang kilos",
+    "may tumitingin sa mga kotse",
+    "may sumusunod sa akin",
+    "suspicious activity"
+  ],
+  "AbandonedVehicle": [
+    "may inabandonang kotse",
+    "hindi gumagalaw ang kotse ng ilang araw",
+    "walang plaka",
+    "abandoned vehicle"
+  ],
+  "VehicleBurglary": [
+    "binasag ang bintana ng kotse ko",
+    "ninakawan ang kotse ko",
+    "may kumuha sa loob ng sasakyan",
+    "car break-in"
+  ],
+  "TheftReport": [
+    "magre-report ako ng nakaw",
+    "ninakawan ako",
+    "ninakaw ang package",
+    "ninakaw ang bisikleta",
+    "ninakaw ang cellphone"
+  ],
+  "ParkingComplaint": [
+    "illegal na paradahan",
+    "tinatakpan ang driveway ko",
+    "nakaharang sa fire hydrant",
+    "parking complaint"
+  ],
+  "WelfareCheck": [
+    "kailangan ko ng welfare check",
+    "nag-aalala ako sa kapitbahay",
+    "ilang araw ko nang hindi nakikita",
+    "hindi sumasagot ang pamilya"
+  ],
+  "AnimalComplaint": [
+    "astray na aso",
+    "kinagat ako ng aso",
+    "mabangis na aso",
+    "animal cruelty",
+    "aso sa mainit na kotse"
+  ],
+  "TowComplaint": [
+    "tinow ang kotse ko",
+    "illegal na tow",
+    "may boot sa kotse ko",
+    "towing complaint"
+  ],
+  "VandalismDamage": [
+    "vandalismo",
+    "may graffiti",
+    "kinudkod ang kotse ko",
+    "binasag ang bintana",
+    "nasira ang mailbox"
+  ],
+  "CodeEnforcementComplaint": [
+    "code enforcement",
+    "maraming basura sa bahay",
+    "mataas na damo",
+    "junk cars sa bakuran",
+    "illegal na konstruksyon"
+  ],
+  "PublicWorksIssue": [
+    "sumabog ang tubo ng tubig",
+    "baha sa kalsada",
+    "sira ang traffic light",
+    "patay ang streetlight",
+    "may butas sa daan",
+    "may natumbang puno"
+  ],
+  "TrafficAccidentReportOnly": [
+    "naaksidente ako",
+    "minor accident",
+    "hit and run",
+    "tinamaan ang naka-park kong kotse",
+    "aksidente walang nasugatan"
+  ],
+  "OnlineReportEligibility": [
+    "pwede ba mag-file online",
+    "paano mag-report sa website",
+    "gusto ko online na lang",
+    "pwede bang hindi tumawag"
+  ],
+  "RepeatCallCheck": [
+    "tumawag na ako kanina",
+    "nagre-report na ako nito",
+    "walang dumating",
+    "may reference number ako"
+  ],
+  "InformationRequest": [
+    "may tanong ako",
+    "nasaan ang pulisya",
+    "paano kumuha ng kopya ng report",
+    "ano ang non-emergency number"
+  ]
+} as const;
+
+export const UTTERANCES_911_VI = {
+  "Welcome": [
+    "xin chào",
+    "alo",
+    "tôi cần giúp",
+    "tôi muốn báo cáo",
+    "tôi có câu hỏi",
+    "làm biên bản",
+    "không khẩn cấp",
+    "giúp tôi với"
+  ],
+  "EmergencyEscalation": [
+    "có người bắn súng",
+    "có súng",
+    "cứu tôi",
+    "tôi cần giúp ngay",
+    "có cháy",
+    "đây là khẩn cấp",
+    "gọi 911",
+    "không thở được",
+    "bạo lực gia đình",
+    "tai nạn có người bị thương",
+    "có dao",
+    "đang bị tấn công",
+    "đột nhập nhà"
+  ],
+  "RequestHuman": [
+    "tôi muốn nói chuyện với người",
+    "chuyển tôi sang nhân viên",
+    "tôi muốn nói với cảnh sát",
+    "đừng để máy trả lời",
+    "gặp điều phối viên"
+  ],
+  "NoiseComplaint": [
+    "hàng xóm ồn quá",
+    "khiếu nại tiếng ồn",
+    "tiệc quá ồn",
+    "nhạc quá to",
+    "có người la ngoài đường",
+    "chó sủa suốt",
+    "pháo nổ"
+  ],
+  "SuspiciousPerson": [
+    "có người khả nghi",
+    "có người hành động lạ",
+    "có người nhìn vào xe",
+    "có người theo tôi",
+    "hoạt động đáng ngờ"
+  ],
+  "AbandonedVehicle": [
+    "có xe bị bỏ",
+    "xe để nhiều ngày không chạy",
+    "xe không biển số",
+    "xe bỏ trên đường"
+  ],
+  "VehicleBurglary": [
+    "có người đập kính xe tôi",
+    "đồ trong xe bị lấy",
+    "xe bị khoét",
+    "trộm đồ trên xe"
+  ],
+  "TheftReport": [
+    "tôi muốn báo trộm",
+    "có người lấy đồ của tôi",
+    "bưu kiện bị lấy",
+    "xe đạp bị lấy",
+    "điện thoại bị lấy"
+  ],
+  "ParkingComplaint": [
+    "đỗ xe trái phép",
+    "chặn lối vào nhà tôi",
+    "đỗ trước trụ cứu hỏa",
+    "khiếu nại đỗ xe"
+  ],
+  "WelfareCheck": [
+    "cần kiểm tra an toàn",
+    "tôi lo cho hàng xóm",
+    "nhiều ngày không thấy hàng xóm",
+    "không liên lạc được người nhà"
+  ],
+  "AnimalComplaint": [
+    "chó hoang",
+    "chó cắn người",
+    "chó dữ",
+    "ngược đãi động vật",
+    "chó trong xe nóng"
+  ],
+  "TowComplaint": [
+    "xe tôi bị kéo",
+    "kéo xe trái phép",
+    "xe bị khóa bánh",
+    "khiếu nại kéo xe"
+  ],
+  "VandalismDamage": [
+    "phá hoại tài sản",
+    "vẽ bậy",
+    "xe bị cào",
+    "cửa sổ bị đập",
+    "hòm thư bị phá"
+  ],
+  "CodeEnforcementComplaint": [
+    "vi phạm mã xây dựng",
+    "nhà chất đầy rác",
+    "cỏ mọc cao",
+    "xe phế trong sân",
+    "xây không phép"
+  ],
+  "PublicWorksIssue": [
+    "vỡ ống nước",
+    "đường ngập",
+    "đèn giao thông hỏng",
+    "đèn đường tắt",
+    "ổ gà",
+    "cây đổ giữa đường"
+  ],
+  "TrafficAccidentReportOnly": [
+    "tôi bị tai nạn",
+    "va chạm nhẹ",
+    "gây tai nạn rồi bỏ chạy",
+    "xe đang đỗ bị đụng",
+    "tai nạn không ai bị thương"
+  ],
+  "OnlineReportEligibility": [
+    "tôi có thể báo cáo trên mạng không",
+    "làm sao nộp báo cáo online",
+    "tôi muốn tự điền",
+    "có cần gọi không"
+  ],
+  "RepeatCallCheck": [
+    "tôi đã gọi trước đó",
+    "tôi đã báo rồi",
+    "không ai tới",
+    "tôi có số hồ sơ"
+  ],
+  "InformationRequest": [
+    "tôi có câu hỏi",
+    "đồn công an ở đâu",
+    "làm sao lấy bản sao biên bản",
+    "số không khẩn cấp là gì"
+  ]
+} as const;
+
+export const UTTERANCES_911_AR = {
+  "Welcome": [
+    "مرحبا",
+    "نعم",
+    "أحتاج مساعدة",
+    "أريد أن أبلغ",
+    "لدي سؤال",
+    "أريد تقديم بلاغ",
+    "ليست حالة طارئة"
+  ],
+  "EmergencyEscalation": [
+    "هناك إطلاق نار",
+    "معه سلاح",
+    "النجدة",
+    "أحتاج مساعدة الآن",
+    "هناك حريق",
+    "هذه حالة طارئة",
+    "اتصلوا بالتسعمئة وأحد عشر",
+    "لا يتنفس",
+    "عنف أسري",
+    "حادث وفيه إصابات",
+    "معه سكين",
+    "يهاجمني",
+    "اقتحام منزل"
+  ],
+  "RequestHuman": [
+    "أريد التحدث مع شخص",
+    "حولني إلى موظف",
+    "أريد التحدث مع الشرطة",
+    "لا أريد الروبوت",
+    "المحول"
+  ],
+  "NoiseComplaint": [
+    "الجيران مزعجون",
+    "شكوى ضوضاء",
+    "الحفلة صاخبة",
+    "الموسيقى عالية جدا",
+    "هناك صراخ في الخارج",
+    "الكلب ينبح باستمرار",
+    "ألعاب نارية"
+  ],
+  "SuspiciousPerson": [
+    "هناك شخص مريب",
+    "شخص يتصرف بغرابة",
+    "شخص ينظر إلى السيارات",
+    "شخص يتبعني",
+    "نشاط مريب"
+  ],
+  "AbandonedVehicle": [
+    "هناك سيارة متروكة",
+    "السيارة لم تتحرك منذ أيام",
+    "سيارة بلا لوحة",
+    "مركبة مهجورة"
+  ],
+  "VehicleBurglary": [
+    "كسروا زجاج سيارتي",
+    "سُرقت أغراض من السيارة",
+    "اقتحموا سيارتي",
+    "سرقة من المركبة"
+  ],
+  "TheftReport": [
+    "أريد الإبلاغ عن سرقة",
+    "سُرقت أغراضي",
+    "سُرقت الطرد",
+    "سُرقت الدراجة",
+    "سُرق هاتفي"
+  ],
+  "ParkingComplaint": [
+    "موقف مخالف",
+    "يسدون مدخل بيتي",
+    "موقف أمام صنبور الإطفاء",
+    "شكوى مواقف"
+  ],
+  "WelfareCheck": [
+    "أحتاج فحص سلامة",
+    "أنا قلق على جاري",
+    "لم أر جاري منذ أيام",
+    "لا يرد أحد من العائلة"
+  ],
+  "AnimalComplaint": [
+    "كلب ضال",
+    "عضني كلب",
+    "كلب عدواني",
+    "قسوة على الحيوانات",
+    "كلب داخل سيارة حارة"
+  ],
+  "TowComplaint": [
+    "سحبت سيارتي",
+    "سحب غير قانوني",
+    "وضعوا قفلاً على السيارة",
+    "شكوى سحب"
+  ],
+  "VandalismDamage": [
+    "تخريب ممتلكات",
+    "كتابات على الجدران",
+    "خدشوا السيارة",
+    "كسروا النافذة",
+    "حطموا صندوق البريد"
+  ],
+  "CodeEnforcementComplaint": [
+    "مخالفة تنظيم",
+    "قمامة متراكمة عند بيت",
+    "عشب طويل",
+    "سيارات تالفة في الساحة",
+    "بناء بلا ترخيص"
+  ],
+  "PublicWorksIssue": [
+    "انفجر أنبوب ماء",
+    "الشارع غارق",
+    "الإشارة معطلة",
+    "عمود الإنارة مطفأ",
+    "حفرة في الطريق",
+    "شجرة سقطت في الطريق"
+  ],
+  "TrafficAccidentReportOnly": [
+    "تعرضت لحادث",
+    "صدام بسيط",
+    "صدام وهروب",
+    "صدموا سيارتي المتوقفة",
+    "حادث بلا إصابات"
+  ],
+  "OnlineReportEligibility": [
+    "هل يمكن تقديم بلاغ عبر الإنترنت",
+    "كيف أبلغ من الموقع",
+    "أريد تقديم البلاغ بنفسي",
+    "هل يجب أن أتصل"
+  ],
+  "RepeatCallCheck": [
+    "اتصلت مسبقاً بهذا",
+    "أبلغت عن هذا من قبل",
+    "لم يأت أحد",
+    "لدي رقم مرجع"
+  ],
+  "InformationRequest": [
+    "لدي سؤال",
+    "أين مركز الشرطة",
+    "كيف أحصل على نسخة من البلاغ",
+    "ما رقم غير الطوارئ"
   ]
 } as const;

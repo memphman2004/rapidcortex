@@ -61,6 +61,7 @@ Rapid Cortex Internal Docs/
 # plugins (UIScene, ExpoModulesCore RN 0.76 pin, Xcode 26 fmt) apply. Uploading
 # a local ios/ made iOS 28 compile ExpoModulesCore against a hoisted RN 0.80
 # CallInvoker and fail on Xcode 26 (`TestingSyncJSCallInvoker` / invokeAsync).
+/apps/ios-mobile/
 /apps/mobile/ios/
 /apps/mobile/android/
 ios/

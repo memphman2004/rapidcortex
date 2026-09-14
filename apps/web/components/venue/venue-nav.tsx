@@ -14,9 +14,11 @@ import {
   Settings,
   Users,
   Video,
+  LayoutGrid,
 } from "lucide-react";
 import { canVenueAgencyIt, canVenueNotifications } from "@/lib/venue/venue-access";
 import { isVenueGuestServicesRole } from "@/lib/venue/venue-guest-services";
+import { isRcVideoEnabled } from "@/lib/runtime-flags";
 
 type NavItem = {
   id: string;
@@ -70,6 +72,13 @@ function navItems(base: string): NavItem[] {
       icon: Video,
       supervisorOrAgencyIt: true,
     },
+    {
+      id: "video-wall",
+      label: "Video Wall",
+      href: `${base}/video-wall`,
+      icon: LayoutGrid,
+      hideForGuest: true,
+    },
   ];
 }
 
@@ -93,6 +102,7 @@ export function VenueNav({
       return false;
     }
     if (item.hideForGuest && isVenueGuestServicesRole(userRole)) return false;
+    if (item.id === "video-wall" && !isRcVideoEnabled()) return false;
     return true;
   });
 

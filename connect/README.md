@@ -4,6 +4,41 @@ Import the flow **after** `rapid-cortex-lex-{stage}` is CREATE_COMPLETE. The Get
 
 Do **not** import before the Lex bot is built. Locale build takes 3–5 minutes after the first deploy.
 
+Regenerate the committed flow JSON after DTMF/voice changes:
+
+```bash
+python3 scripts/generate-call-assist-contact-flow.py
+```
+
+## Live call setup (test DID only)
+
+Never attach this flow to a live 911 number.
+
+```bash
+source scripts/env-api-dev.sh
+# DID lookup + greeting Lambda (does not republish the Lex bot)
+LEX_LAMBDA_ONLY=1 bash scripts/deploy-lex.sh dev
+# Instance, queues, flow import, existing or new test DID
+bash scripts/configure-call-assist-connect.sh
+```
+
+Dial the claimed DID. After the English language menu:
+
+| Key | Language | Connect voice | Lex locale |
+| --- | --- | --- | --- |
+| 1 | English | Ruth | `en-US` |
+| 2 | Spanish | Lupe | `es-US` |
+| 3 | Mandarin | Zhiyu | `zh-CN` |
+| 4 | Cantonese | Hiujin | `zh-HK` |
+| 5 | Tagalog | Ruth (no native Polly) | `tl-PH` limited ASR |
+| 6 | Vietnamese | Linh | `vi-VN` limited ASR |
+| 7 | Arabic | Hala | `ar-AE` |
+| (timeout) | Tenant default | matching voice | `$.External.language` |
+
+Stay on the line (or press 1) and say a noise-complaint phrase. Emergency utterances transfer to **Call Assist Emergency**; fallback / human-request transfer to **Demo Dispatcher**.
+
+If Connect rejects a Set voice on import (Hiujin / Linh), the flow update fails — check the CLI error and keep LanguageCode even if that voice has to fall back to Ruth.
+
 ## Prerequisites
 
 1. `source scripts/env-api-dev.sh && bash scripts/deploy-lex.sh dev`
@@ -24,20 +59,19 @@ Do **not** import before the Lex bot is built. Locale build takes 3–5 minutes 
 4. Three dialog-hook safety-gate tests passing (`apps/api/src/call-assist/lex/__tests__/dialog-hook.test.ts`)
 5. `GetAgencyConfigForNumber` Lambda deployed (or invoke the TypeScript handler `apps/api/src/call-assist/lex/get-agency-for-number.ts`) so call-start can load tenant config from the DID lookup row
 
-After import:
+After import (`scripts/configure-call-assist-connect.sh` does this):
 
-1. Open the flow in the Connect console.
-2. Add **Set voice** before Get customer input: Ruth, neural, **Set language attribute** = `en-US` (required for Lex V2). For Spanish, Lupe + `es-US`.
-3. Point EmergencyEscalation and FallbackIntent transfer blocks at the dispatcher queues (not created by this repo).
-4. Associate the GetAgencyConfig Lambda (`rapid-cortex-lex-agency-for-number-dev`) with the Connect instance.
-5. Claim/assign the **test DID only** — never a live 911 number — and attach this flow.
+1. Language menu + Set voice / Set language for all seven live locales (required for Lex V2).
+2. EmergencyEscalation → Call Assist Emergency queue; FallbackIntent / RequestHuman / RepeatCallCheck / PublicWorksIssue → Demo Dispatcher.
+3. GetAgencyConfig Lambda (`rapid-cortex-lex-agency-for-number-dev`) associated with the Connect instance.
+4. Test DID assigned to this flow — never a live 911 number.
 
-The JSON template uses `{{lexBotAliasArn}}`. `scripts/configure-call-assist-connect.sh` substitutes the first-tenant alias (or `LEX_BOT_ID` / `LEX_BOT_ALIAS_ID`) at import time. Production onboarding uses `POST /api/call-assist/onboarding`.
+The JSON template uses `{{lexBotAliasArn}}`, `__DEMO_QUEUE_ARN__`, and `__EMERGENCY_QUEUE_ARN__`. `scripts/configure-call-assist-connect.sh` substitutes them at import time. Production onboarding uses `POST /api/call-assist/onboarding`.
 
 1. Invoke Lambda `GetAgencyConfigForNumber` with `phoneNumber = $.SystemEndpoint.Address`
-2. Play disclosure from the Lambda result (Polly Ruth / Lupe)
+2. Play English language menu (Ruth), then the selected-language greeting from the Lambda STRING_MAP
 3. Get customer input → Amazon Lex bot `RCCallAssistBot-{stage}` alias `live-{stage}`
-   - Session attributes: `agencyId`, `callId = $.ContactId`, `bargeInEnabled=true`, `ani` (customer endpoint), `aliAddress` / `ALI` when the PSAP or RapidSOS set contact attributes
+   - Session attributes: `agencyId`, `callId = $.ContactId`, `language` / `locale` from the selected Connect language, `bargeInEnabled=true`, `ani` (customer endpoint), `aliAddress` / `ALI` when the PSAP or RapidSOS set contact attributes
    - Barge-in: Lex slot prompts use `allowInterrupt: true`. The dialog hook keeps filled slots and resumes the next missing field. A turn is barge-in only when `promptSlot` is set and that slot is still empty (caller spoke over the prompt). KVS StartMediaStreaming is an optional recording fork, not required to interrupt Lex.
 
 ## Live telephony ingest

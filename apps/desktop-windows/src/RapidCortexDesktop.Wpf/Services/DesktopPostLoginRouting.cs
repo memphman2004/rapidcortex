@@ -179,13 +179,6 @@ public static class DesktopPostLoginRouting
         return (match.Success ? match.Groups[1].Value : raw).ToUpperInvariant().Replace("-", "", StringComparison.Ordinal);
     }
 
-    private static string ExtractCampusCode(string agencyId)
-    {
-        var raw = agencyId.Trim();
-        var match = Regex.Match(raw, @"(?:test-)?campus-(.+)$", RegexOptions.IgnoreCase);
-        return (match.Success ? match.Groups[1].Value : raw).ToUpperInvariant().Replace("-", "", StringComparison.Ordinal);
-    }
-
     private static string? ResolveHospitalPortalDashboardHref(string role)
     {
         if (IsHospitalStaffPortalRole(role))
@@ -258,28 +251,47 @@ public static class DesktopPostLoginRouting
     private static string? ResolveProductDashboardFromRoleAndAgency(string role, string agencyId)
     {
         var roleToken = role.Trim();
-        var roleUpper = roleToken.ToUpperInvariant();
+        var roleKey = roleToken.ToUpperInvariant().Replace("-", "_", StringComparison.Ordinal);
         var agency = agencyId.Trim();
 
-        if (roleUpper.StartsWith("VENUE_", StringComparison.Ordinal))
+        switch (roleKey)
         {
-            return $"/app/venue/{ExtractVenueCode(agency)}";
-        }
-
-        if (roleUpper.StartsWith("CAMPUS_", StringComparison.Ordinal))
-        {
-            return $"/app/campus/{ExtractCampusCode(agency)}";
+            case "VENUE_ADMIN":
+            case "VENUE_GUEST":
+            case "VENUE_GUEST_SERVICES":
+                return $"/app/venue/{ExtractVenueCode(agency)}";
+            case "VENUE_SUPERVISOR":
+                return "/app/venue/supervisor";
+            case "VENUE_SECURITY":
+                return "/app/venue/security";
+            case "VENUE_OPERATOR":
+                return "/app/venue/operator";
+            case "CAMPUS_ADMIN":
+                return "/app/campus/admin";
+            case "CAMPUS_SUPERVISOR":
+                return "/app/campus/supervisor";
+            case "CAMPUS_SECURITY":
+                return "/app/campus/security";
+            case "CAMPUS_DISPATCH":
+                return "/app/campus/dispatch";
+            case "CAMPUS_COUNSELOR":
+                return "/app/campus/counselor";
+            case "CAMPUS_FACULTY":
+                return "/app/campus/faculty";
+            case "TRANSIT_ADMIN":
+                return "/app/transit/admin";
+            case "TRANSIT_SUPERVISOR":
+                return "/app/transit/supervisor";
+            case "TRANSIT_SECURITY":
+                return "/app/transit/security";
+            case "TRANSIT_OPERATOR":
+                return "/app/transit/operator";
         }
 
         var hospital = ResolveHospitalPortalDashboardHref(roleToken);
         if (hospital is not null)
         {
             return hospital;
-        }
-
-        if (roleUpper.StartsWith("TRANSIT_", StringComparison.Ordinal))
-        {
-            return "/app/transit";
         }
 
         if (roleToken is "rcsuperadmin" or "rcadmin")
@@ -325,6 +337,7 @@ public static class DesktopPostLoginRouting
             "auditor" => $"/{jurisdictionSlug}/audit",
             "hospitaladmin" => "/hospital-admin/dashboard",
             "hospitalstaff" => "/hospital-staff/dashboard",
+            "homeowner" => $"/{jurisdictionSlug}/media",
             _ => $"/{jurisdictionSlug}/dashboard",
         };
     }

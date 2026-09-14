@@ -60,17 +60,20 @@ Native splash + in-app gate match marketing `/enter` (“Enter the Cortex”): b
 
 ## Play Store (v1 — QR/NFC Venue + Campus)
 
-First submission is the **field codes tool only** (camera + NFC). Guardian / Safe & Sound BLE stays flag-gated. iOS Rapid Cortex Mobile ships from Xcode / TestFlight (`apps/ios-mobile`), not EAS.
+First submission is the **field codes tool only** (QR share + NFC). Guardian / Safe & Sound BLE stays flag-gated and is stripped from the Play permission set. iOS Rapid Cortex Mobile ships from Xcode / TestFlight (`apps/ios-mobile`), not EAS.
 
-### Before first EAS build
+Listing copy, Data safety answers, and Console steps: [`store/PLAY_STORE.md`](./store/PLAY_STORE.md).
+
+### Before first EAS production build
 
 ```bash
 cd apps/android-mobile
-npx eas-cli login          # must be an account in the Expo org matching `owner` in app.config.ts
-npx eas-cli init          # writes real `extra.eas.projectId` (replaces REPLACE_WITH_EAS_PROJECT_ID)
+npx eas-cli login          # account in the Expo org matching `owner` in app.config.ts
+npx eas-cli build --platform android --profile production
+npx eas-cli submit --platform android --profile production
 ```
 
-Confirm `owner: 'rapid-cortex'` matches the org slug at [expo.dev/accounts](https://expo.dev/accounts).
+EAS project id is already set (`extra.eas.projectId`). Confirm `owner: 'rapid-cortex'` matches the org slug at [expo.dev/accounts](https://expo.dev/accounts).
 
 ### Store account IDs
 
@@ -81,15 +84,23 @@ Confirm `owner: 'rapid-cortex'` matches the org slug at [expo.dev/accounts](http
 
 Android EAS submit expects a Play API service-account JSON at `apps/android-mobile/google-play-key.json` (do not commit). Create it under Play Console → **Users and permissions → API access** after account verification is complete.
 
-Android: `google-services.json` is optional for v1 (only needed for Firebase push). The config wires it only if the file exists.
+Android: `google-services.json` is optional for v1 (only needed for Firebase push). The config wires it only if the file exists. Play v1 does not prompt for notifications on login.
+
+Privacy policy: https://www.rapidcortex.us/privacy
+Account deletion: https://www.rapidcortex.us/account-deletion (also in-app on Account)
 
 ## Not Play-ready until
 
-- [x] Real icons / splash (marketing-matched)
+- [x] Real icons / splash (marketing-matched, 1024×1024)
 - [x] Cognito mobile client ID in `.env` (dev native client)
 - [x] SAM routes for safe-sound / guardian / codes (QR stack)
 - [x] NFC entitlements + usage description
-- [x] Guardian/BLE/background location stripped for QR/NFC-only review
-- [ ] EAS project ID (`eas init`) + store credentials
+- [x] Guardian/BLE/background location / camera stripped from the Play manifest
+- [x] EAS project ID (`2d1ae3e1-5867-48f0-8ed8-a8eb53d920dc`)
+- [x] In-app privacy policy + account deletion links
+- [ ] Play Console app + service-account JSON (`google-play-key.json`)
+- [ ] Feature graphic (1024×500) and ≥2 phone screenshots
+- [ ] Marketing deploy of `/account-deletion` so the Play URL does not 404
+- [ ] Expo SDK 53+ (Play 16 KB page-size rule — SDK 52 / RN 0.76 cannot ship)
 - [ ] Physical device testing (NFC write on NTAG213)
 - [ ] Stripe publishable key for Guardian PaymentSheet (Safe & Sound release)

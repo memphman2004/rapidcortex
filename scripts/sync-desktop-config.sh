@@ -35,7 +35,6 @@ HTTP_API_URL_2="$(get_output HttpApi2Url)"
 API_CUSTOM="$(get_output ApiCustomDomainUrl)"
 NATIVE_CLIENT="$(get_output NativeUserPoolClientId)"
 USER_POOL="$(get_output UserPoolId)"
-WWW_URL="$(get_output WwwDomainUrl)"
 
 if [[ -z "$HTTP_API_URL" || "$HTTP_API_URL" == "None" ]]; then
   echo "Stack ${STACK_NAME} missing HttpApiUrl in ${REGION}." >&2
@@ -52,9 +51,10 @@ if [[ -z "$API_BASE_2" || "$API_BASE_2" == "None" ]]; then
   API_BASE_2=""
 fi
 
-WEB_BASE="${WWW_URL:-https://www.rapidcortex.us}"
-if [[ -z "$WEB_BASE" || "$WEB_BASE" == "None" ]]; then
-  WEB_BASE="https://www.rapidcortex.us"
+WEB_BASE="https://app.rapidcortex.us"
+APP_DOMAIN="$(get_output AppDomainUrl)"
+if [[ -n "$APP_DOMAIN" && "$APP_DOMAIN" != "None" ]]; then
+  WEB_BASE="$APP_DOMAIN"
 fi
 
 COGNITO_DOMAIN="${COGNITO_DOMAIN:-rapidcortex-${STAGE}-158961537080.auth.${REGION}.amazoncognito.com}"

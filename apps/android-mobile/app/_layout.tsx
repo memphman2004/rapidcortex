@@ -23,7 +23,6 @@ import {
 } from '@/services/native-splash';
 import {
   getInitialNotificationRoute,
-  registerForPushNotifications,
   setupNotificationHandlers,
   teardownNotificationHandlers,
 } from '@/services/notifications';
@@ -92,9 +91,6 @@ function RootLayoutNav() {
     if (!isAuthenticated || !user || hasHandledInitialRoute.current) return;
     hasHandledInitialRoute.current = true;
 
-    void registerForPushNotifications(user.sub).catch((err) => {
-      console.warn('[notifications] register failed', err);
-    });
     void getInitialNotificationRoute()
       .then((route) => {
         if (route) {

@@ -35,6 +35,7 @@ import type {
   CallAssistSentiment,
   VoiceEmotionAssessment,
   CallAssistGreetingConfig,
+  CallAssistLocale,
 } from "rapid-cortex-shared";
 import { ddb } from "../repositories/baseRepository.js";
 import { env } from "../lib/env.js";
@@ -113,8 +114,8 @@ export type CallAssistTenantConfig = {
   agencyDisplayName?: string;
   agencyTypeLabel?: string;
   officerLabel?: string;
-  defaultLocale?: "en_US" | "es_US" | "zh_CN" | "fr_CA";
-  supportedLocales?: Array<"en_US" | "es_US" | "zh_CN" | "fr_CA">;
+  defaultLocale?: CallAssistLocale;
+  supportedLocales?: CallAssistLocale[];
   lexBotTemplateVersion?: string;
   lexBotStatus?: string;
   connectInstanceId?: string;

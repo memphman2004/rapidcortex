@@ -86,19 +86,24 @@ public static class DesktopWorkspaceNavigation
             [
                 new("dashboard", "Dashboard", $"/{j}/dashboard"),
                 new("dispatcher", "Dispatcher", $"/{j}/dispatcher"),
+                new("call-assist", "Call Assist", $"/{j}/call-assist"),
                 new("incidents", "Incidents", $"/{j}/incidents"),
                 new("media", "Media", $"/{j}/media"),
+                new("rapid-vision", "Rapid Vision", $"/{j}/media?vision=1"),
             ],
             "supervisor" =>
             [
                 new("supervisor", "Supervisor", $"/{j}/supervisor"),
                 new("dashboard", "Dashboard", $"/{j}/dashboard"),
+                new("call-assist", "Call Assist", $"/{j}/call-assist"),
                 new("incidents", "Incidents", $"/{j}/incidents"),
                 new("media", "Media", $"/{j}/media"),
+                new("rapid-vision", "Rapid Vision", $"/{j}/media?vision=1"),
             ],
             "agencyadmin" or "agencyit" =>
             [
                 new("admin", "Admin", $"/{j}/admin"),
+                new("call-assist", "Call Assist", $"/{j}/call-assist/admin"),
                 new("dashboard", "Dashboard", $"/{j}/dashboard"),
                 new("media", "Media", $"/{j}/media"),
             ],

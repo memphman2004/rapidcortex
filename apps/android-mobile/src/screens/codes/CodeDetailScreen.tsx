@@ -68,17 +68,21 @@ export default function CodeDetailScreen() {
 
   const handleSaveToPhotos = async () => {
     if (!qrRef.current) return;
-    const permission = await MediaLibrary.requestPermissionsAsync();
-    if (!permission.granted) {
-      Alert.alert(Strings.common.noPermission);
-      return;
-    }
+    const permission = await MediaLibrary.requestPermissionsAsync(true);
     qrRef.current.toDataURL(async (dataUrl) => {
       try {
         const fileUri = `${FileSystem.cacheDirectory}rc-code-${code.codeId}.png`;
         await writeQrPng(fileUri, dataUrl);
-        await MediaLibrary.saveToLibraryAsync(fileUri);
-        Alert.alert(Strings.venue.signPackage.saveToPhotos, 'Saved to Photos.');
+        if (permission.granted) {
+          await MediaLibrary.saveToLibraryAsync(fileUri);
+          Alert.alert(Strings.venue.signPackage.saveToPhotos, 'Saved to Photos.');
+          return;
+        }
+        if (await Sharing.isAvailableAsync()) {
+          await Sharing.shareAsync(fileUri, { mimeType: 'image/png' });
+          return;
+        }
+        Alert.alert(Strings.common.noPermission);
       } catch {
         Alert.alert(Strings.common.somethingWentWrong);
       }

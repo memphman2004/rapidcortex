@@ -20,9 +20,9 @@ rapid_cortex_assert_aws_account
 # bot-spec.json is the source of truth (includes Welcome). Do not regenerate from
 # connect/lex-bot-complete-spec.md — that markdown has no Welcome intent.
 python3 "${ROOT}/scripts/sync-lex-bot-draft.py"
+bash "${ROOT}/scripts/lex-attach-alias-hooks.sh" TSTALIASID TestBotAlias DRAFT "${STAGE}"
 
 echo "✅ DRAFT locales Built. Test with bot alias TSTALIASID — live-${STAGE} is unchanged."
-echo "   Associate rapid-cortex-lex-dialog-hook-${STAGE} on TestBotAlias for en_US and es_US,"
-echo "   then run RecognizeText or use the Lex console test window."
-echo "   When both locales pass: bash scripts/publish-lex-alias.sh ${STAGE}"
+echo "   Locales: en_US es_US zh_CN zh_HK tl_PH vi_VN ar_AE"
+echo "   When locales pass: bash scripts/publish-lex-alias.sh ${STAGE}"
 echo "   Bot ID ${BOT_ID}"

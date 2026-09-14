@@ -1,6 +1,25 @@
 import type { CallAssistTenantConfig } from "../store.js";
 import { ResponseGenerator, resolveAgencyTaxonomy, responseVoiceFromConfig } from "rapid-cortex-shared";
-import { LEX_SPEC_SLOTS } from "./lex-spec-slots.js";
+import { LEX_SPEC_SLOTS, type LexSpecSlot } from "./lex-spec-slots.js";
+
+const PROMPT_FIELD_BY_LOCALE: Record<string, keyof LexSpecSlot> = {
+  en_US: "promptEn",
+  es_US: "promptEs",
+  zh_CN: "promptZhCn",
+  zh_HK: "promptZhHk",
+  tl_PH: "promptTl",
+  vi_VN: "promptVi",
+  ar_AE: "promptAr",
+};
+
+export function lexSpecPrompt(slot: LexSpecSlot, localeId: string): string {
+  const normalized = localeId.replace(/-/g, "_");
+  const field = PROMPT_FIELD_BY_LOCALE[normalized] ?? (normalized.startsWith("es") ? "promptEs" : "promptEn");
+  const value = slot[field];
+  if (typeof value === "string" && value.trim()) return value;
+  if (normalized.startsWith("es") && slot.promptEs) return slot.promptEs;
+  return slot.promptEn;
+}
 
 export function agencyShortName(config: CallAssistTenantConfig): string {
   return config.agencyShortName?.trim() || config.shortName?.trim() || "this agency";
@@ -26,11 +45,11 @@ export function slotPrompt(
 ): string {
   if (intentName) {
     const forIntent = LEX_SPEC_SLOTS[intentName]?.find((field) => field.name === slotId);
-    if (forIntent) return localeId.startsWith("es") ? forIntent.promptEs : forIntent.promptEn;
+    if (forIntent) return lexSpecPrompt(forIntent, localeId);
   }
   for (const slots of Object.values(LEX_SPEC_SLOTS)) {
     const spec = slots.find((field) => field.name === slotId);
-    if (spec) return localeId.startsWith("es") ? spec.promptEs : spec.promptEn;
+    if (spec) return lexSpecPrompt(spec, localeId);
   }
   const taxonomy = resolveAgencyTaxonomy(config);
   for (const tpl of taxonomy.intakeTemplates) {

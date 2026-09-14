@@ -643,6 +643,32 @@ Parameters:
       Secrets Manager ARN for RC's own Google Device Access credentials
       (JSON: clientId, clientSecret, projectId). Empty until Device Access
       project approval — citizen enrollment at /connect/nest returns 503.
+  NestConsentHmacSecretValue:
+    Type: String
+    Default: "0000000000000000000000000000000000000000000000000000000000000000"
+    NoEcho: true
+    MinLength: 32
+    Description: >
+      HMAC key for Nest citizen consent tokens. deploy.sh always passes a local
+      openssl hex value — never secretsmanager:GetRandomPassword (deploy IAM deny).
+  ExistingNestConsentHmacSecretArn:
+    Type: String
+    Default: ""
+    Description: >
+      When set, skip creating rapid-cortex/connect/nest-consent-hmac-${stage} and
+      reuse this leftover Secrets Manager ARN (rollback cannot DeleteSecret).
+  ExistingNestTokensTableName:
+    Type: String
+    Default: ""
+    Description: When set, skip creating rapid-cortex-nest-tokens-${stage} (Retain leftover).
+  ExistingNestConsentTableName:
+    Type: String
+    Default: ""
+    Description: When set, skip creating rapid-cortex-nest-consent-${stage} (Retain leftover).
+  ExistingNestCitizenAccountsTableName:
+    Type: String
+    Default: ""
+    Description: When set, skip creating rapid-cortex-nest-citizen-accounts-${stage} (Retain leftover).
   WyzeEnabled:
     Type: String
     Default: "false"
@@ -870,6 +896,10 @@ Conditions:
   RingIntegrationEnabled: !Equals [!Ref RingEnabled, "true"]
   WyzeIntegrationEnabled: !Equals [!Ref WyzeEnabled, "true"]
   HasNestRcOauthSecret: !Not [!Equals [!Ref NestRcOauthSecretArn, ""]]
+  CreateNestConsentHmacSecret: !Equals [!Ref ExistingNestConsentHmacSecretArn, ""]
+  CreateNestTokensTable: !Equals [!Ref ExistingNestTokensTableName, ""]
+  CreateNestConsentTable: !Equals [!Ref ExistingNestConsentTableName, ""]
+  CreateNestCitizenAccountsTable: !Equals [!Ref ExistingNestCitizenAccountsTableName, ""]
   HasImportedApiCert: !Not [!Equals [!Ref ApiDomainCertificateArn, ""]]
   HasManagedApiCert:
     Fn::And:
@@ -2254,14 +2284,10 @@ Resources:
               - secretsmanager:GetSecretValue
             Resource:
               - !Sub arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:rc/cameras/nest/oauth*
-              - !Ref NestConsentHmacSecret
-          - Sid: NestKmsEnvelope
-            Effect: Allow
-            Action:
-              - kms:GenerateDataKey
-              - kms:Decrypt
-              - kms:DescribeKey
-            Resource: !GetAtt NestCredentialsKmsKey.Arn
+              - !If
+                - CreateNestConsentHmacSecret
+                - !Ref NestConsentHmacSecret
+                - !Ref ExistingNestConsentHmacSecretArn
           # Camera oauth/token/registry + dedicated Nest tables are not in Dynamo shards A–D.
           - Sid: NestCameraDynamoCrud
             Effect: Allow
@@ -2278,14 +2304,32 @@ Resources:
               - !Sub "${CameraProviderTokensTable.Arn}/index/*"
               - !GetAtt CamerasRegistryTable.Arn
               - !Sub "${CamerasRegistryTable.Arn}/index/*"
-              - !GetAtt NestTokensTable.Arn
-              - !Sub "${NestTokensTable.Arn}/index/*"
+              - !If
+                - CreateNestTokensTable
+                - !GetAtt NestTokensTable.Arn
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${ExistingNestTokensTableName}
+              - !If
+                - CreateNestTokensTable
+                - !Sub "${NestTokensTable.Arn}/index/*"
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${ExistingNestTokensTableName}/index/*
               - !GetAtt NestOAuthStateTable.Arn
               - !Sub "${NestOAuthStateTable.Arn}/index/*"
-              - !GetAtt NestConsentTable.Arn
-              - !Sub "${NestConsentTable.Arn}/index/*"
-              - !GetAtt NestCitizenAccountsTable.Arn
-              - !Sub "${NestCitizenAccountsTable.Arn}/index/*"
+              - !If
+                - CreateNestConsentTable
+                - !GetAtt NestConsentTable.Arn
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${ExistingNestConsentTableName}
+              - !If
+                - CreateNestConsentTable
+                - !Sub "${NestConsentTable.Arn}/index/*"
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${ExistingNestConsentTableName}/index/*
+              - !If
+                - CreateNestCitizenAccountsTable
+                - !GetAtt NestCitizenAccountsTable.Arn
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${ExistingNestCitizenAccountsTableName}
+              - !If
+                - CreateNestCitizenAccountsTable
+                - !Sub "${NestCitizenAccountsTable.Arn}/index/*"
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${ExistingNestCitizenAccountsTableName}/index/*
 
   ManagedRingAccountsTable:
     Type: AWS::DynamoDB::Table
@@ -2570,53 +2614,19 @@ Resources:
         SSEEnabled: true
         SSEType: KMS
 
-  NestCredentialsKmsKey:
-    Type: AWS::KMS::Key
-    Properties:
-      Description: Envelope encryption for Nest OAuth client secrets
-      EnableKeyRotation: true
-      KeyPolicy:
-        Version: "2012-10-17"
-        Statement:
-          - Sid: EnableRoot
-            Effect: Allow
-            Principal:
-              AWS: !Sub arn:aws:iam::${AWS::AccountId}:root
-            Action: kms:*
-            Resource: "*"
-          - Sid: AllowDynamoDbSse
-            Effect: Allow
-            Principal:
-              Service: dynamodb.amazonaws.com
-            Action:
-              - kms:Encrypt
-              - kms:Decrypt
-              - kms:ReEncrypt*
-              - kms:GenerateDataKey*
-              - kms:DescribeKey
-              - kms:CreateGrant
-            Resource: "*"
-            Condition:
-              StringEquals:
-                kms:CallerAccount: !Ref AWS::AccountId
-                kms:ViaService: !Sub dynamodb.${AWS::Region}.amazonaws.com
-      Tags:
-        - Key: Project
-          Value: rapid-cortex
-        - Key: Integration
-          Value: nest
-
   NestConsentHmacSecret:
     Type: AWS::SecretsManager::Secret
+    Condition: CreateNestConsentHmacSecret
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       Name: !Sub rapid-cortex/connect/nest-consent-hmac-${DeploymentStage}
       Description: HMAC key for Nest citizen consent tokens
-      GenerateSecretString:
-        PasswordLength: 64
-        ExcludePunctuation: true
+      SecretString: !Ref NestConsentHmacSecretValue
 
   NestTokensTable:
     Type: AWS::DynamoDB::Table
+    Condition: CreateNestTokensTable
     DeletionPolicy: Retain
     UpdateReplacePolicy: Retain
     Properties:
@@ -2626,19 +2636,12 @@ Resources:
         PointInTimeRecoveryEnabled: true
       SSESpecification:
         SSEEnabled: true
-        SSEType: KMS
-        KMSMasterKeyId: !Ref NestCredentialsKmsKey
       AttributeDefinitions:
         - AttributeName: agencyId
           AttributeType: S
       KeySchema:
         - AttributeName: agencyId
           KeyType: HASH
-      Tags:
-        - Key: Project
-          Value: rapid-cortex
-        - Key: Integration
-          Value: nest
 
   NestOAuthStateTable:
     Type: AWS::DynamoDB::Table
@@ -2651,22 +2654,16 @@ Resources:
         Enabled: true
       SSESpecification:
         SSEEnabled: true
-        SSEType: KMS
-        KMSMasterKeyId: !Ref NestCredentialsKmsKey
       AttributeDefinitions:
         - AttributeName: nonce
           AttributeType: S
       KeySchema:
         - AttributeName: nonce
           KeyType: HASH
-      Tags:
-        - Key: Project
-          Value: rapid-cortex
-        - Key: Integration
-          Value: nest
 
   NestConsentTable:
     Type: AWS::DynamoDB::Table
+    Condition: CreateNestConsentTable
     DeletionPolicy: Retain
     UpdateReplacePolicy: Retain
     Properties:
@@ -2679,8 +2676,6 @@ Resources:
         Enabled: true
       SSESpecification:
         SSEEnabled: true
-        SSEType: KMS
-        KMSMasterKeyId: !Ref NestCredentialsKmsKey
       AttributeDefinitions:
         - AttributeName: requestId
           AttributeType: S
@@ -2704,14 +2699,10 @@ Resources:
               KeyType: HASH
           Projection:
             ProjectionType: ALL
-      Tags:
-        - Key: Project
-          Value: rapid-cortex
-        - Key: Integration
-          Value: nest
 
   NestCitizenAccountsTable:
     Type: AWS::DynamoDB::Table
+    Condition: CreateNestCitizenAccountsTable
     DeletionPolicy: Retain
     UpdateReplacePolicy: Retain
     Properties:
@@ -2721,8 +2712,6 @@ Resources:
         PointInTimeRecoveryEnabled: true
       SSESpecification:
         SSEEnabled: true
-        SSEType: KMS
-        KMSMasterKeyId: !Ref NestCredentialsKmsKey
       AttributeDefinitions:
         - AttributeName: accountId
           AttributeType: S
@@ -2738,11 +2727,6 @@ Resources:
               KeyType: HASH
           Projection:
             ProjectionType: ALL
-      Tags:
-        - Key: Project
-          Value: rapid-cortex
-        - Key: Integration
-          Value: nest
 
   WyzeCredentialsKmsKey:
     Type: AWS::KMS::Key
@@ -4789,12 +4773,24 @@ Resources:
               AgenciesTable: !Ref AgenciesTable
               InvitesTable: !Ref InvitesTable
               AssetsBucket: !Ref AssetsBucket
-              Ntt: !Ref NestTokensTable
+              Ntt: !If
+                - CreateNestTokensTable
+                - !Ref NestTokensTable
+                - !Ref ExistingNestTokensTableName
               Nos: !Ref NestOAuthStateTable
-              Nct: !Ref NestConsentTable
-              Nca: !Ref NestCitizenAccountsTable
-              Nkm: !GetAtt NestCredentialsKmsKey.Arn
-              Nch: !Ref NestConsentHmacSecret
+              Nct: !If
+                - CreateNestConsentTable
+                - !Ref NestConsentTable
+                - !Ref ExistingNestConsentTableName
+              Nca: !If
+                - CreateNestCitizenAccountsTable
+                - !Ref NestCitizenAccountsTable
+                - !Ref ExistingNestCitizenAccountsTableName
+              Nkm: ""
+              Nch: !If
+                - CreateNestConsentHmacSecret
+                - !Ref NestConsentHmacSecret
+                - !Ref ExistingNestConsentHmacSecretArn
               Ncl: !Ref NestCitizenReturnUrl
               Nrs: !If [HasNestRcOauthSecret, !Ref NestRcOauthSecretArn, ""]
           # Consent SMS must reach real phones — do not inherit SmsEnvironmentDefaults mock for stage=dev.

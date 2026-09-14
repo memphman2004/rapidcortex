@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { CALL_ASSIST_LOCALES, MAX_CALL_ASSIST_LOCALES } from "./lex/provisioning-types.js";
 
 /**
  * Per-agency spoken branding for Call Assist.
@@ -18,8 +19,8 @@ export const callAssistAgencyVoiceConfigSchema = z.object({
   carfaxPortalUrl: z.string().trim().max(500).optional(),
   defaultLanguageCode: z.string().trim().min(2).max(16).default("en-US"),
   supportedLanguages: z.array(z.string().trim().min(2).max(16)).max(12).default(["en-US"]),
-  defaultLocale: z.enum(["en_US", "es_US", "zh_CN", "fr_CA"]).optional(),
-  supportedLocales: z.array(z.enum(["en_US", "es_US", "zh_CN", "fr_CA"])).max(4).optional(),
+  defaultLocale: z.enum(CALL_ASSIST_LOCALES).optional(),
+  supportedLocales: z.array(z.enum(CALL_ASSIST_LOCALES)).max(MAX_CALL_ASSIST_LOCALES).optional(),
   lexBotId: z.string().max(64).optional(),
   lexBotAliasId: z.string().max(64).optional(),
   lexBotName: z.string().max(100).optional(),

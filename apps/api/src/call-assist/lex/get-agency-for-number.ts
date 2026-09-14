@@ -1,8 +1,15 @@
 import {
+  CALL_ASSIST_LOCALE_META,
+  CONNECT_LANGUAGE_MENU_PROMPT,
+  CONNECT_LIVE_LEX_LOCALES,
   GENERIC_CALL_ASSIST_DISCLOSURE_TEMPLATE,
   callAssistVoiceVarsFromTenant,
+  connectLivePrompts,
+  connectLocaleAttrSuffix,
   interpolateCallAssistVoice,
+  resolveConnectStartLocale,
 } from "rapid-cortex-shared";
+import type { CallAssistTenantConfig } from "../store.js";
 import { ingestConnectCallerIdentity } from "../telephony/ani-ali.js";
 import { getAgencyIdByDid, getLexTenantConfig } from "./runtime-store.js";
 import { isCallAssistGreetingConfigEnabled, startCallAssistSession } from "./session-start.js";
@@ -19,6 +26,7 @@ export type ConnectStartEvent = {
   phoneNumber?: string;
 };
 
+/** Flat STRING_MAP for Amazon Connect `$.External.*`. Extra greeting_* keys are per-locale. */
 export type ConnectStartResult = {
   agencyId: string;
   disclosureText: string;
@@ -31,11 +39,15 @@ export type ConnectStartResult = {
   enableColdClimate: string;
   enableLiveAgentHandoff: string;
   language: string;
+  languageMenuPrompt: string;
+  transferPrompt: string;
+  errorPrompt: string;
+  transferFailPrompt: string;
   agencyShortName: string;
   ani: string;
   aliAddress: string;
   apartmentSuite: string;
-};
+} & Record<string, string>;
 
 function phoneFromEvent(event: ConnectStartEvent): string {
   return (
@@ -56,6 +68,75 @@ export function identityFromConnectStart(event: ConnectStartEvent) {
   });
 }
 
+export function eventLocaleHint(event: ConnectStartEvent): string | undefined {
+  const raw =
+    event.Details?.Parameters?.locale ?? event.Details?.ContactData?.Attributes?.language ?? "";
+  return raw.trim() || undefined;
+}
+
+/**
+ * Builds the Connect STRING_MAP used at call start: tenant default locale plus
+ * per-locale greeting/transfer copy so the DTMF menu can switch without a second Lambda.
+ */
+export function buildConnectStartResult(opts: {
+  agencyId: string;
+  locale: string;
+  config: CallAssistTenantConfig | null;
+  identity: { ani?: string; aliAddress?: string; apartmentSuite?: string };
+  agencyShortName: string;
+}): ConnectStartResult {
+  const locale = resolveConnectStartLocale({ eventLocale: opts.locale, tenantDefault: opts.locale });
+  const start = startCallAssistSession({
+    agencyId: opts.agencyId,
+    locale,
+    config: opts.config,
+  });
+  const defaultPrompts = connectLivePrompts(locale);
+  const disclosureText = interpolateCallAssistVoice(
+    opts.config?.disclosureText || GENERIC_CALL_ASSIST_DISCLOSURE_TEMPLATE,
+    opts.config ? callAssistVoiceVarsFromTenant(opts.config) : { agencyShortName: opts.agencyShortName },
+  );
+  const result: ConnectStartResult = {
+    agencyId: opts.agencyId,
+    disclosureText,
+    greetingText: start.greeting,
+    greetingMode: start.sessionAttributes.greetingMode ?? "stay_on_line",
+    escalationMode: start.sessionAttributes.escalationMode ?? "announce_and_transfer",
+    greetingDelivered: "true",
+    emergencyTransferNumber:
+      start.sessionAttributes.emergencyTransferNumber ?? opts.config?.emergencyDestination ?? "",
+    emergencyTransferQueue:
+      start.sessionAttributes.emergencyTransferQueue ?? opts.config?.connectEmergencyQueueArn ?? "",
+    enableColdClimate: start.sessionAttributes.enableColdClimate ?? "false",
+    enableLiveAgentHandoff: start.sessionAttributes.enableLiveAgentHandoff ?? "true",
+    language: locale,
+    languageMenuPrompt: CONNECT_LANGUAGE_MENU_PROMPT,
+    transferPrompt: defaultPrompts.transfer,
+    errorPrompt: defaultPrompts.error,
+    transferFailPrompt: defaultPrompts.transferFail,
+    agencyShortName: opts.agencyShortName,
+    ani: opts.identity.ani ?? "",
+    aliAddress: opts.identity.aliAddress ?? "",
+    apartmentSuite: opts.identity.apartmentSuite ?? "",
+  };
+
+  for (const lex of CONNECT_LIVE_LEX_LOCALES) {
+    const bcp47 = CALL_ASSIST_LOCALE_META[lex].bcp47;
+    const localized = startCallAssistSession({
+      agencyId: opts.agencyId,
+      locale: bcp47,
+      config: opts.config,
+    });
+    const prompts = connectLivePrompts(bcp47);
+    const suffix = connectLocaleAttrSuffix(bcp47);
+    result[`greeting_${suffix}`] = localized.greeting;
+    result[`transferPrompt_${suffix}`] = prompts.transfer;
+    result[`errorPrompt_${suffix}`] = prompts.error;
+    result[`transferFailPrompt_${suffix}`] = prompts.transferFail;
+  }
+  return result;
+}
+
 /**
  * Amazon Connect Lambda: resolve tenant config from the called DID.
  * Voice copy is interpolated from that tenant — nothing is hardcoded to a city or agency.
@@ -65,56 +146,40 @@ export async function handler(event: ConnectStartEvent): Promise<ConnectStartRes
   const identity = identityFromConnectStart(event);
   const phoneNumber = phoneFromEvent(event);
   const agencyId = phoneNumber ? await getAgencyIdByDid(phoneNumber) : null;
-  const locale = event.Details?.Parameters?.locale ?? event.Details?.ContactData?.Attributes?.language ?? "en-US";
+  const hinted = eventLocaleHint(event);
+
   if (!agencyId) {
-    const agencyShortName = "this agency";
-    const start = startCallAssistSession({
+    return buildConnectStartResult({
       agencyId: "default",
-      locale,
+      locale: resolveConnectStartLocale({ eventLocale: hinted }),
       config: null,
+      identity,
+      agencyShortName: "this agency",
     });
-    return {
-      agencyId: "default",
-      disclosureText: interpolateCallAssistVoice(GENERIC_CALL_ASSIST_DISCLOSURE_TEMPLATE, { agencyShortName }),
-      greetingText: start.greeting,
-      greetingMode: start.sessionAttributes.greetingMode ?? "stay_on_line",
-      escalationMode: start.sessionAttributes.escalationMode ?? "announce_and_transfer",
-      greetingDelivered: "true",
-      emergencyTransferNumber: "",
-      emergencyTransferQueue: "",
-      enableColdClimate: "false",
-      enableLiveAgentHandoff: "true",
-      language: "en",
-      agencyShortName,
-      ani: identity.ani ?? "",
-      aliAddress: identity.aliAddress ?? "",
-      apartmentSuite: identity.apartmentSuite ?? "",
-    };
   }
+
   const config = await getLexTenantConfig(agencyId);
+  const locale = resolveConnectStartLocale({
+    eventLocale: hinted,
+    tenantDefault: config.defaultLanguageCode,
+  });
   const agencyShortName = config.agencyShortName ?? config.shortName ?? "this agency";
-  const start = isCallAssistGreetingConfigEnabled()
-    ? startCallAssistSession({ agencyId, locale, config })
-    : null;
-  const disclosureText = interpolateCallAssistVoice(
-    config.disclosureText || GENERIC_CALL_ASSIST_DISCLOSURE_TEMPLATE,
-    callAssistVoiceVarsFromTenant(config),
-  );
-  return {
+  const result = buildConnectStartResult({
     agencyId,
-    disclosureText,
-    greetingText: start?.greeting ?? disclosureText,
-    greetingMode: start?.sessionAttributes.greetingMode ?? "stay_on_line",
-    escalationMode: start?.sessionAttributes.escalationMode ?? "announce_and_transfer",
-    greetingDelivered: "true",
-    emergencyTransferNumber: start?.sessionAttributes.emergencyTransferNumber ?? config.emergencyDestination ?? "",
-    emergencyTransferQueue: start?.sessionAttributes.emergencyTransferQueue ?? config.connectEmergencyQueueArn ?? "",
-    enableColdClimate: start?.sessionAttributes.enableColdClimate ?? "false",
-    enableLiveAgentHandoff: start?.sessionAttributes.enableLiveAgentHandoff ?? "true",
-    language: config.defaultLanguageCode?.startsWith("es") ? "es" : "en",
+    locale,
+    config: isCallAssistGreetingConfigEnabled() ? config : null,
+    identity,
     agencyShortName,
-    ani: identity.ani ?? "",
-    aliAddress: identity.aliAddress ?? "",
-    apartmentSuite: identity.apartmentSuite ?? "",
-  };
+  });
+  if (!isCallAssistGreetingConfigEnabled()) {
+    result.agencyId = agencyId;
+    result.disclosureText = interpolateCallAssistVoice(
+      config.disclosureText || GENERIC_CALL_ASSIST_DISCLOSURE_TEMPLATE,
+      callAssistVoiceVarsFromTenant(config),
+    );
+    result.greetingText = result.disclosureText;
+    result.emergencyTransferNumber = config.emergencyDestination ?? "";
+    result.emergencyTransferQueue = config.connectEmergencyQueueArn ?? "";
+  }
+  return result;
 }

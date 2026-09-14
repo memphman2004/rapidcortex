@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { videoCameraRetentionPolicySchema, videoPtzPresetSchema } from "../rapid-cortex-video/types.js";
 
 /** RTSP / VMS vendors for venue, campus, and transit fixed cameras (no Ring). */
 export const venueCameraVendorSchema = z.enum([
@@ -46,6 +47,11 @@ export const venueCameraSchema = z.object({
   ptzCapable: z.boolean(),
   status: venueCameraStatusSchema,
   lastHeartbeat: z.string().optional(),
+  /** Opt-in KVS media retention. Off by default — recording is a cost gate. */
+  retentionPolicy: videoCameraRetentionPolicySchema.optional(),
+  kvsStreamName: z.string().min(1).max(256).optional(),
+  kvsStreamArn: z.string().min(1).max(512).optional(),
+  ptzPresets: z.array(videoPtzPresetSchema).max(16).optional(),
 });
 
 export const venueCameraUpsertBodySchema = z.object({

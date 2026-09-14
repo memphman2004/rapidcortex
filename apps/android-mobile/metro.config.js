@@ -99,7 +99,7 @@ config.resolver.blockList = exclusionList([
   // (EAS 38: node:fs from app/index.boot.test.ts failed export:embed).
   /[/\\][^/\\]+\.(test|spec)\.(ts|tsx|js|jsx)$/,
   new RegExp(
-    `${escapeRegExp(workspaceRoot)}[/\\\\]apps[/\\\\](?!mobile(?:[/\\\\]|$)).*`
+    `${escapeRegExp(workspaceRoot)}[/\\\\]apps[/\\\\](?!android-mobile(?:[/\\\\]|$)).*`
   ),
   new RegExp(
     `${escapeRegExp(workspaceRoot)}[/\\\\]packages[/\\\\](?!shared(?:[/\\\\]|$)).*`

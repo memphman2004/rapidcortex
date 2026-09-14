@@ -68,7 +68,9 @@
         "EXPO_PUBLIC_API_BASE_3": "https://tbr4zvjlk5.execute-api.us-east-1.amazonaws.com",
         "EXPO_PUBLIC_API_BASE_4": "https://7c70vqd1p5.execute-api.us-east-1.amazonaws.com",
         "EXPO_PUBLIC_WS_BASE": "wss://g0wzu18e2k.execute-api.us-east-1.amazonaws.com/dev",
-        "EXPO_PUBLIC_APP_ORIGIN": "https://app.rapidcortex.us"
+        "EXPO_PUBLIC_APP_ORIGIN": "https://app.rapidcortex.us",
+        "EXPO_PUBLIC_ENABLE_SAFE_SOUND": "0",
+        "EXPO_PUBLIC_ENABLE_ENTER_SPLASH": "0"
       }
     }
   },

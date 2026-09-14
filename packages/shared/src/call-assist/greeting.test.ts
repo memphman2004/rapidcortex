@@ -4,6 +4,7 @@ import {
   buildGreeting,
   checkEscalation,
   DEFAULT_GREETING_CONFIG,
+  fallbackGreetingForLocale,
   greetingActivationBlockedReason,
   isCallAssistGreetingReady,
   mergeGreetingConfig,
@@ -106,5 +107,24 @@ describe("Call Assist greeting builders", () => {
   it("normalizes Lex locale ids", () => {
     expect(normalizeGreetingLocale("en_US")).toBe("en-US");
     expect(normalizeGreetingLocale("es_US")).toBe("es-US");
+    expect(normalizeGreetingLocale("zh_CN")).toBe("zh-CN");
+    expect(normalizeGreetingLocale("zh_HK")).toBe("zh-HK");
+    expect(normalizeGreetingLocale("tl_PH")).toBe("tl-PH");
+    expect(normalizeGreetingLocale("vi_VN")).toBe("vi-VN");
+    expect(normalizeGreetingLocale("ar_AE")).toBe("ar-AE");
+  });
+
+  it("speaks Mandarin, Tagalog, Vietnamese, and Arabic stay-on-the-line greetings", () => {
+    expect(buildGreeting(springfield, "zh_CN")).toContain("非紧急");
+    expect(buildGreeting(springfield, "zh_HK")).toContain("非緊急");
+    expect(buildGreeting(springfield, "tl_PH")).toContain("non-emergency");
+    expect(buildGreeting(springfield, "vi_VN")).toContain("không khẩn cấp");
+    expect(buildGreeting(springfield, "ar_AE")).toContain("غير الطارئة");
+  });
+
+  it("falls back to localized generic greetings when the tenant is not configured", () => {
+    expect(fallbackGreetingForLocale("zh-CN")).toContain("非紧急");
+    expect(fallbackGreetingForLocale("ar_AE")).toContain("غير الطارئة");
+    expect(fallbackGreetingForLocale("vi-VN")).toContain("không khẩn cấp");
   });
 });

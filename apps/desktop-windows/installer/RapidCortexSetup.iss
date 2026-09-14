@@ -2,7 +2,7 @@
 ; Build: run scripts/build-installer.sh from repo (Windows + ISCC), or open in Inno Setup Compiler.
 
 #define MyAppName "Rapid Cortex"
-#define MyAppVersion "1.0.0"
+#define MyAppVersion "1.0.3"
 #define MyAppPublisher "Apps on Demand llc"
 #define MyAppExeName "RapidCortexDesktop.exe"
 ; Fixed AppId — do not change between releases (controls upgrade path).

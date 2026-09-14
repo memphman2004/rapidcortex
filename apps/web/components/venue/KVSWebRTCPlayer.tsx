@@ -30,12 +30,17 @@ export function KVSWebRTCPlayer({
   displayName,
   onClose,
   apiVertical = "venue",
+  variant = "card",
+  onStateChange,
 }: {
   agencyId: string;
   kvsChannelName: string;
   displayName: string;
   onClose?: () => void;
   apiVertical?: "venue" | "campus" | "transit";
+  /** `fill` is for video-wall tiles (no card chrome). */
+  variant?: "card" | "fill";
+  onStateChange?: (state: ConnectionState) => void;
 }) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const peerRef = useRef<RTCPeerConnection | null>(null);
@@ -46,6 +51,10 @@ export function KVSWebRTCPlayer({
 
   const [state, setState] = useState<ConnectionState>("idle");
   const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    onStateChange?.(state);
+  }, [onStateChange, state]);
 
   const cleanup = useCallback(() => {
     if (reconnectTimerRef.current) clearTimeout(reconnectTimerRef.current);
@@ -161,28 +170,47 @@ export function KVSWebRTCPlayer({
           ? "Reconnecting…"
           : "Connecting…";
 
+  const fill = variant === "fill";
+
   return (
     <div
-      style={{
-        background: "var(--rc-surface-alt)",
-        border: "1px solid var(--rc-border)",
-        borderRadius: 8,
-        padding: 10,
-      }}
+      className={fill ? "relative h-full w-full bg-black" : undefined}
+      style={
+        fill
+          ? undefined
+          : {
+              background: "var(--rc-surface-alt)",
+              border: "1px solid var(--rc-border)",
+              borderRadius: 8,
+              padding: 10,
+            }
+      }
     >
-      <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 8 }}>
-        <div>
-          <div style={{ fontSize: 12, fontWeight: 700, color: "var(--rc-text-primary)" }}>{displayName}</div>
-          <div style={{ fontSize: 10, color: "var(--rc-text-secondary)" }}>{statusLabel}</div>
+      {fill ? null : (
+        <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 8 }}>
+          <div>
+            <div style={{ fontSize: 12, fontWeight: 700, color: "var(--rc-text-primary)" }}>{displayName}</div>
+            <div style={{ fontSize: 10, color: "var(--rc-text-secondary)" }}>{statusLabel}</div>
+          </div>
+          {onClose ? (
+            <button type="button" onClick={onClose} style={{ fontSize: 10, color: "var(--rc-text-secondary)" }}>
+              ✕
+            </button>
+          ) : null}
         </div>
-        {onClose ? (
-          <button type="button" onClick={onClose} style={{ fontSize: 10, color: "var(--rc-text-secondary)" }}>
-            ✕
-          </button>
-        ) : null}
-      </div>
-      <div style={{ aspectRatio: "16/9", background: "#000", borderRadius: 6, overflow: "hidden" }}>
-        <video ref={videoRef} autoPlay playsInline muted style={{ width: "100%", height: "100%" }} />
+      )}
+      <div
+        className={fill ? "h-full w-full" : undefined}
+        style={fill ? undefined : { aspectRatio: "16/9", background: "#000", borderRadius: 6, overflow: "hidden" }}
+      >
+        <video
+          ref={videoRef}
+          autoPlay
+          playsInline
+          muted
+          className={fill ? "h-full w-full object-contain" : undefined}
+          style={fill ? undefined : { width: "100%", height: "100%" }}
+        />
       </div>
     </div>
   );

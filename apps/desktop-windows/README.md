@@ -2,7 +2,9 @@
 
 WPF on **.NET 8**: Cognito **Hosted UI** (PKCE), **`/oauth2/token`** exchange via **loopback** redirect, DPAPI-backed session store, API client with `Authorization: Bearer <id_token>`, environment-based config, dashboard health ping, and incidents preview. **Release** builds hide manual token paste; use sign-in or Debug smoke tests.
 
-When **`WebAppBaseUrl`** is set (recommended: `https://app.rapidcortex.us`), the app embeds the **same web workspace** as the browser (WebView2): dispatcher/supervisor navigation shortcuts, **Media / Ring Connect**, and the **Operations Manual** from the toolbar **Manual** menu. Do **not** use `www.rapidcortex.us` (marketing site has no native-login).
+When **`WebAppBaseUrl`** is set (recommended: `https://app.rapidcortex.us`), the app embeds the **same web workspace** as the browser (WebView2): dispatcher/supervisor shortcuts including **Call Assist** and **Rapid Vision**, **Media / Ring Connect**, and the **Operations Manual** from the toolbar **Manual** menu. Do **not** use `www.rapidcortex.us` (marketing site has no native-login).
+
+Current native build: **1.0.3**. Set **`ApiBaseUrl2`** to stack-2 (`API_UPSTREAM_BASE_2`) so hospital / dispatcher / wellness API calls do not hit stack 1.
 
 ## Run locally
 

@@ -96,7 +96,7 @@ public partial class MainWindow : Window
             {
                 await WorkspaceWebView.EnsureCoreWebView2Async().ConfigureAwait(true);
                 WorkspaceWebView.CoreWebView2.Settings.UserAgent =
-                    "RapidCortexDesktop/1.0 (Windows; WebView2) RapidCortexWebShell";
+                    "RapidCortexDesktop/1.0.3 (Windows; WebView2) RapidCortexWebShell";
                 _webViewInitialized = true;
             }
 
@@ -340,8 +340,28 @@ public partial class MainWindow : Window
 
         try
         {
-            var client = new ApiClient(_configuration, ProtectedTokenStore.TryReadIdToken);
+            using var client = new ApiClient(_configuration, ProtectedTokenStore.TryReadIdToken);
             var result = await client.PingHealthAsync().ConfigureAwait(true);
+            HealthOutput.Text = $"HTTP {result.Status}\n{Truncate(result.Body, 4000)}";
+        }
+        catch (Exception ex)
+        {
+            HealthOutput.Text = ex.ToString();
+        }
+    }
+
+    private async void OnFetchMe(object sender, RoutedEventArgs e)
+    {
+        if (ProtectedTokenStore.TryReadIdToken() is null)
+        {
+            HealthOutput.Text = "No id_token on disk. Sign in first, then validate GET /api/me.";
+            return;
+        }
+
+        try
+        {
+            using var client = new ApiClient(_configuration, ProtectedTokenStore.TryReadIdToken);
+            var result = await client.FetchMeAsync().ConfigureAwait(true);
             HealthOutput.Text = $"HTTP {result.Status}\n{Truncate(result.Body, 4000)}";
         }
         catch (Exception ex)
@@ -362,7 +382,7 @@ public partial class MainWindow : Window
 
         try
         {
-            var client = new ApiClient(_configuration, ProtectedTokenStore.TryReadIdToken);
+            using var client = new ApiClient(_configuration, ProtectedTokenStore.TryReadIdToken);
             var result = await client.FetchIncidentsPreviewAsync().ConfigureAwait(true);
             IncidentsOutput.Text = $"HTTP {result.Status}\n{Truncate(result.Body, 8000)}";
         }

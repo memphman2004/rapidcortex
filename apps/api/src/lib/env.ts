@@ -391,6 +391,22 @@ export const env = {
   enableRapidVisionAiWriter: featureEnabled("ENABLE_RAPID_VISION_AI_WRITER"),
   enableRapidVisionRekognition: featureEnabled("ENABLE_RAPID_VISION_REKOGNITION"),
   enableRapidVisionTranscript: featureEnabled("ENABLE_RAPID_VISION_TRANSCRIPT"),
+  /** Rapid Cortex Video — agency-owned VMS wall / DVR. Default on when unset. */
+  enableRcVideo: featureEnabled("ENABLE_RC_VIDEO"),
+  enableRcVideoAnalytics: featureEnabled("ENABLE_RC_VIDEO_ANALYTICS", false),
+  enableRcVmsFederation: featureEnabled("ENABLE_RC_VMS_FEDERATION"),
+  /** When true, attaches KVS media storage to the live signaling channel (breaks P2P wall viewers). Default off. */
+  enableRcVideoAttachStorage: featureEnabled("ENABLE_RC_VIDEO_ATTACH_STORAGE", false),
+  /** On-prem PTZ sidecar base URL. Empty → mock relay (CI / no gateway). */
+  videoGatewayUrl: process.env.VIDEO_GATEWAY_URL?.trim() ?? "",
+  videoGatewaySecretArn: process.env.VIDEO_GATEWAY_SECRET_ARN?.trim() ?? "",
+  /** Local/dev only. Production must use VIDEO_GATEWAY_SECRET_ARN. */
+  videoGatewaySecret: process.env.VIDEO_GATEWAY_SECRET?.trim() ?? "",
+  videoGatewayMock:
+    process.env.VIDEO_GATEWAY_MOCK === "true" || process.env.VIDEO_GATEWAY_MOCK === "1",
+  videoWallConfigsTable: process.env.VIDEO_WALL_CONFIGS_TABLE?.trim() ?? "",
+  videoClipsTable: process.env.VIDEO_CLIPS_TABLE?.trim() ?? "",
+  videoClipExporterFunction: process.env.VIDEO_CLIP_EXPORTER_FUNCTION?.trim() ?? "",
   visionCamerasTable: process.env.VISION_CAMERAS_TABLE?.trim() ?? "",
   visionSessionsTable: process.env.VISION_SESSIONS_TABLE?.trim() ?? "",
   visionObservationsTable: process.env.VISION_OBSERVATIONS_TABLE?.trim() ?? "",

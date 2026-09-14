@@ -1,7 +1,9 @@
 # RCCallAssistBot — Complete Lex V2 Build Specification (shared template)
 ## Instantiated per agency as `RCCallAssistBot-{agencySlug}-{stage}`
 ## `RCCallAssistBot-dev` is the first tenant's bot, not a global product bot.
-## Locales: `en_US` (Ruth, neural) · `es_US` (Lupe, neural)
+## Locales: `en_US` (Ruth, neural) · `es_US` (Lupe, neural) · `zh_CN` Mandarin (Zhiyu) · `zh_HK` Cantonese (Hiujin) · `tl_PH` Tagalog (limited Lex ASR) · `vi_VN` Vietnamese (limited Lex ASR) · `ar_AE` Gulf Arabic (Hala)
+
+CloudFormation `stack-lex.yaml` keeps **en_US + es_US** so the nested template stays under the SAM size proxy. The 911 language pack is imported onto DRAFT with `bash scripts/import-lex-bot-draft.sh {stage}` (source: `infra/lex/locale-copy.json`).
 
 **Multi-agency:** Every agency name, city, street, phone, website, CAD code, and queue is a runtime or provision-time variable (`{{agencyShortName}}`, `{{agencyName}}`, `{{agencyWebsite}}`, `{{emergencyLine}}`). Lambda interpolates from `CallAssistAgencyVoiceConfig`. Do not hardcode a city into this spec.
 

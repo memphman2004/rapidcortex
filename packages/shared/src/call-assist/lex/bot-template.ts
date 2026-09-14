@@ -3,7 +3,9 @@
  * A bump enqueues a rolling rebuild of every agency bot. Old aliases keep serving until switched.
  * Format: YYYY-MM-DD.N
  */
-export const BOT_TEMPLATE_VERSION = "2026-09-09.1";
+import type { CallAssistLocale } from "./provisioning-types.js";
+
+export const BOT_TEMPLATE_VERSION = "2026-09-12.1";
 
 export const BOT_TEMPLATE_INTENT_NAMES = [
   "EmergencyEscalation",
@@ -30,9 +32,8 @@ export const BOT_TEMPLATE_INTENT_NAMES = [
 
 export type BotTemplateIntentName = (typeof BOT_TEMPLATE_INTENT_NAMES)[number];
 
-export type BotTemplateLocaleCopy = {
+export type BotTemplateLocaleCopy = Partial<Record<CallAssistLocale, string>> & {
   en_US: string;
-  es_US?: string;
 };
 
 export type BotTemplateSlot = {
@@ -45,10 +46,7 @@ export type BotTemplateSlot = {
 export type BotTemplateIntent = {
   intentName: string;
   description: string;
-  sampleUtterances: {
-    en_US: string[];
-    es_US?: string[];
-  };
+  sampleUtterances: Partial<Record<CallAssistLocale, string[]>> & { en_US: string[] };
   slots: BotTemplateSlot[];
   confirmationPrompt?: BotTemplateLocaleCopy;
 };
@@ -57,23 +55,122 @@ export type CanonicalBotSpecIntent = {
   name: string;
   utterancesEn: string[];
   utterancesEs?: string[];
+  utterancesZhCn?: string[];
+  utterancesZhHk?: string[];
+  utterancesTl?: string[];
+  utterancesVi?: string[];
+  utterancesAr?: string[];
   slots?: Array<{
     name: string;
     slotType: string;
     required: boolean;
     promptEn: string;
     promptEs?: string;
+    promptZhCn?: string;
+    promptZhHk?: string;
+    promptTl?: string;
+    promptVi?: string;
+    promptAr?: string;
   }>;
-  confirmationEn?: string;
-  confirmationEs?: string;
+  confirmationEn?: string | null;
+  confirmationEs?: string | null;
+  confirmationZhCn?: string | null;
+  confirmationZhHk?: string | null;
+  confirmationTl?: string | null;
+  confirmationVi?: string | null;
+  confirmationAr?: string | null;
 };
 
 export type CanonicalBotSpec = {
   botName: string;
   locales: string[];
+  cfnLocales?: string[];
   priority: string[];
   intents: CanonicalBotSpecIntent[];
 };
+
+export type LexLocaleCopyFile = {
+  locales: string[];
+  intents: Record<
+    string,
+    {
+      utterancesZhCn?: string[];
+      utterancesZhHk?: string[];
+      utterancesTl?: string[];
+      utterancesVi?: string[];
+      utterancesAr?: string[];
+      confirmationZhCn?: string;
+      confirmationZhHk?: string;
+      confirmationTl?: string;
+      confirmationVi?: string;
+      confirmationAr?: string;
+      prompts?: Record<string, Partial<Record<"zh_CN" | "zh_HK" | "tl_PH" | "vi_VN" | "ar_AE", string>>>;
+    }
+  >;
+};
+
+const PROMPT_BY_LOCALE: Record<string, keyof NonNullable<CanonicalBotSpecIntent["slots"]>[number]> = {
+  zh_CN: "promptZhCn",
+  zh_HK: "promptZhHk",
+  tl_PH: "promptTl",
+  vi_VN: "promptVi",
+  ar_AE: "promptAr",
+};
+
+const UTTERANCE_BY_LOCALE: Record<string, keyof CanonicalBotSpecIntent> = {
+  zh_CN: "utterancesZhCn",
+  zh_HK: "utterancesZhHk",
+  tl_PH: "utterancesTl",
+  vi_VN: "utterancesVi",
+  ar_AE: "utterancesAr",
+};
+
+const CONFIRM_BY_LOCALE: Record<string, keyof CanonicalBotSpecIntent> = {
+  zh_CN: "confirmationZhCn",
+  zh_HK: "confirmationZhHk",
+  tl_PH: "confirmationTl",
+  vi_VN: "confirmationVi",
+  ar_AE: "confirmationAr",
+};
+
+/** Overlay 911 language-pack copy onto the English/Spanish canonical spec. */
+export function mergeLexLocaleCopy(spec: CanonicalBotSpec, copy: LexLocaleCopyFile): CanonicalBotSpec {
+  const locales = [...spec.locales];
+  for (const locale of copy.locales) {
+    if (!locales.includes(locale)) locales.push(locale);
+  }
+  const intents = spec.intents.map((intent) => {
+    const overlay = copy.intents[intent.name];
+    if (!overlay) return intent;
+    const next: CanonicalBotSpecIntent = { ...intent };
+    for (const field of Object.values(UTTERANCE_BY_LOCALE)) {
+      const values = overlay[field as keyof typeof overlay];
+      if (Array.isArray(values)) {
+        (next as Record<string, unknown>)[field] = values;
+      }
+    }
+    for (const field of Object.values(CONFIRM_BY_LOCALE)) {
+      const value = overlay[field as keyof typeof overlay];
+      if (typeof value === "string") {
+        (next as Record<string, unknown>)[field] = value;
+      }
+    }
+    if (overlay.prompts && next.slots) {
+      next.slots = next.slots.map((slot) => {
+        const prompts = overlay.prompts?.[slot.name];
+        if (!prompts) return slot;
+        const updated = { ...slot };
+        for (const [locale, text] of Object.entries(prompts)) {
+          const field = PROMPT_BY_LOCALE[locale];
+          if (field && text) (updated as Record<string, unknown>)[field] = text;
+        }
+        return updated;
+      });
+    }
+    return next;
+  });
+  return { ...spec, locales, intents };
+}
 
 const INTENT_DESCRIPTIONS: Record<string, string> = {
   EmergencyEscalation: "Caller describes a life-threatening situation requiring immediate 911 response",
@@ -106,6 +203,11 @@ export function intentsFromCanonicalSpec(spec: CanonicalBotSpec): BotTemplateInt
     sampleUtterances: {
       en_US: [...intent.utterancesEn],
       es_US: intent.utterancesEs ? [...intent.utterancesEs] : undefined,
+      zh_CN: intent.utterancesZhCn ? [...intent.utterancesZhCn] : undefined,
+      zh_HK: intent.utterancesZhHk ? [...intent.utterancesZhHk] : undefined,
+      tl_PH: intent.utterancesTl ? [...intent.utterancesTl] : undefined,
+      vi_VN: intent.utterancesVi ? [...intent.utterancesVi] : undefined,
+      ar_AE: intent.utterancesAr ? [...intent.utterancesAr] : undefined,
     },
     slots: (intent.slots ?? []).map((slot) => ({
       slotName: slot.name,
@@ -114,10 +216,23 @@ export function intentsFromCanonicalSpec(spec: CanonicalBotSpec): BotTemplateInt
       elicitationPrompt: {
         en_US: slot.promptEn,
         es_US: slot.promptEs,
+        zh_CN: slot.promptZhCn,
+        zh_HK: slot.promptZhHk,
+        tl_PH: slot.promptTl,
+        vi_VN: slot.promptVi,
+        ar_AE: slot.promptAr,
       },
     })),
     confirmationPrompt: intent.confirmationEn
-      ? { en_US: intent.confirmationEn, es_US: intent.confirmationEs }
+      ? {
+          en_US: intent.confirmationEn,
+          es_US: intent.confirmationEs ?? undefined,
+          zh_CN: intent.confirmationZhCn ?? undefined,
+          zh_HK: intent.confirmationZhHk ?? undefined,
+          tl_PH: intent.confirmationTl ?? undefined,
+          vi_VN: intent.confirmationVi ?? undefined,
+          ar_AE: intent.confirmationAr ?? undefined,
+        }
       : undefined,
   }));
 }

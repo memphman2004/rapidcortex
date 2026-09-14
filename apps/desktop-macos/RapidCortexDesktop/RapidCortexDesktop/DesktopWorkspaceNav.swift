@@ -73,19 +73,24 @@ enum DesktopWorkspaceNav {
             return [
                 QuickLink(id: "dashboard", label: "Dashboard", path: "/\(j)/dashboard"),
                 QuickLink(id: "dispatcher", label: "Dispatcher", path: "/\(j)/dispatcher"),
+                QuickLink(id: "call-assist", label: "Call Assist", path: "/\(j)/call-assist"),
                 QuickLink(id: "incidents", label: "Incidents", path: "/\(j)/incidents"),
                 QuickLink(id: "media", label: "Media", path: "/\(j)/media"),
+                QuickLink(id: "rapid-vision", label: "Rapid Vision", path: "/\(j)/media?vision=1"),
             ]
         case "supervisor":
             return [
                 QuickLink(id: "supervisor", label: "Supervisor", path: "/\(j)/supervisor"),
                 QuickLink(id: "dashboard", label: "Dashboard", path: "/\(j)/dashboard"),
+                QuickLink(id: "call-assist", label: "Call Assist", path: "/\(j)/call-assist"),
                 QuickLink(id: "incidents", label: "Incidents", path: "/\(j)/incidents"),
                 QuickLink(id: "media", label: "Media", path: "/\(j)/media"),
+                QuickLink(id: "rapid-vision", label: "Rapid Vision", path: "/\(j)/media?vision=1"),
             ]
         case "agencyadmin", "agencyit":
             return [
                 QuickLink(id: "admin", label: "Admin", path: "/\(j)/admin"),
+                QuickLink(id: "call-assist", label: "Call Assist", path: "/\(j)/call-assist/admin"),
                 QuickLink(id: "dashboard", label: "Dashboard", path: "/\(j)/dashboard"),
                 QuickLink(id: "media", label: "Media", path: "/\(j)/media"),
             ]

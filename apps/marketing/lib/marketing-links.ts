@@ -164,6 +164,10 @@ export function marketingPrivacyPath(): string {
   return "/privacy";
 }
 
+export function marketingAccountDeletionPath(): string {
+  return "/account-deletion";
+}
+
 export function marketingTermsPath(): string {
   return "/terms";
 }

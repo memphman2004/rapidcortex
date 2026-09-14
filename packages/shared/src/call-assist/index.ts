@@ -11,6 +11,7 @@ export * from "./knowledge-retrieval.js";
 export * from "./retention.js";
 export * from "./human-request.js";
 export * from "./language.js";
+export * from "./connect-live.js";
 export * from "./tty.js";
 export * from "./cad-types.js";
 export * from "./questioning.js";

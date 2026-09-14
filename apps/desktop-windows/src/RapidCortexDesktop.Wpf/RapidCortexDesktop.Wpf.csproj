@@ -9,6 +9,10 @@
     <UseWPF>true</UseWPF>
     <RootNamespace>RapidCortex.Desktop</RootNamespace>
     <AssemblyName>RapidCortexDesktop</AssemblyName>
+    <Version>1.0.3</Version>
+    <AssemblyVersion>1.0.3.0</AssemblyVersion>
+    <FileVersion>1.0.3.0</FileVersion>
+    <InformationalVersion>1.0.3</InformationalVersion>
     <ApplicationManifest>app.manifest</ApplicationManifest>
   </PropertyGroup>
   <ItemGroup>

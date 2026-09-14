@@ -6,7 +6,7 @@ public sealed class DesktopConfiguration
 
     public string ApiBaseUrl { get; init; } = "";
 
-    /// <summary>Optional secondary API base (stack-2 / regional); reserved for future routing.</summary>
+    /// <summary>Secondary API base (stack-2 hospital / dispatcher / supervisor / wellness). Used by <c>ApiClient</c> when set.</summary>
     public string ApiBaseUrl2 { get; init; } = "";
 
     public string CognitoRegion { get; init; } = "us-east-1";
@@ -19,7 +19,7 @@ public sealed class DesktopConfiguration
 
     public string CognitoRedirectUri { get; init; } = "http://127.0.0.1:8765/callback";
 
-    /// <summary>Next.js origin (e.g. <c>https://www.rapidcortex.us</c>) for <c>/auth/native-login</c> + BFF token exchange.</summary>
+    /// <summary>Next.js origin (e.g. <c>https://app.rapidcortex.us</c>) for <c>/auth/native-login</c> + BFF token exchange. Do not use the marketing host.</summary>
     public string WebAppBaseUrl { get; init; } = "";
 
     /// <summary>Jurisdiction path segment for PSAP roles (matches <c>NEXT_PUBLIC_DEFAULT_JURISDICTION_SLUG</c> on web).</summary>

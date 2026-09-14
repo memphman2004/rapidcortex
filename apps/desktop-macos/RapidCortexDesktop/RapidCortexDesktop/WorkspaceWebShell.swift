@@ -80,7 +80,7 @@ struct WorkspaceWebShellView: NSViewRepresentable {
     func makeNSView(context: Context) -> WKWebView {
         let wv = WKWebView(frame: .zero, configuration: context.coordinator.configuration)
         wv.navigationDelegate = context.coordinator
-        wv.customUserAgent = "RapidCortexDesktop/1.0 (macOS; WKWebView) RapidCortexWebShell"
+        wv.customUserAgent = "RapidCortexDesktop/1.0.3 (macOS; WKWebView) RapidCortexWebShell"
         context.coordinator.webView = wv
         context.coordinator.apply(
             webAppBaseURL: webAppBaseURL,

@@ -130,8 +130,16 @@ struct SettingsView: View {
                             Label("Contact Support", systemImage: "envelope")
                                 .foregroundColor(RCTheme.textPrimary)
                         }
+                        Link(destination: RCConfig.privacyPolicyURL) {
+                            Label("Privacy Policy", systemImage: "hand.raised")
+                                .foregroundColor(RCTheme.textPrimary)
+                        }
+                        Link(destination: RCConfig.termsOfUseURL) {
+                            Label("Terms of Use", systemImage: "doc.text")
+                                .foregroundColor(RCTheme.textPrimary)
+                        }
                     } header: {
-                        sectionHeader("Support")
+                        sectionHeader("Support & legal")
                     }
                     .listRowBackground(RCTheme.surface1)
                     .listRowSeparatorTint(RCTheme.border)

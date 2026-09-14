@@ -247,6 +247,34 @@ describe("getRoleNav", () => {
     expect(operator.sections.flatMap((s) => s.items).find((i) => i.id === "cameras")).toBeUndefined();
   });
 
+  it("exposes Video Wall next to Cameras for campus, venue, and transit ops roles", () => {
+    const campus = getRoleNav("CAMPUS_ADMIN", { campusCode: "UGA" })
+      .sections.flatMap((s) => s.items)
+      .find((i) => i.id === "video-wall");
+    expect(campus?.href).toBe("/app/campus/UGA/video-wall");
+    expect(campus?.feature).toBe("rcVideo");
+    expect(
+      getRoleNav("CAMPUS_COUNSELOR", { campusCode: "UGA" })
+        .sections.flatMap((s) => s.items)
+        .find((i) => i.id === "video-wall"),
+    ).toBeUndefined();
+    expect(
+      getRoleNav("VENUE_ADMIN", { venueCode: "stadium" })
+        .sections.flatMap((s) => s.items)
+        .find((i) => i.id === "video-wall")?.href,
+    ).toBe("/app/venue/stadium/video-wall");
+    expect(
+      getRoleNav("VENUE_GUEST_SERVICES", { venueCode: "stadium" })
+        .sections.flatMap((s) => s.items)
+        .find((i) => i.id === "video-wall"),
+    ).toBeUndefined();
+    expect(
+      getRoleNav("TRANSIT_ADMIN", { transitCode: "HVT" })
+        .sections.flatMap((s) => s.items)
+        .find((i) => i.id === "video-wall")?.href,
+    ).toBe("/transit/HVT/video-wall");
+  });
+
   it("transit admin and supervisor expose QR codes; only admin exposes users", () => {
     const code = "HVT";
     const admin = getRoleNav("TRANSIT_ADMIN", { transitCode: code }).sections.flatMap((s) => s.items);

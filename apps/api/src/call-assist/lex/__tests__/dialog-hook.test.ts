@@ -338,7 +338,7 @@ describe("Dialog hook — knowledge grounding", () => {
 });
 
 describe("Dialog hook — structured intake follow-up", () => {
-  it("elicits apartment after required noise slots", async () => {
+  it("delegates when required noise slots are filled", async () => {
     const event = buildLexEvent({
       utterance: "no callback",
       intent: "NoiseComplaint",
@@ -347,12 +347,10 @@ describe("Dialog hook — structured intake follow-up", () => {
         NoiseType: slot("music"),
         NoiseStillHappening: slot("Yes"),
         CallbackNumber: slot("555-0142"),
-        AptBusiness: null,
-        CrossStreets: null,
       },
     });
     const result = await handleDialog(event, testDeps());
-    expect(result.sessionState.dialogAction).toMatchObject({ type: "ElicitSlot", slotToElicit: "AptBusiness" });
+    expect(result.sessionState.dialogAction).toMatchObject({ type: "Delegate" });
   });
 });
 

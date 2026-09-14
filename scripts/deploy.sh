@@ -635,6 +635,23 @@ PARAMS="${PARAMS} WyzeEnabled=${WYZE_ENABLED:-false}"
 if [[ -n "${WYZE_API_KEYS_SECRET_ARN:-}" ]]; then
   PARAMS="${PARAMS} WyzeApiKeysSecretArn=${WYZE_API_KEYS_SECRET_ARN}"
 fi
+if [[ -z "${NEST_CONSENT_HMAC_SECRET:-}" ]]; then
+  NEST_CONSENT_HMAC_SECRET="$(openssl rand -hex 32)"
+  echo "Generated NEST_CONSENT_HMAC_SECRET for this deploy (value not printed)." >&2
+fi
+PARAMS="${PARAMS} NestConsentHmacSecretValue=${NEST_CONSENT_HMAC_SECRET}"
+if [[ -n "${EXISTING_NEST_CONSENT_HMAC_SECRET_ARN:-}" ]]; then
+  PARAMS="${PARAMS} ExistingNestConsentHmacSecretArn=${EXISTING_NEST_CONSENT_HMAC_SECRET_ARN}"
+fi
+if [[ -n "${EXISTING_NEST_TOKENS_TABLE_NAME:-}" ]]; then
+  PARAMS="${PARAMS} ExistingNestTokensTableName=${EXISTING_NEST_TOKENS_TABLE_NAME}"
+fi
+if [[ -n "${EXISTING_NEST_CONSENT_TABLE_NAME:-}" ]]; then
+  PARAMS="${PARAMS} ExistingNestConsentTableName=${EXISTING_NEST_CONSENT_TABLE_NAME}"
+fi
+if [[ -n "${EXISTING_NEST_CITIZEN_ACCOUNTS_TABLE_NAME:-}" ]]; then
+  PARAMS="${PARAMS} ExistingNestCitizenAccountsTableName=${EXISTING_NEST_CITIZEN_ACCOUNTS_TABLE_NAME}"
+fi
 if [[ -n "${NEST_RC_OAUTH_SECRET_ARN:-}" ]]; then
   PARAMS="${PARAMS} NestRcOauthSecretArn=${NEST_RC_OAUTH_SECRET_ARN}"
 fi

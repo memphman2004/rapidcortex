@@ -609,6 +609,27 @@ Parameters:
       Secrets Manager ARN for Rapid Cortex's own Google Device Access credentials
       (JSON clientId, clientSecret, projectId). Empty until Device Access approval;
       citizen enrollment at /connect/nest then returns 503. Agency Nest OAuth does not need this.
+  NestConsentHmacSecretValue:
+    Type: String
+    Default: ""
+    NoEcho: true
+    Description: HMAC key for Nest citizen consent tokens. deploy.sh always passes a local openssl value (never secretsmanager:GetRandomPassword).
+  ExistingNestConsentHmacSecretArn:
+    Type: String
+    Default: ""
+    Description: When set, AppSam4Stack reuses this leftover Nest consent HMAC secret instead of creating rapid-cortex/connect/nest-consent-hmac-${stage}.
+  ExistingNestTokensTableName:
+    Type: String
+    Default: ""
+    Description: When set, AppSam4Stack reuses leftover rapid-cortex-nest-tokens-${stage} instead of creating it.
+  ExistingNestConsentTableName:
+    Type: String
+    Default: ""
+    Description: When set, AppSam4Stack reuses leftover rapid-cortex-nest-consent-${stage} instead of creating it.
+  ExistingNestCitizenAccountsTableName:
+    Type: String
+    Default: ""
+    Description: When set, AppSam4Stack reuses leftover rapid-cortex-nest-citizen-accounts-${stage} instead of creating it.
   EnableConnectRing:
     Type: String
     Default: "false"
@@ -747,6 +768,8 @@ Resources:
         ExistingPlatformNoticeAcksTableName: !Sub "${DynamoTableNamePrefix}-platform-notice-acks-${DeploymentStage}"
         ExistingVenueCameraAccessLogTableName: !Sub "${DynamoTableNamePrefix}-venue-camera-access-log-${DeploymentStage}"
         ExistingVenueIncidentOverlaysTableName: !Sub "${DynamoTableNamePrefix}-venue-incident-overlays-${DeploymentStage}"
+        ExistingVideoWallConfigsTableName: !Sub "${DynamoTableNamePrefix}-video-wall-configs-${DeploymentStage}"
+        ExistingVideoClipsTableName: !Sub "${DynamoTableNamePrefix}-video-clips-${DeploymentStage}"
         ExistingVenueAssetsBucketName: !Sub "${DynamoTableNamePrefix}-venue-assets-${DeploymentStage}-${AWS::AccountId}"
         ExistingJobApplicationsTableName: !Sub "${DynamoTableNamePrefix}-job-applications-${DeploymentStage}"
         ExistingResumesBucketName: !Sub "${DynamoTableNamePrefix}-resumes-${DeploymentStage}-${AWS::AccountId}"
@@ -2792,6 +2815,11 @@ Resources:
         WyzeEnabled: !Ref WyzeEnabled
         WyzeApiKeysSecretArn: !Ref WyzeApiKeysSecretArn
         NestRcOauthSecretArn: !Ref NestRcOauthSecretArn
+        NestConsentHmacSecretValue: !Ref NestConsentHmacSecretValue
+        ExistingNestConsentHmacSecretArn: !Ref ExistingNestConsentHmacSecretArn
+        ExistingNestTokensTableName: !Ref ExistingNestTokensTableName
+        ExistingNestConsentTableName: !Ref ExistingNestConsentTableName
+        ExistingNestCitizenAccountsTableName: !Ref ExistingNestCitizenAccountsTableName
         RingRedirectUri: !Ref RingRedirectUri
         RingAccountLinkUrl: !Ref RingAccountLinkUrl
         ImportedCognitoUserPoolId: !GetAtt AppSamStackV2.Outputs.UserPoolId
@@ -2970,6 +2998,18 @@ Resources:
             - HasDataLayerNestedStack
             - !GetAtt DataLayerStack.Outputs.CampusCameraRegistryTable
             - !Sub "rapid-cortex-campus-camera-registry-${DeploymentStage}"
+        VideoWallConfigsTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.VideoWallConfigsTable
+            - !Sub "${DynamoTableNamePrefix}-video-wall-configs-${DeploymentStage}"
+        VideoClipsTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.VideoClipsTable
+            - !Sub "${DynamoTableNamePrefix}-video-clips-${DeploymentStage}"
+        VideoGatewayUrl: ""
+        VideoGatewaySecretArn: ""
         QRLocationsTable:
           Fn::If:
             - HasDataLayerNestedStack

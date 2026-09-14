@@ -3,7 +3,9 @@
  *
  * Agency flow:
  *   1. Admin POSTs projectId + clientId + clientSecret
- *   2. nestBuildOAuthUrl() stores a single-use nonce with the KMS-encrypted secret
+ *   2. nestBuildOAuthUrl() stores a single-use nonce with the AES-GCM-wrapped secret
+ *      (KMS envelope when NEST_KMS_KEY_ARN is set; HMAC-secret wrap otherwise — the
+ *      deploy IAM user cannot kms:CreateKey)
  *   3. Google redirects to /api/cameras/providers/nest/callback?code=&state=
  *   4. nestHandleCallback() exchanges the code and persists tokens
  *
@@ -13,7 +15,7 @@
  * @module integrations/cameras/nest-oauth
  */
 
-import { createCipheriv, createDecipheriv, randomBytes, randomUUID } from "node:crypto";
+import { createCipheriv, createDecipheriv, createHash, randomBytes, randomUUID } from "node:crypto";
 import {
   DecryptCommand,
   GenerateDataKeyCommand,
@@ -56,8 +58,18 @@ const secretsClient = new SecretsManagerClient({
 
 const AES_ALGO = "aes-256-gcm" as const;
 const IV_BYTES = 12;
+/** Marker when wrapping with the Nest consent HMAC secret instead of a CMK. */
+const HMAC_WRAP_KEY_ARN = "hmac-wrap-v1";
 
-type EncBlob = { encryptedDataKey: string; iv: string; ciphertext: string; tag: string };
+type EncBlob = {
+  v?: 1 | 2;
+  encryptedDataKey?: string;
+  iv: string;
+  ciphertext: string;
+  tag: string;
+};
+
+let cachedHmacSecret: string | undefined;
 
 type NestRcOauthCredentials = {
   clientId: string;
@@ -67,39 +79,79 @@ type NestRcOauthCredentials = {
 
 let cachedRcOauth: NestRcOauthCredentials | null | undefined;
 
-async function encryptSecret(plaintext: string): Promise<{ blob: string; keyArn: string }> {
-  const keyArn = env.nestKmsKeyArn;
-  if (!keyArn) throw new RCError("NEST_KMS_KEY_ARN not configured", 500);
+async function nestWrapHmacSecret(): Promise<string> {
+  if (cachedHmacSecret) return cachedHmacSecret;
+  const direct = process.env.NEST_CONSENT_TOKEN_SECRET?.trim();
+  if (direct) {
+    cachedHmacSecret = direct;
+    return direct;
+  }
+  const arn = process.env.NEST_CONSENT_HMAC_SECRET_ARN?.trim() || env.nestConsentHmacSecretArn;
+  if (!arn) throw new RCError("NEST_CONSENT_HMAC_SECRET_ARN not configured", 500);
+  const out = await secretsClient.send(new GetSecretValueCommand({ SecretId: arn }));
+  const value = out.SecretString?.trim();
+  if (!value) throw new RCError("Nest consent HMAC secret is empty", 500);
+  cachedHmacSecret = value;
+  return value;
+}
 
-  const dkRes = await kms.send(new GenerateDataKeyCommand({ KeyId: keyArn, KeySpec: "AES_256" }));
-  const plaintextKey = Buffer.from(dkRes.Plaintext as Uint8Array);
-  const encDataKey = Buffer.from(dkRes.CiphertextBlob as Uint8Array).toString("base64");
-
+function aesGcmEncrypt(plaintext: string, key: Buffer): { iv: string; ciphertext: string; tag: string } {
   const iv = randomBytes(IV_BYTES);
-  const cipher = createCipheriv(AES_ALGO, plaintextKey, iv);
+  const cipher = createCipheriv(AES_ALGO, key, iv);
   const encrypted = Buffer.concat([cipher.update(plaintext, "utf8"), cipher.final()]);
   const tag = cipher.getAuthTag();
-  plaintextKey.fill(0);
-
-  const blob: EncBlob = {
-    encryptedDataKey: encDataKey,
+  return {
     iv: iv.toString("base64"),
     ciphertext: encrypted.toString("base64"),
     tag: tag.toString("base64"),
   };
-  return { blob: JSON.stringify(blob), keyArn };
+}
+
+function aesGcmDecrypt(b: EncBlob, key: Buffer): string {
+  const decipher = createDecipheriv(AES_ALGO, key, Buffer.from(b.iv, "base64"));
+  decipher.setAuthTag(Buffer.from(b.tag, "base64"));
+  return decipher.update(Buffer.from(b.ciphertext, "base64")).toString("utf8") + decipher.final("utf8");
+}
+
+async function encryptSecret(plaintext: string): Promise<{ blob: string; keyArn: string }> {
+  const keyArn = env.nestKmsKeyArn;
+  if (keyArn) {
+    const dkRes = await kms.send(new GenerateDataKeyCommand({ KeyId: keyArn, KeySpec: "AES_256" }));
+    const plaintextKey = Buffer.from(dkRes.Plaintext as Uint8Array);
+    const encDataKey = Buffer.from(dkRes.CiphertextBlob as Uint8Array).toString("base64");
+    const wrapped = aesGcmEncrypt(plaintext, plaintextKey);
+    plaintextKey.fill(0);
+    const blob: EncBlob = {
+      v: 1,
+      encryptedDataKey: encDataKey,
+      ...wrapped,
+    };
+    return { blob: JSON.stringify(blob), keyArn };
+  }
+
+  const hmac = await nestWrapHmacSecret();
+  const key = createHash("sha256").update(hmac).digest();
+  const wrapped = aesGcmEncrypt(plaintext, key);
+  key.fill(0);
+  const blob: EncBlob = { v: 2, ...wrapped };
+  return { blob: JSON.stringify(blob), keyArn: HMAC_WRAP_KEY_ARN };
 }
 
 async function decryptSecret(blobJson: string): Promise<string> {
   const b = JSON.parse(blobJson) as EncBlob;
+  if (b.v === 2 || !b.encryptedDataKey) {
+    const hmac = await nestWrapHmacSecret();
+    const key = createHash("sha256").update(hmac).digest();
+    const plain = aesGcmDecrypt(b, key);
+    key.fill(0);
+    return plain;
+  }
+
   const decRes = await kms.send(
     new DecryptCommand({ CiphertextBlob: Buffer.from(b.encryptedDataKey, "base64") }),
   );
   const dataKey = Buffer.from(decRes.Plaintext as Uint8Array);
-  const decipher = createDecipheriv(AES_ALGO, dataKey, Buffer.from(b.iv, "base64"));
-  decipher.setAuthTag(Buffer.from(b.tag, "base64"));
-  const plain =
-    decipher.update(Buffer.from(b.ciphertext, "base64")).toString("utf8") + decipher.final("utf8");
+  const plain = aesGcmDecrypt(b, dataKey);
   dataKey.fill(0);
   return plain;
 }

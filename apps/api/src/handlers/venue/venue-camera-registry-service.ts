@@ -296,6 +296,10 @@ export function buildProducerConfigYaml(agencyId: string, cameras: VenueCamera[]
   }
 
   lines.push("");
+  lines.push("# Optional Rapid Cortex Video PTZ sidecar (same host as this producer):");
+  lines.push("#   GATEWAY_SECRET from Secrets Manager, then:");
+  lines.push("#   cd /opt/rc-video-gateway && GATEWAY_SECRET=... node --experimental-strip-types ptz-relay-server.ts");
+  lines.push("");
   return lines.join("\n");
 }
 

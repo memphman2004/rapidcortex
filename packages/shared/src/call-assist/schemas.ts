@@ -18,6 +18,7 @@ import {
   callAssistOperatingDaySchema,
 } from "./taxonomy.js";
 import { callAssistGreetingConfigPatchSchema } from "./greeting.js";
+import { CALL_ASSIST_LOCALES, MAX_CALL_ASSIST_LOCALES } from "./lex/provisioning-types.js";
 
 export const callAssistUtteranceSchema = z.object({
   sequence: z.number().int().min(0),
@@ -232,7 +233,7 @@ export const callAssistOnboardingInputSchema = z.object({
   nonEmergencyWebsite: z.string().trim().max(200).optional(),
   onlineReportPortalUrl: z.string().trim().max(500).optional(),
   carfaxPortalUrl: z.string().trim().max(500).optional(),
-  supportedLocales: z.array(z.enum(["en_US", "es_US", "zh_CN", "fr_CA"])).min(1).max(4),
+  supportedLocales: z.array(z.enum(CALL_ASSIST_LOCALES)).min(1).max(MAX_CALL_ASSIST_LOCALES),
   aiDisclosureRequired: z.boolean(),
   customVocabularyPhrases: z.array(z.string().min(1).max(100)).max(500).optional(),
 });
@@ -250,7 +251,7 @@ export const callAssistVoiceConfigPatchSchema = z.object({
   onlineReportPortalUrl: z.string().trim().max(500).optional(),
   carfaxPortalUrl: z.string().trim().max(500).optional(),
   disclosureText: z.string().trim().min(1).max(2000).optional(),
-  supportedLocales: z.array(z.enum(["en_US", "es_US", "zh_CN", "fr_CA"])).min(1).max(4).optional(),
+  supportedLocales: z.array(z.enum(CALL_ASSIST_LOCALES)).min(1).max(MAX_CALL_ASSIST_LOCALES).optional(),
 });
 
 export const callAssistRmsFileBodySchema = z.object({

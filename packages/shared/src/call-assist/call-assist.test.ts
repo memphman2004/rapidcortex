@@ -191,6 +191,11 @@ describe("retention, language, TTY, grounding", () => {
 
   it("detects Spanish and human-request without treating it as 911", () => {
     expect(detectCallAssistLanguage("Hola, hay un carro abandonado")).toBe("es");
+    expect(detectCallAssistLanguage("邻居太吵了")).toBe("zh");
+    expect(detectCallAssistLanguage("隔離好嘈")).toBe("yue");
+    expect(detectCallAssistLanguage("kailangan ko ng tulong po")).toBe("tl");
+    expect(detectCallAssistLanguage("hàng xóm ồn quá")).toBe("vi");
+    expect(detectCallAssistLanguage("الجيران مزعجون")).toBe("ar");
     expect(callerRequestedHuman("I want to speak to a person")).toBe(true);
     expect(evaluateSafety("I want to speak to a person").action).toBe("CONTINUE");
   });

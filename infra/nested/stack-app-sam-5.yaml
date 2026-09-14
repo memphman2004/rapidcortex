@@ -542,6 +542,22 @@ Parameters:
     Type: String
     Default: ""
     Description: Campus fixed-camera registry (building/floor coverage, KVS channels, priority rank).
+  VideoWallConfigsTable:
+    Type: String
+    Default: ""
+    Description: Per-user Rapid Cortex Video wall layouts (agencyId HASH, userId RANGE).
+  VideoClipsTable:
+    Type: String
+    Default: ""
+    Description: Rapid Cortex Video DVR clips (agencyId HASH, clipId RANGE).
+  VideoGatewayUrl:
+    Type: String
+    Default: ""
+    Description: On-prem Rapid Cortex Video PTZ gateway base URL (e.g. https://gateway.agency.local:8787). Empty = mock relay.
+  VideoGatewaySecretArn:
+    Type: String
+    Default: ""
+    Description: Secrets Manager ARN for HMAC shared with the on-prem PTZ gateway sidecar.
   WebSocketConnectionsTable:
     Type: String
     Default: ""
@@ -788,6 +804,9 @@ Conditions:
   HasVenueNotificationLogTable: !Not [!Equals [!Ref VenueNotificationLogTable, ""]]
   HasVenueCameraRegistryTable: !Not [!Equals [!Ref VenueCameraRegistryTable, ""]]
   HasCampusCameraRegistryTable: !Not [!Equals [!Ref CampusCameraRegistryTable, ""]]
+  HasVideoWallConfigsTable: !Not [!Equals [!Ref VideoWallConfigsTable, ""]]
+  HasVideoClipsTable: !Not [!Equals [!Ref VideoClipsTable, ""]]
+  HasVideoGatewaySecretArn: !Not [!Equals [!Ref VideoGatewaySecretArn, ""]]
   HasAnyCameraRegistryTable:
     Fn::Or:
       - !Condition HasVenueCameraRegistryTable
@@ -5108,6 +5127,181 @@ Resources:
             Method: GET
             Auth:
               Authorizer: NONE
+
+  VideoWallHttpFunction:
+    Type: AWS::Serverless::Function
+    Condition: HasVideoWallConfigsTable
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/handlers/rapid-cortex-video/http.handler
+      Timeout: 30
+      Description: Rapid Cortex Video — command video wall, DVR playback, clip export, and PTZ gateway relay
+      Environment:
+        Variables:
+          ENABLE_RC_VIDEO: "true"
+          ENABLE_RC_VIDEO_ATTACH_STORAGE: "false"
+          VIDEO_WALL_CONFIGS_TABLE: !Ref VideoWallConfigsTable
+          VIDEO_CLIPS_TABLE: !If
+            - HasVideoClipsTable
+            - !Ref VideoClipsTable
+            - ""
+          VIDEO_CLIP_EXPORTER_FUNCTION: !If
+            - HasVideoClipsTable
+            - !Ref VideoClipExporterFunction
+            - ""
+          VIDEO_GATEWAY_URL: !Ref VideoGatewayUrl
+          VIDEO_GATEWAY_SECRET_ARN: !Ref VideoGatewaySecretArn
+      Policies:
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardA
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardC
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardD
+        - Statement:
+            Sid: VideoWallConfigsReadWrite
+            Effect: Allow
+            Action:
+              - dynamodb:GetItem
+              - dynamodb:PutItem
+            Resource:
+              - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${VideoWallConfigsTable}
+        - !If
+          - HasVideoClipsTable
+          - Statement:
+              Sid: VideoClipsReadWrite
+              Effect: Allow
+              Action:
+                - dynamodb:GetItem
+                - dynamodb:PutItem
+                - dynamodb:UpdateItem
+                - dynamodb:DeleteItem
+                - dynamodb:Query
+              Resource:
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${VideoClipsTable}
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${VideoClipsTable}/index/*
+          - !Ref AWS::NoValue
+        - Statement:
+            Sid: VideoDvrKvsPlayback
+            Effect: Allow
+            Action:
+              - kinesisvideo:GetDataEndpoint
+              - kinesisvideo:GetHLSStreamingSessionURL
+              - kinesisvideo:ListFragments
+              - kinesisvideo:GetClip
+              - kinesisvideo:DescribeStream
+              - kinesisvideo:UpdateDataRetention
+            Resource:
+              - !Sub arn:${AWS::Partition}:kinesisvideo:${AWS::Region}:${AWS::AccountId}:stream/rc-vrec-*/*
+        - Statement:
+            Sid: VideoDvrKvsCreateStream
+            Effect: Allow
+            Action:
+              - kinesisvideo:CreateStream
+            Resource: "*"
+            Condition:
+              StringEquals:
+                aws:RequestedRegion: !Ref AWS::Region
+        - Statement:
+            Sid: VideoDvrOptionalChannelStorage
+            Effect: Allow
+            Action:
+              - kinesisvideo:DescribeSignalingChannel
+              - kinesisvideo:UpdateMediaStorageConfiguration
+              - kinesisvideo:DescribeMediaStorageConfiguration
+            Resource:
+              - !Sub arn:${AWS::Partition}:kinesisvideo:${AWS::Region}:${AWS::AccountId}:channel/rc-*/*
+        - !If
+          - HasVideoClipsTable
+          - Statement:
+              Sid: VideoClipExportInvoke
+              Effect: Allow
+              Action:
+                - lambda:InvokeFunction
+              Resource:
+                - !GetAtt VideoClipExporterFunction.Arn
+          - !Ref AWS::NoValue
+        - Statement:
+            Sid: VideoClipPresignGet
+            Effect: Allow
+            Action:
+              - s3:GetObject
+            Resource:
+              - !Sub arn:${AWS::Partition}:s3:::${AssetsBucket}/video-clips/*
+        - !If
+          - HasVideoGatewaySecretArn
+          - Statement:
+              Sid: VideoGatewaySecret
+              Effect: Allow
+              Action:
+                - secretsmanager:GetSecretValue
+              Resource:
+                - !Ref VideoGatewaySecretArn
+          - !Ref AWS::NoValue
+      Events:
+        WallProxy:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/video/{agencyId}/{proxy+}
+            Method: ANY
+
+  VideoClipExporterLogGroup:
+    Type: AWS::Logs::LogGroup
+    Condition: HasVideoClipsTable
+    Properties:
+      LogGroupName: !Sub /aws/lambda/${VideoClipExporterFunction}
+      RetentionInDays: 30
+
+  VideoClipExporterFunction:
+    Type: AWS::Serverless::Function
+    Condition: HasVideoClipsTable
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    IgnoreGlobals: "*"
+    Properties:
+      Runtime: nodejs20.x
+      Layers:
+        - !Ref NodeDepsLayer
+      CodeUri: ../../apps/api/
+      Handler: dist/lambdas/videoClipExport.handler
+      Timeout: 120
+      MemorySize: 1024
+      ReservedConcurrentExecutions: 3
+      Description: GetClip export of Rapid Cortex Video DVR clips to the assets bucket (max 5 minutes).
+      Environment:
+        Variables:
+          DEPLOYMENT_STAGE: !Ref DeploymentStage
+          AUDIT_TABLE: !Ref AuditTable
+          ENABLE_RC_VIDEO: "true"
+          VIDEO_CLIPS_TABLE: !Ref VideoClipsTable
+          ASSETS_BUCKET: !Ref AssetsBucket
+      Policies:
+        - Statement:
+            Sid: VideoClipExportDdb
+            Effect: Allow
+            Action:
+              - dynamodb:GetItem
+              - dynamodb:UpdateItem
+            Resource:
+              - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${VideoClipsTable}
+        - Statement:
+            Sid: VideoClipExportKvs
+            Effect: Allow
+            Action:
+              - kinesisvideo:GetDataEndpoint
+              - kinesisvideo:GetClip
+            Resource:
+              - !Sub arn:${AWS::Partition}:kinesisvideo:${AWS::Region}:${AWS::AccountId}:stream/rc-vrec-*/*
+        - Statement:
+            Sid: VideoClipExportS3
+            Effect: Allow
+            Action:
+              - s3:PutObject
+              - s3:GetObject
+            Resource:
+              - !Sub arn:${AWS::Partition}:s3:::${AssetsBucket}/video-clips/*
 
 Outputs:
   OpsAlertsTopicArn:

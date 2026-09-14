@@ -2,7 +2,6 @@
 """Sync infra/lex/bot-spec.json onto Lex V2 DRAFT locales. Does not update live-* aliases."""
 from __future__ import annotations
 
-import json
 import sys
 import time
 from pathlib import Path
@@ -11,7 +10,20 @@ import boto3
 from botocore.exceptions import ClientError
 
 ROOT = Path(__file__).resolve().parents[1]
-SPEC = json.loads((ROOT / "infra" / "lex" / "bot-spec.json").read_text(encoding="utf-8"))
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+
+from lex_bot_locales import (  # noqa: E402
+    DECLINE,
+    LIMITED_ASR_LOCALES,
+    VOICES,
+    confirmation_for,
+    load_merged_spec,
+    prompt_for,
+    spec_locales,
+    utterances_for,
+)
+
+SPEC = load_merged_spec(ROOT)
 BOT_ID = "IJIBJOJG2L"
 REGION = "us-east-1"
 NO_CONFIRM = {
@@ -23,11 +35,6 @@ NO_CONFIRM = {
     "InformationRequest",
     "FallbackIntent",
 }
-DECLINE = {
-    "en_US": "I'm sorry about that. Let me start over. What would you like to correct?",
-    "es_US": "Disculpe. Empecemos de nuevo. ¿Qué quisiera corregir?",
-}
-VOICES = {"en_US": "Ruth", "es_US": "Lupe"}
 
 SLOT_TYPES = [
     ("FreeText", "OriginalValue", [("unknown", []), ("none", [])]),
@@ -93,8 +100,8 @@ SLOT_TYPES = [
         "YesNoConfirmation",
         "TopResolution",
         [
-            ("Yes", ["yes", "yeah", "yep", "y", "true", "sí", "si", "affirmative"]),
-            ("No", ["no", "nope", "n", "false", "negative"]),
+            ("Yes", ["yes", "yeah", "yep", "y", "true", "sí", "si", "是", "对", "係", "oo", "vâng", "نعم", "affirmative"]),
+            ("No", ["no", "nope", "n", "false", "不", "不是", "唔係", "hindi", "không", "لا", "negative"]),
         ],
     ),
 ]
@@ -136,17 +143,38 @@ def recreate_locale(lex, locale: str) -> None:
         print(f"→ deleted DRAFT locale {locale}", flush=True)
         wait_locale_gone(lex, locale)
     except ClientError as exc:
-        if exc.response["Error"]["Code"] not in {"ResourceNotFoundException", "NotFoundException"}:
+        code = exc.response["Error"]["Code"]
+        message = str(exc.response["Error"].get("Message") or "")
+        missing = code in {"ResourceNotFoundException", "NotFoundException", "PreconditionFailedException"}
+        if missing or "does not exist" in message.lower():
+            print(f"→ no existing DRAFT locale {locale}", flush=True)
+        else:
             raise
-    lex.create_bot_locale(
-        botId=BOT_ID,
-        botVersion="DRAFT",
-        localeId=locale,
-        nluIntentConfidenceThreshold=0.7,
-        voiceSettings={"voiceId": VOICES[locale], "engine": "neural"},
-        description="Call Assist locale from lex-bot-complete-spec",
-    )
-    print(f"→ created locale {locale}", flush=True)
+    voice = VOICES[locale]
+    create_kwargs: dict = {
+        "botId": BOT_ID,
+        "botVersion": "DRAFT",
+        "localeId": locale,
+        "nluIntentConfidenceThreshold": 0.7,
+        "description": "Call Assist locale from lex-bot-complete-spec",
+    }
+    # Limited-ASR locales reject VoiceSettings ("only supported for Lex Native languages").
+    if locale not in LIMITED_ASR_LOCALES:
+        create_kwargs["voiceSettings"] = {"voiceId": voice["voiceId"], "engine": voice["engine"]}
+    else:
+        create_kwargs["generativeAISettings"] = {
+            "runtimeSettings": {
+                "nluImprovement": {
+                    "enabled": True,
+                    "assistedNluMode": "Primary",
+                }
+            }
+        }
+    lex.create_bot_locale(**create_kwargs)
+    if locale in LIMITED_ASR_LOCALES:
+        print(f"→ created locale {locale} (limited Lex ASR/TTS)", flush=True)
+    else:
+        print(f"→ created locale {locale}", flush=True)
     wait_locale_status(lex, locale, "NotBuilt")
 
 
@@ -182,27 +210,54 @@ def prompt_spec(text: str, ssml: bool = False) -> dict:
     }
 
 
+def list_all_intents(lex, locale: str) -> list[dict]:
+    summaries: list[dict] = []
+    next_token = None
+    while True:
+        kwargs: dict = {
+            "botId": BOT_ID,
+            "botVersion": "DRAFT",
+            "localeId": locale,
+            "maxResults": 100,
+        }
+        if next_token:
+            kwargs["nextToken"] = next_token
+        listed = lex.list_intents(**kwargs)
+        summaries.extend(listed.get("intentSummaries") or [])
+        next_token = listed.get("nextToken")
+        if not next_token:
+            break
+    return summaries
+
+
 def create_intents(lex, locale: str, type_ids: dict[str, str]) -> None:
     for priority, intent in enumerate(SPEC["intents"], start=1):
         name = intent["name"]
-        utterances = intent["utterancesEn"] if locale == "en_US" else intent["utterancesEs"]
+        utterances = utterances_for(intent, locale)
+        limited = locale in LIMITED_ASR_LOCALES
+        description = f"Call Assist {name}"
+        if limited and utterances:
+            description = f"{description}. Example caller phrases: {'; '.join(utterances[:12])}"
         kwargs: dict = {
             "botId": BOT_ID,
             "botVersion": "DRAFT",
             "localeId": locale,
             "intentName": name,
-            "description": f"Call Assist {name}",
+            "description": description,
             "dialogCodeHook": {"enabled": True},
             "fulfillmentCodeHook": {"enabled": True, "active": True},
         }
         if name == "FallbackIntent":
+            if limited:
+                print(f"   intent {name} (kept default — AMAZON.FallbackIntent not valid on limited locales)", flush=True)
+                continue
             kwargs["parentIntentSignature"] = "AMAZON.FallbackIntent"
-        elif utterances:
+        elif utterances and not limited:
             kwargs["sampleUtterances"] = [{"utterance": u} for u in utterances]
-        confirm = intent["confirmationEn"] if locale == "en_US" else (intent["confirmationEs"] or intent["confirmationEn"])
+        confirm = confirmation_for(intent, locale)
         if confirm and name not in NO_CONFIRM:
             ssml = confirm if confirm.strip().startswith("<speak>") else f"<speak>{confirm}</speak>"
-            decline = DECLINE[locale]
+            decline = DECLINE.get(locale, DECLINE["en_US"])
             kwargs["intentConfirmationSetting"] = {
                 "promptSpecification": prompt_spec(ssml, ssml=True),
                 "declinationResponse": {
@@ -215,8 +270,8 @@ def create_intents(lex, locale: str, type_ids: dict[str, str]) -> None:
         except ClientError as exc:
             # FallbackIntent already exists on a new locale
             if name == "FallbackIntent":
-                listed = lex.list_intents(botId=BOT_ID, botVersion="DRAFT", localeId=locale)
-                fallback = next(i for i in listed["intentSummaries"] if i["intentName"] == "FallbackIntent")
+                listed = list_all_intents(lex, locale)
+                fallback = next(i for i in listed if i["intentName"] == "FallbackIntent")
                 lex.update_intent(
                     botId=BOT_ID,
                     botVersion="DRAFT",
@@ -235,8 +290,10 @@ def create_intents(lex, locale: str, type_ids: dict[str, str]) -> None:
         slot_ids = []
         for index, slot in enumerate(intent["slots"], start=1):
             slot_type = slot["slotType"]
+            if locale in LIMITED_ASR_LOCALES and slot_type.startswith("AMAZON."):
+                slot_type = "FreeText"
             slot_type_id = type_ids.get(slot_type, slot_type)
-            prompt = slot["promptEn"] if locale == "en_US" else slot["promptEs"]
+            prompt = prompt_for(slot, locale)
             created_slot = lex.create_slot(
                 botId=BOT_ID,
                 botVersion="DRAFT",
@@ -253,32 +310,29 @@ def create_intents(lex, locale: str, type_ids: dict[str, str]) -> None:
             slot_ids.append(created_slot["slotId"])
             print(f"      slot {slot['name']}={created_slot['slotId']}", flush=True)
         if intent["slots"]:
-            lex.update_intent(
-                botId=BOT_ID,
-                botVersion="DRAFT",
-                localeId=locale,
-                intentId=intent_id,
-                intentName=name,
-                description=f"Call Assist {name}",
-                sampleUtterances=[{"utterance": u} for u in utterances] if utterances else [],
-                dialogCodeHook={"enabled": True},
-                fulfillmentCodeHook={"enabled": True, "active": True},
-                slotPriorities=[
+            update_kwargs: dict = {
+                "botId": BOT_ID,
+                "botVersion": "DRAFT",
+                "localeId": locale,
+                "intentId": intent_id,
+                "intentName": name,
+                "description": description,
+                "dialogCodeHook": {"enabled": True},
+                "fulfillmentCodeHook": {"enabled": True, "active": True},
+                "slotPriorities": [
                     {"priority": i, "slotId": slot_id} for i, slot_id in enumerate(slot_ids, start=1)
                 ],
-                **(
-                    {
-                        "intentConfirmationSetting": kwargs["intentConfirmationSetting"],
-                    }
-                    if "intentConfirmationSetting" in kwargs
-                    else {}
-                ),
-            )
+            }
+            if utterances and not limited:
+                update_kwargs["sampleUtterances"] = [{"utterance": u} for u in utterances]
+            if "intentConfirmationSetting" in kwargs:
+                update_kwargs["intentConfirmationSetting"] = kwargs["intentConfirmationSetting"]
+            lex.update_intent(**update_kwargs)
 
 
 def main() -> int:
     lex = client()
-    locales = sys.argv[1:] or list(SPEC["locales"])
+    locales = sys.argv[1:] or spec_locales(SPEC)
     for locale in locales:
         print(f"== {locale} ==", flush=True)
         recreate_locale(lex, locale)

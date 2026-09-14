@@ -8,8 +8,10 @@ import { join } from 'node:path';
  * keys below only for existing credentials; do not ship new Expo iOS builds.
  *
  * First Play submission: QR/NFC field tool for Venue + Campus staff.
- * Safe & Sound UI stays flag-gated. react-native-ble-plx is still linked, so iOS
- * requires NSBluetoothAlwaysUsageDescription (ITMS-90683) even when BLE is unused.
+ * Safe & Sound UI stays flag-gated. Camera, BLE, and location permissions are
+ * blocked on Android so the Play listing matches that product.
+ * react-native-ble-plx is still linked, so iOS requires
+ * NSBluetoothAlwaysUsageDescription (ITMS-90683) even when BLE is unused.
  * Do not add bluetooth-central UIBackgroundModes until Guardian ships.
  */
 const googleServicesPath = join(__dirname, 'google-services.json');
@@ -114,12 +116,40 @@ const config: ExpoConfig = {
       foregroundImage: './assets/adaptive-icon.png',
       backgroundColor: '#00040e',
     },
-    permissions: [
-      'android.permission.NFC',
+    permissions: ['android.permission.NFC', 'android.permission.VIBRATE'],
+    /**
+     * Play v1 is QR/NFC field codes only. Linked Safe & Sound native modules
+     * (BLE, maps, camera, background location, FCM) still autolink — strip
+     * their dangerous permissions so Data safety / Photos / Nearby devices
+     * declarations match the shipped product.
+     */
+    blockedPermissions: [
       'android.permission.CAMERA',
-      'android.permission.VIBRATE',
-      'android.permission.ACCESS_COARSE_LOCATION',
+      'android.permission.RECORD_AUDIO',
       'android.permission.ACCESS_FINE_LOCATION',
+      'android.permission.ACCESS_COARSE_LOCATION',
+      'android.permission.ACCESS_BACKGROUND_LOCATION',
+      'android.permission.ACCESS_MEDIA_LOCATION',
+      'android.permission.FOREGROUND_SERVICE',
+      'android.permission.FOREGROUND_SERVICE_LOCATION',
+      'android.permission.FOREGROUND_SERVICE_CONNECTED_DEVICE',
+      'android.permission.BLUETOOTH',
+      'android.permission.BLUETOOTH_ADMIN',
+      'android.permission.BLUETOOTH_SCAN',
+      'android.permission.BLUETOOTH_CONNECT',
+      'android.permission.BLUETOOTH_ADVERTISE',
+      'android.permission.SYSTEM_ALERT_WINDOW',
+      'android.permission.READ_EXTERNAL_STORAGE',
+      'android.permission.READ_MEDIA_IMAGES',
+      'android.permission.READ_MEDIA_VIDEO',
+      'android.permission.READ_MEDIA_AUDIO',
+      'android.permission.READ_MEDIA_VISUAL_USER_SELECTED',
+      'android.permission.ACTIVITY_RECOGNITION',
+      'android.permission.RECEIVE_BOOT_COMPLETED',
+      'android.permission.SCHEDULE_EXACT_ALARM',
+      'android.permission.USE_FULL_SCREEN_INTENT',
+      'android.permission.POST_NOTIFICATIONS',
+      'com.google.android.gms.permission.AD_ID',
     ],
     ...(hasGoogleServices ? { googleServicesFile: './google-services.json' } : {}),
   },
@@ -168,9 +198,10 @@ const config: ExpoConfig = {
       'expo-media-library',
       {
         photosPermission:
-          'Rapid Cortex saves QR code images to your photo library when you choose Save.',
+          'Rapid Cortex saves generated QR code images when you choose Save.',
         savePhotosPermission:
-          'Rapid Cortex saves QR code images to your photo library when you choose Save.',
+          'Rapid Cortex saves generated QR code images when you choose Save.',
+        isAccessMediaLocationEnabled: false,
       },
     ],
     [
@@ -209,6 +240,8 @@ const config: ExpoConfig = {
     './plugins/with-disable-user-script-sandboxing.js',
     // TestFlight 34 still linked expo-dev-launcher in Release (keyWindow fatal).
     './plugins/with-store-skip-dev-client.js',
+    // Play listing: optional NFC, no backup/cleartext; pairs with blockedPermissions.
+    './plugins/with-play-store-android.js',
     // Xcode 26 refuses to launch without UIScene (TN3187). SceneDelegate must
     // be its own class — UIKit instantiates it. TestFlight 27 died at splash.
     // V6 starts Expo Dev Launcher only in DEBUG after the scene window exists.
@@ -226,6 +259,8 @@ const config: ExpoConfig = {
     EXPO_PUBLIC_WS_BASE: wsBase,
     EXPO_PUBLIC_APP_ORIGIN: appOrigin,
     EXPO_PUBLIC_SENTRY_DSN: sentryDsn,
+    privacyPolicyUrl: 'https://www.rapidcortex.us/privacy',
+    accountDeletionUrl: 'https://www.rapidcortex.us/account-deletion',
   },
   owner: 'rapid-cortex',
 };

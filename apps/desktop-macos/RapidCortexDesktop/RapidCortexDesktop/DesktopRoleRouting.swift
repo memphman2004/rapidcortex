@@ -135,20 +135,44 @@ enum DesktopRoleRouting {
 
     static func resolveProductDashboardFromRoleAndAgency(role: String, agencyId: String) -> String? {
         let roleToken = role.trimmingCharacters(in: .whitespacesAndNewlines)
-        let roleUpper = roleToken.uppercased()
+        let roleKey = roleToken.uppercased().replacingOccurrences(of: "-", with: "_")
         let agency = agencyId.trimmingCharacters(in: .whitespacesAndNewlines)
 
-        if roleUpper.hasPrefix("VENUE_") {
+        switch roleKey {
+        case "VENUE_ADMIN", "VENUE_GUEST", "VENUE_GUEST_SERVICES":
             return "/app/venue/\(extractVenueCode(agencyId: agency))"
+        case "VENUE_SUPERVISOR":
+            return "/app/venue/supervisor"
+        case "VENUE_SECURITY":
+            return "/app/venue/security"
+        case "VENUE_OPERATOR":
+            return "/app/venue/operator"
+        case "CAMPUS_ADMIN":
+            return "/app/campus/admin"
+        case "CAMPUS_SUPERVISOR":
+            return "/app/campus/supervisor"
+        case "CAMPUS_SECURITY":
+            return "/app/campus/security"
+        case "CAMPUS_DISPATCH":
+            return "/app/campus/dispatch"
+        case "CAMPUS_COUNSELOR":
+            return "/app/campus/counselor"
+        case "CAMPUS_FACULTY":
+            return "/app/campus/faculty"
+        case "TRANSIT_ADMIN":
+            return "/app/transit/admin"
+        case "TRANSIT_SUPERVISOR":
+            return "/app/transit/supervisor"
+        case "TRANSIT_SECURITY":
+            return "/app/transit/security"
+        case "TRANSIT_OPERATOR":
+            return "/app/transit/operator"
+        default:
+            break
         }
-        if roleUpper.hasPrefix("CAMPUS_") {
-            return "/app/campus/\(extractCampusCode(agencyId: agency))"
-        }
+
         if let hospital = resolveHospitalPortalDashboardHref(role: roleToken) {
             return hospital
-        }
-        if roleUpper.hasPrefix("TRANSIT_") {
-            return "/app/transit"
         }
         let normalized = normalizeSessionRole(roleToken)
         if normalized == "rcsuperadmin" || normalized == "rcadmin" {
@@ -178,6 +202,7 @@ enum DesktopRoleRouting {
         case "auditor": return "/\(j)/audit"
         case "hospitaladmin": return "/hospital-admin/dashboard"
         case "hospitalstaff": return "/hospital-staff/dashboard"
+        case "homeowner": return "/\(j)/media"
         default: return "/\(j)/dashboard"
         }
     }

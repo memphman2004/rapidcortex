@@ -27,7 +27,7 @@ export default function PrivacyPolicyPage() {
       eyebrow="Legal"
       title="Privacy policy"
       description={`How ${SITE_NAME} and its operators collect, use, and protect information for public safety agencies, emergency communications teams, and platform users.`}
-      lastReviewed="August 23, 2026"
+      lastReviewed="September 13, 2026"
       navItems={PRIVACY_NAV}
       complianceNote="This page is publicly accessible without login for regulatory and carrier compliance review purposes."
     >
@@ -226,8 +226,11 @@ export default function PrivacyPolicyPage() {
         </p>
         <p>
           Account deletion requests are processed within 30 days. Agencies may request deletion through their
-          administrator workflows or via support, and individual users may request deletion through support. Where
-          required by contract or law, limited audit metadata may be retained for compliance.
+          administrator workflows or via support, and individual users may request deletion through support
+          or the public{" "}
+          <Link href="/account-deletion">account deletion</Link> page (also linked from the Android app
+          Account screen). Where required by contract or law, limited audit metadata may be retained for
+          compliance.
         </p>
       </section>
 

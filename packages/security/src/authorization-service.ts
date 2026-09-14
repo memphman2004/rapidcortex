@@ -187,7 +187,8 @@ export class AuthorizationService {
         permissionKey.startsWith("alerts.") ||
         permissionKey.startsWith("clery.") ||
         permissionKey.startsWith("physical.") ||
-        permissionKey.startsWith("vision."))
+        permissionKey.startsWith("vision.") ||
+        permissionKey.startsWith("video."))
     ) {
       return canCampusRolePerform(campusRole, permissionKey);
     }
@@ -198,7 +199,8 @@ export class AuthorizationService {
         permissionKey.startsWith("locations.") ||
         permissionKey.startsWith("alerts.") ||
         permissionKey.startsWith("physical.") ||
-        permissionKey.startsWith("vision."))
+        permissionKey.startsWith("vision.") ||
+        permissionKey.startsWith("video."))
     ) {
       return canVenueRolePerform(venueRole, permissionKey);
     }
@@ -209,7 +211,8 @@ export class AuthorizationService {
         permissionKey.startsWith("locations.") ||
         permissionKey.startsWith("alerts.") ||
         permissionKey.startsWith("physical.") ||
-        permissionKey.startsWith("vision."))
+        permissionKey.startsWith("vision.") ||
+        permissionKey.startsWith("video."))
     ) {
       return canTransitRolePerform(transitRole, permissionKey);
     }

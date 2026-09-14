@@ -188,9 +188,9 @@ export const KCPD_VOICE_CONFIG: CallAssistAgencyVoiceConfig = {
   onlineReportPortalUrl: KCPD_CARFAX_PORTAL_URL,
   carfaxPortalUrl: KCPD_CARFAX_PORTAL_URL,
   defaultLanguageCode: "en-US",
-  supportedLanguages: ["en-US", "es-US"],
+  supportedLanguages: ["en-US", "es-US", "zh-CN", "zh-HK", "tl-PH", "vi-VN", "ar-AE"],
   defaultLocale: "en_US",
-  supportedLocales: ["en_US", "es_US"],
+  supportedLocales: ["en_US", "es_US", "zh_CN", "zh_HK", "tl_PH", "vi_VN", "ar_AE"],
   disclosureText: KCPD_LEX_DISCLOSURE_TEXT,
   openingGreeting:
     "Thank you for calling KCPD non-emergency. I'm an automated assistant that will gather your information and get you to the right place. This call may be recorded. If this is a life-threatening emergency, please hang up and dial 911, or say emergency now. How can I help you today?",

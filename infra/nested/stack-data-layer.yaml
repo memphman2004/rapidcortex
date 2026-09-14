@@ -395,6 +395,16 @@
       "Default": "rapid-cortex-venue-camera-registry-dev",
       "Description": "Pre-existing table: VenueCameraRegistryTable (managed outside CloudFormation for dev)"
     },
+    "ExistingVideoWallConfigsTableName": {
+      "Type": "String",
+      "Default": "rapid-cortex-video-wall-configs-dev",
+      "Description": "Leftover from DataLayer rollback (DeletionPolicy Retain). Do not CREATE; AlreadyExists."
+    },
+    "ExistingVideoClipsTableName": {
+      "Type": "String",
+      "Default": "rapid-cortex-video-clips-dev",
+      "Description": "Leftover from DataLayer rollback (DeletionPolicy Retain). Do not CREATE; AlreadyExists."
+    },
     "ExistingCampusCameraRegistryTableName": {
       "Type": "String",
       "Default": "rapid-cortex-campus-camera-registry-dev",
@@ -1269,7 +1279,9 @@
       "DeletionPolicy": "Retain",
       "UpdateReplacePolicy": "Retain",
       "Properties": {
-        "Name": { "Fn::Sub": "rapid-cortex/${DeploymentStage}/billing/payment-instructions" },
+        "Name": {
+          "Fn::Sub": "rapid-cortex/${DeploymentStage}/billing/payment-instructions"
+        },
         "Description": "Billing payment instructions for ACH/wire/check workflows. Replace placeholders post-deploy.",
         "SecretString": "{\"achRoutingNumber\":\"REPLACE_ME\",\"achAccountNumber\":\"REPLACE_ME\",\"wireInstructions\":\"REPLACE_ME\",\"checkMailingAddress\":\"REPLACE_ME\",\"bankName\":\"REPLACE_ME\",\"bankContact\":\"REPLACE_ME\"}"
       }
@@ -1280,7 +1292,9 @@
       "DeletionPolicy": "Retain",
       "UpdateReplacePolicy": "Retain",
       "Properties": {
-        "Name": { "Fn::Sub": "rapid-cortex/${DeploymentStage}/billing/ses-credentials" },
+        "Name": {
+          "Fn::Sub": "rapid-cortex/${DeploymentStage}/billing/ses-credentials"
+        },
         "Description": "SES SMTP credentials (when used) plus billing notification recipients. Replace placeholders post-deploy.",
         "SecretString": "{\"smtpUsername\":\"REPLACE_ME\",\"smtpPassword\":\"REPLACE_ME\",\"billingNotificationEmails\":[\"billing@rapidcortex.us\",\"finance@rapidcortex.us\"]}"
       }
@@ -6066,6 +6080,18 @@
       "Description": "Physical table name for VenueCameraRegistryTable",
       "Value": {
         "Ref": "ExistingVenueCameraRegistryTableName"
+      }
+    },
+    "VideoWallConfigsTable": {
+      "Description": "Per-user Rapid Cortex Video wall layouts (agencyId + userId)",
+      "Value": {
+        "Ref": "ExistingVideoWallConfigsTableName"
+      }
+    },
+    "VideoClipsTable": {
+      "Description": "Rapid Cortex Video DVR clips (agencyId + clipId, TTL, incident GSI)",
+      "Value": {
+        "Ref": "ExistingVideoClipsTableName"
       }
     },
     "CampusCameraRegistryTable": {

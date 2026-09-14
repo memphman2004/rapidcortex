@@ -87,6 +87,7 @@ const NEXT_PUBLIC_FLAG_VALUES: Record<string, string | undefined> = {
   NEXT_PUBLIC_ENABLE_ESCALATION: process.env.NEXT_PUBLIC_ENABLE_ESCALATION,
   NEXT_PUBLIC_ENABLE_RMS: process.env.NEXT_PUBLIC_ENABLE_RMS,
   NEXT_PUBLIC_ENABLE_TRANSIT_CAMERAS: process.env.NEXT_PUBLIC_ENABLE_TRANSIT_CAMERAS,
+  NEXT_PUBLIC_ENABLE_RC_VIDEO: process.env.NEXT_PUBLIC_ENABLE_RC_VIDEO,
   NEXT_PUBLIC_ENABLE_CAD_CONNECTOR: process.env.NEXT_PUBLIC_ENABLE_CAD_CONNECTOR,
   NEXT_PUBLIC_ENABLE_CAD_BRIDGE: process.env.NEXT_PUBLIC_ENABLE_CAD_BRIDGE,
   NEXT_PUBLIC_ENABLE_CONTACTS_MODULE: process.env.NEXT_PUBLIC_ENABLE_CONTACTS_MODULE,
@@ -640,4 +641,9 @@ export function isRmsUiEnabled(): boolean {
 /** Transit ONVIF/RTSP registry + Ring/Nest cameras (campus/venue parity). Default on when unset. */
 export function isTransitCamerasUiEnabled(): boolean {
   return envFlag("NEXT_PUBLIC_ENABLE_TRANSIT_CAMERAS");
+}
+
+/** Rapid Cortex Video — agency-owned camera wall / VMS. Default on when unset. Distinct from Rapid Vision. */
+export function isRcVideoEnabled(): boolean {
+  return envFlag("NEXT_PUBLIC_ENABLE_RC_VIDEO");
 }

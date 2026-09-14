@@ -8,7 +8,7 @@
   <Identity
     Name="RapidCortex.Desktop"
     Publisher="CN=Rapid Cortex"
-    Version="1.0.2.0" />
+    Version="1.0.3.0" />
   <Properties>
     <DisplayName>Rapid Cortex</DisplayName>
     <PublisherDisplayName>Rapid Cortex</PublisherDisplayName>

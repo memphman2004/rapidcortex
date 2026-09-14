@@ -46,6 +46,16 @@ export type RoleNav = {
   roleBadge: string;
 };
 
+function rcVideoWallNavItem(href: string): NavItem {
+  return {
+    id: "video-wall",
+    label: "Video Wall",
+    href,
+    icon: "LayoutGrid",
+    feature: "rcVideo",
+  };
+}
+
 function rcTranslateNavItem(href: string, feature: string, badge?: NavBadge): NavItem {
   return {
     id: "translate",
@@ -818,6 +828,7 @@ export function getCampusAdminNav(code: string): RoleNav {
             feature: "verticalAlerts",
           },
           { id: "cameras",     label: "Cameras",           href: `${base}/cameras`,         icon: "Camera" },
+          rcVideoWallNavItem(`${base}/video-wall`),
           { id: "qr",          label: "QR Codes",          href: `${base}/qr-codes`,        icon: "QrCode" },
           { id: "zones",       label: "Zones",             href: `${base}/zones`,           icon: "Map" },
           { id: "buildings",   label: "Buildings",         href: `${base}/buildings`,       icon: "Building" },
@@ -962,6 +973,7 @@ export function getCampusSupervisorNav(code: string): RoleNav {
             feature: "verticalAlerts",
           },
           { id: "cameras",     label: "Cameras",           href: `${base}/cameras`,         icon: "Camera" },
+          rcVideoWallNavItem(`${base}/video-wall`),
           { id: "qr",          label: "QR Codes",          href: `${base}/qr-codes`,        icon: "QrCode" },
           { id: "zones",       label: "Zones",             href: `${base}/zones`,           icon: "Map" },
           {
@@ -1041,6 +1053,7 @@ export function getCampusSecurityNav(code: string): RoleNav {
           { id: "incidents",   label: "Incidents",         href: `${base}/incidents`,       icon: "AlertCircle" },
           rcTranslateNavItem(`${base}/translate`, "rcTranslateCampus"),
           { id: "cameras",     label: "Cameras",           href: `${base}/cameras`,         icon: "Camera" },
+          rcVideoWallNavItem(`${base}/video-wall`),
           { id: "qr",          label: "QR Codes",          href: `${base}/qr-codes`,        icon: "QrCode",
             badge: { type: "label", text: "VIEW ONLY", color: "slate" } },
           { id: "zones",       label: "Zones",             href: `${base}/zones`,           icon: "Map" },
@@ -1065,6 +1078,7 @@ export function getCampusDispatchNav(code: string): RoleNav {
             badge: { type: "count", key: "openIncidents" } },
           rcTranslateNavItem(`${base}/translate`, "rcTranslateCampus"),
           { id: "cameras",     label: "Cameras",           href: `${base}/cameras`,         icon: "Camera" },
+          rcVideoWallNavItem(`${base}/video-wall`),
           { id: "zones",       label: "Zones",             href: `${base}/zones`,           icon: "Map" },
         ],
       },
@@ -1243,6 +1257,7 @@ export function getVenueAdminNav(code: string): RoleNav {
             badge: { type: "count", key: "openGuestReports" } },
           { id: "staff",       label: "Staff",             href: `${base}/staff`,            icon: "Users" },
           { id: "cameras",     label: "Cameras",           href: `${base}/cameras`,          icon: "Camera" },
+          rcVideoWallNavItem(`${base}/video-wall`),
         ],
       },
       {
@@ -1312,6 +1327,7 @@ export function getVenueSupervisorNav(code: string): RoleNav {
             badge: { type: "count", key: "openGuestReports" } },
           { id: "staff",       label: "Staff",             href: `${base}/staff`,            icon: "Users" },
           { id: "cameras",     label: "Cameras",           href: `${base}/cameras`,          icon: "Camera" },
+          rcVideoWallNavItem(`${base}/video-wall`),
         ],
       },
       {
@@ -1343,6 +1359,7 @@ export function getVenueSecurityNav(code: string): RoleNav {
           rcTranslateNavItem(`${base}/translate`, "rcTranslateVenue"),
           { id: "guest",       label: "Guest Reports",     href: `${base}/reports`,          icon: "MessageSquare" },
           { id: "cameras",     label: "Cameras",           href: `${base}/cameras`,          icon: "Camera" },
+          rcVideoWallNavItem(`${base}/video-wall`),
           { id: "zones",       label: "Zones",             href: `${base}/zones`,            icon: "Map" },
         ],
       },
@@ -1365,6 +1382,7 @@ export function getVenueOperatorNav(code: string): RoleNav {
             badge: { type: "label", text: "VIEW ONLY", color: "slate" } },
           rcTranslateNavItem(`${base}/translate`, "rcTranslateVenue"),
           { id: "qr",          label: "QR Codes",          href: `${base}/qr-codes`,         icon: "QrCode" },
+          rcVideoWallNavItem(`${base}/video-wall`),
         ],
       },
     ],
@@ -1412,6 +1430,7 @@ export function getTransitAdminNav(code: string): RoleNav {
           { id: "reports", label: "Reports", href: `${base}/reports`, icon: "FileText", feature: "verticalTransit" },
           { id: "operators", label: "Operators", href: `${base}/operators`, icon: "Users", feature: "verticalTransit" },
           { id: "cameras", label: "Cameras", href: `${base}/cameras`, icon: "Camera", feature: "transitCameras" },
+          rcVideoWallNavItem(`${base}/video-wall`),
           { id: "qr", label: "QR Codes", href: `${base}/qr-codes`, icon: "QrCode" },
         ],
       },
@@ -1459,6 +1478,7 @@ export function getTransitSupervisorNav(code: string): RoleNav {
           { id: "reports", label: "Reports", href: `${base}/reports`, icon: "FileText", feature: "verticalTransit" },
           { id: "operators", label: "Operators", href: `${base}/operators`, icon: "Users", feature: "verticalTransit" },
           { id: "cameras", label: "Cameras", href: `${base}/cameras`, icon: "Camera", feature: "transitCameras" },
+          rcVideoWallNavItem(`${base}/video-wall`),
           { id: "qr", label: "QR Codes", href: `${base}/qr-codes`, icon: "QrCode" },
         ],
       },
@@ -1481,6 +1501,7 @@ export function getTransitSecurityNav(code: string): RoleNav {
           { id: "incidents", label: "Incidents", href: `${base}/incidents`, icon: "AlertTriangle", feature: "verticalTransit" },
           { id: "reports", label: "Reports", href: `${base}/reports`, icon: "FileText", feature: "verticalTransit" },
           { id: "cameras", label: "Cameras", href: `${base}/cameras`, icon: "Camera", feature: "transitCameras" },
+          rcVideoWallNavItem(`${base}/video-wall`),
         ],
       },
     ],
@@ -1500,6 +1521,7 @@ export function getTransitOperatorNav(code: string): RoleNav {
           { id: "fleet", label: "Fleet", href: `${base}/fleet`, icon: "Bus", feature: "verticalTransit" },
           { id: "incidents", label: "Incidents", href: `${base}/incidents`, icon: "AlertTriangle",
             badge: { type: "label", text: "REPORT", color: "blue" }, feature: "verticalTransit" },
+          rcVideoWallNavItem(`${base}/video-wall`),
         ],
       },
     ],

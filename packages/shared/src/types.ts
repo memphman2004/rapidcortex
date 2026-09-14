@@ -447,6 +447,9 @@ export type AuditResourceType =
   | "cad_bridge"
   | "cad_bridge_incident"
   | "call_assist"
+  | "video_wall"
+  | "video_clip"
+  | "video_ptz"
   | "clery_entry"
   | "clery_report"
   | "unknown";

@@ -2,41 +2,310 @@
   "Version": "2019-10-30",
   "StartAction": "invoke-did-lookup",
   "Metadata": {
-    "entryPointPosition": { "x": 20, "y": 20 },
+    "entryPointPosition": {
+      "x": 20,
+      "y": 20
+    },
     "ActionMetadata": {
-      "invoke-did-lookup": { "position": { "x": 160, "y": 20 } },
-      "check-language": { "position": { "x": 400, "y": 20 } },
-      "set-voice-en": {
-        "position": { "x": 640, "y": 20 },
-        "overrideConsoleVoice": true,
-        "overrideLanguageAttribute": true,
-        "fragments": { "SetContactData": "set-lang-en" }
+      "invoke-did-lookup": {
+        "position": {
+          "x": 160,
+          "y": 20
+        }
       },
-      "set-lang-en": { "position": { "x": 640, "y": 20 }, "dynamicParams": [] },
-      "set-voice-es": {
-        "position": { "x": 640, "y": 220 },
-        "overrideConsoleVoice": true,
-        "overrideLanguageAttribute": true,
-        "fragments": { "SetContactData": "set-lang-es" }
+      "apply-default-locale": {
+        "position": {
+          "x": 360,
+          "y": 20
+        }
       },
-      "set-lang-es": { "position": { "x": 640, "y": 220 }, "dynamicParams": [] },
-      "play-disclosure": { "position": { "x": 880, "y": 20 } },
-      "lex-intake": { "position": { "x": 1120, "y": 20 } },
-      "play-emergency": { "position": { "x": 1360, "y": 20 } },
-      "check-escalation-mode": { "position": { "x": 1480, "y": 20 } },
-      "set-emergency-attrs": { "position": { "x": 1600, "y": 20 } },
-      "play-fallback": { "position": { "x": 1360, "y": 220 } },
-      "set-fallback-attrs": { "position": { "x": 1600, "y": 220 } },
+      "set-menu-voice": {
+        "position": {
+          "x": 560,
+          "y": 20
+        },
+        "overrideConsoleVoice": true
+      },
+      "language-menu": {
+        "position": {
+          "x": 780,
+          "y": 20
+        }
+      },
+      "check-language": {
+        "position": {
+          "x": 780,
+          "y": 280
+        }
+      },
+      "play-disclosure": {
+        "position": {
+          "x": 1580,
+          "y": 20
+        }
+      },
+      "lex-intake": {
+        "position": {
+          "x": 1820,
+          "y": 20
+        }
+      },
+      "play-emergency": {
+        "position": {
+          "x": 2060,
+          "y": 20
+        }
+      },
+      "check-escalation-mode": {
+        "position": {
+          "x": 2180,
+          "y": 20
+        }
+      },
+      "set-emergency-attrs": {
+        "position": {
+          "x": 2320,
+          "y": 20
+        }
+      },
+      "set-emergency-queue": {
+        "position": {
+          "x": 2480,
+          "y": 20
+        },
+        "parameters": {
+          "QueueId": {
+            "displayName": "Call Assist Emergency"
+          }
+        },
+        "queue": {
+          "text": "Call Assist Emergency"
+        }
+      },
+      "play-fallback": {
+        "position": {
+          "x": 2060,
+          "y": 280
+        }
+      },
+      "set-fallback-attrs": {
+        "position": {
+          "x": 2320,
+          "y": 280
+        }
+      },
       "set-demo-queue": {
-        "position": { "x": 1840, "y": 120 },
-        "parameters": { "QueueId": { "displayName": "Demo Dispatcher" } },
-        "queue": { "text": "Demo Dispatcher" }
+        "position": {
+          "x": 2480,
+          "y": 280
+        },
+        "parameters": {
+          "QueueId": {
+            "displayName": "Demo Dispatcher"
+          }
+        },
+        "queue": {
+          "text": "Demo Dispatcher"
+        }
       },
-      "transfer-queue": { "position": { "x": 2080, "y": 120 } },
-      "play-complete": { "position": { "x": 1360, "y": 400 } },
-      "disconnect": { "position": { "x": 1600, "y": 400 } },
-      "error-prompt": { "position": { "x": 1120, "y": 400 } },
-      "transfer-error-prompt": { "position": { "x": 2080, "y": 280 } }
+      "transfer-queue": {
+        "position": {
+          "x": 2680,
+          "y": 140
+        }
+      },
+      "play-complete": {
+        "position": {
+          "x": 2060,
+          "y": 480
+        }
+      },
+      "disconnect": {
+        "position": {
+          "x": 2320,
+          "y": 480
+        }
+      },
+      "error-prompt": {
+        "position": {
+          "x": 1820,
+          "y": 480
+        }
+      },
+      "transfer-error-prompt": {
+        "position": {
+          "x": 2680,
+          "y": 360
+        }
+      },
+      "set-voice-en": {
+        "position": {
+          "x": 1040,
+          "y": 20
+        },
+        "overrideConsoleVoice": true,
+        "overrideLanguageAttribute": true,
+        "fragments": {
+          "SetContactData": "set-lang-en"
+        }
+      },
+      "set-lang-en": {
+        "position": {
+          "x": 1040,
+          "y": 20
+        },
+        "dynamicParams": []
+      },
+      "apply-locale-en": {
+        "position": {
+          "x": 1280,
+          "y": 20
+        }
+      },
+      "set-voice-es": {
+        "position": {
+          "x": 1040,
+          "y": 130
+        },
+        "overrideConsoleVoice": true,
+        "overrideLanguageAttribute": true,
+        "fragments": {
+          "SetContactData": "set-lang-es"
+        }
+      },
+      "set-lang-es": {
+        "position": {
+          "x": 1040,
+          "y": 130
+        },
+        "dynamicParams": []
+      },
+      "apply-locale-es": {
+        "position": {
+          "x": 1280,
+          "y": 130
+        }
+      },
+      "set-voice-zh-cn": {
+        "position": {
+          "x": 1040,
+          "y": 240
+        },
+        "overrideConsoleVoice": true,
+        "overrideLanguageAttribute": true,
+        "fragments": {
+          "SetContactData": "set-lang-zh-cn"
+        }
+      },
+      "set-lang-zh-cn": {
+        "position": {
+          "x": 1040,
+          "y": 240
+        },
+        "dynamicParams": []
+      },
+      "apply-locale-zh-cn": {
+        "position": {
+          "x": 1280,
+          "y": 240
+        }
+      },
+      "set-voice-zh-hk": {
+        "position": {
+          "x": 1040,
+          "y": 350
+        },
+        "overrideConsoleVoice": true,
+        "overrideLanguageAttribute": true,
+        "fragments": {
+          "SetContactData": "set-lang-zh-hk"
+        }
+      },
+      "set-lang-zh-hk": {
+        "position": {
+          "x": 1040,
+          "y": 350
+        },
+        "dynamicParams": []
+      },
+      "apply-locale-zh-hk": {
+        "position": {
+          "x": 1280,
+          "y": 350
+        }
+      },
+      "set-voice-tl": {
+        "position": {
+          "x": 1040,
+          "y": 460
+        },
+        "overrideConsoleVoice": true,
+        "overrideLanguageAttribute": true,
+        "fragments": {
+          "SetContactData": "set-lang-tl"
+        }
+      },
+      "set-lang-tl": {
+        "position": {
+          "x": 1040,
+          "y": 460
+        },
+        "dynamicParams": []
+      },
+      "apply-locale-tl": {
+        "position": {
+          "x": 1280,
+          "y": 460
+        }
+      },
+      "set-voice-vi": {
+        "position": {
+          "x": 1040,
+          "y": 570
+        },
+        "overrideConsoleVoice": true,
+        "overrideLanguageAttribute": true,
+        "fragments": {
+          "SetContactData": "set-lang-vi"
+        }
+      },
+      "set-lang-vi": {
+        "position": {
+          "x": 1040,
+          "y": 570
+        },
+        "dynamicParams": []
+      },
+      "apply-locale-vi": {
+        "position": {
+          "x": 1280,
+          "y": 570
+        }
+      },
+      "set-voice-ar": {
+        "position": {
+          "x": 1040,
+          "y": 680
+        },
+        "overrideConsoleVoice": true,
+        "overrideLanguageAttribute": true,
+        "fragments": {
+          "SetContactData": "set-lang-ar"
+        }
+      },
+      "set-lang-ar": {
+        "position": {
+          "x": 1040,
+          "y": 680
+        },
+        "dynamicParams": []
+      },
+      "apply-locale-ar": {
+        "position": {
+          "x": 1280,
+          "y": 680
+        }
+      }
     }
   },
   "Actions": [
@@ -57,9 +326,145 @@
         }
       },
       "Transitions": {
-        "NextAction": "check-language",
+        "NextAction": "apply-default-locale",
         "Errors": [
-          { "NextAction": "error-prompt", "ErrorType": "NoMatchingError" }
+          {
+            "NextAction": "error-prompt",
+            "ErrorType": "NoMatchingError"
+          }
+        ]
+      }
+    },
+    {
+      "Identifier": "apply-default-locale",
+      "Type": "UpdateContactAttributes",
+      "Parameters": {
+        "Attributes": {
+          "language": "$.External.language",
+          "spokenGreeting": "$.External.greetingText",
+          "transferPrompt": "$.External.transferPrompt",
+          "errorPrompt": "$.External.errorPrompt",
+          "transferFailPrompt": "$.External.transferFailPrompt"
+        }
+      },
+      "Transitions": {
+        "NextAction": "set-menu-voice",
+        "Errors": [
+          {
+            "NextAction": "set-menu-voice",
+            "ErrorType": "NoMatchingError"
+          }
+        ],
+        "Conditions": []
+      }
+    },
+    {
+      "Identifier": "set-menu-voice",
+      "Type": "UpdateContactTextToSpeechVoice",
+      "Parameters": {
+        "TextToSpeechVoice": "Ruth",
+        "TextToSpeechEngine": "Neural",
+        "TextToSpeechStyle": "None"
+      },
+      "Transitions": {
+        "NextAction": "language-menu",
+        "Errors": [
+          {
+            "NextAction": "language-menu",
+            "ErrorType": "NoMatchingError"
+          }
+        ],
+        "Conditions": []
+      }
+    },
+    {
+      "Identifier": "language-menu",
+      "Type": "GetParticipantInput",
+      "Parameters": {
+        "StoreInput": "False",
+        "InputTimeLimitSeconds": "8",
+        "Text": "To continue in English, press 1. Spanish, press 2. Mandarin, press 3. Cantonese, press 4. Tagalog, press 5. Vietnamese, press 6. Arabic, press 7. Or stay on the line for the default language."
+      },
+      "Transitions": {
+        "NextAction": "check-language",
+        "Conditions": [
+          {
+            "NextAction": "set-voice-en",
+            "Condition": {
+              "Operator": "Equals",
+              "Operands": [
+                "1"
+              ]
+            }
+          },
+          {
+            "NextAction": "set-voice-es",
+            "Condition": {
+              "Operator": "Equals",
+              "Operands": [
+                "2"
+              ]
+            }
+          },
+          {
+            "NextAction": "set-voice-zh-cn",
+            "Condition": {
+              "Operator": "Equals",
+              "Operands": [
+                "3"
+              ]
+            }
+          },
+          {
+            "NextAction": "set-voice-zh-hk",
+            "Condition": {
+              "Operator": "Equals",
+              "Operands": [
+                "4"
+              ]
+            }
+          },
+          {
+            "NextAction": "set-voice-tl",
+            "Condition": {
+              "Operator": "Equals",
+              "Operands": [
+                "5"
+              ]
+            }
+          },
+          {
+            "NextAction": "set-voice-vi",
+            "Condition": {
+              "Operator": "Equals",
+              "Operands": [
+                "6"
+              ]
+            }
+          },
+          {
+            "NextAction": "set-voice-ar",
+            "Condition": {
+              "Operator": "Equals",
+              "Operands": [
+                "7"
+              ]
+            }
+          }
+        ],
+        "Errors": [
+          {
+            "NextAction": "check-language",
+            "ErrorType": "InputTimeLimitExceeded"
+          },
+          {
+            "NextAction": "check-language",
+            "ErrorType": "NoMatchingCondition"
+          },
+          {
+            "NextAction": "check-language",
+            "ErrorType": "NoMatchingError"
+          }
         ]
       }
     },
@@ -73,20 +478,227 @@
         "NextAction": "set-voice-en",
         "Conditions": [
           {
-            "NextAction": "set-voice-es",
-            "Condition": { "Operator": "Equals", "Operands": ["es"] }
+            "NextAction": "set-voice-en",
+            "Condition": {
+              "Operator": "Equals",
+              "Operands": [
+                "en"
+              ]
+            }
+          },
+          {
+            "NextAction": "set-voice-en",
+            "Condition": {
+              "Operator": "Equals",
+              "Operands": [
+                "en-US"
+              ]
+            }
+          },
+          {
+            "NextAction": "set-voice-en",
+            "Condition": {
+              "Operator": "Equals",
+              "Operands": [
+                "en_US"
+              ]
+            }
           },
           {
             "NextAction": "set-voice-es",
-            "Condition": { "Operator": "Equals", "Operands": ["es-US"] }
+            "Condition": {
+              "Operator": "Equals",
+              "Operands": [
+                "es"
+              ]
+            }
           },
           {
             "NextAction": "set-voice-es",
-            "Condition": { "Operator": "Equals", "Operands": ["es_US"] }
+            "Condition": {
+              "Operator": "Equals",
+              "Operands": [
+                "es-US"
+              ]
+            }
+          },
+          {
+            "NextAction": "set-voice-es",
+            "Condition": {
+              "Operator": "Equals",
+              "Operands": [
+                "es_US"
+              ]
+            }
+          },
+          {
+            "NextAction": "set-voice-zh-cn",
+            "Condition": {
+              "Operator": "Equals",
+              "Operands": [
+                "zh"
+              ]
+            }
+          },
+          {
+            "NextAction": "set-voice-zh-cn",
+            "Condition": {
+              "Operator": "Equals",
+              "Operands": [
+                "zh-CN"
+              ]
+            }
+          },
+          {
+            "NextAction": "set-voice-zh-cn",
+            "Condition": {
+              "Operator": "Equals",
+              "Operands": [
+                "zh_CN"
+              ]
+            }
+          },
+          {
+            "NextAction": "set-voice-zh-cn",
+            "Condition": {
+              "Operator": "Equals",
+              "Operands": [
+                "cmn"
+              ]
+            }
+          },
+          {
+            "NextAction": "set-voice-zh-hk",
+            "Condition": {
+              "Operator": "Equals",
+              "Operands": [
+                "yue"
+              ]
+            }
+          },
+          {
+            "NextAction": "set-voice-zh-hk",
+            "Condition": {
+              "Operator": "Equals",
+              "Operands": [
+                "zh-HK"
+              ]
+            }
+          },
+          {
+            "NextAction": "set-voice-zh-hk",
+            "Condition": {
+              "Operator": "Equals",
+              "Operands": [
+                "zh_HK"
+              ]
+            }
+          },
+          {
+            "NextAction": "set-voice-zh-hk",
+            "Condition": {
+              "Operator": "Equals",
+              "Operands": [
+                "zh-YUE"
+              ]
+            }
+          },
+          {
+            "NextAction": "set-voice-tl",
+            "Condition": {
+              "Operator": "Equals",
+              "Operands": [
+                "tl"
+              ]
+            }
+          },
+          {
+            "NextAction": "set-voice-tl",
+            "Condition": {
+              "Operator": "Equals",
+              "Operands": [
+                "tl-PH"
+              ]
+            }
+          },
+          {
+            "NextAction": "set-voice-tl",
+            "Condition": {
+              "Operator": "Equals",
+              "Operands": [
+                "tl_PH"
+              ]
+            }
+          },
+          {
+            "NextAction": "set-voice-tl",
+            "Condition": {
+              "Operator": "Equals",
+              "Operands": [
+                "fil"
+              ]
+            }
+          },
+          {
+            "NextAction": "set-voice-vi",
+            "Condition": {
+              "Operator": "Equals",
+              "Operands": [
+                "vi"
+              ]
+            }
+          },
+          {
+            "NextAction": "set-voice-vi",
+            "Condition": {
+              "Operator": "Equals",
+              "Operands": [
+                "vi-VN"
+              ]
+            }
+          },
+          {
+            "NextAction": "set-voice-vi",
+            "Condition": {
+              "Operator": "Equals",
+              "Operands": [
+                "vi_VN"
+              ]
+            }
+          },
+          {
+            "NextAction": "set-voice-ar",
+            "Condition": {
+              "Operator": "Equals",
+              "Operands": [
+                "ar"
+              ]
+            }
+          },
+          {
+            "NextAction": "set-voice-ar",
+            "Condition": {
+              "Operator": "Equals",
+              "Operands": [
+                "ar-AE"
+              ]
+            }
+          },
+          {
+            "NextAction": "set-voice-ar",
+            "Condition": {
+              "Operator": "Equals",
+              "Operands": [
+                "ar_AE"
+              ]
+            }
           }
         ],
         "Errors": [
-          { "NextAction": "set-voice-en", "ErrorType": "NoMatchingCondition" }
+          {
+            "NextAction": "set-voice-en",
+            "ErrorType": "NoMatchingCondition"
+          }
         ]
       }
     },
@@ -100,7 +712,12 @@
       },
       "Transitions": {
         "NextAction": "set-lang-en",
-        "Errors": [{ "NextAction": "set-lang-en", "ErrorType": "NoMatchingError" }],
+        "Errors": [
+          {
+            "NextAction": "set-lang-en",
+            "ErrorType": "NoMatchingError"
+          }
+        ],
         "Conditions": []
       }
     },
@@ -111,8 +728,36 @@
         "LanguageCode": "en-US"
       },
       "Transitions": {
+        "NextAction": "apply-locale-en",
+        "Errors": [
+          {
+            "NextAction": "apply-locale-en",
+            "ErrorType": "NoMatchingError"
+          }
+        ],
+        "Conditions": []
+      }
+    },
+    {
+      "Identifier": "apply-locale-en",
+      "Type": "UpdateContactAttributes",
+      "Parameters": {
+        "Attributes": {
+          "language": "en-US",
+          "spokenGreeting": "$.External.greeting_en_US",
+          "transferPrompt": "$.External.transferPrompt_en_US",
+          "errorPrompt": "$.External.errorPrompt_en_US",
+          "transferFailPrompt": "$.External.transferFailPrompt_en_US"
+        }
+      },
+      "Transitions": {
         "NextAction": "play-disclosure",
-        "Errors": [{ "NextAction": "play-disclosure", "ErrorType": "NoMatchingError" }],
+        "Errors": [
+          {
+            "NextAction": "play-disclosure",
+            "ErrorType": "NoMatchingError"
+          }
+        ],
         "Conditions": []
       }
     },
@@ -126,7 +771,12 @@
       },
       "Transitions": {
         "NextAction": "set-lang-es",
-        "Errors": [{ "NextAction": "set-lang-es", "ErrorType": "NoMatchingError" }],
+        "Errors": [
+          {
+            "NextAction": "set-lang-es",
+            "ErrorType": "NoMatchingError"
+          }
+        ],
         "Conditions": []
       }
     },
@@ -137,8 +787,331 @@
         "LanguageCode": "es-US"
       },
       "Transitions": {
+        "NextAction": "apply-locale-es",
+        "Errors": [
+          {
+            "NextAction": "apply-locale-es",
+            "ErrorType": "NoMatchingError"
+          }
+        ],
+        "Conditions": []
+      }
+    },
+    {
+      "Identifier": "apply-locale-es",
+      "Type": "UpdateContactAttributes",
+      "Parameters": {
+        "Attributes": {
+          "language": "es-US",
+          "spokenGreeting": "$.External.greeting_es_US",
+          "transferPrompt": "$.External.transferPrompt_es_US",
+          "errorPrompt": "$.External.errorPrompt_es_US",
+          "transferFailPrompt": "$.External.transferFailPrompt_es_US"
+        }
+      },
+      "Transitions": {
         "NextAction": "play-disclosure",
-        "Errors": [{ "NextAction": "play-disclosure", "ErrorType": "NoMatchingError" }],
+        "Errors": [
+          {
+            "NextAction": "play-disclosure",
+            "ErrorType": "NoMatchingError"
+          }
+        ],
+        "Conditions": []
+      }
+    },
+    {
+      "Identifier": "set-voice-zh-cn",
+      "Type": "UpdateContactTextToSpeechVoice",
+      "Parameters": {
+        "TextToSpeechVoice": "Zhiyu",
+        "TextToSpeechEngine": "Neural",
+        "TextToSpeechStyle": "None"
+      },
+      "Transitions": {
+        "NextAction": "set-lang-zh-cn",
+        "Errors": [
+          {
+            "NextAction": "set-lang-zh-cn",
+            "ErrorType": "NoMatchingError"
+          }
+        ],
+        "Conditions": []
+      }
+    },
+    {
+      "Identifier": "set-lang-zh-cn",
+      "Type": "UpdateContactData",
+      "Parameters": {
+        "LanguageCode": "zh-CN"
+      },
+      "Transitions": {
+        "NextAction": "apply-locale-zh-cn",
+        "Errors": [
+          {
+            "NextAction": "apply-locale-zh-cn",
+            "ErrorType": "NoMatchingError"
+          }
+        ],
+        "Conditions": []
+      }
+    },
+    {
+      "Identifier": "apply-locale-zh-cn",
+      "Type": "UpdateContactAttributes",
+      "Parameters": {
+        "Attributes": {
+          "language": "zh-CN",
+          "spokenGreeting": "$.External.greeting_zh_CN",
+          "transferPrompt": "$.External.transferPrompt_zh_CN",
+          "errorPrompt": "$.External.errorPrompt_zh_CN",
+          "transferFailPrompt": "$.External.transferFailPrompt_zh_CN"
+        }
+      },
+      "Transitions": {
+        "NextAction": "play-disclosure",
+        "Errors": [
+          {
+            "NextAction": "play-disclosure",
+            "ErrorType": "NoMatchingError"
+          }
+        ],
+        "Conditions": []
+      }
+    },
+    {
+      "Identifier": "set-voice-zh-hk",
+      "Type": "UpdateContactTextToSpeechVoice",
+      "Parameters": {
+        "TextToSpeechVoice": "Hiujin",
+        "TextToSpeechEngine": "Neural",
+        "TextToSpeechStyle": "None"
+      },
+      "Transitions": {
+        "NextAction": "set-lang-zh-hk",
+        "Errors": [
+          {
+            "NextAction": "set-lang-zh-hk",
+            "ErrorType": "NoMatchingError"
+          }
+        ],
+        "Conditions": []
+      }
+    },
+    {
+      "Identifier": "set-lang-zh-hk",
+      "Type": "UpdateContactData",
+      "Parameters": {
+        "LanguageCode": "zh-HK"
+      },
+      "Transitions": {
+        "NextAction": "apply-locale-zh-hk",
+        "Errors": [
+          {
+            "NextAction": "apply-locale-zh-hk",
+            "ErrorType": "NoMatchingError"
+          }
+        ],
+        "Conditions": []
+      }
+    },
+    {
+      "Identifier": "apply-locale-zh-hk",
+      "Type": "UpdateContactAttributes",
+      "Parameters": {
+        "Attributes": {
+          "language": "zh-HK",
+          "spokenGreeting": "$.External.greeting_zh_HK",
+          "transferPrompt": "$.External.transferPrompt_zh_HK",
+          "errorPrompt": "$.External.errorPrompt_zh_HK",
+          "transferFailPrompt": "$.External.transferFailPrompt_zh_HK"
+        }
+      },
+      "Transitions": {
+        "NextAction": "play-disclosure",
+        "Errors": [
+          {
+            "NextAction": "play-disclosure",
+            "ErrorType": "NoMatchingError"
+          }
+        ],
+        "Conditions": []
+      }
+    },
+    {
+      "Identifier": "set-voice-tl",
+      "Type": "UpdateContactTextToSpeechVoice",
+      "Parameters": {
+        "TextToSpeechVoice": "Ruth",
+        "TextToSpeechEngine": "Neural",
+        "TextToSpeechStyle": "None"
+      },
+      "Transitions": {
+        "NextAction": "set-lang-tl",
+        "Errors": [
+          {
+            "NextAction": "set-lang-tl",
+            "ErrorType": "NoMatchingError"
+          }
+        ],
+        "Conditions": []
+      }
+    },
+    {
+      "Identifier": "set-lang-tl",
+      "Type": "UpdateContactData",
+      "Parameters": {
+        "LanguageCode": "tl-PH"
+      },
+      "Transitions": {
+        "NextAction": "apply-locale-tl",
+        "Errors": [
+          {
+            "NextAction": "apply-locale-tl",
+            "ErrorType": "NoMatchingError"
+          }
+        ],
+        "Conditions": []
+      }
+    },
+    {
+      "Identifier": "apply-locale-tl",
+      "Type": "UpdateContactAttributes",
+      "Parameters": {
+        "Attributes": {
+          "language": "tl-PH",
+          "spokenGreeting": "$.External.greeting_tl_PH",
+          "transferPrompt": "$.External.transferPrompt_tl_PH",
+          "errorPrompt": "$.External.errorPrompt_tl_PH",
+          "transferFailPrompt": "$.External.transferFailPrompt_tl_PH"
+        }
+      },
+      "Transitions": {
+        "NextAction": "play-disclosure",
+        "Errors": [
+          {
+            "NextAction": "play-disclosure",
+            "ErrorType": "NoMatchingError"
+          }
+        ],
+        "Conditions": []
+      }
+    },
+    {
+      "Identifier": "set-voice-vi",
+      "Type": "UpdateContactTextToSpeechVoice",
+      "Parameters": {
+        "TextToSpeechVoice": "Linh",
+        "TextToSpeechEngine": "Neural",
+        "TextToSpeechStyle": "None"
+      },
+      "Transitions": {
+        "NextAction": "set-lang-vi",
+        "Errors": [
+          {
+            "NextAction": "set-lang-vi",
+            "ErrorType": "NoMatchingError"
+          }
+        ],
+        "Conditions": []
+      }
+    },
+    {
+      "Identifier": "set-lang-vi",
+      "Type": "UpdateContactData",
+      "Parameters": {
+        "LanguageCode": "vi-VN"
+      },
+      "Transitions": {
+        "NextAction": "apply-locale-vi",
+        "Errors": [
+          {
+            "NextAction": "apply-locale-vi",
+            "ErrorType": "NoMatchingError"
+          }
+        ],
+        "Conditions": []
+      }
+    },
+    {
+      "Identifier": "apply-locale-vi",
+      "Type": "UpdateContactAttributes",
+      "Parameters": {
+        "Attributes": {
+          "language": "vi-VN",
+          "spokenGreeting": "$.External.greeting_vi_VN",
+          "transferPrompt": "$.External.transferPrompt_vi_VN",
+          "errorPrompt": "$.External.errorPrompt_vi_VN",
+          "transferFailPrompt": "$.External.transferFailPrompt_vi_VN"
+        }
+      },
+      "Transitions": {
+        "NextAction": "play-disclosure",
+        "Errors": [
+          {
+            "NextAction": "play-disclosure",
+            "ErrorType": "NoMatchingError"
+          }
+        ],
+        "Conditions": []
+      }
+    },
+    {
+      "Identifier": "set-voice-ar",
+      "Type": "UpdateContactTextToSpeechVoice",
+      "Parameters": {
+        "TextToSpeechVoice": "Hala",
+        "TextToSpeechEngine": "Neural",
+        "TextToSpeechStyle": "None"
+      },
+      "Transitions": {
+        "NextAction": "set-lang-ar",
+        "Errors": [
+          {
+            "NextAction": "set-lang-ar",
+            "ErrorType": "NoMatchingError"
+          }
+        ],
+        "Conditions": []
+      }
+    },
+    {
+      "Identifier": "set-lang-ar",
+      "Type": "UpdateContactData",
+      "Parameters": {
+        "LanguageCode": "ar-AE"
+      },
+      "Transitions": {
+        "NextAction": "apply-locale-ar",
+        "Errors": [
+          {
+            "NextAction": "apply-locale-ar",
+            "ErrorType": "NoMatchingError"
+          }
+        ],
+        "Conditions": []
+      }
+    },
+    {
+      "Identifier": "apply-locale-ar",
+      "Type": "UpdateContactAttributes",
+      "Parameters": {
+        "Attributes": {
+          "language": "ar-AE",
+          "spokenGreeting": "$.External.greeting_ar_AE",
+          "transferPrompt": "$.External.transferPrompt_ar_AE",
+          "errorPrompt": "$.External.errorPrompt_ar_AE",
+          "transferFailPrompt": "$.External.transferFailPrompt_ar_AE"
+        }
+      },
+      "Transitions": {
+        "NextAction": "play-disclosure",
+        "Errors": [
+          {
+            "NextAction": "play-disclosure",
+            "ErrorType": "NoMatchingError"
+          }
+        ],
         "Conditions": []
       }
     },
@@ -146,11 +1119,16 @@
       "Identifier": "play-disclosure",
       "Type": "MessageParticipant",
       "Parameters": {
-        "Text": "$.External.greetingText"
+        "Text": "$.Attributes.spokenGreeting"
       },
       "Transitions": {
         "NextAction": "lex-intake",
-        "Errors": [{ "NextAction": "error-prompt", "ErrorType": "NoMatchingError" }],
+        "Errors": [
+          {
+            "NextAction": "error-prompt",
+            "ErrorType": "NoMatchingError"
+          }
+        ],
         "Conditions": []
       }
     },
@@ -165,7 +1143,8 @@
         "LexSessionAttributes": {
           "agencyId": "$.External.agencyId",
           "callId": "$.ContactId",
-          "language": "$.External.language",
+          "language": "$.Attributes.language",
+          "locale": "$.Attributes.language",
           "bargeInEnabled": "true",
           "ani": "$.CustomerEndpoint.Address",
           "aliAddress": "$.External.aliAddress",
@@ -180,36 +1159,72 @@
           "enableColdClimate": "$.External.enableColdClimate",
           "enableLiveAgentHandoff": "$.External.enableLiveAgentHandoff"
         },
-        "LexTimeoutSeconds": { "Text": "300" }
+        "LexTimeoutSeconds": {
+          "Text": "300"
+        }
       },
       "Transitions": {
         "NextAction": "play-complete",
         "Conditions": [
           {
             "NextAction": "play-emergency",
-            "Condition": { "Operator": "Equals", "Operands": ["EmergencyEscalation"] }
+            "Condition": {
+              "Operator": "Equals",
+              "Operands": [
+                "EmergencyEscalation"
+              ]
+            }
           },
           {
             "NextAction": "play-fallback",
-            "Condition": { "Operator": "Equals", "Operands": ["FallbackIntent"] }
+            "Condition": {
+              "Operator": "Equals",
+              "Operands": [
+                "FallbackIntent"
+              ]
+            }
           },
           {
             "NextAction": "play-fallback",
-            "Condition": { "Operator": "Equals", "Operands": ["RequestHuman"] }
+            "Condition": {
+              "Operator": "Equals",
+              "Operands": [
+                "RequestHuman"
+              ]
+            }
           },
           {
             "NextAction": "play-fallback",
-            "Condition": { "Operator": "Equals", "Operands": ["RepeatCallCheck"] }
+            "Condition": {
+              "Operator": "Equals",
+              "Operands": [
+                "RepeatCallCheck"
+              ]
+            }
           },
           {
             "NextAction": "play-fallback",
-            "Condition": { "Operator": "Equals", "Operands": ["PublicWorksIssue"] }
+            "Condition": {
+              "Operator": "Equals",
+              "Operands": [
+                "PublicWorksIssue"
+              ]
+            }
           }
         ],
         "Errors": [
-          { "NextAction": "error-prompt", "ErrorType": "InputTimeLimitExceeded" },
-          { "NextAction": "error-prompt", "ErrorType": "NoMatchingCondition" },
-          { "NextAction": "error-prompt", "ErrorType": "NoMatchingError" }
+          {
+            "NextAction": "error-prompt",
+            "ErrorType": "InputTimeLimitExceeded"
+          },
+          {
+            "NextAction": "error-prompt",
+            "ErrorType": "NoMatchingCondition"
+          },
+          {
+            "NextAction": "error-prompt",
+            "ErrorType": "NoMatchingError"
+          }
         ]
       }
     },
@@ -221,7 +1236,12 @@
       },
       "Transitions": {
         "NextAction": "check-escalation-mode",
-        "Errors": [{ "NextAction": "check-escalation-mode", "ErrorType": "NoMatchingError" }],
+        "Errors": [
+          {
+            "NextAction": "check-escalation-mode",
+            "ErrorType": "NoMatchingError"
+          }
+        ],
         "Conditions": []
       }
     },
@@ -236,11 +1256,19 @@
         "Conditions": [
           {
             "NextAction": "disconnect",
-            "Condition": { "Operator": "Equals", "Operands": ["announce_and_end"] }
+            "Condition": {
+              "Operator": "Equals",
+              "Operands": [
+                "announce_and_end"
+              ]
+            }
           }
         ],
         "Errors": [
-          { "NextAction": "set-emergency-attrs", "ErrorType": "NoMatchingCondition" }
+          {
+            "NextAction": "set-emergency-attrs",
+            "ErrorType": "NoMatchingCondition"
+          }
         ]
       }
     },
@@ -255,8 +1283,30 @@
         }
       },
       "Transitions": {
-        "NextAction": "set-demo-queue",
-        "Errors": [{ "NextAction": "set-demo-queue", "ErrorType": "NoMatchingError" }],
+        "NextAction": "set-emergency-queue",
+        "Errors": [
+          {
+            "NextAction": "set-emergency-queue",
+            "ErrorType": "NoMatchingError"
+          }
+        ],
+        "Conditions": []
+      }
+    },
+    {
+      "Identifier": "set-emergency-queue",
+      "Type": "UpdateContactTargetQueue",
+      "Parameters": {
+        "QueueId": "__EMERGENCY_QUEUE_ARN__"
+      },
+      "Transitions": {
+        "NextAction": "transfer-queue",
+        "Errors": [
+          {
+            "NextAction": "set-demo-queue",
+            "ErrorType": "NoMatchingError"
+          }
+        ],
         "Conditions": []
       }
     },
@@ -264,11 +1314,16 @@
       "Identifier": "play-fallback",
       "Type": "MessageParticipant",
       "Parameters": {
-        "Text": "I'm transferring you to someone who can help. Please hold."
+        "Text": "$.Attributes.transferPrompt"
       },
       "Transitions": {
         "NextAction": "set-fallback-attrs",
-        "Errors": [{ "NextAction": "set-fallback-attrs", "ErrorType": "NoMatchingError" }],
+        "Errors": [
+          {
+            "NextAction": "set-fallback-attrs",
+            "ErrorType": "NoMatchingError"
+          }
+        ],
         "Conditions": []
       }
     },
@@ -283,7 +1338,12 @@
       },
       "Transitions": {
         "NextAction": "set-demo-queue",
-        "Errors": [{ "NextAction": "set-demo-queue", "ErrorType": "NoMatchingError" }],
+        "Errors": [
+          {
+            "NextAction": "set-demo-queue",
+            "ErrorType": "NoMatchingError"
+          }
+        ],
         "Conditions": []
       }
     },
@@ -295,7 +1355,12 @@
       },
       "Transitions": {
         "NextAction": "transfer-queue",
-        "Errors": [{ "NextAction": "transfer-error-prompt", "ErrorType": "NoMatchingError" }],
+        "Errors": [
+          {
+            "NextAction": "transfer-error-prompt",
+            "ErrorType": "NoMatchingError"
+          }
+        ],
         "Conditions": []
       }
     },
@@ -306,8 +1371,14 @@
       "Transitions": {
         "NextAction": "disconnect",
         "Errors": [
-          { "NextAction": "transfer-error-prompt", "ErrorType": "QueueAtCapacity" },
-          { "NextAction": "transfer-error-prompt", "ErrorType": "NoMatchingError" }
+          {
+            "NextAction": "transfer-error-prompt",
+            "ErrorType": "QueueAtCapacity"
+          },
+          {
+            "NextAction": "transfer-error-prompt",
+            "ErrorType": "NoMatchingError"
+          }
         ]
       }
     },
@@ -319,7 +1390,12 @@
       },
       "Transitions": {
         "NextAction": "disconnect",
-        "Errors": [{ "NextAction": "disconnect", "ErrorType": "NoMatchingError" }],
+        "Errors": [
+          {
+            "NextAction": "disconnect",
+            "ErrorType": "NoMatchingError"
+          }
+        ],
         "Conditions": []
       }
     },
@@ -333,11 +1409,16 @@
       "Identifier": "error-prompt",
       "Type": "MessageParticipant",
       "Parameters": {
-        "Text": "I'm having trouble right now. Connecting you to someone who can help."
+        "Text": "$.Attributes.errorPrompt"
       },
       "Transitions": {
         "NextAction": "set-demo-queue",
-        "Errors": [{ "NextAction": "set-demo-queue", "ErrorType": "NoMatchingError" }],
+        "Errors": [
+          {
+            "NextAction": "set-demo-queue",
+            "ErrorType": "NoMatchingError"
+          }
+        ],
         "Conditions": []
       }
     },
@@ -345,11 +1426,16 @@
       "Identifier": "transfer-error-prompt",
       "Type": "MessageParticipant",
       "Parameters": {
-        "Text": "I'm sorry, I wasn't able to connect you. Please try again."
+        "Text": "$.Attributes.transferFailPrompt"
       },
       "Transitions": {
         "NextAction": "disconnect",
-        "Errors": [{ "NextAction": "disconnect", "ErrorType": "NoMatchingError" }],
+        "Errors": [
+          {
+            "NextAction": "disconnect",
+            "ErrorType": "NoMatchingError"
+          }
+        ],
         "Conditions": []
       }
     }

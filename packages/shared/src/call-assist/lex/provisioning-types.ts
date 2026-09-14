@@ -1,5 +1,51 @@
-export const CALL_ASSIST_LOCALES = ["en_US", "es_US", "zh_CN", "fr_CA"] as const;
+export const CALL_ASSIST_LOCALES = [
+  "en_US",
+  "es_US",
+  "zh_CN",
+  "zh_HK",
+  "tl_PH",
+  "vi_VN",
+  "ar_AE",
+  "fr_CA",
+] as const;
 export type CallAssistLocale = (typeof CALL_ASSIST_LOCALES)[number];
+
+/** Agencies may enable English + Spanish plus the 911 language pack. */
+export const MAX_CALL_ASSIST_LOCALES = 8;
+
+/**
+ * Lex V2 locale metadata. Tagalog and Vietnamese are limited-ASR locales
+ * (AWS asterisk — generative AI / third-party ASR-TTS) but valid in us-east-1.
+ * fr_CA remains typed for existing configs; it is not in the 911 language pack yet.
+ */
+export const CALL_ASSIST_LOCALE_META: Record<
+  CallAssistLocale,
+  {
+    label: string;
+    bcp47: string;
+    voiceId: string;
+    engine: "neural" | "standard" | "generative";
+    limitedAsr: boolean;
+    callLanguage: "en" | "es" | "zh" | "yue" | "tl" | "vi" | "ar" | "fr";
+  }
+> = {
+  en_US: { label: "English (US)", bcp47: "en-US", voiceId: "Ruth", engine: "neural", limitedAsr: false, callLanguage: "en" },
+  es_US: { label: "Spanish (US)", bcp47: "es-US", voiceId: "Lupe", engine: "neural", limitedAsr: false, callLanguage: "es" },
+  zh_CN: { label: "Mandarin (Chinese)", bcp47: "zh-CN", voiceId: "Zhiyu", engine: "neural", limitedAsr: false, callLanguage: "zh" },
+  zh_HK: { label: "Cantonese (Hong Kong)", bcp47: "zh-HK", voiceId: "Hiujin", engine: "neural", limitedAsr: false, callLanguage: "yue" },
+  tl_PH: { label: "Tagalog / Filipino", bcp47: "tl-PH", voiceId: "Ruth", engine: "neural", limitedAsr: true, callLanguage: "tl" },
+  vi_VN: { label: "Vietnamese", bcp47: "vi-VN", voiceId: "Linh", engine: "neural", limitedAsr: true, callLanguage: "vi" },
+  ar_AE: { label: "Arabic (Gulf)", bcp47: "ar-AE", voiceId: "Hala", engine: "neural", limitedAsr: false, callLanguage: "ar" },
+  fr_CA: { label: "French (Canada)", bcp47: "fr-CA", voiceId: "Gabrielle", engine: "neural", limitedAsr: false, callLanguage: "fr" },
+};
+
+export const CALL_ASSIST_911_LANGUAGE_PACK: CallAssistLocale[] = [
+  "zh_CN",
+  "zh_HK",
+  "tl_PH",
+  "vi_VN",
+  "ar_AE",
+];
 
 export const LEX_BOT_STATUSES = [
   "NOT_CREATED",

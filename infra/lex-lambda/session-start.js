@@ -397,11 +397,11 @@ var require_dist_cjs = __commonJS({
 });
 
 // apps/api/node_modules/@smithy/core/dist-es/submodules/transport/getSmithyContext.js
-var import_types9, getSmithyContext;
+var import_types10, getSmithyContext;
 var init_getSmithyContext = __esm({
   "apps/api/node_modules/@smithy/core/dist-es/submodules/transport/getSmithyContext.js"() {
-    import_types9 = __toESM(require_dist_cjs());
-    getSmithyContext = (context) => context[import_types9.SMITHY_CONTEXT_KEY] || (context[import_types9.SMITHY_CONTEXT_KEY] = {});
+    import_types10 = __toESM(require_dist_cjs());
+    getSmithyContext = (context) => context[import_types10.SMITHY_CONTEXT_KEY] || (context[import_types10.SMITHY_CONTEXT_KEY] = {});
   }
 });
 
@@ -1791,10 +1791,10 @@ var init_schemaLogFilter = __esm({
 });
 
 // apps/api/node_modules/@smithy/core/dist-es/submodules/client/smithy-client/command.js
-var import_types10, Command, ClassBuilder;
+var import_types11, Command, ClassBuilder;
 var init_command = __esm({
   "apps/api/node_modules/@smithy/core/dist-es/submodules/client/smithy-client/command.js"() {
-    import_types10 = __toESM(require_dist_cjs());
+    import_types11 = __toESM(require_dist_cjs());
     init_MiddlewareStack();
     init_schemaLogFilter();
     Command = class {
@@ -1815,7 +1815,7 @@ var init_command = __esm({
           commandName,
           inputFilterSensitiveLog,
           outputFilterSensitiveLog,
-          [import_types10.SMITHY_CONTEXT_KEY]: {
+          [import_types11.SMITHY_CONTEXT_KEY]: {
             commandInstance: this,
             ...smithyContext
           },
@@ -2117,18 +2117,18 @@ var init_emitWarningIfUnsupportedVersion = __esm({
 });
 
 // apps/api/node_modules/@smithy/core/dist-es/submodules/client/smithy-client/extensions/checksum.js
-var import_types11, knownAlgorithms, getChecksumConfiguration, resolveChecksumRuntimeConfig;
+var import_types12, knownAlgorithms, getChecksumConfiguration, resolveChecksumRuntimeConfig;
 var init_checksum = __esm({
   "apps/api/node_modules/@smithy/core/dist-es/submodules/client/smithy-client/extensions/checksum.js"() {
     init_transport();
-    import_types11 = __toESM(require_dist_cjs());
-    knownAlgorithms = Object.values(import_types11.AlgorithmId);
+    import_types12 = __toESM(require_dist_cjs());
+    knownAlgorithms = Object.values(import_types12.AlgorithmId);
     getChecksumConfiguration = (runtimeConfig) => {
       const checksumAlgorithms = [];
-      for (const id in import_types11.AlgorithmId) {
-        if (!hasOwn(import_types11.AlgorithmId, id))
+      for (const id in import_types12.AlgorithmId) {
+        if (!hasOwn(import_types12.AlgorithmId, id))
           continue;
-        const algorithmId = import_types11.AlgorithmId[id];
+        const algorithmId = import_types12.AlgorithmId[id];
         if (runtimeConfig[algorithmId] === void 0) {
           continue;
         }
@@ -2437,7 +2437,7 @@ var init_client_command_builder = __esm({
 // apps/api/node_modules/@smithy/core/dist-es/submodules/client/index.js
 var client_exports = {};
 __export(client_exports, {
-  AlgorithmId: () => import_types11.AlgorithmId,
+  AlgorithmId: () => import_types12.AlgorithmId,
   Client: () => Client,
   Command: () => Command,
   NoOpLogger: () => NoOpLogger,
@@ -3946,20 +3946,20 @@ var init_constants2 = __esm({
 });
 
 // apps/api/node_modules/@smithy/core/dist-es/submodules/config/shared-ini-file-loader/getConfigData.js
-var import_types12, getConfigData;
+var import_types13, getConfigData;
 var init_getConfigData = __esm({
   "apps/api/node_modules/@smithy/core/dist-es/submodules/config/shared-ini-file-loader/getConfigData.js"() {
-    import_types12 = __toESM(require_dist_cjs());
+    import_types13 = __toESM(require_dist_cjs());
     init_constants2();
     getConfigData = (data) => Object.entries(data).filter(([key]) => {
       const indexOfSeparator = key.indexOf(CONFIG_PREFIX_SEPARATOR);
       if (indexOfSeparator === -1) {
         return false;
       }
-      return Object.values(import_types12.IniSectionType).includes(key.substring(0, indexOfSeparator));
+      return Object.values(import_types13.IniSectionType).includes(key.substring(0, indexOfSeparator));
     }).reduce((acc, [key, value]) => {
       const indexOfSeparator = key.indexOf(CONFIG_PREFIX_SEPARATOR);
-      const updatedKey = key.substring(0, indexOfSeparator) === import_types12.IniSectionType.PROFILE ? key.substring(indexOfSeparator + 1) : key;
+      const updatedKey = key.substring(0, indexOfSeparator) === import_types13.IniSectionType.PROFILE ? key.substring(indexOfSeparator + 1) : key;
       acc[updatedKey] = value;
       return acc;
     }, {
@@ -3991,10 +3991,10 @@ var init_getCredentialsFilepath = __esm({
 });
 
 // apps/api/node_modules/@smithy/core/dist-es/submodules/config/shared-ini-file-loader/parseIni.js
-var import_types13, prefixKeyRegex, profileNameBlockList, parseIni;
+var import_types14, prefixKeyRegex, profileNameBlockList, parseIni;
 var init_parseIni = __esm({
   "apps/api/node_modules/@smithy/core/dist-es/submodules/config/shared-ini-file-loader/parseIni.js"() {
-    import_types13 = __toESM(require_dist_cjs());
+    import_types14 = __toESM(require_dist_cjs());
     init_constants2();
     prefixKeyRegex = /^([\w-]+)\s(["'])?([\w-@+.%:/]+)\2$/;
     profileNameBlockList = ["__proto__", "profile __proto__"];
@@ -4012,7 +4012,7 @@ var init_parseIni = __esm({
           const matches = prefixKeyRegex.exec(sectionName);
           if (matches) {
             const [, prefix, , name] = matches;
-            if (Object.values(import_types13.IniSectionType).includes(prefix)) {
+            if (Object.values(import_types14.IniSectionType).includes(prefix)) {
               currentSection = [prefix, name].join(CONFIG_PREFIX_SEPARATOR);
             }
           } else {
@@ -4107,12 +4107,12 @@ var init_loadSharedConfigFiles = __esm({
 });
 
 // apps/api/node_modules/@smithy/core/dist-es/submodules/config/shared-ini-file-loader/getSsoSessionData.js
-var import_types14, getSsoSessionData;
+var import_types15, getSsoSessionData;
 var init_getSsoSessionData = __esm({
   "apps/api/node_modules/@smithy/core/dist-es/submodules/config/shared-ini-file-loader/getSsoSessionData.js"() {
-    import_types14 = __toESM(require_dist_cjs());
+    import_types15 = __toESM(require_dist_cjs());
     init_loadSharedConfigFiles();
-    getSsoSessionData = (data) => Object.entries(data).filter(([key]) => key.startsWith(import_types14.IniSectionType.SSO_SESSION + CONFIG_PREFIX_SEPARATOR)).reduce((acc, [key, value]) => ({ ...acc, [key.substring(key.indexOf(CONFIG_PREFIX_SEPARATOR) + 1)]: value }), {});
+    getSsoSessionData = (data) => Object.entries(data).filter(([key]) => key.startsWith(import_types15.IniSectionType.SSO_SESSION + CONFIG_PREFIX_SEPARATOR)).reduce((acc, [key, value]) => ({ ...acc, [key.substring(key.indexOf(CONFIG_PREFIX_SEPARATOR) + 1)]: value }), {});
   }
 });
 
@@ -5426,14 +5426,14 @@ var init_isIpAddress = __esm({
 });
 
 // apps/api/node_modules/@smithy/core/dist-es/submodules/endpoints/util-endpoints/lib/parseURL.js
-var import_types20, DEFAULT_PORTS, parseURL;
+var import_types21, DEFAULT_PORTS, parseURL;
 var init_parseURL = __esm({
   "apps/api/node_modules/@smithy/core/dist-es/submodules/endpoints/util-endpoints/lib/parseURL.js"() {
-    import_types20 = __toESM(require_dist_cjs());
+    import_types21 = __toESM(require_dist_cjs());
     init_isIpAddress();
     DEFAULT_PORTS = {
-      [import_types20.EndpointURLScheme.HTTP]: 80,
-      [import_types20.EndpointURLScheme.HTTPS]: 443
+      [import_types21.EndpointURLScheme.HTTP]: 80,
+      [import_types21.EndpointURLScheme.HTTPS]: 443
     };
     parseURL = (value) => {
       const whatwgURL = (() => {
@@ -5462,7 +5462,7 @@ var init_parseURL = __esm({
         return null;
       }
       const scheme = protocol.slice(0, -1);
-      if (!Object.values(import_types20.EndpointURLScheme).includes(scheme)) {
+      if (!Object.values(import_types21.EndpointURLScheme).includes(scheme)) {
         return null;
       }
       const isIp = isIpAddress(hostname);
@@ -9799,15 +9799,15 @@ var init_HttpInterceptingShapeSerializer = __esm({
 });
 
 // apps/api/node_modules/@smithy/core/dist-es/submodules/protocols/protocol-http/Field.js
-var import_types31, Field;
+var import_types32, Field;
 var init_Field = __esm({
   "apps/api/node_modules/@smithy/core/dist-es/submodules/protocols/protocol-http/Field.js"() {
-    import_types31 = __toESM(require_dist_cjs());
+    import_types32 = __toESM(require_dist_cjs());
     Field = class {
       name;
       kind;
       values;
-      constructor({ name, kind = import_types31.FieldPosition.HEADER, values = [] }) {
+      constructor({ name, kind = import_types32.FieldPosition.HEADER, values = [] }) {
         this.name = name;
         this.kind = kind;
         this.values = values;
@@ -11675,11 +11675,11 @@ var init_DefaultIdentityProviderConfig = __esm({
 });
 
 // apps/api/node_modules/@smithy/core/dist-es/legacy-root-exports/util-identity-and-auth/httpAuthSchemes/httpApiKeyAuth.js
-var import_types32, HttpApiKeyAuthSigner;
+var import_types33, HttpApiKeyAuthSigner;
 var init_httpApiKeyAuth = __esm({
   "apps/api/node_modules/@smithy/core/dist-es/legacy-root-exports/util-identity-and-auth/httpAuthSchemes/httpApiKeyAuth.js"() {
     init_protocols();
-    import_types32 = __toESM(require_dist_cjs());
+    import_types33 = __toESM(require_dist_cjs());
     HttpApiKeyAuthSigner = class {
       async sign(httpRequest, identity, signingProperties) {
         if (!signingProperties) {
@@ -11695,9 +11695,9 @@ var init_httpApiKeyAuth = __esm({
           throw new Error("request could not be signed with `apiKey` since the `apiKey` is not defined");
         }
         const clonedRequest = HttpRequest.clone(httpRequest);
-        if (signingProperties.in === import_types32.HttpApiKeyAuthLocation.QUERY) {
+        if (signingProperties.in === import_types33.HttpApiKeyAuthLocation.QUERY) {
           clonedRequest.query[signingProperties.name] = identity.apiKey;
-        } else if (signingProperties.in === import_types32.HttpApiKeyAuthLocation.HEADER) {
+        } else if (signingProperties.in === import_types33.HttpApiKeyAuthLocation.HEADER) {
           clonedRequest.headers[signingProperties.name] = signingProperties.scheme ? `${signingProperties.scheme} ${identity.apiKey}` : identity.apiKey;
         } else {
           throw new Error("request can only be signed with `apiKey` locations `query` or `header`, but found: `" + signingProperties.in + "`");
@@ -41672,7 +41672,7 @@ var ADDON_CATALOG = [
   }),
   withLegacyIncludedInPlans({
     key: "feature_addons.rc_connect_standard",
-    name: "Rapid Cortex Connect - Standard",
+    name: "Rapid Vision\u2122 - Standard",
     category: "Feature Add-Ons",
     description: "ONVIF/RTSP camera integration linking up to 10 existing facility cameras to active incidents in the dispatcher or venue console.",
     billingType: "monthly",
@@ -41682,7 +41682,7 @@ var ADDON_CATALOG = [
   }),
   withLegacyIncludedInPlans({
     key: "feature_addons.rc_connect_professional",
-    name: "Rapid Cortex Connect - Professional",
+    name: "Rapid Vision\u2122 - Professional",
     category: "Feature Add-Ons",
     description: "Multi-zone camera management for larger facilities, up to 50 cameras. Feeds are surfaced contextually when an incident is created in the associated zone.",
     billingType: "monthly",
@@ -41692,7 +41692,7 @@ var ADDON_CATALOG = [
   }),
   withLegacyIncludedInPlans({
     key: "feature_addons.rc_connect_enterprise",
-    name: "Rapid Cortex Connect - Enterprise",
+    name: "Rapid Vision\u2122 - Enterprise",
     category: "Feature Add-Ons",
     description: "Unlimited camera deployments with dedicated KVS streaming infrastructure and advanced camera routing for large multi-site deployments.",
     billingType: "monthly",
@@ -41702,7 +41702,7 @@ var ADDON_CATALOG = [
   }),
   withLegacyIncludedInPlans({
     key: "feature_addons.ring_connect",
-    name: "Ring Connect",
+    name: "Rapid Vision\u2122 \u2014 Ring Source",
     category: "Feature Add-Ons",
     description: "Request Ring doorbell and camera footage in proximity to active incidents. Access is granted only through prior homeowner enrollment and consent, with a full audit log of every access event.",
     billingType: "monthly",
@@ -43037,9 +43037,9 @@ var incidentMediaRecordSchema = external_exports.object({
   mediaType: incidentMediaTypeSchema.nullable().optional(),
   /** Future: server-side blur pipeline flag; reserved for policy. */
   blurApplied: external_exports.boolean().optional(),
-  /** Last successful / attempted outbound SMS channel. */
+  /** Last successful / attempted outbound SMS channel. `twilio` is historical only. */
   smsProvider: external_exports.enum(["aws", "twilio", "mock", "log-only"]).nullable().optional(),
-  /** Provider message id when available (SNS MessageId, Twilio SID). */
+  /** Provider message id when available (End User Messaging MessageId). */
   smsMessageId: external_exports.string().max(128).nullable().optional(),
   /** Last SMS attempt outcome for ops (`queued` used for simulator / deferred). */
   smsDispatchStatus: external_exports.enum(["queued", "sent", "failed"]).nullable().optional(),
@@ -43080,7 +43080,7 @@ var callerMediaUploadUrlBodySchema = external_exports.object({
 });
 
 // packages/shared/src/media/sms-provider.ts
-var smsProviderModeSchema = external_exports.enum(["aws", "twilio", "auto", "mock"]);
+var smsProviderModeSchema = external_exports.enum(["aws", "mock"]);
 var smsMessageTypeSchema = external_exports.enum([
   "media_upload",
   "live_video",
@@ -43090,15 +43090,12 @@ var smsMessageTypeSchema = external_exports.enum([
   "call_assist_self_service",
   "translate_session_link"
 ]);
-var smsPrimaryProviderSchema = external_exports.enum(["twilio", "aws"]);
 var smsSendResultProviderSchema = external_exports.enum(["aws", "twilio", "mock", "log-only"]);
 var smsSendStatusSchema = external_exports.enum(["queued", "sent", "failed"]);
 var retryableSmsErrorSchema = external_exports.object({
-  /** Whether `auto` mode may try the other concrete provider. */
   retryable: external_exports.boolean(),
   errorCode: external_exports.string().max(64).optional(),
   errorMessage: external_exports.string().max(500).optional(),
-  /** Which side produced this (first or second attempt in auto). */
   provider: smsSendResultProviderSchema.optional()
 });
 var smsSendResultSchema = external_exports.object({
@@ -43111,11 +43108,9 @@ var smsSendResultSchema = external_exports.object({
   recipientRedacted: external_exports.string().min(1).max(32),
   sentAt: external_exports.string().min(1),
   retryable: external_exports.boolean().optional(),
-  /** True when `auto` mode succeeded on the second concrete provider. */
+  /** Legacy field from dual-provider routing; new sends leave this unset. */
   smsFailoverUsed: external_exports.boolean().optional(),
-  /** Set when a first attempt was made in `auto` and failed. */
   firstAttemptProvider: smsSendResultProviderSchema.optional(),
-  /** Error code from the first attempt in `auto` (not sent on success of first). */
   firstAttemptErrorCode: external_exports.string().max(64).optional()
 });
 
@@ -43169,7 +43164,7 @@ var liveVideoSessionSchema = external_exports.object({
   lastDispatcherHeartbeatAt: external_exports.string().min(1).optional(),
   /** @deprecated use smsDeliveryProvider for SMS; "provider" was historically SMS provider */
   provider: external_exports.string().max(64).optional(),
-  /** Twilio, aws, mock, etc. */
+  /** SMS provider used for the invite (aws, mock, etc.). */
   smsDeliveryProvider: external_exports.string().max(32).optional(),
   /** kinesis WebRTC + signaling channel, or legacy DynamoDB-sourced SDP/ICE. */
   liveVideoPipeline: external_exports.enum(["aws_kinesis_webrtc", "legacy_p2p"]).optional(),
@@ -44419,6 +44414,33 @@ var ringHomeownerDeleteAccountBodySchema = external_exports.object({
   email: external_exports.string().email().max(320)
 });
 
+// packages/shared/src/cameras/wyze-schemas.ts
+var wyzeRequestDurationMinutesSchema = external_exports.union([
+  external_exports.literal(10),
+  external_exports.literal(30),
+  external_exports.literal(60),
+  external_exports.literal(120)
+]);
+var wyzeRegisterBodySchema = external_exports.object({
+  agencyId: external_exports.string().min(1).max(120),
+  email: external_exports.string().email().max(320),
+  phone: external_exports.string().regex(/^\+1\d{10}$/, "Must be E.164 US number: +1XXXXXXXXXX"),
+  keyId: external_exports.string().min(1).max(200),
+  apiKey: external_exports.string().min(1).max(500),
+  address: external_exports.string().min(5).max(500),
+  lat: external_exports.number().min(-90).max(90),
+  lng: external_exports.number().min(-180).max(180)
+}).strict();
+var wyzeRequestCameraAccessBodySchema = external_exports.object({
+  incidentId: external_exports.string().min(1).max(120),
+  mac: external_exports.string().min(1).max(200),
+  requestedDurationMinutes: wyzeRequestDurationMinutesSchema
+}).strict();
+var wyzeAnswerStreamBodySchema = external_exports.object({
+  incidentId: external_exports.string().min(1).max(120),
+  mac: external_exports.string().min(1).max(200)
+}).strict();
+
 // packages/shared/src/venue/schemas.ts
 var venueCameraRequestBodySchema = external_exports.object({
   incidentId: external_exports.string().trim().min(1),
@@ -44435,6 +44457,178 @@ var streamViewerTokenRequestSchema = external_exports.object({
   sessionId: external_exports.string().trim().min(1),
   product: external_exports.enum(["connect", "venue"])
 });
+
+// packages/shared/src/rapid-cortex-video/types.ts
+var videoWallLayoutSchema = external_exports.enum(["1x1", "2x2", "3x3", "4x4", "custom"]);
+var videoTileStatusSchema = external_exports.enum(["online", "offline", "unknown"]);
+var videoTileAssignmentSchema = external_exports.object({
+  position: external_exports.number().int().min(0).max(63),
+  cameraId: external_exports.string().min(1).max(128),
+  kvsChannelName: external_exports.string().min(1).max(256),
+  displayName: external_exports.string().min(1).max(200),
+  vendor: external_exports.string().min(1).max(64),
+  ptzCapable: external_exports.boolean(),
+  section: external_exports.string().min(1).max(64).optional(),
+  buildingId: external_exports.string().min(1).max(64).optional(),
+  status: videoTileStatusSchema
+});
+var videoWallConfigSchema = external_exports.object({
+  agencyId: external_exports.string().min(1).max(128),
+  userId: external_exports.string().min(1).max(128),
+  layout: videoWallLayoutSchema,
+  tiles: external_exports.array(videoTileAssignmentSchema).max(64),
+  savedAt: external_exports.string().min(1)
+});
+var videoWallConfigPutBodySchema = external_exports.object({
+  layout: videoWallLayoutSchema,
+  tiles: external_exports.array(videoTileAssignmentSchema).max(64)
+});
+var cameraHealthSummarySchema = external_exports.object({
+  total: external_exports.number().int().min(0),
+  online: external_exports.number().int().min(0),
+  offline: external_exports.number().int().min(0),
+  unknown: external_exports.number().int().min(0),
+  lastCheckedAt: external_exports.string().min(1)
+});
+var videoApiErrorCodeSchema = external_exports.enum([
+  "UNAUTHORIZED",
+  "FORBIDDEN",
+  "NOT_FOUND",
+  "CAMERA_OFFLINE",
+  "KVS_ERROR",
+  "GATEWAY_UNAVAILABLE",
+  "RECORDING_NOT_ENABLED",
+  "CLIP_TOO_LONG",
+  "CLIP_TOO_SHORT",
+  "CLIP_LOCKED",
+  "STREAM_LIMIT_EXCEEDED",
+  "RATE_LIMITED",
+  "ANALYTICS_DISABLED",
+  "ANALYTICS_NOT_ENABLED"
+]);
+var videoPtzDirectionSchema = external_exports.enum([
+  "up",
+  "down",
+  "left",
+  "right",
+  "up-left",
+  "up-right",
+  "down-left",
+  "down-right"
+]);
+var videoPtzSpeedSchema = external_exports.number().int().min(1).max(5);
+var videoPtzMoveBodySchema = external_exports.object({
+  direction: videoPtzDirectionSchema,
+  speed: videoPtzSpeedSchema.default(3)
+});
+var videoPtzZoomBodySchema = external_exports.object({
+  direction: external_exports.enum(["in", "out"]),
+  speed: videoPtzSpeedSchema.default(3)
+});
+var videoPtzPresetSchema = external_exports.object({
+  token: external_exports.string().min(1).max(64),
+  name: external_exports.string().min(1).max(64)
+});
+var videoPtzPresetGotoBodySchema = external_exports.object({
+  presetToken: external_exports.string().min(1).max(64)
+});
+var videoPtzPresetSaveBodySchema = external_exports.object({
+  presetName: external_exports.string().min(1).max(64)
+});
+var videoGatewayRelayCommandSchema = external_exports.enum([
+  "ContinuousMove",
+  "Stop",
+  "Zoom",
+  "GotoPreset",
+  "SetPreset",
+  "GetPresets"
+]);
+var videoGatewayRelayBodySchema = external_exports.object({
+  agencyId: external_exports.string().min(1).max(128),
+  cameraId: external_exports.string().min(1).max(128),
+  cameraIp: external_exports.string().min(1).max(128).optional(),
+  command: videoGatewayRelayCommandSchema,
+  direction: videoPtzDirectionSchema.optional(),
+  zoomDirection: external_exports.enum(["in", "out"]).optional(),
+  speed: videoPtzSpeedSchema.optional(),
+  presetToken: external_exports.string().min(1).max(64).optional(),
+  presetName: external_exports.string().min(1).max(64).optional()
+});
+var VIDEO_CLIP_MAX_SECONDS = 300;
+var VIDEO_CLIP_MIN_SECONDS = 30;
+var VIDEO_CLIP_TTL_SECONDS = 30 * 24 * 60 * 60;
+var VIDEO_HLS_URL_TTL_SECONDS = 15 * 60;
+var videoRetentionHoursSchema = external_exports.union([
+  external_exports.literal(24),
+  external_exports.literal(72),
+  external_exports.literal(168),
+  external_exports.literal(336),
+  external_exports.literal(720)
+]);
+var videoCameraRetentionPolicySchema = external_exports.object({
+  enabled: external_exports.boolean(),
+  retentionHours: videoRetentionHoursSchema,
+  storageClass: external_exports.enum(["standard", "archive"]).default("standard"),
+  enabledAt: external_exports.string().min(1).optional()
+});
+var videoRecordingPatchBodySchema = external_exports.object({
+  enabled: external_exports.boolean(),
+  retentionHours: videoRetentionHoursSchema.optional()
+});
+var videoClipStatusSchema = external_exports.enum(["pending", "processing", "ready", "error"]);
+var videoClipSchema = external_exports.object({
+  clipId: external_exports.string().min(1),
+  agencyId: external_exports.string().min(1),
+  cameraId: external_exports.string().min(1),
+  kvsChannelName: external_exports.string().min(1),
+  kvsStreamName: external_exports.string().min(1).optional(),
+  displayName: external_exports.string().min(1).max(200),
+  incidentId: external_exports.string().min(1).optional(),
+  startTime: external_exports.string().min(1),
+  endTime: external_exports.string().min(1),
+  durationSeconds: external_exports.number().int().min(VIDEO_CLIP_MIN_SECONDS).max(VIDEO_CLIP_MAX_SECONDS),
+  s3Key: external_exports.string().optional(),
+  s3Bucket: external_exports.string().optional(),
+  exportedBy: external_exports.string().min(1),
+  exportedAt: external_exports.string().min(1),
+  status: videoClipStatusSchema,
+  downloadUrl: external_exports.string().optional(),
+  errorMessage: external_exports.string().max(500).optional(),
+  ttl: external_exports.number().int().optional(),
+  locked: external_exports.boolean(),
+  tags: external_exports.array(external_exports.string().min(1).max(64)).max(16).optional(),
+  label: external_exports.string().max(200).optional()
+});
+var videoClipCreateBodySchema = external_exports.object({
+  startTime: external_exports.string().min(1),
+  endTime: external_exports.string().min(1),
+  incidentId: external_exports.string().min(1).max(128).optional(),
+  label: external_exports.string().min(1).max(200).optional()
+});
+var videoFragmentSchema = external_exports.object({
+  fragmentNumber: external_exports.string().min(1),
+  startTime: external_exports.string().min(1),
+  endTime: external_exports.string().min(1)
+});
+var videoPlaybackSessionSchema = external_exports.object({
+  cameraId: external_exports.string().min(1),
+  kvsStreamName: external_exports.string().min(1),
+  hlsUrl: external_exports.string().min(1),
+  expiresAt: external_exports.string().min(1),
+  startTimestamp: external_exports.string().min(1),
+  endTimestamp: external_exports.string().min(1)
+});
+var videoRecordingStatusSchema = external_exports.object({
+  cameraId: external_exports.string().min(1),
+  enabled: external_exports.boolean(),
+  retentionHours: videoRetentionHoursSchema.optional(),
+  storageClass: external_exports.enum(["standard", "archive"]).optional(),
+  kvsStreamName: external_exports.string().optional(),
+  kvsStreamArn: external_exports.string().optional(),
+  attachStorageToChannel: external_exports.boolean(),
+  enabledAt: external_exports.string().optional()
+});
+var HEARTBEAT_OFFLINE_MS = 5 * 60 * 1e3;
 
 // packages/shared/src/venue/camera-registry-schemas.ts
 var venueCameraVendorSchema = external_exports.enum([
@@ -44479,7 +44673,12 @@ var venueCameraSchema = external_exports.object({
   priorityRank: external_exports.number().int().min(1).max(999),
   ptzCapable: external_exports.boolean(),
   status: venueCameraStatusSchema,
-  lastHeartbeat: external_exports.string().optional()
+  lastHeartbeat: external_exports.string().optional(),
+  /** Opt-in KVS media retention. Off by default — recording is a cost gate. */
+  retentionPolicy: videoCameraRetentionPolicySchema.optional(),
+  kvsStreamName: external_exports.string().min(1).max(256).optional(),
+  kvsStreamArn: external_exports.string().min(1).max(512).optional(),
+  ptzPresets: external_exports.array(videoPtzPresetSchema).max(16).optional()
 });
 var venueCameraUpsertBodySchema = external_exports.object({
   cameraId: external_exports.string().min(1).optional(),
@@ -47286,10 +47485,115 @@ var DEFAULT_ES_ESCALATION_ANNOUNCEMENTS = {
   ].join(" "),
   silent_transfer: ""
 };
+var DEFAULT_ZH_CN_GREETING_TEMPLATES = {
+  hang_up: [
+    "\u8FD9\u91CC\u662F{cityName}\u7684\u975E\u7D27\u6025\u670D\u52A1\u70ED\u7EBF\u3002",
+    "\u5982\u679C\u60A8\u6B63\u5728\u7ECF\u5386\u7D27\u6025\u60C5\u51B5\uFF0C\u6216\u751F\u547D\u5B89\u5168\u53D7\u5230\u76F4\u63A5\u5A01\u80C1\uFF0C",
+    "\u8BF7\u6302\u65AD\u5E76\u62E8\u62539-1-1\u3002",
+    "\u5426\u5219\u8BF7\u4E0D\u8981\u6302\u65AD\uFF0C\u6211\u53EF\u4EE5\u534F\u52A9\u5904\u7406\u60A8\u7684\u975E\u7D27\u6025\u8BF7\u6C42\u3002"
+  ].join(" "),
+  stay_on_line: [
+    "\u8FD9\u91CC\u662F{cityName}\u7684\u975E\u7D27\u6025\u670D\u52A1\u70ED\u7EBF\u3002",
+    "\u5982\u679C\u8FD9\u662F\u7D27\u6025\u60C5\u51B5\uFF0C\u8BF7\u62E8\u62539-1-1\u3002",
+    "\u5982\u679C\u4E0D\u786E\u5B9A\uFF0C\u8BF7\u4E0D\u8981\u6302\u65AD\u2014\u2014",
+    "\u6211\u4F1A\u5E2E\u52A9\u5224\u65AD\u5982\u4F55\u5904\u7406\u3002"
+  ].join(" ")
+};
+var DEFAULT_ZH_HK_GREETING_TEMPLATES = {
+  hang_up: [
+    "\u5462\u5EA6\u4FC2{cityName}\u5605\u975E\u7DCA\u6025\u670D\u52D9\u71B1\u7DDA\u3002",
+    "\u5982\u679C\u4F60\u6B63\u7D93\u6B77\u7DCA\u6025\u60C5\u6CC1\uFF0C\u6216\u8005\u751F\u547D\u5B89\u5168\u53D7\u5230\u5373\u6642\u5A01\u8105\uFF0C",
+    "\u8ACB\u639B\u7DDA\u4E26\u62539-1-1\u3002",
+    "\u5426\u5247\u8ACB\u5514\u597D\u639B\u7DDA\uFF0C\u6211\u53EF\u4EE5\u5E6B\u4F60\u8655\u7406\u975E\u7DCA\u6025\u8ACB\u6C42\u3002"
+  ].join(" "),
+  stay_on_line: [
+    "\u5462\u5EA6\u4FC2{cityName}\u5605\u975E\u7DCA\u6025\u670D\u52D9\u71B1\u7DDA\u3002",
+    "\u5982\u679C\u5462\u500B\u4FC2\u7DCA\u6025\u60C5\u6CC1\uFF0C\u8ACB\u62539-1-1\u3002",
+    "\u5982\u679C\u5514\u80AF\u5B9A\uFF0C\u8ACB\u5514\u597D\u639B\u7DDA\u2014\u2014",
+    "\u6211\u6703\u5E6B\u4F60\u5224\u65B7\u9EDE\u6A23\u8655\u7406\u3002"
+  ].join(" ")
+};
+var DEFAULT_TL_GREETING_TEMPLATES = {
+  hang_up: [
+    "Nakatawag kayo sa non-emergency na linya ng {cityName}.",
+    "Kung emergency o may agarang banta sa buhay o kaligtasan,",
+    "mangyaring ibaba at tumawag sa 9-1-1.",
+    "Kung hindi, manatili sa linya at matutulungan ko kayo sa non-emergency na request."
+  ].join(" "),
+  stay_on_line: [
+    "Nakatawag kayo sa non-emergency na linya ng {cityName}.",
+    "Kung emergency ito, tumawag sa 9-1-1.",
+    "Kung hindi kayo sigurado, manatili sa linya \u2014",
+    "tutulungan ko kayong malaman ang tamang tugon."
+  ].join(" ")
+};
+var DEFAULT_VI_GREETING_TEMPLATES = {
+  hang_up: [
+    "B\u1EA1n \u0111\xE3 g\u1ECDi \u0111\u1EBFn \u0111\u01B0\u1EDDng d\xE2y kh\xF4ng kh\u1EA9n c\u1EA5p c\u1EE7a {cityName}.",
+    "N\u1EBFu \u0111\xE2y l\xE0 tr\u01B0\u1EDDng h\u1EE3p kh\u1EA9n c\u1EA5p ho\u1EB7c c\xF3 \u0111e d\u1ECDa t\u1EE9c th\u1EDDi \u0111\u1EBFn t\xEDnh m\u1EA1ng,",
+    "h\xE3y c\xFAp m\xE1y v\xE0 g\u1ECDi 9-1-1.",
+    "N\u1EBFu kh\xF4ng, h\xE3y gi\u1EEF m\xE1y, t\xF4i c\xF3 th\u1EC3 h\u1ED7 tr\u1EE3 y\xEAu c\u1EA7u kh\xF4ng kh\u1EA9n c\u1EA5p."
+  ].join(" "),
+  stay_on_line: [
+    "B\u1EA1n \u0111\xE3 g\u1ECDi \u0111\u1EBFn \u0111\u01B0\u1EDDng d\xE2y kh\xF4ng kh\u1EA9n c\u1EA5p c\u1EE7a {cityName}.",
+    "N\u1EBFu \u0111\xE2y l\xE0 tr\u01B0\u1EDDng h\u1EE3p kh\u1EA9n c\u1EA5p, h\xE3y g\u1ECDi 9-1-1.",
+    "N\u1EBFu b\u1EA1n ch\u01B0a ch\u1EAFc, h\xE3y gi\u1EEF m\xE1y \u2014",
+    "t\xF4i s\u1EBD gi\xFAp x\xE1c \u0111\u1ECBnh c\xE1ch x\u1EED l\xFD ph\xF9 h\u1EE3p."
+  ].join(" ")
+};
+var DEFAULT_AR_GREETING_TEMPLATES = {
+  hang_up: [
+    "\u0644\u0642\u062F \u0627\u062A\u0635\u0644\u062A \u0628\u062E\u0637 \u0627\u0644\u062E\u062F\u0645\u0629 \u063A\u064A\u0631 \u0627\u0644\u0637\u0627\u0631\u0626\u0629 \u0644\u0640 {cityName}.",
+    "\u0625\u0630\u0627 \u0643\u0646\u062A\u0645 \u062A\u0648\u0627\u062C\u0647\u0648\u0646 \u062D\u0627\u0644\u0629 \u0637\u0627\u0631\u0626\u0629 \u0623\u0648 \u062A\u0647\u062F\u064A\u062F\u0627\u064B \u0641\u0648\u0631\u064A\u0627\u064B \u0644\u0644\u062D\u064A\u0627\u0629 \u0623\u0648 \u0627\u0644\u0633\u0644\u0627\u0645\u0629\u060C",
+    "\u064A\u0631\u062C\u0649 \u0625\u0646\u0647\u0627\u0621 \u0627\u0644\u0645\u0643\u0627\u0644\u0645\u0629 \u0648\u0627\u0644\u0627\u062A\u0635\u0627\u0644 \u0628\u0627\u0644\u0631\u0642\u0645 9-1-1.",
+    "\u0648\u0625\u0644\u0627 \u0641\u0627\u0628\u0642\u0648\u0627 \u0639\u0644\u0649 \u0627\u0644\u062E\u0637 \u0648\u064A\u0645\u0643\u0646\u0646\u064A \u0645\u0633\u0627\u0639\u062F\u062A\u0643\u0645 \u0641\u064A \u0627\u0644\u0637\u0644\u0628 \u063A\u064A\u0631 \u0627\u0644\u0637\u0627\u0631\u0626."
+  ].join(" "),
+  stay_on_line: [
+    "\u0644\u0642\u062F \u0627\u062A\u0635\u0644\u062A \u0628\u062E\u0637 \u0627\u0644\u062E\u062F\u0645\u0629 \u063A\u064A\u0631 \u0627\u0644\u0637\u0627\u0631\u0626\u0629 \u0644\u0640 {cityName}.",
+    "\u0625\u0630\u0627 \u0643\u0627\u0646 \u0647\u0630\u0627 \u0637\u0627\u0631\u0626\u0627\u064B\u060C \u064A\u0631\u062C\u0649 \u0627\u0644\u0627\u062A\u0635\u0627\u0644 \u0628\u0627\u0644\u0631\u0642\u0645 9-1-1.",
+    "\u0625\u0630\u0627 \u0644\u0645 \u062A\u0643\u0648\u0646\u0648\u0627 \u0645\u062A\u0623\u0643\u062F\u064A\u0646\u060C \u0627\u0628\u0642\u0648\u0627 \u0639\u0644\u0649 \u0627\u0644\u062E\u0637 \u2014",
+    "\u0633\u0623\u0633\u0627\u0639\u062F\u0643\u0645 \u0641\u064A \u062A\u062D\u062F\u064A\u062F \u0627\u0644\u0627\u0633\u062A\u062C\u0627\u0628\u0629 \u0627\u0644\u0645\u0646\u0627\u0633\u0628\u0629."
+  ].join(" ")
+};
+var DEFAULT_ZH_CN_ESCALATION = {
+  announce_and_transfer: "\u6839\u636E\u60A8\u63CF\u8FF0\u7684\u60C5\u51B5\uFF0C\u8FD9\u542C\u8D77\u6765\u50CF\u7D27\u6025\u60C5\u51B5\u3002\u6211\u73B0\u5728\u4E3A\u60A8\u63A5\u901A\u7D27\u6025\u8C03\u5EA6\u5458\u3002\u8BF7\u4E0D\u8981\u6302\u65AD\u3002",
+  announce_and_end: "\u6839\u636E\u60A8\u63CF\u8FF0\u7684\u60C5\u51B5\uFF0C\u8FD9\u542C\u8D77\u6765\u50CF\u7D27\u6025\u60C5\u51B5\u3002\u8BF7\u7ACB\u5373\u6302\u65AD\u5E76\u62E8\u62539-1-1\u3002\u7D27\u6025\u8C03\u5EA6\u5168\u592924\u5C0F\u65F6\u503C\u5B88\u3002",
+  silent_transfer: ""
+};
+var DEFAULT_ZH_HK_ESCALATION = {
+  announce_and_transfer: "\u6839\u64DA\u4F60\u8B1B\u5605\u60C5\u6CC1\uFF0C\u5462\u500B\u597D\u4F3C\u7DCA\u6025\u3002\u6211\u800C\u5BB6\u5E6B\u4F60\u63A5\u901A\u7DCA\u6025\u8ABF\u5EA6\u54E1\u3002\u8ACB\u5514\u597D\u639B\u7DDA\u3002",
+  announce_and_end: "\u6839\u64DA\u4F60\u8B1B\u5605\u60C5\u6CC1\uFF0C\u5462\u500B\u597D\u4F3C\u7DCA\u6025\u3002\u8ACB\u5373\u523B\u639B\u7DDA\u4E26\u62539-1-1\u3002\u7DCA\u6025\u8ABF\u5EA6\u5168\u65E5\u4E8C\u5341\u56DB\u5C0F\u6642\u3002",
+  silent_transfer: ""
+};
+var DEFAULT_TL_ESCALATION = {
+  announce_and_transfer: "Base sa inilarawan ninyo, parang emergency ito. Ikinokonekta ko kayo sa emergency dispatcher ngayon. Manatili po sa linya at huwag ibaba.",
+  announce_and_end: "Base sa inilarawan ninyo, parang emergency ito. Ibaba po agad at tumawag sa 9-1-1. Available ang emergency dispatchers 24 oras.",
+  silent_transfer: ""
+};
+var DEFAULT_VI_ESCALATION = {
+  announce_and_transfer: "D\u1EF1a tr\xEAn m\xF4 t\u1EA3 c\u1EE7a b\u1EA1n, \u0111\xE2y c\xF3 v\u1EBB l\xE0 tr\u01B0\u1EDDng h\u1EE3p kh\u1EA9n c\u1EA5p. T\xF4i \u0111ang k\u1EBFt n\u1ED1i b\u1EA1n v\u1EDBi \u0111i\u1EC1u ph\u1ED1i vi\xEAn kh\u1EA9n c\u1EA5p. Xin gi\u1EEF m\xE1y, \u0111\u1EEBng c\xFAp.",
+  announce_and_end: "D\u1EF1a tr\xEAn m\xF4 t\u1EA3 c\u1EE7a b\u1EA1n, \u0111\xE2y c\xF3 v\u1EBB l\xE0 tr\u01B0\u1EDDng h\u1EE3p kh\u1EA9n c\u1EA5p. H\xE3y c\xFAp m\xE1y ngay v\xE0 g\u1ECDi 9-1-1. \u0110i\u1EC1u ph\u1ED1i kh\u1EA9n c\u1EA5p tr\u1EF1c 24 gi\u1EDD.",
+  silent_transfer: ""
+};
+var DEFAULT_AR_ESCALATION = {
+  announce_and_transfer: "\u0628\u0646\u0627\u0621\u064B \u0639\u0644\u0649 \u0645\u0627 \u0648\u0635\u0641\u062A\u0645\u060C \u064A\u0628\u062F\u0648 \u0623\u0646 \u0647\u0630\u0647 \u062D\u0627\u0644\u0629 \u0637\u0627\u0631\u0626\u0629. \u0633\u0623\u0648\u0635\u0644\u0643\u0645 \u0627\u0644\u0622\u0646 \u0628\u0645\u064F\u0646\u0633\u0651\u0642 \u0627\u0644\u0637\u0648\u0627\u0631\u0626. \u064A\u0631\u062C\u0649 \u0627\u0644\u0628\u0642\u0627\u0621 \u0639\u0644\u0649 \u0627\u0644\u062E\u0637 \u0648\u0639\u062F\u0645 \u0625\u0646\u0647\u0627\u0621 \u0627\u0644\u0645\u0643\u0627\u0644\u0645\u0629.",
+  announce_and_end: "\u0628\u0646\u0627\u0621\u064B \u0639\u0644\u0649 \u0645\u0627 \u0648\u0635\u0641\u062A\u0645\u060C \u064A\u0628\u062F\u0648 \u0623\u0646 \u0647\u0630\u0647 \u062D\u0627\u0644\u0629 \u0637\u0627\u0631\u0626\u0629. \u064A\u0631\u062C\u0649 \u0625\u0646\u0647\u0627\u0621 \u0627\u0644\u0645\u0643\u0627\u0644\u0645\u0629 \u0641\u0648\u0631\u0627\u064B \u0648\u0627\u0644\u0627\u062A\u0635\u0627\u0644 \u0628\u0627\u0644\u0631\u0642\u0645 9-1-1. \u0645\u0646\u0633\u0642\u0648 \u0627\u0644\u0637\u0648\u0627\u0631\u0626 \u0645\u062A\u0627\u062D\u0648\u0646 \u0639\u0644\u0649 \u0645\u062F\u0627\u0631 \u0627\u0644\u0633\u0627\u0639\u0629.",
+  silent_transfer: ""
+};
 var FALLBACK_GREETING = "You've reached a non-emergency service line. If this is an emergency, please dial 9-1-1. Otherwise, stay on the line and I can assist you.";
 var FALLBACK_GREETING_ES = "Ha llamado a una l\xEDnea de servicio no urgente. Si esto es una emergencia, por favor llame al 9-1-1. De lo contrario, permanezca en la l\xEDnea y puedo ayudarle.";
+var FALLBACK_GREETING_ZH_CN = "\u8FD9\u91CC\u662F\u975E\u7D27\u6025\u670D\u52A1\u70ED\u7EBF\u3002\u5982\u679C\u8FD9\u662F\u7D27\u6025\u60C5\u51B5\uFF0C\u8BF7\u62E8\u62539-1-1\u3002\u5426\u5219\u8BF7\u4E0D\u8981\u6302\u65AD\uFF0C\u6211\u53EF\u4EE5\u534F\u52A9\u60A8\u3002";
+var FALLBACK_GREETING_ZH_HK = "\u5462\u5EA6\u4FC2\u975E\u7DCA\u6025\u670D\u52D9\u71B1\u7DDA\u3002\u5982\u679C\u5462\u500B\u4FC2\u7DCA\u6025\u60C5\u6CC1\uFF0C\u8ACB\u62539-1-1\u3002\u5426\u5247\u8ACB\u5514\u597D\u639B\u7DDA\uFF0C\u6211\u53EF\u4EE5\u5E6B\u4F60\u3002";
+var FALLBACK_GREETING_TL = "Nakatawag kayo sa non-emergency service line. Kung emergency po ito, tumawag sa 9-1-1. Kung hindi, manatili po sa linya at matutulungan kita.";
+var FALLBACK_GREETING_VI = "B\u1EA1n \u0111\xE3 g\u1ECDi \u0111\u1EBFn \u0111\u01B0\u1EDDng d\xE2y d\u1ECBch v\u1EE5 kh\xF4ng kh\u1EA9n c\u1EA5p. N\u1EBFu \u0111\xE2y l\xE0 tr\u01B0\u1EDDng h\u1EE3p kh\u1EA9n c\u1EA5p, h\xE3y g\u1ECDi 9-1-1. N\u1EBFu kh\xF4ng, vui l\xF2ng gi\u1EEF m\xE1y, t\xF4i c\xF3 th\u1EC3 h\u1ED7 tr\u1EE3 b\u1EA1n.";
+var FALLBACK_GREETING_AR = "\u0644\u0642\u062F \u0627\u062A\u0635\u0644\u062A\u0645 \u0628\u062E\u0637 \u0627\u0644\u062E\u062F\u0645\u0629 \u063A\u064A\u0631 \u0627\u0644\u0637\u0627\u0631\u0626\u0629. \u0625\u0630\u0627 \u0643\u0627\u0646\u062A \u0647\u0630\u0647 \u062D\u0627\u0644\u0629 \u0637\u0627\u0631\u0626\u0629\u060C \u064A\u0631\u062C\u0649 \u0627\u0644\u0627\u062A\u0635\u0627\u0644 \u0628\u0627\u0644\u0631\u0642\u0645 9-1-1. \u0648\u0625\u0644\u0627 \u0641\u0627\u0628\u0642\u0648\u0627 \u0639\u0644\u0649 \u0627\u0644\u062E\u0637 \u0648\u064A\u0645\u0643\u0646\u0646\u064A \u0645\u0633\u0627\u0639\u062F\u062A\u0643\u0645.";
 var INTAKE_PROMPT_EN = "How can I help you today?";
 var INTAKE_PROMPT_ES = "\xBFEn qu\xE9 puedo ayudarle hoy?";
+var INTAKE_PROMPT_ZH_CN = "\u4ECA\u5929\u6709\u4EC0\u4E48\u53EF\u4EE5\u5E2E\u60A8\uFF1F";
+var INTAKE_PROMPT_ZH_HK = "\u4ECA\u65E5\u6709\u54A9\u53EF\u4EE5\u5E6B\u5230\u4F60\uFF1F";
+var INTAKE_PROMPT_TL = "Paano po kita matutulungan ngayon?";
+var INTAKE_PROMPT_VI = "H\xF4m nay t\xF4i c\xF3 th\u1EC3 gi\xFAp g\xEC cho b\u1EA1n?";
+var INTAKE_PROMPT_AR = "\u0643\u064A\u0641 \u064A\u0645\u0643\u0646\u0646\u064A \u0645\u0633\u0627\u0639\u062F\u062A\u0643\u0645 \u0627\u0644\u064A\u0648\u0645\u061F";
 var DEFAULT_LINE_DESCRIPTION = "non-emergency service line";
 var DEFAULT_GREETING_CONFIG = {
   mode: "stay_on_line",
@@ -47313,8 +47617,14 @@ function interpolateGreeting(template, config) {
 function normalizeGreetingLocale(locale) {
   const raw = (locale ?? "en-US").trim().replace(/_/g, "-");
   if (!raw) return "en-US";
-  if (raw.toLowerCase().startsWith("es")) return "es-US";
-  if (raw.toLowerCase().startsWith("en")) return "en-US";
+  const lower = raw.toLowerCase();
+  if (lower.startsWith("es")) return "es-US";
+  if (lower.startsWith("zh-hk") || lower.startsWith("yue")) return "zh-HK";
+  if (lower.startsWith("zh")) return "zh-CN";
+  if (lower.startsWith("tl") || lower.startsWith("fil")) return "tl-PH";
+  if (lower.startsWith("vi")) return "vi-VN";
+  if (lower.startsWith("ar")) return "ar-AE";
+  if (lower.startsWith("en")) return "en-US";
   return raw;
 }
 function localizedOverride(config, locale) {
@@ -47337,8 +47647,17 @@ function buildGreeting(config, locale = "en-US") {
     return interpolateGreeting(config.customGreetingText, config);
   }
   const templateMode2 = config.mode === "hang_up" ? "hang_up" : "stay_on_line";
-  if (normalized === "es-US") {
-    return interpolateGreeting(DEFAULT_ES_GREETING_TEMPLATES[templateMode2], config);
+  const templates = {
+    "es-US": DEFAULT_ES_GREETING_TEMPLATES,
+    "zh-CN": DEFAULT_ZH_CN_GREETING_TEMPLATES,
+    "zh-HK": DEFAULT_ZH_HK_GREETING_TEMPLATES,
+    "tl-PH": DEFAULT_TL_GREETING_TEMPLATES,
+    "vi-VN": DEFAULT_VI_GREETING_TEMPLATES,
+    "ar-AE": DEFAULT_AR_GREETING_TEMPLATES
+  };
+  const localized = templates[normalized];
+  if (localized) {
+    return interpolateGreeting(localized[templateMode2], config);
   }
   return interpolateGreeting(GREETING_TEMPLATES[templateMode2], config);
 }
@@ -47350,16 +47669,53 @@ function buildEscalationAnnouncement(config, locale = "en-US") {
     return interpolateGreeting(config.escalationAnnouncementText, config);
   }
   const normalized = normalizeGreetingLocale(locale);
-  if (normalized === "es-US") {
-    return DEFAULT_ES_ESCALATION_ANNOUNCEMENTS[config.escalationMode];
-  }
+  const announcements = {
+    "es-US": DEFAULT_ES_ESCALATION_ANNOUNCEMENTS,
+    "zh-CN": DEFAULT_ZH_CN_ESCALATION,
+    "zh-HK": DEFAULT_ZH_HK_ESCALATION,
+    "tl-PH": DEFAULT_TL_ESCALATION,
+    "vi-VN": DEFAULT_VI_ESCALATION,
+    "ar-AE": DEFAULT_AR_ESCALATION
+  };
+  const localized = announcements[normalized];
+  if (localized) return localized[config.escalationMode];
   return DEFAULT_ESCALATION_ANNOUNCEMENTS[config.escalationMode];
 }
 function intakePromptForLocale(locale = "en-US") {
-  return normalizeGreetingLocale(locale) === "es-US" ? INTAKE_PROMPT_ES : INTAKE_PROMPT_EN;
+  switch (normalizeGreetingLocale(locale)) {
+    case "es-US":
+      return INTAKE_PROMPT_ES;
+    case "zh-CN":
+      return INTAKE_PROMPT_ZH_CN;
+    case "zh-HK":
+      return INTAKE_PROMPT_ZH_HK;
+    case "tl-PH":
+      return INTAKE_PROMPT_TL;
+    case "vi-VN":
+      return INTAKE_PROMPT_VI;
+    case "ar-AE":
+      return INTAKE_PROMPT_AR;
+    default:
+      return INTAKE_PROMPT_EN;
+  }
 }
 function fallbackGreetingForLocale(locale = "en-US") {
-  return normalizeGreetingLocale(locale) === "es-US" ? FALLBACK_GREETING_ES : FALLBACK_GREETING;
+  switch (normalizeGreetingLocale(locale)) {
+    case "es-US":
+      return FALLBACK_GREETING_ES;
+    case "zh-CN":
+      return FALLBACK_GREETING_ZH_CN;
+    case "zh-HK":
+      return FALLBACK_GREETING_ZH_HK;
+    case "tl-PH":
+      return FALLBACK_GREETING_TL;
+    case "vi-VN":
+      return FALLBACK_GREETING_VI;
+    case "ar-AE":
+      return FALLBACK_GREETING_AR;
+    default:
+      return FALLBACK_GREETING;
+  }
 }
 function checkEscalation(utterance, config, locale = "en-US") {
   const safety = evaluateSafety(utterance);
@@ -47381,8 +47737,19 @@ function templateMode(mode) {
 function withDefaultLocalizedGreetings(config) {
   const mode = templateMode(config.mode);
   const existing = { ...config.localizedGreetings ?? {} };
-  if (!existing["es-US"]?.trim() && !existing.es_US?.trim()) {
-    existing["es-US"] = interpolateGreeting(DEFAULT_ES_GREETING_TEMPLATES[mode], config);
+  const defaults = {
+    "es-US": interpolateGreeting(DEFAULT_ES_GREETING_TEMPLATES[mode], config),
+    "zh-CN": interpolateGreeting(DEFAULT_ZH_CN_GREETING_TEMPLATES[mode], config),
+    "zh-HK": interpolateGreeting(DEFAULT_ZH_HK_GREETING_TEMPLATES[mode], config),
+    "tl-PH": interpolateGreeting(DEFAULT_TL_GREETING_TEMPLATES[mode], config),
+    "vi-VN": interpolateGreeting(DEFAULT_VI_GREETING_TEMPLATES[mode], config),
+    "ar-AE": interpolateGreeting(DEFAULT_AR_GREETING_TEMPLATES[mode], config)
+  };
+  for (const [key, value] of Object.entries(defaults)) {
+    const underscored = key.replace("-", "_");
+    if (!existing[key]?.trim() && !existing[underscored]?.trim()) {
+      existing[key] = value;
+    }
   }
   return { ...config, localizedGreetings: existing };
 }
@@ -47420,6 +47787,26 @@ function greetingSessionAttributes(agencyId, locale, config, now = /* @__PURE__ 
   };
 }
 
+// packages/shared/src/call-assist/lex/provisioning-types.ts
+var CALL_ASSIST_LOCALES = [
+  "en_US",
+  "es_US",
+  "zh_CN",
+  "zh_HK",
+  "tl_PH",
+  "vi_VN",
+  "ar_AE",
+  "fr_CA"
+];
+var MAX_CALL_ASSIST_LOCALES = 8;
+var CALL_ASSIST_911_LANGUAGE_PACK = [
+  "zh_CN",
+  "zh_HK",
+  "tl_PH",
+  "vi_VN",
+  "ar_AE"
+];
+
 // packages/shared/src/call-assist/voice-config.ts
 var callAssistAgencyVoiceConfigSchema = external_exports.object({
   agencyId: external_exports.string().min(1).max(128),
@@ -47434,8 +47821,8 @@ var callAssistAgencyVoiceConfigSchema = external_exports.object({
   carfaxPortalUrl: external_exports.string().trim().max(500).optional(),
   defaultLanguageCode: external_exports.string().trim().min(2).max(16).default("en-US"),
   supportedLanguages: external_exports.array(external_exports.string().trim().min(2).max(16)).max(12).default(["en-US"]),
-  defaultLocale: external_exports.enum(["en_US", "es_US", "zh_CN", "fr_CA"]).optional(),
-  supportedLocales: external_exports.array(external_exports.enum(["en_US", "es_US", "zh_CN", "fr_CA"])).max(4).optional(),
+  defaultLocale: external_exports.enum(CALL_ASSIST_LOCALES).optional(),
+  supportedLocales: external_exports.array(external_exports.enum(CALL_ASSIST_LOCALES)).max(MAX_CALL_ASSIST_LOCALES).optional(),
   lexBotId: external_exports.string().max(64).optional(),
   lexBotAliasId: external_exports.string().max(64).optional(),
   lexBotName: external_exports.string().max(100).optional(),
@@ -48138,6 +48525,13 @@ var MISSOURI_SUNSHINE_RETENTION_POLICY = {
 };
 var callAssistRetentionPatchSchema = retentionPolicySchema.partial();
 
+// packages/shared/src/call-assist/connect-live.ts
+var CONNECT_LIVE_LEX_LOCALES = [
+  "en_US",
+  "es_US",
+  ...CALL_ASSIST_911_LANGUAGE_PACK
+];
+
 // packages/shared/src/call-assist/cad-types.ts
 var CAD_PROVIDER_IDS = [
   "mock",
@@ -48404,7 +48798,7 @@ var callAssistOnboardingInputSchema = external_exports.object({
   nonEmergencyWebsite: external_exports.string().trim().max(200).optional(),
   onlineReportPortalUrl: external_exports.string().trim().max(500).optional(),
   carfaxPortalUrl: external_exports.string().trim().max(500).optional(),
-  supportedLocales: external_exports.array(external_exports.enum(["en_US", "es_US", "zh_CN", "fr_CA"])).min(1).max(4),
+  supportedLocales: external_exports.array(external_exports.enum(CALL_ASSIST_LOCALES)).min(1).max(MAX_CALL_ASSIST_LOCALES),
   aiDisclosureRequired: external_exports.boolean(),
   customVocabularyPhrases: external_exports.array(external_exports.string().min(1).max(100)).max(500).optional()
 });
@@ -48420,7 +48814,7 @@ var callAssistVoiceConfigPatchSchema = external_exports.object({
   onlineReportPortalUrl: external_exports.string().trim().max(500).optional(),
   carfaxPortalUrl: external_exports.string().trim().max(500).optional(),
   disclosureText: external_exports.string().trim().min(1).max(2e3).optional(),
-  supportedLocales: external_exports.array(external_exports.enum(["en_US", "es_US", "zh_CN", "fr_CA"])).min(1).max(4).optional()
+  supportedLocales: external_exports.array(external_exports.enum(CALL_ASSIST_LOCALES)).min(1).max(MAX_CALL_ASSIST_LOCALES).optional()
 });
 var callAssistRmsFileBodySchema = external_exports.object({
   sessionId: external_exports.string().min(1).max(128),
@@ -49155,6 +49549,46 @@ var translateSessionCloseRequestSchema = external_exports.object({
   cadWriteback: external_exports.boolean().optional(),
   writebackNote: external_exports.boolean().optional(),
   notes: external_exports.string().max(4e3).optional()
+});
+
+// packages/shared/src/rapid-vision/schemas.ts
+var visionCameraSearchRequestSchema = external_exports.object({
+  radiusMeters: external_exports.number().int().min(76).max(1609).optional(),
+  includeOffline: external_exports.boolean().optional()
+});
+var visionRequestAccessBodySchema = external_exports.object({
+  durationMinutes: external_exports.number().int().min(5).max(60).optional()
+});
+var visionSettingsPatchSchema = external_exports.object({
+  enabled: external_exports.boolean().optional(),
+  cameraSearchRadiusMeters: external_exports.number().int().min(76).max(1609).optional(),
+  defaultAccessDurationMinutes: external_exports.number().int().min(5).max(60).optional(),
+  aiAnalysisLevel: external_exports.enum(["NORMAL", "ELEVATED", "CRITICAL"]).optional(),
+  aiWriterIntervalSeconds: external_exports.union([external_exports.literal(10), external_exports.literal(30), external_exports.literal(60)]).optional(),
+  enableCallerVideoAnalysis: external_exports.boolean().optional(),
+  retentionDays: external_exports.number().int().min(1).max(365).optional()
+});
+var visionTranscriptQuerySchema = external_exports.object({
+  sessionId: external_exports.string().min(1).max(128).optional(),
+  limit: external_exports.coerce.number().int().min(1).max(200).optional()
+});
+var visionTranscriptSessionBodySchema = external_exports.object({
+  incidentId: external_exports.string().min(1).max(128)
+});
+var visionTranscriptSegmentSchema = external_exports.object({
+  resultId: external_exports.string().min(1),
+  incidentId: external_exports.string().min(1),
+  agencyId: external_exports.string().min(1),
+  sessionId: external_exports.string().min(1),
+  cameraId: external_exports.string().min(1),
+  speakerLabel: external_exports.string().min(1),
+  transcript: external_exports.string(),
+  isPartial: external_exports.boolean(),
+  startTime: external_exports.number(),
+  endTime: external_exports.number(),
+  confidence: external_exports.number().min(0).max(1),
+  language: external_exports.string().min(2),
+  timestamp: external_exports.string().min(1)
 });
 
 // packages/shared/src/alerts/schemas.ts

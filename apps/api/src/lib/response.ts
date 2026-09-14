@@ -61,6 +61,17 @@ export function jsonStatus<T>(body: T, statusCode: number) {
   };
 }
 
+export function tooManyRequests(message: string, retryAfterSeconds = 60) {
+  return {
+    statusCode: 429,
+    headers: {
+      "Content-Type": "application/json",
+      "Retry-After": String(retryAfterSeconds),
+    },
+    body: JSON.stringify({ error: message, code: "RATE_LIMITED" }),
+  };
+}
+
 export function forbidden(message = "Forbidden") {
   return ok({ error: message }, 403);
 }

@@ -58,7 +58,7 @@ From the repo root:
 
 ```bash
 ./scripts/package-macos-dmg.sh              # → dist/RapidCortex.dmg (local archive signing only)
-./scripts/publish-macos-dmg.sh prod 1.0.0   # package + S3 + latest.json
+./scripts/publish-macos-dmg.sh prod 1.0.3   # package + S3 + latest.json
 ```
 
 ### Manual DMG from an Xcode-exported `.app`
@@ -70,9 +70,9 @@ If you already exported **`RapidCortexDesktop.app`** (e.g. to the Desktop), buil
 hdiutil create -volname "Rapid Cortex" \
   -srcfolder ~/Desktop/RapidCortexDesktop.app \
   -ov -format UDZO \
-  ~/Desktop/RapidCortex-1.0.1.dmg
+  ~/Desktop/RapidCortex-1.0.3.dmg
 
-./scripts/upload-desktop-downloads.sh prod mac ~/Desktop/RapidCortex-1.0.1.dmg 1.0.1
+./scripts/upload-desktop-downloads.sh prod mac ~/Desktop/RapidCortex-1.0.3.dmg 1.0.3
 ```
 
 Requires **`jq`**, AWS CLI, and the **`rapid-cortex-downloads-<env>`** stack (see `docs/desktop-downloads.md`). For production channels, prefer **Developer ID + notarization** first (`macos-distribution-build.sh`); Gatekeeper will treat an unsigned or un-notarized DMG harshly on end-user Macs.

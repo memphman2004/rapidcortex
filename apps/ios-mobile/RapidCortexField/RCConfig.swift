@@ -37,6 +37,10 @@ enum RCConfig {
 
     static let platformAgencyId = "__platform__"
 
+    /// Public legal pages (must be reachable without signing in).
+    static let privacyPolicyURL = URL(string: "https://www.rapidcortex.us/privacy")!
+    static let termsOfUseURL = URL(string: "https://www.rapidcortex.us/terms")!
+
     static func isTenantAgencyId(_ raw: String?) -> Bool {
         let id = (raw ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
         if id.isEmpty { return false }

@@ -969,42 +969,30 @@ List background: `.scrollContentBackground(.hidden)` + ZStack with `RCTheme.bg`
 - Build: `1` (increment on every upload)
 
 ### App Store Metadata
-- Name: `Rapid Cortex Field`
+- Name: `Rapid Cortex Mobile`
 - Subtitle: `NFC & QR Code Installer`
 - Category: Business
 - Age Rating: 4+
 - Price: Free
+- Availability: Unlisted App Distribution
+- Privacy policy: `https://www.rapidcortex.us/privacy`
 
 ### Privacy Nutrition Label
-Data collected: Email Address (authentication only), linked to identity.
-Nothing else.
+Data collected: Email Address (authentication only), linked to identity, App Functionality.
+Not used for tracking. Nothing else.
 
 ### App Review Account
-Create in Cognito before submission:
+Seed with `npx tsx scripts/seed-role-test-users.ts` (production Cognito pool the iOS app uses):
 - Email: `apple-review@rapidcortex.us`
-- Role: `agencyadmin`
+- Role: `campus_admin` (QR / NFC installer — not 911)
 - MFA: disabled for this account only
-- Agency: seeded with 3–5 test codes across multiple zones
+- Agency: `test-campus-uga` with at least one seeded code (`bash scripts/seed-qr-nfc-test-campus.sh`)
+- Password: `RAPID_CORTEX_TEST_TEMP_PASSWORD` (do not commit)
+
+Do **not** give Apple `agencyadmin` on `test-agency` (type `pilot`) — that account opens the 911 field-command UI instead of Codes.
 
 ### App Review Notes
-```
-B2B tool for Rapid Cortex platform administrators.
-Accounts are provisioned during onboarding — no self-registration.
-
-DEMO ACCOUNT:
-Email:    apple-review@rapidcortex.us
-Password: [set before submission]
-MFA:      Disabled
-
-TEST STEPS:
-1. Sign in
-2. Tap a code to view QR and stats
-3. Tap Export QR → share sheet
-4. Tap Write NFC → NFC session launches (hold to NTAG213 sticker)
-5. Tap + → create a new code
-
-NFC: Uses NDEF writing to program NTAG213 safety reporting stickers.
-```
+Paste-ready copy lives in `apps/ios-mobile/README.md` (Apple review). Keep login copy, Settings legal links, and those notes aligned.
 
 ---
 

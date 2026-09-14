@@ -100,6 +100,7 @@ export * from "./ng911/index.js";
 export * from "./call-assist/index.js";
 export * from "./translate/index.js";
 export * from "./rapid-vision/index.js";
+export * from "./rapid-cortex-video/index.js";
 export * from "./alerts/index.js";
 export * from "./physical-security/index.js";
 export * from "./location/index.js";

@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { Suspense, useMemo, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { Plus } from "lucide-react";
 import type { TransitAlertLevel, TransitOperator } from "rapid-cortex-shared";
@@ -28,6 +28,8 @@ import { useTransitOpsData } from "./use-transit-ops-data";
 import { T } from "./transit-theme";
 import { QRNFCManager } from "@/components/qr-nfc/qr-nfc-manager";
 import { TransitUsersClient } from "./transit-users-client";
+import { VideoWallClient } from "@/components/video/video-wall-client";
+import { isRcVideoEnabled } from "@/lib/runtime-flags";
 
 export function TransitConsoleHome(props: {
   agencyId: string;
@@ -53,6 +55,7 @@ export function TransitConsoleHome(props: {
   }, [pathname]);
 
   const view = useMemo(() => {
+    if (pathname.includes("/video-wall")) return "video-wall";
     if (pathname.includes("/cameras")) return "cameras";
     if (pathname.includes("/qr-codes")) return "qr-codes";
     if (pathname.includes("/users")) return "users";
@@ -216,6 +219,17 @@ export function TransitConsoleHome(props: {
                 userRole={props.userRole}
                 vehicles={data.vehicles}
               />
+            ) : null}
+            {view === "video-wall" ? (
+              isRcVideoEnabled() ? (
+                <Suspense fallback={<p style={{ color: T.textSecondary, fontSize: 13 }}>Loading video wall…</p>}>
+                  <VideoWallClient agencyId={props.agencyId} apiVertical="transit" />
+                </Suspense>
+              ) : (
+                <p style={{ color: T.textSecondary, fontSize: 13 }}>
+                  Rapid Cortex Video is disabled.
+                </p>
+              )
             ) : null}
             {view === "settings" ? (
               <p style={{ color: T.textSecondary, fontSize: 13 }}>
