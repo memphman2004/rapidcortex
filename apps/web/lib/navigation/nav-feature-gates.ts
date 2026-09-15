@@ -26,11 +26,14 @@ import {
   isSalesAutomationUiEnabled,
   isConferencesUiEnabled,
   isSalesLeadsUiEnabled,
+  isSupportFormUiEnabled,
   isSlaBacklogEnabled,
   isTransitCamerasUiEnabled,
   isRcVideoEnabled,
+  isAutomatedInvoicesEnabled,
   isVerticalOnboardingEnabled,
   isWarRoomsEnabled,
+  isScenarioCenterUiEnabled,
 } from "@/lib/runtime-flags";
 import { isVerticalEnabled } from "@/lib/features";
 
@@ -71,6 +74,8 @@ export function isNavFeatureEnabled(feature: string): boolean {
       return isVerticalOnboardingEnabled();
     case "salesLeads":
       return isSalesLeadsUiEnabled();
+    case "supportForm":
+      return isSupportFormUiEnabled();
     case "psapProspects":
       return isPsapProspectsUiEnabled();
     case "rapidIq":
@@ -103,6 +108,10 @@ export function isNavFeatureEnabled(feature: string): boolean {
       return isVerticalEnabled("transit") && isTransitCamerasUiEnabled();
     case "rcVideo":
       return isRcVideoEnabled();
+    case "automatedInvoices":
+      return isAutomatedInvoicesEnabled();
+    case "scenarioCenter":
+      return isScenarioCenterUiEnabled();
     default:
       return true;
   }

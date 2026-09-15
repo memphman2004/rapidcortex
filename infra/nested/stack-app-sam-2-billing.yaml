@@ -1,0 +1,281 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Transform: AWS::Serverless-2016-10-31
+Description: >
+  Rapid Cortex — automated monthly invoices (orchestrator, FIFO generator, HTTP API on AppSam4 HttpApi).
+
+Parameters:
+  DeploymentStage:
+    Type: String
+    AllowedValues: [dev, staging, prod, pilot]
+  HttpApiId:
+    Type: String
+  AutomatedInvoicesTable:
+    Type: String
+  AgencyBillingConfigsTable:
+    Type: String
+  UsageSnapshotsTable:
+    Type: String
+  BillingRunsTable:
+    Type: String
+  AuditTable:
+    Type: String
+  ImportedCognitoUserPoolId:
+    Type: String
+  ImportedCognitoWebClientId:
+    Type: String
+  ManagedPolicyNamePrefix:
+    Type: String
+    Default: rapid-cortex
+  FromEmail:
+    Type: String
+    Default: billing@rapidcortex.us
+  AutoSendInvoices:
+    Type: String
+    AllowedValues: ["true", "false"]
+    Default: "false"
+  EnableAutomatedInvoices:
+    Type: String
+    AllowedValues: ["true", "false"]
+    Default: "true"
+
+Globals:
+  Function:
+    Runtime: nodejs20.x
+    Timeout: 30
+    MemorySize: 512
+    Environment:
+      Variables:
+        DEPLOYMENT_STAGE: !Ref DeploymentStage
+        ALLOW_UNAUTHENTICATED_API: "false"
+        ENABLE_AUTOMATED_INVOICES: !Ref EnableAutomatedInvoices
+        AUTO_SEND_INVOICES: !Ref AutoSendInvoices
+        AUTOMATED_INVOICES_TABLE: !Ref AutomatedInvoicesTable
+        AGENCY_BILLING_CONFIGS_TABLE: !Ref AgencyBillingConfigsTable
+        USAGE_SNAPSHOTS_TABLE: !Ref UsageSnapshotsTable
+        BILLING_RUNS_TABLE: !Ref BillingRunsTable
+        AUDIT_TABLE: !Ref AuditTable
+        COGNITO_USER_POOL_ID: !Ref ImportedCognitoUserPoolId
+        COGNITO_CLIENT_ID: !Ref ImportedCognitoWebClientId
+        COGNITO_REGION: !Ref AWS::Region
+        BILLING_SES_SENDER_EMAIL: !Ref FromEmail
+        FROM_EMAIL: !Ref FromEmail
+        SES_CONFIGURATION_SET_NAME: !Sub "rapid-cortex-transactional-${DeploymentStage}"
+
+Resources:
+  InvoiceJobsDlq:
+    Type: AWS::SQS::Queue
+    Properties:
+      QueueName: !Sub "rc-invoice-jobs-dlq-${DeploymentStage}.fifo"
+      FifoQueue: true
+      MessageRetentionPeriod: 1209600
+      SqsManagedSseEnabled: true
+
+  InvoiceJobsQueue:
+    Type: AWS::SQS::Queue
+    Properties:
+      QueueName: !Sub "rc-invoice-jobs-${DeploymentStage}.fifo"
+      FifoQueue: true
+      ContentBasedDeduplication: false
+      VisibilityTimeout: 360
+      SqsManagedSseEnabled: true
+      RedrivePolicy:
+        deadLetterTargetArn: !GetAtt InvoiceJobsDlq.Arn
+        maxReceiveCount: 5
+
+  AppManagedPolicyAutomatedBilling:
+    Type: AWS::IAM::ManagedPolicy
+    Properties:
+      ManagedPolicyName: !Sub "${ManagedPolicyNamePrefix}-sam-autobill-${DeploymentStage}"
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Sid: AutomatedBillingTables
+            Effect: Allow
+            Action:
+              - dynamodb:GetItem
+              - dynamodb:PutItem
+              - dynamodb:UpdateItem
+              - dynamodb:Query
+              - dynamodb:Scan
+            Resource:
+              - !Sub arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${AutomatedInvoicesTable}
+              - !Sub arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${AutomatedInvoicesTable}/index/*
+              - !Sub arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${AgencyBillingConfigsTable}
+              - !Sub arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${AgencyBillingConfigsTable}/index/*
+              - !Sub arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${UsageSnapshotsTable}
+              - !Sub arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${UsageSnapshotsTable}/index/*
+              - !Sub arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${BillingRunsTable}
+              - !Sub arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${AuditTable}
+          - Sid: InvoiceJobsSqs
+            Effect: Allow
+            Action:
+              - sqs:SendMessage
+              - sqs:ReceiveMessage
+              - sqs:DeleteMessage
+              - sqs:GetQueueAttributes
+              - sqs:ChangeMessageVisibility
+            Resource:
+              - !GetAtt InvoiceJobsQueue.Arn
+              - !GetAtt InvoiceJobsDlq.Arn
+          - Sid: SesSendInvoice
+            Effect: Allow
+            Action:
+              - ses:SendEmail
+              - ses:SendRawEmail
+            Resource:
+              - !Sub arn:${AWS::Partition}:ses:${AWS::Region}:${AWS::AccountId}:identity/${FromEmail}
+              - !Sub arn:${AWS::Partition}:ses:${AWS::Region}:${AWS::AccountId}:identity/rapidcortex.us
+              - !Sub arn:${AWS::Partition}:ses:${AWS::Region}:${AWS::AccountId}:configuration-set/rapid-cortex-transactional-${DeploymentStage}
+
+  BillingOrchestratorFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      FunctionName: !Sub "rc-billing-orchestrator-${DeploymentStage}"
+      CodeUri: ../../apps/api/
+      Handler: dist/handlers/automated-billing/orchestrator.handler
+      Timeout: 60
+      MemorySize: 512
+      Environment:
+        Variables:
+          INVOICE_JOBS_QUEUE_URL: !Ref InvoiceJobsQueue
+      Policies:
+        - !Ref AppManagedPolicyAutomatedBilling
+      Tags:
+        Service: rc-automated-billing
+
+  InvoiceGeneratorFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      FunctionName: !Sub "rc-invoice-generator-${DeploymentStage}"
+      CodeUri: ../../apps/api/
+      Handler: dist/handlers/automated-billing/generator.handler
+      Timeout: 60
+      MemorySize: 512
+      ReservedConcurrentExecutions: 5
+      Policies:
+        - !Ref AppManagedPolicyAutomatedBilling
+      Events:
+        InvoiceJobs:
+          Type: SQS
+          Properties:
+            Queue: !GetAtt InvoiceJobsQueue.Arn
+            BatchSize: 1
+            FunctionResponseTypes:
+              - ReportBatchItemFailures
+      Tags:
+        Service: rc-automated-billing
+
+  AutomatedBillingHttpFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      FunctionName: !Sub "rc-automated-billing-http-${DeploymentStage}"
+      CodeUri: ../../apps/api/
+      Handler: dist/handlers/automated-billing/http.handler
+      Timeout: 20
+      MemorySize: 512
+      Policies:
+        - !Ref AppManagedPolicyAutomatedBilling
+      Tags:
+        Service: rc-automated-billing
+
+  AutomatedBillingHttpIntegration:
+    Type: AWS::ApiGatewayV2::Integration
+    Properties:
+      ApiId: !Ref HttpApiId
+      IntegrationType: AWS_PROXY
+      IntegrationUri: !Sub arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${AutomatedBillingHttpFunction.Arn}/invocations
+      PayloadFormatVersion: "2.0"
+
+  AutomatedBillingHttpInvokePermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !Ref AutomatedBillingHttpFunction
+      Principal: apigateway.amazonaws.com
+      SourceArn: !Sub arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${HttpApiId}/*
+
+  RouteAutomatedInvoicesRoot:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref HttpApiId
+      RouteKey: "ANY /api/billing/automated-invoices"
+      Target: !Sub "integrations/${AutomatedBillingHttpIntegration}"
+      AuthorizationType: NONE
+
+  RouteAutomatedInvoicesProxy:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref HttpApiId
+      RouteKey: "ANY /api/billing/automated-invoices/{proxy+}"
+      Target: !Sub "integrations/${AutomatedBillingHttpIntegration}"
+      AuthorizationType: NONE
+
+  RouteAutomatedBillingConfig:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref HttpApiId
+      RouteKey: "GET /api/billing/automated-config"
+      Target: !Sub "integrations/${AutomatedBillingHttpIntegration}"
+      AuthorizationType: NONE
+
+  RouteAutomatedBillingConfigOptions:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref HttpApiId
+      RouteKey: "OPTIONS /api/billing/automated-config"
+      Target: !Sub "integrations/${AutomatedBillingHttpIntegration}"
+      AuthorizationType: NONE
+
+  SchedulerExecutionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: scheduler.amazonaws.com
+            Action: sts:AssumeRole
+      Policies:
+        - PolicyName: InvokeOrchestrator
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action: lambda:InvokeFunction
+                Resource: !GetAtt BillingOrchestratorFunction.Arn
+
+  MonthlyBillingSchedule:
+    Type: AWS::Scheduler::Schedule
+    Properties:
+      Name: !Sub "rc-monthly-billing-${DeploymentStage}"
+      Description: Last calendar day of month at 18:00 America/New_York (DST-safe end of business day)
+      ScheduleExpression: "cron(0 18 L * ? *)"
+      ScheduleExpressionTimezone: America/New_York
+      FlexibleTimeWindow:
+        Mode: FLEXIBLE
+        MaximumWindowInMinutes: 30
+      State: ENABLED
+      Target:
+        Arn: !GetAtt BillingOrchestratorFunction.Arn
+        RoleArn: !GetAtt SchedulerExecutionRole.Arn
+        RetryPolicy:
+          MaximumRetryAttempts: 2
+          MaximumEventAgeInSeconds: 3600
+
+Outputs:
+  InvoiceJobsQueueUrl:
+    Value: !Ref InvoiceJobsQueue
+  BillingOrchestratorArn:
+    Value: !GetAtt BillingOrchestratorFunction.Arn
+  MonthlyBillingScheduleName:
+    Value: !Ref MonthlyBillingSchedule

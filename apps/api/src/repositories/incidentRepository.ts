@@ -674,6 +674,68 @@ export class IncidentRepository {
     );
   }
 
+  async patchScenarioDemoFields(
+    incidentId: string,
+    agencyId: string,
+    fields: {
+      status?: Incident["status"];
+      summary?: string;
+      demoCameraIds?: string[];
+      cadUnits?: string[] | null;
+    },
+  ): Promise<void> {
+    const now = new Date().toISOString();
+    const sets: string[] = ["updatedAt = :u"];
+    const vals: Record<string, unknown> = { ":u": now, ":agencyId": agencyId };
+    const names: Record<string, string> = {};
+    if (fields.status !== undefined) {
+      sets.push("#st = :st");
+      vals[":st"] = fields.status;
+      names["#st"] = "status";
+    }
+    if (fields.summary !== undefined) {
+      sets.push("summary = :su");
+      vals[":su"] = fields.summary;
+    }
+    if (fields.demoCameraIds !== undefined) {
+      sets.push("demoCameraIds = :cams");
+      vals[":cams"] = fields.demoCameraIds;
+    }
+    if (fields.cadUnits !== undefined) {
+      sets.push("cadUnits = :cu");
+      vals[":cu"] = fields.cadUnits;
+    }
+    await ddb.send(
+      new UpdateCommand({
+        TableName: env.incidentsTable,
+        Key: { incidentId },
+        UpdateExpression: `SET ${sets.join(", ")}`,
+        ConditionExpression: "agencyId = :agencyId",
+        ...(Object.keys(names).length ? { ExpressionAttributeNames: names } : {}),
+        ExpressionAttributeValues: vals,
+      }),
+    );
+  }
+
+  async deleteDemoIncident(agencyId: string, incidentId: string): Promise<boolean> {
+    try {
+      await ddb.send(
+        new DeleteCommand({
+          TableName: env.incidentsTable,
+          Key: { incidentId },
+          ConditionExpression:
+            "agencyId = :a AND isDemoIncident = :t AND (attribute_not_exists(legalHold) OR legalHold = :f)",
+          ExpressionAttributeValues: { ":a": agencyId, ":t": true, ":f": false },
+        }),
+      );
+      return true;
+    } catch (e: unknown) {
+      const name = e && typeof e === "object" && "name" in e ? String((e as { name?: string }).name) : "";
+      if (name === "ConditionalCheckFailedException") return false;
+      throw e;
+    }
+  }
+
   async deleteIfNotOnLegalHold(incidentId: string): Promise<boolean> {
     try {
       await ddb.send(

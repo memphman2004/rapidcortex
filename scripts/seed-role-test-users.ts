@@ -109,6 +109,14 @@ const ACCOUNTS: TestRow[] = [
     disableMfa: true,
   },
   {
+    email: "appreviewer@rapidcortex.us",
+    customRole: "venue_admin",
+    agencyId: "test-venue-mbs",
+    cognitoGroup: "venue_admin",
+    agencyVertical: "venue",
+    disableMfa: true,
+  },
+  {
     email: "campus-admin@appsondemand.net",
     customRole: "campus_admin",
     agencyId: "test-campus-uga",

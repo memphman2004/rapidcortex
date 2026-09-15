@@ -693,6 +693,24 @@ async function main() {
     );
   }
 
+  // Scenario Center — production agency IDs must never seed (403 allowlist or 503 flag off)
+  const scenarioApi = API_BASE_2;
+  if (!scenarioApi || !BEARER) {
+    console.log("SKIP — scenario_api_prod_blocked: set PILOT_API_BASE_2 + PILOT_BEARER_TOKEN");
+    results.push({ id: "scenario_api_prod_blocked", pass: true, detail: "SKIP_NO_API_OR_BEARER" });
+  } else {
+    const prodBlock = await jsonFetch(`${scenarioApi}/api/demo/scenarios/campus-medical-emergency`, {
+      method: "POST",
+      headers: { authorization: `Bearer ${BEARER}`, "Content-Type": "application/json" },
+      body: JSON.stringify({ agencyId: "some-real-production-agency" }),
+    });
+    results.push(
+      prodBlock.status === 403 || prodBlock.status === 503
+        ? pass("scenario_api_prod_blocked")
+        : fail("scenario_api_prod_blocked", `Expected 403 or 503, got ${prodBlock.status}`),
+    );
+  }
+
   // 14 — App vs www host routing (prod SSR deploy guard; set PILOT_APP_ORIGIN + PILOT_WWW_ORIGIN)
   if (APP_ORIGIN && WWW_ORIGIN) {
     const hostChecks: Array<{

@@ -356,6 +356,16 @@ cmd_status() {
     --query 'AccountAttributes[?Name==`ACCOUNT_TIER`].Value' --output text)"
   log "Account tier: ${tier:-unknown}"
 
+  log "Spend limits:"
+  "${SMS[@]}" describe-spend-limits \
+    --query 'SpendLimits[].{Name:Name,Enforced:EnforcedLimit,Max:MaxLimit,Overridden:Overridden}' \
+    --output table
+
+  log "Origination numbers:"
+  "${SMS[@]}" describe-phone-numbers \
+    --query 'PhoneNumbers[].{Number:PhoneNumber,Type:NumberType,Status:Status,TwoWay:TwoWayEnabled}' \
+    --output table
+
   if [[ "${tier}" == "SANDBOX" ]]; then
     log ""
     log "  SANDBOX only delivers to verified destination numbers. Production access is a separate"
@@ -366,6 +376,9 @@ cmd_status() {
     "${SMS[@]}" describe-verified-destination-numbers \
       --query 'VerifiedDestinationNumbers[].{Number:DestinationPhoneNumber,Status:Status}' \
       --output table
+  elif [[ "${tier}" == "PRODUCTION" ]]; then
+    log "PRODUCTION: destination verification is not required. Confirm TEXT EnforcedLimit is the approved cap"
+    log "(\$50 in us-east-1 as of 2026-09-14) via the spend table above."
   fi
 }
 

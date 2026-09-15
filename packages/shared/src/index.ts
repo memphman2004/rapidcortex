@@ -19,6 +19,7 @@ export {
   listDemoScenarioRows,
   type DemoScenarioCatalogRow,
 } from "./demo-scenario-catalog.js";
+export * from "./demo/scenario-types.js";
 export * from "./tenancy/index.js";
 export * from "./auth/rapid-cortex-roles.js";
 export * from "./auth/vertical-routing.js";
@@ -98,6 +99,7 @@ export * from "./safe-sound/index.js";
 export * from "./rcs/index.js";
 export * from "./ng911/index.js";
 export * from "./call-assist/index.js";
+export * from "./support/index.js";
 export * from "./translate/index.js";
 export * from "./rapid-vision/index.js";
 export * from "./rapid-cortex-video/index.js";

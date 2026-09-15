@@ -15,6 +15,7 @@ import {
   marketingWyzeConnectPath,
 } from "@/lib/marketing-links";
 import { MarketingPilotResourcesStrip } from "@/components/marketing/pilot-resources-strip";
+import { NewFeaturesSection } from "@/components/sections/NewFeaturesSection";
 import { SITE_MISSION, SITE_NAME, SITE_SLOGAN } from "@/lib/site";
 import { absoluteUrl, buildOrganizationJsonLd, buildWebsiteJsonLd, buildOgShareImage } from "@/lib/seo";
 
@@ -155,6 +156,8 @@ export default function MarketingHomePage() {
           </p>
         </MarketingHeroAnimated>
       </section>
+
+      <NewFeaturesSection />
 
       <section className="relative z-10 bg-slate-950 mx-auto max-w-6xl px-4 py-16 sm:px-6">
         <h2 className="text-center text-xl font-semibold text-white sm:text-2xl">

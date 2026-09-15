@@ -15,6 +15,7 @@ import {
   postVideoAssistSession,
 } from "@/lib/api";
 import { PhoneInput } from "@/components/ui/phone-input";
+import { callerFacingPublicBaseUrl } from "@/lib/caller-facing-public-base";
 
 const DEFAULT_ICE: RTCConfiguration = {
   iceServers: [{ urls: "stun:stun.l.google.com:19302" }],
@@ -67,7 +68,6 @@ export function VideoAssistPanel({
   const queryClient = useQueryClient();
   const [activeSessionId, setActiveSessionId] = useState<string | null>(null);
   const [phoneE164, setPhoneE164] = useState<string | null>(null);
-  const [publicBase, setPublicBase] = useState("");
   const [showRequest, setShowRequest] = useState(false);
   const [noteText, setNoteText] = useState("");
   const [localErr, setLocalErr] = useState<string | null>(null);
@@ -210,7 +210,7 @@ export function VideoAssistPanel({
         throw new Error("Enter a valid US phone number.");
       }
       const body: Parameters<typeof postVideoAssistSession>[1] = { callerPhoneE164: phoneE164 };
-      const base = publicBase.trim();
+      const base = callerFacingPublicBaseUrl();
       if (base) body.publicAppBaseUrl = base;
       return postVideoAssistSession(incidentId, body);
     },
@@ -348,15 +348,6 @@ export function VideoAssistPanel({
             onChange={setPhoneE164}
             disabled={createMut.isPending}
           />
-          <label className="block text-[10px] font-medium uppercase tracking-wide text-slate-500">
-            Public site base (optional)
-            <input
-              value={publicBase}
-              onChange={(e) => setPublicBase(e.target.value)}
-              placeholder="https://app.example.com"
-              className="mt-1 w-full rounded border border-slate-700 bg-slate-950 px-2 py-1.5 font-mono text-xs text-slate-100"
-            />
-          </label>
           <button
             type="button"
             disabled={createMut.isPending}

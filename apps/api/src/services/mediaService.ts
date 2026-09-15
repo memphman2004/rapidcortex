@@ -498,6 +498,7 @@ export class MediaService {
     const out = await this.requestMedia(incidentId, user, {
       callerPhoneE164: body.callerPhone,
       mediaType,
+      publicAppBaseUrl: body.publicAppBaseUrl,
     });
     return {
       sent: out.smsOutcome.dispatchStatus === "sent",

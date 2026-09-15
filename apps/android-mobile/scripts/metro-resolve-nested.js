@@ -110,21 +110,21 @@ function readPackageVersion(pkgDir) {
 }
 
 /**
- * Prefer the SDK 52 nested install (4.4.x) over a hoisted peer such as 4.26.x
- * that requires RN 0.81 Fabric codegen.
+ * Prefer the SDK 53 nested install (4.11.x) over a hoisted peer such as 4.26.x
+ * that requires a newer RN Fabric codegen.
  *
  * @param {string} projectRoot
  * @param {string} workspaceRoot
  * @returns {string | null}
  */
-function resolveSdk52ScreensDir(projectRoot, workspaceRoot) {
+function resolvePinnedScreensDir(projectRoot, workspaceRoot) {
   const candidates = [
     path.join(projectRoot, 'node_modules', 'react-native-screens'),
     path.join(workspaceRoot, 'node_modules', 'react-native-screens'),
   ];
   for (const dir of candidates) {
     const version = readPackageVersion(dir);
-    if (version && version.startsWith('4.4.')) {
+    if (version && version.startsWith('4.11.')) {
       return dir;
     }
   }
@@ -136,14 +136,14 @@ function resolveSdk52ScreensDir(projectRoot, workspaceRoot) {
  * @param {string} workspaceRoot
  * @returns {string | null}
  */
-function resolveSdk52ReactNativeDir(projectRoot, workspaceRoot) {
+function resolvePinnedReactNativeDir(projectRoot, workspaceRoot) {
   const candidates = [
     path.join(projectRoot, 'node_modules', 'react-native'),
     path.join(workspaceRoot, 'node_modules', 'react-native'),
   ];
   for (const dir of candidates) {
     const version = readPackageVersion(dir);
-    if (version && version.startsWith('0.76.')) {
+    if (version && version.startsWith('0.79.')) {
       return dir;
     }
   }
@@ -211,7 +211,7 @@ function duplicateReactNativeBlockList(chosenDir, projectRoot, workspaceRoot) {
 }
 
 /**
- * Force every `react-native` / `react-native/...` import onto the SDK 52 tree.
+ * Force every `react-native` / `react-native/...` import onto the pinned SDK 53 tree.
  *
  * @param {string} moduleName
  * @param {string | null} rnDir
@@ -274,8 +274,8 @@ module.exports = {
   resolveSharedPackageModule,
   sharedPackageNodeModuleDir,
   readPackageVersion,
-  resolveSdk52ScreensDir,
-  resolveSdk52ReactNativeDir,
+  resolvePinnedScreensDir,
+  resolvePinnedReactNativeDir,
   duplicateReactNativeDirs,
   duplicateReactNativeBlockList,
   resolveReactNativeModule,

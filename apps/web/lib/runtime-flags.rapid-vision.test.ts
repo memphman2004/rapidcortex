@@ -58,3 +58,25 @@ describe("Rapid Vision™ UI flags", () => {
     expect(mod.isRapidVisionWyzeEnabled()).toBe(false);
   });
 });
+
+describe("Rapid Vision™ Scene Intelligence flags", () => {
+  it("defaults on when unset and requires Rapid Vision", async () => {
+    vi.resetModules();
+    vi.stubEnv("NEXT_PUBLIC_ENABLE_RAPID_VISION", "");
+    vi.stubEnv("NEXT_PUBLIC_ENABLE_VISION_AI", "");
+    let mod = await import("./runtime-flags.js");
+    expect(mod.isRapidVisionSceneIntelEnabled()).toBe(true);
+
+    vi.resetModules();
+    vi.stubEnv("NEXT_PUBLIC_ENABLE_RAPID_VISION", "1");
+    vi.stubEnv("NEXT_PUBLIC_ENABLE_VISION_AI", "0");
+    mod = await import("./runtime-flags.js");
+    expect(mod.isRapidVisionSceneIntelEnabled()).toBe(false);
+
+    vi.resetModules();
+    vi.stubEnv("NEXT_PUBLIC_ENABLE_RAPID_VISION", "0");
+    vi.stubEnv("NEXT_PUBLIC_ENABLE_VISION_AI", "1");
+    mod = await import("./runtime-flags.js");
+    expect(mod.isRapidVisionSceneIntelEnabled()).toBe(false);
+  });
+});

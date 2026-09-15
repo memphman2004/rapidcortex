@@ -19,16 +19,12 @@ import { PinpointPanel } from "@/components/dispatch/pinpoint-panel";
 import { SilentTextPanel } from "@/components/dispatch/silent-text-panel";
 import { TranscriptPanel } from "@/components/dispatch/transcript-panel";
 import { VideoAssistPanel } from "@/components/dispatch/video-assist-panel";
+import { CameraAiAlertsPanel } from "@/components/rapid-vision/CameraAiAlertsPanel";
 import { WorkstationPanel } from "@/components/dispatch/workstation-panel";
 import { ModuleDock } from "@/components/dispatch/module-dock";
 import type { DockState } from "@/lib/dispatcher/module-dock";
 import type { WorkstationPanelName } from "@/lib/dispatcher/workstation-prefs";
-import {
-  isIncidentMediaEnabled,
-  isLiveVideoEnabled,
-  isPinpointEnabled,
-  isSilentTextEnabled,
-} from "@/lib/runtime-flags";
+import { isIncidentMediaEnabled, isLiveVideoEnabled, isPinpointEnabled, isRapidVisionSceneIntelEnabled, isSilentTextEnabled } from "@/lib/runtime-flags";
 
 function PanelUnavailable({ message }: { message: string }) {
   return <p className="text-[12px] text-[var(--rc-text-muted)]">{message}</p>;
@@ -300,6 +296,20 @@ export function DispatcherIncidentWorkstationBody({
                   <DispatcherIncidentMapPanel incidentId={incidentId} incident={incident} />
                 </div>
               </section>
+            ),
+          },
+          {
+            key: "camera_ai",
+            label: "Camera AI Alerts",
+            body: panel(
+              "camera_ai",
+              "Camera AI alerts",
+              isRapidVisionSceneIntelEnabled() ? (
+                <CameraAiAlertsPanel />
+              ) : (
+                <PanelUnavailable message="Camera AI alerts are not enabled." />
+              ),
+              { badge: "LIVE", bodyClassName: "!p-0 flex flex-col min-h-0" },
             ),
           },
         ]}

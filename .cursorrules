@@ -329,9 +329,10 @@ Agency type drives vertical routing and product feature access. Always keep in s
 5. **Never use `h-auto w-full` on header logos** — overrides height constraints and blows up layout
 6. **Never declare wrong `width`/`height` on `<Image>` with `unoptimized: true`** — browser uses declared dimensions literally
 7. **Never use `images: { unoptimized: true }` and skip actual PNG dimension verification**
-8. **Never create DynamoDB tables in a CloudFormation update if they already exist** — use the parameter workaround or resource import
+8. **Never create DynamoDB tables in a CloudFormation update if they already exist** — use the parameter workaround or resource import. `DeletionPolicy: Retain` leftovers (Nest tokens/consent/citizen-accounts on AppSam4) stay in AWS after rollback; next CREATE is AlreadyExists unless `Existing*` params skip the resource. Retained tables do not pick up GSI/key changes.
 9. **Never bypass `AuthorizationService.canPerform()`** — inline role string comparisons miss agencyId scoping
 10. **Never default new feature flags to off** — operational flags default ON when unset; only CAD write-back is fail-closed. Do not gate live product surfaces behind unset env vars.
+11. **Never put `AWS::NoValue` inside an IAM `Resource:` or `Action:` list** — CloudFormation drops the element, IAM sees `Resource: []`, role CREATE fails (`Policy statement must contain resources`), and `sam validate --lint` stays green. Hoist `!If` to the Statement. Run `python3 scripts/check-iam-novalue-resources.py`.
 
 ---
 

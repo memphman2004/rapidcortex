@@ -1,5 +1,7 @@
 import type { SmsMessageType, SmsProviderMode, SmsSendResult } from "rapid-cortex-shared";
 import { redactE164Phone } from "rapid-cortex-shared";
+import { shouldBlockDemoExternalDispatch } from "../../demo/demo-incident-guards.js";
+import { IncidentRepository } from "../../repositories/incidentRepository.js";
 import { sendWithAwsSms } from "./awsSmsProvider.js";
 import { sendMockSms } from "./mockSmsProvider.js";
 
@@ -109,6 +111,27 @@ export async function sendIncidentMediaLinkSms(
     messageType: SmsMessageType;
   },
 ): Promise<SmsSendResult> {
+  try {
+    const incident = await new IncidentRepository().get(args.incidentId);
+    if (shouldBlockDemoExternalDispatch(incident)) {
+      console.warn("[SMS ADAPTER] Hard-blocked: isDemoIncident=true on record", args.incidentId);
+      return sendMockSms({
+        toPhoneE164: args.toPhoneE164,
+        agencyId: args.agencyId,
+        incidentId: args.incidentId,
+        messageType: args.messageType,
+      });
+    }
+  } catch (err: unknown) {
+    console.warn(
+      JSON.stringify({
+        type: "sms.demo_guard_lookup_failed",
+        incidentId: args.incidentId,
+        error: err instanceof Error ? err.message : String(err),
+      }),
+    );
+  }
+
   if (shouldMock(env)) {
     return sendMockSms({
       toPhoneE164: args.toPhoneE164,

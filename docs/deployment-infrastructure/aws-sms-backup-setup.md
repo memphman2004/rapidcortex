@@ -121,16 +121,33 @@ Outstanding items to complete after approval:
 - [ ] Set per-number `HELP` and `STOP` keyword responses for each agency number.
 - [ ] Keep the registered copy and the runtime replies consistent; carriers can audit that they match.
 
-### Sandbox is a separate gate
+### Account tier and monthly spend (us-east-1)
 
-New accounts start in the **SANDBOX** tier, which delivers only to verified destination numbers. Leaving sandbox is an AWS Support request that is **independent of 10DLC** — start both now, since they run in parallel and sandbox is the faster of the two.
+New accounts start in the **SANDBOX** tier (verified destinations only). Leaving sandbox is an AWS Support request **independent of 10DLC**.
 
-Sandbox does not block testing. Verify a handset and the full send, receive, and delivery-event path can be exercised weeks before the 10DLC number exists:
+**As of 2026-09-14 this account is PRODUCTION.** AWS approved a **$50/month** TEXT spend max in `us-east-1`. Check both the tier and the *enforced* cap — approval of `MaxLimit` does not always raise `EnforcedLimit`:
 
 ```bash
-APPLY=1 ./scripts/setup-aws-10dlc.sh verify +14045551234
-APPLY=1 ./scripts/setup-aws-10dlc.sh confirm +14045551234 123456
+export AWS_PROFILE=rapid-cortex
+./scripts/check-aws-sms-backup.sh --region us-east-1
+
+aws pinpoint-sms-voice-v2 describe-account-attributes --region us-east-1
+aws pinpoint-sms-voice-v2 describe-spend-limits --region us-east-1
 ```
+
+If TEXT `EnforcedLimit` is still `1` after approval:
+
+```bash
+aws pinpoint-sms-voice-v2 set-text-message-spend-limit-override \
+  --monthly-limit 50 \
+  --region us-east-1
+```
+
+Do **not** use `aws pinpoint update-sms-channel` or `aws sms-voice update-phone-number-settings`. Those are classic Pinpoint / a different CLI surface. Rapid Cortex sends with `SendTextMessage` on `pinpoint-sms-voice-v2`.
+
+Sandbox destination verification is optional now. Keep `./scripts/setup-aws-10dlc.sh verify` only if you need a known-good handset on a sandbox region.
+
+Live origination (10DLC, two-way, campaign COMPLETE): **+1 319-835-8230**. Brand and campaign registrations are COMPLETE. AppSam5Stack creates configuration set `${AppName}-sms-${DeploymentStage}` when `AwsSmsConfigurationSetName` is blank, and attaches TEXT_ALL events to `AwsSmsDeliveryEventsTopic`. Extra per-agency numbers are the remaining scale work — not another sandbox ticket.
 
 ## Wiring the AWS resources to Rapid Cortex
 
@@ -143,13 +160,7 @@ The nested stack `infra/nested/stack-app-sam-5.yaml` creates two SNS topics and 
 
 `setup-aws-10dlc.sh wire` attaches both; the console is only needed if you prefer clicking. The topic policy allowing `sms-voice.amazonaws.com` to publish is already created by the stack, scoped by `aws:SourceAccount`.
 
-Then set these at deploy time so the senders pick them up:
-
-```bash
-export AWS_SMS_POOL_ID=pool-xxxxx
-export AWS_SMS_CONFIGURATION_SET_NAME=rapid-cortex-sms
-./scripts/deploy-lean-dev.sh dev --sam5-only
-```
+Then leave `AwsSmsConfigurationSetName` blank at deploy time so stack 5 creates `rapid-cortex-sms-{stage}` and attaches it to every send. Override the parameter only to import an existing set.
 
 If `AWS_SMS_CONFIGURATION_SET_NAME` is unset, sends still work but **no delivery events are emitted** — an accepted send and a carrier-blocked one become indistinguishable, which is exactly the blind spot that hid the undelivered Ring consent SMS.
 
@@ -178,8 +189,8 @@ The same table drives inbound routing, so a number registered to an agency both 
 ## Account tier: sandbox vs production
 
 - Check: `./scripts/setup-aws-10dlc.sh status`, or `aws pinpoint-sms-voice-v2 describe-account-attributes --region us-east-1` and look for `ACCOUNT_TIER`.
-- This account is currently **SANDBOX**, which delivers only to verified destination numbers. See [Sandbox is a separate gate](#sandbox-is-a-separate-gate) — production access is a per-region AWS Support request, unrelated to 10DLC.
-- `scripts/check-aws-sms-backup.sh` reports readiness; `AWS_SMS_CHECK_ALLOW_SANDBOX=1` lets sandbox pass for staging checks.
+- **us-east-1 is PRODUCTION** (sandbox lifted 2026-09-14). TEXT monthly spend is \$50 enforced. Other regions still start in SANDBOX until a separate Support request.
+- `scripts/check-aws-sms-backup.sh` reports tier, spend cap, origination numbers, and optional pool/config-set presence.
 
 ## Observability
 

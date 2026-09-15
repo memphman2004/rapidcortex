@@ -391,6 +391,16 @@ export const env = {
   enableRapidVisionAiWriter: featureEnabled("ENABLE_RAPID_VISION_AI_WRITER"),
   enableRapidVisionRekognition: featureEnabled("ENABLE_RAPID_VISION_REKOGNITION"),
   enableRapidVisionTranscript: featureEnabled("ENABLE_RAPID_VISION_TRANSCRIPT"),
+  /**
+   * Rapid Vision™ AI Scene Intelligence — proactive camera alerts.
+   * Spec alias ENABLE_VISION_AI. Nested under ENABLE_RAPID_VISION. Default on.
+   */
+  enableRapidVisionSceneIntel:
+    featureEnabled("ENABLE_RAPID_VISION") && featureEnabled("ENABLE_VISION_AI"),
+  enableVisionAiClaude: featureEnabled("ENABLE_VISION_AI_CLAUDE"),
+  enableVisionAiThumbnails: featureEnabled("ENABLE_VISION_AI_THUMBNAILS"),
+  enableVisionAiWs: featureEnabled("ENABLE_VISION_AI_WS"),
+  enableVisionAiAdmin: featureEnabled("ENABLE_VISION_AI_ADMIN"),
   /** Rapid Cortex Video — agency-owned VMS wall / DVR. Default on when unset. */
   enableRcVideo: featureEnabled("ENABLE_RC_VIDEO"),
   enableRcVideoAnalytics: featureEnabled("ENABLE_RC_VIDEO_ANALYTICS", false),
@@ -412,6 +422,12 @@ export const env = {
   visionObservationsTable: process.env.VISION_OBSERVATIONS_TABLE?.trim() ?? "",
   visionOwnerConsentTable: process.env.VISION_OWNER_CONSENT_TABLE?.trim() ?? "",
   visionTranscriptsTable: process.env.VISION_TRANSCRIPTS_TABLE?.trim() ?? "",
+  visionEventsTable: process.env.VISION_EVENTS_TABLE?.trim() ?? "",
+  visionSceneClassifyQueueUrl: process.env.VISION_SCENE_CLASSIFY_QUEUE_URL?.trim() ?? "",
+  visionSceneIntelAgencyIds: (process.env.VISION_SCENE_INTEL_AGENCY_IDS ?? "")
+    .split(",")
+    .map((id) => id.trim())
+    .filter(Boolean),
   visionTranscriptWorkerFunction: process.env.VISION_TRANSCRIPT_WORKER_FUNCTION?.trim() ?? "",
   visionTranscriptLanguage: process.env.VISION_TRANSCRIPT_LANGUAGE?.trim() || "en-US",
   /**
@@ -527,6 +543,12 @@ export const env = {
   monetizationInvoicesTable: process.env.MONETIZATION_INVOICES_TABLE?.trim() ?? "",
   billingAuditEventsTable: process.env.BILLING_AUDIT_EVENTS_TABLE?.trim() ?? "",
   salesLeadsTable: process.env.SALES_LEADS_TABLE?.trim() ?? "",
+  /** Web-form + RC Admin ticket board (separate from phone-line rc-support-calls). */
+  ticketsTable: process.env.TICKETS_TABLE?.trim() ?? "",
+  enableSupportForm: featureEnabled("ENABLE_SUPPORT_FORM"),
+  supportEmail: process.env.SUPPORT_EMAIL?.trim() || "support@rapidcortex.us",
+  supportFromEmail: process.env.FROM_EMAIL?.trim() || "noreply@rapidcortex.us",
+  supportPhone: process.env.SUPPORT_PHONE?.trim() || "",
   /** RC Admin Contacts address book (companies + persons). */
   contactCompaniesTable: process.env.CONTACT_COMPANIES_TABLE?.trim() ?? "",
   contactPersonsTable: process.env.CONTACT_PERSONS_TABLE?.trim() ?? "",
@@ -621,6 +643,14 @@ export const env = {
   customersTable: process.env.CUSTOMERS_TABLE?.trim() ?? "",
   serviceCatalogTable: process.env.SERVICE_CATALOG_TABLE?.trim() ?? "",
   invoicesTable: process.env.INVOICES_TABLE?.trim() ?? "",
+  /** Automated monthly invoices (distinct from Stripe-era INVOICES_TABLE). */
+  enableAutomatedInvoices: featureEnabled("ENABLE_AUTOMATED_INVOICES"),
+  /** Fail-closed: drafts only until staging/prod go/no-go. */
+  autoSendInvoices: featureEnabled("AUTO_SEND_INVOICES", false),
+  automatedInvoicesTable: process.env.AUTOMATED_INVOICES_TABLE?.trim() ?? "",
+  agencyBillingConfigsTable: process.env.AGENCY_BILLING_CONFIGS_TABLE?.trim() ?? "",
+  usageSnapshotsTable: process.env.USAGE_SNAPSHOTS_TABLE?.trim() ?? "",
+  billingRunsTable: process.env.BILLING_RUNS_TABLE?.trim() ?? "",
   invoiceItemsTable: process.env.INVOICE_ITEMS_TABLE?.trim() ?? "",
   billingSchedulesTable: process.env.BILLING_SCHEDULES_TABLE?.trim() ?? "",
   paymentRecordsTable: process.env.PAYMENT_RECORDS_TABLE?.trim() ?? "",
@@ -716,6 +746,11 @@ export const env = {
   cadPublicApiBaseUrl: process.env.CAD_PUBLIC_API_BASE_URL?.trim() ?? "",
   /** When true, CAD write-back HTTP routes accept submissions (otherwise 400). */
   cadWritebackEnabled: featureEnabled("CAD_WRITEBACK_ENABLED", false),
+  /**
+   * Scenario Center HTTP (demo seed / QA suite). Fail-closed — must be exactly "true".
+   * Never enable on live production (.env-api-dev / app.rapidcortex.us).
+   */
+  enableScenarioApi: process.env.ENABLE_SCENARIO_API === "true",
   /**
    * CAD-to-CAD event broker. Operational default on when unset.
    * Live vendor HTTP still requires CAD_WRITEBACK_ENABLED; mock is default on.

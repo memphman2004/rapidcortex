@@ -59,6 +59,26 @@ include ':app'
     expect(patchSettingsGradleUseExpoModules(once.contents).changed).toBe(false);
   });
 
+  it("sets expoAutolinking.exclude before useExpoModules() on SDK 53 settings.gradle", () => {
+    const src = `plugins {
+  id("com.facebook.react.settings")
+  id("expo-autolinking-settings")
+}
+expoAutolinking.useExpoModules()
+
+include ':app'
+`;
+    const once = patchSettingsGradleUseExpoModules(src);
+    expect(once.changed).toBe(true);
+    expect(once.contents).toContain(MARKER);
+    expect(once.contents).toContain("expoAutolinking.exclude = [");
+    expect(once.contents).toContain("expoAutolinking.useExpoModules()");
+    for (const name of EXCLUDE) {
+      expect(once.contents).toContain(`"${name}"`);
+    }
+    expect(patchSettingsGradleUseExpoModules(once.contents).changed).toBe(false);
+  });
+
   it("leaves settings.gradle without useExpoModules() unchanged", () => {
     const src = "include ':app'\n";
     const once = patchSettingsGradleUseExpoModules(src);

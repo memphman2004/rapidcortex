@@ -8,6 +8,7 @@ const MAXIMIZABLE = new Set<WorkstationPanelName>([
   "map",
   "intelligence",
   "cad_entry",
+  "camera_ai",
 ]);
 
 export function WorkstationPanel({

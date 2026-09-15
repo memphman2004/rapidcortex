@@ -16,9 +16,11 @@ import {
   Activity, BarChart3, Bed, LayoutDashboard, Map, Route, Settings, Users,
 } from "lucide-react";
 import { HelpButton } from "@/components/help/help-button";
+import { SupportHelpButton } from "@/components/support/SupportHelpButton";
 import { HelpChrome } from "@/components/help/help-chrome";
 import { ThemeProvider, useThemeRoot } from "@/lib/theme/theme-context";
 import { ThemeToggle } from "@/components/ui/ThemeToggle";
+import { useSession } from "@/components/auth/session-context";
 import {
   isHospitalAdminRole,
   isHospitalCoordinatorRole,
@@ -58,6 +60,7 @@ export function HospitalAdminLayout(props: Props) {
 
 function HospitalAdminLayoutInner({ children, role, facilityName }: Props) {
   const pathname = usePathname();
+  const { user } = useSession();
   const isAdmin = isHospitalAdminRole(role);
   const isCoordinator = isHospitalCoordinatorRole(role);
   const badge = hospitalRoleBadge(role);
@@ -95,6 +98,7 @@ function HospitalAdminLayoutInner({ children, role, facilityName }: Props) {
             </div>
             <ThemeToggle variant="tailwind" />
             <HelpButton />
+            <SupportHelpButton user={user} userRole={role} />
           </div>
         </div>
 

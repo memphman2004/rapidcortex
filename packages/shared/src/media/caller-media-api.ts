@@ -10,6 +10,8 @@ export const callerMediaSendLinkBodySchema = z.object({
     .max(24)
     .regex(/^\+[1-9]\d{6,22}$/, "Use E.164 format with leading +"),
   mediaType: callerMediaTypeSchema,
+  /** Optional override for the public site root (otherwise server env). */
+  publicAppBaseUrl: z.string().url().max(500).optional(),
 });
 export type CallerMediaSendLinkBody = z.infer<typeof callerMediaSendLinkBodySchema>;
 

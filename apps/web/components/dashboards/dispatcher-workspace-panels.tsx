@@ -15,6 +15,7 @@ import {
 import { useJurisdictionLink } from "@/lib/jurisdiction-context";
 import { isIncidentMediaEnabled } from "@/lib/runtime-flags";
 import { PhoneInput } from "@/components/ui/phone-input";
+import { callerFacingPublicBaseUrl } from "@/lib/caller-facing-public-base";
 import { StatusBadge } from "./status-badge";
 
 export function LiveCallWorkspace({ children }: { children: React.ReactNode }) {
@@ -154,7 +155,11 @@ export function CallerMediaPanel({
     setBusy(true);
     setError(null);
     try {
-      await postCallerMediaSendLink(incidentId, { callerPhone: phoneE164, mediaType });
+      await postCallerMediaSendLink(incidentId, {
+        callerPhone: phoneE164,
+        mediaType,
+        publicAppBaseUrl: callerFacingPublicBaseUrl() || undefined,
+      });
       setShowPhone(null);
       await qc.invalidateQueries({ queryKey: ["caller-media", incidentId] });
     } catch (e) {

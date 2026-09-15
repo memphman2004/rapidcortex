@@ -6,6 +6,14 @@ vi.mock("./awsSmsProvider.js", () => ({
   sendWithAwsSms: vi.fn(),
 }));
 
+vi.mock("../../repositories/incidentRepository.js", () => ({
+  IncidentRepository: class {
+    async get() {
+      return null;
+    }
+  },
+}));
+
 const baseEnv: SmsFactoryEnv = {
   smsProvider: "aws",
   deploymentStage: "prod",

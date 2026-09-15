@@ -1,4 +1,5 @@
 import {
+  DescribePhoneNumbersCommand,
   PinpointSMSVoiceV2Client,
   SendTextMessageCommand,
 } from "@aws-sdk/client-pinpoint-sms-voice-v2";
@@ -27,6 +28,74 @@ function clientFor(region: string): PinpointSMSVoiceV2Client {
 /** E.164: leading +, then 2–15 digits (ITU max length). */
 function isE164(phone: string): boolean {
   return /^\+[1-9]\d{1,14}$/.test(phone);
+}
+
+/**
+ * IAM for `SendTextMessage` is scoped to `phone-number/*` ARNs. Passing E.164 as
+ * OriginationIdentity is AccessDenied for this account (CLI confirmed 2026-09-14).
+ * PhoneNumberId (`phone-…`) authorizes. Cache so a send burst is not a describe burst.
+ */
+const PHONE_ID_CACHE_TTL_MS = 10 * 60 * 1000;
+const phoneIdCache = new Map<string, { id: string | null; expiresAt: number }>();
+
+/** Test seam — Lambda containers are long-lived, so the cache must be clearable. */
+export function resetAwsSmsPhoneIdCache(): void {
+  phoneIdCache.clear();
+}
+
+function cacheKey(region: string, e164: string): string {
+  return `${region}#${e164}`;
+}
+
+function rememberPhoneId(region: string, e164: string, id: string | null): void {
+  phoneIdCache.set(cacheKey(region, e164), { id, expiresAt: Date.now() + PHONE_ID_CACHE_TTL_MS });
+}
+
+async function phoneNumberIdForE164(region: string, e164: string): Promise<string | null> {
+  const cached = phoneIdCache.get(cacheKey(region, e164));
+  if (cached && cached.expiresAt > Date.now()) return cached.id;
+
+  try {
+    let nextToken: string | undefined;
+    for (let page = 0; page < 5; page += 1) {
+      const out = await clientFor(region).send(
+        new DescribePhoneNumbersCommand(nextToken ? { NextToken: nextToken } : {}),
+      );
+      for (const n of out.PhoneNumbers ?? []) {
+        const number = n.PhoneNumber?.trim();
+        if (!number) continue;
+        const id = n.Status === "ACTIVE" && n.PhoneNumberId?.trim() ? n.PhoneNumberId.trim() : null;
+        rememberPhoneId(region, number, id);
+      }
+      nextToken = out.NextToken?.trim() || undefined;
+      const hit = phoneIdCache.get(cacheKey(region, e164));
+      if (hit && hit.expiresAt > Date.now() && hit.id) return hit.id;
+      if (!nextToken) break;
+    }
+  } catch (err) {
+    console.error(
+      JSON.stringify({
+        type: "outbound.sms",
+        event: "origination_phone_id_lookup_failed",
+        error: err instanceof Error ? err.message : String(err),
+      }),
+    );
+    return null;
+  }
+
+  if (!phoneIdCache.has(cacheKey(region, e164))) rememberPhoneId(region, e164, null);
+  return phoneIdCache.get(cacheKey(region, e164))?.id ?? null;
+}
+
+/**
+ * IAM-safe origination identity. E.164 is mapped to PhoneNumberId when AWS has that number;
+ * pool ids and phone-number ids pass through.
+ */
+async function originationIdentityForIam(region: string, identity?: string): Promise<string | undefined> {
+  const trimmed = identity?.trim();
+  if (!trimmed) return undefined;
+  if (!isE164(trimmed)) return trimmed;
+  return (await phoneNumberIdForE164(region, trimmed)) ?? trimmed;
 }
 
 export type AwsSmsErrorClassification = {
@@ -181,6 +250,7 @@ export async function sendWithAwsSms(args: {
   }
 
   const { originationIdentity, senderScope } = resolveOriginationIdentity(args);
+  const iamOriginationIdentity = await originationIdentityForIam(args.region, originationIdentity);
 
   try {
     const out = await clientFor(args.region).send(
@@ -188,7 +258,7 @@ export async function sendWithAwsSms(args: {
         DestinationPhoneNumber: args.toPhoneE164,
         MessageBody: args.messageBody,
         MessageType: "TRANSACTIONAL",
-        OriginationIdentity: originationIdentity,
+        OriginationIdentity: iamOriginationIdentity,
         ConfigurationSetName: args.configurationSetName?.trim() || undefined,
       }),
     );
@@ -208,6 +278,7 @@ export async function sendWithAwsSms(args: {
         configurationSetName: args.configurationSetName ?? null,
         senderScope,
         sender: originationIdentity ?? null,
+        originationIdentity: iamOriginationIdentity ?? null,
         deliveryEventsEnabled: Boolean(args.configurationSetName?.trim()),
       }),
     );

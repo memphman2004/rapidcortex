@@ -81,6 +81,19 @@ export const RC_SUPERADMIN_NAV: RoleNav = {
       ],
     },
     {
+      id: "training",
+      label: "TRAINING & SIMULATION",
+      items: [
+        {
+          id: "scenario-center",
+          label: "Scenario Center",
+          href: "/rc-admin/scenario-center",
+          icon: "Clapperboard",
+          feature: "scenarioCenter",
+        },
+      ],
+    },
+    {
       id: "tenants",
       label: "TENANTS",
       items: [
@@ -114,6 +127,7 @@ export const RC_SUPERADMIN_NAV: RoleNav = {
         { id: "billing",   label: "Billing",           href: "/rc-admin/billing",       icon: "CreditCard" },
         { id: "pricing",   label: "Pricing Menu",    href: "/rc-admin/pricing",       icon: "Tag" },
         { id: "invoices",  label: "Invoices",          href: "/rc-admin/invoices",      icon: "Receipt" },
+        { id: "automated-invoices", label: "Monthly invoices", href: "/rc-admin/automated-invoices", icon: "CalendarClock", feature: "automatedInvoices" },
         { id: "agreements",label: "Agreements",        href: "/rc-admin/agreements",    icon: "FileSignature" },
         { id: "catalog",   label: "Service Catalog",   href: "/rc-admin/billing/services", icon: "Package" },
       ],
@@ -132,6 +146,7 @@ export const RC_SUPERADMIN_NAV: RoleNav = {
       label: "PLATFORM OPS",
       items: [
         { id: "notices",   label: "Platform Notices",  href: "/rc-admin/support",       icon: "Megaphone" },
+        { id: "support-tickets", label: "Support Tickets", href: "/rc-admin/support-tickets", icon: "LifeBuoy", feature: "supportForm" },
         {
           id: "flags",
           label: "Feature Flags",
@@ -224,6 +239,19 @@ export const RC_ADMIN_NAV: RoleNav = {
       ],
     },
     {
+      id: "training",
+      label: "TRAINING & SIMULATION",
+      items: [
+        {
+          id: "scenario-center",
+          label: "Scenario Center",
+          href: "/rc-admin/scenario-center",
+          icon: "Clapperboard",
+          feature: "scenarioCenter",
+        },
+      ],
+    },
+    {
       id: "tenants",
       label: "TENANTS",
       items: [
@@ -263,6 +291,7 @@ export const RC_ADMIN_NAV: RoleNav = {
           badge: { type: "label", text: "VIEW ONLY", color: "slate" },
         },
         { id: "invoices",  label: "Invoices",          href: "/rc-admin/invoices",      icon: "Receipt" },
+        { id: "automated-invoices", label: "Monthly invoices", href: "/rc-admin/automated-invoices", icon: "CalendarClock", feature: "automatedInvoices" },
         { id: "agreements",label: "Agreements",        href: "/rc-admin/agreements",    icon: "FileSignature" },
         { id: "catalog",   label: "Service Catalog",   href: "/rc-admin/billing/services", icon: "Package" },
       ],
@@ -281,6 +310,7 @@ export const RC_ADMIN_NAV: RoleNav = {
       label: "PLATFORM OPS",
       items: [
         { id: "notices",   label: "Platform Notices",  href: "/rc-admin/support",       icon: "Megaphone" },
+        { id: "support-tickets", label: "Support Tickets", href: "/rc-admin/support-tickets", icon: "LifeBuoy", feature: "supportForm" },
         { id: "grants",    label: "Grants",            href: "/rc-admin/grants",        icon: "ShieldCheck" },
         { id: "dev-portal",label: "Developer Portal",  href: "/rc-admin/api-clients",   icon: "Code2" },
         { id: "reports",   label: "Reports",           href: "/rc-admin/usage",         icon: "BarChart3" },
@@ -427,6 +457,7 @@ export const RC_IT_ADMIN_NAV: RoleNav = {
       label: "AUDIT & SETTINGS",
       items: [
         { id: "audit",     label: "Audit Log",         href: "/rc-admin/audit",         icon: "ScrollText" },
+        { id: "support-tickets", label: "Support Tickets", href: "/rc-admin/support-tickets", icon: "LifeBuoy", feature: "supportForm" },
         { id: "settings",  label: "System Settings",   href: "/rc-admin/system-settings", icon: "Settings" },
       ],
     },
@@ -557,6 +588,13 @@ export function getAgencyAdminNav(jurisdiction: string): RoleNav {
           { id: "users",         label: "Users",           href: `${j}/admin/users`,        icon: "Users" },
           { id: "roles",         label: "Roles",           href: `${j}/admin/roles`,        icon: "ShieldCheck" },
           { id: "qr-codes",      label: "QR Codes",        href: `${j}/admin/qr-codes`,     icon: "QrCode" },
+          {
+            id: "scenario-center",
+            label: "Scenario Center",
+            href: `${j}/admin/scenario-center`,
+            icon: "Clapperboard",
+            feature: "scenarioCenter",
+          },
         ],
       },
       {
@@ -598,6 +636,7 @@ export function getAgencyAdminNav(jurisdiction: string): RoleNav {
         items: [
           { id: "subscription",  label: "Subscription",    href: `${j}/admin/billing`,      icon: "CreditCard" },
           { id: "invoices",      label: "Invoices",        href: `${j}/admin/billing/invoices`, icon: "Receipt" },
+          { id: "automated-invoices", label: "Monthly invoices", href: `${j}/admin/billing/automated-invoices`, icon: "CalendarClock", feature: "automatedInvoices" },
         ],
       },
       {

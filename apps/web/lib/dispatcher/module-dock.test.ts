@@ -17,6 +17,7 @@ describe("module dock reducer", () => {
       "Location",
       "Premise Notice",
       "Map",
+      "Camera AI Alerts",
     ]);
   });
 

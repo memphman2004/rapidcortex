@@ -55,6 +55,7 @@ const config: ExpoConfig = {
   userInterfaceStyle: 'dark',
   backgroundColor: '#00040e',
   scheme: 'rapidcortex',
+  newArchEnabled: false,
   splash: {
     image: './assets/splash.png',
     resizeMode: 'cover',
@@ -165,6 +166,9 @@ const config: ExpoConfig = {
           compileSdkVersion: 35,
           targetSdkVersion: 35,
           buildToolsVersion: '35.0.0',
+          // SDK 53 defaults New Architecture on. First Play AAB stays on the
+          // old architecture; 16 KB alignment comes from SDK 53 / RN 0.79 .so files.
+          newArchEnabled: false,
         },
       },
     ],
@@ -228,9 +232,9 @@ const config: ExpoConfig = {
     ],
     // Runs after nfc-manager plugin — force TAG-only (strips any injected NDEF).
     './plugins/with-nfc-tag-only.js',
-    // Pin ExpoModulesCore to RN 0.76 before pod install (hoisted RN 0.80 peer).
+    // Pin ExpoModulesCore to the app's RN 0.79 (not a hoisted 0.80/0.81 peer).
     './plugins/with-pin-expo-modules-core-rn.js',
-    // Nest commander 7.x under expo-modules-autolinking (RN 0.76 hoists commander 12).
+    // Nest commander 7.x under expo-modules-autolinking (RN hoists commander 12).
     './plugins/with-pin-autolinking-commander.js',
     // Required for App Store (iOS 26 SDK / Xcode 26) on Expo SDK 52.
     './plugins/with-xcode26-fmt-fix.js',

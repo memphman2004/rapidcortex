@@ -18,6 +18,7 @@ describe("workstation layout prefs", () => {
         "actions",
         "location",
         "share",
+        "camera_ai",
       ]),
     );
   });

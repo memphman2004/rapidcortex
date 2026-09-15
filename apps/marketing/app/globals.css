@@ -3,6 +3,7 @@
 /* Tailwind v4: scan shared web components (marketing app imports via `@/` alias). */
 @source "../../web/components/**/*.{js,ts,jsx,tsx}";
 @source "../../web/app/**/*.{js,ts,jsx,tsx}";
+@source "../components/**/*.{js,ts,jsx,tsx}";
 
 /* Marketing site typography — Inter (product-adjacent), not dispatcher Courier stack */
 @theme inline {
@@ -21,4 +22,24 @@ body {
   font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+@keyframes rc-pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.2;
+  }
+}
+
+.rc-pulse-dot {
+  animation: rc-pulse 2s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rc-pulse-dot {
+    animation: none;
+  }
 }

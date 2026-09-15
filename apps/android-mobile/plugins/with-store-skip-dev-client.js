@@ -68,13 +68,28 @@ function patchSettingsGradleUseExpoModules(contents) {
   if (contents.includes(MARKER)) {
     return { contents, changed: false };
   }
-  const re = /^([ \t]*)useExpoModules\(\)\s*$/m;
-  if (!re.test(contents)) {
+  const excludeLit = EXCLUDE.map((name) => `"${name}"`).join(', ');
+
+  const sdk53 = /^([ \t]*)expoAutolinking\.useExpoModules\(\)\s*$/m;
+  if (sdk53.test(contents)) {
+    const next = contents.replace(
+      sdk53,
+      `$1// ${MARKER}: preview/production APKs must not link Expo Dev Launcher
+$1// (empty AppRegistry / callable modules n=0 after splash).
+$1if (System.getenv("EAS_BUILD_PROFILE") && System.getenv("EAS_BUILD_PROFILE") != "development") {
+$1  expoAutolinking.exclude = [${excludeLit}]
+$1}
+$1expoAutolinking.useExpoModules()`,
+    );
+    return { contents: next, changed: true };
+  }
+
+  const sdk52 = /^([ \t]*)useExpoModules\(\)\s*$/m;
+  if (!sdk52.test(contents)) {
     return { contents, changed: false };
   }
-  const excludeLit = EXCLUDE.map((name) => `"${name}"`).join(', ');
   const next = contents.replace(
-    re,
+    sdk52,
     `$1// ${MARKER}: preview/production APKs must not link Expo Dev Launcher
 $1// (empty AppRegistry / callable modules n=0 after splash).
 $1if (System.getenv("EAS_BUILD_PROFILE") && System.getenv("EAS_BUILD_PROFILE") != "development") {

@@ -25,6 +25,11 @@ const NEXT_PUBLIC_FLAG_VALUES: Record<string, string | undefined> = {
   NEXT_PUBLIC_ENABLE_RAPID_VISION_DEMO: process.env.NEXT_PUBLIC_ENABLE_RAPID_VISION_DEMO,
   NEXT_PUBLIC_ENABLE_RAPID_VISION_AI_WRITER: process.env.NEXT_PUBLIC_ENABLE_RAPID_VISION_AI_WRITER,
   NEXT_PUBLIC_ENABLE_RAPID_VISION_TRANSCRIPT: process.env.NEXT_PUBLIC_ENABLE_RAPID_VISION_TRANSCRIPT,
+  NEXT_PUBLIC_ENABLE_VISION_AI: process.env.NEXT_PUBLIC_ENABLE_VISION_AI,
+  NEXT_PUBLIC_ENABLE_VISION_AI_CLAUDE: process.env.NEXT_PUBLIC_ENABLE_VISION_AI_CLAUDE,
+  NEXT_PUBLIC_ENABLE_VISION_AI_THUMBNAILS: process.env.NEXT_PUBLIC_ENABLE_VISION_AI_THUMBNAILS,
+  NEXT_PUBLIC_ENABLE_VISION_AI_WS: process.env.NEXT_PUBLIC_ENABLE_VISION_AI_WS,
+  NEXT_PUBLIC_ENABLE_VISION_AI_ADMIN: process.env.NEXT_PUBLIC_ENABLE_VISION_AI_ADMIN,
   NEXT_PUBLIC_ENABLE_VERTICAL_ALERTS: process.env.NEXT_PUBLIC_ENABLE_VERTICAL_ALERTS,
   NEXT_PUBLIC_ENABLE_PHYSICAL_SECURITY_INGEST: process.env.NEXT_PUBLIC_ENABLE_PHYSICAL_SECURITY_INGEST,
   NEXT_PUBLIC_ENABLE_PHYSICAL_SECURITY_COMMANDS: process.env.NEXT_PUBLIC_ENABLE_PHYSICAL_SECURITY_COMMANDS,
@@ -41,6 +46,7 @@ const NEXT_PUBLIC_FLAG_VALUES: Record<string, string | undefined> = {
   NEXT_PUBLIC_ENABLE_CAD_ADMIN: process.env.NEXT_PUBLIC_ENABLE_CAD_ADMIN,
   NEXT_PUBLIC_ENABLE_CAD_NATURE_MAPPING: process.env.NEXT_PUBLIC_ENABLE_CAD_NATURE_MAPPING,
   NEXT_PUBLIC_ENABLE_CAD_WRITEBACK: process.env.NEXT_PUBLIC_ENABLE_CAD_WRITEBACK,
+  NEXT_PUBLIC_ENABLE_SCENARIO_CENTER: process.env.NEXT_PUBLIC_ENABLE_SCENARIO_CENTER,
   NEXT_PUBLIC_ENABLE_SLA_BACKLOG: process.env.NEXT_PUBLIC_ENABLE_SLA_BACKLOG,
   NEXT_PUBLIC_ENABLE_WAR_ROOMS: process.env.NEXT_PUBLIC_ENABLE_WAR_ROOMS,
   NEXT_PUBLIC_ENABLE_STAKEHOLDER_PAGES: process.env.NEXT_PUBLIC_ENABLE_STAKEHOLDER_PAGES,
@@ -65,6 +71,7 @@ const NEXT_PUBLIC_FLAG_VALUES: Record<string, string | undefined> = {
   NEXT_PUBLIC_ENABLE_VERTICAL_ONBOARDING: process.env.NEXT_PUBLIC_ENABLE_VERTICAL_ONBOARDING,
   NEXT_PUBLIC_ENABLE_CHANNEL_MONITORING: process.env.NEXT_PUBLIC_ENABLE_CHANNEL_MONITORING,
   NEXT_PUBLIC_ENABLE_SALES_LEADS: process.env.NEXT_PUBLIC_ENABLE_SALES_LEADS,
+  NEXT_PUBLIC_ENABLE_SUPPORT_FORM: process.env.NEXT_PUBLIC_ENABLE_SUPPORT_FORM,
   NEXT_PUBLIC_ENABLE_PSAP_PROSPECTS: process.env.NEXT_PUBLIC_ENABLE_PSAP_PROSPECTS,
   NEXT_PUBLIC_ENABLE_INSIDE_THE_CORTEX: process.env.NEXT_PUBLIC_ENABLE_INSIDE_THE_CORTEX,
   NEXT_PUBLIC_ENABLE_CAMPUS_CLERY: process.env.NEXT_PUBLIC_ENABLE_CAMPUS_CLERY,
@@ -88,6 +95,7 @@ const NEXT_PUBLIC_FLAG_VALUES: Record<string, string | undefined> = {
   NEXT_PUBLIC_ENABLE_RMS: process.env.NEXT_PUBLIC_ENABLE_RMS,
   NEXT_PUBLIC_ENABLE_TRANSIT_CAMERAS: process.env.NEXT_PUBLIC_ENABLE_TRANSIT_CAMERAS,
   NEXT_PUBLIC_ENABLE_RC_VIDEO: process.env.NEXT_PUBLIC_ENABLE_RC_VIDEO,
+  NEXT_PUBLIC_ENABLE_AUTOMATED_INVOICES: process.env.NEXT_PUBLIC_ENABLE_AUTOMATED_INVOICES,
   NEXT_PUBLIC_ENABLE_CAD_CONNECTOR: process.env.NEXT_PUBLIC_ENABLE_CAD_CONNECTOR,
   NEXT_PUBLIC_ENABLE_CAD_BRIDGE: process.env.NEXT_PUBLIC_ENABLE_CAD_BRIDGE,
   NEXT_PUBLIC_ENABLE_CONTACTS_MODULE: process.env.NEXT_PUBLIC_ENABLE_CONTACTS_MODULE,
@@ -98,6 +106,7 @@ const CAD_WRITEBACK_FLAG = "NEXT_PUBLIC_ENABLE_CAD_WRITEBACK";
 const CAD_CONNECTOR_FLAG = "NEXT_PUBLIC_ENABLE_CAD_CONNECTOR";
 const CHANNEL_MONITORING_FLAG = "NEXT_PUBLIC_ENABLE_CHANNEL_MONITORING";
 const PHYSICAL_SECURITY_COMMANDS_FLAG = "NEXT_PUBLIC_ENABLE_PHYSICAL_SECURITY_COMMANDS";
+const SCENARIO_CENTER_FLAG = "NEXT_PUBLIC_ENABLE_SCENARIO_CENTER";
 
 function isEnabledValue(value: string | undefined): boolean {
   if (!value) return false;
@@ -118,7 +127,12 @@ function isDisabledValue(value: string | undefined): boolean {
 function envFlag(name: string): boolean {
   if (typeof process === "undefined") return false;
   const value = NEXT_PUBLIC_FLAG_VALUES[name] ?? process.env[name];
-  if (name === CAD_WRITEBACK_FLAG || name === CAD_CONNECTOR_FLAG || name === PHYSICAL_SECURITY_COMMANDS_FLAG) {
+  if (
+    name === CAD_WRITEBACK_FLAG ||
+    name === CAD_CONNECTOR_FLAG ||
+    name === PHYSICAL_SECURITY_COMMANDS_FLAG ||
+    name === SCENARIO_CENTER_FLAG
+  ) {
     if (isEnabledValue(value)) return true;
     return false;
   }
@@ -157,7 +171,7 @@ export function isQaScoringEnabled(): boolean {
   return envFlag("NEXT_PUBLIC_ENABLE_QA_SCORING");
 }
 
-/** F2 caller media SMS + S3 upload link. Off by default. */
+/** F2 caller media SMS + S3 upload link. Default on when unset. */
 export function isIncidentMediaEnabled(): boolean {
   return (
     envFlag("NEXT_PUBLIC_ENABLE_INCIDENT_MEDIA") || envFlag("NEXT_PUBLIC_ENABLE_CALLER_MEDIA")
@@ -275,6 +289,30 @@ export function isRapidVisionTranscriptEnabled(): boolean {
 }
 
 /**
+ * Rapid Vision™ AI Scene Intelligence — proactive camera alerts on the dispatcher board.
+ * Spec flag `NEXT_PUBLIC_ENABLE_VISION_AI`. Nested under Rapid Vision. Default on when unset.
+ */
+export function isRapidVisionSceneIntelEnabled(): boolean {
+  return isRapidVisionEnabled() && envFlag("NEXT_PUBLIC_ENABLE_VISION_AI");
+}
+
+export function isRapidVisionSceneClaudeEnabled(): boolean {
+  return isRapidVisionSceneIntelEnabled() && envFlag("NEXT_PUBLIC_ENABLE_VISION_AI_CLAUDE");
+}
+
+export function isRapidVisionSceneThumbnailsEnabled(): boolean {
+  return isRapidVisionSceneIntelEnabled() && envFlag("NEXT_PUBLIC_ENABLE_VISION_AI_THUMBNAILS");
+}
+
+export function isRapidVisionSceneWsEnabled(): boolean {
+  return isRapidVisionSceneIntelEnabled() && envFlag("NEXT_PUBLIC_ENABLE_VISION_AI_WS");
+}
+
+export function isRapidVisionSceneAdminEnabled(): boolean {
+  return isRapidVisionSceneIntelEnabled() && envFlag("NEXT_PUBLIC_ENABLE_VISION_AI_ADMIN");
+}
+
+/**
  * Occupant mass notification (campus / venue / transit). Default on when unset.
  * Copy must say delivery is *initiated* within 3 seconds — SMS receipt at scale is not 3 seconds.
  */
@@ -355,6 +393,11 @@ export function isCadNatureMappingUiEnabled(): boolean {
 /** CAD vendor write-back from dispatcher workspace (requires API Step 7). Off by default. */
 export function isCadWritebackUiEnabled(): boolean {
   return envFlag("NEXT_PUBLIC_ENABLE_CAD_WRITEBACK");
+}
+
+/** Scenario Center (demo/QA seed API). Fail-closed like CAD write-back — never default on. */
+export function isScenarioCenterUiEnabled(): boolean {
+  return envFlag("NEXT_PUBLIC_ENABLE_SCENARIO_CENTER");
 }
 
 /** Multi-CAD Connector unified feed and connector admin. Off by default (fail-closed). */
@@ -511,6 +554,11 @@ export function isSalesLeadsUiEnabled(): boolean {
   return envFlag("NEXT_PUBLIC_ENABLE_SALES_LEADS");
 }
 
+/** Support form panel + RC Admin ticket board. Default on when unset. */
+export function isSupportFormUiEnabled(): boolean {
+  return envFlag("NEXT_PUBLIC_ENABLE_SUPPORT_FORM");
+}
+
 /** RC Admin PSAP Prospect CRM (national outbound outreach). Default on when unset. */
 export function isPsapProspectsUiEnabled(): boolean {
   return envFlag("NEXT_PUBLIC_ENABLE_PSAP_PROSPECTS");
@@ -586,6 +634,11 @@ export function isCampusOperationalMapEnabled(): boolean {
  */
 export function isRcsEnabled(): boolean {
   return envFlag("NEXT_PUBLIC_ENABLE_RCS");
+}
+
+/** Automated monthly invoices (RC admin + agency portal). Default on when unset. */
+export function isAutomatedInvoicesEnabled(): boolean {
+  return envFlag("NEXT_PUBLIC_ENABLE_AUTOMATED_INVOICES");
 }
 
 /** Google Nest camera connect on dispatcher Media + admin integrations. Default on when unset. */

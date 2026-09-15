@@ -49,6 +49,12 @@ export default async function RcAdminBillingPage() {
           href="/rc-admin/pricing"
           cta="Open pricing"
         />
+        <HubCard
+          title="Monthly invoices"
+          body="Last-day-of-month automated invoices: drafts, approve/send, void, and resend."
+          href="/rc-admin/automated-invoices"
+          cta="Open monthly invoices"
+        />
       </section>
 
       <div className="flex flex-wrap gap-3">

@@ -71,6 +71,11 @@ export const AUDIT_EVENT_TYPES = {
   PLATFORM_NOTICE_CANCELLED: "platform_notice.cancelled",
   PLATFORM_NOTICE_ACKED: "platform_notice.acked",
 
+  SUPPORT_TICKET_CREATED: "support_ticket.created",
+  SUPPORT_TICKET_UPDATED: "support_ticket.updated",
+  SUPPORT_TICKET_STATUS_CHANGED: "support_ticket.status_changed",
+  SUPPORT_TICKET_NOTE_ADDED: "support_ticket.note_added",
+
   SALES_LEAD_UPDATED: "sales_lead.updated",
   SALES_LEAD_VIEWED: "sales_lead.viewed",
   SALES_LEAD_STAGE_CHANGED: "sales_lead.stage_changed",
@@ -142,6 +147,10 @@ export const AUDIT_EVENT_TYPES = {
   BILLING_PLAN_CHANGE_REQUESTED: "billing.plan.change_requested",
   BILLING_SUBSCRIPTION_CANCEL_REQUESTED: "billing.subscription.cancel_requested",
   BILLING_WEBHOOK_PROCESSED: "billing.webhook.processed",
+  AUTOMATED_INVOICE_GENERATED: "billing.automated_invoice.generated",
+  AUTOMATED_INVOICE_SENT: "billing.automated_invoice.sent",
+  AUTOMATED_INVOICE_STATUS_CHANGED: "billing.automated_invoice.status_changed",
+  AUTOMATED_INVOICE_RESENT: "billing.automated_invoice.resent",
   VIDEO_ASSIST_SESSION_CREATED: "video_assist.session.created",
   VIDEO_ASSIST_SMS_SENT: "video_assist.sms.sent",
   VIDEO_ASSIST_TOKEN_OPENED: "video_assist.token.opened",
@@ -511,6 +520,9 @@ export const AUDIT_EVENT_TYPES = {
   VISION_OBSERVATION_SHARED: "vision.observation.shared",
   VISION_TRANSCRIPT_STARTED: "vision.transcript.started",
   VISION_TRANSCRIPT_STOPPED: "vision.transcript.stopped",
+  VISION_SCENE_ALERT_CREATED: "vision.scene.alert.created",
+  VISION_SCENE_ALERT_DISMISSED: "vision.scene.alert.dismissed",
+  VISION_SCENE_ALERT_INCIDENT_CREATED: "vision.scene.alert.incident_created",
 } as const;
 
 export type AuditEventTypeName = (typeof AUDIT_EVENT_TYPES)[keyof typeof AUDIT_EVENT_TYPES];

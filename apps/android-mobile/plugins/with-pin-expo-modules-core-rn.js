@@ -6,7 +6,7 @@ const { withDangerousMod } = require('@expo/config-plugins');
 const fs = require('node:fs');
 const path = require('node:path');
 const {
-  isSdk52ReactNative,
+  isPinnedMobileReactNative,
   patchExpoModulesCorePodspec,
 } = require('../scripts/pin-expo-modules-core-rn.js');
 
@@ -17,14 +17,14 @@ function readVersion(packageJsonPath) {
   return JSON.parse(fs.readFileSync(packageJsonPath, 'utf8')).version;
 }
 
-function findSdk52ReactNativePackageJson(projectRoot) {
+function findPinnedReactNativePackageJson(projectRoot) {
   const candidates = [
     path.join(projectRoot, 'node_modules', 'react-native', 'package.json'),
     path.join(projectRoot, '..', '..', 'node_modules', 'react-native', 'package.json'),
   ];
   for (const packageJsonPath of candidates) {
     const version = readVersion(packageJsonPath);
-    if (version && isSdk52ReactNative(version)) {
+    if (version && isPinnedMobileReactNative(version)) {
       return packageJsonPath;
     }
   }
@@ -36,7 +36,7 @@ function withPinExpoModulesCoreRn(config) {
     'ios',
     async (cfg) => {
       const projectRoot = cfg.modRequest.projectRoot;
-      const rnPackageJson = findSdk52ReactNativePackageJson(projectRoot);
+      const rnPackageJson = findPinnedReactNativePackageJson(projectRoot);
       if (!rnPackageJson) {
         return cfg;
       }

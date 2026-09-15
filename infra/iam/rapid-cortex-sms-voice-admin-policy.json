@@ -7,6 +7,8 @@
       "Action": [
         "sms-voice:DescribeAccountAttributes",
         "sms-voice:DescribeAccountLimits",
+        "sms-voice:SetTextMessageSpendLimitOverride",
+        "sms-voice:DeleteTextMessageSpendLimitOverride",
         "sms-voice:DescribeConfigurationSets",
         "sms-voice:DescribeKeywords",
         "sms-voice:DescribeOptOutLists",
@@ -63,7 +65,8 @@
         "sms-voice:SetDefaultMessageType",
         "sms-voice:UpdateEventDestination",
         "sms-voice:UpdatePhoneNumber",
-        "sms-voice:UpdatePool"
+        "sms-voice:UpdatePool",
+        "sms-voice:TagResource"
       ],
       "Resource": [
         "arn:aws:sms-voice:us-east-1:158961537080:configuration-set/*",

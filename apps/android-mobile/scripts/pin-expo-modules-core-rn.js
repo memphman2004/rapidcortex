@@ -2,14 +2,16 @@
  * ExpoModulesCore.podspec probes React Native with:
  *   node --print "require('react-native/package.json').version"
  *
- * In this npm workspace that resolves the hoisted peer at the repo root
- * (React Native 0.80.x from web/React 19 peers), not the app's 0.76.9.
- * Minor >= 77 makes ExpoModulesCore depend on ReactAppDependencyProvider,
- * which SDK 52 / RN 0.76 never generates → CocoaPods "Unable to find a
- * specification for ReactAppDependencyProvider".
+ * In this npm workspace that can resolve a hoisted peer at the repo root
+ * (React Native 0.80+/0.81 from other workspaces), not the app's 0.79.x.
+ * Pin probes to the mobile app's react-native so CocoaPods and Gradle
+ * agree with the JS bundle.
  */
 
 const MARKER = 'Rapid Cortex: pin React Native from the mobile app';
+
+/** Expo SDK 53 ships React Native 0.79.x. */
+const PINNED_RN_MINOR = 79;
 
 /**
  * @param {string} absPath
@@ -29,11 +31,13 @@ function reactNativeMinor(version) {
 }
 
 /**
+ * True when `version` is the React Native series this app is pinned to.
+ *
  * @param {string} version
  * @returns {boolean}
  */
-function isSdk52ReactNative(version) {
-  return reactNativeMinor(version) === 76;
+function isPinnedMobileReactNative(version) {
+  return reactNativeMinor(version) === PINNED_RN_MINOR;
 }
 
 /**
@@ -47,6 +51,21 @@ function isSdk52ReactNative(version) {
 function patchExpoModulesCorePodspec(contents, rnPackageJsonPath) {
   const quoted = rubySingleQuote(rnPackageJsonPath);
   let next = contents;
+
+  next = next.replace(
+    /absolute_react_native_path = File\.dirname\(`node --print "require\.resolve\('react-native\/package\.json'\)"`\)/,
+    `absolute_react_native_path = File.dirname('${quoted}') # ${MARKER}`,
+  );
+
+  next = next.replace(
+    /absolute_react_native_path = File\.dirname\('(?:\\'|[^'])+'\)(?: # .*)?/,
+    `absolute_react_native_path = File.dirname('${quoted}') # ${MARKER}`,
+  );
+
+  next = next.replace(
+    /reactNativeVersion = `node --print "require\('#\{absolute_react_native_path\}\/package\.json'\)\.version"`/,
+    `reactNativeVersion = JSON.parse(File.read('${quoted}'))['version'] # ${MARKER}`,
+  );
 
   next = next.replace(
     /require File\.join\(File\.dirname\(`node --print "require\.resolve\('react-native\/package\.json'\)"`\), "scripts\/react_native_pods"\)/,
@@ -77,9 +96,10 @@ function podspecIsPinned(contents) {
 
 module.exports = {
   MARKER,
+  PINNED_RN_MINOR,
   rubySingleQuote,
   reactNativeMinor,
-  isSdk52ReactNative,
+  isPinnedMobileReactNative,
   patchExpoModulesCorePodspec,
   podspecIsPinned,
 };

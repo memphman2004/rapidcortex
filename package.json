@@ -100,9 +100,10 @@
     "fast-xml-parser": "^5.7.0",
     "@smithy/types": "^4.16.1",
     "@smithy/smithy-client": "^4.13.1",
-    "expo": "52.0.49",
-    "expo-modules-core": "2.2.3",
-    "react-native": "0.76.9"
+    "expo": "53.0.27",
+    "expo-modules-core": "2.5.0",
+    "react-native": "0.79.6",
+    "react-native-screens": "4.11.1"
   },
   "dependencies": {
     "@smithy/core": "^3.29.0",

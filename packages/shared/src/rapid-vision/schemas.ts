@@ -17,6 +17,11 @@ export const visionSettingsPatchSchema = z.object({
   aiWriterIntervalSeconds: z.union([z.literal(10), z.literal(30), z.literal(60)]).optional(),
   enableCallerVideoAnalysis: z.boolean().optional(),
   retentionDays: z.number().int().min(1).max(365).optional(),
+  sceneIntelEnabled: z.boolean().optional(),
+  sceneIntelMinSeverity: z.enum(["critical", "high", "medium", "low"]).optional(),
+  sceneIntelClaudeEnabled: z.boolean().optional(),
+  sceneIntelThumbnailsEnabled: z.boolean().optional(),
+  sceneIntelWsEnabled: z.boolean().optional(),
 });
 
 export const visionTranscriptQuerySchema = z.object({
@@ -26,6 +31,23 @@ export const visionTranscriptQuerySchema = z.object({
 
 export const visionTranscriptSessionBodySchema = z.object({
   incidentId: z.string().min(1).max(128),
+});
+
+export const visionSceneEventsQuerySchema = z.object({
+  status: z.enum(["active", "dismissed", "incident_created", "expired", "all"]).optional(),
+  cameraId: z.string().min(1).max(128).optional(),
+  limit: z.coerce.number().int().min(1).max(100).optional(),
+});
+
+export const visionSceneEventPatchSchema = z.object({
+  action: z.enum(["dismiss", "create_incident"]),
+  incidentId: z.string().min(1).max(128).optional(),
+});
+
+export const visionCameraSceneConfigSchema = z.object({
+  aiMonitoringEnabled: z.boolean().optional(),
+  zoneLabel: z.string().min(1).max(120).optional(),
+  sceneCooldownSeconds: z.number().int().min(30).max(3600).optional(),
 });
 
 export const visionTranscriptSegmentSchema = z.object({
@@ -49,3 +71,6 @@ export type VisionRequestAccessBody = z.infer<typeof visionRequestAccessBodySche
 export type VisionSettingsPatch = z.infer<typeof visionSettingsPatchSchema>;
 export type VisionTranscriptQuery = z.infer<typeof visionTranscriptQuerySchema>;
 export type VisionTranscriptSessionBody = z.infer<typeof visionTranscriptSessionBodySchema>;
+export type VisionSceneEventsQuery = z.infer<typeof visionSceneEventsQuerySchema>;
+export type VisionSceneEventPatch = z.infer<typeof visionSceneEventPatchSchema>;
+export type VisionCameraSceneConfig = z.infer<typeof visionCameraSceneConfigSchema>;

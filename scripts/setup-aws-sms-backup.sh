@@ -126,7 +126,9 @@ echo "=== AWS End User Messaging SMS (region=$REGION) ==="
 echo "Account tier (ACCOUNT_TIER): $TIER"
 
 if [[ "$TIER" == "SANDBOX" ]]; then
-  echo "NOTE: Account is in SMS sandbox. Verified test numbers work; open production via Support for unrestricted A2P sending in this region."
+  echo "NOTE: Account is in SMS sandbox. Verified test numbers work; production access is a Support request for this region."
+elif [[ "$TIER" == "PRODUCTION" ]]; then
+  echo "NOTE: Account is PRODUCTION. Confirm TEXT EnforcedLimit via: aws pinpoint-sms-voice-v2 describe-spend-limits --region ${REGION}"
 fi
 
 CREATED_POOL=""
@@ -194,5 +196,7 @@ if [[ -n "$CONFIG_SET" ]]; then
 fi
 if [[ "$TIER" == "SANDBOX" ]]; then
   echo "Next steps: For production SMS outside sandbox in this region, open an AWS Support case (service limit / production access) for End User Messaging SMS."
+elif [[ "$TIER" == "PRODUCTION" ]]; then
+  echo "Next steps: Confirm TEXT EnforcedLimit is the approved cap, keep an ACTIVE 10DLC/TFN, and attach a configuration set for delivery events."
 fi
-echo "Application runtime: use Amazon SNS Publish (see docs/aws-sms-backup-setup.md). Set AWS_SMS_POOL_ID / AWS_SMS_CONFIGURATION_SET_NAME in env for ops visibility; SNS SMS routing uses account / origination settings."
+echo "Application runtime: SendTextMessage via pinpoint-sms-voice-v2 (see docs/deployment-infrastructure/aws-sms-backup-setup.md). Set AWS_SMS_POOL_ID / AWS_SMS_CONFIGURATION_SET_NAME in env for pool fallback and delivery events."

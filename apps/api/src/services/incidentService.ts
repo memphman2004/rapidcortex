@@ -37,6 +37,16 @@ export class IncidentService {
       cadCallerName?: string;
       callerCallback?: string;
       assignedTo?: string;
+      category?: Incident["category"];
+      urgency?: Incident["urgency"];
+      callerLanguage?: string | null;
+      /** Scenario Center — never treated as a live CFS. */
+      isDemoIncident?: boolean;
+      demoScenarioId?: string;
+      dispatchBlocked?: boolean;
+      dispatchBlockReason?: string;
+      ttl?: number;
+      demoCameraIds?: string[];
     },
   ): Promise<Incident> {
     const now = new Date().toISOString();
@@ -81,10 +91,21 @@ export class IncidentService {
       incidentId: makeId("inc"),
       agencyId: user.agencyId,
       title,
-      category: "unknown",
-      urgency: opts?.cadPriority ? urgencyFromCadPriority(opts.cadPriority) : "moderate",
+      category: opts?.category ?? "unknown",
+      urgency: opts?.urgency ?? (opts?.cadPriority ? urgencyFromCadPriority(opts.cadPriority) : "moderate"),
       status: "active",
-      source,
+      source: opts?.isDemoIncident ? "demo" : source,
+      ...(opts?.callerLanguage ? { callerLanguage: opts.callerLanguage } : {}),
+      ...(opts?.isDemoIncident
+        ? {
+            isDemoIncident: true,
+            demoScenarioId: opts.demoScenarioId,
+            dispatchBlocked: opts.dispatchBlocked ?? true,
+            dispatchBlockReason: opts.dispatchBlockReason ?? "DEMO",
+            ttl: opts.ttl,
+            demoCameraIds: opts.demoCameraIds,
+          }
+        : {}),
       confidence: null,
       escalationFlag: false,
       summary: summaryParts.join("\n\n"),

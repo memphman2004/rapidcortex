@@ -11,8 +11,8 @@ const {
   extraNodeModulesForWorkspace,
   resolveSharedPackageModule,
   sharedPackageNodeModuleDir,
-  resolveSdk52ScreensDir,
-  resolveSdk52ReactNativeDir,
+  resolvePinnedScreensDir,
+  resolvePinnedReactNativeDir,
   duplicateReactNativeBlockList,
   resolveReactNativeModule,
 } = require('./scripts/metro-resolve-nested.js');
@@ -49,17 +49,17 @@ config.resolver.nodeModulesPaths = [
 // extraNodeModules aliases those polyfills into the project (preferring the
 // copy materialized into apps/android-mobile/node_modules by eas-ensure-expo-pods).
 config.resolver.disableHierarchicalLookup = false;
-const sdk52Screens = resolveSdk52ScreensDir(projectRoot, workspaceRoot);
-const sdk52ReactNative = resolveSdk52ReactNativeDir(projectRoot, workspaceRoot);
+const pinnedScreens = resolvePinnedScreensDir(projectRoot, workspaceRoot);
+const pinnedReactNative = resolvePinnedReactNativeDir(projectRoot, workspaceRoot);
 
 config.resolver.extraNodeModules = {
   ...(config.resolver.extraNodeModules ?? {}),
   ...extraNodeModulesForWorkspace(projectRoot, workspaceRoot),
   // Override Expo tsconfig-path mapping to packages/shared/src (breaks .js specifiers).
   'rapid-cortex-shared': sharedPackageNodeModuleDir(sharedRoot),
-  // Root hoists react-native-screens@4.26 (RN 0.81 codegen). SDK 52 needs 4.4.0.
-  ...(sdk52Screens ? { 'react-native-screens': sdk52Screens } : {}),
-  ...(sdk52ReactNative ? { 'react-native': sdk52ReactNative } : {}),
+  // Root can hoist react-native-screens@4.26 (RN 0.81 codegen). SDK 53 needs 4.11.x.
+  ...(pinnedScreens ? { 'react-native-screens': pinnedScreens } : {}),
+  ...(pinnedReactNative ? { 'react-native': pinnedReactNative } : {}),
 };
 
 const upstreamResolveRequest = config.resolver.resolveRequest;
@@ -68,7 +68,7 @@ config.resolver.resolveRequest = (context, moduleName, platform) => {
   if (shared) {
     return shared;
   }
-  const rn = resolveReactNativeModule(moduleName, sdk52ReactNative);
+  const rn = resolveReactNativeModule(moduleName, pinnedReactNative);
   if (rn) {
     return rn;
   }
@@ -109,7 +109,7 @@ config.resolver.blockList = exclusionList([
   new RegExp(`${escapeRegExp(workspaceRoot)}[/\\\\]infra[/\\\\].*`),
   new RegExp(`${escapeRegExp(workspaceRoot)}[/\\\\]scripts[/\\\\].*`),
   new RegExp(`${escapeRegExp(workspaceRoot)}[/\\\\]docs[/\\\\].*`),
-  ...duplicateReactNativeBlockList(sdk52ReactNative, projectRoot, workspaceRoot),
+  ...duplicateReactNativeBlockList(pinnedReactNative, projectRoot, workspaceRoot),
   // Local Xcode Debug: Metro crawls watchFolders before it emits index.bundle.
   // ios/Pods on this volume never finished, so the phone timed out on
   // http://192.168.68.54:8081/index.bundle with 0 bytes.

@@ -5,6 +5,7 @@ import { ConnectionStatusStrip } from "@/components/dispatch/connection-status-s
 import { DispatcherModuleRailProvider } from "@/components/dispatch/dispatcher-module-rail-context";
 import { SideNav } from "@/components/dispatch/side-nav";
 import { TopBar } from "@/components/dispatch/top-bar";
+import { DemoModeBanner } from "@/components/demo/DemoModeBanner";
 import { HelpChrome } from "@/components/help/help-chrome";
 import { isPsapConsoleHomePath } from "@/components/psap/psap-shell-chrome";
 import { ThemeProvider, useThemeRoot } from "@/lib/theme/theme-context";
@@ -66,6 +67,7 @@ function DispatchShellInner({
         }}
       >
         <TopBar user={user} compact={workstation} />
+        <DemoModeBanner />
         <div className="rc-workstation-main min-h-0">
           <SideNav compactRail={workstation} />
           <div className="flex min-h-0 min-w-0 flex-1 flex-col">

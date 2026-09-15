@@ -4,6 +4,7 @@ import { useState } from "react";
 import type { RequestIncidentMediaInput } from "rapid-cortex-shared";
 import { postIncidentMediaRequest } from "@/lib/api";
 import { PhoneInput } from "@/components/ui/phone-input";
+import { callerFacingPublicBaseUrl } from "@/lib/caller-facing-public-base";
 
 export function IncidentMediaRequestModal({
   incidentId,
@@ -34,7 +35,10 @@ export function IncidentMediaRequestModal({
     setBusy(true);
     setSmsSummary(null);
     try {
-      const body: RequestIncidentMediaInput = { callerPhoneE164: phoneE164 };
+      const body: RequestIncidentMediaInput = {
+        callerPhoneE164: phoneE164,
+        publicAppBaseUrl: callerFacingPublicBaseUrl() || undefined,
+      };
       const out = await postIncidentMediaRequest(incidentId, body);
       const ok = out.smsOutcome.dispatchStatus === "sent";
       setSmsSummary(

@@ -191,6 +191,15 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
       if (!incident || incident.agencyId !== user.agencyId) {
         return forbidden("Incident not found or access denied");
       }
+      if (incident.isDemoIncident === true || incident.dispatchBlocked === true) {
+        console.warn("[CAD WRITEBACK] Hard-blocked: demo incident", incidentId);
+        return ok({
+          ok: true,
+          blocked: true,
+          reason: "DEMO_INCIDENT_GUARD",
+          cadResponse: "demo-blocked",
+        });
+      }
       const cadIncidentId = incident.cadIncidentId?.trim();
       if (!cadIncidentId) {
         return badRequest("Incident must have a CAD incident ID for write-back");
@@ -362,6 +371,15 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
 
       const incident = await incidentsRepo.get(record.incidentId);
       if (!incident || incident.agencyId !== user.agencyId) return notFound();
+      if (incident.isDemoIncident === true || incident.dispatchBlocked === true) {
+        console.warn("[CAD WRITEBACK APPROVE] Hard-blocked: demo incident", record.incidentId);
+        return ok({
+          ok: true,
+          blocked: true,
+          reason: "DEMO_INCIDENT_GUARD",
+          cadResponse: "demo-blocked",
+        });
+      }
       const cadIncidentId = incident.cadIncidentId?.trim();
       if (!cadIncidentId) return badRequest("Incident no longer has a CAD incident ID");
 

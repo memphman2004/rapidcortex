@@ -1,4 +1,5 @@
 import type { CadVendor } from "rapid-cortex-shared";
+import { shouldBlockDemoExternalDispatch } from "../../../demo/demo-incident-guards.js";
 import { centralSquareWriteAdapter } from "./centralSquareWriteAdapter.js";
 import { genericWriteAdapter } from "./genericWriteAdapter.js";
 import { hexagonWriteAdapter } from "./hexagonWriteAdapter.js";
@@ -16,9 +17,20 @@ const adapters: Record<CadVendor, CadWriteAdapter> = {
 };
 
 export function getCadWriteAdapter(vendor: string): CadWriteAdapter {
-  const a = adapters[vendor as CadVendor];
-  if (!a) return genericWriteAdapter;
-  return a;
+  const inner = adapters[vendor as CadVendor] ?? genericWriteAdapter;
+  return {
+    vendor: inner.vendor,
+    async submit(params) {
+      if (shouldBlockDemoExternalDispatch(params.incident)) {
+        console.warn(
+          "[CAD ADAPTER] Hard-blocked: isDemoIncident=true on record",
+          params.incident.incidentId,
+        );
+        return { success: true, cadResponse: "demo-blocked" };
+      }
+      return inner.submit(params);
+    },
+  };
 }
 
 export type { CadWriteAdapter } from "./writeTypes.js";

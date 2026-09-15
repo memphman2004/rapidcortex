@@ -4,6 +4,7 @@ import { useState, type ReactNode } from "react";
 import { FontPicker } from "@/components/ui/font-picker";
 import { UserIdentityBar } from "@/components/ui/user-identity-bar";
 import { HelpButton } from "@/components/help/help-button";
+import { SupportHelpButton } from "@/components/support/SupportHelpButton";
 import { signOutFromClient } from "@/lib/auth/sign-out-client";
 
 function CampusSignOutButton() {
@@ -45,6 +46,13 @@ export function CampusDashboardHeaderUtilities({
     <div className="flex shrink-0 flex-wrap items-center justify-end gap-2">
       {leadingSlot}
       <HelpButton />
+      <SupportHelpButton
+        userRole={role}
+        agencyId={agencyId}
+        userId={userId}
+        userEmail={email}
+        userName={email}
+      />
       <FontPicker />
       {hasIdentity ? (
         <UserIdentityBar

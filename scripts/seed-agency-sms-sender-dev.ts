@@ -1,7 +1,7 @@
 /**
  * Assign an agency its own outbound SMS sender (dev).
  *
- *   STAGE=dev AGENCY_ID=test-agency PHONE_NUMBER=+14707482763 \
+ *   STAGE=dev AGENCY_ID=test-agency PHONE_NUMBER=+13198358230 \
  *     npx tsx scripts/seed-agency-sms-sender-dev.ts
  *
  * The number must already exist in AWS End User Messaging (phone number or pool), otherwise
@@ -20,12 +20,12 @@ const STAGE = process.env.STAGE?.trim() || "dev";
 const TABLE = process.env.SMS_ROUTING_TABLE?.trim() || `rapid-cortex-sms-routing-${STAGE}`;
 const AGENCY_ID = process.env.AGENCY_ID?.trim() || "test-agency";
 const AGENCY_NAME = process.env.AGENCY_NAME?.trim() || "Rapid Cortex Test Agency";
-const PHONE_NUMBER = process.env.PHONE_NUMBER?.trim() || "+14707482763";
+const PHONE_NUMBER = process.env.PHONE_NUMBER?.trim() || "+13198358230";
 const LABEL = process.env.LABEL?.trim() || "Primary 10DLC sender";
 
 function assertE164(value: string): void {
   if (!/^\+[1-9]\d{7,14}$/.test(value)) {
-    throw new Error(`PHONE_NUMBER must be E.164 (e.g. +14707482763), got: ${value}`);
+    throw new Error(`PHONE_NUMBER must be E.164 (e.g. +13198358230), got: ${value}`);
   }
 }
 

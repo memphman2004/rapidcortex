@@ -145,8 +145,9 @@ Parameters:
     Type: String
     Default: ""
     Description: >-
-      AWS End User Messaging configuration set name. Required for SMS delivery events — without it
-      an accepted send and a carrier-blocked one look identical.
+      AWS End User Messaging configuration set name. Leave blank so AppSam5Stack creates
+      the stage configuration set and attaches delivery events to SNS. Set only to import
+      an existing set.
   QaBedrockModelId:
     Type: String
     Default: anthropic.claude-haiku-4-5-20251001-v1:0
@@ -487,6 +488,10 @@ Parameters:
     Type: String
     Default: ""
     Description: When set, AppSam6Stack uses this existing Rapid Vision™ live-transcript segments table.
+  ExistingVisionEventsTableName:
+    Type: String
+    Default: ""
+    Description: When set, AppSam6Stack uses this existing Rapid Vision camera-events table.
   EnableRapidVisionNest:
     Type: String
     Default: "true"
@@ -510,6 +515,15 @@ Parameters:
       When false, skip nested AppSamTransitStack. Use on live rapid-cortex-dev when
       standalone stack rapid-cortex-dev-AppSamTransitStack already owns /api/transit/*
       routes (nested CREATE collides). Surgical-update the standalone stack instead.
+  IncludeAppSamBillingNestedStack:
+    Type: String
+    Default: "true"
+    AllowedValues: ["true", "false"]
+    Description: >-
+      When false, skip nested AppSamBillingStack. Use on live rapid-cortex-dev when a
+      leftover nested stack (DELETE_FAILED) still owns named billing Lambdas/SQS/IAM
+      (rc-billing-orchestrator-dev, rc-invoice-jobs-*.fifo). Delete that leftover with
+      --retain-resources SchedulerExecutionRole, then set true.
   ExistingTransitCameraProducerSecretArn:
     Type: String
     Default: ""
@@ -658,6 +672,7 @@ Conditions:
   HasDataLayerNestedStack: !Equals [!Ref IncludeDataLayerNestedStack, "true"]
   HasAppSamAlarmsNestedStack: !Equals [!Ref IncludeAppSamAlarmsNestedStack, "true"]
   HasAppSamTransitNestedStack: !Equals [!Ref IncludeAppSamTransitNestedStack, "true"]
+  HasAppSamBillingNestedStack: !Equals [!Ref IncludeAppSamBillingNestedStack, "true"]
   HasRingCredentialsSecretArnOverride: !Not [!Equals [!Ref RingCredentialsSecretArnOverride, ""]]
   PilotTestFeaturesOn:
     Fn::Or:
@@ -770,6 +785,10 @@ Resources:
         ExistingVenueIncidentOverlaysTableName: !Sub "${DynamoTableNamePrefix}-venue-incident-overlays-${DeploymentStage}"
         ExistingVideoWallConfigsTableName: !Sub "${DynamoTableNamePrefix}-video-wall-configs-${DeploymentStage}"
         ExistingVideoClipsTableName: !Sub "${DynamoTableNamePrefix}-video-clips-${DeploymentStage}"
+        ExistingAgencyBillingConfigsTableName: !Sub "${DynamoTableNamePrefix}-agency-billing-configs-${DeploymentStage}"
+        ExistingAutomatedInvoicesTableName: !Sub "${DynamoTableNamePrefix}-automated-invoices-${DeploymentStage}"
+        ExistingUsageSnapshotsTableName: !Sub "${DynamoTableNamePrefix}-usage-snapshots-${DeploymentStage}"
+        ExistingBillingRunsTableName: !Sub "${DynamoTableNamePrefix}-billing-runs-${DeploymentStage}"
         ExistingVenueAssetsBucketName: !Sub "${DynamoTableNamePrefix}-venue-assets-${DeploymentStage}-${AWS::AccountId}"
         ExistingJobApplicationsTableName: !Sub "${DynamoTableNamePrefix}-job-applications-${DeploymentStage}"
         ExistingResumesBucketName: !Sub "${DynamoTableNamePrefix}-resumes-${DeploymentStage}-${AWS::AccountId}"
@@ -2827,6 +2846,53 @@ Resources:
         ImportedCognitoNativeClientId: !GetAtt AppSamStackV2.Outputs.NativeUserPoolClientId
         ImportedCognitoIssuer: !GetAtt AppSamStackV2.Outputs.CognitoIssuer
 
+  AppSamBillingStack:
+    Type: AWS::CloudFormation::Stack
+    Condition: HasAppSamBillingNestedStack
+    Metadata:
+      cfn-lint:
+        config:
+          ignore_checks:
+            - W3005
+    DependsOn: AppSam4Stack
+    Properties:
+      TimeoutInMinutes: 60
+      TemplateURL: nested/stack-app-sam-2-billing.yaml
+      Parameters:
+        DeploymentStage: !Ref DeploymentStage
+        HttpApiId: !GetAtt AppSam4Stack.Outputs.HttpApiId
+        AutomatedInvoicesTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.AutomatedInvoicesTable
+            - !Sub "${DynamoTableNamePrefix}-automated-invoices-${DeploymentStage}"
+        AgencyBillingConfigsTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.AgencyBillingConfigsTable
+            - !Sub "${DynamoTableNamePrefix}-agency-billing-configs-${DeploymentStage}"
+        UsageSnapshotsTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.UsageSnapshotsTable
+            - !Sub "${DynamoTableNamePrefix}-usage-snapshots-${DeploymentStage}"
+        BillingRunsTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.BillingRunsTable
+            - !Sub "${DynamoTableNamePrefix}-billing-runs-${DeploymentStage}"
+        AuditTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.AuditTable
+            - !Sub "${DynamoTableNamePrefix}-audit-${DeploymentStage}"
+        ImportedCognitoUserPoolId: !GetAtt AppSamStackV2.Outputs.UserPoolId
+        ImportedCognitoWebClientId: !GetAtt AppSamStackV2.Outputs.UserPoolClientId
+        ManagedPolicyNamePrefix: !Ref AWS::StackName
+        FromEmail: billing@rapidcortex.us
+        AutoSendInvoices: "false"
+        EnableAutomatedInvoices: "true"
+
   AppSam5Stack:
     Type: AWS::CloudFormation::Stack
     DependsOn: AppSam4Stack
@@ -3204,6 +3270,11 @@ Resources:
             - HasDataLayerNestedStack
             - !GetAtt DataLayerStack.Outputs.SalesLeadsTable
             - !Sub "${DynamoTableNamePrefix}-sales-leads-${DeploymentStage}"
+        TicketsTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.SupportTicketsTable
+            - !Sub "${DynamoTableNamePrefix}-support-tickets-${DeploymentStage}"
         SeoIntelligenceTable:
           Fn::If:
             - HasDataLayerNestedStack
@@ -3651,6 +3722,7 @@ Resources:
         ExistingVisionOwnerConsentTableName: !Ref ExistingVisionOwnerConsentTableName
         ExistingVisionArtifactsBucketName: !Ref ExistingVisionArtifactsBucketName
         ExistingVisionTranscriptsTableName: !Ref ExistingVisionTranscriptsTableName
+        ExistingVisionEventsTableName: !Ref ExistingVisionEventsTableName
         EnableRapidVisionNest: !Ref EnableRapidVisionNest
         ManagedPolicyNamePrefix: !Ref AWS::StackName
 

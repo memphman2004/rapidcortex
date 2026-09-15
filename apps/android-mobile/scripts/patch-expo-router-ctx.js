@@ -38,18 +38,24 @@ function patchExpoRouterPackage(expoRouterDir, appDir) {
   if (!fs.existsSync(expoRouterDir) || !fs.existsSync(appDir)) {
     return 0;
   }
-  const relAppRoot = path.relative(expoRouterDir, appDir).replace(/\\/g, '/');
+  const searchDirs = [expoRouterDir, path.join(expoRouterDir, 'build')];
   let written = 0;
-  for (const file of CTX_FILES) {
-    const filePath = path.join(expoRouterDir, file);
-    if (!fs.existsSync(filePath)) {
+  for (const dir of searchDirs) {
+    if (!fs.existsSync(dir)) {
       continue;
     }
-    const before = fs.readFileSync(filePath, 'utf8');
-    const after = rewriteExpoRouterCtxSource(before, relAppRoot);
-    if (after !== before) {
-      fs.writeFileSync(filePath, after);
-      written += 1;
+    const relAppRoot = path.relative(dir, appDir).replace(/\\/g, '/');
+    for (const file of CTX_FILES) {
+      const filePath = path.join(dir, file);
+      if (!fs.existsSync(filePath)) {
+        continue;
+      }
+      const before = fs.readFileSync(filePath, 'utf8');
+      const after = rewriteExpoRouterCtxSource(before, relAppRoot);
+      if (after !== before) {
+        fs.writeFileSync(filePath, after);
+        written += 1;
+      }
     }
   }
   return written;

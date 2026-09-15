@@ -206,6 +206,18 @@ export interface Incident {
   retGsiPk?: string;
   /** Sort key: `${retentionExpiresAt}#...` (lexicographic for ISO timestamps). */
   retGsiSk?: string;
+  /** Scenario Center / academy seed — never treated as a live CFS. Permanent when set. */
+  isDemoIncident?: boolean;
+  /** Scenario Center id that created this row. */
+  demoScenarioId?: string;
+  /** Belt: CAD / SMS / 911 adapters must no-op or throw when true. */
+  dispatchBlocked?: boolean;
+  /** Suspenders: human-readable block reason (`DEMO`). */
+  dispatchBlockReason?: string;
+  /** Dynamo TTL epoch seconds (Scenario Center seeds expire in ~2 hours). */
+  ttl?: number;
+  /** Demo camera ids bound for walkthroughs (not production KVS associations). */
+  demoCameraIds?: string[];
 }
 
 /** Persisted SOP-aware protocol suggestion for an incident (Dynamo map). */
@@ -425,6 +437,7 @@ export type AuditResourceType =
   | "staffing_forecast"
   | "channel_config"
   | "sales_lead"
+  | "support_ticket"
   | "psap_prospect"
   | "rapid_iq_opportunity"
   | "rapid_iq_pipeline_signal"

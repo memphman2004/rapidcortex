@@ -32,6 +32,7 @@ export const WORKSTATION_PANELS = [
   "actions",
   "location",
   "share",
+  "camera_ai",
 ] as const;
 
 export type WorkstationPanelName = (typeof WORKSTATION_PANELS)[number];
@@ -51,6 +52,7 @@ const DEFAULT_OPEN: Record<WorkstationPanelName, boolean> = {
   actions: false,
   location: false,
   share: false,
+  camera_ai: true,
 };
 
 const DEFAULT_QUEUE = 220;

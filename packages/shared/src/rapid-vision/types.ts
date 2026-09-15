@@ -121,6 +121,10 @@ export interface VisionCamera {
   lastHealthCheck: string | null;
   kvsChannelName?: string | null;
   kvsStreamArn?: string | null;
+  /** Proactive AI Scene Intelligence — watch this camera without an open incident. */
+  aiMonitoringEnabled?: boolean;
+  zoneLabel?: string;
+  sceneCooldownSeconds?: number;
   createdAt: string;
   updatedAt: string;
 }
@@ -222,8 +226,52 @@ export interface VisionAgencySettings {
   ownerConsentPolicy: ConsentPolicy;
   aiBudgetThresholdMonthlyUSD: number;
   aiWriterIntervalSeconds: number;
+  /** AI Scene Intelligence (proactive camera alerts). Unset inherits feature flags. */
+  sceneIntelEnabled?: boolean;
+  sceneIntelMinSeverity?: "critical" | "high" | "medium" | "low";
+  sceneIntelClaudeEnabled?: boolean;
+  sceneIntelThumbnailsEnabled?: boolean;
+  sceneIntelWsEnabled?: boolean;
   updatedAt: string;
   updatedBy: string;
+}
+
+export type VisionSceneEventType =
+  | "FIGHT_OR_ALTERCATION"
+  | "PERSON_DOWN"
+  | "CROWD_FORMATION"
+  | "FORCED_ENTRY"
+  | "VEHICLE_COLLISION"
+  | "PERSON_RUNNING"
+  | "VISIBLE_WEAPON"
+  | "SHOPLIFTING"
+  | "MEDICAL_EMERGENCY"
+  | "SUSPICIOUS_VEHICLE";
+
+export type VisionSceneSeverity = "critical" | "high" | "medium" | "low";
+
+export type VisionSceneAlertStatus = "active" | "dismissed" | "incident_created" | "expired";
+
+export interface VisionSceneAlert {
+  eventId: string;
+  agencyId: string;
+  cameraId: string;
+  cameraName: string;
+  zoneLabel: string;
+  timestamp: string;
+  eventType: VisionSceneEventType;
+  category: DetectionCategory;
+  severity: VisionSceneSeverity;
+  status: VisionSceneAlertStatus;
+  shortLabel: string;
+  narrative: string;
+  confidence: ObservationConfidence;
+  detectionLabels: RecognitionLabel[];
+  thumbnailS3Key?: string;
+  incidentId?: string;
+  dismissedBy?: string;
+  dismissedAt?: string;
+  ttl: number;
 }
 
 export type VisionWebSocketEvent =
@@ -297,6 +345,14 @@ export type VisionWebSocketEvent =
       segment: VisionTranscriptSegment;
       incidentId: string;
       sessionId: string;
+    }
+  | {
+      type: "rapid-vision.scene.alert";
+      alert: VisionSceneAlert;
+    }
+  | {
+      type: "rapid-vision.scene.updated";
+      alert: VisionSceneAlert;
     };
 
 export interface UnsupportedCapabilityResult {
@@ -326,4 +382,7 @@ export type VisionAuditAction =
   | "VISION_ACCESS_REVOKED"
   | "VISION_SESSION_EXPIRED"
   | "VISION_TRANSCRIPT_STARTED"
-  | "VISION_TRANSCRIPT_STOPPED";
+  | "VISION_TRANSCRIPT_STOPPED"
+  | "VISION_SCENE_ALERT_CREATED"
+  | "VISION_SCENE_ALERT_DISMISSED"
+  | "VISION_SCENE_ALERT_INCIDENT_CREATED";

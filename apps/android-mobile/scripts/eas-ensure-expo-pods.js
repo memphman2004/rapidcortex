@@ -4,8 +4,8 @@
  * so ExpoModulesCore / Expo* pods go missing. Materialize them locally.
  *
  * Also pin ExpoModulesCore's React Native version probe to the mobile app's
- * 0.76.9 — a hoisted RN 0.80 peer at the repo root makes pod install fail
- * looking for ReactAppDependencyProvider.
+ * 0.79.x — a hoisted RN 0.80/0.81 peer at the repo root makes pod install
+ * and Gradle resolve a different tree than Metro bundled.
  *
  * Nest commander 7.x under expo-modules-autolinking so Xcode Configure project
  * does not load RN's commander 12 (`commander_1.default.command is not a function`).
@@ -14,7 +14,7 @@ const fs = require('fs');
 const path = require('path');
 const { execSync } = require('child_process');
 const {
-  isSdk52ReactNative,
+  isPinnedMobileReactNative,
   patchExpoModulesCorePodspec,
 } = require('./pin-expo-modules-core-rn.js');
 
@@ -82,15 +82,15 @@ function readPkgVersion(pkgDir) {
   return JSON.parse(fs.readFileSync(pkg, 'utf8')).version;
 }
 
-function materialize(pkg, { requireSdk52Rn = false } = {}) {
+function materialize(pkg, { requirePinnedRn = false } = {}) {
   const dest = path.join(mobileNm, pkg);
   const src = path.join(rootNm, pkg);
   if (fs.existsSync(dest)) {
-    if (requireSdk52Rn) {
+    if (requirePinnedRn) {
       const destVersion = readPkgVersion(dest);
-      if (destVersion && !isSdk52ReactNative(destVersion)) {
+      if (destVersion && !isPinnedMobileReactNative(destVersion)) {
         console.warn(
-          `[eas-pods] replacing ${pkg}@${destVersion} at ${dest} (not SDK 52 / 0.76)`
+          `[eas-pods] replacing ${pkg}@${destVersion} at ${dest} (not SDK 53 / 0.79)`
         );
         fs.rmSync(dest, { recursive: true, force: true });
       } else {
@@ -106,11 +106,11 @@ function materialize(pkg, { requireSdk52Rn = false } = {}) {
     console.warn(`[eas-pods] missing source ${src}`);
     return null;
   }
-  if (requireSdk52Rn) {
+  if (requirePinnedRn) {
     const srcVersion = readPkgVersion(src);
-    if (!srcVersion || !isSdk52ReactNative(srcVersion)) {
+    if (!srcVersion || !isPinnedMobileReactNative(srcVersion)) {
       console.warn(
-        `[eas-pods] skip copying ${pkg}@${srcVersion ?? 'unknown'} from root (need 0.76.x)`
+        `[eas-pods] skip copying ${pkg}@${srcVersion ?? 'unknown'} from root (need 0.79.x)`
       );
       return fs.existsSync(dest) ? dest : null;
     }
@@ -128,7 +128,7 @@ function resolveMobileReactNativePackageJson() {
   ];
   for (const dir of candidates) {
     const version = readPkgVersion(dir);
-    if (version && isSdk52ReactNative(version)) {
+    if (version && isPinnedMobileReactNative(version)) {
       return path.join(dir, 'package.json');
     }
     if (version) {
@@ -152,7 +152,7 @@ function pinExpoModulesCorePodspecs(rnPackageJson) {
     if (after === before) {
       console.error(
         `[eas-pods] did not patch ${podspecPath} (pattern mismatch) — ` +
-          'ExpoModulesCore may probe a hoisted, non-0.76 react-native during pod install.',
+          'ExpoModulesCore may probe a hoisted, non-0.79 react-native during pod install.',
       );
       continue;
     }
@@ -165,18 +165,18 @@ ensureDir(mobileNm);
 for (const pkg of ['expo', 'expo-modules-core']) {
   materialize(pkg);
 }
-materialize('react-native', { requireSdk52Rn: true });
+materialize('react-native', { requirePinnedRn: true });
 {
   const mobileRnVersion = readPkgVersion(path.join(mobileNm, 'react-native'));
-  if (!mobileRnVersion || !isSdk52ReactNative(mobileRnVersion)) {
+  if (!mobileRnVersion || !isPinnedMobileReactNative(mobileRnVersion)) {
     fail(
-      `apps/android-mobile/node_modules/react-native is ${mobileRnVersion ?? 'missing'}, need 0.76.x. ` +
+      `apps/android-mobile/node_modules/react-native is ${mobileRnVersion ?? 'missing'}, need 0.79.x. ` +
         'Metro will bundle against a different react-native than the native binary was built with.',
     );
   }
 }
-pinHoistedReactNativeToSdk52();
-pinExpoModulesAutolinkingToSdk52();
+pinHoistedReactNativeToPinned();
+pinExpoModulesAutolinkingToPinned();
 pinCommanderForExpoAutolinking();
 // babel-preset-expo (hoisted) uses require.resolve('expo-router'); that fails
 // when the package only exists under apps/android-mobile/node_modules.
@@ -197,19 +197,19 @@ function replacePackageTree(src, dest) {
   execSync(`cp -R "${src}" "${dest}"`, { stdio: 'inherit' });
 }
 
-function pinHoistedReactNativeToSdk52() {
+function pinHoistedReactNativeToPinned() {
   const mobileRn = path.join(mobileNm, 'react-native');
   const rootRn = path.join(rootNm, 'react-native');
   const mobileVer = readPkgVersion(mobileRn);
   const rootVer = readPkgVersion(rootRn);
-  if (!mobileVer || !isSdk52ReactNative(mobileVer)) {
+  if (!mobileVer || !isPinnedMobileReactNative(mobileVer)) {
     console.warn(
-      `[eas-pods] apps/android-mobile react-native@${mobileVer ?? 'missing'} (need 0.76.x)`,
+      `[eas-pods] apps/android-mobile react-native@${mobileVer ?? 'missing'} (need 0.79.x)`,
     );
     return;
   }
-  if (rootVer && isSdk52ReactNative(rootVer)) {
-    console.log(`[eas-pods] hoisted react-native@${rootVer} is SDK 52`);
+  if (rootVer && isPinnedMobileReactNative(rootVer)) {
+    console.log(`[eas-pods] hoisted react-native@${rootVer} is SDK 53 / 0.79`);
     return;
   }
   if (!rootVer) {
@@ -222,21 +222,27 @@ function pinHoistedReactNativeToSdk52() {
   replacePackageTree(mobileRn, rootRn);
 }
 
-function pinExpoModulesAutolinkingToSdk52() {
+function isPinnedAutolinking(version) {
+  return Boolean(version && (version.startsWith('2.') || version.startsWith('3.')));
+}
+
+function pinExpoModulesAutolinkingToPinned() {
   const srcCandidates = [
     path.join(mobileNm, 'expo', 'node_modules', 'expo-modules-autolinking'),
     path.join(rootNm, 'expo', 'node_modules', 'expo-modules-autolinking'),
+    path.join(mobileNm, 'expo-modules-autolinking'),
+    path.join(rootNm, 'expo-modules-autolinking'),
   ];
   let src = null;
   for (const candidate of srcCandidates) {
     const version = readPkgVersion(candidate);
-    if (version && version.startsWith('2.')) {
+    if (isPinnedAutolinking(version)) {
       src = candidate;
       break;
     }
   }
   if (!src) {
-    fail('expo-modules-autolinking 2.x not found under expo — autolinking may pick a mismatched version.');
+    fail('expo-modules-autolinking 2.x/3.x not found under expo — autolinking may pick a mismatched version.');
   }
   const srcVer = readPkgVersion(src);
   for (const dest of [
@@ -268,27 +274,30 @@ function pinCommanderForExpoAutolinking() {
   });
 }
 
-function pinReactNativeScreensToSdk52() {
+function pinReactNativeScreensToPinned() {
   const mobileScreens = path.join(mobileNm, 'react-native-screens');
   const rootScreens = path.join(rootNm, 'react-native-screens');
+  if (!readPkgVersion(mobileScreens) && readPkgVersion(rootScreens)) {
+    console.log('[eas-pods] copying react-native-screens → apps/android-mobile/node_modules');
+    replacePackageTree(rootScreens, mobileScreens);
+  }
   const mobileVer = readPkgVersion(mobileScreens);
   const rootVer = readPkgVersion(rootScreens);
-  if (!mobileVer || !mobileVer.startsWith('4.4.')) {
+  if (!mobileVer || !mobileVer.startsWith('4.11.')) {
     fail(
-      `apps/android-mobile/node_modules/react-native-screens is ${mobileVer ?? 'missing'}, need 4.4.x. ` +
+      `apps/android-mobile/node_modules/react-native-screens is ${mobileVer ?? 'missing'}, need 4.11.x. ` +
         'A version mismatch here is a known cause of native-stack screens rendering nothing.',
     );
   }
-  if (rootVer && !rootVer.startsWith('4.4.')) {
+  if (rootVer && !rootVer.startsWith('4.11.')) {
     console.log(
       `[eas-pods] replacing hoisted react-native-screens@${rootVer} with ${mobileVer}`,
     );
-    fs.rmSync(rootScreens, { recursive: true, force: true });
-    execSync(`cp -R "${mobileScreens}" "${rootScreens}"`, { stdio: 'inherit' });
+    replacePackageTree(mobileScreens, rootScreens);
   }
 }
 
-pinReactNativeScreensToSdk52();
+pinReactNativeScreensToPinned();
 
 const { patchExpoRouterPackage } = require('./patch-expo-router-ctx.js');
 const appDir = path.join(mobileRoot, 'app');
@@ -304,7 +313,7 @@ if (rnPackageJson) {
   console.log(`[eas-pods] mobile React Native is ${readPkgVersion(path.dirname(rnPackageJson))} at ${rnPackageJson}`);
   pinExpoModulesCorePodspecs(rnPackageJson);
 } else {
-  fail('no React Native 0.76.x found; ExpoModulesCore may pick a hoisted 0.80 peer.');
+  fail('no React Native 0.79.x found; ExpoModulesCore may pick a hoisted 0.80/0.81 peer.');
 }
 
 const corePodspec = path.join(mobileNm, 'expo-modules-core', 'ExpoModulesCore.podspec');

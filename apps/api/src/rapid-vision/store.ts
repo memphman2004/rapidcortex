@@ -11,6 +11,8 @@ import type {
   VisionAgencySettings,
   VisionCamera,
   VisionObservation,
+  VisionSceneAlert,
+  VisionSceneAlertStatus,
   VisionSession,
   VisionTranscriptSegment,
   VisionTranscriptStatus,
@@ -37,6 +39,26 @@ function consentTable(): string {
 
 function transcriptsTable(): string {
   return env.visionTranscriptsTable;
+}
+
+function eventsTable(): string {
+  return env.visionEventsTable;
+}
+
+function sceneAlertItem(alert: VisionSceneAlert) {
+  return {
+    pk: `AGENCY#${alert.agencyId}`,
+    sk: `EVENT#${alert.timestamp}#${alert.eventId}`,
+    gsi1pk: `AGENCY#${alert.agencyId}#STATUS#${alert.status}`,
+    gsi1sk: `${alert.timestamp}#${alert.eventId}`,
+    ...alert,
+  };
+}
+
+function asSceneAlert(item: Record<string, unknown> | undefined): VisionSceneAlert | null {
+  if (!item) return null;
+  if (String(item.agencyId ?? "") === "") return null;
+  return item as unknown as VisionSceneAlert;
 }
 
 export function hashVisionToken(token: string): string {
@@ -439,6 +461,109 @@ export const visionStore = {
       }),
     );
     return (result.Items ?? []) as VisionTranscriptSegment[];
+  },
+
+  async putSceneAlert(alert: VisionSceneAlert): Promise<void> {
+    if (!eventsTable()) return;
+    await ddb.send(
+      new PutCommand({
+        TableName: eventsTable(),
+        Item: sceneAlertItem(alert),
+        ConditionExpression: "attribute_not_exists(pk) OR agencyId = :a",
+        ExpressionAttributeValues: { ":a": alert.agencyId },
+      }),
+    );
+  },
+
+  async getSceneAlert(agencyId: string, eventId: string): Promise<VisionSceneAlert | null> {
+    if (!eventsTable()) return null;
+    const listed = await this.listSceneAlerts(agencyId, { status: "all", limit: 100 });
+    return listed.find((row) => row.eventId === eventId) ?? null;
+  },
+
+  async listSceneAlerts(
+    agencyId: string,
+    opts?: { status?: VisionSceneAlertStatus | "all"; cameraId?: string; limit?: number },
+  ): Promise<VisionSceneAlert[]> {
+    if (!eventsTable()) return [];
+    const limit = opts?.limit ?? 50;
+    const status = opts?.status ?? "active";
+    if (status !== "all") {
+      const result = await ddb.send(
+        new QueryCommand({
+          TableName: eventsTable(),
+          IndexName: "ByAgencyStatus",
+          KeyConditionExpression: "gsi1pk = :pk",
+          ExpressionAttributeValues: { ":pk": `AGENCY#${agencyId}#STATUS#${status}` },
+          ScanIndexForward: false,
+          Limit: limit,
+        }),
+      );
+      return (result.Items ?? [])
+        .map((item) => asSceneAlert(item as Record<string, unknown>))
+        .filter((row): row is VisionSceneAlert => Boolean(row) && row.agencyId === agencyId)
+        .filter((row) => !opts?.cameraId || row.cameraId === opts.cameraId);
+    }
+    const result = await ddb.send(
+      new QueryCommand({
+        TableName: eventsTable(),
+        KeyConditionExpression: "pk = :pk",
+        ExpressionAttributeValues: { ":pk": `AGENCY#${agencyId}` },
+        ScanIndexForward: false,
+        Limit: limit,
+      }),
+    );
+    return (result.Items ?? [])
+      .map((item) => asSceneAlert(item as Record<string, unknown>))
+      .filter((row): row is VisionSceneAlert => Boolean(row) && row.agencyId === agencyId)
+      .filter((row) => !opts?.cameraId || row.cameraId === opts.cameraId);
+  },
+
+  async latestSceneAlertForCamera(
+    agencyId: string,
+    cameraId: string,
+  ): Promise<VisionSceneAlert | null> {
+    const rows = await this.listSceneAlerts(agencyId, { status: "all", cameraId, limit: 20 });
+    return rows[0] ?? null;
+  },
+
+  async updateSceneAlertStatus(params: {
+    alert: VisionSceneAlert;
+    status: VisionSceneAlertStatus;
+    incidentId?: string;
+    dismissedBy?: string;
+  }): Promise<VisionSceneAlert> {
+    const next: VisionSceneAlert = {
+      ...params.alert,
+      status: params.status,
+      incidentId: params.incidentId ?? params.alert.incidentId,
+      dismissedBy: params.dismissedBy ?? params.alert.dismissedBy,
+      dismissedAt:
+        params.status === "dismissed" ? new Date().toISOString() : params.alert.dismissedAt,
+    };
+    if (!eventsTable()) return next;
+    await ddb.send(
+      new PutCommand({
+        TableName: eventsTable(),
+        Item: sceneAlertItem(next),
+        ConditionExpression: "agencyId = :a",
+        ExpressionAttributeValues: { ":a": params.alert.agencyId },
+      }),
+    );
+    return next;
+  },
+
+  async updateCameraSceneConfig(
+    camera: VisionCamera,
+    patch: Pick<VisionCamera, "aiMonitoringEnabled" | "zoneLabel" | "sceneCooldownSeconds">,
+  ): Promise<VisionCamera> {
+    const next: VisionCamera = {
+      ...camera,
+      ...patch,
+      updatedAt: new Date().toISOString(),
+    };
+    await this.putCamera(next);
+    return next;
   },
 };
 

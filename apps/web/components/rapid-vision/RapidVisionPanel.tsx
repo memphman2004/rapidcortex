@@ -33,6 +33,8 @@ const V = {
   dim: "#3a3460",
 } as const;
 
+type VisionTokens = typeof V;
+
 type PanelTab = "intelligence" | "cameras" | "live" | "verified";
 
 interface Props {
@@ -415,7 +417,7 @@ function LiveStreamTab({
   cameras: VisionCameraSearchResult[];
   incidentId: string;
   latestWsEvent: VisionWebSocketEvent | null;
-  V: typeof V;
+  V: VisionTokens;
 }) {
   if (!sessions.length) {
     return (
@@ -486,7 +488,7 @@ function LiveStreamTab({
   );
 }
 
-function VerifiedTab({ observations, V }: { observations: VisionObservation[]; V: typeof V }) {
+function VerifiedTab({ observations, V }: { observations: VisionObservation[]; V: VisionTokens }) {
   if (!observations.length) {
     return (
       <div

@@ -34,6 +34,7 @@
       "@/lib/deployment-environment": ["./lib/deployment-environment.ts"],
       "@/components/auth/session-context": ["./components/auth/session-context.tsx"],
       "@/components/InsideTheCortexPopup": ["./components/InsideTheCortexPopup.tsx"],
+      "@/components/sections/*": ["./components/sections/*"],
       "@/app/providers": ["./app/providers.tsx"],
       "@/*": ["../web/*", "./*"]
     }

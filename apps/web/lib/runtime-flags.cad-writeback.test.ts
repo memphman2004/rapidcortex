@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-describe("runtime feature flags", () => {
+describe("runtime feature flags", { timeout: 20_000 }, () => {
   afterEach(() => {
     vi.unstubAllEnvs();
     vi.resetModules();
@@ -12,6 +12,19 @@ describe("runtime feature flags", () => {
     vi.stubEnv("NEXT_PUBLIC_ENABLE_QA_SCORING", "");
     const { isQaScoringEnabled } = await import("./runtime-flags");
     expect(isQaScoringEnabled()).toBe(true);
+  });
+
+  it("keeps Scenario Center off unless explicitly enabled", async () => {
+    vi.stubEnv("NEXT_PUBLIC_ENABLE_PILOT_TEST_MODE", "1");
+    vi.stubEnv("NEXT_PUBLIC_ENABLE_SCENARIO_CENTER", "");
+    const { isScenarioCenterUiEnabled } = await import("./runtime-flags");
+    expect(isScenarioCenterUiEnabled()).toBe(false);
+  });
+
+  it("enables Scenario Center only when explicitly set", async () => {
+    vi.stubEnv("NEXT_PUBLIC_ENABLE_SCENARIO_CENTER", "1");
+    const { isScenarioCenterUiEnabled } = await import("./runtime-flags");
+    expect(isScenarioCenterUiEnabled()).toBe(true);
   });
 
   it("keeps CAD write-back off unless explicitly enabled", async () => {

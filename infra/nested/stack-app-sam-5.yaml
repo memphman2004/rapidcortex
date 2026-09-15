@@ -367,6 +367,9 @@ Parameters:
   SalesLeadsTable:
     Type: String
     Description: Physical DynamoDB table name from data layer (SalesLeadsTable).
+  TicketsTable:
+    Type: String
+    Description: Physical DynamoDB table name from data layer (TicketsTable / rc-support-tickets).
   SeoIntelligenceTable:
     Type: String
     Description: Physical DynamoDB table name for Cortex SEO Intelligence (scans + issues).
@@ -607,8 +610,8 @@ Parameters:
     Type: String
     Default: "https://www.rapidcortex.us"
     Description: >-
-      Public origin where token pages are served (Silent Text safety links and LiveLocation
-      capture pages). Used to mint absolute URLs in SMS bodies — both features share the same value.
+      Marketing/public origin. Silent Text, caller media, and live-video SMS links use
+      https://app.<RootDomainName> instead (those pages live on the web app).
   CadPublicApiBaseUrl:
     Type: String
     Default: ""
@@ -656,8 +659,8 @@ Parameters:
     Type: String
     Default: ""
     Description: >-
-      AWS End User Messaging configuration set. Required for delivery events — without it an
-      accepted send and a carrier-blocked one are indistinguishable.
+      AWS End User Messaging configuration set. Leave blank so this stack creates
+      AppName-sms-DeploymentStage with TEXT_ALL events on AwsSmsDeliveryEventsTopic.
   AnalysesTable:
     Type: String
     Description: Physical DynamoDB table name from data layer (AnalysesTable).
@@ -849,6 +852,7 @@ Conditions:
   HasRoute53HostedZone: !Not [!Equals [!Ref Route53HostedZoneId, ""]]
   CreateLiveVideoResources: !Equals [!Ref EnableLiveVideoResources, "true"]
   HasSilentText: !Equals [!Ref EnableSilentText, "true"]
+  CreateSmsConfigurationSet: !Equals [!Ref AwsSmsConfigurationSetName, ""]
   HasApiWaf: !Equals [!Ref EnableApiWaf, "true"]
   CloudTrailEnabled: !Equals [!Ref EnableCloudTrail, "true"]
   CloudTrailS3DataEvents: !And
@@ -1075,6 +1079,8 @@ Globals:
         COGNITO_USER_POOL_ID: !Ref ImportedCognitoUserPoolId
         COGNITO_CLIENT_ID: !Ref ImportedCognitoWebClientId
         COGNITO_REGION: !Sub "${AWS::Region}"
+        TICKETS_TABLE: !Ref TicketsTable
+        ENABLE_SUPPORT_FORM: "true"
 
 
 Resources:
@@ -3464,6 +3470,26 @@ Resources:
               StringEquals:
                 aws:SourceAccount: !Ref AWS::AccountId
 
+  # Created when the parent does not import a pre-existing set. Attached to every
+  # SendTextMessage so TEXT_DELIVERED / TEXT_BLOCKED land on AwsSmsDeliveryEventsTopic.
+  AwsSmsConfigurationSet:
+    Type: AWS::SMSVOICE::ConfigurationSet
+    Condition: CreateSmsConfigurationSet
+    Properties:
+      ConfigurationSetName: !Sub "${AppName}-sms-${DeploymentStage}"
+      EventDestinations:
+        - EventDestinationName: !Sub "${AppName}-sms-delivery-${DeploymentStage}"
+          Enabled: true
+          MatchingEventTypes:
+            - TEXT_ALL
+          SnsDestination:
+            TopicArn: !Ref AwsSmsDeliveryEventsTopic
+      Tags:
+        - Key: App
+          Value: !Ref AppName
+        - Key: Stage
+          Value: !Ref DeploymentStage
+
   AwsSmsInboundFunction:
     Type: AWS::Serverless::Function
     Metadata:
@@ -3507,7 +3533,10 @@ Resources:
           MOCK_SMS_PROVIDER: !FindInMap [SmsEnvironmentDefaults, !Ref DeploymentStage, MockSmsProvider]
           AWS_SMS_USE_SIMULATOR: !FindInMap [SmsEnvironmentDefaults, !Ref DeploymentStage, AwsSmsUseSimulator]
           AWS_SMS_POOL_ID: !Ref AwsSmsPoolId
-          AWS_SMS_CONFIGURATION_SET_NAME: !Ref AwsSmsConfigurationSetName
+          AWS_SMS_CONFIGURATION_SET_NAME: !If
+            - CreateSmsConfigurationSet
+            - !Ref AwsSmsConfigurationSet
+            - !Ref AwsSmsConfigurationSetName
           UNROUTED_SMS_DLQ_URL: !Ref UnroutedSmsDlq
       Policies:
         - !Ref AppManagedPolicyDynamoLambdaCrudShardC
@@ -3952,11 +3981,25 @@ Resources:
     Properties:
       CodeUri: ../../apps/api/
       Handler: dist/handlers/media/incidentMediaHttp.handler
+      Timeout: 30
       Environment:
         Variables:
           COGNITO_USER_POOL_ID: !Ref ImportedCognitoUserPoolId
           COGNITO_CLIENT_ID: !Ref ImportedCognitoWebClientId
           INCIDENT_MEDIA_TABLE: !Ref IncidentMediaTable
+          ENABLE_INCIDENT_MEDIA: "true"
+          INCIDENT_MEDIA_PUBLIC_BASE_URL: !Sub "https://app.${RootDomainName}"
+          SMS_PROVIDER: aws
+          SMS_PRIMARY_PROVIDER: aws
+          MOCK_SMS_PROVIDER: "false"
+          AWS_SMS_USE_SIMULATOR: "false"
+          AWS_SMS_REGION: ""
+          AWS_SMS_POOL_ID: !Ref AwsSmsPoolId
+          AWS_SMS_CONFIGURATION_SET_NAME: !If
+            - CreateSmsConfigurationSet
+            - !Ref AwsSmsConfigurationSet
+            - !Ref AwsSmsConfigurationSetName
+          SMS_ROUTING_TABLE: !Ref SmsRoutingTable
       Policies:
         - !Ref AppManagedPolicyDynamoLambdaCrudShardA
         - !Ref AppManagedPolicyDynamoLambdaCrudShardB
@@ -3971,11 +4014,22 @@ Resources:
             Resource: !Sub arn:aws:s3:::${AssetsBucket}/incident-media/*
         - !Ref AppManagedPolicyOpsAlertsSnsPublishOnly
         - Statement:
+            Sid: AwsEndUserMessagingSendText
+            Effect: Allow
+            Action:
+              - sms-voice:SendTextMessage
+            Resource:
+              - !Sub arn:${AWS::Partition}:sms-voice:${AWS::Region}:${AWS::AccountId}:phone-number/*
+              - !Sub arn:${AWS::Partition}:sms-voice:${AWS::Region}:${AWS::AccountId}:pool/*
+              - !Sub arn:${AWS::Partition}:sms-voice:${AWS::Region}:${AWS::AccountId}:configuration-set/*
+        - Statement:
+            Sid: AwsEndUserMessagingReadOnly
             Effect: Allow
             Action:
               - sms-voice:DescribeAccountAttributes
               - sms-voice:DescribePools
               - sms-voice:DescribeConfigurationSets
+              - sms-voice:DescribePhoneNumbers
             Resource: "*"
             Condition:
               StringEquals:
@@ -4178,9 +4232,17 @@ Resources:
                 Resource: !Sub "arn:${AWS::Partition}:kinesisvideo:${AWS::Region}:${AWS::AccountId}:channel/*/*"
               - Effect: Allow
                 Action:
+                  - sms-voice:SendTextMessage
+                Resource:
+                  - !Sub arn:${AWS::Partition}:sms-voice:${AWS::Region}:${AWS::AccountId}:phone-number/*
+                  - !Sub arn:${AWS::Partition}:sms-voice:${AWS::Region}:${AWS::AccountId}:pool/*
+                  - !Sub arn:${AWS::Partition}:sms-voice:${AWS::Region}:${AWS::AccountId}:configuration-set/*
+              - Effect: Allow
+                Action:
                   - sms-voice:DescribeAccountAttributes
                   - sms-voice:DescribePools
                   - sms-voice:DescribeConfigurationSets
+                  - sms-voice:DescribePhoneNumbers
                 Resource: "*"
                 Condition:
                   StringEquals:
@@ -4440,7 +4502,7 @@ Resources:
           LIVE_VIDEO_SESSION_TTL_SECONDS: "1800"
           LIVE_VIDEO_MAX_DURATION_SECONDS: "900"
           LIVE_VIDEO_HEARTBEAT_TIMEOUT_SECONDS: "45"
-          LIVE_VIDEO_PUBLIC_BASE_URL: !Sub "https://www.${RootDomainName}"
+          LIVE_VIDEO_PUBLIC_BASE_URL: !Sub "https://app.${RootDomainName}"
           LIVE_VIDEO_KVS_TOKEN_ROLE_ARN: !GetAtt KvsWebRtcBrowserTokenRole.Arn
           LIVE_VIDEO_STORAGE_MODE: kvs
           WEBRTC_TURN_SECRET_ARN: ""
@@ -4455,7 +4517,11 @@ Resources:
           MOCK_SMS_PROVIDER: "false"
           AWS_SMS_USE_SIMULATOR: "false"
           AWS_SMS_POOL_ID: !Ref AwsSmsPoolId
-          AWS_SMS_CONFIGURATION_SET_NAME: !Ref AwsSmsConfigurationSetName
+          AWS_SMS_CONFIGURATION_SET_NAME: !If
+            - CreateSmsConfigurationSet
+            - !Ref AwsSmsConfigurationSet
+            - !Ref AwsSmsConfigurationSetName
+          SMS_ROUTING_TABLE: !Ref SmsRoutingTable
       Events:
         RequestLiveVideo:
           Type: HttpApi
@@ -4517,7 +4583,7 @@ Resources:
           LIVE_VIDEO_SESSION_TTL_SECONDS: "1800"
           LIVE_VIDEO_MAX_DURATION_SECONDS: "900"
           LIVE_VIDEO_HEARTBEAT_TIMEOUT_SECONDS: "45"
-          LIVE_VIDEO_PUBLIC_BASE_URL: !Sub "https://www.${RootDomainName}"
+          LIVE_VIDEO_PUBLIC_BASE_URL: !Sub "https://app.${RootDomainName}"
           LIVE_VIDEO_KVS_TOKEN_ROLE_ARN: !GetAtt KvsWebRtcBrowserTokenRole.Arn
           LIVE_VIDEO_STORAGE_MODE: kvs
           LIVE_VIDEO_EXPORT_FUNCTION_NAME: !Ref LiveVideoExportFunction
@@ -4630,7 +4696,7 @@ Resources:
           INVITES_TABLE: !Ref InvitesTable
           ASSETS_BUCKET: !Ref AssetsBucket
           SILENT_TEXT_TABLE: !Ref SilentTextSessionsTable
-          SILENT_TEXT_PUBLIC_BASE_URL: !Ref AppPublicBaseUrl
+          SILENT_TEXT_PUBLIC_BASE_URL: !Sub "https://app.${RootDomainName}"
           ENABLE_SILENT_TEXT: !Ref EnableSilentText
           SILENT_TEXT_TRANSLATION_ENABLED: "true"
           SILENT_TEXT_TTS_ENABLED: "false"
@@ -4651,7 +4717,11 @@ Resources:
           AWS_SMS_USE_SIMULATOR: !If [HasSilentText, "false", !FindInMap [SmsEnvironmentDefaults, !Ref DeploymentStage, AwsSmsUseSimulator]]
           AWS_SMS_REGION: ""
           AWS_SMS_POOL_ID: !Ref AwsSmsPoolId
-          AWS_SMS_CONFIGURATION_SET_NAME: !Ref AwsSmsConfigurationSetName
+          AWS_SMS_CONFIGURATION_SET_NAME: !If
+            - CreateSmsConfigurationSet
+            - !Ref AwsSmsConfigurationSet
+            - !Ref AwsSmsConfigurationSetName
+          SMS_ROUTING_TABLE: !Ref SmsRoutingTable
       Policies:
         - !Ref AppManagedPolicyDynamoLambdaCrudShardA
         - !Ref AppManagedPolicyDynamoLambdaCrudShardB
@@ -4688,6 +4758,7 @@ Resources:
               - sms-voice:DescribeAccountAttributes
               - sms-voice:DescribePools
               - sms-voice:DescribeConfigurationSets
+              - sms-voice:DescribePhoneNumbers
             Resource: "*"
             Condition:
               StringEquals:
@@ -4766,7 +4837,7 @@ Resources:
       Environment:
         Variables:
           SILENT_TEXT_TABLE: !Ref SilentTextSessionsTable
-          SILENT_TEXT_PUBLIC_BASE_URL: !Ref AppPublicBaseUrl
+          SILENT_TEXT_PUBLIC_BASE_URL: !Sub "https://app.${RootDomainName}"
           ENABLE_SILENT_TEXT: !Ref EnableSilentText
           SILENT_TEXT_TRANSLATION_ENABLED: "true"
           SILENT_TEXT_TTS_ENABLED: "false"
@@ -4856,8 +4927,8 @@ Resources:
           COGNITO_CLIENT_ID: !Ref ImportedCognitoWebClientId
           PINPOINT_LINKS_TABLE: !Ref PinpointLinksTable
           ENABLE_PINPOINT: !Ref EnablePinpoint
-          PINPOINT_PUBLIC_BASE_URL: !Ref AppPublicBaseUrl
-          SILENT_TEXT_PUBLIC_BASE_URL: !Ref AppPublicBaseUrl
+          PINPOINT_PUBLIC_BASE_URL: !Sub "https://app.${RootDomainName}"
+          SILENT_TEXT_PUBLIC_BASE_URL: !Sub "https://app.${RootDomainName}"
           PINPOINT_SMS_MOCK: "false"
           SMS_PROVIDER: !FindInMap [SmsEnvironmentDefaults, !Ref DeploymentStage, SmsProvider]
           SMS_PRIMARY_PROVIDER: !FindInMap [SmsEnvironmentDefaults, !Ref DeploymentStage, SmsPrimaryProvider]
@@ -4865,7 +4936,10 @@ Resources:
           AWS_SMS_USE_SIMULATOR: !FindInMap [SmsEnvironmentDefaults, !Ref DeploymentStage, AwsSmsUseSimulator]
           AWS_SMS_REGION: ""
           AWS_SMS_POOL_ID: !Ref AwsSmsPoolId
-          AWS_SMS_CONFIGURATION_SET_NAME: !Ref AwsSmsConfigurationSetName
+          AWS_SMS_CONFIGURATION_SET_NAME: !If
+            - CreateSmsConfigurationSet
+            - !Ref AwsSmsConfigurationSet
+            - !Ref AwsSmsConfigurationSetName
           # The handler also gates on SURGE_*; blank them here so the file-loaded `env.ts` resolves
           # ENABLE_SURGE=false and Surge routes 503 even if they were ever bound to this function.
           SURGE_CLUSTERS_TABLE: ""
@@ -5303,6 +5377,139 @@ Resources:
             Resource:
               - !Sub arn:${AWS::Partition}:s3:::${AssetsBucket}/video-clips/*
 
+  # ---------------------------------------------------------------------------
+  # Support tickets (web form + RC Admin board)
+  # NEVER put !If inside a Resource list — an empty [] caused the last AppSam5 rollback.
+  # Correct: !If at the Statement level, dropping the whole statement with AWS::NoValue.
+  # Wrong: Resource: [ !If [HasArn, !Ref Arn, !Ref AWS::NoValue] ]
+  # The four policies below are unconditional named ARNs (table + indexes + audit PutItem).
+  # SES is !If at statement level on SubmitSupportTicketFunction only.
+  # ---------------------------------------------------------------------------
+
+  SubmitSupportTicketFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/handlers/support-web/submit-ticket.handler
+      Timeout: 15
+      Tags:
+        Service: rc-support-tickets
+      Environment:
+        Variables:
+          SUPPORT_EMAIL: support@rapidcortex.us
+          FROM_EMAIL: !If [CreateSesIdentity, !Ref SesIdentityValue, "noreply@rapidcortex.us"]
+          SUPPORT_PHONE: ""
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref TicketsTable
+        - Statement:
+            Sid: SupportTicketAuditPut
+            Effect: Allow
+            Action:
+              - dynamodb:PutItem
+            Resource:
+              - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${AuditTable}
+        - !If
+          - CreateSesIdentity
+          - Statement:
+              Sid: SupportTicketSesSend
+              Effect: Allow
+              Action:
+                - ses:SendEmail
+              Resource:
+                - !Sub arn:${AWS::Partition}:ses:${AWS::Region}:${AWS::AccountId}:identity/${SesIdentityValue}
+          - !Ref AWS::NoValue
+      Events:
+        Submit:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/support/tickets
+            Method: POST
+
+  GetSupportTicketBoardFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/handlers/support-web/get-ticket-board.handler
+      Timeout: 20
+      Tags:
+        Service: rc-support-tickets
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref TicketsTable
+      Events:
+        Board:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/rc-internal/support-tickets/board
+            Method: GET
+
+  UpdateSupportTicketFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/handlers/support-web/update-ticket.handler
+      Timeout: 15
+      Tags:
+        Service: rc-support-tickets
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref TicketsTable
+        - Statement:
+            Sid: SupportTicketAuditPut
+            Effect: Allow
+            Action:
+              - dynamodb:PutItem
+            Resource:
+              - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${AuditTable}
+      Events:
+        Patch:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/rc-internal/support-tickets/{ticketId}
+            Method: PATCH
+
+  AddSupportTicketNoteFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/handlers/support-web/add-ticket-note.handler
+      Timeout: 15
+      Tags:
+        Service: rc-support-tickets
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref TicketsTable
+        - Statement:
+            Sid: SupportTicketAuditPut
+            Effect: Allow
+            Action:
+              - dynamodb:PutItem
+            Resource:
+              - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${AuditTable}
+      Events:
+        Notes:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/rc-internal/support-tickets/{ticketId}/notes
+            Method: POST
+
 Outputs:
   OpsAlertsTopicArn:
     Description: SNS topic ARN (stack 5 campus/venue/media).
@@ -5337,5 +5544,11 @@ Outputs:
     Value: !Ref AwsSmsInboundTopic
   AwsSmsDeliveryEventsTopicArn:
     Description: >-
-      Set this as the SNS event destination on the AWS End User Messaging configuration set.
+      SNS topic that receives End User Messaging delivery events from the configuration set.
     Value: !Ref AwsSmsDeliveryEventsTopic
+  ResolvedSmsConfigurationSetName:
+    Description: Configuration set name attached to SendTextMessage (created in this stack when the parent param is blank).
+    Value: !If
+      - CreateSmsConfigurationSet
+      - !Ref AwsSmsConfigurationSet
+      - !Ref AwsSmsConfigurationSetName

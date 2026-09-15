@@ -63,6 +63,26 @@ describe("MediaService SMS routing", () => {
     expect(row.smsFailoverUsed).toBe(false);
   });
 
+  it("forwards publicAppBaseUrl from sendMediaLink into the SMS body URL", async () => {
+    getIncidentMock.mockResolvedValue({ incidentId: "inc-1", agencyId: "agency-a" });
+    sendSmsMock.mockResolvedValue({
+      provider: "aws",
+      status: "sent",
+      messageId: "m1",
+      recipientRedacted: "***0100",
+      sentAt: new Date().toISOString(),
+    });
+    const svc = new MediaService();
+    await svc.sendMediaLink("inc-1", { userId: "u1", role: "dispatcher", agencyId: "agency-a" } as never, {
+      callerPhone: "+15555550100",
+      mediaType: "photo",
+      publicAppBaseUrl: "https://app.rapidcortex.us",
+    });
+    expect(sendSmsMock.mock.calls[0]![1].messageBody).toContain(
+      "https://app.rapidcortex.us/media/upload/",
+    );
+  });
+
   it("passes aws SMS mode into the factory when env selects aws", async () => {
     const prev = env.smsProvider;
     env.smsProvider = "aws";

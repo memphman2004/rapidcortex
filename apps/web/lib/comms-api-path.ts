@@ -94,6 +94,8 @@ const STACK5_PATH_TESTS: RegExp[] = [
   /^\/api\/public\/locate\//,
   /^\/api\/sms-routing/,
   /^\/api\/video\//,
+  /^\/api\/support\/tickets/,
+  /^\/api\/rc-internal\/support-tickets/,
 ];
 
 /** Media, agency-admin, RC-admin, platform — stack-app-sam-3 (AppSam3Stack). */

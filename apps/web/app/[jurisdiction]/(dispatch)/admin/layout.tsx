@@ -16,6 +16,7 @@ import {
   isQaScoringEnabled,
   isSeoIntelligenceUiEnabled,
   isSopProtocolEnabled,
+  isScenarioCenterUiEnabled,
 } from "@/lib/runtime-flags";
 
 const tabs = [
@@ -34,6 +35,7 @@ const tabs = [
   { path: "/admin/ng911/metrics", label: "NG9-1-1", feature: "ng911" as const },
   { path: "/admin/wellness", label: "Wellness", feature: "wellness" as const },
   { path: "/admin/integrations", label: "Integrations" },
+  { path: "/admin/scenario-center", label: "Scenario Center", feature: "scenarioCenter" as const },
   { path: "/admin/settings", label: "Environment" },
   { path: "/admin/settings/downloads", label: "Downloads" },
   { path: "/admin/seo", label: "SEO Intel", feature: "seoIntel" as const },
@@ -63,6 +65,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     if (t.feature === "ng911") return isNg911AssistEnabled();
     if (t.feature === "wellness") return isDispatcherWellnessUiEnabled();
     if (t.feature === "seoIntel") return isSeoIntelligenceUiEnabled();
+    if (t.feature === "scenarioCenter") return isScenarioCenterUiEnabled();
     return true;
   });
 

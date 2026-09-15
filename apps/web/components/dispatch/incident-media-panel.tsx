@@ -11,6 +11,7 @@ import {
   postCallerMediaSendLink,
 } from "@/lib/caller-media-api";
 import { isIncidentMediaEnabled } from "@/lib/runtime-flags";
+import { callerFacingPublicBaseUrl } from "@/lib/caller-facing-public-base";
 import { PhoneInput } from "@/components/ui/phone-input";
 
 export function IncidentMediaPanel({
@@ -61,7 +62,11 @@ export function IncidentMediaPanel({
     setBusy(true);
     setError(null);
     try {
-      await postCallerMediaSendLink(incidentId, { callerPhone: phoneE164, mediaType });
+      await postCallerMediaSendLink(incidentId, {
+        callerPhone: phoneE164,
+        mediaType,
+        publicAppBaseUrl: callerFacingPublicBaseUrl() || undefined,
+      });
       setShowPhone(null);
       await qc.invalidateQueries({ queryKey: ["caller-media", incidentId] });
     } catch (e) {

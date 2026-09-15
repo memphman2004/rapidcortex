@@ -58,6 +58,9 @@ Parameters:
   ExistingVisionTranscriptsTableName:
     Type: String
     Default: ""
+  ExistingVisionEventsTableName:
+    Type: String
+    Default: ""
   FfmpegLayerArn:
     Type: String
     # Do not default to a third-party public layer. CloudFormation calls
@@ -83,6 +86,7 @@ Conditions:
   CreateConsentTable: !Equals [!Ref ExistingVisionOwnerConsentTableName, ""]
   CreateArtifactsBucket: !Equals [!Ref ExistingVisionArtifactsBucketName, ""]
   CreateVisionTranscriptsTable: !Equals [!Ref ExistingVisionTranscriptsTableName, ""]
+  CreateVisionEventsTable: !Equals [!Ref ExistingVisionEventsTableName, ""]
   HasAnthropicSecret: !Not [!Equals [!Ref AnthropicApiKeySecretArn, ""]]
   HasTranscriptsTable: !Not [!Equals [!Ref TranscriptsTable, ""]]
   HasWebSocket: !Not [!Equals [!Ref WebSocketConnectionsTable, ""]]
@@ -104,6 +108,11 @@ Globals:
         ENABLE_RAPID_VISION_DEMO: "true"
         ENABLE_RAPID_VISION_AI_WRITER: "true"
         ENABLE_RAPID_VISION_TRANSCRIPT: "true"
+        ENABLE_VISION_AI: "true"
+        ENABLE_VISION_AI_CLAUDE: "true"
+        ENABLE_VISION_AI_THUMBNAILS: "true"
+        ENABLE_VISION_AI_WS: "true"
+        ENABLE_VISION_AI_ADMIN: "true"
         VISION_AI_MOCK: "true"
         VISION_TRANSCRIPT_MOCK: "true"
         VISION_TRANSCRIPT_LANGUAGE: "en-US"
@@ -114,6 +123,8 @@ Globals:
         # CloudFormation validates both branches; unused !Ref / empty Existing* ARNs
         # fail nested CREATE with "Validation failure detected".
         VISION_TRANSCRIPTS_TABLE: !Sub "rapid-cortex-vision-transcripts-${DeploymentStage}"
+        VISION_EVENTS_TABLE: !Sub "rapid-cortex-vision-events-${DeploymentStage}"
+        VISION_SCENE_CLASSIFY_QUEUE_URL: !Ref VisionSceneClassifyQueue
         CAD_WRITEBACK_ENABLED: "false"
         VISION_CAMERAS_TABLE: !Sub "rapid-cortex-vision-cameras-${DeploymentStage}"
         VISION_SESSIONS_TABLE: !Sub "rapid-cortex-vision-sessions-${DeploymentStage}"
@@ -300,6 +311,63 @@ Resources:
         AttributeName: ttl
         Enabled: true
 
+  VisionEventsTable:
+    Type: AWS::DynamoDB::Table
+    Condition: CreateVisionEventsTable
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      TableName: !Sub "rapid-cortex-vision-events-${DeploymentStage}"
+      BillingMode: PAY_PER_REQUEST
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: true
+      SSESpecification:
+        SSEEnabled: true
+      AttributeDefinitions:
+        - AttributeName: pk
+          AttributeType: S
+        - AttributeName: sk
+          AttributeType: S
+        - AttributeName: gsi1pk
+          AttributeType: S
+        - AttributeName: gsi1sk
+          AttributeType: S
+      KeySchema:
+        - AttributeName: pk
+          KeyType: HASH
+        - AttributeName: sk
+          KeyType: RANGE
+      GlobalSecondaryIndexes:
+        - IndexName: ByAgencyStatus
+          KeySchema:
+            - AttributeName: gsi1pk
+              KeyType: HASH
+            - AttributeName: gsi1sk
+              KeyType: RANGE
+          Projection:
+            ProjectionType: ALL
+      TimeToLiveSpecification:
+        AttributeName: ttl
+        Enabled: true
+
+  VisionSceneClassifyDlq:
+    Type: AWS::SQS::Queue
+    Properties:
+      QueueName: !Sub "rapid-cortex-vision-scene-classify-dlq-${DeploymentStage}"
+      MessageRetentionPeriod: 1209600
+      SqsManagedSseEnabled: true
+
+  VisionSceneClassifyQueue:
+    Type: AWS::SQS::Queue
+    Properties:
+      QueueName: !Sub "rapid-cortex-vision-scene-classify-${DeploymentStage}"
+      VisibilityTimeout: 90
+      MessageRetentionPeriod: 86400
+      SqsManagedSseEnabled: true
+      RedrivePolicy:
+        deadLetterTargetArn: !GetAtt VisionSceneClassifyDlq.Arn
+        maxReceiveCount: 3
+
   VisionArtifactsBucket:
     Type: AWS::S3::Bucket
     Condition: CreateArtifactsBucket
@@ -352,6 +420,8 @@ Resources:
               - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/rapid-cortex-vision-observations-${DeploymentStage}"
               - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/rapid-cortex-vision-observations-${DeploymentStage}/index/*"
               - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/rapid-cortex-vision-owner-consent-${DeploymentStage}"
+              - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/rapid-cortex-vision-events-${DeploymentStage}"
+              - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/rapid-cortex-vision-events-${DeploymentStage}/index/*"
               - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${AuditTable}"
               - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${AuditTable}/index/*"
               - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${AgenciesTable}"
@@ -558,6 +628,53 @@ Resources:
             Schedule: rate(1 minute)
             Enabled: true
 
+  VisionSceneSamplerFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/rapid-vision/scene-intel/sampler.handler
+      Timeout: 60
+      MemorySize: 512
+      Policies:
+        - !Ref AppManagedPolicyVision
+        - !If [HasWebSocket, !Ref AppManagedPolicyVisionWs, !Ref AWS::NoValue]
+        - Statement:
+            - Sid: VisionSceneClassifySend
+              Effect: Allow
+              Action:
+                - sqs:SendMessage
+                - sqs:GetQueueUrl
+              Resource: !GetAtt VisionSceneClassifyQueue.Arn
+      Events:
+        Schedule:
+          Type: Schedule
+          Properties:
+            Schedule: rate(1 minute)
+            Enabled: true
+
+  VisionSceneClassifyFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/rapid-vision/scene-intel/classify-worker.handler
+      Timeout: 60
+      MemorySize: 512
+      Policies:
+        - !Ref AppManagedPolicyVision
+        - !If [HasWebSocket, !Ref AppManagedPolicyVisionWs, !Ref AWS::NoValue]
+      Events:
+        ClassifyQueue:
+          Type: SQS
+          Properties:
+            Queue: !GetAtt VisionSceneClassifyQueue.Arn
+            BatchSize: 5
+
   VisionTranscriptWorkerFunction:
     Type: AWS::Serverless::Function
     Metadata:
@@ -648,5 +765,7 @@ Outputs:
     Value: !Sub "rapid-cortex-vision-observations-${DeploymentStage}"
   VisionLiveTranscriptsTableName:
     Value: !Sub "rapid-cortex-vision-transcripts-${DeploymentStage}"
+  VisionEventsTableName:
+    Value: !Sub "rapid-cortex-vision-events-${DeploymentStage}"
   VisionTranscriptWorkerFunctionName:
     Value: !Ref VisionTranscriptWorkerFunction

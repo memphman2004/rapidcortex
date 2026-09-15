@@ -7,3 +7,8 @@ export * from "./addon-catalog.js";
 export * from "./pricing-defaults.js";
 export * from "./pricing-types.js";
 export * from "./pricing-schemas.js";
+export * from "./pricing-table.js";
+export * from "./invoice-types.js";
+export * from "./billing-engine.js";
+export * from "./invoice-email-builder.js";
+export * from "./automated-invoice-schemas.js";

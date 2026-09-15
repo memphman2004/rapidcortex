@@ -76,6 +76,11 @@ import type {
   AssignChannelBody,
   PatchIncidentChannelBody,
   ChannelDiscipline,
+  QaSuiteResult,
+  ScenarioId,
+  ScenarioListItem,
+  ScenarioResult,
+  ScenarioVertical,
 } from "rapid-cortex-shared";
 
 function normalizeApiOrigin(raw: string | undefined): string {
@@ -404,6 +409,46 @@ export async function postDemoStart(scenarioId: string): Promise<unknown> {
   return request("/api/demo/start", {
     method: "POST",
     body: JSON.stringify({ scenarioId }),
+  });
+}
+
+export async function fetchScenarioCenterCatalog(): Promise<ScenarioListItem[]> {
+  const data = await request<{ items: ScenarioListItem[] }>("/api/demo/scenario-center");
+  return data.items;
+}
+
+export async function postDemoRunScenario(scenarioId: ScenarioId, agencyId: string): Promise<ScenarioResult> {
+  return request<ScenarioResult>(`/api/demo/run/${encodeURIComponent(scenarioId)}`, {
+    method: "POST",
+    body: JSON.stringify({ agencyId }),
+  });
+}
+
+export async function postDemoGenerate(body: {
+  agencyId: string;
+  situation: string;
+  vertical: ScenarioVertical;
+}): Promise<{ result: ScenarioResult; params: Record<string, unknown> }> {
+  return request("/api/demo/generate", {
+    method: "POST",
+    body: JSON.stringify(body),
+  });
+}
+
+export async function postDemoQaSuite(body: {
+  agencyId: string;
+  vertical: ScenarioVertical;
+}): Promise<QaSuiteResult> {
+  return request("/api/demo/qa-suite", {
+    method: "POST",
+    body: JSON.stringify(body),
+  });
+}
+
+export async function postDemoReset(agencyId: string): Promise<{ deleted: number }> {
+  return request("/api/demo/reset", {
+    method: "DELETE",
+    body: JSON.stringify({ agencyId }),
   });
 }
 

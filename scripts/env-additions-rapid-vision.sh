@@ -29,6 +29,12 @@ export NEXT_PUBLIC_ENABLE_RAPID_VISION_AI_WRITER=1
 export NEXT_PUBLIC_ENABLE_RAPID_VISION_TRANSCRIPT=1
 # Enable Rekognition preliminary detection tier
 export NEXT_PUBLIC_ENABLE_RAPID_VISION_REKOGNITION=1
+# AI Scene Intelligence — proactive camera alerts (dispatcher Camera AI panel)
+export NEXT_PUBLIC_ENABLE_VISION_AI=1
+export NEXT_PUBLIC_ENABLE_VISION_AI_CLAUDE=1
+export NEXT_PUBLIC_ENABLE_VISION_AI_THUMBNAILS=1
+export NEXT_PUBLIC_ENABLE_VISION_AI_WS=1
+export NEXT_PUBLIC_ENABLE_VISION_AI_ADMIN=1
 
 # ── Marketing Connect enroll (Ring / Nest / Wyze) ────────────────────────────
 # Canonical name; NEXT_PUBLIC_RING_PUBLIC_OAUTH_BASE is still read as a fallback.
@@ -52,6 +58,9 @@ export NEXT_PUBLIC_ENABLE_CONNECT_RING_EMERGENCY_REQUESTS=1
 # VISION_AI_WRITER_INTERVAL_SECONDS=30
 # VISION_TRANSCRIPT_MOCK=true   # set false for live ffmpeg + Amazon Transcribe Streaming
 # VISION_TRANSCRIPTS_TABLE=rapid-cortex-vision-transcripts-{env}
+# VISION_EVENTS_TABLE=rapid-cortex-vision-events-{env}
+# VISION_SCENE_CLASSIFY_QUEUE_URL=https://sqs.{region}.amazonaws.com/{account}/rapid-cortex-vision-scene-classify-{env}
+# ENABLE_VISION_AI=true
 # VISION_AI_WRITER_ELEVATED_INTERVAL_SECONDS=10
 # VISION_MAX_ACTIVE_ANALYSES_PER_AGENCY=10
 

@@ -9,8 +9,8 @@ import {
   resolvePackageDir,
   resolveSharedPackageModule,
   sharedPackageNodeModuleDir,
-  resolveSdk52ScreensDir,
-  resolveSdk52ReactNativeDir,
+  resolvePinnedScreensDir,
+  resolvePinnedReactNativeDir,
   duplicateReactNativeDirs,
   resolveReactNativeModule,
 } from "./metro-resolve-nested.js";
@@ -75,7 +75,7 @@ describe("metro nested polyfill resolution", () => {
     expect(resolveSharedPackageModule("@/lib/foo", sharedRoot)).toBeNull();
   });
 
-  it("prefers react-native-screens 4.4.x over a hoisted 4.26 peer", () => {
+  it("prefers react-native-screens 4.11.x over a hoisted 4.26 peer", () => {
     const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "metro-screens-"));
     const projectRoot = path.join(tmp, "mobile");
     const workspaceRoot = path.join(tmp, "workspace");
@@ -85,13 +85,13 @@ describe("metro nested polyfill resolution", () => {
     fs.mkdirSync(rootScreens, { recursive: true });
     fs.writeFileSync(
       path.join(mobileScreens, "package.json"),
-      JSON.stringify({ name: "react-native-screens", version: "4.4.0" }),
+      JSON.stringify({ name: "react-native-screens", version: "4.11.1" }),
     );
     fs.writeFileSync(
       path.join(rootScreens, "package.json"),
       JSON.stringify({ name: "react-native-screens", version: "4.26.1" }),
     );
-    expect(resolveSdk52ScreensDir(projectRoot, workspaceRoot)).toBe(mobileScreens);
+    expect(resolvePinnedScreensDir(projectRoot, workspaceRoot)).toBe(mobileScreens);
   });
 
   it("blocks a second physical react-native tree so BatchedBridge is not evaluated twice", () => {
@@ -104,20 +104,21 @@ describe("metro nested polyfill resolution", () => {
     fs.mkdirSync(rootRn, { recursive: true });
     fs.writeFileSync(
       path.join(mobileRn, "package.json"),
-      JSON.stringify({ name: "react-native", version: "0.76.9" }),
+      JSON.stringify({ name: "react-native", version: "0.79.6" }),
     );
     fs.writeFileSync(
       path.join(rootRn, "package.json"),
-      JSON.stringify({ name: "react-native", version: "0.76.9" }),
+      JSON.stringify({ name: "react-native", version: "0.79.6" }),
     );
-    expect(resolveSdk52ReactNativeDir(projectRoot, workspaceRoot)).toBe(mobileRn);
+    expect(resolvePinnedReactNativeDir(projectRoot, workspaceRoot)).toBe(mobileRn);
     expect(duplicateReactNativeDirs(mobileRn, projectRoot, workspaceRoot)).toEqual([
       rootRn,
     ]);
   });
 
-  it("resolves react-native subpaths from the SDK 52 tree", () => {
-    const rnDir = path.join(mobileRoot, "node_modules", "react-native");
+  it("resolves react-native subpaths from the pinned SDK 53 tree", () => {
+    const rnDir = resolvePinnedReactNativeDir(mobileRoot, repoRoot);
+    expect(rnDir).toBeTruthy();
     const root = resolveReactNativeModule("react-native", rnDir);
     const bridge = resolveReactNativeModule(
       "react-native/Libraries/BatchedBridge/BatchedBridge",

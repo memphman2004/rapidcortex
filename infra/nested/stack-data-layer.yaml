@@ -405,6 +405,26 @@
       "Default": "rapid-cortex-video-clips-dev",
       "Description": "Leftover from DataLayer rollback (DeletionPolicy Retain). Do not CREATE; AlreadyExists."
     },
+    "ExistingAgencyBillingConfigsTableName": {
+      "Type": "String",
+      "Default": "rapid-cortex-agency-billing-configs-dev",
+      "Description": "Leftover from DataLayer rollback (DeletionPolicy Retain). Do not CREATE; AlreadyExists."
+    },
+    "ExistingAutomatedInvoicesTableName": {
+      "Type": "String",
+      "Default": "rapid-cortex-automated-invoices-dev",
+      "Description": "Leftover from DataLayer rollback (DeletionPolicy Retain). Do not CREATE; AlreadyExists."
+    },
+    "ExistingUsageSnapshotsTableName": {
+      "Type": "String",
+      "Default": "rapid-cortex-usage-snapshots-dev",
+      "Description": "Leftover from DataLayer rollback (DeletionPolicy Retain). Do not CREATE; AlreadyExists."
+    },
+    "ExistingBillingRunsTableName": {
+      "Type": "String",
+      "Default": "rapid-cortex-billing-runs-dev",
+      "Description": "Leftover from DataLayer rollback (DeletionPolicy Retain). Do not CREATE; AlreadyExists."
+    },
     "ExistingCampusCameraRegistryTableName": {
       "Type": "String",
       "Default": "rapid-cortex-campus-camera-registry-dev",
@@ -2761,6 +2781,127 @@
           {
             "AttributeName": "leadId",
             "KeyType": "HASH"
+          }
+        ]
+      }
+    },
+    "TicketsTable": {
+      "Type": "AWS::DynamoDB::Table",
+      "DeletionPolicy": "Retain",
+      "UpdateReplacePolicy": "Retain",
+      "Properties": {
+        "BillingMode": {
+          "Ref": "DynamoBillingMode"
+        },
+        "TableName": {
+          "Fn::If": [
+            "HasDynamoTablePrefix",
+            {
+              "Fn::Sub": "${DynamoTableNamePrefix}-support-tickets-${DeploymentStage}"
+            },
+            {
+              "Ref": "AWS::NoValue"
+            }
+          ]
+        },
+        "PointInTimeRecoverySpecification": {
+          "PointInTimeRecoveryEnabled": {
+            "Fn::If": [
+              "DynamoPitrOn",
+              true,
+              false
+            ]
+          }
+        },
+        "SSESpecification": {
+          "SSEEnabled": true
+        },
+        "AttributeDefinitions": [
+          {
+            "AttributeName": "ticketId",
+            "AttributeType": "S"
+          },
+          {
+            "AttributeName": "agencyId",
+            "AttributeType": "S"
+          },
+          {
+            "AttributeName": "createdAt",
+            "AttributeType": "S"
+          },
+          {
+            "AttributeName": "status",
+            "AttributeType": "S"
+          },
+          {
+            "AttributeName": "channel",
+            "AttributeType": "S"
+          }
+        ],
+        "KeySchema": [
+          {
+            "AttributeName": "ticketId",
+            "KeyType": "HASH"
+          }
+        ],
+        "GlobalSecondaryIndexes": [
+          {
+            "IndexName": "agencyId-createdAt-index",
+            "KeySchema": [
+              {
+                "AttributeName": "agencyId",
+                "KeyType": "HASH"
+              },
+              {
+                "AttributeName": "createdAt",
+                "KeyType": "RANGE"
+              }
+            ],
+            "Projection": {
+              "ProjectionType": "ALL"
+            }
+          },
+          {
+            "IndexName": "status-createdAt-index",
+            "KeySchema": [
+              {
+                "AttributeName": "status",
+                "KeyType": "HASH"
+              },
+              {
+                "AttributeName": "createdAt",
+                "KeyType": "RANGE"
+              }
+            ],
+            "Projection": {
+              "ProjectionType": "ALL"
+            }
+          },
+          {
+            "IndexName": "channel-createdAt-index",
+            "KeySchema": [
+              {
+                "AttributeName": "channel",
+                "KeyType": "HASH"
+              },
+              {
+                "AttributeName": "createdAt",
+                "KeyType": "RANGE"
+              }
+            ],
+            "Projection": {
+              "ProjectionType": "ALL"
+            }
+          }
+        ],
+        "TimeToLiveSpecification": {
+          "AttributeName": "ttl",
+          "Enabled": true
+        },
+        "Tags": [
+          {
+            "Key": "Service",
+            "Value": "rc-support-tickets"
           }
         ]
       }
@@ -6250,6 +6391,12 @@
         "Ref": "SalesLeadsTable"
       }
     },
+    "SupportTicketsTable": {
+      "Description": "Physical table name for web-form support tickets (rc-support-tickets)",
+      "Value": {
+        "Ref": "TicketsTable"
+      }
+    },
     "PsapProspectsTable": {
       "Description": "Physical table name for PsapProspectsTable (RC Admin outbound PSAP CRM)",
       "Value": {
@@ -6668,6 +6815,30 @@
             "Ref": "ExistingBillingSesCredentialsSecretArn"
           }
         ]
+      }
+    },
+    "AgencyBillingConfigsTable": {
+      "Description": "Per-agency automated billing contracts",
+      "Value": {
+        "Ref": "ExistingAgencyBillingConfigsTableName"
+      }
+    },
+    "AutomatedInvoicesTable": {
+      "Description": "Automated monthly invoices (not Stripe-era InvoicesTable)",
+      "Value": {
+        "Ref": "ExistingAutomatedInvoicesTableName"
+      }
+    },
+    "UsageSnapshotsTable": {
+      "Description": "Monthly usage snapshots for automated invoicing",
+      "Value": {
+        "Ref": "ExistingUsageSnapshotsTableName"
+      }
+    },
+    "BillingRunsTable": {
+      "Description": "Automated billing run records",
+      "Value": {
+        "Ref": "ExistingBillingRunsTableName"
       }
     }
   }

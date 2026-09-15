@@ -9,6 +9,7 @@ export const DOCK_MODULES = [
   { key: "location", label: "Location" },
   { key: "premise_notes", label: "Premise Notice" },
   { key: "map", label: "Map" },
+  { key: "camera_ai", label: "Camera AI Alerts" },
 ] as const;
 
 export type DockModuleKey = (typeof DOCK_MODULES)[number]["key"];
@@ -30,6 +31,7 @@ export const DOCK_MODULE_LABELS: Record<DockModuleKey, string> = {
   location: "Location",
   premise_notes: "Premise Notice",
   map: "Map",
+  camera_ai: "Camera AI Alerts",
 };
 
 const CORE_KEYS = new Set<string>(DOCK_MODULES.map((m) => m.key));

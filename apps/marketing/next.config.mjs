@@ -47,6 +47,7 @@ const nextConfig = {
         marketingRoot,
         "components/InsideTheCortexPopup.tsx",
       ),
+      "@/components/sections": path.join(marketingRoot, "components/sections"),
       "@/app/providers": path.join(marketingRoot, "app/providers.tsx"),
       "@": webRoot,
     };

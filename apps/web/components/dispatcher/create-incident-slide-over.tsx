@@ -77,6 +77,12 @@ interface Props {
   onClose: () => void;
   onCreated?: (result: CreateIncidentResult) => void;
   userRole?: string;
+  draft?: {
+    location?: string;
+    description?: string;
+    latitude?: number;
+    longitude?: number;
+  };
 }
 
 function buildIncidentTitle(typeLabel: string, locationLine: string): string {
@@ -241,6 +247,7 @@ export function CreateIncidentSlideOver({
   onClose,
   onCreated,
   userRole,
+  draft,
 }: Props) {
   const [incidentTypeId, setIncidentTypeId] = useState("");
   const [priority, setPriority] = useState<IncidentPriority>("P2");
@@ -283,7 +290,11 @@ export function CreateIncidentSlideOver({
     setSubmitError(null);
     setGeocodeError(null);
     setSuccess(null);
-  }, [open]);
+    if (draft?.location) setLocation(draft.location);
+    if (draft?.description) setDescription(draft.description);
+    if (typeof draft?.latitude === "number") setLat(draft.latitude);
+    if (typeof draft?.longitude === "number") setLng(draft.longitude);
+  }, [open, draft?.location, draft?.description, draft?.latitude, draft?.longitude]);
 
   const handleEscape = useCallback(() => {
     if (!submitting) onClose();

@@ -11,6 +11,7 @@ import {
 } from "@/lib/api";
 import { startKvsViewer } from "@/components/live-video/kvs-webrtc-clients";
 import { PhoneInput } from "@/components/ui/phone-input";
+import { callerFacingPublicBaseUrl } from "@/lib/caller-facing-public-base";
 
 const DEFAULT_ICE: RTCConfiguration = {
   iceServers: [{ urls: "stun:stun.l.google.com:19302" }],
@@ -166,7 +167,10 @@ export function LiveVideoPanel({
       if (!phoneE164) {
         throw new Error("Enter a valid US phone number.");
       }
-      return postLiveVideoRequest(incidentId, { callerPhone: phoneE164 });
+      return postLiveVideoRequest(incidentId, {
+        callerPhone: phoneE164,
+        publicAppBaseUrl: callerFacingPublicBaseUrl() || undefined,
+      });
     },
     onSuccess: () => {
       setLocalErr(null);

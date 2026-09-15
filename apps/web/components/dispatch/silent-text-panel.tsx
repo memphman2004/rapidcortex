@@ -21,6 +21,7 @@ import {
 import { SilentTextMessageBubble } from "@/components/dispatch/silent-text-message-bubble";
 import { ContextualHelp } from "@/components/help/help-button";
 import { PhoneInput } from "@/components/ui/phone-input";
+import { callerFacingPublicBaseUrl } from "@/lib/caller-facing-public-base";
 
 function statusLabel(status: SilentTextDispatcherSession["status"]): string {
   const map: Record<SilentTextDispatcherSession["status"], string> = {
@@ -53,7 +54,6 @@ export function SilentTextPanel({
   const queryClient = useQueryClient();
   const [activeSessionId, setActiveSessionId] = useState<string | null>(null);
   const [phoneE164, setPhoneE164] = useState<string | null>(null);
-  const [publicBase, setPublicBase] = useState("");
   const [highRiskOnCreate, setHighRiskOnCreate] = useState(false);
   const [stealthOnCreate, setStealthOnCreate] = useState(false);
   const [showRequest, setShowRequest] = useState(false);
@@ -110,7 +110,7 @@ export function SilentTextPanel({
       };
       const lang = callerLanguage?.trim();
       if (lang && lang !== "en") body.callerLocale = lang;
-      const base = publicBase.trim();
+      const base = callerFacingPublicBaseUrl();
       if (base) body.publicAppBaseUrl = base;
       return postSilentTextSession(incidentId, body);
     },
@@ -273,15 +273,6 @@ export function SilentTextPanel({
             onChange={setPhoneE164}
             disabled={createMut.isPending}
           />
-          <label className="block text-[10px] font-medium uppercase tracking-wide text-slate-500">
-            Public site base (optional)
-            <input
-              value={publicBase}
-              onChange={(e) => setPublicBase(e.target.value)}
-              placeholder="https://app.example.com"
-              className="mt-1 w-full rounded border border-slate-700 bg-slate-950 px-2 py-1.5 font-mono text-xs text-slate-100"
-            />
-          </label>
           <label className="flex cursor-pointer items-center gap-2 text-[11px] text-slate-300">
             <input type="checkbox" checked={highRiskOnCreate} onChange={(e) => setHighRiskOnCreate(e.target.checked)} />
             Mark as high-risk silent session

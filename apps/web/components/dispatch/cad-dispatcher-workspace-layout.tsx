@@ -31,7 +31,7 @@ import {
 import { formatRelativeOpened } from "@/lib/format";
 import { useJurisdictionLink } from "@/lib/jurisdiction-context";
 import { TriageBadge } from "@/components/triage/triage-badge";
-import { isFieldConfidenceEnabled, isNonEmergencyTriageEnabled, isRcsEnabled } from "@/lib/runtime-flags";
+import { isFieldConfidenceEnabled, isNonEmergencyTriageEnabled, isRapidVisionSceneIntelEnabled, isRcsEnabled } from "@/lib/runtime-flags";
 import { canManageRcsCall, canViewRcsMonitor } from "@/lib/rcs/rcs-authz";
 import { RcsSilentMonitorTrigger } from "@/components/rcs/RcsSilentMonitorTrigger";
 import { EscalationInbox } from "@/components/dispatcher/escalation-inbox";
@@ -455,6 +455,7 @@ export function CadDispatcherWorkspaceLayout({
       const hash = window.location.hash.replace(/^#/, "");
       if (hash === "cad-transcript") prefs.openDockModule("transcript");
       if (hash === "cad-intelligence") prefs.openDockModule("incident_picture");
+      if (hash === "cad-camera-ai") prefs.openDockModule("camera_ai");
     };
     applyHash();
     window.addEventListener("hashchange", applyHash);
@@ -504,6 +505,11 @@ export function CadDispatcherWorkspaceLayout({
           <CadActionBarButton onClick={() => prefs.openDockModule("incident_picture")} title="Notifications & intelligence">
             Notifications
           </CadActionBarButton>
+          {isRapidVisionSceneIntelEnabled() ? (
+            <CadActionBarButton onClick={() => prefs.openDockModule("camera_ai")} title="Camera AI scene alerts">
+              Camera AI
+            </CadActionBarButton>
+          ) : null}
           {isRcsEnabled() && user && canViewRcsMonitor(user, user.agencyId) ? (
             <>
               {canManageRcsCall(user, user.agencyId) && (selectedIdForPanels || incidentForUi?.incidentId) ? (

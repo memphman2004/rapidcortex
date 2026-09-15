@@ -11,6 +11,7 @@ import { EnvironmentBadge } from "@/components/dispatch/environment-badge";
 import { FontPicker } from "@/components/ui/font-picker";
 import { UserIdentityBar } from "@/components/ui/user-identity-bar";
 import { HelpButton } from "@/components/help/help-button";
+import { SupportHelpButton } from "@/components/support/SupportHelpButton";
 import { ThemeToggle } from "@/components/ui/ThemeToggle";
 import { getRoleHeaderBadgeLabel } from "@/lib/dashboards/role-header-badge";
 import { resolvePsapRole } from "@/lib/dashboards/psap-role-nav";
@@ -87,6 +88,7 @@ export function TopBar({
       </div>
       <div className="flex shrink-0 flex-wrap items-center justify-end gap-2 sm:gap-3 lg:gap-4">
         <HelpButton />
+        <SupportHelpButton user={user} />
         <ThemeToggle variant="inline" />
         <FontPicker />
         <div

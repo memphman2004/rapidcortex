@@ -1,6 +1,6 @@
 # Rapid Cortex Android mobile (`apps/android-mobile`)
 
-Expo SDK 52 React Native app for **RC Venue**, **RC Campus**, and (later) **RC Safe & Sound**.
+Expo SDK 53 React Native app for **RC Venue**, **RC Campus**, and (later) **RC Safe & Sound**.
 
 This is the **Android** product (Play package `us.rapidcortex.app`). Native **iOS** is Xcode in [`apps/ios-mobile`](../ios-mobile) (Rapid Cortex Mobile) — do not ship Expo iOS builds.
 
@@ -101,6 +101,6 @@ Account deletion: https://www.rapidcortex.us/account-deletion (also in-app on Ac
 - [ ] Play Console app + service-account JSON (`google-play-key.json`)
 - [ ] Feature graphic (1024×500) and ≥2 phone screenshots
 - [ ] Marketing deploy of `/account-deletion` so the Play URL does not 404
-- [ ] Expo SDK 53+ (Play 16 KB page-size rule — SDK 52 / RN 0.76 cannot ship)
+- [x] Expo SDK 53+ (Play 16 KB page-size rule — SDK 53 / RN 0.79)
 - [ ] Physical device testing (NFC write on NTAG213)
 - [ ] Stripe publishable key for Guardian PaymentSheet (Safe & Sound release)

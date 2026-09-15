@@ -42,6 +42,7 @@ import { DemoVisionProvider } from "../../rapid-vision/providers/DemoVisionProvi
 import { resolveVisionSessionKvsRef } from "../../rapid-vision/kvs-media-ref.js";
 import { getHandler as handleTranscriptGet, startHandler, stopHandler, withVisionPathParams } from "./transcript-session.js";
 import { handler as handleVisionViewerToken } from "./vision-viewer-token.js";
+import { handleSceneIntelRoutes } from "./scene-events.js";
 
 const auditRepo = new AuditRepository();
 const authz = new AuthorizationService();
@@ -412,6 +413,14 @@ async function handleVisionRoot(
   method: string,
   rest: string[],
 ): Promise<APIGatewayProxyResultV2> {
+  if (rest[0] === "events" || (rest[0] === "cameras" && rest[2] === "config")) {
+    const permission = rest[2] === "config" ? "vision.admin" : "vision.cameras_view";
+    const gated = await gate(event, permission);
+    if ("response" in gated) return gated.response;
+    const handled = await handleSceneIntelRoutes(event, method, rest, gated.user);
+    if (handled) return handled;
+  }
+
   if (method === "GET" && rest[0] === "sessions" && rest[2] === "viewer-token" && rest.length === 3) {
     const sessionId = decodeURIComponent(rest[1] ?? "").trim();
     if (!sessionId) return badRequest("sessionId required");

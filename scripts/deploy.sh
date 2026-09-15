@@ -43,6 +43,10 @@ set -euo pipefail
 # - INCLUDE_APP_SAM_ALARMS_NESTED_STACK=false (dev only): skip nested stack-app-alarms.yaml so AppSamStack can refresh
 #   outputs (e.g. QaHttpFunctionName) without GetAtt failures from a stale paused nested stack. Non-dev deployments
 #   must keep alarms enabled (Rules in template.yaml). Omit or set true after AppSamStack is healthy; default true.
+# - INCLUDE_APP_SAM_BILLING_NESTED_STACK=false: skip nested AppSamBillingStack when a leftover DELETE_FAILED
+#   nested stack still owns named billing Lambdas/SQS/IAM. Default true.
+# - INCLUDE_APP_SAM_BILLING_NESTED_STACK=false: skip nested AppSamBillingStack when a leftover DELETE_FAILED
+#   nested stack still owns named billing Lambdas/SQS/IAM. Default true.
 # - SAM_BUILD_USE_CACHE=0 force full rebuild (--no-cached). Default: 1 (cached incremental).
 # - SAM_PARALLEL=0 disables sam build --parallel (default 1).
 # - SAM_USE_CONTAINER=1 adds `sam build --use-container` for the whole tree (slow). The Rapid Vision
@@ -192,6 +196,7 @@ sam validate --lint --template-file "${ROOT}/infra/nested/stack-data-layer.yaml"
 sam validate --lint --template-file "${ROOT}/infra/nested/stack-app-sam.yaml"
 sam validate --lint --template-file "${ROOT}/infra/nested/stack-app-sam-qr.yaml"
 sam validate --lint --template-file "${ROOT}/infra/nested/stack-app-sam-2.yaml"
+sam validate --lint --template-file "${ROOT}/infra/nested/stack-app-sam-2-billing.yaml"
 sam validate --lint --template-file "${ROOT}/infra/nested/stack-app-sam-2-hospital.yaml"
 sam validate --lint --template-file "${ROOT}/infra/nested/stack-app-sam-transit.yaml"
 sam validate --lint --template-file "${ROOT}/infra/nested/stack-app-sam-cad.yaml"
@@ -206,6 +211,8 @@ sam validate --lint --template-file "${ROOT}/infra/nested/stack-app-alarms-2.yam
 
 echo "IAM managed policy size preflight (6,144-byte cap)..."
 python3 "${ROOT}/scripts/check-iam-managed-policy-sizes.py" --headroom 512
+echo "IAM AWS::NoValue Resource/Action preflight..."
+python3 "${ROOT}/scripts/check-iam-novalue-resources.py"
 
 ROOT_DOMAIN="${ROOT_DOMAIN:-rapidcortex.us}"
 API_SUBDOMAIN_PREFIX="${API_SUBDOMAIN_PREFIX:-api}"
@@ -515,6 +522,9 @@ if [[ "${INCLUDE_APP_SAM_ALARMS_NESTED_STACK:-true}" == "false" ]]; then
 fi
 if [[ "${INCLUDE_APP_SAM_TRANSIT_NESTED_STACK:-true}" == "false" ]]; then
   PARAMS="${PARAMS} IncludeAppSamTransitNestedStack=false"
+fi
+if [[ "${INCLUDE_APP_SAM_BILLING_NESTED_STACK:-true}" == "false" ]]; then
+  PARAMS="${PARAMS} IncludeAppSamBillingNestedStack=false"
 fi
 # Rapid IQ nested hashed stack JWN4SGUYZXYF: intel-watch queues / extra ingest Lambdas
 # collide with leftover standalone rapid-cortex-dev-AppSamRapidIqPipelineStack.
