@@ -32,6 +32,9 @@ bash scripts/sync-onboarding-packets-s3.sh dev
 
 Until the first sync, dashboards show the **built-in** packet shipped in the API (same markdown as this tree). Extra PDFs you drop in S3 appear alongside those files.
 
+Day-0 tenant provision (agency row, first admin, vertical stub — not UGA/MBS demo data): `scripts/onboard/README.md`.
+
+
 ## Source files
 
 Edit markdown in this directory, then sync. The in-app catalog is `packages/shared/src/onboarding/onboarding-packets.ts` — keep titles in sync when you add a file.

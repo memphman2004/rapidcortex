@@ -1,34 +1,76 @@
-import { PublishCommand, SNSClient } from "@aws-sdk/client-sns";
-
-const sns = new SNSClient({});
+import { sendIncidentMediaLinkSms } from "../services/sms/smsProviderFactory.js";
+import { buildSmsFactoryEnvForAgency } from "./smsFactoryEnv.js";
 
 /**
- * Sends SMS with the caller link. Uses direct SNS publish when enabled; otherwise logs for ops.
- * Production: enable SMS in the AWS account and set VIDEO_ASSIST_SNS_DIRECT=1 (or wire Pinpoint).
+ * Outcome of a Caller Video Assist SMS send. `ok=true` requires the shared AWS/mock
+ * provider to report `sent` — never returns ok for a log-only / config miss.
+ */
+export type VideoAssistSmsResult = {
+  ok: boolean;
+  provider: "aws" | "mock" | "config";
+  providerRef?: string;
+  logOnly?: false;
+  errorCode?: string;
+  errorMessage?: string;
+};
+
+/**
+ * SMS for Caller Video Assist links. Same AWS End User Messaging path as Silent Text,
+ * Live Video, and Pinpoint — not SNS Publish / log-only. Uses messageType `live_video`
+ * (same purpose: caller live-video SMS) so the Lambda vendor pack does not need a new enum.
  */
 export async function sendVideoAssistSms(params: {
   phoneE164: string;
   message: string;
-}): Promise<{ ok: boolean; providerRef?: string; logOnly?: boolean }> {
-  const direct = process.env.VIDEO_ASSIST_SNS_DIRECT?.trim() === "1";
-  if (!direct) {
-    console.info("[video-assist:sms] VIDEO_ASSIST_SNS_DIRECT!=1 — logging SMS payload only", {
-      to: params.phoneE164,
-      len: params.message.length,
-    });
-    return { ok: true, logOnly: true, providerRef: "log-only" };
-  }
+  agencyId: string;
+  incidentId: string;
+}): Promise<VideoAssistSmsResult> {
+  const result = await sendIncidentMediaLinkSms(await buildSmsFactoryEnvForAgency(params.agencyId), {
+    toPhoneE164: params.phoneE164,
+    messageBody: params.message,
+    agencyId: params.agencyId,
+    incidentId: params.incidentId,
+    messageType: "live_video",
+  });
 
-  try {
-    const out = await sns.send(
-      new PublishCommand({
-        PhoneNumber: params.phoneE164,
-        Message: params.message,
+  const provider: VideoAssistSmsResult["provider"] =
+    result.provider === "aws" || result.provider === "mock" ? result.provider : "config";
+
+  if (result.status === "sent") {
+    console.info(
+      JSON.stringify({
+        type: "video_assist.sms",
+        outcome: "sent",
+        provider,
+        agencyId: params.agencyId,
+        incidentId: params.incidentId,
+        destinationMasked: result.recipientRedacted,
       }),
     );
-    return { ok: true, providerRef: out.MessageId ?? "sns" };
-  } catch (e) {
-    console.error("[video-assist:sms] SNS publish failed", e);
-    return { ok: false };
+    return {
+      ok: true,
+      provider,
+      providerRef: result.messageId ?? provider,
+    };
   }
+
+  console.error(
+    JSON.stringify({
+      type: "video_assist.sms",
+      outcome: "failed",
+      provider,
+      agencyId: params.agencyId,
+      incidentId: params.incidentId,
+      destinationMasked: result.recipientRedacted,
+      errorCode: result.errorCode,
+      retryable: result.retryable === true,
+    }),
+  );
+
+  return {
+    ok: false,
+    provider,
+    errorCode: result.errorCode,
+    errorMessage: result.errorMessage,
+  };
 }

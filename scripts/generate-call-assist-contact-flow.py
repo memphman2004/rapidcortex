@@ -295,7 +295,7 @@ def main() -> None:
                 "Identifier": "lex-intake",
                 "Type": "ConnectParticipantWithLexBot",
                 "Parameters": {
-                    "Text": "Go ahead.",
+                    "Text": "Please tell me how I can assist you today, remember to speak clearly and not to repeat yourself.",
                     "LexV2Bot": {"AliasArn": "{{lexBotAliasArn}}"},
                     "LexSessionAttributes": {
                         "agencyId": "$.External.agencyId",

@@ -1069,7 +1069,11 @@ async function runMiddleware(request: NextRequest) {
     const auditorReadAllowed =
       effective === "auditor" &&
       AUDITOR_READ_ADMIN_PATHS.some((p) => subpath === p || subpath.startsWith(`${p}/`));
-    if (!auditorReadAllowed) {
+    // Dispatcher sidebar includes CAD Bridge at /admin/cad/bridge; bounce-to-home looks like a dead link.
+    const dispatcherCadBridgeAllowed =
+      effective === "dispatcher" &&
+      (subpath === "/admin/cad/bridge" || subpath.startsWith("/admin/cad/bridge/"));
+    if (!auditorReadAllowed && !dispatcherCadBridgeAllowed) {
       return redirectToRoleAwareHome(request, user, jurisdiction);
     }
   }

@@ -327,6 +327,16 @@ Parameters:
     Type: String
   VideoAssistSessionsTable:
     Type: String
+  AwsSmsPoolId:
+    Type: String
+    Default: ""
+    Description: >-
+      AWS End User Messaging phone pool id used as the shared SMS sender when an agency has no
+      number of its own. Blank lets the account auto-select an originator.
+  AwsSmsConfigurationSetName:
+    Type: String
+    Default: ""
+    Description: AWS End User Messaging configuration set for Caller Video Assist SMS delivery events.
   LiveVideoSessionsTable:
     Type: String
   SilentTextSessionsTable:
@@ -2263,14 +2273,39 @@ Resources:
     Properties:
       CodeUri: ../../apps/api/
       Handler: dist/handlers/videoAssistIncidentsHttp.handler
+      Timeout: 30
       Environment:
         Variables:
           VIDEO_ASSIST_TABLE: !Ref VideoAssistSessionsTable
+          VIDEO_ASSIST_PUBLIC_BASE_URL: !Sub "https://app.${RootDomainName}"
+          AWS_SMS_POOL_ID: !Ref AwsSmsPoolId
+          AWS_SMS_CONFIGURATION_SET_NAME: !Ref AwsSmsConfigurationSetName
       Policies:
         - !Ref AppManagedPolicyDynamoLambdaCrudShardA
         - !Ref AppManagedPolicyDynamoLambdaCrudShardB
         - !Ref AppManagedPolicyDynamoLambdaCrudShardC
         - !Ref AppManagedPolicyOpsAlertsSnsPublishOnly
+        - Statement:
+            Sid: AwsEndUserMessagingSendText
+            Effect: Allow
+            Action:
+              - sms-voice:SendTextMessage
+            Resource:
+              - !Sub arn:${AWS::Partition}:sms-voice:${AWS::Region}:${AWS::AccountId}:phone-number/*
+              - !Sub arn:${AWS::Partition}:sms-voice:${AWS::Region}:${AWS::AccountId}:pool/*
+              - !Sub arn:${AWS::Partition}:sms-voice:${AWS::Region}:${AWS::AccountId}:configuration-set/*
+        - Statement:
+            Sid: AwsEndUserMessagingReadOnly
+            Effect: Allow
+            Action:
+              - sms-voice:DescribeAccountAttributes
+              - sms-voice:DescribePools
+              - sms-voice:DescribeConfigurationSets
+              - sms-voice:DescribePhoneNumbers
+            Resource: "*"
+            Condition:
+              StringEquals:
+                aws:RequestedRegion: !Ref AWS::Region
       Events:
         PostSession:
           Type: HttpApi

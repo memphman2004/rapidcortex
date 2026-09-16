@@ -17,3 +17,6 @@ export async function POST(request: NextRequest, ctx: Ctx) {
 export async function PATCH(request: NextRequest, ctx: Ctx) {
   return proxy(request, ctx);
 }
+export async function PUT(request: NextRequest, ctx: Ctx) {
+  return proxy(request, ctx);
+}

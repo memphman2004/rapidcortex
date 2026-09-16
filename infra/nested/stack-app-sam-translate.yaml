@@ -72,7 +72,7 @@ Globals:
         DEPLOYMENT_STAGE: !Ref DeploymentStage
         ALLOW_UNAUTHENTICATED_API: "false"
         ENABLE_RC_TRANSLATE: "true"
-        TRANSLATE_MOCK: "true"
+        TRANSLATE_MOCK: "false"
         CAD_WRITEBACK_ENABLED: "false"
         TRANSLATE_SESSIONS_TABLE: !Sub "rapid-cortex-translate-sessions-${DeploymentStage}"
         TRANSLATE_SEGMENTS_TABLE: !Sub "rapid-cortex-translate-segments-${DeploymentStage}"
@@ -368,10 +368,25 @@ Resources:
         - !Ref AppManagedPolicyTranslate
         - !Ref AppManagedPolicyTranslateWsManage
 
+  # Ghost: nested stack still records physical id u4lmw8e, but that integration is
+  # gone from HttpApi t4bdwpjfs5. Do not change Target/RouteKey here — UPDATE would
+  # 404. Retain so a later drop of this logical id does not call DeleteIntegration.
   TranslateHttpIntegration:
+    Type: AWS::ApiGatewayV2::Integration
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      ApiId: !Ref HttpApiId
+      IntegrationType: AWS_PROXY
+      IntegrationUri: !Sub arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${TranslateHttpFunction.Arn}/invocations
+      PayloadFormatVersion: "2.0"
+
+  # Recreated after orphan u4lmw8e (same pattern as SignalHttpIntegrationV2).
+  TranslateHttpIntegrationV2:
     Type: AWS::ApiGatewayV2::Integration
     Properties:
       ApiId: !Ref HttpApiId
+      Description: RC Translate HTTP (recreated after orphan u4lmw8e)
       IntegrationType: AWS_PROXY
       IntegrationUri: !Sub arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${TranslateHttpFunction.Arn}/invocations
       PayloadFormatVersion: "2.0"
@@ -384,12 +399,41 @@ Resources:
       Principal: apigateway.amazonaws.com
       SourceArn: !Sub arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${HttpApiId}/*
 
+  # HTTP API {proxy+} does not match the collection path. Register both.
+  RouteTranslateSessions:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref HttpApiId
+      RouteKey: "ANY /api/translate/sessions"
+      Target: !Sub "integrations/${TranslateHttpIntegrationV2}"
+      AuthorizationType: !If [HasHttpApiJwtAuthorizer, JWT, NONE]
+      AuthorizerId: !If [HasHttpApiJwtAuthorizer, !Ref HttpApiJwtAuthorizerId, !Ref AWS::NoValue]
+  RouteTranslateSessionsItem:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref HttpApiId
+      RouteKey: "ANY /api/translate/sessions/{sessionId}"
+      Target: !Sub "integrations/${TranslateHttpIntegrationV2}"
+      AuthorizationType: !If [HasHttpApiJwtAuthorizer, JWT, NONE]
+      AuthorizerId: !If [HasHttpApiJwtAuthorizer, !Ref HttpApiJwtAuthorizerId, !Ref AWS::NoValue]
+  # Ghost route hm3hjwg is also gone from the HttpApi. Leave this logical id
+  # untouched so CloudFormation does not UpdateRoute a missing id.
   RouteTranslateProxy:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "ANY /api/translate/{proxy+}"
       Target: !Sub "integrations/${TranslateHttpIntegration}"
+      AuthorizationType: !If [HasHttpApiJwtAuthorizer, JWT, NONE]
+      AuthorizerId: !If [HasHttpApiJwtAuthorizer, !Ref HttpApiJwtAuthorizerId, !Ref AWS::NoValue]
+  RouteTranslateProxyV2:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref HttpApiId
+      RouteKey: "ANY /api/translate/{proxy+}"
+      Target: !Sub "integrations/${TranslateHttpIntegrationV2}"
       AuthorizationType: !If [HasHttpApiJwtAuthorizer, JWT, NONE]
       AuthorizerId: !If [HasHttpApiJwtAuthorizer, !Ref HttpApiJwtAuthorizerId, !Ref AWS::NoValue]
 

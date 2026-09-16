@@ -2,7 +2,7 @@
 
 /**
  * Compact incident location map for the dispatcher CAD workspace.
- * Follows the dispatcher shell theme (dark vs light ALS Esri style).
+ * Follows the dispatcher shell theme (dark vs light Amazon Location style).
  */
 import { RapidCortexMap } from "@/components/maps/RapidCortexMap";
 import { useTheme } from "@/lib/theme/theme-context";
@@ -37,7 +37,7 @@ export function IncidentContextMap({
         zoom={15}
         height="100%"
         showLayerControl
-        // Street-level ops: ALS Esri tiles plus GeoJSON overlays.
+        // Street-level ops: ALS tiles plus GeoJSON overlays.
         defaultLayers={{
           liveTraffic: true,
           liveTrafficClosures: true,

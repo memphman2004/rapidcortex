@@ -13,11 +13,11 @@ import type { VisionTranscriptSegment } from "rapid-cortex-shared";
 export type TranscriptSegment = VisionTranscriptSegment;
 
 const C = {
-  surface: "#100e1a",
-  border: "#1e1a30",
-  text: "#e4dff5",
-  muted: "#7c6fa0",
-  dim: "#3a3460",
+  surface: "var(--rc-surface)",
+  border: "var(--rc-border)",
+  text: "var(--rc-text-transcript)",
+  muted: "var(--rc-text-secondary)",
+  dim: "var(--rc-text-muted)",
   teal: "#06b6d4",
   tealDim: "#0e7490",
   spk: ["#06b6d4", "#f59e0b", "#a78bfa", "#6b7280"] as const,

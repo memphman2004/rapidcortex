@@ -49,6 +49,13 @@ export const alsGeofenceUpsertBodySchema = z.object({
 });
 export type AlsGeofenceUpsertBody = z.infer<typeof alsGeofenceUpsertBodySchema>;
 
+export const alsGeofenceListItemSchema = z.object({
+  zoneId: z.string(),
+  geofenceId: z.string(),
+  polygon: z.array(z.tuple([z.number(), z.number()])).min(3),
+});
+export type AlsGeofenceListItem = z.infer<typeof alsGeofenceListItemSchema>;
+
 export const alsDevicePositionBodySchema = z.object({
   longitude: z.number().min(-180).max(180),
   latitude: z.number().min(-90).max(90),

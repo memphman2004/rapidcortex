@@ -1,5 +1,6 @@
 import { randomUUID } from "node:crypto";
 import type { SQSHandler } from "aws-lambda";
+import { SQSClient, SendMessageCommand } from "@aws-sdk/client-sqs";
 import type { RecognitionLabel, VisionCamera, VisionSceneAlert } from "rapid-cortex-shared";
 import {
   classifyRekognitionLabels,
@@ -13,8 +14,11 @@ import { makeId } from "../../lib/ids.js";
 import { AuditRepository } from "../../repositories/auditRepository.js";
 import { broadcastToAgency } from "../../lib/websocket/send-message.js";
 import { visionStore } from "../store.js";
+import { detectSceneLabels } from "./detect-labels.js";
+import type { SceneDescribeMessage } from "./describe-worker.js";
 
 const auditRepo = new AuditRepository();
+const sqs = new SQSClient({});
 
 export type SceneClassifyMessage = {
   agencyId: string;
@@ -22,6 +26,8 @@ export type SceneClassifyMessage = {
   cameraName?: string;
   zoneLabel?: string;
   frameS3Key?: string;
+  frameBase64?: string;
+  motionScore?: number;
   mockLabels?: RekognitionLabelInput[];
 };
 
@@ -78,7 +84,10 @@ export async function classifyAndPersist(message: SceneClassifyMessage): Promise
     if (ageSec < cooldown) return null;
   }
 
-  const labels = message.mockLabels ?? [];
+  const labels =
+    message.mockLabels && message.mockLabels.length > 0
+      ? message.mockLabels
+      : await detectSceneLabels(message.frameBase64);
   const classified = classifyRekognitionLabels(labels);
   if (!classified) return null;
 
@@ -103,9 +112,32 @@ export async function classifyAndPersist(message: SceneClassifyMessage): Promise
     confidence: classified.confidence,
     detectionLabels: toRecognitionLabels(labels),
     thumbnailS3Key: env.enableVisionAiThumbnails ? message.frameS3Key : undefined,
+    motionScore: message.motionScore,
     ttl: sceneAlertTtlEpoch(settings.retentionDays || 30),
   };
   await persistSceneAlert(alert);
+  if (env.enableVisionAiClaude) {
+    const describeBody: SceneDescribeMessage = {
+      agencyId: alert.agencyId,
+      eventId: alert.eventId,
+      frameBase64: message.frameBase64,
+    };
+    if (env.visionSceneDescribeQueueUrl) {
+      try {
+        await sqs.send(
+          new SendMessageCommand({
+            QueueUrl: env.visionSceneDescribeQueueUrl,
+            MessageBody: JSON.stringify(describeBody),
+          }),
+        );
+      } catch (err) {
+        console.warn(JSON.stringify({ msg: "vision_scene_describe_enqueue_failed", error: String(err) }));
+      }
+    } else {
+      const { describeAndUpdate } = await import("./describe-worker.js");
+      await describeAndUpdate(describeBody);
+    }
+  }
   return alert;
 }
 

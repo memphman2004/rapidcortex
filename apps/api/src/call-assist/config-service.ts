@@ -27,12 +27,16 @@ const GENERIC_HOURS = { timezone: "UTC", openMinutes: 0, closeMinutes: 24 * 60, 
 const KCPD_HOURS = { timezone: "America/Chicago", openMinutes: 0, closeMinutes: 24 * 60, allDay: true };
 
 function kcpdGreetingConfig() {
-  return defaultGreetingConfig({
-    cityName: "Kansas City",
-    agencyName: KCPD_VOICE_CONFIG.agencyName,
-    previewConfirmed: true,
-    emergencyTransferNumber: KCPD_VOICE_CONFIG.emergencyLine ?? "911",
-  });
+  return {
+    ...defaultGreetingConfig({
+      cityName: "Kansas City",
+      agencyName: KCPD_VOICE_CONFIG.agencyName,
+      previewConfirmed: true,
+      emergencyTransferNumber: KCPD_VOICE_CONFIG.emergencyLine ?? "911",
+    }),
+    mode: "custom" as const,
+    customGreetingText: KCPD_VOICE_CONFIG.openingGreeting,
+  };
 }
 
 export function isCallAssistReferenceSeedAgency(agencyId: string): boolean {

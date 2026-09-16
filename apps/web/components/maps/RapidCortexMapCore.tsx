@@ -57,6 +57,24 @@ import { DEFAULT_LAYER_VISIBILITY } from "./map-types";
 import { buildCallerPopupHTML, buildIncidentPopupHTML, incidentsToGeoJSON } from "./map-utils";
 import { MapLayerControl } from "./MapLayerControl";
 import {
+  applyRuntimeOverlayVisibility,
+  applyTrafficLayerVisibility,
+  ensureRuntimeOverlayLayers,
+  setOverlaySourceData,
+} from "./map-overlay-layers";
+import {
+  discoverTrafficLayerIds,
+  loadAgencyZoneOverlay,
+  loadAirportOverlay,
+  loadStaticOverlay,
+  lngLatBoundsOfIncidents,
+  overlayZonesEnabled,
+  OVERLAY_AIRPORTS_SOURCE,
+  OVERLAY_COUNTIES_SOURCE,
+  OVERLAY_STATES_SOURCE,
+  OVERLAY_ZONES_SOURCE,
+} from "./runtime-overlays";
+import {
   loadMapLayers,
   loadMapTheme,
   saveMapLayers,
@@ -116,6 +134,8 @@ export default function RapidCortexMapCore({
   const appliedThemeRef = useRef<"dark" | "light" | null>(null);
   const clickHandlerRef = useRef<MapClickHandler>(() => undefined);
   const lastCommandIdRef = useRef<number | null>(null);
+  const trafficLayersRef = useRef<{ flow: string[]; closures: string[] }>({ flow: [], closures: [] });
+  const didFitRef = useRef(false);
 
   const [mapReady,  setMapReady]  = useState(false);
   const [mapError,  setMapError]  = useState<string | null>(null);
@@ -185,11 +205,17 @@ export default function RapidCortexMapCore({
     const initialTheme = themeProp;
     appliedThemeRef.current = initialTheme;
 
+    const initCenter: [number, number] = [
+      centerLng ?? DEFAULT_CENTER[0],
+      centerLat ?? DEFAULT_CENTER[1],
+    ];
+    const initZoom = zoom ?? DEFAULT_ZOOM;
+
     const map = new maplibregl.Map({
       container:          containerRef.current,
       style:              alsStyleFor(initialTheme),
-      center:             [centerLng ?? DEFAULT_CENTER[0], centerLat ?? DEFAULT_CENTER[1]],
-      zoom:               zoom ?? DEFAULT_ZOOM,
+      center:             initCenter,
+      zoom:               initZoom,
       pitch:              pitchProp,
       bearing:            bearingProp,
       maxPitch:           60,
@@ -222,15 +248,37 @@ export default function RapidCortexMapCore({
         sectionsRef.current,
         extrusionRef.current,
       );
+      ensureRuntimeOverlayLayers(map);
+      trafficLayersRef.current = discoverTrafficLayerIds(map.getStyle()?.layers);
       promoteStudioOverlays(map);
       applyStudioVisibility(map, layersRef.current);
+      applyRuntimeOverlayVisibility(map, layersRef.current);
+      applyTrafficLayerVisibility(
+        map,
+        trafficLayersRef.current.flow,
+        trafficLayersRef.current.closures,
+        layersRef.current,
+      );
       bindIncidentInteractions(map, onIncidentLayerClick);
       bindOverlayInteractions(map, (id) => {
         const overlay = overlaysRef.current.find((item) => item.id === id);
         if (overlay) overlayClickRef.current?.(overlay);
       });
       bindPolygonInteractions(map, (props) => polygonClickRef.current?.(props));
-      // Dock modules mount hidden (`display: none`); canvas is ~300px until shown.
+      // ALS style-descriptor center/zoom can overwrite constructor camera.
+      map.jumpTo({
+        center: initCenter,
+        zoom: initZoom,
+        pitch: pitchRef.current,
+        bearing: bearingRef.current,
+      });
+      didFitRef.current = fitMapToIncidents(
+        map,
+        incidentsRef.current,
+        pitchRef.current,
+        bearingRef.current,
+        initZoom,
+      );
       map.resize();
       setMapReady(true);
       onMapReady?.();
@@ -264,6 +312,7 @@ export default function RapidCortexMapCore({
       popupRef.current?.remove();
       map.remove();
       mapRef.current = null;
+      didFitRef.current = false;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [alsReady]); // Wait for ALS auth, then mount once
@@ -288,8 +337,17 @@ export default function RapidCortexMapCore({
         sectionsRef.current,
         extrusionRef.current,
       );
+      ensureRuntimeOverlayLayers(map);
+      trafficLayersRef.current = discoverTrafficLayerIds(map.getStyle()?.layers);
       promoteStudioOverlays(map);
       applyStudioVisibility(map, layersRef.current);
+      applyRuntimeOverlayVisibility(map, layersRef.current);
+      applyTrafficLayerVisibility(
+        map,
+        trafficLayersRef.current.flow,
+        trafficLayersRef.current.closures,
+        layersRef.current,
+      );
       bindIncidentInteractions(map, (e) => clickHandlerRef.current(e));
       bindOverlayInteractions(map, (id) => {
         const overlay = overlaysRef.current.find((item) => item.id === id);
@@ -457,7 +515,63 @@ export default function RapidCortexMapCore({
     safeSetVisibility(map, LIVE_RESOLVED_LAYER, layers.resolvedIncidents);
     safeSetVisibility(map, CALLER_LAYER,        layers.callerPin);
     safeSetVisibility(map, CALLER_LABEL_LAYER,  layers.callerPin);
+    applyRuntimeOverlayVisibility(map, layers);
+    applyTrafficLayerVisibility(
+      map,
+      trafficLayersRef.current.flow,
+      trafficLayersRef.current.closures,
+      layers,
+    );
   }, [layers, mapReady]);
+
+  // Fetch GeoJSON for layer toggles that ALS Esri/HERE styles do not include.
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!mapReady || !map) return;
+    let cancelled = false;
+    void (async () => {
+      if (layers.counties) {
+        const data = await loadStaticOverlay("counties");
+        if (!cancelled) setOverlaySourceData(map, OVERLAY_COUNTIES_SOURCE, data);
+      }
+      if (layers.stateBoundaries) {
+        const data = await loadStaticOverlay("states");
+        if (!cancelled) setOverlaySourceData(map, OVERLAY_STATES_SOURCE, data);
+      }
+      if (layers.airports) {
+        if (!cancelled) setOverlaySourceData(map, OVERLAY_AIRPORTS_SOURCE, loadAirportOverlay());
+      }
+      if (overlayZonesEnabled(layers)) {
+        const data = await loadAgencyZoneOverlay();
+        if (!cancelled) setOverlaySourceData(map, OVERLAY_ZONES_SOURCE, data);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [
+    mapReady,
+    layers.counties,
+    layers.stateBoundaries,
+    layers.airports,
+    layers.agencyZones,
+    layers.campusZones,
+    layers.venueZones,
+  ]);
+
+  // Fit once when the first geocoded incidents arrive after style load.
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!mapReady || !map || didFitRef.current) return;
+    const fitted = fitMapToIncidents(
+      map,
+      incidents,
+      pitchRef.current,
+      bearingRef.current,
+      zoom ?? DEFAULT_ZOOM,
+    );
+    if (fitted) didFitRef.current = true;
+  }, [incidents, mapReady, zoom]);
 
   // ─── Layer toggle handler (passed to MapLayerControl) ────────────────────
 
@@ -668,6 +782,34 @@ export default function RapidCortexMapCore({
 }
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
+
+function fitMapToIncidents(
+  map: maplibregl.Map,
+  incidents: RCIncident[],
+  pitch: number,
+  bearing: number,
+  fallbackZoom: number,
+): boolean {
+  const fit = lngLatBoundsOfIncidents(incidents);
+  if (!fit) return false;
+  if (fit.bounds) {
+    map.fitBounds(fit.bounds, {
+      padding: 72,
+      maxZoom: 13,
+      duration: 0,
+      pitch,
+      bearing,
+    });
+    return true;
+  }
+  map.jumpTo({
+    center: fit.center,
+    zoom: Math.max(fallbackZoom, 12),
+    pitch,
+    bearing,
+  });
+  return true;
+}
 
 /** Re-add app-managed GeoJSON sources/layers after initial load or setStyle. */
 function ensureLiveLayers(

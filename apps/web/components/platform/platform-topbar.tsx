@@ -2,7 +2,7 @@
 
 import { usePathname } from "next/navigation";
 import { Flag } from "lucide-react";
-import { FontPicker } from "@/components/ui/font-picker";
+import { DashboardTypographyControls } from "@/components/ui/dashboard-typography-controls";
 import { SessionUserIdentityBar } from "@/components/ui/session-user-identity-bar";
 import { useJurisdictionLink } from "@/lib/jurisdiction-context";
 
@@ -37,7 +37,7 @@ export function PlatformTopbar() {
         <h1 className="truncate text-sm font-semibold text-white md:text-base">{title}</h1>
       </div>
       <div className="flex flex-wrap items-center justify-end gap-2 sm:gap-3">
-        <FontPicker />
+        <DashboardTypographyControls />
         <div className="flex items-center gap-1.5 rounded-md border border-slate-800 bg-slate-900/50 px-2 py-1 text-[10px] text-slate-500">
           <Flag className="h-3.5 w-3.5 text-rose-500/80" aria-hidden />
           <span className="hidden sm:inline">U.S. public safety</span>

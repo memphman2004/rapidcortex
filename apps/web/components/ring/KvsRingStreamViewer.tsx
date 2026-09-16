@@ -11,7 +11,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import * as KVSWebRTC from "amazon-kinesis-video-streams-webrtc";
 import { RING_INTEGRATION_ENABLED } from "@/lib/feature-flags";
-import { RingIntegrationUnavailableNotice } from "@/src/features/connect/ring/RingIntegrationUnavailableNotice";
 
 type ViewerToken = {
   sessionId: string;
@@ -236,7 +235,7 @@ export function KvsRingStreamViewer({
               : "Starting…";
 
   if (!RING_INTEGRATION_ENABLED) {
-    return <RingIntegrationUnavailableNotice />;
+    return null;
   }
 
   return (

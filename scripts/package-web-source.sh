@@ -13,8 +13,12 @@ OUT="${OUT_TMP}"
   date -u +"%Y-%m-%dT%H:%M:%SZ" > "${ROOT}/.web-docker-cache-bust"
 # shellcheck source=scripts/lib/api-vendor-lock.sh
 source "${ROOT}/scripts/lib/api-vendor-lock.sh"
-rc_wait_for_api_vendor_lock
-"${ROOT}/scripts/refresh-api-vendor-packs.sh"
+if [[ "${SKIP_API_VENDOR_REFRESH:-}" == "1" ]]; then
+  echo "Skipping api vendor lock wait + refresh-api-vendor-packs (SKIP_API_VENDOR_REFRESH=1)"
+else
+  rc_wait_for_api_vendor_lock
+  "${ROOT}/scripts/refresh-api-vendor-packs.sh"
+fi
 rm -f "${OUT_TMP}" "${OUT_FINAL}"
 
 (

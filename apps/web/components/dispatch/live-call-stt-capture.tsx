@@ -10,6 +10,15 @@ import {
 } from "@/lib/api";
 
 const CHUNK_MS = 2000;
+const LISTENING_STATUS = "Rapidly Listening";
+
+function isOperatorSafeStartError(message: string): string {
+  const m = message.toLowerCase();
+  if (m.includes("json parse") || m.includes("unrecognized token") || m.includes("<")) {
+    return "Could not start listening";
+  }
+  return message;
+}
 
 function pickRecorderMime(): string | undefined {
   if (typeof MediaRecorder === "undefined") return undefined;
@@ -72,7 +81,7 @@ export function LiveCallSttCapture({
       if (!incident || !sessionId || blob.size < 64) return;
       const audioBase64 = await blobToBase64(blob);
       const sequence = sequenceRef.current;
-      const out = await postIncidentAudioChunk(incident, {
+      await postIncidentAudioChunk(incident, {
         sessionId,
         sequence,
         audioBase64,
@@ -81,7 +90,7 @@ export function LiveCallSttCapture({
         speaker: "caller",
       });
       sequenceRef.current = sequence + 1;
-      setStatus(`${out.sttProvider} · ${out.languageCode}${out.sttFallbackUsed ? " (fallback)" : ""}`);
+      setStatus(LISTENING_STATUS);
       await queryClient.invalidateQueries({ queryKey: ["transcript", incident] });
     },
     [incidentId, queryClient],
@@ -92,7 +101,7 @@ export function LiveCallSttCapture({
       sendQueueRef.current = sendQueueRef.current
         .then(() => sendChunk(blob))
         .catch((e: unknown) => {
-          setError(e instanceof Error ? e.message : "STT chunk failed");
+          console.debug("[live-stt] chunk failed", e);
         });
     },
     [sendChunk],
@@ -134,7 +143,7 @@ export function LiveCallSttCapture({
   const start = useCallback(async () => {
     if (!incidentId || !isApiConfigured()) return;
     setError(null);
-    setStatus("Starting language session…");
+    setStatus(LISTENING_STATUS);
     try {
       const hint = preferredLanguageHint?.trim();
       const session = await postLanguageSessionStart(incidentId, hint ? { preferredLanguageHint: hint } : {});
@@ -145,7 +154,7 @@ export function LiveCallSttCapture({
       runningRef.current = true;
       setRunning(true);
       onStreamingChange?.(true);
-      setStatus("Listening — Azure STT (OpenAI / AWS fallback)");
+      setStatus(LISTENING_STATUS);
       recordOneClip();
     } catch (e) {
       runningRef.current = false;
@@ -153,7 +162,7 @@ export function LiveCallSttCapture({
       sessionIdRef.current = null;
       setRunning(false);
       onStreamingChange?.(false);
-      setError(e instanceof Error ? e.message : "Could not start live STT");
+      setError(isOperatorSafeStartError(e instanceof Error ? e.message : "Could not start listening"));
     }
   }, [incidentId, onStreamingChange, preferredLanguageHint, recordOneClip, stopTracks]);
 

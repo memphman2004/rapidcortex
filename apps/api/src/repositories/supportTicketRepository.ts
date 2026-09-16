@@ -19,18 +19,19 @@ import { ddb } from "./baseRepository.js";
 
 const STATUS_GSI = "status-createdAt-index";
 const SEVEN_YEARS_SECONDS = 7 * 365 * 86400;
+/** Sentinel PK for the atomic sequence; not a ticket and not on the status GSI. */
+const TICKET_COUNTER_ID = "COUNTER";
+/** First issued id is SUP-1001 so operators get a short, speakable number. */
+const TICKET_SEQ_OFFSET = 1000;
+
+export function formatTicketId(sequence: number): string {
+  return `SUP-${String(sequence).padStart(4, "0")}`;
+}
 
 function table(): string {
   const t = env.ticketsTable?.trim();
   if (!t) throw new Error("TICKETS_TABLE_NOT_CONFIGURED");
   return t;
-}
-
-export function generateTicketId(agencyId: string): string {
-  const date = new Date().toISOString().slice(0, 10).replace(/-/g, "");
-  const slug = agencyId.slice(0, 8).toUpperCase().replace(/[^A-Z0-9]/g, "") || "AGENCY";
-  const short = randomUUID().replace(/-/g, "").slice(0, 8).toUpperCase();
-  return `SUP-${date}-${slug}-${short}`;
 }
 
 export function emptyColumns(): Record<TicketStatus, SupportTicketRecord[]> {
@@ -70,6 +71,20 @@ export function computeTicketBoardMetrics(tickets: SupportTicketRecord[]): Ticke
 }
 
 export class SupportTicketRepository {
+  async nextTicketId(): Promise<string> {
+    const out = await ddb.send(
+      new UpdateCommand({
+        TableName: table(),
+        Key: { ticketId: TICKET_COUNTER_ID },
+        UpdateExpression: "ADD nextNumber :one",
+        ExpressionAttributeValues: { ":one": 1 },
+        ReturnValues: "UPDATED_NEW",
+      }),
+    );
+    const sequence = Number(out.Attributes?.nextNumber ?? 0);
+    return formatTicketId(TICKET_SEQ_OFFSET + sequence);
+  }
+
   async put(ticket: SupportTicketRecord): Promise<void> {
     await ddb.send(
       new PutCommand({
@@ -119,7 +134,7 @@ export class SupportTicketRepository {
         );
         for (const item of out.Items ?? []) {
           const ticket = item as SupportTicketRecord;
-          if (!ticket.agencyId) continue;
+          if (!ticket.agencyId || ticket.ticketId === TICKET_COUNTER_ID) continue;
           if (filters?.channel && ticket.channel !== filters.channel) continue;
           if (filters?.severity && ticket.severity !== filters.severity) continue;
           if (filters?.agencyId && ticket.agencyId !== filters.agencyId) continue;

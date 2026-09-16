@@ -22,7 +22,7 @@ import {
 import { AuditRepository } from "../../repositories/auditRepository.js";
 import { geocodeAddress, reverseGeocode } from "../../location/geocoding.js";
 import { calculateRoute } from "../../location/routing.js";
-import { deleteZoneGeofence, upsertZoneGeofence } from "../../location/geofence.js";
+import { deleteZoneGeofence, listAgencyGeofences, upsertZoneGeofence } from "../../location/geofence.js";
 import { getAgencyDevicePositions, updateDevicePosition } from "../../location/tracker.js";
 
 const authz = new AuthorizationService();
@@ -102,6 +102,12 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
         [parsed.data.toLng, parsed.data.toLat],
       );
       return withCorrelationHeaders(event, ok(result));
+    }
+
+    if (method === "GET" && /\/api\/location\/geofences\/?$/.test(path)) {
+      if (!canGeocode(user)) return withCorrelationHeaders(event, forbidden());
+      const geofences = await listAgencyGeofences(user.agencyId);
+      return withCorrelationHeaders(event, ok({ geofences }));
     }
 
     if (method === "POST" && /\/api\/location\/geofences\/?$/.test(path)) {

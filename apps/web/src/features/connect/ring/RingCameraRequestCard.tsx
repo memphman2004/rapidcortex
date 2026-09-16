@@ -5,7 +5,6 @@ import { useState } from "react";
 import type { RingCameraListItem } from "rapid-cortex-integrations/ring";
 import { KvsRingStreamViewer } from "@/components/ring/KvsRingStreamViewer";
 import { isRingEnabled } from "./ring-feature-flags";
-import { RingIntegrationUnavailableNotice } from "./RingIntegrationUnavailableNotice";
 import { formatDistanceImperial } from "./format-distance-imperial";
 import { RingCameraRequestStatusBadge } from "./RingCameraRequestStatusBadge";
 
@@ -28,7 +27,7 @@ export function RingCameraRequestCard({
   const streamSessionId = camera.streamSessionId;
 
   if (!isRingEnabled()) {
-    return <RingIntegrationUnavailableNotice />;
+    return null;
   }
 
   const sendRequest = async () => {

@@ -14,7 +14,7 @@ export default async function CampusOnboardingPacketsPage({
   const { campusCode } = await params;
   const user = await getDashboardSessionUser();
   const role = user?.role ?? "CAMPUS_SECURITY";
-  if (!canViewCampusNavItem("settings", role)) {
+  if (!canViewCampusNavItem("onboarding-packets", role)) {
     redirect(`/app/campus/${campusCode}`);
   }
   return <OnboardingPacketsClient heading="Campus onboarding packet" />;

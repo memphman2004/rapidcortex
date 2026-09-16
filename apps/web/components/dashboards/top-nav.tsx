@@ -3,7 +3,7 @@
 import { Bell, Menu } from "lucide-react";
 import type { UserContext } from "rapid-cortex-shared";
 import type { RoleDashboardIdentity } from "@/lib/dashboards/role-dashboard-design";
-import { FontPicker } from "@/components/ui/font-picker";
+import { DashboardTypographyControls } from "@/components/ui/dashboard-typography-controls";
 import { UserIdentityBar } from "@/components/ui/user-identity-bar";
 import { HelpButton } from "@/components/help/help-button";
 import { SupportHelpButton } from "@/components/support/SupportHelpButton";
@@ -60,7 +60,7 @@ export function TopNav({
         <HelpButton />
         <SupportHelpButton user={user} />
         <ThemeToggle variant="tailwind" />
-        <FontPicker />
+        <DashboardTypographyControls />
         <button
           type="button"
           className="relative rounded-md border border-slate-700 p-2 text-slate-300 hover:bg-slate-800"

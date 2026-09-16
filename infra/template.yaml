@@ -145,9 +145,9 @@ Parameters:
     Type: String
     Default: ""
     Description: >-
-      AWS End User Messaging configuration set name. Leave blank so AppSam5Stack creates
-      the stage configuration set and attaches delivery events to SNS. Set only to import
-      an existing set.
+      AWS End User Messaging configuration set name. Leave blank to skip create (deploy
+      IAM cannot sms-voice:TagResource). Set to an existing set to import, or CREATE_NEW
+      to attempt create.
   QaBedrockModelId:
     Type: String
     Default: anthropic.claude-haiku-4-5-20251001-v1:0
@@ -307,10 +307,10 @@ Parameters:
       Ring emergency cameras, QA scoring, Surge, SOP AI, etc.). Set false to force off; true to force on in any stage.
   AppPublicBaseUrl:
     Type: String
-    Default: "https://www.rapidcortex.us"
+    Default: "https://app.rapidcortex.us"
     Description: >-
-      Public origin (no trailing slash) for caller-facing token pages — used to mint absolute
-      Silent Text and Pinpoint links in SMS bodies. Override for non-prod / preview deploys.
+      Public origin (no trailing slash) for caller-facing token pages on the Next.js app
+      (Silent Text, Pinpoint, Call Assist SMS). Must be the app host, not the marketing site.
   EnableApiWaf:
     Type: String
     Default: "false"
@@ -492,6 +492,19 @@ Parameters:
     Type: String
     Default: ""
     Description: When set, AppSam6Stack uses this existing Rapid Vision camera-events table.
+  FfmpegLayerArn:
+    Type: String
+    Default: ""
+    Description: >-
+      In-account ffmpeg Lambda layer ARN (x86_64) for Rapid Vision HLS audio. Empty skips the
+      layer (transcript worker stays on VISION_TRANSCRIPT_MOCK).
+  CallAssistConnectWebhookSecretArn:
+    Type: String
+    Default: ""
+    NoEcho: true
+    Description: >-
+      Secrets Manager ARN for Amazon Connect Call Assist webhook HMAC. Empty keeps
+      CALL_ASSIST_CONNECT_MOCK-only webhook verification.
   EnableRapidVisionNest:
     Type: String
     Default: "true"
@@ -2102,6 +2115,8 @@ Resources:
             - HasDataLayerNestedStack
             - !GetAtt DataLayerStack.Outputs.VideoAssistSessionsTable
             - !Sub "${DynamoTableNamePrefix}-video-assist-sessions-${DeploymentStage}"
+        AwsSmsPoolId: !Ref AwsSmsPoolId
+        AwsSmsConfigurationSetName: !Ref AwsSmsConfigurationSetName
         WafRateLimitPer5Min: !Ref WafRateLimitPer5Min
         WebhooksTable:
           Fn::If:
@@ -3633,7 +3648,7 @@ Resources:
             - !GetAtt DataLayerStack.Outputs.AgenciesTable
             - !Sub "${DynamoTableNamePrefix}-agencies-${DeploymentStage}"
         ExistingCallAssistTableName: !Ref ExistingCallAssistTableName
-        CallAssistConnectWebhookSecretArn: ""
+        CallAssistConnectWebhookSecretArn: !Ref CallAssistConnectWebhookSecretArn
         AppPublicBaseUrl: !Ref AppPublicBaseUrl
         ManagedPolicyNamePrefix: !Ref AWS::StackName
 
@@ -3723,6 +3738,7 @@ Resources:
         ExistingVisionArtifactsBucketName: !Ref ExistingVisionArtifactsBucketName
         ExistingVisionTranscriptsTableName: !Ref ExistingVisionTranscriptsTableName
         ExistingVisionEventsTableName: !Ref ExistingVisionEventsTableName
+        FfmpegLayerArn: !Ref FfmpegLayerArn
         EnableRapidVisionNest: !Ref EnableRapidVisionNest
         ManagedPolicyNamePrefix: !Ref AWS::StackName
 

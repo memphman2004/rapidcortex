@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { classifyRekognitionLabels, demoSceneAlerts } from "./scene-intel.js";
+import { classifyRekognitionLabels, demoSceneAlerts, mockSceneNarrative, summarizeSceneAlerts } from "./scene-intel.js";
 
 describe("classifyRekognitionLabels", () => {
   it("maps fight labels to a critical altercation alert", () => {
@@ -39,5 +39,23 @@ describe("demoSceneAlerts", () => {
       "scene-demo-vehicle",
     ]);
     expect(alerts.every((a) => a.status === "active")).toBe(true);
+  });
+});
+
+describe("summarizeSceneAlerts", () => {
+  it("computes conversion rate without dividing by zero", () => {
+    expect(summarizeSceneAlerts([]).conversionRate).toBe(0);
+    const alerts = demoSceneAlerts("a1");
+    alerts[0]!.status = "incident_created";
+    const summary = summarizeSceneAlerts(alerts);
+    expect(summary.totalAlerts).toBe(3);
+    expect(summary.incidentCreatedCount).toBe(1);
+    expect(summary.conversionRate).toBeCloseTo(1 / 3);
+  });
+});
+
+describe("mockSceneNarrative", () => {
+  it("returns the spec altercation copy for fight events", () => {
+    expect(mockSceneNarrative("FIGHT_OR_ALTERCATION")).toContain("Physical altercation");
   });
 });

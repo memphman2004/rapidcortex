@@ -32,6 +32,8 @@ import {
   evaluateExternalRoute,
   mapConnectParticipantRole,
   mapTranscribeSpeakerLabel,
+  isAmbiguousIntakeAnswer,
+  vehicleDescriptionSatisfied,
   type CallAssistMode,
   type CallAssistSource,
   type CallAssistSpeaker,
@@ -341,6 +343,17 @@ export async function processUtterance(opts: {
   }
 
   session.intake = extractIntakeFields(opts.text, session.intake);
+  if (
+    session.lastQuestionId &&
+    ["vehicle", "vehicle_model", "vehicle_color"].includes(session.lastQuestionId) &&
+    !isAmbiguousIntakeAnswer(opts.text) &&
+    !vehicleDescriptionSatisfied(session.intake)
+  ) {
+    session.intake.vehicleMake = opts.text.slice(0, 80);
+  }
+  if (session.lastQuestionId === "vehicle_plate" && isAmbiguousIntakeAnswer(opts.text)) {
+    session.intake.vehicleUnknown = true;
+  }
   if (session.intake.locationText?.trim()) {
     session.intake = await enrichIntakeWithGis({
       intake: session.intake,
@@ -381,6 +394,9 @@ export async function processUtterance(opts: {
     confidenceThresholds: config.confidenceThresholds,
   });
   session.triage = triage;
+  if (!session.intake.incidentTypeHint) {
+    session.intake.incidentTypeHint = triage.primaryClassification;
+  }
   const matchedType = findCallType(taxonomy, triage.primaryClassification);
   session.cadTypeLabel = matchedType?.label;
   session.cadNatureCode =

@@ -3,11 +3,14 @@ import {
   canAdminVision,
   canRequestVisionAccess,
   canViewVision,
+  canViewVisionSupervisorDashboard,
   demoSceneAlerts,
+  summarizeSceneAlerts,
   visionCameraSceneConfigSchema,
   visionSceneEventPatchSchema,
   visionSceneEventsQuerySchema,
   type UserContext,
+  type VisionCamera,
   type VisionSceneAlertStatus,
 } from "rapid-cortex-shared";
 import { AUDIT_EVENT_TYPES } from "rapid-cortex-security";
@@ -50,6 +53,20 @@ async function seedDemoIfEmpty(agencyId: string): Promise<void> {
   }
 }
 
+async function loadAlert(agencyId: string, eventId: string) {
+  const existing = await visionStore.getSceneAlert(agencyId, eventId);
+  if (existing) return existing;
+  if (!env.visionAiMock && !env.enableRapidVisionDemo) return null;
+  const demo = demoSceneAlerts(agencyId).find((row) => row.eventId === eventId);
+  if (!demo) return null;
+  try {
+    await persistSceneAlert(demo);
+  } catch (err) {
+    console.warn(JSON.stringify({ msg: "vision_scene_demo_hydrate_failed", error: String(err) }));
+  }
+  return demo;
+}
+
 export async function handleSceneIntelRoutes(
   event: APIGatewayProxyEventV2,
   method: string,
@@ -89,7 +106,7 @@ export async function handleSceneIntelRoutes(
     if (!canViewVision(user, user.agencyId)) return forbidden();
     const eventId = decodeURIComponent(rest[1] ?? "").trim();
     if (!eventId) return badRequest("eventId required");
-    const alert = await visionStore.getSceneAlert(user.agencyId, eventId);
+    const alert = await loadAlert(user.agencyId, eventId);
     if (!alert) return notFound("Scene alert not found");
 
     if (method === "GET") {
@@ -103,11 +120,15 @@ export async function handleSceneIntelRoutes(
       if (parsed.data.action === "create_incident" && !parsed.data.incidentId) {
         return badRequest("incidentId required to link a scene alert");
       }
+      if (parsed.data.action === "dismiss" && !parsed.data.dismissReason) {
+        return badRequest("dismissReason required");
+      }
       const next = await visionStore.updateSceneAlertStatus({
         alert,
         status: parsed.data.action === "dismiss" ? "dismissed" : "incident_created",
         incidentId: parsed.data.incidentId,
         dismissedBy: parsed.data.action === "dismiss" ? user.userId : undefined,
+        dismissReason: parsed.data.dismissReason,
       });
       if (env.enableVisionAiWs) {
         await broadcastToAgency({
@@ -151,5 +172,114 @@ export async function handleSceneIntelRoutes(
     return ok({ success: true, data: { camera: next } });
   }
 
+  if (method === "GET" && rest[0] === "cameras" && rest.length === 1) {
+    if (!canViewVision(user, user.agencyId)) return forbidden();
+    let cameras = await visionStore.listCamerasForAgency(user.agencyId);
+    if (cameras.length === 0 && (env.visionAiMock || env.enableRapidVisionDemo)) {
+      cameras = seedSceneDemoCameras(user.agencyId);
+      await Promise.allSettled(cameras.map((camera) => visionStore.putCamera(camera)));
+    }
+    return ok({
+      success: true,
+      data: {
+        cameras: cameras.map((camera) => ({
+          cameraId: camera.cameraId,
+          friendlyName: camera.friendlyName,
+          zoneLabel: camera.zoneLabel ?? "",
+          connectionStatus: camera.connectionStatus,
+          aiMonitoringEnabled: camera.aiMonitoringEnabled !== false,
+          sceneSensitivity: camera.sceneSensitivity ?? "medium",
+          sceneCooldownSeconds: camera.sceneCooldownSeconds ?? 120,
+          provider: camera.provider,
+        })),
+      },
+    });
+  }
+
+  if (method === "GET" && rest[0] === "scene-stats" && rest.length === 1) {
+    if (!canViewVisionSupervisorDashboard(user, user.agencyId)) return forbidden();
+    await seedDemoIfEmpty(user.agencyId);
+    let alerts = await visionStore.listSceneAlerts(user.agencyId, { status: "all", limit: 100 });
+    if (alerts.length === 0 && (env.visionAiMock || env.enableRapidVisionDemo)) {
+      alerts = demoSceneAlerts(user.agencyId);
+    }
+    return ok({ success: true, data: { windowHours: 24, ...summarizeSceneAlerts(alerts), alerts } });
+  }
+
   return null;
+}
+
+function seedSceneDemoCameras(agencyId: string): VisionCamera[] {
+  const now = new Date().toISOString();
+  return [
+    {
+      cameraId: "demo-device-001",
+      provider: "demo" as const,
+      providerDeviceId: "demo-device-001",
+      ownerId: null,
+      agencyId,
+      friendlyName: "5th & Main – Northeast Corner",
+      cameraType: "fixed_outdoor" as const,
+      latitude: 39.1,
+      longitude: -84.5,
+      coverageAreaM: 40,
+      isPublic: true,
+      isIndoor: false,
+      capabilities: ["live_stream" as const, "motion_detection" as const],
+      consentPolicy: "preauthorized_emergency" as const,
+      connectionStatus: "online" as const,
+      lastHealthCheck: now,
+      aiMonitoringEnabled: true,
+      zoneLabel: "Downtown District",
+      sceneSensitivity: "high" as const,
+      createdAt: now,
+      updatedAt: now,
+    },
+    {
+      cameraId: "demo-device-002",
+      provider: "demo" as const,
+      providerDeviceId: "demo-device-002",
+      ownerId: null,
+      agencyId,
+      friendlyName: "Campus Lot C",
+      cameraType: "fixed_outdoor" as const,
+      latitude: 39.101,
+      longitude: -84.502,
+      coverageAreaM: 50,
+      isPublic: true,
+      isIndoor: false,
+      capabilities: ["live_stream" as const, "motion_detection" as const],
+      consentPolicy: "preauthorized_emergency" as const,
+      connectionStatus: "online" as const,
+      lastHealthCheck: now,
+      aiMonitoringEnabled: true,
+      zoneLabel: "Campus perimeter",
+      sceneSensitivity: "medium" as const,
+      createdAt: now,
+      updatedAt: now,
+    },
+    {
+      cameraId: "demo-device-003",
+      provider: "demo" as const,
+      providerDeviceId: "demo-device-003",
+      ownerId: null,
+      agencyId,
+      friendlyName: "Platform B – Track 2 South End",
+      cameraType: "fixed_outdoor" as const,
+      latitude: 39.099,
+      longitude: -84.498,
+      coverageAreaM: 35,
+      isPublic: true,
+      isIndoor: false,
+      capabilities: ["live_stream" as const, "motion_detection" as const],
+      consentPolicy: "preauthorized_emergency" as const,
+      connectionStatus: "online" as const,
+      lastHealthCheck: now,
+      aiMonitoringEnabled: true,
+      zoneLabel: "Central Station",
+      sceneSensitivity: "medium" as const,
+      createdAt: now,
+      updatedAt: now,
+    },
+  ];
 }

@@ -346,7 +346,7 @@ export function FeatureNonEmergency() {
 
             <h2
               id="non-emergency-heading"
-              className="mb-4 text-3xl font-semibold leading-tight text-[#E8EEF8] md:text-4xl lg:text-5xl"
+              className="rc-title-gradient mb-4 text-3xl font-semibold leading-tight md:text-4xl lg:text-5xl"
             >
               Every 311 call answered. Every dispatcher focused on 911.
             </h2>

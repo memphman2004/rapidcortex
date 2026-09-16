@@ -11,7 +11,7 @@ import { makeId } from "../lib/ids.js";
 import { AuditRepository } from "../repositories/auditRepository.js";
 import { callAssistStore } from "./store.js";
 import { getOrCreateConfig } from "./config-service.js";
-import { initiateSession, processUtterance } from "./session-pipeline.js";
+import { completeSession, initiateSession, processUtterance } from "./session-pipeline.js";
 
 const auditRepo = new AuditRepository();
 
@@ -41,6 +41,60 @@ function actualTrigger(steps: DemoStepResult[]): string {
   if (steps.some((s) => s.state === "TRANSFERRING_EXTERNAL")) return "EXTERNAL_AGENCY";
   if (steps.some((s) => s.state === "TRANSFERRING_HUMAN")) return "HUMAN_REQUESTED";
   return "NONE";
+}
+
+const DEMO_TERMINAL_STATES = new Set([
+  "TRANSFERRING_911",
+  "TRANSFERRING_HUMAN",
+  "TRANSFERRING_EXTERNAL",
+  "COMPLETED",
+  "FAILED",
+]);
+
+export function isDemoTerminalState(state: string): boolean {
+  return DEMO_TERMINAL_STATES.has(state);
+}
+
+/** Synthetic caller line used to finish leftover intake so a demo never stalls. */
+export function demoDrainUtterance(opts: {
+  state: string;
+  continueAiConversation: boolean;
+  lastQuestionId?: string | null;
+  nextQuestion?: string | null;
+}): string | null {
+  if (isDemoTerminalState(opts.state)) return null;
+  if (opts.state === "CALLBACK_OFFERED") return "No thank you";
+  if (!opts.continueAiConversation && !opts.nextQuestion) return null;
+  const id = (opts.lastQuestionId ?? "").toLowerCase();
+  const prompt = opts.nextQuestion ?? "";
+  if (id === "callback" || /callback|phone number|call you back|devolverle/i.test(prompt)) return "555-0142";
+  if (id === "vehicle_plate" || (/license plate|placa/i.test(prompt) && !/make|model|color/i.test(prompt))) {
+    return "I don't have the plate";
+  }
+  if (id.startsWith("vehicle") || /vehicle|color, make|make, model|marca/i.test(prompt)) return "Blue Honda Civic";
+  if (id === "location" || /address|location|intersection|direcci[oó]n/i.test(prompt)) return "1200 Main Street";
+  if (id === "in_progress" || /happening right now|already happen/i.test(prompt)) return "No, it already happened";
+  if (id === "injuries" || /hurt or injured/i.test(prompt)) return "No";
+  if (id === "weapons" || /any weapons/i.test(prompt)) return "No";
+  if (/violation|blocking|hydrant|driveway/i.test(prompt)) return "Blocking a driveway";
+  if (/how long|been there/i.test(prompt)) return "Three days";
+  return "I don't know";
+}
+
+function toStep(sequence: number, text: string, session: {
+  triage?: { primaryClassification?: string };
+  safety?: { action?: string };
+  continueAiConversation: boolean;
+  state: string;
+}): DemoStepResult {
+  return {
+    sequence,
+    text,
+    classification: session.triage?.primaryClassification,
+    action: session.safety?.action,
+    continueAiConversation: session.continueAiConversation,
+    state: session.state,
+  };
 }
 
 function toEngineScenario(s: CallAssistDemoScenarioConfig): CallAssistDemoScenario {
@@ -93,6 +147,7 @@ export async function runDemoScenario(opts: {
   });
 
   const steps: DemoStepResult[] = [];
+  let current = session;
   for (const utt of scenario.callerUtterances) {
     const result = await processUtterance({
       agencyId: opts.agencyId,
@@ -100,14 +155,33 @@ export async function runDemoScenario(opts: {
       sessionId: session.sessionId,
       text: utt.text,
     });
-    steps.push({
-      sequence: utt.sequence,
-      text: utt.text,
-      classification: result.session.triage?.primaryClassification,
-      action: result.session.safety?.action,
-      continueAiConversation: result.session.continueAiConversation,
-      state: result.session.state,
+    current = result.session;
+    steps.push(toStep(utt.sequence, utt.text, current));
+    if (isDemoTerminalState(current.state)) break;
+  }
+
+  for (let extra = 0; extra < 12; extra += 1) {
+    const text = demoDrainUtterance({
+      state: current.state,
+      continueAiConversation: current.continueAiConversation,
+      lastQuestionId: current.lastQuestionId,
+      nextQuestion: current.nextQuestion,
     });
+    if (!text) break;
+    const result = await processUtterance({
+      agencyId: opts.agencyId,
+      actorId: opts.actorId,
+      sessionId: session.sessionId,
+      text,
+    });
+    current = result.session;
+    steps.push(toStep(steps.length + 1, text, current));
+    if (isDemoTerminalState(current.state)) break;
+  }
+
+  if (!isDemoTerminalState(current.state)) {
+    current = await completeSession(opts.agencyId, current.sessionId, opts.actorId);
+    steps.push(toStep(steps.length + 1, "[demo complete]", current));
   }
 
   const last = steps[steps.length - 1];

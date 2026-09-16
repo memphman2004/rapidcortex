@@ -47,6 +47,7 @@ export const callIntakeDataSchema = z.object({
   vehicleModel: z.string().max(80).optional(),
   vehicleColor: z.string().max(40).optional(),
   vehiclePlate: z.string().max(16).optional(),
+  vehicleUnknown: z.boolean().optional(),
   suspectDescription: z.string().max(500).optional(),
   apartmentSuite: z.string().max(40).optional(),
   crossStreets: z.string().max(200).optional(),

@@ -20,3 +20,32 @@ export function asLexSlot(value: string): LexSlotValue {
     shape: "Scalar",
   };
 }
+
+const VEHICLE_DESCRIPTION_SLOT_NAMES = new Set([
+  "VehicleDescription",
+  "ParkingVehicleDescription",
+  "BurglaryVehicleDescription",
+  "TowVehicleDescription",
+  "OtherVehicleDescription",
+  "vehicleDesc",
+]);
+
+export function isVehicleDescriptionSlot(name: string | undefined | null): boolean {
+  return Boolean(name && VEHICLE_DESCRIPTION_SLOT_NAMES.has(name));
+}
+
+/**
+ * Lex often fails to fill free-form description slots. If we just asked for a
+ * slot and the caller spoke, treat the utterance as the value so we do not loop.
+ */
+export function capturePromptedSlot(
+  slots: Record<string, LexSlotValue | null>,
+  promptSlot: string | undefined,
+  utterance: string,
+): void {
+  const name = promptSlot?.trim();
+  const spoken = utterance.trim();
+  if (!name || !spoken) return;
+  if (slotFilled(slots[name])) return;
+  slots[name] = asLexSlot(spoken.slice(0, 500));
+}

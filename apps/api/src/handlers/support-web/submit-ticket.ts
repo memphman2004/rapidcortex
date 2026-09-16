@@ -13,7 +13,7 @@ import { env } from "../../lib/env.js";
 import { makeId } from "../../lib/ids.js";
 import { badRequestFromZod, ok, serverError } from "../../lib/response.js";
 import { AuditRepository } from "../../repositories/auditRepository.js";
-import { generateTicketId, SupportTicketRepository } from "../../repositories/supportTicketRepository.js";
+import { SupportTicketRepository } from "../../repositories/supportTicketRepository.js";
 import { actorName, parseJsonBody, requireSupportUser } from "./auth.js";
 
 const repo = new SupportTicketRepository();
@@ -79,7 +79,6 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
   }
 
   const now = new Date().toISOString();
-  const ticketId = generateTicketId(user.agencyId);
   const name = actorName(user);
   const activity: TicketActivity = {
     activityId: randomUUID(),
@@ -89,6 +88,17 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
     authorName: name,
     createdAt: now,
   };
+
+  let ticketId: string;
+  try {
+    ticketId = await repo.nextTicketId();
+  } catch (error) {
+    if (error instanceof Error && error.message === "TICKETS_TABLE_NOT_CONFIGURED") {
+      return ok({ error: "Support tickets not configured" }, 503);
+    }
+    console.error("[submit-ticket] nextTicketId", error);
+    return serverError();
+  }
 
   const ticket: SupportTicketRecord = {
     ticketId,

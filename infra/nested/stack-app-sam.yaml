@@ -1076,9 +1076,10 @@ Globals:
             PilotEnableQaAfterAnalysis: !If [PilotTestFeaturesOn, "true", "false"]
             PilotQaScoringMock: !If [PilotTestFeaturesOn, "true", "false"]
             PilotEnableIncidentMedia: !If [PilotTestFeaturesOn, "true", "false"]
-            PilotEnableNonEmergencyTriage: !If [PilotTestFeaturesOn, "true", "false"]
-            PilotTriageDetectEveryNSegments: !If [PilotTestFeaturesOn, "5", "0"]
-            PilotTriageMock: !If [PilotTestFeaturesOn, "true", "false"]
+            # Operational default ON (product policy). Mock stays off so the queue is real classifications.
+            PilotEnableNonEmergencyTriage: "true"
+            PilotTriageDetectEveryNSegments: "5"
+            PilotTriageMock: "false"
             PilotEnableFieldConfidence: "true"
             PilotConfidenceScoreEveryNSegments: "5"
             # Never default confidence scoring to mock — fake % looks "broken" in pilot/dev stages.
@@ -2429,7 +2430,7 @@ Resources:
           ENABLE_SOP_PROTOCOL_AI: !If [PilotTestFeaturesOn, "true", "false"]
           SOP_DETECT_EVERY_N_SEGMENTS: "0"
           SOP_DETECTION_MOCK: "false"
-          TRIAGE_DETECT_EVERY_N_SEGMENTS: "0"
+          TRIAGE_DETECT_EVERY_N_SEGMENTS: "5"
           TRIAGE_MOCK: "false"
       CodeUri: ../../apps/api/
       Handler: dist/handlers/analyzeIncident.handler

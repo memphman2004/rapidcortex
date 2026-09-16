@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, type ReactNode } from "react";
-import { FontPicker } from "@/components/ui/font-picker";
+import { DashboardTypographyControls } from "@/components/ui/dashboard-typography-controls";
 import { UserIdentityBar } from "@/components/ui/user-identity-bar";
 import { HelpButton } from "@/components/help/help-button";
 import { SupportHelpButton } from "@/components/support/SupportHelpButton";
@@ -43,7 +43,7 @@ export function CampusDashboardHeaderUtilities({
   const hasIdentity = Boolean(email?.trim() && role?.trim());
 
   return (
-    <div className="flex shrink-0 flex-wrap items-center justify-end gap-2">
+    <div className="relative z-40 flex shrink-0 flex-wrap items-center justify-end gap-2 overflow-visible">
       {leadingSlot}
       <HelpButton />
       <SupportHelpButton
@@ -53,7 +53,7 @@ export function CampusDashboardHeaderUtilities({
         userEmail={email}
         userName={email}
       />
-      <FontPicker />
+      <DashboardTypographyControls />
       {hasIdentity ? (
         <UserIdentityBar
           email={email!.trim()}

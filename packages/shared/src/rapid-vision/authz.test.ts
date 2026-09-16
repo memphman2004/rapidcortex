@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { canAdminVision, canVerifyVisionObservation, canViewVision } from "./authz.js";
+import { canAdminVision, canVerifyVisionObservation, canViewVision, canViewVisionSupervisorDashboard } from "./authz.js";
 import type { UserContext } from "../types.js";
 
 function user(role: string, agencyId = "a1"): UserContext {
@@ -11,6 +11,12 @@ describe("Rapid Vision™ authz", () => {
     expect(canViewVision(user("dispatcher"), "a1")).toBe(true);
     expect(canVerifyVisionObservation(user("dispatcher"), "a1")).toBe(true);
     expect(canAdminVision(user("dispatcher"), "a1")).toBe(false);
+  });
+
+  it("lets supervisors open the Scene Intelligence dashboard, not dispatchers", () => {
+    expect(canViewVisionSupervisorDashboard(user("supervisor"), "a1")).toBe(true);
+    expect(canViewVisionSupervisorDashboard(user("dispatcher"), "a1")).toBe(false);
+    expect(canViewVisionSupervisorDashboard(user("auditor"), "a1")).toBe(true);
   });
 
   it("blocks cross-agency access", () => {

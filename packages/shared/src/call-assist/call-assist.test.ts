@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { evaluateSafety, isImmutableEmergency } from "./safety.js";
 import { classifyCallTriage } from "./triage.js";
 import { recommendRoute } from "./routing.js";
-import { extractIntakeFields, mergeIntakeFromLexSlots, intakeCompleteness } from "./intake.js";
+import { extractIntakeFields, mergeIntakeFromLexSlots, intakeCompleteness, vehicleDescriptionSatisfied } from "./intake.js";
 import { evaluateCarfaxEligibility } from "./carfax.js";
 import { nextIntakeQuestion } from "./questioning.js";
 import { KCPD_RFP_DEMO_SCENARIOS, getDemoScenarioById } from "./demo-scenarios.js";
@@ -78,6 +78,44 @@ describe("intake, CARFAX, questioning", () => {
     expect(intake.vehiclePlate).toBe("ABC123");
     expect(intake.vehicleMake?.toLowerCase()).toBe("ford");
     expect(intake.vehicleColor?.toLowerCase()).toBe("white");
+  });
+
+  it("treats color plus body style as a finished vehicle description", () => {
+    const sedan = extractIntakeFields("It's a silver sedan");
+    expect(sedan.vehicleColor?.toLowerCase()).toBe("silver");
+    expect(sedan.vehicleModel?.toLowerCase()).toMatch(/sedan/);
+    expect(vehicleDescriptionSatisfied(sedan)).toBe(true);
+
+    const pickup = extractIntakeFields("Red pickup truck");
+    expect(pickup.vehicleColor?.toLowerCase()).toBe("red");
+    expect(pickup.vehicleModel?.toLowerCase()).toMatch(/pickup/);
+    expect(vehicleDescriptionSatisfied(pickup)).toBe(true);
+  });
+
+  it("stops asking color/make/model once any vehicle descriptor is known", () => {
+    const intake = extractIntakeFields("It's a silver Toyota Camry", { locationText: "742 Elm Street" });
+    const next = nextIntakeQuestion("PARKING", { ...intake, apartmentSuite: "none", crossStreets: "Elm and Oak" });
+    expect(next?.id).not.toBe("vehicle");
+    expect(next?.id).not.toBe("vehicle_color");
+    expect(next?.id).not.toBe("vehicle_model");
+  });
+
+  it("treats no-plate as enough to leave the vehicle questions", () => {
+    const intake = extractIntakeFields("I don't have the plate", {
+      locationText: "742 Elm",
+      vehicleColor: "red",
+      vehicleMake: "Toyota",
+      vehicleModel: "Camry",
+    });
+    expect(intake.vehicleUnknown).toBe(true);
+    const next = nextIntakeQuestion("PARKING", { ...intake, apartmentSuite: "none", crossStreets: "Elm and Oak" });
+    expect(next?.id).toBe("callback");
+  });
+
+  it("does not treat a generic I don't know as a vehicle description", () => {
+    const intake = extractIntakeFields("I don't know", { locationText: "742 Elm" });
+    expect(intake.vehicleUnknown).toBeUndefined();
+    expect(vehicleDescriptionSatisfied(intake)).toBe(false);
   });
 
   it("stores apartment, cross streets, direction, vehicle set, suspect, weapons, and injuries", () => {

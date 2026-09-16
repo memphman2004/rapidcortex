@@ -45,12 +45,17 @@ const PHASES: Phase[] = [
   },
 ];
 
-const CAD_PLATFORMS = [
-  "Motorola PremierOne",
-  "Tyler New World",
-  "Hexagon Intergraph",
-  "Central Square",
-  "Spillman Flex",
+const CAD_VENDORS = [
+  "CentralSquare Technologies",
+  "Motorola Solutions",
+  "Tyler Technologies",
+  "Axon",
+  "Hexagon",
+  "Harris Computer / Constellation Software",
+  "Versaterm",
+  "Mark43",
+  "Oracle",
+  "Plus More…",
 ];
 
 function CadFlowDiagram({ phase }: { phase: Phase }) {
@@ -223,7 +228,7 @@ export function FeatureCadInterop() {
         <div className="mb-12 max-w-2xl">
           <h2
             id="cad-interop-heading"
-            className="mb-4 text-3xl font-semibold leading-tight text-[#E8EEF8] md:text-4xl lg:text-5xl"
+            className="rc-title-gradient mb-4 text-3xl font-semibold leading-tight md:text-4xl lg:text-5xl"
           >
             Incident data crosses jurisdictions when mutual aid activates
           </h2>
@@ -286,10 +291,10 @@ export function FeatureCadInterop() {
 
             <div className="mt-8">
               <p className="mb-3 text-xs font-medium uppercase tracking-widest text-[#3A4F72]">
-                Compatible platforms
+                Compatible vendors
               </p>
               <div className="flex flex-wrap gap-2">
-                {CAD_PLATFORMS.map((name) => (
+                {CAD_VENDORS.map((name) => (
                   <span
                     key={name}
                     className="rounded px-2.5 py-1 text-xs text-[#6A7B9D]"

@@ -361,6 +361,14 @@ export const visionStore = {
       ownerConsentPolicy: "ask_every_time",
       aiBudgetThresholdMonthlyUSD: 250,
       aiWriterIntervalSeconds: 30,
+      sceneIntelEnabled: true,
+      sceneIntelMinSeverity: "low",
+      sceneIntelClaudeEnabled: true,
+      sceneIntelThumbnailsEnabled: true,
+      sceneIntelWsEnabled: true,
+      sceneIntelAudioEnabled: true,
+      sceneIntelSupervisorPushEnabled: true,
+      sceneIntelMotionSensitivity: 0.32,
       updatedAt: new Date().toISOString(),
       updatedBy: "system",
     };
@@ -501,7 +509,7 @@ export const visionStore = {
       );
       return (result.Items ?? [])
         .map((item) => asSceneAlert(item as Record<string, unknown>))
-        .filter((row): row is VisionSceneAlert => Boolean(row) && row.agencyId === agencyId)
+        .filter((row): row is VisionSceneAlert => row != null && row.agencyId === agencyId)
         .filter((row) => !opts?.cameraId || row.cameraId === opts.cameraId);
     }
     const result = await ddb.send(
@@ -515,7 +523,7 @@ export const visionStore = {
     );
     return (result.Items ?? [])
       .map((item) => asSceneAlert(item as Record<string, unknown>))
-      .filter((row): row is VisionSceneAlert => Boolean(row) && row.agencyId === agencyId)
+      .filter((row): row is VisionSceneAlert => row != null && row.agencyId === agencyId)
       .filter((row) => !opts?.cameraId || row.cameraId === opts.cameraId);
   },
 
@@ -532,12 +540,14 @@ export const visionStore = {
     status: VisionSceneAlertStatus;
     incidentId?: string;
     dismissedBy?: string;
+    dismissReason?: VisionSceneAlert["dismissReason"];
   }): Promise<VisionSceneAlert> {
     const next: VisionSceneAlert = {
       ...params.alert,
       status: params.status,
       incidentId: params.incidentId ?? params.alert.incidentId,
       dismissedBy: params.dismissedBy ?? params.alert.dismissedBy,
+      dismissReason: params.dismissReason ?? params.alert.dismissReason,
       dismissedAt:
         params.status === "dismissed" ? new Date().toISOString() : params.alert.dismissedAt,
     };
@@ -555,7 +565,10 @@ export const visionStore = {
 
   async updateCameraSceneConfig(
     camera: VisionCamera,
-    patch: Pick<VisionCamera, "aiMonitoringEnabled" | "zoneLabel" | "sceneCooldownSeconds">,
+    patch: Pick<
+      VisionCamera,
+      "aiMonitoringEnabled" | "zoneLabel" | "sceneCooldownSeconds" | "sceneSensitivity"
+    >,
   ): Promise<VisionCamera> {
     const next: VisionCamera = {
       ...camera,

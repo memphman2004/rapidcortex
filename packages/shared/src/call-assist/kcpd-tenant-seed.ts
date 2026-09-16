@@ -35,10 +35,10 @@ export const CALL_ASSIST_LEX_DEMO_TEMPLATES: CallAssistDemoScenarioConfig[] = [
     id: "abandoned-vehicle",
     label: "Abandoned vehicle",
     utterances: [
-      "There's an abandoned vehicle on my street",
+      "There's an abandoned vehicle on my street. White Ford pickup, plate ABC123",
       "It's been there for three days",
       "{{localStreetExample}}",
-      "I don't know",
+      "It's still just sitting there abandoned",
       "{{callbackExample}}",
     ],
     expectedClass: "NonEmergencyPolice",
@@ -47,7 +47,7 @@ export const CALL_ASSIST_LEX_DEMO_TEMPLATES: CallAssistDemoScenarioConfig[] = [
   {
     id: "noise-complaint",
     label: "Noise complaint",
-    utterances: ["My neighbors are having a loud party", "{{localStreetExample}}", "{{callbackExample}}"],
+    utterances: ["My neighbors are having a loud party", "{{localStreetExample}}", "It's music and it's still going on", "{{callbackExample}}"],
     expectedClass: "NoiseComplaint",
     ...LEX_DEMO_VERTICAL,
   },
@@ -58,6 +58,8 @@ export const CALL_ASSIST_LEX_DEMO_TEMPLATES: CallAssistDemoScenarioConfig[] = [
       "I'm worried about my elderly neighbor",
       "She hasn't answered the door in two days",
       "{{localStreetExample}}",
+      "Please do a welfare check",
+      "{{callbackExample}}",
     ],
     expectedClass: "NonEmergencyPolice",
     ...LEX_DEMO_VERTICAL,
@@ -68,8 +70,10 @@ export const CALL_ASSIST_LEX_DEMO_TEMPLATES: CallAssistDemoScenarioConfig[] = [
     utterances: [
       "Someone is blocking my driveway",
       "{{localStreetExample}}",
-      "It's a silver sedan",
+      "It's a silver Toyota Camry",
       "I don't have the plate",
+      "Blocking a driveway",
+      "{{callbackExample}}",
     ],
     expectedClass: "ParkingComplaint",
     ...LEX_DEMO_VERTICAL,
@@ -77,7 +81,13 @@ export const CALL_ASSIST_LEX_DEMO_TEMPLATES: CallAssistDemoScenarioConfig[] = [
   {
     id: "non-emergency-theft",
     label: "Non-emergency theft",
-    utterances: ["I want to report a theft", "My package was stolen off my porch", "{{localStreetExample}}"],
+    utterances: [
+      "I want to report a theft",
+      "My package was stolen off my porch",
+      "{{localStreetExample}}",
+      "It already happened, nobody is hurt",
+      "{{callbackExample}}",
+    ],
     expectedClass: "ReportOnly",
     ...LEX_DEMO_VERTICAL,
   },
@@ -91,28 +101,42 @@ export const CALL_ASSIST_LEX_DEMO_TEMPLATES: CallAssistDemoScenarioConfig[] = [
   {
     id: "parking-no-plate",
     label: "Parking — no plate",
-    utterances: ["Car blocking fire hydrant", "{{localStreetExample}}", "Red pickup truck", "No I can't see the plate"],
+    utterances: [
+      "Car blocking fire hydrant",
+      "{{localStreetExample}}",
+      "Red Ford pickup",
+      "No I can't see the plate",
+      "Fire hydrant",
+      "{{callbackExample}}",
+    ],
     expectedClass: "ParkingComplaint",
     ...LEX_DEMO_VERTICAL,
   },
   {
     id: "spanish-noise",
     label: "Spanish noise",
-    utterances: ["Hay mucho ruido en mi vecindario", "{{localStreetExample}}"],
+    utterances: ["Hay mucho ruido en mi vecindario", "{{localStreetExample}}", "Es música y todavía está pasando", "{{callbackExample}}"],
     expectedClass: "NoiseComplaint",
     ...LEX_DEMO_VERTICAL,
   },
   {
     id: "carfax-eligible",
     label: "CarFax eligible",
-    utterances: ["I was in a fender bender", "I need a report for insurance", "{{localStreetExample}}"],
+    utterances: [
+      "My car was stolen yesterday",
+      "I need a report for insurance",
+      "{{localStreetExample}}",
+      "Blue Honda Civic plate XYZ999",
+      "Nobody was hurt",
+      "{{callbackExample}}",
+    ],
     expectedClass: "CarfaxReportingEligible",
     ...LEX_DEMO_VERTICAL,
   },
   {
     id: "code-enforcement",
     label: "Code enforcement",
-    utterances: ["My neighbor has junk cars in their yard", "It's been months", "{{localStreetExample}}"],
+    utterances: ["My neighbor has junk cars in their yard", "It's been months", "{{localStreetExample}}", "{{callbackExample}}"],
     expectedClass: "CodeEnforcement",
     ...LEX_DEMO_VERTICAL,
   },
@@ -121,13 +145,13 @@ export const CALL_ASSIST_LEX_DEMO_TEMPLATES: CallAssistDemoScenarioConfig[] = [
 const GENERIC_LEX_DEMO_CUSTOMIZATIONS: Record<string, AgencyDemoCustomizations> = {
   "abandoned-vehicle": { streetExample: "1200 Main Street", callbackExample: "555-0142" },
   "noise-complaint": { streetExample: "400 Oak Street apartment 3B", callbackExample: "555-0199" },
-  "welfare-check": { streetExample: "12 Elm Street" },
-  "parking-complaint": { streetExample: "55 Pine Street" },
-  "non-emergency-theft": { streetExample: "800 Walnut Street" },
-  "parking-no-plate": { streetExample: "Oak and First Street" },
-  "spanish-noise": { streetExample: "4500 Calle Principal" },
-  "carfax-eligible": { streetExample: "Main Street and First Avenue" },
-  "code-enforcement": { streetExample: "1900 Oak Street" },
+  "welfare-check": { streetExample: "12 Elm Street", callbackExample: "555-0142" },
+  "parking-complaint": { streetExample: "55 Pine Street", callbackExample: "555-0142" },
+  "non-emergency-theft": { streetExample: "800 Walnut Street", callbackExample: "555-0142" },
+  "parking-no-plate": { streetExample: "Oak and First Street", callbackExample: "555-0142" },
+  "spanish-noise": { streetExample: "4500 Calle Principal", callbackExample: "555-0142" },
+  "carfax-eligible": { streetExample: "Main Street and First Avenue", callbackExample: "555-0142" },
+  "code-enforcement": { streetExample: "1900 Oak Street", callbackExample: "555-0142" },
 };
 
 /** Local streets for the first tenant. Other agencies supply their own overlay. */
@@ -137,14 +161,14 @@ export const KCPD_LEX_DEMO_CUSTOMIZATIONS: Record<string, { id: string; customiz
     id: "kcpd-02",
     customizations: { streetExample: "4200 Main Street apartment 3B", callbackExample: "555-0199" },
   },
-  "welfare-check": { id: "kcpd-03", customizations: { streetExample: "300 West 39th Street" } },
-  "parking-complaint": { id: "kcpd-04", customizations: { streetExample: "742 Elm Street" } },
-  "non-emergency-theft": { id: "kcpd-05", customizations: { streetExample: "1200 Grand Boulevard" } },
+  "welfare-check": { id: "kcpd-03", customizations: { streetExample: "300 West 39th Street", callbackExample: "555-0142" } },
+  "parking-complaint": { id: "kcpd-04", customizations: { streetExample: "742 Elm Street", callbackExample: "555-0142" } },
+  "non-emergency-theft": { id: "kcpd-05", customizations: { streetExample: "1200 Grand Boulevard", callbackExample: "555-0142" } },
   "mid-call-emergency": { id: "kcpd-06", customizations: {} },
-  "parking-no-plate": { id: "kcpd-07", customizations: { streetExample: "Oak and 31st Street" } },
-  "spanish-noise": { id: "kcpd-08", customizations: { streetExample: "4500 Calle Broadway" } },
-  "carfax-eligible": { id: "kcpd-09", customizations: { streetExample: "I-70 and Woodland Avenue" } },
-  "code-enforcement": { id: "kcpd-10", customizations: { streetExample: "1900 Troost Avenue" } },
+  "parking-no-plate": { id: "kcpd-07", customizations: { streetExample: "Oak and 31st Street", callbackExample: "555-0142" } },
+  "spanish-noise": { id: "kcpd-08", customizations: { streetExample: "4500 Calle Broadway", callbackExample: "555-0142" } },
+  "carfax-eligible": { id: "kcpd-09", customizations: { streetExample: "I-70 and Woodland Avenue", callbackExample: "555-0142" } },
+  "code-enforcement": { id: "kcpd-10", customizations: { streetExample: "1900 Troost Avenue", callbackExample: "555-0142" } },
 };
 
 export function instantiateLexDemoScenarios(
@@ -193,7 +217,7 @@ export const KCPD_VOICE_CONFIG: CallAssistAgencyVoiceConfig = {
   supportedLocales: ["en_US", "es_US", "zh_CN", "zh_HK", "tl_PH", "vi_VN", "ar_AE"],
   disclosureText: KCPD_LEX_DISCLOSURE_TEXT,
   openingGreeting:
-    "Thank you for calling KCPD non-emergency. I'm an automated assistant that will gather your information and get you to the right place. This call may be recorded. If this is a life-threatening emergency, please hang up and dial 911, or say emergency now. How can I help you today?",
+    "Thank you for calling the Kansas City Police non-emergency line. I'm an automated assistant. This call may be recorded. If this is a life-threatening emergency, hang up and dial 9-1-1. For all other requests, stay on the line.",
 };
 
 /** First-tenant city-services directory. Other agencies seed their own 311/parks/water entries. */

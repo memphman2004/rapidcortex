@@ -6,19 +6,10 @@
  * and remove all RING_DISABLED guards added on 2026-09-11.
  */
 
-/** Settings-page placeholder while Ring Connect is suspended. */
+/**
+ * Kept so RING_DISABLED call sites compile. Disabled Ring UI must be omitted
+ * entirely — never render an “unavailable” card or grayed-out window.
+ */
 export function RingIntegrationUnavailableNotice() {
-  return (
-    <div
-      style={{
-        padding: "1rem",
-        color: "#888",
-        fontSize: "13px",
-        border: "1px dashed #ddd",
-        borderRadius: "8px",
-      }}
-    >
-      Ring camera integration is temporarily unavailable.
-    </div>
-  );
+  return null;
 }

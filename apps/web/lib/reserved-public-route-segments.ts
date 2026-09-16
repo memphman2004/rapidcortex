@@ -38,6 +38,8 @@ export const RESERVED_PUBLIC_ROUTE_FIRST_SEGMENTS: readonly string[] = [
   "billing",
   /** Public tooling root (`/status`, etc.). */
   "status",
+  /** Vertical onboarding wizards (`/onboarding/campus/intake`) — not a jurisdiction slug. */
+  "onboarding",
   /** Public Clery Act Daily Crime Log (`/crime-log/{agencySlug}`) — no auth. */
   "crime-log",
   /** CDN-backed public media entrypoints at site root (not `{jurisdiction}/media`). */

@@ -50,7 +50,6 @@ const ROOT_OPERATIONAL_PREFIXES: readonly string[] = [
   "/billing/cancel",
   "/rc-lite/portal",
   "/docs",
-  "/media/live",
 ];
 
 /** Jurisdiction first segment is not reserved → second segment matches these → block. */
@@ -104,6 +103,16 @@ export function pathnameIsMobileOperationalBlockedPage(pathname: string): boolea
   if (pathname === "/e" || pathname.startsWith("/e/")) {
     return false;
   }
+  // SMS deep links for the caller's phone — not the dispatcher console.
+  if (pathname === "/media/live" || pathname.startsWith("/media/live/")) {
+    return false;
+  }
+  if (pathname === "/media/upload" || pathname.startsWith("/media/upload/")) {
+    return false;
+  }
+  if (pathname === "/locate" || pathname.startsWith("/locate/")) {
+    return false;
+  }
   if (pathname.startsWith("/app/venue") || pathname.startsWith("/app/campus")) {
     return false;
   }
@@ -127,7 +136,6 @@ export function pathnameIsMobileOperationalBlockedPage(pathname: string): boolea
 
   // Reserved slug paths: only block authenticated enclaves under marketing-style roots
   if (first === "rc-lite" && rest.startsWith("/portal")) return true;
-  if (first === "media" && rest.startsWith("/live")) return true;
 
   return false;
 }

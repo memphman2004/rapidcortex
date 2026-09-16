@@ -1,14 +1,34 @@
 import { z } from "zod";
 
 /** Vendor identities used on the CAD-to-CAD bridge. Distinct from ingest `cadVendorSchema`. */
-export const cadBridgeVendorSchema = z.enum([
+export const CAD_BRIDGE_VENDORS = [
   "MOTOROLA",
   "TYLER",
   "CENTRALSQUARE",
   "HEXAGON",
   "SPILLMAN",
-]);
+  "AXON",
+  "HARRIS",
+  "VERSATERM",
+  "MARK43",
+  "ORACLE",
+] as const;
+
+export const cadBridgeVendorSchema = z.enum(CAD_BRIDGE_VENDORS);
 export type CADVendor = z.infer<typeof cadBridgeVendorSchema>;
+
+export const CAD_BRIDGE_VENDOR_LABELS: Record<CADVendor, string> = {
+  MOTOROLA: "Motorola Solutions",
+  TYLER: "Tyler Technologies",
+  CENTRALSQUARE: "CentralSquare Technologies",
+  HEXAGON: "Hexagon",
+  SPILLMAN: "Spillman Flex",
+  AXON: "Axon",
+  HARRIS: "Harris Computer / Constellation Software",
+  VERSATERM: "Versaterm",
+  MARK43: "Mark43",
+  ORACLE: "Oracle",
+};
 
 export const cadSlotSchema = z.enum(["CAD_A", "CAD_B"]);
 export type CADSlot = z.infer<typeof cadSlotSchema>;

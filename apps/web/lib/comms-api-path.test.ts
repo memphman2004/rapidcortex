@@ -124,6 +124,8 @@ describe("isCommsPlatformApiPath", () => {
     expect(isSam5ApiPath("/api/video/agency-1/cameras/cam-1/ptz/move")).toBe(true);
     expect(isSam5ApiPath("/api/support/tickets")).toBe(true);
     expect(isSam5ApiPath("/api/rc-internal/support-tickets/board")).toBe(true);
+    expect(isSam5ApiPath("/api/media/live/tok/join")).toBe(true);
+    expect(isSam5ApiPath("/api/media/live/tok/heartbeat")).toBe(true);
     expect(isSam3ApiPath("/api/support/tickets")).toBe(false);
     expect(isSam3ApiPath("/api/video/agency-1/wall/config")).toBe(false);
     expect(isStack2ApiPath("/api/physical-security/events")).toBe(false);
@@ -186,6 +188,9 @@ describe("isCommsPlatformApiPath", () => {
     expect(isStack2ApiPath("/api/vision/settings")).toBe(true);
     expect(isStack2ApiPath("/api/vision/events")).toBe(true);
     expect(isStack2ApiPath("/api/vision/events/scene-1")).toBe(true);
+    expect(isStack2ApiPath("/api/vision/cameras")).toBe(true);
+    expect(isStack2ApiPath("/api/vision/cameras/cam-1/config")).toBe(true);
+    expect(isStack2ApiPath("/api/vision/scene-stats")).toBe(true);
     expect(isStack2ApiPath("/api/vision/sessions/sess-1/viewer-token")).toBe(true);
     expect(isStack2ApiPath("/api/vision/sessions/sess-1/transcript/start")).toBe(true);
     expect(isStack2ApiPath("/api/incidents/abc/vision/intelligence")).toBe(true);

@@ -113,8 +113,8 @@ Globals:
         ENABLE_VISION_AI_THUMBNAILS: "true"
         ENABLE_VISION_AI_WS: "true"
         ENABLE_VISION_AI_ADMIN: "true"
-        VISION_AI_MOCK: "true"
-        VISION_TRANSCRIPT_MOCK: "true"
+        VISION_AI_MOCK: "false"
+        VISION_TRANSCRIPT_MOCK: "false"
         VISION_TRANSCRIPT_LANGUAGE: "en-US"
         VISION_TRANSCRIPT_WORKER_DURATION_S: "780"
         VISION_TRANSCRIPT_STOP_POLL_S: "60"
@@ -125,6 +125,8 @@ Globals:
         VISION_TRANSCRIPTS_TABLE: !Sub "rapid-cortex-vision-transcripts-${DeploymentStage}"
         VISION_EVENTS_TABLE: !Sub "rapid-cortex-vision-events-${DeploymentStage}"
         VISION_SCENE_CLASSIFY_QUEUE_URL: !Ref VisionSceneClassifyQueue
+        VISION_SCENE_DESCRIBE_QUEUE_URL: !Ref VisionSceneDescribeQueue
+        VISION_SCENE_SUPERVISOR_TOPIC_ARN: !Ref VisionSceneSupervisorTopic
         CAD_WRITEBACK_ENABLED: "false"
         VISION_CAMERAS_TABLE: !Sub "rapid-cortex-vision-cameras-${DeploymentStage}"
         VISION_SESSIONS_TABLE: !Sub "rapid-cortex-vision-sessions-${DeploymentStage}"
@@ -367,6 +369,30 @@ Resources:
       RedrivePolicy:
         deadLetterTargetArn: !GetAtt VisionSceneClassifyDlq.Arn
         maxReceiveCount: 3
+
+  VisionSceneDescribeDlq:
+    Type: AWS::SQS::Queue
+    Properties:
+      QueueName: !Sub "rapid-cortex-vision-scene-describe-dlq-${DeploymentStage}"
+      MessageRetentionPeriod: 1209600
+      SqsManagedSseEnabled: true
+
+  VisionSceneDescribeQueue:
+    Type: AWS::SQS::Queue
+    Properties:
+      QueueName: !Sub "rapid-cortex-vision-scene-describe-${DeploymentStage}"
+      VisibilityTimeout: 90
+      MessageRetentionPeriod: 86400
+      SqsManagedSseEnabled: true
+      RedrivePolicy:
+        deadLetterTargetArn: !GetAtt VisionSceneDescribeDlq.Arn
+        maxReceiveCount: 3
+
+  VisionSceneSupervisorTopic:
+    Type: AWS::SNS::Topic
+    Properties:
+      TopicName: !Sub "rapid-cortex-vision-scene-supervisor-${DeploymentStage}"
+      DisplayName: Rapid Vision Scene Intelligence supervisor alerts
 
   VisionArtifactsBucket:
     Type: AWS::S3::Bucket
@@ -638,6 +664,10 @@ Resources:
       Handler: dist/rapid-vision/scene-intel/sampler.handler
       Timeout: 60
       MemorySize: 512
+      Layers: !If
+        - HasFfmpegLayer
+        - - !Ref FfmpegLayerArn
+        - !Ref AWS::NoValue
       Policies:
         - !Ref AppManagedPolicyVision
         - !If [HasWebSocket, !Ref AppManagedPolicyVisionWs, !Ref AWS::NoValue]
@@ -668,12 +698,54 @@ Resources:
       Policies:
         - !Ref AppManagedPolicyVision
         - !If [HasWebSocket, !Ref AppManagedPolicyVisionWs, !Ref AWS::NoValue]
+        - Statement:
+            - Sid: VisionRekognitionDetectLabels
+              Effect: Allow
+              Action:
+                - rekognition:DetectLabels
+              Resource: "*"
+              Condition:
+                StringEquals:
+                  aws:RequestedRegion: !Ref AWS::Region
+            - Sid: VisionSceneDescribeSend
+              Effect: Allow
+              Action:
+                - sqs:SendMessage
+                - sqs:GetQueueUrl
+              Resource: !GetAtt VisionSceneDescribeQueue.Arn
       Events:
         ClassifyQueue:
           Type: SQS
           Properties:
             Queue: !GetAtt VisionSceneClassifyQueue.Arn
             BatchSize: 5
+
+  VisionSceneDescribeFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/rapid-vision/scene-intel/describe-worker.handler
+      Timeout: 60
+      MemorySize: 512
+      Policies:
+        - !Ref AppManagedPolicyVision
+        - !If [HasAnthropicSecret, !Ref AppManagedPolicyVisionAnthropic, !Ref AWS::NoValue]
+        - !If [HasWebSocket, !Ref AppManagedPolicyVisionWs, !Ref AWS::NoValue]
+        - Statement:
+            - Sid: VisionSceneSupervisorSns
+              Effect: Allow
+              Action:
+                - sns:Publish
+              Resource: !Ref VisionSceneSupervisorTopic
+      Events:
+        DescribeQueue:
+          Type: SQS
+          Properties:
+            Queue: !GetAtt VisionSceneDescribeQueue.Arn
+            BatchSize: 1
 
   VisionTranscriptWorkerFunction:
     Type: AWS::Serverless::Function

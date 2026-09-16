@@ -71,7 +71,9 @@ describe("getRoleNav", () => {
     const hrefs = nav.sections.flatMap((s) => s.items.map((i) => i.href));
     expect(hrefs).toContain("/app/campus/LINCOLNHIGH/users");
     expect(hrefs).toContain("/app/campus/LINCOLNHIGH/settings");
-    expect(hrefs).toContain("/onboarding/campus/integrations?orgCode=LINCOLNHIGH");
+    expect(hrefs).toContain("/app/campus/LINCOLNHIGH/onboarding/integrations");
+    expect(hrefs).toContain("/app/campus/LINCOLNHIGH/onboarding/intake");
+    expect(hrefs).toContain("/app/campus/LINCOLNHIGH/onboarding/checklist");
     expect(hrefs).toContain("/app/campus/LINCOLNHIGH/onboarding/packets");
   });
 
@@ -117,16 +119,20 @@ describe("getRoleNav", () => {
     }
   });
 
-  it("puts Call Assist bot fleet management on all RC internal navs", () => {
+  it("puts Call Assist and bot fleet management on all RC internal navs", () => {
     for (const role of ["rcsuperadmin", "rcadmin", "rcitadmin"] as const) {
-      const hrefs = getRoleNav(role, {}).sections.flatMap((s) => s.items.map((i) => i.href));
-      expect(hrefs).toContain("/rc-admin/call-assist/bots");
+      const items = getRoleNav(role, {}).sections.flatMap((s) => s.items);
+      expect(items.find((i) => i.id === "call-assist")?.href).toBe("/rc-admin/call-assist");
+      expect(items.find((i) => i.id === "call-assist")?.label).toBe("Call Assist");
+      expect(items.find((i) => i.id === "call-assist")?.exact).toBe(true);
+      expect(items.find((i) => i.id === "call-assist-bots")?.href).toBe("/rc-admin/call-assist/bots");
     }
   });
 
   it("groups all RC internal sidebars under labeled major headings", () => {
     const expectedSuperadmin = [
       "home",
+      "training",
       "tenants",
       "sales-crm",
       "business",
@@ -147,6 +153,7 @@ describe("getRoleNav", () => {
     const admin = getRoleNav("rcadmin", {});
     expect(admin.sections.map((s) => s.id)).toEqual([
       "home",
+      "training",
       "tenants",
       "sales-crm",
       "business",
@@ -210,6 +217,9 @@ describe("getRoleNav", () => {
     expect(adminHrefs["cad-bridge"]).toBe("/test-psap/admin/cad/bridge");
     const dispatcher = getRoleNav("dispatcher", { jurisdiction: "test-psap" });
     expect(dispatcher.sections.flatMap((s) => s.items).find((i) => i.id === "call-assist-qa")).toBeUndefined();
+    expect(dispatcher.sections.flatMap((s) => s.items).find((i) => i.id === "cad-bridge")?.href).toBe(
+      "/test-psap/admin/cad/bridge",
+    );
   });
 
   it("keeps Rapid IQ in SALES & CRM and does not expose a separate Pipeline nav item", () => {
@@ -353,5 +363,41 @@ describe("getRoleNav", () => {
       .sections.flatMap((s) => s.items)
       .find((i) => i.id === "rapid-vision");
     expect(guest).toBeUndefined();
+  });
+
+  it("exposes Camera AI monitoring to supervisor and agency admin, not dispatcher", () => {
+    const supervisor = getRoleNav("supervisor", { jurisdiction: "test-psap" })
+      .sections.flatMap((s) => s.items)
+      .find((i) => i.id === "vision-ai");
+    expect(supervisor?.href).toBe("/test-psap/supervisor/vision-ai");
+    expect(supervisor?.feature).toBe("rapidVisionSceneIntel");
+
+    const admin = getRoleNav("agencyadmin", { jurisdiction: "test-psap" })
+      .sections.flatMap((s) => s.items)
+      .find((i) => i.id === "vision-ai");
+    expect(admin?.href).toBe("/test-psap/admin/vision-ai");
+
+    const dispatcher = getRoleNav("dispatcher", { jurisdiction: "test-psap" })
+      .sections.flatMap((s) => s.items)
+      .find((i) => i.id === "vision-ai");
+    expect(dispatcher).toBeUndefined();
+  });
+
+  it("exposes Camera AI on campus, venue, and transit consoles", () => {
+    const campus = getRoleNav("CAMPUS_ADMIN", { campusCode: "LINCOLNHIGH" })
+      .sections.flatMap((s) => s.items)
+      .find((i) => i.id === "vision-ai");
+    expect(campus?.href).toBe("/app/campus/LINCOLNHIGH/vision-ai");
+    expect(campus?.feature).toBe("rapidVisionSceneIntel");
+
+    const venue = getRoleNav("VENUE_SUPERVISOR", { venueCode: "MBS" })
+      .sections.flatMap((s) => s.items)
+      .find((i) => i.id === "vision-ai");
+    expect(venue?.href).toBe("/app/venue/MBS/vision-ai");
+
+    const transit = getRoleNav("TRANSIT_ADMIN", { transitCode: "HVT" })
+      .sections.flatMap((s) => s.items)
+      .find((i) => i.id === "vision-ai");
+    expect(transit?.href).toContain("/vision-ai");
   });
 });

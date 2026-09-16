@@ -138,6 +138,43 @@ describe("Dialog hook — Slot elicitation", () => {
     const result = await handleDialog(event, testDeps());
     expect(result.sessionState.dialogAction.type).toBe("Delegate");
   });
+
+  it("does not re-ask vehicle color/make/model after the caller describes the car", async () => {
+    const event = buildLexEvent({
+      utterance: "It's a red Toyota Camry",
+      intent: "ParkingComplaint",
+      slots: {
+        ParkingLocation: slot("742 Elm Street"),
+        ParkingVehicleDescription: null,
+        ParkingViolationType: null,
+      },
+      sessionAttrs: { agencyId: "kcpd", callId: "test-call", promptSlot: "ParkingVehicleDescription" },
+    });
+    const result = await handleDialog(event, testDeps());
+    expect(result.sessionState.dialogAction).toMatchObject({
+      type: "ElicitSlot",
+      slotToElicit: "ParkingViolationType",
+    });
+    expect(result.sessionState.intent.slots?.ParkingVehicleDescription?.value?.interpretedValue).toMatch(/Toyota/i);
+  });
+
+  it("accepts a color and body style as the parking vehicle description", async () => {
+    const event = buildLexEvent({
+      utterance: "It's a silver sedan",
+      intent: "ParkingComplaint",
+      slots: {
+        ParkingLocation: slot("742 Elm Street"),
+        ParkingVehicleDescription: null,
+        ParkingViolationType: null,
+      },
+      sessionAttrs: { agencyId: "kcpd", callId: "test-call", promptSlot: "ParkingVehicleDescription" },
+    });
+    const result = await handleDialog(event, testDeps());
+    expect(result.sessionState.dialogAction).toMatchObject({
+      type: "ElicitSlot",
+      slotToElicit: "ParkingViolationType",
+    });
+  });
 });
 
 describe("Dialog hook — Bedrock fallback", () => {

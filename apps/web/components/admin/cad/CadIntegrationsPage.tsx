@@ -6,6 +6,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import Link from "next/link";
 import { Plug } from "lucide-react";
 import { useSession } from "@/components/auth/session-context";
+import { useJurisdictionLink } from "@/lib/jurisdiction-context";
 import {
   deleteCadIntegration,
   fetchCadIncidents,
@@ -30,6 +31,7 @@ export function CadIntegrationsPage() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const pathname = usePathname();
+  const to = useJurisdictionLink();
   const writebackUi = isCadWritebackUiEnabled();
   const [hubTab, setHubTab] = useState<"integrations" | "writeback" | "cap">("integrations");
 
@@ -221,7 +223,7 @@ export function CadIntegrationsPage() {
           <p className="mt-2 max-w-2xl text-sm text-slate-400">
             Connect your agency&apos;s CAD system to receive live incident data, verify webhooks, and review raw receipts.
             Bidirectional PSAP-to-PSAP sync lives on{" "}
-            <Link href={`${pathname}/bridge`} className="text-sky-400 underline hover:text-sky-300">
+            <Link href={to("/admin/cad/bridge")} className="text-sky-400 underline hover:text-sky-300">
               CAD Bridge
             </Link>
             .

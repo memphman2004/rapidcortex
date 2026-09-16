@@ -56,6 +56,16 @@ function rcVideoWallNavItem(href: string): NavItem {
   };
 }
 
+function cameraAiNavItem(href: string): NavItem {
+  return {
+    id: "vision-ai",
+    label: "Camera AI",
+    href,
+    icon: "Eye",
+    feature: "rapidVisionSceneIntel",
+  };
+}
+
 function rcTranslateNavItem(href: string, feature: string, badge?: NavBadge): NavItem {
   return {
     id: "translate",
@@ -64,6 +74,28 @@ function rcTranslateNavItem(href: string, feature: string, badge?: NavBadge): Na
     icon: "Languages",
     feature,
     ...(badge ? { badge } : {}),
+  };
+}
+
+/** Tenant Call Assist (greeting, sessions, config) — keep separate from Lex bot fleet. */
+function rcCallAssistNavItem(): NavItem {
+  return {
+    id: "call-assist",
+    label: "Call Assist",
+    href: "/rc-admin/call-assist",
+    icon: "PhoneIncoming",
+    feature: "callAssist",
+    exact: true,
+  };
+}
+
+function rcCallAssistBotsNavItem(): NavItem {
+  return {
+    id: "call-assist-bots",
+    label: "Call Assist bots",
+    href: "/rc-admin/call-assist/bots",
+    icon: "Bot",
+    feature: "callAssist",
   };
 }
 
@@ -177,13 +209,8 @@ export const RC_SUPERADMIN_NAV: RoleNav = {
           icon: "FolderOpen",
           feature: "verticalOnboarding",
         },
-        {
-          id: "call-assist-bots",
-          label: "Call Assist bots",
-          href: "/rc-admin/call-assist/bots",
-          icon: "Bot",
-          feature: "callAssist",
-        },
+        rcCallAssistNavItem(),
+        rcCallAssistBotsNavItem(),
         {
           id: "onboarding-campus-intake",
           label: "Campus Intake",
@@ -336,13 +363,8 @@ export const RC_ADMIN_NAV: RoleNav = {
             icon: "FolderOpen",
             feature: "verticalOnboarding",
           },
-          {
-            id: "call-assist-bots",
-            label: "Call Assist bots",
-            href: "/rc-admin/call-assist/bots",
-            icon: "Bot",
-            feature: "callAssist",
-          },
+          rcCallAssistNavItem(),
+          rcCallAssistBotsNavItem(),
           {
             id: "onboarding-campus-intake",
             label: "Campus Intake",
@@ -393,13 +415,8 @@ export const RC_IT_ADMIN_NAV: RoleNav = {
           icon: "FolderOpen",
           feature: "verticalOnboarding",
         },
-        {
-          id: "call-assist-bots",
-          label: "Call Assist bots",
-          href: "/rc-admin/call-assist/bots",
-          icon: "Bot",
-          feature: "callAssist",
-        },
+        rcCallAssistNavItem(),
+        rcCallAssistBotsNavItem(),
         { id: "cad",       label: "CAD Admin",         href: "/rc-admin/integrations",  icon: "Radio" },
         { id: "security",  label: "Security",          href: "/rc-admin/security",      icon: "ShieldAlert" },
       ],
@@ -544,6 +561,7 @@ export function getSupervisorNav(jurisdiction: string): RoleNav {
             feature: "callAssist" },
           { id: "team",          label: "Team Performance",href: `${j}/supervisor/team-performance`, icon: "Users" },
           { id: "reports",       label: "Reports",         href: `${j}/supervisor/reports`, icon: "BarChart3" },
+          cameraAiNavItem(`${j}/supervisor/vision-ai`),
           { id: "ng911-metrics", label: "NG9-1-1 Metrics", href: `${j}/admin/ng911/metrics`, icon: "BarChart3",
             feature: "ng911Assist" },
         ],
@@ -615,6 +633,8 @@ export function getAgencyAdminNav(jurisdiction: string): RoleNav {
             feature: "cadBridge" },
           { id: "compliance",    label: "Compliance",      href: `${j}/admin/retention`,   icon: "Scale" },
           { id: "settings",      label: "Settings",        href: `${j}/admin/settings`,     icon: "Settings" },
+          { id: "vision-ai",     label: "Camera AI monitoring", href: `${j}/admin/vision-ai`, icon: "Eye",
+            feature: "rapidVisionSceneIntel" },
           { id: "sla",           label: "SLA Thresholds",  href: `${j}/admin/settings/sla`, icon: "BarChart3",
             feature: "slaBacklog" },
           { id: "channels",      label: "Channels & Talk Groups", href: `${j}/admin/settings/channels`, icon: "Radio",
@@ -710,6 +730,8 @@ export function getAgencyItNav(jurisdiction: string): RoleNav {
         items: [
           { id: "security",      label: "Security",        href: `${j}/admin/security`,     icon: "ShieldAlert" },
           { id: "settings",      label: "System Settings", href: `${j}/admin/settings`,     icon: "Settings" },
+          { id: "vision-ai",     label: "Camera AI monitoring", href: `${j}/admin/vision-ai`, icon: "Eye",
+            feature: "rapidVisionSceneIntel" },
           {
             id: "onboarding-intake-campus",
             label: "Campus Onboarding",
@@ -867,6 +889,7 @@ export function getCampusAdminNav(code: string): RoleNav {
             feature: "verticalAlerts",
           },
           { id: "cameras",     label: "Cameras",           href: `${base}/cameras`,         icon: "Camera" },
+          cameraAiNavItem(`${base}/vision-ai`),
           rcVideoWallNavItem(`${base}/video-wall`),
           { id: "qr",          label: "QR Codes",          href: `${base}/qr-codes`,        icon: "QrCode" },
           { id: "zones",       label: "Zones",             href: `${base}/zones`,           icon: "Map" },
@@ -966,21 +989,21 @@ export function getCampusAdminNav(code: string): RoleNav {
           {
             id: "onboarding-intake",
             label: "Onboarding Intake",
-            href: `/onboarding/campus/intake?orgCode=${encodeURIComponent(code)}`,
+            href: `${base}/onboarding/intake`,
             icon: "ClipboardList",
             feature: "verticalOnboarding",
           },
           {
             id: "onboarding-integrations",
             label: "Integration Questionnaire",
-            href: `/onboarding/campus/integrations?orgCode=${encodeURIComponent(code)}`,
+            href: `${base}/onboarding/integrations`,
             icon: "Plug",
             feature: "verticalOnboarding",
           },
           {
             id: "onboarding-checklist",
             label: "Onboarding Checklist",
-            href: `/onboarding/checklist/campus?orgCode=${encodeURIComponent(code)}`,
+            href: `${base}/onboarding/checklist`,
             icon: "ListChecks",
             feature: "verticalOnboarding",
           },
@@ -1012,6 +1035,7 @@ export function getCampusSupervisorNav(code: string): RoleNav {
             feature: "verticalAlerts",
           },
           { id: "cameras",     label: "Cameras",           href: `${base}/cameras`,         icon: "Camera" },
+          cameraAiNavItem(`${base}/vision-ai`),
           rcVideoWallNavItem(`${base}/video-wall`),
           { id: "qr",          label: "QR Codes",          href: `${base}/qr-codes`,        icon: "QrCode" },
           { id: "zones",       label: "Zones",             href: `${base}/zones`,           icon: "Map" },
@@ -1092,6 +1116,7 @@ export function getCampusSecurityNav(code: string): RoleNav {
           { id: "incidents",   label: "Incidents",         href: `${base}/incidents`,       icon: "AlertCircle" },
           rcTranslateNavItem(`${base}/translate`, "rcTranslateCampus"),
           { id: "cameras",     label: "Cameras",           href: `${base}/cameras`,         icon: "Camera" },
+          cameraAiNavItem(`${base}/vision-ai`),
           rcVideoWallNavItem(`${base}/video-wall`),
           { id: "qr",          label: "QR Codes",          href: `${base}/qr-codes`,        icon: "QrCode",
             badge: { type: "label", text: "VIEW ONLY", color: "slate" } },
@@ -1117,6 +1142,7 @@ export function getCampusDispatchNav(code: string): RoleNav {
             badge: { type: "count", key: "openIncidents" } },
           rcTranslateNavItem(`${base}/translate`, "rcTranslateCampus"),
           { id: "cameras",     label: "Cameras",           href: `${base}/cameras`,         icon: "Camera" },
+          cameraAiNavItem(`${base}/vision-ai`),
           rcVideoWallNavItem(`${base}/video-wall`),
           { id: "zones",       label: "Zones",             href: `${base}/zones`,           icon: "Map" },
         ],
@@ -1296,6 +1322,7 @@ export function getVenueAdminNav(code: string): RoleNav {
             badge: { type: "count", key: "openGuestReports" } },
           { id: "staff",       label: "Staff",             href: `${base}/staff`,            icon: "Users" },
           { id: "cameras",     label: "Cameras",           href: `${base}/cameras`,          icon: "Camera" },
+          cameraAiNavItem(`${base}/vision-ai`),
           rcVideoWallNavItem(`${base}/video-wall`),
         ],
       },
@@ -1366,6 +1393,7 @@ export function getVenueSupervisorNav(code: string): RoleNav {
             badge: { type: "count", key: "openGuestReports" } },
           { id: "staff",       label: "Staff",             href: `${base}/staff`,            icon: "Users" },
           { id: "cameras",     label: "Cameras",           href: `${base}/cameras`,          icon: "Camera" },
+          cameraAiNavItem(`${base}/vision-ai`),
           rcVideoWallNavItem(`${base}/video-wall`),
         ],
       },
@@ -1398,6 +1426,7 @@ export function getVenueSecurityNav(code: string): RoleNav {
           rcTranslateNavItem(`${base}/translate`, "rcTranslateVenue"),
           { id: "guest",       label: "Guest Reports",     href: `${base}/reports`,          icon: "MessageSquare" },
           { id: "cameras",     label: "Cameras",           href: `${base}/cameras`,          icon: "Camera" },
+          cameraAiNavItem(`${base}/vision-ai`),
           rcVideoWallNavItem(`${base}/video-wall`),
           { id: "zones",       label: "Zones",             href: `${base}/zones`,            icon: "Map" },
         ],
@@ -1469,6 +1498,7 @@ export function getTransitAdminNav(code: string): RoleNav {
           { id: "reports", label: "Reports", href: `${base}/reports`, icon: "FileText", feature: "verticalTransit" },
           { id: "operators", label: "Operators", href: `${base}/operators`, icon: "Users", feature: "verticalTransit" },
           { id: "cameras", label: "Cameras", href: `${base}/cameras`, icon: "Camera", feature: "transitCameras" },
+          cameraAiNavItem(`${base}/vision-ai`),
           rcVideoWallNavItem(`${base}/video-wall`),
           { id: "qr", label: "QR Codes", href: `${base}/qr-codes`, icon: "QrCode" },
         ],
@@ -1517,6 +1547,7 @@ export function getTransitSupervisorNav(code: string): RoleNav {
           { id: "reports", label: "Reports", href: `${base}/reports`, icon: "FileText", feature: "verticalTransit" },
           { id: "operators", label: "Operators", href: `${base}/operators`, icon: "Users", feature: "verticalTransit" },
           { id: "cameras", label: "Cameras", href: `${base}/cameras`, icon: "Camera", feature: "transitCameras" },
+          cameraAiNavItem(`${base}/vision-ai`),
           rcVideoWallNavItem(`${base}/video-wall`),
           { id: "qr", label: "QR Codes", href: `${base}/qr-codes`, icon: "QrCode" },
         ],
@@ -1540,6 +1571,7 @@ export function getTransitSecurityNav(code: string): RoleNav {
           { id: "incidents", label: "Incidents", href: `${base}/incidents`, icon: "AlertTriangle", feature: "verticalTransit" },
           { id: "reports", label: "Reports", href: `${base}/reports`, icon: "FileText", feature: "verticalTransit" },
           { id: "cameras", label: "Cameras", href: `${base}/cameras`, icon: "Camera", feature: "transitCameras" },
+          cameraAiNavItem(`/app/transit/security/vision-ai`),
           rcVideoWallNavItem(`${base}/video-wall`),
         ],
       },

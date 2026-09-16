@@ -4,12 +4,12 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect } from "react";
 import { Camera, Link2 } from "lucide-react";
 import { useSession } from "@/components/auth/session-context";
-import { RingConnectButton, RingIntegrationUnavailableNotice, isRingEnabled } from "@/src/features/connect/ring";
+import { RingConnectButton, isRingEnabled } from "@/src/features/connect/ring";
 import { CameraProviderSetup } from "@/components/cameras/CameraProviderSetup";
 import type { RingDevicesResponse } from "@/src/features/connect/ring/ring-types";
 import { NestCameraPanel } from "@/components/cameras/NestCameraPanel";
 import { WyzeCameraPanel } from "@/components/cameras/WyzeCameraPanel";
-import { NEST_TM, RING_TM, WYZE_TM } from "@/lib/brand-marks";
+import { NEST_TM, RING_TM, WYZE_TM, joinTrademarkList } from "@/lib/brand-marks";
 import { isNestEnabled } from "@/lib/nest-feature-flags";
 import { isWyzeEnabled } from "@/lib/wyze-feature-flags";
 
@@ -59,8 +59,9 @@ export function VenueCamerasClient({ venueCode }: { venueCode: string }) {
       <div>
         <h1 className="text-2xl font-bold text-white">Cameras</h1>
         <p className="mt-1 text-sm text-slate-400">
-          Register venue RTSP / ONVIF cameras for KVS streaming above, then link {RING_TM}, {NEST_TM},
-          and {WYZE_TM} accounts for emergency collaboration during incidents.
+          Register venue RTSP / ONVIF cameras for KVS streaming above, then link{" "}
+          {joinTrademarkList([ringEnabled && RING_TM, nestEnabled && NEST_TM, wyzeEnabled && WYZE_TM])}{" "}
+          accounts for emergency collaboration during incidents.
         </p>
       </div>
 
@@ -76,12 +77,7 @@ export function VenueCamerasClient({ venueCode }: { venueCode: string }) {
               }
             />
           </section>
-        ) : (
-          <section className="space-y-3 rounded-lg border border-blue-500/30 bg-slate-900/40 p-4">
-            <h2 className="text-sm font-semibold text-blue-200">{RING_TM}</h2>
-            <RingIntegrationUnavailableNotice />
-          </section>
-        )}
+        ) : null}
 
         {nestEnabled ? (
           <section className="space-y-3 rounded-lg border border-emerald-500/30 bg-slate-900/40 p-4">

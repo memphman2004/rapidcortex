@@ -2,8 +2,9 @@
  * Rapid Cortex — Map Constants
  *
  * Overlay layer IDs, severity colors, defaults, and toggle mappings.
- * ALS Esri styles do not include the former Studio overlay IDs; RapidCortexMapCore
- * skips missing layers and will not crash.
+ * ALS Esri/HERE styles do not include the former Studio overlay IDs.
+ * RapidCortexMapCore adds GeoJSON overlays at runtime (see runtime-overlays.ts)
+ * and still skips leftover Studio IDs so a missing layer never crashes.
  */
 
 import type { ExpressionSpecification } from "maplibre-gl";

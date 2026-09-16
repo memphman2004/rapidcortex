@@ -28,4 +28,20 @@ describe("campus admin-only nav", () => {
     expect(canViewCampusNavItem("users", "CAMPUS_SUPERVISOR")).toBe(false);
     expect(canViewCampusNavItem("settings", "CAMPUS_DISPATCH")).toBe(false);
   });
+
+  it("lets RC operators open every campus admin nav target", () => {
+    for (const key of ["clery-zones", "clery-csa", "eap", "vision-ai", "video-wall", "onboarding-intake"]) {
+      expect(canViewCampusNavItem(key, "rcadmin")).toBe(true);
+      expect(canViewCampusNavItem(key, "rcsuperadmin")).toBe(true);
+    }
+  });
+
+  it("does not bounce CAMPUS_ADMIN off Clery geography or Camera AI", () => {
+    expect(canViewCampusNavItem("clery-zones", "CAMPUS_ADMIN")).toBe(true);
+    expect(canViewCampusNavItem("clery-csa", "CAMPUS_ADMIN")).toBe(true);
+    expect(canViewCampusNavItem("vision-ai", "CAMPUS_ADMIN")).toBe(true);
+    expect(canViewCampusNavItem("translate", "CAMPUS_ADMIN")).toBe(true);
+    expect(canViewCampusNavItem("clery-zones", "CAMPUS_SUPERVISOR")).toBe(false);
+    expect(canViewCampusNavItem("vision-ai", "CAMPUS_FACULTY")).toBe(false);
+  });
 });

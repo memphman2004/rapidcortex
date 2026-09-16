@@ -79,7 +79,7 @@ export const CALL_ASSIST_DEMO_SCENARIO_TEMPLATES: readonly DemoScenarioTemplate[
     callerUtterances: [
       {
         sequence: 1,
-        text: "There's an abandoned vehicle parked at {{localStreetExample}}. It's been there three days. White Ford pickup, plate ABC123. Nobody is hurt.",
+        text: "There's an abandoned vehicle parked at {{localStreetExample}}. It's been there three days. White Ford pickup, plate ABC123. Nobody is hurt. Callback is 555-0142.",
         delayAfterPreviousMs: 0,
       },
     ],
@@ -95,7 +95,7 @@ export const CALL_ASSIST_DEMO_SCENARIO_TEMPLATES: readonly DemoScenarioTemplate[
     callerUtterances: [
       {
         sequence: 1,
-        text: "There's loud music from a party next door at {{localStreetExample}}. It's still going on.",
+        text: "There's loud music from a party next door at {{localStreetExample}}. It's still going on. Callback is 555-0142.",
         delayAfterPreviousMs: 0,
       },
     ],
@@ -111,7 +111,7 @@ export const CALL_ASSIST_DEMO_SCENARIO_TEMPLATES: readonly DemoScenarioTemplate[
     callerUtterances: [
       {
         sequence: 1,
-        text: "My car was stolen yesterday from {{localStreetExample}}. It's a blue Honda Civic plate XYZ999. Nobody was hurt.",
+        text: "My car was stolen yesterday from {{localStreetExample}}. It's a blue Honda Civic plate XYZ999. Nobody was hurt. Callback is 555-0142.",
         delayAfterPreviousMs: 0,
       },
     ],
@@ -127,7 +127,7 @@ export const CALL_ASSIST_DEMO_SCENARIO_TEMPLATES: readonly DemoScenarioTemplate[
     callerUtterances: [
       {
         sequence: 1,
-        text: "Someone is blocking my driveway at {{localStreetExample}}. Red Toyota Camry.",
+        text: "Someone is blocking my driveway at {{localStreetExample}}. Red Toyota Camry. I don't have the plate. Callback is 555-0142.",
         delayAfterPreviousMs: 0,
       },
     ],
@@ -165,7 +165,7 @@ export const CALL_ASSIST_DEMO_SCENARIO_TEMPLATES: readonly DemoScenarioTemplate[
     callerUtterances: [
       {
         sequence: 1,
-        text: "Can you do a welfare check on my neighbor at {{localStreetExample}}? I haven't heard from her.",
+        text: "Can you do a welfare check on my neighbor at {{localStreetExample}}? I haven't heard from her. Callback is 555-0142.",
         delayAfterPreviousMs: 0,
       },
     ],
@@ -225,7 +225,7 @@ export const CALL_ASSIST_DEMO_SCENARIO_TEMPLATES: readonly DemoScenarioTemplate[
     callerUtterances: [
       {
         sequence: 1,
-        text: "There's an abandoned vehicle at {{localStreetExample}}. White Ford pickup.",
+        text: "There's an abandoned vehicle at {{localStreetExample}}. White Ford pickup. Callback is 555-0142.",
         delayAfterPreviousMs: 0,
       },
     ],
@@ -241,7 +241,7 @@ export const CALL_ASSIST_DEMO_SCENARIO_TEMPLATES: readonly DemoScenarioTemplate[
     callerUtterances: [
       {
         sequence: 1,
-        text: "Hola, hay un carro abandonado en {{localStreetExample}}.",
+        text: "Hola, hay un carro abandonado en {{localStreetExample}}. Es un Ford blanco. Callback is 555-0142.",
         delayAfterPreviousMs: 0,
       },
     ],

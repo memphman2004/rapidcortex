@@ -463,6 +463,7 @@ export type AuditResourceType =
   | "video_wall"
   | "video_clip"
   | "video_ptz"
+  | "vision_scene_alert"
   | "clery_entry"
   | "clery_report"
   | "unknown";

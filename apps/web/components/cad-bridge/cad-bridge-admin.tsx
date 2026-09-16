@@ -2,7 +2,13 @@
 
 import { useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import type { CADBridgeConfig, CADSlot, CADVendor } from "rapid-cortex-shared";
+import {
+  CAD_BRIDGE_VENDOR_LABELS,
+  CAD_BRIDGE_VENDORS,
+  type CADBridgeConfig,
+  type CADSlot,
+  type CADVendor,
+} from "rapid-cortex-shared";
 import {
   fetchCadBridgeAudit,
   fetchCadBridgeConfig,
@@ -14,7 +20,7 @@ import {
 } from "@/lib/cad-bridge/cad-bridge-api";
 import { isCadWritebackUiEnabled } from "@/lib/runtime-flags";
 
-const VENDORS: CADVendor[] = ["MOTOROLA", "TYLER", "CENTRALSQUARE", "HEXAGON", "SPILLMAN"];
+const VENDORS: readonly CADVendor[] = CAD_BRIDGE_VENDORS;
 
 type Tab = "config" | "health" | "conflicts" | "audit";
 
@@ -320,7 +326,7 @@ function SlotEditor({
           >
             {VENDORS.map((v) => (
               <option key={v} value={v}>
-                {v}
+                {CAD_BRIDGE_VENDOR_LABELS[v]}
               </option>
             ))}
           </select>

@@ -1,5 +1,5 @@
 import type { CallTriageClassification } from "./classifications.js";
-import type { CallIntakeData } from "./intake.js";
+import { vehicleDescriptionSatisfied, type CallIntakeData } from "./intake.js";
 import type { AgencyTaxonomy, FollowUpQuestion } from "./taxonomy.js";
 import { findCallType } from "./taxonomy.js";
 
@@ -188,13 +188,23 @@ export function spokenIntakePrompt(
   return q.prompt;
 }
 
+const VEHICLE_DESCRIPTOR_FIELDS = new Set<IntakeQuestion["field"]>([
+  "vehicleMake",
+  "vehicleModel",
+  "vehicleColor",
+]);
+
 function isFilled(intake: CallIntakeData, field: IntakeQuestion["field"]): boolean {
   if (field === "freeform") return false;
+  if (VEHICLE_DESCRIPTOR_FIELDS.has(field) && vehicleDescriptionSatisfied(intake)) return true;
+  if (field === "vehiclePlate" && (intake.vehicleUnknown || Boolean(intake.vehiclePlate?.trim()))) return true;
   const value = intake[field];
   if (typeof value === "boolean") return true;
   if (typeof value === "number") return Number.isFinite(value);
   return Boolean(value && String(value).trim());
 }
+
+const IMPLICIT_CLASSIFICATION_FIELDS = new Set(["incidentType", "concernType", "reportType"]);
 
 const TEMPLATE_FIELD_TO_INTAKE: Record<string, IntakeQuestion["field"]> = {
   location: "locationText",
@@ -288,6 +298,7 @@ export function nextIntakeQuestion(
     const template = taxonomy.intakeTemplates.find((t) => t.id === matched.intakeTemplateId);
     for (const f of template?.fields ?? []) {
       if (!f.required) continue;
+      if (IMPLICIT_CLASSIFICATION_FIELDS.has(f.id)) continue;
       const field = TEMPLATE_FIELD_TO_INTAKE[f.id];
       if (!field || field === "freeform") continue;
       if (queue.some((q) => q.field === field || q.id === f.id)) continue;
@@ -301,8 +312,10 @@ export function nextIntakeQuestion(
     }
   }
 
-  if (queue.length === 0) {
-    queue.push(...(BY_CLASS[classification] ?? BY_CLASS.UNKNOWN ?? []));
+  const classQueue = BY_CLASS[classification] ?? BY_CLASS.UNKNOWN ?? [];
+  for (const q of classQueue) {
+    if (queue.some((existing) => existing.id === q.id || existing.field === q.field)) continue;
+    queue.push(q);
   }
 
   const last = findInQueue(queue, opts?.lastQuestionId);

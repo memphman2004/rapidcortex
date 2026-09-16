@@ -27,6 +27,20 @@ describe("pathnameIsMobileOperationalBlockedPage", () => {
     expect(pathnameIsMobileOperationalBlockedPage("/e/viewer-token")).toBe(false);
   });
 
+  it("allows SMS caller live-video and media-upload links on mobile", () => {
+    expect(
+      pathnameIsMobileOperationalBlockedPage(
+        "/media/live/IM38TtdwLZgoxCVVd14QQPE-J92tr2SIHRfrizruzc_M",
+      ),
+    ).toBe(false);
+    expect(pathnameIsMobileOperationalBlockedPage("/media/upload/token-abc")).toBe(false);
+    expect(pathnameIsMobileOperationalBlockedPage("/locate/token-xyz")).toBe(false);
+  });
+
+  it("still blocks dispatcher media under a jurisdiction slug", () => {
+    expect(pathnameIsMobileOperationalBlockedPage("/columbus-oh/media")).toBe(true);
+  });
+
   it("blocks /login", () => {
     expect(pathnameIsMobileOperationalBlockedPage("/login")).toBe(true);
   });

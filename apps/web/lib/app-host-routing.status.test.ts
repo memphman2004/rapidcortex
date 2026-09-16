@@ -36,6 +36,12 @@ describe("app-host-routing — public status", () => {
     expect(maybeRedirectAppHostAwayFromMarketing(appRequest("/translate/xlat_abc"))).toBeNull();
   });
 
+  it("keeps caller live-video SMS links on the app host", () => {
+    expect(isMarketingPublicPath("/media/live/tok")).toBe(false);
+    expect(isMarketingPublicPath("/media/upload/tok")).toBe(false);
+    expect(maybeRedirectAppHostAwayFromMarketing(appRequest("/media/live/tok"))).toBeNull();
+  });
+
   it("still redirects true marketing paths to www", () => {
     const res = maybeRedirectAppHostAwayFromMarketing(appRequest("/about"));
     expect(res?.status).toBe(307);

@@ -188,6 +188,9 @@ if [[ "$STAGE" == "staging" ]]; then
   fi
 fi
 
+if [[ "${SKIP_SAM_VALIDATE:-0}" == "1" ]]; then
+  echo "SKIP_SAM_VALIDATE=1 — skipping sam validate / lint"
+else
 echo "SAM validate (nested stacks use --lint; root is nested-stack parent only)..."
 # Root template has no Transform; `sam validate --lint` on it still expands children and can emit
 # false-positive W8001 from inlining. Nested templates are the authoritative SAM lint surface.
@@ -208,6 +211,7 @@ sam validate --lint --template-file "${ROOT}/infra/nested/stack-app-sam-call-ass
 sam validate --lint --template-file "${ROOT}/infra/nested/stack-app-sam-translate.yaml"
 sam validate --lint --template-file "${ROOT}/infra/nested/stack-app-sam-6.yaml"
 sam validate --lint --template-file "${ROOT}/infra/nested/stack-app-alarms-2.yaml"
+fi
 
 echo "IAM managed policy size preflight (6,144-byte cap)..."
 python3 "${ROOT}/scripts/check-iam-managed-policy-sizes.py" --headroom 512
@@ -258,9 +262,19 @@ source "${ROOT}/scripts/lib/api-vendor-lock.sh"
 # shellcheck source=scripts/lib/prepare-api-vendor-for-sam.sh
 source "${ROOT}/scripts/lib/prepare-api-vendor-for-sam.sh"
 rc_acquire_api_vendor_lock
-npm install
-rc_prepare_api_vendor_for_sam
-npm run build -w rapid-cortex-api
+if [[ "${SKIP_ROOT_NPM_INSTALL:-0}" == "1" ]]; then
+  echo "SKIP_ROOT_NPM_INSTALL=1 — using existing workspace node_modules"
+else
+  npm install
+fi
+if [[ "${SKIP_SAM_BUILD:-0}" == "1" ]]; then
+  echo "SKIP_SAM_BUILD=1 — skipping vendor refresh and API tsc (existing SAM artifacts)"
+  REVERT_API_PKG=0
+  sam_build_failed=0
+else
+  rc_prepare_api_vendor_for_sam
+  npm run build -w rapid-cortex-api
+fi
 if [[ "${BUILD_WEB_BEFORE_SAM:-0}" == "1" ]]; then
   echo "BUILD_WEB_BEFORE_SAM=1: building rapid-cortex-web (SAM does not consume this artifact)." >&2
   npm run build -w rapid-cortex-web
@@ -564,6 +578,9 @@ fi
 if [[ -n "${EXISTING_VISION_ARTIFACTS_BUCKET_NAME:-}" ]]; then
   PARAMS="${PARAMS} ExistingVisionArtifactsBucketName=${EXISTING_VISION_ARTIFACTS_BUCKET_NAME}"
 fi
+if [[ -n "${EXISTING_VISION_EVENTS_TABLE_NAME:-}" ]]; then
+  PARAMS="${PARAMS} ExistingVisionEventsTableName=${EXISTING_VISION_EVENTS_TABLE_NAME}"
+fi
 if [[ -n "${EXISTING_VERTICAL_ALERTS_TABLE_NAME:-}" ]]; then
   PARAMS="${PARAMS} ExistingVerticalAlertsTableName=${EXISTING_VERTICAL_ALERTS_TABLE_NAME}"
 fi
@@ -615,6 +632,12 @@ fi
 if [[ "${REUSE_EXISTING_CAD_BRIDGE_RETAINED_TABLES:-}" == "true" ]]; then
   PARAMS="${PARAMS} ReuseExistingCadBridgeRetainedTables=true"
 fi
+if [[ -n "${AWS_SMS_POOL_ID:-}" ]]; then
+  PARAMS="${PARAMS} AwsSmsPoolId=${AWS_SMS_POOL_ID}"
+fi
+if [[ -n "${AWS_SMS_CONFIGURATION_SET_NAME:-}" ]]; then
+  PARAMS="${PARAMS} AwsSmsConfigurationSetName=${AWS_SMS_CONFIGURATION_SET_NAME}"
+fi
 if [[ "${USE_CAD_BRIDGE_VPC}" == "1" ]]; then
   if [[ -z "${CAD_BRIDGE_VPC_ID:-}" || -z "${CAD_BRIDGE_VPC_SUBNET_IDS:-}" || -z "${CAD_BRIDGE_VPC_SECURITY_GROUP_ID:-}" ]]; then
     echo "ERROR: --vpc requires CAD_BRIDGE_VPC_ID, CAD_BRIDGE_VPC_SUBNET_IDS, and CAD_BRIDGE_VPC_SECURITY_GROUP_ID." >&2
@@ -641,6 +664,12 @@ if [[ -n "${RING_PARTNERSHIP_ENABLED:-}" ]]; then
 fi
 # RING_DISABLED — 2026-09-11. Default false; set RING_ENABLED=true to recreate Ring Lambdas.
 PARAMS="${PARAMS} RingEnabled=${RING_ENABLED:-false}"
+if [[ -n "${FFMPEG_LAYER_ARN:-}" ]]; then
+  PARAMS="${PARAMS} FfmpegLayerArn=${FFMPEG_LAYER_ARN}"
+fi
+if [[ -n "${CALL_ASSIST_CONNECT_WEBHOOK_SECRET_ARN:-}" ]]; then
+  PARAMS="${PARAMS} CallAssistConnectWebhookSecretArn=${CALL_ASSIST_CONNECT_WEBHOOK_SECRET_ARN}"
+fi
 PARAMS="${PARAMS} WyzeEnabled=${WYZE_ENABLED:-false}"
 if [[ -n "${WYZE_API_KEYS_SECRET_ARN:-}" ]]; then
   PARAMS="${PARAMS} WyzeApiKeysSecretArn=${WYZE_API_KEYS_SECRET_ARN}"

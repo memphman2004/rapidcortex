@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { visionSceneEventsQuerySchema, visionTranscriptQuerySchema, visionTranscriptSessionBodySchema } from "./schemas.js";
+import { visionCameraSceneConfigSchema, visionSceneEventPatchSchema, visionSceneEventsQuerySchema, visionTranscriptQuerySchema, visionTranscriptSessionBodySchema } from "./schemas.js";
 
 describe("visionTranscriptQuerySchema", () => {
   it("accepts session-scoped history with a capped limit", () => {
@@ -26,5 +26,30 @@ describe("visionSceneEventsQuerySchema", () => {
       status: "active",
       limit: 20,
     });
+  });
+});
+
+describe("visionSceneEventPatchSchema", () => {
+  it("accepts dismiss with a required-style reason", () => {
+    expect(
+      visionSceneEventPatchSchema.parse({ action: "dismiss", dismissReason: "false_positive" }),
+    ).toEqual({ action: "dismiss", dismissReason: "false_positive" });
+  });
+
+  it("rejects unknown dismiss reasons", () => {
+    expect(() =>
+      visionSceneEventPatchSchema.parse({ action: "dismiss", dismissReason: "nope" }),
+    ).toThrow();
+  });
+});
+
+describe("visionCameraSceneConfigSchema", () => {
+  it("accepts monitoring and sensitivity", () => {
+    expect(
+      visionCameraSceneConfigSchema.parse({
+        aiMonitoringEnabled: true,
+        sceneSensitivity: "high",
+      }),
+    ).toEqual({ aiMonitoringEnabled: true, sceneSensitivity: "high" });
   });
 });

@@ -60,6 +60,9 @@ export NEXT_PUBLIC_ENABLE_CONNECT_RING_EMERGENCY_REQUESTS=1
 # VISION_TRANSCRIPTS_TABLE=rapid-cortex-vision-transcripts-{env}
 # VISION_EVENTS_TABLE=rapid-cortex-vision-events-{env}
 # VISION_SCENE_CLASSIFY_QUEUE_URL=https://sqs.{region}.amazonaws.com/{account}/rapid-cortex-vision-scene-classify-{env}
+# VISION_SCENE_DESCRIBE_QUEUE_URL=https://sqs.{region}.amazonaws.com/{account}/rapid-cortex-vision-scene-describe-{env}
+# VISION_SCENE_SUPERVISOR_TOPIC_ARN=arn:aws:sns:{region}:{account}:rapid-cortex-vision-scene-supervisor-{env}
+# VISION_SCENE_INTEL_AGENCY_IDS=agency-id-1,agency-id-2   # live/mock sampler; empty = HTTP demo seed only
 # ENABLE_VISION_AI=true
 # VISION_AI_WRITER_ELEVATED_INTERVAL_SECONDS=10
 # VISION_MAX_ACTIVE_ANALYSES_PER_AGENCY=10

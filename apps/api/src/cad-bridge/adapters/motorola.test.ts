@@ -67,3 +67,14 @@ describe("CentralSquare / Hexagon / Spillman adapters", () => {
     expect((await sp.parseInbound(JSON.stringify({ callId: "SP-9001", callType: "WELFARE CHECK" }), {}, "a")).sourceIncidentId).toBe("SP-9001");
   });
 });
+
+describe("additional rest CAD vendors", () => {
+  it("parses a generic incident id for Axon, Harris, Versaterm, Mark43, and Oracle", async () => {
+    for (const vendor of ["AXON", "HARRIS", "VERSATERM", "MARK43", "ORACLE"] as const) {
+      const adapter = new RestVendorBridgeAdapter(vendor);
+      const event = await adapter.parseInbound(JSON.stringify({ incidentId: `${vendor}-1` }), {}, "a");
+      expect(event.sourceIncidentId).toBe(`${vendor}-1`);
+      expect(adapter.getEndpoints().health).toContain(vendor.toLowerCase());
+    }
+  });
+});

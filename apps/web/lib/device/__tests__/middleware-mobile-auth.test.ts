@@ -89,4 +89,17 @@ describe("getMobileOperationalAuthMiddlewareResponse", () => {
   it("allows mobile venue sign-in", () => {
     expect(getMobileOperationalAuthMiddlewareResponse(req("/api/auth/signin", iphoneUa))).toBeNull();
   });
+
+  it("allows SMS live-video join page and public join API from iPhone", () => {
+    expect(
+      getMobileOperationalAuthMiddlewareResponse(
+        req("/media/live/IM38TtdwLZgoxCVVd14QQPE-J92tr2SIHRfrizruzc_M", iphoneUa),
+      ),
+    ).toBeNull();
+    expect(
+      getMobileOperationalAuthMiddlewareResponse(
+        req("/api/public/media/live/IM38TtdwLZgoxCVVd14QQPE-J92tr2SIHRfrizruzc_M/join", iphoneUa),
+      ),
+    ).toBeNull();
+  });
 });

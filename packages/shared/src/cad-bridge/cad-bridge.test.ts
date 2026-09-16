@@ -1,9 +1,12 @@
 import { describe, expect, it } from "vitest";
 import {
+  CAD_BRIDGE_VENDOR_LABELS,
+  CAD_BRIDGE_VENDORS,
   acceptIncidentTransfer,
   buildBridgedCommentText,
   buildBridgeToken,
   buildDefaultCadBridgeConfig,
+  cadBridgeVendorSchema,
   cancelIncidentTransfer,
   detectCadBridgeConflicts,
   dropCanonicalFields,
@@ -43,6 +46,16 @@ function sampleIncident(overrides: Partial<CanonicalIncident> = {}): CanonicalIn
 }
 
 describe("CAD bridge config", () => {
+  it("accepts every company vendor identity used on the admin dropdown", () => {
+    expect(CAD_BRIDGE_VENDORS).toEqual(
+      expect.arrayContaining(["AXON", "HARRIS", "VERSATERM", "MARK43", "ORACLE"]),
+    );
+    for (const vendor of CAD_BRIDGE_VENDORS) {
+      expect(cadBridgeVendorSchema.parse(vendor)).toBe(vendor);
+      expect(CAD_BRIDGE_VENDOR_LABELS[vendor].length).toBeGreaterThan(2);
+    }
+  });
+
   it("scaffolds disabled with location and transfer sync off", () => {
     const cfg = buildDefaultCadBridgeConfig("kcpd", "br-1");
     expect(cfg.enabled).toBe(false);

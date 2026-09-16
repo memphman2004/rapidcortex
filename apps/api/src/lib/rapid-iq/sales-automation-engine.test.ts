@@ -16,6 +16,28 @@ describe("sales automation engine", () => {
     expect(steps[0]?.email.bodyText).toContain("Hi Maria");
     expect(steps[0]?.email.bodyText).toContain("The Rapid Cortex team");
     expect(steps[0]?.email.bodyText).not.toMatch(/Jeff Coleman/i);
+    expect(steps[0]?.email.subject).toMatch(/less typing while the call is still live/i);
+    expect(steps[0]?.email.bodyText).toMatch(/does not replace CAD/i);
+    expect(steps[1]?.email.bodyText).toMatch(/system of record/i);
+  });
+
+  it("uses campus QR copy and venue guest-report copy", () => {
+    const campus = heuristicThreeTouch({
+      agencyName: "State University",
+      vertical: "CAMPUS",
+      firstName: "Alex",
+    });
+    expect(campus[0]?.email.subject).toMatch(/will not call 911/i);
+    expect(campus[0]?.email.bodyText).toMatch(/not a 911 emergency dispatch system/i);
+    expect(campus[0]?.email.bodyText).toMatch(/QR/i);
+
+    const venue = heuristicThreeTouch({
+      agencyName: "Metro Stadium",
+      vertical: "VENUE",
+    });
+    expect(venue[0]?.email.subject).toMatch(/radio/i);
+    expect(venue[0]?.email.bodyText).toMatch(/not a 911 dispatch system/i);
+    expect(venue[1]?.email.bodyText).toMatch(/RTSP/i);
   });
 
   it("marks conference cards active only in the 28–33 day window", () => {
@@ -51,6 +73,9 @@ describe("sales automation engine", () => {
       },
     ]);
     const conf = cards.filter((c) => c.id.startsWith("conf-"));
+    expect(cards.map((c) => c.id)).toEqual(
+      expect.arrayContaining(["psap-core-2026", "campus-safety-2026", "venue-ops-2026"]),
+    );
     expect(conf.map((c) => c.id)).toEqual(["conf-in-window", "conf-too-soon", "conf-too-far"]);
     expect(conf.find((c) => c.id === "conf-in-window")?.status).toBe("active");
     expect(conf.find((c) => c.id === "conf-too-soon")?.status).toBe("scheduled");

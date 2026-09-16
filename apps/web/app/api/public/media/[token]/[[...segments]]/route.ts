@@ -26,8 +26,19 @@ async function proxyUpstream(path: string, init?: RequestInit) {
 
 type Ctx = { params: Promise<{ token: string; segments?: string[] }> };
 
+function liveVideoUpstreamPath(segments: string[] | undefined): string | undefined {
+  const liveToken = segments?.[0];
+  const sub = segments?.[1];
+  if (!liveToken || (sub !== "join" && sub !== "heartbeat")) return undefined;
+  const enc = encodeURIComponent(liveToken);
+  return `/api/media/live/${enc}/${sub}`;
+}
+
 export async function GET(_request: NextRequest, ctx: Ctx) {
   const { token, segments } = await ctx.params;
+  if (token === "live") {
+    return NextResponse.json({ error: "Not found" }, { status: 404 });
+  }
   const enc = encodeURIComponent(token);
   if (segments?.length) {
     return NextResponse.json({ error: "Not found" }, { status: 404 });
@@ -37,6 +48,12 @@ export async function GET(_request: NextRequest, ctx: Ctx) {
 
 export async function POST(request: NextRequest, ctx: Ctx) {
   const { token, segments } = await ctx.params;
+  if (token === "live") {
+    const path = liveVideoUpstreamPath(segments);
+    if (!path) return NextResponse.json({ error: "Not found" }, { status: 404 });
+    const body = await request.text();
+    return proxyUpstream(path, { method: "POST", body: body || undefined });
+  }
   const enc = encodeURIComponent(token);
   const sub = segments?.[0];
   const body = await request.text();

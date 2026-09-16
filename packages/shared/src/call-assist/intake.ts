@@ -16,6 +16,8 @@ export type CallIntakeData = {
   vehicleModel?: string;
   vehicleColor?: string;
   vehiclePlate?: string;
+  /** Caller could not or would not give remaining vehicle details (plate, make, etc.). */
+  vehicleUnknown?: boolean;
   suspectDescription?: string;
   apartmentSuite?: string;
   crossStreets?: string;
@@ -50,7 +52,11 @@ const MAKE_RE =
   /\b(ford|chevy|chevrolet|toyota|honda|nissan|dodge|jeep|bmw|mercedes|hyundai|kia|tesla|gmc|ram|volkswagen|vw|subaru|mazda|lexus|audi|chrysler|buick|cadillac|volvo|acura|infiniti)\b/i;
 const MODEL_RE =
   /\b(f-?150|silverado|civic|accord|camry|corolla|altima|sentra|ram(?:\s*1500)?|wrangler|cherokee|explorer|escape|tahoe|suburban|mustang|focus|prius|rav4|cr-?v|pilot|odyssey|highlander|tundra|tacoma|sierra|equinox|malibu|impala|charger|challenger|durango|grand cherokee)\b/i;
+const BODY_STYLE_RE =
+  /\b(sedan|coupe|hatchback|suv|crossover|van|minivan|pickup(?:\s+truck)?|truck|motorcycle|convertible|wagon)\b/i;
 const COLOR_RE = /\b(red|blue|black|white|silver|gray|grey|green|yellow|maroon|gold|brown|tan|orange|purple)\b/i;
+const VEHICLE_DECLINE_RE =
+  /\b((i\s+)?don'?t\s+(know|have|see).{0,24}(make|model|color|plate|tag|vehicle|car)|no\s+(i\s+)?(can'?t\s+see|don'?t\s+have)\s+(the\s+)?(plate|tag)|no\s+plate|can'?t\s+see\s+the\s+plate)\b/i;
 const WEAPON_DETAIL_RE = /\b((?:hand)?gun|pistol|rifle|shotgun|knife|machete|bat|taser|weapon)s?\b/i;
 const INJURY_DETAIL_RE = /\b(bleeding|broken (?:arm|leg|bone)|unconscious|shot|stabbed|hurt|injured)\b/i;
 const SUSPECT_RE =
@@ -72,11 +78,28 @@ export function parseVehicleDescription(text: string, prior: CallIntakeData = {}
   if (make?.[1] && !prior.vehicleMake) patch.vehicleMake = make[1];
   const model = MODEL_RE.exec(text);
   if (model?.[1] && !prior.vehicleModel) patch.vehicleModel = model[1].replace(/\s+/g, " ");
+  const body = BODY_STYLE_RE.exec(text);
+  if (body?.[1] && !prior.vehicleModel && !patch.vehicleModel) {
+    patch.vehicleModel = body[1].replace(/\s+/g, " ");
+  }
   const color = COLOR_RE.exec(text);
   if (color?.[1] && !prior.vehicleColor) patch.vehicleColor = color[1];
   const plate = PLATE_RE.exec(text);
   if (plate?.[1] && !prior.vehiclePlate) patch.vehiclePlate = plate[1].toUpperCase();
+  if (VEHICLE_DECLINE_RE.test(text)) patch.vehicleUnknown = true;
   return patch;
+}
+
+/** True when we have enough vehicle identity to stop asking color / make / model. */
+export function vehicleDescriptionSatisfied(intake: CallIntakeData): boolean {
+  if (intake.vehicleUnknown) return true;
+  return Boolean(
+    intake.vehicleMake?.trim() ||
+      intake.vehicleModel?.trim() ||
+      intake.vehicleColor?.trim() ||
+      intake.vehiclePlate?.trim() ||
+      intake.vehicleYear?.trim(),
+  );
 }
 
 /** Deterministic field extraction. LLM extraction may enrich later but cannot delete confirmed fields. */

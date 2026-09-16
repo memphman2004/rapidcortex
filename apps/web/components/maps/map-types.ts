@@ -54,7 +54,7 @@ export interface RCMapLayerVisibility {
 export const DEFAULT_LAYER_VISIBILITY: RCMapLayerVisibility = {
   agencyZones:         true,
   counties:            true,
-  stateBoundaries:     false,
+  stateBoundaries:     true,
   airports:            false,
   campusZones:         false,
   venueZones:          false,

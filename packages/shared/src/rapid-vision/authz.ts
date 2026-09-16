@@ -91,3 +91,30 @@ export function canAdminVision(user: UserContext, agencyId: string): boolean {
   const u = roleUpper(user);
   return ADMIN_ROLES.has(r) || VERTICAL_ADMIN.has(u);
 }
+
+const SUPERVISOR_DASH_ROLES = new Set([
+  "supervisor",
+  "agencyadmin",
+  "agencyit",
+  "analyst",
+  "auditor",
+  "command",
+]);
+
+const VERTICAL_SUPERVISOR_DASH = new Set([
+  "CAMPUS_ADMIN",
+  "CAMPUS_SUPERVISOR",
+  "VENUE_ADMIN",
+  "VENUE_SUPERVISOR",
+  "TRANSIT_ADMIN",
+  "TRANSIT_SUPERVISOR",
+]);
+
+/** Agency-wide Scene Intelligence dashboard — not the dispatcher alert list. */
+export function canViewVisionSupervisorDashboard(user: UserContext, agencyId: string): boolean {
+  if (platformOverride(user)) return true;
+  if (!sameAgency(user, agencyId)) return false;
+  const r = role(user);
+  const u = roleUpper(user);
+  return SUPERVISOR_DASH_ROLES.has(r) || VERTICAL_SUPERVISOR_DASH.has(u);
+}

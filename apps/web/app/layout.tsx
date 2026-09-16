@@ -17,6 +17,7 @@ import { absoluteUrl, getSiteUrl, SEO_IMAGE_PATH } from "@/lib/seo";
 import { getWorkspaceBuildProbe } from "@/lib/phase1-workspace";
 import { Providers } from "@/app/providers";
 import { FontPreferenceProvider } from "@/components/providers/font-preference-provider";
+import { TypographyPreferenceProvider } from "@/components/providers/typography-preference-provider";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -209,7 +210,9 @@ export default function RootLayout({
       </head>
       <body className="min-h-full min-h-dvh text-slate-100">
         <Providers>
-          <FontPreferenceProvider>{children}</FontPreferenceProvider>
+          <FontPreferenceProvider>
+            <TypographyPreferenceProvider>{children}</TypographyPreferenceProvider>
+          </FontPreferenceProvider>
         </Providers>
       </body>
     </html>

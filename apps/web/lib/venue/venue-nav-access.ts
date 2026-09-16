@@ -53,13 +53,27 @@ export function canViewVenueNavItem(key: VenueNavKey, role: string | undefined |
   return venueNavKeysForRole(role).includes(key);
 }
 
-/** Campus sidebar — school safety intake only (no PSAP CAD/transcription tools). */
+/**
+ * Must stay aligned with `getCampus*Nav` item ids in role-nav.ts.
+ * Page guards call `canViewCampusNavItem(item.id)` — a missing key makes the nav link bounce home.
+ */
 const CAMPUS_NAV_BY_ROLE: Record<string, readonly string[]> = {
   CAMPUS_ADMIN: [
     "dashboard",
     "incidents",
+    "translate",
     "alerts",
     "cameras",
+    "vision-ai",
+    "video-wall",
+    "qr",
+    "qr-codes",
+    "zones",
+    "buildings",
+    "eap",
+    "war-rooms",
+    "users",
+    "analytics",
     "reports",
     "clery",
     "clery-review",
@@ -68,37 +82,59 @@ const CAMPUS_NAV_BY_ROLE: Record<string, readonly string[]> = {
     "clery-zones",
     "clery-csa",
     "clery-compliance",
-    "eap",
-    "war-rooms",
-    "analytics",
-    "zones",
-    "buildings",
-    "qr-codes",
-    "users",
     "settings",
+    "onboarding-packets",
+    "onboarding-intake",
+    "onboarding-integrations",
+    "onboarding-checklist",
   ],
   CAMPUS_SUPERVISOR: [
     "dashboard",
     "incidents",
+    "translate",
     "alerts",
     "cameras",
+    "vision-ai",
+    "video-wall",
+    "qr",
+    "qr-codes",
+    "zones",
+    "buildings",
+    "eap",
+    "war-rooms",
     "reports",
     "clery",
     "clery-review",
     "clery-dcl",
     "clery-asr",
     "clery-compliance",
-    "eap",
-    "war-rooms",
-    "analytics",
+  ],
+  CAMPUS_SECURITY: [
+    "dashboard",
+    "incidents",
+    "translate",
+    "cameras",
+    "vision-ai",
+    "video-wall",
+    "qr",
+    "qr-codes",
     "zones",
     "buildings",
-    "qr-codes",
   ],
-  CAMPUS_SECURITY: ["dashboard", "incidents", "cameras", "qr-codes", "zones", "buildings"],
-  CAMPUS_DISPATCH: ["dashboard", "incidents", "zones", "buildings", "reports", "analytics"],
-  CAMPUS_COUNSELOR: ["dashboard", "incidents", "reports"],
-  CAMPUS_FACULTY: ["dashboard", "reports"],
+  CAMPUS_DISPATCH: [
+    "dashboard",
+    "incidents",
+    "translate",
+    "cameras",
+    "vision-ai",
+    "video-wall",
+    "zones",
+    "buildings",
+    "reports",
+    "analytics",
+  ],
+  CAMPUS_COUNSELOR: ["dashboard", "incidents", "translate", "reports"],
+  CAMPUS_FACULTY: ["dashboard", "translate", "reports"],
 };
 
 export function campusNavKeysForRole(role: string | undefined | null): readonly string[] {
@@ -114,8 +150,8 @@ export function campusNavKeysForRole(role: string | undefined | null): readonly 
 }
 
 export function canViewCampusNavItem(key: string, role: string | undefined | null): boolean {
+  if (isRcInternalOperator(role ?? "")) return true;
   if (key === "users" || key === "settings") {
-    if (isRcInternalOperator(role ?? "")) return true;
     return (role ?? "").trim().toUpperCase() === "CAMPUS_ADMIN";
   }
   return campusNavKeysForRole(role).includes(key);

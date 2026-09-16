@@ -22,6 +22,9 @@ export const visionSettingsPatchSchema = z.object({
   sceneIntelClaudeEnabled: z.boolean().optional(),
   sceneIntelThumbnailsEnabled: z.boolean().optional(),
   sceneIntelWsEnabled: z.boolean().optional(),
+  sceneIntelAudioEnabled: z.boolean().optional(),
+  sceneIntelSupervisorPushEnabled: z.boolean().optional(),
+  sceneIntelMotionSensitivity: z.number().min(0).max(1).optional(),
 });
 
 export const visionTranscriptQuerySchema = z.object({
@@ -42,12 +45,14 @@ export const visionSceneEventsQuerySchema = z.object({
 export const visionSceneEventPatchSchema = z.object({
   action: z.enum(["dismiss", "create_incident"]),
   incidentId: z.string().min(1).max(128).optional(),
+  dismissReason: z.enum(["false_positive", "already_handled", "other"]).optional(),
 });
 
 export const visionCameraSceneConfigSchema = z.object({
   aiMonitoringEnabled: z.boolean().optional(),
   zoneLabel: z.string().min(1).max(120).optional(),
   sceneCooldownSeconds: z.number().int().min(30).max(3600).optional(),
+  sceneSensitivity: z.enum(["low", "medium", "high", "maximum"]).optional(),
 });
 
 export const visionTranscriptSegmentSchema = z.object({

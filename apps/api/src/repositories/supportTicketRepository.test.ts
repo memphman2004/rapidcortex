@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { SupportTicketRecord } from "rapid-cortex-shared";
-import { computeTicketBoardMetrics, generateTicketId } from "./supportTicketRepository.js";
+import { computeTicketBoardMetrics, formatTicketId } from "./supportTicketRepository.js";
 
 function ticket(partial: Partial<SupportTicketRecord>): SupportTicketRecord {
   return {
@@ -27,9 +27,9 @@ function ticket(partial: Partial<SupportTicketRecord>): SupportTicketRecord {
 }
 
 describe("supportTicketRepository helpers", () => {
-  it("generates SUP-{date}-{slug}-{id} ticket ids", () => {
-    const id = generateTicketId("columbus-oh");
-    expect(id).toMatch(/^SUP-\d{8}-COLUMBUS-[A-Z0-9]{8}$/);
+  it("formats sequential ticket ids as SUP-1001", () => {
+    expect(formatTicketId(1)).toBe("SUP-0001");
+    expect(formatTicketId(1001)).toBe("SUP-1001");
   });
 
   it("computes operational board metrics", () => {

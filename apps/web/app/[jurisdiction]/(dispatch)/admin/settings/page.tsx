@@ -49,6 +49,13 @@ export default async function AdminSettingsPage({ params }: Props) {
           >
             SLA thresholds
           </Link>
+          {" · "}
+          <Link
+            href={`${prefix}/admin/vision-ai`}
+            className="text-sky-400 hover:text-sky-300 hover:underline"
+          >
+            Camera AI monitoring
+          </Link>
         </p>
       </div>
 

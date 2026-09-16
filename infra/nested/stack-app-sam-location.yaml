@@ -85,6 +85,30 @@ Resources:
         Style: VectorEsriDarkGrayCanvas
       Description: !Sub "RC Platform dark map for dispatch console (${DeploymentStage})"
 
+  # HERE styles cannot be applied to the retained Esri map resources (style is
+  # immutable after create). New names keep greenfield + existing accounts safe.
+  RCLocationMapHere:
+    Type: AWS::Location::Map
+    Condition: CreateLocationAls
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      MapName: !Sub "rc-map-here-${DeploymentStage}"
+      Configuration:
+        Style: VectorHereExplore
+      Description: !Sub "RC ops streets — HERE Explore (${DeploymentStage})"
+
+  RCLocationMapHereDark:
+    Type: AWS::Location::Map
+    Condition: CreateLocationAls
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      MapName: !Sub "rc-map-here-dark-${DeploymentStage}"
+      Configuration:
+        Style: VectorHereContrast
+      Description: !Sub "RC ops dark — HERE Contrast (${DeploymentStage})"
+
   RCPlaceIndex:
     Type: AWS::Location::PlaceIndex
     Condition: CreateLocationAls
@@ -173,6 +197,8 @@ Resources:
                 Resource:
                   - !Sub "arn:${AWS::Partition}:geo:${AWS::Region}:${AWS::AccountId}:map/rc-map-${DeploymentStage}"
                   - !Sub "arn:${AWS::Partition}:geo:${AWS::Region}:${AWS::AccountId}:map/rc-map-dark-${DeploymentStage}"
+                  - !Sub "arn:${AWS::Partition}:geo:${AWS::Region}:${AWS::AccountId}:map/rc-map-here-${DeploymentStage}"
+                  - !Sub "arn:${AWS::Partition}:geo:${AWS::Region}:${AWS::AccountId}:map/rc-map-here-dark-${DeploymentStage}"
 
   RCMapIdentityPoolAuthedRole:
     Type: AWS::IAM::Role
@@ -204,6 +230,8 @@ Resources:
                 Resource:
                   - !Sub "arn:${AWS::Partition}:geo:${AWS::Region}:${AWS::AccountId}:map/rc-map-${DeploymentStage}"
                   - !Sub "arn:${AWS::Partition}:geo:${AWS::Region}:${AWS::AccountId}:map/rc-map-dark-${DeploymentStage}"
+                  - !Sub "arn:${AWS::Partition}:geo:${AWS::Region}:${AWS::AccountId}:map/rc-map-here-${DeploymentStage}"
+                  - !Sub "arn:${AWS::Partition}:geo:${AWS::Region}:${AWS::AccountId}:map/rc-map-here-dark-${DeploymentStage}"
 
   RCMapIdentityPoolRoleAttachment:
     Type: AWS::Cognito::IdentityPoolRoleAttachment
@@ -333,11 +361,11 @@ Resources:
 
 Outputs:
   MapName:
-    Value: !Sub "rc-map-${DeploymentStage}"
+    Value: !Sub "rc-map-here-${DeploymentStage}"
     Export:
       Name: !Sub "${AWS::StackName}-MapName"
   MapNameDark:
-    Value: !Sub "rc-map-dark-${DeploymentStage}"
+    Value: !Sub "rc-map-here-dark-${DeploymentStage}"
     Export:
       Name: !Sub "${AWS::StackName}-MapNameDark"
   PlaceIndexName:

@@ -1,107 +1,93 @@
-"use client";
+import type { ReactNode } from "react";
+import { resolveUpstreamApiBase } from "@/lib/comms-api-path";
+import {
+  decodeSelfServiceToken,
+  isSelfServiceTokenShape,
+  selfServiceStatusLabel,
+  type SelfServiceReportDto,
+} from "@/lib/call-assist/self-service-report";
+import { SelfServiceCompleteForm } from "./self-service-complete-form";
 
-import { useState } from "react";
-import { useParams } from "next/navigation";
-import { useMutation, useQuery } from "@tanstack/react-query";
+export const dynamic = "force-dynamic";
 
-type SelfServiceDto = {
-  agencyId?: string;
-  sessionId?: string;
-  portalUrl?: string;
-  status?: string;
-  caseNumber?: string;
-  error?: string;
-};
+type PageProps = { params: Promise<{ token: string }> };
 
-async function loadToken(token: string): Promise<SelfServiceDto> {
-  const res = await fetch(`/api/public/call-assist/self-service/${encodeURIComponent(token)}`, { cache: "no-store" });
-  const body = (await res.json()) as SelfServiceDto;
-  if (!res.ok) throw new Error(body.error ?? "This reporting link is invalid or expired.");
-  return body;
+async function loadSelfService(token: string): Promise<{ ok: true; data: SelfServiceReportDto } | { ok: false; message: string }> {
+  const upstreamPath = `/api/public/call-assist/self-service/${encodeURIComponent(token)}`;
+  const base = resolveUpstreamApiBase(upstreamPath);
+  if (!base) {
+    return { ok: false, message: "Online reporting is temporarily unavailable. Call the non-emergency line if you still need to file a report." };
+  }
+  try {
+    const res = await fetch(`${base}${upstreamPath}`, { cache: "no-store" });
+    const data = (await res.json().catch(() => ({}))) as SelfServiceReportDto;
+    if (!res.ok) {
+      return { ok: false, message: data.error ?? "This reporting link is invalid or has expired." };
+    }
+    return { ok: true, data };
+  } catch {
+    return {
+      ok: false,
+      message: "Online reporting is temporarily unavailable. Call the non-emergency line if you still need to file a report.",
+    };
+  }
 }
 
-export default function CallAssistSelfServiceReportPage() {
-  const params = useParams<{ token: string }>();
-  const token = decodeURIComponent(params.token ?? "");
-  const [notes, setNotes] = useState("");
-  const query = useQuery({
-    queryKey: ["ca-self-service", token],
-    queryFn: () => loadToken(token),
-    enabled: token.length >= 8,
-  });
-  const complete = useMutation({
-    mutationFn: async (disposition: "completed" | "abandoned") => {
-      const res = await fetch(`/api/public/call-assist/self-service/${encodeURIComponent(token)}`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ disposition, notes }),
-      });
-      const body = (await res.json()) as { error?: string; status?: string };
-      if (!res.ok) throw new Error(body.error ?? "Unable to update this report.");
-      return body;
-    },
-  });
-
+function Shell({ children }: { children: ReactNode }) {
   return (
     <main className="mx-auto max-w-lg space-y-4 p-6 text-slate-100">
       <h1 className="text-lg font-semibold">Online report</h1>
       <p className="text-sm text-slate-400">
         This is not for emergencies. If someone is hurt or in danger, hang up and dial 911.
       </p>
-      {query.isLoading ? <p className="text-sm text-slate-500">Loading your report link…</p> : null}
-      {query.error ? (
-        <p className="text-sm text-rose-300">{query.error instanceof Error ? query.error.message : "Invalid link"}</p>
-      ) : null}
-      {query.data ? (
-        <>
-          <p className="text-sm text-slate-300">
-            Status: {query.data.status ?? "SENT"}
-            {query.data.caseNumber ? ` · Reference ${query.data.caseNumber}` : ""}
-          </p>
-          {query.data.portalUrl ? (
-            <a
-              className="inline-flex rounded bg-sky-700 px-3 py-2 text-sm text-white"
-              href={query.data.portalUrl}
-              target="_blank"
-              rel="noreferrer"
-            >
-              Continue on the agency reporting site
-            </a>
-          ) : null}
-          <label className="block text-[12px] text-slate-400">
-            Notes (optional)
-            <textarea
-              className="mt-1 h-20 w-full rounded border border-slate-700 bg-slate-950 px-2 py-1.5 text-sm text-slate-100"
-              value={notes}
-              onChange={(e) => setNotes(e.target.value)}
-            />
-          </label>
-          <div className="flex flex-wrap gap-2">
-            <button
-              type="button"
-              className="rounded bg-emerald-800 px-3 py-1.5 text-sm text-white"
-              disabled={complete.isPending}
-              onClick={() => complete.mutate("completed")}
-            >
-              I finished this report
-            </button>
-            <button
-              type="button"
-              className="rounded border border-slate-600 px-3 py-1.5 text-sm text-slate-200"
-              disabled={complete.isPending}
-              onClick={() => complete.mutate("abandoned")}
-            >
-              I cannot complete this
-            </button>
-          </div>
-          {complete.data?.status ? (
-            <p className="text-sm text-emerald-300">Saved. Status is now {complete.data.status}.</p>
-          ) : null}
-          {complete.error ? (
-            <p className="text-sm text-rose-300">{complete.error instanceof Error ? complete.error.message : "Update failed"}</p>
-          ) : null}
-        </>
-      ) : null}
+      {children}
     </main>
+  );
+}
+
+export default async function CallAssistSelfServiceReportPage({ params }: PageProps) {
+  const token = decodeSelfServiceToken((await params).token);
+  if (!isSelfServiceTokenShape(token)) {
+    return (
+      <Shell>
+        <p className="text-sm text-slate-300">
+          This page needs the full secure link from your text message. Open the message and tap the complete link — do
+          not type the address by hand.
+        </p>
+      </Shell>
+    );
+  }
+
+  const loaded = await loadSelfService(token);
+  if (!loaded.ok) {
+    return (
+      <Shell>
+        <p className="text-sm text-rose-300">{loaded.message}</p>
+      </Shell>
+    );
+  }
+
+  const portalUrl = loaded.data.portalUrl?.trim() ?? "";
+  return (
+    <Shell>
+      <p className="text-sm text-slate-300">
+        Status: {selfServiceStatusLabel(loaded.data.status)}
+        {loaded.data.caseNumber ? ` · Reference ${loaded.data.caseNumber}` : ""}
+      </p>
+      {portalUrl ? (
+        <a
+          className="inline-flex rounded bg-sky-700 px-4 py-2.5 text-sm font-medium text-white hover:bg-sky-600"
+          href={portalUrl}
+          rel="noopener noreferrer"
+        >
+          Continue on the agency reporting site
+        </a>
+      ) : (
+        <p className="text-sm text-slate-400">
+          This agency has not published an online reporting address. Call the non-emergency line to finish your report.
+        </p>
+      )}
+      <SelfServiceCompleteForm token={token} initialStatus={loaded.data.status} />
+    </Shell>
   );
 }

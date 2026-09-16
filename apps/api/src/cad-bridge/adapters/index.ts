@@ -4,12 +4,21 @@ import { MotorolaPremierOneBridgeAdapter } from "./motorola.js";
 import { RestVendorBridgeAdapter } from "./rest-vendors.js";
 import { TylerNewWorldBridgeAdapter } from "./tyler.js";
 
+const REST_VENDORS = [
+  "CENTRALSQUARE",
+  "HEXAGON",
+  "SPILLMAN",
+  "AXON",
+  "HARRIS",
+  "VERSATERM",
+  "MARK43",
+  "ORACLE",
+] as const;
+
 const registry = new Map<CADVendor, CADAdapter>([
   ["MOTOROLA", new MotorolaPremierOneBridgeAdapter()],
   ["TYLER", new TylerNewWorldBridgeAdapter()],
-  ["CENTRALSQUARE", new RestVendorBridgeAdapter("CENTRALSQUARE")],
-  ["HEXAGON", new RestVendorBridgeAdapter("HEXAGON")],
-  ["SPILLMAN", new RestVendorBridgeAdapter("SPILLMAN")],
+  ...REST_VENDORS.map((vendor) => [vendor, new RestVendorBridgeAdapter(vendor)] as const),
 ]);
 
 export function getCadBridgeAdapter(vendor: CADVendor): CADAdapter {

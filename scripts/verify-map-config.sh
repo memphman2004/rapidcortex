@@ -27,7 +27,7 @@ echo ""
 echo "▶ Checking ALS resources in region $REGION..."
 echo ""
 
-MAP_NAME="rc-map-${STAGE}"
+MAP_NAME="rc-map-here-${STAGE}"
 PLACE_INDEX="rc-places-${STAGE}"
 ROUTE_CALC="rc-routes-${STAGE}"
 GEOFENCE_COLL="rc-geofences-${STAGE}"
@@ -42,11 +42,19 @@ check_resource() {
 
 check_resource \
   "aws location describe-map --map-name '$MAP_NAME' --region '$REGION' --query 'MapName' --output text" \
-  "$MAP_NAME" "Map (standard)"
+  "$MAP_NAME" "Map (HERE Explore)"
+
+check_resource \
+  "aws location describe-map --map-name 'rc-map-here-dark-${STAGE}' --region '$REGION' --query 'MapName' --output text" \
+  "rc-map-here-dark-${STAGE}" "Map (HERE Contrast)"
+
+check_resource \
+  "aws location describe-map --map-name 'rc-map-${STAGE}' --region '$REGION' --query 'MapName' --output text" \
+  "rc-map-${STAGE}" "Map (legacy Esri streets)"
 
 check_resource \
   "aws location describe-map --map-name 'rc-map-dark-${STAGE}' --region '$REGION' --query 'MapName' --output text" \
-  "rc-map-dark-${STAGE}" "Map (dark)"
+  "rc-map-dark-${STAGE}" "Map (legacy Esri dark)"
 
 check_resource \
   "aws location describe-place-index --index-name '$PLACE_INDEX' --region '$REGION' --query 'IndexName' --output text" \

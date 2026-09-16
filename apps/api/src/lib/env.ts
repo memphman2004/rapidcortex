@@ -424,6 +424,8 @@ export const env = {
   visionTranscriptsTable: process.env.VISION_TRANSCRIPTS_TABLE?.trim() ?? "",
   visionEventsTable: process.env.VISION_EVENTS_TABLE?.trim() ?? "",
   visionSceneClassifyQueueUrl: process.env.VISION_SCENE_CLASSIFY_QUEUE_URL?.trim() ?? "",
+  visionSceneDescribeQueueUrl: process.env.VISION_SCENE_DESCRIBE_QUEUE_URL?.trim() ?? "",
+  visionSceneSupervisorTopicArn: process.env.VISION_SCENE_SUPERVISOR_TOPIC_ARN?.trim() ?? "",
   visionSceneIntelAgencyIds: (process.env.VISION_SCENE_INTEL_AGENCY_IDS ?? "")
     .split(",")
     .map((id) => id.trim())

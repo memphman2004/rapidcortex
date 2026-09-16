@@ -12,6 +12,7 @@ import {
   resolveAgencyTaxonomy,
   shouldTryBedrockFallback,
   topKnowledgeHit,
+  vehicleDescriptionSatisfied,
   type AgencyTaxonomy,
   type CallIntakeData,
   type KnowledgeArticleLike,
@@ -42,7 +43,7 @@ import { agencyShortName, slotPrompt, transferPrompt } from "./prompts.js";
 import { handleFulfillment } from "./fulfillment-hook.js";
 import { getLexSession, getLexTenantConfig, listLexKnowledge, updateLexSession } from "./runtime-store.js";
 import { buildTransferSummary, runSafetyGate } from "./safety-gate.js";
-import { extractCurrentSlots, slotFilled } from "./slot-extractor.js";
+import { extractCurrentSlots, slotFilled, capturePromptedSlot, isVehicleDescriptionSlot } from "./slot-extractor.js";
 import type { LexSlotValue, LexV2Event, LexV2Response } from "./types.js";
 import {
   applyBargeIn,
@@ -225,7 +226,7 @@ export async function handleDialog(
     ani: sessionAttrs.ani ?? sessionAttrs.ANI,
     attributes: sessionAttrs,
   });
-  const intake = mergeIntakeFromLexSlots(
+  let intake = mergeIntakeFromLexSlots(
     slotMap,
     extractIntakeFields(utterance, {
       ...intakeFromCallerIdentity(identity),
@@ -273,7 +274,9 @@ export async function handleDialog(
   const interrupted = detectBargeIn(sessionAttrs, utterance, {
     promptedSlotFilled: Boolean(prompted && slotFilled(currentSlots[prompted])),
   });
-  let missingSlotId = nextMissingSlot(activeIntent, currentSlots, taxonomy);
+  capturePromptedSlot(currentSlots, prompted, utterance);
+  intake = mergeIntakeFromLexSlots(extractCurrentSlots(event), intake);
+  let missingSlotId = nextMissingSlot(activeIntent, currentSlots, taxonomy, intake);
   if (!missingSlotId) missingSlotId = nextResponderSlot(activeIntent, currentSlots, intake);
   const barge = applyBargeIn({
     prior: readBargeInState(sessionAttrs),
@@ -508,6 +511,7 @@ export function nextMissingSlot(
   intentId: string,
   currentSlots: Record<string, LexSlotValue | null>,
   taxonomy: AgencyTaxonomy,
+  intake?: CallIntakeData,
 ): string | null {
   const specSlots = LEX_SPEC_SLOTS[intentId];
   const usesLegacyLocation = "location" in currentSlots;
@@ -515,7 +519,9 @@ export function nextMissingSlot(
   if (specSlots && specSlots.length > 0 && (usesSpecKeys || !usesLegacyLocation)) {
     for (const slot of specSlots) {
       if (!slot.required) continue;
-      if (!slotFilled(currentSlots[slot.name])) return slot.name;
+      if (slotFilled(currentSlots[slot.name])) continue;
+      if (intake && isVehicleDescriptionSlot(slot.name) && vehicleDescriptionSatisfied(intake)) continue;
+      return slot.name;
     }
     return null;
   }
@@ -566,6 +572,15 @@ export function nextResponderSlot(
     const field = RESPONDER_SLOT_TO_INTAKE[slot.name];
     if (!field) continue;
     if (slotFilled(currentSlots[slot.name])) continue;
+    if (
+      (field === "vehicleMake" || field === "vehicleModel" || field === "vehicleColor") &&
+      vehicleDescriptionSatisfied(intake)
+    ) {
+      continue;
+    }
+    if (field === "vehiclePlate" && (intake.vehicleUnknown || Boolean(intake.vehiclePlate?.trim()))) {
+      continue;
+    }
     const current = intake[field];
     if (typeof current === "boolean" ? true : Boolean(current && String(current).trim())) continue;
     return slot.name;

@@ -68,14 +68,30 @@ export function selfServicePublicPath(token: string): string {
   return `/call-assist/report/${encodeURIComponent(token)}`;
 }
 
+const DEFAULT_CALL_ASSIST_PUBLIC_BASE = "https://app.rapidcortex.us";
+const MARKETING_HOSTS = new Set(["www.rapidcortex.us", "rapidcortex.us"]);
+
+/**
+ * Token pages live on the Next.js app host, not the marketing site.
+ * www.rapidcortex.us is a static marketing origin and 404s /call-assist/report/{token}.
+ */
+export function callAssistPublicBaseUrl(raw?: string | null): string {
+  const trimmed = (raw ?? "").trim().replace(/\/$/, "");
+  if (!trimmed) return DEFAULT_CALL_ASSIST_PUBLIC_BASE;
+  try {
+    const host = new URL(trimmed).host.toLowerCase();
+    if (MARKETING_HOSTS.has(host)) return DEFAULT_CALL_ASSIST_PUBLIC_BASE;
+  } catch {
+    return DEFAULT_CALL_ASSIST_PUBLIC_BASE;
+  }
+  return trimmed;
+}
+
 export function resolveSelfServiceLink(opts: {
   publicBaseUrl?: string | null;
   token: string;
   portalUrl: string;
 }): { link: string; tokenized: boolean } {
-  const base = opts.publicBaseUrl?.trim().replace(/\/$/, "") ?? "";
-  if (base) {
-    return { link: `${base}${selfServicePublicPath(opts.token)}`, tokenized: true };
-  }
-  return { link: opts.portalUrl, tokenized: false };
+  const base = callAssistPublicBaseUrl(opts.publicBaseUrl);
+  return { link: `${base}${selfServicePublicPath(opts.token)}`, tokenized: true };
 }

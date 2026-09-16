@@ -1,8 +1,10 @@
 import type { ScheduledHandler } from "aws-lambda";
 import { SQSClient, SendMessageCommand } from "@aws-sdk/client-sqs";
 import type { VisionCamera } from "rapid-cortex-shared";
+import { SCENE_SENSITIVITY_THRESHOLD } from "rapid-cortex-shared";
 import { env } from "../../lib/env.js";
 import { visionStore } from "../store.js";
+import { extractLatestFrame } from "../kvs-frame.js";
 import { classifyAndPersist, type SceneClassifyMessage } from "./classify-worker.js";
 
 const sqs = new SQSClient({});
@@ -21,16 +23,17 @@ const MOCK_LABELS_BY_INDEX: SceneClassifyMessage["mockLabels"][] = [
 ];
 
 async function enqueueOrClassify(message: SceneClassifyMessage): Promise<void> {
-  if (env.visionSceneClassifyQueueUrl) {
-    await sqs.send(
-      new SendMessageCommand({
-        QueueUrl: env.visionSceneClassifyQueueUrl,
-        MessageBody: JSON.stringify(message),
-      }),
-    );
+  // JPEG base64 can exceed SQS 256 KB — classify inline when a frame is attached.
+  if (message.frameBase64 || !env.visionSceneClassifyQueueUrl) {
+    await classifyAndPersist(message);
     return;
   }
-  await classifyAndPersist(message);
+  await sqs.send(
+    new SendMessageCommand({
+      QueueUrl: env.visionSceneClassifyQueueUrl,
+      MessageBody: JSON.stringify(message),
+    }),
+  );
 }
 
 async function processCamera(camera: VisionCamera, index: number): Promise<void> {
@@ -44,6 +47,7 @@ async function processCamera(camera: VisionCamera, index: number): Promise<void>
       cameraName: camera.friendlyName,
       zoneLabel: camera.zoneLabel,
       mockLabels: MOCK_LABELS_BY_INDEX[index % MOCK_LABELS_BY_INDEX.length],
+      motionScore: 0.8,
     });
     return;
   }
@@ -57,7 +61,26 @@ async function processCamera(camera: VisionCamera, index: number): Promise<void>
         agencyId: camera.agencyId,
       }),
     );
+    return;
   }
+
+  const frameBase64 = await extractLatestFrame(kvsRef);
+  if (!frameBase64) return;
+  const threshold =
+    SCENE_SENSITIVITY_THRESHOLD[camera.sceneSensitivity ?? "medium"] ??
+    SCENE_SENSITIVITY_THRESHOLD.medium;
+  // Single-frame sample: treat a successful grab as motion and let Rekognition filter.
+  const motionScore = 1;
+  if (motionScore < threshold) return;
+
+  await enqueueOrClassify({
+    agencyId: camera.agencyId,
+    cameraId: camera.cameraId,
+    cameraName: camera.friendlyName,
+    zoneLabel: camera.zoneLabel,
+    frameBase64,
+    motionScore,
+  });
 }
 
 export const handler: ScheduledHandler = async () => {

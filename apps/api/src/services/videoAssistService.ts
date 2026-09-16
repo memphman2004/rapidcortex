@@ -121,6 +121,8 @@ export class VideoAssistService {
     const sms = await sendVideoAssistSms({
       phoneE164: body.callerPhoneE164,
       message: msg,
+      agencyId: incident.agencyId,
+      incidentId,
     });
 
     const item: VideoAssistDdbItem = {
@@ -252,6 +254,8 @@ export class VideoAssistService {
     const sms = await sendVideoAssistSms({
       phoneE164: item.callerPhoneE164,
       message: `Rapid Cortex live video link (resend): ${item.publicUrl}`,
+      agencyId: incident.agencyId,
+      incidentId,
     });
     const now = new Date().toISOString();
     let next = append(item, {

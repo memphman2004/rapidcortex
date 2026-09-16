@@ -172,6 +172,17 @@ check_redirect "app / → login" curl_app "/" '/login'
 check_redirect "app /pricing → www" curl_app "/pricing" 'www\.rapidcortex\.us'
 check_redirect "app /product → www" curl_app "/product" 'www\.rapidcortex\.us'
 check_not_marketing_200 "app /pricing not marketing" "/pricing"
+# Caller SMS live-video join must stay on the app host (not www marketing).
+_media_status="$(fetch_status curl_app "/media/live/rc-verify-token")"
+_media_location="$(fetch_location)"
+cleanup_headers
+if grep -qi 'www\.rapidcortex\.us' <<<"${_media_location}"; then
+  echo "FAIL — app /media/live must not redirect to www (got ${_media_status} → ${_media_location})" >&2
+  failures=$((failures + 1))
+else
+  echo "OK   — app /media/live stays on app host: ${_media_status} → ${_media_location:-none}"
+fi
+unset _media_status _media_location
 
 if [[ -z "${LOCAL_BASE}" ]]; then
   check_ok_200 "www /" curl_www "/"

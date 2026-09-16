@@ -84,10 +84,14 @@ export const AUDITOR_OPS_NAV: readonly PsapNavItem[] = [
 export const AUDITOR_READ_ADMIN_PATHS: readonly string[] = [
   "/admin/audit-logs",
   "/admin/cad",
+  "/admin/vision-ai",
 ];
 
 /** Paths analysts may open under /supervisor despite not being supervisors. */
-export const ANALYST_SUPERVISOR_PATHS: readonly string[] = ["/supervisor/scorecards"];
+export const ANALYST_SUPERVISOR_PATHS: readonly string[] = [
+  "/supervisor/scorecards",
+  "/supervisor/vision-ai",
+];
 
 export function psapOperationsNavForRole(role: string | undefined | null): readonly PsapNavItem[] {
   const effective = resolvePsapRole(role);

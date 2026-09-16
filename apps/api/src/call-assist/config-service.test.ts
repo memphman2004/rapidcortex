@@ -16,7 +16,8 @@ describe("Call Assist default tenant config", () => {
     expect(kcpd.agencyShortName).toBe("KCPD");
     expect(kcpd.cadProviderId).toBe("motorola-premierone");
     expect(kcpd.callAssistGreeting?.cityName).toBe("Kansas City");
-    expect(kcpd.callAssistGreeting?.mode).toBe("stay_on_line");
+    expect(kcpd.callAssistGreeting?.mode).toBe("custom");
     expect(kcpd.openingGreeting).toContain("Kansas City");
+    expect(kcpd.openingGreeting).not.toMatch(/I'll help determine|go ahead/i);
   });
 });

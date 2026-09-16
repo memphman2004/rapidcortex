@@ -42,13 +42,26 @@ describe("Call Assist SMS self-service", () => {
     });
     expect(tokenized.tokenized).toBe(true);
     expect(tokenized.link).toBe("https://app.example.gov/call-assist/report/tok_abc");
-    const direct = resolveSelfServiceLink({
+  });
+
+  it("rewrites the marketing host to the live app for token pages", () => {
+    const rewritten = resolveSelfServiceLink({
+      publicBaseUrl: "https://www.rapidcortex.us",
+      token: "tok_abc",
+      portalUrl: "https://www.kcpd.org/online-reporting",
+    });
+    expect(rewritten.tokenized).toBe(true);
+    expect(rewritten.link).toBe("https://app.rapidcortex.us/call-assist/report/tok_abc");
+  });
+
+  it("falls back to the live app host when no public base is set", () => {
+    const fallback = resolveSelfServiceLink({
       publicBaseUrl: "",
       token: "tok_abc",
       portalUrl: "https://portal.example.gov",
     });
-    expect(direct.tokenized).toBe(false);
-    expect(direct.link).toBe("https://portal.example.gov");
+    expect(fallback.tokenized).toBe(true);
+    expect(fallback.link).toBe("https://app.rapidcortex.us/call-assist/report/tok_abc");
   });
 
   it("keeps SMS copy non-emergency", () => {

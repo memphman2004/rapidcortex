@@ -2,16 +2,25 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { APIGatewayProxyEventV2 } from "aws-lambda";
 import type { UserContext } from "rapid-cortex-shared";
 
-const { getUserContext, isUserAccountActive, putMock, saveMock, listBoardMock, updateMock, addNoteMock } =
-  vi.hoisted(() => ({
-    getUserContext: vi.fn(),
-    isUserAccountActive: vi.fn(() => true),
-    putMock: vi.fn(),
-    saveMock: vi.fn(),
-    listBoardMock: vi.fn(),
-    updateMock: vi.fn(),
-    addNoteMock: vi.fn(),
-  }));
+const {
+  getUserContext,
+  isUserAccountActive,
+  putMock,
+  saveMock,
+  listBoardMock,
+  updateMock,
+  addNoteMock,
+  nextTicketIdMock,
+} = vi.hoisted(() => ({
+  getUserContext: vi.fn(),
+  isUserAccountActive: vi.fn(() => true),
+  putMock: vi.fn(),
+  saveMock: vi.fn(),
+  listBoardMock: vi.fn(),
+  updateMock: vi.fn(),
+  addNoteMock: vi.fn(),
+  nextTicketIdMock: vi.fn(),
+}));
 
 vi.mock("../../lib/auth.js", () => ({
   getUserContext: (...args: unknown[]) => getUserContext(...args),
@@ -42,8 +51,9 @@ vi.mock("../../repositories/auditRepository.js", () => ({
 }));
 
 vi.mock("../../repositories/supportTicketRepository.js", () => ({
-  generateTicketId: () => "SUP-20260914-AGENCY01-TESTTICK",
+  formatTicketId: (n: number) => `SUP-${String(n).padStart(4, "0")}`,
   SupportTicketRepository: class {
+    nextTicketId = nextTicketIdMock;
     put = putMock;
     save = saveMock;
     listBoard = listBoardMock;
@@ -112,6 +122,7 @@ describe("support-web handlers", () => {
     isUserAccountActive.mockReturnValue(true);
     putMock.mockReset().mockResolvedValue(undefined);
     saveMock.mockReset().mockResolvedValue(undefined);
+    nextTicketIdMock.mockReset().mockResolvedValue("SUP-1001");
     listBoardMock.mockReset();
     updateMock.mockReset();
     addNoteMock.mockReset();
@@ -153,7 +164,8 @@ describe("support-web handlers", () => {
     getUserContext.mockResolvedValue(dispatcher);
     const out = parse(await submitHandler(event()));
     expect(out.statusCode).toBe(201);
-    expect(out.body.ticketId).toBe("SUP-20260914-AGENCY01-TESTTICK");
+    expect(out.body.ticketId).toBe("SUP-1001");
+    expect(nextTicketIdMock).toHaveBeenCalledOnce();
     expect(putMock).toHaveBeenCalledOnce();
   });
 

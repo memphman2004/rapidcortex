@@ -1,0 +1,4 @@
+buildingCode,buildingName,type,floors,zoneFloor,zoneRoom
+MLC,Miller Learning Center,academic,4,1,101
+MLC,Miller Learning Center,academic,4,2,214
+ADMIN,Public Safety HQ,administrative,2,1,Lobby

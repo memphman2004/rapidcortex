@@ -14,6 +14,7 @@ import {
   isRcTranslateEnabled,
   isRcTranslateHospitalEnabled,
   isRapidVisionEnabled,
+  isRapidVisionSceneIntelEnabled,
   isRcTranslateVenueEnabled,
   isVerticalAlertsEnabled,
   isQaScoringEnabled,
@@ -66,6 +67,8 @@ export function isNavFeatureEnabled(feature: string): boolean {
       return isRcTranslateEnabled() && isRcTranslateHospitalEnabled();
     case "rapidVision":
       return isRapidVisionEnabled();
+    case "rapidVisionSceneIntel":
+      return isRapidVisionSceneIntelEnabled();
     case "verticalAlerts":
       return isVerticalAlertsEnabled();
     case "channelMonitoring":

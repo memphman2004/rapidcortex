@@ -25,6 +25,7 @@ describe("Call Assist greeting builders", () => {
     expect(en).toContain("City of Springfield");
     expect(en).toContain("dial 9-1-1");
     expect(en).toContain("stay on the line");
+    expect(en).not.toMatch(/I'll help determine|If you're unsure/i);
     expect(en).not.toMatch(/Kansas City|KCPD/i);
 
     const es = buildGreeting(springfield, "es_US");

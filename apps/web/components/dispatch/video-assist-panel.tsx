@@ -39,6 +39,10 @@ function statusLabel(status: VideoAssistDispatcherSession["status"]): string {
   return map[status] ?? status;
 }
 
+function smsWasLogOnly(session: VideoAssistDispatcherSession | undefined): boolean {
+  return (session?.events ?? []).some((ev) => ev.meta?.logOnly === true);
+}
+
 function mergeRemoteIce(
   pc: RTCPeerConnection,
   candidates: string[] | undefined,
@@ -342,12 +346,15 @@ export function VideoAssistPanel({
 
       {showRequest ? (
         <div className="mt-3 space-y-2 rounded-md border border-slate-800 bg-slate-900/60 p-2">
-          <PhoneInput
+            <PhoneInput
             label="Caller mobile"
             ani={ani}
             onChange={setPhoneE164}
             disabled={createMut.isPending}
           />
+          <p className="text-[10px] leading-snug text-slate-500">
+            SMS goes to this number. Replace a simulated call ANI with the caller's real mobile.
+          </p>
           <button
             type="button"
             disabled={createMut.isPending}
@@ -382,7 +389,9 @@ export function VideoAssistPanel({
         <div className="mt-3 space-y-2">
           <div className="flex flex-wrap items-center gap-2">
             <span className="rounded bg-slate-800 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-sky-200 ring-1 ring-slate-600">
-              {statusLabel(session.status)}
+              {smsWasLogOnly(session) && session.status === "sms_sent"
+                ? "Link created — SMS not sent"
+                : statusLabel(session.status)}
             </span>
             {session.streamStartedAt ? (
               <span className="text-[10px] text-slate-500">Stream started {new Date(session.streamStartedAt).toLocaleTimeString()}</span>

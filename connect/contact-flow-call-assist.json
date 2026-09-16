@@ -1136,7 +1136,7 @@
       "Identifier": "lex-intake",
       "Type": "ConnectParticipantWithLexBot",
       "Parameters": {
-        "Text": "Go ahead.",
+        "Text": "Please tell me what you need help with, including the address or closest intersection.",
         "LexV2Bot": {
           "AliasArn": "{{lexBotAliasArn}}"
         },

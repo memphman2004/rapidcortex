@@ -125,6 +125,7 @@ export interface VisionCamera {
   aiMonitoringEnabled?: boolean;
   zoneLabel?: string;
   sceneCooldownSeconds?: number;
+  sceneSensitivity?: "low" | "medium" | "high" | "maximum";
   createdAt: string;
   updatedAt: string;
 }
@@ -232,6 +233,9 @@ export interface VisionAgencySettings {
   sceneIntelClaudeEnabled?: boolean;
   sceneIntelThumbnailsEnabled?: boolean;
   sceneIntelWsEnabled?: boolean;
+  sceneIntelAudioEnabled?: boolean;
+  sceneIntelSupervisorPushEnabled?: boolean;
+  sceneIntelMotionSensitivity?: number;
   updatedAt: string;
   updatedBy: string;
 }
@@ -268,9 +272,12 @@ export interface VisionSceneAlert {
   confidence: ObservationConfidence;
   detectionLabels: RecognitionLabel[];
   thumbnailS3Key?: string;
+  thumbnailUrl?: string;
+  motionScore?: number;
   incidentId?: string;
   dismissedBy?: string;
   dismissedAt?: string;
+  dismissReason?: "false_positive" | "already_handled" | "other";
   ttl: number;
 }
 

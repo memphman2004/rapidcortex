@@ -40,6 +40,7 @@ export const V = {
   muted: "var(--rc-text-muted)",
   faint: "var(--rc-text-faint)",
   placeholder: "var(--rc-text-placeholder)",
+  transcript: "var(--rc-text-transcript)",
   silver: "var(--rc-silver)",
   dim: "var(--rc-text-muted)",
 

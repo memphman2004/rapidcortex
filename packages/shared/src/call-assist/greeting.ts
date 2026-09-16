@@ -38,9 +38,8 @@ export const GREETING_TEMPLATES: Record<Exclude<GreetingMode, "custom">, string>
 
   stay_on_line: [
     "You've reached the {lineDescription} for {cityName}.",
-    "If this is an emergency, please dial 9-1-1.",
-    "If you're unsure, stay on the line —",
-    "I'll help determine the appropriate response.",
+    "If this is a life-threatening emergency, hang up and dial 9-1-1.",
+    "For all other requests, stay on the line.",
   ].join(" "),
 };
 
@@ -54,9 +53,8 @@ export const DEFAULT_ES_GREETING_TEMPLATES: Record<Exclude<GreetingMode, "custom
 
   stay_on_line: [
     "Ha llamado a la línea de servicio no urgente de {cityName}.",
-    "Si esto es una emergencia, por favor llame al 9-1-1.",
-    "Si no está seguro, permanezca en la línea —",
-    "le ayudaré a determinar la respuesta apropiada.",
+    "Si esto es una emergencia que amenaza la vida, cuelgue y llame al 9-1-1.",
+    "Para cualquier otra solicitud, permanezca en la línea.",
   ].join(" "),
 };
 
@@ -101,9 +99,8 @@ const DEFAULT_ZH_CN_GREETING_TEMPLATES: Record<Exclude<GreetingMode, "custom">, 
   ].join(" "),
   stay_on_line: [
     "这里是{cityName}的非紧急服务热线。",
-    "如果这是紧急情况，请拨打9-1-1。",
-    "如果不确定，请不要挂断——",
-    "我会帮助判断如何处理。",
+    "如果这是危及生命的紧急情况，请挂断并拨打9-1-1。",
+    "其他请求请不要挂断。",
   ].join(" "),
 };
 
@@ -116,9 +113,8 @@ const DEFAULT_ZH_HK_GREETING_TEMPLATES: Record<Exclude<GreetingMode, "custom">, 
   ].join(" "),
   stay_on_line: [
     "呢度係{cityName}嘅非緊急服務熱線。",
-    "如果呢個係緊急情況，請打9-1-1。",
-    "如果唔肯定，請唔好掛線——",
-    "我會幫你判斷點樣處理。",
+    "如果呢個係危及生命嘅緊急情況，請掛線並打9-1-1。",
+    "其他請求請唔好掛線。",
   ].join(" "),
 };
 
@@ -131,9 +127,8 @@ const DEFAULT_TL_GREETING_TEMPLATES: Record<Exclude<GreetingMode, "custom">, str
   ].join(" "),
   stay_on_line: [
     "Nakatawag kayo sa non-emergency na linya ng {cityName}.",
-    "Kung emergency ito, tumawag sa 9-1-1.",
-    "Kung hindi kayo sigurado, manatili sa linya —",
-    "tutulungan ko kayong malaman ang tamang tugon.",
+    "Kung life-threatening emergency ito, ibaba at tumawag sa 9-1-1.",
+    "Para sa lahat ng ibang request, manatili po sa linya.",
   ].join(" "),
 };
 
@@ -146,9 +141,8 @@ const DEFAULT_VI_GREETING_TEMPLATES: Record<Exclude<GreetingMode, "custom">, str
   ].join(" "),
   stay_on_line: [
     "Bạn đã gọi đến đường dây không khẩn cấp của {cityName}.",
-    "Nếu đây là trường hợp khẩn cấp, hãy gọi 9-1-1.",
-    "Nếu bạn chưa chắc, hãy giữ máy —",
-    "tôi sẽ giúp xác định cách xử lý phù hợp.",
+    "Nếu đây là trường hợp khẩn cấp đe dọa tính mạng, hãy cúp máy và gọi 9-1-1.",
+    "Các yêu cầu khác xin giữ máy.",
   ].join(" "),
 };
 
@@ -161,9 +155,8 @@ const DEFAULT_AR_GREETING_TEMPLATES: Record<Exclude<GreetingMode, "custom">, str
   ].join(" "),
   stay_on_line: [
     "لقد اتصلت بخط الخدمة غير الطارئة لـ {cityName}.",
-    "إذا كان هذا طارئاً، يرجى الاتصال بالرقم 9-1-1.",
-    "إذا لم تكونوا متأكدين، ابقوا على الخط —",
-    "سأساعدكم في تحديد الاستجابة المناسبة.",
+    "إذا كانت هذه حالة طارئة تهدد الحياة، أنهوا المكالمة واتصلوا بالرقم 9-1-1.",
+    "لجميع الطلبات الأخرى، ابقوا على الخط.",
   ].join(" "),
 };
 
@@ -227,6 +220,9 @@ export const FALLBACK_GREETING_AR =
   "لقد اتصلتم بخط الخدمة غير الطارئة. إذا كانت هذه حالة طارئة، يرجى الاتصال بالرقم 9-1-1. وإلا فابقوا على الخط ويمكنني مساعدتكم.";
 
 export const INTAKE_PROMPT_EN = "How can I help you today?";
+/** Spoken after the greeting when Connect starts Lex. Never “Go ahead.” */
+export const CONNECT_LEX_START_PROMPT =
+  "Please tell me what you need help with, including the address or closest intersection.";
 export const INTAKE_PROMPT_ES = "¿En qué puedo ayudarle hoy?";
 export const INTAKE_PROMPT_ZH_CN = "今天有什么可以帮您？";
 export const INTAKE_PROMPT_ZH_HK = "今日有咩可以幫到你？";

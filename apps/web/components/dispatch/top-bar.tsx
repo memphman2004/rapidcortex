@@ -8,7 +8,7 @@ import { isApiConfigured } from "@/lib/api";
 import { trainingModeCompactDetail } from "@/lib/training-mode";
 import { isAuthConfigured } from "@/lib/auth/roles";
 import { EnvironmentBadge } from "@/components/dispatch/environment-badge";
-import { FontPicker } from "@/components/ui/font-picker";
+import { DashboardTypographyControls } from "@/components/ui/dashboard-typography-controls";
 import { UserIdentityBar } from "@/components/ui/user-identity-bar";
 import { HelpButton } from "@/components/help/help-button";
 import { SupportHelpButton } from "@/components/support/SupportHelpButton";
@@ -90,7 +90,7 @@ export function TopBar({
         <HelpButton />
         <SupportHelpButton user={user} />
         <ThemeToggle variant="inline" />
-        <FontPicker />
+        <DashboardTypographyControls />
         <div
           className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${
             apiLive

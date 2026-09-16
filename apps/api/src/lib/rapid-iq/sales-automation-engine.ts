@@ -29,6 +29,7 @@ import {
   listSalesSequences,
   putSalesSequence,
 } from "./sales-automation-db.js";
+import { verticalThreeTouchCopy } from "./vertical-email-campaign.js";
 
 const STEP_DELAY_DAYS: Record<RapidIqSalesStepLabel, number> = {
   initial: 0,
@@ -111,26 +112,13 @@ export function heuristicThreeTouch(input: {
   rfpDeadline?: string;
   campaignType?: string;
 }): RapidIqSalesOutreachStep[] {
-  const agency = input.agencyName;
-  const title = input.signalTitle ?? "public safety operations";
-  const deadline = input.rfpDeadline
-    ? ` ahead of ${input.rfpDeadline.slice(0, 10)}`
-    : "";
   const labels = ["initial", "followup_1", "followup_2"] as const;
-  const drafts: Array<{ subject: string; body: string }> = [
-    {
-      subject: `${agency} — Rapid Cortex fit`,
-      body: `I saw ${agency} moving on ${title}${deadline}. Rapid Cortex adds AI-assisted intake, live transcription, and supervisor visibility without replacing CAD or dispatch staff.\n\nWould a 20-minute call this week be useful?`,
-    },
-    {
-      subject: `Re: ${agency} — quick follow-up`,
-      body: `Following up briefly on Rapid Cortex for ${agency}. Happy to send a one-page technical overview or answer pre-procurement questions.`,
-    },
-    {
-      subject: `${agency} — closing the loop`,
-      body: `Last note from me on this. If the timing is wrong, I understand. If a later cycle opens, we can pick this up then.`,
-    },
-  ];
+  const drafts = verticalThreeTouchCopy({
+    agencyName: input.agencyName,
+    vertical: input.vertical,
+    signalTitle: input.signalTitle,
+    rfpDeadline: input.rfpDeadline,
+  });
   return drafts.map((d, i) => {
     const label = labels[i]!;
     const bodyText = wrapBody(input.firstName, d.body);
@@ -165,7 +153,7 @@ async function generateThreeTouch(input: {
   const raw = await createJsonResponse({
     model: rapidIqModelStrategy(),
     system:
-      "You write concise public-safety outreach for Rapid Cortex. Return JSON only. Rapid Cortex enhances 911/campus/venue operations and does not replace CAD, telephony, or staff. No competitor names. No unverified metrics. Step 3 is a low-pressure close.",
+      "You write concise public-safety outreach for Rapid Cortex. Return JSON only. Follow the vertical campaign: PSAP = assistive 911 co-pilot, CAD stays system of record, no write-back by default; CAMPUS = QR/NFC/SMS, not a 911 dispatch system, not an ENS replacement; VENUE = guest QR into security console, cameras stay the venue's, not 911 dispatch. Never mention Ring. No competitor names. No unverified metrics or certification claims. Step 3 is a low-pressure close.",
     jsonSchemaName: "rapid_iq_sales_sequence",
     jsonSchema: {
       type: "object",
@@ -408,6 +396,30 @@ export function listCampaignCards(
 ): RapidIqSalesCampaignCard[] {
   const now = Date.now();
   const cards: RapidIqSalesCampaignCard[] = [
+    {
+      id: "psap-core-2026",
+      name: "911 / PSAP Core outbound",
+      description:
+        "6-touch Core sequence (Rapid IQ sends 1–3). CAD stays the system of record. See EMAIL_CAMPAIGN_911_VENUE_CAMPUS.md.",
+      next: "Always-on · approve in Rapid IQ",
+      status: "active",
+    },
+    {
+      id: "campus-safety-2026",
+      name: "Campus Safety outbound",
+      description:
+        "QR / NFC / SMS campus console. Not a 911 dispatch system. Rapid IQ steps 1–3 of the campus track.",
+      next: "Always-on · approve in Rapid IQ",
+      status: "active",
+    },
+    {
+      id: "venue-ops-2026",
+      name: "Venue Operations outbound",
+      description:
+        "Guest QR into section-level security ops. Cameras stay the venue’s. Rapid IQ steps 1–3 of the venue track.",
+      next: "Always-on · approve in Rapid IQ",
+      status: "active",
+    },
     {
       id: "budget-season",
       name: "Budget Season",

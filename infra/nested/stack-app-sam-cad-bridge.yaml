@@ -80,7 +80,7 @@ Globals:
         DEPLOYMENT_STAGE: !Ref DeploymentStage
         ALLOW_UNAUTHENTICATED_API: "false"
         ENABLE_CAD_BRIDGE: "true"
-        CAD_BRIDGE_MOCK: "true"
+        CAD_BRIDGE_MOCK: "false"
         CAD_WRITEBACK_ENABLED: "false"
         CAD_BRIDGE_CONFIG_TABLE: !Sub "rapid-cortex-cad-bridge-config-${DeploymentStage}"
         CAD_BRIDGE_SYNC_TABLE: !Sub "rapid-cortex-cad-bridge-sync-${DeploymentStage}"

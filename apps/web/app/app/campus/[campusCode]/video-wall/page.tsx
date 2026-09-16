@@ -4,6 +4,7 @@ import { VideoWallClient } from "@/components/video/video-wall-client";
 import { getDashboardSessionUser } from "@/lib/dashboards/get-dashboard-session";
 import { isRcVideoEnabled } from "@/lib/runtime-flags";
 import { isVideoWallRoleBlocked } from "@/lib/video/video-wall-access";
+import { canViewCampusNavItem } from "@/lib/venue/venue-nav-access";
 
 export default async function CampusVideoWallPage({
   params,
@@ -18,6 +19,9 @@ export default async function CampusVideoWallPage({
   }
   if (!isRcVideoEnabled() || isVideoWallRoleBlocked(user.role) || !user.agencyId) {
     redirect(`/app/campus/${encodeURIComponent(campusCode)}/cameras`);
+  }
+  if (!canViewCampusNavItem("video-wall", user.role)) {
+    redirect(`/app/campus/${encodeURIComponent(campusCode)}`);
   }
   return (
     <Suspense fallback={<p className="p-6 text-sm text-slate-400">Loading video wall…</p>}>

@@ -852,7 +852,10 @@ Conditions:
   HasRoute53HostedZone: !Not [!Equals [!Ref Route53HostedZoneId, ""]]
   CreateLiveVideoResources: !Equals [!Ref EnableLiveVideoResources, "true"]
   HasSilentText: !Equals [!Ref EnableSilentText, "true"]
-  CreateSmsConfigurationSet: !Equals [!Ref AwsSmsConfigurationSetName, ""]
+  # Opt-in only. Empty used to mean "create", but rapid-cortex-deploy cannot
+  # sms-voice:TagResource, so auto-create rolls back AppSam5. Pass CREATE_NEW to
+  # attempt create, or a real existing set name to import.
+  CreateSmsConfigurationSet: !Equals [!Ref AwsSmsConfigurationSetName, "CREATE_NEW"]
   HasApiWaf: !Equals [!Ref EnableApiWaf, "true"]
   CloudTrailEnabled: !Equals [!Ref EnableCloudTrail, "true"]
   CloudTrailS3DataEvents: !And
@@ -3484,11 +3487,9 @@ Resources:
             - TEXT_ALL
           SnsDestination:
             TopicArn: !Ref AwsSmsDeliveryEventsTopic
-      Tags:
-        - Key: App
-          Value: !Ref AppName
-        - Key: Stage
-          Value: !Ref DeploymentStage
+      # Do not set Tags: the rapid-cortex-deploy user cannot sms-voice:TagResource,
+      # which fails CREATE and rolls back AppSam5. Import an existing set via
+      # AwsSmsConfigurationSetName / AWS_SMS_CONFIGURATION_SET_NAME instead.
 
   AwsSmsInboundFunction:
     Type: AWS::Serverless::Function

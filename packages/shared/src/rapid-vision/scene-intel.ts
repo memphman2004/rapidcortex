@@ -246,3 +246,48 @@ export const SCENE_INTEL_EVENT_TYPE_LABELS: Record<VisionSceneEventType, string>
   MEDICAL_EMERGENCY: "Possible medical event",
   SUSPICIOUS_VEHICLE: "Suspicious vehicle",
 };
+
+export const SCENE_SENSITIVITY_THRESHOLD: Record<"low" | "medium" | "high" | "maximum", number> = {
+  low: 0.45,
+  medium: 0.32,
+  high: 0.2,
+  maximum: 0.12,
+};
+
+export function mockSceneNarrative(eventType: VisionSceneEventType): string {
+  const match = demoSceneAlerts("fixture").find((a) => a.eventType === eventType);
+  if (match?.narrative) return match.narrative;
+  return `${SCENE_INTEL_EVENT_TYPE_LABELS[eventType]}. Dispatcher confirmation required before any dispatch.`;
+}
+
+export function summarizeSceneAlerts(alerts: VisionSceneAlert[]) {
+  const bySeverity = { critical: 0, high: 0, medium: 0, low: 0 };
+  const byCamera = new Map<
+    string,
+    { cameraId: string; cameraName: string; count: number; dismissed: number; incidents: number }
+  >();
+  for (const alert of alerts) {
+    bySeverity[alert.severity] += 1;
+    const row = byCamera.get(alert.cameraId) ?? {
+      cameraId: alert.cameraId,
+      cameraName: alert.cameraName,
+      count: 0,
+      dismissed: 0,
+      incidents: 0,
+    };
+    row.count += 1;
+    if (alert.status === "dismissed") row.dismissed += 1;
+    if (alert.status === "incident_created") row.incidents += 1;
+    byCamera.set(alert.cameraId, row);
+  }
+  const incidentCreated = alerts.filter((a) => a.status === "incident_created").length;
+  return {
+    totalAlerts: alerts.length,
+    activeCount: alerts.filter((a) => a.status === "active").length,
+    dismissedCount: alerts.filter((a) => a.status === "dismissed").length,
+    incidentCreatedCount: incidentCreated,
+    conversionRate: alerts.length === 0 ? 0 : incidentCreated / alerts.length,
+    bySeverity,
+    byCamera: [...byCamera.values()].sort((a, b) => b.count - a.count),
+  };
+}

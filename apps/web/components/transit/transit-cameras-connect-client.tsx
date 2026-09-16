@@ -6,11 +6,11 @@ import { Camera, Link2 } from "lucide-react";
 import { CameraProviderSetup } from "@/components/cameras/CameraProviderSetup";
 import { NestCameraPanel } from "@/components/cameras/NestCameraPanel";
 import { WyzeCameraPanel } from "@/components/cameras/WyzeCameraPanel";
-import { GOOGLE_NEST_TM, NEST_TM, RING_TM, WYZE_TM } from "@/lib/brand-marks";
+import { GOOGLE_NEST_TM, RING_TM, WYZE_TM, joinTrademarkList } from "@/lib/brand-marks";
 import { isNestEnabled } from "@/lib/nest-feature-flags";
 import { isWyzeEnabled } from "@/lib/wyze-feature-flags";
 import { isTransitCamerasUiEnabled } from "@/lib/runtime-flags";
-import { RingConnectButton, RingIntegrationUnavailableNotice, ViewAvailableRingCamerasButton, isRingEnabled } from "@/src/features/connect/ring";
+import { RingConnectButton, ViewAvailableRingCamerasButton, isRingEnabled } from "@/src/features/connect/ring";
 import type { RingDevicesResponse, RingRole } from "@/src/features/connect/ring/ring-types";
 import type { TransitIncident } from "rapid-cortex-shared";
 
@@ -96,8 +96,9 @@ export function TransitCamerasConnectClient({
       <div>
         <h2 className="text-lg font-bold text-white">Community cameras</h2>
         <p className="mt-1 text-sm text-slate-400">
-          Link {RING_TM}, {GOOGLE_NEST_TM}, and {WYZE_TM} accounts for consent-based live video near
-          stations and incidents. Facility / onboard RTSP cameras are registered above.
+          Link {joinTrademarkList([ringEnabled && RING_TM, nestEnabled && GOOGLE_NEST_TM, wyzeEnabled && WYZE_TM])}{" "}
+          accounts for consent-based live video near stations and incidents. Facility / onboard RTSP
+          cameras are registered above.
         </p>
       </div>
 
@@ -172,12 +173,7 @@ export function TransitCamerasConnectClient({
               </p>
             )}
           </section>
-        ) : (
-          <section className="space-y-3 rounded-lg border border-blue-500/30 bg-slate-900/40 p-4">
-            <h2 className="text-sm font-semibold text-blue-200">{RING_TM}</h2>
-            <RingIntegrationUnavailableNotice />
-          </section>
-        )}
+        ) : null}
 
         {nestEnabled ? (
           <section className="space-y-3 rounded-lg border border-emerald-500/30 bg-slate-900/40 p-4">

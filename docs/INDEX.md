@@ -34,6 +34,7 @@ Paths below are **canonical** — prefer these over flat `docs/FOO.md` links in 
 | Pilot kickoff checklist | [go-to-market-sales/PILOT_KICKOFF_CHECKLIST.md](./go-to-market-sales/PILOT_KICKOFF_CHECKLIST.md) |
 | Pilot success metrics | [go-to-market-sales/PILOT_SUCCESS_METRICS.md](./go-to-market-sales/PILOT_SUCCESS_METRICS.md) |
 | FAQ (internal) | [go-to-market-sales/FAQ_INTERNAL.md](./go-to-market-sales/FAQ_INTERNAL.md) |
+| Email campaign (911 / campus / venue) | [go-to-market-sales/EMAIL_CAMPAIGN_911_VENUE_CAMPUS.md](./go-to-market-sales/EMAIL_CAMPAIGN_911_VENUE_CAMPUS.md) |
 
 ---
 

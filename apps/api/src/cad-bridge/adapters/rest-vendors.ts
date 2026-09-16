@@ -42,6 +42,31 @@ const SHARED_STATUS: Record<string, CadBridgeIncidentStatus> = {
   CANCELED: "CANCELLED",
 };
 
+function genericRestSpec(vendor: CADVendor, prefix: string): RestVendorSpec {
+  return {
+    vendor,
+    endpoints: {
+      createIncident: `${prefix}/calls`,
+      updateIncident: `${prefix}/calls/{id}`,
+      addComment: `${prefix}/calls/{id}/notes`,
+      closeIncident: `${prefix}/calls/{id}/close`,
+      health: `${prefix}/health`,
+      listIncidents: `${prefix}/calls`,
+    },
+    incidentIdKeys: ["incidentId", "id", "callId"],
+    typeKeys: ["incidentType", "type", "callType"],
+    priorityKeys: ["priority"],
+    statusKeys: ["status", "callStatus"],
+    addressKeys: ["address"],
+    latKeys: ["lat", "latitude"],
+    lonKeys: ["lon", "lng", "longitude"],
+    eventTypeKeys: ["eventType", "type"],
+    statusMap: SHARED_STATUS,
+  };
+}
+
+export type RestCadBridgeVendor = Exclude<CADVendor, "MOTOROLA" | "TYLER">;
+
 const SPECS: RestVendorSpec[] = [
   {
     vendor: "CENTRALSQUARE",
@@ -103,13 +128,18 @@ const SPECS: RestVendorSpec[] = [
     eventTypeKeys: ["eventType", "type"],
     statusMap: SHARED_STATUS,
   },
+  genericRestSpec("AXON", "/axon/api"),
+  genericRestSpec("HARRIS", "/harris/api"),
+  genericRestSpec("VERSATERM", "/versaterm/api"),
+  genericRestSpec("MARK43", "/mark43/api"),
+  genericRestSpec("ORACLE", "/oracle/api"),
 ];
 
 export class RestVendorBridgeAdapter implements CADAdapter {
   readonly vendor: CADVendor;
   private readonly spec: RestVendorSpec;
 
-  constructor(vendor: "CENTRALSQUARE" | "HEXAGON" | "SPILLMAN") {
+  constructor(vendor: RestCadBridgeVendor) {
     const spec = SPECS.find((s) => s.vendor === vendor);
     if (!spec) throw new Error(`Unsupported rest vendor ${vendor}`);
     this.spec = spec;
