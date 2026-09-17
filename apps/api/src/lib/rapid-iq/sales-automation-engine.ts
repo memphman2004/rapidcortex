@@ -7,7 +7,11 @@ import { randomBytes } from "node:crypto";
 import { GetCommand } from "@aws-sdk/lib-dynamodb";
 import {
   normalizeSalesAutomationVertical,
+  type CreateRapidIqSalesBulkCampaignBody,
   type CreateRapidIqSalesSequenceBody,
+  type RapidIqSalesBulkApproveResult,
+  type RapidIqSalesBulkBatch,
+  type RapidIqSalesBulkResult,
   type RapidIqSalesCampaignCard,
   type RapidIqSalesContentDraft,
   type RapidIqSalesMetrics,
@@ -65,7 +69,10 @@ export async function checkMarketingUnsubscribed(email: string): Promise<boolean
   }
 }
 
-export async function checkSuppression(email: string): Promise<SuppressionResult> {
+export async function checkSuppression(
+  email: string,
+  opts?: { exceptSequenceId?: string },
+): Promise<SuppressionResult> {
   const lower = email.trim().toLowerCase();
   if (!lower.includes("@") || lower.includes("noreply") || lower === "unknown") {
     return { suppressed: true, reason: "no_email" };
@@ -76,7 +83,7 @@ export async function checkSuppression(email: string): Promise<SuppressionResult
   if (await checkMarketingUnsubscribed(lower)) {
     return { suppressed: true, reason: "unsubscribed" };
   }
-  if (await hasRecentSend(lower, daysAgoIso(30))) {
+  if (await hasRecentSend(lower, daysAgoIso(30), opts?.exceptSequenceId)) {
     return { suppressed: true, reason: "contact_window_30d" };
   }
   return { suppressed: false };
@@ -280,10 +287,126 @@ export async function createSequenceFromTrigger(
       estimatedValue: body.estimatedValue,
       campaignType: body.campaignType,
       conferenceName: body.conferenceName,
+      campaignId: body.campaignId,
     },
   };
   await putSalesSequence(seq);
   return seq;
+}
+
+export async function createBulkCampaign(
+  body: CreateRapidIqSalesBulkCampaignBody,
+): Promise<RapidIqSalesBulkResult> {
+  const vertical = normalizeSalesAutomationVertical(body.vertical);
+  const campaignId = newId("bulk");
+  const campaignName = body.campaignName?.trim() || `${vertical} outbound ${new Date().toISOString().slice(0, 10)}`;
+  const seen = new Set<string>();
+  let created = 0;
+  let suppressed = 0;
+  let skipped = 0;
+  let duplicates = 0;
+
+  for (const raw of body.recipients) {
+    const email = raw.email.trim().toLowerCase();
+    if (seen.has(email)) {
+      duplicates += 1;
+      continue;
+    }
+    seen.add(email);
+    const agencyName = raw.agencyName.trim();
+    if (!agencyName) {
+      skipped += 1;
+      continue;
+    }
+    const firstName = raw.recipientName?.trim().split(/\s+/)[0];
+    const suppression = await checkSuppression(email);
+    const now = new Date().toISOString();
+    const steps = heuristicThreeTouch({
+      agencyName,
+      vertical,
+      firstName,
+      campaignType: body.campaignType,
+    });
+    const seq: RapidIqSalesSequence = {
+      sequenceId: newId("seq"),
+      triggerId: campaignId,
+      triggerType: "campaign",
+      vertical,
+      recipientEmail: email,
+      recipientName: raw.recipientName?.trim(),
+      agencyName,
+      status: suppression.suppressed ? "suppressed" : "draft",
+      autoApprove: false,
+      steps,
+      createdAt: now,
+      updatedAt: now,
+      suppressedReason: suppression.reason,
+      attribution: {
+        campaignType: body.campaignType,
+        campaignId,
+        campaignName,
+      },
+    };
+    await putSalesSequence(seq);
+    if (suppression.suppressed) suppressed += 1;
+    else created += 1;
+  }
+
+  return { campaignId, campaignName, created, suppressed, skipped, duplicates };
+}
+
+export async function approveBulkCampaign(
+  campaignId: string,
+  approvedBy: string,
+): Promise<Omit<RapidIqSalesBulkApproveResult, "sentNow">> {
+  const sequences = await listSalesSequences(500);
+  const drafts = sequences.filter(
+    (s) => s.attribution.campaignId === campaignId && s.status === "draft",
+  );
+  if (drafts.length === 0) {
+    throw new Error("No draft sequences found for this campaign");
+  }
+  let approved = 0;
+  let suppressed = 0;
+  let failed = 0;
+  for (const draft of drafts) {
+    try {
+      const next = await approveSequence(draft.sequenceId, approvedBy);
+      if (next.status === "suppressed") suppressed += 1;
+      else approved += 1;
+    } catch {
+      failed += 1;
+    }
+  }
+  return { campaignId, approved, suppressed, failed };
+}
+
+export function summarizeBulkBatches(sequences: RapidIqSalesSequence[]): RapidIqSalesBulkBatch[] {
+  const map = new Map<string, RapidIqSalesBulkBatch>();
+  for (const seq of sequences) {
+    const campaignId = seq.attribution.campaignId?.trim();
+    if (!campaignId) continue;
+    const existing = map.get(campaignId);
+    const row =
+      existing ??
+      ({
+        campaignId,
+        campaignName: seq.attribution.campaignName?.trim() || campaignId,
+        vertical: seq.vertical,
+        draftCount: 0,
+        activeCount: 0,
+        completedCount: 0,
+        suppressedCount: 0,
+        createdAt: seq.createdAt,
+      } satisfies RapidIqSalesBulkBatch);
+    if (seq.status === "draft") row.draftCount += 1;
+    else if (seq.status === "active") row.activeCount += 1;
+    else if (seq.status === "completed") row.completedCount += 1;
+    else if (seq.status === "suppressed") row.suppressedCount += 1;
+    if (seq.createdAt < row.createdAt) row.createdAt = seq.createdAt;
+    if (!existing) map.set(campaignId, row);
+  }
+  return [...map.values()].sort((a, b) => b.createdAt.localeCompare(a.createdAt));
 }
 
 export async function approveSequence(
@@ -343,7 +466,7 @@ export async function suppressSequence(
 }
 
 export async function computeSalesMetrics(): Promise<RapidIqSalesMetrics> {
-  const sequences = await listSalesSequences(200);
+  const sequences = await listSalesSequences(500);
   const drafts = await listSalesDrafts(50);
   const weekAgo = daysAgoIso(7);
   const monthAgo = daysAgoIso(30);
@@ -401,7 +524,7 @@ export function listCampaignCards(
       name: "911 / PSAP Core outbound",
       description:
         "6-touch Core sequence (Rapid IQ sends 1–3). CAD stays the system of record. See EMAIL_CAMPAIGN_911_VENUE_CAMPUS.md.",
-      next: "Always-on · approve in Rapid IQ",
+      next: "Always-on · approve then send from Outlook",
       status: "active",
     },
     {
@@ -409,7 +532,7 @@ export function listCampaignCards(
       name: "Campus Safety outbound",
       description:
         "QR / NFC / SMS campus console. Not a 911 dispatch system. Rapid IQ steps 1–3 of the campus track.",
-      next: "Always-on · approve in Rapid IQ",
+      next: "Always-on · approve then send from Outlook",
       status: "active",
     },
     {
@@ -417,7 +540,7 @@ export function listCampaignCards(
       name: "Venue Operations outbound",
       description:
         "Guest QR into section-level security ops. Cameras stay the venue’s. Rapid IQ steps 1–3 of the venue track.",
-      next: "Always-on · approve in Rapid IQ",
+      next: "Always-on · approve then send from Outlook",
       status: "active",
     },
     {

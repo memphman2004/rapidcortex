@@ -12,8 +12,9 @@ import {
 } from "@/lib/api";
 import { loadAdminUsers } from "@/lib/queries";
 import type { UserRole } from "rapid-cortex-shared";
+import { isCallAssistProductRole, roleDisplayLabel } from "rapid-cortex-shared/auth/rapid-cortex-roles";
+import { isRcInternalOperator } from "rapid-cortex-shared/tenancy/principal";
 import { provisionableRolesForActor } from "@/lib/auth/provisionable-roles";
-import { ROLE_DISPLAY_LABELS } from "rapid-cortex-shared/auth/rapid-cortex-roles";
 
 function randomTempPassword() {
   const chars = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz23456789!@#$%";
@@ -40,15 +41,21 @@ export function AdminUsersPanel() {
   const [email, setEmail] = useState("");
   const [agencyId, setAgencyId] = useState("");
   const [role, setRole] = useState<UserRole>("dispatcher");
-
-  useEffect(() => {
-    if (sessionUser?.role === "agencyadmin" && sessionUser.agencyId) {
-      setAgencyId((prev) => (prev.trim() === "" ? sessionUser.agencyId : prev));
-    }
-  }, [sessionUser?.agencyId, sessionUser?.role]);
   const [temporaryPassword, setTemporaryPassword] = useState("");
   const [formError, setFormError] = useState<string | null>(null);
   const [createdFlash, setCreatedFlash] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!sessionUser?.agencyId) return;
+    if (isRcInternalOperator(sessionUser.role)) return;
+    setAgencyId((prev) => (prev.trim() === "" ? sessionUser.agencyId : prev));
+  }, [sessionUser?.agencyId, sessionUser?.role]);
+
+  useEffect(() => {
+    if (isCallAssistProductRole(sessionUser?.role)) {
+      setRole((prev) => (prev === "dispatcher" ? "call_assist_operator" : prev));
+    }
+  }, [sessionUser?.role]);
 
   const createMut = useMutation({
     mutationFn: () =>
@@ -62,8 +69,8 @@ export function AdminUsersPanel() {
       setFormError(null);
       setCreatedFlash(row.email);
       setEmail("");
-      setAgencyId(sessionUser?.role === "agencyadmin" && sessionUser.agencyId ? sessionUser.agencyId : "");
-      setRole("dispatcher");
+      setAgencyId(sessionUser && !isRcInternalOperator(sessionUser.role) && sessionUser.agencyId ? sessionUser.agencyId : "");
+      setRole(isCallAssistProductRole(sessionUser?.role) ? "call_assist_operator" : "dispatcher");
       setTemporaryPassword("");
       await queryClient.invalidateQueries({ queryKey: ["admin-users"] });
     },
@@ -93,10 +100,9 @@ export function AdminUsersPanel() {
           complexity). User will set a new password on first sign-in.
         </p>
         <p className="mt-2 text-xs leading-relaxed text-slate-500">
-          Agency administrators can assign Dispatcher, Supervisor, Agency Admin, or Agency IT roles
-          only within their own agency. Only Rapid Cortex Super Admin may assign RC Admin roles when
-          editing users in the directory below. Invite/create above is agency-role only. Auditor and
-          Analyst accounts are provisioned by Rapid Cortex support.{" "}
+          {isCallAssistProductRole(sessionUser?.role)
+            ? "Call Assist administrators can invite Call Assist Admin, Supervisor, and Operator accounts for this tenant only. These roles never land on the 911 dispatcher console."
+            : "Agency administrators can assign Dispatcher, Supervisor, Agency Admin, or Agency IT roles only within their own agency. Only Rapid Cortex Super Admin may assign RC Admin roles when editing users in the directory below. Invite/create above is agency-role only. Auditor and Analyst accounts are provisioned by Rapid Cortex support."}{" "}
           <span className="font-medium text-slate-400">Re-enabling</span> a deactivated account is not
           in this UI — contact Rapid Cortex support.
         </p>
@@ -124,10 +130,12 @@ export function AdminUsersPanel() {
               required
               value={agencyId}
               onChange={(e) => setAgencyId(e.target.value)}
-              readOnly={sessionUser?.role === "agencyadmin"}
+              readOnly={
+                sessionUser?.role === "agencyadmin" || isCallAssistProductRole(sessionUser?.role)
+              }
               title={
-                sessionUser?.role === "agencyadmin"
-                  ? "Agency admins can only provision users for their own tenant"
+                sessionUser?.role === "agencyadmin" || isCallAssistProductRole(sessionUser?.role)
+                  ? "You can only provision users for your own tenant"
                   : undefined
               }
               className="rounded-md border border-slate-700 bg-slate-950 px-2 py-1.5 text-sm text-slate-100 read-only:cursor-not-allowed read-only:opacity-80"
@@ -142,7 +150,7 @@ export function AdminUsersPanel() {
             >
               {roleOptions.map((r) => (
                 <option key={r} value={r}>
-                  {r} — {ROLE_DISPLAY_LABELS[r as UserRole] ?? r}
+                  {roleDisplayLabel(r)}
                 </option>
               ))}
             </select>
@@ -248,6 +256,7 @@ function UserRow({
   const queryClient = useQueryClient();
   const [agency, setAgency] = useState(user.agencyId);
   const [role, setRole] = useState<UserRole>(user.role);
+  const selectOptions = roleOptions.includes(role) ? roleOptions : [role, ...roleOptions];
 
   useEffect(() => {
     setAgency(user.agencyId);
@@ -318,9 +327,9 @@ function UserRow({
           onChange={(e) => setRole(e.target.value as UserRole)}
           className="rounded border border-slate-700 bg-slate-950 px-1 py-1 text-[11px]"
         >
-          {roleOptions.map((r) => (
+          {selectOptions.map((r) => (
             <option key={r} value={r}>
-              {r}
+              {roleDisplayLabel(r)}
             </option>
           ))}
         </select>

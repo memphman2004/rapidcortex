@@ -232,15 +232,6 @@ for row in rows:
 print("lex_bot_associated" if ok else "lex_bot_not_listed_yet")
 ' "${BOTS}"
 
-if [[ "${CLAIM_DID}" != "1" ]]; then
-  echo "→ CLAIM_DID=0; skipping phone number. Assign the Call Assist flow after you claim a DID."
-  echo "CONNECT_INSTANCE_ID=${INSTANCE_ID}"
-  echo "CONTACT_FLOW_ID=${FLOW_ID}"
-  echo "QUEUE_ID=${QUEUE_ID}"
-  echo "EMERGENCY_QUEUE_ID=${EMERGENCY_QUEUE_ID}"
-  exit 0
-fi
-
 EXISTING_DID="$(aws_ok connect list-phone-numbers-v2 \
   --target-arn "${INSTANCE_ARN}" \
   --max-results 10 \
@@ -252,6 +243,8 @@ if [[ -n "${EXISTING_DID}" && "${EXISTING_DID}" != "None" ]]; then
   PHONE_ID="$(aws_ok connect list-phone-numbers-v2 --target-arn "${INSTANCE_ARN}" --max-results 10 \
     --query "ListPhoneNumbersSummaryList[?PhoneNumber==\`${PHONE}\`].PhoneNumberId | [0]" --output text)"
   echo "→ Reusing claimed DID ${PHONE}"
+elif [[ "${CLAIM_DID}" != "1" ]]; then
+  echo "→ CLAIM_DID=0 and no claimed DID yet; skipping number claim."
 else
   echo "→ Searching available US DIDs${PHONE_NUMBER_PREFIX:+ (prefix ${PHONE_NUMBER_PREFIX})}, never 911"
   CANDIDATE=""
@@ -291,28 +284,94 @@ else
   PHONE_ID="$(python3 -c 'import json,sys; print(json.loads(sys.argv[1])["PhoneNumberId"])' "${CLAIM_JSON}")"
 fi
 
-echo "→ Assigning ${PHONE} to contact flow ${FLOW_NAME}"
-aws_ok connect associate-phone-number-contact-flow \
-  --phone-number-id "${PHONE_ID}" \
-  --instance-id "${INSTANCE_ID}" \
-  --contact-flow-id "${FLOW_ID}"
+if [[ -n "${PHONE_ID}" && "${PHONE_ID}" != "None" ]]; then
+  echo "→ Assigning ${PHONE} to contact flow ${FLOW_NAME}"
+  aws_ok connect associate-phone-number-contact-flow \
+    --phone-number-id "${PHONE_ID}" \
+    --instance-id "${INSTANCE_ID}" \
+    --contact-flow-id "${FLOW_ID}"
+fi
+
+PROFILE_NAME="Call Assist Agent"
+PROFILE_ID="$(aws_ok connect list-routing-profiles --instance-id "${INSTANCE_ID}" \
+  --query "RoutingProfileSummaryList[?Name==\`${PROFILE_NAME}\`].Id | [0]" --output text)"
+if [[ -z "${PROFILE_ID}" || "${PROFILE_ID}" == "None" ]]; then
+  echo "→ Creating routing profile ${PROFILE_NAME}"
+  PROFILE_ID="$(aws_ok connect create-routing-profile \
+    --instance-id "${INSTANCE_ID}" \
+    --name "${PROFILE_NAME}" \
+    --description "CCP handoff for Demo Dispatcher and Call Assist Emergency" \
+    --default-outbound-queue-id "${QUEUE_ID}" \
+    --media-concurrencies "Channel=VOICE,Concurrency=1" \
+    --queue-configs "QueueReference={QueueId=${QUEUE_ID},Channel=VOICE},Priority=2,Delay=0" \
+                   "QueueReference={QueueId=${EMERGENCY_QUEUE_ID},Channel=VOICE},Priority=1,Delay=0" \
+    --query 'RoutingProfileId' --output text)"
+else
+  echo "→ Updating routing profile queues ${PROFILE_NAME}"
+  aws_ok connect update-routing-profile-queues \
+    --instance-id "${INSTANCE_ID}" \
+    --routing-profile-id "${PROFILE_ID}" \
+    --queue-configs "QueueReference={QueueId=${QUEUE_ID},Channel=VOICE},Priority=2,Delay=0" \
+                   "QueueReference={QueueId=${EMERGENCY_QUEUE_ID},Channel=VOICE},Priority=1,Delay=0" \
+    >/dev/null || true
+fi
+echo "   routingProfile=${PROFILE_NAME} ${PROFILE_ID}"
+
+AGENT_USERNAME="${CONNECT_AGENT_USERNAME:-callassist-agent}"
+AGENT_SECURITY_ID="$(aws_ok connect list-security-profiles --instance-id "${INSTANCE_ID}" \
+  --query 'SecurityProfileSummaryList[?Name==`Agent`].Id | [0]' --output text)"
+EXISTING_USER="$(aws_ok connect list-users --instance-id "${INSTANCE_ID}" \
+  --query "UserSummaryList[?Username==\`${AGENT_USERNAME}\`].Id | [0]" --output text)"
+SECRET_NAME="rapid-cortex/${STAGE}/call-assist/connect-ccp-agent"
+if [[ -z "${EXISTING_USER}" || "${EXISTING_USER}" == "None" ]]; then
+  echo "→ Creating Connect CCP user ${AGENT_USERNAME}"
+  AGENT_PASSWORD="$(python3 -c 'import secrets,string; alphabet=string.ascii_letters+string.digits; print("Aa1!"+"".join(secrets.choice(alphabet) for _ in range(16)))')"
+  SECRET_JSON="$(U="${AGENT_USERNAME}" P="${AGENT_PASSWORD}" python3 -c 'import json,os; print(json.dumps({"username":os.environ["U"],"password":os.environ["P"],"ccp":"https://rapid-cortex.my.connect.aws/ccp-v2/"}))')"
+  if aws_ok secretsmanager describe-secret --secret-id "${SECRET_NAME}" >/dev/null 2>&1; then
+    aws_ok secretsmanager put-secret-value --secret-id "${SECRET_NAME}" --secret-string "${SECRET_JSON}" >/dev/null
+  else
+    aws_ok secretsmanager create-secret \
+      --name "${SECRET_NAME}" \
+      --description "Amazon Connect CCP agent for Call Assist live-phone tests. Not a 911 credential." \
+      --secret-string "${SECRET_JSON}" >/dev/null
+  fi
+  aws_ok connect create-user \
+    --instance-id "${INSTANCE_ID}" \
+    --username "${AGENT_USERNAME}" \
+    --password "${AGENT_PASSWORD}" \
+    --identity-info FirstName=CallAssist,LastName=Agent \
+    --phone-config PhoneType=SOFT_PHONE,AutoAccept=false,AfterContactWorkTimeLimit=30 \
+    --security-profile-ids "${AGENT_SECURITY_ID}" \
+    --routing-profile-id "${PROFILE_ID}" >/dev/null
+  unset AGENT_PASSWORD SECRET_JSON
+  echo "   CCP user created. Credentials: ${SECRET_NAME}"
+else
+  echo "→ Connect CCP user ${AGENT_USERNAME} already exists (${EXISTING_USER})"
+  aws_ok connect update-user-routing-profile \
+    --instance-id "${INSTANCE_ID}" \
+    --user-id "${EXISTING_USER}" \
+    --routing-profile-id "${PROFILE_ID}" >/dev/null || true
+fi
 
 echo "→ Updating DID lookup (CONFIG#tenant + __did_index__/PHONE#) to the claimed Connect number"
-export AGENCY_ID="${CALL_ASSIST_AGENCY_ID}"
-export CALL_ASSIST_TEST_DID="${PHONE}"
-export KCPD_TEST_DID="${PHONE}"
-export LEX_BOT_ID="${LEX_BOT_ID:-IJIBJOJG2L}"
-export LEX_BOT_ALIAS_ID="${LEX_BOT_ALIAS_ID:-0CNPVSCF4V}"
-export CALL_ASSIST_TABLE="${CALL_ASSIST_TABLE:-rapid-cortex-call-assist-${STAGE}}"
-# First-tenant bootstrap still defaults to the kcpd overlay; set CALL_ASSIST_SEED_PROFILE= for agency #2+.
-export CALL_ASSIST_SEED_PROFILE="${CALL_ASSIST_SEED_PROFILE:-kcpd}"
-bash "${ROOT}/scripts/seed-call-assist-tenant.sh"
+if [[ -n "${PHONE}" && "${PHONE}" != "None" ]]; then
+  export AGENCY_ID="${CALL_ASSIST_AGENCY_ID}"
+  export CALL_ASSIST_TEST_DID="${PHONE}"
+  export KCPD_TEST_DID="${PHONE}"
+  export LEX_BOT_ID="${LEX_BOT_ID:-IJIBJOJG2L}"
+  export LEX_BOT_ALIAS_ID="${LEX_BOT_ALIAS_ID:-0CNPVSCF4V}"
+  export CALL_ASSIST_TABLE="${CALL_ASSIST_TABLE:-rapid-cortex-call-assist-${STAGE}}"
+  export CALL_ASSIST_SEED_PROFILE="${CALL_ASSIST_SEED_PROFILE:-kcpd}"
+  bash "${ROOT}/scripts/seed-call-assist-tenant.sh"
+fi
 
 echo
 echo "CONNECT_INSTANCE_ID=${INSTANCE_ID}"
 echo "CONTACT_FLOW_ID=${FLOW_ID}"
 echo "QUEUE_ID=${QUEUE_ID}"
 echo "EMERGENCY_QUEUE_ID=${EMERGENCY_QUEUE_ID}"
-echo "CLAIMED_DID=${PHONE}"
+echo "ROUTING_PROFILE_ID=${PROFILE_ID}"
+echo "CLAIMED_DID=${PHONE:-none}"
 echo "Language menu: 1 English, 2 Spanish, 3 Mandarin, 4 Cantonese, 5 Tagalog, 6 Vietnamese, 7 Arabic."
 echo "Dial this number for live Call Assist tests. Do not hand it out as a 911 number."
+exit 0

@@ -34,7 +34,8 @@ const DASHBOARD_ROLES = RAPID_CORTEX_ROLES.filter(
     !role.startsWith("campus_") &&
     !role.startsWith("venue_") &&
     !role.startsWith("hospital_") &&
-    !role.startsWith("transit_"),
+    !role.startsWith("transit_") &&
+    !role.startsWith("call_assist_"),
 );
 
 const PREFIX_BY_ROLE: Partial<Record<UserRole, DashboardPrefix>> = {

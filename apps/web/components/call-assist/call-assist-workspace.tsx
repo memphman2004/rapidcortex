@@ -7,7 +7,7 @@ import { useCallAssistAgencyScope } from "@/contexts/agency-context";
 
 /**
  * Agency switcher + tenant Call Assist surface. Used under
- * `/{jurisdiction}/call-assist` and `/rc-admin/call-assist`.
+ * `/{jurisdiction}/call-assist`, `/rc-admin/call-assist`, and `/app/call-assist`.
  */
 export function CallAssistWorkspace({ children }: { children: React.ReactNode }) {
   const { isRcAdmin, agencyId, hydrated } = useCallAssistAgencyScope();

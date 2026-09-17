@@ -317,6 +317,20 @@ export const env = {
   ),
   /** F4 — SOP-aware protocol surfacing (also controls upload-url handler). */
   enableSopProtocolAi: featureEnabled("ENABLE_SOP_PROTOCOL_AI"),
+  /** Supervisor SOP Intelligence — discrepancy → pattern ≥3 → Claude pending update. Default on. */
+  enableSopIntelligence: featureEnabled("ENABLE_SOP_INTELLIGENCE"),
+  sopIntelligenceReportsTable: process.env.SOP_INTELLIGENCE_REPORTS_TABLE?.trim() ?? "",
+  sopIntelligencePatternsTable: process.env.SOP_INTELLIGENCE_PATTERNS_TABLE?.trim() ?? "",
+  sopIntelligencePendingTable: process.env.SOP_INTELLIGENCE_PENDING_TABLE?.trim() ?? "",
+  sopIntelligenceLibraryTable: process.env.SOP_INTELLIGENCE_LIBRARY_TABLE?.trim() ?? "",
+  sopIntelligencePatternAnalyzerFunctionName:
+    process.env.SOP_INTELLIGENCE_PATTERN_ANALYZER_FUNCTION_NAME?.trim() ?? "",
+  sopIntelligenceClaudeMock:
+    process.env.SOP_INTELLIGENCE_CLAUDE_MOCK === "true" || process.env.BEDROCK_MOCK === "1",
+  sopIntelligencePatternThreshold: Math.max(
+    1,
+    Number.parseInt(process.env.SOP_INTELLIGENCE_PATTERN_THRESHOLD ?? "3", 10) || 3,
+  ),
   sopDetectEveryNSegments: Math.max(
     0,
     Number.parseInt(process.env.SOP_DETECT_EVERY_N_SEGMENTS ?? "0", 10) || 0,
@@ -367,6 +381,9 @@ export const env = {
   enableCallAssistRecording: featureEnabled("ENABLE_CALL_ASSIST_RECORDING", false),
   callAssistConnectMock:
     process.env.CALL_ASSIST_CONNECT_MOCK === "true" || process.env.CALL_ASSIST_CONNECT_MOCK === "1",
+  connectInstanceId: process.env.CONNECT_INSTANCE_ID?.trim() ?? "",
+  callAssistContactFlowId: process.env.CALL_ASSIST_CONTACT_FLOW_ID?.trim() ?? "",
+  callAssistOutboundCallerId: process.env.CALL_ASSIST_OUTBOUND_CALLER_ID?.trim() ?? "",
   callAssistConnectWebhookSecretArn: process.env.CALL_ASSIST_CONNECT_WEBHOOK_SECRET_ARN?.trim() ?? "",
   /** Local/dev only. Production must use CALL_ASSIST_CONNECT_WEBHOOK_SECRET_ARN. */
   callAssistConnectWebhookSecret: process.env.CALL_ASSIST_CONNECT_WEBHOOK_SECRET?.trim() ?? "",
@@ -561,7 +578,7 @@ export const env = {
   enableRapidIq: featureEnabled("ENABLE_RAPID_IQ"),
   /** Rapid IQ Signal Intelligence Pipeline (procurement signals → CRM). Default on when unset. */
   enableRapidIqPipeline: featureEnabled("ENABLE_RAPID_IQ_PIPELINE"),
-  /** Rapid IQ sales automation (sequence drafts + approved SES). Default on when unset; sends still require approval. */
+  /** Rapid IQ sales automation (campaign drafts + Outlook send after approval). Default on when unset. */
   enableSalesAutomation: featureEnabled("ENABLE_SALES_AUTOMATION"),
   /** RC Admin conference catalog + weekly website refresh. Default on when unset. */
   enableConferences: featureEnabled("ENABLE_CONFERENCES"),
@@ -614,6 +631,34 @@ export const env = {
   rcTeamNotifyEmail: process.env.RC_TEAM_NOTIFY_EMAIL?.trim() ?? "team@rapidcortex.us",
   /** When true/1, SES send is skipped (local/CI). */
   sesMock: process.env.SES_MOCK === "true" || process.env.SES_MOCK === "1",
+  /** Azure app (public) client id for RC Sales Automation Outlook Graph send. */
+  get outlookOAuthClientId(): string {
+    return process.env.OUTLOOK_OAUTH_CLIENT_ID?.trim() ?? "";
+  },
+  /** Local/CI client secret; prefer OUTLOOK_OAUTH_CLIENT_SECRET_ARN in Lambda. */
+  get outlookOAuthClientSecret(): string {
+    return process.env.OUTLOOK_OAUTH_CLIENT_SECRET?.trim() ?? "";
+  },
+  get outlookOAuthClientSecretArn(): string {
+    return process.env.OUTLOOK_OAUTH_CLIENT_SECRET_ARN?.trim() ?? "";
+  },
+  get outlookOAuthTenant(): string {
+    return process.env.OUTLOOK_OAUTH_TENANT?.trim() || "common";
+  },
+  get outlookOAuthRedirectUri(): string {
+    return (
+      process.env.OUTLOOK_OAUTH_REDIRECT_URI?.trim() ||
+      "https://app.rapidcortex.us/rc-admin/sales-automation/outlook-callback"
+    );
+  },
+  /** When true/1, Connect Outlook stores a mock mailbox and the send worker logs instead of Graph. */
+  get outlookGraphMock(): boolean {
+    return process.env.OUTLOOK_GRAPH_MOCK === "true" || process.env.OUTLOOK_GRAPH_MOCK === "1";
+  },
+  /** Campaign From / reply-to mailbox. Connect Outlook must sign in as this address. */
+  get outlookSalesMailbox(): string {
+    return process.env.OUTLOOK_SALES_MAILBOX?.trim() || "hello@rapidcortex.us";
+  },
   /** Careers UI + public apply. Default ON when unset. */
   enableHiring: featureEnabled("ENABLE_HIRING"),
   enableInsideTheCortex: featureEnabled("ENABLE_INSIDE_THE_CORTEX"),

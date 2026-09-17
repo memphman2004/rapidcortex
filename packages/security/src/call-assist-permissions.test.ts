@@ -18,4 +18,21 @@ describe("Call Assist RBAC", () => {
     expect(defaultPermissionForRole("analyst", "call_assist.analytics.view")).toBe(true);
     expect(defaultPermissionForRole("rcitadmin", "call_assist.admin.config")).toBe(true);
   });
+
+  it("isolates Call Assist–only roles from the 911 dispatcher workspace", () => {
+    expect(defaultPermissionForRole("call_assist_operator", "call_assist.session.view")).toBe(true);
+    expect(defaultPermissionForRole("call_assist_operator", "workspace.live_call")).toBe(false);
+    expect(defaultPermissionForRole("call_assist_operator", "incidents.view")).toBe(false);
+    expect(defaultPermissionForRole("call_assist_operator", "call_assist.admin.config")).toBe(false);
+    expect(defaultPermissionForRole("call_assist_supervisor", "call_assist.qa.view")).toBe(true);
+    expect(defaultPermissionForRole("call_assist_supervisor", "call_assist.admin.config")).toBe(false);
+    expect(defaultPermissionForRole("call_assist_admin", "call_assist.admin.config")).toBe(true);
+    expect(defaultPermissionForRole("call_assist_admin", "call_assist.demo.run")).toBe(true);
+    expect(defaultPermissionForRole("call_assist_admin", "users.create")).toBe(true);
+    expect(defaultPermissionForRole("call_assist_operator", "users.create")).toBe(false);
+    expect(defaultPermissionForRole("call_assist_admin", "workspace.live_call")).toBe(false);
+    expect(defaultPermissionForRole("CALL_ASSIST_OPERATOR" as "call_assist_operator", "call_assist.session.view")).toBe(
+      true,
+    );
+  });
 });

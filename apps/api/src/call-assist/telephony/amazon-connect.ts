@@ -1,3 +1,4 @@
+import { ConnectClient, StartOutboundVoiceContactCommand } from "@aws-sdk/client-connect";
 import {
   emergencyTransferAction,
   type TelephonyAction,
@@ -5,6 +6,13 @@ import {
   type TelephonyProvider,
 } from "./provider.js";
 import { applyBargeIn, detectBargeIn, readBargeInState, type BargeInState } from "./barge-in.js";
+
+let connect: ConnectClient | null = null;
+
+function connectClient(): ConnectClient {
+  if (!connect) connect = new ConnectClient({ region: process.env.AWS_REGION?.trim() || "us-east-1" });
+  return connect;
+}
 
 /**
  * Amazon Connect is the live TelephonyProvider for Call Assist.
@@ -57,7 +65,28 @@ export class AmazonConnectProvider implements TelephonyProvider {
     if (opts.demo) {
       return { ok: true, contactId: `mock-cb-${opts.sessionId.slice(-8)}`, reason: "mock_outbound" };
     }
-    return { ok: false, reason: "connect_outbound_not_configured" };
+    const instanceId = process.env.CONNECT_INSTANCE_ID?.trim() ?? "";
+    const contactFlowId = process.env.CALL_ASSIST_CONTACT_FLOW_ID?.trim() ?? "";
+    const sourcePhoneNumber = process.env.CALL_ASSIST_OUTBOUND_CALLER_ID?.trim() ?? "";
+    if (!instanceId || !contactFlowId || !sourcePhoneNumber) {
+      return { ok: false, reason: "connect_outbound_not_configured" };
+    }
+    try {
+      const out = await connectClient().send(
+        new StartOutboundVoiceContactCommand({
+          DestinationPhoneNumber: opts.destinationNumber,
+          ContactFlowId: contactFlowId,
+          InstanceId: instanceId,
+          SourcePhoneNumber: sourcePhoneNumber,
+          Attributes: { callAssistSessionId: opts.sessionId, callback: "true" },
+        }),
+      );
+      if (!out.ContactId) return { ok: false, reason: "connect_outbound_no_contact" };
+      return { ok: true, contactId: out.ContactId, reason: "connect_outbound" };
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "connect_outbound_failed";
+      return { ok: false, reason: message.slice(0, 180) };
+    }
   }
 
   interruptAndResume(opts: {

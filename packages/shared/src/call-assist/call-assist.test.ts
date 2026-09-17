@@ -46,6 +46,17 @@ describe("Call Assist triage", () => {
     expect(classifyCallTriage("loud music from a party").primaryClassification).toBe("NOISE_COMPLAINT");
     expect(classifyCallTriage("abandoned vehicle on Main").primaryClassification).toBe("NON_EMERGENCY_POLICE");
   });
+
+  it("classifies junk cars as code enforcement", () => {
+    expect(classifyCallTriage("My neighbor has junk cars in their yard").primaryClassification).toBe("CODE_ENFORCEMENT");
+  });
+
+  it("keeps prior classification and confidence on a short follow-up", () => {
+    const t = classifyCallTriage("It's been months", { prior: "CODE_ENFORCEMENT" });
+    expect(t.primaryClassification).toBe("CODE_ENFORCEMENT");
+    expect(t.confidence).toBeGreaterThanOrEqual(0.7);
+    expect(t.reasons).toContain("prior_classification_held");
+  });
 });
 
 describe("Call Assist routing", () => {

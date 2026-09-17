@@ -1,4 +1,5 @@
 import type { UserRole } from "rapid-cortex-shared/types";
+import { migrateLegacyRapidCortexRoleTokenValue } from "rapid-cortex-shared/auth/rapid-cortex-roles";
 import {
   RCSUPERADMIN_ONLY_PERMISSIONS,
   ROLE_ACCESS_MATRIX_V2,
@@ -110,6 +111,9 @@ export const ALL_PERMISSIONS = [
   "integrations.webhooks",
   "qa.coaching_create",
   "qa.coaching_view",
+  "sop_intelligence.view",
+  "sop_intelligence.submit",
+  "sop_intelligence.manage",
   "qa.scorecards_ack",
   "qa.scorecards_create",
   "qa.scorecards_view",
@@ -321,11 +325,17 @@ export const DEFAULT_ROLE_PERMISSIONS: Record<UserRole, Record<Permission, boole
   transit_supervisor: buildMatrixRolePermissions("transit_supervisor"),
   transit_security: buildMatrixRolePermissions("transit_security"),
   transit_operator: buildMatrixRolePermissions("transit_operator"),
+  call_assist_admin: buildMatrixRolePermissions("call_assist_admin"),
+  call_assist_supervisor: buildMatrixRolePermissions("call_assist_supervisor"),
+  call_assist_operator: buildMatrixRolePermissions("call_assist_operator"),
   homeowner: maskFromList([]),
 };
 
 export function defaultPermissionForRole(role: UserRole, permission: Permission): boolean {
-  return DEFAULT_ROLE_PERMISSIONS[role]?.[permission] ?? false;
+  const direct = DEFAULT_ROLE_PERMISSIONS[role];
+  if (direct) return direct[permission] ?? false;
+  const key = (migrateLegacyRapidCortexRoleTokenValue(String(role)) ?? role) as UserRole;
+  return DEFAULT_ROLE_PERMISSIONS[key]?.[permission] ?? false;
 }
 
 export function roleMayDeleteTranscripts(role: UserRole): boolean {

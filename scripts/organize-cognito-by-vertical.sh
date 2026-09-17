@@ -9,6 +9,7 @@
 #   vertical_venue     — Venue security users
 #   vertical_transit   — Transit security users
 #   vertical_hospital  — Hospital users
+#   vertical_call_assist — Call Assist non-emergency intake
 #   vertical_ring      — Ring homeowners and Ring reviewer accounts
 #   vertical_platform  — Rapid Cortex platform/admin accounts
 #
@@ -49,6 +50,7 @@ VERTICAL_GROUPS=(
   vertical_venue
   vertical_transit
   vertical_hospital
+  vertical_call_assist
   vertical_ring
 )
 
@@ -60,6 +62,7 @@ group_description() {
     vertical_venue) echo "Venue security — venue admins, operators, supervisors" ;;
     vertical_transit) echo "Transit security — transit safety personnel" ;;
     vertical_hospital) echo "Hospital — hospital coordinators and staff" ;;
+    vertical_call_assist) echo "Call Assist — non-emergency AI intake (no 911 dispatcher console)" ;;
     vertical_ring) echo "Ring — homeowners and Ring integration reviewer accounts" ;;
     *) echo "" ;;
   esac
@@ -118,6 +121,7 @@ GROUPS = [
     "vertical_venue",
     "vertical_transit",
     "vertical_hospital",
+    "vertical_call_assist",
     "vertical_ring",
 ]
 
@@ -182,6 +186,8 @@ def vertical_group(agency_id, role, email):
         return "vertical_venue"
     if "transit" in agency_lc or role_lc.startswith("transit_"):
         return "vertical_transit"
+    if role_lc.startswith("call_assist_"):
+        return "vertical_call_assist"
     if (
         "hospital" in agency_lc
         or role_lc.startswith("hospital_")

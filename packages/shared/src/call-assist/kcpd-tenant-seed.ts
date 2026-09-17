@@ -308,6 +308,63 @@ export type CallAssistTenantSeed = {
   demoEmergencyDestination: string;
 };
 
+/** Grounded FAQ copy only. No fines, medical advice, or unpublished phone numbers. */
+export const KCPD_KNOWLEDGE_SEED: Array<{
+  articleId: string;
+  title: string;
+  body: string;
+  tags: string[];
+}> = [
+  {
+    articleId: "hours",
+    title: "Non-emergency hours",
+    body: "The Kansas City Police non-emergency line is available 24 hours a day. This is not 911. If this is a life-threatening emergency, hang up and dial 9-1-1.",
+    tags: ["hours", "hours of operation", "open", "non-emergency"],
+  },
+  {
+    articleId: "emergency",
+    title: "When to hang up and dial 911",
+    body: "If someone is in immediate danger, a weapon is involved, or this is a life-threatening emergency, hang up and dial 9-1-1. Stay on this line only for non-emergency police requests.",
+    tags: ["emergency", "911", "weapon", "danger"],
+  },
+  {
+    articleId: "online-reporting",
+    title: "Online reporting",
+    body: "Some reports can be filed online at kcpd.org/online-reporting. A call taker can also send a link. Eligible reports include certain property and vehicle reports listed on that page.",
+    tags: ["online", "report", "carfax", "website", "portal"],
+  },
+  {
+    articleId: "towed",
+    title: "Towed or impounded vehicles",
+    body: "Towed and impound information is listed on kcpd.org. Bring photo identification when retrieving a vehicle. This line can take a towed-vehicle complaint and share the website.",
+    tags: ["tow", "towed", "impound", "vehicle", "towed vehicle"],
+  },
+  {
+    articleId: "records",
+    title: "Police records requests",
+    body: "Missouri Sunshine Law records requests are handled by the department records unit. Current instructions are on kcpd.org. This automated line cannot release case files.",
+    tags: ["records", "report copy", "sunshine", "foia"],
+  },
+  {
+    articleId: "parking",
+    title: "Parking and blocked driveway",
+    body: "A vehicle blocking a driveway can be a police non-emergency request. City parking meters, abandoned junk cars, and some code complaints may be routed to Kansas City 311.",
+    tags: ["parking", "driveway", "blocked", "abandoned"],
+  },
+  {
+    articleId: "city-311",
+    title: "City services and 311",
+    body: "Water, sewer, trash, parks, and many city-service issues belong with Kansas City 311, not police dispatch. This line can warm-transfer a summary to 311, Parks, or Water when that is the right destination.",
+    tags: ["311", "water", "parks", "city", "pothole", "trash"],
+  },
+  {
+    articleId: "languages",
+    title: "Language assistance",
+    body: "This non-emergency line can continue in English or Spanish and offers additional language options from the opening menu. You can also ask for a live call taker.",
+    tags: ["language", "spanish", "interpreter", "translation"],
+  },
+];
+
 export const KCPD_TENANT_SEED: CallAssistTenantSeed = {
   profileId: "kcpd",
   disclosureEnabled: true,

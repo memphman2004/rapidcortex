@@ -13,6 +13,7 @@ import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import { DynamoDBDocumentClient, PutCommand } from "@aws-sdk/lib-dynamodb";
 import {
   GENERIC_DISCLOSURE_TEXT,
+  KCPD_KNOWLEDGE_SEED,
   KCPD_LEX_DEMO_SCENARIOS,
   KCPD_TENANT_SEED,
   KCPD_VOICE_CONFIG,
@@ -95,6 +96,7 @@ const config = applyKcpd
       retention: KCPD_TENANT_SEED.retention,
       operatingHours: { timezone: "America/Chicago", openMinutes: 0, closeMinutes: 24 * 60, allDay: true },
       videoAssistEnabled: true,
+      selfServiceSmsEnabled: true,
       agencyShortName,
       shortName: agencyShortName,
       agencyName,
@@ -184,8 +186,29 @@ async function main() {
         }),
       );
     }
+    for (const article of KCPD_KNOWLEDGE_SEED) {
+      await doc.send(
+        new PutCommand({
+          TableName: TABLE,
+          Item: {
+            agencyId: AGENCY_ID,
+            sk: `KB#${article.articleId}`,
+            entityType: "call_assist_kb",
+            articleId: article.articleId,
+            title: article.title,
+            body: article.body,
+            tags: article.tags,
+            enabled: true,
+            sourceType: "policy",
+            source: "kcpd-tenant-seed",
+            version: 1,
+            updatedAt: now,
+          },
+        }),
+      );
+    }
   }
-  console.log(`Wrote ${AGENCY_ID} config + DID lookup ${e164} to ${TABLE}${applyKcpd ? " (kcpd overlay)" : ""}`);
+  console.log(`Wrote ${AGENCY_ID} config + DID lookup ${e164} to ${TABLE}${applyKcpd ? " (kcpd overlay + knowledge)" : ""}`);
 }
 
 main().catch((err) => {

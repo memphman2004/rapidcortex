@@ -424,6 +424,18 @@ export function canTransitRolePerform(role: TransitRole, permission: string): bo
   return TRANSIT_ROLE_PERMISSIONS[role]?.includes(permission) ?? false;
 }
 
+export const CALL_ASSIST_ROLES = [
+  "CALL_ASSIST_ADMIN",
+  "CALL_ASSIST_SUPERVISOR",
+  "CALL_ASSIST_OPERATOR",
+] as const;
+
+export type CallAssistRole = (typeof CALL_ASSIST_ROLES)[number];
+
+export function isCallAssistRole(role: string): role is CallAssistRole {
+  return (CALL_ASSIST_ROLES as readonly string[]).includes(role);
+}
+
 /** Hospital + emergency-connect grants (product modules outside the PDF matrix). */
 const EMERGENCY_CONNECT_VIEW: readonly Permission[] = ["emergency_connect.view"] as const;
 
@@ -552,6 +564,13 @@ const CALL_ASSIST_DISPATCHER: readonly Permission[] = [
   "call_assist.cad.push",
 ] as const;
 
+const CALL_ASSIST_OPERATOR: readonly Permission[] = [
+  "call_assist.session.view",
+  "call_assist.session.takeover",
+  "call_assist.transfer.force",
+  "call_assist.cad.push",
+] as const;
+
 const CALL_ASSIST_SUPERVISOR: readonly Permission[] = [
   ...CALL_ASSIST_DISPATCHER,
   "call_assist.session.takeover",
@@ -570,6 +589,11 @@ const CALL_ASSIST_ADMIN: readonly Permission[] = [
   "call_assist.legal_hold.manage",
   "call_assist.records.request",
   "call_assist.demo.run",
+  "users.view",
+  "users.create",
+  "users.update",
+  "users.deactivate",
+  "users.manage_roles",
 ] as const;
 
 const CALL_ASSIST_ANALYST: readonly Permission[] = [
@@ -644,6 +668,7 @@ const CORE_ROLE_ACCESS_MATRIX_V2 = {
     ...CAD_CONNECTOR_IT,
     ...CALL_ASSIST_ADMIN,
     "call_assist.bots.manage",
+    "sop_intelligence.view",
     "video.wall.view",
     "video.wall.configure",
     ...VIDEO_PLAYBACK,
@@ -717,6 +742,9 @@ const CORE_ROLE_ACCESS_MATRIX_V2 = {
     "reports.export",
     "reports.schedule",
     "reports.sla_config",
+    "sop_intelligence.view",
+    "sop_intelligence.submit",
+    "sop_intelligence.manage",
     "agency.settings.channels",
     "onboarding.packets.view",
     "integrations.view",
@@ -808,6 +836,9 @@ const CORE_ROLE_ACCESS_MATRIX_V2 = {
     "qa.coaching_create",
     "qa.coaching_view",
     "qa.trends",
+    "sop_intelligence.view",
+    "sop_intelligence.submit",
+    "sop_intelligence.manage",
     "command.war_room_create",
     "command.war_room_join",
     "command.status_pages",
@@ -879,6 +910,7 @@ const CORE_ROLE_ACCESS_MATRIX_V2 = {
     "transcripts.view",
     "transcripts.download",
     "qa.trends",
+    "sop_intelligence.view",
     "command.pir_view",
     "command.timeline_view",
     "reports.view",
@@ -943,6 +975,9 @@ const VERTICAL_ROLE_MATRIX_BASE: Record<Exclude<MatrixRole, CoreMatrixRole>, Cor
   transit_supervisor: "supervisor",
   transit_security: "dispatcher",
   transit_operator: "dispatcher",
+  call_assist_admin: "agencyadmin",
+  call_assist_supervisor: "supervisor",
+  call_assist_operator: "dispatcher",
   /** Ring Connect device owner — no PSAP grants; overridden to empty below. */
   homeowner: "auditor",
 };
@@ -971,6 +1006,9 @@ const inheritedRoleAccessMatrix = inheritVerticalMatrix(
 export const ROLE_ACCESS_MATRIX_V2: Record<MatrixRole, readonly Permission[]> = {
   ...inheritedRoleAccessMatrix,
   venue_guest: [...VENUE_ROLE_PERMISSIONS.VENUE_GUEST_SERVICES] as readonly Permission[],
+  call_assist_admin: CALL_ASSIST_ADMIN,
+  call_assist_supervisor: CALL_ASSIST_SUPERVISOR,
+  call_assist_operator: CALL_ASSIST_OPERATOR,
   /** Appstore homeowner: Cognito identity only — no dispatcher/admin permissions. */
   homeowner: [],
 };

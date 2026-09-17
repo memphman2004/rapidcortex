@@ -78,7 +78,7 @@ export function TranscriptLine({ segment }: { segment: TranscriptSegment }) {
               {segment.originalTranscript}
             </p>
           ) : null}
-          <span className="text-[color:var(--rc-text-transcript)]">{segment.text}</span>
+          <span className="rc-transcript-text">{segment.text}</span>
         </div>
       </div>
     </li>

@@ -9,6 +9,7 @@ const NEXT_PUBLIC_FLAG_VALUES: Record<string, string | undefined> = {
   NEXT_PUBLIC_ENABLE_CALLER_MEDIA: process.env.NEXT_PUBLIC_ENABLE_CALLER_MEDIA,
   NEXT_PUBLIC_ENABLE_LIVE_VIDEO: process.env.NEXT_PUBLIC_ENABLE_LIVE_VIDEO,
   NEXT_PUBLIC_ENABLE_SOP_PROTOCOL_AI: process.env.NEXT_PUBLIC_ENABLE_SOP_PROTOCOL_AI,
+  NEXT_PUBLIC_ENABLE_SOP_INTELLIGENCE: process.env.NEXT_PUBLIC_ENABLE_SOP_INTELLIGENCE,
   NEXT_PUBLIC_ENABLE_NON_EMERGENCY_TRIAGE: process.env.NEXT_PUBLIC_ENABLE_NON_EMERGENCY_TRIAGE,
   NEXT_PUBLIC_ENABLE_NG911_ASSIST: process.env.NEXT_PUBLIC_ENABLE_NG911_ASSIST,
   NEXT_PUBLIC_ENABLE_CALL_ASSIST: process.env.NEXT_PUBLIC_ENABLE_CALL_ASSIST,
@@ -186,6 +187,11 @@ export function isLiveVideoEnabled(): boolean {
 /** F4 SOP-aware protocol surfacing (must match API ENABLE_SOP_PROTOCOL_AI). */
 export function isSopProtocolEnabled(): boolean {
   return envFlag("NEXT_PUBLIC_ENABLE_SOP_PROTOCOL_AI");
+}
+
+/** Supervisor SOP Intelligence (discrepancy → pattern pipeline). Default on when unset. */
+export function isSopIntelligenceEnabled(): boolean {
+  return envFlag("NEXT_PUBLIC_ENABLE_SOP_INTELLIGENCE");
 }
 
 /** F3 non-emergency triage (must match API ENABLE_NON_EMERGENCY_TRIAGE). */
@@ -666,7 +672,7 @@ export function isRapidIqIntelUiEnabled(): boolean {
   return envFlag("NEXT_PUBLIC_ENABLE_RAPID_IQ_INTEL");
 }
 
-/** RC Admin Rapid IQ sales automation (sequence drafts + approved SES). Default on when unset. */
+/** RC Admin Rapid IQ sales automation (campaign drafts + Outlook send after approval). Default on when unset. */
 export function isSalesAutomationUiEnabled(): boolean {
   return envFlag("NEXT_PUBLIC_ENABLE_SALES_AUTOMATION");
 }

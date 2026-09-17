@@ -180,6 +180,8 @@ describe("isCommsPlatformApiPath", () => {
     process.env.API_UPSTREAM_BASE = "https://stack1.example.com";
     process.env.API_UPSTREAM_BASE_2 = "https://stack2.example.com";
     expect(isStack2ApiPath("/api/call-assist/sessions")).toBe(true);
+    expect(isStack2ApiPath("/api/sop-intelligence/snapshot")).toBe(true);
+    expect(resolveUpstreamApiBase("/api/sop-intelligence/reports/phase2")).toBe("https://stack2.example.com");
     expect(isStack2ApiPath("/api/public/call-assist/self-service/tok")).toBe(true);
     expect(resolveUpstreamApiBase("/api/call-assist/sessions")).toBe("https://stack2.example.com");
     expect(resolveUpstreamApiBase("/api/public/call-assist/self-service/tok")).toBe("https://stack2.example.com");

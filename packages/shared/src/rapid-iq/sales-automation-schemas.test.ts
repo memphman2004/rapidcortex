@@ -1,5 +1,11 @@
 import { describe, expect, it } from "vitest";
-import { normalizeSalesAutomationVertical } from "./sales-automation-schemas.js";
+import {
+  normalizeSalesAutomationVertical,
+  RAPID_IQ_SALES_BULK_MAX_RECIPIENTS,
+  rapidIqOutlookCallbackBodySchema,
+  rapidIqOutlookStatusSchema,
+  createRapidIqSalesBulkCampaignBodySchema,
+} from "./sales-automation-schemas.js";
 
 describe("normalizeSalesAutomationVertical", () => {
   it("maps CRM and intel aliases onto Rapid IQ sales verticals", () => {
@@ -18,5 +24,37 @@ describe("normalizeSalesAutomationVertical", () => {
     expect(normalizeSalesAutomationVertical("unknown")).toBe("PSAP");
     expect(normalizeSalesAutomationVertical("")).toBe("PSAP");
     expect(normalizeSalesAutomationVertical(undefined)).toBe("PSAP");
+  });
+});
+
+describe("outlook campaign-send schemas", () => {
+  it("accepts a disconnected mailbox status without tokens", () => {
+    const parsed = rapidIqOutlookStatusSchema.parse({
+      configured: true,
+      mock: true,
+      connected: false,
+    });
+    expect(parsed.mailbox).toBeUndefined();
+  });
+
+  it("requires code and state on the OAuth callback body", () => {
+    expect(rapidIqOutlookCallbackBodySchema.safeParse({}).success).toBe(false);
+    expect(
+      rapidIqOutlookCallbackBodySchema.parse({ code: "abc", state: "signed.state" }),
+    ).toEqual({ code: "abc", state: "signed.state" });
+  });
+
+  it("accepts a 100+ recipient bulk campaign body", () => {
+    const recipients = Array.from({ length: 120 }, (_, i) => ({
+      email: `dir${i}@example.gov`,
+      agencyName: `Agency ${i}`,
+    }));
+    const parsed = createRapidIqSalesBulkCampaignBodySchema.parse({
+      vertical: "PSAP",
+      campaignName: "911 Core outbound",
+      recipients,
+    });
+    expect(parsed.recipients).toHaveLength(120);
+    expect(RAPID_IQ_SALES_BULK_MAX_RECIPIENTS).toBe(500);
   });
 });

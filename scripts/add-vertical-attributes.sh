@@ -31,6 +31,7 @@ USERS=(
   "transit-supervisor@appsondemand.net|transit"
   "transit-security@appsondemand.net|transit"
   "transit-operator@appsondemand.net|transit"
+  "CallAssist@appsondemand.net|call_assist"
 )
 
 echo ""

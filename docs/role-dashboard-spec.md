@@ -15,6 +15,7 @@ Sections are ordered by risk and frequency of change:
 4. **Hospital** — capacity/routing portal
 5. **Venue** — event/arena operations vertical
 6. **Transit** — bus / rail / ferry operations vertical
+7. **Call Assist** — non-emergency AI intake only (not 911 dispatch)
 
 ### Design decisions that matter most
 
@@ -275,6 +276,7 @@ These roles operate inside a specific agency's jurisdiction workspace. Agency co
 - Active Calls (all dispatchers, real-time)
 - Incidents (full queue, all units)
 - QA / Coaching (scorecards, coaching notes)
+- SOP Intelligence (drift, discrepancy form, pending SOP language, library edit)
 - Team Performance (dispatcher stats, SLA)
 - Reports (generate, schedule, export)
 - CAD Writeback Queue (approve/reject)
@@ -298,6 +300,7 @@ These roles operate inside a specific agency's jurisdiction workspace. Agency co
 - Approve or reject CAD writeback submissions
 - Create and submit scorecards
 - Create coaching notes for dispatchers
+- View SOP Intelligence (discrepancy form, pattern pipeline, library edits, coaching from live patterns)
 - View all dispatcher coaching notes and scorecards
 - Create war rooms (major incident command)
 - Create stakeholder status pages
@@ -918,6 +921,9 @@ This role is the most restricted. The UI should feel like a customer service inb
 | 23 | transit_supervisor | Transit |
 | 24 | transit_security | Transit |
 | 25 | transit_operator | Transit |
+| 26 | call_assist_admin | Call Assist |
+| 27 | call_assist_supervisor | Call Assist |
+| 28 | call_assist_operator | Call Assist |
 
 **Deprecated (removed from Cognito):** `commsupervisor`, `CAMPUS_COUNSELOR`, `CAMPUS_FACULTY`
 
@@ -960,6 +966,50 @@ Transit is a product vertical, not a PSAP. Electric-blue ops chrome (`#3b82f6`).
 **Can:** view assigned vehicle, report incidents, view cameras on assigned vehicle.
 
 **Cannot:** alert strip control, broadcast, other operators’ vehicles, camera registry writes.
+
+---
+
+# SECTION 7 — CALL ASSIST ROLES (NON-EMERGENCY ONLY)
+
+Call Assist–only tenants buy the non-emergency AI product. They must **never** land on the 911 dispatcher dashboard, CAD queue, or incident workspace.
+
+**Visual theme:** Deep navy (`#0f1117`), **teal** accent, header strip: **NON-EMERGENCY CALL ASSIST — NOT A 911 DISPATCH CONSOLE**.
+
+**Dashboards:** `/app/call-assist/{admin|supervisor|operator}` plus shared `/app/call-assist/live`, `/qa`, `/analytics`, `/records`, `/demo`, `/sessions/{id}`.
+
+JWT `custom:role` is snake_case (`call_assist_operator`). Cognito groups: `CALL_ASSIST_*`.
+
+PSAP roles (`dispatcher`, `supervisor`, `agencyadmin`) still use `/{jurisdiction}/call-assist` as a **module** on the 911 console. These three roles are a **separate product shell**.
+
+## call_assist_operator — Call Assist Operator
+
+**Home:** `/app/call-assist/operator`
+
+**Nav:** Live calls only.
+
+**Can:** view live non-emergency sessions, open session detail, takeover / transfer to a human, human-reviewed CAD push (fail-closed unless write-back is entitled).
+
+**Cannot:** 911 dispatcher dashboard, incident table, CAD connector, supervisor QA, admin config, demo runner.
+
+## call_assist_supervisor — Call Assist Supervisor
+
+**Home:** `/app/call-assist/supervisor`
+
+**Nav:** Live calls, QA, analytics.
+
+**Can:** everything the operator can, plus QA review and analytics.
+
+**Cannot:** 911 dispatcher/supervisor workspaces, CAD approval queue, agency admin, greeting/knowledge CMS.
+
+## call_assist_admin — Call Assist Admin
+
+**Home:** `/app/call-assist/admin`
+
+**Nav:** Configuration, live calls, QA, analytics, records, demo runner, users.
+
+**Can:** tenant Call Assist config, greeting, knowledge, prompts, retention, records requests, demo scenarios, invite Call Assist users for the same agency.
+
+**Cannot:** 911 dispatcher dashboard, billing revenue, Lex bot fleet (`call_assist.bots.manage` stays RC-internal).
 
 ---
 

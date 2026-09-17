@@ -35,6 +35,9 @@ export const RAPID_CORTEX_ROLES = [
   "transit_supervisor",
   "transit_security",
   "transit_operator",
+  "call_assist_admin",
+  "call_assist_supervisor",
+  "call_assist_operator",
   /** Ring Connect device-owner (Appstore account-link). Cognito JWT role; not agency-assignable. */
   "homeowner",
 ] as const;
@@ -83,6 +86,20 @@ export function isTransitAssignableRole(role: string): boolean {
   return (TRANSIT_ASSIGNABLE_ROLES as readonly string[]).includes(upper);
 }
 
+/** Call Assist–only tenant roles (no 911 dispatcher workspace). */
+export const CALL_ASSIST_ASSIGNABLE_ROLES = [
+  "CALL_ASSIST_ADMIN",
+  "CALL_ASSIST_SUPERVISOR",
+  "CALL_ASSIST_OPERATOR",
+] as const;
+
+export type CallAssistAssignableRole = (typeof CALL_ASSIST_ASSIGNABLE_ROLES)[number];
+
+export function isCallAssistAssignableRole(role: string): boolean {
+  const upper = role.trim().toUpperCase().replace(/-/g, "_");
+  return (CALL_ASSIST_ASSIGNABLE_ROLES as readonly string[]).includes(upper);
+}
+
 export type HospitalAssignableRole = (typeof HOSPITAL_ASSIGNABLE_ROLES)[number];
 
 export type AgencyAssignableRole = (typeof AGENCY_ASSIGNABLE_ROLES)[number];
@@ -118,6 +135,9 @@ export const ROLE_LABELS: Record<string, string> = {
   transit_supervisor: "Transit Supervisor",
   transit_security: "Transit Security",
   transit_operator: "Transit Operator",
+  call_assist_admin: "Call Assist Admin",
+  call_assist_supervisor: "Call Assist Supervisor",
+  call_assist_operator: "Call Assist Operator",
   homeowner: "Ring Device Owner",
   platform_superadmin: "Platform Owner",
   rc_admin: "RC Operations",
@@ -187,6 +207,12 @@ export const ROLE_DESCRIPTIONS: Record<string, string> = {
     "Transit security. Passenger reports, vehicle/station incidents, and two-way chat.",
   transit_operator:
     "Transit operator. Read-only vehicle status and active incidents on their route.",
+  call_assist_admin:
+    "Call Assist administrator. Non-emergency AI config, greeting, knowledge, records, and demo — no 911 dispatcher workspace.",
+  call_assist_supervisor:
+    "Call Assist supervisor. Live non-emergency sessions, QA, analytics, and human takeover — no CAD queue or dispatcher dashboard.",
+  call_assist_operator:
+    "Call Assist operator. Live non-emergency monitor, session intake, and transfer — not a 911 telecommunicator console.",
   homeowner:
     "Ring device owner. Lightweight account for Rapid Vision™ Appstore linking and camera consent — no dispatch workspace.",
 };
@@ -222,7 +248,18 @@ export const ROLE_DISPLAY_LABELS: Record<RapidCortexRole, string> = {
   transit_supervisor: ROLE_LABELS.transit_supervisor,
   transit_security: ROLE_LABELS.transit_security,
   transit_operator: ROLE_LABELS.transit_operator,
+  call_assist_admin: ROLE_LABELS.call_assist_admin,
+  call_assist_supervisor: ROLE_LABELS.call_assist_supervisor,
+  call_assist_operator: ROLE_LABELS.call_assist_operator,
 };
+
+/** UI label for JWT snake_case or Cognito-group tokens (`CALL_ASSIST_ADMIN`, `CAMPUS_ADMIN`, …). */
+export function roleDisplayLabel(role: string | undefined | null): string {
+  const raw = (role ?? "").trim();
+  if (!raw) return "";
+  const snake = raw.toLowerCase().replace(/-/g, "_");
+  return ROLE_LABELS[snake] ?? ROLE_LABELS[raw] ?? raw;
+}
 
 export function isHospitalPortalRole(role: string): role is HospitalAssignableRole {
   const e = migrateLegacyRapidCortexRoleTokenValue(role) ?? role;
@@ -272,7 +309,7 @@ export function resolveHospitalPortalDashboardHref(role: string | undefined | nu
   return null;
 }
 
-/** Product vertical roles (venue, campus, hospital portal, transit) — not PSAP dispatcher RBAC. */
+/** Product vertical roles (venue, campus, hospital portal, transit, Call Assist) — not PSAP dispatcher RBAC. */
 export function isProductVerticalRoleToken(raw: string | undefined | null): boolean {
   const token = (raw ?? "").trim();
   if (!token) return false;
@@ -283,10 +320,12 @@ export function isProductVerticalRoleToken(raw: string | undefined | null): bool
     lower.startsWith("campus_") ||
     lower.startsWith("hospital_") ||
     lower.startsWith("transit_") ||
+    lower.startsWith("call_assist_") ||
     upper.startsWith("VENUE_") ||
     upper.startsWith("CAMPUS_") ||
     upper.startsWith("HOSPITAL_") ||
-    upper.startsWith("TRANSIT_")
+    upper.startsWith("TRANSIT_") ||
+    upper.startsWith("CALL_ASSIST_")
   );
 }
 
@@ -331,6 +370,12 @@ export const VERTICAL_ROLE_TOKEN_ALIASES: Record<string, RapidCortexRole> = {
   "transit-supervisor": "transit_supervisor",
   "transit-security": "transit_security",
   "transit-operator": "transit_operator",
+  callassistadmin: "call_assist_admin",
+  callassistsupervisor: "call_assist_supervisor",
+  callassistoperator: "call_assist_operator",
+  "call-assist-admin": "call_assist_admin",
+  "call-assist-supervisor": "call_assist_supervisor",
+  "call-assist-operator": "call_assist_operator",
 };
 
 export function resolveVerticalRoleTokenAlias(raw: string | undefined | null): RapidCortexRole | undefined {
@@ -381,6 +426,9 @@ export function migrateLegacyRapidCortexRoleTokenValue(raw: string | undefined):
   if (t === "TRANSIT_SUPERVISOR") return "transit_supervisor";
   if (t === "TRANSIT_SECURITY") return "transit_security";
   if (t === "TRANSIT_OPERATOR") return "transit_operator";
+  if (t === "CALL_ASSIST_ADMIN") return "call_assist_admin";
+  if (t === "CALL_ASSIST_SUPERVISOR") return "call_assist_supervisor";
+  if (t === "CALL_ASSIST_OPERATOR") return "call_assist_operator";
   const lower = t.toLowerCase().replace(/-/g, "_");
   if (lower === "commsupervisor") return "supervisor";
   if (
@@ -405,4 +453,10 @@ export const normalizeLegacyRole = migrateLegacyRapidCortexRoleTokenValue;
 export function isRapidCortexRole(value: string): value is RapidCortexRole {
   const e = migrateLegacyRapidCortexRoleTokenValue(value) ?? value;
   return (RAPID_CORTEX_ROLES as readonly string[]).includes(e);
+}
+
+/** Call Assist–only product console (not PSAP dispatcher / supervisor). */
+export function isCallAssistProductRole(role: string | undefined | null): boolean {
+  const e = (migrateLegacyRapidCortexRoleTokenValue(role ?? "") ?? role ?? "").trim().toLowerCase();
+  return e === "call_assist_admin" || e === "call_assist_supervisor" || e === "call_assist_operator";
 }

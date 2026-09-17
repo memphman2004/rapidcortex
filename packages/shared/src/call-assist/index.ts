@@ -1,4 +1,5 @@
 export * from "./classifications.js";
+export * from "./case-number.js";
 export * from "./greeting.js";
 export * from "./safety.js";
 export * from "./triage.js";

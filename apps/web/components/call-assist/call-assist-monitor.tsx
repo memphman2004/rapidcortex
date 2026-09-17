@@ -14,8 +14,10 @@ import {
 } from "rapid-cortex-shared";
 import { useCallAssistConfig } from "@/contexts/call-assist-config-context";
 import { isApiConfigured } from "@/lib/api";
-import { useJurisdictionLink } from "@/lib/jurisdiction-context";
-import { getCallAssistAnalytics, getCallAssistSchedule, listCallAssistSessions } from "@/lib/call-assist/call-assist-api";
+import { useSession } from "@/components/auth/session-context";
+import { useCallAssistProductBase, useJurisdictionLink } from "@/lib/jurisdiction-context";
+import { getCallAssistAnalytics, getCallAssistAnalyticsDashboard, getCallAssistQaDashboard, getCallAssistSchedule, listCallAssistSessions } from "@/lib/call-assist/call-assist-api";
+import { canViewCallAssistQa } from "@/lib/call-assist/access";
 import { isCallAssistEnabled } from "@/lib/runtime-flags";
 import { CallAssistChrome } from "./call-assist-chrome";
 import { CallAssistCallbackQueue } from "./call-assist-callback-queue";
@@ -57,8 +59,20 @@ function statusMeta(state: string, profile: CallAssistUiProfile) {
   return { label: "Completed", dot: "bg-emerald-400", color: "text-emerald-300" };
 }
 
-export function CallAssistMonitor({ canView }: { canView: boolean }) {
+export function CallAssistMonitor({
+  canView,
+  title = "Call Assist",
+  description,
+  variant = "live",
+}: {
+  canView: boolean;
+  title?: string;
+  description?: string;
+  variant?: "live" | "operator" | "supervisor";
+}) {
   const to = useJurisdictionLink();
+  const productBase = useCallAssistProductBase();
+  const { user } = useSession();
   const { config: profile, requestAgencyId, agencyId, ready } = useCallAssistConfig();
   const enabled = Boolean(canView && isApiConfigured() && isCallAssistEnabled() && ready);
   const [now, setNow] = useState(() => Date.now());
@@ -109,16 +123,17 @@ export function CallAssistMonitor({ canView }: { canView: boolean }) {
 
   return (
     <div className="p-4 md:p-6">
-      <CallAssistChrome title="Call Assist" />
+      <CallAssistChrome title={title} />
       {scheduleQuery.data?.notice ? (
         <div className="mb-3">
           <PSAPAvailabilityNotice notice={scheduleQuery.data.notice} compact />
         </div>
       ) : null}
       <p className="mb-4 max-w-2xl text-[12px] text-slate-500">
-        Non-emergency AI answering and intake. Emergencies always warm-transfer — the AI never continues those
-        calls. This is not a CPE or telephony replacement.
+        {description ??
+          "Non-emergency AI answering and intake. Emergencies always warm-transfer — the AI never continues those calls. This is not a CPE or telephony replacement."}
       </p>
+      {variant === "supervisor" ? <CallAssistSupervisorOpsStrip /> : null}
       <div className="mb-4 grid gap-2 sm:grid-cols-3">
         <Stat value={stats.ai} label="AI handling now" accent={stats.ai > 0 ? "text-sky-400" : undefined} />
         <Stat
@@ -129,29 +144,31 @@ export function CallAssistMonitor({ canView }: { canView: boolean }) {
         <Stat value={stats.survey} label="Avg caller survey" accent="text-emerald-400" />
       </div>
       <div className="mb-3 flex flex-wrap gap-3 text-[12px]">
-        {profile?.capabilities.admin ? (
+        {!productBase && profile?.capabilities.admin ? (
           <Link className="text-sky-400 hover:underline" href={to("/call-assist/admin")}>
             Admin / routing
           </Link>
         ) : null}
-        {profile?.capabilities.demo ? (
+        {!productBase && profile?.capabilities.demo ? (
           <Link className="text-sky-400 hover:underline" href={to("/call-assist/demo")}>
             Demo runner
           </Link>
         ) : null}
-        {profile?.capabilities.records ? (
+        {!productBase && profile?.capabilities.records ? (
           <Link className="text-sky-400 hover:underline" href={to("/call-assist/records")}>
             Records requests
           </Link>
         ) : null}
-        {profile?.capabilities.analytics ? (
+        {!productBase && profile?.capabilities.analytics ? (
           <Link className="text-sky-400 hover:underline" href={to("/call-assist/analytics")}>
             Analytics
           </Link>
         ) : null}
-        <Link className="text-sky-400 hover:underline" href={to("/call-assist/qa")}>
-          QA
-        </Link>
+        {!productBase && canViewCallAssistQa(user?.role) ? (
+          <Link className="text-sky-400 hover:underline" href={to("/call-assist/qa")}>
+            QA
+          </Link>
+        ) : null}
       </div>
       <CallAssistCallbackQueue />
       <div className="overflow-hidden rounded-lg border border-slate-800 bg-slate-950/40">
@@ -258,6 +275,60 @@ function Stat({
     <div className="rounded-lg border border-slate-800 bg-slate-950/50 px-3.5 py-3">
       <p className={`text-[22px] font-semibold leading-none ${accent ?? "text-slate-100"}`}>{value}</p>
       <p className="mt-1 text-[10px] text-slate-500">{label}</p>
+    </div>
+  );
+}
+
+function pct(n: number | null | undefined): string {
+  if (n == null || Number.isNaN(n)) return "—";
+  return `${Math.round(n * 1000) / 10}%`;
+}
+
+function aht(n: number | null | undefined): string {
+  if (n == null || Number.isNaN(n)) return "—";
+  const m = Math.floor(n / 60);
+  const s = Math.round(n % 60);
+  return `${m}:${String(s).padStart(2, "0")}`;
+}
+
+function CallAssistSupervisorOpsStrip() {
+  const to = useJurisdictionLink();
+  const { requestAgencyId, agencyId, ready } = useCallAssistConfig();
+  const enabled = Boolean(isApiConfigured() && isCallAssistEnabled() && ready);
+  const qa = useQuery({
+    queryKey: ["call-assist-qa-dash", agencyId],
+    queryFn: () => getCallAssistQaDashboard(requestAgencyId),
+    enabled,
+  });
+  const analytics = useQuery({
+    queryKey: ["call-assist-analytics-dash-home", agencyId],
+    queryFn: () => getCallAssistAnalyticsDashboard({}, requestAgencyId),
+    enabled,
+  });
+  const d = qa.data?.dashboard;
+  const a = analytics.data?.dashboard;
+  return (
+    <div className="mb-4 grid gap-2 sm:grid-cols-2">
+      <Link
+        href={to("/call-assist/qa")}
+        className="rounded-lg border border-teal-800/50 bg-teal-950/20 px-3.5 py-3 hover:border-teal-600/60"
+      >
+        <p className="text-[10px] font-semibold uppercase tracking-wide text-teal-400">QA review</p>
+        <p className="mt-1 text-[20px] font-semibold leading-none text-slate-100">{d?.reviewCount ?? "—"}</p>
+        <p className="mt-1 text-[11px] text-slate-500">
+          False-transfer {pct(d?.falseTransferRate)} · Human takeovers {d?.humanTakeoverCount ?? "—"}
+        </p>
+      </Link>
+      <Link
+        href={to("/call-assist/analytics")}
+        className="rounded-lg border border-teal-800/50 bg-teal-950/20 px-3.5 py-3 hover:border-teal-600/60"
+      >
+        <p className="text-[10px] font-semibold uppercase tracking-wide text-teal-400">Analytics</p>
+        <p className="mt-1 text-[20px] font-semibold leading-none text-slate-100">{pct(a?.containmentRate)}</p>
+        <p className="mt-1 text-[11px] text-slate-500">
+          Containment · AHT {aht(a?.ahtSeconds)} · CSAT {a?.csatAverage != null ? a.csatAverage.toFixed(1) : "—"}
+        </p>
+      </Link>
     </div>
   );
 }

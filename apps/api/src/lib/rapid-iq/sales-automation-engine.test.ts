@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { heuristicThreeTouch, listCampaignCards } from "./sales-automation-engine.js";
+import { heuristicThreeTouch, listCampaignCards, summarizeBulkBatches } from "./sales-automation-engine.js";
 
 describe("sales automation engine", () => {
   it("builds a 3-touch heuristic sequence with delay days 0/5/12", () => {
@@ -80,5 +80,26 @@ describe("sales automation engine", () => {
     expect(conf.find((c) => c.id === "conf-in-window")?.status).toBe("active");
     expect(conf.find((c) => c.id === "conf-too-soon")?.status).toBe("scheduled");
     expect(conf.find((c) => c.id === "conf-too-far")?.status).toBe("scheduled");
+  });
+
+  it("rolls 100+ sequences into one bulk batch for approval", () => {
+    const sequences = Array.from({ length: 120 }, (_, i) => ({
+      sequenceId: `seq_${i}`,
+      triggerId: "bulk_1",
+      triggerType: "campaign" as const,
+      vertical: "PSAP" as const,
+      recipientEmail: `dir${i}@example.gov`,
+      agencyName: `Agency ${i}`,
+      status: "draft" as const,
+      autoApprove: false,
+      steps: [],
+      createdAt: "2026-09-16T00:00:00.000Z",
+      updatedAt: "2026-09-16T00:00:00.000Z",
+      attribution: { campaignId: "bulk_1", campaignName: "911 Core outbound" },
+    }));
+    const batches = summarizeBulkBatches(sequences as never);
+    expect(batches).toHaveLength(1);
+    expect(batches[0]?.draftCount).toBe(120);
+    expect(batches[0]?.campaignName).toBe("911 Core outbound");
   });
 });

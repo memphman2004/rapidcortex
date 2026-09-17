@@ -1,10 +1,11 @@
 /**
  * Sales automation persistence on RAPID_IQ_PIPELINE_SIGNALS_TABLE.
  * SEQ#{id}/META sequences, DRAFT#{id}/META content, SENT#{email}/{iso} contact window,
- * UNSUB#{email}/META local suppression.
+ * UNSUB#{email}/META local suppression, OUTLOOK#PLATFORM/META Graph mailbox tokens.
  */
 
-import { GetCommand, PutCommand, QueryCommand } from "@aws-sdk/lib-dynamodb";
+import { DeleteCommand, GetCommand, PutCommand, QueryCommand } from "@aws-sdk/lib-dynamodb";
+import type { SalesOutlookConnection } from "./outlook-graph.js";
 import {
   RAPID_IQ_SALES_DRAFT_GSI2PK,
   RAPID_IQ_SALES_SEQ_GSI2PK,
@@ -174,15 +175,67 @@ export async function isLocallyUnsubscribed(email: string): Promise<boolean> {
   return Boolean(res.Item);
 }
 
-export async function hasRecentSend(email: string, sinceIso: string): Promise<boolean> {
+export async function hasRecentSend(
+  email: string,
+  sinceIso: string,
+  exceptSequenceId?: string,
+): Promise<boolean> {
   const lower = email.trim().toLowerCase();
   const res = await pipelineDdb.send(
     new QueryCommand({
       TableName: table(),
       KeyConditionExpression: "pk = :pk AND sk >= :since",
       ExpressionAttributeValues: { ":pk": `SENT#${lower}`, ":since": sinceIso },
-      Limit: 1,
+      Limit: exceptSequenceId ? 25 : 1,
     }),
   );
-  return (res.Count ?? 0) > 0;
+  const items = res.Items ?? [];
+  if (!exceptSequenceId) return items.length > 0;
+  return items.some((item) => String(item.sequenceId ?? "") !== exceptSequenceId);
+}
+
+const OUTLOOK_PK = "OUTLOOK#PLATFORM";
+const OUTLOOK_SK = "META";
+
+export async function putOutlookConnection(conn: SalesOutlookConnection): Promise<void> {
+  await pipelineDdb.send(
+    new PutCommand({
+      TableName: table(),
+      Item: {
+        ...conn,
+        pk: OUTLOOK_PK,
+        sk: OUTLOOK_SK,
+        entityType: "sales_outlook",
+        agencyId: "platform",
+      },
+    }),
+  );
+}
+
+export async function getOutlookConnection(): Promise<SalesOutlookConnection | null> {
+  const res = await pipelineDdb.send(
+    new GetCommand({ TableName: table(), Key: { pk: OUTLOOK_PK, sk: OUTLOOK_SK } }),
+  );
+  if (!res.Item) return null;
+  const item = res.Item as Record<string, unknown>;
+  const mailbox = typeof item.mailbox === "string" ? item.mailbox : "";
+  if (!mailbox) return null;
+  return {
+    agencyId: "platform",
+    mailbox,
+    mock: item.mock === true,
+    refreshTokenEnc: typeof item.refreshTokenEnc === "string" ? item.refreshTokenEnc : undefined,
+    accessTokenEnc: typeof item.accessTokenEnc === "string" ? item.accessTokenEnc : undefined,
+    accessTokenExpiresAt:
+      typeof item.accessTokenExpiresAt === "string" ? item.accessTokenExpiresAt : undefined,
+    connectedBy: typeof item.connectedBy === "string" ? item.connectedBy : "unknown",
+    connectedAt: typeof item.connectedAt === "string" ? item.connectedAt : new Date().toISOString(),
+    updatedAt: typeof item.updatedAt === "string" ? item.updatedAt : new Date().toISOString(),
+  };
+}
+
+export async function deleteOutlookConnection(): Promise<void> {
+  await pipelineDdb.send(
+    new DeleteCommand({ TableName: table(), Key: { pk: OUTLOOK_PK, sk: OUTLOOK_SK } }),
+  );
 }

@@ -1,8 +1,9 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import type {
+  RapidIqSalesBulkBatch,
   RapidIqSalesContentDraft,
   RapidIqSalesOutreachStep,
   RapidIqSalesSequence,
@@ -13,16 +14,23 @@ import {
   SALES_AUTOMATION_CAMPAIGNS_QUERY_KEY,
   SALES_AUTOMATION_DRAFTS_QUERY_KEY,
   SALES_AUTOMATION_METRICS_QUERY_KEY,
+  SALES_AUTOMATION_OUTLOOK_QUERY_KEY,
   SALES_AUTOMATION_SEQUENCES_QUERY_KEY,
+  approveSalesBulkCampaign,
   approveSalesDraft,
   approveSalesSequence,
+  connectSalesOutlook,
+  createSalesBulkCampaign,
   createSalesSequence,
+  disconnectSalesOutlook,
   getSalesMetrics,
+  getSalesOutlookStatus,
   listSalesCampaigns,
   listSalesDrafts,
   listSalesSequences,
   suppressSalesSequence,
 } from "@/lib/rapid-iq/sales-automation-api";
+import { parseCampaignCsv } from "@/lib/rapid-iq/parse-campaign-csv";
 
 type Tab = "queue" | "active" | "content" | "campaigns";
 
@@ -336,6 +344,53 @@ function PreviewModal({
   );
 }
 
+}
+
+function BulkBatchCard({
+  campaignId,
+  name,
+  vertical,
+  count,
+  busy,
+  onApprove,
+}: {
+  campaignId: string;
+  name: string;
+  vertical: string;
+  count: number;
+  busy: boolean;
+  onApprove: (campaignId: string) => void;
+}) {
+  return (
+    <div className="rounded-lg border border-sky-500/30 bg-[#071224] p-3">
+      <div className="flex items-start justify-between gap-2">
+        <div className="min-w-0">
+          <div className="flex flex-wrap items-center gap-1.5">
+            <span className={`rounded px-1.5 py-0.5 text-[9px] font-semibold ${VERTICAL_BADGE[vertical] ?? "bg-slate-700/50 text-slate-400"}`}>
+              {vertical}
+            </span>
+            <span className="rounded bg-sky-500/15 px-1.5 py-0.5 text-[9px] font-bold text-sky-300">
+              BULK · {count} recipients
+            </span>
+          </div>
+          <div className="mt-1 truncate text-sm font-semibold text-slate-100">{name}</div>
+          <div className="mt-0.5 text-[11px] text-slate-500">
+            One approval sends email 1 from Outlook for the whole list. Follow-ups stay on days 5 and 12.
+          </div>
+        </div>
+        <button
+          type="button"
+          disabled={busy}
+          onClick={() => onApprove(campaignId)}
+          className="shrink-0 rounded bg-sky-600 px-2.5 py-1 text-[10px] font-semibold text-white hover:bg-sky-500 disabled:opacity-50"
+        >
+          {busy ? "…" : `Approve ${count}`}
+        </button>
+      </div>
+    </div>
+  );
+}
+
 function TriggerModal({
   busy,
   onClose,
@@ -364,9 +419,11 @@ function TriggerModal({
           onSubmit({ agencyName, recipientEmail, recipientName, vertical });
         }}
       >
-        <div className="text-sm font-bold text-slate-100">Draft outreach sequence</div>
+        <div className="text-sm font-bold text-slate-100">Draft campaign sequence</div>
         <p className="mt-1 text-[11px] text-slate-500">
-          Creates a 3-touch draft. It will not send until you approve it.
+          Creates a 3-touch campaign to a potential client. Nothing sends until you approve it.
+          After approval, email 1 leaves the connected Outlook mailbox; emails 2 and 3 follow on
+          days 5 and 12.
         </p>
         <label className="mt-4 block text-[10px] font-semibold uppercase tracking-widest text-slate-500">
           Agency
@@ -430,11 +487,114 @@ function TriggerModal({
   );
 }
 
+function BulkCampaignModal({
+  busy,
+  onClose,
+  onSubmit,
+}: {
+  busy: boolean;
+  onClose: () => void;
+  onSubmit: (input: {
+    vertical: RapidIqSalesVertical;
+    campaignName: string;
+    recipients: { email: string; agencyName: string; recipientName?: string }[];
+  }) => void;
+}) {
+  const [campaignName, setCampaignName] = useState("");
+  const [vertical, setVertical] = useState<RapidIqSalesVertical>("PSAP");
+  const [csv, setCsv] = useState("");
+  const parsed = parseCampaignCsv(csv);
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
+      <form
+        className="w-full max-w-lg rounded-xl border border-slate-700 bg-[#050c1a] p-5 shadow-2xl"
+        onSubmit={(e) => {
+          e.preventDefault();
+          if (parsed.rows.length === 0) return;
+          onSubmit({
+            vertical,
+            campaignName: campaignName.trim(),
+            recipients: parsed.rows,
+          });
+        }}
+      >
+        <div className="text-sm font-bold text-slate-100">Bulk campaign to potential clients</div>
+        <p className="mt-1 text-[11px] text-slate-500">
+          Paste 100+ rows. Columns: email, agency name, contact name (optional). One approval sends
+          email 1 from the connected Outlook mailbox; follow-ups go on days 5 and 12.
+        </p>
+        <label className="mt-4 block text-[10px] font-semibold uppercase tracking-widest text-slate-500">
+          Campaign name
+          <input
+            value={campaignName}
+            onChange={(e) => setCampaignName(e.target.value)}
+            placeholder="911 Core outbound — Sept 2026"
+            className="mt-1 w-full rounded-md border border-white/10 bg-[#071224] px-3 py-2 text-sm text-white"
+          />
+        </label>
+        <label className="mt-3 block text-[10px] font-semibold uppercase tracking-widest text-slate-500">
+          Vertical
+          <select
+            value={vertical}
+            onChange={(e) => setVertical(e.target.value as RapidIqSalesVertical)}
+            className="mt-1 w-full rounded-md border border-white/10 bg-[#071224] px-3 py-2 text-sm text-white"
+          >
+            <option value="PSAP">PSAP</option>
+            <option value="CAMPUS">Campus</option>
+            <option value="VENUE">Venue</option>
+            <option value="HOSPITAL">Hospital</option>
+            <option value="TRANSIT">Transit</option>
+          </select>
+        </label>
+        <label className="mt-3 block text-[10px] font-semibold uppercase tracking-widest text-slate-500">
+          Recipient list
+          <textarea
+            required
+            rows={10}
+            value={csv}
+            onChange={(e) => setCsv(e.target.value)}
+            placeholder={"email,agency_name,recipient_name\ndirector@psap.gov,Metro PSAP,Alex Rivera"}
+            className="mt-1 w-full rounded-md border border-white/10 bg-[#071224] px-3 py-2 font-mono text-[11px] text-white"
+          />
+        </label>
+        <div className="mt-2 text-[11px] text-slate-400">
+          {parsed.rows.length} ready
+          {parsed.errors.length > 0 ? ` · ${parsed.errors.length} skipped` : ""}
+          {parsed.truncated ? " · truncated at 500" : ""}
+        </div>
+        {parsed.errors.length > 0 ? (
+          <div className="mt-1 max-h-16 overflow-y-auto text-[10px] text-amber-400">
+            {parsed.errors.slice(0, 8).join(" · ")}
+          </div>
+        ) : null}
+        <div className="mt-5 flex justify-end gap-2">
+          <button
+            type="button"
+            onClick={onClose}
+            className="rounded border border-slate-700 px-4 py-1.5 text-xs text-slate-400"
+          >
+            Cancel
+          </button>
+          <button
+            type="submit"
+            disabled={busy || parsed.rows.length === 0}
+            className="rounded bg-sky-600 px-4 py-1.5 text-xs font-semibold text-white disabled:opacity-50"
+          >
+            {busy ? "Queuing…" : `Queue ${parsed.rows.length} drafts`}
+          </button>
+        </div>
+      </form>
+    </div>
+  );
+}
+
 export function SalesAutomationClient() {
   const qc = useQueryClient();
   const [tab, setTab] = useState<Tab>("queue");
   const [preview, setPreview] = useState<RapidIqSalesSequence | null>(null);
   const [triggerOpen, setTriggerOpen] = useState(false);
+  const [bulkOpen, setBulkOpen] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [busyId, setBusyId] = useState<string | null>(null);
@@ -455,17 +615,30 @@ export function SalesAutomationClient() {
     queryKey: SALES_AUTOMATION_METRICS_QUERY_KEY,
     queryFn: getSalesMetrics,
   });
+  const outlookQ = useQuery({
+    queryKey: SALES_AUTOMATION_OUTLOOK_QUERY_KEY,
+    queryFn: getSalesOutlookStatus,
+  });
 
   const invalidate = () => {
     void qc.invalidateQueries({ queryKey: SALES_AUTOMATION_SEQUENCES_QUERY_KEY });
     void qc.invalidateQueries({ queryKey: SALES_AUTOMATION_DRAFTS_QUERY_KEY });
     void qc.invalidateQueries({ queryKey: SALES_AUTOMATION_METRICS_QUERY_KEY });
+    void qc.invalidateQueries({ queryKey: SALES_AUTOMATION_OUTLOOK_QUERY_KEY });
   };
 
   const showToast = (msg: string) => {
     setToast(msg);
     window.setTimeout(() => setToast(null), 3500);
   };
+
+  useEffect(() => {
+    const q = new URLSearchParams(window.location.search);
+    if (q.get("outlook") !== "connected") return;
+    showToast("Outlook connected — campaign emails will send from that mailbox");
+    window.history.replaceState({}, "", "/rc-admin/sales-automation");
+    void qc.invalidateQueries({ queryKey: SALES_AUTOMATION_OUTLOOK_QUERY_KEY });
+  }, [qc]);
 
   const approveSeq = useMutation({
     mutationFn: approveSalesSequence,
@@ -479,7 +652,7 @@ export function SalesAutomationClient() {
       showToast(
         seq.status === "suppressed"
           ? `Held: ${seq.suppressedReason ?? "suppressed"}`
-          : "Sequence approved — step 1 scheduled",
+          : "Campaign approved — email 1 sends from Outlook now; follow-ups stay scheduled",
       );
     },
     onError: (err: Error) => setError(err.message),
@@ -514,6 +687,34 @@ export function SalesAutomationClient() {
     onSettled: () => setBusyId(null),
   });
 
+  const connectOutlook = useMutation({
+    mutationFn: connectSalesOutlook,
+    onMutate: () => setError(null),
+    onSuccess: (body) => {
+      if (body.authorizeUrl) {
+        window.location.href = body.authorizeUrl;
+        return;
+      }
+      invalidate();
+      showToast(
+        body.mock
+          ? `Outlook mock connected as ${body.mailbox ?? "hello@rapidcortex.us"} — live Graph send is off`
+          : `Outlook connected as ${body.mailbox ?? "sales mailbox"}`,
+      );
+    },
+    onError: (err: Error) => setError(err.message),
+  });
+
+  const disconnectOutlook = useMutation({
+    mutationFn: disconnectSalesOutlook,
+    onMutate: () => setError(null),
+    onSuccess: () => {
+      invalidate();
+      showToast("Outlook disconnected — campaign emails will not send from that mailbox");
+    },
+    onError: (err: Error) => setError(err.message),
+  });
+
   const createSeq = useMutation({
     mutationFn: createSalesSequence,
     onMutate: () => setError(null),
@@ -523,10 +724,44 @@ export function SalesAutomationClient() {
       showToast(
         seq.status === "suppressed"
           ? `Draft held: ${seq.suppressedReason ?? "suppressed"}`
-          : "Draft sequence queued for approval",
+          : "Campaign draft queued for approval",
       );
     },
     onError: (err: Error) => setError(err.message),
+  });
+
+  const createBulk = useMutation({
+    mutationFn: createSalesBulkCampaign,
+    onMutate: () => setError(null),
+    onSuccess: (result) => {
+      invalidate();
+      setBulkOpen(false);
+      showToast(
+        `${result.created} drafts queued` +
+          (result.suppressed ? ` · ${result.suppressed} suppressed` : "") +
+          (result.duplicates ? ` · ${result.duplicates} duplicates skipped` : ""),
+      );
+    },
+    onError: (err: Error) => setError(err.message),
+  });
+
+  const approveBulk = useMutation({
+    mutationFn: approveSalesBulkCampaign,
+    onMutate: (id) => {
+      setBusyId(id);
+      setError(null);
+    },
+    onSuccess: (result) => {
+      invalidate();
+      showToast(
+        `Approved ${result.approved} · ${result.sentNow} sending from Outlook now` +
+          (result.approved + result.sentNow < 100
+            ? ". Remaining due mail goes out on the 15-minute worker (up to 150 per run)."
+            : ""),
+      );
+    },
+    onError: (err: Error) => setError(err.message),
+    onSettled: () => setBusyId(null),
   });
 
   const sequences = sequencesQ.data ?? [];
@@ -535,6 +770,21 @@ export function SalesAutomationClient() {
   const activeSeqs = sequences.filter((s) => s.status === "active");
   const pendingDrafts = drafts.filter((d) => d.status === "draft");
   const metrics = metricsQ.data;
+  const pendingGrouped = useMemo(() => {
+    const batches = new Map<string, RapidIqSalesSequence[]>();
+    const singles: RapidIqSalesSequence[] = [];
+    for (const seq of pendingSeqs) {
+      const campaignId = seq.attribution.campaignId?.trim();
+      if (!campaignId) {
+        singles.push(seq);
+        continue;
+      }
+      const list = batches.get(campaignId) ?? [];
+      list.push(seq);
+      batches.set(campaignId, list);
+    }
+    return { batches: [...batches.entries()], singles };
+  }, [pendingSeqs]);
 
   const tabs = useMemo(
     () =>
@@ -551,12 +801,45 @@ export function SalesAutomationClient() {
 
   return (
     <div className="flex min-h-[calc(100vh-6rem)] flex-col overflow-hidden rounded-2xl border border-[rgba(255,255,255,0.06)] bg-[#050c1a] text-slate-200">
-      <div className="flex items-center justify-between border-b border-white/[0.06] px-6 py-4">
-        <p className="text-[11px] text-slate-500">
-          Human-in-the-loop SES from noreply@rapidcortex.us. Open/reply rates stay 0 until engagement
-          tracking is wired.
-        </p>
-        <div className="flex gap-2">
+      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-white/[0.06] px-6 py-4">
+        <div className="min-w-0">
+          <p className="text-[11px] text-slate-500">
+            Campaign emails to potential clients send from <span className="text-slate-300">hello@rapidcortex.us</span>.
+            Use Bulk campaign for 100+ prospects, then approve the batch once. Email 1 sends from
+            that Outlook mailbox; follow-ups stay on days 5 and 12.
+          </p>
+          {outlookQ.data?.connected ? (
+            <p className="mt-1 text-[11px] text-emerald-400">
+              Sending from {outlookQ.data.mailbox}
+              {outlookQ.data.mock ? " (mock — Graph send is off)" : ""}
+            </p>
+          ) : (
+            <p className="mt-1 text-[11px] text-amber-400">
+              Connect Outlook as hello@rapidcortex.us. Until then, approved mail is logged only or
+              sent via SES fallback.
+            </p>
+          )}
+        </div>
+        <div className="flex flex-wrap gap-2">
+          {outlookQ.data?.connected ? (
+            <button
+              type="button"
+              disabled={disconnectOutlook.isPending}
+              onClick={() => disconnectOutlook.mutate()}
+              className="rounded border border-slate-700 px-3 py-1.5 text-xs text-slate-400 hover:border-red-500 hover:text-red-300 disabled:opacity-50"
+            >
+              Disconnect Outlook
+            </button>
+          ) : (
+            <button
+              type="button"
+              disabled={connectOutlook.isPending}
+              onClick={() => connectOutlook.mutate()}
+              className="rounded border border-sky-700 px-3 py-1.5 text-xs font-semibold text-sky-300 hover:bg-sky-900/40 disabled:opacity-50"
+            >
+              {connectOutlook.isPending ? "Connecting…" : "Connect hello@rapidcortex.us"}
+            </button>
+          )}
           <button
             type="button"
             onClick={() => invalidate()}
@@ -566,10 +849,17 @@ export function SalesAutomationClient() {
           </button>
           <button
             type="button"
-            onClick={() => setTriggerOpen(true)}
+            onClick={() => setBulkOpen(true)}
             className="rounded bg-sky-700 px-3 py-1.5 text-xs font-semibold text-white hover:bg-sky-600"
           >
-            Draft outreach
+            Bulk campaign
+          </button>
+          <button
+            type="button"
+            onClick={() => setTriggerOpen(true)}
+            className="rounded border border-sky-700 px-3 py-1.5 text-xs font-semibold text-sky-300 hover:bg-sky-900/40"
+          >
+            Single draft
           </button>
         </div>
       </div>
@@ -629,13 +919,33 @@ export function SalesAutomationClient() {
 
         {!loading && tab === "queue" ? (
           <div className="space-y-6">
-            {pendingSeqs.length > 0 ? (
+            {pendingGrouped.batches.length > 0 ? (
               <section>
                 <h2 className="mb-3 text-[10px] font-bold uppercase tracking-widest text-slate-500">
-                  Outreach sequences — awaiting approval ({pendingSeqs.length})
+                  Bulk campaigns — awaiting approval ({pendingGrouped.batches.length})
                 </h2>
                 <div className="grid gap-3 md:grid-cols-2">
-                  {pendingSeqs.map((seq) => (
+                  {pendingGrouped.batches.map(([campaignId, seqs]) => (
+                    <BulkBatchCard
+                      key={campaignId}
+                      campaignId={campaignId}
+                      name={seqs[0]?.attribution.campaignName ?? campaignId}
+                      vertical={seqs[0]?.vertical ?? "PSAP"}
+                      count={seqs.length}
+                      busy={busyId === campaignId}
+                      onApprove={(id) => approveBulk.mutate(id)}
+                    />
+                  ))}
+                </div>
+              </section>
+            ) : null}
+            {pendingGrouped.singles.length > 0 ? (
+              <section>
+                <h2 className="mb-3 text-[10px] font-bold uppercase tracking-widest text-slate-500">
+                  Single sequences — awaiting approval ({pendingGrouped.singles.length})
+                </h2>
+                <div className="grid gap-3 md:grid-cols-2">
+                  {pendingGrouped.singles.map((seq) => (
                     <SequenceCard
                       key={seq.sequenceId}
                       seq={seq}
@@ -667,7 +977,7 @@ export function SalesAutomationClient() {
             ) : null}
             {pendingSeqs.length === 0 && pendingDrafts.length === 0 ? (
               <div className="py-16 text-center text-sm text-slate-600">
-                Approval queue is clear. Composer jobs and Draft outreach land here first.
+                Approval queue is clear. Bulk campaign and Single draft land here first.
               </div>
             ) : null}
           </div>
@@ -718,35 +1028,72 @@ export function SalesAutomationClient() {
         ) : null}
 
         {!loading && tab === "campaigns" ? (
-          <div className="space-y-4">
-            <h2 className="mb-1 text-[10px] font-bold uppercase tracking-widest text-slate-500">
-              Scheduled campaigns
-            </h2>
-            {(campaignsQ.data ?? []).map((c) => (
-              <div
-                key={c.id}
-                className="flex items-center justify-between gap-4 rounded-lg border border-white/[0.06] bg-[#071224] px-4 py-3"
-              >
-                <div className="min-w-0">
-                  <div className="text-sm font-semibold text-slate-100">{c.name}</div>
-                  <div className="mt-0.5 max-w-lg text-[11px] text-slate-500">{c.description}</div>
+          <div className="space-y-6">
+            {(campaignsQ.data?.batches ?? []).length > 0 ? (
+              <section>
+                <h2 className="mb-3 text-[10px] font-bold uppercase tracking-widest text-slate-500">
+                  Live bulk batches
+                </h2>
+                <div className="space-y-3">
+                  {(campaignsQ.data?.batches ?? []).map((batch: RapidIqSalesBulkBatch) => (
+                    <div
+                      key={batch.campaignId}
+                      className="flex items-center justify-between gap-4 rounded-lg border border-sky-500/20 bg-[#071224] px-4 py-3"
+                    >
+                      <div className="min-w-0">
+                        <div className="text-sm font-semibold text-slate-100">{batch.campaignName}</div>
+                        <div className="mt-0.5 text-[11px] text-slate-500">
+                          {batch.vertical} · {batch.draftCount} draft · {batch.activeCount} sending ·{" "}
+                          {batch.completedCount} done · {batch.suppressedCount} held
+                        </div>
+                      </div>
+                      {batch.draftCount > 0 ? (
+                        <button
+                          type="button"
+                          disabled={busyId === batch.campaignId}
+                          onClick={() => approveBulk.mutate(batch.campaignId)}
+                          className="shrink-0 rounded bg-sky-600 px-3 py-1.5 text-[10px] font-semibold text-white disabled:opacity-50"
+                        >
+                          Approve {batch.draftCount}
+                        </button>
+                      ) : (
+                        <div className="text-[10px] font-bold text-emerald-400">SENDING</div>
+                      )}
+                    </div>
+                  ))}
                 </div>
-                <div className="shrink-0 text-right">
-                  <div
-                    className={`text-[10px] font-bold ${
-                      c.status === "active"
-                        ? "text-emerald-400"
-                        : c.status === "pending"
-                          ? "text-amber-400"
-                          : "text-sky-400"
-                    }`}
-                  >
-                    {c.status.toUpperCase()}
+              </section>
+            ) : null}
+            <section>
+              <h2 className="mb-1 text-[10px] font-bold uppercase tracking-widest text-slate-500">
+                Scheduled campaigns
+              </h2>
+              {(campaignsQ.data?.campaigns ?? []).map((c) => (
+                <div
+                  key={c.id}
+                  className="mt-3 flex items-center justify-between gap-4 rounded-lg border border-white/[0.06] bg-[#071224] px-4 py-3"
+                >
+                  <div className="min-w-0">
+                    <div className="text-sm font-semibold text-slate-100">{c.name}</div>
+                    <div className="mt-0.5 max-w-lg text-[11px] text-slate-500">{c.description}</div>
                   </div>
-                  <div className="mt-0.5 text-[10px] text-slate-600">Next: {c.next}</div>
+                  <div className="shrink-0 text-right">
+                    <div
+                      className={`text-[10px] font-bold ${
+                        c.status === "active"
+                          ? "text-emerald-400"
+                          : c.status === "pending"
+                            ? "text-amber-400"
+                            : "text-sky-400"
+                      }`}
+                    >
+                      {c.status.toUpperCase()}
+                    </div>
+                    <div className="mt-0.5 text-[10px] text-slate-600">Next: {c.next}</div>
+                  </div>
                 </div>
-              </div>
-            ))}
+              ))}
+            </section>
           </div>
         ) : null}
       </div>
@@ -766,11 +1113,25 @@ export function SalesAutomationClient() {
           onClose={() => setTriggerOpen(false)}
           onSubmit={(input) =>
             createSeq.mutate({
-              type: "new_lead",
+              type: "campaign",
               agencyName: input.agencyName.trim(),
               vertical: input.vertical,
               recipientEmail: input.recipientEmail.trim(),
               recipientName: input.recipientName.trim() || undefined,
+            })
+          }
+        />
+      ) : null}
+
+      {bulkOpen ? (
+        <BulkCampaignModal
+          busy={createBulk.isPending}
+          onClose={() => setBulkOpen(false)}
+          onSubmit={(input) =>
+            createBulk.mutate({
+              vertical: input.vertical,
+              campaignName: input.campaignName || undefined,
+              recipients: input.recipients,
             })
           }
         />

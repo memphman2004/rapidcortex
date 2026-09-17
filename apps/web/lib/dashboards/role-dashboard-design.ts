@@ -237,6 +237,24 @@ export const ROLE_DASHBOARD_PALETTE_BY_ROLE: Record<UserRole, RoleDashboardIdent
     "Read-only route view",
     roleBandColor("transit_operator"),
   ),
+  call_assist_admin: verticalRolePalette(
+    "call_assist_admin",
+    "Call Assist Admin",
+    "Non-emergency config",
+    "#0D9488",
+  ),
+  call_assist_supervisor: verticalRolePalette(
+    "call_assist_supervisor",
+    "Call Assist Supervisor",
+    "QA & live sessions",
+    "#0D9488",
+  ),
+  call_assist_operator: verticalRolePalette(
+    "call_assist_operator",
+    "Call Assist Operator",
+    "Non-emergency monitor",
+    "#0D9488",
+  ),
   homeowner: verticalRolePalette(
     "homeowner",
     "Ring™ Device Owner",

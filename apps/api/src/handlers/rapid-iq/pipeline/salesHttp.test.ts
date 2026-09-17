@@ -41,6 +41,9 @@ vi.mock("../../../lib/rapid-iq/sales-automation-db.js", () => ({
   putSalesUnsubscribe: vi.fn(),
   isLocallyUnsubscribed: vi.fn(async () => false),
   hasRecentSend: vi.fn(async () => false),
+  getOutlookConnection: vi.fn(async () => null),
+  putOutlookConnection: vi.fn(),
+  deleteOutlookConnection: vi.fn(),
 }));
 
 vi.mock("../../../repositories/conferenceRepository.js", () => ({
@@ -49,6 +52,11 @@ vi.mock("../../../repositories/conferenceRepository.js", () => ({
       return listByAgency();
     }
   },
+}));
+
+vi.mock("./sales-automation-send.js", () => ({
+  sendDueStepsNow: vi.fn(async () => ({ sent: 0, skipped: 0 })),
+  handler: vi.fn(),
 }));
 
 vi.mock("../../../repositories/auditRepository.js", () => ({
@@ -61,7 +69,12 @@ vi.mock("../../../repositories/auditRepository.js", () => ({
 
 import { handler } from "./signalHttp.js";
 
-function makeEvent(method: string, path: string, user: UserContext | null): APIGatewayProxyEventV2 {
+function makeEvent(
+  method: string,
+  path: string,
+  user: UserContext | null,
+  body?: unknown,
+): APIGatewayProxyEventV2 {
   getUserContext.mockResolvedValue(user);
   return {
     version: "2.0",
@@ -69,6 +82,7 @@ function makeEvent(method: string, path: string, user: UserContext | null): APIG
     rawPath: path,
     requestContext: { http: { method, path } } as APIGatewayProxyEventV2["requestContext"],
     headers: {},
+    body: body === undefined ? undefined : JSON.stringify(body),
     isBase64Encoded: false,
   } as APIGatewayProxyEventV2;
 }
@@ -96,6 +110,7 @@ describe("sales automation HTTP RBAC", () => {
     listByAgency.mockResolvedValue([]);
     process.env.ENABLE_RAPID_IQ_PIPELINE = "true";
     process.env.ENABLE_SALES_AUTOMATION = "true";
+    process.env.OUTLOOK_GRAPH_MOCK = "1";
   });
 
   it("returns 401 when unauthenticated", async () => {
@@ -119,5 +134,38 @@ describe("sales automation HTTP RBAC", () => {
       makeEvent("GET", "/api/rapid-iq/sales-automation/campaigns", admin),
     );
     expect((campaigns as { statusCode: number }).statusCode).toBe(200);
+  });
+
+  it("allows rcadmin to read Outlook campaign-send status", async () => {
+    const result = await handler(
+      makeEvent("GET", "/api/rapid-iq/sales-automation/outlook/status", admin),
+    );
+    expect((result as { statusCode: number }).statusCode).toBe(200);
+    const body = JSON.parse((result as { body: string }).body) as {
+      outlook: { connected: boolean; mock: boolean };
+    };
+    expect(body.outlook.connected).toBe(false);
+    expect(body.outlook.mock).toBe(true);
+  });
+
+  it("queues a bulk campaign of 100+ prospect drafts", async () => {
+    const recipients = Array.from({ length: 120 }, (_, i) => ({
+      email: `dir${i}@example.gov`,
+      agencyName: `Agency ${i}`,
+      recipientName: `Pat ${i}`,
+    }));
+    const result = await handler(
+      makeEvent("POST", "/api/rapid-iq/sales-automation/bulk", admin, {
+        vertical: "PSAP",
+        campaignName: "911 Core outbound",
+        recipients,
+      }),
+    );
+    expect((result as { statusCode: number }).statusCode).toBe(200);
+    const body = JSON.parse((result as { body: string }).body) as {
+      result: { created: number; duplicates: number };
+    };
+    expect(body.result.created).toBe(120);
+    expect(body.result.duplicates).toBe(0);
   });
 });

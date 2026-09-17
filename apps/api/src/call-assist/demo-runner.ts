@@ -28,6 +28,7 @@ export type DemoRunResult = {
   runId: string;
   scenarioId: string;
   sessionId: string;
+  caseNumber?: string;
   passed: boolean;
   steps: DemoStepResult[];
   expectedClassification: string;
@@ -43,6 +44,7 @@ function actualTrigger(steps: DemoStepResult[]): string {
   return "NONE";
 }
 
+const DEMO_EARLY_STOP_STATES = new Set(["TRANSFERRING_911", "FAILED"]);
 const DEMO_TERMINAL_STATES = new Set([
   "TRANSFERRING_911",
   "TRANSFERRING_HUMAN",
@@ -53,6 +55,10 @@ const DEMO_TERMINAL_STATES = new Set([
 
 export function isDemoTerminalState(state: string): boolean {
   return DEMO_TERMINAL_STATES.has(state);
+}
+
+function isDemoEarlyStopState(state: string): boolean {
+  return DEMO_EARLY_STOP_STATES.has(state);
 }
 
 /** Synthetic caller line used to finish leftover intake so a demo never stalls. */
@@ -67,6 +73,8 @@ export function demoDrainUtterance(opts: {
   if (!opts.continueAiConversation && !opts.nextQuestion) return null;
   const id = (opts.lastQuestionId ?? "").toLowerCase();
   const prompt = opts.nextQuestion ?? "";
+  if (id === "apartment" || /apartment|suite|unit number/i.test(prompt)) return "No unit number";
+  if (id === "cross_streets" || /cross streets/i.test(prompt)) return "Oak and 19th";
   if (id === "callback" || /callback|phone number|call you back|devolverle/i.test(prompt)) return "555-0142";
   if (id === "vehicle_plate" || (/license plate|placa/i.test(prompt) && !/make|model|color/i.test(prompt))) {
     return "I don't have the plate";
@@ -157,7 +165,7 @@ export async function runDemoScenario(opts: {
     });
     current = result.session;
     steps.push(toStep(utt.sequence, utt.text, current));
-    if (isDemoTerminalState(current.state)) break;
+    if (isDemoEarlyStopState(current.state)) break;
   }
 
   for (let extra = 0; extra < 12; extra += 1) {
@@ -176,7 +184,7 @@ export async function runDemoScenario(opts: {
     });
     current = result.session;
     steps.push(toStep(steps.length + 1, text, current));
-    if (isDemoTerminalState(current.state)) break;
+    if (isDemoEarlyStopState(current.state)) break;
   }
 
   if (!isDemoTerminalState(current.state)) {
@@ -221,6 +229,7 @@ export async function runDemoScenario(opts: {
     runId,
     scenarioId: scenario.id,
     sessionId: session.sessionId,
+    caseNumber: current.caseNumber ?? session.caseNumber,
     passed,
     steps,
     expectedClassification: scenario.expectedTriageClassification,

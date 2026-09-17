@@ -61,6 +61,8 @@ describe("dashboardRouteFromRole", () => {
     expect(dashboardRouteFromRole("transit_security", "test-transit-hvt")).toBe(
       "/app/transit/security",
     );
+    expect(dashboardRouteFromRole("call_assist_operator", "kcpd")).toBe("/app/call-assist/operator");
+    expect(dashboardRouteFromRole("call_assist_admin", "kcpd")).toBe("/app/call-assist/admin");
   });
 
   it("routes rcsuperadmin to rc-admin", () => {
@@ -96,6 +98,10 @@ describe("allowedRoutePrefixesForRole", () => {
 
   it("scopes transit roles to transit shells", () => {
     expect(allowedRoutePrefixesForRole("transit_admin")).toEqual(["/app/transit", "/transit"]);
+  });
+
+  it("scopes Call Assist roles to the product shell", () => {
+    expect(allowedRoutePrefixesForRole("call_assist_operator")).toEqual(["/app/call-assist"]);
   });
 
   it("allows 911 roles broad jurisdiction access", () => {

@@ -7,9 +7,11 @@ import {
   AGENCY_ASSIGNABLE_ROLES,
   CAMPUS_ASSIGNABLE_ROLES,
   TRANSIT_ASSIGNABLE_ROLES,
+  CALL_ASSIST_ASSIGNABLE_ROLES,
   type AgencyAssignableRole,
   type CampusAssignableRole,
   type TransitAssignableRole,
+  type CallAssistAssignableRole,
   RAPID_CORTEX_ROLES,
   type RapidCortexRole,
 } from "./auth/rapid-cortex-roles.js";
@@ -42,14 +44,19 @@ const TRANSIT_ASSIGNABLE_ROLE_SCHEMA = z.enum(
   TRANSIT_ASSIGNABLE_ROLES as unknown as [TransitAssignableRole, ...TransitAssignableRole[]],
 );
 
+const CALL_ASSIST_ASSIGNABLE_ROLE_SCHEMA = z.enum(
+  CALL_ASSIST_ASSIGNABLE_ROLES as unknown as [CallAssistAssignableRole, ...CallAssistAssignableRole[]],
+);
+
 /**
  * Roles accepted by admin create/update user APIs.
- * Includes PSAP assignable roles, campus/transit Cognito group tokens, and canonical JWT roles.
+ * Includes PSAP assignable roles, campus/transit/Call Assist Cognito group tokens, and canonical JWT roles.
  */
 export const ADMIN_PROVISION_ROLE_SCHEMA = z.union([
   AGENCY_ROLE_SCHEMA,
   CAMPUS_ASSIGNABLE_ROLE_SCHEMA,
   TRANSIT_ASSIGNABLE_ROLE_SCHEMA,
+  CALL_ASSIST_ASSIGNABLE_ROLE_SCHEMA,
   USER_ROLE_SCHEMA,
 ]);
 

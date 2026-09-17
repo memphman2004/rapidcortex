@@ -215,12 +215,17 @@ function isTransitDashboardPath(pathname: string): boolean {
   );
 }
 
+function isCallAssistDashboardPath(pathname: string): boolean {
+  return pathname === "/app/call-assist" || pathname.startsWith("/app/call-assist/");
+}
+
 function isAppVerticalDashboardPath(pathname: string): boolean {
   return (
     isCampusDashboardPath(pathname) ||
     isVenueDashboardPath(pathname) ||
     isHospitalDashboardPath(pathname) ||
     isTransitDashboardPath(pathname) ||
+    isCallAssistDashboardPath(pathname) ||
     pathname === "/app/dashboard" ||
     pathname.startsWith("/app/dashboard/")
   );
@@ -243,9 +248,19 @@ function isTransitRole(role: string | undefined): boolean {
   return verticalFromRole(role ?? "dispatcher") === "transit";
 }
 
+function isCallAssistRole(role: string | undefined): boolean {
+  return verticalFromRole(role ?? "dispatcher") === "call_assist";
+}
+
 function isProductRole(role: string | undefined): boolean {
   const vertical = verticalFromRole(role ?? "dispatcher");
-  return vertical === "campus" || vertical === "venue" || vertical === "hospital" || vertical === "transit";
+  return (
+    vertical === "campus" ||
+    vertical === "venue" ||
+    vertical === "hospital" ||
+    vertical === "transit" ||
+    vertical === "call_assist"
+  );
 }
 
 function redirectPublic(request: NextRequest, path: string): NextResponse {
@@ -830,6 +845,55 @@ async function guardTransitDashboard(request: NextRequest): Promise<NextResponse
   return NextResponse.next();
 }
 
+async function guardCallAssistDashboard(request: NextRequest): Promise<NextResponse> {
+  if (!isAuthConfigured()) {
+    return NextResponse.next();
+  }
+  const pathname = request.nextUrl.pathname;
+  const loginUrl = resolveRedirectUrl(marketingLoginPath(), request);
+  loginUrl.searchParams.set("from", `${pathname}${request.nextUrl.search}`);
+
+  const token = request.cookies.get(COOKIE_ID_TOKEN)?.value;
+  const refresh = request.cookies.get(COOKIE_REFRESH_TOKEN)?.value;
+  if (!token && !refresh) {
+    return nextOrRedirect(request, loginUrl);
+  }
+
+  const user = token ? await verifyCognitoIdToken(token) : null;
+  if (!user && refresh) {
+    const bounce = resolveRedirectUrl("/api/auth/refresh-cookies", request);
+    bounce.searchParams.set("redirect_to", `${pathname}${request.nextUrl.search}`);
+    return nextOrRedirect(request, bounce);
+  }
+
+  if (!user) {
+    return nextOrRedirect(request, loginUrl);
+  }
+
+  const renewal = handleOperationalPasswordRenewalGate(
+    request,
+    user,
+    resolveRedirectUrl("/change-password", request),
+  );
+  if (renewal) return renewal;
+
+  if (!isCallAssistRole(user.role) && !isRcInternalOperator(user.role)) {
+    return redirectToRoleAwareHome(request, user, defaultJurisdictionSlug());
+  }
+
+  if (pathname === "/app/call-assist" || pathname === "/app/call-assist/") {
+    return redirectToRoleDashboard(request, user);
+  }
+
+  const route = ensureRoleDashboardPath(request, user);
+  if (route) return route;
+
+  const network = await maybeBlockNetworkAccess(request, user);
+  if (network) return network;
+
+  return NextResponse.next();
+}
+
 export async function middleware(request: NextRequest) {
   try {
     return await runMiddleware(request);
@@ -915,6 +979,9 @@ async function runMiddleware(request: NextRequest) {
   }
   if (isTransitDashboardPath(pathname)) {
     return guardTransitDashboard(request);
+  }
+  if (isCallAssistDashboardPath(pathname)) {
+    return guardCallAssistDashboard(request);
   }
   if (pathname === "/not-authorized" || pathname.startsWith("/not-authorized/")) {
     return NextResponse.next();

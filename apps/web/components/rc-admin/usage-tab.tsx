@@ -126,6 +126,7 @@ export function RcAdminUsageTab({ userRole }: { userRole: string }) {
       venue: { calls: 0, customers: 0 },
       hospital: { calls: 0, customers: 0 },
       transit: { calls: 0, customers: 0 },
+      call_assist: { calls: 0, customers: 0 },
     };
     const customerKeys: Record<Vertical, Set<string>> = {
       core: new Set<string>(),
@@ -133,6 +134,7 @@ export function RcAdminUsageTab({ userRole }: { userRole: string }) {
       venue: new Set<string>(),
       hospital: new Set<string>(),
       transit: new Set<string>(),
+      call_assist: new Set<string>(),
     };
     for (const row of rows) {
       const vertical = agencyVerticalMap.get(row.agencyId) ?? deriveVerticalFromAgencyId(row.agencyId);

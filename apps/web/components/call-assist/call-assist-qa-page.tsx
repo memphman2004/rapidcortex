@@ -201,7 +201,7 @@ export function CallAssistQaPage() {
           {playback.map((u, i) => (
             <li key={`${u.sequence ?? i}-${u.speaker}`}>
               <span className="font-semibold text-slate-400">{u.speaker}:</span>{" "}
-              <span className="text-slate-200">{u.text}</span>
+              <span className="rc-transcript-text">{u.text}</span>
             </li>
           ))}
         </ol>

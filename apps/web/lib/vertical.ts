@@ -1,5 +1,5 @@
 /** Agency / tenant vertical — shared by server and client surfaces. */
-export type Vertical = "core" | "campus" | "venue" | "hospital" | "transit";
+export type Vertical = "core" | "campus" | "venue" | "hospital" | "transit" | "call_assist";
 
 export {
   formatAgencyType,
@@ -16,16 +16,18 @@ export const VERTICAL_CONFIG: Record<
   venue: { label: "RC Venue", color: "#F97316", bg: "rgba(249,115,22,0.15)" },
   hospital: { label: "RC Hospital", color: "#14B8A6", bg: "rgba(20,184,166,0.15)" },
   transit: { label: "RC Transit", color: "#818CF8", bg: "rgba(129,140,248,0.15)" },
+  call_assist: { label: "Call Assist", color: "#14B8A6", bg: "rgba(20,184,166,0.15)" },
 };
 
 /** `data-vertical` attribute values that remap shell accents in `globals.css`. */
-export type VerticalThemeAttr = "campus" | "venue" | "hospital" | "transit" | "psap" | "rc-admin";
+export type VerticalThemeAttr = "campus" | "venue" | "hospital" | "transit" | "call-assist" | "psap" | "rc-admin";
 
 export function verticalThemeAttrFromDashboardPrefix(
   prefix: string,
 ): VerticalThemeAttr {
   if (prefix.startsWith("hospital")) return "hospital";
   if (prefix === "rc-admin") return "rc-admin";
+  if (prefix === "call-assist" || prefix.startsWith("call_assist")) return "call-assist";
   return "psap";
 }
 
@@ -35,6 +37,7 @@ export function normalizeVertical(value: string | null | undefined): Vertical {
   if (token === "venue") return "venue";
   if (token === "hospital") return "hospital";
   if (token === "transit") return "transit";
+  if (token === "call_assist" || token === "call-assist") return "call_assist";
   return "core";
 }
 

@@ -47,6 +47,9 @@ describe("cognitoVerticalGroupFromUser", () => {
     expect(
       cognitoVerticalGroupFromUser({ agencyId: "test-hospital-1", role: "hospital_staff" }),
     ).toBe("vertical_hospital");
+    expect(
+      cognitoVerticalGroupFromUser({ agencyId: "kcpd", role: "call_assist_operator" }),
+    ).toBe("vertical_call_assist");
   });
 
   it("maps remaining tenant users to 911 PSAP", () => {

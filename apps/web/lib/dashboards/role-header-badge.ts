@@ -64,6 +64,15 @@ export function getRoleHeaderBadgeLabel(role: string | undefined | null): string
     case "transit_operator":
     case "TRANSIT_OPERATOR":
       return "TRANSIT OPERATOR";
+    case "call_assist_admin":
+    case "CALL_ASSIST_ADMIN":
+      return "CALL ASSIST ADMIN";
+    case "call_assist_supervisor":
+    case "CALL_ASSIST_SUPERVISOR":
+      return "CALL ASSIST SUPERVISOR";
+    case "call_assist_operator":
+    case "CALL_ASSIST_OPERATOR":
+      return "CALL ASSIST";
     default:
       return null;
   }

@@ -12,6 +12,7 @@ import {
   AGENCY_ASSIGNABLE_ROLES,
   CAMPUS_ASSIGNABLE_ROLES,
   canAdminForcePasswordReset,
+  isCallAssistAssignableRole,
   isRcInternalOperator,
   isRcsuperadmin,
   isTransitAssignableRole,
@@ -42,7 +43,11 @@ function isCampusAdminActor(role: UserRole): boolean {
 }
 
 function isTransitAdminActor(role: UserRole): boolean {
-  return String(role ?? "").trim().toUpperCase() === "TRANSIT_ADMIN";
+  return String(role ?? "").trim().toUpperCase().replace(/-/g, "_") === "TRANSIT_ADMIN";
+}
+
+function isCallAssistAdminActor(role: UserRole): boolean {
+  return String(role ?? "").trim().toUpperCase().replace(/-/g, "_") === "CALL_ASSIST_ADMIN";
 }
 
 export type AdminUserRow = {
@@ -67,6 +72,7 @@ export class AdminUserService {
       user.role === "agencyit" ||
       isCampusAdminActor(user.role) ||
       isTransitAdminActor(user.role) ||
+      isCallAssistAdminActor(user.role) ||
       isRcInternalOperator(user.role);
     if (!allowed) {
       throw new Error("FORBIDDEN");
@@ -115,6 +121,12 @@ export class AdminUserService {
     ) {
       return;
     }
+    if (
+      isCallAssistAssignableRole(String(role)) &&
+      (isCallAssistAdminActor(user.role) || isRcInternalOperator(user.role))
+    ) {
+      return;
+    }
     if ((RC_INTERNAL_ASSIGNABLE_ROLES as readonly string[]).includes(role) && isRcsuperadmin(user)) {
       return;
     }
@@ -155,7 +167,8 @@ export class AdminUserService {
       (user.role === "agencyadmin" ||
         user.role === "agencyit" ||
         isCampusAdminActor(user.role) ||
-        isTransitAdminActor(user.role)) &&
+        isTransitAdminActor(user.role) ||
+        isCallAssistAdminActor(user.role)) &&
       input.agencyId !== user.agencyId
     ) {
       throw new Error("FORBIDDEN");
@@ -222,7 +235,8 @@ export class AdminUserService {
         (user.role === "agencyadmin" ||
           user.role === "agencyit" ||
           isCampusAdminActor(user.role) ||
-          isTransitAdminActor(user.role)) &&
+          isTransitAdminActor(user.role) ||
+          isCallAssistAdminActor(user.role)) &&
         input.agencyId !== user.agencyId
       ) {
         throw new Error("FORBIDDEN");

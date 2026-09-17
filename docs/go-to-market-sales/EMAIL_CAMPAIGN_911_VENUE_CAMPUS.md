@@ -1,7 +1,7 @@
 # Email campaign — 911, Campus, and Venue
 
 **Audience:** sales, Rapid IQ operators, marketing.  
-**Status:** send-ready copy. Cold outreach still requires **human approval** before send ([Rapid IQ sales automation](../../apps/web/app/rc-admin/sales-automation/page.tsx) never auto-sends).  
+**Cold outreach still requires human approval** before send. Bulk campaigns (100–500 prospects) are queued as drafts, then approved once on [Sales Automation](../../apps/web/app/rc-admin/sales-automation/page.tsx). Email 1 sends from the connected Outlook mailbox; the 15-minute worker drains up to 150 due emails per run.  
 **Scope guardrails:** [PROMISE_CONTROL.md](./PROMISE_CONTROL.md), [SALES_BOUNDARIES.md](./SALES_BOUNDARIES.md), [IDEAL_CUSTOMER_PROFILE.md](./IDEAL_CUSTOMER_PROFILE.md).
 
 This is one program with **three vertical tracks**. Do not mix tracks. A PSAP director should never receive a stadium QR email.
@@ -46,11 +46,11 @@ Build three suppression-clean lists. Source: Rapid IQ intel, PSAP prospect expor
 | Field | Value |
 |-------|--------|
 | From name | Rapid Cortex |
-| From address | `hello@rapidcortex.us` |
-| Reply-to | Same (human-monitored) |
+| From address | `hello@rapidcortex.us` (Connect Outlook as this mailbox on `/rc-admin/sales-automation`) |
+| Reply-to | Same mailbox (replies land in Outlook Sent / Inbox) |
 | Send window | Tue–Thu, 09:30–11:30 **recipient local** |
 | Cadence | Day 0 → 5 → 12 → 19 → 26 → 33. Stop on reply, bounce, or unsubscribe. |
-| Rapid IQ | First three touches only (days 0 / 5 / 12). Emails 4–6 are manual or a second approved sequence. |
+| Rapid IQ | First three touches only (days 0 / 5 / 12), after human approval. Email 1 sends immediately from Outlook; 2 and 3 on the 15-minute worker. Emails 4–6 stay manual. |
 
 **CTA URLs** (append `&utm_content=e01` … `e06`):
 

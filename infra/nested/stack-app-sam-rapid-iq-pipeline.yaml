@@ -92,6 +92,28 @@ Parameters:
       standalone rapid-cortex-dev-AppSamRapidIqPipelineStack already owns those
       named EventBridge rules, named IAM policy, intel-watch queues, and Lambdas.
       Enabling this duplicates ingest and collides with AlreadyExists (2026-09-12).
+  ExternalApiEncryptionKeyArn:
+    Type: String
+    Default: ""
+    Description: Secrets Manager ARN for encrypting Outlook refresh tokens at rest.
+  OutlookOAuthClientId:
+    Type: String
+    Default: ""
+    Description: Azure app (public) client id for Graph Mail.Send campaign mail.
+  OutlookOAuthClientSecretArn:
+    Type: String
+    Default: ""
+    Description: Secrets Manager ARN for the Azure app client secret.
+  OutlookOAuthRedirectUri:
+    Type: String
+    Default: "https://app.rapidcortex.us/rc-admin/sales-automation/outlook-callback"
+  OutlookOAuthTenant:
+    Type: String
+    Default: "common"
+  OutlookGraphMock:
+    Type: String
+    Default: "false"
+    AllowedValues: ["true", "false"]
 
 Conditions:
   RapidIqNewHttpRoutes: !Equals [!Ref EnableRapidIqNewHttpRoutes, "true"]
@@ -106,6 +128,8 @@ Conditions:
   HasOpenAiApiKeySecretArn: !Not [!Equals [!Ref OpenAiApiKeySecretArn, ""]]
   HasConferencesTable: !Not [!Equals [!Ref ConferencesTable, ""]]
   HasMarketingLeadsTable: !Not [!Equals [!Ref MarketingLeadsTable, ""]]
+  HasOutlookOAuthClientSecretArn: !Not [!Equals [!Ref OutlookOAuthClientSecretArn, ""]]
+  HasExternalApiEncryptionKeyArn: !Not [!Equals [!Ref ExternalApiEncryptionKeyArn, ""]]
 
 Globals:
   Function:
@@ -144,6 +168,13 @@ Globals:
         APPROVED_CORS_ORIGINS: !Ref ApprovedCorsOrigins
         SES_FROM_EMAIL: noreply@rapidcortex.us
         RAPID_IQ_ALERT_TO_EMAIL: ""
+        EXTERNAL_API_ENCRYPTION_KEY_ARN: !Ref ExternalApiEncryptionKeyArn
+        OUTLOOK_OAUTH_CLIENT_ID: !Ref OutlookOAuthClientId
+        OUTLOOK_OAUTH_CLIENT_SECRET_ARN: !Ref OutlookOAuthClientSecretArn
+        OUTLOOK_OAUTH_REDIRECT_URI: !Ref OutlookOAuthRedirectUri
+        OUTLOOK_OAUTH_TENANT: !Ref OutlookOAuthTenant
+        OUTLOOK_GRAPH_MOCK: !Ref OutlookGraphMock
+        OUTLOOK_SALES_MAILBOX: hello@rapidcortex.us
 
 Resources:
   RawSignalsDLQ:
@@ -352,6 +383,22 @@ Resources:
               - !Sub arn:${AWS::Partition}:ses:${AWS::Region}:${AWS::AccountId}:identity/noreply@rapidcortex.us
               - !Sub arn:${AWS::Partition}:ses:${AWS::Region}:${AWS::AccountId}:identity/rapidcortex.us
               - !Sub arn:${AWS::Partition}:ses:${AWS::Region}:${AWS::AccountId}:identity/support@rapidcortex.us
+          - Sid: ReadOutlookOAuthSecret
+            Effect: Allow
+            Action:
+              - secretsmanager:GetSecretValue
+            Resource: !If
+              - HasOutlookOAuthClientSecretArn
+              - !Ref OutlookOAuthClientSecretArn
+              - !Sub arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:rapid-cortex/unused-rapidiq-outlook-*
+          - Sid: ReadOutlookTokenEncryptionKey
+            Effect: Allow
+            Action:
+              - secretsmanager:GetSecretValue
+            Resource: !If
+              - HasExternalApiEncryptionKeyArn
+              - !Ref ExternalApiEncryptionKeyArn
+              - !Sub arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:rapid-cortex/unused-rapidiq-enc-*
 
   IngestUsaSpendingFunction:
     Type: AWS::Serverless::Function
@@ -884,7 +931,7 @@ Resources:
     Properties:
       CodeUri: ../../apps/api/
       Handler: dist/handlers/rapid-iq/pipeline/sales-automation-send.handler
-      Timeout: 60
+      Timeout: 180
       Policies:
         - !Ref AppManagedPolicyRapidIqPipeline
       Events:
@@ -1193,6 +1240,16 @@ Resources:
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "GET /api/rapid-iq/sales-automation/metrics"
+      Target: !Sub "integrations/${SignalHttpIntegrationV2}"
+      AuthorizationType: !If [HasHttpApiJwtAuthorizer, JWT, NONE]
+      AuthorizerId: !If [HasHttpApiJwtAuthorizer, !Ref HttpApiJwtAuthorizerId, !Ref AWS::NoValue]
+
+  RouteSalesAutomationOutlookProxy:
+    Type: AWS::ApiGatewayV2::Route
+    Condition: RapidIqNewHttpRoutes
+    Properties:
+      ApiId: !Ref HttpApiId
+      RouteKey: "ANY /api/rapid-iq/sales-automation/{proxy+}"
       Target: !Sub "integrations/${SignalHttpIntegrationV2}"
       AuthorizationType: !If [HasHttpApiJwtAuthorizer, JWT, NONE]
       AuthorizerId: !If [HasHttpApiJwtAuthorizer, !Ref HttpApiJwtAuthorizerId, !Ref AWS::NoValue]

@@ -2,6 +2,13 @@ import { describe, expect, it } from "vitest";
 import { canAdminCallAssist, canRunCallAssistDemo, canSeeAgencySwitcher, canSetCallAssistVertical, canViewCallAssist } from "./access";
 
 describe("Call Assist web access", () => {
+  it("lets Call Assist–only operators view sessions without admin", () => {
+    expect(canViewCallAssist("call_assist_operator")).toBe(true);
+    expect(canAdminCallAssist("call_assist_operator")).toBe(false);
+    expect(canAdminCallAssist("call_assist_admin")).toBe(true);
+    expect(canViewCallAssist("CALL_ASSIST_OPERATOR")).toBe(true);
+  });
+
   it("lets dispatchers view and not administer", () => {
     expect(canViewCallAssist("dispatcher")).toBe(true);
     expect(canAdminCallAssist("dispatcher")).toBe(false);

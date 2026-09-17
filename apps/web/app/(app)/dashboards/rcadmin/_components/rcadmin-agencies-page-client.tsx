@@ -21,6 +21,7 @@ const VERTICAL_TABS: Array<{ id: "all" | TenantVertical; label: string }> = [
   { id: "venue", label: "Venue" },
   { id: "hospital", label: "Hospital" },
   { id: "transit", label: "Transit" },
+  { id: "call_assist", label: "Call Assist" },
 ];
 
 function resolveAgencyVertical(agency: AgencyTenant): TenantVertical {
@@ -58,6 +59,7 @@ export function RcAdminAgenciesPageClient() {
       venue: 0,
       hospital: 0,
       transit: 0,
+      call_assist: 0,
     };
     for (const agency of sortedAgencies) {
       counts[resolveAgencyVertical(agency)] += 1;

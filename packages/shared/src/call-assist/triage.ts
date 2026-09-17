@@ -30,7 +30,7 @@ const CLASS_PATTERNS: ReadonlyArray<{ cls: CallTriageClassification; re: RegExp;
   { cls: "PARKING", re: /\b(parking|blocked driveway|hydrant|handicap spot)\b/i, weight: 0.84 },
   { cls: "TOW_COMPLAINT", re: /\b(tow|towed|impound)\b/i, weight: 0.82 },
   { cls: "ANIMAL_CONTROL", re: /\b(stray dog|animal control|loose dog|aggressive dog|raccoon)\b/i, weight: 0.83 },
-  { cls: "CODE_ENFORCEMENT", re: /\b(code enforcement|trash pile|overgrown|illegal dumping|junk vehicle)\b/i, weight: 0.8 },
+  { cls: "CODE_ENFORCEMENT", re: /\b(code enforcement|trash pile|overgrown|illegal dumping|junk (cars?|vehicles?))\b/i, weight: 0.8 },
   { cls: "PUBLIC_WORKS", re: /\b(water main|burst pipe|pothole|sewer|street light|traffic light)\b/i, weight: 0.88 },
   { cls: "REPORT_ONLY", re: /\b(theft report|stolen (bike|phone|package)|past tense|happened yesterday|happened last night)\b/i, weight: 0.78 },
   { cls: "INFORMATION_REQUEST", re: /\b(what is the number|hours of operation|how do i file|where do i report)\b/i, weight: 0.75 },
@@ -157,6 +157,11 @@ export function classifyCallTriage(
   const secondary = ranked.slice(1, 3).map((h) => h.type.id);
   let confidence = top?.score ?? 0.4;
   const reasons = top?.reasons ?? ["no_keyword_match"];
+  // Follow-up answers ("it's been months") are not a new classification attempt.
+  if (!top && opts.prior && enabledIds.has(opts.prior)) {
+    confidence = 0.74;
+    reasons.push("prior_classification_held");
+  }
 
   const vehicleCrime = VEHICLE_CRIME.test(utterance);
   const inProgress = IN_PROGRESS.test(utterance);

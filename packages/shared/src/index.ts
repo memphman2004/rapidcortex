@@ -99,6 +99,7 @@ export * from "./safe-sound/index.js";
 export * from "./rcs/index.js";
 export * from "./ng911/index.js";
 export * from "./call-assist/index.js";
+export * from "./sop-intelligence/index.js";
 export * from "./support/index.js";
 export * from "./translate/index.js";
 export * from "./rapid-vision/index.js";

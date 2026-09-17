@@ -170,6 +170,27 @@ const ACCOUNTS: TestRow[] = [
     agencyId: "test-transit-hvt",
     cognitoGroup: "TRANSIT_OPERATOR",
   },
+  {
+    email: "CallAssist@appsondemand.net",
+    customRole: "call_assist_admin",
+    agencyId: "kcpd",
+    cognitoGroup: "CALL_ASSIST_ADMIN",
+    agencyVertical: "call_assist",
+  },
+  {
+    email: "CallAssistSupervisor@appsondemand.net",
+    customRole: "call_assist_supervisor",
+    agencyId: "kcpd",
+    cognitoGroup: "CALL_ASSIST_SUPERVISOR",
+    agencyVertical: "call_assist",
+  },
+  {
+    email: "CallAssistOperator@appsondemand.net",
+    customRole: "call_assist_operator",
+    agencyId: "kcpd",
+    cognitoGroup: "CALL_ASSIST_OPERATOR",
+    agencyVertical: "call_assist",
+  },
 ];
 
 function requireEnv(name: string): string {
@@ -265,6 +286,9 @@ const VERTICAL_COGNITO_GROUPS: { name: string; description: string }[] = [
   { name: "venue_admin", description: "Venue safety administrator" },
   { name: "venue_security", description: "Venue security officer" },
   { name: "venue_operator", description: "Venue operator" },
+  { name: "CALL_ASSIST_ADMIN", description: "Call Assist administrator — non-emergency AI config" },
+  { name: "CALL_ASSIST_SUPERVISOR", description: "Call Assist supervisor — live sessions, QA, analytics" },
+  { name: "CALL_ASSIST_OPERATOR", description: "Call Assist operator — live non-emergency monitor" },
   ...Object.entries(COGNITO_VERTICAL_GROUP_DESCRIPTIONS).map(([name, description]) => ({
     name,
     description,

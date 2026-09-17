@@ -153,7 +153,7 @@ export const PRESET_911: AgencyTaxonomy = {
       escalationPath: "external",
       isEmergency: false,
       sortOrder: 4,
-      classifierKeywords: ["code", "violation", "junk", "grass", "illegal dumping", "overgrown"],
+      classifierKeywords: ["code", "violation", "junk", "junk cars", "grass", "illegal dumping", "overgrown"],
     },
     {
       id: "PUBLIC_WORKS",

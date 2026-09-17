@@ -18,7 +18,7 @@ export interface AuthenticatedUser {
   email?: string;
 }
 
-const VERTICAL_WORKSPACES = new Set(["campus", "venue", "hospital", "transit"]);
+const VERTICAL_WORKSPACES = new Set(["campus", "venue", "hospital", "transit", "call_assist"]);
 
 const PLATFORM_ROLES = new Set(["rcsuperadmin", "rcadmin", "rcitadmin", "platform_owner"]);
 

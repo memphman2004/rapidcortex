@@ -140,6 +140,8 @@ export const rapidIqSalesSequenceSchema = z.object({
     estimatedValue: z.number().optional(),
     campaignType: z.enum(RAPID_IQ_SALES_CAMPAIGN_TYPES).optional(),
     conferenceName: z.string().optional(),
+    campaignId: z.string().optional(),
+    campaignName: z.string().optional(),
   }),
 });
 export type RapidIqSalesSequence = z.infer<typeof rapidIqSalesSequenceSchema>;
@@ -203,3 +205,72 @@ export type CreateRapidIqSalesSequenceBody = z.infer<typeof createRapidIqSalesSe
 
 export const RAPID_IQ_SALES_SEQ_GSI2PK = "SEQ#ALL";
 export const RAPID_IQ_SALES_DRAFT_GSI2PK = "DRAFT#ALL";
+export const RAPID_IQ_SALES_BULK_MAX_RECIPIENTS = 500;
+
+export const rapidIqSalesBulkRecipientSchema = z.object({
+  email: z.string().email().max(200),
+  agencyName: z.string().min(1).max(200),
+  recipientName: z.string().max(120).optional(),
+});
+export type RapidIqSalesBulkRecipient = z.infer<typeof rapidIqSalesBulkRecipientSchema>;
+
+export const createRapidIqSalesBulkCampaignBodySchema = z.object({
+  vertical: z.string().min(1).max(40),
+  campaignName: z.string().min(1).max(160).optional(),
+  campaignType: z.enum(RAPID_IQ_SALES_CAMPAIGN_TYPES).optional(),
+  recipients: z.array(rapidIqSalesBulkRecipientSchema).min(1).max(RAPID_IQ_SALES_BULK_MAX_RECIPIENTS),
+});
+export type CreateRapidIqSalesBulkCampaignBody = z.infer<typeof createRapidIqSalesBulkCampaignBodySchema>;
+
+export const approveRapidIqSalesBulkBodySchema = z.object({
+  campaignId: z.string().min(1).max(120),
+});
+export type ApproveRapidIqSalesBulkBody = z.infer<typeof approveRapidIqSalesBulkBodySchema>;
+
+export const rapidIqSalesBulkBatchSchema = z.object({
+  campaignId: z.string(),
+  campaignName: z.string(),
+  vertical: z.enum(RAPID_IQ_SALES_VERTICALS),
+  draftCount: z.number(),
+  activeCount: z.number(),
+  completedCount: z.number(),
+  suppressedCount: z.number(),
+  createdAt: z.string(),
+});
+export type RapidIqSalesBulkBatch = z.infer<typeof rapidIqSalesBulkBatchSchema>;
+
+export const rapidIqSalesBulkResultSchema = z.object({
+  campaignId: z.string(),
+  campaignName: z.string(),
+  created: z.number(),
+  suppressed: z.number(),
+  skipped: z.number(),
+  duplicates: z.number(),
+});
+export type RapidIqSalesBulkResult = z.infer<typeof rapidIqSalesBulkResultSchema>;
+
+export const rapidIqSalesBulkApproveResultSchema = z.object({
+  campaignId: z.string(),
+  approved: z.number(),
+  suppressed: z.number(),
+  failed: z.number(),
+  sentNow: z.number(),
+});
+export type RapidIqSalesBulkApproveResult = z.infer<typeof rapidIqSalesBulkApproveResultSchema>;
+
+/** Public Outlook mailbox status for RC Sales Automation campaign send. Never includes tokens. */
+export const rapidIqOutlookStatusSchema = z.object({
+  configured: z.boolean(),
+  mock: z.boolean(),
+  connected: z.boolean(),
+  mailbox: z.string().optional(),
+  expectedMailbox: z.string().optional(),
+  connectedAt: z.string().optional(),
+});
+export type RapidIqOutlookStatus = z.infer<typeof rapidIqOutlookStatusSchema>;
+
+export const rapidIqOutlookCallbackBodySchema = z.object({
+  code: z.string().min(1).max(4096),
+  state: z.string().min(1).max(1024),
+});
+export type RapidIqOutlookCallbackBody = z.infer<typeof rapidIqOutlookCallbackBodySchema>;

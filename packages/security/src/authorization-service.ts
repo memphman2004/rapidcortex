@@ -19,9 +19,11 @@ import {
   isCampusRole,
   isVenueRole,
   isTransitRole,
+  isCallAssistRole,
   type CampusRole,
   type VenueRole,
   type TransitRole,
+  type CallAssistRole,
 } from "./role-access-matrix-v2.js";
 
 function resolveVenueMatrixRole(role: string): VenueRole | null {
@@ -30,6 +32,21 @@ function resolveVenueMatrixRole(role: string): VenueRole | null {
   const migrated = migrateLegacyRapidCortexRoleTokenValue(role);
   if (migrated === "venue_guest") return "VENUE_GUEST_SERVICES";
   return null;
+}
+
+function resolveCallAssistMatrixRole(role: string): CallAssistRole | null {
+  const upper = role.trim().toUpperCase();
+  if (isCallAssistRole(upper)) return upper;
+  const migrated = migrateLegacyRapidCortexRoleTokenValue(role);
+  const mapped =
+    migrated === "call_assist_admin"
+      ? "CALL_ASSIST_ADMIN"
+      : migrated === "call_assist_supervisor"
+        ? "CALL_ASSIST_SUPERVISOR"
+        : migrated === "call_assist_operator"
+          ? "CALL_ASSIST_OPERATOR"
+          : null;
+  return mapped && isCallAssistRole(mapped) ? mapped : null;
 }
 
 function resolveTransitMatrixRole(role: string): TransitRole | null {
@@ -105,6 +122,7 @@ export class AuthorizationService {
     if (resolveCampusMatrixRole(String(user.role)) === "CAMPUS_ADMIN") return true;
     if (resolveVenueMatrixRole(String(user.role)) === "VENUE_ADMIN") return true;
     if (resolveTransitMatrixRole(String(user.role)) === "TRANSIT_ADMIN") return true;
+    if (resolveCallAssistMatrixRole(String(user.role)) === "CALL_ASSIST_ADMIN") return true;
     return false;
   }
 
@@ -115,6 +133,9 @@ export class AuthorizationService {
       return;
     }
     if (resolveTransitMatrixRole(String(user.role)) === "TRANSIT_ADMIN" && user.agencyId === targetAgencyId) {
+      return;
+    }
+    if (resolveCallAssistMatrixRole(String(user.role)) === "CALL_ASSIST_ADMIN" && user.agencyId === targetAgencyId) {
       return;
     }
     const err = new Error("FORBIDDEN");

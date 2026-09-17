@@ -188,6 +188,7 @@ export {
   VENUE_ROLE_PERMISSIONS,
   TRANSIT_ROLES,
   TRANSIT_ROLE_PERMISSIONS,
+  CALL_ASSIST_ROLES,
   ROLE_ACCESS_MATRIX_V2,
   RCSUPERADMIN_ONLY_PERMISSIONS,
   canCampusRolePerform,
@@ -196,9 +197,11 @@ export {
   isCampusRole,
   isVenueRole,
   isTransitRole,
+  isCallAssistRole,
   type CampusRole,
   type VenueRole,
   type TransitRole,
+  type CallAssistRole,
   type MatrixRole,
 } from "./role-access-matrix-v2.js";
 export { canManageQrLocations, canViewQrLocations } from "./qr-locations-access.js";

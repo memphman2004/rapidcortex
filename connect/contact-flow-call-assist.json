@@ -38,6 +38,12 @@
           "y": 280
         }
       },
+      "enable-recording": {
+        "position": {
+          "x": 260,
+          "y": 140
+        }
+      },
       "play-disclosure": {
         "position": {
           "x": 1580,
@@ -326,13 +332,29 @@
         }
       },
       "Transitions": {
-        "NextAction": "apply-default-locale",
+        "NextAction": "enable-recording",
         "Errors": [
           {
-            "NextAction": "error-prompt",
+            "NextAction": "enable-recording",
             "ErrorType": "NoMatchingError"
           }
         ]
+      }
+    },
+    {
+      "Identifier": "enable-recording",
+      "Type": "UpdateContactRecordingBehavior",
+      "Parameters": {
+        "RecordingBehavior": {
+          "RecordedParticipants": [
+            "Agent",
+            "Customer"
+          ],
+          "IVRRecordingBehavior": "Enabled"
+        }
+      },
+      "Transitions": {
+        "NextAction": "apply-default-locale"
       }
     },
     {
@@ -1136,7 +1158,7 @@
       "Identifier": "lex-intake",
       "Type": "ConnectParticipantWithLexBot",
       "Parameters": {
-        "Text": "Please tell me what you need help with, including the address or closest intersection.",
+        "Text": "Please tell me how I can assist you today, remember to speak clearly and not to repeat yourself.",
         "LexV2Bot": {
           "AliasArn": "{{lexBotAliasArn}}"
         },

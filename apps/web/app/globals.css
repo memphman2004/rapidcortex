@@ -99,6 +99,31 @@ html {
   font-size: calc(16px * var(--rc-ui-font-scale, 1));
 }
 
+/*
+ * Tailwind rem sizes (text-sm, text-xs) already follow html font-size.
+ * Arbitrary px utilities (text-[11px], text-[12px]) do not — they stay fixed, so
+ * Size A−/A+ only appeared to change the sidebar. Scale those with the same factor.
+ */
+.text-\[7px\] { font-size: calc(7px * var(--rc-ui-font-scale, 1)) !important; }
+.text-\[8px\] { font-size: calc(8px * var(--rc-ui-font-scale, 1)) !important; }
+.text-\[9px\] { font-size: calc(9px * var(--rc-ui-font-scale, 1)) !important; }
+.text-\[10px\] { font-size: calc(10px * var(--rc-ui-font-scale, 1)) !important; }
+.text-\[11px\] { font-size: calc(11px * var(--rc-ui-font-scale, 1)) !important; }
+.text-\[12px\] { font-size: calc(12px * var(--rc-ui-font-scale, 1)) !important; }
+.text-\[13px\] { font-size: calc(13px * var(--rc-ui-font-scale, 1)) !important; }
+.text-\[14px\] { font-size: calc(14px * var(--rc-ui-font-scale, 1)) !important; }
+.text-\[15px\] { font-size: calc(15px * var(--rc-ui-font-scale, 1)) !important; }
+.text-\[16px\] { font-size: calc(16px * var(--rc-ui-font-scale, 1)) !important; }
+.text-\[17px\] { font-size: calc(17px * var(--rc-ui-font-scale, 1)) !important; }
+.text-\[18px\] { font-size: calc(18px * var(--rc-ui-font-scale, 1)) !important; }
+.text-\[20px\] { font-size: calc(20px * var(--rc-ui-font-scale, 1)) !important; }
+.text-\[22px\] { font-size: calc(22px * var(--rc-ui-font-scale, 1)) !important; }
+.text-\[24px\] { font-size: calc(24px * var(--rc-ui-font-scale, 1)) !important; }
+
+.rc-transcript-text {
+  color: var(--rc-text-transcript) !important;
+}
+
 /* Light theme — white surfaces, dark text, dark separators */
 [data-theme="light"] {
   --rc-bg-deep: #f4f5f9;
@@ -203,6 +228,9 @@ html {
 [data-theme="light"] .text-slate-600 {
   color: var(--rc-text-faint) !important;
 }
+[data-theme="light"] .rc-transcript-text {
+  color: var(--rc-text-transcript) !important;
+}
 [data-theme="light"] .hover\:bg-slate-800:hover {
   background-color: var(--rc-surface-alt) !important;
 }
@@ -235,6 +263,25 @@ html {
 [data-theme="light"] .placeholder\:text-slate-500::placeholder,
 [data-theme="light"] .placeholder-slate-500::placeholder {
   color: var(--rc-text-placeholder) !important;
+}
+
+/* Dark shells also used hardcoded slate type, so Color → Primary/Secondary/Labels was a no-op. */
+[data-theme="dark"] .text-slate-100,
+[data-theme="dark"] .text-slate-200 {
+  color: var(--rc-text-primary) !important;
+}
+[data-theme="dark"] .text-slate-300,
+[data-theme="dark"] .text-slate-400 {
+  color: var(--rc-text-secondary) !important;
+}
+[data-theme="dark"] .text-slate-500 {
+  color: var(--rc-text-muted) !important;
+}
+[data-theme="dark"] .text-slate-600 {
+  color: var(--rc-text-faint) !important;
+}
+[data-theme="dark"] .rc-transcript-text {
+  color: var(--rc-text-transcript) !important;
 }
 
 [data-theme="light"] [class*="bg-slate-950"],
@@ -305,6 +352,7 @@ html {
   --color-rc-text: var(--rc-text-primary);
   --color-rc-secondary: var(--rc-text-secondary);
   --color-rc-muted: var(--rc-text-muted);
+  --color-rc-transcript: var(--rc-text-transcript);
   --color-rc-placeholder: var(--rc-text-placeholder);
   --color-rc-silver: var(--rc-silver);
   --color-rc-violet: var(--rc-violet);
@@ -425,6 +473,33 @@ html {
   --color-blue-500: #6366f1;
   --color-blue-600: #4f46e5;
   --color-blue-700: #4338ca;
+}
+
+[data-vertical="call-assist"] {
+  --rc-vertical-accent: #14b8a6;
+  --rc-vertical-accent-hover: #0d9488;
+  --rc-blue: #14b8a6;
+  --rc-blue-dim: #042f2e;
+  --rc-blue-border: #0f766e;
+  --rc-sky: #2dd4bf;
+  --rc-crest: #115e59;
+  --role-accent: #14b8a6;
+  --role-accent-dim: #134e4a;
+  --role-accent-muted: rgba(20, 184, 166, 0.4);
+  --color-sky-200: #99f6e4;
+  --color-sky-300: #5eead4;
+  --color-sky-400: #2dd4bf;
+  --color-sky-500: #14b8a6;
+  --color-sky-600: #0d9488;
+  --color-sky-700: #0f766e;
+  --color-sky-800: #115e59;
+  --color-sky-900: #134e4a;
+  --color-sky-950: #042f2e;
+  --color-blue-300: #5eead4;
+  --color-blue-400: #2dd4bf;
+  --color-blue-500: #14b8a6;
+  --color-blue-600: #0d9488;
+  --color-blue-700: #0f766e;
 }
 
 [data-vertical="psap"] {

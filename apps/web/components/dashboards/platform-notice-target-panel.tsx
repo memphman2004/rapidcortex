@@ -2,7 +2,7 @@
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
-import type { NoticeSeverity, PlatformNotice } from "rapid-cortex-shared";
+import type { NoticeSeverity, NoticeVertical, PlatformNotice } from "rapid-cortex-shared";
 import { fetchAgencies } from "@/lib/api";
 import {
   cancelPlatformNotice,
@@ -34,7 +34,7 @@ export function PlatformNoticeTargetPanel() {
   });
 
   const [mode, setMode] = useState<NoticeTargetMode>("all");
-  const [vertical, setVertical] = useState<Vertical>("core");
+  const [vertical, setVertical] = useState<NoticeVertical>("core");
   const [agencyId, setAgencyId] = useState("");
   const [title, setTitle] = useState("");
   const [message, setMessage] = useState("");
@@ -44,7 +44,8 @@ export function PlatformNoticeTargetPanel() {
   const [error, setError] = useState<string | null>(null);
 
   const enabledVerticals = useMemo(
-    () => (["core", "campus", "venue", "hospital", "transit"] as const).filter((v) => isVerticalEnabled(v)),
+    () =>
+      (["core", "campus", "venue", "hospital", "transit"] as const).filter((v) => isVerticalEnabled(v)),
     [],
   );
 
@@ -56,6 +57,7 @@ export function PlatformNoticeTargetPanel() {
       venue: agencies.filter((a) => agencyVertical(a.agencyId, (a as { vertical?: string }).vertical) === "venue"),
       hospital: agencies.filter((a) => agencyVertical(a.agencyId, (a as { vertical?: string }).vertical) === "hospital"),
       transit: agencies.filter((a) => agencyVertical(a.agencyId, (a as { vertical?: string }).vertical) === "transit"),
+      call_assist: agencies.filter((a) => agencyVertical(a.agencyId, (a as { vertical?: string }).vertical) === "call_assist"),
     } as const;
   }, [agencies]);
 
@@ -139,7 +141,7 @@ export function PlatformNoticeTargetPanel() {
             Vertical
             <select
               value={vertical}
-              onChange={(e) => setVertical(e.target.value as Vertical)}
+              onChange={(e) => setVertical(e.target.value as NoticeVertical)}
               className="mt-1 w-full rounded border border-slate-700 bg-slate-900 px-2 py-1.5 text-sm text-slate-100"
             >
               {enabledVerticals.map((v) => (

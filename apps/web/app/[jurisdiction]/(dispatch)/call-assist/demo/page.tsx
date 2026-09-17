@@ -43,6 +43,7 @@ export default function CallAssistDemoPage() {
     | {
         passed?: boolean;
         sessionId?: string;
+        caseNumber?: string;
         actualClassification?: string;
         actualTransferTrigger?: string;
         steps?: Array<{ sequence: number; text: string; action?: string; continueAiConversation: boolean }>;
@@ -53,9 +54,8 @@ export default function CallAssistDemoPage() {
     <div className="space-y-4 p-4 md:p-6">
       <CallAssistChrome title="Call Assist demo runner" />
       <p className="max-w-2xl text-sm text-slate-400">
-        Runs seeded evaluation scenarios through the live Safety, Triage, and Intake engines. Demo emergency
-        transfers use the tenant test destination, never live emergency services. Requires ENABLE_CALL_ASSIST_DEMO_MODE
-        on the API.
+        Runs evaluation scenarios through Safety, Triage, and Intake. Demo emergency transfers use this
+        agency&apos;s test destination, never live emergency services.
       </p>
       <div className="flex flex-wrap items-end gap-3">
         <label className="text-sm text-slate-300">
@@ -86,14 +86,14 @@ export default function CallAssistDemoPage() {
       </div>
       {runMut.isError ? (
         <p className="text-sm text-rose-300">
-          {(runMut.error as Error).message}. Confirm demo mode is enabled and the call-assist.module add-on is entitled.
+          {(runMut.error as Error).message}. Try again, or confirm Call Assist demo is available for this agency.
         </p>
       ) : null}
       {result ? (
         <div className="rounded-lg border border-slate-800 p-4 text-sm text-slate-200">
           <p>
             Result: <strong>{result.passed ? "PASS" : "REVIEW"}</strong> · {result.actualClassification} ·{" "}
-            {result.actualTransferTrigger} · session {result.sessionId}
+            {result.actualTransferTrigger} · session {result.caseNumber || result.sessionId}
           </p>
           <ol className="mt-3 space-y-2">
             {(result.steps ?? []).map((s) => (

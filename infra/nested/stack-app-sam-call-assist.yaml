@@ -58,18 +58,23 @@ Globals:
         ENABLE_CALL_ASSIST_CAD_PUSH: "false"
         ENABLE_CALL_ASSIST_RMS_DRAFT: "false"
         ENABLE_CALL_ASSIST_DEMO_MODE: "true"
-        ENABLE_CALL_ASSIST_RECORDING: "false"
+        ENABLE_CALL_ASSIST_RECORDING: "true"
         CAD_WRITEBACK_ENABLED: "false"
         CALL_ASSIST_CONNECT_MOCK: "false"
         CALL_ASSIST_LEX_MOCK: "false"
         CALL_ASSIST_RAPIDSOS_MOCK: "false"
-        CALL_ASSIST_VOICE_EMOTION_MOCK: "true"
+        CALL_ASSIST_VOICE_EMOTION_MOCK: "false"
         ENABLE_CALL_ASSIST_VOICE_EMOTION: "true"
         ENABLE_CALL_ASSIST_DIARIZATION: "true"
         CALL_ASSIST_TABLE: !Sub "rapid-cortex-call-assist-${DeploymentStage}"
         CALL_ASSIST_CONNECT_WEBHOOK_SECRET_ARN: !Ref CallAssistConnectWebhookSecretArn
         APP_PUBLIC_BASE_URL: !Ref AppPublicBaseUrl
         CALL_ASSIST_PUBLIC_BASE_URL: !Ref AppPublicBaseUrl
+        CONNECT_INSTANCE_ID: "20772ba7-98e6-4afd-94cc-19e03c0619df"
+        CALL_ASSIST_CONTACT_FLOW_ID: "a1dd0cd7-9860-4155-866c-12ebc3dbdcee"
+        CALL_ASSIST_OUTBOUND_CALLER_ID: "+18168395256"
+        AWS_SMS_CONFIGURATION_SET_NAME: "rapid-cortex-sms-dev"
+        SMS_PROVIDER: "aws"
         AUDIT_TABLE: !Ref AuditTable
         AGENCIES_TABLE: !Ref AgenciesTable
         COGNITO_USER_POOL_ID: !Ref ImportedCognitoUserPoolId
@@ -150,6 +155,34 @@ Resources:
             Effect: Allow
             Action:
               - comprehend:DetectSentiment
+            Resource: "*"
+            Condition:
+              StringEquals:
+                aws:RequestedRegion: !Ref AWS::Region
+          - Sid: CallAssistConnectOutbound
+            Effect: Allow
+            Action:
+              - connect:StartOutboundVoiceContact
+              - connect:StopContact
+            Resource:
+              - !Sub "arn:aws:connect:${AWS::Region}:${AWS::AccountId}:instance/20772ba7-98e6-4afd-94cc-19e03c0619df"
+              - !Sub "arn:aws:connect:${AWS::Region}:${AWS::AccountId}:instance/20772ba7-98e6-4afd-94cc-19e03c0619df/contact/*"
+              - !Sub "arn:aws:connect:${AWS::Region}:${AWS::AccountId}:instance/20772ba7-98e6-4afd-94cc-19e03c0619df/contact-flow/*"
+          - Sid: CallAssistSmsSendText
+            Effect: Allow
+            Action:
+              - sms-voice:SendTextMessage
+            Resource:
+              - !Sub "arn:${AWS::Partition}:sms-voice:${AWS::Region}:${AWS::AccountId}:phone-number/*"
+              - !Sub "arn:${AWS::Partition}:sms-voice:${AWS::Region}:${AWS::AccountId}:pool/*"
+              - !Sub "arn:${AWS::Partition}:sms-voice:${AWS::Region}:${AWS::AccountId}:configuration-set/*"
+          - Sid: CallAssistSmsReadOnly
+            Effect: Allow
+            Action:
+              - sms-voice:DescribeAccountAttributes
+              - sms-voice:DescribePools
+              - sms-voice:DescribeConfigurationSets
+              - sms-voice:DescribePhoneNumbers
             Resource: "*"
             Condition:
               StringEquals:

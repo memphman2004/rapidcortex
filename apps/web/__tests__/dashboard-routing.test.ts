@@ -24,6 +24,8 @@ const cases = [
   ["hospital_admin", "test-hospital", "/hospital-admin/dashboard"],
   // Transit
   ["transit_security", "test-transit", "/app/transit/security"],
+  ["call_assist_operator", "kcpd", "/app/call-assist/operator"],
+  ["CALL_ASSIST_ADMIN", "kcpd", "/app/call-assist/admin"],
   // Legacy
   ["admin", "test-agency", "/test-agency/admin"],
   ["platform_superadmin", "__platform__", "/rc-admin"],

@@ -12,6 +12,7 @@ import {
   ROLE_DISPLAY_LABELS,
   isHospitalPortalRole,
   isRapidCortexRole,
+  roleDisplayLabel,
 } from "./rapid-cortex-roles.js";
 import { USER_ROLE_SCHEMA } from "../types.js";
 
@@ -21,12 +22,20 @@ describe("rapid-cortex-roles", () => {
     expect(RAPID_CORTEX_ROLES).toContain("campus_security");
     expect(RAPID_CORTEX_ROLES).toContain("venue_admin");
     expect(RAPID_CORTEX_ROLES).toContain("transit_operator");
-    expect(RAPID_CORTEX_ROLES.length).toBeGreaterThanOrEqual(28);
+    expect(RAPID_CORTEX_ROLES).toContain("call_assist_operator");
+    expect(RAPID_CORTEX_ROLES.length).toBeGreaterThanOrEqual(31);
   });
 
   it("labels hospital roles for customer-facing copy", () => {
     expect(ROLE_DISPLAY_LABELS.hospitaladmin).toBe("Hospital Admin");
     expect(ROLE_DISPLAY_LABELS.hospitalstaff).toBe("Hospital Staff");
+  });
+
+  it("labels Call Assist Cognito-group tokens for user-management dropdowns", () => {
+    expect(roleDisplayLabel("CALL_ASSIST_ADMIN")).toBe("Call Assist Admin");
+    expect(roleDisplayLabel("CALL_ASSIST_SUPERVISOR")).toBe("Call Assist Supervisor");
+    expect(roleDisplayLabel("CALL_ASSIST_OPERATOR")).toBe("Call Assist Operator");
+    expect(roleDisplayLabel("call_assist_operator")).toBe("Call Assist Operator");
   });
 
   it("allows every canonical role via USER_ROLE_SCHEMA", () => {
@@ -48,6 +57,8 @@ describe("rapid-cortex-roles", () => {
     expect(migrateLegacyRapidCortexRoleTokenValue("TRANSIT_ADMIN")).toBe("transit_admin");
     expect(migrateLegacyRapidCortexRoleTokenValue("transit-supervisor")).toBe("transit_supervisor");
     expect(migrateLegacyRapidCortexRoleTokenValue("TRANSIT_OPERATOR")).toBe("transit_operator");
+    expect(migrateLegacyRapidCortexRoleTokenValue("CALL_ASSIST_ADMIN")).toBe("call_assist_admin");
+    expect(migrateLegacyRapidCortexRoleTokenValue("CALL_ASSIST_OPERATOR")).toBe("call_assist_operator");
     expect(migrateLegacyRapidCortexRoleTokenValue("CAMPUS_COUNSELOR")).toBe("campus_counselor");
     expect(migrateLegacyRapidCortexRoleTokenValue("HOSPITAL_ADMIN")).toBe("hospital_admin");
     expect(migrateLegacyRapidCortexRoleTokenValue("HOSPITAL_COORDINATOR")).toBe("hospital_coord");
@@ -66,6 +77,9 @@ describe("rapid-cortex-roles", () => {
     expect(normalizeSessionRole("venue-admin")).not.toBe("dispatcher");
     expect(normalizeSessionRole("TRANSIT_ADMIN")).toBe("transit_admin");
     expect(normalizeSessionRole("transit-supervisor")).toBe("transit_supervisor");
+    expect(normalizeSessionRole("CALL_ASSIST_OPERATOR")).toBe("call_assist_operator");
+    expect(normalizeSessionRole("call-assist-admin")).toBe("call_assist_admin");
+    expect(normalizeSessionRole("CALL_ASSIST_OPERATOR")).not.toBe("dispatcher");
     expect(normalizeSessionRole("commsupervisor")).toBe("supervisor");
     expect(normalizeSessionRole("COMMSUPERVISOR")).toBe("supervisor");
   });

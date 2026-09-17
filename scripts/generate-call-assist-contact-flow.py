@@ -126,6 +126,7 @@ def main() -> None:
             },
             "language-menu": {"position": {"x": 780, "y": 20}},
             "check-language": {"position": {"x": 780, "y": 280}},
+            "enable-recording": {"position": {"x": 260, "y": 140}},
             "play-disclosure": {"position": {"x": 1580, "y": 20}},
             "lex-intake": {"position": {"x": 1820, "y": 20}},
             "play-emergency": {"position": {"x": 2060, "y": 20}},
@@ -181,8 +182,22 @@ def main() -> None:
                 "ResponseValidation": {"ResponseType": "STRING_MAP"},
             },
             "Transitions": {
+                "NextAction": "enable-recording",
+                "Errors": [err("enable-recording", "NoMatchingError")],
+            },
+        },
+        {
+            "Identifier": "enable-recording",
+            "Type": "UpdateContactRecordingBehavior",
+            "Parameters": {
+                "RecordingBehavior": {
+                    "RecordedParticipants": ["Agent", "Customer"],
+                    "IVRRecordingBehavior": "Enabled",
+                }
+            },
+            "Transitions": {
                 "NextAction": "apply-default-locale",
-                "Errors": [err("error-prompt", "NoMatchingError")],
+                "Errors": [err("apply-default-locale", "NoMatchingError")],
             },
         },
         {

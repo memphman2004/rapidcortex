@@ -4,6 +4,7 @@ import {
   HOSPITAL_ASSIGNABLE_ROLES,
   RAPID_CORTEX_ROLES,
   TRANSIT_ASSIGNABLE_ROLES,
+  CALL_ASSIST_ASSIGNABLE_ROLES,
   type RapidCortexRole,
 } from "rapid-cortex-shared/auth/rapid-cortex-roles";
 import type { UserRole } from "rapid-cortex-shared/types";
@@ -25,6 +26,7 @@ export function provisionableRolesForActor(actorRole: UserRole | string): string
     return [
       ...AGENCY_ASSIGNABLE_ROLES,
       ...HOSPITAL_ASSIGNABLE_ROLES,
+      ...CALL_ASSIST_ASSIGNABLE_ROLES,
       ...RC_INTERNAL_ASSIGNABLE,
     ];
   }
@@ -36,6 +38,9 @@ export function provisionableRolesForActor(actorRole: UserRole | string): string
   }
   if (token === "TRANSIT_ADMIN") {
     return [...TRANSIT_ASSIGNABLE_ROLES];
+  }
+  if (token === "CALL_ASSIST_ADMIN") {
+    return [...CALL_ASSIST_ASSIGNABLE_ROLES];
   }
   return [...AGENCY_ASSIGNABLE_ROLES];
 }

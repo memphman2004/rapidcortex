@@ -208,6 +208,7 @@ sam validate --lint --template-file "${ROOT}/infra/nested/stack-app-sam-4.yaml"
 sam validate --lint --template-file "${ROOT}/infra/nested/stack-app-sam-5.yaml"
 sam validate --lint --template-file "${ROOT}/infra/nested/stack-app-sam-location.yaml"
 sam validate --lint --template-file "${ROOT}/infra/nested/stack-app-sam-call-assist.yaml"
+sam validate --lint --template-file "${ROOT}/infra/nested/stack-app-sam-sop-intel.yaml"
 sam validate --lint --template-file "${ROOT}/infra/nested/stack-app-sam-translate.yaml"
 sam validate --lint --template-file "${ROOT}/infra/nested/stack-app-sam-6.yaml"
 sam validate --lint --template-file "${ROOT}/infra/nested/stack-app-alarms-2.yaml"
@@ -545,6 +546,22 @@ fi
 # HTTP routes are gated separately (recreate via SignalHttpIntegrationV2 on live).
 PARAMS="${PARAMS} EnableRapidIqNewHttpRoutes=${ENABLE_RAPID_IQ_NEW_HTTP_ROUTES:-false}"
 PARAMS="${PARAMS} EnableRapidIqNestedExpansion=${ENABLE_RAPID_IQ_NESTED_EXPANSION:-false}"
+if [[ -n "${OUTLOOK_OAUTH_CLIENT_ID:-}" ]]; then
+  PARAMS="${PARAMS} OutlookOAuthClientId=${OUTLOOK_OAUTH_CLIENT_ID}"
+fi
+if [[ -n "${OUTLOOK_OAUTH_CLIENT_SECRET_ARN:-}" ]]; then
+  PARAMS="${PARAMS} OutlookOAuthClientSecretArn=${OUTLOOK_OAUTH_CLIENT_SECRET_ARN}"
+fi
+if [[ -n "${OUTLOOK_OAUTH_REDIRECT_URI:-}" ]]; then
+  PARAMS="${PARAMS} OutlookOAuthRedirectUri=${OUTLOOK_OAUTH_REDIRECT_URI}"
+fi
+if [[ "${OUTLOOK_GRAPH_MOCK:-}" == "true" || "${OUTLOOK_GRAPH_MOCK:-}" == "false" ]]; then
+  PARAMS="${PARAMS} OutlookGraphMock=${OUTLOOK_GRAPH_MOCK}"
+elif [[ "${OUTLOOK_GRAPH_MOCK:-}" == "1" ]]; then
+  PARAMS="${PARAMS} OutlookGraphMock=true"
+elif [[ "${OUTLOOK_GRAPH_MOCK:-}" == "0" ]]; then
+  PARAMS="${PARAMS} OutlookGraphMock=false"
+fi
 if [[ -n "${RING_CREDENTIALS_SECRET_ARN_OVERRIDE:-}" ]]; then
   PARAMS="${PARAMS} RingCredentialsSecretArnOverride=${RING_CREDENTIALS_SECRET_ARN_OVERRIDE}"
 fi

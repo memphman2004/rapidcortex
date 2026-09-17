@@ -24,7 +24,7 @@ export function CadPushBlock({
   return (
     <div className="mb-3 rounded-lg border border-amber-500/25 bg-slate-950 px-3 py-2.5">
       <p className="mb-2 text-[10px] font-semibold text-amber-400">
-        CAD push ready — review before sending to {cadProviderLabel}
+        CAD push ready — review before sending to CAD
       </p>
       {fields.map((f) => (
         <div key={f.k} className="mb-0.5 flex gap-2 text-[11px]">

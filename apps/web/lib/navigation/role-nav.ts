@@ -1,7 +1,7 @@
 /**
  * apps/web/lib/navigation/role-nav.ts
  *
- * Single source of truth for every sidebar across all 25 active roles.
+ * Single source of truth for every sidebar across all 28 active roles.
  *
  * Usage:
  *   const nav = getRoleNav(session.role, { jurisdiction, venueCode, campusCode });
@@ -561,6 +561,9 @@ export function getSupervisorNav(jurisdiction: string): RoleNav {
             feature: "callAssist" },
           { id: "team",          label: "Team Performance",href: `${j}/supervisor/team-performance`, icon: "Users" },
           { id: "reports",       label: "Reports",         href: `${j}/supervisor/reports`, icon: "BarChart3" },
+          { id: "sop-intelligence", label: "SOP Intelligence", href: `${j}/supervisor/sop-intelligence`, icon: "BookOpen",
+            feature: "sopIntelligence",
+            badge: { type: "count", key: "pendingSopUpdates" } },
           cameraAiNavItem(`${j}/supervisor/vision-ai`),
           { id: "ng911-metrics", label: "NG9-1-1 Metrics", href: `${j}/admin/ng911/metrics`, icon: "BarChart3",
             feature: "ng911Assist" },
@@ -1599,6 +1602,64 @@ export function getTransitOperatorNav(code: string): RoleNav {
   };
 }
 
+function callAssistLiveItem(home: string): NavItem {
+  return { id: "dashboard", label: "Live calls", href: home, icon: "PhoneIncoming", exact: true, feature: "callAssist" };
+}
+
+export function getCallAssistOperatorNav(): RoleNav {
+  return {
+    accent: "teal",
+    roleBadge: "CALL ASSIST",
+    sections: [
+      {
+        id: "ops",
+        label: "NON-EMERGENCY",
+        items: [callAssistLiveItem("/app/call-assist/operator")],
+      },
+    ],
+  };
+}
+
+export function getCallAssistSupervisorNav(): RoleNav {
+  return {
+    accent: "teal",
+    roleBadge: "CALL ASSIST · SUPERVISOR",
+    sections: [
+      {
+        id: "ops",
+        label: "NON-EMERGENCY",
+        items: [
+          callAssistLiveItem("/app/call-assist/supervisor"),
+          { id: "qa", label: "QA", href: "/app/call-assist/qa", icon: "ClipboardCheck", feature: "callAssist" },
+          { id: "analytics", label: "Analytics", href: "/app/call-assist/analytics", icon: "BarChart3", feature: "callAssist" },
+        ],
+      },
+    ],
+  };
+}
+
+export function getCallAssistAdminNav(): RoleNav {
+  return {
+    accent: "teal",
+    roleBadge: "CALL ASSIST · ADMIN",
+    sections: [
+      {
+        id: "ops",
+        label: "NON-EMERGENCY",
+        items: [
+          { id: "dashboard", label: "Configuration", href: "/app/call-assist/admin", icon: "Settings", exact: true, feature: "callAssist" },
+          { id: "live", label: "Live calls", href: "/app/call-assist/live", icon: "PhoneIncoming", feature: "callAssist" },
+          { id: "qa", label: "QA", href: "/app/call-assist/qa", icon: "ClipboardCheck", feature: "callAssist" },
+          { id: "analytics", label: "Analytics", href: "/app/call-assist/analytics", icon: "BarChart3", feature: "callAssist" },
+          { id: "records", label: "Records", href: "/app/call-assist/records", icon: "Scale", feature: "callAssist" },
+          { id: "demo", label: "Demo runner", href: "/app/call-assist/demo", icon: "Play", feature: "callAssist" },
+          { id: "users", label: "Users", href: "/app/call-assist/users", icon: "Users", feature: "callAssist" },
+        ],
+      },
+    ],
+  };
+}
+
 // ─── Resolver ─────────────────────────────────────────────────────────────────
 
 function resolveNavRole(raw: string): string {
@@ -1607,6 +1668,7 @@ function resolveNavRole(raw: string): string {
   if (upper.startsWith("VENUE_")) return upper;
   if (upper.startsWith("CAMPUS_")) return upper;
   if (upper.startsWith("TRANSIT_")) return upper;
+  if (upper.startsWith("CALL_ASSIST_")) return upper;
   if (upper === "HOSPITAL_COORDINATOR" || upper === "HOSPITAL_COORD") return "HOSPITAL_COORDINATOR";
   if (upper === "HOSPITAL_ADMIN") return "HOSPITAL_ADMIN";
   if (upper === "HOSPITAL_STAFF") return "HOSPITAL_STAFF";
@@ -1618,6 +1680,7 @@ function resolveNavRole(raw: string): string {
   if (upper === "VENUE_GUEST") return "VENUE_GUEST_SERVICES";
   if (migrated.startsWith("campus_")) return migrated.toUpperCase();
   if (migrated.startsWith("transit_")) return migrated.toUpperCase();
+  if (migrated.startsWith("call_assist_")) return migrated.toUpperCase();
   if (migrated === "hospitaladmin" || migrated === "hospital_admin") return "HOSPITAL_ADMIN";
   if (migrated === "hospitalstaff" || migrated === "hospital_staff") return "HOSPITAL_STAFF";
   if (migrated === "hospital_coord" || migrated === "hospital_supervisor") return "HOSPITAL_COORDINATOR";
@@ -1671,6 +1734,9 @@ export function getRoleNav(role: string, ctx: NavContext): RoleNav {
     case "TRANSIT_SUPERVISOR":  return getTransitSupervisorNav(t);
     case "TRANSIT_SECURITY":    return getTransitSecurityNav(t);
     case "TRANSIT_OPERATOR":    return getTransitOperatorNav(t);
+    case "CALL_ASSIST_ADMIN":   return getCallAssistAdminNav();
+    case "CALL_ASSIST_SUPERVISOR": return getCallAssistSupervisorNav();
+    case "CALL_ASSIST_OPERATOR": return getCallAssistOperatorNav();
 
     default:
       // Unknown role — return a minimal safe nav that redirects to sign-out

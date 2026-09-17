@@ -14,7 +14,14 @@ describe("provisionableRolesForActor", () => {
     );
   });
 
-  it("does not let transit supervisor provision users", () => {
-    expect(provisionableRolesForActor("TRANSIT_SUPERVISOR")).not.toContain("TRANSIT_ADMIN");
+  it("lets Call Assist admin assign Call Assist roles only", () => {
+    expect(provisionableRolesForActor("CALL_ASSIST_ADMIN")).toEqual([
+      "CALL_ASSIST_ADMIN",
+      "CALL_ASSIST_SUPERVISOR",
+      "CALL_ASSIST_OPERATOR",
+    ]);
+    expect(provisionableRolesForActor("call_assist_admin")).toEqual(
+      provisionableRolesForActor("CALL_ASSIST_ADMIN"),
+    );
   });
 });

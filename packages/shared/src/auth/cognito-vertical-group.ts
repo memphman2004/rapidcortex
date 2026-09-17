@@ -8,6 +8,7 @@ export const COGNITO_VERTICAL_GROUPS = [
   "vertical_venue",
   "vertical_transit",
   "vertical_hospital",
+  "vertical_call_assist",
   "vertical_ring",
 ] as const;
 
@@ -22,6 +23,7 @@ export const COGNITO_VERTICAL_GROUP_DESCRIPTIONS: Record<CognitoVerticalGroup, s
   vertical_venue: "Venue security — venue admins, operators, supervisors",
   vertical_transit: "Transit security — transit safety personnel",
   vertical_hospital: "Hospital — hospital coordinators and staff",
+  vertical_call_assist: "Call Assist — non-emergency AI intake (no 911 dispatcher console)",
   vertical_ring: "Ring — homeowners and Ring integration reviewer accounts",
 };
 
@@ -53,6 +55,9 @@ export function cognitoVerticalGroupFromUser(input: {
   }
   if (agencyLc.includes("transit") || role.startsWith("transit_")) {
     return "vertical_transit";
+  }
+  if (role.startsWith("call_assist_")) {
+    return "vertical_call_assist";
   }
   if (
     agencyLc.includes("hospital") ||

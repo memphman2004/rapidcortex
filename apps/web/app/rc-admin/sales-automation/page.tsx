@@ -21,8 +21,9 @@ export default async function RcAdminSalesAutomationPage() {
       <div>
         <h1 className="text-2xl font-semibold text-white">Sales Automation</h1>
         <p className="mt-2 max-w-3xl text-sm text-slate-400">
-          Rapid IQ drafts 3-touch outreach and Inside the Cortex notes. Nothing sends until you
-          approve. Newsletter approval marks the draft ready — bulk list send is not wired yet.
+          Outbound campaign emails to potential 911, campus, and venue clients. Connect
+          hello@rapidcortex.us, then approve. Email 1 sends from that mailbox; follow-ups go on days
+          5 and 12. Use Bulk campaign for 100–500 prospects in one approval.
         </p>
       </div>
       <SalesAutomationClient />

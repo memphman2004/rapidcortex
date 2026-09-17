@@ -25,6 +25,7 @@ const VERTICAL_DASHBOARD_FALLBACK: Record<string, string> = {
   venue: "/app/venue/admin",
   hospital: "/hospital-admin/dashboard",
   transit: "/app/transit/admin",
+  call_assist: "/app/call-assist/operator",
 };
 
 export function buildWorkspaceUrl(vertical: string, role: string, agencyId = ""): string {

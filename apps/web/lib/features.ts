@@ -17,14 +17,16 @@ export const features = {
   hospitalPortal: productFlag("NEXT_PUBLIC_ENABLE_HOSPITAL_PORTAL"),
   addonManagement: productFlag("NEXT_PUBLIC_ENABLE_ADDON_MANAGEMENT"),
   verticalBadge: productFlag("NEXT_PUBLIC_ENABLE_VERTICAL_BADGE"),
+  callAssist: productFlag("NEXT_PUBLIC_ENABLE_CALL_ASSIST"),
 } as const;
 
-export type FeatureVertical = "core" | "campus" | "venue" | "hospital" | "transit";
+export type FeatureVertical = "core" | "campus" | "venue" | "hospital" | "transit" | "call_assist";
 
 export function isVerticalEnabled(vertical: FeatureVertical): boolean {
   if (vertical === "core") return true;
   if (vertical === "campus") return features.verticalCampus;
   if (vertical === "venue") return features.verticalVenue;
   if (vertical === "transit") return features.verticalTransit;
+  if (vertical === "call_assist") return features.callAssist;
   return features.hospitalRouting || features.hospitalPortal;
 }

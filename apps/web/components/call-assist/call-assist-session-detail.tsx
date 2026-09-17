@@ -521,7 +521,7 @@ function SessionBody({
                 <p className={`text-[9px] font-semibold uppercase tracking-wide ${u.speaker === "assistant" || u.speaker === "system" ? "text-sky-400" : u.speaker === "other" ? "text-violet-300" : "text-slate-400"}`}>
                   {utteranceSpeakerLabel(u)}
                 </p>
-                <p className="text-[12px] leading-relaxed text-slate-200">{u.text}</p>
+                <p className="rc-transcript-text text-[12px] leading-relaxed">{u.text}</p>
               </div>
             ))}
             {isAi && session.nextQuestion ? (
@@ -529,7 +529,7 @@ function SessionBody({
                 <p className="flex items-center gap-1.5 text-[9px] font-semibold uppercase tracking-wide text-sky-400">
                   Rapid Cortex <CallAssistWave compact />
                 </p>
-                <p className="text-[12px] italic text-slate-500">{session.nextQuestion}…</p>
+                <p className="rc-transcript-text text-[12px] italic opacity-70">{session.nextQuestion}…</p>
               </div>
             ) : null}
           </div>

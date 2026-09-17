@@ -71,6 +71,23 @@ Parameters:
     Description: >-
       Extra Rapid IQ ingest/sales/intel-watch Lambdas on the hashed nested pipeline stack.
       Keep false on live rapid-cortex-dev (leftover standalone already owns them).
+  OutlookOAuthClientId:
+    Type: String
+    Default: ""
+    Description: Azure app (public) client id for RC Sales Automation Outlook Graph campaign send.
+  OutlookOAuthClientSecretArn:
+    Type: String
+    Default: ""
+    Description: Secrets Manager ARN for the Azure app client secret (JSON clientSecret or plain string).
+  OutlookOAuthRedirectUri:
+    Type: String
+    Default: "https://app.rapidcortex.us/rc-admin/sales-automation/outlook-callback"
+    Description: Microsoft redirect URI. Must match the Azure app registration exactly.
+  OutlookGraphMock:
+    Type: String
+    Default: "false"
+    AllowedValues: ["true", "false"]
+    Description: When true, Connect Outlook stores a mock mailbox and the send worker logs instead of Graph.
   AnthropicApiKeySecretArn:
     Type: String
     Default: ""
@@ -2346,6 +2363,11 @@ Resources:
         OpenAiWebSearchEnabled: !Ref OpenAiWebSearchEnabled
         EnableRapidIqNewHttpRoutes: !Ref EnableRapidIqNewHttpRoutes
         EnableRapidIqNestedExpansion: !Ref EnableRapidIqNestedExpansion
+        ExternalApiEncryptionKeyArn: !Ref ExternalApiEncryptionKeyArn
+        OutlookOAuthClientId: !Ref OutlookOAuthClientId
+        OutlookOAuthClientSecretArn: !Ref OutlookOAuthClientSecretArn
+        OutlookOAuthRedirectUri: !Ref OutlookOAuthRedirectUri
+        OutlookGraphMock: !Ref OutlookGraphMock
         RapidIqOpportunitiesTable:
           Fn::If:
             - HasDataLayerNestedStack
@@ -3649,6 +3671,49 @@ Resources:
             - !Sub "${DynamoTableNamePrefix}-agencies-${DeploymentStage}"
         ExistingCallAssistTableName: !Ref ExistingCallAssistTableName
         CallAssistConnectWebhookSecretArn: !Ref CallAssistConnectWebhookSecretArn
+        AppPublicBaseUrl: !Ref AppPublicBaseUrl
+        ManagedPolicyNamePrefix: !Ref AWS::StackName
+
+  AppSamSopIntelStack2:
+    Type: AWS::CloudFormation::Stack
+    Metadata:
+      cfn-lint:
+        config:
+          ignore_checks:
+            - W3005
+    DependsOn:
+      - AppSam2Stack
+      - AppSamRealtime2Stack
+    Properties:
+      TimeoutInMinutes: 60
+      TemplateURL: nested/stack-app-sam-sop-intel.yaml
+      Parameters:
+        DeploymentStage: !Ref DeploymentStage
+        HttpApiId: !GetAtt AppSam2Stack.Outputs.HttpApiId
+        HttpApiJwtAuthorizerId: "3ui9q4"
+        ImportedCognitoUserPoolId: !GetAtt AppSamStackV2.Outputs.UserPoolId
+        ImportedCognitoWebClientId: !GetAtt AppSamStackV2.Outputs.UserPoolClientId
+        ImportedCognitoIssuer: !GetAtt AppSamStackV2.Outputs.CognitoIssuer
+        AuditTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.AuditTable
+            - !Sub "${DynamoTableNamePrefix}-audit-${DeploymentStage}"
+        AgenciesTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.AgenciesTable
+            - !Sub "${DynamoTableNamePrefix}-agencies-${DeploymentStage}"
+        WebSocketConnectionsTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.WebSocketConnectionsTable
+            - !Sub "${DynamoTableNamePrefix}-websocket-connections-${DeploymentStage}"
+        WebSocketApiEndpoint: !Sub
+          - "https://${ApiId}.execute-api.${AWS::Region}.amazonaws.com/${DeploymentStage}"
+          - ApiId: !GetAtt AppSamRealtime2Stack.Outputs.WebSocketApiId
+        WebSocketApiId: !GetAtt AppSamRealtime2Stack.Outputs.WebSocketApiId
+        AnthropicApiKeySecretArn: !Ref AnthropicApiKeySecretArn
         AppPublicBaseUrl: !Ref AppPublicBaseUrl
         ManagedPolicyNamePrefix: !Ref AWS::StackName
 

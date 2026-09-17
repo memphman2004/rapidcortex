@@ -12,6 +12,7 @@ import {
   extractIntakeFields,
   EMERGENCY_TRANSFER_ACTION,
   findCallType,
+  formatCallAssistCaseNumber,
   formatTtySms,
   interpolateCallAssistVoice,
   isImmutableEmergency,
@@ -119,6 +120,10 @@ export async function initiateSession(opts: {
   const session: CallAssistSessionRecord = {
     agencyId: opts.agencyId,
     sessionId: makeId("cas"),
+    caseNumber: formatCallAssistCaseNumber({
+      agencyId: opts.agencyId,
+      serial: `${Date.now()}${Math.floor(Math.random() * 1e6)}`,
+    }),
     state: "DISCLOSURE",
     mode: opts.mode ?? "NON_EMERGENCY",
     source: opts.source ?? "LIVE",
@@ -369,6 +374,7 @@ export async function processUtterance(opts: {
   session.knowledgeExcerpt = kbHit?.excerpt;
   const rapid = await lookupRapidSosLocation({
     agencyId: opts.agencyId,
+    ani: session.intake.callbackNumber,
     mock: env.callAssistRapidSosMock,
   });
   if (rapid?.lat && rapid.lng && !session.intake.locationLat) {
@@ -473,7 +479,7 @@ export async function processUtterance(opts: {
     ];
   }
 
-  if (confidence.action === "escalate_human" && !triage.emergencyDetected && !infoClass) {
+  if (confidence.action === "escalate_human" && !triage.emergencyDetected && !infoClass && session.source !== "DEMO") {
     session.state = "TRANSFERRING_HUMAN";
     session.continueAiConversation = false;
     session.updatedAt = now;
@@ -485,7 +491,7 @@ export async function processUtterance(opts: {
       destinationId: "queue-call-taker",
       destinationDisplay: "Live call taker",
       channel: "QUEUE",
-      outcome: await mockOrInitiated(session.source === "DEMO"),
+      outcome: await mockOrInitiated(false),
     });
     session.lastTransferOutcome = lowXfer.outcome;
     await callAssistStore.putSession(session);

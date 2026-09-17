@@ -9,13 +9,13 @@ Rapid Cortex is a production public safety intelligence platform for:
 - Emergency communications centers
 - Law enforcement, fire, EMS
 - Emergency management agencies
-- Product verticals: Campus Safety, Venue Operations, Hospital Routing, Transit Operations
+- Product verticals: Campus Safety, Venue Operations, Hospital Routing, Transit Operations, Call Assist (non-emergency)
 
 It enhances operations but does NOT replace CAD, telephony, dispatchers, or medical direction.
 
-**Role dashboard UI/UX (navigation, widgets, visual themes, "cannot" lists):** see `docs/role-dashboard-spec.md` — canonical spec for all 25 active roles. Implement absent UI for forbidden actions; never gray out permanent RBAC denials.
+**Role dashboard UI/UX (navigation, widgets, visual themes, "cannot" lists):** see `docs/role-dashboard-spec.md` — canonical spec for all 28 active roles. Implement absent UI for forbidden actions; never gray out permanent RBAC denials.
 
-**Sidebar navigation (all 25 roles):** single source of truth in `apps/web/lib/navigation/role-nav.ts`. Resolve with `getRoleNav(role, buildNavContext(user, jurisdictionSlug))`, filter features via `filterRoleNavByFeatures`, render with `RoleNavSidebar` / `RoleNavSections`. VIEW ONLY label badges stay visible; feature-gated items omit when flag is off.
+**Sidebar navigation (all 28 roles):** single source of truth in `apps/web/lib/navigation/role-nav.ts`. Resolve with `getRoleNav(role, buildNavContext(user, jurisdictionSlug))`, filter features via `filterRoleNavByFeatures`, render with `RoleNavSidebar` / `RoleNavSections`. VIEW ONLY label badges stay visible; feature-gated items omit when flag is off.
 
 ---
 
@@ -83,6 +83,10 @@ Roles are stored as `custom:role` in Cognito JWT tokens. Always use the canonica
 - Canonical JWT values are snake_case (`transit_admin`, …); Cognito groups are `TRANSIT_*`.
 - Ops console: `/app/transit/{admin|supervisor|security|operator}` and `/transit/{code}`.
 
+**Call Assist (non-emergency only — not a 911 dispatcher console):** `CALL_ASSIST_ADMIN` | `CALL_ASSIST_SUPERVISOR` | `CALL_ASSIST_OPERATOR`
+- Canonical JWT values are snake_case (`call_assist_admin`, …); Cognito groups are `CALL_ASSIST_*`.
+- Ops console: `/app/call-assist/{admin|supervisor|operator}`. Never land on `/{jurisdiction}/dashboard`.
+
 ### Role routing (post-login destinations):
 ```
 dispatcher         → /{jurisdiction}/dashboard
@@ -101,6 +105,9 @@ TRANSIT_ADMIN      → /app/transit/admin
 TRANSIT_SUPERVISOR → /app/transit/supervisor
 TRANSIT_SECURITY   → /app/transit/security
 TRANSIT_OPERATOR   → /app/transit/operator
+CALL_ASSIST_ADMIN      → /app/call-assist/admin
+CALL_ASSIST_SUPERVISOR → /app/call-assist/supervisor
+CALL_ASSIST_OPERATOR   → /app/call-assist/operator
 ```
 
 ### Authorization rules:
@@ -247,6 +254,7 @@ Each role must only see tools relevant to their function:
 - `/app/campus/*` → CAMPUS_* roles + rcsuperadmin only
 - `/app/hospital/*`, `/hospital-admin/*`, `/hospital-staff/*` → HOSPITAL_* roles + rcsuperadmin only
 - `/app/transit/*` and `/transit/*` → TRANSIT_* roles + rcsuperadmin only
+- `/app/call-assist/*` → CALL_ASSIST_* roles + rcsuperadmin only
 - PSAP jurisdiction routes (`/{jurisdiction}/*`) → PSAP roles only, redirect product-vertical users to their home
 
 ### Session normalization (CRITICAL)
@@ -254,7 +262,7 @@ Always call `normalizeSessionRole()` before `migrateLegacyRapidCortexRoleTokenVa
 
 ```typescript
 // CORRECT
-const role = normalizeSessionRole(raw);       // preserves VENUE_*, CAMPUS_*, HOSPITAL_*, TRANSIT_*
+const role = normalizeSessionRole(raw);       // preserves VENUE_*, CAMPUS_*, HOSPITAL_*, TRANSIT_*, CALL_ASSIST_*
 
 // WRONG — collapses product roles to PSAP dispatcher
 const role = normalizeRole(raw);              // deprecated, do not use

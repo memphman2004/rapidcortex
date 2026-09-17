@@ -29,6 +29,9 @@ const ALL_ROLES = [
   "TRANSIT_SUPERVISOR",
   "TRANSIT_SECURITY",
   "TRANSIT_OPERATOR",
+  "CALL_ASSIST_ADMIN",
+  "CALL_ASSIST_SUPERVISOR",
+  "CALL_ASSIST_OPERATOR",
 ] as const;
 
 describe("getRoleNav", () => {
@@ -220,6 +223,25 @@ describe("getRoleNav", () => {
     expect(dispatcher.sections.flatMap((s) => s.items).find((i) => i.id === "cad-bridge")?.href).toBe(
       "/test-psap/admin/cad/bridge",
     );
+  });
+
+  it("Call Assist–only nav never includes the 911 dispatcher dashboard", () => {
+    const operator = getRoleNav("call_assist_operator", {});
+    const hrefs = operator.sections.flatMap((s) => s.items).map((i) => i.href);
+    expect(operator.accent).toBe("teal");
+    expect(hrefs).toContain("/app/call-assist/operator");
+    expect(hrefs.some((h) => h.includes("/dashboard") || h.includes("/dispatcher"))).toBe(false);
+    const admin = getRoleNav("CALL_ASSIST_ADMIN", {});
+    expect(admin.sections.flatMap((s) => s.items).map((i) => i.href)).toContain("/app/call-assist/admin");
+    expect(admin.sections.flatMap((s) => s.items).map((i) => i.href)).toContain("/app/call-assist/users");
+    expect(admin.sections.flatMap((s) => s.items).map((i) => i.href)).not.toContain("/app/call-assist/operator");
+    const supervisor = getRoleNav("call_assist_supervisor", {});
+    const supervisorHrefs = supervisor.sections.flatMap((s) => s.items).map((i) => i.href);
+    expect(supervisorHrefs).toContain("/app/call-assist/supervisor");
+    expect(supervisorHrefs).toContain("/app/call-assist/qa");
+    expect(supervisorHrefs).toContain("/app/call-assist/analytics");
+    expect(supervisorHrefs).not.toContain("/app/call-assist/admin");
+    expect(hrefs).not.toContain("/app/call-assist/qa");
   });
 
   it("keeps Rapid IQ in SALES & CRM and does not expose a separate Pipeline nav item", () => {
