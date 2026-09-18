@@ -1476,6 +1476,22 @@ export function isAddonIncludedInPlan(def: AddonDefinition, planLabel: string): 
   return def.planAvailability.includes(normalized);
 }
 
+/** Explicit opt-out of a plan-included SKU (toggle off). Seeded `{ enabled: false }` is not an opt-out. */
+export function isAddonOptedOut(state: { enabled?: boolean; disabledAt?: string } | undefined): boolean {
+  return Boolean(state && state.enabled === false && state.disabledAt);
+}
+
+/** Granted for this tenant: paid-enabled, or plan-included and not opted out. */
+export function isAddonActiveForTenant(
+  def: AddonDefinition,
+  planLabel: string,
+  state: { enabled?: boolean; disabledAt?: string } | undefined,
+): boolean {
+  if (state?.enabled) return true;
+  if (isAddonOptedOut(state)) return false;
+  return isAddonIncludedInPlan(def, planLabel);
+}
+
 export function normalizePlanLabel(plan: string): CommercialPlanLabel | null {
   const p = plan.trim().toLowerCase();
   if (p === "essential" || p === "starter" || p.includes("essential") || p.includes("starter")) {

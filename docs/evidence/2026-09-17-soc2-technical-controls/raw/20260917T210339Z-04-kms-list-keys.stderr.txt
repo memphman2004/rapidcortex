@@ -1,0 +1,2 @@
+
+aws: [ERROR]: An error occurred (AccessDeniedException) when calling the ListKeys operation: User: arn:aws:iam::158961537080:user/rapid-cortex-deploy is not authorized to perform: kms:ListKeys on resource: * because no identity-based policy allows the kms:ListKeys action

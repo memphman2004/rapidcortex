@@ -1,0 +1,104 @@
+[
+    {
+        "OutputKey": "GetTriageResultFunctionName",
+        "OutputValue": "rapid-cortex-dev-AppSamSta-GetTriageResultFunction-9aGzbioXmEQw"
+    },
+    {
+        "OutputKey": "CognitoIssuer",
+        "OutputValue": "https://cognito-idp.us-east-1.amazonaws.com/us-east-1_0z6tA6WBs",
+        "Description": "JWT issuer for this pool"
+    },
+    {
+        "OutputKey": "QaHttpFunctionName",
+        "OutputValue": "rapid-cortex-dev-AppSamStackV2-1BR5-QaHttpFunction-H6gxGfbCJJcn"
+    },
+    {
+        "OutputKey": "HttpApiId",
+        "OutputValue": "k26yw4o3xk",
+        "Description": "HTTP API ID (CloudWatch metrics ApiId dimension)."
+    },
+    {
+        "OutputKey": "AnalyzeIncidentFunctionName",
+        "OutputValue": "rapid-cortex-dev-AppSamSta-AnalyzeIncidentFunction-UwjvwYzinYxg"
+    },
+    {
+        "OutputKey": "CadWebhookTopicArn",
+        "OutputValue": "arn:aws:sns:us-east-1:158961537080:rapid-cortex-dev-AppSamStackV2-1BR5EYUP7MO39-CadWebhookProcessingTopic-4pi2AP3cZWGg",
+        "Description": "SNS topic ARN for CAD webhook ingest fan-out (subscribers process async)."
+    },
+    {
+        "OutputKey": "NativeUserPoolClientId",
+        "OutputValue": "3nkemnrffspnaa0ikp2un6koh0",
+        "Description": "Cognito native app client ID (PKCE, no secret)."
+    },
+    {
+        "OutputKey": "HttpApiUrl",
+        "OutputValue": "https://k26yw4o3xk.execute-api.us-east-1.amazonaws.com",
+        "Description": "HTTP API base URL"
+    },
+    {
+        "OutputKey": "UserPoolClientId",
+        "OutputValue": "7moi6sgc2uf4o31omgvo77h3v5",
+        "Description": "Cognito web app client ID"
+    },
+    {
+        "OutputKey": "QaScoringFunctionName",
+        "OutputValue": "rapid-cortex-dev-AppSamStackV2-1-QaScoringFunction-oOkrleb7U0Q8"
+    },
+    {
+        "OutputKey": "UserPoolId",
+        "OutputValue": "us-east-1_0z6tA6WBs",
+        "Description": "Cognito User Pool ID"
+    },
+    {
+        "OutputKey": "PilotOperationsDashboardName",
+        "OutputValue": "rapid-cortex-dev-ops",
+        "Description": "CloudWatch dashboard name (open in console under Dashboards / custom)."
+    },
+    {
+        "OutputKey": "OpsAlertsTopicArn",
+        "OutputValue": "arn:aws:sns:us-east-1:158961537080:rapid-cortex-dev-AppSamStackV2-1BR5EYUP7MO39-OpsAlertsTopic-p56TnLJKwZWR",
+        "Description": "SNS topic ARN for CloudWatch alarm notifications (subscribe for email/SMS/Opsgenie)."
+    },
+    {
+        "OutputKey": "DeploymentStage",
+        "OutputValue": "dev",
+        "Description": "Logical environment (dev / staging / prod)"
+    },
+    {
+        "OutputKey": "PostAgencySopUploadUrlFunctionName",
+        "OutputValue": "rapid-cortex-dev-AppSamSt-PostAgencySopUploadUrlFu-ClH6ntrJrI7J"
+    },
+    {
+        "OutputKey": "CognitoHostedUiBase",
+        "OutputValue": "https://rapidcortex-dev-158961537080.auth.us-east-1.amazoncognito.com",
+        "Description": "Hosted UI / OAuth2 base (domain prefix includes stage)"
+    },
+    {
+        "OutputKey": "OverrideTriageFunctionName",
+        "OutputValue": "rapid-cortex-dev-AppSamStac-OverrideTriageFunction-SDzV7GbyVj86"
+    },
+    {
+        "OutputKey": "PostIncidentAudioChunkFunctionName",
+        "OutputValue": "rapid-cortex-dev-AppSamSt-PostIncidentAudioChunkFu-nkDob4HIr4lI"
+    },
+    {
+        "OutputKey": "ApiCustomDomainUrl",
+        "OutputValue": "https://api.rapidcortex.us",
+        "Description": "Production API custom domain URL when ACM + custom domain are configured; otherwise empty."
+    },
+    {
+        "OutputKey": "RootDomainName",
+        "OutputValue": "rapidcortex.us",
+        "Description": "Primary public-facing domain for Rapid Cortex."
+    },
+    {
+        "OutputKey": "DetectIncidentTypeFunctionName",
+        "OutputValue": "rapid-cortex-dev-AppSamSt-DetectIncidentTypeFuncti-teQisEceLhxp"
+    },
+    {
+        "OutputKey": "ApiWebAclArn",
+        "OutputValue": "",
+        "Description": "Regional WAF web ACL ARN when WAF is enabled; otherwise empty (parent stack always reads this output)."
+    }
+]

@@ -1828,6 +1828,31 @@ textarea {
   opacity: 1;
 }
 
+.rc-login-mfa-panel {
+  margin-bottom: 17px;
+}
+
+.rc-login-mfa-steps {
+  margin: 0 0 14px;
+  padding-left: 18px;
+  font-size: 12.5px;
+  line-height: 1.55;
+  color: #8aa4bf;
+}
+
+.rc-login-mfa-steps li + li {
+  margin-top: 6px;
+}
+
+.rc-login-mfa-qr {
+  display: block;
+  width: 196px;
+  height: 196px;
+  margin: 0 auto 4px;
+  border-radius: 12px;
+  background: #fff;
+}
+
 .rc-login-submit {
   display: block;
   width: 100%;

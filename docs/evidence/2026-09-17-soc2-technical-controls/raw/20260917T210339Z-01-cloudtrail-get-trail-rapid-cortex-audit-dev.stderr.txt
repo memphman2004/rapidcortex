@@ -1,0 +1,2 @@
+
+aws: [ERROR]: An error occurred (AccessDeniedException) when calling the GetTrail operation: User: arn:aws:iam::158961537080:user/rapid-cortex-deploy is not authorized to perform: cloudtrail:GetTrail on resource: arn:aws:cloudtrail:us-east-1:158961537080:trail/rapid-cortex-audit-dev because no identity-based policy allows the cloudtrail:GetTrail action

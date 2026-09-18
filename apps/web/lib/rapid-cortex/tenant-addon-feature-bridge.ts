@@ -1,6 +1,6 @@
 import {
   ADDON_CATALOG,
-  isAddonIncludedInPlan,
+  isAddonActiveForTenant,
   type AddonKey,
   type TenantEntitlements,
 } from "rapid-cortex-shared";
@@ -50,7 +50,7 @@ export function rapidCortexFeatureIdsFromTenantEntitlements(entitlements: Tenant
   const out = new Set<string>();
   for (const def of ADDON_CATALOG) {
     const state = entitlements.addons[def.key];
-    const active = Boolean(state?.enabled) || isAddonIncludedInPlan(def, entitlements.plan);
+    const active = isAddonActiveForTenant(def, entitlements.plan, state);
     if (!active) continue;
     for (const featureId of mapAddonKeyToFeatureIds(def.key)) {
       out.add(featureId);

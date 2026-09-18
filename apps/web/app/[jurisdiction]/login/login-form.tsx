@@ -30,6 +30,8 @@ import { ensureCsrfCookie, jsonHeadersWithCsrf } from "@/lib/csrf-client";
 import { COGNITO_PASSWORD_REQUIREMENTS, isValidCognitoPassword } from "@/lib/auth/cognito-password-policy";
 import { useJurisdictionSlug } from "@/lib/jurisdiction-context";
 import { isHostedUiSsoEnabled } from "@/lib/runtime-flags";
+import { MfaSetupOptions } from "@/components/auth/mfa-setup-options";
+import { buildRapidCortexTotpOtpauthUrl } from "@/lib/auth/totp-otpauth";
 import { Eye, EyeOff } from "lucide-react";
 
 type AuthChallenge =
@@ -267,14 +269,14 @@ export function LoginForm({
         } | null;
         if (cancelled) return;
         if (!res.ok || !data?.secretCode || !data.session) {
-          setAssociateError(data?.error ?? "Could not start authenticator setup");
+          setAssociateError(data?.error ?? "Could not start Google Authenticator setup");
           return;
         }
         setTotpSecret(data.secretCode);
         setMfaAssociateSession(data.session);
         setAssociateError(null);
       } catch {
-        if (!cancelled) setAssociateError("Could not start authenticator setup");
+        if (!cancelled) setAssociateError("Could not start Google Authenticator setup");
       }
     })();
     return () => {
@@ -398,7 +400,7 @@ export function LoginForm({
       if (activeChallenge === "MFA_SETUP" && mfaAssociateSession && challengeUsername) {
         const trimmed = totpCode.trim();
         if (trimmed.length < 6) {
-          setError("Enter the 6-digit code from your authenticator app");
+          setError("Enter the 6-digit code from Google Authenticator");
           return;
         }
         const res = await fetch("/api/auth/mfa/complete-setup", {
@@ -413,7 +415,7 @@ export function LoginForm({
         });
         if (!res.ok) {
           const body = (await res.json().catch(() => null)) as { error?: string } | null;
-          setError(body?.error ?? "Could not verify authenticator");
+          setError(body?.error ?? "Could not verify Google Authenticator");
           return;
         }
         resetChallenges();
@@ -598,19 +600,19 @@ export function LoginForm({
   const justVerified = loginQuery.signupJustVerified;
   const otpauthUrl =
     totpSecret && challengeUsername
-      ? `otpauth://totp/${encodeURIComponent("Rapid Cortex")}:${encodeURIComponent(challengeUsername)}?secret=${encodeURIComponent(totpSecret)}&issuer=${encodeURIComponent("Rapid Cortex")}`
+      ? buildRapidCortexTotpOtpauthUrl(challengeUsername, totpSecret)
       : null;
 
   const cardTitle = inNewPassword
     ? "Set a new password"
     : inMfaSetup
-      ? "Set up authenticator (required)"
+      ? "Set up Google Authenticator"
       : inEmailOtp
         ? "Enter email verification code"
         : inMfaLogin
           ? activeChallenge === "SMS_MFA"
             ? "Enter SMS code"
-            : "Enter authenticator code"
+            : "Enter 6-digit code"
           : inForgotConfirm
             ? "Reset your password"
             : inForgotRequest
@@ -620,13 +622,13 @@ export function LoginForm({
   const cardNote = inNewPassword
     ? "Your account requires a new password before you can continue to your secure workspace."
     : inMfaSetup
-      ? "Rapid Cortex requires two-factor authentication. Add this account to an app such as Google Authenticator or 1Password, then enter the 6-digit code."
+      ? "Stay on this page. Open Google Authenticator on your phone, scan the QR, then enter the 6-digit code."
       : inEmailOtp
         ? "A one-time code was sent to your account email. Enter it below to finish signing in."
         : inMfaLogin
           ? activeChallenge === "SMS_MFA"
             ? "Enter the one-time code sent to your phone."
-            : "Open your authenticator app and enter the current 6-digit code."
+            : "Open Google Authenticator and enter the current 6-digit code."
           : inForgotConfirm
             ? "Enter the verification code from your email and choose a new password that meets the requirements below."
             : inForgotRequest
@@ -836,46 +838,18 @@ export function LoginForm({
 
         {inMfaSetup ? (
           <>
-            <p className="rc-login-hint">
-              Account: <span className="font-mono text-[#e2ecf8]">{challengeUsername}</span>
-            </p>
             {associateError ? (
               <p className="rc-login-banner-error">{associateError}</p>
-            ) : totpSecret ? (
-              <>
-                <p className="rc-login-note">
-                  Add this account in Google Authenticator, 1Password, or another TOTP app—use the button on your phone
-                  or enter the secret manually.
-                </p>
-                {otpauthUrl ? (
-                  <a
-                    href={otpauthUrl}
-                    className="rc-login-submit"
-                    style={{ display: "block", textAlign: "center", textDecoration: "none", marginTop: 0, marginBottom: 17 }}
-                  >
-                    Open in authenticator app
-                  </a>
-                ) : null}
-                <label className="rc-login-field">
-                  <span className="rc-login-label">Secret (manual entry)</span>
-                  <input readOnly value={totpSecret} className="rc-login-input font-mono text-xs" />
-                </label>
-                <label className="rc-login-field">
-                  <span className="rc-login-label">6-digit code</span>
-                  <input
-                    inputMode="numeric"
-                    autoComplete="one-time-code"
-                    pattern="[0-9]*"
-                    maxLength={12}
-                    required
-                    value={totpCode}
-                    onChange={(e) => setTotpCode(e.target.value.replace(/\D/g, ""))}
-                    className="rc-login-input"
-                  />
-                </label>
-              </>
+            ) : totpSecret && otpauthUrl && challengeUsername ? (
+              <MfaSetupOptions
+                accountLabel={challengeUsername}
+                totpSecret={totpSecret}
+                otpauthUrl={otpauthUrl}
+                totpCode={totpCode}
+                onTotpCodeChange={setTotpCode}
+              />
             ) : (
-              <p className="rc-login-hint">Preparing authenticator setup…</p>
+              <p className="rc-login-hint">Preparing Google Authenticator setup…</p>
             )}
           </>
         ) : null}

@@ -84,6 +84,8 @@ export OPENAI_API_KEY_SECRET_ARN="${OPENAI_API_KEY_SECRET_ARN:-arn:aws:secretsma
 export ANTHROPIC_API_KEY_SECRET_ARN="${ANTHROPIC_API_KEY_SECRET_ARN:-arn:aws:secretsmanager:us-east-1:158961537080:secret:rapid-cortex/ai/anthropic-fHk4y2}"
 export AZURE_SPEECH_KEY_SECRET_ARN="${AZURE_SPEECH_KEY_SECRET_ARN:-arn:aws:secretsmanager:us-east-1:158961537080:secret:rapid-cortex/multilingual/azure-keys-H28Jkj}"
 export AZURE_TRANSLATION_KEY_SECRET_ARN="${AZURE_TRANSLATION_KEY_SECRET_ARN:-arn:aws:secretsmanager:us-east-1:158961537080:secret:rapid-cortex/multilingual/azure-keys-H28Jkj}"
+export GOOGLE_CLOUD_PROJECT_ID="${GOOGLE_CLOUD_PROJECT_ID:-rapidcortex-prod}"
+export GOOGLE_APPLICATION_CREDENTIALS_SECRET_ARN="${GOOGLE_APPLICATION_CREDENTIALS_SECRET_ARN:-arn:aws:secretsmanager:us-east-1:158961537080:secret:rapid-cortex/multilingual/google-service-account-xgBdWL}"
 
 export ENABLE_CONNECT_RING=true
 export ENABLE_CONNECT_NEST=true
@@ -201,10 +203,11 @@ export NEXT_PUBLIC_ENABLE_RAPID_IQ="${NEXT_PUBLIC_ENABLE_RAPID_IQ:-1}"
 export ENABLE_RAPID_IQ_PIPELINE=true
 export ENABLE_SALES_AUTOMATION=true
 export NEXT_PUBLIC_ENABLE_SALES_AUTOMATION="${NEXT_PUBLIC_ENABLE_SALES_AUTOMATION:-1}"
-# RC Sales Automation campaign mail via Microsoft Graph. Leave mock=true until Azure app + secret ARN are set.
-export OUTLOOK_GRAPH_MOCK="${OUTLOOK_GRAPH_MOCK:-true}"
-export OUTLOOK_OAUTH_CLIENT_ID="${OUTLOOK_OAUTH_CLIENT_ID:-}"
-export OUTLOOK_OAUTH_CLIENT_SECRET_ARN="${OUTLOOK_OAUTH_CLIENT_SECRET_ARN:-}"
+# RC Sales Automation campaign mail via Microsoft Graph (hello@rapidcortex.us).
+export OUTLOOK_GRAPH_MOCK="${OUTLOOK_GRAPH_MOCK:-false}"
+export OUTLOOK_OAUTH_CLIENT_ID="${OUTLOOK_OAUTH_CLIENT_ID:-6110ccac-58b6-4976-86c9-46339151aa9f}"
+export OUTLOOK_OAUTH_TENANT="${OUTLOOK_OAUTH_TENANT:-0a85f08a-54a8-43de-bdc1-4ad4e52d3af8}"
+export OUTLOOK_OAUTH_CLIENT_SECRET_ARN="${OUTLOOK_OAUTH_CLIENT_SECRET_ARN:-arn:aws:secretsmanager:us-east-1:158961537080:secret:rapid-cortex/rapid-iq/outlook-oauth-3klLxF}"
 export OUTLOOK_OAUTH_REDIRECT_URI="${OUTLOOK_OAUTH_REDIRECT_URI:-https://app.rapidcortex.us/rc-admin/sales-automation/outlook-callback}"
 export RAPID_IQ_AI_ENABLED="${RAPID_IQ_AI_ENABLED:-true}"
 # Opportunity Intelligence web-search URL discovery. Default off (~$2/day when true).

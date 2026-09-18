@@ -1,0 +1,274 @@
+{
+    "StackResourceSummaries": [
+        {
+            "LogicalResourceId": "AppSam2Stack",
+            "PhysicalResourceId": "arn:aws:cloudformation:us-east-1:158961537080:stack/rapid-cortex-dev-AppSam2Stack-1URVS591Q6ESS/2beefc40-4e62-11f1-b9b4-0e94aee7e1b1",
+            "ResourceType": "AWS::CloudFormation::Stack",
+            "LastUpdatedTimestamp": "2026-09-16T04:55:45.903000+00:00",
+            "ResourceStatus": "UPDATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "LogicalResourceId": "AppSam3Stack",
+            "PhysicalResourceId": "arn:aws:cloudformation:us-east-1:158961537080:stack/rapid-cortex-dev-AppSam3Stack-648NXCFBZ3XD/b469a460-63c7-11f1-8b0e-0ecd5dddff43",
+            "ResourceType": "AWS::CloudFormation::Stack",
+            "LastUpdatedTimestamp": "2026-09-16T04:55:24.470000+00:00",
+            "ResourceStatus": "UPDATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "LogicalResourceId": "AppSam4Stack",
+            "PhysicalResourceId": "arn:aws:cloudformation:us-east-1:158961537080:stack/rapid-cortex-dev-AppSam4Stack-QVWYM7W29YV/b463ff10-63c7-11f1-8761-0e17660260f3",
+            "ResourceType": "AWS::CloudFormation::Stack",
+            "LastUpdatedTimestamp": "2026-09-16T04:55:35.222000+00:00",
+            "ResourceStatus": "UPDATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "LogicalResourceId": "AppSam5Stack",
+            "PhysicalResourceId": "arn:aws:cloudformation:us-east-1:158961537080:stack/rapid-cortex-dev-AppSam5Stack-1T38GG051RWIG/b48590d0-63c7-11f1-a6c5-0affdacdfdf9",
+            "ResourceType": "AWS::CloudFormation::Stack",
+            "LastUpdatedTimestamp": "2026-09-16T04:55:24.334000+00:00",
+            "ResourceStatus": "UPDATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "LogicalResourceId": "AppSam6Stack",
+            "PhysicalResourceId": "arn:aws:cloudformation:us-east-1:158961537080:stack/rapid-cortex-dev-AppSam6Stack-1TOO1VW8978SL/723dab80-afbd-11f1-ab3c-0affd607d14b",
+            "ResourceType": "AWS::CloudFormation::Stack",
+            "LastUpdatedTimestamp": "2026-09-16T04:55:13.444000+00:00",
+            "ResourceStatus": "UPDATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "LogicalResourceId": "AppSamBillingStack",
+            "PhysicalResourceId": "arn:aws:cloudformation:us-east-1:158961537080:stack/rapid-cortex-dev-AppSamBillingStack-Z10OCGVMREIR/922dc430-b093-11f1-ae2f-0e9dcaa4ecab",
+            "ResourceType": "AWS::CloudFormation::Stack",
+            "LastUpdatedTimestamp": "2026-09-16T04:55:13.399000+00:00",
+            "ResourceStatus": "UPDATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "LogicalResourceId": "AppSamCadBridgeStack2",
+            "PhysicalResourceId": "arn:aws:cloudformation:us-east-1:158961537080:stack/rapid-cortex-dev-AppSamCadBridgeStack2-102FC5VSSNCZ4/5d6d9b20-afbd-11f1-a87a-0e3535c62795",
+            "ResourceType": "AWS::CloudFormation::Stack",
+            "LastUpdatedTimestamp": "2026-09-16T04:55:13.602000+00:00",
+            "ResourceStatus": "UPDATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "LogicalResourceId": "AppSamCadStack",
+            "PhysicalResourceId": "arn:aws:cloudformation:us-east-1:158961537080:stack/rapid-cortex-dev-AppSamCadStack-S2WMAU3RLPUM/5d8011b0-afbd-11f1-add3-0e6e0ad93995",
+            "ResourceType": "AWS::CloudFormation::Stack",
+            "LastUpdatedTimestamp": "2026-09-16T04:55:13.376000+00:00",
+            "ResourceStatus": "UPDATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "LogicalResourceId": "AppSamCallAssistStack2",
+            "PhysicalResourceId": "arn:aws:cloudformation:us-east-1:158961537080:stack/rapid-cortex-dev-AppSamCallAssistStack2-12F6PHOUU1062/5d72cb40-afbd-11f1-8557-0affed7a444d",
+            "ResourceType": "AWS::CloudFormation::Stack",
+            "LastUpdatedTimestamp": "2026-09-16T04:55:13.426000+00:00",
+            "ResourceStatus": "UPDATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "LogicalResourceId": "AppSamCleryActStack5",
+            "PhysicalResourceId": "arn:aws:cloudformation:us-east-1:158961537080:stack/rapid-cortex-dev-AppSamCleryActStack5-1RL77P57Z9BQ4/f6869190-afbd-11f1-88fe-1271b4e6a633",
+            "ResourceType": "AWS::CloudFormation::Stack",
+            "LastUpdatedTimestamp": "2026-09-16T04:55:13.373000+00:00",
+            "ResourceStatus": "UPDATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "LogicalResourceId": "AppSamEscalationStack",
+            "PhysicalResourceId": "arn:aws:cloudformation:us-east-1:158961537080:stack/rapid-cortex-dev-AppSamEscalationStack-1G9BQD9OF84RU/ee718220-98a8-11f1-87a1-0affd079d93f",
+            "ResourceType": "AWS::CloudFormation::Stack",
+            "LastUpdatedTimestamp": "2026-09-16T04:55:13.318000+00:00",
+            "ResourceStatus": "UPDATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "LogicalResourceId": "AppSamFieldStack",
+            "PhysicalResourceId": "arn:aws:cloudformation:us-east-1:158961537080:stack/rapid-cortex-dev-AppSamFieldStack-STTXN98C2T4R/2ec57bd0-afbd-11f1-8e27-12733eceb31f",
+            "ResourceType": "AWS::CloudFormation::Stack",
+            "LastUpdatedTimestamp": "2026-09-16T04:55:45.952000+00:00",
+            "ResourceStatus": "UPDATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "LogicalResourceId": "AppSamHospital2Stack",
+            "PhysicalResourceId": "arn:aws:cloudformation:us-east-1:158961537080:stack/rapid-cortex-dev-AppSamHospital2Stack-1EN64XEKQVK4R/b5987460-56b6-11f1-99e8-0e3526a02887",
+            "ResourceType": "AWS::CloudFormation::Stack",
+            "LastUpdatedTimestamp": "2026-09-16T04:55:13.337000+00:00",
+            "ResourceStatus": "UPDATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "LogicalResourceId": "AppSamLocationStack2",
+            "PhysicalResourceId": "arn:aws:cloudformation:us-east-1:158961537080:stack/rapid-cortex-dev-AppSamLocationStack2-NLPIN7AIYLG6/5d6d4d00-afbd-11f1-b3dc-0eea0ef667bb",
+            "ResourceType": "AWS::CloudFormation::Stack",
+            "LastUpdatedTimestamp": "2026-09-16T04:55:13.404000+00:00",
+            "ResourceStatus": "UPDATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "LogicalResourceId": "AppSamNg911Stack2",
+            "PhysicalResourceId": "arn:aws:cloudformation:us-east-1:158961537080:stack/rapid-cortex-dev-AppSamNg911Stack2-1G4HI1Y1FH0V9/ee80eb70-98a8-11f1-8b3b-0e080cb65743",
+            "ResourceType": "AWS::CloudFormation::Stack",
+            "LastUpdatedTimestamp": "2026-09-16T04:55:13.426000+00:00",
+            "ResourceStatus": "UPDATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "LogicalResourceId": "AppSamPhysicalSecurityStack5",
+            "PhysicalResourceId": "arn:aws:cloudformation:us-east-1:158961537080:stack/rapid-cortex-dev-AppSamPhysicalSecurityStack5-1PCQIBGA3RUWU/f68de490-afbd-11f1-af57-0affde06d541",
+            "ResourceType": "AWS::CloudFormation::Stack",
+            "LastUpdatedTimestamp": "2026-09-16T04:55:13.385000+00:00",
+            "ResourceStatus": "UPDATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "LogicalResourceId": "AppSamPsapCrmStack",
+            "PhysicalResourceId": "arn:aws:cloudformation:us-east-1:158961537080:stack/rapid-cortex-dev-AppSamPsapCrmStack-1MQBHZ7F0VQRH/ee7a34b0-98a8-11f1-89ec-12951f7b466d",
+            "ResourceType": "AWS::CloudFormation::Stack",
+            "LastUpdatedTimestamp": "2026-09-16T04:55:13.566000+00:00",
+            "ResourceStatus": "UPDATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "LogicalResourceId": "AppSamQrStack",
+            "PhysicalResourceId": "arn:aws:cloudformation:us-east-1:158961537080:stack/rapid-cortex-dev-AppSamQrStack-1X9XQ1DOS7AZG/b44e5430-63c7-11f1-abc4-0afffb27cdcf",
+            "ResourceType": "AWS::CloudFormation::Stack",
+            "LastUpdatedTimestamp": "2026-09-16T04:55:13.381000+00:00",
+            "ResourceStatus": "UPDATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "LogicalResourceId": "AppSamRapidIqPipelineStack",
+            "PhysicalResourceId": "arn:aws:cloudformation:us-east-1:158961537080:stack/rapid-cortex-dev-AppSamRapidIqPipelineStack-JWN4SGUYZXYF/ee6b4090-98a8-11f1-84e1-129150a54b87",
+            "ResourceType": "AWS::CloudFormation::Stack",
+            "LastUpdatedTimestamp": "2026-09-16T04:55:13.500000+00:00",
+            "ResourceStatus": "UPDATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "LogicalResourceId": "AppSamRapidIqStack",
+            "PhysicalResourceId": "arn:aws:cloudformation:us-east-1:158961537080:stack/rapid-cortex-dev-AppSamRapidIqStack-LE5KANG309TS/ee7308c0-98a8-11f1-826b-0eff9dbd6ce7",
+            "ResourceType": "AWS::CloudFormation::Stack",
+            "LastUpdatedTimestamp": "2026-09-16T04:55:13.355000+00:00",
+            "ResourceStatus": "UPDATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "LogicalResourceId": "AppSamRcsStack2",
+            "PhysicalResourceId": "arn:aws:cloudformation:us-east-1:158961537080:stack/rapid-cortex-dev-AppSamRcsStack2-1AOJO64L25V4S/032705a0-98a9-11f1-b365-0e189aab300b",
+            "ResourceType": "AWS::CloudFormation::Stack",
+            "LastUpdatedTimestamp": "2026-09-16T04:55:13.322000+00:00",
+            "ResourceStatus": "UPDATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "LogicalResourceId": "AppSamRealtime2Stack",
+            "PhysicalResourceId": "arn:aws:cloudformation:us-east-1:158961537080:stack/rapid-cortex-dev-AppSamRealtime2Stack-KLY0OKM19NUB/b5995ec0-56b6-11f1-9160-0affdecfd0a7",
+            "ResourceType": "AWS::CloudFormation::Stack",
+            "LastUpdatedTimestamp": "2026-09-16T04:55:35.128000+00:00",
+            "ResourceStatus": "UPDATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "LogicalResourceId": "AppSamRmsStack",
+            "PhysicalResourceId": "arn:aws:cloudformation:us-east-1:158961537080:stack/rapid-cortex-dev-AppSamRmsStack-4MC6QOBE93VD/ee92c5c0-98a8-11f1-9b62-129e8f04e66b",
+            "ResourceType": "AWS::CloudFormation::Stack",
+            "LastUpdatedTimestamp": "2026-09-16T04:55:13.365000+00:00",
+            "ResourceStatus": "UPDATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "LogicalResourceId": "AppSamStackV2",
+            "PhysicalResourceId": "arn:aws:cloudformation:us-east-1:158961537080:stack/rapid-cortex-dev-AppSamStackV2-1BR5EYUP7MO39/f32c92d0-56b5-11f1-adbf-122028028577",
+            "ResourceType": "AWS::CloudFormation::Stack",
+            "LastUpdatedTimestamp": "2026-09-16T04:55:56.710000+00:00",
+            "ResourceStatus": "UPDATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "LogicalResourceId": "AppSamTranslateStack2",
+            "PhysicalResourceId": "arn:aws:cloudformation:us-east-1:158961537080:stack/rapid-cortex-dev-AppSamTranslateStack2-B6IWNGB2GXRN/5d751530-afbd-11f1-9275-0affd6d2fe47",
+            "ResourceType": "AWS::CloudFormation::Stack",
+            "LastUpdatedTimestamp": "2026-09-16T04:55:13.474000+00:00",
+            "ResourceStatus": "UPDATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "LogicalResourceId": "AppSamVerticalAlertsStack2",
+            "PhysicalResourceId": "arn:aws:cloudformation:us-east-1:158961537080:stack/rapid-cortex-dev-AppSamVerticalAlertsStack2-M4VTYWXN2J2J/7234f8f0-afbd-11f1-8a57-1213d89f992f",
+            "ResourceType": "AWS::CloudFormation::Stack",
+            "LastUpdatedTimestamp": "2026-09-16T04:55:13.419000+00:00",
+            "ResourceStatus": "UPDATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "LogicalResourceId": "DataLayerStack",
+            "PhysicalResourceId": "arn:aws:cloudformation:us-east-1:158961537080:stack/rapid-cortex-dev-DataLayerStack-17H2VCAOH7V78/34e006a0-573b-11f1-a6b2-12ace98ca6c3",
+            "ResourceType": "AWS::CloudFormation::Stack",
+            "LastUpdatedTimestamp": "2026-09-16T04:55:57.181000+00:00",
+            "ResourceStatus": "UPDATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        }
+    ]
+}

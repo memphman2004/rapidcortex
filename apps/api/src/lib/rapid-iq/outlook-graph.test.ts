@@ -31,7 +31,8 @@ describe("outlook-graph campaign OAuth helpers", () => {
 
   it("builds a Graph authorize URL for the RC sales callback", () => {
     const url = buildOutlookAuthorizeUrl("state-1");
-    expect(url).toContain("login.microsoftonline.com/common/oauth2/v2.0/authorize");
+    expect(url).toContain("login.microsoftonline.com/");
+    expect(url).toContain("/oauth2/v2.0/authorize");
     expect(url).toContain("client_id=client-123");
     expect(url).toContain("Mail.Send");
     expect(url).toContain("offline_access");

@@ -10,6 +10,9 @@ import {
   createRapidIqSalesBulkCampaignBodySchema,
   createRapidIqSalesSequenceBodySchema,
   rapidIqOutlookCallbackBodySchema,
+  updateRapidIqSalesBulkCopyBodySchema,
+  updateRapidIqSalesDraftBodySchema,
+  updateRapidIqSalesSequenceBodySchema,
   type UserContext,
 } from "rapid-cortex-shared";
 import { AUDIT_EVENT_TYPES } from "rapid-cortex-security";
@@ -46,6 +49,9 @@ import {
   listCampaignCards,
   summarizeBulkBatches,
   suppressSequence,
+  updateBulkCampaignCopy,
+  updateDraftCopy,
+  updateSequenceCopy,
 } from "../../../lib/rapid-iq/sales-automation-engine.js";
 import { ConferenceRepository } from "../../../repositories/conferenceRepository.js";
 import {
@@ -170,6 +176,23 @@ export async function handleSalesAutomationHttp(
       await audit(user, AUDIT_EVENT_TYPES.RAPID_IQ_SALES_DRAFT_APPROVED, draftId, { contentType: draft.contentType });
       return ok({ draft: next });
     }
+    if ((method === "PATCH" || method === "PUT") && !path.endsWith("/approve")) {
+      const body = parseBody(event);
+      if (body === null) return badRequest("Invalid JSON");
+      const parsed = updateRapidIqSalesDraftBodySchema.safeParse(body);
+      if (!parsed.success) return badRequestFromZod(parsed.error);
+      try {
+        const draft = await updateDraftCopy(draftId, parsed.data);
+        await audit(user, AUDIT_EVENT_TYPES.RAPID_IQ_SALES_DRAFT_EDITED, draftId, {
+          contentType: draft.contentType,
+        });
+        return ok({ draft });
+      } catch (err) {
+        const message = err instanceof Error ? err.message : "Update failed";
+        if (message === "Draft not found") return notFound(message);
+        return badRequest(message);
+      }
+    }
     if (method === "GET") {
       const draft = await getSalesDraft(draftId);
       if (!draft) return notFound("Draft not found");
@@ -233,6 +256,23 @@ export async function handleSalesAutomationHttp(
         return ok({ sequence });
       } catch (err) {
         return badRequest(err instanceof Error ? err.message : "Suppress failed");
+      }
+    }
+    if ((method === "PATCH" || method === "PUT") && !path.endsWith("/approve") && !path.endsWith("/suppress")) {
+      const body = parseBody(event);
+      if (body === null) return badRequest("Invalid JSON");
+      const parsed = updateRapidIqSalesSequenceBodySchema.safeParse(body);
+      if (!parsed.success) return badRequestFromZod(parsed.error);
+      try {
+        const sequence = await updateSequenceCopy(seqId, parsed.data);
+        await audit(user, AUDIT_EVENT_TYPES.RAPID_IQ_SALES_SEQ_EDITED, seqId, {
+          stepNumbers: parsed.data.steps?.map((s) => s.stepNumber) ?? [],
+        });
+        return ok({ sequence });
+      } catch (err) {
+        const message = err instanceof Error ? err.message : "Update failed";
+        if (message === "Sequence not found") return notFound(message);
+        return badRequest(message);
       }
     }
     if (method === "GET") {
@@ -344,7 +384,7 @@ async function handleOutlook(
   return notFound("Not found");
 }
 
-const BULK_IMMEDIATE_SEND_CAP = 25;
+const BULK_IMMEDIATE_SEND_CAP = 100;
 
 async function handleBulk(
   method: string,
@@ -386,6 +426,26 @@ async function handleBulk(
       return ok({ result: { ...result, sentNow } });
     } catch (err) {
       return badRequest(err instanceof Error ? err.message : "Bulk approve failed");
+    }
+  }
+
+  if (
+    (method === "PATCH" || method === "PUT") &&
+    (path.endsWith("/sales-automation/bulk") || path.endsWith("/sales-automation/bulk/"))
+  ) {
+    const body = parseBody(event);
+    if (body === null) return badRequest("Invalid JSON");
+    const parsed = updateRapidIqSalesBulkCopyBodySchema.safeParse(body);
+    if (!parsed.success) return badRequestFromZod(parsed.error);
+    try {
+      const result = await updateBulkCampaignCopy(parsed.data.campaignId, { steps: parsed.data.steps });
+      await audit(user, AUDIT_EVENT_TYPES.RAPID_IQ_SALES_SEQ_EDITED, parsed.data.campaignId, {
+        bulk: true,
+        updated: result.updated,
+      });
+      return ok({ result });
+    } catch (err) {
+      return badRequest(err instanceof Error ? err.message : "Bulk copy update failed");
     }
   }
 

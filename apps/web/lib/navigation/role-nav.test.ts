@@ -252,6 +252,7 @@ describe("getRoleNav", () => {
       expect(rapidIq?.href).toBe("/rc-admin/rapid-iq");
       expect(items.find((i) => i.id === "conferences")?.href).toBe("/rc-admin/conferences");
       expect(items.find((i) => i.id === "sales-automation")?.href).toBe("/rc-admin/sales-automation");
+      expect(items.find((i) => i.id === "sales-automation")?.label).toBe("Email Campaigns");
       expect(items.find((i) => i.id === "rapid-iq-pipeline")).toBeUndefined();
     }
     const itNav = getRoleNav("rcitadmin", {});

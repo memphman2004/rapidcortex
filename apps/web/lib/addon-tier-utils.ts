@@ -66,7 +66,7 @@ export function buildAddonGridRows(catalog: AddonDefinition[] = ADDON_CATALOG): 
 export function activeTierKeyInFamily(
   _family: string,
   variants: AddonDefinition[],
-  addons: Record<AddonKey, { enabled?: boolean }>,
+  addons: Record<AddonKey, { enabled?: boolean; disabledAt?: string }>,
   plan: string,
   isIncluded: (def: AddonDefinition, plan: string) => boolean,
 ): AddonKey | "" {
@@ -74,7 +74,9 @@ export function activeTierKeyInFamily(
     if (addons[def.key]?.enabled) return def.key;
   }
   for (const def of variants) {
-    if (isIncluded(def, plan)) return def.key;
+    const state = addons[def.key];
+    const optedOut = Boolean(state && state.enabled === false && state.disabledAt);
+    if (isIncluded(def, plan) && !optedOut) return def.key;
   }
   return "";
 }

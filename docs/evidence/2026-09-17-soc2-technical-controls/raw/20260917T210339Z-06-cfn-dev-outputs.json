@@ -1,0 +1,675 @@
+{
+    "Parameters": [
+        {
+            "ParameterKey": "ExistingVisionEventsTableName",
+            "ParameterValue": "rapid-cortex-vision-events-dev"
+        },
+        {
+            "ParameterKey": "ExistingTranslateAudioBucketName",
+            "ParameterValue": "rapid-cortex-translate-audio-dev-158961537080"
+        },
+        {
+            "ParameterKey": "QaBedrockModelId",
+            "ParameterValue": "anthropic.claude-3-5-haiku-20241022-v1:0"
+        },
+        {
+            "ParameterKey": "AzureTranslationKeySecretArn",
+            "ParameterValue": "arn:aws:secretsmanager:us-east-1:158961537080:secret:rapid-cortex/multilingual/azure-keys-H28Jkj"
+        },
+        {
+            "ParameterKey": "ExistingNestConsentTableName",
+            "ParameterValue": "rapid-cortex-nest-consent-dev"
+        },
+        {
+            "ParameterKey": "AwsSmsPoolId",
+            "ParameterValue": ""
+        },
+        {
+            "ParameterKey": "ExistingTranslateWsSecretArn",
+            "ParameterValue": "arn:aws:secretsmanager:us-east-1:158961537080:secret:rapid-cortex/dev/translate/ws-signing-XHZ8kL"
+        },
+        {
+            "ParameterKey": "IncludeAppSamTransitNestedStack",
+            "ParameterValue": "false"
+        },
+        {
+            "ParameterKey": "EnableRapidIqNewHttpRoutes",
+            "ParameterValue": "true"
+        },
+        {
+            "ParameterKey": "CallAssistConnectWebhookSecretArn",
+            "ParameterValue": "****"
+        },
+        {
+            "ParameterKey": "EnablePinpoint",
+            "ParameterValue": "true"
+        },
+        {
+            "ParameterKey": "ExternalApiEncryptionKeyArn",
+            "ParameterValue": ""
+        },
+        {
+            "ParameterKey": "ExistingBillingSesCredentialsSecretArn",
+            "ParameterValue": ""
+        },
+        {
+            "ParameterKey": "ExistingVisionCamerasTableName",
+            "ParameterValue": "rapid-cortex-vision-cameras-dev"
+        },
+        {
+            "ParameterKey": "IncludeAppSamBillingNestedStack",
+            "ParameterValue": "true"
+        },
+        {
+            "ParameterKey": "AnthropicApiKeySecretArn",
+            "ParameterValue": "arn:aws:secretsmanager:us-east-1:158961537080:secret:rapid-cortex/ai/anthropic-fHk4y2"
+        },
+        {
+            "ParameterKey": "MultilingualSecretProvisioning",
+            "ParameterValue": "external"
+        },
+        {
+            "ParameterKey": "ExistingTranslateSessionsTableName",
+            "ParameterValue": "rapid-cortex-translate-sessions-dev"
+        },
+        {
+            "ParameterKey": "ExternalApiJwtSecretArn",
+            "ParameterValue": ""
+        },
+        {
+            "ParameterKey": "OpenAiApiKeySecretArn",
+            "ParameterValue": "arn:aws:secretsmanager:us-east-1:158961537080:secret:rapid-cortex/ai/openai-kqZQ3D"
+        },
+        {
+            "ParameterKey": "CognitoCallbackUrls",
+            "ParameterValue": "https://app.rapidcortex.us/api/auth/callback,https://app.rapidcortex.us/auth/return-to-app,https://www.rapidcortex.us/api/auth/callback,https://www.rapidcortex.us/auth/return-to-app,https://rapidcortex.us/api/auth/callback,https://rapidcortex.us/auth/return-to-app"
+        },
+        {
+            "ParameterKey": "ExistingVisionOwnerConsentTableName",
+            "ParameterValue": "rapid-cortex-vision-owner-consent-dev"
+        },
+        {
+            "ParameterKey": "AzureSpeechKeySecretArn",
+            "ParameterValue": "arn:aws:secretsmanager:us-east-1:158961537080:secret:rapid-cortex/multilingual/azure-keys-H28Jkj"
+        },
+        {
+            "ParameterKey": "ExistingVisionObservationsTableName",
+            "ParameterValue": "rapid-cortex-vision-observations-dev"
+        },
+        {
+            "ParameterKey": "TransitCameraProducerKey",
+            "ParameterValue": "****"
+        },
+        {
+            "ParameterKey": "WyzeApiKeysSecretArn",
+            "ParameterValue": "arn:aws:secretsmanager:us-east-1:158961537080:secret:rapid-cortex/connect/wyze-api-keys-YIoY3S"
+        },
+        {
+            "ParameterKey": "AiBedrockFoundationModelId",
+            "ParameterValue": "anthropic.claude-3-5-haiku-20241022-v1:0"
+        },
+        {
+            "ParameterKey": "IncidentMediaTwilioSecretArn",
+            "ParameterValue": "arn:aws:secretsmanager:us-east-1:158961537080:secret:rapid-cortex/incident-media/twilio-az6LeK"
+        },
+        {
+            "ParameterKey": "GoogleCloudProjectId",
+            "ParameterValue": ""
+        },
+        {
+            "ParameterKey": "RmsVendorSecretArn",
+            "ParameterValue": ""
+        },
+        {
+            "ParameterKey": "HttpApiCorsAllowedOrigins",
+            "ParameterValue": "https://www.rapidcortex.us,https://rapidcortex.us,https://app.rapidcortex.us,https://report.rapidcortex.us"
+        },
+        {
+            "ParameterKey": "RootDomainName",
+            "ParameterValue": "rapidcortex.us"
+        },
+        {
+            "ParameterKey": "IncludeAppSamAlarmsNestedStack",
+            "ParameterValue": "false"
+        },
+        {
+            "ParameterKey": "CloudTrailKmsKeyArn",
+            "ParameterValue": ""
+        },
+        {
+            "ParameterKey": "SelfSignupDefaultAgencyId",
+            "ParameterValue": "self-signup-pending"
+        },
+        {
+            "ParameterKey": "ExistingVisionArtifactsBucketName",
+            "ParameterValue": "rapid-cortex-vision-artifacts-dev-158961537080"
+        },
+        {
+            "ParameterKey": "FlatDataLayerBillingSesCredentialsSecretArn",
+            "ParameterValue": "arn:aws:secretsmanager:us-east-1:158961537080:secret:rapid-cortex/billing/ses-credentials-h79bVV"
+        },
+        {
+            "ParameterKey": "LanguageProvider",
+            "ParameterValue": "auto"
+        },
+        {
+            "ParameterKey": "ExistingCallAssistTableName",
+            "ParameterValue": "rapid-cortex-call-assist-dev"
+        },
+        {
+            "ParameterKey": "CognitoNativeCallbackUrls",
+            "ParameterValue": "rapidcortex://oauth/callback,rapidcortex-desktop://oauth/callback,rapidcortex-ios://oauth/callback,rapidcortex-windows://oauth/callback"
+        },
+        {
+            "ParameterKey": "ExistingCleryActTableName",
+            "ParameterValue": "rapid-cortex-clery-act-dev"
+        },
+        {
+            "ParameterKey": "RingRedirectUri",
+            "ParameterValue": "https://7c70vqd1p5.execute-api.us-east-1.amazonaws.com/api/integrations/ring/callback"
+        },
+        {
+            "ParameterKey": "RingAccountLinkUrl",
+            "ParameterValue": "https://www.rapidcortex.us/connect/ring/link"
+        },
+        {
+            "ParameterKey": "WwwCnameTarget",
+            "ParameterValue": ""
+        },
+        {
+            "ParameterKey": "WafRateLimitPer5Min",
+            "ParameterValue": "2000"
+        },
+        {
+            "ParameterKey": "ExistingVerticalAlertsTableName",
+            "ParameterValue": "rapid-cortex-vertical-alerts-dev"
+        },
+        {
+            "ParameterKey": "ExistingTranslateConnectionsTableName",
+            "ParameterValue": "rapid-cortex-translate-connections-dev"
+        },
+        {
+            "ParameterKey": "NestRcOauthSecretArn",
+            "ParameterValue": ""
+        },
+        {
+            "ParameterKey": "ExistingPhysicalSecurityTableName",
+            "ParameterValue": "rapid-cortex-physical-security-dev"
+        },
+        {
+            "ParameterKey": "ManageApiDomainDns",
+            "ParameterValue": "false"
+        },
+        {
+            "ParameterKey": "EnableRapidVisionNest",
+            "ParameterValue": "true"
+        },
+        {
+            "ParameterKey": "CognitoLogoutUrls",
+            "ParameterValue": "https://app.rapidcortex.us,https://www.rapidcortex.us,https://rapidcortex.us"
+        },
+        {
+            "ParameterKey": "RingEnabled",
+            "ParameterValue": "true"
+        },
+        {
+            "ParameterKey": "ApiSubdomainPrefix",
+            "ParameterValue": "api"
+        },
+        {
+            "ParameterKey": "GoogleTtsOutputBucket",
+            "ParameterValue": ""
+        },
+        {
+            "ParameterKey": "BillingSesDomain",
+            "ParameterValue": ""
+        },
+        {
+            "ParameterKey": "RingPartnershipEnabled",
+            "ParameterValue": "true"
+        },
+        {
+            "ParameterKey": "GoogleApplicationCredentialsSecretArn",
+            "ParameterValue": ""
+        },
+        {
+            "ParameterKey": "PilotTestFeaturesEnabled",
+            "ParameterValue": "auto"
+        },
+        {
+            "ParameterKey": "ReuseExistingLocationAls",
+            "ParameterValue": "true"
+        },
+        {
+            "ParameterKey": "ExistingFieldCommandTableName",
+            "ParameterValue": "rapid-cortex-field-command-dev"
+        },
+        {
+            "ParameterKey": "ReuseExistingTransitTables",
+            "ParameterValue": "true"
+        },
+        {
+            "ParameterKey": "DynamoBillingMode",
+            "ParameterValue": "PAY_PER_REQUEST"
+        },
+        {
+            "ParameterKey": "EnableRapidIqNestedExpansion",
+            "ParameterValue": "false"
+        },
+        {
+            "ParameterKey": "SesIdentityValue",
+            "ParameterValue": ""
+        },
+        {
+            "ParameterKey": "ExistingBillingPaymentInstructionsSecretArn",
+            "ParameterValue": ""
+        },
+        {
+            "ParameterKey": "CadBridgeVpcSecurityGroupId",
+            "ParameterValue": ""
+        },
+        {
+            "ParameterKey": "AppCnameTarget",
+            "ParameterValue": ""
+        },
+        {
+            "ParameterKey": "DeploymentStage",
+            "ParameterValue": "dev"
+        },
+        {
+            "ParameterKey": "CadPublicApiBaseUrl",
+            "ParameterValue": ""
+        },
+        {
+            "ParameterKey": "CognitoDomainPrefix",
+            "ParameterValue": ""
+        },
+        {
+            "ParameterKey": "BillingSesSenderEmail",
+            "ParameterValue": ""
+        },
+        {
+            "ParameterKey": "EnableConnectRing",
+            "ParameterValue": "true"
+        },
+        {
+            "ParameterKey": "EnableApiWaf",
+            "ParameterValue": "false"
+        },
+        {
+            "ParameterKey": "FlatDataLayerBillingPaymentInstructionsSecretArn",
+            "ParameterValue": "arn:aws:secretsmanager:us-east-1:158961537080:secret:rapid-cortex/billing/payment-instructions-XaMNZs"
+        },
+        {
+            "ParameterKey": "CognitoUserPoolName",
+            "ParameterValue": ""
+        },
+        {
+            "ParameterKey": "ExistingVisionSessionsTableName",
+            "ParameterValue": "rapid-cortex-vision-sessions-dev"
+        },
+        {
+            "ParameterKey": "TranscriptRetentionPolicyDays",
+            "ParameterValue": ""
+        },
+        {
+            "ParameterKey": "ExistingNestTokensTableName",
+            "ParameterValue": "rapid-cortex-nest-tokens-dev"
+        },
+        {
+            "ParameterKey": "RapidIqApolloApiKeySecretArn",
+            "ParameterValue": "arn:aws:secretsmanager:us-east-1:158961537080:secret:rapid-cortex/rapid-iq/apollo-api-key-BDql0e"
+        },
+        {
+            "ParameterKey": "EnableCloudTrailS3DataEvents",
+            "ParameterValue": "false"
+        },
+        {
+            "ParameterKey": "FfmpegLayerArn",
+            "ParameterValue": "arn:aws:lambda:us-east-1:158961537080:layer:rapid-cortex-ffmpeg:1"
+        },
+        {
+            "ParameterKey": "ExistingNestCitizenAccountsTableName",
+            "ParameterValue": "rapid-cortex-nest-citizen-accounts-dev"
+        },
+        {
+            "ParameterKey": "MultilingualSecretsPolicyMode",
+            "ParameterValue": "scoped"
+        },
+        {
+            "ParameterKey": "RapidIqHunterApiKeySecretArn",
+            "ParameterValue": "arn:aws:secretsmanager:us-east-1:158961537080:secret:rapid-cortex/rapid-iq/hunter-api-key-LXEwMX"
+        },
+        {
+            "ParameterKey": "EnableCloudTrail",
+            "ParameterValue": "false"
+        },
+        {
+            "ParameterKey": "AdminCnameTarget",
+            "ParameterValue": ""
+        },
+        {
+            "ParameterKey": "CognitoNativeLogoutUrls",
+            "ParameterValue": "rapidcortex://logout/callback,rapidcortex-desktop://logout/callback,rapidcortex-ios://logout/callback,rapidcortex-windows://logout/callback"
+        },
+        {
+            "ParameterKey": "CognitoAppClientName",
+            "ParameterValue": ""
+        },
+        {
+            "ParameterKey": "ReuseExistingCadConnectorTables",
+            "ParameterValue": "true"
+        },
+        {
+            "ParameterKey": "DynamoTableNamePrefix",
+            "ParameterValue": "rapid-cortex"
+        },
+        {
+            "ParameterKey": "EnableLiveVideoResources",
+            "ParameterValue": "true"
+        },
+        {
+            "ParameterKey": "CognitoGenerateSecret",
+            "ParameterValue": "false"
+        },
+        {
+            "ParameterKey": "CadWritebackEnabled",
+            "ParameterValue": "true"
+        },
+        {
+            "ParameterKey": "ExistingTransitCameraProducerSecretArn",
+            "ParameterValue": "arn:aws:secretsmanager:us-east-1:158961537080:secret:rapid-cortex/dev/transit/camera-producer-key-t7mwCU"
+        },
+        {
+            "ParameterKey": "FlatDataLayerRingCredentialsSecretArn",
+            "ParameterValue": ""
+        },
+        {
+            "ParameterKey": "EnableSilentText",
+            "ParameterValue": "true"
+        },
+        {
+            "ParameterKey": "AppName",
+            "ParameterValue": "rapid-cortex"
+        },
+        {
+            "ParameterKey": "ExistingNestConsentHmacSecretArn",
+            "ParameterValue": "arn:aws:secretsmanager:us-east-1:158961537080:secret:rapid-cortex/connect/nest-consent-hmac-dev-4rfUoT"
+        },
+        {
+            "ParameterKey": "CadWritebackRequiresApproval",
+            "ParameterValue": "true"
+        },
+        {
+            "ParameterKey": "CadBridgeVpcSubnetIds",
+            "ParameterValue": ""
+        },
+        {
+            "ParameterKey": "Route53HostedZoneId",
+            "ParameterValue": "Z03951423J46LZ4YUDS6A"
+        },
+        {
+            "ParameterKey": "TranslateWsSigningSecret",
+            "ParameterValue": "****"
+        },
+        {
+            "ParameterKey": "ExistingTranslateSegmentsTableName",
+            "ParameterValue": "rapid-cortex-translate-segments-dev"
+        },
+        {
+            "ParameterKey": "NestConsentHmacSecretValue",
+            "ParameterValue": "****"
+        },
+        {
+            "ParameterKey": "SesIdentityType",
+            "ParameterValue": ""
+        },
+        {
+            "ParameterKey": "ExistingVisionTranscriptsTableName",
+            "ParameterValue": "rapid-cortex-vision-transcripts-dev"
+        },
+        {
+            "ParameterKey": "SesConfigurationSetName",
+            "ParameterValue": ""
+        },
+        {
+            "ParameterKey": "ApiDomainCertificateArn",
+            "ParameterValue": ""
+        },
+        {
+            "ParameterKey": "CadBridgeVpcId",
+            "ParameterValue": ""
+        },
+        {
+            "ParameterKey": "PhysicalSecurityWebhookSecret",
+            "ParameterValue": "****"
+        },
+        {
+            "ParameterKey": "ReuseExistingCadBridgeRetainedTables",
+            "ParameterValue": "true"
+        },
+        {
+            "ParameterKey": "AwsSmsConfigurationSetName",
+            "ParameterValue": "rapid-cortex-sms-dev"
+        },
+        {
+            "ParameterKey": "IncludeDataLayerNestedStack",
+            "ParameterValue": "true"
+        },
+        {
+            "ParameterKey": "EnableCloudTrailLambdaDataEvents",
+            "ParameterValue": "false"
+        },
+        {
+            "ParameterKey": "OpenAiWebSearchEnabled",
+            "ParameterValue": "false"
+        },
+        {
+            "ParameterKey": "AppPublicBaseUrl",
+            "ParameterValue": "https://app.rapidcortex.us"
+        },
+        {
+            "ParameterKey": "DynamoPointInTimeRecovery",
+            "ParameterValue": "auto"
+        },
+        {
+            "ParameterKey": "SelfSignupDefaultRole",
+            "ParameterValue": "dispatcher"
+        },
+        {
+            "ParameterKey": "CadWebhookSecretSalt",
+            "ParameterValue": "****"
+        },
+        {
+            "ParameterKey": "RingCredentialsSecretArnOverride",
+            "ParameterValue": "arn:aws:secretsmanager:us-east-1:158961537080:secret:rapid-cortex/connect/ring-credentials-D3f1sN"
+        },
+        {
+            "ParameterKey": "SnsSmsSubscription",
+            "ParameterValue": ""
+        },
+        {
+            "ParameterKey": "WyzeEnabled",
+            "ParameterValue": "false"
+        },
+        {
+            "ParameterKey": "SnsEmailSubscription",
+            "ParameterValue": ""
+        }
+    ],
+    "Outputs": [
+        {
+            "OutputKey": "RapidIqPipelineSignalsTableName",
+            "OutputValue": "rapid-cortex-rapid-iq-pipeline-signals-dev",
+            "Description": "Pipeline + intel + watches + RFP snapshot table"
+        },
+        {
+            "OutputKey": "AlsPlaceIndexName",
+            "OutputValue": "rc-places-dev"
+        },
+        {
+            "OutputKey": "CognitoIssuer",
+            "OutputValue": "https://cognito-idp.us-east-1.amazonaws.com/us-east-1_0z6tA6WBs",
+            "Description": "Cognito issuer URL"
+        },
+        {
+            "OutputKey": "HttpApiUrl",
+            "OutputValue": "https://k26yw4o3xk.execute-api.us-east-1.amazonaws.com",
+            "Description": "HTTP API base URL"
+        },
+        {
+            "OutputKey": "AlsMapNameDark",
+            "OutputValue": "rc-map-here-dark-dev"
+        },
+        {
+            "OutputKey": "SesTransactionalConfigurationSetName",
+            "OutputValue": "rapid-cortex-transactional-dev",
+            "Description": "SES config set with bounce/complaint SNS ? SesNotificationHandler (AppSam2)"
+        },
+        {
+            "OutputKey": "AlsGeofenceCollectionName",
+            "OutputValue": "rc-geofences-dev"
+        },
+        {
+            "OutputKey": "GenerateGrantPackageFunctionName",
+            "OutputValue": "rapid-cortex-dev-AppSam3S-GenerateGrantPackageFunc-EVGebJyNONr0",
+            "Description": "Grant generate Lambda name (web BFF direct Invoke for ~60s Anthropic budget)"
+        },
+        {
+            "OutputKey": "AssetsBucketName",
+            "OutputValue": "rapid-cortex-assets-dev-158961537080",
+            "Description": "Assets bucket (from data layer or deterministic name when nested data layer is omitted)"
+        },
+        {
+            "OutputKey": "DeploymentStage",
+            "OutputValue": "dev",
+            "Description": "Deployment stage"
+        },
+        {
+            "OutputKey": "HttpApi5Url",
+            "OutputValue": "https://ubartq53a8.execute-api.us-east-1.amazonaws.com",
+            "Description": "HTTP API base URL ? stack 5 (campus/venue/media/stream)"
+        },
+        {
+            "OutputKey": "CognitoHostedUiBase",
+            "OutputValue": "https://rapidcortex-dev-158961537080.auth.us-east-1.amazoncognito.com",
+            "Description": "Cognito hosted UI base"
+        },
+        {
+            "OutputKey": "RapidIqIntelWatchWorkerFunctionName",
+            "OutputValue": "skipped-nested-expansion",
+            "Description": "Opportunity Intelligence watch worker (web search + collect)"
+        },
+        {
+            "OutputKey": "GenerateGrantPackageFunctionArn",
+            "OutputValue": "arn:aws:lambda:us-east-1:158961537080:function:rapid-cortex-dev-AppSam3S-GenerateGrantPackageFunc-EVGebJyNONr0",
+            "Description": "Grant generate Lambda ARN (web ECS task role invoke)"
+        },
+        {
+            "OutputKey": "ApiCustomDomainUrl",
+            "OutputValue": "https://api.rapidcortex.us",
+            "Description": "API custom domain URL if configured"
+        },
+        {
+            "OutputKey": "HttpApi3Url",
+            "OutputValue": "https://tbr4zvjlk5.execute-api.us-east-1.amazonaws.com",
+            "Description": "Tertiary HTTP API base URL (stack-app-sam-3 media/admin/platform routes)"
+        },
+        {
+            "OutputKey": "AlsTrackerName",
+            "OutputValue": "rc-tracker-dev"
+        },
+        {
+            "OutputKey": "ApiWebAclArn",
+            "OutputValue": "",
+            "Description": "Regional WAF ACL ARN (if enabled)"
+        },
+        {
+            "OutputKey": "AlsMapName",
+            "OutputValue": "rc-map-here-dev"
+        },
+        {
+            "OutputKey": "RapidIqRfpUnifiedCounterFunctionName",
+            "OutputValue": "skipped-nested-expansion",
+            "Description": "Unified RFP count snapshot Lambda"
+        },
+        {
+            "OutputKey": "GrantWriterFunctionArn",
+            "OutputValue": "arn:aws:lambda:us-east-1:158961537080:function:rapid-cortex-dev-AppSam3St-GrantWriterHttpFunction-JeVlkj8kfvsH",
+            "Description": "Grant writer Lambda ARN (web ECS task role invoke)"
+        },
+        {
+            "OutputKey": "AlsRouteCalculatorName",
+            "OutputValue": "rc-routes-dev"
+        },
+        {
+            "OutputKey": "HttpApi2Id",
+            "OutputValue": "t4bdwpjfs5",
+            "Description": "Secondary HTTP API ID (stack-app-sam-2)"
+        },
+        {
+            "OutputKey": "HttpApi5Id",
+            "OutputValue": "ubartq53a8",
+            "Description": "HTTP API ID ? stack 5"
+        },
+        {
+            "OutputKey": "SesNotificationsTopicArn",
+            "OutputValue": "arn:aws:sns:us-east-1:158961537080:rapid-cortex-ses-notifications-dev",
+            "Description": "SNS topic for SES bounce/complaint/send/reject events (AppSam2)"
+        },
+        {
+            "OutputKey": "HttpApi3Id",
+            "OutputValue": "tbr4zvjlk5",
+            "Description": "Tertiary HTTP API ID (stack-app-sam-3)"
+        },
+        {
+            "OutputKey": "NativeUserPoolClientId",
+            "OutputValue": "3nkemnrffspnaa0ikp2un6koh0",
+            "Description": "Cognito native client id"
+        },
+        {
+            "OutputKey": "HttpApi4Id",
+            "OutputValue": "7c70vqd1p5",
+            "Description": "Quaternary HTTP API ID (stack-app-sam-4)"
+        },
+        {
+            "OutputKey": "WebSocketApiUrl",
+            "OutputValue": "wss://g0wzu18e2k.execute-api.us-east-1.amazonaws.com/dev",
+            "Description": "WebSocket URL for real-time call control (wss)"
+        },
+        {
+            "OutputKey": "UserPoolClientId",
+            "OutputValue": "7moi6sgc2uf4o31omgvo77h3v5",
+            "Description": "Cognito web client id"
+        },
+        {
+            "OutputKey": "UserPoolId",
+            "OutputValue": "us-east-1_0z6tA6WBs",
+            "Description": "Cognito user pool id"
+        },
+        {
+            "OutputKey": "GrantWriterFunctionName",
+            "OutputValue": "rapid-cortex-dev-AppSam3St-GrantWriterHttpFunction-JeVlkj8kfvsH",
+            "Description": "Grant writer Lambda name (web BFF direct Invoke; Anthropic via Secrets Manager)"
+        },
+        {
+            "OutputKey": "WebSocketApiId",
+            "OutputValue": "g0wzu18e2k"
+        },
+        {
+            "OutputKey": "MapIdentityPoolId",
+            "OutputValue": "us-east-1:0a5ee6f5-dd1b-4652-9b8e-57f45da82297",
+            "Description": "Cognito Identity Pool for ALS map tile auth"
+        },
+        {
+            "OutputKey": "HttpApi2Url",
+            "OutputValue": "https://t4bdwpjfs5.execute-api.us-east-1.amazonaws.com",
+            "Description": "Secondary HTTP API base URL (stack-app-sam-2 routes; execute-api endpoint)"
+        },
+        {
+            "OutputKey": "HttpApi4Url",
+            "OutputValue": "https://7c70vqd1p5.execute-api.us-east-1.amazonaws.com",
+            "Description": "Quaternary HTTP API base URL (stack-app-sam-4 billing/ring routes)"
+        }
+    ]
+}

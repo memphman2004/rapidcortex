@@ -29,6 +29,9 @@ import {
   listSalesDrafts,
   listSalesSequences,
   suppressSalesSequence,
+  updateSalesBulkCopy,
+  updateSalesDraft,
+  updateSalesSequence,
 } from "@/lib/rapid-iq/sales-automation-api";
 import { parseCampaignCsv } from "@/lib/rapid-iq/parse-campaign-csv";
 
@@ -181,7 +184,7 @@ function SequenceCard({
             onClick={() => onPreview(seq)}
             className="rounded border border-slate-700 px-2.5 py-1 text-[10px] text-slate-400 hover:border-sky-500 hover:text-sky-300"
           >
-            Preview
+            Review & edit
           </button>
           {isDraft ? (
             <>
@@ -213,13 +216,21 @@ function ContentDraftCard({
   draft,
   busyId,
   onApprove,
+  onSave,
 }: {
   draft: RapidIqSalesContentDraft;
   busyId: string | null;
   onApprove: (id: string) => void;
+  onSave: (id: string, patch: { subject: string; bodyText: string; linkedinText: string }) => void;
 }) {
   const [expanded, setExpanded] = useState(false);
+  const [editing, setEditing] = useState(false);
+  const [subject, setSubject] = useState(draft.subject ?? "");
+  const [bodyText, setBodyText] = useState(draft.bodyText);
+  const [linkedinText, setLinkedinText] = useState(draft.linkedinText ?? "");
   const busy = busyId === draft.draftId;
+  const canEdit = draft.status === "draft";
+
   return (
     <div className="rounded-lg border border-white/[0.06] bg-[#071224] p-3">
       <div className="flex items-start justify-between gap-2">
@@ -233,45 +244,132 @@ function ContentDraftCard({
               <span className="text-[9px] font-bold uppercase text-emerald-400">{draft.status}</span>
             ) : null}
           </div>
-          <div className="mt-1 truncate text-sm font-semibold text-slate-100">
-            {draft.subject ?? "Untitled draft"}
-          </div>
-          <div
-            className={`mt-1.5 overflow-hidden text-[11px] leading-relaxed text-slate-400 ${
-              expanded ? "" : "line-clamp-3"
-            }`}
-          >
-            {draft.bodyText}
-          </div>
-          <button
-            type="button"
-            onClick={() => setExpanded((e) => !e)}
-            className="mt-1 text-[10px] text-sky-500 hover:text-sky-300"
-          >
-            {expanded ? "Collapse" : "Read full draft"}
-          </button>
-          {draft.linkedinText && expanded ? (
-            <div className="mt-3 rounded border border-sky-500/20 bg-sky-500/5 p-2.5">
-              <div className="mb-1 text-[9px] font-bold uppercase tracking-widest text-sky-400">
-                LinkedIn version
-              </div>
-              <div className="text-[11px] leading-relaxed text-slate-400">{draft.linkedinText}</div>
+          {editing ? (
+            <div className="mt-2 space-y-2">
+              <input
+                value={subject}
+                onChange={(e) => setSubject(e.target.value)}
+                className="w-full rounded-md border border-white/10 bg-[#050c1a] px-3 py-2 text-sm text-white"
+                placeholder="Subject"
+              />
+              <textarea
+                rows={10}
+                value={bodyText}
+                onChange={(e) => setBodyText(e.target.value)}
+                className="w-full rounded-md border border-white/10 bg-[#050c1a] px-3 py-2 text-[12px] leading-relaxed text-slate-200"
+              />
+              <textarea
+                rows={4}
+                value={linkedinText}
+                onChange={(e) => setLinkedinText(e.target.value)}
+                placeholder="LinkedIn version (optional)"
+                className="w-full rounded-md border border-sky-500/20 bg-sky-500/5 px-3 py-2 text-[12px] leading-relaxed text-slate-200"
+              />
             </div>
+          ) : (
+            <>
+              <div className="mt-1 truncate text-sm font-semibold text-slate-100">
+                {draft.subject ?? "Untitled draft"}
+              </div>
+              <div
+                className={`mt-1.5 overflow-hidden text-[11px] leading-relaxed text-slate-400 ${
+                  expanded ? "" : "line-clamp-3"
+                }`}
+              >
+                {draft.bodyText}
+              </div>
+              <button
+                type="button"
+                onClick={() => setExpanded((e) => !e)}
+                className="mt-1 text-[10px] text-sky-500 hover:text-sky-300"
+              >
+                {expanded ? "Collapse" : "Read full draft"}
+              </button>
+              {draft.linkedinText && expanded ? (
+                <div className="mt-3 rounded border border-sky-500/20 bg-sky-500/5 p-2.5">
+                  <div className="mb-1 text-[9px] font-bold uppercase tracking-widest text-sky-400">
+                    LinkedIn version
+                  </div>
+                  <div className="text-[11px] leading-relaxed text-slate-400">{draft.linkedinText}</div>
+                </div>
+              ) : null}
+            </>
+          )}
+        </div>
+        <div className="flex shrink-0 flex-col gap-1.5">
+          {canEdit && !editing ? (
+            <button
+              type="button"
+              onClick={() => {
+                setSubject(draft.subject ?? "");
+                setBodyText(draft.bodyText);
+                setLinkedinText(draft.linkedinText ?? "");
+                setEditing(true);
+                setExpanded(true);
+              }}
+              className="rounded border border-slate-700 px-2.5 py-1 text-[10px] text-slate-400 hover:border-sky-500 hover:text-sky-300"
+            >
+              Edit
+            </button>
+          ) : null}
+          {editing ? (
+            <>
+              <button
+                type="button"
+                disabled={busy || !bodyText.trim()}
+                onClick={() =>
+                  onSave(draft.draftId, {
+                    subject: subject.trim(),
+                    bodyText: bodyText.trim(),
+                    linkedinText: linkedinText.trim(),
+                  })
+                }
+                className="rounded bg-sky-600 px-2.5 py-1 text-[10px] font-semibold text-white hover:bg-sky-500 disabled:opacity-50"
+              >
+                {busy ? "…" : "Save"}
+              </button>
+              <button
+                type="button"
+                onClick={() => setEditing(false)}
+                className="rounded border border-slate-700 px-2.5 py-1 text-[10px] text-slate-500"
+              >
+                Cancel
+              </button>
+            </>
+          ) : null}
+          {canEdit && !editing ? (
+            <button
+              type="button"
+              disabled={busy}
+              onClick={() => onApprove(draft.draftId)}
+              className="rounded bg-emerald-700 px-2.5 py-1 text-[10px] font-semibold text-white hover:bg-emerald-600 disabled:opacity-50"
+            >
+              {busy ? "…" : "Approve draft"}
+            </button>
           ) : null}
         </div>
-        {draft.status === "draft" ? (
-          <button
-            type="button"
-            disabled={busy}
-            onClick={() => onApprove(draft.draftId)}
-            className="shrink-0 rounded bg-emerald-700 px-2.5 py-1 text-[10px] font-semibold text-white hover:bg-emerald-600 disabled:opacity-50"
-          >
-            {busy ? "…" : "Approve draft"}
-          </button>
-        ) : null}
       </div>
     </div>
   );
+}
+
+function canEditStepStatus(status: RapidIqSalesStepStatus): boolean {
+  return status === "pending" || status === "scheduled";
+}
+
+function toLocalDateTimeInput(iso?: string): string {
+  if (!iso) return "";
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return "";
+  const pad = (n: number) => String(n).padStart(2, "0");
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+}
+
+function fromLocalDateTimeInput(value: string): string | undefined {
+  if (!value.trim()) return undefined;
+  const d = new Date(value);
+  if (Number.isNaN(d.getTime())) return undefined;
+  return d.toISOString();
 }
 
 function PreviewModal({
@@ -279,12 +377,54 @@ function PreviewModal({
   busy,
   onClose,
   onApprove,
+  onSave,
+  bulkCount,
 }: {
   seq: RapidIqSalesSequence;
   busy: boolean;
   onClose: () => void;
   onApprove: (id: string) => void;
+  onSave: (
+    id: string,
+    patch: {
+      recipientEmail: string;
+      recipientName: string;
+      steps: {
+        stepNumber: 1 | 2 | 3;
+        email: { subject: string; bodyText: string };
+        scheduledAt?: string;
+      }[];
+    },
+  ) => void;
+  bulkCount?: number;
 }) {
+  const [recipientEmail, setRecipientEmail] = useState(seq.recipientEmail);
+  const [recipientName, setRecipientName] = useState(seq.recipientName ?? "");
+  const [edits, setEdits] = useState(
+    seq.steps.map((step) => ({
+      stepNumber: step.stepNumber,
+      subject: step.email.subject,
+      bodyText: step.email.bodyText,
+      scheduledAt: toLocalDateTimeInput(step.scheduledAt),
+    })),
+  );
+
+  useEffect(() => {
+    setRecipientEmail(seq.recipientEmail);
+    setRecipientName(seq.recipientName ?? "");
+    setEdits(
+      seq.steps.map((step) => ({
+        stepNumber: step.stepNumber,
+        subject: step.email.subject,
+        bodyText: step.email.bodyText,
+        scheduledAt: toLocalDateTimeInput(step.scheduledAt),
+      })),
+    );
+  }, [seq]);
+
+  const anySent = seq.steps.some((s) => !canEditStepStatus(s.status) && s.status !== "skipped");
+  const canSave = seq.status === "draft" || seq.status === "active" || seq.status === "approved";
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
       <div className="flex max-h-[85vh] w-full max-w-2xl flex-col rounded-xl border border-slate-700 bg-[#050c1a] shadow-2xl">
@@ -292,7 +432,9 @@ function PreviewModal({
           <div>
             <div className="text-sm font-bold text-slate-100">{seq.agencyName}</div>
             <div className="text-[11px] text-slate-500">
-              {seq.recipientEmail} · {seq.steps.length} emails · {TRIGGER_LABELS[seq.triggerType]}
+              {bulkCount
+                ? `This exact copy is saved on every draft in the batch (${bulkCount})`
+                : `${seq.steps.length} emails · ${TRIGGER_LABELS[seq.triggerType]} · edit auto-generated copy before it sends`}
             </div>
           </div>
           <button type="button" onClick={onClose} className="text-lg text-slate-500 hover:text-slate-300">
@@ -300,25 +442,97 @@ function PreviewModal({
           </button>
         </div>
         <div className="flex-1 space-y-4 overflow-y-auto p-5">
-          {seq.steps.map((step) => (
-            <div key={step.stepId} className="rounded-lg border border-white/[0.06] bg-[#071224] p-3">
-              <div className="mb-2 flex items-center gap-2">
-                <span className="text-[9px] font-bold uppercase tracking-widest text-slate-500">
-                  Step {step.stepNumber}
-                </span>
-                {step.delayDays > 0 ? (
-                  <span className="text-[9px] text-slate-600">Day +{step.delayDays}</span>
+          {bulkCount ? null : (
+          <div className="grid gap-3 md:grid-cols-2">
+            <label className="block text-[10px] font-semibold uppercase tracking-widest text-slate-500">
+              Recipient email
+              <input
+                type="email"
+                value={recipientEmail}
+                disabled={anySent}
+                onChange={(e) => setRecipientEmail(e.target.value)}
+                className="mt-1 w-full rounded-md border border-white/10 bg-[#071224] px-3 py-2 text-sm text-white disabled:opacity-60"
+              />
+            </label>
+            <label className="block text-[10px] font-semibold uppercase tracking-widest text-slate-500">
+              Recipient name
+              <input
+                value={recipientName}
+                disabled={anySent}
+                onChange={(e) => setRecipientName(e.target.value)}
+                className="mt-1 w-full rounded-md border border-white/10 bg-[#071224] px-3 py-2 text-sm text-white disabled:opacity-60"
+              />
+            </label>
+          </div>
+          )}
+          {seq.steps.map((step, index) => {
+            const edit = edits[index];
+            const locked = !canEditStepStatus(step.status);
+            return (
+              <div key={step.stepId} className="rounded-lg border border-white/[0.06] bg-[#071224] p-3">
+                <div className="mb-2 flex items-center gap-2">
+                  <span className="text-[9px] font-bold uppercase tracking-widest text-slate-500">
+                    Step {step.stepNumber}
+                  </span>
+                  {step.delayDays > 0 ? (
+                    <span className="text-[9px] text-slate-600">Default +{step.delayDays}d</span>
+                  ) : (
+                    <span className="text-[9px] text-slate-600">Email 1</span>
+                  )}
+                  <span className={`text-[9px] ${STEP_COLOR[step.status]}`}>{step.status.toUpperCase()}</span>
+                  {locked ? <span className="text-[9px] text-slate-600">locked after send</span> : null}
+                </div>
+                {locked || !edit ? (
+                  <>
+                    {step.scheduledAt ? (
+                      <div className="mb-1.5 text-[10px] text-slate-500">
+                        Scheduled {new Date(step.scheduledAt).toLocaleString()}
+                      </div>
+                    ) : null}
+                    <div className="mb-1.5 text-xs font-semibold text-sky-300">{step.email.subject}</div>
+                    <div className="whitespace-pre-wrap text-[11px] leading-relaxed text-slate-400">
+                      {step.email.bodyText}
+                    </div>
+                  </>
                 ) : (
-                  <span className="text-[9px] text-slate-600">Send immediately after approval</span>
+                  <>
+                    <label className="mb-2 block text-[10px] font-semibold uppercase tracking-widest text-slate-500">
+                      Send at
+                      <input
+                        type="datetime-local"
+                        value={edit.scheduledAt}
+                        onChange={(e) =>
+                          setEdits((prev) =>
+                            prev.map((row, i) => (i === index ? { ...row, scheduledAt: e.target.value } : row)),
+                          )
+                        }
+                        className="mt-1 w-full rounded-md border border-white/10 bg-[#050c1a] px-3 py-2 text-xs text-slate-200"
+                      />
+                    </label>
+                    <input
+                      value={edit.subject}
+                      onChange={(e) =>
+                        setEdits((prev) =>
+                          prev.map((row, i) => (i === index ? { ...row, subject: e.target.value } : row)),
+                        )
+                      }
+                      className="mb-2 w-full rounded-md border border-white/10 bg-[#050c1a] px-3 py-2 text-xs font-semibold text-sky-300"
+                    />
+                    <textarea
+                      rows={8}
+                      value={edit.bodyText}
+                      onChange={(e) =>
+                        setEdits((prev) =>
+                          prev.map((row, i) => (i === index ? { ...row, bodyText: e.target.value } : row)),
+                        )
+                      }
+                      className="w-full rounded-md border border-white/10 bg-[#050c1a] px-3 py-2 text-[12px] leading-relaxed text-slate-200"
+                    />
+                  </>
                 )}
-                <span className={`text-[9px] ${STEP_COLOR[step.status]}`}>{step.status.toUpperCase()}</span>
               </div>
-              <div className="mb-1.5 text-xs font-semibold text-sky-300">{step.email.subject}</div>
-              <div className="whitespace-pre-wrap text-[11px] leading-relaxed text-slate-400">
-                {step.email.bodyText}
-              </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
         <div className="flex items-center justify-end gap-2 border-t border-white/[0.06] px-5 py-3">
           <button
@@ -328,7 +542,35 @@ function PreviewModal({
           >
             Close
           </button>
-          {seq.status === "draft" ? (
+          {canSave ? (
+            <button
+              type="button"
+              disabled={busy}
+              onClick={() =>
+                onSave(seq.sequenceId, {
+                  recipientEmail: recipientEmail.trim(),
+                  recipientName: recipientName.trim(),
+                  steps: seq.steps
+                    .filter((step) => canEditStepStatus(step.status))
+                    .map((step) => {
+                      const edit = edits.find((e) => e.stepNumber === step.stepNumber);
+                      return {
+                        stepNumber: step.stepNumber,
+                        email: {
+                          subject: (edit?.subject ?? step.email.subject).trim(),
+                          bodyText: (edit?.bodyText ?? step.email.bodyText).trim(),
+                        },
+                        scheduledAt: fromLocalDateTimeInput(edit?.scheduledAt ?? "") ?? "",
+                      };
+                    }),
+                })
+              }
+              className="rounded border border-sky-700 px-4 py-1.5 text-xs font-semibold text-sky-300 hover:bg-sky-900/40 disabled:opacity-50"
+            >
+              {busy ? "Saving…" : bulkCount ? `Save for ${bulkCount} drafts` : "Save edits"}
+            </button>
+          ) : null}
+          {seq.status === "draft" && !bulkCount ? (
             <button
               type="button"
               disabled={busy}
@@ -344,8 +586,6 @@ function PreviewModal({
   );
 }
 
-}
-
 function BulkBatchCard({
   campaignId,
   name,
@@ -353,6 +593,7 @@ function BulkBatchCard({
   count,
   busy,
   onApprove,
+  onEditCopy,
 }: {
   campaignId: string;
   name: string;
@@ -360,6 +601,7 @@ function BulkBatchCard({
   count: number;
   busy: boolean;
   onApprove: (campaignId: string) => void;
+  onEditCopy: (campaignId: string) => void;
 }) {
   return (
     <div className="rounded-lg border border-sky-500/30 bg-[#071224] p-3">
@@ -378,14 +620,23 @@ function BulkBatchCard({
             One approval sends email 1 from Outlook for the whole list. Follow-ups stay on days 5 and 12.
           </div>
         </div>
-        <button
-          type="button"
-          disabled={busy}
-          onClick={() => onApprove(campaignId)}
-          className="shrink-0 rounded bg-sky-600 px-2.5 py-1 text-[10px] font-semibold text-white hover:bg-sky-500 disabled:opacity-50"
-        >
-          {busy ? "…" : `Approve ${count}`}
-        </button>
+        <div className="flex shrink-0 flex-col gap-1.5">
+          <button
+            type="button"
+            onClick={() => onEditCopy(campaignId)}
+            className="rounded border border-slate-700 px-2.5 py-1 text-[10px] text-slate-400 hover:border-sky-500 hover:text-sky-300"
+          >
+            Edit copy
+          </button>
+          <button
+            type="button"
+            disabled={busy}
+            onClick={() => onApprove(campaignId)}
+            className="rounded bg-sky-600 px-2.5 py-1 text-[10px] font-semibold text-white hover:bg-sky-500 disabled:opacity-50"
+          >
+            {busy ? "…" : `Approve ${count}`}
+          </button>
+        </div>
       </div>
     </div>
   );
@@ -403,12 +654,14 @@ function TriggerModal({
     recipientEmail: string;
     recipientName: string;
     vertical: RapidIqSalesVertical;
+    sendAt: string;
   }) => void;
 }) {
   const [agencyName, setAgencyName] = useState("");
   const [recipientEmail, setRecipientEmail] = useState("");
   const [recipientName, setRecipientName] = useState("");
   const [vertical, setVertical] = useState<RapidIqSalesVertical>("PSAP");
+  const [sendAt, setSendAt] = useState("");
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
@@ -416,14 +669,13 @@ function TriggerModal({
         className="w-full max-w-md rounded-xl border border-slate-700 bg-[#050c1a] p-5 shadow-2xl"
         onSubmit={(e) => {
           e.preventDefault();
-          onSubmit({ agencyName, recipientEmail, recipientName, vertical });
+          onSubmit({ agencyName, recipientEmail, recipientName, vertical, sendAt });
         }}
       >
         <div className="text-sm font-bold text-slate-100">Draft campaign sequence</div>
         <p className="mt-1 text-[11px] text-slate-500">
-          Creates a 3-touch campaign to a potential client. Nothing sends until you approve it.
-          After approval, email 1 leaves the connected Outlook mailbox; emails 2 and 3 follow on
-          days 5 and 12.
+          Creates a 3-touch campaign. Set a send time or leave blank and schedule later. Nothing
+          sends until you approve.
         </p>
         <label className="mt-4 block text-[10px] font-semibold uppercase tracking-widest text-slate-500">
           Agency
@@ -466,6 +718,15 @@ function TriggerModal({
             <option value="TRANSIT">Transit</option>
           </select>
         </label>
+        <label className="mt-3 block text-[10px] font-semibold uppercase tracking-widest text-slate-500">
+          Send email 1 at
+          <input
+            type="datetime-local"
+            value={sendAt}
+            onChange={(e) => setSendAt(e.target.value)}
+            className="mt-1 w-full rounded-md border border-white/10 bg-[#071224] px-3 py-2 text-sm text-white"
+          />
+        </label>
         <div className="mt-5 flex justify-end gap-2">
           <button
             type="button"
@@ -498,11 +759,13 @@ function BulkCampaignModal({
     vertical: RapidIqSalesVertical;
     campaignName: string;
     recipients: { email: string; agencyName: string; recipientName?: string }[];
+    sendAt: string;
   }) => void;
 }) {
   const [campaignName, setCampaignName] = useState("");
   const [vertical, setVertical] = useState<RapidIqSalesVertical>("PSAP");
   const [csv, setCsv] = useState("");
+  const [sendAt, setSendAt] = useState("");
   const parsed = parseCampaignCsv(csv);
 
   return (
@@ -516,13 +779,14 @@ function BulkCampaignModal({
             vertical,
             campaignName: campaignName.trim(),
             recipients: parsed.rows,
+            sendAt,
           });
         }}
       >
-        <div className="text-sm font-bold text-slate-100">Bulk campaign to potential clients</div>
+        <div className="text-sm font-bold text-slate-100">Campaign to 100 addresses</div>
         <p className="mt-1 text-[11px] text-slate-500">
-          Paste 100+ rows. Columns: email, agency name, contact name (optional). One approval sends
-          email 1 from the connected Outlook mailbox; follow-ups go on days 5 and 12.
+          Paste up to 100 rows (max 500). Columns: email, agency name, contact name (optional). Set
+          a send time, edit copy, then approve. One approval can send email 1 to 100 addresses.
         </p>
         <label className="mt-4 block text-[10px] font-semibold uppercase tracking-widest text-slate-500">
           Campaign name
@@ -546,6 +810,15 @@ function BulkCampaignModal({
             <option value="HOSPITAL">Hospital</option>
             <option value="TRANSIT">Transit</option>
           </select>
+        </label>
+        <label className="mt-3 block text-[10px] font-semibold uppercase tracking-widest text-slate-500">
+          Send email 1 at
+          <input
+            type="datetime-local"
+            value={sendAt}
+            onChange={(e) => setSendAt(e.target.value)}
+            className="mt-1 w-full rounded-md border border-white/10 bg-[#071224] px-3 py-2 text-sm text-white"
+          />
         </label>
         <label className="mt-3 block text-[10px] font-semibold uppercase tracking-widest text-slate-500">
           Recipient list
@@ -593,6 +866,7 @@ export function SalesAutomationClient() {
   const qc = useQueryClient();
   const [tab, setTab] = useState<Tab>("queue");
   const [preview, setPreview] = useState<RapidIqSalesSequence | null>(null);
+  const [bulkEdit, setBulkEdit] = useState<RapidIqSalesSequence | null>(null);
   const [triggerOpen, setTriggerOpen] = useState(false);
   const [bulkOpen, setBulkOpen] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
@@ -687,6 +961,68 @@ export function SalesAutomationClient() {
     onSettled: () => setBusyId(null),
   });
 
+  const saveSeq = useMutation({
+    mutationFn: ({
+      sequenceId,
+      patch,
+    }: {
+      sequenceId: string;
+      patch: Parameters<typeof updateSalesSequence>[1];
+    }) => updateSalesSequence(sequenceId, patch),
+    onMutate: ({ sequenceId }) => {
+      setBusyId(sequenceId);
+      setError(null);
+    },
+    onSuccess: (seq) => {
+      invalidate();
+      setPreview(seq);
+      showToast("Email copy saved");
+    },
+    onError: (err: Error) => setError(err.message),
+    onSettled: () => setBusyId(null),
+  });
+
+  const saveDraft = useMutation({
+    mutationFn: ({
+      draftId,
+      patch,
+    }: {
+      draftId: string;
+      patch: { subject: string; bodyText: string; linkedinText: string };
+    }) => updateSalesDraft(draftId, patch),
+    onMutate: ({ draftId }) => {
+      setBusyId(draftId);
+      setError(null);
+    },
+    onSuccess: () => {
+      invalidate();
+      showToast("Draft copy saved");
+    },
+    onError: (err: Error) => setError(err.message),
+    onSettled: () => setBusyId(null),
+  });
+
+  const saveBulkCopy = useMutation({
+    mutationFn: ({
+      campaignId,
+      steps,
+    }: {
+      campaignId: string;
+      steps: Parameters<typeof updateSalesBulkCopy>[1];
+    }) => updateSalesBulkCopy(campaignId, steps),
+    onMutate: ({ campaignId }) => {
+      setBusyId(campaignId);
+      setError(null);
+    },
+    onSuccess: (result) => {
+      invalidate();
+      setBulkEdit(null);
+      showToast(`Updated copy on ${result.updated} draft sequences`);
+    },
+    onError: (err: Error) => setError(err.message),
+    onSettled: () => setBusyId(null),
+  });
+
   const connectOutlook = useMutation({
     mutationFn: connectSalesOutlook,
     onMutate: () => setError(null),
@@ -754,9 +1090,9 @@ export function SalesAutomationClient() {
     onSuccess: (result) => {
       invalidate();
       showToast(
-        `Approved ${result.approved} · ${result.sentNow} sending from Outlook now` +
-          (result.approved + result.sentNow < 100
-            ? ". Remaining due mail goes out on the 15-minute worker (up to 150 per run)."
+        `Approved ${result.approved} · ${result.sentNow} sending now` +
+          (result.sentNow < result.approved
+            ? ". Remaining due mail goes out on the 15-minute worker (up to 100 per run)."
             : ""),
       );
     },
@@ -804,9 +1140,9 @@ export function SalesAutomationClient() {
       <div className="flex flex-wrap items-center justify-between gap-3 border-b border-white/[0.06] px-6 py-4">
         <div className="min-w-0">
           <p className="text-[11px] text-slate-500">
-            Campaign emails to potential clients send from <span className="text-slate-300">hello@rapidcortex.us</span>.
-            Use Bulk campaign for 100+ prospects, then approve the batch once. Email 1 sends from
-            that Outlook mailbox; follow-ups stay on days 5 and 12.
+            Campaigns send from <span className="text-slate-300">hello@rapidcortex.us</span>. Queue up
+            to 100 addresses, edit copy, and pick a send time for each email. Approval sends due mail
+            immediately (100 at a time).
           </p>
           {outlookQ.data?.connected ? (
             <p className="mt-1 text-[11px] text-emerald-400">
@@ -852,7 +1188,7 @@ export function SalesAutomationClient() {
             onClick={() => setBulkOpen(true)}
             className="rounded bg-sky-700 px-3 py-1.5 text-xs font-semibold text-white hover:bg-sky-600"
           >
-            Bulk campaign
+            Campaign to 100
           </button>
           <button
             type="button"
@@ -934,6 +1270,9 @@ export function SalesAutomationClient() {
                       count={seqs.length}
                       busy={busyId === campaignId}
                       onApprove={(id) => approveBulk.mutate(id)}
+                      onEditCopy={() => {
+                        if (seqs[0]) setBulkEdit(seqs[0]);
+                      }}
                     />
                   ))}
                 </div>
@@ -970,6 +1309,7 @@ export function SalesAutomationClient() {
                       draft={d}
                       busyId={busyId}
                       onApprove={(id) => approveDraft.mutate(id)}
+                      onSave={(id, patch) => saveDraft.mutate({ draftId: id, patch })}
                     />
                   ))}
                 </div>
@@ -977,7 +1317,7 @@ export function SalesAutomationClient() {
             ) : null}
             {pendingSeqs.length === 0 && pendingDrafts.length === 0 ? (
               <div className="py-16 text-center text-sm text-slate-600">
-                Approval queue is clear. Bulk campaign and Single draft land here first.
+                Approval queue is clear. Campaign to 100 and Single draft land here first.
               </div>
             ) : null}
           </div>
@@ -1017,6 +1357,7 @@ export function SalesAutomationClient() {
                 draft={d}
                 busyId={busyId}
                 onApprove={(id) => approveDraft.mutate(id)}
+                onSave={(id, patch) => saveDraft.mutate({ draftId: id, patch })}
               />
             ))}
             {drafts.length === 0 ? (
@@ -1104,6 +1445,25 @@ export function SalesAutomationClient() {
           busy={busyId === preview.sequenceId}
           onClose={() => setPreview(null)}
           onApprove={(id) => approveSeq.mutate(id)}
+          onSave={(id, patch) => saveSeq.mutate({ sequenceId: id, patch })}
+        />
+      ) : null}
+
+      {bulkEdit?.attribution.campaignId ? (
+        <PreviewModal
+          seq={bulkEdit}
+          busy={busyId === bulkEdit.attribution.campaignId}
+          bulkCount={
+            pendingGrouped.batches.find(([id]) => id === bulkEdit.attribution.campaignId)?.[1].length ?? 1
+          }
+          onClose={() => setBulkEdit(null)}
+          onApprove={() => undefined}
+          onSave={(_id, patch) =>
+            saveBulkCopy.mutate({
+              campaignId: bulkEdit.attribution.campaignId as string,
+              steps: patch.steps,
+            })
+          }
         />
       ) : null}
 
@@ -1118,6 +1478,7 @@ export function SalesAutomationClient() {
               vertical: input.vertical,
               recipientEmail: input.recipientEmail.trim(),
               recipientName: input.recipientName.trim() || undefined,
+              sendAt: fromLocalDateTimeInput(input.sendAt),
             })
           }
         />
@@ -1132,6 +1493,7 @@ export function SalesAutomationClient() {
               vertical: input.vertical,
               campaignName: input.campaignName || undefined,
               recipients: input.recipients,
+              sendAt: fromLocalDateTimeInput(input.sendAt),
             })
           }
         />

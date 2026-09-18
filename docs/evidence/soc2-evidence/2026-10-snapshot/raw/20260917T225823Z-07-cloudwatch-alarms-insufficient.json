@@ -1,0 +1,60 @@
+{
+    "MetricAlarms": [
+        {
+            "AlarmName": "AWS-Billing-Alert-MEL",
+            "AlarmArn": "arn:aws:cloudwatch:us-east-1:158961537080:alarm:AWS-Billing-Alert-MEL",
+            "AlarmDescription": "Alert when AWS costs exceed ",
+            "AlarmConfigurationUpdatedTimestamp": "2025-11-10T06:34:33.145000-05:00",
+            "ActionsEnabled": true,
+            "OKActions": [],
+            "AlarmActions": [],
+            "InsufficientDataActions": [],
+            "StateValue": "INSUFFICIENT_DATA",
+            "StateReason": "Unchecked: Initial alarm creation",
+            "StateUpdatedTimestamp": "2025-11-10T06:34:33.145000-05:00",
+            "MetricName": "EstimatedCharges",
+            "Namespace": "AWS/Billing",
+            "Statistic": "Maximum",
+            "Dimensions": [
+                {
+                    "Name": "Currency",
+                    "Value": "USD"
+                }
+            ],
+            "Period": 86400,
+            "EvaluationPeriods": 1,
+            "Threshold": 100.0,
+            "ComparisonOperator": "GreaterThanThreshold",
+            "StateTransitionedTimestamp": "2025-11-10T06:34:33.145000-05:00"
+        },
+        {
+            "AlarmName": "rapid-cortex-v2-alb-5xx-prod",
+            "AlarmArn": "arn:aws:cloudwatch:us-east-1:158961537080:alarm:rapid-cortex-v2-alb-5xx-prod",
+            "AlarmConfigurationUpdatedTimestamp": "2026-05-04T01:39:04.107000-04:00",
+            "ActionsEnabled": true,
+            "OKActions": [],
+            "AlarmActions": [],
+            "InsufficientDataActions": [],
+            "StateValue": "INSUFFICIENT_DATA",
+            "StateReason": "Insufficient Data: 5 datapoints were unknown.",
+            "StateReasonData": "{\"version\":\"1.0\",\"queryDate\":\"2026-09-15T17:20:37.977+0000\",\"statistic\":\"Sum\",\"period\":60,\"recentDatapoints\":[],\"threshold\":20.0,\"evaluatedDatapoints\":[{\"timestamp\":\"2026-09-15T17:17:00.000+0000\"},{\"timestamp\":\"2026-09-15T17:16:00.000+0000\"},{\"timestamp\":\"2026-09-15T17:15:00.000+0000\"},{\"timestamp\":\"2026-09-15T17:14:00.000+0000\"},{\"timestamp\":\"2026-09-15T17:13:00.000+0000\"}]}",
+            "StateUpdatedTimestamp": "2026-09-15T13:20:37.978000-04:00",
+            "MetricName": "HTTPCode_Target_5XX_Count",
+            "Namespace": "AWS/ApplicationELB",
+            "Statistic": "Sum",
+            "Dimensions": [
+                {
+                    "Name": "LoadBalancer",
+                    "Value": "app/rapid-cortex-v2-web-prod/6a8b3e90a73f3994"
+                }
+            ],
+            "Period": 60,
+            "EvaluationPeriods": 5,
+            "Threshold": 20.0,
+            "ComparisonOperator": "GreaterThanThreshold",
+            "StateTransitionedTimestamp": "2026-09-15T13:20:37.978000-04:00"
+        }
+    ],
+    "CompositeAlarms": [],
+    "LogAlarms": []
+}

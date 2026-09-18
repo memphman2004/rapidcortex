@@ -56,8 +56,8 @@ export default async function RcAdminAgencyFeaturesPage({ params }: Props) {
     <div className="space-y-4">
       <h1 className="text-2xl font-semibold text-white">Feature add-ons — {agencyName}</h1>
       <p className="max-w-3xl text-sm text-slate-400">
-        Toggle paid add-ons and sync changes to the agency&apos;s open invoice. Plan-included features cannot be
-        disabled.
+        Toggle add-ons and sync changes to the agency&apos;s open invoice. Plan-included features stay on
+        by default and can be turned off when you do not want them billed.
       </p>
       <div className="flex flex-wrap gap-4 text-sm">
         <Link

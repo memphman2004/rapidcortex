@@ -16,6 +16,7 @@ import {
   countQueuedUnworked,
   inboxPipelineSignals,
   isInboxOpportunity,
+  isPipelineInboxSignal,
   opportunityFeedTab,
   queuedPipelineSignals,
 } from "@/lib/rapid-iq/pipeline-feed";
@@ -169,12 +170,29 @@ export function RapidIqClient() {
   });
 
   const stats = useMemo(() => {
-    const base = computeStats(opportunities);
-    if (demo) return base;
+    const allOpps = (competitorCountQ.data?.items ?? rawItems).filter(
+      (o) => isInboxOpportunity(o) && !inPipelineIds.has(o.opportunityId),
+    );
+    const base = computeStats(allOpps);
+    const incomingCount = pipelineItems.filter(isPipelineInboxSignal).length;
+    const withIncoming = {
+      ...base,
+      opportunities: allOpps.length + incomingCount,
+      competitor: competitorCount,
+    };
+    if (demo) return withIncoming;
     const open = rfpCountsQ.data?.snapshot?.total.open;
-    if (typeof open === "number") return { ...base, rfps: open };
-    return base;
-  }, [opportunities, demo, rfpCountsQ.data]);
+    if (typeof open === "number") return { ...withIncoming, rfps: open };
+    return withIncoming;
+  }, [
+    competitorCount,
+    competitorCountQ.data,
+    demo,
+    inPipelineIds,
+    pipelineItems,
+    rawItems,
+    rfpCountsQ.data,
+  ]);
 
   const selectedOpp = useMemo(
     () => opportunities.find((o) => o.opportunityId === selectedId) ?? null,
@@ -476,7 +494,7 @@ export function RapidIqClient() {
       ) : (
         <div className="flex min-h-0 flex-1">
           <div className="w-full max-w-[420px] shrink-0 border-r border-[rgba(255,255,255,0.06)]">
-            {listQ.isLoading ? (
+            {listQ.isLoading || (pipelineEnabled && pipelineQ.isLoading && !pipelineQ.data) ? (
               <div className="flex h-full items-center justify-center text-sm text-slate-600">Loading…</div>
             ) : listQ.isError ? (
               <div className="flex h-full flex-col items-center justify-center gap-3 p-8 text-center">
@@ -484,6 +502,19 @@ export function RapidIqClient() {
                 <button
                   type="button"
                   onClick={() => void listQ.refetch()}
+                  className="rounded-lg border border-sky-500/30 bg-sky-500/8 px-5 py-2 text-xs font-bold text-sky-300"
+                >
+                  ↻ Try again
+                </button>
+              </div>
+            ) : pipelineEnabled && pipelineQ.isError ? (
+              <div className="flex h-full flex-col items-center justify-center gap-3 p-8 text-center">
+                <p className="text-sm text-red-400">
+                  {(pipelineQ.error as Error).message || "Could not load incoming signals."}
+                </p>
+                <button
+                  type="button"
+                  onClick={() => void pipelineQ.refetch()}
                   className="rounded-lg border border-sky-500/30 bg-sky-500/8 px-5 py-2 text-xs font-bold text-sky-300"
                 >
                   ↻ Try again

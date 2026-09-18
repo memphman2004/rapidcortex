@@ -1,0 +1,419 @@
+{
+    "MetricAlarms": [
+        {
+            "AlarmName": "rapid-cortex-cad-webhook-ingest-dlq-dev",
+            "AlarmArn": "arn:aws:cloudwatch:us-east-1:158961537080:alarm:rapid-cortex-cad-webhook-ingest-dlq-dev",
+            "AlarmDescription": "CAD webhook ingest worker messages landed on DLQ — investigate replay / poison payloads.",
+            "AlarmConfigurationUpdatedTimestamp": "2026-09-13T17:49:35.720000-04:00",
+            "ActionsEnabled": true,
+            "OKActions": [],
+            "AlarmActions": [
+                "arn:aws:sns:us-east-1:158961537080:rapid-cortex-dev-AppSamStackV2-1BR5EYUP7MO39-OpsAlertsTopic-p56TnLJKwZWR"
+            ],
+            "InsufficientDataActions": [],
+            "StateValue": "OK",
+            "StateReason": "Threshold Crossed: no datapoints were received for 1 period and 1 missing datapoint was treated as [NonBreaching].",
+            "StateReasonData": "{\"version\":\"1.0\",\"queryDate\":\"2026-05-23T14:47:36.344+0000\",\"statistic\":\"Sum\",\"period\":300,\"recentDatapoints\":[],\"threshold\":0.0,\"evaluatedDatapoints\":[{\"timestamp\":\"2026-05-23T14:41:00.000+0000\"}]}",
+            "StateUpdatedTimestamp": "2026-05-23T10:47:36.347000-04:00",
+            "MetricName": "ApproximateNumberOfMessagesVisible",
+            "Namespace": "AWS/SQS",
+            "Statistic": "Sum",
+            "Dimensions": [
+                {
+                    "Name": "QueueName",
+                    "Value": "rapid-cortex-dev-AppSamStackV2-1BR5EYUP7MO39-CadWebhookIngestDLQ-K9NkhuFa0NDN"
+                }
+            ],
+            "Period": 300,
+            "EvaluationPeriods": 1,
+            "Threshold": 0.0,
+            "ComparisonOperator": "GreaterThanThreshold",
+            "TreatMissingData": "notBreaching",
+            "StateTransitionedTimestamp": "2026-05-23T10:47:36.347000-04:00"
+        },
+        {
+            "AlarmName": "rapid-cortex-dev-AppSam5Stack-1T38GG051RWIG-LiveVideoExportErrorsAlarm-rlCTTq0tg9Hc",
+            "AlarmArn": "arn:aws:cloudwatch:us-east-1:158961537080:alarm:rapid-cortex-dev-AppSam5Stack-1T38GG051RWIG-LiveVideoExportErrorsAlarm-rlCTTq0tg9Hc",
+            "AlarmDescription": "Live video KVS GetClip export worker errors.",
+            "AlarmConfigurationUpdatedTimestamp": "2026-09-13T17:55:03.795000-04:00",
+            "ActionsEnabled": true,
+            "OKActions": [],
+            "AlarmActions": [
+                "arn:aws:sns:us-east-1:158961537080:rapid-cortex-dev-AppSam5Stack-1T38GG051RWIG-OpsAlertsTopic-J8ZUzVzVw6Yq"
+            ],
+            "InsufficientDataActions": [],
+            "StateValue": "OK",
+            "StateReason": "Threshold Crossed: no datapoints were received for 1 period and 1 missing datapoint was treated as [NonBreaching].",
+            "StateReasonData": "{\"version\":\"1.0\",\"queryDate\":\"2026-09-13T21:56:55.154+0000\",\"statistic\":\"Sum\",\"period\":300,\"recentDatapoints\":[],\"threshold\":1.0,\"evaluatedDatapoints\":[{\"timestamp\":\"2026-09-13T21:51:00.000+0000\"}]}",
+            "StateUpdatedTimestamp": "2026-09-13T17:56:55.155000-04:00",
+            "MetricName": "Errors",
+            "Namespace": "AWS/Lambda",
+            "Statistic": "Sum",
+            "Dimensions": [
+                {
+                    "Name": "FunctionName",
+                    "Value": "rapid-cortex-dev-AppSam5St-LiveVideoExportFunction-TI7kzU9BkFXK"
+                }
+            ],
+            "Period": 300,
+            "EvaluationPeriods": 1,
+            "Threshold": 1.0,
+            "ComparisonOperator": "GreaterThanThreshold",
+            "TreatMissingData": "notBreaching",
+            "StateTransitionedTimestamp": "2026-09-13T17:56:55.155000-04:00"
+        },
+        {
+            "AlarmName": "rapid-cortex-dev-AppSam5Stack-1T38GG051RWIG-LiveVideoIncidentsHttpErrorsAlarm-sLAASECfIuhj",
+            "AlarmArn": "arn:aws:cloudwatch:us-east-1:158961537080:alarm:rapid-cortex-dev-AppSam5Stack-1T38GG051RWIG-LiveVideoIncidentsHttpErrorsAlarm-sLAASECfIuhj",
+            "AlarmDescription": "Live video authenticated routes errors.",
+            "AlarmConfigurationUpdatedTimestamp": "2026-06-09T01:56:24.553000-04:00",
+            "ActionsEnabled": true,
+            "OKActions": [],
+            "AlarmActions": [
+                "arn:aws:sns:us-east-1:158961537080:rapid-cortex-dev-AppSam5Stack-1T38GG051RWIG-OpsAlertsTopic-J8ZUzVzVw6Yq"
+            ],
+            "InsufficientDataActions": [],
+            "StateValue": "OK",
+            "StateReason": "Threshold Crossed: no datapoints were received for 1 period and 1 missing datapoint was treated as [NonBreaching].",
+            "StateReasonData": "{\"version\":\"1.0\",\"queryDate\":\"2026-06-09T05:57:53.540+0000\",\"statistic\":\"Sum\",\"period\":300,\"recentDatapoints\":[],\"threshold\":5.0,\"evaluatedDatapoints\":[{\"timestamp\":\"2026-06-09T05:52:00.000+0000\"}]}",
+            "StateUpdatedTimestamp": "2026-06-09T01:57:53.542000-04:00",
+            "MetricName": "Errors",
+            "Namespace": "AWS/Lambda",
+            "Statistic": "Sum",
+            "Dimensions": [
+                {
+                    "Name": "FunctionName",
+                    "Value": "rapid-cortex-dev-AppSam5S-LiveVideoIncidentsHttpFu-q6L0xgt5vpLY"
+                }
+            ],
+            "Period": 300,
+            "EvaluationPeriods": 1,
+            "Threshold": 5.0,
+            "ComparisonOperator": "GreaterThanThreshold",
+            "TreatMissingData": "notBreaching",
+            "StateTransitionedTimestamp": "2026-06-09T01:57:53.542000-04:00"
+        },
+        {
+            "AlarmName": "rapid-cortex-dev-AppSam5Stack-1T38GG051RWIG-LiveVideoPublicHttpErrorsAlarm-Eu4zmpuTHmKB",
+            "AlarmArn": "arn:aws:cloudwatch:us-east-1:158961537080:alarm:rapid-cortex-dev-AppSam5Stack-1T38GG051RWIG-LiveVideoPublicHttpErrorsAlarm-Eu4zmpuTHmKB",
+            "AlarmDescription": "Live video public token route errors.",
+            "AlarmConfigurationUpdatedTimestamp": "2026-06-09T01:56:11.420000-04:00",
+            "ActionsEnabled": true,
+            "OKActions": [],
+            "AlarmActions": [
+                "arn:aws:sns:us-east-1:158961537080:rapid-cortex-dev-AppSam5Stack-1T38GG051RWIG-OpsAlertsTopic-J8ZUzVzVw6Yq"
+            ],
+            "InsufficientDataActions": [],
+            "StateValue": "OK",
+            "StateReason": "Threshold Crossed: no datapoints were received for 1 period and 1 missing datapoint was treated as [NonBreaching].",
+            "StateReasonData": "{\"version\":\"1.0\",\"queryDate\":\"2026-06-09T05:57:22.973+0000\",\"statistic\":\"Sum\",\"period\":300,\"recentDatapoints\":[],\"threshold\":5.0,\"evaluatedDatapoints\":[{\"timestamp\":\"2026-06-09T05:52:00.000+0000\"}]}",
+            "StateUpdatedTimestamp": "2026-06-09T01:57:22.974000-04:00",
+            "MetricName": "Errors",
+            "Namespace": "AWS/Lambda",
+            "Statistic": "Sum",
+            "Dimensions": [
+                {
+                    "Name": "FunctionName",
+                    "Value": "rapid-cortex-dev-AppSam5S-LiveVideoPublicHttpFunct-7NdRYo970ImW"
+                }
+            ],
+            "Period": 300,
+            "EvaluationPeriods": 1,
+            "Threshold": 5.0,
+            "ComparisonOperator": "GreaterThanThreshold",
+            "TreatMissingData": "notBreaching",
+            "StateTransitionedTimestamp": "2026-06-09T01:57:22.974000-04:00"
+        },
+        {
+            "AlarmName": "rapid-cortex-dev-cad-bridge-buffer-depth-dev",
+            "AlarmArn": "arn:aws:cloudwatch:us-east-1:158961537080:alarm:rapid-cortex-dev-cad-bridge-buffer-depth-dev",
+            "AlarmDescription": "CAD Bridge buffer has >500 events. Partner CAD may be down for an extended period.",
+            "AlarmConfigurationUpdatedTimestamp": "2026-09-13T17:52:18.467000-04:00",
+            "ActionsEnabled": true,
+            "OKActions": [
+                "arn:aws:sns:us-east-1:158961537080:rapid-cortex-dev-AppSam2Stack-1URVS591Q6ESS-OpsAlertsTopic-k0iluZUsVXtz"
+            ],
+            "AlarmActions": [
+                "arn:aws:sns:us-east-1:158961537080:rapid-cortex-dev-AppSam2Stack-1URVS591Q6ESS-OpsAlertsTopic-k0iluZUsVXtz"
+            ],
+            "InsufficientDataActions": [],
+            "StateValue": "OK",
+            "StateReason": "Threshold Crossed: no datapoints were received for 1 period and 1 missing datapoint was treated as [NonBreaching].",
+            "StateReasonData": "{\"version\":\"1.0\",\"queryDate\":\"2026-09-13T21:53:22.020+0000\",\"statistic\":\"Maximum\",\"period\":300,\"recentDatapoints\":[],\"threshold\":500.0,\"evaluatedDatapoints\":[{\"timestamp\":\"2026-09-13T21:48:00.000+0000\"}]}",
+            "StateUpdatedTimestamp": "2026-09-13T17:53:22.022000-04:00",
+            "MetricName": "BufferDepth",
+            "Namespace": "RapidCortex/CADBridge",
+            "Statistic": "Maximum",
+            "Dimensions": [],
+            "Period": 300,
+            "EvaluationPeriods": 1,
+            "Threshold": 500.0,
+            "ComparisonOperator": "GreaterThanOrEqualToThreshold",
+            "TreatMissingData": "notBreaching",
+            "StateTransitionedTimestamp": "2026-09-13T17:53:22.022000-04:00"
+        },
+        {
+            "AlarmName": "rapid-cortex-dev-cad-bridge-conflicts-dev",
+            "AlarmArn": "arn:aws:cloudwatch:us-east-1:158961537080:alarm:rapid-cortex-dev-cad-bridge-conflicts-dev",
+            "AlarmDescription": "CAD bridge unresolved conflicts exceeded 10 in 5 minutes",
+            "AlarmConfigurationUpdatedTimestamp": "2026-09-13T17:52:18.349000-04:00",
+            "ActionsEnabled": true,
+            "OKActions": [],
+            "AlarmActions": [
+                "arn:aws:sns:us-east-1:158961537080:rapid-cortex-dev-AppSam2Stack-1URVS591Q6ESS-OpsAlertsTopic-k0iluZUsVXtz"
+            ],
+            "InsufficientDataActions": [],
+            "StateValue": "OK",
+            "StateReason": "Threshold Crossed: no datapoints were received for 1 period and 1 missing datapoint was treated as [NonBreaching].",
+            "StateReasonData": "{\"version\":\"1.0\",\"queryDate\":\"2026-09-13T21:53:17.703+0000\",\"statistic\":\"Sum\",\"period\":300,\"recentDatapoints\":[],\"threshold\":10.0,\"evaluatedDatapoints\":[{\"timestamp\":\"2026-09-13T21:48:00.000+0000\"}]}",
+            "StateUpdatedTimestamp": "2026-09-13T17:53:17.705000-04:00",
+            "MetricName": "UnresolvedConflicts",
+            "Namespace": "RapidCortex/CADBridge",
+            "Statistic": "Sum",
+            "Dimensions": [],
+            "Period": 300,
+            "EvaluationPeriods": 1,
+            "Threshold": 10.0,
+            "ComparisonOperator": "GreaterThanOrEqualToThreshold",
+            "TreatMissingData": "notBreaching",
+            "StateTransitionedTimestamp": "2026-09-13T17:53:17.705000-04:00"
+        },
+        {
+            "AlarmName": "rapid-cortex-dev-cad-bridge-dlq-dev",
+            "AlarmArn": "arn:aws:cloudwatch:us-east-1:158961537080:alarm:rapid-cortex-dev-cad-bridge-dlq-dev",
+            "AlarmDescription": "CAD Bridge DLQ has messages. Router failed after 3 receive attempts (unhandled exception).",
+            "AlarmConfigurationUpdatedTimestamp": "2026-09-13T17:53:22.222000-04:00",
+            "ActionsEnabled": true,
+            "OKActions": [
+                "arn:aws:sns:us-east-1:158961537080:rapid-cortex-dev-AppSam2Stack-1URVS591Q6ESS-OpsAlertsTopic-k0iluZUsVXtz"
+            ],
+            "AlarmActions": [
+                "arn:aws:sns:us-east-1:158961537080:rapid-cortex-dev-AppSam2Stack-1URVS591Q6ESS-OpsAlertsTopic-k0iluZUsVXtz"
+            ],
+            "InsufficientDataActions": [],
+            "StateValue": "OK",
+            "StateReason": "Threshold Crossed: no datapoints were received for 1 period and 1 missing datapoint was treated as [NonBreaching].",
+            "StateReasonData": "{\"version\":\"1.0\",\"queryDate\":\"2026-09-13T21:54:26.935+0000\",\"statistic\":\"Maximum\",\"period\":60,\"recentDatapoints\":[],\"threshold\":1.0,\"evaluatedDatapoints\":[{\"timestamp\":\"2026-09-13T21:52:00.000+0000\"}]}",
+            "StateUpdatedTimestamp": "2026-09-13T17:54:26.937000-04:00",
+            "MetricName": "ApproximateNumberOfMessagesVisible",
+            "Namespace": "AWS/SQS",
+            "Statistic": "Maximum",
+            "Dimensions": [
+                {
+                    "Name": "QueueName",
+                    "Value": "rapid-cortex-dev-cad-bridge-events-dlq-dev.fifo"
+                }
+            ],
+            "Period": 60,
+            "EvaluationPeriods": 1,
+            "Threshold": 1.0,
+            "ComparisonOperator": "GreaterThanOrEqualToThreshold",
+            "TreatMissingData": "notBreaching",
+            "StateTransitionedTimestamp": "2026-09-13T17:54:26.937000-04:00"
+        },
+        {
+            "AlarmName": "rapid-cortex-dev-cad-bridge-failed-publish-dev",
+            "AlarmArn": "arn:aws:cloudwatch:us-east-1:158961537080:alarm:rapid-cortex-dev-cad-bridge-failed-publish-dev",
+            "AlarmDescription": "CAD bridge failed publishes exceeded 5 in 60 seconds",
+            "AlarmConfigurationUpdatedTimestamp": "2026-09-13T17:52:18.564000-04:00",
+            "ActionsEnabled": true,
+            "OKActions": [],
+            "AlarmActions": [
+                "arn:aws:sns:us-east-1:158961537080:rapid-cortex-dev-AppSam2Stack-1URVS591Q6ESS-OpsAlertsTopic-k0iluZUsVXtz"
+            ],
+            "InsufficientDataActions": [],
+            "StateValue": "OK",
+            "StateReason": "Threshold Crossed: no datapoints were received for 1 period and 1 missing datapoint was treated as [NonBreaching].",
+            "StateReasonData": "{\"version\":\"1.0\",\"queryDate\":\"2026-09-13T21:53:05.421+0000\",\"statistic\":\"Sum\",\"period\":60,\"recentDatapoints\":[],\"threshold\":5.0,\"evaluatedDatapoints\":[{\"timestamp\":\"2026-09-13T21:52:00.000+0000\"}]}",
+            "StateUpdatedTimestamp": "2026-09-13T17:53:05.423000-04:00",
+            "MetricName": "FailedPublishCount",
+            "Namespace": "RapidCortex/CADBridge",
+            "Statistic": "Sum",
+            "Dimensions": [],
+            "Period": 60,
+            "EvaluationPeriods": 1,
+            "Threshold": 5.0,
+            "ComparisonOperator": "GreaterThanThreshold",
+            "TreatMissingData": "notBreaching",
+            "StateTransitionedTimestamp": "2026-09-13T17:53:05.423000-04:00"
+        },
+        {
+            "AlarmName": "rapid-cortex-dev-cad-bridge-pending-buffer-dev",
+            "AlarmArn": "arn:aws:cloudwatch:us-east-1:158961537080:alarm:rapid-cortex-dev-cad-bridge-pending-buffer-dev",
+            "AlarmDescription": "CAD bridge pending buffer exceeded 50 events",
+            "AlarmConfigurationUpdatedTimestamp": "2026-09-13T17:52:18.570000-04:00",
+            "ActionsEnabled": true,
+            "OKActions": [],
+            "AlarmActions": [
+                "arn:aws:sns:us-east-1:158961537080:rapid-cortex-dev-AppSam2Stack-1URVS591Q6ESS-OpsAlertsTopic-k0iluZUsVXtz"
+            ],
+            "InsufficientDataActions": [],
+            "StateValue": "OK",
+            "StateReason": "Threshold Crossed: no datapoints were received for 1 period and 1 missing datapoint was treated as [NonBreaching].",
+            "StateReasonData": "{\"version\":\"1.0\",\"queryDate\":\"2026-09-13T21:53:06.952+0000\",\"statistic\":\"Maximum\",\"period\":60,\"recentDatapoints\":[],\"threshold\":50.0,\"evaluatedDatapoints\":[{\"timestamp\":\"2026-09-13T21:52:00.000+0000\"}]}",
+            "StateUpdatedTimestamp": "2026-09-13T17:53:06.953000-04:00",
+            "MetricName": "PendingBufferSize",
+            "Namespace": "RapidCortex/CADBridge",
+            "Statistic": "Maximum",
+            "Dimensions": [],
+            "Period": 60,
+            "EvaluationPeriods": 1,
+            "Threshold": 50.0,
+            "ComparisonOperator": "GreaterThanThreshold",
+            "TreatMissingData": "notBreaching",
+            "StateTransitionedTimestamp": "2026-09-13T17:53:06.953000-04:00"
+        },
+        {
+            "AlarmName": "rapid-cortex-dev-cad-bridge-queue-backlog-dev",
+            "AlarmArn": "arn:aws:cloudwatch:us-east-1:158961537080:alarm:rapid-cortex-dev-cad-bridge-queue-backlog-dev",
+            "AlarmDescription": "CAD Bridge event queue has >100 visible messages. Router may be stalled or throttled.",
+            "AlarmConfigurationUpdatedTimestamp": "2026-09-13T17:54:25.326000-04:00",
+            "ActionsEnabled": true,
+            "OKActions": [],
+            "AlarmActions": [
+                "arn:aws:sns:us-east-1:158961537080:rapid-cortex-dev-AppSam2Stack-1URVS591Q6ESS-OpsAlertsTopic-k0iluZUsVXtz"
+            ],
+            "InsufficientDataActions": [],
+            "StateValue": "OK",
+            "StateReason": "Threshold Crossed: no datapoints were received for 2 periods and 2 missing datapoints were treated as [NonBreaching].",
+            "StateReasonData": "{\"version\":\"1.0\",\"queryDate\":\"2026-09-13T21:54:59.600+0000\",\"statistic\":\"Maximum\",\"period\":60,\"recentDatapoints\":[],\"threshold\":100.0,\"evaluatedDatapoints\":[{\"timestamp\":\"2026-09-13T21:52:00.000+0000\"}]}",
+            "StateUpdatedTimestamp": "2026-09-13T17:54:59.603000-04:00",
+            "MetricName": "ApproximateNumberOfMessagesVisible",
+            "Namespace": "AWS/SQS",
+            "Statistic": "Maximum",
+            "Dimensions": [
+                {
+                    "Name": "QueueName",
+                    "Value": "rapid-cortex-dev-cad-bridge-events-dev.fifo"
+                }
+            ],
+            "Period": 60,
+            "EvaluationPeriods": 2,
+            "Threshold": 100.0,
+            "ComparisonOperator": "GreaterThanOrEqualToThreshold",
+            "TreatMissingData": "notBreaching",
+            "StateTransitionedTimestamp": "2026-09-13T17:54:59.603000-04:00"
+        },
+        {
+            "AlarmName": "rapid-cortex-dev-cad-bridge-router-errors-dev",
+            "AlarmArn": "arn:aws:cloudwatch:us-east-1:158961537080:alarm:rapid-cortex-dev-cad-bridge-router-errors-dev",
+            "AlarmDescription": "CAD Bridge event router Lambda errors. Check logs for unhandled exceptions.",
+            "AlarmConfigurationUpdatedTimestamp": "2026-09-13T17:55:16.369000-04:00",
+            "ActionsEnabled": true,
+            "OKActions": [],
+            "AlarmActions": [
+                "arn:aws:sns:us-east-1:158961537080:rapid-cortex-dev-AppSam2Stack-1URVS591Q6ESS-OpsAlertsTopic-k0iluZUsVXtz"
+            ],
+            "InsufficientDataActions": [],
+            "StateValue": "OK",
+            "StateReason": "Threshold Crossed: no datapoints were received for 2 periods and 2 missing datapoints were treated as [NonBreaching].",
+            "StateReasonData": "{\"version\":\"1.0\",\"queryDate\":\"2026-09-13T21:56:40.355+0000\",\"statistic\":\"Sum\",\"period\":60,\"recentDatapoints\":[],\"threshold\":5.0,\"evaluatedDatapoints\":[{\"timestamp\":\"2026-09-13T21:55:00.000+0000\"}]}",
+            "StateUpdatedTimestamp": "2026-09-13T17:56:40.358000-04:00",
+            "MetricName": "Errors",
+            "Namespace": "AWS/Lambda",
+            "Statistic": "Sum",
+            "Dimensions": [
+                {
+                    "Name": "FunctionName",
+                    "Value": "rapid-cortex-dev-AppSamCad-CadBridgeRouterFunction-oanQcJPeVsPP"
+                }
+            ],
+            "Period": 60,
+            "EvaluationPeriods": 2,
+            "Threshold": 5.0,
+            "ComparisonOperator": "GreaterThanOrEqualToThreshold",
+            "TreatMissingData": "notBreaching",
+            "StateTransitionedTimestamp": "2026-09-13T17:56:40.358000-04:00"
+        },
+        {
+            "AlarmName": "rapid-cortex-dev-cad-bridge-sync-lag-dev",
+            "AlarmArn": "arn:aws:cloudwatch:us-east-1:158961537080:alarm:rapid-cortex-dev-cad-bridge-sync-lag-dev",
+            "AlarmDescription": "CAD bridge sync lag exceeded 5 seconds",
+            "AlarmConfigurationUpdatedTimestamp": "2026-09-13T17:52:18.562000-04:00",
+            "ActionsEnabled": true,
+            "OKActions": [],
+            "AlarmActions": [
+                "arn:aws:sns:us-east-1:158961537080:rapid-cortex-dev-AppSam2Stack-1URVS591Q6ESS-OpsAlertsTopic-k0iluZUsVXtz"
+            ],
+            "InsufficientDataActions": [],
+            "StateValue": "OK",
+            "StateReason": "Threshold Crossed: no datapoints were received for 1 period and 1 missing datapoint was treated as [NonBreaching].",
+            "StateReasonData": "{\"version\":\"1.0\",\"queryDate\":\"2026-09-13T21:53:20.202+0000\",\"statistic\":\"Average\",\"period\":60,\"recentDatapoints\":[],\"threshold\":5000.0,\"evaluatedDatapoints\":[{\"timestamp\":\"2026-09-13T21:52:00.000+0000\"}]}",
+            "StateUpdatedTimestamp": "2026-09-13T17:53:20.204000-04:00",
+            "MetricName": "SyncLagMs",
+            "Namespace": "RapidCortex/CADBridge",
+            "Statistic": "Average",
+            "Dimensions": [],
+            "Period": 60,
+            "EvaluationPeriods": 1,
+            "Threshold": 5000.0,
+            "ComparisonOperator": "GreaterThanThreshold",
+            "TreatMissingData": "notBreaching",
+            "StateTransitionedTimestamp": "2026-09-13T17:53:20.204000-04:00"
+        },
+        {
+            "AlarmName": "rapid-cortex-dev-cad-bridge-webhook-errors-dev",
+            "AlarmArn": "arn:aws:cloudwatch:us-east-1:158961537080:alarm:rapid-cortex-dev-cad-bridge-webhook-errors-dev",
+            "AlarmDescription": "CAD Bridge webhook handler Lambda errors (unhandled exceptions).",
+            "AlarmConfigurationUpdatedTimestamp": "2026-09-13T17:55:15.648000-04:00",
+            "ActionsEnabled": true,
+            "OKActions": [],
+            "AlarmActions": [
+                "arn:aws:sns:us-east-1:158961537080:rapid-cortex-dev-AppSam2Stack-1URVS591Q6ESS-OpsAlertsTopic-k0iluZUsVXtz"
+            ],
+            "InsufficientDataActions": [],
+            "StateValue": "OK",
+            "StateReason": "Threshold Crossed: no datapoints were received for 2 periods and 2 missing datapoints were treated as [NonBreaching].",
+            "StateReasonData": "{\"version\":\"1.0\",\"queryDate\":\"2026-09-13T21:56:31.497+0000\",\"statistic\":\"Sum\",\"period\":60,\"recentDatapoints\":[],\"threshold\":5.0,\"evaluatedDatapoints\":[{\"timestamp\":\"2026-09-13T21:55:00.000+0000\"}]}",
+            "StateUpdatedTimestamp": "2026-09-13T17:56:31.498000-04:00",
+            "MetricName": "Errors",
+            "Namespace": "AWS/Lambda",
+            "Statistic": "Sum",
+            "Dimensions": [
+                {
+                    "Name": "FunctionName",
+                    "Value": "rapid-cortex-dev-AppSamCa-CadBridgeWebhookFunction-jZGx2mGaFca1"
+                }
+            ],
+            "Period": 60,
+            "EvaluationPeriods": 2,
+            "Threshold": 5.0,
+            "ComparisonOperator": "GreaterThanOrEqualToThreshold",
+            "TreatMissingData": "notBreaching",
+            "StateTransitionedTimestamp": "2026-09-13T17:56:31.498000-04:00"
+        },
+        {
+            "AlarmName": "rapid-cortex-v2-alb-unhealthy-prod",
+            "AlarmArn": "arn:aws:cloudwatch:us-east-1:158961537080:alarm:rapid-cortex-v2-alb-unhealthy-prod",
+            "AlarmConfigurationUpdatedTimestamp": "2026-05-04T01:39:04.144000-04:00",
+            "ActionsEnabled": true,
+            "OKActions": [],
+            "AlarmActions": [],
+            "InsufficientDataActions": [],
+            "StateValue": "OK",
+            "StateReason": "Threshold Crossed: 1 datapoint [0.0 (17/05/26 20:28:00)] was not greater than or equal to the threshold (1.0).",
+            "StateReasonData": "{\"version\":\"1.0\",\"queryDate\":\"2026-05-17T20:31:56.851+0000\",\"startDate\":\"2026-05-17T20:26:00.000+0000\",\"statistic\":\"Average\",\"period\":60,\"recentDatapoints\":[1.0,1.0,0.0],\"threshold\":1.0,\"evaluatedDatapoints\":[{\"timestamp\":\"2026-05-17T20:28:00.000+0000\",\"sampleCount\":6.0,\"value\":0.0}]}",
+            "StateUpdatedTimestamp": "2026-05-17T16:31:56.853000-04:00",
+            "MetricName": "UnHealthyHostCount",
+            "Namespace": "AWS/ApplicationELB",
+            "Statistic": "Average",
+            "Dimensions": [
+                {
+                    "Name": "TargetGroup",
+                    "Value": "targetgroup/rapid-cortex-v2-web-prod/eeb60fea87d37ded"
+                },
+                {
+                    "Name": "LoadBalancer",
+                    "Value": "app/rapid-cortex-v2-web-prod/6a8b3e90a73f3994"
+                }
+            ],
+            "Period": 60,
+            "EvaluationPeriods": 3,
+            "Threshold": 1.0,
+            "ComparisonOperator": "GreaterThanOrEqualToThreshold",
+            "StateTransitionedTimestamp": "2026-05-17T16:31:56.853000-04:00"
+        }
+    ],
+    "CompositeAlarms": [],
+    "LogAlarms": []
+}

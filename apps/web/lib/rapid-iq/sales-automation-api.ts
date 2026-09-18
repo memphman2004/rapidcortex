@@ -9,6 +9,8 @@ import type {
   RapidIqSalesContentDraft,
   RapidIqSalesMetrics,
   RapidIqSalesSequence,
+  UpdateRapidIqSalesDraftBody,
+  UpdateRapidIqSalesSequenceBody,
 } from "rapid-cortex-shared";
 
 const BASE = "/api/rapid-iq/sales-automation";
@@ -155,4 +157,46 @@ export async function createSalesSequence(
   });
   const parsed = await parseJson<{ sequence: RapidIqSalesSequence }>(res);
   return parsed.sequence;
+}
+
+export async function updateSalesSequence(
+  sequenceId: string,
+  body: UpdateRapidIqSalesSequenceBody,
+): Promise<RapidIqSalesSequence> {
+  const res = await fetch(`${BASE}/sequences/${encodeURIComponent(sequenceId)}`, {
+    method: "PATCH",
+    credentials: "include",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  });
+  const parsed = await parseJson<{ sequence: RapidIqSalesSequence }>(res);
+  return parsed.sequence;
+}
+
+export async function updateSalesDraft(
+  draftId: string,
+  body: UpdateRapidIqSalesDraftBody,
+): Promise<RapidIqSalesContentDraft> {
+  const res = await fetch(`${BASE}/drafts/${encodeURIComponent(draftId)}`, {
+    method: "PATCH",
+    credentials: "include",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  });
+  const parsed = await parseJson<{ draft: RapidIqSalesContentDraft }>(res);
+  return parsed.draft;
+}
+
+export async function updateSalesBulkCopy(
+  campaignId: string,
+  steps: UpdateRapidIqSalesSequenceBody["steps"],
+): Promise<{ updated: number }> {
+  const res = await fetch(`${BASE}/bulk`, {
+    method: "PATCH",
+    credentials: "include",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ campaignId, steps }),
+  });
+  const parsed = await parseJson<{ result: { updated: number } }>(res);
+  return parsed.result;
 }

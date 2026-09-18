@@ -31,7 +31,7 @@ import type { RapidIqSalesOutreachStep, RapidIqSalesSequence } from "rapid-corte
 
 const ses = new SESClient({});
 const auditRepo = new AuditRepository();
-const MAX_SENDS_PER_RUN = 150;
+const MAX_SENDS_PER_RUN = 100;
 
 function salesAutomationEnabled(): boolean {
   const v = process.env.ENABLE_SALES_AUTOMATION?.trim().toLowerCase();

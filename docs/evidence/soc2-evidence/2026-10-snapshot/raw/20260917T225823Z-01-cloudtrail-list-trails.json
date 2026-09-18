@@ -1,0 +1,9 @@
+{
+    "Trails": [
+        {
+            "TrailARN": "arn:aws:cloudtrail:us-east-1:158961537080:trail/rapid-cortex-cloudtrail-prod",
+            "Name": "rapid-cortex-cloudtrail-prod",
+            "HomeRegion": "us-east-1"
+        }
+    ]
+}

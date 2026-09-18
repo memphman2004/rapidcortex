@@ -128,17 +128,31 @@ export async function listSignalsByStatus(
   status: RapidIqPipelineSignalStatus,
   limit = 50,
 ): Promise<RapidIqPipelineSignal[]> {
-  const res = await ddb.send(
-    new QueryCommand({
-      TableName: table(),
-      IndexName: "gsi1-status-score",
-      KeyConditionExpression: "gsi1pk = :pk",
-      ExpressionAttributeValues: { ":pk": gsi1pk(status) },
-      ScanIndexForward: false,
-      Limit: limit,
-    }),
-  );
-  return (res.Items ?? []).map((i) => stripDynamoKeys(i as Record<string, unknown>));
+  const items: RapidIqPipelineSignal[] = [];
+  let startKey: Record<string, unknown> | undefined;
+  do {
+    const res = await ddb.send(
+      new QueryCommand({
+        TableName: table(),
+        IndexName: "gsi1-status-score",
+        KeyConditionExpression: "gsi1pk = :pk",
+        ExpressionAttributeValues: { ":pk": gsi1pk(status) },
+        ScanIndexForward: false,
+        Limit: Math.min(100, Math.max(1, limit - items.length)),
+        ...(startKey ? { ExclusiveStartKey: startKey } : {}),
+      }),
+    );
+    for (const item of res.Items ?? []) {
+      items.push(stripDynamoKeys(item as Record<string, unknown>));
+    }
+    startKey = res.LastEvaluatedKey as Record<string, unknown> | undefined;
+  } while (startKey && items.length < limit);
+  return items;
+}
+
+function sortSignalsByFit(a: RapidIqPipelineSignal, b: RapidIqPipelineSignal): number {
+  if (b.fitScore !== a.fitScore) return b.fitScore - a.fitScore;
+  return b.signalDate.localeCompare(a.signalDate);
 }
 
 export async function listAllSignals(limit = 100): Promise<RapidIqPipelineSignal[]> {
@@ -146,11 +160,26 @@ export async function listAllSignals(limit = 100): Promise<RapidIqPipelineSignal
   const per = Math.max(1, Math.ceil(limit / statuses.length));
   const results = await Promise.all(statuses.map((s) => listSignalsByStatus(s, per)));
   const flat = results.flat();
-  flat.sort((a, b) => {
-    if (b.fitScore !== a.fitScore) return b.fitScore - a.fitScore;
-    return b.signalDate.localeCompare(a.signalDate);
-  });
+  flat.sort(sortSignalsByFit);
   return flat.slice(0, limit);
+}
+
+/** Inbox + pipeline queue: bias toward `new` so collector ingest is not truncated by high-score Rapid IQ enqueues. */
+export async function listSignalsForCommandCenter(limits?: {
+  incoming?: number;
+  reviewed?: number;
+  pushed?: number;
+  dismissed?: number;
+}): Promise<RapidIqPipelineSignal[]> {
+  const [incoming, reviewed, pushed, dismissed] = await Promise.all([
+    listSignalsByStatus("new", limits?.incoming ?? 400),
+    listSignalsByStatus("reviewed", limits?.reviewed ?? 100),
+    listSignalsByStatus("pushed", limits?.pushed ?? 80),
+    listSignalsByStatus("dismissed", limits?.dismissed ?? 40),
+  ]);
+  const flat = [...incoming, ...reviewed, ...pushed, ...dismissed];
+  flat.sort(sortSignalsByFit);
+  return flat;
 }
 
 export async function updateSignalStatus(

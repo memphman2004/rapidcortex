@@ -221,9 +221,9 @@ export function SignupForm() {
         aligns your profile with the approved agency program during onboarding.
       </p>
       <p className="text-[11px] leading-relaxed text-slate-500">
-        <span className="font-medium text-slate-400">Security:</span> production pools require{" "}
-        <span className="font-medium text-slate-400">TOTP authenticator (MFA)</span> on first
-        sign-in. Have an app such as Google Authenticator or 1Password ready before you log in.
+        <span className="font-medium text-slate-400">Security:</span> first sign-in asks you to
+        enroll <span className="font-medium text-slate-400">Google Authenticator</span> by scanning
+        a QR on the login page.
       </p>
       {error ? <p className="text-sm text-rose-400">{error}</p> : null}
       <button

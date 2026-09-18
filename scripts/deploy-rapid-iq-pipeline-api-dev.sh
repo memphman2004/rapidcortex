@@ -163,8 +163,15 @@ sam build \
   --parallel \
   --build-in-source
 
-STACK_NAME="${RAPID_IQ_PIPELINE_STACK_NAME:-rapid-cortex-dev-AppSamRapidIqPipelineStack}"
+# Live sales-automation HTTP is the hashed nested stack (SignalHttp …fNnRYanfGumk on tbr4zvjlk5).
+# Leftover standalone rapid-cortex-dev-AppSamRapidIqPipelineStack still owns the 15-min send worker.
+STACK_NAME="${RAPID_IQ_PIPELINE_STACK_NAME:-rapid-cortex-dev-AppSamRapidIqPipelineStack-JWN4SGUYZXYF}"
 HTTP_API_ID="${RAPID_IQ_HTTP_API_ID:-tbr4zvjlk5}"
+OUTLOOK_OAUTH_CLIENT_ID="${OUTLOOK_OAUTH_CLIENT_ID:-6110ccac-58b6-4976-86c9-46339151aa9f}"
+OUTLOOK_OAUTH_TENANT="${OUTLOOK_OAUTH_TENANT:-0a85f08a-54a8-43de-bdc1-4ad4e52d3af8}"
+OUTLOOK_OAUTH_CLIENT_SECRET_ARN="${OUTLOOK_OAUTH_CLIENT_SECRET_ARN:-arn:aws:secretsmanager:us-east-1:158961537080:secret:rapid-cortex/rapid-iq/outlook-oauth-3klLxF}"
+OUTLOOK_OAUTH_REDIRECT_URI="${OUTLOOK_OAUTH_REDIRECT_URI:-https://app.rapidcortex.us/rc-admin/sales-automation/outlook-callback}"
+OUTLOOK_GRAPH_MOCK="${OUTLOOK_GRAPH_MOCK:-false}"
 
 PARAM_OVERRIDES=(
   DeploymentStage=dev
@@ -182,6 +189,13 @@ PARAM_OVERRIDES=(
   "RapidIqApolloApiKeySecretArn=${RAPID_IQ_APOLLO_API_KEY_SECRET_ARN}"
   "RapidIqHunterApiKeySecretArn=${RAPID_IQ_HUNTER_API_KEY_SECRET_ARN}"
   "OpenAiWebSearchEnabled=${OPENAI_WEB_SEARCH_ENABLED:-false}"
+  "EnableRapidIqNewHttpRoutes=${ENABLE_RAPID_IQ_NEW_HTTP_ROUTES:-true}"
+  "EnableRapidIqNestedExpansion=${ENABLE_RAPID_IQ_NESTED_EXPANSION:-false}"
+  "OutlookOAuthClientId=${OUTLOOK_OAUTH_CLIENT_ID}"
+  "OutlookOAuthTenant=${OUTLOOK_OAUTH_TENANT}"
+  "OutlookOAuthClientSecretArn=${OUTLOOK_OAUTH_CLIENT_SECRET_ARN}"
+  "OutlookOAuthRedirectUri=${OUTLOOK_OAUTH_REDIRECT_URI}"
+  "OutlookGraphMock=${OUTLOOK_GRAPH_MOCK}"
 )
 if [[ -n "${RAPID_IQ_SAM_GOV_API_KEY_SECRET_ARN:-}" ]]; then
   PARAM_OVERRIDES+=("RapidIqSamGovApiKeySecretArn=${RAPID_IQ_SAM_GOV_API_KEY_SECRET_ARN}")
@@ -194,6 +208,9 @@ if [[ -n "${RAPID_IQ_LEGISCAN_API_KEY_SECRET_ARN:-}" ]]; then
 fi
 if [[ -n "${OPENAI_API_KEY_SECRET_ARN:-}" ]]; then
   PARAM_OVERRIDES+=("OpenAiApiKeySecretArn=${OPENAI_API_KEY_SECRET_ARN}")
+fi
+if [[ -n "${EXTERNAL_API_ENCRYPTION_KEY_ARN:-}" ]]; then
+  PARAM_OVERRIDES+=("ExternalApiEncryptionKeyArn=${EXTERNAL_API_ENCRYPTION_KEY_ARN}")
 fi
 
 sam deploy \
@@ -216,3 +233,26 @@ aws apigatewayv2 get-routes --api-id "${HTTP_API_ID}" \
   --output table
 
 echo "DONE: ${STACK_NAME}"
+
+# Leftover standalone still owns SalesAutomationSendFunction (15-min follow-ups).
+# Nested hashed stack must keep EnableRapidIqNestedExpansion=false to avoid EventBridge/IAM collisions.
+if [[ "${RAPID_IQ_UPDATE_LEFTOVER_SEND:-1}" == "1" && "${STACK_NAME}" != "rapid-cortex-dev-AppSamRapidIqPipelineStack" ]]; then
+  echo "── Updating leftover send worker stack (EnableRapidIqNestedExpansion=true, no new HTTP routes) ──"
+  LEFTOVER_OVERRIDES=("${PARAM_OVERRIDES[@]}")
+  for i in "${!LEFTOVER_OVERRIDES[@]}"; do
+    case "${LEFTOVER_OVERRIDES[$i]}" in
+      EnableRapidIqNestedExpansion=*) LEFTOVER_OVERRIDES[$i]="EnableRapidIqNestedExpansion=true" ;;
+      EnableRapidIqNewHttpRoutes=*) LEFTOVER_OVERRIDES[$i]="EnableRapidIqNewHttpRoutes=false" ;;
+    esac
+  done
+  sam deploy \
+    --template-file "${SAM_BUILD_DIR}/template.yaml" \
+    --stack-name rapid-cortex-dev-AppSamRapidIqPipelineStack \
+    --capabilities CAPABILITY_IAM CAPABILITY_NAMED_IAM CAPABILITY_AUTO_EXPAND \
+    --resolve-s3 \
+    --no-confirm-changeset \
+    --no-fail-on-empty-changeset \
+    --region "${AWS_REGION}" \
+    --parameter-overrides "${LEFTOVER_OVERRIDES[@]}"
+  echo "DONE leftover: rapid-cortex-dev-AppSamRapidIqPipelineStack"
+fi

@@ -1,4 +1,12 @@
-import { getPlanById } from "rapid-cortex-shared";
+import {
+  ADDON_CATALOG,
+  getPlanById,
+  isAddonActiveForTenant,
+  isAddonIncludedInPlan,
+  type AddonDefinition,
+  type TenantAddonState,
+  type TenantEntitlements,
+} from "rapid-cortex-shared";
 
 export type UiInvoiceStatus = "draft" | "sent" | "paid" | "void";
 
@@ -77,15 +85,51 @@ export function resolveAgencyPlanMonthlyRate(
   return 1_999;
 }
 
-type PrefillAddOn = {
+export type PrefillAddOn = {
   id: string;
   name: string;
   unitPrice: number;
   billingCycle: "monthly" | "one_time";
   status?: "enabled" | "disabled";
+  includedInPlan?: boolean;
+  planLabel?: string;
 };
 
-/** Default invoice lines: assigned plan + enabled add-ons (editable in the create modal). */
+function addonMonthlyDollars(def: AddonDefinition, state: TenantAddonState | undefined): number {
+  if (state?.overridePriceCents != null) return state.overridePriceCents / 100;
+  return def.monthlyPrice;
+}
+
+/**
+ * Monthly Feature add-ons that should appear on a new invoice:
+ * paid-enabled SKUs and plan-included SKUs (USD override if set).
+ * Plan-included lines stay removable so they can be taken off a draft.
+ */
+export function monthlyFeatureAddOnsToPrefill(
+  entitlements: Pick<TenantEntitlements, "plan" | "addons">,
+  catalog: AddonDefinition[] = ADDON_CATALOG,
+): PrefillAddOn[] {
+  const rows: PrefillAddOn[] = [];
+  for (const def of catalog) {
+    if (def.billingType !== "monthly") continue;
+    const state = entitlements.addons[def.key];
+    if (!isAddonActiveForTenant(def, entitlements.plan, state)) continue;
+    const unitPrice = addonMonthlyDollars(def, state);
+    if (unitPrice <= 0) continue;
+    rows.push({
+      id: def.key,
+      name: def.name,
+      unitPrice,
+      billingCycle: "monthly",
+      status: "enabled",
+      includedInPlan: isAddonIncludedInPlan(def, entitlements.plan),
+      planLabel: entitlements.plan,
+    });
+  }
+  return rows;
+}
+
+/** Default invoice lines: assigned plan + monthly Feature add-ons (editable in the create modal). */
 export function buildAgencyInvoicePrefillLines(
   summary: Pick<AgencyBillingSummary, "plan" | "currentMonthlyRate">,
   addOns: PrefillAddOn[] = [],
@@ -104,9 +148,12 @@ export function buildAgencyInvoicePrefillLines(
 
   for (const addon of addOns) {
     if (addon.status === "disabled") continue;
+    if (addon.billingCycle !== "monthly") continue;
     const unitPrice = Number(addon.unitPrice) || 0;
     if (unitPrice <= 0) continue;
-    const cadence = addon.billingCycle === "one_time" ? "one-time" : "monthly add-on";
+    const cadence = addon.includedInPlan
+      ? `included in ${addon.planLabel?.trim() || "plan"}`
+      : "monthly add-on";
     lines.push({
       id: `addon-${addon.id}`,
       description: `${addon.name} — ${cadence}`,

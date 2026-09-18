@@ -898,6 +898,7 @@ Conditions:
     - !Equals [!Ref DeploymentStage, prod]
     - !Equals [!Ref DeploymentStage, pilot]
     - !Equals [!Ref DeploymentStage, staging]
+    - !Equals [!Ref DeploymentStage, dev]
   PilotTestFeaturesOn:
     Fn::Or:
       - !Equals [!Ref PilotTestFeaturesEnabled, "true"]
@@ -1644,8 +1645,10 @@ Resources:
           RequireUppercase: true
           RequireNumbers: true
           RequireSymbols: true
-      # TOTP MFA: required in staging/prod/pilot (CJIS); optional in dev so test users can sign in without an authenticator app.
-      MfaConfiguration: !If [IsProdOrPilot, "ON", "OPTIONAL"]
+      # TOTP MFA required for every stage. Live production uses DeploymentStage=dev
+      # (app.rapidcortex.us); OPTIONAL fails SOC 2 CC6.1. The web app handles MFA_SETUP
+      # and SOFTWARE_TOKEN_MFA challenges.
+      MfaConfiguration: "ON"
       EnabledMfas:
         - SOFTWARE_TOKEN_MFA
       LambdaConfig:

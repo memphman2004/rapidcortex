@@ -1,0 +1,40 @@
+{
+    "UserPools": [
+        {
+            "Id": "us-east-1_0z6tA6WBs",
+            "Name": "CognitoUserPool-STy0RlZqFFEc",
+            "LambdaConfig": {
+                "PostConfirmation": "arn:aws:lambda:us-east-1:158961537080:function:rapid-cortex-dev-AppSamSt-CognitoPostConfirmationF-jRsteEgzLOiK"
+            },
+            "LastModifiedDate": "2026-05-23T14:45:33.926000-04:00",
+            "CreationDate": "2026-05-23T10:45:37.790000-04:00",
+            "ReplicaRegions": [
+                "us-east-1"
+            ]
+        },
+        {
+            "Id": "us-east-1_6i7Jq3Tzw",
+            "Name": "CognitoUserPool-R2XZtRpWxVM9",
+            "LambdaConfig": {
+                "PostConfirmation": "arn:aws:lambda:us-east-1:158961537080:function:rapid-cortex-staging-AppS-CognitoPostConfirmationF-WrdAN3NtHaw5"
+            },
+            "LastModifiedDate": "2026-08-21T06:05:22.949000-04:00",
+            "CreationDate": "2026-08-21T06:05:22.949000-04:00",
+            "ReplicaRegions": [
+                "us-east-1"
+            ]
+        },
+        {
+            "Id": "us-east-1_IoBei9vlD",
+            "Name": "CognitoUserPool-u6JyTnW3fFbe",
+            "LambdaConfig": {
+                "PostConfirmation": "arn:aws:lambda:us-east-1:158961537080:function:rapid-cortex-staging-AppS-CognitoPostConfirmationF-zkr9I3fHqnEu"
+            },
+            "LastModifiedDate": "2026-08-19T06:09:20.730000-04:00",
+            "CreationDate": "2026-08-19T06:09:20.730000-04:00",
+            "ReplicaRegions": [
+                "us-east-1"
+            ]
+        }
+    ]
+}

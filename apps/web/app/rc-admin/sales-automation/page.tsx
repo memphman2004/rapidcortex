@@ -6,7 +6,7 @@ import { marketingLoginPath } from "@/lib/marketing-links";
 import { isSalesAutomationUiEnabled } from "@/lib/runtime-flags";
 
 export const metadata = {
-  title: "Sales Automation",
+  title: "Email Campaigns",
   robots: { index: false, follow: false },
 };
 
@@ -19,11 +19,11 @@ export default async function RcAdminSalesAutomationPage() {
   return (
     <div className="space-y-4">
       <div>
-        <h1 className="text-2xl font-semibold text-white">Sales Automation</h1>
+        <h1 className="text-2xl font-semibold text-white">Email Campaigns</h1>
         <p className="mt-2 max-w-3xl text-sm text-slate-400">
-          Outbound campaign emails to potential 911, campus, and venue clients. Connect
-          hello@rapidcortex.us, then approve. Email 1 sends from that mailbox; follow-ups go on days
-          5 and 12. Use Bulk campaign for 100–500 prospects in one approval.
+          Draft, edit, and schedule outbound campaign email to 911, campus, and venue prospects.
+          Send up to 100 addresses in one approval. Set a send time on any email; unsent copy stays
+          editable until it goes out.
         </p>
       </div>
       <SalesAutomationClient />

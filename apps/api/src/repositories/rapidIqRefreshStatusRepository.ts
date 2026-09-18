@@ -21,12 +21,17 @@ export class RapidIqRefreshStatusRepository {
       if (!item) {
         return { status: "idle", startedAt: null, completedAt: null, signalsFound: 0, error: null };
       }
+      const startedMs = item.startedAt ? Date.parse(item.startedAt) : Number.NaN;
+      const staleRunning =
+        item.status === "running" &&
+        Number.isFinite(startedMs) &&
+        Date.now() - startedMs > 15 * 60 * 1000;
       return {
-        status: item.status ?? "idle",
+        status: staleRunning ? "error" : (item.status ?? "idle"),
         startedAt: item.startedAt ?? null,
         completedAt: item.completedAt ?? null,
         signalsFound: item.signalsFound ?? 0,
-        error: item.error ?? null,
+        error: staleRunning ? "Scan timed out" : (item.error ?? null),
       };
     } catch {
       return { status: "idle", startedAt: null, completedAt: null, signalsFound: 0, error: null };

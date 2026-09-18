@@ -209,6 +209,20 @@ Resources:
         HostedZoneId: Z2FDTNDATAQYW2
         EvaluateTargetHealth: false
 
+  ApiEdgeWafLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub aws-waf-logs-${AppName}-httpapi-cdn-${DeploymentStage}
+      RetentionInDays: 365
+
+  ApiEdgeWafLogging:
+    Type: AWS::WAFv2::LoggingConfiguration
+    DependsOn: ApiEdgeWafLogGroup
+    Properties:
+      ResourceArn: !GetAtt ApiEdgeWebAcl.Arn
+      LogDestinationConfigs:
+        - !GetAtt ApiEdgeWafLogGroup.Arn
+
 Outputs:
   ApiEdgeDistributionId:
     Description: CloudFront distribution id for the primary API edge

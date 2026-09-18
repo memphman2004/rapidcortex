@@ -2,10 +2,12 @@
 
 import { useEffect, useState } from "react";
 import type { CatalogItem } from "rapid-cortex-shared";
+import { fetchAdminTenantEntitlements } from "@/lib/api";
 import { InvoiceServiceDescriptionField } from "@/components/billing/invoice-service-description-field";
 import {
   addDaysIso,
   buildAgencyInvoicePrefillLines,
+  monthlyFeatureAddOnsToPrefill,
   type AgencyBillingSummary,
   type UiAgencyInvoice,
   type UiLineItem,
@@ -53,9 +55,7 @@ export function CreateAgencyInvoiceModal({
         ? agency.suggestedLineItems
         : [newLineItem()],
   );
-  const [prefilling, setPrefilling] = useState(
-    !prefillItems?.length && !(agency?.suggestedLineItems?.length),
-  );
+  const [prefilling, setPrefilling] = useState(true);
   const [saving, setSaving] = useState(false);
   const [sendNow, setSendNow] = useState(false);
   const [error, setError] = useState("");
@@ -93,13 +93,12 @@ export function CreateAgencyInvoiceModal({
   }, []);
 
   useEffect(() => {
-    if (prefillItems?.length) {
+    const lockedSelection =
+      Array.isArray(prefillItems) &&
+      prefillItems.length > 0 &&
+      !prefillItems.some((item) => item.id === "plan-monthly");
+    if (lockedSelection) {
       setLineItems(prefillItems);
-      setPrefilling(false);
-      return;
-    }
-    if (agency?.suggestedLineItems?.length) {
-      setLineItems(agency.suggestedLineItems);
       setPrefilling(false);
       return;
     }
@@ -108,21 +107,37 @@ export function CreateAgencyInvoiceModal({
     async function loadSuggested() {
       setPrefilling(true);
       try {
-        const res = await fetch(
-          `/api/rc-admin/agencies/${encodeURIComponent(agencyId)}/billing-summary`,
-        );
-        if (!res.ok) return;
-        const summary = (await res.json()) as AgencyBillingSummary;
+        const [summaryRes, entitlementsResult] = await Promise.all([
+          agency?.plan
+            ? Promise.resolve(null)
+            : fetch(`/api/rc-admin/agencies/${encodeURIComponent(agencyId)}/billing-summary`),
+          fetchAdminTenantEntitlements(agencyId).catch(() => null),
+        ]);
+
+        let summary: Pick<AgencyBillingSummary, "plan" | "currentMonthlyRate"> = {
+          plan: agency?.plan ?? "RC CORE",
+          currentMonthlyRate: agency?.currentMonthlyRate ?? 0,
+        };
+        if (summaryRes && summaryRes.ok) {
+          const body = (await summaryRes.json()) as AgencyBillingSummary;
+          if (cancelled) return;
+          summary = {
+            plan: body.plan,
+            currentMonthlyRate: body.currentMonthlyRate,
+          };
+        }
+
+        const monthlyAddOns = entitlementsResult
+          ? monthlyFeatureAddOnsToPrefill(entitlementsResult.entitlements)
+          : [];
         if (cancelled) return;
-        if (summary.suggestedLineItems?.length) {
-          setLineItems(summary.suggestedLineItems);
-        } else if (summary.plan) {
-          setLineItems(
-            buildAgencyInvoicePrefillLines({
-              plan: summary.plan,
-              currentMonthlyRate: summary.currentMonthlyRate,
-            }),
-          );
+        setLineItems(buildAgencyInvoicePrefillLines(summary, monthlyAddOns));
+      } catch {
+        if (cancelled) return;
+        if (agency?.suggestedLineItems?.length) {
+          setLineItems(agency.suggestedLineItems);
+        } else if (prefillItems?.length) {
+          setLineItems(prefillItems);
         }
       } finally {
         if (!cancelled) setPrefilling(false);
@@ -132,7 +147,7 @@ export function CreateAgencyInvoiceModal({
     return () => {
       cancelled = true;
     };
-  }, [agencyId, agency?.suggestedLineItems, prefillItems]);
+  }, [agencyId, agency?.plan, agency?.currentMonthlyRate, agency?.suggestedLineItems, prefillItems]);
 
   function updateItem(id: string, field: keyof UiLineItem, value: string | number) {
     setLineItems((prev) =>
@@ -287,11 +302,12 @@ export function CreateAgencyInvoiceModal({
             Line items
             {prefilling ? (
               <span className="ml-2 font-normal normal-case text-slate-600">
-                Loading plan &amp; add-ons…
+                Loading plan &amp; Feature add-ons…
               </span>
             ) : (
               <span className="ml-2 font-normal normal-case text-slate-600">
-                Click description to browse Pricing Menu categories — type to filter
+                Plan plus monthly Feature add-ons, including plan-included items. Remove any line
+                you do not want to bill.
               </span>
             )}
           </p>

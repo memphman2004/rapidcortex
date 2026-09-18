@@ -1,5 +1,11 @@
 import { describe, expect, it } from "vitest";
-import { heuristicThreeTouch, listCampaignCards, summarizeBulkBatches } from "./sales-automation-engine.js";
+import {
+  applyDraftEmailPatch,
+  applySequenceEmailPatch,
+  heuristicThreeTouch,
+  listCampaignCards,
+  summarizeBulkBatches,
+} from "./sales-automation-engine.js";
 
 describe("sales automation engine", () => {
   it("builds a 3-touch heuristic sequence with delay days 0/5/12", () => {
@@ -101,5 +107,78 @@ describe("sales automation engine", () => {
     expect(batches).toHaveLength(1);
     expect(batches[0]?.draftCount).toBe(120);
     expect(batches[0]?.campaignName).toBe("911 Core outbound");
+  });
+
+  it("lets operators rewrite unsent auto-generated emails", () => {
+    const seq = {
+      sequenceId: "seq_1",
+      triggerId: "t1",
+      triggerType: "campaign" as const,
+      vertical: "PSAP" as const,
+      recipientEmail: "chief@example.gov",
+      recipientName: "Pat",
+      agencyName: "Franklin County",
+      status: "draft" as const,
+      autoApprove: false,
+      steps: heuristicThreeTouch({ agencyName: "Franklin County", vertical: "PSAP", firstName: "Pat" }),
+      createdAt: "2026-09-16T00:00:00.000Z",
+      updatedAt: "2026-09-16T00:00:00.000Z",
+      attribution: {},
+    };
+    const next = applySequenceEmailPatch(seq, {
+      steps: [
+        {
+          stepNumber: 1,
+          email: { subject: "Custom subject", bodyText: "Custom body for Franklin." },
+          scheduledAt: "2026-09-20T15:00:00.000Z",
+        },
+      ],
+    });
+    expect(next.steps[0]?.email.subject).toBe("Custom subject");
+    expect(next.steps[0]?.email.bodyText).toBe("Custom body for Franklin.");
+    expect(next.steps[0]?.scheduledAt).toBe("2026-09-20T15:00:00.000Z");
+    expect(next.steps[1]?.email.subject).toBe(seq.steps[1]?.email.subject);
+  });
+
+  it("blocks edits after a step has sent", () => {
+    const steps = heuristicThreeTouch({ agencyName: "Franklin County", vertical: "PSAP" });
+    steps[0] = { ...steps[0]!, status: "sent", sentAt: "2026-09-16T12:00:00.000Z" };
+    const seq = {
+      sequenceId: "seq_1",
+      triggerId: "t1",
+      triggerType: "campaign" as const,
+      vertical: "PSAP" as const,
+      recipientEmail: "chief@example.gov",
+      agencyName: "Franklin County",
+      status: "active" as const,
+      autoApprove: false,
+      steps,
+      createdAt: "2026-09-16T00:00:00.000Z",
+      updatedAt: "2026-09-16T00:00:00.000Z",
+      attribution: {},
+    };
+    expect(() =>
+      applySequenceEmailPatch(seq, {
+        steps: [{ stepNumber: 1, email: { subject: "Nope", bodyText: "Too late" } }],
+      }),
+    ).toThrow(/already sent/);
+  });
+
+  it("lets operators rewrite a newsletter draft", () => {
+    const next = applyDraftEmailPatch(
+      {
+        draftId: "d1",
+        contentType: "newsletter",
+        vertical: "ALL",
+        bodyText: "Old notes",
+        status: "draft",
+        createdAt: "2026-09-16T00:00:00.000Z",
+        updatedAt: "2026-09-16T00:00:00.000Z",
+        generatedBy: "composer",
+      },
+      { subject: "Inside the Cortex — 2026-09-14", bodyText: "Edited notes" },
+    );
+    expect(next.subject).toBe("Inside the Cortex — 2026-09-14");
+    expect(next.bodyText).toBe("Edited notes");
   });
 });

@@ -19,6 +19,8 @@ import {
   type RapidIqSalesSequence,
   type RapidIqSalesStepLabel,
   type RapidIqSalesVertical,
+  type UpdateRapidIqSalesDraftBody,
+  type UpdateRapidIqSalesSequenceBody,
 } from "rapid-cortex-shared";
 import { isCollectorsMockEnabled } from "./agenda-finder.js";
 import { findContactsViaHunter } from "./hunter-enrichment.js";
@@ -26,11 +28,13 @@ import { createJsonResponse } from "./openai-client.js";
 import { isRapidIqAiEnabled, rapidIqModelStrategy } from "./openai-config.js";
 import { pipelineDdb } from "./pipeline-ddb.js";
 import {
+  getSalesDraft,
   getSalesSequence,
   hasRecentSend,
   isLocallyUnsubscribed,
   listSalesDrafts,
   listSalesSequences,
+  putSalesDraft,
   putSalesSequence,
 } from "./sales-automation-db.js";
 import { verticalThreeTouchCopy } from "./vertical-email-campaign.js";
@@ -104,6 +108,23 @@ export function buildHtmlEmail(subject: string, bodyText: string): string {
 ${escapeHtml(bodyText).replace(/\n/g, "<br>")}
 <p style="margin-top:24px;padding-top:16px;border-top:1px solid #e5e5e5;color:#555;font-size:13px;">Rapid Cortex · rapidcortex.us</p>
 </body></html>`;
+}
+
+function parseSendAt(raw: string | undefined): number | undefined {
+  if (!raw?.trim()) return undefined;
+  const t = Date.parse(raw);
+  if (Number.isNaN(t)) throw new Error("Invalid send time");
+  return t;
+}
+
+function scheduleStepsFromOrigin(
+  steps: RapidIqSalesOutreachStep[],
+  originMs: number,
+): RapidIqSalesOutreachStep[] {
+  return steps.map((step) => ({
+    ...step,
+    scheduledAt: new Date(originMs + step.delayDays * 86_400_000).toISOString(),
+  }));
 }
 
 function wrapBody(firstName: string | undefined, body: string): string {
@@ -255,7 +276,7 @@ export async function createSequenceFromTrigger(
     ? await checkSuppression(email)
     : { suppressed: true as const, reason: "no_email" };
 
-  const steps = await generateThreeTouch({
+  const stepsRaw = await generateThreeTouch({
     agencyName: body.agencyName,
     vertical,
     firstName,
@@ -265,6 +286,8 @@ export async function createSequenceFromTrigger(
     campaignType: body.campaignType,
     conferenceName: body.conferenceName,
   });
+  const sendOrigin = parseSendAt(body.sendAt);
+  const steps = sendOrigin !== undefined ? scheduleStepsFromOrigin(stepsRaw, sendOrigin) : stepsRaw;
 
   const seq: RapidIqSalesSequence = {
     sequenceId: newId("seq"),
@@ -321,12 +344,14 @@ export async function createBulkCampaign(
     const firstName = raw.recipientName?.trim().split(/\s+/)[0];
     const suppression = await checkSuppression(email);
     const now = new Date().toISOString();
-    const steps = heuristicThreeTouch({
+    const stepsRaw = heuristicThreeTouch({
       agencyName,
       vertical,
       firstName,
       campaignType: body.campaignType,
     });
+    const sendOrigin = parseSendAt(body.sendAt);
+    const steps = sendOrigin !== undefined ? scheduleStepsFromOrigin(stepsRaw, sendOrigin) : stepsRaw;
     const seq: RapidIqSalesSequence = {
       sequenceId: newId("seq"),
       triggerId: campaignId,
@@ -433,7 +458,10 @@ export async function approveSequence(
   const approvedAt = new Date().toISOString();
   const origin = Date.parse(approvedAt);
   const steps = current.steps.map((step) => {
-    const when = new Date(origin + step.delayDays * 86_400_000).toISOString();
+    const existing = step.scheduledAt ? Date.parse(step.scheduledAt) : Number.NaN;
+    const when = Number.isNaN(existing)
+      ? new Date(origin + step.delayDays * 86_400_000).toISOString()
+      : new Date(existing).toISOString();
     return { ...step, status: "scheduled" as const, scheduledAt: when };
   });
   const next: RapidIqSalesSequence = {
@@ -463,6 +491,122 @@ export async function suppressSequence(
   };
   await putSalesSequence(next);
   return next;
+}
+
+const EDITABLE_SEQUENCE_STATUSES = new Set(["draft", "approved", "active"]);
+const EDITABLE_STEP_STATUSES = new Set(["pending", "scheduled"]);
+
+export function applySequenceEmailPatch(
+  current: RapidIqSalesSequence,
+  patch: UpdateRapidIqSalesSequenceBody,
+): RapidIqSalesSequence {
+  if (!EDITABLE_SEQUENCE_STATUSES.has(current.status)) {
+    throw new Error("Cannot edit a suppressed or completed sequence");
+  }
+  const now = new Date().toISOString();
+  let steps = current.steps;
+  if (patch.steps?.length) {
+    const byNumber = new Map(patch.steps.map((s) => [s.stepNumber, s]));
+    steps = current.steps.map((step) => {
+      const nextPatch = byNumber.get(step.stepNumber);
+      if (!nextPatch) return step;
+      if (!EDITABLE_STEP_STATUSES.has(step.status)) {
+        throw new Error(`Email ${step.stepNumber} already sent and cannot be edited`);
+      }
+      const nextEmail = nextPatch.email
+        ? {
+            subject: nextPatch.email.subject.trim(),
+            bodyText: nextPatch.email.bodyText.trim(),
+          }
+        : step.email;
+      let scheduledAt = step.scheduledAt;
+      if (nextPatch.scheduledAt !== undefined) {
+        scheduledAt = nextPatch.scheduledAt.trim()
+          ? new Date(parseSendAt(nextPatch.scheduledAt) ?? Date.now()).toISOString()
+          : undefined;
+      }
+      return {
+        ...step,
+        email: nextEmail,
+        scheduledAt,
+      };
+    });
+  }
+  const anySent = current.steps.some((s) => !EDITABLE_STEP_STATUSES.has(s.status) && s.status !== "skipped");
+  if ((patch.recipientEmail || patch.recipientName !== undefined) && anySent) {
+    throw new Error("Cannot change the recipient after an email has sent");
+  }
+  return {
+    ...current,
+    recipientEmail: patch.recipientEmail?.trim() ?? current.recipientEmail,
+    recipientName:
+      patch.recipientName !== undefined ? patch.recipientName.trim() || undefined : current.recipientName,
+    steps,
+    updatedAt: now,
+  };
+}
+
+export async function updateSequenceCopy(
+  sequenceId: string,
+  patch: UpdateRapidIqSalesSequenceBody,
+): Promise<RapidIqSalesSequence> {
+  const current = await getSalesSequence(sequenceId);
+  if (!current) throw new Error("Sequence not found");
+  const next = applySequenceEmailPatch(current, patch);
+  await putSalesSequence(next);
+  return next;
+}
+
+export function applyDraftEmailPatch(
+  current: RapidIqSalesContentDraft,
+  patch: UpdateRapidIqSalesDraftBody,
+): RapidIqSalesContentDraft {
+  if (current.status !== "draft") {
+    throw new Error("Only draft content can be edited");
+  }
+  const bodyText = patch.bodyText?.trim();
+  const subject = patch.subject?.trim();
+  const linkedinText = patch.linkedinText?.trim();
+  if (!bodyText && subject === undefined && patch.linkedinText === undefined) {
+    throw new Error("Provide subject, body, or LinkedIn copy to update");
+  }
+  return {
+    ...current,
+    subject: subject !== undefined ? subject || undefined : current.subject,
+    bodyText: bodyText || current.bodyText,
+    linkedinText: patch.linkedinText !== undefined ? linkedinText || undefined : current.linkedinText,
+    updatedAt: new Date().toISOString(),
+  };
+}
+
+export async function updateDraftCopy(
+  draftId: string,
+  patch: UpdateRapidIqSalesDraftBody,
+): Promise<RapidIqSalesContentDraft> {
+  const current = await getSalesDraft(draftId);
+  if (!current) throw new Error("Draft not found");
+  const next = applyDraftEmailPatch(current, patch);
+  await putSalesDraft(next);
+  return next;
+}
+
+export async function updateBulkCampaignCopy(
+  campaignId: string,
+  patch: Pick<UpdateRapidIqSalesSequenceBody, "steps">,
+): Promise<{ updated: number }> {
+  if (!patch.steps?.length) throw new Error("Provide at least one step email to update");
+  const sequences = await listSalesSequences(500);
+  const targets = sequences.filter(
+    (s) => s.attribution.campaignId === campaignId && s.status === "draft",
+  );
+  if (targets.length === 0) throw new Error("No draft sequences found for that campaign");
+  let updated = 0;
+  for (const seq of targets) {
+    const next = applySequenceEmailPatch(seq, { steps: patch.steps });
+    await putSalesSequence(next);
+    updated += 1;
+  }
+  return { updated };
 }
 
 export async function computeSalesMetrics(): Promise<RapidIqSalesMetrics> {

@@ -1,0 +1,2 @@
+
+aws: [ERROR]: An error occurred (TrailNotFoundException) when calling the GetTrailStatus operation: Unknown trail: arn:aws:cloudtrail:us-east-1:158961537080:trail/rapid-cortex-audit-prod for the user: 158961537080

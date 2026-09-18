@@ -5,6 +5,8 @@ import {
   rapidIqOutlookCallbackBodySchema,
   rapidIqOutlookStatusSchema,
   createRapidIqSalesBulkCampaignBodySchema,
+  updateRapidIqSalesDraftBodySchema,
+  updateRapidIqSalesSequenceBodySchema,
 } from "./sales-automation-schemas.js";
 
 describe("normalizeSalesAutomationVertical", () => {
@@ -56,5 +58,28 @@ describe("outlook campaign-send schemas", () => {
     });
     expect(parsed.recipients).toHaveLength(120);
     expect(RAPID_IQ_SALES_BULK_MAX_RECIPIENTS).toBe(500);
+    const scheduled = createRapidIqSalesBulkCampaignBodySchema.parse({
+      vertical: "PSAP",
+      sendAt: "2026-09-20T14:30:00.000Z",
+      recipients: [{ email: "a@example.gov", agencyName: "Agency" }],
+    });
+    expect(scheduled.sendAt).toBe("2026-09-20T14:30:00.000Z");
+  });
+
+  it("accepts a sequence email edit body", () => {
+    const parsed = updateRapidIqSalesSequenceBodySchema.parse({
+      recipientName: "Alex Rivera",
+      steps: [{ stepNumber: 1, email: { subject: "New subject", bodyText: "New body" } }],
+    });
+    expect(parsed.steps?.[0]?.email.subject).toBe("New subject");
+    expect(updateRapidIqSalesSequenceBodySchema.safeParse({}).success).toBe(false);
+  });
+
+  it("accepts a content draft edit body", () => {
+    const parsed = updateRapidIqSalesDraftBodySchema.parse({
+      subject: "Inside the Cortex",
+      bodyText: "Week notes",
+    });
+    expect(parsed.bodyText).toBe("Week notes");
   });
 });

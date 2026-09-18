@@ -2,7 +2,6 @@ import { randomUUID } from "node:crypto";
 import {
   ADDON_CATALOG,
   getAddonByKey,
-  isAddonIncludedInPlan,
   type AddonChangeEvent,
   type AddonKey,
   type PatchTenantAddonBody,
@@ -108,13 +107,6 @@ export class TenantAddonService {
     const agency = await agencies.get(tenantId);
     assertAddonAllowedForTenant(def, agency, tenantId, actor);
     const plan = agency?.monetizationPlanId ?? current.plan;
-
-    if (isAddonIncludedInPlan(def, plan)) {
-      const err = new Error("ADDON_INCLUDED_IN_PLAN");
-      (err as Error & { statusCode?: number; plan?: string }).statusCode = 409;
-      (err as Error & { plan?: string }).plan = plan;
-      throw err;
-    }
 
     const previousState = { ...(current.addons[body.addonKey] ?? { key: body.addonKey, enabled: false }) };
     const t = nowIso();

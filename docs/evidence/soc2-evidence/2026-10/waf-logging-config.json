@@ -1,0 +1,19 @@
+{
+  "note": "HTTP API k26yw4o3xk is protected by CloudFront-scope WAF (rapid-cortex-httpapi-cdn-waf-dev). Regional REST associate-web-acl (restapis/.../stages) does not apply to API Gateway HTTP APIs. EnableApiWaf=true is set in env-api-dev.sh for the next SAM deploy; it must not attach CommonRuleSet directly to the HTTP API without a change window.",
+  "apiEdge": {
+    "LoggingConfiguration": {
+      "ResourceArn": "arn:aws:wafv2:us-east-1:158961537080:global/webacl/rapid-cortex-httpapi-cdn-waf-dev/7f68bde8-cc59-4b9d-bed7-dd1f66e7eeef",
+      "LogDestinationConfigs": [
+        "arn:aws:logs:us-east-1:158961537080:log-group:aws-waf-logs-rapid-cortex-httpapi-cdn-dev"
+      ]
+    }
+  },
+  "webCdn": {
+    "LoggingConfiguration": {
+      "ResourceArn": "arn:aws:wafv2:us-east-1:158961537080:global/webacl/rapid-cortex-v2-web-cdn-prod/a52d3854-ff3c-45c6-bf2a-b140213ef625",
+      "LogDestinationConfigs": [
+        "arn:aws:logs:us-east-1:158961537080:log-group:aws-waf-logs-rapid-cortex-v2-cdn-prod:*"
+      ]
+    }
+  }
+}

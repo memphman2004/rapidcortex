@@ -22,3 +22,17 @@ export async function POST(request: NextRequest, ctx: Ctx) {
   const { segments } = await ctx.params;
   return proxyToAuthUpstream(request, upstreamPath(segments));
 }
+
+export async function PATCH(request: NextRequest, ctx: Ctx) {
+  const denied = await rapidIqPipelineRouteGate();
+  if (denied) return denied;
+  const { segments } = await ctx.params;
+  return proxyToAuthUpstream(request, upstreamPath(segments));
+}
+
+export async function PUT(request: NextRequest, ctx: Ctx) {
+  const denied = await rapidIqPipelineRouteGate();
+  if (denied) return denied;
+  const { segments } = await ctx.params;
+  return proxyToAuthUpstream(request, upstreamPath(segments));
+}

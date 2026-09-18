@@ -66,21 +66,26 @@ export function parseGeofenceListPayload(body: unknown): AlsGeofenceListItem[] {
   return out;
 }
 
+const STATIC_OVERLAY_PATHS: Record<"states" | "counties", string[]> = {
+  states: ["/geo/us-states.json", "/maps/us-states.geojson"],
+  counties: ["/geo/us-counties.json", "/maps/us-counties.geojson"],
+};
+
 export async function loadStaticOverlay(
   kind: "states" | "counties",
 ): Promise<GeoJSON.FeatureCollection> {
   const hit = overlayCache.get(kind);
   if (hit) return hit;
-  const path = kind === "states" ? "/maps/us-states.geojson" : "/maps/us-counties.geojson";
   try {
-    const res = await fetch(path);
-    if (!res.ok) return EMPTY_OVERLAY_FC;
-    const data = (await res.json()) as GeoJSON.FeatureCollection;
-    if (data?.type !== "FeatureCollection" || !Array.isArray(data.features)) {
-      return EMPTY_OVERLAY_FC;
+    for (const path of STATIC_OVERLAY_PATHS[kind]) {
+      const res = await fetch(path);
+      if (!res.ok) continue;
+      const data = (await res.json()) as GeoJSON.FeatureCollection;
+      if (data?.type !== "FeatureCollection" || !Array.isArray(data.features)) continue;
+      overlayCache.set(kind, data);
+      return data;
     }
-    overlayCache.set(kind, data);
-    return data;
+    return EMPTY_OVERLAY_FC;
   } catch {
     return EMPTY_OVERLAY_FC;
   }

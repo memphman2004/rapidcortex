@@ -1,0 +1,17 @@
+{
+    "trailList": [
+        {
+            "Name": "rapid-cortex-cloudtrail-prod",
+            "S3BucketName": "rapid-cortex-cloudtrail-logs-prod-158961537080",
+            "IncludeGlobalServiceEvents": true,
+            "IsMultiRegionTrail": true,
+            "HomeRegion": "us-east-1",
+            "TrailARN": "arn:aws:cloudtrail:us-east-1:158961537080:trail/rapid-cortex-cloudtrail-prod",
+            "LogFileValidationEnabled": true,
+            "HasCustomEventSelectors": true,
+            "HasInsightSelectors": false,
+            "IsOrganizationTrail": false,
+            "RecursiveLogging": true
+        }
+    ]
+}

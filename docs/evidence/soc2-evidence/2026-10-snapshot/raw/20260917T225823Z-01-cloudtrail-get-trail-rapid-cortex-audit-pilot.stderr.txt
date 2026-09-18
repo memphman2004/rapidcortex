@@ -1,0 +1,2 @@
+
+aws: [ERROR]: An error occurred (TrailNotFoundException) when calling the GetTrail operation: Unknown trail: rapid-cortex-audit-pilot for the user: 158961537080

@@ -1,0 +1,2464 @@
+{
+    "StackResourceSummaries": [
+        {
+            "LogicalResourceId": "AddTranscriptChunkFunction",
+            "PhysicalResourceId": "rapid-cortex-dev-AppSamSt-AddTranscriptChunkFuncti-USPYiToTmsBG",
+            "ResourceType": "AWS::Lambda::Function",
+            "LastUpdatedTimestamp": "2026-09-16T14:57:34.896000+00:00",
+            "ResourceStatus": "UPDATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "LogicalResourceId": "AddTranscriptChunkFunctionRole",
+            "PhysicalResourceId": "rapid-cortex-dev-AppSamSt-AddTranscriptChunkFunctio-JTWKA8zRth5T",
+            "ResourceType": "AWS::IAM::Role",
+            "LastUpdatedTimestamp": "2026-08-07T14:20:31.114000+00:00",
+            "ResourceStatus": "UPDATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "LogicalResourceId": "AddTranscriptChunkFunctionRoutePermission",
+            "PhysicalResourceId": "rapid-cortex-dev-AppSamStackV2-1BR5EYUP7MO39-AddTranscriptChunkFunctionRoutePermission-YQszWs5gQPRA",
+            "ResourceType": "AWS::Lambda::Permission",
+            "LastUpdatedTimestamp": "2026-05-23T14:46:53.018000+00:00",
+            "ResourceStatus": "CREATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "LogicalResourceId": "AdminActivateUserFunction",
+            "PhysicalResourceId": "rapid-cortex-dev-AppSamSt-AdminActivateUserFunctio-N3TJ5ohwE8bL",
+            "ResourceType": "AWS::Lambda::Function",
+            "LastUpdatedTimestamp": "2026-09-16T14:57:26.604000+00:00",
+            "ResourceStatus": "UPDATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "LogicalResourceId": "AdminActivateUserFunctionRole",
+            "PhysicalResourceId": "rapid-cortex-dev-AppSamSt-AdminActivateUserFunction-9tx7o5eqZynp",
+            "ResourceType": "AWS::IAM::Role",
+            "LastUpdatedTimestamp": "2026-05-25T08:28:31.797000+00:00",
+            "ResourceStatus": "UPDATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "LogicalResourceId": "AdminActivateUserFunctionRoutePermission",
+            "PhysicalResourceId": "rapid-cortex-dev-AppSamStackV2-1BR5EYUP7MO39-AdminActivateUserFunctionRoutePermission-hvMsVgljlxC6",
+            "ResourceType": "AWS::Lambda::Permission",
+            "LastUpdatedTimestamp": "2026-05-23T14:46:53.187000+00:00",
+            "ResourceStatus": "CREATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "LogicalResourceId": "AdminCreateUserFunction",
+            "PhysicalResourceId": "rapid-cortex-dev-AppSamSta-AdminCreateUserFunction-yrgw5kqtU4A0",
+            "ResourceType": "AWS::Lambda::Function",
+            "LastUpdatedTimestamp": "2026-09-16T14:57:26+00:00",
+            "ResourceStatus": "UPDATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "LogicalResourceId": "AdminCreateUserFunctionRole",
+            "PhysicalResourceId": "rapid-cortex-dev-AppSamSt-AdminCreateUserFunctionRo-VvWYyAsJGTBZ",
+            "ResourceType": "AWS::IAM::Role",
+            "LastUpdatedTimestamp": "2026-09-13T21:50:21.208000+00:00",
+            "ResourceStatus": "UPDATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "LogicalResourceId": "AdminCreateUserFunctionRoutePermission",
+            "PhysicalResourceId": "rapid-cortex-dev-AppSamStackV2-1BR5EYUP7MO39-AdminCreateUserFunctionRoutePermission-3GkgzuFlssxP",
+            "ResourceType": "AWS::Lambda::Permission",
+            "LastUpdatedTimestamp": "2026-05-23T14:46:53.208000+00:00",
+            "ResourceStatus": "CREATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "LogicalResourceId": "AdminDeactivateUserFunction",
+            "PhysicalResourceId": "rapid-cortex-dev-AppSamSt-AdminDeactivateUserFunct-S640tpRjGXoo",
+            "ResourceType": "AWS::Lambda::Function",
+            "LastUpdatedTimestamp": "2026-09-16T14:57:26.409000+00:00",
+            "ResourceStatus": "UPDATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "LogicalResourceId": "AdminDeactivateUserFunctionRole",
+            "PhysicalResourceId": "rapid-cortex-dev-AppSamSt-AdminDeactivateUserFuncti-BPE9bStBmuio",
+            "ResourceType": "AWS::IAM::Role",
+            "LastUpdatedTimestamp": "2026-05-25T08:28:31.597000+00:00",
+            "ResourceStatus": "UPDATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "LogicalResourceId": "AdminDeactivateUserFunctionRoutePermission",
+            "PhysicalResourceId": "rapid-cortex-dev-AppSamStackV2-1BR5EYUP7MO39-AdminDeactivateUserFunctionRoutePermission-u6g5BGG4mHp9",
+            "ResourceType": "AWS::Lambda::Permission",
+            "LastUpdatedTimestamp": "2026-05-23T14:46:53.342000+00:00",
+            "ResourceStatus": "CREATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "LogicalResourceId": "AdminListUsersFunction",
+            "PhysicalResourceId": "rapid-cortex-dev-AppSamStac-AdminListUsersFunction-QzjL3QfcJ9an",
+            "ResourceType": "AWS::Lambda::Function",
+            "LastUpdatedTimestamp": "2026-09-16T14:57:40.532000+00:00",
+            "ResourceStatus": "UPDATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "LogicalResourceId": "AdminListUsersFunctionRole",
+            "PhysicalResourceId": "rapid-cortex-dev-AppSamSt-AdminListUsersFunctionRol-XT804MaZBZh0",
+            "ResourceType": "AWS::IAM::Role",
+            "LastUpdatedTimestamp": "2026-05-23T14:46:02.965000+00:00",
+            "ResourceStatus": "CREATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "LogicalResourceId": "AdminListUsersFunctionRoutePermission",
+            "PhysicalResourceId": "rapid-cortex-dev-AppSamStackV2-1BR5EYUP7MO39-AdminListUsersFunctionRoutePermission-fRuJLRmIvuYO",
+            "ResourceType": "AWS::Lambda::Permission",
+            "LastUpdatedTimestamp": "2026-05-23T14:46:53.294000+00:00",
+            "ResourceStatus": "CREATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "LogicalResourceId": "AdminUpdateUserFunction",
+            "PhysicalResourceId": "rapid-cortex-dev-AppSamSta-AdminUpdateUserFunction-n06omPRcaPQQ",
+            "ResourceType": "AWS::Lambda::Function",
+            "LastUpdatedTimestamp": "2026-09-16T14:57:31.877000+00:00",
+            "ResourceStatus": "UPDATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "LogicalResourceId": "AdminUpdateUserFunctionRole",
+            "PhysicalResourceId": "rapid-cortex-dev-AppSamSt-AdminUpdateUserFunctionRo-7AlfjlZwKFqM",
+            "ResourceType": "AWS::IAM::Role",
+            "LastUpdatedTimestamp": "2026-05-25T08:28:31.613000+00:00",
+            "ResourceStatus": "UPDATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "LogicalResourceId": "AdminUpdateUserFunctionRoutePermission",
+            "PhysicalResourceId": "rapid-cortex-dev-AppSamStackV2-1BR5EYUP7MO39-AdminUpdateUserFunctionRoutePermission-ICr25BCd1Y2s",
+            "ResourceType": "AWS::Lambda::Permission",
+            "LastUpdatedTimestamp": "2026-05-23T14:46:53.431000+00:00",
+            "ResourceStatus": "CREATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "LogicalResourceId": "AnalyzeIncidentFunction",
+            "PhysicalResourceId": "rapid-cortex-dev-AppSamSta-AnalyzeIncidentFunction-UwjvwYzinYxg",
+            "ResourceType": "AWS::Lambda::Function",
+            "LastUpdatedTimestamp": "2026-09-16T14:57:31.623000+00:00",
+            "ResourceStatus": "UPDATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "LogicalResourceId": "AnalyzeIncidentFunctionRole",
+            "PhysicalResourceId": "rapid-cortex-dev-AppSamSt-AnalyzeIncidentFunctionRo-23pWmesTuTQI",
+            "ResourceType": "AWS::IAM::Role",
+            "LastUpdatedTimestamp": "2026-08-07T14:20:31.301000+00:00",
+            "ResourceStatus": "UPDATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "LogicalResourceId": "AnalyzeIncidentFunctionRoutePermission",
+            "PhysicalResourceId": "rapid-cortex-dev-AppSamStackV2-1BR5EYUP7MO39-AnalyzeIncidentFunctionRoutePermission-wpMh36OYLLkX",
+            "ResourceType": "AWS::Lambda::Permission",
+            "LastUpdatedTimestamp": "2026-05-23T14:46:53.375000+00:00",
+            "ResourceStatus": "CREATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "LogicalResourceId": "Api",
+            "PhysicalResourceId": "k26yw4o3xk",
+            "ResourceType": "AWS::ApiGatewayV2::Api",
+            "LastUpdatedTimestamp": "2026-08-07T14:20:59.589000+00:00",
+            "ResourceStatus": "UPDATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "LogicalResourceId": "ApiApiGatewayDefaultStage",
+            "PhysicalResourceId": "$default",
+            "ResourceType": "AWS::ApiGatewayV2::Stage",
+            "LastUpdatedTimestamp": "2026-08-18T01:52:42.218000+00:00",
+            "ResourceStatus": "UPDATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "LogicalResourceId": "ApiCustomDomain",
+            "PhysicalResourceId": "api.rapidcortex.us",
+            "ResourceType": "AWS::ApiGatewayV2::DomainName",
+            "LastUpdatedTimestamp": "2026-05-23T14:45:50.361000+00:00",
+            "ResourceStatus": "CREATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "LogicalResourceId": "ApiCustomDomainMapping",
+            "PhysicalResourceId": "c45vwg",
+            "ResourceType": "AWS::ApiGatewayV2::ApiMapping",
+            "LastUpdatedTimestamp": "2026-05-23T14:46:56.787000+00:00",
+            "ResourceStatus": "CREATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "LogicalResourceId": "ApiManagedCertificate",
+            "PhysicalResourceId": "arn:aws:acm:us-east-1:158961537080:certificate/cc0f7fc4-d4ca-4b1a-8ff6-e0676d872fa5",
+            "ResourceType": "AWS::CertificateManager::Certificate",
+            "LastUpdatedTimestamp": "2026-05-23T14:45:40.591000+00:00",
+            "ResourceStatus": "CREATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "LogicalResourceId": "AppManagedPolicyBedrockAiAndQaFoundationModels",
+            "PhysicalResourceId": "arn:aws:iam::158961537080:policy/rapid-cortex-lambda-bedrock-ai-qa-dev",
+            "ResourceType": "AWS::IAM::ManagedPolicy",
+            "LastUpdatedTimestamp": "2026-08-07T14:20:08.179000+00:00",
+            "ResourceStatus": "UPDATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "LogicalResourceId": "AppManagedPolicyBedrockQaFoundationModelOnly",
+            "PhysicalResourceId": "arn:aws:iam::158961537080:policy/rapid-cortex-lambda-bedrock-qa-dev",
+            "ResourceType": "AWS::IAM::ManagedPolicy",
+            "LastUpdatedTimestamp": "2026-08-07T14:20:08.135000+00:00",
+            "ResourceStatus": "UPDATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "LogicalResourceId": "AppManagedPolicyCadWebhookSnsPublishOnly",
+            "PhysicalResourceId": "arn:aws:iam::158961537080:policy/rapid-cortex-lambda-sns-cad-webhook-dev",
+            "ResourceType": "AWS::IAM::ManagedPolicy",
+            "LastUpdatedTimestamp": "2026-05-23T14:45:27.117000+00:00",
+            "ResourceStatus": "CREATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "LogicalResourceId": "AppManagedPolicyComprehendTranslateRegionalDetect",
+            "PhysicalResourceId": "arn:aws:iam::158961537080:policy/rapid-cortex-lambda-cph-tr-dev",
+            "ResourceType": "AWS::IAM::ManagedPolicy",
+            "LastUpdatedTimestamp": "2026-05-23T14:45:24.428000+00:00",
+            "ResourceStatus": "CREATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "LogicalResourceId": "AppManagedPolicyDynamoLambdaCrudShardA",
+            "PhysicalResourceId": "arn:aws:iam::158961537080:policy/rapid-cortex-lambda-ddb-crud-dev-a",
+            "ResourceType": "AWS::IAM::ManagedPolicy",
+            "LastUpdatedTimestamp": "2026-05-23T14:45:24.673000+00:00",
+            "ResourceStatus": "CREATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "LogicalResourceId": "AppManagedPolicyDynamoLambdaCrudShardB",
+            "PhysicalResourceId": "arn:aws:iam::158961537080:policy/rapid-cortex-lambda-ddb-crud-dev-b",
+            "ResourceType": "AWS::IAM::ManagedPolicy",
+            "LastUpdatedTimestamp": "2026-05-23T14:45:24.593000+00:00",
+            "ResourceStatus": "CREATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "LogicalResourceId": "AppManagedPolicyDynamoLambdaCrudShardC",
+            "PhysicalResourceId": "arn:aws:iam::158961537080:policy/rapid-cortex-lambda-ddb-crud-dev-c",
+            "ResourceType": "AWS::IAM::ManagedPolicy",
+            "LastUpdatedTimestamp": "2026-08-07T14:20:08.709000+00:00",
+            "ResourceStatus": "UPDATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "LogicalResourceId": "AppManagedPolicyDynamoLambdaCrudShardD",
+            "PhysicalResourceId": "arn:aws:iam::158961537080:policy/rapid-cortex-lambda-ddb-drud-dev-d",
+            "ResourceType": "AWS::IAM::ManagedPolicy",
+            "LastUpdatedTimestamp": "2026-07-14T21:37:35.903000+00:00",
+            "ResourceStatus": "CREATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "LogicalResourceId": "AppManagedPolicyOpsAlertsSnsPublishOnly",
+            "PhysicalResourceId": "arn:aws:iam::158961537080:policy/rapid-cortex-lambda-sns-ops-dev",
+            "ResourceType": "AWS::IAM::ManagedPolicy",
+            "LastUpdatedTimestamp": "2026-05-23T14:45:27.427000+00:00",
+            "ResourceStatus": "CREATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "LogicalResourceId": "AppManagedPolicyS3ApplicationBucketsCrud",
+            "PhysicalResourceId": "arn:aws:iam::158961537080:policy/rapid-cortex-lambda-s3-app-dev",
+            "ResourceType": "AWS::IAM::ManagedPolicy",
+            "LastUpdatedTimestamp": "2026-05-23T14:45:24.555000+00:00",
+            "ResourceStatus": "CREATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "LogicalResourceId": "AppManagedPolicySecretsMultilingualScopedRead",
+            "PhysicalResourceId": "arn:aws:iam::158961537080:policy/rapid-cortex-lambda-secrets-mlling-dev",
+            "ResourceType": "AWS::IAM::ManagedPolicy",
+            "LastUpdatedTimestamp": "2026-08-15T05:47:09.631000+00:00",
+            "ResourceStatus": "UPDATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "LogicalResourceId": "AppManagedPolicySesBillingSenderIdentityEmails",
+            "PhysicalResourceId": "arn:aws:iam::158961537080:policy/rapid-cortex-lambda-ses-billing-dev",
+            "ResourceType": "AWS::IAM::ManagedPolicy",
+            "LastUpdatedTimestamp": "2026-05-23T14:45:24.554000+00:00",
+            "ResourceStatus": "CREATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "LogicalResourceId": "AppManagedPolicyTranscribeIncidentAudioJobsReadWrite",
+            "PhysicalResourceId": "arn:aws:iam::158961537080:policy/rapid-cortex-lambda-trscribe-dev",
+            "ResourceType": "AWS::IAM::ManagedPolicy",
+            "LastUpdatedTimestamp": "2026-05-23T14:45:24.559000+00:00",
+            "ResourceStatus": "CREATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "LogicalResourceId": "AuthPasswordRenewalSyncFunction",
+            "PhysicalResourceId": "rapid-cortex-dev-AppSamSt-AuthPasswordRenewalSyncF-20zDPXPeurHB",
+            "ResourceType": "AWS::Lambda::Function",
+            "LastUpdatedTimestamp": "2026-09-16T14:57:31.836000+00:00",
+            "ResourceStatus": "UPDATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "LogicalResourceId": "AuthPasswordRenewalSyncFunctionRole",
+            "PhysicalResourceId": "rapid-cortex-dev-AppSamSt-AuthPasswordRenewalSyncFu-q61mc7OvLGXF",
+            "ResourceType": "AWS::IAM::Role",
+            "LastUpdatedTimestamp": "2026-05-23T14:46:12.367000+00:00",
+            "ResourceStatus": "CREATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "LogicalResourceId": "AuthPasswordRenewalSyncFunctionRoutePermission",
+            "PhysicalResourceId": "rapid-cortex-dev-AppSamStackV2-1BR5EYUP7MO3-AuthPasswordRenewalSyncFunctionRoutePermiss-4ysKCfIgjCk2",
+            "ResourceType": "AWS::Lambda::Permission",
+            "LastUpdatedTimestamp": "2026-05-23T14:46:53.432000+00:00",
+            "ResourceStatus": "CREATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "LogicalResourceId": "CadAdminHttpFunction",
+            "PhysicalResourceId": "rapid-cortex-dev-AppSamStackV-CadAdminHttpFunction-TSoy0nJNw0aV",
+            "ResourceType": "AWS::Lambda::Function",
+            "LastUpdatedTimestamp": "2026-09-16T14:57:26.256000+00:00",
+            "ResourceStatus": "UPDATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "LogicalResourceId": "CadAdminHttpFunctionCadCapIncidentsGetPermission",
+            "PhysicalResourceId": "rapid-cortex-dev-AppSamStackV2-1BR5EYUP7MO3-CadAdminHttpFunctionCadCapIncidentsGetPermi-IEg6a7klwfxn",
+            "ResourceType": "AWS::Lambda::Permission",
+            "LastUpdatedTimestamp": "2026-07-14T21:38:26.394000+00:00",
+            "ResourceStatus": "CREATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "LogicalResourceId": "CadAdminHttpFunctionCadIncidentsGetPermission",
+            "PhysicalResourceId": "rapid-cortex-dev-AppSamStackV2-1BR5EYUP7MO3-CadAdminHttpFunctionCadIncidentsGetPermissi-xJASmlhnZZRj",
+            "ResourceType": "AWS::Lambda::Permission",
+            "LastUpdatedTimestamp": "2026-05-23T14:46:53.537000+00:00",
+            "ResourceStatus": "CREATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "LogicalResourceId": "CadAdminHttpFunctionCadIntegrationByIdDeletePermission",
+            "PhysicalResourceId": "rapid-cortex-dev-AppSamStackV2-1BR5EYUP7MO3-CadAdminHttpFunctionCadIntegrationByIdDelet-v2Lorsd7Hsqg",
+            "ResourceType": "AWS::Lambda::Permission",
+            "LastUpdatedTimestamp": "2026-05-23T14:46:58.550000+00:00",
+            "ResourceStatus": "CREATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "LogicalResourceId": "CadAdminHttpFunctionCadIntegrationByIdForcePollPostPermission",
+            "PhysicalResourceId": "rapid-cortex-dev-AppSamStackV2-1BR5EYUP7MO3-CadAdminHttpFunctionCadIntegrationByIdForce-POL5xPA0KWO9",
+            "ResourceType": "AWS::Lambda::Permission",
+            "LastUpdatedTimestamp": "2026-07-14T21:38:26.320000+00:00",
+            "ResourceStatus": "CREATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "LogicalResourceId": "CadAdminHttpFunctionCadIntegrationByIdGetPermission",
+            "PhysicalResourceId": "rapid-cortex-dev-AppSamStackV2-1BR5EYUP7MO3-CadAdminHttpFunctionCadIntegrationByIdGetPe-QW0LJX7kVrEB",
+            "ResourceType": "AWS::Lambda::Permission",
+            "LastUpdatedTimestamp": "2026-05-23T14:46:53.554000+00:00",
+            "ResourceStatus": "CREATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "LogicalResourceId": "CadAdminHttpFunctionCadIntegrationByIdPatchPermission",
+            "PhysicalResourceId": "rapid-cortex-dev-AppSamStackV2-1BR5EYUP7MO3-CadAdminHttpFunctionCadIntegrationByIdPatch-1IKUC3Ne3NW5",
+            "ResourceType": "AWS::Lambda::Permission",
+            "LastUpdatedTimestamp": "2026-05-23T14:46:53.219000+00:00",
+            "ResourceStatus": "CREATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "LogicalResourceId": "CadAdminHttpFunctionCadIntegrationByIdTestConnectionPostPermission",
+            "PhysicalResourceId": "rapid-cortex-dev-AppSamStackV2-1BR5EYUP7MO3-CadAdminHttpFunctionCadIntegrationByIdTestC-hJVtwWvL14R0",
+            "ResourceType": "AWS::Lambda::Permission",
+            "LastUpdatedTimestamp": "2026-07-14T21:38:26.390000+00:00",
+            "ResourceStatus": "CREATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "LogicalResourceId": "CadAdminHttpFunctionCadIntegrationByIdTestPostPermission",
+            "PhysicalResourceId": "rapid-cortex-dev-AppSamStackV2-1BR5EYUP7MO3-CadAdminHttpFunctionCadIntegrationByIdTestP-jl5V3td7uNF9",
+            "ResourceType": "AWS::Lambda::Permission",
+            "LastUpdatedTimestamp": "2026-05-23T14:46:53.244000+00:00",
+            "ResourceStatus": "CREATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "LogicalResourceId": "CadAdminHttpFunctionCadIntegrationsGetPermission",
+            "PhysicalResourceId": "rapid-cortex-dev-AppSamStackV2-1BR5EYUP7MO3-CadAdminHttpFunctionCadIntegrationsGetPermi-zzkO5Jolytgq",
+            "ResourceType": "AWS::Lambda::Permission",
+            "LastUpdatedTimestamp": "2026-05-23T14:46:58.437000+00:00",
+            "ResourceStatus": "CREATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "LogicalResourceId": "CadAdminHttpFunctionCadIntegrationsPostPermission",
+            "PhysicalResourceId": "rapid-cortex-dev-AppSamStackV2-1BR5EYUP7MO3-CadAdminHttpFunctionCadIntegrationsPostPerm-BHgnAOZ7UqzG",
+            "ResourceType": "AWS::Lambda::Permission",
+            "LastUpdatedTimestamp": "2026-05-23T14:46:53.358000+00:00",
+            "ResourceStatus": "CREATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "LogicalResourceId": "CadAdminHttpFunctionRole",
+            "PhysicalResourceId": "rapid-cortex-dev-AppSamSta-CadAdminHttpFunctionRole-cjtSP5cjTrX2",
+            "ResourceType": "AWS::IAM::Role",
+            "LastUpdatedTimestamp": "2026-08-07T14:20:33.458000+00:00",
+            "ResourceStatus": "UPDATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "LogicalResourceId": "CadApiPollerFunction",
+            "PhysicalResourceId": "rapid-cortex-dev-AppSamStackV-CadApiPollerFunction-S1LPQQ4MdjfK",
+            "ResourceType": "AWS::Lambda::Function",
+            "LastUpdatedTimestamp": "2026-09-16T14:57:32.001000+00:00",
+            "ResourceStatus": "UPDATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "LogicalResourceId": "CadApiPollerFunctionCadApiPollSchedule",
+            "PhysicalResourceId": "rapid-cortex-dev-AppSamSt-CadApiPollerFunctionCadAp-hSueuObwUMUA",
+            "ResourceType": "AWS::Events::Rule",
+            "LastUpdatedTimestamp": "2026-08-07T14:20:21.352000+00:00",
+            "ResourceStatus": "UPDATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "LogicalResourceId": "CadApiPollerFunctionCadApiPollSchedulePermission",
+            "PhysicalResourceId": "rapid-cortex-dev-AppSamStackV2-1BR5EYUP7MO3-CadApiPollerFunctionCadApiPollSchedulePermi-h5R5chsOyTmY",
+            "ResourceType": "AWS::Lambda::Permission",
+            "LastUpdatedTimestamp": "2026-05-23T14:47:00.659000+00:00",
+            "ResourceStatus": "CREATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "LogicalResourceId": "CadApiPollerFunctionRole",
+            "PhysicalResourceId": "rapid-cortex-dev-AppSamSta-CadApiPollerFunctionRole-qkMcQygD8l7C",
+            "ResourceType": "AWS::IAM::Role",
+            "LastUpdatedTimestamp": "2026-08-07T14:20:03.554000+00:00",
+            "ResourceStatus": "UPDATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "LogicalResourceId": "CadCapIncidentsTable",
+            "PhysicalResourceId": "rapid-cortex-cad-cap-incidents-dev",
+            "ResourceType": "AWS::DynamoDB::Table",
+            "LastUpdatedTimestamp": "2026-07-14T21:37:33.669000+00:00",
+            "ResourceStatus": "CREATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "LogicalResourceId": "CadCapIngestFunction",
+            "PhysicalResourceId": "rapid-cortex-dev-AppSamStackV-CadCapIngestFunction-i7t9mJZSQtV7",
+            "ResourceType": "AWS::Lambda::Function",
+            "LastUpdatedTimestamp": "2026-09-16T14:57:31.725000+00:00",
+            "ResourceStatus": "UPDATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "LogicalResourceId": "CadCapIngestFunctionCapIngestPostPermission",
+            "PhysicalResourceId": "rapid-cortex-dev-AppSamStackV2-1BR5EYUP7MO3-CadCapIngestFunctionCapIngestPostPermission-LK1CGKjwCxvx",
+            "ResourceType": "AWS::Lambda::Permission",
+            "LastUpdatedTimestamp": "2026-07-14T21:38:26.113000+00:00",
+            "ResourceStatus": "CREATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "LogicalResourceId": "CadCapIngestFunctionRole",
+            "PhysicalResourceId": "rapid-cortex-dev-AppSamSta-CadCapIngestFunctionRole-69t8jKThMGh2",
+            "ResourceType": "AWS::IAM::Role",
+            "LastUpdatedTimestamp": "2026-07-14T21:37:52.599000+00:00",
+            "ResourceStatus": "CREATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "LogicalResourceId": "CadWebhookHttpFunction",
+            "PhysicalResourceId": "rapid-cortex-dev-AppSamStac-CadWebhookHttpFunction-qtsHRPL912tk",
+            "ResourceType": "AWS::Lambda::Function",
+            "LastUpdatedTimestamp": "2026-09-16T14:57:31.942000+00:00",
+            "ResourceStatus": "UPDATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "LogicalResourceId": "CadWebhookHttpFunctionCadWebhookPostPermission",
+            "PhysicalResourceId": "rapid-cortex-dev-AppSamStackV2-1BR5EYUP7MO3-CadWebhookHttpFunctionCadWebhookPostPermiss-33WtMmnSGfRM",
+            "ResourceType": "AWS::Lambda::Permission",
+            "LastUpdatedTimestamp": "2026-05-23T14:46:53.309000+00:00",
+            "ResourceStatus": "CREATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "LogicalResourceId": "CadWebhookHttpFunctionRole",
+            "PhysicalResourceId": "rapid-cortex-dev-AppSamSt-CadWebhookHttpFunctionRol-ULsU6JdRMwLo",
+            "ResourceType": "AWS::IAM::Role",
+            "LastUpdatedTimestamp": "2026-05-23T14:45:27.916000+00:00",
+            "ResourceStatus": "CREATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "LogicalResourceId": "CadWebhookIdempotencyTable",
+            "PhysicalResourceId": "rapid-cortex-dev-AppSamStackV2-1BR5EYUP7MO39-CadWebhookIdempotencyTable-10GHGGNCP32LG",
+            "ResourceType": "AWS::DynamoDB::Table",
+            "LastUpdatedTimestamp": "2026-05-23T14:45:21.742000+00:00",
+            "ResourceStatus": "CREATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "LogicalResourceId": "CadWebhookIngestDLQ",
+            "PhysicalResourceId": "https://sqs.us-east-1.amazonaws.com/158961537080/rapid-cortex-dev-AppSamStackV2-1BR5EYUP7MO39-CadWebhookIngestDLQ-K9NkhuFa0NDN",
+            "ResourceType": "AWS::SQS::Queue",
+            "LastUpdatedTimestamp": "2026-05-23T14:46:10.543000+00:00",
+            "ResourceStatus": "CREATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "LogicalResourceId": "CadWebhookIngestDlqDepthAlarm",
+            "PhysicalResourceId": "rapid-cortex-cad-webhook-ingest-dlq-dev",
+            "ResourceType": "AWS::CloudWatch::Alarm",
+            "LastUpdatedTimestamp": "2026-09-13T21:49:36.406000+00:00",
+            "ResourceStatus": "UPDATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "LogicalResourceId": "CadWebhookIngestQueue",
+            "PhysicalResourceId": "https://sqs.us-east-1.amazonaws.com/158961537080/rapid-cortex-dev-AppSamStackV2-1BR5EYUP7MO39-CadWebhookIngestQueue-g3pHsBv6OOGY",
+            "ResourceType": "AWS::SQS::Queue",
+            "LastUpdatedTimestamp": "2026-05-23T14:47:14.525000+00:00",
+            "ResourceStatus": "CREATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "LogicalResourceId": "CadWebhookIngressSubscription",
+            "PhysicalResourceId": "arn:aws:sns:us-east-1:158961537080:rapid-cortex-dev-AppSamStackV2-1BR5EYUP7MO39-CadWebhookIngressTopic-4dKvjoOyaj0w:5b227757-6180-49b7-ab57-2efec5aeed7c",
+            "ResourceType": "AWS::SNS::Subscription",
+            "LastUpdatedTimestamp": "2026-05-23T14:47:49.418000+00:00",
+            "ResourceStatus": "CREATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "LogicalResourceId": "CadWebhookIngressToIngestQueuePolicy",
+            "PhysicalResourceId": "rapid-cortex-dev-AppSamStackV2-1B-CadWebhookIngressToIngestQueuePol-DWxlrAzHtyrs",
+            "ResourceType": "AWS::SQS::QueuePolicy",
+            "LastUpdatedTimestamp": "2026-05-23T14:47:46.828000+00:00",
+            "ResourceStatus": "CREATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "LogicalResourceId": "CadWebhookIngressTopic",
+            "PhysicalResourceId": "arn:aws:sns:us-east-1:158961537080:rapid-cortex-dev-AppSamStackV2-1BR5EYUP7MO39-CadWebhookIngressTopic-4dKvjoOyaj0w",
+            "ResourceType": "AWS::SNS::Topic",
+            "LastUpdatedTimestamp": "2026-05-23T14:45:09.362000+00:00",
+            "ResourceStatus": "CREATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "LogicalResourceId": "CadWebhookProcessingTopic",
+            "PhysicalResourceId": "arn:aws:sns:us-east-1:158961537080:rapid-cortex-dev-AppSamStackV2-1BR5EYUP7MO39-CadWebhookProcessingTopic-4pi2AP3cZWGg",
+            "ResourceType": "AWS::SNS::Topic",
+            "LastUpdatedTimestamp": "2026-05-23T14:45:09.375000+00:00",
+            "ResourceStatus": "CREATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "LogicalResourceId": "CadWebhookWorkerFunction",
+            "PhysicalResourceId": "rapid-cortex-dev-AppSamSt-CadWebhookWorkerFunction-CL8BQxDCt9YR",
+            "ResourceType": "AWS::Lambda::Function",
+            "LastUpdatedTimestamp": "2026-09-16T14:57:31.761000+00:00",
+            "ResourceStatus": "UPDATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "LogicalResourceId": "CadWebhookWorkerFunctionCadWebhookQueue",
+            "PhysicalResourceId": "dbf29f13-ef9d-49c4-be3a-b072b2e98455",
+            "ResourceType": "AWS::Lambda::EventSourceMapping",
+            "LastUpdatedTimestamp": "2026-06-29T01:31:52.902000+00:00",
+            "ResourceStatus": "UPDATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "LogicalResourceId": "CadWebhookWorkerFunctionRole",
+            "PhysicalResourceId": "rapid-cortex-dev-AppSamSt-CadWebhookWorkerFunctionR-dynoqiqOx5sy",
+            "ResourceType": "AWS::IAM::Role",
+            "LastUpdatedTimestamp": "2026-05-23T14:47:35.213000+00:00",
+            "ResourceStatus": "CREATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "LogicalResourceId": "ChannelConfigTable",
+            "PhysicalResourceId": "rapid-cortex-channel-config-dev",
+            "ResourceType": "AWS::DynamoDB::Table",
+            "LastUpdatedTimestamp": "2026-07-14T21:37:33.521000+00:00",
+            "ResourceStatus": "CREATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "LogicalResourceId": "ChannelHttpFunction",
+            "PhysicalResourceId": "rapid-cortex-dev-AppSamStackV2-ChannelHttpFunction-MdzFCinybY6y",
+            "ResourceType": "AWS::Lambda::Function",
+            "LastUpdatedTimestamp": "2026-09-16T14:57:35.680000+00:00",
+            "ResourceStatus": "UPDATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "LogicalResourceId": "ChannelHttpFunctionChannelByIdDeletePermission",
+            "PhysicalResourceId": "rapid-cortex-dev-AppSamStackV2-1BR5EYUP7MO3-ChannelHttpFunctionChannelByIdDeletePermiss-6vVZxq59bsKc",
+            "ResourceType": "AWS::Lambda::Permission",
+            "LastUpdatedTimestamp": "2026-07-14T21:38:26.444000+00:00",
+            "ResourceStatus": "CREATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "LogicalResourceId": "ChannelHttpFunctionChannelByIdPatchPermission",
+            "PhysicalResourceId": "rapid-cortex-dev-AppSamStackV2-1BR5EYUP7MO3-ChannelHttpFunctionChannelByIdPatchPermissi-oUZi3lbIGjwm",
+            "ResourceType": "AWS::Lambda::Permission",
+            "LastUpdatedTimestamp": "2026-07-14T21:38:26.384000+00:00",
+            "ResourceStatus": "CREATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "LogicalResourceId": "ChannelHttpFunctionChannelsCreatePermission",
+            "PhysicalResourceId": "rapid-cortex-dev-AppSamStackV2-1BR5EYUP7MO3-ChannelHttpFunctionChannelsCreatePermission-0bXNkutc3sim",
+            "ResourceType": "AWS::Lambda::Permission",
+            "LastUpdatedTimestamp": "2026-07-14T21:38:26.825000+00:00",
+            "ResourceStatus": "CREATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "LogicalResourceId": "ChannelHttpFunctionChannelsListCreatePermission",
+            "PhysicalResourceId": "rapid-cortex-dev-AppSamStackV2-1BR5EYUP7MO3-ChannelHttpFunctionChannelsListCreatePermis-1vLfq5dhxSED",
+            "ResourceType": "AWS::Lambda::Permission",
+            "LastUpdatedTimestamp": "2026-07-14T21:38:26.029000+00:00",
+            "ResourceStatus": "CREATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "LogicalResourceId": "ChannelHttpFunctionIncidentChannelDeletePermission",
+            "PhysicalResourceId": "rapid-cortex-dev-AppSamStackV2-1BR5EYUP7MO3-ChannelHttpFunctionIncidentChannelDeletePer-Gvw9UNu5tEqf",
+            "ResourceType": "AWS::Lambda::Permission",
+            "LastUpdatedTimestamp": "2026-07-14T21:38:26.416000+00:00",
+            "ResourceStatus": "CREATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "LogicalResourceId": "ChannelHttpFunctionIncidentChannelPatchPermission",
+            "PhysicalResourceId": "rapid-cortex-dev-AppSamStackV2-1BR5EYUP7MO3-ChannelHttpFunctionIncidentChannelPatchPerm-cX9j2s5I5yCo",
+            "ResourceType": "AWS::Lambda::Permission",
+            "LastUpdatedTimestamp": "2026-07-14T21:38:26.326000+00:00",
+            "ResourceStatus": "CREATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "LogicalResourceId": "ChannelHttpFunctionIncidentChannelsAssignPermission",
+            "PhysicalResourceId": "rapid-cortex-dev-AppSamStackV2-1BR5EYUP7MO3-ChannelHttpFunctionIncidentChannelsAssignPe-LwhXpjRvsofn",
+            "ResourceType": "AWS::Lambda::Permission",
+            "LastUpdatedTimestamp": "2026-07-14T21:38:26.074000+00:00",
+            "ResourceStatus": "CREATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "LogicalResourceId": "ChannelHttpFunctionIncidentChannelsListPermission",
+            "PhysicalResourceId": "rapid-cortex-dev-AppSamStackV2-1BR5EYUP7MO3-ChannelHttpFunctionIncidentChannelsListPerm-p7KrbAGpbvmV",
+            "ResourceType": "AWS::Lambda::Permission",
+            "LastUpdatedTimestamp": "2026-07-14T21:38:26.548000+00:00",
+            "ResourceStatus": "CREATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "LogicalResourceId": "ChannelHttpFunctionRole",
+            "PhysicalResourceId": "rapid-cortex-dev-AppSamStac-ChannelHttpFunctionRole-uAFHHLQk6knN",
+            "ResourceType": "AWS::IAM::Role",
+            "LastUpdatedTimestamp": "2026-07-14T21:37:57.126000+00:00",
+            "ResourceStatus": "CREATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "LogicalResourceId": "CognitoGroupAgencyAdmin",
+            "PhysicalResourceId": "agencyadmin",
+            "ResourceType": "AWS::Cognito::UserPoolGroup",
+            "LastUpdatedTimestamp": "2026-05-23T14:46:08.936000+00:00",
+            "ResourceStatus": "CREATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "LogicalResourceId": "CognitoGroupAgencyIt",
+            "PhysicalResourceId": "agencyit",
+            "ResourceType": "AWS::Cognito::UserPoolGroup",
+            "LastUpdatedTimestamp": "2026-05-23T14:46:03.682000+00:00",
+            "ResourceStatus": "CREATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "LogicalResourceId": "CognitoGroupAnalyst",
+            "PhysicalResourceId": "analyst",
+            "ResourceType": "AWS::Cognito::UserPoolGroup",
+            "LastUpdatedTimestamp": "2026-05-23T14:46:03.670000+00:00",
+            "ResourceStatus": "CREATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "LogicalResourceId": "CognitoGroupAuditor",
+            "PhysicalResourceId": "auditor",
+            "ResourceType": "AWS::Cognito::UserPoolGroup",
+            "LastUpdatedTimestamp": "2026-05-23T14:46:03.507000+00:00",
+            "ResourceStatus": "CREATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "LogicalResourceId": "CognitoGroupDispatcher",
+            "PhysicalResourceId": "dispatcher",
+            "ResourceType": "AWS::Cognito::UserPoolGroup",
+            "LastUpdatedTimestamp": "2026-05-23T14:46:03.632000+00:00",
+            "ResourceStatus": "CREATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "LogicalResourceId": "CognitoGroupHospitalAdmin",
+            "PhysicalResourceId": "hospitaladmin",
+            "ResourceType": "AWS::Cognito::UserPoolGroup",
+            "LastUpdatedTimestamp": "2026-05-23T14:46:03.585000+00:00",
+            "ResourceStatus": "CREATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "LogicalResourceId": "CognitoGroupHospitalStaff",
+            "PhysicalResourceId": "hospitalstaff",
+            "ResourceType": "AWS::Cognito::UserPoolGroup",
+            "LastUpdatedTimestamp": "2026-05-23T14:46:03.671000+00:00",
+            "ResourceStatus": "CREATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "LogicalResourceId": "CognitoGroupPlatformSuperadmin",
+            "PhysicalResourceId": "rcsuperadmin",
+            "ResourceType": "AWS::Cognito::UserPoolGroup",
+            "LastUpdatedTimestamp": "2026-05-23T14:46:03.717000+00:00",
+            "ResourceStatus": "CREATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "LogicalResourceId": "CognitoGroupRcBusinessAdmin",
+            "PhysicalResourceId": "rcadmin",
+            "ResourceType": "AWS::Cognito::UserPoolGroup",
+            "LastUpdatedTimestamp": "2026-05-23T14:46:04.089000+00:00",
+            "ResourceStatus": "CREATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "LogicalResourceId": "CognitoGroupRcItAdmin",
+            "PhysicalResourceId": "rcitadmin",
+            "ResourceType": "AWS::Cognito::UserPoolGroup",
+            "LastUpdatedTimestamp": "2026-05-23T14:46:03.671000+00:00",
+            "ResourceStatus": "CREATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "LogicalResourceId": "CognitoGroupSupervisor",
+            "PhysicalResourceId": "commsupervisor",
+            "ResourceType": "AWS::Cognito::UserPoolGroup",
+            "LastUpdatedTimestamp": "2026-05-23T14:46:03.824000+00:00",
+            "ResourceStatus": "CREATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "LogicalResourceId": "CognitoNativeUserPoolClient",
+            "PhysicalResourceId": "3nkemnrffspnaa0ikp2un6koh0",
+            "ResourceType": "AWS::Cognito::UserPoolClient",
+            "LastUpdatedTimestamp": "2026-08-07T14:19:58.504000+00:00",
+            "ResourceStatus": "UPDATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "LogicalResourceId": "CognitoPostConfirmationFunction",
+            "PhysicalResourceId": "rapid-cortex-dev-AppSamSt-CognitoPostConfirmationF-jRsteEgzLOiK",
+            "ResourceType": "AWS::Lambda::Function",
+            "LastUpdatedTimestamp": "2026-09-13T21:50:01.265000+00:00",
+            "ResourceStatus": "UPDATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "LogicalResourceId": "CognitoPostConfirmationFunctionRole",
+            "PhysicalResourceId": "rapid-cortex-dev-AppSamSt-CognitoPostConfirmationFu-2tmewCY0yr5u",
+            "ResourceType": "AWS::IAM::Role",
+            "LastUpdatedTimestamp": "2026-09-13T21:49:51.214000+00:00",
+            "ResourceStatus": "UPDATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "LogicalResourceId": "CognitoPostConfirmationInvokePermission",
+            "PhysicalResourceId": "rapid-cortex-dev-AppSamStackV2-1BR5EYUP7MO39-CognitoPostConfirmationInvokePermission-sRIDvDA6XcuG",
+            "ResourceType": "AWS::Lambda::Permission",
+            "LastUpdatedTimestamp": "2026-05-23T14:45:48.330000+00:00",
+            "ResourceStatus": "CREATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "LogicalResourceId": "CognitoUserPool",
+            "PhysicalResourceId": "us-east-1_0z6tA6WBs",
+            "ResourceType": "AWS::Cognito::UserPool",
+            "LastUpdatedTimestamp": "2026-05-23T14:45:39.591000+00:00",
+            "ResourceStatus": "CREATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "LogicalResourceId": "CognitoUserPoolClient",
+            "PhysicalResourceId": "7moi6sgc2uf4o31omgvo77h3v5",
+            "ResourceType": "AWS::Cognito::UserPoolClient",
+            "LastUpdatedTimestamp": "2026-07-29T11:17:26.544000+00:00",
+            "ResourceStatus": "UPDATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "LogicalResourceId": "CognitoUserPoolDomain",
+            "PhysicalResourceId": "rapidcortex-dev-158961537080",
+            "ResourceType": "AWS::Cognito::UserPoolDomain",
+            "LastUpdatedTimestamp": "2026-05-23T14:45:43.609000+00:00",
+            "ResourceStatus": "CREATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "LogicalResourceId": "CreateAgencyFunction",
+            "PhysicalResourceId": "rapid-cortex-dev-AppSamStackV-CreateAgencyFunction-omFYe9ZBiOvv",
+            "ResourceType": "AWS::Lambda::Function",
+            "LastUpdatedTimestamp": "2026-09-16T14:57:31.983000+00:00",
+            "ResourceStatus": "UPDATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "LogicalResourceId": "CreateAgencyFunctionRole",
+            "PhysicalResourceId": "rapid-cortex-dev-AppSamSta-CreateAgencyFunctionRole-KhG39KQ4ZW8x",
+            "ResourceType": "AWS::IAM::Role",
+            "LastUpdatedTimestamp": "2026-08-07T14:20:26.282000+00:00",
+            "ResourceStatus": "UPDATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "LogicalResourceId": "CreateAgencyFunctionRoutePermission",
+            "PhysicalResourceId": "rapid-cortex-dev-AppSamStackV2-1BR5EYUP7MO39-CreateAgencyFunctionRoutePermission-qe6puQB2vWKU",
+            "ResourceType": "AWS::Lambda::Permission",
+            "LastUpdatedTimestamp": "2026-05-23T14:46:53.089000+00:00",
+            "ResourceStatus": "CREATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "LogicalResourceId": "CreateIncidentFunction",
+            "PhysicalResourceId": "rapid-cortex-dev-AppSamStac-CreateIncidentFunction-jp0QYUkS5PsQ",
+            "ResourceType": "AWS::Lambda::Function",
+            "LastUpdatedTimestamp": "2026-09-16T14:57:26.421000+00:00",
+            "ResourceStatus": "UPDATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "LogicalResourceId": "CreateIncidentFunctionRole",
+            "PhysicalResourceId": "rapid-cortex-dev-AppSamSt-CreateIncidentFunctionRol-ukY96A7KDXXh",
+            "ResourceType": "AWS::IAM::Role",
+            "LastUpdatedTimestamp": "2026-09-13T21:49:51.404000+00:00",
+            "ResourceStatus": "UPDATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "LogicalResourceId": "CreateIncidentFunctionRoutePermission",
+            "PhysicalResourceId": "rapid-cortex-dev-AppSamStackV2-1BR5EYUP7MO39-CreateIncidentFunctionRoutePermission-3ahujhdNDy37",
+            "ResourceType": "AWS::Lambda::Permission",
+            "LastUpdatedTimestamp": "2026-05-23T14:46:53.309000+00:00",
+            "ResourceStatus": "CREATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "LogicalResourceId": "DeceptionDecoyHttpFunction",
+            "PhysicalResourceId": "rapid-cortex-dev-AppSamSt-DeceptionDecoyHttpFuncti-6citE7fyZHFN",
+            "ResourceType": "AWS::Lambda::Function",
+            "LastUpdatedTimestamp": "2026-09-16T14:57:34.945000+00:00",
+            "ResourceStatus": "UPDATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "LogicalResourceId": "DeceptionDecoyHttpFunctionDecoyAdminBackupPermission",
+            "PhysicalResourceId": "rapid-cortex-dev-AppSamStackV2-1BR5EYUP7MO3-DeceptionDecoyHttpFunctionDecoyAdminBackupP-a71tTBVtvnnU",
+            "ResourceType": "AWS::Lambda::Permission",
+            "LastUpdatedTimestamp": "2026-05-23T14:46:58.850000+00:00",
+            "ResourceStatus": "CREATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "LogicalResourceId": "DeceptionDecoyHttpFunctionDecoyAgencyRootPermission",
+            "PhysicalResourceId": "rapid-cortex-dev-AppSamStackV2-1BR5EYUP7MO3-DeceptionDecoyHttpFunctionDecoyAgencyRootPe-dsSQknIO5Szl",
+            "ResourceType": "AWS::Lambda::Permission",
+            "LastUpdatedTimestamp": "2026-05-23T14:46:58.368000+00:00",
+            "ResourceStatus": "CREATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "LogicalResourceId": "DeceptionDecoyHttpFunctionDecoyCadSyncGetPermission",
+            "PhysicalResourceId": "rapid-cortex-dev-AppSamStackV2-1BR5EYUP7MO3-DeceptionDecoyHttpFunctionDecoyCadSyncGetPe-nveIZzkNY7Ah",
+            "ResourceType": "AWS::Lambda::Permission",
+            "LastUpdatedTimestamp": "2026-05-23T14:46:58.533000+00:00",
+            "ResourceStatus": "CREATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "LogicalResourceId": "DeceptionDecoyHttpFunctionDecoyCadSyncPostPermission",
+            "PhysicalResourceId": "rapid-cortex-dev-AppSamStackV2-1BR5EYUP7MO3-DeceptionDecoyHttpFunctionDecoyCadSyncPostP-6DbzZdgKWWFI",
+            "ResourceType": "AWS::Lambda::Permission",
+            "LastUpdatedTimestamp": "2026-05-23T14:46:53.281000+00:00",
+            "ResourceStatus": "CREATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "LogicalResourceId": "DeceptionDecoyHttpFunctionDecoyCadWritebackGetPermission",
+            "PhysicalResourceId": "rapid-cortex-dev-AppSamStackV2-1BR5EYUP7MO3-DeceptionDecoyHttpFunctionDecoyCadWriteback-uLR8IlelkxVj",
+            "ResourceType": "AWS::Lambda::Permission",
+            "LastUpdatedTimestamp": "2026-05-23T14:46:53.514000+00:00",
+            "ResourceStatus": "CREATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "LogicalResourceId": "DeceptionDecoyHttpFunctionDecoyCadWritebackPostPermission",
+            "PhysicalResourceId": "rapid-cortex-dev-AppSamStackV2-1BR5EYUP7MO3-DeceptionDecoyHttpFunctionDecoyCadWriteback-eYUoonHCOzuA",
+            "ResourceType": "AWS::Lambda::Permission",
+            "LastUpdatedTimestamp": "2026-05-23T14:46:58.849000+00:00",
+            "ResourceStatus": "CREATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "LogicalResourceId": "DeceptionDecoyHttpFunctionDecoyDebugEnvPermission",
+            "PhysicalResourceId": "rapid-cortex-dev-AppSamStackV2-1BR5EYUP7MO3-DeceptionDecoyHttpFunctionDecoyDebugEnvPerm-crpcwSjakuPo",
+            "ResourceType": "AWS::Lambda::Permission",
+            "LastUpdatedTimestamp": "2026-05-23T14:46:58.647000+00:00",
+            "ResourceStatus": "CREATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "LogicalResourceId": "DeceptionDecoyHttpFunctionDecoyNcicGatewayPermission",
+            "PhysicalResourceId": "rapid-cortex-dev-AppSamStackV2-1BR5EYUP7MO3-DeceptionDecoyHttpFunctionDecoyNcicGatewayP-kVYKIyUqXg6T",
+            "ResourceType": "AWS::Lambda::Permission",
+            "LastUpdatedTimestamp": "2026-05-23T14:46:53.284000+00:00",
+            "ResourceStatus": "CREATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "LogicalResourceId": "DeceptionDecoyHttpFunctionDecoyNcicGatewayPostPermission",
+            "PhysicalResourceId": "rapid-cortex-dev-AppSamStackV2-1BR5EYUP7MO3-DeceptionDecoyHttpFunctionDecoyNcicGatewayP-H2pm5DXZ6uAM",
+            "ResourceType": "AWS::Lambda::Permission",
+            "LastUpdatedTimestamp": "2026-05-23T14:46:53.096000+00:00",
+            "ResourceStatus": "CREATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "LogicalResourceId": "DeceptionDecoyHttpFunctionDecoyRcLiteRootPermission",
+            "PhysicalResourceId": "rapid-cortex-dev-AppSamStackV2-1BR5EYUP7MO3-DeceptionDecoyHttpFunctionDecoyRcLiteRootPe-2NmfWAG1vqxe",
+            "ResourceType": "AWS::Lambda::Permission",
+            "LastUpdatedTimestamp": "2026-05-23T14:46:53.467000+00:00",
+            "ResourceStatus": "CREATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "LogicalResourceId": "DeceptionDecoyHttpFunctionDecoySystemSecretsPermission",
+            "PhysicalResourceId": "rapid-cortex-dev-AppSamStackV2-1BR5EYUP7MO3-DeceptionDecoyHttpFunctionDecoySystemSecret-OUZCYCCeswo3",
+            "ResourceType": "AWS::Lambda::Permission",
+            "LastUpdatedTimestamp": "2026-05-23T14:46:58.446000+00:00",
+            "ResourceStatus": "CREATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "LogicalResourceId": "DeceptionDecoyHttpFunctionDecoyV1CadExportTestPermission",
+            "PhysicalResourceId": "rapid-cortex-dev-AppSamStackV2-1BR5EYUP7MO3-DeceptionDecoyHttpFunctionDecoyV1CadExportT-6yvZI5Sczak9",
+            "ResourceType": "AWS::Lambda::Permission",
+            "LastUpdatedTimestamp": "2026-05-23T14:46:53.487000+00:00",
+            "ResourceStatus": "CREATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "LogicalResourceId": "DeceptionDecoyHttpFunctionRole",
+            "PhysicalResourceId": "rapid-cortex-dev-AppSamSt-DeceptionDecoyHttpFunctio-MujrMcOJZFd1",
+            "ResourceType": "AWS::IAM::Role",
+            "LastUpdatedTimestamp": "2026-05-23T14:46:15.180000+00:00",
+            "ResourceStatus": "CREATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "LogicalResourceId": "DeceptionEventsAdminHttpFunction",
+            "PhysicalResourceId": "rapid-cortex-dev-AppSamSt-DeceptionEventsAdminHttp-I0XDPpebt3TY",
+            "ResourceType": "AWS::Lambda::Function",
+            "LastUpdatedTimestamp": "2026-09-16T14:57:35.456000+00:00",
+            "ResourceStatus": "UPDATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "LogicalResourceId": "DeceptionEventsAdminHttpFunctionDeceptionEventsListPermission",
+            "PhysicalResourceId": "rapid-cortex-dev-AppSamStackV2-1BR5EYUP7MO3-DeceptionEventsAdminHttpFunctionDeceptionEv-10IMuPOv9z6M",
+            "ResourceType": "AWS::Lambda::Permission",
+            "LastUpdatedTimestamp": "2026-05-23T14:46:53.417000+00:00",
+            "ResourceStatus": "CREATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "LogicalResourceId": "DeceptionEventsAdminHttpFunctionDeceptionEventsOptionsPermission",
+            "PhysicalResourceId": "rapid-cortex-dev-AppSamStackV2-1BR5EYUP7MO3-DeceptionEventsAdminHttpFunctionDeceptionEv-6sOgzAMLMaE9",
+            "ResourceType": "AWS::Lambda::Permission",
+            "LastUpdatedTimestamp": "2026-05-23T14:46:53.227000+00:00",
+            "ResourceStatus": "CREATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "LogicalResourceId": "DeceptionEventsAdminHttpFunctionRole",
+            "PhysicalResourceId": "rapid-cortex-dev-AppSamSt-DeceptionEventsAdminHttpF-9BNqXzzqwSLr",
+            "ResourceType": "AWS::IAM::Role",
+            "LastUpdatedTimestamp": "2026-05-23T14:45:25.242000+00:00",
+            "ResourceStatus": "CREATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "LogicalResourceId": "DetectIncidentTypeFunction",
+            "PhysicalResourceId": "rapid-cortex-dev-AppSamSt-DetectIncidentTypeFuncti-teQisEceLhxp",
+            "ResourceType": "AWS::Lambda::Function",
+            "LastUpdatedTimestamp": "2026-09-16T14:57:31.795000+00:00",
+            "ResourceStatus": "UPDATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "LogicalResourceId": "DetectIncidentTypeFunctionRole",
+            "PhysicalResourceId": "rapid-cortex-dev-AppSamSt-DetectIncidentTypeFunctio-MUSMwRNKwYho",
+            "ResourceType": "AWS::IAM::Role",
+            "LastUpdatedTimestamp": "2026-08-07T14:20:31.015000+00:00",
+            "ResourceStatus": "UPDATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "LogicalResourceId": "DetectIncidentTypeFunctionRoutePermission",
+            "PhysicalResourceId": "rapid-cortex-dev-AppSamStackV2-1BR5EYUP7MO39-DetectIncidentTypeFunctionRoutePermission-uhLg2OQlnf8g",
+            "ResourceType": "AWS::Lambda::Permission",
+            "LastUpdatedTimestamp": "2026-05-23T14:46:53.058000+00:00",
+            "ResourceStatus": "CREATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "LogicalResourceId": "GetAgencyFunction",
+            "PhysicalResourceId": "rapid-cortex-dev-AppSamStackV2-1-GetAgencyFunction-H1JUSJi8MYf3",
+            "ResourceType": "AWS::Lambda::Function",
+            "LastUpdatedTimestamp": "2026-09-16T14:57:31.292000+00:00",
+            "ResourceStatus": "UPDATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "LogicalResourceId": "GetAgencyFunctionRole",
+            "PhysicalResourceId": "rapid-cortex-dev-AppSamStackV-GetAgencyFunctionRole-ZzvYXGb7zsf7",
+            "ResourceType": "AWS::IAM::Role",
+            "LastUpdatedTimestamp": "2026-08-07T14:20:31.042000+00:00",
+            "ResourceStatus": "UPDATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "LogicalResourceId": "GetAgencyFunctionRoutePermission",
+            "PhysicalResourceId": "rapid-cortex-dev-AppSamStackV2-1BR5EYUP7MO39-GetAgencyFunctionRoutePermission-rorb5FFwou5m",
+            "ResourceType": "AWS::Lambda::Permission",
+            "LastUpdatedTimestamp": "2026-05-23T14:46:53.192000+00:00",
+            "ResourceStatus": "CREATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "LogicalResourceId": "GetAgencyProfileFunction",
+            "PhysicalResourceId": "rapid-cortex-dev-AppSamSt-GetAgencyProfileFunction-kg31b5cVTwVo",
+            "ResourceType": "AWS::Lambda::Function",
+            "LastUpdatedTimestamp": "2026-09-16T14:57:31.283000+00:00",
+            "ResourceStatus": "UPDATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "LogicalResourceId": "GetAgencyProfileFunctionRole",
+            "PhysicalResourceId": "rapid-cortex-dev-AppSamSt-GetAgencyProfileFunctionR-TtmyHnAj0p47",
+            "ResourceType": "AWS::IAM::Role",
+            "LastUpdatedTimestamp": "2026-08-07T14:20:31.043000+00:00",
+            "ResourceStatus": "UPDATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "LogicalResourceId": "GetAgencyProfileFunctionRoutePermission",
+            "PhysicalResourceId": "rapid-cortex-dev-AppSamStackV2-1BR5EYUP7MO39-GetAgencyProfileFunctionRoutePermission-oyySxEUTTgG8",
+            "ResourceType": "AWS::Lambda::Permission",
+            "LastUpdatedTimestamp": "2026-06-16T07:39:16.825000+00:00",
+            "ResourceStatus": "CREATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "LogicalResourceId": "GetIncidentAnalysisFunction",
+            "PhysicalResourceId": "rapid-cortex-dev-AppSamSt-GetIncidentAnalysisFunct-gWaBzzD8qPK7",
+            "ResourceType": "AWS::Lambda::Function",
+            "LastUpdatedTimestamp": "2026-09-16T14:57:26.496000+00:00",
+            "ResourceStatus": "UPDATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "LogicalResourceId": "GetIncidentAnalysisFunctionRole",
+            "PhysicalResourceId": "rapid-cortex-dev-AppSamSt-GetIncidentAnalysisFuncti-LCIOXD1OsfEA",
+            "ResourceType": "AWS::IAM::Role",
+            "LastUpdatedTimestamp": "2026-08-07T14:20:31.096000+00:00",
+            "ResourceStatus": "UPDATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "LogicalResourceId": "GetIncidentAnalysisFunctionRoutePermission",
+            "PhysicalResourceId": "rapid-cortex-dev-AppSamStackV2-1BR5EYUP7MO39-GetIncidentAnalysisFunctionRoutePermission-NmeNNtOlRRag",
+            "ResourceType": "AWS::Lambda::Permission",
+            "LastUpdatedTimestamp": "2026-05-23T14:46:53.185000+00:00",
+            "ResourceStatus": "CREATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "LogicalResourceId": "GetIncidentFunction",
+            "PhysicalResourceId": "rapid-cortex-dev-AppSamStackV2-GetIncidentFunction-8s2CK8tEruas",
+            "ResourceType": "AWS::Lambda::Function",
+            "LastUpdatedTimestamp": "2026-09-16T14:57:26.359000+00:00",
+            "ResourceStatus": "UPDATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "LogicalResourceId": "GetIncidentFunctionRole",
+            "PhysicalResourceId": "rapid-cortex-dev-AppSamStac-GetIncidentFunctionRole-4FThfUm4WltD",
+            "ResourceType": "AWS::IAM::Role",
+            "LastUpdatedTimestamp": "2026-08-07T14:20:26.700000+00:00",
+            "ResourceStatus": "UPDATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "LogicalResourceId": "GetIncidentFunctionRoutePermission",
+            "PhysicalResourceId": "rapid-cortex-dev-AppSamStackV2-1BR5EYUP7MO39-GetIncidentFunctionRoutePermission-Ooupo9CX4j8N",
+            "ResourceType": "AWS::Lambda::Permission",
+            "LastUpdatedTimestamp": "2026-05-23T14:46:53.486000+00:00",
+            "ResourceStatus": "CREATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "LogicalResourceId": "GetMeFunction",
+            "PhysicalResourceId": "rapid-cortex-dev-AppSamStackV2-1BR5E-GetMeFunction-PqYgccd2YSP3",
+            "ResourceType": "AWS::Lambda::Function",
+            "LastUpdatedTimestamp": "2026-09-16T14:57:34.765000+00:00",
+            "ResourceStatus": "UPDATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "LogicalResourceId": "GetMeFunctionRole",
+            "PhysicalResourceId": "rapid-cortex-dev-AppSamStackV2-1B-GetMeFunctionRole-GpmZTvHAX9PO",
+            "ResourceType": "AWS::IAM::Role",
+            "LastUpdatedTimestamp": "2026-05-23T14:45:43.288000+00:00",
+            "ResourceStatus": "CREATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "LogicalResourceId": "GetMeFunctionRoutePermission",
+            "PhysicalResourceId": "rapid-cortex-dev-AppSamStackV2-1BR5EYUP7MO39-GetMeFunctionRoutePermission-caCDI3RqjIzG",
+            "ResourceType": "AWS::Lambda::Permission",
+            "LastUpdatedTimestamp": "2026-05-23T14:46:53.519000+00:00",
+            "ResourceStatus": "CREATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "LogicalResourceId": "GetTriageResultFunction",
+            "PhysicalResourceId": "rapid-cortex-dev-AppSamSta-GetTriageResultFunction-9aGzbioXmEQw",
+            "ResourceType": "AWS::Lambda::Function",
+            "LastUpdatedTimestamp": "2026-09-16T14:57:26.707000+00:00",
+            "ResourceStatus": "UPDATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "LogicalResourceId": "GetTriageResultFunctionRole",
+            "PhysicalResourceId": "rapid-cortex-dev-AppSamSt-GetTriageResultFunctionRo-TKMXSFEiHAj6",
+            "ResourceType": "AWS::IAM::Role",
+            "LastUpdatedTimestamp": "2026-08-07T14:20:33.174000+00:00",
+            "ResourceStatus": "UPDATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "LogicalResourceId": "GetTriageResultFunctionRoutePermission",
+            "PhysicalResourceId": "rapid-cortex-dev-AppSamStackV2-1BR5EYUP7MO39-GetTriageResultFunctionRoutePermission-nES5eQWCv1ui",
+            "ResourceType": "AWS::Lambda::Permission",
+            "LastUpdatedTimestamp": "2026-05-23T14:46:53.301000+00:00",
+            "ResourceStatus": "CREATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "LogicalResourceId": "HealthFunction",
+            "PhysicalResourceId": "rapid-cortex-dev-AppSamStackV2-1BR5-HealthFunction-7ntwCgRvu0zE",
+            "ResourceType": "AWS::Lambda::Function",
+            "LastUpdatedTimestamp": "2026-09-16T14:57:31.349000+00:00",
+            "ResourceStatus": "UPDATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "LogicalResourceId": "HealthFunctionHealthRoutePermission",
+            "PhysicalResourceId": "rapid-cortex-dev-AppSamStackV2-1BR5EYUP7MO39-HealthFunctionHealthRoutePermission-t3dy8ZXQ8kfY",
+            "ResourceType": "AWS::Lambda::Permission",
+            "LastUpdatedTimestamp": "2026-05-23T14:46:53.428000+00:00",
+            "ResourceStatus": "CREATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "LogicalResourceId": "HealthFunctionRole",
+            "PhysicalResourceId": "rapid-cortex-dev-AppSamStackV2-1-HealthFunctionRole-xXAUqk4XS5rd",
+            "ResourceType": "AWS::IAM::Role",
+            "LastUpdatedTimestamp": "2026-05-23T14:45:43.501000+00:00",
+            "ResourceStatus": "CREATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "LogicalResourceId": "IncidentChannelAssignmentsTable",
+            "PhysicalResourceId": "rapid-cortex-incident-channel-assignments-dev",
+            "ResourceType": "AWS::DynamoDB::Table",
+            "LastUpdatedTimestamp": "2026-07-14T21:37:33.639000+00:00",
+            "ResourceStatus": "CREATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "LogicalResourceId": "IntegrationStatusFunction",
+            "PhysicalResourceId": "rapid-cortex-dev-AppSamSt-IntegrationStatusFunctio-I7zUT2FyYlOx",
+            "ResourceType": "AWS::Lambda::Function",
+            "LastUpdatedTimestamp": "2026-09-16T14:57:31.742000+00:00",
+            "ResourceStatus": "UPDATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "LogicalResourceId": "IntegrationStatusFunctionRole",
+            "PhysicalResourceId": "rapid-cortex-dev-AppSamSt-IntegrationStatusFunction-RKwPDdS1Up9c",
+            "ResourceType": "AWS::IAM::Role",
+            "LastUpdatedTimestamp": "2026-05-24T15:48:00.058000+00:00",
+            "ResourceStatus": "CREATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "LogicalResourceId": "IntegrationStatusFunctionRoutePermission",
+            "PhysicalResourceId": "rapid-cortex-dev-AppSamStackV2-1BR5EYUP7MO39-IntegrationStatusFunctionRoutePermission-wxPfEtTPrXPK",
+            "ResourceType": "AWS::Lambda::Permission",
+            "LastUpdatedTimestamp": "2026-05-24T15:48:25.966000+00:00",
+            "ResourceStatus": "CREATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "LogicalResourceId": "ListAgenciesFunction",
+            "PhysicalResourceId": "rapid-cortex-dev-AppSamStackV-ListAgenciesFunction-IX1KqSiul5IQ",
+            "ResourceType": "AWS::Lambda::Function",
+            "LastUpdatedTimestamp": "2026-09-16T14:57:29.658000+00:00",
+            "ResourceStatus": "UPDATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "LogicalResourceId": "ListAgenciesFunctionRole",
+            "PhysicalResourceId": "rapid-cortex-dev-AppSamSta-ListAgenciesFunctionRole-hnURxmy4nuRE",
+            "ResourceType": "AWS::IAM::Role",
+            "LastUpdatedTimestamp": "2026-08-07T14:20:30.561000+00:00",
+            "ResourceStatus": "UPDATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "LogicalResourceId": "ListAgenciesFunctionRoutePermission",
+            "PhysicalResourceId": "rapid-cortex-dev-AppSamStackV2-1BR5EYUP7MO39-ListAgenciesFunctionRoutePermission-W4pHwkfX69BW",
+            "ResourceType": "AWS::Lambda::Permission",
+            "LastUpdatedTimestamp": "2026-05-23T14:46:53.189000+00:00",
+            "ResourceStatus": "CREATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "LogicalResourceId": "ListAgencyInvitesFunction",
+            "PhysicalResourceId": "rapid-cortex-dev-AppSamSt-ListAgencyInvitesFunctio-9X0DmHo91ftE",
+            "ResourceType": "AWS::Lambda::Function",
+            "LastUpdatedTimestamp": "2026-09-16T14:57:32.052000+00:00",
+            "ResourceStatus": "UPDATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "LogicalResourceId": "ListAgencyInvitesFunctionRole",
+            "PhysicalResourceId": "rapid-cortex-dev-AppSamSt-ListAgencyInvitesFunction-7M87uXm8OrEH",
+            "ResourceType": "AWS::IAM::Role",
+            "LastUpdatedTimestamp": "2026-08-07T14:20:31.300000+00:00",
+            "ResourceStatus": "UPDATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "LogicalResourceId": "ListAgencyInvitesFunctionRoutePermission",
+            "PhysicalResourceId": "rapid-cortex-dev-AppSamStackV2-1BR5EYUP7MO39-ListAgencyInvitesFunctionRoutePermission-xvWbuBc6yagA",
+            "ResourceType": "AWS::Lambda::Permission",
+            "LastUpdatedTimestamp": "2026-05-23T14:46:53.247000+00:00",
+            "ResourceStatus": "CREATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "LogicalResourceId": "ListIncidentSharesFunction",
+            "PhysicalResourceId": "rapid-cortex-dev-AppSamSt-ListIncidentSharesFuncti-RfJpS8rJ7wFk",
+            "ResourceType": "AWS::Lambda::Function",
+            "LastUpdatedTimestamp": "2026-09-16T14:57:35.933000+00:00",
+            "ResourceStatus": "UPDATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "LogicalResourceId": "ListIncidentSharesFunctionRole",
+            "PhysicalResourceId": "rapid-cortex-dev-AppSamSt-ListIncidentSharesFunctio-9ZH86srfSR10",
+            "ResourceType": "AWS::IAM::Role",
+            "LastUpdatedTimestamp": "2026-08-07T14:20:31.216000+00:00",
+            "ResourceStatus": "UPDATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "LogicalResourceId": "ListIncidentSharesFunctionRoutePermission",
+            "PhysicalResourceId": "rapid-cortex-dev-AppSamStackV2-1BR5EYUP7MO39-ListIncidentSharesFunctionRoutePermission-VdZy4V9x3HLT",
+            "ResourceType": "AWS::Lambda::Permission",
+            "LastUpdatedTimestamp": "2026-05-23T14:46:53.306000+00:00",
+            "ResourceStatus": "CREATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "LogicalResourceId": "ListIncidentsFunction",
+            "PhysicalResourceId": "rapid-cortex-dev-AppSamStack-ListIncidentsFunction-YSRbrjhQbYQg",
+            "ResourceType": "AWS::Lambda::Function",
+            "LastUpdatedTimestamp": "2026-09-16T14:57:31.499000+00:00",
+            "ResourceStatus": "UPDATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "LogicalResourceId": "ListIncidentsFunctionRole",
+            "PhysicalResourceId": "rapid-cortex-dev-AppSamSt-ListIncidentsFunctionRole-F5YGg2rsnioh",
+            "ResourceType": "AWS::IAM::Role",
+            "LastUpdatedTimestamp": "2026-08-07T14:20:26.631000+00:00",
+            "ResourceStatus": "UPDATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "LogicalResourceId": "ListIncidentsFunctionRoutePermission",
+            "PhysicalResourceId": "rapid-cortex-dev-AppSamStackV2-1BR5EYUP7MO39-ListIncidentsFunctionRoutePermission-6DziPIbpkNcT",
+            "ResourceType": "AWS::Lambda::Permission",
+            "LastUpdatedTimestamp": "2026-05-23T14:46:53.357000+00:00",
+            "ResourceStatus": "CREATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "LogicalResourceId": "ListIncomingIncidentSharesFunction",
+            "PhysicalResourceId": "rapid-cortex-dev-AppSamSt-ListIncomingIncidentShar-HnZnu9a1hvzn",
+            "ResourceType": "AWS::Lambda::Function",
+            "LastUpdatedTimestamp": "2026-09-16T14:57:31.885000+00:00",
+            "ResourceStatus": "UPDATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "LogicalResourceId": "ListIncomingIncidentSharesFunctionRole",
+            "PhysicalResourceId": "rapid-cortex-dev-AppSamSt-ListIncomingIncidentShare-ird36rJQxTf6",
+            "ResourceType": "AWS::IAM::Role",
+            "LastUpdatedTimestamp": "2026-08-07T14:20:31.152000+00:00",
+            "ResourceStatus": "UPDATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "LogicalResourceId": "ListIncomingIncidentSharesFunctionRoutePermission",
+            "PhysicalResourceId": "rapid-cortex-dev-AppSamStackV2-1BR5EYUP7MO3-ListIncomingIncidentSharesFunctionRoutePerm-HiUAx1KOPdvM",
+            "ResourceType": "AWS::Lambda::Permission",
+            "LastUpdatedTimestamp": "2026-05-23T14:46:53.196000+00:00",
+            "ResourceStatus": "CREATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "LogicalResourceId": "ListTranscriptFunction",
+            "PhysicalResourceId": "rapid-cortex-dev-AppSamStac-ListTranscriptFunction-jAS3XbGneHeC",
+            "ResourceType": "AWS::Lambda::Function",
+            "LastUpdatedTimestamp": "2026-09-16T14:57:30.092000+00:00",
+            "ResourceStatus": "UPDATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "LogicalResourceId": "ListTranscriptFunctionRole",
+            "PhysicalResourceId": "rapid-cortex-dev-AppSamSt-ListTranscriptFunctionRol-a2eaXoMaqs3i",
+            "ResourceType": "AWS::IAM::Role",
+            "LastUpdatedTimestamp": "2026-08-07T14:20:26.550000+00:00",
+            "ResourceStatus": "UPDATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "LogicalResourceId": "ListTranscriptFunctionRoutePermission",
+            "PhysicalResourceId": "rapid-cortex-dev-AppSamStackV2-1BR5EYUP7MO39-ListTranscriptFunctionRoutePermission-EseOAIqpqQmA",
+            "ResourceType": "AWS::Lambda::Permission",
+            "LastUpdatedTimestamp": "2026-05-23T14:46:53.496000+00:00",
+            "ResourceStatus": "CREATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "LogicalResourceId": "OpsAlertsTopic",
+            "PhysicalResourceId": "arn:aws:sns:us-east-1:158961537080:rapid-cortex-dev-AppSamStackV2-1BR5EYUP7MO39-OpsAlertsTopic-p56TnLJKwZWR",
+            "ResourceType": "AWS::SNS::Topic",
+            "LastUpdatedTimestamp": "2026-05-23T14:45:09.330000+00:00",
+            "ResourceStatus": "CREATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "LogicalResourceId": "OverrideTriageFunction",
+            "PhysicalResourceId": "rapid-cortex-dev-AppSamStac-OverrideTriageFunction-SDzV7GbyVj86",
+            "ResourceType": "AWS::Lambda::Function",
+            "LastUpdatedTimestamp": "2026-09-16T14:57:35.024000+00:00",
+            "ResourceStatus": "UPDATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "LogicalResourceId": "OverrideTriageFunctionRole",
+            "PhysicalResourceId": "rapid-cortex-dev-AppSamSt-OverrideTriageFunctionRol-Wk1eP89JSrKU",
+            "ResourceType": "AWS::IAM::Role",
+            "LastUpdatedTimestamp": "2026-08-07T14:20:28.577000+00:00",
+            "ResourceStatus": "UPDATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "LogicalResourceId": "OverrideTriageFunctionRoutePermission",
+            "PhysicalResourceId": "rapid-cortex-dev-AppSamStackV2-1BR5EYUP7MO39-OverrideTriageFunctionRoutePermission-EuzFZlvV3cbP",
+            "ResourceType": "AWS::Lambda::Permission",
+            "LastUpdatedTimestamp": "2026-05-23T14:46:53.296000+00:00",
+            "ResourceStatus": "CREATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "LogicalResourceId": "PatchAgencyFunction",
+            "PhysicalResourceId": "rapid-cortex-dev-AppSamStackV2-PatchAgencyFunction-8tslu8ilpHlR",
+            "ResourceType": "AWS::Lambda::Function",
+            "LastUpdatedTimestamp": "2026-09-16T14:57:26.261000+00:00",
+            "ResourceStatus": "UPDATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "LogicalResourceId": "PatchAgencyFunctionRole",
+            "PhysicalResourceId": "rapid-cortex-dev-AppSamStac-PatchAgencyFunctionRole-twlHaIsMHG1g",
+            "ResourceType": "AWS::IAM::Role",
+            "LastUpdatedTimestamp": "2026-08-07T14:20:26.420000+00:00",
+            "ResourceStatus": "UPDATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "LogicalResourceId": "PatchAgencyFunctionRoutePermission",
+            "PhysicalResourceId": "rapid-cortex-dev-AppSamStackV2-1BR5EYUP7MO39-PatchAgencyFunctionRoutePermission-AF1oKZqiU4gr",
+            "ResourceType": "AWS::Lambda::Permission",
+            "LastUpdatedTimestamp": "2026-05-23T14:46:53.108000+00:00",
+            "ResourceStatus": "CREATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "LogicalResourceId": "PatchIncidentFunction",
+            "PhysicalResourceId": "rapid-cortex-dev-AppSamStack-PatchIncidentFunction-8qglnKr4HT2Y",
+            "ResourceType": "AWS::Lambda::Function",
+            "LastUpdatedTimestamp": "2026-09-16T14:57:24.321000+00:00",
+            "ResourceStatus": "UPDATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "LogicalResourceId": "PatchIncidentFunctionRole",
+            "PhysicalResourceId": "rapid-cortex-dev-AppSamSt-PatchIncidentFunctionRole-BJ1WWP2qzWCl",
+            "ResourceType": "AWS::IAM::Role",
+            "LastUpdatedTimestamp": "2026-09-13T21:49:51.204000+00:00",
+            "ResourceStatus": "UPDATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "LogicalResourceId": "PatchIncidentFunctionRoutePermission",
+            "PhysicalResourceId": "rapid-cortex-dev-AppSamStackV2-1BR5EYUP7MO39-PatchIncidentFunctionRoutePermission-s1HcQ9qlCxQq",
+            "ResourceType": "AWS::Lambda::Permission",
+            "LastUpdatedTimestamp": "2026-05-23T14:46:53.360000+00:00",
+            "ResourceStatus": "CREATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "LogicalResourceId": "PatchIncidentLegalHoldFunction",
+            "PhysicalResourceId": "rapid-cortex-dev-AppSamSt-PatchIncidentLegalHoldFu-Lv8PkmZ5Am1c",
+            "ResourceType": "AWS::Lambda::Function",
+            "LastUpdatedTimestamp": "2026-09-16T14:57:26.478000+00:00",
+            "ResourceStatus": "UPDATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "LogicalResourceId": "PatchIncidentLegalHoldFunctionRole",
+            "PhysicalResourceId": "rapid-cortex-dev-AppSamSt-PatchIncidentLegalHoldFun-R0EfwE0mhldW",
+            "ResourceType": "AWS::IAM::Role",
+            "LastUpdatedTimestamp": "2026-08-07T14:20:31.012000+00:00",
+            "ResourceStatus": "UPDATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "LogicalResourceId": "PatchIncidentLegalHoldFunctionRoutePermission",
+            "PhysicalResourceId": "rapid-cortex-dev-AppSamStackV2-1BR5EYUP7MO3-PatchIncidentLegalHoldFunctionRoutePermissi-MOAa5CWRwr9o",
+            "ResourceType": "AWS::Lambda::Permission",
+            "LastUpdatedTimestamp": "2026-05-23T14:46:53.255000+00:00",
+            "ResourceStatus": "CREATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "LogicalResourceId": "PilotOperationsDashboard",
+            "PhysicalResourceId": "rapid-cortex-dev-ops",
+            "ResourceType": "AWS::CloudWatch::Dashboard",
+            "LastUpdatedTimestamp": "2026-05-23T14:46:55.744000+00:00",
+            "ResourceStatus": "CREATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "LogicalResourceId": "PostAgencyInviteFunction",
+            "PhysicalResourceId": "rapid-cortex-dev-AppSamSt-PostAgencyInviteFunction-c1zfDAxxASmj",
+            "ResourceType": "AWS::Lambda::Function",
+            "LastUpdatedTimestamp": "2026-09-16T14:57:31.953000+00:00",
+            "ResourceStatus": "UPDATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "LogicalResourceId": "PostAgencyInviteFunctionRole",
+            "PhysicalResourceId": "rapid-cortex-dev-AppSamSt-PostAgencyInviteFunctionR-9YTlaiWGdDwk",
+            "ResourceType": "AWS::IAM::Role",
+            "LastUpdatedTimestamp": "2026-08-07T14:20:31.422000+00:00",
+            "ResourceStatus": "UPDATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "LogicalResourceId": "PostAgencyInviteFunctionRoutePermission",
+            "PhysicalResourceId": "rapid-cortex-dev-AppSamStackV2-1BR5EYUP7MO39-PostAgencyInviteFunctionRoutePermission-EP3q8y1hnbAq",
+            "ResourceType": "AWS::Lambda::Permission",
+            "LastUpdatedTimestamp": "2026-05-23T14:46:53.129000+00:00",
+            "ResourceStatus": "CREATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "LogicalResourceId": "PostAgencySopUploadUrlFunction",
+            "PhysicalResourceId": "rapid-cortex-dev-AppSamSt-PostAgencySopUploadUrlFu-ClH6ntrJrI7J",
+            "ResourceType": "AWS::Lambda::Function",
+            "LastUpdatedTimestamp": "2026-09-16T14:57:31.604000+00:00",
+            "ResourceStatus": "UPDATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "LogicalResourceId": "PostAgencySopUploadUrlFunctionRole",
+            "PhysicalResourceId": "rapid-cortex-dev-AppSamSt-PostAgencySopUploadUrlFun-yJobRKXo6TpE",
+            "ResourceType": "AWS::IAM::Role",
+            "LastUpdatedTimestamp": "2026-08-07T14:20:31.015000+00:00",
+            "ResourceStatus": "UPDATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "LogicalResourceId": "PostAgencySopUploadUrlFunctionRoutePermission",
+            "PhysicalResourceId": "rapid-cortex-dev-AppSamStackV2-1BR5EYUP7MO3-PostAgencySopUploadUrlFunctionRoutePermissi-iTa15zIhg8bV",
+            "ResourceType": "AWS::Lambda::Permission",
+            "LastUpdatedTimestamp": "2026-05-23T14:46:53.178000+00:00",
+            "ResourceStatus": "CREATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "LogicalResourceId": "PostCadWritebackBlockedFunction",
+            "PhysicalResourceId": "rapid-cortex-dev-AppSamSt-PostCadWritebackBlockedF-FtmGwjyFDnj3",
+            "ResourceType": "AWS::Lambda::Function",
+            "LastUpdatedTimestamp": "2026-09-16T14:57:30.300000+00:00",
+            "ResourceStatus": "UPDATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "LogicalResourceId": "PostCadWritebackBlockedFunctionRole",
+            "PhysicalResourceId": "rapid-cortex-dev-AppSamSt-PostCadWritebackBlockedFu-AcdXQ64YECQU",
+            "ResourceType": "AWS::IAM::Role",
+            "LastUpdatedTimestamp": "2026-08-07T14:20:26.763000+00:00",
+            "ResourceStatus": "UPDATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "LogicalResourceId": "PostCadWritebackBlockedFunctionRoutePermission",
+            "PhysicalResourceId": "rapid-cortex-dev-AppSamStackV2-1BR5EYUP7MO3-PostCadWritebackBlockedFunctionRoutePermiss-5TqMfrPXzYYL",
+            "ResourceType": "AWS::Lambda::Permission",
+            "LastUpdatedTimestamp": "2026-05-23T14:46:53.164000+00:00",
+            "ResourceStatus": "CREATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "LogicalResourceId": "PostIncidentAudioChunkFunction",
+            "PhysicalResourceId": "rapid-cortex-dev-AppSamSt-PostIncidentAudioChunkFu-nkDob4HIr4lI",
+            "ResourceType": "AWS::Lambda::Function",
+            "LastUpdatedTimestamp": "2026-09-16T14:57:34.454000+00:00",
+            "ResourceStatus": "UPDATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "LogicalResourceId": "PostIncidentAudioChunkFunctionRole",
+            "PhysicalResourceId": "rapid-cortex-dev-AppSamSt-PostIncidentAudioChunkFun-PSKrzTIsXZs2",
+            "ResourceType": "AWS::IAM::Role",
+            "LastUpdatedTimestamp": "2026-08-07T14:20:26.596000+00:00",
+            "ResourceStatus": "UPDATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "LogicalResourceId": "PostIncidentAudioChunkFunctionRoutePermission",
+            "PhysicalResourceId": "rapid-cortex-dev-AppSamStackV2-1BR5EYUP7MO3-PostIncidentAudioChunkFunctionRoutePermissi-D4tE7sqPuMOE",
+            "ResourceType": "AWS::Lambda::Permission",
+            "LastUpdatedTimestamp": "2026-05-23T14:46:53.074000+00:00",
+            "ResourceStatus": "CREATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "LogicalResourceId": "PostIncidentAudioChunkLogGroup",
+            "PhysicalResourceId": "/aws/lambda/rapid-cortex-dev-AppSamSt-PostIncidentAudioChunkFu-nkDob4HIr4lI",
+            "ResourceType": "AWS::Logs::LogGroup",
+            "LastUpdatedTimestamp": "2026-05-23T14:46:42.513000+00:00",
+            "ResourceStatus": "CREATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "LogicalResourceId": "PostIncidentAudioChunkVoiceFailuresMetricFilter",
+            "PhysicalResourceId": "PostIncidentAudioChunkVoiceFailuresMetricFilter-EAFynQA3TZqc",
+            "ResourceType": "AWS::Logs::MetricFilter",
+            "LastUpdatedTimestamp": "2026-09-16T14:57:37.659000+00:00",
+            "ResourceStatus": "UPDATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "LogicalResourceId": "PostIncidentShareFunction",
+            "PhysicalResourceId": "rapid-cortex-dev-AppSamSt-PostIncidentShareFunctio-GOHtKB2KHS5x",
+            "ResourceType": "AWS::Lambda::Function",
+            "LastUpdatedTimestamp": "2026-09-16T14:57:31.612000+00:00",
+            "ResourceStatus": "UPDATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "LogicalResourceId": "PostIncidentShareFunctionRole",
+            "PhysicalResourceId": "rapid-cortex-dev-AppSamSt-PostIncidentShareFunction-A3qHhtAyGMWN",
+            "ResourceType": "AWS::IAM::Role",
+            "LastUpdatedTimestamp": "2026-08-07T14:20:26.360000+00:00",
+            "ResourceStatus": "UPDATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "LogicalResourceId": "PostIncidentShareFunctionRoutePermission",
+            "PhysicalResourceId": "rapid-cortex-dev-AppSamStackV2-1BR5EYUP7MO39-PostIncidentShareFunctionRoutePermission-4DEhniCL7oN9",
+            "ResourceType": "AWS::Lambda::Permission",
+            "LastUpdatedTimestamp": "2026-05-23T14:46:53.171000+00:00",
+            "ResourceStatus": "CREATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "LogicalResourceId": "QaHttpFunction",
+            "PhysicalResourceId": "rapid-cortex-dev-AppSamStackV2-1BR5-QaHttpFunction-H6gxGfbCJJcn",
+            "ResourceType": "AWS::Lambda::Function",
+            "LastUpdatedTimestamp": "2026-09-16T14:57:35.239000+00:00",
+            "ResourceStatus": "UPDATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "LogicalResourceId": "QaHttpFunctionDeleteQaTemplatePermission",
+            "PhysicalResourceId": "rapid-cortex-dev-AppSamStackV2-1BR5EYUP7MO39-QaHttpFunctionDeleteQaTemplatePermission-KRpBmleFi9M6",
+            "ResourceType": "AWS::Lambda::Permission",
+            "LastUpdatedTimestamp": "2026-05-23T14:46:58.405000+00:00",
+            "ResourceStatus": "CREATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "LogicalResourceId": "QaHttpFunctionGetQaSessionPermission",
+            "PhysicalResourceId": "rapid-cortex-dev-AppSamStackV2-1BR5EYUP7MO39-QaHttpFunctionGetQaSessionPermission-4BUbcIIwODX9",
+            "ResourceType": "AWS::Lambda::Permission",
+            "LastUpdatedTimestamp": "2026-05-23T14:46:58.688000+00:00",
+            "ResourceStatus": "CREATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "LogicalResourceId": "QaHttpFunctionGetQaSessionsPermission",
+            "PhysicalResourceId": "rapid-cortex-dev-AppSamStackV2-1BR5EYUP7MO39-QaHttpFunctionGetQaSessionsPermission-34LR7RQm5eKN",
+            "ResourceType": "AWS::Lambda::Permission",
+            "LastUpdatedTimestamp": "2026-05-23T14:46:58.353000+00:00",
+            "ResourceStatus": "CREATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "LogicalResourceId": "QaHttpFunctionGetQaTemplatesPermission",
+            "PhysicalResourceId": "rapid-cortex-dev-AppSamStackV2-1BR5EYUP7MO39-QaHttpFunctionGetQaTemplatesPermission-qLBditT0zApd",
+            "ResourceType": "AWS::Lambda::Permission",
+            "LastUpdatedTimestamp": "2026-05-23T14:46:53.296000+00:00",
+            "ResourceStatus": "CREATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "LogicalResourceId": "QaHttpFunctionPatchQaSessionPermission",
+            "PhysicalResourceId": "rapid-cortex-dev-AppSamStackV2-1BR5EYUP7MO39-QaHttpFunctionPatchQaSessionPermission-rGgK9eXazoTm",
+            "ResourceType": "AWS::Lambda::Permission",
+            "LastUpdatedTimestamp": "2026-05-23T14:46:53.451000+00:00",
+            "ResourceStatus": "CREATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "LogicalResourceId": "QaHttpFunctionPatchQaTemplatePermission",
+            "PhysicalResourceId": "rapid-cortex-dev-AppSamStackV2-1BR5EYUP7MO39-QaHttpFunctionPatchQaTemplatePermission-YBEwTXhfRa95",
+            "ResourceType": "AWS::Lambda::Permission",
+            "LastUpdatedTimestamp": "2026-05-23T14:46:58.646000+00:00",
+            "ResourceStatus": "CREATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "LogicalResourceId": "QaHttpFunctionPostQaSessionsPermission",
+            "PhysicalResourceId": "rapid-cortex-dev-AppSamStackV2-1BR5EYUP7MO39-QaHttpFunctionPostQaSessionsPermission-LJM0e8K7dbat",
+            "ResourceType": "AWS::Lambda::Permission",
+            "LastUpdatedTimestamp": "2026-05-23T14:46:53.484000+00:00",
+            "ResourceStatus": "CREATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "LogicalResourceId": "QaHttpFunctionPostQaTemplatesPermission",
+            "PhysicalResourceId": "rapid-cortex-dev-AppSamStackV2-1BR5EYUP7MO39-QaHttpFunctionPostQaTemplatesPermission-zfsLakQu2glZ",
+            "ResourceType": "AWS::Lambda::Permission",
+            "LastUpdatedTimestamp": "2026-05-23T14:46:59.319000+00:00",
+            "ResourceStatus": "CREATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "LogicalResourceId": "QaHttpFunctionRole",
+            "PhysicalResourceId": "rapid-cortex-dev-AppSamStackV2-1-QaHttpFunctionRole-5CeamGl22aeH",
+            "ResourceType": "AWS::IAM::Role",
+            "LastUpdatedTimestamp": "2026-08-07T14:20:31.036000+00:00",
+            "ResourceStatus": "UPDATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "LogicalResourceId": "QaScoringFunction",
+            "PhysicalResourceId": "rapid-cortex-dev-AppSamStackV2-1-QaScoringFunction-oOkrleb7U0Q8",
+            "ResourceType": "AWS::Lambda::Function",
+            "LastUpdatedTimestamp": "2026-09-16T14:57:34.092000+00:00",
+            "ResourceStatus": "UPDATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "LogicalResourceId": "QaScoringFunctionPostQaScorePermission",
+            "PhysicalResourceId": "rapid-cortex-dev-AppSamStackV2-1BR5EYUP7MO39-QaScoringFunctionPostQaScorePermission-kPttE4dcGQhC",
+            "ResourceType": "AWS::Lambda::Permission",
+            "LastUpdatedTimestamp": "2026-05-23T14:46:53.437000+00:00",
+            "ResourceStatus": "CREATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "LogicalResourceId": "QaScoringFunctionRole",
+            "PhysicalResourceId": "rapid-cortex-dev-AppSamStackV-QaScoringFunctionRole-IS0f99u6f8X9",
+            "ResourceType": "AWS::IAM::Role",
+            "LastUpdatedTimestamp": "2026-08-07T14:20:26.409000+00:00",
+            "ResourceStatus": "UPDATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "LogicalResourceId": "RevokeIncidentShareFunction",
+            "PhysicalResourceId": "rapid-cortex-dev-AppSamSt-RevokeIncidentShareFunct-yUr0oDQWrOv2",
+            "ResourceType": "AWS::Lambda::Function",
+            "LastUpdatedTimestamp": "2026-09-16T14:57:26.318000+00:00",
+            "ResourceStatus": "UPDATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "LogicalResourceId": "RevokeIncidentShareFunctionRole",
+            "PhysicalResourceId": "rapid-cortex-dev-AppSamSt-RevokeIncidentShareFuncti-RtBiGGXSkU1V",
+            "ResourceType": "AWS::IAM::Role",
+            "LastUpdatedTimestamp": "2026-08-07T14:20:31.195000+00:00",
+            "ResourceStatus": "UPDATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "LogicalResourceId": "RevokeIncidentShareFunctionRoutePermission",
+            "PhysicalResourceId": "rapid-cortex-dev-AppSamStackV2-1BR5EYUP7MO39-RevokeIncidentShareFunctionRoutePermission-Drwzuuv2z2v2",
+            "ResourceType": "AWS::Lambda::Permission",
+            "LastUpdatedTimestamp": "2026-05-23T14:46:53.430000+00:00",
+            "ResourceStatus": "CREATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "LogicalResourceId": "SeoIntelligenceHttpFunction",
+            "PhysicalResourceId": "rapid-cortex-dev-AppSamSt-SeoIntelligenceHttpFunct-izM9hXlcBBXI",
+            "ResourceType": "AWS::Lambda::Function",
+            "LastUpdatedTimestamp": "2026-09-16T14:57:31.379000+00:00",
+            "ResourceStatus": "UPDATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "LogicalResourceId": "SeoIntelligenceHttpFunctionRole",
+            "PhysicalResourceId": "rapid-cortex-dev-AppSamSt-SeoIntelligenceHttpFuncti-SRfgPn5fi0xm",
+            "ResourceType": "AWS::IAM::Role",
+            "LastUpdatedTimestamp": "2026-08-07T14:20:26.411000+00:00",
+            "ResourceStatus": "UPDATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "LogicalResourceId": "SeoIntelligenceHttpFunctionSeoAdminProxyPermission",
+            "PhysicalResourceId": "rapid-cortex-dev-AppSamStackV2-1BR5EYUP7MO3-SeoIntelligenceHttpFunctionSeoAdminProxyPer-krmIIhIxbyHR",
+            "ResourceType": "AWS::Lambda::Permission",
+            "LastUpdatedTimestamp": "2026-05-23T14:46:53.323000+00:00",
+            "ResourceStatus": "CREATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "LogicalResourceId": "SeoIntelligenceHttpFunctionSeoAdminRootPermission",
+            "PhysicalResourceId": "rapid-cortex-dev-AppSamStackV2-1BR5EYUP7MO3-SeoIntelligenceHttpFunctionSeoAdminRootPerm-Mj7xpuBcwjjW",
+            "ResourceType": "AWS::Lambda::Permission",
+            "LastUpdatedTimestamp": "2026-05-23T14:46:53.314000+00:00",
+            "ResourceStatus": "CREATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "LogicalResourceId": "SesTemplateInvoiceReminder15DaysOverdue",
+            "PhysicalResourceId": "invoice-reminder-15-days-overdue-dev",
+            "ResourceType": "AWS::SES::Template",
+            "LastUpdatedTimestamp": "2026-09-13T21:49:52.066000+00:00",
+            "ResourceStatus": "UPDATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "LogicalResourceId": "SesTemplateInvoiceReminder30DaysOverdue",
+            "PhysicalResourceId": "invoice-reminder-30-days-overdue-dev",
+            "ResourceType": "AWS::SES::Template",
+            "LastUpdatedTimestamp": "2026-09-13T21:49:52.203000+00:00",
+            "ResourceStatus": "UPDATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "LogicalResourceId": "SesTemplateInvoiceReminder3DaysBefore",
+            "PhysicalResourceId": "invoice-reminder-3-days-before-dev",
+            "ResourceType": "AWS::SES::Template",
+            "LastUpdatedTimestamp": "2026-09-13T21:49:47.714000+00:00",
+            "ResourceStatus": "UPDATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "LogicalResourceId": "SesTemplateInvoiceReminder7DaysOverdue",
+            "PhysicalResourceId": "invoice-reminder-7-days-overdue-dev",
+            "ResourceType": "AWS::SES::Template",
+            "LastUpdatedTimestamp": "2026-09-13T21:49:47.868000+00:00",
+            "ResourceStatus": "UPDATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "LogicalResourceId": "SesTemplateInvoiceReminderDueToday",
+            "PhysicalResourceId": "invoice-reminder-due-today-dev",
+            "ResourceType": "AWS::SES::Template",
+            "LastUpdatedTimestamp": "2026-09-13T21:49:52.185000+00:00",
+            "ResourceStatus": "UPDATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "LogicalResourceId": "SesTemplateInvoiceSent",
+            "PhysicalResourceId": "invoice-sent-dev",
+            "ResourceType": "AWS::SES::Template",
+            "LastUpdatedTimestamp": "2026-09-13T21:49:47.507000+00:00",
+            "ResourceStatus": "UPDATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "LogicalResourceId": "SesTemplatePaymentReceivedConfirmation",
+            "PhysicalResourceId": "payment-received-confirmation-dev",
+            "ResourceType": "AWS::SES::Template",
+            "LastUpdatedTimestamp": "2026-09-13T21:49:52.012000+00:00",
+            "ResourceStatus": "UPDATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "LogicalResourceId": "StaffingForecastFunction",
+            "PhysicalResourceId": "rapid-cortex-dev-AppSamSt-StaffingForecastFunction-58YihbZuV7R5",
+            "ResourceType": "AWS::Lambda::Function",
+            "LastUpdatedTimestamp": "2026-09-16T14:57:31.670000+00:00",
+            "ResourceStatus": "UPDATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "LogicalResourceId": "StaffingForecastFunctionGetForecastPermission",
+            "PhysicalResourceId": "rapid-cortex-dev-AppSamStackV2-1BR5EYUP7MO3-StaffingForecastFunctionGetForecastPermissi-SmR12a5CDExh",
+            "ResourceType": "AWS::Lambda::Permission",
+            "LastUpdatedTimestamp": "2026-06-14T15:21:15.583000+00:00",
+            "ResourceStatus": "CREATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "LogicalResourceId": "StaffingForecastFunctionPostGenerateForecastPermission",
+            "PhysicalResourceId": "rapid-cortex-dev-AppSamStackV2-1BR5EYUP7MO3-StaffingForecastFunctionPostGenerateForecas-SouBB5vza2uo",
+            "ResourceType": "AWS::Lambda::Permission",
+            "LastUpdatedTimestamp": "2026-06-14T15:21:15.509000+00:00",
+            "ResourceStatus": "CREATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "LogicalResourceId": "StaffingForecastFunctionRole",
+            "PhysicalResourceId": "rapid-cortex-dev-AppSamSt-StaffingForecastFunctionR-rhD9aQOL0vzV",
+            "ResourceType": "AWS::IAM::Role",
+            "LastUpdatedTimestamp": "2026-08-07T14:20:26.530000+00:00",
+            "ResourceStatus": "UPDATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "LogicalResourceId": "StaffingForecastFunctionWeeklyStaffingGenerate",
+            "PhysicalResourceId": "rapid-cortex-dev-AppSamSt-StaffingForecastFunctionW-Scx9JQuj3PZF",
+            "ResourceType": "AWS::Events::Rule",
+            "LastUpdatedTimestamp": "2026-06-14T15:21:59.688000+00:00",
+            "ResourceStatus": "CREATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "LogicalResourceId": "StaffingForecastFunctionWeeklyStaffingGeneratePermission",
+            "PhysicalResourceId": "rapid-cortex-dev-AppSamStackV2-1BR5EYUP7MO3-StaffingForecastFunctionWeeklyStaffingGener-eTiI3YLdFrUf",
+            "ResourceType": "AWS::Lambda::Permission",
+            "LastUpdatedTimestamp": "2026-06-14T15:22:02.363000+00:00",
+            "ResourceStatus": "CREATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "LogicalResourceId": "TriageOverrideQueueFunction",
+            "PhysicalResourceId": "rapid-cortex-dev-AppSamSt-TriageOverrideQueueFunct-5vIpktW1OFyk",
+            "ResourceType": "AWS::Lambda::Function",
+            "LastUpdatedTimestamp": "2026-09-16T14:57:35.727000+00:00",
+            "ResourceStatus": "UPDATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "LogicalResourceId": "TriageOverrideQueueFunctionRole",
+            "PhysicalResourceId": "rapid-cortex-dev-AppSamSt-TriageOverrideQueueFuncti-nrq7IGPACpmr",
+            "ResourceType": "AWS::IAM::Role",
+            "LastUpdatedTimestamp": "2026-08-07T14:20:26.524000+00:00",
+            "ResourceStatus": "UPDATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "LogicalResourceId": "TriageOverrideQueueFunctionRoutePermission",
+            "PhysicalResourceId": "rapid-cortex-dev-AppSamStackV2-1BR5EYUP7MO39-TriageOverrideQueueFunctionRoutePermission-py7CQs75OjFq",
+            "ResourceType": "AWS::Lambda::Permission",
+            "LastUpdatedTimestamp": "2026-06-14T15:21:15.593000+00:00",
+            "ResourceStatus": "CREATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "LogicalResourceId": "TriageQueueFunction",
+            "PhysicalResourceId": "rapid-cortex-dev-AppSamStackV2-TriageQueueFunction-KDgOEvluy79U",
+            "ResourceType": "AWS::Lambda::Function",
+            "LastUpdatedTimestamp": "2026-09-16T14:57:31.444000+00:00",
+            "ResourceStatus": "UPDATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "LogicalResourceId": "TriageQueueFunctionGetQueuePermission",
+            "PhysicalResourceId": "rapid-cortex-dev-AppSamStackV2-1BR5EYUP7MO39-TriageQueueFunctionGetQueuePermission-j8sCcKcdUkdU",
+            "ResourceType": "AWS::Lambda::Permission",
+            "LastUpdatedTimestamp": "2026-06-14T15:21:15.390000+00:00",
+            "ResourceStatus": "CREATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "LogicalResourceId": "TriageQueueFunctionPatchQueuePermission",
+            "PhysicalResourceId": "rapid-cortex-dev-AppSamStackV2-1BR5EYUP7MO39-TriageQueueFunctionPatchQueuePermission-NQRyxyQPNjSd",
+            "ResourceType": "AWS::Lambda::Permission",
+            "LastUpdatedTimestamp": "2026-06-14T15:21:15.435000+00:00",
+            "ResourceStatus": "CREATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "LogicalResourceId": "TriageQueueFunctionRole",
+            "PhysicalResourceId": "rapid-cortex-dev-AppSamStac-TriageQueueFunctionRole-dLS2WQXLxA2L",
+            "ResourceType": "AWS::IAM::Role",
+            "LastUpdatedTimestamp": "2026-08-07T14:20:31.107000+00:00",
+            "ResourceStatus": "UPDATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        }
+    ]
+}

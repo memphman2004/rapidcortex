@@ -52,6 +52,22 @@ describe("activeTierKeyInFamily", () => {
     expect(key).toBe("transcription.enhanced.tier2");
   });
 
+  it("returns empty when the plan-included tier was opted out", () => {
+    const key = activeTierKeyInFamily(
+      "transcription.enhanced",
+      variants,
+      {
+        "transcription.enhanced.tier1": {
+          enabled: false,
+          disabledAt: "2026-09-17T00:00:00.000Z",
+        },
+      } as Record<AddonKey, { enabled?: boolean; disabledAt?: string }>,
+      "Professional",
+      isAddonIncludedInPlan,
+    );
+    expect(key).toBe("");
+  });
+
   it("returns empty when no included tier and nothing enabled", () => {
     const key = activeTierKeyInFamily(
       "transcription.enhanced",

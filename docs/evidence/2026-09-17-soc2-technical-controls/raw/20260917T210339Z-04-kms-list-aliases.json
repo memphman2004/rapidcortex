@@ -1,0 +1,81 @@
+{
+    "Aliases": [
+        {
+            "AliasName": "alias/aws/acm",
+            "AliasArn": "arn:aws:kms:us-east-1:158961537080:alias/aws/acm",
+            "TargetKeyId": "4d211e3c-e9f0-4a6f-935e-9f25f177d601",
+            "CreationDate": "2025-04-23T21:23:35.815000-04:00",
+            "LastUpdatedDate": "2025-04-23T21:23:35.815000-04:00"
+        },
+        {
+            "AliasName": "alias/aws/dynamodb",
+            "AliasArn": "arn:aws:kms:us-east-1:158961537080:alias/aws/dynamodb",
+            "TargetKeyId": "d07476d4-71af-431b-a10d-1c86381c71df",
+            "CreationDate": "2026-04-03T09:52:59.089000-04:00",
+            "LastUpdatedDate": "2026-04-03T09:52:59.089000-04:00"
+        },
+        {
+            "AliasName": "alias/aws/ebs",
+            "AliasArn": "arn:aws:kms:us-east-1:158961537080:alias/aws/ebs"
+        },
+        {
+            "AliasName": "alias/aws/elasticfilesystem",
+            "AliasArn": "arn:aws:kms:us-east-1:158961537080:alias/aws/elasticfilesystem"
+        },
+        {
+            "AliasName": "alias/aws/es",
+            "AliasArn": "arn:aws:kms:us-east-1:158961537080:alias/aws/es"
+        },
+        {
+            "AliasName": "alias/aws/glue",
+            "AliasArn": "arn:aws:kms:us-east-1:158961537080:alias/aws/glue"
+        },
+        {
+            "AliasName": "alias/aws/kinesisvideo",
+            "AliasArn": "arn:aws:kms:us-east-1:158961537080:alias/aws/kinesisvideo",
+            "TargetKeyId": "b1012a5b-fcc8-4557-ac58-82b637b03639",
+            "CreationDate": "2026-04-22T22:16:20.479000-04:00",
+            "LastUpdatedDate": "2026-04-22T22:16:20.479000-04:00"
+        },
+        {
+            "AliasName": "alias/aws/lambda",
+            "AliasArn": "arn:aws:kms:us-east-1:158961537080:alias/aws/lambda",
+            "TargetKeyId": "0cd49a2c-ed42-4f5f-9555-dd88e5561f72",
+            "CreationDate": "2025-05-02T11:45:38.364000-04:00",
+            "LastUpdatedDate": "2025-05-02T11:45:38.364000-04:00"
+        },
+        {
+            "AliasName": "alias/aws/rds",
+            "AliasArn": "arn:aws:kms:us-east-1:158961537080:alias/aws/rds"
+        },
+        {
+            "AliasName": "alias/aws/redshift",
+            "AliasArn": "arn:aws:kms:us-east-1:158961537080:alias/aws/redshift"
+        },
+        {
+            "AliasName": "alias/aws/s3",
+            "AliasArn": "arn:aws:kms:us-east-1:158961537080:alias/aws/s3",
+            "TargetKeyId": "cf693f67-fe2c-41ba-8f33-a1cc54a848c3",
+            "CreationDate": "2025-04-28T19:24:33.822000-04:00",
+            "LastUpdatedDate": "2025-04-28T19:24:33.822000-04:00"
+        },
+        {
+            "AliasName": "alias/aws/secretsmanager",
+            "AliasArn": "arn:aws:kms:us-east-1:158961537080:alias/aws/secretsmanager",
+            "TargetKeyId": "f79f45f9-07d4-4301-8a47-dabe2fdd63fb",
+            "CreationDate": "2026-04-03T09:51:53.487000-04:00",
+            "LastUpdatedDate": "2026-04-03T09:51:53.487000-04:00"
+        },
+        {
+            "AliasName": "alias/aws/ssm",
+            "AliasArn": "arn:aws:kms:us-east-1:158961537080:alias/aws/ssm",
+            "TargetKeyId": "1747481c-b157-4266-8713-ff857e51c4e8",
+            "CreationDate": "2026-06-14T22:36:33.138000-04:00",
+            "LastUpdatedDate": "2026-06-14T22:36:33.138000-04:00"
+        },
+        {
+            "AliasName": "alias/aws/xray",
+            "AliasArn": "arn:aws:kms:us-east-1:158961537080:alias/aws/xray"
+        }
+    ]
+}

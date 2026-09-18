@@ -1,0 +1,29 @@
+{
+    "Role": {
+        "Path": "/",
+        "RoleName": "rapid-cortex-soc2-evidence-readonly",
+        "RoleId": "AROASKAWYSA4MS26IMZ57",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-soc2-evidence-readonly",
+        "CreateDate": "2026-09-17T22:19:31+00:00",
+        "AssumeRolePolicyDocument": {
+            "Version": "2012-10-17",
+            "Statement": [
+                {
+                    "Effect": "Allow",
+                    "Principal": {
+                        "AWS": "arn:aws:iam::158961537080:root"
+                    },
+                    "Action": "sts:AssumeRole",
+                    "Condition": {
+                        "Bool": {
+                            "aws:MultiFactorAuthPresent": "true"
+                        }
+                    }
+                }
+            ]
+        },
+        "Description": "SOC 2 Type II read-only evidence collection (MFA required to assume)",
+        "MaxSessionDuration": 3600,
+        "RoleLastUsed": {}
+    }
+}

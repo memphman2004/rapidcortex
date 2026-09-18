@@ -1,0 +1,243 @@
+{
+    "Buckets": [
+        {
+            "Name": "amplify-melios-dev-dc8d8-deployment",
+            "CreationDate": "2025-11-14T23:55:08+00:00",
+            "BucketArn": "arn:aws:s3:::amplify-melios-dev-dc8d8-deployment"
+        },
+        {
+            "Name": "appsondemand-website",
+            "CreationDate": "2025-11-30T01:08:50+00:00",
+            "BucketArn": "arn:aws:s3:::appsondemand-website"
+        },
+        {
+            "Name": "aws-sam-cli-managed-default-samclisourcebucket-cytgt6pjll2k",
+            "CreationDate": "2026-04-03T13:52:15+00:00",
+            "BucketArn": "arn:aws:s3:::aws-sam-cli-managed-default-samclisourcebucket-cytgt6pjll2k"
+        },
+        {
+            "Name": "cdk-hnb659fds-assets-158961537080-ca-central-1",
+            "CreationDate": "2026-06-25T01:38:21+00:00",
+            "BucketArn": "arn:aws:s3:::cdk-hnb659fds-assets-158961537080-ca-central-1"
+        },
+        {
+            "Name": "cdk-hnb659fds-assets-158961537080-us-east-1",
+            "CreationDate": "2026-03-08T03:44:58+00:00",
+            "BucketArn": "arn:aws:s3:::cdk-hnb659fds-assets-158961537080-us-east-1"
+        },
+        {
+            "Name": "cdk-hnb659fds-assets-158961537080-us-east-2",
+            "CreationDate": "2025-11-21T00:25:07+00:00",
+            "BucketArn": "arn:aws:s3:::cdk-hnb659fds-assets-158961537080-us-east-2"
+        },
+        {
+            "Name": "drcolemanspeaks-us",
+            "CreationDate": "2025-11-26T16:10:51+00:00",
+            "BucketArn": "arn:aws:s3:::drcolemanspeaks-us"
+        },
+        {
+            "Name": "drjc-us",
+            "CreationDate": "2025-11-26T16:10:52+00:00",
+            "BucketArn": "arn:aws:s3:::drjc-us"
+        },
+        {
+            "Name": "medicalpreparednessstack-assetsbucket5cb76180-kngeldzusubd",
+            "CreationDate": "2026-07-07T02:30:47+00:00",
+            "BucketArn": "arn:aws:s3:::medicalpreparednessstack-assetsbucket5cb76180-kngeldzusubd"
+        },
+        {
+            "Name": "mel-lambda-code-dev-158961537080",
+            "CreationDate": "2025-11-10T22:45:52+00:00",
+            "BucketArn": "arn:aws:s3:::mel-lambda-code-dev-158961537080"
+        },
+        {
+            "Name": "mel-landing-page",
+            "CreationDate": "2025-11-12T00:52:22+00:00",
+            "BucketArn": "arn:aws:s3:::mel-landing-page"
+        },
+        {
+            "Name": "mel-landing-page-us-east-2",
+            "CreationDate": "2025-11-12T00:56:09+00:00",
+            "BucketArn": "arn:aws:s3:::mel-landing-page-us-east-2"
+        },
+        {
+            "Name": "mel-prod-exports-bucket-158961537080",
+            "CreationDate": "2026-03-01T00:24:59+00:00",
+            "BucketArn": "arn:aws:s3:::mel-prod-exports-bucket-158961537080"
+        },
+        {
+            "Name": "mel-prod-wallet-passes-bucket-158961537080",
+            "CreationDate": "2026-03-01T00:24:59+00:00",
+            "BucketArn": "arn:aws:s3:::mel-prod-wallet-passes-bucket-158961537080"
+        },
+        {
+            "Name": "memoryheist-dev-frontendconfi-configbucket2112c5ec-hh2qeon0seqb",
+            "CreationDate": "2026-03-22T23:47:24+00:00",
+            "BucketArn": "arn:aws:s3:::memoryheist-dev-frontendconfi-configbucket2112c5ec-hh2qeon0seqb"
+        },
+        {
+            "Name": "memoryheistapp-us-site-prod",
+            "CreationDate": "2026-03-23T17:24:58+00:00",
+            "BucketArn": "arn:aws:s3:::memoryheistapp-us-site-prod"
+        },
+        {
+            "Name": "mindheist.us",
+            "CreationDate": "2026-03-26T01:38:29+00:00",
+            "BucketArn": "arn:aws:s3:::mindheist.us"
+        },
+        {
+            "Name": "or-game-backend-dev-serverlessdeploymentbucket-871rjfejnkuh",
+            "CreationDate": "2026-02-12T23:16:42+00:00",
+            "BucketArn": "arn:aws:s3:::or-game-backend-dev-serverlessdeploymentbucket-871rjfejnkuh"
+        },
+        {
+            "Name": "or-game-backend-dev-serverlessdeploymentbucket-zmkafo5o6cbu",
+            "CreationDate": "2026-02-12T23:09:37+00:00",
+            "BucketArn": "arn:aws:s3:::or-game-backend-dev-serverlessdeploymentbucket-zmkafo5o6cbu"
+        },
+        {
+            "Name": "or-game-backend-prod-serverlessdeploymentbucket-rnavqiirxmpm",
+            "CreationDate": "2026-02-13T01:19:06+00:00",
+            "BucketArn": "arn:aws:s3:::or-game-backend-prod-serverlessdeploymentbucket-rnavqiirxmpm"
+        },
+        {
+            "Name": "or-game-content",
+            "CreationDate": "2026-01-14T13:32:55+00:00",
+            "BucketArn": "arn:aws:s3:::or-game-content"
+        },
+        {
+            "Name": "or-question-api-prod-questionpackbucket-v83yurxsyqte",
+            "CreationDate": "2026-04-03T13:53:00+00:00",
+            "BucketArn": "arn:aws:s3:::or-question-api-prod-questionpackbucket-v83yurxsyqte"
+        },
+        {
+            "Name": "orgameapp-website",
+            "CreationDate": "2025-11-21T00:07:45+00:00",
+            "BucketArn": "arn:aws:s3:::orgameapp-website"
+        },
+        {
+            "Name": "passpoint-api-dev-serverlessdeploymentbucket-hdyhh6yziejf",
+            "CreationDate": "2026-03-11T20:18:31+00:00",
+            "BucketArn": "arn:aws:s3:::passpoint-api-dev-serverlessdeploymentbucket-hdyhh6yziejf"
+        },
+        {
+            "Name": "passpoint-api-prod-serverlessdeploymentbucket-mnwauatcjjv4",
+            "CreationDate": "2026-03-06T12:43:44+00:00",
+            "BucketArn": "arn:aws:s3:::passpoint-api-prod-serverlessdeploymentbucket-mnwauatcjjv4"
+        },
+        {
+            "Name": "passpointreview-private-assets",
+            "CreationDate": "2026-03-04T03:20:09+00:00",
+            "BucketArn": "arn:aws:s3:::passpointreview-private-assets"
+        },
+        {
+            "Name": "passpointreview-site",
+            "CreationDate": "2026-03-08T03:49:29+00:00",
+            "BucketArn": "arn:aws:s3:::passpointreview-site"
+        },
+        {
+            "Name": "rapid-cortex-api-pipeline-staging-sourcebucket-no5ikfh7wsor",
+            "CreationDate": "2026-08-18T01:21:10+00:00",
+            "BucketArn": "arn:aws:s3:::rapid-cortex-api-pipeline-staging-sourcebucket-no5ikfh7wsor"
+        },
+        {
+            "Name": "rapid-cortex-assets-dev-158961537080",
+            "CreationDate": "2026-05-24T06:38:50+00:00",
+            "BucketArn": "arn:aws:s3:::rapid-cortex-assets-dev-158961537080"
+        },
+        {
+            "Name": "rapid-cortex-billing-invoices-dev-158961537080",
+            "CreationDate": "2026-05-24T06:38:51+00:00",
+            "BucketArn": "arn:aws:s3:::rapid-cortex-billing-invoices-dev-158961537080"
+        },
+        {
+            "Name": "rapid-cortex-billing-pos-dev-158961537080",
+            "CreationDate": "2026-05-24T06:38:50+00:00",
+            "BucketArn": "arn:aws:s3:::rapid-cortex-billing-pos-dev-158961537080"
+        },
+        {
+            "Name": "rapid-cortex-cloudtrail-logs-prod-158961537080",
+            "CreationDate": "2026-05-25T13:16:26+00:00",
+            "BucketArn": "arn:aws:s3:::rapid-cortex-cloudtrail-logs-prod-158961537080"
+        },
+        {
+            "Name": "rapid-cortex-compliance-evidence-prod-158961537080",
+            "CreationDate": "2026-05-25T08:34:00+00:00",
+            "BucketArn": "arn:aws:s3:::rapid-cortex-compliance-evidence-prod-158961537080"
+        },
+        {
+            "Name": "rapid-cortex-documents-prod-158961537080",
+            "CreationDate": "2026-05-25T08:33:51+00:00",
+            "BucketArn": "arn:aws:s3:::rapid-cortex-documents-prod-158961537080"
+        },
+        {
+            "Name": "rapid-cortex-downloads-158961537080-prod",
+            "CreationDate": "2026-05-01T20:47:35+00:00",
+            "BucketArn": "arn:aws:s3:::rapid-cortex-downloads-158961537080-prod"
+        },
+        {
+            "Name": "rapid-cortex-evidence-exports-prod-158961537080",
+            "CreationDate": "2026-05-25T08:34:04+00:00",
+            "BucketArn": "arn:aws:s3:::rapid-cortex-evidence-exports-prod-158961537080"
+        },
+        {
+            "Name": "rapid-cortex-help-prod",
+            "CreationDate": "2026-07-11T02:42:42+00:00",
+            "BucketArn": "arn:aws:s3:::rapid-cortex-help-prod"
+        },
+        {
+            "Name": "rapid-cortex-resumes-dev-158961537080",
+            "CreationDate": "2026-08-02T20:35:42+00:00",
+            "BucketArn": "arn:aws:s3:::rapid-cortex-resumes-dev-158961537080"
+        },
+        {
+            "Name": "rapid-cortex-sam-artifacts-158961537080-us-east-1",
+            "CreationDate": "2026-04-23T13:20:44+00:00",
+            "BucketArn": "arn:aws:s3:::rapid-cortex-sam-artifacts-158961537080-us-east-1"
+        },
+        {
+            "Name": "rapid-cortex-translate-audio-dev-158961537080",
+            "CreationDate": "2026-09-09T10:54:10+00:00",
+            "BucketArn": "arn:aws:s3:::rapid-cortex-translate-audio-dev-158961537080"
+        },
+        {
+            "Name": "rapid-cortex-v2-web-static-prod-158961537080",
+            "CreationDate": "2026-06-03T00:57:06+00:00",
+            "BucketArn": "arn:aws:s3:::rapid-cortex-v2-web-static-prod-158961537080"
+        },
+        {
+            "Name": "rapid-cortex-venue-assets-dev-158961537080",
+            "CreationDate": "2026-06-06T03:36:59+00:00",
+            "BucketArn": "arn:aws:s3:::rapid-cortex-venue-assets-dev-158961537080"
+        },
+        {
+            "Name": "rapid-cortex-vision-artifacts-dev-158961537080",
+            "CreationDate": "2026-09-11T08:22:36+00:00",
+            "BucketArn": "arn:aws:s3:::rapid-cortex-vision-artifacts-dev-158961537080"
+        },
+        {
+            "Name": "rapid-cortex-web-pipeline-dev-sourcebucket-ybqklxzcejx0",
+            "CreationDate": "2026-05-29T06:07:42+00:00",
+            "BucketArn": "arn:aws:s3:::rapid-cortex-web-pipeline-dev-sourcebucket-ybqklxzcejx0"
+        },
+        {
+            "Name": "rapid-cortex-web-pipeline-prod-sourcebucket-kioskeflquqy",
+            "CreationDate": "2026-05-01T17:43:18+00:00",
+            "BucketArn": "arn:aws:s3:::rapid-cortex-web-pipeline-prod-sourcebucket-kioskeflquqy"
+        },
+        {
+            "Name": "rapid-cortex-web-static-dev-158961537080",
+            "CreationDate": "2026-04-24T00:44:38+00:00",
+            "BucketArn": "arn:aws:s3:::rapid-cortex-web-static-dev-158961537080"
+        },
+        {
+            "Name": "www.mindheist.us",
+            "CreationDate": "2026-03-26T01:38:28+00:00",
+            "BucketArn": "arn:aws:s3:::www.mindheist.us"
+        }
+    ],
+    "Owner": {
+        "ID": "a245e17282dfac9588f4e12191557b32f826f14960c5b4b4c016cf752fbbc15d"
+    },
+    "Prefix": null
+}

@@ -643,7 +643,7 @@ export const env = {
     return process.env.OUTLOOK_OAUTH_CLIENT_SECRET_ARN?.trim() ?? "";
   },
   get outlookOAuthTenant(): string {
-    return process.env.OUTLOOK_OAUTH_TENANT?.trim() || "common";
+    return process.env.OUTLOOK_OAUTH_TENANT?.trim() || "0a85f08a-54a8-43de-bdc1-4ad4e52d3af8";
   },
   get outlookOAuthRedirectUri(): string {
     return (

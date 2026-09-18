@@ -204,7 +204,7 @@
         "true",
         "false"
       ],
-      "Description": "PITR on DynamoDB. auto = on for staging/prod/pilot, off for dev (matches previous template)."
+      "Description": "PITR on DynamoDB. auto = on for every DeploymentStage including live production (dev). Set false only for a throwaway sandbox."
     },
     "DynamoBillingMode": {
       "Type": "String",
@@ -753,6 +753,14 @@
     },
     "EnablePilotGradeBackups": {
       "Fn::Or": [
+        {
+          "Fn::Equals": [
+            {
+              "Ref": "DeploymentStage"
+            },
+            "dev"
+          ]
+        },
         {
           "Fn::Equals": [
             {

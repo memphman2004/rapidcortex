@@ -20,8 +20,8 @@ ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 source "${ROOT}/scripts/lib/rapid-cortex-aws.sh"
 
 IAM_USER="${IAM_USER:-rapid-cortex-deploy}"
-IAM_POLICY_NAME="${IAM_POLICY_NAME:-rapid-cortex-deploy-policy}"
-IAM_POLICY_WEB_NAME="${IAM_POLICY_WEB_NAME:-rapid-cortex-deploy-policy-web}"
+IAM_POLICY_NAME="${IAM_POLICY_NAME:-rapid-cortex-sam-deploy-policy}"
+IAM_POLICY_WEB_NAME="${IAM_POLICY_WEB_NAME:-rapid-cortex-sam-deploy-policy-web}"
 CORE_POLICY_FILE="${ROOT}/infra/iam/sam-deploy-policy.prod.json"
 WEB_POLICY_FILE="${ROOT}/infra/iam/sam-deploy-policy-web.prod.json"
 VERIFY_DRIFT=0

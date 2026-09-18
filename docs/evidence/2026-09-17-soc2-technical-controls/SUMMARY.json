@@ -1,0 +1,542 @@
+{
+  "collectedAtUtc": "2026-09-17T21:08:01Z",
+  "stamp": "20260917T210339Z",
+  "account": "158961537080",
+  "principal": "arn:aws:iam::158961537080:user/rapid-cortex-deploy",
+  "region": "us-east-1",
+  "stack": "rapid-cortex-dev (live production / app.rapidcortex.us)",
+  "controls": {
+    "cloudtrail": {
+      "listDenied": false,
+      "describeDenied": false,
+      "lookupEventsWorks": true,
+      "lookupEventCount": 5,
+      "cfnTrailResources": [],
+      "enableCloudTrailParam": "false",
+      "cloudTrailKmsKeyArn": "(empty \u2014 SSE-S3 default)",
+      "s3DataEventsParam": "false",
+      "lambdaDataEventsParam": "false",
+      "logBucketExists": true,
+      "samExpectedDevLogBucketExists": false
+    },
+    "s3": {
+      "bucketCountAccount": 47,
+      "rapidCortexBucketCount": 19,
+      "rapidCortexMissingEncryption": [],
+      "rapidCortexMissingBpa": [],
+      "accountMissingEncryption": [
+        "amplify-melios-dev-dc8d8-deployment",
+        "appsondemand-website",
+        "aws-sam-cli-managed-default-samclisourcebucket-cytgt6pjll2k",
+        "cdk-hnb659fds-assets-158961537080-ca-central-1",
+        "cdk-hnb659fds-assets-158961537080-us-east-1",
+        "cdk-hnb659fds-assets-158961537080-us-east-2",
+        "drcolemanspeaks-us",
+        "drjc-us",
+        "medicalpreparednessstack-assetsbucket5cb76180-kngeldzusubd",
+        "mel-lambda-code-dev-158961537080",
+        "mel-landing-page",
+        "mel-landing-page-us-east-2",
+        "mel-prod-exports-bucket-158961537080",
+        "mel-prod-wallet-passes-bucket-158961537080",
+        "memoryheist-dev-frontendconfi-configbucket2112c5ec-hh2qeon0seqb",
+        "memoryheistapp-us-site-prod",
+        "mindheist.us",
+        "or-game-backend-dev-serverlessdeploymentbucket-871rjfejnkuh",
+        "or-game-backend-dev-serverlessdeploymentbucket-zmkafo5o6cbu",
+        "or-game-backend-prod-serverlessdeploymentbucket-rnavqiirxmpm",
+        "or-game-content",
+        "or-question-api-prod-questionpackbucket-v83yurxsyqte",
+        "orgameapp-website",
+        "passpoint-api-dev-serverlessdeploymentbucket-hdyhh6yziejf",
+        "passpoint-api-prod-serverlessdeploymentbucket-mnwauatcjjv4",
+        "passpointreview-private-assets",
+        "passpointreview-site",
+        "www.mindheist.us"
+      ],
+      "accountMissingBpa": [
+        "amplify-melios-dev-dc8d8-deployment",
+        "appsondemand-website",
+        "aws-sam-cli-managed-default-samclisourcebucket-cytgt6pjll2k",
+        "cdk-hnb659fds-assets-158961537080-ca-central-1",
+        "cdk-hnb659fds-assets-158961537080-us-east-1",
+        "cdk-hnb659fds-assets-158961537080-us-east-2",
+        "drcolemanspeaks-us",
+        "drjc-us",
+        "medicalpreparednessstack-assetsbucket5cb76180-kngeldzusubd",
+        "mel-lambda-code-dev-158961537080",
+        "mel-landing-page",
+        "mel-landing-page-us-east-2",
+        "mel-prod-exports-bucket-158961537080",
+        "mel-prod-wallet-passes-bucket-158961537080",
+        "memoryheist-dev-frontendconfi-configbucket2112c5ec-hh2qeon0seqb",
+        "memoryheistapp-us-site-prod",
+        "mindheist.us",
+        "or-game-backend-dev-serverlessdeploymentbucket-871rjfejnkuh",
+        "or-game-backend-dev-serverlessdeploymentbucket-zmkafo5o6cbu",
+        "or-game-backend-prod-serverlessdeploymentbucket-rnavqiirxmpm",
+        "or-game-content",
+        "or-question-api-prod-questionpackbucket-v83yurxsyqte",
+        "orgameapp-website",
+        "passpoint-api-dev-serverlessdeploymentbucket-hdyhh6yziejf",
+        "passpoint-api-prod-serverlessdeploymentbucket-mnwauatcjjv4",
+        "passpointreview-private-assets",
+        "passpointreview-site",
+        "www.mindheist.us"
+      ],
+      "rapidCortexAlgorithms": [
+        "AES256"
+      ]
+    },
+    "dynamodbPitr": {
+      "rapidCortexTableCount": 182,
+      "pitrEnabled": 41,
+      "pitrDisabled": [
+        "RapidCortexRingAccounts-dev",
+        "RapidCortexRingCitizenOwners-dev",
+        "RapidCortexRingDevices-dev",
+        "RapidCortexRingHomeownerParticipants-dev",
+        "RapidCortexRingUnclaimedTokens-dev",
+        "RingEmergencyCameraRequests-dev",
+        "RingEmergencyCameraSessions-dev",
+        "rapid-cortex-access-overrides-dev",
+        "rapid-cortex-active-calls-dev",
+        "rapid-cortex-agencies-dev",
+        "rapid-cortex-agency-billing-configs-dev",
+        "rapid-cortex-agency-relationships-dev",
+        "rapid-cortex-agency-reports-dev",
+        "rapid-cortex-agency-share-partners-dev",
+        "rapid-cortex-agency-subscriptions-dev",
+        "rapid-cortex-analyses-dev",
+        "rapid-cortex-api-clients-dev",
+        "rapid-cortex-audit-dev",
+        "rapid-cortex-automated-invoices-dev",
+        "rapid-cortex-billing-audit-events-dev",
+        "rapid-cortex-billing-audit-log-dev",
+        "rapid-cortex-billing-profiles-dev",
+        "rapid-cortex-billing-runs-dev",
+        "rapid-cortex-billing-schedules-dev",
+        "rapid-cortex-billing-webhook-events-dev",
+        "rapid-cortex-cad-bridge-buffer-dev",
+        "rapid-cortex-cad-bridge-circuit-breaker-dev",
+        "rapid-cortex-cad-bridge-loop-guard-dev",
+        "rapid-cortex-cad-cap-incidents-dev",
+        "rapid-cortex-cad-incidents-dev",
+        "rapid-cortex-cad-incidents-raw-dev",
+        "rapid-cortex-cad-integrations-dev",
+        "rapid-cortex-cad-webhook-rate-dev",
+        "rapid-cortex-cad-writeback-audit-dev",
+        "rapid-cortex-call-assist-dev",
+        "rapid-cortex-call-transfers-dev",
+        "rapid-cortex-camera-oauth-states-dev",
+        "rapid-cortex-camera-provider-tokens-dev",
+        "rapid-cortex-cameras-dev",
+        "rapid-cortex-campus-camera-registry-dev",
+        "rapid-cortex-channel-config-dev",
+        "rapid-cortex-clery-act-dev",
+        "rapid-cortex-coaching-notes-dev",
+        "rapid-cortex-conferences-dev",
+        "rapid-cortex-connect-sessions-dev",
+        "rapid-cortex-customers-dev",
+        "rapid-cortex-data-deletion-audit-dev",
+        "rapid-cortex-deception-events-dev",
+        "rapid-cortex-dev-AppSamStackV2-1BR5EYUP7MO39-CadWebhookIdempotencyTable-10GHGGNCP32LG",
+        "rapid-cortex-dispatcher-coaching-notes-dev",
+        "rapid-cortex-escalation-audit-dev",
+        "rapid-cortex-escalations-dev",
+        "rapid-cortex-external-api-rate-dev",
+        "rapid-cortex-field-command-dev",
+        "rapid-cortex-hospital-capacity-dev",
+        "rapid-cortex-hospital-prealerts-dev",
+        "rapid-cortex-hospital-profiles-dev",
+        "rapid-cortex-hospitals-dev",
+        "rapid-cortex-incident-channel-assignments-dev",
+        "rapid-cortex-incident-media-dev",
+        "rapid-cortex-incident-reports-dev",
+        "rapid-cortex-incident-shares-dev",
+        "rapid-cortex-incident-timeline-dev",
+        "rapid-cortex-incidents-dev",
+        "rapid-cortex-invites-dev",
+        "rapid-cortex-invoice-items-dev",
+        "rapid-cortex-invoices-dev",
+        "rapid-cortex-job-applications-dev",
+        "rapid-cortex-job-postings-dev",
+        "rapid-cortex-language-sessions-dev",
+        "rapid-cortex-live-video-sessions-dev",
+        "rapid-cortex-location-tokens-dev",
+        "rapid-cortex-marketing-leads-dev",
+        "rapid-cortex-monetization-addons-dev",
+        "rapid-cortex-monetization-invoices-dev",
+        "rapid-cortex-monetization-plans-dev",
+        "rapid-cortex-nest-oauth-state-dev",
+        "rapid-cortex-network-emergency-overrides-dev",
+        "rapid-cortex-ng911-assist-dev",
+        "rapid-cortex-non-emergency-queue-dev",
+        "rapid-cortex-payment-records-dev",
+        "rapid-cortex-pending-provisions-dev",
+        "rapid-cortex-physical-security-dev",
+        "rapid-cortex-pinpoint-links-dev",
+        "rapid-cortex-platform-settings-dev",
+        "rapid-cortex-post-incident-reviews-dev",
+        "rapid-cortex-premise-notes-dev",
+        "rapid-cortex-pricing-dev",
+        "rapid-cortex-push-subscriptions-dev",
+        "rapid-cortex-qa-scorecards-dev",
+        "rapid-cortex-qa-sessions-dev",
+        "rapid-cortex-qa-templates-dev",
+        "rapid-cortex-rapid-iq-contacts-dev",
+        "rapid-cortex-rapid-iq-jurisdictions-dev",
+        "rapid-cortex-rapid-iq-opportunities-dev",
+        "rapid-cortex-rapid-iq-pipeline-signals-dev",
+        "rapid-cortex-rapid-iq-signals-dev",
+        "rapid-cortex-rapid-iq-sources-dev",
+        "rapid-cortex-rapid-iq-state-coverage-dev",
+        "rapid-cortex-rc-lite-api-keys-dev",
+        "rapid-cortex-rc-lite-rate-limit-dev",
+        "rapid-cortex-rc-lite-usage-dev",
+        "rapid-cortex-rcs-calls-dev",
+        "rapid-cortex-rcs-escalation-dev",
+        "rapid-cortex-rcs-units-dev",
+        "rapid-cortex-sales-leads-dev",
+        "rapid-cortex-seo-intelligence-dev",
+        "rapid-cortex-service-catalog-dev",
+        "rapid-cortex-silent-text-sessions-dev",
+        "rapid-cortex-sla-backlog-snapshots-dev",
+        "rapid-cortex-sms-routing-dev",
+        "rapid-cortex-sop-library-dev",
+        "rapid-cortex-sop-patterns-dev",
+        "rapid-cortex-sop-pending-dev",
+        "rapid-cortex-sop-reports-dev",
+        "rapid-cortex-staffing-forecast-dev",
+        "rapid-cortex-stakeholder-pages-dev",
+        "rapid-cortex-support-tickets-dev",
+        "rapid-cortex-surge-clusters-dev",
+        "rapid-cortex-transcripts-dev",
+        "rapid-cortex-transit-camera-registry-dev",
+        "rapid-cortex-transit-config-dev",
+        "rapid-cortex-transit-incidents-dev",
+        "rapid-cortex-transit-operators-dev",
+        "rapid-cortex-transit-reports-dev",
+        "rapid-cortex-transit-routes-dev",
+        "rapid-cortex-transit-stations-dev",
+        "rapid-cortex-transit-vehicles-dev",
+        "rapid-cortex-trauma-flags-dev",
+        "rapid-cortex-usage-meters-dev",
+        "rapid-cortex-usage-snapshots-dev",
+        "rapid-cortex-venue-camera-registry-dev",
+        "rapid-cortex-vertical-alerts-dev",
+        "rapid-cortex-video-assist-sessions-dev",
+        "rapid-cortex-video-clips-dev",
+        "rapid-cortex-video-wall-configs-dev",
+        "rapid-cortex-vision-events-dev",
+        "rapid-cortex-war-room-messages-dev",
+        "rapid-cortex-war-rooms-dev",
+        "rapid-cortex-webhooks-dev",
+        "rapid-cortex-websocket-connections-dev"
+      ],
+      "parameter": "auto"
+    },
+    "kms": {
+      "listDenied": false,
+      "rotationChecked": 0,
+      "cfnCustomerKeys": []
+    },
+    "secrets": {
+      "listDenied": false,
+      "described": 0,
+      "cfnSecrets": [
+        {
+          "logical": "BillingPaymentInstructionsSecret",
+          "physical": "arn:aws:secretsmanager:us-east-1:158961537080:secret:rapid-cortex/dev/billing/payment-instructions-A6fEgq",
+          "stack": "rapid-cortex-dev-DataLayerStack-17H2VCAOH7V78"
+        },
+        {
+          "logical": "BillingSesCredentialsSecret",
+          "physical": "arn:aws:secretsmanager:us-east-1:158961537080:secret:rapid-cortex/dev/billing/ses-credentials-4M7lVL",
+          "stack": "rapid-cortex-dev-DataLayerStack-17H2VCAOH7V78"
+        }
+      ]
+    },
+    "waf": {
+      "regionalCount": 0,
+      "cloudfrontCount": 3,
+      "loggingGaps": [
+        {
+          "name": "CreatedByCloudFront-a0a27a88",
+          "arn": "arn:aws:wafv2:us-east-1:158961537080:global/webacl/CreatedByCloudFront-a0a27a88/9354f515-57b3-4c71-b412-ec5decd576a5",
+          "error": "aws: [ERROR]: An error occurred (WAFNonexistentItemException) when calling the GetLoggingConfiguration operation: AWS WAF couldn\u2019t perform the operation because your resource doesn\u2019t exist."
+        },
+        {
+          "name": "rapid-cortex-httpapi-cdn-waf-dev",
+          "arn": "arn:aws:wafv2:us-east-1:158961537080:global/webacl/rapid-cortex-httpapi-cdn-waf-dev/7f68bde8-cc59-4b9d-bed7-dd1f66e7eeef",
+          "error": "aws: [ERROR]: An error occurred (WAFNonexistentItemException) when calling the GetLoggingConfiguration operation: AWS WAF couldn\u2019t perform the operation because your resource doesn\u2019t exist."
+        }
+      ],
+      "enableApiWafParam": "false",
+      "cfnWafResources": []
+    },
+    "cloudwatchAlarms": {
+      "ok": 14,
+      "alarm": 0,
+      "insufficientData": 2,
+      "total": 16,
+      "alarmNames": [],
+      "okNames": [
+        "rapid-cortex-cad-webhook-ingest-dlq-dev",
+        "rapid-cortex-dev-AppSam5Stack-1T38GG051RWIG-LiveVideoExportErrorsAlarm-rlCTTq0tg9Hc",
+        "rapid-cortex-dev-AppSam5Stack-1T38GG051RWIG-LiveVideoIncidentsHttpErrorsAlarm-sLAASECfIuhj",
+        "rapid-cortex-dev-AppSam5Stack-1T38GG051RWIG-LiveVideoPublicHttpErrorsAlarm-Eu4zmpuTHmKB",
+        "rapid-cortex-dev-cad-bridge-buffer-depth-dev",
+        "rapid-cortex-dev-cad-bridge-conflicts-dev",
+        "rapid-cortex-dev-cad-bridge-dlq-dev",
+        "rapid-cortex-dev-cad-bridge-failed-publish-dev",
+        "rapid-cortex-dev-cad-bridge-pending-buffer-dev",
+        "rapid-cortex-dev-cad-bridge-queue-backlog-dev",
+        "rapid-cortex-dev-cad-bridge-router-errors-dev",
+        "rapid-cortex-dev-cad-bridge-sync-lag-dev",
+        "rapid-cortex-dev-cad-bridge-webhook-errors-dev",
+        "rapid-cortex-v2-alb-unhealthy-prod"
+      ]
+    },
+    "cognitoMfa": {
+      "productionUserPoolId": "us-east-1_0z6tA6WBs",
+      "mfaConfiguration": "OPTIONAL",
+      "enabledMfas": null,
+      "passwordMinLength": 12,
+      "advancedSecurity": null
+    },
+    "acm": {
+      "listDenied": false,
+      "issuedCount": 0,
+      "cloudfrontViewerCerts": [
+        {
+          "Id": "E8EJMLISQFBC8",
+          "Domain": "d5vq6hqsxo1m3.cloudfront.net",
+          "Aliases": null,
+          "ViewerCertificate": {
+            "CloudFrontDefaultCertificate": true,
+            "SSLSupportMethod": "vip",
+            "MinimumProtocolVersion": "TLSv1",
+            "CertificateSource": "cloudfront"
+          }
+        },
+        {
+          "Id": "E3BCDCAG0L39K",
+          "Domain": "d289n78klqriaz.cloudfront.net",
+          "Aliases": [
+            "melapp.us",
+            "www.melapp.us"
+          ],
+          "ViewerCertificate": {
+            "CloudFrontDefaultCertificate": false,
+            "ACMCertificateArn": "arn:aws:acm:us-east-1:158961537080:certificate/f82bcf08-371f-4011-a2a3-a1f8298837c1",
+            "SSLSupportMethod": "sni-only",
+            "MinimumProtocolVersion": "TLSv1.2_2021",
+            "Certificate": "arn:aws:acm:us-east-1:158961537080:certificate/f82bcf08-371f-4011-a2a3-a1f8298837c1",
+            "CertificateSource": "acm"
+          }
+        },
+        {
+          "Id": "E3IYH5KJC2W487",
+          "Domain": "dmw1ups5xfdjw.cloudfront.net",
+          "Aliases": [
+            "www.orgameapp.us"
+          ],
+          "ViewerCertificate": {
+            "CloudFrontDefaultCertificate": false,
+            "ACMCertificateArn": "arn:aws:acm:us-east-1:158961537080:certificate/93ba0587-ffb1-4246-bc9b-f50f0ad490e7",
+            "SSLSupportMethod": "sni-only",
+            "MinimumProtocolVersion": "TLSv1.2_2021",
+            "Certificate": "arn:aws:acm:us-east-1:158961537080:certificate/93ba0587-ffb1-4246-bc9b-f50f0ad490e7",
+            "CertificateSource": "acm"
+          }
+        },
+        {
+          "Id": "E3QAAHWMK1KPWV",
+          "Domain": "d3rtlijrfdz1vo.cloudfront.net",
+          "Aliases": [
+            "www.drcolemanspeaks.us",
+            "drcolemanspeaks.us"
+          ],
+          "ViewerCertificate": {
+            "CloudFrontDefaultCertificate": false,
+            "ACMCertificateArn": "arn:aws:acm:us-east-1:158961537080:certificate/e4b6dec7-f134-42b0-a44d-6879c8c10595",
+            "SSLSupportMethod": "sni-only",
+            "MinimumProtocolVersion": "TLSv1.2_2021",
+            "Certificate": "arn:aws:acm:us-east-1:158961537080:certificate/e4b6dec7-f134-42b0-a44d-6879c8c10595",
+            "CertificateSource": "acm"
+          }
+        },
+        {
+          "Id": "E25AN3MHZH987C",
+          "Domain": "dcuwkhr8elews.cloudfront.net",
+          "Aliases": [
+            "www.drjc.us"
+          ],
+          "ViewerCertificate": {
+            "CloudFrontDefaultCertificate": false,
+            "ACMCertificateArn": "arn:aws:acm:us-east-1:158961537080:certificate/d9a65eff-d4d6-46ea-81ef-d27d67b68e89",
+            "SSLSupportMethod": "sni-only",
+            "MinimumProtocolVersion": "TLSv1.2_2021",
+            "Certificate": "arn:aws:acm:us-east-1:158961537080:certificate/d9a65eff-d4d6-46ea-81ef-d27d67b68e89",
+            "CertificateSource": "acm"
+          }
+        },
+        {
+          "Id": "E2PZ7P3KEGCPZU",
+          "Domain": "d3siz0iwem1js3.cloudfront.net",
+          "Aliases": [
+            "www.appsondemand.net"
+          ],
+          "ViewerCertificate": {
+            "CloudFrontDefaultCertificate": false,
+            "ACMCertificateArn": "arn:aws:acm:us-east-1:158961537080:certificate/8228b724-04af-4795-89c6-eff646be887b",
+            "SSLSupportMethod": "sni-only",
+            "MinimumProtocolVersion": "TLSv1.2_2021",
+            "Certificate": "arn:aws:acm:us-east-1:158961537080:certificate/8228b724-04af-4795-89c6-eff646be887b",
+            "CertificateSource": "acm"
+          }
+        },
+        {
+          "Id": "E1H06R5JT6XTRP",
+          "Domain": "d1c8ac0y68p03j.cloudfront.net",
+          "Aliases": null,
+          "ViewerCertificate": {
+            "CloudFrontDefaultCertificate": true,
+            "SSLSupportMethod": "vip",
+            "MinimumProtocolVersion": "TLSv1",
+            "CertificateSource": "cloudfront"
+          }
+        },
+        {
+          "Id": "E1JONOP0VKIM9L",
+          "Domain": "d32jko14ahhj86.cloudfront.net",
+          "Aliases": [
+            "www.passpointreview.com"
+          ],
+          "ViewerCertificate": {
+            "CloudFrontDefaultCertificate": false,
+            "ACMCertificateArn": "arn:aws:acm:us-east-1:158961537080:certificate/10fd7ccf-9393-4733-987b-98030b442f60",
+            "SSLSupportMethod": "sni-only",
+            "MinimumProtocolVersion": "TLSv1.2_2021",
+            "Certificate": "arn:aws:acm:us-east-1:158961537080:certificate/10fd7ccf-9393-4733-987b-98030b442f60",
+            "CertificateSource": "acm"
+          }
+        },
+        {
+          "Id": "E9H3SP9NJTDCQ",
+          "Domain": "d2z668tqvu48uo.cloudfront.net",
+          "Aliases": null,
+          "ViewerCertificate": {
+            "CloudFrontDefaultCertificate": true,
+            "SSLSupportMethod": "vip",
+            "MinimumProtocolVersion": "TLSv1",
+            "CertificateSource": "cloudfront"
+          }
+        },
+        {
+          "Id": "E291VQMYJ94GEI",
+          "Domain": "d3csfd6djjmb5.cloudfront.net",
+          "Aliases": [
+            "www.memoryheistapp.us",
+            "memoryheistapp.us"
+          ],
+          "ViewerCertificate": {
+            "CloudFrontDefaultCertificate": false,
+            "ACMCertificateArn": "arn:aws:acm:us-east-1:158961537080:certificate/58b1ea7f-e865-483e-b8e5-ee39306126fe",
+            "SSLSupportMethod": "sni-only",
+            "MinimumProtocolVersion": "TLSv1.2_2021",
+            "Certificate": "arn:aws:acm:us-east-1:158961537080:certificate/58b1ea7f-e865-483e-b8e5-ee39306126fe",
+            "CertificateSource": "acm"
+          }
+        },
+        {
+          "Id": "EAKUX7U7QMWJN",
+          "Domain": "du3c5zj2bszud.cloudfront.net",
+          "Aliases": null,
+          "ViewerCertificate": {
+            "CloudFrontDefaultCertificate": true,
+            "SSLSupportMethod": "vip",
+            "MinimumProtocolVersion": "TLSv1",
+            "CertificateSource": "cloudfront"
+          }
+        },
+        {
+          "Id": "E1MJT809ZFBMV3",
+          "Domain": "d1phzj43gfn1rh.cloudfront.net",
+          "Aliases": null,
+          "ViewerCertificate": {
+            "CloudFrontDefaultCertificate": false,
+            "ACMCertificateArn": "arn:aws:acm:us-east-1:158961537080:certificate/2d94cc54-1ff4-4675-878a-6eadf10f9e6f",
+            "SSLSupportMethod": "sni-only",
+            "MinimumProtocolVersion": "TLSv1.2_2021",
+            "Certificate": "arn:aws:acm:us-east-1:158961537080:certificate/2d94cc54-1ff4-4675-878a-6eadf10f9e6f",
+            "CertificateSource": "acm"
+          }
+        },
+        {
+          "Id": "EJJFUEEZCXCS3",
+          "Domain": "d35cm1b68mder5.cloudfront.net",
+          "Aliases": [
+            "downloads.rapidcortex.us"
+          ],
+          "ViewerCertificate": {
+            "CloudFrontDefaultCertificate": false,
+            "ACMCertificateArn": "arn:aws:acm:us-east-1:158961537080:certificate/c720794f-4b20-4671-b64e-a15d0f0fe448",
+            "SSLSupportMethod": "sni-only",
+            "MinimumProtocolVersion": "TLSv1.2_2021",
+            "Certificate": "arn:aws:acm:us-east-1:158961537080:certificate/c720794f-4b20-4671-b64e-a15d0f0fe448",
+            "CertificateSource": "acm"
+          }
+        },
+        {
+          "Id": "E1T1KDP4B7PNW7",
+          "Domain": "d2rnqcde682pb1.cloudfront.net",
+          "Aliases": [
+            "app.rapidcortex.us",
+            "report.rapidcortex.us"
+          ],
+          "ViewerCertificate": {
+            "CloudFrontDefaultCertificate": false,
+            "ACMCertificateArn": "arn:aws:acm:us-east-1:158961537080:certificate/86bf334f-de61-462e-8ec8-b9696c7f8c2b",
+            "SSLSupportMethod": "sni-only",
+            "MinimumProtocolVersion": "TLSv1.2_2021",
+            "Certificate": "arn:aws:acm:us-east-1:158961537080:certificate/86bf334f-de61-462e-8ec8-b9696c7f8c2b",
+            "CertificateSource": "acm"
+          }
+        },
+        {
+          "Id": "EWZ286WS69KX1",
+          "Domain": "d1ttic1ctidkor.cloudfront.net",
+          "Aliases": [
+            "rapidcortex.us",
+            "www.rapidcortex.us"
+          ],
+          "ViewerCertificate": {
+            "CloudFrontDefaultCertificate": false,
+            "ACMCertificateArn": "arn:aws:acm:us-east-1:158961537080:certificate/37a472e0-4810-4322-8920-fadb796213f1",
+            "SSLSupportMethod": "sni-only",
+            "MinimumProtocolVersion": "TLSv1.2_2021",
+            "Certificate": "arn:aws:acm:us-east-1:158961537080:certificate/37a472e0-4810-4322-8920-fadb796213f1",
+            "CertificateSource": "acm"
+          }
+        },
+        {
+          "Id": "E22OK65GJG6A2C",
+          "Domain": "d2nmlvfqle5i0g.cloudfront.net",
+          "Aliases": [
+            "api.rapidcortex.us"
+          ],
+          "ViewerCertificate": {
+            "CloudFrontDefaultCertificate": false,
+            "ACMCertificateArn": "arn:aws:acm:us-east-1:158961537080:certificate/cc0f7fc4-d4ca-4b1a-8ff6-e0676d872fa5",
+            "SSLSupportMethod": "sni-only",
+            "MinimumProtocolVersion": "TLSv1.2_2021",
+            "Certificate": "arn:aws:acm:us-east-1:158961537080:certificate/cc0f7fc4-d4ca-4b1a-8ff6-e0676d872fa5",
+            "CertificateSource": "acm"
+          }
+        }
+      ]
+    }
+  }
+}

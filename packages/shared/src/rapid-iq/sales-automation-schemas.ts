@@ -200,6 +200,7 @@ export const createRapidIqSalesSequenceBodySchema = z.object({
   campaignId: z.string().optional(),
   conferenceName: z.string().max(200).optional(),
   estimatedValue: z.number().optional(),
+  sendAt: z.string().min(1).max(40).optional(),
 });
 export type CreateRapidIqSalesSequenceBody = z.infer<typeof createRapidIqSalesSequenceBodySchema>;
 
@@ -219,6 +220,7 @@ export const createRapidIqSalesBulkCampaignBodySchema = z.object({
   campaignName: z.string().min(1).max(160).optional(),
   campaignType: z.enum(RAPID_IQ_SALES_CAMPAIGN_TYPES).optional(),
   recipients: z.array(rapidIqSalesBulkRecipientSchema).min(1).max(RAPID_IQ_SALES_BULK_MAX_RECIPIENTS),
+  sendAt: z.string().min(1).max(40).optional(),
 });
 export type CreateRapidIqSalesBulkCampaignBody = z.infer<typeof createRapidIqSalesBulkCampaignBodySchema>;
 
@@ -274,3 +276,38 @@ export const rapidIqOutlookCallbackBodySchema = z.object({
   state: z.string().min(1).max(1024),
 });
 export type RapidIqOutlookCallbackBody = z.infer<typeof rapidIqOutlookCallbackBodySchema>;
+
+const salesEmailCopySchema = z.object({
+  subject: z.string().min(1).max(300),
+  bodyText: z.string().min(1).max(20_000),
+});
+
+export const updateRapidIqSalesSequenceStepSchema = z.object({
+  stepNumber: z.union([z.literal(1), z.literal(2), z.literal(3)]),
+  email: salesEmailCopySchema.optional(),
+  scheduledAt: z.string().max(40).optional(),
+});
+
+export const updateRapidIqSalesSequenceBodySchema = z
+  .object({
+    recipientEmail: z.string().email().max(200).optional(),
+    recipientName: z.string().max(120).optional(),
+    steps: z.array(updateRapidIqSalesSequenceStepSchema).min(1).max(3).optional(),
+  })
+  .refine((v) => Boolean(v.recipientEmail || v.recipientName !== undefined || (v.steps && v.steps.length > 0)), {
+    message: "Provide recipient or at least one step email to update",
+  });
+export type UpdateRapidIqSalesSequenceBody = z.infer<typeof updateRapidIqSalesSequenceBodySchema>;
+
+export const updateRapidIqSalesDraftBodySchema = z.object({
+  subject: z.string().max(300).optional(),
+  bodyText: z.string().min(1).max(20_000).optional(),
+  linkedinText: z.string().max(8_000).optional(),
+});
+export type UpdateRapidIqSalesDraftBody = z.infer<typeof updateRapidIqSalesDraftBodySchema>;
+
+export const updateRapidIqSalesBulkCopyBodySchema = z.object({
+  campaignId: z.string().min(1).max(120),
+  steps: z.array(updateRapidIqSalesSequenceStepSchema).min(1).max(3),
+});
+export type UpdateRapidIqSalesBulkCopyBody = z.infer<typeof updateRapidIqSalesBulkCopyBodySchema>;

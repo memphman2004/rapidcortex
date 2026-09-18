@@ -17,6 +17,7 @@ import {
   addDaysIso,
   buildAgencyInvoicePrefillLines,
   mapLineItems,
+  monthlyFeatureAddOnsToPrefill,
   resolveAgencyPlanMonthlyRate,
   toUiInvoice,
   uiLineItemsToCreatePayload,
@@ -142,18 +143,40 @@ async function loadBillingSummary(request: NextRequest, agencyId: string): Promi
   };
 }
 
-async function loadEnabledAddOnRows(
+function parseEntitlementsPayload(body: unknown): {
+  plan: string;
+  addons: Record<string, TenantAddonState>;
+} | null {
+  if (!body || typeof body !== "object") return null;
+  const root = body as Record<string, unknown>;
+  const nested = root.data;
+  const data =
+    nested && typeof nested === "object" && nested !== null && "entitlements" in nested
+      ? (nested as Record<string, unknown>)
+      : root;
+  const entitlementsRaw = data.entitlements;
+  const entitlements =
+    entitlementsRaw && typeof entitlementsRaw === "object"
+      ? (entitlementsRaw as Record<string, unknown>)
+      : data;
+  const addons = entitlements.addons;
+  if (!addons || typeof addons !== "object") return null;
+  return {
+    plan: String(entitlements.plan ?? data.plan ?? ""),
+    addons: addons as Record<string, TenantAddonState>,
+  };
+}
+
+async function loadTenantEntitlements(
   request: NextRequest,
   agencyId: string,
-): Promise<FeatureAddOnRow[]> {
-  const res = await upstreamBillingJson<{
-    data?: { entitlements?: { addons?: Record<string, TenantAddonState> } };
-  }>(request, `/api/admin/tenants/${encodeURIComponent(agencyId)}/entitlements`);
-  if (!res.ok) return [];
-  const addons = res.data.data?.entitlements?.addons ?? {};
-  return Object.entries(addons)
-    .map(([key, state]) => mapAddonRow(key as AddonKey, state))
-    .filter(Boolean) as FeatureAddOnRow[];
+): Promise<{ plan: string; addons: Record<string, TenantAddonState> } | null> {
+  const res = await upstreamBillingJson(
+    request,
+    `/api/admin/tenants/${encodeURIComponent(agencyId)}/entitlements`,
+  );
+  if (!res.ok) return null;
+  return parseEntitlementsPayload(res.data);
 }
 
 async function createInvoiceForAgency(
@@ -259,11 +282,12 @@ export async function billingSummaryHandler(request: NextRequest, ctx: RouteCtx)
     }
   }
 
-  const enabledAddOns = await loadEnabledAddOnRows(request, agencyId);
+  const entitlements = await loadTenantEntitlements(request, agencyId);
+  const monthlyAddOns = entitlements ? monthlyFeatureAddOnsToPrefill(entitlements) : [];
   summary = {
     ...summary,
     currentMonthlyRate: resolveAgencyPlanMonthlyRate(summary),
-    suggestedLineItems: buildAgencyInvoicePrefillLines(summary, enabledAddOns),
+    suggestedLineItems: buildAgencyInvoicePrefillLines(summary, monthlyAddOns),
   };
 
   return NextResponse.json(summary);
@@ -391,8 +415,9 @@ export async function createFirstInvoiceHandler(request: NextRequest, ctx: Route
     }
 
     const today = new Date().toISOString().slice(0, 10);
-    const enabledAddOns = await loadEnabledAddOnRows(request, agencyId);
-    const lineItems = buildAgencyInvoicePrefillLines(loaded.summary, enabledAddOns);
+    const entitlements = await loadTenantEntitlements(request, agencyId);
+    const monthlyAddOns = entitlements ? monthlyFeatureAddOnsToPrefill(entitlements) : [];
+    const lineItems = buildAgencyInvoicePrefillLines(loaded.summary, monthlyAddOns);
 
     const created = await createInvoiceForAgency(request, agencyId, {
       customerId: ensured.customerId,
@@ -518,15 +543,12 @@ export async function downloadPdfHandler(request: NextRequest, ctx: InvoiceRoute
 
 export async function listAddOnsHandler(request: NextRequest, ctx: RouteCtx) {
   const { agencyId } = await ctx.params;
-  const res = await upstreamBillingJson<{
-    data?: { entitlements?: { addons?: Record<string, TenantAddonState> } };
-  }>(request, `/api/admin/tenants/${encodeURIComponent(agencyId)}/entitlements`);
-  if (!res.ok) {
-    return errorResponse(res.status, String(res.body.error ?? "Failed to load add-ons"));
+  const entitlements = await loadTenantEntitlements(request, agencyId);
+  if (!entitlements) {
+    return errorResponse(502, "Failed to load add-on entitlements");
   }
 
-  const addons = res.data.data?.entitlements?.addons ?? {};
-  const rows = Object.entries(addons)
+  const rows = Object.entries(entitlements.addons)
     .map(([key, state]) => mapAddonRow(key as AddonKey, state))
     .filter(Boolean) as FeatureAddOnRow[];
 

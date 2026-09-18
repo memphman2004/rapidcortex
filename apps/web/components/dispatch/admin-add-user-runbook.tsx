@@ -76,7 +76,8 @@ export function AdminAddUserRunbook() {
           agency password policy).
         </li>
         <li>
-          On first login they must set a new password; enroll in MFA if your agency requires an authenticator app.
+          On first login they set a new password, then enroll Google Authenticator by scanning the QR
+          on the login page.
         </li>
         <li>Confirm with the user that they have successfully signed in before closing the ticket.</li>
       </ol>

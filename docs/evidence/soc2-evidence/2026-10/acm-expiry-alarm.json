@@ -1,0 +1,36 @@
+{
+    "MetricAlarms": [
+        {
+            "AlarmName": "rc-acm-cert-expiry-cc0f7fc4",
+            "AlarmArn": "arn:aws:cloudwatch:us-east-1:158961537080:alarm:rc-acm-cert-expiry-cc0f7fc4",
+            "AlarmDescription": "Alert when RC production certificate DaysToExpiry drops below 45 days",
+            "AlarmConfigurationUpdatedTimestamp": "2026-09-17T18:57:14.800000-04:00",
+            "ActionsEnabled": true,
+            "OKActions": [],
+            "AlarmActions": [
+                "arn:aws:sns:us-east-1:158961537080:rapid-cortex-dev-AppSamStackV2-1BR5EYUP7MO39-OpsAlertsTopic-p56TnLJKwZWR"
+            ],
+            "InsufficientDataActions": [],
+            "StateValue": "INSUFFICIENT_DATA",
+            "StateReason": "Unchecked: Initial alarm creation",
+            "StateUpdatedTimestamp": "2026-09-17T18:57:14.800000-04:00",
+            "MetricName": "DaysToExpiry",
+            "Namespace": "AWS/CertificateManager",
+            "Statistic": "Minimum",
+            "Dimensions": [
+                {
+                    "Name": "CertificateArn",
+                    "Value": "arn:aws:acm:us-east-1:158961537080:certificate/cc0f7fc4-d4ca-4b1a-8ff6-e0676d872fa5"
+                }
+            ],
+            "Period": 86400,
+            "EvaluationPeriods": 1,
+            "Threshold": 45.0,
+            "ComparisonOperator": "LessThanThreshold",
+            "TreatMissingData": "breaching",
+            "StateTransitionedTimestamp": "2026-09-17T18:57:14.800000-04:00"
+        }
+    ],
+    "CompositeAlarms": [],
+    "LogAlarms": []
+}

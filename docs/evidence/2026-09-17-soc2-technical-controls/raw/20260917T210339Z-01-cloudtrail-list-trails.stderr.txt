@@ -1,0 +1,2 @@
+
+aws: [ERROR]: An error occurred (AccessDeniedException) when calling the ListTrails operation: User: arn:aws:iam::158961537080:user/rapid-cortex-deploy is not authorized to perform: cloudtrail:ListTrails because no identity-based policy allows the cloudtrail:ListTrails action

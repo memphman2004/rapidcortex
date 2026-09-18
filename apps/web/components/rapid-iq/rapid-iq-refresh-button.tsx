@@ -61,6 +61,8 @@ export function RapidIqRefreshButton({
     if (prev === "running" && (next === "complete" || next === "error")) {
       void qc.invalidateQueries({ queryKey: OPPORTUNITIES_QUERY_KEY });
       void qc.invalidateQueries({ queryKey: ["rapid-iq-detail"] });
+      void qc.invalidateQueries({ queryKey: ["rapid-iq-pipeline-signals"] });
+      void qc.invalidateQueries({ queryKey: ["rapid-iq-rfp-counts"] });
     }
   }, [refreshStatus?.status, qc]);
 

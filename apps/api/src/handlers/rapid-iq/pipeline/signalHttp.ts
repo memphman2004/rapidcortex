@@ -30,8 +30,8 @@ import {
   listAgencyContacts,
   listAgencyProfiles,
   listAgencySignalLinks,
-  listAllSignals,
   listSignalsByStatus,
+  listSignalsForCommandCenter,
   updateSignalFields,
   updateSignalStatus,
 } from "../../../lib/rapid-iq/pipeline/rapid-iq-pipeline-db.js";
@@ -202,9 +202,10 @@ export async function handler(event: APIGatewayProxyEventV2): Promise<APIGateway
       ) {
         signals = await listSignalsByStatus(
           statusParam as (typeof RAPID_IQ_PIPELINE_SIGNAL_STATUSES)[number],
+          500,
         );
       } else {
-        signals = await listAllSignals(200);
+        signals = await listSignalsForCommandCenter();
       }
       return withCorrelationHeaders(event, ok({ signals, items: signals }));
     }

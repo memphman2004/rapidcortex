@@ -1,0 +1,26 @@
+{
+    "NextMarker": "rapid-cortex-v2-web-cdn-prod",
+    "WebACLs": [
+        {
+            "Name": "CreatedByCloudFront-a0a27a88",
+            "Id": "9354f515-57b3-4c71-b412-ec5decd576a5",
+            "Description": "",
+            "LockToken": "a30f2ed3-8ac5-4350-9dea-3c30f49e24ba",
+            "ARN": "arn:aws:wafv2:us-east-1:158961537080:global/webacl/CreatedByCloudFront-a0a27a88/9354f515-57b3-4c71-b412-ec5decd576a5"
+        },
+        {
+            "Name": "rapid-cortex-httpapi-cdn-waf-dev",
+            "Id": "7f68bde8-cc59-4b9d-bed7-dd1f66e7eeef",
+            "Description": "CLOUDFRONT-scope WAF for primary API edge CloudFront to HttpApi",
+            "LockToken": "250d431b-6337-4b94-b2fd-e2cbf9008aac",
+            "ARN": "arn:aws:wafv2:us-east-1:158961537080:global/webacl/rapid-cortex-httpapi-cdn-waf-dev/7f68bde8-cc59-4b9d-bed7-dd1f66e7eeef"
+        },
+        {
+            "Name": "rapid-cortex-v2-web-cdn-prod",
+            "Id": "a52d3854-ff3c-45c6-bf2a-b140213ef625",
+            "Description": "RC CDN WAF: US CA geo block, anonymous VPN count, agency allowlist optional. Not VPN-gated.",
+            "LockToken": "fe5a5ed7-f3fc-42fc-b35a-088ff069ffcb",
+            "ARN": "arn:aws:wafv2:us-east-1:158961537080:global/webacl/rapid-cortex-v2-web-cdn-prod/a52d3854-ff3c-45c6-bf2a-b140213ef625"
+        }
+    ]
+}

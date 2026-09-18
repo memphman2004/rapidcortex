@@ -1,0 +1,44 @@
+[
+  {
+    "stack": "rapid-cortex-dev-AppSamStackV2-1BR5EYUP7MO39",
+    "type": "AWS::CertificateManager::Certificate",
+    "logical": "ApiManagedCertificate",
+    "physical": "arn:aws:acm:us-east-1:158961537080:certificate/cc0f7fc4-d4ca-4b1a-8ff6-e0676d872fa5",
+    "status": "CREATE_COMPLETE"
+  },
+  {
+    "stack": "rapid-cortex-dev-DataLayerStack-17H2VCAOH7V78",
+    "type": "AWS::S3::Bucket",
+    "logical": "AssetsBucket",
+    "physical": "rapid-cortex-assets-dev-158961537080",
+    "status": "UPDATE_COMPLETE"
+  },
+  {
+    "stack": "rapid-cortex-dev-DataLayerStack-17H2VCAOH7V78",
+    "type": "AWS::S3::Bucket",
+    "logical": "BillingInvoicesBucket",
+    "physical": "rapid-cortex-billing-invoices-dev-158961537080",
+    "status": "UPDATE_COMPLETE"
+  },
+  {
+    "stack": "rapid-cortex-dev-DataLayerStack-17H2VCAOH7V78",
+    "type": "AWS::SecretsManager::Secret",
+    "logical": "BillingPaymentInstructionsSecret",
+    "physical": "arn:aws:secretsmanager:us-east-1:158961537080:secret:rapid-cortex/dev/billing/payment-instructions-A6fEgq",
+    "status": "UPDATE_COMPLETE"
+  },
+  {
+    "stack": "rapid-cortex-dev-DataLayerStack-17H2VCAOH7V78",
+    "type": "AWS::S3::Bucket",
+    "logical": "BillingPosBucket",
+    "physical": "rapid-cortex-billing-pos-dev-158961537080",
+    "status": "CREATE_COMPLETE"
+  },
+  {
+    "stack": "rapid-cortex-dev-DataLayerStack-17H2VCAOH7V78",
+    "type": "AWS::SecretsManager::Secret",
+    "logical": "BillingSesCredentialsSecret",
+    "physical": "arn:aws:secretsmanager:us-east-1:158961537080:secret:rapid-cortex/dev/billing/ses-credentials-4M7lVL",
+    "status": "UPDATE_COMPLETE"
+  }
+]

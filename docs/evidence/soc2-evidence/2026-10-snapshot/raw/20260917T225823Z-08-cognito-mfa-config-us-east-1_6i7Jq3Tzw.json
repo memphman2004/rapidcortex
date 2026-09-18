@@ -1,0 +1,9 @@
+{
+    "SoftwareTokenMfaConfiguration": {
+        "Enabled": true
+    },
+    "MfaConfiguration": "ON",
+    "WebAuthnConfiguration": {
+        "FactorConfiguration": "SINGLE_FACTOR"
+    }
+}

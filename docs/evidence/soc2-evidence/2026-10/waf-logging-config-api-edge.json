@@ -1,0 +1,11 @@
+{
+    "LoggingConfiguration": {
+        "ResourceArn": "arn:aws:wafv2:us-east-1:158961537080:global/webacl/rapid-cortex-httpapi-cdn-waf-dev/7f68bde8-cc59-4b9d-bed7-dd1f66e7eeef",
+        "LogDestinationConfigs": [
+            "arn:aws:logs:us-east-1:158961537080:log-group:aws-waf-logs-rapid-cortex-httpapi-cdn-dev"
+        ],
+        "ManagedByFirewallManager": false,
+        "LogType": "WAF_LOGS",
+        "LogScope": "CUSTOMER"
+    }
+}

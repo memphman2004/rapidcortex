@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import type { TenantEntitlements } from "rapid-cortex-shared";
+import { ADDON_CATALOG, type TenantEntitlements } from "rapid-cortex-shared";
 import { rapidCortexFeatureIdsFromTenantEntitlements } from "./tenant-addon-feature-bridge";
 
 function seedEntitlements(partial: Partial<TenantEntitlements>): TenantEntitlements {
@@ -39,7 +39,7 @@ describe("rapidCortexFeatureIdsFromTenantEntitlements", () => {
     expect(rapidCortexFeatureIdsFromTenantEntitlements(entitlements)).not.toContain("live_translation");
   });
 
-  it("treats plan-included SKUs as active", () => {
+  it("treats plan-included SKUs as active unless opted out", () => {
     const entitlements = seedEntitlements({
       plan: "professional",
       addons: {
@@ -47,5 +47,22 @@ describe("rapidCortexFeatureIdsFromTenantEntitlements", () => {
       } as TenantEntitlements["addons"],
     });
     expect(rapidCortexFeatureIdsFromTenantEntitlements(entitlements)).toContain("live_translation");
+  });
+
+  it("does not treat opted-out plan-included SKUs as active", () => {
+    const addons = {} as TenantEntitlements["addons"];
+    for (const def of ADDON_CATALOG) {
+      if (!def.key.startsWith("translation")) continue;
+      addons[def.key] = {
+        key: def.key,
+        enabled: false,
+        disabledAt: "2026-09-17T00:00:00.000Z",
+      };
+    }
+    const entitlements = seedEntitlements({
+      plan: "professional",
+      addons,
+    });
+    expect(rapidCortexFeatureIdsFromTenantEntitlements(entitlements)).not.toContain("live_translation");
   });
 });

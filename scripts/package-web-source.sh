@@ -7,6 +7,15 @@ ENVIRONMENT="${1:-dev}"
 OUT_FINAL="${PACKAGE_WEB_SOURCE_OUT:-${ROOT}/web-source-${ENVIRONMENT}.zip}"
 # Zip on local disk first — writing a large archive onto an external volume often stalls.
 OUT_TMP="${PACKAGE_WEB_SOURCE_TMP:-${TMPDIR:-/tmp}/web-source-${ENVIRONMENT}.$$.zip}"
+if [[ "${SKIP_PACKAGE_WEB_SOURCE:-0}" == "1" ]]; then
+  echo "Skipping web source zip (SKIP_PACKAGE_WEB_SOURCE=1) — using ${OUT_FINAL}"
+  if [[ ! -f "${OUT_FINAL}" ]]; then
+    echo "ERROR: ${OUT_FINAL} missing" >&2
+    exit 1
+  fi
+  ls -lh "${OUT_FINAL}"
+  exit 0
+fi
 OUT="${OUT_TMP}"
   echo "Packaging web build context for CodeBuild (${ENVIRONMENT}) → ${OUT_FINAL} (via ${OUT_TMP})"
   # Changes every package so Docker COPY layers cannot reuse a stale apps/ tree.

@@ -1,0 +1,478 @@
+{
+    "CertificateSummaryList": [
+        {
+            "CertificateArn": "arn:aws:acm:us-east-1:158961537080:certificate/3604f42b-710d-4519-b812-74c7b944b961",
+            "DomainName": "fairworksai.com",
+            "SubjectAlternativeNameSummaries": [
+                "fairworksai.com",
+                "www.fairworksai.com"
+            ],
+            "HasAdditionalSubjectAlternativeNames": false,
+            "Status": "ISSUED",
+            "Type": "AMAZON_ISSUED",
+            "KeyAlgorithm": "RSA-2048",
+            "KeyUsages": [
+                "DIGITAL_SIGNATURE",
+                "KEY_ENCIPHERMENT"
+            ],
+            "ExtendedKeyUsages": [
+                "TLS_WEB_SERVER_AUTHENTICATION"
+            ],
+            "ExportOption": "DISABLED",
+            "InUse": false,
+            "Exported": false,
+            "RenewalEligibility": "INELIGIBLE",
+            "NotBefore": "2025-09-09T20:00:00-04:00",
+            "NotAfter": "2026-10-09T19:59:59-04:00",
+            "CreatedAt": "2025-09-10T14:10:29.716000-04:00",
+            "IssuedAt": "2025-09-10T14:11:14.535000-04:00",
+            "CertificateKeyPairOrigin": "AWS_MANAGED"
+        },
+        {
+            "CertificateArn": "arn:aws:acm:us-east-1:158961537080:certificate/f82bcf08-371f-4011-a2a3-a1f8298837c1",
+            "DomainName": "melapp.us",
+            "SubjectAlternativeNameSummaries": [
+                "melapp.us",
+                "www.melapp.us"
+            ],
+            "HasAdditionalSubjectAlternativeNames": false,
+            "Status": "ISSUED",
+            "Type": "AMAZON_ISSUED",
+            "KeyAlgorithm": "RSA-2048",
+            "KeyUsages": [
+                "DIGITAL_SIGNATURE",
+                "KEY_ENCIPHERMENT"
+            ],
+            "ExtendedKeyUsages": [
+                "TLS_WEB_SERVER_AUTHENTICATION"
+            ],
+            "ExportOption": "DISABLED",
+            "InUse": true,
+            "Exported": false,
+            "RenewalEligibility": "ELIGIBLE",
+            "NotBefore": "2025-11-11T19:00:00-05:00",
+            "NotAfter": "2026-12-11T18:59:59-05:00",
+            "CreatedAt": "2025-11-11T20:13:06.064000-05:00",
+            "IssuedAt": "2025-11-11T20:14:26.668000-05:00",
+            "CertificateKeyPairOrigin": "AWS_MANAGED"
+        },
+        {
+            "CertificateArn": "arn:aws:acm:us-east-1:158961537080:certificate/f90ea9eb-5e52-4275-8cf3-108b950d9af3",
+            "DomainName": "www.drcolemanspeaks.us",
+            "SubjectAlternativeNameSummaries": [
+                "www.drcolemanspeaks.us",
+                "*.www.drcolemanspeaks.us"
+            ],
+            "HasAdditionalSubjectAlternativeNames": false,
+            "Status": "ISSUED",
+            "Type": "AMAZON_ISSUED",
+            "KeyAlgorithm": "RSA-2048",
+            "KeyUsages": [
+                "DIGITAL_SIGNATURE",
+                "KEY_ENCIPHERMENT"
+            ],
+            "ExtendedKeyUsages": [
+                "TLS_WEB_SERVER_AUTHENTICATION"
+            ],
+            "ExportOption": "DISABLED",
+            "InUse": false,
+            "Exported": false,
+            "RenewalEligibility": "INELIGIBLE",
+            "NotBefore": "2025-11-25T19:00:00-05:00",
+            "NotAfter": "2026-12-25T18:59:59-05:00",
+            "CreatedAt": "2025-11-26T11:11:03.899000-05:00",
+            "IssuedAt": "2025-11-26T12:03:23.288000-05:00",
+            "CertificateKeyPairOrigin": "AWS_MANAGED"
+        },
+        {
+            "CertificateArn": "arn:aws:acm:us-east-1:158961537080:certificate/d9a65eff-d4d6-46ea-81ef-d27d67b68e89",
+            "DomainName": "www.drjc.us",
+            "SubjectAlternativeNameSummaries": [
+                "www.drjc.us",
+                "*.www.drjc.us"
+            ],
+            "HasAdditionalSubjectAlternativeNames": false,
+            "Status": "ISSUED",
+            "Type": "AMAZON_ISSUED",
+            "KeyAlgorithm": "RSA-2048",
+            "KeyUsages": [
+                "DIGITAL_SIGNATURE",
+                "KEY_ENCIPHERMENT"
+            ],
+            "ExtendedKeyUsages": [
+                "TLS_WEB_SERVER_AUTHENTICATION"
+            ],
+            "ExportOption": "DISABLED",
+            "InUse": true,
+            "Exported": false,
+            "RenewalEligibility": "ELIGIBLE",
+            "NotBefore": "2025-11-25T19:00:00-05:00",
+            "NotAfter": "2026-12-25T18:59:59-05:00",
+            "CreatedAt": "2025-11-26T11:11:04.471000-05:00",
+            "IssuedAt": "2025-11-26T12:03:23.357000-05:00",
+            "CertificateKeyPairOrigin": "AWS_MANAGED"
+        },
+        {
+            "CertificateArn": "arn:aws:acm:us-east-1:158961537080:certificate/e4b6dec7-f134-42b0-a44d-6879c8c10595",
+            "DomainName": "drcolemanspeaks.us",
+            "SubjectAlternativeNameSummaries": [
+                "drcolemanspeaks.us",
+                "www.drcolemanspeaks.us"
+            ],
+            "HasAdditionalSubjectAlternativeNames": false,
+            "Status": "ISSUED",
+            "Type": "AMAZON_ISSUED",
+            "KeyAlgorithm": "RSA-2048",
+            "KeyUsages": [
+                "DIGITAL_SIGNATURE",
+                "KEY_ENCIPHERMENT"
+            ],
+            "ExtendedKeyUsages": [
+                "TLS_WEB_SERVER_AUTHENTICATION"
+            ],
+            "ExportOption": "DISABLED",
+            "InUse": true,
+            "Exported": false,
+            "RenewalEligibility": "ELIGIBLE",
+            "NotBefore": "2025-11-25T19:00:00-05:00",
+            "NotAfter": "2026-12-25T18:59:59-05:00",
+            "CreatedAt": "2025-11-26T13:48:02.658000-05:00",
+            "IssuedAt": "2025-11-26T13:48:31-05:00",
+            "CertificateKeyPairOrigin": "AWS_MANAGED"
+        },
+        {
+            "CertificateArn": "arn:aws:acm:us-east-1:158961537080:certificate/93ba0587-ffb1-4246-bc9b-f50f0ad490e7",
+            "DomainName": "www.orgameapp.us",
+            "SubjectAlternativeNameSummaries": [
+                "www.orgameapp.us",
+                "orgameapp.us"
+            ],
+            "HasAdditionalSubjectAlternativeNames": false,
+            "Status": "ISSUED",
+            "Type": "AMAZON_ISSUED",
+            "KeyAlgorithm": "RSA-2048",
+            "KeyUsages": [
+                "DIGITAL_SIGNATURE",
+                "KEY_ENCIPHERMENT"
+            ],
+            "ExtendedKeyUsages": [
+                "TLS_WEB_SERVER_AUTHENTICATION"
+            ],
+            "ExportOption": "DISABLED",
+            "InUse": true,
+            "Exported": false,
+            "RenewalEligibility": "ELIGIBLE",
+            "NotBefore": "2025-11-30T19:00:00-05:00",
+            "NotAfter": "2026-12-30T18:59:59-05:00",
+            "CreatedAt": "2025-11-30T19:24:09.421000-05:00",
+            "IssuedAt": "2025-11-30T19:24:29.787000-05:00",
+            "CertificateKeyPairOrigin": "AWS_MANAGED"
+        },
+        {
+            "CertificateArn": "arn:aws:acm:us-east-1:158961537080:certificate/2d94cc54-1ff4-4675-878a-6eadf10f9e6f",
+            "DomainName": "rapidcortex.us",
+            "SubjectAlternativeNameSummaries": [
+                "rapidcortex.us",
+                "www.rapidcortex.us"
+            ],
+            "HasAdditionalSubjectAlternativeNames": false,
+            "Status": "ISSUED",
+            "Type": "AMAZON_ISSUED",
+            "KeyAlgorithm": "RSA-2048",
+            "KeyUsages": [
+                "DIGITAL_SIGNATURE",
+                "KEY_ENCIPHERMENT"
+            ],
+            "ExtendedKeyUsages": [
+                "TLS_WEB_SERVER_AUTHENTICATION"
+            ],
+            "ExportOption": "DISABLED",
+            "InUse": true,
+            "Exported": false,
+            "RenewalEligibility": "ELIGIBLE",
+            "NotBefore": "2026-04-23T20:00:00-04:00",
+            "NotAfter": "2026-11-07T18:59:59-05:00",
+            "CreatedAt": "2026-04-23T20:44:34.726000-04:00",
+            "IssuedAt": "2026-04-23T20:45:24.901000-04:00",
+            "CertificateKeyPairOrigin": "AWS_MANAGED"
+        },
+        {
+            "CertificateArn": "arn:aws:acm:us-east-1:158961537080:certificate/bac45d63-9496-4cb0-9d46-a70e371398e4",
+            "DomainName": "api.rapidcortex.us",
+            "SubjectAlternativeNameSummaries": [
+                "api.rapidcortex.us"
+            ],
+            "HasAdditionalSubjectAlternativeNames": false,
+            "Status": "ISSUED",
+            "Type": "AMAZON_ISSUED",
+            "KeyAlgorithm": "RSA-2048",
+            "KeyUsages": [
+                "DIGITAL_SIGNATURE",
+                "KEY_ENCIPHERMENT"
+            ],
+            "ExtendedKeyUsages": [
+                "TLS_WEB_SERVER_AUTHENTICATION"
+            ],
+            "ExportOption": "DISABLED",
+            "InUse": false,
+            "Exported": false,
+            "RenewalEligibility": "INELIGIBLE",
+            "NotBefore": "2026-05-09T20:00:00-04:00",
+            "NotAfter": "2026-11-23T18:59:59-05:00",
+            "CreatedAt": "2026-05-10T18:06:57.777000-04:00",
+            "IssuedAt": "2026-05-10T18:07:14.824000-04:00",
+            "CertificateKeyPairOrigin": "AWS_MANAGED"
+        },
+        {
+            "CertificateArn": "arn:aws:acm:us-east-1:158961537080:certificate/c720794f-4b20-4671-b64e-a15d0f0fe448",
+            "DomainName": "downloads.rapidcortex.us",
+            "SubjectAlternativeNameSummaries": [
+                "downloads.rapidcortex.us"
+            ],
+            "HasAdditionalSubjectAlternativeNames": false,
+            "Status": "ISSUED",
+            "Type": "AMAZON_ISSUED",
+            "KeyAlgorithm": "RSA-2048",
+            "KeyUsages": [
+                "DIGITAL_SIGNATURE",
+                "KEY_ENCIPHERMENT"
+            ],
+            "ExtendedKeyUsages": [
+                "TLS_WEB_SERVER_AUTHENTICATION"
+            ],
+            "ExportOption": "DISABLED",
+            "InUse": true,
+            "Exported": false,
+            "RenewalEligibility": "ELIGIBLE",
+            "NotBefore": "2026-05-10T20:00:00-04:00",
+            "NotAfter": "2026-11-24T18:59:59-05:00",
+            "CreatedAt": "2026-05-10T21:45:11.668000-04:00",
+            "IssuedAt": "2026-05-10T21:47:37.480000-04:00",
+            "CertificateKeyPairOrigin": "AWS_MANAGED"
+        },
+        {
+            "CertificateArn": "arn:aws:acm:us-east-1:158961537080:certificate/cc0f7fc4-d4ca-4b1a-8ff6-e0676d872fa5",
+            "DomainName": "api.rapidcortex.us",
+            "SubjectAlternativeNameSummaries": [
+                "api.rapidcortex.us"
+            ],
+            "HasAdditionalSubjectAlternativeNames": false,
+            "Status": "ISSUED",
+            "Type": "AMAZON_ISSUED",
+            "KeyAlgorithm": "RSA-2048",
+            "KeyUsages": [
+                "DIGITAL_SIGNATURE",
+                "KEY_ENCIPHERMENT"
+            ],
+            "ExtendedKeyUsages": [
+                "TLS_WEB_SERVER_AUTHENTICATION"
+            ],
+            "ExportOption": "DISABLED",
+            "InUse": true,
+            "Exported": false,
+            "RenewalEligibility": "ELIGIBLE",
+            "NotBefore": "2026-05-22T20:00:00-04:00",
+            "NotAfter": "2026-12-06T18:59:59-05:00",
+            "CreatedAt": "2026-05-23T10:45:08.084000-04:00",
+            "IssuedAt": "2026-05-23T10:45:24.639000-04:00",
+            "CertificateKeyPairOrigin": "AWS_MANAGED"
+        },
+        {
+            "CertificateArn": "arn:aws:acm:us-east-1:158961537080:certificate/37a472e0-4810-4322-8920-fadb796213f1",
+            "DomainName": "rapidcortex.us",
+            "SubjectAlternativeNameSummaries": [
+                "rapidcortex.us",
+                "www.rapidcortex.us"
+            ],
+            "HasAdditionalSubjectAlternativeNames": false,
+            "Status": "ISSUED",
+            "Type": "AMAZON_ISSUED",
+            "KeyAlgorithm": "RSA-2048",
+            "KeyUsages": [
+                "DIGITAL_SIGNATURE",
+                "KEY_ENCIPHERMENT"
+            ],
+            "ExtendedKeyUsages": [
+                "TLS_WEB_SERVER_AUTHENTICATION"
+            ],
+            "ExportOption": "DISABLED",
+            "InUse": true,
+            "Exported": false,
+            "RenewalEligibility": "ELIGIBLE",
+            "NotBefore": "2026-06-02T20:00:00-04:00",
+            "NotAfter": "2026-12-17T18:59:59-05:00",
+            "CreatedAt": "2026-06-02T20:57:02.612000-04:00",
+            "IssuedAt": "2026-06-02T20:57:19.659000-04:00",
+            "CertificateKeyPairOrigin": "AWS_MANAGED"
+        },
+        {
+            "CertificateArn": "arn:aws:acm:us-east-1:158961537080:certificate/377f1b0d-96ff-4799-96ad-a41d9d0b174c",
+            "DomainName": "rapidcortex.us",
+            "SubjectAlternativeNameSummaries": [
+                "rapidcortex.us",
+                "app.rapidcortex.us",
+                "www.rapidcortex.us"
+            ],
+            "HasAdditionalSubjectAlternativeNames": false,
+            "Status": "ISSUED",
+            "Type": "AMAZON_ISSUED",
+            "KeyAlgorithm": "RSA-2048",
+            "KeyUsages": [
+                "DIGITAL_SIGNATURE",
+                "KEY_ENCIPHERMENT"
+            ],
+            "ExtendedKeyUsages": [
+                "TLS_WEB_SERVER_AUTHENTICATION"
+            ],
+            "ExportOption": "DISABLED",
+            "InUse": false,
+            "Exported": false,
+            "RenewalEligibility": "INELIGIBLE",
+            "NotBefore": "2026-06-02T20:00:00-04:00",
+            "NotAfter": "2026-12-17T18:59:59-05:00",
+            "CreatedAt": "2026-06-03T13:57:51.693000-04:00",
+            "IssuedAt": "2026-06-03T14:00:16.845000-04:00",
+            "CertificateKeyPairOrigin": "AWS_MANAGED"
+        },
+        {
+            "CertificateArn": "arn:aws:acm:us-east-1:158961537080:certificate/8228b724-04af-4795-89c6-eff646be887b",
+            "DomainName": "www.appsondemand.net",
+            "SubjectAlternativeNameSummaries": [
+                "www.appsondemand.net",
+                "appsondemand.net"
+            ],
+            "HasAdditionalSubjectAlternativeNames": false,
+            "Status": "ISSUED",
+            "Type": "AMAZON_ISSUED",
+            "KeyAlgorithm": "RSA-2048",
+            "KeyUsages": [
+                "DIGITAL_SIGNATURE",
+                "KEY_ENCIPHERMENT"
+            ],
+            "ExtendedKeyUsages": [
+                "TLS_WEB_SERVER_AUTHENTICATION"
+            ],
+            "ExportOption": "DISABLED",
+            "InUse": true,
+            "Exported": false,
+            "RenewalEligibility": "ELIGIBLE",
+            "NotBefore": "2026-06-04T20:00:00-04:00",
+            "NotAfter": "2026-12-19T18:59:59-05:00",
+            "CreatedAt": "2025-07-04T22:03:55.389000-04:00",
+            "IssuedAt": "2026-06-05T00:10:01.012000-04:00",
+            "CertificateKeyPairOrigin": "AWS_MANAGED"
+        },
+        {
+            "CertificateArn": "arn:aws:acm:us-east-1:158961537080:certificate/86bf334f-de61-462e-8ec8-b9696c7f8c2b",
+            "DomainName": "rapidcortex.us",
+            "SubjectAlternativeNameSummaries": [
+                "rapidcortex.us",
+                "app.rapidcortex.us",
+                "report.rapidcortex.us",
+                "www.rapidcortex.us"
+            ],
+            "HasAdditionalSubjectAlternativeNames": false,
+            "Status": "ISSUED",
+            "Type": "AMAZON_ISSUED",
+            "KeyAlgorithm": "RSA-2048",
+            "KeyUsages": [
+                "DIGITAL_SIGNATURE",
+                "KEY_ENCIPHERMENT"
+            ],
+            "ExtendedKeyUsages": [
+                "TLS_WEB_SERVER_AUTHENTICATION"
+            ],
+            "ExportOption": "DISABLED",
+            "InUse": true,
+            "Exported": false,
+            "RenewalEligibility": "ELIGIBLE",
+            "NotBefore": "2026-06-04T20:00:00-04:00",
+            "NotAfter": "2026-12-19T18:59:59-05:00",
+            "CreatedAt": "2026-06-05T10:19:24.973000-04:00",
+            "IssuedAt": "2026-06-05T10:20:14.326000-04:00",
+            "CertificateKeyPairOrigin": "AWS_MANAGED"
+        },
+        {
+            "CertificateArn": "arn:aws:acm:us-east-1:158961537080:certificate/10fd7ccf-9393-4733-987b-98030b442f60",
+            "DomainName": "www.passpointreview.com",
+            "SubjectAlternativeNameSummaries": [
+                "www.passpointreview.com"
+            ],
+            "HasAdditionalSubjectAlternativeNames": false,
+            "Status": "ISSUED",
+            "Type": "AMAZON_ISSUED",
+            "KeyAlgorithm": "RSA-2048",
+            "KeyUsages": [
+                "DIGITAL_SIGNATURE",
+                "KEY_ENCIPHERMENT"
+            ],
+            "ExtendedKeyUsages": [
+                "TLS_WEB_SERVER_AUTHENTICATION"
+            ],
+            "ExportOption": "DISABLED",
+            "InUse": true,
+            "Exported": false,
+            "RenewalEligibility": "ELIGIBLE",
+            "NotBefore": "2026-08-07T20:00:00-04:00",
+            "NotAfter": "2027-02-21T18:59:59-05:00",
+            "CreatedAt": "2026-03-07T22:49:26.219000-05:00",
+            "IssuedAt": "2026-08-08T00:45:30.910000-04:00",
+            "CertificateKeyPairOrigin": "AWS_MANAGED"
+        },
+        {
+            "CertificateArn": "arn:aws:acm:us-east-1:158961537080:certificate/58b1ea7f-e865-483e-b8e5-ee39306126fe",
+            "DomainName": "memoryheistapp.us",
+            "SubjectAlternativeNameSummaries": [
+                "memoryheistapp.us",
+                "www.memoryheistapp.us"
+            ],
+            "HasAdditionalSubjectAlternativeNames": false,
+            "Status": "ISSUED",
+            "Type": "AMAZON_ISSUED",
+            "KeyAlgorithm": "RSA-2048",
+            "KeyUsages": [
+                "DIGITAL_SIGNATURE",
+                "KEY_ENCIPHERMENT"
+            ],
+            "ExtendedKeyUsages": [
+                "TLS_WEB_SERVER_AUTHENTICATION"
+            ],
+            "ExportOption": "DISABLED",
+            "InUse": true,
+            "Exported": false,
+            "RenewalEligibility": "ELIGIBLE",
+            "NotBefore": "2026-08-22T20:00:00-04:00",
+            "NotAfter": "2027-03-08T18:59:59-05:00",
+            "CreatedAt": "2026-03-23T11:23:00.828000-04:00",
+            "IssuedAt": "2026-08-22T23:32:28.504000-04:00",
+            "CertificateKeyPairOrigin": "AWS_MANAGED"
+        },
+        {
+            "CertificateArn": "arn:aws:acm:us-east-1:158961537080:certificate/e90921db-152e-418f-afef-981b8cf1b417",
+            "DomainName": "app-staging.rapidcortex.us",
+            "SubjectAlternativeNameSummaries": [
+                "app-staging.rapidcortex.us"
+            ],
+            "HasAdditionalSubjectAlternativeNames": false,
+            "Status": "ISSUED",
+            "Type": "AMAZON_ISSUED",
+            "KeyAlgorithm": "RSA-2048",
+            "KeyUsages": [
+                "DIGITAL_SIGNATURE",
+                "KEY_ENCIPHERMENT"
+            ],
+            "ExtendedKeyUsages": [
+                "TLS_WEB_SERVER_AUTHENTICATION"
+            ],
+            "ExportOption": "DISABLED",
+            "InUse": false,
+            "Exported": false,
+            "RenewalEligibility": "INELIGIBLE",
+            "NotBefore": "2026-08-22T20:00:00-04:00",
+            "NotAfter": "2027-03-08T18:59:59-05:00",
+            "CreatedAt": "2026-08-23T00:00:58.849000-04:00",
+            "IssuedAt": "2026-08-23T00:01:15.314000-04:00",
+            "CertificateKeyPairOrigin": "AWS_MANAGED"
+        }
+    ]
+}

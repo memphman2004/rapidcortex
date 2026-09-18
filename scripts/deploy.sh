@@ -490,6 +490,12 @@ fi
 if [[ -n "${GOOGLE_APPLICATION_CREDENTIALS_SECRET_ARN:-}" ]]; then
   PARAMS="${PARAMS} GoogleApplicationCredentialsSecretArn=${GOOGLE_APPLICATION_CREDENTIALS_SECRET_ARN}"
 fi
+if [[ -n "${GOOGLE_CLOUD_PROJECT_ID:-}" ]]; then
+  PARAMS="${PARAMS} GoogleCloudProjectId=${GOOGLE_CLOUD_PROJECT_ID}"
+fi
+if [[ -n "${LANGUAGE_PROVIDER:-}" ]]; then
+  PARAMS="${PARAMS} LanguageProvider=${LANGUAGE_PROVIDER}"
+fi
 if [[ -n "${AZURE_SPEECH_KEY_SECRET_ARN:-}" ]]; then
   PARAMS="${PARAMS} AzureSpeechKeySecretArn=${AZURE_SPEECH_KEY_SECRET_ARN}"
 fi
@@ -554,6 +560,9 @@ if [[ -n "${OUTLOOK_OAUTH_CLIENT_SECRET_ARN:-}" ]]; then
 fi
 if [[ -n "${OUTLOOK_OAUTH_REDIRECT_URI:-}" ]]; then
   PARAMS="${PARAMS} OutlookOAuthRedirectUri=${OUTLOOK_OAUTH_REDIRECT_URI}"
+fi
+if [[ -n "${OUTLOOK_OAUTH_TENANT:-}" ]]; then
+  PARAMS="${PARAMS} OutlookOAuthTenant=${OUTLOOK_OAUTH_TENANT}"
 fi
 if [[ "${OUTLOOK_GRAPH_MOCK:-}" == "true" || "${OUTLOOK_GRAPH_MOCK:-}" == "false" ]]; then
   PARAMS="${PARAMS} OutlookGraphMock=${OUTLOOK_GRAPH_MOCK}"

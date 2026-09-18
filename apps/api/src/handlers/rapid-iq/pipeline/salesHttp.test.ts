@@ -68,6 +68,7 @@ vi.mock("../../../repositories/auditRepository.js", () => ({
 }));
 
 import { handler } from "./signalHttp.js";
+import * as salesDb from "../../../lib/rapid-iq/sales-automation-db.js";
 
 function makeEvent(
   method: string,
@@ -167,5 +168,43 @@ describe("sales automation HTTP RBAC", () => {
     };
     expect(body.result.created).toBe(120);
     expect(body.result.duplicates).toBe(0);
+  });
+
+  it("lets rcadmin PATCH auto-generated sequence emails", async () => {
+    const sequence = {
+      sequenceId: "seq_edit",
+      triggerId: "t1",
+      triggerType: "campaign" as const,
+      vertical: "PSAP" as const,
+      recipientEmail: "chief@franklin.gov",
+      agencyName: "Franklin County",
+      status: "draft" as const,
+      autoApprove: false,
+      steps: [
+        {
+          stepId: "s1",
+          stepNumber: 1 as const,
+          label: "initial" as const,
+          delayDays: 0,
+          status: "pending" as const,
+          email: { subject: "Old", bodyText: "Old body" },
+        },
+      ],
+      createdAt: "2026-09-16T00:00:00.000Z",
+      updatedAt: "2026-09-16T00:00:00.000Z",
+      attribution: {},
+    };
+    vi.mocked(salesDb.getSalesSequence).mockResolvedValue(sequence as never);
+    vi.mocked(salesDb.putSalesSequence).mockResolvedValue(undefined as never);
+    const result = await handler(
+      makeEvent("PATCH", "/api/rapid-iq/sales-automation/sequences/seq_edit", admin, {
+        steps: [{ stepNumber: 1, email: { subject: "Edited subject", bodyText: "Edited body" } }],
+      }),
+    );
+    expect((result as { statusCode: number }).statusCode).toBe(200);
+    const body = JSON.parse((result as { body: string }).body) as {
+      sequence: { steps: { email: { subject: string } }[] };
+    };
+    expect(body.sequence.steps[0]?.email.subject).toBe("Edited subject");
   });
 });

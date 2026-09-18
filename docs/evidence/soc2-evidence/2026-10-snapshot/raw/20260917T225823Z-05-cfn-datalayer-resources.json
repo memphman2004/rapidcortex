@@ -1,0 +1,725 @@
+{
+    "StackResourceSummaries": [
+        {
+            "LogicalResourceId": "AccessOverridesTable",
+            "PhysicalResourceId": "rapid-cortex-access-overrides-dev",
+            "ResourceType": "AWS::DynamoDB::Table",
+            "LastUpdatedTimestamp": "2026-05-24T06:39:22.301000+00:00",
+            "ResourceStatus": "CREATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "LogicalResourceId": "ActiveCallsTable",
+            "PhysicalResourceId": "rapid-cortex-active-calls-dev",
+            "ResourceType": "AWS::DynamoDB::Table",
+            "LastUpdatedTimestamp": "2026-05-24T06:39:12.066000+00:00",
+            "ResourceStatus": "CREATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "LogicalResourceId": "AgenciesTable",
+            "PhysicalResourceId": "rapid-cortex-agencies-dev",
+            "ResourceType": "AWS::DynamoDB::Table",
+            "LastUpdatedTimestamp": "2026-08-15T04:32:54.700000+00:00",
+            "ResourceStatus": "UPDATE_ROLLBACK_COMPLETE",
+            "ResourceStatusReason": "Rollback succeeded for the failed resources.",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "LogicalResourceId": "AgencyRelationshipsTable",
+            "PhysicalResourceId": "rapid-cortex-agency-relationships-dev",
+            "ResourceType": "AWS::DynamoDB::Table",
+            "LastUpdatedTimestamp": "2026-08-15T04:32:42.525000+00:00",
+            "ResourceStatus": "CREATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "LogicalResourceId": "AgencySharePartnersTable",
+            "PhysicalResourceId": "rapid-cortex-agency-share-partners-dev",
+            "ResourceType": "AWS::DynamoDB::Table",
+            "LastUpdatedTimestamp": "2026-05-24T06:39:01.858000+00:00",
+            "ResourceStatus": "CREATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "LogicalResourceId": "AgencySubscriptionsTable",
+            "PhysicalResourceId": "rapid-cortex-agency-subscriptions-dev",
+            "ResourceType": "AWS::DynamoDB::Table",
+            "LastUpdatedTimestamp": "2026-05-24T06:39:11.572000+00:00",
+            "ResourceStatus": "CREATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "LogicalResourceId": "AnalysesTable",
+            "PhysicalResourceId": "rapid-cortex-analyses-dev",
+            "ResourceType": "AWS::DynamoDB::Table",
+            "LastUpdatedTimestamp": "2026-05-24T06:39:11.789000+00:00",
+            "ResourceStatus": "CREATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "LogicalResourceId": "ApiClientsTable",
+            "PhysicalResourceId": "rapid-cortex-api-clients-dev",
+            "ResourceType": "AWS::DynamoDB::Table",
+            "LastUpdatedTimestamp": "2026-05-24T06:39:11.517000+00:00",
+            "ResourceStatus": "CREATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "LogicalResourceId": "AssetsBucket",
+            "PhysicalResourceId": "rapid-cortex-assets-dev-158961537080",
+            "ResourceType": "AWS::S3::Bucket",
+            "LastUpdatedTimestamp": "2026-07-29T11:17:11.569000+00:00",
+            "ResourceStatus": "UPDATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "LogicalResourceId": "AuditTable",
+            "PhysicalResourceId": "rapid-cortex-audit-dev",
+            "ResourceType": "AWS::DynamoDB::Table",
+            "LastUpdatedTimestamp": "2026-05-24T06:39:12.557000+00:00",
+            "ResourceStatus": "CREATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "LogicalResourceId": "BillingAuditEventsTable",
+            "PhysicalResourceId": "rapid-cortex-billing-audit-events-dev",
+            "ResourceType": "AWS::DynamoDB::Table",
+            "LastUpdatedTimestamp": "2026-08-15T04:32:28.516000+00:00",
+            "ResourceStatus": "UPDATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "LogicalResourceId": "BillingAuditLogTable",
+            "PhysicalResourceId": "rapid-cortex-billing-audit-log-dev",
+            "ResourceType": "AWS::DynamoDB::Table",
+            "LastUpdatedTimestamp": "2026-08-15T04:32:28.483000+00:00",
+            "ResourceStatus": "UPDATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "LogicalResourceId": "BillingInvoicesBucket",
+            "PhysicalResourceId": "rapid-cortex-billing-invoices-dev-158961537080",
+            "ResourceType": "AWS::S3::Bucket",
+            "LastUpdatedTimestamp": "2026-07-29T11:17:11.985000+00:00",
+            "ResourceStatus": "UPDATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "LogicalResourceId": "BillingPaymentInstructionsSecret",
+            "PhysicalResourceId": "arn:aws:secretsmanager:us-east-1:158961537080:secret:rapid-cortex/dev/billing/payment-instructions-A6fEgq",
+            "ResourceType": "AWS::SecretsManager::Secret",
+            "LastUpdatedTimestamp": "2026-09-13T21:48:57.591000+00:00",
+            "ResourceStatus": "UPDATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "LogicalResourceId": "BillingPosBucket",
+            "PhysicalResourceId": "rapid-cortex-billing-pos-dev-158961537080",
+            "ResourceType": "AWS::S3::Bucket",
+            "LastUpdatedTimestamp": "2026-05-24T06:39:01.989000+00:00",
+            "ResourceStatus": "CREATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "LogicalResourceId": "BillingPosBucketPolicy",
+            "PhysicalResourceId": "rapid-cortex-billing-pos-dev-158961537080",
+            "ResourceType": "AWS::S3::BucketPolicy",
+            "LastUpdatedTimestamp": "2026-05-24T06:39:04.796000+00:00",
+            "ResourceStatus": "CREATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "LogicalResourceId": "BillingProfilesTable",
+            "PhysicalResourceId": "rapid-cortex-billing-profiles-dev",
+            "ResourceType": "AWS::DynamoDB::Table",
+            "LastUpdatedTimestamp": "2026-05-24T06:39:01.044000+00:00",
+            "ResourceStatus": "CREATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "LogicalResourceId": "BillingSchedulesTable",
+            "PhysicalResourceId": "rapid-cortex-billing-schedules-dev",
+            "ResourceType": "AWS::DynamoDB::Table",
+            "LastUpdatedTimestamp": "2026-05-24T06:39:11.517000+00:00",
+            "ResourceStatus": "CREATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "LogicalResourceId": "BillingSesCredentialsSecret",
+            "PhysicalResourceId": "arn:aws:secretsmanager:us-east-1:158961537080:secret:rapid-cortex/dev/billing/ses-credentials-4M7lVL",
+            "ResourceType": "AWS::SecretsManager::Secret",
+            "LastUpdatedTimestamp": "2026-09-13T21:48:57.892000+00:00",
+            "ResourceStatus": "UPDATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "LogicalResourceId": "BillingWebhookEventsTable",
+            "PhysicalResourceId": "rapid-cortex-billing-webhook-events-dev",
+            "ResourceType": "AWS::DynamoDB::Table",
+            "LastUpdatedTimestamp": "2026-05-24T06:39:01.742000+00:00",
+            "ResourceStatus": "CREATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "LogicalResourceId": "CadIncidentsRawTable",
+            "PhysicalResourceId": "rapid-cortex-cad-incidents-raw-dev",
+            "ResourceType": "AWS::DynamoDB::Table",
+            "LastUpdatedTimestamp": "2026-05-24T06:39:11.633000+00:00",
+            "ResourceStatus": "CREATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "LogicalResourceId": "CadIncidentsTable",
+            "PhysicalResourceId": "rapid-cortex-cad-incidents-dev",
+            "ResourceType": "AWS::DynamoDB::Table",
+            "LastUpdatedTimestamp": "2026-05-24T06:39:22.625000+00:00",
+            "ResourceStatus": "CREATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "LogicalResourceId": "CadIntegrationsTable",
+            "PhysicalResourceId": "rapid-cortex-cad-integrations-dev",
+            "ResourceType": "AWS::DynamoDB::Table",
+            "LastUpdatedTimestamp": "2026-05-24T06:39:11.707000+00:00",
+            "ResourceStatus": "CREATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "LogicalResourceId": "CadWebhookRateLimitsTable",
+            "PhysicalResourceId": "rapid-cortex-cad-webhook-rate-dev",
+            "ResourceType": "AWS::DynamoDB::Table",
+            "LastUpdatedTimestamp": "2026-05-24T06:39:01.467000+00:00",
+            "ResourceStatus": "CREATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "LogicalResourceId": "CadWritebackAuditTable",
+            "PhysicalResourceId": "rapid-cortex-cad-writeback-audit-dev",
+            "ResourceType": "AWS::DynamoDB::Table",
+            "LastUpdatedTimestamp": "2026-05-24T06:39:12.483000+00:00",
+            "ResourceStatus": "CREATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "LogicalResourceId": "CallTransfersTable",
+            "PhysicalResourceId": "rapid-cortex-call-transfers-dev",
+            "ResourceType": "AWS::DynamoDB::Table",
+            "LastUpdatedTimestamp": "2026-05-24T06:39:11.979000+00:00",
+            "ResourceStatus": "CREATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "LogicalResourceId": "CustomersTable",
+            "PhysicalResourceId": "rapid-cortex-customers-dev",
+            "ResourceType": "AWS::DynamoDB::Table",
+            "LastUpdatedTimestamp": "2026-05-24T06:39:01.244000+00:00",
+            "ResourceStatus": "CREATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "LogicalResourceId": "DataDeletionAuditTable",
+            "PhysicalResourceId": "rapid-cortex-data-deletion-audit-dev",
+            "ResourceType": "AWS::DynamoDB::Table",
+            "LastUpdatedTimestamp": "2026-05-24T06:39:11.620000+00:00",
+            "ResourceStatus": "CREATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "LogicalResourceId": "DeceptionEventsTable",
+            "PhysicalResourceId": "rapid-cortex-deception-events-dev",
+            "ResourceType": "AWS::DynamoDB::Table",
+            "LastUpdatedTimestamp": "2026-05-24T06:39:12.686000+00:00",
+            "ResourceStatus": "CREATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "LogicalResourceId": "DispatcherCoachingNotesTable",
+            "PhysicalResourceId": "rapid-cortex-dispatcher-coaching-notes-dev",
+            "ResourceType": "AWS::DynamoDB::Table",
+            "LastUpdatedTimestamp": "2026-05-24T06:39:11.625000+00:00",
+            "ResourceStatus": "CREATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "LogicalResourceId": "EscalationAuditTable",
+            "PhysicalResourceId": "rapid-cortex-escalation-audit-dev",
+            "ResourceType": "AWS::DynamoDB::Table",
+            "LastUpdatedTimestamp": "2026-08-15T04:32:42.232000+00:00",
+            "ResourceStatus": "CREATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "LogicalResourceId": "EscalationsTable",
+            "PhysicalResourceId": "rapid-cortex-escalations-dev",
+            "ResourceType": "AWS::DynamoDB::Table",
+            "LastUpdatedTimestamp": "2026-08-15T04:32:52.443000+00:00",
+            "ResourceStatus": "CREATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "LogicalResourceId": "ExternalApiRateLimitsTable",
+            "PhysicalResourceId": "rapid-cortex-external-api-rate-dev",
+            "ResourceType": "AWS::DynamoDB::Table",
+            "LastUpdatedTimestamp": "2026-05-24T06:39:01.519000+00:00",
+            "ResourceStatus": "CREATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "LogicalResourceId": "IncidentMediaTable",
+            "PhysicalResourceId": "rapid-cortex-incident-media-dev",
+            "ResourceType": "AWS::DynamoDB::Table",
+            "LastUpdatedTimestamp": "2026-05-24T06:39:22.429000+00:00",
+            "ResourceStatus": "CREATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "LogicalResourceId": "IncidentReportsTable",
+            "PhysicalResourceId": "rapid-cortex-incident-reports-dev",
+            "ResourceType": "AWS::DynamoDB::Table",
+            "LastUpdatedTimestamp": "2026-08-15T04:32:52.383000+00:00",
+            "ResourceStatus": "CREATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "LogicalResourceId": "IncidentSharesTable",
+            "PhysicalResourceId": "rapid-cortex-incident-shares-dev",
+            "ResourceType": "AWS::DynamoDB::Table",
+            "LastUpdatedTimestamp": "2026-05-24T06:39:12.114000+00:00",
+            "ResourceStatus": "CREATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "LogicalResourceId": "IncidentsTable",
+            "PhysicalResourceId": "rapid-cortex-incidents-dev",
+            "ResourceType": "AWS::DynamoDB::Table",
+            "LastUpdatedTimestamp": "2026-05-24T06:39:22.599000+00:00",
+            "ResourceStatus": "CREATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "LogicalResourceId": "InvitesTable",
+            "PhysicalResourceId": "rapid-cortex-invites-dev",
+            "ResourceType": "AWS::DynamoDB::Table",
+            "LastUpdatedTimestamp": "2026-05-24T06:39:11.420000+00:00",
+            "ResourceStatus": "CREATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "LogicalResourceId": "InvoiceItemsTable",
+            "PhysicalResourceId": "rapid-cortex-invoice-items-dev",
+            "ResourceType": "AWS::DynamoDB::Table",
+            "LastUpdatedTimestamp": "2026-05-24T06:39:13.207000+00:00",
+            "ResourceStatus": "CREATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "LogicalResourceId": "InvoicesTable",
+            "PhysicalResourceId": "rapid-cortex-invoices-dev",
+            "ResourceType": "AWS::DynamoDB::Table",
+            "LastUpdatedTimestamp": "2026-05-24T06:39:22.782000+00:00",
+            "ResourceStatus": "CREATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "LogicalResourceId": "LanguageSessionsTable",
+            "PhysicalResourceId": "rapid-cortex-language-sessions-dev",
+            "ResourceType": "AWS::DynamoDB::Table",
+            "LastUpdatedTimestamp": "2026-05-24T06:39:11.983000+00:00",
+            "ResourceStatus": "CREATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "LogicalResourceId": "LiveVideoSessionsTable",
+            "PhysicalResourceId": "rapid-cortex-live-video-sessions-dev",
+            "ResourceType": "AWS::DynamoDB::Table",
+            "LastUpdatedTimestamp": "2026-05-24T06:39:11.899000+00:00",
+            "ResourceStatus": "CREATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "LogicalResourceId": "LocationTokensTable",
+            "PhysicalResourceId": "rapid-cortex-location-tokens-dev",
+            "ResourceType": "AWS::DynamoDB::Table",
+            "LastUpdatedTimestamp": "2026-06-11T03:59:04.111000+00:00",
+            "ResourceStatus": "CREATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "LogicalResourceId": "MonetizationAddOnsTable",
+            "PhysicalResourceId": "rapid-cortex-monetization-addons-dev",
+            "ResourceType": "AWS::DynamoDB::Table",
+            "LastUpdatedTimestamp": "2026-05-24T06:39:01.464000+00:00",
+            "ResourceStatus": "CREATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "LogicalResourceId": "MonetizationInvoicesTable",
+            "PhysicalResourceId": "rapid-cortex-monetization-invoices-dev",
+            "ResourceType": "AWS::DynamoDB::Table",
+            "LastUpdatedTimestamp": "2026-05-24T06:39:12.100000+00:00",
+            "ResourceStatus": "CREATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "LogicalResourceId": "MonetizationPlansTable",
+            "PhysicalResourceId": "rapid-cortex-monetization-plans-dev",
+            "ResourceType": "AWS::DynamoDB::Table",
+            "LastUpdatedTimestamp": "2026-05-24T06:39:01.241000+00:00",
+            "ResourceStatus": "CREATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "LogicalResourceId": "NetworkEmergencyOverridesTable",
+            "PhysicalResourceId": "rapid-cortex-network-emergency-overrides-dev",
+            "ResourceType": "AWS::DynamoDB::Table",
+            "LastUpdatedTimestamp": "2026-05-24T06:39:12.443000+00:00",
+            "ResourceStatus": "CREATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "LogicalResourceId": "NonEmergencyQueueTable",
+            "PhysicalResourceId": "rapid-cortex-non-emergency-queue-dev",
+            "ResourceType": "AWS::DynamoDB::Table",
+            "LastUpdatedTimestamp": "2026-06-14T15:19:46.947000+00:00",
+            "ResourceStatus": "CREATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "LogicalResourceId": "PaymentRecordsTable",
+            "PhysicalResourceId": "rapid-cortex-payment-records-dev",
+            "ResourceType": "AWS::DynamoDB::Table",
+            "LastUpdatedTimestamp": "2026-05-24T06:39:11.638000+00:00",
+            "ResourceStatus": "CREATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "LogicalResourceId": "PendingProvisionsTable",
+            "PhysicalResourceId": "rapid-cortex-pending-provisions-dev",
+            "ResourceType": "AWS::DynamoDB::Table",
+            "LastUpdatedTimestamp": "2026-05-24T06:39:01.314000+00:00",
+            "ResourceStatus": "CREATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "LogicalResourceId": "PinpointLinksTable",
+            "PhysicalResourceId": "rapid-cortex-pinpoint-links-dev",
+            "ResourceType": "AWS::DynamoDB::Table",
+            "LastUpdatedTimestamp": "2026-05-24T06:39:22.722000+00:00",
+            "ResourceStatus": "CREATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "LogicalResourceId": "PremiseNotesTable",
+            "PhysicalResourceId": "rapid-cortex-premise-notes-dev",
+            "ResourceType": "AWS::DynamoDB::Table",
+            "LastUpdatedTimestamp": "2026-05-24T06:39:01.442000+00:00",
+            "ResourceStatus": "CREATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "LogicalResourceId": "PushSubscriptionsTable",
+            "PhysicalResourceId": "rapid-cortex-push-subscriptions-dev",
+            "ResourceType": "AWS::DynamoDB::Table",
+            "LastUpdatedTimestamp": "2026-08-15T04:32:42.229000+00:00",
+            "ResourceStatus": "CREATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "LogicalResourceId": "QASessionsTable",
+            "PhysicalResourceId": "rapid-cortex-qa-sessions-dev",
+            "ResourceType": "AWS::DynamoDB::Table",
+            "LastUpdatedTimestamp": "2026-05-24T06:39:01.340000+00:00",
+            "ResourceStatus": "CREATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "LogicalResourceId": "QATemplatesTable",
+            "PhysicalResourceId": "rapid-cortex-qa-templates-dev",
+            "ResourceType": "AWS::DynamoDB::Table",
+            "LastUpdatedTimestamp": "2026-05-24T06:39:01.268000+00:00",
+            "ResourceStatus": "CREATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "LogicalResourceId": "RcLiteApiKeysTable",
+            "PhysicalResourceId": "rapid-cortex-rc-lite-api-keys-dev",
+            "ResourceType": "AWS::DynamoDB::Table",
+            "LastUpdatedTimestamp": "2026-05-24T06:39:11.928000+00:00",
+            "ResourceStatus": "CREATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "LogicalResourceId": "RcLiteRateLimitTable",
+            "PhysicalResourceId": "rapid-cortex-rc-lite-rate-limit-dev",
+            "ResourceType": "AWS::DynamoDB::Table",
+            "LastUpdatedTimestamp": "2026-05-24T06:39:01.565000+00:00",
+            "ResourceStatus": "CREATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "LogicalResourceId": "RcLiteUsageTable",
+            "PhysicalResourceId": "rapid-cortex-rc-lite-usage-dev",
+            "ResourceType": "AWS::DynamoDB::Table",
+            "LastUpdatedTimestamp": "2026-05-24T06:39:11.594000+00:00",
+            "ResourceStatus": "CREATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "LogicalResourceId": "SalesLeadsTable",
+            "PhysicalResourceId": "rapid-cortex-sales-leads-dev",
+            "ResourceType": "AWS::DynamoDB::Table",
+            "LastUpdatedTimestamp": "2026-08-15T05:46:26.364000+00:00",
+            "ResourceStatus": "UPDATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "LogicalResourceId": "SeoIntelligenceTable",
+            "PhysicalResourceId": "rapid-cortex-seo-intelligence-dev",
+            "ResourceType": "AWS::DynamoDB::Table",
+            "LastUpdatedTimestamp": "2026-05-24T06:39:01.243000+00:00",
+            "ResourceStatus": "CREATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "LogicalResourceId": "ServiceCatalogTable",
+            "PhysicalResourceId": "rapid-cortex-service-catalog-dev",
+            "ResourceType": "AWS::DynamoDB::Table",
+            "LastUpdatedTimestamp": "2026-05-24T06:39:02.197000+00:00",
+            "ResourceStatus": "CREATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "LogicalResourceId": "SilentTextSessionsTable",
+            "PhysicalResourceId": "rapid-cortex-silent-text-sessions-dev",
+            "ResourceType": "AWS::DynamoDB::Table",
+            "LastUpdatedTimestamp": "2026-05-24T06:39:22.069000+00:00",
+            "ResourceStatus": "CREATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "LogicalResourceId": "SmsRoutingTable",
+            "PhysicalResourceId": "rapid-cortex-sms-routing-dev",
+            "ResourceType": "AWS::DynamoDB::Table",
+            "LastUpdatedTimestamp": "2026-06-11T03:59:04.059000+00:00",
+            "ResourceStatus": "CREATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "LogicalResourceId": "StaffingForecastTable",
+            "PhysicalResourceId": "rapid-cortex-staffing-forecast-dev",
+            "ResourceType": "AWS::DynamoDB::Table",
+            "LastUpdatedTimestamp": "2026-06-14T15:19:36.564000+00:00",
+            "ResourceStatus": "CREATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "LogicalResourceId": "SurgeClustersTable",
+            "PhysicalResourceId": "rapid-cortex-surge-clusters-dev",
+            "ResourceType": "AWS::DynamoDB::Table",
+            "LastUpdatedTimestamp": "2026-05-24T06:39:01.557000+00:00",
+            "ResourceStatus": "CREATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "LogicalResourceId": "TicketsTable",
+            "PhysicalResourceId": "rapid-cortex-support-tickets-dev",
+            "ResourceType": "AWS::DynamoDB::Table",
+            "LastUpdatedTimestamp": "2026-09-14T23:23:09.704000+00:00",
+            "ResourceStatus": "CREATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "LogicalResourceId": "TranscriptsTable",
+            "PhysicalResourceId": "rapid-cortex-transcripts-dev",
+            "ResourceType": "AWS::DynamoDB::Table",
+            "LastUpdatedTimestamp": "2026-05-24T06:39:12.800000+00:00",
+            "ResourceStatus": "CREATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "LogicalResourceId": "TraumaFlagsTable",
+            "PhysicalResourceId": "rapid-cortex-trauma-flags-dev",
+            "ResourceType": "AWS::DynamoDB::Table",
+            "LastUpdatedTimestamp": "2026-05-24T06:39:12.495000+00:00",
+            "ResourceStatus": "CREATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "LogicalResourceId": "UsageMetersTable",
+            "PhysicalResourceId": "rapid-cortex-usage-meters-dev",
+            "ResourceType": "AWS::DynamoDB::Table",
+            "LastUpdatedTimestamp": "2026-05-24T06:39:12.638000+00:00",
+            "ResourceStatus": "CREATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "LogicalResourceId": "VideoAssistSessionsTable",
+            "PhysicalResourceId": "rapid-cortex-video-assist-sessions-dev",
+            "ResourceType": "AWS::DynamoDB::Table",
+            "LastUpdatedTimestamp": "2026-05-24T06:39:11.456000+00:00",
+            "ResourceStatus": "CREATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "LogicalResourceId": "WebSocketConnectionsTable",
+            "PhysicalResourceId": "rapid-cortex-websocket-connections-dev",
+            "ResourceType": "AWS::DynamoDB::Table",
+            "LastUpdatedTimestamp": "2026-05-24T06:39:12.061000+00:00",
+            "ResourceStatus": "CREATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "LogicalResourceId": "WebhooksTable",
+            "PhysicalResourceId": "rapid-cortex-webhooks-dev",
+            "ResourceType": "AWS::DynamoDB::Table",
+            "LastUpdatedTimestamp": "2026-05-24T06:39:12.221000+00:00",
+            "ResourceStatus": "CREATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        }
+    ]
+}

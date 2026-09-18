@@ -1,0 +1,32 @@
+{
+    "LoggingConfiguration": {
+        "ResourceArn": "arn:aws:wafv2:us-east-1:158961537080:global/webacl/rapid-cortex-v2-web-cdn-prod/a52d3854-ff3c-45c6-bf2a-b140213ef625",
+        "LogDestinationConfigs": [
+            "arn:aws:logs:us-east-1:158961537080:log-group:aws-waf-logs-rapid-cortex-v2-cdn-prod:*"
+        ],
+        "ManagedByFirewallManager": false,
+        "LoggingFilter": {
+            "Filters": [
+                {
+                    "Behavior": "KEEP",
+                    "Requirement": "MEETS_ANY",
+                    "Conditions": [
+                        {
+                            "ActionCondition": {
+                                "Action": "BLOCK"
+                            }
+                        },
+                        {
+                            "ActionCondition": {
+                                "Action": "COUNT"
+                            }
+                        }
+                    ]
+                }
+            ],
+            "DefaultBehavior": "DROP"
+        },
+        "LogType": "WAF_LOGS",
+        "LogScope": "CUSTOMER"
+    }
+}

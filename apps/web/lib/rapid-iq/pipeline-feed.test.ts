@@ -80,6 +80,19 @@ describe("inbox vs pipeline queue", () => {
     expect(isPipelineQueueSignal(stub({ status: "reviewed" }))).toBe(true);
   });
 
+  it("puts 911-gov collector ingest on the 911 inbox", () => {
+    const items = [
+      stub({
+        status: "new",
+        sourceId: "911-gov",
+        rawTitle: "National 911 Profile Database",
+        signalId: "g1",
+      }),
+    ];
+    expect(inboxPipelineSignals(items, "911").map((s) => s.signalId)).toEqual(["g1"]);
+    expect(inboxPipelineSignals(items, "campus")).toEqual([]);
+  });
+
   it("splits a mixed list by tab", () => {
     const items = [
       stub({

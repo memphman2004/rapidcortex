@@ -98,18 +98,19 @@ Parameters:
     Description: Secrets Manager ARN for encrypting Outlook refresh tokens at rest.
   OutlookOAuthClientId:
     Type: String
-    Default: ""
+    Default: "6110ccac-58b6-4976-86c9-46339151aa9f"
     Description: Azure app (public) client id for Graph Mail.Send campaign mail.
   OutlookOAuthClientSecretArn:
     Type: String
-    Default: ""
+    Default: "arn:aws:secretsmanager:us-east-1:158961537080:secret:rapid-cortex/rapid-iq/outlook-oauth-3klLxF"
     Description: Secrets Manager ARN for the Azure app client secret.
   OutlookOAuthRedirectUri:
     Type: String
     Default: "https://app.rapidcortex.us/rc-admin/sales-automation/outlook-callback"
   OutlookOAuthTenant:
     Type: String
-    Default: "common"
+    Default: "0a85f08a-54a8-43de-bdc1-4ad4e52d3af8"
+    Description: Apps on Demand Entra tenant (rapidcortex.us). From the app Directory (tenant) ID.
   OutlookGraphMock:
     Type: String
     Default: "false"
@@ -980,9 +981,75 @@ Resources:
       SourceArn: !Sub arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${HttpApiId}/*
 
   # Intel/sales routes below are gated by RapidIqNewHttpRoutes and target
-  # SignalHttpIntegrationV2. Older pipeline signal/credits Route* logical ids
-  # (56oveic / 5kihohr / …) were retained then ghosted off tbr4zvjlk5 — they are
-  # not in this template. Recreating those exact RouteKeys is a later import.
+  # SignalHttpIntegrationV2. Signal/credits RouteKeys were omitted after the
+  # 2026-09-12 ghosted standalone IDs (56oveic / 5kihohr) — inbox stayed empty
+  # because GET /pipeline/signals 404'd while intel/rfp-counts still worked.
+  # New logical ids so CFN can create the RouteKeys without colliding with
+  # those retained-then-deleted resources.
+  # Live tbr4zvjlk5 (2026-09-17, CLI until nested import): GET collection b5idqxm,
+  # POST collection zb710pi, GET item wchhkmd, PATCH gizyj72,
+  # POST push-to-crm hr9q6vf, GET credits 7ky32ki. Next nested update that
+  # creates these RouteKeys must import those IDs if AlreadyExists.
+
+  RoutePipelineSignalsGet:
+    Type: AWS::ApiGatewayV2::Route
+    Condition: RapidIqNewHttpRoutes
+    Properties:
+      ApiId: !Ref HttpApiId
+      RouteKey: "GET /api/rapid-iq/pipeline/signals"
+      Target: !Sub "integrations/${SignalHttpIntegrationV2}"
+      AuthorizationType: !If [HasHttpApiJwtAuthorizer, JWT, NONE]
+      AuthorizerId: !If [HasHttpApiJwtAuthorizer, !Ref HttpApiJwtAuthorizerId, !Ref AWS::NoValue]
+
+  RoutePipelineSignalsPost:
+    Type: AWS::ApiGatewayV2::Route
+    Condition: RapidIqNewHttpRoutes
+    Properties:
+      ApiId: !Ref HttpApiId
+      RouteKey: "POST /api/rapid-iq/pipeline/signals"
+      Target: !Sub "integrations/${SignalHttpIntegrationV2}"
+      AuthorizationType: !If [HasHttpApiJwtAuthorizer, JWT, NONE]
+      AuthorizerId: !If [HasHttpApiJwtAuthorizer, !Ref HttpApiJwtAuthorizerId, !Ref AWS::NoValue]
+
+  RoutePipelineSignalGet:
+    Type: AWS::ApiGatewayV2::Route
+    Condition: RapidIqNewHttpRoutes
+    Properties:
+      ApiId: !Ref HttpApiId
+      RouteKey: "GET /api/rapid-iq/pipeline/signals/{signalId}"
+      Target: !Sub "integrations/${SignalHttpIntegrationV2}"
+      AuthorizationType: !If [HasHttpApiJwtAuthorizer, JWT, NONE]
+      AuthorizerId: !If [HasHttpApiJwtAuthorizer, !Ref HttpApiJwtAuthorizerId, !Ref AWS::NoValue]
+
+  RoutePipelineSignalPatch:
+    Type: AWS::ApiGatewayV2::Route
+    Condition: RapidIqNewHttpRoutes
+    Properties:
+      ApiId: !Ref HttpApiId
+      RouteKey: "PATCH /api/rapid-iq/pipeline/signals/{signalId}"
+      Target: !Sub "integrations/${SignalHttpIntegrationV2}"
+      AuthorizationType: !If [HasHttpApiJwtAuthorizer, JWT, NONE]
+      AuthorizerId: !If [HasHttpApiJwtAuthorizer, !Ref HttpApiJwtAuthorizerId, !Ref AWS::NoValue]
+
+  RoutePipelineSignalPushToCrm:
+    Type: AWS::ApiGatewayV2::Route
+    Condition: RapidIqNewHttpRoutes
+    Properties:
+      ApiId: !Ref HttpApiId
+      RouteKey: "POST /api/rapid-iq/pipeline/signals/{signalId}/push-to-crm"
+      Target: !Sub "integrations/${SignalHttpIntegrationV2}"
+      AuthorizationType: !If [HasHttpApiJwtAuthorizer, JWT, NONE]
+      AuthorizerId: !If [HasHttpApiJwtAuthorizer, !Ref HttpApiJwtAuthorizerId, !Ref AWS::NoValue]
+
+  RoutePipelineCreditsGet:
+    Type: AWS::ApiGatewayV2::Route
+    Condition: RapidIqNewHttpRoutes
+    Properties:
+      ApiId: !Ref HttpApiId
+      RouteKey: "GET /api/rapid-iq/pipeline/credits"
+      Target: !Sub "integrations/${SignalHttpIntegrationV2}"
+      AuthorizationType: !If [HasHttpApiJwtAuthorizer, JWT, NONE]
+      AuthorizerId: !If [HasHttpApiJwtAuthorizer, !Ref HttpApiJwtAuthorizerId, !Ref AWS::NoValue]
 
   RoutePipelineResearchPost:
     Type: AWS::ApiGatewayV2::Route

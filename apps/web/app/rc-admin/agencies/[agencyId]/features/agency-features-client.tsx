@@ -5,7 +5,9 @@ import Link from "next/link";
 import {
   ADDON_CATALOG,
   getAddonByKey,
+  isAddonActiveForTenant,
   isAddonIncludedInPlan,
+  isAddonOptedOut,
   type AddonDefinition,
   type AddonKey,
   type BillingAuditEventRecord,
@@ -124,10 +126,9 @@ export function AgencyFeaturesClient({
       return keys.some((key) => {
         const def = getAddonByKey(key);
         const state = data.entitlements.addons[key];
-        const included = isAddonIncludedInPlan(def, data.entitlements.plan);
-        const active = included || Boolean(state?.enabled);
+        const active = isAddonActiveForTenant(def, data.entitlements.plan, state);
         if (filter === "active") return active;
-        return !active && !included;
+        return !active;
       });
     });
   }, [data, filter, visibleCatalog, isLoading]);
@@ -237,7 +238,9 @@ export function AgencyFeaturesClient({
   }
 
   const { entitlements } = data;
-  const activeCount = Object.values(entitlements.addons).filter((a) => a.enabled).length;
+  const activeCount = ADDON_CATALOG.filter((def) =>
+    isAddonActiveForTenant(def, entitlements.plan, entitlements.addons[def.key]),
+  ).length;
   const openInvoice = invoiceData?.invoice as Record<string, unknown> | null | undefined;
   const openInvoiceNumber = invoiceNumberFromRecord(openInvoice);
 
@@ -360,16 +363,13 @@ export function AgencyFeaturesClient({
         isAddonIncludedInPlan,
       );
       const activeDef = activeKey ? getAddonByKey(activeKey) : row.variants[0];
-      const activeIncluded = activeKey
-        ? isAddonIncludedInPlan(getAddonByKey(activeKey), entitlements.plan)
-        : false;
       const familyHasIncluded = row.variants.some((v) =>
         isAddonIncludedInPlan(v, entitlements.plan),
       );
-      const state = activeKey ? entitlements.addons[activeKey] : undefined;
-      const paidEnabled = Boolean(state?.enabled) && !activeIncluded;
-      const enabled = activeIncluded || paidEnabled;
+      const state = activeKey ? entitlements.addons[activeKey] : entitlements.addons[row.variants[0]!.key];
       const displayDef = activeDef ?? row.variants[0]!;
+      const enabled = isAddonActiveForTenant(displayDef, entitlements.plan, state);
+      const displayIncluded = isAddonIncludedInPlan(displayDef, entitlements.plan);
 
       return (
         <li
@@ -410,22 +410,21 @@ export function AgencyFeaturesClient({
               );
             })}
           </select>
-          {activeIncluded && !paidEnabled ? (
+          {displayIncluded ? (
             <span className="rounded bg-emerald-900/50 px-2 py-1 text-xs text-emerald-200">
-              Included in {entitlements.plan}
+              {enabled ? `Included in ${entitlements.plan}` : `Off — was included in ${entitlements.plan}`}
             </span>
-          ) : (
-            <label className="flex items-center gap-2 text-sm text-slate-200">
-              <input
-                type="checkbox"
-                checked={paidEnabled}
-                disabled={!canEdit || mutation.isPending || activeIncluded}
-                onChange={(e) => void onToggle(displayDef, e.target.checked)}
-              />
-              {paidEnabled ? "On" : "Off"}
-            </label>
-          )}
-          {!activeIncluded && canEdit ? (
+          ) : null}
+          <label className="flex items-center gap-2 text-sm text-slate-200">
+            <input
+              type="checkbox"
+              checked={enabled}
+              disabled={!canEdit || mutation.isPending}
+              onChange={(e) => void onToggle(displayDef, e.target.checked)}
+            />
+            {enabled ? "On" : "Off"}
+          </label>
+          {canEdit ? (
             <OverridePriceInput
               def={displayDef}
               stateCents={state?.overridePriceCents}
@@ -441,7 +440,8 @@ export function AgencyFeaturesClient({
     const { def } = row;
     const state = entitlements.addons[def.key];
     const included = isAddonIncludedInPlan(def, entitlements.plan);
-    const enabled = included || Boolean(state?.enabled);
+    const enabled = isAddonActiveForTenant(def, entitlements.plan, state);
+    const optedOut = isAddonOptedOut(state);
 
     return (
       <li
@@ -471,20 +471,19 @@ export function AgencyFeaturesClient({
         </p>
         {included ? (
           <span className="rounded bg-emerald-900/50 px-2 py-1 text-xs text-emerald-200">
-            Included in {entitlements.plan}
+            {optedOut ? `Off — was included in ${entitlements.plan}` : `Included in ${entitlements.plan}`}
           </span>
-        ) : (
-          <label className="flex items-center gap-2 text-sm text-slate-200">
-            <input
-              type="checkbox"
-              checked={Boolean(state?.enabled)}
-              disabled={!canEdit || mutation.isPending}
-              onChange={(e) => void onToggle(def, e.target.checked)}
-            />
-            {state?.enabled ? "On" : "Off"}
-          </label>
-        )}
-        {!included && canEdit ? (
+        ) : null}
+        <label className="flex items-center gap-2 text-sm text-slate-200">
+          <input
+            type="checkbox"
+            checked={enabled}
+            disabled={!canEdit || mutation.isPending}
+            onChange={(e) => void onToggle(def, e.target.checked)}
+          />
+          {enabled ? "On" : "Off"}
+        </label>
+        {canEdit ? (
           <OverridePriceInput
             def={def}
             stateCents={state?.overridePriceCents}
