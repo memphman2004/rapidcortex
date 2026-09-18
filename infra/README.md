@@ -51,8 +51,9 @@ Runtime access for Lambdas is defined in the SAM template: **per-function** Dyna
 | --- | --- | --- |
 | `rapid-cortex-deploy-policy` | [`infra/iam/sam-deploy-policy.prod.json`](iam/sam-deploy-policy.prod.json) | CFN/SAM, Lambda, API GW, DynamoDB, Cognito, IAM roles, Route53, ACM, S3 assets, **drift detect**, **EventBridge Scheduler** (`scheduler:*` — needed for SAM2 retention schedule / `RetentionExecutorInvokePermission`) |
 | `rapid-cortex-deploy-policy-web` | [`infra/iam/sam-deploy-policy-web.prod.json`](iam/sam-deploy-policy-web.prod.json) | ECR, CodeBuild, ECS, web CFN read, CloudFront invalidation, ALS Identity Pool SSM |
+| `rapid-cortex-sam-deploy-policy-soc2` | [`infra/iam/sam-deploy-policy-soc2.prod.json`](iam/sam-deploy-policy-soc2.prod.json) | Create/manage `rc-soc2-auditor` + `rapid-cortex-soc2-auditor` (SOC 2 evidence role) |
 
-Templates with `REPLACE_*` placeholders: [`sam-deploy-policy.json`](iam/sam-deploy-policy.json) + [`sam-deploy-policy-web.json`](iam/sam-deploy-policy-web.json). Apply prod policies (admin, account **158961537080**):
+Templates with `REPLACE_*` placeholders: [`sam-deploy-policy.json`](iam/sam-deploy-policy.json) + [`sam-deploy-policy-web.json`](iam/sam-deploy-policy-web.json) + [`sam-deploy-policy-soc2.json`](iam/sam-deploy-policy-soc2.json). Apply prod policies (admin, account **158961537080**):
 
 ```bash
 ADMIN_AWS_PROFILE=your-admin-on-158961537080 ./scripts/apply-sam-deploy-managed-policies.sh

@@ -1,0 +1,28 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "Soc2AuditorRoles",
+      "Effect": "Allow",
+      "Action": [
+        "iam:CreateRole",
+        "iam:GetRole",
+        "iam:UpdateAssumeRolePolicy",
+        "iam:AttachRolePolicy",
+        "iam:DetachRolePolicy",
+        "iam:PutRolePolicy",
+        "iam:DeleteRolePolicy",
+        "iam:GetRolePolicy",
+        "iam:ListRolePolicies",
+        "iam:ListAttachedRolePolicies",
+        "iam:TagRole",
+        "iam:UntagRole"
+      ],
+      "Resource": [
+        "arn:aws:iam::158961537080:role/rc-soc2-auditor",
+        "arn:aws:iam::158961537080:role/rapid-cortex-soc2-auditor",
+        "arn:aws:iam::158961537080:role/rapid-cortex-soc2-evidence-readonly"
+      ]
+    }
+  ]
+}

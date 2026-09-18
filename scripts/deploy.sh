@@ -35,8 +35,11 @@ set -euo pipefail
 # - SNS_EMAIL_SUBSCRIPTION, SNS_SMS_TEST_NUMBER
 # - SES_IDENTITY_TYPE (email|domain), SES_IDENTITY_VALUE, SES_CONFIGURATION_SET_NAME
 # - ENABLE_API_WAF (true|false) → EnableApiWaf; optional WAF_RATE_LIMIT_5M, TRANSCRIPT_RETENTION_POLICY_DAYS
-# - ENABLE_CLOUD_TRAIL (true|false) → EnableCloudTrail (template default true). Set false in dev if CloudTrail S3
-#   bucket name conflicts with an existing retained bucket from a prior deploy.
+# - ENABLE_CLOUD_TRAIL (true|false) → EnableCloudTrail (template default true).
+#   Live DeploymentStage=dev forces true via scripts/lib/soc2-live-production-overrides.sh
+#   (SOC 2). Do not rename stack rapid-cortex-dev. Set SOC2_ALLOW_DISABLE_LIVE_CONTROLS=1
+#   only as break-glass. Option B (existing trail rapid-cortex-cloudtrail-prod) remains
+#   the operating control until the SAM trail bucket is created.
 # - INCLUDE_DATA_LAYER_NESTED_STACK=false for legacy dev stacks whose DynamoDB/S3 already live on the root stack
 #   (same names as nested stack-data-layer). Requires FLAT_DATA_LAYER_BILLING_PAYMENT_INSTRUCTIONS_SECRET_ARN and
 #   FLAT_DATA_LAYER_BILLING_SES_CREDENTIALS_SECRET_ARN (full Secrets Manager ARNs). Default: nested data layer enabled.
@@ -163,6 +166,15 @@ if [[ "$STAGE" == "dev" && "${I_UNDERSTAND_DEV_IS_PROD:-}" != "1" ]]; then
   echo "  Engineering: source scripts/env-api-staging.sh && $0 staging" >&2
   echo "  Intentional live deploy: source scripts/env-api-dev.sh (sets I_UNDERSTAND_DEV_IS_PROD=1) then $0 dev" >&2
   exit 1
+fi
+
+# Live production stack name is rapid-cortex-dev. Do not rename it.
+# SOC 2: explicit EnableCloudTrail / DynamoPointInTimeRecovery / EnableApiWaf
+# overrides — do not rely on DeploymentStage=dev conditions (PITR `auto` is off
+# on AppSam nests when stage is dev).
+if [[ "$STAGE" == "dev" ]]; then
+  # shellcheck source=scripts/lib/soc2-live-production-overrides.sh
+  source "${ROOT}/scripts/lib/soc2-live-production-overrides.sh"
 fi
 
 if [[ "$STAGE" == "staging" ]]; then
@@ -530,6 +542,9 @@ if [[ -n "${CAD_WRITEBACK_REQUIRES_APPROVAL:-}" ]]; then
 fi
 if [[ -n "${ENABLE_CLOUD_TRAIL:-}" ]]; then
   PARAMS="${PARAMS} EnableCloudTrail=${ENABLE_CLOUD_TRAIL}"
+fi
+if [[ -n "${ACM_EXPIRY_CERTIFICATE_ARN:-}" ]]; then
+  PARAMS="${PARAMS} AcmExpiryCertificateArn=${ACM_EXPIRY_CERTIFICATE_ARN}"
 fi
 if [[ "${INCLUDE_DATA_LAYER_NESTED_STACK:-true}" == "false" ]]; then
   PARAMS="${PARAMS} IncludeDataLayerNestedStack=false"

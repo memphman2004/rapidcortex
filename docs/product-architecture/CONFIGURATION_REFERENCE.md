@@ -12,7 +12,9 @@
 | `ENV_NAME=dev\|staging\|prod\|pilot` | `deploy-from-env.sh` only — same as the stage argument to `deploy.sh` (`DeploymentStage`) |
 | `DDB_TABLE_PREFIX` | `DynamoTableNamePrefix` |
 | `DDB_BILLING_MODE=PAY_PER_REQUEST` | `DynamoBillingMode` |
-| `DDB_ENABLE_PITR=true\|false\|auto` | `DynamoPointInTimeRecovery` — `auto` matches staging/prod/pilot on, dev off (see template conditions) |
+| `DDB_ENABLE_PITR=true\|false\|auto` | `DynamoPointInTimeRecovery` — `true` forces PITR on. `auto` is on for staging/prod/pilot; live `DeploymentStage=dev` **must** pass `true` via `scripts/lib/soc2-live-production-overrides.sh` (do not rename `rapid-cortex-dev`). |
+| `ENABLE_CLOUD_TRAIL=true\|false` | `EnableCloudTrail` — live `dev` forces `true`. Operating control today is also existing trail `rapid-cortex-cloudtrail-prod` (Option B). |
+| `ENABLE_API_WAF=true\|false` | `EnableApiWaf` — live `dev` forces `true`. HTTP API edge is also protected by CloudFront-scope WAF. |
 | `COGNITO_USER_POOL_NAME`, `COGNITO_APP_CLIENT_NAME`, `COGNITO_DOMAIN_PREFIX`, `COGNITO_CALLBACK_URLS`, `COGNITO_LOGOUT_URLS` (comma-separated, no spaces), `COGNITO_GENERATE_SECRET` | Cognito `*` parameters; empty `COGNITO_DOMAIN_PREFIX` keeps legacy hosted UI prefix `rapidcortex-{stage}-{account}` |
 | `SNS_TOPIC_NAME` | `OpsSnsTopicNameOverride` (optional topic name) |
 | `SNS_EMAIL_SUBSCRIPTION`, `SNS_SMS_TEST_NUMBER` | `SnsEmailSubscription`, `SnsSmsSubscription` — `AWS::SNS::Subscription` on the ops topic |

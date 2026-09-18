@@ -37,6 +37,19 @@ Parameters:
     Type: String
   PostIncidentAudioChunkFunctionName:
     Type: String
+  ApiCertificateArn:
+    Type: String
+    Default: ""
+    Description: >-
+      ACM certificate ARN for DaysToExpiry CloudWatch alarm (SOC 2). Live production
+      uses arn:aws:acm:us-east-1:158961537080:certificate/cc0f7fc4-d4ca-4b1a-8ff6-e0676d872fa5.
+
+Conditions:
+  HasApiCertificateArn:
+    Fn::Not:
+      - Fn::Equals:
+          - !Ref ApiCertificateArn
+          - ""
 
 Resources:
   DetectIncidentTypeErrorsAlarm:
@@ -400,3 +413,23 @@ Resources:
       Threshold: 1
       ComparisonOperator: GreaterThanOrEqualToThreshold
       TreatMissingData: notBreaching
+
+  AcmCertificateExpiryAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Condition: HasApiCertificateArn
+    Properties:
+      AlarmName: !Sub "rapid-cortex-acm-expiry-${DeploymentStage}"
+      AlarmDescription: Alert when the Rapid Cortex API ACM certificate DaysToExpiry drops below 45 days (SOC 2).
+      AlarmActions:
+        - !Ref OpsAlertsTopicArn
+      Namespace: AWS/CertificateManager
+      MetricName: DaysToExpiry
+      Dimensions:
+        - Name: CertificateArn
+          Value: !Ref ApiCertificateArn
+      Statistic: Minimum
+      Period: 86400
+      EvaluationPeriods: 1
+      Threshold: 45
+      ComparisonOperator: LessThanThreshold
+      TreatMissingData: breaching

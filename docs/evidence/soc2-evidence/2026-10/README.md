@@ -4,8 +4,10 @@
 **Account:** 158961537080  
 **Production stack:** `rapid-cortex-dev` (`DeploymentStage=dev` — live `app.rapidcortex.us`)
 
-Auditor role: `arn:aws:iam::158961537080:role/rapid-cortex-soc2-auditor`  
-(SecurityAudit + ReadOnlyAccess attached; extra reads inline. Deploy IAM cannot create `rc-soc2-auditor` — name must be `rapid-cortex-*`.)
+Auditor role: `arn:aws:iam::158961537080:role/rc-soc2-auditor` (preferred) with fallback
+`arn:aws:iam::158961537080:role/rapid-cortex-soc2-auditor`
+(SecurityAudit + ReadOnlyAccess attached; extra reads inline).
+Attach `infra/iam/sam-deploy-policy-soc2.prod.json` so the deploy user can create `rc-soc2-auditor`.
 
 | Control | Status | Artifact |
 |---|---|---|
@@ -20,13 +22,27 @@ Auditor role: `arn:aws:iam::158961537080:role/rapid-cortex-soc2-auditor`
 
 ## Root-cause override (do not rely on DeploymentStage=dev)
 
-In `scripts/env-api-dev.sh` (next SAM deploy):
+Do **not** rename stack `rapid-cortex-dev`. `scripts/deploy.sh dev` sources
+`scripts/lib/soc2-live-production-overrides.sh`, which forces:
 
-- `ENABLE_CLOUD_TRAIL=true`
-- `DDB_ENABLE_PITR=true`
-- `ENABLE_API_WAF=true`
+- `ENABLE_CLOUD_TRAIL=true` → `EnableCloudTrail=true`
+- `DDB_ENABLE_PITR=true` → `DynamoPointInTimeRecovery=true`
+- `ENABLE_API_WAF=true` → `EnableApiWaf=true`
 
-Templates: Cognito MFA hardcoded `ON`; `EnablePilotGradeBackups` includes `dev`.
+Copy `scripts/env-api-dev.example.sh` into the gitignored `scripts/env-api-dev.sh`.
+Templates: Cognito MFA hardcoded `ON`; DataLayer `EnablePilotGradeBackups` includes `dev`;
+AppSam nests still need the explicit `DynamoPointInTimeRecovery=true` override.
+
+PITR one-liner (if any new table is created without the param):
+
+```bash
+aws dynamodb list-tables --output text --query TableNames[] | tr '\t' '\n' \
+  | grep -E '^(rapid-cortex-|RapidCortex|Ring)' \
+  | while read -r t; do
+      aws dynamodb update-continuous-backups --table-name "$t" \
+        --point-in-time-recovery-specification PointInTimeRecoveryEnabled=true
+    done
+```
 
 ## Scope
 

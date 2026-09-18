@@ -20,19 +20,24 @@ SNS="arn:aws:sns:us-east-1:${ACCOUNT}:rapid-cortex-dev-AppSamStackV2-1BR5EYUP7MO
 CERT="arn:aws:acm:us-east-1:${ACCOUNT}:certificate/cc0f7fc4-d4ca-4b1a-8ff6-e0676d872fa5"
 CF_WAF="arn:aws:wafv2:us-east-1:${ACCOUNT}:global/webacl/rapid-cortex-httpapi-cdn-waf-dev/7f68bde8-cc59-4b9d-bed7-dd1f66e7eeef"
 CDN_WAF="arn:aws:wafv2:us-east-1:${ACCOUNT}:global/webacl/rapid-cortex-v2-web-cdn-prod/a52d3854-ff3c-45c6-bf2a-b140213ef625"
-AUDITOR_ROLE=rapid-cortex-soc2-auditor
+AUDITOR_ROLE="${SOC2_AUDITOR_ROLE:-rc-soc2-auditor}"
+AUDITOR_ROLE_FALLBACK=rapid-cortex-soc2-auditor
 
 log() { printf '[%s] %s\n' "$(date -u +%H:%M:%S)" "$*"; }
 
-# --- Fix 1: auditor role (name must be rapid-cortex-* for deploy IAM) ---
-log "Creating $AUDITOR_ROLE"
-TRUST='{"Version":"2012-10-17","Statement":[{"Effect":"Allow","Principal":{"AWS":"arn:aws:iam::'"$ACCOUNT"':root"},"Action":"sts:AssumeRole"}]}'
-aws iam create-role --role-name "$AUDITOR_ROLE" --assume-role-policy-document "$TRUST" \
-  --description "SOC 2 Type II auditor read-only (SecurityAudit + extra reads)" 2>/dev/null || true
-aws iam update-assume-role-policy --role-name "$AUDITOR_ROLE" --policy-document "$TRUST"
-aws iam attach-role-policy --role-name "$AUDITOR_ROLE" --policy-arn arn:aws:iam::aws:policy/SecurityAudit 2>&1 | tee "$EVID/auditor-attach-securityaudit.txt" || true
-aws iam attach-role-policy --role-name "$AUDITOR_ROLE" --policy-arn arn:aws:iam::aws:policy/ReadOnlyAccess 2>&1 | tee "$EVID/auditor-attach-readonly.txt" || true
-aws iam put-role-policy --role-name "$AUDITOR_ROLE" --policy-name soc2-additional-reads --policy-document '{
+# --- Fix 1: auditor role (rc-soc2-auditor; fall back to rapid-cortex-* if IAM path is scoped) ---
+ensure_auditor_role() {
+  local name="$1"
+  log "Creating $name"
+  local TRUST='{"Version":"2012-10-17","Statement":[{"Effect":"Allow","Principal":{"AWS":"arn:aws:iam::'"$ACCOUNT"':root"},"Action":"sts:AssumeRole"}]}'
+  if ! aws iam create-role --role-name "$name" --assume-role-policy-document "$TRUST" \
+    --description "SOC 2 Type II auditor read-only (SecurityAudit + extra reads)" 2>/dev/null; then
+    aws iam get-role --role-name "$name" >/dev/null 2>&1 || return 1
+  fi
+  aws iam update-assume-role-policy --role-name "$name" --policy-document "$TRUST"
+  aws iam attach-role-policy --role-name "$name" --policy-arn arn:aws:iam::aws:policy/SecurityAudit 2>&1 | tee "$EVID/auditor-attach-securityaudit.txt" || true
+  aws iam attach-role-policy --role-name "$name" --policy-arn arn:aws:iam::aws:policy/ReadOnlyAccess 2>&1 | tee "$EVID/auditor-attach-readonly.txt" || true
+  aws iam put-role-policy --role-name "$name" --policy-name soc2-additional-reads --policy-document '{
   "Version":"2012-10-17",
   "Statement":[{"Effect":"Allow","Action":[
     "kms:ListKeys","kms:ListAliases","kms:DescribeKey","kms:GetKeyRotationStatus",
@@ -46,8 +51,15 @@ aws iam put-role-policy --role-name "$AUDITOR_ROLE" --policy-name soc2-additiona
     "cloudwatch:DescribeAlarms","iam:GetRole","iam:ListAttachedRolePolicies","iam:GetRolePolicy","sts:GetCallerIdentity"
   ],"Resource":"*"}]
 }'
-aws iam get-role --role-name "$AUDITOR_ROLE" > "$EVID/auditor-role.json"
-aws iam list-attached-role-policies --role-name "$AUDITOR_ROLE" > "$EVID/auditor-attached-policies.json" 2>/dev/null || true
+  aws iam get-role --role-name "$name" > "$EVID/auditor-role.json"
+  aws iam list-attached-role-policies --role-name "$name" > "$EVID/auditor-attached-policies.json" 2>/dev/null || true
+  return 0
+}
+
+if ! ensure_auditor_role "$AUDITOR_ROLE"; then
+  log "IAM denied $AUDITOR_ROLE (deploy policy is rapid-cortex-* until sam-deploy-policy-soc2 is attached); using $AUDITOR_ROLE_FALLBACK"
+  ensure_auditor_role "$AUDITOR_ROLE_FALLBACK" || true
+fi
 cp_ev "$EVID/auditor-role.json"
 
 # Keep the previously created evidence-readonly role as a second principal.
@@ -82,7 +94,51 @@ cp_ev "$EVID/cloudtrail-status.json"
 cp_ev "$EVID/cloudtrail-describe.json"
 cp_ev "$EVID/cloudtrail-event-selectors.json"
 
-# --- Fix 3: PITR verification TSV ---
+# --- Fix 3: PITR enable + verification TSV ---
+log "Enabling PITR on Rapid Cortex / Ring tables"
+python3 - <<'PY'
+import json, subprocess, sys
+def run(cmd):
+    return subprocess.run(cmd, capture_output=True, text=True)
+names = []
+exclusive = None
+while True:
+    cmd = ["aws", "dynamodb", "list-tables"]
+    if exclusive:
+        cmd += ["--exclusive-start-table-name", exclusive]
+    data = json.loads(run(cmd).stdout or "{}")
+    names.extend(data.get("TableNames") or [])
+    exclusive = data.get("LastEvaluatedTableName")
+    if not exclusive:
+        break
+ok = fail = 0
+for table in names:
+    if not (table.startswith("rapid-cortex-") or table.startswith("RapidCortex") or table.startswith("Ring")):
+        continue
+    desc = run(["aws", "dynamodb", "describe-continuous-backups", "--table-name", table])
+    enabled = False
+    try:
+        enabled = json.loads(desc.stdout)["ContinuousBackupsDescription"]["PointInTimeRecoveryDescription"]["PointInTimeRecoveryStatus"] == "ENABLED"
+    except Exception:
+        pass
+    if enabled:
+        ok += 1
+        continue
+    upd = run([
+        "aws", "dynamodb", "update-continuous-backups",
+        "--table-name", table,
+        "--point-in-time-recovery-specification", "PointInTimeRecoveryEnabled=true",
+    ])
+    if upd.returncode == 0:
+        ok += 1
+        print(f"  ENABLED {table}")
+    else:
+        fail += 1
+        print(f"  FAIL {table}: {(upd.stderr or upd.stdout).strip().splitlines()[-1:]}")
+print(f"PITR enabled_or_already={ok} failed={fail}")
+if fail:
+    sys.exit(1)
+PY
 log "PITR inventory"
 python3 - "$EVID/dynamodb-pitr-post-fix.tsv" <<'PY'
 import json, subprocess, sys
@@ -117,7 +173,11 @@ PY
 cp_ev "$EVID/dynamodb-pitr-post-fix.tsv"
 
 # --- Fix 4: Cognito MFA ---
-log "Cognito MFA"
+log "Cognito MFA ON (required TOTP)"
+aws cognito-idp set-user-pool-mfa-config \
+  --user-pool-id "$POOL" \
+  --mfa-configuration ON \
+  --software-token-mfa-configuration Enabled=true >/dev/null
 aws cognito-idp get-user-pool-mfa-config --user-pool-id "$POOL" > "$EVID/cognito-mfa-config.json"
 cp_ev "$EVID/cognito-mfa-config.json"
 

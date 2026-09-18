@@ -68,6 +68,12 @@ if [[ -z "$STAGE" ]]; then
   exit 1
 fi
 
+# Live production remains stack rapid-cortex-dev (and rapid-cortex-2-dev). Do not rename.
+if [[ "$STAGE" == "dev" ]]; then
+  # shellcheck source=scripts/lib/soc2-live-production-overrides.sh
+  source "${ROOT}/scripts/lib/soc2-live-production-overrides.sh"
+fi
+
 if [[ "$STAGE" != "dev" && -z "${HTTP_API_CORS_ORIGINS:-}" && "${SKIP_CORS_CHECK:-}" != "1" ]]; then
   echo "WARN: HTTP_API_CORS_ORIGINS is empty for ${STAGE}. Set comma-separated https origins (no spaces), e.g.:" >&2
   echo "  HTTP_API_CORS_ORIGINS=https://www.rapidcortex.us,https://www.example.org ./scripts/deploy2.sh ${STAGE}" >&2
