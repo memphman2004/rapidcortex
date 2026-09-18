@@ -37,7 +37,16 @@ These are not documentation tasks. If they are still true on day 1 of the observ
 
 2. **CloudTrail** — Either turn **`EnableCloudTrail=true`** on `rapid-cortex-dev` (multi-Region, `EnableLogFileValidation=true`, `IsLogging=true`) **or** document the existing prod log bucket + the actual trail name, with `get-trail-status` and `get-event-selectors` output. Today you cannot show log-file validation. S3 object-level and Lambda data events are off.
 
-3. **DynamoDB PITR** — Set **`DynamoPointInTimeRecovery=true`** (do not rely on `auto` while production is still `DeploymentStage=dev`) and enable PITR on every in-scope table, especially `agencies`, `audit`, incident/transcript tables, and Ring tables. 141 Rapid Cortex/Ring tables are currently `DISABLED`.
+3. **DynamoDB PITR** — Set **`DynamoPointInTimeRecovery=true`** (do not rely on `auto` while production is still `DeploymentStage=dev`) and enable PITR on every in-scope table, especially `agencies`, `audit`, incident/transcript tables, and Ring tables. 141 Rapid Cortex/Ring tables are currently `DISABLED`. One-liner:
+
+```bash
+aws dynamodb list-tables --output text --query TableNames[] | tr '\t' '\n' \
+  | grep -E '^(rapid-cortex-|RapidCortex|Ring)' \
+  | while read -r t; do
+      aws dynamodb update-continuous-backups --table-name "$t" \
+        --point-in-time-recovery-specification PointInTimeRecoveryEnabled=true
+    done
+```
 
 4. **Cognito MFA** — Change production user pool MFA from `OPTIONAL` to **`ON`** (required), or document IdP-enforced MFA as the compensating control with evidence.
 

@@ -72,6 +72,7 @@ allowed_sids = {
 for rel in (
     "infra/iam/sam-deploy-policy.json",
     "infra/iam/sam-deploy-policy-web.json",
+    "infra/iam/sam-deploy-policy-soc2.json",
 ):
     deploy = (root / rel).read_text(encoding="utf-8")
     d = json.loads(deploy)

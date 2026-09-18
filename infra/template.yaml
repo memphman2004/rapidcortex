@@ -223,7 +223,11 @@ Parameters:
     Type: String
     Default: auto
     AllowedValues: [auto, "true", "false"]
-    Description: PITR on DynamoDB. auto = on for staging/prod/pilot, off for dev (matches previous template).
+    Description: >-
+      PITR on DynamoDB. `true` forces on in every stage. `auto` is on for staging/prod/pilot
+      and, on DataLayer only, also for live DeploymentStage=dev. Nested AppSam tables still
+      treat `auto` as off for `dev`, so live production must pass DynamoPointInTimeRecovery=true
+      (scripts/lib/soc2-live-production-overrides.sh). Do not rename stack rapid-cortex-dev.
   DynamoBillingMode:
     Type: String
     Default: PAY_PER_REQUEST
@@ -414,6 +418,13 @@ Parameters:
     Description: >-
       When true, logs data-plane (Invoke) events for all Lambda functions in the stack region. Higher cost; use sparingly
       and prefer management events (default) unless Lambda invocation forensics is required.
+  AcmExpiryCertificateArn:
+    Type: String
+    Default: ""
+    Description: >-
+      ACM certificate ARN for the DaysToExpiry CloudWatch alarm (SOC 2). Live production
+      (`deploy.sh dev`) sets this to cert cc0f7fc4-d4ca-4b1a-8ff6-e0676d872fa5 via
+      scripts/lib/soc2-live-production-overrides.sh. Leave empty to skip the nested-stack alarm.
   IncludeDataLayerNestedStack:
     Type: String
     Default: "true"
@@ -4108,6 +4119,7 @@ Resources:
         PublicIncidentMediaHttpFunctionName: !GetAtt AppSamStackV2.Outputs.PublicIncidentMediaHttpFunctionName
         AnalyzeIncidentFunctionName: !GetAtt AppSamStackV2.Outputs.AnalyzeIncidentFunctionName
         PostIncidentAudioChunkFunctionName: !GetAtt AppSamStackV2.Outputs.PostIncidentAudioChunkFunctionName
+        ApiCertificateArn: !Ref AcmExpiryCertificateArn
 
 Outputs:
   HttpApiUrl:

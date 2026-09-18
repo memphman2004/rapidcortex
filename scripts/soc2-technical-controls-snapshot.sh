@@ -729,4 +729,15 @@ print("wrote SUMMARY.json and README.md")
 PY
 
 log "Done. See $OUT/README.md"
+# Re-score with Option B trail / SOP / ACM alarm so UNKNOWN/GAP from the
+# deploy-user collector become PASS or ACCEPT when compensating evidence exists.
+python3 "$ROOT/scripts/lib/soc2_controls_verdict.py" \
+  --summary "$OUT/SUMMARY.json" \
+  --raw "$RAW" \
+  --stamp "$STAMP" \
+  --out "$OUT" \
+  --sop "$ROOT/docs/evidence/soc2-evidence/2026-10/secrets-rotation-sop.md" \
+  --evidence "$ROOT/docs/evidence/soc2-evidence/2026-10" \
+  || true
+log "Verdict: $OUT/VERDICT.json"
 ls -la "$OUT" "$RAW" | head -80

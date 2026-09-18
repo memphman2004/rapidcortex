@@ -3,7 +3,8 @@
 #
 # AWS managed customer policy documents are limited to 6144 characters. Core SAM/CFN
 # permissions live in sam-deploy-policy*.json; web/ECS/CodeBuild/CloudFront/SSM in
-# sam-deploy-policy-web*.json. Attach both to the deploy user.
+# sam-deploy-policy-web*.json; SOC 2 auditor role (rc-soc2-auditor) in
+# sam-deploy-policy-soc2*.json. Attach all three to the deploy user.
 #
 # Usage (prod account 158961537080):
 #   ADMIN_AWS_PROFILE=<admin> ./scripts/apply-sam-deploy-managed-policies.sh
@@ -13,6 +14,7 @@
 #   IAM_USER                    default rapid-cortex-deploy
 #   IAM_POLICY_NAME             default rapid-cortex-deploy-policy
 #   IAM_POLICY_WEB_NAME         default rapid-cortex-deploy-policy-web
+#   IAM_POLICY_SOC2_NAME        default rapid-cortex-sam-deploy-policy-soc2
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
@@ -22,8 +24,10 @@ source "${ROOT}/scripts/lib/rapid-cortex-aws.sh"
 IAM_USER="${IAM_USER:-rapid-cortex-deploy}"
 IAM_POLICY_NAME="${IAM_POLICY_NAME:-rapid-cortex-sam-deploy-policy}"
 IAM_POLICY_WEB_NAME="${IAM_POLICY_WEB_NAME:-rapid-cortex-sam-deploy-policy-web}"
+IAM_POLICY_SOC2_NAME="${IAM_POLICY_SOC2_NAME:-rapid-cortex-sam-deploy-policy-soc2}"
 CORE_POLICY_FILE="${ROOT}/infra/iam/sam-deploy-policy.prod.json"
 WEB_POLICY_FILE="${ROOT}/infra/iam/sam-deploy-policy-web.prod.json"
+SOC2_POLICY_FILE="${ROOT}/infra/iam/sam-deploy-policy-soc2.prod.json"
 VERIFY_DRIFT=0
 
 for arg in "$@"; do
@@ -40,8 +44,8 @@ for arg in "$@"; do
   esac
 done
 
-if [[ ! -f "${CORE_POLICY_FILE}" || ! -f "${WEB_POLICY_FILE}" ]]; then
-  echo "ERROR: Missing ${CORE_POLICY_FILE} or ${WEB_POLICY_FILE}" >&2
+if [[ ! -f "${CORE_POLICY_FILE}" || ! -f "${WEB_POLICY_FILE}" || ! -f "${SOC2_POLICY_FILE}" ]]; then
+  echo "ERROR: Missing ${CORE_POLICY_FILE}, ${WEB_POLICY_FILE}, or ${SOC2_POLICY_FILE}" >&2
   exit 1
 fi
 
@@ -123,6 +127,7 @@ upsert_managed_policy() {
 echo "Applying split deploy managed policies to ${IAM_USER} (account ${RAPID_CORTEX_AWS_ACCOUNT_ID})…"
 upsert_managed_policy "${IAM_POLICY_NAME}" "${CORE_POLICY_FILE}"
 upsert_managed_policy "${IAM_POLICY_WEB_NAME}" "${WEB_POLICY_FILE}"
+upsert_managed_policy "${IAM_POLICY_SOC2_NAME}" "${SOC2_POLICY_FILE}"
 
 if [[ "${VERIFY_DRIFT}" -eq 1 ]]; then
   echo ""

@@ -1,0 +1,53 @@
+{
+  "collectedAtUtc": "2026-09-17T23:02:23Z",
+  "account": "158961537080",
+  "principal": "arn:aws:iam::158961537080:user/rapid-cortex-deploy",
+  "overall": "PASS",
+  "controls": [
+    {
+      "control": "CloudTrail + log-file validation",
+      "status": "PASS",
+      "notes": "describe-trails `rapid-cortex-cloudtrail-prod` LogFileValidationEnabled=True multi-Region=True. get-trail-status `rapid-cortex-cloudtrail-prod` IsLogging=true. `rapid-cortex-cloudtrail-prod` is listed in CloudTrail. lookup-events returned recent management events. S3 log bucket `rapid-cortex-cloudtrail-logs-prod-158961537080` exists. Stack param EnableCloudTrail=false (Option B = existing trail outside SAM)."
+    },
+    {
+      "control": "S3 encryption + Block Public Access",
+      "status": "PASS",
+      "notes": "19 rapid-cortex-* buckets; encryption=AES256. Other-product buckets in this shared account are carved out of Rapid Cortex SOC 2 scope (SYSTEM-BOUNDARY.md)."
+    },
+    {
+      "control": "DynamoDB PITR",
+      "status": "PASS",
+      "notes": "182/182 Rapid Cortex/Ring tables ENABLED. Param DynamoPointInTimeRecovery=auto."
+    },
+    {
+      "control": "KMS CMK rotation",
+      "status": "ACCEPT",
+      "notes": "No customer-managed keys in scope. AWS-managed alias/aws/* keys rotate by AWS (not a CMK control)."
+    },
+    {
+      "control": "Secrets Manager rotation",
+      "status": "ACCEPT",
+      "notes": "Auto-rotation is not enabled on Rapid Cortex secrets. Compensating SOP: `docs/evidence/soc2-evidence/2026-10/secrets-rotation-sop.md`."
+    },
+    {
+      "control": "WAF logging",
+      "status": "PASS",
+      "notes": "Regional ACLs: 0. CloudFront ACLs: 3. EnableApiWaf=false. HTTP API is fronted by CloudFront-scope WAF (not REST association). Out-of-scope CloudFront default ACL logging gaps ignored: CreatedByCloudFront-a0a27a88."
+    },
+    {
+      "control": "CloudWatch / ACM expiry",
+      "status": "PASS",
+      "notes": "18 alarms (16 OK, 0 ALARM, 2 INSUFFICIENT_DATA). ACM DaysToExpiry alarm `rc-acm-cert-expiry-cc0f7fc4` is present. Unrelated INSUFFICIENT_DATA alarms (MEL billing / ALB) are out of Rapid Cortex ACM scope."
+    },
+    {
+      "control": "Cognito MFA",
+      "status": "PASS",
+      "notes": "Production pool `us-east-1_0z6tA6WBs` MfaConfiguration=`ON`. Password min length=12."
+    },
+    {
+      "control": "ACM expiry monitoring",
+      "status": "PASS",
+      "notes": "CloudWatch alarm on AWS/CertificateManager DaysToExpiry for cert cc0f7fc4-d4ca-4b1a-8ff6-e0676d872fa5 (threshold 45 days)."
+    }
+  ]
+}
