@@ -15,6 +15,8 @@ Product/pilot risks remain in [phase-0/risk-register.md](../../../phase-0/risk-r
 | R-SOC-009 | CAD write-back enabled on live by mistake | Critical | Low | `deploy.sh` rejects `CAD_WRITEBACK_ENABLED=true` on `dev` | Eng | Mitigated in repo |
 | R-SOC-010 | G3 platform scan still YELLOW until live `npm run security:g3` | Med | Med | Run and attach evidence | Eng | Open |
 | R-SOC-011 | Entity naming AOD vs Rapid Cortex LLC | Med | High | LEG-007 | Legal | Open |
-| R-SOC-012 | No CPA firm engaged | Critical for report | High | SOC-101 | Management | Open |
+| R-SOC-012 | No CPA firm engaged | Critical for report | High | SOC-101; SOW draft in CPA-ENGAGEMENT-SOW.md | Management | Open — packet ready |
+| R-SOC-015 | Single operator (no deputy on-call) | High | High | Name/hire backup; SNS OpsAlerts as only after-hours path | Management | **Accepted** interim |
+| R-SOC-016 | Access-review reviewer = approver | Med | High | Second signer when hired; git PR review on IAM | Security | **Accepted** interim |
 
-**Last quarterly review:** _pending (pre-window)_
+**Last quarterly review:** 2026-09-19 (pre-window closeout)

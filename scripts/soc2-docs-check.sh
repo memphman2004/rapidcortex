@@ -25,7 +25,9 @@ for n in access-review change-management vendor-management incident-response-tab
   restore-drill hr-onboarding-offboarding evidence-collection risk-assessment secrets-rotation; do
   need "docs/security-compliance/soc2/processes/${n}.md"
 done
-need docs/security-compliance/soc2/evidence/risk-register.md
+need docs/security-compliance/soc2/SIGNATURE-PACKET.md
+need docs/security-compliance/soc2/CPA-ENGAGEMENT-SOW.md
+need docs/security-compliance/soc2/evidence/2026-09-19-prewindow/README.md
 need docs/evidence/templates/soc2/README.md
 need scripts/lib/soc2-live-production-overrides.sh
 need scripts/soc2-observation-pack.sh

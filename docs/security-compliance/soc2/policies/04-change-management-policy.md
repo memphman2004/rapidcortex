@@ -4,7 +4,7 @@
 |-------|--------|
 | Policy ID | POL-04 |
 | TSC | CC8.1, CC5.1 |
-| Owner | Engineering lead (NEEDS OWNER) |
+| Owner | Jeff Coleman (interim engineering lead) |
 | Approver | Management |
 | Effective | DRAFT 2026-09-19 |
 | Review | Annual |

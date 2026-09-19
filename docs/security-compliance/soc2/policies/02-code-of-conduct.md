@@ -4,7 +4,7 @@
 |-------|--------|
 | Policy ID | POL-02 |
 | TSC | CC1.1, CC1.5 |
-| Owner | Security lead (NEEDS OWNER) |
+| Owner | Jeff Coleman (interim security lead) |
 | Approver | Management |
 | Effective | DRAFT 2026-09-19 |
 | Review | Annual |

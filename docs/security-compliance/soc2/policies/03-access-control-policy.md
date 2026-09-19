@@ -4,7 +4,7 @@
 |-------|--------|
 | Policy ID | POL-03 |
 | TSC | CC6.1–CC6.3, CC6.6, CC3.3 |
-| Owner | Security lead (NEEDS OWNER) |
+| Owner | Jeff Coleman (interim security lead) |
 | Approver | Management |
 | Effective | DRAFT 2026-09-19 |
 | Review | Quarterly (with access reviews) |

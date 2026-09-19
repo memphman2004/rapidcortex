@@ -23,7 +23,7 @@ Legend for **Type II readiness**:
 |-----------|------------------|--------------|----------|-----------|
 | CC1.1 COSO / integrity | Code of conduct; acceptable use; no certification overclaim | [01](./policies/01-information-security-policy.md), [02](./policies/02-code-of-conduct.md) | Signed ack log [hr-training-log](./evidence/hr-training-log.md) | DESIGN + SIGN |
 | CC1.2 Board oversight | Management reviews this pack annually; board or equivalent signs policies | [01](./policies/01-information-security-policy.md) | Signature page stored off-git | SIGN |
-| CC1.3 Structure | Roles: Security lead, Eng lead, Ops on-call (NEEDS OWNER until named) | [01](./policies/01-information-security-policy.md), [OPS_CONTACT_MATRIX](../../operations-runbooks/OPS_CONTACT_MATRIX.md) | Filled contact matrix (private) | DESIGN + SIGN |
+| CC1.3 Structure | Roles: Security lead, Eng lead, Ops on-call — **Jeff Coleman (interim combined)** | [01](./policies/01-information-security-policy.md), [OPS_CONTACT_MATRIX](../../operations-runbooks/OPS_CONTACT_MATRIX.md), [02-owners](./evidence/2026-09-19-prewindow/02-owners.md) | Named; concentration risk R-SOC-015 | DESIGN + OPS |
 | CC1.4 Competence | Security awareness + onboarding/offboarding | [12](./policies/12-hr-security-awareness.md), [hr SOP](./processes/hr-onboarding-offboarding.md) | Training log | DESIGN + SIGN |
 | CC1.5 Accountability | Performance of access reviews, IR, change control assigned | This matrix + quarterly calendar | Completed logs | OPS |
 

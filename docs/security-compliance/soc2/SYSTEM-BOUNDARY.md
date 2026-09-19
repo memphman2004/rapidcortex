@@ -1,6 +1,6 @@
 # System boundary — Rapid Cortex (SOC 2)
 
-**Policy owner:** Security lead (NEEDS OWNER)  
+**Policy owner:** Jeff Coleman (interim security lead)  
 **TSC:** CC1.1, CC6.1, CC9.2  
 **Status:** DRAFT pending management signature  
 **Not a Type II report.**

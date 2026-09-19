@@ -4,7 +4,7 @@
 |-------|--------|
 | Policy ID | POL-12 |
 | TSC | CC1.4, CC6.2, CC6.3 |
-| Owner | HR + Security lead (NEEDS OWNER) |
+| Owner | Jeff Coleman (interim HR + security) |
 | Approver | Management |
 | Effective | DRAFT 2026-09-19 |
 | Review | Annual |

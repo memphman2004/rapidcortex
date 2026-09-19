@@ -4,7 +4,7 @@
 |-------|--------|
 | Policy ID | POL-07 |
 | TSC | CC7.3, CC7.4, CC2.3 |
-| Owner | Security lead (NEEDS OWNER) |
+| Owner | Jeff Coleman (interim security lead) |
 | Approver | Management |
 | Effective | DRAFT 2026-09-19 |
 | Review | Annual + after every SEV-1 |

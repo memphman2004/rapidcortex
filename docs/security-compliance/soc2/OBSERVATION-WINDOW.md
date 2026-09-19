@@ -25,15 +25,15 @@ AWS_PROFILE=rapid-cortex AWS_DEFAULT_REGION=us-east-1 \
 
 | # | Activity | Owner | Done when |
 |---|---------|-------|-----------|
-| 1 | Management signs policies 01–12 (PDF off-git) | Security lead | Signature page dated |
-| 2 | Fill [OPS_CONTACT_MATRIX](../../operations-runbooks/OPS_CONTACT_MATRIX.md) privately | Ops | On-call named |
-| 3 | First access review (IAM + Cognito privileged) | Security lead | [access-review-log](./evidence/access-review-log.md) row |
-| 4 | Vendor/subprocessor review | Security lead | [vendor-review-log](./evidence/vendor-review-log.md) row |
-| 5 | IR tabletop (SEV-1 credential leak **or** tenant isolation scare) | Eng + Security | [tabletop-log](./evidence/tabletop-log.md) |
-| 6 | Restore drill: PITR **to a new table**, validate counts, **do not cut over** | Eng | [restore-drill-log](./evidence/restore-drill-log.md) |
-| 7 | Confirm live deploy lock-in: next `deploy.sh dev` uses PITR=true and does **not** create SAM CloudTrail | Eng | Override script log |
-| 8 | Engage CPA firm (SOW) | Management | Engagement letter |
-| 9 | Store signed carve-out of shared account | Management | Matches [SYSTEM-BOUNDARY](./SYSTEM-BOUNDARY.md) |
+| 1 | Management signs policies 01–12 (PDF off-git) | Jeff Coleman | [SIGNATURE-PACKET.md](./SIGNATURE-PACKET.md) ready; **wet sign outstanding** |
+| 2 | Fill [OPS_CONTACT_MATRIX](../../operations-runbooks/OPS_CONTACT_MATRIX.md) | Jeff Coleman | **DONE** 2026-09-19 (agency rows still per-pilot) |
+| 3 | First access review (IAM + Cognito privileged) | Jeff Coleman | **CONDITIONAL** — [03-access-review.md](./evidence/2026-09-19-prewindow/03-access-review.md) |
+| 4 | Vendor/subprocessor review | Jeff Coleman | **DONE** v0.3 |
+| 5 | IR tabletop (SEV-1 credential leak **or** tenant isolation scare) | Jeff Coleman | **DONE** scenario 1 |
+| 6 | Restore drill: PITR **to a new table**, validate counts, **do not cut over** | Eng | **DRY_RUN**; live restore needs AWS |
+| 7 | Confirm live deploy lock-in: next `deploy.sh dev` uses PITR=true and does **not** create SAM CloudTrail | Eng | In repo (`soc2-live-production-overrides.sh`); next live deploy still to happen |
+| 8 | Engage CPA firm (SOW) | Management | [CPA-ENGAGEMENT-SOW.md](./CPA-ENGAGEMENT-SOW.md) draft; **not sent** |
+| 9 | Store signed carve-out of shared account | Management | Same signature packet |
 
 ---
 

@@ -4,7 +4,7 @@
 |-------|--------|
 | Policy ID | POL-09 |
 | TSC | CC6.1, CC6.7 (data handling) |
-| Owner | Security lead (NEEDS OWNER) |
+| Owner | Jeff Coleman (interim security lead) |
 | Approver | Management + privacy (PLT-004) |
 | Effective | DRAFT 2026-09-19 |
 | Review | Annual or on new PII field |

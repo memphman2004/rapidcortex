@@ -4,4 +4,4 @@
 
 | Date (UTC) | Period | Reviewer | Approver | Export path (no secrets) | Exceptions / tickets | Result |
 |------------|--------|----------|----------|--------------------------|----------------------|--------|
-| _example_ 2026-09-30 | Pre-window | NEEDS OWNER | NEEDS OWNER | `docs/evidence/soc2-evidence/2026-09/access-review/` | | PENDING |
+| 2026-09-19 | Pre-window / 2026-Q3 | Jeff Coleman | Jeff Coleman (same — R-SOC-016) | [03-access-review.md](./2026-09-19-prewindow/03-access-review.md); live CLI **not** run | AR-001 IAM MFA export; AR-002 Cognito groups | CONDITIONAL PASS |

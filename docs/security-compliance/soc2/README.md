@@ -9,6 +9,8 @@
 
 This directory is the **policy and operating-evidence** layer. Track 1 collected AWS CLI snapshots. Type II also requires that CC1–CC9 **operated** during the window: signed policies, access reviews, change tickets, vendor reviews, incident/tabletop notes, restore drills, and HR/training records.
 
+**2026-09-19 closeout:** [evidence/2026-09-19-prewindow/README.md](./evidence/2026-09-19-prewindow/README.md) · [SIGNATURE-PACKET.md](./SIGNATURE-PACKET.md) · [CPA-ENGAGEMENT-SOW.md](./CPA-ENGAGEMENT-SOW.md)
+
 ---
 
 ## What this pack is

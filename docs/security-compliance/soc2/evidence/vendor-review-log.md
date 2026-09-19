@@ -4,4 +4,4 @@
 
 | Date (UTC) | Reviewer | List version date | New / removed vendors | Optional AI ARNs still required? | Tickets | Result |
 |------------|----------|-------------------|----------------------|----------------------------------|---------|--------|
-| _example_ 2026-09-30 | NEEDS OWNER | 2026-09-08 | none | confirm live | | PENDING |
+| 2026-09-19 | Jeff Coleman | v0.3 2026-09-19 | Added Twilio, Wyze, Nest SDM, Rapid IQ GTM vendors; none removed | OpenAI/Anthropic/Azure/Google secrets **exist**; optional per tenant | [04-vendor-review.md](./2026-09-19-prewindow/04-vendor-review.md) | PASS |
