@@ -39,7 +39,7 @@ run_json() {
   local name="$1"; shift
   local file="$RAW/${STAMP}-${name}.json"
   local err="$RAW/${STAMP}-${name}.stderr.txt"
-  log "aws $*"
+  log "$*"
   if "$@" >"$file" 2>"$err"; then
     if [[ ! -s "$err" ]]; then rm -f "$err"; fi
     return 0

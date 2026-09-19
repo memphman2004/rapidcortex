@@ -9,8 +9,8 @@ This pack finishes **in-repo** design of CC1–CC9. The items below still need p
 | SOC-103 | Named security lead, on-call, HR | Management | **Yes** | **DONE interim** Jeff Coleman; no deputy (R-SOC-015) |
 | SOC-104 | Background checks / signed awareness | HR | **Yes** | **PARTIAL** training log row; HR files off-git |
 | SOC-105 | Execute IR tabletop | Security + Eng | **Yes** | **DONE** [05-tabletop.md](./evidence/2026-09-19-prewindow/05-tabletop.md) |
-| SOC-106 | Execute restore drill (new table) | Eng | **Yes** | **DRY_RUN DONE**; live restore needs AWS |
-| SOC-107 | Monthly live observation packs | Eng | **Yes** | **PARTIAL** hashed 2026-10 pack; live CLI blocked |
+| SOC-106 | Execute restore drill (new table) | Eng | **Yes** | **LIVE REQUESTED** `rapid-cortex-audit-dev-restore-20260919` CREATING — wait ACTIVE, validate, delete copy |
+| SOC-107 | Monthly live observation packs | Eng | **Yes** | **DONE** Mac Mini stamp `20260919T014158Z` — commit `docs/evidence/soc2-evidence/2026-09/` |
 | SOC-108 | Signed shared-account carve-out | Management | Firm-dependent | Same signature packet |
 | SOC-109 | Pen-test SOW / report | Security | Often requested | Open (LEG-010) |
 | SOC-110 | Executed DPA / MSA | Legal | Customer + CC9 | Open |
