@@ -31,6 +31,8 @@ Review `raw/` on the Mac Mini, then `git add docs/evidence/soc2-evidence/2026-09
 | DescribeTable ItemCount (restore, immediately after ACTIVE) | **0** (expected stale; DynamoDB updates this ~every 6 hours) |
 | DescribeTable ItemCount (source) | **13218** |
 | GSI `agencyId-createdAt-index` ItemCount (at create) | **13218** |
+| Scan COUNT (restore, after ACTIVE) | **13218 / ScannedCount 13218** (matches source) |
 | Production pointer changed | **no** |
+| Restore table deleted | **yes** — `delete-table` returned `TableStatus=DELETING` for `rapid-cortex-audit-dev-restore-20260919` only |
 
-Still required: Scan COUNT (or GSI describe) on the restore table to confirm ~13218 items, then **delete only** `rapid-cortex-audit-dev-restore-20260919`.
+**Result:** CC7.5 restore drill **complete**. Production `rapid-cortex-audit-dev` was not cut over and was not deleted.
