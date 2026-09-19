@@ -1,0 +1,14 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "noEmit": true,
+    "declaration": false,
+    "baseUrl": ".",
+    "paths": {
+      "@rc/common-codes": ["../common-codes/src/index.ts"],
+      "@rc/eido": ["../eido/src/index.ts"]
+    }
+  },
+  "include": ["src/**/*.ts"],
+  "exclude": ["src/**/*.test.ts"]
+}

@@ -1,0 +1,23 @@
+{
+  "name": "@rc/c2c-hub",
+  "version": "1.0.0",
+  "private": true,
+  "description": "CAD-to-CAD hub: EIDO routing, mock demo engine, vendor adapter stubs.",
+  "main": "src/index.ts",
+  "types": "src/index.ts",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json --noEmit",
+    "test": "npx vitest run --config ../../vitest.c2c.config.ts",
+    "demo": "npx tsx --tsconfig tsconfig.json src/run-demo.ts"
+  },
+  "dependencies": {
+    "@rc/common-codes": "*",
+    "@rc/eido": "*"
+  },
+  "devDependencies": {
+    "typescript": "^5.7.2"
+  }
+}
