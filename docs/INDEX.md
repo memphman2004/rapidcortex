@@ -28,6 +28,7 @@ Paths below are **canonical** — prefer these over flat `docs/FOO.md` links in 
 | GTM package (hub) | [go-to-market-sales/GTM_PACKAGE.md](./go-to-market-sales/GTM_PACKAGE.md) |
 | Product overview | [go-to-market-sales/PRODUCT_OVERVIEW.md](./go-to-market-sales/PRODUCT_OVERVIEW.md) |
 | Pilot overview | [go-to-market-sales/PILOT_OVERVIEW.md](./go-to-market-sales/PILOT_OVERVIEW.md) |
+| Pilot signature packet (this month) | [go-to-market-sales/PILOT_SIGNATURE_PACKET.md](./go-to-market-sales/PILOT_SIGNATURE_PACKET.md) |
 | Ideal customer profile | [go-to-market-sales/IDEAL_CUSTOMER_PROFILE.md](./go-to-market-sales/IDEAL_CUSTOMER_PROFILE.md) |
 | Use cases | [go-to-market-sales/USE_CASES.md](./go-to-market-sales/USE_CASES.md) |
 | Implementation workbook | [go-to-market-sales/IMPLEMENTATION_WORKBOOK_TEMPLATE.md](./go-to-market-sales/IMPLEMENTATION_WORKBOOK_TEMPLATE.md) |
@@ -130,6 +131,10 @@ Paths below are **canonical** — prefer these over flat `docs/FOO.md` links in 
 | Feature flags | [product-architecture/FEATURE_FLAGS.md](./product-architecture/FEATURE_FLAGS.md) |
 | CAD integrations | [product-architecture/INTEGRATIONS_CAD_AND_MOTOROLA.md](./product-architecture/INTEGRATIONS_CAD_AND_MOTOROLA.md) |
 | CAD connection playbook | [product-architecture/CAD_CONNECTION_PLAYBOOK.md](./product-architecture/CAD_CONNECTION_PLAYBOOK.md) |
+| Track 3 product activation | [product-architecture/TRACK3_PRODUCT_ACTIVATION.md](./product-architecture/TRACK3_PRODUCT_ACTIVATION.md) |
+| Wyze activation | [product-architecture/WYZE_ACTIVATION.md](./product-architecture/WYZE_ACTIVATION.md) |
+| Nest SDM activation | [product-architecture/NEST_SDM_ACTIVATION.md](./product-architecture/NEST_SDM_ACTIVATION.md) |
+| Ring Connect camera access | [product-architecture/RING_CONNECT_CAMERA_ACCESS.md](./product-architecture/RING_CONNECT_CAMERA_ACCESS.md) |
 | Configuration reference | [product-architecture/CONFIGURATION_REFERENCE.md](./product-architecture/CONFIGURATION_REFERENCE.md) |
 | Agency configuration | [product-architecture/AGENCY_CONFIGURATION_GUIDE.md](./product-architecture/AGENCY_CONFIGURATION_GUIDE.md) |
 | Role mapping | [product-architecture/ROLE_MAPPING_GUIDE.md](./product-architecture/ROLE_MAPPING_GUIDE.md) |

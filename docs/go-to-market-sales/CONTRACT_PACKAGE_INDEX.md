@@ -18,6 +18,8 @@
 
 Keep **signed** copies outside git (CRM, Adobe Sign ledger, agency secure share). RC Admin → **Agreements** tracks Adobe Sign completions when connected.
 
+**This month (Track 3):** get an agency past the signature line. Send-order and security-review packet: [PILOT_SIGNATURE_PACKET.md](./PILOT_SIGNATURE_PACKET.md).
+
 ---
 
 ## 1. Pilot agencies (PSAP / ECC)
