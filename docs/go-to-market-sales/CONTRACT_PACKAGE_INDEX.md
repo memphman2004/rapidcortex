@@ -29,6 +29,7 @@ Keep **signed** copies outside git (CRM, Adobe Sign ledger, agency secure share)
 | Agency onboarding checklist (PDF) | `Rapid Cortex Internal Docs/Internal Product requirements/05_Rapid_Cortex_Agency_Onboarding_Checklist.pdf` | Internal | Companion to scope agreement |
 | Data flow overview | `Rapid Cortex Internal Docs/Internal Product requirements/03_Rapid_Cortex_Data_Flow_and_Architecture_Overview.pdf` | Internal | Security / IT reviewers |
 | CJIS / SOC2 alignment statement | `Rapid Cortex Internal Docs/Internal Product requirements/02_Rapid_Cortex_Security_CJIS_SOC2_Alignment_Statement.pdf` | Alignment only | **Not** certification |
+| SOC 2 control pack (repo) | [soc2/README.md](../security-compliance/soc2/README.md) | Internal | Policies/SOPs/evidence ledgers — **not** a Type II report |
 | **DPA** | [DPA_DRAFT.md](./legal-drafts/DPA_DRAFT.md) (draft) + marketing stub | **DRAFT** | PLT-003; counsel before execution |
 | **Security review sign-off** | Per agency process | **GAP** | PLT-002 |
 | Implementation workbook | [IMPLEMENTATION_WORKBOOK_TEMPLATE.md](./IMPLEMENTATION_WORKBOOK_TEMPLATE.md) | Template | Copy per agency |

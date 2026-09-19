@@ -101,12 +101,16 @@ Paths below are **canonical** — prefer these over flat `docs/FOO.md` links in 
 | RFP cybersecurity controls | [rfp/cybersecurity-controls.md](./rfp/cybersecurity-controls.md) |
 | RFP implementation & transition | [rfp/implementation-and-transition.md](./rfp/implementation-and-transition.md) |
 | Security model | [security-compliance/SECURITY_MODEL.md](./security-compliance/SECURITY_MODEL.md) |
+| SOC 2 control pack (not a Type II report) | [security-compliance/soc2/README.md](./security-compliance/soc2/README.md) |
+| SOC 2 system boundary | [security-compliance/soc2/SYSTEM-BOUNDARY.md](./security-compliance/soc2/SYSTEM-BOUNDARY.md) |
+| SOC 2 TSC matrix | [security-compliance/soc2/CONTROL-MATRIX.md](./security-compliance/soc2/CONTROL-MATRIX.md) |
 | Security questionnaire (draft) | [security-compliance/SECURITY_QUESTIONNAIRE_RESPONSES.md](./security-compliance/SECURITY_QUESTIONNAIRE_RESPONSES.md) |
 | Subprocessor list (draft) | [security-compliance/SUBPROCESSOR_LIST.md](./security-compliance/SUBPROCESSOR_LIST.md) |
 | Privacy & retention | [security-compliance/PRIVACY_RETENTION_DECISIONS.md](./security-compliance/PRIVACY_RETENTION_DECISIONS.md) |
 | CJIS alignment notes | [security-compliance/CJIS_ALIGNMENT_NOTES.md](./security-compliance/CJIS_ALIGNMENT_NOTES.md) |
 | Audit event matrix | [security-compliance/AUDIT_EVENT_MATRIX.md](./security-compliance/AUDIT_EVENT_MATRIX.md) |
 | Incident response | [operations-runbooks/INCIDENT_RESPONSE.md](./operations-runbooks/INCIDENT_RESPONSE.md) |
+| Backup and recovery | [operations-runbooks/BACKUP_AND_RECOVERY.md](./operations-runbooks/BACKUP_AND_RECOVERY.md) |
 
 ## Legal drafts (counsel review)
 

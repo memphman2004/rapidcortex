@@ -20,13 +20,14 @@ Auditor role: `arn:aws:iam::158961537080:role/rapid-cortex-soc2-auditor`
 
 ## Root-cause override (do not rely on DeploymentStage=dev)
 
-In `scripts/env-api-dev.sh` (next SAM deploy):
+Live production is `DeploymentStage=dev`. Next SAM deploy (`scripts/deploy.sh dev`):
 
-- `ENABLE_CLOUD_TRAIL=true`
-- `DDB_ENABLE_PITR=true`
-- `ENABLE_API_WAF=true`
+- **`DDB_ENABLE_PITR=true`** — forced by `scripts/lib/soc2-live-production-overrides.sh` so AppSam tables cannot lose PITR.
+- **`ENABLE_CLOUD_TRAIL=false`** — keep SAM trail **off**. Operating control is Option B trail `rapid-cortex-cloudtrail-prod`. Setting true would CREATE `rapid-cortex-audit-dev` plus an Object Lock **COMPLIANCE** bucket (`rapid-cortex-cloudtrail-logs-dev-*`, 2555 days).
+- **`CAD_WRITEBACK_ENABLED=false`** — rejected if true.
+- `EnablePilotGradeBackups` includes `dev` on AppSam nests. Cognito MFA remains hardcoded `ON`.
 
-Templates: Cognito MFA hardcoded `ON`; `EnablePilotGradeBackups` includes `dev`.
+Policy/process pack: [docs/security-compliance/soc2/README.md](../../../security-compliance/soc2/README.md).
 
 ## Scope
 

@@ -50,4 +50,5 @@ Formal **CJIS Security Policy** compliance, **state 911** certification, and **v
 
 - [AUDIT_EVENT_MATRIX.md](./AUDIT_EVENT_MATRIX.md)
 - [PRIVACY_RETENTION_DECISIONS.md](./PRIVACY_RETENTION_DECISIONS.md)
-- [PILOT_GOVERNANCE.md](./PILOT_GOVERNANCE.md)
+- [PILOT_GOVERNANCE.md](../go-to-market-sales/PILOT_GOVERNANCE.md)
+- [SOC 2 control pack](./soc2/README.md) (policies and evidence templates — **not** a Type II report)

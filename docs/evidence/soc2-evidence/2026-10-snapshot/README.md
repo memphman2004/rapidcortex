@@ -18,4 +18,4 @@ Use **`docs/evidence/soc2-evidence/2026-10/`** as the auditor pack (named CLI ar
 
 Auditor role: `arn:aws:iam::158961537080:role/rapid-cortex-soc2-auditor` (SecurityAudit + ReadOnlyAccess). Deploy IAM cannot create a role named `rc-soc2-auditor`.
 
-Stack params still show `EnableCloudTrail=false` / `DynamoPointInTimeRecovery=auto` / `EnableApiWaf=false` until the next SAM deploy. Live controls are already on. Next deploy must use `scripts/env-api-dev.sh` (`ENABLE_CLOUD_TRAIL=true`, `DDB_ENABLE_PITR=true`, `ENABLE_API_WAF=true`) so CloudFormation does not fight the live state.
+Stack params still show `EnableCloudTrail=false` / `DynamoPointInTimeRecovery=auto` / `EnableApiWaf=false` until the next SAM deploy. Live CloudTrail is Option B (`rapid-cortex-cloudtrail-prod`) — **leave `EnableCloudTrail=false`** so SAM does not create a COMPLIANCE-locked second bucket. Next `deploy.sh dev` **must** keep `DDB_ENABLE_PITR=true` (forced by `scripts/lib/soc2-live-production-overrides.sh`) so CloudFormation does not turn AppSam PITR off.

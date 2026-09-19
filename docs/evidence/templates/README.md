@@ -14,3 +14,5 @@ These files are **templates only**. Copy them to `docs/evidence/` (or your custo
 | Aggregate | [`GREEN-status-report.template.md`](./GREEN-status-report.template.md) | Only after gate sheet is legitimately GREEN with sign-offs |
 
 **G6 (CAD write-back)** remains **RED by design** until separate governance; do not use the GREEN aggregate template to imply write-back approval.
+
+SOC 2 Type II operating templates (policies are separate): [`soc2/`](./soc2/).

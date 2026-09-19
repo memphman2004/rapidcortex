@@ -35,8 +35,10 @@ set -euo pipefail
 # - SNS_EMAIL_SUBSCRIPTION, SNS_SMS_TEST_NUMBER
 # - SES_IDENTITY_TYPE (email|domain), SES_IDENTITY_VALUE, SES_CONFIGURATION_SET_NAME
 # - ENABLE_API_WAF (true|false) → EnableApiWaf; optional WAF_RATE_LIMIT_5M, TRANSCRIPT_RETENTION_POLICY_DAYS
-# - ENABLE_CLOUD_TRAIL (true|false) → EnableCloudTrail (template default true). Set false in dev if CloudTrail S3
-#   bucket name conflicts with an existing retained bucket from a prior deploy.
+# - ENABLE_CLOUD_TRAIL (true|false) → EnableCloudTrail. Live DeploymentStage=dev MUST stay false
+#   (Option B trail rapid-cortex-cloudtrail-prod). true would create a second trail + Object Lock
+#   COMPLIANCE bucket. deploy.sh sources scripts/lib/soc2-live-production-overrides.sh on STAGE=dev
+#   (forces DDB_ENABLE_PITR=true; rejects CAD write-back and SAM CloudTrail create).
 # - INCLUDE_DATA_LAYER_NESTED_STACK=false for legacy dev stacks whose DynamoDB/S3 already live on the root stack
 #   (same names as nested stack-data-layer). Requires FLAT_DATA_LAYER_BILLING_PAYMENT_INSTRUCTIONS_SECRET_ARN and
 #   FLAT_DATA_LAYER_BILLING_SES_CREDENTIALS_SECRET_ARN (full Secrets Manager ARNs). Default: nested data layer enabled.
@@ -163,6 +165,14 @@ if [[ "$STAGE" == "dev" && "${I_UNDERSTAND_DEV_IS_PROD:-}" != "1" ]]; then
   echo "  Engineering: source scripts/env-api-staging.sh && $0 staging" >&2
   echo "  Intentional live deploy: source scripts/env-api-dev.sh (sets I_UNDERSTAND_DEV_IS_PROD=1) then $0 dev" >&2
   exit 1
+fi
+
+if [[ "$STAGE" == "dev" ]]; then
+  # SOC 2 live lock-in: PITR on; SAM CloudTrail stays off (Option B trail);
+  # CAD write-back fail-closed. See docs/security-compliance/soc2/SYSTEM-BOUNDARY.md
+  # shellcheck source=scripts/lib/soc2-live-production-overrides.sh
+  source "${ROOT}/scripts/lib/soc2-live-production-overrides.sh"
+  rc_soc2_apply_live_production_overrides
 fi
 
 if [[ "$STAGE" == "staging" ]]; then
@@ -516,9 +526,10 @@ fi
 if [[ -n "${TRANSCRIPT_RETENTION_POLICY_DAYS:-}" ]]; then
   PARAMS="${PARAMS} TranscriptRetentionPolicyDays=${TRANSCRIPT_RETENTION_POLICY_DAYS}"
 fi
-# CAD write-back: blocked in prod until pilot go/no-go + signed agency addendum (see cursor-prompt-cad-writeback-pilot.md).
-if [[ "$STAGE" == "prod" && "${CAD_WRITEBACK_ENABLED:-}" == "true" ]]; then
-  echo "ERROR: CAD_WRITEBACK_ENABLED=true is not allowed for prod deploys until pilot validation and a signed CAD writeback addendum." >&2
+# CAD write-back: blocked on live until pilot go/no-go + signed agency addendum.
+# DeploymentStage=dev is live production (app.rapidcortex.us), not a sandbox.
+if [[ "$STAGE" == "prod" || "$STAGE" == "dev" ]] && [[ "${CAD_WRITEBACK_ENABLED:-}" == "true" ]]; then
+  echo "ERROR: CAD_WRITEBACK_ENABLED=true is not allowed for ${STAGE} deploys until pilot validation and a signed CAD writeback addendum." >&2
   exit 1
 fi
 if [[ -n "${CAD_WRITEBACK_ENABLED:-}" ]]; then

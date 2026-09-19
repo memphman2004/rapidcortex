@@ -451,8 +451,12 @@ Conditions:
   HasPlatformNoticesTable: !Not [!Equals [!Ref PlatformNoticesTable, ""]]
   UseManagedMultilingualSecrets: !Equals [!Ref MultilingualSecretProvisioning, "managed"]
   MultilingualSecretsBroadPolicy: !Equals [!Ref MultilingualSecretsPolicyMode, "broad"]
+  # Live production is DeploymentStage=dev (app.rapidcortex.us). PITR must stay on.
   EnablePilotGradeBackups:
     Fn::Or:
+      - Fn::Equals:
+          - !Ref DeploymentStage
+          - dev
       - Fn::Equals:
           - !Ref DeploymentStage
           - staging

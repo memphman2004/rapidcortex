@@ -223,7 +223,7 @@ Parameters:
     Type: String
     Default: auto
     AllowedValues: [auto, "true", "false"]
-    Description: PITR on DynamoDB. auto = on for staging/prod/pilot, off for dev (matches previous template).
+    Description: PITR on DynamoDB. auto = on for staging/prod/pilot and for live DeploymentStage=dev (app.rapidcortex.us). deploy.sh forces true on STAGE=dev. Do not pass false on live.
   DynamoBillingMode:
     Type: String
     Default: PAY_PER_REQUEST

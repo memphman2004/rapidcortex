@@ -13,7 +13,7 @@ Rapid Cortex is designed so an agency CJIS Information Security Officer can **ma
 
 | CJIS-oriented area | Rapid Cortex control | Evidence |
 |--------------------|----------------------|----------|
-| Identification & authentication | AWS Cognito user pool; JWT verified server-side; MFA (software TOTP) configurable as agency policy | [AUTH_OPERATIONS.md](../product-architecture/AUTH_OPERATIONS.md), [CJIS_ALIGNMENT_NOTES.md](../security-compliance/CJIS_ALIGNMENT_NOTES.md) |
+| Identification & authentication | AWS Cognito user pool; JWT verified server-side; **MFA required** on production pool `us-east-1_0z6tA6WBs` (`MfaConfiguration=ON`) | [AUTH_OPERATIONS.md](../product-architecture/AUTH_OPERATIONS.md), [CJIS_ALIGNMENT_NOTES.md](../security-compliance/CJIS_ALIGNMENT_NOTES.md), [soc2/SYSTEM-BOUNDARY.md](../security-compliance/soc2/SYSTEM-BOUNDARY.md) |
 | Access control | Canonical roles in JWT `custom:role`; `AuthorizationService.canPerform()`; `agencyId` on every DynamoDB access | `packages/security`, [TENANT_ISOLATION_MODEL.md](../security-compliance/TENANT_ISOLATION_MODEL.md) |
 | Audit & accountability | Append-only audit events for meaningful mutations; CloudWatch application logs (no raw transcripts / secrets by policy) | [AUDIT_EVENT_MATRIX.md](../security-compliance/AUDIT_EVENT_MATRIX.md) |
 | Identification of inactive users | `custom:status` must be active for API access | Auth gate |

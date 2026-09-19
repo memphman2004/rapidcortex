@@ -15,8 +15,12 @@
 | LEG-008 | MSA Exhibit B pricing (filled) | P0 | TBD | Finance | `RC_Pricing_Master_Guide_v4.xlsx` |
 | LEG-009 | Per-vendor CAD SOW | P1 | GAP | NEEDS OWNER | GA-013 |
 | LEG-010 | Pen-test SOW / report | P2 | GAP | NEEDS OWNER | Acceptable-use references pen-test SOW |
-| LEG-011 | SOC 2 report | P2 | N/A | — | Third-party audit only |
-| OPS-001 | Security questionnaire pack | P1 | **DRAFT** | SE / security | [SECURITY_QUESTIONNAIRE_RESPONSES.md](../security-compliance/SECURITY_QUESTIONNAIRE_RESPONSES.md) — customize per RFP |
+| LEG-011 | SOC 2 Type II **report** | P2 | N/A | CPA firm | Third-party attestation only — [OUT-OF-BAND.md](../security-compliance/soc2/OUT-OF-BAND.md) |
+| SOC-001 | SOC 2 policy + process pack (CC1–CC9) | P1 | **DONE** | — | [soc2/README.md](../security-compliance/soc2/README.md) — not a Type II report |
+| SOC-002 | Observation window calendar + evidence ledgers | P1 | **DONE** (templates) | Security | Fill during window; first live monthly pack still needs AWS |
+| SOC-101 | CPA firm engagement | P0 | GAP | Management | Required for an actual report |
+| SOC-102 | Signed policies / HR / tabletop / restore | P0 | GAP | Management / HR / Eng | Signatures and executed drills stay off-git |
+| OPS-001 | Security questionnaire pack | P1 | **DRAFT** | SE / security | [SECURITY_QUESTIONNAIRE_RESPONSES.md](../security-compliance/SECURITY_QUESTIONNAIRE_RESPONSES.md) — MFA/PITR/CloudTrail updated 2026-09-19; still customize per RFP |
 | OPS-013 | RFP cybersecurity + implementation pack | P1 | **DONE** | — | [rfp/README.md](../rfp/README.md); still not CJIS/SOC2 certification |
 | OPS-002 | Subprocessor list | P1 | **DRAFT** | SE / security | [SUBPROCESSOR_LIST.md](../security-compliance/SUBPROCESSOR_LIST.md) |
 | OPS-003 | Supervisor pilot checklist | P2 | **DONE** | — | [PILOT_SUPERVISOR_CHECKLIST.md](../training/PILOT_SUPERVISOR_CHECKLIST.md) |

@@ -109,6 +109,7 @@ Ship **[JURISDICTION_OPERATIONS_GUIDE.md](./JURISDICTION_OPERATIONS_GUIDE.md)** 
 - [CORE_USER_FLOWS.md](../product-architecture/CORE_USER_FLOWS.md) — UI ↔ API wiring
 - [API_SURFACE.md](../product-architecture/API_SURFACE.md) — RBAC per route
 - [SECURITY_MODEL.md](../security-compliance/SECURITY_MODEL.md) — Pilot technical posture (not certification claims)
+- [SOC 2 control pack](../security-compliance/soc2/README.md) — CC1–CC9 policies/SOPs (not a Type II report)
 - [SECURITY_QUESTIONNAIRE_RESPONSES.md](../security-compliance/SECURITY_QUESTIONNAIRE_RESPONSES.md) — Draft procurement pack
 - [SUBPROCESSOR_LIST.md](../security-compliance/SUBPROCESSOR_LIST.md) — Draft subprocessor list
 - [PRIVACY_RETENTION_DECISIONS.md](../security-compliance/PRIVACY_RETENTION_DECISIONS.md) — Data handling expectations

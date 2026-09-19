@@ -34,6 +34,7 @@
 ## Contacts and artifacts
 
 - **Runbook:** [`RUNBOOK.md`](./RUNBOOK.md)
+- **SOC 2 IR policy / tabletop:** [POL-07](../security-compliance/soc2/policies/07-incident-response-policy.md), [tabletop SOP](../security-compliance/soc2/processes/incident-response-tabletop.md)
 - **Rollback / data:** [`BACKUP_AND_RECOVERY.md`](./BACKUP_AND_RECOVERY.md)
 - **Support routing:** [`SUPPORT_MODEL.md`](./SUPPORT_MODEL.md)
 - **Escalation paths:** [ESCALATION_PATHS.md](./ESCALATION_PATHS.md)

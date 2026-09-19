@@ -10,6 +10,8 @@
 | R6 | **Demo / prod config drift** | Incidents in prod | Med | `.env.example`, single config loader pattern, CI build all workspaces | Eng |
 | R7 | **Columbus vs Erie** differing SOPs | UX mismatch | Med | Agency config + protocol packs per agency path (roadmap); pilot playbooks | Product |
 | R8 | **Availability** of Lambda + Dynamo during incident | Ops | Med | Health checks, backoff on AI, clear UI errors | Eng |
+| R9 | **Shared AWS account** (other products in `158961537080`) | Compliance / isolation | Med | Carve-out in [soc2/SYSTEM-BOUNDARY.md](../security-compliance/soc2/SYSTEM-BOUNDARY.md); dedicated account later | Management |
+| R10 | **CFN param drift** disabling live PITR / creating a second CloudTrail | Compliance / cost | Med | `soc2-live-production-overrides.sh` on `deploy.sh dev` | Eng |
 
 ## Review triggers
 
@@ -19,4 +21,4 @@
 
 ## Governance cross-links
 
-- [../MVP_SCOPE.md](../MVP_SCOPE.md), [../NON_GOALS.md](../NON_GOALS.md), [../PILOT_READINESS_CHECKLIST.md](../PILOT_READINESS_CHECKLIST.md), [../AGENCY_PLAYBOOK_TEMPLATE.md](../AGENCY_PLAYBOOK_TEMPLATE.md)
+- [../MVP_SCOPE.md](../MVP_SCOPE.md), [../NON_GOALS.md](../NON_GOALS.md), [../PILOT_READINESS_CHECKLIST.md](../PILOT_READINESS_CHECKLIST.md), [../AGENCY_PLAYBOOK_TEMPLATE.md](../AGENCY_PLAYBOOK_TEMPLATE.md), [soc2/evidence/risk-register.md](../security-compliance/soc2/evidence/risk-register.md)
