@@ -106,6 +106,8 @@ Ship **[JURISDICTION_OPERATIONS_GUIDE.md](./JURISDICTION_OPERATIONS_GUIDE.md)** 
 - [GTM_EXECUTION_PLAN.md](./GTM_EXECUTION_PLAN.md) — 90-day pilot-first execution plan
 - [CONTRACT_PACKAGE_INDEX.md](./CONTRACT_PACKAGE_INDEX.md) — contracts and trust artifacts to send when
 - [DOCUMENT_GAPS.md](./DOCUMENT_GAPS.md) — missing or draft artifact tracker
+- [PILOT_SIGNATURE_PACKET.md](./PILOT_SIGNATURE_PACKET.md) — this-month close path + security-review send list
+- [TRACK3_PRODUCT_ACTIVATION.md](../product-architecture/TRACK3_PRODUCT_ACTIVATION.md) — Wyze / Nest / first signed pilot
 - [CORE_USER_FLOWS.md](../product-architecture/CORE_USER_FLOWS.md) — UI ↔ API wiring
 - [API_SURFACE.md](../product-architecture/API_SURFACE.md) — RBAC per route
 - [SECURITY_MODEL.md](../security-compliance/SECURITY_MODEL.md) — Pilot technical posture (not certification claims)

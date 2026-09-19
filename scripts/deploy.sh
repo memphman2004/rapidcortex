@@ -165,6 +165,14 @@ if [[ "$STAGE" == "dev" && "${I_UNDERSTAND_DEV_IS_PROD:-}" != "1" ]]; then
   exit 1
 fi
 
+# Track 3 — Wyze on live production (DeploymentStage=dev). Rotate secrets first:
+#   bash scripts/activate-wyze.sh rotate
+# Skip: WYZE_ALLOW_DISABLE_LIVE=1
+if [[ -f "$ROOT/scripts/lib/wyze-live-activation-overrides.sh" ]]; then
+  # shellcheck source=scripts/lib/wyze-live-activation-overrides.sh
+  source "$ROOT/scripts/lib/wyze-live-activation-overrides.sh"
+fi
+
 if [[ "$STAGE" == "staging" ]]; then
   export API_SUBDOMAIN_PREFIX="${API_SUBDOMAIN_PREFIX:-api-staging}"
   if [[ "${CAD_WRITEBACK_ENABLED:-}" == "true" ]]; then

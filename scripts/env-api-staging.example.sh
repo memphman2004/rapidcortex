@@ -91,6 +91,8 @@ export ENABLE_CONNECT_RING=true
 export ENABLE_CONNECT_NEST=true
 export ENABLE_CONNECT_WYZE=false
 export ENABLE_RAPID_VISION_WYZE=true
+# Live production (deploy.sh dev) forces WyzeEnabled=true via scripts/lib/wyze-live-activation-overrides.sh
+# after scripts/activate-wyze.sh rotate. Keep this false on staging.
 export WYZE_ENABLED=false
 export WYZE_API_KEYS_SECRET_ARN="${WYZE_API_KEYS_SECRET_ARN:-arn:aws:secretsmanager:us-east-1:158961537080:secret:rapid-cortex/connect/wyze-api-keys-YIoY3S}"
 export RING_PARTNERSHIP_ENABLED=true

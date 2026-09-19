@@ -182,6 +182,24 @@ echo ""
 echo "# --- Environment badge (matches stack DeploymentStage) ---"
 echo "NEXT_PUBLIC_APP_ENV=${APP_ENV}"
 echo ""
+WYZE_PARAM="$(
+  aws cloudformation describe-stacks \
+    --region "$REGION" \
+    --stack-name "$STACK_NAME" \
+    --query "Stacks[0].Parameters[?ParameterKey=='WyzeEnabled'].ParameterValue | [0]" \
+    --output text 2>/dev/null || true
+)"
+echo "# --- Rapid Vision camera sources (stack WyzeEnabled=${WYZE_PARAM:-unknown}) ---"
+echo "NEXT_PUBLIC_ENABLE_CONNECT_NEST=1"
+echo "NEXT_PUBLIC_ENABLE_RAPID_VISION_NEST=1"
+if [[ "${WYZE_PARAM}" == "true" ]]; then
+  echo "NEXT_PUBLIC_ENABLE_CONNECT_WYZE=1"
+  echo "NEXT_PUBLIC_ENABLE_RAPID_VISION_WYZE=1"
+else
+  echo "# NEXT_PUBLIC_ENABLE_CONNECT_WYZE=1  # set after bash scripts/activate-wyze.sh && deploy.sh dev"
+  echo "# NEXT_PUBLIC_ENABLE_RAPID_VISION_WYZE=1"
+fi
+echo ""
 echo "# --- Desktop native clients (macOS Secrets.plist + Windows appsettings) ---"
 echo "# ./scripts/sync-desktop-config.sh ${STAGE}"
 echo ""
