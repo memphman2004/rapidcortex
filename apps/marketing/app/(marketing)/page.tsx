@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import type { LucideIcon } from "lucide-react";
-import { Activity, GraduationCap, LayoutGrid, Map, MapPin, Play, Shield } from "lucide-react";
+import { Activity, GraduationCap, LayoutGrid, Map, MapPin, PhoneCall, Play, Shield } from "lucide-react";
 import { MarketingHeroAnimated } from "@/components/marketing/hero/marketing-hero-animated";
 import { MarketingSplashGate } from "@/components/marketing/marketing-splash-gate";
 import { isPublicSignupUiEnabled } from "@/lib/auth/public-signup";
@@ -166,6 +166,11 @@ export default function MarketingHomePage() {
         <ul className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {(
             [
+              {
+                title: "Non-emergency Call Assist",
+                body: "AI answers 311 and other non-emergency lines around the clock—classifies, routes, and records the call so 911 dispatchers stay on emergencies. Distress language, silence, or medical terms transfer live to a human. Not a 911 console.",
+                Icon: PhoneCall,
+              },
               {
                 title: "LiveLocation Intelligence",
                 body: "LiveLocation helps dispatchers view caller-shared location, accuracy radius, movement history, and location confidence in real time through a secure caller link.",
