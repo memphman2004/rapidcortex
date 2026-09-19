@@ -37,7 +37,8 @@ export default function MediaPage() {
   const { user } = useSession();
   const searchParams = useSearchParams();
   const focusVision = searchParams.get("vision") === "1";
-  const ringEnabled = isRingEnabled();
+  const isSupervisor = (user?.role ?? "").toLowerCase() === "supervisor";
+  const ringEnabled = isRingEnabled() && !isSupervisor;
   const nestEnabled = isRapidVisionNestEnabled();
   const wyzeEnabled = isWyzeEnabled();
   const liveVideoEnabled = isLiveVideoEnabled();

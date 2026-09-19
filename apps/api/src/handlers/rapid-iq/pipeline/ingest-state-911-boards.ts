@@ -4,7 +4,8 @@
  */
 
 import type { RapidIqPipelineRawSignal } from "rapid-cortex-shared";
-import { isRelevantSignalText } from "rapid-cortex-shared";
+import { isCivicDocumentIngestText } from "rapid-cortex-shared";
+import { fetchIngestText, RAPID_IQ_BROWSER_UA, stripHtml } from "../../../lib/rapid-iq/pipeline/ingest-fetch.js";
 import { enqueueMockIfEnabled, enqueueRawSignal } from "./queue-raw-signal.js";
 
 interface State911Source {
@@ -328,28 +329,14 @@ const STATE_911_SOURCES: State911Source[] = [
 ];
 
 function isRelevant(text: string): boolean {
-  return isRelevantSignalText(text);
+  return isCivicDocumentIngestText(text);
 }
 
-async function fetchPageText(url: string): Promise<string> {
-  const res = await fetch(url, {
-    headers: {
-      "User-Agent": "RapidCortex-IQ/1.0 (public-safety-procurement-monitor)",
-      Accept: "text/html,application/xhtml+xml",
-    },
-    signal: AbortSignal.timeout(15_000),
-  });
-
-  if (!res.ok) throw new Error(`HTTP ${res.status}`);
-  const html = await res.text();
-
-  return html
-    .replace(/<script[^>]*>[\s\S]*?<\/script>/gi, "")
-    .replace(/<style[^>]*>[\s\S]*?<\/style>/gi, "")
-    .replace(/<[^>]+>/g, " ")
-    .replace(/\s+/g, " ")
-    .trim()
-    .slice(0, 4000);
+async function fetchPageText(url: string): Promise<string | null> {
+  const fetched = await fetchIngestText(url, 15_000, { browserLike: true });
+  if (!fetched.ok) return null;
+  const text = stripHtml(fetched.body).slice(0, 4000);
+  return text || null;
 }
 
 interface RssItem {
@@ -389,17 +376,19 @@ async function queueSignal(
   title: string,
   snippet: string,
   date: string,
+  sourceUrl = source.primaryUrl,
+  dedupeId?: string,
 ): Promise<void> {
   const signal: RapidIqPipelineRawSignal = {
     sourceId: "state-911-board",
-    sourceUrl: source.primaryUrl,
+    sourceUrl,
     rawTitle: `[${source.stateName} 911 Board] ${title}`.slice(0, 200),
     rawSnippet: snippet.slice(0, 2000),
     signalDate: date.slice(0, 10) || new Date().toISOString().slice(0, 10),
   };
 
   await enqueueRawSignal(signal, {
-    dedupeId: `911board-${source.state}-${title}-${date}`,
+    dedupeId: dedupeId ?? `911board-${source.state}-${title}-${date}`,
     groupId: "state-911-board",
   });
 }
@@ -415,7 +404,7 @@ async function crawlSource(source: State911Source): Promise<void> {
   if (source.rssUrl) {
     try {
       const res = await fetch(source.rssUrl, {
-        headers: { "User-Agent": "RapidCortex-IQ/1.0" },
+        headers: { "User-Agent": RAPID_IQ_BROWSER_UA },
         signal: AbortSignal.timeout(10_000),
       });
       if (res.ok) {
@@ -427,6 +416,7 @@ async function crawlSource(source: State911Source): Promise<void> {
             item.title,
             `${item.title}\n\n${item.description}`,
             item.pubDate.slice(0, 10) || new Date().toISOString().slice(0, 10),
+            item.link || source.primaryUrl,
           );
         }
         return;
@@ -439,7 +429,13 @@ async function crawlSource(source: State911Source): Promise<void> {
   for (const { url, pageType } of urlsToCheck.slice(0, 2)) {
     try {
       const pageText = await fetchPageText(url);
-      if (!isRelevant(pageText)) continue;
+      if (!pageText || pageText.length < 80) {
+        console.warn(`State 911 board ${source.state} (${url}): empty or blocked`);
+        continue;
+      }
+
+      const hay = `911 PSAP dispatch ${source.boardName} ${pageText}`;
+      if (!isRelevant(hay)) continue;
 
       const pageTitle = `${source.boardName} — ${pageType.charAt(0).toUpperCase() + pageType.slice(1)}`;
 
@@ -448,6 +444,8 @@ async function crawlSource(source: State911Source): Promise<void> {
         pageTitle,
         `URL: ${url}\n\nPage type: ${pageType}\n\nContent: ${pageText.slice(0, 2000)}`,
         new Date().toISOString().slice(0, 10),
+        url,
+        `911board-${source.state}-${pageType}-${new Date().toISOString().slice(0, 7)}`,
       );
 
       await new Promise((r) => setTimeout(r, 500));

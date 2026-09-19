@@ -43,7 +43,7 @@ export async function handler(): Promise<void> {
   for (const entity of batch) {
     const extra = { agencyName: entity.name, state: entity.state.toUpperCase(), kind: entity.kind };
     for (const url of [publicUrl(entity), meetingListUrl(entity)]) {
-      const fetched = await fetchIngestText(url, 15_000);
+      const fetched = await fetchIngestText(url, 15_000, { browserLike: true });
       if (!fetched.ok) continue;
       queued += await enqueueRelevantPage(
         "boarddocs",
@@ -52,6 +52,7 @@ export async function handler(): Promise<void> {
         fetched.body,
         extra,
         8,
+        { forcePage: true },
       );
     }
     await sleep(300);

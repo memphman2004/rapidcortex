@@ -13,6 +13,7 @@ import {
   CIRCUIT_BREAKER_RESET_SECONDS,
   RC_BRIDGE_SOURCE_HEADER,
   buildBridgedCommentText,
+  getCadSlotConfig,
 } from "rapid-cortex-shared";
 import { env } from "../lib/env.js";
 import type { CADAdapter } from "./adapters/base.js";
@@ -58,7 +59,10 @@ export interface StoredDeliveryResult {
 }
 
 export async function publishCadBridgeEvent(input: PublishInput): Promise<PublishResult> {
-  const destConfig = input.destinationSlot === "CAD_A" ? input.config.cadA : input.config.cadB;
+  const destConfig = getCadSlotConfig(input.config, input.destinationSlot);
+  if (!destConfig) {
+    return { outcome: "SKIPPED", errorDetail: "destination_slot_not_configured" };
+  }
   const built = await buildOutbound(input);
   if (built.skip) return { outcome: "SKIPPED", errorDetail: built.errorDetail };
 
@@ -176,7 +180,10 @@ export async function deliverStoredOutboundEvent(opts: {
   event: BufferedOutboundEvent;
   config: CADBridgeConfig;
 }): Promise<StoredDeliveryResult> {
-  const destConfig = opts.event.destinationSlot === "CAD_A" ? opts.config.cadA : opts.config.cadB;
+  const destConfig = getCadSlotConfig(opts.config, opts.event.destinationSlot);
+  if (!destConfig) {
+    return { outcome: "FAILED", retryable: false, errorCode: "SLOT_NOT_CONFIGURED" };
+  }
   if (!opts.event.endpoint || !opts.event.method) {
     return { outcome: "FAILED", retryable: false, errorCode: "MISSING_STORED_ENDPOINT" };
   }
@@ -237,7 +244,10 @@ export async function deliverStoredOutboundEvent(opts: {
 }
 
 async function buildOutbound(input: PublishInput): Promise<BuiltOutbound> {
-  const destConfig = input.destinationSlot === "CAD_A" ? input.config.cadA : input.config.cadB;
+  const destConfig = getCadSlotConfig(input.config, input.destinationSlot);
+  if (!destConfig) {
+    return { payload: {}, endpoint: "", method: "POST", skip: true, errorDetail: "destination_slot_not_configured" };
+  }
   const endpoints = input.destAdapter.getEndpoints();
   const destId = input.destinationIncidentId ?? "";
 

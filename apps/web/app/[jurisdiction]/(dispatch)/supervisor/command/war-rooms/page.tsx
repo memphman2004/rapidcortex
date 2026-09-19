@@ -68,6 +68,8 @@ function SupervisorWarRoomsPageInner() {
   const [closedOpen, setClosedOpen] = useState(false);
   const [creating, setCreating] = useState(false);
   const [createError, setCreateError] = useState<string | null>(null);
+  const [incidentIdInput, setIncidentIdInput] = useState(incidentIdParam ?? "");
+  const [roomNameInput, setRoomNameInput] = useState("");
 
   const enabled = isWarRoomsEnabled() && isWarRoomApiConfigured();
 
@@ -105,13 +107,17 @@ function SupervisorWarRoomsPageInner() {
   }
 
   const createFromIncident = async () => {
-    if (!incidentIdParam) return;
+    const incidentId = incidentIdInput.trim() || incidentIdParam;
+    if (!incidentId) {
+      setCreateError("Enter an incident ID to open a war room.");
+      return;
+    }
     setCreating(true);
     setCreateError(null);
     try {
       const created = await createWarRoom({
-        incidentId: incidentIdParam,
-        name: `${incidentIdParam} — Command`,
+        incidentId,
+        name: roomNameInput.trim() || `${incidentId} — Command`,
       });
       await qc.invalidateQueries({ queryKey: ["war-rooms"] });
       window.location.assign(to(`/command/war-room/${encodeURIComponent(created.roomId)}`));
@@ -131,16 +137,36 @@ function SupervisorWarRoomsPageInner() {
             Coordinate major incidents with live command threads and participant presence.
           </p>
         </div>
-        {incidentIdParam ? (
-          <button
-            type="button"
-            disabled={creating}
-            onClick={() => void createFromIncident()}
-            className="rounded bg-violet-950/70 px-3 py-1.5 text-xs font-medium text-violet-100 ring-1 ring-violet-800 hover:bg-violet-900/60 disabled:opacity-40"
-          >
-            {creating ? "Creating…" : `Create for ${incidentIdParam}`}
-          </button>
-        ) : null}
+        <div className="flex min-w-0 flex-col items-stretch gap-2 sm:items-end">
+          <div className="flex flex-wrap items-end gap-2">
+            <label className="text-xs text-slate-400">
+              Incident ID
+              <input
+                className="mt-1 block w-56 rounded-md border border-slate-700 bg-slate-950 px-3 py-1.5 text-sm text-white"
+                value={incidentIdInput}
+                onChange={(e) => setIncidentIdInput(e.target.value)}
+                placeholder="INC-…"
+              />
+            </label>
+            <label className="text-xs text-slate-400">
+              Room name (optional)
+              <input
+                className="mt-1 block w-56 rounded-md border border-slate-700 bg-slate-950 px-3 py-1.5 text-sm text-white"
+                value={roomNameInput}
+                onChange={(e) => setRoomNameInput(e.target.value)}
+                placeholder="Command"
+              />
+            </label>
+            <button
+              type="button"
+              disabled={creating}
+              onClick={() => void createFromIncident()}
+              className="rounded bg-violet-950/70 px-3 py-1.5 text-xs font-medium text-violet-100 ring-1 ring-violet-800 hover:bg-violet-900/60 disabled:opacity-40"
+            >
+              {creating ? "Creating…" : "Create war room"}
+            </button>
+          </div>
+        </div>
       </div>
 
       {createError ? <p className="text-sm text-rose-300">{createError}</p> : null}
@@ -156,7 +182,7 @@ function SupervisorWarRoomsPageInner() {
           <Radio className="mb-4 h-10 w-10 text-slate-600" />
           <h2 className="text-lg font-semibold text-slate-300">No active war rooms</h2>
           <p className="mt-2 max-w-md text-sm text-slate-500">
-            Open a war room from an escalated incident on Review, or from the console War Rooms card.
+            Create one above with an incident ID, or open from an escalated incident on Review.
           </p>
         </div>
       ) : (

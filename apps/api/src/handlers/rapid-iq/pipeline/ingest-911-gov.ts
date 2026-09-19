@@ -18,8 +18,8 @@ const PAGES: Array<{ url: string; name: string; sourceId: "911-gov" | "fcc-repor
     sourceId: "fcc-reports",
   },
   {
-    url: "https://www.fcc.gov/ecfs/search/search-filings?q=911",
-    name: "FCC ECFS 911 filings",
+    url: "https://www.fcc.gov/public-safety-and-homeland-security/policy-and-licensing-division/911-services",
+    name: "FCC 911 services",
     sourceId: "fcc-reports",
   },
 ];
@@ -34,7 +34,7 @@ export async function handler(): Promise<void> {
 
   let queued = 0;
   for (const page of PAGES) {
-    const fetched = await fetchIngestText(page.url);
+    const fetched = await fetchIngestText(page.url, 20_000, { browserLike: page.sourceId === "fcc-reports" });
     if (!fetched.ok) {
       console.warn(JSON.stringify({ msg: "nine11_gov_fetch_failed", url: page.url, status: fetched.status }));
       continue;
@@ -46,6 +46,7 @@ export async function handler(): Promise<void> {
       fetched.body,
       { site: page.sourceId },
       15,
+      { forcePage: true },
     );
     await sleep(400);
   }

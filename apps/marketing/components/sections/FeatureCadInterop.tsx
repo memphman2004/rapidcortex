@@ -16,7 +16,7 @@ const PHASES: Phase[] = [
   {
     name: "Read-only bridge",
     description:
-      "RC reads both CAD systems. No write access, no operational risk. The safe first step for any pilot.",
+      "RC reads each connected CAD — up to eight systems on one bridge. No write access, no operational risk. The safe first step for any pilot.",
     badge: "Read-only bridge",
     status: "ACTIVE — READ-ONLY",
     color: "#00C87A",
@@ -26,7 +26,7 @@ const PHASES: Phase[] = [
   {
     name: "Assisted transfer",
     description:
-      "One-click incident transfer between agencies. Dispatcher reviews and confirms before data is committed.",
+      "One-click incident transfer across connected agencies. Dispatcher reviews and confirms before data is committed.",
     badge: "Assisted transfer",
     status: "ACTIVE — ASSISTED",
     color: "#1469FF",
@@ -36,7 +36,7 @@ const PHASES: Phase[] = [
   {
     name: "Bidirectional sync",
     description:
-      "Fully automated two-way sync. Status updates, unit assignments, and dispositions flow in real time.",
+      "Fully automated two-way sync across the bridge. Status updates, unit assignments, and dispositions flow in real time.",
     badge: "Bidirectional sync",
     status: "ACTIVE — BIDIRECTIONAL",
     color: "#00D4FF",
@@ -58,10 +58,108 @@ const CAD_VENDORS = [
   "Plus More…",
 ];
 
+const BOX = { w: 88, h: 58 };
+const HUB = { x: 136, y: 100, w: 108, h: 56 };
+
+type CadNode = {
+  agency: string;
+  vendor: string;
+  x: number;
+  y: number;
+  /** Connection point on the CAD box (toward the hub). */
+  from: { x: number; y: number };
+  /** Connection point on the hub. */
+  to: { x: number; y: number };
+};
+
+const CAD_NODES: CadNode[] = [
+  {
+    agency: "Agency A",
+    vendor: "PremierOne",
+    x: 8,
+    y: 8,
+    from: { x: 96, y: 37 },
+    to: { x: 136, y: 118 },
+  },
+  {
+    agency: "Agency B",
+    vendor: "New World",
+    x: 284,
+    y: 8,
+    from: { x: 284, y: 37 },
+    to: { x: 244, y: 118 },
+  },
+  {
+    agency: "Agency C",
+    vendor: "CentralSquare",
+    x: 8,
+    y: 188,
+    from: { x: 96, y: 217 },
+    to: { x: 136, y: 138 },
+  },
+  {
+    agency: "Agency D",
+    vendor: "Hexagon",
+    x: 284,
+    y: 188,
+    from: { x: 284, y: 217 },
+    to: { x: 244, y: 138 },
+  },
+];
+
+function lerp(a: number, b: number, t: number): number {
+  return a + (b - a) * t;
+}
+
+function arrowHead(from: { x: number; y: number }, to: { x: number; y: number }, size = 6): string {
+  const dx = to.x - from.x;
+  const dy = to.y - from.y;
+  const len = Math.hypot(dx, dy) || 1;
+  const ux = dx / len;
+  const uy = dy / len;
+  const bx = to.x - ux * size;
+  const by = to.y - uy * size;
+  const px = -uy;
+  const py = ux;
+  const left = `${bx + px * 3.2},${by + py * 3.2}`;
+  const tip = `${to.x},${to.y}`;
+  const right = `${bx - px * 3.2},${by - py * 3.2}`;
+  return `${left} ${tip} ${right}`;
+}
+
+function CadBox({ node }: { node: CadNode }) {
+  const { x, y, agency, vendor } = node;
+  return (
+    <g>
+      <rect x={x} y={y} width={BOX.w} height={BOX.h} rx={6} fill="#060910" stroke="#1A2940" strokeWidth={1} />
+      <rect x={x + 8} y={y + 10} width={72} height={3} rx={1.5} fill="#1A2940" />
+      <rect x={x + 8} y={y + 17} width={52} height={3} rx={1.5} fill="#1A2940" />
+      <rect
+        x={x + 8}
+        y={y + 28}
+        width={72}
+        height={16}
+        rx={3}
+        fill="rgba(20,105,255,.1)"
+        stroke="rgba(20,105,255,.25)"
+        strokeWidth={1}
+      />
+      <text x={x + BOX.w / 2} y={y + 39.5} textAnchor="middle" fill="#6A7B9D" fontSize={7} fontFamily="monospace">
+        CAD LIVE
+      </text>
+      <text x={x + BOX.w / 2} y={y + BOX.h + 12} textAnchor="middle" fill="#E8EEF8" fontSize={8} fontWeight={500}>
+        {agency}
+      </text>
+      <text x={x + BOX.w / 2} y={y + BOX.h + 22} textAnchor="middle" fill="#6A7B9D" fontSize={7}>
+        {vendor}
+      </text>
+    </g>
+  );
+}
+
 function CadFlowDiagram({ phase }: { phase: Phase }) {
   const rafRef = useRef<number>(0);
-  const dotARef = useRef<SVGCircleElement>(null);
-  const dotBRef = useRef<SVGCircleElement>(null);
+  const dotsRef = useRef<Array<SVGCircleElement | null>>([null, null, null, null]);
   const tRef = useRef(0);
 
   useEffect(() => {
@@ -69,10 +167,14 @@ function CadFlowDiagram({ phase }: { phase: Phase }) {
     if (motion.matches) return undefined;
 
     function tick() {
-      tRef.current = (tRef.current + 1.8) % 100;
+      tRef.current = (tRef.current + 1.6) % 100;
       const pct = tRef.current / 100;
-      if (dotARef.current) dotARef.current.setAttribute("cx", String(92 + pct * 22));
-      if (dotBRef.current) dotBRef.current.setAttribute("cx", String(226 + pct * 20));
+      CAD_NODES.forEach((node, i) => {
+        const el = dotsRef.current[i];
+        if (!el) return;
+        el.setAttribute("cx", String(lerp(node.from.x, node.to.x, pct)));
+        el.setAttribute("cy", String(lerp(node.from.y, node.to.y, pct)));
+      });
       rafRef.current = requestAnimationFrame(tick);
     }
     rafRef.current = requestAnimationFrame(tick);
@@ -86,116 +188,92 @@ function CadFlowDiagram({ phase }: { phase: Phase }) {
   return (
     <div className="rounded-xl border border-[#1A2940] bg-[#0B1220] p-4">
       <svg
-        viewBox="0 0 340 130"
+        viewBox="0 0 380 278"
         className="w-full"
         role="img"
-        aria-label="CAD-to-CAD intelligence bridge — animated data flow diagram"
+        aria-label="CAD-to-CAD intelligence bridge connecting multiple agency CAD systems — up to eight"
       >
         <title>CAD-to-CAD intelligence bridge</title>
         <desc>
-          Diagram showing incident data flowing from Agency A&apos;s CAD system through the Rapid
-          Cortex intelligence bridge to Agency B&apos;s CAD system.
+          Diagram showing incident data flowing from four agency CAD systems — PremierOne, New World,
+          CentralSquare, and Hexagon — through the Rapid Cortex intelligence bridge. The platform supports
+          up to eight CAD systems on one bridge.
         </desc>
 
-        <rect x="4" y="20" width="88" height="72" rx="6" fill="#060910" stroke="#1A2940" strokeWidth="1" />
-        <rect x="12" y="32" width="72" height="4" rx="2" fill="#1A2940" />
-        <rect x="12" y="40" width="52" height="4" rx="2" fill="#1A2940" />
-        <rect x="12" y="48" width="62" height="4" rx="2" fill="#1A2940" />
-        <rect
-          x="12"
-          y="58"
-          width="72"
-          height="18"
-          rx="3"
-          fill="rgba(20,105,255,.1)"
-          stroke="rgba(20,105,255,.25)"
-          strokeWidth="1"
-        />
-        <text x="48" y="70.5" textAnchor="middle" fill="#6A7B9D" fontSize="7" fontFamily="monospace">
-          CAD LIVE
-        </text>
-        <text x="48" y="104" textAnchor="middle" fill="#E8EEF8" fontSize="8" fontWeight="500">
-          Agency A
-        </text>
-        <text x="48" y="114" textAnchor="middle" fill="#6A7B9D" fontSize="7">
-          PremierOne
-        </text>
+        {CAD_NODES.map((node) => (
+          <CadBox key={node.agency} node={node} />
+        ))}
 
-        <rect x="248" y="20" width="88" height="72" rx="6" fill="#060910" stroke="#1A2940" strokeWidth="1" />
-        <rect x="256" y="32" width="72" height="4" rx="2" fill="#1A2940" />
-        <rect x="256" y="40" width="52" height="4" rx="2" fill="#1A2940" />
-        <rect x="256" y="48" width="62" height="4" rx="2" fill="#1A2940" />
-        <rect
-          x="256"
-          y="58"
-          width="72"
-          height="18"
-          rx="3"
-          fill="rgba(20,105,255,.1)"
-          stroke="rgba(20,105,255,.25)"
-          strokeWidth="1"
-        />
-        <text x="292" y="70.5" textAnchor="middle" fill="#6A7B9D" fontSize="7" fontFamily="monospace">
-          CAD LIVE
-        </text>
-        <text x="292" y="104" textAnchor="middle" fill="#E8EEF8" fontSize="8" fontWeight="500">
-          Agency B
-        </text>
-        <text x="292" y="114" textAnchor="middle" fill="#6A7B9D" fontSize="7">
-          New World
-        </text>
+        {CAD_NODES.map((node) => (
+          <g key={`${node.agency}-spoke`}>
+            <line
+              x1={node.from.x}
+              y1={node.from.y}
+              x2={node.to.x}
+              y2={node.to.y}
+              stroke={c}
+              strokeWidth={1.5}
+            />
+            <polygon points={arrowHead(node.from, node.to)} fill={c} />
+            {phase.bidirectional ? (
+              <>
+                <line
+                  x1={node.to.x}
+                  y1={node.to.y}
+                  x2={node.from.x}
+                  y2={node.from.y}
+                  stroke={c}
+                  strokeWidth={1}
+                  strokeDasharray="3,2"
+                  opacity={0.45}
+                />
+                <polygon points={arrowHead(node.to, node.from, 5)} fill={c} opacity={0.45} />
+              </>
+            ) : null}
+          </g>
+        ))}
 
-        <rect x="116" y="28" width="108" height="56" rx="6" fill="#060910" stroke={c} strokeWidth="1.5" />
-        <text x="170" y="51" textAnchor="middle" fill={c} fontSize="10" fontWeight="700">
+        <rect
+          x={HUB.x}
+          y={HUB.y}
+          width={HUB.w}
+          height={HUB.h}
+          rx={6}
+          fill="#060910"
+          stroke={c}
+          strokeWidth={1.5}
+        />
+        <text x={190} y={HUB.y + 22} textAnchor="middle" fill={c} fontSize={10} fontWeight={700}>
           RAPID CORTEX
         </text>
-        <text x="170" y="63" textAnchor="middle" fill="#6A7B9D" fontSize="7">
+        <text x={190} y={HUB.y + 34} textAnchor="middle" fill="#6A7B9D" fontSize={7}>
           Intelligence Bridge
         </text>
-        <text x="170" y="76" textAnchor="middle" fill={c} fontSize="7" fontFamily="monospace">
+        <text x={190} y={HUB.y + 47} textAnchor="middle" fill={c} fontSize={7} fontFamily="monospace">
           {phase.status}
         </text>
 
-        <line x1="92" y1="57" x2="114" y2="57" stroke={c} strokeWidth="1.5" />
-        <polygon points="110,54 116,57 110,60" fill={c} />
-        <line x1="226" y1="57" x2="246" y2="57" stroke={c} strokeWidth="1.5" />
-        <polygon points="242,54 248,57 242,60" fill={c} />
+        {CAD_NODES.map((node, i) => (
+          <circle
+            key={`${node.agency}-dot`}
+            ref={(el) => {
+              dotsRef.current[i] = el;
+            }}
+            cx={node.from.x}
+            cy={node.from.y}
+            r={3}
+            fill={c}
+          />
+        ))}
 
-        {phase.bidirectional ? (
-          <>
-            <line
-              x1="114"
-              y1="65"
-              x2="92"
-              y2="65"
-              stroke={c}
-              strokeWidth="1"
-              strokeDasharray="3,2"
-              opacity="0.45"
-            />
-            <polygon points="96,62 90,65 96,68" fill={c} opacity="0.45" />
-            <line
-              x1="246"
-              y1="65"
-              x2="226"
-              y2="65"
-              stroke={c}
-              strokeWidth="1"
-              strokeDasharray="3,2"
-              opacity="0.45"
-            />
-            <polygon points="230,62 224,65 230,68" fill={c} opacity="0.45" />
-          </>
-        ) : null}
-
-        <circle ref={dotARef} cx="92" cy="57" r="3" fill={c} />
-        <circle ref={dotBRef} cx="226" cy="57" r="3" fill={c} />
-
-        <rect x="116" y="96" width="108" height="18" rx="9" fill={cA} stroke={cB} strokeWidth="1" />
-        <text x="170" y="108.5" textAnchor="middle" fill={c} fontSize="8" fontWeight="500">
+        <rect x={116} y={162} width={148} height={18} rx={9} fill={cA} stroke={cB} strokeWidth={1} />
+        <text x={190} y={174.5} textAnchor="middle" fill={c} fontSize={8} fontWeight={500}>
           {phase.badge}
         </text>
       </svg>
+      <p className="mt-3 text-center text-[11px] text-[#6A7B9D]">
+        Four of up to eight CAD systems on one Rapid Cortex bridge
+      </p>
     </div>
   );
 }
@@ -234,7 +312,8 @@ export function FeatureCadInterop() {
           </h2>
           <p className="text-base leading-relaxed text-[#6A7B9D] md:text-lg">
             Rapid Cortex bridges separate agency CAD environments in real time — so intelligence flows across
-            jurisdictions as fast as the incident itself. No manual re-entry. No version conflicts. No lag.
+            jurisdictions as fast as the incident itself. One bridge supports up to eight CAD systems. No
+            manual re-entry. No version conflicts. No lag.
           </p>
         </div>
 

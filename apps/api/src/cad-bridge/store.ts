@@ -18,7 +18,10 @@ import type {
 import {
   BUFFER_DEAD_TTL_SECONDS,
   BUFFER_TTL_SECONDS,
+  CAD_BRIDGE_SLOTS,
   LOOP_GUARD_TTL_MS,
+  getIncidentLink,
+  listIncidentLinkedSlots,
   validateCadBridgeConfig,
 } from "rapid-cortex-shared";
 import { ddb } from "../repositories/baseRepository.js";
@@ -198,23 +201,16 @@ export const cadBridgeStore = {
         },
       }),
     );
-    await ddb.send(
-      new PutCommand({
-        TableName: syncTable(),
-        Item: {
-          pk: incident.agencyId,
-          sk: `IDX#CAD_A#${incident.cadA.incidentId}`,
-          rcIncidentId: incident.rcIncidentId,
-        },
-      }),
-    );
-    if (incident.cadB.incidentId) {
+    for (const slot of listIncidentLinkedSlots(incident)) {
+      const link = getIncidentLink(incident, slot);
+      const vendorIncidentId = link?.incidentId?.trim();
+      if (!vendorIncidentId) continue;
       await ddb.send(
         new PutCommand({
           TableName: syncTable(),
           Item: {
             pk: incident.agencyId,
-            sk: `IDX#CAD_B#${incident.cadB.incidentId}`,
+            sk: `IDX#${slot}#${vendorIncidentId}`,
             rcIncidentId: incident.rcIncidentId,
           },
         }),
@@ -496,7 +492,7 @@ export const cadBridgeStore = {
 
   async countBuffered(agencyId: string): Promise<number> {
     let count = 0;
-    for (const slot of ["CAD_A", "CAD_B"] as const) {
+    for (const slot of CAD_BRIDGE_SLOTS) {
       const out = await ddb.send(
         new QueryCommand({
           TableName: bufferTable(),

@@ -62,14 +62,20 @@ export async function handler(): Promise<void> {
   }
 
   for (const page of HTML_PAGES) {
-    const fetched = await fetchIngestText(page.url);
+    const fetched = await fetchIngestText(page.url, 20_000, { browserLike: true });
     if (!fetched.ok) {
       console.warn(JSON.stringify({ msg: "trade_pub_fetch_failed", url: page.url, status: fetched.status }));
       continue;
     }
-    queued += await enqueueRelevantPage("trade-publication", page.url, page.name, fetched.body, {
-      outlet: page.name,
-    });
+    queued += await enqueueRelevantPage(
+      "trade-publication",
+      page.url,
+      page.name,
+      fetched.body,
+      { outlet: page.name },
+      20,
+      { forcePage: true },
+    );
     await sleep(400);
   }
 

@@ -1,12 +1,16 @@
 "use client";
 
-import { isDemoAgencyId } from "rapid-cortex-shared";
-import { useSession } from "@/components/auth/session-context";
+import { usePathname } from "next/navigation";
 
-/** Persistent safety banner on allowlisted demo tenants. */
+function isDemoRunnerPath(pathname: string): boolean {
+  const path = pathname.split("?")[0] ?? "";
+  return /\/demo(?:\/|$)/i.test(path);
+}
+
+/** Safety banner on demo-runner routes only — not the live supervisor/dispatcher console. */
 export function DemoModeBanner() {
-  const { user } = useSession();
-  if (!user?.agencyId || !isDemoAgencyId(user.agencyId)) return null;
+  const pathname = usePathname() ?? "";
+  if (!isDemoRunnerPath(pathname)) return null;
 
   return (
     <div

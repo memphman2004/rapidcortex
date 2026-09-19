@@ -13,6 +13,7 @@ import {
   type CountyProcurementEntry,
 } from "../../../lib/rapid-iq/county-procurement.js";
 import { rapidIqIngestSinceDate } from "../../../lib/rapid-iq/ingest-window.js";
+import { RAPID_IQ_BROWSER_UA } from "../../../lib/rapid-iq/pipeline/ingest-fetch.js";
 import { pipelineDdb } from "../../../lib/rapid-iq/pipeline-ddb.js";
 import { enqueueMockIfEnabled, enqueueRawSignal } from "./queue-raw-signal.js";
 
@@ -20,7 +21,7 @@ const CURSOR_PK = "COUNTY#CURSOR";
 const CURSOR_SK = "META";
 const BATCH_SIZE = 50;
 const FETCH_HEADERS = {
-  "User-Agent": "RapidCortex-IQ/1.0 (procurement-monitor)",
+  "User-Agent": RAPID_IQ_BROWSER_UA,
   Accept: "text/html,application/json;q=0.9,*/*;q=0.8",
 };
 

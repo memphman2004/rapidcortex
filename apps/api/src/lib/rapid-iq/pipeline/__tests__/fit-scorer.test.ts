@@ -1,7 +1,7 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { computeFitScore } from "../fit-scorer.js";
 import { contentHash } from "../rapid-iq-pipeline-db.js";
-import { extractSignalDataHeuristic, jeffersonCountyMockRawSignal } from "../nlp-extract.js";
+import { extractSignalData, extractSignalDataHeuristic, jeffersonCountyMockRawSignal } from "../nlp-extract.js";
 
 describe("contentHash", () => {
   it("is stable for identical title+snippet", () => {
@@ -50,5 +50,28 @@ describe("computeFitScore", () => {
       vendorNamed: undefined,
     });
     expect(score).toBeLessThan(40);
+  });
+});
+
+describe("extractSignalData", () => {
+  it("falls back to heuristics when Claude fetch throws", async () => {
+    const prevMock = process.env.RAPID_IQ_COLLECTORS_MOCK;
+    const prevKey = process.env.ANTHROPIC_API_KEY;
+    process.env.RAPID_IQ_COLLECTORS_MOCK = "0";
+    process.env.ANTHROPIC_API_KEY = "sk-test-fallback";
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () => {
+        throw new Error("claude timeout");
+      }),
+    );
+    try {
+      const out = await extractSignalData(jeffersonCountyMockRawSignal("legistar-bulk"));
+      expect(out.vendorNamed?.toLowerCase()).toContain("tyler");
+    } finally {
+      vi.unstubAllGlobals();
+      process.env.RAPID_IQ_COLLECTORS_MOCK = prevMock;
+      process.env.ANTHROPIC_API_KEY = prevKey;
+    }
   });
 });

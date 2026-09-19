@@ -22,7 +22,7 @@ function aht(n: number | null | undefined): string {
   return `${m}:${String(s).padStart(2, "0")}`;
 }
 
-export function CallAssistAnalyticsPage() {
+export function CallAssistAnalyticsPage({ embedded = false }: { embedded?: boolean }) {
   const { user } = useSession();
   const { requestAgencyId, agencyId, ready } = useCallAssistConfig();
   const allowed = canViewCallAssistAnalytics(user?.role);
@@ -63,8 +63,12 @@ export function CallAssistAnalyticsPage() {
   const d = dash.data?.dashboard;
 
   return (
-    <div className="space-y-4 p-4 md:p-6">
-      <CallAssistChrome title="Call Assist analytics" />
+    <div id="analytics" className={embedded ? "space-y-4 pt-6" : "space-y-4 p-4 md:p-6"}>
+      {embedded ? (
+        <h2 className="text-[15px] font-semibold text-slate-100">Analytics</h2>
+      ) : (
+        <CallAssistChrome title="Call Assist analytics" />
+      )}
       <p className="max-w-2xl text-[12px] text-slate-500">
         AHT, containment, abandonment, queue depth, CSAT, heat maps, false-transfer, human takeover, online-reporting
         diversion, and self-service completion. Filters apply to the selected window.

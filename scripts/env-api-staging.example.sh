@@ -167,6 +167,8 @@ export ENABLE_RC_VIDEO_ANALYTICS=false
 export ENABLE_CAD_BRIDGE=true
 export CAD_BRIDGE_MOCK=true
 export NEXT_PUBLIC_ENABLE_CAD_BRIDGE="${NEXT_PUBLIC_ENABLE_CAD_BRIDGE:-1}"
+export ENABLE_C2C_HUB=true
+export NEXT_PUBLIC_ENABLE_C2C_HUB="${NEXT_PUBLIC_ENABLE_C2C_HUB:-1}"
 # Per-agency CAD API keys and webhook signing secrets (create before enabling a bridge):
 #   rapid-cortex/cad-bridge/{agencyId}/cad-a-api-key
 #   rapid-cortex/cad-bridge/{agencyId}/cad-b-api-key

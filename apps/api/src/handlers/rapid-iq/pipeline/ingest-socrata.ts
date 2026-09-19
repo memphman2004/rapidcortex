@@ -1,10 +1,10 @@
 /**
- * Socrata state open-data contracts ingestion (SODA API).
- * Dataset IDs are placeholders — verify per portal before production.
+ * Socrata / SODA contract ingest — only live-verified dataset IDs.
  */
 
 import type { RapidIqPipelineRawSignal } from "rapid-cortex-shared";
 import { rapidIqIngestSinceDate } from "../../../lib/rapid-iq/ingest-window.js";
+import { RAPID_IQ_BROWSER_UA } from "../../../lib/rapid-iq/pipeline/ingest-fetch.js";
 import { enqueueMockIfEnabled, enqueueRawSignal } from "./queue-raw-signal.js";
 
 interface SocrataSource {
@@ -14,176 +14,55 @@ interface SocrataSource {
   datasetId: string;
   vendorField: string;
   descriptionField: string;
-  amountField: string;
-  dateField: string;
+  amountField?: string;
+  dateField?: string;
   agencyField?: string;
 }
 
-const SOCRATA_SOURCES: SocrataSource[] = [
+/** Live-verified SODA datasets (2026-09-17). Placeholder IDs 404'd every daily run. */
+export const SOCRATA_SOURCES: SocrataSource[] = [
   {
     state: "TX",
-    stateName: "Texas",
+    stateName: "Texas DIR cooperative contracts",
     baseUrl: "https://data.texas.gov",
-    datasetId: "p86d-xgke",
-    vendorField: "vendor_name",
-    descriptionField: "contract_description",
-    amountField: "total_amount",
-    dateField: "begin_date",
-    agencyField: "agency_name",
+    datasetId: "vipt-h4ye",
+    vendorField: "primary_vendor_name",
+    descriptionField: "rfo_description",
+    dateField: "contract_start",
+    agencyField: "contract_type",
   },
   {
-    state: "NY",
-    stateName: "New York",
-    baseUrl: "https://data.ny.gov",
-    datasetId: "7ytw-dq4x",
+    state: "TX",
+    stateName: "Texas DIR contract sales",
+    baseUrl: "https://data.texas.gov",
+    datasetId: "w64c-ndf7",
     vendorField: "vendor_name",
-    descriptionField: "description",
-    amountField: "contract_amount",
-    dateField: "contract_date",
-    agencyField: "agency_name",
-  },
-  {
-    state: "CA",
-    stateName: "California",
-    baseUrl: "https://data.ca.gov",
-    datasetId: "c64r-4ys3",
-    vendorField: "supplier_name",
-    descriptionField: "description",
-    amountField: "awarded_amount",
-    dateField: "award_date",
-    agencyField: "dept_name",
-  },
-  {
-    state: "FL",
-    stateName: "Florida",
-    baseUrl: "https://data.myflorida.com",
-    datasetId: "8tgr-ghad",
-    vendorField: "vendor_name",
-    descriptionField: "item_description",
-    amountField: "total_price",
+    descriptionField: "rfo_description",
+    amountField: "purchase_amount",
     dateField: "contract_start_date",
-    agencyField: "agency",
-  },
-  {
-    state: "GA",
-    stateName: "Georgia",
-    baseUrl: "https://data.georgia.gov",
-    datasetId: "f46y-2t4r",
-    vendorField: "vendor",
-    descriptionField: "description",
-    amountField: "amount",
-    dateField: "award_date",
-    agencyField: "agency",
+    agencyField: "customer_name",
   },
   {
     state: "IL",
-    stateName: "Illinois",
-    baseUrl: "https://data.illinois.gov",
-    datasetId: "shf2-v4gx",
+    stateName: "City of Chicago purchase orders",
+    baseUrl: "https://data.cityofchicago.org",
+    datasetId: "rsxa-ify5",
     vendorField: "vendor_name",
-    descriptionField: "short_description",
-    amountField: "maximum_amount",
-    dateField: "start_date",
-    agencyField: "agency_name",
-  },
-  {
-    state: "NC",
-    stateName: "North Carolina",
-    baseUrl: "https://data.nc.gov",
-    datasetId: "bvam-t5rx",
-    vendorField: "vendor_name",
-    descriptionField: "description",
-    amountField: "total_amount",
-    dateField: "effective_date",
-    agencyField: "agency",
-  },
-  {
-    state: "WA",
-    stateName: "Washington",
-    baseUrl: "https://data.wa.gov",
-    datasetId: "ypbn-sfvs",
-    vendorField: "supplier_name",
-    descriptionField: "item_description",
-    amountField: "total_contract_value",
-    dateField: "award_date",
-    agencyField: "agency",
-  },
-  {
-    state: "CO",
-    stateName: "Colorado",
-    baseUrl: "https://data.colorado.gov",
-    datasetId: "3fpj-e7je",
-    vendorField: "vendor",
-    descriptionField: "description",
-    amountField: "amount",
-    dateField: "start_date",
-    agencyField: "department",
-  },
-  {
-    state: "OH",
-    stateName: "Ohio",
-    baseUrl: "https://data.ohio.gov",
-    datasetId: "r8s4-jqfd",
-    vendorField: "vendor_name",
-    descriptionField: "service_description",
-    amountField: "contract_amount",
-    dateField: "contract_begin_date",
-    agencyField: "agency_name",
-  },
-  {
-    state: "PA",
-    stateName: "Pennsylvania",
-    baseUrl: "https://data.pa.gov",
-    datasetId: "gmfm-8n9p",
-    vendorField: "vendor_name",
-    descriptionField: "description",
+    descriptionField: "purchase_order_description",
     amountField: "award_amount",
-    dateField: "award_date",
-    agencyField: "agency",
-  },
-  {
-    state: "MI",
-    stateName: "Michigan",
-    baseUrl: "https://data.michigan.gov",
-    datasetId: "n8a4-cna4",
-    vendorField: "vendor_name",
-    descriptionField: "contract_description",
-    amountField: "total_amount",
-    dateField: "start_date",
-    agencyField: "agency_name",
-  },
-  {
-    state: "VA",
-    stateName: "Virginia",
-    baseUrl: "https://data.virginia.gov",
-    datasetId: "kfjs-pu3m",
-    vendorField: "vendor",
-    descriptionField: "description",
-    amountField: "total",
-    dateField: "po_date",
-    agencyField: "agency",
-  },
-  {
-    state: "TN",
-    stateName: "Tennessee",
-    baseUrl: "https://data.tn.gov",
-    datasetId: "yy9r-9d4e",
-    vendorField: "supplier_name",
-    descriptionField: "description",
-    amountField: "amount",
-    dateField: "effective_date",
+    dateField: "approval_date",
     agencyField: "department",
   },
   {
-    state: "IN",
-    stateName: "Indiana",
-    baseUrl: "https://data.in.gov",
-    datasetId: "r5qe-m3y8",
-    vendorField: "vendor",
-    descriptionField: "description",
-    amountField: "contract_amount",
-    dateField: "start_date",
-    agencyField: "agency",
+    state: "TX",
+    stateName: "City of Austin purchasing",
+    baseUrl: "https://data.austintexas.gov",
+    datasetId: "3ebq-e9iz",
+    vendorField: "lgl_nm",
+    descriptionField: "commodity_description",
+    amountField: "itm_tot_am",
+    dateField: "award_date",
+    agencyField: "contract_name",
   },
 ];
 
@@ -232,35 +111,40 @@ async function queryDataset(source: SocrataSource): Promise<void> {
   ).join(" OR ");
 
   const whereClause = `(${vendorConditions}) OR (${descConditions})`;
-  const dateFilter = `${source.dateField} >= '${fromDate}'`;
+  const dateFilter = source.dateField ? ` AND ${source.dateField} >= '${fromDate}'` : "";
 
   const fields = [
     source.vendorField,
     source.descriptionField,
     source.amountField,
     source.dateField,
-    ...(source.agencyField ? [source.agencyField] : []),
-  ].join(",");
+    source.agencyField,
+  ]
+    .filter((f): f is string => Boolean(f))
+    .join(",");
 
   const params = new URLSearchParams({
-    $where: `(${whereClause}) AND ${dateFilter}`,
+    $where: `${whereClause}${dateFilter}`,
     $select: fields,
     $limit: "100",
-    $order: `${source.dateField} DESC`,
   });
+  if (source.dateField) params.set("$order", `${source.dateField} DESC`);
 
   const url = `${source.baseUrl}/resource/${source.datasetId}.json?${params}`;
 
   const res = await fetch(url, {
     headers: {
       Accept: "application/json",
-      "User-Agent": "RapidCortex-IQ/1.0 (procurement-monitor)",
+      "User-Agent": RAPID_IQ_BROWSER_UA,
     },
     signal: AbortSignal.timeout(20_000),
   });
 
   if (!res.ok) {
     console.warn(`Socrata ${source.state} (${source.datasetId}): HTTP ${res.status}`);
+    if (res.status === 400 && source.dateField) {
+      await queryDataset({ ...source, dateField: undefined });
+    }
     return;
   }
 
@@ -270,9 +154,9 @@ async function queryDataset(source: SocrataSource): Promise<void> {
   for (const row of rows) {
     const vendor = row[source.vendorField] ?? "";
     const description = row[source.descriptionField] ?? "";
-    const amountRaw = row[source.amountField];
+    const amountRaw = source.amountField ? row[source.amountField] : undefined;
     const amount = amountRaw != null ? Number.parseFloat(amountRaw) : undefined;
-    const date = row[source.dateField] ?? new Date().toISOString();
+    const date = (source.dateField ? row[source.dateField] : undefined) ?? new Date().toISOString();
     const agency = source.agencyField ? (row[source.agencyField] ?? "") : "";
 
     const signal: RapidIqPipelineRawSignal = {

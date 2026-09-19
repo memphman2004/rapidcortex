@@ -2,6 +2,9 @@ import { describe, expect, it } from "vitest";
 import {
   CAD_BRIDGE_VENDOR_LABELS,
   CAD_BRIDGE_VENDORS,
+  CAD_BRIDGE_MAX_PARTICIPANTS,
+  CAD_BRIDGE_SLOTS,
+  CAD_BRIDGE_EXTRA_SLOTS,
   acceptIncidentTransfer,
   buildBridgedCommentText,
   buildBridgeToken,
@@ -10,10 +13,14 @@ import {
   cancelIncidentTransfer,
   detectCadBridgeConflicts,
   dropCanonicalFields,
+  emptyCadSlotConfig,
   extractBridgeToken,
+  fanoutCadSlots,
   isSecondaryCloseWhilePrimaryActive,
   isTransferTimedOut,
+  listCadBridgeParticipants,
   mergeCanonicalIncident,
+  nextAvailableCadSlot,
   requestIncidentTransfer,
   resolveCadBridgeConflicts,
   shouldSyncEvent,
@@ -48,7 +55,7 @@ function sampleIncident(overrides: Partial<CanonicalIncident> = {}): CanonicalIn
 describe("CAD bridge config", () => {
   it("accepts every company vendor identity used on the admin dropdown", () => {
     expect(CAD_BRIDGE_VENDORS).toEqual(
-      expect.arrayContaining(["AXON", "HARRIS", "VERSATERM", "MARK43", "ORACLE"]),
+      expect.arrayContaining(["AXON", "HARRIS", "VERSATERM", "MARK43", "ORACLE", "SOUTHERN_SOFTWARE"]),
     );
     for (const vendor of CAD_BRIDGE_VENDORS) {
       expect(cadBridgeVendorSchema.parse(vendor)).toBe(vendor);
@@ -246,5 +253,41 @@ describe("CAD bridge transfer", () => {
     });
     expect(cancelled.owner).toBe("CAD_A");
     expect(cancelled.transferState?.status).toBe("TIMED_OUT");
+  });
+});
+
+describe("CAD bridge hub (up to 8 CADs)", () => {
+  it("lists eight slot identities and two default participants", () => {
+    expect(CAD_BRIDGE_SLOTS).toHaveLength(CAD_BRIDGE_MAX_PARTICIPANTS);
+    const cfg = buildDefaultCadBridgeConfig("kcpd", "br-1");
+    expect(listCadBridgeParticipants(cfg).map((p) => p.slot)).toEqual(["CAD_A", "CAD_B"]);
+    expect(nextAvailableCadSlot(cfg)).toBe("CAD_C");
+  });
+
+  it("fans out from CAD_A to every other outbound-enabled participant", () => {
+    const cfg = buildDefaultCadBridgeConfig("kcpd", "br-1");
+    cfg.cadA.outboundEnabled = true;
+    cfg.cadB.outboundEnabled = true;
+    cfg.extraParticipants = [
+      { slot: "CAD_C", label: "Berkeley", ...emptyCadSlotConfig("SOUTHERN_SOFTWARE"), outboundEnabled: true },
+      { slot: "CAD_D", label: "Dorchester", ...emptyCadSlotConfig("SOUTHERN_SOFTWARE"), outboundEnabled: false },
+    ];
+    expect(fanoutCadSlots(cfg, "CAD_A")).toEqual(["CAD_B", "CAD_C"]);
+    expect(fanoutCadSlots(cfg, "CAD_C")).toEqual(["CAD_A", "CAD_B"]);
+  });
+
+  it("rejects a ninth CAD and duplicate extra slots", () => {
+    const cfg = buildDefaultCadBridgeConfig("kcpd", "br-1");
+    cfg.extraParticipants = CAD_BRIDGE_EXTRA_SLOTS.map((slot) => ({
+      slot,
+      ...emptyCadSlotConfig(),
+    }));
+    expect(listCadBridgeParticipants(cfg)).toHaveLength(8);
+    expect(nextAvailableCadSlot(cfg)).toBeUndefined();
+    cfg.extraParticipants = [
+      { slot: "CAD_C", ...emptyCadSlotConfig() },
+      { slot: "CAD_C", ...emptyCadSlotConfig() },
+    ];
+    expect(() => validateCadBridgeConfig(cfg)).toThrow(/duplicate/);
   });
 });

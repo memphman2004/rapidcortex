@@ -1,7 +1,7 @@
 AWSTemplateFormatVersion: "2010-09-09"
 Transform: AWS::Serverless-2016-10-31
 Description: >
-  Rapid Cortex — CAD Bridge event broker (CAD A ↔ CAD B).
+  Rapid Cortex — CAD Bridge event broker (hub of up to 8 CAD participants).
   Routes attach to stack 2 HttpApi. Live partner CAD HTTP remains fail-closed
   (CAD_WRITEBACK_ENABLED=false). Mock outbound is default on.
   Six DynamoDB tables (distinct access/TTL/retention). Optional VPC for on-prem CAD.
@@ -509,6 +509,14 @@ Resources:
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "POST /api/public/cad-bridge/{agencyId}/cad-b/events"
+      Target: !Sub "integrations/${CadBridgeWebhookIntegration}"
+      AuthorizationType: NONE
+
+  RouteCadBridgeWebhookSlot:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref HttpApiId
+      RouteKey: "POST /api/public/cad-bridge/{agencyId}/{slot}/events"
       Target: !Sub "integrations/${CadBridgeWebhookIntegration}"
       AuthorizationType: NONE
 

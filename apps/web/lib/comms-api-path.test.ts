@@ -210,6 +210,9 @@ describe("isCommsPlatformApiPath", () => {
     expect(isStack2ApiPath("/api/cad-bridge/config")).toBe(true);
     expect(isStack2ApiPath("/api/public/cad-bridge/kcpd/cad-a/events")).toBe(true);
     expect(resolveUpstreamApiBase("/api/cad-bridge/health")).toBe("https://stack2.example.com");
+    expect(isStack2ApiPath("/api/c2c/slots")).toBe(true);
+    expect(isStack2ApiPath("/api/public/c2c/kcpd/cad-a/events")).toBe(true);
+    expect(resolveUpstreamApiBase("/api/c2c/health")).toBe("https://stack2.example.com");
   });
 
   it("routes location geocode/route to stack 2 only", () => {

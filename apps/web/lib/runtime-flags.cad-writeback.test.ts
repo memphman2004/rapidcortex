@@ -48,6 +48,13 @@ describe("runtime feature flags", { timeout: 20_000 }, () => {
     expect(isCadBridgeUiEnabled()).toBe(true);
   });
 
+  it("defaults C2C hub UI on when unset", async () => {
+    vi.stubEnv("NEXT_PUBLIC_ENABLE_PILOT_TEST_MODE", "0");
+    vi.stubEnv("NEXT_PUBLIC_ENABLE_C2C_HUB", "");
+    const { isC2cHubUiEnabled } = await import("./runtime-flags");
+    expect(isC2cHubUiEnabled()).toBe(true);
+  });
+
   it("honors explicit disable for operational flags", async () => {
     vi.stubEnv("NEXT_PUBLIC_ENABLE_REPORTS", "0");
     const { isReportsEnabled } = await import("./runtime-flags");

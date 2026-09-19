@@ -3,7 +3,7 @@ import { createHash } from "node:crypto";
 import type { RapidIqPipelineRawSignal } from "rapid-cortex-shared";
 import { isCollectorsMockEnabled } from "../../../lib/rapid-iq/agenda-finder.js";
 import { jeffersonCountyMockRawSignal } from "../../../lib/rapid-iq/pipeline/nlp-extract.js";
-import { isDuplicateSource } from "../../../lib/rapid-iq/pipeline/ingest-utils.js";
+import { isDuplicate } from "../../../lib/rapid-iq/pipeline/ingest-utils.js";
 
 const sqs = new SQSClient({});
 
@@ -47,19 +47,23 @@ export async function enqueueRawSignal(
   signal: RapidIqPipelineRawSignal,
   opts: EnqueueRawSignalOptions = {},
 ): Promise<boolean> {
-  if (await isDuplicateSource(signal.sourceUrl, signal.rawTitle)) {
+  const groupId = (opts.groupId?.trim() || signal.sourceId).slice(0, FIFO_DEDUPE_ID_MAX_LEN);
+  const dedupeId = fifoDedupeId(opts.dedupeId?.trim() || defaultDedupeKey(signal));
+
+  // Use the FIFO key for the 90-day Dynamo reservation so callers that pass
+  // a dated dedupeId (monthly landing pages, award IDs) can recrawl.
+  // URL+title hashing permanently blocked 911.gov / ARPA / state-board shells.
+  if (await isDuplicate(dedupeId)) {
     console.log(
       JSON.stringify({
         msg: "rapid_iq_ingest_dedup_skip",
         sourceId: signal.sourceId,
         title: signal.rawTitle.slice(0, 80),
+        dedupeId,
       }),
     );
     return false;
   }
-
-  const groupId = (opts.groupId?.trim() || signal.sourceId).slice(0, FIFO_DEDUPE_ID_MAX_LEN);
-  const dedupeId = fifoDedupeId(opts.dedupeId?.trim() || defaultDedupeKey(signal));
 
   await sqs.send(
     new SendMessageCommand({

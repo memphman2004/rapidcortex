@@ -208,20 +208,25 @@ describe("getRoleNav", () => {
     expect(facultyItem?.badge).toEqual({ type: "label", text: "VIEW ONLY", color: "slate" });
   });
 
-  it("exposes Call Assist QA, analytics, and retention to the roles that can use them", () => {
+  it("exposes Call Assist QA to supervisors and analytics on the Call Assist page", () => {
     const supervisor = getRoleNav("supervisor", { jurisdiction: "test-psap" });
     const hrefs = Object.fromEntries(supervisor.sections.flatMap((s) => s.items).map((i) => [i.id, i.href]));
+    expect(hrefs["call-assist"]).toBe("/test-psap/call-assist");
     expect(hrefs["call-assist-qa"]).toBe("/test-psap/call-assist/qa");
-    expect(hrefs["call-assist-analytics"]).toBe("/test-psap/call-assist/analytics");
+    expect(hrefs["call-assist-analytics"]).toBeUndefined();
     const admin = getRoleNav("agencyadmin", { jurisdiction: "test-psap" });
     const adminHrefs = Object.fromEntries(admin.sections.flatMap((s) => s.items).map((i) => [i.id, i.href]));
     expect(adminHrefs.compliance).toBe("/test-psap/admin/retention");
-    expect(adminHrefs["call-assist-analytics"]).toBe("/test-psap/call-assist/analytics");
+    expect(adminHrefs["call-assist-analytics"]).toBeUndefined();
     expect(adminHrefs["cad-bridge"]).toBe("/test-psap/admin/cad/bridge");
+    expect(adminHrefs["c2c-hub"]).toBe("/test-psap/admin/cad/c2c");
     const dispatcher = getRoleNav("dispatcher", { jurisdiction: "test-psap" });
     expect(dispatcher.sections.flatMap((s) => s.items).find((i) => i.id === "call-assist-qa")).toBeUndefined();
     expect(dispatcher.sections.flatMap((s) => s.items).find((i) => i.id === "cad-bridge")?.href).toBe(
       "/test-psap/admin/cad/bridge",
+    );
+    expect(dispatcher.sections.flatMap((s) => s.items).find((i) => i.id === "c2c-hub")?.href).toBe(
+      "/test-psap/admin/cad/c2c",
     );
   });
 
@@ -239,7 +244,7 @@ describe("getRoleNav", () => {
     const supervisorHrefs = supervisor.sections.flatMap((s) => s.items).map((i) => i.href);
     expect(supervisorHrefs).toContain("/app/call-assist/supervisor");
     expect(supervisorHrefs).toContain("/app/call-assist/qa");
-    expect(supervisorHrefs).toContain("/app/call-assist/analytics");
+    expect(supervisorHrefs).not.toContain("/app/call-assist/analytics");
     expect(supervisorHrefs).not.toContain("/app/call-assist/admin");
     expect(hrefs).not.toContain("/app/call-assist/qa");
   });
@@ -369,7 +374,7 @@ describe("getRoleNav", () => {
     expect(dispatcher).toBeUndefined();
   });
 
-  it("exposes Rapid Vision™ on dispatcher and supervisor media, not guest services", () => {
+  it("exposes Rapid Vision™ on dispatcher media, not supervisor or guest services", () => {
     const dispatcher = getRoleNav("dispatcher", { jurisdiction: "test-psap" })
       .sections.flatMap((s) => s.items)
       .find((i) => i.id === "rapid-vision");
@@ -380,7 +385,7 @@ describe("getRoleNav", () => {
     const supervisor = getRoleNav("supervisor", { jurisdiction: "test-psap" })
       .sections.flatMap((s) => s.items)
       .find((i) => i.id === "rapid-vision");
-    expect(supervisor?.href).toBe("/test-psap/media?vision=1");
+    expect(supervisor).toBeUndefined();
 
     const guest = getRoleNav("VENUE_GUEST_SERVICES", { venueCode: "MBS" })
       .sections.flatMap((s) => s.items)

@@ -1,4 +1,4 @@
-import type { CADBridgeConfig, ConflictRecord, BridgeAuditRecord, CanonicalIncident } from "rapid-cortex-shared";
+import type { CADBridgeConfig, CADSlot, ConflictRecord, BridgeAuditRecord, CanonicalIncident } from "rapid-cortex-shared";
 
 class CadBridgeApiError extends Error {
   status: number;
@@ -59,8 +59,18 @@ export function fetchCadBridgeHealth() {
     mockMode: boolean;
     writebackEnabled: boolean;
     brokerNotice: string;
+    participantCount?: number;
+    maxParticipants?: number;
     cadA: { vendor?: string; circuit: string; inbound?: boolean };
     cadB: { vendor?: string; circuit: string; inbound?: boolean };
+    participants?: Array<{
+      slot: string;
+      vendor: string;
+      label?: string;
+      inbound: boolean;
+      outbound: boolean;
+      circuit: string;
+    }>;
     pendingBufferSize: number;
   }>("/api/cad-bridge/health");
 }
@@ -69,7 +79,7 @@ export function fetchCadBridgeConflicts() {
   return cadBridgeRequest<{ items: Array<ConflictRecord & { rcIncidentId: string }> }>("/api/cad-bridge/conflicts");
 }
 
-export function resolveCadBridgeConflict(conflictId: string, resolution: string, keepSlot?: "CAD_A" | "CAD_B") {
+export function resolveCadBridgeConflict(conflictId: string, resolution: string, keepSlot?: CADSlot) {
   return cadBridgeRequest<{ incident: CanonicalIncident }>(
     `/api/cad-bridge/conflicts/${encodeURIComponent(conflictId)}/resolve`,
     { method: "POST", body: JSON.stringify({ resolution, keepSlot }) },
@@ -82,7 +92,7 @@ export function fetchCadBridgeAudit(rcIncidentId: string) {
   );
 }
 
-export function testCadBridgeConnection(slot: "CAD_A" | "CAD_B") {
+export function testCadBridgeConnection(slot: CADSlot) {
   return cadBridgeRequest<{
     ok: boolean;
     slot: string;

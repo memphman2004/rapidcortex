@@ -1,10 +1,9 @@
-import { BUFFER_MAX_RETRY_ATTEMPTS, type BufferedOutboundEvent, type CADBridgeConfig, type CADSlot } from "rapid-cortex-shared";
+import { BUFFER_MAX_RETRY_ATTEMPTS, CAD_BRIDGE_SLOTS, type BufferedOutboundEvent, type CADBridgeConfig, type CADSlot } from "rapid-cortex-shared";
 import { env } from "../lib/env.js";
 import { emitCadBridgeMetrics } from "./metrics.js";
 import { deliverStoredOutboundEvent } from "./publisher.js";
 import { cadBridgeStore, isCadBridgeStoreConfigured } from "./store.js";
 
-const SLOTS: CADSlot[] = ["CAD_A", "CAD_B"];
 const MAX_PER_SLOT = 20;
 
 export interface BufferReplayStats {
@@ -25,7 +24,7 @@ export async function replayBufferedCadBridgeEvents(): Promise<BufferReplayStats
   const configs = await cadBridgeStore.listConfigs();
   for (const config of configs) {
     if (!config.enabled) continue;
-    for (const slot of SLOTS) {
+    for (const slot of CAD_BRIDGE_SLOTS) {
       stats.bufferDepth += await replaySlot(config, slot, stats);
     }
   }

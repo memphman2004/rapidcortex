@@ -1,5 +1,5 @@
 import type { CADSlot, CanonicalIncident, TransferState } from "./schemas.js";
-import { oppositeCadSlot } from "./config.js";
+import { listIncidentLinkedSlots, oppositeCadSlot } from "./config.js";
 
 export class CadBridgeTransferError extends Error {
   constructor(message: string) {
@@ -90,5 +90,6 @@ export function isTransferTimedOut(incident: CanonicalIncident, nowIso: string):
 }
 
 export function defaultTransferDestination(incident: CanonicalIncident): CADSlot {
-  return oppositeCadSlot(incident.owner);
+  const other = listIncidentLinkedSlots(incident).find((slot) => slot !== incident.owner);
+  return other ?? oppositeCadSlot(incident.owner);
 }

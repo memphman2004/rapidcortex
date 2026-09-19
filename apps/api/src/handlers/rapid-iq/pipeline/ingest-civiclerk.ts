@@ -11,8 +11,11 @@ type CivicClerkEntity = { slug: string; name: string; state: string };
 
 const ENTITIES = (registryJson as { entities: CivicClerkEntity[] }).entities;
 
-function agendasUrl(slug: string): string {
-  return `https://www.civicclerk.com/web/${encodeURIComponent(slug)}/agendas.aspx`;
+function civicClerkUrls(slug: string): string[] {
+  return [
+    `https://${encodeURIComponent(slug)}.portal.civicclerk.com/`,
+    `https://www.civicclerk.com/web/${encodeURIComponent(slug)}/agendas.aspx`,
+  ];
 }
 
 export async function handler(): Promise<void> {
@@ -25,19 +28,30 @@ export async function handler(): Promise<void> {
 
   let queued = 0;
   for (const entity of ENTITIES) {
-    const url = agendasUrl(entity.slug);
-    const fetched = await fetchIngestText(url, 15_000);
-    if (!fetched.ok) {
-      console.warn(JSON.stringify({ msg: "civiclerk_fetch_failed", slug: entity.slug, status: fetched.status }));
+    let fetched: { ok: boolean; status: number; body: string } | null = null;
+    let usedUrl = civicClerkUrls(entity.slug)[0]!;
+    for (const url of civicClerkUrls(entity.slug)) {
+      const attempt = await fetchIngestText(url, 15_000, { browserLike: true });
+      if (attempt.ok && attempt.body.trim()) {
+        fetched = attempt;
+        usedUrl = url;
+        break;
+      }
+      fetched = attempt;
+      usedUrl = url;
+    }
+    if (!fetched?.ok) {
+      console.warn(JSON.stringify({ msg: "civiclerk_fetch_failed", slug: entity.slug, status: fetched?.status ?? 0 }));
       continue;
     }
     queued += await enqueueRelevantPage(
       "civiclerk",
-      url,
+      usedUrl,
       `${entity.name} agendas`,
       fetched.body,
       { agencyName: entity.name, state: entity.state },
       8,
+      { forcePage: true },
     );
     await sleep(300);
   }

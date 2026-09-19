@@ -9,9 +9,13 @@ import {
   cadBridgeEnabledPatchSchema,
   cadBridgeSyncRulesPatchSchema,
   cadBridgeTransferRequestSchema,
+  cadSlotSchema,
   cancelIncidentTransfer,
+  conflictValueForSlot,
   defaultTransferDestination,
+  getCadSlotConfig,
   isRcInternalOperator,
+  listCadBridgeParticipants,
   requestIncidentTransfer,
   type CADBridgeConfig,
 } from "rapid-cortex-shared";
@@ -174,11 +178,20 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
     if (method === "GET" && parts[0] === "health") {
       requirePerm(user, "cad.health.view");
       const config = await cadBridgeStore.getConfig(agencyId);
-      const [cbA, cbB, bufferSize] = await Promise.all([
-        cadBridgeStore.getCircuitBreaker(agencyId, "CAD_A"),
-        cadBridgeStore.getCircuitBreaker(agencyId, "CAD_B"),
-        cadBridgeStore.countBuffered(agencyId),
-      ]);
+      const participants = config ? listCadBridgeParticipants(config) : [];
+      const circuits = await Promise.all(
+        participants.map(async (p) => ({
+          slot: p.slot,
+          vendor: p.vendor,
+          label: p.label,
+          inbound: p.inboundEnabled,
+          outbound: p.outboundEnabled,
+          circuit: (await cadBridgeStore.getCircuitBreaker(agencyId, p.slot))?.state ?? "CLOSED",
+        })),
+      );
+      const bufferSize = await cadBridgeStore.countBuffered(agencyId);
+      const cadA = circuits.find((c) => c.slot === "CAD_A");
+      const cadB = circuits.find((c) => c.slot === "CAD_B");
       return withCorrelationHeaders(
         event,
         ok({
@@ -186,9 +199,16 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
           mockMode: env.cadBridgeMock,
           writebackEnabled: env.cadWritebackEnabled,
           brokerNotice:
-            "Rapid Cortex is the broker, not the source of truth. Both CADs remain independently operational if RC is unavailable.",
-          cadA: { vendor: config?.cadA.vendor, circuit: cbA?.state ?? "CLOSED", inbound: config?.cadA.inboundEnabled },
-          cadB: { vendor: config?.cadB.vendor, circuit: cbB?.state ?? "CLOSED", inbound: config?.cadB.inboundEnabled },
+            "Rapid Cortex is the broker, not the source of truth. Connected CADs remain independently operational if RC is unavailable.",
+          participantCount: circuits.length,
+          maxParticipants: 8,
+          cadA: cadA
+            ? { vendor: cadA.vendor, circuit: cadA.circuit, inbound: cadA.inbound }
+            : undefined,
+          cadB: cadB
+            ? { vendor: cadB.vendor, circuit: cadB.circuit, inbound: cadB.inbound }
+            : undefined,
+          participants: circuits,
           pendingBufferSize: bufferSize,
         }),
       );
@@ -210,7 +230,7 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
       const incident = await cadBridgeStore.getIncident(agencyId, found.rcIncidentId);
       if (!incident) return withCorrelationHeaders(event, notFound("Incident not found"));
       const keepSlot = parsed.data.keepSlot ?? (parsed.data.resolution === "PRIMARY_WINS" ? (await cadBridgeStore.getConfig(agencyId))?.primaryCAD ?? "CAD_A" : "CAD_A");
-      const keepValue = keepSlot === "CAD_A" ? found.cadAValue : found.cadBValue;
+      const keepValue = conflictValueForSlot(found, keepSlot);
       const nextIncident = {
         ...incident,
         pendingConflicts: incident.pendingConflicts.filter((c) => c.conflictId !== found.conflictId),
@@ -314,8 +334,10 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
       requirePerm(user, "cad.connector.manage");
       const config = await cadBridgeStore.getConfig(agencyId);
       if (!config) return withCorrelationHeaders(event, notFound("Bridge config not found"));
-      const slot = (body as { slot?: string } | null)?.slot === "CAD_B" ? "CAD_B" : "CAD_A";
-      const slotConfig = slot === "CAD_A" ? config.cadA : config.cadB;
+      const parsedSlot = cadSlotSchema.safeParse((body as { slot?: string } | null)?.slot);
+      const slot = parsedSlot.success ? parsedSlot.data : "CAD_A";
+      const slotConfig = getCadSlotConfig(config, slot);
+      if (!slotConfig) return withCorrelationHeaders(event, badRequest(`CAD slot ${slot} is not configured`));
       const adapter = getCadBridgeAdapter(slotConfig.vendor);
       const synthetic = JSON.stringify({
         eventType: "INCIDENT_CREATED",

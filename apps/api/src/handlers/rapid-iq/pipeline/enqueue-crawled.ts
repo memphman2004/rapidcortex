@@ -14,10 +14,12 @@ export async function enqueueRelevantPage(
   html: string,
   extra: Record<string, unknown> = {},
   limit = 20,
+  options?: { forcePage?: boolean },
 ): Promise<number> {
   let queued = 0;
   const pageText = stripHtml(html).slice(0, 4000);
-  if (isCivicDocumentIngestText(`${pageName} ${pageText}`)) {
+  const month = new Date().toISOString().slice(0, 7);
+  if (options?.forcePage || isCivicDocumentIngestText(`${pageName} ${pageText}`)) {
     const signal: RapidIqPipelineRawSignal = {
       sourceId,
       sourceUrl: pageUrl,
@@ -30,7 +32,12 @@ export async function enqueueRelevantPage(
       }),
       signalDate: parseIsoDate(undefined),
     };
-    if (await enqueueRawSignal(signal, { dedupeId: `${sourceId}-${pageUrl}`, groupId: sourceId })) {
+    if (
+      await enqueueRawSignal(signal, {
+        dedupeId: `${sourceId}-${pageUrl}-${month}`,
+        groupId: sourceId,
+      })
+    ) {
       queued += 1;
     }
   }
@@ -40,7 +47,10 @@ export async function enqueueRelevantPage(
     if (queued >= limit) break;
     if (seen.has(link.href)) continue;
     const hay = `${link.text} ${link.href}`;
-    if (!isCivicDocumentIngestText(hay)) continue;
+    const looksLikeDoc =
+      /\.(pdf|docx?|xlsx?|pptx?)(\?|$)/i.test(link.href) ||
+      /\b(agenda|minutes|meeting|procurement|bid|rfp|grant|budget|ng911|psap)\b/i.test(hay);
+    if (!isCivicDocumentIngestText(hay) && !(options?.forcePage && looksLikeDoc)) continue;
     seen.add(link.href);
     const signal: RapidIqPipelineRawSignal = {
       sourceId,

@@ -24,14 +24,20 @@ export async function handler(): Promise<void> {
 
   let queued = 0;
   for (const page of PAGES) {
-    const fetched = await fetchIngestText(page.url);
+    const fetched = await fetchIngestText(page.url, 20_000, { browserLike: true });
     if (!fetched.ok) {
       console.warn(JSON.stringify({ msg: "coop_purchasing_fetch_failed", url: page.url, status: fetched.status }));
       continue;
     }
-    queued += await enqueueRelevantPage("sourcewell-omnia", page.url, page.name, fetched.body, {
-      cooperative: page.name,
-    });
+    queued += await enqueueRelevantPage(
+      "sourcewell-omnia",
+      page.url,
+      page.name,
+      fetched.body,
+      { cooperative: page.name },
+      20,
+      { forcePage: true },
+    );
     await sleep(400);
   }
 

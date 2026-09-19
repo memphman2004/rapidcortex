@@ -1,6 +1,6 @@
 import { SendMessageCommand, SQSClient } from "@aws-sdk/client-sqs";
 import type { APIGatewayProxyEventV2, APIGatewayProxyResultV2 } from "aws-lambda";
-import { RC_BRIDGE_SOURCE_HEADER, type CADSlot } from "rapid-cortex-shared";
+import { RC_BRIDGE_SOURCE_HEADER, getCadSlotConfig, parseCadSlotPathToken, type CADSlot } from "rapid-cortex-shared";
 import { withCorrelationHeaders } from "../lib/correlation.js";
 import { env } from "../lib/env.js";
 import { ok, serverError, serviceUnavailable, unauthorized } from "../lib/response.js";
@@ -33,8 +33,8 @@ export async function handleCadBridgeWebhook(
   if (!config) return withCorrelationHeaders(event, ok({ error: "Not Found" }, 404));
   if (!config.enabled) return withCorrelationHeaders(event, ok({ status: "OK" }));
 
-  const slotConfig = cadSlot === "CAD_A" ? config.cadA : config.cadB;
-  if (!slotConfig.inboundEnabled) return withCorrelationHeaders(event, ok({ status: "OK" }));
+  const slotConfig = getCadSlotConfig(config, cadSlot);
+  if (!slotConfig?.inboundEnabled) return withCorrelationHeaders(event, ok({ status: "OK" }));
 
   const sourceHeader = headerValue(event.headers ?? {}, "x-rc-bridge-source");
   if (sourceHeader === RC_BRIDGE_SOURCE_HEADER) {
@@ -96,11 +96,12 @@ export async function handleCadBridgeWebhook(
 
 function parsePath(event: APIGatewayProxyEventV2): { agencyId: string; cadSlot: CADSlot } | null {
   const agencyId = event.pathParameters?.agencyId;
-  const slotParam = (event.pathParameters?.slot ?? "").toLowerCase();
+  const slotParam = event.pathParameters?.slot ?? "";
   const path = event.rawPath ?? "";
-  const fromPath = path.match(/\/api\/public\/cad-bridge\/([^/]+)\/(cad-a|cad-b)\/events/i);
+  const fromPath = path.match(/\/api\/public\/cad-bridge\/([^/]+)\/(cad-[a-h])\/events/i);
   const id = agencyId || fromPath?.[1];
   const slot = slotParam || fromPath?.[2] || "";
-  if (!id || (slot !== "cad-a" && slot !== "cad-b")) return null;
-  return { agencyId: decodeURIComponent(id), cadSlot: slot === "cad-a" ? "CAD_A" : "CAD_B" };
+  const cadSlot = parseCadSlotPathToken(slot);
+  if (!id || !cadSlot) return null;
+  return { agencyId: decodeURIComponent(id), cadSlot };
 }

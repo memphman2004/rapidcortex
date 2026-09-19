@@ -5,6 +5,7 @@ import type {
   ConflictRecord,
   ConflictStrategy,
 } from "./schemas.js";
+import { setIncidentLink } from "./config.js";
 
 const SCALAR_CONFLICT_FIELDS = ["priority", "type", "status"] as const;
 
@@ -79,6 +80,9 @@ function conflictRow(args: {
     cadBValue: sourceSlot === "CAD_B" ? incoming : existing,
     cadATimestamp: nowIso,
     cadBTimestamp: nowIso,
+    sourceSlot,
+    existingValue: existing,
+    incomingValue: incoming,
     detectedAt: nowIso,
   };
 }
@@ -164,14 +168,8 @@ export function mergeCanonicalIncident(
     ];
   }
 
-  if (sourceSlot === "CAD_A") {
-    next.cadA = { ...next.cadA, lastSyncedAt: nowIso };
-  } else if (next.cadB.incidentId) {
-    next.cadB = { ...next.cadB, lastSyncedAt: nowIso };
-  }
-
   next.updatedAt = nowIso;
-  return next;
+  return setIncidentLink(next, sourceSlot, { lastSyncedAt: nowIso });
 }
 
 export function isSecondaryCloseWhilePrimaryActive(
@@ -182,4 +180,11 @@ export function isSecondaryCloseWhilePrimaryActive(
   if (eventType !== "INCIDENT_CLOSED" && eventType !== "INCIDENT_CANCELLED") return false;
   if (sourceSlot === incident.owner) return false;
   return incident.status !== "CLOSED" && incident.status !== "CANCELLED";
+}
+
+export function conflictValueForSlot(conflict: ConflictRecord, slot: CADSlot): unknown {
+  if (slot === "CAD_A") return conflict.cadAValue;
+  if (slot === "CAD_B") return conflict.cadBValue;
+  if (conflict.sourceSlot === slot) return conflict.incomingValue;
+  return conflict.existingValue;
 }

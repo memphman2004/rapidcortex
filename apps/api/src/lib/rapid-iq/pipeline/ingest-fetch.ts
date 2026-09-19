@@ -4,15 +4,20 @@
 
 export const RAPID_IQ_INGEST_UA = "RapidCortex-IQ/1.0 (public-safety-signals)";
 
+/** Browser-like UA for sites (FCC, CivicClerk, some Legistar) that 403 the bot UA. */
+export const RAPID_IQ_BROWSER_UA =
+  "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36";
+
 export async function fetchIngestText(
   url: string,
   timeoutMs = 20_000,
+  opts?: { browserLike?: boolean },
 ): Promise<{ ok: boolean; status: number; body: string }> {
   try {
     const res = await fetch(url, {
       headers: {
         Accept: "text/html,application/xhtml+xml,application/xml,application/rss+xml,application/json;q=0.9,*/*;q=0.8",
-        "User-Agent": RAPID_IQ_INGEST_UA,
+        "User-Agent": opts?.browserLike ? RAPID_IQ_BROWSER_UA : RAPID_IQ_INGEST_UA,
       },
       redirect: "follow",
       signal: AbortSignal.timeout(timeoutMs),

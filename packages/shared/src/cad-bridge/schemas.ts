@@ -12,6 +12,7 @@ export const CAD_BRIDGE_VENDORS = [
   "VERSATERM",
   "MARK43",
   "ORACLE",
+  "SOUTHERN_SOFTWARE",
 ] as const;
 
 export const cadBridgeVendorSchema = z.enum(CAD_BRIDGE_VENDORS);
@@ -28,10 +29,34 @@ export const CAD_BRIDGE_VENDOR_LABELS: Record<CADVendor, string> = {
   VERSATERM: "Versaterm",
   MARK43: "Mark43",
   ORACLE: "Oracle",
+  SOUTHERN_SOFTWARE: "Southern Software",
 };
 
-export const cadSlotSchema = z.enum(["CAD_A", "CAD_B"]);
+/** Hub capacity: up to 8 CAD participants on one Rapid Cortex bridge. */
+export const CAD_BRIDGE_SLOTS = [
+  "CAD_A",
+  "CAD_B",
+  "CAD_C",
+  "CAD_D",
+  "CAD_E",
+  "CAD_F",
+  "CAD_G",
+  "CAD_H",
+] as const;
+export const CAD_BRIDGE_MAX_PARTICIPANTS = CAD_BRIDGE_SLOTS.length;
+export const CAD_BRIDGE_EXTRA_SLOTS = [
+  "CAD_C",
+  "CAD_D",
+  "CAD_E",
+  "CAD_F",
+  "CAD_G",
+  "CAD_H",
+] as const;
+
+export const cadSlotSchema = z.enum(CAD_BRIDGE_SLOTS);
 export type CADSlot = z.infer<typeof cadSlotSchema>;
+export const cadBridgeExtraSlotSchema = z.enum(CAD_BRIDGE_EXTRA_SLOTS);
+export type CADBridgeExtraSlot = z.infer<typeof cadBridgeExtraSlotSchema>;
 
 export const incidentPrioritySchema = z.union([
   z.literal(1),
@@ -179,6 +204,9 @@ export const conflictRecordSchema = z.object({
   cadBValue: z.unknown(),
   cadATimestamp: z.string(),
   cadBTimestamp: z.string(),
+  sourceSlot: cadSlotSchema.optional(),
+  existingValue: z.unknown().optional(),
+  incomingValue: z.unknown().optional(),
   detectedAt: z.string(),
   resolvedAt: z.string().optional(),
   resolution: conflictStrategySchema.optional(),
@@ -213,6 +241,7 @@ export const canonicalIncidentSchema = z.object({
   owner: cadSlotSchema,
   cadA: cadSlotLinkSchema.extend({ incidentId: z.string() }),
   cadB: cadSlotLinkSchema,
+  extraLinks: z.record(cadBridgeExtraSlotSchema, cadSlotLinkSchema).optional(),
   type: z.string(),
   priority: incidentPrioritySchema,
   status: incidentStatusSchema,
@@ -258,6 +287,12 @@ export const cadSlotConfigSchema = z.object({
 });
 export type CADSlotConfig = z.infer<typeof cadSlotConfigSchema>;
 
+export const cadBridgeExtraParticipantSchema = cadSlotConfigSchema.extend({
+  slot: cadBridgeExtraSlotSchema,
+  label: z.string().min(1).max(80).optional(),
+});
+export type CADBridgeExtraParticipant = z.infer<typeof cadBridgeExtraParticipantSchema>;
+
 export const bridgeSyncRulesSchema = z.object({
   syncIncidentCreate: z.boolean(),
   syncIncidentUpdate: z.boolean(),
@@ -279,6 +314,7 @@ export const cadBridgeConfigSchema = z.object({
   enabled: z.boolean(),
   cadA: cadSlotConfigSchema,
   cadB: cadSlotConfigSchema,
+  extraParticipants: z.array(cadBridgeExtraParticipantSchema).max(6).optional(),
   primaryCAD: cadSlotSchema,
   syncRules: bridgeSyncRulesSchema,
   conflictResolution: conflictStrategySchema,
@@ -321,7 +357,9 @@ export const cadBridgeAuditRecordSchema = z.object({
   agencyId: z.string(),
   eventId: z.string(),
   rcIncidentId: z.string(),
-  direction: z.enum(["CAD_A_TO_B", "CAD_B_TO_A"]),
+  direction: z.string().min(1),
+  sourceSlot: cadSlotSchema.optional(),
+  destinationSlot: cadSlotSchema.optional(),
   eventType: bridgeEventTypeSchema,
   sourceIncidentId: z.string(),
   destinationIncidentId: z.string().optional(),

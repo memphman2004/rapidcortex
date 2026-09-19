@@ -13,6 +13,7 @@ const REST_VENDORS = [
   "VERSATERM",
   "MARK43",
   "ORACLE",
+  "SOUTHERN_SOFTWARE",
 ] as const;
 
 const registry = new Map<CADVendor, CADAdapter>([

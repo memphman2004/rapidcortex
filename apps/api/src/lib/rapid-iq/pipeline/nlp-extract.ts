@@ -235,8 +235,17 @@ export async function extractSignalData(
   if (isCollectorsMockEnabled()) {
     return extractSignalDataHeuristic(raw);
   }
-  const viaClaude = await extractViaClaude(raw);
-  if (viaClaude) return viaClaude;
+  try {
+    const viaClaude = await extractViaClaude(raw);
+    if (viaClaude) return viaClaude;
+  } catch (err) {
+    console.warn(
+      JSON.stringify({
+        msg: "rapid_iq_pipeline_claude_extract_failed",
+        error: err instanceof Error ? err.message : String(err),
+      }),
+    );
+  }
   return extractSignalDataHeuristic(raw);
 }
 

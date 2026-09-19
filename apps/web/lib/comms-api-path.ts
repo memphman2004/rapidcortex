@@ -45,6 +45,8 @@ const STACK2_PATH_TESTS: RegExp[] = [
   /^\/api\/incidents\/[^/]+\/vision/,
   /^\/api\/cad-bridge\//,
   /^\/api\/public\/cad-bridge\//,
+  /^\/api\/c2c\//,
+  /^\/api\/public\/c2c\//,
   /^\/api\/location\//,
   /^\/api\/alerts\//,
   /^\/api\/public\/call-assist\//,

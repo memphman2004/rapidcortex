@@ -75,7 +75,12 @@ export async function handler(): Promise<void> {
 
   const apiKey = await resolveSamApiKey();
   if (!apiKey) {
-    console.warn("SAM.gov API key not set — skipping SAM.gov ingestion");
+    console.warn(
+      JSON.stringify({
+        msg: "sam_gov_api_key_missing",
+        hint: "Set RapidIqSamGovApiKeySecretArn; USASpending contract NAICS ingest covers federal awards without a SAM key",
+      }),
+    );
     return;
   }
 

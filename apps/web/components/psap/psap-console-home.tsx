@@ -2012,17 +2012,34 @@ function PsapConsoleHomeInner({
                           {activeWarRooms.length} Active
                         </span>
                       </div>
-                      <Link
-                        href={warRoomsHref}
-                        style={{
-                          fontSize: 11,
-                          color: C.blue,
-                          fontWeight: 500,
-                          textDecoration: "none",
-                        }}
-                      >
-                        View all
-                      </Link>
+                      <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                        <Link
+                          href={warRoomsHref}
+                          style={{
+                            fontSize: 11,
+                            color: C.blue,
+                            fontWeight: 500,
+                            textDecoration: "none",
+                          }}
+                        >
+                          View all
+                        </Link>
+                        <Link
+                          href={warRoomsHref}
+                          style={{
+                            fontSize: 11,
+                            fontWeight: 600,
+                            color: "#ddd6fe",
+                            textDecoration: "none",
+                            padding: "5px 10px",
+                            borderRadius: 6,
+                            background: "rgba(139,92,246,0.22)",
+                            border: "1px solid rgba(139,92,246,0.35)",
+                          }}
+                        >
+                          Create war room
+                        </Link>
+                      </div>
                     </div>
                     <div style={{ padding: "0 8px 8px", minHeight: 72 }}>
                       {warRoomsQuery.isLoading && activeWarRooms.length === 0 ? (

@@ -5,6 +5,8 @@
 
 import type { RapidIqPipelineRawSignal } from "rapid-cortex-shared";
 import { isCivicDocumentIngestText } from "rapid-cortex-shared";
+import { rapidIqIngestSinceDate } from "../../../lib/rapid-iq/ingest-window.js";
+import { RAPID_IQ_BROWSER_UA } from "../../../lib/rapid-iq/pipeline/ingest-fetch.js";
 import { enqueueMockIfEnabled, enqueueRawSignal } from "./queue-raw-signal.js";
 
 interface ArpaSource {
@@ -93,56 +95,84 @@ function isRelevant(text: string): boolean {
 }
 
 async function fetchTreasurySlfrf(): Promise<void> {
-  const params = new URLSearchParams({
-    $where:
-      `category like '%public safety%' OR category like '%emergency communications%' OR description like '%911%' OR description like '%dispatch%'`,
-    $limit: "200",
-    $order: "reported_date DESC",
-  });
-
-  const url = `https://data.cdc.gov/resource/slfrf-projects.json?${params}`;
+  const today = new Date();
+  const body = {
+    filters: {
+      time_period: [
+        {
+          start_date: rapidIqIngestSinceDate(today),
+          end_date: today.toISOString().slice(0, 10),
+        },
+      ],
+      award_type_codes: ["02", "03", "04", "05"],
+      program_numbers: ["21.027"],
+    },
+    fields: [
+      "Award ID",
+      "Recipient Name",
+      "Description",
+      "Award Amount",
+      "Start Date",
+      "Last Modified Date",
+      "generated_internal_id",
+      "recipient_location_state_code",
+    ],
+    page: 1,
+    limit: 100,
+    sort: "Last Modified Date",
+    order: "desc" as const,
+  };
 
   try {
-    const res = await fetch(url, {
-      headers: { "User-Agent": "RapidCortex-IQ/1.0" },
-      signal: AbortSignal.timeout(20_000),
+    const res = await fetch("https://api.usaspending.gov/api/v2/search/spending_by_award/", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "User-Agent": RAPID_IQ_BROWSER_UA },
+      body: JSON.stringify(body),
+      signal: AbortSignal.timeout(30_000),
     });
 
     if (!res.ok) {
-      console.warn(`Treasury SLFRF: HTTP ${res.status}`);
+      console.warn(`Treasury SLFRF (USASpending 21.027): HTTP ${res.status}`);
       return;
     }
 
-    const projects = (await res.json()) as Record<string, string>[];
+    const payload = (await res.json()) as { results?: Record<string, unknown>[] };
+    const projects = payload.results ?? [];
+    console.log(`SLFRF: ${projects.length} USASpending 21.027 awards`);
 
     for (const project of projects) {
-      const description = project.description ?? project.project_name ?? "";
-      const recipient = project.recipient_name ?? project.entity_name ?? "";
-      const amount = project.award_amount ?? project.obligation_amount ?? "0";
-      const date = project.reported_date ?? project.award_date ?? new Date().toISOString();
-      const state = project.recipient_state ?? project.state ?? "";
-
-      if (!isRelevant(`${description} ${recipient}`)) continue;
+      const description = String(project.Description ?? project.description ?? "");
+      const recipient = String(project["Recipient Name"] ?? project.recipient_name ?? "");
+      const hay = `${description} ${recipient}`;
+      if (!isRelevant(hay) && !/\b(911|dispatch|psap|ng911|emergency communications)\b/i.test(hay)) {
+        continue;
+      }
+      const amount = project["Award Amount"] ?? project.award_amount ?? "0";
+      const date = String(
+        project["Last Modified Date"] ?? project["Start Date"] ?? new Date().toISOString(),
+      );
+      const state = String(
+        project.recipient_location_state_code ?? project["Recipient State Code"] ?? "",
+      );
+      const awardId = String(project.generated_internal_id ?? project["Award ID"] ?? "unknown");
 
       const signal: RapidIqPipelineRawSignal = {
         sourceId: "state-arpa",
-        sourceUrl:
-          "https://home.treasury.gov/policy-issues/coronavirus/assistance-for-state-local-and-tribal-governments/state-and-local-fiscal-recovery-funds",
+        sourceUrl: `https://www.usaspending.gov/award/${encodeURIComponent(awardId)}`,
         rawTitle: `[Treasury SLFRF - ${state}] ${recipient} — ${description.slice(0, 80)}`,
         rawSnippet: JSON.stringify({
-          source: "Treasury SLFRF",
+          source: "USASpending CFDA 21.027",
           recipient,
           description,
           amount,
           state,
           date,
-          category: project.category ?? project.expenditure_category ?? "",
         }),
         signalDate: date.slice(0, 10),
       };
 
       await enqueueRawSignal(signal, {
-        dedupeId: `slfrf-${recipient}-${description}-${date}`,
+        dedupeId: `slfrf-${awardId}`,
         groupId: "state-arpa",
       });
     }
@@ -154,7 +184,7 @@ async function fetchTreasurySlfrf(): Promise<void> {
 async function crawlArpaDashboard(source: ArpaSource): Promise<void> {
   try {
     const res = await fetch(source.dashboardUrl, {
-      headers: { "User-Agent": "RapidCortex-IQ/1.0" },
+      headers: { "User-Agent": RAPID_IQ_BROWSER_UA },
       signal: AbortSignal.timeout(15_000),
     });
 

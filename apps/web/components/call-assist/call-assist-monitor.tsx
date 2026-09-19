@@ -17,10 +17,11 @@ import { isApiConfigured } from "@/lib/api";
 import { useSession } from "@/components/auth/session-context";
 import { useCallAssistProductBase, useJurisdictionLink } from "@/lib/jurisdiction-context";
 import { getCallAssistAnalytics, getCallAssistAnalyticsDashboard, getCallAssistQaDashboard, getCallAssistSchedule, listCallAssistSessions } from "@/lib/call-assist/call-assist-api";
-import { canViewCallAssistQa } from "@/lib/call-assist/access";
+import { canViewCallAssistQa, canViewCallAssistAnalytics } from "@/lib/call-assist/access";
 import { isCallAssistEnabled } from "@/lib/runtime-flags";
 import { CallAssistChrome } from "./call-assist-chrome";
 import { CallAssistCallbackQueue } from "./call-assist-callback-queue";
+import { CallAssistAnalyticsPage } from "./call-assist-analytics-page";
 import { PSAPAvailabilityNotice } from "@/components/psap/psap-availability-notice";
 
 type SessionRow = {
@@ -160,9 +161,9 @@ export function CallAssistMonitor({
           </Link>
         ) : null}
         {!productBase && profile?.capabilities.analytics ? (
-          <Link className="text-sky-400 hover:underline" href={to("/call-assist/analytics")}>
+          <a className="text-sky-400 hover:underline" href="#analytics">
             Analytics
-          </Link>
+          </a>
         ) : null}
         {!productBase && canViewCallAssistQa(user?.role) ? (
           <Link className="text-sky-400 hover:underline" href={to("/call-assist/qa")}>
@@ -258,6 +259,7 @@ export function CallAssistMonitor({
           </tbody>
         </table>
       </div>
+      {canViewCallAssistAnalytics(user?.role) ? <CallAssistAnalyticsPage embedded /> : null}
     </div>
   );
 }
@@ -319,8 +321,8 @@ function CallAssistSupervisorOpsStrip() {
           False-transfer {pct(d?.falseTransferRate)} · Human takeovers {d?.humanTakeoverCount ?? "—"}
         </p>
       </Link>
-      <Link
-        href={to("/call-assist/analytics")}
+      <a
+        href="#analytics"
         className="rounded-lg border border-teal-800/50 bg-teal-950/20 px-3.5 py-3 hover:border-teal-600/60"
       >
         <p className="text-[10px] font-semibold uppercase tracking-wide text-teal-400">Analytics</p>
@@ -328,7 +330,7 @@ function CallAssistSupervisorOpsStrip() {
         <p className="mt-1 text-[11px] text-slate-500">
           Containment · AHT {aht(a?.ahtSeconds)} · CSAT {a?.csatAverage != null ? a.csatAverage.toFixed(1) : "—"}
         </p>
-      </Link>
+      </a>
     </div>
   );
 }

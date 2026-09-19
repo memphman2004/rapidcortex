@@ -15,7 +15,7 @@ import {
   postCadIntegrationTest,
   type CadAdminIntegration,
 } from "@/lib/api";
-import { isCadWritebackUiEnabled } from "@/lib/runtime-flags";
+import { isCadWritebackUiEnabled, isC2cHubUiEnabled } from "@/lib/runtime-flags";
 import { CadIntegrationWizard } from "./cad-integration-wizard";
 import { CadIntegrationHealthPanel } from "./cad-integration-health-panel";
 import { CadIntegrationCard } from "./CadIntegrationCard";
@@ -226,6 +226,15 @@ export function CadIntegrationsPage() {
             <Link href={to("/admin/cad/bridge")} className="text-sky-400 underline hover:text-sky-300">
               CAD Bridge
             </Link>
+            {isC2cHubUiEnabled() ? (
+              <>
+                {" "}
+                and NENA EIDO hub slots on{" "}
+                <Link href={to("/admin/cad/c2c")} className="text-sky-400 underline hover:text-sky-300">
+                  C2C Hub
+                </Link>
+              </>
+            ) : null}
             .
           </p>
         </div>

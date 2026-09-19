@@ -803,6 +803,20 @@ export const env = {
    * Live vendor HTTP still requires CAD_WRITEBACK_ENABLED; mock is default on.
    */
   enableCadBridge: featureEnabled("ENABLE_CAD_BRIDGE"),
+  /**
+   * NENA EIDO C2C hub (Southern Software / CentralSquare adapters). Default on when unset.
+   * Live partner CAD writes remain fail-closed via CAD_WRITEBACK_ENABLED.
+   */
+  enableC2cHub: featureEnabled("ENABLE_C2C_HUB"),
+  c2cAgenciesTable: process.env.C2C_AGENCIES_TABLE?.trim() ?? "",
+  c2cIncidentsTable: process.env.C2C_INCIDENTS_TABLE?.trim() ?? "",
+  c2cAuditTable: process.env.C2C_AUDIT_TABLE?.trim() ?? "",
+  c2cRulesTable: process.env.C2C_RULES_TABLE?.trim() ?? "",
+  c2cAvlTable: process.env.C2C_AVL_TABLE?.trim() ?? "",
+  c2cConnectionsTable: process.env.C2C_CONNECTIONS_TABLE?.trim() ?? "",
+  c2cHeartbeatsTable: process.env.C2C_HEARTBEATS_TABLE?.trim() ?? "",
+  c2cOutboundQueueUrl: process.env.C2C_OUTBOUND_QUEUE_URL?.trim() ?? "",
+  c2cInboundQueueUrl: process.env.C2C_INBOUND_QUEUE_URL?.trim() ?? "",
   cadBridgeConfigTable: process.env.CAD_BRIDGE_CONFIG_TABLE?.trim() ?? "",
   cadBridgeSyncTable: process.env.CAD_BRIDGE_SYNC_TABLE?.trim() ?? "",
   cadBridgeLoopGuardTable: process.env.CAD_BRIDGE_LOOP_GUARD_TABLE?.trim() ?? "",

@@ -52,6 +52,7 @@ export async function handler(): Promise<void> {
           page.body,
           extra,
           8,
+          { forcePage: true },
         );
       }
     }

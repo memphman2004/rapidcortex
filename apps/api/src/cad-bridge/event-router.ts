@@ -4,16 +4,22 @@ import type {
   BridgeAuditRecord,
   BridgeEvent,
   BridgeOutcome,
+  CADBridgeConfig,
   CADSlot,
   CanonicalIncident,
 } from "rapid-cortex-shared";
 import {
+  cadBridgeAuditDirection,
   detectCadBridgeConflicts,
   dropCanonicalFields,
+  fanoutCadSlots,
+  getCadSlotConfig,
+  getIncidentLink,
+  isCadBridgeExtraSlot,
   isSecondaryCloseWhilePrimaryActive,
   mergeCanonicalIncident,
-  oppositeCadSlot,
   resolveCadBridgeConflicts,
+  setIncidentLink,
   shouldSyncEvent,
 } from "rapid-cortex-shared";
 import { getCadBridgeAdapter } from "./adapters/index.js";
@@ -41,13 +47,14 @@ async function processRecord(record: SQSRecord): Promise<void> {
   const audit: Partial<BridgeAuditRecord> = {
     agencyId: bridgeEvent.agencyId,
     eventId: bridgeEvent.eventId,
-    direction: bridgeEvent.sourceSlot === "CAD_A" ? "CAD_A_TO_B" : "CAD_B_TO_A",
+    sourceSlot: bridgeEvent.sourceSlot,
     eventType: bridgeEvent.eventType,
     sourceIncidentId: bridgeEvent.sourceIncidentId,
     sourcePayloadHash: hashPayload(bridgeEvent.rawPayload),
     timestamp: new Date().toISOString(),
     rcIncidentId: "UNRESOLVED",
   };
+  let skipDefaultAudit = false;
 
   try {
     const config = await cadBridgeStore.getConfig(bridgeEvent.agencyId);
@@ -60,8 +67,13 @@ async function processRecord(record: SQSRecord): Promise<void> {
       return;
     }
 
-    const sourceVendor = bridgeEvent.sourceSlot === "CAD_A" ? config.cadA.vendor : config.cadB.vendor;
-    const adapter = getCadBridgeAdapter(sourceVendor);
+    const sourceConfig = getCadSlotConfig(config, bridgeEvent.sourceSlot);
+    if (!sourceConfig) {
+      audit.outcome = "SKIPPED";
+      audit.errorDetail = "source_slot_not_configured";
+      return;
+    }
+    const adapter = getCadBridgeAdapter(sourceConfig.vendor);
     let canonicalChanges = adapter.toCanonical(bridgeEvent);
 
     let incident = await cadBridgeStore.getIncidentByVendorId(
@@ -94,6 +106,9 @@ async function processRecord(record: SQSRecord): Promise<void> {
         cadBValue: bridgeEvent.sourceSlot === "CAD_B" ? "CLOSED" : incident.status,
         cadATimestamp: nowIso,
         cadBTimestamp: nowIso,
+        sourceSlot: bridgeEvent.sourceSlot,
+        existingValue: incident.status,
+        incomingValue: "CLOSED",
         detectedAt: nowIso,
       };
       incident = {
@@ -178,64 +193,83 @@ async function processRecord(record: SQSRecord): Promise<void> {
     }
 
     audit.rcIncidentId = incident.rcIncidentId;
-    const destinationSlot: CADSlot = oppositeCadSlot(bridgeEvent.sourceSlot);
-    const destConfig = destinationSlot === "CAD_A" ? config.cadA : config.cadB;
-    if (!destConfig.outboundEnabled) {
+    const destinations = fanoutCadSlots(config, bridgeEvent.sourceSlot);
+    if (destinations.length === 0) {
       await cadBridgeStore.saveIncident(incident);
       audit.outcome = "SKIPPED";
+      audit.errorDetail = "no_outbound_participants";
       return;
     }
 
-    const destVendor = destConfig.vendor;
-    const destAdapter = getCadBridgeAdapter(destVendor);
-    const destinationIncidentId =
-      destinationSlot === "CAD_A" ? incident.cadA.incidentId : incident.cadB.incidentId;
+    let anyBuffered = false;
+    let anyError = false;
+    let anySuccess = false;
+    skipDefaultAudit = true;
 
-    const publishResult = await publishCadBridgeEvent({
-      incident,
-      eventType: bridgeEvent.eventType,
-      canonicalChanges,
-      destinationSlot,
-      destinationIncidentId,
-      destAdapter,
-      config,
-      isNewIncident: isNewIncident && !destinationIncidentId,
-      receivedAt: bridgeEvent.receivedAt,
-    });
+    for (const destinationSlot of destinations) {
+      const destConfig = getCadSlotConfig(config, destinationSlot);
+      if (!destConfig) continue;
+      const destAdapter = getCadBridgeAdapter(destConfig.vendor);
+      const destinationIncidentId = getIncidentLink(incident, destinationSlot)?.incidentId;
+      const publishResult = await publishCadBridgeEvent({
+        incident,
+        eventType: bridgeEvent.eventType,
+        canonicalChanges,
+        destinationSlot,
+        destinationIncidentId,
+        destAdapter,
+        config,
+        isNewIncident: isNewIncident && !destinationIncidentId,
+        receivedAt: bridgeEvent.receivedAt,
+      });
 
-    if (publishResult.createdIncidentId) {
-      if (destinationSlot === "CAD_A") {
-        incident = {
-          ...incident,
-          cadA: { ...incident.cadA, incidentId: publishResult.createdIncidentId, lastSyncedAt: new Date().toISOString() },
-        };
-      } else {
-        incident = {
-          ...incident,
-          cadB: { ...incident.cadB, incidentId: publishResult.createdIncidentId, lastSyncedAt: new Date().toISOString() },
-        };
+      if (publishResult.createdIncidentId) {
+        incident = setIncidentLink(incident, destinationSlot, {
+          incidentId: publishResult.createdIncidentId,
+          vendor: destConfig.vendor,
+          lastSyncedAt: new Date().toISOString(),
+        });
       }
+
+      if (publishResult.outcome === "SUCCESS") anySuccess = true;
+      else if (publishResult.outcome === "BUFFERED") anyBuffered = true;
+      else if (publishResult.outcome !== "SKIPPED") anyError = true;
+
+      await cadBridgeStore.putAudit({
+        agencyId: bridgeEvent.agencyId,
+        eventId: `${bridgeEvent.eventId}:${destinationSlot}`,
+        rcIncidentId: incident.rcIncidentId,
+        direction: cadBridgeAuditDirection(bridgeEvent.sourceSlot, destinationSlot),
+        sourceSlot: bridgeEvent.sourceSlot,
+        destinationSlot,
+        eventType: bridgeEvent.eventType,
+        sourceIncidentId: bridgeEvent.sourceIncidentId,
+        destinationIncidentId: publishResult.createdIncidentId ?? destinationIncidentId,
+        sourcePayloadHash: audit.sourcePayloadHash ?? "",
+        outboundPayloadHash: publishResult.outboundPayloadHash,
+        outcome: publishResult.outcome,
+        conflictIds: audit.conflictIds,
+        errorCode: publishResult.errorCode,
+        errorDetail: publishResult.errorDetail,
+        durationMs: Date.now() - start,
+        timestamp: new Date().toISOString(),
+      });
     }
 
-    if (publishResult.outcome === "SUCCESS") {
+    if (anyError) incident = { ...incident, syncState: "ERROR" };
+    else if (anyBuffered) incident = { ...incident, syncState: "BUFFERED" };
+    else if (anySuccess) {
       incident = {
         ...incident,
         syncState: incident.pendingConflicts.length > 0 ? "CONFLICT" : "IN_SYNC",
       };
-    } else if (publishResult.outcome === "BUFFERED") {
-      incident = { ...incident, syncState: "BUFFERED" };
-    } else if (publishResult.outcome !== "SKIPPED") {
-      incident = { ...incident, syncState: "ERROR" };
     }
 
     incident = { ...incident, updatedAt: new Date().toISOString() };
     await cadBridgeStore.saveIncident(incident);
-    audit.destinationIncidentId = publishResult.createdIncidentId ?? destinationIncidentId;
-    audit.outboundPayloadHash = publishResult.outboundPayloadHash;
-    audit.outcome = publishResult.outcome;
-    audit.errorCode = publishResult.errorCode;
-    audit.errorDetail = publishResult.errorDetail;
+    audit.outcome = anyError ? "FAILED" : anyBuffered ? "BUFFERED" : anySuccess ? "SUCCESS" : "SKIPPED";
   } catch (err) {
+    skipDefaultAudit = false;
     audit.outcome = "FAILED";
     audit.errorDetail = "router_error";
     console.error("[cad-bridge.router] unhandled error", {
@@ -244,11 +278,13 @@ async function processRecord(record: SQSRecord): Promise<void> {
       message: err instanceof Error ? err.message : "unknown",
     });
   } finally {
+    if (skipDefaultAudit && audit.outcome !== "FAILED") return;
     await cadBridgeStore.putAudit({
       agencyId: audit.agencyId ?? bridgeEvent.agencyId,
       eventId: bridgeEvent.eventId,
       rcIncidentId: audit.rcIncidentId ?? "UNRESOLVED",
-      direction: audit.direction ?? "CAD_A_TO_B",
+      direction: audit.direction ?? `${bridgeEvent.sourceSlot}_TO_HUB`,
+      sourceSlot: bridgeEvent.sourceSlot,
       eventType: bridgeEvent.eventType,
       sourceIncidentId: bridgeEvent.sourceIncidentId,
       destinationIncidentId: audit.destinationIncidentId,
@@ -268,10 +304,21 @@ function buildNewCanonicalIncident(
   agencyId: string,
   sourceSlot: CADSlot,
   sourceIncidentId: string,
-  config: { cadA: { vendor: CanonicalIncident["cadA"]["vendor"] }; cadB: { vendor: CanonicalIncident["cadB"]["vendor"] } },
+  config: CADBridgeConfig,
   changes: Partial<CanonicalIncident>,
 ): CanonicalIncident {
   const now = new Date().toISOString();
+  const sourceVendor = getCadSlotConfig(config, sourceSlot)?.vendor ?? config.cadA.vendor;
+  const extraLinks =
+    isCadBridgeExtraSlot(sourceSlot)
+      ? {
+          [sourceSlot]: {
+            incidentId: sourceIncidentId,
+            vendor: sourceVendor,
+            lastSyncedAt: now,
+          },
+        }
+      : undefined;
   return {
     rcIncidentId: randomUUID(),
     agencyId,
@@ -287,6 +334,7 @@ function buildNewCanonicalIncident(
       vendor: config.cadB.vendor,
       lastSyncedAt: sourceSlot === "CAD_B" ? now : undefined,
     },
+    extraLinks,
     type: changes.type ?? "UNKNOWN",
     priority: changes.priority ?? 3,
     status: changes.status ?? "ACTIVE",

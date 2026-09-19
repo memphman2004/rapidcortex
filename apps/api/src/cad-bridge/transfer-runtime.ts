@@ -1,8 +1,9 @@
 import type { BridgeEvent, CADBridgeConfig, CanonicalIncident } from "rapid-cortex-shared";
 import {
+  CadBridgeTransferError,
   acceptIncidentTransfer,
   cancelIncidentTransfer,
-  CadBridgeTransferError,
+  defaultTransferDestination,
   requestIncidentTransfer,
 } from "rapid-cortex-shared";
 
@@ -17,7 +18,9 @@ export function applyTransferEvent(
       return requestIncidentTransfer({
         incident,
         requestedBy: "CAD",
-        toSlot: event.sourceSlot === incident.owner ? (incident.owner === "CAD_A" ? "CAD_B" : "CAD_A") : event.sourceSlot,
+        toSlot: event.sourceSlot === incident.owner
+          ? (event.canonical?.transferState?.toSlot ?? defaultTransferDestination(incident))
+          : event.sourceSlot,
         nowIso,
         timeoutSeconds: config.transferTimeoutSeconds,
       });

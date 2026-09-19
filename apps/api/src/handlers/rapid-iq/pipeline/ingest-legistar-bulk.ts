@@ -8,20 +8,24 @@ import { GetCommand, PutCommand } from "@aws-sdk/lib-dynamodb";
 import type { RapidIqPipelineRawSignal } from "rapid-cortex-shared";
 import { isCivicDocumentIngestText } from "rapid-cortex-shared";
 import { rapidIqIngestLookbackDays } from "../../../lib/rapid-iq/ingest-window.js";
+import registryJson from "../../../lib/rapid-iq/legistar-client-registry.json";
+import { RAPID_IQ_BROWSER_UA } from "../../../lib/rapid-iq/pipeline/ingest-fetch.js";
 import { pipelineDdb } from "../../../lib/rapid-iq/pipeline-ddb.js";
 import { enqueueMockIfEnabled, enqueueRawSignal } from "./queue-raw-signal.js";
 
 const LEGISTAR_BASE = "https://webapi.legistar.com/v1";
 const CURSOR_PK = "LEGISTAR#CURSOR";
 const CURSOR_SK = "META";
-/** ~600 clients / 60 per run ≈ full coverage every ~10 days with daily runs. */
-const BATCH_SIZE = 60;
+/** ~50 registered clients / 12 per run ≈ full coverage every ~5 days. */
+const BATCH_SIZE = 12;
+
+type RegistryClient = { slug: string; name: string; state: string };
 
 interface LegistarClient {
-  ClientId: number;
   ClientName: string;
   ClientURL: string;
-  TimeZone?: string;
+  slug: string;
+  state: string;
 }
 
 interface LegistarEvent {
@@ -75,13 +79,18 @@ async function writeCursor(offset: number, total: number): Promise<void> {
   );
 }
 
+export function listLegistarRegistrySlugs(): string[] {
+  return (registryJson as { clients: RegistryClient[] }).clients.map((c) => c.slug);
+}
+
 async function fetchAllClients(): Promise<LegistarClient[]> {
-  const res = await fetch(`${LEGISTAR_BASE}/clients`, {
-    headers: { "User-Agent": "RapidCortex-IQ/1.0 (procurement-monitor)" },
-    signal: AbortSignal.timeout(20_000),
-  });
-  if (!res.ok) throw new Error(`Legistar client list HTTP ${res.status}`);
-  return res.json() as Promise<LegistarClient[]>;
+  const clients = (registryJson as { clients: RegistryClient[] }).clients;
+  return clients.map((c) => ({
+    ClientName: c.name,
+    ClientURL: `https://${c.slug}.legistar.com`,
+    slug: c.slug,
+    state: c.state,
+  }));
 }
 
 async function fetchRecentEvents(clientSlug: string, daysBack: number): Promise<LegistarEvent[]> {
@@ -96,11 +105,11 @@ async function fetchRecentEvents(clientSlug: string, daysBack: number): Promise<
     `&$select=EventId,EventBodyName,EventDate,EventAgendaLastPublishedUTC`;
 
   const res = await fetch(url, {
-    headers: { "User-Agent": "RapidCortex-IQ/1.0 (procurement-monitor)" },
+    headers: { "User-Agent": RAPID_IQ_BROWSER_UA },
     signal: AbortSignal.timeout(10_000),
   });
 
-  if (res.status === 404) return [];
+  if (res.status === 404 || res.status === 403) return [];
   if (!res.ok) {
     console.warn(`Legistar events ${clientSlug}: HTTP ${res.status}`);
     return [];
@@ -119,7 +128,7 @@ async function fetchEventItems(
     `&$select=EventItemId,EventItemTitle,EventItemMatterTitle,EventItemMatterName,EventItemActionName`;
 
   const res = await fetch(url, {
-    headers: { "User-Agent": "RapidCortex-IQ/1.0 (procurement-monitor)" },
+    headers: { "User-Agent": RAPID_IQ_BROWSER_UA },
     signal: AbortSignal.timeout(10_000),
   });
 
@@ -131,17 +140,8 @@ function isRelevantText(text: string): boolean {
   return isCivicDocumentIngestText(text);
 }
 
-function clientSlugFromUrl(url: string): string | null {
-  try {
-    const u = new URL(url);
-    if (u.hostname.endsWith(".legistar.com")) {
-      return u.hostname.replace(".legistar.com", "");
-    }
-    const parts = u.pathname.split("/").filter(Boolean);
-    return parts[0] ?? null;
-  } catch {
-    return null;
-  }
+function clientSlug(client: LegistarClient): string {
+  return client.slug;
 }
 
 async function queueItem(
@@ -211,7 +211,7 @@ export async function handler(): Promise<void> {
   let signalsQueued = 0;
 
   for (const client of batch) {
-    const slug = clientSlugFromUrl(client.ClientURL);
+    const slug = clientSlug(client);
     if (!slug) continue;
 
     try {

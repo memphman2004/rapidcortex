@@ -133,6 +133,7 @@ const SPECS: RestVendorSpec[] = [
   genericRestSpec("VERSATERM", "/versaterm/api"),
   genericRestSpec("MARK43", "/mark43/api"),
   genericRestSpec("ORACLE", "/oracle/api"),
+  genericRestSpec("SOUTHERN_SOFTWARE", "/southern/api"),
 ];
 
 export class RestVendorBridgeAdapter implements CADAdapter {

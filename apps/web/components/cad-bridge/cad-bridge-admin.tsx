@@ -3,10 +3,15 @@
 import { useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
+  CAD_BRIDGE_MAX_PARTICIPANTS,
   CAD_BRIDGE_VENDOR_LABELS,
   CAD_BRIDGE_VENDORS,
+  emptyCadSlotConfig,
+  listCadBridgeParticipants,
+  nextAvailableCadSlot,
   type CADBridgeConfig,
   type CADSlot,
+  type CADSlotConfig,
   type CADVendor,
 } from "rapid-cortex-shared";
 import {
@@ -107,9 +112,9 @@ export function CadBridgeAdminPage() {
         <p className="text-[11px] font-semibold uppercase tracking-wide text-sky-400/90">Admin</p>
         <h1 className="text-2xl font-semibold text-white">CAD Bridge</h1>
         <p className="mt-2 max-w-3xl text-sm text-slate-400">
-          Rapid Cortex is the broker, not the source of truth. If RC is unavailable, both CADs keep operating
-          independently — they only stop syncing until RC recovers. RC stores sync state and audit trails, not a live
-          operational CAD record.
+          Rapid Cortex is the broker, not the source of truth. If RC is unavailable, connected CADs keep operating
+          independently — they only stop syncing until RC recovers. Up to {CAD_BRIDGE_MAX_PARTICIPANTS} CADs can join
+          one hub. RC stores sync state and audit trails, not a live operational CAD record.
         </p>
         <p className="mt-2 text-xs text-slate-500">
           Live partner CAD writes stay fail-closed unless CAD write-back is explicitly enabled.
@@ -139,16 +144,65 @@ export function CadBridgeAdminPage() {
 
       {tab === "config" ? (
         <div className="space-y-6">
-          <SlotEditor
-            title="CAD A"
-            slot={config.cadA}
-            onChange={(cadA) => setDraft({ ...config, cadA })}
-          />
-          <SlotEditor
-            title="CAD B"
-            slot={config.cadB}
-            onChange={(cadB) => setDraft({ ...config, cadB })}
-          />
+          {listCadBridgeParticipants(config).map((participant) => (
+            <SlotEditor
+              key={participant.slot}
+              title={participant.label ?? participant.slot.replace("_", " ")}
+              slot={
+                participant.slot === "CAD_A"
+                  ? config.cadA
+                  : participant.slot === "CAD_B"
+                    ? config.cadB
+                    : participant
+              }
+              onChange={(next) => {
+                if (participant.slot === "CAD_A") setDraft({ ...config, cadA: next });
+                else if (participant.slot === "CAD_B") setDraft({ ...config, cadB: next });
+                else {
+                  setDraft({
+                    ...config,
+                    extraParticipants: (config.extraParticipants ?? []).map((row) =>
+                      row.slot === participant.slot ? { ...row, ...next } : row,
+                    ),
+                  });
+                }
+              }}
+              onRemove={
+                participant.slot === "CAD_A" || participant.slot === "CAD_B"
+                  ? undefined
+                  : () =>
+                      setDraft({
+                        ...config,
+                        extraParticipants: (config.extraParticipants ?? []).filter(
+                          (row) => row.slot !== participant.slot,
+                        ),
+                        primaryCAD:
+                          config.primaryCAD === participant.slot ? "CAD_A" : config.primaryCAD,
+                      })
+              }
+            />
+          ))}
+          {nextAvailableCadSlot(config) ? (
+            <button
+              type="button"
+              className="rounded-lg border border-dashed border-slate-600 px-4 py-2 text-sm text-slate-200 hover:bg-slate-800"
+              onClick={() => {
+                const slot = nextAvailableCadSlot(config);
+                if (!slot) return;
+                setDraft({
+                  ...config,
+                  extraParticipants: [
+                    ...(config.extraParticipants ?? []),
+                    { slot, label: slot.replace("_", " "), ...emptyCadSlotConfig() },
+                  ],
+                });
+              }}
+            >
+              Add CAD ({listCadBridgeParticipants(config).length}/{CAD_BRIDGE_MAX_PARTICIPANTS})
+            </button>
+          ) : (
+            <p className="text-xs text-slate-500">Hub is at the {CAD_BRIDGE_MAX_PARTICIPANTS}-CAD maximum.</p>
+          )}
           <div className="grid gap-4 rounded-xl border border-slate-800 bg-[#09080f] p-4 sm:grid-cols-2">
             <label className="text-sm text-slate-300">
               Primary CAD
@@ -157,8 +211,11 @@ export function CadBridgeAdminPage() {
                 value={config.primaryCAD}
                 onChange={(e) => setDraft({ ...config, primaryCAD: e.target.value as CADSlot })}
               >
-                <option value="CAD_A">CAD A</option>
-                <option value="CAD_B">CAD B</option>
+                {listCadBridgeParticipants(config).map((p) => (
+                  <option key={p.slot} value={p.slot}>
+                    {p.label ?? p.slot.replace("_", " ")}
+                  </option>
+                ))}
               </select>
             </label>
             <label className="text-sm text-slate-300">
@@ -215,28 +272,53 @@ export function CadBridgeAdminPage() {
             >
               Save configuration
             </button>
-            <button
-              type="button"
-              onClick={() => testMut.mutate("CAD_A")}
-              className="rounded-lg border border-slate-600 px-4 py-2 text-sm text-slate-200 hover:bg-slate-800"
-            >
-              Test CAD A
-            </button>
-            <button
-              type="button"
-              onClick={() => testMut.mutate("CAD_B")}
-              className="rounded-lg border border-slate-600 px-4 py-2 text-sm text-slate-200 hover:bg-slate-800"
-            >
-              Test CAD B
-            </button>
+            {listCadBridgeParticipants(config).map((p) => (
+              <button
+                key={p.slot}
+                type="button"
+                onClick={() => testMut.mutate(p.slot)}
+                className="rounded-lg border border-slate-600 px-4 py-2 text-sm text-slate-200 hover:bg-slate-800"
+              >
+                Test {p.label ?? p.slot.replace("_", " ")}
+              </button>
+            ))}
           </div>
         </div>
       ) : null}
 
       {tab === "health" ? (
         <div className="grid gap-4 sm:grid-cols-2">
-          <HealthCard title="CAD A" data={healthQuery.data?.cadA} />
-          <HealthCard title="CAD B" data={healthQuery.data?.cadB} />
+          {(healthQuery.data?.participants && healthQuery.data.participants.length > 0
+            ? healthQuery.data.participants.map((row) => ({
+                slot: row.slot,
+                title: row.label ?? String(row.slot).replace("_", " "),
+                vendor: row.vendor,
+                circuit: row.circuit,
+                inbound: row.inbound,
+              }))
+            : [
+                {
+                  slot: "CAD_A",
+                  title: "CAD A",
+                  vendor: healthQuery.data?.cadA?.vendor,
+                  circuit: healthQuery.data?.cadA?.circuit ?? "—",
+                  inbound: healthQuery.data?.cadA?.inbound,
+                },
+                {
+                  slot: "CAD_B",
+                  title: "CAD B",
+                  vendor: healthQuery.data?.cadB?.vendor,
+                  circuit: healthQuery.data?.cadB?.circuit ?? "—",
+                  inbound: healthQuery.data?.cadB?.inbound,
+                },
+              ]
+          ).map((row) => (
+            <HealthCard
+              key={row.slot}
+              title={row.title}
+              data={{ vendor: row.vendor, circuit: row.circuit, inbound: row.inbound }}
+            />
+          ))}
           <div className="rounded-xl border border-slate-800 bg-[#09080f] p-4 sm:col-span-2">
             <p className="text-sm text-slate-300">Pending buffer size</p>
             <p className="mt-1 text-2xl font-semibold text-white">{healthQuery.data?.pendingBufferSize ?? "—"}</p>
@@ -257,7 +339,7 @@ export function CadBridgeAdminPage() {
                 </p>
                 <p className="mt-2 text-xs text-slate-400">CAD A: {JSON.stringify(item.cadAValue)}</p>
                 <p className="text-xs text-slate-400">CAD B: {JSON.stringify(item.cadBValue)}</p>
-                <div className="mt-3 flex gap-2">
+                <div className="mt-3 flex flex-wrap gap-2">
                   <button
                     type="button"
                     className="rounded-md bg-sky-700 px-3 py-1 text-xs text-white"
@@ -272,6 +354,17 @@ export function CadBridgeAdminPage() {
                   >
                     Keep CAD B
                   </button>
+                  {item.sourceSlot && item.sourceSlot !== "CAD_A" && item.sourceSlot !== "CAD_B" ? (
+                    <button
+                      type="button"
+                      className="rounded-md bg-sky-700 px-3 py-1 text-xs text-white"
+                      onClick={() =>
+                        resolveMut.mutate({ conflictId: item.conflictId, keepSlot: item.sourceSlot as CADSlot })
+                      }
+                    >
+                      Keep {item.sourceSlot.replace("_", " ")}
+                    </button>
+                  ) : null}
                 </div>
               </div>
             ))
@@ -308,14 +401,23 @@ function SlotEditor({
   title,
   slot,
   onChange,
+  onRemove,
 }: {
   title: string;
-  slot: CADBridgeConfig["cadA"];
-  onChange: (next: CADBridgeConfig["cadA"]) => void;
+  slot: CADSlotConfig;
+  onChange: (next: CADSlotConfig) => void;
+  onRemove?: () => void;
 }) {
   return (
     <fieldset className="rounded-xl border border-slate-800 bg-[#09080f] p-4">
-      <legend className="px-1 text-sm font-semibold text-slate-200">{title}</legend>
+      <legend className="flex items-center gap-3 px-1 text-sm font-semibold text-slate-200">
+        {title}
+        {onRemove ? (
+          <button type="button" className="text-xs font-normal text-rose-300 hover:text-rose-200" onClick={onRemove}>
+            Remove
+          </button>
+        ) : null}
+      </legend>
       <div className="mt-3 grid gap-3 sm:grid-cols-2">
         <label className="text-sm text-slate-300">
           Vendor

@@ -99,6 +99,7 @@ const NEXT_PUBLIC_FLAG_VALUES: Record<string, string | undefined> = {
   NEXT_PUBLIC_ENABLE_AUTOMATED_INVOICES: process.env.NEXT_PUBLIC_ENABLE_AUTOMATED_INVOICES,
   NEXT_PUBLIC_ENABLE_CAD_CONNECTOR: process.env.NEXT_PUBLIC_ENABLE_CAD_CONNECTOR,
   NEXT_PUBLIC_ENABLE_CAD_BRIDGE: process.env.NEXT_PUBLIC_ENABLE_CAD_BRIDGE,
+  NEXT_PUBLIC_ENABLE_C2C_HUB: process.env.NEXT_PUBLIC_ENABLE_C2C_HUB,
   NEXT_PUBLIC_ENABLE_CONTACTS_MODULE: process.env.NEXT_PUBLIC_ENABLE_CONTACTS_MODULE,
   NEXT_PUBLIC_WEBSOCKET_URL: process.env.NEXT_PUBLIC_WEBSOCKET_URL,
 };
@@ -419,6 +420,11 @@ export function isCadConnectorEnabled(): boolean {
 /** CAD-to-CAD event broker admin. Default on when unset. Live outbound still follows write-back. */
 export function isCadBridgeUiEnabled(): boolean {
   return envFlag("NEXT_PUBLIC_ENABLE_CAD_BRIDGE");
+}
+
+/** NENA EIDO CAD-to-CAD hub. Default on when unset. Live CAD writes stay fail-closed. */
+export function isC2cHubUiEnabled(): boolean {
+  return envFlag("NEXT_PUBLIC_ENABLE_C2C_HUB");
 }
 
 /** Call queue backlog + SLA monitoring (dispatcher/supervisor dashboards). */
