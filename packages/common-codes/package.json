@@ -1,0 +1,18 @@
+{
+  "name": "@rc/common-codes",
+  "version": "1.0.0",
+  "private": true,
+  "description": "APCO/NENA common incident type codes for Rapid Cortex C2C (no runtime dependencies).",
+  "main": "src/index.ts",
+  "types": "src/index.ts",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "test": "npx vitest run --root ../.. packages/common-codes"
+  },
+  "devDependencies": {
+    "typescript": "^5.7.2"
+  }
+}

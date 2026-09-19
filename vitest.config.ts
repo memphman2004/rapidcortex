@@ -21,6 +21,9 @@ export default defineConfig({
       ),
       "rapid-cortex-shared/types": path.resolve(repoRoot, "packages/shared/src/types.ts"),
       "rapid-cortex-shared": path.resolve(repoRoot, "packages/shared/src/index.ts"),
+      "@rc/common-codes": path.resolve(repoRoot, "packages/common-codes/src/index.ts"),
+      "@rc/eido": path.resolve(repoRoot, "packages/eido/src/index.ts"),
+      "@rc/c2c-hub": path.resolve(repoRoot, "packages/c2c-hub/src/index.ts"),
     },
   },
   test: {
