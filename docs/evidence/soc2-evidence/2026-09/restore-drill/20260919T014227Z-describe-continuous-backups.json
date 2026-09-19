@@ -1,0 +1,11 @@
+{
+    "ContinuousBackupsDescription": {
+        "ContinuousBackupsStatus": "ENABLED",
+        "PointInTimeRecoveryDescription": {
+            "PointInTimeRecoveryStatus": "ENABLED",
+            "RecoveryPeriodInDays": 35,
+            "EarliestRestorableDateTime": "2026-09-17T18:17:25-04:00",
+            "LatestRestorableDateTime": "2026-09-18T21:37:27.917000-04:00"
+        }
+    }
+}

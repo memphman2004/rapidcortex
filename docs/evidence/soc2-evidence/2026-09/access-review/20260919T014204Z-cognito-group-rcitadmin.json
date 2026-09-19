@@ -1,0 +1,45 @@
+{
+    "Users": [
+        {
+            "Username": "1498d478-00b1-70d2-88f8-f9c1552ee8b4",
+            "Attributes": [
+                {
+                    "Name": "email",
+                    "Value": "rcitadmin@appsondemand.net"
+                },
+                {
+                    "Name": "email_verified",
+                    "Value": "true"
+                },
+                {
+                    "Name": "custom:status",
+                    "Value": "active"
+                },
+                {
+                    "Name": "custom:pwdChangedAt",
+                    "Value": "2026-09-01T16:10:39.300Z"
+                },
+                {
+                    "Name": "custom:pwdChangeReq",
+                    "Value": "false"
+                },
+                {
+                    "Name": "custom:agencyId",
+                    "Value": "__platform__"
+                },
+                {
+                    "Name": "custom:role",
+                    "Value": "rcitadmin"
+                },
+                {
+                    "Name": "sub",
+                    "Value": "1498d478-00b1-70d2-88f8-f9c1552ee8b4"
+                }
+            ],
+            "UserCreateDate": "2026-05-23T11:59:16.100000-04:00",
+            "UserLastModifiedDate": "2026-09-02T15:26:23.518000-04:00",
+            "Enabled": true,
+            "UserStatus": "CONFIRMED"
+        }
+    ]
+}

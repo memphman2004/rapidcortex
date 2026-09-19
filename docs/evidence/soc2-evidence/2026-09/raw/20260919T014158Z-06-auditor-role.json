@@ -1,0 +1,24 @@
+{
+    "Role": {
+        "Path": "/",
+        "RoleName": "rapid-cortex-soc2-auditor",
+        "RoleId": "AROASKAWYSA4J7BNSJMIO",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-soc2-auditor",
+        "CreateDate": "2026-09-17T22:55:58+00:00",
+        "AssumeRolePolicyDocument": {
+            "Version": "2012-10-17",
+            "Statement": [
+                {
+                    "Effect": "Allow",
+                    "Principal": {
+                        "AWS": "arn:aws:iam::158961537080:root"
+                    },
+                    "Action": "sts:AssumeRole"
+                }
+            ]
+        },
+        "Description": "SOC 2 Type II auditor read-only (SecurityAudit + extra reads)",
+        "MaxSessionDuration": 3600,
+        "RoleLastUsed": {}
+    }
+}

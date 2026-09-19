@@ -1,0 +1,42 @@
+{
+    "TrailARN": "arn:aws:cloudtrail:us-east-1:158961537080:trail/rapid-cortex-cloudtrail-prod",
+    "EventSelectors": [
+        {
+            "ReadWriteType": "All",
+            "IncludeManagementEvents": true,
+            "DataResources": [
+                {
+                    "Type": "AWS::S3::Object",
+                    "Values": [
+                        "arn:aws:s3:::rapid-cortex-api-pipeline-staging-sourcebucket-no5ikfh7wsor/",
+                        "arn:aws:s3:::rapid-cortex-assets-dev-158961537080/",
+                        "arn:aws:s3:::rapid-cortex-billing-invoices-dev-158961537080/",
+                        "arn:aws:s3:::rapid-cortex-billing-pos-dev-158961537080/",
+                        "arn:aws:s3:::rapid-cortex-cloudtrail-logs-prod-158961537080/",
+                        "arn:aws:s3:::rapid-cortex-compliance-evidence-prod-158961537080/",
+                        "arn:aws:s3:::rapid-cortex-documents-prod-158961537080/",
+                        "arn:aws:s3:::rapid-cortex-downloads-158961537080-prod/",
+                        "arn:aws:s3:::rapid-cortex-evidence-exports-prod-158961537080/",
+                        "arn:aws:s3:::rapid-cortex-help-prod/",
+                        "arn:aws:s3:::rapid-cortex-resumes-dev-158961537080/",
+                        "arn:aws:s3:::rapid-cortex-sam-artifacts-158961537080-us-east-1/",
+                        "arn:aws:s3:::rapid-cortex-translate-audio-dev-158961537080/",
+                        "arn:aws:s3:::rapid-cortex-v2-web-static-prod-158961537080/",
+                        "arn:aws:s3:::rapid-cortex-venue-assets-dev-158961537080/",
+                        "arn:aws:s3:::rapid-cortex-vision-artifacts-dev-158961537080/",
+                        "arn:aws:s3:::rapid-cortex-web-pipeline-dev-sourcebucket-ybqklxzcejx0/",
+                        "arn:aws:s3:::rapid-cortex-web-pipeline-prod-sourcebucket-kioskeflquqy/",
+                        "arn:aws:s3:::rapid-cortex-web-static-dev-158961537080/"
+                    ]
+                },
+                {
+                    "Type": "AWS::Lambda::Function",
+                    "Values": [
+                        "arn:aws:lambda"
+                    ]
+                }
+            ],
+            "ExcludeManagementEventSources": []
+        }
+    ]
+}
