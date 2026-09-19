@@ -46,7 +46,7 @@ Ship **[JURISDICTION_OPERATIONS_GUIDE.md](./JURISDICTION_OPERATIONS_GUIDE.md)** 
 **CAD vs Rapid Cortex (use in every pilot kickoff):**
 
 - **CAD / 911 CPE / radio / RMS** — system of record for call handling, units, and official records.
-- **Rapid Cortex** — **assistive** layer: AI + human-in-the-loop for **transcription**, **multilingual** speech-to-text (10+ languages when configured), **real-time translation**, **AI-assisted triage and summaries**, **dispatcher guidance**, **supervisor QA**, **live video / media intake** (when enabled), **silent text / text-style session** patterns, and **audit** trails. It **does not replace CAD**; it **enhances** workflows alongside it. Unsupervised CAD write-back is **out of scope** for typical pilots unless reopened with legal and vendor review ([NON_GOALS.md](./NON_GOALS.md)).
+- **Rapid Cortex** — **assistive** layer: AI + human-in-the-loop for **transcription**, **multilingual** speech-to-text (10+ languages when configured), **real-time translation**, **AI-assisted triage and summaries**, **non-emergency / 311 Call Assist** (AI intake that contains, routes to 311 / public works, or escalates to a live call taker — not a 911 console), **dispatcher guidance**, **supervisor QA**, **live video / media intake** (when enabled), **silent text / text-style session** patterns, and **audit** trails. It **does not replace CAD**; it **enhances** workflows alongside it. Unsupervised CAD write-back is **out of scope** for typical pilots unless reopened with legal and vendor review ([NON_GOALS.md](./NON_GOALS.md)).
 
 **Plan names (product UI vs sales shorthand):**
 

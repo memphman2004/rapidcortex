@@ -70,7 +70,7 @@ export const PRICING_PLANS: PricingPlanCardContent[] = [
     capabilities: [
       "Everything in Essential, plus QA / Training and Executive / Reporting dashboards",
       "IT / Security Admin dashboard and advanced supervisor monitoring",
-      "Translation, caller text/photo/video links, and advanced incident reporting",
+      "Translation, caller text/photo/video links, non-emergency / 311 Call Assist, and advanced incident reporting",
       "Operational maps (Amazon Location Service), LiveLocation (SMS GPS link), and Surge View related-call grouping when enabled for your rollout",
       "Shift reports, compliance-ready audit logs, expanded usage, optional priority support",
     ],
