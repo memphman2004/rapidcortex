@@ -27,7 +27,10 @@ Review `raw/` on the Mac Mini, then `git add docs/evidence/soc2-evidence/2026-09
 | Earliest restorable | 2026-09-17T18:17:25-04:00 |
 | Restore time | ~2026-09-18T21:37:28-04:00 |
 | TableStatus at request | **CREATING** (`RestoreInProgress: true`) |
+| TableStatus later | **ACTIVE** (`RestoreInProgress` null) |
+| DescribeTable ItemCount (restore, immediately after ACTIVE) | **0** (expected stale; DynamoDB updates this ~every 6 hours) |
+| DescribeTable ItemCount (source) | **13218** |
 | GSI `agencyId-createdAt-index` ItemCount (at create) | **13218** |
 | Production pointer changed | **no** |
 
-Still required on the Mac Mini: wait until `TableStatus=ACTIVE`, compare item counts to source, **then delete only the restore table**.
+Still required: Scan COUNT (or GSI describe) on the restore table to confirm ~13218 items, then **delete only** `rapid-cortex-audit-dev-restore-20260919`.
