@@ -20,6 +20,7 @@ vi.mock("./transit-camera-registry-service.js", () => ({
   listTransitCameras: (...args: unknown[]) => listTransitCameras(...args),
   createTransitCamera: (...args: unknown[]) => createTransitCamera(...args),
   getCamerasForTransitPlace: vi.fn(async () => []),
+  bindTransitCamerasToQrRcli: vi.fn(),
   updateTransitCamera: vi.fn(),
   deleteTransitCamera: vi.fn(),
   discoverTransitCamera: vi.fn(),

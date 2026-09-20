@@ -167,8 +167,17 @@ Parameters:
     Type: String
     Default: ""
     Description: >-
-      Unused on ECS after grant writer moved to Lambda. Kept so existing parameter overrides do not fail.
-      Anthropic is loaded in GrantWriterHttp / GenerateGrantPackage via Secrets Manager ARN.
+      Secrets Manager ARN for Guest Assist Claude (injected as ANTHROPIC_API_KEY on ECS).
+      Grant writer still resolves Anthropic on Lambda; this ARN is for the Next BFF only.
+  GuestAssistSessionSecret:
+    Type: String
+    Default: ""
+    NoEcho: true
+    Description: HMAC secret for QR Guest Assist WebSocket sessions. Empty keeps staff chat on the mock path.
+  WebSocketUrl:
+    Type: String
+    Default: ""
+    Description: API Gateway WebSocket URL (wss://) for NEXT_PUBLIC_WEBSOCKET_URL / Guest Assist staff chat.
   CognitoUserPoolId:
     Type: String
   CognitoClientId:
@@ -256,6 +265,9 @@ Conditions:
   HasGrantGenerateFunctionArn: !Not [!Equals [!Ref GrantGenerateFunctionArn, ""]]
   HasGrantWriterFunction: !Not [!Equals [!Ref GrantWriterFunctionName, ""]]
   HasGrantWriterFunctionArn: !Not [!Equals [!Ref GrantWriterFunctionArn, ""]]
+  HasAnthropicApiKeySecretArn: !Not [!Equals [!Ref AnthropicApiKeySecretArn, ""]]
+  HasGuestAssistSessionSecret: !Not [!Equals [!Ref GuestAssistSessionSecret, ""]]
+  HasWebSocketUrl: !Not [!Equals [!Ref WebSocketUrl, ""]]
   ManageRoute53AliasRecords:
     Fn::And:
       - !Condition AttachApexWwwAliases
@@ -447,6 +459,19 @@ Resources:
             Action: sts:AssumeRole
       ManagedPolicyArns:
         - arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy
+      Policies:
+        - !If
+          - HasAnthropicApiKeySecretArn
+          - PolicyName: AnthropicSecretForEcs
+            PolicyDocument:
+              Version: "2012-10-17"
+              Statement:
+                - Sid: AnthropicSecretRead
+                  Effect: Allow
+                  Action:
+                    - secretsmanager:GetSecretValue
+                  Resource: !Ref AnthropicApiKeySecretArn
+          - !Ref AWS::NoValue
 
   EcsTaskRole:
     Type: AWS::IAM::Role
@@ -613,6 +638,21 @@ Resources:
               Value: !If [HasCognitoHostedUiDomain, !Ref CognitoHostedUiDomain, !Ref AWS::NoValue]
             - Name: NEXT_PUBLIC_AUTH_PROXY
               Value: "1"
+            - !If
+              - HasGuestAssistSessionSecret
+              - Name: GUEST_ASSIST_SESSION_SECRET
+                Value: !Ref GuestAssistSessionSecret
+              - !Ref AWS::NoValue
+            - !If
+              - HasWebSocketUrl
+              - Name: NEXT_PUBLIC_WEBSOCKET_URL
+                Value: !Ref WebSocketUrl
+              - !Ref AWS::NoValue
+          Secrets: !If
+            - HasAnthropicApiKeySecretArn
+            - - Name: ANTHROPIC_API_KEY
+                ValueFrom: !Ref AnthropicApiKeySecretArn
+            - !Ref AWS::NoValue
           HealthCheck:
             Command:
               [
@@ -632,7 +672,7 @@ Resources:
         SecurityHeadersConfig:
           ContentSecurityPolicy:
             # Keep aligned with `apps/web/next.config.mjs` `buildCspHeader` (embeds: YouTube, Tally, HubSpot, Typeform).
-            ContentSecurityPolicy: "default-src 'self'; base-uri 'self'; frame-ancestors 'none'; form-action 'self'; img-src 'self' data: https: blob:; font-src 'self' data:; media-src 'self' https://www.youtube-nocookie.com https://youtube-nocookie.com https://www.youtube.com blob:; connect-src 'self' blob: https: https://www.youtube-nocookie.com https://youtube-nocookie.com https://www.youtube.com https://youtube.com https://i.ytimg.com https://img.youtube.com https://tally.so https://*.tally.so https://*.hubspot.com https://*.hsforms.com https://*.hs-scripts.com https://*.typeform.com; script-src 'self' 'wasm-unsafe-eval' 'unsafe-inline' https://tally.so https://*.tally.so https://*.hubspot.com https://*.hsforms.com https://*.hs-scripts.com https://*.typeform.com https://www.googletagmanager.com; style-src 'self' 'unsafe-inline'; object-src 'none'; worker-src 'self' blob:; frame-src 'self' https://www.youtube.com https://youtube.com https://www.youtube-nocookie.com https://youtube-nocookie.com https://tally.so https://*.tally.so https://*.hubspot.com https://*.hsforms.com https://*.typeform.com https://embed.typeform.com"
+            ContentSecurityPolicy: "default-src 'self'; base-uri 'self'; frame-ancestors 'none'; form-action 'self'; img-src 'self' data: https: blob:; font-src 'self' data: https://fonts.gstatic.com; media-src 'self' https://www.youtube-nocookie.com https://youtube-nocookie.com https://www.youtube.com blob:; connect-src 'self' blob: https: wss: https://www.youtube-nocookie.com https://youtube-nocookie.com https://www.youtube.com https://youtube.com https://i.ytimg.com https://img.youtube.com https://tally.so https://*.tally.so https://*.hubspot.com https://*.hsforms.com https://*.hs-scripts.com https://*.typeform.com; script-src 'self' 'wasm-unsafe-eval' 'unsafe-inline' https://tally.so https://*.tally.so https://*.hubspot.com https://*.hsforms.com https://*.hs-scripts.com https://*.typeform.com https://www.googletagmanager.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; object-src 'none'; worker-src 'self' blob:; frame-src 'self' https://www.youtube.com https://youtube.com https://www.youtube-nocookie.com https://youtube-nocookie.com https://tally.so https://*.tally.so https://*.hubspot.com https://*.hsforms.com https://*.typeform.com https://embed.typeform.com"
             Override: true
           ContentTypeOptions:
             Override: true

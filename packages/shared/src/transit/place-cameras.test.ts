@@ -60,4 +60,19 @@ describe("transit place cameras", () => {
     });
     expect(selected.map((c) => c.cameraId)).toEqual(["plat"]);
   });
+
+  it("prefers a QR-bound camera over vehicle ranking", () => {
+    const tagged = cam({
+      cameraId: "qr-cam",
+      displayName: "Platform QR camera",
+      vehicleId: "bus-99",
+      qrRcli: "T-PLAT-1",
+      priorityRank: 9,
+    });
+    const selected = selectCamerasForTransitPlace([onboard, tagged], {
+      place: { vehicleId: "bus-14", qrRcli: "T-PLAT-1" },
+      limit: 1,
+    });
+    expect(selected.map((c) => c.cameraId)).toEqual(["qr-cam"]);
+  });
 });

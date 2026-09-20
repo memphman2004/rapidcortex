@@ -47,6 +47,8 @@ const APP_OPERATIONAL_ROOT_SEGMENTS = new Set<string>([
   "silent-text",
   "translate",
   "media",
+  "onboarding",
+  "rc-guest-assist.html",
 ]);
 
 export function getConfiguredAppHostname(): string {
@@ -124,7 +126,11 @@ export function isMarketingPublicPath(pathname: string): boolean {
     first === "diversion" ||
     first === "map-preview" ||
     first === "status" ||
-    first === "crime-log"
+    first === "crime-log" ||
+    first === "rc-guest-assist.html" ||
+    // Authenticated campus/venue/RC Admin wizards — reserved so they are not a
+    // jurisdiction slug, but they are not marketing pages.
+    first === "onboarding"
   ) {
     return false;
   }

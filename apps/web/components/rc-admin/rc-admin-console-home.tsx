@@ -659,7 +659,7 @@ function RcAdminConsoleHomeInner({
   const reportsHref = findNavHref(navItems, "reports");
   const auditHref = findNavHref(navItems, "audit");
   const billingHref = findNavHref(navItems, "billing");
-  const onboardingHref = findNavHref(navItems, "agencies") ?? "/rc-admin/onboarding";
+  const onboardingHref = "/rc-admin/onboarding";
 
   const roleLower = userRole.trim().toLowerCase();
   const showEmergency =

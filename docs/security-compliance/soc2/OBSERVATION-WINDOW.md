@@ -47,6 +47,7 @@ AWS_PROFILE=rapid-cortex AWS_DEFAULT_REGION=us-east-1 \
 | Quarterly | Access review | `scripts/soc2-access-review.sh` + [access-review-log](./evidence/access-review-log.md) |
 | Quarterly | Vendor review | [vendor-review-log](./evidence/vendor-review-log.md) |
 | Quarterly | Risk register | [risk-register](./evidence/risk-register.md) |
+| Every 60 days | MFA / contract / pilot document review | [document-review SOP](./processes/document-review.md) + [document-review-log](./evidence/document-review-log.md) |
 | On event | Security/ops incidents | IR tickets; no PII in git |
 | On event | Secret rotation | [secrets-rotation-sop](../../evidence/soc2-evidence/2026-10/secrets-rotation-sop.md) |
 | Annually (or before window) | Tabletop + restore drill | process docs |
@@ -57,7 +58,7 @@ AWS_PROFILE=rapid-cortex AWS_DEFAULT_REGION=us-east-1 \
 
 | Month | Technical pack | Access review | Vendor | Tabletop / restore | Notes |
 |-------|----------------|---------------|--------|--------------------|-------|
-| 2026-09 (pre) | Baseline exists | First review | First review | Run both before 10/01 | Sign policies |
+| 2026-09 (pre) | Baseline exists | First review | First review | Run both before 10/01 | Sign policies; 60-day MFA/contract/pilot doc review |
 | 2026-10 | Monthly pack | — | — | — | Period start |
 | 2026-11 | Monthly pack | — | — | — | |
 | 2026-12 | Monthly pack | Q2 review | Q2 review | — | |

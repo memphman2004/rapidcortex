@@ -29,7 +29,8 @@ import { T } from "./transit-theme";
 import { QRNFCManager } from "@/components/qr-nfc/qr-nfc-manager";
 import { TransitUsersClient } from "./transit-users-client";
 import { VideoWallClient } from "@/components/video/video-wall-client";
-import { isRcVideoEnabled } from "@/lib/runtime-flags";
+import { isRcVideoEnabled, isTransitCamerasUiEnabled } from "@/lib/runtime-flags";
+import { IncidentCameraPanel } from "@/components/venue/IncidentCameraPanel";
 
 export function TransitConsoleHome(props: {
   agencyId: string;
@@ -252,6 +253,17 @@ export function TransitConsoleHome(props: {
         onClose={() => setBroadcastOpen(false)}
         onSubmit={ops.broadcast}
       />
+      {isTransitCamerasUiEnabled() && ops.activeCameraIncident ? (
+        <IncidentCameraPanel
+          agencyId={props.agencyId}
+          incident={ops.activeCameraIncident}
+          canDispatch={canDispatch}
+          onClose={ops.clearActiveCameraIncident}
+          apiVertical="transit"
+          locationNoun="Vehicle / station"
+          enableDispatchControls={false}
+        />
+      ) : null}
     </TransitOperationsShell>
   );
 }

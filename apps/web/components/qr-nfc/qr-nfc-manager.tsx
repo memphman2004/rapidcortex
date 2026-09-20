@@ -87,6 +87,9 @@ export function QRNFCManager({
     buildingId: "",
     floor: "",
     cameraIds: [],
+    vehicleId: "",
+    stationId: "",
+    routeId: "",
     siteCode: "",
     vertical,
     reportType: "anonymous",
@@ -100,10 +103,14 @@ export function QRNFCManager({
     floor: string;
     cameraIds: string[];
     siteCode: string;
-  }>({ buildingId: "", floor: "", cameraIds: [], siteCode: "" });
+    vehicleId: string;
+    stationId: string;
+    routeId: string;
+  }>({ buildingId: "", floor: "", cameraIds: [], siteCode: "", vehicleId: "", stationId: "", routeId: "" });
 
-  const locationCamerasEnabled = vertical === "campus" || vertical === "venue";
-  const cameraApiVertical: CameraApiVertical = vertical === "campus" ? "campus" : "venue";
+  const locationCamerasEnabled = vertical === "campus" || vertical === "venue" || vertical === "transit";
+  const cameraApiVertical: CameraApiVertical =
+    vertical === "campus" || vertical === "transit" ? vertical : "venue";
   const { scope, setScope, sites, primarySiteCode } = useCampusSiteScope(
     vertical === "campus" ? agencyId : "",
   );
@@ -183,6 +190,9 @@ export function QRNFCManager({
           buildingId: form.buildingId?.trim() || undefined,
           floor: form.floor?.trim() || undefined,
           cameraIds: locationCamerasEnabled ? form.cameraIds ?? [] : undefined,
+          vehicleId: vertical === "transit" ? form.vehicleId?.trim() || undefined : undefined,
+          stationId: vertical === "transit" ? form.stationId?.trim() || undefined : undefined,
+          routeId: vertical === "transit" ? form.routeId?.trim() || undefined : undefined,
           siteCode: form.siteCode?.trim() || undefined,
         }),
       });
@@ -200,6 +210,9 @@ export function QRNFCManager({
         buildingId: "",
         floor: "",
         cameraIds: [],
+        vehicleId: "",
+        stationId: "",
+        routeId: "",
         siteCode: "",
         vertical,
         reportType: "anonymous",
@@ -270,9 +283,12 @@ export function QRNFCManager({
         credentials: "include",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          buildingId: assignDraft.buildingId.trim() || undefined,
-          floor: assignDraft.floor.trim() || undefined,
+          buildingId: vertical === "transit" ? undefined : assignDraft.buildingId.trim() || undefined,
+          floor: vertical === "transit" ? undefined : assignDraft.floor.trim() || undefined,
           cameraIds: assignDraft.cameraIds,
+          vehicleId: vertical === "transit" ? assignDraft.vehicleId.trim() || undefined : undefined,
+          stationId: vertical === "transit" ? assignDraft.stationId.trim() || undefined : undefined,
+          routeId: vertical === "transit" ? assignDraft.routeId.trim() || undefined : undefined,
           siteCode: assignDraft.siteCode.trim() || undefined,
         }),
       });
@@ -289,6 +305,19 @@ export function QRNFCManager({
     } finally {
       setBusyId(null);
     }
+  }
+
+  function cameraPlaceHint(cam: VenueCamera): string {
+    if (vertical === "transit") {
+      return (
+        [cam.vehicleId && `Vehicle ${cam.vehicleId}`, cam.stationId && `Station ${cam.stationId}`, cam.routeId && `Route ${cam.routeId}`]
+          .filter(Boolean)
+          .join(" · ") ||
+        cam.sections[0] ||
+        ""
+      );
+    }
+    return [cam.buildingId ?? cam.sections[0], cam.floor].filter(Boolean).join(" · ");
   }
 
   function cameraLabel(id: string): string {
@@ -589,9 +618,17 @@ export function QRNFCManager({
                       {row.cameraIds?.length
                         ? `Cameras: ${row.cameraIds.map((id) => cameraLabel(id)).join(", ")}`
                         : "No cameras assigned — a scan will not open a specific camera"}
-                      {row.buildingId ? ` · Building ${row.buildingId}` : ""}
-                      {row.siteCode ? ` · Campus ${row.siteCode}` : ""}
-                      {row.floor ? ` · Floor ${row.floor}` : ""}
+                      {vertical === "transit"
+                        ? [
+                            row.vehicleId ? ` · Vehicle ${row.vehicleId}` : "",
+                            row.stationId ? ` · Station ${row.stationId}` : "",
+                            row.routeId ? ` · Route ${row.routeId}` : "",
+                          ].join("")
+                        : [
+                            row.buildingId ? ` · Building ${row.buildingId}` : "",
+                            row.siteCode ? ` · Campus ${row.siteCode}` : "",
+                            row.floor ? ` · Floor ${row.floor}` : "",
+                          ].join("")}
                     </p>
                   ) : null}
                 </div>
@@ -679,6 +716,9 @@ export function QRNFCManager({
                         floor: row.floor ?? "",
                         cameraIds: row.cameraIds ?? [],
                         siteCode: row.siteCode ?? "",
+                        vehicleId: row.vehicleId ?? "",
+                        stationId: row.stationId ?? "",
+                        routeId: row.routeId ?? "",
                       });
                     }}
                     className="rounded border border-sky-700 px-2 py-1 text-xs text-sky-200 hover:bg-sky-950/40 disabled:opacity-50"
@@ -696,6 +736,43 @@ export function QRNFCManager({
                     Cameras assigned here open live when this code is scanned.
                   </p>
                   <div className="mt-2 grid gap-2 sm:grid-cols-2">
+                    {vertical === "transit" ? (
+                      <>
+                        <label className="text-xs text-slate-400">
+                          Vehicle
+                          <input
+                            value={assignDraft.vehicleId}
+                            onChange={(e) =>
+                              setAssignDraft((d) => ({ ...d, vehicleId: e.target.value }))
+                            }
+                            placeholder="Bus or train ID"
+                            className="mt-1 w-full rounded border border-slate-600 bg-slate-950 px-2 py-1 text-sm text-slate-100"
+                          />
+                        </label>
+                        <label className="text-xs text-slate-400">
+                          Station
+                          <input
+                            value={assignDraft.stationId}
+                            onChange={(e) =>
+                              setAssignDraft((d) => ({ ...d, stationId: e.target.value }))
+                            }
+                            placeholder="Station or depot"
+                            className="mt-1 w-full rounded border border-slate-600 bg-slate-950 px-2 py-1 text-sm text-slate-100"
+                          />
+                        </label>
+                        <label className="text-xs text-slate-400 sm:col-span-2">
+                          Route
+                          <input
+                            value={assignDraft.routeId}
+                            onChange={(e) =>
+                              setAssignDraft((d) => ({ ...d, routeId: e.target.value }))
+                            }
+                            className="mt-1 w-full rounded border border-slate-600 bg-slate-950 px-2 py-1 text-sm text-slate-100"
+                          />
+                        </label>
+                      </>
+                    ) : (
+                      <>
                     <label className="text-xs text-slate-400">
                       Building
                       <input
@@ -714,6 +791,8 @@ export function QRNFCManager({
                         className="mt-1 w-full rounded border border-slate-600 bg-slate-950 px-2 py-1 text-sm text-slate-100"
                       />
                     </label>
+                      </>
+                    )}
                     {vertical === "campus" && sites.length > 0 ? (
                       <label className="text-xs text-slate-400 sm:col-span-2">
                         Campus
@@ -757,10 +836,7 @@ export function QRNFCManager({
                               }
                             />
                             {cam.displayName}
-                            <span className="text-slate-500">
-                              {cam.buildingId ?? cam.sections[0]}
-                              {cam.floor ? ` · ${cam.floor}` : ""}
-                            </span>
+                            <span className="text-slate-500">{cameraPlaceHint(cam)}</span>
                           </label>
                         );
                       })
@@ -835,6 +911,37 @@ export function QRNFCManager({
             {locationCamerasEnabled ? (
               <>
                 <div className="mt-3 grid gap-2 sm:grid-cols-2">
+                  {vertical === "transit" ? (
+                    <>
+                      <label className="block text-sm text-slate-300">
+                        Vehicle
+                        <input
+                          value={form.vehicleId ?? ""}
+                          onChange={(e) => setForm((f) => ({ ...f, vehicleId: e.target.value }))}
+                          placeholder="Bus or train ID"
+                          className="mt-1 w-full rounded border border-slate-600 bg-slate-950 px-2 py-1.5"
+                        />
+                      </label>
+                      <label className="block text-sm text-slate-300">
+                        Station
+                        <input
+                          value={form.stationId ?? ""}
+                          onChange={(e) => setForm((f) => ({ ...f, stationId: e.target.value }))}
+                          placeholder="Station or depot"
+                          className="mt-1 w-full rounded border border-slate-600 bg-slate-950 px-2 py-1.5"
+                        />
+                      </label>
+                      <label className="block text-sm text-slate-300 sm:col-span-2">
+                        Route
+                        <input
+                          value={form.routeId ?? ""}
+                          onChange={(e) => setForm((f) => ({ ...f, routeId: e.target.value }))}
+                          className="mt-1 w-full rounded border border-slate-600 bg-slate-950 px-2 py-1.5"
+                        />
+                      </label>
+                    </>
+                  ) : (
+                    <>
                   <label className="block text-sm text-slate-300">
                     Building
                     <input
@@ -851,6 +958,8 @@ export function QRNFCManager({
                       className="mt-1 w-full rounded border border-slate-600 bg-slate-950 px-2 py-1.5"
                     />
                   </label>
+                    </>
+                  )}
                   {vertical === "campus" && sites.length > 0 ? (
                     <label className="block text-sm text-slate-300 sm:col-span-2">
                       Campus
@@ -902,10 +1011,7 @@ export function QRNFCManager({
                               }
                             />
                             {cam.displayName}
-                            <span className="text-slate-500">
-                              {cam.buildingId ?? cam.sections[0]}
-                              {cam.floor ? ` · ${cam.floor}` : ""}
-                            </span>
+                            <span className="text-slate-500">{cameraPlaceHint(cam)}</span>
                           </label>
                         );
                       })

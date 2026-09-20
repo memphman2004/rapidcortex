@@ -1,6 +1,7 @@
 # Data Processing Addendum (DPA) — DRAFT
 
 > **STATUS: DRAFT — COUNSEL REVIEW REQUIRED**  
+> **Last reviewed:** 2026-09-19 (60-day refresh — markdown only; still not executable).  
 > **Not executable.** Do not send to customers until legal approves and entity naming is finalized (see [DOCUMENT_GAPS.md](../DOCUMENT_GAPS.md) LEG-007).  
 > **Governs:** processing of personal data and operational content when Rapid Cortex is provided as a hosted service.
 
@@ -57,9 +58,9 @@ Capitalized terms not defined here have meanings in the MSA.
 - [SECURITY_MODEL.md](../../security-compliance/SECURITY_MODEL.md)
 - [TENANT_ISOLATION_MODEL.md](../../security-compliance/TENANT_ISOLATION_MODEL.md)
 
-4.2 Measures include, at minimum: tenant isolation by `agencyId`, encryption in transit, access controls via Cognito JWT and RBAC, secrets in AWS Secrets Manager, and audit logging.
+4.2 Measures include, at minimum: tenant isolation by `agencyId`, encryption in transit, access controls via Cognito JWT and RBAC, **MFA required** on the production Cognito user pool, secrets in AWS Secrets Manager, and audit logging.
 
-4.3 Processor does **not** represent CJIS, HIPAA, SOC 2, or FedRAMP certification unless a separate executed attestation exists.
+4.3 Processor does **not** represent CJIS, HIPAA, SOC 2 Type II, or FedRAMP certification unless a separate executed attestation exists. An in-repo control pack and observation calendar are internal operating documents, not a CPA report.
 
 ---
 
@@ -127,7 +128,7 @@ If processing involves transfers outside Customer’s jurisdiction, Parties will
 
 11.1 Customer may audit Processor’s compliance **once per 12 months** on **30 days’ notice**, during business hours, without disrupting other customers.
 
-11.2 Processor may satisfy audit with **third-party reports** (e.g. SOC 2) when available.
+11.2 Processor may satisfy audit with **third-party reports** (e.g. SOC 2 Type II) **when a CPA firm has issued them**. Until then, Processor may share the in-repo control descriptions and technical snapshots without claiming Type II.
 
 ---
 

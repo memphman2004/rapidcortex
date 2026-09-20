@@ -35,7 +35,10 @@ type TestRow = {
   cognitoGroup?: string;
   /** Optional `custom:agencyVertical` (campus / venue / transit / pilot). */
   agencyVertical?: string;
-  /** App Store review accounts must not prompt for TOTP. */
+  /**
+   * Clear per-user TOTP preference. When the pool `MfaConfiguration` is `ON`,
+   * Cognito still returns `MFA_SETUP` until the user enrolls an authenticator.
+   */
   disableMfa?: boolean;
 };
 
@@ -444,16 +447,24 @@ async function main() {
     }
 
     if (row.disableMfa) {
-      await client.send(
-        new AdminSetUserMFAPreferenceCommand({
-          UserPoolId: pool,
-          Username: username,
-          SMSMfaSettings: { Enabled: false, PreferredMfa: false },
-          SoftwareTokenMfaSettings: { Enabled: false, PreferredMfa: false },
-        }),
-      );
-      // eslint-disable-next-line no-console
-      console.log(`[seed-role-test-users] MFA disabled for ${row.email}.`);
+      try {
+        await client.send(
+          new AdminSetUserMFAPreferenceCommand({
+            UserPoolId: pool,
+            Username: username,
+            SMSMfaSettings: { Enabled: false, PreferredMfa: false },
+            SoftwareTokenMfaSettings: { Enabled: false, PreferredMfa: false },
+          }),
+        );
+        // eslint-disable-next-line no-console
+        console.log(
+          `[seed-role-test-users] MFA preference cleared for ${row.email}. Pool MFA ON still requires authenticator enrollment on first sign-in.`,
+        );
+      } catch (e) {
+        const message = e instanceof Error ? e.message : String(e);
+        // eslint-disable-next-line no-console
+        console.warn(`[seed-role-test-users] Could not clear MFA preference for ${row.email}: ${message}`);
+      }
     }
 
     if (row.cognitoGroup) {

@@ -9,6 +9,9 @@ export type IncidentCreatedBroadcastPayload = {
   source: string;
   status: string;
   qrRcli?: string;
+  vehicleId?: string;
+  stationId?: string;
+  routeId?: string;
 };
 
 export async function broadcastVenueIncidentCreated(params: {
@@ -28,6 +31,9 @@ export async function broadcastVenueIncidentCreated(params: {
         source: params.incident.source,
         status: params.incident.status,
         qrRcli: params.incident.qrRcli,
+        vehicleId: params.incident.vehicleId,
+        stationId: params.incident.stationId,
+        routeId: params.incident.routeId,
         cameras: params.cameras,
       },
     },

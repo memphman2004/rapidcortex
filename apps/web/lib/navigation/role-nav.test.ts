@@ -119,6 +119,11 @@ describe("getRoleNav", () => {
     for (const role of ["rcsuperadmin", "rcadmin"] as const) {
       const hrefs = getRoleNav(role, {}).sections.flatMap((s) => s.items.map((i) => i.href));
       expect(hrefs).toContain("/rc-admin/onboarding/packets");
+      expect(hrefs).toContain("/rc-admin/onboarding/campus/intake");
+      expect(hrefs).toContain("/rc-admin/onboarding/campus/integrations");
+      expect(hrefs).toContain("/rc-admin/onboarding/venue/intake");
+      expect(hrefs).toContain("/rc-admin/onboarding/checklist/campus");
+      expect(hrefs).not.toContain("/onboarding/campus/intake");
     }
   });
 

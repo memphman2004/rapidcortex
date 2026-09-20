@@ -1,4 +1,5 @@
 import SwiftUI
+import UIKit
 
 struct LoginView: View {
     @EnvironmentObject var auth: CognitoAuthManager
@@ -89,7 +90,7 @@ struct LoginView: View {
                             .foregroundColor(RCTheme.textSecondary)
                             .fixedSize(horizontal: false, vertical: true)
 
-                        Text("Some administrator accounts require an authenticator code after sign-in.")
+                        Text("The first sign-in may ask you to set up an authenticator app. After that, enter the 6-digit code when prompted.")
                             .font(.system(size: 11))
                             .foregroundColor(RCTheme.textMuted)
                             .fixedSize(horizontal: false, vertical: true)
@@ -116,6 +117,11 @@ struct LoginView: View {
         .sheet(isPresented: $auth.requiresMFA) {
             MFAView()
                 .environmentObject(auth)
+        }
+        .sheet(isPresented: $auth.requiresMFASetup) {
+            MFASetupView()
+                .environmentObject(auth)
+                .interactiveDismissDisabled()
         }
     }
 
@@ -185,6 +191,128 @@ struct MFAView: View {
             }
         }
         .onAppear { focused = true }
+    }
+}
+
+struct MFASetupView: View {
+    @EnvironmentObject var auth: CognitoAuthManager
+    @FocusState private var focused: Bool
+    @State private var copied = false
+
+    var body: some View {
+        ZStack {
+            RCTheme.bg.ignoresSafeArea()
+            ScrollView {
+                VStack(spacing: 16) {
+                    Image(systemName: "qrcode.viewfinder")
+                        .font(.system(size: 36))
+                        .foregroundColor(RCTheme.accentLight)
+                        .padding(.top, 28)
+
+                    Text("Set up authenticator")
+                        .font(.system(size: 18, weight: .semibold))
+                        .foregroundColor(RCTheme.textPrimary)
+
+                    Text("Scan this QR with Google Authenticator, 1Password, or iOS Passwords. Then enter the 6-digit code to finish sign-in.")
+                        .font(.system(size: 13))
+                        .foregroundColor(RCTheme.textMuted)
+                        .multilineTextAlignment(.center)
+                        .padding(.horizontal, 28)
+
+                    if let image = qrImage {
+                        Image(uiImage: image)
+                            .interpolation(.none)
+                            .resizable()
+                            .scaledToFit()
+                            .frame(width: 200, height: 200)
+                            .clipShape(RoundedRectangle(cornerRadius: 12))
+                            .accessibilityLabel("Authenticator QR code")
+                    }
+
+                    VStack(spacing: 6) {
+                        Text("Or enter this key")
+                            .font(.system(size: 11, weight: .semibold))
+                            .foregroundColor(RCTheme.textMuted)
+                            .textCase(.uppercase)
+                            .tracking(0.5)
+
+                        Text(groupedSecret)
+                            .font(.system(size: 15, weight: .semibold, design: .monospaced))
+                            .foregroundColor(RCTheme.textPrimary)
+                            .multilineTextAlignment(.center)
+                            .textSelection(.enabled)
+
+                        Button {
+                            UIPasteboard.general.string = auth.totpSecret
+                            copied = true
+                        } label: {
+                            Text(copied ? "Copied" : "Copy key")
+                                .font(.system(size: 13, weight: .medium))
+                                .foregroundColor(RCTheme.accentLight)
+                        }
+                        .accessibilityLabel("Copy authenticator key")
+                    }
+                    .padding(.horizontal, 24)
+
+                    TextField("000000", text: $auth.mfaCode)
+                        .keyboardType(.numberPad)
+                        .textContentType(.oneTimeCode)
+                        .font(.system(size: 28, weight: .semibold, design: .monospaced))
+                        .multilineTextAlignment(.center)
+                        .focused($focused)
+                        .onChange(of: auth.mfaCode) { value in
+                            let digits = String(value.filter(\.isNumber).prefix(6))
+                            if digits != value { auth.mfaCode = digits }
+                            if digits.count == 6 { Task { await auth.submitMFASetup() } }
+                        }
+                        .padding()
+                        .background(RCTheme.surface1)
+                        .clipShape(RoundedRectangle(cornerRadius: 12))
+                        .padding(.horizontal, 40)
+
+                    if let error = auth.error {
+                        Text(error)
+                            .font(.system(size: 13))
+                            .foregroundColor(RCTheme.danger)
+                            .padding(.horizontal, 24)
+                    }
+
+                    Button(action: { Task { await auth.submitMFASetup() } }) {
+                        Text(auth.isLoading ? "Verifying…" : "Complete setup")
+                            .font(.system(size: 15, weight: .semibold))
+                            .frame(maxWidth: .infinity)
+                            .frame(height: 48)
+                            .background(auth.mfaCode.count == 6 ? RCTheme.accent : RCTheme.surface1)
+                            .foregroundColor(auth.mfaCode.count == 6 ? .white : RCTheme.textMuted)
+                            .clipShape(RoundedRectangle(cornerRadius: 12))
+                    }
+                    .disabled(auth.mfaCode.count < 6 || auth.isLoading)
+                    .padding(.horizontal, 24)
+
+                    Button("Cancel") {
+                        auth.cancelPendingChallenge()
+                    }
+                    .font(.system(size: 14))
+                    .foregroundColor(RCTheme.textSecondary)
+                    .padding(.bottom, 28)
+                }
+            }
+        }
+        .onAppear { focused = true }
+    }
+
+    private var qrImage: UIImage? {
+        guard let payload = auth.totpOtpauthURL else { return nil }
+        return QRCodeGenerator.generate(payload: payload, size: 512)
+    }
+
+    private var groupedSecret: String {
+        let raw = auth.totpSecret.filter { !$0.isWhitespace }
+        return stride(from: 0, to: raw.count, by: 4).map { start in
+            let i = raw.index(raw.startIndex, offsetBy: start)
+            let j = raw.index(i, offsetBy: 4, limitedBy: raw.endIndex) ?? raw.endIndex
+            return String(raw[i..<j])
+        }.joined(separator: " ")
     }
 }
 

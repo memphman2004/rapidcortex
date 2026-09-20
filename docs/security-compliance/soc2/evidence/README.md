@@ -13,6 +13,7 @@ These files are **ledgers**. Paste ticket IDs and dates. Do not paste secret val
 | [monthly-control-check.md](./monthly-control-check.md) | CC4 |
 | [risk-register.md](./risk-register.md) | CC3 |
 | [observation-calendar.md](./observation-calendar.md) | period tracking |
+| [document-review-log.md](./document-review-log.md) | CC1.2 / CC6.1 (60-day MFA, contract, pilot docs) |
 
 Templates for a blank packet: [docs/evidence/templates/soc2/](../../../evidence/templates/soc2/).
 

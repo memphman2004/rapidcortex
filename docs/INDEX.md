@@ -16,7 +16,7 @@ Paths below are **canonical** — prefer these over flat `docs/FOO.md` links in 
 | Sales scope matrix | [go-to-market-sales/SALES_SCOPE_MATRIX.md](./go-to-market-sales/SALES_SCOPE_MATRIX.md) |
 | Promise control | [go-to-market-sales/PROMISE_CONTROL.md](./go-to-market-sales/PROMISE_CONTROL.md) |
 | Known limitations | [product-architecture/KNOWN_LIMITATIONS.md](./product-architecture/KNOWN_LIMITATIONS.md) |
-| Feature matrix | [go-to-market-sales/FEATURE_MATRIX.md](./go-to-market-sales/FEATURE_MATRIX.md) |
+| Feature matrix | [product-architecture/FEATURE_MATRIX.md](./product-architecture/FEATURE_MATRIX.md) |
 | Role dashboard spec | [role-dashboard-spec.md](./role-dashboard-spec.md) |
 
 ---
@@ -101,6 +101,10 @@ Paths below are **canonical** — prefer these over flat `docs/FOO.md` links in 
 | RFP cybersecurity controls | [rfp/cybersecurity-controls.md](./rfp/cybersecurity-controls.md) |
 | RFP implementation & transition | [rfp/implementation-and-transition.md](./rfp/implementation-and-transition.md) |
 | Security model | [security-compliance/SECURITY_MODEL.md](./security-compliance/SECURITY_MODEL.md) |
+| Auth operations (MFA / RBAC) | [product-architecture/AUTH_OPERATIONS.md](./product-architecture/AUTH_OPERATIONS.md) |
+| Native desktop auth | [native-auth-flow.md](./native-auth-flow.md) |
+| Production security checklist | [security-compliance/PRODUCTION_SECURITY_CHECKLIST.md](./security-compliance/PRODUCTION_SECURITY_CHECKLIST.md) |
+| 60-day document review SOP | [security-compliance/soc2/processes/document-review.md](./security-compliance/soc2/processes/document-review.md) |
 | SOC 2 control pack (not a Type II report) | [security-compliance/soc2/README.md](./security-compliance/soc2/README.md) |
 | SOC 2 system boundary | [security-compliance/soc2/SYSTEM-BOUNDARY.md](./security-compliance/soc2/SYSTEM-BOUNDARY.md) |
 | SOC 2 TSC matrix | [security-compliance/soc2/CONTROL-MATRIX.md](./security-compliance/soc2/CONTROL-MATRIX.md) |

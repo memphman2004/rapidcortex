@@ -92,6 +92,7 @@ export * from "./venue/dashboard-schemas.js";
 export * from "./qr-nfc/types.js";
 export * from "./qr-nfc/schemas.js";
 export * from "./qr-nfc/trade-show.js";
+export * from "./qr-nfc/transit-place.js";
 export * from "./lib/phone-format.js";
 export * from "./notices/index.js";
 export * from "./pricing/index.js";
@@ -109,6 +110,7 @@ export * from "./physical-security/index.js";
 export * from "./location/index.js";
 export * from "./field/index.js";
 
+export * from "./guest-assist/index.js";
 export * from "./marketing/index.js";
 export * from "./hiring/index.js";
 export * from "./rapid-iq/index.js";

@@ -1,7 +1,8 @@
 # Order Form — DRAFT
 
 > **STATUS: DRAFT — COUNSEL AND FINANCE REVIEW REQUIRED**  
-> Attach to and governed by the **Master Services Agreement** (`COMPLETE_MSA_MASTER_DOCUMENT.docx`) or **Platform Services Agreement**.  
+> **Last reviewed:** 2026-09-19 (60-day refresh — still draft).  
+> Attach to and governed by the **Master Services Agreement** (`COMPLETE_MSA_MASTER_DOCUMENT_updated.docx`) or **Platform Services Agreement**.  
 > Exhibit A (Statement of Work) may be attached or incorporated by reference.
 
 ---
@@ -106,8 +107,10 @@ Escalation contacts per [OPS_CONTACT_MATRIX.md](../../operations-runbooks/OPS_CO
 |------|----------------|
 | DPA executed | [ ] Concurrent DPA  [ ] DPA dated ______ |
 | Privacy / retention decisions reviewed | [ ] Per [PRIVACY_RETENTION_DECISIONS.md](../../security-compliance/PRIVACY_RETENTION_DECISIONS.md) |
+| MFA required for production users | [ ] Acknowledged ([AUTH_OPERATIONS.md](../../product-architecture/AUTH_OPERATIONS.md)) |
 | CJIS / security review | [ ] Complete  [ ] In progress |
 | Assistive AI / not autonomous dispatch | [ ] Acknowledged ([PILOT_GOVERNANCE.md](../PILOT_GOVERNANCE.md)) |
+| SOC 2 Type II report | [ ] Not issued — observation pack only |
 
 ---
 

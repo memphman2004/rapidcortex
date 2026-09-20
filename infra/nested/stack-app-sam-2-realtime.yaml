@@ -27,6 +27,11 @@ Parameters:
   ManagedPolicyNamePrefix:
     Type: String
     Default: rapid-cortex
+  GuestAssistSessionSecret:
+    Type: String
+    Default: ""
+    NoEcho: true
+    Description: HMAC secret for QR Guest Assist WebSocket sessions. Empty keeps staff chat on the local mock path.
 
 Globals:
   Function:
@@ -45,6 +50,8 @@ Globals:
         COGNITO_USER_POOL_ID: !Ref ImportedCognitoUserPoolId
         COGNITO_CLIENT_ID: !Ref ImportedCognitoWebClientId
         COGNITO_REGION: !Ref AWS::Region
+        WEBSOCKET_API_ENDPOINT: !Sub https://${WebSocketApi}.execute-api.${AWS::Region}.amazonaws.com/${DeploymentStage}
+        GUEST_ASSIST_SESSION_SECRET: !Ref GuestAssistSessionSecret
 
 Resources:
   AppManagedPolicyRealtimeDynamo:
@@ -189,6 +196,9 @@ Resources:
       CodeUri: ../../apps/api/
       Handler: dist/handlers/websocket/default.handler
       Timeout: 10
+      Policies:
+        - !Ref AppManagedPolicyRealtimeDynamo
+        - !Ref AppManagedPolicyWebSocketManageConnections
 
   WebSocketDefaultPermission:
     Type: AWS::Lambda::Permission

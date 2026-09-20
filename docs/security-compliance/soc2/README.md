@@ -21,7 +21,7 @@ This directory is the **policy and operating-evidence** layer. Track 1 collected
 | TSC CC1–CC9 control matrix | [CONTROL-MATRIX.md](./CONTROL-MATRIX.md) |
 | Observation calendar and sample plan | [OBSERVATION-WINDOW.md](./OBSERVATION-WINDOW.md) |
 | Policy corpus (CC1–CC9) | [policies/](./policies/) |
-| Operating procedures | [processes/](./processes/) |
+| Operating procedures | [processes/](./processes/) (includes [60-day document review](./processes/document-review.md)) |
 | Evidence logs (fill during the window) | [evidence/](./evidence/) |
 | Printable templates | [docs/evidence/templates/soc2/](../../evidence/templates/soc2/) |
 | Monthly CLI pack (read-only) | `scripts/soc2-observation-pack.sh` |
@@ -82,4 +82,5 @@ Work the remaining list from [OUT-OF-BAND.md](./OUT-OF-BAND.md) and [DOCUMENT_GA
 
 | Version | Date | Notes |
 |---------|------|-------|
+| 1.1 | 2026-09-19 | 60-day review SOP for MFA, contracts, and pilot operating docs |
 | 1.0 | 2026-09-19 | Initial in-repo TSC pack for October 1 observation |

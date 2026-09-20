@@ -96,6 +96,11 @@ Parameters:
     Type: String
     Default: ""
     Description: Optional Secrets Manager secret ARN for Anthropic (plain string or JSON with apiKey).
+  GuestAssistSessionSecret:
+    Type: String
+    Default: ""
+    NoEcho: true
+    Description: HMAC secret for QR Guest Assist WebSocket sessions. Empty keeps staff chat on the local mock path.
   RapidIqHunterApiKeySecretArn:
     Type: String
     Default: "arn:aws:secretsmanager:us-east-1:158961537080:secret:rapid-cortex/rapid-iq/hunter-api-key-LXEwMX"
@@ -4078,6 +4083,7 @@ Resources:
             - !GetAtt DataLayerStack.Outputs.AgenciesTable
             - !Sub "${DynamoTableNamePrefix}-agencies-${DeploymentStage}"
         ManagedPolicyNamePrefix: !Ref AWS::StackName
+        GuestAssistSessionSecret: !Ref GuestAssistSessionSecret
 
   AppSamAlarmsStack:
     Condition: HasAppSamAlarmsNestedStack

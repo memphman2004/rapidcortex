@@ -147,6 +147,8 @@ struct NewCodeView: View {
         await vm.save(agencyId: agencyId, vertical: defaultVertical == "911" ? "venue" : defaultVertical)
         guard let code = vm.createdCode else { return }
         onCreated?(code)
-        nfcCode = code
+        if NFCHardware.isAvailable {
+            nfcCode = code
+        }
     }
 }

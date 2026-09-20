@@ -21,6 +21,12 @@ export interface QRNFCRecord {
    * On scan, intake opens these cameras first — not a nearest-building guess.
    */
   cameraIds?: string[];
+  /** Transit: onboard camera place (bus / train / ferry). */
+  vehicleId?: string;
+  /** Transit: station / platform / bus depot. */
+  stationId?: string;
+  /** Transit: route this sign covers. */
+  routeId?: string;
   /**
    * Physical campus this location belongs to (multi-campus tenant).
    * Untagged records remain visible on All campuses and the tenant primary site.
@@ -77,6 +83,9 @@ export interface CreateQRNFCInput {
   buildingId?: string;
   floor?: string;
   cameraIds?: string[];
+  vehicleId?: string;
+  stationId?: string;
+  routeId?: string;
   siteCode?: string;
   vertical: ReportVertical;
   reportType: QrNfcReportType;
@@ -94,6 +103,9 @@ export interface UpdateQRNFCInput {
   buildingId?: string;
   floor?: string;
   cameraIds?: string[];
+  vehicleId?: string;
+  stationId?: string;
+  routeId?: string;
   siteCode?: string;
   nfcEnabled?: boolean;
   nfcTagId?: string;

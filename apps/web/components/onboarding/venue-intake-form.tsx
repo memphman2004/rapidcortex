@@ -2,6 +2,7 @@
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
+import { usePathname } from "next/navigation";
 import type { VenueIntake } from "rapid-cortex-shared";
 import { venueIntakeSchema } from "rapid-cortex-shared";
 import Link from "next/link";
@@ -17,6 +18,7 @@ import {
   CheckboxGroup,
 } from "@/components/onboarding/intake-form-primitives";
 import { fetchVenueIntake, saveVenueIntake } from "@/lib/onboarding/onboarding-api";
+import { verticalOnboardingContinueHref } from "@/lib/onboarding/continue-href";
 
 const EMPTY: VenueIntake = {
   venueName: "",
@@ -47,6 +49,7 @@ type Props = {
 };
 
 export function VenueIntakeForm({ orgCode, agencyId }: Props) {
+  const pathname = usePathname();
   const qc = useQueryClient();
   const [step, setStep] = useState(0);
   const [form, setForm] = useState<VenueIntake>(EMPTY);
@@ -288,7 +291,10 @@ export function VenueIntakeForm({ orgCode, agencyId }: Props) {
           Saved to venue config for org code <span className="font-mono text-slate-200">{orgCode}</span>.
         </p>
         <Link
-          href={`/onboarding/checklist/venue?orgCode=${encodeURIComponent(orgCode)}`}
+          href={verticalOnboardingContinueHref(
+            pathname,
+            `/onboarding/checklist/venue?orgCode=${encodeURIComponent(orgCode)}`,
+          )}
           className="mt-6 inline-block text-sm text-violet-400 hover:underline"
         >
           Continue to onboarding checklist →

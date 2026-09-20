@@ -102,6 +102,7 @@ export const transitCamerasQuerySchema = z.object({
   route: z.string().min(1).optional(),
   /** Comma-separated camera IDs assigned on the vehicle record. */
   cameraIds: z.string().min(1).optional(),
+  qrRcli: z.string().min(1).optional(),
   limit: z.coerce.number().int().min(1).max(20).optional(),
 });
 

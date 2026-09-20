@@ -5,7 +5,8 @@
 
 | ID | Artifact | Priority | Status | Owner | Notes |
 |----|----------|----------|--------|-------|-------|
-| LEG-001 | Pilot scope agreement (final) | P0 | DRAFT | NEEDS OWNER | PDF still titled “Draft” |
+| LEG-001 | Pilot scope agreement (final) | P0 | DRAFT | NEEDS OWNER | PDF still titled “Draft”; May 2026 Internal Product PDF is **archive** (60-day review 2026-09-19). Canonical markdown: [PILOT_OVERVIEW.md](./PILOT_OVERVIEW.md) + [PILOT_GOVERNANCE.md](./PILOT_GOVERNANCE.md) until counsel issues an executable |
+| SOC-103 | 60-day MFA / contract / pilot document review | P1 | **DONE** 2026-09-19 | Security | [document-review.md](../security-compliance/soc2/processes/document-review.md); next due 2026-11-18 |
 | LEG-002 | DPA (executable) | P0 | **DRAFT** | Legal | [DPA_DRAFT.md](./legal-drafts/DPA_DRAFT.md) — counsel review |
 | LEG-003 | BAA template | P1 | GAP | NEEDS OWNER | Hospital customers |
 | LEG-004 | CJIS SLA rider | P1 | GAP | NEEDS OWNER | Referenced on trust page |
@@ -20,6 +21,7 @@
 | SOC-002 | Observation window calendar + evidence ledgers | P1 | **DONE** (templates + 2026-09-19 closeout) | Security | [2026-09-19-prewindow](../security-compliance/soc2/evidence/2026-09-19-prewindow/README.md); live AWS re-run still due |
 | SOC-101 | CPA firm engagement | P0 | **PACKET** | Management | [CPA-ENGAGEMENT-SOW.md](../security-compliance/soc2/CPA-ENGAGEMENT-SOW.md) — not sent |
 | SOC-102 | Signed policies / HR / tabletop / restore | P0 | **PARTIAL** | Management / HR / Eng | Tabletop done; restore dry-run; wet signatures outstanding |
+| SOC-103 | 60-day MFA / contract / pilot document review | P1 | **DONE** 2026-09-19 | Security | [document-review.md](../security-compliance/soc2/processes/document-review.md); next due 2026-11-18 |
 | OPS-001 | Security questionnaire pack | P1 | **DRAFT** | SE / security | [SECURITY_QUESTIONNAIRE_RESPONSES.md](../security-compliance/SECURITY_QUESTIONNAIRE_RESPONSES.md) — MFA/PITR/CloudTrail updated 2026-09-19; still customize per RFP |
 | OPS-013 | RFP cybersecurity + implementation pack | P1 | **DONE** | — | [rfp/README.md](../rfp/README.md); still not CJIS/SOC2 certification |
 | OPS-002 | Subprocessor list | P1 | **DRAFT** | SE / security | [SUBPROCESSOR_LIST.md](../security-compliance/SUBPROCESSOR_LIST.md) |

@@ -14,7 +14,9 @@ final class CognitoAuthManager: ObservableObject {
     @Published var error: String?
 
     @Published var requiresMFA = false
+    @Published var requiresMFASetup = false
     @Published var mfaCode = ""
+    @Published private(set) var totpSecret = ""
     /// Agency used for `/api/codes` and operational dashboard (platform admins may switch).
     @Published var selectedAgencyId = ""
     /// Operational profile of the selected agency. Internal only — never displayed.
@@ -35,6 +37,18 @@ final class CognitoAuthManager: ObservableObject {
 
     private var pendingSession: String?
     private var pendingUsername: String?
+    private var pendingEmail: String?
+
+    /// Label shown in the authenticator app (email, not the Cognito SRP user id).
+    var totpAccountName: String {
+        pendingEmail ?? pendingUsername ?? ""
+    }
+
+    var totpOtpauthURL: String? {
+        guard !totpSecret.isEmpty else { return nil }
+        let account = totpAccountName.isEmpty ? "user" : totpAccountName
+        return RCTotp.otpauthURL(account: account, secret: totpSecret)
+    }
 
     private var accessToken: String?
     private var idToken: String?
@@ -75,6 +89,9 @@ final class CognitoAuthManager: ObservableObject {
                 body: initiateBody
             )
 
+            pendingEmail = username
+            pendingUsername = username
+
             if initiateResp["AuthenticationResult"] != nil {
                 try handleAuthResult(initiateResp)
                 return
@@ -104,11 +121,11 @@ final class CognitoAuthManager: ObservableObject {
                     target: "AWSCognitoIdentityProviderService.RespondToAuthChallenge",
                     body: respondBody
                 )
-                try handleChallengeOrResult(respondResp)
+                try await handleChallengeOrResult(respondResp)
                 return
             }
 
-            throw AuthError.cognitoError("Unexpected auth challenge: \(challenge)")
+            try await handleNamedChallenge(challenge, session: initiateResp["Session"] as? String)
         } catch {
             self.error = error.localizedDescription
         }
@@ -145,6 +162,56 @@ final class CognitoAuthManager: ObservableObject {
         }
     }
 
+    func submitMFASetup() async {
+        guard let session = pendingSession, !mfaCode.isEmpty else { return }
+        isLoading = true
+        error = nil
+        defer { isLoading = false }
+
+        do {
+            let username = pendingUsername ?? pendingEmail ?? ""
+            let verifyResp = try await cognitoRequest(
+                target: "AWSCognitoIdentityProviderService.VerifySoftwareToken",
+                body: [
+                    "Session": session,
+                    "UserCode": mfaCode,
+                    "FriendlyDeviceName": "Authenticator"
+                ]
+            )
+            guard let verifiedSession = (verifyResp["Session"] as? String),
+                  (verifyResp["Status"] as? String) != "ERROR"
+            else {
+                throw AuthError.cognitoError("Invalid authenticator code.")
+            }
+
+            let completeResp = try await cognitoRequest(
+                target: "AWSCognitoIdentityProviderService.RespondToAuthChallenge",
+                body: [
+                    "ChallengeName": "MFA_SETUP",
+                    "ClientId": RCConfig.clientId,
+                    "ChallengeResponses": ["USERNAME": username],
+                    "Session": verifiedSession
+                ]
+            )
+
+            requiresMFASetup = false
+            pendingSession = nil
+            totpSecret = ""
+            mfaCode = ""
+            try handleAuthResult(completeResp)
+        } catch {
+            self.error = error.localizedDescription
+        }
+    }
+
+    func cancelPendingChallenge() {
+        requiresMFA = false
+        requiresMFASetup = false
+        pendingSession = nil
+        totpSecret = ""
+        mfaCode = ""
+    }
+
     func refreshIfNeeded() async {
         guard let expiry = tokenExpiry, expiry > Date().addingTimeInterval(60) else {
             await refresh()
@@ -160,8 +227,12 @@ final class CognitoAuthManager: ObservableObject {
         claims = nil
         isAuthenticated = false
         requiresMFA = false
+        requiresMFASetup = false
+        totpSecret = ""
+        mfaCode = ""
         pendingSession = nil
         pendingUsername = nil
+        pendingEmail = nil
         selectedAgencyId = ""
         activeAgencyVertical = ""
         UserDefaults.standard.removeObject(forKey: Self.selectedAgencyKey)
@@ -203,19 +274,44 @@ final class CognitoAuthManager: ObservableObject {
 
     // MARK: - Private
 
-    private func handleChallengeOrResult(_ resp: [String: Any]) throws {
-        if let nextChallenge = resp["ChallengeName"] as? String {
-            if nextChallenge == "SOFTWARE_TOKEN_MFA" || nextChallenge == "SMS_MFA" {
-                pendingSession = resp["Session"] as? String
-                requiresMFA = true
-                return
-            }
-            if nextChallenge == "NEW_PASSWORD_REQUIRED" {
-                throw AuthError.cognitoError("Password reset required. Use the Rapid Cortex web app, then sign in here.")
-            }
-            throw AuthError.cognitoError("Unexpected auth challenge: \(nextChallenge)")
+    private func handleChallengeOrResult(_ resp: [String: Any]) async throws {
+        if resp["AuthenticationResult"] != nil {
+            try handleAuthResult(resp)
+            return
         }
-        try handleAuthResult(resp)
+        guard let nextChallenge = resp["ChallengeName"] as? String else {
+            throw AuthError.unexpectedChallenge
+        }
+        try await handleNamedChallenge(nextChallenge, session: resp["Session"] as? String)
+    }
+
+    private func handleNamedChallenge(_ challenge: String, session: String?) async throws {
+        pendingSession = session
+        switch challenge {
+        case "SOFTWARE_TOKEN_MFA", "SMS_MFA":
+            requiresMFA = true
+        case "MFA_SETUP":
+            try await startMFASetup()
+        case "NEW_PASSWORD_REQUIRED":
+            throw AuthError.cognitoError("Password reset required. Use the Rapid Cortex web app, then sign in here.")
+        default:
+            throw AuthError.cognitoError("Unexpected auth challenge: \(challenge)")
+        }
+    }
+
+    private func startMFASetup() async throws {
+        guard let session = pendingSession else { throw AuthError.unexpectedChallenge }
+        let resp = try await cognitoRequest(
+            target: "AWSCognitoIdentityProviderService.AssociateSoftwareToken",
+            body: ["Session": session]
+        )
+        guard let secret = resp["SecretCode"] as? String, !secret.isEmpty else {
+            throw AuthError.cognitoError("Could not start authenticator setup.")
+        }
+        pendingSession = (resp["Session"] as? String) ?? session
+        totpSecret = secret
+        mfaCode = ""
+        requiresMFASetup = true
     }
 
     private func handleAuthResult(_ resp: [String: Any]) throws {
@@ -332,6 +428,27 @@ final class CognitoAuthManager: ObservableObject {
         }
 
         return (try JSONSerialization.jsonObject(with: data) as? [String: Any]) ?? [:]
+    }
+}
+
+enum RCTotp {
+    static func otpauthURL(account: String, secret: String) -> String {
+        let issuer = "Rapid Cortex"
+        let label = "\(encode(issuer)):\(encode(account))"
+        let query = [
+            "secret=\(encode(secret))",
+            "issuer=\(encode(issuer))",
+            "algorithm=SHA1",
+            "digits=6",
+            "period=30"
+        ].joined(separator: "&")
+        return "otpauth://totp/\(label)?\(query)"
+    }
+
+    private static func encode(_ value: String) -> String {
+        var allowed = CharacterSet.urlQueryAllowed
+        allowed.remove(charactersIn: ":/?#[]@!$&'()*+,;=")
+        return value.addingPercentEncoding(withAllowedCharacters: allowed) ?? value
     }
 }
 

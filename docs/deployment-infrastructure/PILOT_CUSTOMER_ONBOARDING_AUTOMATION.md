@@ -1,12 +1,14 @@
 # Pilot Customer Onboarding Automation (Staging)
 
+**Last reviewed:** 2026-09-19 (60-day refresh)
+
 This runbook automates:
 
 1. Create pilot customer agency in staging
 2. Configure customer settings
-3. Create dispatcher/supervisor/admin test accounts
+3. Create dispatcher/supervisor/admin test accounts (**complete MFA enrollment** on production-shaped pools before live floor use — [AUTH_OPERATIONS.md](../product-architecture/AUTH_OPERATIONS.md))
 4. Run CAD smoke checks (optional)
-5. Validate role-based access using customer org roles
+5. Validate role-based access using customer org roles (`normalizeSessionRole()`)
 6. Run expected call-volume smoke probe
 
 ## Command

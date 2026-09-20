@@ -37,6 +37,7 @@ const tabs = [
   { path: "/admin/integrations", label: "Integrations" },
   { path: "/admin/cad", label: "CAD" },
   { path: "/admin/cad/bridge", label: "CAD Bridge" },
+  { path: "/admin/cad/c2c", label: "C2C Hub" },
   { path: "/admin/scenario-center", label: "Scenario Center", feature: "scenarioCenter" as const },
   { path: "/admin/settings", label: "Environment" },
   { path: "/admin/settings/downloads", label: "Downloads" },
@@ -103,6 +104,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                             ? pathname === href
                             : path === "/admin/cad/bridge"
                               ? pathname === href || pathname.startsWith(`${href}/`)
+                              : path === "/admin/cad/c2c"
+                                ? pathname === href || pathname.startsWith(`${href}/`)
                           : pathname === href || pathname.startsWith(`${href}/`);
           return (
             <Link

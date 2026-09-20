@@ -1,6 +1,6 @@
 import { GetCommand, PutCommand, QueryCommand, UpdateCommand } from "@aws-sdk/lib-dynamodb";
 import { AUDIT_EVENT_TYPES } from "rapid-cortex-security";
-import type { UserContext } from "rapid-cortex-shared";
+import type { UserContext, VenueIncidentCameraSummary } from "rapid-cortex-shared";
 import {
   transitAlertLevelPatchSchema,
   transitBroadcastBodySchema,
@@ -27,6 +27,8 @@ import { broadcastToAgency } from "../lib/websocket/send-message.js";
 import { ddb } from "../repositories/baseRepository.js";
 import { AuditRepository } from "../repositories/auditRepository.js";
 import { TRANSIT_CONFIG_SK, TRANSIT_TABLE_ENV, transitTableEnv } from "./tables.js";
+import { getCamerasForTransitPlace } from "../handlers/transit/cameras/transit-camera-registry-service.js";
+import { broadcastVenueIncidentCreated } from "../venue/venue-incident-realtime.js";
 
 const auditRepo = new AuditRepository();
 
@@ -293,6 +295,99 @@ export async function createIncident(
     message: { type: "transit.incident.created", data: { incidentId: item.incidentId } },
   });
   return item;
+}
+
+export type CreateTransitQrIncidentInput = {
+  agencyId: string;
+  summary: string;
+  vehicleId?: string;
+  stationId?: string;
+  routeId?: string;
+  cameraIds?: string[];
+  qrId?: string;
+  locationName?: string;
+};
+
+export async function createTransitQrIncident(
+  input: CreateTransitQrIncidentInput,
+): Promise<{ incident: TransitIncident; cameras: VenueIncidentCameraSummary[] }> {
+  const createdAt = nowIso();
+  const item: TransitIncident = {
+    agencyId: input.agencyId,
+    incidentId: makeId("tinc"),
+    type: "security",
+    status: "open",
+    summary: input.summary,
+    vehicleId: input.vehicleId,
+    stationId: input.stationId,
+    routeId: input.routeId,
+    escalatedTo911: false,
+    source: "qr",
+    createdByUserId: "qr-nfc-intake",
+    createdAt,
+    updatedAt: createdAt,
+  };
+  await ddb.send(
+    new PutCommand({ TableName: transitTableEnv(TRANSIT_TABLE_ENV.incidents), Item: item }),
+  );
+  await auditRepo.create({
+    eventId: makeId("audit"),
+    agencyId: input.agencyId,
+    actorId: "qr-nfc-intake",
+    type: AUDIT_EVENT_TYPES.TRANSIT_INCIDENT_CREATED,
+    details: {
+      incidentId: item.incidentId,
+      type: item.type,
+      source: "qr",
+      qrId: input.qrId,
+      vehicleId: input.vehicleId,
+      stationId: input.stationId,
+      routeId: input.routeId,
+    },
+    createdAt,
+    resourceType: "incident",
+    resourceId: item.incidentId,
+  });
+
+  let cameras: VenueIncidentCameraSummary[] = [];
+  try {
+    cameras = await getCamerasForTransitPlace(
+      input.agencyId,
+      {
+        vehicleId: input.vehicleId,
+        stationId: input.stationId,
+        routeId: input.routeId,
+        qrRcli: input.qrId,
+        assignedCameraIds: input.cameraIds,
+      },
+      2,
+    );
+  } catch (err) {
+    console.warn("[createTransitQrIncident] camera lookup failed", err);
+  }
+
+  const section = input.vehicleId || input.stationId || input.routeId || "TRANSIT";
+  await broadcastVenueIncidentCreated({
+    agencyId: input.agencyId,
+    incident: {
+      incidentId: item.incidentId,
+      zoneCode: section,
+      zoneLabel: input.locationName?.trim() || input.summary,
+      type: item.type,
+      source: "qr",
+      status: item.status,
+      qrRcli: input.qrId,
+      vehicleId: input.vehicleId,
+      stationId: input.stationId,
+      routeId: input.routeId,
+    },
+    cameras,
+  });
+  await broadcastToAgency({
+    agencyId: input.agencyId,
+    message: { type: "transit.incident.created", data: { incidentId: item.incidentId } },
+  });
+  return { incident: item, cameras };
 }
 
 export async function patchIncident(

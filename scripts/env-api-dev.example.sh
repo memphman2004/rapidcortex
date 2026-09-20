@@ -34,4 +34,7 @@ unset NEXT_PUBLIC_ENABLE_CAD_WRITEBACK
 # Live edge WAF is CloudFront via scripts/deploy-api-edge.sh.
 # export ENABLE_API_WAF=false
 
+# Guest Assist staff WebSocket HMAC — must match web ECS GUEST_ASSIST_SESSION_SECRET
+# export GUEST_ASSIST_SESSION_SECRET=
+
 echo "env-api-dev.example.sh is a template — copy to env-api-dev.sh and add account-specific ARNs."

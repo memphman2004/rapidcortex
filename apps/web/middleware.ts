@@ -1136,11 +1136,15 @@ async function runMiddleware(request: NextRequest) {
     const auditorReadAllowed =
       effective === "auditor" &&
       AUDITOR_READ_ADMIN_PATHS.some((p) => subpath === p || subpath.startsWith(`${p}/`));
-    // Dispatcher sidebar includes CAD Bridge at /admin/cad/bridge; bounce-to-home looks like a dead link.
-    const dispatcherCadBridgeAllowed =
+    // Dispatcher sidebar includes CAD Bridge and C2C Hub under /admin/cad/*;
+    // bounce-to-home looks like a dead link.
+    const dispatcherCadInteropAllowed =
       effective === "dispatcher" &&
-      (subpath === "/admin/cad/bridge" || subpath.startsWith("/admin/cad/bridge/"));
-    if (!auditorReadAllowed && !dispatcherCadBridgeAllowed) {
+      (subpath === "/admin/cad/bridge" ||
+        subpath.startsWith("/admin/cad/bridge/") ||
+        subpath === "/admin/cad/c2c" ||
+        subpath.startsWith("/admin/cad/c2c/"));
+    if (!auditorReadAllowed && !dispatcherCadInteropAllowed) {
       return redirectToRoleAwareHome(request, user, jurisdiction);
     }
   }

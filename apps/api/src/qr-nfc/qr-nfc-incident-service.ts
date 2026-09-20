@@ -1,6 +1,8 @@
-import type { PublicReportSubmitInput, QRNFCRecord, ReportMedium } from "rapid-cortex-shared";
+import type { Incident, PublicReportSubmitInput, QRNFCRecord, ReportMedium } from "rapid-cortex-shared";
+import { transitPlaceFromQrRecord } from "rapid-cortex-shared";
 import { createCampusQrIncident } from "../campus/campus-incident-service.js";
 import { createVenueQrIncident } from "../venue/venue-incident-service.js";
+import { createTransitQrIncident } from "../transit/transit-service.js";
 import { IncidentRepository } from "../repositories/incidentRepository.js";
 import { AuditRepository } from "../repositories/auditRepository.js";
 import { AgencyRepository } from "../repositories/agencyRepository.js";
@@ -8,7 +10,6 @@ import { makeId } from "../lib/ids.js";
 import { env } from "../lib/env.js";
 import { buildRetentionFields, buildIncidentDedupe } from "../lib/retentionPolicy.js";
 import { AUDIT_EVENT_TYPES } from "rapid-cortex-security";
-import type { Incident } from "rapid-cortex-shared";
 
 const incidents = new IncidentRepository();
 const auditRepo = new AuditRepository();
@@ -139,6 +140,21 @@ export async function createIncidentFromQrNfcReport(
       reporterPhone,
       mediaKeys: input.mediaKeys ?? [],
       cameraIds: record.cameraIds,
+    });
+    return incident.incidentId;
+  }
+
+  if (record.vertical === "transit") {
+    const place = transitPlaceFromQrRecord(record);
+    const { incident } = await createTransitQrIncident({
+      agencyId: record.agencyId,
+      summary: description || `Report at ${zone}`,
+      vehicleId: place.vehicleId ?? undefined,
+      stationId: place.stationId ?? undefined,
+      routeId: place.routeId ?? undefined,
+      cameraIds: record.cameraIds,
+      qrId: record.qrId,
+      locationName: record.name,
     });
     return incident.incidentId;
   }

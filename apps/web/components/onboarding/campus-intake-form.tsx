@@ -2,10 +2,12 @@
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
+import { usePathname } from "next/navigation";
 import type { CampusIntake } from "rapid-cortex-shared";
 import { campusIntakeSchema } from "rapid-cortex-shared";
 import Link from "next/link";
 import { CheckCircle2 } from "lucide-react";
+import { verticalOnboardingContinueHref } from "@/lib/onboarding/continue-href";
 import {
   CheckboxGroup,
   Field,
@@ -48,6 +50,7 @@ type Props = {
 };
 
 export function CampusIntakeForm({ orgCode, agencyId }: Props) {
+  const pathname = usePathname();
   const qc = useQueryClient();
   const [step, setStep] = useState(0);
   const [form, setForm] = useState<CampusIntake>(EMPTY);
@@ -290,7 +293,10 @@ export function CampusIntakeForm({ orgCode, agencyId }: Props) {
           Saved to campus config for org code <span className="font-mono text-slate-200">{orgCode}</span>.
         </p>
         <Link
-          href={`/onboarding/campus/integrations?orgCode=${encodeURIComponent(orgCode)}`}
+          href={verticalOnboardingContinueHref(
+            pathname,
+            `/onboarding/campus/integrations?orgCode=${encodeURIComponent(orgCode)}`,
+          )}
           className="mt-6 inline-block text-sm text-violet-400 hover:underline"
         >
           Continue to integration questionnaire →

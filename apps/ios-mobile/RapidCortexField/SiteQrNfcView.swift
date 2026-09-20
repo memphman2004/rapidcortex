@@ -129,21 +129,31 @@ struct SiteQrNfcView: View {
     }
 
     private var actionButtons: some View {
-        HStack(spacing: 10) {
-            Button {
-                showingNFCSheet = true
-            } label: {
-                Text("Program NFC Tag")
-                    .font(.system(size: 15, weight: .semibold))
-                    .frame(maxWidth: .infinity)
-                    .frame(height: 44)
-                    .foregroundColor(RCTheme.amber)
-                    .background(RCTheme.surface2)
-                    .clipShape(RoundedRectangle(cornerRadius: 10))
-                    .overlay(RoundedRectangle(cornerRadius: 10).stroke(RCTheme.amber, lineWidth: 1))
-            }
+        VStack(alignment: .leading, spacing: 8) {
+            HStack(spacing: 10) {
+                if NFCHardware.isAvailable {
+                    Button {
+                        showingNFCSheet = true
+                    } label: {
+                        Text("Program NFC Tag")
+                            .font(.system(size: 15, weight: .semibold))
+                            .frame(maxWidth: .infinity)
+                            .frame(height: 44)
+                            .foregroundColor(RCTheme.amber)
+                            .background(RCTheme.surface2)
+                            .clipShape(RoundedRectangle(cornerRadius: 10))
+                            .overlay(RoundedRectangle(cornerRadius: 10).stroke(RCTheme.amber, lineWidth: 1))
+                    }
+                }
 
-            RCSecondaryButton(title: "Share QR") { exportQR() }
+                RCSecondaryButton(title: "Share QR") { exportQR() }
+            }
+            if !NFCHardware.isAvailable {
+                Text(NFCHardware.unavailableMessage)
+                    .font(.system(size: 12))
+                    .foregroundColor(RCTheme.textMuted)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
         }
     }
 

@@ -490,6 +490,9 @@ fi
 if [[ -n "${ANTHROPIC_API_KEY_SECRET_ARN:-}" ]]; then
   PARAMS="${PARAMS} AnthropicApiKeySecretArn=${ANTHROPIC_API_KEY_SECRET_ARN}"
 fi
+if [[ -n "${GUEST_ASSIST_SESSION_SECRET:-}" ]]; then
+  PARAMS="${PARAMS} GuestAssistSessionSecret=${GUEST_ASSIST_SESSION_SECRET}"
+fi
 if [[ -n "${RAPID_IQ_HUNTER_API_KEY_SECRET_ARN:-}" ]]; then
   PARAMS="${PARAMS} RapidIqHunterApiKeySecretArn=${RAPID_IQ_HUNTER_API_KEY_SECRET_ARN}"
 fi

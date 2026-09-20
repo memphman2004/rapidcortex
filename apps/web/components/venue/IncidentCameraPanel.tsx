@@ -22,6 +22,11 @@ export type VenueActiveIncidentPanel = {
   location: string;
   cameras: VenueIncidentCameraSummary[];
   createdAt?: string;
+  vehicleId?: string;
+  stationId?: string;
+  routeId?: string;
+  cameraIds?: string[];
+  qrRcli?: string;
 };
 
 
@@ -79,12 +84,27 @@ export function IncidentCameraPanel({
 
   const loadSectionCameras = useCallback(async () => {
     try {
-      const rows = await fetchVenueSectionCameras(agencyId, incident.section, 20, apiVertical);
+      const rows = await fetchVenueSectionCameras(agencyId, incident.section, 20, apiVertical, {
+        qrRcli: incident.qrRcli,
+        cameraIds: incident.cameraIds,
+        vehicleId: incident.vehicleId,
+        stationId: incident.stationId,
+        routeId: incident.routeId,
+      });
       setSectionCameras(rows);
     } catch {
       setSectionCameras([]);
     }
-  }, [agencyId, apiVertical, incident.section]);
+  }, [
+    agencyId,
+    apiVertical,
+    incident.cameraIds,
+    incident.qrRcli,
+    incident.routeId,
+    incident.section,
+    incident.stationId,
+    incident.vehicleId,
+  ]);
 
   useEffect(() => {
     void loadSectionCameras();

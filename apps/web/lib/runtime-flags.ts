@@ -53,6 +53,7 @@ const NEXT_PUBLIC_FLAG_VALUES: Record<string, string | undefined> = {
   NEXT_PUBLIC_ENABLE_STAKEHOLDER_PAGES: process.env.NEXT_PUBLIC_ENABLE_STAKEHOLDER_PAGES,
   NEXT_PUBLIC_ENABLE_POST_INCIDENT_REVIEWS: process.env.NEXT_PUBLIC_ENABLE_POST_INCIDENT_REVIEWS,
   NEXT_PUBLIC_ENABLE_PINPOINT: process.env.NEXT_PUBLIC_ENABLE_PINPOINT,
+  NEXT_PUBLIC_ENABLE_GUEST_ASSIST: process.env.NEXT_PUBLIC_ENABLE_GUEST_ASSIST,
   NEXT_PUBLIC_ENABLE_SMS_LOCATION: process.env.NEXT_PUBLIC_ENABLE_SMS_LOCATION,
   NEXT_PUBLIC_ENABLE_SILENT_TEXT: process.env.NEXT_PUBLIC_ENABLE_SILENT_TEXT,
   NEXT_PUBLIC_ENABLE_CALLER_TRANSLATION_REPLY: process.env.NEXT_PUBLIC_ENABLE_CALLER_TRANSLATION_REPLY,
@@ -450,6 +451,11 @@ export function isPostIncidentReviewsEnabled(): boolean {
 /** LiveLocation (SMS GPS link) — API ENABLE_PINPOINT. */
 export function isPinpointEnabled(): boolean {
   return envFlag("NEXT_PUBLIC_ENABLE_PINPOINT");
+}
+
+/** QR/NFC Guest Assist (static page + public Claude/staff chat). Default on when unset. */
+export function isGuestAssistEnabled(): boolean {
+  return envFlag("NEXT_PUBLIC_ENABLE_GUEST_ASSIST");
 }
 
 /** Campus/venue SMS auto-reply location links — API ENABLE_SMS_LOCATION. */

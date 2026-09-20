@@ -82,6 +82,8 @@ export ALS_TRACKER_NAME="${ALS_TRACKER_NAME:-rc-tracker-staging}"
 export RING_CREDENTIALS_SECRET_ARN_OVERRIDE="${RING_CREDENTIALS_SECRET_ARN_OVERRIDE:-arn:aws:secretsmanager:us-east-1:158961537080:secret:rapid-cortex/connect/ring-credentials-D3f1sN}"
 export OPENAI_API_KEY_SECRET_ARN="${OPENAI_API_KEY_SECRET_ARN:-arn:aws:secretsmanager:us-east-1:158961537080:secret:rapid-cortex/ai/openai-kqZQ3D}"
 export ANTHROPIC_API_KEY_SECRET_ARN="${ANTHROPIC_API_KEY_SECRET_ARN:-arn:aws:secretsmanager:us-east-1:158961537080:secret:rapid-cortex/ai/anthropic-fHk4y2}"
+# Guest Assist staff WebSocket HMAC — must match web ECS GUEST_ASSIST_SESSION_SECRET
+# export GUEST_ASSIST_SESSION_SECRET=
 export AZURE_SPEECH_KEY_SECRET_ARN="${AZURE_SPEECH_KEY_SECRET_ARN:-arn:aws:secretsmanager:us-east-1:158961537080:secret:rapid-cortex/multilingual/azure-keys-H28Jkj}"
 export AZURE_TRANSLATION_KEY_SECRET_ARN="${AZURE_TRANSLATION_KEY_SECRET_ARN:-arn:aws:secretsmanager:us-east-1:158961537080:secret:rapid-cortex/multilingual/azure-keys-H28Jkj}"
 export GOOGLE_CLOUD_PROJECT_ID="${GOOGLE_CLOUD_PROJECT_ID:-rapidcortex-prod}"

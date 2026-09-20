@@ -777,6 +777,7 @@ export const env = {
   websocketConnectionsTable: process.env.WEBSOCKET_CONNECTIONS_TABLE?.trim() ?? "",
   /** HTTPS management endpoint for API Gateway WebSocket (no wss:// prefix). */
   websocketApiEndpoint: process.env.WEBSOCKET_API_ENDPOINT?.trim() ?? "",
+  guestAssistSessionSecret: process.env.GUEST_ASSIST_SESSION_SECRET?.trim() ?? "",
   /** Immutable CAD webhook receipts (TTL). */
   cadIncidentsRawTable: process.env.CAD_INCIDENTS_RAW_TABLE?.trim() ?? "",
   /** @deprecated Prefer {@link cadIncidentsRawTable}; legacy normalized CAD rows. */

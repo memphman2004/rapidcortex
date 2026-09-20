@@ -47,4 +47,16 @@ describe("app-host-routing — public status", () => {
     expect(res?.status).toBe(307);
     expect(res?.headers.get("location")).toContain("www.rapidcortex.us/about");
   });
+
+  it("keeps vertical onboarding wizards on the app host", () => {
+    expect(isMarketingPublicPath("/onboarding/campus/intake")).toBe(false);
+    expect(isMarketingPublicPath("/onboarding/venue/intake")).toBe(false);
+    expect(isMarketingPublicPath("/onboarding/checklist/campus")).toBe(false);
+    expect(maybeRedirectAppHostAwayFromMarketing(appRequest("/onboarding/campus/intake"))).toBeNull();
+  });
+
+  it("keeps QR Guest Assist on the app host", () => {
+    expect(isMarketingPublicPath("/rc-guest-assist.html")).toBe(false);
+    expect(maybeRedirectAppHostAwayFromMarketing(appRequest("/rc-guest-assist.html"))).toBeNull();
+  });
 });

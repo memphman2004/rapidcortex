@@ -1,8 +1,9 @@
 # Contract & commercial package index
 
 **Audience:** sales, solutions, legal ops, implementation leads.  
-**Status:** Internal — paths and filenames reflect repo layout as of 2026-07.  
-**Not legal advice.** Marked **DRAFT** items require counsel and/or Finance before customer send.
+**Status:** Internal — paths and filenames reflect repo layout as of **2026-09-19** (60-day review).  
+**Not legal advice.** Marked **DRAFT** items require counsel and/or Finance before customer send.  
+**SOC 2:** send the [control pack](../security-compliance/soc2/README.md) as **alignment / observation** only — never as a Type II report.
 
 ---
 
@@ -25,10 +26,10 @@ Keep **signed** copies outside git (CRM, Adobe Sign ledger, agency secure share)
 | Document | Location | Status | Notes |
 |----------|----------|--------|-------|
 | Pilot offer (commercial narrative) | `Rapid Cortex Internal Docs/Sales_Marketing/Rapid_Cortex_Pilot_Offer_Professional.docx` | Sales-ready | Marketing copy; not a contract |
-| **Agency pilot scope agreement** | `Rapid Cortex Internal Docs/Internal Product requirements/04_Rapid_Cortex_Agency_Pilot_Scope_Agreement_Draft.pdf` | **DRAFT** | Remove “Draft”; legal review; assistive-use language |
-| Agency onboarding checklist (PDF) | `Rapid Cortex Internal Docs/Internal Product requirements/05_Rapid_Cortex_Agency_Onboarding_Checklist.pdf` | Internal | Companion to scope agreement |
-| Data flow overview | `Rapid Cortex Internal Docs/Internal Product requirements/03_Rapid_Cortex_Data_Flow_and_Architecture_Overview.pdf` | Internal | Security / IT reviewers |
-| CJIS / SOC2 alignment statement | `Rapid Cortex Internal Docs/Internal Product requirements/02_Rapid_Cortex_Security_CJIS_SOC2_Alignment_Statement.pdf` | Alignment only | **Not** certification |
+| **Agency pilot scope agreement** | `Rapid Cortex Internal Docs/Internal Product requirements/04_Rapid_Cortex_Agency_Pilot_Scope_Agreement_Draft.pdf` | **DRAFT / ARCHIVE PDF (2026-05)** | Remove “Draft”; legal review; assistive-use language. Operating markdown: [PILOT_OVERVIEW.md](./PILOT_OVERVIEW.md), [PILOT_GOVERNANCE.md](./PILOT_GOVERNANCE.md) until LEG-001 closes |
+| Agency onboarding checklist (PDF) | `Rapid Cortex Internal Docs/Internal Product requirements/05_Rapid_Cortex_Agency_Onboarding_Checklist.pdf` | Archive PDF (2026-05) | Use [training/PILOT_AGENCY_ADMIN_CHECKLIST.md](../training/PILOT_AGENCY_ADMIN_CHECKLIST.md) + [AGENCY_SETUP_CHECKLIST.md](../admin-user-management/AGENCY_SETUP_CHECKLIST.md) |
+| Data flow overview | `Rapid Cortex Internal Docs/Internal Product requirements/03_Rapid_Cortex_Data_Flow_and_Architecture_Overview.pdf` | Archive PDF (2026-05) | Prefer [SECURITY_MODEL.md](../security-compliance/SECURITY_MODEL.md) + [SYSTEM-BOUNDARY.md](../security-compliance/soc2/SYSTEM-BOUNDARY.md) |
+| CJIS / SOC2 alignment statement | `Rapid Cortex Internal Docs/Internal Product requirements/02_Rapid_Cortex_Security_CJIS_SOC2_Alignment_Statement.pdf` | Archive PDF (2026-05) | **Not** certification. Current: [CJIS_ALIGNMENT_NOTES.md](../security-compliance/CJIS_ALIGNMENT_NOTES.md), [soc2/README.md](../security-compliance/soc2/README.md) |
 | SOC 2 control pack (repo) | [soc2/README.md](../security-compliance/soc2/README.md) | Internal | Policies/SOPs/evidence ledgers — **not** a Type II report |
 | **DPA** | [DPA_DRAFT.md](./legal-drafts/DPA_DRAFT.md) (draft) + marketing stub | **DRAFT** | PLT-003; counsel before execution |
 | **Security review sign-off** | Per agency process | **GAP** | PLT-002 |
@@ -43,7 +44,7 @@ Keep **signed** copies outside git (CRM, Adobe Sign ledger, agency secure share)
 
 | Document | Location | Status | Notes |
 |----------|----------|--------|-------|
-| **Master Services Agreement** | `Rapid Cortex Internal Docs/Contract_legal stuff/COMPLETE_MSA_MASTER_DOCUMENT.docx` | Template | Apps on Demand LLC d/b/a Rapid Cortex — reconcile entity with Platform Agreement |
+| **Master Services Agreement** | `Rapid Cortex Internal Docs/COMPLETE_MSA_MASTER_DOCUMENT_updated.docx` (2026-07-11) and `Contract_legal stuff/COMPLETE_MSA_MASTER_DOCUMENT.docx` | Template — **counsel** | Apps on Demand LLC d/b/a Rapid Cortex — reconcile entity with Platform Agreement (LEG-007). 60-day review did **not** regenerate Word. |
 | Public MSA copy | `apps/web/public/docs/MASTER SERVICES AGREEMENT.docx` | Template | Same family as complete MSA |
 | **Platform Services Agreement** | `Rapid Cortex Internal Docs/Contract_legal stuff/RC_Platform_Services_Agreement.docx` | v1.0 template | Adobe Sign path; Exhibit A has `$TBD` pricing |
 | Exhibit A — Statement of Work | Inside MSA / Platform Agreement | Template | Populate from [SALES_SCOPE_MATRIX.md](./SALES_SCOPE_MATRIX.md) |
@@ -52,7 +53,7 @@ Keep **signed** copies outside git (CRM, Adobe Sign ledger, agency secure share)
 | **Order Form** | [ORDER_FORM_DRAFT.md](./legal-drafts/ORDER_FORM_DRAFT.md) | **DRAFT** | Counsel + Finance; references MSA |
 | **Change Order** | [CHANGE_ORDER_DRAFT.md](./legal-drafts/CHANGE_ORDER_DRAFT.md) | **DRAFT** | Scope/fee amendments |
 | **DPA (draft markdown)** | [DPA_DRAFT.md](./legal-drafts/DPA_DRAFT.md) | **DRAFT** | Counsel review before Adobe Sign |
-| Go / no-go checklist | `Rapid Cortex Internal Docs/Internal Product requirements/06_Rapid_Cortex_Production_Go_No_Go_Checklist.pdf` | Internal | Pre-GA gate |
+| Go / no-go checklist | `Rapid Cortex Internal Docs/Internal Product requirements/06_Rapid_Cortex_Production_Go_No_Go_Checklist.pdf` | Archive PDF (2026-05) | Prefer [PILOT_READINESS_CHECKLIST.md](../deployment-infrastructure/PILOT_READINESS_CHECKLIST.md) + [PILOT_VALIDATION_CHECKLIST.md](./PILOT_VALIDATION_CHECKLIST.md) |
 
 ---
 

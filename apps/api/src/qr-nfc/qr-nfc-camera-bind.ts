@@ -1,6 +1,7 @@
 import type { ReportVertical } from "rapid-cortex-shared";
 import { bindCampusCamerasToQrRcli } from "../handlers/campus/cameras/campus-camera-registry-service.js";
 import { bindVenueCamerasToQrRcli } from "../handlers/venue/venue-camera-registry-service.js";
+import { bindTransitCamerasToQrRcli } from "../handlers/transit/cameras/transit-camera-registry-service.js";
 
 export async function bindQrLocationCameras(opts: {
   agencyId: string;
@@ -20,6 +21,15 @@ export async function bindQrLocationCameras(opts: {
   }
   if (opts.vertical === "venue") {
     await bindVenueCamerasToQrRcli({
+      agencyId: opts.agencyId,
+      qrId: opts.qrId,
+      nextCameraIds: opts.nextCameraIds,
+      previousCameraIds: opts.previousCameraIds,
+    });
+    return;
+  }
+  if (opts.vertical === "transit") {
+    await bindTransitCamerasToQrRcli({
       agencyId: opts.agencyId,
       qrId: opts.qrId,
       nextCameraIds: opts.nextCameraIds,

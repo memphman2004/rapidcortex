@@ -1,6 +1,9 @@
 # Native app auth — Cognito Hosted UI (Authorization Code + PKCE)
 
-This document describes the **native desktop** sign-in flow alongside the existing **web** password/MFA login (`/login`, `/api/auth/signin`, cookies). Nothing in the web login path was removed.
+**Last reviewed:** 2026-09-19 (60-day refresh) · **Owner:** Jeff Coleman  
+Web MFA/RBAC: [AUTH_OPERATIONS.md](./product-architecture/AUTH_OPERATIONS.md) · Device policy: [auth-device-restrictions.md](./security/auth-device-restrictions.md).
+
+This document describes the **native desktop** sign-in flow alongside the existing **web** password/MFA login (`/login`, `/api/auth/signin`, cookies). Nothing in the web login path was removed. Production Cognito pool `us-east-1_0z6tA6WBs` has **`MfaConfiguration=ON`** — native users complete the same MFA challenge as web after password.
 
 ## Part 1 — What already existed (audit snapshot)
 
@@ -22,7 +25,7 @@ This document describes the **native desktop** sign-in flow alongside the existi
 2. If `WEB_APP_BASE_URL` is configured (e.g. `https://rapidcortex.us`), the app opens the **default browser** to  
    `{WEB_APP_BASE_URL}/auth/native-login?code_challenge=…&state=…&redirect_uri=https://{host}/auth/return-to-app`.
 3. That route **302** redirects to the **branded** Next.js **`/login?native=1&…`** (same PKCE `code_challenge`, `state`, `redirect_uri`, and `client_id` for the native Cognito app client).
-4. User enters **email + password** on Rapid Cortex (same as web `/login`). After cookies/session are established, the browser is sent to Cognito **`/oauth2/authorize`** with the same PKCE parameters and **`prompt=none`** first (silent SSO when a Cognito Hosted UI cookie already exists).
+4. User enters **email + password** on Rapid Cortex (same as web `/login`) and completes **MFA** when Cognito challenges TOTP/SMS. After cookies/session are established, the browser is sent to Cognito **`/oauth2/authorize`** with the same PKCE parameters and **`prompt=none`** first (silent SSO when a Cognito Hosted UI cookie already exists).
 5. If Cognito returns **`error=login_required`** (or similar) to `/auth/return-to-app`, the return page automatically retries **authorize without `prompt=none`** so the user can complete Hosted UI **once** if needed, then still land on the HTTPS callback.
 6. Cognito redirects to **`/auth/return-to-app?code=…&state=…`** (HTTPS callback must be registered on the **native** Cognito app client).
 7. The page shows **Open Rapid Cortex** and attempts `window.location = rapidcortex://oauth/callback?code=…&state=…`.
@@ -111,14 +114,14 @@ For a packaged app, register the `rapidcortex` protocol (MSIX / installer). For 
 1. Open Rapid Cortex native app.  
 2. Click Login.  
 3. Browser opens **`/auth/native-login`**, then the **branded `/login`** page.  
-4. Log in with email + password (same as web).  
+4. Log in with email + password **and MFA** (same as web production).  
 5. Browser continues OAuth → lands on `/auth/return-to-app` then opens `rapidcortex://…`.  
 6. App receives deep link.  
 7. App exchanges code via `/api/auth/native/token`.  
 8. Dashboard loads.  
 9. Close and reopen app — session restores (refresh if JWT expired).  
 10. Logout clears storage and opens Cognito `/logout`.  
-11. Web: open `/login`, password + MFA still works.
+11. Web: open `/login`, password + MFA still works (production pool MFA ON).
 
 ### Negative tests
 

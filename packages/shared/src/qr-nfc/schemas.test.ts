@@ -27,4 +27,20 @@ describe("createQRNFCSchema", () => {
     expect(parsed.cameraIds).toEqual(["cam-ballantine-3"]);
     expect(parsed.siteCode).toBe("BLOOMINGTON");
   });
+
+  it("accepts transit vehicle / station / route camera place fields", () => {
+    const parsed = createQRNFCSchema.parse({
+      name: "Central platform QR",
+      vertical: "transit",
+      reportType: "anonymous",
+      vehicleId: "bus-14",
+      stationId: "central",
+      routeId: "line-2",
+      cameraIds: ["cam-central-plat"],
+    });
+    expect(parsed.vehicleId).toBe("bus-14");
+    expect(parsed.stationId).toBe("central");
+    expect(parsed.routeId).toBe("line-2");
+    expect(parsed.cameraIds).toEqual(["cam-central-plat"]);
+  });
 });

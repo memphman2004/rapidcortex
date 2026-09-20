@@ -114,19 +114,20 @@ export async function tryHandleTransitCameraHttp(
       if (!parsed.success) {
         return withCorrelationHeaders(event, badRequest("Invalid query parameters"));
       }
-      const { vehicle, station, route, cameraIds, limit = 2 } = parsed.data;
+      const { vehicle, station, route, cameraIds, qrRcli, limit = 2 } = parsed.data;
       const assignedCameraIds = cameraIds
         ?.split(",")
         .map((id) => id.trim())
         .filter(Boolean);
       const cameras =
-        vehicle || station || route || assignedCameraIds?.length
+        vehicle || station || route || qrRcli || assignedCameraIds?.length
           ? await getCamerasForTransitPlace(
               ctx.agencyId,
               {
                 vehicleId: vehicle,
                 stationId: station,
                 routeId: route,
+                qrRcli,
                 assignedCameraIds,
               },
               limit,

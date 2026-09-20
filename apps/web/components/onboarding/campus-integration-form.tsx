@@ -2,6 +2,7 @@
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
+import { usePathname } from "next/navigation";
 import Link from "next/link";
 import { CheckCircle2, Plus, Trash2 } from "lucide-react";
 import {
@@ -19,6 +20,7 @@ import {
   TextInput,
 } from "@/components/onboarding/intake-form-primitives";
 import { fetchCampusIntegrations, saveCampusIntegrations } from "@/lib/onboarding/onboarding-api";
+import { verticalOnboardingContinueHref } from "@/lib/onboarding/continue-href";
 
 function stripRecord(
   record: CampusIntegrationQuestionnaire & Record<string, unknown>,
@@ -65,6 +67,7 @@ function CheckAck({
 type Props = { orgCode: string; agencyId?: string };
 
 export function CampusIntegrationForm({ orgCode, agencyId }: Props) {
+  const pathname = usePathname();
   const qc = useQueryClient();
   const [step, setStep] = useState(0);
   const [form, setForm] = useState<CampusIntegrationQuestionnaire>(() =>
@@ -640,7 +643,10 @@ export function CampusIntegrationForm({ orgCode, agencyId }: Props) {
           write-back and Clery auto-file were not enabled.
         </p>
         <Link
-          href={`/onboarding/checklist/campus?orgCode=${encodeURIComponent(orgCode)}`}
+          href={verticalOnboardingContinueHref(
+            pathname,
+            `/onboarding/checklist/campus?orgCode=${encodeURIComponent(orgCode)}`,
+          )}
           className="mt-6 inline-block text-sm text-violet-400 hover:underline"
         >
           Continue to onboarding checklist →

@@ -22,7 +22,7 @@ Legend for **Type II readiness**:
 | Criterion | Control activity | Policy / SOP | Evidence | Readiness |
 |-----------|------------------|--------------|----------|-----------|
 | CC1.1 COSO / integrity | Code of conduct; acceptable use; no certification overclaim | [01](./policies/01-information-security-policy.md), [02](./policies/02-code-of-conduct.md) | Signed ack log [hr-training-log](./evidence/hr-training-log.md) | DESIGN + SIGN |
-| CC1.2 Board oversight | Management reviews this pack annually; board or equivalent signs policies | [01](./policies/01-information-security-policy.md) | Signature page stored off-git | SIGN |
+| CC1.2 Board oversight | Management reviews this pack annually; board or equivalent signs policies. MFA, contract, and pilot operating docs reviewed every **60 days**. | [01](./policies/01-information-security-policy.md), [document-review SOP](./processes/document-review.md) | Signature page stored off-git; [document-review-log](./evidence/document-review-log.md) | SIGN + OPS |
 | CC1.3 Structure | Roles: Security lead, Eng lead, Ops on-call — **Jeff Coleman (interim combined)** | [01](./policies/01-information-security-policy.md), [OPS_CONTACT_MATRIX](../../operations-runbooks/OPS_CONTACT_MATRIX.md), [02-owners](./evidence/2026-09-19-prewindow/02-owners.md) | Named; concentration risk R-SOC-015 | DESIGN + OPS |
 | CC1.4 Competence | Security awareness + onboarding/offboarding | [12](./policies/12-hr-security-awareness.md), [hr SOP](./processes/hr-onboarding-offboarding.md) | Training log | DESIGN + SIGN |
 | CC1.5 Accountability | Performance of access reviews, IR, change control assigned | This matrix + quarterly calendar | Completed logs | OPS |
