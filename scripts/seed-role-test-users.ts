@@ -36,8 +36,9 @@ type TestRow = {
   /** Optional `custom:agencyVertical` (campus / venue / transit / pilot). */
   agencyVertical?: string;
   /**
-   * Clear per-user TOTP preference. When the pool `MfaConfiguration` is `ON`,
-   * Cognito still returns `MFA_SETUP` until the user enrolls an authenticator.
+   * Clear per-user TOTP preference. The pool `MfaConfiguration` is `ON`, so Cognito
+   * still issues `MFA_SETUP` until a token is enrolled. Rapid Cortex Mobile
+   * auto-completes that challenge so field users and App Review only type a password.
    */
   disableMfa?: boolean;
 };
@@ -458,7 +459,7 @@ async function main() {
         );
         // eslint-disable-next-line no-console
         console.log(
-          `[seed-role-test-users] MFA preference cleared for ${row.email}. Pool MFA ON still requires authenticator enrollment on first sign-in.`,
+          `[seed-role-test-users] MFA preference cleared for ${row.email}. iOS auto-completes MFA_SETUP for all Mobile users; pool MFA stays ON.`,
         );
       } catch (e) {
         const message = e instanceof Error ? e.message : String(e);

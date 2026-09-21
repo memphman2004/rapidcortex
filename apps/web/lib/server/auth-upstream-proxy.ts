@@ -7,6 +7,8 @@ import { joinUpstreamApiUrl, normalizeUpstreamApiPath } from "@/lib/upstream-url
 
 type ProxyOptions = {
   allowAnonymous?: boolean;
+  /** Replace the incoming query string when aliasing a legacy path. */
+  search?: string;
 };
 
 export async function proxyToAuthUpstream(
@@ -55,7 +57,7 @@ export async function proxyToAuthUpstream(
   }
 
   const target = joinUpstreamApiUrl(base, path);
-  target.search = request.nextUrl.search;
+  target.search = options.search !== undefined ? options.search : request.nextUrl.search;
 
   const headers = new Headers();
   const incomingCt = request.headers.get("content-type");

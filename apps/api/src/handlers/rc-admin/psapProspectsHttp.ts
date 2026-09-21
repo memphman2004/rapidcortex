@@ -4,6 +4,7 @@ import {
   addPsapActivityRequestSchema,
   canAccessRcFinancePortal,
   patchPsapProspectBodySchema,
+  psapPinsToGeoJSON,
   psapProspectListQuerySchema,
   type UserContext,
 } from "rapid-cortex-shared";
@@ -95,7 +96,7 @@ function attnLine(p: {
   return "ATTN: Communications Director";
 }
 
-async function requireRcAdmin(
+async function requireAuthenticated(
   event: APIGatewayProxyEventV2,
 ): Promise<{ error: JsonResult } | { user: UserContext }> {
   const user = await getUserContext(event);
@@ -104,18 +105,57 @@ async function requireRcAdmin(
   if (!env.enablePsapProspects) {
     return { error: serviceUnavailable("PSAP Prospects CRM is not enabled") };
   }
-  if (!canAccessRcFinancePortal(user.role)) return { error: forbidden() };
   return { user };
+}
+
+async function requireRcAdmin(
+  event: APIGatewayProxyEventV2,
+): Promise<{ error: JsonResult } | { user: UserContext }> {
+  const auth = await requireAuthenticated(event);
+  if ("error" in auth) return auth;
+  if (!canAccessRcFinancePortal(auth.user.role)) return { error: forbidden() };
+  return auth;
+}
+
+async function cachedMapPins() {
+  try {
+    if (existsSync(MAP_CACHE_PATH)) {
+      const raw = JSON.parse(readFileSync(MAP_CACHE_PATH, "utf8")) as {
+        at: number;
+        pins: Awaited<ReturnType<PsapProspectRepository["mapPins"]>>;
+      };
+      if (Date.now() - raw.at < MAP_CACHE_TTL_MS && Array.isArray(raw.pins)) {
+        return raw.pins;
+      }
+    }
+  } catch {
+    /* rebuild cache */
+  }
+  const pins = await repo.mapPins();
+  try {
+    writeFileSync(MAP_CACHE_PATH, JSON.stringify({ at: Date.now(), pins }));
+  } catch {
+    /* ignore cache write failures in Lambda */
+  }
+  return pins;
 }
 
 export async function handler(event: APIGatewayProxyEventV2): Promise<APIGatewayProxyResultV2> {
   try {
+    const method = (event.requestContext.http?.method ?? "GET").toUpperCase();
+    const path = event.rawPath ?? event.requestContext.http?.path ?? "";
+
+    // GET /api/map/psaps — public directory GeoJSON for operational maps.
+    if (method === "GET" && (path.endsWith("/api/map/psaps") || path.endsWith("/map/psaps"))) {
+      const mapAuth = await requireAuthenticated(event);
+      if ("error" in mapAuth) return mapAuth.error;
+      return ok(psapPinsToGeoJSON(await cachedMapPins()));
+    }
+
     const auth = await requireRcAdmin(event);
     if ("error" in auth) return auth.error;
     const { user } = auth;
 
-    const method = (event.requestContext.http?.method ?? "GET").toUpperCase();
-    const path = event.rawPath ?? event.requestContext.http?.path ?? "";
     const psapId = event.pathParameters?.psapId?.trim();
 
     // GET /stats
@@ -126,26 +166,7 @@ export async function handler(event: APIGatewayProxyEventV2): Promise<APIGateway
 
     // GET /map-pins
     if (method === "GET" && path.endsWith("/map-pins")) {
-      try {
-        if (existsSync(MAP_CACHE_PATH)) {
-          const raw = JSON.parse(readFileSync(MAP_CACHE_PATH, "utf8")) as {
-            at: number;
-            pins: unknown;
-          };
-          if (Date.now() - raw.at < MAP_CACHE_TTL_MS) {
-            return ok({ pins: raw.pins });
-          }
-        }
-      } catch {
-        /* rebuild cache */
-      }
-      const pins = await repo.mapPins();
-      try {
-        writeFileSync(MAP_CACHE_PATH, JSON.stringify({ at: Date.now(), pins }));
-      } catch {
-        /* ignore cache write failures in Lambda */
-      }
-      return ok({ pins });
+      return ok({ pins: await cachedMapPins() });
     }
 
     // GET /export

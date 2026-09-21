@@ -6,10 +6,9 @@ import type { VisionSceneAlert, VisionWebSocketEvent } from "rapid-cortex-shared
 import { useAgencyWebSocket, type AgencyWebSocketMessage } from "@/hooks/use-agency-websocket";
 import { useOptionalJurisdictionSlug } from "@/lib/jurisdiction-context";
 import { isRapidVisionSceneIntelEnabled, isRapidVisionSceneWsEnabled } from "@/lib/runtime-flags";
-import {
-  CreateIncidentSlideOver,
-  type CreateIncidentResult,
-} from "@/components/dispatcher/create-incident-slide-over";
+import { CreateIncidentSlideOver, type CreateIncidentResult } from "@/components/dispatcher/create-incident-slide-over";
+import { useClockPreference } from "@/components/providers/clock-preference-provider";
+import { formatClockTime } from "@/lib/clock-format";
 
 const V = {
   bg: "#09080f",
@@ -34,7 +33,7 @@ function severityColor(severity: VisionSceneAlert["severity"]): string {
   return "#9ca3af";
 }
 
-function clock(iso: string): string {
+function clock(iso: string, hour12: boolean): string {
   const d = new Date(iso);
   if (Number.isNaN(d.getTime())) return "—";
   const age = Date.now() - d.getTime();
@@ -42,7 +41,7 @@ function clock(iso: string): string {
     const m = Math.floor(age / 60_000);
     return m >= 60 ? `${Math.floor(m / 60)}h ago` : `${m}m ago`;
   }
-  return d.toLocaleTimeString([], { hour12: false, hour: "2-digit", minute: "2-digit" });
+  return formatClockTime(d, hour12);
 }
 
 function asVisionEvent(message: AgencyWebSocketMessage): VisionWebSocketEvent | null {
@@ -95,6 +94,7 @@ async function patchAlert(
 }
 
 export function CameraAiAlertsPanel() {
+  const { hour12 } = useClockPreference();
   const jurisdictionSlug = useOptionalJurisdictionSlug();
   const queryClient = useQueryClient();
   const [tab, setTab] = useState<FilterTab>("active");
@@ -233,7 +233,7 @@ export function CameraAiAlertsPanel() {
                 >
                   <span className="h-2 w-2 shrink-0 rounded-full" style={{ background: severityColor(alert.severity) }} />
                   <span className="w-14 shrink-0 font-mono text-[11px]" style={{ color: V.muted }}>
-                    {clock(alert.timestamp)}
+                    {clock(alert.timestamp, hour12)}
                   </span>
                   <span className="min-w-0 flex-1 truncate text-[12px] font-medium">
                     {alert.cameraName.replace(/ – .*$/, "")}
@@ -253,7 +253,7 @@ export function CameraAiAlertsPanel() {
               <span className="h-2 w-2 rounded-full" style={{ background: severityColor(selected.severity) }} />
               {selected.severity.toUpperCase()}
               <span className="ml-auto font-mono font-medium" style={{ color: V.muted }}>
-                {clock(selected.timestamp)}
+                {clock(selected.timestamp, hour12)}
               </span>
             </div>
             <p className="text-[13px] font-semibold">{selected.cameraName}</p>

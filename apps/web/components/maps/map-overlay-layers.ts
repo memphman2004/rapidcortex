@@ -1,5 +1,6 @@
 import type maplibregl from "maplibre-gl";
 import type { RCMapLayerVisibility } from "./map-types";
+import { addOverlayLayer } from "./overlay-slot";
 import {
   EMPTY_OVERLAY_FC as EMPTY_FC,
   OVERLAY_AIRPORTS_CIRCLE,
@@ -41,7 +42,7 @@ export function ensureRuntimeOverlayLayers(map: maplibregl.Map): void {
   ensureSource(map, OVERLAY_ZONES_SOURCE);
 
   if (!map.getLayer(OVERLAY_ZONES_FILL)) {
-    map.addLayer({
+    addOverlayLayer(map, {
       id: OVERLAY_ZONES_FILL,
       type: "fill",
       source: OVERLAY_ZONES_SOURCE,
@@ -52,7 +53,7 @@ export function ensureRuntimeOverlayLayers(map: maplibregl.Map): void {
     });
   }
   if (!map.getLayer(OVERLAY_ZONES_LINE)) {
-    map.addLayer({
+    addOverlayLayer(map, {
       id: OVERLAY_ZONES_LINE,
       type: "line",
       source: OVERLAY_ZONES_SOURCE,
@@ -64,7 +65,7 @@ export function ensureRuntimeOverlayLayers(map: maplibregl.Map): void {
     });
   }
   if (!map.getLayer(OVERLAY_COUNTIES_LINE)) {
-    map.addLayer({
+    addOverlayLayer(map, {
       id: OVERLAY_COUNTIES_LINE,
       type: "line",
       source: OVERLAY_COUNTIES_SOURCE,
@@ -76,7 +77,7 @@ export function ensureRuntimeOverlayLayers(map: maplibregl.Map): void {
     });
   }
   if (!map.getLayer(OVERLAY_STATES_LINE)) {
-    map.addLayer({
+    addOverlayLayer(map, {
       id: OVERLAY_STATES_LINE,
       type: "line",
       source: OVERLAY_STATES_SOURCE,
@@ -88,7 +89,7 @@ export function ensureRuntimeOverlayLayers(map: maplibregl.Map): void {
     });
   }
   if (!map.getLayer(OVERLAY_AIRPORTS_CIRCLE)) {
-    map.addLayer({
+    addOverlayLayer(map, {
       id: OVERLAY_AIRPORTS_CIRCLE,
       type: "circle",
       source: OVERLAY_AIRPORTS_SOURCE,
@@ -103,7 +104,7 @@ export function ensureRuntimeOverlayLayers(map: maplibregl.Map): void {
   }
   if (!map.getLayer(OVERLAY_AIRPORTS_LABEL)) {
     try {
-      map.addLayer({
+      addOverlayLayer(map, {
         id: OVERLAY_AIRPORTS_LABEL,
         type: "symbol",
         source: OVERLAY_AIRPORTS_SOURCE,

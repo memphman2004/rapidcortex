@@ -174,6 +174,26 @@ describe("isCommsPlatformApiPath", () => {
     expect(resolveUpstreamApiBase("/api/rcs/calls/call-1/supervisor-ack")).toBe(
       "https://stack2.example.com",
     );
+    expect(isStack2ApiPath("/api/psap/continuity")).toBe(true);
+    expect(resolveUpstreamApiBase("/api/psap/continuity")).toBe("https://stack2.example.com");
+  });
+
+  it("routes live-video to stack 5 and call-control lists to stack 2", () => {
+    process.env.API_UPSTREAM_BASE = "https://stack1.example.com";
+    process.env.API_UPSTREAM_BASE_2 = "https://stack2.example.com";
+    process.env.API_UPSTREAM_BASE_5 = "https://stack5.example.com";
+    expect(isSam5ApiPath("/api/incidents/inc-1/live-video")).toBe(true);
+    expect(resolveUpstreamApiBase("/api/incidents/inc-1/live-video")).toBe(
+      "https://stack5.example.com",
+    );
+    expect(isStack2ApiPath("/api/supervisor/active-calls")).toBe(true);
+    expect(isStack2ApiPath("/api/dispatcher/active-calls")).toBe(true);
+    expect(resolveUpstreamApiBase("/api/supervisor/active-calls")).toBe(
+      "https://stack2.example.com",
+    );
+    expect(resolveUpstreamApiBase("/api/dispatcher/active-calls")).toBe(
+      "https://stack2.example.com",
+    );
   });
 
   it("routes Call Assist to stack 2 only", () => {
@@ -220,6 +240,8 @@ describe("isCommsPlatformApiPath", () => {
     process.env.API_UPSTREAM_BASE_2 = "https://stack2.example.com";
     expect(isStack2ApiPath("/api/location/geocode")).toBe(true);
     expect(resolveUpstreamApiBase("/api/location/geocode")).toBe("https://stack2.example.com");
+    expect(isStack2ApiPath("/api/geocode/forward")).toBe(true);
+    expect(resolveUpstreamApiBase("/api/geocode/forward")).toBe("https://stack2.example.com");
     expect(resolveUpstreamApiBase("/api/location/route")).toBe("https://stack2.example.com");
   });
 
@@ -274,11 +296,30 @@ describe("isCommsPlatformApiPath", () => {
     process.env.API_UPSTREAM_BASE_3 = "https://stack3.example.com";
     expect(isSam3ApiPath("/api/rc-admin/psap-prospects")).toBe(true);
     expect(isSam3ApiPath("/api/rc-admin/psap-prospects/stats")).toBe(true);
-    expect(isSam3ApiPath("/api/psap-prospects")).toBe(true);
-    expect(isSam3ApiPath("/api/psap-prospects/stats")).toBe(true);
+    expect(isSam3ApiPath("/api/map/psaps")).toBe(true);
+    expect(resolveUpstreamApiBase("/api/map/psaps")).toBe("https://stack3.example.com");
     expect(resolveUpstreamApiBase("/api/psap-prospects/stats")).toBe(
       "https://stack3.example.com",
     );
+  });
+
+  it("routes live hospital overlay SearchNearby to stack 2", () => {
+    process.env.API_UPSTREAM_BASE = "https://stack1.example.com";
+    process.env.API_UPSTREAM_BASE_2 = "https://stack2.example.com";
+    process.env.API_UPSTREAM_BASE_3 = "https://stack3.example.com";
+    expect(isStack2ApiPath("/api/map/hospitals")).toBe(true);
+    expect(isSam3ApiPath("/api/map/hospitals")).toBe(false);
+    expect(resolveUpstreamApiBase("/api/map/hospitals")).toBe("https://stack2.example.com");
+    expect(resolveUpstreamApiBase("/api/location/hospitals")).toBe("https://stack2.example.com");
+  });
+
+  it("routes live education overlay SearchNearby to stack 2", () => {
+    process.env.API_UPSTREAM_BASE = "https://stack1.example.com";
+    process.env.API_UPSTREAM_BASE_2 = "https://stack2.example.com";
+    process.env.API_UPSTREAM_BASE_3 = "https://stack3.example.com";
+    expect(isStack2ApiPath("/api/map/education")).toBe(true);
+    expect(isSam3ApiPath("/api/map/education")).toBe(false);
+    expect(resolveUpstreamApiBase("/api/map/education")).toBe("https://stack2.example.com");
   });
 
   it("routes RMS paths to stack 3", () => {

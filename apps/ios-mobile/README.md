@@ -34,11 +34,11 @@ Config defaults live in `Config/Config.example.xcconfig` (public native Cognito 
 3. Archive in Xcode → Distribute App → App Store Connect.
 4. TestFlight → Internal (up to 100) and/or External group. Share the redeem / invite link. No public listing.
 
-Users sign in with the **same email and password** already in Cognito (`us-east-1_0z6tA6WBs`, client `3nkemnrffspnaa0ikp2un6koh0`). Production MFA is **required**. First sign-in without TOTP shows authenticator setup (`MFA_SETUP`); later sign-ins ask for the 6-digit code.
+Users sign in with the **same email and password** already in Cognito (`us-east-1_0z6tA6WBs`, client `3nkemnrffspnaa0ikp2un6koh0`). Production pool MFA stays **required**. Rapid Cortex Mobile completes TOTP in the background so iPhone sign-in is email + password. The web console still prompts for authenticator setup / the 6-digit code.
 
 ## Apple review
 
-Unlisted App Store listing. Bundle `us.rapidcortex.field`. Version **1.0.0**. Increment **build** on every upload (current: **3**). The binary is iPhone-only (`TARGETED_DEVICE_FAMILY = 1`); iPad may still install it in compatibility mode — QR works there, NFC does not.
+Unlisted App Store listing. Bundle `us.rapidcortex.field`. Version **1.0.0**. Increment **build** on every upload (current: **4**). The binary is iPhone-only (`TARGETED_DEVICE_FAMILY = 1`); iPad may still install it in compatibility mode — QR works there, NFC does not.
 
 ### Listing (App Store Connect)
 
@@ -79,7 +79,7 @@ Learn more at https://www.rapidcortex.us
 
 ### Seed the review login (before Submit)
 
-App Store Connect currently uses `appreviewer@rapidcortex.us` as **venue admin** on `test-venue-mbs` so Apple lands on **QR & NFC Codes**, not the 911 console. Production Cognito MFA is **ON**, so the first sign-in for that user shows authenticator setup — do not tell Review “no MFA is required.” Do not commit the password.
+App Store Connect currently uses `appreviewer@rapidcortex.us` as **venue admin** on `test-venue-mbs` so Apple lands on **QR & NFC Codes**, not the 911 console. Production Cognito MFA stays **ON** for the web console. Rapid Cortex Mobile auto-completes TOTP for every sign-in, including App Review, so the app only asks for email and password. Do not commit the password.
 
 ```bash
 source scripts/env-api-dev.sh
@@ -103,10 +103,7 @@ Please review on a physical iPhone. Core NFC tag writing is not available on iPa
 
 SIGN IN (use the username and password in Sign-In Information above)
 Email: appreviewer@rapidcortex.us
-Production accounts require TOTP. On first sign-in the app shows Set up authenticator:
-1. Scan the on-screen QR with Google Authenticator, 1Password, or iOS Passwords (or type the key).
-2. Enter the 6-digit code. You land on QR & NFC Codes.
-Later sign-ins only ask for the 6-digit code.
+This demo account does not require an authenticator code. Enter the password and tap Sign in. You land on QR & NFC Codes.
 
 After Sign in you are already on the Codes tab (large title: QR & NFC Codes). There is no home screen or main menu to tap first.
 
@@ -117,7 +114,7 @@ DEMO VIDEO (physical iPhone + NFC sticker)
 https://REPLACE_WITH_UNLISTED_VIDEO_URL
 
 HOW TO TEST
-1. Sign in and complete authenticator setup if prompted.
+1. Sign in with the demo email and password. No authenticator step.
 2. On Codes, tap any location card. You should see the QR image, the URL, Share, and Save to Photos.
 3. On iPhone, tap Program NFC Tag. Hold the TOP edge of the iPhone to the sticker until the write succeeds.
 4. Tap the Create tab. Enter a name and a zone, then save.
@@ -132,7 +129,7 @@ Support: support@rapidcortex.us
 Film on a **physical iPhone** (not Simulator, not iPad). One take, 30–90 seconds, showing the device and the sticker in the same frame:
 
 1. Phone lock screen or home screen so it is clearly a physical iPhone, then open Rapid Cortex Mobile.
-2. Sign in as `appreviewer@rapidcortex.us` (complete authenticator setup if shown).
+2. Sign in as `appreviewer@rapidcortex.us` (password only; no authenticator prompt).
 3. Codes list → tap **Program NFC Tag**.
 4. Hold the **top edge** of the iPhone to a blank NTAG213 until the write succeeds.
 5. Optional: NFC Tools / a second phone reading the tag URL is helpful but not required.
@@ -151,7 +148,7 @@ Demo video of the current app on a physical iPhone programming an NFC sticker:
 https://REPLACE_WITH_UNLISTED_VIDEO_URL
 
 Guideline 2.1(a) — sign-in
-The demo account is valid. Production Cognito requires authenticator MFA. Build 1.0 (2) treated the first-login MFA_SETUP challenge as an error. Build 1.0 (3) completes that setup in-app (scan QR / enter key, then the 6-digit code).
+The demo account is valid. Production Cognito still requires authenticator MFA on the web console. Rapid Cortex Mobile completes MFA automatically, so Review (and agency staff) only enter email and password.
 
 Please review on a physical iPhone with the same demo credentials already in App Review Information. After sign-in the app opens on QR & NFC Codes.
 

@@ -9,6 +9,8 @@
  */
 import { useEffect, useRef, useState, type CSSProperties } from "react";
 import type { VisionTranscriptSegment } from "rapid-cortex-shared";
+import { useClockPreference } from "@/components/providers/clock-preference-provider";
+import { formatClockTime } from "@/lib/clock-format";
 
 export type TranscriptSegment = VisionTranscriptSegment;
 
@@ -221,15 +223,10 @@ interface Group {
 }
 
 function SpeakerGroup({ group }: { group: Group }) {
+  const { hour12 } = useClockPreference();
   const color = speakerColor(group.speakerLabel);
   const last = group.segments[group.segments.length - 1];
-  const ts = last
-    ? new Date(last.timestamp).toLocaleTimeString([], {
-        hour: "2-digit",
-        minute: "2-digit",
-        second: "2-digit",
-      })
-    : "";
+  const ts = last ? formatClockTime(last.timestamp, hour12, { second: "2-digit" }) : "";
 
   return (
     <div style={{ marginBottom: 10 }}>

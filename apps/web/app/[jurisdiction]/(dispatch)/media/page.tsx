@@ -11,6 +11,8 @@ import { NestCameraPanel } from "@/components/cameras/NestCameraPanel";
 import { WyzeCameraPanel } from "@/components/cameras/WyzeCameraPanel";
 import { RapidVisionPanel } from "@/components/rapid-vision/RapidVisionPanel";
 import { useSession } from "@/components/auth/session-context";
+import { useOptionalJurisdictionSlug } from "@/lib/jurisdiction-context";
+import { defaultJurisdictionSlug } from "@/lib/marketing-links";
 import { GOOGLE_NEST_TM, NEST_TM, RING_TM, WYZE_TM } from "@/lib/brand-marks";
 import { loadIncidents } from "@/lib/queries";
 import { isLiveVideoEnabled, isRapidVisionEnabled } from "@/lib/runtime-flags";
@@ -35,6 +37,7 @@ function canVerifyRapidVision(role: string | undefined): boolean {
 
 export default function MediaPage() {
   const { user } = useSession();
+  const jurisdiction = useOptionalJurisdictionSlug() ?? defaultJurisdictionSlug();
   const searchParams = useSearchParams();
   const focusVision = searchParams.get("vision") === "1";
   const isSupervisor = (user?.role ?? "").toLowerCase() === "supervisor";
@@ -261,7 +264,7 @@ export default function MediaPage() {
                         incidentLat={selectedIncident?.callerLocationLat}
                         incidentLng={selectedIncident?.callerLocationLng}
                         onPendingCountChange={setNestPendingCount}
-                        connectSettingsHref="/admin/integrations"
+                        connectSettingsHref={`/${jurisdiction}/admin/integrations`}
                       />
                     ) : (
                       <p className="text-sm text-slate-300">

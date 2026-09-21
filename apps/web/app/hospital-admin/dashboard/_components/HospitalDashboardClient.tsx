@@ -19,6 +19,8 @@ import {
   Loader2, Map, Route, TrendingDown, TrendingUp,
 } from "lucide-react";
 import { isHospitalCoordinatorRole, hospitalRoleDescription } from "@/lib/hospital/hospital-access";
+import { useClockPreference } from "@/components/providers/clock-preference-provider";
+import { formatClockTime } from "@/lib/clock-format";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -108,6 +110,7 @@ function StatusBadge({ status, size = "sm" }: { status: DiversionStatus; size?: 
 // ─── Widget: Capacity status card ─────────────────────────────────────────────
 
 function CapacityStatusCard({ agencyId }: { agencyId: string }) {
+  const { hour12 } = useClockPreference();
   const { data, isLoading, isError } = useQuery({
     queryKey: ["facility-capacity", agencyId],
     queryFn: () => fetchCapacity(agencyId),
@@ -186,7 +189,7 @@ function CapacityStatusCard({ agencyId }: { agencyId: string }) {
       {/* Footer */}
       <div className="border-t border-slate-800/60 px-5 py-3 text-center">
         <p className="text-xs text-slate-500">
-          Updated {new Date(data.lastUpdatedAt).toLocaleTimeString()} by {data.updatedByName ?? "staff"}
+          Updated {formatClockTime(data.lastUpdatedAt, hour12)} by {data.updatedByName ?? "staff"}
         </p>
       </div>
     </div>
@@ -196,6 +199,7 @@ function CapacityStatusCard({ agencyId }: { agencyId: string }) {
 // ─── Widget: Routing events ───────────────────────────────────────────────────
 
 function RoutingEventsCard({ agencyId }: { agencyId: string }) {
+  const { hour12 } = useClockPreference();
   const { data: events = [], isLoading } = useQuery({
     queryKey: ["routing-events", agencyId],
     queryFn: () => fetchRoutingEvents(agencyId),
@@ -246,7 +250,7 @@ function RoutingEventsCard({ agencyId }: { agencyId: string }) {
                     <div className="mt-0.5 flex items-center gap-2">
                       <Clock className="h-3 w-3 text-slate-600" />
                       <p className="text-[10px] text-slate-600">
-                        {new Date(event.occurredAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                        {formatClockTime(event.occurredAt, hour12)}
                         {event.unitId && ` · ${event.unitId}`}
                       </p>
                     </div>

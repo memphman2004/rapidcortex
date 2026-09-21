@@ -130,6 +130,20 @@
       padding: 48px 22px 20px;
       overflow: hidden;
     }
+    .picker-back {
+      display: inline-flex;
+      align-items: center;
+      min-height: 44px;
+      margin: 0 0 8px;
+      padding: 0;
+      border: 0;
+      background: none;
+      color: var(--accent-text);
+      font-size: 13px;
+      font-weight: 600;
+      text-decoration: none;
+    }
+    .picker-back.gone { display: none !important; }
     .venue-header::before {
       content: "";
       position: absolute;
@@ -722,6 +736,7 @@
   <div class="app">
     <section id="screen-picker" class="screen active">
       <header class="venue-header">
+        <a class="picker-back gone" id="picker-back" href="/">← Back</a>
         <div class="rc-badge"><span class="live-dot" aria-hidden="true"></span><span id="badge-text"></span></div>
         <h1 class="venue-name" id="venue-name"></h1>
         <p class="venue-sub" id="venue-sub"></p>
@@ -1052,6 +1067,7 @@
   const params = new URLSearchParams(location.search);
   const rawV = params.get('v');
   const hasVParam = rawV === 'venue' || rawV === 'campus' || rawV === 'transit';
+  const topicsOnly = params.get('topics') === '1';
   let VERT = hasVParam ? rawV : 'venue';
   let cfg = resolveCfg();
   let vert = V[VERT];
@@ -1083,6 +1099,15 @@
   }
   function nl(s) { return esc(s).replace(/\n/g, '<br>'); }
 
+  function safeBackHref() {
+    const back = params.get('back') || '';
+    if (!back.startsWith('/') || back.startsWith('//') || back.includes('://') || back.includes('\\')) {
+      return '';
+    }
+    if (!(back.startsWith('/report/') || back.startsWith('/r/'))) return '';
+    return back;
+  }
+
   function showPicker() {
     document.getElementById('screen-chat').classList.remove('active', 'staff-mode');
     document.getElementById('screen-picker').classList.add('active');
@@ -1101,12 +1126,31 @@
     document.getElementById('venue-sub').textContent = vert.subKey;
     document.getElementById('loc-chip').textContent = cfg.location + (cfg.event && VERT !== 'transit' ? ' · ' + cfg.event : '');
 
+    const backEl = document.getElementById('picker-back');
+    const backHref = safeBackHref();
+    if (backHref) {
+      backEl.href = backHref;
+      backEl.classList.remove('gone');
+    } else {
+      backEl.classList.add('gone');
+    }
+
     const grid = document.getElementById('topic-grid');
     grid.innerHTML = Object.entries(vert.topics).map(([key, t]) => `
       <button type="button" class="opt-tile" data-topic="${key}">
         <div class="tile-visual ${t.vis}">${photoTag(key)}${mkIcon(t.icon, 30)}</div>
         <div class="tile-text"><strong>${esc(t.label)}</strong><span>${esc(t.desc)}</span></div>
       </button>`).join('');
+
+    grid.querySelectorAll('[data-topic]').forEach((btn) => {
+      btn.addEventListener('click', () => startAI(btn.getAttribute('data-topic')));
+    });
+
+    if (topicsOnly) {
+      document.getElementById('staff-section').innerHTML = '';
+      document.getElementById('emergency-section').innerHTML = '';
+      return;
+    }
 
     document.getElementById('staff-section').innerHTML = `
       <button type="button" class="staff-tile" id="staff-tile">
@@ -1125,9 +1169,6 @@
         </div>
       </button>`;
 
-    grid.querySelectorAll('[data-topic]').forEach((btn) => {
-      btn.addEventListener('click', () => startAI(btn.getAttribute('data-topic')));
-    });
     document.getElementById('staff-tile').addEventListener('click', startStaffChat);
     document.getElementById('emrg-tile').addEventListener('click', openEmergency);
   }
@@ -1500,7 +1541,7 @@
   document.querySelectorAll('[data-dismiss]').forEach((b) => b.addEventListener('click', closeEmergency));
 
   const switcher = document.getElementById('demo-switcher');
-  if (!hasVParam) {
+  if (!hasVParam && !topicsOnly) {
     switcher.classList.remove('gone');
     switcher.querySelectorAll('button').forEach((btn) => {
       if (btn.getAttribute('data-v') === VERT) btn.classList.add('active');

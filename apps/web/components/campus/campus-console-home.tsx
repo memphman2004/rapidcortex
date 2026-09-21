@@ -55,6 +55,8 @@ import { useNavBadgeCounts } from "@/lib/navigation/use-nav-badge-counts";
 import type { CampusIncident } from "@/lib/campus/types";
 import { CAMPUS_DASHBOARD_FONT_FAMILY } from "./campus-dashboard-font";
 import { CampusDashboardHeaderUtilities } from "./campus-dashboard-header-utilities";
+import { useClockPreference } from "@/components/providers/clock-preference-provider";
+import { formatClockTime, formatHeaderClock } from "@/lib/clock-format";
 import { ThemeProvider, useThemeRoot } from "@/lib/theme/theme-context";
 import { ThemeToggle } from "@/components/ui/ThemeToggle";
 import {
@@ -222,31 +224,8 @@ function incidentSeverity(type: CampusIncident["type"]): string {
   return "LOW";
 }
 
-function formatClock(now: Date): { dateLine: string; timeMain: string; ampm: string } {
-  const dateLine = now.toLocaleDateString(undefined, {
-    weekday: "long",
-    month: "long",
-    day: "numeric",
-    year: "numeric",
-  });
-  const timeParts = now.toLocaleTimeString(undefined, {
-    hour: "numeric",
-    minute: "2-digit",
-    hour12: true,
-  });
-  const match = timeParts.match(/^(.+)\s+(AM|PM)$/i);
-  return {
-    dateLine,
-    timeMain: match?.[1] ?? timeParts,
-    ampm: match?.[2] ?? "",
-  };
-}
-
-function formatReportedTime(iso: string): string {
-  return new Date(iso).toLocaleTimeString(undefined, {
-    hour: "numeric",
-    minute: "2-digit",
-  });
+function formatReportedTime(iso: string, hour12: boolean): string {
+  return formatClockTime(iso, hour12);
 }
 
 // ─── Zone map ─────────────────────────────────────────────────────────────────
@@ -430,6 +409,7 @@ function CampusConsoleHomeInner({
   userRole,
   userId = "",
 }: CampusConsoleHomeProps) {
+  const { hour12 } = useClockPreference();
   const pathname = usePathname() ?? "";
   // Nav hrefs are rooted at /app/campus/{CODE} via getRoleNav (campusCode below).
   const codeUpper = campusCode.toUpperCase();
@@ -531,7 +511,7 @@ function CampusConsoleHomeInner({
 
   const currentBg = customBg ?? DEFAULT_CAMPUS_BG;
   const hasCustomBg = Boolean(customBg);
-  const clock = formatClock(now);
+  const clock = formatHeaderClock(now, hour12);
 
   // Production persistence would PATCH agency settings + S3; localStorage is session/device only for now.
   const applyBg = useCallback(
@@ -1488,7 +1468,7 @@ function CampusConsoleHomeInner({
                                 }}
                               >
                                 <span style={{ fontSize: 10.5, color: C.textMuted }}>
-                                  Reported: {formatReportedTime(inc.createdAt)} ·{" "}
+                                  Reported: {formatReportedTime(inc.createdAt, hour12)} ·{" "}
                                   {formatTimeAgo(inc.updatedAt || inc.createdAt)}
                                 </span>
                               </div>

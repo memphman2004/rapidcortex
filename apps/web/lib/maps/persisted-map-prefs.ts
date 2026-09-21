@@ -12,7 +12,7 @@ import { readLocalStorage, writeLocalStorage } from "@/lib/account/account-pictu
 export type PersistedMapTheme = "dark" | "light";
 
 export function mapLayersStorageKey(userId: string, vertical: string): string {
-  return `rc-map-layers:user:${userId}:${vertical}`;
+  return `rc-map-layers:v2:user:${userId}:${vertical}`;
 }
 
 export function mapThemeStorageKey(userId: string, vertical: string): string {

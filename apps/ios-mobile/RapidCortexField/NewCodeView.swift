@@ -1,4 +1,5 @@
 import SwiftUI
+import UIKit
 
 @MainActor
 final class NewCodeViewModel: ObservableObject {
@@ -57,6 +58,7 @@ struct NewCodeView: View {
     let agencyId: String
     var defaultVertical: String = "venue"
     var onCreated: ((QRNFCCode) -> Void)?
+    var onBack: (() -> Void)?
 
     @StateObject private var vm = NewCodeViewModel()
     @State private var nfcCode: QRNFCCode?
@@ -90,6 +92,17 @@ struct NewCodeView: View {
     private var form: some View {
         ScrollView {
                 VStack(alignment: .leading, spacing: 20) {
+                    Button(action: goBack) {
+                        HStack(spacing: 4) {
+                            Image(systemName: "chevron.left")
+                            Text("Back")
+                        }
+                        .font(.system(size: 17, weight: .semibold))
+                        .foregroundColor(RCTheme.amber)
+                    }
+                    .buttonStyle(.plain)
+                    .accessibilityLabel("Back")
+
                     Text("Create Code")
                         .font(.system(size: 34, weight: .bold))
                         .foregroundColor(RCTheme.textPrimary)
@@ -141,6 +154,11 @@ struct NewCodeView: View {
                 .padding(20)
                 .padding(.bottom, 40)
             }
+    }
+
+    private func goBack() {
+        UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
+        onBack?()
     }
 
     private func create() async {

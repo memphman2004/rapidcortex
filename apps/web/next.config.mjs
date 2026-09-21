@@ -238,6 +238,14 @@ const nextConfig = {
   },
   async rewrites() {
     return {
+      beforeFiles: [
+        // Live dispatcher still polls these aliases. beforeFiles avoids App Router HTML 404s
+        // when an optional catch-all is not treated as a filesystem match.
+        { source: "/api/geocode/forward", destination: "/api/location/geocode" },
+        { source: "/api/psap/continuity", destination: "/api/rcs/calls" },
+        { source: "/api/psap/continuity/:path*", destination: "/api/rcs/calls/:path*" },
+        { source: "/api/events/features", destination: "/api/features" },
+      ],
       afterFiles: [
         // Flat alias for aggregated readiness (same handler as `/api/health/chain`); avoids rare CDN/proxy confusion on nested paths.
         { source: "/api/health-chain", destination: "/api/health/chain" },

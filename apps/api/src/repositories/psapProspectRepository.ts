@@ -228,6 +228,9 @@ export class PsapProspectRepository {
         status: p.outreachStatus,
         psapName: p.psapName,
         state: p.state,
+        city: p.city,
+        county: p.county,
+        phone: p.phone,
       }));
   }
 

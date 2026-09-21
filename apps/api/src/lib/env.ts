@@ -903,6 +903,8 @@ export const env = {
     10,
     Number.parseInt(process.env.RCS_ARRIVAL_RADIUS_METERS ?? "150", 10) || 150,
   ),
+  enableMapHospitals: featureEnabled("ENABLE_MAP_HOSPITALS"),
+  enableMapEducation: featureEnabled("ENABLE_MAP_EDUCATION"),
   alsPlaceIndexName: process.env.ALS_PLACE_INDEX_NAME?.trim() ?? "",
   alsRouteCalculatorName: process.env.ALS_ROUTE_CALCULATOR_NAME?.trim() ?? "",
   alsGeofenceCollectionName: process.env.ALS_GEOFENCE_COLLECTION_NAME?.trim() ?? "",

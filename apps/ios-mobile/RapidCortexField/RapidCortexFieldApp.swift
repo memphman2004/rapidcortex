@@ -81,27 +81,43 @@ struct RapidCortexFieldApp: App {
     }
 }
 
+private enum QRNFCTab: Hashable {
+    case codes
+    case create
+    case agencies
+    case settings
+}
+
 struct QRNFCRootView: View {
     @EnvironmentObject var auth: CognitoAuthManager
+    @State private var selectedTab: QRNFCTab = .codes
 
     private var defaultVertical: String {
         auth.qrCodeVertical
     }
 
     var body: some View {
-        TabView {
+        TabView(selection: $selectedTab) {
             CodesListView()
                 .tabItem { Label("Codes", systemImage: "qrcode") }
+                .tag(QRNFCTab.codes)
             if auth.claims?.canManageCodes == true {
-                NewCodeView(agencyId: auth.operationalAgencyId, defaultVertical: defaultVertical)
-                    .tabItem { Label("Create", systemImage: "plus") }
+                NewCodeView(
+                    agencyId: auth.operationalAgencyId,
+                    defaultVertical: defaultVertical,
+                    onBack: { selectedTab = .codes }
+                )
+                .tabItem { Label("Create", systemImage: "plus") }
+                .tag(QRNFCTab.create)
             }
             if auth.claims?.isPlatformAdmin == true {
                 AgenciesView()
                     .tabItem { Label("Agencies", systemImage: "building.2") }
+                    .tag(QRNFCTab.agencies)
             }
             SettingsView()
                 .tabItem { Label("Settings", systemImage: "gear") }
+                .tag(QRNFCTab.settings)
         }
         .tint(RCTheme.amber)
         .onAppear {

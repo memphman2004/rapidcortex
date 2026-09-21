@@ -2,6 +2,8 @@
 
 import { useEffect, useRef, useState } from "react";
 import type { VisionObservation } from "rapid-cortex-shared";
+import { useClockPreference } from "@/components/providers/clock-preference-provider";
+import { formatClockTime } from "@/lib/clock-format";
 
 export type StreamingObservationEntry = {
   cameraName: string;
@@ -145,11 +147,8 @@ function StreamingObservationCard({
   entry: StreamingObservationEntry;
   V: Record<string, string>;
 }) {
-  const time = new Date(entry.timestamp).toLocaleTimeString([], {
-    hour: "2-digit",
-    minute: "2-digit",
-    second: "2-digit",
-  });
+  const { hour12 } = useClockPreference();
+  const time = formatClockTime(entry.timestamp, hour12, { second: "2-digit" });
   const displayText = entry.text
     .split("\n")
     .filter(
@@ -232,11 +231,8 @@ function ObservationCard({
   const isVerified = obs.verificationStatus === "verified";
   const isRejected = obs.verificationStatus === "rejected";
   const hasCorrelation = Boolean(obs.correlationSummary);
-  const time = new Date(obs.timestamp).toLocaleTimeString([], {
-    hour: "2-digit",
-    minute: "2-digit",
-    second: "2-digit",
-  });
+  const { hour12 } = useClockPreference();
+  const time = formatClockTime(obs.timestamp, hour12, { second: "2-digit" });
   const borderColor = isVerified
     ? V.verified
     : isRejected

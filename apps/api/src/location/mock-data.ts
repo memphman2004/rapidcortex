@@ -77,3 +77,149 @@ export function mockCalculateRoute(
     provider: "amazon-location",
   };
 }
+
+export type MockHospitalPlace = {
+  id: string;
+  name: string;
+  longitude: number;
+  latitude: number;
+  address?: string;
+  phone?: string;
+  categories?: string[];
+};
+
+const MOCK_HOSPITALS: MockHospitalPlace[] = [
+  {
+    id: "mock-grady",
+    name: "Grady Memorial Hospital",
+    longitude: -84.382,
+    latitude: 33.752,
+    address: "80 Jesse Hill Jr Dr SE, Atlanta, GA",
+    phone: "(404) 616-1000",
+    categories: ["hospital", "hospital_emergency_room"],
+  },
+  {
+    id: "mock-emory",
+    name: "Emory University Hospital",
+    longitude: -84.322,
+    latitude: 33.793,
+    address: "1364 Clifton Rd NE, Atlanta, GA",
+    phone: "(404) 712-2000",
+    categories: ["hospital", "hospital_emergency_room"],
+  },
+  {
+    id: "mock-piedmont-atl",
+    name: "Piedmont Atlanta Hospital",
+    longitude: -84.393,
+    latitude: 33.808,
+    address: "1968 Peachtree Rd NW, Atlanta, GA",
+    phone: "(404) 605-5000",
+    categories: ["hospital", "hospital_emergency_room"],
+  },
+  {
+    id: "mock-choa",
+    name: "Children's Healthcare of Atlanta Egleston",
+    longitude: -84.335,
+    latitude: 33.794,
+    address: "1405 Clifton Rd NE, Atlanta, GA",
+    phone: "(404) 785-6000",
+    categories: ["hospital", "hospital_emergency_room"],
+  },
+  {
+    id: "mock-piedmont-columbus",
+    name: "Piedmont Columbus Regional",
+    longitude: -84.987,
+    latitude: 32.469,
+    address: "710 Center St, Columbus, GA",
+    phone: "(706) 571-1000",
+    categories: ["hospital", "hospital_emergency_room"],
+  },
+];
+
+function milesBetween(lng1: number, lat1: number, lng2: number, lat2: number): number {
+  const dLat = lat2 - lat1;
+  const dLng = lng2 - lng1;
+  return Math.sqrt(dLat * dLat + dLng * dLng) * 69;
+}
+
+export function mockNearbyHospitals(lng: number, lat: number, radiusMeters: number): MockHospitalPlace[] {
+  const radiusMiles = radiusMeters / 1609.34;
+  return MOCK_HOSPITALS.filter(
+    (place) => milesBetween(lng, lat, place.longitude, place.latitude) <= radiusMiles + 0.5,
+  );
+}
+
+export type MockEducationPlace = {
+  id: string;
+  name: string;
+  longitude: number;
+  latitude: number;
+  address?: string;
+  city?: string;
+  state?: string;
+  phone?: string;
+  website?: string;
+  categories?: string[];
+};
+
+const MOCK_EDUCATION: MockEducationPlace[] = [
+  {
+    id: "mock-csu",
+    name: "Columbus State University",
+    longitude: -84.9405,
+    latitude: 32.5022,
+    address: "4225 University Ave, Columbus, GA",
+    city: "Columbus",
+    state: "GA",
+    phone: "(706) 507-8800",
+    website: "https://www.columbusstate.edu",
+    categories: ["higher_education"],
+  },
+  {
+    id: "mock-northside-hs",
+    name: "Northside High School",
+    longitude: -84.958,
+    latitude: 32.522,
+    address: "2002 American Way, Columbus, GA",
+    city: "Columbus",
+    state: "GA",
+    categories: ["secondary_school", "school"],
+  },
+  {
+    id: "mock-downtown-es",
+    name: "Downtown Elementary Magnet Academy",
+    longitude: -84.987,
+    latitude: 32.465,
+    address: "1112 29th St, Columbus, GA",
+    city: "Columbus",
+    state: "GA",
+    categories: ["primary_school", "school"],
+  },
+  {
+    id: "mock-midland-school",
+    name: "Midland Middle School",
+    longitude: -84.86,
+    latitude: 32.57,
+    address: "7040 Flat Rock Rd, Midland, GA",
+    city: "Midland",
+    state: "GA",
+    categories: ["school"],
+  },
+  {
+    id: "mock-emory",
+    name: "Emory University",
+    longitude: -84.323,
+    latitude: 33.792,
+    address: "201 Dowman Dr, Atlanta, GA",
+    city: "Atlanta",
+    state: "GA",
+    categories: ["higher_education"],
+  },
+];
+
+export function mockNearbyEducation(lng: number, lat: number, radiusMeters: number): MockEducationPlace[] {
+  const radiusMiles = radiusMeters / 1609.34;
+  return MOCK_EDUCATION.filter(
+    (place) => milesBetween(lng, lat, place.longitude, place.latitude) <= radiusMiles + 0.5,
+  );
+}

@@ -1,6 +1,6 @@
 import type { APIGatewayProxyWebsocketEventV2 } from "aws-lambda";
-import type { UserContext } from "rapid-cortex-shared";
-import { verifyGuestAssistToken, type GuestAssistTokenPayload } from "rapid-cortex-shared";
+import type { GuestAssistTokenPayload, UserContext } from "rapid-cortex-shared";
+import { verifyGuestAssistToken } from "rapid-cortex-shared/dist/guest-assist/token";
 import { getUserContextFromIdToken } from "../auth.js";
 import { env } from "../env.js";
 

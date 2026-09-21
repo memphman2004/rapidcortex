@@ -1,4 +1,5 @@
 import Combine
+import CryptoKit
 import Foundation
 
 @MainActor
@@ -137,68 +138,20 @@ final class CognitoAuthManager: ObservableObject {
         defer { isLoading = false }
 
         do {
-            let username = pendingUsername ?? claims?.email ?? ""
-            let body: [String: Any] = [
-                "ChallengeName": "SOFTWARE_TOKEN_MFA",
-                "ClientId": RCConfig.clientId,
-                "ChallengeResponses": [
-                    "SOFTWARE_TOKEN_MFA_CODE": mfaCode,
-                    "USERNAME": username
-                ],
-                "Session": session
-            ]
-
-            let resp = try await cognitoRequest(
-                target: "AWSCognitoIdentityProviderService.RespondToAuthChallenge",
-                body: body
-            )
-
-            requiresMFA = false
-            pendingSession = nil
-            mfaCode = ""
-            try handleAuthResult(resp)
+            try await respondSoftwareTokenMFA(code: mfaCode, session: session)
         } catch {
             self.error = error.localizedDescription
         }
     }
 
     func submitMFASetup() async {
-        guard let session = pendingSession, !mfaCode.isEmpty else { return }
+        guard pendingSession != nil, !mfaCode.isEmpty else { return }
         isLoading = true
         error = nil
         defer { isLoading = false }
 
         do {
-            let username = pendingUsername ?? pendingEmail ?? ""
-            let verifyResp = try await cognitoRequest(
-                target: "AWSCognitoIdentityProviderService.VerifySoftwareToken",
-                body: [
-                    "Session": session,
-                    "UserCode": mfaCode,
-                    "FriendlyDeviceName": "Authenticator"
-                ]
-            )
-            guard let verifiedSession = (verifyResp["Session"] as? String),
-                  (verifyResp["Status"] as? String) != "ERROR"
-            else {
-                throw AuthError.cognitoError("Invalid authenticator code.")
-            }
-
-            let completeResp = try await cognitoRequest(
-                target: "AWSCognitoIdentityProviderService.RespondToAuthChallenge",
-                body: [
-                    "ChallengeName": "MFA_SETUP",
-                    "ClientId": RCConfig.clientId,
-                    "ChallengeResponses": ["USERNAME": username],
-                    "Session": verifiedSession
-                ]
-            )
-
-            requiresMFASetup = false
-            pendingSession = nil
-            totpSecret = ""
-            mfaCode = ""
-            try handleAuthResult(completeResp)
+            try await verifySoftwareTokenAndFinishSetup(code: mfaCode)
         } catch {
             self.error = error.localizedDescription
         }
@@ -287,16 +240,111 @@ final class CognitoAuthManager: ObservableObject {
 
     private func handleNamedChallenge(_ challenge: String, session: String?) async throws {
         pendingSession = session
+        if try await completeSilentMFAIfNeeded(challenge) {
+            return
+        }
         switch challenge {
         case "SOFTWARE_TOKEN_MFA", "SMS_MFA":
             requiresMFA = true
         case "MFA_SETUP":
             try await startMFASetup()
+            requiresMFASetup = true
         case "NEW_PASSWORD_REQUIRED":
             throw AuthError.cognitoError("Password reset required. Use the Rapid Cortex web app, then sign in here.")
         default:
             throw AuthError.cognitoError("Unexpected auth challenge: \(challenge)")
         }
+    }
+
+    /// Pool MFA is required. Rapid Cortex Mobile enrolls TOTP and submits the code so
+    /// field users (and App Review) sign in with email + password only.
+    private func completeSilentMFAIfNeeded(_ challenge: String) async throws -> Bool {
+        switch challenge {
+        case "MFA_SETUP":
+            try await startMFASetup()
+            let secret = totpSecret
+            let code = try RCTotp.generateCode(secret: secret)
+            try await verifySoftwareTokenAndFinishSetup(code: code, deviceName: "Rapid Cortex Mobile")
+            if let key = totpKeychainKey(), !secret.isEmpty {
+                KeychainManager.save(key: key, value: secret)
+            }
+            return true
+        case "SOFTWARE_TOKEN_MFA":
+            guard let secret = storedTotpSecret(), let session = pendingSession else { return false }
+            let code = try RCTotp.generateCode(secret: secret)
+            try await respondSoftwareTokenMFA(code: code, session: session)
+            return true
+        default:
+            return false
+        }
+    }
+
+    private func totpKeychainKey() -> String? {
+        let email = (pendingEmail ?? pendingUsername ?? "")
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+            .lowercased()
+        guard !email.isEmpty else { return nil }
+        return "rc_totp_\(email)"
+    }
+
+    private func storedTotpSecret() -> String? {
+        if !totpSecret.isEmpty { return totpSecret }
+        guard let key = totpKeychainKey() else { return nil }
+        return KeychainManager.load(key: key)
+    }
+
+    private func respondSoftwareTokenMFA(code: String, session: String) async throws {
+        let username = pendingUsername ?? claims?.email ?? ""
+        let resp = try await cognitoRequest(
+            target: "AWSCognitoIdentityProviderService.RespondToAuthChallenge",
+            body: [
+                "ChallengeName": "SOFTWARE_TOKEN_MFA",
+                "ClientId": RCConfig.clientId,
+                "ChallengeResponses": [
+                    "SOFTWARE_TOKEN_MFA_CODE": code,
+                    "USERNAME": username
+                ],
+                "Session": session
+            ]
+        )
+        requiresMFA = false
+        pendingSession = nil
+        mfaCode = ""
+        try handleAuthResult(resp)
+    }
+
+    private func verifySoftwareTokenAndFinishSetup(code: String, deviceName: String = "Authenticator") async throws {
+        guard let session = pendingSession else { throw AuthError.unexpectedChallenge }
+        let username = pendingUsername ?? pendingEmail ?? ""
+        let verifyResp = try await cognitoRequest(
+            target: "AWSCognitoIdentityProviderService.VerifySoftwareToken",
+            body: [
+                "Session": session,
+                "UserCode": code,
+                "FriendlyDeviceName": deviceName
+            ]
+        )
+        guard let verifiedSession = (verifyResp["Session"] as? String),
+              (verifyResp["Status"] as? String) != "ERROR"
+        else {
+            throw AuthError.cognitoError("Invalid authenticator code.")
+        }
+
+        let completeResp = try await cognitoRequest(
+            target: "AWSCognitoIdentityProviderService.RespondToAuthChallenge",
+            body: [
+                "ChallengeName": "MFA_SETUP",
+                "ClientId": RCConfig.clientId,
+                "ChallengeResponses": ["USERNAME": username],
+                "Session": verifiedSession
+            ]
+        )
+
+        requiresMFASetup = false
+        pendingSession = nil
+        totpSecret = ""
+        mfaCode = ""
+        try handleAuthResult(completeResp)
     }
 
     private func startMFASetup() async throws {
@@ -311,7 +359,6 @@ final class CognitoAuthManager: ObservableObject {
         pendingSession = (resp["Session"] as? String) ?? session
         totpSecret = secret
         mfaCode = ""
-        requiresMFASetup = true
     }
 
     private func handleAuthResult(_ resp: [String: Any]) throws {
@@ -445,10 +492,45 @@ enum RCTotp {
         return "otpauth://totp/\(label)?\(query)"
     }
 
+    static func generateCode(secret: String, at date: Date = Date()) throws -> String {
+        let key = try base32Decode(secret)
+        var counter = UInt64(floor(date.timeIntervalSince1970 / 30)).bigEndian
+        let counterData = Data(bytes: &counter, count: MemoryLayout<UInt64>.size)
+        let mac = HMAC<Insecure.SHA1>.authenticationCode(for: counterData, using: SymmetricKey(data: key))
+        let hash = Array(mac)
+        let offset = Int(hash[hash.count - 1] & 0x0F)
+        let binary =
+            (Int(hash[offset] & 0x7F) << 24)
+            | (Int(hash[offset + 1] & 0xFF) << 16)
+            | (Int(hash[offset + 2] & 0xFF) << 8)
+            | Int(hash[offset + 3] & 0xFF)
+        return String(format: "%06d", binary % 1_000_000)
+    }
+
     private static func encode(_ value: String) -> String {
         var allowed = CharacterSet.urlQueryAllowed
         allowed.remove(charactersIn: ":/?#[]@!$&'()*+,;=")
         return value.addingPercentEncoding(withAllowedCharacters: allowed) ?? value
+    }
+
+    private static func base32Decode(_ raw: String) throws -> Data {
+        let alphabet = Array("ABCDEFGHIJKLMNOPQRSTUVWXYZ234567")
+        let cleaned = raw.uppercased().filter { $0 != "=" && !$0.isWhitespace }
+        var bits = 0
+        var value = 0
+        var bytes: [UInt8] = []
+        for ch in cleaned {
+            guard let idx = alphabet.firstIndex(of: ch) else {
+                throw AuthError.cognitoError("Invalid authenticator secret.")
+            }
+            value = (value << 5) | idx
+            bits += 5
+            if bits >= 8 {
+                bits -= 8
+                bytes.append(UInt8((value >> bits) & 0xFF))
+            }
+        }
+        return Data(bytes)
     }
 }
 

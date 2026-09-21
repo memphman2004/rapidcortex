@@ -4,6 +4,8 @@ import {
   alsDevicePositionBodySchema,
   alsGeocodeQuerySchema,
   alsGeofenceUpsertBodySchema,
+  alsEducationSearchQuerySchema,
+  alsHospitalSearchQuerySchema,
   alsReverseGeocodeQuerySchema,
   alsRouteQuerySchema,
 } from "rapid-cortex-shared";
@@ -17,10 +19,17 @@ import {
   notFound,
   ok,
   serverError,
+  serviceUnavailable,
   unauthorized,
 } from "../../lib/response.js";
 import { AuditRepository } from "../../repositories/auditRepository.js";
+import { env } from "../../lib/env.js";
 import { geocodeAddress, reverseGeocode } from "../../location/geocoding.js";
+import {
+  EducationPlacesUnavailableError,
+  searchNearbyEducation,
+} from "../../location/education-places.js";
+import { searchNearbyHospitals } from "../../location/hospital-places.js";
 import { calculateRoute } from "../../location/routing.js";
 import { deleteZoneGeofence, listAgencyGeofences, upsertZoneGeofence } from "../../location/geofence.js";
 import { getAgencyDevicePositions, updateDevicePosition } from "../../location/tracker.js";
@@ -102,6 +111,37 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
         [parsed.data.toLng, parsed.data.toLat],
       );
       return withCorrelationHeaders(event, ok(result));
+    }
+
+    if (
+      method === "GET" &&
+      (/\/api\/location\/hospitals\/?$/.test(path) || /\/api\/map\/hospitals\/?$/.test(path))
+    ) {
+      if (!env.enableMapHospitals) return withCorrelationHeaders(event, notFound());
+      if (!canGeocode(user)) return withCorrelationHeaders(event, forbidden());
+      const parsed = alsHospitalSearchQuerySchema.safeParse(qs);
+      if (!parsed.success) return withCorrelationHeaders(event, badRequestFromZod(parsed.error));
+      const collection = await searchNearbyHospitals(parsed.data);
+      return withCorrelationHeaders(event, ok(collection));
+    }
+
+    if (
+      method === "GET" &&
+      (/\/api\/location\/education\/?$/.test(path) || /\/api\/map\/education\/?$/.test(path))
+    ) {
+      if (!env.enableMapEducation) return withCorrelationHeaders(event, notFound());
+      if (!canGeocode(user)) return withCorrelationHeaders(event, forbidden());
+      const parsed = alsEducationSearchQuerySchema.safeParse(qs);
+      if (!parsed.success) return withCorrelationHeaders(event, badRequestFromZod(parsed.error));
+      try {
+        const collection = await searchNearbyEducation(parsed.data);
+        return withCorrelationHeaders(event, ok(collection));
+      } catch (err) {
+        if (err instanceof EducationPlacesUnavailableError) {
+          return withCorrelationHeaders(event, serviceUnavailable(err.message));
+        }
+        throw err;
+      }
     }
 
     if (method === "GET" && /\/api\/location\/geofences\/?$/.test(path)) {

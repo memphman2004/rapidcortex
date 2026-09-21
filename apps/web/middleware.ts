@@ -356,6 +356,8 @@ const RESERVED_FIRST_SEGMENTS = new Set<string>([
   /** Role hub + `(app)` dashboards — not a jurisdiction slug. */
   "dashboard",
   "dashboards",
+  /** Root aliases under `app/admin/*` (integrations, venue sections) — not a jurisdiction slug. */
+  "admin",
   /** Native OAuth bridge + return-to-app (Hosted UI handoff). */
   "auth",
   /** Public SMS consent proof (toll-free verification). */

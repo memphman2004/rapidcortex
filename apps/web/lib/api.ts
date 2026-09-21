@@ -973,8 +973,14 @@ export async function postLiveVideoRequest(
   });
 }
 
-export async function fetchLiveVideoSession(incidentId: string): Promise<LiveVideoSessionView> {
-  return request(`/api/incidents/${encodeURIComponent(incidentId)}/live-video`);
+export async function fetchLiveVideoSession(incidentId: string): Promise<LiveVideoSessionView | null> {
+  try {
+    return await request(`/api/incidents/${encodeURIComponent(incidentId)}/live-video`);
+  } catch (err) {
+    const message = err instanceof Error ? err.message : "";
+    if (/not found/i.test(message) || /\b404\b/.test(message)) return null;
+    throw err;
+  }
 }
 
 /** Same join bundle as GET — explicit POST for clients that prefer a join verb. */

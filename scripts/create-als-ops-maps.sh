@@ -72,6 +72,20 @@ POLICY="$(cat <<EOF
 EOF
 )"
 
+V2_POLICY="$(cat <<EOF
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Action": ["geo-maps:GetTile"],
+      "Resource": "arn:aws:geo-maps:${REGION}::provider/default"
+    }
+  ]
+}
+EOF
+)"
+
 for role in "${PREFIX}-als-map-unauth-${STAGE}" "${PREFIX}-als-map-auth-${STAGE}"; do
   if ! aws iam get-role --role-name "${role}" >/dev/null 2>&1; then
     echo "  skip IAM ${role} (role not found)"
@@ -81,11 +95,17 @@ for role in "${PREFIX}-als-map-unauth-${STAGE}" "${PREFIX}-als-map-auth-${STAGE}
     --role-name "${role}" \
     --policy-name MapTilesOnly \
     --policy-document "${POLICY}" >/dev/null
-  echo "  IAM     ${role} MapTilesOnly (+ HERE maps)"
+  aws iam put-role-policy \
+    --role-name "${role}" \
+    --policy-name MapTilesV2 \
+    --policy-document "${V2_POLICY}" >/dev/null
+  echo "  IAM     ${role} MapTilesOnly (+ HERE maps) + MapTilesV2"
 done
 
 echo ""
 echo "Web env:"
 echo "  NEXT_PUBLIC_ALS_MAP_NAME=${LIGHT_NAME}"
 echo "  NEXT_PUBLIC_ALS_MAP_NAME_DARK=${DARK_NAME}"
-echo "Rebuild the web ECS task after updating those vars."
+echo "  NEXT_PUBLIC_ALS_MAP_API_VERSION=v2"
+echo "  NEXT_PUBLIC_ALS_MAP_STYLE=Standard"
+echo "Rebuild the web ECS task after updating those vars. Unset API version to roll back to named HERE maps."

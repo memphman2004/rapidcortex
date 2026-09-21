@@ -90,11 +90,6 @@ struct LoginView: View {
                             .foregroundColor(RCTheme.textSecondary)
                             .fixedSize(horizontal: false, vertical: true)
 
-                        Text("The first sign-in may ask you to set up an authenticator app. After that, enter the 6-digit code when prompted.")
-                            .font(.system(size: 11))
-                            .foregroundColor(RCTheme.textMuted)
-                            .fixedSize(horizontal: false, vertical: true)
-
                         HStack(spacing: 16) {
                             Link("Privacy Policy", destination: RCConfig.privacyPolicyURL)
                             Link("Terms of Use", destination: RCConfig.termsOfUseURL)

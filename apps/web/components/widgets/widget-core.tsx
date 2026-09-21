@@ -28,6 +28,8 @@ import {
   WidgetSkeleton,
   type WidgetProps,
 } from "./widget-primitives";
+import { useClockPreference } from "@/components/providers/clock-preference-provider";
+import { formatClockTime } from "@/lib/clock-format";
 
 type IncidentListResponse = { items?: Incident[] };
 type AuditEventsResponse = { items?: Array<{ eventId: string; type: string; actor: string; timestamp: string; summary: string }> };
@@ -123,6 +125,7 @@ export function ActiveCallsGridWidget({ agencyId }: WidgetProps) {
 // ─── Incident queue ───────────────────────────────────────────────────────────
 
 export function IncidentQueueWidget({ agencyId }: WidgetProps) {
+  const { hour12 } = useClockPreference();
   const { data, isLoading, isError } = useQuery({
     queryKey: ["incidents", agencyId],
     queryFn: async () => {
@@ -172,7 +175,7 @@ export function IncidentQueueWidget({ agencyId }: WidgetProps) {
                   {i.priority}
                 </td>
                 <td className="px-4 py-2.5 text-xs text-slate-400">
-                  {new Date(i.createdAt).toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit" })}
+                  {formatClockTime(i.createdAt, hour12)}
                 </td>
                 <td className="px-4 py-2.5 text-xs text-slate-400">{i.assignedTo ?? "—"}</td>
               </tr>
@@ -295,6 +298,7 @@ export function PlatformHealthBarWidget({ agencyId }: WidgetProps) {
 // ─── Recent activity feed ─────────────────────────────────────────────────────
 
 export function RecentActivityWidget({ agencyId }: WidgetProps) {
+  const { hour12 } = useClockPreference();
   const { data, isLoading } = useQuery({
     queryKey: ["activity-feed", agencyId],
     queryFn: async () => ({ events: await fetchDashboardAuditFeed(20) }),
@@ -316,7 +320,7 @@ export function RecentActivityWidget({ agencyId }: WidgetProps) {
             <div className="min-w-0 flex-1">
               <p className="truncate text-xs text-slate-300">{e.summary}</p>
               <p className="mt-0.5 text-[10px] text-slate-600">
-                {e.actor} · {new Date(e.timestamp).toLocaleTimeString()}
+                {e.actor} · {formatClockTime(e.timestamp, hour12)}
               </p>
             </div>
           </div>
@@ -379,6 +383,7 @@ export function QaReviewQueueWidget({ agencyId }: WidgetProps) {
 // ─── Capacity status ──────────────────────────────────────────────────────────
 
 export function CapacityStatusWidget({ agencyId }: WidgetProps) {
+  const { hour12 } = useClockPreference();
   const { data, isLoading } = useQuery({
     queryKey: ["facility-capacity", agencyId],
     queryFn: async () => {
@@ -401,7 +406,7 @@ export function CapacityStatusWidget({ agencyId }: WidgetProps) {
           <p className="mt-1 text-sm opacity-70">{data?.bedsAvailable ?? "—"} beds available</p>
         </div>
         <p className="mt-3 text-xs text-slate-500">
-          Updated {data?.lastUpdatedAt ? new Date(data.lastUpdatedAt).toLocaleTimeString() : "—"}
+          Updated {data?.lastUpdatedAt ? formatClockTime(data.lastUpdatedAt, hour12) : "—"}
         </p>
       </div>
     </WidgetShell>
@@ -411,6 +416,7 @@ export function CapacityStatusWidget({ agencyId }: WidgetProps) {
 // ─── Guest reports feed ───────────────────────────────────────────────────────
 
 export function GuestReportsFeedWidget({ agencyId }: WidgetProps) {
+  const { hour12 } = useClockPreference();
   const { data, isLoading } = useQuery({
     queryKey: ["guest-reports", agencyId],
     queryFn: async () => ({ reports: [] as Array<{ reportId: string; message: string; submittedAt: string; zone: string | null; assignedTo: string | null }> }),
@@ -441,7 +447,7 @@ export function GuestReportsFeedWidget({ agencyId }: WidgetProps) {
                 )}
               </div>
               <p className="mt-1 text-[10px] text-slate-600">
-                {new Date(r.submittedAt).toLocaleTimeString()} · {r.assignedTo ?? "Unassigned"}
+                {formatClockTime(r.submittedAt, hour12)} · {r.assignedTo ?? "Unassigned"}
               </p>
             </div>
           ))}
@@ -526,6 +532,7 @@ export function CampusZoneStatusWidget({ agencyId }: WidgetProps) {
 // ─── Capacity quick update (hospital staff) ───────────────────────────────────
 
 export function CapacityQuickUpdateWidget({ agencyId }: WidgetProps) {
+  const { hour12 } = useClockPreference();
   const { data, isLoading } = useQuery({
     queryKey: ["facility-capacity", agencyId],
     queryFn: async () => {
@@ -545,7 +552,7 @@ export function CapacityQuickUpdateWidget({ agencyId }: WidgetProps) {
         </p>
         <p className="mt-2 text-sm text-slate-400">beds available</p>
         <p className="mt-1 text-xs text-slate-600">
-          of {data?.bedsTotal ?? "—"} total · Last updated {data?.lastUpdatedAt ? new Date(data.lastUpdatedAt).toLocaleTimeString() : "—"}
+          of {data?.bedsTotal ?? "—"} total · Last updated {data?.lastUpdatedAt ? formatClockTime(data.lastUpdatedAt, hour12) : "—"}
         </p>
         <a
           href={`/hospital-staff/capacity/update`}

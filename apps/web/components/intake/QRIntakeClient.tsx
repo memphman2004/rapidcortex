@@ -18,6 +18,8 @@ import Image from "next/image";
 import { useCallback, useRef, useState } from "react";
 import type { QRLocationPublic } from "rapid-cortex-shared";
 import { LanguageSelector } from "@/components/qr-nfc/safety-reporting/LanguageSelector";
+import { ScanIntentChooser } from "@/components/qr-nfc/safety-reporting/ScanIntentChooser";
+import { SAFETY_BRAND } from "@/components/qr-nfc/safety-reporting/tokens";
 import {
   ReportLanguageProvider,
   useReportLanguage,
@@ -28,6 +30,7 @@ import {
   themeForVertical,
   type VerticalTheme,
 } from "@/components/intake/vertical-theme";
+import { isGuestAssistEnabled } from "@/lib/runtime-flags";
 
 type HelpType = "safety" | "medical" | "suspicious" | "other";
 
@@ -125,6 +128,7 @@ function QRIntakeClientInner({
   const [shareLiveLocation, setShareLiveLocation] = useState(false);
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
   const [photoFile, setPhotoFile] = useState<File | null>(null);
+  const [screen, setScreen] = useState<"chooser" | "report">("chooser");
   const descRef = useRef<HTMLTextAreaElement>(null);
   const photoInputRef = useRef<HTMLInputElement>(null);
 
@@ -257,6 +261,21 @@ function QRIntakeClientInner({
 
   const pageBackground = intakePageBackgroundStyle(location.vertical);
 
+  if (!submitted && screen === "chooser") {
+    return (
+      <ScanIntentChooser
+        productLabel={theme.headerTitle}
+        contextLabel={theme.agencyLabel}
+        agencyName={agencyDisplayName(loc, agencyFallback)}
+        zoneName={defaultLocation}
+        vertical={location.vertical}
+        agencyId={location.agencyId}
+        guestAssistEnabled={isGuestAssistEnabled()}
+        onPoliceSecurity={() => setScreen("report")}
+      />
+    );
+  }
+
   return (
     <div
       className="flex min-h-[100dvh] flex-col"
@@ -273,6 +292,18 @@ function QRIntakeClientInner({
       }}
     >
       <PageHeader theme={theme} isVenue={isVenue} />
+      {!submitted ? (
+        <div className="mx-auto w-full max-w-md px-3 pt-2">
+          <button
+            type="button"
+            onClick={() => setScreen("chooser")}
+            className="min-h-11 text-sm font-semibold"
+            style={{ color: SAFETY_BRAND.deepBlue }}
+          >
+            ← {t("scanChooserBack")}
+          </button>
+        </div>
+      ) : null}
       <AccentStripes />
 
       {isVenue && eventData?.eventName ? (

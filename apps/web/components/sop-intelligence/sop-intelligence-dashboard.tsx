@@ -13,6 +13,8 @@ import {
   type SopIntelPendingItem,
   type SopIntelSnapshot,
 } from "@/lib/sop-intelligence/api";
+import { useClockPreference } from "@/components/providers/clock-preference-provider";
+import { formatClockTime } from "@/lib/clock-format";
 
 type InnerView =
   | "drift"
@@ -225,6 +227,7 @@ function Kpi({ label, value, hint }: { label: string; value: string; hint?: stri
 }
 
 function DriftView({ data }: { data: SopIntelSnapshot }) {
+  const { hour12 } = useClockPreference();
   const max = Math.max(1, ...data.patterns.map((p) => p.gapCount));
   return (
     <div>
@@ -287,7 +290,7 @@ function DriftView({ data }: { data: SopIntelSnapshot }) {
             {data.reports.filter((r) => r.sopGapIdentified).slice(0, 12).map((r) => (
               <tr key={r.reportId} className="border-t border-slate-800">
                 <td className="py-2 font-mono text-sky-300">{r.callId}</td>
-                <td className="text-slate-400">{new Date(r.createdAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}</td>
+                <td className="text-slate-400">{formatClockTime(r.createdAt, hour12)}</td>
                 <td>{r.telecom || r.dispatcherName || "—"}</td>
                 <td>
                   {r.sopId} {r.stepId}

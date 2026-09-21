@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
-import { guestAssistSessionBodySchema, newGuestAssistSessionId, signGuestAssistToken } from "rapid-cortex-shared";
+import { guestAssistSessionBodySchema } from "rapid-cortex-shared";
+import { newGuestAssistSessionId, signGuestAssistToken } from "rapid-cortex-shared/guest-assist/token";
 import { isGuestAssistEnabled } from "@/lib/runtime-flags";
 
 export async function POST(request: Request) {

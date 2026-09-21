@@ -17,6 +17,8 @@ import { IncidentTimelineStrip } from "@/components/dispatch/incident-timeline-s
 import { CadReadyPanel } from "@/components/dashboards/dispatcher-workspace-panels";
 import { NonEmergencyQueuePanel } from "@/components/triage/non-emergency-queue-panel";
 import { useSession } from "@/components/auth/session-context";
+import { useClockPreference } from "@/components/providers/clock-preference-provider";
+import { formatClockTime } from "@/lib/clock-format";
 import { isApiConfigured, fetchTriage } from "@/lib/api";
 import {
   fetchCadUnitBoard,
@@ -418,6 +420,7 @@ export function CadDispatcherWorkspaceLayout({
   const clock = useLiveClock();
   const shift = useShiftElapsedLabel();
   const { user } = useSession();
+  const { hour12 } = useClockPreference();
 
   const activeTable = useMemo(() => queueIncidents.filter((i) => i.status === "active"), [queueIncidents]);
   const pendingTable = useMemo(
@@ -530,7 +533,7 @@ export function CadDispatcherWorkspaceLayout({
         </div>
         <div className="flex shrink-0 items-center gap-3 font-mono text-[11px]" style={{ color: CAD.muted }}>
           <time dateTime={clock.toISOString()} className="tabular-nums" style={{ color: CAD.text }}>
-            {clock.toLocaleTimeString(undefined, { hour: "2-digit", minute: "2-digit", second: "2-digit" })}
+            {formatClockTime(clock, hour12, { second: "2-digit" })}
           </time>
           <span className="hidden sm:inline" title="Elapsed since this console was opened">
             Shift <span style={{ color: CAD.text }}>{shift}</span>

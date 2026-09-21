@@ -17,7 +17,7 @@
 import maplibregl from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { getMapAuthenticationOptions } from "rapid-cortex-maps";
+import { alsMapStyleUrl, getMapAuthenticationOptions, isAlsMapApiV2 } from "rapid-cortex-maps";
 import { useALSMap } from "@/lib/map/als-map-context";
 
 import {
@@ -48,7 +48,9 @@ import {
   STUDIO_LAYER_IDS,
 } from "./map-constants";
 import type {
+  RCCallerLocation,
   RCIncident,
+  RCLiveCaller,
   RCMapLayerVisibility,
   RCMapProps,
   RCOperationalOverlay,
@@ -56,24 +58,83 @@ import type {
 import { DEFAULT_LAYER_VISIBILITY } from "./map-types";
 import { buildCallerPopupHTML, buildIncidentPopupHTML, incidentsToGeoJSON } from "./map-utils";
 import { MapLayerControl } from "./MapLayerControl";
+import { collectLiveCallers, isLiveCallerSource } from "@/lib/live-caller";
+import {
+  applyLiveCallerOverlayVisibility,
+  bindLiveCallerOverlayInteractions,
+  LIVE_CALLER_LAYER_IDS,
+  restoreLiveCallerOverlay,
+  setLiveCallerOverlayData,
+} from "./live-caller-overlay";
 import {
   applyRuntimeOverlayVisibility,
   applyTrafficLayerVisibility,
   ensureRuntimeOverlayLayers,
   setOverlaySourceData,
 } from "./map-overlay-layers";
+import { addOverlayLayer, promoteOverlaySlots } from "./overlay-slot";
 import {
   discoverTrafficLayerIds,
+  EMPTY_OVERLAY_FC,
   loadAgencyZoneOverlay,
   loadAirportOverlay,
   loadStaticOverlay,
   lngLatBoundsOfIncidents,
   overlayZonesEnabled,
+  OVERLAY_AIRPORTS_CIRCLE,
+  OVERLAY_AIRPORTS_LABEL,
   OVERLAY_AIRPORTS_SOURCE,
+  OVERLAY_COUNTIES_LINE,
   OVERLAY_COUNTIES_SOURCE,
+  OVERLAY_STATES_LINE,
   OVERLAY_STATES_SOURCE,
+  OVERLAY_ZONES_FILL,
+  OVERLAY_ZONES_LINE,
   OVERLAY_ZONES_SOURCE,
 } from "./runtime-overlays";
+import {
+  applyPsapOverlayVisibility,
+  bindPsapOverlayInteractions,
+  ensurePsapOverlayLayers,
+  loadPsapOverlay,
+  PSAP_OVERLAY_LAYER_IDS,
+  setPsapOverlayData,
+} from "./psap-overlay";
+import {
+  applyHospitalOverlayVisibility,
+  bindHospitalOverlayInteractions,
+  ensureHospitalOverlayLayers,
+  HOSPITAL_OVERLAY_LAYER_IDS,
+  loadHospitalOverlay,
+  radiusMetersFromMap,
+  setHospitalOverlayData,
+  visibleHospitalCollection,
+  type HospitalSelectHandler,
+} from "./hospital-overlay";
+import { HospitalDetailCard } from "./HospitalDetailCard";
+import { EducationDetailCard } from "./EducationDetailCard";
+import {
+  applyEducationOverlayVisibility,
+  bindEducationOverlayInteractions,
+  EDUCATION_FETCH_DEBOUNCE_MS,
+  EDUCATION_OVERLAY_LAYER_IDS,
+  EDUCATION_UNAVAILABLE_MESSAGE,
+  EDUCATION_ZOOM_HINT,
+  ensureEducationOverlayLayers,
+  lastEducationOverlayData,
+  loadEducationOverlay,
+  setEducationOverlayData,
+  shouldFetchEducationLayer,
+  teardownEducationOverlay,
+  type EducationOverlayHint,
+  type EducationSelectHandler,
+} from "./education-overlay";
+import type {
+  AlsHospitalFeatureProperties,
+  AlsHospitalMapFeatureCollection,
+  EducationGeoJsonProperties,
+} from "rapid-cortex-shared";
+import { isMapEducationEnabled, isMapHospitalsEnabled } from "@/lib/runtime-flags";
 import {
   loadMapLayers,
   loadMapTheme,
@@ -87,6 +148,81 @@ type MapClickHandler = (
 
 const EMPTY_SECTION_FC: GeoJSON.FeatureCollection = { type: "FeatureCollection", features: [] };
 
+async function restorePsapOverlay(map: maplibregl.Map, visible: boolean): Promise<void> {
+  await ensurePsapOverlayLayers(map);
+  bindPsapOverlayInteractions(map, maplibregl);
+  applyPsapOverlayVisibility(map, visible);
+  if (visible) {
+    setPsapOverlayData(map, await loadPsapOverlay());
+  }
+}
+
+async function restoreHospitalOverlay(
+  map: maplibregl.Map,
+  layers: RCMapLayerVisibility,
+  onSelect: HospitalSelectHandler,
+): Promise<void> {
+  if (!isMapHospitalsEnabled()) return;
+  await ensureHospitalOverlayLayers(map);
+  bindHospitalOverlayInteractions(map, maplibregl, onSelect);
+  applyHospitalOverlayVisibility(map, layers.hospitals || layers.emergencyRooms);
+}
+
+async function restoreEducationOverlay(
+  map: maplibregl.Map,
+  layers: RCMapLayerVisibility,
+  onSelect: EducationSelectHandler,
+): Promise<void> {
+  if (!isMapEducationEnabled()) return;
+  await ensureEducationOverlayLayers(map);
+  bindEducationOverlayInteractions(map, maplibregl, onSelect);
+  applyEducationOverlayVisibility(map, layers.education);
+  if (layers.education) {
+    setEducationOverlayData(map, lastEducationOverlayData(map));
+  }
+}
+
+function restoreLiveCallerLayers(
+  map: maplibregl.Map,
+  layers: RCMapLayerVisibility,
+  callers: RCLiveCaller[],
+  onSelect: (caller: RCLiveCaller) => void,
+): void {
+  restoreLiveCallerOverlay(map, layers, callers);
+  bindLiveCallerOverlayInteractions(map, maplibregl, onSelect);
+}
+
+function hospitalDistanceOrigin(
+  caller: RCCallerLocation | null | undefined,
+  incidents: RCIncident[],
+  selectedId: string | null | undefined,
+): { lat: number; lng: number } | undefined {
+  if (caller) return { lat: caller.lat, lng: caller.lng };
+  const selected = incidents.find(
+    (item) => item.id === selectedId && item.latitude != null && item.longitude != null,
+  );
+  if (selected?.latitude != null && selected.longitude != null) {
+    return { lat: selected.latitude, lng: selected.longitude };
+  }
+  const first = incidents.find((item) => item.latitude != null && item.longitude != null);
+  if (first?.latitude != null && first.longitude != null) {
+    return { lat: first.latitude, lng: first.longitude };
+  }
+  return undefined;
+}
+
+function styleUrlFor(theme: "dark" | "light", layers: RCMapLayerVisibility): string {
+  if (!isAlsMapApiV2()) return alsMapStyleUrl(theme);
+  return alsMapStyleUrl(theme, {
+    traffic: layers.liveTraffic,
+    terrain: layers.basemapTerrain,
+    buildings: layers.basemapBuildings,
+    contours: layers.basemapContours,
+    travelMode: layers.basemapTransit ? "Transit" : undefined,
+    style: layers.basemapSatellite ? "Hybrid" : undefined,
+  });
+}
+
 // ─── Component ────────────────────────────────────────────────────────────────
 
 export default function RapidCortexMapCore({
@@ -98,6 +234,8 @@ export default function RapidCortexMapCore({
   onIncidentClick,
   onMapReady,
   callerLocation,
+  liveCallers = [],
+  onLiveCallerClick,
   defaultLayers,
   showLayerControl = true,
   height = "100%",
@@ -132,10 +270,33 @@ export default function RapidCortexMapCore({
   const pitchRef = useRef(pitchProp);
   const bearingRef = useRef(bearingProp);
   const appliedThemeRef = useRef<"dark" | "light" | null>(null);
+  const appliedStyleUrlRef = useRef<string | null>(null);
+  const styleLoadHandlerRef = useRef<(() => void) | null>(null);
   const clickHandlerRef = useRef<MapClickHandler>(() => undefined);
   const lastCommandIdRef = useRef<number | null>(null);
   const trafficLayersRef = useRef<{ flow: string[]; closures: string[] }>({ flow: [], closures: [] });
   const didFitRef = useRef(false);
+  const hospitalDataRef = useRef<AlsHospitalMapFeatureCollection>({
+    type: "FeatureCollection",
+    features: [],
+  });
+  const hospitalSelectRef = useRef<HospitalSelectHandler>(() => undefined);
+  const educationSelectRef = useRef<EducationSelectHandler>(() => undefined);
+  const educationAbortRef = useRef<AbortController | null>(null);
+  const liveCallersRef = useRef<RCLiveCaller[]>(liveCallers ?? []);
+  const callerLocationRef = useRef<RCCallerLocation | null | undefined>(callerLocation);
+  const liveCallerClickRef = useRef(onLiveCallerClick);
+  const incidentClickRef = useRef(onIncidentClick);
+  const liveCallerSeenAtRef = useRef(new Map<string, { coordKey: string; at: string }>());
+  const [selectedHospital, setSelectedHospital] = useState<{
+    props: AlsHospitalFeatureProperties;
+    coordinates: [number, number];
+  } | null>(null);
+  const [selectedEducation, setSelectedEducation] = useState<{
+    props: EducationGeoJsonProperties;
+    coordinates: [number, number];
+  } | null>(null);
+  const [educationHint, setEducationHint] = useState<EducationOverlayHint>(null);
 
   const [mapReady,  setMapReady]  = useState(false);
   const [mapError,  setMapError]  = useState<string | null>(null);
@@ -146,12 +307,44 @@ export default function RapidCortexMapCore({
   });
 
   const theme = onThemeChange ? themeProp : localTheme;
-  const { ready: alsReady, mapStyleUrl, mapStyleDarkUrl } = useALSMap();
-  const alsStyleFor = (t: "dark" | "light") => (t === "light" ? mapStyleUrl : mapStyleDarkUrl);
+  const { ready: alsReady } = useALSMap();
 
   useEffect(() => {
     layersRef.current = layers;
   }, [layers]);
+
+  hospitalSelectRef.current = (props, coordinates) => {
+    setSelectedEducation(null);
+    setSelectedHospital({ props, coordinates });
+  };
+
+  educationSelectRef.current = (props, coordinates) => {
+    setSelectedHospital(null);
+    setSelectedEducation({ props, coordinates });
+  };
+
+  liveCallerClickRef.current = onLiveCallerClick;
+  incidentClickRef.current = onIncidentClick;
+  liveCallersRef.current = liveCallers ?? [];
+  callerLocationRef.current = callerLocation;
+
+  const fallbackLiveCallerUpdatedAt = (id: string, coordKey: string): string => {
+    const existing = liveCallerSeenAtRef.current.get(id);
+    if (existing && existing.coordKey === coordKey) return existing.at;
+    const at = new Date().toISOString();
+    liveCallerSeenAtRef.current.set(id, { coordKey, at });
+    return at;
+  };
+
+  const resolvedLiveCallers = (): RCLiveCaller[] =>
+    collectLiveCallers(liveCallersRef.current, callerLocationRef.current, fallbackLiveCallerUpdatedAt);
+
+  const onLiveCallerSelect = (caller: RCLiveCaller) => {
+    liveCallerClickRef.current?.(caller);
+    if (!caller.incidentId) return;
+    const matched = incidentsRef.current.find((item) => item.id === caller.incidentId);
+    if (matched) incidentClickRef.current?.(matched);
+  };
 
   useEffect(() => {
     incidentsRef.current = incidents;
@@ -204,6 +397,8 @@ export default function RapidCortexMapCore({
 
     const initialTheme = themeProp;
     appliedThemeRef.current = initialTheme;
+    const initialStyle = styleUrlFor(initialTheme, layersRef.current);
+    appliedStyleUrlRef.current = initialStyle;
 
     const initCenter: [number, number] = [
       centerLng ?? DEFAULT_CENTER[0],
@@ -213,7 +408,7 @@ export default function RapidCortexMapCore({
 
     const map = new maplibregl.Map({
       container:          containerRef.current,
-      style:              alsStyleFor(initialTheme),
+      style:              initialStyle,
       center:             initCenter,
       zoom:               initZoom,
       pitch:              pitchProp,
@@ -249,6 +444,14 @@ export default function RapidCortexMapCore({
         extrusionRef.current,
       );
       ensureRuntimeOverlayLayers(map);
+      void restorePsapOverlay(map, layersRef.current.psaps);
+      void restoreHospitalOverlay(map, layersRef.current, (props, coordinates) => {
+        hospitalSelectRef.current(props, coordinates);
+      });
+      void restoreEducationOverlay(map, layersRef.current, (props, coordinates) => {
+        educationSelectRef.current(props, coordinates);
+      });
+      restoreLiveCallerLayers(map, layersRef.current, resolvedLiveCallers(), onLiveCallerSelect);
       trafficLayersRef.current = discoverTrafficLayerIds(map.getStyle()?.layers);
       promoteStudioOverlays(map);
       applyStudioVisibility(map, layersRef.current);
@@ -310,6 +513,8 @@ export default function RapidCortexMapCore({
       if (resizeRaf) cancelAnimationFrame(resizeRaf);
       resizeObserver?.disconnect();
       popupRef.current?.remove();
+      educationAbortRef.current?.abort();
+      teardownEducationOverlay(map);
       map.remove();
       mapRef.current = null;
       didFitRef.current = false;
@@ -317,18 +522,27 @@ export default function RapidCortexMapCore({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [alsReady]); // Wait for ALS auth, then mount once
 
-  // ─── Swap ALS style when theme changes ───────────────────────────────────
+  // ─── Swap ALS style when theme or V2 basemap options change ─────────────
+  // Do not wait on mapReady — a second toggle during reload must still apply.
 
   useEffect(() => {
     const map = mapRef.current;
-    if (!map || !mapReady) return;
-    if (appliedThemeRef.current === theme) return;
+    if (!map) return;
+    const nextStyle = styleUrlFor(theme, layers);
+    if (appliedStyleUrlRef.current === nextStyle) return;
+
+    if (styleLoadHandlerRef.current) {
+      map.off("style.load", styleLoadHandlerRef.current);
+      styleLoadHandlerRef.current = null;
+    }
 
     appliedThemeRef.current = theme;
+    appliedStyleUrlRef.current = nextStyle;
     setMapReady(false);
     popupRef.current?.remove();
 
     const onStyleLoad = () => {
+      styleLoadHandlerRef.current = null;
       ensureLiveLayers(
         map,
         layersRef.current,
@@ -338,6 +552,14 @@ export default function RapidCortexMapCore({
         extrusionRef.current,
       );
       ensureRuntimeOverlayLayers(map);
+      void restorePsapOverlay(map, layersRef.current.psaps);
+      void restoreHospitalOverlay(map, layersRef.current, (props, coordinates) => {
+        hospitalSelectRef.current(props, coordinates);
+      });
+      void restoreEducationOverlay(map, layersRef.current, (props, coordinates) => {
+        educationSelectRef.current(props, coordinates);
+      });
+      restoreLiveCallerLayers(map, layersRef.current, resolvedLiveCallers(), onLiveCallerSelect);
       trafficLayersRef.current = discoverTrafficLayerIds(map.getStyle()?.layers);
       promoteStudioOverlays(map);
       applyStudioVisibility(map, layersRef.current);
@@ -358,9 +580,18 @@ export default function RapidCortexMapCore({
       setMapReady(true);
     };
 
+    styleLoadHandlerRef.current = onStyleLoad;
     map.once("style.load", onStyleLoad);
-    map.setStyle(alsStyleFor(theme));
-  }, [theme, mapReady]);
+    map.setStyle(nextStyle);
+  }, [
+    theme,
+    layers.liveTraffic,
+    layers.basemapTerrain,
+    layers.basemapBuildings,
+    layers.basemapContours,
+    layers.basemapTransit,
+    layers.basemapSatellite,
+  ]);
 
   // ─── Update live incidents when prop changes ─────────────────────────────
 
@@ -477,8 +708,9 @@ export default function RapidCortexMapCore({
   useEffect(() => {
     if (!mapReady || !mapRef.current) return;
     const source = mapRef.current.getSource(CALLER_SOURCE_ID) as maplibregl.GeoJSONSource | undefined;
+    const reportPin = callerLocation && !isLiveCallerSource(callerLocation.source) ? callerLocation : null;
 
-    if (!callerLocation) {
+    if (!reportPin) {
       source?.setData({ type: "FeatureCollection", features: [] });
       return;
     }
@@ -490,16 +722,31 @@ export default function RapidCortexMapCore({
           type: "Feature",
           geometry: {
             type:        "Point",
-            coordinates: [callerLocation.lng, callerLocation.lat],
+            coordinates: [reportPin.lng, reportPin.lat],
           },
           properties: {
-            label:  callerLocation.label ?? "Caller Location",
-            source: callerLocation.source ?? "reported",
+            label:  reportPin.label ?? "Caller Location",
+            source: reportPin.source ?? "reported",
           },
         },
       ],
     });
   }, [callerLocation, mapReady]);
+
+  // ─── Live caller GPS overlay (pulse + accuracy + freshness) ─────────────
+
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!mapReady || !map) return;
+
+    const paint = () => {
+      setLiveCallerOverlayData(map, resolvedLiveCallers());
+      applyLiveCallerOverlayVisibility(map, layersRef.current);
+    };
+    paint();
+    const timer = window.setInterval(paint, 1000);
+    return () => window.clearInterval(timer);
+  }, [mapReady, liveCallers, callerLocation]);
 
   // ─── Sync layer visibility when state changes ────────────────────────────
 
@@ -516,6 +763,10 @@ export default function RapidCortexMapCore({
     safeSetVisibility(map, CALLER_LAYER,        layers.callerPin);
     safeSetVisibility(map, CALLER_LABEL_LAYER,  layers.callerPin);
     applyRuntimeOverlayVisibility(map, layers);
+    applyPsapOverlayVisibility(map, layers.psaps);
+    applyHospitalOverlayVisibility(map, layers.hospitals || layers.emergencyRooms);
+    applyEducationOverlayVisibility(map, layers.education);
+    applyLiveCallerOverlayVisibility(map, layers);
     applyTrafficLayerVisibility(
       map,
       trafficLayersRef.current.flow,
@@ -545,6 +796,10 @@ export default function RapidCortexMapCore({
         const data = await loadAgencyZoneOverlay();
         if (!cancelled) setOverlaySourceData(map, OVERLAY_ZONES_SOURCE, data);
       }
+      if (layers.psaps) {
+        const data = await loadPsapOverlay();
+        if (!cancelled) setPsapOverlayData(map, data);
+      }
     })();
     return () => {
       cancelled = true;
@@ -557,7 +812,165 @@ export default function RapidCortexMapCore({
     layers.agencyZones,
     layers.campusZones,
     layers.venueZones,
+    layers.psaps,
   ]);
+
+  const hospitalOverlayOn = layers.hospitals || layers.emergencyRooms;
+
+  useEffect(() => {
+    if (!mapReady || !mapRef.current) return;
+    const map = mapRef.current;
+    applyHospitalOverlayVisibility(map, hospitalOverlayOn);
+    if (!hospitalOverlayOn) {
+      setHospitalOverlayData(map, EMPTY_OVERLAY_FC);
+      setSelectedHospital(null);
+      return;
+    }
+    setHospitalOverlayData(
+      map,
+      visibleHospitalCollection(hospitalDataRef.current, {
+        hospitals: layers.hospitals,
+        emergencyRooms: layers.emergencyRooms,
+      }),
+    );
+  }, [mapReady, hospitalOverlayOn, layers.hospitals, layers.emergencyRooms]);
+
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!mapReady || !map || !isMapHospitalsEnabled() || !hospitalOverlayOn) return;
+    let cancelled = false;
+    let timer: ReturnType<typeof setTimeout> | null = null;
+
+    const refresh = async () => {
+      const center = map.getCenter();
+      const origin = hospitalDistanceOrigin(
+        callerLocation,
+        incidentsRef.current,
+        selectedIncidentId,
+      );
+      const data = await loadHospitalOverlay({
+        lat: center.lat,
+        lng: center.lng,
+        radius: radiusMetersFromMap(map),
+        fromLat: origin?.lat,
+        fromLng: origin?.lng,
+      });
+      if (cancelled) return;
+      hospitalDataRef.current = data;
+      setHospitalOverlayData(
+        map,
+        visibleHospitalCollection(data, {
+          hospitals: layersRef.current.hospitals,
+          emergencyRooms: layersRef.current.emergencyRooms,
+        }),
+      );
+    };
+
+    void (async () => {
+      await ensureHospitalOverlayLayers(map);
+      bindHospitalOverlayInteractions(map, maplibregl, (props, coordinates) => {
+        hospitalSelectRef.current(props, coordinates);
+      });
+      await refresh();
+    })();
+
+    const onMoveEnd = () => {
+      if (timer) clearTimeout(timer);
+      timer = setTimeout(() => {
+        void refresh();
+      }, 400);
+    };
+    map.on("moveend", onMoveEnd);
+    return () => {
+      cancelled = true;
+      if (timer) clearTimeout(timer);
+      map.off("moveend", onMoveEnd);
+    };
+  }, [mapReady, hospitalOverlayOn, callerLocation, selectedIncidentId]);
+
+  useEffect(() => {
+    if (!mapReady || !mapRef.current) return;
+    const map = mapRef.current;
+    applyEducationOverlayVisibility(map, layers.education);
+    if (!layers.education) {
+      setEducationOverlayData(map, EMPTY_OVERLAY_FC);
+      setSelectedEducation(null);
+      setEducationHint(null);
+    }
+  }, [mapReady, layers.education]);
+
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!mapReady || !map || !isMapEducationEnabled() || !layers.education) return;
+    let cancelled = false;
+    let timer: ReturnType<typeof setTimeout> | null = null;
+
+    const refresh = async () => {
+      if (!shouldFetchEducationLayer(map.getZoom())) {
+        educationAbortRef.current?.abort();
+        setEducationOverlayData(map, EMPTY_OVERLAY_FC);
+        setEducationHint("zoom");
+        return;
+      }
+      setEducationHint(null);
+      educationAbortRef.current?.abort();
+      const controller = new AbortController();
+      educationAbortRef.current = controller;
+      const center = map.getCenter();
+      const bounds = map.getBounds();
+      const origin = hospitalDistanceOrigin(
+        callerLocation,
+        incidentsRef.current,
+        selectedIncidentId,
+      );
+      const result = await loadEducationOverlay(
+        {
+          centerLat: center.lat,
+          centerLng: center.lng,
+          west: bounds.getWest(),
+          south: bounds.getSouth(),
+          east: bounds.getEast(),
+          north: bounds.getNorth(),
+          zoom: map.getZoom(),
+          fromLat: origin?.lat,
+          fromLng: origin?.lng,
+        },
+        controller.signal,
+      );
+      if (cancelled || controller.signal.aborted) return;
+      if (!result.ok) {
+        if (!result.aborted) setEducationHint("error");
+        return;
+      }
+      setEducationHint(null);
+      setEducationOverlayData(map, result.data);
+    };
+
+    void (async () => {
+      await ensureEducationOverlayLayers(map);
+      bindEducationOverlayInteractions(map, maplibregl, (props, coordinates) => {
+        educationSelectRef.current(props, coordinates);
+      });
+      applyEducationOverlayVisibility(map, true);
+      await refresh();
+    })();
+
+    const onMoveEnd = () => {
+      if (timer) clearTimeout(timer);
+      timer = setTimeout(() => {
+        void refresh();
+      }, EDUCATION_FETCH_DEBOUNCE_MS);
+    };
+    map.on("moveend", onMoveEnd);
+    map.on("zoomend", onMoveEnd);
+    return () => {
+      cancelled = true;
+      if (timer) clearTimeout(timer);
+      educationAbortRef.current?.abort();
+      map.off("moveend", onMoveEnd);
+      map.off("zoomend", onMoveEnd);
+    };
+  }, [mapReady, layers.education, callerLocation, selectedIncidentId]);
 
   // Fit once when the first geocoded incidents arrive after style load.
   useEffect(() => {
@@ -679,6 +1092,50 @@ export default function RapidCortexMapCore({
           onToggle={handleLayerToggle}
           vertical={vertical}
         />
+      )}
+
+      {selectedHospital && (
+        <HospitalDetailCard
+          props={selectedHospital.props}
+          coordinates={selectedHospital.coordinates}
+          onClose={() => setSelectedHospital(null)}
+        />
+      )}
+
+      {selectedEducation && (
+        <EducationDetailCard
+          props={selectedEducation.props}
+          coordinates={selectedEducation.coordinates}
+          onClose={() => setSelectedEducation(null)}
+          onCenter={() => {
+            mapRef.current?.easeTo({
+              center: selectedEducation.coordinates,
+              zoom: Math.max(mapRef.current.getZoom(), 14),
+            });
+          }}
+        />
+      )}
+
+      {educationHint && (
+        <div
+          style={{
+            position: "absolute",
+            bottom: 16,
+            left: 12,
+            zIndex: 11,
+            background: T.surface,
+            border: `1px solid ${T.border}`,
+            borderRadius: 6,
+            padding: "6px 10px",
+            color: T.textMuted,
+            fontSize: 11,
+            fontWeight: 600,
+            boxShadow: "0 2px 8px rgba(0,0,0,.35)",
+            maxWidth: 280,
+          }}
+        >
+          {educationHint === "zoom" ? EDUCATION_ZOOM_HINT : EDUCATION_UNAVAILABLE_MESSAGE}
+        </div>
       )}
 
       {/* Dark / light ALS style toggle — above MapLibre +/- (bottom-right) */}
@@ -830,7 +1287,7 @@ function ensureLiveLayers(
   }
 
   if (!map.getLayer(SECTION_FILL_LAYER)) {
-    map.addLayer({
+    addOverlayLayer(map, {
       id: SECTION_FILL_LAYER,
       type: "fill",
       source: SECTION_SOURCE_ID,
@@ -842,7 +1299,7 @@ function ensureLiveLayers(
   }
 
   if (!map.getLayer(SECTION_EXTRUSION_LAYER)) {
-    map.addLayer({
+    addOverlayLayer(map, {
       id: SECTION_EXTRUSION_LAYER,
       type: "fill-extrusion",
       source: SECTION_SOURCE_ID,
@@ -856,7 +1313,7 @@ function ensureLiveLayers(
   }
 
   if (!map.getLayer(SECTION_LINE_LAYER)) {
-    map.addLayer({
+    addOverlayLayer(map, {
       id: SECTION_LINE_LAYER,
       type: "line",
       source: SECTION_SOURCE_ID,
@@ -869,7 +1326,7 @@ function ensureLiveLayers(
   }
 
   if (!map.getLayer(SECTION_LABEL_LAYER)) {
-    map.addLayer({
+    addOverlayLayer(map, {
       id: SECTION_LABEL_LAYER,
       type: "symbol",
       source: SECTION_SOURCE_ID,
@@ -902,7 +1359,7 @@ function ensureLiveLayers(
   }
 
   if (!map.getLayer(LIVE_ACTIVE_LAYER)) {
-    map.addLayer({
+    addOverlayLayer(map, {
       id:     LIVE_ACTIVE_LAYER,
       type:   "circle",
       source: LIVE_SOURCE_ID,
@@ -918,7 +1375,7 @@ function ensureLiveLayers(
   }
 
   if (!map.getLayer(LIVE_PULSE_LAYER)) {
-    map.addLayer({
+    addOverlayLayer(map, {
       id:     LIVE_PULSE_LAYER,
       type:   "circle",
       source: LIVE_SOURCE_ID,
@@ -934,7 +1391,7 @@ function ensureLiveLayers(
   }
 
   if (!map.getLayer(LIVE_RESOLVED_LAYER)) {
-    map.addLayer({
+    addOverlayLayer(map, {
       id:     LIVE_RESOLVED_LAYER,
       type:   "circle",
       source: LIVE_SOURCE_ID,
@@ -960,7 +1417,7 @@ function ensureLiveLayers(
   }
 
   if (!map.getLayer(CALLER_LAYER)) {
-    map.addLayer({
+    addOverlayLayer(map, {
       id:     CALLER_LAYER,
       type:   "circle",
       source: CALLER_SOURCE_ID,
@@ -975,7 +1432,7 @@ function ensureLiveLayers(
   }
 
   if (!map.getLayer(CALLER_LABEL_LAYER)) {
-    map.addLayer({
+    addOverlayLayer(map, {
       id:     CALLER_LABEL_LAYER,
       type:   "symbol",
       source: CALLER_SOURCE_ID,
@@ -1005,7 +1462,7 @@ function ensureLiveLayers(
   }
 
   if (!map.getLayer(OPS_LAYER)) {
-    map.addLayer({
+    addOverlayLayer(map, {
       id: OPS_LAYER,
       type: "circle",
       source: OPS_SOURCE_ID,
@@ -1035,7 +1492,7 @@ function ensureLiveLayers(
   }
 
   if (!map.getLayer(OPS_LABEL_LAYER)) {
-    map.addLayer({
+    addOverlayLayer(map, {
       id: OPS_LABEL_LAYER,
       type: "symbol",
       source: OPS_SOURCE_ID,
@@ -1198,22 +1655,34 @@ function safeSetVisibility(
 }
 
 /**
- * ALS Esri styles ignore unknown slots; keep this no-op-safe for leftover overlay IDs.
+ * ALS Maps V2 hides custom layers unless they are assigned to a slot.
+ * Promote every runtime overlay (not only leftover Studio IDs) onto `top`.
  */
 function promoteStudioOverlays(map: maplibregl.Map): void {
-  for (const layerId of STUDIO_LAYER_IDS) {
-    if (!map.getLayer(layerId)) continue;
-    try {
-      const withSlot = map as maplibregl.Map & {
-        setSlot?: (id: string, slot: string) => void;
-      };
-      if (typeof withSlot.setSlot === "function") {
-        withSlot.setSlot(layerId, "top");
-      }
-    } catch {
-      /* older GL builds / unsupported — visibility toggles still apply */
-    }
-  }
+  promoteOverlaySlots(map, [
+    ...STUDIO_LAYER_IDS,
+    OVERLAY_ZONES_FILL,
+    OVERLAY_ZONES_LINE,
+    OVERLAY_COUNTIES_LINE,
+    OVERLAY_STATES_LINE,
+    OVERLAY_AIRPORTS_CIRCLE,
+    OVERLAY_AIRPORTS_LABEL,
+    ...PSAP_OVERLAY_LAYER_IDS,
+    ...HOSPITAL_OVERLAY_LAYER_IDS,
+    ...EDUCATION_OVERLAY_LAYER_IDS,
+    ...LIVE_CALLER_LAYER_IDS,
+    LIVE_ACTIVE_LAYER,
+    LIVE_PULSE_LAYER,
+    LIVE_RESOLVED_LAYER,
+    CALLER_LAYER,
+    CALLER_LABEL_LAYER,
+    OPS_LAYER,
+    OPS_LABEL_LAYER,
+    SECTION_FILL_LAYER,
+    SECTION_EXTRUSION_LAYER,
+    SECTION_LINE_LAYER,
+    SECTION_LABEL_LAYER,
+  ]);
 }
 
 /**

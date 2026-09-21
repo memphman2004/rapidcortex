@@ -77,6 +77,10 @@ export ALS_PLACE_INDEX_NAME="${ALS_PLACE_INDEX_NAME:-rc-places-staging}"
 export ALS_ROUTE_CALCULATOR_NAME="${ALS_ROUTE_CALCULATOR_NAME:-rc-routes-staging}"
 export ALS_GEOFENCE_COLLECTION_NAME="${ALS_GEOFENCE_COLLECTION_NAME:-rc-geofences-staging}"
 export ALS_TRACKER_NAME="${ALS_TRACKER_NAME:-rc-tracker-staging}"
+# Hospital overlay (Places V2 SearchNearby). Nested stack also sets ENABLE_MAP_HOSPITALS=true.
+export ENABLE_MAP_HOSPITALS="${ENABLE_MAP_HOSPITALS:-true}"
+# Schools / campuses overlay (Places V2 SearchNearby). Nested stack also sets ENABLE_MAP_EDUCATION=true.
+export ENABLE_MAP_EDUCATION="${ENABLE_MAP_EDUCATION:-true}"
 
 # Shared account secrets (same ARNs as live). Isolation is Dynamo/S3/Cognito, not these keys.
 export RING_CREDENTIALS_SECRET_ARN_OVERRIDE="${RING_CREDENTIALS_SECRET_ARN_OVERRIDE:-arn:aws:secretsmanager:us-east-1:158961537080:secret:rapid-cortex/connect/ring-credentials-D3f1sN}"

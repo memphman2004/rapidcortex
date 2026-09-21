@@ -242,4 +242,9 @@ export interface PsapMapPin {
   status: PsapOutreachStatus;
   psapName: string;
   state: string;
+  city?: string;
+  county?: string;
+  phone?: string;
+  cadVendor?: string;
+  psapType?: string;
 }

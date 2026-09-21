@@ -5,6 +5,7 @@
  * Follows the dispatcher shell theme (dark vs light Amazon Location style).
  */
 import { RapidCortexMap } from "@/components/maps/RapidCortexMap";
+import type { RCLiveCaller } from "@/components/maps/map-types";
 import { useTheme } from "@/lib/theme/theme-context";
 
 export function IncidentContextMap({
@@ -12,12 +13,19 @@ export function IncidentContextMap({
   longitude,
   label = "Incident",
   fill = false,
+  liveCallers,
+  incidentId,
+  reportPin = true,
 }: {
   latitude: number;
   longitude: number;
   label?: string;
   /** Fill the parent (dispatcher module pane). Compact preview when false. */
   fill?: boolean;
+  liveCallers?: RCLiveCaller[];
+  incidentId?: string;
+  /** CAD / incident report pin. False when the map is centered only on live GPS. */
+  reportPin?: boolean;
 }) {
   const { theme } = useTheme();
   return (
@@ -43,12 +51,18 @@ export function IncidentContextMap({
           liveTrafficClosures: true,
           airports: true,
         }}
-        callerLocation={{
-          lat: latitude,
-          lng: longitude,
-          label,
-          source: "manual",
-        }}
+        callerLocation={
+          reportPin
+            ? {
+                lat: latitude,
+                lng: longitude,
+                label,
+                source: "manual",
+                incidentId,
+              }
+            : null
+        }
+        liveCallers={liveCallers}
       />
     </div>
   );

@@ -12,6 +12,11 @@ import {
 import { RapidCortexMap } from "rapid-cortex-maps";
 import { getPsapProspect } from "@/lib/psap/psap-api";
 import type { PsapProspect } from "rapid-cortex-shared";
+import {
+  PSAP_ICON_ID,
+  PSAP_ICON_URL,
+  buildPsapPopupHTML,
+} from "@/components/maps/psap-overlay";
 
 const US_CENTER: [number, number] = [-98.5795, 39.8283];
 const SOURCE_ID = "psap-prospect-pins";
@@ -42,10 +47,14 @@ export function PsapMapView({ pins, statusFilter, onSelectProspect, isLoading }:
       features: filtered.map((p) => ({
         type: "Feature",
         properties: {
+          id: p.psapId,
           psapId: p.psapId,
+          name: p.psapName,
           status: p.status,
-          psapName: p.psapName,
+          city: p.city ?? "",
+          county: p.county ?? "",
           state: p.state,
+          phone: p.phone ?? "",
           color: PSAP_OUTREACH_STATUS_CONFIG[p.status].mapPinColor,
         },
         geometry: {
@@ -60,7 +69,25 @@ export function PsapMapView({ pins, statusFilter, onSelectProspect, isLoading }:
   useEffect(() => {
     if (!map) return;
 
-    const ensure = () => {
+    const hoverPopup = new maplibregl.Popup({
+      closeButton: false,
+      closeOnClick: false,
+      offset: 18,
+      maxWidth: "280px",
+      className: "rc-map-popup",
+    });
+
+    const ensure = async () => {
+      if (!map.hasImage(PSAP_ICON_ID)) {
+        try {
+          const image = await map.loadImage(PSAP_ICON_URL);
+          if (!map.hasImage(PSAP_ICON_ID)) {
+            map.addImage(PSAP_ICON_ID, image.data, { pixelRatio: 2 });
+          }
+        } catch {
+          /* fall through — circle layer is added if the icon is missing */
+        }
+      }
       if (!map.getSource(SOURCE_ID)) {
         map.addSource(SOURCE_ID, {
           type: "geojson",
@@ -75,11 +102,11 @@ export function PsapMapView({ pins, statusFilter, onSelectProspect, isLoading }:
           source: SOURCE_ID,
           filter: ["has", "point_count"],
           paint: {
-            "circle-color": "#3b82f6",
+            "circle-color": "#eab308",
             "circle-radius": ["step", ["get", "point_count"], 14, 25, 18, 100, 24],
-            "circle-opacity": 0.85,
+            "circle-opacity": 0.9,
             "circle-stroke-width": 2,
-            "circle-stroke-color": "#0f1117",
+            "circle-stroke-color": "#422006",
           },
         });
         map.addLayer({
@@ -91,28 +118,55 @@ export function PsapMapView({ pins, statusFilter, onSelectProspect, isLoading }:
             "text-field": "{point_count_abbreviated}",
             "text-size": 11,
           },
-          paint: { "text-color": "#e2e8f0" },
+          paint: { "text-color": "#1c1917" },
         });
-        map.addLayer({
-          id: UNCLUSTERED,
-          type: "circle",
-          source: SOURCE_ID,
-          filter: ["!", ["has", "point_count"]],
-          paint: {
-            "circle-color": ["get", "color"],
-            "circle-radius": 5,
-            "circle-stroke-width": 1.5,
-            "circle-stroke-color": "#0f1117",
-          },
-        });
+        if (map.hasImage(PSAP_ICON_ID)) {
+          map.addLayer({
+            id: UNCLUSTERED,
+            type: "symbol",
+            source: SOURCE_ID,
+            filter: ["!", ["has", "point_count"]],
+            layout: {
+              "icon-image": PSAP_ICON_ID,
+              "icon-size": ["interpolate", ["linear"], ["zoom"], 5, 0.45, 10, 0.7, 15, 0.95],
+              "icon-allow-overlap": true,
+              "text-field": ["step", ["zoom"], "", 7, ["get", "name"]],
+              "text-size": 11,
+              "text-offset": [0, 1.25],
+              "text-anchor": "top",
+              "text-optional": true,
+            },
+            paint: {
+              "text-color": "#fde68a",
+              "text-halo-color": "#0f1117",
+              "text-halo-width": 1.2,
+            },
+          });
+        } else {
+          map.addLayer({
+            id: UNCLUSTERED,
+            type: "circle",
+            source: SOURCE_ID,
+            filter: ["!", ["has", "point_count"]],
+            paint: {
+              "circle-color": ["get", "color"],
+              "circle-radius": 5,
+              "circle-stroke-width": 1.5,
+              "circle-stroke-color": "#0f1117",
+            },
+          });
+        }
       } else {
         const src = map.getSource(SOURCE_ID) as maplibregl.GeoJSONSource;
         src.setData(geojson);
       }
     };
 
-    if (map.isStyleLoaded()) ensure();
-    else map.once("load", ensure);
+    const onLoad = () => {
+      void ensure();
+    };
+    if (map.isStyleLoaded()) void ensure();
+    else map.once("load", onLoad);
 
     const onClusterClick = (e: maplibregl.MapLayerMouseEvent) => {
       const features = map.queryRenderedFeatures(e.point, { layers: [CLUSTER_LAYER] });
@@ -141,19 +195,45 @@ export function PsapMapView({ pins, statusFilter, onSelectProspect, isLoading }:
       }
     };
 
+    const onPinEnter = (e: maplibregl.MapLayerMouseEvent) => {
+      map.getCanvas().style.cursor = "pointer";
+      const feature = e.features?.[0];
+      if (!feature || feature.geometry.type !== "Point") return;
+      const props = feature.properties ?? {};
+      const status = props.status as PsapOutreachStatus | undefined;
+      const statusLabel = status ? PSAP_OUTREACH_STATUS_CONFIG[status]?.label : "";
+      hoverPopup
+        .setLngLat(feature.geometry.coordinates as [number, number])
+        .setHTML(
+          buildPsapPopupHTML({
+            name: String(props.name ?? ""),
+            city: String(props.city ?? ""),
+            state: String(props.state ?? ""),
+            county: String(props.county ?? ""),
+            phone: String(props.phone ?? ""),
+            statusLabel,
+          }),
+        )
+        .addTo(map);
+    };
+
+    const onPinLeave = () => {
+      map.getCanvas().style.cursor = "";
+      hoverPopup.remove();
+    };
+
     map.on("click", CLUSTER_LAYER, onClusterClick);
     map.on("click", UNCLUSTERED, onPinClick);
-    map.on("mouseenter", UNCLUSTERED, () => {
-      map.getCanvas().style.cursor = "pointer";
-    });
-    map.on("mouseleave", UNCLUSTERED, () => {
-      map.getCanvas().style.cursor = "";
-    });
+    map.on("mouseenter", UNCLUSTERED, onPinEnter);
+    map.on("mouseleave", UNCLUSTERED, onPinLeave);
 
     return () => {
+      hoverPopup.remove();
       map.off("click", CLUSTER_LAYER, onClusterClick);
       map.off("click", UNCLUSTERED, onPinClick);
-      map.off("load", ensure);
+      map.off("mouseenter", UNCLUSTERED, onPinEnter);
+      map.off("mouseleave", UNCLUSTERED, onPinLeave);
+      map.off("load", onLoad);
     };
   }, [map, geojson, onSelectProspect]);
 

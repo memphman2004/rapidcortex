@@ -117,6 +117,11 @@
       "types": "./dist/pricing/index.d.ts",
       "import": "./dist/pricing/index.js",
       "require": "./dist/pricing/index.js"
+    },
+    "./guest-assist/token": {
+      "types": "./dist/guest-assist/token.d.ts",
+      "import": "./dist/guest-assist/token.js",
+      "require": "./dist/guest-assist/token.js"
     }
   },
   "scripts": {

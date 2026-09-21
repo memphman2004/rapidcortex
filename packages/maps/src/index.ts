@@ -34,7 +34,18 @@ export {
   setMapTransformRequest,
   subscribeMapAuthReady,
 } from "./utils/map-auth";
-export { RAPID_CORTEX_MAP_STYLES } from "./utils/map-styles";
+export {
+  RAPID_CORTEX_MAP_STYLES,
+  alsMapStyleUrl,
+  alsMapV2StyleName,
+  buildAlsMapV2StyleUrl,
+  isAlsMapApiV2,
+  type AlsMapV2StyleName,
+  type AlsMapV2StyleOptions,
+  type AlsMapV2Terrain,
+  type AlsMapV2Traffic,
+  type AlsMapV2TravelMode,
+} from "./utils/map-styles";
 export {
   createAccuracyCirclePolygon,
   emptyFeatureCollection,

@@ -41,6 +41,8 @@ import type { AgencyTenant } from "rapid-cortex-shared";
 import { resolveAgencyVerticalFromTenant } from "rapid-cortex-shared";
 import { HelpChrome } from "@/components/help/help-chrome";
 import { CampusDashboardHeaderUtilities } from "@/components/campus/campus-dashboard-header-utilities";
+import { useClockPreference } from "@/components/providers/clock-preference-provider";
+import { formatHeaderClock } from "@/lib/clock-format";
 import { SiteSquareMark } from "@/components/brand/site-logo-link";
 import { ThemeProvider, useThemeRoot } from "@/lib/theme/theme-context";
 import { ThemeToggle } from "@/components/ui/ThemeToggle";
@@ -292,25 +294,6 @@ function navItemActive(pathname: string, item: NavItem): boolean {
   return pathname === item.href || pathname.startsWith(`${item.href}/`);
 }
 
-function formatClock(now: Date): { dateLine: string; timeMain: string; ampm: string } {
-  const dateLine = now.toLocaleDateString(undefined, {
-    weekday: "long",
-    month: "long",
-    day: "numeric",
-    year: "numeric",
-  });
-  const timeParts = now.toLocaleTimeString(undefined, {
-    hour: "numeric",
-    minute: "2-digit",
-    hour12: true,
-  });
-  const match = timeParts.match(/^(.+)\s+(AM|PM)$/i);
-  return {
-    dateLine,
-    timeMain: match?.[1] ?? timeParts,
-    ampm: match?.[2] ?? "",
-  };
-}
 
 function formatTimeAgo(iso: string): string {
   const ms = Date.now() - new Date(iso).getTime();
@@ -500,6 +483,7 @@ function RcAdminConsoleHomeInner({
   userEmail,
   userRole,
 }: RcAdminConsoleHomeProps) {
+  const { hour12 } = useClockPreference();
   const pathname = usePathname() ?? "";
   const apiLive = isApiConfigured();
   const superAdmin = isRcSuperAdmin(userRole);
@@ -576,7 +560,7 @@ function RcAdminConsoleHomeInner({
   const env = findEnv(envId);
   const currentBg = customBg ?? env.defaultBg;
   const hasCustomBg = Boolean(customBg);
-  const clock = formatClock(now);
+  const clock = formatHeaderClock(now, hour12);
 
   const switchEnv = useCallback((next: EnvDef) => {
     setEnvId(next.id);
