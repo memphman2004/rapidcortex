@@ -78,7 +78,7 @@ export default async function CampusQrCodesPage({ params, searchParams }: Props)
         canCreate={perms.canCreate}
         canDeactivate={perms.canDeactivate}
         canDownload={perms.canDownload}
-        zoneLabel="Building / Floor / Room"
+        zoneLabel="Location Details"
         hideHeading
         tenantConsole
       />

@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { campusGuestAssistKnowledgeSchema } from "../guest-assist/knowledge.js";
 
 export const campusAnonymousReportingPolicySchema = z.enum(["allow", "require", "disallow"]);
 export const campusAcademicCalendarTypeSchema = z.enum(["semester", "quarter", "trimester"]);
@@ -35,6 +36,7 @@ export const campusIntakeSchema = z
     studentCommsChannel: campusStudentCommsChannelSchema,
     studentCommsChannelOther: z.string().trim().max(500).optional(),
     dataRetentionPreference: campusDataRetentionPreferenceSchema,
+    guestAssistKnowledge: campusGuestAssistKnowledgeSchema.default({}),
     notes: z.string().trim().max(8000).optional(),
   })
   .strict()

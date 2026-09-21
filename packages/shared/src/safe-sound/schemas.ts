@@ -8,7 +8,7 @@ export const apiEnvelopeSchema = z.object({
 });
 
 export const rcCodeReportTypeSchema = z.enum(["anonymous", "identified", "both"]);
-export const codeVerticalSchema = z.enum(["venue", "campus"]);
+export const codeVerticalSchema = z.enum(["venue", "campus", "transit"]);
 export const codeStatusSchema = z.enum(["active", "inactive"]);
 
 export const nfcWriteEventSchema = z.object({

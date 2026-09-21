@@ -79,6 +79,7 @@ build/
 infra/.aws-sam/
 .sam-build-dir/
 .tmp-make-artifacts/
+.tmp-vitest/
 
 # environment / secrets
 .env

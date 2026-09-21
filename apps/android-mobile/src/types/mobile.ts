@@ -1,7 +1,7 @@
 /** Rapid Cortex mobile domain types — Safe & Sound, Guardian, Venue/Campus codes. */
 
 export type ReportType = 'anonymous' | 'identified' | 'both';
-export type CodeVertical = 'venue' | 'campus';
+export type CodeVertical = 'venue' | 'campus' | 'transit';
 export type CodeStatus = 'active' | 'inactive';
 
 export interface NFCWriteEvent {

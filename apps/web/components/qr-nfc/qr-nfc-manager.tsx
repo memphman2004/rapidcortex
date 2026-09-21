@@ -25,6 +25,9 @@ type Props = {
   canDeactivate: boolean;
   canDownload?: boolean;
   zoneLabel?: string;
+  nameLabel?: string;
+  namePlaceholder?: string;
+  zonePlaceholder?: string;
   globalView?: boolean;
   /** Rapid Cortex site QR/NFC (www.rapidcortex.us). RC internal logins only. */
   showSiteQr?: boolean;
@@ -59,7 +62,10 @@ export function QRNFCManager({
   canCreate,
   canDeactivate,
   canDownload = true,
-  zoneLabel = "Zone / Location",
+  zoneLabel = "Location Details",
+  nameLabel = "Reporting Point Name",
+  namePlaceholder = "e.g. Gate A, Student Center, Bus 2145",
+  zonePlaceholder = "e.g. Section 112, East Entrance, Platform 3",
   globalView = false,
   showSiteQr = false,
   hideHeading = false,
@@ -884,11 +890,12 @@ export function QRNFCManager({
               ) : null}
             </p>
             <label className="mt-4 block text-sm text-slate-300">
-              Name *
+              {nameLabel} *
               <input
                 required
                 value={form.name}
                 onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
+                placeholder={namePlaceholder}
                 className="mt-1 w-full rounded border border-slate-600 bg-slate-950 px-2 py-1.5"
               />
             </label>
@@ -905,6 +912,7 @@ export function QRNFCManager({
               <input
                 value={form.zoneName ?? ""}
                 onChange={(e) => setForm((f) => ({ ...f, zoneName: e.target.value }))}
+                placeholder={zonePlaceholder}
                 className="mt-1 w-full rounded border border-slate-600 bg-slate-950 px-2 py-1.5"
               />
             </label>

@@ -2,6 +2,7 @@ import type { UserContext } from "rapid-cortex-shared/types";
 import { isRcInternalOperator } from "rapid-cortex-shared/tenancy/principal";
 import {
   extractCampusCode,
+  extractTransitCode,
   extractVenueCode,
 } from "@/lib/auth/post-login-redirect";
 
@@ -52,4 +53,37 @@ export function resolveVenueOrgCode(
   if (requested?.trim()) return normalizeOrgCode(requested);
   if (canAccessOnboardingAdmin(user)) return "";
   return extractVenueCode(user.agencyId ?? "");
+}
+
+export function canAccessTransitOnboarding(
+  user: Pick<UserContext, "role" | "agencyId">,
+  orgCode: string,
+): boolean {
+  if (canAccessOnboardingAdmin(user)) return true;
+  if (user.role.trim().toUpperCase() !== "TRANSIT_ADMIN") return false;
+  const userCode = extractTransitCode(user.agencyId ?? "");
+  return userCode === normalizeOrgCode(orgCode);
+}
+
+export function resolveTransitOrgCode(
+  user: Pick<UserContext, "role" | "agencyId">,
+  requested?: string | null,
+): string {
+  if (requested?.trim()) return normalizeOrgCode(requested);
+  if (canAccessOnboardingAdmin(user)) return "";
+  return extractTransitCode(user.agencyId ?? "");
+}
+
+export function resolveTransitIntakeAgencyId(
+  user: Pick<UserContext, "role" | "agencyId">,
+  orgCode: string,
+  requested?: string | null,
+): string {
+  if (requested?.trim()) return requested.trim();
+  const session = user.agencyId?.trim() ?? "";
+  if (session) {
+    const sessionCode = extractTransitCode(session);
+    if (!orgCode || sessionCode === normalizeOrgCode(orgCode)) return session;
+  }
+  return `test-transit-${normalizeOrgCode(orgCode).toLowerCase()}`;
 }

@@ -99,6 +99,8 @@ describe("getRoleNav", () => {
   it("uses indigo accent for transit so it does not match PSAP sky", () => {
     const nav = getRoleNav("TRANSIT_ADMIN", { transitCode: "MARTA" });
     expect(nav.accent).toBe("indigo");
+    const hrefs = nav.sections.flatMap((s) => s.items.map((i) => i.href));
+    expect(hrefs).toContain("/onboarding/transit/intake?orgCode=MARTA");
   });
 
   it("uses slate accent for campus and orange for venue", () => {
@@ -122,6 +124,7 @@ describe("getRoleNav", () => {
       expect(hrefs).toContain("/rc-admin/onboarding/campus/intake");
       expect(hrefs).toContain("/rc-admin/onboarding/campus/integrations");
       expect(hrefs).toContain("/rc-admin/onboarding/venue/intake");
+      expect(hrefs).toContain("/rc-admin/onboarding/transit/intake");
       expect(hrefs).toContain("/rc-admin/onboarding/checklist/campus");
       expect(hrefs).not.toContain("/onboarding/campus/intake");
     }
@@ -432,5 +435,28 @@ describe("getRoleNav", () => {
       .sections.flatMap((s) => s.items)
       .find((i) => i.id === "vision-ai");
     expect(transit?.href).toContain("/vision-ai");
+  });
+
+  it("puts Staff Guide on campus, venue, and transit navs but not 911 dispatcher Help", () => {
+    const campus = getRoleNav("CAMPUS_ADMIN", { campusCode: "LINCOLNHIGH" })
+      .sections.flatMap((s) => s.items)
+      .find((i) => i.id === "staff-guide");
+    expect(campus?.href).toBe("/app/campus/LINCOLNHIGH/staff-guide");
+    expect(campus?.label).toBe("Staff Guide");
+
+    const guest = getRoleNav("VENUE_GUEST_SERVICES", { venueCode: "MBS" })
+      .sections.flatMap((s) => s.items)
+      .find((i) => i.id === "staff-guide");
+    expect(guest?.href).toBe("/app/venue/MBS/staff-guide");
+
+    const transit = getRoleNav("TRANSIT_OPERATOR", { transitCode: "HVT" })
+      .sections.flatMap((s) => s.items)
+      .find((i) => i.id === "staff-guide");
+    expect(transit?.href).toBe("/transit/HVT/staff-guide");
+
+    const dispatcher = getRoleNav("dispatcher", { jurisdiction: "test-psap" })
+      .sections.flatMap((s) => s.items)
+      .find((i) => i.id === "staff-guide");
+    expect(dispatcher).toBeUndefined();
   });
 });

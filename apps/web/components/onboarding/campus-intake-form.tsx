@@ -4,12 +4,11 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
 import { usePathname } from "next/navigation";
 import type { CampusIntake } from "rapid-cortex-shared";
-import { campusIntakeSchema } from "rapid-cortex-shared";
+import { campusIntakeSchema, emptyCampusGuestAssistKnowledge, mergeCampusGuestAssistKnowledge } from "rapid-cortex-shared";
 import Link from "next/link";
 import { CheckCircle2 } from "lucide-react";
 import { verticalOnboardingContinueHref } from "@/lib/onboarding/continue-href";
 import {
-  CheckboxGroup,
   Field,
   MultiStepShell,
   NumberInput,
@@ -18,6 +17,7 @@ import {
   Textarea,
   TextInput,
 } from "@/components/onboarding/intake-form-primitives";
+import { GuestAssistKnowledgeFields } from "@/components/onboarding/guest-assist-knowledge-fields";
 import { fetchCampusIntake, saveCampusIntake } from "@/lib/onboarding/onboarding-api";
 
 const EMPTY: CampusIntake = {
@@ -41,6 +41,7 @@ const EMPTY: CampusIntake = {
   signInstaller: "facilities",
   studentCommsChannel: "email",
   dataRetentionPreference: "3yr",
+  guestAssistKnowledge: emptyCampusGuestAssistKnowledge(),
   notes: "",
 };
 
@@ -66,7 +67,11 @@ export function CampusIntakeForm({ orgCode, agencyId }: Props) {
       if (intake) {
         const { orgCode: _o, agencyId: _a, submittedAt: _s, submittedBy: _b, updatedAt: _u, ...rest } =
           intake;
-        setForm(rest);
+        setForm({
+          ...EMPTY,
+          ...rest,
+          guestAssistKnowledge: mergeCampusGuestAssistKnowledge(rest.guestAssistKnowledge),
+        });
       }
       return intake;
     },
@@ -278,6 +283,23 @@ export function CampusIntakeForm({ orgCode, agencyId }: Props) {
               </Field>
             </div>
           </div>
+        ),
+      },
+      {
+        title: "Guest Assist knowledge",
+        description:
+          "Facts Claude uses for this campus’s scan-page categories (Directions, Student Services, Safety, and the rest).",
+        content: (
+          <GuestAssistKnowledgeFields
+            vertical="campus"
+            value={form.guestAssistKnowledge}
+            onChange={(guestAssistKnowledge) =>
+              setForm({
+                ...form,
+                guestAssistKnowledge: mergeCampusGuestAssistKnowledge(guestAssistKnowledge),
+              })
+            }
+          />
         ),
       },
     ],

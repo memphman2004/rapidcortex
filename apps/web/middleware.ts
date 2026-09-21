@@ -1010,6 +1010,9 @@ async function runMiddleware(request: NextRequest) {
   if (pathname === "/change-password" || pathname.startsWith("/change-password/")) {
     return guardStandaloneChangePasswordPage(request);
   }
+  if (pathname === "/staff-guide" || pathname.startsWith("/staff-guide/")) {
+    return guardDashboardHub(request);
+  }
   if (pathname === "/dashboard" || pathname.startsWith("/dashboard/")) {
     return guardDashboardHub(request);
   }

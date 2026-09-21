@@ -147,13 +147,16 @@ function QRNfcIntakeClientInner({ record, medium }: Props) {
     );
   }
 
+  const reportingPointName = record.name?.trim() || record.agencyName;
+  const locationDetails = record.zoneName?.trim() || undefined;
+
   if (screen === "chooser") {
     return (
       <ScanIntentChooser
         productLabel={productLabel}
         contextLabel={contextLabel}
-        agencyName={record.agencyName}
-        zoneName={record.zoneName}
+        reportingPointName={reportingPointName}
+        locationDetails={locationDetails}
         vertical={record.vertical}
         agencyId={record.agencyId}
         guestAssistEnabled={isGuestAssistEnabled()}
@@ -184,8 +187,8 @@ function QRNfcIntakeClientInner({ record, medium }: Props) {
       <main className="mx-auto w-full max-w-lg flex-1 space-y-4 px-4 pb-28 pt-4">
         <SafetyHeroCard
           contextLabel={contextLabel}
-          agencyName={record.agencyName}
-          zoneName={record.zoneName}
+          reportingPointName={reportingPointName}
+          locationDetails={locationDetails}
           headline={headline}
           supporting={supporting}
         />

@@ -108,14 +108,14 @@ struct CodesListView: View {
 
     private var header: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Text("QR & NFC Codes")
+            Text("Reporting Points")
                 .font(.system(size: 34, weight: .bold))
                 .foregroundColor(RCTheme.textPrimary)
 
             HStack(spacing: 8) {
                 Image(systemName: "magnifyingglass")
                     .foregroundColor(RCTheme.textMuted)
-                TextField("Search by name or zone", text: $vm.search)
+                TextField("Search by name or location", text: $vm.search)
                     .foregroundColor(RCTheme.textPrimary)
                     .autocorrectionDisabled()
                     .textInputAutocapitalization(.never)
@@ -307,7 +307,7 @@ struct EmptyCodesView: View {
         VStack(spacing: 12) {
             Text("🏷️")
                 .font(.system(size: 48))
-            Text("No codes match your filters yet.")
+            Text("No reporting points match your filters yet.")
                 .font(.system(size: 15))
                 .foregroundColor(RCTheme.textSecondary)
                 .multilineTextAlignment(.center)

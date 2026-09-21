@@ -1,4 +1,4 @@
-import { AUDIT_EVENT_TYPES, isSupervisorOrAdmin } from "rapid-cortex-security";
+import { AUDIT_EVENT_TYPES, isAgencyIt, isSupervisorOrAdmin } from "rapid-cortex-security";
 import type {
   GenerateReportBody,
   ReportConfig,
@@ -17,6 +17,7 @@ import { IncidentTimelineRepository } from "../repositories/incidentTimelineRepo
 import { QaScorecardRepository } from "../repositories/qaScorecardRepository.js";
 import { ReportRepository } from "../repositories/reportRepository.js";
 import { SlaBacklogSnapshotRepository } from "../repositories/slaBacklogSnapshotRepository.js";
+import { generateSystemHealthPayload } from "./systemHealthReport.js";
 
 const reports = new ReportRepository();
 const incidents = new IncidentRepository();
@@ -43,8 +44,12 @@ function inRange(iso: string, start: string, end: string): boolean {
   return t >= new Date(start).getTime() && t <= new Date(end).getTime();
 }
 
+function canManageAgencyReports(user: UserContext): boolean {
+  return isSupervisorOrAdmin(user.role) || isAgencyIt(user.role);
+}
+
 function dispatcherFilter(filters: Record<string, unknown>, user: UserContext): string[] | null {
-  if (!isSupervisorOrAdmin(user.role)) return [user.userId];
+  if (!canManageAgencyReports(user)) return [user.userId];
   const raw = filters.dispatcherIds;
   if (Array.isArray(raw) && raw.every((x) => typeof x === "string")) return raw as string[];
   return null;
@@ -57,7 +62,7 @@ export class ReportService {
       (err as Error & { statusCode?: number }).statusCode = 403;
       throw err;
     }
-    if (!isSupervisorOrAdmin(user.role) && type !== "dispatcher_performance") {
+    if (!canManageAgencyReports(user) && type !== "dispatcher_performance") {
       const err = new Error("FORBIDDEN");
       (err as Error & { statusCode?: number }).statusCode = 403;
       throw err;
@@ -183,6 +188,12 @@ export class ReportService {
         summary.pending = pending;
         break;
       }
+      case "system_health": {
+        const payload = await generateSystemHealthPayload(agencyId, body.dateRange);
+        rows = payload.rows;
+        Object.assign(summary, payload.summary);
+        break;
+      }
     }
 
     const ts = nowIso();
@@ -227,7 +238,7 @@ export class ReportService {
     }
     const all = await reports.listForAgency(user.agencyId);
     let items = all.map((r) => r.config);
-    if (!isSupervisorOrAdmin(user.role)) {
+    if (!canManageAgencyReports(user)) {
       items = items.filter(
         (c) => c.type === "dispatcher_performance" && c.createdBy === user.userId,
       );
@@ -253,7 +264,7 @@ export class ReportService {
       (err as Error & { statusCode?: number }).statusCode = 403;
       throw err;
     }
-    if (!isSupervisorOrAdmin(user.role)) {
+    if (!canManageAgencyReports(user)) {
       if (result.config.type !== "dispatcher_performance" || result.config.createdBy !== user.userId) {
         const err = new Error("FORBIDDEN");
         (err as Error & { statusCode?: number }).statusCode = 403;

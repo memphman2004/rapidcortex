@@ -853,21 +853,21 @@
           desc: 'Gates, restrooms, parking, exits',
           chips: ['Nearest restroom', 'My seat', 'Parking', 'First aid', 'Exit'],
           greeting: (c) => `I can help you navigate ${c.name}. You're near ${c.location}. Where are you headed?`,
-          sys: (c) => `You are a wayfinding assistant for ${c.name}. The guest is near ${c.location} attending ${c.event}. Give clear, brief directions using simple landmarks. If unsure, suggest asking a staff member. Keep responses under 3 sentences. Never handle emergencies — refer to 911.`
+          sys: (c) => `You are a wayfinding assistant for ${c.name}. The guest is near ${c.location} attending ${c.event}. Give complete, specific directions with numbered steps and landmarks. Include what to look for and what to do if they cannot find it. 4–8 sentences is fine. Never handle emergencies — refer to 911 only if the guest describes danger.`
         },
         'venue-info': {
           label: 'Venue Info', icon: 'clipboard', vis: 'v-purple',
           desc: 'Schedule, policies, re-entry',
           chips: ['Re-entry policy', 'Bag rules', 'Event schedule', 'Prohibited items'],
           greeting: (c) => `What would you like to know about ${c.name}?`,
-          sys: (c) => `You are a venue info assistant for ${c.name}. Answer questions about policies, schedules, re-entry, bag rules, and prohibited items. Be accurate and concise. If unsure, direct the guest to a staff member. Never handle emergencies — refer to 911.`
+          sys: (c) => `You are a venue info assistant for ${c.name}. Answer questions about policies, schedules, re-entry, bag rules, and prohibited items with complete details (sizes, exceptions, where to go). If unsure, say so and direct them to guest services. Never handle emergencies — refer to 911 only if the guest describes danger.`
         },
         'guest-svc': {
           label: 'Guest Services', icon: 'users', vis: 'v-green',
           desc: 'Accessibility, strollers, will call',
           chips: ['Wheelchair access', 'Stroller check', 'Will call', 'Sensory needs'],
           greeting: () => `Guest Services here. How can I help — accessibility, will call, strollers?`,
-          sys: (c) => `You are a guest services assistant for ${c.name}. Help with accessibility accommodations, stroller check-in, will call tickets, and sensory accommodations. Be warm and efficient. Never handle emergencies — refer to 911.`
+          sys: (c) => `You are a guest services assistant for ${c.name}. Help with accessibility accommodations, stroller check-in, will call tickets, and sensory accommodations. Give complete steps and where to go from ${c.location}. Never handle emergencies — refer to 911 only if the guest describes danger.`
         },
         'lost-found': {
           label: 'Lost & Found', icon: 'search', vis: 'v-amber',
@@ -888,7 +888,7 @@
           desc: 'Anything else we can help with',
           chips: ['Food & drinks', 'ATM nearby', 'Merchandise', 'Rideshare pickup'],
           greeting: (c) => `I'm here to help at ${c.name}. What can I assist with?`,
-          sys: (c) => `You are a guest assistant for ${c.name}. Answer venue-related questions: concessions, ATMs, merchandise, rideshare pickup. Be helpful and concise. Never handle emergencies — refer to 911.`
+          sys: (c) => `You are a guest assistant for ${c.name}. Answer venue-related questions: concessions, ATMs, merchandise, rideshare pickup. Give complete locations and steps from ${c.location}. Never handle emergencies — refer to 911 only if the guest describes danger.`
         }
       }
     },
@@ -915,7 +915,7 @@
           desc: 'Buildings, parking, transit stops',
           chips: ['Main library', 'Student union', 'Parking', 'Bus stop', 'My class'],
           greeting: (c) => `I can help you find your way around ${c.name}. You're near ${c.location}. Where are you headed?`,
-          sys: (c) => `You are a wayfinding assistant for ${c.name} campus. The user is near ${c.location}. Give clear, concise directions referencing campus landmarks. Suggest the campus map app if unsure. Never handle emergencies — refer to campus police or 911.`
+          sys: (c) => `You are a wayfinding assistant for ${c.name} campus. The user is near ${c.location}. Give complete directions with numbered steps and campus landmarks. Never handle emergencies — refer to campus police or 911 only if the guest describes danger.`
         },
         'student-svc': {
           label: 'Student Services', icon: 'gradcap', vis: 'v-green',
@@ -1419,13 +1419,25 @@
 
   function mockClaude(_systemPrompt, messages) {
     const last = messages.filter((m) => m.role === 'user').pop()?.content || '';
+    const q = last.toLowerCase();
+    const danger = /\b(911|stab|stabb|shot|shoot|gun|knife|weapon|unconscious|overdose|fire|assault|attack|dying)\b/.test(q);
+    if (danger) {
+      return Promise.resolve(
+        `If anyone is in immediate danger, call 911 now and stay on the line. Tell them you are at ${cfg.name}, ${cfg.location}. Move to a safe area if you can. Do not approach a person with a weapon. You can also alert on-site security from the Emergency button on this page.`,
+      );
+    }
+    if (/\b(restroom|bathroom|toilet|wc)\b/.test(q)) {
+      return Promise.resolve(
+        `Restrooms at ${cfg.name} are on this concourse level, usually every 40–60 yards along the walkway.\n\nFrom ${cfg.location}: face the seating bowl, then walk toward the nearest Restroom / Family / ADA sign. Family and accessible restrooms are beside the main restrooms.\n\nIf you do not see a sign within a minute, ask an usher in a venue shirt — they can walk you there.`,
+      );
+    }
     if (mode === 'staff') {
       return Promise.resolve(
-        `Got it — we're with you at ${cfg.location}. ${last ? 'We noted: "' + last.slice(0, 80) + '". ' : ''}A teammate can meet you there. Call 911 if anyone is in immediate danger. — ${VERT === 'campus' ? 'Officer' : 'Staff'}`,
+        `Got it — we have you at ${cfg.location}${last ? ' (“' + last.slice(0, 80) + '”)' : ''}. Stay where it is safe. A teammate can meet you there. Call 911 if anyone is in immediate danger.`,
       );
     }
     return Promise.resolve(
-      `I can help with that at ${cfg.name} near ${cfg.location}. Ask a nearby staff member if you need a walk-over. Call 911 if this is an emergency.`,
+      `I can help at ${cfg.name} near ${cfg.location}${last ? ' with “' + last.slice(0, 120) + '”' : ''}.\n\nTell me the place or service you need (restroom, seat, first aid, exit, parking, bag policy, food, lost & found) and I will give complete step-by-step directions from ${cfg.location}.`,
     );
   }
 

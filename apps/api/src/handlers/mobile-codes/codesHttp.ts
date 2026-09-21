@@ -1,5 +1,5 @@
 /**
- * Mobile `/api/codes` facade for venue/campus QR codes.
+ * Mobile `/api/codes` facade for venue/campus/transit QR codes.
  *
  * Production path: thin-wraps `QrNfcService` (`/api/qr-nfc`) when `QR_NFC_CODES_TABLE` is set.
  * Dev/mock path: in-memory store when the table is unset or `SAFE_SOUND_MOCK=true`.
@@ -43,6 +43,11 @@ function nfcUrlFromReportUrl(reportUrl: string): string {
   return reportUrl.includes("?") ? `${reportUrl}&medium=nfc` : `${reportUrl}?medium=nfc`;
 }
 
+function toCodeVertical(vertical: QRNFCRecord["vertical"]): RCCode["vertical"] {
+  if (vertical === "campus" || vertical === "venue" || vertical === "transit") return vertical;
+  return "venue";
+}
+
 function mapQrRecordToRcCode(record: QRNFCRecord): RCCode {
   const nfcWriteLog = (record.nfcWriteLog ?? []).map((entry) => ({
     eventId: entry.eventId,
@@ -61,7 +66,7 @@ function mapQrRecordToRcCode(record: QRNFCRecord): RCCode {
     name: record.name,
     zone: record.zoneName ?? "",
     reportType: record.reportType,
-    vertical: record.vertical === "campus" || record.vertical === "venue" ? record.vertical : "venue",
+    vertical: toCodeVertical(record.vertical),
     smsNumber: record.callNumber ?? null,
     reportUrl: record.url,
     nfcUrl: nfcUrlFromReportUrl(record.url),
@@ -162,7 +167,7 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
 
       const items = await qrService.list(user, {
         agencyId,
-        vertical: event.queryStringParameters?.vertical as "campus" | "venue" | undefined,
+        vertical: event.queryStringParameters?.vertical as QRNFCRecord["vertical"] | undefined,
         active:
           event.queryStringParameters?.status === "inactive"
             ? false

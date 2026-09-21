@@ -12,6 +12,7 @@ import {
 import { requireTransitRouteContext } from "./transit-route-context.js";
 import { tryHandleTransitCameraHttp } from "./cameras/transit-camera-http.js";
 import * as transit from "../../transit/transit-service.js";
+import { getTransitIntake, saveTransitIntake } from "../../onboarding/transit-onboarding-service.js";
 
 function methodOf(event: Parameters<APIGatewayProxyHandlerV2>[0]): string {
   return (event.requestContext.http?.method ?? "GET").toUpperCase();
@@ -214,6 +215,26 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
       if ("response" in ctx) return ctx.response;
       const alert = await transit.setAlertLevel(ctx.agencyId, parseJson(event), ctx.user);
       return withCorrelationHeaders(event, ok({ alert }));
+    }
+
+    const getIntake = match(event, "GET", /^\/api\/transit\/[^/]+\/onboarding\/intake\/?$/);
+    if (getIntake) {
+      const ctx = await requireTransitRouteContext(event, "transit.settings.view");
+      if ("response" in ctx) return ctx.response;
+      const intake = await getTransitIntake(ctx.agencyId);
+      return withCorrelationHeaders(event, ok({ intake }));
+    }
+
+    const putIntake = match(event, "PUT", /^\/api\/transit\/[^/]+\/onboarding\/intake\/?$/);
+    if (putIntake) {
+      const ctx = await requireTransitRouteContext(event, "transit.settings.manage");
+      if ("response" in ctx) return ctx.response;
+      const intake = await saveTransitIntake({
+        agencyId: ctx.agencyId,
+        actorId: ctx.user.userId,
+        body: parseJson(event),
+      });
+      return withCorrelationHeaders(event, ok({ intake }));
     }
 
     return withCorrelationHeaders(event, notFound());

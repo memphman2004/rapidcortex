@@ -32,8 +32,8 @@ describe("ScanIntentChooser", () => {
       <ScanIntentChooser
         productLabel="Rapid Cortex Transit"
         contextLabel="Transit Safety Reporting"
-        agencyName="MARTA"
-        zoneName="Five Points"
+        reportingPointName="Bus 2145"
+        locationDetails="Platform 3"
         vertical="transit"
         agencyId="marta"
         guestAssistEnabled
@@ -41,12 +41,17 @@ describe("ScanIntentChooser", () => {
       />,
     );
 
+    expect(screen.getByText("Bus 2145")).toBeTruthy();
+    expect(screen.getByText("Platform 3")).toBeTruthy();
+
     fireEvent.click(screen.getByRole("button", { name: /information/i }));
     expect(assign).toHaveBeenCalled();
     const dest = String(assign.mock.calls[0]?.[0] ?? "");
     expect(dest).toContain("/rc-guest-assist.html");
     expect(dest).toContain("v=transit");
     expect(dest).toContain("topics=1");
+    expect(dest).toContain("name=Bus+2145");
+    expect(dest).toContain("loc=Platform+3");
 
     fireEvent.click(screen.getByRole("button", { name: /police\s*\/\s*security/i }));
     expect(onPoliceSecurity).toHaveBeenCalledTimes(1);
@@ -60,8 +65,8 @@ describe("ScanIntentChooser", () => {
       <ScanIntentChooser
         productLabel="Rapid Cortex"
         contextLabel="Venue Security"
-        agencyName="Arena"
-        zoneName="Gate A"
+        reportingPointName="Gate A"
+        locationDetails="Section 112"
         vertical="venue"
         guestAssistEnabled={false}
         onPoliceSecurity={() => undefined}

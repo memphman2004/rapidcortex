@@ -9,6 +9,7 @@ export const reportTypeSchema = z.enum([
   "qa_scores",
   "translation_usage",
   "media_usage",
+  "system_health",
 ]);
 
 export type ReportType = z.infer<typeof reportTypeSchema>;
@@ -63,4 +64,5 @@ export const REPORT_TYPE_LABELS: Record<ReportType, string> = {
   qa_scores: "QA scores",
   translation_usage: "Translation usage",
   media_usage: "Media usage",
+  system_health: "Monthly system health",
 };

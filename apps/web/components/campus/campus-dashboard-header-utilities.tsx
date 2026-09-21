@@ -1,11 +1,14 @@
 "use client";
 
 import { useState, type ReactNode } from "react";
+import { usePathname } from "next/navigation";
 import { DashboardTypographyControls } from "@/components/ui/dashboard-typography-controls";
 import { UserIdentityBar } from "@/components/ui/user-identity-bar";
 import { HelpButton } from "@/components/help/help-button";
+import { StaffGuideHeaderButton } from "@/components/staff-guide/staff-guide-button";
 import { SupportHelpButton } from "@/components/support/SupportHelpButton";
 import { signOutFromClient } from "@/lib/auth/sign-out-client";
+import { resolveStaffGuideHref } from "@/lib/staff-guide/href";
 
 function CampusSignOutButton() {
   const [signingOut, setSigningOut] = useState(false);
@@ -25,7 +28,7 @@ function CampusSignOutButton() {
   );
 }
 
-/** Font picker + help + identity/sign-out — same controls as PSAP role dashboards. */
+/** Font picker + Staff Guide (campus/venue/transit) or 911 Help + identity/sign-out. */
 export function CampusDashboardHeaderUtilities({
   email,
   role,
@@ -41,11 +44,13 @@ export function CampusDashboardHeaderUtilities({
   leadingSlot?: ReactNode;
 }) {
   const hasIdentity = Boolean(email?.trim() && role?.trim());
+  const pathname = usePathname() ?? "";
+  const staffGuideHref = resolveStaffGuideHref({ role, agencyId, pathname });
 
   return (
     <div className="relative z-40 flex shrink-0 flex-wrap items-center justify-end gap-2 overflow-visible">
       {leadingSlot}
-      <HelpButton />
+      {staffGuideHref ? <StaffGuideHeaderButton href={staffGuideHref} /> : <HelpButton />}
       <SupportHelpButton
         userRole={role}
         agencyId={agencyId}

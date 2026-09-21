@@ -99,7 +99,7 @@ struct QRNFCRootView: View {
     var body: some View {
         TabView(selection: $selectedTab) {
             CodesListView()
-                .tabItem { Label("Codes", systemImage: "qrcode") }
+                .tabItem { Label("Reporting Points", systemImage: "qrcode") }
                 .tag(QRNFCTab.codes)
             if auth.claims?.canManageCodes == true {
                 NewCodeView(
@@ -107,7 +107,7 @@ struct QRNFCRootView: View {
                     defaultVertical: defaultVertical,
                     onBack: { selectedTab = .codes }
                 )
-                .tabItem { Label("Create", systemImage: "plus") }
+                .tabItem { Label("Add", systemImage: "plus") }
                 .tag(QRNFCTab.create)
             }
             if auth.claims?.isPlatformAdmin == true {

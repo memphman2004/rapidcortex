@@ -51,6 +51,7 @@ describe("app-host-routing — public status", () => {
   it("keeps vertical onboarding wizards on the app host", () => {
     expect(isMarketingPublicPath("/onboarding/campus/intake")).toBe(false);
     expect(isMarketingPublicPath("/onboarding/venue/intake")).toBe(false);
+    expect(isMarketingPublicPath("/onboarding/transit/intake")).toBe(false);
     expect(isMarketingPublicPath("/onboarding/checklist/campus")).toBe(false);
     expect(maybeRedirectAppHostAwayFromMarketing(appRequest("/onboarding/campus/intake"))).toBeNull();
   });

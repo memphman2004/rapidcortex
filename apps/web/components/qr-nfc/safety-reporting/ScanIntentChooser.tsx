@@ -12,8 +12,8 @@ import { SafetyHeroCard } from "./SafetyHeroCard";
 export type ScanIntentChooserProps = {
   productLabel: string;
   contextLabel: string;
-  agencyName: string;
-  zoneName?: string;
+  reportingPointName: string;
+  locationDetails?: string;
   vertical: string;
   agencyId?: string;
   guestAssistEnabled: boolean;
@@ -23,8 +23,8 @@ export type ScanIntentChooserProps = {
 export function ScanIntentChooser({
   productLabel,
   contextLabel,
-  agencyName,
-  zoneName,
+  reportingPointName,
+  locationDetails,
   vertical,
   agencyId,
   guestAssistEnabled,
@@ -43,8 +43,8 @@ export function ScanIntentChooser({
     window.location.assign(
       guestAssistUrl({
         vertical,
-        agencyName,
-        location: zoneName ?? "",
+        agencyName: reportingPointName,
+        location: locationDetails ?? "",
         agencyId,
         backPath,
       }),
@@ -59,11 +59,12 @@ export function ScanIntentChooser({
       style={pageBackground}
     >
       <SafetyHeader productLabel={productLabel} />
-      <main className="mx-auto w-full max-w-lg flex-1 space-y-4 px-4 pb-10 pt-4">
+      <main className="mx-auto w-full max-w-lg flex-1 space-y-3 px-4 pb-10 pt-3">
         <SafetyHeroCard
+          compact
           contextLabel={contextLabel}
-          agencyName={agencyName}
-          zoneName={zoneName}
+          reportingPointName={reportingPointName}
+          locationDetails={locationDetails}
           headline={t("scanChooserTitle")}
           supporting={t("scanChooserDesc")}
         />
@@ -87,12 +88,12 @@ export function ScanIntentChooser({
           />
           <a
             href="tel:911"
-            className="flex min-h-[4.5rem] items-center gap-4 rounded-2xl border px-4 py-3.5 no-underline transition active:scale-[0.99]"
+            className="flex min-h-[4.5rem] items-center gap-4 rounded-2xl border-2 px-4 py-3.5 no-underline transition active:scale-[0.99]"
             style={{
-              borderColor: `${SAFETY_BRAND.rapidRed}55`,
+              borderColor: "#FECACA",
               backgroundColor: SAFETY_BRAND.rapidRed,
               color: SAFETY_BRAND.white,
-              boxShadow: SAFETY_BRAND.cardShadow,
+              boxShadow: `0 0 0 3px ${SAFETY_BRAND.rapidRed}, ${SAFETY_BRAND.cardShadow}`,
             }}
             aria-label={t("scanChooserEmergency")}
           >
@@ -133,17 +134,18 @@ function IntentButton({
   tone: "info" | "security";
 }) {
   const isInfo = tone === "info";
+  const ring = isInfo ? "#0284C7" : "#F59E0B";
   return (
     <button
       type="button"
       aria-label={label}
       onClick={onClick}
-      className="flex min-h-[4.5rem] items-center gap-4 rounded-2xl border px-4 py-3.5 text-left transition active:scale-[0.99]"
+      className="flex min-h-[4.5rem] items-center gap-4 rounded-2xl border-2 px-4 py-3.5 text-left transition active:scale-[0.99]"
       style={{
-        borderColor: isInfo ? SAFETY_BRAND.border : `${SAFETY_BRAND.deepBlue}33`,
+        borderColor: ring,
         backgroundColor: isInfo ? SAFETY_BRAND.white : SAFETY_BRAND.navy,
         color: isInfo ? SAFETY_BRAND.textDark : SAFETY_BRAND.white,
-        boxShadow: SAFETY_BRAND.cardShadow,
+        boxShadow: `0 0 0 3px ${isInfo ? "rgba(2,132,199,0.35)" : "rgba(245,158,11,0.45)"}, ${SAFETY_BRAND.cardShadow}`,
       }}
     >
       <span

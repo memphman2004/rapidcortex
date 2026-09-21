@@ -200,11 +200,11 @@ export const Strings = {
   },
 
   venue: {
-    codes: 'QR & NFC Codes',
-    create: 'Create',
+    codes: 'Reporting Points',
+    create: 'Add',
     account: 'Account',
-    agencyCodes: 'QR & NFC Codes',
-    searchPlaceholder: 'Search by name or zone',
+    agencyCodes: 'Reporting Points',
+    searchPlaceholder: 'Search by name or location',
     filters: {
       all: 'All',
       active: 'Active',
@@ -216,22 +216,23 @@ export const Strings = {
     notProgrammed: 'Not Programmed',
     lastActivity: 'Last activity',
     createCode: {
-      codeName: 'Code Name',
-      codeNamePlaceholder: 'e.g. Gate B Concourse',
-      zone: 'Zone / Location',
-      zonePlaceholder: 'e.g. Section 112, Row A',
-      reportType: 'Report Type',
+      title: 'Create Reporting Point',
+      subtitle: 'Set up a QR code or NFC tag for this location.',
+      codeName: 'Reporting Point Name',
+      codeNamePlaceholder: 'e.g. Gate A, Student Center, Bus 2145',
+      zone: 'Location Details',
+      zonePlaceholder: 'e.g. Section 112, East Entrance, Platform 3',
+      reportType: 'Reporting Options',
       reportTypes: {
         anonymous: 'Anonymous',
         identified: 'Identified',
         both: 'Both',
       },
-      smsNumber: 'SMS Phone Number',
+      smsNumber: 'Text Reporting Number',
       smsPlaceholder: '(555) 000-0000',
-      smsHelper:
-        'The phone number visitors text to report an incident. Appears on the physical sign.',
-      createButton: 'Create Code',
-      successToast: 'Code created — ready to program',
+      smsHelper: 'Optional. Shown on the printed sign.',
+      createButton: 'Create Reporting Point',
+      successToast: 'Reporting point created — ready to program',
     },
     signPackage: {
       signIdentity: 'Sign Identity',
@@ -308,8 +309,8 @@ export const Strings = {
   },
 
   campus: {
-    codes: 'QR & NFC Codes',
-    create: 'Create',
+    codes: 'Reporting Points',
+    create: 'Add',
     account: 'Account',
   },
 

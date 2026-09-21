@@ -118,6 +118,8 @@ export interface QRNFCPublicRecord {
   qrId: string;
   agencyId: string;
   agencyName: string;
+  /** Reporting point name from Create Code (e.g. Boggs Hall, Gate A, Bus 2145). */
+  name?: string;
   zoneName?: string;
   vertical: ReportVertical;
   reportType: QrNfcReportType;

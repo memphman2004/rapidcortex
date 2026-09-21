@@ -223,6 +223,7 @@ export const AUDIT_EVENT_TYPES = {
   TRANSIT_GPS_INGESTED: "transit.vehicle.gps",
   TRANSIT_CAMERA_REGISTRY_UPDATED: "transit.camera_registry.updated",
   TRANSIT_CAMERA_SESSION_STARTED: "transit.camera.session_started",
+  TRANSIT_ONBOARDING_INTAKE_SAVED: "transit.onboarding.intake_saved",
   // ── Silent text ────────────────────────────────────────────────────────────
   SILENT_TEXT_SESSION_CREATED: "silent_text.session.created",
   SILENT_TEXT_SMS_SENT: "silent_text.sms.sent",

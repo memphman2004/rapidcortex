@@ -4,6 +4,11 @@ import type {
   ReportResult,
   ReportType,
 } from "rapid-cortex-shared";
+import {
+  calendarMonthLabelUtc,
+  previousCalendarMonthRangeUtc,
+  REPORT_TYPE_LABELS,
+} from "rapid-cortex-shared";
 import { isApiConfigured } from "@/lib/api";
 import { resolveSameOriginBffBase, shouldUseBffCredentials } from "@/lib/same-origin-bff-base";
 
@@ -86,17 +91,28 @@ export async function downloadReportCsv(reportId: string, filename?: string): Pr
 
 export function defaultReportName(type: ReportType): string {
   const d = new Date().toLocaleDateString();
-  const labels: Record<ReportType, string> = {
-    call_volume: "Call volume",
-    response_times: "Response times",
-    sla_compliance: "SLA compliance",
-    dispatcher_performance: "Dispatcher performance",
-    incident_summary: "Incident summary",
-    qa_scores: "QA scores",
-    translation_usage: "Translation usage",
-    media_usage: "Media usage",
+  return `${REPORT_TYPE_LABELS[type]} — ${d}`;
+}
+
+/** Previous complete UTC calendar month (ISO range + date-input strings). */
+export function previousCalendarMonthRange(): {
+  start: string;
+  end: string;
+  startInput: string;
+  endInput: string;
+  label: string;
+} {
+  const range = previousCalendarMonthRangeUtc();
+  return {
+    ...range,
+    startInput: range.start.slice(0, 10),
+    endInput: range.end.slice(0, 10),
+    label: calendarMonthLabelUtc(range.start),
   };
-  return `${labels[type]} — ${d}`;
+}
+
+export function monthlySystemHealthReportName(monthLabel: string): string {
+  return `System health — ${monthLabel}`;
 }
 
 export function dateInputToRange(start: string, end: string): { start: string; end: string } {
@@ -105,6 +121,16 @@ export function dateInputToRange(start: string, end: string): { start: string; e
   return {
     start: new Date(sy, sm - 1, sd).toISOString(),
     end: new Date(ey, em - 1, ed, 23, 59, 59, 999).toISOString(),
+  };
+}
+
+/** Calendar-day bounds in UTC — used for monthly system health so the period is not shifted by the browser timezone. */
+export function dateInputToUtcRange(start: string, end: string): { start: string; end: string } {
+  const [sy, sm, sd] = start.split("-").map(Number);
+  const [ey, em, ed] = end.split("-").map(Number);
+  return {
+    start: new Date(Date.UTC(sy, sm - 1, sd, 0, 0, 0, 0)).toISOString(),
+    end: new Date(Date.UTC(ey, em - 1, ed, 23, 59, 59, 999)).toISOString(),
   };
 }
 

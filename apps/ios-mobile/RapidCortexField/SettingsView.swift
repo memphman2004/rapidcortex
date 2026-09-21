@@ -204,7 +204,7 @@ struct AccessTool: Identifiable, Equatable {
     static let qrNfc = AccessTool(
         id: "qr_nfc",
         name: "QR & NFC code management",
-        description: "Create and program reporting codes for your locations",
+        description: "Create and program reporting points for your locations",
         icon: "qrcode"
     )
 

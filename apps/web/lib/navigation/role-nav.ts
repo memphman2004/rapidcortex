@@ -89,6 +89,32 @@ function rcCallAssistNavItem(): NavItem {
   };
 }
 
+function staffGuideNavItem(href: string): NavItem {
+  return {
+    id: "staff-guide",
+    label: "Staff Guide",
+    href,
+    icon: "GraduationCap",
+    feature: "staffGuide",
+  };
+}
+
+/** Campus, venue, and transit knowledge base — not the 911 Help tab. */
+function appendStaffGuideNav(nav: RoleNav, href: string): RoleNav {
+  if (nav.sections.some((section) => section.id === "staff-resources")) return nav;
+  return {
+    ...nav,
+    sections: [
+      ...nav.sections,
+      {
+        id: "staff-resources",
+        label: "STAFF RESOURCES",
+        items: [staffGuideNavItem(href)],
+      },
+    ],
+  };
+}
+
 function rcCallAssistBotsNavItem(): NavItem {
   return {
     id: "call-assist-bots",
@@ -229,6 +255,13 @@ export const RC_SUPERADMIN_NAV: RoleNav = {
           id: "onboarding-venue-intake",
           label: "Venue Intake",
           href: "/rc-admin/onboarding/venue/intake",
+          icon: "ClipboardList",
+          feature: "verticalOnboarding",
+        },
+        {
+          id: "onboarding-transit-intake",
+          label: "Transit Intake",
+          href: "/rc-admin/onboarding/transit/intake",
           icon: "ClipboardList",
           feature: "verticalOnboarding",
         },
@@ -383,6 +416,13 @@ export const RC_ADMIN_NAV: RoleNav = {
           id: "onboarding-venue-intake",
           label: "Venue Intake",
           href: "/rc-admin/onboarding/venue/intake",
+          icon: "ClipboardList",
+          feature: "verticalOnboarding",
+        },
+        {
+          id: "onboarding-transit-intake",
+          label: "Transit Intake",
+          href: "/rc-admin/onboarding/transit/intake",
           icon: "ClipboardList",
           feature: "verticalOnboarding",
         },
@@ -755,6 +795,13 @@ export function getAgencyItNav(jurisdiction: string): RoleNav {
             id: "onboarding-intake-venue",
             label: "Venue Onboarding",
             href: "/onboarding/venue/intake",
+            icon: "ClipboardList",
+            feature: "verticalOnboarding",
+          },
+          {
+            id: "onboarding-intake-transit",
+            label: "Transit Onboarding",
+            href: "/onboarding/transit/intake",
             icon: "ClipboardList",
             feature: "verticalOnboarding",
           },
@@ -1520,6 +1567,13 @@ export function getTransitAdminNav(code: string): RoleNav {
             icon: "FolderOpen",
             feature: "verticalOnboarding",
           },
+          {
+            id: "onboarding-intake",
+            label: "Onboarding Intake",
+            href: `/onboarding/transit/intake?orgCode=${encodeURIComponent(code)}`,
+            icon: "ClipboardList",
+            feature: "verticalOnboarding",
+          },
         ],
       },
     ],
@@ -1712,26 +1766,26 @@ export function getRoleNav(role: string, ctx: NavContext): RoleNav {
     case "analyst":             return getAnalystNav(j);
     case "auditor":             return getAuditorNav(j);
     // Campus
-    case "CAMPUS_ADMIN":        return getCampusAdminNav(c);
-    case "CAMPUS_SUPERVISOR":   return getCampusSupervisorNav(c);
-    case "CAMPUS_SECURITY":     return getCampusSecurityNav(c);
-    case "CAMPUS_DISPATCH":     return getCampusDispatchNav(c);
-    case "CAMPUS_COUNSELOR":    return getCampusCounselorNav(c);
-    case "CAMPUS_FACULTY":      return getCampusFacultyNav(c);
+    case "CAMPUS_ADMIN":        return appendStaffGuideNav(getCampusAdminNav(c), `/app/campus/${c}/staff-guide`);
+    case "CAMPUS_SUPERVISOR":   return appendStaffGuideNav(getCampusSupervisorNav(c), `/app/campus/${c}/staff-guide`);
+    case "CAMPUS_SECURITY":     return appendStaffGuideNav(getCampusSecurityNav(c), `/app/campus/${c}/staff-guide`);
+    case "CAMPUS_DISPATCH":     return appendStaffGuideNav(getCampusDispatchNav(c), `/app/campus/${c}/staff-guide`);
+    case "CAMPUS_COUNSELOR":    return appendStaffGuideNav(getCampusCounselorNav(c), `/app/campus/${c}/staff-guide`);
+    case "CAMPUS_FACULTY":      return appendStaffGuideNav(getCampusFacultyNav(c), `/app/campus/${c}/staff-guide`);
     // Hospital
     case "HOSPITAL_ADMIN":      return HOSPITAL_ADMIN_NAV;
     case "HOSPITAL_COORDINATOR":return HOSPITAL_COORDINATOR_NAV;
     case "HOSPITAL_STAFF":      return HOSPITAL_STAFF_NAV;
     // Venue
-    case "VENUE_ADMIN":         return getVenueAdminNav(v);
-    case "VENUE_SUPERVISOR":    return getVenueSupervisorNav(v);
-    case "VENUE_SECURITY":      return getVenueSecurityNav(v);
-    case "VENUE_OPERATOR":      return getVenueOperatorNav(v);
-    case "VENUE_GUEST_SERVICES":return getVenueGuestServicesNav(v);
-    case "TRANSIT_ADMIN":       return getTransitAdminNav(t);
-    case "TRANSIT_SUPERVISOR":  return getTransitSupervisorNav(t);
-    case "TRANSIT_SECURITY":    return getTransitSecurityNav(t);
-    case "TRANSIT_OPERATOR":    return getTransitOperatorNav(t);
+    case "VENUE_ADMIN":         return appendStaffGuideNav(getVenueAdminNav(v), `/app/venue/${v}/staff-guide`);
+    case "VENUE_SUPERVISOR":    return appendStaffGuideNav(getVenueSupervisorNav(v), `/app/venue/${v}/staff-guide`);
+    case "VENUE_SECURITY":      return appendStaffGuideNav(getVenueSecurityNav(v), `/app/venue/${v}/staff-guide`);
+    case "VENUE_OPERATOR":      return appendStaffGuideNav(getVenueOperatorNav(v), `/app/venue/${v}/staff-guide`);
+    case "VENUE_GUEST_SERVICES":return appendStaffGuideNav(getVenueGuestServicesNav(v), `/app/venue/${v}/staff-guide`);
+    case "TRANSIT_ADMIN":       return appendStaffGuideNav(getTransitAdminNav(t), `/transit/${t}/staff-guide`);
+    case "TRANSIT_SUPERVISOR":  return appendStaffGuideNav(getTransitSupervisorNav(t), `/transit/${t}/staff-guide`);
+    case "TRANSIT_SECURITY":    return appendStaffGuideNav(getTransitSecurityNav(t), `/transit/${t}/staff-guide`);
+    case "TRANSIT_OPERATOR":    return appendStaffGuideNav(getTransitOperatorNav(t), `/transit/${t}/staff-guide`);
     case "CALL_ASSIST_ADMIN":   return getCallAssistAdminNav();
     case "CALL_ASSIST_SUPERVISOR": return getCallAssistSupervisorNav();
     case "CALL_ASSIST_OPERATOR": return getCallAssistOperatorNav();

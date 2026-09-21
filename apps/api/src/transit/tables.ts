@@ -15,3 +15,4 @@ export const TRANSIT_TABLE_ENV = {
 } as const;
 
 export const TRANSIT_CONFIG_SK = "CONFIG#alert";
+export const TRANSIT_INTAKE_SK = "CONFIG#intake";

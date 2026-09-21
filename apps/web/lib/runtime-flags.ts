@@ -71,6 +71,7 @@ const NEXT_PUBLIC_FLAG_VALUES: Record<string, string | undefined> = {
   NEXT_PUBLIC_ENABLE_VENUE_INTELLIGENCE: process.env.NEXT_PUBLIC_ENABLE_VENUE_INTELLIGENCE,
   NEXT_PUBLIC_ENABLE_LOCATIONS_QR_ADMIN: process.env.NEXT_PUBLIC_ENABLE_LOCATIONS_QR_ADMIN,
   NEXT_PUBLIC_ENABLE_VERTICAL_ONBOARDING: process.env.NEXT_PUBLIC_ENABLE_VERTICAL_ONBOARDING,
+  NEXT_PUBLIC_ENABLE_STAFF_GUIDE: process.env.NEXT_PUBLIC_ENABLE_STAFF_GUIDE,
   NEXT_PUBLIC_ENABLE_CHANNEL_MONITORING: process.env.NEXT_PUBLIC_ENABLE_CHANNEL_MONITORING,
   NEXT_PUBLIC_ENABLE_SALES_LEADS: process.env.NEXT_PUBLIC_ENABLE_SALES_LEADS,
   NEXT_PUBLIC_ENABLE_SUPPORT_FORM: process.env.NEXT_PUBLIC_ENABLE_SUPPORT_FORM,
@@ -729,4 +730,12 @@ export function isTransitCamerasUiEnabled(): boolean {
 /** Rapid Cortex Video — agency-owned camera wall / VMS. Default on when unset. Distinct from Rapid Vision. */
 export function isRcVideoEnabled(): boolean {
   return envFlag("NEXT_PUBLIC_ENABLE_RC_VIDEO");
+}
+
+/**
+ * Campus / venue / transit Staff Guide (knowledge base + unlimited training).
+ * Distinct from the 911 Help tab. Default on when unset.
+ */
+export function isStaffGuideEnabled(): boolean {
+  return envFlag("NEXT_PUBLIC_ENABLE_STAFF_GUIDE");
 }

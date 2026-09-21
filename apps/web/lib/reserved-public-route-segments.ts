@@ -24,6 +24,8 @@ export const RESERVED_PUBLIC_ROUTE_FIRST_SEGMENTS: readonly string[] = [
   "careers",
   "support",
   "training",
+  /** Authenticated campus/venue/transit knowledge base (not 911 Help). */
+  "staff-guide",
   "signup",
   "logout",
   "desktop",

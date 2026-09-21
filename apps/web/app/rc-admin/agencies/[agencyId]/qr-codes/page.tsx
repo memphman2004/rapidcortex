@@ -73,7 +73,7 @@ export default async function RcAdminAgencyQrCodesPage({ params }: Props) {
         canCreate={perms.canCreate}
         canDeactivate={perms.canDeactivate}
         canDownload={perms.canDownload}
-        zoneLabel="Zone / Location"
+        zoneLabel="Location Details"
         showSiteQr
       />
     </div>

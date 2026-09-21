@@ -1,7 +1,7 @@
 # Contract & commercial package index
 
 **Audience:** sales, solutions, legal ops, implementation leads.  
-**Status:** Internal — paths and filenames reflect repo layout as of **2026-09-19** (60-day review).  
+**Status:** Internal — paths and filenames reflect repo layout as of **2026-09-20** (MSA Word operational review).  
 **Not legal advice.** Marked **DRAFT** items require counsel and/or Finance before customer send.  
 **SOC 2:** send the [control pack](../security-compliance/soc2/README.md) as **alignment / observation** only — never as a Type II report.
 
@@ -44,8 +44,8 @@ Keep **signed** copies outside git (CRM, Adobe Sign ledger, agency secure share)
 
 | Document | Location | Status | Notes |
 |----------|----------|--------|-------|
-| **Master Services Agreement** | `Rapid Cortex Internal Docs/COMPLETE_MSA_MASTER_DOCUMENT_updated.docx` (2026-07-11) and `Contract_legal stuff/COMPLETE_MSA_MASTER_DOCUMENT.docx` | Template — **counsel** | Apps on Demand LLC d/b/a Rapid Cortex — reconcile entity with Platform Agreement (LEG-007). 60-day review did **not** regenerate Word. |
-| Public MSA copy | `apps/web/public/docs/MASTER SERVICES AGREEMENT.docx` | Template | Same family as complete MSA |
+| **Master Services Agreement** | `Rapid Cortex Internal Docs/COMPLETE_MSA_MASTER_DOCUMENT_updated.docx` (operational review **2026-09-20**) and `Contract_legal stuff/COMPLETE_MSA_MASTER_DOCUMENT.docx` | Template — **counsel** | Apps on Demand LLC d/b/a Rapid Cortex — reconcile entity with Platform Agreement (LEG-007). Word updated 2026-09-20: not CPE/CAD-of-record; no autonomous dispatch; SOC 2 program not Type II certification; MFA required in production; CAD write-back SOW-gated. **Counsel still required before customer send.** Exhibit B pricing not rewritten (LEG-008). |
+| Public MSA copy | `apps/web/public/docs/MASTER SERVICES AGREEMENT.docx` | Template | Same family as complete MSA; operational review 2026-09-20 |
 | **Platform Services Agreement** | `Rapid Cortex Internal Docs/Contract_legal stuff/RC_Platform_Services_Agreement.docx` | v1.0 template | Adobe Sign path; Exhibit A has `$TBD` pricing |
 | Exhibit A — Statement of Work | Inside MSA / Platform Agreement | Template | Populate from [SALES_SCOPE_MATRIX.md](./SALES_SCOPE_MATRIX.md) |
 | Exhibit B — Pricing | Inside MSA | **TBD amounts** | Finance + `RC_Pricing_Master_Guide_v4.xlsx` |

@@ -4,7 +4,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
 import { usePathname } from "next/navigation";
 import type { VenueIntake } from "rapid-cortex-shared";
-import { venueIntakeSchema } from "rapid-cortex-shared";
+import { emptyVenueGuestAssistKnowledge, mergeVenueGuestAssistKnowledge, venueIntakeSchema } from "rapid-cortex-shared";
 import Link from "next/link";
 import { CheckCircle2 } from "lucide-react";
 import {
@@ -17,6 +17,7 @@ import {
   TextInput,
   CheckboxGroup,
 } from "@/components/onboarding/intake-form-primitives";
+import { GuestAssistKnowledgeFields } from "@/components/onboarding/guest-assist-knowledge-fields";
 import { fetchVenueIntake, saveVenueIntake } from "@/lib/onboarding/onboarding-api";
 import { verticalOnboardingContinueHref } from "@/lib/onboarding/continue-href";
 
@@ -40,6 +41,7 @@ const EMPTY: VenueIntake = {
   signInstaller: "venue_ops",
   eventCodesAutoExpire: false,
   dataRetentionPreference: "3yr",
+  guestAssistKnowledge: emptyVenueGuestAssistKnowledge(),
   notes: "",
 };
 
@@ -65,7 +67,11 @@ export function VenueIntakeForm({ orgCode, agencyId }: Props) {
       if (intake) {
         const { orgCode: _o, agencyId: _a, submittedAt: _s, submittedBy: _b, updatedAt: _u, ...rest } =
           intake;
-        setForm(rest);
+        setForm({
+          ...EMPTY,
+          ...rest,
+          guestAssistKnowledge: mergeVenueGuestAssistKnowledge(rest.guestAssistKnowledge),
+        });
       }
       return intake;
     },
@@ -276,6 +282,23 @@ export function VenueIntakeForm({ orgCode, agencyId }: Props) {
               </Field>
             </div>
           </div>
+        ),
+      },
+      {
+        title: "Guest Assist knowledge",
+        description:
+          "Facts Claude uses for this venue’s scan-page categories (Directions, Venue Info, Guest Services, and the rest).",
+        content: (
+          <GuestAssistKnowledgeFields
+            vertical="venue"
+            value={form.guestAssistKnowledge}
+            onChange={(guestAssistKnowledge) =>
+              setForm({
+                ...form,
+                guestAssistKnowledge: mergeVenueGuestAssistKnowledge(guestAssistKnowledge),
+              })
+            }
+          />
         ),
       },
     ],

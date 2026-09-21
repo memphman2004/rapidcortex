@@ -33,6 +33,7 @@ export * from "./war-room-types.js";
 export * from "./stakeholder-types.js";
 export * from "./review-types.js";
 export * from "./report-types.js";
+export * from "./reports/system-health.js";
 export * from "./billing/index.js";
 export * from "./monetization/index.js";
 export * from "./psap/index.js";
