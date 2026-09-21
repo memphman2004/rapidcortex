@@ -266,8 +266,8 @@ function QRIntakeClientInner({
       <ScanIntentChooser
         productLabel={theme.headerTitle}
         contextLabel={theme.agencyLabel}
-        agencyName={agencyDisplayName(loc, agencyFallback)}
-        zoneName={defaultLocation}
+        reportingPointName={agencyDisplayName(loc, agencyFallback)}
+        locationDetails={defaultLocation}
         vertical={location.vertical}
         agencyId={location.agencyId}
         guestAssistEnabled={isGuestAssistEnabled()}
