@@ -47,7 +47,6 @@ export async function saveTransitIntake(opts: {
     new PutCommand({
       TableName: transitTableEnv(TRANSIT_TABLE_ENV.config),
       Item: {
-        agencyId,
         sk: TRANSIT_INTAKE_SK,
         ...item,
       },

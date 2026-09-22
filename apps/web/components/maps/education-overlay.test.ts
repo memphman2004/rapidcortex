@@ -8,6 +8,7 @@ import {
   educationPropsFromFeature,
   educationViewportCacheKey,
   ensureEducationOverlayLayers,
+  isEducationFetchInBackoff,
   loadEducationOverlay,
   shouldFetchEducationLayer,
 } from "./education-overlay";
@@ -22,6 +23,14 @@ describe("education overlay zoom gate", () => {
     expect(shouldFetchEducationLayer(7.99)).toBe(false);
     expect(shouldFetchEducationLayer(8)).toBe(true);
     expect(shouldFetchEducationLayer(12)).toBe(true);
+  });
+});
+
+describe("education overlay error backoff", () => {
+  it("skips retries until the backoff window expires", () => {
+    expect(isEducationFetchInBackoff(0, 1_000)).toBe(false);
+    expect(isEducationFetchInBackoff(5_000, 4_999)).toBe(true);
+    expect(isEducationFetchInBackoff(5_000, 5_000)).toBe(false);
   });
 });
 

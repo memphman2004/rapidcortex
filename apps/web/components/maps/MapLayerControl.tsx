@@ -42,7 +42,7 @@ const OPERATIONAL_MENU: LayerToggleItem[] = [
   { key: "callerPin",      label: "Live Caller Location",  dot: "#0ea5e9" },
   { key: "callerTrail",    label: "Caller Movement Trail", dot: "#38bdf8" },
   { key: "psaps",          label: "PSAPs",                 dot: "#eab308" },
-  { key: "hospitals",      label: "Hospitals",             dot: "#60a5fa" },
+  { key: "hospitals",      label: "Medical",               dot: "#60a5fa" },
   { key: "emergencyRooms", label: "Emergency Rooms",       dot: "#93c5fd" },
   { key: "education",      label: "Schools / Campuses",    dot: "#dc2626" },
 ];

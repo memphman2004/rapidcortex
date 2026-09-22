@@ -8,12 +8,11 @@
 import type maplibregl from "maplibre-gl";
 import {
   isPsapMapFeatureCollection,
-  psapPinsToGeoJSON,
   type PsapMapFeatureCollection,
   type PsapMapFeatureProperties,
 } from "rapid-cortex-shared";
 import { EMPTY_OVERLAY_FC } from "./runtime-overlays";
-import { addOverlayLayer } from "./overlay-slot";
+import { addOverlayLayer, firstSymbolFont } from "./overlay-slot";
 
 export const PSAP_ICON_ID = "psap-icon";
 export const PSAP_ICON_URL = "/map-icons/psap.png";
@@ -36,15 +35,6 @@ function escapeHtml(str: string): string {
     .replace(/>/g, "&gt;")
     .replace(/"/g, "&quot;")
     .replace(/'/g, "&#039;");
-}
-
-function firstSymbolFont(map: maplibregl.Map): string[] {
-  for (const layer of map.getStyle()?.layers ?? []) {
-    if (layer.type !== "symbol") continue;
-    const font = (layer.layout as { "text-font"?: string[] } | undefined)?.["text-font"];
-    if (Array.isArray(font) && font.length > 0) return font;
-  }
-  return ["Noto Sans Regular"];
 }
 
 export function buildPsapPopupHTML(
@@ -150,31 +140,27 @@ export async function ensurePsapOverlayLayers(map: maplibregl.Map): Promise<void
   }
 
   if (!map.getLayer(OVERLAY_PSAPS_POINTS)) {
+    let added = false;
     if (hasIcon) {
-      addOverlayLayer(map, {
-        id: OVERLAY_PSAPS_POINTS,
-        type: "symbol",
-        source: OVERLAY_PSAPS_SOURCE,
-        filter: ["!", ["has", "point_count"]],
-        layout: {
-          "icon-image": PSAP_ICON_ID,
-          "icon-size": ["interpolate", ["linear"], ["zoom"], 5, 0.45, 10, 0.7, 15, 0.95],
-          "icon-allow-overlap": true,
-          "icon-ignore-placement": true,
-          "text-field": ["step", ["zoom"], "", 7, ["get", "name"]],
-          "text-size": 11,
-          "text-offset": [0, 1.25],
-          "text-anchor": "top",
-          "text-optional": true,
-          "text-font": firstSymbolFont(map),
-        },
-        paint: {
-          "text-color": "#fde68a",
-          "text-halo-color": "#0f1117",
-          "text-halo-width": 1.2,
-        },
-      });
-    } else {
+      try {
+        addOverlayLayer(map, {
+          id: OVERLAY_PSAPS_POINTS,
+          type: "symbol",
+          source: OVERLAY_PSAPS_SOURCE,
+          filter: ["!", ["has", "point_count"]],
+          layout: {
+            "icon-image": PSAP_ICON_ID,
+            "icon-size": ["interpolate", ["linear"], ["zoom"], 5, 0.45, 10, 0.7, 15, 0.95],
+            "icon-allow-overlap": true,
+            "icon-ignore-placement": true,
+          },
+        });
+        added = true;
+      } catch {
+        /* ALS style may reject mixed icon+glyph specs */
+      }
+    }
+    if (!added) {
       addOverlayLayer(map, {
         id: OVERLAY_PSAPS_POINTS,
         type: "circle",
@@ -212,19 +198,11 @@ export async function loadPsapOverlay(): Promise<PsapMapFeatureCollection> {
   const empty: PsapMapFeatureCollection = { type: "FeatureCollection", features: [] };
   try {
     const res = await fetch("/api/map/psaps", { credentials: "include" });
-    if (res.ok) {
-      const body: unknown = await res.json();
-      if (isPsapMapFeatureCollection(body)) {
-        overlayCache.set("psaps", body);
-        return body;
-      }
-    }
-    const pinsRes = await fetch("/api/rc-admin/psap-prospects/map-pins", { credentials: "include" });
-    if (!pinsRes.ok) return empty;
-    const pinsBody = (await pinsRes.json()) as { pins?: Parameters<typeof psapPinsToGeoJSON>[0] };
-    const fc = psapPinsToGeoJSON(pinsBody.pins ?? []);
-    overlayCache.set("psaps", fc);
-    return fc;
+    if (!res.ok) return empty;
+    const body: unknown = await res.json();
+    if (!isPsapMapFeatureCollection(body)) return empty;
+    overlayCache.set("psaps", body);
+    return body;
   } catch {
     return empty;
   }

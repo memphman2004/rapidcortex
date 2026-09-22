@@ -13,7 +13,7 @@ import {
   type AlsHospitalMapFeatureCollection,
 } from "rapid-cortex-shared";
 import { EMPTY_OVERLAY_FC } from "./runtime-overlays";
-import { addOverlayLayer } from "./overlay-slot";
+import { addOverlayLayer, firstSymbolFont } from "./overlay-slot";
 
 export const HOSPITAL_ICON_ID = "hospital-icon";
 export const HOSPITAL_ICON_URL = "/map-icons/hospital.png";
@@ -38,15 +38,6 @@ function escapeHtml(str: string): string {
     .replace(/'/g, "&#039;");
 }
 
-function firstSymbolFont(map: maplibregl.Map): string[] {
-  for (const layer of map.getStyle()?.layers ?? []) {
-    if (layer.type !== "symbol") continue;
-    const font = (layer.layout as { "text-font"?: string[] } | undefined)?.["text-font"];
-    if (Array.isArray(font) && font.length > 0) return font;
-  }
-  return ["Noto Sans Regular"];
-}
-
 export function hospitalPropsFromFeature(
   properties: GeoJSON.GeoJsonProperties | null | undefined,
 ): AlsHospitalFeatureProperties {
@@ -54,7 +45,7 @@ export function hospitalPropsFromFeature(
   const emergency = rec.emergencyRoom;
   return {
     id: typeof rec.id === "string" ? rec.id : "",
-    name: typeof rec.name === "string" ? rec.name : "Hospital",
+    name: typeof rec.name === "string" ? rec.name : "Medical",
     category: typeof rec.category === "string" ? rec.category : "hospital",
     emergencyRoom: emergency === true || emergency === "true" || emergency === 1,
     address: typeof rec.address === "string" ? rec.address : "",
@@ -65,7 +56,7 @@ export function hospitalPropsFromFeature(
 }
 
 export function buildHospitalHoverHTML(props: AlsHospitalFeatureProperties): string {
-  const name = escapeHtml(props.name || "Hospital");
+  const name = escapeHtml(props.name || "Medical");
   const address = escapeHtml(props.address);
   const phone = escapeHtml(props.phone);
   const distance = escapeHtml(props.distance);
@@ -265,8 +256,7 @@ const clusterLeaveByMap = new WeakMap<maplibregl.Map, () => void>();
 
 export function hospitalFacilityLabel(category: string, emergencyRoom: boolean): string {
   if (emergencyRoom || category === "hospital_emergency_room") return "Hospital";
-  if (category === "hospital_or_health_care_facility") return "Health care facility";
-  return "Hospital";
+  return "Medical";
 }
 
 export function hospitalDirectionsUrl(lng: number, lat: number): string {

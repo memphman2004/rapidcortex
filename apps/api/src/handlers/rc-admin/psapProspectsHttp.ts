@@ -145,10 +145,13 @@ export async function handler(event: APIGatewayProxyEventV2): Promise<APIGateway
     const method = (event.requestContext.http?.method ?? "GET").toUpperCase();
     const path = event.rawPath ?? event.requestContext.http?.path ?? "";
 
-    // GET /api/map/psaps — public directory GeoJSON for operational maps.
+    // GET /api/map/psaps — operational directory GeoJSON (any signed-in user).
+    // Do not require the PSAP Prospects CRM flag — dispatchers need nearby PSAPs
+    // even when outreach CRM is off.
     if (method === "GET" && (path.endsWith("/api/map/psaps") || path.endsWith("/map/psaps"))) {
-      const mapAuth = await requireAuthenticated(event);
-      if ("error" in mapAuth) return mapAuth.error;
+      const user = await getUserContext(event);
+      if (!user) return unauthorized();
+      if (!isUserAccountActive(user)) return unauthorized(ACCOUNT_INACTIVE_MESSAGE);
       return ok(psapPinsToGeoJSON(await cachedMapPins()));
     }
 

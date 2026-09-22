@@ -12,6 +12,7 @@ import {
   CallerCardPremiseNotesPanel,
 } from "@/components/dispatch/caller-card-panel";
 import { IncidentContextMap } from "@/components/dispatch/incident-context-map";
+import { psapIncidentsToMap } from "@/components/maps/map-incident-adapters";
 import { useLiveCallerLocations } from "@/hooks/use-live-caller-locations";
 import { IncidentMediaPanel } from "@/components/dispatch/incident-media-panel";
 import { IntelligenceWorkstation } from "@/components/dispatch/intelligence-workstation";
@@ -62,6 +63,10 @@ export function DispatcherIncidentMapPanel({
 }) {
   const mapPin = useMemo(() => resolveIncidentMapPin(incident), [incident]);
   const liveCallers = useLiveCallerLocations(incidentId);
+  const mapIncidents = useMemo(
+    () => (incident && mapPin ? psapIncidentsToMap([incident]) : []),
+    [incident, mapPin],
+  );
   const center = mapPin ?? (liveCallers[0]
     ? {
         lat: liveCallers[0]!.lat,
@@ -89,6 +94,7 @@ export function DispatcherIncidentMapPanel({
         liveCallers={liveCallers}
         incidentId={incidentId ?? undefined}
         reportPin={Boolean(mapPin)}
+        incidents={mapIncidents}
         fill
       />
     </div>

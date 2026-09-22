@@ -54,6 +54,8 @@ describe("hospital overlay helpers", () => {
       distanceMiles: "1.2",
     });
     expect(props.emergencyRoom).toBe(true);
+    expect(hospitalFacilityLabel("hospital_or_health_care_facility", false)).toBe("Medical");
+    expect(hospitalFacilityLabel("clinic", false)).toBe("Medical");
     expect(hospitalFacilityLabel(props.category, props.emergencyRoom)).toBe("Hospital");
     expect(hospitalTelHref(props.phone)).toBe("tel:4046161000");
     expect(hospitalDirectionsUrl(-84.382, 33.752)).toContain("33.752,-84.382");

@@ -159,6 +159,7 @@ export const AUDIT_EVENT_TYPES = {
   AUTOMATED_INVOICE_RESENT: "billing.automated_invoice.resent",
   VIDEO_ASSIST_SESSION_CREATED: "video_assist.session.created",
   VIDEO_ASSIST_SMS_SENT: "video_assist.sms.sent",
+  VIDEO_ASSIST_SMS_FAILED: "video_assist.sms.failed",
   VIDEO_ASSIST_TOKEN_OPENED: "video_assist.token.opened",
   VIDEO_ASSIST_CONSENT: "video_assist.consent.recorded",
   VIDEO_ASSIST_STREAM_STARTED: "video_assist.stream.started",

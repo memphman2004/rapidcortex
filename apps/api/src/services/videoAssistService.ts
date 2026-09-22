@@ -17,7 +17,7 @@ import {
 import { AUDIT_EVENT_TYPES, TenantAccessGuard } from "rapid-cortex-security";
 import { env } from "../lib/env.js";
 import { makeId } from "../lib/ids.js";
-import { sendVideoAssistSms } from "../lib/videoAssistSms.js";
+import { sendVideoAssistSms, videoAssistSmsFailureMessage } from "../lib/videoAssistSms.js";
 import { AuditRepository } from "../repositories/auditRepository.js";
 import type { VideoAssistDdbItem } from "../repositories/videoAssistRepository.js";
 import { VideoAssistRepository } from "../repositories/videoAssistRepository.js";
@@ -143,7 +143,7 @@ export class VideoAssistService {
       smsSentAt: sms.ok ? now : null,
       smsProviderRef: sms.providerRef ?? null,
       publicUrl,
-      lastError: sms.ok ? null : "SMS_SEND_FAILED",
+      lastError: sms.ok ? null : videoAssistSmsFailureMessage(sms),
     };
 
     item.events = [
@@ -151,8 +151,12 @@ export class VideoAssistService {
       { at: now, type: "token.issued", meta: { tokenHashPrefix: tokenHash.slice(0, 8) } },
       {
         at: now,
-        type: sms.ok ? "sms.requested" : "sms.logged",
-        meta: { ok: sms.ok, logOnly: Boolean(sms.logOnly) },
+        type: "sms.requested",
+        meta: {
+          ok: sms.ok,
+          provider: sms.provider,
+          errorCode: sms.ok ? undefined : sms.errorCode,
+        },
       },
     ];
 
@@ -178,6 +182,22 @@ export class VideoAssistService {
         actorId: user.userId,
         type: AUDIT_EVENT_TYPES.VIDEO_ASSIST_SMS_SENT,
         details: { sessionId, providerRef: sms.providerRef },
+        createdAt: now,
+        resourceType: "session",
+        resourceId: sessionId,
+      });
+    } else {
+      await auditRepo.create({
+        eventId: makeId("audit"),
+        agencyId: incident.agencyId,
+        incidentId,
+        actorId: user.userId,
+        type: AUDIT_EVENT_TYPES.VIDEO_ASSIST_SMS_FAILED,
+        details: {
+          sessionId,
+          provider: sms.provider,
+          errorCode: sms.errorCode,
+        },
         createdAt: now,
         resourceType: "session",
         resourceId: sessionId,
@@ -267,7 +287,8 @@ export class VideoAssistService {
       ...next,
       smsSentAt: sms.ok ? now : next.smsSentAt,
       smsProviderRef: sms.providerRef ?? next.smsProviderRef,
-      status: sms.ok ? "sms_sent" : next.status,
+      status: sms.ok ? "sms_sent" : "failed",
+      lastError: sms.ok ? null : videoAssistSmsFailureMessage(sms),
       updatedAt: now,
     };
     await repo.put(next);

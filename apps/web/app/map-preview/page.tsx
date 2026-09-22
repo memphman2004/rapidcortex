@@ -55,6 +55,7 @@ function MapPreviewContent() {
             lat={lat}
             lng={lng}
             label={label}
+            incidentId={incidentId}
             fill
             zoom={zoom}
             className="rounded-none border-0"

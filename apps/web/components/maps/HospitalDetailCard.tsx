@@ -23,7 +23,7 @@ export function HospitalDetailCard({
   return (
     <div
       role="dialog"
-      aria-label={props.name || "Hospital"}
+      aria-label={props.name || "Medical"}
       style={{
         position: "absolute",
         top: 12,
@@ -42,7 +42,7 @@ export function HospitalDetailCard({
       <button
         type="button"
         onClick={onClose}
-        aria-label="Close hospital details"
+        aria-label="Close medical details"
         style={{
           position: "absolute",
           top: 8,
@@ -58,10 +58,10 @@ export function HospitalDetailCard({
         ×
       </button>
       <div style={{ fontSize: 10, fontWeight: 700, color: "#60a5fa", letterSpacing: "0.06em", marginBottom: 4 }}>
-        HOSPITAL
+        MEDICAL
       </div>
       <div style={{ fontSize: 14, fontWeight: 700, color: "#e4dff5", paddingRight: 18, marginBottom: 4 }}>
-        {props.name || "Hospital"}
+        {props.name || "Medical"}
       </div>
       <div style={{ fontSize: 11, color: "#93c5fd", marginBottom: 6 }}>{facility}</div>
       {props.address ? (

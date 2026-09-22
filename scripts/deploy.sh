@@ -173,6 +173,10 @@ if [[ "$STAGE" == "dev" ]]; then
   # shellcheck source=scripts/lib/soc2-live-production-overrides.sh
   source "${ROOT}/scripts/lib/soc2-live-production-overrides.sh"
   rc_soc2_apply_live_production_overrides
+  # SOC2 forces CAD_WRITEBACK_ENABLED=false so this script will not *enable* write-back.
+  # Unset the override so we do not pass CadWritebackEnabled=false and disable an
+  # already-approved live pilot (current stack value is kept via UsePreviousValue).
+  unset CAD_WRITEBACK_ENABLED
 fi
 
 if [[ "$STAGE" == "staging" ]]; then

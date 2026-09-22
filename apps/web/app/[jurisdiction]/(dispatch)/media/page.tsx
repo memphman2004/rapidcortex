@@ -13,7 +13,7 @@ import { RapidVisionPanel } from "@/components/rapid-vision/RapidVisionPanel";
 import { useSession } from "@/components/auth/session-context";
 import { useOptionalJurisdictionSlug } from "@/lib/jurisdiction-context";
 import { defaultJurisdictionSlug } from "@/lib/marketing-links";
-import { GOOGLE_NEST_TM, NEST_TM, RING_TM, WYZE_TM } from "@/lib/brand-marks";
+import { GOOGLE_NEST_TM, NEST_TM, RING_TM, WYZE_TM, joinTrademarkList } from "@/lib/brand-marks";
 import { loadIncidents } from "@/lib/queries";
 import { isLiveVideoEnabled, isRapidVisionEnabled } from "@/lib/runtime-flags";
 import { isRapidVisionNestEnabled } from "@/lib/feature-flags";
@@ -220,7 +220,8 @@ export default function MediaPage() {
           <div className="min-h-0 flex-1 overflow-auto p-3">
             {providerCount === 0 ? (
               <p className="text-sm text-slate-400">
-                Select {RING_TM}, {NEST_TM}, {WYZE_TM}, and/or Facility above to view camera workflows
+                Select {joinTrademarkList([nestEnabled && NEST_TM, wyzeEnabled && WYZE_TM])}
+                {nestEnabled || wyzeEnabled ? " and/or " : ""}Facility above to view camera workflows
                 side by side.
               </p>
             ) : (

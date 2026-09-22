@@ -10,4 +10,4 @@
  */
 
 /** Master kill switch for Ring Connect / Ring camera APIs and UI. */
-export const RING_INTEGRATION_ENABLED = true;
+export const RING_INTEGRATION_ENABLED = false;

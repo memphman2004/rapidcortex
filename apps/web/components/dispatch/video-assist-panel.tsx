@@ -13,31 +13,19 @@ import {
   postVideoAssistMarkLive,
   postVideoAssistResend,
   postVideoAssistSession,
+  VideoAssistSmsNotSentError,
 } from "@/lib/api";
 import { PhoneInput } from "@/components/ui/phone-input";
 import { callerFacingPublicBaseUrl } from "@/lib/caller-facing-public-base";
+import {
+  canResendVideoAssistSms,
+  videoAssistFailureDetail,
+  videoAssistStatusLabel,
+} from "@/lib/video-assist-status";
 
 const DEFAULT_ICE: RTCConfiguration = {
   iceServers: [{ urls: "stun:stun.l.google.com:19302" }],
 };
-
-function statusLabel(status: VideoAssistDispatcherSession["status"]): string {
-  const map: Record<VideoAssistDispatcherSession["status"], string> = {
-    pending_send: "Link not sent",
-    sms_sent: "SMS sent",
-    delivered: "Delivered (if supported)",
-    opened: "Link opened",
-    consent_pending: "Consent recorded",
-    permission_pending: "Camera permission pending",
-    connecting: "Connecting…",
-    live: "Live",
-    paused: "Paused / interrupted",
-    ended: "Ended",
-    failed: "Failed",
-    canceled: "Canceled",
-  };
-  return map[status] ?? status;
-}
 
 function smsWasLogOnly(session: VideoAssistDispatcherSession | undefined): boolean {
   return (session?.events ?? []).some((ev) => ev.meta?.logOnly === true);
@@ -121,6 +109,7 @@ export function VideoAssistPanel({
   const callerOfferSdp = session?.callerOfferSdp ?? null;
   const sessionStatus = session?.status;
   const callerIce = session?.iceCaller;
+  const smsFailureDetail = session ? videoAssistFailureDetail(session) : null;
 
   useEffect(() => {
     const pc = pcRef.current;
@@ -219,13 +208,29 @@ export function VideoAssistPanel({
       return postVideoAssistSession(incidentId, body);
     },
     onSuccess: (data) => {
-      setLocalErr(null);
+      if (data.session.status === "failed") {
+        setLocalErr(videoAssistFailureDetail(data.session) ?? "The SMS was not sent. The caller did not receive a message.");
+      } else {
+        setLocalErr(null);
+      }
       setActiveSessionId(data.session.sessionId);
       setShowRequest(false);
       void queryClient.invalidateQueries({ queryKey: ["video-assist-sessions", incidentId] });
       void queryClient.invalidateQueries({ queryKey: ["video-assist-session", incidentId, data.session.sessionId] });
     },
-    onError: (e: Error) => setLocalErr(e.message),
+    onError: (e: Error) => {
+      if (e instanceof VideoAssistSmsNotSentError) {
+        setLocalErr(e.message);
+        setActiveSessionId(e.session.sessionId);
+        setShowRequest(false);
+        void queryClient.invalidateQueries({ queryKey: ["video-assist-sessions", incidentId] });
+        void queryClient.invalidateQueries({
+          queryKey: ["video-assist-session", incidentId, e.session.sessionId],
+        });
+        return;
+      }
+      setLocalErr(e.message);
+    },
   });
 
   const resendMut = useMutation({
@@ -237,7 +242,14 @@ export function VideoAssistPanel({
       setLocalErr(null);
       void sessionQuery.refetch();
     },
-    onError: (e: Error) => setLocalErr(e.message),
+    onError: (e: Error) => {
+      if (e instanceof VideoAssistSmsNotSentError) {
+        setLocalErr(e.message);
+        void sessionQuery.refetch();
+        return;
+      }
+      setLocalErr(e.message);
+    },
   });
 
   const cancelMut = useMutation({
@@ -388,15 +400,26 @@ export function VideoAssistPanel({
       {session ? (
         <div className="mt-3 space-y-2">
           <div className="flex flex-wrap items-center gap-2">
-            <span className="rounded bg-slate-800 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-sky-200 ring-1 ring-slate-600">
+            <span
+              className={`rounded px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide ring-1 ${
+                session.status === "failed"
+                  ? "bg-rose-950/60 text-rose-200 ring-rose-800"
+                  : "bg-slate-800 text-sky-200 ring-slate-600"
+              }`}
+            >
               {smsWasLogOnly(session) && session.status === "sms_sent"
                 ? "Link created — SMS not sent"
-                : statusLabel(session.status)}
+                : videoAssistStatusLabel(session.status)}
             </span>
             {session.streamStartedAt ? (
               <span className="text-[10px] text-slate-500">Stream started {new Date(session.streamStartedAt).toLocaleTimeString()}</span>
             ) : null}
           </div>
+          {smsFailureDetail ? (
+            <p className="text-[11px] text-rose-400" role="alert">
+              {smsFailureDetail}
+            </p>
+          ) : null}
 
           <div className="aspect-video w-full overflow-hidden rounded-md border border-slate-800 bg-black">
             <video ref={videoRef} playsInline autoPlay muted className="h-full w-full object-contain" />
@@ -405,7 +428,7 @@ export function VideoAssistPanel({
           <div className="flex flex-wrap gap-1.5">
             <button
               type="button"
-              disabled={resendMut.isPending || ["ended", "canceled", "failed"].includes(session.status)}
+              disabled={resendMut.isPending || !canResendVideoAssistSms(session.status)}
               onClick={() => resendMut.mutate()}
               className="rounded border border-slate-700 bg-slate-900 px-2 py-1 text-[11px] text-slate-200 hover:bg-slate-800 disabled:opacity-40"
             >

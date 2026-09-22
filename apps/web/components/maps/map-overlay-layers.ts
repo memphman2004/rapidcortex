@@ -1,6 +1,6 @@
 import type maplibregl from "maplibre-gl";
 import type { RCMapLayerVisibility } from "./map-types";
-import { addOverlayLayer } from "./overlay-slot";
+import { addOverlayLayer, firstSymbolFont } from "./overlay-slot";
 import {
   EMPTY_OVERLAY_FC as EMPTY_FC,
   OVERLAY_AIRPORTS_CIRCLE,
@@ -19,15 +19,6 @@ import {
 function safeSetVisibility(map: maplibregl.Map, layerId: string, visible: boolean): void {
   if (!map.getLayer(layerId)) return;
   map.setLayoutProperty(layerId, "visibility", visible ? "visible" : "none");
-}
-
-function firstSymbolFont(map: maplibregl.Map): string[] {
-  for (const layer of map.getStyle()?.layers ?? []) {
-    if (layer.type !== "symbol") continue;
-    const font = (layer.layout as { "text-font"?: string[] } | undefined)?.["text-font"];
-    if (Array.isArray(font) && font.length > 0) return font;
-  }
-  return ["Noto Sans Regular"];
 }
 
 function ensureSource(map: maplibregl.Map, id: string): void {

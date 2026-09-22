@@ -14,7 +14,7 @@ import {
 } from "rapid-cortex-shared";
 import { MAP_TOKENS as T } from "./map-constants";
 import { EMPTY_OVERLAY_FC } from "./runtime-overlays";
-import { addOverlayLayer } from "./overlay-slot";
+import { addOverlayLayer, firstSymbolFont } from "./overlay-slot";
 
 export const EDUCATION_ICON_ID = "education-icon";
 export const EDUCATION_ICON_URL = "/map-icons/education.png";
@@ -36,6 +36,12 @@ export const EDUCATION_CACHE_TTL_MS = 5 * 60 * 1000;
 
 export const EDUCATION_UNAVAILABLE_MESSAGE = "Schools / Campuses are temporarily unavailable.";
 export const EDUCATION_ZOOM_HINT = "Zoom in to view schools and campuses.";
+export const EDUCATION_ERROR_BACKOFF_MS = 120_000;
+
+/** True while Places education queries should not be retried after a failure. */
+export function isEducationFetchInBackoff(errorUntilMs: number, now = Date.now()): boolean {
+  return errorUntilMs > now;
+}
 
 export type EducationLayerState = {
   visible: boolean;
@@ -64,14 +70,6 @@ const clusterLeaveByMap = new WeakMap<maplibregl.Map, () => void>();
 type EducationCacheEntry = { expiresAt: number; data: EducationMapFeatureCollection };
 const educationCache = new Map<string, EducationCacheEntry>();
 
-function firstSymbolFont(map: maplibregl.Map): string[] {
-  for (const layer of map.getStyle()?.layers ?? []) {
-    if (layer.type !== "symbol") continue;
-    const font = (layer.layout as { "text-font"?: string[] } | undefined)?.["text-font"];
-    if (Array.isArray(font) && font.length > 0) return font;
-  }
-  return ["Noto Sans Regular"];
-}
 
 export function shouldFetchEducationLayer(zoom: number): boolean {
   return zoom >= MIN_EDUCATION_ZOOM;

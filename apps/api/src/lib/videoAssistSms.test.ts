@@ -60,4 +60,12 @@ describe("sendVideoAssistSms", () => {
     expect(r.ok).toBe(false);
     expect(r.errorCode).toBe("ACCESS_DENIED");
   });
+
+  it("builds a dispatcher-facing lastError when send fails", async () => {
+    const { videoAssistSmsFailureMessage } = await import("./videoAssistSms.js");
+    expect(videoAssistSmsFailureMessage({})).toBe(
+      "The SMS was not sent. The caller did not receive a message.",
+    );
+    expect(videoAssistSmsFailureMessage({ errorCode: "ACCESS_DENIED" })).toContain("ACCESS_DENIED");
+  });
 });

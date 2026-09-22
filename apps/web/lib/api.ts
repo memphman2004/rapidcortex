@@ -82,6 +82,7 @@ import type {
   ScenarioResult,
   ScenarioVertical,
 } from "rapid-cortex-shared";
+import { VIDEO_ASSIST_SMS_NOT_RECEIVED_MESSAGE } from "rapid-cortex-shared";
 
 function normalizeApiOrigin(raw: string | undefined): string {
   const s = raw?.trim();
@@ -259,6 +260,50 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
   });
   const text = await res.text();
   const body = text ? (JSON.parse(text) as unknown) : null;
+  if (!res.ok) {
+    throw new Error(formatJsonErrorMessage(body, res.status));
+  }
+  return body as T;
+}
+
+export class VideoAssistSmsNotSentError extends Error {
+  readonly session: VideoAssistDispatcherSession;
+
+  constructor(session: VideoAssistDispatcherSession, message: string) {
+    super(message);
+    this.name = "VideoAssistSmsNotSentError";
+    this.session = session;
+  }
+}
+
+function throwIfVideoAssistSmsNotSent(status: number, body: unknown): void {
+  if (status !== 502 || !body || typeof body !== "object") return;
+  const rec = body as Record<string, unknown>;
+  if (rec.error !== "sms_not_sent") return;
+  const session = rec.session;
+  if (!session || typeof session !== "object") return;
+  const sessionId = (session as { sessionId?: unknown }).sessionId;
+  if (typeof sessionId !== "string" || !sessionId) return;
+  const message =
+    typeof rec.message === "string" && rec.message.trim()
+      ? rec.message
+      : VIDEO_ASSIST_SMS_NOT_RECEIVED_MESSAGE;
+  throw new VideoAssistSmsNotSentError(session as VideoAssistDispatcherSession, message);
+}
+
+async function requestVideoAssist<T>(path: string, init?: RequestInit): Promise<T> {
+  const API_BASE = resolveApiBaseForPath(path);
+  if (!API_BASE) {
+    throw new Error("API base URL not configured");
+  }
+  const res = await fetch(`${API_BASE}${path}`, {
+    ...init,
+    credentials: usesCookieBackedBff() ? "include" : (init?.credentials ?? "same-origin"),
+    headers: { ...jsonHeaders, ...init?.headers },
+  });
+  const text = await res.text();
+  const body = text ? (JSON.parse(text) as unknown) : null;
+  throwIfVideoAssistSmsNotSent(res.status, body);
   if (!res.ok) {
     throw new Error(formatJsonErrorMessage(body, res.status));
   }
@@ -901,7 +946,7 @@ export async function postVideoAssistSession(
   incidentId: string,
   body: CreateVideoAssistSessionBody,
 ): Promise<{ session: VideoAssistDispatcherSession; token: string; publicUrl: string }> {
-  return request(`/api/incidents/${encodeURIComponent(incidentId)}/video-assist/sessions`, {
+  return requestVideoAssist(`/api/incidents/${encodeURIComponent(incidentId)}/video-assist/sessions`, {
     method: "POST",
     body: JSON.stringify(body),
   });
@@ -917,7 +962,7 @@ export async function fetchVideoAssistSession(
 }
 
 export async function postVideoAssistResend(incidentId: string, sessionId: string): Promise<VideoAssistDispatcherSession> {
-  return request(
+  return requestVideoAssist(
     `/api/incidents/${encodeURIComponent(incidentId)}/video-assist/sessions/${encodeURIComponent(sessionId)}/resend`,
     { method: "POST", body: JSON.stringify({}) },
   );

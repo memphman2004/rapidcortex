@@ -42,8 +42,6 @@ import {
   SECTION_LINE_LAYER,
   SECTION_SOURCE_ID,
   SECTION_STATUS_COLOR_EXPRESSION,
-  SEVERITY_COLOR_EXPRESSION,
-  SEVERITY_RADIUS_EXPRESSION,
   STUDIO_LAYER_GROUPS,
   STUDIO_LAYER_IDS,
 } from "./map-constants";
@@ -67,12 +65,16 @@ import {
   setLiveCallerOverlayData,
 } from "./live-caller-overlay";
 import {
+  ensureIncidentPulseImage,
+  INCIDENT_PULSE_IMAGE_ID,
+} from "./incident-marker-overlay";
+import {
   applyRuntimeOverlayVisibility,
   applyTrafficLayerVisibility,
   ensureRuntimeOverlayLayers,
   setOverlaySourceData,
 } from "./map-overlay-layers";
-import { addOverlayLayer, promoteOverlaySlots } from "./overlay-slot";
+import { addOverlayLayer, firstSymbolFont, promoteOverlaySlots, tryAddOverlayLayer } from "./overlay-slot";
 import {
   discoverTrafficLayerIds,
   EMPTY_OVERLAY_FC,
@@ -117,10 +119,11 @@ import {
   applyEducationOverlayVisibility,
   bindEducationOverlayInteractions,
   EDUCATION_FETCH_DEBOUNCE_MS,
+  EDUCATION_ERROR_BACKOFF_MS,
   EDUCATION_OVERLAY_LAYER_IDS,
-  EDUCATION_UNAVAILABLE_MESSAGE,
   EDUCATION_ZOOM_HINT,
   ensureEducationOverlayLayers,
+  isEducationFetchInBackoff,
   lastEducationOverlayData,
   loadEducationOverlay,
   setEducationOverlayData,
@@ -283,6 +286,8 @@ export default function RapidCortexMapCore({
   const hospitalSelectRef = useRef<HospitalSelectHandler>(() => undefined);
   const educationSelectRef = useRef<EducationSelectHandler>(() => undefined);
   const educationAbortRef = useRef<AbortController | null>(null);
+  const educationErrorUntilRef = useRef(0);
+  const selectedIncidentIdRef = useRef(selectedIncidentId);
   const liveCallersRef = useRef<RCLiveCaller[]>(liveCallers ?? []);
   const callerLocationRef = useRef<RCCallerLocation | null | undefined>(callerLocation);
   const liveCallerClickRef = useRef(onLiveCallerClick);
@@ -327,6 +332,7 @@ export default function RapidCortexMapCore({
   incidentClickRef.current = onIncidentClick;
   liveCallersRef.current = liveCallers ?? [];
   callerLocationRef.current = callerLocation;
+  selectedIncidentIdRef.current = selectedIncidentId;
 
   const fallbackLiveCallerUpdatedAt = (id: string, coordKey: string): string => {
     const existing = liveCallerSeenAtRef.current.get(id);
@@ -896,6 +902,7 @@ export default function RapidCortexMapCore({
       setEducationOverlayData(map, EMPTY_OVERLAY_FC);
       setSelectedEducation(null);
       setEducationHint(null);
+      educationErrorUntilRef.current = 0;
     }
   }, [mapReady, layers.education]);
 
@@ -912,16 +919,18 @@ export default function RapidCortexMapCore({
         setEducationHint("zoom");
         return;
       }
-      setEducationHint(null);
+      if (isEducationFetchInBackoff(educationErrorUntilRef.current)) {
+        return;
+      }
       educationAbortRef.current?.abort();
       const controller = new AbortController();
       educationAbortRef.current = controller;
       const center = map.getCenter();
       const bounds = map.getBounds();
       const origin = hospitalDistanceOrigin(
-        callerLocation,
+        callerLocationRef.current,
         incidentsRef.current,
-        selectedIncidentId,
+        selectedIncidentIdRef.current,
       );
       const result = await loadEducationOverlay(
         {
@@ -939,9 +948,12 @@ export default function RapidCortexMapCore({
       );
       if (cancelled || controller.signal.aborted) return;
       if (!result.ok) {
-        if (!result.aborted) setEducationHint("error");
+        if (!result.aborted) {
+          educationErrorUntilRef.current = Date.now() + EDUCATION_ERROR_BACKOFF_MS;
+        }
         return;
       }
+      educationErrorUntilRef.current = 0;
       setEducationHint(null);
       setEducationOverlayData(map, result.data);
     };
@@ -962,15 +974,13 @@ export default function RapidCortexMapCore({
       }, EDUCATION_FETCH_DEBOUNCE_MS);
     };
     map.on("moveend", onMoveEnd);
-    map.on("zoomend", onMoveEnd);
     return () => {
       cancelled = true;
       if (timer) clearTimeout(timer);
       educationAbortRef.current?.abort();
       map.off("moveend", onMoveEnd);
-      map.off("zoomend", onMoveEnd);
     };
-  }, [mapReady, layers.education, callerLocation, selectedIncidentId]);
+  }, [mapReady, layers.education]);
 
   // Fit once when the first geocoded incidents arrive after style load.
   useEffect(() => {
@@ -1116,7 +1126,7 @@ export default function RapidCortexMapCore({
         />
       )}
 
-      {educationHint && (
+      {educationHint === "zoom" && (
         <div
           style={{
             position: "absolute",
@@ -1134,7 +1144,7 @@ export default function RapidCortexMapCore({
             maxWidth: 280,
           }}
         >
-          {educationHint === "zoom" ? EDUCATION_ZOOM_HINT : EDUCATION_UNAVAILABLE_MESSAGE}
+          {EDUCATION_ZOOM_HINT}
         </div>
       )}
 
@@ -1326,14 +1336,14 @@ function ensureLiveLayers(
   }
 
   if (!map.getLayer(SECTION_LABEL_LAYER)) {
-    addOverlayLayer(map, {
+    tryAddOverlayLayer(map, {
       id: SECTION_LABEL_LAYER,
       type: "symbol",
       source: SECTION_SOURCE_ID,
       layout: {
         "text-field": ["get", "label"],
         "text-size": 11,
-        "text-font": ["DIN Offc Pro Medium", "Arial Unicode MS Regular"],
+        "text-font": firstSymbolFont(map),
         "text-anchor": "center",
         "text-max-width": 6,
       },
@@ -1347,6 +1357,8 @@ function ensureLiveLayers(
 
   applySectionLayerVisibility(map, sections, extrude);
 
+  ensureIncidentPulseImage(map);
+
   if (!map.getSource(LIVE_SOURCE_ID)) {
     map.addSource(LIVE_SOURCE_ID, {
       type: "geojson",
@@ -1358,34 +1370,31 @@ function ensureLiveLayers(
     );
   }
 
+  if (!map.getLayer(LIVE_PULSE_LAYER)) {
+    addOverlayLayer(map, {
+      id:     LIVE_PULSE_LAYER,
+      type:   "symbol",
+      source: LIVE_SOURCE_ID,
+      filter: ["in", ["get", "status"], ["literal", ["active", "responding"]]],
+      layout: {
+        "icon-image": INCIDENT_PULSE_IMAGE_ID,
+        "icon-size": 0.7,
+        "icon-allow-overlap": true,
+        "icon-ignore-placement": true,
+      },
+    });
+  }
+
   if (!map.getLayer(LIVE_ACTIVE_LAYER)) {
     addOverlayLayer(map, {
       id:     LIVE_ACTIVE_LAYER,
       type:   "circle",
       source: LIVE_SOURCE_ID,
-      filter: ["!=", ["get", "status"], "resolved"],
+      filter: ["in", ["get", "status"], ["literal", ["active", "responding"]]],
       paint:  {
-        "circle-radius":       SEVERITY_RADIUS_EXPRESSION,
-        "circle-color":        SEVERITY_COLOR_EXPRESSION,
-        "circle-opacity":      0.92,
-        "circle-stroke-width": 2,
-        "circle-stroke-color": "#ffffff",
-      },
-    });
-  }
-
-  if (!map.getLayer(LIVE_PULSE_LAYER)) {
-    addOverlayLayer(map, {
-      id:     LIVE_PULSE_LAYER,
-      type:   "circle",
-      source: LIVE_SOURCE_ID,
-      filter: ["in", ["get", "severity"], ["literal", ["critical", "high"]]],
-      paint:  {
-        "circle-radius":         ["interpolate", ["linear"], ["zoom"], 8, 18, 14, 24],
-        "circle-color":          "transparent",
-        "circle-stroke-width":   2,
-        "circle-stroke-color":   "#ef4444",
-        "circle-stroke-opacity": 0.35,
+        "circle-radius": 18,
+        "circle-color": "#ef4444",
+        "circle-opacity": 0,
       },
     });
   }
@@ -1432,7 +1441,7 @@ function ensureLiveLayers(
   }
 
   if (!map.getLayer(CALLER_LABEL_LAYER)) {
-    addOverlayLayer(map, {
+    tryAddOverlayLayer(map, {
       id:     CALLER_LABEL_LAYER,
       type:   "symbol",
       source: CALLER_SOURCE_ID,
@@ -1441,7 +1450,7 @@ function ensureLiveLayers(
         "text-size":       11,
         "text-offset":     [0, 1.8],
         "text-anchor":     "top",
-        "text-font":       ["DIN Offc Pro Medium", "Arial Unicode MS Regular"],
+        "text-font":       firstSymbolFont(map),
         "text-max-width":  10,
       },
       paint: {
@@ -1492,7 +1501,7 @@ function ensureLiveLayers(
   }
 
   if (!map.getLayer(OPS_LABEL_LAYER)) {
-    addOverlayLayer(map, {
+    tryAddOverlayLayer(map, {
       id: OPS_LABEL_LAYER,
       type: "symbol",
       source: OPS_SOURCE_ID,
@@ -1501,7 +1510,7 @@ function ensureLiveLayers(
         "text-size": 10,
         "text-offset": [0, 1.4],
         "text-anchor": "top",
-        "text-font": ["DIN Offc Pro Medium", "Arial Unicode MS Regular"],
+        "text-font": firstSymbolFont(map),
         "text-max-width": 8,
       },
       paint: {

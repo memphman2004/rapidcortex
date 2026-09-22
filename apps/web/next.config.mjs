@@ -245,6 +245,10 @@ const nextConfig = {
         { source: "/api/psap/continuity", destination: "/api/rcs/calls" },
         { source: "/api/psap/continuity/:path*", destination: "/api/rcs/calls/:path*" },
         { source: "/api/events/features", destination: "/api/features" },
+        {
+          source: "/api/incidents/:incidentId/intelligence",
+          destination: "/api/incidents/:incidentId/vision/intelligence",
+        },
       ],
       afterFiles: [
         // Flat alias for aggregated readiness (same handler as `/api/health/chain`); avoids rare CDN/proxy confusion on nested paths.
